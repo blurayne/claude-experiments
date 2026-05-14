@@ -11,7 +11,9 @@ This repository is used for experiments. Each experiment lives in its own subfol
 
 ## Git workflow
 
-- The default branch is `main` and always will be. Commit and push directly to `main`.
+- The default branch is `main` and always will be. The deployed site is built from `main`, so every change must land there.
+- Commit and push directly to `main` when possible.
+- If the session harness pins you to a feature branch (e.g. `claude/<slug>`), do the work there and then **always** fast-forward `main` to that branch and push `main` before reporting done. Do not leave changes stranded on a feature branch.
 - Do not open pull requests.
 - Keep commits small and descriptive.
 
