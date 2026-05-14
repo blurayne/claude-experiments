@@ -1,0 +1,1497 @@
+<!doctype html>
+<html lang="en" data-tier="basic" data-mode="auto">
+<head>
+  <meta charset="utf-8"/>
+  <title>Microbes &amp; cells — overview — Variant: basics (~30 entries)</title>
+  <style>
+@page {
+  size: A4 landscape;
+  margin: 8mm;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: #1a1a1a;
+  background: #fafafa;
+}
+.page {
+  width: 281mm;
+  height: 194mm;
+  page-break-after: always;
+  display: flex;
+  flex-direction: column;
+  padding: 4mm 6mm 6mm;
+  background: #fff;
+}
+.page:last-child { page-break-after: auto; }
+.page-header {
+  border-bottom: 2px solid #1d3557;
+  padding-bottom: 2mm;
+  margin-bottom: 3mm;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.page-title { font-size: 14pt; font-weight: 700; color: #1d3557; margin: 0; }
+.page-subtitle { font-size: 9pt; color: #555; margin-left: 8mm; flex: 1; }
+.page-number { font-size: 8pt; color: #888; }
+.page-description {
+  font-size: 8pt;
+  color: #333;
+  margin: 0 0 2.5mm;
+  line-height: 1.35;
+  font-style: italic;
+  border-left: 2px solid #a8c5d6;
+  padding: 0 0 0 2.5mm;
+}
+.grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 3mm;
+}
+.cell {
+  border: 1px solid #ccc;
+  border-radius: 2mm;
+  padding: 2mm 2.5mm;
+  display: flex;
+  flex-direction: column;
+  background: #fefefe;
+  break-inside: avoid;
+}
+.cell-name {
+  font-size: 10.5pt;
+  font-weight: 700;
+  color: #1d3557;
+  margin: 0 0 1.5mm;
+  line-height: 1.15;
+}
+.images {
+  margin-bottom: 1.5mm;
+}
+.images svg { width: 100%; height: auto; display: block; }
+.images img { width: 100%; height: auto; display: block; object-fit: cover; }
+.images.images-3 {
+  display: flex;
+  gap: 1.5mm;
+}
+.images.images-3 .image-cell { flex: 1; }
+.images.images-4 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 1.5mm;
+}
+.image-cell { text-align: center; }
+.image-label {
+  font-size: 6pt;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 0.5mm;
+}
+.image-placeholder {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: repeating-linear-gradient(
+    45deg,
+    #f3f3f3,
+    #f3f3f3 3px,
+    #e8e8e8 3px,
+    #e8e8e8 6px
+  );
+  border: 1px dashed #bbb;
+  border-radius: 1mm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #888;
+  font-size: 6pt;
+  text-align: center;
+  padding: 1mm;
+}
+.text-block { font-size: 8pt; line-height: 1.3; color: #222; }
+.text-block p { margin: 0 0 1mm; }
+.text-block .label {
+  font-weight: 700; color: #1d3557; font-size: 7.5pt;
+  text-transform: uppercase; letter-spacing: 0.3px;
+}
+.cover {
+  height: 194mm;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 20mm;
+}
+.cover h1 { font-size: 28pt; color: #1d3557; margin: 0 0 4mm; }
+.cover .subtitle { font-size: 14pt; color: #555; margin-bottom: 12mm; }
+.cover .toc {
+  text-align: left;
+  font-size: 11pt;
+  column-count: 2;
+  column-gap: 14mm;
+  width: 200mm;
+}
+.cover .toc li { margin-bottom: 2mm; }
+.cover .note {
+  margin-top: 14mm; font-size: 8pt; color: #888; max-width: 200mm;
+}
+.cover .variant {
+  margin-top: 6mm; font-size: 10pt; color: #1d3557; font-weight: 600;
+}
+.credits-page { padding: 8mm 12mm; }
+.credits-page h2 {
+  font-size: 16pt; color: #1d3557; margin: 0 0 4mm;
+  border-bottom: 2px solid #1d3557; padding-bottom: 2mm;
+}
+.credits-list {
+  font-size: 7.5pt; line-height: 1.4; color: #333;
+  column-count: 2; column-gap: 8mm;
+}
+.credits-list .credit { break-inside: avoid; margin-bottom: 1.5mm; }
+.credits-list .credit-name { font-weight: 700; color: #1d3557; }
+.credits-list .credit-license { color: #666; font-style: italic; }
+.credits-list .credit-url { color: #4a6fa5; word-break: break-all; }
+@media screen {
+  body { padding: 20px 0; }
+  .page { margin: 0 auto 20px; box-shadow: 0 4px 18px rgba(0,0,0,0.12); }
+}
+</style>
+</head>
+<body class="tier-basic mode-auto">
+  
+    <section class="page">
+      <div class="cover">
+        <h1>Microbes &amp; cells — overview</h1>
+        <p class="subtitle">Immune cells, pathogens and body cells side by side</p>
+        <p class="variant">Variant: basics (~30 entries)</p>
+        <div class="toc">
+          <strong>Contents</strong>
+          <ol><li>1. Immune cells — Lymphocytes</li><li>2. Immune cells — Phagocytes &amp; Granulocytes</li><li>3. Pathogens</li><li>4. Well-known bacteria</li><li>5. Well-known viruses &amp; other pathogens</li><li>6. Hematopoietic lineage</li><li>7. Mesenchymal lineage</li><li>8. Neural lineage</li><li>9. Epithelial lineage</li><li>10. Endothelial lineage</li><li>11. Induced pluripotent stem cells (iPS)</li></ol>
+        </div>
+        <p class="note">Where a real microscope photograph is available, it is shown; otherwise a stylised microscope-style sketch. The infographic and kids styles are hand-drawn SVGs.</p>
+      </div>
+    </section>
+  
+    <section class="page kind-immune-lymph">
+      <header class="page-header">
+        <h2 class="page-title">Immune cells — Lymphocytes</h2>
+        <span class="page-subtitle">The specialised troops of adaptive immunity.</span>
+        <span class="page-number">Page 2 / 13</span>
+      </header>
+      <p class="page-description">Lymphocytes are small white blood cells with a large round nucleus. They mature in bone marrow (B, NK) or the thymus (T), circulate through blood and lymph, and gather in lymph nodes, spleen and mucosal tissues.</p>
+      <div class="grid">
+        
+    <div class="cell tier-basic kind-immune-lymph">
+      <h3 class="cell-name">Helper T cell (CD4)</h3>
+      <div class="images images-3">
+        <div class="image-cell img-microscope-svg">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img micro">
+  <defs>
+    <radialGradient id="vig" cx="50%" cy="50%" r="55%">
+      <stop offset="60%" stop-color="#f4d9e6" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#1a0a14" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/></filter>
+  </defs>
+  <circle cx="110" cy="110" r="105" fill="url(#vig)"/>
+  <g><circle cx="110" cy="110" r="65" fill="#f0a8c0" stroke="#6a224a" stroke-width="2"/><circle cx="106" cy="108" r="50" fill="#5a2a64" opacity="0.85"/><circle cx="100" cy="100" r="20" fill="#9b4a82" opacity="0.4"/></g>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#000" stroke-width="6"/>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#888" stroke-width="1"/>
+</svg><div class="image-label">Microscope style</div></div>
+        <div class="image-cell img-infographic">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img flat">
+  <rect width="220" height="220" rx="14" fill="#1d3557"/>
+  <g><circle cx="110" cy="110" r="65" fill="#90be6d" stroke="#0e2a47" stroke-width="4"/><circle cx="106" cy="108" r="50" fill="#1b4332" stroke="#0e2a47" stroke-width="3"/><circle cx="98" cy="100" r="6" fill="#fff" opacity="0.5"/></g>
+</svg><div class="image-label">Infographic style</div></div>
+        <div class="image-cell img-kids">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img cute">
+  <rect width="220" height="220" rx="14" fill="#fff8e1"/>
+  <g><circle cx="110" cy="118" r="65" fill="#90be6d" stroke="#222" stroke-width="3"/><ellipse cx="97" cy="101.6" rx="8" ry="11" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="123" cy="101.6" rx="8" ry="11" fill="white" stroke="#222" stroke-width="2"/><circle cx="97" cy="103.8" r="4.4" fill="#222"/><circle cx="123" cy="103.8" r="4.4" fill="#222"/><circle cx="99" cy="101.6" r="1.54" fill="white"/><circle cx="125" cy="101.6" r="1.54" fill="white"/><path d="M 96.8 114.8 Q 110 128.0 123.2 114.8" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M 82 148 Q 110 158 138 148" stroke="#222" stroke-width="2" fill="none"/></g>
+</svg><div class="image-label">Kids style</div></div>
+      </div>
+      <div class="text-block">
+        <p><span class="label">Function:</span> Conductor of the immune response: recognises antigen fragments shown by other cells and releases messengers that switch other cells on.</p>
+        <p><span class="label">Depends on / Targets:</span> Needs antigen-presenting cells (dendritic cells, macrophages). Activates B cells and CD8 killer cells.</p>
+      </div>
+    </div>
+
+    <div class="cell tier-basic kind-immune-lymph">
+      <h3 class="cell-name">Cytotoxic T cell (CD8)</h3>
+      <div class="images images-3">
+        <div class="image-cell img-microscope-svg">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img micro">
+  <defs>
+    <radialGradient id="vig" cx="50%" cy="50%" r="55%">
+      <stop offset="60%" stop-color="#f4d9e6" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#1a0a14" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/></filter>
+  </defs>
+  <circle cx="110" cy="110" r="105" fill="url(#vig)"/>
+  <g><circle cx="110" cy="110" r="65" fill="#f0a8c0" stroke="#6a224a" stroke-width="2"/><circle cx="106" cy="108" r="50" fill="#5a2a64" opacity="0.85"/><circle cx="100" cy="100" r="20" fill="#9b4a82" opacity="0.4"/></g>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#000" stroke-width="6"/>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#888" stroke-width="1"/>
+</svg><div class="image-label">Microscope style</div></div>
+        <div class="image-cell img-infographic">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img flat">
+  <rect width="220" height="220" rx="14" fill="#1d3557"/>
+  <g><circle cx="110" cy="110" r="65" fill="#e63946" stroke="#0e2a47" stroke-width="4"/><circle cx="106" cy="108" r="50" fill="#5c0a13" stroke="#0e2a47" stroke-width="3"/><circle cx="98" cy="100" r="6" fill="#fff" opacity="0.5"/></g>
+</svg><div class="image-label">Infographic style</div></div>
+        <div class="image-cell img-kids">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img cute">
+  <rect width="220" height="220" rx="14" fill="#fff8e1"/>
+  <g><circle cx="110" cy="118" r="65" fill="#e63946" stroke="#222" stroke-width="3"/><ellipse cx="97" cy="101.6" rx="8" ry="11" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="123" cy="101.6" rx="8" ry="11" fill="white" stroke="#222" stroke-width="2"/><circle cx="97" cy="103.8" r="4.4" fill="#222"/><circle cx="123" cy="103.8" r="4.4" fill="#222"/><circle cx="99" cy="101.6" r="1.54" fill="white"/><circle cx="125" cy="101.6" r="1.54" fill="white"/><path d="M 96.8 114.8 Q 110 128.0 123.2 114.8" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M 82 148 Q 110 158 138 148" stroke="#222" stroke-width="2" fill="none"/></g>
+</svg><div class="image-label">Kids style</div></div>
+      </div>
+      <div class="text-block">
+        <p><span class="label">Function:</span> Killer cell: spots infected or tumour cells by their MHC-I signal and kills them precisely with perforin and granzymes.</p>
+        <p><span class="label">Depends on / Targets:</span> Primed by dendritic cells, often with help from CD4 T cells. Targets virus-infected body cells and tumour cells.</p>
+      </div>
+    </div>
+
+    <div class="cell tier-basic kind-immune-lymph">
+      <h3 class="cell-name">B cell</h3>
+      <div class="images images-3">
+        <div class="image-cell img-microscope-svg">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img micro">
+  <defs>
+    <radialGradient id="vig" cx="50%" cy="50%" r="55%">
+      <stop offset="60%" stop-color="#f4d9e6" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#1a0a14" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/></filter>
+  </defs>
+  <circle cx="110" cy="110" r="105" fill="url(#vig)"/>
+  <g><circle cx="110" cy="110" r="68" fill="#f0a8c0" stroke="#6a224a" stroke-width="2"/><circle cx="108" cy="110" r="52" fill="#5a2a64" opacity="0.85"/><circle cx="100" cy="100" r="20" fill="#9b4a82" opacity="0.4"/></g>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#000" stroke-width="6"/>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#888" stroke-width="1"/>
+</svg><div class="image-label">Microscope style</div></div>
+        <div class="image-cell img-infographic">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img flat">
+  <rect width="220" height="220" rx="14" fill="#1d3557"/>
+  <g><circle cx="110" cy="110" r="68" fill="#f3722c" stroke="#0e2a47" stroke-width="4"/><circle cx="108" cy="110" r="52" fill="#5a1f00" stroke="#0e2a47" stroke-width="3"/><circle cx="100" cy="102" r="6" fill="#fff" opacity="0.5"/></g>
+</svg><div class="image-label">Infographic style</div></div>
+        <div class="image-cell img-kids">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img cute">
+  <rect width="220" height="220" rx="14" fill="#fff8e1"/>
+  <g><circle cx="110" cy="118" r="68" fill="#f3722c" stroke="#222" stroke-width="3"/><ellipse cx="97" cy="101.6" rx="8" ry="11" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="123" cy="101.6" rx="8" ry="11" fill="white" stroke="#222" stroke-width="2"/><circle cx="97" cy="103.8" r="4.4" fill="#222"/><circle cx="123" cy="103.8" r="4.4" fill="#222"/><circle cx="99" cy="101.6" r="1.54" fill="white"/><circle cx="125" cy="101.6" r="1.54" fill="white"/><path d="M 96.8 114.8 Q 110 128.0 123.2 114.8" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M 82 148 Q 110 158 138 148" stroke="#222" stroke-width="2" fill="none"/></g>
+</svg><div class="image-label">Kids style</div></div>
+      </div>
+      <div class="text-block">
+        <p><span class="label">Function:</span> Antibody factory: binds antigen with its B-cell receptor and matures into plasma cells that pump out tailored antibodies.</p>
+        <p><span class="label">Depends on / Targets:</span> Usually needs help from CD4 T cells to switch into high gear. Targets free bacteria, virus particles and toxins in blood and tissue.</p>
+      </div>
+    </div>
+
+    <div class="cell tier-basic kind-immune-lymph">
+      <h3 class="cell-name">Natural killer cell (NK)</h3>
+      <div class="images images-3">
+        <div class="image-cell img-microscope-svg">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img micro">
+  <defs>
+    <radialGradient id="vig" cx="50%" cy="50%" r="55%">
+      <stop offset="60%" stop-color="#f4d9e6" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#1a0a14" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/></filter>
+  </defs>
+  <circle cx="110" cy="110" r="105" fill="url(#vig)"/>
+  <g><circle cx="110" cy="110" r="68" fill="#f0a8c0" stroke="#6a224a" stroke-width="2"/><circle cx="106" cy="108" r="50" fill="#5a2a64" opacity="0.85"/><circle cx="100" cy="100" r="20" fill="#9b4a82" opacity="0.4"/></g>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#000" stroke-width="6"/>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#888" stroke-width="1"/>
+</svg><div class="image-label">Microscope style</div></div>
+        <div class="image-cell img-infographic">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img flat">
+  <rect width="220" height="220" rx="14" fill="#1d3557"/>
+  <g><circle cx="110" cy="110" r="68" fill="#577590" stroke="#0e2a47" stroke-width="4"/><circle cx="106" cy="108" r="50" fill="#0a1a2a" stroke="#0e2a47" stroke-width="3"/><circle cx="98" cy="100" r="6" fill="#fff" opacity="0.5"/></g>
+</svg><div class="image-label">Infographic style</div></div>
+        <div class="image-cell img-kids">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img cute">
+  <rect width="220" height="220" rx="14" fill="#fff8e1"/>
+  <g><circle cx="110" cy="118" r="68" fill="#577590" stroke="#222" stroke-width="3"/><ellipse cx="97" cy="101.6" rx="8" ry="11" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="123" cy="101.6" rx="8" ry="11" fill="white" stroke="#222" stroke-width="2"/><circle cx="97" cy="103.8" r="4.4" fill="#222"/><circle cx="123" cy="103.8" r="4.4" fill="#222"/><circle cx="99" cy="101.6" r="1.54" fill="white"/><circle cx="125" cy="101.6" r="1.54" fill="white"/><path d="M 96.8 114.8 Q 110 128.0 123.2 114.8" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M 82 148 Q 110 158 138 148" stroke="#222" stroke-width="2" fill="none"/></g>
+</svg><div class="image-label">Kids style</div></div>
+      </div>
+      <div class="text-block">
+        <p><span class="label">Function:</span> Innate-immune bouncer: kills cells that have lost their MHC-I &#x27;ID badge&#x27; — typical for virus infection or cancer.</p>
+        <p><span class="label">Depends on / Targets:</span> Revved up by interferons and IL-12. Kills virus-infected and tumour cells without prior priming.</p>
+      </div>
+    </div>
+      </div>
+    </section>
+
+    <section class="page kind-immune-myeloid">
+      <header class="page-header">
+        <h2 class="page-title">Immune cells — Phagocytes &amp; Granulocytes</h2>
+        <span class="page-subtitle">The rapid-response squad of innate immunity.</span>
+        <span class="page-number">Page 3 / 13</span>
+      </header>
+      <p class="page-description">Phagocytes and granulocytes come from the myeloid lineage in bone marrow. They engulf, digest and neutralise invaders, patrolling blood, tissues and entry points like skin, lung and gut.</p>
+      <div class="grid">
+        
+    <div class="cell tier-basic kind-immune-myeloid">
+      <h3 class="cell-name">Macrophage</h3>
+      <div class="images images-3">
+        <div class="image-cell img-microscope-svg">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img micro">
+  <defs>
+    <radialGradient id="vig" cx="50%" cy="50%" r="55%">
+      <stop offset="60%" stop-color="#f4d9e6" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#1a0a14" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/></filter>
+  </defs>
+  <circle cx="110" cy="110" r="105" fill="url(#vig)"/>
+  <g><path d="M 60 110 Q 40 70, 80 50 Q 110 30, 150 55 Q 195 70, 175 110 Q 195 150, 155 165 Q 110 195, 75 165 Q 30 150, 60 110 Z" fill="#e8b3c5" stroke="#6a224a" stroke-width="2"/><ellipse cx="104" cy="114" rx="36" ry="30" fill="#3a1845" opacity="0.85"/><circle cx="80" cy="80" r="6" fill="#8b3c6a" opacity="0.6"/><circle cx="150" cy="140" r="5" fill="#8b3c6a" opacity="0.6"/><circle cx="100" cy="150" r="4" fill="#8b3c6a" opacity="0.6"/></g>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#000" stroke-width="6"/>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#888" stroke-width="1"/>
+</svg><div class="image-label">Microscope style</div></div>
+        <div class="image-cell img-infographic">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img flat">
+  <rect width="220" height="220" rx="14" fill="#1d3557"/>
+  <g><path d="M 60 110 Q 40 70, 80 50 Q 110 30, 150 55 Q 195 70, 175 110 Q 195 150, 155 165 Q 110 195, 75 165 Q 30 150, 60 110 Z" fill="#8338ec" stroke="#0e2a47" stroke-width="4"/><ellipse cx="104" cy="114" rx="36" ry="30" fill="#1a002a"/><circle cx="80" cy="80" r="6" fill="#f1faee" opacity="0.7"/><circle cx="150" cy="140" r="5" fill="#f1faee" opacity="0.7"/></g>
+</svg><div class="image-label">Infographic style</div></div>
+        <div class="image-cell img-kids">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img cute">
+  <rect width="220" height="220" rx="14" fill="#fff8e1"/>
+  <g><path d="M 60 110 Q 40 70, 80 50 Q 110 30, 150 55 Q 195 70, 175 110 Q 195 150, 155 165 Q 110 195, 75 165 Q 30 150, 60 110 Z" fill="#8338ec" stroke="#222" stroke-width="3"/><ellipse cx="97" cy="99.6" rx="8" ry="11" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="123" cy="99.6" rx="8" ry="11" fill="white" stroke="#222" stroke-width="2"/><circle cx="97" cy="101.8" r="4.4" fill="#222"/><circle cx="123" cy="101.8" r="4.4" fill="#222"/><circle cx="99" cy="99.6" r="1.54" fill="white"/><circle cx="125" cy="99.6" r="1.54" fill="white"/><path d="M 94.6 112.8 Q 110 128.2 125.4 112.8" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/></g>
+</svg><div class="image-label">Kids style</div></div>
+      </div>
+      <div class="text-block">
+        <p><span class="label">Function:</span> &#x27;Big eater&#x27;: engulfs bacteria, dead cells and debris, presents fragments to T cells and calls reinforcements with cytokines.</p>
+        <p><span class="label">Depends on / Targets:</span> Differentiates from blood monocytes. Phagocytoses bacteria, fungi, cancer cells and cleans up wounds.</p>
+      </div>
+    </div>
+
+    <div class="cell tier-basic kind-immune-myeloid">
+      <h3 class="cell-name">Dendritic cell</h3>
+      <div class="images images-3">
+        <div class="image-cell img-microscope-svg">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img micro">
+  <defs>
+    <radialGradient id="vig" cx="50%" cy="50%" r="55%">
+      <stop offset="60%" stop-color="#f4d9e6" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#1a0a14" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/></filter>
+  </defs>
+  <circle cx="110" cy="110" r="105" fill="url(#vig)"/>
+  <g><line x1="150.0" y1="110.0" x2="205.0" y2="110.0" stroke="#e9b8c9" stroke-width="9" stroke-linecap="round"/><line x1="205.0" y1="110.0" x2="214.9" y2="116.8" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><line x1="205.0" y1="110.0" x2="214.9" y2="103.2" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><line x1="142.4" y1="133.5" x2="186.9" y2="165.8" stroke="#e9b8c9" stroke-width="9" stroke-linecap="round"/><line x1="186.9" y1="165.8" x2="190.9" y2="177.1" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><line x1="186.9" y1="165.8" x2="198.9" y2="166.2" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><line x1="122.4" y1="148.0" x2="139.4" y2="200.4" stroke="#e9b8c9" stroke-width="9" stroke-linecap="round"/><line x1="139.4" y1="200.4" x2="136.0" y2="211.9" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><line x1="139.4" y1="200.4" x2="148.9" y2="207.7" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><line x1="97.6" y1="148.0" x2="80.6" y2="200.4" stroke="#e9b8c9" stroke-width="9" stroke-linecap="round"/><line x1="80.6" y1="200.4" x2="71.1" y2="207.7" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><line x1="80.6" y1="200.4" x2="84.0" y2="211.9" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><line x1="77.6" y1="133.5" x2="33.1" y2="165.8" stroke="#e9b8c9" stroke-width="9" stroke-linecap="round"/><line x1="33.1" y1="165.8" x2="21.1" y2="166.2" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><line x1="33.1" y1="165.8" x2="29.1" y2="177.1" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><line x1="70.0" y1="110.0" x2="15.0" y2="110.0" stroke="#e9b8c9" stroke-width="9" stroke-linecap="round"/><line x1="15.0" y1="110.0" x2="5.1" y2="103.2" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><line x1="15.0" y1="110.0" x2="5.1" y2="116.8" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><line x1="77.6" y1="86.5" x2="33.1" y2="54.2" stroke="#e9b8c9" stroke-width="9" stroke-linecap="round"/><line x1="33.1" y1="54.2" x2="29.1" y2="42.9" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><line x1="33.1" y1="54.2" x2="21.1" y2="53.8" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><line x1="97.6" y1="72.0" x2="80.6" y2="19.6" stroke="#e9b8c9" stroke-width="9" stroke-linecap="round"/><line x1="80.6" y1="19.6" x2="84.0" y2="8.1" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><line x1="80.6" y1="19.6" x2="71.1" y2="12.3" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><line x1="122.4" y1="72.0" x2="139.4" y2="19.6" stroke="#e9b8c9" stroke-width="9" stroke-linecap="round"/><line x1="139.4" y1="19.6" x2="148.9" y2="12.3" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><line x1="139.4" y1="19.6" x2="136.0" y2="8.1" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><line x1="142.4" y1="86.5" x2="186.9" y2="54.2" stroke="#e9b8c9" stroke-width="9" stroke-linecap="round"/><line x1="186.9" y1="54.2" x2="198.9" y2="53.8" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><line x1="186.9" y1="54.2" x2="190.9" y2="42.9" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><circle cx="110" cy="110" r="42" fill="#e9b8c9" stroke="#6a224a" stroke-width="2"/><circle cx="104" cy="106" r="24" fill="#4a1f4a" opacity="0.85"/></g>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#000" stroke-width="6"/>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#888" stroke-width="1"/>
+</svg><div class="image-label">Microscope style</div></div>
+        <div class="image-cell img-infographic">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img flat">
+  <rect width="220" height="220" rx="14" fill="#1d3557"/>
+  <g><line x1="150.0" y1="110.0" x2="205.0" y2="110.0" stroke="#ff6b6b" stroke-width="11" stroke-linecap="round"/><line x1="150.0" y1="110.0" x2="205.0" y2="110.0" stroke="#0e2a47" stroke-width="13" stroke-linecap="round" opacity="0.0"/><line x1="205.0" y1="110.0" x2="214.9" y2="116.8" stroke="#ff6b6b" stroke-width="6" stroke-linecap="round"/><line x1="205.0" y1="110.0" x2="214.9" y2="103.2" stroke="#ff6b6b" stroke-width="6" stroke-linecap="round"/><line x1="142.4" y1="133.5" x2="186.9" y2="165.8" stroke="#ff6b6b" stroke-width="11" stroke-linecap="round"/><line x1="142.4" y1="133.5" x2="186.9" y2="165.8" stroke="#0e2a47" stroke-width="13" stroke-linecap="round" opacity="0.0"/><line x1="186.9" y1="165.8" x2="190.9" y2="177.1" stroke="#ff6b6b" stroke-width="6" stroke-linecap="round"/><line x1="186.9" y1="165.8" x2="198.9" y2="166.2" stroke="#ff6b6b" stroke-width="6" stroke-linecap="round"/><line x1="122.4" y1="148.0" x2="139.4" y2="200.4" stroke="#ff6b6b" stroke-width="11" stroke-linecap="round"/><line x1="122.4" y1="148.0" x2="139.4" y2="200.4" stroke="#0e2a47" stroke-width="13" stroke-linecap="round" opacity="0.0"/><line x1="139.4" y1="200.4" x2="136.0" y2="211.9" stroke="#ff6b6b" stroke-width="6" stroke-linecap="round"/><line x1="139.4" y1="200.4" x2="148.9" y2="207.7" stroke="#ff6b6b" stroke-width="6" stroke-linecap="round"/><line x1="97.6" y1="148.0" x2="80.6" y2="200.4" stroke="#ff6b6b" stroke-width="11" stroke-linecap="round"/><line x1="97.6" y1="148.0" x2="80.6" y2="200.4" stroke="#0e2a47" stroke-width="13" stroke-linecap="round" opacity="0.0"/><line x1="80.6" y1="200.4" x2="71.1" y2="207.7" stroke="#ff6b6b" stroke-width="6" stroke-linecap="round"/><line x1="80.6" y1="200.4" x2="84.0" y2="211.9" stroke="#ff6b6b" stroke-width="6" stroke-linecap="round"/><line x1="77.6" y1="133.5" x2="33.1" y2="165.8" stroke="#ff6b6b" stroke-width="11" stroke-linecap="round"/><line x1="77.6" y1="133.5" x2="33.1" y2="165.8" stroke="#0e2a47" stroke-width="13" stroke-linecap="round" opacity="0.0"/><line x1="33.1" y1="165.8" x2="21.1" y2="166.2" stroke="#ff6b6b" stroke-width="6" stroke-linecap="round"/><line x1="33.1" y1="165.8" x2="29.1" y2="177.1" stroke="#ff6b6b" stroke-width="6" stroke-linecap="round"/><line x1="70.0" y1="110.0" x2="15.0" y2="110.0" stroke="#ff6b6b" stroke-width="11" stroke-linecap="round"/><line x1="70.0" y1="110.0" x2="15.0" y2="110.0" stroke="#0e2a47" stroke-width="13" stroke-linecap="round" opacity="0.0"/><line x1="15.0" y1="110.0" x2="5.1" y2="103.2" stroke="#ff6b6b" stroke-width="6" stroke-linecap="round"/><line x1="15.0" y1="110.0" x2="5.1" y2="116.8" stroke="#ff6b6b" stroke-width="6" stroke-linecap="round"/><line x1="77.6" y1="86.5" x2="33.1" y2="54.2" stroke="#ff6b6b" stroke-width="11" stroke-linecap="round"/><line x1="77.6" y1="86.5" x2="33.1" y2="54.2" stroke="#0e2a47" stroke-width="13" stroke-linecap="round" opacity="0.0"/><line x1="33.1" y1="54.2" x2="29.1" y2="42.9" stroke="#ff6b6b" stroke-width="6" stroke-linecap="round"/><line x1="33.1" y1="54.2" x2="21.1" y2="53.8" stroke="#ff6b6b" stroke-width="6" stroke-linecap="round"/><line x1="97.6" y1="72.0" x2="80.6" y2="19.6" stroke="#ff6b6b" stroke-width="11" stroke-linecap="round"/><line x1="97.6" y1="72.0" x2="80.6" y2="19.6" stroke="#0e2a47" stroke-width="13" stroke-linecap="round" opacity="0.0"/><line x1="80.6" y1="19.6" x2="84.0" y2="8.1" stroke="#ff6b6b" stroke-width="6" stroke-linecap="round"/><line x1="80.6" y1="19.6" x2="71.1" y2="12.3" stroke="#ff6b6b" stroke-width="6" stroke-linecap="round"/><line x1="122.4" y1="72.0" x2="139.4" y2="19.6" stroke="#ff6b6b" stroke-width="11" stroke-linecap="round"/><line x1="122.4" y1="72.0" x2="139.4" y2="19.6" stroke="#0e2a47" stroke-width="13" stroke-linecap="round" opacity="0.0"/><line x1="139.4" y1="19.6" x2="148.9" y2="12.3" stroke="#ff6b6b" stroke-width="6" stroke-linecap="round"/><line x1="139.4" y1="19.6" x2="136.0" y2="8.1" stroke="#ff6b6b" stroke-width="6" stroke-linecap="round"/><line x1="142.4" y1="86.5" x2="186.9" y2="54.2" stroke="#ff6b6b" stroke-width="11" stroke-linecap="round"/><line x1="142.4" y1="86.5" x2="186.9" y2="54.2" stroke="#0e2a47" stroke-width="13" stroke-linecap="round" opacity="0.0"/><line x1="186.9" y1="54.2" x2="198.9" y2="53.8" stroke="#ff6b6b" stroke-width="6" stroke-linecap="round"/><line x1="186.9" y1="54.2" x2="190.9" y2="42.9" stroke="#ff6b6b" stroke-width="6" stroke-linecap="round"/><circle cx="110" cy="110" r="42" fill="#ff6b6b" stroke="#0e2a47" stroke-width="4"/><circle cx="104" cy="106" r="22" fill="#5a0e0e"/></g>
+</svg><div class="image-label">Infographic style</div></div>
+        <div class="image-cell img-kids">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img cute">
+  <rect width="220" height="220" rx="14" fill="#fff8e1"/>
+  <g><line x1="150.0" y1="110.0" x2="205.0" y2="110.0" stroke="#ff6b6b" stroke-width="11" stroke-linecap="round"/><line x1="142.4" y1="133.5" x2="186.9" y2="165.8" stroke="#ff6b6b" stroke-width="11" stroke-linecap="round"/><line x1="122.4" y1="148.0" x2="139.4" y2="200.4" stroke="#ff6b6b" stroke-width="11" stroke-linecap="round"/><line x1="97.6" y1="148.0" x2="80.6" y2="200.4" stroke="#ff6b6b" stroke-width="11" stroke-linecap="round"/><line x1="77.6" y1="133.5" x2="33.1" y2="165.8" stroke="#ff6b6b" stroke-width="11" stroke-linecap="round"/><line x1="70.0" y1="110.0" x2="15.0" y2="110.0" stroke="#ff6b6b" stroke-width="11" stroke-linecap="round"/><line x1="77.6" y1="86.5" x2="33.1" y2="54.2" stroke="#ff6b6b" stroke-width="11" stroke-linecap="round"/><line x1="97.6" y1="72.0" x2="80.6" y2="19.6" stroke="#ff6b6b" stroke-width="11" stroke-linecap="round"/><line x1="122.4" y1="72.0" x2="139.4" y2="19.6" stroke="#ff6b6b" stroke-width="11" stroke-linecap="round"/><line x1="142.4" y1="86.5" x2="186.9" y2="54.2" stroke="#ff6b6b" stroke-width="11" stroke-linecap="round"/><circle cx="110" cy="115" r="50" fill="#ff6b6b" stroke="#222" stroke-width="3"/><ellipse cx="100" cy="104.4" rx="7" ry="9" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="120" cy="104.4" rx="7" ry="9" fill="white" stroke="#222" stroke-width="2"/><circle cx="100" cy="106.2" r="3.6" fill="#222"/><circle cx="120" cy="106.2" r="3.6" fill="#222"/><circle cx="102" cy="104.4" r="1.26" fill="white"/><circle cx="122" cy="104.4" r="1.26" fill="white"/><path d="M 99.2 115.2 Q 110 126.0 120.8 115.2" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/></g>
+</svg><div class="image-label">Kids style</div></div>
+      </div>
+      <div class="text-block">
+        <p><span class="label">Function:</span> Scout and storyteller: gathers antigen in tissues, travels to lymph nodes and shows it to T cells — kicks off the adaptive response.</p>
+        <p><span class="label">Depends on / Targets:</span> Bridges innate and adaptive immunity. Activates helper T cells and CD8 killer cells.</p>
+      </div>
+    </div>
+
+    <div class="cell tier-basic kind-immune-myeloid">
+      <h3 class="cell-name">Neutrophil</h3>
+      <div class="images images-3">
+        <div class="image-cell img-microscope-svg">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img micro">
+  <defs>
+    <radialGradient id="vig" cx="50%" cy="50%" r="55%">
+      <stop offset="60%" stop-color="#f4d9e6" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#1a0a14" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/></filter>
+  </defs>
+  <circle cx="110" cy="110" r="105" fill="url(#vig)"/>
+  <g><circle cx="110" cy="110" r="78" fill="#f8c8c8" stroke="#6a224a" stroke-width="2"/><circle cx="60" cy="60" r="3" fill="#c75a8a" opacity="0.55"/><circle cx="77" cy="83" r="3" fill="#c75a8a" opacity="0.55"/><circle cx="94" cy="106" r="3" fill="#c75a8a" opacity="0.55"/><circle cx="111" cy="129" r="3" fill="#c75a8a" opacity="0.55"/><circle cx="128" cy="152" r="3" fill="#c75a8a" opacity="0.55"/><circle cx="145" cy="75" r="3" fill="#c75a8a" opacity="0.55"/><circle cx="62" cy="98" r="3" fill="#c75a8a" opacity="0.55"/><circle cx="79" cy="121" r="3" fill="#c75a8a" opacity="0.55"/><circle cx="96" cy="144" r="3" fill="#c75a8a" opacity="0.55"/><circle cx="113" cy="67" r="3" fill="#c75a8a" opacity="0.55"/><circle cx="130" cy="90" r="3" fill="#c75a8a" opacity="0.55"/><circle cx="147" cy="113" r="3" fill="#c75a8a" opacity="0.55"/><circle cx="64" cy="136" r="3" fill="#c75a8a" opacity="0.55"/><circle cx="81" cy="159" r="3" fill="#c75a8a" opacity="0.55"/><circle cx="98" cy="82" r="3" fill="#c75a8a" opacity="0.55"/><circle cx="115" cy="105" r="3" fill="#c75a8a" opacity="0.55"/><circle cx="132" cy="128" r="3" fill="#c75a8a" opacity="0.55"/><circle cx="149" cy="151" r="3" fill="#c75a8a" opacity="0.55"/><circle cx="66" cy="74" r="3" fill="#c75a8a" opacity="0.55"/><circle cx="83" cy="97" r="3" fill="#c75a8a" opacity="0.55"/><circle cx="100" cy="120" r="3" fill="#c75a8a" opacity="0.55"/><circle cx="117" cy="143" r="3" fill="#c75a8a" opacity="0.55"/><circle cx="134" cy="66" r="3" fill="#c75a8a" opacity="0.55"/><circle cx="151" cy="89" r="3" fill="#c75a8a" opacity="0.55"/><circle cx="68" cy="112" r="3" fill="#c75a8a" opacity="0.55"/><circle cx="85" cy="135" r="3" fill="#c75a8a" opacity="0.55"/><circle cx="102" cy="158" r="3" fill="#c75a8a" opacity="0.55"/><circle cx="119" cy="81" r="3" fill="#c75a8a" opacity="0.55"/><circle cx="80" cy="118" r="20" fill="#3a155a" opacity="0.85"/><circle cx="110" cy="98" r="20" fill="#3a155a" opacity="0.85"/><circle cx="140" cy="118" r="20" fill="#3a155a" opacity="0.85"/><line x1="80" y1="118" x2="110" y2="98" stroke="#3a155a" stroke-width="8" opacity="0.7"/><line x1="110" y1="98" x2="140" y2="118" stroke="#3a155a" stroke-width="8" opacity="0.7"/></g>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#000" stroke-width="6"/>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#888" stroke-width="1"/>
+</svg><div class="image-label">Microscope style</div></div>
+        <div class="image-cell img-infographic">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img flat">
+  <rect width="220" height="220" rx="14" fill="#1d3557"/>
+  <g><circle cx="110" cy="110" r="78" fill="#f9c74f" stroke="#0e2a47" stroke-width="4"/><circle cx="60" cy="55" r="4" fill="#bc4749"/><circle cx="77" cy="86" r="4" fill="#bc4749"/><circle cx="94" cy="117" r="4" fill="#bc4749"/><circle cx="111" cy="148" r="4" fill="#bc4749"/><circle cx="128" cy="69" r="4" fill="#bc4749"/><circle cx="145" cy="100" r="4" fill="#bc4749"/><circle cx="62" cy="131" r="4" fill="#bc4749"/><circle cx="79" cy="162" r="4" fill="#bc4749"/><circle cx="96" cy="83" r="4" fill="#bc4749"/><circle cx="113" cy="114" r="4" fill="#bc4749"/><circle cx="130" cy="145" r="4" fill="#bc4749"/><circle cx="147" cy="66" r="4" fill="#bc4749"/><circle cx="64" cy="97" r="4" fill="#bc4749"/><circle cx="81" cy="128" r="4" fill="#bc4749"/><circle cx="98" cy="159" r="4" fill="#bc4749"/><circle cx="115" cy="80" r="4" fill="#bc4749"/><circle cx="132" cy="111" r="4" fill="#bc4749"/><circle cx="149" cy="142" r="4" fill="#bc4749"/><circle cx="80" cy="118" r="20" fill="#3a1f00" stroke="#0e2a47" stroke-width="3"/><circle cx="110" cy="98" r="20" fill="#3a1f00" stroke="#0e2a47" stroke-width="3"/><circle cx="140" cy="118" r="20" fill="#3a1f00" stroke="#0e2a47" stroke-width="3"/><line x1="80" y1="118" x2="110" y2="98" stroke="#3a1f00" stroke-width="14" stroke-linecap="round"/><line x1="110" y1="98" x2="140" y2="118" stroke="#3a1f00" stroke-width="14" stroke-linecap="round"/></g>
+</svg><div class="image-label">Infographic style</div></div>
+        <div class="image-cell img-kids">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img cute">
+  <rect width="220" height="220" rx="14" fill="#fff8e1"/>
+  <g><circle cx="110" cy="118" r="78" fill="#f9c74f" stroke="#222" stroke-width="3"/><circle cx="50" cy="140" r="4" fill="#bc4749"/><circle cx="69" cy="151" r="4" fill="#bc4749"/><circle cx="88" cy="162" r="4" fill="#bc4749"/><circle cx="107" cy="143" r="4" fill="#bc4749"/><circle cx="126" cy="154" r="4" fill="#bc4749"/><circle cx="145" cy="165" r="4" fill="#bc4749"/><circle cx="164" cy="146" r="4" fill="#bc4749"/><circle cx="63" cy="157" r="4" fill="#bc4749"/><ellipse cx="98" cy="92.0" rx="8" ry="10" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="122" cy="92.0" rx="8" ry="10" fill="white" stroke="#222" stroke-width="2"/><circle cx="98" cy="94.0" r="4.0" fill="#222"/><circle cx="122" cy="94.0" r="4.0" fill="#222"/><circle cx="100" cy="92.0" r="1.4" fill="white"/><circle cx="124" cy="92.0" r="1.4" fill="white"/><path d="M 96.0 104.0 Q 110 118.0 124.0 104.0" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/></g>
+</svg><div class="image-label">Kids style</div></div>
+      </div>
+      <div class="text-block">
+        <p><span class="label">Function:</span> First responder: arrives first at sites of inflammation, eats bacteria, dumps antimicrobials and even casts sticky DNA nets (NETs).</p>
+        <p><span class="label">Depends on / Targets:</span> Chemokine-guided. Targets bacteria and fungi; lives only hours to a few days.</p>
+      </div>
+    </div>
+      </div>
+    </section>
+
+    <section class="page kind-pathogens">
+      <header class="page-header">
+        <h2 class="page-title">Pathogens</h2>
+        <span class="page-subtitle">What the immune system has to deal with.</span>
+        <span class="page-number">Page 4 / 13</span>
+      </header>
+      <p class="page-description">Pathogens are anything that can cause disease: bacteria, viruses, fungi, parasites and prions. They live in air, water, soil, animals and on our skin — most microbes are harmless or beneficial, a few are highly dangerous.</p>
+      <div class="grid">
+        
+    <div class="cell tier-basic kind-pathogens">
+      <h3 class="cell-name">Cocci (round bacteria)</h3>
+      <div class="images images-3">
+        <div class="image-cell img-microscope-svg">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img micro">
+  <defs>
+    <radialGradient id="vig" cx="50%" cy="50%" r="55%">
+      <stop offset="60%" stop-color="#d9e2ec" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#1a0a14" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/></filter>
+  </defs>
+  <circle cx="110" cy="110" r="105" fill="url(#vig)"/>
+  <g><circle cx="80" cy="80" r="14" fill="#5a8acc" stroke="#1d3557" stroke-width="1.5"/><circle cx="110" cy="70" r="14" fill="#5a8acc" stroke="#1d3557" stroke-width="1.5"/><circle cx="140" cy="80" r="14" fill="#5a8acc" stroke="#1d3557" stroke-width="1.5"/><circle cx="75" cy="110" r="14" fill="#5a8acc" stroke="#1d3557" stroke-width="1.5"/><circle cx="105" cy="100" r="14" fill="#5a8acc" stroke="#1d3557" stroke-width="1.5"/><circle cx="135" cy="110" r="14" fill="#5a8acc" stroke="#1d3557" stroke-width="1.5"/><circle cx="90" cy="140" r="14" fill="#5a8acc" stroke="#1d3557" stroke-width="1.5"/><circle cx="120" cy="135" r="14" fill="#5a8acc" stroke="#1d3557" stroke-width="1.5"/></g>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#000" stroke-width="6"/>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#888" stroke-width="1"/>
+</svg><div class="image-label">Microscope style</div></div>
+        <div class="image-cell img-infographic">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img flat">
+  <rect width="220" height="220" rx="14" fill="#1d3557"/>
+  <g><circle cx="80" cy="80" r="16" fill="#2a9d8f" stroke="#0e2a47" stroke-width="3"/><circle cx="76" cy="76" r="4" fill="#fff" opacity="0.5"/><circle cx="110" cy="70" r="16" fill="#2a9d8f" stroke="#0e2a47" stroke-width="3"/><circle cx="106" cy="66" r="4" fill="#fff" opacity="0.5"/><circle cx="140" cy="80" r="16" fill="#2a9d8f" stroke="#0e2a47" stroke-width="3"/><circle cx="136" cy="76" r="4" fill="#fff" opacity="0.5"/><circle cx="75" cy="110" r="16" fill="#2a9d8f" stroke="#0e2a47" stroke-width="3"/><circle cx="71" cy="106" r="4" fill="#fff" opacity="0.5"/><circle cx="105" cy="100" r="16" fill="#2a9d8f" stroke="#0e2a47" stroke-width="3"/><circle cx="101" cy="96" r="4" fill="#fff" opacity="0.5"/><circle cx="135" cy="110" r="16" fill="#2a9d8f" stroke="#0e2a47" stroke-width="3"/><circle cx="131" cy="106" r="4" fill="#fff" opacity="0.5"/><circle cx="90" cy="140" r="16" fill="#2a9d8f" stroke="#0e2a47" stroke-width="3"/><circle cx="86" cy="136" r="4" fill="#fff" opacity="0.5"/><circle cx="120" cy="135" r="16" fill="#2a9d8f" stroke="#0e2a47" stroke-width="3"/><circle cx="116" cy="131" r="4" fill="#fff" opacity="0.5"/></g>
+</svg><div class="image-label">Infographic style</div></div>
+        <div class="image-cell img-kids">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img cute">
+  <rect width="220" height="220" rx="14" fill="#fff8e1"/>
+  <g><circle cx="80" cy="90" r="20" fill="#2a9d8f" stroke="#222" stroke-width="3"/><circle cx="140" cy="90" r="20" fill="#2a9d8f" stroke="#222" stroke-width="3"/><circle cx="110" cy="140" r="20" fill="#2a9d8f" stroke="#222" stroke-width="3"/><ellipse cx="76" cy="88.4" rx="3" ry="4" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="84" cy="88.4" rx="3" ry="4" fill="white" stroke="#222" stroke-width="2"/><circle cx="76" cy="89.2" r="1.6" fill="#222"/><circle cx="84" cy="89.2" r="1.6" fill="#222"/><circle cx="78" cy="88.4" r="0.5599999999999999" fill="white"/><circle cx="86" cy="88.4" r="0.5599999999999999" fill="white"/><path d="M 75.2 93.2 Q 80 98.0 84.8 93.2" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/><ellipse cx="136" cy="88.4" rx="3" ry="4" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="144" cy="88.4" rx="3" ry="4" fill="white" stroke="#222" stroke-width="2"/><circle cx="136" cy="89.2" r="1.6" fill="#222"/><circle cx="144" cy="89.2" r="1.6" fill="#222"/><circle cx="138" cy="88.4" r="0.5599999999999999" fill="white"/><circle cx="146" cy="88.4" r="0.5599999999999999" fill="white"/><path d="M 135.2 93.2 Q 140 98.0 144.8 93.2" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/><ellipse cx="106" cy="138.4" rx="3" ry="4" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="114" cy="138.4" rx="3" ry="4" fill="white" stroke="#222" stroke-width="2"/><circle cx="106" cy="139.2" r="1.6" fill="#222"/><circle cx="114" cy="139.2" r="1.6" fill="#222"/><circle cx="108" cy="138.4" r="0.5599999999999999" fill="white"/><circle cx="116" cy="138.4" r="0.5599999999999999" fill="white"/><path d="M 105.2 143.2 Q 110 148.0 114.8 143.2" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/></g>
+</svg><div class="image-label">Kids style</div></div>
+      </div>
+      <div class="text-block">
+        <p><span class="label">Function:</span> Round bacteria, often in clusters or chains (Staphylococci, Streptococci). Some are harmless guests, others cause pneumonia, skin or throat infections.</p>
+        <p><span class="label">Depends on / Targets:</span> Phagocytosed by neutrophils and macrophages; antibodies help tag them.</p>
+      </div>
+    </div>
+
+    <div class="cell tier-basic kind-pathogens">
+      <h3 class="cell-name">Rod bacteria</h3>
+      <div class="images images-3">
+        <div class="image-cell img-microscope-svg">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img micro">
+  <defs>
+    <radialGradient id="vig" cx="50%" cy="50%" r="55%">
+      <stop offset="60%" stop-color="#f2e1d0" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#1a0a14" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/></filter>
+  </defs>
+  <circle cx="110" cy="110" r="105" fill="url(#vig)"/>
+  <g><rect x="45" y="80" width="130" height="60" rx="30" fill="#a85a5a" stroke="#5a1818" stroke-width="2"/><rect x="60" y="120" width="130" height="60" rx="30" fill="#a85a5a" stroke="#5a1818" stroke-width="2"/><rect x="40" y="160" width="90" height="50" rx="25" fill="#a85a5a" stroke="#5a1818" stroke-width="2"/></g>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#000" stroke-width="6"/>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#888" stroke-width="1"/>
+</svg><div class="image-label">Microscope style</div></div>
+        <div class="image-cell img-infographic">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img flat">
+  <rect width="220" height="220" rx="14" fill="#1d3557"/>
+  <g><rect x="45" y="80" width="130" height="60" rx="30" fill="#e63946" stroke="#0e2a47" stroke-width="4"/><rect x="53" y="88" width="110" height="6" rx="3" fill="#fff" opacity="0.4"/><rect x="60" y="120" width="130" height="60" rx="30" fill="#e63946" stroke="#0e2a47" stroke-width="4"/><rect x="68" y="128" width="110" height="6" rx="3" fill="#fff" opacity="0.4"/><rect x="40" y="160" width="90" height="50" rx="25" fill="#e63946" stroke="#0e2a47" stroke-width="4"/><rect x="48" y="168" width="70" height="6" rx="3" fill="#fff" opacity="0.4"/></g>
+</svg><div class="image-label">Infographic style</div></div>
+        <div class="image-cell img-kids">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img cute">
+  <rect width="220" height="220" rx="14" fill="#fff8e1"/>
+  <g><rect x="40" y="80" width="140" height="60" rx="30" fill="#e63946" stroke="#222" stroke-width="3"/><ellipse cx="73" cy="106.0" rx="8" ry="10" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="97" cy="106.0" rx="8" ry="10" fill="white" stroke="#222" stroke-width="2"/><circle cx="73" cy="108.0" r="4.0" fill="#222"/><circle cx="97" cy="108.0" r="4.0" fill="#222"/><circle cx="75" cy="106.0" r="1.4" fill="white"/><circle cx="99" cy="106.0" r="1.4" fill="white"/><path d="M 71.0 118.0 Q 85 132.0 99.0 118.0" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/><rect x="50" y="155" width="100" height="35" rx="18" fill="#e63946" stroke="#222" stroke-width="3"/><ellipse cx="79" cy="170.0" rx="4" ry="5" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="91" cy="170.0" rx="4" ry="5" fill="white" stroke="#222" stroke-width="2"/><circle cx="79" cy="171.0" r="2.0" fill="#222"/><circle cx="91" cy="171.0" r="2.0" fill="#222"/><circle cx="81" cy="170.0" r="0.7" fill="white"/><circle cx="93" cy="170.0" r="0.7" fill="white"/><path d="M 79.0 176.0 Q 85 182.0 91.0 176.0" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/></g>
+</svg><div class="image-label">Kids style</div></div>
+      </div>
+      <div class="text-block">
+        <p><span class="label">Function:</span> Elongated bacteria like E. coli, Salmonella, tuberculosis bacilli. Multiply fast and can release toxins.</p>
+        <p><span class="label">Depends on / Targets:</span> Phagocytosed; intracellular species (TB) need T-cell help to be cleared.</p>
+      </div>
+    </div>
+
+    <div class="cell tier-basic kind-pathogens">
+      <h3 class="cell-name">Virus</h3>
+      <div class="images images-3">
+        <div class="image-cell img-microscope-svg">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img micro">
+  <defs>
+    <radialGradient id="vig" cx="50%" cy="50%" r="55%">
+      <stop offset="60%" stop-color="#e8d5e0" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#1a0a14" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/></filter>
+  </defs>
+  <circle cx="110" cy="110" r="105" fill="url(#vig)"/>
+  <g><line x1="177.5" y1="71.0" x2="196.6" y2="60.0" stroke="#8d4f9e" stroke-width="3"/><line x1="149.0" y1="42.5" x2="160.0" y2="23.4" stroke="#8d4f9e" stroke-width="3"/><line x1="110.0" y1="32.0" x2="110.0" y2="10.0" stroke="#8d4f9e" stroke-width="3"/><line x1="71.0" y1="42.5" x2="60.0" y2="23.4" stroke="#8d4f9e" stroke-width="3"/><line x1="42.5" y1="71.0" x2="23.4" y2="60.0" stroke="#8d4f9e" stroke-width="3"/><line x1="32.0" y1="110.0" x2="10.0" y2="110.0" stroke="#8d4f9e" stroke-width="3"/><line x1="42.5" y1="149.0" x2="23.4" y2="160.0" stroke="#8d4f9e" stroke-width="3"/><line x1="71.0" y1="177.5" x2="60.0" y2="196.6" stroke="#8d4f9e" stroke-width="3"/><line x1="110.0" y1="188.0" x2="110.0" y2="210.0" stroke="#8d4f9e" stroke-width="3"/><line x1="149.0" y1="177.5" x2="160.0" y2="196.6" stroke="#8d4f9e" stroke-width="3"/><line x1="177.5" y1="149.0" x2="196.6" y2="160.0" stroke="#8d4f9e" stroke-width="3"/><line x1="188.0" y1="110.0" x2="210.0" y2="110.0" stroke="#8d4f9e" stroke-width="3"/><polygon points="110,40 170,72 170,148 110,180 50,148 50,72" fill="#8d4f9e" stroke="#3a1546" stroke-width="2"/><polygon points="110,40 170,72 110,104 50,72" fill="#a674b8" opacity="0.6"/></g>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#000" stroke-width="6"/>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#888" stroke-width="1"/>
+</svg><div class="image-label">Microscope style</div></div>
+        <div class="image-cell img-infographic">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img flat">
+  <rect width="220" height="220" rx="14" fill="#1d3557"/>
+  <g><line x1="177.5" y1="71.0" x2="196.6" y2="60.0" stroke="#7209b7" stroke-width="5" stroke-linecap="round"/><line x1="149.0" y1="42.5" x2="160.0" y2="23.4" stroke="#7209b7" stroke-width="5" stroke-linecap="round"/><line x1="110.0" y1="32.0" x2="110.0" y2="10.0" stroke="#7209b7" stroke-width="5" stroke-linecap="round"/><line x1="71.0" y1="42.5" x2="60.0" y2="23.4" stroke="#7209b7" stroke-width="5" stroke-linecap="round"/><line x1="42.5" y1="71.0" x2="23.4" y2="60.0" stroke="#7209b7" stroke-width="5" stroke-linecap="round"/><line x1="32.0" y1="110.0" x2="10.0" y2="110.0" stroke="#7209b7" stroke-width="5" stroke-linecap="round"/><line x1="42.5" y1="149.0" x2="23.4" y2="160.0" stroke="#7209b7" stroke-width="5" stroke-linecap="round"/><line x1="71.0" y1="177.5" x2="60.0" y2="196.6" stroke="#7209b7" stroke-width="5" stroke-linecap="round"/><line x1="110.0" y1="188.0" x2="110.0" y2="210.0" stroke="#7209b7" stroke-width="5" stroke-linecap="round"/><line x1="149.0" y1="177.5" x2="160.0" y2="196.6" stroke="#7209b7" stroke-width="5" stroke-linecap="round"/><line x1="177.5" y1="149.0" x2="196.6" y2="160.0" stroke="#7209b7" stroke-width="5" stroke-linecap="round"/><line x1="188.0" y1="110.0" x2="210.0" y2="110.0" stroke="#7209b7" stroke-width="5" stroke-linecap="round"/><polygon points="110,40 170,72 170,148 110,180 50,148 50,72" fill="#7209b7" stroke="#0e2a47" stroke-width="4"/><polygon points="110,40 170,72 110,104 50,72" fill="#fff" opacity="0.18"/><circle cx="210.0" cy="110.0" r="6" fill="#7209b7"/><circle cx="196.6" cy="160.0" r="6" fill="#7209b7"/><circle cx="160.0" cy="196.6" r="6" fill="#7209b7"/><circle cx="110.0" cy="210.0" r="6" fill="#7209b7"/><circle cx="60.0" cy="196.6" r="6" fill="#7209b7"/><circle cx="23.4" cy="160.0" r="6" fill="#7209b7"/><circle cx="10.0" cy="110.0" r="6" fill="#7209b7"/><circle cx="23.4" cy="60.0" r="6" fill="#7209b7"/><circle cx="60.0" cy="23.4" r="6" fill="#7209b7"/><circle cx="110.0" cy="10.0" r="6" fill="#7209b7"/><circle cx="160.0" cy="23.4" r="6" fill="#7209b7"/><circle cx="196.6" cy="60.0" r="6" fill="#7209b7"/></g>
+</svg><div class="image-label">Infographic style</div></div>
+        <div class="image-cell img-kids">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img cute">
+  <rect width="220" height="220" rx="14" fill="#fff8e1"/>
+  <g><polygon points="110,40 170,72 170,148 110,180 50,148 50,72" fill="#7209b7" stroke="#222" stroke-width="3"/><ellipse cx="98" cy="98.0" rx="8" ry="10" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="122" cy="98.0" rx="8" ry="10" fill="white" stroke="#222" stroke-width="2"/><circle cx="98" cy="100.0" r="4.0" fill="#222"/><circle cx="122" cy="100.0" r="4.0" fill="#222"/><circle cx="100" cy="98.0" r="1.4" fill="white"/><circle cx="124" cy="98.0" r="1.4" fill="white"/><path d="M 96.0 110.0 Q 110 124.0 124.0 110.0" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M 80 150 Q 110 170 140 150" stroke="#222" stroke-width="2" fill="none"/></g>
+</svg><div class="image-label">Kids style</div></div>
+      </div>
+      <div class="text-block">
+        <p><span class="label">Function:</span> Not really alive: just genetic material in a shell. Sneaks into body cells and forces them to build new virus particles.</p>
+        <p><span class="label">Depends on / Targets:</span> Hunted by CD8 T cells and NK cells; antibodies bind free virus particles.</p>
+      </div>
+    </div>
+
+    <div class="cell tier-basic kind-pathogens">
+      <h3 class="cell-name">Fungus</h3>
+      <div class="images images-3">
+        <div class="image-cell img-microscope-svg">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img micro">
+  <defs>
+    <radialGradient id="vig" cx="50%" cy="50%" r="55%">
+      <stop offset="60%" stop-color="#e6d4b8" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#1a0a14" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/></filter>
+  </defs>
+  <circle cx="110" cy="110" r="105" fill="url(#vig)"/>
+  <g><path d="M 30 60 Q 80 80 130 70 Q 180 60 200 110" stroke="#8a6a4a" stroke-width="9" fill="none" stroke-linecap="round"/><path d="M 30 130 Q 90 120 130 150 Q 180 180 200 160" stroke="#8a6a4a" stroke-width="9" fill="none" stroke-linecap="round"/><path d="M 110 30 Q 100 90 140 110 Q 170 130 130 200" stroke="#8a6a4a" stroke-width="9" fill="none" stroke-linecap="round"/><circle cx="70" cy="75" r="10" fill="#c19a7a" stroke="#5a3a1f" stroke-width="1.5"/><circle cx="130" cy="73" r="10" fill="#c19a7a" stroke="#5a3a1f" stroke-width="1.5"/><circle cx="90" cy="120" r="10" fill="#c19a7a" stroke="#5a3a1f" stroke-width="1.5"/><circle cx="135" cy="150" r="10" fill="#c19a7a" stroke="#5a3a1f" stroke-width="1.5"/><circle cx="110" cy="95" r="10" fill="#c19a7a" stroke="#5a3a1f" stroke-width="1.5"/></g>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#000" stroke-width="6"/>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#888" stroke-width="1"/>
+</svg><div class="image-label">Microscope style</div></div>
+        <div class="image-cell img-infographic">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img flat">
+  <rect width="220" height="220" rx="14" fill="#1d3557"/>
+  <g><path d="M 30 60 Q 80 80 130 70 Q 180 60 200 110" stroke="#9c6644" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M 30 130 Q 90 120 130 150 Q 180 180 200 160" stroke="#9c6644" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M 110 30 Q 100 90 140 110 Q 170 130 130 200" stroke="#9c6644" stroke-width="12" fill="none" stroke-linecap="round"/><circle cx="70" cy="75" r="12" fill="#d4a373" stroke="#0e2a47" stroke-width="3"/><circle cx="130" cy="73" r="12" fill="#d4a373" stroke="#0e2a47" stroke-width="3"/><circle cx="90" cy="120" r="12" fill="#d4a373" stroke="#0e2a47" stroke-width="3"/><circle cx="135" cy="150" r="12" fill="#d4a373" stroke="#0e2a47" stroke-width="3"/><circle cx="110" cy="95" r="12" fill="#d4a373" stroke="#0e2a47" stroke-width="3"/></g>
+</svg><div class="image-label">Infographic style</div></div>
+        <div class="image-cell img-kids">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img cute">
+  <rect width="220" height="220" rx="14" fill="#fff8e1"/>
+  <g><path d="M 30 130 Q 90 120 130 150 Q 180 180 200 160" stroke="#9c6644" stroke-width="14" fill="none" stroke-linecap="round"/><circle cx="110" cy="100" r="40" fill="#d4a373" stroke="#222" stroke-width="3"/><ellipse cx="100" cy="91.4" rx="7" ry="9" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="120" cy="91.4" rx="7" ry="9" fill="white" stroke="#222" stroke-width="2"/><circle cx="100" cy="93.2" r="3.6" fill="#222"/><circle cx="120" cy="93.2" r="3.6" fill="#222"/><circle cx="102" cy="91.4" r="1.26" fill="white"/><circle cx="122" cy="91.4" r="1.26" fill="white"/><path d="M 99.2 102.2 Q 110 113.0 120.8 102.2" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/></g>
+</svg><div class="image-label">Kids style</div></div>
+      </div>
+      <div class="text-block">
+        <p><span class="label">Function:</span> Eukaryotic microbes — yeasts or filaments (hyphae). Examples: Candida in mouth/gut, Aspergillus in lungs.</p>
+        <p><span class="label">Depends on / Targets:</span> Controlled by neutrophils, macrophages and Th17 cells.</p>
+      </div>
+    </div>
+
+    <div class="cell tier-basic kind-pathogens">
+      <h3 class="cell-name">Parasite</h3>
+      <div class="images images-3">
+        <div class="image-cell img-microscope-svg">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img micro">
+  <defs>
+    <radialGradient id="vig" cx="50%" cy="50%" r="55%">
+      <stop offset="60%" stop-color="#dde5b7" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#1a0a14" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/></filter>
+  </defs>
+  <circle cx="110" cy="110" r="105" fill="url(#vig)"/>
+  <g><path d="M 60 110 Q 50 60 100 50 Q 160 40 170 90 Q 195 130 160 165 Q 120 195 80 170 Q 40 150 60 110 Z" fill="#a3b18a" stroke="#3a5a1f" stroke-width="2"/><circle cx="100" cy="100" r="14" fill="#3a5a1f" opacity="0.8"/><circle cx="140" cy="130" r="10" fill="#3a5a1f" opacity="0.7"/></g>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#000" stroke-width="6"/>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#888" stroke-width="1"/>
+</svg><div class="image-label">Microscope style</div></div>
+        <div class="image-cell img-infographic">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img flat">
+  <rect width="220" height="220" rx="14" fill="#1d3557"/>
+  <g><path d="M 60 110 Q 50 60 100 50 Q 160 40 170 90 Q 195 130 160 165 Q 120 195 80 170 Q 40 150 60 110 Z" fill="#6a994e" stroke="#0e2a47" stroke-width="4"/><circle cx="100" cy="100" r="14" fill="#0e2a47"/><circle cx="140" cy="130" r="10" fill="#0e2a47"/><circle cx="100 - 5" cy="95" r="4" fill="#fff" opacity="0.5"/></g>
+</svg><div class="image-label">Infographic style</div></div>
+        <div class="image-cell img-kids">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img cute">
+  <rect width="220" height="220" rx="14" fill="#fff8e1"/>
+  <g><path d="M 60 110 Q 50 60 100 50 Q 160 40 170 90 Q 195 130 160 165 Q 120 195 80 170 Q 40 150 60 110 Z" fill="#6a994e" stroke="#222" stroke-width="3"/><ellipse cx="102" cy="105.6" rx="8" ry="11" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="128" cy="105.6" rx="8" ry="11" fill="white" stroke="#222" stroke-width="2"/><circle cx="102" cy="107.8" r="4.4" fill="#222"/><circle cx="128" cy="107.8" r="4.4" fill="#222"/><circle cx="104" cy="105.6" r="1.54" fill="white"/><circle cx="130" cy="105.6" r="1.54" fill="white"/><path d="M 99.6 118.8 Q 115 134.2 130.4 118.8" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/></g>
+</svg><div class="image-label">Kids style</div></div>
+      </div>
+      <div class="text-block">
+        <p><span class="label">Function:</span> From single-celled (Plasmodium → malaria) to worms. Lives in or on its host and damages it in the process.</p>
+        <p><span class="label">Depends on / Targets:</span> Often fought with IgE, eosinophils and mast cells; antibodies and Th2 responses are central.</p>
+      </div>
+    </div>
+
+    <div class="cell tier-basic kind-pathogens">
+      <h3 class="cell-name">Prion</h3>
+      <div class="images images-3">
+        <div class="image-cell img-microscope-svg">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img micro">
+  <defs>
+    <radialGradient id="vig" cx="50%" cy="50%" r="55%">
+      <stop offset="60%" stop-color="#f1e0c0" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#1a0a14" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/></filter>
+  </defs>
+  <circle cx="110" cy="110" r="105" fill="url(#vig)"/>
+  <g><path d="M 30 110 Q 60 60 100 90 Q 140 120 180 80" stroke="#b07a4a" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M 40 150 Q 80 110 120 140 Q 160 170 200 130" stroke="#b07a4a" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M 60 60 Q 100 90 80 130 Q 60 170 110 180" stroke="#b07a4a" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M 30 110 Q 60 60 100 90 Q 140 120 180 80" stroke="#8a5a2a" stroke-width="2" fill="none" opacity="0.5"/><path d="M 40 150 Q 80 110 120 140 Q 160 170 200 130" stroke="#8a5a2a" stroke-width="2" fill="none" opacity="0.5"/><path d="M 60 60 Q 100 90 80 130 Q 60 170 110 180" stroke="#8a5a2a" stroke-width="2" fill="none" opacity="0.5"/></g>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#000" stroke-width="6"/>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#888" stroke-width="1"/>
+</svg><div class="image-label">Microscope style</div></div>
+        <div class="image-cell img-infographic">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img flat">
+  <rect width="220" height="220" rx="14" fill="#1d3557"/>
+  <g><path d="M 30 110 Q 60 60 100 90 Q 140 120 180 80" stroke="#f4a261" stroke-width="10" fill="none" stroke-linecap="round"/><path d="M 40 150 Q 80 110 120 140 Q 160 170 200 130" stroke="#f4a261" stroke-width="10" fill="none" stroke-linecap="round"/><path d="M 60 60 Q 100 90 80 130 Q 60 170 110 180" stroke="#f4a261" stroke-width="10" fill="none" stroke-linecap="round"/><path d="M 30 110 Q 60 60 100 90 Q 140 120 180 80" stroke="#fff" stroke-width="3" fill="none" opacity="0.3"/><path d="M 40 150 Q 80 110 120 140 Q 160 170 200 130" stroke="#fff" stroke-width="3" fill="none" opacity="0.3"/><path d="M 60 60 Q 100 90 80 130 Q 60 170 110 180" stroke="#fff" stroke-width="3" fill="none" opacity="0.3"/></g>
+</svg><div class="image-label">Infographic style</div></div>
+        <div class="image-cell img-kids">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img cute">
+  <rect width="220" height="220" rx="14" fill="#fff8e1"/>
+  <g><path d="M 40 110 Q 80 60 130 90 Q 180 120 180 160 Q 130 200 60 170 Q 20 140 40 110 Z" fill="#f4a261" stroke="#222" stroke-width="3"/><ellipse cx="98" cy="116.0" rx="8" ry="10" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="122" cy="116.0" rx="8" ry="10" fill="white" stroke="#222" stroke-width="2"/><circle cx="98" cy="118.0" r="4.0" fill="#222"/><circle cx="122" cy="118.0" r="4.0" fill="#222"/><circle cx="100" cy="116.0" r="1.4" fill="white"/><circle cx="124" cy="116.0" r="1.4" fill="white"/><ellipse cx="110" cy="132.0" rx="6.0" ry="8.0" fill="#3a1f1f"/></g>
+</svg><div class="image-label">Kids style</div></div>
+      </div>
+      <div class="text-block">
+        <p><span class="label">Function:</span> Not alive, not a virus — a misfolded protein that forces other proteins to misfold the same way. Causes diseases like Creutzfeldt-Jakob, BSE.</p>
+        <p><span class="label">Depends on / Targets:</span> Largely invisible to the immune system; no antibody defence.</p>
+      </div>
+    </div>
+      </div>
+    </section>
+
+    <section class="page kind-pathogens-bacteria">
+      <header class="page-header">
+        <h2 class="page-title">Well-known bacteria</h2>
+        <span class="page-subtitle">Famous representatives of the bacterial world.</span>
+        <span class="page-number">Page 5 / 13</span>
+      </header>
+      <p class="page-description">Bacteria are single-celled organisms without a true nucleus (prokaryotes). They live everywhere — in soil and water, on skin and in the gut. Most are harmless or beneficial; a few cause millions of cases of disease worldwide every year.</p>
+      <div class="grid">
+        
+    <div class="cell tier-basic kind-pathogens-bacteria">
+      <h3 class="cell-name">Mycobacterium tuberculosis (TB)</h3>
+      <div class="images images-3">
+        <div class="image-cell img-microscope-svg">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img micro">
+  <defs>
+    <radialGradient id="vig" cx="50%" cy="50%" r="55%">
+      <stop offset="60%" stop-color="#f2e1d0" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#1a0a14" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/></filter>
+  </defs>
+  <circle cx="110" cy="110" r="105" fill="url(#vig)"/>
+  <g><rect x="45" y="80" width="130" height="60" rx="30" fill="#a85a5a" stroke="#5a1818" stroke-width="2"/><rect x="60" y="120" width="130" height="60" rx="30" fill="#a85a5a" stroke="#5a1818" stroke-width="2"/><rect x="40" y="160" width="90" height="50" rx="25" fill="#a85a5a" stroke="#5a1818" stroke-width="2"/></g>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#000" stroke-width="6"/>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#888" stroke-width="1"/>
+</svg><div class="image-label">Microscope style</div></div>
+        <div class="image-cell img-infographic">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img flat">
+  <rect width="220" height="220" rx="14" fill="#1d3557"/>
+  <g><rect x="45" y="80" width="130" height="60" rx="30" fill="#bc4749" stroke="#0e2a47" stroke-width="4"/><rect x="53" y="88" width="110" height="6" rx="3" fill="#fff" opacity="0.4"/><rect x="60" y="120" width="130" height="60" rx="30" fill="#bc4749" stroke="#0e2a47" stroke-width="4"/><rect x="68" y="128" width="110" height="6" rx="3" fill="#fff" opacity="0.4"/><rect x="40" y="160" width="90" height="50" rx="25" fill="#bc4749" stroke="#0e2a47" stroke-width="4"/><rect x="48" y="168" width="70" height="6" rx="3" fill="#fff" opacity="0.4"/></g>
+</svg><div class="image-label">Infographic style</div></div>
+        <div class="image-cell img-kids">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img cute">
+  <rect width="220" height="220" rx="14" fill="#fff8e1"/>
+  <g><rect x="40" y="80" width="140" height="60" rx="30" fill="#bc4749" stroke="#222" stroke-width="3"/><ellipse cx="73" cy="106.0" rx="8" ry="10" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="97" cy="106.0" rx="8" ry="10" fill="white" stroke="#222" stroke-width="2"/><circle cx="73" cy="108.0" r="4.0" fill="#222"/><circle cx="97" cy="108.0" r="4.0" fill="#222"/><circle cx="75" cy="106.0" r="1.4" fill="white"/><circle cx="99" cy="106.0" r="1.4" fill="white"/><path d="M 71.0 118.0 Q 85 132.0 99.0 118.0" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/><rect x="50" y="155" width="100" height="35" rx="18" fill="#bc4749" stroke="#222" stroke-width="3"/><ellipse cx="79" cy="170.0" rx="4" ry="5" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="91" cy="170.0" rx="4" ry="5" fill="white" stroke="#222" stroke-width="2"/><circle cx="79" cy="171.0" r="2.0" fill="#222"/><circle cx="91" cy="171.0" r="2.0" fill="#222"/><circle cx="81" cy="170.0" r="0.7" fill="white"/><circle cx="93" cy="170.0" r="0.7" fill="white"/><path d="M 79.0 176.0 Q 85 182.0 91.0 176.0" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/></g>
+</svg><div class="image-label">Kids style</div></div>
+      </div>
+      <div class="text-block">
+        <p><span class="label">Function:</span> Waxy-coated rod that hides inside macrophages and can lurk in the lungs for years. Causes tuberculosis — still one of the deadliest infections worldwide.</p>
+        <p><span class="label">Depends on / Targets:</span> Airborne transmission. Contained by macrophages and CD4 T cells; without them the bacterium persists.</p>
+      </div>
+    </div>
+
+    <div class="cell tier-basic kind-pathogens-bacteria">
+      <h3 class="cell-name">Staphylococcus aureus (MRSA)</h3>
+      <div class="images images-3">
+        <div class="image-cell img-microscope-svg">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img micro">
+  <defs>
+    <radialGradient id="vig" cx="50%" cy="50%" r="55%">
+      <stop offset="60%" stop-color="#d9e2ec" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#1a0a14" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/></filter>
+  </defs>
+  <circle cx="110" cy="110" r="105" fill="url(#vig)"/>
+  <g><circle cx="80" cy="80" r="14" fill="#5a8acc" stroke="#1d3557" stroke-width="1.5"/><circle cx="110" cy="70" r="14" fill="#5a8acc" stroke="#1d3557" stroke-width="1.5"/><circle cx="140" cy="80" r="14" fill="#5a8acc" stroke="#1d3557" stroke-width="1.5"/><circle cx="75" cy="110" r="14" fill="#5a8acc" stroke="#1d3557" stroke-width="1.5"/><circle cx="105" cy="100" r="14" fill="#5a8acc" stroke="#1d3557" stroke-width="1.5"/><circle cx="135" cy="110" r="14" fill="#5a8acc" stroke="#1d3557" stroke-width="1.5"/><circle cx="90" cy="140" r="14" fill="#5a8acc" stroke="#1d3557" stroke-width="1.5"/><circle cx="120" cy="135" r="14" fill="#5a8acc" stroke="#1d3557" stroke-width="1.5"/></g>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#000" stroke-width="6"/>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#888" stroke-width="1"/>
+</svg><div class="image-label">Microscope style</div></div>
+        <div class="image-cell img-infographic">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img flat">
+  <rect width="220" height="220" rx="14" fill="#1d3557"/>
+  <g><circle cx="80" cy="80" r="16" fill="#e9c46a" stroke="#0e2a47" stroke-width="3"/><circle cx="76" cy="76" r="4" fill="#fff" opacity="0.5"/><circle cx="110" cy="70" r="16" fill="#e9c46a" stroke="#0e2a47" stroke-width="3"/><circle cx="106" cy="66" r="4" fill="#fff" opacity="0.5"/><circle cx="140" cy="80" r="16" fill="#e9c46a" stroke="#0e2a47" stroke-width="3"/><circle cx="136" cy="76" r="4" fill="#fff" opacity="0.5"/><circle cx="75" cy="110" r="16" fill="#e9c46a" stroke="#0e2a47" stroke-width="3"/><circle cx="71" cy="106" r="4" fill="#fff" opacity="0.5"/><circle cx="105" cy="100" r="16" fill="#e9c46a" stroke="#0e2a47" stroke-width="3"/><circle cx="101" cy="96" r="4" fill="#fff" opacity="0.5"/><circle cx="135" cy="110" r="16" fill="#e9c46a" stroke="#0e2a47" stroke-width="3"/><circle cx="131" cy="106" r="4" fill="#fff" opacity="0.5"/><circle cx="90" cy="140" r="16" fill="#e9c46a" stroke="#0e2a47" stroke-width="3"/><circle cx="86" cy="136" r="4" fill="#fff" opacity="0.5"/><circle cx="120" cy="135" r="16" fill="#e9c46a" stroke="#0e2a47" stroke-width="3"/><circle cx="116" cy="131" r="4" fill="#fff" opacity="0.5"/></g>
+</svg><div class="image-label">Infographic style</div></div>
+        <div class="image-cell img-kids">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img cute">
+  <rect width="220" height="220" rx="14" fill="#fff8e1"/>
+  <g><circle cx="80" cy="90" r="20" fill="#e9c46a" stroke="#222" stroke-width="3"/><circle cx="140" cy="90" r="20" fill="#e9c46a" stroke="#222" stroke-width="3"/><circle cx="110" cy="140" r="20" fill="#e9c46a" stroke="#222" stroke-width="3"/><ellipse cx="76" cy="88.4" rx="3" ry="4" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="84" cy="88.4" rx="3" ry="4" fill="white" stroke="#222" stroke-width="2"/><circle cx="76" cy="89.2" r="1.6" fill="#222"/><circle cx="84" cy="89.2" r="1.6" fill="#222"/><circle cx="78" cy="88.4" r="0.5599999999999999" fill="white"/><circle cx="86" cy="88.4" r="0.5599999999999999" fill="white"/><path d="M 75.2 93.2 Q 80 98.0 84.8 93.2" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/><ellipse cx="136" cy="88.4" rx="3" ry="4" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="144" cy="88.4" rx="3" ry="4" fill="white" stroke="#222" stroke-width="2"/><circle cx="136" cy="89.2" r="1.6" fill="#222"/><circle cx="144" cy="89.2" r="1.6" fill="#222"/><circle cx="138" cy="88.4" r="0.5599999999999999" fill="white"/><circle cx="146" cy="88.4" r="0.5599999999999999" fill="white"/><path d="M 135.2 93.2 Q 140 98.0 144.8 93.2" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/><ellipse cx="106" cy="138.4" rx="3" ry="4" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="114" cy="138.4" rx="3" ry="4" fill="white" stroke="#222" stroke-width="2"/><circle cx="106" cy="139.2" r="1.6" fill="#222"/><circle cx="114" cy="139.2" r="1.6" fill="#222"/><circle cx="108" cy="138.4" r="0.5599999999999999" fill="white"/><circle cx="116" cy="138.4" r="0.5599999999999999" fill="white"/><path d="M 105.2 143.2 Q 110 148.0 114.8 143.2" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/></g>
+</svg><div class="image-label">Kids style</div></div>
+      </div>
+      <div class="text-block">
+        <p><span class="label">Function:</span> Grape-cluster cocci. Often harmless on skin and in the nose, but can cause wound infections, abscesses and sepsis. MRSA strains resist many antibiotics.</p>
+        <p><span class="label">Depends on / Targets:</span> Phagocytosed by neutrophils and tagged by antibodies. Hospital hygiene is key against resistance spread.</p>
+      </div>
+    </div>
+
+    <div class="cell tier-basic kind-pathogens-bacteria">
+      <h3 class="cell-name">Escherichia coli</h3>
+      <div class="images images-3">
+        <div class="image-cell img-microscope-svg">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img micro">
+  <defs>
+    <radialGradient id="vig" cx="50%" cy="50%" r="55%">
+      <stop offset="60%" stop-color="#f2e1d0" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#1a0a14" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/></filter>
+  </defs>
+  <circle cx="110" cy="110" r="105" fill="url(#vig)"/>
+  <g><rect x="45" y="80" width="130" height="60" rx="30" fill="#a85a5a" stroke="#5a1818" stroke-width="2"/><rect x="60" y="120" width="130" height="60" rx="30" fill="#a85a5a" stroke="#5a1818" stroke-width="2"/><rect x="40" y="160" width="90" height="50" rx="25" fill="#a85a5a" stroke="#5a1818" stroke-width="2"/></g>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#000" stroke-width="6"/>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#888" stroke-width="1"/>
+</svg><div class="image-label">Microscope style</div></div>
+        <div class="image-cell img-infographic">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img flat">
+  <rect width="220" height="220" rx="14" fill="#1d3557"/>
+  <g><rect x="45" y="80" width="130" height="60" rx="30" fill="#f4a261" stroke="#0e2a47" stroke-width="4"/><rect x="53" y="88" width="110" height="6" rx="3" fill="#fff" opacity="0.4"/><rect x="60" y="120" width="130" height="60" rx="30" fill="#f4a261" stroke="#0e2a47" stroke-width="4"/><rect x="68" y="128" width="110" height="6" rx="3" fill="#fff" opacity="0.4"/><rect x="40" y="160" width="90" height="50" rx="25" fill="#f4a261" stroke="#0e2a47" stroke-width="4"/><rect x="48" y="168" width="70" height="6" rx="3" fill="#fff" opacity="0.4"/></g>
+</svg><div class="image-label">Infographic style</div></div>
+        <div class="image-cell img-kids">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img cute">
+  <rect width="220" height="220" rx="14" fill="#fff8e1"/>
+  <g><rect x="40" y="80" width="140" height="60" rx="30" fill="#f4a261" stroke="#222" stroke-width="3"/><ellipse cx="73" cy="106.0" rx="8" ry="10" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="97" cy="106.0" rx="8" ry="10" fill="white" stroke="#222" stroke-width="2"/><circle cx="73" cy="108.0" r="4.0" fill="#222"/><circle cx="97" cy="108.0" r="4.0" fill="#222"/><circle cx="75" cy="106.0" r="1.4" fill="white"/><circle cx="99" cy="106.0" r="1.4" fill="white"/><path d="M 71.0 118.0 Q 85 132.0 99.0 118.0" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/><rect x="50" y="155" width="100" height="35" rx="18" fill="#f4a261" stroke="#222" stroke-width="3"/><ellipse cx="79" cy="170.0" rx="4" ry="5" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="91" cy="170.0" rx="4" ry="5" fill="white" stroke="#222" stroke-width="2"/><circle cx="79" cy="171.0" r="2.0" fill="#222"/><circle cx="91" cy="171.0" r="2.0" fill="#222"/><circle cx="81" cy="170.0" r="0.7" fill="white"/><circle cx="93" cy="170.0" r="0.7" fill="white"/><path d="M 79.0 176.0 Q 85 182.0 91.0 176.0" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/></g>
+</svg><div class="image-label">Kids style</div></div>
+      </div>
+      <div class="text-block">
+        <p><span class="label">Function:</span> Gut rod bacterium. Most strains are harmless or useful; some (e.g. EHEC) produce toxins and cause severe diarrhoea and kidney failure.</p>
+        <p><span class="label">Depends on / Targets:</span> Spread by faecal-oral route and contaminated food. Controlled in the gut by IgA antibodies and the mucus barrier.</p>
+      </div>
+    </div>
+
+    <div class="cell tier-basic kind-pathogens-bacteria">
+      <h3 class="cell-name">Salmonella enterica</h3>
+      <div class="images images-3">
+        <div class="image-cell img-microscope-svg">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img micro">
+  <defs>
+    <radialGradient id="vig" cx="50%" cy="50%" r="55%">
+      <stop offset="60%" stop-color="#f2e1d0" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#1a0a14" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/></filter>
+  </defs>
+  <circle cx="110" cy="110" r="105" fill="url(#vig)"/>
+  <g><rect x="45" y="80" width="130" height="60" rx="30" fill="#a85a5a" stroke="#5a1818" stroke-width="2"/><rect x="60" y="120" width="130" height="60" rx="30" fill="#a85a5a" stroke="#5a1818" stroke-width="2"/><rect x="40" y="160" width="90" height="50" rx="25" fill="#a85a5a" stroke="#5a1818" stroke-width="2"/></g>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#000" stroke-width="6"/>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#888" stroke-width="1"/>
+</svg><div class="image-label">Microscope style</div></div>
+        <div class="image-cell img-infographic">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img flat">
+  <rect width="220" height="220" rx="14" fill="#1d3557"/>
+  <g><rect x="45" y="80" width="130" height="60" rx="30" fill="#e76f51" stroke="#0e2a47" stroke-width="4"/><rect x="53" y="88" width="110" height="6" rx="3" fill="#fff" opacity="0.4"/><rect x="60" y="120" width="130" height="60" rx="30" fill="#e76f51" stroke="#0e2a47" stroke-width="4"/><rect x="68" y="128" width="110" height="6" rx="3" fill="#fff" opacity="0.4"/><rect x="40" y="160" width="90" height="50" rx="25" fill="#e76f51" stroke="#0e2a47" stroke-width="4"/><rect x="48" y="168" width="70" height="6" rx="3" fill="#fff" opacity="0.4"/></g>
+</svg><div class="image-label">Infographic style</div></div>
+        <div class="image-cell img-kids">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img cute">
+  <rect width="220" height="220" rx="14" fill="#fff8e1"/>
+  <g><rect x="40" y="80" width="140" height="60" rx="30" fill="#e76f51" stroke="#222" stroke-width="3"/><ellipse cx="73" cy="106.0" rx="8" ry="10" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="97" cy="106.0" rx="8" ry="10" fill="white" stroke="#222" stroke-width="2"/><circle cx="73" cy="108.0" r="4.0" fill="#222"/><circle cx="97" cy="108.0" r="4.0" fill="#222"/><circle cx="75" cy="106.0" r="1.4" fill="white"/><circle cx="99" cy="106.0" r="1.4" fill="white"/><path d="M 71.0 118.0 Q 85 132.0 99.0 118.0" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/><rect x="50" y="155" width="100" height="35" rx="18" fill="#e76f51" stroke="#222" stroke-width="3"/><ellipse cx="79" cy="170.0" rx="4" ry="5" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="91" cy="170.0" rx="4" ry="5" fill="white" stroke="#222" stroke-width="2"/><circle cx="79" cy="171.0" r="2.0" fill="#222"/><circle cx="91" cy="171.0" r="2.0" fill="#222"/><circle cx="81" cy="170.0" r="0.7" fill="white"/><circle cx="93" cy="170.0" r="0.7" fill="white"/><path d="M 79.0 176.0 Q 85 182.0 91.0 176.0" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/></g>
+</svg><div class="image-label">Kids style</div></div>
+      </div>
+      <div class="text-block">
+        <p><span class="label">Function:</span> Rod bacterium from many animals&#x27; guts. Picked up via contaminated eggs, poultry or water, it causes diarrhoea (salmonellosis) or typhoid fever.</p>
+        <p><span class="label">Depends on / Targets:</span> Cleared by neutrophils, macrophages and the gut epithelium; Th1 responses are central to elimination.</p>
+      </div>
+    </div>
+      </div>
+    </section>
+
+    <section class="page kind-pathogens-viruses">
+      <header class="page-header">
+        <h2 class="page-title">Well-known viruses &amp; other pathogens</h2>
+        <span class="page-subtitle">Pandemic classics and global plagues.</span>
+        <span class="page-number">Page 6 / 13</span>
+      </header>
+      <p class="page-description">Viruses are genetic material in a coat and need a host cell to replicate. Fungi and parasites, by contrast, are organisms in their own right. The pathogens shown here infect humans worldwide, ranging from harmless colds to severe pandemics.</p>
+      <div class="grid">
+        
+    <div class="cell tier-basic kind-pathogens-viruses">
+      <h3 class="cell-name">Influenza virus (flu)</h3>
+      <div class="images images-3">
+        <div class="image-cell img-microscope-svg">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img micro">
+  <defs>
+    <radialGradient id="vig" cx="50%" cy="50%" r="55%">
+      <stop offset="60%" stop-color="#e8d5e0" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#1a0a14" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/></filter>
+  </defs>
+  <circle cx="110" cy="110" r="105" fill="url(#vig)"/>
+  <g><line x1="177.5" y1="71.0" x2="196.6" y2="60.0" stroke="#8d4f9e" stroke-width="3"/><line x1="149.0" y1="42.5" x2="160.0" y2="23.4" stroke="#8d4f9e" stroke-width="3"/><line x1="110.0" y1="32.0" x2="110.0" y2="10.0" stroke="#8d4f9e" stroke-width="3"/><line x1="71.0" y1="42.5" x2="60.0" y2="23.4" stroke="#8d4f9e" stroke-width="3"/><line x1="42.5" y1="71.0" x2="23.4" y2="60.0" stroke="#8d4f9e" stroke-width="3"/><line x1="32.0" y1="110.0" x2="10.0" y2="110.0" stroke="#8d4f9e" stroke-width="3"/><line x1="42.5" y1="149.0" x2="23.4" y2="160.0" stroke="#8d4f9e" stroke-width="3"/><line x1="71.0" y1="177.5" x2="60.0" y2="196.6" stroke="#8d4f9e" stroke-width="3"/><line x1="110.0" y1="188.0" x2="110.0" y2="210.0" stroke="#8d4f9e" stroke-width="3"/><line x1="149.0" y1="177.5" x2="160.0" y2="196.6" stroke="#8d4f9e" stroke-width="3"/><line x1="177.5" y1="149.0" x2="196.6" y2="160.0" stroke="#8d4f9e" stroke-width="3"/><line x1="188.0" y1="110.0" x2="210.0" y2="110.0" stroke="#8d4f9e" stroke-width="3"/><polygon points="110,40 170,72 170,148 110,180 50,148 50,72" fill="#8d4f9e" stroke="#3a1546" stroke-width="2"/><polygon points="110,40 170,72 110,104 50,72" fill="#a674b8" opacity="0.6"/></g>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#000" stroke-width="6"/>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#888" stroke-width="1"/>
+</svg><div class="image-label">Microscope style</div></div>
+        <div class="image-cell img-infographic">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img flat">
+  <rect width="220" height="220" rx="14" fill="#1d3557"/>
+  <g><line x1="177.5" y1="71.0" x2="196.6" y2="60.0" stroke="#264653" stroke-width="5" stroke-linecap="round"/><line x1="149.0" y1="42.5" x2="160.0" y2="23.4" stroke="#264653" stroke-width="5" stroke-linecap="round"/><line x1="110.0" y1="32.0" x2="110.0" y2="10.0" stroke="#264653" stroke-width="5" stroke-linecap="round"/><line x1="71.0" y1="42.5" x2="60.0" y2="23.4" stroke="#264653" stroke-width="5" stroke-linecap="round"/><line x1="42.5" y1="71.0" x2="23.4" y2="60.0" stroke="#264653" stroke-width="5" stroke-linecap="round"/><line x1="32.0" y1="110.0" x2="10.0" y2="110.0" stroke="#264653" stroke-width="5" stroke-linecap="round"/><line x1="42.5" y1="149.0" x2="23.4" y2="160.0" stroke="#264653" stroke-width="5" stroke-linecap="round"/><line x1="71.0" y1="177.5" x2="60.0" y2="196.6" stroke="#264653" stroke-width="5" stroke-linecap="round"/><line x1="110.0" y1="188.0" x2="110.0" y2="210.0" stroke="#264653" stroke-width="5" stroke-linecap="round"/><line x1="149.0" y1="177.5" x2="160.0" y2="196.6" stroke="#264653" stroke-width="5" stroke-linecap="round"/><line x1="177.5" y1="149.0" x2="196.6" y2="160.0" stroke="#264653" stroke-width="5" stroke-linecap="round"/><line x1="188.0" y1="110.0" x2="210.0" y2="110.0" stroke="#264653" stroke-width="5" stroke-linecap="round"/><polygon points="110,40 170,72 170,148 110,180 50,148 50,72" fill="#264653" stroke="#0e2a47" stroke-width="4"/><polygon points="110,40 170,72 110,104 50,72" fill="#fff" opacity="0.18"/><circle cx="210.0" cy="110.0" r="6" fill="#264653"/><circle cx="196.6" cy="160.0" r="6" fill="#264653"/><circle cx="160.0" cy="196.6" r="6" fill="#264653"/><circle cx="110.0" cy="210.0" r="6" fill="#264653"/><circle cx="60.0" cy="196.6" r="6" fill="#264653"/><circle cx="23.4" cy="160.0" r="6" fill="#264653"/><circle cx="10.0" cy="110.0" r="6" fill="#264653"/><circle cx="23.4" cy="60.0" r="6" fill="#264653"/><circle cx="60.0" cy="23.4" r="6" fill="#264653"/><circle cx="110.0" cy="10.0" r="6" fill="#264653"/><circle cx="160.0" cy="23.4" r="6" fill="#264653"/><circle cx="196.6" cy="60.0" r="6" fill="#264653"/></g>
+</svg><div class="image-label">Infographic style</div></div>
+        <div class="image-cell img-kids">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img cute">
+  <rect width="220" height="220" rx="14" fill="#fff8e1"/>
+  <g><polygon points="110,40 170,72 170,148 110,180 50,148 50,72" fill="#264653" stroke="#222" stroke-width="3"/><ellipse cx="98" cy="98.0" rx="8" ry="10" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="122" cy="98.0" rx="8" ry="10" fill="white" stroke="#222" stroke-width="2"/><circle cx="98" cy="100.0" r="4.0" fill="#222"/><circle cx="122" cy="100.0" r="4.0" fill="#222"/><circle cx="100" cy="98.0" r="1.4" fill="white"/><circle cx="124" cy="98.0" r="1.4" fill="white"/><path d="M 96.0 110.0 Q 110 124.0 124.0 110.0" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M 80 150 Q 110 170 140 150" stroke="#222" stroke-width="2" fill="none"/></g>
+</svg><div class="image-label">Kids style</div></div>
+      </div>
+      <div class="text-block">
+        <p><span class="label">Function:</span> Respiratory RNA virus with a segmented genome. Mutates constantly, so vaccines are reformulated each year. Causes seasonal waves and occasional pandemics.</p>
+        <p><span class="label">Depends on / Targets:</span> Spread by droplets. CD8 T cells and antibodies clear infected cells and free virus particles.</p>
+      </div>
+    </div>
+
+    <div class="cell tier-basic kind-pathogens-viruses">
+      <h3 class="cell-name">SARS-CoV-2 (COVID-19)</h3>
+      <div class="images images-3">
+        <div class="image-cell img-microscope-svg">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img micro">
+  <defs>
+    <radialGradient id="vig" cx="50%" cy="50%" r="55%">
+      <stop offset="60%" stop-color="#e8d5e0" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#1a0a14" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/></filter>
+  </defs>
+  <circle cx="110" cy="110" r="105" fill="url(#vig)"/>
+  <g><line x1="177.5" y1="71.0" x2="196.6" y2="60.0" stroke="#8d4f9e" stroke-width="3"/><line x1="149.0" y1="42.5" x2="160.0" y2="23.4" stroke="#8d4f9e" stroke-width="3"/><line x1="110.0" y1="32.0" x2="110.0" y2="10.0" stroke="#8d4f9e" stroke-width="3"/><line x1="71.0" y1="42.5" x2="60.0" y2="23.4" stroke="#8d4f9e" stroke-width="3"/><line x1="42.5" y1="71.0" x2="23.4" y2="60.0" stroke="#8d4f9e" stroke-width="3"/><line x1="32.0" y1="110.0" x2="10.0" y2="110.0" stroke="#8d4f9e" stroke-width="3"/><line x1="42.5" y1="149.0" x2="23.4" y2="160.0" stroke="#8d4f9e" stroke-width="3"/><line x1="71.0" y1="177.5" x2="60.0" y2="196.6" stroke="#8d4f9e" stroke-width="3"/><line x1="110.0" y1="188.0" x2="110.0" y2="210.0" stroke="#8d4f9e" stroke-width="3"/><line x1="149.0" y1="177.5" x2="160.0" y2="196.6" stroke="#8d4f9e" stroke-width="3"/><line x1="177.5" y1="149.0" x2="196.6" y2="160.0" stroke="#8d4f9e" stroke-width="3"/><line x1="188.0" y1="110.0" x2="210.0" y2="110.0" stroke="#8d4f9e" stroke-width="3"/><polygon points="110,40 170,72 170,148 110,180 50,148 50,72" fill="#8d4f9e" stroke="#3a1546" stroke-width="2"/><polygon points="110,40 170,72 110,104 50,72" fill="#a674b8" opacity="0.6"/></g>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#000" stroke-width="6"/>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#888" stroke-width="1"/>
+</svg><div class="image-label">Microscope style</div></div>
+        <div class="image-cell img-infographic">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img flat">
+  <rect width="220" height="220" rx="14" fill="#1d3557"/>
+  <g><line x1="177.5" y1="71.0" x2="196.6" y2="60.0" stroke="#e63946" stroke-width="5" stroke-linecap="round"/><line x1="149.0" y1="42.5" x2="160.0" y2="23.4" stroke="#e63946" stroke-width="5" stroke-linecap="round"/><line x1="110.0" y1="32.0" x2="110.0" y2="10.0" stroke="#e63946" stroke-width="5" stroke-linecap="round"/><line x1="71.0" y1="42.5" x2="60.0" y2="23.4" stroke="#e63946" stroke-width="5" stroke-linecap="round"/><line x1="42.5" y1="71.0" x2="23.4" y2="60.0" stroke="#e63946" stroke-width="5" stroke-linecap="round"/><line x1="32.0" y1="110.0" x2="10.0" y2="110.0" stroke="#e63946" stroke-width="5" stroke-linecap="round"/><line x1="42.5" y1="149.0" x2="23.4" y2="160.0" stroke="#e63946" stroke-width="5" stroke-linecap="round"/><line x1="71.0" y1="177.5" x2="60.0" y2="196.6" stroke="#e63946" stroke-width="5" stroke-linecap="round"/><line x1="110.0" y1="188.0" x2="110.0" y2="210.0" stroke="#e63946" stroke-width="5" stroke-linecap="round"/><line x1="149.0" y1="177.5" x2="160.0" y2="196.6" stroke="#e63946" stroke-width="5" stroke-linecap="round"/><line x1="177.5" y1="149.0" x2="196.6" y2="160.0" stroke="#e63946" stroke-width="5" stroke-linecap="round"/><line x1="188.0" y1="110.0" x2="210.0" y2="110.0" stroke="#e63946" stroke-width="5" stroke-linecap="round"/><polygon points="110,40 170,72 170,148 110,180 50,148 50,72" fill="#e63946" stroke="#0e2a47" stroke-width="4"/><polygon points="110,40 170,72 110,104 50,72" fill="#fff" opacity="0.18"/><circle cx="210.0" cy="110.0" r="6" fill="#e63946"/><circle cx="196.6" cy="160.0" r="6" fill="#e63946"/><circle cx="160.0" cy="196.6" r="6" fill="#e63946"/><circle cx="110.0" cy="210.0" r="6" fill="#e63946"/><circle cx="60.0" cy="196.6" r="6" fill="#e63946"/><circle cx="23.4" cy="160.0" r="6" fill="#e63946"/><circle cx="10.0" cy="110.0" r="6" fill="#e63946"/><circle cx="23.4" cy="60.0" r="6" fill="#e63946"/><circle cx="60.0" cy="23.4" r="6" fill="#e63946"/><circle cx="110.0" cy="10.0" r="6" fill="#e63946"/><circle cx="160.0" cy="23.4" r="6" fill="#e63946"/><circle cx="196.6" cy="60.0" r="6" fill="#e63946"/></g>
+</svg><div class="image-label">Infographic style</div></div>
+        <div class="image-cell img-kids">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img cute">
+  <rect width="220" height="220" rx="14" fill="#fff8e1"/>
+  <g><polygon points="110,40 170,72 170,148 110,180 50,148 50,72" fill="#e63946" stroke="#222" stroke-width="3"/><ellipse cx="98" cy="98.0" rx="8" ry="10" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="122" cy="98.0" rx="8" ry="10" fill="white" stroke="#222" stroke-width="2"/><circle cx="98" cy="100.0" r="4.0" fill="#222"/><circle cx="122" cy="100.0" r="4.0" fill="#222"/><circle cx="100" cy="98.0" r="1.4" fill="white"/><circle cx="124" cy="98.0" r="1.4" fill="white"/><path d="M 96.0 110.0 Q 110 124.0 124.0 110.0" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M 80 150 Q 110 170 140 150" stroke="#222" stroke-width="2" fill="none"/></g>
+</svg><div class="image-label">Kids style</div></div>
+      </div>
+      <div class="text-block">
+        <p><span class="label">Function:</span> Coronavirus with a &#x27;crown&#x27; of spike proteins. Binds ACE2 receptors in the airways and triggered the global COVID-19 pandemic in 2020.</p>
+        <p><span class="label">Depends on / Targets:</span> Spreads via aerosols. mRNA and vector vaccines train antibodies and T cells against the spike protein.</p>
+      </div>
+    </div>
+
+    <div class="cell tier-basic kind-pathogens-viruses">
+      <h3 class="cell-name">HIV</h3>
+      <div class="images images-3">
+        <div class="image-cell img-microscope-svg">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img micro">
+  <defs>
+    <radialGradient id="vig" cx="50%" cy="50%" r="55%">
+      <stop offset="60%" stop-color="#e8d5e0" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#1a0a14" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/></filter>
+  </defs>
+  <circle cx="110" cy="110" r="105" fill="url(#vig)"/>
+  <g><line x1="177.5" y1="71.0" x2="196.6" y2="60.0" stroke="#8d4f9e" stroke-width="3"/><line x1="149.0" y1="42.5" x2="160.0" y2="23.4" stroke="#8d4f9e" stroke-width="3"/><line x1="110.0" y1="32.0" x2="110.0" y2="10.0" stroke="#8d4f9e" stroke-width="3"/><line x1="71.0" y1="42.5" x2="60.0" y2="23.4" stroke="#8d4f9e" stroke-width="3"/><line x1="42.5" y1="71.0" x2="23.4" y2="60.0" stroke="#8d4f9e" stroke-width="3"/><line x1="32.0" y1="110.0" x2="10.0" y2="110.0" stroke="#8d4f9e" stroke-width="3"/><line x1="42.5" y1="149.0" x2="23.4" y2="160.0" stroke="#8d4f9e" stroke-width="3"/><line x1="71.0" y1="177.5" x2="60.0" y2="196.6" stroke="#8d4f9e" stroke-width="3"/><line x1="110.0" y1="188.0" x2="110.0" y2="210.0" stroke="#8d4f9e" stroke-width="3"/><line x1="149.0" y1="177.5" x2="160.0" y2="196.6" stroke="#8d4f9e" stroke-width="3"/><line x1="177.5" y1="149.0" x2="196.6" y2="160.0" stroke="#8d4f9e" stroke-width="3"/><line x1="188.0" y1="110.0" x2="210.0" y2="110.0" stroke="#8d4f9e" stroke-width="3"/><polygon points="110,40 170,72 170,148 110,180 50,148 50,72" fill="#8d4f9e" stroke="#3a1546" stroke-width="2"/><polygon points="110,40 170,72 110,104 50,72" fill="#a674b8" opacity="0.6"/></g>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#000" stroke-width="6"/>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#888" stroke-width="1"/>
+</svg><div class="image-label">Microscope style</div></div>
+        <div class="image-cell img-infographic">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img flat">
+  <rect width="220" height="220" rx="14" fill="#1d3557"/>
+  <g><line x1="177.5" y1="71.0" x2="196.6" y2="60.0" stroke="#7209b7" stroke-width="5" stroke-linecap="round"/><line x1="149.0" y1="42.5" x2="160.0" y2="23.4" stroke="#7209b7" stroke-width="5" stroke-linecap="round"/><line x1="110.0" y1="32.0" x2="110.0" y2="10.0" stroke="#7209b7" stroke-width="5" stroke-linecap="round"/><line x1="71.0" y1="42.5" x2="60.0" y2="23.4" stroke="#7209b7" stroke-width="5" stroke-linecap="round"/><line x1="42.5" y1="71.0" x2="23.4" y2="60.0" stroke="#7209b7" stroke-width="5" stroke-linecap="round"/><line x1="32.0" y1="110.0" x2="10.0" y2="110.0" stroke="#7209b7" stroke-width="5" stroke-linecap="round"/><line x1="42.5" y1="149.0" x2="23.4" y2="160.0" stroke="#7209b7" stroke-width="5" stroke-linecap="round"/><line x1="71.0" y1="177.5" x2="60.0" y2="196.6" stroke="#7209b7" stroke-width="5" stroke-linecap="round"/><line x1="110.0" y1="188.0" x2="110.0" y2="210.0" stroke="#7209b7" stroke-width="5" stroke-linecap="round"/><line x1="149.0" y1="177.5" x2="160.0" y2="196.6" stroke="#7209b7" stroke-width="5" stroke-linecap="round"/><line x1="177.5" y1="149.0" x2="196.6" y2="160.0" stroke="#7209b7" stroke-width="5" stroke-linecap="round"/><line x1="188.0" y1="110.0" x2="210.0" y2="110.0" stroke="#7209b7" stroke-width="5" stroke-linecap="round"/><polygon points="110,40 170,72 170,148 110,180 50,148 50,72" fill="#7209b7" stroke="#0e2a47" stroke-width="4"/><polygon points="110,40 170,72 110,104 50,72" fill="#fff" opacity="0.18"/><circle cx="210.0" cy="110.0" r="6" fill="#7209b7"/><circle cx="196.6" cy="160.0" r="6" fill="#7209b7"/><circle cx="160.0" cy="196.6" r="6" fill="#7209b7"/><circle cx="110.0" cy="210.0" r="6" fill="#7209b7"/><circle cx="60.0" cy="196.6" r="6" fill="#7209b7"/><circle cx="23.4" cy="160.0" r="6" fill="#7209b7"/><circle cx="10.0" cy="110.0" r="6" fill="#7209b7"/><circle cx="23.4" cy="60.0" r="6" fill="#7209b7"/><circle cx="60.0" cy="23.4" r="6" fill="#7209b7"/><circle cx="110.0" cy="10.0" r="6" fill="#7209b7"/><circle cx="160.0" cy="23.4" r="6" fill="#7209b7"/><circle cx="196.6" cy="60.0" r="6" fill="#7209b7"/></g>
+</svg><div class="image-label">Infographic style</div></div>
+        <div class="image-cell img-kids">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img cute">
+  <rect width="220" height="220" rx="14" fill="#fff8e1"/>
+  <g><polygon points="110,40 170,72 170,148 110,180 50,148 50,72" fill="#7209b7" stroke="#222" stroke-width="3"/><ellipse cx="98" cy="98.0" rx="8" ry="10" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="122" cy="98.0" rx="8" ry="10" fill="white" stroke="#222" stroke-width="2"/><circle cx="98" cy="100.0" r="4.0" fill="#222"/><circle cx="122" cy="100.0" r="4.0" fill="#222"/><circle cx="100" cy="98.0" r="1.4" fill="white"/><circle cx="124" cy="98.0" r="1.4" fill="white"/><path d="M 96.0 110.0 Q 110 124.0 124.0 110.0" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M 80 150 Q 110 170 140 150" stroke="#222" stroke-width="2" fill="none"/></g>
+</svg><div class="image-label">Kids style</div></div>
+      </div>
+      <div class="text-block">
+        <p><span class="label">Function:</span> Retrovirus that targets CD4 helper T cells and integrates its genome into human DNA. Untreated, it destroys the immune system (AIDS).</p>
+        <p><span class="label">Depends on / Targets:</span> Spread via blood, sexual contact and mother-to-child. Antiretroviral therapy (ART) keeps the virus suppressed long-term.</p>
+      </div>
+    </div>
+
+    <div class="cell tier-basic kind-pathogens-viruses">
+      <h3 class="cell-name">Plasmodium (malaria)</h3>
+      <div class="images images-3">
+        <div class="image-cell img-microscope-svg">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img micro">
+  <defs>
+    <radialGradient id="vig" cx="50%" cy="50%" r="55%">
+      <stop offset="60%" stop-color="#dde5b7" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#1a0a14" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/></filter>
+  </defs>
+  <circle cx="110" cy="110" r="105" fill="url(#vig)"/>
+  <g><path d="M 60 110 Q 50 60 100 50 Q 160 40 170 90 Q 195 130 160 165 Q 120 195 80 170 Q 40 150 60 110 Z" fill="#a3b18a" stroke="#3a5a1f" stroke-width="2"/><circle cx="100" cy="100" r="14" fill="#3a5a1f" opacity="0.8"/><circle cx="140" cy="130" r="10" fill="#3a5a1f" opacity="0.7"/></g>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#000" stroke-width="6"/>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#888" stroke-width="1"/>
+</svg><div class="image-label">Microscope style</div></div>
+        <div class="image-cell img-infographic">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img flat">
+  <rect width="220" height="220" rx="14" fill="#1d3557"/>
+  <g><path d="M 60 110 Q 50 60 100 50 Q 160 40 170 90 Q 195 130 160 165 Q 120 195 80 170 Q 40 150 60 110 Z" fill="#6a994e" stroke="#0e2a47" stroke-width="4"/><circle cx="100" cy="100" r="14" fill="#0e2a47"/><circle cx="140" cy="130" r="10" fill="#0e2a47"/><circle cx="100 - 5" cy="95" r="4" fill="#fff" opacity="0.5"/></g>
+</svg><div class="image-label">Infographic style</div></div>
+        <div class="image-cell img-kids">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img cute">
+  <rect width="220" height="220" rx="14" fill="#fff8e1"/>
+  <g><path d="M 60 110 Q 50 60 100 50 Q 160 40 170 90 Q 195 130 160 165 Q 120 195 80 170 Q 40 150 60 110 Z" fill="#6a994e" stroke="#222" stroke-width="3"/><ellipse cx="102" cy="105.6" rx="8" ry="11" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="128" cy="105.6" rx="8" ry="11" fill="white" stroke="#222" stroke-width="2"/><circle cx="102" cy="107.8" r="4.4" fill="#222"/><circle cx="128" cy="107.8" r="4.4" fill="#222"/><circle cx="104" cy="105.6" r="1.54" fill="white"/><circle cx="130" cy="105.6" r="1.54" fill="white"/><path d="M 99.6 118.8 Q 115 134.2 130.4 118.8" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/></g>
+</svg><div class="image-label">Kids style</div></div>
+      </div>
+      <div class="text-block">
+        <p><span class="label">Function:</span> Single-celled parasite spread by Anopheles mosquitoes. First infects the liver, then red blood cells, triggering cycles of fever. Kills over 500,000 people per year worldwide.</p>
+        <p><span class="label">Depends on / Targets:</span> Treated with antimalarial drugs; new vaccines (RTS,S, R21) now being rolled out in endemic regions.</p>
+      </div>
+    </div>
+
+    <div class="cell tier-basic kind-pathogens-viruses">
+      <h3 class="cell-name">Candida albicans</h3>
+      <div class="images images-3">
+        <div class="image-cell img-microscope-svg">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img micro">
+  <defs>
+    <radialGradient id="vig" cx="50%" cy="50%" r="55%">
+      <stop offset="60%" stop-color="#e6d4b8" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#1a0a14" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/></filter>
+  </defs>
+  <circle cx="110" cy="110" r="105" fill="url(#vig)"/>
+  <g><path d="M 30 60 Q 80 80 130 70 Q 180 60 200 110" stroke="#8a6a4a" stroke-width="9" fill="none" stroke-linecap="round"/><path d="M 30 130 Q 90 120 130 150 Q 180 180 200 160" stroke="#8a6a4a" stroke-width="9" fill="none" stroke-linecap="round"/><path d="M 110 30 Q 100 90 140 110 Q 170 130 130 200" stroke="#8a6a4a" stroke-width="9" fill="none" stroke-linecap="round"/><circle cx="70" cy="75" r="10" fill="#c19a7a" stroke="#5a3a1f" stroke-width="1.5"/><circle cx="130" cy="73" r="10" fill="#c19a7a" stroke="#5a3a1f" stroke-width="1.5"/><circle cx="90" cy="120" r="10" fill="#c19a7a" stroke="#5a3a1f" stroke-width="1.5"/><circle cx="135" cy="150" r="10" fill="#c19a7a" stroke="#5a3a1f" stroke-width="1.5"/><circle cx="110" cy="95" r="10" fill="#c19a7a" stroke="#5a3a1f" stroke-width="1.5"/></g>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#000" stroke-width="6"/>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#888" stroke-width="1"/>
+</svg><div class="image-label">Microscope style</div></div>
+        <div class="image-cell img-infographic">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img flat">
+  <rect width="220" height="220" rx="14" fill="#1d3557"/>
+  <g><path d="M 30 60 Q 80 80 130 70 Q 180 60 200 110" stroke="#bb8a52" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M 30 130 Q 90 120 130 150 Q 180 180 200 160" stroke="#bb8a52" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M 110 30 Q 100 90 140 110 Q 170 130 130 200" stroke="#bb8a52" stroke-width="12" fill="none" stroke-linecap="round"/><circle cx="70" cy="75" r="12" fill="#d4a373" stroke="#0e2a47" stroke-width="3"/><circle cx="130" cy="73" r="12" fill="#d4a373" stroke="#0e2a47" stroke-width="3"/><circle cx="90" cy="120" r="12" fill="#d4a373" stroke="#0e2a47" stroke-width="3"/><circle cx="135" cy="150" r="12" fill="#d4a373" stroke="#0e2a47" stroke-width="3"/><circle cx="110" cy="95" r="12" fill="#d4a373" stroke="#0e2a47" stroke-width="3"/></g>
+</svg><div class="image-label">Infographic style</div></div>
+        <div class="image-cell img-kids">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img cute">
+  <rect width="220" height="220" rx="14" fill="#fff8e1"/>
+  <g><path d="M 30 130 Q 90 120 130 150 Q 180 180 200 160" stroke="#bb8a52" stroke-width="14" fill="none" stroke-linecap="round"/><circle cx="110" cy="100" r="40" fill="#d4a373" stroke="#222" stroke-width="3"/><ellipse cx="100" cy="91.4" rx="7" ry="9" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="120" cy="91.4" rx="7" ry="9" fill="white" stroke="#222" stroke-width="2"/><circle cx="100" cy="93.2" r="3.6" fill="#222"/><circle cx="120" cy="93.2" r="3.6" fill="#222"/><circle cx="102" cy="91.4" r="1.26" fill="white"/><circle cx="122" cy="91.4" r="1.26" fill="white"/><path d="M 99.2 102.2 Q 110 113.0 120.8 102.2" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/></g>
+</svg><div class="image-label">Kids style</div></div>
+      </div>
+      <div class="text-block">
+        <p><span class="label">Function:</span> Yeast that lives harmlessly in many people&#x27;s mouths, gut and genital tract. With a weakened immune system or after antibiotics it can spread and cause serious infections.</p>
+        <p><span class="label">Depends on / Targets:</span> Kept in check by Th17 cells, neutrophils and the mucosal microbiome.</p>
+      </div>
+    </div>
+      </div>
+    </section>
+
+    <section class="page kind-hematopoietic">
+      <header class="page-header">
+        <h2 class="page-title">Hematopoietic lineage</h2>
+        <span class="page-subtitle">All blood cells arise from a single stem cell in bone marrow.</span>
+        <span class="page-number">Page 7 / 13</span>
+      </header>
+      <p class="page-description">All blood cells arise in bone marrow from a single hematopoietic stem cell. Through multiple maturation steps they become red blood cells, platelets, granulocytes, monocytes and lymphocytes — around 200 billion new cells per person per day.</p>
+      <div class="grid">
+        
+    <div class="cell tier-basic kind-hematopoietic">
+      <h3 class="cell-name">Hematopoietic stem cell (HSC)</h3>
+      <div class="images images-3">
+        <div class="image-cell img-microscope-svg">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img micro">
+  <defs>
+    <radialGradient id="vig" cx="50%" cy="50%" r="55%">
+      <stop offset="60%" stop-color="#e0eef0" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#1a0a14" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/></filter>
+  </defs>
+  <circle cx="110" cy="110" r="105" fill="url(#vig)"/>
+  <g><circle cx="110" cy="110" r="55" fill="#c2dfe3" stroke="#3a5a6a" stroke-width="2"/><circle cx="106" cy="106" r="38" fill="#5a2a64" opacity="0.85"/><circle cx="96" cy="98" r="6" fill="#fff" opacity="0.5"/></g>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#000" stroke-width="6"/>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#888" stroke-width="1"/>
+</svg><div class="image-label">Microscope style</div></div>
+        <div class="image-cell img-infographic">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img flat">
+  <rect width="220" height="220" rx="14" fill="#1d3557"/>
+  <g><circle cx="110" cy="110" r="80" fill="#caf0f8" opacity="0.4"/><circle cx="110" cy="110" r="55" fill="#90e0ef" stroke="#0e2a47" stroke-width="4"/><circle cx="106" cy="106" r="36" fill="#0077b6"/><circle cx="50" cy="40" r="3" fill="#fff" opacity="0.8"/><circle cx="80" cy="63" r="3" fill="#fff" opacity="0.8"/><circle cx="110" cy="86" r="3" fill="#fff" opacity="0.8"/><circle cx="140" cy="109" r="3" fill="#fff" opacity="0.8"/><circle cx="170" cy="132" r="3" fill="#fff" opacity="0.8"/><circle cx="70" cy="155" r="3" fill="#fff" opacity="0.8"/><circle cx="100" cy="178" r="3" fill="#fff" opacity="0.8"/><circle cx="130" cy="61" r="3" fill="#fff" opacity="0.8"/><circle cx="160" cy="84" r="3" fill="#fff" opacity="0.8"/><circle cx="60" cy="107" r="3" fill="#fff" opacity="0.8"/></g>
+</svg><div class="image-label">Infographic style</div></div>
+        <div class="image-cell img-kids">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img cute">
+  <rect width="220" height="220" rx="14" fill="#fff8e1"/>
+  <g><circle cx="110" cy="110" r="85" fill="#caf0f8" opacity="0.5"/><polygon points="190,110 200,104 205,110 200,116" fill="#ffd166"/><polygon points="167,167 178,169 177,177 169,178" fill="#ffd166"/><polygon points="110,190 116,200 110,205 104,200" fill="#ffd166"/><polygon points="53,167 51,178 43,177 42,169" fill="#ffd166"/><polygon points="30,110 20,116 15,110 20,104" fill="#ffd166"/><polygon points="53,53 42,51 43,43 51,42" fill="#ffd166"/><polygon points="110,30 104,20 110,15 116,20" fill="#ffd166"/><polygon points="167,53 169,42 177,43 178,51" fill="#ffd166"/><circle cx="110" cy="115" r="60" fill="#90e0ef" stroke="#222" stroke-width="3"/><ellipse cx="97" cy="103.6" rx="8" ry="11" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="123" cy="103.6" rx="8" ry="11" fill="white" stroke="#222" stroke-width="2"/><circle cx="97" cy="105.8" r="4.4" fill="#222"/><circle cx="123" cy="105.8" r="4.4" fill="#222"/><circle cx="99" cy="103.6" r="1.54" fill="white"/><circle cx="125" cy="103.6" r="1.54" fill="white"/><path d="M 96.8 116.8 Q 110 130.0 123.2 116.8" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/></g>
+</svg><div class="image-label">Kids style</div></div>
+      </div>
+      <div class="text-block">
+        <p><span class="label">Function:</span> Mother of all blood cells. Lives in bone marrow, divides rarely, self-renews and gives rise to every blood lineage.</p>
+        <p><span class="label">Depends on / Targets:</span> Needs niche cells in bone marrow (osteoblasts, stromal cells) and growth factors.</p>
+      </div>
+    </div>
+
+    <div class="cell tier-basic kind-hematopoietic">
+      <h3 class="cell-name">Erythrocyte (red blood cell)</h3>
+      <div class="images images-3">
+        <div class="image-cell img-microscope-svg">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img micro">
+  <defs>
+    <radialGradient id="vig" cx="50%" cy="50%" r="55%">
+      <stop offset="60%" stop-color="#f2c2c2" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#1a0a14" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/></filter>
+  </defs>
+  <circle cx="110" cy="110" r="105" fill="url(#vig)"/>
+  <g><ellipse cx="110" cy="110" rx="80" ry="70" fill="#d04a4a" stroke="#7a1f1f" stroke-width="2"/><ellipse cx="110" cy="110" rx="36" ry="30" fill="#a83a3a" opacity="0.7"/><ellipse cx="90" cy="90" rx="14" ry="10" fill="#f4a6a6" opacity="0.6"/></g>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#000" stroke-width="6"/>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#888" stroke-width="1"/>
+</svg><div class="image-label">Microscope style</div></div>
+        <div class="image-cell img-infographic">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img flat">
+  <rect width="220" height="220" rx="14" fill="#1d3557"/>
+  <g><ellipse cx="110" cy="110" rx="80" ry="70" fill="#e63946" stroke="#0e2a47" stroke-width="4"/><ellipse cx="110" cy="110" rx="32" ry="28" fill="#b22a37"/><ellipse cx="86" cy="88" rx="12" ry="8" fill="#fff" opacity="0.5"/></g>
+</svg><div class="image-label">Infographic style</div></div>
+        <div class="image-cell img-kids">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img cute">
+  <rect width="220" height="220" rx="14" fill="#fff8e1"/>
+  <g><ellipse cx="110" cy="118" rx="80" ry="70" fill="#e63946" stroke="#222" stroke-width="3"/><ellipse cx="98" cy="102.0" rx="8" ry="10" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="122" cy="102.0" rx="8" ry="10" fill="white" stroke="#222" stroke-width="2"/><circle cx="98" cy="104.0" r="4.0" fill="#222"/><circle cx="122" cy="104.0" r="4.0" fill="#222"/><circle cx="100" cy="102.0" r="1.4" fill="white"/><circle cx="124" cy="102.0" r="1.4" fill="white"/><path d="M 98.0 114.0 Q 110 126.0 122.0 114.0" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/></g>
+</svg><div class="image-label">Kids style</div></div>
+      </div>
+      <div class="text-block">
+        <p><span class="label">Function:</span> Oxygen carrier: no nucleus, packed with haemoglobin. Lives about 120 days and circulates millions of times.</p>
+        <p><span class="label">Depends on / Targets:</span> Production driven by the hormone erythropoietin from the kidney. Delivers oxygen to every body cell.</p>
+      </div>
+    </div>
+
+    <div class="cell tier-basic kind-hematopoietic">
+      <h3 class="cell-name">Thrombocyte (platelet)</h3>
+      <div class="images images-3">
+        <div class="image-cell img-microscope-svg">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img micro">
+  <defs>
+    <radialGradient id="vig" cx="50%" cy="50%" r="55%">
+      <stop offset="60%" stop-color="#f2c2c2" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#1a0a14" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/></filter>
+  </defs>
+  <circle cx="110" cy="110" r="105" fill="url(#vig)"/>
+  <g><path d="M 80 110 Q 70 80 110 70 Q 155 70 160 110 Q 165 150 110 155 Q 70 150 80 110 Z" fill="#c66a6a" stroke="#7a1f1f" stroke-width="2"/><circle cx="100" cy="100" r="4" fill="#5a1f3a"/><circle cx="130" cy="115" r="3" fill="#5a1f3a"/><circle cx="115" cy="135" r="4" fill="#5a1f3a"/><circle cx="95" cy="125" r="3" fill="#5a1f3a"/></g>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#000" stroke-width="6"/>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#888" stroke-width="1"/>
+</svg><div class="image-label">Microscope style</div></div>
+        <div class="image-cell img-infographic">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img flat">
+  <rect width="220" height="220" rx="14" fill="#1d3557"/>
+  <g><path d="M 80 110 Q 70 80 110 70 Q 155 70 160 110 Q 165 150 110 155 Q 70 150 80 110 Z" fill="#bc4749" stroke="#0e2a47" stroke-width="4"/><circle cx="100" cy="100" r="5" fill="#fff" opacity="0.8"/><circle cx="130" cy="115" r="4" fill="#fff" opacity="0.8"/><circle cx="115" cy="135" r="5" fill="#fff" opacity="0.8"/></g>
+</svg><div class="image-label">Infographic style</div></div>
+        <div class="image-cell img-kids">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img cute">
+  <rect width="220" height="220" rx="14" fill="#fff8e1"/>
+  <g><path d="M 80 110 Q 70 80 110 70 Q 155 70 160 110 Q 165 150 110 155 Q 70 150 80 110 Z" fill="#bc4749" stroke="#222" stroke-width="3"/><ellipse cx="110" cy="111.2" rx="5" ry="7" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="126" cy="111.2" rx="5" ry="7" fill="white" stroke="#222" stroke-width="2"/><circle cx="110" cy="112.6" r="2.8" fill="#222"/><circle cx="126" cy="112.6" r="2.8" fill="#222"/><circle cx="112" cy="111.2" r="0.9799999999999999" fill="white"/><circle cx="128" cy="111.2" r="0.9799999999999999" fill="white"/><path d="M 109.6 119.6 Q 118 128.0 126.4 119.6" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/></g>
+</svg><div class="image-label">Kids style</div></div>
+      </div>
+      <div class="text-block">
+        <p><span class="label">Function:</span> Tiny anucleate fragments. Plug wounds, form the first clot and trigger the coagulation cascade.</p>
+        <p><span class="label">Depends on / Targets:</span> Originate from megakaryocytes. Cooperate closely with coagulation factors and endothelial cells.</p>
+      </div>
+    </div>
+      </div>
+    </section>
+
+    <section class="page kind-mesenchymal">
+      <header class="page-header">
+        <h2 class="page-title">Mesenchymal lineage</h2>
+        <span class="page-subtitle">Connective tissues: bone, cartilage, muscle, fat.</span>
+        <span class="page-number">Page 8 / 13</span>
+      </header>
+      <p class="page-description">Mesenchymal cells arise from the middle germ layer (mesoderm) and form the body&#x27;s supporting tissues: bone, cartilage, tendons, skeletal and smooth muscle, plus fat and connective tissue.</p>
+      <div class="grid">
+        
+    <div class="cell tier-basic kind-mesenchymal">
+      <h3 class="cell-name">Mesenchymal stem cell (MSC)</h3>
+      <div class="images images-3">
+        <div class="image-cell img-microscope-svg">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img micro">
+  <defs>
+    <radialGradient id="vig" cx="50%" cy="50%" r="55%">
+      <stop offset="60%" stop-color="#e0eef0" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#1a0a14" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/></filter>
+  </defs>
+  <circle cx="110" cy="110" r="105" fill="url(#vig)"/>
+  <g><circle cx="110" cy="110" r="55" fill="#c2dfe3" stroke="#3a5a6a" stroke-width="2"/><circle cx="106" cy="106" r="38" fill="#5a2a64" opacity="0.85"/><circle cx="96" cy="98" r="6" fill="#fff" opacity="0.5"/></g>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#000" stroke-width="6"/>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#888" stroke-width="1"/>
+</svg><div class="image-label">Microscope style</div></div>
+        <div class="image-cell img-infographic">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img flat">
+  <rect width="220" height="220" rx="14" fill="#1d3557"/>
+  <g><circle cx="110" cy="110" r="80" fill="#caf0f8" opacity="0.4"/><circle cx="110" cy="110" r="55" fill="#b5e48c" stroke="#0e2a47" stroke-width="4"/><circle cx="106" cy="106" r="36" fill="#0077b6"/><circle cx="50" cy="40" r="3" fill="#fff" opacity="0.8"/><circle cx="80" cy="63" r="3" fill="#fff" opacity="0.8"/><circle cx="110" cy="86" r="3" fill="#fff" opacity="0.8"/><circle cx="140" cy="109" r="3" fill="#fff" opacity="0.8"/><circle cx="170" cy="132" r="3" fill="#fff" opacity="0.8"/><circle cx="70" cy="155" r="3" fill="#fff" opacity="0.8"/><circle cx="100" cy="178" r="3" fill="#fff" opacity="0.8"/><circle cx="130" cy="61" r="3" fill="#fff" opacity="0.8"/><circle cx="160" cy="84" r="3" fill="#fff" opacity="0.8"/><circle cx="60" cy="107" r="3" fill="#fff" opacity="0.8"/></g>
+</svg><div class="image-label">Infographic style</div></div>
+        <div class="image-cell img-kids">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img cute">
+  <rect width="220" height="220" rx="14" fill="#fff8e1"/>
+  <g><circle cx="110" cy="110" r="85" fill="#caf0f8" opacity="0.5"/><polygon points="190,110 200,104 205,110 200,116" fill="#ffd166"/><polygon points="167,167 178,169 177,177 169,178" fill="#ffd166"/><polygon points="110,190 116,200 110,205 104,200" fill="#ffd166"/><polygon points="53,167 51,178 43,177 42,169" fill="#ffd166"/><polygon points="30,110 20,116 15,110 20,104" fill="#ffd166"/><polygon points="53,53 42,51 43,43 51,42" fill="#ffd166"/><polygon points="110,30 104,20 110,15 116,20" fill="#ffd166"/><polygon points="167,53 169,42 177,43 178,51" fill="#ffd166"/><circle cx="110" cy="115" r="60" fill="#b5e48c" stroke="#222" stroke-width="3"/><ellipse cx="97" cy="103.6" rx="8" ry="11" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="123" cy="103.6" rx="8" ry="11" fill="white" stroke="#222" stroke-width="2"/><circle cx="97" cy="105.8" r="4.4" fill="#222"/><circle cx="123" cy="105.8" r="4.4" fill="#222"/><circle cx="99" cy="103.6" r="1.54" fill="white"/><circle cx="125" cy="103.6" r="1.54" fill="white"/><path d="M 96.8 116.8 Q 110 130.0 123.2 116.8" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/></g>
+</svg><div class="image-label">Kids style</div></div>
+      </div>
+      <div class="text-block">
+        <p><span class="label">Function:</span> Reserve cell for supporting tissues. Can turn into bone, cartilage, muscle, fat or connective-tissue cells.</p>
+        <p><span class="label">Depends on / Targets:</span> Lives in bone marrow, fat tissue and umbilical cord. Supplies precursors on demand.</p>
+      </div>
+    </div>
+      </div>
+    </section>
+
+    <section class="page kind-neural">
+      <header class="page-header">
+        <h2 class="page-title">Neural lineage</h2>
+        <span class="page-subtitle">Nervous system: processing, wiring and support.</span>
+        <span class="page-number">Page 9 / 13</span>
+      </header>
+      <p class="page-description">Neurons and glia arise from the neural tube (ectoderm) and build the entire nervous system — brain, spinal cord and the peripheral nerves that supply muscles, skin and organs.</p>
+      <div class="grid">
+        
+    <div class="cell tier-basic kind-neural">
+      <h3 class="cell-name">Neural stem cell (NSC)</h3>
+      <div class="images images-3">
+        <div class="image-cell img-microscope-svg">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img micro">
+  <defs>
+    <radialGradient id="vig" cx="50%" cy="50%" r="55%">
+      <stop offset="60%" stop-color="#e0eef0" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#1a0a14" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/></filter>
+  </defs>
+  <circle cx="110" cy="110" r="105" fill="url(#vig)"/>
+  <g><circle cx="110" cy="110" r="55" fill="#c2dfe3" stroke="#3a5a6a" stroke-width="2"/><circle cx="106" cy="106" r="38" fill="#5a2a64" opacity="0.85"/><circle cx="96" cy="98" r="6" fill="#fff" opacity="0.5"/></g>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#000" stroke-width="6"/>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#888" stroke-width="1"/>
+</svg><div class="image-label">Microscope style</div></div>
+        <div class="image-cell img-infographic">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img flat">
+  <rect width="220" height="220" rx="14" fill="#1d3557"/>
+  <g><circle cx="110" cy="110" r="80" fill="#caf0f8" opacity="0.4"/><circle cx="110" cy="110" r="55" fill="#cdb4db" stroke="#0e2a47" stroke-width="4"/><circle cx="106" cy="106" r="36" fill="#0077b6"/><circle cx="50" cy="40" r="3" fill="#fff" opacity="0.8"/><circle cx="80" cy="63" r="3" fill="#fff" opacity="0.8"/><circle cx="110" cy="86" r="3" fill="#fff" opacity="0.8"/><circle cx="140" cy="109" r="3" fill="#fff" opacity="0.8"/><circle cx="170" cy="132" r="3" fill="#fff" opacity="0.8"/><circle cx="70" cy="155" r="3" fill="#fff" opacity="0.8"/><circle cx="100" cy="178" r="3" fill="#fff" opacity="0.8"/><circle cx="130" cy="61" r="3" fill="#fff" opacity="0.8"/><circle cx="160" cy="84" r="3" fill="#fff" opacity="0.8"/><circle cx="60" cy="107" r="3" fill="#fff" opacity="0.8"/></g>
+</svg><div class="image-label">Infographic style</div></div>
+        <div class="image-cell img-kids">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img cute">
+  <rect width="220" height="220" rx="14" fill="#fff8e1"/>
+  <g><circle cx="110" cy="110" r="85" fill="#caf0f8" opacity="0.5"/><polygon points="190,110 200,104 205,110 200,116" fill="#ffd166"/><polygon points="167,167 178,169 177,177 169,178" fill="#ffd166"/><polygon points="110,190 116,200 110,205 104,200" fill="#ffd166"/><polygon points="53,167 51,178 43,177 42,169" fill="#ffd166"/><polygon points="30,110 20,116 15,110 20,104" fill="#ffd166"/><polygon points="53,53 42,51 43,43 51,42" fill="#ffd166"/><polygon points="110,30 104,20 110,15 116,20" fill="#ffd166"/><polygon points="167,53 169,42 177,43 178,51" fill="#ffd166"/><circle cx="110" cy="115" r="60" fill="#cdb4db" stroke="#222" stroke-width="3"/><ellipse cx="97" cy="103.6" rx="8" ry="11" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="123" cy="103.6" rx="8" ry="11" fill="white" stroke="#222" stroke-width="2"/><circle cx="97" cy="105.8" r="4.4" fill="#222"/><circle cx="123" cy="105.8" r="4.4" fill="#222"/><circle cx="99" cy="103.6" r="1.54" fill="white"/><circle cx="125" cy="103.6" r="1.54" fill="white"/><path d="M 96.8 116.8 Q 110 130.0 123.2 116.8" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/></g>
+</svg><div class="image-label">Kids style</div></div>
+      </div>
+      <div class="text-block">
+        <p><span class="label">Function:</span> Precursor of all neural cell types. In the adult brain only active in a few niches (e.g. hippocampus).</p>
+        <p><span class="label">Depends on / Targets:</span> Responds to growth factors (EGF, FGF) and to tissue cues.</p>
+      </div>
+    </div>
+
+    <div class="cell tier-basic kind-neural">
+      <h3 class="cell-name">Neuron</h3>
+      <div class="images images-3">
+        <div class="image-cell img-microscope-svg">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img micro">
+  <defs>
+    <radialGradient id="vig" cx="50%" cy="50%" r="55%">
+      <stop offset="60%" stop-color="#f4d9e6" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#1a0a14" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/></filter>
+  </defs>
+  <circle cx="110" cy="110" r="105" fill="url(#vig)"/>
+  <g><path d="M 110 80 L 60 30" stroke="#c98aa7" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M 110 80 L 110 20" stroke="#c98aa7" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M 110 80 L 160 30" stroke="#c98aa7" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M 90 95 L 30 70" stroke="#c98aa7" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M 130 95 L 190 70" stroke="#c98aa7" stroke-width="6" fill="none" stroke-linecap="round"/><circle cx="110" cy="110" r="36" fill="#d09abf" stroke="#6a224a" stroke-width="2"/><circle cx="106" cy="108" r="18" fill="#5a2a64"/><path d="M 110 140 C 110 170, 170 180, 200 200" stroke="#c98aa7" stroke-width="6" fill="none" stroke-linecap="round"/><circle cx="195" cy="200" r="5" fill="#c98aa7"/><circle cx="200" cy="185" r="5" fill="#c98aa7"/><circle cx="210" cy="195" r="5" fill="#c98aa7"/></g>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#000" stroke-width="6"/>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#888" stroke-width="1"/>
+</svg><div class="image-label">Microscope style</div></div>
+        <div class="image-cell img-infographic">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img flat">
+  <rect width="220" height="220" rx="14" fill="#1d3557"/>
+  <g><path d="M 110 80 L 60 30" stroke="#ffb703" stroke-width="8" fill="none" stroke-linecap="round"/><path d="M 110 80 L 110 20" stroke="#ffb703" stroke-width="8" fill="none" stroke-linecap="round"/><path d="M 110 80 L 160 30" stroke="#ffb703" stroke-width="8" fill="none" stroke-linecap="round"/><path d="M 90 95 L 30 70" stroke="#ffb703" stroke-width="8" fill="none" stroke-linecap="round"/><path d="M 130 95 L 190 70" stroke="#ffb703" stroke-width="8" fill="none" stroke-linecap="round"/><circle cx="110" cy="110" r="40" fill="#ffb703" stroke="#0e2a47" stroke-width="4"/><circle cx="106" cy="108" r="18" fill="#6a4500"/><path d="M 110 140 C 110 170, 170 180, 200 200" stroke="#ffb703" stroke-width="8" fill="none" stroke-linecap="round"/><circle cx="195" cy="200" r="7" fill="#ffb703"/><circle cx="200" cy="185" r="7" fill="#ffb703"/><circle cx="210" cy="195" r="7" fill="#ffb703"/></g>
+</svg><div class="image-label">Infographic style</div></div>
+        <div class="image-cell img-kids">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img cute">
+  <rect width="220" height="220" rx="14" fill="#fff8e1"/>
+  <g><path d="M 110 80 L 60 30" stroke="#ffb703" stroke-width="8" fill="none" stroke-linecap="round"/><path d="M 110 80 L 110 20" stroke="#ffb703" stroke-width="8" fill="none" stroke-linecap="round"/><path d="M 110 80 L 160 30" stroke="#ffb703" stroke-width="8" fill="none" stroke-linecap="round"/><path d="M 90 95 L 30 70" stroke="#ffb703" stroke-width="8" fill="none" stroke-linecap="round"/><path d="M 130 95 L 190 70" stroke="#ffb703" stroke-width="8" fill="none" stroke-linecap="round"/><circle cx="110" cy="115" r="44" fill="#ffb703" stroke="#222" stroke-width="3"/><ellipse cx="100" cy="106.4" rx="7" ry="9" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="120" cy="106.4" rx="7" ry="9" fill="white" stroke="#222" stroke-width="2"/><circle cx="100" cy="108.2" r="3.6" fill="#222"/><circle cx="120" cy="108.2" r="3.6" fill="#222"/><circle cx="102" cy="106.4" r="1.26" fill="white"/><circle cx="122" cy="106.4" r="1.26" fill="white"/><path d="M 99.2 117.2 Q 110 128.0 120.8 117.2" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M 110 140 C 110 170, 170 180, 200 200" stroke="#ffb703" stroke-width="8" fill="none" stroke-linecap="round"/><circle cx="195" cy="200" r="7" fill="#ffb703" stroke="#222" stroke-width="2"/><circle cx="200" cy="185" r="7" fill="#ffb703" stroke="#222" stroke-width="2"/><circle cx="210" cy="195" r="7" fill="#ffb703" stroke="#222" stroke-width="2"/></g>
+</svg><div class="image-label">Kids style</div></div>
+      </div>
+      <div class="text-block">
+        <p><span class="label">Function:</span> Compute-and-signal cell: collects inputs through dendrites, sums them up and fires electrical impulses down its axon.</p>
+        <p><span class="label">Depends on / Targets:</span> Depends on astrocytes (support) and oligodendrocytes (myelin). Communicates with other neurons through synapses.</p>
+      </div>
+    </div>
+
+    <div class="cell tier-basic kind-neural">
+      <h3 class="cell-name">Astrocyte</h3>
+      <div class="images images-3">
+        <div class="image-cell img-microscope-svg">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img micro">
+  <defs>
+    <radialGradient id="vig" cx="50%" cy="50%" r="55%">
+      <stop offset="60%" stop-color="#f4d9e6" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#1a0a14" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/></filter>
+  </defs>
+  <circle cx="110" cy="110" r="105" fill="url(#vig)"/>
+  <g><line x1="150.0" y1="110.0" x2="205.0" y2="110.0" stroke="#e9b8c9" stroke-width="9" stroke-linecap="round"/><line x1="205.0" y1="110.0" x2="214.9" y2="116.8" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><line x1="205.0" y1="110.0" x2="214.9" y2="103.2" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><line x1="140.6" y1="135.7" x2="182.8" y2="171.1" stroke="#e9b8c9" stroke-width="9" stroke-linecap="round"/><line x1="182.8" y1="171.1" x2="186.0" y2="182.6" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><line x1="182.8" y1="171.1" x2="194.7" y2="172.2" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><line x1="116.9" y1="149.4" x2="126.5" y2="203.6" stroke="#e9b8c9" stroke-width="9" stroke-linecap="round"/><line x1="126.5" y1="203.6" x2="121.5" y2="214.5" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><line x1="126.5" y1="203.6" x2="134.9" y2="212.1" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><line x1="90.0" y1="144.6" x2="62.5" y2="192.3" stroke="#e9b8c9" stroke-width="9" stroke-linecap="round"/><line x1="62.5" y1="192.3" x2="51.7" y2="197.5" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><line x1="62.5" y1="192.3" x2="63.4" y2="204.2" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><line x1="72.4" y1="123.7" x2="20.7" y2="142.5" stroke="#e9b8c9" stroke-width="9" stroke-linecap="round"/><line x1="20.7" y1="142.5" x2="9.1" y2="139.5" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><line x1="20.7" y1="142.5" x2="13.7" y2="152.2" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><line x1="72.4" y1="96.3" x2="20.7" y2="77.5" stroke="#e9b8c9" stroke-width="9" stroke-linecap="round"/><line x1="20.7" y1="77.5" x2="13.7" y2="67.8" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><line x1="20.7" y1="77.5" x2="9.1" y2="80.5" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><line x1="90.0" y1="75.4" x2="62.5" y2="27.7" stroke="#e9b8c9" stroke-width="9" stroke-linecap="round"/><line x1="62.5" y1="27.7" x2="63.4" y2="15.8" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><line x1="62.5" y1="27.7" x2="51.7" y2="22.5" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><line x1="116.9" y1="70.6" x2="126.5" y2="16.4" stroke="#e9b8c9" stroke-width="9" stroke-linecap="round"/><line x1="126.5" y1="16.4" x2="134.9" y2="7.9" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><line x1="126.5" y1="16.4" x2="121.5" y2="5.5" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><line x1="140.6" y1="84.3" x2="182.8" y2="48.9" stroke="#e9b8c9" stroke-width="9" stroke-linecap="round"/><line x1="182.8" y1="48.9" x2="194.7" y2="47.8" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><line x1="182.8" y1="48.9" x2="186.0" y2="37.4" stroke="#e9b8c9" stroke-width="5" stroke-linecap="round"/><circle cx="110" cy="110" r="42" fill="#e9b8c9" stroke="#6a224a" stroke-width="2"/><circle cx="104" cy="106" r="24" fill="#4a1f4a" opacity="0.85"/></g>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#000" stroke-width="6"/>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#888" stroke-width="1"/>
+</svg><div class="image-label">Microscope style</div></div>
+        <div class="image-cell img-infographic">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img flat">
+  <rect width="220" height="220" rx="14" fill="#1d3557"/>
+  <g><line x1="150.0" y1="110.0" x2="205.0" y2="110.0" stroke="#8ecae6" stroke-width="11" stroke-linecap="round"/><line x1="150.0" y1="110.0" x2="205.0" y2="110.0" stroke="#0e2a47" stroke-width="13" stroke-linecap="round" opacity="0.0"/><line x1="205.0" y1="110.0" x2="214.9" y2="116.8" stroke="#8ecae6" stroke-width="6" stroke-linecap="round"/><line x1="205.0" y1="110.0" x2="214.9" y2="103.2" stroke="#8ecae6" stroke-width="6" stroke-linecap="round"/><line x1="140.6" y1="135.7" x2="182.8" y2="171.1" stroke="#8ecae6" stroke-width="11" stroke-linecap="round"/><line x1="140.6" y1="135.7" x2="182.8" y2="171.1" stroke="#0e2a47" stroke-width="13" stroke-linecap="round" opacity="0.0"/><line x1="182.8" y1="171.1" x2="186.0" y2="182.6" stroke="#8ecae6" stroke-width="6" stroke-linecap="round"/><line x1="182.8" y1="171.1" x2="194.7" y2="172.2" stroke="#8ecae6" stroke-width="6" stroke-linecap="round"/><line x1="116.9" y1="149.4" x2="126.5" y2="203.6" stroke="#8ecae6" stroke-width="11" stroke-linecap="round"/><line x1="116.9" y1="149.4" x2="126.5" y2="203.6" stroke="#0e2a47" stroke-width="13" stroke-linecap="round" opacity="0.0"/><line x1="126.5" y1="203.6" x2="121.5" y2="214.5" stroke="#8ecae6" stroke-width="6" stroke-linecap="round"/><line x1="126.5" y1="203.6" x2="134.9" y2="212.1" stroke="#8ecae6" stroke-width="6" stroke-linecap="round"/><line x1="90.0" y1="144.6" x2="62.5" y2="192.3" stroke="#8ecae6" stroke-width="11" stroke-linecap="round"/><line x1="90.0" y1="144.6" x2="62.5" y2="192.3" stroke="#0e2a47" stroke-width="13" stroke-linecap="round" opacity="0.0"/><line x1="62.5" y1="192.3" x2="51.7" y2="197.5" stroke="#8ecae6" stroke-width="6" stroke-linecap="round"/><line x1="62.5" y1="192.3" x2="63.4" y2="204.2" stroke="#8ecae6" stroke-width="6" stroke-linecap="round"/><line x1="72.4" y1="123.7" x2="20.7" y2="142.5" stroke="#8ecae6" stroke-width="11" stroke-linecap="round"/><line x1="72.4" y1="123.7" x2="20.7" y2="142.5" stroke="#0e2a47" stroke-width="13" stroke-linecap="round" opacity="0.0"/><line x1="20.7" y1="142.5" x2="9.1" y2="139.5" stroke="#8ecae6" stroke-width="6" stroke-linecap="round"/><line x1="20.7" y1="142.5" x2="13.7" y2="152.2" stroke="#8ecae6" stroke-width="6" stroke-linecap="round"/><line x1="72.4" y1="96.3" x2="20.7" y2="77.5" stroke="#8ecae6" stroke-width="11" stroke-linecap="round"/><line x1="72.4" y1="96.3" x2="20.7" y2="77.5" stroke="#0e2a47" stroke-width="13" stroke-linecap="round" opacity="0.0"/><line x1="20.7" y1="77.5" x2="13.7" y2="67.8" stroke="#8ecae6" stroke-width="6" stroke-linecap="round"/><line x1="20.7" y1="77.5" x2="9.1" y2="80.5" stroke="#8ecae6" stroke-width="6" stroke-linecap="round"/><line x1="90.0" y1="75.4" x2="62.5" y2="27.7" stroke="#8ecae6" stroke-width="11" stroke-linecap="round"/><line x1="90.0" y1="75.4" x2="62.5" y2="27.7" stroke="#0e2a47" stroke-width="13" stroke-linecap="round" opacity="0.0"/><line x1="62.5" y1="27.7" x2="63.4" y2="15.8" stroke="#8ecae6" stroke-width="6" stroke-linecap="round"/><line x1="62.5" y1="27.7" x2="51.7" y2="22.5" stroke="#8ecae6" stroke-width="6" stroke-linecap="round"/><line x1="116.9" y1="70.6" x2="126.5" y2="16.4" stroke="#8ecae6" stroke-width="11" stroke-linecap="round"/><line x1="116.9" y1="70.6" x2="126.5" y2="16.4" stroke="#0e2a47" stroke-width="13" stroke-linecap="round" opacity="0.0"/><line x1="126.5" y1="16.4" x2="134.9" y2="7.9" stroke="#8ecae6" stroke-width="6" stroke-linecap="round"/><line x1="126.5" y1="16.4" x2="121.5" y2="5.5" stroke="#8ecae6" stroke-width="6" stroke-linecap="round"/><line x1="140.6" y1="84.3" x2="182.8" y2="48.9" stroke="#8ecae6" stroke-width="11" stroke-linecap="round"/><line x1="140.6" y1="84.3" x2="182.8" y2="48.9" stroke="#0e2a47" stroke-width="13" stroke-linecap="round" opacity="0.0"/><line x1="182.8" y1="48.9" x2="194.7" y2="47.8" stroke="#8ecae6" stroke-width="6" stroke-linecap="round"/><line x1="182.8" y1="48.9" x2="186.0" y2="37.4" stroke="#8ecae6" stroke-width="6" stroke-linecap="round"/><circle cx="110" cy="110" r="42" fill="#8ecae6" stroke="#0e2a47" stroke-width="4"/><circle cx="104" cy="106" r="22" fill="#023047"/></g>
+</svg><div class="image-label">Infographic style</div></div>
+        <div class="image-cell img-kids">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img cute">
+  <rect width="220" height="220" rx="14" fill="#fff8e1"/>
+  <g><line x1="150.0" y1="110.0" x2="205.0" y2="110.0" stroke="#8ecae6" stroke-width="11" stroke-linecap="round"/><line x1="140.6" y1="135.7" x2="182.8" y2="171.1" stroke="#8ecae6" stroke-width="11" stroke-linecap="round"/><line x1="116.9" y1="149.4" x2="126.5" y2="203.6" stroke="#8ecae6" stroke-width="11" stroke-linecap="round"/><line x1="90.0" y1="144.6" x2="62.5" y2="192.3" stroke="#8ecae6" stroke-width="11" stroke-linecap="round"/><line x1="72.4" y1="123.7" x2="20.7" y2="142.5" stroke="#8ecae6" stroke-width="11" stroke-linecap="round"/><line x1="72.4" y1="96.3" x2="20.7" y2="77.5" stroke="#8ecae6" stroke-width="11" stroke-linecap="round"/><line x1="90.0" y1="75.4" x2="62.5" y2="27.7" stroke="#8ecae6" stroke-width="11" stroke-linecap="round"/><line x1="116.9" y1="70.6" x2="126.5" y2="16.4" stroke="#8ecae6" stroke-width="11" stroke-linecap="round"/><line x1="140.6" y1="84.3" x2="182.8" y2="48.9" stroke="#8ecae6" stroke-width="11" stroke-linecap="round"/><circle cx="110" cy="115" r="50" fill="#8ecae6" stroke="#222" stroke-width="3"/><ellipse cx="100" cy="104.4" rx="7" ry="9" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="120" cy="104.4" rx="7" ry="9" fill="white" stroke="#222" stroke-width="2"/><circle cx="100" cy="106.2" r="3.6" fill="#222"/><circle cx="120" cy="106.2" r="3.6" fill="#222"/><circle cx="102" cy="104.4" r="1.26" fill="white"/><circle cx="122" cy="104.4" r="1.26" fill="white"/><path d="M 99.2 115.2 Q 110 126.0 120.8 115.2" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/></g>
+</svg><div class="image-label">Kids style</div></div>
+      </div>
+      <div class="text-block">
+        <p><span class="label">Function:</span> Star-shaped support cell. Feeds neurons, balances ions and neurotransmitters, helps form parts of the blood-brain barrier.</p>
+        <p><span class="label">Depends on / Targets:</span> Supports neurons and regulates local blood flow.</p>
+      </div>
+    </div>
+      </div>
+    </section>
+
+    <section class="page kind-epithelial">
+      <header class="page-header">
+        <h2 class="page-title">Epithelial lineage</h2>
+        <span class="page-subtitle">Body surfaces: skin, gut, lung.</span>
+        <span class="page-number">Page 10 / 13</span>
+      </header>
+      <p class="page-description">Epithelial cells line every inner and outer surface of the body: skin, the mucosa of mouth, GI tract and lung, plus glands. They form the body&#x27;s first mechanical and biochemical barrier against the environment.</p>
+      <div class="grid">
+        
+    <div class="cell tier-basic kind-epithelial">
+      <h3 class="cell-name">Keratinocyte (skin cell)</h3>
+      <div class="images images-3">
+        <div class="image-cell img-microscope-svg">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img micro">
+  <defs>
+    <radialGradient id="vig" cx="50%" cy="50%" r="55%">
+      <stop offset="60%" stop-color="#f1e0c0" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#1a0a14" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/></filter>
+  </defs>
+  <circle cx="110" cy="110" r="105" fill="url(#vig)"/>
+  <g><polygon points="30,90 50,70 110,60 170,72 195,90 180,130 130,150 80,145 35,130" fill="#e6c2a8" stroke="#5a2a1f" stroke-width="2"/><ellipse cx="110" cy="110" rx="22" ry="14" fill="#3a1845" opacity="0.85"/></g>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#000" stroke-width="6"/>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#888" stroke-width="1"/>
+</svg><div class="image-label">Microscope style</div></div>
+        <div class="image-cell img-infographic">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img flat">
+  <rect width="220" height="220" rx="14" fill="#1d3557"/>
+  <g><polygon points="30,90 50,70 110,60 170,72 195,90 180,130 130,150 80,145 35,130" fill="#ffb5a7" stroke="#0e2a47" stroke-width="4"/><ellipse cx="110" cy="110" rx="22" ry="14" fill="#5a2a4a"/></g>
+</svg><div class="image-label">Infographic style</div></div>
+        <div class="image-cell img-kids">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img cute">
+  <rect width="220" height="220" rx="14" fill="#fff8e1"/>
+  <g><polygon points="30,90 50,70 110,60 170,72 195,90 180,130 130,150 80,145 35,130" fill="#ffb5a7" stroke="#222" stroke-width="3"/><ellipse cx="100" cy="101.4" rx="7" ry="9" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="120" cy="101.4" rx="7" ry="9" fill="white" stroke="#222" stroke-width="2"/><circle cx="100" cy="103.2" r="3.6" fill="#222"/><circle cx="120" cy="103.2" r="3.6" fill="#222"/><circle cx="102" cy="101.4" r="1.26" fill="white"/><circle cx="122" cy="101.4" r="1.26" fill="white"/><path d="M 99.2 112.2 Q 110 123.0 120.8 112.2" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/></g>
+</svg><div class="image-label">Kids style</div></div>
+      </div>
+      <div class="text-block">
+        <p><span class="label">Function:</span> Building block of the outer skin. Lays down keratin, cornifies upward and forms a waterproof, robust barrier.</p>
+        <p><span class="label">Depends on / Targets:</span> Renewed from stem cells in the basal layer. Cooperates with melanocytes and Langerhans cells.</p>
+      </div>
+    </div>
+
+    <div class="cell tier-basic kind-epithelial">
+      <h3 class="cell-name">Enterocyte (gut cell)</h3>
+      <div class="images images-3">
+        <div class="image-cell img-microscope-svg">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img micro">
+  <defs>
+    <radialGradient id="vig" cx="50%" cy="50%" r="55%">
+      <stop offset="60%" stop-color="#f1e0c0" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#1a0a14" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/></filter>
+  </defs>
+  <circle cx="110" cy="110" r="105" fill="url(#vig)"/>
+  <g><rect x="60" y="40" width="100" height="160" rx="10" fill="#d6a78a" stroke="#5a2a1f" stroke-width="2"/><ellipse cx="110" cy="160" rx="22" ry="18" fill="#3a1845"/><line x1="65" y1="40" x2="65" y2="20" stroke="#7a3a2a" stroke-width="1.5"/><line x1="74" y1="40" x2="74" y2="20" stroke="#7a3a2a" stroke-width="1.5"/><line x1="83" y1="40" x2="83" y2="20" stroke="#7a3a2a" stroke-width="1.5"/><line x1="92" y1="40" x2="92" y2="20" stroke="#7a3a2a" stroke-width="1.5"/><line x1="101" y1="40" x2="101" y2="20" stroke="#7a3a2a" stroke-width="1.5"/><line x1="110" y1="40" x2="110" y2="20" stroke="#7a3a2a" stroke-width="1.5"/><line x1="119" y1="40" x2="119" y2="20" stroke="#7a3a2a" stroke-width="1.5"/><line x1="128" y1="40" x2="128" y2="20" stroke="#7a3a2a" stroke-width="1.5"/><line x1="137" y1="40" x2="137" y2="20" stroke="#7a3a2a" stroke-width="1.5"/><line x1="146" y1="40" x2="146" y2="20" stroke="#7a3a2a" stroke-width="1.5"/><line x1="155" y1="40" x2="155" y2="20" stroke="#7a3a2a" stroke-width="1.5"/></g>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#000" stroke-width="6"/>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#888" stroke-width="1"/>
+</svg><div class="image-label">Microscope style</div></div>
+        <div class="image-cell img-infographic">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img flat">
+  <rect width="220" height="220" rx="14" fill="#1d3557"/>
+  <g><rect x="60" y="40" width="100" height="160" rx="10" fill="#f4a261" stroke="#0e2a47" stroke-width="4"/><ellipse cx="110" cy="160" rx="22" ry="18" fill="#3a1f3a"/><line x1="65" y1="40" x2="65" y2="15" stroke="#f4a261" stroke-width="3" stroke-linecap="round"/><line x1="74" y1="40" x2="74" y2="15" stroke="#f4a261" stroke-width="3" stroke-linecap="round"/><line x1="83" y1="40" x2="83" y2="15" stroke="#f4a261" stroke-width="3" stroke-linecap="round"/><line x1="92" y1="40" x2="92" y2="15" stroke="#f4a261" stroke-width="3" stroke-linecap="round"/><line x1="101" y1="40" x2="101" y2="15" stroke="#f4a261" stroke-width="3" stroke-linecap="round"/><line x1="110" y1="40" x2="110" y2="15" stroke="#f4a261" stroke-width="3" stroke-linecap="round"/><line x1="119" y1="40" x2="119" y2="15" stroke="#f4a261" stroke-width="3" stroke-linecap="round"/><line x1="128" y1="40" x2="128" y2="15" stroke="#f4a261" stroke-width="3" stroke-linecap="round"/><line x1="137" y1="40" x2="137" y2="15" stroke="#f4a261" stroke-width="3" stroke-linecap="round"/><line x1="146" y1="40" x2="146" y2="15" stroke="#f4a261" stroke-width="3" stroke-linecap="round"/><line x1="155" y1="40" x2="155" y2="15" stroke="#f4a261" stroke-width="3" stroke-linecap="round"/></g>
+</svg><div class="image-label">Infographic style</div></div>
+        <div class="image-cell img-kids">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img cute">
+  <rect width="220" height="220" rx="14" fill="#fff8e1"/>
+  <g><rect x="60" y="40" width="100" height="160" rx="10" fill="#f4a261" stroke="#222" stroke-width="3"/><ellipse cx="98" cy="96.0" rx="8" ry="10" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="122" cy="96.0" rx="8" ry="10" fill="white" stroke="#222" stroke-width="2"/><circle cx="98" cy="98.0" r="4.0" fill="#222"/><circle cx="122" cy="98.0" r="4.0" fill="#222"/><circle cx="100" cy="96.0" r="1.4" fill="white"/><circle cx="124" cy="96.0" r="1.4" fill="white"/><path d="M 98.0 108.0 Q 110 120.0 122.0 108.0" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/><line x1="65" y1="40" x2="65" y2="15" stroke="#f4a261" stroke-width="3" stroke-linecap="round"/><line x1="74" y1="40" x2="74" y2="15" stroke="#f4a261" stroke-width="3" stroke-linecap="round"/><line x1="83" y1="40" x2="83" y2="15" stroke="#f4a261" stroke-width="3" stroke-linecap="round"/><line x1="92" y1="40" x2="92" y2="15" stroke="#f4a261" stroke-width="3" stroke-linecap="round"/><line x1="101" y1="40" x2="101" y2="15" stroke="#f4a261" stroke-width="3" stroke-linecap="round"/><line x1="110" y1="40" x2="110" y2="15" stroke="#f4a261" stroke-width="3" stroke-linecap="round"/><line x1="119" y1="40" x2="119" y2="15" stroke="#f4a261" stroke-width="3" stroke-linecap="round"/><line x1="128" y1="40" x2="128" y2="15" stroke="#f4a261" stroke-width="3" stroke-linecap="round"/><line x1="137" y1="40" x2="137" y2="15" stroke="#f4a261" stroke-width="3" stroke-linecap="round"/><line x1="146" y1="40" x2="146" y2="15" stroke="#f4a261" stroke-width="3" stroke-linecap="round"/><line x1="155" y1="40" x2="155" y2="15" stroke="#f4a261" stroke-width="3" stroke-linecap="round"/></g>
+</svg><div class="image-label">Kids style</div></div>
+      </div>
+      <div class="text-block">
+        <p><span class="label">Function:</span> Tall column-shaped cell with a dense brush border (microvilli). Absorbs nutrients from the gut and passes them on.</p>
+        <p><span class="label">Depends on / Targets:</span> Replaced every few days by intestinal stem cells. Forms a barrier against gut microbes.</p>
+      </div>
+    </div>
+      </div>
+    </section>
+
+    <section class="page kind-endothelial">
+      <header class="page-header">
+        <h2 class="page-title">Endothelial lineage</h2>
+        <span class="page-subtitle">Inner lining of every blood and lymph vessel.</span>
+        <span class="page-number">Page 11 / 13</span>
+      </header>
+      <p class="page-description">Endothelial cells form a single layer that lines the inside of every blood and lymph vessel, from heart to the smallest capillary. They regulate blood flow, clotting and the passage of immune cells out of the bloodstream into tissues.</p>
+      <div class="grid">
+        
+    <div class="cell tier-basic kind-endothelial">
+      <h3 class="cell-name">Endothelial cell (continuous)</h3>
+      <div class="images images-3">
+        <div class="image-cell img-microscope-svg">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img micro">
+  <defs>
+    <radialGradient id="vig" cx="50%" cy="50%" r="55%">
+      <stop offset="60%" stop-color="#f2d6c2" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#1a0a14" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/></filter>
+  </defs>
+  <circle cx="110" cy="110" r="105" fill="url(#vig)"/>
+  <g><rect x="0" y="80" width="220" height="60" fill="#e8b3c5" opacity="0.45"/><rect x="0" y="60" width="220" height="20" fill="#d6a78a"/><rect x="0" y="140" width="220" height="20" fill="#d6a78a"/><ellipse cx="60" cy="70" rx="14" ry="6" fill="#3a1845"/><ellipse cx="140" cy="70" rx="14" ry="6" fill="#3a1845"/><ellipse cx="80" cy="150" rx="14" ry="6" fill="#3a1845"/><ellipse cx="160" cy="150" rx="14" ry="6" fill="#3a1845"/></g>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#000" stroke-width="6"/>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#888" stroke-width="1"/>
+</svg><div class="image-label">Microscope style</div></div>
+        <div class="image-cell img-infographic">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img flat">
+  <rect width="220" height="220" rx="14" fill="#1d3557"/>
+  <g><rect x="0" y="80" width="220" height="60" fill="#e63946" opacity="0.4"/><rect x="0" y="60" width="220" height="20" fill="#a8dadc" stroke="#0e2a47" stroke-width="2"/><rect x="0" y="140" width="220" height="20" fill="#a8dadc" stroke="#0e2a47" stroke-width="2"/><ellipse cx="60" cy="70" rx="12" ry="5" fill="#1d3557"/><ellipse cx="140" cy="70" rx="12" ry="5" fill="#1d3557"/><ellipse cx="80" cy="150" rx="12" ry="5" fill="#1d3557"/><ellipse cx="160" cy="150" rx="12" ry="5" fill="#1d3557"/></g>
+</svg><div class="image-label">Infographic style</div></div>
+        <div class="image-cell img-kids">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img cute">
+  <rect width="220" height="220" rx="14" fill="#fff8e1"/>
+  <g><rect x="20" y="60" width="180" height="100" rx="20" fill="#a8dadc" stroke="#222" stroke-width="3"/><rect x="30" y="95" width="160" height="30" rx="14" fill="#e63946" opacity="0.5"/><ellipse cx="98" cy="106.0" rx="8" ry="10" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="122" cy="106.0" rx="8" ry="10" fill="white" stroke="#222" stroke-width="2"/><circle cx="98" cy="108.0" r="4.0" fill="#222"/><circle cx="122" cy="108.0" r="4.0" fill="#222"/><circle cx="100" cy="106.0" r="1.4" fill="white"/><circle cx="124" cy="106.0" r="1.4" fill="white"/><path d="M 98.0 118.0 Q 110 130.0 122.0 118.0" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/></g>
+</svg><div class="image-label">Kids style</div></div>
+      </div>
+      <div class="text-block">
+        <p><span class="label">Function:</span> Flat cobblestone that lines most vessels. Regulates what diffuses between blood and tissue.</p>
+        <p><span class="label">Depends on / Targets:</span> Responds to blood-flow shear and hormones (e.g. histamine).</p>
+      </div>
+    </div>
+      </div>
+    </section>
+
+    <section class="page kind-ips">
+      <header class="page-header">
+        <h2 class="page-title">Induced pluripotent stem cells (iPS)</h2>
+        <span class="page-subtitle">Lab-reprogrammed body cells — source for many therapies.</span>
+        <span class="page-number">Page 12 / 13</span>
+      </header>
+      <p class="page-description">Induced pluripotent stem cells are made in the lab: body cells (e.g. skin cells) are reprogrammed with defined factors back into an embryonic-like stem-cell state and can then differentiate into almost any cell type.</p>
+      <div class="grid">
+        
+    <div class="cell tier-basic kind-ips">
+      <h3 class="cell-name">iPS cell</h3>
+      <div class="images images-3">
+        <div class="image-cell img-microscope-svg">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img micro">
+  <defs>
+    <radialGradient id="vig" cx="50%" cy="50%" r="55%">
+      <stop offset="60%" stop-color="#e0eef0" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#1a0a14" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/></filter>
+  </defs>
+  <circle cx="110" cy="110" r="105" fill="url(#vig)"/>
+  <g><circle cx="110" cy="110" r="55" fill="#c2dfe3" stroke="#3a5a6a" stroke-width="2"/><circle cx="106" cy="106" r="38" fill="#5a2a64" opacity="0.85"/><circle cx="96" cy="98" r="6" fill="#fff" opacity="0.5"/></g>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#000" stroke-width="6"/>
+  <circle cx="110" cy="110" r="105" fill="none" stroke="#888" stroke-width="1"/>
+</svg><div class="image-label">Microscope style</div></div>
+        <div class="image-cell img-infographic">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img flat">
+  <rect width="220" height="220" rx="14" fill="#1d3557"/>
+  <g><circle cx="110" cy="110" r="80" fill="#caf0f8" opacity="0.4"/><circle cx="110" cy="110" r="55" fill="#ffd6a5" stroke="#0e2a47" stroke-width="4"/><circle cx="106" cy="106" r="36" fill="#0077b6"/><circle cx="50" cy="40" r="3" fill="#fff" opacity="0.8"/><circle cx="80" cy="63" r="3" fill="#fff" opacity="0.8"/><circle cx="110" cy="86" r="3" fill="#fff" opacity="0.8"/><circle cx="140" cy="109" r="3" fill="#fff" opacity="0.8"/><circle cx="170" cy="132" r="3" fill="#fff" opacity="0.8"/><circle cx="70" cy="155" r="3" fill="#fff" opacity="0.8"/><circle cx="100" cy="178" r="3" fill="#fff" opacity="0.8"/><circle cx="130" cy="61" r="3" fill="#fff" opacity="0.8"/><circle cx="160" cy="84" r="3" fill="#fff" opacity="0.8"/><circle cx="60" cy="107" r="3" fill="#fff" opacity="0.8"/></g>
+</svg><div class="image-label">Infographic style</div></div>
+        <div class="image-cell img-kids">
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" class="img cute">
+  <rect width="220" height="220" rx="14" fill="#fff8e1"/>
+  <g><circle cx="110" cy="110" r="85" fill="#caf0f8" opacity="0.5"/><polygon points="190,110 200,104 205,110 200,116" fill="#ffd166"/><polygon points="167,167 178,169 177,177 169,178" fill="#ffd166"/><polygon points="110,190 116,200 110,205 104,200" fill="#ffd166"/><polygon points="53,167 51,178 43,177 42,169" fill="#ffd166"/><polygon points="30,110 20,116 15,110 20,104" fill="#ffd166"/><polygon points="53,53 42,51 43,43 51,42" fill="#ffd166"/><polygon points="110,30 104,20 110,15 116,20" fill="#ffd166"/><polygon points="167,53 169,42 177,43 178,51" fill="#ffd166"/><circle cx="110" cy="115" r="60" fill="#ffd6a5" stroke="#222" stroke-width="3"/><ellipse cx="97" cy="103.6" rx="8" ry="11" fill="white" stroke="#222" stroke-width="2"/><ellipse cx="123" cy="103.6" rx="8" ry="11" fill="white" stroke="#222" stroke-width="2"/><circle cx="97" cy="105.8" r="4.4" fill="#222"/><circle cx="123" cy="105.8" r="4.4" fill="#222"/><circle cx="99" cy="103.6" r="1.54" fill="white"/><circle cx="125" cy="103.6" r="1.54" fill="white"/><path d="M 96.8 116.8 Q 110 130.0 123.2 116.8" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/></g>
+</svg><div class="image-label">Kids style</div></div>
+      </div>
+      <div class="text-block">
+        <p><span class="label">Function:</span> A body cell (e.g. skin) reset by a handful of transcription factors into an embryonic-like state — can develop into almost any cell type.</p>
+        <p><span class="label">Depends on / Targets:</span> Differentiated in vitro into a target lineage with specific growth factors.</p>
+      </div>
+    </div>
+      </div>
+    </section>
+  
+    <section class="page credits-page">
+      <h2>Image credits</h2>
+      <p style="font-size:8pt;color:#555;margin:0 0 3mm;">All real microscope images come from open sources (Wikimedia Commons, CDC PHIL, NIAID and similar) under free licences.</p>
+      <div class="credits-list">
+        <div class="credit"><span class="credit-name">Helper T cell (CD4)</span> — NIAID <span class="credit-license">CC BY 2.0</span> <span class="credit-url">https://commons.wikimedia.org/wiki/File:Healthy_Human_T_Cell.jpg</span></div><div class="credit"><span class="credit-name">B cell</span> — NIAID <span class="credit-license">CC BY 2.0</span> <span class="credit-url">https://commons.wikimedia.org/wiki/File:B_lymphocyte.jpg</span></div><div class="credit"><span class="credit-name">Natural killer cell (NK)</span> — Wikimedia Commons contributors <span class="credit-license">CC BY-SA 4.0</span> <span class="credit-url">https://commons.wikimedia.org/wiki/File:NK_cell.jpg</span></div><div class="credit"><span class="credit-name">Macrophage</span> — Wikimedia Commons contributors <span class="credit-license">CC BY-SA 4.0</span> <span class="credit-url">https://commons.wikimedia.org/wiki/File:Macrophage.jpg</span></div><div class="credit"><span class="credit-name">Dendritic cell</span> — NIAID <span class="credit-license">CC BY 2.0</span> <span class="credit-url">https://commons.wikimedia.org/wiki/File:Dendritic_cell_revealed.jpg</span></div><div class="credit"><span class="credit-name">Neutrophil</span> — Volker Brinkmann / PLoS Pathogens <span class="credit-license">CC BY 2.5</span> <span class="credit-url">https://commons.wikimedia.org/wiki/File:Neutrophil_with_anthrax_copy.jpg</span></div><div class="credit"><span class="credit-name">Cocci (round bacteria)</span> — CDC PHIL <span class="credit-license">Public domain (US Government work)</span> <span class="credit-url">https://commons.wikimedia.org/wiki/File:Streptococcus_pneumoniae.jpg</span></div><div class="credit"><span class="credit-name">Rod bacteria</span> — NIAID <span class="credit-license">CC BY 2.0</span> <span class="credit-url">https://commons.wikimedia.org/wiki/File:EscherichiaColi_NIAID.jpg</span></div><div class="credit"><span class="credit-name">Virus</span> — NIAID <span class="credit-license">CC BY 2.0</span> <span class="credit-url">https://commons.wikimedia.org/wiki/File:Novel_Coronavirus_SARS-CoV-2_(49531042482).jpg</span></div><div class="credit"><span class="credit-name">Fungus</span> — CDC PHIL <span class="credit-license">Public domain (US Government work)</span> <span class="credit-url">https://commons.wikimedia.org/wiki/File:Candida_albicans_PHIL_3192_lores.jpg</span></div><div class="credit"><span class="credit-name">Parasite</span> — Wikimedia Commons contributors <span class="credit-license">CC BY-SA 4.0</span> <span class="credit-url">https://commons.wikimedia.org/wiki/File:Toxoplasma_gondii.jpg</span></div><div class="credit"><span class="credit-name">Mycobacterium tuberculosis (TB)</span> — CDC PHIL <span class="credit-license">Public domain (US Government work)</span> <span class="credit-url">https://commons.wikimedia.org/wiki/File:Mycobacterium_tuberculosis_Ziehl-Neelsen_stain_02.jpg</span></div><div class="credit"><span class="credit-name">Staphylococcus aureus (MRSA)</span> — NIAID <span class="credit-license">CC BY 2.0</span> <span class="credit-url">https://commons.wikimedia.org/wiki/File:Staphylococcus_aureus_VISA_2.jpg</span></div><div class="credit"><span class="credit-name">Escherichia coli</span> — NIAID <span class="credit-license">CC BY 2.0</span> <span class="credit-url">https://commons.wikimedia.org/wiki/File:EscherichiaColi_NIAID.jpg</span></div><div class="credit"><span class="credit-name">Salmonella enterica</span> — NIAID <span class="credit-license">CC BY 2.0</span> <span class="credit-url">https://commons.wikimedia.org/wiki/File:SalmonellaNIAID.jpg</span></div><div class="credit"><span class="credit-name">Influenza virus (flu)</span> — CDC PHIL <span class="credit-license">Public domain (US Government work)</span> <span class="credit-url">https://commons.wikimedia.org/wiki/File:EM_of_influenza_virus.png</span></div><div class="credit"><span class="credit-name">HIV</span> — CDC PHIL <span class="credit-license">Public domain (US Government work)</span> <span class="credit-url">https://commons.wikimedia.org/wiki/File:HIV-budding-Color.jpg</span></div><div class="credit"><span class="credit-name">Plasmodium (malaria)</span> — CDC PHIL <span class="credit-license">Public domain (US Government work)</span> <span class="credit-url">https://commons.wikimedia.org/wiki/File:Plasmodium_falciparum_01.png</span></div><div class="credit"><span class="credit-name">Erythrocyte (red blood cell)</span> — Wikimedia Commons contributors <span class="credit-license">CC BY-SA 4.0</span> <span class="credit-url">https://commons.wikimedia.org/wiki/File:Red_blood_cells.jpg</span></div><div class="credit"><span class="credit-name">Thrombocyte (platelet)</span> — Wikimedia Commons contributors <span class="credit-license">CC BY-SA 4.0</span> <span class="credit-url">https://commons.wikimedia.org/wiki/File:Platelets2.JPG</span></div><div class="credit"><span class="credit-name">Neuron</span> — Wikimedia Commons contributors <span class="credit-license">CC BY-SA 4.0</span> <span class="credit-url">https://commons.wikimedia.org/wiki/File:GFP_Neuron.jpg</span></div><div class="credit"><span class="credit-name">Astrocyte</span> — Wikimedia Commons contributors <span class="credit-license">CC BY-SA 4.0</span> <span class="credit-url">https://commons.wikimedia.org/wiki/File:Astrocyte5.jpg</span></div><div class="credit"><span class="credit-name">Keratinocyte (skin cell)</span> — Wikimedia Commons contributors <span class="credit-license">CC BY-SA 4.0</span> <span class="credit-url">https://commons.wikimedia.org/wiki/File:Keratinocytes_in_culture.jpg</span></div><div class="credit"><span class="credit-name">Enterocyte (gut cell)</span> — Wikimedia Commons contributors <span class="credit-license">CC BY-SA 4.0</span> <span class="credit-url">https://commons.wikimedia.org/wiki/File:Small_intestinal_villi.jpg</span></div><div class="credit"><span class="credit-name">Endothelial cell (continuous)</span> — Wikimedia Commons contributors <span class="credit-license">CC BY-SA 4.0</span> <span class="credit-url">https://commons.wikimedia.org/wiki/File:HUVEC.jpg</span></div>
+      </div>
+    </section>
+</body>
+</html>

@@ -2,6 +2,8 @@
 
 A collection of small, self-contained experiments. Each subfolder is one experiment with its own `index.md` (or hand-written `index.html`).
 
+**Live site:** [https://blurayne.github.io/claude-experiments/](https://blurayne.github.io/claude-experiments/)
+
 ## Experiments
 
 - [microbes-overview](microbes-overview/) — Bilingual (DE/EN) print-ready posters that visualise common microbes, generated from a Python data file into HTML and PDF.

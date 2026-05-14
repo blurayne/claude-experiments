@@ -4,11 +4,13 @@ on:
   push:
     branches: [main]
     paths:
-      # Trigger only on source-file changes; this workflow commits the
-      # generated HTML/PDF back, and we don't want that commit to retrigger
-      # the workflow into an infinite loop.
+      # Trigger on source changes. The workflow commits generated HTML/PDF
+      # and any newly fetched images back, so we exclude those from the
+      # path filter to avoid an infinite loop.
       - 'microbes-overview/*.py'
       - 'microbes-overview/requirements.txt'
+      - 'microbes-overview/fetch_images.sh'
+      - 'microbes-overview/images/**'
       - '.github/workflows/microbes-overview.yml'
   workflow_dispatch: {}
 
@@ -21,17 +23,22 @@ concurrency:
 
 jobs:
   build:
+    # Skip the job when the most recent commit was made by the bot
+    # itself — that commit contains the regenerated artifacts and would
+    # otherwise loop the workflow.
+    if: github.event_name == 'workflow_dispatch' || github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install WeasyPrint system libraries
+      - name: Install system libraries (WeasyPrint + ImageMagick)
         run: |
           sudo apt-get update
           sudo apt-get install -y \
             libpango-1.0-0 libpangoft2-1.0-0 \
-            libharfbuzz0b libfontconfig1
+            libharfbuzz0b libfontconfig1 \
+            imagemagick
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -43,18 +50,28 @@ jobs:
       - name: Install Python dependencies
         run: pip install -r microbes-overview/requirements.txt
 
-      - name: Build HTML and PDF
+      - name: Fetch missing microscope images
+        working-directory: microbes-overview
+        env:
+          PACK: '0'   # we commit images/, no tarball needed in CI
+        run: |
+          # The script tolerates download failures; build.py falls back
+          # to a placeholder for any file still missing.
+          bash fetch_images.sh || true
+          ls -la images/ | head -50
+
+      - name: Build HTML and PDF (all tiers)
         working-directory: microbes-overview
         run: python build.py
 
-      - name: Commit generated artifacts
+      - name: Commit generated artifacts and fetched images
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add microbes-overview/microbes_*.html microbes-overview/microbes_*.pdf
+          git add microbes-overview/microbes_*.html microbes-overview/microbes_*.pdf microbes-overview/images
           if git diff --staged --quiet; then
             echo "No changes to commit."
             exit 0
           fi
-          git commit -m "ci(microbes-overview): rebuild HTML and PDF"
+          git commit -m "ci(microbes-overview): rebuild posters and refresh images"
           git push
