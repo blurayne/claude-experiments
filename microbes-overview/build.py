@@ -46,6 +46,15 @@ html, body {
 .page-title { font-size: 14pt; font-weight: 700; color: #1d3557; margin: 0; }
 .page-subtitle { font-size: 9pt; color: #555; margin-left: 8mm; flex: 1; }
 .page-number { font-size: 8pt; color: #888; }
+.page-description {
+  font-size: 8pt;
+  color: #333;
+  margin: 0 0 2.5mm;
+  line-height: 1.35;
+  font-style: italic;
+  border-left: 2px solid #a8c5d6;
+  padding: 0 0 0 2.5mm;
+}
 .grid {
   flex: 1;
   display: grid;
@@ -180,6 +189,11 @@ def render_cell(entry: dict, lang: str, labels: dict) -> str:
 def render_page(page: dict, idx: int, total: int, lang: str, labels: dict) -> str:
     title = page[f"title_{lang}"]
     subtitle = page.get(f"subtitle_{lang}", "")
+    description = page.get(f"description_{lang}", "")
+    desc_html = (
+        f'<p class="page-description">{html.escape(description)}</p>'
+        if description else ""
+    )
     cells = "\n".join(render_cell(e, lang, labels) for e in page["entries"])
     return f"""
     <section class="page">
@@ -188,6 +202,7 @@ def render_page(page: dict, idx: int, total: int, lang: str, labels: dict) -> st
         <span class="page-subtitle">{html.escape(subtitle)}</span>
         <span class="page-number">{labels["page"]} {idx} / {total}</span>
       </header>
+      {desc_html}
       <div class="grid">
         {cells}
       </div>

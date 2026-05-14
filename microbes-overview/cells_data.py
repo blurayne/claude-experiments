@@ -25,6 +25,8 @@ PAGES = [
         "title_en": "Immune cells — Lymphocytes",
         "subtitle_de": "Die spezialisierten Truppen der adaptiven Abwehr.",
         "subtitle_en": "The specialised troops of adaptive immunity.",
+        "description_de": "Lymphozyten sind kleine weiße Blutzellen mit großem rundem Kern. Sie reifen im Knochenmark (B-, NK-Zellen) oder im Thymus (T-Zellen), zirkulieren über Blut und Lymphe und sammeln sich in Lymphknoten, Milz und Schleimhäuten.",
+        "description_en": "Lymphocytes are small white blood cells with a large round nucleus. They mature in bone marrow (B, NK) or the thymus (T), circulate through blood and lymph, and gather in lymph nodes, spleen and mucosal tissues.",
         "entries": [
             {
                 "name_de": "T-Helferzelle (CD4)",
@@ -97,6 +99,8 @@ PAGES = [
         "title_en": "Immune cells — Phagocytes & Granulocytes",
         "subtitle_de": "Die schnelle Eingreiftruppe der angeborenen Abwehr.",
         "subtitle_en": "The rapid-response squad of innate immunity.",
+        "description_de": "Phagozyten und Granulozyten stammen aus der myeloischen Linie des Knochenmarks. Sie fressen, verdauen und neutralisieren Eindringlinge und patrouillieren im Blut, im Gewebe und an Eintrittspforten wie Haut, Lunge und Darm.",
+        "description_en": "Phagocytes and granulocytes come from the myeloid lineage in bone marrow. They engulf, digest and neutralise invaders, patrolling blood, tissues and entry points like skin, lung and gut.",
         "entries": [
             {
                 "name_de": "Makrophage",
@@ -169,6 +173,8 @@ PAGES = [
         "title_en": "Pathogens",
         "subtitle_de": "Womit das Immunsystem es zu tun bekommt.",
         "subtitle_en": "What the immune system has to deal with.",
+        "description_de": "Pathogene sind alles, was krank machen kann: Bakterien, Viren, Pilze, Parasiten und Prionen. Sie leben in Luft, Wasser, Boden, in Tieren und auf unserer Haut — die meisten Mikroben sind harmlos oder nützlich, einige hochgefährlich.",
+        "description_en": "Pathogens are anything that can cause disease: bacteria, viruses, fungi, parasites and prions. They live in air, water, soil, animals and on our skin — most microbes are harmless or beneficial, a few are highly dangerous.",
         "entries": [
             {
                 "name_de": "Kokken (Kugelbakterien)",
@@ -233,7 +239,155 @@ PAGES = [
         ],
     },
     # ------------------------------------------------------------------
-    # Page 4 — Hematopoietic lineage
+    # Page 4 — Well-known bacteria
+    # ------------------------------------------------------------------
+    {
+        "id": "pathogens-bacteria",
+        "title_de": "Bekannte Bakterien",
+        "title_en": "Well-known bacteria",
+        "subtitle_de": "Berühmt-berüchtigte Vertreter der bakteriellen Welt.",
+        "subtitle_en": "Famous representatives of the bacterial world.",
+        "description_de": "Bakterien sind einzellige Lebewesen ohne echten Zellkern (Prokaryoten). Sie leben überall — in Boden und Wasser, auf der Haut und im Darm. Die meisten sind harmlos oder nützlich; einige wenige verursachen weltweit Millionen Krankheitsfälle pro Jahr.",
+        "description_en": "Bacteria are single-celled organisms without a true nucleus (prokaryotes). They live everywhere — in soil and water, on skin and in the gut. Most are harmless or beneficial; a few cause millions of cases of disease worldwide every year.",
+        "entries": [
+            {
+                "name_de": "Mycobacterium tuberculosis (TB)",
+                "name_en": "Mycobacterium tuberculosis (TB)",
+                "func_de": "Stäbchen mit wachsartiger Hülle, das sich in Makrophagen einnistet und jahrelang in der Lunge schlummern kann. Erreger der Tuberkulose — bis heute eine der tödlichsten Infektionen weltweit.",
+                "func_en": "Waxy-coated rod that hides inside macrophages and can lurk in the lungs for years. Causes tuberculosis — still one of the deadliest infections worldwide.",
+                "deps_de": "Wird über die Atemluft übertragen. Eindämmung durch Makrophagen und CD4-T-Zellen; ohne diese persistiert der Erreger.",
+                "deps_en": "Airborne transmission. Contained by macrophages and CD4 T cells; without them the bacterium persists.",
+                "shape": bacteria_rod,
+                "palette": {"flat": "#bc4749"},
+            },
+            {
+                "name_de": "Staphylococcus aureus (MRSA)",
+                "name_en": "Staphylococcus aureus (MRSA)",
+                "func_de": "Kokken in Traubenform. Sitzt häufig harmlos auf der Haut und im Nasen-Rachen-Raum, kann aber Wundinfektionen, Abszesse und Sepsis auslösen. MRSA-Stämme sind antibiotikaresistent.",
+                "func_en": "Grape-cluster cocci. Often harmless on skin and in the nose, but can cause wound infections, abscesses and sepsis. MRSA strains resist many antibiotics.",
+                "deps_de": "Wird von Neutrophilen gefressen und durch Antikörper markiert. Krankenhaushygiene ist gegen Resistenzausbreitung entscheidend.",
+                "deps_en": "Phagocytosed by neutrophils and tagged by antibodies. Hospital hygiene is key against resistance spread.",
+                "shape": bacteria_cocci,
+                "palette": {"flat": "#e9c46a"},
+            },
+            {
+                "name_de": "Streptococcus pneumoniae",
+                "name_en": "Streptococcus pneumoniae",
+                "func_de": "Kokken in Ketten, häufig im Nasen-Rachen-Raum. Hauptursache für Lungen-, Mittelohr- und Hirnhautentzündung, vor allem bei Kindern und älteren Menschen.",
+                "func_en": "Cocci in chains, often in the nasopharynx. Leading cause of pneumonia, otitis media and meningitis, especially in children and the elderly.",
+                "deps_de": "Polysaccharid-Kapsel schützt vor Phagozytose; Antikörper und Komplement durchbrechen diesen Schutz. Impfstoffe verfügbar.",
+                "deps_en": "Polysaccharide capsule blocks phagocytosis; antibodies and complement break through. Vaccines available.",
+                "shape": bacteria_cocci,
+                "palette": {"flat": "#2a9d8f"},
+            },
+            {
+                "name_de": "Escherichia coli",
+                "name_en": "Escherichia coli",
+                "func_de": "Stäbchen aus dem Darm. Die meisten Stämme sind harmlos oder nützlich; einige (z. B. EHEC) bilden Toxine und verursachen schwere Durchfälle und Nierenversagen.",
+                "func_en": "Gut rod bacterium. Most strains are harmless or useful; some (e.g. EHEC) produce toxins and cause severe diarrhoea and kidney failure.",
+                "deps_de": "Verbreitung über Schmierinfektion und kontaminierte Lebensmittel. Wird im Darm durch IgA-Antikörper und Schleimbarriere kontrolliert.",
+                "deps_en": "Spread by faecal-oral route and contaminated food. Controlled in the gut by IgA antibodies and the mucus barrier.",
+                "shape": bacteria_rod,
+                "palette": {"flat": "#f4a261"},
+            },
+            {
+                "name_de": "Salmonella enterica",
+                "name_en": "Salmonella enterica",
+                "func_de": "Stäbchen aus dem Darm vieler Tiere. Über verunreinigte Eier, Geflügel oder Wasser aufgenommen, löst sie Durchfall (Salmonellose) oder Typhus aus.",
+                "func_en": "Rod bacterium from many animals' guts. Picked up via contaminated eggs, poultry or water, it causes diarrhoea (salmonellosis) or typhoid fever.",
+                "deps_de": "Wird von Neutrophilen, Makrophagen und dem Darmepithel bekämpft; die Th1-Antwort ist für die Elimination zentral.",
+                "deps_en": "Cleared by neutrophils, macrophages and the gut epithelium; Th1 responses are central to elimination.",
+                "shape": bacteria_rod,
+                "palette": {"flat": "#e76f51"},
+            },
+            {
+                "name_de": "Helicobacter pylori",
+                "name_en": "Helicobacter pylori",
+                "func_de": "Spiralförmiges Bakterium, das im sauren Magen überlebt. Verursacht Magenschleimhautentzündung, Magengeschwüre und erhöht das Risiko für Magenkrebs.",
+                "func_en": "Spiral bacterium that survives in stomach acid. Causes gastritis, peptic ulcers and raises the risk of stomach cancer.",
+                "deps_de": "Übertragung meist in der Kindheit. Behandlung mit Antibiotika kombiniert mit Säureblockern; Impfstoff in Entwicklung.",
+                "deps_en": "Usually transmitted in childhood. Treated with antibiotics plus acid blockers; vaccine still in development.",
+                "shape": bacteria_rod,
+                "palette": {"flat": "#9d4edd"},
+            },
+        ],
+    },
+    # ------------------------------------------------------------------
+    # Page 5 — Well-known viruses & other pathogens
+    # ------------------------------------------------------------------
+    {
+        "id": "pathogens-viruses",
+        "title_de": "Bekannte Viren & andere Erreger",
+        "title_en": "Well-known viruses & other pathogens",
+        "subtitle_de": "Pandemie-Klassiker und globale Plagen.",
+        "subtitle_en": "Pandemic classics and global plagues.",
+        "description_de": "Viren bestehen aus Erbgut in einer Hülle und brauchen eine Wirtszelle, um sich zu vermehren. Pilze und Parasiten sind dagegen eigenständige Lebewesen. Die hier gezeigten Erreger befallen Menschen weltweit und reichen vom harmlosen Schnupfen bis zu schweren Pandemien.",
+        "description_en": "Viruses are genetic material in a coat and need a host cell to replicate. Fungi and parasites, by contrast, are organisms in their own right. The pathogens shown here infect humans worldwide, ranging from harmless colds to severe pandemics.",
+        "entries": [
+            {
+                "name_de": "Influenzavirus (Grippe)",
+                "name_en": "Influenza virus (flu)",
+                "func_de": "Atemwegsvirus mit segmentiertem RNA-Genom. Mutiert ständig, weshalb der Impfstoff jährlich angepasst wird. Verursacht saisonale Wellen und gelegentlich Pandemien.",
+                "func_en": "Respiratory RNA virus with a segmented genome. Mutates constantly, so vaccines are reformulated each year. Causes seasonal waves and occasional pandemics.",
+                "deps_de": "Wird per Tröpfchen übertragen. CD8-T-Zellen und Antikörper räumen infizierte Zellen und freie Viruspartikel ab.",
+                "deps_en": "Spread by droplets. CD8 T cells and antibodies clear infected cells and free virus particles.",
+                "shape": virus_icosahedral,
+                "palette": {"flat": "#264653"},
+            },
+            {
+                "name_de": "SARS-CoV-2 (COVID-19)",
+                "name_en": "SARS-CoV-2 (COVID-19)",
+                "func_de": "Coronavirus mit „Krone“ aus Spike-Proteinen. Bindet an ACE2-Rezeptoren in den Atemwegen und löste 2020 die globale COVID-19-Pandemie aus.",
+                "func_en": "Coronavirus with a 'crown' of spike proteins. Binds ACE2 receptors in the airways and triggered the global COVID-19 pandemic in 2020.",
+                "deps_de": "Übertragung per Aerosol. mRNA- und Vektorimpfstoffe trainieren Antikörper und T-Zellen gegen das Spike-Protein.",
+                "deps_en": "Spreads via aerosols. mRNA and vector vaccines train antibodies and T cells against the spike protein.",
+                "shape": virus_icosahedral,
+                "palette": {"flat": "#e63946"},
+            },
+            {
+                "name_de": "HIV",
+                "name_en": "HIV",
+                "func_de": "Retrovirus, das gezielt CD4-T-Helferzellen befällt und sein Erbgut in das menschliche Genom integriert. Unbehandelt zerstört es das Immunsystem (AIDS).",
+                "func_en": "Retrovirus that targets CD4 helper T cells and integrates its genome into human DNA. Untreated, it destroys the immune system (AIDS).",
+                "deps_de": "Übertragung über Blut, Sexualkontakt und Mutter-Kind. Antiretrovirale Therapie (ART) hält das Virus dauerhaft in Schach.",
+                "deps_en": "Spread via blood, sexual contact and mother-to-child. Antiretroviral therapy (ART) keeps the virus suppressed long-term.",
+                "shape": virus_icosahedral,
+                "palette": {"flat": "#7209b7"},
+            },
+            {
+                "name_de": "Hepatitis-B-Virus (HBV)",
+                "name_en": "Hepatitis B virus (HBV)",
+                "func_de": "DNA-Virus, das die Leber befällt und in Leberzellen persistiert. Chronische Infektionen können zu Leberzirrhose und Leberkrebs führen.",
+                "func_en": "DNA virus that infects the liver and persists inside liver cells. Chronic infection can lead to liver cirrhosis and liver cancer.",
+                "deps_de": "Übertragung über Blut, Sexualkontakt und perinatal. Impfung verfügbar und Bestandteil vieler nationaler Impfprogramme.",
+                "deps_en": "Spread via blood, sexual contact and perinatally. Vaccine available and included in many national immunisation programmes.",
+                "shape": virus_icosahedral,
+                "palette": {"flat": "#f4a261"},
+            },
+            {
+                "name_de": "Plasmodium (Malaria)",
+                "name_en": "Plasmodium (malaria)",
+                "func_de": "Einzelliger Parasit, übertragen durch Anophelesmücken. Befällt erst die Leber, dann rote Blutkörperchen und löst zyklische Fieberattacken aus. Weltweit über 500.000 Todesfälle pro Jahr.",
+                "func_en": "Single-celled parasite spread by Anopheles mosquitoes. First infects the liver, then red blood cells, triggering cycles of fever. Kills over 500,000 people per year worldwide.",
+                "deps_de": "Behandelt mit Antimalaria-Medikamenten; neue Impfstoffe (RTS,S, R21) werden in Endemiegebieten eingesetzt.",
+                "deps_en": "Treated with antimalarial drugs; new vaccines (RTS,S, R21) now being rolled out in endemic regions.",
+                "shape": parasite_blob,
+                "palette": {"flat": "#6a994e"},
+            },
+            {
+                "name_de": "Candida albicans",
+                "name_en": "Candida albicans",
+                "func_de": "Hefepilz, der bei vielen Menschen harmlos im Mund, Darm und Genitaltrakt lebt. Bei geschwächtem Immunsystem oder nach Antibiotika kann er sich ausbreiten und schwere Infektionen verursachen.",
+                "func_en": "Yeast that lives harmlessly in many people's mouths, gut and genital tract. With a weakened immune system or after antibiotics it can spread and cause serious infections.",
+                "deps_de": "Wird durch Th17-Zellen, Neutrophile und das Mikrobiom der Schleimhäute in Schach gehalten.",
+                "deps_en": "Kept in check by Th17 cells, neutrophils and the mucosal microbiome.",
+                "shape": fungus_hyphae,
+                "palette": {"flat": "#bb8a52"},
+            },
+        ],
+    },
+    # ------------------------------------------------------------------
+    # Page 6 — Hematopoietic lineage
     # ------------------------------------------------------------------
     {
         "id": "hematopoietic",
@@ -241,6 +395,8 @@ PAGES = [
         "title_en": "Hematopoietic lineage",
         "subtitle_de": "Aus einer Stammzelle im Knochenmark entstehen alle Blutzellen.",
         "subtitle_en": "All blood cells arise from a single stem cell in bone marrow.",
+        "description_de": "Alle Blutzellen entstehen im Knochenmark aus einer einzigen hämatopoetischen Stammzelle. Über mehrere Reifungsstufen werden daraus rote Blutkörperchen, Blutplättchen, Granulozyten, Monozyten und Lymphozyten — täglich rund 200 Milliarden Zellen pro Mensch.",
+        "description_en": "All blood cells arise in bone marrow from a single hematopoietic stem cell. Through multiple maturation steps they become red blood cells, platelets, granulocytes, monocytes and lymphocytes — around 200 billion new cells per person per day.",
         "entries": [
             {
                 "name_de": "Hämatopoetische Stammzelle (HSC)",
@@ -305,7 +461,7 @@ PAGES = [
         ],
     },
     # ------------------------------------------------------------------
-    # Page 5 — Mesenchymal lineage
+    # Page 7 — Mesenchymal lineage
     # ------------------------------------------------------------------
     {
         "id": "mesenchymal",
@@ -313,6 +469,8 @@ PAGES = [
         "title_en": "Mesenchymal lineage",
         "subtitle_de": "Stützgewebe: Knochen, Knorpel, Muskel, Fett.",
         "subtitle_en": "Connective tissues: bone, cartilage, muscle, fat.",
+        "description_de": "Mesenchymale Zellen entstehen aus dem mittleren Keimblatt (Mesoderm) und bilden die Stützgewebe des Körpers: Knochen, Knorpel, Sehnen, Skelett- und Glattmuskulatur sowie Fett- und Bindegewebe.",
+        "description_en": "Mesenchymal cells arise from the middle germ layer (mesoderm) and form the body's supporting tissues: bone, cartilage, tendons, skeletal and smooth muscle, plus fat and connective tissue.",
         "entries": [
             {
                 "name_de": "Mesenchymale Stammzelle (MSC)",
@@ -377,7 +535,7 @@ PAGES = [
         ],
     },
     # ------------------------------------------------------------------
-    # Page 6 — Neural lineage
+    # Page 8 — Neural lineage
     # ------------------------------------------------------------------
     {
         "id": "neural",
@@ -385,6 +543,8 @@ PAGES = [
         "title_en": "Neural lineage",
         "subtitle_de": "Nervensystem: Verarbeitung, Verschaltung und Unterstützung.",
         "subtitle_en": "Nervous system: processing, wiring and support.",
+        "description_de": "Neuronen und Gliazellen entwickeln sich aus dem Neuralrohr (Ektoderm) und bilden das gesamte Nervensystem — Gehirn, Rückenmark sowie die peripheren Nervenbahnen, die Muskeln, Haut und Organe versorgen.",
+        "description_en": "Neurons and glia arise from the neural tube (ectoderm) and build the entire nervous system — brain, spinal cord and the peripheral nerves that supply muscles, skin and organs.",
         "entries": [
             {
                 "name_de": "Neuronale Stammzelle (NSC)",
@@ -449,7 +609,7 @@ PAGES = [
         ],
     },
     # ------------------------------------------------------------------
-    # Page 7 — Epithelial lineage
+    # Page 9 — Epithelial lineage
     # ------------------------------------------------------------------
     {
         "id": "epithelial",
@@ -457,6 +617,8 @@ PAGES = [
         "title_en": "Epithelial lineage",
         "subtitle_de": "Grenzflächen des Körpers: Haut, Darm, Lunge.",
         "subtitle_en": "Body surfaces: skin, gut, lung.",
+        "description_de": "Epithelzellen kleiden alle Innen- und Außenflächen des Körpers aus: Haut, Schleimhaut von Mund, Magen-Darm-Trakt und Lunge sowie Drüsen. Sie bilden die erste mechanische und biochemische Schutzbarriere gegen die Umwelt.",
+        "description_en": "Epithelial cells line every inner and outer surface of the body: skin, the mucosa of mouth, GI tract and lung, plus glands. They form the body's first mechanical and biochemical barrier against the environment.",
         "entries": [
             {
                 "name_de": "Keratinozyt (Hautzelle)",
@@ -521,7 +683,7 @@ PAGES = [
         ],
     },
     # ------------------------------------------------------------------
-    # Page 8 — Endothelial lineage
+    # Page 10 — Endothelial lineage
     # ------------------------------------------------------------------
     {
         "id": "endothelial",
@@ -529,6 +691,8 @@ PAGES = [
         "title_en": "Endothelial lineage",
         "subtitle_de": "Innenwand aller Blut- und Lymphgefäße.",
         "subtitle_en": "Inner lining of every blood and lymph vessel.",
+        "description_de": "Endothelzellen kleiden als einlagige Schicht die Innenwand jedes Blut- und Lymphgefäßes aus, vom Herzen bis zur feinsten Kapillare. Sie regeln Blutfluss, Gerinnung und den Übertritt von Immunzellen aus dem Blut ins Gewebe.",
+        "description_en": "Endothelial cells form a single layer that lines the inside of every blood and lymph vessel, from heart to the smallest capillary. They regulate blood flow, clotting and the passage of immune cells out of the bloodstream into tissues.",
         "entries": [
             {
                 "name_de": "Endotheliale Vorläuferzelle (EPC)",
@@ -593,7 +757,7 @@ PAGES = [
         ],
     },
     # ------------------------------------------------------------------
-    # Page 9 — iPS-derived cells
+    # Page 11 — iPS-derived cells
     # ------------------------------------------------------------------
     {
         "id": "ips",
@@ -601,6 +765,8 @@ PAGES = [
         "title_en": "Induced pluripotent stem cells (iPS)",
         "subtitle_de": "Im Labor zurückprogrammierte Körperzellen — Quelle vieler Therapien.",
         "subtitle_en": "Lab-reprogrammed body cells — source for many therapies.",
+        "description_de": "Induzierte pluripotente Stammzellen werden im Labor erzeugt: Körperzellen (z. B. Hautzellen) werden mit definierten Faktoren in einen embryonalen Stammzellzustand zurückversetzt und können sich anschließend in fast jeden Zelltyp differenzieren.",
+        "description_en": "Induced pluripotent stem cells are made in the lab: body cells (e.g. skin cells) are reprogrammed with defined factors back into an embryonic-like stem-cell state and can then differentiate into almost any cell type.",
         "entries": [
             {
                 "name_de": "iPS-Zelle",
