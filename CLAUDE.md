@@ -16,4 +16,11 @@ This repository is used for experiments. Each experiment lives in its own subfol
 
 ## Deployment
 
-- This repository is deployed to GitHub Pages. Anything pushed to the deploy branch is publicly served, so avoid committing secrets or local-only paths.
+- This repository is deployed to GitHub Pages directly from the branch (no Actions, no build step — files are served as-is). Anything pushed to the deploy branch is publicly served, so avoid committing secrets or local-only paths.
+
+## Repository layout
+
+- The top-level `README.md` gives an overview of what each subfolder (experiment) contains, with a link to that subfolder.
+- For each subfolder:
+  - If the subfolder has an `index.html`, link to that `index.html` from the top-level `README.md`.
+  - Otherwise, generate a `subfolder/index.html` that links to the files inside it. Prefer enabling GitHub Pages auto-indexing for the subfolder when that is an option, instead of hand-writing the index.
