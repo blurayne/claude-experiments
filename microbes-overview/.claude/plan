@@ -1,0 +1,31 @@
+# Plan: microbes-overview
+
+## Goal
+Make this subfolder compliant with the repo's CLAUDE.md and deployable via the
+GitHub Pages workflow at `.github/workflows/pages.yml`.
+
+## Current state
+- `build.py` + `cells_data.py` + `svg_shapes.py` generate poster HTML and PDFs.
+- Generated artifacts (`microbes_de.html`, `microbes_en.html`, `microbes_de.pdf`,
+  `microbes_en.pdf`) live alongside the sources.
+- No `index.md`, so the folder was skipped by the previous build script.
+
+## Steps
+1. Add an `index.md` that:
+   - Describes the experiment in one sentence.
+   - Links to the four generated outputs.
+   - Lists the source files.
+   - Documents the rebuild command (`python3 build.py`).
+2. Rely on the patched `.github/scripts/build_site.py` to render this
+   `index.md` into `_site/microbes-overview/index.html` while copying the
+   pre-built `microbes_*.html` and `microbes_*.pdf` alongside it.
+
+## Out of scope
+- Re-running `build.py`. The committed HTML/PDF artifacts are treated as the
+  current shipping outputs.
+- Changing the poster content or layout.
+
+## Verification
+- After push, the `pages.yml` run should succeed.
+- `/microbes-overview/` on the deployed site should show the rendered overview
+  with working links to `microbes_en.html`, `microbes_de.html`, and the PDFs.

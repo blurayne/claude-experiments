@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Render every `index.md` (and the top-level `README.md`) to HTML under `_site/`.
+"""Render `index.md` files (and the top-level `README.md`) to HTML under `_site/`.
 
-Each subfolder is copied verbatim so static assets ride along; only `index.md`
-is replaced with a rendered `index.html`. The top-level `README.md` becomes the
-site root `index.html`.
+Each subfolder is copied verbatim so static assets ride along. If a subfolder
+already ships its own `index.html`, that file is preserved untouched. Otherwise,
+`index.md` is rendered into `index.html`. Subfolders with neither file are
+skipped. The top-level `README.md` becomes the site root `index.html`.
 """
 
 from __future__ import annotations
@@ -59,14 +60,19 @@ def build() -> None:
     for sub in sorted(ROOT.iterdir()):
         if not sub.is_dir() or sub.name.startswith(".") or sub.name in SKIP_DIRS:
             continue
+
         idx_md = sub / "index.md"
-        if not idx_md.exists():
+        idx_html = sub / "index.html"
+        if not idx_md.exists() and not idx_html.exists():
             continue
 
         dest = OUT / sub.name
         shutil.copytree(sub, dest)
         (dest / "index.md").unlink(missing_ok=True)
-        (dest / "index.html").write_text(render(idx_md.read_text(), sub.name))
+
+        # Only render index.md when the subfolder doesn't ship its own index.html.
+        if idx_md.exists() and not idx_html.exists():
+            (dest / "index.html").write_text(render(idx_md.read_text(), sub.name))
 
 
 if __name__ == "__main__":
