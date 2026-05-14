@@ -11,8 +11,14 @@ This repository is used for experiments. Each experiment lives in its own subfol
 
 ## Git workflow
 
-- Do not open pull requests. Commit and push directly to the working branch.
+- The default branch is `main` and always will be. Commit and push directly to `main`.
+- Do not open pull requests.
 - Keep commits small and descriptive.
+
+## Naming experiments
+
+- If the user starts a new experiment without giving a subfolder name, ask what to call it.
+- If no name is given, fall back to a short `lower_snake_case` name that describes the experiment.
 
 ## Deployment
 
