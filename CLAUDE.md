@@ -39,3 +39,11 @@ This repository is used for experiments. Each experiment lives in its own subfol
   - the status of the most recent `pages.yml` workflow run on the pushed branch, and
   - the deployed site URL (the `page_url` output of `actions/deploy-pages`, or the repository's Pages URL once the run succeeds).
 - If no GitHub access is available, say so briefly instead of guessing a URL.
+
+## Auto-rebuild workflows
+
+- Some subfolders ship generated artifacts (e.g. `microbes-overview/microbes_*.html` and `microbes_*.pdf`) that should always reflect the committed sources.
+- For these, a dedicated workflow under `.github/workflows/<subfolder>.yml` rebuilds the artifacts on every push to `main` that touches the subfolder's sources, then commits the regenerated files back to `main` as `github-actions[bot]`. Examples:
+  - `.github/workflows/microbes-overview.yml` rebuilds the microbes posters when `microbes-overview/*.py` or its `requirements.txt` change.
+- These workflows must use `permissions: contents: write` and a `paths:` filter that excludes the generated artifacts, so the bot's own commit does not retrigger the workflow.
+- When adding a new experiment that has a `build.py`, add a matching workflow following this pattern instead of expecting contributors to rebuild locally.
