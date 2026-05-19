@@ -1,33 +1,28 @@
 """Build HTML and PDF posters from cells_data.PAGES.
 
 Usage:
-    python3 build.py            # all four tiers × two languages → 8 HTML + 8 PDF
-    python3 build.py --mode all # use 2x2 image grid (renders microscope-SVG too)
+    python3 build.py            # all populated tiers x both languages
+    python3 build.py --no-pdf   # HTML only
 
-Per-tier outputs use the cumulative inclusion rule: each entry has a `tier`
-field with one of {"basic", "ext30", "ext100", "complete"}. A build at tier
-N includes entries whose tier is N or lower (in the order basic < ext30 <
-ext100 < complete). Pages with no surviving entries are dropped.
+Each cell shows a single illustration above the function / dependencies
+text. Illustrations live in `images/<image_filename>` and come from
+NIH BioArt (public domain). If an image file is missing, the cell renders
+a hatched placeholder.
 
-Image layout:
-- Each entry can declare `image_filename` (relative to `images/`),
-  `image_url`, `image_credit`, `image_license`.
-- Mode "auto" (default): if a real microscope photo is present, render
-  3×1 = [real, infographic, kids]; otherwise render 3×1 = [microscope-svg,
-  infographic, kids].
-- Mode "all": render 2×2 = [real (or placeholder), microscope-svg,
-  infographic, kids] — keeps the microscope-style SVG alongside the photo.
+Per-tier outputs use the cumulative inclusion rule: each entry has a
+`tier` field of {"basic", "ext30", "ext100", "complete"}. A build at
+tier N includes entries whose tier is N or lower (basic < ext30 < ext100
+< complete). Pages with no surviving entries are dropped, and tiers
+with no tagged entries are skipped entirely.
 
-CSS classes for filtering / theming:
+CSS classes for filtering and theming:
 - On each `.cell`: `tier-{basic|ext30|ext100|complete}`, `kind-{page_id}`.
-- On each `.image-cell`: `img-microscope-real`, `img-microscope-svg`,
-  `img-infographic`, or `img-kids`.
-- On the `.images` container: `images-3` or `images-4` for layout.
+- On the `.image-cell`: `img-illustration` (always — single style now).
+- On the root `<html>`: `data-tier`, `data-lang`.
 """
 from __future__ import annotations
 import argparse
 import html
-import os
 from pathlib import Path
 
 from cells_data import PAGES
@@ -38,7 +33,7 @@ IMAGES_DIR = HERE / "images"
 
 TIER_ORDER = ["basic", "ext30", "ext100", "complete"]
 TIER_RANK = {t: i for i, t in enumerate(TIER_ORDER)}
-DEFAULT_TIER = "ext30"
+DEFAULT_TIER = "basic"
 
 
 CSS = """
@@ -106,33 +101,22 @@ html, body {
   margin: 0 0 1.5mm;
   line-height: 1.15;
 }
-.images {
+.image-cell {
   margin-bottom: 1.5mm;
+  text-align: center;
 }
-.images svg { width: 100%; height: auto; display: block; }
-.images img { width: 100%; height: auto; display: block; object-fit: cover; }
-.images.images-3 {
-  display: flex;
-  gap: 1.5mm;
-}
-.images.images-3 .image-cell { flex: 1; }
-.images.images-4 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-  gap: 1.5mm;
-}
-.image-cell { text-align: center; }
-.image-label {
-  font-size: 6pt;
-  color: #888;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-top: 0.5mm;
+.image-cell img {
+  width: 100%;
+  height: auto;
+  max-height: 38mm;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
 }
 .image-placeholder {
   width: 100%;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 3 / 2;
+  max-height: 38mm;
   background: repeating-linear-gradient(
     45deg,
     #f3f3f3,
@@ -146,7 +130,7 @@ html, body {
   align-items: center;
   justify-content: center;
   color: #888;
-  font-size: 6pt;
+  font-size: 7pt;
   text-align: center;
   padding: 1mm;
 }
@@ -204,56 +188,48 @@ html, body {
 LABELS = {
     "de": {
         "title": "Mikroben & Zellen — Überblick",
-        "subtitle": "Immunzellen, Pathogene und Körperzellen im Vergleich",
+        "subtitle": "Körperzellen und Erreger im Überblick",
         "function": "Aufgabe",
         "deps": "Abhängigkeiten / Ziele",
-        "img_real": "Mikroskop-Aufnahme",
-        "img_micro": "Mikroskop-Stil",
-        "img_flat": "Infografik-Stil",
-        "img_cute": "Kinder-Stil",
         "img_missing": "Bild fehlt",
         "page": "Seite",
         "cover_note": (
-            "Wo eine echte Mikroskop-Aufnahme verfügbar ist, wird sie gezeigt; "
-            "sonst eine stilisierte Mikroskop-Skizze. Der „Kurzgesagt-Stil“ und "
-            "der „Kinder-Stil“ sind handgezeichnete SVGs."
+            "Die Zell-Kategorien orientieren sich an der Übersicht „Arten von Zellen“. "
+            "Alle Illustrationen stammen aus der gemeinfreien NIH BioArt-Sammlung "
+            "(bioart.niaid.nih.gov)."
         ),
         "toc_title": "Inhalt",
         "credits_title": "Bildquellen",
         "credits_intro": (
-            "Alle echten Mikroskop-Aufnahmen stammen aus offenen Quellen "
-            "(Wikimedia Commons, CDC PHIL, NIAID u.a.) unter freier Lizenz."
+            "Alle Illustrationen stammen aus der NIH BioArt-Sammlung "
+            "(https://bioart.niaid.nih.gov) und sind gemeinfrei."
         ),
-        "variant_basic": "Variante: Grundlagen (~30 Einträge)",
-        "variant_ext30": "Variante: Standard (~60–70 Einträge)",
-        "variant_ext100": "Variante: Erweitert (~100 Einträge)",
+        "variant_basic": "Variante: Grundlagen",
+        "variant_ext30": "Variante: Standard",
+        "variant_ext100": "Variante: Erweitert",
         "variant_complete": "Variante: Vollständig",
     },
     "en": {
         "title": "Microbes & cells — overview",
-        "subtitle": "Immune cells, pathogens and body cells side by side",
+        "subtitle": "Body cells and pathogens at a glance",
         "function": "Function",
         "deps": "Depends on / Targets",
-        "img_real": "Microscope photo",
-        "img_micro": "Microscope style",
-        "img_flat": "Infographic style",
-        "img_cute": "Kids style",
         "img_missing": "Image missing",
         "page": "Page",
         "cover_note": (
-            "Where a real microscope photograph is available, it is shown; "
-            "otherwise a stylised microscope-style sketch. The infographic "
-            "and kids styles are hand-drawn SVGs."
+            "Cell categories follow the 'Types of cells' chart. "
+            "All illustrations are taken from the public-domain "
+            "NIH BioArt collection (bioart.niaid.nih.gov)."
         ),
         "toc_title": "Contents",
         "credits_title": "Image credits",
         "credits_intro": (
-            "All real microscope images come from open sources (Wikimedia "
-            "Commons, CDC PHIL, NIAID and similar) under free licences."
+            "All illustrations come from the NIH BioArt collection "
+            "(https://bioart.niaid.nih.gov) and are in the public domain."
         ),
-        "variant_basic": "Variant: basics (~30 entries)",
-        "variant_ext30": "Variant: standard (~60–70 entries)",
-        "variant_ext100": "Variant: extended (~100 entries)",
+        "variant_basic": "Variant: basics",
+        "variant_ext30": "Variant: standard",
+        "variant_ext100": "Variant: extended",
         "variant_complete": "Variant: complete",
     },
 }
@@ -292,69 +268,33 @@ def image_path_for(entry: dict) -> Path | None:
     return IMAGES_DIR / fname
 
 
-def has_real_image(entry: dict) -> bool:
-    p = image_path_for(entry)
-    return bool(p and p.exists())
-
-
-def render_real_image_cell(entry: dict, labels: dict) -> str:
+def render_image_cell(entry: dict, labels: dict) -> str:
     p = image_path_for(entry)
     if p and p.exists():
         rel = f"images/{p.name}"
         return (
-            f'<div class="image-cell img-microscope-real">'
+            f'<div class="image-cell img-illustration">'
             f'<img src="{html.escape(rel)}" alt=""/>'
-            f'<div class="image-label">{labels["img_real"]}</div>'
             f"</div>"
         )
     return (
-        f'<div class="image-cell img-microscope-real img-missing">'
+        f'<div class="image-cell img-illustration img-missing">'
         f'<div class="image-placeholder">{labels["img_missing"]}</div>'
-        f'<div class="image-label">{labels["img_real"]}</div>'
         f"</div>"
     )
 
 
-def render_cell(entry: dict, kind: str, lang: str, labels: dict, mode: str) -> str:
-    micro, flat, cute = entry["shape"](entry["palette"])
+def render_cell(entry: dict, kind: str, lang: str, labels: dict) -> str:
     name = entry[f"name_{lang}"]
     func = entry[f"func_{lang}"]
     deps = entry[f"deps_{lang}"]
     tier = entry_tier(entry)
-
-    micro_svg_cell = (
-        f'<div class="image-cell img-microscope-svg">{micro}'
-        f'<div class="image-label">{labels["img_micro"]}</div></div>'
-    )
-    flat_cell = (
-        f'<div class="image-cell img-infographic">{flat}'
-        f'<div class="image-label">{labels["img_flat"]}</div></div>'
-    )
-    cute_cell = (
-        f'<div class="image-cell img-kids">{cute}'
-        f'<div class="image-label">{labels["img_cute"]}</div></div>'
-    )
-    real_cell = render_real_image_cell(entry, labels)
-    has_real = has_real_image(entry)
-
-    if mode == "all":
-        images_cells = [real_cell, micro_svg_cell, flat_cell, cute_cell]
-        images_layout = "images-4"
-    elif has_real:
-        images_cells = [real_cell, flat_cell, cute_cell]
-        images_layout = "images-3"
-    else:
-        images_cells = [micro_svg_cell, flat_cell, cute_cell]
-        images_layout = "images-3"
-
-    images_html = "\n        ".join(images_cells)
+    image_html = render_image_cell(entry, labels)
     classes = f"cell tier-{tier} kind-{kind}"
     return f"""
     <div class="{classes}">
       <h3 class="cell-name">{html.escape(name)}</h3>
-      <div class="images {images_layout}">
-        {images_html}
-      </div>
+      {image_html}
       <div class="text-block">
         <p><span class="label">{labels["function"]}:</span> {html.escape(func)}</p>
         <p><span class="label">{labels["deps"]}:</span> {html.escape(deps)}</p>
@@ -362,7 +302,7 @@ def render_cell(entry: dict, kind: str, lang: str, labels: dict, mode: str) -> s
     </div>"""
 
 
-def render_page(page: dict, idx: int, total: int, lang: str, labels: dict, mode: str) -> str:
+def render_page(page: dict, idx: int, total: int, lang: str, labels: dict) -> str:
     title = page[f"title_{lang}"]
     subtitle = page.get(f"subtitle_{lang}", "")
     description = page.get(f"description_{lang}", "")
@@ -372,7 +312,7 @@ def render_page(page: dict, idx: int, total: int, lang: str, labels: dict, mode:
         if description else ""
     )
     cells = "\n".join(
-        render_cell(e, kind, lang, labels, mode) for e in page["entries"]
+        render_cell(e, kind, lang, labels) for e in page["entries"]
     )
     return f"""
     <section class="page kind-{kind}">
@@ -460,24 +400,24 @@ def render_credits_page(pages: list[dict], lang: str, labels: dict) -> str:
     </section>"""
 
 
-def render_doc(lang: str, tier: str, mode: str) -> str:
+def render_doc(lang: str, tier: str) -> str:
     labels = LABELS[lang]
     pages = filter_pages(tier)
     credits_html = render_credits_page(pages, lang, labels)
     total = len(pages) + 1 + (1 if credits_html else 0)
     cover = render_cover(pages, lang, labels, tier)
     pages_html = "\n".join(
-        render_page(p, i + 2, total, lang, labels, mode)
+        render_page(p, i + 2, total, lang, labels)
         for i, p in enumerate(pages)
     )
     return f"""<!doctype html>
-<html lang="{lang}" data-tier="{tier}" data-mode="{mode}">
+<html lang="{lang}" data-tier="{tier}">
 <head>
   <meta charset="utf-8"/>
   <title>{html.escape(labels["title"])} — {html.escape(labels[TIER_LABEL_KEY[tier]])}</title>
   <style>{CSS}</style>
 </head>
-<body class="tier-{tier} mode-{mode}">
+<body class="tier-{tier}">
   {cover}
   {pages_html}
   {credits_html}
@@ -486,9 +426,9 @@ def render_doc(lang: str, tier: str, mode: str) -> str:
 
 
 def output_basename(lang: str, tier: str) -> str:
-    # The "ext30" tier maps to the legacy `microbes_<lang>` filename so
-    # existing links (and the default index.md targets) keep working.
-    if tier == "ext30":
+    # The default tier (basic) maps to the legacy `microbes_<lang>`
+    # filename so existing links keep working.
+    if tier == DEFAULT_TIER:
         return f"microbes_{lang}"
     return f"microbes_{tier}_{lang}"
 
@@ -501,7 +441,7 @@ def populated_tiers() -> list[str]:
     return [t for t in TIER_ORDER if t in tagged]
 
 
-def build(mode: str = "auto", tiers: list[str] | None = None, write_pdf: bool = True):
+def build(tiers: list[str] | None = None, write_pdf: bool = True):
     tiers = tiers or populated_tiers()
     for tier in tiers:
         pages = filter_pages(tier)
@@ -509,7 +449,7 @@ def build(mode: str = "auto", tiers: list[str] | None = None, write_pdf: bool = 
             print(f"skipping tier {tier} (no entries)")
             continue
         for lang in ("de", "en"):
-            html_doc = render_doc(lang, tier, mode)
+            html_doc = render_doc(lang, tier)
             base = output_basename(lang, tier)
             html_path = HERE / f"{base}.html"
             html_path.write_text(html_doc, encoding="utf-8")
@@ -528,13 +468,11 @@ def build(mode: str = "auto", tiers: list[str] | None = None, write_pdf: bool = 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--mode", choices=["auto", "all"], default="auto",
-                    help="auto: 3x1 (real or micro-svg + info + kids); all: 2x2 with all four.")
     ap.add_argument("--tier", choices=TIER_ORDER, action="append",
-                    help="Restrict to specific tier(s); may be repeated. Default: all four.")
+                    help="Restrict to specific tier(s); may be repeated. Default: all populated tiers.")
     ap.add_argument("--no-pdf", action="store_true", help="Skip PDF rendering.")
     args = ap.parse_args()
-    build(mode=args.mode, tiers=args.tier, write_pdf=not args.no_pdf)
+    build(tiers=args.tier, write_pdf=not args.no_pdf)
 
 
 if __name__ == "__main__":

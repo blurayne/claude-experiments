@@ -1,39 +1,41 @@
-# Microbes Overview
+# Microbes & Cells Overview
 
-Print-ready, bilingual A4-landscape posters that introduce common microbes and human cells side by side. The data lives in a single Python file and is rendered into HTML and PDF posters.
+Print-ready, bilingual A4-landscape posters that introduce body cells and pathogens side by side. The data lives in a single Python file and is rendered into HTML and PDF posters.
 
-Each entry shows up to three (or four) views of the same thing:
+Each entry shows a single illustration above a short function description and a "depends on / targets" line. All illustrations come from the public-domain [NIH BioArt](https://bioart.niaid.nih.gov) collection.
 
-- **Microscope photo** — a real micrograph from open sources (Wikimedia Commons, CDC PHIL, NIAID), shown when available.
-- **Microscope-style sketch (SVG)** — a stylised drawing used as a fallback when no photo is present.
-- **Infographic-style SVG** — the "Kurzgesagt" look.
-- **Kids-style SVG** — friendlier, hand-drawn shapes.
+## Page structure
 
-## Variants
+Eleven pages — eight body-cell categories taken from the "Arten von Zellen" reference image, plus three pathogen pages:
 
-Each variant is generated for both English and German.
+| # | Deutsch | English |
+| --- | --- | --- |
+| 1 | Stammzellen | Stem cells |
+| 2 | Epithelzellen | Epithelial cells |
+| 3 | Nervenzellen | Nerve cells |
+| 4 | Fortpflanzungszellen | Reproductive cells |
+| 5 | Knochenzellen | Bone cells |
+| 6 | Fettzellen | Fat cells |
+| 7 | Rote Blutkörperchen | Red blood cells |
+| 8 | Immunzellen | Immune cells |
+| 9 | Pathogene | Pathogens (overview) |
+| 10 | Bekannte Bakterien | Well-known bacteria |
+| 11 | Bekannte Viren & andere Erreger | Well-known viruses & other pathogens |
 
-| Variant | Scope | English | German |
-| --- | --- | --- | --- |
-| Basics (~30 entries) | The most iconic immune cells, pathogens and body cells. | [`microbes_basic_en.html`](microbes_basic_en.html) · [PDF](microbes_basic_en.pdf) | [`microbes_basic_de.html`](microbes_basic_de.html) · [PDF](microbes_basic_de.pdf) |
-| Standard (~60 entries) | The default set covering all eleven topic pages. | [`microbes_en.html`](microbes_en.html) · [PDF](microbes_en.pdf) | [`microbes_de.html`](microbes_de.html) · [PDF](microbes_de.pdf) |
-| Extended (~100 entries) | Adds many less-common pathogens, immune subtypes and specialised cell types. | _generated once entries are tagged `ext100`_ | _idem_ |
-| Complete | Everything in the catalogue. | _generated once entries are tagged `complete`_ | _idem_ |
+Each page has exactly 6 entries.
+
+## Output
+
+| Variant | English | German |
+| --- | --- | --- |
+| Basics (66 entries, default) | [`microbes_en.html`](microbes_en.html) · [PDF](microbes_en.pdf) | [`microbes_de.html`](microbes_de.html) · [PDF](microbes_de.pdf) |
+| Extended | _generated once entries are tagged `ext30` / `ext100` / `complete`_ | _idem_ |
 
 Variant tagging lives in `cells_data.py` via the per-entry `tier` field; `build.py` only emits a variant once at least one entry is tagged for it.
 
-## Image layout modes
-
-`build.py` supports two layout modes:
-
-- `--mode auto` (default): each cell shows **three** images in a 3×1 row — the real photograph if present, otherwise the microscope-style SVG, followed by the infographic and kids SVGs.
-- `--mode all`: each cell shows **four** images in a 2×2 grid — the real photograph (or a placeholder), the microscope-style SVG, the infographic and the kids SVG.
-
-CSS classes are emitted on every cell (`.tier-basic`, `.tier-ext30`, etc.; `.kind-<page-id>`) and every image cell (`.img-microscope-real`, `.img-microscope-svg`, `.img-infographic`, `.img-kids`), so different document themes can be styled on top of the same HTML.
-
 ## Image sourcing
 
-Real microscope photographs are not committed by Claude — the sandbox cannot reach Wikimedia/PHIL. Instead, `fetch_images.sh` downloads them on demand from Wikimedia Commons via the `Special:FilePath` redirect.
+Illustrations are not committed to this repository — they get downloaded on demand from NIH BioArt by `fetch_images.sh`:
 
 ```bash
 cd microbes-overview
@@ -41,21 +43,21 @@ cd microbes-overview
 # images land in ./images/, images.tar.gz is produced for easy transfer.
 ```
 
-Filenames are stable (`<page-id>__<slug>.jpg`) and referenced from `cells_data.py` via the per-entry `image_filename` field. Each entry also records `image_url`, `image_credit` and `image_license`, which feed the credits page at the end of every PDF/HTML output.
+Filenames are stable (`<page-id>__<slug>.png`) and referenced from `cells_data.py` via the per-entry `image_filename` field. Each entry also records `image_url`, `image_credit` and `image_license`, which feed the credits page at the end of every PDF/HTML output.
 
-The build is tolerant of missing files — any entry whose photograph hasn't been fetched simply falls back to its microscope-style SVG.
+If an entry's `image_url` is empty in `fetch_images.sh`, the script logs it as `MISSING URL` — locate the asset on https://bioart.niaid.nih.gov, paste its direct PNG download URL into the script, and re-run.
+
+The build is tolerant of missing files — any entry whose illustration hasn't been fetched falls back to a hatched placeholder.
 
 ## Sources
 
 - [`build.py`](build.py) — assembles the HTML pages, runs the tier filter, triggers PDF rendering, builds the credits page.
-- [`cells_data.py`](cells_data.py) — the catalogue (names, descriptions, attributes, tier, image metadata).
-- [`svg_shapes.py`](svg_shapes.py) — reusable SVG illustrations for each microbe.
-- [`fetch_images.sh`](fetch_images.sh) — downloads microscope photos from Wikimedia into `images/`.
+- [`cells_data.py`](cells_data.py) — the catalogue (names, descriptions, tier, image metadata).
+- [`fetch_images.sh`](fetch_images.sh) — downloads illustrations from NIH BioArt into `images/`.
 
 ## Rebuilding
 
 ```bash
-python3 build.py            # all tiers × both languages → HTML + PDF
+python3 build.py            # all populated tiers × both languages → HTML + PDF
 python3 build.py --no-pdf   # HTML only
-python3 build.py --mode all # 2×2 image grid variant
 ```
