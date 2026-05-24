@@ -18,8 +18,13 @@ Requirements that shaped this plan:
 - `slothy-math.js` — mat4/vec3; `perspective` (WebGL z∈[-1,1]) and `perspectiveZO` (WebGPU
   z∈[0,1]).
 - `slothy-model.js` — procedural geometry as grouped parts (positions/normals/uvs/colors/indices):
-  - **Body:** parametric loft from a control-point profile (front dome → belly → tapering tail),
-    flattened bottom so it rests on the ground; per-vertex normals by face-normal accumulation.
+  - **Body (metaball SDF + Surface Nets):** the fat fused body — torso, lower belly, head, heavy
+    brow, broad snout, jowls, shoulders, arms/hands on the belly, feet, and a 4-sphere tapering
+    tail — is a signed-distance field of ~18 ellipsoid metaballs combined with a smooth-min
+    union, flat-cut at the ground plane, then polygonized with naive Surface Nets. Normals come
+    from the SDF gradient. This is the right tool for the soft fused forms; no GPU/AI 2D→3D tools
+    exist in this sandbox (no GPU, huggingface blocked, no Blender), so the shape is authored as
+    metaballs rather than auto-reconstructed.
   - **Colors:** olive-green back with mottled value-noise blotches blending to a cream belly;
     lighter tan face; near-black eye patches painted by distance to eye centers.
   - **Face features seated on the real surface** via `makeFrontZAt(bodyPositions)` so nothing

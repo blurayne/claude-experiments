@@ -46,9 +46,11 @@ oriented Z-up on the bed:
 ## Files
 
 - `slothy-math.js` — minimal mat4/vec3 helpers (WebGL and WebGPU clip-space projections).
-- `slothy-model.js` — procedural geometry: body loft, surface-seated face features, three mouth
-  variants, cap, body-conforming apron shell, arms, ground shadow, per-vertex colors, and the
-  apron art (`paintApron`).
+- `slothy-model.js` — procedural geometry: the fat fused body (torso, head, jowls, arms, feet,
+  tail) is one organic mesh built from a **metaball signed-distance field via naive Surface
+  Nets**; facial features (hooded eyes, brow, snout), three mouth variants, cap, and a
+  body-conforming apron shell are placed on top, with per-vertex colors and the apron art
+  (`paintApron`).
 - `slothy-export.js` — painters, a dependency-free PNG encoder, a store-only ZIP writer, and the
   STL / 3MF / OBJ serializers.
 - `slothy-ui.js` — shared orbit camera, HUD, animation loop, and download wiring.

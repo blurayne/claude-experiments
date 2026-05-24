@@ -59,7 +59,7 @@ export function createApp({ canvas, engineName, renderer }) {
   const style = el('style'); style.textContent = STYLE; document.head.appendChild(style);
 
   const cam = {
-    theta: 0.55, phi: 1.12, dist: 5.6, target: [0, 0.82, 0],
+    theta: 0.5, phi: 1.18, dist: 7.4, target: [0, 1.15, -0.15],
     fovy: 50 * Math.PI / 180,
   };
   let auto = true, faceIdx = 0, shading = 'smooth';
@@ -119,7 +119,7 @@ export function createApp({ canvas, engineName, renderer }) {
     shadeBtn.textContent = `Shading: ${shading === 'cel' ? 'Cel' : 'Smooth'}`;
   };
   autoBtn.onclick = () => { auto = !auto; autoBtn.classList.toggle('on', auto); };
-  resetBtn.onclick = () => { cam.theta = 0.55; cam.phi = 1.12; cam.dist = 5.6; };
+  resetBtn.onclick = () => { cam.theta = 0.5; cam.phi = 1.18; cam.dist = 7.4; };
 
   // ---- controls ----
   let dragging = false, lx = 0, ly = 0;
