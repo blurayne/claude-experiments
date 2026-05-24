@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>Slothy — WebGPU</title>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script type="module">
+import { mat4 } from './slothy-math.js';
+import { buildCharacter, paintApron } from './slothy-model.js';
+import { CanvasPainter } from './slothy-export.js';
+import { createApp, showOverlay } from './slothy-ui.js';
+
+const canvas = document.getElementById('c');
+
+async function init() {
+  if (!navigator.gpu) {
+    showOverlay(`<h2>WebGPU unavailable</h2>
+      <p>This browser doesn't expose <code>navigator.gpu</code>. Try a recent Chrome/Edge,
+      Safari 18+, or Firefox with WebGPU enabled — or view the
+      <a href="./webgl2.html">WebGL2 version</a>, which renders the same model.</p>`);
+    return;
+  }
+  const adapter = await navigator.gpu.requestAdapter();
+  if (!adapter) { showOverlay(`<h2>No WebGPU adapter</h2><p>Couldn't get a GPU adapter.
+    Try the <a href="./webgl2.html">WebGL2 version</a>.</p>`); return; }
+  const device = await adapter.requestDevice();
+  const ctx = canvas.getContext('webgpu');
+  const format = navigator.gpu.getPreferredCanvasFormat();
+  ctx.configure({ device, format, alphaMode: 'opaque' });
+
+  const SHADER = `
+struct Global { viewProj: mat4x4<f32>, eye: vec4<f32>, shading: vec4<f32> };
+struct Draw { params: vec4<f32>, outline: vec4<f32> };
+@group(0) @binding(0) var<uniform> G: Global;
+@group(0) @binding(1) var samp: sampler;
+@group(0) @binding(2) var tex: texture_2d<f32>;
+@group(1) @binding(0) var<uniform> D: Draw;
+struct VOut {
+  @builtin(position) pos: vec4<f32>,
+  @location(0) n: vec3<f32>, @location(1) col: vec3<f32>,
+  @location(2) uv: vec2<f32>, @location(3) world: vec3<f32>,
+};
+@vertex fn vmain(@location(0) aPos: vec3<f32>, @location(1) aN: vec3<f32>,
+                 @location(2) aUV: vec2<f32>, @location(3) aCol: vec3<f32>) -> VOut {
+  var o: VOut;
+  let p = aPos + aN * D.outline.x;
+  o.pos = G.viewProj * vec4<f32>(p, 1.0);
+  o.n = aN; o.col = aCol; o.uv = aUV; o.world = p;
+  return o;
+}
+@fragment fn fmain(i: VOut) -> @location(0) vec4<f32> {
+  if (D.params.z > 0.5) { return vec4<f32>(0.04, 0.04, 0.06, 1.0); }
+  let KEY = normalize(vec3<f32>(0.5, 0.95, 0.75));
+  let FILL = normalize(vec3<f32>(-0.6, 0.25, -0.5));
+  var base = mix(i.col, textureSample(tex, samp, i.uv).rgb, D.params.x);
+  let alpha = D.params.y;
+  if (D.params.w > 0.5) { return vec4<f32>(base, alpha); }
+  let N = normalize(i.n);
+  let V = normalize(G.eye.xyz - i.world);
+  let key = max(dot(N, KEY), 0.0);
+  let fill = max(dot(N, FILL), 0.0) * 0.35;
+  let amb = 0.34;
+  var col: vec3<f32>;
+  if (G.shading.x > 0.5) {
+    var q = 0.38;
+    if (key > 0.66) { q = 1.0; } else if (key > 0.3) { q = 0.62; }
+    col = base * (amb + 0.8 * q + fill * 0.4);
+  } else {
+    col = base * (amb + 0.9 * (key + fill));
+    let H = normalize(KEY + V);
+    col = col + vec3<f32>(pow(max(dot(N, H), 0.0), 26.0) * 0.16);
+  }
+  return vec4<f32>(col, alpha);
+}`;
+
+  const BG = `
+struct Global { viewProj: mat4x4<f32>, eye: vec4<f32>, shading: vec4<f32> };
+@group(0) @binding(0) var<uniform> G: Global;
+struct BgOut { @builtin(position) pos: vec4<f32>, @location(0) uv: vec2<f32> };
+@vertex fn vbg(@builtin(vertex_index) vi: u32) -> BgOut {
+  var P = array<vec2<f32>, 3>(vec2<f32>(-1.,-1.), vec2<f32>(3.,-1.), vec2<f32>(-1.,3.));
+  var o: BgOut; o.pos = vec4<f32>(P[vi], 0.0, 1.0); o.uv = P[vi]; return o;
+}
+@fragment fn fbg(i: BgOut) -> @location(0) vec4<f32> {
+  let t = i.uv.y * 0.5 + 0.5;
+  let cel = G.shading.x;
+  let top = mix(vec3<f32>(0.16,0.20,0.30), vec3<f32>(0.91,0.88,0.78), cel);
+  let bot = mix(vec3<f32>(0.09,0.11,0.16), vec3<f32>(0.80,0.76,0.66), cel);
+  return vec4<f32>(mix(bot, top, t), 1.0);
+}`;
+
+  const module = device.createShaderModule({ code: SHADER });
+  const bgModule = device.createShaderModule({ code: BG });
+
+  const vbuffers = [
+    { arrayStride: 12, attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x3' }] },
+    { arrayStride: 12, attributes: [{ shaderLocation: 1, offset: 0, format: 'float32x3' }] },
+    { arrayStride: 8, attributes: [{ shaderLocation: 2, offset: 0, format: 'float32x2' }] },
+    { arrayStride: 12, attributes: [{ shaderLocation: 3, offset: 0, format: 'float32x3' }] },
+  ];
+  const DEPTH = 'depth24plus';
+  const depthState = { format: DEPTH, depthCompare: 'less' };
+
+  function makePipeline({ cull, depthWrite, blend }) {
+    return device.createRenderPipeline({
+      layout: 'auto',
+      vertex: { module, entryPoint: 'vmain', buffers: vbuffers },
+      fragment: {
+        module, entryPoint: 'fmain',
+        targets: [{ format, blend: blend ? {
+          color: { srcFactor: 'src-alpha', dstFactor: 'one-minus-src-alpha', operation: 'add' },
+          alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha', operation: 'add' },
+        } : undefined }],
+      },
+      primitive: { topology: 'triangle-list', cullMode: cull },
+      depthStencil: { ...depthState, depthWriteEnabled: depthWrite },
+    });
+  }
+  const pipeOpaque = makePipeline({ cull: 'none', depthWrite: true, blend: false });
+  const pipeOutline = makePipeline({ cull: 'front', depthWrite: true, blend: false });
+  const pipeBlend = makePipeline({ cull: 'none', depthWrite: false, blend: true });
+
+  const pipeBg = device.createRenderPipeline({
+    layout: 'auto',
+    vertex: { module: bgModule, entryPoint: 'vbg' },
+    fragment: { module: bgModule, entryPoint: 'fbg', targets: [{ format }] },
+    primitive: { topology: 'triangle-list' },
+    depthStencil: { format: DEPTH, depthWriteEnabled: false, depthCompare: 'always' },
+  });
+
+  // apron texture
+  const texCanvas = document.createElement('canvas');
+  texCanvas.width = texCanvas.height = 512;
+  paintApron(new CanvasPainter(texCanvas.getContext('2d'), 512, 512));
+  const bmp = await createImageBitmap(texCanvas);
+  const gpuTex = device.createTexture({
+    size: [512, 512], format: 'rgba8unorm',
+    usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
+  });
+  device.queue.copyExternalImageToTexture({ source: bmp }, { texture: gpuTex }, [512, 512]);
+  const sampler = device.createSampler({ magFilter: 'linear', minFilter: 'linear' });
+
+  const globalBuf = device.createBuffer({ size: 256, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+  const bg0 = device.createBindGroup({
+    layout: pipeOpaque.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: globalBuf } },
+      { binding: 1, resource: sampler },
+      { binding: 2, resource: gpuTex.createView() },
+    ],
+  });
+  const bgBind = device.createBindGroup({
+    layout: pipeBg.getBindGroupLayout(0),
+    entries: [{ binding: 0, resource: { buffer: globalBuf } }],
+  });
+
+  // geometry
+  let parts = [], meshes = [], perDrawBuf = null, bg1 = null;
+  function mkBuf(data, usage) {
+    const b = device.createBuffer({ size: (data.byteLength + 3) & ~3, usage, mappedAtCreation: true });
+    new data.constructor(b.getMappedRange()).set(data);
+    b.unmap(); return b;
+  }
+  function uploadGeometry(state) {
+    for (const m of meshes) { m.pos.destroy(); m.nrm.destroy(); m.uv.destroy(); m.col.destroy(); m.idx.destroy(); }
+    parts = buildCharacter({ face: state }).parts;
+    meshes = parts.map((p) => ({
+      part: p,
+      pos: mkBuf(p.positions, GPUBufferUsage.VERTEX),
+      nrm: mkBuf(p.normals, GPUBufferUsage.VERTEX),
+      uv: mkBuf(p.uvs, GPUBufferUsage.VERTEX),
+      col: mkBuf(p.colors, GPUBufferUsage.VERTEX),
+      idx: mkBuf(p.indices, GPUBufferUsage.INDEX),
+      count: p.indices.length,
+    }));
+    // per-draw uniforms: 2 slots per mesh (shaded + outline), 256-byte stride
+    const slots = meshes.length * 2;
+    if (perDrawBuf) perDrawBuf.destroy();
+    perDrawBuf = device.createBuffer({ size: slots * 256, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+    bg1 = device.createBindGroup({
+      layout: pipeOpaque.getBindGroupLayout(1),
+      entries: [{ binding: 0, resource: { buffer: perDrawBuf, size: 32 } }],
+    });
+    meshes.forEach((m, k) => {
+      const p = m.part;
+      const alpha = p.name === 'shadow' ? 0.3 : (p.blend ? 0.65 : 1.0);
+      const unlit = p.unlit ? 1 : 0;
+      m.shadedOff = k * 2 * 256;
+      m.outlineOff = (k * 2 + 1) * 256;
+      device.queue.writeBuffer(perDrawBuf, m.shadedOff, new Float32Array([p.texMix || 0, alpha, 0, unlit, 0, 0, 0, 0]));
+      device.queue.writeBuffer(perDrawBuf, m.outlineOff, new Float32Array([p.texMix || 0, alpha, 1, unlit, 0.022, 0, 0, 0]));
+    });
+  }
+  uploadGeometry('closed');
+
+  // depth texture (recreated on resize)
+  let depthTex = null, depthView = null, dw = 0, dh = 0;
+  function ensureDepth(w, h) {
+    if (depthTex && dw === w && dh === h) return;
+    if (depthTex) depthTex.destroy();
+    depthTex = device.createTexture({ size: [w, h], format: DEPTH, usage: GPUTextureUsage.RENDER_ATTACHMENT });
+    depthView = depthTex.createView(); dw = w; dh = h;
+  }
+
+  let shadingMode = 'smooth';
+  const view = mat4.create(), proj = mat4.create(), vp = mat4.create();
+
+  const renderer = {
+    setFace: uploadGeometry,
+    setShading: (m) => { shadingMode = m; },
+    getParts: () => parts,
+    resize: (w, h) => ensureDepth(w, h),
+    render(cam) {
+      ensureDepth(canvas.width, canvas.height);
+      mat4.lookAt(view, cam.eye, cam.target, cam.up);
+      mat4.perspectiveZO(proj, cam.fovy, cam.aspect, 0.1, 100);
+      mat4.multiply(vp, proj, view);
+      const g = new Float32Array(24);
+      g.set(vp, 0);
+      g.set([cam.eye[0], cam.eye[1], cam.eye[2], 1], 16);
+      g.set([shadingMode === 'cel' ? 1 : 0, 0, 0, 0], 20);
+      device.queue.writeBuffer(globalBuf, 0, g);
+
+      const enc = device.createCommandEncoder();
+      const pass = enc.beginRenderPass({
+        colorAttachments: [{
+          view: ctx.getCurrentTexture().createView(),
+          clearValue: { r: 0.1, g: 0.12, b: 0.17, a: 1 }, loadOp: 'clear', storeOp: 'store',
+        }],
+        depthStencilAttachment: {
+          view: depthView, depthClearValue: 1.0, depthLoadOp: 'clear', depthStoreOp: 'store',
+        },
+      });
+
+      pass.setPipeline(pipeBg);
+      pass.setBindGroup(0, bgBind);
+      pass.draw(3);
+
+      const solid = meshes.filter((m) => !m.part.blend);
+      const blended = meshes.filter((m) => m.part.blend);
+      const bindMesh = (m) => {
+        pass.setVertexBuffer(0, m.pos); pass.setVertexBuffer(1, m.nrm);
+        pass.setVertexBuffer(2, m.uv); pass.setVertexBuffer(3, m.col);
+        pass.setIndexBuffer(m.idx, 'uint32');
+      };
+
+      if (shadingMode === 'cel') {
+        pass.setPipeline(pipeOutline);
+        for (const m of solid) {
+          if (m.part.unlit) continue;
+          bindMesh(m); pass.setBindGroup(0, bg0); pass.setBindGroup(1, bg1, [m.outlineOff]);
+          pass.drawIndexed(m.count);
+        }
+      }
+      pass.setPipeline(pipeOpaque);
+      for (const m of solid) {
+        bindMesh(m); pass.setBindGroup(0, bg0); pass.setBindGroup(1, bg1, [m.shadedOff]);
+        pass.drawIndexed(m.count);
+      }
+      pass.setPipeline(pipeBlend);
+      for (const m of blended) {
+        bindMesh(m); pass.setBindGroup(0, bg0); pass.setBindGroup(1, bg1, [m.shadedOff]);
+        pass.drawIndexed(m.count);
+      }
+      pass.end();
+      device.queue.submit([enc.finish()]);
+    },
+  };
+
+  createApp({ canvas, engineName: 'WebGPU', renderer });
+}
+
+init().catch((e) => {
+  console.error(e);
+  showOverlay(`<h2>WebGPU error</h2><pre style="white-space:pre-wrap">${String(e)}</pre>
+    <p>Try the <a href="./webgl2.html">WebGL2 version</a>.</p>`);
+});
+</script>
+</body>
+</html>

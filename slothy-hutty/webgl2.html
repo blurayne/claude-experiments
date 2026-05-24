@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>Slothy — WebGL2</title>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script type="module">
+import { mat4 } from './slothy-math.js';
+import { buildCharacter, paintApron } from './slothy-model.js';
+import { CanvasPainter } from './slothy-export.js';
+import { createApp, showOverlay } from './slothy-ui.js';
+
+const canvas = document.getElementById('c');
+const gl = canvas.getContext('webgl2', { antialias: true, alpha: false });
+if (!gl) {
+  showOverlay(`<h2>WebGL2 unavailable</h2><p>This browser can't create a WebGL2 context.
+    Try a recent Chrome, Firefox, Edge or Safari.</p>`);
+  throw new Error('no webgl2');
+}
+
+// ---- shaders ----------------------------------------------------------------
+const VERT = `#version 300 es
+layout(location=0) in vec3 aPos;
+layout(location=1) in vec3 aNormal;
+layout(location=2) in vec2 aUV;
+layout(location=3) in vec3 aColor;
+uniform mat4 uView, uProj;
+uniform float uOutline;
+out vec3 vN, vColor, vWorld;
+out vec2 vUV;
+void main(){
+  vec3 p = aPos + aNormal * uOutline;
+  vWorld = p; vN = aNormal; vColor = aColor; vUV = aUV;
+  gl_Position = uProj * uView * vec4(p, 1.0);
+}`;
+
+const FRAG = `#version 300 es
+precision highp float;
+in vec3 vN, vColor, vWorld;
+in vec2 vUV;
+uniform vec3 uEye;
+uniform sampler2D uTex;
+uniform float uTexMix, uAlpha;
+uniform int uMode, uShading, uUnlit;
+out vec4 frag;
+const vec3 KEY = normalize(vec3(0.5, 0.95, 0.75));
+const vec3 FILL = normalize(vec3(-0.6, 0.25, -0.5));
+void main(){
+  if(uMode == 1){ frag = vec4(0.04, 0.04, 0.06, 1.0); return; }   // outline
+  vec3 base = mix(vColor, texture(uTex, vUV).rgb, uTexMix);
+  if(uUnlit == 1){ frag = vec4(base, uAlpha); return; }
+  vec3 N = normalize(vN), V = normalize(uEye - vWorld);
+  float key = max(dot(N, KEY), 0.0);
+  float fill = max(dot(N, FILL), 0.0) * 0.35;
+  float amb = 0.34;
+  vec3 col;
+  if(uShading == 1){
+    float q = key > 0.66 ? 1.0 : (key > 0.3 ? 0.62 : 0.38);
+    col = base * (amb + 0.8 * q + fill * 0.4);
+  } else {
+    col = base * (amb + 0.9 * (key + fill));
+    vec3 H = normalize(KEY + V);
+    col += vec3(pow(max(dot(N, H), 0.0), 26.0) * 0.16);
+  }
+  frag = vec4(col, uAlpha);
+}`;
+
+const BG_VERT = `#version 300 es
+const vec2 P[3] = vec2[3](vec2(-1.,-1.), vec2(3.,-1.), vec2(-1.,3.));
+out vec2 vUv;
+void main(){ vUv = P[gl_VertexID]; gl_Position = vec4(P[gl_VertexID], 0.0, 1.0); }`;
+const BG_FRAG = `#version 300 es
+precision highp float;
+in vec2 vUv; out vec4 frag;
+uniform float uCel;
+void main(){
+  float t = vUv.y * 0.5 + 0.5;
+  vec3 top = mix(vec3(0.16, 0.20, 0.30), vec3(0.91, 0.88, 0.78), uCel);
+  vec3 bot = mix(vec3(0.09, 0.11, 0.16), vec3(0.80, 0.76, 0.66), uCel);
+  frag = vec4(mix(bot, top, t), 1.0);
+}`;
+
+function compile(type, src) {
+  const s = gl.createShader(type);
+  gl.shaderSource(s, src); gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+  return s;
+}
+function program(vs, fs) {
+  const p = gl.createProgram();
+  gl.attachShader(p, compile(gl.VERTEX_SHADER, vs));
+  gl.attachShader(p, compile(gl.FRAGMENT_SHADER, fs));
+  gl.linkProgram(p);
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+  return p;
+}
+
+const prog = program(VERT, FRAG);
+const bgProg = program(BG_VERT, BG_FRAG);
+const bgCel = gl.getUniformLocation(bgProg, 'uCel');
+const U = {};
+for (const n of ['uView', 'uProj', 'uOutline', 'uEye', 'uTex', 'uTexMix', 'uAlpha', 'uMode', 'uShading', 'uUnlit'])
+  U[n] = gl.getUniformLocation(prog, n);
+
+// ---- apron texture ----------------------------------------------------------
+const texCanvas = document.createElement('canvas');
+texCanvas.width = texCanvas.height = 512;
+paintApron(new CanvasPainter(texCanvas.getContext('2d'), 512, 512));
+const tex = gl.createTexture();
+gl.bindTexture(gl.TEXTURE_2D, tex);
+gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texCanvas);
+gl.generateMipmap(gl.TEXTURE_2D);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+// ---- geometry ---------------------------------------------------------------
+let parts = [], meshes = [];
+function makeBuffer(loc, data, size) {
+  const b = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, b);
+  gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(loc);
+  gl.vertexAttribPointer(loc, size, gl.FLOAT, false, 0, 0);
+  return b;
+}
+function uploadGeometry(state) {
+  for (const m of meshes) gl.deleteVertexArray(m.vao);
+  parts = buildCharacter({ face: state }).parts;
+  meshes = parts.map((p) => {
+    const vao = gl.createVertexArray();
+    gl.bindVertexArray(vao);
+    makeBuffer(0, p.positions, 3);
+    makeBuffer(1, p.normals, 3);
+    makeBuffer(2, p.uvs, 2);
+    makeBuffer(3, p.colors, 3);
+    const ib = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, p.indices, gl.STATIC_DRAW);
+    gl.bindVertexArray(null);
+    return { vao, count: p.indices.length, part: p };
+  });
+}
+uploadGeometry('closed');
+
+let shadingMode = 'smooth';
+const view = mat4.create(), proj = mat4.create();
+
+function drawMesh(m, mode) {
+  const p = m.part;
+  gl.uniform1f(U.uTexMix, p.texMix || 0);
+  gl.uniform1i(U.uUnlit, p.unlit ? 1 : 0);
+  gl.uniform1i(U.uMode, mode);
+  gl.uniform1f(U.uAlpha, p.name === 'shadow' ? 0.3 : (p.blend ? 0.65 : 1.0));
+  gl.bindVertexArray(m.vao);
+  gl.drawElements(gl.TRIANGLES, m.count, gl.UNSIGNED_INT, 0);
+}
+
+const renderer = {
+  setFace: uploadGeometry,
+  setShading: (m) => { shadingMode = m; },
+  getParts: () => parts,
+  resize: (w, h) => gl.viewport(0, 0, w, h),
+  render(cam) {
+    mat4.lookAt(view, cam.eye, cam.target, cam.up);
+    mat4.perspective(proj, cam.fovy, cam.aspect, 0.1, 100);
+    gl.disable(gl.DEPTH_TEST);
+    gl.useProgram(bgProg);
+    gl.uniform1f(bgCel, shadingMode === 'cel' ? 1 : 0);
+    gl.bindVertexArray(null);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+    gl.enable(gl.DEPTH_TEST);
+    gl.useProgram(prog);
+    gl.uniformMatrix4fv(U.uView, false, view);
+    gl.uniformMatrix4fv(U.uProj, false, proj);
+    gl.uniform3fv(U.uEye, cam.eye);
+    gl.uniform1i(U.uShading, shadingMode === 'cel' ? 1 : 0);
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.uniform1i(U.uTex, 0);
+
+    const solid = meshes.filter((m) => !m.part.blend);
+    const blended = meshes.filter((m) => m.part.blend);
+
+    // cel outline pass (inverted hull)
+    if (shadingMode === 'cel') {
+      gl.enable(gl.CULL_FACE); gl.cullFace(gl.FRONT);
+      gl.uniform1f(U.uOutline, 0.022);
+      for (const m of solid) if (!m.part.unlit) drawMesh(m, 1);
+      gl.cullFace(gl.BACK);
+    }
+    gl.uniform1f(U.uOutline, 0);
+    gl.disable(gl.CULL_FACE);
+
+    gl.depthMask(true); gl.disable(gl.BLEND);
+    for (const m of solid) drawMesh(m, 0);
+
+    gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.depthMask(false);
+    for (const m of blended) drawMesh(m, 0);
+    gl.depthMask(true); gl.disable(gl.BLEND);
+  },
+};
+
+createApp({ canvas, engineName: 'WebGL2', renderer });
+</script>
+</body>
+</html>
