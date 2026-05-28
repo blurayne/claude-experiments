@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Steampipe — Lightning Talk</title>
+  <link rel="stylesheet" href="https://unpkg.com/reveal.js@5.1.0/dist/reset.css" />
+  <link rel="stylesheet" href="https://unpkg.com/reveal.js@5.1.0/dist/reveal.css" />
+  <link rel="stylesheet" href="https://unpkg.com/reveal.js@5.1.0/dist/theme/black.css" id="theme" />
+  <link rel="stylesheet" href="https://unpkg.com/reveal.js@5.1.0/plugin/highlight/monokai.css" />
+  <style>
+    :root {
+      --accent: #5cc8ff;
+      --accent-2: #ffd166;
+      --muted: #9aa6b2;
+    }
+    .reveal { font-family: "Inter", "Helvetica Neue", system-ui, sans-serif; }
+    .reveal h1, .reveal h2, .reveal h3 { text-transform: none; letter-spacing: -0.01em; }
+    .reveal h1 { color: var(--accent); font-weight: 700; }
+    .reveal h2 { color: var(--accent); font-weight: 600; }
+    .reveal h3 { color: var(--accent-2); font-weight: 600; }
+    .reveal .accent { color: var(--accent); }
+    .reveal .accent2 { color: var(--accent-2); }
+    .reveal .muted { color: var(--muted); }
+    .reveal pre {
+      box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+      font-size: 0.5em;
+      width: 100%;
+    }
+    .reveal pre code { padding: 18px 22px; line-height: 1.35; }
+    .reveal .small { font-size: 0.7em; }
+    .reveal .tag {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 999px;
+      background: rgba(92,200,255,0.15);
+      color: var(--accent);
+      font-size: 0.55em;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      vertical-align: middle;
+      margin-left: 10px;
+    }
+    .reveal .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+    .reveal ul { line-height: 1.5; }
+    .reveal .footer-note {
+      position: fixed;
+      bottom: 14px;
+      right: 22px;
+      font-size: 14px;
+      color: var(--muted);
+      opacity: 0.7;
+    }
+    .reveal .big {
+      font-size: 1.6em;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+    .reveal .kbd {
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      background: #1d2733;
+      border: 1px solid #2c3a4a;
+      padding: 1px 8px;
+      border-radius: 6px;
+      font-size: 0.8em;
+    }
+    .reveal .pipe-logo {
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      letter-spacing: -0.04em;
+      font-weight: 800;
+    }
+  </style>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- 1: Title -->
+      <section data-background-gradient="linear-gradient(135deg, #0b1320 0%, #15314f 100%)">
+        <h1 class="pipe-logo">Steampipe</h1>
+        <h3>SQL <span class="muted">all</span> the things</h3>
+        <p class="small muted">a 4-minute lightning talk</p>
+        <p class="small muted">↓ space to advance</p>
+      </section>
+
+      <!-- 2: What is it -->
+      <section>
+        <h2>What is Steampipe?</h2>
+        <ul>
+          <li>A <span class="accent">Postgres</span> you can <code>SELECT</code> from…</li>
+          <li>…where the <em>tables</em> are actually APIs.</li>
+          <li>Implemented as a Postgres <span class="accent2">Foreign Data Wrapper</span> + plugins.</li>
+          <li>140+ plugins: AWS, GCP, Azure, Kubernetes, GitHub, Slack, CSV, Net, …</li>
+        </ul>
+        <pre><code class="language-bash" data-trim>
+steampipe plugin install aws kubernetes csv
+steampipe query
+        </code></pre>
+      </section>
+
+      <!-- 3: Kubernetes -->
+      <section>
+        <h2>Kubernetes <span class="tag">plugin</span></h2>
+        <p class="small muted">Every resource kind becomes a table.</p>
+        <pre><code class="language-sql" data-trim>
+-- Pods that are not Running, across all namespaces
+select
+  namespace,
+  name,
+  phase,
+  pod_ip,
+  age(creation_timestamp) as age
+from kubernetes_pod
+where phase &lt;&gt; 'Running'
+order by age desc;
+        </code></pre>
+        <p class="small muted">Uses your current <span class="kbd">kubeconfig</span> context — no extra glue.</p>
+      </section>
+
+      <!-- 4: Kubernetes join -->
+      <section>
+        <h3>Joins for free</h3>
+        <pre><code class="language-sql" data-trim>
+-- Deployments whose images come from a public registry
+select
+  d.namespace,
+  d.name        as deployment,
+  c -&gt;&gt; 'image' as image
+from
+  kubernetes_deployment as d,
+  jsonb_array_elements(d.template -&gt; 'spec' -&gt; 'containers') as c
+where
+  c -&gt;&gt; 'image' not like 'ghcr.io/acme/%';
+        </code></pre>
+        <p class="small muted">Plain Postgres — <code>jsonb</code>, CTEs, window functions all work.</p>
+      </section>
+
+      <!-- 5: Aggregator -->
+      <section>
+        <h2>Aggregator connections <span class="tag">superpower</span></h2>
+        <p class="small">One virtual connection that fans out across many real ones.</p>
+        <pre><code class="language-hcl" data-trim>
+# ~/.steampipe/config/aws.spc
+connection "aws_prod"    { plugin = "aws", profile = "prod"    }
+connection "aws_staging" { plugin = "aws", profile = "staging" }
+connection "aws_dev"     { plugin = "aws", profile = "dev"     }
+
+connection "aws_all" {
+  plugin      = "aws"
+  type        = "aggregator"
+  connections = ["aws_prod", "aws_staging", "aws_dev"]
+}
+        </code></pre>
+        <pre><code class="language-sql" data-trim>
+-- One query, three accounts
+select _ctx ->> 'connection_name' as account,
+       count(*) as buckets
+from   aws_all.aws_s3_bucket
+group  by 1;
+        </code></pre>
+      </section>
+
+      <!-- 6: AWS examples -->
+      <section>
+        <h2>AWS <span class="tag">plugin</span></h2>
+        <pre><code class="language-sql" data-trim>
+-- Public S3 buckets across all accounts
+select
+  account_id,
+  name,
+  region,
+  bucket_policy_is_public
+from aws_all.aws_s3_bucket
+where bucket_policy_is_public;
+        </code></pre>
+        <pre><code class="language-sql" data-trim>
+-- EC2 instances missing a "Owner" tag
+select account_id, region, instance_id, instance_type
+from   aws_all.aws_ec2_instance
+where  not (tags ? 'Owner');
+        </code></pre>
+      </section>
+
+      <!-- 7: JSON output -->
+      <section>
+        <h2>JSON output <span class="tag">scriptable</span></h2>
+        <pre><code class="language-bash" data-trim>
+steampipe query \
+  --output json \
+  "select instance_id, instance_type, region
+     from aws_all.aws_ec2_instance
+     where state = 'running'" \
+| jq '.rows | group_by(.region) | map({region: .[0].region, n: length})'
+        </code></pre>
+        <p class="small muted">
+          Also: <span class="kbd">--output csv</span>,
+          <span class="kbd">table</span>,
+          <span class="kbd">line</span>. Pipes into anything.
+        </p>
+      </section>
+
+      <!-- 8: CSV plugin -->
+      <section>
+        <h2>CSV plugin <span class="tag">my favourite trick</span></h2>
+        <p class="small muted">Drop a <code>.csv</code> in a folder → it's a table.</p>
+        <pre><code class="language-hcl" data-trim>
+# ~/.steampipe/config/csv.spc
+connection "csv" {
+  plugin = "csv"
+  paths  = ["~/data/*.csv"]
+}
+        </code></pre>
+        <pre><code class="language-sql" data-trim>
+-- Join a hand-maintained owners list with live cloud state
+select
+  i.instance_id,
+  i.region,
+  o.team,
+  o.contact
+from   aws_all.aws_ec2_instance      as i
+left join csv.owners                 as o
+  on o.account_id  = i.account_id
+ and o.instance_id = i.instance_id
+where  o.team is null;   -- orphans!
+        </code></pre>
+      </section>
+
+      <!-- 9: End note - DuckDB -->
+      <section data-background-gradient="linear-gradient(135deg, #1a1208 0%, #3a2410 100%)">
+        <h2>End note <span class="tag">tangent</span></h2>
+        <p class="big">CSV-meets-SQL is cute in Steampipe…</p>
+        <p class="big accent2">…but <span class="pipe-logo">DuckDB</span> is even cooler for it.</p>
+        <pre><code class="language-sql" data-trim>
+-- DuckDB, zero config
+select team, count(*)
+from   read_csv_auto('owners.csv')          o
+join   read_parquet('s3://logs/2026-*.pq')  l
+  on   l.instance_id = o.instance_id
+group  by team;
+        </code></pre>
+        <p class="small muted">Parquet, S3, JSON, Excel, HTTPS — all as tables. In-process, no server.</p>
+      </section>
+
+      <!-- 10: Recap -->
+      <section>
+        <h2>tl;dr</h2>
+        <ul>
+          <li><span class="accent">Steampipe</span> = SQL over your cloud / cluster / SaaS.</li>
+          <li>Aggregator connections = multi-account in one query.</li>
+          <li><code>--output json</code> → glues nicely into shell pipelines.</li>
+          <li>CSV plugin → join spreadsheets with live infra.</li>
+          <li>For pure file-crunching → reach for <span class="accent2">DuckDB</span>.</li>
+        </ul>
+        <p class="small muted">anyway… doesn't matter at the end 🙂</p>
+      </section>
+
+      <!-- 11: Thanks -->
+      <section data-background-gradient="linear-gradient(135deg, #0b1320 0%, #15314f 100%)">
+        <h1>Thanks!</h1>
+        <p class="muted">Questions?</p>
+        <p class="small muted">
+          <a href="https://steampipe.io" style="color: var(--accent)">steampipe.io</a> ·
+          <a href="https://duckdb.org" style="color: var(--accent-2)">duckdb.org</a>
+        </p>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/reveal.js@5.1.0/dist/reveal.js"></script>
+  <script src="https://unpkg.com/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+  <script src="https://unpkg.com/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+  <script>
+    Reveal.initialize({
+      hash: true,
+      slideNumber: 'c/t',
+      transition: 'slide',
+      controls: true,
+      progress: true,
+      plugins: [ RevealHighlight, RevealNotes ],
+    });
+  </script>
+</body>
+</html>
