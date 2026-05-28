@@ -13,6 +13,7 @@
       --accent:   #7ddc7d;
       --accent-2: #ffd166;
       --accent-3: #ff6b9d;
+      --accent-4: #5cc8ff;
       --muted:    #9aa6b2;
     }
     .reveal { font-family: "Inter", "Helvetica Neue", system-ui, sans-serif; }
@@ -23,13 +24,14 @@
     .reveal .accent  { color: var(--accent); }
     .reveal .accent2 { color: var(--accent-2); }
     .reveal .accent3 { color: var(--accent-3); }
+    .reveal .accent4 { color: var(--accent-4); }
     .reveal .muted   { color: var(--muted); }
     .reveal pre {
       box-shadow: 0 4px 24px rgba(0,0,0,0.4);
       font-size: 0.5em;
       width: 100%;
     }
-    .reveal pre code { padding: 18px 22px; line-height: 1.4; }
+    .reveal pre code { padding: 16px 22px; line-height: 1.4; }
     .reveal .small { font-size: 0.7em; }
     .reveal .tag {
       display: inline-block;
@@ -49,15 +51,17 @@
       gap: 28px;
       align-items: start;
     }
+    .reveal .grid-2 h4 {
+      margin: 0 0 8px 0;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-size: 0.55em;
+    }
     .reveal .big {
-      font-size: 1.6em;
+      font-size: 1.5em;
       font-weight: 700;
       line-height: 1.15;
-    }
-    .reveal .huge {
-      font-size: 2.2em;
-      font-weight: 800;
-      line-height: 1.05;
     }
     .reveal .logo {
       font-family: "JetBrains Mono", ui-monospace, monospace;
@@ -85,55 +89,31 @@
       <section data-background-gradient="linear-gradient(135deg, #0b1d11 0%, #173d20 100%)">
         <h1 class="logo">jq</h1>
         <h3>…and the family it grew</h3>
-        <p class="small muted">a lightning talk</p>
-        <p class="small muted">↓ space to advance · <span class="kbd">s</span> for notes</p>
+        <p class="small muted">5-minute lightning talk · <span class="kbd">space</span> to advance</p>
       </section>
 
-      <!-- 2: What is jq -->
+      <!-- 2: What is jq + mental model (merged) -->
       <section>
         <h2>What is <span class="logo">jq</span>?</h2>
         <ul>
-          <li>"<code>sed</code> / <code>awk</code> for JSON" — but actually much more.</li>
-          <li>A <span class="accent">filter language</span>: data flows through a pipeline.</li>
-          <li>Originally by Stephen Dolan (2012), C implementation.</li>
-          <li>Ships almost everywhere. <code>curl … | jq .</code> is now muscle memory.</li>
+          <li>"<code>sed</code> / <code>awk</code> for JSON" — and then some.</li>
+          <li>A <span class="accent">filter pipeline</span>: every filter takes one value, emits zero or more.</li>
+          <li>Stephen Dolan, 2012, C. Ships almost everywhere.</li>
         </ul>
         <pre><code class="language-bash" data-trim>
-$ echo '{"name":"ada","langs":["en","fr"]}' | jq '.langs[0]'
-"en"
+$ curl -s api/users | jq '
+    .users[]
+    | select(.active)
+    | {id, email, n: (.posts|length)}
+  '
         </code></pre>
+        <p class="small muted">One input → a stream of outputs. <code>|</code> chains. That's the whole language.</p>
       </section>
 
-      <!-- 3: The filter mental model -->
-      <section>
-        <h3>It's a pipeline of filters</h3>
-        <pre><code class="language-bash" data-trim>
-.users[]                     # iterate users
-| select(.active)            # keep active ones
-| {id, email, n: (.posts|length)}
-        </code></pre>
-        <p class="small muted">
-          Every filter takes one input, emits zero or more outputs. <br/>
-          <code>|</code> chains them. That's basically the whole language.
-        </p>
-      </section>
-
-      <!-- 4: It is a real language -->
+      <!-- 3: It's a real language -->
       <section>
         <h2>It's a <em>real</em> language <span class="tag">surprise</span></h2>
-        <ul>
-          <li>Variables: <code>. as $x | …</code></li>
-          <li>Functions, including parameters &amp; closures</li>
-          <li><code>reduce</code> / <code>foreach</code> over generators</li>
-          <li><code>if / then / else</code>, <code>try / catch</code>, labels &amp; <code>break</code></li>
-          <li>Recursive descent: <code>..</code></li>
-          <li>Modules (<code>import "x" as x;</code>)</li>
-        </ul>
-      </section>
-
-      <!-- 5: Functions & recursion -->
-      <section>
-        <h3>Functions &amp; recursion</h3>
+        <p class="small muted">Variables · functions · <code>reduce</code> / <code>foreach</code> · <code>if/then</code> · <code>try/catch</code> · modules · recursive descent <code>..</code></p>
         <pre><code class="language-jq" data-trim>
 def factorial:
   if . &lt;= 1 then 1
@@ -142,49 +122,87 @@ def factorial:
 
 10 | factorial          # =&gt; 3628800
         </code></pre>
-        <pre><code class="language-jq" data-trim>
-def fib:
-  if . &lt; 2 then .
-  else (. - 1 | fib) + (. - 2 | fib)
-  end;
-        </code></pre>
+        <p class="small muted">Pure, functional, point-free. Recursion just works.</p>
       </section>
 
-      <!-- 6: Turing completeness -->
+      <!-- 4: jq vs JMESPath (+ PEG note) -->
+      <section>
+        <h2>jq vs <span class="accent4">JMESPath</span> <span class="tag" style="background:rgba(92,200,255,0.15); color: var(--accent-4)">grammar</span></h2>
+        <div class="grid-2">
+          <div>
+            <h4 class="accent4">JMESPath</h4>
+            <p class="small muted">AWS CLI <code>--query</code>, Azure CLI, Splunk…</p>
+            <pre><code class="language-text" data-trim>
+users[?active].{
+  id: id,
+  email: email
+}
+            </code></pre>
+            <ul class="small">
+              <li>Declarative <span class="accent4">query</span> language</li>
+              <li>No recursion · no user functions</li>
+              <li><strong>Not</strong> Turing-complete (by design)</li>
+              <li>Trivial to embed &amp; sandbox</li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="accent">jq</h4>
+            <p class="small muted">Same query:</p>
+            <pre><code class="language-jq" data-trim>
+.users[]
+| select(.active)
+| {id, email}
+            </code></pre>
+            <ul class="small">
+              <li><span class="accent">Programming</span> language</li>
+              <li>Fns, recursion, generators</li>
+              <li>Turing-complete</li>
+              <li>Pays for it in surface area</li>
+            </ul>
+          </div>
+        </div>
+        <p class="small muted" style="margin-top: 18px">
+          Grammar-wise jq is a <strong>PEG</strong>-shaped pipeline (ordered sequencing,
+          alternation, no ambiguity) — that's why filters compose so cleanly.
+          JMESPath is just a closed expression grammar over JSON.
+        </p>
+      </section>
+
+      <!-- 5: Turing-completeness — claim -->
       <section data-background-gradient="linear-gradient(135deg, #1a0820 0%, #3b1244 100%)">
         <h2 style="color: var(--accent-3)">Turing-complete <span class="tag" style="background:rgba(255,107,157,0.15); color: var(--accent-3)">yes, really</span></h2>
         <ul>
           <li>Recursive functions ✓</li>
-          <li>Unbounded data structures (arrays, objects) ✓</li>
           <li>Conditional branching ✓</li>
-          <li>Generators give you arbitrary iteration ✓</li>
+          <li>Unbounded data (arrays, objects) ✓</li>
+          <li>Generators ⇒ arbitrary iteration ✓</li>
         </ul>
         <p class="small muted">
           People have written: brainfuck interpreters, lambda-calculus
-          evaluators, a <em>Game of Life</em>, even a TCP-state-machine in jq.
+          evaluators, Game of Life, even a TCP state machine — in jq.
         </p>
-        <p class="big accent3">Should you? &nbsp;<span class="muted small">…probably not.</span></p>
+        <p class="big accent3">Should you? &nbsp;<span class="muted small">probably not.</span></p>
       </section>
 
-      <!-- 7: Turing-completeness demo -->
+      <!-- 6: Turing-completeness — proof-by-construction -->
       <section>
-        <h3>A tiny proof-by-construction</h3>
-        <p class="small muted">Counter machine — increments a register until a predicate holds:</p>
+        <h3>Proof-by-construction</h3>
+        <p class="small muted">A <code>while</code> combinator over a generator is enough:</p>
         <pre><code class="language-jq" data-trim>
 def while(cond; update):
   def w: if cond then ., (update | w) else empty end;
   w;
 
-# count from 0 to 9
+# count 0..9
 0 | while(. &lt; 10; . + 1)
         </code></pre>
         <p class="small muted">
-          With <code>while</code> + recursion + arrays as tape, you can simulate
-          a Turing machine. That's the whole argument.
+          With <code>while</code> + recursion + arrays as a tape →
+          you can simulate a Turing machine. QED, and please look away.
         </p>
       </section>
 
-      <!-- 8: The family -->
+      <!-- 7: The family -->
       <section>
         <h2>The <span class="logo">jq</span> family</h2>
         <table>
@@ -202,42 +220,42 @@ def while(cond; update):
         <p class="small muted">Same language, very different super-powers.</p>
       </section>
 
-      <!-- 9: gojq -->
+      <!-- 8: faster runtimes — gojq + jaq merged -->
       <section>
-        <h3><code>gojq</code> <span class="tag">itchyny/gojq</span></h3>
-        <ul>
-          <li>Pure Go reimplementation — no <code>libjq</code> CGO.</li>
-          <li>Embeddable as a library; the engine for <code>fq</code> and many Go CLIs.</li>
-          <li>Nicer error messages, arbitrary-precision numbers.</li>
-        </ul>
-        <pre><code class="language-go" data-trim>
-query, _ := gojq.Parse(".users[] | select(.active) | .email")
-iter := query.Run(input)
-for {
-    v, ok := iter.Next()
-    if !ok { break }
-    fmt.Println(v)
-}
-        </code></pre>
+        <h3>Faster &amp; embeddable: <code>gojq</code> + <code>jaq</code></h3>
+        <div class="grid-2">
+          <div>
+            <h4 class="accent"><code>gojq</code></h4>
+            <ul class="small">
+              <li>Pure Go, no CGO</li>
+              <li>Library for Go tools (powers <code>fq</code>)</li>
+              <li>Nicer errors, big-decimal numbers</li>
+            </ul>
+            <pre><code class="language-go" data-trim>
+q, _ := gojq.Parse(".users[] | .email")
+iter := q.Run(input)
+for { v, ok := iter.Next(); if !ok { break }; … }
+            </code></pre>
+          </div>
+          <div>
+            <h4 class="accent2"><code>jaq</code></h4>
+            <ul class="small">
+              <li>Rust, ~2–10× faster than jq</li>
+              <li>Fixes some jq quirks</li>
+              <li>Drop-in for most queries</li>
+            </ul>
+            <pre><code class="language-bash" data-trim>
+$ jaq '.[] | select(.score &gt; 0.9) | .id' \
+    results.json
+            </code></pre>
+          </div>
+        </div>
       </section>
 
-      <!-- 10: jaq -->
+      <!-- 9: fq -->
       <section>
-        <h3><code>jaq</code> <span class="tag">01mf02/jaq</span></h3>
-        <ul>
-          <li>Rust, often <span class="accent">~2–10× faster</span> than jq.</li>
-          <li>Fixes a handful of jq quirks (sort stability, number precision).</li>
-          <li>Drop-in for most everyday queries.</li>
-        </ul>
-        <pre><code class="language-bash" data-trim>
-$ jaq '.[] | select(.score &gt; 0.9) | .id' results.json
-        </code></pre>
-      </section>
-
-      <!-- 11: fq -->
-      <section>
-        <h3><code>fq</code> <span class="tag">wader/fq</span></h3>
-        <p class="small">jq, but the input is <strong>binary</strong>. PNG, ELF, MP4, protobuf, PCAP, …</p>
+        <h3><code>fq</code> — jq for <em>binary</em> <span class="tag">wader/fq</span></h3>
+        <p class="small">PNG, ELF, MP4, protobuf, PCAP, gzip, … all decoded into a queryable tree.</p>
         <pre><code class="language-bash" data-trim>
 $ fq '.chunks[] | select(.type == "IDAT") | .len' cat.png
 8192
@@ -248,45 +266,30 @@ $ fq -d mp4 '.tracks[].media.type' video.mp4
 "vide"
 "soun"
         </code></pre>
-        <p class="small muted">It's a hex viewer, a parser, and a REPL — all at once.</p>
+        <p class="small muted">A hex viewer, a parser, and a REPL — all at once.</p>
       </section>
 
-      <!-- 12: faq -->
+      <!-- 10: faq -->
       <section>
-        <h3><code>faq</code> <span class="tag">jzelinskie/faq</span></h3>
-        <p class="small">"Format-agnostic jq" — same syntax, many encodings:</p>
+        <h3><code>faq</code> — jq for <em>any</em> format <span class="tag">jzelinskie/faq</span></h3>
         <p class="small accent2">JSON · YAML · TOML · XML · BSON · INI · CSV/TSV</p>
         <pre><code class="language-bash" data-trim>
 $ faq '.services | keys' docker-compose.yaml
-[
-  "db",
-  "web"
-]
+["db", "web"]
 
-# Convert TOML → JSON with a transform on the way through
+# TOML → JSON, with a transform on the way through
 $ faq -o json '.dependencies | to_entries' Cargo.toml
         </code></pre>
+        <p class="small muted">"the JSON is actually YAML." it always is.</p>
       </section>
 
-      <!-- 13: When to reach for which -->
-      <section>
-        <h3>Which one do I reach for?</h3>
-        <ul>
-          <li><code>jq</code> — default, ubiquitous, "just there".</li>
-          <li><code>jaq</code> — when <code>jq</code> is the bottleneck.</li>
-          <li><code>gojq</code> — when you're <em>embedding</em> jq into a Go tool.</li>
-          <li><code>fq</code> — when the JSON is actually a <em>binary blob</em>.</li>
-          <li><code>faq</code> — when the JSON is actually <em>YAML</em>. (it always is.)</li>
-        </ul>
-      </section>
-
-      <!-- 14: tl;dr -->
+      <!-- 11: tl;dr / thanks -->
       <section data-background-gradient="linear-gradient(135deg, #0b1d11 0%, #173d20 100%)">
         <h2>tl;dr</h2>
         <ul>
-          <li><span class="logo accent">jq</span> is a tiny pure-functional language hiding inside a CLI.</li>
-          <li>It is <span class="accent3">Turing-complete</span> — but please don't.</li>
-          <li>The ecosystem branched into <code>gojq</code> / <code>jaq</code> / <code>fq</code> / <code>faq</code>.</li>
+          <li><span class="logo accent">jq</span> is a tiny pure-functional language hiding in a CLI.</li>
+          <li>It's <span class="accent3">Turing-complete</span> — JMESPath isn't. Pick power vs. predictability.</li>
+          <li>The runtimes split: <code>gojq</code> · <code>jaq</code> · <code>fq</code> · <code>faq</code>.</li>
           <li>Pick the implementation that matches your <em>input</em>, not your taste.</li>
         </ul>
         <p class="small muted">Thanks!</p>

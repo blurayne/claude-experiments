@@ -15,11 +15,13 @@ and the family of alternative implementations that grew up around it.
   - <kbd>f</kbd> fullscreen
   - <kbd>?</kbd> all shortcuts
 
-## What's in the talk
+## What's in the talk (≈ 5 min, 11 slides)
 
 1. What jq is — a filter pipeline for JSON.
-2. The mental model — every filter takes one value and emits zero or more.
-3. It's a real language — variables, functions, recursion, `reduce` / `foreach`, modules.
+2. It's a real language — variables, functions, recursion, `reduce` / `foreach`, modules.
+3. **jq vs JMESPath** — same query side-by-side; JMESPath is a closed query language,
+   jq is a programming language. Short note that jq's filter composition is **PEG**-shaped
+   (ordered sequencing, alternation, no ambiguity).
 4. **Turing completeness** — recursion + generators + unbounded data ⇒ Turing-complete.
    The deck shows a tiny `while` combinator as proof-by-construction.
 5. The family:
@@ -28,7 +30,7 @@ and the family of alternative implementations that grew up around it.
    - [`jaq`](https://github.com/01mf02/jaq) — Rust, faster, fixes some jq quirks.
    - [`fq`](https://github.com/wader/fq) — jq for **binary** formats (PNG, ELF, MP4, …).
    - [`faq`](https://github.com/jzelinskie/faq) — jq for **YAML / TOML / XML / BSON / …**.
-6. A short "which one do I reach for?" cheat-sheet.
+6. tl;dr — pick the implementation that matches your *input*, not your taste.
 
 ## Reference
 
