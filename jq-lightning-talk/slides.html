@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>jq — Lightning Talk</title>
+  <link rel="stylesheet" href="https://unpkg.com/reveal.js@5.1.0/dist/reset.css" />
+  <link rel="stylesheet" href="https://unpkg.com/reveal.js@5.1.0/dist/reveal.css" />
+  <link rel="stylesheet" href="https://unpkg.com/reveal.js@5.1.0/dist/theme/black.css" id="theme" />
+  <link rel="stylesheet" href="https://unpkg.com/reveal.js@5.1.0/plugin/highlight/monokai.css" />
+  <style>
+    :root {
+      --accent:   #7ddc7d;
+      --accent-2: #ffd166;
+      --accent-3: #ff6b9d;
+      --muted:    #9aa6b2;
+    }
+    .reveal { font-family: "Inter", "Helvetica Neue", system-ui, sans-serif; }
+    .reveal h1, .reveal h2, .reveal h3 { text-transform: none; letter-spacing: -0.01em; }
+    .reveal h1 { color: var(--accent); font-weight: 800; }
+    .reveal h2 { color: var(--accent); font-weight: 600; }
+    .reveal h3 { color: var(--accent-2); font-weight: 600; }
+    .reveal .accent  { color: var(--accent); }
+    .reveal .accent2 { color: var(--accent-2); }
+    .reveal .accent3 { color: var(--accent-3); }
+    .reveal .muted   { color: var(--muted); }
+    .reveal pre {
+      box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+      font-size: 0.5em;
+      width: 100%;
+    }
+    .reveal pre code { padding: 18px 22px; line-height: 1.4; }
+    .reveal .small { font-size: 0.7em; }
+    .reveal .tag {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 999px;
+      background: rgba(125,220,125,0.15);
+      color: var(--accent);
+      font-size: 0.5em;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      vertical-align: middle;
+      margin-left: 10px;
+    }
+    .reveal .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+    .reveal .big {
+      font-size: 1.6em;
+      font-weight: 700;
+      line-height: 1.15;
+    }
+    .reveal .huge {
+      font-size: 2.2em;
+      font-weight: 800;
+      line-height: 1.05;
+    }
+    .reveal .logo {
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      letter-spacing: -0.04em;
+      font-weight: 800;
+    }
+    .reveal table { font-size: 0.6em; margin: 0 auto; }
+    .reveal th { color: var(--accent); font-weight: 600; }
+    .reveal td, .reveal th { padding: 6px 14px; border-bottom: 1px solid #233040; }
+    .reveal .kbd {
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      background: #1d2733;
+      border: 1px solid #2c3a4a;
+      padding: 1px 8px;
+      border-radius: 6px;
+      font-size: 0.8em;
+    }
+  </style>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- 1: Title -->
+      <section data-background-gradient="linear-gradient(135deg, #0b1d11 0%, #173d20 100%)">
+        <h1 class="logo">jq</h1>
+        <h3>…and the family it grew</h3>
+        <p class="small muted">a lightning talk</p>
+        <p class="small muted">↓ space to advance · <span class="kbd">s</span> for notes</p>
+      </section>
+
+      <!-- 2: What is jq -->
+      <section>
+        <h2>What is <span class="logo">jq</span>?</h2>
+        <ul>
+          <li>"<code>sed</code> / <code>awk</code> for JSON" — but actually much more.</li>
+          <li>A <span class="accent">filter language</span>: data flows through a pipeline.</li>
+          <li>Originally by Stephen Dolan (2012), C implementation.</li>
+          <li>Ships almost everywhere. <code>curl … | jq .</code> is now muscle memory.</li>
+        </ul>
+        <pre><code class="language-bash" data-trim>
+$ echo '{"name":"ada","langs":["en","fr"]}' | jq '.langs[0]'
+"en"
+        </code></pre>
+      </section>
+
+      <!-- 3: The filter mental model -->
+      <section>
+        <h3>It's a pipeline of filters</h3>
+        <pre><code class="language-bash" data-trim>
+.users[]                     # iterate users
+| select(.active)            # keep active ones
+| {id, email, n: (.posts|length)}
+        </code></pre>
+        <p class="small muted">
+          Every filter takes one input, emits zero or more outputs. <br/>
+          <code>|</code> chains them. That's basically the whole language.
+        </p>
+      </section>
+
+      <!-- 4: It is a real language -->
+      <section>
+        <h2>It's a <em>real</em> language <span class="tag">surprise</span></h2>
+        <ul>
+          <li>Variables: <code>. as $x | …</code></li>
+          <li>Functions, including parameters &amp; closures</li>
+          <li><code>reduce</code> / <code>foreach</code> over generators</li>
+          <li><code>if / then / else</code>, <code>try / catch</code>, labels &amp; <code>break</code></li>
+          <li>Recursive descent: <code>..</code></li>
+          <li>Modules (<code>import "x" as x;</code>)</li>
+        </ul>
+      </section>
+
+      <!-- 5: Functions & recursion -->
+      <section>
+        <h3>Functions &amp; recursion</h3>
+        <pre><code class="language-jq" data-trim>
+def factorial:
+  if . &lt;= 1 then 1
+  else . * (. - 1 | factorial)
+  end;
+
+10 | factorial          # =&gt; 3628800
+        </code></pre>
+        <pre><code class="language-jq" data-trim>
+def fib:
+  if . &lt; 2 then .
+  else (. - 1 | fib) + (. - 2 | fib)
+  end;
+        </code></pre>
+      </section>
+
+      <!-- 6: Turing completeness -->
+      <section data-background-gradient="linear-gradient(135deg, #1a0820 0%, #3b1244 100%)">
+        <h2 style="color: var(--accent-3)">Turing-complete <span class="tag" style="background:rgba(255,107,157,0.15); color: var(--accent-3)">yes, really</span></h2>
+        <ul>
+          <li>Recursive functions ✓</li>
+          <li>Unbounded data structures (arrays, objects) ✓</li>
+          <li>Conditional branching ✓</li>
+          <li>Generators give you arbitrary iteration ✓</li>
+        </ul>
+        <p class="small muted">
+          People have written: brainfuck interpreters, lambda-calculus
+          evaluators, a <em>Game of Life</em>, even a TCP-state-machine in jq.
+        </p>
+        <p class="big accent3">Should you? &nbsp;<span class="muted small">…probably not.</span></p>
+      </section>
+
+      <!-- 7: Turing-completeness demo -->
+      <section>
+        <h3>A tiny proof-by-construction</h3>
+        <p class="small muted">Counter machine — increments a register until a predicate holds:</p>
+        <pre><code class="language-jq" data-trim>
+def while(cond; update):
+  def w: if cond then ., (update | w) else empty end;
+  w;
+
+# count from 0 to 9
+0 | while(. &lt; 10; . + 1)
+        </code></pre>
+        <p class="small muted">
+          With <code>while</code> + recursion + arrays as tape, you can simulate
+          a Turing machine. That's the whole argument.
+        </p>
+      </section>
+
+      <!-- 8: The family -->
+      <section>
+        <h2>The <span class="logo">jq</span> family</h2>
+        <table>
+          <thead>
+            <tr><th>name</th><th>lang</th><th>angle</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>jq</code></td>      <td>C</td>     <td>the original</td></tr>
+            <tr><td><code>gojq</code></td>    <td>Go</td>    <td>pure-Go port, library-friendly</td></tr>
+            <tr><td><code>jaq</code></td>     <td>Rust</td>  <td>fast, more "correct"</td></tr>
+            <tr><td><code>fq</code></td>      <td>Go</td>    <td>jq for <em>binary</em> formats</td></tr>
+            <tr><td><code>faq</code></td>     <td>Go</td>    <td>jq for <em>any</em> format</td></tr>
+          </tbody>
+        </table>
+        <p class="small muted">Same language, very different super-powers.</p>
+      </section>
+
+      <!-- 9: gojq -->
+      <section>
+        <h3><code>gojq</code> <span class="tag">itchyny/gojq</span></h3>
+        <ul>
+          <li>Pure Go reimplementation — no <code>libjq</code> CGO.</li>
+          <li>Embeddable as a library; the engine for <code>fq</code> and many Go CLIs.</li>
+          <li>Nicer error messages, arbitrary-precision numbers.</li>
+        </ul>
+        <pre><code class="language-go" data-trim>
+query, _ := gojq.Parse(".users[] | select(.active) | .email")
+iter := query.Run(input)
+for {
+    v, ok := iter.Next()
+    if !ok { break }
+    fmt.Println(v)
+}
+        </code></pre>
+      </section>
+
+      <!-- 10: jaq -->
+      <section>
+        <h3><code>jaq</code> <span class="tag">01mf02/jaq</span></h3>
+        <ul>
+          <li>Rust, often <span class="accent">~2–10× faster</span> than jq.</li>
+          <li>Fixes a handful of jq quirks (sort stability, number precision).</li>
+          <li>Drop-in for most everyday queries.</li>
+        </ul>
+        <pre><code class="language-bash" data-trim>
+$ jaq '.[] | select(.score &gt; 0.9) | .id' results.json
+        </code></pre>
+      </section>
+
+      <!-- 11: fq -->
+      <section>
+        <h3><code>fq</code> <span class="tag">wader/fq</span></h3>
+        <p class="small">jq, but the input is <strong>binary</strong>. PNG, ELF, MP4, protobuf, PCAP, …</p>
+        <pre><code class="language-bash" data-trim>
+$ fq '.chunks[] | select(.type == "IDAT") | .len' cat.png
+8192
+8192
+4017
+
+$ fq -d mp4 '.tracks[].media.type' video.mp4
+"vide"
+"soun"
+        </code></pre>
+        <p class="small muted">It's a hex viewer, a parser, and a REPL — all at once.</p>
+      </section>
+
+      <!-- 12: faq -->
+      <section>
+        <h3><code>faq</code> <span class="tag">jzelinskie/faq</span></h3>
+        <p class="small">"Format-agnostic jq" — same syntax, many encodings:</p>
+        <p class="small accent2">JSON · YAML · TOML · XML · BSON · INI · CSV/TSV</p>
+        <pre><code class="language-bash" data-trim>
+$ faq '.services | keys' docker-compose.yaml
+[
+  "db",
+  "web"
+]
+
+# Convert TOML → JSON with a transform on the way through
+$ faq -o json '.dependencies | to_entries' Cargo.toml
+        </code></pre>
+      </section>
+
+      <!-- 13: When to reach for which -->
+      <section>
+        <h3>Which one do I reach for?</h3>
+        <ul>
+          <li><code>jq</code> — default, ubiquitous, "just there".</li>
+          <li><code>jaq</code> — when <code>jq</code> is the bottleneck.</li>
+          <li><code>gojq</code> — when you're <em>embedding</em> jq into a Go tool.</li>
+          <li><code>fq</code> — when the JSON is actually a <em>binary blob</em>.</li>
+          <li><code>faq</code> — when the JSON is actually <em>YAML</em>. (it always is.)</li>
+        </ul>
+      </section>
+
+      <!-- 14: tl;dr -->
+      <section data-background-gradient="linear-gradient(135deg, #0b1d11 0%, #173d20 100%)">
+        <h2>tl;dr</h2>
+        <ul>
+          <li><span class="logo accent">jq</span> is a tiny pure-functional language hiding inside a CLI.</li>
+          <li>It is <span class="accent3">Turing-complete</span> — but please don't.</li>
+          <li>The ecosystem branched into <code>gojq</code> / <code>jaq</code> / <code>fq</code> / <code>faq</code>.</li>
+          <li>Pick the implementation that matches your <em>input</em>, not your taste.</li>
+        </ul>
+        <p class="small muted">Thanks!</p>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/reveal.js@5.1.0/dist/reveal.js"></script>
+  <script src="https://unpkg.com/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+  <script src="https://unpkg.com/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+  <script>
+    Reveal.initialize({
+      hash: true,
+      slideNumber: 'c/t',
+      transition: 'slide',
+      controls: true,
+      progress: true,
+      plugins: [ RevealHighlight, RevealNotes ],
+    });
+  </script>
+</body>
+</html>
