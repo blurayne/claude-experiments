@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ESP32 as an IoT sensor — Lightning Talk</title>
+  <link rel="stylesheet" href="https://unpkg.com/reveal.js@5.1.0/dist/reset.css" />
+  <link rel="stylesheet" href="https://unpkg.com/reveal.js@5.1.0/dist/reveal.css" />
+  <link rel="stylesheet" href="https://unpkg.com/reveal.js@5.1.0/dist/theme/black.css" id="theme" />
+  <link rel="stylesheet" href="https://unpkg.com/reveal.js@5.1.0/plugin/highlight/monokai.css" />
+  <style>
+    :root {
+      --accent:   #ff7a45;
+      --accent-2: #ffd166;
+      --accent-3: #5cc8ff;
+      --accent-4: #7ddc7d;
+      --muted:    #9aa6b2;
+    }
+    .reveal { font-family: "Inter", "Helvetica Neue", system-ui, sans-serif; }
+    .reveal h1, .reveal h2, .reveal h3 { text-transform: none; letter-spacing: -0.01em; }
+    .reveal h1 { color: var(--accent); font-weight: 800; }
+    .reveal h2 { color: var(--accent); font-weight: 600; }
+    .reveal h3 { color: var(--accent-2); font-weight: 600; }
+    .reveal .accent  { color: var(--accent); }
+    .reveal .accent2 { color: var(--accent-2); }
+    .reveal .accent3 { color: var(--accent-3); }
+    .reveal .accent4 { color: var(--accent-4); }
+    .reveal .muted   { color: var(--muted); }
+    .reveal pre {
+      box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+      font-size: 0.45em;
+      width: 100%;
+    }
+    .reveal pre code { padding: 16px 22px; line-height: 1.4; }
+    .reveal .small { font-size: 0.7em; }
+    .reveal .tag {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 999px;
+      background: rgba(255,122,69,0.15);
+      color: var(--accent);
+      font-size: 0.5em;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      vertical-align: middle;
+      margin-left: 10px;
+    }
+    .reveal .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+    .reveal .grid-2 h4 {
+      margin: 0 0 8px 0;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-size: 0.55em;
+    }
+    .reveal .big {
+      font-size: 1.5em;
+      font-weight: 700;
+      line-height: 1.15;
+    }
+    .reveal .logo {
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      letter-spacing: -0.04em;
+      font-weight: 800;
+    }
+    .reveal table { font-size: 0.55em; margin: 0 auto; }
+    .reveal th { color: var(--accent); font-weight: 600; }
+    .reveal td, .reveal th { padding: 6px 14px; border-bottom: 1px solid #233040; }
+    .reveal .kbd {
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      background: #1d2733;
+      border: 1px solid #2c3a4a;
+      padding: 1px 8px;
+      border-radius: 6px;
+      font-size: 0.8em;
+    }
+    .reveal .ascii {
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 0.5em;
+      line-height: 1.3;
+      color: var(--muted);
+      text-align: left;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- 1: Title -->
+      <section data-background-gradient="linear-gradient(135deg, #1a0a04 0%, #4a1e0c 100%)">
+        <h1 class="logo">ESP32</h1>
+        <h3>as an IoT sensor — and how to keep it alive</h3>
+        <p class="small muted">5-minute lightning talk · Arduino → ESP32 → InfluxDB → OTA</p>
+      </section>
+
+      <!-- 2: Arduino vs ESP32 -->
+      <section>
+        <h2>Why <span class="logo">ESP32</span> over Arduino?</h2>
+        <table>
+          <thead><tr><th></th><th>Arduino UNO</th><th>ESP32</th></tr></thead>
+          <tbody>
+            <tr><td>MCU</td>             <td>8-bit AVR @ 16 MHz</td><td>Dual-core 32-bit @ 240 MHz</td></tr>
+            <tr><td>RAM / Flash</td>     <td>2 KB / 32 KB</td>      <td>520 KB / 4 MB+</td></tr>
+            <tr><td>WiFi / Bluetooth</td><td>—</td>                 <td>built-in (2.4 GHz + BLE)</td></tr>
+            <tr><td>Deep sleep</td>      <td>~mA</td>               <td>~10 µA (RTC wake)</td></tr>
+            <tr><td>Price</td>           <td>€20+</td>              <td>€3–8</td></tr>
+          </tbody>
+        </table>
+        <p class="small muted">Same Arduino IDE / framework — but built for IoT from day one.</p>
+      </section>
+
+      <!-- 3: Read a sensor -->
+      <section>
+        <h3>Reading a sensor <span class="tag">BME280 over I²C</span></h3>
+        <pre><code class="language-cpp" data-trim>
+#include &lt;Wire.h&gt;
+#include &lt;Adafruit_BME280.h&gt;
+
+Adafruit_BME280 bme;
+
+void setup() {
+  Serial.begin(115200);
+  Wire.begin(21, 22);            // SDA, SCL on ESP32
+  bme.begin(0x76);
+}
+
+void loop() {
+  float t = bme.readTemperature();
+  float h = bme.readHumidity();
+  float p = bme.readPressure() / 100.0f;
+  Serial.printf("t=%.2f h=%.2f p=%.2f\n", t, h, p);
+  delay(10000);
+}
+        </code></pre>
+        <p class="small muted">Three lines do what used to need a datasheet and a soldering iron.</p>
+      </section>
+
+      <!-- 4: WiFi + InfluxDB line protocol -->
+      <section>
+        <h3>From sensor to <span class="accent3">InfluxDB</span></h3>
+        <p class="small muted">Time-series DB. Wire format is dead simple: <em>line protocol</em>.</p>
+        <pre><code class="language-text" data-trim>
+weather,room=office,sensor=bme280 temp=21.4,hum=43.1,press=1013.2
+&lt;measurement&gt;,&lt;tags&gt;            &lt;fields&gt;                         [&lt;ts&gt;]
+        </code></pre>
+        <ul class="small">
+          <li><strong>tags</strong> = indexed labels (room, sensor, fw_version)</li>
+          <li><strong>fields</strong> = the actual numbers</li>
+          <li>Push over <code>POST /api/v2/write</code> — done.</li>
+        </ul>
+      </section>
+
+      <!-- 5: InfluxDB Arduino client -->
+      <section>
+        <h3>The Arduino client makes it one-liner-ish</h3>
+        <pre><code class="language-cpp" data-trim>
+#include &lt;WiFi.h&gt;
+#include &lt;InfluxDbClient.h&gt;       // influxdata/influxdb-client-arduino
+
+InfluxDBClient db(INFLUX_URL, INFLUX_ORG, INFLUX_BUCKET, INFLUX_TOKEN);
+Point          weather("weather");
+
+void setup() {
+  WiFi.begin(SSID, PASS);
+  while (WiFi.status() != WL_CONNECTED) delay(200);
+  weather.addTag("room",   "office");
+  weather.addTag("sensor", "bme280");
+}
+
+void loop() {
+  weather.clearFields();
+  weather.addField("temp",  bme.readTemperature());
+  weather.addField("hum",   bme.readHumidity());
+  weather.addField("press", bme.readPressure() / 100.0f);
+  db.writePoint(weather);
+  delay(10000);
+}
+        </code></pre>
+      </section>
+
+      <!-- 6: The whole pipeline -->
+      <section>
+        <h3>The whole pipeline <span class="tag">€8 of hardware</span></h3>
+        <pre class="ascii"><code>
+   ┌────────┐   I²C    ┌────────┐   WiFi    ┌──────────┐   query   ┌─────────┐
+   │ BME280 │ ───────▶ │ ESP32  │ ────────▶ │ InfluxDB │ ────────▶ │ Grafana │
+   └────────┘          └────────┘   HTTPS   └──────────┘           └─────────┘
+                          ▲
+                          │ OTA  (we'll get there)
+                          │
+                       ┌──┴───┐
+                       │ CI/CD│
+                       └──────┘
+        </code></pre>
+        <ul class="small">
+          <li>Battery + deep-sleep → years of runtime.</li>
+          <li>InfluxDB retention policies → "last 30 days raw, 1y downsampled".</li>
+          <li>Grafana dashboard → pretty graphs your spouse will admire briefly.</li>
+        </ul>
+      </section>
+
+      <!-- 7: OTA — why -->
+      <section data-background-gradient="linear-gradient(135deg, #04101a 0%, #0c2a4a 100%)">
+        <h2 class="accent3">Over-the-air updates</h2>
+        <p class="big">…because that sensor is now <em>glued behind your fridge</em>.</p>
+        <ul>
+          <li>Bug in your sleep logic? You're not unscrewing 12 boxes.</li>
+          <li>New sensor field? Roll forward, no field trip.</li>
+          <li>Security fix in <code>arduino-esp32</code>? Same story.</li>
+        </ul>
+        <p class="small muted">ESP32's flash layout is designed for this from the start.</p>
+      </section>
+
+      <!-- 8: OTA — partitions -->
+      <section>
+        <h3>How it works: two app partitions</h3>
+        <pre class="ascii"><code>
+ ┌──────────┬──────────┬──────────┬──────────┬──────────┐
+ │ bootldr  │ nvs/data │  ota_0   │  ota_1   │  spiffs  │
+ │  +otadata│          │  (app A) │  (app B) │  (fs)    │
+ └──────────┴──────────┴──────────┴──────────┴──────────┘
+                              ▲                ▲
+                              │                │
+                       running now      next update lands here
+        </code></pre>
+        <ul class="small">
+          <li>Bootloader reads <code>otadata</code> → boots whichever slot is "active".</li>
+          <li>New firmware → write to the <em>other</em> slot, then flip the pointer.</li>
+          <li>If the new image fails to boot / call <code>esp_ota_mark_app_valid_cancel_rollback</code>
+              → bootloader rolls back. <span class="accent2">Atomic, safe.</span></li>
+        </ul>
+      </section>
+
+      <!-- 9: OTA — ArduinoOTA -->
+      <section>
+        <h3>Quick &amp; local: <code>ArduinoOTA</code></h3>
+        <pre><code class="language-cpp" data-trim>
+#include &lt;ArduinoOTA.h&gt;
+
+void setup() {
+  WiFi.begin(SSID, PASS);
+  ArduinoOTA.setHostname("sensor-office");
+  ArduinoOTA.setPassword("hunter2");
+  ArduinoOTA.begin();
+}
+
+void loop() {
+  ArduinoOTA.handle();          // ← that's it
+  // … your sensor code …
+}
+        </code></pre>
+        <p class="small muted">
+          mDNS-discovered from the Arduino IDE / <code>arduino-cli</code> /
+          <code>espota.py</code>. Great for a dev bench, not for fleets.
+        </p>
+      </section>
+
+      <!-- 10: OTA — HTTPS pull -->
+      <section>
+        <h3>Production pattern: HTTPS pull + rollback</h3>
+        <pre><code class="language-cpp" data-trim>
+#include &lt;HTTPUpdate.h&gt;
+
+void checkForUpdate() {
+  WiFiClientSecure client;
+  client.setCACert(ROOT_CA);
+  httpUpdate.rebootOnUpdate(true);
+
+  // Server returns 200 + new .bin, or 304 if we're current
+  auto r = httpUpdate.update(
+    client,
+    "https://fw.example.com/sensor/latest.bin",
+    FW_VERSION);                     // sent as User-Agent / header
+
+  if (r == HTTP_UPDATE_FAILED)
+    log_e("OTA failed: %s", httpUpdate.getLastErrorString().c_str());
+}
+        </code></pre>
+        <ul class="small">
+          <li>Sign &amp; pin the cert. Sign the firmware too (<code>secure boot v2</code>).</li>
+          <li>Mark valid only after a self-test → automatic rollback if you brick it.</li>
+          <li>Fleet tooling: <strong>ESPHome</strong>, <strong>Toit</strong>, <strong>Mender</strong>, or a CI job + S3.</li>
+        </ul>
+      </section>
+
+      <!-- 11: tl;dr -->
+      <section data-background-gradient="linear-gradient(135deg, #1a0a04 0%, #4a1e0c 100%)">
+        <h2>tl;dr</h2>
+        <ul>
+          <li><span class="logo accent">ESP32</span> = an Arduino that ships with WiFi, deep sleep, and a real CPU.</li>
+          <li><span class="accent3">InfluxDB</span> line protocol + the Arduino client → ~20 lines of code.</li>
+          <li><span class="accent2">OTA</span> isn't optional once the box is glued behind the fridge.</li>
+          <li>Two partitions + rollback = sleep-at-night firmware updates.</li>
+        </ul>
+        <p class="small muted">Thanks!</p>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/reveal.js@5.1.0/dist/reveal.js"></script>
+  <script src="https://unpkg.com/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+  <script src="https://unpkg.com/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+  <script>
+    Reveal.initialize({
+      hash: true,
+      slideNumber: 'c/t',
+      transition: 'slide',
+      controls: true,
+      progress: true,
+      plugins: [ RevealHighlight, RevealNotes ],
+    });
+  </script>
+</body>
+</html>
