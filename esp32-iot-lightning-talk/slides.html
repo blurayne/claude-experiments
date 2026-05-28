@@ -116,7 +116,28 @@
         <p class="small muted">Same Arduino IDE / framework — but built for IoT from day one.</p>
       </section>
 
-      <!-- 3: Read a sensor -->
+      <!-- 3: Bus systems -->
+      <section>
+        <h2>Picking a bus <span class="tag">I²C · SPI · UART</span></h2>
+        <table>
+          <thead><tr><th></th><th>I²C</th><th>SPI</th><th>UART</th></tr></thead>
+          <tbody>
+            <tr><td>Wires</td>     <td>2 (SDA, SCL)</td>      <td>4+ (MOSI/MISO/SCK + CS)</td><td>2 (TX, RX)</td></tr>
+            <tr><td>Topology</td>  <td>multi-drop, addressed</td><td>1 master ↔ N slaves (CS)</td><td>point-to-point</td></tr>
+            <tr><td>Speed</td>     <td>100 kHz – 1 MHz</td>    <td>tens of MHz</td>           <td>9.6 k – 1 Mbaud</td></tr>
+            <tr><td>Typical use</td><td>sensors, EEPROMs, RTCs</td><td>displays, SD cards, fast ADCs</td><td>GPS, modems, debug log</td></tr>
+          </tbody>
+        </table>
+        <p class="small">
+          <span class="accent">I²C</span> is the <em>nicest</em> for sensors —
+          two wires, ~10 devices on the same pair, each addressed. Wire SDA+SCL,
+          drop a 4.7 kΩ pull-up, done. SPI is faster but needs a CS pin <em>per</em>
+          device; UART is point-to-point and async. Most off-the-shelf sensors
+          (BME280, SHT4x, SCD4x, …) ship I²C for exactly this reason.
+        </p>
+      </section>
+
+      <!-- 4: Read a sensor -->
       <section>
         <h3>Reading a sensor <span class="tag">BME280 over I²C</span></h3>
         <pre><code class="language-cpp" data-trim>

@@ -15,20 +15,21 @@ fresh with **over-the-air** updates so you never have to unscrew the box again.
   - <kbd>f</kbd> fullscreen
   - <kbd>?</kbd> all shortcuts
 
-## What's in the talk (≈ 5 min, 11 slides)
+## What's in the talk (≈ 5 min, 12 slides)
 
 1. Arduino UNO vs **ESP32** — why ESP32 wins for IoT (WiFi/BT, dual-core, deep sleep, cheap).
-2. Reading a sensor — **BME280** over I²C, ~10 lines of code.
-3. Pushing to **InfluxDB** — line protocol explained:
+2. **Bus systems** — I²C vs SPI vs UART at a glance, and why I²C is the nicest for sensors.
+3. Reading a sensor — **BME280** over I²C, ~10 lines of code.
+4. Pushing to **InfluxDB** — line protocol explained:
    `measurement,tag=v field=1.0`.
-4. The `influxdb-client-arduino` library — `Point` + `writePoint`.
-5. End-to-end pipeline diagram — BME280 → ESP32 → InfluxDB → Grafana.
-6. **Over-the-air updates** — why you need them once the device is deployed.
-7. ESP32 partition layout — `ota_0` / `ota_1` / `otadata`, atomic flip with rollback.
-8. `ArduinoOTA` — quick dev-bench pattern, mDNS-discovered.
-9. **HTTPS pull + rollback** — the production pattern: signed firmware, cert pinning,
+5. The `influxdb-client-arduino` library — `Point` + `writePoint`.
+6. End-to-end pipeline diagram — BME280 → ESP32 → InfluxDB → Grafana.
+7. **Over-the-air updates** — why you need them once the device is deployed.
+8. ESP32 partition layout — `ota_0` / `ota_1` / `otadata`, atomic flip with rollback.
+9. `ArduinoOTA` — quick dev-bench pattern, mDNS-discovered.
+10. **HTTPS pull + rollback** — the production pattern: signed firmware, cert pinning,
    mark-valid after self-test.
-10. tl;dr.
+11. tl;dr.
 
 ## Mentioned libraries / tools
 
