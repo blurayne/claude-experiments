@@ -33,10 +33,13 @@ ADAC). Sprit: Super E10 1,72 €/L, Diesel 1,65 €/L.
 
 ## Technik
 
-Eigenständige HTML-Seite — kein Build nötig. React 18 + [Recharts](https://recharts.org/)
-werden per CDN geladen, JSX wird über Babel Standalone im Browser transpiliert.
+Eigenständige HTML-Seite — **keine externen Abhängigkeiten**. React 18,
+ReactDOM, PropTypes und [Recharts](https://recharts.org/) liegen lokal in
+[`vendor/`](vendor/); das JSX ist zu reinem JavaScript vorkompiliert und inline
+eingebettet (kein Babel im Browser). Die Seite läuft damit komplett offline.
 
 ## Dateien
 
-- [`index.html`](index.html) — das interaktive Dashboard (standalone).
+- [`index.html`](index.html) — das interaktive Dashboard (standalone, CDN-frei).
 - [`GebrauchtwagenKompass.jsx`](GebrauchtwagenKompass.jsx) — der React-Quellcode.
+- [`vendor/`](vendor/) — gepinnte Libraries (React 18.3.1, ReactDOM 18.3.1, PropTypes 15.8.1, Recharts 2.15.4).
