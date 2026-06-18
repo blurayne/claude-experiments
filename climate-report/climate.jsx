@@ -1,17 +1,32 @@
 import React, { useState, useEffect } from "react";
 
-const DATA = {"years": [1982, 1983, 1984, 1985, 1986, 1987, 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025], "monthly": [[-1.8, -0.1, 5.1, 6.8, 13.6, 17.6, 19.8, 18.1, 17.2, 10.0, 6.4, 3.0], [4.4, -1.7, 5.3, 10.0, 12.6, 16.9, 22.5, 18.7, 15.1, 10.5, 3.2, 1.3], [1.6, -0.7, 2.8, 7.2, 11.4, 15.2, 17.4, 17.8, 13.3, 11.1, 4.9, 1.3], [-5.1, -2.0, 3.4, 8.6, 13.7, 14.6, 19.6, 18.2, 16.2, 9.4, 1.1, 4.8], [0.6, -5.7, 3.8, 8.0, 15.6, 15.9, 17.6, 18.4, 14.1, 10.7, 6.1, 2.3], [-4.7, 0.4, 0.5, 9.8, 10.4, 14.8, 18.7, 17.1, 17.7, 10.4, 4.7, 2.1], [4.0, 2.3, 4.0, 9.6, 15.0, 16.1, 19.3, 19.0, 14.6, 11.5, 2.9, 2.8], [2.1, 4.2, 9.1, 8.7, 14.7, 15.5, 18.9, 18.6, 14.6, 11.8, 3.3, 2.9], [0.9, 7.2, 8.1, 7.4, 15.1, 16.0, 18.3, 19.8, 13.3, 11.6, 4.6, -0.3], [1.3, -1.8, 7.1, 7.8, 9.8, 15.5, 19.9, 19.4, 16.6, 8.3, 3.9, -0.8], [0.7, 2.8, 5.6, 8.6, 15.3, 17.4, 20.0, 22.6, 15.2, 8.0, 6.7, 0.8], [3.7, -1.2, 4.1, 11.2, 16.2, 17.1, 17.5, 18.1, 14.3, 8.9, 0.7, 4.0], [3.0, 1.8, 8.7, 8.3, 13.9, 17.6, 22.0, 20.4, 15.0, 9.2, 8.3, 3.8], [-0.0, 5.7, 4.1, 9.5, 13.6, 14.4, 21.4, 18.2, 13.4, 13.1, 2.6, -0.8], [-2.8, -1.5, 1.6, 9.1, 12.8, 17.7, 17.4, 17.6, 11.3, 9.9, 5.1, -2.1], [-2.3, 5.1, 7.4, 7.2, 14.8, 16.8, 17.7, 19.9, 15.9, 8.8, 4.7, 2.4], [2.1, 5.1, 4.9, 10.1, 15.0, 18.4, 18.8, 19.2, 14.0, 10.5, 1.9, 1.7], [2.5, -0.4, 6.5, 9.6, 15.1, 16.2, 19.2, 18.7, 18.1, 10.5, 3.0, 1.9], [-0.6, 4.9, 6.1, 11.2, 15.9, 18.9, 17.1, 20.1, 15.2, 11.2, 6.8, 3.6], [0.9, 3.6, 7.2, 8.2, 16.6, 15.8, 19.6, 20.3, 12.3, 14.5, 3.2, -0.9], [0.8, 6.3, 7.2, 9.0, 14.9, 20.0, 19.2, 19.0, 13.4, 10.1, 7.3, 2.4], [-0.0, -2.5, 7.1, 9.7, 16.2, 22.3, 20.8, 23.7, 15.5, 7.3, 5.8, 1.5], [0.2, 2.7, 4.4, 10.5, 12.4, 17.0, 18.8, 20.1, 15.7, 12.2, 4.6, 0.3], [1.6, -1.4, 4.5, 10.7, 14.8, 19.1, 19.6, 17.3, 16.9, 12.1, 4.3, -0.2], [-2.7, 0.2, 2.9, 10.1, 14.6, 19.1, 23.8, 16.5, 18.3, 14.2, 7.5, 3.8], [5.2, 5.8, 7.6, 14.5, 16.6, 20.0, 20.1, 18.8, 14.2, 10.1, 2.9, 1.1], [4.2, 5.2, 5.8, 9.7, 16.4, 19.3, 19.8, 19.9, 14.0, 11.5, 5.9, 1.5], [-1.7, 0.4, 4.7, 14.0, 16.2, 17.0, 20.2, 21.3, 17.0, 10.2, 8.5, 1.2], [-2.2, 1.0, 5.9, 10.8, 12.3, 17.6, 21.8, 18.5, 14.1, 9.4, 6.1, -1.1], [1.1, 2.4, 7.3, 13.6, 16.0, 17.9, 17.9, 21.0, 17.6, 10.4, 5.0, 4.1], [2.0, -2.8, 8.8, 10.3, 16.2, 18.8, 19.9, 20.9, 15.7, 10.5, 6.5, 2.8], [1.1, -0.6, 3.2, 10.5, 12.9, 17.3, 22.9, 20.8, 15.4, 12.3, 5.0, 4.4], [3.7, 5.9, 9.2, 12.1, 14.0, 19.3, 19.9, 17.9, 16.2, 13.3, 6.9, 3.5], [2.7, 0.6, 7.0, 11.1, 14.7, 18.8, 23.3, 23.1, 15.3, 9.8, 9.2, 7.0], [3.1, 5.3, 6.0, 10.5, 14.4, 18.4, 21.3, 20.2, 18.6, 10.0, 5.3, 2.5], [-2.5, 5.9, 10.2, 9.2, 16.4, 21.7, 21.3, 21.6, 14.6, 13.4, 5.7, 2.5], [5.6, -1.4, 4.7, 16.0, 18.0, 19.7, 22.0, 23.2, 17.7, 12.8, 5.9, 3.5], [0.2, 5.1, 8.3, 11.7, 12.0, 21.6, 20.9, 20.2, 15.8, 12.3, 5.4, 3.9], [4.1, 6.5, 6.5, 13.3, 13.6, 17.2, 20.6, 20.8, 16.6, 10.4, 6.4, 2.5], [0.8, 4.7, 6.0, 8.1, 11.7, 20.6, 19.4, 17.9, 17.0, 10.3, 4.2, 3.6], [2.6, 5.2, 7.1, 9.0, 16.8, 20.9, 22.1, 21.5, 14.5, 14.7, 7.4, 3.0], [3.8, 3.9, 7.4, 8.4, 14.6, 20.6, 21.6, 20.8, 19.3, 14.3, 6.3, 5.1], [2.4, 8.3, 9.4, 11.8, 15.6, 19.2, 21.4, 22.2, 15.9, 12.4, 5.5, 2.5], [2.9, 3.0, 7.8, 12.7, 14.4, 21.6, 19.6, 20.4, 16.1, 10.6, 5.8, 2.7]], "months": ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"], "precip": [50, 43, 38, 46, 99, 118, 106, 138, 89, 54, 77, 68], "raindays": [14, 13, 11, 12, 14, 13, 20, 16, 13, 13, 18, 16], "sun": [95, 107, 180, 200, 241, 291, 243, 245, 200, 137, 84, 65], "uvi": [1, 2, 3, 5, 6, 7, 7, 6, 5, 3, 1, 1], "tmean": [1.9, 4.6, 7.0, 10.1, 14.9, 19.8, 20.1, 19.7, 15.7, 11.6, 5.3, 2.9], "tmax": [5.2, 8.4, 12.3, 15.3, 20.4, 25.8, 25.6, 25.3, 21.1, 16.6, 8.7, 5.6], "tmin": [-1.3, 1.3, 2.4, 5.0, 9.4, 14.1, 15.1, 14.7, 11.0, 7.5, 2.3, 0.3], "refperiods": {"1961-1990": 9.14, "1971-2000": 9.49, "1981-2010": 9.72, "1991-2020": 10.11}};
+const MUC_DATA = {"years": [1982, 1983, 1984, 1985, 1986, 1987, 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025], "monthly": [[-1.8, -0.1, 5.1, 6.8, 13.6, 17.6, 19.8, 18.1, 17.2, 10.0, 6.4, 3.0], [4.4, -1.7, 5.3, 10.0, 12.6, 16.9, 22.5, 18.7, 15.1, 10.5, 3.2, 1.3], [1.6, -0.7, 2.8, 7.2, 11.4, 15.2, 17.4, 17.8, 13.3, 11.1, 4.9, 1.3], [-5.1, -2.0, 3.4, 8.6, 13.7, 14.6, 19.6, 18.2, 16.2, 9.4, 1.1, 4.8], [0.6, -5.7, 3.8, 8.0, 15.6, 15.9, 17.6, 18.4, 14.1, 10.7, 6.1, 2.3], [-4.7, 0.4, 0.5, 9.8, 10.4, 14.8, 18.7, 17.1, 17.7, 10.4, 4.7, 2.1], [4.0, 2.3, 4.0, 9.6, 15.0, 16.1, 19.3, 19.0, 14.6, 11.5, 2.9, 2.8], [2.1, 4.2, 9.1, 8.7, 14.7, 15.5, 18.9, 18.6, 14.6, 11.8, 3.3, 2.9], [0.9, 7.2, 8.1, 7.4, 15.1, 16.0, 18.3, 19.8, 13.3, 11.6, 4.6, -0.3], [1.3, -1.8, 7.1, 7.8, 9.8, 15.5, 19.9, 19.4, 16.6, 8.3, 3.9, -0.8], [0.7, 2.8, 5.6, 8.6, 15.3, 17.4, 20.0, 22.6, 15.2, 8.0, 6.7, 0.8], [3.7, -1.2, 4.1, 11.2, 16.2, 17.1, 17.5, 18.1, 14.3, 8.9, 0.7, 4.0], [3.0, 1.8, 8.7, 8.3, 13.9, 17.6, 22.0, 20.4, 15.0, 9.2, 8.3, 3.8], [-0.0, 5.7, 4.1, 9.5, 13.6, 14.4, 21.4, 18.2, 13.4, 13.1, 2.6, -0.8], [-2.8, -1.5, 1.6, 9.1, 12.8, 17.7, 17.4, 17.6, 11.3, 9.9, 5.1, -2.1], [-2.3, 5.1, 7.4, 7.2, 14.8, 16.8, 17.7, 19.9, 15.9, 8.8, 4.7, 2.4], [2.1, 5.1, 4.9, 10.1, 15.0, 18.4, 18.8, 19.2, 14.0, 10.5, 1.9, 1.7], [2.5, -0.4, 6.5, 9.6, 15.1, 16.2, 19.2, 18.7, 18.1, 10.5, 3.0, 1.9], [-0.6, 4.9, 6.1, 11.2, 15.9, 18.9, 17.1, 20.1, 15.2, 11.2, 6.8, 3.6], [0.9, 3.6, 7.2, 8.2, 16.6, 15.8, 19.6, 20.3, 12.3, 14.5, 3.2, -0.9], [0.8, 6.3, 7.2, 9.0, 14.9, 20.0, 19.2, 19.0, 13.4, 10.1, 7.3, 2.4], [-0.0, -2.5, 7.1, 9.7, 16.2, 22.3, 20.8, 23.7, 15.5, 7.3, 5.8, 1.5], [0.2, 2.7, 4.4, 10.5, 12.4, 17.0, 18.8, 20.1, 15.7, 12.2, 4.6, 0.3], [1.6, -1.4, 4.5, 10.7, 14.8, 19.1, 19.6, 17.3, 16.9, 12.1, 4.3, -0.2], [-2.7, 0.2, 2.9, 10.1, 14.6, 19.1, 23.8, 16.5, 18.3, 14.2, 7.5, 3.8], [5.2, 5.8, 7.6, 14.5, 16.6, 20.0, 20.1, 18.8, 14.2, 10.1, 2.9, 1.1], [4.2, 5.2, 5.8, 9.7, 16.4, 19.3, 19.8, 19.9, 14.0, 11.5, 5.9, 1.5], [-1.7, 0.4, 4.7, 14.0, 16.2, 17.0, 20.2, 21.3, 17.0, 10.2, 8.5, 1.2], [-2.2, 1.0, 5.9, 10.8, 12.3, 17.6, 21.8, 18.5, 14.1, 9.4, 6.1, -1.1], [1.1, 2.4, 7.3, 13.6, 16.0, 17.9, 17.9, 21.0, 17.6, 10.4, 5.0, 4.1], [2.0, -2.8, 8.8, 10.3, 16.2, 18.8, 19.9, 20.9, 15.7, 10.5, 6.5, 2.8], [1.1, -0.6, 3.2, 10.5, 12.9, 17.3, 22.9, 20.8, 15.4, 12.3, 5.0, 4.4], [3.7, 5.9, 9.2, 12.1, 14.0, 19.3, 19.9, 17.9, 16.2, 13.3, 6.9, 3.5], [2.7, 0.6, 7.0, 11.1, 14.7, 18.8, 23.3, 23.1, 15.3, 9.8, 9.2, 7.0], [3.1, 5.3, 6.0, 10.5, 14.4, 18.4, 21.3, 20.2, 18.6, 10.0, 5.3, 2.5], [-2.5, 5.9, 10.2, 9.2, 16.4, 21.7, 21.3, 21.6, 14.6, 13.4, 5.7, 2.5], [5.6, -1.4, 4.7, 16.0, 18.0, 19.7, 22.0, 23.2, 17.7, 12.8, 5.9, 3.5], [0.2, 5.1, 8.3, 11.7, 12.0, 21.6, 20.9, 20.2, 15.8, 12.3, 5.4, 3.9], [4.1, 6.5, 6.5, 13.3, 13.6, 17.2, 20.6, 20.8, 16.6, 10.4, 6.4, 2.5], [0.8, 4.7, 6.0, 8.1, 11.7, 20.6, 19.4, 17.9, 17.0, 10.3, 4.2, 3.6], [2.6, 5.2, 7.1, 9.0, 16.8, 20.9, 22.1, 21.5, 14.5, 14.7, 7.4, 3.0], [3.8, 3.9, 7.4, 8.4, 14.6, 20.6, 21.6, 20.8, 19.3, 14.3, 6.3, 5.1], [2.4, 8.3, 9.4, 11.8, 15.6, 19.2, 21.4, 22.2, 15.9, 12.4, 5.5, 2.5], [2.9, 3.0, 7.8, 12.7, 14.4, 21.6, 19.6, 20.4, 16.1, 10.6, 5.8, 2.7]], "months": ["Jan", "Feb", "M\u00e4r", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"], "precip": [50, 43, 38, 46, 99, 118, 106, 138, 89, 54, 77, 68], "raindays": [14, 13, 11, 12, 14, 13, 20, 16, 13, 13, 18, 16], "sun": [95, 107, 180, 200, 241, 291, 243, 245, 200, 137, 84, 65], "uvi": [1, 2, 3, 5, 6, 7, 7, 6, 5, 3, 1, 1], "tmean": [1.9, 4.6, 7.0, 10.1, 14.9, 19.8, 20.1, 19.7, 15.7, 11.6, 5.3, 2.9], "tmax": [5.2, 8.4, 12.3, 15.3, 20.4, 25.8, 25.6, 25.3, 21.1, 16.6, 8.7, 5.6], "tmin": [-1.3, 1.3, 2.4, 5.0, 9.4, 14.1, 15.1, 14.7, 11.0, 7.5, 2.3, 0.3], "refperiods": {"1961-1990": 9.14, "1971-2000": 9.49, "1981-2010": 9.72, "1991-2020": 10.11}};
+const MUC_EXT = {
+  years: [1982,1983,1984,1985,1986,1987,1988,1989,1990,1991,1992,1993,1994,1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025],
+  hot: [31.8,37.5,37.1,32.4,31.6,31.1,34.0,32.9,32.0,32.7,34.8,30.9,34.0,34.5,31.0,29.0,34.8,33.7,33.5,32.1,33.9,37.0,31.5,33.5,34.8,35.2,33.0,35.2,33.7,35.8,34.7,36.9,33.9,36.9,33.2,35.8,35.1,35.3,34.2,32.3,36.8,35.9,33.7,34.3],
+  cold: [-13.0,-11.0,-11.6,-21.0,-14.0,-22.2,-11.0,-10.3,-11.3,-15.2,-10.1,-12.5,-9.6,-11.5,-16.5,-12.1,-10.8,-12.6,-16.4,-15.5,-12.5,-13.1,-11.5,-16.0,-13.3,-8.9,-7.9,-15.8,-10.9,-10.5,-16.6,-9.2,-11.6,-9.1,-8.1,-14.8,-13.4,-8.0,-4.9,-11.3,-10.2,-10.8,-8.6,-8.0],
+  days: [6,13,4,7,4,2,4,2,5,3,17,3,19,7,5,0,13,4,8,9,7,31,3,10,18,11,11,9,14,9,13,17,10,33,10,21,16,18,11,9,20,25,21,38],
+  rec: { hotV:37.5, hotY:1983, coldV:-22.2, coldY:1987, daysV:38, daysY:2025 }
+};
+const NK_DATA = {years:[1982, 1983, 1984, 1985, 1986, 1987, 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2025],monthly:[[-1.0,1.1,5.9,9.5,14.6,18.7,21.5,19.1,17.5,10.1,7.1,3.5],[5.0,0.7,6.6,10.3,12.0,18.6,23.1,21.1,15.1,10.2,4.3,2.0],[2.8,2.2,4.6,8.9,11.8,15.9,18.5,18.9,13.9,11.3,6.2,2.8],[-3.1,-1.5,4.8,10.0,15.2,15.4,19.2,17.5,15.4,9.9,1.8,4.7],[2.4,-3.2,5.0,8.1,16.0,18.8,19.0,18.2,12.6,10.8,6.3,3.6],[-3.1,1.7,2.6,11.6,11.7,15.8,18.9,17.3,15.9,10.2,6.0,3.4],[4.8,3.6,5.1,10.2,16.3,17.1,18.6,19.5,14.7,11.2,4.3,5.5],[3.2,3.8,8.8,8.4,16.5,17.5,19.9,18.5,15.5,11.1,3.9,3.7],[3.3,6.6,8.5,9.5,16.4,16.6,19.4,20.6,13.3,10.9,6.1,2.1],[2.9,-0.8,8.3,9.4,12.1,15.2,21.9,21.2,16.8,9.2,4.9,1.4],[2.3,3.5,6.7,10.2,17.2,18.8,20.7,20.9,14.8,7.6,6.6,2.8],[3.9,0.3,6.0,12.7,16.7,18.7,18.9,18.9,13.4,9.1,1.9,4.8],[4.5,2.0,8.8,10.1,14.6,19.0,23.9,19.9,15.0,9.2,9.2,5.3],[2.0,6.0,5.0,11.2,14.5,16.8,22.5,20.1,13.7,12.7,4.4,0.7],[-0.5,0.7,4.1,10.7,12.8,17.9,18.3,18.8,13.1,10.1,5.8,-0.2],[-2.3,5.5,8.8,9.2,14.9,17.6,19.2,22.1,15.6,9.1,5.2,3.9],[3.4,4.4,7.8,10.1,16.7,18.7,18.6,19.5,14.8,10.1,3.2,2.6],[3.8,2.6,7.3,11.3,16.2,17.6,21.2,19.3,18.4,10.1,4.7,3.6],[3.0,5.0,7.7,11.8,16.6,19.3,16.8,20.0,15.6,11.1,6.8,4.1],[2.3,4.6,6.7,8.8,17.3,16.9,20.9,20.6,13.1,13.0,4.8,1.9],[1.6,6.6,7.4,10.5,15.1,20.0,19.1,19.9,14.7,10.2,7.9,3.4],[1.5,0.6,8.7,11.2,16.1,22.2,21.6,23.9,15.8,8.1,7.1,3.0],[2.2,4.5,6.0,12.1,13.9,18.1,19.2,20.5,16.2,11.2,5.7,1.5],[3.3,0.9,6.8,11.9,15.4,20.1,20.7,18.1,17.3,12.3,5.6,2.5],[-0.4,1.9,4.2,10.6,15.6,19.8,24.9,17.0,18.7,13.3,8.2,5.0],[6.4,6.0,7.8,15.2,16.6,19.6,19.2,18.7,14.3,10.1,5.3,2.5],[-1.8,2.3,6.0,14.0,15.4,16.6,19.4,20.6,16.4,9.8,8.2,1.7],[-2.0,1.3,6.1,11.1,11.8,18.4,21.6,17.9,13.7,9.3,6.4,-2.0],[2.4,2.7,7.8,14.1,16.1,17.9,17.1,19.0,17.0,10.8,5.4,4.8],[3.6,-0.7,9.1,9.5,16.1,16.7,19.0,20.7,15.2,9.6,5.9,3.4],[1.6,0.5,2.4,9.8,12.3,17.1,21.7,19.6,15.0,11.7,5.5,4.1],[4.2,5.2,9.2,13.1,13.9,18.0,20.6,17.0,16.3,12.8,7.1,3.8],[2.9,1.9,6.7,11.0,14.4,17.7,22.0,21.5,14.3,9.7,8.2,7.3],[3.1,4.6,5.3,9.4,14.7,17.7,20.2,19.7,18.7,9.6,5.3,2.3],[-0.9,5.0,9.4,9.6,15.6,19.9,20.0,19.2,14.0,12.1,5.9,3.7],[5.7,-0.4,4.6,14.3,17.4,19.8,23.0,21.8,17.1,12.7,6.6,4.5],[2.0,5.6,8.4,11.1,12.6,21.2,21.1,20.8,15.7,11.7,5.8,4.3],[4.1,6.2,7.3,13.3,14.2,18.4,20.5,22.2,17.4,11.1,6.7,3.9],[2.0,3.6,6.8,8.0,11.7,20.5,19.2,18.0,17.1,10.3,5.3,4.3],[3.5,5.8,7.6,9.7,16.8,20.3,21.8,23.2,14.8,13.6,7.7,2.9],[2.8,2.8,8.4,12.2,15.2,20.5,19.9,20.3,15.4,11.1,5.7,4.0]],months:["Jan","Feb","M\u00e4r","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"],precip:[49.9, 45.2, 29.5, 26.3, 43.0, 46.2, 50.6, 32.8, 66.0, 54.4, 34.1, 44.2],raindays:[18, 14, 10, 12, 10, 13, 15, 9, 23, 17, 19, 14],sun:[50, 66, 159, 194, 227, 216, 209, 196, 147, 100, 55, 34],uvi:[1,2,3,5,6,7,7,6,5,3,1,1],tmean:[2.9, 4.8, 7.7, 10.9, 14.1, 20.2, 20.5, 20.9, 16.1, 11.6, 6.2, 3.9],tmax:[5.2, 8.2, 12.2, 16.1, 19.3, 25.9, 26.2, 26.6, 21.0, 15.0, 8.7, 6.0],tmin:[0.7, 1.4, 3.4, 5.9, 9.0, 14.5, 15.2, 15.7, 11.6, 8.3, 3.6, 1.8],refperiods:{"1971-2000":10.54,"1981-2010":10.71,"1991-2020":11.07}};
+const NK_EXT = {years:[1982, 1983, 1984, 1985, 1986, 1987, 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2025],hot:[32.8, 36.0, 35.2, 33.0, 35.5, 32.1, 32.5, 33.0, 34.8, 34.9, 36.4, 31.5, 35.8, 35.1, 33.4, 34.0, 38.1, 34.2, 34.1, 34.9, 35.7, 38.9, 33.6, 35.0, 36.8, 35.9, 29.8, 34.7, 35.3, 32.7, 35.3, 35.8, 33.7, 38.4, 34.1, 34.8, 36.0, 39.1, 36.9, 32.8, 37.5, 36.9],cold:[-14.5, -7.4, -8.0, -16.4, -13.5, -16.4, -7.3, -7.2, -5.9, -11.8, -9.0, -10.9, -8.7, -8.9, -13.1, -13.9, -11.3, -6.9, -9.6, -10.6, -13.2, -10.5, -6.9, -9.9, -8.3, -8.1, -7.0, -16.5, -11.4, -7.9, -15.7, -7.5, -6.1, -5.8, -7.1, -9.6, -10.1, -8.1, -4.0, -10.3, -9.5, -5.9],days:[17, 19, 7, 3, 9, 3, 7, 11, 13, 20, 16, 13, 24, 23, 8, 17, 18, 16, 9, 19, 9, 34, 15, 27, 29, 12, 0, 6, 12, 3, 9, 11, 7, 24, 13, 14, 31, 19, 19, 6, 30, 34],rec:{hotV:39.1,hotY:2019,coldV:-16.5,coldY:2009,daysV:34,daysY:2003}};
+const LAM_DATA = {years:[1982, 1983, 1984, 1985, 1986, 1987, 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025],monthly:[[-4.5,-2.4,3.1,4.5,11.8,15.5,18.2,16.0,14.3,8.1,3.1,1.0],[1.6,-4.0,2.7,8.0,10.9,15.4,19.9,17.1,12.2,7.3,0.4,-1.9],[-1.3,-2.5,1.0,5.3,9.7,12.8,14.8,15.3,11.1,8.6,2.8,-0.6],[-7.2,-5.7,1.7,6.3,12.7,12.5,16.7,15.5,11.7,7.0,-0.1,1.6],[-1.6,-7.0,1.9,6.9,13.8,14.9,15.3,15.8,10.7,7.3,2.7,-0.9],[-7.2,-2.1,-3.1,7.6,8.8,13.2,16.6,14.4,14.0,8.1,3.0,-0.1],[0.8,0.1,0.4,7.4,13.7,14.1,16.1,15.8,12.1,9.0,0.3,0.9],[-0.8,1.4,5.1,6.6,12.9,13.4,16.8,15.3,13.1,8.0,0.1,-0.1],[-1.2,2.5,4.8,5.9,13.0,14.3,15.7,17.4,10.3,8.0,2.9,-1.9],[0.0,-4.9,4.3,5.9,8.0,12.9,18.2,16.6,13.2,6.4,2.3,-2.4],[-1.2,0.4,3.0,6.1,13.7,15.9,17.6,18.9,12.3,6.1,3.7,-1.1],[0.5,-4.8,1.1,9.5,14.5,14.9,15.1,15.6,11.8,6.9,-0.4,1.8],[1.5,-0.9,5.4,6.2,11.9,15.6,20.8,17.6,12.7,6.4,5.3,1.3],[-2.7,2.7,1.5,7.6,11.9,13.0,19.5,17.1,11.1,10.4,-0.2,-3.0],[-5.0,-4.1,-1.0,7.5,11.0,15.4,14.6,15.6,9.4,8.2,3.2,-4.7],[-4.1,1.9,4.6,4.6,12.2,14.4,15.3,18.1,13.5,5.9,2.7,0.0],[0.0,2.2,2.9,8.1,13.1,16.0,15.5,16.8,12.0,7.5,-0.2,-1.3],[-0.7,-2.5,4.0,7.6,13.0,14.1,17.8,16.5,15.9,7.5,0.9,-0.6],[-2.5,1.9,3.3,9.6,14.1,17.0,14.1,17.6,12.9,9.4,4.3,0.2],[-1.5,0.9,3.6,5.9,14.2,13.1,17.3,17.9,10.0,11.1,1.3,-3.1],[-1.9,3.2,4.1,6.8,13.4,17.2,16.8,17.6,11.3,6.8,4.2,-1.2],[-2.3,-4.1,4.4,7.1,14.0,19.4,18.0,21.1,13.6,4.7,3.7,-0.6],[-2.9,0.3,2.2,8.4,10.4,14.5,16.4,17.4,13.0,8.9,2.2,-1.9],[-0.9,-4.0,1.6,8.5,12.3,16.1,17.2,14.8,14.2,9.5,1.5,-1.7],[-4.8,-2.5,0.2,7.4,12.2,16.3,21.3,13.8,15.7,10.6,4.8,1.9],[2.5,2.9,4.9,11.1,13.5,16.9,16.5,16.2,11.1,7.1,0.6,-0.8],[1.2,2.5,2.4,7.0,13.8,16.7,17.2,16.7,11.4,7.6,3.4,-0.6],[-4.6,-2.0,2.1,11.7,13.1,14.2,16.9,18.1,14.5,6.8,5.4,-1.2],[-4.8,-2.2,2.5,7.9,10.2,16.0,19.4,15.6,10.8,6.3,3.9,-4.8],[-1.2,-1.7,4.7,10.8,13.4,15.7,14.8,17.4,14.7,8.1,2.6,1.4],[-0.4,-5.2,5.9,7.6,13.9,15.9,17.1,18.1,13.2,6.9,3.4,-0.6],[-1.5,-2.5,-0.6,7.5,10.6,14.9,19.4,17.3,11.8,8.7,2.9,1.0],[0.9,2.1,6.6,10.0,11.2,15.8,18.1,14.9,13.6,10.2,4.9,0.9],[0.3,-1.6,4.0,7.4,12.0,15.5,19.8,20.5,12.0,7.1,5.5,4.1],[-1.0,1.9,2.5,7.1,12.3,15.8,17.6,16.8,16.0,7.0,2.2,-1.0],[-5.4,1.4,5.8,6.4,13.5,17.8,17.5,17.9,10.9,9.4,2.9,-0.1],[1.8,-3.9,0.8,12.4,15.6,16.9,19.5,20.2,14.4,10.0,3.6,1.0],[-2.0,1.6,5.4,9.3,10.0,20.1,19.0,18.1,13.3,9.7,3.8,1.9],[0.4,3.0,3.9,10.0,11.1,15.5,17.8,18.9,14.3,8.3,3.5,0.5],[-1.6,0.7,3.3,5.1,9.3,18.6,17.3,15.3,14.4,7.8,2.6,0.5],[-0.0,2.3,4.4,6.4,14.2,18.5,18.9,19.7,12.1,11.7,4.7,0.4],[1.6,0.8,4.5,6.2,12.6,17.7,19.0,18.1,16.9,11.0,3.7,1.9],[-0.2,5.3,6.6,9.3,13.8,17.0,18.9,20.0,14.3,9.5,2.9,0.3],[0.4,-0.6,5.8,10.3,11.8,18.1,17.3,17.9,13.6,8.0,2.6,0.6]],months:["Jan","Feb","M\u00e4r","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"],precip:[63.3, 50.6, 38.2, 46.0, 85.8, 73.0, 74.8, 83.3, 76.4, 53.2, 66.0, 56.2],raindays:[16, 15, 12, 13, 13, 14, 21, 16, 18, 21, 23, 19],sun:[66, 74, 125, 139, 167, 202, 169, 170, 139, 95, 58, 45],uvi:[1,2,3,5,6,7,7,6,5,3,1,1],tmean:[0.0, 1.7, 4.9, 7.5, 12.3, 18.0, 18.3, 18.2, 14.3, 9.6, 3.3, 0.7],tmax:[2.3, 5.0, 9.6, 12.4, 17.4, 23.6, 23.7, 23.5, 19.2, 13.6, 6.0, 2.8],tmin:[-2.3, -1.2, 0.7, 2.8, 7.3, 12.5, 13.1, 13.3, 10.1, 6.1, 1.0, -1.4],refperiods:{"1971-2000":7.27,"1981-2010":7.47,"1991-2020":7.97}};
+const LAM_EXT = {years:[1982, 1983, 1984, 1985, 1986, 1987, 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025],hot:[30.0, 36.5, 32.6, 30.2, 30.3, 29.5, 30.5, 31.1, 31.0, 31.2, 33.0, 29.1, 32.9, 30.7, 30.0, 29.5, 32.0, 31.2, 31.5, 30.0, 31.3, 35.0, 29.6, 33.6, 33.8, 33.3, 30.3, 29.8, 32.6, 30.4, 33.5, 34.8, 32.2, 35.8, 31.4, 33.4, 34.5, 34.4, 32.4, 31.0, 34.8, 33.8, 32.2, 33.3],cold:[-20.0, -18.2, -18.8, -25.5, -17.8, -23.8, -15.7, -16.0, -17.2, -17.3, -12.2, -18.2, -14.5, -13.4, -18.0, -16.1, -15.4, -14.5, -16.2, -15.5, -15.0, -13.4, -15.0, -15.9, -16.0, -12.1, -9.5, -18.7, -16.0, -15.0, -18.6, -11.1, -12.7, -10.8, -14.3, -16.1, -15.4, -12.1, -7.0, -14.2, -13.0, -9.6, -9.7, -10.3],days:[1, 9, 2, 2, 1, 0, 2, 1, 2, 3, 8, 0, 9, 2, 1, 0, 5, 2, 3, 1, 2, 13, 0, 4, 7, 2, 1, 0, 9, 3, 4, 12, 5, 22, 2, 3, 15, 9, 7, 2, 11, 11, 8, 18],rec:{hotV:36.5,hotY:1983,coldV:-25.5,coldY:1985,daysV:22,daysY:2015}};
+const LOCATIONS = {
+  münchen: { label:"München", subtitle:"LMU Maxvorstadt · DWD München-Stadt 03379", hasPhen:true, data:MUC_DATA, ext:MUC_EXT },
+  nackenheim: { label:"Nackenheim", subtitle:"DWD Mainz-Lerchenberg 03137 · Rheinhessen", hasPhen:false, data:NK_DATA, ext:NK_EXT },
+  lam: { label:"Bayerischer Wald", subtitle:"DWD Oberviechtach 03739 · Oberpfälzer Wald", hasPhen:false, data:LAM_DATA, ext:LAM_EXT },
+};
 
 /* ============ Datenaufbereitung ============ */
-const YEARS = DATA.years;
-const MON = DATA.monthly;                 // [yearIdx][0..11]
-const MONTHS = DATA.months;
+let DATA = MUC_DATA;
+let EXT = MUC_EXT;
+let YEARS = DATA.years;
+let MON = DATA.monthly;
+const MONTHS = ["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
 const SVGNS = "http://www.w3.org/2000/svg";
 
 function mean(a){return a.reduce((s,x)=>s+x,0)/a.length;}
-function annualMeans(){return MON.map(r=>mean(r));}
-const ANN = annualMeans();
-
 function ols(xs,ys){
   const n=xs.length, mx=mean(xs), my=mean(ys);
   let sxx=0,sxy=0; for(let i=0;i<n;i++){sxx+=(xs[i]-mx)**2; sxy+=(xs[i]-mx)*(ys[i]-my);}
@@ -22,14 +37,25 @@ function ols(xs,ys){
 
 // Basisperiode 1982-2010 fuer Anomalien
 const BASE_LO=1982, BASE_HI=2010;
-function baselineAnnual(){
-  const v=[]; YEARS.forEach((y,i)=>{if(y>=BASE_LO&&y<=BASE_HI)v.push(ANN[i]);}); return mean(v);
+let ANN = DATA.monthly.map(r=>mean(r));
+let BASE_ANN;
+let BASE_MON = new Array(12).fill(0);
+
+function recomputeBase(){
+  ANN = MON.map(r=>mean(r));
+  const v=[]; YEARS.forEach((y,i)=>{if(y>=BASE_LO&&y<=BASE_HI)v.push(ANN[i]);}); BASE_ANN=mean(v);
+  for(let m=0;m<12;m++){const v2=[]; YEARS.forEach((y,i)=>{if(y>=BASE_LO&&y<=BASE_HI)v2.push(MON[i][m]);}); BASE_MON[m]=mean(v2);}
 }
-const BASE_ANN = baselineAnnual();
-function baselineMonth(m){
-  const v=[]; YEARS.forEach((y,i)=>{if(y>=BASE_LO&&y<=BASE_HI)v.push(MON[i][m]);}); return mean(v);
+
+function loadLocation(key){
+  const loc=LOCATIONS[key];
+  DATA=loc.data; EXT=loc.ext;
+  YEARS=DATA.years; MON=DATA.monthly;
+  recomputeBase();
 }
-const BASE_MON = Array.from({length:12},(_,m)=>baselineMonth(m));
+loadLocation('münchen');
+
+
 
 /* ============ Farben ============ */
 function lerp(a,b,t){return a+(b-a)*t;}
@@ -49,7 +75,7 @@ function E(name,attrs){const e=document.createElementNS(SVGNS,name);if(attrs)for
 function clear(node){while(node.firstChild)node.removeChild(node.firstChild);}
 
 /* ============ State ============ */
-const state={ startYear:1982, threshold:5.0, showExtrap:true, showCorridor:true, month:6, extrapYear:2050, phenMode:'proxy' };
+const state={ startYear:1982, threshold:5.0, showExtrap:true, showCorridor:true, month:6, extrapYear:2050, phenMode:'proxy', location:'münchen' };
 const setters={ setMonth:null };
 
 /* ============ 1) Waermestreifen (Hero) ============ */
@@ -96,9 +122,9 @@ function renderTrend(){
   const host=document.getElementById("trend"); clear(host);
   const W=1000,H=420,pad={l:48,r:18,t:18,b:34};
   const svg=E("svg",{viewBox:`0 0 ${W} ${H}`,width:"100%"});
-  const xmin=YEARS[0], xmax=ey, ymin=7.5, ymax=Math.max(13.5,Math.ceil(projVal+1));
+  const annMin=Math.min(...ANN); const xmin=YEARS[0], xmax=ey, ymin=Math.min(7.5,Math.floor(annMin)-0.5), ymax=Math.max(13.5,Math.ceil(projVal+1));
   const {xS,yS}=frame(svg,W,H,pad,xmin,xmax,ymin,ymax);
-  const gTicks=[8,9,10,11,12,13,14,15,16,17].filter(t=>t<ymax);
+  const gTicks=[6,7,8,9,10,11,12,13,14,15,16,17].filter(t=>t>ymin&&t<ymax);
   gridY(svg,W,pad,yS,gTicks,t=>t+"°");
   // X-Ticks (Dekaden + Zieljahr)
   const xTicks=[1985,1995,2005,2015,2025]; if(ey>2027) xTicks.push(ey);
@@ -162,7 +188,7 @@ function renderDecades(){
   const allDefs=[...hisDefs,...projDefs], allVals=[...hisVals,...projVals];
   const W=1000,H=300,pad={l:48,r:18,t:16,b:40};
   const svg=E("svg",{viewBox:`0 0 ${W} ${H}`,width:"100%"});
-  const ymin=8.5, ymax=Math.max(12.5,Math.ceil(Math.max(...allVals)*2)/2+0.5);
+  const ymin=Math.min(8.5,Math.floor(Math.min(...allVals)*2)/2-0.5), ymax=Math.max(12.5,Math.ceil(Math.max(...allVals)*2)/2+0.5);
   const yS=y=>H-pad.b-(y-ymin)/(ymax-ymin)*(H-pad.t-pad.b);
   const gT=[9,10,11,12,13,14,15,16].filter(t=>t<=ymax);
   gridY(svg,W,pad,yS,gT,t=>t+"°");
@@ -223,7 +249,7 @@ function doyToDate(d){
   return base.toLocaleDateString("de-DE",{day:"2-digit",month:"short"});
 }
 function renderPhenology(){
-  if(state.phenMode==='dwd'){ renderPhenologyDWD(); return; }
+  if(state.phenMode==='dwd'&&LOCATIONS[state.location||'münchen'].hasPhen){ renderPhenologyDWD(); return; }
   const thr=state.threshold;
   const xs=[],ss=[],ee=[],ll=[];
   YEARS.forEach((y,i)=>{const s=seasonFor(i,thr); if(s){xs.push(y);ss.push(s.s);ee.push(s.e);ll.push(s.len);}});
@@ -392,14 +418,7 @@ function renderSeasonal(){
   document.getElementById("seaTmean").textContent=DATA.tmean[m].toFixed(1)+" °C";
 }
 
-/* ===== Extremwerte (DWD München-Stadt 03379, 1982-2025) ===== */
-const EXT = {
-  years: [1982,1983,1984,1985,1986,1987,1988,1989,1990,1991,1992,1993,1994,1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025],
-  hot: [31.8,37.5,37.1,32.4,31.6,31.1,34.0,32.9,32.0,32.7,34.8,30.9,34.0,34.5,31.0,29.0,34.8,33.7,33.5,32.1,33.9,37.0,31.5,33.5,34.8,35.2,33.0,35.2,33.7,35.8,34.7,36.9,33.9,36.9,33.2,35.8,35.1,35.3,34.2,32.3,36.8,35.9,33.7,34.3],
-  cold: [-13.0,-11.0,-11.6,-21.0,-14.0,-22.2,-11.0,-10.3,-11.3,-15.2,-10.1,-12.5,-9.6,-11.5,-16.5,-12.1,-10.8,-12.6,-16.4,-15.5,-12.5,-13.1,-11.5,-16.0,-13.3,-8.9,-7.9,-15.8,-10.9,-10.5,-16.6,-9.2,-11.6,-9.1,-8.1,-14.8,-13.4,-8.0,-4.9,-11.3,-10.2,-10.8,-8.6,-8.0],
-  days: [6,13,4,7,4,2,4,2,5,3,17,3,19,7,5,0,13,4,8,9,7,31,3,10,18,11,11,9,14,9,13,17,10,33,10,21,16,18,11,9,20,25,21,38],
-  rec: { hotV:37.5, hotY:1983, coldV:-22.2, coldY:1987, daysV:38, daysY:2025 }
-};
+/* EXT is set by loadLocation() */
 /* ===== Phänologie-Beobachtung (DWD CDC Jahresmelder, München ≤30 km, 1982–2025) ===== */
 /* Quellen: Spitz-Ahorn Blüte (Obj 131 Ph5), Stiel-Eiche Blattentf. (Obj 132 Ph4),
    Sommer-Linde Blüte (Obj 130 Ph5), Stiel-Eiche Herbstfärbung (Obj 132 Ph31) */
@@ -603,6 +622,7 @@ const CSS = `
   --cool:#3a82c4; --cool2:#2a5f9a; --warm:#df6a2e; --hot:#c11f2b; --green:#5fae7a;
   --disp:"Space Grotesk",system-ui,"Segoe UI",sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --locbar-h:50px;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -629,9 +649,11 @@ h1 em{font-style:normal;color:var(--warm)}
 .legbar{height:10px;width:160px;border-radius:5px;background:linear-gradient(90deg,#2166ac,#96b4c8,#eeeee8,#e6964f,#b2182b)}
 
 /* CONTROLS */
-.controls{position:sticky;top:0;z-index:20;background:rgba(13,21,32,.86);backdrop-filter:blur(8px);
+.controls{position:sticky;top:var(--locbar-h);z-index:20;background:rgba(13,21,32,.86);backdrop-filter:blur(8px);
   border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:30px}
 .controls .wrap{display:flex;flex-wrap:wrap;gap:22px 30px;padding:14px 20px;align-items:center}
+.ctl-toggle{display:none}
+.ctl-arrow{display:inline-block;transition:transform .2s}
 .ctl{display:flex;flex-direction:column;gap:4px;min-width:190px;flex:1 1 190px}
 .ctl label{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--muted);text-transform:uppercase}
 .ctl .val{color:var(--ink)}
@@ -656,7 +678,21 @@ h2{font-size:clamp(21px,3vw,30px)}
 .stat .v{font-family:var(--mono);font-size:19px;color:var(--ink);margin-top:3px}
 .stat.hot .v{color:var(--warm)} .stat.cool .v{color:var(--cool)} .stat.grn .v{color:var(--green)}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-@media(max-width:760px){.two{grid-template-columns:1fr}}
+@media(max-width:760px){
+  .two{grid-template-columns:1fr}
+  :root{--locbar-h:44px}
+  .loc-bar{padding:7px 0}
+  .loc-sub{display:none}
+  .loc-btn{font-size:12px;padding:4px 10px}
+  .ctl-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;
+    background:none;border:none;color:var(--muted);font-family:var(--mono);font-size:12px;
+    text-transform:uppercase;letter-spacing:.05em;padding:8px 20px;cursor:pointer}
+  .ctl-toggle.open .ctl-arrow{transform:rotate(180deg)}
+  .ctl-body{overflow:hidden;max-height:0;transition:max-height .35s ease}
+  .ctl-body.open{max-height:600px}
+  .ctl{min-width:140px;flex-basis:140px}
+  .controls .wrap{padding:10px 16px 14px;gap:14px 20px}
+}
 .cap{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:8px}
 .pill{display:inline-block;font-family:var(--mono);font-size:11px;color:var(--muted);border:1px solid var(--line);
   border-radius:20px;padding:3px 10px;margin:2px 4px 2px 0}
@@ -696,6 +732,14 @@ table.src th{font-family:var(--mono);font-size:11px;text-transform:uppercase;let
 table.src td.mono{font-family:var(--mono);font-size:12px;color:var(--muted)}
 .note{background:#0e1a28;border:1px solid var(--line);border-left:3px solid var(--warm);border-radius:8px;padding:13px 15px;color:#cbd8e3;font-size:14px;margin-top:14px}
 footer{padding:40px 0 70px;color:var(--muted);font-family:var(--mono);font-size:12px}
+/* Location bar */
+.loc-bar{background:#0a1018;border-bottom:1px solid var(--line);padding:10px 0;position:sticky;top:0;z-index:100}
+.loc-bar .wrap{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.loc-label{color:var(--muted);font-family:var(--mono);font-size:12px;margin-right:4px}
+.loc-btn{background:#142030;border:1px solid var(--line);color:#a8c0d8;font-family:var(--sans);font-size:13px;padding:5px 14px;border-radius:20px;cursor:pointer;transition:all .15s}
+.loc-btn:hover{background:#1c3050;border-color:#3a6090;color:#e0ecf8}
+.loc-btn.active{background:#1a4a7a;border-color:#3a82c4;color:#e8f4ff;font-weight:600}
+.loc-sub{color:var(--muted);font-family:var(--mono);font-size:11px;margin-left:8px}
 `;
 
 
@@ -708,7 +752,10 @@ export default function App() {
   const [showCorridor, setShowCorridor] = useState(true);
   const [extrapYear, setExtrapYear] = useState(2050);
   const [phenMode, setPhenMode] = useState('proxy');
+  const [location, setLocation] = useState('münchen');
+  const [ctlOpen, setCtlOpen] = useState(true);
 
+  useEffect(() => { if(window.innerWidth <= 760) setCtlOpen(false); }, []);
   useEffect(() => { renderStripes(); renderHeatmap(); }, []);
   useEffect(() => {
     state.startYear = startYear; state.showExtrap = showExtrap; state.showCorridor = showCorridor; state.extrapYear = extrapYear;
@@ -723,6 +770,21 @@ export default function App() {
     renderDecades(); renderExtremes(); renderProjection(); renderMonthTrend();
   }, [extrapYear, showExtrap]);
   useEffect(() => { state.month = month; renderSeasonal(); renderMonthTrend(); }, [month]);
+  useEffect(() => {
+    state.location = location;
+    loadLocation(location);
+    const hasPhen = LOCATIONS[location].hasPhen;
+    const newPhenMode = hasPhen ? phenMode : 'proxy';
+    state.phenMode = newPhenMode;
+    if(!hasPhen) setPhenMode('proxy');
+    renderStripes(); renderHeatmap();
+    renderTrend(); renderDecades(); renderExtremes();
+    renderProjection(); renderMonthTrend(); renderSeasonal();
+    renderPhenology();
+  }, [location]);
+
+  // Keep module globals in sync with current location for JSX rendering
+  loadLocation(location);
 
   const thrLabel = threshold.toFixed(1).replace(".", ",") + " °C";
 
@@ -730,11 +792,21 @@ export default function App() {
     <div className="root">
       <style>{CSS}</style>
 
+      <div className="loc-bar"><div className="wrap">
+        <span className="loc-label">Standort:</span>
+        {Object.entries(LOCATIONS).map(([key,loc])=>(
+          <button key={key} className={'loc-btn'+(location===key?' active':'')} onClick={()=>setLocation(key)}>
+            {loc.label}
+          </button>
+        ))}
+        <span className="loc-sub">{LOCATIONS[location].subtitle}</span>
+      </div></div>
+
       <header className="hero"><div className="wrap">
-        <div className="eyebrow">Klima-Observatorium · München-Maxvorstadt</div>
-        <h1>München wird <em>wärmer</em> —<br/>und die Saison verschiebt sich.</h1>
-        <div className="stamp">Stand 18.06.2026 (MESZ) · interaktiv (React) · Extremwerte DWD 1982–2025 · Datenstand siehe Quellenprotokoll</div>
-        <p className="thesis">Jede Säule ist ein Jahr von <b>1982</b> bis <b>2025</b>, eingefärbt nach der Abweichung des Jahresmittels von der Basisperiode 1982–2010 — blau kühler, rot wärmer. Die warme Seite häuft sich klar in den letzten beiden Jahrzehnten.</p>
+        <div className="eyebrow">Klima-Observatorium · {LOCATIONS[location].label}</div>
+        <h1>{LOCATIONS[location].label} wird <em>wärmer</em> —<br/>und die Saison verschiebt sich.</h1>
+        <div className="stamp">Stand 18.06.2026 (MESZ) · interaktiv (React) · {LOCATIONS[location].subtitle} · Datenstand siehe Quellenprotokoll</div>
+        <p className="thesis">Jede Säule ist ein Jahr, eingefärbt nach der Abweichung des Jahresmittels von der Basisperiode 1982–2010 — blau kühler, rot wärmer. Die warme Seite häuft sich klar in den letzten beiden Jahrzehnten.</p>
         <div className="stripewrap">
           <div id="stripes"></div>
           <div className="striplab"><span id="stripeStart"></span><span>Wärmestreifen · Jahresmittel-Anomalie</span><span id="stripeEnd"></span></div>
@@ -742,28 +814,36 @@ export default function App() {
         <div className="legend"><span>kühler</span><span className="legbar"></span><span>wärmer</span><span>· Basis 1982–2010</span></div>
       </div></header>
 
-      <div className="controls"><div className="wrap">
-        <div className="ctl">
-          <label>Trend-Analyse ab Jahr · <span className="val">{startYear}</span></label>
-          <input type="range" min="1982" max="2010" step="1" value={startYear} onChange={(e) => setStartYear(+e.target.value)} />
+      <div className="controls">
+        <button className={`ctl-toggle${ctlOpen?' open':''}`} onClick={()=>setCtlOpen(o=>!o)}>
+          <span>Regler &amp; Optionen</span>
+          <span className="ctl-arrow">▾</span>
+        </button>
+        <div className={`ctl-body${ctlOpen?' open':''}`}>
+          <div className="wrap">
+            <div className="ctl">
+              <label>Trend-Analyse ab Jahr · <span className="val">{startYear}</span></label>
+              <input type="range" min="1982" max="2010" step="1" value={startYear} onChange={(e) => setStartYear(+e.target.value)} />
+            </div>
+            <div className="ctl">
+              <label>Schwelle therm. Saison · <span className="val">{thrLabel}</span></label>
+              <input type="range" min="4" max="12" step="0.5" value={threshold} onChange={(e) => setThreshold(+e.target.value)} />
+            </div>
+            <div className="ctl">
+              <label>Monat (Saison-Detail) · <span className="val">{MONTHS[month - 1]}</span></label>
+              <input type="range" min="1" max="12" step="1" value={month} onChange={(e) => setMonth(+e.target.value)} />
+            </div>
+            <div className="ctl">
+              <label>Prognose-Zieljahr · <span className="val">{extrapYear}</span></label>
+              <input type="range" min="2026" max="2100" step="1" value={extrapYear} onChange={(e) => setExtrapYear(+e.target.value)} />
+            </div>
+            <div className="checks">
+              <label><input type="checkbox" checked={showExtrap} onChange={(e) => setShowExtrap(e.target.checked)} /> Extrapolation anzeigen</label>
+              <label><input type="checkbox" checked={showCorridor} onChange={(e) => setShowCorridor(e.target.checked)} /> Modellkorridor</label>
+            </div>
+          </div>
         </div>
-        <div className="ctl">
-          <label>Schwelle therm. Saison · <span className="val">{thrLabel}</span></label>
-          <input type="range" min="4" max="12" step="0.5" value={threshold} onChange={(e) => setThreshold(+e.target.value)} />
-        </div>
-        <div className="ctl">
-          <label>Monat (Saison-Detail) · <span className="val">{MONTHS[month - 1]}</span></label>
-          <input type="range" min="1" max="12" step="1" value={month} onChange={(e) => setMonth(+e.target.value)} />
-        </div>
-        <div className="ctl">
-          <label>Prognose-Zieljahr · <span className="val">{extrapYear}</span></label>
-          <input type="range" min="2026" max="2100" step="1" value={extrapYear} onChange={(e) => setExtrapYear(+e.target.value)} />
-        </div>
-        <div className="checks">
-          <label><input type="checkbox" checked={showExtrap} onChange={(e) => setShowExtrap(e.target.checked)} /> Extrapolation anzeigen</label>
-          <label><input type="checkbox" checked={showCorridor} onChange={(e) => setShowCorridor(e.target.checked)} /> Modellkorridor</label>
-        </div>
-      </div></div>
+      </div>
 
       <main className="wrap">
         <section>
@@ -788,7 +868,7 @@ export default function App() {
 
         <section>
           <div className="sec-h"><span className="sec-n">02</span><h2>Extremwerte — was {extrapYear} zu erwarten ist</h2></div>
-          <p className="lead">Offizielle Jahres-Extreme der DWD-Station München-Stadt (03379, 1982–2025): heißester Tag (TXK), kälteste Nacht (TNK) und Zahl der Hitzetage (≥30 °C) je Jahr, mit linearem Trend und gestrichelter Extrapolation bis zum Zieljahr. <b>2025 war mit 38 Hitzetagen ein neuer Rekord.</b> Wichtig: Einzeljahre streuen stark (niedriges R²) — die Linie ist die <i>Erwartung</i>, kein sicher eintretender Wert.</p>
+          <p className="lead">Offizielle Jahres-Extreme der DWD-Station {LOCATIONS[location].subtitle}: heißester Tag (TXK), kälteste Nacht (TNK) und Zahl der Hitzetage (≥30 °C) je Jahr ({EXT.years[0]}–{EXT.years[EXT.years.length-1]}), mit linearem Trend und gestrichelter Extrapolation bis zum Zieljahr. <b>Rekord: {EXT.rec.daysV} Hitzetage ({EXT.rec.daysY}).</b> Wichtig: Einzeljahre streuen stark (niedriges R²) — die Linie ist die <i>Erwartung</i>, kein sicher eintretender Wert.</p>
           <div className="card">
             <div id="extTemp" className="chart"></div>
             <div className="stats">
@@ -797,7 +877,7 @@ export default function App() {
               <div className="stat hot"><div className="k">Trend Tageshitze</div><div className="v" id="exHotTrend">–</div></div>
               <div className="stat cool"><div className="k">Trend Nachtkälte</div><div className="v" id="exColdTrend">–</div></div>
             </div>
-            <div className="cap">Orange = heißester Tag, blau = kälteste Nacht (DWD München-Stadt). Die kälteste Nacht erwärmt sich (wird seltener streng), der heißeste Tag steigt — beide Trends mit großer Streuung. Reihe nun vollständig 1982–2025.</div>
+            <div className="cap">Orange = heißester Tag, blau = kälteste Nacht. Kälteste Nacht erwärmt sich, heißester Tag steigt — beide Trends mit großer Streuung. Station: {LOCATIONS[location].subtitle}, {EXT.years[0]}–{EXT.years[EXT.years.length-1]}.</div>
           </div>
           <div className="card">
             <h3 style={{fontSize:"15px",marginBottom:"8px"}}>Hitzetage ≥ 30 °C pro Jahr</h3>
@@ -808,7 +888,7 @@ export default function App() {
               <div className="stat"><div className="k">Rekord heißester Tag</div><div className="v" id="exRecHot">–</div></div>
               <div className="stat"><div className="k">Rekord meiste Hitzetage</div><div className="v" id="exRecDays">–</div></div>
             </div>
-            <div className="note"><b>Einordnung:</b> Die Kennwerte oben gelten für das gewählte Zieljahr (Slider). Einzeljahre streuen weit um den Trend — die Werte sind statistische Erwartungen, keine Punktprognosen. Reihe: DWD München-Stadt (03379), 1982–2025; amtlicher Gesamtrekord München-Stadt: 37,5 °C (27.07.1983) bzw. −30,5 °C (22.01.1942).</div>
+            <div className="note"><b>Einordnung:</b> Die Kennwerte oben gelten für das gewählte Zieljahr (Slider). Einzeljahre streuen weit um den Trend — die Werte sind statistische Erwartungen, keine Punktprognosen. Rekord heißester Tag: {EXT.rec.hotV.toFixed(1)} °C ({EXT.rec.hotY}) · Rekord kälteste Nacht: {EXT.rec.coldV.toFixed(1)} °C ({EXT.rec.coldY}). Station: {LOCATIONS[location].subtitle}.</div>
           </div>
         </section>
 
@@ -828,9 +908,11 @@ export default function App() {
           }</p>
           <div className="checks" style={{marginBottom:"16px"}}>
             <label><input type="radio" name="phenMode" checked={phenMode==='proxy'} onChange={()=>setPhenMode('proxy')} /> Temperatur-Proxy</label>
-            <label><input type="radio" name="phenMode" checked={phenMode==='dwd'} onChange={()=>setPhenMode('dwd')} /> DWD-Phänologie (real)</label>
+            <label style={{opacity:LOCATIONS[location].hasPhen?1:0.4}}>
+              <input type="radio" name="phenMode" checked={phenMode==='dwd'} onChange={()=>setPhenMode('dwd')} disabled={!LOCATIONS[location].hasPhen} /> DWD-Phänologie (real){!LOCATIONS[location].hasPhen&&' — nur München'}
+            </label>
           </div>
-          {phenMode==='proxy' && <div className="note" style={{marginBottom:"16px"}}><b>Tipp:</b> Schalte auf „DWD-Phänologie" um für echte Beobachtungsdaten (Spitz-Ahorn, Stiel-Eiche, Sommer-Linde) von 45 Münchener Beobachterstationen, 1982–2025.</div>}
+          {phenMode==='proxy' && LOCATIONS[location].hasPhen && <div className="note" style={{marginBottom:"16px"}}><b>Tipp:</b> Schalte auf „DWD-Phänologie" um für echte Beobachtungsdaten (Spitz-Ahorn, Stiel-Eiche, Sommer-Linde) von 45 Münchener Beobachterstationen, 1982–2025.</div>}
           <div className="card">
             <div id="phen" className="chart"></div>
             <div className="stats">
@@ -853,7 +935,7 @@ export default function App() {
 
         <section>
           <div className="sec-h"><span className="sec-n">05</span><h2>Niederschlag, Sonne & UV</h2></div>
-          <p className="lead">Jahresgang der aktuellen Klimatologie (Station München-Stadt, Basis 06/2021–05/2026). Balken links = Niederschlag (mm), Linie = Regentage; rechts Balken = UV-Index (typischer wolkenfreier Tageshöchstwert), Linie = Sonnenstunden. Den Detail-Monat wählt der „Monat"-Regler oben.</p>
+          <p className="lead">Jahresgang der aktuellen Klimatologie ({LOCATIONS[location].subtitle}, Mittel letzte 5 verfügbare Jahre). Balken links = Niederschlag (mm), Linie = Regentage; rechts Balken = UV-Index (typischer wolkenfreier Tageshöchstwert), Linie = Sonnenstunden. Den Detail-Monat wählt der „Monat"-Regler oben.</p>
           <div className="two">
             <div className="card"><h3 style={{fontSize:"15px",marginBottom:"8px"}}>Niederschlag & Regentage</h3><div id="precip" className="chart"></div></div>
             <div className="card"><h3 style={{fontSize:"15px",marginBottom:"8px"}}>UV-Index & Sonnenstunden</h3><div id="uv" className="chart"></div></div>
