@@ -13,6 +13,7 @@ A collection of small, self-contained experiments. Each subfolder is one experim
 - [jq-lightning-talk](jq-lightning-talk/) — A reveal.js slide deck about jq, its Turing-completeness, and the family of alternative implementations (gojq, jaq, fq, faq).
 - [esp32-iot-lightning-talk](esp32-iot-lightning-talk/) — A 5-minute reveal.js slide deck on using an ESP32 as an IoT sensor, shipping data to InfluxDB, and shipping firmware with OTA updates.
 - [climate-report](climate-report/) — Interactive climate-trend dashboard for Munich (warming trend with extrapolation to 2036, extremes, monthly heatmap, precipitation/sun/UV), built from real LMU and DWD data.
+- [gebrauchtwagen-kompass](gebrauchtwagen-kompass/) — Interactive used-car comparison dashboard (German) in a marine-compass theme: speed-dependent fuel curves, total cost of ownership, reliability dots and scale silhouettes.
 
 ## How the site is built
 

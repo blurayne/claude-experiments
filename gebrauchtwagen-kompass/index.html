@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gebrauchtwagen-Kompass</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/prop-types@15/prop-types.min.js"></script>
+<script src="https://unpkg.com/recharts@2/umd/Recharts.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  html,body{margin:0;background:#0E1519}
+  #root{min-height:100vh}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useMemo } = React;
+const {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine,
+} = Recharts;
+
+
+/*  GEBRAUCHTWAGEN-KOMPASS  ·  für Markus
+    Profil: ~6.000 km/Jahr (≈500 km/Monat), Stadt + Autobahn, Kurzausflüge bis 80 km,
+    Außenparker (keine Garage), Budget ≤ 14.000 €, Wunsch: ruhiges Fahrwerk auf der
+    Autobahn, Schlafoption, maximale Zuverlässigkeit, viel Auto fürs Geld.
+
+    Alle €-Werte sind Marktrichtwerte (Stand Juni 2026, mobile.de / AutoScout24 / ADAC).
+    Verbrauch Stadt + 120/140/160/175 km/h: Stützpunkte aus ADAC-EcoTest, Tests und
+    Forenwerten; die Hochgeschwindigkeitspunkte sind teils physikalisch interpoliert
+    (klar als Schätzung gekennzeichnet). Sprit: Super E10 1,72 €/L, Diesel 1,65 €/L. */
+
+// ---------- Palette (Instrument / Marine-Kompass) ----------
+const C = {
+  bg: "#0E1519", panel: "#15201F", panelHi: "#1B2A2A", line: "#26383A",
+  ink: "#E7EFEF", dim: "#8AA0A1", faint: "#5C7172",
+  needle: "#E0533D", eco: "#38C7A6", amber: "#E8B23A", good: "#5FB87A", bad: "#D9655A",
+};
+
+// ---------- Fahrzeugdaten ----------
+const VEH = [
+  {
+    id: "auris-hyb", name: "Toyota Auris TS 1.8 Hybrid", short: "Auris Hybrid",
+    body: "Kombi", motor: "1.8 VVT-i Hybrid · 136 PS · eCVT", color: C.eco,
+    priceNew: 25500, priceNow: 12500,
+    tax: 50, service: 330, insBase: 2460, real: 4.9, fuel: "Super", fuelP: 1.72,
+    cons: { Stadt: 4.2, "120": 5.4, "140": 6.5, "160": 7.9, "175": 9.2 },
+    boot: 530, bootMax: 1658, sleep: 3, quiet: 3, rel: 5,
+    outdoor: "Unkritisch. Nur 12-V-Batterie kann bei langer Standzeit + Kurzstrecke schwächeln – alle ~2 Wochen 30 min fahren oder Erhaltungslader.",
+    faults: ["So gut wie keine Motorschäden – Hybridsystem ist seit 20+ Jahren bewährt",
+      "Bremsscheiben können oberflächlich rosten, weil Rekuperation kaum bremst (Außenparker)",
+      "12-V-Stützbatterie ist Verschleißteil bei viel Standzeit"],
+    forum: "„Im Schnitt 3,5–5 L, immer unter 5.“ Klassiker für Kurzstrecke. Auf der Autobahn dröhnt der Benziner unter Last bei hoher Drehzahl – das ist der Hauptkritikpunkt für viel-AB-Fahrer.",
+    fit: "Zuverlässigkeit & Unterhalt top, Außenparker unkritisch. Schwäche genau bei deinem AB-Wunsch: eCVT-Dröhnen bei zügigem Tempo.",
+  },
+  {
+    id: "auris-12t", name: "Toyota Auris TS 1.2 Turbo", short: "Auris 1.2T",
+    body: "Kombi", motor: "1.2 Turbo (8NR-FTS) · 116 PS · Schalt/Multidrive", color: "#7FD4B0",
+    priceNew: 22500, priceNow: 11000,
+    tax: 90, service: 360, insBase: 2380, real: 6.4, fuel: "Super", fuelP: 1.72,
+    cons: { Stadt: 6.8, "120": 5.8, "140": 6.8, "160": 8.2, "175": 9.6 },
+    boot: 530, bootMax: 1658, sleep: 3, quiet: 4, rel: 4,
+    outdoor: "Unkritisch.",
+    faults: ["Zündspulen-Serienfehler bei Modellen bis Mitte 2018 (auf Reparaturhistorie achten)",
+      "Direkteinspritzer → Verkokung der Einlassventile bei viel Kurzstrecke",
+      "Kettenlängung erst bei sehr hoher Laufleistung berichtet"],
+    forum: "Englische Foren mögen den Motor, deutsche sind kritischer („Direkteinspritzer ist der unzuverlässigste Toyota-Benziner“). In der Praxis 5,7–6,0 L, läuft auf der AB ruhiger als der Hybrid und schafft 200.",
+    fit: "Ruhiger auf der Autobahn als der Hybrid, aber der einzige Toyota-Benziner mit echten Schwachstellen. Nur mit dokumentierter Zündspulen-Historie kaufen.",
+  },
+  {
+    id: "octavia", name: "Škoda Octavia Combi III 1.5 TSI", short: "Octavia Combi",
+    body: "Kombi (Klassenbester Laderaum)", motor: "1.5 TSI ACT · 150 PS · Schalt/DSG", color: "#5B8FF9",
+    priceNew: 29000, priceNow: 13500,
+    tax: 120, service: 460, insBase: 2620, real: 7.0, fuel: "Super", fuelP: 1.72,
+    cons: { Stadt: 6.9, "120": 6.2, "140": 7.5, "160": 9.0, "175": 10.5 },
+    boot: 610, bootMax: 1740, sleep: 4, quiet: 4, rel: 3.5,
+    outdoor: "Unkritisch.",
+    faults: ["1.5 TSI: Ruckeln/Konstantfahr-Aussetzer im Teillastbereich (Software/Update) bei frühen Baujahren",
+      "DSG7 (DQ200): Mechatronik teuer – Schalter ist langzeitrobuster",
+      "Verkokung Direkteinspritzer; Wasserpumpe"],
+    forum: "„Technisch keine Probleme, Platz ohne Ende, Verbrauch ~6,1 L.“ Kritik: etwas lauter & polternder auf der Autobahn als ein Golf. Riesiger, sehr gut nutzbarer Kofferraum.",
+    fit: "Das Raum- und Schlafwunder. Bestes Platz/Preis-Verhältnis. Abzug nur bei Zuverlässigkeit (1.5 TSI/DSG) – Schaltgetriebe + Servicehistorie reduzieren das Risiko deutlich.",
+  },
+  {
+    id: "civic", name: "Honda Civic Tourer 1.8 i-VTEC", short: "Civic Tourer",
+    body: "Kombi (Lademeister)", motor: "1.8 i-VTEC (R18) · 142 PS · Schalt/Automatik", color: C.needle,
+    priceNew: 22000, priceNow: 12000,
+    tax: 160, service: 400, insBase: 2540, real: 7.3, fuel: "Super", fuelP: 1.72,
+    cons: { Stadt: 7.5, "120": 6.6, "140": 7.9, "160": 9.4, "175": 10.9 },
+    boot: 624, bootMax: 1668, sleep: 5, quiet: 3, rel: 5,
+    outdoor: "Unkritisch.",
+    faults: ["Hinten erhöhter Bremsverschleiß / Sattel-Themen",
+      "Viel Hartplastik, Motor bei hoher Drehzahl laut",
+      "Ventilspiel alle 100.000 km prüfen lassen (~ab 150 €) – sonst quasi unzerstörbar"],
+    forum: "„Über 100 Tkm, keine Pannen.“ R18-Motor ist auf 300.000+ km ausgelegt. Magic Seats + topfebener Ladeboden = bester zum Schlafen. Nachteil: bei Drehzahl laut, hart gefedert.",
+    fit: "Zuverlässigkeit wie der Toyota, klar bester zum Schlafen (planer Boden, Unterflurfach). Kostet dich aber Autobahn-Ruhe (lauter Motor).",
+  },
+  {
+    id: "ceed", name: "Kia Ceed SW (CD)", short: "Kia Ceed SW",
+    body: "Kombi", motor: "1.4 / 1.5 T-GDI · 140–160 PS · Schalt/DCT", color: "#C77DFF",
+    priceNew: 24000, priceNow: 14000,
+    tax: 110, service: 380, insBase: 2540, real: 7.0, fuel: "Super", fuelP: 1.72,
+    cons: { Stadt: 7.2, "120": 6.4, "140": 7.6, "160": 9.1, "175": 10.6 },
+    boot: 528, bootMax: 1642, sleep: 4, quiet: 4, rel: 4,
+    outdoor: "Unkritisch.",
+    faults: ["Rückrufe: Gurtstraffer vorn, drohender Ausfall Bremskraftverstärker (Historie prüfen)",
+      "Auto-Hold zickt gelegentlich; Bremsscheiben relativ früh",
+      "T-GDI-Turbo noch wenig Langzeiterfahrung"],
+    forum: "Komfortables, sicheres Fahrwerk, gute Materialqualität, schlug 2018 den Golf im Vergleichstest. Trumpf: 7 Jahre / 150.000 km Werksgarantie – läuft beim Gebrauchten weiter (Inspektionen müssen lückenlos sein!).",
+    fit: "Einziger mit Rest-Werksgarantie – das nimmt dir das Reparaturrisiko ab. Ruhiges, komfortables Fahrwerk. Junge Modelle kratzen am Budget; ältere ED/JD-Generation deutlich günstiger.",
+  },
+  {
+    id: "duster", name: "Dacia Duster II", short: "Dacia Duster",
+    body: "Kompakt-SUV", motor: "1.6 SCe 115 / 1.3 TCe 130 · Schalt", color: C.amber,
+    priceNew: 17400, priceNow: 11000,
+    tax: 110, service: 360, insBase: 2300, real: 7.6, fuel: "Super", fuelP: 1.72,
+    cons: { Stadt: 8.5, "120": 7.2, "140": 8.7, "160": 10.8, "175": 12.4 },
+    boot: 445, bootMax: 1478, sleep: 3, quiet: 2, rel: 3,
+    outdoor: "Unkritisch, hohe Bodenfreiheit ist im Winter ein Plus.",
+    faults: ["TÜV: überdurchschnittlich – ausgeschlagene Spurstangenköpfe, Lenkgelenke, Abblend-/Rückleuchten",
+      "Innenraumqualität: früher Verschleiß an Sitzen/Verkleidung, lose Clips; dünner Lack/Rost (nicht HU-relevant)",
+      "Rückrufe (Anlasser-Überhitzung, ABS-Verkabelung); Motoren 1.6 SCe/1.5 dCi selbst aber robust"],
+    forum: "„Lieber 2 Duster als einen für 30.000 €.“ Viel Auto/Platz fürs Geld, aber spürbar einfacher: ab ~130 laut & windanfällig, weiches Fahrwerk wankt. Beliebt zum Campen wegen Bodenfreiheit, aber kein planer Schlafboden.",
+    fit: "Günstigster Einstieg & robuste Basismotoren, aber genau das Gegenteil deines AB-Ruhe-Wunschs (laut, hoch, windig). Höchste Mängelquote der Runde. Eher Zweitwagen-Logik.",
+  },
+  {
+    id: "insignia", name: "Opel Insignia Sports Tourer A", short: "Insignia ST",
+    body: "Mittelklasse-Kombi (groß)", motor: "1.6 SIDI Turbo 170 PS / 1.4 T", color: "#6FB1FC",
+    priceNew: 31000, priceNow: 9000,
+    tax: 140, service: 500, insBase: 2850, real: 7.8, fuel: "Super", fuelP: 1.72,
+    cons: { Stadt: 8.5, "120": 6.8, "140": 8.2, "160": 9.8, "175": 11.3 },
+    boot: 540, bootMax: 1530, sleep: 4, quiet: 5, rel: 3.5,
+    outdoor: "Unkritisch.",
+    faults: ["Steuerkette bei einigen Benzinern beachten; Wasserpumpe/Thermostat",
+      "Fahrwerk/Elektronik-Reparaturen teurer als beim Kompakten",
+      "Ersatzteile günstig, aber Werkstattstunden summieren sich"],
+    forum: "Mittelklasse-Komfort zum Kleinwagenpreis. Sehr satte, ruhige Langstrecke – der leiseste Cruiser hier. Großer Kofferraum. Dafür höhere Unterhaltskosten und mehr potenzielle Baustellen als ein Toyota/Honda.",
+    fit: "Trifft deinen AB-Ruhe-Wunsch am besten und ist mit ~9.000 € extrem viel Auto fürs Geld. Preis dafür: höhere Unterhalts-/Reparaturkosten und mittlere Zuverlässigkeit.",
+  },
+  {
+    id: "golfsv", name: "VW Golf Sportsvan 1.5 TSI", short: "Golf Sportsvan",
+    body: "Hochdach-Kompaktvan", motor: "1.5 TSI ACT · 150 PS · Schalt/DSG", color: "#9AA7B0",
+    priceNew: 28000, priceNow: 12500,
+    tax: 120, service: 450, insBase: 2620, real: 6.9, fuel: "Super", fuelP: 1.72,
+    cons: { Stadt: 6.9, "120": 6.1, "140": 7.4, "160": 8.9, "175": 10.4 },
+    boot: 500, bootMax: 1520, sleep: 3.5, quiet: 4, rel: 4,
+    outdoor: "Unkritisch.",
+    faults: ["1.4/1.5 TSI: frühe 1.4 mit Steuerketten-Thema; 1.5 mit Ruckeln (Update)",
+      "DSG7 Mechatronik – Schalter robuster",
+      "Sonst solide; mehrfacher TÜV-Gesamtsieger"],
+    forum: "Hohe, bequeme Sitzposition, super Übersicht, TÜV-Dauergewinner. Fährt sich erwachsen und ruhig. Kein klassischer Kombi-Laderaum, aber variabel. Schlafen wegen Kürze/Höhe nur mittel.",
+    fit: "Mechanisch der reifste VW-Konzern-Kandidat (TÜV-Sieger), ruhig & übersichtlich. Laderaum/Schlaf schlechter als Octavia/Civic; TSI/DSG bleibt das Restrisiko.",
+  },
+  {
+    id: "a4avant", name: "Audi A4 Avant B9 35 TFSI", short: "A4 Avant",
+    body: "Premium-Mittelklasse-Kombi", motor: "2.0 TFSI · 150 PS · Schalt/S tronic", color: "#F2845C",
+    priceNew: 36000, priceNow: 14000,
+    tax: 150, service: 560, insBase: 3150, real: 7.4, fuel: "Super", fuelP: 1.72,
+    cons: { Stadt: 8.0, "120": 6.5, "140": 7.8, "160": 9.2, "175": 10.6 },
+    boot: 505, bootMax: 1510, sleep: 4, quiet: 5, rel: 4,
+    outdoor: "Unkritisch.",
+    faults: ["EA888-Generationen: frühe mit Ölverbrauch/Steuerkette – B9 ab 2016 weitgehend entschärft",
+      "Teure Ersatzteile & Werkstattstunden",
+      "Hochwertig verarbeitet, dadurch wenig Klappern/Verschleiß innen"],
+    forum: "Premium-Laufruhe, sehr ruhiges & sattes Fahrwerk – zusammen mit dem Insignia der leiseste Langstreckler. Hohe Verarbeitungsqualität. Nachteil: Reparaturen am teuersten, am Budget-Limit nur mit höherer Laufleistung.",
+    fit: "Höchste Autobahn-Ruhe + Wertanmutung. Aber: am Budget-Rand bekommst du nur ältere/laufleistungsstarke Exemplare, und Reparaturen sind die teuersten der Runde.",
+  },
+];
+
+// ---------- Laderaum-/Schlafmaße (Praxis-Richtwerte) ----------
+const DIMS = {
+  "auris-hyb": { len: "≈1,55 m", h: "≈0,72 m", note: "Solide, aber Boden mit Stufe und am kürzeren Ende. Zum Schlafen eher eine Person diagonal + Auflage." },
+  "auris-12t": { len: "≈1,55 m", h: "≈0,72 m", note: "Wie Hybrid: Stufe im Boden, kürzeres Ende. Diagonal liegen + Auflage." },
+  "octavia": { len: "≈1,95 m", h: "≈0,75 m", note: "Längster + größter. Mit Doppelboden fast plan – der Einzige, in dem man fast gestreckt liegt (Beifahrersitz vor: >2,1 m)." },
+  "civic": { len: "≈1,65 m", h: "≈0,75 m", note: "Bester Boden: Magic Seats → topfeben, niedrige Kante, Doppelboden absenkbar. Foren bestätigen Übernachtung – aber kurz, also diagonal." },
+  "ceed": { len: "≈1,75 m", h: "≈0,72 m", note: "Gut nutzbar, leichte Stufe, ordentliche Länge. Mittelfeld zum Schlafen." },
+  "duster": { len: "≈1,60 m", h: "≈0,80 m", note: "Kurzer, nicht ganz planer Boden mit Stufe; dafür hoch. Beliebt fürs Campen wegen Bodenfreiheit – nur mit Matratzenauflage." },
+  "insignia": { len: "≈1,85 m", h: "≈0,70 m", note: "Lang + breit (Mittelklasse). Gute Liegefläche, aber Stufe; flach → kein Aufsitzen." },
+  "golfsv": { len: "≈1,60 m", h: "≈0,85 m", note: "Hoch → man kann sitzen, aber kurz → liegen nur diagonal. Variabel dank verschiebbarer Rückbank." },
+  "a4avant": { len: "≈1,75 m", h: "≈0,72 m", note: "Hochwertig, eben mit Umklapphilfe. Gute Länge, aber kein XXL-Volumen. Premium-Liegefläche." },
+};
+
+const SPEEDS = ["Stadt", "120", "140", "160", "175"];
+
+// ---------- echte Außenmaße (m) + Karosserietyp für maßstabsgetreue Silhouetten ----------
+const SIZE = {
+  "auris-hyb": { l: 4.57, h: 1.47, t: "wagon" },
+  "auris-12t": { l: 4.57, h: 1.47, t: "wagon" },
+  "octavia": { l: 4.66, h: 1.47, t: "wagon" },
+  "civic": { l: 4.59, h: 1.48, t: "wagon" },
+  "ceed": { l: 4.60, h: 1.47, t: "wagon" },
+  "duster": { l: 4.34, h: 1.69, t: "suv" },
+  "insignia": { l: 4.91, h: 1.50, t: "wagon" },
+  "golfsv": { l: 4.34, h: 1.58, t: "van" },
+  "a4avant": { l: 4.73, h: 1.43, t: "wagon" },
+};
+
+// ---------- Prioritäten (Kompass-Gewichtung) ----------
+const PRIO = [
+  { key: "rel", label: "Zuverlässigkeit", def: 5 },
+  { key: "cost", label: "Niedrige Kosten", def: 4 },
+  { key: "quiet", label: "Autobahn-Ruhe", def: 4 },
+  { key: "sleep", label: "Schlafoption", def: 3 },
+  { key: "boot", label: "Kofferraum", def: 3 },
+  { key: "budget", label: "Budget-Fit ≤14k", def: 4 },
+];
+
+// Versicherung & laufende Jahreskosten
+const COVF = { hp: 0.47, tk: 1.0, vk: 1.75 }; // Haftpflicht / Teilkasko / Vollkasko
+const INSURERS = [
+  { id: "concordia", name: "Concordia", f: 1.0, tag: "deine Wahl", note: "Filialversicherer (Hannover), faire Prämien & guter Service. Tarife Classic/Premium. Im Norden am stärksten – in München solide, aber selten der billigste." },
+  { id: "huk24", name: "HUK24", f: 0.85, tag: "günstigster Großer", note: "Online-Testsieger 2026, bestes Preis-Leistungs-Verhältnis am Markt. HUK-Coburg mit Geschäftsstelle, wenn du Beratung willst." },
+  { id: "cosmos", name: "CosmosDirekt", f: 0.88, tag: "Direkt · Top P/L", note: "Größter Direktversicherer (Generali), sehr günstig, Komfort-Tarif beste Leistung. Rein online/telefonisch." },
+  { id: "allianz", name: "Allianz", f: 1.15, tag: "Premium-Service", note: "Teurer, aber bester Schadenservice & Werkstattnetz, persönliche Beratung vor Ort. Für Sorglos-Fahrer." },
+];
+const insOf = (v, pct, cov, insF) => Math.round(v.insBase * (pct / 100) * COVF[cov] * insF);
+function annualOf(v, ins) {
+  const fuel = (v.real / 100) * 6000 * v.fuelP;
+  return Math.round(v.tax + v.service + fuel + ins);
+}
+function tcoOf(v, years, ins) { return v.priceNow + annualOf(v, ins) * years; }
+
+// 0..1 Scores für die Gewichtung (a = jährliche Laufkosten inkl. Versicherung)
+function scoreParts(v, a) {
+  const maxBoot = 1740, cheapest = 1300;
+  return {
+    rel: v.rel / 5,
+    cost: Math.max(0, Math.min(1, (1900 - a) / (1900 - cheapest))),
+    quiet: v.quiet / 5,
+    sleep: v.sleep / 5,
+    boot: v.bootMax / maxBoot,
+    budget: v.priceNow <= 14000 ? 1 - (v.priceNow / 14000) * 0.35 : 0.15,
+  };
+}
+
+const euro = (n) => n.toLocaleString("de-DE", { maximumFractionDigits: 0 }) + " €";
+
+// ---------- kleine UI-Bausteine ----------
+function Dots({ n, color }) {
+  return (
+    <span style={{ letterSpacing: 1 }}>
+      {[1, 2, 3, 4, 5].map((i) => (
+        <span key={i} style={{ color: i <= Math.round(n) ? (color || C.eco) : C.line, fontSize: 13 }}>●</span>
+      ))}
+    </span>
+  );
+}
+
+// ---------- Kaufberatung: Vor-Ort-Checkliste ----------
+const CHECK = [
+  {
+    g: "Papiere & Historie", items: [
+      "Scheckheft / Servicenachweise lückenlos? Rechnungen für große Posten (Steuerkette, DSG, Kupplung) vorhanden",
+      "Zulassungsbescheinigung Teil II: Anzahl Vorbesitzer, FIN am Papier = FIN am Auto",
+      "HU/AU-Restlaufzeit + letzter Prüfbericht inkl. Mängelliste",
+      "Rückrufe erledigt? (Kia Gurtstraffer/Bremskraftverstärker · Dacia Anlasser/ABS · Toyota Zündspulen-Aktion bis 2018)",
+      "Restgarantie (z. B. Kia 7 J/150 tkm) nur bei lückenloser Wartung – schriftlich bestätigen lassen",
+      "Zweitschlüssel vorhanden (sonst Nachfertigung ~150–300 €)",
+    ],
+  },
+  {
+    g: "Karosserie, Lack & Rost · wichtig für Außenparker", items: [
+      "Spaltmaße rundum gleichmäßig (ungleich = Unfall-/Crashindiz)",
+      "Lackschichtdicke messen (Gerät ~20 €) – Nachlackierungen aufspüren",
+      "Rostnester: Radläufe, Schweller, Türunterkanten, Federdome, Endtopf, Tankdeckel",
+      "Dach/Heckklappe + Dichtungen (Außenparker!), Wasserablauflöcher frei",
+      "Frontscheibe: Steinschläge/Risse (HU-relevant)",
+    ],
+  },
+  {
+    g: "Motor & Probefahrt (min. 20 Min., Stadt + Autobahn)", items: [
+      "KALTSTART erleben – Motor muss bei Ankunft kalt sein („warmgefahren“ = verdächtig); kein blauer/weißer Rauch",
+      "Leerlauf: Klappern/Rasseln (Steuerkette 1.4 TSI/EA888), Nageln",
+      "Teillast-Ruckeln (1.5 TSI), DSG-Schaltschläge, Bremsen-Rubbeln, ausgeschlagene Lenkung (Duster)",
+      "Hybrid: sauberer EV↔Benzin-Wechsel, Ladeanzeige pendelt normal, kein Drehzahl-Hängen",
+      "Fehlerspeicher auslesen (OBD2 ~20 € oder Werkstatt) – kein abgeklebtes Warnsymbol",
+    ],
+  },
+  {
+    g: "Reifen & Verschleiß", items: [
+      "DOT-Nummer = Reifenalter (>6–7 J = hart/unsicher), Profil ≥ 3–4 mm",
+      "Sommer- UND Wintersatz dabei? Fehlender Satz = großer Hebel",
+      "Gleichmäßiger Verschleiß (ungleich = Fahrwerk/Spur)",
+      "Bremsscheiben: Dicke + Rostkante (Hybrid-Außenparker: Rost durch wenig Bremsen)",
+      "12-V-Batterie-Alter (Hybrid + Kurzstrecke kritisch)",
+    ],
+  },
+  {
+    g: "Innenraum & Elektronik", items: [
+      "Klima kühlt (Service fällig?), Sitzheizung, alle Fensterheber, PDC/Kamera",
+      "Infotainment/CarPlay/Android Auto, Assistenzsysteme, Auto-Hold (Kia)",
+      "Airbag-Leuchte aus, Gurte i. O., Lenkrad-/Sitzverschleiß passt zum km-Stand",
+      "Geruch: feucht/muffig = Wassereintritt/verstopfter Ablauf",
+    ],
+  },
+];
+
+const HEBEL = [
+  { t: "Fehlender Zweitsatz Reifen", s: "400–700 €", d: "Kein Winter- oder Sommersatz dabei → kompletter Radsatz auf den Tisch legen." },
+  { t: "Reifen überaltert (DOT > 6 J)", s: "300–500 €", d: "Hart = unsicher. Neue Reifen einpreisen, auch wenn Profil noch da ist." },
+  { t: "Service/Zahnriemen fällig", s: "300–900 €", d: "Zeit-Intervalle zählen trotz wenig km! Nächste Inspektion/Zahnriemen gegenrechnen." },
+  { t: "Bremsen fällig", s: "300–600 €", d: "Rubbeln oder dicke Rostkante (typisch bei Hybrid-Wenigfahrern) → Scheiben+Beläge." },
+  { t: "HU/AU mit Mängeln oder < 6 Mon.", s: "100–300 €+", d: "Mängel des letzten Berichts + nächste HU als Position aufnehmen." },
+  { t: "Zweitschlüssel fehlt", s: "150–300 €", d: "Nachfertigung + Anlernen ist teuer – klarer Abzug." },
+  { t: "Optik: Kratzer, Felgen, Dellen", s: "100–400 €", d: "Smart-Repair-Kosten konkret benennen, nicht pauschal meckern." },
+  { t: "Marktanker setzen", s: "Verhandlungsbasis", d: "2–3 günstigere, vergleichbare Inserate ausgedruckt mitbringen." },
+];
+
+const KIT = "OBD2-Adapter · Lackdicken-Messgerät · Taschenlampe · Profiltiefenmesser · Magnet (Spachtel-Test) · Handschuhe · Papier für Marktvergleich · eine zweite Person";
+
+// ---------- Außenparker-Kit: Wetterschutz ----------
+const COVERS = [
+  { t: "Kayme Vollgarage · modellgenau", p: "≈ 50–90 €", tag: "Sweet Spot", c: "#38C7A6", d: "Mehrlagig, wasserdicht + atmungsaktiv, weiche Fütterung, Windgurte, Reißverschluss an der Fahrertür. Modellversion für Auris / Corolla TS wählen." },
+  { t: "Sumex Outdoor · universell", p: "≈ 55–70 €", tag: "Günstig", c: "#8AA0A1", d: "Wasserdicht + atmungsaktiv nach Größe. Passform weniger exakt – Kombi-/XL-Größe für 4,57 m wählen." },
+  { t: "All-Weather · PEVA + Baumwolle", p: "≈ 60–100 €", tag: "Allwetter", c: "#5B8FF9", d: "Außen PEVA, innen Baumwolle (lackschonend), wasserabweisend + atmungsaktiv." },
+  { t: "Star Cover · maßgeschneidert", p: "≈ 220 €", tag: "Premium", c: "#E8B23A", d: "Passgenau, 10.000 mm wasserdicht + 3.000 g atmungsaktiv, Teflon, weiche Innenseite, Anti-Wind-Gurt. Beste Passform, teuer." },
+];
+
+function App() {
+  const [sel, setSel] = useState(() => new Set(["auris-hyb"]));
+  const [w, setW] = useState(() => Object.fromEntries(PRIO.map((p) => [p.key, p.def])));
+  const [openId, setOpenId] = useState("auris-hyb");
+  const [checked, setChecked] = useState(() => new Set());
+  const [refSel, setRefSel] = useState(() => new Set(REF.map((r) => r.id)));
+  const [sfPct, setSfPct] = useState(13);
+  const [coverage, setCoverage] = useState("tk");
+  const [insurer, setInsurer] = useState("concordia");
+  const insF = (INSURERS.find((x) => x.id === insurer) || INSURERS[0]).f;
+  const insFor = (v) => insOf(v, sfPct || 0, coverage, insF);
+  const annFor = (v) => annualOf(v, insFor(v));
+  const toggleRef = (id) =>
+    setRefSel((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const totalCheck = CHECK.reduce((a, g) => a + g.items.length, 0);
+  const toggleCheck = (id) =>
+    setChecked((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+
+  const toggle = (id) =>
+    setSel((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+
+  const shown = VEH.filter((v) => sel.has(v.id));
+  const primary = shown[0] || VEH[0];
+
+  // Ranking nach Gewichtung (über ALLE Fahrzeuge, nicht nur sichtbare)
+  const ranking = useMemo(() => {
+    const wsum = Object.values(w).reduce((a, b) => a + b, 0) || 1;
+    return VEH.map((v) => {
+      const sp = scoreParts(v, annFor(v));
+      const s = PRIO.reduce((acc, p) => acc + (w[p.key] * sp[p.key]), 0) / wsum;
+      return { v, score: s };
+    }).sort((a, b) => b.score - a.score);
+  }, [w, sfPct, coverage, insurer]);
+  const top = ranking[0];
+
+  const consData = SPEEDS.map((s) => {
+    const row = { speed: s === "Stadt" ? "Stadt" : s + " km/h" };
+    shown.forEach((v) => (row[v.id] = v.cons[s]));
+    return row;
+  });
+
+  const tcoData = Array.from({ length: 11 }, (_, y) => {
+    const row = { year: y };
+    shown.forEach((v) => (row[v.id] = Math.round(tcoOf(v, y, insFor(v)) / 1000)));
+    return row;
+  });
+
+  return (
+    <div style={{ background: C.bg, color: C.ink, minHeight: "100%", fontFamily: "'Inter',-apple-system,Segoe UI,Roboto,sans-serif" }}>
+      <style>{`
+        * { box-sizing: border-box; }
+        .num { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+        .wrap { max-width: 1060px; margin: 0 auto; padding: 18px 16px 60px; }
+        .panel { background: ${C.panel}; border: 1px solid ${C.line}; border-radius: 14px; }
+        .chip { cursor: pointer; user-select: none; border: 1px solid ${C.line}; background: ${C.panel};
+                border-radius: 999px; padding: 7px 13px; font-size: 13px; display: inline-flex; align-items: center; gap: 7px; transition: .15s; }
+        .chip:hover { border-color: ${C.faint}; }
+        .eyebrow { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: ${C.faint}; }
+        h2 { font-size: 17px; margin: 0 0 2px; font-weight: 650; }
+        table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+        th, td { padding: 9px 8px; text-align: right; border-bottom: 1px solid ${C.line}; white-space: nowrap; }
+        th:first-child, td:first-child { text-align: left; position: sticky; left: 0; background: ${C.panel}; }
+        thead th { color: ${C.dim}; font-weight: 600; font-size: 11px; }
+        input[type=range] { -webkit-appearance: none; width: 100%; height: 4px; border-radius: 3px; background: ${C.line}; outline: none; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: ${C.needle}; cursor: pointer; border: 2px solid ${C.bg}; }
+        input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: ${C.needle}; cursor: pointer; border: 2px solid ${C.bg}; }
+        .scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        @media (max-width: 640px){ .grid2 { grid-template-columns: 1fr !important; } }
+      `}</style>
+
+      <div className="wrap">
+        {/* ---------- HERO ---------- */}
+        <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 6 }}>
+          <Compass />
+          <div>
+            <div className="eyebrow">Gebrauchtwagen · Vernunft-Kompass</div>
+            <div style={{ fontSize: 26, fontWeight: 750, lineHeight: 1.05 }}>
+              Welches Auto zeigt für dich nach Norden?
+            </div>
+          </div>
+        </div>
+        <p style={{ color: C.dim, fontSize: 13.5, lineHeight: 1.6, margin: "8px 0 18px", maxWidth: 720 }}>
+          Dein Profil: <b style={{ color: C.ink }}>~6.000 km/Jahr</b> (≈500 km/Monat), Stadt + Autobahn, Ausflüge bis 80 km,
+          <b style={{ color: C.ink }}> Außenparker</b>, Budget <b style={{ color: C.ink }}>≤ 14.000 €</b>, Wunsch: ruhiges Autobahn-Fahrwerk,
+          Schlafoption, maximale Zuverlässigkeit. Verschiebe die Regler – die Nadel dreht sich mit deinen Prioritäten.
+        </p>
+
+        {/* ---------- PRIORITÄTEN + NADEL ---------- */}
+        <div className="panel" style={{ padding: 16, marginBottom: 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1.15fr 1fr", gap: 18 }} className="grid2">
+            <div>
+              <div className="eyebrow" style={{ marginBottom: 12 }}>Deine Prioritäten gewichten</div>
+              {PRIO.map((p) => (
+                <div key={p.key} style={{ marginBottom: 12 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, marginBottom: 5 }}>
+                    <span>{p.label}</span>
+                    <span className="num" style={{ color: C.needle }}>{w[p.key]}</span>
+                  </div>
+                  <input type="range" min="0" max="5" value={w[p.key]}
+                    onChange={(e) => setW({ ...w, [p.key]: +e.target.value })} />
+                </div>
+              ))}
+            </div>
+            <div>
+              <div className="eyebrow" style={{ marginBottom: 12 }}>Rangliste nach deiner Gewichtung</div>
+              {ranking.map(({ v, score }, i) => (
+                <div key={v.id} onClick={() => { setOpenId(v.id); if (!sel.has(v.id)) toggle(v.id); }}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 9, padding: "6px 8px", borderRadius: 8, cursor: "pointer",
+                    background: i === 0 ? "rgba(224,83,61,.10)" : "transparent",
+                    border: i === 0 ? `1px solid ${C.needle}55` : "1px solid transparent",
+                    marginBottom: 2,
+                  }}>
+                  <span className="num" style={{ width: 18, color: i === 0 ? C.needle : C.faint, fontSize: 13 }}>{i + 1}</span>
+                  <span style={{ width: 9, height: 9, borderRadius: 2, background: v.color, flexShrink: 0 }} />
+                  <span style={{ fontSize: 12.5, flex: 1 }}>{v.short}</span>
+                  <span style={{ width: 86, height: 6, background: C.line, borderRadius: 4, overflow: "hidden" }}>
+                    <span style={{ display: "block", height: "100%", width: `${score * 100}%`, background: i === 0 ? C.needle : C.eco }} />
+                  </span>
+                </div>
+              ))}
+              <div style={{ fontSize: 11.5, color: C.faint, marginTop: 8, lineHeight: 1.5 }}>
+                Spitzenreiter aktuell: <b style={{ color: C.ink }}>{top.v.short}</b>. Tippe einen Eintrag, um ihn zu öffnen.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ---------- FAHRZEUG-AUSWAHL ---------- */}
+        <div className="eyebrow" style={{ marginBottom: 8 }}>Fahrzeuge zu-/abschalten · wirkt auf alle Diagramme & Tabellen (außer Größenvergleich)</div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 18 }}>
+          {VEH.map((v) => {
+            const on = sel.has(v.id);
+            return (
+              <span key={v.id} className="chip" onClick={() => toggle(v.id)}
+                style={{ borderColor: on ? v.color : C.line, background: on ? v.color + "22" : C.panel, opacity: on ? 1 : 0.6 }}>
+                <span style={{ width: 9, height: 9, borderRadius: 2, background: on ? v.color : C.faint }} />
+                {v.short}
+              </span>
+            );
+          })}
+        </div>
+
+        {/* ---------- VERBRAUCHSKURVE ---------- */}
+        <div className="panel" style={{ padding: "16px 12px 12px", marginBottom: 16 }}>
+          <div style={{ padding: "0 6px 6px" }}>
+            <h2>Verbrauch: Stadt vs. Autobahn-Tempo</h2>
+            <div style={{ color: C.dim, fontSize: 12.5 }}>Liter / 100 km. Der Hybrid gewinnt in der Stadt deutlich – und verliert seinen Vorsprung ab ~140 km/h.</div>
+          </div>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={consData} margin={{ top: 8, right: 14, left: -8, bottom: 4 }}>
+              <CartesianGrid stroke={C.line} strokeDasharray="2 4" />
+              <XAxis dataKey="speed" stroke={C.dim} tick={{ fontSize: 11 }} />
+              <YAxis stroke={C.dim} tick={{ fontSize: 11 }} domain={[3, 13]} unit=" L" width={46} />
+              <Tooltip contentStyle={tipStyle} formatter={(val, key) => [val + " L", VEH.find((x) => x.id === key)?.short]} />
+              {shown.map((v) => (
+                <Line key={v.id} type="monotone" dataKey={v.id} stroke={v.color} strokeWidth={2.2} dot={{ r: 2.5 }} activeDot={{ r: 5 }} />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+          <div style={{ fontSize: 11, color: C.faint, padding: "2px 8px 0", lineHeight: 1.5 }}>
+            Stützpunkte: ADAC-EcoTest & Tests (Stadt/130). 160/175 km/h sind aus dem Fahrwiderstand interpoliert – als Tendenz lesen, nicht als Messwert.
+          </div>
+        </div>
+
+        {/* ---------- VERSICHERUNG ---------- */}
+        <div className="panel" style={{ padding: 16, marginBottom: 16 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
+            <div>
+              <div className="eyebrow" style={{ marginBottom: 4 }}>Versicherung · fließt in die Kostenkurve</div>
+              <h2 style={{ margin: 0 }}>Beitrag für {primary.short}</h2>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <label style={{ fontSize: 12, color: C.dim }}>Dein Beitragssatz (SF, übernommen)</label>
+              <div style={{ display: "flex", alignItems: "center", border: `1px solid ${C.line}`, borderRadius: 8, overflow: "hidden" }}>
+                <input type="number" value={sfPct} min={0} max={150}
+                  onChange={(e) => setSfPct(e.target.value === "" ? "" : Math.max(0, Math.min(150, +e.target.value)))}
+                  style={{ width: 54, background: C.bg, color: C.ink, border: "none", padding: "7px 8px", fontSize: 14, textAlign: "right", outline: "none", fontFamily: "ui-monospace, monospace" }} />
+                <span style={{ padding: "7px 9px", fontSize: 13, color: C.dim, background: C.panelHi }}>%</span>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: 6, marginTop: 12, marginBottom: 14 }}>
+            {[["hp", "Haftpflicht"], ["tk", "Teilkasko"], ["vk", "Vollkasko"]].map(([k, lab]) => (
+              <span key={k} className="chip" onClick={() => setCoverage(k)}
+                style={{ flex: 1, justifyContent: "center", borderColor: coverage === k ? C.eco : C.line, background: coverage === k ? C.eco + "22" : C.panel }}>
+                {lab}
+              </span>
+            ))}
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }} className="grid2">
+            {INSURERS.map((ins) => {
+              const on = insurer === ins.id;
+              const prem = insOf(primary, sfPct || 0, coverage, ins.f);
+              return (
+                <div key={ins.id} onClick={() => setInsurer(ins.id)} className="panel"
+                  style={{ padding: "11px 13px", cursor: "pointer", borderColor: on ? C.eco : C.line, background: on ? "rgba(56,199,166,.08)" : C.panel }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
+                    <span style={{ fontSize: 13.5, fontWeight: 700 }}>{ins.name}</span>
+                    <span className="num" style={{ fontSize: 14, color: on ? C.eco : C.ink, fontWeight: 700 }}>{euro(prem)}<span style={{ fontSize: 10, color: C.faint }}>/J</span></span>
+                  </div>
+                  <span style={{ fontSize: 10, color: on ? C.eco : C.dim, border: `1px solid ${(on ? C.eco : C.faint)}55`, borderRadius: 6, padding: "1px 6px" }}>{ins.tag}</span>
+                  <div style={{ fontSize: 11, color: C.dim, lineHeight: 1.45, marginTop: 7 }}>{ins.note}</div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div style={{ fontSize: 11, color: C.faint, lineHeight: 1.55, marginTop: 12 }}>
+            Schätzwerte für {primary.short} in München, 6.000 km/Jahr, bei {sfPct || 0}% Beitragssatz – real abhängig von Typklasse, Region, Alter & Tarif. Echte Angebote über den Versicherer direkt oder Check24 / Verivox / Stiftung Warentest. Der gewählte Anbieter (<b style={{ color: C.eco }}>{(INSURERS.find((x) => x.id === insurer) || {}).name}</b>) fließt in die Kostenkurve & die Unterhalts-Tabelle ein.
+          </div>
+        </div>
+
+        {/* ---------- TCO KURVE ---------- */}
+        <div className="panel" style={{ padding: "16px 12px 12px", marginBottom: 16 }}>
+          <div style={{ padding: "0 6px 6px" }}>
+            <h2>Gesamtkosten über die Haltedauer</h2>
+            <div style={{ color: C.dim, fontSize: 12.5 }}>
+              Kaufpreis + laufende Kosten (Versicherung, Steuer, Wartung/Verschleiß, Sprit) bei 6.000 km/Jahr. In Tsd. €.
+            </div>
+          </div>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={tcoData} margin={{ top: 8, right: 14, left: -8, bottom: 4 }}>
+              <CartesianGrid stroke={C.line} strokeDasharray="2 4" />
+              <XAxis dataKey="year" stroke={C.dim} tick={{ fontSize: 11 }} unit=" J" />
+              <YAxis stroke={C.dim} tick={{ fontSize: 11 }} unit="k" width={42} />
+              <ReferenceLine y={14} stroke={C.needle} strokeDasharray="4 4" label={{ value: "Budget 14k", fill: C.needle, fontSize: 10, position: "insideTopRight" }} />
+              <Tooltip contentStyle={tipStyle} formatter={(val, key) => [val + ".000 €", VEH.find((x) => x.id === key)?.short]} labelFormatter={(l) => `Nach ${l} Jahren`} />
+              {shown.map((v) => (
+                <Line key={v.id} type="monotone" dataKey={v.id} stroke={v.color} strokeWidth={2.2} dot={false} activeDot={{ r: 5 }} />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+          <div style={{ fontSize: 11, color: C.faint, padding: "2px 8px 0", lineHeight: 1.5 }}>
+            Bei nur 6.000 km/Jahr ist der Sprit-Unterschied in € klein – die Kurven trennen sich vor allem über Versicherung/Steuer/Wartung. Die Versicherung steckt mit deinem oben gewählten Beitragssatz, Schutz & Anbieter drin. Reparaturrisiko (Zuverlässigkeit) ist hier <i>nicht</i> eingepreist und spricht zusätzlich für Toyota/Honda/Kia-Garantie.
+          </div>
+        </div>
+
+        {/* ---------- VERGLEICHSTABELLE ---------- */}
+        <div className="panel scroll" style={{ padding: 4, marginBottom: 16 }}>
+          <table>
+            <thead>
+              <tr>
+                <th>Fahrzeug</th>
+                <th>Neu</th><th>Aktuell</th>
+                <th>Unterhalt 2 J</th><th>6 J</th><th>10 J</th>
+                <th>Kofferraum</th><th>Umgeklappt</th>
+                <th>Schlaf</th><th>AB-Ruhe</th><th>Zuverl.</th>
+              </tr>
+            </thead>
+            <tbody>
+              {shown.map((v) => {
+                const a = annFor(v);
+                return (
+                  <tr key={v.id}>
+                    <td><span style={{ display: "inline-block", width: 8, height: 8, borderRadius: 2, background: v.color, marginRight: 7 }} />{v.short}</td>
+                    <td className="num" style={{ color: C.dim }}>{euro(v.priceNew)}</td>
+                    <td className="num">{euro(v.priceNow)}</td>
+                    <td className="num">{euro(a * 2)}</td>
+                    <td className="num">{euro(a * 6)}</td>
+                    <td className="num">{euro(a * 10)}</td>
+                    <td className="num">{v.boot} L</td>
+                    <td className="num">{v.bootMax} L</td>
+                    <td><Dots n={v.sleep} color={v.color} /></td>
+                    <td><Dots n={v.quiet} color={v.color} /></td>
+                    <td><Dots n={v.rel} color={v.color} /></td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <div style={{ fontSize: 11, color: C.faint, marginBottom: 22, lineHeight: 1.5 }}>
+          „Unterhalt“ = laufende Gesamtkosten (Versicherung + Steuer + Wartung/Verschleiß + Sprit bei 6.000 km/Jahr) ohne Kaufpreis, aufsummiert. Richtwerte – Versicherung hängt stark von SF-Klasse & Region ab.
+        </div>
+
+        {/* ---------- LADERAUM & SCHLAFEN ---------- */}
+        <div className="eyebrow" style={{ marginBottom: 8 }}>Laderaum & Schlaftauglichkeit · Maße bei umgeklappten Sitzen</div>
+        <div className="panel scroll" style={{ padding: 4, marginBottom: 8 }}>
+          <table>
+            <thead>
+              <tr>
+                <th>Fahrzeug</th>
+                <th>Normal</th><th>Umgeklappt</th>
+                <th>Ladelänge</th><th>Ladehöhe</th><th>Schlaf</th>
+                <th style={{ textAlign: "left" }}>Kurze Einschätzung</th>
+              </tr>
+            </thead>
+            <tbody>
+              {shown.map((v) => {
+                const d = DIMS[v.id];
+                return (
+                  <tr key={v.id}>
+                    <td><span style={{ display: "inline-block", width: 8, height: 8, borderRadius: 2, background: v.color, marginRight: 7 }} />{v.short}</td>
+                    <td className="num">{v.boot} L</td>
+                    <td className="num">{v.bootMax} L</td>
+                    <td className="num">{d.len}</td>
+                    <td className="num">{d.h}</td>
+                    <td><Dots n={v.sleep} color={v.color} /></td>
+                    <td style={{ whiteSpace: "normal", minWidth: 250, textAlign: "left", color: C.dim, fontSize: 11.5, lineHeight: 1.45 }}>{d.note}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <div style={{ fontSize: 11.5, color: C.faint, marginBottom: 22, lineHeight: 1.55 }}>
+          Ladelänge bei umgeklappter Rückbank bis zur Lehne der Vordersitze – mit nach vorn geschobenem Beifahrersitz überall +30–70 cm. Praxis-Richtwerte (±5–10 cm), je nach Ausstattung/Doppelboden.
+          <b style={{ color: C.dim }}> Fazit Schlafen:</b> Voll gestreckt liegt nur, wer <b style={{ color: C.ink }}>Octavia</b> (Länge) oder <b style={{ color: C.ink }}>Insignia</b> (Länge + Breite) nimmt; der <b style={{ color: C.ink }}>Civic</b> hat den ebensten Boden, ist aber kürzer → diagonal. Überall gilt: Beifahrersitz vorklappen + Isomatte reicht bequem für eine Person.
+        </div>
+
+        {/* ---------- GRÖSSENVERGLEICH ---------- */}
+        <div className="eyebrow" style={{ marginBottom: 8 }}>Größenvergleich · Seitenansicht maßstabsgetreu · Front immer links</div>
+        <div style={{ fontSize: 11.5, color: C.dim, marginBottom: 8 }}>Referenzfahrzeuge aus deinem Vergleichsbild zuschalten:</div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
+          {REF.map((rf) => {
+            const on = refSel.has(rf.id);
+            return (
+              <span key={rf.id} className="chip" onClick={() => toggleRef(rf.id)}
+                style={{ fontSize: 12, padding: "5px 10px", borderColor: on ? C.dim : C.line, background: on ? "rgba(138,160,161,.16)" : C.panel, opacity: on ? 1 : 0.55 }}>
+                <span style={{ width: 8, height: 8, borderRadius: 2, background: on ? rf.color : C.faint }} />
+                {rf.short}
+              </span>
+            );
+          })}
+        </div>
+        <SizeChart rows={[...VEH.map((v) => ({ id: v.id, short: v.short, color: v.color, ...SIZE[v.id], boot: v.boot, bootMax: v.bootMax })), ...REF.filter((r) => refSel.has(r.id))]} />
+        <div style={{ fontSize: 11.5, color: C.faint, marginBottom: 24, lineHeight: 1.55 }}>
+          <span style={{ color: C.eco }}>■</span> Kofferraum normal &nbsp;·&nbsp;
+          <span style={{ color: "#5B8FF9" }}>▢</span> umgeklappt (Quadratfläche ∝ Volumen).
+          Oben deine Kandidaten (farbig), darunter die <b style={{ color: C.dim }}>grauen Referenzfahrzeuge</b> aus deinem Bild – der <span style={{ color: "#7FD4B0" }}>Corolla TS</span> ist farbig, weil er der direkte Auris-TS-Nachfolger und ein echter Kaufkandidat ist.
+          Silhouetten auf die <b style={{ color: C.dim }}>echten Längen & Höhen</b> skaliert (gleicher Maßstab, Karosserietyp, Überhänge & Radstand modelliert); nach rechts wischen für die längeren Fahrzeuge.
+          Bewusst Vektor-Silhouetten statt Fotos: herstellereigene Bilder sind urheberrechtlich geschützt und würden im Tool nicht zuverlässig laden – dafür sind diese exakt proportional.
+        </div>
+
+        {/* ---------- STECKBRIEFE ---------- */}
+        <div className="eyebrow" style={{ marginBottom: 10 }}>Steckbriefe · Forenfazit & typische Fehler</div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
+          {shown.map((v) => {
+            const open = openId === v.id;
+            return (
+              <div key={v.id} className="panel" style={{ borderLeft: `3px solid ${v.color}`, overflow: "hidden" }}>
+                <div onClick={() => setOpenId(open ? "" : v.id)}
+                  style={{ padding: "13px 15px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+                  <div>
+                    <div style={{ fontWeight: 650, fontSize: 14.5 }}>{v.name}</div>
+                    <div style={{ color: C.dim, fontSize: 12, marginTop: 2 }}>{v.body} · {v.motor}</div>
+                  </div>
+                  <div style={{ textAlign: "right", flexShrink: 0 }}>
+                    <div className="num" style={{ fontSize: 15, color: v.color }}>{euro(v.priceNow)}</div>
+                    <div style={{ color: C.faint, fontSize: 11 }}>{open ? "▲ schließen" : "▼ Details"}</div>
+                  </div>
+                </div>
+                {open && (
+                  <div style={{ padding: "0 15px 15px", fontSize: 13, lineHeight: 1.6 }}>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 14, color: C.dim, fontSize: 12, marginBottom: 12, borderTop: `1px solid ${C.line}`, paddingTop: 12 }}>
+                      <span>Schlaf <Dots n={v.sleep} color={v.color} /></span>
+                      <span>AB-Ruhe <Dots n={v.quiet} color={v.color} /></span>
+                      <span>Zuverlässigkeit <Dots n={v.rel} color={v.color} /></span>
+                      <span className="num">Kofferraum {v.boot}–{v.bootMax} L</span>
+                    </div>
+                    <p style={{ margin: "0 0 12px", color: C.ink }}><b style={{ color: C.eco }}>Forenfazit · </b>{v.forum}</p>
+                    <div style={{ marginBottom: 12 }}>
+                      <div style={{ color: C.amber, fontWeight: 600, fontSize: 12, marginBottom: 5 }}>TYPISCHE FEHLER / WORAUF ACHTEN</div>
+                      {v.faults.map((f, i) => (
+                        <div key={i} style={{ display: "flex", gap: 8, marginBottom: 4 }}>
+                          <span style={{ color: C.amber }}>›</span><span style={{ color: C.dim }}>{f}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ background: C.panelHi, borderRadius: 9, padding: "10px 12px", marginBottom: 8 }}>
+                      <b style={{ color: v.color }}>Für dein Profil · </b><span style={{ color: C.ink }}>{v.fit}</span>
+                    </div>
+                    <div style={{ fontSize: 12, color: C.faint }}><b>Außenparker:</b> {v.outdoor}</div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* ---------- EMPFEHLUNG ---------- */}
+        <div className="panel" style={{ padding: 18, marginBottom: 16, borderColor: C.needle + "55" }}>
+          <div className="eyebrow" style={{ color: C.needle, marginBottom: 8 }}>Kompass-Peilung · Klartext</div>
+          <p style={{ fontSize: 14, lineHeight: 1.65, margin: 0, color: C.ink }}>
+            Du hast einen echten Zielkonflikt: <b>„zuverlässigstes Auto“</b> zeigt zum <b style={{ color: C.eco }}>Auris Hybrid / Honda Civic</b>,
+            <b> „ruhiges Autobahn-Fahrwerk“</b> zeigt zum <b style={{ color: "#6FB1FC" }}>Opel Insignia / Audi A4 Avant</b>.
+            Bei nur 6.000 km/Jahr ist der Spritvorteil des Hybrids in € klein – sein <b>eigentlicher</b> Wert ist die Zuverlässigkeit und der niedrige Wartungsaufwand,
+            und genau die zählt für dich am meisten.
+          </p>
+          <ul style={{ fontSize: 13.5, lineHeight: 1.7, color: C.dim, marginTop: 12, paddingLeft: 18 }}>
+            <li><b style={{ color: C.eco }}>Wenn Zuverlässigkeit > alles:</b> Auris TS Hybrid. Lebe mit dem eCVT-Dröhnen bei Vollgas – im Alltag bei 120–130 ist er leise. Außenparker unkritisch (nur 12-V-Batterie im Blick behalten).</li>
+            <li><b style={{ color: C.needle }}>Wenn Schlafen + Unkaputtbarkeit:</b> Honda Civic Tourer. Planster Ladeboden, R18-Motor auf 300.000 km ausgelegt. Preis: lauter Motor bei Drehzahl.</li>
+            <li><b style={{ color: "#C77DFF" }}>Wenn Reparaturrisiko = 0 €:</b> Kia Ceed SW mit Rest-Werksgarantie (7 J / 150.000 km) – lückenloses Scheckheft Pflicht. Ruhiges Fahrwerk inklusive.</li>
+            <li><b style={{ color: "#6FB1FC" }}>Wenn AB-Ruhe + maximal Auto fürs Geld:</b> Opel Insignia Sports Tourer (~9.000 €). Leisester Cruiser hier, aber höchste Unterhalts-/Reparaturkosten – das Gegenteil von „sorglos“.</li>
+            <li><b style={{ color: "#5B8FF9" }}>Wenn Platz/Schlaf + Restbudget für Rücklage:</b> Octavia Combi (Schalter!) – das Raumwunder, Restrisiko 1.5 TSI über Servicehistorie minimieren.</li>
+          </ul>
+          <p style={{ fontSize: 13.5, lineHeight: 1.6, color: C.ink, marginTop: 12, marginBottom: 0 }}>
+            Mein Tipp bei deiner Gewichtung: <b style={{ color: C.eco }}>Auris TS Hybrid</b> als sorgloses Hauptziel,
+            <b style={{ color: "#C77DFF" }}> Kia Ceed SW mit Restgarantie</b> als ruhigere Fahrwerks-Alternative – beide klar im Budget.
+          </p>
+        </div>
+
+        {/* ---------- KAUFBERATUNG ---------- */}
+        <div className="panel" style={{ padding: 18, marginBottom: 16 }}>
+          <div className="eyebrow" style={{ marginBottom: 4 }}>Kaufberatung · Worauf achten & wie runterhandeln</div>
+          <h2 style={{ marginBottom: 10 }}>Vor-Ort-Checkliste</h2>
+
+          {/* Fortschritt */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+            <div style={{ flex: 1, height: 6, background: C.line, borderRadius: 4, overflow: "hidden" }}>
+              <div style={{ height: "100%", width: `${(checked.size / totalCheck) * 100}%`, background: C.eco, transition: ".2s" }} />
+            </div>
+            <span className="num" style={{ fontSize: 12, color: C.dim }}>{checked.size}/{totalCheck}</span>
+            {checked.size > 0 && (
+              <span onClick={() => setChecked(new Set())} style={{ fontSize: 11, color: C.faint, cursor: "pointer", textDecoration: "underline" }}>Reset</span>
+            )}
+          </div>
+
+          {CHECK.map((grp, gi) => (
+            <div key={gi} style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 12, fontWeight: 650, color: C.amber, marginBottom: 7 }}>{grp.g}</div>
+              {grp.items.map((it, ii) => {
+                const id = `${gi}-${ii}`, on = checked.has(id);
+                return (
+                  <div key={id} onClick={() => toggleCheck(id)}
+                    style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "6px 0", cursor: "pointer" }}>
+                    <span style={{
+                      width: 17, height: 17, flexShrink: 0, marginTop: 1, borderRadius: 4,
+                      border: `1.5px solid ${on ? C.eco : C.faint}`, background: on ? C.eco : "transparent",
+                      color: C.bg, fontSize: 12, fontWeight: 800, lineHeight: "15px", textAlign: "center",
+                    }}>{on ? "✓" : ""}</span>
+                    <span style={{ fontSize: 12.5, lineHeight: 1.5, color: on ? C.faint : C.ink, textDecoration: on ? "line-through" : "none" }}>{it}</span>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+
+          <div style={{ background: C.panelHi, borderRadius: 9, padding: "9px 12px", fontSize: 11.5, color: C.dim, marginTop: 4 }}>
+            <b style={{ color: C.ink }}>Mitnehmen:</b> {KIT}
+          </div>
+        </div>
+
+        {/* Verhandlungs-Hebel */}
+        <div className="eyebrow" style={{ marginBottom: 8 }}>Verhandlungs-Hebel · konkrete Argumente für den Preis</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }} className="grid2">
+          {HEBEL.map((h, i) => (
+            <div key={i} className="panel" style={{ padding: "11px 13px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, marginBottom: 4 }}>
+                <span style={{ fontSize: 13, fontWeight: 650 }}>{h.t}</span>
+                <span className="num" style={{ fontSize: 12, color: C.eco, whiteSpace: "nowrap", fontWeight: 700 }}>{h.s}</span>
+              </div>
+              <div style={{ fontSize: 11.5, color: C.dim, lineHeight: 1.5 }}>{h.d}</div>
+            </div>
+          ))}
+        </div>
+        <div className="panel" style={{ padding: 16, marginBottom: 16, borderLeft: `3px solid ${C.eco}` }}>
+          <div style={{ fontSize: 12.5, lineHeight: 1.65, color: C.ink }}>
+            <b style={{ color: C.eco }}>Für dein Profil (Außenparker · 6.000 km/Jahr):</b>
+            <ul style={{ paddingLeft: 18, margin: "8px 0 0", color: C.dim }}>
+              <li><b style={{ color: C.ink }}>Wenig km ≠ automatisch top:</b> Zeit-basierte Services (Bremsflüssigkeit ~2 J, Öl, Zahnriemen nach Jahren) sind trotzdem fällig – als Hebel nutzen.</li>
+              <li><b style={{ color: C.ink }}>Standschäden suchen:</b> Reifen-Standplatten, Bremsrost, alte Betriebsstoffe – typisch bei Wenigfahrer-Autos.</li>
+              <li><b style={{ color: C.ink }}>Außenparker:</b> Lack/Rost + Frontscheibe genau prüfen, und beim Hybrid ein 12-V-Erhaltungsladegerät einplanen.</li>
+              <li><b style={{ color: C.ink }}>Kein Diesel</b> bei deinem Kurzstreckenprofil (DPF) – Hybrid/Benziner passt.</li>
+              <li><b style={{ color: C.ink }}>Timing:</b> Quartals-/Jahresende beim Händler, lange Inseratslaufzeit privat = Verhandlungsspielraum.</li>
+            </ul>
+          </div>
+        </div>
+
+        {/* ---------- AUSSENPARKER-KIT ---------- */}
+        <div className="eyebrow" style={{ marginBottom: 8 }}>Außenparker-Kit · Wetterschutz & 12-V-Pflege</div>
+        <div style={{ fontSize: 12.5, color: C.dim, lineHeight: 1.6, marginBottom: 10 }}>
+          Zelt/Faltgarage am Straßenrand ist nicht erlaubt (Sondernutzung der öffentlichen Fläche). Legal bleibt die Plane direkt aufs Auto – für reinen Regen wenig Nutzen, aber gut gegen UV, Vogelkot, Harz und Frost.
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 10 }} className="grid2">
+          {COVERS.map((cv, i) => (
+            <div key={i} className="panel" style={{ padding: "11px 13px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, marginBottom: 5 }}>
+                <span style={{ fontSize: 12.5, fontWeight: 650 }}>{cv.t}</span>
+                <span className="num" style={{ fontSize: 12, color: cv.c, whiteSpace: "nowrap", fontWeight: 700 }}>{cv.p}</span>
+              </div>
+              <span style={{ fontSize: 10, color: cv.c, border: `1px solid ${cv.c}55`, borderRadius: 6, padding: "1px 6px" }}>{cv.tag}</span>
+              <div style={{ fontSize: 11.5, color: C.dim, lineHeight: 1.5, marginTop: 7 }}>{cv.d}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ fontSize: 11.5, color: C.faint, lineHeight: 1.55, marginBottom: 16 }}>
+          <b style={{ color: C.dim }}>Worauf achten:</b> Modell „Touring Sports / Kombi“ (4,57 m); atmungsaktiv + weiche Innenseite + Wind-/Unterbodengurte; Reißverschluss an der Fahrertür; Spiegeltaschen. Finger weg von der billigen reinen PVC-Plane – darunter staut sich Kondenswasser (Rostgefahr).
+        </div>
+
+        <div className="panel" style={{ padding: 16, marginBottom: 16, borderLeft: `3px solid ${C.eco}` }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10, marginBottom: 6 }}>
+            <h2 style={{ margin: 0 }}>12-V-Erhaltungsladegerät für den Hybrid</h2>
+            <span className="num" style={{ fontSize: 13, color: C.eco, fontWeight: 700, whiteSpace: "nowrap" }}>≈ 70–90 €</span>
+          </div>
+          <div style={{ fontSize: 12.5, color: C.dim, lineHeight: 1.65 }}>
+            <b style={{ color: C.ink }}>Empfehlung:</b> CTEK MXS 5.0 (Foren-Standard für Auris/Corolla-Hybrid) mit AGM-Modus & Float/Pulse-Erhaltungsladung. Alternativen: CTEK CT5 (sanfter), NOCO Genius 5, Bosch C3.
+            <div style={{ marginTop: 8 }}><b style={{ color: C.amber }}>Warum:</b> Bei Kurzstrecke + langer Standzeit lädt das Hybridsystem die kleine 12-V-AGM nur unzureichend → leer = Auto startet nicht. Das ist die häufigste „Panne“ beim Hybrid-Wenigfahrer (und genau dein Profil).</div>
+            <div style={{ marginTop: 8 }}><b style={{ color: C.ink }}>Anschluss:</b> Die 12-V-Batterie sitzt im <b style={{ color: C.ink }}>Kofferraum</b> unter dem Doppelboden. Praktisch: CTEK-Schnellkupplung (Comfort Connect) einmal fest an die Batterie klemmen und das Kabel herausführen. Alternativ <b style={{ color: C.ink }}>Pluspol im Motorraum-Sicherungskasten (+)</b> und ein <b style={{ color: C.ink }}>Massepunkt an der Karosserie (–)</b>. AGM-Modus wählen, Zündung aus.</div>
+          </div>
+          <div style={{ background: "rgba(217,101,90,.12)", border: `1px solid ${C.bad}55`, borderRadius: 9, padding: "9px 12px", marginTop: 10, fontSize: 12, color: C.ink, lineHeight: 1.55 }}>
+            <b style={{ color: C.bad }}>Wichtig:</b> Geladen wird immer nur die normale 12-V-Batterie – <b>niemals</b> die Hochvolt-Antriebsbatterie. Ein normales Ladegerät ist dafür völlig sicher; an das HV-System gehört es nie.
+          </div>
+        </div>
+
+        <div className="panel" style={{ padding: 16, marginBottom: 16, borderLeft: `3px solid ${C.good}` }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, marginBottom: 6 }}>
+            <h2 style={{ margin: 0 }}>Hochvolt-Batterie (Antrieb)</h2>
+            <span style={{ fontSize: 10.5, color: C.good, border: `1px solid ${C.good}66`, borderRadius: 6, padding: "2px 8px", whiteSpace: "nowrap" }}>Risiko: niedrig</span>
+          </div>
+          <div style={{ fontSize: 12.5, color: C.dim, lineHeight: 1.65 }}>
+            Das meistgefürchtete Bauteil – real aber unkritisch: Ausfälle beim Auris/Prius ab Gen 3 liegen im <b style={{ color: C.ink }}>Promille- bis sehr niedrigen Prozentbereich</b>, selbst jenseits 200.000 km. Die häufige „Hybrid-Panne“ ist die 12-V-Batterie (oben), nicht diese.
+          </div>
+          <div style={{ marginTop: 12, marginBottom: 6, fontSize: 11, color: C.amber, fontWeight: 650 }}>GARANTIE-LOGIK · DER EIGENTLICHE HEBEL</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {[
+              ["0–5 J / 100.000 km", "Hybridgarantie deckt HV-Batterie + Hybrid-Komponenten ab."],
+              ["danach: Toyota Relax", "Pro bestandenem jährlichem Hybrid-Service-Check (~20–30 €) +1 Jahr / 15.000 km."],
+              ["bis 15 J / 250.000 km", "So weit reicht die Verlängerung – und sie überträgt sich auf Folgebesitzer (dich)."],
+            ].map((row, i) => (
+              <div key={i} style={{ display: "flex", gap: 10, alignItems: "baseline" }}>
+                <span className="num" style={{ fontSize: 11.5, color: C.good, minWidth: 132, fontWeight: 700 }}>{row[0]}</span>
+                <span style={{ fontSize: 12, color: C.dim, lineHeight: 1.5 }}>{row[1]}</span>
+              </div>
+            ))}
+          </div>
+          <div style={{ fontSize: 12, color: C.dim, lineHeight: 1.6, marginTop: 12 }}>
+            <b style={{ color: C.ink }}>Falls doch defekt:</b> meist nur einzelne Module – Spezialisten tauschen die für ein paar Hundert Euro. Ein kompletter Neutausch ist vierstellig, wird aber selten nötig.
+          </div>
+          <div style={{ background: C.panelHi, borderRadius: 9, padding: "10px 12px", marginTop: 12 }}>
+            <div style={{ fontSize: 11, color: C.eco, fontWeight: 650, marginBottom: 6 }}>BEIM KAUF PRÜFEN</div>
+            {[
+              "Lückenlos dokumentierte jährliche Hybrid-Service-Checks → Garantie bis 15 J/250 tkm läuft für dich weiter.",
+              "Probefahrt mit Energiemonitor: EV-Modus springt sauber an, Ladebalken pendelt normal, kein rotes Warndreieck.",
+              "HV-Kühlluftfilter (hinter der Rückbank) nicht zugestaubt – Reinigung ab ~90.000 km (~250 €).",
+            ].map((it, i) => (
+              <div key={i} style={{ display: "flex", gap: 8, marginBottom: 4 }}>
+                <span style={{ color: C.eco }}>›</span><span style={{ fontSize: 12, color: C.dim, lineHeight: 1.5 }}>{it}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ---------- FACT-CHECK DEINER TÜV-LISTE ---------- */}
+        <details className="panel" style={{ padding: "14px 16px", marginBottom: 14 }}>
+          <summary style={{ cursor: "pointer", fontWeight: 650, fontSize: 14 }}>Faktencheck deiner 10er-TÜV-Liste (aufklappen)</summary>
+          <div style={{ fontSize: 12.5, lineHeight: 1.6, color: C.dim, marginTop: 10 }}>
+            Die Reihung deckt sich grob mit TÜV-Report-/ADAC-Mustern. Wichtige Korrekturen & Hinweise:
+            <ul style={{ paddingLeft: 18, marginTop: 8 }}>
+              <li><b style={{ color: C.ink }}>Audi A4 B8 (2008–15):</b> frühe 2.0 TFSI (EA888 Gen2) mit <b>Ölverbrauch + Steuerketten-Thema</b> – nicht uneingeschränkt „premium-sorglos“. Für dich relevanter: B9 Avant ab 2016 (entschärft).</li>
+              <li><b style={{ color: C.ink }}>VW Golf Sportsvan & Octavia 3:</b> die <b>1.4/1.5 TSI</b> + <b>DSG7</b> sind die Restrisiken – Schaltgetriebe + Scheckheft sind sicherer als die Bestnoten suggerieren.</li>
+              <li><b style={{ color: C.ink }}>Kein Kombi:</b> Fabia, Polo 6, A3 (8V Limo/Sportback), B-Klasse, Q2, T-Roc sind keine echten Lademeister – für „Schlafen + großer Kofferraum“ scheiden sie praktisch aus.</li>
+              <li><b style={{ color: C.ink }}>Zuverlässigste ≠ deutsche Liste:</b> In ADAC-Pannen- und TÜV-Statistik liegen <b>Toyota/Honda</b> bei der Antriebs-Haltbarkeit regelmäßig vor den TSI-Modellen – die deutsche Liste misst v. a. HU-Mängel, nicht Motorschäden.</li>
+              <li><b style={{ color: C.ink }}>„Kia Duster“:</b> gemeint ist vermutlich <b>Dacia Duster</b> (oben enthalten) – Kia hat kein Modell „Duster“.</li>
+            </ul>
+          </div>
+        </details>
+
+        <div style={{ fontSize: 11, color: C.faint, lineHeight: 1.6 }}>
+          Quellen: ADAC EcoTest/Autotest, AUTO BILD TÜV-Check 2026, mobile.de & AutoScout24 (Preise Stand Juni 2026),
+          MOTOR-TALK / Auris-Forum / autoplenum (Foren-O-Töne). Verbrauch &gt; 140 km/h teils interpoliert. Keine Kaufberatung im rechtlichen Sinn –
+          vor dem Kauf Scheckheft, Rückrufstatus und eine Probefahrt mit kaltem Motor prüfen.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const tipStyle = { background: "#0B1113", border: `1px solid ${C.line}`, borderRadius: 10, fontSize: 12, color: C.ink };
+
+// ---------- Größenvergleich-Bausteine ----------
+const PXPM = 54, ROWH = 110, STK = 196;
+
+// Karosserietypen: Überhänge (foh/roh), Raddurchmesser wd & Bodenfreiheit clr in METERN,
+// y-Fraktionen der Box (0 = Dachkante) für Haube/Dach/Gürtellinie, Heckform.
+const BODY = {
+  wagon:    { foh: .18, roh: .20, wd: .64, clr: .13, nose: .54, hood: .44, roof: .05, belt: .47, cowl: .30, aTop: .45, re: .84, tt: .93, bp: .60, rear: "vertical" },
+  van:      { foh: .17, roh: .16, wd: .64, clr: .13, nose: .52, hood: .42, roof: .05, belt: .46, cowl: .27, aTop: .42, re: .85, tt: .94, bp: .56, rear: "vertical" },
+  suv:      { foh: .18, roh: .18, wd: .73, clr: .21, nose: .50, hood: .40, roof: .07, belt: .45, cowl: .27, aTop: .42, re: .83, tt: .92, bp: .57, rear: "vertical" },
+  hatch:    { foh: .18, roh: .16, wd: .63, clr: .13, nose: .55, hood: .45, roof: .06, belt: .48, cowl: .30, aTop: .46, re: .74, tt: .88, bp: .58, rear: "sloped" },
+  supermini:{ foh: .19, roh: .17, wd: .61, clr: .13, nose: .56, hood: .47, roof: .07, belt: .50, cowl: .31, aTop: .47, re: .72, tt: .86, bp: .58, rear: "sloped" },
+  evhatch:  { foh: .14, roh: .17, wd: .66, clr: .14, nose: .54, hood: .47, roof: .06, belt: .48, cowl: .24, aTop: .40, re: .78, tt: .90, bp: .55, rear: "sloped" },
+  citycar:  { foh: .17, roh: .13, wd: .58, clr: .13, nose: .55, hood: .46, roof: .06, belt: .49, cowl: .29, aTop: .45, re: .76, tt: .88, bp: .58, rear: "sloped" },
+  tallcity: { foh: .18, roh: .13, wd: .60, clr: .15, nose: .50, hood: .44, roof: .06, belt: .46, cowl: .28, aTop: .43, re: .82, tt: .92, bp: .57, rear: "vertical" },
+  minimpv:  { foh: .18, roh: .12, wd: .60, clr: .15, nose: .50, hood: .42, roof: .06, belt: .45, cowl: .26, aTop: .41, re: .83, tt: .93, bp: .55, rear: "vertical" },
+  mpv:      { foh: .17, roh: .14, wd: .62, clr: .15, nose: .50, hood: .40, roof: .05, belt: .45, cowl: .25, aTop: .40, re: .84, tt: .94, bp: .55, rear: "vertical" },
+};
+
+// Referenzfahrzeuge aus deinem ursprünglichen Vergleichsbild
+const REF = [
+  { id: "ref-aygo", short: "Toyota Aygo (2019)", l: 3.46, h: 1.46, t: "citycar", boot: 168, bootMax: 812, color: "#8AA0A1" },
+  { id: "ref-panda", short: "Fiat Panda (2019)", l: 3.69, h: 1.55, t: "tallcity", boot: 225, bootMax: 870, color: "#8AA0A1" },
+  { id: "ref-versos", short: "Toyota Verso-S (2011–16)", l: 3.99, h: 1.60, t: "minimpv", boot: 430, bootMax: 1388, color: "#8AA0A1" },
+  { id: "ref-punto", short: "Fiat Grande Punto (2005)", l: 4.03, h: 1.49, t: "supermini", boot: 275, bootMax: 1030, color: "#8AA0A1" },
+  { id: "ref-id3", short: "VW ID.3 (2020–)", l: 4.26, h: 1.56, t: "evhatch", boot: 385, bootMax: 1267, color: "#8AA0A1" },
+  { id: "ref-aurishb", short: "Toyota Auris Hatchback (2013)", l: 4.28, h: 1.46, t: "hatch", boot: 360, bootMax: 1200, color: "#8AA0A1" },
+  { id: "ref-verso", short: "Toyota Verso (2013–18)", l: 4.46, h: 1.62, t: "mpv", boot: 178, bootMax: 1740, color: "#8AA0A1" },
+  { id: "ref-aurists", short: "Toyota Auris TS (2013)", l: 4.57, h: 1.47, t: "wagon", boot: 530, bootMax: 1658, color: "#8AA0A1" },
+  { id: "ref-corollats", short: "Toyota Corolla TS (2019–)", l: 4.65, h: 1.46, t: "wagon", boot: 596, bootMax: 1604, color: "#7FD4B0" },
+];
+
+// Farbe aufhellen/abdunkeln
+function shade(hex, amt) {
+  const n = parseInt(hex.slice(1), 16);
+  const cl = (x) => Math.max(0, Math.min(255, x));
+  const r = cl((n >> 16) + amt), g = cl(((n >> 8) & 255) + amt), b = cl((n & 255) + amt);
+  return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+}
+
+function CarSilhouette({ l, h, type, color, totalW, uid }) {
+  const w = l * PXPM, ch = h * PXPM, ground = ROWH - 7, topY = ground - ch;
+  const T = BODY[type];
+  const r = (T.wd / 2) * PXPM, arch = r * 1.18;
+  const fAx = T.foh * w, rAx = (1 - T.roh) * w, bottomY = ground - T.clr * PXPM;
+  const noseY = topY + T.nose * ch, hoodY = topY + T.hood * ch, roofY = topY + T.roof * ch, beltY = topY + T.belt * ch;
+  const cowlX = T.cowl * w, aTopX = T.aTop * w, reX = T.re * w, ttX = T.tt * w, bpX = T.bp * w;
+  const fr = 0.006 * w, re = 0.994 * w, gTop = roofY + 0.02 * ch;
+
+  let d = `M ${fr} ${bottomY} L ${fr} ${noseY}
+    Q ${fr} ${hoodY} ${fr + 0.05 * w} ${hoodY}
+    L ${cowlX} ${hoodY}
+    C ${cowlX + 0.05 * w} ${hoodY} ${aTopX - 0.04 * w} ${roofY + 0.02 * ch} ${aTopX} ${roofY}
+    L ${reX} ${roofY}`;
+  if (T.rear === "vertical") {
+    d += ` C ${reX + 0.05 * w} ${roofY} ${ttX} ${roofY + 0.05 * ch} ${ttX + 0.012 * w} ${beltY - 0.05 * ch}
+      L ${re} ${beltY + 0.02 * ch} L ${re} ${bottomY}`;
+  } else {
+    d += ` C ${reX + 0.07 * w} ${roofY + 0.06 * ch} ${ttX} ${beltY - 0.07 * ch} ${re} ${beltY + 0.05 * ch}
+      L ${re} ${bottomY}`;
+  }
+  d += ` L ${rAx + arch} ${bottomY} Q ${rAx} ${bottomY - arch * 1.12} ${rAx - arch} ${bottomY}
+    L ${fAx + arch} ${bottomY} Q ${fAx} ${bottomY - arch * 1.12} ${fAx - arch} ${bottomY} Z`;
+
+  const glass = T.rear === "vertical"
+    ? `M ${cowlX + 0.03 * w} ${beltY} L ${aTopX + 0.025 * w} ${gTop} L ${reX - 0.015 * w} ${gTop} L ${ttX - 0.015 * w} ${beltY - 0.03 * ch} Z`
+    : `M ${cowlX + 0.03 * w} ${beltY} L ${aTopX + 0.025 * w} ${gTop} L ${reX - 0.025 * w} ${gTop} C ${ttX - 0.025 * w} ${beltY - 0.05 * ch} ${ttX - 0.035 * w} ${beltY - 0.02 * ch} ${ttX - 0.06 * w} ${beltY} Z`;
+
+  const gid = `bg-${uid}`, glid = `gl-${uid}`, wid = `wh-${uid}`;
+  const light = shade(color, 48), dark = shade(color, -36), dark2 = shade(color, -18);
+  const charY = beltY + (bottomY - beltY) * 0.42;
+  const doorXs = [bpX, bpX + (reX - bpX) * 0.5];
+
+  return (
+    <svg width={totalW} height={ROWH} style={{ display: "block" }}>
+      <defs>
+        <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor={light} /><stop offset="0.5" stopColor={color} /><stop offset="1" stopColor={dark} />
+        </linearGradient>
+        <linearGradient id={glid} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#E4F0F2" /><stop offset="1" stopColor="#A6BFC2" />
+        </linearGradient>
+        <radialGradient id={wid} cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stopColor="#566666" /><stop offset="0.6" stopColor="#2A3838" />
+          <stop offset="0.64" stopColor="#0C1011" /><stop offset="1" stopColor="#0C1011" />
+        </radialGradient>
+      </defs>
+      <ellipse cx={(fAx + rAx) / 2} cy={ground + 2} rx={w * 0.46} ry={4} fill="#000" opacity={0.28} />
+      <line x1={0} y1={ground} x2={totalW} y2={ground} stroke={C.line} strokeWidth={1} />
+      <path d={d} fill={`url(#${gid})`} stroke={dark} strokeWidth={1.1} strokeLinejoin="round" />
+      <path d={`M ${fAx} ${charY} L ${rAx + arch * 0.4} ${charY - 0.5}`} stroke={dark} strokeWidth={1} opacity={0.5} fill="none" />
+      {doorXs.map((dx, i) => (
+        <line key={i} x1={dx} y1={beltY + 1} x2={dx} y2={bottomY - 2} stroke={dark} strokeWidth={0.8} opacity={0.45} />
+      ))}
+      <ellipse cx={fr + 0.022 * w} cy={noseY + (hoodY - noseY) * 0.45} rx={0.022 * w} ry={0.055 * ch} fill="#EAF2DE" opacity={0.85} />
+      <rect x={re - 0.032 * w} y={beltY + 0.04 * ch} width={0.024 * w} height={0.1 * ch} rx={2} fill="#C8463A" opacity={0.92} />
+      <path d={glass} fill={`url(#${glid})`} stroke={dark2} strokeWidth={0.7} />
+      <line x1={bpX} y1={gTop + 1} x2={bpX} y2={beltY - 1} stroke={color} strokeWidth={2.4} />
+      {[fAx, rAx].map((cx, i) => (
+        <g key={i}>
+          <circle cx={cx} cy={ground - r} r={r} fill={`url(#${wid})`} stroke="#070A0A" strokeWidth={1} />
+          <circle cx={cx} cy={ground - r} r={r * 0.5} fill="#1A2525" stroke="#3A4A4A" strokeWidth={1} />
+          {Array.from({ length: 5 }, (_, k) => {
+            const a = (k / 5) * Math.PI * 2 - Math.PI / 2;
+            return <line key={k} x1={cx} y1={ground - r} x2={cx + Math.cos(a) * r * 0.46} y2={ground - r + Math.sin(a) * r * 0.46} stroke="#8A9A9A" strokeWidth={1.6} />;
+          })}
+          <circle cx={cx} cy={ground - r} r={r * 0.14} fill="#A6B4B4" />
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+function VolPair({ normal, folded }) {
+  const k = 1.05, s = (v) => Math.sqrt(v) * k, W = 60, H = 50;
+  const sn = s(normal), sf = s(folded);
+  return (
+    <svg width={W} height={H} style={{ flexShrink: 0 }}>
+      <rect x={1} y={H - sf - 1} width={sf} height={sf} fill="none" stroke="#5B8FF9" strokeWidth={1.3} strokeDasharray="3 2" />
+      <rect x={1} y={H - sn - 1} width={sn} height={sn} fill={C.eco} fillOpacity={0.5} stroke={C.eco} strokeWidth={1} />
+    </svg>
+  );
+}
+
+function SizeChart({ rows }) {
+  const maxLen = Math.max(...rows.map((v) => v.l), 1);
+  const totalSil = Math.round(maxLen * PXPM) + 6;
+  return (
+    <div className="panel scroll" style={{ padding: 0, marginBottom: 8 }}>
+      <div style={{ minWidth: STK + totalSil + 8 }}>
+        {rows.map((v) => (
+          <div key={v.id} style={{ display: "flex", alignItems: "flex-end", borderBottom: `1px solid ${C.line}` }}>
+            <div style={{ position: "sticky", left: 0, zIndex: 1, width: STK, background: C.panel, padding: "8px 10px", display: "flex", gap: 8, alignItems: "flex-end" }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 12, fontWeight: 650, display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: 2, background: v.color, flexShrink: 0 }} />{v.short}
+                </div>
+                <div className="num" style={{ fontSize: 11, color: C.dim, marginTop: 3 }}>L {v.l.toFixed(2)} m · H {v.h.toFixed(2)} m</div>
+                <div className="num" style={{ fontSize: 11, color: C.faint }}>{v.boot} / {v.bootMax} L</div>
+              </div>
+              <VolPair normal={v.boot} folded={v.bootMax} />
+            </div>
+            <CarSilhouette l={v.l} h={v.h} type={v.t} color={v.color} totalW={totalSil} uid={v.id} />
+          </div>
+        ))}
+        <div style={{ display: "flex" }}>
+          <div style={{ position: "sticky", left: 0, zIndex: 1, width: STK, background: C.panel, flexShrink: 0 }} />
+          <svg width={totalSil} height={20}>
+            {Array.from({ length: Math.ceil(maxLen) + 1 }, (_, m) => (
+              <g key={m}>
+                <line x1={m * PXPM} y1={0} x2={m * PXPM} y2={5} stroke={C.faint} />
+                <text x={m * PXPM} y={16} fill={C.faint} fontSize={9} textAnchor="middle">{m} m</text>
+              </g>
+            ))}
+          </svg>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Kompass-Signet
+function Compass() {
+  return (
+    <svg width="52" height="52" viewBox="0 0 52 52" style={{ flexShrink: 0 }}>
+      <circle cx="26" cy="26" r="24" fill="none" stroke={C.line} strokeWidth="1.5" />
+      <circle cx="26" cy="26" r="18" fill="none" stroke={C.line} strokeWidth="1" />
+      {[0, 45, 90, 135, 180, 225, 270, 315].map((a) => (
+        <line key={a} x1="26" y1="26" x2={26 + 22 * Math.sin((a * Math.PI) / 180)}
+          y2={26 - 22 * Math.cos((a * Math.PI) / 180)} stroke={C.line} strokeWidth="0.8" />
+      ))}
+      <polygon points="26,7 30,26 26,24 22,26" fill={C.needle} />
+      <polygon points="26,45 30,26 26,28 22,26" fill={C.dim} />
+      <circle cx="26" cy="26" r="2.4" fill={C.bg} stroke={C.ink} strokeWidth="1" />
+    </svg>
+  );
+}
+
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
