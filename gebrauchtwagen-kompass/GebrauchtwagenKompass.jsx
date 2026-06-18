@@ -185,7 +185,7 @@ const PRIO = [
   { key: "quiet", label: "Autobahn-Ruhe", def: 4 },
   { key: "sleep", label: "Schlafoption", def: 3 },
   { key: "boot", label: "Kofferraum", def: 3 },
-  { key: "budget", label: "Budget-Fit ≤14k", def: 4 },
+  { key: "budget", label: "Budget-Fit", def: 4 },
 ];
 
 // Versicherung & laufende Jahreskosten
@@ -204,7 +204,7 @@ function annualOf(v, ins) {
 function tcoOf(v, years, ins) { return v.priceNow + annualOf(v, ins) * years; }
 
 // 0..1 Scores für die Gewichtung (a = jährliche Laufkosten inkl. Versicherung)
-function scoreParts(v, a) {
+function scoreParts(v, a, budget) {
   const maxBoot = 1740, cheapest = 1300;
   return {
     rel: v.rel / 5,
@@ -212,7 +212,7 @@ function scoreParts(v, a) {
     quiet: v.quiet / 5,
     sleep: v.sleep / 5,
     boot: v.bootMax / maxBoot,
-    budget: v.priceNow <= 14000 ? 1 - (v.priceNow / 14000) * 0.35 : 0.15,
+    budget: v.priceNow <= budget ? 1 - (v.priceNow / budget) * 0.35 : 0.15,
   };
 }
 
@@ -308,6 +308,7 @@ export default function App() {
   const [sfPct, setSfPct] = useState(13);
   const [coverage, setCoverage] = useState("tk");
   const [insurer, setInsurer] = useState("concordia");
+  const [budget, setBudget] = useState(14000);
   const insF = (INSURERS.find((x) => x.id === insurer) || INSURERS[0]).f;
   const insFor = (v) => insOf(v, sfPct || 0, coverage, insF);
   const annFor = (v) => annualOf(v, insFor(v));
@@ -327,11 +328,11 @@ export default function App() {
   const ranking = useMemo(() => {
     const wsum = Object.values(w).reduce((a, b) => a + b, 0) || 1;
     return VEH.map((v) => {
-      const sp = scoreParts(v, annFor(v));
+      const sp = scoreParts(v, annFor(v), budget);
       const s = PRIO.reduce((acc, p) => acc + (w[p.key] * sp[p.key]), 0) / wsum;
       return { v, score: s };
     }).sort((a, b) => b.score - a.score);
-  }, [w, sfPct, coverage, insurer]);
+  }, [w, sfPct, coverage, insurer, budget]);
   const top = ranking[0];
 
   const consData = SPEEDS.map((s) => {
@@ -382,7 +383,7 @@ export default function App() {
         </div>
         <p style={{ color: C.dim, fontSize: 13.5, lineHeight: 1.6, margin: "8px 0 18px", maxWidth: 720 }}>
           Dein Profil: <b style={{ color: C.ink }}>~6.000 km/Jahr</b> (≈500 km/Monat), Stadt + Autobahn, Ausflüge bis 80 km,
-          <b style={{ color: C.ink }}> Außenparker</b>, Budget <b style={{ color: C.ink }}>≤ 14.000 €</b>, Wunsch: ruhiges Autobahn-Fahrwerk,
+          <b style={{ color: C.ink }}> Außenparker</b>, Budget <b style={{ color: C.ink }}>≤ {euro(budget)}</b>, Wunsch: ruhiges Autobahn-Fahrwerk,
           Schlafoption, maximale Zuverlässigkeit. Verschiebe die Regler – die Nadel dreht sich mit deinen Prioritäten.
         </p>
 
@@ -390,6 +391,18 @@ export default function App() {
         <div className="panel" style={{ padding: 16, marginBottom: 16 }}>
           <div style={{ display: "grid", gridTemplateColumns: "1.15fr 1fr", gap: 18 }} className="grid2">
             <div>
+              <div className="eyebrow" style={{ marginBottom: 10 }}>Dein Budget</div>
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, marginBottom: 5 }}>
+                  <span>max. Kaufpreis</span>
+                  <span className="num" style={{ color: C.needle }}>{euro(budget)}</span>
+                </div>
+                <input type="range" min="6000" max="14000" step="250" value={budget}
+                  onChange={(e) => setBudget(+e.target.value)} />
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10.5, color: C.faint, marginTop: 3 }}>
+                  <span>6.000 €</span><span>14.000 €</span>
+                </div>
+              </div>
               <div className="eyebrow" style={{ marginBottom: 12 }}>Deine Prioritäten gewichten</div>
               {PRIO.map((p) => (
                 <div key={p.key} style={{ marginBottom: 12 }}>
@@ -527,7 +540,7 @@ export default function App() {
               <CartesianGrid stroke={C.line} strokeDasharray="2 4" />
               <XAxis dataKey="year" stroke={C.dim} tick={{ fontSize: 11 }} unit=" J" />
               <YAxis stroke={C.dim} tick={{ fontSize: 11 }} unit="k" width={42} />
-              <ReferenceLine y={14} stroke={C.needle} strokeDasharray="4 4" label={{ value: "Budget 14k", fill: C.needle, fontSize: 10, position: "insideTopRight" }} />
+              <ReferenceLine y={budget / 1000} stroke={C.needle} strokeDasharray="4 4" label={{ value: `Budget ${Math.round(budget / 1000)}k`, fill: C.needle, fontSize: 10, position: "insideTopRight" }} />
               <Tooltip contentStyle={tipStyle} formatter={(val, key) => [val + ".000 €", VEH.find((x) => x.id === key)?.short]} labelFormatter={(l) => `Nach ${l} Jahren`} />
               {shown.map((v) => (
                 <Line key={v.id} type="monotone" dataKey={v.id} stroke={v.color} strokeWidth={2.2} dot={false} activeDot={{ r: 5 }} />
