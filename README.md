@@ -12,6 +12,7 @@ A collection of small, self-contained experiments. Each subfolder is one experim
 - [steampipe-lightning-talk](steampipe-lightning-talk/) — A 3–5 minute reveal.js slide deck about Steampipe, with Kubernetes / AWS / aggregator / JSON examples and a DuckDB end note.
 - [jq-lightning-talk](jq-lightning-talk/) — A reveal.js slide deck about jq, its Turing-completeness, and the family of alternative implementations (gojq, jaq, fq, faq).
 - [esp32-iot-lightning-talk](esp32-iot-lightning-talk/) — A 5-minute reveal.js slide deck on using an ESP32 as an IoT sensor, shipping data to InfluxDB, and shipping firmware with OTA updates.
+- [climate-report](climate-report/) — Interactive climate-trend dashboard for Munich (warming trend with extrapolation to 2036, extremes, monthly heatmap, precipitation/sun/UV), built from real LMU and DWD data.
 
 ## How the site is built
 
