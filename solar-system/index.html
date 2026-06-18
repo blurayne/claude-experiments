@@ -15,542 +15,819 @@
     }
     body { font-family: 'Courier New', monospace; }
   </style>
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="vendor/react.production.min.js"></script>
+  <script src="vendor/react-dom.production.min.js"></script>
+  <script src="vendor/three.min.js"></script>
 </head>
 <body>
   <div id="root"></div>
 
-  <script type="text/babel" data-presets="react">
-    const { useEffect, useRef, useState } = React;
-
-    const PLANET_DATA = [
-      { name:"Mercury", baseOrbit: 52,  radius:1.5,  color:0xb5b5b5, emissive:0x222222, speed:4.74,   shininess:20, mass:0.055, eccentricity:0    },
-      { name:"Venus",   baseOrbit: 85,  radius:3.6,  color:0xe8cda0, emissive:0x332200, speed:3.50,   shininess:15, mass:0.815, eccentricity:0    },
-      { name:"Earth",   baseOrbit:122,  radius:3.8,  color:0x2a6fd5, emissive:0x001133, speed:2.98,   shininess:80, mass:1.0,   eccentricity:0    },
-      { name:"Mars",    baseOrbit:162,  radius:2.6,  color:0xc1440e, emissive:0x3a0800, speed:2.41,   shininess:10, mass:0.107, eccentricity:0    },
-      { name:"Jupiter", baseOrbit:232,  radius:10.5, color:0xc88b3a, emissive:0x221100, speed:1.31,   shininess:15, mass:318,   eccentricity:0    },
-      { name:"Saturn",  baseOrbit:298,  radius:8.8,  color:0xe4d191, emissive:0x332200, speed:0.97,   shininess:20, mass:95,    eccentricity:0    },
-      { name:"Uranus",  baseOrbit:355,  radius:5.8,  color:0x7de8e8, emissive:0x002222, speed:0.68,   shininess:30, mass:14,    eccentricity:0    },
-      { name:"Neptune", baseOrbit:406,  radius:5.5,  color:0x3f54ba, emissive:0x000833, speed:0.54,   shininess:25, mass:17,    eccentricity:0    },
-      { name:"Planet 9", baseOrbit:650,  radius:5.2,  color:0x5ba8c4, emissive:0x001825, speed:0.018, shininess:40, mass:4.4,  eccentricity:0.29, startPhysics:true },
-    ];
-
-    const N              = PLANET_DATA.length;
-    const SUN_BASE       = 18;
-    const TRAIL_MAX      = 220;
-    const G_PLANET       = 18;
-    const MIN_SEP        = 10;
-    const INF_THRESH     = 0.04;
-    const CASCADE_THRESH = 1.2;
-    const BASE_STEPS     = 4;
-
-    function SolarSystem3D() {
-      const mountRef = useRef(null);
-      const camRef   = useRef(null);
-      const frameRef = useRef(null);
-      const rendRef  = useRef(null);
-      const anyPhysicsRef = useRef(false);
-
-      const distRef    = useRef(0.35);
-      const minSzRef   = useRef(1.5);
-      const speedRef   = useRef(1.0);
-      const orbitOpRef = useRef(0.22);
-
-      const drag    = useRef(false);
-      const dragged = useRef(false);
-      const startXY = useRef({ x:0, y:0 });
-      const lastXY  = useRef({ x:0, y:0 });
-      const camTheta = useRef(0.4);
-      const camPhi   = useRef(1.15);
-      const camDist  = useRef(900);
-
-      const sunCore    = useRef(null);
-      const sunAtm     = useRef(null);
-      const sunGlow    = useRef(null);
-      const pMeshes    = useRef([]);
-      const oRings     = useRef([]);
-      const trailLines = useRef([]);
-      const trailBufs  = useRef([]);
-      const trailMats  = useRef([]);
-      const trailDeqs  = useRef(PLANET_DATA.map(() => []));
-
-      const pSt = useRef(PLANET_DATA.map(() => ({
-        angle: Math.random() * Math.PI * 2,
-        x:0, z:0, vx:0, vz:0,
-        mode: 'track',
-        kicked: false, flash: 0, influenced: 0,
-        pertVx: 0, pertVz: 0,
-      })));
-
-      const [dist,    setDist   ] = useState(0.35);
-      const [minSz,   setMinSz  ] = useState(1.5);
-      const [spd,     setSpd    ] = useState(1.0);
-      const [orbitOp, setOrbitOp] = useState(0.22);
-      const [showP9,  setShowP9 ] = useState(true);
-
-      const slide = (key, v) => {
-        if (key==="dist")    { distRef.current    = v; setDist(v);    }
-        if (key==="minSz")   { minSzRef.current   = v; setMinSz(v);   }
-        if (key==="spd")     { speedRef.current   = v; setSpd(v);     }
-        if (key==="orbitOp") { orbitOpRef.current = v; setOrbitOp(v); }
-      };
-
-      useEffect(() => {
-        const mount = mountRef.current;
-        const W = mount.clientWidth, H = mount.clientHeight;
-
-        const renderer = new THREE.WebGLRenderer({ antialias:true });
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        renderer.setSize(W, H);
-        renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        mount.appendChild(renderer.domElement);
-        rendRef.current = renderer;
-
-        const scene  = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(55, W/H, 0.5, 8000);
-        camRef.current = camera;
-
-        const sv = new Float32Array(5000*3);
-        for (let i = 0; i < sv.length; i++) sv[i] = (Math.random()-0.5)*6000;
-        const sg = new THREE.BufferGeometry();
-        sg.setAttribute("position", new THREE.BufferAttribute(sv, 3));
-        scene.add(new THREE.Points(sg, new THREE.PointsMaterial({ color:0xffffff, size:0.9, sizeAttenuation:true })));
-
-        const mkS = s => new THREE.SphereGeometry(1, s, s);
-        const core = new THREE.Mesh(mkS(64), new THREE.MeshBasicMaterial({ color:0xfff5a0 }));
-        scene.add(core); sunCore.current = core;
-        const atm  = new THREE.Mesh(mkS(32), new THREE.MeshBasicMaterial({ color:0xff8800, transparent:true, opacity:0.28, side:THREE.BackSide }));
-        scene.add(atm); sunAtm.current = atm;
-        const glw  = new THREE.Mesh(mkS(32), new THREE.MeshBasicMaterial({ color:0xff3300, transparent:true, opacity:0.08, side:THREE.BackSide }));
-        scene.add(glw); sunGlow.current = glw;
-        scene.add(new THREE.PointLight(0xfff0cc, 4, 3200, 1.4));
-        scene.add(new THREE.AmbientLight(0x101520, 0.55));
-
+  <script>
+/* Precompiled from JSX (Babel, classic runtime) — no in-browser transform. */
+const {
+  useEffect,
+  useRef,
+  useState
+} = React;
+const PLANET_DATA = [{
+  name: "Mercury",
+  baseOrbit: 52,
+  radius: 1.5,
+  color: 0xb5b5b5,
+  emissive: 0x222222,
+  speed: 4.74,
+  shininess: 20,
+  mass: 0.055,
+  eccentricity: 0
+}, {
+  name: "Venus",
+  baseOrbit: 85,
+  radius: 3.6,
+  color: 0xe8cda0,
+  emissive: 0x332200,
+  speed: 3.50,
+  shininess: 15,
+  mass: 0.815,
+  eccentricity: 0
+}, {
+  name: "Earth",
+  baseOrbit: 122,
+  radius: 3.8,
+  color: 0x2a6fd5,
+  emissive: 0x001133,
+  speed: 2.98,
+  shininess: 80,
+  mass: 1.0,
+  eccentricity: 0
+}, {
+  name: "Mars",
+  baseOrbit: 162,
+  radius: 2.6,
+  color: 0xc1440e,
+  emissive: 0x3a0800,
+  speed: 2.41,
+  shininess: 10,
+  mass: 0.107,
+  eccentricity: 0
+}, {
+  name: "Jupiter",
+  baseOrbit: 232,
+  radius: 10.5,
+  color: 0xc88b3a,
+  emissive: 0x221100,
+  speed: 1.31,
+  shininess: 15,
+  mass: 318,
+  eccentricity: 0
+}, {
+  name: "Saturn",
+  baseOrbit: 298,
+  radius: 8.8,
+  color: 0xe4d191,
+  emissive: 0x332200,
+  speed: 0.97,
+  shininess: 20,
+  mass: 95,
+  eccentricity: 0
+}, {
+  name: "Uranus",
+  baseOrbit: 355,
+  radius: 5.8,
+  color: 0x7de8e8,
+  emissive: 0x002222,
+  speed: 0.68,
+  shininess: 30,
+  mass: 14,
+  eccentricity: 0
+}, {
+  name: "Neptune",
+  baseOrbit: 406,
+  radius: 5.5,
+  color: 0x3f54ba,
+  emissive: 0x000833,
+  speed: 0.54,
+  shininess: 25,
+  mass: 17,
+  eccentricity: 0
+}, {
+  name: "Planet 9",
+  baseOrbit: 650,
+  radius: 5.2,
+  color: 0x5ba8c4,
+  emissive: 0x001825,
+  speed: 0.018,
+  shininess: 40,
+  mass: 4.4,
+  eccentricity: 0.29,
+  startPhysics: true
+}];
+const N = PLANET_DATA.length;
+const SUN_BASE = 18;
+const TRAIL_MAX = 220;
+const G_PLANET = 18;
+const MIN_SEP = 10;
+const INF_THRESH = 0.04;
+const CASCADE_THRESH = 1.2;
+const BASE_STEPS = 4;
+function SolarSystem3D() {
+  const mountRef = useRef(null);
+  const camRef = useRef(null);
+  const frameRef = useRef(null);
+  const rendRef = useRef(null);
+  const anyPhysicsRef = useRef(false);
+  const distRef = useRef(0.35);
+  const minSzRef = useRef(1.5);
+  const speedRef = useRef(1.0);
+  const orbitOpRef = useRef(0.22);
+  const drag = useRef(false);
+  const dragged = useRef(false);
+  const startXY = useRef({
+    x: 0,
+    y: 0
+  });
+  const lastXY = useRef({
+    x: 0,
+    y: 0
+  });
+  const camTheta = useRef(0.4);
+  const camPhi = useRef(1.15);
+  const camDist = useRef(900);
+  const sunCore = useRef(null);
+  const sunAtm = useRef(null);
+  const sunGlow = useRef(null);
+  const pMeshes = useRef([]);
+  const oRings = useRef([]);
+  const trailLines = useRef([]);
+  const trailBufs = useRef([]);
+  const trailMats = useRef([]);
+  const trailDeqs = useRef(PLANET_DATA.map(() => []));
+  const pSt = useRef(PLANET_DATA.map(() => ({
+    angle: Math.random() * Math.PI * 2,
+    x: 0,
+    z: 0,
+    vx: 0,
+    vz: 0,
+    mode: 'track',
+    kicked: false,
+    flash: 0,
+    influenced: 0,
+    pertVx: 0,
+    pertVz: 0
+  })));
+  const [dist, setDist] = useState(0.35);
+  const [minSz, setMinSz] = useState(1.5);
+  const [spd, setSpd] = useState(1.0);
+  const [orbitOp, setOrbitOp] = useState(0.22);
+  const [showP9, setShowP9] = useState(true);
+  const slide = (key, v) => {
+    if (key === "dist") {
+      distRef.current = v;
+      setDist(v);
+    }
+    if (key === "minSz") {
+      minSzRef.current = v;
+      setMinSz(v);
+    }
+    if (key === "spd") {
+      speedRef.current = v;
+      setSpd(v);
+    }
+    if (key === "orbitOp") {
+      orbitOpRef.current = v;
+      setOrbitOp(v);
+    }
+  };
+  useEffect(() => {
+    const mount = mountRef.current;
+    const W = mount.clientWidth,
+      H = mount.clientHeight;
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(W, H);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    mount.appendChild(renderer.domElement);
+    rendRef.current = renderer;
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(55, W / H, 0.5, 8000);
+    camRef.current = camera;
+    const sv = new Float32Array(5000 * 3);
+    for (let i = 0; i < sv.length; i++) sv[i] = (Math.random() - 0.5) * 6000;
+    const sg = new THREE.BufferGeometry();
+    sg.setAttribute("position", new THREE.BufferAttribute(sv, 3));
+    scene.add(new THREE.Points(sg, new THREE.PointsMaterial({
+      color: 0xffffff,
+      size: 0.9,
+      sizeAttenuation: true
+    })));
+    const mkS = s => new THREE.SphereGeometry(1, s, s);
+    const core = new THREE.Mesh(mkS(64), new THREE.MeshBasicMaterial({
+      color: 0xfff5a0
+    }));
+    scene.add(core);
+    sunCore.current = core;
+    const atm = new THREE.Mesh(mkS(32), new THREE.MeshBasicMaterial({
+      color: 0xff8800,
+      transparent: true,
+      opacity: 0.28,
+      side: THREE.BackSide
+    }));
+    scene.add(atm);
+    sunAtm.current = atm;
+    const glw = new THREE.Mesh(mkS(32), new THREE.MeshBasicMaterial({
+      color: 0xff3300,
+      transparent: true,
+      opacity: 0.08,
+      side: THREE.BackSide
+    }));
+    scene.add(glw);
+    sunGlow.current = glw;
+    scene.add(new THREE.PointLight(0xfff0cc, 4, 3200, 1.4));
+    scene.add(new THREE.AmbientLight(0x101520, 0.55));
+    PLANET_DATA.forEach((p, i) => {
+      const s = pSt.current[i];
+      if (p.startPhysics) {
+        const omega = p.speed * 0.28;
+        const GM = p.baseOrbit ** 3 * omega ** 2;
+        const e = p.eccentricity || 0;
+        const r_apo = p.baseOrbit * (1 + e);
+        const v_apo = Math.sqrt(GM * (1 - e) / r_apo);
+        s.x = -r_apo;
+        s.z = 0;
+        s.vx = 0;
+        s.vz = v_apo;
+        s.mode = 'physics';
+        s.kicked = false;
+        anyPhysicsRef.current = true;
+      } else {
+        const omega = p.speed * 0.28;
+        s.x = Math.cos(s.angle) * p.baseOrbit;
+        s.z = Math.sin(s.angle) * p.baseOrbit;
+        s.vx = -Math.sin(s.angle) * p.baseOrbit * omega;
+        s.vz = Math.cos(s.angle) * p.baseOrbit * omega;
+      }
+    });
+    PLANET_DATA.forEach((p, i) => {
+      const e = p.eccentricity || 0;
+      let ring;
+      if (e > 0.05) {
+        const a = p.baseOrbit,
+          b = a * Math.sqrt(1 - e * e),
+          cOff = a * e;
+        const rPts = [];
+        for (let j = 0; j <= 240; j++) {
+          const θ = j / 240 * Math.PI * 2;
+          rPts.push(new THREE.Vector3(a * Math.cos(θ) - cOff, 0, b * Math.sin(θ)));
+        }
+        ring = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(rPts), new THREE.LineBasicMaterial({
+          color: 0x5ba8c4,
+          transparent: true,
+          opacity: 0.4,
+          linewidth: 2
+        }));
+      } else {
+        const rPts = [];
+        for (let j = 0; j <= 200; j++) {
+          const a = j / 200 * Math.PI * 2;
+          rPts.push(new THREE.Vector3(Math.cos(a), 0, Math.sin(a)));
+        }
+        ring = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(rPts), new THREE.LineBasicMaterial({
+          color: 0x8888cc,
+          transparent: true,
+          opacity: 0.22
+        }));
+      }
+      scene.add(ring);
+      oRings.current.push(ring);
+      const mat = new THREE.MeshPhongMaterial({
+        color: p.color,
+        emissive: p.emissive,
+        shininess: p.shininess,
+        specular: p.name === "Earth" ? 0x4466ff : 0x222222
+      });
+      const mesh = new THREE.Mesh(new THREE.SphereGeometry(1, 48, 48), mat);
+      mesh.castShadow = true;
+      scene.add(mesh);
+      pMeshes.current.push(mesh);
+      if (p.name === "Saturn") {
+        [[1.38, 2.55, 0xc8a84b, 0.72], [2.55, 3.1, 0xa08030, 0.32]].forEach(([ir, or, col, op]) => {
+          const rm = new THREE.Mesh(new THREE.RingGeometry(ir, or, 80), new THREE.MeshBasicMaterial({
+            color: col,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: op
+          }));
+          rm.rotation.x = Math.PI / 2 - 0.44;
+          mesh.add(rm);
+        });
+      }
+      if (p.name === "Jupiter") {
+        const cv = document.createElement("canvas");
+        cv.width = 256;
+        cv.height = 128;
+        const cx = cv.getContext("2d");
+        const g = cx.createLinearGradient(0, 0, 0, 128);
+        g.addColorStop(0, "#c8923a");
+        g.addColorStop(0.15, "#e8b870");
+        g.addColorStop(0.28, "#b07030");
+        g.addColorStop(0.42, "#d4a060");
+        g.addColorStop(0.55, "#c07828");
+        g.addColorStop(0.68, "#e0b060");
+        g.addColorStop(0.80, "#b87030");
+        g.addColorStop(1, "#c8923a");
+        cx.fillStyle = g;
+        cx.fillRect(0, 0, 256, 128);
+        mat.map = new THREE.CanvasTexture(cv);
+        mat.needsUpdate = true;
+      }
+      if (p.name === "Earth") {
+        const cv = document.createElement("canvas");
+        cv.width = 256;
+        cv.height = 128;
+        const cx = cv.getContext("2d");
+        cx.fillStyle = "#2a6fd5";
+        cx.fillRect(0, 0, 256, 128);
+        cx.fillStyle = "#3a8c3a";
+        [[30, 30, 60, 40], [140, 20, 80, 50], [100, 70, 50, 35], [30, 60, 40, 30]].forEach(([x, y, w, h]) => {
+          cx.beginPath();
+          cx.ellipse(x, y, w, h, 0, 0, Math.PI * 2);
+          cx.fill();
+        });
+        mat.map = new THREE.CanvasTexture(cv);
+        mat.needsUpdate = true;
+      }
+      if (p.name === "Planet 9") {
+        const cv = document.createElement("canvas");
+        cv.width = 256;
+        cv.height = 128;
+        const cx = cv.getContext("2d");
+        const g = cx.createLinearGradient(0, 0, 0, 128);
+        g.addColorStop(0, "#c8eef8");
+        g.addColorStop(0.12, "#5ab0cc");
+        g.addColorStop(0.30, "#3a7f9a");
+        g.addColorStop(0.50, "#2a5f7a");
+        g.addColorStop(0.70, "#3a7f9a");
+        g.addColorStop(0.88, "#5ab0cc");
+        g.addColorStop(1, "#c8eef8");
+        cx.fillStyle = g;
+        cx.fillRect(0, 0, 256, 128);
+        cx.globalAlpha = 0.12;
+        cx.strokeStyle = "#88d8f0";
+        cx.lineWidth = 6;
+        [30, 55, 75, 90, 100].forEach(y => {
+          cx.beginPath();
+          cx.moveTo(0, y);
+          cx.bezierCurveTo(64, y - 8, 192, y + 8, 256, y);
+          cx.stroke();
+        });
+        mat.map = new THREE.CanvasTexture(cv);
+        mat.needsUpdate = true;
+      }
+      const trailPos = new Float32Array(TRAIL_MAX * 3);
+      const trailGeo = new THREE.BufferGeometry();
+      trailGeo.setAttribute("position", new THREE.BufferAttribute(trailPos, 3));
+      trailGeo.setDrawRange(0, 0);
+      const trailMat = new THREE.LineBasicMaterial({
+        color: new THREE.Color(p.color),
+        transparent: true,
+        opacity: 0.12
+      });
+      const trailLine = new THREE.Line(trailGeo, trailMat);
+      scene.add(trailLine);
+      trailLines.current.push(trailLine);
+      trailBufs.current.push(trailPos);
+      trailMats.current.push(trailMat);
+    });
+    const kickPlanet = idx => {
+      const p = PLANET_DATA[idx];
+      const s = pSt.current[idx];
+      const omega = p.speed * 0.28;
+      const vCirc = p.baseOrbit * omega;
+      const impulse = vCirc * (0.35 + Math.random() * 0.40);
+      const dir = Math.random() * Math.PI * 2;
+      s.vx += Math.cos(dir) * impulse;
+      s.vz += Math.sin(dir) * impulse;
+      s.mode = 'physics';
+      s.kicked = true;
+      s.flash = 1.0;
+      s.pertVx = 0;
+      s.pertVz = 0;
+      anyPhysicsRef.current = true;
+      trailDeqs.current[idx] = [];
+    };
+    const raycaster = new THREE.Raycaster();
+    const tryPick = (cx, cy) => {
+      const rect = mount.getBoundingClientRect();
+      raycaster.setFromCamera(new THREE.Vector2((cx - rect.left) / rect.width * 2 - 1, -((cy - rect.top) / rect.height) * 2 + 1), camera);
+      const hits = raycaster.intersectObjects(pMeshes.current);
+      if (hits.length > 0) {
+        const idx = pMeshes.current.indexOf(hits[0].object);
+        if (idx >= 0) kickPlanet(idx);
+      }
+    };
+    const clock = new THREE.Clock();
+    const animate = () => {
+      frameRef.current = requestAnimationFrame(animate);
+      const rawDt = Math.min(clock.getDelta(), 0.05);
+      const cd = camDist.current,
+        phi = camPhi.current,
+        th = camTheta.current;
+      camera.position.set(cd * Math.sin(phi) * Math.sin(th), cd * Math.cos(phi), cd * Math.sin(phi) * Math.cos(th));
+      camera.lookAt(0, 0, 0);
+      const sunR = Math.max(minSzRef.current * 2.5, SUN_BASE * distRef.current);
+      sunCore.current.scale.setScalar(sunR);
+      sunCore.current.rotation.y += rawDt * 0.09;
+      sunAtm.current.scale.setScalar(sunR * 1.5);
+      sunGlow.current.scale.setScalar(sunR * 3.1);
+      const spd = speedRef.current;
+      const substeps = spd < 0.01 ? 0 : Math.max(BASE_STEPS, Math.round(spd * BASE_STEPS));
+      const subDt = spd < 0.01 ? 0 : rawDt * spd / substeps;
+      for (let step = 0; step < substeps; step++) {
         PLANET_DATA.forEach((p, i) => {
           const s = pSt.current[i];
-          if (p.startPhysics) {
-            const omega    = p.speed * 0.28;
-            const GM       = p.baseOrbit ** 3 * omega ** 2;
-            const e        = p.eccentricity || 0;
-            const r_apo    = p.baseOrbit * (1 + e);
-            const v_apo    = Math.sqrt(GM * (1 - e) / r_apo);
-            s.x      = -r_apo;
-            s.z      = 0;
-            s.vx     = 0;
-            s.vz     = v_apo;
-            s.mode   = 'physics';
-            s.kicked = false;
-            anyPhysicsRef.current = true;
-          } else {
-            const omega = p.speed * 0.28;
-            s.x  =  Math.cos(s.angle) * p.baseOrbit;
-            s.z  =  Math.sin(s.angle) * p.baseOrbit;
-            s.vx = -Math.sin(s.angle) * p.baseOrbit * omega;
-            s.vz =  Math.cos(s.angle) * p.baseOrbit * omega;
-          }
+          if (s.mode !== 'track') return;
+          const omega = p.speed * 0.28;
+          s.angle += omega * subDt;
+          s.x = Math.cos(s.angle) * p.baseOrbit;
+          s.z = Math.sin(s.angle) * p.baseOrbit;
+          s.vx = -Math.sin(s.angle) * p.baseOrbit * omega;
+          s.vz = Math.cos(s.angle) * p.baseOrbit * omega;
         });
-
+        if (!anyPhysicsRef.current) continue;
+        const ax = new Float64Array(N),
+          az = new Float64Array(N);
         PLANET_DATA.forEach((p, i) => {
-          const e = p.eccentricity || 0;
-          let ring;
-          if (e > 0.05) {
-            const a = p.baseOrbit, b = a * Math.sqrt(1 - e*e), cOff = a * e;
-            const rPts = [];
-            for (let j = 0; j <= 240; j++) {
-              const θ = (j/240)*Math.PI*2;
-              rPts.push(new THREE.Vector3(a*Math.cos(θ) - cOff, 0, b*Math.sin(θ)));
-            }
-            ring = new THREE.LineLoop(
-              new THREE.BufferGeometry().setFromPoints(rPts),
-              new THREE.LineBasicMaterial({ color:0x5ba8c4, transparent:true, opacity:0.4, linewidth:2 })
-            );
-          } else {
-            const rPts = [];
-            for (let j = 0; j <= 200; j++) {
-              const a = (j/200)*Math.PI*2;
-              rPts.push(new THREE.Vector3(Math.cos(a), 0, Math.sin(a)));
-            }
-            ring = new THREE.LineLoop(
-              new THREE.BufferGeometry().setFromPoints(rPts),
-              new THREE.LineBasicMaterial({ color:0x8888cc, transparent:true, opacity:0.22 })
-            );
-          }
-          scene.add(ring); oRings.current.push(ring);
-
-          const mat = new THREE.MeshPhongMaterial({
-            color:p.color, emissive:p.emissive, shininess:p.shininess,
-            specular: p.name==="Earth" ? 0x4466ff : 0x222222,
-          });
-          const mesh = new THREE.Mesh(new THREE.SphereGeometry(1, 48, 48), mat);
-          mesh.castShadow = true;
-          scene.add(mesh); pMeshes.current.push(mesh);
-
-          if (p.name==="Saturn") {
-            [[1.38,2.55,0xc8a84b,0.72],[2.55,3.1,0xa08030,0.32]].forEach(([ir,or,col,op]) => {
-              const rm = new THREE.Mesh(
-                new THREE.RingGeometry(ir, or, 80),
-                new THREE.MeshBasicMaterial({ color:col, side:THREE.DoubleSide, transparent:true, opacity:op })
-              );
-              rm.rotation.x = Math.PI/2-0.44; mesh.add(rm);
-            });
-          }
-          if (p.name==="Jupiter") {
-            const cv = document.createElement("canvas"); cv.width=256; cv.height=128;
-            const cx = cv.getContext("2d");
-            const g  = cx.createLinearGradient(0,0,0,128);
-            g.addColorStop(0,"#c8923a"); g.addColorStop(0.15,"#e8b870"); g.addColorStop(0.28,"#b07030");
-            g.addColorStop(0.42,"#d4a060"); g.addColorStop(0.55,"#c07828"); g.addColorStop(0.68,"#e0b060");
-            g.addColorStop(0.80,"#b87030"); g.addColorStop(1,"#c8923a");
-            cx.fillStyle=g; cx.fillRect(0,0,256,128);
-            mat.map=new THREE.CanvasTexture(cv); mat.needsUpdate=true;
-          }
-          if (p.name==="Earth") {
-            const cv = document.createElement("canvas"); cv.width=256; cv.height=128;
-            const cx = cv.getContext("2d");
-            cx.fillStyle="#2a6fd5"; cx.fillRect(0,0,256,128);
-            cx.fillStyle="#3a8c3a";
-            [[30,30,60,40],[140,20,80,50],[100,70,50,35],[30,60,40,30]].forEach(([x,y,w,h]) => {
-              cx.beginPath(); cx.ellipse(x,y,w,h,0,0,Math.PI*2); cx.fill();
-            });
-            mat.map=new THREE.CanvasTexture(cv); mat.needsUpdate=true;
-          }
-          if (p.name==="Planet 9") {
-            const cv = document.createElement("canvas"); cv.width=256; cv.height=128;
-            const cx = cv.getContext("2d");
-            const g  = cx.createLinearGradient(0,0,0,128);
-            g.addColorStop(0,    "#c8eef8");
-            g.addColorStop(0.12, "#5ab0cc");
-            g.addColorStop(0.30, "#3a7f9a");
-            g.addColorStop(0.50, "#2a5f7a");
-            g.addColorStop(0.70, "#3a7f9a");
-            g.addColorStop(0.88, "#5ab0cc");
-            g.addColorStop(1,    "#c8eef8");
-            cx.fillStyle=g; cx.fillRect(0,0,256,128);
-            cx.globalAlpha=0.12;
-            cx.strokeStyle="#88d8f0"; cx.lineWidth=6;
-            [30,55,75,90,100].forEach(y => {
-              cx.beginPath(); cx.moveTo(0,y); cx.bezierCurveTo(64,y-8,192,y+8,256,y); cx.stroke();
-            });
-            mat.map=new THREE.CanvasTexture(cv); mat.needsUpdate=true;
-          }
-
-          const trailPos = new Float32Array(TRAIL_MAX*3);
-          const trailGeo = new THREE.BufferGeometry();
-          trailGeo.setAttribute("position", new THREE.BufferAttribute(trailPos, 3));
-          trailGeo.setDrawRange(0,0);
-          const trailMat  = new THREE.LineBasicMaterial({ color:new THREE.Color(p.color), transparent:true, opacity:0.12 });
-          const trailLine = new THREE.Line(trailGeo, trailMat);
-          scene.add(trailLine);
-          trailLines.current.push(trailLine);
-          trailBufs.current.push(trailPos);
-          trailMats.current.push(trailMat);
+          const s = pSt.current[i];
+          if (s.mode !== 'physics') return;
+          const GM = p.baseOrbit ** 3 * (p.speed * 0.28) ** 2;
+          const r2 = s.x * s.x + s.z * s.z,
+            r = Math.sqrt(r2) || 0.001;
+          ax[i] -= GM * s.x / (r2 * r);
+          az[i] -= GM * s.z / (r2 * r);
         });
-
-        const kickPlanet = (idx) => {
-          const p  = PLANET_DATA[idx];
-          const s  = pSt.current[idx];
-          const omega   = p.speed * 0.28;
-          const vCirc   = p.baseOrbit * omega;
-          const impulse = vCirc * (0.35 + Math.random() * 0.40);
-          const dir     = Math.random() * Math.PI * 2;
-          s.vx  += Math.cos(dir) * impulse;
-          s.vz  += Math.sin(dir) * impulse;
-          s.mode   = 'physics';
-          s.kicked = true;
-          s.flash  = 1.0;
-          s.pertVx = 0; s.pertVz = 0;
-          anyPhysicsRef.current = true;
-          trailDeqs.current[idx] = [];
-        };
-
-        const raycaster = new THREE.Raycaster();
-        const tryPick = (cx, cy) => {
-          const rect = mount.getBoundingClientRect();
-          raycaster.setFromCamera(
-            new THREE.Vector2(((cx-rect.left)/rect.width)*2-1, -((cy-rect.top)/rect.height)*2+1),
-            camera
-          );
-          const hits = raycaster.intersectObjects(pMeshes.current);
-          if (hits.length > 0) {
-            const idx = pMeshes.current.indexOf(hits[0].object);
-            if (idx >= 0) kickPlanet(idx);
-          }
-        };
-
-        const clock = new THREE.Clock();
-        const animate = () => {
-          frameRef.current = requestAnimationFrame(animate);
-          const rawDt = Math.min(clock.getDelta(), 0.05);
-
-          const cd=camDist.current, phi=camPhi.current, th=camTheta.current;
-          camera.position.set(cd*Math.sin(phi)*Math.sin(th), cd*Math.cos(phi), cd*Math.sin(phi)*Math.cos(th));
-          camera.lookAt(0,0,0);
-
-          const sunR = Math.max(minSzRef.current*2.5, SUN_BASE*distRef.current);
-          sunCore.current.scale.setScalar(sunR);
-          sunCore.current.rotation.y += rawDt*0.09;
-          sunAtm.current.scale.setScalar(sunR*1.5);
-          sunGlow.current.scale.setScalar(sunR*3.1);
-
-          const spd      = speedRef.current;
-          const substeps = spd < 0.01 ? 0 : Math.max(BASE_STEPS, Math.round(spd * BASE_STEPS));
-          const subDt    = spd < 0.01 ? 0 : rawDt * spd / substeps;
-
-          for (let step = 0; step < substeps; step++) {
-
-            PLANET_DATA.forEach((p, i) => {
-              const s = pSt.current[i];
-              if (s.mode !== 'track') return;
-              const omega = p.speed * 0.28;
-              s.angle += omega * subDt;
-              s.x  =  Math.cos(s.angle) * p.baseOrbit;
-              s.z  =  Math.sin(s.angle) * p.baseOrbit;
-              s.vx = -Math.sin(s.angle) * p.baseOrbit * omega;
-              s.vz =  Math.cos(s.angle) * p.baseOrbit * omega;
-            });
-
-            if (!anyPhysicsRef.current) continue;
-
-            const ax = new Float64Array(N), az = new Float64Array(N);
-            PLANET_DATA.forEach((p, i) => {
-              const s = pSt.current[i];
-              if (s.mode !== 'physics') return;
-              const GM = p.baseOrbit ** 3 * (p.speed * 0.28) ** 2;
-              const r2 = s.x*s.x + s.z*s.z, r = Math.sqrt(r2) || 0.001;
-              ax[i] -= GM * s.x / (r2 * r);
-              az[i] -= GM * s.z / (r2 * r);
-            });
-
-            for (let i = 0; i < N; i++) {
-              const si = pSt.current[i];
-              for (let j = i + 1; j < N; j++) {
-                const sj = pSt.current[j];
-                if (si.mode !== 'physics' && sj.mode !== 'physics') continue;
-
-                const dx = sj.x - si.x, dz = sj.z - si.z;
-                const r2 = Math.max(MIN_SEP * MIN_SEP, dx*dx + dz*dz);
-                const r  = Math.sqrt(r2), ux = dx/r, uz = dz/r;
-                const fB = G_PLANET / r2;
-
-                const aOnI = fB * PLANET_DATA[j].mass;
-                const aOnJ = fB * PLANET_DATA[i].mass;
-
-                if (si.mode === 'physics') {
-                  ax[i] += aOnI * ux; az[i] += aOnI * uz;
-                } else {
-                  si.pertVx += aOnI * ux * subDt;
-                  si.pertVz += aOnI * uz * subDt;
-                }
-                if (sj.mode === 'physics') {
-                  ax[j] -= aOnJ * ux; az[j] -= aOnJ * uz;
-                } else {
-                  sj.pertVx -= aOnJ * ux * subDt;
-                  sj.pertVz -= aOnJ * uz * subDt;
-                }
-
-                if (aOnI > INF_THRESH) si.influenced = Math.min(1, si.influenced + subDt * 5);
-                if (aOnJ > INF_THRESH) sj.influenced = Math.min(1, sj.influenced + subDt * 5);
-              }
-            }
-
-            PLANET_DATA.forEach((p, i) => {
-              const s = pSt.current[i];
-              if (s.mode !== 'physics') return;
-              s.vx += ax[i] * subDt; s.vz += az[i] * subDt;
-              s.x  += s.vx  * subDt; s.z  += s.vz  * subDt;
-              const r    = Math.sqrt(s.x*s.x + s.z*s.z);
-              const maxR = p.baseOrbit * (1 + (p.eccentricity||0)) * 11;
-              if (r > maxR || r < 3) {
-                if (p.startPhysics) {
-                  const omega = p.speed * 0.28;
-                  const GM    = p.baseOrbit ** 3 * omega ** 2;
-                  const e     = p.eccentricity || 0;
-                  const r_apo = p.baseOrbit * (1 + e);
-                  s.x = -r_apo; s.z = 0; s.vx = 0; s.vz = Math.sqrt(GM*(1-e)/r_apo);
-                } else {
-                  s.mode   = 'track';
-                  s.angle  = Math.atan2(s.z, s.x);
-                  s.kicked = false;
-                  s.pertVx = 0; s.pertVz = 0;
-                  anyPhysicsRef.current = pSt.current.some(ps => ps.mode === 'physics');
-                }
-              }
-            });
-
-            PLANET_DATA.forEach((p, i) => {
-              const s = pSt.current[i];
-              if (s.mode !== 'track') { s.pertVx = 0; s.pertVz = 0; return; }
-              const pSpeed = Math.sqrt(s.pertVx*s.pertVx + s.pertVz*s.pertVz);
-              if (pSpeed > CASCADE_THRESH) {
-                s.vx  += s.pertVx;
-                s.vz  += s.pertVz;
-                s.mode = 'physics';
-                anyPhysicsRef.current = true;
-              }
-              s.pertVx = 0; s.pertVz = 0;
-            });
-          }
-
-          PLANET_DATA.forEach((p, i) => {
-            const s   = pSt.current[i];
-            const d   = distRef.current;
-            const rad = Math.max(minSzRef.current, p.radius);
-
-            const mesh = pMeshes.current[i];
-            mesh.position.set(s.x*d, 0, s.z*d);
-            mesh.scale.setScalar(rad);
-            mesh.rotation.y += rawDt*0.4;
-
-            if (s.flash > 0) {
-              s.flash = Math.max(0, s.flash-rawDt*0.8);
-              mesh.material.emissive.lerpColors(new THREE.Color(p.emissive), new THREE.Color(0xffffff), s.flash*0.75);
-            } else if (s.influenced > 0) {
-              s.influenced = Math.max(0, s.influenced-rawDt*0.5);
-              mesh.material.emissive.lerpColors(new THREE.Color(p.emissive), new THREE.Color(0xff6600), s.influenced*0.55);
+        for (let i = 0; i < N; i++) {
+          const si = pSt.current[i];
+          for (let j = i + 1; j < N; j++) {
+            const sj = pSt.current[j];
+            if (si.mode !== 'physics' && sj.mode !== 'physics') continue;
+            const dx = sj.x - si.x,
+              dz = sj.z - si.z;
+            const r2 = Math.max(MIN_SEP * MIN_SEP, dx * dx + dz * dz);
+            const r = Math.sqrt(r2),
+              ux = dx / r,
+              uz = dz / r;
+            const fB = G_PLANET / r2;
+            const aOnI = fB * PLANET_DATA[j].mass;
+            const aOnJ = fB * PLANET_DATA[i].mass;
+            if (si.mode === 'physics') {
+              ax[i] += aOnI * ux;
+              az[i] += aOnI * uz;
             } else {
-              mesh.material.emissive.set(p.emissive);
+              si.pertVx += aOnI * ux * subDt;
+              si.pertVz += aOnI * uz * subDt;
             }
-
-            const inPhysics = s.mode === 'physics';
-            const deq = trailDeqs.current[i];
-            deq.push(s.x*d, 0, s.z*d);
-            if (deq.length > (inPhysics ? TRAIL_MAX*3 : s.influenced>0 ? 90*3 : 30*3)) deq.splice(0,3);
-            const buf=trailBufs.current[i], line=trailLines.current[i], tmat=trailMats.current[i];
-            const pts=deq.length/3;
-            for (let k=0;k<deq.length;k++) buf[k]=deq[k];
-            line.geometry.attributes.position.needsUpdate=true;
-            line.geometry.setDrawRange(0,pts);
-            tmat.opacity = inPhysics ? 0.60 : s.influenced>0 ? 0.30 : 0.08;
-
-            const ringScale = (p.eccentricity || 0) > 0.05 ? d : p.baseOrbit * d;
-            oRings.current[i].scale.setScalar(ringScale);
-            oRings.current[i].material.opacity = (p.eccentricity||0) > 0.05
-              ? orbitOpRef.current * 1.6
-              : orbitOpRef.current;
-
-          });
-
-          renderer.render(scene, camera);
-        };
-        animate();
-
-        const onResize = () => {
-          const W=mount.clientWidth, H=mount.clientHeight;
-          camera.aspect=W/H; camera.updateProjectionMatrix(); renderer.setSize(W,H);
-        };
-        window.addEventListener("resize", onResize);
-
-        const pdown = (cx,cy) => {
-          drag.current=true; dragged.current=false;
-          startXY.current={x:cx,y:cy}; lastXY.current={x:cx,y:cy};
-        };
-        const pmove = (cx,cy) => {
-          if (!drag.current) return;
-          if (Math.abs(cx-startXY.current.x)>5||Math.abs(cy-startXY.current.y)>5) dragged.current=true;
-          camTheta.current += (cx-lastXY.current.x)*0.004;
-          camPhi.current = Math.max(0.08, Math.min(Math.PI-0.08, camPhi.current+(cy-lastXY.current.y)*0.004));
-          lastXY.current = {x:cx,y:cy};
-        };
-        const pup  = (cx,cy) => { if (!dragged.current) tryPick(cx,cy); drag.current=false; };
-
-        const mdown  = e=>pdown(e.clientX, e.clientY);
-        const mmove  = e=>pmove(e.clientX, e.clientY);
-        const mup    = e=>pup(e.clientX, e.clientY);
-        const mwheel = e=>{ camDist.current=Math.max(60,Math.min(3200,camDist.current+e.deltaY*0.8)); };
-        const tstart = e=>pdown(e.touches[0].clientX, e.touches[0].clientY);
-        const tmove  = e=>{ if(e.touches.length) pmove(e.touches[0].clientX, e.touches[0].clientY); };
-        const tend   = e=>{ if(e.changedTouches.length) pup(e.changedTouches[0].clientX, e.changedTouches[0].clientY); };
-
-        mount.addEventListener("mousedown",  mdown);
-        window.addEventListener("mousemove", mmove);
-        window.addEventListener("mouseup",   mup);
-        mount.addEventListener("wheel",      mwheel, {passive:true});
-        mount.addEventListener("touchstart", tstart, {passive:true});
-        mount.addEventListener("touchmove",  tmove,  {passive:true});
-        mount.addEventListener("touchend",   tend);
-
-        return () => {
-          cancelAnimationFrame(frameRef.current);
-          window.removeEventListener("resize",    onResize);
-          window.removeEventListener("mousemove", mmove);
-          window.removeEventListener("mouseup",   mup);
-          mount.removeEventListener("mousedown",  mdown);
-          mount.removeEventListener("wheel",      mwheel);
-          mount.removeEventListener("touchstart", tstart);
-          mount.removeEventListener("touchmove",  tmove);
-          mount.removeEventListener("touchend",   tend);
-          if (mount.contains(renderer.domElement)) mount.removeChild(renderer.domElement);
-          renderer.dispose();
-        };
-      }, []);
-
-      const controls = [
-        { label:"SCALE / DISTANCE", key:"dist",    val:dist,    min:0.15, max:2.5, step:0.05, fmt:v=>`${v.toFixed(2)}×`       },
-        { label:"MIN SIZE",         key:"minSz",   val:minSz,   min:0.5,  max:16,  step:0.5,  fmt:v=>`${v}`                   },
-        { label:"ORBIT SPEED",      key:"spd",     val:spd,     min:0.0,  max:6.0, step:0.1,  fmt:v=>`${v.toFixed(1)}×`       },
-        { label:"ORBIT VISIBILITY", key:"orbitOp", val:orbitOp, min:0.0,  max:1.0, step:0.01, fmt:v=>`${Math.round(v*100)}%`  },
-      ];
-
-      return (
-        <div style={{ width:"100%", height:"100vh", background:"#000010", display:"flex", flexDirection:"column", fontFamily:"'Courier New', monospace" }}>
-          <div ref={mountRef} style={{ flex:1, cursor:"crosshair", overflow:"hidden" }} />
-
-          {showP9 && (
-          <div style={{
-            position:"absolute", top:12, right:14,
-            background:"rgba(0,18,28,0.88)", border:"1px solid rgba(91,168,196,0.5)",
-            borderRadius:8, padding:"9px 13px 9px 13px", maxWidth:260,
-            backdropFilter:"blur(6px)",
-          }}>
-            <button onClick={()=>setShowP9(false)} style={{
-              position:"absolute", top:5, right:7,
-              background:"none", border:"none", color:"rgba(91,168,196,0.7)",
-              fontSize:14, lineHeight:1, cursor:"pointer", padding:"0 2px",
-              fontFamily:"inherit",
-            }}>✕</button>
-            <div style={{ color:"#5ba8c4", fontSize:10, letterSpacing:2, marginBottom:5, paddingRight:16 }}>◈ PLANET 9 — HYPOTHETICAL</div>
-            <div style={{ color:"rgba(255,255,255,0.7)", fontSize:9.5, lineHeight:1.6 }}>
-              <b style={{color:"#aadff0"}}>Siraj 2025 (latest):</b> a = 290 AU, e = 0.29<br/>
-              Mass ≈ 4.4 M⊕ &nbsp;|&nbsp; Period ~4,940 yr<br/>
-              <b style={{color:"#aadff0"}}>May 9 2026 (Science):</b> Taiwan / Japan / Australia team found an IRAS+AKARI candidate at ~600 AU.<br/>
-              <span style={{color:"rgba(255,255,255,0.4)"}}>Scroll out or set Scale to ~0.35× to see full orbit</span>
-            </div>
-          </div>
-          )}
-
-          <div style={{
-            flexShrink:0, background:"rgba(4,4,18,0.96)",
-            borderTop:"1px solid rgba(255,200,0,0.14)",
-            padding:"8px 14px 6px", position:"relative",
-            display:"flex", flexDirection:"column", gap:4,
-          }}>
-            {controls.map(({ label, key, val, min, max, step, fmt }) => (
-              <div key={key} style={{ display:"flex", alignItems:"center", gap:8 }}>
-                <span style={{ color:"rgba(255,200,0,0.55)", fontSize:9, letterSpacing:1.5, whiteSpace:"nowrap", flexShrink:0, width:110, textAlign:"right" }}>
-                  {label}
-                </span>
-                <input type="range" min={min} max={max} step={step} value={val}
-                  onChange={e=>slide(key, parseFloat(e.target.value))}
-                  style={{ flex:1, minWidth:0, accentColor:"#ffcc00", cursor:"pointer" }} />
-                <span style={{ color:"#ffcc00", fontSize:11, fontWeight:"bold", minWidth:36, textAlign:"right", flexShrink:0 }}>
-                  {fmt(val)}
-                </span>
-              </div>
-            ))}
-            <div style={{ marginTop:2, color:"rgba(255,255,255,0.18)", fontSize:8, letterSpacing:1.2, textAlign:"center" }}>
-              DRAG · PINCH/SCROLL TO ZOOM · TAP PLANET TO PERTURB
-            </div>
-          </div>
-        </div>
-      );
+            if (sj.mode === 'physics') {
+              ax[j] -= aOnJ * ux;
+              az[j] -= aOnJ * uz;
+            } else {
+              sj.pertVx -= aOnJ * ux * subDt;
+              sj.pertVz -= aOnJ * uz * subDt;
+            }
+            if (aOnI > INF_THRESH) si.influenced = Math.min(1, si.influenced + subDt * 5);
+            if (aOnJ > INF_THRESH) sj.influenced = Math.min(1, sj.influenced + subDt * 5);
+          }
+        }
+        PLANET_DATA.forEach((p, i) => {
+          const s = pSt.current[i];
+          if (s.mode !== 'physics') return;
+          s.vx += ax[i] * subDt;
+          s.vz += az[i] * subDt;
+          s.x += s.vx * subDt;
+          s.z += s.vz * subDt;
+          const r = Math.sqrt(s.x * s.x + s.z * s.z);
+          const maxR = p.baseOrbit * (1 + (p.eccentricity || 0)) * 11;
+          if (r > maxR || r < 3) {
+            if (p.startPhysics) {
+              const omega = p.speed * 0.28;
+              const GM = p.baseOrbit ** 3 * omega ** 2;
+              const e = p.eccentricity || 0;
+              const r_apo = p.baseOrbit * (1 + e);
+              s.x = -r_apo;
+              s.z = 0;
+              s.vx = 0;
+              s.vz = Math.sqrt(GM * (1 - e) / r_apo);
+            } else {
+              s.mode = 'track';
+              s.angle = Math.atan2(s.z, s.x);
+              s.kicked = false;
+              s.pertVx = 0;
+              s.pertVz = 0;
+              anyPhysicsRef.current = pSt.current.some(ps => ps.mode === 'physics');
+            }
+          }
+        });
+        PLANET_DATA.forEach((p, i) => {
+          const s = pSt.current[i];
+          if (s.mode !== 'track') {
+            s.pertVx = 0;
+            s.pertVz = 0;
+            return;
+          }
+          const pSpeed = Math.sqrt(s.pertVx * s.pertVx + s.pertVz * s.pertVz);
+          if (pSpeed > CASCADE_THRESH) {
+            s.vx += s.pertVx;
+            s.vz += s.pertVz;
+            s.mode = 'physics';
+            anyPhysicsRef.current = true;
+          }
+          s.pertVx = 0;
+          s.pertVz = 0;
+        });
+      }
+      PLANET_DATA.forEach((p, i) => {
+        const s = pSt.current[i];
+        const d = distRef.current;
+        const rad = Math.max(minSzRef.current, p.radius);
+        const mesh = pMeshes.current[i];
+        mesh.position.set(s.x * d, 0, s.z * d);
+        mesh.scale.setScalar(rad);
+        mesh.rotation.y += rawDt * 0.4;
+        if (s.flash > 0) {
+          s.flash = Math.max(0, s.flash - rawDt * 0.8);
+          mesh.material.emissive.lerpColors(new THREE.Color(p.emissive), new THREE.Color(0xffffff), s.flash * 0.75);
+        } else if (s.influenced > 0) {
+          s.influenced = Math.max(0, s.influenced - rawDt * 0.5);
+          mesh.material.emissive.lerpColors(new THREE.Color(p.emissive), new THREE.Color(0xff6600), s.influenced * 0.55);
+        } else {
+          mesh.material.emissive.set(p.emissive);
+        }
+        const inPhysics = s.mode === 'physics';
+        const deq = trailDeqs.current[i];
+        deq.push(s.x * d, 0, s.z * d);
+        if (deq.length > (inPhysics ? TRAIL_MAX * 3 : s.influenced > 0 ? 90 * 3 : 30 * 3)) deq.splice(0, 3);
+        const buf = trailBufs.current[i],
+          line = trailLines.current[i],
+          tmat = trailMats.current[i];
+        const pts = deq.length / 3;
+        for (let k = 0; k < deq.length; k++) buf[k] = deq[k];
+        line.geometry.attributes.position.needsUpdate = true;
+        line.geometry.setDrawRange(0, pts);
+        tmat.opacity = inPhysics ? 0.60 : s.influenced > 0 ? 0.30 : 0.08;
+        const ringScale = (p.eccentricity || 0) > 0.05 ? d : p.baseOrbit * d;
+        oRings.current[i].scale.setScalar(ringScale);
+        oRings.current[i].material.opacity = (p.eccentricity || 0) > 0.05 ? orbitOpRef.current * 1.6 : orbitOpRef.current;
+      });
+      renderer.render(scene, camera);
+    };
+    animate();
+    const onResize = () => {
+      const W = mount.clientWidth,
+        H = mount.clientHeight;
+      camera.aspect = W / H;
+      camera.updateProjectionMatrix();
+      renderer.setSize(W, H);
+    };
+    window.addEventListener("resize", onResize);
+    const pdown = (cx, cy) => {
+      drag.current = true;
+      dragged.current = false;
+      startXY.current = {
+        x: cx,
+        y: cy
+      };
+      lastXY.current = {
+        x: cx,
+        y: cy
+      };
+    };
+    const pmove = (cx, cy) => {
+      if (!drag.current) return;
+      if (Math.abs(cx - startXY.current.x) > 5 || Math.abs(cy - startXY.current.y) > 5) dragged.current = true;
+      camTheta.current += (cx - lastXY.current.x) * 0.004;
+      camPhi.current = Math.max(0.08, Math.min(Math.PI - 0.08, camPhi.current + (cy - lastXY.current.y) * 0.004));
+      lastXY.current = {
+        x: cx,
+        y: cy
+      };
+    };
+    const pup = (cx, cy) => {
+      if (!dragged.current) tryPick(cx, cy);
+      drag.current = false;
+    };
+    const mdown = e => pdown(e.clientX, e.clientY);
+    const mmove = e => pmove(e.clientX, e.clientY);
+    const mup = e => pup(e.clientX, e.clientY);
+    const mwheel = e => {
+      camDist.current = Math.max(60, Math.min(3200, camDist.current + e.deltaY * 0.8));
+    };
+    const tstart = e => pdown(e.touches[0].clientX, e.touches[0].clientY);
+    const tmove = e => {
+      if (e.touches.length) pmove(e.touches[0].clientX, e.touches[0].clientY);
+    };
+    const tend = e => {
+      if (e.changedTouches.length) pup(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+    };
+    mount.addEventListener("mousedown", mdown);
+    window.addEventListener("mousemove", mmove);
+    window.addEventListener("mouseup", mup);
+    mount.addEventListener("wheel", mwheel, {
+      passive: true
+    });
+    mount.addEventListener("touchstart", tstart, {
+      passive: true
+    });
+    mount.addEventListener("touchmove", tmove, {
+      passive: true
+    });
+    mount.addEventListener("touchend", tend);
+    return () => {
+      cancelAnimationFrame(frameRef.current);
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("mousemove", mmove);
+      window.removeEventListener("mouseup", mup);
+      mount.removeEventListener("mousedown", mdown);
+      mount.removeEventListener("wheel", mwheel);
+      mount.removeEventListener("touchstart", tstart);
+      mount.removeEventListener("touchmove", tmove);
+      mount.removeEventListener("touchend", tend);
+      if (mount.contains(renderer.domElement)) mount.removeChild(renderer.domElement);
+      renderer.dispose();
+    };
+  }, []);
+  const controls = [{
+    label: "SCALE / DISTANCE",
+    key: "dist",
+    val: dist,
+    min: 0.15,
+    max: 2.5,
+    step: 0.05,
+    fmt: v => `${v.toFixed(2)}×`
+  }, {
+    label: "MIN SIZE",
+    key: "minSz",
+    val: minSz,
+    min: 0.5,
+    max: 16,
+    step: 0.5,
+    fmt: v => `${v}`
+  }, {
+    label: "ORBIT SPEED",
+    key: "spd",
+    val: spd,
+    min: 0.0,
+    max: 6.0,
+    step: 0.1,
+    fmt: v => `${v.toFixed(1)}×`
+  }, {
+    label: "ORBIT VISIBILITY",
+    key: "orbitOp",
+    val: orbitOp,
+    min: 0.0,
+    max: 1.0,
+    step: 0.01,
+    fmt: v => `${Math.round(v * 100)}%`
+  }];
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: "100%",
+      height: "100vh",
+      background: "#000010",
+      display: "flex",
+      flexDirection: "column",
+      fontFamily: "'Courier New', monospace"
     }
-
-    const root = ReactDOM.createRoot(document.getElementById("root"));
-    root.render(<SolarSystem3D />);
-  </script>
+  }, /*#__PURE__*/React.createElement("div", {
+    ref: mountRef,
+    style: {
+      flex: 1,
+      cursor: "crosshair",
+      overflow: "hidden"
+    }
+  }), showP9 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "absolute",
+      top: 12,
+      right: 14,
+      background: "rgba(0,18,28,0.88)",
+      border: "1px solid rgba(91,168,196,0.5)",
+      borderRadius: 8,
+      padding: "9px 13px 9px 13px",
+      maxWidth: 260,
+      backdropFilter: "blur(6px)"
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setShowP9(false),
+    style: {
+      position: "absolute",
+      top: 5,
+      right: 7,
+      background: "none",
+      border: "none",
+      color: "rgba(91,168,196,0.7)",
+      fontSize: 14,
+      lineHeight: 1,
+      cursor: "pointer",
+      padding: "0 2px",
+      fontFamily: "inherit"
+    }
+  }, "\u2715"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: "#5ba8c4",
+      fontSize: 10,
+      letterSpacing: 2,
+      marginBottom: 5,
+      paddingRight: 16
+    }
+  }, "\u25C8 PLANET 9 \u2014 HYPOTHETICAL"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: "rgba(255,255,255,0.7)",
+      fontSize: 9.5,
+      lineHeight: 1.6
+    }
+  }, /*#__PURE__*/React.createElement("b", {
+    style: {
+      color: "#aadff0"
+    }
+  }, "Siraj 2025 (latest):"), " a = 290 AU, e = 0.29", /*#__PURE__*/React.createElement("br", null), "Mass \u2248 4.4 M\u2295 \xA0|\xA0 Period ~4,940 yr", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("b", {
+    style: {
+      color: "#aadff0"
+    }
+  }, "May 9 2026 (Science):"), " Taiwan / Japan / Australia team found an IRAS+AKARI candidate at ~600 AU.", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: "rgba(255,255,255,0.4)"
+    }
+  }, "Scroll out or set Scale to ~0.35\xD7 to see full orbit"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flexShrink: 0,
+      background: "rgba(4,4,18,0.96)",
+      borderTop: "1px solid rgba(255,200,0,0.14)",
+      padding: "8px 14px 6px",
+      position: "relative",
+      display: "flex",
+      flexDirection: "column",
+      gap: 4
+    }
+  }, controls.map(({
+    label,
+    key,
+    val,
+    min,
+    max,
+    step,
+    fmt
+  }) => /*#__PURE__*/React.createElement("div", {
+    key: key,
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: "rgba(255,200,0,0.55)",
+      fontSize: 9,
+      letterSpacing: 1.5,
+      whiteSpace: "nowrap",
+      flexShrink: 0,
+      width: 110,
+      textAlign: "right"
+    }
+  }, label), /*#__PURE__*/React.createElement("input", {
+    type: "range",
+    min: min,
+    max: max,
+    step: step,
+    value: val,
+    onChange: e => slide(key, parseFloat(e.target.value)),
+    style: {
+      flex: 1,
+      minWidth: 0,
+      accentColor: "#ffcc00",
+      cursor: "pointer"
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: "#ffcc00",
+      fontSize: 11,
+      fontWeight: "bold",
+      minWidth: 36,
+      textAlign: "right",
+      flexShrink: 0
+    }
+  }, fmt(val)))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 2,
+      color: "rgba(255,255,255,0.18)",
+      fontSize: 8,
+      letterSpacing: 1.2,
+      textAlign: "center"
+    }
+  }, "DRAG \xB7 PINCH/SCROLL TO ZOOM \xB7 TAP PLANET TO PERTURB")));
+}
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(/*#__PURE__*/React.createElement(SolarSystem3D, null));
+</script>
 </body>
 </html>
