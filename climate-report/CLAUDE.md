@@ -28,7 +28,7 @@ URL: `meteo.physik.uni-muenchen.de/~paul.james/munich_tables_tm.html`
 |---------|-------------|
 | 1961–90 | 9,14 °C |
 | 1971–2000 | 9,49 °C |
-| 1981–2010 | 9,72 °Cx |
+| 1981–2010 | 9,72 °C |
 | 1991–2020 | 10,11 °C |
 
 Quelle: DWD via Statistisches Amt München — Station München-Stadt
