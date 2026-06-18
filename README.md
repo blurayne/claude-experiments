@@ -14,6 +14,7 @@ A collection of small, self-contained experiments. Each subfolder is one experim
 - [esp32-iot-lightning-talk](esp32-iot-lightning-talk/) — A 5-minute reveal.js slide deck on using an ESP32 as an IoT sensor, shipping data to InfluxDB, and shipping firmware with OTA updates.
 - [climate-report](climate-report/) — Interactive climate-trend dashboard for Munich (warming trend with extrapolation to 2036, extremes, monthly heatmap, precipitation/sun/UV), built from real LMU and DWD data.
 - [gebrauchtwagen-kompass](gebrauchtwagen-kompass/) — Interactive used-car comparison dashboard (German) in a marine-compass theme: speed-dependent fuel curves, total cost of ownership, reliability dots and scale silhouettes.
+- [palestine-my-ass](palestine-my-ass/) — Interactive German fact-check page examining six accusations against journalist Sophie von der Tann, weighing each claim against counterpoints with verdict labels (light/dark theme).
 
 ## How the site is built
 

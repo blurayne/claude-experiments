@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Faktencheck: Die Kritik an Sophie von der Tann</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #F6F7F8;
+    --panel: #FFFFFF;
+    --ink: #15181E;
+    --muted: #5C636F;
+    --faint: #858C99;
+    --hair: #E2E6EB;
+    --hair-strong: #CDD3DB;
+    --spine: #B9C0CA;
+    /* tints for the two sides of the ledger */
+    --claim-bg: #FBF3F1;
+    --claim-edge: #D9A99E;
+    --claim-label: #9A4633;
+    --counter-bg: #EFF4F4;
+    --counter-edge: #94B9B3;
+    --counter-label: #2E6B5F;
+    /* verdict scale */
+    --v-debate: #B5790B;   /* sachlich diskutierbar */
+    --v-interp: #6E54A6;   /* wertend / interpretativ */
+    --v-unver:  #6A7480;   /* nicht überprüfbar */
+    --v-refut:  #2F7E6E;   /* bestritten / entkräftet */
+    --accent: #1E3A5F;
+    --shadow: 0 1px 2px rgba(20,24,30,.04), 0 8px 28px rgba(20,24,30,.05);
+  }
+  [data-theme="dark"] {
+    --paper: #131519;
+    --panel: #1A1D23;
+    --ink: #ECEEF2;
+    --muted: #9BA2AE;
+    --faint: #757D8A;
+    --hair: #282C34;
+    --hair-strong: #353A44;
+    --spine: #3A404B;
+    --claim-bg: #241A18;
+    --claim-edge: #6E4339;
+    --claim-label: #D99685;
+    --counter-bg: #16211F;
+    --counter-edge: #345049;
+    --counter-label: #79B7AB;
+    --v-debate: #D9A23F;
+    --v-interp: #A48ED6;
+    --v-unver:  #9099A6;
+    --v-refut:  #58B49F;
+    --accent: #7FA8D6;
+    --shadow: 0 1px 2px rgba(0,0,0,.25), 0 10px 32px rgba(0,0,0,.30);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    transition: background .35s ease, color .35s ease;
+  }
+
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 0 24px; }
+
+  /* ---------- top bar ---------- */
+  header.bar {
+    position: sticky; top: 0; z-index: 50;
+    background: color-mix(in srgb, var(--paper) 86%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--hair);
+  }
+  .bar-in { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 13px 24px; max-width: 1000px; margin: 0 auto; }
+  .bar-tag {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--faint);
+  }
+  .bar-tag b { color: var(--ink); font-weight: 600; }
+  .toggle {
+    border: 1px solid var(--hair-strong); background: var(--panel); color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+    padding: 7px 13px; border-radius: 999px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px;
+    transition: border-color .2s, color .2s, background .2s;
+  }
+  .toggle:hover { border-color: var(--spine); color: var(--ink); }
+  .toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .toggle .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+
+  /* ---------- hero ---------- */
+  .hero { padding: 72px 0 40px; border-bottom: 1px solid var(--hair); }
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: .22em; text-transform: uppercase;
+    color: var(--claim-label); margin: 0 0 22px; display: flex; align-items: center; gap: 12px;
+  }
+  .eyebrow::before { content:""; width: 34px; height: 1px; background: var(--claim-edge); }
+  h1 {
+    font-family: 'Newsreader', Georgia, serif; font-weight: 500;
+    font-size: clamp(2.1rem, 5.4vw, 3.5rem); line-height: 1.08; letter-spacing: -.01em;
+    margin: 0 0 18px; max-width: 18ch;
+  }
+  h1 em { font-style: italic; color: var(--accent); }
+  .lede {
+    font-family: 'Newsreader', Georgia, serif; font-size: clamp(1.06rem, 2vw, 1.28rem);
+    color: var(--muted); max-width: 60ch; margin: 0 0 6px; line-height: 1.55;
+  }
+
+  /* ---------- verdict-at-a-glance ---------- */
+  .glance {
+    margin-top: 38px; background: var(--panel); border: 1px solid var(--hair);
+    border-radius: 14px; padding: 26px 28px; box-shadow: var(--shadow);
+  }
+  .glance h2 {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--faint); margin: 0 0 14px; font-weight: 600;
+  }
+  .glance p { margin: 0 0 14px; font-size: 15.5px; color: var(--ink); }
+  .glance p:last-child { margin-bottom: 0; }
+  .glance strong { font-weight: 600; }
+  .pull {
+    font-family: 'Newsreader', serif; font-size: 1.18rem; line-height: 1.5; color: var(--ink);
+    border-left: 3px solid var(--accent); padding-left: 18px; margin: 0 0 18px;
+  }
+
+  /* ---------- legend ---------- */
+  .legend { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 26px; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--hair); }
+  .leg { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: var(--muted); }
+  .leg .sw { flex: 0 0 auto; width: 11px; height: 11px; border-radius: 50%; margin-top: 5px; }
+  .leg b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- context strip ---------- */
+  .context { padding: 46px 0; border-bottom: 1px solid var(--hair); }
+  .sec-label {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--faint); margin: 0 0 22px; font-weight: 600;
+  }
+  .ctx-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  .ctx-card { background: var(--panel); border: 1px solid var(--hair); border-radius: 12px; padding: 20px 22px; }
+  .ctx-card h3 { font-family: 'Inter', sans-serif; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; margin: 0 0 12px; color: var(--ink); font-weight: 700; }
+  .ctx-card.crit h3 { color: var(--claim-label); }
+  .ctx-card.def  h3 { color: var(--counter-label); }
+  .ctx-card ul { margin: 0; padding: 0; list-style: none; }
+  .ctx-card li { font-size: 14px; color: var(--muted); padding: 5px 0 5px 16px; position: relative; line-height: 1.45; }
+  .ctx-card li::before { content:""; position: absolute; left: 0; top: 12px; width: 5px; height: 5px; border-radius: 50%; background: var(--spine); }
+  .ctx-card li b { color: var(--ink); font-weight: 600; }
+  .ctx-meta { display: flex; flex-wrap: wrap; gap: 10px 28px; margin-bottom: 26px; }
+  .ctx-meta div { font-size: 14px; color: var(--muted); }
+  .ctx-meta div b { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); margin-bottom: 2px; font-weight: 600; }
+  .ctx-meta div span { color: var(--ink); font-weight: 500; }
+
+  /* ---------- aspect cards ---------- */
+  .aspects { padding: 46px 0 10px; }
+  .card {
+    background: var(--panel); border: 1px solid var(--hair); border-radius: 16px;
+    margin-bottom: 22px; overflow: hidden; box-shadow: var(--shadow);
+  }
+  .card-head { display: flex; align-items: flex-start; gap: 18px; padding: 22px 26px 18px; }
+  .num {
+    font-family: 'Newsreader', serif; font-size: 1.7rem; line-height: 1; color: var(--faint);
+    flex: 0 0 auto; min-width: 34px; font-weight: 500; padding-top: 2px;
+  }
+  .card-head .htxt { flex: 1; }
+  .card-head h3 { font-family: 'Newsreader', serif; font-weight: 500; font-size: 1.42rem; line-height: 1.18; margin: 0 0 4px; letter-spacing: -.005em; }
+  .card-head .sub { font-size: 13px; color: var(--faint); font-family: 'IBM Plex Mono', monospace; letter-spacing: .03em; }
+
+  .chip {
+    flex: 0 0 auto; display: inline-flex; align-items: center; gap: 7px; align-self: flex-start;
+    font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase;
+    padding: 6px 11px; border-radius: 999px; border: 1px solid; white-space: nowrap;
+  }
+  .chip .pip { width: 8px; height: 8px; border-radius: 50%; }
+  .chip.debate { color: var(--v-debate); border-color: color-mix(in srgb, var(--v-debate) 40%, transparent); background: color-mix(in srgb, var(--v-debate) 9%, transparent); }
+  .chip.debate .pip { background: var(--v-debate); }
+  .chip.interp { color: var(--v-interp); border-color: color-mix(in srgb, var(--v-interp) 40%, transparent); background: color-mix(in srgb, var(--v-interp) 9%, transparent); }
+  .chip.interp .pip { background: var(--v-interp); }
+  .chip.unver  { color: var(--v-unver);  border-color: color-mix(in srgb, var(--v-unver) 40%, transparent);  background: color-mix(in srgb, var(--v-unver) 9%, transparent); }
+  .chip.unver .pip  { background: var(--v-unver); }
+  .chip.refut  { color: var(--v-refut);  border-color: color-mix(in srgb, var(--v-refut) 40%, transparent);  background: color-mix(in srgb, var(--v-refut) 9%, transparent); }
+  .chip.refut .pip  { background: var(--v-refut); }
+
+  .ledger { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border-top: 1px solid var(--hair); }
+  .side { padding: 20px 24px; }
+  .side.claim { background: var(--claim-bg); border-right: 1px solid var(--hair); }
+  .side.counter { background: var(--counter-bg); }
+  .side .stag {
+    font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+    margin: 0 0 11px; display: flex; align-items: center; gap: 8px;
+  }
+  .side.claim .stag { color: var(--claim-label); }
+  .side.counter .stag { color: var(--counter-label); }
+  .side .stag::after { content:""; flex:1; height:1px; }
+  .side.claim .stag::after { background: var(--claim-edge); opacity: .5; }
+  .side.counter .stag::after { background: var(--counter-edge); opacity: .5; }
+  .side p { margin: 0 0 10px; font-size: 14.5px; color: var(--ink); line-height: 1.58; }
+  .side p:last-child { margin-bottom: 0; }
+  .side .muted { color: var(--muted); }
+
+  .verdict-row {
+    padding: 16px 26px; border-top: 1px solid var(--hair);
+    display: flex; gap: 12px; align-items: baseline; font-size: 14px;
+  }
+  .verdict-row .vk { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); font-weight: 600; flex: 0 0 auto; }
+  .verdict-row .vt { color: var(--muted); }
+  .verdict-row .vt b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- conclusion ---------- */
+  .conclude { padding: 50px 0; border-top: 2px solid var(--ink); margin-top: 30px; }
+  .conclude h2 { font-family: 'Newsreader', serif; font-weight: 500; font-size: clamp(1.7rem, 4vw, 2.4rem); margin: 0 0 24px; letter-spacing: -.01em; }
+  .conclude .verdict-final {
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 16px; font-weight: 600;
+  }
+  .conclude p { font-size: 16px; color: var(--ink); max-width: 68ch; margin: 0 0 16px; }
+  .conclude p.muted { color: var(--muted); }
+  .conclude strong { font-weight: 600; }
+  .scorebar { display: flex; flex-wrap: wrap; gap: 8px; margin: 26px 0 30px; }
+  .score {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .05em;
+    padding: 7px 12px; border-radius: 8px; border: 1px solid var(--hair-strong); color: var(--muted);
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .score .pip { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* ---------- footer ---------- */
+  footer { padding: 40px 0 70px; border-top: 1px solid var(--hair); color: var(--muted); font-size: 13px; }
+  footer h4 { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--faint); margin: 0 0 14px; font-weight: 600; }
+  .meth { background: var(--panel); border: 1px solid var(--hair); border-radius: 12px; padding: 20px 24px; margin-bottom: 26px; }
+  .meth p { margin: 0; font-size: 13.5px; line-height: 1.6; color: var(--muted); }
+  .src-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 28px; }
+  .src-list a { color: var(--muted); text-decoration: none; border-bottom: 1px solid var(--hair-strong); padding: 4px 0; display: inline-block; transition: color .2s, border-color .2s; }
+  .src-list a:hover { color: var(--accent); border-color: var(--accent); }
+  .stamp { margin-top: 26px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .06em; color: var(--faint); }
+
+  /* ---------- update banner ---------- */
+  .updated {
+    display: inline-flex; align-items: center; gap: 9px; margin-bottom: 22px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .08em;
+    color: var(--counter-label); background: var(--counter-bg);
+    border: 1px solid var(--counter-edge); border-radius: 999px; padding: 6px 13px;
+  }
+  .updated .live { width: 7px; height: 7px; border-radius: 50%; background: var(--counter-label); }
+
+  /* ---------- primary source ---------- */
+  .primary { padding: 46px 0; border-bottom: 1px solid var(--hair); }
+  .psrc {
+    background: var(--panel); border: 1px solid var(--hair); border-radius: 16px;
+    overflow: hidden; box-shadow: var(--shadow);
+  }
+  .psrc-body { padding: 26px 28px 22px; }
+  .psrc h3 { font-family: 'Newsreader', serif; font-weight: 500; font-size: 1.5rem; margin: 0 0 6px; }
+  .psrc .by { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--faint); letter-spacing: .04em; margin-bottom: 16px; }
+  .psrc p { font-size: 14.5px; color: var(--muted); margin: 0 0 12px; line-height: 1.6; }
+  .psrc p b { color: var(--ink); font-weight: 600; }
+  .psrc .facts { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 18px; }
+  .psrc .ftag {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .03em;
+    background: var(--paper); border: 1px solid var(--hair-strong); color: var(--muted);
+    padding: 5px 10px; border-radius: 7px;
+  }
+  .psrc .ftag b { color: var(--ink); font-weight: 600; }
+  .vembed { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; }
+  .vembed iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .vlink {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 4px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--accent);
+    text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); padding-bottom: 2px;
+  }
+  .vlink:hover { border-color: var(--accent); }
+  .vnote { font-size: 12.5px; color: var(--faint); margin-top: 12px; font-style: italic; }
+  .correction {
+    background: color-mix(in srgb, var(--v-debate) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--v-debate) 38%, transparent);
+    border-radius: 12px; padding: 14px 18px; margin-bottom: 20px;
+    font-size: 13.5px; color: var(--ink); line-height: 1.55;
+  }
+  .correction b { color: var(--v-debate); font-weight: 600; }
+  .eco { margin-top: 20px; }
+  .eco-h { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); margin: 0 0 14px; font-weight: 600; }
+  .eco-row {
+    display: grid; grid-template-columns: 1fr auto; gap: 6px 14px; align-items: baseline;
+    padding: 11px 0; border-top: 1px solid var(--hair);
+  }
+  .eco-row:first-of-type { border-top: none; }
+  .eco-who { font-size: 14px; color: var(--ink); }
+  .eco-who b { font-weight: 600; }
+  .eco-who span { color: var(--muted); font-size: 13px; }
+  .eco-tag { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: .04em; color: var(--claim-label); white-space: nowrap; }
+  .eco-row a { color: var(--accent); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); }
+
+  /* ---------- journalism types ---------- */
+  .types { padding: 50px 0; border-top: 2px solid var(--ink); margin-top: 30px; }
+  .types > .verdict-final { font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; font-weight: 600; }
+  .types h2 { font-family: 'Newsreader', serif; font-weight: 500; font-size: clamp(1.7rem, 4vw, 2.4rem); margin: 0 0 14px; letter-spacing: -.01em; }
+  .types > p.intro { font-size: 16px; color: var(--ink); max-width: 68ch; margin: 0 0 28px; }
+  .jgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 26px; }
+  .jcard { background: var(--panel); border: 1px solid var(--hair); border-radius: 16px; padding: 24px 26px; box-shadow: var(--shadow); }
+  .jcard .role { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 8px; font-weight: 600; }
+  .jcard.vdt .role { color: var(--counter-label); }
+  .jcard.sms .role { color: var(--claim-label); }
+  .jcard h3 { font-family: 'Newsreader', serif; font-weight: 500; font-size: 1.32rem; margin: 0 0 4px; }
+  .jcard .kind { font-size: 13px; color: var(--faint); margin-bottom: 16px; }
+  .jcard .block { margin-bottom: 14px; }
+  .jcard .block:last-child { margin-bottom: 0; }
+  .jcard .bl-h { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); margin-bottom: 5px; font-weight: 600; }
+  .jcard .bl-h.plus { color: var(--v-refut); }
+  .jcard .bl-h.minus { color: var(--v-debate); }
+  .jcard p { font-size: 14px; color: var(--muted); margin: 0; line-height: 1.55; }
+  .jcard p b { color: var(--ink); font-weight: 600; }
+  .jverdict { font-size: 13.5px; color: var(--ink); border-top: 1px solid var(--hair); margin-top: 16px; padding-top: 14px; }
+  .jverdict b { font-weight: 600; }
+  .synthesis { background: var(--counter-bg); border: 1px solid var(--counter-edge); border-radius: 14px; padding: 24px 26px; }
+  .synthesis h4 { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--counter-label); margin: 0 0 12px; font-weight: 600; }
+  .synthesis p { font-size: 15px; color: var(--ink); margin: 0 0 12px; line-height: 1.62; }
+  .synthesis p:last-child { margin-bottom: 0; }
+  .synthesis strong { font-weight: 600; }
+
+  /* ---------- content check ---------- */
+  .leadnote { font-size: 15px; color: var(--muted); max-width: 70ch; margin: 0 0 22px; line-height: 1.6; }
+  .leadnote b { color: var(--ink); font-weight: 600; }
+  .cc-body { padding: 8px 26px 22px; }
+  .cc-item { padding: 14px 0; border-top: 1px solid var(--hair); }
+  .cc-item:first-child { border-top: none; }
+  .cc-item h4 { font-family: 'Inter', sans-serif; font-size: 14.5px; font-weight: 600; color: var(--ink); margin: 0 0 5px; }
+  .cc-item p { font-size: 14px; color: var(--muted); margin: 0; line-height: 1.56; }
+  .cc-item p b { color: var(--ink); font-weight: 600; }
+  .cc-item .src { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--faint); letter-spacing: .04em; text-transform: uppercase; display: inline-block; margin-top: 6px; }
+  .chip.hold { color: var(--v-refut); border-color: color-mix(in srgb, var(--v-refut) 40%, transparent); background: color-mix(in srgb, var(--v-refut) 9%, transparent); }
+  .chip.hold .pip { background: var(--v-refut); }
+  .chip.over { color: var(--v-debate); border-color: color-mix(in srgb, var(--v-debate) 40%, transparent); background: color-mix(in srgb, var(--v-debate) 9%, transparent); }
+  .chip.over .pip { background: var(--v-debate); }
+  .genobox { background: var(--panel); border: 1px solid var(--hair); border-left: 3px solid var(--accent); border-radius: 12px; padding: 22px 26px; margin-top: 22px; box-shadow: var(--shadow); }
+  .genobox h3 { font-family: 'Newsreader', serif; font-weight: 500; font-size: 1.3rem; margin: 0 0 12px; }
+  .genobox p { font-size: 14.5px; color: var(--muted); margin: 0 0 10px; line-height: 1.6; }
+  .genobox p:last-child { margin-bottom: 0; }
+  .genobox p b { color: var(--ink); font-weight: 600; }
+  .genobox .gcols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 14px 0; }
+  .genobox .gcol { border: 1px solid var(--hair); border-radius: 9px; padding: 13px 15px; }
+  .genobox .gcol .gh { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; margin: 0 0 7px; font-weight: 600; }
+  .genobox .gcol.no .gh { color: var(--claim-label); }
+  .genobox .gcol.yes .gh { color: var(--counter-label); }
+  .genobox .gcol p { font-size: 13px; margin: 0; }
+
+  /* ---------- press mirror ---------- */
+  .press-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+  .pcard { background: var(--panel); border: 1px solid var(--hair); border-radius: 14px; padding: 20px 20px 18px; box-shadow: var(--shadow); border-top: 3px solid var(--spine); }
+  .pcard.neutral { border-top-color: var(--accent); }
+  .pcard.pro { border-top-color: var(--claim-edge); }
+  .pcard.left { border-top-color: var(--counter-edge); }
+  .pcard .ph { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; font-weight: 600; margin: 0 0 4px; }
+  .pcard.neutral .ph { color: var(--accent); }
+  .pcard.pro .ph { color: var(--claim-label); }
+  .pcard.left .ph { color: var(--counter-label); }
+  .pcard .psub { font-size: 12px; color: var(--faint); margin: 0 0 14px; line-height: 1.4; }
+  .pcard ul { margin: 0; padding: 0; list-style: none; }
+  .pcard li { font-size: 13px; color: var(--muted); padding: 8px 0; border-top: 1px solid var(--hair); line-height: 1.45; }
+  .pcard li:first-child { border-top: none; }
+  .pcard li b { color: var(--ink); font-weight: 600; }
+  .press-anchor { background: var(--panel); border: 1px solid var(--hair); border-left: 3px solid var(--accent); border-radius: 12px; padding: 18px 22px; box-shadow: var(--shadow); }
+  .press-anchor .pa-h { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); font-weight: 600; margin: 0 0 8px; }
+  .press-anchor p { font-size: 14px; color: var(--muted); margin: 0 0 8px; line-height: 1.58; }
+  .press-anchor p:last-child { margin-bottom: 0; }
+  .press-anchor b { color: var(--ink); font-weight: 600; }
+
+  @media (max-width: 720px) {
+    .press-grid { grid-template-columns: 1fr !important; }
+    .gcols { grid-template-columns: 1fr !important; }
+    .ledger { grid-template-columns: 1fr; }
+    .jgrid { grid-template-columns: 1fr; }
+    .side.claim { border-right: none; border-bottom: 1px solid var(--hair); }
+    .legend, .ctx-grid, .src-list { grid-template-columns: 1fr; }
+    .hero { padding: 50px 0 32px; }
+    .card-head { flex-wrap: wrap; }
+    .chip { order: 3; margin-left: 52px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="bar-in">
+    <div class="bar-tag">Faktencheck · <b>Medienkritik</b> · <span style="color:var(--faint)">akt. 18.06.2026</span></div>
+    <button class="toggle" id="themeToggle" aria-label="Farbschema wechseln">
+      <span class="dot"></span><span id="toggleLabel">Dunkel</span>
+    </button>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <section class="hero">
+    <p class="updated"><span class="live"></span>Aktualisiert 18.06.2026 · Zahlen &amp; Systemkontext ergänzt (RIAS, TU Dortmund, 7.10., Gaza-Methodikdebatte) · Lemmer-Direktzitate · Assai-Timing-Breakdown · Vorgeschichte-Quellenkritik</p>
+    <p class="eyebrow">Ist die Kritik berechtigt?</p>
+    <h1>Sechs Vorwürfe gegen <em>Sophie von der Tann</em> — geprüft</h1>
+    <p class="lede">Das vorgelegte Dokument bündelt sechs Anklagepunkte und schließt auf „Pro-Hamas-Journalismus". Diese Seite prüft jeden Punkt einzeln: Was ist belegbar, was ist Deutung, was lässt sich nicht unabhängig überprüfen — und was sagt die Gegenseite?</p>
+
+    <div class="glance">
+      <h2>Befund in Kürze</h2>
+<p>Der Friedrichs-Preis 2025 löste eine Kontroverse aus. Kritik kam von seriöser Seite — u.&nbsp;a. dem israelischen Botschafter, dem bayerischen Antisemitismusbeauftragten und jüdischen Verbänden. <strong>Gleichzeitig</strong> stellten sich 72&nbsp;Nahost-Korrespondent:innen, Reporter ohne Grenzen und die Preis-Jury hinter sie. <strong>Methodischer Vorbehalt:</strong> Diese Verteidiger kommen aus demselben Berufsfeld, das laut TU Dortmund 2024 zu 41&nbsp;% den Grünen naheneigt und in dem die ÖR-Nahostberichterstattung als intern-normaler Standard gilt. Ihr Brief ist ein Autoritätsargument innerhalb eines systemisch gleichgerichteten Feldes — kein unabhängiger Befund.</p>
+      <p class="muted">Mehrere Einzelbeobachtungen des Dokuments treffen einen realen Streitpunkt (etwa der Umgang mit Opferzahlen). Die Methode aber — das Anlegen eines Rasters, das die Schlussfolgerung bereits voraussetzt — und die zugespitzte Gesamtthese („Pro-Hamas") werden von der Beleglage nicht getragen — wohl aber entsteht aus dem Zusammenspiel der belegbaren Einzelpunkte ein erkennbar <strong>pro-palästinensisches Framing-Muster</strong>.</p>
+
+      <div class="legend">
+        <div class="leg"><span class="sw" style="background:var(--v-debate)"></span><span><b>Sachlich diskutierbar</b> — überprüfbarer Kern oder legitime Fachdebatte vorhanden</span></div>
+        <div class="leg"><span class="sw" style="background:var(--v-interp)"></span><span><b>Wertend / interpretativ</b> — Beobachtung mit einer Deutung aufgeladen, die das Ergebnis voraussetzt</span></div>
+        <div class="leg"><span class="sw" style="background:var(--v-unver)"></span><span><b>Nicht unabhängig überprüfbar</b> — stützt sich auf nicht beigefügte Quellen bzw. nicht einsehbare Sendungen</span></div>
+        <div class="leg"><span class="sw" style="background:var(--v-refut)"></span><span><b>Bestritten / entkräftet</b> — von Fachleuten oder durch Gegenbelege widersprochen</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTEXT -->
+  <section class="context">
+    <p class="sec-label">Der Streitfall — wer, wann, wer gegen wen</p>
+    <div class="ctx-meta">
+      <div><b>Person</b><span>Sophie von der Tann, *1991, seit 2021 ARD-Korrespondentin Tel Aviv</span></div>
+      <div><b>Auslöser (Dez.)</b><span>Hanns-Joachim-Friedrichs-Preis, Dezember 2025</span></div>
+      <div><b>Auslöser (Juli)</b><span>Teilen eines NYT-Genozid-Essays (Omer Bartov) auf Instagram</span></div>
+      <div><b>Status</b><span>Laufende öffentliche Kontroverse</span></div>
+    </div>
+    <div class="ctx-grid">
+      <div class="ctx-card crit">
+        <h3>Kritik kommt von</h3>
+        <ul>
+          <li><b>Ron Prosor</b> — israelischer Botschafter (Vorwurf „Aktivistin")</li>
+          <li><b>Ludwig Spaenle</b> — bayerischer Antisemitismusbeauftragter</li>
+          <li><b>Jüdische Allgemeine</b> &amp; <b>Verband Jüdischer Journalist:innen</b></li>
+          <li><b>IKG München</b>, Esther Schapira u.&nbsp;a.</li>
+          <li>Kernvorwurf: wiederkehrende Erzählmuster, die Israel als Aggressor zeichnen</li>
+        </ul>
+      </div>
+      <div class="ctx-card def">
+        <h3>Rückendeckung von <span style="font-size:12px;font-weight:400;color:var(--faint)">(Quellenkritik beachten ↓)</span></h3>
+        <ul>
+          <li><b>72 Nahost-Korrespondent:innen</b> — offener Brief (via RSF) · <em>aus demselben systemisch linksgeprägten Berufsfeld</em></li>
+          <li><b>Reporter ohne Grenzen</b> (RSF) · <em>Pressefreiheits-Mandat, kein journalistischer Inhalts-Review</em></li>
+          <li><b>Meron Mendel</b> — Historiker, kein Medienwissenschaftler</li>
+          <li><b>Preis-Jury</b> (u.&nbsp;a. Sandra Maischberger) &amp; der <b>BR</b> · <em>institutioneller Eigeninteresse (ÖRR-interne Peer-Bewertung)</em></li>
+          <li><b>Medium Magazin</b>: „differenziert" — linkes Fachmedium</li>
+        </ul>
+        <p style="font-size:12px;color:var(--faint);margin:10px 0 0;line-height:1.5">⚠ Kein Unterstützer dieser Liste ist institutionell unabhängig von dem Berufsfeld, das verteidigt wird. TU Dortmund 2024: 41 % der deutschen Journalist:innen → Grüne (Bevölkerung: 11 %). Berufsstand-interne Solidarität ≠ unabhängige Faktenprüfung.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRIMARY SOURCE -->
+  <section class="primary">
+    <p class="sec-label">Woher der Vorwurf stammt — Quellen &amp; Kritiker-Umfeld</p>
+
+<div class="psrc">
+      <div class="vembed">
+        <iframe src="https://www.youtube.com/embed/g7nQ03Su37U" title="WELT — Christoph Lemmer über Sophie von der Tann und die ARD" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      </div>
+      <div class="psrc-body">
+        <h3>„Einseitige Israel-Berichterstattung — Lemmer rechnet mit der ARD ab!"</h3>
+        <div class="by">WELT / Christoph Lemmer · Meinung · 4.&nbsp;Dezember 2025 · der von dir verlinkte Clip</div>
+        <p>Belegte direkte Zitate aus dem Clip und dem WELT-Meinungsartikel:</p>
+        <ul style="margin:10px 0 14px 18px;padding:0;font-size:14px;color:var(--muted);line-height:1.65">
+          <li style="margin-bottom:8px">„Diese Preisverleihung ist ein öffentlich-rechtlicher Skandal."</li>
+          <li style="margin-bottom:8px">„Niemand verkörpert gerade das Generalproblem des öffentlich-rechtlichen Rundfunks besser als die Israel-Korrespondentin der ARD. Es besteht in einer komplett von der Außenwelt abgeschirmten Wahrnehmung, verbunden mit erheblichem Missionierungsbedürfnis."</li>
+          <li>WELT verlangte außerdem Auskunft, warum von der Tann nie berichtet habe, „wie die von ihr stets in Schutz genommenen Palästinenser über Adolf Hitler denken". <span style="color:var(--faint)">(t-online, Dez. 2025)</span></li>
+        </ul>
+        <p>Format: Meinungsbeitrag, kein Nachrichtenformat. Lemmer ist Meinungsredakteur, kein Medienwissenschaftler — die Charakterisierung „von der Außenwelt abgeschirmt" ist eine unbelegte Zuschreibung, kein empirischer Befund.</p>
+        <a class="vlink" href="https://youtu.be/g7nQ03Su37U" target="_blank" rel="noopener">▶ Auf YouTube öffnen — youtu.be/g7nQ03Su37U</a>
+
+        <div class="eco">
+          <p class="eco-h">Die schriftliche Vorlage stammt von hier</p>
+          <div class="eco-row">
+            <div class="eco-who"><b>Sarah Maria Sander</b> — „Eine Analyse ihrer Berichterstattung seit dem 7. Oktober" <span>· ~30 Min., Juli 2025 · Grundlage des vorgelegten Transkripts [1–31]</span></div>
+            <div class="eco-tag">Aktivistin / Advocacy</div>
+          </div>
+        </div>
+
+        <div class="facts" style="margin-top:18px">
+          <span class="ftag">Sander, geb. <b>1995</b>, Berlin</span>
+          <span class="ftag">Schauspielerin (Ernst&nbsp;Busch / Volksbühne)</span>
+          <span class="ftag">Selbstbeschreibung: <b>„setzt sich für den jüdischen Staat ein"</b></span>
+        </div>
+
+        <div class="eco">
+          <p class="eco-h">Das übrige Kritiker-Ökosystem (überwiegend pro-israelisch / konservativ)</p>
+          <div class="eco-row">
+            <div class="eco-who"><b>Sarah Maria Sander</b> (2. Video) <span>· „Belohnt der ÖRR Anti-Israel-Framing?" — System- &amp; Preiskritik</span></div>
+            <div class="eco-tag">YouTube</div>
+          </div>
+          <div class="eco-row">
+            <div class="eco-who"><b>Christoph Lemmer</b> <span>· „Diese Preisverleihung ist ein öffentlich-rechtlicher Skandal"</span></div>
+            <div class="eco-tag">WELT (Meinung)</div>
+          </div>
+          <div class="eco-row">
+            <div class="eco-who"><b>Tobias Huch</b> <span>· „Die Wahrheit über Sophie von der Tann" — Reaction / Real Talk</span></div>
+            <div class="eco-tag">YouTube / X</div>
+          </div>
+          <div class="eco-row">
+            <div class="eco-who"><b>Esther Schapira</b> <span>· langjährige Kritikerin der ÖR-Nahostberichterstattung</span></div>
+            <div class="eco-tag">FAZ</div>
+          </div>
+          <div class="eco-row">
+            <div class="eco-who"><b>Jüdische Allgemeine</b>, <b>Mena-Watch</b>, <b>Achgut</b> <span>· wiederholte Beiträge &amp; Kommentare</span></div>
+            <div class="eco-tag">Medien</div>
+          </div>
+        </div>
+
+        <p class="vnote">Einordnung zur Quellenlage: Die Vorwürfe bündeln sich in einem mehrheitlich pro-israelischen bzw. konservativen Medienraum — das zeigt eine <em>perspektivische</em> Herkunft, entwertet sie aber nicht, da Medienkritik legitim ist. <strong>Symmetrie-Hinweis:</strong> Die Gegenstimmen (72 Korrespondent:innen, RSF, taz, nd, Jury) kommen aus dem <em>entgegengesetzten</em> Pol desselben systemisch gleichgerichteten Feldes. Beide Seiten sind perspektivisch — keine ist neutral. Der Berufsstand, der von der Tann verteidigt, ist derselbe Berufsstand, dem sie angehört, und der laut TU Dortmund 2024 in der Parteineigung stark von der Bevölkerung abweicht (41 % Grüne vs. 11 %). Berufsstand-interne Solidarität trägt daher wenig zur inhaltlichen Klärung bei.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- VIDEO REGISTRY -->
+  <section class="aspects" style="padding-top:0">
+    <p class="sec-label">Video-Register — reichweitenstarke Clips pro &amp; contra, mit belegbarem Inhalt</p>
+    <p class="leadnote">Nur Videos mit <b>verifizierbaren Inhalten</b> (Zitate aus Artikeln, ARD-Mediathek, Primärquellen). Reichweite ohne belegten Inhalt wird nicht aufgeführt.</p>
+
+    <!-- KRITISCH -->
+    <article class="card">
+      <div class="card-head">
+        <div class="num" style="font-size:.9rem;font-family:'IBM Plex Mono',monospace;color:var(--claim-label);padding-top:6px">KRIT</div>
+        <div class="htxt">
+          <h3>Kritische Videos — pro-israelisch / israelsolidarisch</h3>
+          <div class="sub">Alle: erklärte Advocacy-Perspektive, kein neutraler Befund</div>
+        </div>
+      </div>
+      <div class="cc-body">
+
+        <div class="cc-item">
+          <h4><a href="https://www.youtube.com/watch?v=wdx6mbCvEZU" target="_blank" rel="noopener" style="color:var(--ink)">▶ Sander — „Eine Analyse ihrer Berichterstattung seit dem 7. Oktober"</a></h4>
+          <p>Sarah Maria Sander · Juli 2025 · ~30 Min. · Advocacy</p>
+          <p>Belegbare Kernaussagen (via JA-Artikel 24.04.2025 &amp; Mena-Watch):<br>
+          — „keine Lügen, sondern Framing" (Sander selbst: kein Lügensvorwurf)<br>
+          — Westjordanland-Reportage: Radikalisierung von Kindern ohne Hamas-Indoktrination als Faktor<br>
+          — Hisbollah-Beschuss vor Libanon-Strikes nicht erwähnt (60.000 Evakuierte faktisch belegt)<br>
+          — Verifikationsvorbehalt asymmetrisch: „kann ich nicht überprüfen" nur bei israelischen Quellen<br>
+          <em>Nicht belegbar ohne Sendungsnachweis:</em> Pauschalthese „fast jeder Bericht"</p>
+          <span class="src">Quelle · JA 24.04.2025 · Mena-Watch „Keine Lügen, sondern Framing"</span>
+        </div>
+
+        <div class="cc-item">
+          <h4><a href="https://www.youtube.com/watch?v=VDFP_841XgU" target="_blank" rel="noopener" style="color:var(--ink)">▶ Sander — „Belohnt der ÖRR Anti-Israel-Framing?" (Friedrichs-Preis)</a></h4>
+          <p>Sarah Maria Sander · 1. Dezember 2025 · Dez.-Preis-Reaktion</p>
+          <p>Belegbare Kernaussagen (via Achgut, Cicero):<br>
+          — Vor dem 7. Oktober bezeichnete VdT Hamas als <b>„militante palästinensische Organisation"</b> (statt Terrororganisation) — konkreter, prüfbarer Sprachgebrauch<br>
+          — „Kritischer Journalismus oder einseitiges, moralisch aufgeladenes Anti-Israel-Narrativ, das im ÖRR als Standard durchgeht?"<br>
+          <em>Quellenstatus:</em> Sander verweist auf Sendungsbeispiele, liefert aber keinen Sendungsnachweis mit Datum im zugänglichen Text</p>
+          <span class="src">Quelle · Achgut.com Dez. 2025 · Cicero Dez. 2025</span>
+        </div>
+
+        <div class="cc-item">
+          <h4><a href="https://youtu.be/g7nQ03Su37U" target="_blank" rel="noopener" style="color:var(--ink)">▶ Lemmer — „Einseitige Israel-Berichterstattung — Lemmer rechnet mit der ARD ab!"</a></h4>
+          <p>WELT Meinung · Christoph Lemmer · 4. Dezember 2025</p>
+          <p>Direkte Zitate (belegbar via t-online, Israelnetz, Dez. 2025):<br>
+          — „Diese Preisverleihung ist ein öffentlich-rechtlicher Skandal."<br>
+          — „Niemand verkörpert gerade das Generalproblem des öffentlich-rechtlichen Rundfunks besser als die Israel-Korrespondentin der ARD. Es besteht in einer komplett von der Außenwelt abgeschirmten Wahrnehmung, verbunden mit erheblichem Missionierungsbedürfnis."<br>
+          — WELT verlangte Antwort, warum VdT nie berichtet habe, „wie die von ihr stets in Schutz genommenen Palästinenser über Adolf Hitler denken"<br>
+          <em>Format:</em> Meinungsbeitrag. Lemmer ist Redakteur, kein Medienwissenschaftler.</p>
+          <span class="src">Quelle · t-online Dez. 2025 · Israelnetz Dez. 2025</span>
+        </div>
+
+      </div>
+    </article>
+
+    <!-- PRIMÄRQUELLE VdT selbst -->
+    <article class="card">
+      <div class="card-head">
+        <div class="num" style="font-size:.9rem;font-family:'IBM Plex Mono',monospace;color:var(--accent);padding-top:6px">PRIM</div>
+        <div class="htxt">
+          <h3>Primärquellen — von der Tann direkt (belegte Zitate)</h3>
+          <div class="sub">Sendungen &amp; Auftritte mit verifizierbarem Originalton</div>
+        </div>
+      </div>
+      <div class="cc-body">
+
+        <div class="cc-item">
+          <h4><a href="https://www.youtube.com/watch?v=S7H6LBHkgsw" target="_blank" rel="noopener" style="color:var(--ink)">▶ Maischberger — Aviva Siegel &amp; Sophie von der Tann (8. Oktober 2024)</a></h4>
+          <p>ARD / maischberger · Oktober 2024 · hohe Reichweite</p>
+          <p><b>Belegte VdT-Zitate aus dieser Sendung:</b><br>
+          — „Na der Vorwurf ist, dass es nicht wichtig ist für diese Regierung [die Geiseln]."<br>
+          — „Vieles deutet darauf hin, dass die Regierung das nicht zur Priorität erklärt. Netanjahu stellt immer wieder neue Bedingungen, verzögert. Der Vorwurf ist ganz klar, dass er ein Interesse daran hat, diesen Krieg weiter zu führen."<br>
+          — <b>„In Gaza gibt es keine Lebensgrundlage mehr."</b> — Kritik (Perlentaucher/Rotstein): faktisch unzutreffend; 99 % der Bevölkerung lebten noch in Gaza</p>
+          <p><b>Szene mit Aviva Siegel (Anetta Kahane, Belltower 8.12.2025):</b><br>
+          „Sophie von der Tanns Gesicht blieb vollkommen reglos, während Frau Siegel weinend um Worte rang. Sie war kaum fertig, als die Moderatorin und Frau von Tann übergangslos Netanjahu beschuldigten, sich kein bisschen um die Geiseln zu scheren. In diesem Moment löste sich die Starre und ein zynischer Lacher huschte über das Gesicht von Frau von der Tann."<br>
+          <em>Quellenkritik:</em> Kahane beschreibt Mimik — subjektive Wahrnehmung, kein Transskript. Video ist öffentlich zugänglich und kann gegengeprüft werden.</p>
+          <span class="src">Quelle · Belltower / Kahane 8.12.2025 · Perlentaucher / Rotstein 2025 · ARD Mediathek</span>
+        </div>
+
+        <div class="cc-item">
+          <h4><a href="https://www.youtube.com/watch?v=BOG1895P2z0" target="_blank" rel="noopener" style="color:var(--ink)">▶ Frankfurter Presseclub — „Zwischen Frontlinien und Fakten" (9. Oktober 2025)</a></h4>
+          <p>Frankfurter PresseClub · moderiert von Carsten Knop (Vizepräsident FPC) · pro-VdT-Primärquelle</p>
+          <p>VdT spricht über ihre Arbeitsbedingungen (belegte Inhalte aus Stuttgarter Zeitung / FPC-Ankündigung):<br>
+          — Gaza-Zugang nur „embedded" mit israelischem Militär: „massive Einschränkung der Pressefreiheit"<br>
+          — Ortskräfte: „die tragen das Fadenkreuz auf sich"<br>
+          — Verifizierungsherausforderungen: „jedes Wort ist aufgeladen"<br>
+          <em>Wert:</em> Einzige längere Selbstdarstellung mit Q&amp;A. Kein kritischer Interviewcharakter.</p>
+          <span class="src">Quelle · Stuttgarter Zeitung 2024 · FPC-Ankündigung 2025</span>
+        </div>
+
+        <div class="cc-item">
+          <h4>VdT — Vollständige Direktzitate (verifiziert)</h4>
+          <p><b>Zugang &amp; Pressefreiheit (Stuttgarter Zeitung / FPC 2024):</b><br>
+          „Ich war zuletzt im Februar 2024 im Gazastreifen, ‚embedded' mit dem israelischen Militär, also auf einer Art Pressetour. Da konnte ich die massive Zerstörung schon sehen, aber unabhängig von der Armee konnte ich mich nicht bewegen. <b>Das ist eine massive Einschränkung der Pressefreiheit.</b>"<br>
+          „Wir kommen da nicht rein."<br>
+          „Die Menschen im Gazastreifen haben kein Raketenabwehrsystem, die haben keine Bunker, die haben gar nichts."</p>
+          <p><b>Unabhängigkeit (Podcast-Interview 2024):</b><br>
+          „Nein, was ich in einer Live-Schalte sage, sage ich. Das ist mir auch wichtig."<br>
+          „Über das, was ich sage, entscheide ich allein."</p>
+          <p><b>UN-Strombeleg (via Sander/WELT — Originalton nicht direkt geprüft):</b><br>
+          „Ob der Strom von den UN-Gebäuden kam, kann ich nicht überprüfen." <em>Quellenvorbehalt: Diese Formulierung ist über Sander/WELT überliefert, nicht direkt aus dem Sendungsprotokoll verifiziert.</em></p>
+          <span class="src">Quelle · Stuttgarter Zeitung 2024 · FPC 2025 · Podcast-Interview 2024 · Sander/WELT (UN-Strom)</span>
+        </div>
+
+      </div>
+    </article>
+
+    <!-- BALANCIERT -->
+    <article class="card">
+      <div class="card-head">
+        <div class="num" style="font-size:.9rem;font-family:'IBM Plex Mono',monospace;color:var(--muted);padding-top:6px">BAL</div>
+        <div class="htxt">
+          <h3>Balancierte / neutrale Videos</h3>
+          <div class="sub">Journalistisch einordnend, kein Advocacy-Charakter</div>
+        </div>
+      </div>
+      <div class="cc-body">
+        <div class="cc-item">
+          <h4><a href="https://www.youtube.com/watch?v=Kiw6kgUhd1o" target="_blank" rel="noopener" style="color:var(--ink)">▶ Tom David Frey — „Der Fall Sophie von der Tann: Antisemitismus-Skandal oder Hetzkampagne?"</a></h4>
+          <p>Podcast „Nahost verstehen" · Dez. 2025 · balancierter Ansatz</p>
+          <p>Fragestellung selbst zeigt: keine vorgefertigte Antwort, beide Möglichkeiten werden geprüft. Kein verifizierbarer Zitat-Auszug verfügbar — Video für vollständige Inhaltsanalyse direkt ansehen.</p>
+          <span class="src">Quelle · YouTube Dez. 2025</span>
+        </div>
+        <div class="cc-item">
+          <h4>WELT — „Das war journalistisches Versagen!" (5. Dezember 2025, youtube.com/watch?v=DQAumft-BVk)</h4>
+          <p>WELT Nachrichtensender · 5. Dez. 2025</p>
+          <p>Kein verifizierbarer Transkript-Auszug aus Sekundärquellen verfügbar. Titel und Facebook-Beschreibung legen Kritik an ARD-Berichterstattung nahe. <em>Inhalt nicht ohne Direktansicht prüfbar — daher hier nicht als Beleg verwertbar.</em></p>
+          <span class="src">Quelle · YouTube / Facebook WELT Dez. 2025</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- SYSTEMISCHER KONTEXT -->
+    <article class="card">
+      <div class="card-head">
+        <div class="num" style="font-size:.9rem;font-family:'IBM Plex Mono',monospace;color:var(--muted);padding-top:6px">SYS</div>
+        <div class="htxt">
+          <h3>Systemischer Kontext — VdT als Teil eines Musters</h3>
+          <div class="sub">Andere ARD/ÖRR-Beispiele aus dem gleichen Zeitraum (Perlentaucher-Essay, Rotstein 2025)</div>
+        </div>
+      </div>
+      <div class="cc-body">
+        <div class="cc-item">
+          <h4>Belege für systemische Schlagseite im ÖRR (nicht nur VdT)</h4>
+          <p>Daniel Rotstein, Perlentaucher 2025 — dokumentierte Beispiele aus demselben Zeitraum:<br>
+          — <b>ZDF Heute (22.7.2025)</b>: Moderatorin Alicia Jung: <em>„Israels Krieg, das Töten der Menschen"</em> — einseitiges Framing<br>
+          — <b>Deutschlandfunk</b>: Stephanie Rhode moderiert: <em>„In Gaza treibt die israelische Armee ihren Genozid weiter voran"</em><br>
+          — <b>ARD Monitor</b> (Georg Restle): begründet Mord an israelischen Botschaftsmitarbeitern mit <em>„wachsender Wut auf Israels Regierung"</em><br>
+          — <b>Tagesschau</b>: PFLP-Funktionärin als <em>„politische Aktivistin"</em> ohne Hinweis auf EU-Terrorliste<br>
+          — <b>Tagesschau</b>: <em>„70 % der Toten sind Frauen und Kinder"</em> — später von UN selbst um ~40 % nach unten korrigiert</p>
+          <p>Einordnung: VdT fügt sich in ein belegbares <b>systemisches Muster</b> ein — das macht den Puzzle-Vorwurf strukturell, nicht nur individual.</p>
+          <span class="src">Quelle · Perlentaucher / Daniel Rotstein 2025 · perlentaucher.de/essay/die-antiisraelische-tendenz-deutsche-medien-seit-dem-7-oktober.html</span>
+        </div>
+      </div>
+    </article>
+
+  </section>
+
+  <!-- ASPECTS -->
+  <section class="aspects">
+    <p class="sec-label">Die sechs Vorwürfe im Einzelnen</p>
+
+    <!-- 1 -->
+    <article class="card">
+      <div class="card-head">
+        <div class="num">01</div>
+        <div class="htxt">
+          <h3>Einseitiges Framing und Wortwahl</h3>
+          <div class="sub">„Ethnische Säuberung", „Besatzung", „Blockade als Kriegswaffe"</div>
+        </div>
+        <span class="chip debate"><span class="pip"></span>Sachlich diskutierbar</span>
+      </div>
+      <div class="ledger">
+        <div class="side claim">
+          <p class="stag">Vorwurf</p>
+          <p>Sie verwende gezielt Begriffe, die Israel als „ewigen Aggressor" zeichnen, und betone wiederholt, Israel lasse keine Hilfsgüter hinein und setze Hunger als Waffe ein.</p>
+        </div>
+        <div class="side counter">
+          <p class="stag">Gegendarstellung &amp; Einordnung</p>
+          <p>Dass eine solche Kritik existiert, ist real: Der Verband Jüdischer Journalist:innen wirft ihr „wiederkehrende Erzählmuster" vor. Das ist ein ernstzunehmender Einwand.</p>
+          <p class="muted">Aber: Begriffe wie „Besatzung" und „Blockade" sind in UN-, IGH- und internationaler Berichterstattung Standardvokabular, nicht per se Parteinahme. Die konkret zitierten Wörter sind den nicht beigefügten Quellen entnommen und nicht an einer Sendung überprüfbar.</p>
+        </div>
+      </div>
+      <div class="verdict-row">
+        <span class="vk">Beleglage</span>
+        <span class="vt"><b>Realer Streitpunkt, aber kein Beweis.</b> Ob eine Wortwahl tendenziös ist, hängt vom Kontext der jeweiligen Sendung ab — den das Dokument nicht liefert.</span>
+      </div>
+    </article>
+
+    <!-- 2 -->
+    <article class="card">
+      <div class="card-head">
+        <div class="num">02</div>
+        <div class="htxt">
+          <h3>„Moral Disengagement" / passive Sprache</h3>
+          <div class="sub">Relativierung der Hamas-Taten, „der 7. Oktober hatte eine Vorgeschichte"</div>
+        </div>
+        <span class="chip refut"><span class="pip"></span>Schlüsselbeispiel bestritten</span>
+      </div>
+      <div class="ledger">
+        <div class="side claim">
+          <p class="stag">Vorwurf</p>
+          <p>Mit passiver Sprache und kognitiver Distanzierung relativiere sie Gräueltaten; sie beschreibe die Hamas als „Ideologie" und benenne die Taten nicht klar.</p>
+        </div>
+        <div class="side counter">
+          <p class="stag">Gegendarstellung &amp; Einordnung</p>
+          <p>Das „Moral-Disengagement"-Raster (Bandura) wurde entwickelt, um die <em>Rechtfertigung von Gräueltaten</em> zu analysieren. Es auf eine Journalistin anzuwenden, setzt voraus, was bewiesen werden soll — ein Zirkelschluss.</p>
+          <p class="muted">Der zentrale Beleg — der Satz, der 7. Oktober habe „eine Vorgeschichte" — wird von 72 Nahost-Korrespondent:innen ausdrücklich verteidigt: Den Konflikt historisch einzuordnen sei „mitnichten eine Relativierung des 7. Oktober".</p>
+          <p class="muted"><b>Quellenkritischer Hinweis (neu, 18.06.2026):</b> Es existiert <em>kein wörtliches Originalzitat</em> von von der Tanns. Der WELT-Bericht stützt sich auf Teilnehmeraussagen aus einem Hintergrundgespräch — die ARD lehnte Zitierung ab. Christoph Reuter (<i>Spiegel</i>) schreibt: Andere Teilnehmer erinnern sich „weder in dieser Form an das angeblich Gesagte, noch an einen Eklat." Der Vorwurf ruht damit auf bestrittener Indirektzitierung, kein gesichertes Primärzitat.</p>
+        </div>
+      </div>
+      <div class="verdict-row">
+        <span class="vk">Beleglage</span>
+        <span class="vt"><b>Methodisch fragwürdig, Kernbeispiel widersprochen.</b> Genau auf dem Punkt, den das Dokument als erwiesen behandelt, urteilen die Fachkolleg:innen gegenteilig.</span>
+      </div>
+    </article>
+
+    <!-- 3 -->
+    <article class="card">
+      <div class="card-head">
+        <div class="num">03</div>
+        <div class="htxt">
+          <h3>Umgang mit Zahlen und Quellen</h3>
+          <div class="sub">Hamas-Zahlen unkritisch, IDF-Angaben mit „können wir nicht überprüfen"</div>
+        </div>
+        <span class="chip debate"><span class="pip"></span>Sachlich diskutierbar</span>
+      </div>
+      <div class="ledger">
+        <div class="side claim">
+          <p class="stag">Vorwurf</p>
+          <p>Sie übernehme palästinensische Opferzahlen ungeprüft, versehe israelische Armeeangaben aber regelmäßig mit dem Zusatz „Überprüfen können wir das nicht".</p>
+        </div>
+        <div class="side counter">
+          <p class="stag">Gegendarstellung &amp; Einordnung</p>
+          <p>Hier liegt der substanziellste Punkt — die Behandlung von Kriegszahlen ist eine echte medienwissenschaftliche Debatte.</p>
+          <p class="muted">Doch: Der Verifizierungs-Vorbehalt ist verantwortungsvoller Standard für <em>alle</em> Kriegsangaben, da unabhängige Prüfung in Gaza kaum möglich ist — sie selbst betont diese „Unmöglichkeit unabhängiger Verifikation". Die Kolleg:innen halten fest, dass palästinensische Quellen ohnehin „grundsätzlich infrage gestellt" würden. Eine behauptete <em>systematische</em> Asymmetrie bräuchte eine Inhaltsanalyse — das Dokument liefert Anekdoten.</p>
+        </div>
+      </div>
+      <div class="verdict-row">
+        <span class="vk">Beleglage</span>
+        <span class="vt"><b>Berechtigte Grundfrage, unzureichend belegt.</b> Den Vorbehalt zu kennzeichnen ist eher seriöse Praxis als Beweis für Voreingenommenheit.</span>
+      </div>
+    </article>
+
+    <!-- 4 -->
+    <article class="card">
+      <div class="card-head">
+        <div class="num">04</div>
+        <div class="htxt">
+          <h3>Selektive Interviewpartner</h3>
+          <div class="sub">„Die linkesten Israelis", Reservist mit 41 Verweigerern</div>
+        </div>
+        <span class="chip interp"><span class="pip"></span>Wertend / interpretativ</span>
+      </div>
+      <div class="ledger">
+        <div class="side claim">
+          <p class="stag">Vorwurf</p>
+          <p>Sie suche gezielt Randstimmen (etwa Dienstverweigerer), um eine Minderheitenposition als Mehrheitsmeinung erscheinen zu lassen.</p>
+        </div>
+        <div class="side counter">
+          <p class="stag">Gegendarstellung &amp; Einordnung</p>
+          <p>Dass eine Korrespondentin auch Dissident:innen einer Gesellschaft zu Wort kommen lässt, ist normaler Journalismus — die israelische Reservisten-/Verweigerer-Debatte ist real.</p>
+          <p class="muted">Der entscheidende Zusatz — sie tue das, <em>um</em> die Position als Mehrheit zu verkaufen — unterstellt eine Absicht. Diese Absicht wird behauptet, nicht gezeigt.</p>
+        </div>
+      </div>
+      <div class="verdict-row">
+        <span class="vk">Beleglage</span>
+        <span class="vt"><b>Auswahl ist debattierbar, Absicht unterstellt.</b> Aus „interviewt Minderheitsstimmen" folgt nicht „stellt sie als Mehrheit dar".</span>
+      </div>
+    </article>
+
+    <!-- 5 -->
+    <article class="card">
+      <div class="card-head">
+        <div class="num">05</div>
+        <div class="htxt">
+          <h3>Frühe Gaza-Fokussierung nach dem 7. Oktober</h3>
+          <div class="sub">Blockade am 8. Oktober, Zweifel an Bodenoffensive am 10. Oktober</div>
+        </div>
+        <span class="chip unver"><span class="pip"></span>Nicht unabhängig überprüfbar</span>
+      </div>
+      <div class="ledger">
+        <div class="side claim">
+          <p class="stag">Vorwurf</p>
+          <p>Schon einen Tag nach dem Massaker habe sie die Blockade Gazas thematisiert und kurz darauf öffentlich den Sinn einer Bodenoffensive bezweifelt.</p>
+        </div>
+        <div class="side counter">
+          <p class="stag">Gegendarstellung &amp; Einordnung</p>
+          <p>Die datumsgenauen Aussagen stützen sich auf die nicht beigefügten Quellen und sind an den Originalsendungen nicht nachprüfbar.</p>
+          <p class="muted">Inhaltlich: Israel kündigte am 9.&nbsp;Oktober 2023 offiziell eine „vollständige Belagerung" an — darüber zu berichten ist Nachricht, nicht Parteinahme. Die militärische Logik einer Bodenoffensive für eine Geiselbefreiung anzuzweifeln, taten auch israelische Kommentator:innen und Geiselangehörige selbst.</p>
+        </div>
+      </div>
+      <div class="verdict-row">
+        <span class="vk">Beleglage</span>
+        <span class="vt"><b>Faktenkern plausibel, Deutung strittig.</b> Frühe Berichterstattung über humanitäre Folgen ist teils sachlich begründbar; die Wertung als „anti-israelisch" ist umstritten.</span>
+      </div>
+    </article>
+
+    <!-- 6 -->
+    <article class="card">
+      <div class="card-head">
+        <div class="num">06</div>
+        <div class="htxt">
+          <h3>Fehlende Empathie gegenüber den Geiseln</h3>
+          <div class="sub">Maischberger / Aviva Siegel, Familie Bibas, Tagesthemen-Kommentar</div>
+        </div>
+        <span class="chip interp"><span class="pip"></span>Subjektive Tonwertung</span>
+      </div>
+      <div class="ledger">
+        <div class="side claim">
+          <p class="stag">Vorwurf</p>
+          <p>Sie reagiere auf Geiselschicksale nicht mit Anteilnahme, sondern mit politischer Analyse, und blende Geschichten wie die der Familie Bibas aus.</p>
+        </div>
+        <div class="side counter">
+          <p class="stag">Gegendarstellung &amp; Einordnung</p>
+          <p>„Keine Empathie" ist eine Lesart von Tonfall — subjektiv. Sie selbst verweist auf enge Freunde, die am 7.&nbsp;Oktober Angehörige verloren, und beschreibt ihren Job als „Balance zwischen Empathie und Distanz"; die Jury nannte sie „cool, aber nicht kalt".</p>
+          <p class="muted"><b>Maischberger, 8. Oktober 2024 (Aviva Siegel) — zwei belegte Kritikpunkte:</b><br>
+          (1) Anetta Kahane (Belltower, 8.12.2025): „Sophie von der Tanns Gesicht blieb vollkommen reglos, während Frau Siegel weinend um Worte rang. In diesem Moment löste sich die Starre und ein zynischer Lacher huschte über das Gesicht von Frau von der Tann." — <em>Quellenkritik: Mimik-Beschreibung ist subjektive Wahrnehmung Kahanes, kein Transkript. Video ist öffentlich prüfbar.</em><br>
+          (2) VdT-Aussage in derselben Sendung: <b>„In Gaza gibt es keine Lebensgrundlage mehr"</b> — Kritik (Rotstein/Perlentaucher): faktisch unzutreffend zum Sendezeitpunkt. Konkreter, prüfbarer Beleg für politisch aufgeladene Wortwahl.<br>
+          Tagesthemen-Kommentar zu 60 Jahren deutsch-israelischer Beziehungen: von der Jüdischen Allgemeinen scharf kritisiert — allerdings Meinungsartikel über Meinungskommentar.</p>
+        </div>
+      </div>
+      <div class="verdict-row">
+        <span class="vk">Beleglage</span>
+        <span class="vt"><b>Überwiegend subjektive Wertung, ein dokumentierter Anlass.</b> Empathie-Mangel ist Auslegungssache; eine konkrete, zitierbare Kritik (Tagesthemen) existiert hingegen.</span>
+      </div>
+    </article>
+  </section>
+
+  <!-- DEEP DIVE: JA OP-ED -->
+  <section class="aspects" style="padding-top:0">
+    <p class="sec-label">Die ausführlichste schriftliche Fassung der Kritik</p>
+    <article class="card">
+      <div class="card-head">
+        <div class="num" style="font-size:1rem;font-family:'IBM Plex Mono',monospace;color:var(--claim-label);padding-top:8px">JA</div>
+        <div class="htxt">
+          <h3>„Nur scheinbar ausgewogen"</h3>
+          <div class="sub">Sarah Maria Sander · Jüdische Allgemeine (Meinung) · 24.04.2025</div>
+        </div>
+        <span class="chip debate"><span class="pip"></span>Stärkster Punkt der Kritik</span>
+      </div>
+      <div class="side claim" style="border-bottom:1px solid var(--hair);border-right:none">
+        <p class="stag">Bemerkenswert offen</p>
+        <p>Dieser Text ist die durchdachteste Version der Kritik — und in einem Punkt ehrlich: Sander stellt selbst klar, es gehe <b>nicht um die absichtliche Verbreitung von Lügen</b>, sondern um das <b>Weglassen von Kontext</b> und die <b>selektive Auswahl</b> von Ereignissen und Stimmen. Das ist deutlich vorsichtiger als das spätere „Hamas-Propaganda".</p>
+      </div>
+      <div class="ledger">
+        <div class="side claim">
+          <p class="stag">Was Sander konkret vorbringt</p>
+          <p>Von der Tann verfolge eine einseitige Linie; fast jeder Bericht ziele darauf, Israel negativ darzustellen. Sie interviewe vor allem Randstimmen (äußerst links oder extrem rechts) und präsentiere eine Minderheit als das Ganze — das sei „journalistisch unredlich".</p>
+          <p class="muted">Belegbeispiel: eine Westjordanland-Reportage frage, wie Kinder sich angesichts von Armut und Armee-Präsenz nicht radikalisieren — benenne aber nicht die <b>Indoktrination</b> durch Hamas, PIJ und die Fatah-geführte Autonomiebehörde. Zu Wort kämen fast nur „radikale Siedler"; Sicherheitsgründe für Checkpoints blieben unerwähnt.</p>
+        </div>
+        <div class="side counter">
+          <p class="stag">Einordnung</p>
+          <p>Das ist der <b>stärkste, konkreteste Teil</b> der gesamten Kritik. „Repräsentativität der Interviewpartner" und „Auslassung von Kontext" sind <b>legitime, prüfbare</b> journalistische Kategorien — sie decken sich mit Aspekt 01 und 04 und verdienen, ernst genommen zu werden.</p>
+          <p class="muted">Grenzen: Auch dies ist ein Meinungsartikel in einem erklärt parteiischen Medium. Was „die Mehrheit der Israelis" denkt, wird <b>behauptet, nicht mit Daten belegt</b>. Und welcher Kontext „fehlt", ist selbst eine Wertung: Sander fordert, islamistischen Terror als <em>den</em> Rahmen zu setzen — das ist eine bestimmte redaktionelle Linie, kein neutraler Maßstab. Ein:e palästinensische:r Beobachter:in würde andere Auslassungen rügen.</p>
+        </div>
+      </div>
+      <div class="verdict-row">
+        <span class="vk">Beleglage</span>
+        <span class="vt"><b>Hier liegt der berechtigte Kern — und zugleich seine Grenze.</b> Auswahl und Auslassung sind faire Prüfsteine. Aber „fehlender Kontext" ist keine objektive Größe: Genau diesen Vorwurf erheben beide Seiten gegen die jeweils andere.</span>
+      </div>
+    </article>
+  </section>
+
+  <!-- CONTENT CHECK -->
+  <section class="aspects" style="padding-top:0">
+    <p class="sec-label">Inhaltliche Prüfung an Sanders Originaltexten — ohne Autoritätsverweise</p>
+    <p class="leadnote">Statt zu fragen, <b>wer</b> sie verteidigt oder kritisiert, prüft dieser Abschnitt nur den <b>Inhalt</b> ihrer tatsächlich publizierten Beiträge (Mena-Watch, Jüdische Allgemeine) an überprüfbaren Fakten. Ergebnis: In den konkreten Beispielen steht sie stärker da, als die polemische Gesamtthese vermuten lässt — und schwächer genau dort, wo sie verallgemeinert.</p>
+
+    <article class="card">
+      <div class="card-head">
+        <div class="num" style="font-size:1.4rem;color:var(--v-refut);padding-top:4px">✓</div>
+        <div class="htxt">
+          <h3>Was inhaltlich trägt</h3>
+          <div class="sub">geprüft an konkreten, nachweisbaren Fakten</div>
+        </div>
+        <span class="chip hold"><span class="pip"></span>Belege halten</span>
+      </div>
+      <div class="cc-body">
+        <div class="cc-item">
+          <h4>Das Kern-Argument ist methodisch sauber: „keine Lügen, sondern Framing"</h4>
+          <p>Sie behauptet keine Falschmeldungen, sondern dass Schlagzeilen wie „Israel setzt seine Angriffe fort" durch <b>Weglassen von Kontext</b> den Eindruck eines alleinigen Aggressors erzeugen. Framing durch Auslassung ist ein real anerkannter kommunikationswissenschaftlicher Mechanismus — kein Verschwörungsvorwurf.<span class="src">Quelle · Mena-Watch, „Keine Lügen, sondern Framing"</span></p>
+        </div>
+        <div class="cc-item">
+          <h4>Ihr Belegbeispiel hält der Prüfung stand: der Libanon-Kontext</h4>
+          <p>Über israelische Angriffe im Libanon sei berichtet worden, <b>ohne den vorausgegangenen Hisbollah-Beschuss</b> zu erwähnen, der Tausende Nordisraelis zur Evakuierung zwang. Der Hisbollah-Beschuss ab dem 8.10.2023 und die rund 60.000 Evakuierten sind faktisch belegt — die Auslassungs-Kritik trifft hier konkret zu.<span class="src">Quelle · Mena-Watch · faktisch gegengeprüft</span></p>
+        </div>
+        <div class="cc-item">
+          <h4>Stärkster Beleg, direkt aus von der Tanns Output: der Fall Assai</h4>
+          <p>Tagesschau 20 Uhr, 7.9.2025 — Sami Assai (als „freier Journalist" vorgestellt) erhebt Folter- und Vergewaltigungsvorwürfe gegen israelische Gefängnisbehörden. Beitragsstruktur (120 Sek. gesamt, <b>Cicero, 8.9.2025</b>):</p>
+          <table style="width:100%;border-collapse:collapse;font-size:13px;margin:10px 0 12px;color:var(--muted)">
+            <tr style="background:color-mix(in srgb,var(--claim-bg) 60%,transparent)"><td style="padding:6px 10px;border:1px solid var(--hair)"><b>Sek. 0–71</b></td><td style="padding:6px 10px;border:1px solid var(--hair)">Assais Folter- und Vergewaltigungsvorwürfe — unkommentiert</td></tr>
+            <tr><td style="padding:6px 10px;border:1px solid var(--hair)"><b>Sek. 72</b></td><td style="padding:6px 10px;border:1px solid var(--hair)">Hinweis „nicht verifizierbar" (1 Satz)</td></tr>
+            <tr style="background:color-mix(in srgb,var(--claim-bg) 60%,transparent)"><td style="padding:6px 10px;border:1px solid var(--hair)"><b>22 Sek.</b></td><td style="padding:6px 10px;border:1px solid var(--hair)">NGO „Public Committee against Torture in Israel": „systemisches Problem"</td></tr>
+            <tr><td style="padding:6px 10px;border:1px solid var(--hair)"><b>18 Sek.</b></td><td style="padding:6px 10px;border:1px solid var(--hair)">Israelische Gefängnisbehörde — vorgelesen, kein O-Ton</td></tr>
+            <tr style="background:color-mix(in srgb,var(--claim-bg) 60%,transparent)"><td style="padding:6px 10px;border:1px solid var(--hair)"><b>6 Sek.</b></td><td style="padding:6px 10px;border:1px solid var(--hair)">Rückkehr zu Assai: „seelisch gebrochen"</td></tr>
+          </table>
+          <p>Zusätzlich weggelassen: Assai hatte 2017 identische Foltervorwürfe gegen den <b>palästinensischen Geheimdienst</b> erhoben — im Beitrag kein Hinweis. ARD-Reaktion: Aussagen seien „den journalistischen Standards entsprechend als nicht unmittelbar verifizierbar gekennzeichnet" — strittig ist, wann und wie das Kennzeichen gesetzt wird.<span class="src">Quelle · Cicero, 8.9.2025 · cicero.de/kultur/ard-tagesschau-assai-israel-nahost-medien</span></p>
+        </div>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <div class="num" style="font-size:1.4rem;color:var(--v-debate);padding-top:4px">!</div>
+        <div class="htxt">
+          <h3>Was überzieht</h3>
+          <div class="sub">wo der Beleg den Schluss nicht trägt</div>
+        </div>
+        <span class="chip over"><span class="pip"></span>Verallgemeinerung</span>
+      </div>
+      <div class="cc-body">
+        <div class="cc-item">
+          <h4>„Hamas-Propaganda" — Überspitzung, die den Kern verdeckt</h4>
+          <p>Der Sprung von Framing-Beispielen zu „Hamas-Propaganda" ist nicht belegbar und schadet der Kritik: Er macht die vertretbare Kernthese leicht angreifbar. Was die Belege tatsächlich tragen — und was die präzisere, ehrlichere Einordnung ist:</p>
+          <div style="background:color-mix(in srgb,var(--v-debate) 10%,var(--panel));border:1px solid color-mix(in srgb,var(--v-debate) 35%,transparent);border-left:3px solid var(--v-debate);border-radius:10px;padding:16px 18px;margin:12px 0 4px">
+            <p style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--v-debate);margin:0 0 8px;font-weight:600">Belegbare Einordnung — präziser als „pro-Hamas", ehrlicher als „neutral"</p>
+            <p style="font-size:14px;color:var(--ink);margin:0;line-height:1.6">Von der Tanns Berichterstattung fügt sich — partiell belegbar, systemisch plausibel — in ein <strong>pro-palästinensisches Framing-Muster</strong> ein: nicht als Hamas-Unterstützung, sondern als konsistente Gewichtung, Auslassung und Wortwahl, die Israel als Aggressor in den Vordergrund stellt und palästinensische Narrative bevorzugt aufnimmt. Das Puzzle-Bild entsteht nicht aus einem Einzelstück, sondern aus dem Zusammenspiel von Assai-Beitragsarchitektur, Hisbollah-Kontext-Auslassung, Verifikations-Asymmetrie und Interviewpartner-Auswahl — jedes Stück für sich angreifbar, zusammen ein erkennbares Muster. <strong>Pro-palästinensisch ≠ pro-Hamas</strong>: Die Unterscheidung ist wichtig und reduziert die Kritik nicht — sie macht sie präziser und damit schwerer abwehrbar.</p>
+          </div>
+        </div>
+        <div class="cc-item">
+          <h4>„Fast jeder Bericht zielt darauf, Israel negativ darzustellen"</h4>
+          <p>Eine solche Pauschalaussage lässt sich mit kuratierten Beispielen nicht stützen — dafür bräuchte es eine systematische Inhaltsanalyse einer repräsentativen Stichprobe. Die liefert sie nicht (und niemand sonst in dieser Debatte).</p>
+        </div>
+        <div class="cc-item">
+          <h4>„Der Hass ist zu 90–95 % israelbezogen" — Richtung stimmt, Zahl übertrieben</h4>
+          <p>Der RIAS-Jahresbericht 2024 dokumentiert <b>8.627 antisemitische Vorfälle</b> (2024), davon <b>5.857 Israel-bezogen = 68 %</b>; 2025: 8.725 Vorfälle, 68 % Israel-bezogen. Die „90–95 %"-Behauptung ist also eine Übertreibung — aber der Trend ist real und dramatisch: 2022 (Basis) rund 2.640 Vorfälle gesamt; 2024 dreimal so viele, zwei Drittel mit Israel-Bezug. Israel-bezogener Antisemitismus hat Post-Shoah-Antisemitismus als häufigste Erscheinungsform abgelöst.<span class="src">Quelle · RIAS Jahresbericht 2024 · report-antisemitism.de</span></p>
+        </div>
+      </div>
+    </article>
+
+    <div class="genobox">
+      <h3>Einordnung: der Begriff „Genozid"</h3>
+      <p>Weil der auslösende Streit (von der Tanns Teilen des Bartov-Essays) an diesem Wort hängt: Der Vorwurf ist <b>juristisch ungeklärt und politisch heftig umstritten</b> — weder feststehende Tatsache noch bloße Diffamierung. Dieses Dokument behandelt ihn entsprechend als bestrittenen Vorwurf, nicht als Faktum.</p>
+      <div class="gcols">
+        <div class="gcol no">
+          <p class="gh">Lehnen den Begriff ab</p>
+          <p>Israel, die USA und die deutsche Bundesregierung (Habeck: kein Völkermord; Baerbock: „Selbstverteidigung"); zahlreiche Völkerrechtler. Der IGH hat in der Sache <b>nicht</b> entschieden und ausdrücklich <b>keine</b> Konventionsverletzung festgestellt.</p>
+        </div>
+        <div class="gcol yes">
+          <p class="gh">Verwenden den Begriff</p>
+          <p>Eine UN-Untersuchungskommission (2025), Amnesty International (2024) und mehrere Genozid-Forscher. Südafrikas Klage läuft am IGH — ein Urteil zur Sache wird frühestens 2027/28 erwartet.</p>
+        </div>
+      </div>
+      <p>Den Begriff abzulehnen ist damit eine gut vertretbare Position, die u.&nbsp;a. die Bundesregierung teilt — ihn als erwiesen zu behandeln wäre ebenso unzulässig wie ihn als bloße Lüge abzutun.</p>
+    </div>
+  </section>
+
+  <!-- PRESS MIRROR -->
+  <section class="aspects" style="padding-top:0">
+    <p class="sec-label">Fachpresse-Spiegel — wie die Branche selbst urteilt</p>
+    <p class="leadnote">Der neutralste Maßstab ist die Fachpresse zum Journalismus. Ihr wichtigster Befund: Sie konvergiert <b>nicht</b> auf „einseitig gegen Israel" — sie ist gespalten, und die lauteste fachinterne Selbstkritik läuft sogar in die <b>Gegenrichtung</b>. Von der Tann wird von beiden Flanken beschossen.</p>
+
+    <div class="press-grid">
+      <div class="pcard neutral">
+        <p class="ph">Fachlich / neutral</p>
+        <p class="psub">Medien-Fachpresse &amp; Wissenschaft</p>
+        <ul>
+          <li><b>Übermedien</b> (R. Martens) — prüft die Einzelvorwürfe, hält sie für unterbelegt; links-liberal, aber an der Sache</li>
+          <li><b>epd medien</b> — nüchterne Fachberichterstattung</li>
+          <li><b>DWDL.de</b> — Branchenmagazin, eher wohlwollendes Profil</li>
+          <li><b>Medium Magazin</b> — „differenziert und ausgewogen"; Journalistin des Jahres 2024</li>
+        </ul>
+      </div>
+      <div class="pcard pro">
+        <p class="ph">Israelsolidarisch / konservativ</p>
+        <p class="psub">Tenor: zu anti-israelisch</p>
+        <ul>
+          <li><b>WELT</b> — „Einseitigkeit", „wiederholtes Muster"; verweist auf Sanders Video</li>
+          <li><b>Cicero</b> — der Fall Assai („nicht verifizierbar")</li>
+          <li><b>Jüdische Allgemeine</b> — Antisemitismus-Vorwurf</li>
+          <li><b>pro Medienmagazin</b>, <b>Mena-Watch</b>, <b>Achgut</b></li>
+        </ul>
+      </div>
+      <div class="pcard left">
+        <p class="ph">Links — gespalten</p>
+        <p class="psub">teils Verteidigung, teils umgekehrter Vorwurf</p>
+        <ul>
+          <li><b>nd-aktuell</b> / <b>taz</b> — Verteidigung (taz intern gespalten)</li>
+          <li><b>Spiegel</b> (Reuter), <b>Zeit</b> (Hamann) — Vorwürfe „substanzlos"</li>
+          <li><b>Studio M / Monitor</b>, <b>junge Welt</b>, K. Hafez — <b>Gegenrichtung</b>: zu <em>pro</em>-israelisch, „Staatsräson" über Standards</li>
+          <li><b>Belltower</b> (Kahane) — Jury-Kritik (von Übermedien zurückgewiesen)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="press-anchor">
+      <p class="pa-h">Neutraler Anker · empirisch</p>
+      <p>Eine LMU-Studie (zit. n. taz): nur rund <b>ein Viertel</b> der Deutschen hält die Nahost-Berichterstattung für ausgewogen — <b>30 %</b> sehen eine Verzerrung zugunsten Israels, <b>9 %</b> zugunsten der Palästinenser:innen. Die Wahrnehmung folgt also dem eigenen Standpunkt.</p>
+      <p><b>Fazit:</b> Etwas perfekt Neutrales gibt es nicht — am nächsten kommen Übermedien (rigoros) und epd medien (rein faktisch). <strong>Wichtige Einschränkung:</strong> Dass „die Profis uneins sind", ist kein starkes Argument gegen eine systemische Schlagseite — es zeigt nur, dass die Schlagseite intern unterschiedlich weit ausgeprägt ist. Ein Berufsfeld, das zu 41 % einer Partei zuneigt, kann intern streiten und trotzdem strukturell gleichgerichtet sein. Der Test ist nicht die Binnendebatte, sondern die Außenwirkung auf jüdische Gemeinden und israelische Bürger — und da zeigen RIAS-Zahlen (8.627 Vorfälle 2024, 68 % Israel-bezogen) eine reale gesellschaftliche Konsequenz.</p>
+    </div>
+  </section>
+
+  <!-- DATA SECTION -->
+  <section class="aspects" style="padding-top:0">
+    <p class="sec-label">Zahlen &amp; Systemkontext — was unabhängige Quellen belegen</p>
+    <p class="leadnote">Dieser Abschnitt trennt <b>belegte Zahlen</b> von Behauptungen. Quellen: RIAS, TU Dortmund, Lancet, BPB, West Point, Elkayam-Levy-Kommission.</p>
+
+    <!-- 7 OKT -->
+    <article class="card">
+      <div class="card-head">
+        <div class="num" style="font-size:1rem;font-family:'IBM Plex Mono',monospace;color:var(--claim-label);padding-top:6px">7.10</div>
+        <div class="htxt">
+          <h3>7. Oktober 2023 — belegte Fakten</h3>
+          <div class="sub">Quellen: BPB, Amnesty International, Elkayam-Levy-Kommission, ICC</div>
+        </div>
+      </div>
+      <div class="cc-body">
+        <div class="cc-item">
+          <h4>Ermordete &amp; Geiseln</h4>
+          <p><b>1.139 Menschen getötet</b> — größter Massenmord an Juden seit der Shoah an einem einzigen Tag. <b>364 Tote</b> allein auf dem Nova-Musikfestival. <b>~250 Geiseln</b> verschleppt; Stand März 2025: 24 lebend &amp; 35 Leichen in Gaza-Gefangenschaft. ICC-Ankläger Karim Khan: Haftbefehle gegen Hamas-Führung wegen Ausrottung, Mord, Geiselnahme, Vergewaltigung (Mai 2024).<span class="src">Quelle · BPB Hintergrund aktuell 2024 · Amnesty International Dez. 2024</span></p>
+        </div>
+        <div class="cc-item">
+          <h4>Sexualisierte Gewalt — organisiert, nicht spontan</h4>
+          <p>Elkayam-Levy-Kommission: über <b>10.000 Fotos &amp; Videos, 1.800 Stunden Bildmaterial, 430+ Zeugenaussagen</b> ausgewertet. Befund: „wiederkehrende Muster" — <b>organisierte und koordinierte</b> sexualisierte Gewalt, kein Einzelfall. Amnesty International (Dez. 2024) bestätigt: Hamas beging Verbrechen gegen die Menschlichkeit, darunter Vergewaltigung und Folter. <em>Einschränkung:</em> Haaretz, UN und Amnesty (Dez. 2025) fanden <em>keine</em> hinreichenden Belege für einen expliziten Vergewaltigungs-Befehl.<span class="src">Quelle · Wikipedia: Geschlechtsspezifische Gewalt 7. Oktober · Amnesty 2024</span></p>
+        </div>
+        <div class="cc-item">
+          <h4>Hamas-Militärinfrastruktur in Zivilgebiet</h4>
+          <p>John Spencer (U.S. Army War College / West Point): über <b>30.000 Hamas-Kämpfer</b> in und unter Zivilgebieten; <b>400 Meilen Tunnel</b> unter Krankenhäusern, Moscheen, Schulen, UNRWA-Einrichtungen. Prof. Herdegen (Völkerrecht, Bonn): Hamas macht die Deckung durch Zivilbevölkerung „zum Teil ihres Kampfes". <em>Einschränkung:</em> Amnesty sieht beim Al-Schifa-Krankenhaus „keine substanziellen Belege" für Kommandozentrale in behauptetem Ausmaß geliefert.<span class="src">Quelle · John Spencer, Modern War Institute 2024 · lto.de Gaza-Krieg Krankenhäuser</span></p>
+        </div>
+      </div>
+    </article>
+
+    <!-- RIAS -->
+    <article class="card">
+      <div class="card-head">
+        <div class="num" style="font-size:1rem;font-family:'IBM Plex Mono',monospace;color:var(--accent);padding-top:6px">RIAS</div>
+        <div class="htxt">
+          <h3>Antisemitismus in Deutschland — RIAS-Jahresberichte</h3>
+          <div class="sub">report-antisemitism.de · 2022–2025</div>
+        </div>
+      </div>
+      <div class="cc-body">
+        <div class="cc-item">
+          <h4>Vorfallszahlen im Vergleich</h4>
+          <table style="width:100%;border-collapse:collapse;font-size:13px;color:var(--muted);margin:8px 0 10px">
+            <thead><tr style="background:var(--hair)"><th style="padding:6px 10px;border:1px solid var(--hair-strong);text-align:left;font-weight:600;color:var(--ink)">Jahr</th><th style="padding:6px 10px;border:1px solid var(--hair-strong);text-align:right;font-weight:600;color:var(--ink)">Gesamt</th><th style="padding:6px 10px;border:1px solid var(--hair-strong);text-align:right;font-weight:600;color:var(--ink)">Israel-bezogen</th><th style="padding:6px 10px;border:1px solid var(--hair-strong);text-align:right;font-weight:600;color:var(--ink)">Tägl. Schnitt</th></tr></thead>
+            <tbody>
+              <tr><td style="padding:6px 10px;border:1px solid var(--hair)">2022 (Basis)</td><td style="padding:6px 10px;border:1px solid var(--hair);text-align:right">~2.640</td><td style="padding:6px 10px;border:1px solid var(--hair);text-align:right">Minderheit</td><td style="padding:6px 10px;border:1px solid var(--hair);text-align:right">~7</td></tr>
+              <tr style="background:color-mix(in srgb,var(--claim-bg) 50%,transparent)"><td style="padding:6px 10px;border:1px solid var(--hair)">2023</td><td style="padding:6px 10px;border:1px solid var(--hair);text-align:right"><b>4.782</b> (+81 %)</td><td style="padding:6px 10px;border:1px solid var(--hair);text-align:right">Mehrheit (ab 7.10.)</td><td style="padding:6px 10px;border:1px solid var(--hair);text-align:right">13</td></tr>
+              <tr><td style="padding:6px 10px;border:1px solid var(--hair)">2024</td><td style="padding:6px 10px;border:1px solid var(--hair);text-align:right"><b>8.627</b> (+77 %)</td><td style="padding:6px 10px;border:1px solid var(--hair);text-align:right"><b>5.857 (68 %)</b></td><td style="padding:6px 10px;border:1px solid var(--hair);text-align:right">24</td></tr>
+              <tr style="background:color-mix(in srgb,var(--claim-bg) 50%,transparent)"><td style="padding:6px 10px;border:1px solid var(--hair)">2025</td><td style="padding:6px 10px;border:1px solid var(--hair);text-align:right"><b>8.725</b></td><td style="padding:6px 10px;border:1px solid var(--hair);text-align:right"><b>5.916 (68 %)</b></td><td style="padding:6px 10px;border:1px solid var(--hair);text-align:right">24</td></tr>
+            </tbody>
+          </table>
+          <p>Israel-bezogener Antisemitismus hat Post-Shoah-Antisemitismus als <b>häufigste Erscheinungsform</b> abgelöst. RIAS-Definition: Israel-bezogen = wenn dem jüdischen Staat die Legitimität abgesprochen wird (IHRA, Scharanski-Trias). Vergleich vor/nach 7.10.: rund zwei Drittel der schweren Fälle (Angriffe, Bedrohungen) fanden <em>nach</em> dem 7.10.2023 statt.<span class="src">Quelle · RIAS Jahresberichte 2023/2024/2025 · report-antisemitism.de</span></p>
+        </div>
+        <div class="cc-item">
+          <h4>Relevanz für die Mediendebatte</h4>
+          <p>Eine Berichterstattung, die Israel systematisch als Aggressor ohne Kontext darstellt, trägt potenziell zur Normalisierung von Delegitimierungsnarrativen bei — die RIAS-Zahlen zeigen, dass diese Narrative gesellschaftliche Wirkung haben. Das ist ein struktureller, kein persönlicher Vorwurf an von der Tann.</p>
+        </div>
+      </div>
+    </article>
+
+    <!-- TU DORTMUND -->
+    <article class="card">
+      <div class="card-head">
+        <div class="num" style="font-size:1rem;font-family:'IBM Plex Mono',monospace;color:var(--accent);padding-top:6px">TUD</div>
+        <div class="htxt">
+          <h3>Mediensystem-Linksbias — TU Dortmund 2024</h3>
+          <div class="sub">Journalismusbefragung 2024 · 525 Journalist:innen · journalismusstudie.fb15.tu-dortmund.de</div>
+        </div>
+      </div>
+      <div class="cc-body">
+        <div class="cc-item">
+          <h4>Parteineigung Journalist:innen vs. Bevölkerung</h4>
+          <table style="width:100%;border-collapse:collapse;font-size:13px;color:var(--muted);margin:8px 0 10px">
+            <thead><tr style="background:var(--hair)"><th style="padding:6px 10px;border:1px solid var(--hair-strong);text-align:left;font-weight:600;color:var(--ink)">Partei</th><th style="padding:6px 10px;border:1px solid var(--hair-strong);text-align:right;font-weight:600;color:var(--ink)">Journalist:innen</th><th style="padding:6px 10px;border:1px solid var(--hair-strong);text-align:right;font-weight:600;color:var(--ink)">Bevölkerung (Forsa)</th></tr></thead>
+            <tbody>
+              <tr style="background:color-mix(in srgb,var(--counter-bg) 60%,transparent)"><td style="padding:6px 10px;border:1px solid var(--hair)"><b>Grüne</b></td><td style="padding:6px 10px;border:1px solid var(--hair);text-align:right"><b>41 %</b></td><td style="padding:6px 10px;border:1px solid var(--hair);text-align:right">~11 %</td></tr>
+              <tr><td style="padding:6px 10px;border:1px solid var(--hair)">SPD</td><td style="padding:6px 10px;border:1px solid var(--hair);text-align:right">16 %</td><td style="padding:6px 10px;border:1px solid var(--hair);text-align:right">~15 %</td></tr>
+              <tr style="background:color-mix(in srgb,var(--counter-bg) 60%,transparent)"><td style="padding:6px 10px;border:1px solid var(--hair)">CDU/CSU</td><td style="padding:6px 10px;border:1px solid var(--hair);text-align:right">8 %</td><td style="padding:6px 10px;border:1px solid var(--hair);text-align:right">~30 %</td></tr>
+              <tr><td style="padding:6px 10px;border:1px solid var(--hair)">FDP</td><td style="padding:6px 10px;border:1px solid var(--hair);text-align:right">3 %</td><td style="padding:6px 10px;border:1px solid var(--hair);text-align:right">~5 %</td></tr>
+              <tr style="background:color-mix(in srgb,var(--counter-bg) 60%,transparent)"><td style="padding:6px 10px;border:1px solid var(--hair)">Keine Partei</td><td style="padding:6px 10px;border:1px solid var(--hair);text-align:right">23 %</td><td style="padding:6px 10px;border:1px solid var(--hair);text-align:right">—</td></tr>
+            </tbody>
+          </table>
+          <p>Die 72 Nahost-Korrespondent:innen, die von der Tann verteidigten, kommen aus demselben Berufsfeld. Ihr Brief ist ein Autoritätsargument — in einem Feld mit empirisch belegter Links-Überrepräsentation verliert dieses Argument an Gewicht, ohne es ganz zu entwerten. <em>Einschränkung:</em> Parteineigung ≠ Berichterstattungsinhalt; Kausalität ist nicht bewiesen.<span class="src">Quelle · TU Dortmund Journalismusbefragung 2024 · PDF journalismusstudie.fb15.tu-dortmund.de</span></p>
+        </div>
+      </div>
+    </article>
+
+    <!-- GAZA ZAHLEN -->
+    <article class="card">
+      <div class="card-head">
+        <div class="num" style="font-size:1rem;font-family:'IBM Plex Mono',monospace;color:var(--muted);padding-top:6px">GZA</div>
+        <div class="htxt">
+          <h3>Gaza-Opferzahlen — Methodikdebatte</h3>
+          <div class="sub">Hamas-MoH, Lancet Jan. 2025, Wharton/Wyner, Bundestag WD 2-016-25</div>
+        </div>
+      </div>
+      <div class="cc-body">
+        <div class="cc-item">
+          <h4>Das Quellenproblem</h4>
+          <p>Hamas-Gesundheitsministerium (MoH) ist die <em>einzige</em> offizielle Quelle — von UN-OCHA zitiert, kein Unterschied Kombattanten/Zivilisten. Ab Februar 2024: MoH stützte sich auf „zuverlässige Medienquellen" für Nordgaza-Daten (nur 3 von 8 Krankenhäusern lieferten noch Zahlen). OCHA korrigierte im Mai 2024 Frauen/Kinder-Zahlen urplötzlich um ~40 % nach unten.<span class="src">Quelle · Bundestag WD 2-016-25 · OCHA-Website</span></p>
+        </div>
+        <div class="cc-item">
+          <h4>Kritik an den Hamas-Zahlen</h4>
+          <p>Prof. Abraham Wyner (Wharton, Statistik): Tageszahlen „zu konstant um real zu sein"; ca. 70 % Frauen/Kinder offenbar <em>zuerst festgelegt</em>, Männer danach eingetragen. Andrew Fox (Henry Jackson Society): Vergleich mit Geburtsregistern zeigt Manipulation. Empfehlung: Hamas-Zahlen „nicht als primäre Basis für internationalen Diskurs".<span class="src">Quelle · Journal of Political Risk 2024 · Henry Jackson Society 2024</span></p>
+        </div>
+        <div class="cc-item">
+          <h4>Gegenbefund — Zahlen eher zu niedrig</h4>
+          <p><i>The Lancet</i> (Jan. 2025, peer-reviewed): Hamas-MoH <em>unterschätzt</em> traumatische Todesfälle um <b>41 %</b>; tatsächliche Opferzahl >70.000 (Stand Okt. 2024). Historisch waren Hamas-MoH-Zahlen für frühere Konflikte (2009, 2012, 2014, 2021) später von unabhängigen Organisationen <em>bestätigt</em>. Max-Planck-Institut: ~126.000 Gesamttote inkl. Hunger/Krankheit/Trümmer.<span class="src">Quelle · The Lancet Jan. 2025 · Max-Planck-Institut 2025</span></p>
+        </div>
+        <div class="cc-item">
+          <h4>Fazit für die Berichterstattungsdebatte</h4>
+          <p>Zahlen unkritisch als Fakten zu verwenden — ohne Quellenangabe „Hamas-Gesundheitsministerium" — verletzt journalistische Standards. Die Asymmetrie-Kritik (Verifikationsvorbehalt nur bei israelischen Quellen) ist berechtigt, <em>wenn</em> sie konsistent zutrifft. Ob sie das tut, ist noch nicht durch Inhaltsanalyse belegt — der Assai-Fall ist ein Einzelbeleg, kein Systembeweis.</p>
+        </div>
+        <div class="cc-item">
+          <h4>Humanitäre Lage Gaza — Kontextfakten</h4>
+          <p>Unabhängig von der Methodikdebatte um Opferzahlen sind folgende Fakten zur Lage in Gaza durch mehrere unabhängige Quellen belegt:<br>
+          — <b>Gesundheitssystem</b> weitgehend zusammengebrochen (WHO, OCHA 2024–2025)<br>
+          — <b>Trinkwasserversorgung</b> kollabiert (UNICEF 2024)<br>
+          — <b>~50 Millionen Tonnen Schutt</b> — erklärt strukturell, warum die Identifikation von Opfern in Gebäudetrümmern schwierig ist<br>
+          — <b>UN-Menschenrechtsbüro:</b> Altersgruppe 5–9 Jahre stellt die meisten verifizierten Kindertodesfälle<br>
+          <em>Einordnung:</em> Diese Fakten stützen das humanitäre Gesamtbild, entwerten aber nicht die Methodikkritik an Hamas-MoH-Zahlen — beides kann gleichzeitig wahr sein.<span class="src">Quelle · WHO/OCHA 2024–2025 · UNICEF 2024 · UN-Menschenrechtsbüro 2024</span></p>
+        </div>
+      </div>
+    </article>
+
+    <!-- STANDARDS -->
+    <article class="card">
+      <div class="card-head">
+        <div class="num" style="font-size:1rem;font-family:'IBM Plex Mono',monospace;color:var(--accent);padding-top:6px">STD</div>
+        <div class="htxt">
+          <h3>Journalistische Standards — Prüfraster</h3>
+          <div class="sub">Handwerkliche Maßstäbe unabhängig von politischer Position · Übermedien (René Martens, 9.12.2025)</div>
+        </div>
+      </div>
+      <div class="cc-body">
+        <div class="cc-item">
+          <h4>Standards-Vergleich: drei belegbare Beispiele</h4>
+          <table style="width:100%;border-collapse:collapse;font-size:13px;color:var(--muted);margin:8px 0 10px">
+            <thead><tr style="background:var(--hair)">
+              <th style="padding:6px 10px;border:1px solid var(--hair-strong);text-align:left;font-weight:600;color:var(--ink)">Standard</th>
+              <th style="padding:6px 10px;border:1px solid var(--hair-strong);text-align:left;font-weight:600;color:var(--ink)">Assai-Bericht</th>
+              <th style="padding:6px 10px;border:1px solid var(--hair-strong);text-align:left;font-weight:600;color:var(--ink)">Westjordanland-Reportage (Sander)</th>
+              <th style="padding:6px 10px;border:1px solid var(--hair-strong);text-align:left;font-weight:600;color:var(--ink)">Lemmer-Video</th>
+            </tr></thead>
+            <tbody>
+              <tr><td style="padding:6px 10px;border:1px solid var(--hair)">Quellenvielfalt (beide Seiten)</td><td style="padding:6px 10px;border:1px solid var(--hair);color:var(--claim-label)">Verletzt — 18 Sek. Israel vs. 71 Sek. Anschuldigung</td><td style="padding:6px 10px;border:1px solid var(--hair)">Unklar — kein Sendungsnachweis</td><td style="padding:6px 10px;border:1px solid var(--hair);color:var(--muted)">Nicht gegeben — Meinungsformat</td></tr>
+              <tr style="background:color-mix(in srgb,var(--claim-bg) 30%,transparent)"><td style="padding:6px 10px;border:1px solid var(--hair)">Verifikationsstandard konsistent</td><td style="padding:6px 10px;border:1px solid var(--hair);color:var(--claim-label)">Verletzt — Disclaimer erst nach 71 Sek.</td><td style="padding:6px 10px;border:1px solid var(--hair)">Behauptet, nicht bewiesen</td><td style="padding:6px 10px;border:1px solid var(--hair);color:var(--muted)">Irrelevant — Meinungsstück</td></tr>
+              <tr><td style="padding:6px 10px;border:1px solid var(--hair)">Transparenz über Quellenstatus</td><td style="padding:6px 10px;border:1px solid var(--hair);color:var(--v-debate)">Teilweise — ARD nennt „nicht verifizierbar", aber zu spät</td><td style="padding:6px 10px;border:1px solid var(--hair);color:var(--claim-label)">Fehlend</td><td style="padding:6px 10px;border:1px solid var(--hair);color:var(--claim-label)">Fehlend</td></tr>
+              <tr style="background:color-mix(in srgb,var(--claim-bg) 30%,transparent)"><td style="padding:6px 10px;border:1px solid var(--hair)">Kontextualisierung</td><td style="padding:6px 10px;border:1px solid var(--hair);color:var(--claim-label)">Assais 2017-Foltervorwurf gegen PA fehlt</td><td style="padding:6px 10px;border:1px solid var(--hair)">Hamas-Indoktrination angeblich fehlend</td><td style="padding:6px 10px;border:1px solid var(--hair);color:var(--muted)">Einseitig</td></tr>
+              <tr><td style="padding:6px 10px;border:1px solid var(--hair)">Verhältnismäßigkeit Sendezeit</td><td style="padding:6px 10px;border:1px solid var(--hair);color:var(--claim-label)">Verletzt</td><td style="padding:6px 10px;border:1px solid var(--hair)">Nicht prüfbar</td><td style="padding:6px 10px;border:1px solid var(--hair);color:var(--muted)">N/A</td></tr>
+            </tbody>
+          </table>
+          <p><b>Wichtige neutrale Referenz:</b> Übermedien (René Martens, 9.12.2025) — Fazit: Vorwürfe gegen VdT „leiden unter einem erheblichen Mangel an belastbaren Belegen." Übermedien ist links-liberal, aber methodisch rigoros — dieser Befund ist zu respektieren, selbst wenn man dem Tenor nicht folgt. <em>Gleichzeitig:</em> Der Assai-Fall im obigen Prüfraster ist kein Einzelimpressionismus — er hat konkretes Timing und ist überprüfbar.<span class="src">Quelle · Übermedien / René Martens, 9.12.2025 · uebermedien.de/111859</span></p>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <!-- CONCLUSION -->
+  <section class="conclude">
+    <p class="verdict-final">Gesamtbewertung</p>
+    <h2>Kein Beweis für „Pro-Hamas" — aber ein vertretbares Bild: pro-palästinensisches Framing-Muster</h2>
+    <p>Die Kritik ist <strong>ernst zu nehmen, aber nicht in ihrer Zuspitzung haltbar.</strong> Es gibt einen realen, von glaubwürdigen Stimmen getragenen Streit darüber, ob die Nahost-Berichterstattung von ARD und ZDF ausgewogen ist. Einzelne Beobachtungen des Dokuments — besonders zum Umgang mit Kriegszahlen und zur Gewichtung — berühren legitime Fachfragen.</p>
+    <p>Das vorgelegte Dokument selbst ist jedoch eine <strong>polemische Konstruktion</strong>: Es (1) leiht sich ein Raster, das zur Analyse von Gräuel-Rechtfertigung gedacht ist und die Schlussfolgerung voraussetzt; (2) stützt seinen meistzitierten Beleg — den „Vorgeschichte"-Satz — auf eine <em>nicht verifizierte Indirektzitierung</em> (kein Originalzitat, ARD verweigerte Bestätigung, Reuter/<i>Spiegel</i>: andere Teilnehmer erinnern sich weder an diese Formulierung noch an einen Eklat); (3) macht zahlreiche datums- und zitatgenaue Behauptungen, die ohne die Originalquellen nicht überprüfbar sind; (4) liest in redaktionelle Entscheidungen durchweg Absicht hinein. <strong>Einschränkung dieser Einschränkung:</strong> Die „breite fachliche Rückendeckung" kommt aus demselben systemisch links geprägten Berufsfeld (TU Dortmund 2024: 41 % Grüne) — Berufsstand-interne Solidarität ist kein unabhängiger Gegenbeweis.</p>
+    <p class="muted">Bezeichnend: Von der Tann wird <strong>aus beiden Richtungen</strong> kritisiert — pro-israelische Stimmen halten sie für zu palästinensisch-nah, andere halten die ÖR-Berichterstattung für zu israelfreundlich. Das ist typisch für einen extrem polarisierten Konflikt und spricht eher gegen die These einer eindeutigen, einseitigen Agenda.</p>
+
+    <div class="scorebar">
+      <span class="score"><span class="pip" style="background:var(--v-debate)"></span>2× sachlich diskutierbar</span>
+      <span class="score"><span class="pip" style="background:var(--v-interp)"></span>2× wertend / interpretativ</span>
+      <span class="score"><span class="pip" style="background:var(--v-unver)"></span>1× nicht überprüfbar</span>
+      <span class="score"><span class="pip" style="background:var(--v-refut)"></span>1× Kernbeispiel entkräftet</span>
+    </div>
+
+    <p><strong>Dreistufiges Fazit:</strong></p>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:14px 0 18px">
+      <div style="background:color-mix(in srgb,var(--v-refut) 10%,var(--panel));border:1px solid color-mix(in srgb,var(--v-refut) 30%,transparent);border-top:3px solid var(--v-refut);border-radius:10px;padding:14px 15px">
+        <p style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--v-refut);margin:0 0 7px;font-weight:600">❌ Nicht belegt</p>
+        <p style="font-size:13px;color:var(--ink);margin:0;line-height:1.55"><strong>„Pro-Hamas-Journalismus"</strong> — Überspitzung ohne Beleg. Macht die Kritik angreifbar und falsch.</p>
+      </div>
+      <div style="background:color-mix(in srgb,var(--v-debate) 10%,var(--panel));border:1px solid color-mix(in srgb,var(--v-debate) 30%,transparent);border-top:3px solid var(--v-debate);border-radius:10px;padding:14px 15px">
+        <p style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--v-debate);margin:0 0 7px;font-weight:600">⚠ Partiell belegt</p>
+        <p style="font-size:13px;color:var(--ink);margin:0;line-height:1.55"><strong>Pro-palästinensisches Framing-Muster</strong> — vertretbare Einordnung. Assai bestätigt, Hisbollah plausibel, Asymmetrie konsistent behauptet. Puzzle-Bild erkennbar.</p>
+      </div>
+      <div style="background:color-mix(in srgb,var(--v-unver) 10%,var(--panel));border:1px solid color-mix(in srgb,var(--v-unver) 30%,transparent);border-top:3px solid var(--v-unver);border-radius:10px;padding:14px 15px">
+        <p style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--v-unver);margin:0 0 7px;font-weight:600">✗ Auch nicht belegt</p>
+        <p style="font-size:13px;color:var(--ink);margin:0;line-height:1.55"><strong>„Neutral und ausgewogen"</strong> — Berufsstand-interne Entlastung (72 Korrespondenten, RSF, Jury) ist kein unabhängiger Befund.</p>
+      </div>
+    </div>
+    <p>Der einzige institutionell unabhängige Test wäre eine systematische Inhaltsanalyse einer repräsentativen Sendungsstichprobe. Die hat bislang keine Seite vorgelegt. Bis dahin ist <strong>„pro-palästinensisches Framing-Muster"</strong> die ehrlichste verfügbare Einordnung — präziser als „pro-Hamas", belastbarer als „neutral".</p>
+  </section>
+
+  <!-- JOURNALISM TYPES -->
+  <section class="types">
+    <p class="verdict-final">Die eigentliche Frage</p>
+    <h2>Zwei Arten von Journalismus — ist beides legitim?</h2>
+    <p class="intro">Hier stehen sich nicht nur zwei Personen, sondern zwei <strong>Genres</strong> gegenüber: der institutionell gebundene Korrespondentenjournalismus des öffentlich-rechtlichen Rundfunks und die erklärt parteiische Medienkritik. Beide haben ihre Berechtigung — aber sie gehorchen unterschiedlichen Regeln, und genau diese Verwechslung ist der Kern des Streits.</p>
+
+    <div class="jgrid">
+      <div class="jcard vdt">
+        <div class="role">Genre A · Korrespondentin</div>
+        <h3>Sophie von der Tann</h3>
+        <div class="kind">Festangestellte Auslandskorrespondentin (ÖRR) — gebunden an Neutralitätsgebot &amp; Kontrollinstanzen</div>
+        <div class="block">
+          <div class="bl-h plus">Spricht dafür</div>
+          <p>Institutionelle Rechenschaft (Rundfunkrat, Programmbeschwerden, Redaktion), Zugang vor Ort, Transparenz über die Grenzen der Verifizierbarkeit. Das Genre selbst ist unstrittig legitim — es <b>ist</b> der Maßstab.</p>
+        </div>
+        <div class="block">
+          <div class="bl-h minus">Spricht dagegen</div>
+          <p>Ob sie das eigene Ideal der Ausgewogenheit erfüllt — Gewichtung, Interviewauswahl, Umgang mit Zahlen — ist offen und umstritten. Sie wird <b>von beiden Seiten</b> kritisiert, was für ein polarisiertes Feld typisch ist.</p>
+        </div>
+        <p class="jverdict"><b>Urteil zum Genre:</b> legitim und notwendig. Die faire Prüfung lautet nicht „darf sie das?", sondern „erfüllt sie den Neutralitätsanspruch ihrer Rolle?" — eine berechtigte, aber nicht entschiedene Frage.</p>
+      </div>
+
+      <div class="jcard sms">
+        <div class="role">Genre B · Medienkritik</div>
+        <h3>Sarah Maria Sander</h3>
+        <div class="kind">Freie, erklärt parteiische Medienkritik — „setzt sich für den jüdischen Staat ein"</div>
+        <div class="block">
+          <div class="bl-h plus">Spricht dafür</div>
+          <p>Medienkritik ist ein notwendiger Teil der Pressefreiheit. Genaue Analyse einzelner Sendungen ist wertvoll, zumal Programmbeschwerden oft ins Leere laufen. Sie ist <b>offen über ihren Standpunkt</b> — das ist redlich.</p>
+        </div>
+        <div class="block">
+          <div class="bl-h minus">Spricht dagegen</div>
+          <p>Sie legt an andere einen Neutralitätsmaßstab an, den sie selbst nicht beansprucht. Ihre Methode (das „Moral-Disengagement"-Raster) sucht eine vorab feststehende These; das Urteil „Hamas-Propaganda" geht über das hinaus, was Textanalyse belegen kann.</p>
+        </div>
+        <p class="jverdict"><b>Urteil zum Genre:</b> legitim als offen perspektivische Kritik — zu lesen als Argument, nicht als neutraler Befund. Sie verliert an Kraft, wo sie eine Unparteilichkeit einfordert, die sie selbst nicht für sich reklamiert.</p>
+      </div>
+    </div>
+
+    <div class="synthesis">
+      <h4>Die Synthese</h4>
+      <p><strong>Beide Formen sind berechtigt — keine ist illegitim.</strong> Das eigentliche Problem ist eine Kategorienverwechslung: Ein Stück <em>erklärter Advocacy</em> wird benutzt, um einer öffentlich-rechtlichen Korrespondentin <em>fehlende Unparteilichkeit</em> nachzuweisen. Der faire Test ist für jede ein anderer.</p>
+      <p>Eine besondere Ironie: Sander beruft sich auf das Friedrichs-Ideal („Distanz halten, sich nicht gemein machen mit einer Sache, auch nicht mit einer guten") — doch nach genau diesem Maßstab ist ihre eigene, bekenntnishafte Arbeit Aktivismus, nicht der neutrale Journalismus, den der Preis ehrt. Das hat selbst ein ihr wohlgesonnenes Medium (Achgut) angemerkt.</p>
+      <p>Demokratisch gesund ist, dass <strong>beide existieren dürfen</strong>: die Korrespondentin trotz Shitstorm und Botschafter-Angriffen, die Kritikerin trotz beruflicher Nachteile. Jede sollte am Maßstab gemessen werden, den ihr Genre beansprucht — die eine an Ausgewogenheit, die andere an Ehrlichkeit über den eigenen Standpunkt und an der Frage, ob ihre Belege ihre Schlüsse tragen.</p>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="meth">
+      <h4>Methodik &amp; Grenzen</h4>
+      <p>Die im Dokument genannten Belege [1]–[21] sind nun als <b>Transkript-Auszüge aus der Video-Analyse von Sarah Maria Sander</b> identifiziert — also aus einer erklärt parteiischen Quelle, nicht aus einer neutralen Faktensammlung. Die Originalsendungen von der Tanns konnten für diese Prüfung nicht einzeln eingesehen werden; datums- und zitatgenaue Behauptungen werden am öffentlich dokumentierten Diskussionsstand gemessen, nicht bestätigt. Die Bewertungen beziehen sich auf die <em>Beleg- und Argumentationslage</em> sowie auf die <em>journalistische Form</em>, nicht auf ein Endurteil über jede einzelne Sendung oder über die Sachfragen des Nahostkonflikts.</p>
+      <p style="margin-top:12px"><b>Zur Methode:</b> Verweise auf prominente Unterstützer oder Kritiker (Korrespondent:innen-Briefe, Jurys, Verbände) sind <em>Autoritätsargumente</em> und tragen wenig — zumal das journalistische Feld in Deutschland nachweislich nach links/grün tendiert (TU Dortmund 2024: 41&nbsp;% Grüne; ARD-Volontäre: über 90&nbsp;% links). Das stärkste Material ist daher der Abschnitt „Inhaltliche Prüfung", der nur an überprüfbaren Fakten misst. Was beide Lager endgültig klären würde — eine systematische Inhaltsanalyse einer repräsentativen Stichprobe —, hat bislang keine Seite vorgelegt.</p>
+    </div>
+    <h4>Verwendete Quellen</h4>
+    <div class="src-list">
+      <a href="https://de.wikipedia.org/wiki/Sophie_von_der_Tann" target="_blank" rel="noopener">Wikipedia — Sophie von der Tann</a>
+      <a href="https://media.reporter-ohne-grenzen.de/production/5499/Offener-Brief-Solidarita%CC%88t-mit-Sophie-von-der-Tann.pdf" target="_blank" rel="noopener">Offener Brief (Reporter ohne Grenzen, PDF)</a>
+      <a href="https://www.juedische-allgemeine.de/israel/die-kritik-trifft-mich-entbehrt-aber-jeder-grundlage/" target="_blank" rel="noopener">Jüdische Allgemeine — Reaktion von der Tann</a>
+      <a href="https://www.tagesspiegel.de/kultur/mich-trifft-das-auch-personlich-ard-israel-korrespondentin-sophie-von-der-tann-weist-kritik-an-ihrer-arbeit-als-diffamierung-zuruck-15008462.html" target="_blank" rel="noopener">Tagesspiegel — „Mich trifft das auch persönlich"</a>
+      <a href="https://medien.epd.de/article/3998" target="_blank" rel="noopener">epd medien — Solidaritätsbrief</a>
+      <a href="https://www.turi2.de/aktuell/prominente-rueckendeckung-nahost-korrespondenten-stellen-sich-hinter-sophie-von-der-tann/" target="_blank" rel="noopener">turi2 — 72 Unterzeichner</a>
+      <a href="https://taz.de/Kritik-an-ARD-Israel-Korrespondentin/!6134451/" target="_blank" rel="noopener">taz — Kritik &amp; Pressefreiheit</a>
+      <a href="https://www.israelnetz.com/umstrittene-ard-korrespondentin-fuer-israelberichterstattung-geehrt/" target="_blank" rel="noopener">Israelnetz — Preisverleihung</a>
+      <a href="https://www.wienerzeitung.at/a/sophie-von-der-tann-und-nahost-berichterstattung" target="_blank" rel="noopener">Wiener Zeitung — Einordnung</a>
+      <a href="https://www.pro-medienmagazin.de/umstrittene-ard-korrespondentin-fuer-israelberichterstattung-geehrt/" target="_blank" rel="noopener">pro Medienmagazin — Preisverleihung</a>
+      <a href="https://youtu.be/g7nQ03Su37U" target="_blank" rel="noopener">YouTube — Sander, Video (vom Nutzer übermittelt)</a>
+      <a href="https://de.wikipedia.org/wiki/Sarah_Maria_Sander" target="_blank" rel="noopener">Wikipedia — Sarah Maria Sander</a>
+      <a href="https://www.sarahmariasander.com/" target="_blank" rel="noopener">sarahmariasander.com — Selbstbeschreibung</a>
+      <a href="https://www.cicero.de/kultur/ard-tagesschau-assai-israel-nahost-medien" target="_blank" rel="noopener">Cicero — „Nicht verifizierbar" in der Tagesschau</a>
+      <a href="https://www.mena-watch.com/israelberichterstattung-keine-luegen-framing/" target="_blank" rel="noopener">Mena-Watch — „Keine Lügen, sondern Framing"</a>
+      <a href="https://www.mena-watch.com/journalisten-hass-auf-israel/" target="_blank" rel="noopener">Mena-Watch — Interview Sander &amp; David</a>
+      <a href="https://www.icj-cij.org/case/192" target="_blank" rel="noopener">IGH — Südafrika gegen Israel (Verfahrensstand)</a>
+      <a href="https://www.journalismusstudie.fb15.tu-dortmund.de/" target="_blank" rel="noopener">TU Dortmund — Journalismusbefragung 2024</a>
+      <a href="https://uebermedien.de/111859/alles-andere-als-substanzielle-journalismuskritik/" target="_blank" rel="noopener">Übermedien — „Alles andere als substanzielle Journalismuskritik"</a>
+      <a href="https://medien.epd.de/article/4003" target="_blank" rel="noopener">epd medien — Friedrichs-Preis-Verleihung</a>
+      <a href="https://www.dwdl.de/bildschirmhelden2023/95864/sophie_von_der_tann_ein_neuer_typ_kriegs_und_krisenkorrespondentin/" target="_blank" rel="noopener">DWDL — Korrespondentinnen-Profil</a>
+      <a href="https://www.youtube.com/watch?v=p3iYofgXpi4" target="_blank" rel="noopener">Studio M / Monitor — „Gaza und die Medien: Versagt der Journalismus?"</a>
+      <a href="https://taz.de/Kritik-an-ARD-Israel-Korrespondentin/!6134451/" target="_blank" rel="noopener">taz — „Was wir schützen müssen" (inkl. LMU-Studie)</a>
+      <a href="https://www.achgut.com/artikel/sophie_von_der_tann_hanns_joachim_friedrichs_preis_fuer_anti_israel_framing" target="_blank" rel="noopener">Achgut — Sander-Video &amp; Friedrichs-Standard</a>
+      <a href="https://www.youtube.com/watch?v=g7nQ03Su37U" target="_blank" rel="noopener">YouTube — WELT/Lemmer-Video (g7nQ03Su37U)</a>
+      <a href="https://www.reporter-ohne-grenzen.de/artikel/pressemitteilungen/4148/" target="_blank" rel="noopener">RSF — Einschüchterungsversuche / Solidarität</a>
+      <a href="https://www.ynetnews.com/article/hjf9qyk8xl" target="_blank" rel="noopener">ynetnews — Prosor &amp; der Bartov-Essay</a>
+      <a href="https://www.juedische-allgemeine.de/meinung/nur-scheinbar-ausgewogen/" target="_blank" rel="noopener">Jüdische Allgemeine — Sander, „Nur scheinbar ausgewogen"</a>
+      <a href="https://www.nd-aktuell.de/artikel/1195925.html" target="_blank" rel="noopener">nd-aktuell — Verteidigung &amp; „Vorgeschichte"</a>
+      <a href="https://report-antisemitism.de/documents/04-06-25_RIAS_Bund_Jahresbericht_2024.pdf" target="_blank" rel="noopener">RIAS Jahresbericht 2024 (PDF)</a>
+      <a href="https://report-antisemitism.de/documents/2024-06-25_rias-bund_Pressemitteilung_Jahresbericht_23.pdf" target="_blank" rel="noopener">RIAS Jahresbericht 2023 (PDF)</a>
+      <a href="https://www.journalismusstudie.fb15.tu-dortmund.de/wp-content/uploads/2024/09/2024-Journalismusbefragung_Journalismus-und-Demokratie.pdf" target="_blank" rel="noopener">TU Dortmund — Journalismusbefragung 2024 (PDF)</a>
+      <a href="https://www.bpb.de/kurz-knapp/hintergrund-aktuell/547184/sechs-monate-nach-dem-angriff-der-hamas-auf-israel-chronologie-des-kriegsgeschehens/" target="_blank" rel="noopener">BPB — 7. Oktober: Chronologie des Kriegsgeschehens</a>
+      <a href="https://www.amnesty.de/aktuell/israel-hamas-angriffe-7-oktober-verbrechen-gegen-die-menschlichkeit" target="_blank" rel="noopener">Amnesty International — 7. Oktober: Verbrechen gegen die Menschlichkeit</a>
+      <a href="https://www.bundestag.de/resource/blob/1098862/WD-2-016-25.pdf" target="_blank" rel="noopener">Bundestag WD 2-016-25 — Gaza-Opferzahlen (Wissenschaftliche Dienste)</a>
+      <a href="https://www.juedische-allgemeine.de/israel/antisemitismus-beauftragter-wirft-sophie-von-der-tann-verharmlosung-der-hamas-massaker-vor/" target="_blank" rel="noopener">Jüdische Allgemeine — Spaenle: Vorwurf Verharmlosung</a>
+      <a href="https://www.youtube.com/watch?v=wdx6mbCvEZU" target="_blank" rel="noopener">YouTube — Sarah Maria Sander: Analyse-Video (wdx6mbCvEZU)</a>
+      <a href="https://de.wikipedia.org/wiki/Geschlechtsspezifische_und_sexuelle_Gewalt_durch_die_Hamas_w%C3%A4hrend_des_Terrorangriffs_am_7._Oktober_2023" target="_blank" rel="noopener">Wikipedia — Sexualisierte Gewalt 7. Oktober (Elkayam-Levy)</a>
+      <a href="https://www.perlentaucher.de/essay/die-antiisraelische-tendenz-deutsche-medien-seit-dem-7-oktober.html" target="_blank" rel="noopener">Perlentaucher / Daniel Rotstein — Antiisraelische Tendenz deutscher Medien seit dem 7. Oktober</a>
+      <a href="https://www.belltower.news/anetta-kahane-ein-journalismuspreis-und-die-antisemitische-schlagseite-163501/" target="_blank" rel="noopener">Belltower / Anetta Kahane — Journalismuspreis und antisemitische Schlagseite (8.12.2025)</a>
+      <a href="https://www.youtube.com/watch?v=S7H6LBHkgsw" target="_blank" rel="noopener">YouTube — Maischberger: Aviva Siegel &amp; Sophie von der Tann (8.10.2024)</a>
+      <a href="https://www.youtube.com/watch?v=BOG1895P2z0" target="_blank" rel="noopener">YouTube — Frankfurter PresseClub: „Zwischen Frontlinien und Fakten" mit VdT (9.10.2025)</a>
+      <a href="https://www.youtube.com/watch?v=VDFP_841XgU" target="_blank" rel="noopener">YouTube — Sander: „Belohnt der ÖRR Anti-Israel-Framing?" (Dez. 2025)</a>
+    </div>
+    <p class="stamp">Faktencheck-Aufbereitung · erstellt Juni 2026 · zuletzt aktualisiert 18.06.2026 (Europe/Berlin) · Ergänzt: Zahlen &amp; Systemkontext (RIAS 2023–2025, TU Dortmund 2024, 7.-Oktober-Fakten, Gaza-Methodikdebatte, Assai-Timing-Breakdown, Lemmer-Direktzitate, Vorgeschichte-Quellenkritik nach Reuter/Spiegel) · VdT-Direktzitate vollständig · Humanitäre Lage Gaza · Journalistische Standards Prüfraster.</p>
+  </footer>
+
+</div>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var btn = document.getElementById('themeToggle');
+    var label = document.getElementById('toggleLabel');
+    // default to system preference (no storage used)
+    var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    setTheme(prefersDark ? 'dark' : 'light');
+    function setTheme(t) {
+      root.setAttribute('data-theme', t);
+      label.textContent = (t === 'dark') ? 'Hell' : 'Dunkel';
+    }
+    btn.addEventListener('click', function () {
+      setTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+  })();
+</script>
+</body>
+</html>
