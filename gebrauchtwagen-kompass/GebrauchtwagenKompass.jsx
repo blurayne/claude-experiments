@@ -358,6 +358,56 @@ const AURIS_CHECK = [
   },
 ];
 
+// ---------- Kaufvertrag (Privatkauf): Must-haves & Tipps ----------
+const CONTRACT_MUST = [
+  "FIN abgleichen: Fahrzeugbrief (ZB II) = Fahrzeugschein (ZB I) = eingeschlagene FIN am Auto",
+  "Fahrzeugbrief im Original prüfen – keine Bank-/Leasingbindung (bei Finanzierung Ablösebestätigung verlangen)",
+  "Verkäufer = eingetragener Halter? Ausweis zeigen lassen; sonst schriftliche Vollmacht + Ausweiskopie",
+  "km-Stand in den Vertrag schreiben + Foto von Tacho/Display bei Übergabe",
+  "Übergabe vollständig: beide Schlüssel, Serviceheft + Rechnungen, letzter HU-Bericht, Radio-/Navi-Code, Pannenkit",
+  "Zahlung erst gegen Aushändigung des Briefs; Quittung/Empfangsbestätigung in den Vertrag",
+];
+const CONTRACT_TIPS = [
+  { t: "Standard-Formular nutzen", d: "ADAC-/mobile.de-Musterkaufvertrag, 2× ausdrucken, beide unterschreiben – je ein Original." },
+  { t: "Haftungsausschluss verstehen", d: "„Gekauft wie gesehen, unter Ausschluss der Sachmängelhaftung“ ist privat üblich – er deckt aber KEINE arglistig verschwiegenen Mängel und keine zugesicherten Eigenschaften." },
+  { t: "Zusicherungen schriftlich eintragen", d: "„unfallfrei“, „scheckheftgepflegt“, „km abgelesen u. korrekt“, „3 Vorbesitzer“, „Hybrid-Batterie geprüft i.O. (Service 20.05.2026)“ – das hebelt den Ausschluss bei genau diesen Punkten aus." },
+  { t: "An-/Abmeldung klären", d: "Am besten selbst ummelden: eVB-Nummer (Versicherung) vorab besorgen, Kurzzeit-/Überführungskennzeichen einplanen." },
+  { t: "Geld sicher übergeben", d: "Keine „Reservierung“/Anzahlung vorab überweisen; vor Ort Barzahlung mit Quittung oder Echtzeit-Überweisung." },
+  { t: "Probefahrt absichern", d: "Vorher klären, wer bei einem Schaden haftet (Versicherung des Verkäufers / Haftungsvereinbarung)." },
+];
+
+// ---------- Winter-Tauglichkeit: 1.8 Hybrid vs. 1.2 Turbo ----------
+const WINTER = [
+  {
+    motor: "1.8 VVT-i Hybrid (eCVT)", color: "#38C7A6",
+    problems: [
+      "Heizung & Verbrauch: Die Kabine wird über die Motorabwärme geheizt – kalt läuft der Benziner öfter, der EV-Anteil sinkt, der Verbrauch steigt spürbar.",
+      "12-V-Stützbatterie: Kälte + Kurzstrecke ist der Killer – ohne sie geht das Auto nicht in „READY“ (kein klassischer Anlasser, aber 12 V bootet das System).",
+      "HV-Batterie/Rekuperation: bei Kälte weniger Leistung und weniger Rekuperation → die mechanische Bremse arbeitet mehr; als Außenparker zusätzlich Streusalz-Korrosion an Scheiben/Leitungen.",
+    ],
+    routine: [
+      "12-V-Batterie im Herbst testen; bei Standzeit Erhaltungslader, alle ~2 Wochen 20–30 min am Stück fahren.",
+      "Sitzheizung statt voll aufgedrehter Klima – spart Motorlauf und Verbrauch (Auris hat Sitzheizung).",
+      "Frostschutz beider Kühlkreisläufe + Winter-Wischwasser prüfen; Türdichtungen pflegen (Außenparker: Einfrieren).",
+      "Allwetterreifen nur mit 3PMSF-Symbol sind in DE winter-zulässig; bei viel Schnee/Eis sind echte Winterreifen besser.",
+    ],
+  },
+  {
+    motor: "1.2 Turbo (8NR-FTS · Direkteinspritzer)", color: "#7FD4B0",
+    problems: [
+      "Kurzstrecke im Winter = Worst Case: Direkteinspritzer neigen zu Ventil-Verkokung; Kraftstoff verdünnt das Öl, der Motor wird nie richtig warm.",
+      "Turbo: Kaltstart + sofortige Last ist Gift für die Lager; bei Kurzstrecke erreicht das Öl nie Temperatur → Verschleiß/Verschlammung.",
+      "Zündspulen-Schwäche (bekannter Serienfehler bis ~2018) zeigt sich gern bei Kälte/Feuchte mit Ruckeln/Aussetzern.",
+    ],
+    routine: [
+      "Ölwechsel im Kurzstrecken-/Winterbetrieb verkürzen, korrektes Öl verwenden; ab und zu eine längere Fahrt zum „Freibrennen“.",
+      "Kalt sanft fahren, nicht hochdrehen; nach zügiger Fahrt den Turbo kurz nachlaufen lassen.",
+      "Thermostat/Warmlauf prüfen: wird er nicht warm = Thermostat hängt (mehr Verschleiß + schlechte Heizung).",
+      "Zündspulen-/Kerzen-Historie checken; bei Kalt-Ruckeln zuerst dort suchen.",
+    ],
+  },
+];
+
 export default function App() {
   const [sel, setSel] = useState(() => new Set(["auris-hyb"]));
   const [w, setW] = useState(() => Object.fromEntries(PRIO.map((p) => [p.key, p.def])));
@@ -372,6 +422,9 @@ export default function App() {
   const mTotal = AURIS_CHECK.reduce((a, g) => a + g.items.length, 0);
   const toggleM = (id) =>
     setMck((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const [cck, setCck] = useState(() => new Set());
+  const toggleC = (i) =>
+    setCck((s) => { const n = new Set(s); n.has(i) ? n.delete(i) : n.add(i); return n; });
   const insF = (INSURERS.find((x) => x.id === insurer) || INSURERS[0]).f;
   const insFor = (v) => insOf(v, sfPct || 0, coverage, insF);
   const annFor = (v) => annualOf(v, insFor(v));
@@ -890,6 +943,76 @@ export default function App() {
               <li><b style={{ color: C.ink }}>Kein Diesel</b> bei deinem Kurzstreckenprofil (DPF) – Hybrid/Benziner passt.</li>
               <li><b style={{ color: C.ink }}>Timing:</b> Quartals-/Jahresende beim Händler, lange Inseratslaufzeit privat = Verhandlungsspielraum.</li>
             </ul>
+          </div>
+        </div>
+
+        {/* ---------- KAUFVERTRAG ---------- */}
+        <div className="panel" style={{ padding: 18, marginBottom: 16, borderLeft: `3px solid ${C.needle}` }}>
+          <div className="eyebrow" style={{ marginBottom: 4, color: C.needle }}>Kaufvertrag · Privatkauf absichern</div>
+          <h2 style={{ marginBottom: 10 }}>Must-haves bei Vertrag & Übergabe</h2>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+            <div style={{ flex: 1, height: 6, background: C.line, borderRadius: 4, overflow: "hidden" }}>
+              <div style={{ height: "100%", width: `${(cck.size / CONTRACT_MUST.length) * 100}%`, background: C.eco, transition: ".2s" }} />
+            </div>
+            <span className="num" style={{ fontSize: 12, color: C.dim }}>{cck.size}/{CONTRACT_MUST.length}</span>
+            {cck.size > 0 && (
+              <span onClick={() => setCck(new Set())} style={{ fontSize: 11, color: C.faint, cursor: "pointer", textDecoration: "underline" }}>Reset</span>
+            )}
+          </div>
+
+          {CONTRACT_MUST.map((it, i) => {
+            const on = cck.has(i);
+            return (
+              <div key={i} onClick={() => toggleC(i)}
+                style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "6px 0", cursor: "pointer" }}>
+                <span style={{
+                  width: 17, height: 17, flexShrink: 0, marginTop: 1, borderRadius: 4,
+                  border: `1.5px solid ${on ? C.eco : C.faint}`, background: on ? C.eco : "transparent",
+                  color: C.bg, fontSize: 12, fontWeight: 800, lineHeight: "15px", textAlign: "center",
+                }}>{on ? "✓" : ""}</span>
+                <span style={{ fontSize: 12.5, lineHeight: 1.5, color: on ? C.faint : C.ink, textDecoration: on ? "line-through" : "none" }}>{it}</span>
+              </div>
+            );
+          })}
+
+          <div style={{ fontSize: 12, fontWeight: 650, color: C.amber, margin: "14px 0 8px" }}>Tipps für den Vertrag</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }} className="grid2">
+            {CONTRACT_TIPS.map((h, i) => (
+              <div key={i} className="panel" style={{ padding: "11px 13px" }}>
+                <div style={{ fontSize: 13, fontWeight: 650, marginBottom: 4 }}>{h.t}</div>
+                <div style={{ fontSize: 11.5, color: C.dim, lineHeight: 1.5 }}>{h.d}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ---------- WINTER-TAUGLICHKEIT ---------- */}
+        <div className="panel" style={{ padding: 18, marginBottom: 16 }}>
+          <div className="eyebrow" style={{ marginBottom: 4 }}>Winter · was den Motoren zu schaffen macht</div>
+          <h2 style={{ marginBottom: 6 }}>Toyota 1.8 Hybrid vs. 1.2 Turbo im Winter</h2>
+          <p style={{ fontSize: 12.5, color: C.dim, lineHeight: 1.6, margin: "0 0 12px" }}>
+            Beide laufen im Winter zuverlässig – die Schwachstellen sind aber unterschiedlich. Pro Motor:
+            <b style={{ color: C.amber }}> Problem im Winter</b> und <b style={{ color: C.eco }}>Routine-Checks dagegen</b>.
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }} className="grid2">
+            {WINTER.map((m, i) => (
+              <div key={i} className="panel" style={{ padding: 14, borderLeft: `3px solid ${m.color}` }}>
+                <div style={{ fontSize: 13.5, fontWeight: 700, color: m.color, marginBottom: 8 }}>{m.motor}</div>
+                <div style={{ fontSize: 11, fontWeight: 650, color: C.amber, marginBottom: 5 }}>PROBLEM IM WINTER</div>
+                {m.problems.map((p, j) => (
+                  <div key={j} style={{ display: "flex", gap: 7, marginBottom: 5 }}>
+                    <span style={{ color: C.amber }}>›</span><span style={{ fontSize: 12, color: C.dim, lineHeight: 1.5 }}>{p}</span>
+                  </div>
+                ))}
+                <div style={{ fontSize: 11, fontWeight: 650, color: C.eco, margin: "10px 0 5px" }}>ROUTINE-CHECKS DAGEGEN</div>
+                {m.routine.map((r, j) => (
+                  <div key={j} style={{ display: "flex", gap: 7, marginBottom: 5 }}>
+                    <span style={{ color: C.eco }}>✓</span><span style={{ fontSize: 12, color: C.dim, lineHeight: 1.5 }}>{r}</span>
+                  </div>
+                ))}
+              </div>
+            ))}
           </div>
         </div>
 
