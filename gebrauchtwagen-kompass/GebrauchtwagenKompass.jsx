@@ -299,6 +299,65 @@ const COVERS = [
   { t: "Star Cover · maßgeschneidert", p: "≈ 220 €", tag: "Premium", c: "#E8B23A", d: "Passgenau, 10.000 mm wasserdicht + 3.000 g atmungsaktiv, Teflon, weiche Innenseite, Anti-Wind-Gurt. Beste Passform, teuer." },
 ];
 
+// ---------- Modell-spezifische Prüfliste: genau dieses Auris-1.8-Hybrid-Inserat ----------
+// Pro Punkt: was prüfen (t) · woran man einen Defekt erkennt (how) · Wertminderung/Hebel (val)
+const AURIS_CHECK = [
+  {
+    g: "Hybrid-Technik (1.8 VVT-i Hybrid · eCVT)", items: [
+      { t: "HV-Batterie-Nachweis: „Hybrid Health Check“ vom Service 20.05.2026 als Ausdruck zeigen lassen",
+        how: "Auf der Probefahrt rein-elektrisches Anfahren + sauberes EV↔Benzin-Pendeln; rotes Dreieck / „Hybridsystem prüfen“ oder dauerhaft hängende Drehzahl = Alarm",
+        val: "Ohne dokumentierten Check großer Hebel – HV-Batterietausch kostet 1.500–2.500 €" },
+      { t: "Toyota-Relax-Garantie klären (jährlicher Hybrid-Check verlängert die Hybrid-Garantie, bis zu 15 Jahre)",
+        how: "Lückenlose jährliche Hybrid-Check-Stempel? Eine Lücke = Relax-Garantie erloschen",
+        val: "Übertragbare Relax-Garantie = echter Mehrwert; fehlt sie, Reparaturrisiko einpreisen" },
+      { t: "eCVT-Verhalten richtig deuten (nicht mit Defekt verwechseln)",
+        how: "Aufheulen/„Gummiband“ bei Vollgas ist NORMAL; Schläge oder Ruckeln beim Lastwechsel bzw. metallisches Heulen sind es NICHT",
+        val: "Kein Hebel – aber auch nicht vom Verkäufer als „normal“ wegreden lassen, wenn es schlägt" },
+      { t: "Bremsen (Rekuperation + Außenparker)",
+        how: "Rubbeln/Rumpeln beim Bremsen, dicke Rostkante oder Riefen auf den Scheiben – der Hybrid bremst kaum mechanisch, Scheiben verrosten/vereinzeln",
+        val: "Scheiben + Beläge rundum 300–600 €" },
+      { t: "12-V-Stützbatterie (Kurzstrecke/Standzeit-kritisch)",
+        how: "Verzögertes/zickiges „READY“, Elektronik-Aussetzer, springt nach Standzeit nicht zuverlässig an",
+        val: "Erneuerung ~120–200 €" },
+      { t: "Hybrid-/Inverter-Kühlung (zwei Kühlkreisläufe)",
+        how: "Beide Kühlmittelstände i.O., keine Leckspuren/Pfützen, keine Kühlwarnung; el. Wasserpumpe arbeitet leise",
+        val: "Inverter-Kreis/Wasserpumpe ist teuer – bei Verdacht in die Werkstatt, nicht blind kaufen" },
+    ],
+  },
+  {
+    g: "Aus genau diesem Inserat", items: [
+      { t: "3 Vorbesitzer – Scheckheft über alle Halter lückenlos?",
+        how: "Stempel/Rechnungen ohne Lücke; km-Verlauf in den HU-Berichten steigt plausibel über die Halterwechsel",
+        val: "3 Halter + Privatverkauf = marktüblicher Abschlag → klarer Verhandlungs-Hebel" },
+      { t: "„Garantie“ ist gelistet, aber es ist ein Privatanbieter (= Gewährleistungsausschluss)",
+        how: "Konkret nachfragen: welche Garantie genau? Nur eine Toyota-Relax-/Anschlussgarantie zählt – schriftlich und übertragbar?",
+        val: "Ohne übertragbare Garantie kein Mehrwert; eine mündliche „Garantie“ ist wertlos" },
+      { t: "Anhängerkupplung fest – wurde damit gezogen?",
+        how: "Heck hängt durch / Dämpfer müde, Rost oder Spiel an der AHK, korrodierte Steckdose, Anhänger-Fehlermeldung; E-Satz fachgerecht nachgerüstet?",
+        val: "Sauberer E-Satz = Plus; Pfusch/Überlastung = Minus (der Auris Hybrid hat nur geringe Anhängelast)" },
+      { t: "Allwetterreifen – nur ein Satz vorhanden",
+        how: "DOT-Alter < 6 Jahre, Profil ≥ 4 mm, gleichmäßiger Verschleiß (ungleich = Spur/Fahrwerk)",
+        val: "Kein Zweitsatz + alte Reifen → neuer Satz 400–600 € als Hebel" },
+      { t: "„Service 20.05.2026“ mit Rechnung belegen lassen",
+        how: "Rechnung listet konkrete Arbeiten (Öl, Filter, Hybrid-Check, ggf. Bremsflüssigkeit)? Ein bloßer Stempel reicht nicht",
+        val: "Ohne Beleg ist „frisch gemacht“ nur Behauptung – fällige Posten gegenrechnen" },
+    ],
+  },
+  {
+    g: "Karosserie, Innenraum & Plausibilität", items: [
+      { t: "Lack & Rost (Blau Metallic, Außenparker)",
+        how: "Lackdicke messen (Metallic-Nachlack ist teuer und sichtbar); Rost an Radläufen, Schwellern, Heckklappe, Dachkanten; Dichtungen spröde?",
+        val: "Nachlackierung/Beulen → Smart-Repair 100–400 € konkret benennen" },
+      { t: "km-Stand vs. Verschleiß plausibel",
+        how: "Lenkrad, Sitzwange, Pedalgummis, Schaltknauf passen zum Tacho; HU- und Service-km lückenlos steigend",
+        val: "Verschleiß deutlich > km = Tacho-/Laufleistungs-Verdacht → Finger weg oder harter Abzug" },
+      { t: "Elektronik & Komfort komplett durchklicken",
+        how: "Apple CarPlay koppeln; Notbrems-, Spurhalte- und Verkehrszeichenassistent; Klima kühlt; Sitzheizung; alle Fensterheber/Spiegel; Kamera/PDC",
+        val: "Jede tote Funktion (Klima-Service, Navi/Touchscreen) ist ein eigener Kostenposten" },
+    ],
+  },
+];
+
 export default function App() {
   const [sel, setSel] = useState(() => new Set(["auris-hyb"]));
   const [w, setW] = useState(() => Object.fromEntries(PRIO.map((p) => [p.key, p.def])));
@@ -309,6 +368,10 @@ export default function App() {
   const [coverage, setCoverage] = useState("tk");
   const [insurer, setInsurer] = useState("concordia");
   const [budget, setBudget] = useState(14000);
+  const [mck, setMck] = useState(() => new Set());
+  const mTotal = AURIS_CHECK.reduce((a, g) => a + g.items.length, 0);
+  const toggleM = (id) =>
+    setMck((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
   const insF = (INSURERS.find((x) => x.id === insurer) || INSURERS[0]).f;
   const insFor = (v) => insOf(v, sfPct || 0, coverage, insF);
   const annFor = (v) => annualOf(v, insFor(v));
@@ -693,6 +756,52 @@ export default function App() {
               </div>
             );
           })}
+        </div>
+
+        {/* ---------- MODELL-CHECK: KONKRETES AURIS-HYBRID-INSERAT ---------- */}
+        <div className="panel" style={{ padding: 18, marginBottom: 16, borderLeft: `3px solid ${C.eco}` }}>
+          <div className="eyebrow" style={{ marginBottom: 4, color: C.eco }}>Modell-Check · genau dieses Inserat</div>
+          <h2 style={{ marginBottom: 6 }}>Toyota Auris TS 1.8 Hybrid · Privatinserat Punkt für Punkt prüfen</h2>
+          <p style={{ fontSize: 12.5, color: C.dim, lineHeight: 1.6, margin: "0 0 12px" }}>
+            Laut Inserat: Scheckheft + frischer Service 20.05.2026 inkl. Hybrid-Batterie-Prüfung (i.O.), HU 7/2027,
+            Euro6c, unfallfrei, 3 Vorbesitzer, AHK fest, Allwetterreifen, Privatanbieter (90584 Allersberg).
+            Klingt solide – die folgenden Punkte machen aus „klingt gut“ ein <b style={{ color: C.ink }}>belegt gut</b>.
+            Pro Punkt: <b style={{ color: C.ink }}>prüfen</b> → <b style={{ color: C.faint }}>Defekt erkennbar an</b> → <b style={{ color: C.amber }}>Wertminderung/Hebel</b>.
+          </p>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+            <div style={{ flex: 1, height: 6, background: C.line, borderRadius: 4, overflow: "hidden" }}>
+              <div style={{ height: "100%", width: `${(mck.size / mTotal) * 100}%`, background: C.eco, transition: ".2s" }} />
+            </div>
+            <span className="num" style={{ fontSize: 12, color: C.dim }}>{mck.size}/{mTotal}</span>
+            {mck.size > 0 && (
+              <span onClick={() => setMck(new Set())} style={{ fontSize: 11, color: C.faint, cursor: "pointer", textDecoration: "underline" }}>Reset</span>
+            )}
+          </div>
+
+          {AURIS_CHECK.map((grp, gi) => (
+            <div key={gi} style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 12, fontWeight: 650, color: C.amber, marginBottom: 6 }}>{grp.g}</div>
+              {grp.items.map((it, ii) => {
+                const id = `m${gi}-${ii}`, on = mck.has(id);
+                return (
+                  <div key={id} onClick={() => toggleM(id)}
+                    style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "9px 0", cursor: "pointer", borderTop: ii ? `1px solid ${C.line}` : "none" }}>
+                    <span style={{
+                      width: 17, height: 17, flexShrink: 0, marginTop: 2, borderRadius: 4,
+                      border: `1.5px solid ${on ? C.eco : C.faint}`, background: on ? C.eco : "transparent",
+                      color: C.bg, fontSize: 12, fontWeight: 800, lineHeight: "15px", textAlign: "center",
+                    }}>{on ? "✓" : ""}</span>
+                    <div style={{ flex: 1, opacity: on ? 0.55 : 1 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: C.ink, lineHeight: 1.45 }}>{it.t}</div>
+                      <div style={{ fontSize: 12, color: C.dim, marginTop: 3, lineHeight: 1.5 }}><span style={{ color: C.faint }}>Defekt erkennbar an: </span>{it.how}</div>
+                      <div style={{ fontSize: 12, color: C.amber, marginTop: 2, lineHeight: 1.5 }}><span style={{ color: C.faint }}>Wertminderung / Hebel: </span>{it.val}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
         </div>
 
         {/* ---------- EMPFEHLUNG ---------- */}
