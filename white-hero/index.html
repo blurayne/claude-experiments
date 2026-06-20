@@ -149,6 +149,8 @@
   .errbar .etitle { font-weight: 700; color: #ff9ca0; margin-bottom: 2px; }
   .errbar .ebody { flex: 1; min-width: 0; }
   .errbar .emsg { word-break: break-word; white-space: pre-wrap; opacity: .92; }
+  .errbar .eact { display: inline-block; margin-top: 8px; color: #ffd23f; font-weight: 700; text-decoration: underline; }
+  .errbar .eact[hidden] { display: none; }
   .errbar .eclose { background: none; border: none; color: #ffb3b5; font-size: 17px; cursor: pointer; line-height: 1; padding: 0 2px; flex: 0 0 auto; }
 </style>
 </head>
@@ -260,7 +262,11 @@
   </div>
 
   <div class="errbar" id="errbar" hidden role="alert">
-    <div class="ebody"><div class="etitle">Something went wrong</div><div class="emsg" id="errmsg"></div></div>
+    <div class="ebody">
+      <div class="etitle" id="errtitle">Something went wrong</div>
+      <div class="emsg" id="errmsg"></div>
+      <a class="eact" id="erract" target="_blank" rel="noopener" hidden></a>
+    </div>
     <button class="eclose" id="errclose" aria-label="Dismiss">✕</button>
   </div>
 
@@ -294,7 +300,7 @@ const talkBtn=$("talkBtn"), muteBtn=$("muteBtn"), statusEl=$("status");
 const sayEl=$("say"), sayWho=$("sayWho"), sayText=$("sayText");
 const scrim=$("scrim"), keyInput=$("keyInput"), voiceInput=$("voiceInput"), instrInput=$("instrInput"), modelInput=$("modelInput");
 const heroBody=$("heroBody"), ringEl=$("ring"), smileEl=$("smile"), mouthEl=$("mouthOpen"), heroSvg=$("hero");
-const errbar=$("errbar"), errmsg=$("errmsg"), verEl=$("ver");
+const errbar=$("errbar"), errmsg=$("errmsg"), errtitle=$("errtitle"), erract=$("erract"), verEl=$("ver");
 
 // ---------- state ----------
 let pc=null, dc=null, localStream=null, connected=false, connecting=false, muted=false;
@@ -337,8 +343,15 @@ setInterval(()=>{ heroSvg.classList.add("blink"); setTimeout(()=>heroSvg.classLi
 
 // ---------- status / errors ----------
 function setStatus(t){ statusEl.textContent=t; }
-function showError(msg){ errmsg.textContent=msg; errbar.hidden=false; }
-function hideError(){ errbar.hidden=true; errmsg.textContent=""; }
+function showError(msg, opts){
+  opts = opts || {};
+  errtitle.textContent = opts.title || "Something went wrong";
+  errmsg.textContent = msg;
+  if(opts.link){ erract.textContent = opts.link.label; erract.href = opts.link.href; erract.hidden = false; }
+  else { erract.hidden = true; erract.removeAttribute("href"); }
+  errbar.hidden = false;
+}
+function hideError(){ errbar.hidden=true; errmsg.textContent=""; erract.hidden=true; }
 $("errclose").onclick=hideError;
 
 // ---------- speech bubble ----------
@@ -472,6 +485,38 @@ function sendSessionConfig(){
   if(dc && dc.readyState==="open"){ try{ dc.send(JSON.stringify(sessionConfig())); }catch(e){ console.warn(e); } }
 }
 
+// ---------- friendly error mapping ----------
+const BILLING_URL = "https://platform.openai.com/settings/organization/billing/overview";
+const KEYS_URL = "https://platform.openai.com/api-keys";
+function handleConnectError(err){
+  const s = err.status;
+  const mic = err.name==="NotAllowedError" || err.name==="NotFoundError";
+  if(mic){
+    setStatus("Oops! I need the microphone 🎤");
+    showSay("hero", "Please let me use the microphone so I can hear you!");
+    showError("Microphone blocked ("+err.name+"). Allow mic access for this page and try again.",
+      { title: "Microphone is off" });
+    return;
+  }
+  if(s===429){
+    setStatus("Oops! I'm out of energy 🔋");
+    showSay("hero", "I've run out of energy for now! 🔋 Ask a grown-up to give me more power, then we can keep chatting.");
+    showError(err.message, { title: "Out of credit / quota reached",
+      link: { label: "Check your OpenAI plan & billing →", href: BILLING_URL } });
+    return;
+  }
+  if(s===401 || s===403){
+    setStatus("Oops! I couldn't get in 🔑");
+    showSay("hero", "I couldn't unlock my powers! A grown-up should check my secret key in ⚙️.");
+    showError(err.message, { title: "Key was rejected",
+      link: { label: "Manage your OpenAI API keys →", href: KEYS_URL } });
+    return;
+  }
+  setStatus("Oops! Couldn't connect.");
+  showSay("hero", "Hmm, I couldn't connect. A grown-up can check the key in ⚙️.");
+  showError("Connection failed — "+(err.message||err.name||"unknown error"));
+}
+
 // ---------- connect / hangup ----------
 async function connect(){
   const key=store.get("key");
@@ -500,18 +545,16 @@ async function connect(){
       method:"POST", body:offer.sdp,
       headers:{ Authorization:`Bearer ${key}`, "Content-Type":"application/sdp" },
     });
-    if(!resp.ok){ throw new Error(`OpenAI ${resp.status}: ${(await resp.text()).slice(0,160)}`); }
+    if(!resp.ok){
+      const body = await resp.text();
+      const e = new Error(`OpenAI ${resp.status}: ${body.slice(0,200)}`);
+      e.status = resp.status;
+      throw e;
+    }
     await pc.setRemoteDescription({ type:"answer", sdp: await resp.text() });
   }catch(err){
     console.error(err);
-    const mic = err.name==="NotAllowedError" || err.name==="NotFoundError";
-    setStatus("Oops! "+ (mic ? "I need the microphone 🎤" : "Couldn't connect."));
-    showSay("hero", mic
-      ? "Please let me use the microphone so I can hear you!"
-      : "Hmm, I couldn't connect. A grown-up can check the key in ⚙️.");
-    showError(mic
-      ? "Microphone blocked ("+err.name+"). Allow mic access for this page and try again."
-      : "Connection failed — "+(err.message||err.name||"unknown error"));
+    handleConnectError(err);
     cleanup(); connecting=false; talkBtn.disabled=false;
   }
 }
@@ -545,7 +588,10 @@ function onEvent(e){
   if(t==="error" || t.endsWith(".error")){
     const msg=(ev.error&&(ev.error.message||ev.error.code))||"Unknown realtime error";
     console.warn("realtime error:", ev);
-    if(!/voice/i.test(msg)) showError(msg); // changing voice mid-response is benign
+    if(/voice/i.test(msg)){ /* changing voice mid-response is benign */ }
+    else if(/quota|billing|insufficient/i.test(msg))
+      showError(msg, { title: "Out of credit / quota reached", link: { label: "Check your OpenAI plan & billing →", href: BILLING_URL } });
+    else showError(msg);
     return;
   }
 
