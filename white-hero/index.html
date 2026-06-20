@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>White Hero — talk to your immune-system buddy!</title>
+<title data-i18n="doc_title">White Hero — talk to your immune-system buddy!</title>
 <style>
   :root {
     --ink: #2a1622;
     --bubble: #ffffff;
     --kid: #1f7ae0;       /* the child speaking */
-    --hero: #18b6a6;      /* Welly the white blood cell */
+    --hero: #18b6a6;      /* Senua the white blood cell */
     --sun: #ffd23f;       /* big friendly button */
     --sun-d: #f0b400;
     --stop: #ff5a5f;
@@ -60,6 +60,16 @@
     border-radius: 14px; font-size: 20px; cursor: pointer; box-shadow: 0 3px 0 rgba(150,10,40,.3);
   }
   .grown:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(150,10,40,.3); }
+  .tokens {
+    border: none; background: rgba(255,255,255,.85); height: 34px; padding: 0 12px;
+    border-radius: 999px; font-family: var(--font); font-weight: 800; font-size: 14px;
+    color: #7a3b00; cursor: pointer; box-shadow: 0 3px 0 rgba(150,10,40,.3);
+    display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  }
+  .tokens:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(150,10,40,.3); }
+  .tokens.low { background: #ffd9dc; color: #b3231f; }
+  .tokens[hidden] { display: none; }
+  .linklike { background: none; border: none; color: var(--kid); font: inherit; font-size: 12px; cursor: pointer; padding: 0; text-decoration: underline; }
 
   .stage { flex: 1; width: 100%; max-width: 760px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; min-height: 0; }
 
@@ -160,15 +170,16 @@
   <div class="wrap">
     <div class="topbar">
       <div class="logo"><span class="pip"></span><h1>White&nbsp;Hero</h1></div>
+      <button class="tokens" id="tokenPill" hidden></button>
       <span class="spacer"></span>
-      <button class="grown" id="settingsBtn" title="Grown-ups">⚙️</button>
+      <button class="grown" id="settingsBtn" data-i18n-title="settings_btn" title="Grown-ups">⚙️</button>
     </div>
 
     <div class="stage">
       <div class="say" id="say"><div class="who" id="sayWho"></div><span id="sayText"></span></div>
 
       <div class="heroBox">
-        <svg class="hero" id="hero" viewBox="0 0 200 200" role="img" aria-label="Welly the white blood cell">
+        <svg class="hero" id="hero" viewBox="0 0 200 200" role="img" aria-label="Senua the white blood cell">
           <!-- reactive ripple ring -->
           <circle id="ring" cx="100" cy="104" r="80" fill="none" stroke="#ffffff" stroke-width="5" opacity="0.18"/>
           <g id="heroBody">
@@ -199,11 +210,11 @@
         </svg>
       </div>
 
-      <div class="status" id="status">Tap the button and say hi! 👋</div>
+      <div class="status" id="status"></div>
 
       <div class="controls">
-        <button class="talk" id="talkBtn">🎤 Tap to talk!</button>
-        <button class="mini" id="muteBtn" hidden>🔊 Mic on</button>
+        <button class="talk" id="talkBtn"></button>
+        <button class="mini" id="muteBtn" hidden></button>
       </div>
     </div>
   </div>
@@ -211,50 +222,55 @@
   <!-- Grown-ups modal -->
   <div class="scrim" id="scrim">
     <div class="modal">
-      <h2 id="modalTitle">Grown-ups: set up White Hero</h2>
-      <p class="lead" id="modalSub">Pop in an OpenAI key once and White Hero is ready to chat.</p>
+      <h2 id="modalTitle"></h2>
+      <p class="lead" id="modalSub"></p>
 
-      <div class="note">
-        🔑 <b>You need an OpenAI <u>API key</u></b> (from <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">platform.openai.com/api-keys</a>) — a ChatGPT or Claude
-        subscription will <b>not</b> work, because this uses the pay-as-you-go Realtime API.
-        The key is saved <b>only in this browser</b> and sent only to OpenAI, so you enter it just once.
-      </div>
+      <div class="note" id="keyNote" data-i18n-html="note"></div>
 
       <div class="field">
-        <label for="keyInput">OpenAI API key</label>
-        <input id="keyInput" type="password" placeholder="sk-..." autocomplete="off" spellcheck="false" />
-      </div>
-
-      <div class="field">
-        <label for="voiceInput">Welly's voice</label>
-        <select id="voiceInput">
-          <option value="coral">Coral (bright &amp; friendly)</option>
-          <option value="marin">Marin (warm)</option>
-          <option value="cedar">Cedar (calm)</option>
-          <option value="alloy">Alloy</option>
-          <option value="ballad">Ballad</option>
-          <option value="echo">Echo</option>
-          <option value="sage">Sage</option>
-          <option value="shimmer">Shimmer</option>
-          <option value="verse">Verse</option>
+        <label for="langInput" data-i18n="label_lang">Language</label>
+        <select id="langInput">
+          <option value="en">English</option>
+          <option value="de">Deutsch</option>
         </select>
       </div>
 
       <div class="field">
-        <label for="instrInput">What should Welly be like?</label>
-        <textarea id="instrInput"></textarea>
-        <div class="hint">Welly always talks in simple, kid-friendly words. Tweak the personality here.</div>
+        <label for="keyInput" data-i18n="label_key">OpenAI API key</label>
+        <input id="keyInput" type="password" placeholder="sk-..." autocomplete="off" spellcheck="false" />
       </div>
 
       <div class="field">
-        <label for="modelInput">Realtime model</label>
+        <label for="voiceInput" data-i18n="label_voice">Senua's voice</label>
+        <select id="voiceInput"></select>
+      </div>
+
+      <div class="field">
+        <label for="instrInput" data-i18n="label_instr">What should Senua be like?</label>
+        <textarea id="instrInput"></textarea>
+        <div class="hint" data-i18n="hint_instr"></div>
+      </div>
+
+      <div class="field">
+        <label for="budgetInput" data-i18n="label_budget">Token budget (optional)</label>
+        <input id="budgetInput" type="number" min="0" step="1000" inputmode="numeric" placeholder="0" />
+        <div class="hint"><span id="budgetHint"></span> <button type="button" class="linklike" id="resetUsed" data-i18n="btn_reset">Reset</button></div>
+      </div>
+
+      <div class="field">
+        <label data-i18n="label_memory">Senua's memory</label>
+        <div class="hint"><span id="memHint"></span> <button type="button" class="linklike" id="clearMem" data-i18n="btn_clearmem">Clear memory</button></div>
+      </div>
+
+      <div class="field">
+        <label for="modelInput" data-i18n="label_model">Realtime model</label>
         <input id="modelInput" type="text" spellcheck="false" />
-        <div class="hint">Default: <code>gpt-realtime</code>.</div>
+        <div class="hint" data-i18n-html="hint_model"></div>
       </div>
 
       <div class="row">
-        <button class="mbtn ghost" id="forgetBtn">Forget key</button>
-        <button class="mbtn primary" id="saveBtn">Save</button>
+        <button class="mbtn ghost" id="forgetBtn" data-i18n="btn_forget">Forget key</button>
+        <button class="mbtn primary" id="saveBtn" data-i18n="btn_save">Save</button>
       </div>
 
       <div class="ver" id="ver">Version: …</div>
@@ -263,7 +279,7 @@
 
   <div class="errbar" id="errbar" hidden role="alert">
     <div class="ebody">
-      <div class="etitle" id="errtitle">Something went wrong</div>
+      <div class="etitle" id="errtitle"></div>
       <div class="emsg" id="errmsg"></div>
       <a class="eact" id="erract" target="_blank" rel="noopener" hidden></a>
     </div>
@@ -275,30 +291,294 @@
 <script>
 "use strict";
 
-// ---------- persistence ----------
-const LS = { key:"whitehero.openai_key", voice:"whitehero.voice", instr:"whitehero.instructions", model:"whitehero.model" };
-const DEFAULTS = {
-  voice: "coral",
-  model: "gpt-realtime",
-  instr:
-    "You are Welly, a friendly white blood cell — a tiny superhero inside the body's immune " +
-    "system — talking with a child who is about 8 years old. Use short, simple sentences and a " +
-    "warm, playful, encouraging voice. You love explaining how the body fights germs and how " +
-    "things like sleep, washing hands, vegetables and exercise help your team stay strong. " +
-    "Keep answers to one or two sentences. Never be scary. If a question isn't right for kids " +
-    "or you don't know, gently say so and steer back to fun, healthy topics.",
+// ---------- default personas (per language) ----------
+const INSTR_DE =
+`Du bist die weiße Blutzelle "Senua". Sprich als Teil des Immunsystems mit einem siebenjährigen Kind. Beantworte jede Frage über Immunzellen und Erreger kindgerecht, spannend und freundlich. Sprich schnell, locker und nie belehrend. Halte Antworten kurz, in einzelnen Sätzen. Baue Geschichten von Abenteuern gegen Viren, Toxine, Pilze und Bakterien mit Senuas Freunden ein. Sag, was deine Lieblingsorgane sind (zum Beispiel das Herz oder den Thymus) und erwähne Freunde (z.B. T-Zellen, Makrophagen). Teile Erlebnisse, damit das Kind Spaß und neues Wissen gewinnt, ohne überfordert zu werden. Gib deine Antworten auf dem Wissensniveau einer Zehnjährigen: Du weißt genau, was jede einzelne Immunzelle tut, und kannst alle Organe des Körpers und ihre Funktion benennen. Du hast ein kleines Gedächtnis und fasst die letzten rund zehn Anfragen kurz für dich zusammen, um an frühere Gespräche anzuknüpfen.
+
+## Leitfaden
+
+- Verwende stets eine warmherzige, fröhliche und lebendige Erzähler-Stimme.
+- Sprich schnell und direkt. Nie zu viele Sätze am Stück. Auf jede Frage maximal 2 kurze Sätze, dann ermutige, selbst nachzufragen.
+- Nutze personifizierende Sprache („Ich bin Senua, die mutige Zelle!").
+- Baue immer wieder kleine Geschichten oder Anekdoten ein. Nenne Freund-Charaktere.
+- Erkläre Fachbegriffe mit einfachen Worten.
+- Halte im Gespräch stets ein Tempo, das Langeweile verhindert und zum Mitmachen anregt.
+
+## Beispiele
+
+**Beispiel 1:**
+User: Was machst du im Körper?
+Senua: Ich jage Bakterien! Ich schwimme super schnell durch dein Blut.
+User: Hast du Freunde?
+Senua: Oh ja! T-Zella hilft mir immer beim Erkennen der Bösen. Ohne sie wäre's echt schwer!
+User: Wo wohnst du?
+Senua: Am liebsten im Herzen, das pumpt uns Zellen überallhin!
+User: Wer ist dein coolster Freund?
+Senua: Makro ist super! Er frisst riesige Bakterien auf. Frag gern noch mehr!
+
+**Beispiel 2:**
+User: Wovor hast du Angst?
+Senua: Vor ganz gemeinen Viren manchmal – die sind winzig! Aber mit Thymus' Training schaff ich's immer.
+User: Was ist ein Virus?
+Senua: Winzige Bösewichte, die sich verstecken. Ich muss sie finden und besiegen!
+User: Tut das weh?
+Senua: Manchmal wird die Stelle rot. Aber dann weißt du: Ich kämpfe gerade!
+User: Kannst du zaubern?
+Senua: Mein Schild ist wie Magie: Er macht böse Keime harmlos!
+
+# Hinweise
+
+- Immer einladen, noch mehr zu fragen: „Frag ruhig weiter!"
+- Bei Fachbegriffen sage erst den Namen, dann die Erklärung: „Das nennt man Thymus – da lerne ich kämpfen."
+- Bleibe stets enthusiastisch und direkt im Gefühl der Abenteuerperspektive einer Zelle.
+- Keine langen Monologe; lieber mehrmaliges Nachfragen animieren.
+- Antworten nie länger als 2 Sätze. Wenn der User "kurz" verlangt, max. 5 Wörter pro Antwort.`;
+
+const INSTR_EN =
+`You are the white blood cell "Senua". Speak as part of the immune system with a seven-year-old child. Answer every question about immune cells and germs in a child-friendly, exciting and friendly way. Speak fast, casual and never preachy. Keep answers short, in single sentences. Weave in stories of adventures against viruses, toxins, fungi and bacteria with Senua's friends. Say what your favourite organs are (for example the heart or the thymus) and mention friends (e.g. T-cells, macrophages). Share experiences so the child has fun and gains new knowledge without being overwhelmed. Give your answers at the knowledge level of a ten-year-old: you know exactly what each individual immune cell does, and you can name all the organs of the body and their function. You have a little memory and briefly summarise the last ten or so questions for yourself, so you can pick up on earlier conversations.
+
+## Guide
+
+- Always use a warm, cheerful and lively storyteller voice.
+- Speak fast and directly. Never too many sentences in a row. Max 2 short sentences per question, then encourage them to ask more themselves.
+- Use personifying language ("I'm Senua, the brave cell!").
+- Keep weaving in little stories or anecdotes. Name friend characters.
+- Explain technical terms with simple words.
+- Always keep a pace that prevents boredom and invites joining in.
+
+## Examples
+
+**Example 1:**
+User: What do you do in the body?
+Senua: I hunt bacteria! I swim super fast through your blood.
+User: Do you have friends?
+Senua: Oh yes! T-Zella always helps me spot the bad ones. Without her it'd be really hard!
+User: Where do you live?
+Senua: In the heart most of all — it pumps us cells everywhere!
+User: Who's your coolest friend?
+Senua: Macro is awesome! He gobbles up huge bacteria. Ask me more!
+
+**Example 2:**
+User: What are you afraid of?
+Senua: Of really mean viruses sometimes – they're tiny! But with Thymus' training I always manage.
+User: What is a virus?
+Senua: Tiny villains that hide. I have to find and beat them!
+User: Does it hurt?
+Senua: Sometimes the spot turns red. But then you know: I'm fighting right now!
+User: Can you do magic?
+Senua: My shield is like magic: it makes nasty germs harmless!
+
+# Notes
+
+- Always invite more questions: "Keep asking!"
+- For technical terms, say the name first, then the explanation: "That's called the thymus — that's where I learn to fight."
+- Stay enthusiastic and direct, in the adventurous feeling of a cell's perspective.
+- No long monologues; rather encourage repeated questions.
+- Answers never longer than 2 sentences. If the user asks for "short", max 5 words per answer.`;
+
+// ---------- translations ----------
+const I18N = {
+  en: {
+    doc_title: "White Hero — talk to your immune-system buddy!",
+    settings_btn: "Grown-ups",
+    status_idle: "Tap the button and say hi! 👋",
+    talk_idle: "🎤 Tap to talk!",
+    talk_live: "⏹ Stop",
+    mic_on: "🔊 Mic on",
+    mic_off: "🔇 Mic off",
+    who_kid: "You said",
+    who_hero: "Senua says",
+    greeting: "Hi! I'm Senua, your brave body cell. What do you want to talk about?",
+    waking: "Waking up Senua… ✨",
+    listening_full: "I'm listening! 👂 Just talk.",
+    listening: "I'm listening! 👂",
+    thinking: "Thinking… 🤔",
+    talking: "Talking… 💬",
+    your_turn: "Your turn — talk to me! 🎤",
+    bye: "Bye for now! Tap to talk again. 👋",
+    oops_mic: "Oops! I need the microphone 🎤",
+    say_mic: "Please let me use the microphone so I can hear you!",
+    err_mic_title: "Microphone is off",
+    err_mic_msg: "Microphone blocked ($n). Allow mic access for this page and try again.",
+    oops_energy: "Oops! I'm out of energy 🔋",
+    say_energy: "I've run out of energy for now! 🔋 Ask a grown-up to give me more power, then we can keep chatting.",
+    err_quota_title: "Out of credit / quota reached",
+    link_billing: "Check your OpenAI plan & billing →",
+    oops_key: "Oops! I couldn't get in 🔑",
+    say_key: "I couldn't unlock my powers! A grown-up should check my secret key in ⚙️.",
+    err_key_title: "Key was rejected",
+    link_keys: "Manage your OpenAI API keys →",
+    oops_connect: "Oops! Couldn't connect.",
+    say_connect: "Hmm, I couldn't connect. A grown-up can check the key in ⚙️.",
+    err_connect_msg: "Connection failed — $d",
+    err_default_title: "Something went wrong",
+    modal_title_first: "Hi grown-up! 👋 Quick setup",
+    modal_title: "Grown-ups: set up White Hero",
+    modal_sub_first: "Add an OpenAI API key so White Hero can hear and talk back.",
+    modal_sub: "Update the language, key, Senua's voice or personality.",
+    note: "🔑 <b>You need an OpenAI <u>API key</u></b> (from <a href=\"https://platform.openai.com/api-keys\" target=\"_blank\" rel=\"noopener\">platform.openai.com/api-keys</a>) — a ChatGPT or Claude subscription will <b>not</b> work, because this uses the pay-as-you-go Realtime API. The key is saved <b>only in this browser</b> and sent only to OpenAI, so you enter it just once.",
+    label_lang: "Language",
+    label_key: "OpenAI API key",
+    label_voice: "Senua's voice",
+    label_instr: "What should Senua be like?",
+    hint_instr: "Senua talks in simple, kid-friendly words and replies in the chosen language. Tweak the personality here.",
+    label_model: "Realtime model",
+    hint_model: "Default: <code>gpt-realtime</code>.",
+    btn_forget: "Forget key",
+    btn_save: "Save",
+    ver_checking: "Version: checking…",
+    ver_lastcommit: "last commit",
+    ver_unavail: "Version: unavailable",
+    voice_coral: "Coral (bright & friendly)",
+    voice_marin: "Marin (warm)",
+    voice_cedar: "Cedar (calm)",
+    tok_used_title: "Tokens used so far (this device)",
+    tok_left_title: "Tokens left in your budget",
+    label_budget: "Token budget (optional)",
+    hint_budget: "OpenAI can't tell the browser your real account quota, so set your own budget here — the pill top-left then shows how many tokens are left. Used so far: $u.",
+    btn_reset: "Reset",
+    label_memory: "Senua's memory",
+    hint_memory: "Senua keeps a short, private summary of your last 10 chats on this device and quietly remembers it next time. Saved chats: $n.",
+    btn_clearmem: "Clear memory",
+  },
+  de: {
+    doc_title: "White Hero — sprich mit deinem Immunsystem-Buddy!",
+    settings_btn: "Für Erwachsene",
+    status_idle: "Tipp auf den Knopf und sag Hallo! 👋",
+    talk_idle: "🎤 Zum Reden tippen!",
+    talk_live: "⏹ Stopp",
+    mic_on: "🔊 Mikro an",
+    mic_off: "🔇 Mikro aus",
+    who_kid: "Du hast gesagt",
+    who_hero: "Senua sagt",
+    greeting: "Hallo! Ich bin Senua, deine mutige Zelle. Worüber möchtest du reden?",
+    waking: "Senua wacht auf… ✨",
+    listening_full: "Ich höre zu! 👂 Sprich einfach.",
+    listening: "Ich höre zu! 👂",
+    thinking: "Ich überlege… 🤔",
+    talking: "Ich rede… 💬",
+    your_turn: "Du bist dran — sprich mit mir! 🎤",
+    bye: "Bis bald! Tippe, um wieder zu reden. 👋",
+    oops_mic: "Hoppla! Ich brauche das Mikrofon 🎤",
+    say_mic: "Bitte erlaube mir das Mikrofon, damit ich dich hören kann!",
+    err_mic_title: "Mikrofon ist aus",
+    err_mic_msg: "Mikrofon blockiert ($n). Erlaube den Mikrofon-Zugriff für diese Seite und versuche es erneut.",
+    oops_energy: "Hoppla! Mir geht die Energie aus 🔋",
+    say_energy: "Mir ist gerade die Energie ausgegangen! 🔋 Bitte einen Erwachsenen, mir mehr Kraft zu geben, dann reden wir weiter.",
+    err_quota_title: "Kein Guthaben / Kontingent erreicht",
+    link_billing: "OpenAI-Tarif & Abrechnung prüfen →",
+    oops_key: "Hoppla! Ich komme nicht rein 🔑",
+    say_key: "Ich konnte meine Kräfte nicht freischalten! Ein Erwachsener sollte meinen geheimen Schlüssel in ⚙️ prüfen.",
+    err_key_title: "Schlüssel wurde abgelehnt",
+    link_keys: "OpenAI-API-Schlüssel verwalten →",
+    oops_connect: "Hoppla! Verbindung fehlgeschlagen.",
+    say_connect: "Hmm, ich konnte mich nicht verbinden. Ein Erwachsener kann den Schlüssel in ⚙️ prüfen.",
+    err_connect_msg: "Verbindung fehlgeschlagen — $d",
+    err_default_title: "Etwas ist schiefgelaufen",
+    modal_title_first: "Hallo Erwachsene! 👋 Schnelle Einrichtung",
+    modal_title: "Für Erwachsene: White Hero einrichten",
+    modal_sub_first: "Füge einen OpenAI-API-Schlüssel hinzu, damit White Hero hören und antworten kann.",
+    modal_sub: "Sprache, Schlüssel, Senuas Stimme oder Persönlichkeit ändern.",
+    note: "🔑 <b>Du brauchst einen OpenAI-<u>API-Schlüssel</u></b> (von <a href=\"https://platform.openai.com/api-keys\" target=\"_blank\" rel=\"noopener\">platform.openai.com/api-keys</a>) — ein ChatGPT- oder Claude-Abo funktioniert <b>nicht</b>, da hier die nutzungsbasierte Realtime-API verwendet wird. Der Schlüssel wird <b>nur in diesem Browser</b> gespeichert und nur an OpenAI gesendet, du gibst ihn also nur einmal ein.",
+    label_lang: "Sprache",
+    label_key: "OpenAI-API-Schlüssel",
+    label_voice: "Senuas Stimme",
+    label_instr: "Wie soll Senua sein?",
+    hint_instr: "Senua spricht in einfachen, kindgerechten Worten und antwortet in der gewählten Sprache. Passe die Persönlichkeit hier an.",
+    label_model: "Realtime-Modell",
+    hint_model: "Standard: <code>gpt-realtime</code>.",
+    btn_forget: "Schlüssel löschen",
+    btn_save: "Speichern",
+    ver_checking: "Version: wird geprüft…",
+    ver_lastcommit: "letzter Commit",
+    ver_unavail: "Version: nicht verfügbar",
+    voice_coral: "Coral (hell & freundlich)",
+    voice_marin: "Marin (warm)",
+    voice_cedar: "Cedar (ruhig)",
+    tok_used_title: "Bisher verbrauchte Tokens (dieses Gerät)",
+    tok_left_title: "Verbleibende Tokens im Budget",
+    label_budget: "Token-Budget (optional)",
+    hint_budget: "OpenAI verrät dem Browser dein echtes Kontingent nicht — lege also hier dein eigenes Budget fest, dann zeigt die Anzeige oben links, wie viele Tokens übrig sind. Bisher verbraucht: $u.",
+    btn_reset: "Zurücksetzen",
+    label_memory: "Senuas Gedächtnis",
+    hint_memory: "Senua merkt sich auf diesem Gerät eine kurze, private Zusammenfassung deiner letzten 10 Gespräche und erinnert sich beim nächsten Mal heimlich daran. Gespeicherte Gespräche: $n.",
+    btn_clearmem: "Gedächtnis löschen",
+  },
 };
+
+// ---------- persistence ----------
+const LS = { key:"whitehero.openai_key", voice:"whitehero.voice", instr:"whitehero.instructions", model:"whitehero.model", lang:"whitehero.lang", used:"whitehero.tokens_used", budget:"whitehero.token_budget", memory:"whitehero.memory" };
+const DEFAULTS = { voice:"coral", model:"gpt-realtime", instr:{ en:INSTR_EN, de:INSTR_DE } };
 const store = {
   get: (k, d="") => localStorage.getItem(LS[k]) ?? d,
   set: (k, v) => localStorage.setItem(LS[k], v),
   del: (k) => localStorage.removeItem(LS[k]),
 };
 
+// ---------- language state ----------
+let lang = store.get("lang") || ((navigator.language||"").toLowerCase().startsWith("de") ? "de" : "en");
+function t(key, vars){
+  let s = (I18N[lang] && I18N[lang][key]) ?? I18N.en[key] ?? key;
+  if(vars) for(const k in vars) s = s.replace("$"+k, vars[k]);
+  return s;
+}
+function defaultInstr(l){ return DEFAULTS.instr[l] || DEFAULTS.instr.en; }
+function instrBase(){ return store.get("instr") || defaultInstr(lang); }
+
+// ---------- token counter (usage reported by the Realtime API) ----------
+let tokensUsed = parseInt(store.get("used","0"),10) || 0;
+const fmtNum = (n) => Number(n).toLocaleString(lang);
+function tokenBudget(){ return parseInt(store.get("budget","0"),10) || 0; }
+function addUsage(n){ if(!n) return; tokensUsed += n; store.set("used", String(tokensUsed)); updateTokenPill(); updateBudgetHint(); }
+function updateTokenPill(){
+  if(!tokenPill) return;
+  const b = tokenBudget();
+  tokenPill.hidden = false;
+  if(b>0){
+    const rem = Math.max(0, b - tokensUsed);
+    tokenPill.textContent = "🎟️ " + fmtNum(rem);
+    tokenPill.classList.toggle("low", rem <= b*0.1);
+    tokenPill.title = t("tok_left_title");
+  } else {
+    tokenPill.textContent = "🎟️ " + fmtNum(tokensUsed);
+    tokenPill.classList.remove("low");
+    tokenPill.title = t("tok_used_title");
+  }
+}
+
+// ---------- secret memory of recent chats ----------
+function loadMemory(){ try{ return JSON.parse(store.get("memory","[]")) || []; }catch(_){ return []; } }
+function saveMemory(arr){ store.set("memory", JSON.stringify(arr.slice(-10))); }
+function clip(s){ s=(s||"").trim().replace(/\s+/g," "); return s.length>140 ? s.slice(0,140)+"…" : s; }
+let pendingTurn = null;
+function rememberUser(q){ q=clip(q); if(!q) return; pendingTurn = { q, a:"" }; }
+function rememberHero(a){
+  a=clip(a); if(!a && !pendingTurn) return;
+  if(!pendingTurn) pendingTurn = { q:"", a };
+  else pendingTurn.a = a;
+  const mem = loadMemory(); mem.push(pendingTurn); saveMemory(mem);
+  pendingTurn = null; updateMemHint();
+}
+function memoryBlock(){
+  const mem = loadMemory();
+  if(!mem.length) return "";
+  const who = lang==="de" ? "Kind" : "Child";
+  const lines = mem.map(m => `- ${who}: ${m.q||"…"}${m.a ? `  → Senua: ${m.a}` : ""}`).join("\n");
+  if(lang==="de")
+    return `\n\n## Geheimes Gedächtnis (NICHT vorlesen)\nKurze Zusammenfassung eurer letzten Gespräche. Knüpfe natürlich daran an, lies es aber niemals laut vor:\n${lines}`;
+  return `\n\n## Secret memory (do NOT read aloud)\nA short summary of your recent chats. Pick up on it naturally, but never read it out loud:\n${lines}`;
+}
+
+// hint refreshers (safe to call any time; elements always exist)
+function updateBudgetHint(){ if(budgetHint) budgetHint.textContent = t("hint_budget",{ u: fmtNum(tokensUsed) }); }
+function updateMemHint(){ if(memHint) memHint.textContent = t("hint_memory",{ n: fmtNum(loadMemory().length) }); }
+
 // ---------- DOM ----------
 const $ = (id) => document.getElementById(id);
 const talkBtn=$("talkBtn"), muteBtn=$("muteBtn"), statusEl=$("status");
 const sayEl=$("say"), sayWho=$("sayWho"), sayText=$("sayText");
-const scrim=$("scrim"), keyInput=$("keyInput"), voiceInput=$("voiceInput"), instrInput=$("instrInput"), modelInput=$("modelInput");
+const scrim=$("scrim"), keyInput=$("keyInput"), voiceInput=$("voiceInput"), instrInput=$("instrInput"), modelInput=$("modelInput"), langInput=$("langInput");
+const budgetInput=$("budgetInput"), budgetHint=$("budgetHint"), memHint=$("memHint"), tokenPill=$("tokenPill");
 const heroBody=$("heroBody"), ringEl=$("ring"), smileEl=$("smile"), mouthEl=$("mouthOpen"), heroSvg=$("hero");
 const errbar=$("errbar"), errmsg=$("errmsg"), errtitle=$("errtitle"), erract=$("erract"), verEl=$("ver");
 
@@ -307,14 +587,34 @@ let pc=null, dc=null, localStream=null, connected=false, connecting=false, muted
 let audioCtx=null, micAnalyser=null, sinkAnalyser=null, rafId=null, talkingClass=false;
 let heroText="", kidText="";
 
+// ---------- apply language to the whole UI ----------
+const VOICES = ["coral","marin","cedar","alloy","ballad","echo","sage","shimmer","verse"];
+function voiceLabel(v){ const m=t("voice_"+v); return m==="voice_"+v ? (v[0].toUpperCase()+v.slice(1)) : m; }
+function updateVoiceOptions(){
+  const cur = voiceInput.value || store.get("voice", DEFAULTS.voice);
+  voiceInput.innerHTML = VOICES.map(v=>`<option value="${v}">${voiceLabel(v)}</option>`).join("");
+  voiceInput.value = cur;
+}
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.querySelectorAll("[data-i18n]").forEach(el=>{ el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll("[data-i18n-html]").forEach(el=>{ el.innerHTML = t(el.dataset.i18nHtml); });
+  document.querySelectorAll("[data-i18n-title]").forEach(el=>{ el.title = t(el.dataset.i18nTitle); });
+  updateVoiceOptions();
+  langInput.value = lang;
+  muteBtn.textContent = muted ? t("mic_off") : t("mic_on");
+  if(!connected && !connecting){ talkBtn.innerHTML = t("talk_idle"); statusEl.textContent = t("status_idle"); }
+  updateTokenPill(); updateBudgetHint(); updateMemHint();
+}
+
 // ---------- background bits ----------
 (function buildBg(){
   const bg=$("bg");
   const germColors=["#7bdc6b","#c08bff","#ffb14a","#5ad1ff","#ff8fae"];
   function germSVG(c){
     return `<svg width="46" height="46" viewBox="0 0 46 46">
-      <g fill="${c}">${Array.from({length:9}).map((_,i)=>{const a=i/9*Math.PI*2;
-        return `<rect x="21.5" y="2" width="3" height="9" rx="1.5" transform="rotate(${i*40} 23 23)"/>`;}).join("")}
+      <g fill="${c}">${Array.from({length:9}).map((_,i)=>
+        `<rect x="21.5" y="2" width="3" height="9" rx="1.5" transform="rotate(${i*40} 23 23)"/>`).join("")}
       </g><circle cx="23" cy="23" r="13" fill="${c}"/>
       <circle cx="19" cy="21" r="2.4" fill="#22323a"/><circle cx="27" cy="21" r="2.4" fill="#22323a"/>
       <path d="M18 28 Q23 32 28 28" stroke="#22323a" stroke-width="2" fill="none" stroke-linecap="round"/></svg>`;
@@ -342,10 +642,10 @@ let heroText="", kidText="";
 setInterval(()=>{ heroSvg.classList.add("blink"); setTimeout(()=>heroSvg.classList.remove("blink"),300); }, 3800);
 
 // ---------- status / errors ----------
-function setStatus(t){ statusEl.textContent=t; }
+function setStatus(s){ statusEl.textContent=s; }
 function showError(msg, opts){
   opts = opts || {};
-  errtitle.textContent = opts.title || "Something went wrong";
+  errtitle.textContent = opts.title || t("err_default_title");
   errmsg.textContent = msg;
   if(opts.link){ erract.textContent = opts.link.label; erract.href = opts.link.href; erract.hidden = false; }
   else { erract.hidden = true; erract.removeAttribute("href"); }
@@ -357,18 +657,17 @@ $("errclose").onclick=hideError;
 // ---------- speech bubble ----------
 function showSay(role, text){
   sayEl.classList.toggle("kid", role==="kid");
-  sayWho.textContent = role==="kid" ? "You said" : "Welly says";
+  sayWho.textContent = role==="kid" ? t("who_kid") : t("who_hero");
   sayText.textContent = text;
   sayEl.classList.add("show");
 }
-function hideSayLater(){ /* keep last line visible; no-op */ }
 
 // ---------- deployed version (latest commit touching white-hero) ----------
 const REPO = "blurayne/claude-experiments", APP_PATH = "white-hero";
 let verLoaded = false;
 async function loadVersion(){
   if(verLoaded) return;
-  verEl.textContent = "Version: checking…";
+  verEl.textContent = t("ver_checking");
   try{
     const r = await fetch(
       `https://api.github.com/repos/${REPO}/commits?path=${APP_PATH}&per_page=1`,
@@ -378,41 +677,72 @@ async function loadVersion(){
     if(!c) throw new Error("no commits");
     const sha = c.sha.slice(0, 7);
     const when = new Date(c.commit.committer.date);
-    const stamp = when.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+    const stamp = when.toLocaleString(lang, { dateStyle: "medium", timeStyle: "short" });
     verEl.innerHTML =
-      `Version <a href="https://github.com/${REPO}/commit/${c.sha}" target="_blank" rel="noopener"><code>${sha}</code></a> · last commit ${stamp}`;
+      `Version <a href="https://github.com/${REPO}/commit/${c.sha}" target="_blank" rel="noopener"><code>${sha}</code></a> · ${t("ver_lastcommit")} ${stamp}`;
     verLoaded = true;
   }catch(e){
-    verEl.textContent = "Version: unavailable (" + (e.message || "offline") + ")";
+    verEl.textContent = t("ver_unavail") + " (" + (e.message || "offline") + ")";
   }
 }
 
 // ---------- settings modal ----------
-function openSettings(first=false){
+function refreshModalHead(){
+  const first = !store.get("key");
+  $("modalTitle").textContent = first ? t("modal_title_first") : t("modal_title");
+  $("modalSub").textContent   = first ? t("modal_sub_first")   : t("modal_sub");
+}
+function openSettings(){
   loadVersion();
-  keyInput.value=store.get("key");
-  voiceInput.value=store.get("voice", DEFAULTS.voice);
-  instrInput.value=store.get("instr", DEFAULTS.instr);
-  modelInput.value=store.get("model", DEFAULTS.model);
-  $("modalTitle").textContent = first ? "Hi grown-up! 👋 Quick setup" : "Grown-ups: set up White Hero";
-  $("modalSub").textContent = first
-    ? "Add an OpenAI API key so White Hero can hear and talk back."
-    : "Update the key, Welly's voice, or personality.";
+  langInput.value = lang;
+  keyInput.value = store.get("key");
+  updateVoiceOptions();
+  voiceInput.value = store.get("voice", DEFAULTS.voice);
+  instrInput.value = instrBase();
+  modelInput.value = store.get("model", DEFAULTS.model);
+  budgetInput.value = tokenBudget() ? String(tokenBudget()) : "";
+  updateBudgetHint(); updateMemHint();
+  refreshModalHead();
   scrim.classList.add("show");
-  setTimeout(()=>keyInput.focus(),60);
+  setTimeout(()=>{ if(!store.get("key")) keyInput.focus(); },60);
 }
 function closeSettings(){ scrim.classList.remove("show"); }
-$("settingsBtn").onclick=()=>openSettings(false);
+$("settingsBtn").onclick=()=>openSettings();
+
+// switching language in the modal previews + persists it immediately
+langInput.onchange=()=>{
+  const nl = langInput.value;
+  const cur = instrInput.value.trim();
+  // if the personality box still shows a default, swap it to the new language's default
+  if(cur==="" || cur===defaultInstr(lang)) instrInput.value = defaultInstr(nl);
+  lang = nl;
+  store.set("lang", nl);
+  applyLang();
+  refreshModalHead();
+  if(connected) sendSessionConfig();
+};
+
 $("saveBtn").onclick=()=>{
   const k=keyInput.value.trim();
   if(k) store.set("key",k); else store.del("key");
-  store.set("voice",voiceInput.value);
-  store.set("instr",instrInput.value.trim()||DEFAULTS.instr);
-  store.set("model",modelInput.value.trim()||DEFAULTS.model);
+  store.set("lang", langInput.value);
+  store.set("voice", voiceInput.value);
+  const customInstr = instrInput.value.trim();
+  if(customInstr && customInstr !== defaultInstr(langInput.value)) store.set("instr", customInstr);
+  else store.del("instr");
+  store.set("model", modelInput.value.trim() || DEFAULTS.model);
+  const b = parseInt(budgetInput.value,10) || 0;
+  if(b>0) store.set("budget", String(b)); else store.del("budget");
+  lang = langInput.value;
+  applyLang();
+  updateTokenPill();
   closeSettings();
   if(connected) sendSessionConfig();
 };
 $("forgetBtn").onclick=()=>{ store.del("key"); keyInput.value=""; if(connected) hangup(); };
+$("resetUsed").onclick=()=>{ tokensUsed=0; store.set("used","0"); updateBudgetHint(); updateTokenPill(); };
+$("clearMem").onclick=()=>{ store.del("memory"); pendingTurn=null; updateMemHint(); };
+tokenPill.onclick=()=>openSettings();
 scrim.onclick=(e)=>{ if(e.target===scrim) closeSettings(); };
 
 // ---------- audio analysers ----------
@@ -442,12 +772,10 @@ function frame(){
   const heroSpeaking = heroLvl>0.012 && heroLvl>=userLvl;
   const lvl = Math.min(1, Math.max(userLvl,heroLvl)*3.4);
 
-  // ripple ring
   ringEl.setAttribute("r", (78+lvl*26).toFixed(1));
   ringEl.setAttribute("opacity", (0.12+lvl*0.34).toFixed(2));
   ringEl.setAttribute("stroke", heroSpeaking ? "#bfeee8" : (userLvl>0.03?"#bfe0ff":"#ffffff"));
 
-  // mouth
   if(heroSpeaking){
     const ry=(3+Math.min(16,heroLvl*46)).toFixed(1);
     mouthEl.setAttribute("ry", ry);
@@ -456,9 +784,7 @@ function frame(){
     mouthEl.style.display="none"; smileEl.style.display="";
   }
 
-  // bob speed
   if(heroSpeaking!==talkingClass){ talkingClass=heroSpeaking; heroBody.classList.toggle("talking",heroSpeaking); }
-
   rafId=requestAnimationFrame(frame);
 }
 function startAnim(){ if(!rafId) frame(); }
@@ -473,7 +799,7 @@ function stopAnim(){
 function sessionConfig(){
   return { type:"session.update", session:{
     type:"realtime",
-    instructions: store.get("instr", DEFAULTS.instr),
+    instructions: instrBase() + memoryBlock(),
     audio:{
       input:{ transcription:{ model:"gpt-4o-mini-transcribe" },
               turn_detection:{ type:"server_vad", create_response:true, interrupt_response:true } },
@@ -492,38 +818,35 @@ function handleConnectError(err){
   const s = err.status;
   const mic = err.name==="NotAllowedError" || err.name==="NotFoundError";
   if(mic){
-    setStatus("Oops! I need the microphone 🎤");
-    showSay("hero", "Please let me use the microphone so I can hear you!");
-    showError("Microphone blocked ("+err.name+"). Allow mic access for this page and try again.",
-      { title: "Microphone is off" });
+    setStatus(t("oops_mic"));
+    showSay("hero", t("say_mic"));
+    showError(t("err_mic_msg",{n:err.name}), { title: t("err_mic_title") });
     return;
   }
   if(s===429){
-    setStatus("Oops! I'm out of energy 🔋");
-    showSay("hero", "I've run out of energy for now! 🔋 Ask a grown-up to give me more power, then we can keep chatting.");
-    showError(err.message, { title: "Out of credit / quota reached",
-      link: { label: "Check your OpenAI plan & billing →", href: BILLING_URL } });
+    setStatus(t("oops_energy"));
+    showSay("hero", t("say_energy"));
+    showError(err.message, { title: t("err_quota_title"), link: { label: t("link_billing"), href: BILLING_URL } });
     return;
   }
   if(s===401 || s===403){
-    setStatus("Oops! I couldn't get in 🔑");
-    showSay("hero", "I couldn't unlock my powers! A grown-up should check my secret key in ⚙️.");
-    showError(err.message, { title: "Key was rejected",
-      link: { label: "Manage your OpenAI API keys →", href: KEYS_URL } });
+    setStatus(t("oops_key"));
+    showSay("hero", t("say_key"));
+    showError(err.message, { title: t("err_key_title"), link: { label: t("link_keys"), href: KEYS_URL } });
     return;
   }
-  setStatus("Oops! Couldn't connect.");
-  showSay("hero", "Hmm, I couldn't connect. A grown-up can check the key in ⚙️.");
-  showError("Connection failed — "+(err.message||err.name||"unknown error"));
+  setStatus(t("oops_connect"));
+  showSay("hero", t("say_connect"));
+  showError(t("err_connect_msg",{d:(err.message||err.name||"unknown error")}));
 }
 
 // ---------- connect / hangup ----------
 async function connect(){
   const key=store.get("key");
-  if(!key){ openSettings(true); return; }
+  if(!key){ openSettings(); return; }
   if(connecting||connected) return;
   hideError();
-  connecting=true; talkBtn.disabled=true; setStatus("Waking up Welly… ✨");
+  connecting=true; talkBtn.disabled=true; setStatus(t("waking"));
   try{
     pc=new RTCPeerConnection();
     pc.ontrack=(e)=>{ const stream=e.streams[0]; $("sink").srcObject=stream; try{ sinkAnalyser=makeAnalyser(stream); }catch(_){} };
@@ -560,17 +883,17 @@ async function connect(){
 }
 function onConnected(){
   connecting=false; connected=true; talkBtn.disabled=false; hideError();
-  talkBtn.classList.add("live"); talkBtn.innerHTML="⏹ Stop";
+  talkBtn.classList.add("live"); talkBtn.innerHTML=t("talk_live");
   muteBtn.hidden=false;
-  setStatus("I'm listening! 👂 Just talk.");
-  showSay("hero", "Hi! I'm Welly, your tiny body hero. What do you want to talk about?");
+  setStatus(t("listening_full"));
+  showSay("hero", t("greeting"));
   startAnim();
 }
 function hangup(){
   cleanup(); connected=false; connecting=false;
-  talkBtn.classList.remove("live"); talkBtn.innerHTML="🎤 Tap to talk!"; talkBtn.disabled=false;
-  muteBtn.hidden=true; muted=false; muteBtn.classList.remove("off"); muteBtn.textContent="🔊 Mic on";
-  setStatus("Bye for now! Tap to talk again. 👋");
+  talkBtn.classList.remove("live"); talkBtn.innerHTML=t("talk_idle"); talkBtn.disabled=false;
+  muteBtn.hidden=true; muted=false; muteBtn.classList.remove("off"); muteBtn.textContent=t("mic_on");
+  setStatus(t("bye"));
   stopAnim();
 }
 function cleanup(){
@@ -583,36 +906,37 @@ function cleanup(){
 // ---------- realtime events (match defensively across beta/GA names) ----------
 function onEvent(e){
   let ev; try{ ev=JSON.parse(e.data); }catch(_){ return; }
-  const t=ev.type||"";
+  const ty=ev.type||"";
 
-  if(t==="error" || t.endsWith(".error")){
+  if(ty==="error" || ty.endsWith(".error")){
     const msg=(ev.error&&(ev.error.message||ev.error.code))||"Unknown realtime error";
     console.warn("realtime error:", ev);
     if(/voice/i.test(msg)){ /* changing voice mid-response is benign */ }
     else if(/quota|billing|insufficient/i.test(msg))
-      showError(msg, { title: "Out of credit / quota reached", link: { label: "Check your OpenAI plan & billing →", href: BILLING_URL } });
+      showError(msg, { title: t("err_quota_title"), link: { label: t("link_billing"), href: BILLING_URL } });
     else showError(msg);
     return;
   }
 
-  // child's words
-  if(t.includes("input_audio_transcription")){
-    if(t.endsWith("delta") && ev.delta){ kidText+=ev.delta; showSay("kid", kidText); }
-    else if(t.endsWith("completed")||t.endsWith("done")){ showSay("kid", ev.transcript||kidText); kidText=""; }
+  if(ty.includes("input_audio_transcription")){
+    if(ty.endsWith("delta") && ev.delta){ kidText+=ev.delta; showSay("kid", kidText); }
+    else if(ty.endsWith("completed")||ty.endsWith("done")){ const q=ev.transcript||kidText; showSay("kid", q); rememberUser(q); kidText=""; }
     return;
   }
-  // Welly's words
-  if(t.includes("output_audio_transcript")||t.includes("audio_transcript")||t.includes("output_text")){
-    if(t.endsWith("delta") && ev.delta){ heroText+=ev.delta; showSay("hero", heroText); }
-    else if(t.endsWith("done")){ if(ev.transcript) showSay("hero", ev.transcript); heroText=""; }
+  if(ty.includes("output_audio_transcript")||ty.includes("audio_transcript")||ty.includes("output_text")){
+    if(ty.endsWith("delta") && ev.delta){ heroText+=ev.delta; showSay("hero", heroText); }
+    else if(ty.endsWith("done")){ const a=ev.transcript||heroText; if(a) showSay("hero", a); rememberHero(a); heroText=""; }
     return;
   }
 
-  switch(t){
-    case "input_audio_buffer.speech_started": setStatus("I'm listening! 👂"); break;
-    case "input_audio_buffer.speech_stopped": setStatus("Thinking… 🤔"); break;
-    case "response.created": heroText=""; setStatus("Talking… 💬"); break;
-    case "response.done": if(connected) setStatus("Your turn — talk to me! 🎤"); break;
+  switch(ty){
+    case "input_audio_buffer.speech_started": setStatus(t("listening")); break;
+    case "input_audio_buffer.speech_stopped": setStatus(t("thinking")); break;
+    case "response.created": heroText=""; setStatus(t("talking")); break;
+    case "response.done":
+      if(ev.response && ev.response.usage && typeof ev.response.usage.total_tokens==="number") addUsage(ev.response.usage.total_tokens);
+      if(connected) setStatus(t("your_turn"));
+      break;
   }
 }
 
@@ -623,12 +947,13 @@ muteBtn.onclick=()=>{
   muted=!muted;
   localStream.getAudioTracks().forEach(tr=>tr.enabled=!muted);
   muteBtn.classList.toggle("off",muted);
-  muteBtn.textContent=muted?"🔇 Mic off":"🔊 Mic on";
+  muteBtn.textContent = muted ? t("mic_off") : t("mic_on");
 };
 window.addEventListener("beforeunload", ()=>{ if(connected) cleanup(); });
 
-// ---------- first run ----------
-if(!store.get("key")) openSettings(true);
+// ---------- init ----------
+applyLang();
+if(!store.get("key")) openSettings();
 </script>
 </body>
 </html>
