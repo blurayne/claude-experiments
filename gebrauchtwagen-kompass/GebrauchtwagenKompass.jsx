@@ -408,6 +408,239 @@ const WINTER = [
   },
 ];
 
+// ---------- Direktvergleich: kuratierte Duelle (sonst datengetrieben) ----------
+// Schlüssel = beide IDs alphabetisch sortiert mit "|" verbunden (reihenfolge-egal).
+// Tabellenwerte je Auto-ID, damit die Spalten zur tatsächlichen Auswahl passen.
+const DUELS = {
+  "auris-hyb|civic": {
+    tagline: "Laderaum-Meister vs. Stadt-Spar-Hybrid",
+    intro: "Civic Tourer und Auris Touring Sports 1.8 Hybrid sind zwei der praktischsten, zuverlässigsten Kompakt-Kombis am Gebrauchtmarkt – sie lösen Alltagstauglichkeit aber völlig unterschiedlich. Die Wahl hängt davon ab, was du priorisierst: maximale Laderaum-Flexibilität und Fahrdynamik (Honda) gegen Stadt-Sparsamkeit und kompromisslos einfache, langlebige Technik (Toyota).",
+    rows: [
+      { f: "Primärmotor", v: { "civic": "1.8 i-VTEC Benziner (R18) · 142 PS", "auris-hyb": "1.8 Vollhybrid (HSD) · 136 PS" } },
+      { f: "Antriebscharakter", v: { "civic": "Schalter/Automatik, drehfreudig, mechanisch", "auris-hyb": "e-CVT, stufenlos, sanft & linear" } },
+      { f: "Kofferraum (Sitze oben)", v: { "civic": "624 L (Klassenbester)", "auris-hyb": "530 L" } },
+      { f: "Max. Laderaum", v: { "civic": "1.668 L + „Magic Seats“", "auris-hyb": "1.658 L (planer Boden)" } },
+      { f: "Bestes Revier", v: { "civic": "Autobahn, lange Strecke", "auris-hyb": "Stadt, Stop-and-go" } },
+    ],
+    blocks: [
+      { h: "1. Laderaum & Praxis: die Honda-Vorstellung", body: "Wenn maximales Ladevolumen und Variabilität zählen, gewinnt der Civic Tourer klar. 624 L bei aufrechter Rückbank schlagen viele Autos eine Klasse höher – möglich, weil Honda den Tank unter die Vordersitze verlegt hat (riesiges Unterflurfach). Die „Magic Seats“ klappen die Rücksitzflächen senkrecht hoch (wie Kinosessel), sodass Fahrräder, hohe Kisten oder Pflanzen stehend im Fond mitfahren. Der Auris TS bleibt mit 530 L, niedriger Ladekante und planem Boden sehr praktisch, hat aber nicht das schiere Volumen und die clevere Raumnutzung." },
+      { h: "2. Antrieb & Fahrdynamik", body: "Der Unterschied ist Tag und Nacht. Der Toyota-Hybrid ist über die e-CVT extrem geschmeidig im Verkehr, lautlos bei niedrigem Tempo, ohne Kupplung, Anlasser, Lichtmaschine, Turbo oder Steuerkettensorgen – minimaler Wartungsaufwand. Kompromiss: bei Volllast/Steigung dreht der Benziner hoch und hält ein konstantes, lautes Dröhnen (typischer CVT-Effekt), bis du vom Gas gehst. Der Civic fühlt sich traditioneller und mechanischer an, mit präziser Lenkung und exzellenter Hochgeschwindigkeits-Stabilität – der Sauger braucht aber Drehzahl für Leistung und ist in der Stadt durstiger." },
+      { h: "3. Real-Verbrauch & Wartung", body: "Wo fährst du am meisten? Stadt & Umland: Der Auris Hybrid glänzt – 4,0–4,5 L/100 km im Stop-and-go durch Rekuperation; die Bremsbeläge halten oft über 100.000 km. Autobahn: Der Civic ist bei hohem Tempo souveräner und stabiler; bei stetigen 120–130 km/h schmilzt der Vorsprung des Hybrids, weil er dann stark am Benziner hängt." },
+    ],
+    note: "Bauteil-Hinweis: Es gibt den Civic Tourer auch als 1.6 i-DTEC Diesel – ein Langstrecken-Star (sub-4 L/100 km), aber nur sinnvoll mit regelmäßigen Langstrecken, damit der Dieselpartikelfilter (DPF) frei brennt. Für überwiegend Kurzstrecke in der Stadt ist der Toyota-Hybrid die mechanisch sichere Wahl.",
+    verdict: {
+      "civic": "Nimm den Civic Tourer, wenn du regelmäßig sperriges Gut lädst, den klassenbesten Kofferraum brauchst, viel Autobahn fährst und eine traditionellere, dynamischere Fahrposition mit schärferem Handling willst.",
+      "auris-hyb": "Nimm den Auris Hybrid, wenn du stressfreies Automatik-Pendeln willst, überwiegend in der Stadt/Umland fährst, minimalen Wartungsaufwand schätzt und einen sanften, entspannten Antrieb bevorzugst.",
+    },
+  },
+  "auris-hyb|octavia": {
+    tagline: "Zuverlässigkeit vs. Raumwunder",
+    intro: "Beides sind klassenübliche Kombis, aber mit unterschiedlicher DNA: der Octavia ist das Raum- und Preis-Leistungs-Wunder, der Auris Hybrid die wartungsarme Zuverlässigkeits-Bank. Der Octavia gibt dir am meisten Auto pro Euro und die einzige fast gestreckte Schlaffläche; der Auris die geringste Pannenwahrscheinlichkeit und Stadt-Sparsamkeit – dafür dröhnt sein e-CVT auf der Autobahn.",
+    rows: [
+      { f: "Motor", v: { "octavia": "1.5 TSI ACT · 150 PS · Schalt/DSG", "auris-hyb": "1.8 Vollhybrid · 136 PS · e-CVT" } },
+      { f: "Kofferraum", v: { "octavia": "610 / 1.740 L (Klassenbester)", "auris-hyb": "530 / 1.658 L" } },
+      { f: "Schlafen", v: { "octavia": "≈1,95 m – fast gestreckt", "auris-hyb": "≈1,55 m – nur diagonal" } },
+      { f: "Zuverlässigkeit", v: { "octavia": "Mittel – 1.5 TSI/DSG als Restrisiko", "auris-hyb": "Top – Hybrid seit 20+ Jahren bewährt" } },
+      { f: "Autobahn-Ruhe", v: { "octavia": "Solide, etwas polternd", "auris-hyb": "Benziner dröhnt unter Last" } },
+    ],
+    blocks: [],
+    note: "Beim Octavia das Schaltgetriebe + lückenloses Scheckheft wählen – das senkt das TSI/DSG-Risiko deutlich. Beim Auris auf den dokumentierten Hybrid-Check und die 12-V-Stützbatterie achten.",
+    verdict: {
+      "octavia": "Nimm den Octavia, wenn du maximalen Platz, die beste Schlaffläche und das meiste Auto fürs Geld willst – und mit Schaltgetriebe + Scheckheft das TSI/DSG-Risiko minimierst.",
+      "auris-hyb": "Nimm den Auris Hybrid, wenn maximale Zuverlässigkeit und minimaler Wartungsaufwand über allem stehen und du viel in der Stadt fährst.",
+    },
+  },
+  "a4avant|insignia": {
+    tagline: "Premium-Ruhe vs. günstiger Cruiser",
+    intro: "Die beiden leisesten Langstreckler des Felds – beide treffen deinen Autobahn-Ruhe-Wunsch, aber von zwei Enden: der A4 mit Premium-Laufruhe und Wertanmutung, der Insignia mit Mittelklasse-Komfort zum Kleinwagenpreis. Der A4 ist am teuersten im Unterhalt, der Insignia am günstigsten im Kauf.",
+    rows: [
+      { f: "Motor", v: { "a4avant": "2.0 TFSI · 150 PS · Schalt/S tronic", "insignia": "1.6 SIDI Turbo · 170 PS" } },
+      { f: "Kaufpreis (Richtwert)", v: { "a4avant": "≈ 14.000 €", "insignia": "≈ 9.000 €" } },
+      { f: "Autobahn-Ruhe", v: { "a4avant": "Premium, sehr satt", "insignia": "Satter, leiser Cruiser" } },
+      { f: "Zuverlässigkeit", v: { "a4avant": "B9 ab 2016 entschärft", "insignia": "Steuerkette/Wasserpumpe beachten" } },
+      { f: "Unterhalt", v: { "a4avant": "Am teuersten der Runde", "insignia": "Höher als Kompakte, Teile aber günstig" } },
+    ],
+    blocks: [],
+    note: "Beide am Budget-Rand bekommst du eher mit höherer Laufleistung. Der A4 belohnt mit Wertanmutung, der Insignia mit dem meisten Auto pro Euro.",
+    verdict: {
+      "a4avant": "Nimm den A4 Avant, wenn du Premium-Laufruhe und Wertanmutung willst und höhere Reparaturkosten akzeptierst – am Budget-Rand aber nur ältere/laufstärkere Exemplare.",
+      "insignia": "Nimm den Insignia, wenn du den leisesten Cruiser für kleines Geld suchst und etwas höhere Unterhalts-/Reparaturkosten für sehr viel Auto pro Euro in Kauf nimmst.",
+    },
+  },
+};
+
+// Vorgeschlagene Duelle (Quick-Picks) – referenzieren die kuratierten Vergleiche oben.
+const SUGGEST = [
+  { a: "civic", b: "auris-hyb" },
+  { a: "auris-hyb", b: "octavia" },
+  { a: "a4avant", b: "insignia" },
+];
+
+const vById = (id) => VEH.find((v) => v.id === id);
+
+// Liefert für jedes Paar eine einheitliche Vergleichs-Struktur:
+// kuratiert (DUELS) oder datengetrieben aus den Fahrzeugfeldern.
+function buildDuel(aId, bId, annFor) {
+  const A = vById(aId), B = vById(bId);
+  const cur = DUELS[[aId, bId].sort().join("|")];
+  if (cur) {
+    return {
+      curated: true, tagline: cur.tagline, intro: cur.intro, note: cur.note,
+      blocks: cur.blocks || [],
+      rows: cur.rows.map((r) => ({ f: r.f, cells: [r.v[aId], r.v[bId]] })),
+      verdict: [{ v: A, text: cur.verdict[aId] }, { v: B, text: cur.verdict[bId] }],
+    };
+  }
+  // ----- datengetriebener Fallback -----
+  const annA = annFor(A), annB = annFor(B);
+  const pick = (better) => better;
+  const parts = [`${(A.priceNow <= B.priceNow ? A : B).short} ist günstiger im Kauf`];
+  if (A.rel !== B.rel) parts.push(`${pick(A.rel > B.rel ? A : B).short} ist zuverlässiger`);
+  if (A.quiet !== B.quiet) parts.push(`${pick(A.quiet > B.quiet ? A : B).short} ist leiser auf der Autobahn`);
+  if (A.bootMax !== B.bootMax) parts.push(`${pick(A.bootMax > B.bootMax ? A : B).short} schluckt mehr`);
+  parts.push(`${(annA <= annB ? A : B).short} ist im Jahr günstiger im Unterhalt`);
+  const dots = (v, key) => <Dots n={v[key]} color={v.color} />;
+  return {
+    curated: false, tagline: "Datenvergleich", note: null, blocks: [],
+    intro: `${A.short} gegen ${B.short}, direkt gegenübergestellt. ` + parts.join(", ") + ". Für ein redaktionelles Fazit nutze die vorgeschlagenen Duelle oben.",
+    rows: [
+      { f: "Motor", cells: [A.motor, B.motor] },
+      { f: "Verbrauch Stadt", cells: [A.cons.Stadt + " L", B.cons.Stadt + " L"] },
+      { f: "Verbrauch 140 km/h", cells: [A.cons["140"] + " L", B.cons["140"] + " L"] },
+      { f: "Kofferraum", cells: [`${A.boot} / ${A.bootMax} L`, `${B.boot} / ${B.bootMax} L`] },
+      { f: "Zuverlässigkeit", cells: [dots(A, "rel"), dots(B, "rel")] },
+      { f: "Autobahn-Ruhe", cells: [dots(A, "quiet"), dots(B, "quiet")] },
+      { f: "Schlafen", cells: [dots(A, "sleep"), dots(B, "sleep")] },
+      { f: "Kaufpreis", cells: [euro(A.priceNow), euro(B.priceNow)] },
+      { f: "Jahreskosten", cells: [euro(annA), euro(annB)] },
+    ],
+    verdict: [{ v: A, text: A.fit }, { v: B, text: B.fit }],
+  };
+}
+
+function Versus({ annFor }) {
+  const [aId, setAId] = useState("civic");
+  const [bId, setBId] = useState("auris-hyb");
+  const A = vById(aId), B = vById(bId);
+  const same = aId === bId;
+  const d = same ? null : buildDuel(aId, bId, annFor);
+
+  const selStyle = (col) => ({
+    width: "100%", appearance: "none", WebkitAppearance: "none",
+    background: C.bg, color: C.ink, border: `1px solid ${col}`,
+    borderRadius: 9, padding: "9px 11px", fontSize: 14, fontWeight: 600,
+    outline: "none", cursor: "pointer", fontFamily: "inherit",
+  });
+  const Select = ({ value, onChange, col }) => (
+    <select value={value} onChange={(e) => onChange(e.target.value)} style={selStyle(col)}>
+      {VEH.map((v) => <option key={v.id} value={v.id} style={{ background: C.panel }}>{v.short}</option>)}
+    </select>
+  );
+
+  return (
+    <div className="panel" style={{ padding: 18, marginBottom: 24, borderLeft: `3px solid ${C.amber}` }}>
+      <div className="eyebrow" style={{ marginBottom: 4, color: C.amber }}>Direktvergleich · Head-to-Head</div>
+      <h2 style={{ marginBottom: 6 }}>Zwei Autos Seite an Seite</h2>
+      <p style={{ fontSize: 12.5, color: C.dim, lineHeight: 1.6, margin: "0 0 14px" }}>
+        Wähle zwei Kandidaten – oder nimm ein vorgeschlagenes Duell. Bekannte Paarungen bekommen ein
+        redaktionelles Fazit, alle anderen einen datengetriebenen Vergleich aus den Fahrzeugwerten.
+      </p>
+
+      {/* Vorgeschlagene Duelle */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
+        {SUGGEST.map((s) => {
+          const sa = vById(s.a), sb = vById(s.b);
+          const on = (aId === s.a && bId === s.b) || (aId === s.b && bId === s.a);
+          const tag = DUELS[[s.a, s.b].sort().join("|")];
+          return (
+            <span key={s.a + s.b} className="chip" onClick={() => { setAId(s.a); setBId(s.b); }}
+              style={{ borderColor: on ? C.amber : C.line, background: on ? C.amber + "1E" : C.panel, alignItems: "flex-start", flexDirection: "column", gap: 2, padding: "8px 12px" }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12.5 }}>
+                <span style={{ width: 8, height: 8, borderRadius: 2, background: sa.color }} />
+                {sa.short}
+                <span style={{ color: C.faint }}>⚔</span>
+                <span style={{ width: 8, height: 8, borderRadius: 2, background: sb.color }} />
+                {sb.short}
+              </span>
+              {tag && <span style={{ fontSize: 10.5, color: C.faint }}>{tag.tagline}</span>}
+            </span>
+          );
+        })}
+      </div>
+
+      {/* Selectboxen */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 10, alignItems: "center", marginBottom: 16 }}>
+        <Select value={aId} onChange={setAId} col={A.color} />
+        <span onClick={() => { setAId(bId); setBId(aId); }} title="Tauschen"
+          style={{ cursor: "pointer", color: C.dim, border: `1px solid ${C.line}`, borderRadius: 8, padding: "8px 10px", fontSize: 14, userSelect: "none" }}>⇄</span>
+        <Select value={bId} onChange={setBId} col={B.color} />
+      </div>
+
+      {same ? (
+        <div style={{ fontSize: 13, color: C.faint, textAlign: "center", padding: "10px 0" }}>
+          Wähle zwei <b style={{ color: C.dim }}>verschiedene</b> Autos für den Vergleich.
+        </div>
+      ) : (
+        <>
+          {!d.curated && (
+            <div style={{ fontSize: 11, color: C.faint, marginBottom: 8 }}>Datengetriebener Vergleich · kein redaktionelles Fazit für diese Paarung hinterlegt.</div>
+          )}
+          {d.curated && (
+            <div style={{ fontSize: 12, color: C.amber, fontWeight: 600, marginBottom: 8 }}>{d.tagline}</div>
+          )}
+          <p style={{ fontSize: 13.5, lineHeight: 1.65, color: C.ink, margin: "0 0 16px" }}>{d.intro}</p>
+
+          {/* Vergleichstabelle (3-Spalten-Grid) */}
+          <div style={{ border: `1px solid ${C.line}`, borderRadius: 10, overflow: "hidden", marginBottom: d.blocks.length || d.note ? 16 : 14 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1.05fr 1fr 1fr" }}>
+              <div style={{ padding: "9px 11px", background: C.panelHi, fontSize: 11, color: C.faint }} />
+              {[A, B].map((v) => (
+                <div key={v.id} style={{ padding: "9px 11px", background: C.panelHi, display: "flex", alignItems: "center", gap: 6, fontSize: 12.5, fontWeight: 650, borderLeft: `1px solid ${C.line}` }}>
+                  <span style={{ width: 9, height: 9, borderRadius: 2, background: v.color, flexShrink: 0 }} />
+                  <span style={{ color: v.color }}>{v.short}</span>
+                </div>
+              ))}
+            </div>
+            {d.rows.map((r, i) => (
+              <div key={i} style={{ display: "grid", gridTemplateColumns: "1.05fr 1fr 1fr", borderTop: `1px solid ${C.line}` }}>
+                <div style={{ padding: "9px 11px", fontSize: 12, color: C.dim, lineHeight: 1.4 }}>{r.f}</div>
+                {r.cells.map((c, j) => (
+                  <div key={j} style={{ padding: "9px 11px", fontSize: 12.5, color: C.ink, lineHeight: 1.45, borderLeft: `1px solid ${C.line}` }}>{c}</div>
+                ))}
+              </div>
+            ))}
+          </div>
+
+          {/* Detail-Blöcke (kuratiert) */}
+          {d.blocks.map((b, i) => (
+            <div key={i} style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 13.5, fontWeight: 650, color: C.ink, marginBottom: 4 }}>{b.h}</div>
+              <p style={{ fontSize: 13, lineHeight: 1.6, color: C.dim, margin: 0 }}>{b.body}</p>
+            </div>
+          ))}
+
+          {d.note && (
+            <div style={{ display: "flex", gap: 9, alignItems: "flex-start", background: C.panelHi, borderRadius: 9, padding: "10px 12px", marginBottom: 16 }}>
+              <span style={{ color: C.amber, flexShrink: 0 }}>⚠️</span>
+              <span style={{ fontSize: 12.5, color: C.dim, lineHeight: 1.55 }}>{d.note}</span>
+            </div>
+          )}
+
+          {/* Verdikt je Auto */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }} className="grid2">
+            {d.verdict.map(({ v, text }) => (
+              <div key={v.id} style={{ background: C.panelHi, borderRadius: 9, padding: "11px 13px", borderTop: `2px solid ${v.color}` }}>
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: v.color, marginBottom: 4 }}>{v.short}</div>
+                <div style={{ fontSize: 12.5, color: C.ink, lineHeight: 1.55 }}>{text}</div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function App() {
   const [sel, setSel] = useState(() => new Set(["auris-hyb"]));
   const [w, setW] = useState(() => Object.fromEntries(PRIO.map((p) => [p.key, p.def])));
@@ -764,6 +997,9 @@ export default function App() {
           Silhouetten auf die <b style={{ color: C.dim }}>echten Längen & Höhen</b> skaliert (gleicher Maßstab, Karosserietyp, Überhänge & Radstand modelliert); nach rechts wischen für die längeren Fahrzeuge.
           Bewusst Vektor-Silhouetten statt Fotos: herstellereigene Bilder sind urheberrechtlich geschützt und würden im Tool nicht zuverlässig laden – dafür sind diese exakt proportional.
         </div>
+
+        {/* ---------- DIREKTVERGLEICH ---------- */}
+        <Versus annFor={annFor} />
 
         {/* ---------- STECKBRIEFE ---------- */}
         <div className="eyebrow" style={{ marginBottom: 10 }}>Steckbriefe · Forenfazit & typische Fehler</div>

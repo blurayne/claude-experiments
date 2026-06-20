@@ -724,6 +724,166 @@ const WINTER = [{
   problems: ["Kurzstrecke im Winter = Worst Case: Direkteinspritzer neigen zu Ventil-Verkokung; Kraftstoff verdünnt das Öl, der Motor wird nie richtig warm.", "Turbo: Kaltstart + sofortige Last ist Gift für die Lager; bei Kurzstrecke erreicht das Öl nie Temperatur → Verschleiß/Verschlammung.", "Zündspulen-Schwäche (bekannter Serienfehler bis ~2018) zeigt sich gern bei Kälte/Feuchte mit Ruckeln/Aussetzern."],
   routine: ["Ölwechsel im Kurzstrecken-/Winterbetrieb verkürzen, korrektes Öl verwenden; ab und zu eine längere Fahrt zum „Freibrennen“.", "Kalt sanft fahren, nicht hochdrehen; nach zügiger Fahrt den Turbo kurz nachlaufen lassen.", "Thermostat/Warmlauf prüfen: wird er nicht warm = Thermostat hängt (mehr Verschleiß + schlechte Heizung).", "Zündspulen-/Kerzen-Historie checken; bei Kalt-Ruckeln zuerst dort suchen."]
 }];
+// ---------- Direktvergleich: Daten + Komponente (precompiled) ----------
+const DUELS = {
+  "auris-hyb|civic": {
+    tagline: "Laderaum-Meister vs. Stadt-Spar-Hybrid",
+    intro: "Civic Tourer und Auris Touring Sports 1.8 Hybrid sind zwei der praktischsten, zuverl\xE4ssigsten Kompakt-Kombis am Gebrauchtmarkt \u2013 sie l\xF6sen Alltagstauglichkeit aber v\xF6llig unterschiedlich. Die Wahl h\xE4ngt davon ab, was du priorisierst: maximale Laderaum-Flexibilit\xE4t und Fahrdynamik (Honda) gegen Stadt-Sparsamkeit und kompromisslos einfache, langlebige Technik (Toyota).",
+    rows: [
+      { f: "Prim\xE4rmotor", v: { "civic": "1.8 i-VTEC Benziner (R18) \xB7 142 PS", "auris-hyb": "1.8 Vollhybrid (HSD) \xB7 136 PS" } },
+      { f: "Antriebscharakter", v: { "civic": "Schalter/Automatik, drehfreudig, mechanisch", "auris-hyb": "e-CVT, stufenlos, sanft & linear" } },
+      { f: "Kofferraum (Sitze oben)", v: { "civic": "624 L (Klassenbester)", "auris-hyb": "530 L" } },
+      { f: "Max. Laderaum", v: { "civic": "1.668 L + \u201EMagic Seats\u201C", "auris-hyb": "1.658 L (planer Boden)" } },
+      { f: "Bestes Revier", v: { "civic": "Autobahn, lange Strecke", "auris-hyb": "Stadt, Stop-and-go" } }
+    ],
+    blocks: [
+      { h: "1. Laderaum & Praxis: die Honda-Vorstellung", body: "Wenn maximales Ladevolumen und Variabilit\xE4t z\xE4hlen, gewinnt der Civic Tourer klar. 624 L bei aufrechter R\xFCckbank schlagen viele Autos eine Klasse h\xF6her \u2013 m\xF6glich, weil Honda den Tank unter die Vordersitze verlegt hat (riesiges Unterflurfach). Die \u201EMagic Seats\u201C klappen die R\xFCcksitzfl\xE4chen senkrecht hoch (wie Kinosessel), sodass Fahrr\xE4der, hohe Kisten oder Pflanzen stehend im Fond mitfahren. Der Auris TS bleibt mit 530 L, niedriger Ladekante und planem Boden sehr praktisch, hat aber nicht das schiere Volumen und die clevere Raumnutzung." },
+      { h: "2. Antrieb & Fahrdynamik", body: "Der Unterschied ist Tag und Nacht. Der Toyota-Hybrid ist \xFCber die e-CVT extrem geschmeidig im Verkehr, lautlos bei niedrigem Tempo, ohne Kupplung, Anlasser, Lichtmaschine, Turbo oder Steuerkettensorgen \u2013 minimaler Wartungsaufwand. Kompromiss: bei Volllast/Steigung dreht der Benziner hoch und h\xE4lt ein konstantes, lautes Dr\xF6hnen (typischer CVT-Effekt), bis du vom Gas gehst. Der Civic f\xFChlt sich traditioneller und mechanischer an, mit pr\xE4ziser Lenkung und exzellenter Hochgeschwindigkeits-Stabilit\xE4t \u2013 der Sauger braucht aber Drehzahl f\xFCr Leistung und ist in der Stadt durstiger." },
+      { h: "3. Real-Verbrauch & Wartung", body: "Wo f\xE4hrst du am meisten? Stadt & Umland: Der Auris Hybrid gl\xE4nzt \u2013 4,0\u20134,5 L/100 km im Stop-and-go durch Rekuperation; die Bremsbel\xE4ge halten oft \xFCber 100.000 km. Autobahn: Der Civic ist bei hohem Tempo souver\xE4ner und stabiler; bei stetigen 120\u2013130 km/h schmilzt der Vorsprung des Hybrids, weil er dann stark am Benziner h\xE4ngt." }
+    ],
+    note: "Bauteil-Hinweis: Es gibt den Civic Tourer auch als 1.6 i-DTEC Diesel \u2013 ein Langstrecken-Star (sub-4 L/100 km), aber nur sinnvoll mit regelm\xE4\xDFigen Langstrecken, damit der Dieselpartikelfilter (DPF) frei brennt. F\xFCr \xFCberwiegend Kurzstrecke in der Stadt ist der Toyota-Hybrid die mechanisch sichere Wahl.",
+    verdict: {
+      "civic": "Nimm den Civic Tourer, wenn du regelm\xE4\xDFig sperriges Gut l\xE4dst, den klassenbesten Kofferraum brauchst, viel Autobahn f\xE4hrst und eine traditionellere, dynamischere Fahrposition mit sch\xE4rferem Handling willst.",
+      "auris-hyb": "Nimm den Auris Hybrid, wenn du stressfreies Automatik-Pendeln willst, \xFCberwiegend in der Stadt/Umland f\xE4hrst, minimalen Wartungsaufwand sch\xE4tzt und einen sanften, entspannten Antrieb bevorzugst."
+    }
+  },
+  "auris-hyb|octavia": {
+    tagline: "Zuverl\xE4ssigkeit vs. Raumwunder",
+    intro: "Beides sind klassen\xFCbliche Kombis, aber mit unterschiedlicher DNA: der Octavia ist das Raum- und Preis-Leistungs-Wunder, der Auris Hybrid die wartungsarme Zuverl\xE4ssigkeits-Bank. Der Octavia gibt dir am meisten Auto pro Euro und die einzige fast gestreckte Schlaffl\xE4che; der Auris die geringste Pannenwahrscheinlichkeit und Stadt-Sparsamkeit \u2013 daf\xFCr dr\xF6hnt sein e-CVT auf der Autobahn.",
+    rows: [
+      { f: "Motor", v: { "octavia": "1.5 TSI ACT \xB7 150 PS \xB7 Schalt/DSG", "auris-hyb": "1.8 Vollhybrid \xB7 136 PS \xB7 e-CVT" } },
+      { f: "Kofferraum", v: { "octavia": "610 / 1.740 L (Klassenbester)", "auris-hyb": "530 / 1.658 L" } },
+      { f: "Schlafen", v: { "octavia": "\u22481,95 m \u2013 fast gestreckt", "auris-hyb": "\u22481,55 m \u2013 nur diagonal" } },
+      { f: "Zuverl\xE4ssigkeit", v: { "octavia": "Mittel \u2013 1.5 TSI/DSG als Restrisiko", "auris-hyb": "Top \u2013 Hybrid seit 20+ Jahren bew\xE4hrt" } },
+      { f: "Autobahn-Ruhe", v: { "octavia": "Solide, etwas polternd", "auris-hyb": "Benziner dr\xF6hnt unter Last" } }
+    ],
+    blocks: [],
+    note: "Beim Octavia das Schaltgetriebe + l\xFCckenloses Scheckheft w\xE4hlen \u2013 das senkt das TSI/DSG-Risiko deutlich. Beim Auris auf den dokumentierten Hybrid-Check und die 12-V-St\xFCtzbatterie achten.",
+    verdict: {
+      "octavia": "Nimm den Octavia, wenn du maximalen Platz, die beste Schlaffl\xE4che und das meiste Auto f\xFCrs Geld willst \u2013 und mit Schaltgetriebe + Scheckheft das TSI/DSG-Risiko minimierst.",
+      "auris-hyb": "Nimm den Auris Hybrid, wenn maximale Zuverl\xE4ssigkeit und minimaler Wartungsaufwand \xFCber allem stehen und du viel in der Stadt f\xE4hrst."
+    }
+  },
+  "a4avant|insignia": {
+    tagline: "Premium-Ruhe vs. g\xFCnstiger Cruiser",
+    intro: "Die beiden leisesten Langstreckler des Felds \u2013 beide treffen deinen Autobahn-Ruhe-Wunsch, aber von zwei Enden: der A4 mit Premium-Laufruhe und Wertanmutung, der Insignia mit Mittelklasse-Komfort zum Kleinwagenpreis. Der A4 ist am teuersten im Unterhalt, der Insignia am g\xFCnstigsten im Kauf.",
+    rows: [
+      { f: "Motor", v: { "a4avant": "2.0 TFSI \xB7 150 PS \xB7 Schalt/S tronic", "insignia": "1.6 SIDI Turbo \xB7 170 PS" } },
+      { f: "Kaufpreis (Richtwert)", v: { "a4avant": "\u2248 14.000 \u20AC", "insignia": "\u2248 9.000 \u20AC" } },
+      { f: "Autobahn-Ruhe", v: { "a4avant": "Premium, sehr satt", "insignia": "Satter, leiser Cruiser" } },
+      { f: "Zuverl\xE4ssigkeit", v: { "a4avant": "B9 ab 2016 entsch\xE4rft", "insignia": "Steuerkette/Wasserpumpe beachten" } },
+      { f: "Unterhalt", v: { "a4avant": "Am teuersten der Runde", "insignia": "H\xF6her als Kompakte, Teile aber g\xFCnstig" } }
+    ],
+    blocks: [],
+    note: "Beide am Budget-Rand bekommst du eher mit h\xF6herer Laufleistung. Der A4 belohnt mit Wertanmutung, der Insignia mit dem meisten Auto pro Euro.",
+    verdict: {
+      "a4avant": "Nimm den A4 Avant, wenn du Premium-Laufruhe und Wertanmutung willst und h\xF6here Reparaturkosten akzeptierst \u2013 am Budget-Rand aber nur \xE4ltere/laufst\xE4rkere Exemplare.",
+      "insignia": "Nimm den Insignia, wenn du den leisesten Cruiser f\xFCr kleines Geld suchst und etwas h\xF6here Unterhalts-/Reparaturkosten f\xFCr sehr viel Auto pro Euro in Kauf nimmst."
+    }
+  }
+};
+const SUGGEST = [
+  { a: "civic", b: "auris-hyb" },
+  { a: "auris-hyb", b: "octavia" },
+  { a: "a4avant", b: "insignia" }
+];
+const vById = (id) => VEH.find((v) => v.id === id);
+function buildDuel(aId, bId, annFor) {
+  const A = vById(aId), B = vById(bId);
+  const cur = DUELS[[aId, bId].sort().join("|")];
+  if (cur) {
+    return {
+      curated: true,
+      tagline: cur.tagline,
+      intro: cur.intro,
+      note: cur.note,
+      blocks: cur.blocks || [],
+      rows: cur.rows.map((r) => ({ f: r.f, cells: [r.v[aId], r.v[bId]] })),
+      verdict: [{ v: A, text: cur.verdict[aId] }, { v: B, text: cur.verdict[bId] }]
+    };
+  }
+  const annA = annFor(A), annB = annFor(B);
+  const pick = (better) => better;
+  const parts = [`${(A.priceNow <= B.priceNow ? A : B).short} ist g\xFCnstiger im Kauf`];
+  if (A.rel !== B.rel) parts.push(`${pick(A.rel > B.rel ? A : B).short} ist zuverl\xE4ssiger`);
+  if (A.quiet !== B.quiet) parts.push(`${pick(A.quiet > B.quiet ? A : B).short} ist leiser auf der Autobahn`);
+  if (A.bootMax !== B.bootMax) parts.push(`${pick(A.bootMax > B.bootMax ? A : B).short} schluckt mehr`);
+  parts.push(`${(annA <= annB ? A : B).short} ist im Jahr g\xFCnstiger im Unterhalt`);
+  const dots = (v, key) => /* @__PURE__ */ React.createElement(Dots, { n: v[key], color: v.color });
+  return {
+    curated: false,
+    tagline: "Datenvergleich",
+    note: null,
+    blocks: [],
+    intro: `${A.short} gegen ${B.short}, direkt gegen\xFCbergestellt. ` + parts.join(", ") + ". F\xFCr ein redaktionelles Fazit nutze die vorgeschlagenen Duelle oben.",
+    rows: [
+      { f: "Motor", cells: [A.motor, B.motor] },
+      { f: "Verbrauch Stadt", cells: [A.cons.Stadt + " L", B.cons.Stadt + " L"] },
+      { f: "Verbrauch 140 km/h", cells: [A.cons["140"] + " L", B.cons["140"] + " L"] },
+      { f: "Kofferraum", cells: [`${A.boot} / ${A.bootMax} L`, `${B.boot} / ${B.bootMax} L`] },
+      { f: "Zuverl\xE4ssigkeit", cells: [dots(A, "rel"), dots(B, "rel")] },
+      { f: "Autobahn-Ruhe", cells: [dots(A, "quiet"), dots(B, "quiet")] },
+      { f: "Schlafen", cells: [dots(A, "sleep"), dots(B, "sleep")] },
+      { f: "Kaufpreis", cells: [euro(A.priceNow), euro(B.priceNow)] },
+      { f: "Jahreskosten", cells: [euro(annA), euro(annB)] }
+    ],
+    verdict: [{ v: A, text: A.fit }, { v: B, text: B.fit }]
+  };
+}
+function Versus({ annFor }) {
+  const [aId, setAId] = useState("civic");
+  const [bId, setBId] = useState("auris-hyb");
+  const A = vById(aId), B = vById(bId);
+  const same = aId === bId;
+  const d = same ? null : buildDuel(aId, bId, annFor);
+  const selStyle = (col) => ({
+    width: "100%",
+    appearance: "none",
+    WebkitAppearance: "none",
+    background: C.bg,
+    color: C.ink,
+    border: `1px solid ${col}`,
+    borderRadius: 9,
+    padding: "9px 11px",
+    fontSize: 14,
+    fontWeight: 600,
+    outline: "none",
+    cursor: "pointer",
+    fontFamily: "inherit"
+  });
+  const Select = ({ value, onChange, col }) => /* @__PURE__ */ React.createElement("select", { value, onChange: (e) => onChange(e.target.value), style: selStyle(col) }, VEH.map((v) => /* @__PURE__ */ React.createElement("option", { key: v.id, value: v.id, style: { background: C.panel } }, v.short)));
+  return /* @__PURE__ */ React.createElement("div", { className: "panel", style: { padding: 18, marginBottom: 24, borderLeft: `3px solid ${C.amber}` } }, /* @__PURE__ */ React.createElement("div", { className: "eyebrow", style: { marginBottom: 4, color: C.amber } }, "Direktvergleich \xB7 Head-to-Head"), /* @__PURE__ */ React.createElement("h2", { style: { marginBottom: 6 } }, "Zwei Autos Seite an Seite"), /* @__PURE__ */ React.createElement("p", { style: { fontSize: 12.5, color: C.dim, lineHeight: 1.6, margin: "0 0 14px" } }, "W\xE4hle zwei Kandidaten \u2013 oder nimm ein vorgeschlagenes Duell. Bekannte Paarungen bekommen ein redaktionelles Fazit, alle anderen einen datengetriebenen Vergleich aus den Fahrzeugwerten."), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 } }, SUGGEST.map((s) => {
+    const sa = vById(s.a), sb = vById(s.b);
+    const on = aId === s.a && bId === s.b || aId === s.b && bId === s.a;
+    const tag = DUELS[[s.a, s.b].sort().join("|")];
+    return /* @__PURE__ */ React.createElement(
+      "span",
+      {
+        key: s.a + s.b,
+        className: "chip",
+        onClick: () => {
+          setAId(s.a);
+          setBId(s.b);
+        },
+        style: { borderColor: on ? C.amber : C.line, background: on ? C.amber + "1E" : C.panel, alignItems: "flex-start", flexDirection: "column", gap: 2, padding: "8px 12px" }
+      },
+      /* @__PURE__ */ React.createElement("span", { style: { display: "flex", alignItems: "center", gap: 6, fontSize: 12.5 } }, /* @__PURE__ */ React.createElement("span", { style: { width: 8, height: 8, borderRadius: 2, background: sa.color } }), sa.short, /* @__PURE__ */ React.createElement("span", { style: { color: C.faint } }, "\u2694"), /* @__PURE__ */ React.createElement("span", { style: { width: 8, height: 8, borderRadius: 2, background: sb.color } }), sb.short),
+      tag && /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10.5, color: C.faint } }, tag.tagline)
+    );
+  })), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 10, alignItems: "center", marginBottom: 16 } }, /* @__PURE__ */ React.createElement(Select, { value: aId, onChange: setAId, col: A.color }), /* @__PURE__ */ React.createElement(
+    "span",
+    {
+      onClick: () => {
+        setAId(bId);
+        setBId(aId);
+      },
+      title: "Tauschen",
+      style: { cursor: "pointer", color: C.dim, border: `1px solid ${C.line}`, borderRadius: 8, padding: "8px 10px", fontSize: 14, userSelect: "none" }
+    },
+    "\u21C4"
+  ), /* @__PURE__ */ React.createElement(Select, { value: bId, onChange: setBId, col: B.color })), same ? /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, color: C.faint, textAlign: "center", padding: "10px 0" } }, "W\xE4hle zwei ", /* @__PURE__ */ React.createElement("b", { style: { color: C.dim } }, "verschiedene"), " Autos f\xFCr den Vergleich.") : /* @__PURE__ */ React.createElement(React.Fragment, null, !d.curated && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: C.faint, marginBottom: 8 } }, "Datengetriebener Vergleich \xB7 kein redaktionelles Fazit f\xFCr diese Paarung hinterlegt."), d.curated && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: C.amber, fontWeight: 600, marginBottom: 8 } }, d.tagline), /* @__PURE__ */ React.createElement("p", { style: { fontSize: 13.5, lineHeight: 1.65, color: C.ink, margin: "0 0 16px" } }, d.intro), /* @__PURE__ */ React.createElement("div", { style: { border: `1px solid ${C.line}`, borderRadius: 10, overflow: "hidden", marginBottom: d.blocks.length || d.note ? 16 : 14 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1.05fr 1fr 1fr" } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "9px 11px", background: C.panelHi, fontSize: 11, color: C.faint } }), [A, B].map((v) => /* @__PURE__ */ React.createElement("div", { key: v.id, style: { padding: "9px 11px", background: C.panelHi, display: "flex", alignItems: "center", gap: 6, fontSize: 12.5, fontWeight: 650, borderLeft: `1px solid ${C.line}` } }, /* @__PURE__ */ React.createElement("span", { style: { width: 9, height: 9, borderRadius: 2, background: v.color, flexShrink: 0 } }), /* @__PURE__ */ React.createElement("span", { style: { color: v.color } }, v.short)))), d.rows.map((r, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "grid", gridTemplateColumns: "1.05fr 1fr 1fr", borderTop: `1px solid ${C.line}` } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "9px 11px", fontSize: 12, color: C.dim, lineHeight: 1.4 } }, r.f), r.cells.map((c, j) => /* @__PURE__ */ React.createElement("div", { key: j, style: { padding: "9px 11px", fontSize: 12.5, color: C.ink, lineHeight: 1.45, borderLeft: `1px solid ${C.line}` } }, c))))), d.blocks.map((b, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { marginBottom: 14 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13.5, fontWeight: 650, color: C.ink, marginBottom: 4 } }, b.h), /* @__PURE__ */ React.createElement("p", { style: { fontSize: 13, lineHeight: 1.6, color: C.dim, margin: 0 } }, b.body))), d.note && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 9, alignItems: "flex-start", background: C.panelHi, borderRadius: 9, padding: "10px 12px", marginBottom: 16 } }, /* @__PURE__ */ React.createElement("span", { style: { color: C.amber, flexShrink: 0 } }, "\u26A0\uFE0F"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12.5, color: C.dim, lineHeight: 1.55 } }, d.note)), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }, className: "grid2" }, d.verdict.map(({ v, text }) => /* @__PURE__ */ React.createElement("div", { key: v.id, style: { background: C.panelHi, borderRadius: 9, padding: "11px 13px", borderTop: `2px solid ${v.color}` } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12.5, fontWeight: 700, color: v.color, marginBottom: 4 } }, v.short), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12.5, color: C.ink, lineHeight: 1.55 } }, text))))));
+}
+
 function App() {
   const [sel, setSel] = useState(() => new Set(["auris-hyb"]));
   const [w, setW] = useState(() => Object.fromEntries(PRIO.map(p => [p.key, p.def])));
@@ -1536,7 +1696,9 @@ function App() {
     style: {
       color: C.dim
     }
-  }, "echten L\xE4ngen & H\xF6hen"), " skaliert (gleicher Ma\xDFstab, Karosserietyp, \xDCberh\xE4nge & Radstand modelliert); nach rechts wischen f\xFCr die l\xE4ngeren Fahrzeuge. Bewusst Vektor-Silhouetten statt Fotos: herstellereigene Bilder sind urheberrechtlich gesch\xFCtzt und w\xFCrden im Tool nicht zuverl\xE4ssig laden \u2013 daf\xFCr sind diese exakt proportional."), /*#__PURE__*/React.createElement("div", {
+  }, "echten L\xE4ngen & H\xF6hen"), " skaliert (gleicher Ma\xDFstab, Karosserietyp, \xDCberh\xE4nge & Radstand modelliert); nach rechts wischen f\xFCr die l\xE4ngeren Fahrzeuge. Bewusst Vektor-Silhouetten statt Fotos: herstellereigene Bilder sind urheberrechtlich gesch\xFCtzt und w\xFCrden im Tool nicht zuverl\xE4ssig laden \u2013 daf\xFCr sind diese exakt proportional."), /*#__PURE__*/React.createElement(Versus, {
+    annFor
+  }), /*#__PURE__*/React.createElement("div", {
     className: "eyebrow",
     style: {
       marginBottom: 10
