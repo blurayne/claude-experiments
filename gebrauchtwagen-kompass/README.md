@@ -24,7 +24,12 @@ hilft, sie entlang eines realen Nutzungsprofils zu vergleichen:
 - **Bewertungs-Matrix:** Zuverlässigkeit, AB-Ruhe, Schlauf-/Schlaftauglichkeit
   und Laderaum als Punkte-Dots.
 - **Karosserie-Silhouetten & Größenvergleich** maßstäblich, inkl. Lade- und
-  Schlaflängen.
+  Schlaflängen — die Silhouetten sind jetzt **modellspezifisch** (eigene
+  Dachlinie/Proportionen je Auto statt generischer Karosserie-Schablone).
+- **Direktvergleich (Head-to-Head):** zwei Fahrzeuge per Selectbox
+  gegenüberstellen — kuratierte Duelle (z. B. Civic Tourer vs. Auris Hybrid,
+  Octavia vs. Auris, A4 vs. Insignia) mit redaktionellem Fazit, für alle
+  übrigen Paarungen ein datengetriebener Vergleich aus den Fahrzeugwerten.
 - **Klartext-Notizen** je Fahrzeug: typische Schwachstellen, Forenstimmung,
   Außenparker-Tauglichkeit und „passt-zu-dir"-Einschätzung.
 
