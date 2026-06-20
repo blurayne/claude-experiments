@@ -23,15 +23,25 @@ Everything runs in the browser:
 
 ### Features
 
-- **English / German** language selector — the whole UI and Senua's spoken language
+- **A cast of friends** — tap an avatar to switch between **Senua** (white blood cell),
+  **Rubina** (red blood cell), **Theo** (T-helper), **Kilian** (T-killer), **Denni**
+  (dendritic cell) and **Makro** (macrophage). Each has its own **voice**, colour and
+  character; switching reconnects so the new voice takes effect, and the shared memory
+  carries the conversation across.
+- **Idle nudges** — if the child is quiet for a random 5–15 s, the friend gently encourages
+  a question, shares a quick fact, or tells a **1–2 minute adventure story with a small
+  moral**. Normal answers stay to 1–2 short sentences.
+- **Text on/off toggle** — speech is the main channel, so on-screen captions are **off by
+  default**; flip them on with the 💬 button (saved in `localStorage`).
+- **English / German** language selector — the whole UI and the friends' spoken language
   switch, and the choice is saved in `localStorage`.
 - **Token counter** (top-left): the Realtime API reports token usage per response, which
   the app sums up. OpenAI doesn't expose your account balance to a browser, so you can set
   an optional **token budget** in settings; the pill then shows how many tokens are *left*
   against it (and turns red when nearly empty). Otherwise it shows tokens *used*.
 - **Secret memory**: the last ~10 exchanges are summarised into a short, private note in
-  `localStorage` and quietly injected into the system prompt on the next start, so Senua
-  can pick up where you left off. Clear it any time in settings.
+  `localStorage` and quietly injected into the system prompt on the next start, so the
+  friends can pick up where you left off. Clear it any time in settings.
 
 ## First-time setup (for a grown-up)
 

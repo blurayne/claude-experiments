@@ -101,7 +101,27 @@
   /* status + controls */
   .status { color: #fff; font-size: clamp(16px, 2.6vw, 20px); font-weight: 700; text-shadow: 0 2px 0 rgba(150,10,40,.4); min-height: 1.4em; text-align: center; }
 
-  .controls { display: flex; flex-direction: column; align-items: center; gap: 12px; padding-top: 4px; }
+  .controls { display: flex; flex-direction: column; align-items: center; gap: 10px; padding-top: 4px; }
+  .minirow { display: flex; gap: 10px; align-items: center; }
+
+  /* friends chooser */
+  .friendsbar { width: 100%; max-width: 760px; margin-top: 6px; }
+  .friendslabel { text-align: center; color: #fff; font-size: 13px; font-weight: 700; opacity: .9; text-shadow: 0 1px 0 rgba(150,10,40,.4); margin-bottom: 6px; }
+  .friends { display: flex; gap: 10px; justify-content: center; flex-wrap: nowrap; overflow-x: auto; padding: 4px 6px 8px; scrollbar-width: none; }
+  .friends::-webkit-scrollbar { display: none; }
+  .friend {
+    flex: 0 0 auto; border: none; background: transparent; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 4px; width: 64px;
+    font-family: var(--font); color: #fff;
+  }
+  .friend .av {
+    width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center;
+    font-size: 22px; background: #fff; box-shadow: 0 3px 0 rgba(150,10,40,.3);
+    border: 3px solid transparent; transition: transform .08s;
+  }
+  .friend .nm { font-size: 11px; font-weight: 700; line-height: 1.1; text-shadow: 0 1px 0 rgba(150,10,40,.4); }
+  .friend.active .av { border-color: #fff; transform: scale(1.08); box-shadow: 0 0 0 3px rgba(255,255,255,.45), 0 3px 0 rgba(150,10,40,.3); }
+  .friend:active .av { transform: scale(.94); }
   .talk {
     border: none; cursor: pointer; font-family: var(--font); font-weight: 800;
     background: var(--sun); color: #6a4b00; border-radius: 999px;
@@ -184,7 +204,7 @@
           <circle id="ring" cx="100" cy="104" r="80" fill="none" stroke="#ffffff" stroke-width="5" opacity="0.18"/>
           <g id="heroBody">
             <!-- pseudopod bumps + body -->
-            <g fill="#ffffff">
+            <g class="cellbody" fill="#ffffff">
               <circle cx="100" cy="100" r="62"/>
               <circle cx="55"  cy="78"  r="17"/>
               <circle cx="150" cy="92"  r="15"/>
@@ -192,7 +212,7 @@
               <circle cx="142" cy="138" r="14"/>
               <circle cx="100" cy="48"  r="13"/>
             </g>
-            <circle cx="100" cy="100" r="62" fill="#ffffff" stroke="#e7eef0" stroke-width="2"/>
+            <circle class="cellbody" cx="100" cy="100" r="62" fill="#ffffff" stroke="#e7eef0" stroke-width="2"/>
             <!-- cheeks -->
             <ellipse cx="74" cy="112" rx="11" ry="7" fill="#ffc2cf"/>
             <ellipse cx="126" cy="112" rx="11" ry="7" fill="#ffc2cf"/>
@@ -214,7 +234,15 @@
 
       <div class="controls">
         <button class="talk" id="talkBtn"></button>
-        <button class="mini" id="muteBtn" hidden></button>
+        <div class="minirow">
+          <button class="mini" id="muteBtn" hidden></button>
+          <button class="mini off" id="textBtn"></button>
+        </div>
+      </div>
+
+      <div class="friendsbar">
+        <div class="friendslabel" id="friendsLabel"></div>
+        <div class="friends" id="friends"></div>
       </div>
     </div>
   </div>
@@ -241,12 +269,7 @@
       </div>
 
       <div class="field">
-        <label for="voiceInput" data-i18n="label_voice">Senua's voice</label>
-        <select id="voiceInput"></select>
-      </div>
-
-      <div class="field">
-        <label for="instrInput" data-i18n="label_instr">What should Senua be like?</label>
+        <label for="instrInput" id="instrLabel">What should this friend be like?</label>
         <textarea id="instrInput"></textarea>
         <div class="hint" data-i18n="hint_instr"></div>
       </div>
@@ -332,7 +355,8 @@ Senua: Mein Schild ist wie Magie: Er macht böse Keime harmlos!
 - Bei Fachbegriffen sage erst den Namen, dann die Erklärung: „Das nennt man Thymus – da lerne ich kämpfen."
 - Bleibe stets enthusiastisch und direkt im Gefühl der Abenteuerperspektive einer Zelle.
 - Keine langen Monologe; lieber mehrmaliges Nachfragen animieren.
-- Antworten nie länger als 2 Sätze. Wenn der User "kurz" verlangt, max. 5 Wörter pro Antwort.`;
+- Antworten nie länger als 2 Sätze. Wenn der User "kurz" verlangt, max. 5 Wörter pro Antwort.
+- Ausnahme Geschichten: Wenn das Kind eine Geschichte möchte oder länger still ist, erzähl eine spannende Abenteuer-Geschichte von etwa 1–2 Minuten mit einer kleinen, sanften Moral am Ende.`;
 
 const INSTR_EN =
 `You are the white blood cell "Senua". Speak as part of the immune system with a seven-year-old child. Answer every question about immune cells and germs in a child-friendly, exciting and friendly way. Speak fast, casual and never preachy. Keep answers short, in single sentences. Weave in stories of adventures against viruses, toxins, fungi and bacteria with Senua's friends. Say what your favourite organs are (for example the heart or the thymus) and mention friends (e.g. T-cells, macrophages). Share experiences so the child has fun and gains new knowledge without being overwhelmed. Give your answers at the knowledge level of a ten-year-old: you know exactly what each individual immune cell does, and you can name all the organs of the body and their function. You have a little memory and briefly summarise the last ten or so questions for yourself, so you can pick up on earlier conversations.
@@ -374,7 +398,52 @@ Senua: My shield is like magic: it makes nasty germs harmless!
 - For technical terms, say the name first, then the explanation: "That's called the thymus — that's where I learn to fight."
 - Stay enthusiastic and direct, in the adventurous feeling of a cell's perspective.
 - No long monologues; rather encourage repeated questions.
-- Answers never longer than 2 sentences. If the user asks for "short", max 5 words per answer.`;
+- Answers never longer than 2 sentences. If the user asks for "short", max 5 words per answer.
+- Story exception: if the child asks for a story or has been quiet for a while, tell an exciting adventure story of about 1–2 minutes with a small, gentle moral at the end.`;
+
+// ---------- shared rules for the non-Senua friends ----------
+const SHARED_DE =
+`Du gehörst zum Immunsystem und sprichst mit einem etwa siebenjährigen Kind, gibst aber Antworten auf dem Wissensniveau einer Zehnjährigen. Du weißt genau, was jede Immunzelle tut, und kannst alle Organe des Körpers und ihre Funktion benennen. Sprich schnell, warmherzig, lebendig und nie belehrend. Halte Antworten auf 1–2 kurze Sätze und lade danach immer zum Weiterfragen ein („Frag ruhig weiter!"). Baue kleine Abenteuer-Geschichten ein und erwähne ab und zu deine Freunde: Senua (weiße Blutzelle), Rubina (rote Blutzelle), Theo (T-Helferzelle), Kilian (T-Killerzelle), Denni (dendritische Zelle) und Makro (Makrophage). Erkläre Fachbegriffe mit einfachen Worten: erst der Name, dann die Erklärung. Du hast ein kleines Gedächtnis und knüpfst natürlich an frühere Gespräche an. Sei niemals gruselig. Ausnahme Geschichten: Wenn das Kind eine Geschichte möchte oder länger still ist, erzähl eine spannende Abenteuer-Geschichte von etwa ein bis zwei Minuten mit einer kleinen, sanften Moral am Ende – sonst bleibe bei ein bis zwei kurzen Sätzen.`;
+const SHARED_EN =
+`You are part of the immune system and you talk with a child of about seven, but you give answers at the knowledge level of a ten-year-old. You know exactly what each immune cell does and can name all the organs of the body and their function. Speak fast, warm, lively and never preachy. Keep answers to 1–2 short sentences and always invite the next question ("Keep asking!"). Weave in little adventure stories and now and then mention your friends: Senua (white blood cell), Rubina (red blood cell), Theo (T-helper cell), Kilian (T-killer cell), Denni (dendritic cell) and Makro (macrophage). Explain technical terms in simple words: first the name, then the explanation. You have a little memory and pick up on earlier conversations naturally. Never be scary. Story exception: if the child asks for a story or has been quiet for a while, tell an exciting adventure story of about one to two minutes with a small, gentle moral at the end — otherwise stick to one or two short sentences.`;
+
+// ---------- the cast (each friend has its own voice, colour & character) ----------
+const CHARACTERS = [
+  { id:"senua", emoji:"⚪", voice:"coral", body:"#ffffff", accent:"#18b6a6", scale:1,
+    name:{ en:"Senua", de:"Senua" }, role:{ en:"white blood cell", de:"weiße Blutzelle" },
+    instr:{ en:INSTR_EN, de:INSTR_DE } },
+
+  { id:"rubina", emoji:"🔴", voice:"shimmer", body:"#e23b50", accent:"#ff8fa0", scale:0.96,
+    name:{ en:"Rubina", de:"Rubina" }, role:{ en:"red blood cell", de:"rote Blutzelle" },
+    char:{
+      de:`Du bist Rubina, eine rote Blutzelle. Du bist eine flinke, fröhliche Botin und lieferst Sauerstoff durch den ganzen Körper – von der Lunge bis in die Zehen. Du bist immer in Eile, liebst das Herz (deine Pumpe!) und erzählst begeistert von deinen rasanten Reisen durch die Blutbahn.`,
+      en:`You are Rubina, a red blood cell. You're a speedy, cheerful courier who carries oxygen all around the body — from the lungs to the toes. You're always in a hurry, you love the heart (your pump!) and you talk excitedly about your fast rides through the bloodstream.` } },
+
+  { id:"theo", emoji:"🛡️", voice:"cedar", body:"#9ed0ff", accent:"#2b6cff", scale:1,
+    name:{ en:"Theo", de:"Theo" }, role:{ en:"T-helper cell", de:"T-Helferzelle" },
+    char:{
+      de:`Du bist Theo, eine T-Helferzelle. Du bist der ruhige Kommandant des Immunsystems: Du erkennst Gefahren, gibst Befehle und bringst das ganze Team zusammen. Du sprichst überlegt, freundlich und ein bisschen weise, lobst deine Freunde und erklärst gern, wer welche Aufgabe hat.`,
+      en:`You are Theo, a T-helper cell. You're the calm commander of the immune system: you spot danger, give orders and bring the whole team together. You speak thoughtfully, kindly and a little wisely, you praise your friends and love explaining who does which job.` } },
+
+  { id:"kilian", emoji:"⚔️", voice:"ash", body:"#c8a2ff", accent:"#7a3bd0", scale:1.02,
+    name:{ en:"Kilian", de:"Kilian" }, role:{ en:"T-killer cell", de:"T-Killerzelle" },
+    char:{
+      de:`Du bist Kilian, eine T-Killerzelle. Du bist der mutige Beschützer: Du spürst kranke, von Viren befallene Zellen auf und schaltest sie vorsichtig aus, damit der Körper gesund bleibt. Du bist tapfer und entschlossen, aber immer freundlich und beruhigend zum Kind – niemals gruselig.`,
+      en:`You are Kilian, a cytotoxic T-killer cell. You're the brave protector: you track down sick, virus-infected cells and carefully switch them off so the body stays healthy. You're courageous and determined, but always friendly and reassuring to the child — never scary.` } },
+
+  { id:"denni", emoji:"🔎", voice:"sage", body:"#ffd27a", accent:"#e0892a", scale:1,
+    name:{ en:"Denni", de:"Denni" }, role:{ en:"dendritic cell", de:"dendritische Zelle" },
+    char:{
+      de:`Du bist Denni, eine dendritische Zelle. Du bist die neugierige Späherin und Nachrichten-Botin: Du sammelst Hinweise über Eindringlinge und zeigst sie den T-Zellen, damit alle wissen, wer der Böse ist. Du bist verspielt, schlau und erklärst Dinge wie eine begeisterte Entdeckerin.`,
+      en:`You are Denni, a dendritic cell. You're the curious scout and news-messenger: you collect clues about invaders and show them to the T-cells so everyone knows who the bad guy is. You're playful, clever and explain things like an excited explorer.` } },
+
+  { id:"makro", emoji:"🟢", voice:"echo", body:"#86e08a", accent:"#2e9e6b", scale:1.12,
+    name:{ en:"Makro", de:"Makro" }, role:{ en:"macrophage", de:"Makrophage" },
+    char:{
+      de:`Du bist Makro, eine Makrophage. Du bist ein großer, gutmütiger Vielfraß: Du verschlingst Bakterien, Staub und alte Zellen und machst überall sauber. Du bist stark, gemütlich und immer hungrig, lachst viel und erzählst stolz, wie viel du heute schon weggeputzt hast.`,
+      en:`You are Makro, a macrophage. You're a big, good-natured gobbler: you swallow bacteria, dust and old cells and clean up everywhere. You're strong, easy-going and always hungry, you laugh a lot and proudly tell how much you've cleaned up today.` } },
+];
+const SHARED = { de: SHARED_DE, en: SHARED_EN };
 
 // ---------- translations ----------
 const I18N = {
@@ -420,8 +489,8 @@ const I18N = {
     label_lang: "Language",
     label_key: "OpenAI API key",
     label_voice: "Senua's voice",
-    label_instr: "What should Senua be like?",
-    hint_instr: "Senua talks in simple, kid-friendly words and replies in the chosen language. Tweak the personality here.",
+    label_instr: "What should $c be like?",
+    hint_instr: "This friend talks in simple, kid-friendly words and replies in the chosen language. Edit the selected friend's personality here.",
     label_model: "Realtime model",
     hint_model: "Default: <code>gpt-realtime</code>.",
     btn_forget: "Forget key",
@@ -438,8 +507,11 @@ const I18N = {
     hint_budget: "OpenAI can't tell the browser your real account quota, so set your own budget here — the pill top-left then shows how many tokens are left. Used so far: $u.",
     btn_reset: "Reset",
     label_memory: "Senua's memory",
-    hint_memory: "Senua keeps a short, private summary of your last 10 chats on this device and quietly remembers it next time. Saved chats: $n.",
+    hint_memory: "Your friends keep a short, private summary of your last 10 chats on this device and quietly remember it next time. Saved chats: $n.",
     btn_clearmem: "Clear memory",
+    text_on: "💬 Text on",
+    text_off: "💬 Text off",
+    friends_label: "Talk to a friend:",
   },
   de: {
     doc_title: "White Hero — sprich mit deinem Immunsystem-Buddy!",
@@ -483,8 +555,8 @@ const I18N = {
     label_lang: "Sprache",
     label_key: "OpenAI-API-Schlüssel",
     label_voice: "Senuas Stimme",
-    label_instr: "Wie soll Senua sein?",
-    hint_instr: "Senua spricht in einfachen, kindgerechten Worten und antwortet in der gewählten Sprache. Passe die Persönlichkeit hier an.",
+    label_instr: "Wie soll $c sein?",
+    hint_instr: "Dieser Freund spricht in einfachen, kindgerechten Worten und antwortet in der gewählten Sprache. Bearbeite hier die Persönlichkeit des gewählten Freundes.",
     label_model: "Realtime-Modell",
     hint_model: "Standard: <code>gpt-realtime</code>.",
     btn_forget: "Schlüssel löschen",
@@ -501,14 +573,17 @@ const I18N = {
     hint_budget: "OpenAI verrät dem Browser dein echtes Kontingent nicht — lege also hier dein eigenes Budget fest, dann zeigt die Anzeige oben links, wie viele Tokens übrig sind. Bisher verbraucht: $u.",
     btn_reset: "Zurücksetzen",
     label_memory: "Senuas Gedächtnis",
-    hint_memory: "Senua merkt sich auf diesem Gerät eine kurze, private Zusammenfassung deiner letzten 10 Gespräche und erinnert sich beim nächsten Mal heimlich daran. Gespeicherte Gespräche: $n.",
+    hint_memory: "Deine Freunde merken sich auf diesem Gerät eine kurze, private Zusammenfassung deiner letzten 10 Gespräche und erinnern sich beim nächsten Mal heimlich daran. Gespeicherte Gespräche: $n.",
     btn_clearmem: "Gedächtnis löschen",
+    text_on: "💬 Text an",
+    text_off: "💬 Text aus",
+    friends_label: "Sprich mit einem Freund:",
   },
 };
 
 // ---------- persistence ----------
-const LS = { key:"whitehero.openai_key", voice:"whitehero.voice", instr:"whitehero.instructions", model:"whitehero.model", lang:"whitehero.lang", used:"whitehero.tokens_used", budget:"whitehero.token_budget", memory:"whitehero.memory" };
-const DEFAULTS = { voice:"coral", model:"gpt-realtime", instr:{ en:INSTR_EN, de:INSTR_DE } };
+const LS = { key:"whitehero.openai_key", instr:"whitehero.instructions", model:"whitehero.model", lang:"whitehero.lang", used:"whitehero.tokens_used", budget:"whitehero.token_budget", memory:"whitehero.memory", char:"whitehero.character", text:"whitehero.show_text" };
+const DEFAULTS = { model:"gpt-realtime" };
 const store = {
   get: (k, d="") => localStorage.getItem(LS[k]) ?? d,
   set: (k, v) => localStorage.setItem(LS[k], v),
@@ -522,8 +597,14 @@ function t(key, vars){
   if(vars) for(const k in vars) s = s.replace("$"+k, vars[k]);
   return s;
 }
-function defaultInstr(l){ return DEFAULTS.instr[l] || DEFAULTS.instr.en; }
-function instrBase(){ return store.get("instr") || defaultInstr(lang); }
+// ---------- characters ----------
+function currentChar(){ return CHARACTERS.find(c=>c.id===store.get("char","senua")) || CHARACTERS[0]; }
+function charName(c, l){ l=l||lang; return (c.name && (c.name[l]||c.name.en)) || c.id; }
+function charRole(c, l){ l=l||lang; return (c.role && (c.role[l]||c.role.en)) || ""; }
+function builtinInstr(c, l){ l=l||lang; return c.instr ? (c.instr[l]||c.instr.en) : ((c.char[l]||c.char.en) + "\n\n" + (SHARED[l]||SHARED.en)); }
+function loadOverrides(){ try{ const o=JSON.parse(store.get("instr","{}")); return (o && typeof o==="object") ? o : {}; }catch(_){ return {}; } }
+function saveOverrides(o){ store.set("instr", JSON.stringify(o)); }
+function charInstr(c, l){ l=l||lang; const o=loadOverrides(); return o[c.id+"."+l] || builtinInstr(c,l); }
 
 // ---------- token counter (usage reported by the Realtime API) ----------
 let tokensUsed = parseInt(store.get("used","0"),10) || 0;
@@ -577,8 +658,9 @@ function updateMemHint(){ if(memHint) memHint.textContent = t("hint_memory",{ n:
 const $ = (id) => document.getElementById(id);
 const talkBtn=$("talkBtn"), muteBtn=$("muteBtn"), statusEl=$("status");
 const sayEl=$("say"), sayWho=$("sayWho"), sayText=$("sayText");
-const scrim=$("scrim"), keyInput=$("keyInput"), voiceInput=$("voiceInput"), instrInput=$("instrInput"), modelInput=$("modelInput"), langInput=$("langInput");
+const scrim=$("scrim"), keyInput=$("keyInput"), instrInput=$("instrInput"), instrLabel=$("instrLabel"), modelInput=$("modelInput"), langInput=$("langInput");
 const budgetInput=$("budgetInput"), budgetHint=$("budgetHint"), memHint=$("memHint"), tokenPill=$("tokenPill");
+const textBtn=$("textBtn"), friendsEl=$("friends"), friendsLabel=$("friendsLabel");
 const heroBody=$("heroBody"), ringEl=$("ring"), smileEl=$("smile"), mouthEl=$("mouthOpen"), heroSvg=$("hero");
 const errbar=$("errbar"), errmsg=$("errmsg"), errtitle=$("errtitle"), erract=$("erract"), verEl=$("ver");
 
@@ -587,22 +669,44 @@ let pc=null, dc=null, localStream=null, connected=false, connecting=false, muted
 let audioCtx=null, micAnalyser=null, sinkAnalyser=null, rafId=null, talkingClass=false;
 let heroText="", kidText="";
 
-// ---------- apply language to the whole UI ----------
-const VOICES = ["coral","marin","cedar","alloy","ballad","echo","sage","shimmer","verse"];
-function voiceLabel(v){ const m=t("voice_"+v); return m==="voice_"+v ? (v[0].toUpperCase()+v.slice(1)) : m; }
-function updateVoiceOptions(){
-  const cur = voiceInput.value || store.get("voice", DEFAULTS.voice);
-  voiceInput.innerHTML = VOICES.map(v=>`<option value="${v}">${voiceLabel(v)}</option>`).join("");
-  voiceInput.value = cur;
+// ---------- text-display toggle (default OFF) ----------
+let showText = store.get("text","0")==="1";
+
+// ---------- friends UI + character visuals ----------
+function buildFriends(){
+  friendsEl.innerHTML = CHARACTERS.map(c=>
+    `<button class="friend" data-id="${c.id}" title="${charRole(c)}">
+       <span class="av" style="background:${c.body}">${c.emoji}</span>
+       <span class="nm">${charName(c)}</span>
+     </button>`).join("");
+  friendsEl.querySelectorAll(".friend").forEach(b=>{ b.onclick=()=>selectCharacter(b.dataset.id); });
+  markActiveFriend();
 }
+function markActiveFriend(){
+  const id = currentChar().id;
+  friendsEl.querySelectorAll(".friend").forEach(b=> b.classList.toggle("active", b.dataset.id===id));
+}
+function applyCharacter(){
+  const c = currentChar();
+  document.querySelectorAll("#hero .cellbody").forEach(el=> el.setAttribute("fill", c.body));
+  heroSvg.style.transform = `scale(${c.scale||1})`;
+  heroSvg.setAttribute("aria-label", charName(c)+" — "+charRole(c));
+  markActiveFriend();
+}
+
+// ---------- apply language to the whole UI ----------
 function applyLang(){
   document.documentElement.lang = lang;
   document.querySelectorAll("[data-i18n]").forEach(el=>{ el.textContent = t(el.dataset.i18n); });
   document.querySelectorAll("[data-i18n-html]").forEach(el=>{ el.innerHTML = t(el.dataset.i18nHtml); });
   document.querySelectorAll("[data-i18n-title]").forEach(el=>{ el.title = t(el.dataset.i18nTitle); });
-  updateVoiceOptions();
   langInput.value = lang;
+  friendsLabel.textContent = t("friends_label");
+  buildFriends();
+  if(instrLabel) instrLabel.textContent = t("label_instr",{ c: charName(currentChar()) });
   muteBtn.textContent = muted ? t("mic_off") : t("mic_on");
+  textBtn.textContent = showText ? t("text_on") : t("text_off");
+  textBtn.classList.toggle("off", !showText);
   if(!connected && !connecting){ talkBtn.innerHTML = t("talk_idle"); statusEl.textContent = t("status_idle"); }
   updateTokenPill(); updateBudgetHint(); updateMemHint();
 }
@@ -654,12 +758,21 @@ function showError(msg, opts){
 function hideError(){ errbar.hidden=true; errmsg.textContent=""; erract.hidden=true; }
 $("errclose").onclick=hideError;
 
-// ---------- speech bubble ----------
+// ---------- speech bubble (respects the text toggle) ----------
 function showSay(role, text){
+  if(!showText){ sayEl.classList.remove("show"); sayEl.style.display="none"; return; }
+  sayEl.style.display="";
   sayEl.classList.toggle("kid", role==="kid");
   sayWho.textContent = role==="kid" ? t("who_kid") : t("who_hero");
   sayText.textContent = text;
   sayEl.classList.add("show");
+}
+function setShowText(on){
+  showText = on;
+  store.set("text", on ? "1" : "0");
+  textBtn.textContent = showText ? t("text_on") : t("text_off");
+  textBtn.classList.toggle("off", !showText);
+  if(!showText){ sayEl.classList.remove("show"); sayEl.style.display="none"; }
 }
 
 // ---------- deployed version (latest commit touching white-hero) ----------
@@ -696,9 +809,8 @@ function openSettings(){
   loadVersion();
   langInput.value = lang;
   keyInput.value = store.get("key");
-  updateVoiceOptions();
-  voiceInput.value = store.get("voice", DEFAULTS.voice);
-  instrInput.value = instrBase();
+  instrLabel.textContent = t("label_instr",{ c: charName(currentChar()) });
+  instrInput.value = charInstr(currentChar());
   modelInput.value = store.get("model", DEFAULTS.model);
   budgetInput.value = tokenBudget() ? String(tokenBudget()) : "";
   updateBudgetHint(); updateMemHint();
@@ -712,13 +824,16 @@ $("settingsBtn").onclick=()=>openSettings();
 // switching language in the modal previews + persists it immediately
 langInput.onchange=()=>{
   const nl = langInput.value;
+  const c = currentChar();
   const cur = instrInput.value.trim();
-  // if the personality box still shows a default, swap it to the new language's default
-  if(cur==="" || cur===defaultInstr(lang)) instrInput.value = defaultInstr(nl);
+  // if the personality box still shows the built-in text, swap it to the new language's version
+  if(cur==="" || cur===builtinInstr(c, lang)) instrInput.value = charInstr(c, nl);
   lang = nl;
   store.set("lang", nl);
   applyLang();
+  applyCharacter();
   refreshModalHead();
+  instrLabel.textContent = t("label_instr",{ c: charName(c) });
   if(connected) sendSessionConfig();
 };
 
@@ -726,10 +841,11 @@ $("saveBtn").onclick=()=>{
   const k=keyInput.value.trim();
   if(k) store.set("key",k); else store.del("key");
   store.set("lang", langInput.value);
-  store.set("voice", voiceInput.value);
-  const customInstr = instrInput.value.trim();
-  if(customInstr && customInstr !== defaultInstr(langInput.value)) store.set("instr", customInstr);
-  else store.del("instr");
+  // personality override is stored per character + language
+  const lcode = langInput.value, c = currentChar(), val = instrInput.value.trim();
+  const ov = loadOverrides();
+  if(val && val !== builtinInstr(c, lcode)) ov[c.id+"."+lcode] = val; else delete ov[c.id+"."+lcode];
+  saveOverrides(ov);
   store.set("model", modelInput.value.trim() || DEFAULTS.model);
   const b = parseInt(budgetInput.value,10) || 0;
   if(b>0) store.set("budget", String(b)); else store.del("budget");
@@ -799,16 +915,52 @@ function stopAnim(){
 function sessionConfig(){
   return { type:"session.update", session:{
     type:"realtime",
-    instructions: instrBase() + memoryBlock(),
+    instructions: charInstr(currentChar()) + memoryBlock(),
     audio:{
       input:{ transcription:{ model:"gpt-4o-mini-transcribe" },
               turn_detection:{ type:"server_vad", create_response:true, interrupt_response:true } },
-      output:{ voice: store.get("voice", DEFAULTS.voice) },
+      output:{ voice: currentChar().voice },
     },
   }};
 }
 function sendSessionConfig(){
   if(dc && dc.readyState==="open"){ try{ dc.send(JSON.stringify(sessionConfig())); }catch(e){ console.warn(e); } }
+}
+function askToSpeak(instr){
+  if(dc && dc.readyState==="open"){ try{ dc.send(JSON.stringify({ type:"response.create", response:{ instructions: instr } })); }catch(e){ console.warn(e); } }
+}
+
+// ---------- proactive greeting + idle nudges ----------
+function greetNow(){
+  const c = currentChar();
+  askToSpeak(lang==="de"
+    ? `Begrüße das Kind kurz, fröhlich und in einem Satz als ${charName(c)} (${charRole(c)}) und lade es ein, dir etwas zu fragen.`
+    : `Greet the child briefly and cheerfully in one sentence as ${charName(c)} (${charRole(c)}) and invite them to ask you something.`);
+}
+let idleTimer=null;
+const IDLE_MIN=5000, IDLE_MAX=15000;
+function cancelIdle(){ if(idleTimer){ clearTimeout(idleTimer); idleTimer=null; } }
+function scheduleIdle(){
+  cancelIdle();
+  if(!connected || muted) return;
+  idleTimer = setTimeout(fireIdle, IDLE_MIN + Math.random()*(IDLE_MAX-IDLE_MIN));
+}
+function idlePrompt(){
+  const p = Math.floor(Math.random()*3);
+  const de = [
+    "Das Kind ist still. Ermutige es freundlich in einem kurzen Satz, dir etwas zu fragen.",
+    "Das Kind ist still. Erzähl jetzt eine spannende Abenteuer-Geschichte aus dem Immunsystem, etwa ein bis zwei Minuten lang, mit einer kleinen sanften Moral am Ende. Lade danach zum Weiterfragen ein.",
+    "Das Kind ist still. Nenne einen coolen, kurzen Fakt über ein Organ oder eine Immunzelle in ein bis zwei Sätzen und frag, ob es mehr hören will." ];
+  const en = [
+    "The child is quiet. Warmly encourage them in one short sentence to ask you something.",
+    "The child is quiet. Now tell an exciting adventure story from the immune system, about one to two minutes long, with a small gentle moral at the end. Then invite another question.",
+    "The child is quiet. Share one cool short fact about an organ or an immune cell in one or two sentences and ask if they want to hear more." ];
+  return (lang==="de"?de:en)[p];
+}
+function fireIdle(){
+  idleTimer=null;
+  if(!connected || muted || !dc || dc.readyState!=="open") return;
+  askToSpeak(idlePrompt());
 }
 
 // ---------- friendly error mapping ----------
@@ -856,7 +1008,7 @@ async function connect(){
     try{ micAnalyser=makeAnalyser(localStream); }catch(_){}
 
     dc=pc.createDataChannel("oai-events");
-    dc.addEventListener("open", ()=>{ sendSessionConfig(); onConnected(); });
+    dc.addEventListener("open", ()=>{ sendSessionConfig(); onConnected(); greetNow(); });
     dc.addEventListener("message", onEvent);
     dc.addEventListener("close", ()=>{ if(connected) hangup(); });
 
@@ -888,6 +1040,7 @@ function onConnected(){
   setStatus(t("listening_full"));
   showSay("hero", t("greeting"));
   startAnim();
+  scheduleIdle();
 }
 function hangup(){
   cleanup(); connected=false; connecting=false;
@@ -897,6 +1050,7 @@ function hangup(){
   stopAnim();
 }
 function cleanup(){
+  cancelIdle();
   try{ if(dc) dc.close(); }catch(_){}
   try{ if(pc){ pc.getSenders().forEach(s=>s.track&&s.track.stop()); pc.close(); } }catch(_){}
   try{ if(localStream) localStream.getTracks().forEach(t=>t.stop()); }catch(_){}
@@ -930,13 +1084,26 @@ function onEvent(e){
   }
 
   switch(ty){
-    case "input_audio_buffer.speech_started": setStatus(t("listening")); break;
+    case "input_audio_buffer.speech_started": cancelIdle(); setStatus(t("listening")); break;
     case "input_audio_buffer.speech_stopped": setStatus(t("thinking")); break;
-    case "response.created": heroText=""; setStatus(t("talking")); break;
+    case "response.created": cancelIdle(); heroText=""; setStatus(t("talking")); break;
     case "response.done":
       if(ev.response && ev.response.usage && typeof ev.response.usage.total_tokens==="number") addUsage(ev.response.usage.total_tokens);
-      if(connected) setStatus(t("your_turn"));
+      if(connected){ setStatus(t("your_turn")); scheduleIdle(); }
       break;
+  }
+}
+
+// ---------- switching friends ----------
+function selectCharacter(id){
+  if(id===currentChar().id) return;
+  store.set("char", id);
+  applyCharacter();
+  if(instrLabel) instrLabel.textContent = t("label_instr",{ c: charName(currentChar()) });
+  if(connected){
+    // reconnect so the new character's voice definitely takes effect
+    hangup();
+    setTimeout(()=>{ ensureAudioCtx(); connect(); }, 250);
   }
 }
 
@@ -948,11 +1115,15 @@ muteBtn.onclick=()=>{
   localStream.getAudioTracks().forEach(tr=>tr.enabled=!muted);
   muteBtn.classList.toggle("off",muted);
   muteBtn.textContent = muted ? t("mic_off") : t("mic_on");
+  if(muted) cancelIdle(); else if(connected) scheduleIdle();
 };
+textBtn.onclick=()=> setShowText(!showText);
 window.addEventListener("beforeunload", ()=>{ if(connected) cleanup(); });
 
 // ---------- init ----------
 applyLang();
+applyCharacter();
+if(!showText){ sayEl.style.display="none"; }
 if(!store.get("key")) openSettings();
 </script>
 </body>
