@@ -1,4 +1,4 @@
-# White Hero — talk to your immune-system buddy
+# White Heroes — talk to your immune-system buddies
 
 A browser voice app for kids (~7–10 years). You tap one big button and **talk out
 loud** to **Senua**, a brave white blood cell who lives in the body's immune system.
