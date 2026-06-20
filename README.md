@@ -15,6 +15,7 @@ A collection of small, self-contained experiments. Each subfolder is one experim
 - [climate-report](climate-report/) — Interactive climate-trend dashboard for Munich (warming trend with extrapolation to 2036, extremes, monthly heatmap, precipitation/sun/UV), built from real LMU and DWD data.
 - [gebrauchtwagen-kompass](gebrauchtwagen-kompass/) — Interactive used-car comparison dashboard (German) in a marine-compass theme: speed-dependent fuel curves, total cost of ownership, reliability dots and scale silhouettes.
 - [palestine-my-ass](palestine-my-ass/) — Interactive German fact-check page examining six accusations against journalist Sophie von der Tann, weighing each claim against counterpoints with verdict labels (light/dark theme).
+- [white-hero](white-hero/) — A kids' (~8 yrs) browser voice app: talk out loud to "Welly", a friendly white blood cell, powered by the OpenAI Realtime API (speech↔speech over WebRTC) with an animated SVG character and audio-reactive visuals.
 
 ## How the site is built
 

@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>White Hero — talk to your immune-system buddy!</title>
+<style>
+  :root {
+    --ink: #2a1622;
+    --bubble: #ffffff;
+    --kid: #1f7ae0;       /* the child speaking */
+    --hero: #18b6a6;      /* Welly the white blood cell */
+    --sun: #ffd23f;       /* big friendly button */
+    --sun-d: #f0b400;
+    --stop: #ff5a5f;
+    --radius: 26px;
+    --font: "Baloo 2", "Comic Sans MS", "Chalkboard SE", "Comic Neue", "Trebuchet MS", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: var(--font); color: var(--ink); overflow: hidden;
+    min-height: 100dvh; position: relative;
+    background: #aa1c41;
+    background:
+      radial-gradient(120% 90% at 50% -10%, #ff9bb0 0%, #e8456b 46%, #aa1c41 100%);
+  }
+
+  /* drifting bloodstream bits */
+  .bg { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+  .rbc, .germ {
+    position: absolute; will-change: transform; opacity: .55;
+    animation: drift linear infinite;
+  }
+  .rbc {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: radial-gradient(circle at 50% 50%, #b81f46 0 32%, #e64f72 34%, #ff9ab0 72%);
+    box-shadow: inset 0 0 8px rgba(120,10,40,.5);
+  }
+  @keyframes drift {
+    from { transform: translateY(110vh) rotate(0deg); }
+    to   { transform: translateY(-30vh) rotate(360deg); }
+  }
+  .germ svg { display: block; }
+
+  /* ---- layout ---- */
+  .wrap {
+    position: relative; z-index: 2; height: 100dvh;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 14px 16px calc(18px + env(safe-area-inset-bottom));
+  }
+  .topbar { width: 100%; max-width: 760px; display: flex; align-items: center; gap: 10px; }
+  .logo { display: flex; align-items: center; gap: 10px; color: #fff; text-shadow: 0 2px 0 rgba(150,10,40,.4); }
+  .logo .pip { width: 34px; height: 34px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 4px rgba(255,255,255,.35), 0 3px 8px rgba(120,0,30,.4); display: grid; place-items: center; }
+  .logo .pip::after { content: "🦠"; font-size: 16px; }
+  .logo h1 { font-size: 21px; margin: 0; font-weight: 800; letter-spacing: .3px; }
+  .topbar .spacer { flex: 1; }
+  .grown {
+    border: none; background: rgba(255,255,255,.85); width: 44px; height: 44px;
+    border-radius: 14px; font-size: 20px; cursor: pointer; box-shadow: 0 3px 0 rgba(150,10,40,.3);
+  }
+  .grown:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(150,10,40,.3); }
+
+  .stage { flex: 1; width: 100%; max-width: 760px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; min-height: 0; }
+
+  /* speech bubble */
+  .say {
+    background: var(--bubble); color: var(--ink); border-radius: var(--radius);
+    padding: 14px 18px; max-width: 90%; font-size: clamp(17px, 2.6vw, 22px); font-weight: 600;
+    line-height: 1.35; box-shadow: 0 8px 0 rgba(150,10,40,.18), 0 14px 30px rgba(120,0,30,.25);
+    position: relative; text-align: center; min-height: 1.4em;
+    transition: opacity .2s; opacity: 0; max-height: 34vh; overflow-y: auto;
+  }
+  .say.show { opacity: 1; }
+  .say::after { content: ""; position: absolute; bottom: -13px; left: 50%; transform: translateX(-50%);
+    border: 11px solid transparent; border-top-color: var(--bubble); border-bottom: 0; }
+  .say.kid { background: var(--kid); color: #fff; }
+  .say.kid::after { border-top-color: var(--kid); }
+  .say .who { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; opacity: .55; margin-bottom: 2px; }
+
+  /* the hero character */
+  .heroBox { width: min(58vw, 270px); height: min(58vw, 270px); display: grid; place-items: center; }
+  svg.hero { width: 100%; height: 100%; overflow: visible; }
+  #heroBody { transform-box: fill-box; transform-origin: 50% 60%; animation: bob 2.4s ease-in-out infinite; }
+  #heroBody.talking { animation: bob 0.9s ease-in-out infinite; }
+  @keyframes bob { 0%,100%{ transform: translateY(0) } 50%{ transform: translateY(-9px) } }
+  .eye-lid { transform-box: fill-box; transform-origin: center; transform: scaleY(1); }
+  .blink .eye-lid { animation: blink .28s ease; }
+  @keyframes blink { 50% { transform: scaleY(.08); } }
+
+  /* status + controls */
+  .status { color: #fff; font-size: clamp(16px, 2.6vw, 20px); font-weight: 700; text-shadow: 0 2px 0 rgba(150,10,40,.4); min-height: 1.4em; text-align: center; }
+
+  .controls { display: flex; flex-direction: column; align-items: center; gap: 12px; padding-top: 4px; }
+  .talk {
+    border: none; cursor: pointer; font-family: var(--font); font-weight: 800;
+    background: var(--sun); color: #6a4b00; border-radius: 999px;
+    font-size: clamp(20px, 3.4vw, 26px); padding: 18px 40px; min-height: 68px;
+    box-shadow: 0 7px 0 var(--sun-d), 0 12px 22px rgba(120,0,30,.3);
+    display: inline-flex; align-items: center; gap: 12px; transition: transform .06s;
+  }
+  .talk:active { transform: translateY(5px); box-shadow: 0 2px 0 var(--sun-d), 0 6px 14px rgba(120,0,30,.3); }
+  .talk.live { background: var(--stop); color: #fff; box-shadow: 0 7px 0 #d83a3f, 0 12px 22px rgba(120,0,30,.3); }
+  .talk[disabled] { opacity: .6; }
+  .mini {
+    border: none; cursor: pointer; font-family: var(--font); font-weight: 700;
+    background: rgba(255,255,255,.85); color: var(--ink); border-radius: 999px;
+    font-size: 15px; padding: 9px 18px; box-shadow: 0 4px 0 rgba(150,10,40,.25);
+  }
+  .mini:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(150,10,40,.25); }
+  .mini.off { background: #ffd9dc; color: #b3231f; }
+  .mini[hidden] { display: none; }
+
+  /* ---- grown-ups modal ---- */
+  .scrim { position: fixed; inset: 0; background: rgba(40,8,20,.55); display: none; align-items: center; justify-content: center; padding: 18px; z-index: 60; backdrop-filter: blur(3px); }
+  .scrim.show { display: flex; }
+  .modal { background: #fff; border-radius: 22px; width: 100%; max-width: 470px; padding: 24px; box-shadow: 0 20px 60px rgba(80,0,30,.4); max-height: 92dvh; overflow-y: auto; font-family: system-ui, sans-serif; }
+  .modal h2 { margin: 0 0 4px; font-size: 20px; }
+  .modal .lead { margin: 0 0 16px; color: #6b5560; font-size: 14px; }
+  .field { margin-bottom: 15px; }
+  .field label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+  .field input, .field select, .field textarea {
+    width: 100%; padding: 11px 12px; border: 1.5px solid #ead7df; border-radius: 11px;
+    font: inherit; font-size: 14px; background: #fff; color: #2a1622;
+  }
+  .field textarea { resize: vertical; min-height: 80px; }
+  .field .hint { font-size: 12px; color: #8a7480; margin-top: 6px; }
+  .note { font-size: 12.5px; color: #6b5560; background: #fff5f7; border: 1px solid #ffd9e0; border-radius: 11px; padding: 11px 13px; margin-bottom: 16px; }
+  .note b { color: #b3231f; }
+  .modal .row { display: flex; gap: 10px; justify-content: flex-end; }
+  .mbtn { border: none; border-radius: 11px; padding: 11px 18px; font: inherit; font-weight: 700; cursor: pointer; }
+  .mbtn.primary { background: var(--hero); color: #fff; }
+  .mbtn.ghost { background: #f1e7ec; color: #2a1622; }
+  a { color: var(--kid); }
+</style>
+</head>
+<body>
+  <div class="bg" id="bg" aria-hidden="true"></div>
+
+  <div class="wrap">
+    <div class="topbar">
+      <div class="logo"><span class="pip"></span><h1>White&nbsp;Hero</h1></div>
+      <span class="spacer"></span>
+      <button class="grown" id="settingsBtn" title="Grown-ups">⚙️</button>
+    </div>
+
+    <div class="stage">
+      <div class="say" id="say"><div class="who" id="sayWho"></div><span id="sayText"></span></div>
+
+      <div class="heroBox">
+        <svg class="hero" id="hero" viewBox="0 0 200 200" role="img" aria-label="Welly the white blood cell">
+          <!-- reactive ripple ring -->
+          <circle id="ring" cx="100" cy="104" r="80" fill="none" stroke="#ffffff" stroke-width="5" opacity="0.18"/>
+          <g id="heroBody">
+            <!-- pseudopod bumps + body -->
+            <g fill="#ffffff">
+              <circle cx="100" cy="100" r="62"/>
+              <circle cx="55"  cy="78"  r="17"/>
+              <circle cx="150" cy="92"  r="15"/>
+              <circle cx="63"  cy="140" r="16"/>
+              <circle cx="142" cy="138" r="14"/>
+              <circle cx="100" cy="48"  r="13"/>
+            </g>
+            <circle cx="100" cy="100" r="62" fill="#ffffff" stroke="#e7eef0" stroke-width="2"/>
+            <!-- cheeks -->
+            <ellipse cx="74" cy="112" rx="11" ry="7" fill="#ffc2cf"/>
+            <ellipse cx="126" cy="112" rx="11" ry="7" fill="#ffc2cf"/>
+            <!-- eyes -->
+            <g>
+              <ellipse class="eye-lid" cx="82" cy="92" rx="11" ry="13" fill="#27313a"/>
+              <ellipse class="eye-lid" cx="118" cy="92" rx="11" ry="13" fill="#27313a"/>
+              <circle cx="86" cy="87" r="3.4" fill="#fff"/>
+              <circle cx="122" cy="87" r="3.4" fill="#fff"/>
+            </g>
+            <!-- mouth: smile (idle) + open (talking) -->
+            <path id="smile" d="M84 116 Q100 132 116 116" fill="none" stroke="#27313a" stroke-width="5" stroke-linecap="round"/>
+            <ellipse id="mouthOpen" cx="100" cy="120" rx="13" ry="4" fill="#b3434f" style="display:none"/>
+          </g>
+        </svg>
+      </div>
+
+      <div class="status" id="status">Tap the button and say hi! 👋</div>
+
+      <div class="controls">
+        <button class="talk" id="talkBtn">🎤 Tap to talk!</button>
+        <button class="mini" id="muteBtn" hidden>🔊 Mic on</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grown-ups modal -->
+  <div class="scrim" id="scrim">
+    <div class="modal">
+      <h2 id="modalTitle">Grown-ups: set up White Hero</h2>
+      <p class="lead" id="modalSub">Pop in an OpenAI key once and White Hero is ready to chat.</p>
+
+      <div class="note">
+        🔑 <b>You need an OpenAI <u>API key</u></b> (from <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">platform.openai.com/api-keys</a>) — a ChatGPT or Claude
+        subscription will <b>not</b> work, because this uses the pay-as-you-go Realtime API.
+        The key is saved <b>only in this browser</b> and sent only to OpenAI, so you enter it just once.
+      </div>
+
+      <div class="field">
+        <label for="keyInput">OpenAI API key</label>
+        <input id="keyInput" type="password" placeholder="sk-..." autocomplete="off" spellcheck="false" />
+      </div>
+
+      <div class="field">
+        <label for="voiceInput">Welly's voice</label>
+        <select id="voiceInput">
+          <option value="coral">Coral (bright &amp; friendly)</option>
+          <option value="marin">Marin (warm)</option>
+          <option value="cedar">Cedar (calm)</option>
+          <option value="alloy">Alloy</option>
+          <option value="ballad">Ballad</option>
+          <option value="echo">Echo</option>
+          <option value="sage">Sage</option>
+          <option value="shimmer">Shimmer</option>
+          <option value="verse">Verse</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="instrInput">What should Welly be like?</label>
+        <textarea id="instrInput"></textarea>
+        <div class="hint">Welly always talks in simple, kid-friendly words. Tweak the personality here.</div>
+      </div>
+
+      <div class="field">
+        <label for="modelInput">Realtime model</label>
+        <input id="modelInput" type="text" spellcheck="false" />
+        <div class="hint">Default: <code>gpt-realtime</code>.</div>
+      </div>
+
+      <div class="row">
+        <button class="mbtn ghost" id="forgetBtn">Forget key</button>
+        <button class="mbtn primary" id="saveBtn">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <audio id="sink" autoplay></audio>
+
+<script>
+"use strict";
+
+// ---------- persistence ----------
+const LS = { key:"whitehero.openai_key", voice:"whitehero.voice", instr:"whitehero.instructions", model:"whitehero.model" };
+const DEFAULTS = {
+  voice: "coral",
+  model: "gpt-realtime",
+  instr:
+    "You are Welly, a friendly white blood cell — a tiny superhero inside the body's immune " +
+    "system — talking with a child who is about 8 years old. Use short, simple sentences and a " +
+    "warm, playful, encouraging voice. You love explaining how the body fights germs and how " +
+    "things like sleep, washing hands, vegetables and exercise help your team stay strong. " +
+    "Keep answers to one or two sentences. Never be scary. If a question isn't right for kids " +
+    "or you don't know, gently say so and steer back to fun, healthy topics.",
+};
+const store = {
+  get: (k, d="") => localStorage.getItem(LS[k]) ?? d,
+  set: (k, v) => localStorage.setItem(LS[k], v),
+  del: (k) => localStorage.removeItem(LS[k]),
+};
+
+// ---------- DOM ----------
+const $ = (id) => document.getElementById(id);
+const talkBtn=$("talkBtn"), muteBtn=$("muteBtn"), statusEl=$("status");
+const sayEl=$("say"), sayWho=$("sayWho"), sayText=$("sayText");
+const scrim=$("scrim"), keyInput=$("keyInput"), voiceInput=$("voiceInput"), instrInput=$("instrInput"), modelInput=$("modelInput");
+const heroBody=$("heroBody"), ringEl=$("ring"), smileEl=$("smile"), mouthEl=$("mouthOpen"), heroSvg=$("hero");
+
+// ---------- state ----------
+let pc=null, dc=null, localStream=null, connected=false, connecting=false, muted=false;
+let audioCtx=null, micAnalyser=null, sinkAnalyser=null, rafId=null, talkingClass=false;
+let heroText="", kidText="";
+
+// ---------- background bits ----------
+(function buildBg(){
+  const bg=$("bg");
+  const germColors=["#7bdc6b","#c08bff","#ffb14a","#5ad1ff","#ff8fae"];
+  function germSVG(c){
+    return `<svg width="46" height="46" viewBox="0 0 46 46">
+      <g fill="${c}">${Array.from({length:9}).map((_,i)=>{const a=i/9*Math.PI*2;
+        return `<rect x="21.5" y="2" width="3" height="9" rx="1.5" transform="rotate(${i*40} 23 23)"/>`;}).join("")}
+      </g><circle cx="23" cy="23" r="13" fill="${c}"/>
+      <circle cx="19" cy="21" r="2.4" fill="#22323a"/><circle cx="27" cy="21" r="2.4" fill="#22323a"/>
+      <path d="M18 28 Q23 32 28 28" stroke="#22323a" stroke-width="2" fill="none" stroke-linecap="round"/></svg>`;
+  }
+  for(let i=0;i<7;i++){
+    const d=document.createElement("div"); d.className="rbc";
+    d.style.left=(Math.random()*100)+"vw";
+    d.style.animationDuration=(16+Math.random()*16)+"s";
+    d.style.animationDelay=(-Math.random()*20)+"s";
+    const s=.6+Math.random()*.9; d.style.transform=`scale(${s})`; d.style.opacity=.35+Math.random()*.3;
+    bg.appendChild(d);
+  }
+  for(let i=0;i<6;i++){
+    const d=document.createElement("div"); d.className="germ";
+    d.innerHTML=germSVG(germColors[i%germColors.length]);
+    d.style.left=(Math.random()*100)+"vw";
+    d.style.animationDuration=(20+Math.random()*18)+"s";
+    d.style.animationDelay=(-Math.random()*24)+"s";
+    d.style.opacity=.5;
+    bg.appendChild(d);
+  }
+})();
+
+// ---------- blinking ----------
+setInterval(()=>{ heroSvg.classList.add("blink"); setTimeout(()=>heroSvg.classList.remove("blink"),300); }, 3800);
+
+// ---------- status ----------
+function setStatus(t){ statusEl.textContent=t; }
+
+// ---------- speech bubble ----------
+function showSay(role, text){
+  sayEl.classList.toggle("kid", role==="kid");
+  sayWho.textContent = role==="kid" ? "You said" : "Welly says";
+  sayText.textContent = text;
+  sayEl.classList.add("show");
+}
+function hideSayLater(){ /* keep last line visible; no-op */ }
+
+// ---------- settings modal ----------
+function openSettings(first=false){
+  keyInput.value=store.get("key");
+  voiceInput.value=store.get("voice", DEFAULTS.voice);
+  instrInput.value=store.get("instr", DEFAULTS.instr);
+  modelInput.value=store.get("model", DEFAULTS.model);
+  $("modalTitle").textContent = first ? "Hi grown-up! 👋 Quick setup" : "Grown-ups: set up White Hero";
+  $("modalSub").textContent = first
+    ? "Add an OpenAI API key so White Hero can hear and talk back."
+    : "Update the key, Welly's voice, or personality.";
+  scrim.classList.add("show");
+  setTimeout(()=>keyInput.focus(),60);
+}
+function closeSettings(){ scrim.classList.remove("show"); }
+$("settingsBtn").onclick=()=>openSettings(false);
+$("saveBtn").onclick=()=>{
+  const k=keyInput.value.trim();
+  if(k) store.set("key",k); else store.del("key");
+  store.set("voice",voiceInput.value);
+  store.set("instr",instrInput.value.trim()||DEFAULTS.instr);
+  store.set("model",modelInput.value.trim()||DEFAULTS.model);
+  closeSettings();
+  if(connected) sendSessionConfig();
+};
+$("forgetBtn").onclick=()=>{ store.del("key"); keyInput.value=""; if(connected) hangup(); };
+scrim.onclick=(e)=>{ if(e.target===scrim) closeSettings(); };
+
+// ---------- audio analysers ----------
+function ensureAudioCtx(){
+  if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==="suspended") audioCtx.resume();
+  return audioCtx;
+}
+function makeAnalyser(stream){
+  const ctx=ensureAudioCtx();
+  const src=ctx.createMediaStreamSource(stream);
+  const an=ctx.createAnalyser(); an.fftSize=512; an.smoothingTimeConstant=0.8;
+  src.connect(an); // not wired to destination — playback is the <audio> sink
+  return an;
+}
+function rms(an){
+  if(!an) return 0;
+  const b=new Uint8Array(an.fftSize); an.getByteTimeDomainData(b);
+  let s=0; for(let i=0;i<b.length;i++){const v=(b[i]-128)/128; s+=v*v;}
+  return Math.sqrt(s/b.length);
+}
+
+// ---------- animation loop (the character reacts to sound) ----------
+function frame(){
+  const userLvl = muted?0:rms(micAnalyser);
+  const heroLvl = rms(sinkAnalyser);
+  const heroSpeaking = heroLvl>0.012 && heroLvl>=userLvl;
+  const lvl = Math.min(1, Math.max(userLvl,heroLvl)*3.4);
+
+  // ripple ring
+  ringEl.setAttribute("r", (78+lvl*26).toFixed(1));
+  ringEl.setAttribute("opacity", (0.12+lvl*0.34).toFixed(2));
+  ringEl.setAttribute("stroke", heroSpeaking ? "#bfeee8" : (userLvl>0.03?"#bfe0ff":"#ffffff"));
+
+  // mouth
+  if(heroSpeaking){
+    const ry=(3+Math.min(16,heroLvl*46)).toFixed(1);
+    mouthEl.setAttribute("ry", ry);
+    mouthEl.style.display=""; smileEl.style.display="none";
+  } else {
+    mouthEl.style.display="none"; smileEl.style.display="";
+  }
+
+  // bob speed
+  if(heroSpeaking!==talkingClass){ talkingClass=heroSpeaking; heroBody.classList.toggle("talking",heroSpeaking); }
+
+  rafId=requestAnimationFrame(frame);
+}
+function startAnim(){ if(!rafId) frame(); }
+function stopAnim(){
+  if(rafId) cancelAnimationFrame(rafId); rafId=null;
+  mouthEl.style.display="none"; smileEl.style.display="";
+  heroBody.classList.remove("talking"); talkingClass=false;
+  ringEl.setAttribute("r","80"); ringEl.setAttribute("opacity","0.18"); ringEl.setAttribute("stroke","#ffffff");
+}
+
+// ---------- realtime session config ----------
+function sessionConfig(){
+  return { type:"session.update", session:{
+    type:"realtime",
+    instructions: store.get("instr", DEFAULTS.instr),
+    audio:{
+      input:{ transcription:{ model:"gpt-4o-mini-transcribe" },
+              turn_detection:{ type:"server_vad", create_response:true, interrupt_response:true } },
+      output:{ voice: store.get("voice", DEFAULTS.voice) },
+    },
+  }};
+}
+function sendSessionConfig(){
+  if(dc && dc.readyState==="open"){ try{ dc.send(JSON.stringify(sessionConfig())); }catch(e){ console.warn(e); } }
+}
+
+// ---------- connect / hangup ----------
+async function connect(){
+  const key=store.get("key");
+  if(!key){ openSettings(true); return; }
+  if(connecting||connected) return;
+  connecting=true; talkBtn.disabled=true; setStatus("Waking up Welly… ✨");
+  try{
+    pc=new RTCPeerConnection();
+    pc.ontrack=(e)=>{ const stream=e.streams[0]; $("sink").srcObject=stream; try{ sinkAnalyser=makeAnalyser(stream); }catch(_){} };
+
+    localStream=await navigator.mediaDevices.getUserMedia({ audio:{ echoCancellation:true, noiseSuppression:true, autoGainControl:true } });
+    pc.addTrack(localStream.getAudioTracks()[0], localStream);
+    try{ micAnalyser=makeAnalyser(localStream); }catch(_){}
+
+    dc=pc.createDataChannel("oai-events");
+    dc.addEventListener("open", ()=>{ sendSessionConfig(); onConnected(); });
+    dc.addEventListener("message", onEvent);
+    dc.addEventListener("close", ()=>{ if(connected) hangup(); });
+
+    const offer=await pc.createOffer();
+    await pc.setLocalDescription(offer);
+
+    const model=store.get("model", DEFAULTS.model);
+    const resp=await fetch(`https://api.openai.com/v1/realtime/calls?model=${encodeURIComponent(model)}`, {
+      method:"POST", body:offer.sdp,
+      headers:{ Authorization:`Bearer ${key}`, "Content-Type":"application/sdp" },
+    });
+    if(!resp.ok){ throw new Error(`OpenAI ${resp.status}: ${(await resp.text()).slice(0,160)}`); }
+    await pc.setRemoteDescription({ type:"answer", sdp: await resp.text() });
+  }catch(err){
+    console.error(err);
+    setStatus("Oops! "+ (err.name==="NotAllowedError" ? "I need the microphone 🎤" : "Couldn't connect."));
+    showSay("hero", err.name==="NotAllowedError"
+      ? "Please let me use the microphone so I can hear you!"
+      : "Hmm, I couldn't connect. A grown-up can check the key in ⚙️.");
+    cleanup(); connecting=false; talkBtn.disabled=false;
+  }
+}
+function onConnected(){
+  connecting=false; connected=true; talkBtn.disabled=false;
+  talkBtn.classList.add("live"); talkBtn.innerHTML="⏹ Stop";
+  muteBtn.hidden=false;
+  setStatus("I'm listening! 👂 Just talk.");
+  showSay("hero", "Hi! I'm Welly, your tiny body hero. What do you want to talk about?");
+  startAnim();
+}
+function hangup(){
+  cleanup(); connected=false; connecting=false;
+  talkBtn.classList.remove("live"); talkBtn.innerHTML="🎤 Tap to talk!"; talkBtn.disabled=false;
+  muteBtn.hidden=true; muted=false; muteBtn.classList.remove("off"); muteBtn.textContent="🔊 Mic on";
+  setStatus("Bye for now! Tap to talk again. 👋");
+  stopAnim();
+}
+function cleanup(){
+  try{ if(dc) dc.close(); }catch(_){}
+  try{ if(pc){ pc.getSenders().forEach(s=>s.track&&s.track.stop()); pc.close(); } }catch(_){}
+  try{ if(localStream) localStream.getTracks().forEach(t=>t.stop()); }catch(_){}
+  dc=null; pc=null; localStream=null; micAnalyser=sinkAnalyser=null; heroText=kidText="";
+}
+
+// ---------- realtime events (match defensively across beta/GA names) ----------
+function onEvent(e){
+  let ev; try{ ev=JSON.parse(e.data); }catch(_){ return; }
+  const t=ev.type||"";
+
+  if(t==="error" || t.endsWith(".error")){
+    const msg=(ev.error&&(ev.error.message||ev.error.code))||"";
+    console.warn("realtime error:", ev);
+    if(/voice/i.test(msg)){ /* voice can't change mid-response; ignore */ }
+    return;
+  }
+
+  // child's words
+  if(t.includes("input_audio_transcription")){
+    if(t.endsWith("delta") && ev.delta){ kidText+=ev.delta; showSay("kid", kidText); }
+    else if(t.endsWith("completed")||t.endsWith("done")){ showSay("kid", ev.transcript||kidText); kidText=""; }
+    return;
+  }
+  // Welly's words
+  if(t.includes("output_audio_transcript")||t.includes("audio_transcript")||t.includes("output_text")){
+    if(t.endsWith("delta") && ev.delta){ heroText+=ev.delta; showSay("hero", heroText); }
+    else if(t.endsWith("done")){ if(ev.transcript) showSay("hero", ev.transcript); heroText=""; }
+    return;
+  }
+
+  switch(t){
+    case "input_audio_buffer.speech_started": setStatus("I'm listening! 👂"); break;
+    case "input_audio_buffer.speech_stopped": setStatus("Thinking… 🤔"); break;
+    case "response.created": heroText=""; setStatus("Talking… 💬"); break;
+    case "response.done": if(connected) setStatus("Your turn — talk to me! 🎤"); break;
+  }
+}
+
+// ---------- buttons ----------
+talkBtn.onclick=()=>{ if(connected) hangup(); else { ensureAudioCtx(); connect(); } };
+muteBtn.onclick=()=>{
+  if(!localStream) return;
+  muted=!muted;
+  localStream.getAudioTracks().forEach(tr=>tr.enabled=!muted);
+  muteBtn.classList.toggle("off",muted);
+  muteBtn.textContent=muted?"🔇 Mic off":"🔊 Mic on";
+};
+window.addEventListener("beforeunload", ()=>{ if(connected) cleanup(); });
+
+// ---------- first run ----------
+if(!store.get("key")) openSettings(true);
+</script>
+</body>
+</html>
