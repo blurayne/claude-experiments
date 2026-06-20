@@ -132,6 +132,21 @@
   .mbtn.primary { background: var(--hero); color: #fff; }
   .mbtn.ghost { background: #f1e7ec; color: #2a1622; }
   a { color: var(--kid); }
+
+  /* error bar (grown-up facing detail) */
+  .errbar {
+    position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom));
+    transform: translateX(-50%); z-index: 70; max-width: min(92vw, 560px);
+    display: flex; align-items: flex-start; gap: 10px;
+    background: #2a1622; color: #ffeef0; border: 1.5px solid #ff5a5f; border-radius: 14px;
+    padding: 12px 14px; box-shadow: 0 12px 34px rgba(60,0,20,.5);
+    font-family: system-ui, sans-serif; font-size: 13.5px; line-height: 1.4;
+  }
+  .errbar[hidden] { display: none; }
+  .errbar .etitle { font-weight: 700; color: #ff9ca0; margin-bottom: 2px; }
+  .errbar .ebody { flex: 1; min-width: 0; }
+  .errbar .emsg { word-break: break-word; white-space: pre-wrap; opacity: .92; }
+  .errbar .eclose { background: none; border: none; color: #ffb3b5; font-size: 17px; cursor: pointer; line-height: 1; padding: 0 2px; flex: 0 0 auto; }
 </style>
 </head>
 <body>
@@ -239,6 +254,11 @@
     </div>
   </div>
 
+  <div class="errbar" id="errbar" hidden role="alert">
+    <div class="ebody"><div class="etitle">Something went wrong</div><div class="emsg" id="errmsg"></div></div>
+    <button class="eclose" id="errclose" aria-label="Dismiss">✕</button>
+  </div>
+
   <audio id="sink" autoplay></audio>
 
 <script>
@@ -269,6 +289,7 @@ const talkBtn=$("talkBtn"), muteBtn=$("muteBtn"), statusEl=$("status");
 const sayEl=$("say"), sayWho=$("sayWho"), sayText=$("sayText");
 const scrim=$("scrim"), keyInput=$("keyInput"), voiceInput=$("voiceInput"), instrInput=$("instrInput"), modelInput=$("modelInput");
 const heroBody=$("heroBody"), ringEl=$("ring"), smileEl=$("smile"), mouthEl=$("mouthOpen"), heroSvg=$("hero");
+const errbar=$("errbar"), errmsg=$("errmsg");
 
 // ---------- state ----------
 let pc=null, dc=null, localStream=null, connected=false, connecting=false, muted=false;
@@ -309,8 +330,11 @@ let heroText="", kidText="";
 // ---------- blinking ----------
 setInterval(()=>{ heroSvg.classList.add("blink"); setTimeout(()=>heroSvg.classList.remove("blink"),300); }, 3800);
 
-// ---------- status ----------
+// ---------- status / errors ----------
 function setStatus(t){ statusEl.textContent=t; }
+function showError(msg){ errmsg.textContent=msg; errbar.hidden=false; }
+function hideError(){ errbar.hidden=true; errmsg.textContent=""; }
+$("errclose").onclick=hideError;
 
 // ---------- speech bubble ----------
 function showSay(role, text){
@@ -423,6 +447,7 @@ async function connect(){
   const key=store.get("key");
   if(!key){ openSettings(true); return; }
   if(connecting||connected) return;
+  hideError();
   connecting=true; talkBtn.disabled=true; setStatus("Waking up Welly… ✨");
   try{
     pc=new RTCPeerConnection();
@@ -449,15 +474,19 @@ async function connect(){
     await pc.setRemoteDescription({ type:"answer", sdp: await resp.text() });
   }catch(err){
     console.error(err);
-    setStatus("Oops! "+ (err.name==="NotAllowedError" ? "I need the microphone 🎤" : "Couldn't connect."));
-    showSay("hero", err.name==="NotAllowedError"
+    const mic = err.name==="NotAllowedError" || err.name==="NotFoundError";
+    setStatus("Oops! "+ (mic ? "I need the microphone 🎤" : "Couldn't connect."));
+    showSay("hero", mic
       ? "Please let me use the microphone so I can hear you!"
       : "Hmm, I couldn't connect. A grown-up can check the key in ⚙️.");
+    showError(mic
+      ? "Microphone blocked ("+err.name+"). Allow mic access for this page and try again."
+      : "Connection failed — "+(err.message||err.name||"unknown error"));
     cleanup(); connecting=false; talkBtn.disabled=false;
   }
 }
 function onConnected(){
-  connecting=false; connected=true; talkBtn.disabled=false;
+  connecting=false; connected=true; talkBtn.disabled=false; hideError();
   talkBtn.classList.add("live"); talkBtn.innerHTML="⏹ Stop";
   muteBtn.hidden=false;
   setStatus("I'm listening! 👂 Just talk.");
@@ -484,9 +513,9 @@ function onEvent(e){
   const t=ev.type||"";
 
   if(t==="error" || t.endsWith(".error")){
-    const msg=(ev.error&&(ev.error.message||ev.error.code))||"";
+    const msg=(ev.error&&(ev.error.message||ev.error.code))||"Unknown realtime error";
     console.warn("realtime error:", ev);
-    if(/voice/i.test(msg)){ /* voice can't change mid-response; ignore */ }
+    if(!/voice/i.test(msg)) showError(msg); // changing voice mid-response is benign
     return;
   }
 
