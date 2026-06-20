@@ -43,6 +43,38 @@ Everything runs in the browser:
   `localStorage` and quietly injected into the system prompt on the next start, so the
   friends can pick up where you left off. Clear it any time in settings.
 
+## Why OpenAI Realtime — and the other options
+
+This app uses the **OpenAI Realtime API** (`gpt-realtime`, speech↔speech over WebRTC)
+because it's a single end-to-end audio model with low latency, native barge-in, and a
+browser-friendly WebRTC handshake — a good fit for a no-backend static page. For
+reference, the realtime-voice landscape as of mid-2026:
+
+**Native speech-to-speech** (one model: audio in → audio out; lowest latency, richer audio
+understanding like tone/laughter, but locked to one model and weaker text reasoning):
+
+- **OpenAI Realtime API** — `gpt-realtime`, WebRTC/WebSocket (used here).
+- **Google Gemini Live API** — bidirectional audio/video over WebSocket.
+- **Amazon Nova Sonic** (Bedrock) — speech-to-speech model (~1.1 s TTFT).
+- **xAI Grok Voice Agent** — among the lowest measured latency (~0.78 s TTFT).
+- **Hume EVI** — emotionally-aware realtime voice.
+- **Azure OpenAI Realtime** — Microsoft-hosted `gpt-realtime`.
+- **Kyutai Moshi** — open, full-duplex speech-to-speech.
+
+**Pipeline / voice-agent stacks** (mix-and-match STT + LLM + TTS, or agent orchestration;
+swap any component and use a frontier text LLM, at a bit more latency): **AssemblyAI**
+Voice Agent, **Deepgram** Voice Agent, **ElevenLabs** Conversational AI, **Cartesia**,
+**Ultravox**, and frameworks like **LiveKit Agents / Pipecat / Vapi / Retell**.
+
+Note: **Anthropic/Claude has no native realtime speech API** (text only), so Claude would
+be used as the LLM *inside* a pipeline rather than as a speech-to-speech endpoint.
+
+Sources:
+[AssemblyAI](https://www.assemblyai.com/blog/best-speech-to-speech-voice-agent-api) ·
+[Inworld](https://inworld.ai/resources/best-realtime-ai-api) ·
+[GetStream](https://getstream.io/blog/speech-apis/) ·
+[Softcery](https://softcery.com/lab/ai-voice-agents-real-time-vs-turn-based-tts-stt-architecture)
+
 ## First-time setup (for a grown-up)
 
 Tap **⚙️** and paste an **OpenAI API key**:
