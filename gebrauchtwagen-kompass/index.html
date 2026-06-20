@@ -2820,6 +2820,23 @@ const BODY = {
   }
 };
 
+// ---------- Modellspezifische Silhouetten-Profile ----------
+// Überlagern das Basis-Karosserieprofil (BODY[t]) je Kandidat, damit jedes Auto
+// als es selbst erkennbar wird – eigene Dachlinie, Hauben-/Heckform, Proportionen.
+// Maßstab (Länge/Höhe) bleibt aus SIZE; hier nur die Form-Charakteristik (Deltas).
+// Die Referenzfahrzeuge (REF) haben keinen Eintrag und nutzen weiter BODY[t].
+const PROFILE = {
+  "auris-hyb": { foh: .17, roh: .19, cowl: .31, aTop: .46, re: .82, tt: .91, belt: .47 },
+  "auris-12t": { foh: .17, roh: .19, cowl: .31, aTop: .46, re: .82, tt: .91, belt: .47 },
+  "octavia":   { foh: .17, roh: .22, cowl: .29, aTop: .43, re: .87, tt: .95, belt: .48, rear: "vertical" },
+  "civic":     { foh: .16, roh: .18, cowl: .33, aTop: .47, re: .80, tt: .90, belt: .46, roof: .06, rear: "sloped" },
+  "ceed":      { foh: .18, roh: .20, cowl: .30, aTop: .45, re: .84, tt: .93, rear: "vertical" },
+  "duster":    { foh: .16, roh: .16, wd: .75, clr: .22, cowl: .26, aTop: .40, re: .85, tt: .94, belt: .44, rear: "vertical" },
+  "insignia":  { foh: .19, roh: .21, cowl: .32, aTop: .47, re: .83, tt: .92, belt: .49, hood: .45, nose: .55, rear: "sloped" },
+  "golfsv":    { foh: .16, roh: .14, cowl: .25, aTop: .39, re: .86, tt: .95, hood: .40, nose: .50, belt: .45, rear: "vertical" },
+  "a4avant":   { foh: .17, roh: .19, cowl: .33, aTop: .48, re: .82, tt: .91, belt: .50, hood: .46, nose: .56, clr: .12, wd: .66, rear: "sloped" }
+};
+
 // Referenzfahrzeuge aus deinem ursprünglichen Vergleichsbild
 const REF = [{
   id: "ref-aygo",
@@ -2919,13 +2936,14 @@ function CarSilhouette({
   type,
   color,
   totalW,
-  uid
+  uid,
+  shape
 }) {
   const w = l * PXPM,
     ch = h * PXPM,
     ground = ROWH - 7,
     topY = ground - ch;
-  const T = BODY[type];
+  const T = shape || BODY[type];
   const r = T.wd / 2 * PXPM,
     arch = r * 1.18;
   const fAx = T.foh * w,
@@ -3227,7 +3245,8 @@ function SizeChart({
     type: v.t,
     color: v.color,
     totalW: totalSil,
-    uid: v.id
+    uid: v.id,
+    shape: PROFILE[v.id] ? { ...BODY[v.t], ...PROFILE[v.id] } : undefined
   }))), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex"

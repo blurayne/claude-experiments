@@ -1135,6 +1135,31 @@ const BODY = {
   mpv:      { foh: .17, roh: .14, wd: .62, clr: .15, nose: .50, hood: .40, roof: .05, belt: .45, cowl: .25, aTop: .40, re: .84, tt: .94, bp: .55, rear: "vertical" },
 };
 
+// ---------- Modellspezifische Silhouetten-Profile ----------
+// Überlagern das Basis-Karosserieprofil (BODY[t]) je Kandidat, damit jedes Auto
+// als es selbst erkennbar wird – eigene Dachlinie, Hauben-/Heckform, Proportionen.
+// Maßstab (Länge/Höhe) bleibt aus SIZE; hier nur die Form-Charakteristik (Deltas).
+// Die Referenzfahrzeuge (REF) haben keinen Eintrag und nutzen weiter BODY[t].
+const PROFILE = {
+  // Toyota Auris/Corolla TS: kompakter Kombi, leicht gerakte Scheibe, kurzer Hintern.
+  "auris-hyb": { foh: .17, roh: .19, cowl: .31, aTop: .46, re: .82, tt: .91, belt: .47 },
+  "auris-12t": { foh: .17, roh: .19, cowl: .31, aTop: .46, re: .82, tt: .91, belt: .47 },
+  // Škoda Octavia Combi: langer, aufrechter Kombi, großes Glashaus, fast senkrechtes Heck.
+  "octavia":   { foh: .17, roh: .22, cowl: .29, aTop: .43, re: .87, tt: .95, belt: .48, rear: "vertical" },
+  // Honda Civic Tourer: sportlicher Kombi, stark gerakte Scheibe, zum Heck abfallendes Dach.
+  "civic":     { foh: .16, roh: .18, cowl: .33, aTop: .47, re: .80, tt: .90, belt: .46, roof: .06, rear: "sloped" },
+  // Kia Ceed SW: klassisch-konventioneller Kombi, langes Dach, leichte Rake.
+  "ceed":      { foh: .18, roh: .20, cowl: .30, aTop: .45, re: .84, tt: .93, rear: "vertical" },
+  // Dacia Duster: kantiges, hohes Kompakt-SUV, viel Bodenfreiheit, große Räder, aufrecht.
+  "duster":    { foh: .16, roh: .16, wd: .75, clr: .22, cowl: .26, aTop: .40, re: .85, tt: .94, belt: .44, rear: "vertical" },
+  // Opel Insignia ST: großer, flacher, eleganter Mittelklasse-Kombi, lange Haube, gerakt.
+  "insignia":  { foh: .19, roh: .21, cowl: .32, aTop: .47, re: .83, tt: .92, belt: .49, hood: .45, nose: .55, rear: "sloped" },
+  // VW Golf Sportsvan: hoher Kompaktvan, aufrechtes Glashaus, kurze Überhänge, One-Box-ig.
+  "golfsv":    { foh: .16, roh: .14, cowl: .25, aTop: .39, re: .86, tt: .95, hood: .40, nose: .50, belt: .45, rear: "vertical" },
+  // Audi A4 Avant: premium, flach, lange Haube, sehr gerakte Scheibe, schlank auslaufendes Heck.
+  "a4avant":   { foh: .17, roh: .19, cowl: .33, aTop: .48, re: .82, tt: .91, belt: .50, hood: .46, nose: .56, clr: .12, wd: .66, rear: "sloped" },
+};
+
 // Referenzfahrzeuge aus deinem ursprünglichen Vergleichsbild
 const REF = [
   { id: "ref-aygo", short: "Toyota Aygo (2019)", l: 3.46, h: 1.46, t: "citycar", boot: 168, bootMax: 812, color: "#8AA0A1" },
@@ -1156,9 +1181,9 @@ function shade(hex, amt) {
   return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
 }
 
-function CarSilhouette({ l, h, type, color, totalW, uid }) {
+function CarSilhouette({ l, h, type, color, totalW, uid, shape }) {
   const w = l * PXPM, ch = h * PXPM, ground = ROWH - 7, topY = ground - ch;
-  const T = BODY[type];
+  const T = shape || BODY[type];
   const r = (T.wd / 2) * PXPM, arch = r * 1.18;
   const fAx = T.foh * w, rAx = (1 - T.roh) * w, bottomY = ground - T.clr * PXPM;
   const noseY = topY + T.nose * ch, hoodY = topY + T.hood * ch, roofY = topY + T.roof * ch, beltY = topY + T.belt * ch;
@@ -1258,7 +1283,8 @@ function SizeChart({ rows }) {
               </div>
               <VolPair normal={v.boot} folded={v.bootMax} />
             </div>
-            <CarSilhouette l={v.l} h={v.h} type={v.t} color={v.color} totalW={totalSil} uid={v.id} />
+            <CarSilhouette l={v.l} h={v.h} type={v.t} color={v.color} totalW={totalSil} uid={v.id}
+              shape={PROFILE[v.id] ? { ...BODY[v.t], ...PROFILE[v.id] } : undefined} />
           </div>
         ))}
         <div style={{ display: "flex" }}>
