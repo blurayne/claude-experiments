@@ -72,14 +72,13 @@
   .tokens.low { background: #ffd9dc; color: #b3231f; }
   .tokens[hidden] { display: none; }
   .linklike { background: none; border: none; color: var(--kid); font: inherit; font-size: 12px; cursor: pointer; padding: 0; text-decoration: underline; }
-  /* tiny transcript on/off toggle, bottom-left */
+  /* tiny transcript on/off toggle, top-left of the bar */
   .textfab {
-    position: fixed; left: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 40;
-    width: 46px; height: 46px; border-radius: 50%; border: none; cursor: pointer;
-    background: rgba(255,255,255,.85); color: var(--ink); font-size: 20px;
-    box-shadow: 0 4px 0 rgba(150,10,40,.25); display: grid; place-items: center; line-height: 1;
+    border: none; cursor: pointer; width: 40px; height: 40px; border-radius: 13px;
+    background: rgba(255,255,255,.85); color: var(--ink); font-size: 19px;
+    box-shadow: 0 3px 0 rgba(150,10,40,.3); display: grid; place-items: center; line-height: 1;
   }
-  .textfab:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(150,10,40,.25); }
+  .textfab:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(150,10,40,.3); }
   .textfab.off { opacity: .55; }
 
   .stage { flex: 1; width: 100%; max-width: 760px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; min-height: 0; }
@@ -118,7 +117,8 @@
   /* friends chooser */
   .friendsbar { width: 100%; max-width: 760px; margin-top: 6px; }
   .friendslabel { text-align: center; color: #fff; font-size: 13px; font-weight: 700; opacity: .9; text-shadow: 0 1px 0 rgba(150,10,40,.4); margin-bottom: 6px; }
-  .friends { position: relative; display: flex; gap: 8px; justify-content: center; flex-wrap: nowrap; overflow: visible; padding: 24px 6px 6px; scrollbar-width: none; align-items: flex-end; transition: transform .24s cubic-bezier(.2,.85,.3,1); will-change: transform; }
+  .friends { position: relative; display: flex; gap: 8px; justify-content: center; flex-wrap: nowrap; overflow: visible; padding: 24px 6px 6px; scrollbar-width: none; align-items: flex-end; transition: transform .24s cubic-bezier(.2,.85,.3,1); will-change: transform; touch-action: none; cursor: grab; }
+  .friends:active { cursor: grabbing; }
   .friends::-webkit-scrollbar { display: none; }
   .friend {
     flex: 0 0 auto; border: none; background: transparent; cursor: pointer;
@@ -126,11 +126,20 @@
     font-family: var(--font); color: #fff;
   }
   .friend .av {
+    position: relative; overflow: hidden;
     width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center;
-    font-size: 22px; background: #fff; box-shadow: 0 3px 0 rgba(150,10,40,.3);
+    font-size: 22px; background: #fff;
+    /* drop shadow + spherical shading (top highlight, bottom shade) for a 3D ball look */
+    box-shadow: 0 3px 5px rgba(120,0,30,.35), inset 0 7px 9px rgba(255,255,255,.55), inset 0 -8px 11px rgba(0,0,0,.22);
     border: 3px solid transparent;
     transform-origin: 50% 100%; transition: transform .14s cubic-bezier(.2,.85,.3,1);
     will-change: transform;
+  }
+  /* glossy specular highlight */
+  .friend .av::after {
+    content: ""; position: absolute; top: 12%; left: 22%; width: 42%; height: 30%;
+    border-radius: 50%; background: radial-gradient(closest-side, rgba(255,255,255,.9), rgba(255,255,255,0));
+    pointer-events: none;
   }
   .friend .nm { font-size: 11px; font-weight: 700; line-height: 1.1; text-shadow: 0 1px 0 rgba(150,10,40,.4); transition: opacity .14s; }
   /* the active friend keeps the white ring/glow; size comes from the Dock magnifier (JS) */
@@ -205,10 +214,10 @@
 <body>
   <div class="bg" id="bg" aria-hidden="true"></div>
   <canvas class="wave" id="wave" aria-hidden="true"></canvas>
-  <button class="textfab off" id="textBtn" aria-label="Text">💬</button>
 
   <div class="wrap">
     <div class="topbar">
+      <button class="textfab off" id="textBtn" aria-label="Text">💬</button>
       <button class="tokens" id="tokenPill" hidden></button>
       <span class="spacer"></span>
       <button class="grown" id="settingsBtn" data-i18n-title="settings_btn" title="Grown-ups">⚙️</button>
@@ -219,6 +228,14 @@
 
       <div class="heroBox">
         <svg class="hero" id="hero" viewBox="0 0 200 200" role="img" aria-label="Senua the white blood cell">
+          <defs>
+            <!-- spherical shading overlay: top-left highlight → edge shadow (3D look) -->
+            <radialGradient id="sphere3d" cx="40%" cy="32%" r="72%">
+              <stop offset="0%"  stop-color="#ffffff" stop-opacity="0.55"/>
+              <stop offset="40%" stop-color="#ffffff" stop-opacity="0"/>
+              <stop offset="100%" stop-color="#000000" stop-opacity="0.26"/>
+            </radialGradient>
+          </defs>
           <!-- ripple ring retired in favour of the background waveform -->
           <circle id="ring" cx="100" cy="104" r="80" fill="none" stroke="#ffffff" stroke-width="5" opacity="0"/>
           <g id="heroBody">
@@ -232,6 +249,8 @@
               <circle cx="100" cy="48"  r="13"/>
             </g>
             <circle class="cellbody" cx="100" cy="100" r="62" fill="#ffffff" stroke="#e7eef0" stroke-width="2"/>
+            <!-- 3D shading over the body (under the face) -->
+            <circle cx="100" cy="100" r="62" fill="url(#sphere3d)" pointer-events="none"/>
             <!-- cheeks -->
             <ellipse cx="74" cy="112" rx="11" ry="7" fill="#ffc2cf"/>
             <ellipse cx="126" cy="112" rx="11" ry="7" fill="#ffc2cf"/>
@@ -854,27 +873,47 @@ let heroText="", kidText="";
 let showText = store.get("text","0")==="1";
 
 // ---------- friends UI + character visuals ----------
-let dockShift=0;
+let dockShift=0, dragging=false, dragStartX=0, dragStartShift=0, dragMoved=0;
 function buildFriends(){
   friendsEl.innerHTML = CHARACTERS.map(c=>
     `<button class="friend" data-id="${c.id}" title="${charRole(c)}">
        <span class="av" style="background:${c.body}">${c.emoji}</span>
        <span class="nm">${charName(c)}</span>
      </button>`).join("");
-  friendsEl.querySelectorAll(".friend").forEach(b=>{ b.onclick=()=>selectCharacter(b.dataset.id); });
-  friendsEl.onpointermove = (e)=> applyDock(e.clientX);
-  friendsEl.onpointerleave = ()=> applyDock(null);
+  // swipeable carousel: drag to scroll, the friend in the MIDDLE is the selected one;
+  // a tap (no real movement) selects the tapped friend directly.
+  friendsEl.onpointerdown = (e)=>{
+    dragging=true; dragMoved=0; dragStartX=e.clientX; dragStartShift=dockShift;
+    try{ friendsEl.setPointerCapture(e.pointerId); }catch(_){}
+    friendsEl.style.transition="none";
+  };
+  friendsEl.onpointermove = (e)=>{
+    if(!dragging) return;
+    const dx=e.clientX-dragStartX; dragMoved=Math.max(dragMoved, Math.abs(dx));
+    setShift(dragStartShift+dx);
+  };
+  const endDrag = (e)=>{
+    if(!dragging) return; dragging=false;
+    friendsEl.style.transition="";                              // re-enable the smooth snap
+    let tapEl=null;
+    if(dragMoved<6){ const el=document.elementFromPoint(e.clientX, e.clientY); tapEl = el && el.closest ? el.closest(".friend") : null; }
+    const target = tapEl || nearestFriend();                    // tap → that friend; swipe → nearest to centre
+    if(!target) return;
+    if(target.dataset.id!==currentChar().id) selectCharacter(target.dataset.id);
+    else centerFriend(target);                                  // already selected → snap back to centre
+  };
+  friendsEl.onpointerup = endDrag;
+  friendsEl.onpointercancel = endDrag;
   markActiveFriend();
   centerActiveFriend();
 }
-// macOS-Dock magnifier — uses layout offsets so it stays valid while the row slides.
-function applyDock(px){
+// content-coordinate sitting at the row's centre (= the selected slot)
+function dockFocus(){ return friendsEl.clientWidth/2 - dockShift; }
+// macOS-Dock magnifier — the friend nearest the centre is biggest.
+function applyDock(){
   const items=[...friendsEl.querySelectorAll(".friend")];
   if(!items.length) return;
-  let focus;
-  if(px==null){ const act=friendsEl.querySelector(".friend.active"); focus = act ? act.offsetLeft+act.offsetWidth/2 : friendsEl.clientWidth/2; }
-  else { focus = px - friendsEl.getBoundingClientRect().left; }   // pointer → content coord (rect already includes the slide)
-  const sigma=58, maxBoost=0.5;
+  const focus=dockFocus(), sigma=58, maxBoost=0.5;
   items.forEach(b=>{
     const c=b.offsetLeft+b.offsetWidth/2, d=c-focus;
     const boost=maxBoost*Math.exp(-(d*d)/(2*sigma*sigma));
@@ -883,13 +922,15 @@ function applyDock(px){
     av.style.zIndex = boost>0.06 ? "2" : "1";
   });
 }
-// slide the row so the SELECTED friend sits in the middle, then magnify it there
-function centerActiveFriend(){
-  const act=friendsEl.querySelector(".friend.active"); if(!act){ applyDock(null); return; }
-  dockShift = friendsEl.clientWidth/2 - (act.offsetLeft+act.offsetWidth/2);
-  friendsEl.style.transform=`translateX(${dockShift.toFixed(1)}px)`;
-  applyDock(null);
+function setShift(s){ dockShift=s; friendsEl.style.transform=`translateX(${dockShift.toFixed(1)}px)`; applyDock(); }
+function nearestFriend(){
+  const items=[...friendsEl.querySelectorAll(".friend")]; if(!items.length) return null;
+  const focus=dockFocus(); let best=items[0], bd=Infinity;
+  items.forEach(b=>{ const d=Math.abs((b.offsetLeft+b.offsetWidth/2)-focus); if(d<bd){bd=d;best=b;} });
+  return best;
 }
+function centerFriend(el){ if(!el) return; setShift(friendsEl.clientWidth/2 - (el.offsetLeft+el.offsetWidth/2)); }
+function centerActiveFriend(){ centerFriend(friendsEl.querySelector(".friend.active") || friendsEl.querySelector(".friend")); }
 function markActiveFriend(){
   const id = currentChar().id;
   friendsEl.querySelectorAll(".friend").forEach(b=> b.classList.toggle("active", b.dataset.id===id));
