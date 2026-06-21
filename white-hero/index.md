@@ -42,6 +42,14 @@ Everything runs in the browser:
 - **Secret memory**: the last ~10 exchanges are summarised into a short, private note in
   `localStorage` and quietly injected into the system prompt on the next start, so the
   friends can pick up where you left off. Clear it any time in settings.
+- **Invented friends roster**: agents can make up new friend cells (name, cell type, one
+  trait) via a `remember_friend` tool; up to ~120 are kept in `localStorage` and the latest
+  100 are injected at init so they're reused consistently. (Auto-save works on OpenAI &
+  Gemini; on ElevenLabs the roster is injected read-only.)
+- **Choosable AI provider** (settings): **OpenAI Realtime** (default, proven) or —
+  *experimental* — **Google Gemini Live** (native speech-to-speech, just needs a Gemini
+  key) and **ElevenLabs Conversational AI** (connect to an agent you create in their
+  dashboard with **Claude** as its LLM; search & pick the voice in-app).
 
 ## Why OpenAI Realtime — and the other options
 

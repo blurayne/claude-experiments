@@ -157,6 +157,11 @@
   .field .hint { font-size: 12px; color: #8a7480; margin-top: 6px; }
   .note { font-size: 12.5px; color: #6b5560; background: #fff5f7; border: 1px solid #ffd9e0; border-radius: 11px; padding: 11px 13px; margin-bottom: 16px; }
   .note b { color: #b3231f; }
+  .pgroup { display: none; }
+  .pgroup.on { display: block; }
+  .voicerow { display: flex; gap: 8px; }
+  .voicerow input { flex: 1; }
+  #voiceResults { width: 100%; }
   .modal .row { display: flex; gap: 10px; justify-content: flex-end; }
   .mbtn { border: none; border-radius: 11px; padding: 11px 18px; font: inherit; font-weight: 700; cursor: pointer; }
   .mbtn.primary { background: var(--hero); color: #fff; }
@@ -264,8 +269,61 @@
       </div>
 
       <div class="field">
-        <label for="keyInput" data-i18n="label_key">OpenAI API key</label>
-        <input id="keyInput" type="password" placeholder="sk-..." autocomplete="off" spellcheck="false" />
+        <label for="providerInput" data-i18n="label_provider">AI provider</label>
+        <select id="providerInput">
+          <option value="openai">OpenAI Realtime</option>
+          <option value="gemini">Google Gemini Live</option>
+          <option value="elevenlabs">ElevenLabs (agent)</option>
+        </select>
+        <div class="hint" data-i18n="hint_provider"></div>
+      </div>
+
+      <!-- OpenAI -->
+      <div class="pgroup" data-prov="openai">
+        <div class="field">
+          <label for="keyInput" data-i18n="label_key">OpenAI API key</label>
+          <input id="keyInput" type="password" placeholder="sk-..." autocomplete="off" spellcheck="false" />
+        </div>
+        <div class="field">
+          <label for="modelInput" data-i18n="label_model">Realtime model</label>
+          <input id="modelInput" type="text" spellcheck="false" />
+          <div class="hint" data-i18n-html="hint_model"></div>
+        </div>
+      </div>
+
+      <!-- Gemini -->
+      <div class="pgroup" data-prov="gemini">
+        <div class="field">
+          <label for="geminiKey" data-i18n="label_gemini_key">Google Gemini API key</label>
+          <input id="geminiKey" type="password" placeholder="AIza..." autocomplete="off" spellcheck="false" />
+          <div class="hint" data-i18n-html="hint_gemini_key"></div>
+        </div>
+        <div class="field">
+          <label for="geminiModel" data-i18n="label_gemini_model">Gemini Live model</label>
+          <input id="geminiModel" type="text" spellcheck="false" />
+        </div>
+      </div>
+
+      <!-- ElevenLabs -->
+      <div class="pgroup" data-prov="elevenlabs">
+        <div class="note" data-i18n-html="eleven_note"></div>
+        <div class="field">
+          <label for="elevenKey" data-i18n="label_eleven_key">ElevenLabs API key</label>
+          <input id="elevenKey" type="password" autocomplete="off" spellcheck="false" />
+        </div>
+        <div class="field">
+          <label for="elevenAgent" data-i18n="label_eleven_agent">Agent ID</label>
+          <input id="elevenAgent" type="text" spellcheck="false" placeholder="agent_..." />
+        </div>
+        <div class="field">
+          <label data-i18n="label_eleven_voice">Voice</label>
+          <div class="voicerow">
+            <input id="voiceSearch" type="text" data-i18n-attr="placeholder:voice_ph" />
+            <button type="button" class="mbtn ghost" id="voiceSearchBtn" data-i18n="btn_voicesearch">Search</button>
+          </div>
+          <select id="voiceResults" size="4" style="margin-top:8px; display:none;"></select>
+          <div class="hint" id="voiceChosen"></div>
+        </div>
       </div>
 
       <div class="field">
@@ -512,6 +570,17 @@ const I18N = {
     text_on: "💬 Text on",
     text_off: "💬 Text off",
     friends_label: "Talk to a friend:",
+    label_provider: "AI provider",
+    hint_provider: "OpenAI works out of the box. Gemini Live & ElevenLabs are experimental.",
+    label_gemini_key: "Google Gemini API key",
+    hint_gemini_key: "From <a href=\"https://aistudio.google.com/apikey\" target=\"_blank\" rel=\"noopener\">aistudio.google.com/apikey</a> — used directly from the browser.",
+    label_gemini_model: "Gemini Live model",
+    label_eleven_key: "ElevenLabs API key",
+    label_eleven_agent: "Agent ID",
+    label_eleven_voice: "Voice",
+    voice_ph: "Search voices…",
+    btn_voicesearch: "Search",
+    eleven_note: "Create a <b>Conversational AI agent</b> in the ElevenLabs dashboard and set its LLM to <b>Claude</b>. Paste the agent's ID below; the app sends the chosen character's prompt + voice as overrides.",
   },
   de: {
     doc_title: "White Heroes — sprich mit deinen Immunsystem-Freunden!",
@@ -578,12 +647,26 @@ const I18N = {
     text_on: "💬 Text an",
     text_off: "💬 Text aus",
     friends_label: "Sprich mit einem Freund:",
+    label_provider: "KI-Anbieter",
+    hint_provider: "OpenAI funktioniert sofort. Gemini Live & ElevenLabs sind experimentell.",
+    label_gemini_key: "Google-Gemini-API-Schlüssel",
+    hint_gemini_key: "Von <a href=\"https://aistudio.google.com/apikey\" target=\"_blank\" rel=\"noopener\">aistudio.google.com/apikey</a> — direkt aus dem Browser genutzt.",
+    label_gemini_model: "Gemini-Live-Modell",
+    label_eleven_key: "ElevenLabs-API-Schlüssel",
+    label_eleven_agent: "Agent-ID",
+    label_eleven_voice: "Stimme",
+    voice_ph: "Stimmen suchen…",
+    btn_voicesearch: "Suchen",
+    eleven_note: "Erstelle im ElevenLabs-Dashboard einen <b>Conversational-AI-Agenten</b> und stelle sein LLM auf <b>Claude</b>. Füge unten die Agent-ID ein; die App sendet Prompt + Stimme der gewählten Figur als Overrides.",
   },
 };
 
 // ---------- persistence ----------
-const LS = { key:"whitehero.openai_key", instr:"whitehero.instructions", model:"whitehero.model", lang:"whitehero.lang", used:"whitehero.tokens_used", budget:"whitehero.token_budget", memory:"whitehero.memory", char:"whitehero.character", text:"whitehero.show_text" };
-const DEFAULTS = { model:"gpt-realtime" };
+const LS = { key:"whitehero.openai_key", instr:"whitehero.instructions", model:"whitehero.model", lang:"whitehero.lang", used:"whitehero.tokens_used", budget:"whitehero.token_budget", memory:"whitehero.memory", char:"whitehero.character", text:"whitehero.show_text",
+  provider:"whitehero.provider", gemini_key:"whitehero.gemini_key", gemini_model:"whitehero.gemini_model",
+  eleven_key:"whitehero.eleven_key", eleven_agent:"whitehero.eleven_agent", eleven_voice:"whitehero.eleven_voice", eleven_voice_name:"whitehero.eleven_voice_name",
+  roster:"whitehero.roster" };
+const DEFAULTS = { model:"gpt-realtime", gemini_model:"gemini-2.0-flash-live-001" };
 const store = {
   get: (k, d="") => localStorage.getItem(LS[k]) ?? d,
   set: (k, v) => localStorage.setItem(LS[k], v),
@@ -661,11 +744,13 @@ const sayEl=$("say"), sayWho=$("sayWho"), sayText=$("sayText");
 const scrim=$("scrim"), keyInput=$("keyInput"), instrInput=$("instrInput"), instrLabel=$("instrLabel"), modelInput=$("modelInput"), langInput=$("langInput");
 const budgetInput=$("budgetInput"), budgetHint=$("budgetHint"), memHint=$("memHint"), tokenPill=$("tokenPill");
 const textBtn=$("textBtn"), friendsEl=$("friends"), friendsLabel=$("friendsLabel");
+const providerInput=$("providerInput"), geminiKey=$("geminiKey"), geminiModel=$("geminiModel");
+const elevenKey=$("elevenKey"), elevenAgent=$("elevenAgent"), voiceSearch=$("voiceSearch"), voiceSearchBtn=$("voiceSearchBtn"), voiceResults=$("voiceResults"), voiceChosen=$("voiceChosen");
 const heroBody=$("heroBody"), ringEl=$("ring"), smileEl=$("smile"), mouthEl=$("mouthOpen"), heroSvg=$("hero");
 const errbar=$("errbar"), errmsg=$("errmsg"), errtitle=$("errtitle"), erract=$("erract"), verEl=$("ver");
 
 // ---------- state ----------
-let pc=null, dc=null, localStream=null, connected=false, connecting=false, muted=false;
+let pc=null, dc=null, ws=null, localStream=null, connected=false, connecting=false, muted=false;
 let audioCtx=null, micAnalyser=null, sinkAnalyser=null, rafId=null, talkingClass=false;
 let heroText="", kidText="";
 
@@ -700,6 +785,7 @@ function applyLang(){
   document.querySelectorAll("[data-i18n]").forEach(el=>{ el.textContent = t(el.dataset.i18n); });
   document.querySelectorAll("[data-i18n-html]").forEach(el=>{ el.innerHTML = t(el.dataset.i18nHtml); });
   document.querySelectorAll("[data-i18n-title]").forEach(el=>{ el.title = t(el.dataset.i18nTitle); });
+  document.querySelectorAll("[data-i18n-attr]").forEach(el=>{ const [a,k]=el.dataset.i18nAttr.split(":"); el.setAttribute(a, t(k)); });
   langInput.value = lang;
   friendsLabel.textContent = t("friends_label");
   buildFriends();
@@ -801,23 +887,35 @@ async function loadVersion(){
 
 // ---------- settings modal ----------
 function refreshModalHead(){
-  const first = !store.get("key");
+  const first = !providerKeyPresent();
   $("modalTitle").textContent = first ? t("modal_title_first") : t("modal_title");
   $("modalSub").textContent   = first ? t("modal_sub_first")   : t("modal_sub");
+}
+function updateProviderFields(){
+  const p = providerInput.value;
+  document.querySelectorAll(".pgroup").forEach(g=> g.classList.toggle("on", g.dataset.prov===p));
 }
 function openSettings(){
   loadVersion();
   langInput.value = lang;
+  providerInput.value = curProvider();
   keyInput.value = store.get("key");
+  modelInput.value = store.get("model", DEFAULTS.model);
+  geminiKey.value = store.get("gemini_key");
+  geminiModel.value = store.get("gemini_model", DEFAULTS.gemini_model);
+  elevenKey.value = store.get("eleven_key");
+  elevenAgent.value = store.get("eleven_agent");
+  voiceChosen.textContent = store.get("eleven_voice_name") ? "✓ " + store.get("eleven_voice_name") : "";
+  voiceResults.style.display = "none";
+  updateProviderFields();
   instrLabel.textContent = t("label_instr",{ c: charName(currentChar()) });
   instrInput.value = charInstr(currentChar());
-  modelInput.value = store.get("model", DEFAULTS.model);
   budgetInput.value = tokenBudget() ? String(tokenBudget()) : "";
   updateBudgetHint(); updateMemHint();
   refreshModalHead();
   scrim.classList.add("show");
-  setTimeout(()=>{ if(!store.get("key")) keyInput.focus(); },60);
 }
+providerInput.onchange = updateProviderFields;
 function closeSettings(){ scrim.classList.remove("show"); }
 $("settingsBtn").onclick=()=>openSettings();
 
@@ -847,6 +945,13 @@ $("saveBtn").onclick=()=>{
   if(val && val !== builtinInstr(c, lcode)) ov[c.id+"."+lcode] = val; else delete ov[c.id+"."+lcode];
   saveOverrides(ov);
   store.set("model", modelInput.value.trim() || DEFAULTS.model);
+  // provider + provider-specific credentials
+  store.set("provider", providerInput.value);
+  const setOrDel=(key,val)=>{ val=val.trim(); if(val) store.set(key,val); else store.del(key); };
+  setOrDel("gemini_key", geminiKey.value);
+  store.set("gemini_model", geminiModel.value.trim() || DEFAULTS.gemini_model);
+  setOrDel("eleven_key", elevenKey.value);
+  setOrDel("eleven_agent", elevenAgent.value);
   const b = parseInt(budgetInput.value,10) || 0;
   if(b>0) store.set("budget", String(b)); else store.del("budget");
   lang = langInput.value;
@@ -855,7 +960,37 @@ $("saveBtn").onclick=()=>{
   closeSettings();
   if(connected) sendSessionConfig();
 };
-$("forgetBtn").onclick=()=>{ store.del("key"); keyInput.value=""; if(connected) hangup(); };
+$("forgetBtn").onclick=()=>{
+  store.del("key"); store.del("gemini_key"); store.del("eleven_key");
+  keyInput.value=""; geminiKey.value=""; elevenKey.value="";
+  if(connected) hangup();
+};
+// ---------- ElevenLabs voice search ----------
+async function searchVoices(){
+  const q = voiceSearch.value.trim();
+  const key = store.get("eleven_key") || elevenKey.value.trim();
+  if(!key){ voiceChosen.textContent = "⚠ " + t("label_eleven_key"); return; }
+  voiceSearchBtn.disabled = true;
+  try{
+    const url = `https://api.elevenlabs.io/v1/shared-voices?page_size=20${q?`&search=${encodeURIComponent(q)}`:""}`;
+    const r = await fetch(url, { headers:{ "xi-api-key": key } });
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    const data = await r.json();
+    const voices = data.voices || [];
+    voiceResults.innerHTML = voices.map(v=>`<option value="${v.voice_id}" data-name="${(v.name||"").replace(/"/g,"")}">${v.name}${v.accent?` · ${v.accent}`:""}${v.gender?` · ${v.gender}`:""}</option>`).join("");
+    voiceResults.style.display = voices.length ? "" : "none";
+    if(!voices.length) voiceChosen.textContent = "—";
+  }catch(e){ voiceChosen.textContent = "⚠ " + (e.message||"search failed"); }
+  finally{ voiceSearchBtn.disabled = false; }
+}
+voiceSearchBtn.onclick = searchVoices;
+voiceSearch.onkeydown = (e)=>{ if(e.key==="Enter"){ e.preventDefault(); searchVoices(); } };
+voiceResults.onchange = ()=>{
+  const opt = voiceResults.selectedOptions[0]; if(!opt) return;
+  store.set("eleven_voice", opt.value);
+  store.set("eleven_voice_name", opt.dataset.name || opt.textContent);
+  voiceChosen.textContent = "✓ " + (opt.dataset.name || opt.textContent);
+};
 $("resetUsed").onclick=()=>{ tokensUsed=0; store.set("used","0"); updateBudgetHint(); updateTokenPill(); };
 $("clearMem").onclick=()=>{ store.del("memory"); pendingTurn=null; updateMemHint(); };
 tokenPill.onclick=()=>openSettings();
@@ -911,29 +1046,73 @@ function stopAnim(){
   ringEl.setAttribute("r","80"); ringEl.setAttribute("opacity","0.18"); ringEl.setAttribute("stroke","#ffffff");
 }
 
-// ---------- realtime session config ----------
+// ---------- provider helpers ----------
+function curProvider(){ return store.get("provider","openai"); }
+function providerKeyPresent(p){
+  p = p || curProvider();
+  if(p==="gemini") return !!store.get("gemini_key");
+  if(p==="elevenlabs") return !!store.get("eleven_key") && !!store.get("eleven_agent");
+  return !!store.get("key");
+}
+
+// ---------- invented-friends roster (persisted, injected at init) ----------
+function loadRoster(){ try{ return JSON.parse(store.get("roster","[]")) || []; }catch(_){ return []; } }
+function rosterAdd(name, cell, trait){
+  name = clip(name); if(!name) return;
+  const r = loadRoster();
+  if(r.some(f=>(f.name||"").toLowerCase()===name.toLowerCase())) return;
+  r.push({ name, cell: clip(cell), trait: clip(trait) });
+  store.set("roster", JSON.stringify(r.slice(-120)));   // keep the newest ~120
+  updateMemHint();
+}
+function rosterBlock(){
+  const r = loadRoster(); if(!r.length) return "";
+  const list = r.slice(-100).map(f=>`- ${f.name} (${f.cell||"?"})${f.trait? ": "+f.trait : ""}`).join("\n");
+  return (lang==="de"
+    ? "\n\n## Bekannte Freunde (von dir erfunden – nutze sie wieder)\n"
+    : "\n\n## Known friends (you invented these — reuse them)\n") + list;
+}
+function rosterDirective(){
+  return lang==="de"
+    ? "\n\nDu darfst neue Freunde erfinden: gib jedem einen Namen, einen Zelltyp und eine kurze Eigenschaft. Sobald du einen neuen Freund erfindest, rufe das Werkzeug remember_friend auf, damit du dich später an ihn erinnerst. Nutze bekannte Freunde wieder."
+    : "\n\nYou may invent new friends: give each a name, a cell type and one short trait. Whenever you invent a new friend, call the remember_friend tool so you remember it later, and reuse friends you already know.";
+}
+function fullInstructions(){ return charInstr(currentChar()) + rosterDirective() + rosterBlock() + memoryBlock(); }
+const REMEMBER_TOOL_DESC = "Save a newly invented friend cell (name, its cell type, one short trait) so you remember it next time.";
+
+// ---------- OpenAI Realtime session config ----------
 function sessionConfig(){
   return { type:"session.update", session:{
     type:"realtime",
-    instructions: charInstr(currentChar()) + memoryBlock(),
+    instructions: fullInstructions(),
     audio:{
       input:{ transcription:{ model:"gpt-4o-mini-transcribe" },
               turn_detection:{ type:"server_vad", create_response:true, interrupt_response:true } },
       output:{ voice: currentChar().voice },
     },
+    tools:[{ type:"function", name:"remember_friend", description: REMEMBER_TOOL_DESC,
+      parameters:{ type:"object", properties:{
+        name:{ type:"string" }, cell_type:{ type:"string" }, trait:{ type:"string" } },
+        required:["name","cell_type","trait"] } }],
+    tool_choice:"auto",
   }};
 }
 function sendSessionConfig(){
   if(dc && dc.readyState==="open"){ try{ dc.send(JSON.stringify(sessionConfig())); }catch(e){ console.warn(e); } }
 }
-function askToSpeak(instr){
-  if(dc && dc.readyState==="open"){ try{ dc.send(JSON.stringify({ type:"response.create", response:{ instructions: instr } })); }catch(e){ console.warn(e); } }
+
+// ---------- make the active model speak (greeting / idle nudges), per provider ----------
+function nudge(instr){
+  const p = curProvider();
+  if(p==="openai"){ if(dc && dc.readyState==="open") try{ dc.send(JSON.stringify({ type:"response.create", response:{ instructions: instr } })); }catch(_){ } }
+  else if(p==="gemini"){ if(ws && ws.readyState===1) try{ ws.send(JSON.stringify({ clientContent:{ turns:[{ role:"user", parts:[{ text: instr }] }], turnComplete:true } })); }catch(_){ } }
+  else if(p==="elevenlabs"){ if(ws && ws.readyState===1) try{ ws.send(JSON.stringify({ type:"user_message", text: instr })); }catch(_){ } }
 }
 
 // ---------- proactive greeting + idle nudges ----------
 function greetNow(){
   const c = currentChar();
-  askToSpeak(lang==="de"
+  nudge(lang==="de"
     ? `Begrüße das Kind kurz, fröhlich und in einem Satz als ${charName(c)} (${charRole(c)}) und lade es ein, dir etwas zu fragen.`
     : `Greet the child briefly and cheerfully in one sentence as ${charName(c)} (${charRole(c)}) and invite them to ask you something.`);
 }
@@ -959,8 +1138,8 @@ function idlePrompt(){
 }
 function fireIdle(){
   idleTimer=null;
-  if(!connected || muted || !dc || dc.readyState!=="open") return;
-  askToSpeak(idlePrompt());
+  if(!connected || muted) return;
+  nudge(idlePrompt());
 }
 
 // ---------- friendly error mapping ----------
@@ -1010,46 +1189,183 @@ document.addEventListener("visibilitychange", ()=>{
   if(document.visibilityState==="visible" && connected && !wakeLock) acquireWakeLock();
 });
 
+// ---------- shared PCM audio plumbing for the WebSocket providers ----------
+function b64ToBytes(b64){ const bin=atob(b64); const n=bin.length; const a=new Uint8Array(n); for(let i=0;i<n;i++) a[i]=bin.charCodeAt(i); return a; }
+function bytesToB64(bytes){ let s=""; const C=0x8000; for(let i=0;i<bytes.length;i+=C) s+=String.fromCharCode.apply(null, bytes.subarray(i,i+C)); return btoa(s); }
+let capCtx=null, capProc=null, capSrc=null, playCtx=null, playAnalyser=null, playHead=0, playSources=[];
+async function startCapture(onChunk){
+  localStream = await navigator.mediaDevices.getUserMedia({ audio:{ echoCancellation:true, noiseSuppression:true, autoGainControl:true } });
+  capCtx = new (window.AudioContext||window.webkitAudioContext)({ sampleRate:16000 });
+  if(capCtx.state==="suspended") await capCtx.resume();
+  capSrc = capCtx.createMediaStreamSource(localStream);
+  micAnalyser = capCtx.createAnalyser(); micAnalyser.fftSize=512; micAnalyser.smoothingTimeConstant=0.8; capSrc.connect(micAnalyser);
+  capProc = capCtx.createScriptProcessor(4096,1,1);
+  capProc.onaudioprocess = (e)=>{
+    if(muted || !ws || ws.readyState!==1) return;
+    const inp = e.inputBuffer.getChannelData(0);
+    const pcm = new Int16Array(inp.length);
+    for(let i=0;i<inp.length;i++){ const v=Math.max(-1,Math.min(1,inp[i])); pcm[i]= v<0 ? v*0x8000 : v*0x7FFF; }
+    onChunk(bytesToB64(new Uint8Array(pcm.buffer)));
+  };
+  const silent = capCtx.createGain(); silent.gain.value=0;   // keep the processor running without feedback
+  capSrc.connect(capProc); capProc.connect(silent); silent.connect(capCtx.destination);
+}
+function ensurePlay(){
+  if(!playCtx){
+    playCtx = new (window.AudioContext||window.webkitAudioContext)();
+    playAnalyser = playCtx.createAnalyser(); playAnalyser.fftSize=512; playAnalyser.smoothingTimeConstant=0.8;
+    playAnalyser.connect(playCtx.destination); sinkAnalyser = playAnalyser; playHead = 0;
+  }
+  if(playCtx.state==="suspended") playCtx.resume();
+}
+function playPCM(bytes, rate){
+  ensurePlay();
+  const n = Math.floor(bytes.byteLength/2);
+  const i16 = new Int16Array(bytes.buffer, bytes.byteOffset, n);
+  const f32 = new Float32Array(n);
+  for(let i=0;i<n;i++) f32[i] = i16[i]/0x8000;
+  const buf = playCtx.createBuffer(1, n, rate);
+  buf.copyToChannel(f32, 0);
+  const src = playCtx.createBufferSource(); src.buffer = buf; src.connect(playAnalyser);
+  const start = Math.max(playCtx.currentTime, playHead);
+  src.start(start); playHead = start + buf.duration;
+  playSources.push(src); src.onended = ()=>{ playSources = playSources.filter(s=>s!==src); };
+}
+function clearPlayback(){ playSources.forEach(s=>{ try{ s.stop(); }catch(_){} }); playSources=[]; if(playCtx) playHead = playCtx.currentTime; }
+function stopPcm(){
+  try{ if(capProc){ capProc.onaudioprocess=null; capProc.disconnect(); } }catch(_){}
+  try{ if(capSrc) capSrc.disconnect(); }catch(_){}
+  try{ if(capCtx) capCtx.close(); }catch(_){}
+  capCtx=capProc=capSrc=null;
+  clearPlayback();
+  try{ if(playCtx) playCtx.close(); }catch(_){}
+  playCtx=null; playAnalyser=null;
+}
+
+// ---------- common UI transitions shared by all providers ----------
+function uiUserStart(){ cancelIdle(); if(connected) setStatus(t("listening")); }
+function uiRespStart(){ cancelIdle(); if(connected) setStatus(t("talking")); }
+function uiRespDone(usageTotal){ if(typeof usageTotal==="number") addUsage(usageTotal); if(connected){ setStatus(t("your_turn")); scheduleIdle(); } }
+
 // ---------- connect / hangup ----------
 async function connect(){
-  const key=store.get("key");
-  if(!key){ openSettings(); return; }
+  const p = curProvider();
+  if(!providerKeyPresent(p)){ openSettings(); return; }
   if(connecting||connected) return;
-  hideError();
-  connecting=true; talkBtn.disabled=true; setStatus(t("waking"));
+  hideError(); connecting=true; talkBtn.disabled=true; setStatus(t("waking"));
   try{
-    pc=new RTCPeerConnection();
-    pc.ontrack=(e)=>{ const stream=e.streams[0]; $("sink").srcObject=stream; try{ sinkAnalyser=makeAnalyser(stream); }catch(_){} };
-
-    localStream=await navigator.mediaDevices.getUserMedia({ audio:{ echoCancellation:true, noiseSuppression:true, autoGainControl:true } });
-    pc.addTrack(localStream.getAudioTracks()[0], localStream);
-    try{ micAnalyser=makeAnalyser(localStream); }catch(_){}
-
-    dc=pc.createDataChannel("oai-events");
-    dc.addEventListener("open", ()=>{ sendSessionConfig(); onConnected(); greetNow(); });
-    dc.addEventListener("message", onEvent);
-    dc.addEventListener("close", ()=>{ if(connected) hangup(); });
-
-    const offer=await pc.createOffer();
-    await pc.setLocalDescription(offer);
-
-    const model=store.get("model", DEFAULTS.model);
-    const resp=await fetch(`https://api.openai.com/v1/realtime/calls?model=${encodeURIComponent(model)}`, {
-      method:"POST", body:offer.sdp,
-      headers:{ Authorization:`Bearer ${key}`, "Content-Type":"application/sdp" },
-    });
-    if(!resp.ok){
-      const body = await resp.text();
-      const e = new Error(`OpenAI ${resp.status}: ${body.slice(0,200)}`);
-      e.status = resp.status;
-      throw e;
-    }
-    await pc.setRemoteDescription({ type:"answer", sdp: await resp.text() });
+    if(p==="gemini") await connectGemini();
+    else if(p==="elevenlabs") await connectEleven();
+    else await connectOpenAI();
   }catch(err){
     console.error(err);
     handleConnectError(err);
     cleanup(); connecting=false; talkBtn.disabled=false;
   }
+}
+
+// ---------- OpenAI Realtime (WebRTC) ----------
+async function connectOpenAI(){
+  const key=store.get("key");
+  pc=new RTCPeerConnection();
+  pc.ontrack=(e)=>{ const stream=e.streams[0]; $("sink").srcObject=stream; try{ sinkAnalyser=makeAnalyser(stream); }catch(_){} };
+  localStream=await navigator.mediaDevices.getUserMedia({ audio:{ echoCancellation:true, noiseSuppression:true, autoGainControl:true } });
+  pc.addTrack(localStream.getAudioTracks()[0], localStream);
+  try{ micAnalyser=makeAnalyser(localStream); }catch(_){}
+  dc=pc.createDataChannel("oai-events");
+  dc.addEventListener("open", ()=>{ sendSessionConfig(); onConnected(); greetNow(); });
+  dc.addEventListener("message", onEvent);
+  dc.addEventListener("close", ()=>{ if(connected) hangup(); });
+  const offer=await pc.createOffer();
+  await pc.setLocalDescription(offer);
+  const model=store.get("model", DEFAULTS.model);
+  const resp=await fetch(`https://api.openai.com/v1/realtime/calls?model=${encodeURIComponent(model)}`, {
+    method:"POST", body:offer.sdp,
+    headers:{ Authorization:`Bearer ${key}`, "Content-Type":"application/sdp" } });
+  if(!resp.ok){ const body=await resp.text(); const e=new Error(`OpenAI ${resp.status}: ${body.slice(0,200)}`); e.status=resp.status; throw e; }
+  await pc.setRemoteDescription({ type:"answer", sdp: await resp.text() });
+}
+
+// ---------- Google Gemini Live (WebSocket, native speech-to-speech) ----------
+const GEMINI_VOICE = { senua:"Aoede", rubina:"Leda", theo:"Charon", kilian:"Fenrir", denni:"Puck", makro:"Orus" };
+async function connectGemini(){
+  const key=store.get("gemini_key");
+  const model=store.get("gemini_model", DEFAULTS.gemini_model);
+  ws = new WebSocket(`wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${encodeURIComponent(key)}`);
+  let turnText="";
+  ws.onopen = ()=>{
+    ws.send(JSON.stringify({ setup:{
+      model: `models/${model}`,
+      generationConfig:{ responseModalities:["AUDIO"], speechConfig:{ voiceConfig:{ prebuiltVoiceConfig:{ voiceName: GEMINI_VOICE[currentChar().id]||"Aoede" } } } },
+      systemInstruction:{ parts:[{ text: fullInstructions() }] },
+      inputAudioTranscription:{}, outputAudioTranscription:{},
+      tools:[{ functionDeclarations:[{ name:"remember_friend", description: REMEMBER_TOOL_DESC,
+        parameters:{ type:"OBJECT", properties:{ name:{type:"STRING"}, cell_type:{type:"STRING"}, trait:{type:"STRING"} }, required:["name","cell_type","trait"] } }] }],
+    }}));
+  };
+  ws.onmessage = async (e)=>{
+    let msg; try{ msg = JSON.parse(e.data instanceof Blob ? await e.data.text() : e.data); }catch(_){ return; }
+    if(msg.setupComplete){
+      try{ await startCapture((b64)=>{ if(ws&&ws.readyState===1) ws.send(JSON.stringify({ realtimeInput:{ mediaChunks:[{ mimeType:"audio/pcm;rate=16000", data:b64 }] } })); }); }
+      catch(err){ handleConnectError(err); cleanup(); connecting=false; talkBtn.disabled=false; return; }
+      ensurePlay(); onConnected(); greetNow(); return;
+    }
+    if(msg.toolCall && msg.toolCall.functionCalls){
+      const resps=[];
+      for(const fc of msg.toolCall.functionCalls){ const a=fc.args||{}; rosterAdd(a.name, a.cell_type, a.trait); resps.push({ id:fc.id, name:fc.name, response:{ result:"ok" } }); }
+      try{ ws.send(JSON.stringify({ toolResponse:{ functionResponses: resps } })); }catch(_){}
+      return;
+    }
+    const sc = msg.serverContent;
+    if(sc){
+      if(sc.interrupted) clearPlayback();
+      if(sc.inputTranscription && sc.inputTranscription.text){ uiUserStart(); kidText+=sc.inputTranscription.text; showSay("kid", kidText); }
+      if(sc.outputTranscription && sc.outputTranscription.text){ if(!turnText) uiRespStart(); turnText+=sc.outputTranscription.text; showSay("hero", turnText); }
+      const parts = sc.modelTurn && sc.modelTurn.parts;
+      if(parts) for(const part of parts){ if(part.inlineData && part.inlineData.data) playPCM(b64ToBytes(part.inlineData.data), 24000); }
+      if(sc.turnComplete){ if(kidText){ rememberUser(kidText); kidText=""; } if(turnText){ rememberHero(turnText); turnText=""; } uiRespDone(); }
+    }
+  };
+  ws.onerror = ()=>{};
+  ws.onclose = (e)=>{
+    if(connecting && !connected){ handleConnectError(new Error("Gemini connection closed"+(e.code?` (${e.code})`:"")+(e.reason?": "+e.reason:""))); connecting=false; talkBtn.disabled=false; }
+    else if(connected) hangup();
+  };
+}
+
+// ---------- ElevenLabs Conversational AI agent (WebSocket) ----------
+async function connectEleven(){
+  const key=store.get("eleven_key"), agent=store.get("eleven_agent");
+  const r = await fetch(`https://api.elevenlabs.io/v1/convai/conversation/get-signed-url?agent_id=${encodeURIComponent(agent)}`, { headers:{ "xi-api-key": key } });
+  if(!r.ok){ const b=await r.text(); const e=new Error(`ElevenLabs ${r.status}: ${b.slice(0,160)}`); e.status=r.status; throw e; }
+  const { signed_url } = await r.json();
+  ws = new WebSocket(signed_url);
+  ws.onopen = ()=>{
+    const voiceId = store.get("eleven_voice");
+    const ov = { type:"conversation_initiation_client_data",
+      conversation_config_override:{ agent:{ prompt:{ prompt: fullInstructions() }, language: lang } } };
+    if(voiceId) ov.conversation_config_override.tts = { voice_id: voiceId };
+    ws.send(JSON.stringify(ov));
+  };
+  ws.onmessage = async (e)=>{
+    let msg; try{ msg = JSON.parse(e.data instanceof Blob ? await e.data.text() : e.data); }catch(_){ return; }
+    const ty = msg.type;
+    if(ty==="conversation_initiation_metadata"){
+      try{ await startCapture((b64)=>{ if(ws&&ws.readyState===1) ws.send(JSON.stringify({ user_audio_chunk: b64 })); }); }
+      catch(err){ handleConnectError(err); cleanup(); connecting=false; talkBtn.disabled=false; return; }
+      ensurePlay(); onConnected(); return;   // the agent's first_message greets automatically
+    }
+    if(ty==="ping"){ try{ ws.send(JSON.stringify({ type:"pong", event_id:(msg.ping_event||{}).event_id })); }catch(_){} return; }
+    if(ty==="audio"){ const b64=(msg.audio_event||{}).audio_base_64; if(b64){ uiRespStart(); playPCM(b64ToBytes(b64), 16000); } return; }
+    if(ty==="user_transcript"){ const txt=(msg.user_transcription_event||{}).user_transcript||""; uiUserStart(); showSay("kid", txt); if(txt) rememberUser(txt); return; }
+    if(ty==="agent_response"){ const txt=(msg.agent_response_event||{}).agent_response||""; if(txt){ showSay("hero", txt); rememberHero(txt); } uiRespDone(); return; }
+    if(ty==="interruption"){ clearPlayback(); return; }
+  };
+  ws.onerror = ()=>{};
+  ws.onclose = (e)=>{
+    if(connecting && !connected){ handleConnectError(new Error("ElevenLabs connection closed"+(e.code?` (${e.code})`:""))); connecting=false; talkBtn.disabled=false; }
+    else if(connected) hangup();
+  };
 }
 function onConnected(){
   connecting=false; connected=true; talkBtn.disabled=false; hideError();
@@ -1073,8 +1389,10 @@ function cleanup(){
   releaseWakeLock();
   try{ if(dc) dc.close(); }catch(_){}
   try{ if(pc){ pc.getSenders().forEach(s=>s.track&&s.track.stop()); pc.close(); } }catch(_){}
+  try{ if(ws){ ws.onclose=null; ws.onmessage=null; ws.onerror=null; ws.close(); } }catch(_){}
   try{ if(localStream) localStream.getTracks().forEach(t=>t.stop()); }catch(_){}
-  dc=null; pc=null; localStream=null; micAnalyser=sinkAnalyser=null; heroText=kidText="";
+  stopPcm();
+  dc=null; pc=null; ws=null; localStream=null; micAnalyser=sinkAnalyser=null; heroText=kidText="";
 }
 
 // ---------- realtime events (match defensively across beta/GA names) ----------
@@ -1089,6 +1407,16 @@ function onEvent(e){
     else if(/quota|billing|insufficient/i.test(msg))
       showError(msg, { title: t("err_quota_title"), link: { label: t("link_billing"), href: BILLING_URL } });
     else showError(msg);
+    return;
+  }
+
+  // the model invented a friend -> save it, return a result so it keeps talking
+  if(ty.endsWith("function_call_arguments.done")){
+    try{ const a=JSON.parse(ev.arguments||"{}"); rosterAdd(a.name, a.cell_type, a.trait); }catch(_){}
+    if(ev.call_id && dc && dc.readyState==="open"){ try{
+      dc.send(JSON.stringify({ type:"conversation.item.create", item:{ type:"function_call_output", call_id:ev.call_id, output:'{"ok":true}' } }));
+      dc.send(JSON.stringify({ type:"response.create" }));
+    }catch(_){} }
     return;
   }
 
@@ -1144,7 +1472,7 @@ window.addEventListener("beforeunload", ()=>{ if(connected) cleanup(); });
 applyLang();
 applyCharacter();
 if(!showText){ sayEl.style.display="none"; }
-if(!store.get("key")) openSettings();
+if(!providerKeyPresent()) openSettings();
 </script>
 </body>
 </html>
