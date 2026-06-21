@@ -72,6 +72,15 @@
   .tokens.low { background: #ffd9dc; color: #b3231f; }
   .tokens[hidden] { display: none; }
   .linklike { background: none; border: none; color: var(--kid); font: inherit; font-size: 12px; cursor: pointer; padding: 0; text-decoration: underline; }
+  /* tiny transcript on/off toggle, bottom-left */
+  .textfab {
+    position: fixed; left: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 40;
+    width: 46px; height: 46px; border-radius: 50%; border: none; cursor: pointer;
+    background: rgba(255,255,255,.85); color: var(--ink); font-size: 20px;
+    box-shadow: 0 4px 0 rgba(150,10,40,.25); display: grid; place-items: center; line-height: 1;
+  }
+  .textfab:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(150,10,40,.25); }
+  .textfab.off { opacity: .55; }
 
   .stage { flex: 1; width: 100%; max-width: 760px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; min-height: 0; }
 
@@ -109,7 +118,7 @@
   /* friends chooser */
   .friendsbar { width: 100%; max-width: 760px; margin-top: 6px; }
   .friendslabel { text-align: center; color: #fff; font-size: 13px; font-weight: 700; opacity: .9; text-shadow: 0 1px 0 rgba(150,10,40,.4); margin-bottom: 6px; }
-  .friends { display: flex; gap: 8px; justify-content: center; flex-wrap: nowrap; overflow: visible; padding: 24px 6px 6px; scrollbar-width: none; align-items: flex-end; }
+  .friends { position: relative; display: flex; gap: 8px; justify-content: center; flex-wrap: nowrap; overflow: visible; padding: 24px 6px 6px; scrollbar-width: none; align-items: flex-end; transition: transform .24s cubic-bezier(.2,.85,.3,1); will-change: transform; }
   .friends::-webkit-scrollbar { display: none; }
   .friend {
     flex: 0 0 auto; border: none; background: transparent; cursor: pointer;
@@ -196,10 +205,10 @@
 <body>
   <div class="bg" id="bg" aria-hidden="true"></div>
   <canvas class="wave" id="wave" aria-hidden="true"></canvas>
+  <button class="textfab off" id="textBtn" aria-label="Text">💬</button>
 
   <div class="wrap">
     <div class="topbar">
-      <div class="logo"><span class="pip"></span><h1>White&nbsp;Heroes</h1></div>
       <button class="tokens" id="tokenPill" hidden></button>
       <span class="spacer"></span>
       <button class="grown" id="settingsBtn" data-i18n-title="settings_btn" title="Grown-ups">⚙️</button>
@@ -246,12 +255,10 @@
         <button class="talk" id="talkBtn"></button>
         <div class="minirow">
           <button class="mini" id="muteBtn" hidden></button>
-          <button class="mini off" id="textBtn"></button>
         </div>
       </div>
 
       <div class="friendsbar">
-        <div class="friendslabel" id="friendsLabel"></div>
         <div class="friends" id="friends"></div>
       </div>
     </div>
@@ -782,27 +789,11 @@ function elevenCommit(){ if(elevenStart){ const c=elevenMinutes()*PRICING.eleven
 function updateTokenPill(){
   if(!tokenPill) return;
   tokenPill.hidden = false;
-  const prov = curProvider();
-  if(prov==="elevenlabs"){
-    const live = elevenMinutes();
-    const cost = costUsed + live*PRICING.elevenlabs.perMin;
-    tokenPill.textContent = (elevenStart ? "⏱️ " + live.toFixed(1) + "m · ~" : "🎟️ ~") + fmtCost(cost);
-    tokenPill.classList.remove("low");
-    tokenPill.title = t("cost_used_title");
-    return;
-  }
-  const b = tokenBudget();
-  const costStr = costUsed>0 ? " · ~" + fmtCost(costUsed) : "";
-  if(b>0){
-    const rem = Math.max(0, b - tokensUsed);
-    tokenPill.textContent = "🎟️ " + fmtNum(rem) + costStr;
-    tokenPill.classList.toggle("low", rem <= b*0.1);
-    tokenPill.title = t("tok_left_title") + (costUsed>0 ? " · " + t("cost_used_title") : "");
-  } else {
-    tokenPill.textContent = "🎟️ " + fmtNum(tokensUsed) + costStr;
-    tokenPill.classList.remove("low");
-    tokenPill.title = t("tok_used_title") + (costUsed>0 ? " · " + t("cost_used_title") : "");
-  }
+  let cost = costUsed;
+  if(curProvider()==="elevenlabs") cost += elevenMinutes()*PRICING.elevenlabs.perMin;
+  tokenPill.textContent = "≈ " + fmtCost(cost);   // pricing only — no token counts
+  tokenPill.classList.remove("low");
+  tokenPill.title = t("cost_used_title");
 }
 
 // ---------- secret memory of recent chats ----------
@@ -863,6 +854,7 @@ let heroText="", kidText="";
 let showText = store.get("text","0")==="1";
 
 // ---------- friends UI + character visuals ----------
+let dockShift=0;
 function buildFriends(){
   friendsEl.innerHTML = CHARACTERS.map(c=>
     `<button class="friend" data-id="${c.id}" title="${charRole(c)}">
@@ -873,22 +865,30 @@ function buildFriends(){
   friendsEl.onpointermove = (e)=> applyDock(e.clientX);
   friendsEl.onpointerleave = ()=> applyDock(null);
   markActiveFriend();
-  applyDock(null);
+  centerActiveFriend();
 }
-// macOS-Dock magnifier: items grow toward the pointer; at rest the centre item is biggest.
+// macOS-Dock magnifier — uses layout offsets so it stays valid while the row slides.
 function applyDock(px){
   const items=[...friendsEl.querySelectorAll(".friend")];
   if(!items.length) return;
-  const rect=friendsEl.getBoundingClientRect();
-  const focus = (px==null) ? rect.left+rect.width/2 : px;
+  let focus;
+  if(px==null){ const act=friendsEl.querySelector(".friend.active"); focus = act ? act.offsetLeft+act.offsetWidth/2 : friendsEl.clientWidth/2; }
+  else { focus = px - friendsEl.getBoundingClientRect().left; }   // pointer → content coord (rect already includes the slide)
   const sigma=58, maxBoost=0.5;
   items.forEach(b=>{
-    const r=b.getBoundingClientRect(), c=r.left+r.width/2, d=c-focus;
+    const c=b.offsetLeft+b.offsetWidth/2, d=c-focus;
     const boost=maxBoost*Math.exp(-(d*d)/(2*sigma*sigma));
     const av=b.querySelector(".av");
     av.style.transform=`translateY(${(-14*boost).toFixed(1)}px) scale(${(1+boost).toFixed(3)})`;
     av.style.zIndex = boost>0.06 ? "2" : "1";
   });
+}
+// slide the row so the SELECTED friend sits in the middle, then magnify it there
+function centerActiveFriend(){
+  const act=friendsEl.querySelector(".friend.active"); if(!act){ applyDock(null); return; }
+  dockShift = friendsEl.clientWidth/2 - (act.offsetLeft+act.offsetWidth/2);
+  friendsEl.style.transform=`translateX(${dockShift.toFixed(1)}px)`;
+  applyDock(null);
 }
 function markActiveFriend(){
   const id = currentChar().id;
@@ -900,6 +900,7 @@ function applyCharacter(){
   heroSvg.style.transform = `scale(${c.scale||1})`;
   heroSvg.setAttribute("aria-label", charName(c)+" — "+charRole(c));
   markActiveFriend();
+  centerActiveFriend();
 }
 
 // ---------- apply language to the whole UI ----------
@@ -910,11 +911,11 @@ function applyLang(){
   document.querySelectorAll("[data-i18n-title]").forEach(el=>{ el.title = t(el.dataset.i18nTitle); });
   document.querySelectorAll("[data-i18n-attr]").forEach(el=>{ const [a,k]=el.dataset.i18nAttr.split(":"); el.setAttribute(a, t(k)); });
   langInput.value = lang;
-  friendsLabel.textContent = t("friends_label");
+  if(friendsLabel) friendsLabel.textContent = t("friends_label");
   buildFriends();
   if(instrLabel) instrLabel.textContent = t("label_instr",{ c: charName(currentChar()) });
   muteBtn.textContent = muted ? t("mic_off") : t("mic_on");
-  textBtn.textContent = showText ? t("text_on") : t("text_off");
+  textBtn.title = showText ? t("text_on") : t("text_off");   // icon-only toggle, text in the tooltip
   textBtn.classList.toggle("off", !showText);
   if(!connected && !connecting){ talkBtn.innerHTML = t("talk_idle"); statusEl.textContent = t("status_idle"); }
   if(typeof updateProviderFields==="function" && providerInput) updateProviderFields();
@@ -980,7 +981,7 @@ function showSay(role, text){
 function setShowText(on){
   showText = on;
   store.set("text", on ? "1" : "0");
-  textBtn.textContent = showText ? t("text_on") : t("text_off");
+  textBtn.title = showText ? t("text_on") : t("text_off");
   textBtn.classList.toggle("off", !showText);
   if(!showText){ sayEl.classList.remove("show"); sayEl.style.display="none"; }
 }
@@ -1692,7 +1693,6 @@ function selectCharacter(id){
   const wasLive = connected || connecting;
   store.set("char", id);
   applyCharacter();
-  applyDock(null);
   if(instrLabel) instrLabel.textContent = t("label_instr",{ c: charName(currentChar()) });
   if(wasLive){
     // seamless switch: tear down the transport but KEEP the live UI (no "bye", button stays
@@ -1721,8 +1721,8 @@ applyLang();
 applyCharacter();
 sizeWave();
 startAnim();                                  // heartbeat ambience runs from the start
-window.addEventListener("resize", ()=>{ sizeWave(); applyDock(null); });
-window.addEventListener("orientationchange", ()=>{ setTimeout(()=>{ sizeWave(); applyDock(null); }, 200); });
+window.addEventListener("resize", ()=>{ sizeWave(); centerActiveFriend(); });
+window.addEventListener("orientationchange", ()=>{ setTimeout(()=>{ sizeWave(); centerActiveFriend(); }, 200); });
 if(!showText){ sayEl.style.display="none"; }
 if(!providerKeyPresent()) openSettings();
 </script>
