@@ -884,6 +884,121 @@ function Versus({ annFor }) {
   ), /* @__PURE__ */ React.createElement(Select, { value: bId, onChange: setBId, col: B.color })), same ? /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13, color: C.faint, textAlign: "center", padding: "10px 0" } }, "W\xE4hle zwei ", /* @__PURE__ */ React.createElement("b", { style: { color: C.dim } }, "verschiedene"), " Autos f\xFCr den Vergleich.") : /* @__PURE__ */ React.createElement(React.Fragment, null, !d.curated && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: C.faint, marginBottom: 8 } }, "Datengetriebener Vergleich \xB7 kein redaktionelles Fazit f\xFCr diese Paarung hinterlegt."), d.curated && /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: C.amber, fontWeight: 600, marginBottom: 8 } }, d.tagline), /* @__PURE__ */ React.createElement("p", { style: { fontSize: 13.5, lineHeight: 1.65, color: C.ink, margin: "0 0 16px" } }, d.intro), /* @__PURE__ */ React.createElement("div", { style: { border: `1px solid ${C.line}`, borderRadius: 10, overflow: "hidden", marginBottom: d.blocks.length || d.note ? 16 : 14 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1.05fr 1fr 1fr" } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "9px 11px", background: C.panelHi, fontSize: 11, color: C.faint } }), [A, B].map((v) => /* @__PURE__ */ React.createElement("div", { key: v.id, style: { padding: "9px 11px", background: C.panelHi, display: "flex", alignItems: "center", gap: 6, fontSize: 12.5, fontWeight: 650, borderLeft: `1px solid ${C.line}` } }, /* @__PURE__ */ React.createElement("span", { style: { width: 9, height: 9, borderRadius: 2, background: v.color, flexShrink: 0 } }), /* @__PURE__ */ React.createElement("span", { style: { color: v.color } }, v.short)))), d.rows.map((r, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "grid", gridTemplateColumns: "1.05fr 1fr 1fr", borderTop: `1px solid ${C.line}` } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "9px 11px", fontSize: 12, color: C.dim, lineHeight: 1.4 } }, r.f), r.cells.map((c, j) => /* @__PURE__ */ React.createElement("div", { key: j, style: { padding: "9px 11px", fontSize: 12.5, color: C.ink, lineHeight: 1.45, borderLeft: `1px solid ${C.line}` } }, c))))), d.blocks.map((b, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { marginBottom: 14 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 13.5, fontWeight: 650, color: C.ink, marginBottom: 4 } }, b.h), /* @__PURE__ */ React.createElement("p", { style: { fontSize: 13, lineHeight: 1.6, color: C.dim, margin: 0 } }, b.body))), d.note && /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: 9, alignItems: "flex-start", background: C.panelHi, borderRadius: 9, padding: "10px 12px", marginBottom: 16 } }, /* @__PURE__ */ React.createElement("span", { style: { color: C.amber, flexShrink: 0 } }, "\u26A0\uFE0F"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12.5, color: C.dim, lineHeight: 1.55 } }, d.note)), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }, className: "grid2" }, d.verdict.map(({ v, text }) => /* @__PURE__ */ React.createElement("div", { key: v.id, style: { background: C.panelHi, borderRadius: 9, padding: "11px 13px", borderTop: `2px solid ${v.color}` } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12.5, fontWeight: 700, color: v.color, marginBottom: 4 } }, v.short), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12.5, color: C.ink, lineHeight: 1.55 } }, text))))));
 }
 
+// ---------- Motoren-Verbrauch: Daten + Komponente (precompiled) ----------
+const ENGINES = [
+  {
+    id: "hyb18",
+    label: "1.8 Hybrid (Auris/Corolla)",
+    grp: "Hybrid",
+    color: "#38C7A6",
+    cons: { Stadt: 4.2, "120": 5.4, "140": 6.5, "160": 7.9, "175": 9.2 }
+  },
+  {
+    id: "cor-hyb18",
+    label: "Corolla 1.8 Hybrid (E210 \xB7 122 PS)",
+    grp: "Hybrid",
+    color: "#5FB87A",
+    cons: { Stadt: 4, "120": 5.2, "140": 6.3, "160": 7.7, "175": 9 }
+  },
+  {
+    id: "cor-hyb20",
+    label: "Corolla 2.0 Hybrid (184 PS)",
+    grp: "Hybrid",
+    color: "#7FD4B0",
+    cons: { Stadt: 4.4, "120": 5.6, "140": 6.7, "160": 8, "175": 9.3 }
+  },
+  {
+    id: "t12",
+    label: "1.2 Turbo (Auris/Corolla \xB7 116 PS)",
+    grp: "Benziner",
+    color: "#E8B23A",
+    cons: { Stadt: 6.8, "120": 5.8, "140": 6.8, "160": 8.2, "175": 9.6 }
+  },
+  {
+    id: "b133",
+    label: "1.33 Dual-VVT-i (99 PS)",
+    grp: "Benziner",
+    color: "#E0533D",
+    cons: { Stadt: 8.2, "120": 6.6, "140": 7.8, "160": 9.5, "175": 11 }
+  },
+  {
+    id: "b16",
+    label: "1.6 Valvematic (132 PS)",
+    grp: "Benziner",
+    color: "#6FB1FC",
+    cons: { Stadt: 8.8, "120": 6.9, "140": 8, "160": 9.6, "175": 11.2 }
+  },
+  {
+    id: "b18av",
+    label: "1.8 Valvematic (Avensis \xB7 147 PS)",
+    grp: "Benziner",
+    color: "#F2845C",
+    cons: { Stadt: 9.5, "120": 7.3, "140": 8.4, "160": 10, "175": 11.6 }
+  },
+  {
+    id: "d16",
+    label: "1.6 D-4D (112 PS \xB7 Diesel)",
+    grp: "Diesel",
+    color: "#5B8FF9",
+    cons: { Stadt: 5.5, "120": 4.9, "140": 5.7, "160": 6.8, "175": 7.8 }
+  },
+  {
+    id: "d20",
+    label: "2.0 D-4D (Avensis \xB7 143 PS \xB7 Diesel)",
+    grp: "Diesel",
+    color: "#C77DFF",
+    cons: { Stadt: 5.8, "120": 5, "140": 5.8, "160": 6.7, "175": 7.6 }
+  },
+  {
+    id: "d14",
+    label: "1.4 D-4D (90 PS \xB7 Diesel)",
+    grp: "Diesel",
+    color: "#9AA7B0",
+    cons: { Stadt: 5.2, "120": 4.9, "140": 5.9, "160": 7.2, "175": 8.4 }
+  }
+];
+function EngineCompare() {
+  const [on, setOn] = useState(() => /* @__PURE__ */ new Set(["hyb18", "cor-hyb18", "t12", "b16", "d16"]));
+  const toggle = (id) => setOn((s) => {
+    const n = new Set(s);
+    n.has(id) ? n.delete(id) : n.add(id);
+    return n;
+  });
+  const list = ENGINES.filter((e) => on.has(e.id));
+  const byId = (id) => ENGINES.find((e) => e.id === id);
+  const data = SPEEDS.map((s) => {
+    const row = { speed: s === "Stadt" ? "Stadt" : s + " km/h" };
+    list.forEach((e) => row[e.id] = e.cons[s]);
+    return row;
+  });
+  return /* @__PURE__ */ React.createElement("div", { className: "panel", style: { padding: "16px 12px 12px", marginBottom: 16 } }, /* @__PURE__ */ React.createElement("div", { style: { padding: "0 6px 6px" } }, /* @__PURE__ */ React.createElement("div", { className: "eyebrow", style: { marginBottom: 4 } }, "Motoren-Verbrauch \xB7 Toyota-Triebwerke"), /* @__PURE__ */ React.createElement("h2", null, "Auris \xB7 Corolla \xB7 Avensis: welcher Motor wie viel schluckt"), /* @__PURE__ */ React.createElement("div", { style: { color: C.dim, fontSize: 12.5 } }, "Liter / 100 km, gleiche Tempo-St\xFCtzpunkte wie oben. Der Hybrid dominiert die Stadt; ab ~140 km/h ziehen Diesel und der 1.2 Turbo vorbei.")), ["Hybrid", "Benziner", "Diesel"].map((grp) => /* @__PURE__ */ React.createElement("div", { key: grp, style: { display: "flex", flexWrap: "wrap", gap: 6, padding: "7px 6px 0", alignItems: "center" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, letterSpacing: 1, textTransform: "uppercase", color: C.faint, width: 58, flexShrink: 0 } }, grp), ENGINES.filter((e) => e.grp === grp).map((e) => {
+    const sel = on.has(e.id);
+    return /* @__PURE__ */ React.createElement(
+      "span",
+      {
+        key: e.id,
+        className: "chip",
+        onClick: () => toggle(e.id),
+        style: { fontSize: 11.5, padding: "4px 9px", borderColor: sel ? e.color : C.line, background: sel ? e.color + "22" : C.panel, opacity: sel ? 1 : 0.6 }
+      },
+      /* @__PURE__ */ React.createElement("span", { style: { width: 8, height: 8, borderRadius: 2, background: sel ? e.color : C.faint } }),
+      e.label
+    );
+  }))), /* @__PURE__ */ React.createElement(ResponsiveContainer, { width: "100%", height: 300 }, /* @__PURE__ */ React.createElement(LineChart, { data, margin: { top: 12, right: 14, left: -8, bottom: 4 } }, /* @__PURE__ */ React.createElement(CartesianGrid, { stroke: C.line, strokeDasharray: "2 4" }), /* @__PURE__ */ React.createElement(XAxis, { dataKey: "speed", stroke: C.dim, tick: { fontSize: 11 } }), /* @__PURE__ */ React.createElement(YAxis, { stroke: C.dim, tick: { fontSize: 11 }, domain: [3, 13], unit: " L", width: 46 }), /* @__PURE__ */ React.createElement(Tooltip, { contentStyle: tipStyle, formatter: (val, key) => [val + " L", byId(key)?.label] }), list.map((e) => /* @__PURE__ */ React.createElement(
+    Line,
+    {
+      key: e.id,
+      type: "monotone",
+      dataKey: e.id,
+      stroke: e.color,
+      strokeWidth: 2.2,
+      dot: { r: 2.5 },
+      activeDot: { r: 5 },
+      strokeDasharray: e.grp === "Diesel" ? "6 3" : void 0
+    }
+  )))), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: C.faint, padding: "2px 8px 0", lineHeight: 1.5 } }, "Praxis-Richtwerte (Spritmonitor-Niveau), keine WLTP-Laborwerte. \u201EStadt\u201C = Kurzstrecke/Stop-and-go; 160/175 km/h aus dem Fahrwiderstand interpoliert. ", /* @__PURE__ */ React.createElement("b", { style: { color: C.dim } }, "Diesel gestrichelt."), /* @__PURE__ */ React.createElement("br", null), /* @__PURE__ */ React.createElement("b", { style: { color: C.dim } }, "Merke:"), " Stadt \u2192 Hybrid \xB7 konstant schnelle Autobahn \u2192 Diesel/1.2 Turbo \xB7 Kurzstrecke + Au\xDFenparker \u2192 kein Diesel (DPF/Versottung)."));
+}
+
 function App() {
   const [sel, setSel] = useState(() => new Set(["auris-hyb"]));
   const [w, setW] = useState(() => Object.fromEntries(PRIO.map(p => [p.key, p.def])));
@@ -1268,7 +1383,7 @@ function App() {
       padding: "2px 8px 0",
       lineHeight: 1.5
     }
-  }, "St\xFCtzpunkte: ADAC-EcoTest & Tests (Stadt/130). 160/175 km/h sind aus dem Fahrwiderstand interpoliert \u2013 als Tendenz lesen, nicht als Messwert.")), /*#__PURE__*/React.createElement("div", {
+  }, "St\xFCtzpunkte: ADAC-EcoTest & Tests (Stadt/130). 160/175 km/h sind aus dem Fahrwiderstand interpoliert \u2013 als Tendenz lesen, nicht als Messwert.")), /*#__PURE__*/React.createElement(EngineCompare, null), /*#__PURE__*/React.createElement("div", {
     className: "panel",
     style: {
       padding: 16,
