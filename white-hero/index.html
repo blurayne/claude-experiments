@@ -117,7 +117,7 @@
   .minirow { display: flex; gap: 10px; align-items: center; }
 
   /* friends chooser */
-  .friendsbar { width: 100%; max-width: 760px; margin-top: 6px; }
+  .friendsbar { width: 100%; max-width: 760px; margin-top: 28px; }
   .friendslabel { text-align: center; color: #fff; font-size: 13px; font-weight: 700; opacity: .9; text-shadow: 0 1px 0 rgba(150,10,40,.4); margin-bottom: 6px; }
   .friends { position: relative; display: flex; gap: 8px; justify-content: center; flex-wrap: nowrap; overflow: visible; padding: 24px 6px 6px; scrollbar-width: none; align-items: flex-end; transition: transform .24s cubic-bezier(.2,.85,.3,1); will-change: transform; touch-action: none; cursor: grab; }
   .friends:active { cursor: grabbing; }
@@ -1377,12 +1377,16 @@ function greetNow(){
     ? `Begrüße das Kind kurz, fröhlich und in einem Satz als ${charName(c)} (${charRole(c)}) und lade es ein, dir etwas zu fragen.`
     : `Greet the child briefly and cheerfully in one sentence as ${charName(c)} (${charRole(c)}) and invite them to ask you something.`);
 }
-let idleTimer=null;
-const IDLE_MIN=5000, IDLE_MAX=15000;
-function cancelIdle(){ if(idleTimer){ clearTimeout(idleTimer); idleTimer=null; } }
+let idleTimer=null, inactivityTimer=null;
+const IDLE_MIN=5000, IDLE_MAX=15000, INACTIVITY_MS=30000;
+function clearInactivity(){ if(inactivityTimer){ clearTimeout(inactivityTimer); inactivityTimer=null; } }
+function armInactivity(){ clearInactivity(); if(!connected) return; inactivityTimer=setTimeout(()=>{ if(connected) hangup(); }, INACTIVITY_MS); }
+function cancelIdle(){ if(idleTimer){ clearTimeout(idleTimer); idleTimer=null; } clearInactivity(); }
 function scheduleIdle(){
   cancelIdle();
-  if(!connected || muted) return;
+  if(!connected) return;
+  armInactivity();                 // stop the session after 30s with no input (even while muted)
+  if(muted) return;
   idleTimer = setTimeout(fireIdle, IDLE_MIN + Math.random()*(IDLE_MAX-IDLE_MIN));
 }
 function idlePrompt(){
@@ -1657,6 +1661,8 @@ function cleanup(){
   try{ if(pc){ pc.getSenders().forEach(s=>s.track&&s.track.stop()); pc.close(); } }catch(_){}
   try{ if(ws){ ws.onclose=null; ws.onmessage=null; ws.onerror=null; ws.close(); } }catch(_){}
   try{ if(localStream) localStream.getTracks().forEach(t=>t.stop()); }catch(_){}
+  try{ const sk=$("sink"); if(sk){ sk.pause(); sk.srcObject=null; } }catch(_){}   // stop the old voice immediately
+  clearPlayback();
   stopPcm();
   dc=null; pc=null; ws=null; localStream=null; micAnalyser=sinkAnalyser=null; heroText=kidText="";
 }
@@ -1735,7 +1741,7 @@ muteBtn.onclick=()=>{
   muted=!muted;
   localStream.getAudioTracks().forEach(tr=>tr.enabled=!muted);
   setMuteVisual();
-  if(muted) cancelIdle(); else if(connected) scheduleIdle();
+  if(connected) scheduleIdle();   // re-arms idle + 30s auto-stop (skips the nudge while muted)
 };
 textBtn.onclick=()=> setShowText(!showText);
 window.addEventListener("beforeunload", ()=>{ if(connected) cleanup(); });
