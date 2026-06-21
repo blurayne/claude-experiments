@@ -302,8 +302,12 @@
         </div>
         <div class="field">
           <label for="geminiModel" data-i18n="label_gemini_model">Gemini Live model</label>
-          <input id="geminiModel" type="text" spellcheck="false" />
-          <div class="hint" data-i18n-html="hint_gemini_model_warn"></div>
+          <div class="voicerow">
+            <input id="geminiModel" type="text" spellcheck="false" />
+            <button type="button" class="mbtn ghost" id="geminiListBtn" data-i18n="btn_listmodels">List models</button>
+          </div>
+          <select id="geminiModels" size="5" style="margin-top:8px; display:none;"></select>
+          <div class="hint" id="geminiModelHint" data-i18n-html="hint_gemini_model_warn"></div>
         </div>
       </div>
 
@@ -585,7 +589,11 @@ const I18N = {
     btn_voicesearch: "Search",
     eleven_note: "Create a <b>Conversational AI agent</b> in the ElevenLabs dashboard and set its LLM to <b>Claude</b>. Paste the agent's ID below; the app sends the chosen character's prompt + voice as overrides.",
     cost_used_title: "Rough estimated spend so far (this device)",
-    hint_gemini_model_warn: "Heads-up: <code>gemini-2.0-flash-live-001</code> was retired on 1&nbsp;Jun&nbsp;2026. Enter a current Live model (e.g. <code>gemini-live-2.5-flash</code>).",
+    hint_gemini_model_warn: "Heads-up: <code>gemini-2.0-flash-live-001</code> was retired on 1&nbsp;Jun&nbsp;2026. Tap <b>List models</b> to see which Live models your key supports, then pick one.",
+    btn_listmodels: "List models",
+    listing: "Loading available Live models…",
+    listing_found: "$n Live-capable model(s) found — pick one above.",
+    listing_none: "No Live models found for this key (try another key/region).",
     price_cheapest: "💡 Cheapest API: <b>Gemini Live</b> (~5× under OpenAI on audio). ElevenLabs is flat ~$0.10/min (+ its own Claude bill). OpenAI is priciest but the most proven.",
     price_info_openai: "OpenAI <code>gpt-realtime</code>: audio ≈ $32 / $64 per 1M tokens in/out (≈ $0.06 / $0.24 per min).",
     price_info_gemini: "Gemini Live: audio ≈ $3 / $12 per 1M tokens in/out — the cheapest here.",
@@ -668,7 +676,11 @@ const I18N = {
     btn_voicesearch: "Suchen",
     eleven_note: "Erstelle im ElevenLabs-Dashboard einen <b>Conversational-AI-Agenten</b> und stelle sein LLM auf <b>Claude</b>. Füge unten die Agent-ID ein; die App sendet Prompt + Stimme der gewählten Figur als Overrides.",
     cost_used_title: "Grobe geschätzte Kosten bisher (dieses Gerät)",
-    hint_gemini_model_warn: "Hinweis: <code>gemini-2.0-flash-live-001</code> wurde am 1.&nbsp;Juni&nbsp;2026 abgeschaltet. Trage ein aktuelles Live-Modell ein (z.&nbsp;B. <code>gemini-live-2.5-flash</code>).",
+    hint_gemini_model_warn: "Hinweis: <code>gemini-2.0-flash-live-001</code> wurde am 1.&nbsp;Juni&nbsp;2026 abgeschaltet. Tippe <b>Modelle laden</b>, um zu sehen, welche Live-Modelle dein Schlüssel unterstützt, und wähle eines aus.",
+    btn_listmodels: "Modelle laden",
+    listing: "Lade verfügbare Live-Modelle…",
+    listing_found: "$n Live-fähige(s) Modell(e) gefunden — oben auswählen.",
+    listing_none: "Keine Live-Modelle für diesen Schlüssel gefunden (anderer Schlüssel/Region?).",
     price_cheapest: "💡 Günstigste API: <b>Gemini Live</b> (~5× unter OpenAI bei Audio). ElevenLabs ist pauschal ~$0,10/Min. (+ eigene Claude-Rechnung). OpenAI am teuersten, aber am bewährtesten.",
     price_info_openai: "OpenAI <code>gpt-realtime</code>: Audio ≈ $32 / $64 pro 1 Mio. Tokens (rein/raus) (≈ $0,06 / $0,24 pro Min.).",
     price_info_gemini: "Gemini Live: Audio ≈ $3 / $12 pro 1 Mio. Tokens (rein/raus) — der günstigste hier.",
@@ -678,7 +690,7 @@ const I18N = {
 
 // ---------- persistence ----------
 const LS = { key:"whitehero.openai_key", instr:"whitehero.instructions", model:"whitehero.model", lang:"whitehero.lang", used:"whitehero.tokens_used", budget:"whitehero.token_budget", memory:"whitehero.memory", char:"whitehero.character", text:"whitehero.show_text",
-  provider:"whitehero.provider", gemini_key:"whitehero.gemini_key", gemini_model:"whitehero.gemini_model",
+  provider:"whitehero.provider", gemini_key:"whitehero.gemini_key", gemini_model:"whitehero.gemini_model", gemini_apiver:"whitehero.gemini_apiver",
   eleven_key:"whitehero.eleven_key", eleven_agent:"whitehero.eleven_agent", eleven_voice:"whitehero.eleven_voice", eleven_voice_name:"whitehero.eleven_voice_name",
   roster:"whitehero.roster", cost:"whitehero.cost_used" };
 const DEFAULTS = { model:"gpt-realtime", gemini_model:"gemini-2.0-flash-live-001" };
@@ -821,6 +833,7 @@ const scrim=$("scrim"), keyInput=$("keyInput"), instrInput=$("instrInput"), inst
 const budgetInput=$("budgetInput"), budgetHint=$("budgetHint"), memHint=$("memHint"), tokenPill=$("tokenPill");
 const textBtn=$("textBtn"), friendsEl=$("friends"), friendsLabel=$("friendsLabel");
 const providerInput=$("providerInput"), geminiKey=$("geminiKey"), geminiModel=$("geminiModel");
+const geminiListBtn=$("geminiListBtn"), geminiModels=$("geminiModels"), geminiModelHint=$("geminiModelHint");
 const elevenKey=$("elevenKey"), elevenAgent=$("elevenAgent"), voiceSearch=$("voiceSearch"), voiceSearchBtn=$("voiceSearchBtn"), voiceResults=$("voiceResults"), voiceChosen=$("voiceChosen");
 const heroBody=$("heroBody"), ringEl=$("ring"), smileEl=$("smile"), mouthEl=$("mouthOpen"), heroSvg=$("hero");
 const errbar=$("errbar"), errmsg=$("errmsg"), errtitle=$("errtitle"), erract=$("erract"), verEl=$("ver");
@@ -986,6 +999,7 @@ function openSettings(){
   elevenAgent.value = store.get("eleven_agent");
   voiceChosen.textContent = store.get("eleven_voice_name") ? "✓ " + store.get("eleven_voice_name") : "";
   voiceResults.style.display = "none";
+  geminiModels.style.display = "none";
   updateProviderFields();
   instrLabel.textContent = t("label_instr",{ c: charName(currentChar()) });
   instrInput.value = charInstr(currentChar());
@@ -1070,6 +1084,52 @@ voiceResults.onchange = ()=>{
   store.set("eleven_voice_name", opt.dataset.name || opt.textContent);
   voiceChosen.textContent = "✓ " + (opt.dataset.name || opt.textContent);
 };
+
+// ---------- discover which Gemini models actually support the Live API (bidiGenerateContent) ----------
+async function listGeminiModels(){
+  const key = geminiKey.value.trim() || store.get("gemini_key");
+  if(!key){ geminiModelHint.textContent = "⚠ " + t("label_gemini_key"); return; }
+  geminiListBtn.disabled = true;
+  geminiModelHint.textContent = t("listing");
+  try{
+    const found = new Map();   // id -> api version it was found under
+    for(const ver of ["v1beta","v1alpha"]){
+      let pageToken = "";
+      for(let i=0;i<6;i++){
+        const url = `https://generativelanguage.googleapis.com/${ver}/models?key=${encodeURIComponent(key)}&pageSize=200${pageToken?`&pageToken=${encodeURIComponent(pageToken)}`:""}`;
+        let r; try{ r = await fetch(url); }catch(_){ break; }
+        if(!r.ok){
+          if(i===0 && ver==="v1beta"){ const b=await r.text().catch(()=> ""); throw new Error("HTTP "+r.status+(b?": "+b.slice(0,120):"")); }
+          break;
+        }
+        const j = await r.json();
+        (j.models||[]).forEach(m=>{
+          const methods = m.supportedGenerationMethods || m.supportedActions || [];
+          if(methods.includes("bidiGenerateContent")){
+            const id = (m.name||"").replace(/^models\//,"");
+            if(id && !found.has(id)) found.set(id, ver);   // prefer v1beta (queried first)
+          }
+        });
+        pageToken = j.nextPageToken || "";
+        if(!pageToken) break;
+      }
+    }
+    const ids = [...found.keys()].sort();
+    geminiModels.innerHTML = ids.map(id=>`<option value="${id}" data-ver="${found.get(id)}">${id}${found.get(id)==="v1alpha"?" · v1alpha":""}</option>`).join("");
+    geminiModels.style.display = ids.length ? "" : "none";
+    geminiModelHint.textContent = ids.length ? t("listing_found",{ n: ids.length }) : t("listing_none");
+  }catch(e){
+    geminiModels.style.display = "none";
+    geminiModelHint.textContent = "⚠ " + (e.message || "failed");
+  }finally{ geminiListBtn.disabled = false; }
+}
+geminiListBtn.onclick = listGeminiModels;
+geminiModels.onchange = ()=>{
+  const opt = geminiModels.selectedOptions[0]; if(!opt) return;
+  geminiModel.value = opt.value;                          // programmatic set → no oninput, keeps the api version below
+  store.set("gemini_apiver", opt.dataset.ver || "v1beta");
+};
+geminiModel.oninput = ()=>{ store.set("gemini_apiver","v1beta"); };   // manual edit → assume standard v1beta endpoint
 $("resetUsed").onclick=()=>{ tokensUsed=0; costUsed=0; store.set("used","0"); store.set("cost","0"); resetGeminiMeter(); elevenStart=0; updateBudgetHint(); updateTokenPill(); };
 $("clearMem").onclick=()=>{ store.del("memory"); pendingTurn=null; updateMemHint(); };
 tokenPill.onclick=()=>openSettings();
@@ -1370,7 +1430,8 @@ const GEMINI_VOICE = { senua:"Aoede", rubina:"Leda", theo:"Charon", kilian:"Fenr
 async function connectGemini(){
   const key=store.get("gemini_key");
   const model=store.get("gemini_model", DEFAULTS.gemini_model);
-  ws = new WebSocket(`wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${encodeURIComponent(key)}`);
+  const ver=store.get("gemini_apiver","v1beta");   // some newer Live models only exist on v1alpha
+  ws = new WebSocket(`wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.${ver}.GenerativeService.BidiGenerateContent?key=${encodeURIComponent(key)}`);
   let turnText="";
   ws.onopen = ()=>{
     ws.send(JSON.stringify({ setup:{

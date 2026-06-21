@@ -53,7 +53,10 @@ Everything runs in the browser:
 - **Choosable AI provider** (settings): **OpenAI Realtime** (default, proven) or —
   *experimental* — **Google Gemini Live** (native speech-to-speech, just needs a Gemini
   key) and **ElevenLabs Conversational AI** (connect to an agent you create in their
-  dashboard with **Claude** as its LLM; search & pick the voice in-app).
+  dashboard with **Claude** as its LLM; search & pick the voice in-app). Gemini Live model
+  IDs churn, so settings has a **List models** button that queries the Gemini `models.list`
+  API with your key, keeps only those advertising `bidiGenerateContent` (Live), and lets you
+  pick one (remembering whether it needs the `v1beta` or `v1alpha` endpoint).
 
 ## Why OpenAI Realtime — and the other options
 
