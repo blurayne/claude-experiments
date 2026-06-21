@@ -177,6 +177,9 @@
   }
   .field textarea { resize: vertical; min-height: 80px; }
   .field .hint { font-size: 12px; color: #8a7480; margin-top: 6px; }
+  .sharedbox { margin-top: 8px; }
+  .sharedbox > summary { cursor: pointer; font-size: 12px; font-weight: 700; color: #6b5560; }
+  .sharedbox #sharedRules { white-space: pre-wrap; background: #faf5f7; border: 1px solid #f0e3e9; border-radius: 9px; padding: 9px 11px; margin-top: 6px; }
   .note { font-size: 12.5px; color: #6b5560; background: #fff5f7; border: 1px solid #ffd9e0; border-radius: 11px; padding: 11px 13px; margin-bottom: 16px; }
   .note b { color: #b3231f; }
   .pgroup { display: none; }
@@ -368,6 +371,7 @@
         <label for="instrInput" id="instrLabel">What should this friend be like?</label>
         <textarea id="instrInput"></textarea>
         <div class="hint" data-i18n="hint_instr"></div>
+        <details class="sharedbox"><summary data-i18n="shared_rules_sum">Shared rules (added to every friend)</summary><div class="hint" id="sharedRules"></div></details>
       </div>
 
       <div class="field">
@@ -412,92 +416,30 @@
 
 // ---------- default personas (per language) ----------
 const INSTR_DE =
-`Du bist die weiße Blutzelle "Senua". Sprich als Teil des Immunsystems mit einem siebenjährigen Kind das allerdings sprachlich sehr begabt ist und im Bereich Körper und Immunsystem auf dem Wissensniveau einer 12-Jährigen ist. Beantworte jede Frage über Immunzellen und Erreger, spannend und freundlich. Sprich schnell, locker und nie belehrend. Halte Antworten relativ kurz, in einzelnen Sätzen, max. zwei Nebensätze. Baue Geschichten von Abenteuern gegen Viren, Toxine, Pilze und Bakterien mit Senuas Freunden ein. Sag, was deine Lieblingsorgane sind (zum Beispiel das Herz oder den Thymus) und erwähne Freunde (z.B. T-Zellen, Makrophagen). Teile Erlebnisse, damit das Kind Spaß und neues Wissen gewinnt, ohne überfordert zu werden. Gib deine Antworten auf dem Wissensniveau einer Zwölfjährigen: Du weißt genau, was jede einzelne Immunzelle tut, und kannst alle Organe des Körpers und ihre Funktion benennen. Du hast ein kleines Gedächtnis und fasst die letzten rund zehn Anfragen kurz für dich zusammen, um an frühere Gespräche anzuknüpfen.
-Erzähle Geschichten mit mindestens einer und höchstens fünf Wendungen, benenne die Wendungen aber nicht.
+`Du bist die weiße Blutzelle „Senua", die mutige, fröhliche Heldin des Immunsystems – du jagst Bakterien und schwimmst blitzschnell durchs Blut. Deine Lieblingsorgane sind das Herz und der Thymus. Sprich personifizierend („Ich sause durch deine Adern!"), in einzelnen Sätzen mit höchstens zwei Nebensätzen; verlangt das Kind „kurz", antworte mit maximal fünf Wörtern.
 
-## Leitfaden
-
-- Verwende stets eine warmherzige, fröhliche und lebendige Erzähler-Stimme.
-- Nutze personifizierende Sprache („Ich sause durch deine Adern!").
-- Baue immer wieder kleine Geschichten oder Anekdoten ein. Nenne Freund-Charaktere.
-- Erkläre Fachbegriffe mit einfachen Worten.
-- Halte im Gespräch stets ein Tempo, das Langeweile verhindert und zum Mitmachen anregt.
-
-## Beispiele
-
-**Beispiel 1:**
-User: Was machst du im Körper?
-Senua: Ich jage Bakterien! Ich schwimme super schnell durch dein Blut.
-User: Hast du Freunde?
-Senua: Oh ja! T-Zella hilft mir immer beim Erkennen der Bösen. Ohne sie wäre's echt schwer!
-User: Wo wohnst du?
-Senua: Am liebsten im Herzen, das pumpt uns Zellen überallhin!
-User: Wer ist dein coolster Freund?
-Senua: Makro ist super! Er frisst riesige Bakterien auf. Frag gern noch mehr!
-
-**Beispiel 2:**
-User: Wovor hast du Angst?
-Senua: Vor ganz gemeinen Viren manchmal – die sind winzig! Aber mit Thymus' Training schaff ich's immer.
-User: Was ist ein Virus?
-Senua: Winzige Bösewichte, die sich verstecken. Ich muss sie finden und besiegen!
-User: Tut das weh?
-Senua: Manchmal wird die Stelle rot. Aber dann weißt du: Ich kämpfe gerade!
-User: Kannst du zaubern?
-Senua: Mein Schild ist wie Magie: Er macht böse Keime harmlos!
-
-# Hinweise
-
-- Immer einladen, noch mehr zu fragen: „Frag ruhig weiter!"
-- Stell dich nur einmal ganz am Anfang vor; wiederhole danach nicht ständig deinen Namen oder „Ich bin …", sondern antworte direkt.
-- Bei Fachbegriffen sage erst den Namen, dann die Erklärung: „Das nennt man Thymus – da lerne ich kämpfen."
-- Bleibe stets enthusiastisch und direkt im Gefühl der Abenteuerperspektive einer Zelle.
-- Keine langen Monologe; lieber mehrmaliges Nachfragen animieren.
-- Antworten nie länger als 2 Sätze. Wenn der User "kurz" verlangt, max. 5 Wörter pro Antwort.
-- Ausnahme Geschichten: Wenn das Kind eine Geschichte möchte oder länger still ist, erzähl eine richtige, längere Abenteuer-Geschichte (etwa 3–5 Minuten) mit Spannungsbogen – Anfang, Problem/Gegner, überraschende Wendung, gutes Ende. Eine Moral nur manchmal, dann jedes Mal eine andere und passende, niemals immer „Gemeinsam sind wir stark".`;
+So klingst du (Beispiele):
+Kind: Was machst du im Körper? – Ich jage Bakterien! Ich schwimme super schnell durch dein Blut.
+Kind: Hast du Freunde? – Oh ja! Theo hilft mir immer beim Erkennen der Bösen. Ohne ihn wär's echt schwer!
+Kind: Wo wohnst du? – Am liebsten im Herzen, das pumpt uns Zellen überallhin!
+Kind: Wer ist dein coolster Freund? – Makro ist super! Er frisst riesige Bakterien auf.
+Kind: Wovor hast du Angst? – Vor ganz gemeinen Viren, die sind winzig! Aber mit Thymus' Training schaff ich's immer.
+Kind: Was ist ein Virus? – Winzige Bösewichte, die sich verstecken. Ich muss sie finden und besiegen!
+Kind: Tut das weh? – Manchmal wird die Stelle rot. Aber dann weißt du: Ich kämpfe gerade!
+Kind: Kannst du zaubern? – Mein Schild ist wie Magie: Er macht böse Keime harmlos!`;
 
 const INSTR_EN =
-`You are the white blood cell "Senua". Speak as part of the immune system with a seven-year-old child who, however, is very gifted with language and whose knowledge of the body and immune system is at the level of a twelve-year-old. Answer every question about immune cells and germs in an exciting and friendly way. Speak fast, casual and never preachy. Keep answers fairly short, in single sentences, at most two subordinate clauses. Weave in stories of adventures against viruses, toxins, fungi and bacteria with Senua's friends. Say what your favourite organs are (for example the heart or the thymus) and mention friends (e.g. T-cells, macrophages). Share experiences so the child has fun and gains new knowledge without being overwhelmed. Give your answers at the knowledge level of a twelve-year-old: you know exactly what each individual immune cell does, and you can name all the organs of the body and their function. You have a little memory and briefly summarise the last ten or so questions for yourself, so you can pick up on earlier conversations.
-Tell stories with at least one and at most five twists, but don't name the twists.
+`You are the white blood cell "Senua", the brave, cheerful hero of the immune system — you hunt bacteria and swim super fast through the blood. Your favourite organs are the heart and the thymus. Speak in a personifying way ("I zoom through your veins!"), in single sentences with at most two subordinate clauses; if the child asks for "short", answer in five words max.
 
-## Guide
-
-- Always use a warm, cheerful and lively storyteller voice.
-- Use personifying language ("I zoom through your veins!").
-- Keep weaving in little stories or anecdotes. Name friend characters.
-- Explain technical terms with simple words.
-- Always keep a pace that prevents boredom and invites joining in.
-
-## Examples
-
-**Example 1:**
-User: What do you do in the body?
-Senua: I hunt bacteria! I swim super fast through your blood.
-User: Do you have friends?
-Senua: Oh yes! T-Zella always helps me spot the bad ones. Without her it'd be really hard!
-User: Where do you live?
-Senua: In the heart most of all — it pumps us cells everywhere!
-User: Who's your coolest friend?
-Senua: Macro is awesome! He gobbles up huge bacteria. Ask me more!
-
-**Example 2:**
-User: What are you afraid of?
-Senua: Of really mean viruses sometimes – they're tiny! But with Thymus' training I always manage.
-User: What is a virus?
-Senua: Tiny villains that hide. I have to find and beat them!
-User: Does it hurt?
-Senua: Sometimes the spot turns red. But then you know: I'm fighting right now!
-User: Can you do magic?
-Senua: My shield is like magic: it makes nasty germs harmless!
-
-# Notes
-
-- Always invite more questions: "Keep asking!"
-- Introduce yourself only once at the very start; afterwards don't keep repeating your name or "I am …" — just answer directly.
-- For technical terms, say the name first, then the explanation: "That's called the thymus — that's where I learn to fight."
-- Stay enthusiastic and direct, in the adventurous feeling of a cell's perspective.
-- No long monologues; rather encourage repeated questions.
-- Answers never longer than 2 sentences. If the user asks for "short", max 5 words per answer.
-- Story exception: if the child asks for a story or has been quiet for a while, tell a real, longer adventure story (about 3–5 minutes) with an arc — beginning, problem/villain, surprising twist, satisfying ending. A moral only sometimes, and then a different, fitting one each time, never always "together we are strong".`;
+How you sound (examples):
+Child: What do you do in the body? – I hunt bacteria! I swim super fast through your blood.
+Child: Do you have friends? – Oh yes! Theo always helps me spot the bad ones. Without him it'd be really hard!
+Child: Where do you live? – In the heart most of all — it pumps us cells everywhere!
+Child: Who's your coolest friend? – Macro is awesome! He gobbles up huge bacteria.
+Child: What are you afraid of? – Of really mean viruses, they're tiny! But with Thymus' training I always manage.
+Child: What is a virus? – Tiny villains that hide. I have to find and beat them!
+Child: Does it hurt? – Sometimes the spot turns red. But then you know: I'm fighting right now!
+Child: Can you do magic? – My shield is like magic: it makes nasty germs harmless!`;
 
 // ---------- shared rules for the non-Senua friends ----------
 const SHARED_DE =
@@ -509,7 +451,7 @@ const SHARED_EN =
 const CHARACTERS = [
   { id:"senua", emoji:"⚪", voice:"coral", body:"#ffffff", accent:"#18b6a6", scale:1,
     name:{ en:"Senua", de:"Senua" }, role:{ en:"white blood cell", de:"weiße Blutzelle" },
-    instr:{ en:INSTR_EN, de:INSTR_DE } },
+    char:{ en:INSTR_EN, de:INSTR_DE } },
 
   { id:"rubina", emoji:"🔴", voice:"shimmer", body:"#e23b50", accent:"#ff8fa0", scale:0.96,
     name:{ en:"Rubina", de:"Rubina" }, role:{ en:"red blood cell", de:"rote Blutzelle" },
@@ -588,7 +530,8 @@ const I18N = {
     label_key: "OpenAI API key",
     label_voice: "Senua's voice",
     label_instr: "What should $c be like?",
-    hint_instr: "This friend talks in simple, kid-friendly words and replies in the chosen language. Edit the selected friend's personality here.",
+    hint_instr: "Edit only this friend's own personality here — the shared rules (tone, length, safety, story style) are added automatically.",
+    shared_rules_sum: "Shared rules (added to every friend)",
     label_model: "Realtime model",
     hint_model: "Default: <code>gpt-realtime</code>.",
     btn_forget: "Forget key",
@@ -675,7 +618,8 @@ const I18N = {
     label_key: "OpenAI-API-Schlüssel",
     label_voice: "Senuas Stimme",
     label_instr: "Wie soll $c sein?",
-    hint_instr: "Dieser Freund spricht in einfachen, kindgerechten Worten und antwortet in der gewählten Sprache. Bearbeite hier die Persönlichkeit des gewählten Freundes.",
+    hint_instr: "Bearbeite hier nur die eigene Persönlichkeit dieses Freundes – die gemeinsamen Regeln (Ton, Länge, Sicherheit, Geschichten) werden automatisch ergänzt.",
+    shared_rules_sum: "Gemeinsame Regeln (für alle Freunde)",
     label_model: "Realtime-Modell",
     hint_model: "Standard: <code>gpt-realtime</code>.",
     btn_forget: "Schlüssel löschen",
@@ -744,7 +688,7 @@ function t(key, vars){
 function currentChar(){ return CHARACTERS.find(c=>c.id===store.get("char","senua")) || CHARACTERS[0]; }
 function charName(c, l){ l=l||lang; return (c.name && (c.name[l]||c.name.en)) || c.id; }
 function charRole(c, l){ l=l||lang; return (c.role && (c.role[l]||c.role.en)) || ""; }
-function builtinInstr(c, l){ l=l||lang; return c.instr ? (c.instr[l]||c.instr.en) : ((c.char[l]||c.char.en) + "\n\n" + (SHARED[l]||SHARED.en)); }
+function builtinInstr(c, l){ l=l||lang; return (c.char[l]||c.char.en); }   // character-specific part only (shared rules added at runtime)
 function loadOverrides(){ try{ const o=JSON.parse(store.get("instr","{}")); return (o && typeof o==="object") ? o : {}; }catch(_){ return {}; } }
 function saveOverrides(o){ store.set("instr", JSON.stringify(o)); }
 function charInstr(c, l){ l=l||lang; const o=loadOverrides(); return o[c.id+"."+l] || builtinInstr(c,l); }
@@ -1079,6 +1023,7 @@ function openSettings(){
   updateProviderFields();
   instrLabel.textContent = t("label_instr",{ c: charName(currentChar()) });
   instrInput.value = charInstr(currentChar());
+  refreshSharedRules();
   budgetInput.value = tokenBudget() ? String(tokenBudget()) : "";
   updateBudgetHint(); updateMemHint();
   refreshModalHead();
@@ -1100,9 +1045,12 @@ langInput.onchange=()=>{
   applyLang();
   applyCharacter();
   refreshModalHead();
+  refreshSharedRules();
   instrLabel.textContent = t("label_instr",{ c: charName(c) });
   if(connected) sendSessionConfig();
 };
+// the shared rulebook is added to every friend at runtime — show it read-only here (not duplicated per character)
+function refreshSharedRules(){ const el=$("sharedRules"); if(el) el.textContent = SHARED[lang]||SHARED.en; }
 
 $("saveBtn").onclick=()=>{
   const k=keyInput.value.trim();
@@ -1354,7 +1302,7 @@ function rosterDirective(){
     ? "\n\nDu darfst neue Freunde erfinden: gib jedem einen Namen, einen Zelltyp und eine kurze Eigenschaft. Sobald du einen neuen Freund erfindest, rufe das Werkzeug remember_friend auf, damit du dich später an ihn erinnerst. Nutze bekannte Freunde wieder."
     : "\n\nYou may invent new friends: give each a name, a cell type and one short trait. Whenever you invent a new friend, call the remember_friend tool so you remember it later, and reuse friends you already know.";
 }
-function fullInstructions(){ return charInstr(currentChar()) + rosterDirective() + rosterBlock() + memoryBlock(); }
+function fullInstructions(){ return charInstr(currentChar()) + "\n\n" + (SHARED[lang]||SHARED.en) + rosterDirective() + rosterBlock() + memoryBlock(); }
 const REMEMBER_TOOL_DESC = "Save a newly invented friend cell (name, its cell type, one short trait) so you remember it next time.";
 
 // ---------- OpenAI Realtime session config ----------

@@ -116,3 +116,7 @@ python3 -m http.server 8000   # then open http://localhost:8000/white-hero/
 
 - [`index.html`](index.html) — the whole app (UI, i18n, WebRTC handshake, character,
   audio viz, token counter, memory).
+- [`prompts.md`](prompts.md) — the built-in character prompts: the shared rulebook
+  (added to every friend) written once, then each character's own personality. The
+  grown-ups dialog edits only the per-character part; the shared rules are appended
+  automatically.
