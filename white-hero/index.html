@@ -1198,38 +1198,47 @@ function heartbeatShape(p){
 let envSm=0, voiceMix=0, mouthRySm=4, prevTs=0;
 function timeData(an){ if(!an) return null; const b=new Uint8Array(an.fftSize); an.getByteTimeDomainData(b); return b; }
 
+// where the hero sits on screen (so the voice ring hugs the character)
+function heroCenter(){
+  const r = heroSvg.getBoundingClientRect();
+  return { x: r.left + r.width/2, y: r.top + r.height/2, rad: (Math.min(r.width, r.height)/2) || 120 };
+}
 function drawWave(time, heroSpeaking, userActive){
   if(!wctx || document.hidden) return;
-  const W=waveW, H=waveH, mid=H*0.52;
+  const W=waveW, H=waveH;
   wctx.clearRect(0,0,W,H);
-  const band = Math.min(H*0.16, 140);
+  const hc = heroCenter();
+  const midY = hc.y;   // the heartbeat line runs through the hero's vertical centre
 
-  // heartbeat layer (fades in as the voice fades out)
+  // heartbeat LINE (fades in as the voice fades out)
   const hbA=1-voiceMix;
   if(hbA>0.015){
     wctx.globalAlpha=hbA*0.6; wctx.strokeStyle="rgba(255,255,255,0.9)"; wctx.lineWidth=3; wctx.lineJoin="round";
     wctx.beginPath();
-    const beats=2, scroll=time*0.13, amp=band*0.95, step=Math.max(2,Math.floor(W/300));
-    for(let x=0;x<=W;x+=step){ let u=(x/W)*beats - scroll*beats; u-=Math.floor(u); const y=mid-heartbeatShape(u)*amp; x?wctx.lineTo(x,y):wctx.moveTo(x,y); }
+    const beats=2, scroll=time*0.13, amp=Math.min(H*0.16,140)*0.95, step=Math.max(2,Math.floor(W/300));
+    for(let x=0;x<=W;x+=step){ let u=(x/W)*beats - scroll*beats; u-=Math.floor(u); const y=midY-heartbeatShape(u)*amp; x?wctx.lineTo(x,y):wctx.moveTo(x,y); }
     wctx.stroke(); wctx.globalAlpha=1;
   }
 
-  // live waveform layer (oscilloscope of whoever is talking)
+  // voice CIRCLE — a radial oscilloscope hugging the hero
   if(voiceMix>0.015){
     const col = heroSpeaking ? (currentChar().accent||"#bfeee8") : "#bfe0ff";
     const an = heroSpeaking ? sinkAnalyser : (userActive ? micAnalyser : (sinkAnalyser||micAnalyser));
     const buf = timeData(an);
-    const amp = band*(0.35+envSm*1.5);
+    const base = hc.rad*0.92, amp = hc.rad*(0.10+envSm*0.7);
+    const N = buf ? buf.length : 128, pts = 100;
     wctx.lineJoin="round"; wctx.strokeStyle=col;
     wctx.beginPath();
-    if(buf){
-      const N=buf.length;
-      for(let i=0;i<N;i++){ const x=(i/(N-1))*W, y=mid+((buf[i]-128)/128)*amp; i?wctx.lineTo(x,y):wctx.moveTo(x,y); }
-    } else {
-      for(let x=0;x<=W;x+=4){ const y=mid+Math.sin(x*0.03+time*6)*amp*0.5; x?wctx.lineTo(x,y):wctx.moveTo(x,y); }
+    for(let i=0;i<=pts;i++){
+      const f=i/pts, a=f*Math.PI*2 - Math.PI/2;
+      const mir = f<0.5 ? f*2 : 2-f*2;            // mirror so the ring closes seamlessly
+      const s = buf ? (buf[Math.floor(mir*(N-1))]-128)/128 : Math.sin(i*0.5+time*6)*0.4;
+      const rr = base + s*amp, x = hc.x + Math.cos(a)*rr, y = hc.y + Math.sin(a)*rr;
+      i?wctx.lineTo(x,y):wctx.moveTo(x,y);
     }
-    wctx.globalAlpha=voiceMix*0.22; wctx.lineWidth=11; wctx.stroke();   // soft glow
-    wctx.globalAlpha=voiceMix;      wctx.lineWidth=3.5; wctx.stroke();   // crisp line
+    wctx.closePath();
+    wctx.globalAlpha=voiceMix*0.22; wctx.lineWidth=12; wctx.stroke();   // soft glow
+    wctx.globalAlpha=voiceMix;      wctx.lineWidth=3.5; wctx.stroke();   // crisp ring
     wctx.globalAlpha=1;
   }
 }
