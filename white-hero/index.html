@@ -542,7 +542,7 @@ const I18N = {
     hint_instr: "Edit only this friend's own personality here — the shared rules (tone, length, safety, story style) are added automatically.",
     shared_rules_sum: "Shared rules (added to every friend)",
     label_model: "Realtime model",
-    hint_model: "Default: <code>gpt-realtime</code>.",
+    hint_model: "Default: <code>gpt-realtime</code>. For ~3× lower cost use <code>gpt-realtime-mini</code> (a bit simpler, fine for kids).",
     label_vad: "Speech detection",
     hint_vad: "How eagerly the friend jumps in. “Relaxed” lets her finish speaking and won't cut her off on quiet sounds; “Quick” lets the child interrupt her.",
     vad_relaxed: "Relaxed — waits for the child",
@@ -635,7 +635,7 @@ const I18N = {
     hint_instr: "Bearbeite hier nur die eigene Persönlichkeit dieses Freundes – die gemeinsamen Regeln (Ton, Länge, Sicherheit, Geschichten) werden automatisch ergänzt.",
     shared_rules_sum: "Gemeinsame Regeln (für alle Freunde)",
     label_model: "Realtime-Modell",
-    hint_model: "Standard: <code>gpt-realtime</code>.",
+    hint_model: "Standard: <code>gpt-realtime</code>. Für ~3× geringere Kosten <code>gpt-realtime-mini</code> nehmen (etwas einfacher, für Kinder völlig okay).",
     label_vad: "Spracherkennung",
     hint_vad: "Wie schnell der Freund einsteigt. „Entspannt“ lässt sie ausreden und bricht bei leisen Geräuschen nicht ab; „Flink“ erlaubt dem Kind, sie zu unterbrechen.",
     vad_relaxed: "Entspannt — wartet auf das Kind",
@@ -722,16 +722,18 @@ function tokenBudget(){ return parseInt(store.get("budget","0"),10) || 0; }
 // Public list prices, USD per 1M tokens (audio dominates realtime cost). Rough, mid-2026 —
 // shown only as an estimate. OpenAI gpt-realtime; Gemini Live (native audio); ElevenLabs per minute.
 const PRICING = {
-  openai:     { kind:"token",  textIn:4,   textOut:16, audioIn:32, audioOut:64, cachedIn:0.40 },
-  gemini:     { kind:"token",  textIn:0.5, textOut:2,  audioIn:3,  audioOut:12, cachedIn:0.30 },
-  elevenlabs: { kind:"minute", perMin:0.10 },
+  openai:      { kind:"token",  textIn:4,   textOut:16,  audioIn:32, audioOut:64, cachedIn:0.40 },
+  openai_mini: { kind:"token",  textIn:0.6, textOut:2.4, audioIn:10, audioOut:20, cachedIn:0.30 },
+  gemini:      { kind:"token",  textIn:0.5, textOut:2,   audioIn:3,  audioOut:12, cachedIn:0.30 },
+  elevenlabs:  { kind:"minute", perMin:0.10 },
 };
 function addUsage(n){ if(!n) return; tokensUsed += n; store.set("used", String(tokensUsed)); updateTokenPill(); updateBudgetHint(); }
 function addCost(usd){ usd=+usd; if(!usd || usd<0) return; costUsed += usd; store.set("cost", costUsed.toFixed(6)); updateTokenPill(); updateBudgetHint(); }
 
 // cost of one OpenAI Realtime response from its usage object (uses the audio/text split when present)
 function costFromOpenAI(u){
-  const P=PRICING.openai, id=u.input_token_details||{}, od=u.output_token_details||{};
+  const P = /mini/i.test(store.get("model", DEFAULTS.model)) ? PRICING.openai_mini : PRICING.openai;
+  const id=u.input_token_details||{}, od=u.output_token_details||{};
   let inAudio=id.audio_tokens, inText=id.text_tokens, cached=id.cached_tokens||0;
   let outAudio=od.audio_tokens, outText=od.text_tokens;
   if(inAudio==null && inText==null){ inAudio=u.input_tokens||0; inText=0; }
