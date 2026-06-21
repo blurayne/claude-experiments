@@ -992,6 +992,24 @@ function handleConnectError(err){
   showError(t("err_connect_msg",{d:(err.message||err.name||"unknown error")}));
 }
 
+// ---------- keep the screen awake during a conversation ----------
+let wakeLock = null;
+async function acquireWakeLock(){
+  if(!("wakeLock" in navigator)) return;
+  try{
+    wakeLock = await navigator.wakeLock.request("screen");
+    wakeLock.addEventListener("release", ()=>{ wakeLock = null; });
+  }catch(e){ console.warn("wakeLock:", e.message); }
+}
+async function releaseWakeLock(){
+  try{ if(wakeLock) await wakeLock.release(); }catch(_){}
+  wakeLock = null;
+}
+document.addEventListener("visibilitychange", ()=>{
+  // the lock is dropped automatically when the page is hidden — re-acquire on return
+  if(document.visibilityState==="visible" && connected && !wakeLock) acquireWakeLock();
+});
+
 // ---------- connect / hangup ----------
 async function connect(){
   const key=store.get("key");
@@ -1041,6 +1059,7 @@ function onConnected(){
   showSay("hero", t("greeting"));
   startAnim();
   scheduleIdle();
+  acquireWakeLock();
 }
 function hangup(){
   cleanup(); connected=false; connecting=false;
@@ -1051,6 +1070,7 @@ function hangup(){
 }
 function cleanup(){
   cancelIdle();
+  releaseWakeLock();
   try{ if(dc) dc.close(); }catch(_){}
   try{ if(pc){ pc.getSenders().forEach(s=>s.track&&s.track.stop()); pc.close(); } }catch(_){}
   try{ if(localStream) localStream.getTracks().forEach(t=>t.stop()); }catch(_){}
