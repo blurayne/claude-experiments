@@ -19,6 +19,10 @@ hilft, sie entlang eines realen Nutzungsprofils zu vergleichen:
 - **Verbrauchskurven** je Tempo (Stadt · 120 · 140 · 160 · 175 km/h) auf Basis
   von ADAC-EcoTest-, Test- und Forenwerten (Hochgeschwindigkeitspunkte teils
   physikalisch interpoliert und als Schätzung gekennzeichnet).
+- **Motoren-Verbrauch (Auris · Corolla · Avensis):** umschaltbare
+  Verbrauchskurven der Toyota-Triebwerke (1.8/2.0 Hybrid, 1.2 Turbo, 1.33/1.6/1.8
+  Benziner, 1.4/1.6/2.0 D-4D Diesel) gegen den 1.8 Hybrid — Praxis-Richtwerte
+  je Tempo.
 - **Gesamtkosten (TCO):** Kaufpreis, Steuer, Wartung, Versicherung und
   Spritkosten über die geplante Haltedauer.
 - **Bewertungs-Matrix:** Zuverlässigkeit, AB-Ruhe, Schlauf-/Schlaftauglichkeit

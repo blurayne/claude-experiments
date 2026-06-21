@@ -641,6 +641,85 @@ function Versus({ annFor }) {
   );
 }
 
+// ---------- Motoren-Verbrauch: Toyota-Triebwerke (Auris/Corolla/Avensis) ----------
+// Praxis-Richtwerte (Spritmonitor-Niveau, keine WLTP-Laborwerte). Gleiche Tempo-
+// Stützpunkte wie die Haupt-Verbrauchskurve. "Stadt" = Kurzstrecke/Stop-and-go.
+const ENGINES = [
+  { id: "hyb18", label: "1.8 Hybrid (Auris/Corolla)", grp: "Hybrid", color: "#38C7A6",
+    cons: { Stadt: 4.2, "120": 5.4, "140": 6.5, "160": 7.9, "175": 9.2 } },
+  { id: "cor-hyb18", label: "Corolla 1.8 Hybrid (E210 · 122 PS)", grp: "Hybrid", color: "#5FB87A",
+    cons: { Stadt: 4.0, "120": 5.2, "140": 6.3, "160": 7.7, "175": 9.0 } },
+  { id: "cor-hyb20", label: "Corolla 2.0 Hybrid (184 PS)", grp: "Hybrid", color: "#7FD4B0",
+    cons: { Stadt: 4.4, "120": 5.6, "140": 6.7, "160": 8.0, "175": 9.3 } },
+  { id: "t12", label: "1.2 Turbo (Auris/Corolla · 116 PS)", grp: "Benziner", color: "#E8B23A",
+    cons: { Stadt: 6.8, "120": 5.8, "140": 6.8, "160": 8.2, "175": 9.6 } },
+  { id: "b133", label: "1.33 Dual-VVT-i (99 PS)", grp: "Benziner", color: "#E0533D",
+    cons: { Stadt: 8.2, "120": 6.6, "140": 7.8, "160": 9.5, "175": 11.0 } },
+  { id: "b16", label: "1.6 Valvematic (132 PS)", grp: "Benziner", color: "#6FB1FC",
+    cons: { Stadt: 8.8, "120": 6.9, "140": 8.0, "160": 9.6, "175": 11.2 } },
+  { id: "b18av", label: "1.8 Valvematic (Avensis · 147 PS)", grp: "Benziner", color: "#F2845C",
+    cons: { Stadt: 9.5, "120": 7.3, "140": 8.4, "160": 10.0, "175": 11.6 } },
+  { id: "d16", label: "1.6 D-4D (112 PS · Diesel)", grp: "Diesel", color: "#5B8FF9",
+    cons: { Stadt: 5.5, "120": 4.9, "140": 5.7, "160": 6.8, "175": 7.8 } },
+  { id: "d20", label: "2.0 D-4D (Avensis · 143 PS · Diesel)", grp: "Diesel", color: "#C77DFF",
+    cons: { Stadt: 5.8, "120": 5.0, "140": 5.8, "160": 6.7, "175": 7.6 } },
+  { id: "d14", label: "1.4 D-4D (90 PS · Diesel)", grp: "Diesel", color: "#9AA7B0",
+    cons: { Stadt: 5.2, "120": 4.9, "140": 5.9, "160": 7.2, "175": 8.4 } },
+];
+
+function EngineCompare() {
+  const [on, setOn] = useState(() => new Set(["hyb18", "cor-hyb18", "t12", "b16", "d16"]));
+  const toggle = (id) =>
+    setOn((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const list = ENGINES.filter((e) => on.has(e.id));
+  const byId = (id) => ENGINES.find((e) => e.id === id);
+  const data = SPEEDS.map((s) => {
+    const row = { speed: s === "Stadt" ? "Stadt" : s + " km/h" };
+    list.forEach((e) => (row[e.id] = e.cons[s]));
+    return row;
+  });
+  return (
+    <div className="panel" style={{ padding: "16px 12px 12px", marginBottom: 16 }}>
+      <div style={{ padding: "0 6px 6px" }}>
+        <div className="eyebrow" style={{ marginBottom: 4 }}>Motoren-Verbrauch · Toyota-Triebwerke</div>
+        <h2>Auris · Corolla · Avensis: welcher Motor wie viel schluckt</h2>
+        <div style={{ color: C.dim, fontSize: 12.5 }}>Liter / 100 km, gleiche Tempo-Stützpunkte wie oben. Der Hybrid dominiert die Stadt; ab ~140 km/h ziehen Diesel und der 1.2 Turbo vorbei.</div>
+      </div>
+      {["Hybrid", "Benziner", "Diesel"].map((grp) => (
+        <div key={grp} style={{ display: "flex", flexWrap: "wrap", gap: 6, padding: "7px 6px 0", alignItems: "center" }}>
+          <span style={{ fontSize: 10, letterSpacing: 1, textTransform: "uppercase", color: C.faint, width: 58, flexShrink: 0 }}>{grp}</span>
+          {ENGINES.filter((e) => e.grp === grp).map((e) => {
+            const sel = on.has(e.id);
+            return (
+              <span key={e.id} className="chip" onClick={() => toggle(e.id)}
+                style={{ fontSize: 11.5, padding: "4px 9px", borderColor: sel ? e.color : C.line, background: sel ? e.color + "22" : C.panel, opacity: sel ? 1 : 0.6 }}>
+                <span style={{ width: 8, height: 8, borderRadius: 2, background: sel ? e.color : C.faint }} />
+                {e.label}
+              </span>
+            );
+          })}
+        </div>
+      ))}
+      <ResponsiveContainer width="100%" height={300}>
+        <LineChart data={data} margin={{ top: 12, right: 14, left: -8, bottom: 4 }}>
+          <CartesianGrid stroke={C.line} strokeDasharray="2 4" />
+          <XAxis dataKey="speed" stroke={C.dim} tick={{ fontSize: 11 }} />
+          <YAxis stroke={C.dim} tick={{ fontSize: 11 }} domain={[3, 13]} unit=" L" width={46} />
+          <Tooltip contentStyle={tipStyle} formatter={(val, key) => [val + " L", byId(key)?.label]} />
+          {list.map((e) => (
+            <Line key={e.id} type="monotone" dataKey={e.id} stroke={e.color} strokeWidth={2.2}
+              dot={{ r: 2.5 }} activeDot={{ r: 5 }} strokeDasharray={e.grp === "Diesel" ? "6 3" : undefined} />
+          ))}
+        </LineChart>
+      </ResponsiveContainer>
+      <div style={{ fontSize: 11, color: C.faint, padding: "2px 8px 0", lineHeight: 1.5 }}>
+        Praxis-Richtwerte (Spritmonitor-Niveau), keine WLTP-Laborwerte. „Stadt“ = Kurzstrecke/Stop-and-go; 160/175 km/h aus dem Fahrwiderstand interpoliert. <b style={{ color: C.dim }}>Diesel gestrichelt.</b>
+        <br /><b style={{ color: C.dim }}>Merke:</b> Stadt → Hybrid · konstant schnelle Autobahn → Diesel/1.2 Turbo · Kurzstrecke + Außenparker → kein Diesel (DPF/Versottung).
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [sel, setSel] = useState(() => new Set(["auris-hyb"]));
   const [w, setW] = useState(() => Object.fromEntries(PRIO.map((p) => [p.key, p.def])));
@@ -825,6 +904,9 @@ export default function App() {
             Stützpunkte: ADAC-EcoTest & Tests (Stadt/130). 160/175 km/h sind aus dem Fahrwiderstand interpoliert – als Tendenz lesen, nicht als Messwert.
           </div>
         </div>
+
+        {/* ---------- MOTOREN-VERBRAUCH (Auris/Corolla/Avensis) ---------- */}
+        <EngineCompare />
 
         {/* ---------- VERSICHERUNG ---------- */}
         <div className="panel" style={{ padding: 16, marginBottom: 16 }}>
