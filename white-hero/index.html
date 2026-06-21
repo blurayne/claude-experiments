@@ -28,6 +28,8 @@
 
   /* drifting bloodstream bits */
   .bg { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+  /* background waveform / heartbeat visualiser */
+  .wave { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
   .rbc, .germ {
     position: absolute; will-change: transform; opacity: .55;
     animation: drift linear infinite;
@@ -107,21 +109,23 @@
   /* friends chooser */
   .friendsbar { width: 100%; max-width: 760px; margin-top: 6px; }
   .friendslabel { text-align: center; color: #fff; font-size: 13px; font-weight: 700; opacity: .9; text-shadow: 0 1px 0 rgba(150,10,40,.4); margin-bottom: 6px; }
-  .friends { display: flex; gap: 10px; justify-content: center; flex-wrap: nowrap; overflow-x: auto; padding: 4px 6px 8px; scrollbar-width: none; }
+  .friends { display: flex; gap: 8px; justify-content: center; flex-wrap: nowrap; overflow: visible; padding: 24px 6px 6px; scrollbar-width: none; align-items: flex-end; }
   .friends::-webkit-scrollbar { display: none; }
   .friend {
     flex: 0 0 auto; border: none; background: transparent; cursor: pointer;
-    display: flex; flex-direction: column; align-items: center; gap: 4px; width: 64px;
+    display: flex; flex-direction: column; align-items: center; gap: 4px; width: 60px;
     font-family: var(--font); color: #fff;
   }
   .friend .av {
     width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center;
     font-size: 22px; background: #fff; box-shadow: 0 3px 0 rgba(150,10,40,.3);
-    border: 3px solid transparent; transition: transform .08s;
+    border: 3px solid transparent;
+    transform-origin: 50% 100%; transition: transform .14s cubic-bezier(.2,.85,.3,1);
+    will-change: transform;
   }
-  .friend .nm { font-size: 11px; font-weight: 700; line-height: 1.1; text-shadow: 0 1px 0 rgba(150,10,40,.4); }
-  .friend.active .av { border-color: #fff; transform: scale(1.08); box-shadow: 0 0 0 3px rgba(255,255,255,.45), 0 3px 0 rgba(150,10,40,.3); }
-  .friend:active .av { transform: scale(.94); }
+  .friend .nm { font-size: 11px; font-weight: 700; line-height: 1.1; text-shadow: 0 1px 0 rgba(150,10,40,.4); transition: opacity .14s; }
+  /* the active friend keeps the white ring/glow; size comes from the Dock magnifier (JS) */
+  .friend.active .av { border-color: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,.5), 0 3px 0 rgba(150,10,40,.3); }
   .talk {
     border: none; cursor: pointer; font-family: var(--font); font-weight: 800;
     background: var(--sun); color: #6a4b00; border-radius: 999px;
@@ -191,6 +195,7 @@
 </head>
 <body>
   <div class="bg" id="bg" aria-hidden="true"></div>
+  <canvas class="wave" id="wave" aria-hidden="true"></canvas>
 
   <div class="wrap">
     <div class="topbar">
@@ -205,8 +210,8 @@
 
       <div class="heroBox">
         <svg class="hero" id="hero" viewBox="0 0 200 200" role="img" aria-label="Senua the white blood cell">
-          <!-- reactive ripple ring -->
-          <circle id="ring" cx="100" cy="104" r="80" fill="none" stroke="#ffffff" stroke-width="5" opacity="0.18"/>
+          <!-- ripple ring retired in favour of the background waveform -->
+          <circle id="ring" cx="100" cy="104" r="80" fill="none" stroke="#ffffff" stroke-width="5" opacity="0"/>
           <g id="heroBody">
             <!-- pseudopod bumps + body -->
             <g class="cellbody" fill="#ffffff">
@@ -381,7 +386,7 @@
 
 // ---------- default personas (per language) ----------
 const INSTR_DE =
-`Du bist die weiße Blutzelle "Senua". Sprich als Teil des Immunsystems mit einem siebenjährigen Kind das allerdings sprachlich sehr begabt ist und im Bereich Körper und Immunsystem auf dem Wissensniveau einer 12-Jährigen ist. Beantworte jede Frage über Immunzellen und Erreger, spannend und freundlich. Sprich schnell, locker und nie belehrend. Halte Antworten relativ kurz, in einzelnen Sätzen, max. zwei Nebensätze. Baue Geschichten von Abenteuern gegen Viren, Toxine, Pilze und Bakterien mit Senuas Freunden ein. Sag, was deine Lieblingsorgane sind (zum Beispiel das Herz oder den Thymus) und erwähne Freunde (z.B. T-Zellen, Makrophagen). Teile Erlebnisse, damit das Kind Spaß und neues Wissen gewinnt, ohne überfordert zu werden. Gib deine Antworten auf dem Wissensniveau einer Zehnjährigen: Du weißt genau, was jede einzelne Immunzelle tut, und kannst alle Organe des Körpers und ihre Funktion benennen. Du hast ein kleines Gedächtnis und fasst die letzten rund zehn Anfragen kurz für dich zusammen, um an frühere Gespräche anzuknüpfen.
+`Du bist die weiße Blutzelle "Senua". Sprich als Teil des Immunsystems mit einem siebenjährigen Kind das allerdings sprachlich sehr begabt ist und im Bereich Körper und Immunsystem auf dem Wissensniveau einer 12-Jährigen ist. Beantworte jede Frage über Immunzellen und Erreger, spannend und freundlich. Sprich schnell, locker und nie belehrend. Halte Antworten relativ kurz, in einzelnen Sätzen, max. zwei Nebensätze. Baue Geschichten von Abenteuern gegen Viren, Toxine, Pilze und Bakterien mit Senuas Freunden ein. Sag, was deine Lieblingsorgane sind (zum Beispiel das Herz oder den Thymus) und erwähne Freunde (z.B. T-Zellen, Makrophagen). Teile Erlebnisse, damit das Kind Spaß und neues Wissen gewinnt, ohne überfordert zu werden. Gib deine Antworten auf dem Wissensniveau einer Zwölfjährigen: Du weißt genau, was jede einzelne Immunzelle tut, und kannst alle Organe des Körpers und ihre Funktion benennen. Du hast ein kleines Gedächtnis und fasst die letzten rund zehn Anfragen kurz für dich zusammen, um an frühere Gespräche anzuknüpfen.
 Erzähle Geschichten mit mindestens einer und höchstens fünf Wendungen, benenne die Wendungen aber nicht.
 
 ## Leitfaden
@@ -425,7 +430,7 @@ Senua: Mein Schild ist wie Magie: Er macht böse Keime harmlos!
 - Ausnahme Geschichten: Wenn das Kind eine Geschichte möchte oder länger still ist, erzähl eine richtige, längere Abenteuer-Geschichte (etwa 3–5 Minuten) mit Spannungsbogen – Anfang, Problem/Gegner, überraschende Wendung, gutes Ende. Eine Moral nur manchmal, dann jedes Mal eine andere und passende, niemals immer „Gemeinsam sind wir stark".`;
 
 const INSTR_EN =
-`You are the white blood cell "Senua". Speak as part of the immune system with a seven-year-old child who, however, is very gifted with language and whose knowledge of the body and immune system is at the level of a twelve-year-old. Answer every question about immune cells and germs in an exciting and friendly way. Speak fast, casual and never preachy. Keep answers fairly short, in single sentences, at most two subordinate clauses. Weave in stories of adventures against viruses, toxins, fungi and bacteria with Senua's friends. Say what your favourite organs are (for example the heart or the thymus) and mention friends (e.g. T-cells, macrophages). Share experiences so the child has fun and gains new knowledge without being overwhelmed. Give your answers at the knowledge level of a ten-year-old: you know exactly what each individual immune cell does, and you can name all the organs of the body and their function. You have a little memory and briefly summarise the last ten or so questions for yourself, so you can pick up on earlier conversations.
+`You are the white blood cell "Senua". Speak as part of the immune system with a seven-year-old child who, however, is very gifted with language and whose knowledge of the body and immune system is at the level of a twelve-year-old. Answer every question about immune cells and germs in an exciting and friendly way. Speak fast, casual and never preachy. Keep answers fairly short, in single sentences, at most two subordinate clauses. Weave in stories of adventures against viruses, toxins, fungi and bacteria with Senua's friends. Say what your favourite organs are (for example the heart or the thymus) and mention friends (e.g. T-cells, macrophages). Share experiences so the child has fun and gains new knowledge without being overwhelmed. Give your answers at the knowledge level of a twelve-year-old: you know exactly what each individual immune cell does, and you can name all the organs of the body and their function. You have a little memory and briefly summarise the last ten or so questions for yourself, so you can pick up on earlier conversations.
 Tell stories with at least one and at most five twists, but don't name the twists.
 
 ## Guide
@@ -470,9 +475,9 @@ Senua: My shield is like magic: it makes nasty germs harmless!
 
 // ---------- shared rules for the non-Senua friends ----------
 const SHARED_DE =
-`Du gehörst zum Immunsystem und sprichst mit einem etwa siebenjährigen Kind, gibst aber Antworten auf dem Wissensniveau einer Zehnjährigen. Du weißt genau, was jede Immunzelle tut, und kannst alle Organe des Körpers und ihre Funktion benennen. Sprich schnell, warmherzig, lebendig und nie belehrend. Halte Antworten auf 1–2 kurze Sätze und lade danach immer zum Weiterfragen ein („Frag ruhig weiter!"). Stell dich nur einmal ganz am Anfang vor und wiederhole danach nicht ständig deinen Namen. Baue kleine Abenteuer-Geschichten ein und erwähne ab und zu deine Freunde: Senua (weiße Blutzelle), Rubina (rote Blutzelle), Theo (T-Helferzelle), Kilian (T-Killerzelle), Denni (dendritische Zelle) und Makro (Makrophage). Erkläre Fachbegriffe mit einfachen Worten: erst der Name, dann die Erklärung. Du hast ein kleines Gedächtnis und knüpfst natürlich an frühere Gespräche an. Sei niemals gruselig. Ausnahme Geschichten: Wenn das Kind eine Geschichte möchte oder länger still ist, erzähl eine richtige, längere Abenteuer-Geschichte (etwa drei bis fünf Minuten) mit einem klaren Spannungsbogen: ein Anfang, eine kleine Heldin oder ein Held, ein Problem oder Gegner, mindestens eine und höchstens fünf überraschende Wendungen und ein gutes Ende. Benenne die Wendungen aber nie. Lass deine Freunde mitspielen, gib Namen, Orte (Organe!) und Gefühle. Eine Moral ist nicht immer nötig – wenn doch, dann jedes Mal eine andere, zur Geschichte passende, und NIEMALS immer „Gemeinsam sind wir stark". Außerhalb von Geschichten bleibe bei ein bis zwei kurzen Sätzen.`;
+`Du gehörst zum Immunsystem und sprichst mit einem etwa siebenjährigen Kind, gibst aber Antworten auf dem Wissensniveau einer Zwölfjährigen. Du weißt genau, was jede Immunzelle tut, und kannst alle Organe des Körpers und ihre Funktion benennen. Sprich schnell, warmherzig, lebendig und nie belehrend. Halte Antworten auf 1–2 kurze Sätze und lade danach immer zum Weiterfragen ein („Frag ruhig weiter!"). Stell dich nur einmal ganz am Anfang vor und wiederhole danach nicht ständig deinen Namen. Baue kleine Abenteuer-Geschichten ein und erwähne ab und zu deine Freunde: Senua (weiße Blutzelle), Rubina (rote Blutzelle), Theo (T-Helferzelle), Kilian (T-Killerzelle), Denni (dendritische Zelle) und Makro (Makrophage). Erkläre Fachbegriffe mit einfachen Worten: erst der Name, dann die Erklärung. Du hast ein kleines Gedächtnis und knüpfst natürlich an frühere Gespräche an. Sei niemals gruselig. Ausnahme Geschichten: Wenn das Kind eine Geschichte möchte oder länger still ist, erzähl eine richtige, längere Abenteuer-Geschichte (etwa drei bis fünf Minuten) mit einem klaren Spannungsbogen: ein Anfang, eine kleine Heldin oder ein Held, ein Problem oder Gegner, mindestens eine und höchstens fünf überraschende Wendungen und ein gutes Ende. Benenne die Wendungen aber nie. Lass deine Freunde mitspielen, gib Namen, Orte (Organe!) und Gefühle. Eine Moral ist nicht immer nötig – wenn doch, dann jedes Mal eine andere, zur Geschichte passende, und NIEMALS immer „Gemeinsam sind wir stark". Außerhalb von Geschichten bleibe bei ein bis zwei kurzen Sätzen.`;
 const SHARED_EN =
-`You are part of the immune system and you talk with a child of about seven, but you give answers at the knowledge level of a ten-year-old. You know exactly what each immune cell does and can name all the organs of the body and their function. Speak fast, warm, lively and never preachy. Keep answers to 1–2 short sentences and always invite the next question ("Keep asking!"). Introduce yourself only once at the very start and don't keep repeating your name afterwards. Weave in little adventure stories and now and then mention your friends: Senua (white blood cell), Rubina (red blood cell), Theo (T-helper cell), Kilian (T-killer cell), Denni (dendritic cell) and Makro (macrophage). Explain technical terms in simple words: first the name, then the explanation. You have a little memory and pick up on earlier conversations naturally. Never be scary. Story exception: if the child asks for a story or has been quiet for a while, tell a real, longer adventure story (about three to five minutes) with a clear arc: a beginning, a little hero, a problem or villain, at least one and at most five surprising twists, and a satisfying ending. But never name the twists. Bring your friends into it, give names, places (organs!) and feelings. A moral is not always needed — and if you include one, make it different and fitting each time, and NEVER always "together we are strong". Outside of stories, keep to one or two short sentences.`;
+`You are part of the immune system and you talk with a child of about seven, but you give answers at the knowledge level of a twelve-year-old. You know exactly what each immune cell does and can name all the organs of the body and their function. Speak fast, warm, lively and never preachy. Keep answers to 1–2 short sentences and always invite the next question ("Keep asking!"). Introduce yourself only once at the very start and don't keep repeating your name afterwards. Weave in little adventure stories and now and then mention your friends: Senua (white blood cell), Rubina (red blood cell), Theo (T-helper cell), Kilian (T-killer cell), Denni (dendritic cell) and Makro (macrophage). Explain technical terms in simple words: first the name, then the explanation. You have a little memory and pick up on earlier conversations naturally. Never be scary. Story exception: if the child asks for a story or has been quiet for a while, tell a real, longer adventure story (about three to five minutes) with a clear arc: a beginning, a little hero, a problem or villain, at least one and at most five surprising twists, and a satisfying ending. But never name the twists. Bring your friends into it, give names, places (organs!) and feelings. A moral is not always needed — and if you include one, make it different and fitting each time, and NEVER always "together we are strong". Outside of stories, keep to one or two short sentences.`;
 
 // ---------- the cast (each friend has its own voice, colour & character) ----------
 const CHARACTERS = [
@@ -838,6 +843,15 @@ const providerInput=$("providerInput"), geminiKey=$("geminiKey"), geminiModel=$(
 const geminiListBtn=$("geminiListBtn"), geminiModels=$("geminiModels"), geminiModelHint=$("geminiModelHint");
 const elevenKey=$("elevenKey"), elevenAgent=$("elevenAgent"), voiceSearch=$("voiceSearch"), voiceSearchBtn=$("voiceSearchBtn"), voiceResults=$("voiceResults"), voiceChosen=$("voiceChosen");
 const heroBody=$("heroBody"), ringEl=$("ring"), smileEl=$("smile"), mouthEl=$("mouthOpen"), heroSvg=$("hero");
+const waveEl=$("wave"), wctx = waveEl ? waveEl.getContext("2d") : null;
+let waveW=0, waveH=0;
+function sizeWave(){
+  if(!waveEl||!wctx) return;
+  const dpr=Math.min(2, window.devicePixelRatio||1);
+  waveW=waveEl.clientWidth||window.innerWidth; waveH=waveEl.clientHeight||window.innerHeight;
+  waveEl.width=Math.round(waveW*dpr); waveEl.height=Math.round(waveH*dpr);
+  wctx.setTransform(dpr,0,0,dpr,0,0);
+}
 const errbar=$("errbar"), errmsg=$("errmsg"), errtitle=$("errtitle"), erract=$("erract"), verEl=$("ver");
 
 // ---------- state ----------
@@ -856,7 +870,25 @@ function buildFriends(){
        <span class="nm">${charName(c)}</span>
      </button>`).join("");
   friendsEl.querySelectorAll(".friend").forEach(b=>{ b.onclick=()=>selectCharacter(b.dataset.id); });
+  friendsEl.onpointermove = (e)=> applyDock(e.clientX);
+  friendsEl.onpointerleave = ()=> applyDock(null);
   markActiveFriend();
+  applyDock(null);
+}
+// macOS-Dock magnifier: items grow toward the pointer; at rest the centre item is biggest.
+function applyDock(px){
+  const items=[...friendsEl.querySelectorAll(".friend")];
+  if(!items.length) return;
+  const rect=friendsEl.getBoundingClientRect();
+  const focus = (px==null) ? rect.left+rect.width/2 : px;
+  const sigma=58, maxBoost=0.5;
+  items.forEach(b=>{
+    const r=b.getBoundingClientRect(), c=r.left+r.width/2, d=c-focus;
+    const boost=maxBoost*Math.exp(-(d*d)/(2*sigma*sigma));
+    const av=b.querySelector(".av");
+    av.style.transform=`translateY(${(-14*boost).toFixed(1)}px) scale(${(1+boost).toFixed(3)})`;
+    av.style.zIndex = boost>0.06 ? "2" : "1";
+  });
 }
 function markActiveFriend(){
   const id = currentChar().id;
@@ -1157,34 +1189,87 @@ function rms(an){
   return Math.sqrt(s/b.length);
 }
 
-// ---------- animation loop (the character reacts to sound) ----------
-function frame(){
-  const userLvl = muted?0:rms(micAnalyser);
-  const heroLvl = rms(sinkAnalyser);
-  const heroSpeaking = heroLvl>0.012 && heroLvl>=userLvl;
-  const lvl = Math.min(1, Math.max(userLvl,heroLvl)*3.4);
+// ---------- background visualiser: live waveform when there's sound, heartbeat when quiet ----------
+// stylised ECG pulse, p in [0,1) -> normalised height (R-spike ~1.0)
+function heartbeatShape(p){
+  const g=(c,w,h)=> h*Math.exp(-((p-c)*(p-c))/(2*w*w));
+  return g(0.40,0.012,0.14) + g(0.47,0.010,-0.22) + g(0.50,0.012,1.0) + g(0.53,0.011,-0.30) + g(0.62,0.030,0.20);
+}
+let envSm=0, voiceMix=0, mouthRySm=4, prevTs=0;
+function timeData(an){ if(!an) return null; const b=new Uint8Array(an.fftSize); an.getByteTimeDomainData(b); return b; }
 
-  ringEl.setAttribute("r", (78+lvl*26).toFixed(1));
-  ringEl.setAttribute("opacity", (0.12+lvl*0.34).toFixed(2));
-  ringEl.setAttribute("stroke", heroSpeaking ? "#bfeee8" : (userLvl>0.03?"#bfe0ff":"#ffffff"));
+function drawWave(time, heroSpeaking, userActive){
+  if(!wctx || document.hidden) return;
+  const W=waveW, H=waveH, mid=H*0.52;
+  wctx.clearRect(0,0,W,H);
+  const band = Math.min(H*0.16, 140);
 
-  if(heroSpeaking){
-    const ry=(3+Math.min(16,heroLvl*46)).toFixed(1);
-    mouthEl.setAttribute("ry", ry);
-    mouthEl.style.display=""; smileEl.style.display="none";
-  } else {
-    mouthEl.style.display="none"; smileEl.style.display="";
+  // heartbeat layer (fades in as the voice fades out)
+  const hbA=1-voiceMix;
+  if(hbA>0.015){
+    wctx.globalAlpha=hbA*0.6; wctx.strokeStyle="rgba(255,255,255,0.9)"; wctx.lineWidth=3; wctx.lineJoin="round";
+    wctx.beginPath();
+    const beats=2, scroll=time*0.13, amp=band*0.95, step=Math.max(2,Math.floor(W/300));
+    for(let x=0;x<=W;x+=step){ let u=(x/W)*beats - scroll*beats; u-=Math.floor(u); const y=mid-heartbeatShape(u)*amp; x?wctx.lineTo(x,y):wctx.moveTo(x,y); }
+    wctx.stroke(); wctx.globalAlpha=1;
   }
 
-  if(heroSpeaking!==talkingClass){ talkingClass=heroSpeaking; heroBody.classList.toggle("talking",heroSpeaking); }
-  rafId=requestAnimationFrame(frame);
+  // live waveform layer (oscilloscope of whoever is talking)
+  if(voiceMix>0.015){
+    const col = heroSpeaking ? (currentChar().accent||"#bfeee8") : "#bfe0ff";
+    const an = heroSpeaking ? sinkAnalyser : (userActive ? micAnalyser : (sinkAnalyser||micAnalyser));
+    const buf = timeData(an);
+    const amp = band*(0.35+envSm*1.5);
+    wctx.lineJoin="round"; wctx.strokeStyle=col;
+    wctx.beginPath();
+    if(buf){
+      const N=buf.length;
+      for(let i=0;i<N;i++){ const x=(i/(N-1))*W, y=mid+((buf[i]-128)/128)*amp; i?wctx.lineTo(x,y):wctx.moveTo(x,y); }
+    } else {
+      for(let x=0;x<=W;x+=4){ const y=mid+Math.sin(x*0.03+time*6)*amp*0.5; x?wctx.lineTo(x,y):wctx.moveTo(x,y); }
+    }
+    wctx.globalAlpha=voiceMix*0.22; wctx.lineWidth=11; wctx.stroke();   // soft glow
+    wctx.globalAlpha=voiceMix;      wctx.lineWidth=3.5; wctx.stroke();   // crisp line
+    wctx.globalAlpha=1;
+  }
 }
-function startAnim(){ if(!rafId) frame(); }
+
+// ---------- animation loop (always running: heartbeat ambience + the character reacts to sound) ----------
+function frame(ts){
+  rafId=requestAnimationFrame(frame);
+  const dt = prevTs ? Math.min(0.05,(ts-prevTs)/1000) : 0.016; prevTs=ts;
+
+  const userLvl = (connected && !muted) ? rms(micAnalyser) : 0;
+  const heroLvl = connected ? rms(sinkAnalyser) : 0;
+  const heroSpeaking = heroLvl>0.012 && heroLvl>=userLvl;
+  const userActive = userLvl>0.03;
+  const lvl = Math.min(1, Math.max(userLvl,heroLvl)*3.4);
+
+  // smooth the envelope + the voice/heartbeat crossfade so transitions glide
+  const target = lvl>0.06 ? 1 : 0;
+  voiceMix += (target - voiceMix) * Math.min(1, dt*7);
+  envSm    += (lvl    - envSm)    * Math.min(1, dt*12);
+
+  // hero face (only while connected)
+  if(connected){
+    if(heroSpeaking){
+      mouthRySm += ((3+Math.min(16,heroLvl*46))-mouthRySm)*Math.min(1,dt*16);
+      mouthEl.setAttribute("ry", mouthRySm.toFixed(1));
+      mouthEl.style.display=""; smileEl.style.display="none";
+    } else {
+      mouthRySm += (3-mouthRySm)*Math.min(1,dt*10);
+      mouthEl.style.display="none"; smileEl.style.display="";
+    }
+    if(heroSpeaking!==talkingClass){ talkingClass=heroSpeaking; heroBody.classList.toggle("talking",heroSpeaking); }
+  }
+
+  drawWave(ts/1000, heroSpeaking, userActive);
+}
+function startAnim(){ if(!rafId) rafId=requestAnimationFrame(frame); }   // idempotent; the loop runs for the whole session
 function stopAnim(){
-  if(rafId) cancelAnimationFrame(rafId); rafId=null;
+  // keep the canvas loop alive (heartbeat continues) — just reset the hero's face to idle
   mouthEl.style.display="none"; smileEl.style.display="";
   heroBody.classList.remove("talking"); talkingClass=false;
-  ringEl.setAttribute("r","80"); ringEl.setAttribute("opacity","0.18"); ringEl.setAttribute("stroke","#ffffff");
 }
 
 // ---------- provider helpers ----------
@@ -1595,13 +1680,17 @@ function onEvent(e){
 // ---------- switching friends ----------
 function selectCharacter(id){
   if(id===currentChar().id) return;
+  const wasLive = connected || connecting;
   store.set("char", id);
   applyCharacter();
+  applyDock(null);
   if(instrLabel) instrLabel.textContent = t("label_instr",{ c: charName(currentChar()) });
-  if(connected){
-    // reconnect so the new character's voice definitely takes effect
-    hangup();
-    setTimeout(()=>{ ensureAudioCtx(); connect(); }, 250);
+  if(wasLive){
+    // seamless switch: tear down the transport but KEEP the live UI (no "bye", button stays
+    // on, waveform/heartbeat keeps running), then reconnect so the new voice takes over.
+    cleanup(); connected=false; connecting=false;
+    setStatus(t("waking"));
+    setTimeout(()=>{ ensureAudioCtx(); connect(); }, 160);
   }
 }
 
@@ -1621,6 +1710,10 @@ window.addEventListener("beforeunload", ()=>{ if(connected) cleanup(); });
 // ---------- init ----------
 applyLang();
 applyCharacter();
+sizeWave();
+startAnim();                                  // heartbeat ambience runs from the start
+window.addEventListener("resize", ()=>{ sizeWave(); applyDock(null); });
+window.addEventListener("orientationchange", ()=>{ setTimeout(()=>{ sizeWave(); applyDock(null); }, 200); });
 if(!showText){ sayEl.style.display="none"; }
 if(!providerKeyPresent()) openSettings();
 </script>
