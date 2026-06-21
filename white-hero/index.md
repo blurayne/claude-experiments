@@ -35,10 +35,14 @@ Everything runs in the browser:
   default**; flip them on with the 💬 button (saved in `localStorage`).
 - **English / German** language selector — the whole UI and the friends' spoken language
   switch, and the choice is saved in `localStorage`.
-- **Token counter** (top-left): the Realtime API reports token usage per response, which
-  the app sums up. OpenAI doesn't expose your account balance to a browser, so you can set
-  an optional **token budget** in settings; the pill then shows how many tokens are *left*
-  against it (and turns red when nearly empty). Otherwise it shows tokens *used*.
+- **Token counter & cost estimate** (top-left): the Realtime API reports token usage per
+  response, which the app sums up. OpenAI doesn't expose your account balance to a browser,
+  so you can set an optional **token budget** in settings; the pill then shows how many
+  tokens are *left* against it (and turns red when nearly empty). Otherwise it shows tokens
+  *used*. The pill also appends a **rough $ cost estimate** from public list prices
+  (audio-token rates for OpenAI/Gemini; ElevenLabs is metered **per minute** of connected
+  time, so it shows `⏱ minutes · ~$`). Settings shows the per-provider rate card and which
+  API is cheapest. Estimates only — not a bill.
 - **Secret memory**: the last ~10 exchanges are summarised into a short, private note in
   `localStorage` and quietly injected into the system prompt on the next start, so the
   friends can pick up where you left off. Clear it any time in settings.

@@ -276,6 +276,8 @@
           <option value="elevenlabs">ElevenLabs (agent)</option>
         </select>
         <div class="hint" data-i18n="hint_provider"></div>
+        <div class="hint" id="priceInfo"></div>
+        <div class="hint" id="priceCheapest"></div>
       </div>
 
       <!-- OpenAI -->
@@ -301,6 +303,7 @@
         <div class="field">
           <label for="geminiModel" data-i18n="label_gemini_model">Gemini Live model</label>
           <input id="geminiModel" type="text" spellcheck="false" />
+          <div class="hint" data-i18n-html="hint_gemini_model_warn"></div>
         </div>
       </div>
 
@@ -581,6 +584,12 @@ const I18N = {
     voice_ph: "Search voices…",
     btn_voicesearch: "Search",
     eleven_note: "Create a <b>Conversational AI agent</b> in the ElevenLabs dashboard and set its LLM to <b>Claude</b>. Paste the agent's ID below; the app sends the chosen character's prompt + voice as overrides.",
+    cost_used_title: "Rough estimated spend so far (this device)",
+    hint_gemini_model_warn: "Heads-up: <code>gemini-2.0-flash-live-001</code> was retired on 1&nbsp;Jun&nbsp;2026. Enter a current Live model (e.g. <code>gemini-live-2.5-flash</code>).",
+    price_cheapest: "💡 Cheapest API: <b>Gemini Live</b> (~5× under OpenAI on audio). ElevenLabs is flat ~$0.10/min (+ its own Claude bill). OpenAI is priciest but the most proven.",
+    price_info_openai: "OpenAI <code>gpt-realtime</code>: audio ≈ $32 / $64 per 1M tokens in/out (≈ $0.06 / $0.24 per min).",
+    price_info_gemini: "Gemini Live: audio ≈ $3 / $12 per 1M tokens in/out — the cheapest here.",
+    price_info_elevenlabs: "ElevenLabs: ≈ $0.10 per minute; the agent's LLM (Claude) is billed separately.",
   },
   de: {
     doc_title: "White Heroes — sprich mit deinen Immunsystem-Freunden!",
@@ -658,6 +667,12 @@ const I18N = {
     voice_ph: "Stimmen suchen…",
     btn_voicesearch: "Suchen",
     eleven_note: "Erstelle im ElevenLabs-Dashboard einen <b>Conversational-AI-Agenten</b> und stelle sein LLM auf <b>Claude</b>. Füge unten die Agent-ID ein; die App sendet Prompt + Stimme der gewählten Figur als Overrides.",
+    cost_used_title: "Grobe geschätzte Kosten bisher (dieses Gerät)",
+    hint_gemini_model_warn: "Hinweis: <code>gemini-2.0-flash-live-001</code> wurde am 1.&nbsp;Juni&nbsp;2026 abgeschaltet. Trage ein aktuelles Live-Modell ein (z.&nbsp;B. <code>gemini-live-2.5-flash</code>).",
+    price_cheapest: "💡 Günstigste API: <b>Gemini Live</b> (~5× unter OpenAI bei Audio). ElevenLabs ist pauschal ~$0,10/Min. (+ eigene Claude-Rechnung). OpenAI am teuersten, aber am bewährtesten.",
+    price_info_openai: "OpenAI <code>gpt-realtime</code>: Audio ≈ $32 / $64 pro 1 Mio. Tokens (rein/raus) (≈ $0,06 / $0,24 pro Min.).",
+    price_info_gemini: "Gemini Live: Audio ≈ $3 / $12 pro 1 Mio. Tokens (rein/raus) — der günstigste hier.",
+    price_info_elevenlabs: "ElevenLabs: ≈ $0,10 pro Minute; das LLM des Agenten (Claude) wird separat berechnet.",
   },
 };
 
@@ -665,7 +680,7 @@ const I18N = {
 const LS = { key:"whitehero.openai_key", instr:"whitehero.instructions", model:"whitehero.model", lang:"whitehero.lang", used:"whitehero.tokens_used", budget:"whitehero.token_budget", memory:"whitehero.memory", char:"whitehero.character", text:"whitehero.show_text",
   provider:"whitehero.provider", gemini_key:"whitehero.gemini_key", gemini_model:"whitehero.gemini_model",
   eleven_key:"whitehero.eleven_key", eleven_agent:"whitehero.eleven_agent", eleven_voice:"whitehero.eleven_voice", eleven_voice_name:"whitehero.eleven_voice_name",
-  roster:"whitehero.roster" };
+  roster:"whitehero.roster", cost:"whitehero.cost_used" };
 const DEFAULTS = { model:"gpt-realtime", gemini_model:"gemini-2.0-flash-live-001" };
 const store = {
   get: (k, d="") => localStorage.getItem(LS[k]) ?? d,
@@ -689,24 +704,85 @@ function loadOverrides(){ try{ const o=JSON.parse(store.get("instr","{}")); retu
 function saveOverrides(o){ store.set("instr", JSON.stringify(o)); }
 function charInstr(c, l){ l=l||lang; const o=loadOverrides(); return o[c.id+"."+l] || builtinInstr(c,l); }
 
-// ---------- token counter (usage reported by the Realtime API) ----------
+// ---------- token counter + rough cost estimate ----------
 let tokensUsed = parseInt(store.get("used","0"),10) || 0;
+let costUsed = parseFloat(store.get("cost","0")) || 0;
 const fmtNum = (n) => Number(n).toLocaleString(lang);
+function fmtCost(c){ c=+c||0; if(c<=0) return "$0"; if(c<1) return "$"+c.toFixed(c<0.1?4:3); return "$"+c.toFixed(2); }
 function tokenBudget(){ return parseInt(store.get("budget","0"),10) || 0; }
+
+// Public list prices, USD per 1M tokens (audio dominates realtime cost). Rough, mid-2026 —
+// shown only as an estimate. OpenAI gpt-realtime; Gemini Live (native audio); ElevenLabs per minute.
+const PRICING = {
+  openai:     { kind:"token",  textIn:4,   textOut:16, audioIn:32, audioOut:64, cachedIn:0.40 },
+  gemini:     { kind:"token",  textIn:0.5, textOut:2,  audioIn:3,  audioOut:12, cachedIn:0.30 },
+  elevenlabs: { kind:"minute", perMin:0.10 },
+};
 function addUsage(n){ if(!n) return; tokensUsed += n; store.set("used", String(tokensUsed)); updateTokenPill(); updateBudgetHint(); }
+function addCost(usd){ usd=+usd; if(!usd || usd<0) return; costUsed += usd; store.set("cost", costUsed.toFixed(6)); updateTokenPill(); updateBudgetHint(); }
+
+// cost of one OpenAI Realtime response from its usage object (uses the audio/text split when present)
+function costFromOpenAI(u){
+  const P=PRICING.openai, id=u.input_token_details||{}, od=u.output_token_details||{};
+  let inAudio=id.audio_tokens, inText=id.text_tokens, cached=id.cached_tokens||0;
+  let outAudio=od.audio_tokens, outText=od.text_tokens;
+  if(inAudio==null && inText==null){ inAudio=u.input_tokens||0; inText=0; }
+  if(outAudio==null && outText==null){ outAudio=u.output_tokens||0; outText=0; }
+  const inAudioFull=Math.max(0,(inAudio||0)-cached);
+  return (inAudioFull*P.audioIn + cached*P.cachedIn + (inText||0)*P.textIn + (outAudio||0)*P.audioOut + (outText||0)*P.textOut)/1e6;
+}
+// cumulative cost from a Gemini Live usageMetadata block
+function costFromGemini(um){
+  const P=PRICING.gemini;
+  const pick=(arr,mod)=>(arr||[]).filter(d=>String(d.modality||"").toUpperCase()===mod).reduce((a,d)=>a+(d.tokenCount||0),0);
+  let inA=pick(um.promptTokensDetails,"AUDIO"), inT=pick(um.promptTokensDetails,"TEXT");
+  let outA=pick(um.responseTokensDetails,"AUDIO"), outT=pick(um.responseTokensDetails,"TEXT");
+  if(!inA && !inT) inA=um.promptTokenCount||0;
+  if(!outA && !outT) outA=um.responseTokenCount||0;
+  return (inA*P.audioIn + inT*P.textIn + outA*P.audioOut + outT*P.textOut)/1e6;
+}
+// Gemini reports cumulative-per-session usage → accrue only the delta each time
+let gemTokPrev=0, gemCostPrev=0;
+function resetGeminiMeter(){ gemTokPrev=0; gemCostPrev=0; }
+function accrueGemini(um){
+  if(!um) return;
+  const tot=um.totalTokenCount||((um.promptTokenCount||0)+(um.responseTokenCount||0));
+  const cost=costFromGemini(um);
+  let dT=tot-gemTokPrev; if(dT<0) dT=tot;
+  let dC=cost-gemCostPrev; if(dC<0) dC=cost;
+  gemTokPrev=tot; gemCostPrev=cost;
+  if(dT>0) addUsage(dT);
+  if(dC>0) addCost(dC);
+}
+// ElevenLabs is billed per minute (its own LLM/Claude billed separately) → meter the connected time
+let elevenStart=0, elevenTick=null;
+function elevenMinutes(){ return elevenStart ? (Date.now()-elevenStart)/60000 : 0; }
+function elevenStartMeter(){ elevenStart=Date.now(); updateTokenPill(); elevenTick=setInterval(updateTokenPill, 3000); }
+function elevenCommit(){ if(elevenStart){ const c=elevenMinutes()*PRICING.elevenlabs.perMin; elevenStart=0; addCost(c); } if(elevenTick){ clearInterval(elevenTick); elevenTick=null; } }
+
 function updateTokenPill(){
   if(!tokenPill) return;
-  const b = tokenBudget();
   tokenPill.hidden = false;
+  const prov = curProvider();
+  if(prov==="elevenlabs"){
+    const live = elevenMinutes();
+    const cost = costUsed + live*PRICING.elevenlabs.perMin;
+    tokenPill.textContent = (elevenStart ? "⏱️ " + live.toFixed(1) + "m · ~" : "🎟️ ~") + fmtCost(cost);
+    tokenPill.classList.remove("low");
+    tokenPill.title = t("cost_used_title");
+    return;
+  }
+  const b = tokenBudget();
+  const costStr = costUsed>0 ? " · ~" + fmtCost(costUsed) : "";
   if(b>0){
     const rem = Math.max(0, b - tokensUsed);
-    tokenPill.textContent = "🎟️ " + fmtNum(rem);
+    tokenPill.textContent = "🎟️ " + fmtNum(rem) + costStr;
     tokenPill.classList.toggle("low", rem <= b*0.1);
-    tokenPill.title = t("tok_left_title");
+    tokenPill.title = t("tok_left_title") + (costUsed>0 ? " · " + t("cost_used_title") : "");
   } else {
-    tokenPill.textContent = "🎟️ " + fmtNum(tokensUsed);
+    tokenPill.textContent = "🎟️ " + fmtNum(tokensUsed) + costStr;
     tokenPill.classList.remove("low");
-    tokenPill.title = t("tok_used_title");
+    tokenPill.title = t("tok_used_title") + (costUsed>0 ? " · " + t("cost_used_title") : "");
   }
 }
 
@@ -734,7 +810,7 @@ function memoryBlock(){
 }
 
 // hint refreshers (safe to call any time; elements always exist)
-function updateBudgetHint(){ if(budgetHint) budgetHint.textContent = t("hint_budget",{ u: fmtNum(tokensUsed) }); }
+function updateBudgetHint(){ if(budgetHint) budgetHint.textContent = t("hint_budget",{ u: fmtNum(tokensUsed) }) + (costUsed>0 ? "  ≈ " + fmtCost(costUsed) : ""); }
 function updateMemHint(){ if(memHint) memHint.textContent = t("hint_memory",{ n: fmtNum(loadMemory().length) }); }
 
 // ---------- DOM ----------
@@ -794,6 +870,7 @@ function applyLang(){
   textBtn.textContent = showText ? t("text_on") : t("text_off");
   textBtn.classList.toggle("off", !showText);
   if(!connected && !connecting){ talkBtn.innerHTML = t("talk_idle"); statusEl.textContent = t("status_idle"); }
+  if(typeof updateProviderFields==="function" && providerInput) updateProviderFields();
   updateTokenPill(); updateBudgetHint(); updateMemHint();
 }
 
@@ -894,6 +971,8 @@ function refreshModalHead(){
 function updateProviderFields(){
   const p = providerInput.value;
   document.querySelectorAll(".pgroup").forEach(g=> g.classList.toggle("on", g.dataset.prov===p));
+  const pi=$("priceInfo"); if(pi) pi.innerHTML = t("price_info_"+p) || "";
+  const pc=$("priceCheapest"); if(pc) pc.innerHTML = t("price_cheapest");
 }
 function openSettings(){
   loadVersion();
@@ -991,7 +1070,7 @@ voiceResults.onchange = ()=>{
   store.set("eleven_voice_name", opt.dataset.name || opt.textContent);
   voiceChosen.textContent = "✓ " + (opt.dataset.name || opt.textContent);
 };
-$("resetUsed").onclick=()=>{ tokensUsed=0; store.set("used","0"); updateBudgetHint(); updateTokenPill(); };
+$("resetUsed").onclick=()=>{ tokensUsed=0; costUsed=0; store.set("used","0"); store.set("cost","0"); resetGeminiMeter(); elevenStart=0; updateBudgetHint(); updateTokenPill(); };
 $("clearMem").onclick=()=>{ store.del("memory"); pendingTurn=null; updateMemHint(); };
 tokenPill.onclick=()=>openSettings();
 scrim.onclick=(e)=>{ if(e.target===scrim) closeSettings(); };
@@ -1305,6 +1384,7 @@ async function connectGemini(){
   };
   ws.onmessage = async (e)=>{
     let msg; try{ msg = JSON.parse(e.data instanceof Blob ? await e.data.text() : e.data); }catch(_){ return; }
+    if(msg.usageMetadata) accrueGemini(msg.usageMetadata);
     if(msg.setupComplete){
       try{ await startCapture((b64)=>{ if(ws&&ws.readyState===1) ws.send(JSON.stringify({ realtimeInput:{ mediaChunks:[{ mimeType:"audio/pcm;rate=16000", data:b64 }] } })); }); }
       catch(err){ handleConnectError(err); cleanup(); connecting=false; talkBtn.disabled=false; return; }
@@ -1376,6 +1456,7 @@ function onConnected(){
   startAnim();
   scheduleIdle();
   acquireWakeLock();
+  if(curProvider()==="elevenlabs") elevenStartMeter();   // ElevenLabs bills per minute → meter live
 }
 function hangup(){
   cleanup(); connected=false; connecting=false;
@@ -1386,6 +1467,8 @@ function hangup(){
 }
 function cleanup(){
   cancelIdle();
+  elevenCommit();        // bank any ElevenLabs minutes before tearing down
+  resetGeminiMeter();    // next Gemini session starts its cumulative meter fresh
   releaseWakeLock();
   try{ if(dc) dc.close(); }catch(_){}
   try{ if(pc){ pc.getSenders().forEach(s=>s.track&&s.track.stop()); pc.close(); } }catch(_){}
@@ -1436,7 +1519,11 @@ function onEvent(e){
     case "input_audio_buffer.speech_stopped": setStatus(t("thinking")); break;
     case "response.created": cancelIdle(); heroText=""; setStatus(t("talking")); break;
     case "response.done":
-      if(ev.response && ev.response.usage && typeof ev.response.usage.total_tokens==="number") addUsage(ev.response.usage.total_tokens);
+      if(ev.response && ev.response.usage){
+        const u=ev.response.usage;
+        if(typeof u.total_tokens==="number") addUsage(u.total_tokens);
+        addCost(costFromOpenAI(u));
+      }
       if(connected){ setStatus(t("your_turn")); scheduleIdle(); }
       break;
   }
