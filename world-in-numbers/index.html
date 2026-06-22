@@ -102,12 +102,21 @@
   .total-label { color: var(--muted); font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; margin-top: .7rem; }
   .total { font-size: clamp(1.5rem, 4.2vw, 2rem); font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.01em; line-height: 1.15; }
 
-  .bar { margin-top: .7rem; height: 12px; background: #0e1430; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
-  .bar > span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--accent), var(--accent-2)); border-radius: 999px; transition: width 1.2s ease; }
+  .bar { margin-top: .7rem; height: 13px; background: #0e1430; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; display: flex; }
+  .bar > span { display: block; height: 100%; width: 0; transition: width .8s ease; }
+  .bar > span.now { background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+  .bar > span.gain { background: var(--born); }
+  .bar > span.remain { background: var(--killed); }
   .bar-row { display: flex; justify-content: space-between; gap: .5rem; font-size: .7rem; color: var(--muted); margin-top: .35rem; }
   .bar-row b { color: var(--text); font-weight: 600; }
   .bar-row .delta.up { color: var(--born); }
-  .bar-row .delta.down { color: var(--killed); }
+  .bar-row .delta.down { color: var(--born); }
+  .bar-legend { display: flex; gap: .8rem; font-size: .64rem; color: var(--muted); margin-top: .25rem; }
+  .bar-legend i { font-style: normal; display: inline-flex; align-items: center; gap: .25rem; }
+  .bar-legend i::before { content: ""; width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
+  .bar-legend i.now::before { background: var(--accent); }
+  .bar-legend i.gain::before { background: var(--born); }
+  .bar-legend i.remain::before { background: var(--killed); }
 
   .flows { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin-top: 1rem; }
   .flow { border: 1px solid var(--line); border-radius: 12px; padding: .6rem .7rem; background: rgba(255,255,255,.015); }
@@ -165,11 +174,13 @@
     <h2>How to read this</h2>
     <p class="disclaimer">
       Pick a <b>region</b> and a <b>time unit</b> at the top, and a target <b>year</b> on the slider. Each card shows a
-      rough <b>total</b> today, a bar that fills as time runs from 2026 toward your chosen year, the <b>projected
-      total</b> for that year, and the live <span style="color:var(--born)">born</span> /
-      <span style="color:var(--killed)">killed</span> rates in the unit you picked. Projections follow study-based
-      trajectories, so the number can go <i>up or down</i>. The <span class="est">est.</span> tag marks genuinely
-      uncertain figures — treat them as orders of magnitude. The refresh interval (1–20&nbsp;s) is your choice.
+      rough <b>total</b> today and a bar scaled to the larger of today's and the chosen year's total. For a
+      <b>growing</b> category the bar is the current number (blue) plus the <span style="color:var(--born)">gain</span>
+      to your chosen year; for a <b>shrinking</b> one it reverses — <span style="color:var(--killed)">red</span> is what
+      will be left and <span style="color:var(--born)">green</span> is what gets lost. Below are the live
+      <span style="color:var(--born)">born</span> / <span style="color:var(--killed)">killed</span> rates in the unit
+      you picked. Projections follow study-based trajectories. The <span class="est">est.</span> tag marks genuinely
+      uncertain figures. The refresh interval (1–20&nbsp;s) is your choice.
     </p>
 
     <h2>How regions are estimated</h2>
@@ -407,8 +418,9 @@
       '</div>' +
       '<div class="total-label">total now</div>' +
       '<div class="total" data-total></div>' +
-      '<div class="bar"><span data-bar></span></div>' +
-      '<div class="bar-row"><span>2026: <b data-base></b></span><span data-proj></span></div>' +
+      '<div class="bar"><span data-bar1></span><span data-bar2></span></div>' +
+      '<div class="bar-row"><span>now: <b data-cur></b></span><span data-proj></span></div>' +
+      '<div class="bar-legend" data-legend></div>' +
       '<div class="flows">' +
         '<div class="flow born">' +
           '<div class="ftop">▲ ' + d.bornLabel + '</div>' +
@@ -424,8 +436,10 @@
       '<div class="net" data-net></div>';
     grid.appendChild(card);
     els[d.key] = {
-      total: card.querySelector("[data-total]"), bar: card.querySelector("[data-bar]"),
-      base: card.querySelector("[data-base]"), proj: card.querySelector("[data-proj]"),
+      total: card.querySelector("[data-total]"),
+      bar1: card.querySelector("[data-bar1]"), bar2: card.querySelector("[data-bar2]"),
+      legend: card.querySelector("[data-legend]"),
+      cur: card.querySelector("[data-cur]"), proj: card.querySelector("[data-proj]"),
       born: card.querySelector("[data-born]"), killed: card.querySelector("[data-killed]"),
       bunit: card.querySelector("[data-bunit]"), kunit: card.querySelector("[data-kunit]"),
       bsession: card.querySelector("[data-bsession]"), ksession: card.querySelector("[data-ksession]"),
@@ -452,8 +466,6 @@
     var now = Date.now();
     var nowYear = BASE_YEAR + (now - EPOCH) / 60000 / MIN_PER_YEAR;
     var minsSinceLoad = (now - loadMs) / 60000;
-    var span = Math.max(0.0001, state.endYear - BASE_YEAR);
-    var timeFrac = Math.max(0, Math.min(1, (nowYear - BASE_YEAR) / span));
     var r = state.region, u = state.unit;
 
     DATA.forEach(function (d) {
@@ -464,8 +476,23 @@
       var f = flowOf(d, r);
 
       e.total.textContent = abbrev(totalNow);
-      e.bar.style.width = (timeFrac * 100).toFixed(3) + "%";
-      e.base.textContent = abbrev(projectCat(d, BASE_YEAR, r));
+
+      // value-based bar: full width = larger of (now, projected)
+      var mx = Math.max(totalNow, proj, 1);
+      var growing = proj >= totalNow;
+      if (growing) {
+        // [ now (accent) ][ gain to chosen year (green) ]
+        e.bar1.className = "now"; e.bar1.style.width = (totalNow / mx * 100).toFixed(3) + "%";
+        e.bar2.className = "gain"; e.bar2.style.width = ((proj - totalNow) / mx * 100).toFixed(3) + "%";
+        e.legend.innerHTML = '<i class="now">now</i><i class="gain">gain to ' + state.endYear + '</i>';
+      } else {
+        // shrinking → reversed: [ projected remaining (red) ][ decreasing delta (green) ]
+        e.bar1.className = "remain"; e.bar1.style.width = (proj / mx * 100).toFixed(3) + "%";
+        e.bar2.className = "gain"; e.bar2.style.width = ((totalNow - proj) / mx * 100).toFixed(3) + "%";
+        e.legend.innerHTML = '<i class="remain">left in ' + state.endYear + '</i><i class="gain">lost by then</i>';
+      }
+
+      e.cur.textContent = abbrev(totalNow);
       e.proj.innerHTML = state.endYear + ': <b>' + abbrev(proj) + '</b> ' +
         '<span class="delta ' + (delta >= 0 ? "up" : "down") + '">' +
         (delta >= 0 ? "▲ +" : "▼ −") + abbrev(Math.abs(delta)) + '</span>';
