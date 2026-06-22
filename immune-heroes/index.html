@@ -88,7 +88,17 @@
   .textfab:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(150,10,40,.3); }
   .textfab.off { opacity: .55; }
 
-  .stage { flex: 1; width: 100%; max-width: 760px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; min-height: 0; }
+  .stage { position: relative; flex: 1; width: 100%; max-width: 760px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; min-height: 0; }
+  /* team mode: teammates laid out around the hero in the action area */
+  .teamlayer { position: absolute; inset: 0; z-index: 3; pointer-events: none; display: none; }
+  .teamlayer.on { display: block; }
+  .teammate { position: absolute; transform: translate(-50%,-50%); width: 54px; height: 54px; border-radius: 50%;
+    display: grid; place-items: center; font-size: 26px; pointer-events: auto; cursor: grab; touch-action: none;
+    box-shadow: 0 3px 5px rgba(120,0,30,.35), inset 0 7px 9px rgba(255,255,255,.5), inset 0 -8px 11px rgba(0,0,0,.22);
+    border: 3px solid rgba(255,255,255,.7); transition: transform .15s ease, opacity .2s; }
+  .teammate.speaking { animation: bob 0.9s ease-in-out infinite; box-shadow: 0 0 0 4px rgba(255,255,255,.5), 0 3px 5px rgba(120,0,30,.35); }
+  .teamghost { position: fixed; width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; font-size: 26px;
+    pointer-events: none; z-index: 80; transform: translate(-50%,-50%); opacity: .9; box-shadow: 0 6px 16px rgba(120,0,30,.45); }
 
   /* speech bubble */
   .say {
@@ -232,6 +242,7 @@
   <div class="wrap">
     <div class="topbar">
       <button class="textfab off" id="textBtn" aria-label="Text">💬</button>
+      <button class="textfab off" id="teamBtn" aria-label="Team mode" title="Team">👥</button>
       <span class="spacer"></span>
       <span class="modelpill" id="modelPill" title="Model"></span>
       <button class="tokens" id="tokenPill" hidden></button>
@@ -241,6 +252,7 @@
 
     <div class="stage">
       <div class="say" id="say"><div class="who" id="sayWho"></div><span id="sayText"></span></div>
+      <div class="teamlayer" id="teamLayer" aria-hidden="true"></div>
 
       <div class="heroBox">
         <svg class="hero" id="hero" viewBox="0 0 200 200" role="img" aria-label="Senua the white blood cell">
@@ -726,7 +738,7 @@ const I18N = {
 const LS = { key:"whitehero.openai_key", instr:"whitehero.instructions", model:"whitehero.model", lang:"whitehero.lang", used:"whitehero.tokens_used", budget:"whitehero.token_budget", memory:"whitehero.memory", char:"whitehero.character", text:"whitehero.show_text",
   provider:"whitehero.provider", gemini_key:"whitehero.gemini_key", gemini_model:"whitehero.gemini_model", gemini_apiver:"whitehero.gemini_apiver",
   eleven_key:"whitehero.eleven_key", eleven_agent:"whitehero.eleven_agent", eleven_voice:"whitehero.eleven_voice", eleven_voice_name:"whitehero.eleven_voice_name",
-  roster:"whitehero.roster", cost:"whitehero.cost_used", vad:"whitehero.vad", shared:"whitehero.shared" };
+  roster:"whitehero.roster", cost:"whitehero.cost_used", vad:"whitehero.vad", shared:"whitehero.shared", teammode:"whitehero.teammode" };
 const DEFAULTS = { model:"gpt-realtime", gemini_model:"gemini-2.0-flash-live-001", vad:"relaxed" };
 const store = {
   get: (k, d="") => localStorage.getItem(LS[k]) ?? d,
@@ -856,6 +868,7 @@ const sayEl=$("say"), sayWho=$("sayWho"), sayText=$("sayText");
 const scrim=$("scrim"), keyInput=$("keyInput"), instrInput=$("instrInput"), instrLabel=$("instrLabel"), modelInput=$("modelInput"), vadInput=$("vadInput"), langInput=$("langInput"), sharedInput=$("sharedInput");
 const budgetInput=$("budgetInput"), budgetHint=$("budgetHint"), memHint=$("memHint"), tokenPill=$("tokenPill"), modelPill=$("modelPill");
 const textBtn=$("textBtn"), friendsEl=$("friends"), friendsLabel=$("friendsLabel");
+const teamBtn=$("teamBtn"), teamLayer=$("teamLayer");
 const providerInput=$("providerInput"), geminiKey=$("geminiKey"), geminiModel=$("geminiModel");
 const geminiListBtn=$("geminiListBtn"), geminiModels=$("geminiModels"), geminiModelHint=$("geminiModelHint");
 const elevenKey=$("elevenKey"), elevenAgent=$("elevenAgent"), voiceSearch=$("voiceSearch"), voiceSearchBtn=$("voiceSearchBtn"), voiceResults=$("voiceResults"), voiceChosen=$("voiceChosen");
@@ -881,6 +894,7 @@ let showText = store.get("text","1")==="1";   // transcript on by default
 
 // ---------- friends UI + character visuals ----------
 let dockShift=0, dragging=false, dragStartX=0, dragStartShift=0, dragMoved=0;
+let dragStartY=0, liftEl=null, liftMode=false, teamGhost=null;   // team mode: drag a friend up into the action area
 function buildFriends(){
   friendsEl.innerHTML = CHARACTERS.map(c=>
     `<button class="friend" data-id="${c.id}" title="${charRole(c)}">
@@ -890,18 +904,33 @@ function buildFriends(){
   // swipeable carousel: drag to scroll, the friend in the MIDDLE is the selected one;
   // a tap (no real movement) selects the tapped friend directly.
   friendsEl.onpointerdown = (e)=>{
-    dragging=true; dragMoved=0; dragStartX=e.clientX; dragStartShift=dockShift;
+    dragging=true; dragMoved=0; liftMode=false; dragStartX=e.clientX; dragStartY=e.clientY; dragStartShift=dockShift;
+    liftEl = teamMode ? (e.target.closest && e.target.closest(".friend")) : null;
     try{ friendsEl.setPointerCapture(e.pointerId); }catch(_){}
     friendsEl.style.transition="none";
   };
   friendsEl.onpointermove = (e)=>{
     if(!dragging) return;
-    const dx=e.clientX-dragStartX; dragMoved=Math.max(dragMoved, Math.abs(dx));
+    const dx=e.clientX-dragStartX, dy=e.clientY-dragStartY;
+    if(!liftMode && teamMode && liftEl && dy < -16 && Math.abs(dy) > Math.abs(dx)){   // upward drag = lift to team
+      liftMode=true;
+      const c=vById(liftEl.dataset.id)||CHARACTERS[0];
+      teamGhost=document.createElement("div"); teamGhost.className="teamghost"; teamGhost.style.background=c.body; teamGhost.textContent=c.emoji;
+      document.body.appendChild(teamGhost);
+    }
+    if(liftMode){ teamGhost.style.left=e.clientX+"px"; teamGhost.style.top=e.clientY+"px"; return; }
+    dragMoved=Math.max(dragMoved, Math.abs(dx));
     setShift(dragStartShift+dx);
   };
   const endDrag = (e)=>{
     if(!dragging) return; dragging=false;
     friendsEl.style.transition="";                              // re-enable the smooth snap
+    if(liftMode){
+      if(teamGhost){ teamGhost.remove(); teamGhost=null; }
+      const r=actionAreaRect(), over = e.clientX>=r.left-60 && e.clientX<=r.right+60 && e.clientY>=r.top-60 && e.clientY<=r.bottom+60;
+      if(over && liftEl) addTeam(liftEl.dataset.id);            // dropped on the action area → add to team
+      liftMode=false; liftEl=null; return;
+    }
     let tapEl=null;
     if(dragMoved<6){ const el=document.elementFromPoint(e.clientX, e.clientY); tapEl = el && el.closest ? el.closest(".friend") : null; }
     const target = tapEl || nearestFriend();                    // tap → that friend; swipe → nearest to centre
@@ -938,6 +967,49 @@ function nearestFriend(){
 }
 function centerFriend(el){ if(!el) return; setShift(friendsEl.clientWidth/2 - (el.offsetLeft+el.offsetWidth/2)); }
 function centerActiveFriend(){ centerFriend(friendsEl.querySelector(".friend.active") || friendsEl.querySelector(".friend")); }
+
+// ---------- team mode (extra characters around the hero) — EXPERIMENTAL ----------
+let teamMode = store.get("teammode","0")==="1";
+let team = [];   // [{id,x,y}] extra characters laid out around the hero (max 2)
+function teamFull(){ return team.length>=2; }
+function inTeam(id){ return team.some(m=>m.id===id); }
+function randomSpot(){
+  const a = Math.random()*Math.PI*2, r = 28 + Math.random()*12;
+  return { x: Math.max(14, Math.min(86, 50 + Math.cos(a)*r*1.4)), y: Math.max(16, Math.min(70, 40 + Math.sin(a)*r)) };
+}
+function addTeam(id){
+  if(!teamMode || id===currentChar().id || inTeam(id) || teamFull()) return;
+  const s = randomSpot(); team.push({ id, x:s.x, y:s.y }); renderTeam();
+}
+function removeTeam(id){ team = team.filter(m=>m.id!==id); renderTeam(); }
+function renderTeam(){
+  if(!teamLayer) return;
+  teamLayer.classList.toggle("on", teamMode);
+  if(!teamMode){ teamLayer.innerHTML=""; return; }
+  team = team.filter(m=>m.id!==currentChar().id);                 // the selected hero is the centre, not a teammate
+  teamLayer.innerHTML = team.map(m=>{ const c=vById(m.id)||CHARACTERS[0];
+    return `<button class="teammate" data-id="${m.id}" title="${charName(c)}" style="left:${m.x}%; top:${m.y}%; background:${c.body}">${c.emoji}</button>`;
+  }).join("");
+  teamLayer.querySelectorAll(".teammate").forEach(attachTeammateDrag);
+}
+function actionAreaRect(){ return (heroSvg.closest(".heroBox")||heroSvg).getBoundingClientRect(); }
+function attachTeammateDrag(b){     // drag a teammate out of the action area to remove it
+  let sx=0, sy=0, moved=0, dr=false;
+  b.onpointerdown=(e)=>{ dr=true; moved=0; sx=e.clientX; sy=e.clientY; try{ b.setPointerCapture(e.pointerId); }catch(_){} b.style.transition="none"; };
+  b.onpointermove=(e)=>{ if(!dr) return; const dx=e.clientX-sx, dy=e.clientY-sy; moved=Math.max(moved,Math.abs(dx)+Math.abs(dy)); b.style.transform=`translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`; };
+  const end=(e)=>{ if(!dr) return; dr=false; b.style.transition="";
+    const r=actionAreaRect(), inside = e.clientX>=r.left-50 && e.clientX<=r.right+50 && e.clientY>=r.top-50 && e.clientY<=r.bottom+50;
+    if(moved>8 && !inside) removeTeam(b.dataset.id); else b.style.transform="translate(-50%,-50%)";
+  };
+  b.onpointerup=end; b.onpointercancel=end;
+}
+function setSpeaking(id){ if(teamLayer) teamLayer.querySelectorAll(".teammate").forEach(b=> b.classList.toggle("speaking", b.dataset.id===id)); }
+if(teamBtn) teamBtn.onclick=()=>{
+  teamMode=!teamMode; store.set("teammode", teamMode?"1":"0");
+  teamBtn.classList.toggle("off", !teamMode);
+  if(!teamMode) team=[];
+  renderTeam();
+};
 function markActiveFriend(){
   const id = currentChar().id;
   friendsEl.querySelectorAll(".friend").forEach(b=> b.classList.toggle("active", b.dataset.id===id));
@@ -949,6 +1021,7 @@ function applyCharacter(){
   heroSvg.setAttribute("aria-label", charName(c)+" — "+charRole(c));
   markActiveFriend();
   centerActiveFriend();
+  if(typeof renderTeam==="function") renderTeam();   // drop the new hero from the team + relayout
 }
 
 // ---------- apply language to the whole UI ----------
@@ -1830,6 +1903,8 @@ window.addEventListener("beforeunload", ()=>{ if(connected) cleanup(); });
 // ---------- init ----------
 applyLang();
 applyCharacter();
+if(teamBtn) teamBtn.classList.toggle("off", !teamMode);
+renderTeam();
 sizeWave();
 measureHero(); setTimeout(measureHero, 400);  // anchor the heartbeat/voice ring (re-measure once after layout settles)
 startAnim();                                  // heartbeat ambience runs from the start
