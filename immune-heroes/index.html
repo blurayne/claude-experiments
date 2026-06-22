@@ -128,9 +128,13 @@
   @keyframes blink { 50% { transform: scaleY(.08); } }
 
   /* status + controls */
-  .status { color: #fff; font-size: clamp(16px, 2.6vw, 20px); font-weight: 700; text-shadow: 0 2px 0 rgba(150,10,40,.4); min-height: 1.4em; text-align: center; max-width: 100%; }
-  /* live transcript mode: one line, at most 60% of the screen, ellipsis */
-  .status.oneline { max-width: 60vw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-style: italic; }
+  /* spoken-text area: always reserve 3 lines so the layout never jumps; show the most recent lines */
+  .status { color: #fff; font-size: clamp(16px, 2.6vw, 20px); font-weight: 700; line-height: 1.4;
+    text-shadow: 0 2px 0 rgba(150,10,40,.4); height: 4.2em; min-height: 4.2em; text-align: center; max-width: 100%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
+  .status.live { justify-content: flex-end; max-width: 80vw; font-style: italic; }
+  .status.live .cur { font-style: normal; background: #fff; color: var(--ink); border-radius: 6px;
+    padding: 0 .16em; box-shadow: 0 1px 0 rgba(150,10,40,.25); transition: background .12s ease; }
 
   .controls { display: flex; flex-direction: column; align-items: center; gap: 10px; padding-top: 4px; }
   .minirow { display: flex; gap: 10px; align-items: center; }
@@ -1088,10 +1092,20 @@ setInterval(()=>{ heroSvg.classList.add("blink"); setTimeout(()=>heroSvg.classLi
 // When the transcript toggle is on, the currently-spoken words replace the status
 // line (one line, max 60% wide); when nothing is spoken, the default status shows.
 let lastStatus = "", liveText = "";
+function escHtml(s){ return s.replace(/[&<>]/g, c=> ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
 function renderStatus(){
   const live = showText && liveText.trim();
-  statusEl.textContent = live ? liveText : lastStatus;
-  statusEl.classList.toggle("oneline", !!live);
+  statusEl.classList.toggle("live", !!live);
+  if(live){
+    // highlight the most recently streamed word (≈ the word being spoken right now)
+    const words = liveText.trim().split(/\s+/);
+    const last = words.pop();
+    const head = words.length ? escHtml(words.join(" ")) + " " : "";
+    statusEl.innerHTML = head + '<span class="cur">' + escHtml(last) + '</span>';
+    statusEl.scrollTop = statusEl.scrollHeight;     // keep the latest line in view
+  } else {
+    statusEl.textContent = lastStatus;
+  }
 }
 function setStatus(s){ lastStatus = s; renderStatus(); }
 function clearLive(){ liveText = ""; renderStatus(); }
