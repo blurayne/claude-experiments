@@ -117,10 +117,12 @@
 
   /* the hero character */
   .heroBox { width: min(58vw, 270px); height: min(58vw, 270px); display: grid; place-items: center; }
-  svg.hero { width: 100%; height: 100%; overflow: visible; }
+  svg.hero { width: 100%; height: 100%; overflow: visible; transition: transform .3s ease; }
   #heroBody { transform-box: fill-box; transform-origin: 50% 60%; animation: bob 2.4s ease-in-out infinite; }
   #heroBody.talking { animation: bob 0.9s ease-in-out infinite; }
   @keyframes bob { 0%,100%{ transform: translateY(0) } 50%{ transform: translateY(-9px) } }
+  /* mouth: smile (idle) ↔ open (talking) cross-fade smoothly; the open mouth's ry is eased in JS */
+  #smile, #mouthOpen { transition: opacity .22s ease; }
   .eye-lid { transform-box: fill-box; transform-origin: center; transform: scaleY(1); }
   .blink .eye-lid { animation: blink .28s ease; }
   @keyframes blink { 50% { transform: scaleY(.08); } }
@@ -291,7 +293,7 @@
             </g>
             <!-- mouth: smile (idle) + open (talking) -->
             <path id="smile" d="M84 116 Q100 132 116 116" fill="none" stroke="#27313a" stroke-width="5" stroke-linecap="round"/>
-            <ellipse id="mouthOpen" cx="100" cy="120" rx="13" ry="4" fill="#b3434f" style="display:none"/>
+            <ellipse id="mouthOpen" cx="100" cy="120" rx="13" ry="4" fill="#b3434f" style="opacity:0"/>
           </g>
         </svg>
       </div>
@@ -933,6 +935,11 @@ function buildFriends(){
     }
     let tapEl=null;
     if(dragMoved<6){ const el=document.elementFromPoint(e.clientX, e.clientY); tapEl = el && el.closest ? el.closest(".friend") : null; }
+    if(teamMode && tapEl){                                       // team mode: a tap adds that friend to the team
+      if(tapEl.dataset.id===currentChar().id) centerFriend(tapEl);   // the hero itself → just recentre
+      else addTeam(tapEl.dataset.id);
+      return;
+    }
     const target = tapEl || nearestFriend();                    // tap → that friend; swipe → nearest to centre
     if(!target) return;
     if(target.dataset.id!==currentChar().id) selectCharacter(target.dataset.id);
@@ -1422,16 +1429,13 @@ function frame(ts){
   voiceMix += (target - voiceMix) * Math.min(1, dt*7);
   envSm    += (lvl    - envSm)    * Math.min(1, dt*12);
 
-  // hero face (only while connected)
+  // hero face (only while connected) — ry is eased every frame, the smile/open swap cross-fades via CSS
   if(connected){
-    if(heroSpeaking){
-      mouthRySm += ((3+Math.min(16,heroLvl*46))-mouthRySm)*Math.min(1,dt*16);
-      mouthEl.setAttribute("ry", mouthRySm.toFixed(1));
-      mouthEl.style.display=""; smileEl.style.display="none";
-    } else {
-      mouthRySm += (3-mouthRySm)*Math.min(1,dt*10);
-      mouthEl.style.display="none"; smileEl.style.display="";
-    }
+    const ryTarget = heroSpeaking ? (3+Math.min(16,heroLvl*46)) : 3;
+    mouthRySm += (ryTarget-mouthRySm)*Math.min(1,dt*(heroSpeaking?16:10));
+    mouthEl.setAttribute("ry", mouthRySm.toFixed(1));
+    mouthEl.style.opacity = heroSpeaking ? "1" : "0";
+    smileEl.style.opacity = heroSpeaking ? "0" : "1";
     if(heroSpeaking!==talkingClass){ talkingClass=heroSpeaking; heroBody.classList.toggle("talking",heroSpeaking); }
   }
 
@@ -1440,7 +1444,7 @@ function frame(ts){
 function startAnim(){ if(!rafId) rafId=requestAnimationFrame(frame); }   // idempotent; the loop runs for the whole session
 function stopAnim(){
   // keep the canvas loop alive (heartbeat continues) — just reset the hero's face to idle
-  mouthEl.style.display="none"; smileEl.style.display="";
+  mouthEl.style.opacity="0"; smileEl.style.opacity="1";
   heroBody.classList.remove("talking"); talkingClass=false;
 }
 
