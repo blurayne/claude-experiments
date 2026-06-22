@@ -104,9 +104,9 @@
 
   .bar { margin-top: .7rem; height: 13px; background: #0e1430; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; display: flex; }
   .bar > span { display: block; height: 100%; width: 0; transition: width .8s ease; }
-  .bar > span.now { background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+  .bar > span.base { background: linear-gradient(90deg, #8a5cff, #b07cff); }
   .bar > span.gain { background: var(--born); }
-  .bar > span.remain { background: var(--killed); }
+  .bar > span.loss { background: var(--killed); }
   .bar-row { display: flex; justify-content: space-between; gap: .5rem; font-size: .7rem; color: var(--muted); margin-top: .35rem; }
   .bar-row b { color: var(--text); font-weight: 600; }
   .bar-row .delta.up { color: var(--born); }
@@ -114,9 +114,9 @@
   .bar-legend { display: flex; gap: .8rem; font-size: .64rem; color: var(--muted); margin-top: .25rem; }
   .bar-legend i { font-style: normal; display: inline-flex; align-items: center; gap: .25rem; }
   .bar-legend i::before { content: ""; width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
-  .bar-legend i.now::before { background: var(--accent); }
+  .bar-legend i.base::before { background: #9b6efe; }
   .bar-legend i.gain::before { background: var(--born); }
-  .bar-legend i.remain::before { background: var(--killed); }
+  .bar-legend i.loss::before { background: var(--killed); }
 
   .flows { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin-top: 1rem; }
   .flow { border: 1px solid var(--line); border-radius: 12px; padding: .6rem .7rem; background: rgba(255,255,255,.015); }
@@ -174,10 +174,11 @@
     <h2>How to read this</h2>
     <p class="disclaimer">
       Pick a <b>region</b> and a <b>time unit</b> at the top, and a target <b>year</b> on the slider. Each card shows a
-      rough <b>total</b> today and a bar scaled to the larger of today's and the chosen year's total. For a
-      <b>growing</b> category the bar is the current number (blue) plus the <span style="color:var(--born)">gain</span>
-      to your chosen year; for a <b>shrinking</b> one it reverses — <span style="color:var(--killed)">red</span> is what
-      will be left and <span style="color:var(--born)">green</span> is what gets lost. Below are the live
+      rough <b>total</b> today and a bar scaled to that category's peak over 2026–2100, so there is headroom. For a
+      <b>growing</b> category the bar is the current total (<span style="color:#b07cff">lila</span>) plus the
+      <span style="color:var(--born)">gain</span> to your chosen year; for a <b>shrinking</b> one it is what's left
+      (<span style="color:#b07cff">lila</span>) plus the <span style="color:var(--killed)">loss</span> by then. Those
+      segments update live as the dashboard ticks. Below are the live
       <span style="color:var(--born)">born</span> / <span style="color:var(--killed)">killed</span> rates in the unit
       you picked. Projections follow study-based trajectories. The <span class="est">est.</span> tag marks genuinely
       uncertain figures. The refresh interval (1–20&nbsp;s) is your choice.
@@ -326,6 +327,16 @@
       return Math.max(0, r.pop + (r.hBorn - r.hKilled) * (year - BASE_YEAR) * MIN_PER_YEAR);
     }
     return anchorInterp(d.anchors, year) * regionScale(d, r);
+  }
+  // largest value the category reaches across the whole 2026-2100 window
+  // (used as the bar's fixed scale, so there is headroom / trailing space)
+  function peakOf(d, r) {
+    var mx = 0;
+    for (var y = BASE_YEAR; y <= 2100; y++) {
+      var v = projectCat(d, y, r);
+      if (v > mx) mx = v;
+    }
+    return mx || 1;
   }
   // per-minute flow for a category in a region
   function flowOf(d, r) {
@@ -477,19 +488,18 @@
 
       e.total.textContent = abbrev(totalNow);
 
-      // value-based bar: full width = larger of (now, projected)
-      var mx = Math.max(totalNow, proj, 1);
-      var growing = proj >= totalNow;
-      if (growing) {
-        // [ now (accent) ][ gain to chosen year (green) ]
-        e.bar1.className = "now"; e.bar1.style.width = (totalNow / mx * 100).toFixed(3) + "%";
-        e.bar2.className = "gain"; e.bar2.style.width = ((proj - totalNow) / mx * 100).toFixed(3) + "%";
-        e.legend.innerHTML = '<i class="now">now</i><i class="gain">gain to ' + state.endYear + '</i>';
+      // bar scaled to the metric's peak over 2026-2100 (leaves trailing space)
+      var peak = peakOf(d, r);
+      if (proj >= totalNow) {
+        // growing: [ current total (lila) ][ gain (green) ][ space ]
+        e.bar1.className = "base"; e.bar1.style.width = (totalNow / peak * 100).toFixed(3) + "%";
+        e.bar2.className = "gain"; e.bar2.style.width = ((proj - totalNow) / peak * 100).toFixed(3) + "%";
+        e.legend.innerHTML = '<i class="base">now</i><i class="gain">gain to ' + state.endYear + '</i>';
       } else {
-        // shrinking → reversed: [ projected remaining (red) ][ decreasing delta (green) ]
-        e.bar1.className = "remain"; e.bar1.style.width = (proj / mx * 100).toFixed(3) + "%";
-        e.bar2.className = "gain"; e.bar2.style.width = ((totalNow - proj) / mx * 100).toFixed(3) + "%";
-        e.legend.innerHTML = '<i class="remain">left in ' + state.endYear + '</i><i class="gain">lost by then</i>';
+        // shrinking: [ remaining (lila) ][ loss (red) ][ space ]
+        e.bar1.className = "base"; e.bar1.style.width = (proj / peak * 100).toFixed(3) + "%";
+        e.bar2.className = "loss"; e.bar2.style.width = ((totalNow - proj) / peak * 100).toFixed(3) + "%";
+        e.legend.innerHTML = '<i class="base">left in ' + state.endYear + '</i><i class="loss">lost by then</i>';
       }
 
       e.cur.textContent = abbrev(totalNow);
