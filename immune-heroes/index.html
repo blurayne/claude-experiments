@@ -135,8 +135,6 @@
     text-shadow: 0 2px 0 rgba(150,10,40,.4); height: 4.2em; min-height: 4.2em; text-align: center; max-width: 100%;
     display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
   .status.live { justify-content: flex-end; max-width: 80vw; font-style: italic; }
-  .status.live .cur { font-style: normal; background: #fff; color: var(--ink); border-radius: 6px;
-    padding: 0 .16em; box-shadow: 0 1px 0 rgba(150,10,40,.25); transition: background .12s ease; }
 
   .controls { display: flex; flex-direction: column; align-items: center; gap: 10px; padding-top: 4px; }
   .minirow { display: flex; gap: 10px; align-items: center; }
@@ -1094,20 +1092,11 @@ setInterval(()=>{ heroSvg.classList.add("blink"); setTimeout(()=>heroSvg.classLi
 // When the transcript toggle is on, the currently-spoken words replace the status
 // line (one line, max 60% wide); when nothing is spoken, the default status shows.
 let lastStatus = "", liveText = "";
-function escHtml(s){ return s.replace(/[&<>]/g, c=> ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
 function renderStatus(){
   const live = showText && liveText.trim();
   statusEl.classList.toggle("live", !!live);
-  if(live){
-    // highlight the most recently streamed word (≈ the word being spoken right now)
-    const words = liveText.trim().split(/\s+/);
-    const last = words.pop();
-    const head = words.length ? escHtml(words.join(" ")) + " " : "";
-    statusEl.innerHTML = head + '<span class="cur">' + escHtml(last) + '</span>';
-    statusEl.scrollTop = statusEl.scrollHeight;     // keep the latest line in view
-  } else {
-    statusEl.textContent = lastStatus;
-  }
+  statusEl.textContent = live ? liveText : lastStatus;
+  if(live) statusEl.scrollTop = statusEl.scrollHeight;   // keep the latest line in view
 }
 function setStatus(s){ lastStatus = s; renderStatus(); }
 function clearLive(){ liveText = ""; renderStatus(); }
