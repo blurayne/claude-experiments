@@ -124,10 +124,16 @@
   .rrow-head { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; }
   .rname { font-size: .82rem; font-weight: 700; }
   .rtot { font-variant-numeric: tabular-nums; font-weight: 800; font-size: 1.1rem; letter-spacing: -.01em; }
-  .rmeta { font-size: .69rem; color: var(--muted); margin-top: .35rem; font-variant-numeric: tabular-nums; line-height: 1.5; }
-  .rmeta b { color: var(--text); font-weight: 600; }
-  .rmeta .up { color: var(--born); }
-  .rmeta .down { color: var(--killed); }
+  .rmeta { margin-top: .35rem; font-variant-numeric: tabular-nums; }
+  .rproj { font-size: .69rem; color: var(--muted); }
+  .rproj b { color: var(--text); font-weight: 600; }
+  .rproj .up { color: var(--born); }
+  .rproj .down { color: var(--killed); }
+  .rflow { font-size: .86rem; color: var(--muted); margin-top: .3rem; }
+  .rflow .up { color: var(--born); }
+  .rflow .down { color: var(--killed); }
+  .rflow b { font-weight: 800; }
+  .rflow b.u { color: var(--text); }
 
   .flows { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin-top: 1rem; }
   .flow { border: 1px solid var(--line); border-radius: 12px; padding: .6rem .7rem; background: rgba(255,255,255,.015); }
@@ -532,13 +538,15 @@
 
         var net = f.born - f.killed;
         ref.meta.innerHTML =
-          '→ ' + ey + ': <b>' + abbrev(proj) + '</b> ' +
-          '<span class="' + (delta >= 0 ? "up" : "down") + '">' +
-          (delta >= 0 ? "+" : "−") + abbrev(Math.abs(delta)) + '</span>' +
-          ' &nbsp;·&nbsp; <span class="up">▲ ' + rateNum(f.born * u.min) + '</span> ' +
-          '<span class="down">▼ ' + rateNum(f.killed * u.min) + '</span> ' +
-          'net <b class="' + (net >= 0 ? "up" : "down") + '">' +
-          (net >= 0 ? "+" : "−") + rateNum(Math.abs(net) * u.min) + '</b> /' + u.label;
+          '<div class="rproj">→ ' + ey + ': <b>' + abbrev(proj) + '</b> ' +
+            '<span class="' + (delta >= 0 ? "up" : "down") + '">' +
+            (delta >= 0 ? "+" : "−") + abbrev(Math.abs(delta)) + '</span></div>' +
+          '<div class="rflow">' +
+            '<span class="up">▲ <b>' + rateNum(f.born * u.min) + '</b></span>&nbsp; ' +
+            '<span class="down">▼ <b>' + rateNum(f.killed * u.min) + '</b></span>&nbsp; ' +
+            'net <b class="' + (net >= 0 ? "up" : "down") + '">' +
+            (net >= 0 ? "+" : "−") + rateNum(Math.abs(net) * u.min) + '</b> ' +
+            '<b class="u">/' + u.label + '</b></div>';
       });
     });
 
