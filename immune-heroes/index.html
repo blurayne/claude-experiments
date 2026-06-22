@@ -190,7 +190,7 @@
   .field .hint { font-size: 12px; color: #8a7480; margin-top: 6px; }
   .sharedbox { margin-top: 8px; }
   .sharedbox > summary { cursor: pointer; font-size: 12px; font-weight: 700; color: #6b5560; }
-  .sharedbox #sharedRules { white-space: pre-wrap; background: #faf5f7; border: 1px solid #f0e3e9; border-radius: 9px; padding: 9px 11px; margin-top: 6px; }
+  .sharedbox #sharedInput { width: 100%; margin-top: 6px; min-height: 140px; }
   .note { font-size: 12.5px; color: #6b5560; background: #fff5f7; border: 1px solid #ffd9e0; border-radius: 11px; padding: 11px 13px; margin-bottom: 16px; }
   .note b { color: #b3231f; }
   .pgroup { display: none; }
@@ -391,7 +391,10 @@
         <textarea id="instrInput"></textarea>
         <div class="hint" data-i18n="hint_instr"></div>
         <button type="button" class="mbtn ghost" id="resetPrompts" data-i18n="btn_reset_prompts" style="margin-top:8px;">Reset all to defaults</button>
-        <details class="sharedbox"><summary data-i18n="shared_rules_sum">Shared rules (added to every friend)</summary><div class="hint" id="sharedRules"></div></details>
+        <details class="sharedbox"><summary data-i18n="shared_rules_sum">Shared rules (added to every friend)</summary>
+          <textarea id="sharedInput"></textarea>
+          <div class="hint" data-i18n="hint_shared"></div>
+        </details>
       </div>
 
       <div class="field">
@@ -463,9 +466,9 @@ Child: Can you do magic? – My shield is like magic: it makes nasty germs harml
 
 // ---------- shared rules for the non-Senua friends ----------
 const SHARED_DE =
-`Du gehörst zum Immunsystem und sprichst mit einem etwa siebenjährigen Kind, gibst aber Antworten auf dem Wissensniveau einer Zwölfjährigen. Du weißt genau, was jede Immunzelle tut, und kannst alle Organe des Körpers und ihre Funktion benennen. Sprich schnell, warmherzig, lebendig und nie belehrend. Halte Antworten auf 1–2 kurze Sätze und lade danach immer zum Weiterfragen ein („Frag ruhig weiter!"). Stell dich nur einmal ganz am Anfang vor und wiederhole danach nicht ständig deinen Namen. Baue kleine Abenteuer-Geschichten ein und erwähne ab und zu deine Freunde: Senua (weiße Blutzelle), Rubina (rote Blutzelle), Theo (T-Helferzelle), Kilian (T-Killerzelle), Denni (dendritische Zelle), Makro (Makrophage), Bea (B-Gedächtniszelle), Hela (Helferzelle) und Pia (Plasmazelle). Erkläre Fachbegriffe mit einfachen Worten: erst der Name, dann die Erklärung. Du hast ein kleines Gedächtnis und knüpfst natürlich an frühere Gespräche an. Sei niemals gruselig. Ausnahme Geschichten: Wenn das Kind eine Geschichte möchte oder länger still ist, erzähl eine richtige, längere Abenteuer-Geschichte (etwa drei bis fünf Minuten) mit einem klaren Spannungsbogen: ein Anfang, eine kleine Heldin oder ein Held, ein Problem oder Gegner, mindestens eine und höchstens fünf überraschende Wendungen und ein gutes Ende. Benenne die Wendungen aber nie. Lass deine Freunde mitspielen, gib Namen, Orte (Organe!) und Gefühle. Eine Moral ist nicht immer nötig – wenn doch, dann jedes Mal eine andere, zur Geschichte passende, und NIEMALS immer „Gemeinsam sind wir stark". Außerhalb von Geschichten bleibe bei ein bis zwei kurzen Sätzen.`;
+`Du gehörst zum Immunsystem und sprichst mit einem etwa siebenjährigen Kind, gibst aber Antworten auf dem Wissensniveau einer Zwölfjährigen. Du weißt genau, was jede Immunzelle tut, und kannst alle Organe des Körpers und ihre Funktion benennen. Sprich warmherzig, lebendig und nie belehrend. Halte Antworten auf max. 2 kurze Sätze und höchstens 5 Nebensätze. Warte dann etwas und mach eines davon: 1. lade zum Weiterfragen ein („Frag ruhig weiter!"); 2. erzähle etwas Erstaunliches über den menschlichen Körper (wie gewisse Abläufe funktionieren); 3. baue eine kleine Abenteuer-Geschichte ein und erwähne ab und zu deine Freunde: Senua (weiße Blutzelle), Rubina (rote Blutzelle), Theo (T-Helferzelle), Kilian (T-Killerzelle), Denni (dendritische Zelle), Makro (Makrophage), Bea (B-Gedächtniszelle), Hela (Helferzelle) und Pia (Plasmazelle). Erkläre Fachbegriffe mit einfachen Worten: erst der Name, dann die Erklärung. Du hast ein kleines Gedächtnis und knüpfst natürlich an frühere Gespräche an. Sei niemals gruselig. Ausnahme Geschichten: Wenn das Kind eine Geschichte möchte oder länger still ist, erzähl eine richtige, längere Abenteuer-Geschichte (etwa drei bis fünf Minuten) mit einem klaren Spannungsbogen: ein Anfang, eine kleine Heldin oder ein Held, ein Problem oder Gegner, mindestens eine und höchstens fünf überraschende Wendungen und ein gutes Ende. Benenne die Wendungen oder die Moral aber nie direkt, sondern lass sie einfach in den Fließtext einfließen (z. B. „und das haben wir gut gemacht, weil einfach jeder das getan hat, was er am besten kann, und alle zusammen geholfen haben"). Vor allem: variiere Moral und Floskeln und sag es jedes Mal anders. Lass deine Freunde mitspielen, gib Namen, Orte (Organe!) und Gefühle. Eine Moral ist nicht immer nötig – wenn doch, dann jedes Mal eine andere, zur Geschichte passende, ohne ständige Wiederholungen. Du darfst auch Fragen außerhalb des Körpers beantworten, kennst dich dort aber nicht so gut aus und bleibst möglichst beim Fokus Immunsystem, Körper und allem was dazugehört – wie Ernährung, Bewegung, Spiel und Lernen.`;
 const SHARED_EN =
-`You are part of the immune system and you talk with a child of about seven, but you give answers at the knowledge level of a twelve-year-old. You know exactly what each immune cell does and can name all the organs of the body and their function. Speak fast, warm, lively and never preachy. Keep answers to 1–2 short sentences and always invite the next question ("Keep asking!"). Introduce yourself only once at the very start and don't keep repeating your name afterwards. Weave in little adventure stories and now and then mention your friends: Senua (white blood cell), Rubina (red blood cell), Theo (T-helper cell), Kilian (T-killer cell), Denni (dendritic cell), Makro (macrophage), Bea (B memory cell), Hela (helper cell) and Pia (plasma cell). Explain technical terms in simple words: first the name, then the explanation. You have a little memory and pick up on earlier conversations naturally. Never be scary. Story exception: if the child asks for a story or has been quiet for a while, tell a real, longer adventure story (about three to five minutes) with a clear arc: a beginning, a little hero, a problem or villain, at least one and at most five surprising twists, and a satisfying ending. But never name the twists. Bring your friends into it, give names, places (organs!) and feelings. A moral is not always needed — and if you include one, make it different and fitting each time, and NEVER always "together we are strong". Outside of stories, keep to one or two short sentences.`;
+`You belong to the immune system and talk with a child of about seven, but you answer at the knowledge level of a twelve-year-old. You know exactly what each immune cell does and can name all the organs of the body and their function. Speak warmly, lively and never preachy. Keep answers to at most 2 short sentences and no more than 5 subordinate clauses. Then wait a little and do one of these: 1. invite the next question ("Keep asking!"); 2. share something amazing about the human body (how certain processes work); 3. weave in a little adventure story and now and then mention your friends: Senua (white blood cell), Rubina (red blood cell), Theo (T-helper cell), Kilian (T-killer cell), Denni (dendritic cell), Makro (macrophage), Bea (B memory cell), Hela (helper cell) and Pia (plasma cell). Explain technical terms in simple words: first the name, then the explanation. You have a little memory and pick up on earlier conversations naturally. Never be scary. Story exception: if the child asks for a story or has been quiet for a while, tell a real, longer adventure story (about three to five minutes) with a clear arc: a beginning, a little hero, a problem or villain, at least one and at most five surprising twists, and a satisfying ending. But never state the twists or the moral directly — let them flow naturally into the prose (e.g. "and we did that well because everyone simply did what they're best at and all helped together"). Above all: vary the moral and the phrasing, and say it differently every time. Bring your friends into it, give names, places (organs!) and feelings. A moral isn't always needed — and if you include one, make it different and fitting each time, without constant repetition. You may also answer questions outside the body, but you're not as familiar there and try to stay focused on the immune system, the body and everything related — like nutrition, exercise, play and learning.`;
 
 // ---------- the cast (each friend has its own voice, colour & character) ----------
 const CHARACTERS = [
@@ -569,7 +572,8 @@ const I18N = {
     label_voice: "Senua's voice",
     label_instr: "What should $c be like?",
     hint_instr: "Edit only this friend's own personality here — the shared rules (tone, length, safety, story style) are added automatically.",
-    shared_rules_sum: "Shared rules (added to every friend)",
+    shared_rules_sum: "Shared rules (added to every friend — editable)",
+    hint_shared: "These rules are added to every friend. Edits are saved on this device; use “Reset all to defaults” to restore.",
     btn_reset_prompts: "Reset all to defaults",
     confirm_reset_prompts: "Reset every friend's personality back to the built-in default? Your custom edits will be lost.",
     label_model: "Realtime model",
@@ -664,7 +668,8 @@ const I18N = {
     label_voice: "Senuas Stimme",
     label_instr: "Wie soll $c sein?",
     hint_instr: "Bearbeite hier nur die eigene Persönlichkeit dieses Freundes – die gemeinsamen Regeln (Ton, Länge, Sicherheit, Geschichten) werden automatisch ergänzt.",
-    shared_rules_sum: "Gemeinsame Regeln (für alle Freunde)",
+    shared_rules_sum: "Gemeinsame Regeln (für alle Freunde – bearbeitbar)",
+    hint_shared: "Diese Regeln gelten für alle Freunde. Änderungen werden auf diesem Gerät gespeichert; mit „Alle auf Standard zurücksetzen“ wiederherstellen.",
     btn_reset_prompts: "Alle auf Standard zurücksetzen",
     confirm_reset_prompts: "Die Persönlichkeit aller Freunde auf den eingebauten Standard zurücksetzen? Deine eigenen Änderungen gehen verloren.",
     label_model: "Realtime-Modell",
@@ -721,7 +726,7 @@ const I18N = {
 const LS = { key:"whitehero.openai_key", instr:"whitehero.instructions", model:"whitehero.model", lang:"whitehero.lang", used:"whitehero.tokens_used", budget:"whitehero.token_budget", memory:"whitehero.memory", char:"whitehero.character", text:"whitehero.show_text",
   provider:"whitehero.provider", gemini_key:"whitehero.gemini_key", gemini_model:"whitehero.gemini_model", gemini_apiver:"whitehero.gemini_apiver",
   eleven_key:"whitehero.eleven_key", eleven_agent:"whitehero.eleven_agent", eleven_voice:"whitehero.eleven_voice", eleven_voice_name:"whitehero.eleven_voice_name",
-  roster:"whitehero.roster", cost:"whitehero.cost_used", vad:"whitehero.vad" };
+  roster:"whitehero.roster", cost:"whitehero.cost_used", vad:"whitehero.vad", shared:"whitehero.shared" };
 const DEFAULTS = { model:"gpt-realtime", gemini_model:"gemini-2.0-flash-live-001", vad:"relaxed" };
 const store = {
   get: (k, d="") => localStorage.getItem(LS[k]) ?? d,
@@ -744,6 +749,9 @@ function builtinInstr(c, l){ l=l||lang; return (c.char[l]||c.char.en); }   // ch
 function loadOverrides(){ try{ const o=JSON.parse(store.get("instr","{}")); return (o && typeof o==="object") ? o : {}; }catch(_){ return {}; } }
 function saveOverrides(o){ store.set("instr", JSON.stringify(o)); }
 function charInstr(c, l){ l=l||lang; const o=loadOverrides(); return o[c.id+"."+l] || builtinInstr(c,l); }
+function loadSharedOv(){ try{ const o=JSON.parse(store.get("shared","{}")); return (o && typeof o==="object") ? o : {}; }catch(_){ return {}; } }
+function saveSharedOv(o){ store.set("shared", JSON.stringify(o)); }
+function sharedText(l){ l=l||lang; return loadSharedOv()[l] || SHARED[l] || SHARED.en; }
 
 // ---------- token counter + rough cost estimate ----------
 let tokensUsed = parseInt(store.get("used","0"),10) || 0;
@@ -845,7 +853,7 @@ const $ = (id) => document.getElementById(id);
 const talkBtn=$("talkBtn"), muteBtn=$("muteBtn"), statusEl=$("status");
 function setMuteVisual(){ muteBtn.textContent = muted ? "🔇" : "🔊"; muteBtn.title = muted ? t("mic_off") : t("mic_on"); muteBtn.classList.toggle("off", muted); }
 const sayEl=$("say"), sayWho=$("sayWho"), sayText=$("sayText");
-const scrim=$("scrim"), keyInput=$("keyInput"), instrInput=$("instrInput"), instrLabel=$("instrLabel"), modelInput=$("modelInput"), vadInput=$("vadInput"), langInput=$("langInput");
+const scrim=$("scrim"), keyInput=$("keyInput"), instrInput=$("instrInput"), instrLabel=$("instrLabel"), modelInput=$("modelInput"), vadInput=$("vadInput"), langInput=$("langInput"), sharedInput=$("sharedInput");
 const budgetInput=$("budgetInput"), budgetHint=$("budgetHint"), memHint=$("memHint"), tokenPill=$("tokenPill"), modelPill=$("modelPill");
 const textBtn=$("textBtn"), friendsEl=$("friends"), friendsLabel=$("friendsLabel");
 const providerInput=$("providerInput"), geminiKey=$("geminiKey"), geminiModel=$("geminiModel");
@@ -1117,7 +1125,7 @@ langInput.onchange=()=>{
   if(connected) sendSessionConfig();
 };
 // the shared rulebook is added to every friend at runtime — show it read-only here (not duplicated per character)
-function refreshSharedRules(){ const el=$("sharedRules"); if(el) el.textContent = SHARED[lang]||SHARED.en; }
+function refreshSharedRules(){ if(sharedInput) sharedInput.value = sharedText(lang); }
 
 $("saveBtn").onclick=()=>{
   const k=keyInput.value.trim();
@@ -1128,6 +1136,10 @@ $("saveBtn").onclick=()=>{
   const ov = loadOverrides();
   if(val && val !== builtinInstr(c, lcode)) ov[c.id+"."+lcode] = val; else delete ov[c.id+"."+lcode];
   saveOverrides(ov);
+  // editable shared prompt (persisted per language)
+  const so = loadSharedOv(), sv = sharedInput.value.trim();
+  if(sv && sv !== (SHARED[lcode]||SHARED.en)) so[lcode] = sv; else delete so[lcode];
+  saveSharedOv(so);
   store.set("model", modelInput.value.trim() || DEFAULTS.model);
   store.set("vad", vadInput.value);
   // provider + provider-specific credentials
@@ -1227,7 +1239,9 @@ $("clearMem").onclick=()=>{ store.del("memory"); pendingTurn=null; updateMemHint
 $("resetPrompts").onclick=()=>{
   if(!confirm(t("confirm_reset_prompts"))) return;
   saveOverrides({});                                            // drop every custom personality → built-in defaults
+  saveSharedOv({});                                             // and the edited shared prompt
   instrInput.value = builtinInstr(currentChar(), langInput.value);
+  if(sharedInput) sharedInput.value = SHARED[langInput.value]||SHARED.en;
   if(connected) sendSessionConfig();                            // apply to a live session
 };
 tokenPill.onclick=()=>openSettings();
@@ -1388,7 +1402,7 @@ function rosterDirective(){
     ? "\n\nDu darfst neue Freunde erfinden: gib jedem einen Namen, einen Zelltyp und eine kurze Eigenschaft. Sobald du einen neuen Freund erfindest, rufe das Werkzeug remember_friend auf, damit du dich später an ihn erinnerst. Nutze bekannte Freunde wieder."
     : "\n\nYou may invent new friends: give each a name, a cell type and one short trait. Whenever you invent a new friend, call the remember_friend tool so you remember it later, and reuse friends you already know.";
 }
-function fullInstructions(){ return charInstr(currentChar()) + "\n\n" + (SHARED[lang]||SHARED.en) + rosterDirective() + rosterBlock() + memoryBlock(); }
+function fullInstructions(){ return charInstr(currentChar()) + "\n\n" + sharedText(lang) + rosterDirective() + rosterBlock() + memoryBlock(); }
 const REMEMBER_TOOL_DESC = "Save a newly invented friend cell (name, its cell type, one short trait) so you remember it next time.";
 
 // ---------- OpenAI Realtime session config ----------
@@ -1790,13 +1804,16 @@ function selectCharacter(id){
   applyCharacter();
   if(instrLabel) instrLabel.textContent = t("label_instr",{ c: charName(currentChar()) });
   if(wasLive){
-    // seamless switch: tear down the transport but KEEP the live UI (no "bye", button stays
-    // on, waveform/heartbeat keeps running), then reconnect so the new voice takes over.
+    // fully END the old conversation first (closes the transport, stops its audio), keep the
+    // live UI, then start the new character once it's really torn down. A token makes sure only
+    // the latest pick connects if you scroll through several friends.
     cleanup(); connected=false; connecting=false;
     setStatus(t("waking"));
-    setTimeout(()=>{ ensureAudioCtx(); connect(); }, 160);
+    const my = ++switchSeq;
+    setTimeout(()=>{ if(my===switchSeq && !connected && !connecting){ ensureAudioCtx(); connect(); } }, 350);
   }
 }
+let switchSeq = 0;
 
 // ---------- buttons ----------
 talkBtn.onclick=()=>{ if(connected) hangup(); else { ensureAudioCtx(); connect(); } };
