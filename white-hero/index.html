@@ -385,7 +385,7 @@
       <div class="field">
         <label for="instrInput" id="instrLabel">What should this friend be like?</label>
         <textarea id="instrInput"></textarea>
-        <div class="hint" data-i18n="hint_instr"></div>
+        <div class="hint"><span data-i18n="hint_instr"></span> <button type="button" class="linklike" id="resetPrompts" data-i18n="btn_reset_prompts">Reset all to defaults</button></div>
         <details class="sharedbox"><summary data-i18n="shared_rules_sum">Shared rules (added to every friend)</summary><div class="hint" id="sharedRules"></div></details>
       </div>
 
@@ -565,6 +565,8 @@ const I18N = {
     label_instr: "What should $c be like?",
     hint_instr: "Edit only this friend's own personality here — the shared rules (tone, length, safety, story style) are added automatically.",
     shared_rules_sum: "Shared rules (added to every friend)",
+    btn_reset_prompts: "Reset all to defaults",
+    confirm_reset_prompts: "Reset every friend's personality back to the built-in default? Your custom edits will be lost.",
     label_model: "Realtime model",
     hint_model: "Default: <code>gpt-realtime</code>. For ~3× lower cost use <code>gpt-realtime-mini</code> (a bit simpler, fine for kids).",
     label_vad: "Speech detection",
@@ -658,6 +660,8 @@ const I18N = {
     label_instr: "Wie soll $c sein?",
     hint_instr: "Bearbeite hier nur die eigene Persönlichkeit dieses Freundes – die gemeinsamen Regeln (Ton, Länge, Sicherheit, Geschichten) werden automatisch ergänzt.",
     shared_rules_sum: "Gemeinsame Regeln (für alle Freunde)",
+    btn_reset_prompts: "Alle auf Standard zurücksetzen",
+    confirm_reset_prompts: "Die Persönlichkeit aller Freunde auf den eingebauten Standard zurücksetzen? Deine eigenen Änderungen gehen verloren.",
     label_model: "Realtime-Modell",
     hint_model: "Standard: <code>gpt-realtime</code>. Für ~3× geringere Kosten <code>gpt-realtime-mini</code> nehmen (etwas einfacher, für Kinder völlig okay).",
     label_vad: "Spracherkennung",
@@ -1205,6 +1209,12 @@ geminiModels.onchange = ()=>{
 geminiModel.oninput = ()=>{ store.set("gemini_apiver","v1beta"); };   // manual edit → assume standard v1beta endpoint
 $("resetUsed").onclick=()=>{ tokensUsed=0; costUsed=0; store.set("used","0"); store.set("cost","0"); resetGeminiMeter(); elevenStart=0; updateBudgetHint(); updateTokenPill(); };
 $("clearMem").onclick=()=>{ store.del("memory"); pendingTurn=null; updateMemHint(); };
+$("resetPrompts").onclick=()=>{
+  if(!confirm(t("confirm_reset_prompts"))) return;
+  saveOverrides({});                                            // drop every custom personality → built-in defaults
+  instrInput.value = builtinInstr(currentChar(), langInput.value);
+  if(connected) sendSessionConfig();                            // apply to a live session
+};
 tokenPill.onclick=()=>openSettings();
 if(modelPill) modelPill.onclick=()=>openSettings();
 // label of the model in use (top-right, next to the cost)
