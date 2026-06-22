@@ -118,9 +118,11 @@
   /* the hero character */
   .heroBox { width: min(58vw, 270px); height: min(58vw, 270px); display: grid; place-items: center; }
   svg.hero { width: 100%; height: 100%; overflow: visible; transition: transform .3s ease; }
-  #heroBody { transform-box: fill-box; transform-origin: 50% 60%; animation: bob 2.4s ease-in-out infinite; }
-  #heroBody.talking { animation: bob 0.9s ease-in-out infinite; }
-  @keyframes bob { 0%,100%{ transform: translateY(0) } 50%{ transform: translateY(-9px) } }
+  /* one continuous, gentle bob — never restarted (restarting on talk made the cell jump);
+     "talking" is shown by a soft glow that fades in/out smoothly instead of a speed change */
+  #heroBody { transform-box: fill-box; transform-origin: 50% 60%; animation: bob 2.8s ease-in-out infinite; transition: filter .3s ease; }
+  #heroBody.talking { filter: drop-shadow(0 0 9px rgba(255,255,255,.55)); }
+  @keyframes bob { 0%,100%{ transform: translateY(0) } 50%{ transform: translateY(-7px) } }
   /* mouth: smile (idle) ↔ open (talking) cross-fade smoothly; the open mouth's ry is eased in JS */
   #smile, #mouthOpen { transition: opacity .22s ease; }
   .eye-lid { transform-box: fill-box; transform-origin: center; transform: scaleY(1); }
@@ -1376,7 +1378,7 @@ function heartbeatShape(p){
   const g=(c,w,h)=> h*Math.exp(-((p-c)*(p-c))/(2*w*w));
   return g(0.40,0.012,0.14) + g(0.47,0.010,-0.22) + g(0.50,0.012,1.0) + g(0.53,0.011,-0.30) + g(0.62,0.030,0.20);
 }
-let envSm=0, voiceMix=0, mouthRySm=4, prevTs=0;
+let envSm=0, voiceMix=0, mouthRySm=4, prevTs=0, speakHold=0;
 function timeData(an){ if(!an) return null; const b=new Uint8Array(an.fftSize); an.getByteTimeDomainData(b); return b; }
 
 // where the hero sits on screen — measured once (and on resize), then cached, so the
@@ -1434,7 +1436,10 @@ function frame(ts){
 
   const userLvl = (connected && !muted) ? rms(micAnalyser) : 0;
   const heroLvl = connected ? rms(sinkAnalyser) : 0;
-  const heroSpeaking = heroLvl>0.012 && heroLvl>=userLvl;
+  // hysteresis: hold the "speaking" state ~0.2s past each audio dip so the face/glow
+  // don't flicker between syllables (which would otherwise restart the bob → jumpy)
+  if(heroLvl>0.012 && heroLvl>=userLvl) speakHold = 0.2; else speakHold = Math.max(0, speakHold - dt);
+  const heroSpeaking = speakHold>0;
   const userActive = userLvl>0.03;
   const lvl = Math.min(1, Math.max(userLvl,heroLvl)*3.4);
 
