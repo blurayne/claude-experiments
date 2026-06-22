@@ -20,7 +20,7 @@
   html, body { height: 100%; margin: 0; overscroll-behavior: none; }
   body {
     font-family: var(--font); color: var(--ink); overflow: hidden;
-    min-height: 100dvh; position: relative;
+    position: fixed; inset: 0;            /* single-page app: lock to the visible viewport, no page scroll/cutoff */
     touch-action: manipulation;          /* no double-tap zoom / tap-resize */
     background: #aa1c41;
     background:
@@ -51,7 +51,7 @@
 
   /* ---- layout ---- */
   .wrap {
-    position: relative; z-index: 2; height: 100dvh;
+    position: relative; z-index: 2; height: 100%;
     display: flex; flex-direction: column; align-items: center;
     padding: 14px 16px calc(18px + env(safe-area-inset-bottom));
   }
@@ -869,7 +869,7 @@ let audioCtx=null, micAnalyser=null, sinkAnalyser=null, rafId=null, talkingClass
 let heroText="", kidText="";
 
 // ---------- text-display toggle (default OFF) ----------
-let showText = store.get("text","0")==="1";
+let showText = store.get("text","1")==="1";   // transcript on by default
 
 // ---------- friends UI + character visuals ----------
 let dockShift=0, dragging=false, dragStartX=0, dragStartShift=0, dragMoved=0;
@@ -1007,6 +1007,14 @@ function renderStatus(){
 }
 function setStatus(s){ lastStatus = s; renderStatus(); }
 function clearLive(){ liveText = ""; renderStatus(); }
+// "Your turn — talk to me!" only appears after 10s with no transcript update (and while active);
+// until then the last spoken words stay on screen.
+let yourTurnTimer = null;
+function cancelYourTurn(){ if(yourTurnTimer){ clearTimeout(yourTurnTimer); yourTurnTimer=null; } }
+function armYourTurn(){
+  cancelYourTurn();
+  yourTurnTimer = setTimeout(()=>{ if(connected){ liveText=""; setStatus(t("your_turn")); } }, 10000);
+}
 function showError(msg, opts){
   opts = opts || {};
   errtitle.textContent = opts.title || t("err_default_title");
@@ -1019,7 +1027,7 @@ function hideError(){ errbar.hidden=true; errmsg.textContent=""; erract.hidden=t
 $("errclose").onclick=hideError;
 
 // ---------- live transcript feed (replaces the old caption bubble) ----------
-function showSay(role, text){ liveText = text || ""; renderStatus(); }
+function showSay(role, text){ liveText = text || ""; renderStatus(); armYourTurn(); }   // each update resets the 10s "your turn" countdown
 function setShowText(on){
   showText = on;
   store.set("text", on ? "1" : "0");
@@ -1263,11 +1271,14 @@ function heartbeatShape(p){
 let envSm=0, voiceMix=0, mouthRySm=4, prevTs=0;
 function timeData(an){ if(!an) return null; const b=new Uint8Array(an.fftSize); an.getByteTimeDomainData(b); return b; }
 
-// where the hero sits on screen (so the voice ring hugs the character)
-function heroCenter(){
+// where the hero sits on screen — measured once (and on resize), then cached, so the
+// heartbeat line + voice ring stay anchored and never drift while the carousel scrolls.
+let heroAnchor = null;
+function measureHero(){
   const r = heroSvg.getBoundingClientRect();
-  return { x: r.left + r.width/2, y: r.top + r.height/2, rad: (Math.min(r.width, r.height)/2) || 120 };
+  if(r.width) heroAnchor = { x: r.left + r.width/2, y: r.top + r.height/2, rad: (Math.min(r.width, r.height)/2) || 120 };
 }
+function heroCenter(){ if(!heroAnchor) measureHero(); return heroAnchor || { x: waveW/2, y: waveH*0.5, rad: 120 }; }
 function drawWave(time, heroSpeaking, userActive){
   if(!wctx || document.hidden) return;
   const W=waveW, H=waveH;
@@ -1562,7 +1573,7 @@ function stopPcm(){
 // ---------- common UI transitions shared by all providers ----------
 function uiUserStart(){ cancelIdle(); if(connected) setStatus(t("listening")); }
 function uiRespStart(){ cancelIdle(); if(connected) setStatus(t("talking")); }
-function uiRespDone(usageTotal){ if(typeof usageTotal==="number") addUsage(usageTotal); liveText=""; if(connected){ setStatus(t("your_turn")); scheduleIdle(); } }
+function uiRespDone(usageTotal){ if(typeof usageTotal==="number") addUsage(usageTotal); if(connected){ armYourTurn(); scheduleIdle(); } }
 
 // ---------- connect / hangup ----------
 async function connect(){
@@ -1706,6 +1717,7 @@ function hangup(){
 }
 function cleanup(){
   cancelIdle();
+  cancelYourTurn();
   elevenCommit();        // bank any ElevenLabs minutes before tearing down
   resetGeminiMeter();    // next Gemini session starts its cumulative meter fresh
   releaseWakeLock();
@@ -1746,12 +1758,12 @@ function onEvent(e){
 
   if(ty.includes("input_audio_transcription")){
     if(ty.endsWith("delta") && ev.delta){ kidText+=ev.delta; showSay("kid", kidText); }
-    else if(ty.endsWith("completed")||ty.endsWith("done")){ const q=ev.transcript||kidText; rememberUser(q); kidText=""; clearLive(); }
+    else if(ty.endsWith("completed")||ty.endsWith("done")){ const q=ev.transcript||kidText; rememberUser(q); kidText=""; armYourTurn(); }
     return;
   }
   if(ty.includes("output_audio_transcript")||ty.includes("audio_transcript")||ty.includes("output_text")){
     if(ty.endsWith("delta") && ev.delta){ heroText+=ev.delta; showSay("hero", heroText); }
-    else if(ty.endsWith("done")){ const a=ev.transcript||heroText; rememberHero(a); heroText=""; clearLive(); }
+    else if(ty.endsWith("done")){ const a=ev.transcript||heroText; rememberHero(a); heroText=""; armYourTurn(); }
     return;
   }
 
@@ -1765,8 +1777,7 @@ function onEvent(e){
         if(typeof u.total_tokens==="number") addUsage(u.total_tokens);
         addCost(costFromOpenAI(u));
       }
-      liveText="";
-      if(connected){ setStatus(t("your_turn")); scheduleIdle(); }
+      if(connected){ armYourTurn(); scheduleIdle(); }
       break;
   }
 }
@@ -1803,9 +1814,10 @@ window.addEventListener("beforeunload", ()=>{ if(connected) cleanup(); });
 applyLang();
 applyCharacter();
 sizeWave();
+measureHero(); setTimeout(measureHero, 400);  // anchor the heartbeat/voice ring (re-measure once after layout settles)
 startAnim();                                  // heartbeat ambience runs from the start
-window.addEventListener("resize", ()=>{ sizeWave(); centerActiveFriend(); });
-window.addEventListener("orientationchange", ()=>{ setTimeout(()=>{ sizeWave(); centerActiveFriend(); }, 200); });
+window.addEventListener("resize", ()=>{ sizeWave(); measureHero(); centerActiveFriend(); });
+window.addEventListener("orientationchange", ()=>{ setTimeout(()=>{ sizeWave(); measureHero(); centerActiveFriend(); }, 200); });
 sayEl.style.display="none";   // the old caption bubble is retired; transcript shows in the status line
 if(!providerKeyPresent()) openSettings();
 </script>
