@@ -116,7 +116,9 @@
   @keyframes blink { 50% { transform: scaleY(.08); } }
 
   /* status + controls */
-  .status { color: #fff; font-size: clamp(16px, 2.6vw, 20px); font-weight: 700; text-shadow: 0 2px 0 rgba(150,10,40,.4); min-height: 1.4em; text-align: center; }
+  .status { color: #fff; font-size: clamp(16px, 2.6vw, 20px); font-weight: 700; text-shadow: 0 2px 0 rgba(150,10,40,.4); min-height: 1.4em; text-align: center; max-width: 100%; }
+  /* live transcript mode: one line, at most 60% of the screen, ellipsis */
+  .status.oneline { max-width: 60vw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-style: italic; }
 
   .controls { display: flex; flex-direction: column; align-items: center; gap: 10px; padding-top: 4px; }
   .minirow { display: flex; gap: 10px; align-items: center; }
@@ -593,8 +595,8 @@ const I18N = {
     label_memory: "Senua's memory",
     hint_memory: "Your friends keep a short, private summary of your last 10 chats on this device and quietly remember it next time. Saved chats: $n.",
     btn_clearmem: "Clear memory",
-    text_on: "💬 Text on",
-    text_off: "💬 Text off",
+    text_on: "Transcript on",
+    text_off: "Transcript off",
     friends_label: "Talk to a friend:",
     label_provider: "AI provider",
     hint_provider: "OpenAI works out of the box. Gemini Live & ElevenLabs are experimental.",
@@ -688,8 +690,8 @@ const I18N = {
     label_memory: "Senuas Gedächtnis",
     hint_memory: "Deine Freunde merken sich auf diesem Gerät eine kurze, private Zusammenfassung deiner letzten 10 Gespräche und erinnern sich beim nächsten Mal heimlich daran. Gespeicherte Gespräche: $n.",
     btn_clearmem: "Gedächtnis löschen",
-    text_on: "💬 Text an",
-    text_off: "💬 Text aus",
+    text_on: "Transkript an",
+    text_off: "Transkript aus",
     friends_label: "Sprich mit einem Freund:",
     label_provider: "KI-Anbieter",
     hint_provider: "OpenAI funktioniert sofort. Gemini Live & ElevenLabs sind experimentell.",
@@ -955,7 +957,7 @@ function applyLang(){
   setMuteVisual();
   textBtn.title = showText ? t("text_on") : t("text_off");   // icon-only toggle, text in the tooltip
   textBtn.classList.toggle("off", !showText);
-  if(!connected && !connecting){ talkBtn.innerHTML = t("talk_idle"); statusEl.textContent = t("status_idle"); }
+  if(!connected && !connecting){ talkBtn.innerHTML = t("talk_idle"); setStatus(t("status_idle")); }
   if(typeof updateProviderFields==="function" && providerInput) updateProviderFields();
   updateTokenPill(); updateBudgetHint(); updateMemHint(); updateModelPill();
 }
@@ -995,7 +997,16 @@ function applyLang(){
 setInterval(()=>{ heroSvg.classList.add("blink"); setTimeout(()=>heroSvg.classList.remove("blink"),300); }, 3800);
 
 // ---------- status / errors ----------
-function setStatus(s){ statusEl.textContent=s; }
+// When the transcript toggle is on, the currently-spoken words replace the status
+// line (one line, max 60% wide); when nothing is spoken, the default status shows.
+let lastStatus = "", liveText = "";
+function renderStatus(){
+  const live = showText && liveText.trim();
+  statusEl.textContent = live ? liveText : lastStatus;
+  statusEl.classList.toggle("oneline", !!live);
+}
+function setStatus(s){ lastStatus = s; renderStatus(); }
+function clearLive(){ liveText = ""; renderStatus(); }
 function showError(msg, opts){
   opts = opts || {};
   errtitle.textContent = opts.title || t("err_default_title");
@@ -1007,21 +1018,14 @@ function showError(msg, opts){
 function hideError(){ errbar.hidden=true; errmsg.textContent=""; erract.hidden=true; }
 $("errclose").onclick=hideError;
 
-// ---------- speech bubble (respects the text toggle) ----------
-function showSay(role, text){
-  if(!showText){ sayEl.classList.remove("show"); sayEl.style.display="none"; return; }
-  sayEl.style.display="";
-  sayEl.classList.toggle("kid", role==="kid");
-  sayWho.textContent = role==="kid" ? t("who_kid") : t("who_hero");
-  sayText.textContent = text;
-  sayEl.classList.add("show");
-}
+// ---------- live transcript feed (replaces the old caption bubble) ----------
+function showSay(role, text){ liveText = text || ""; renderStatus(); }
 function setShowText(on){
   showText = on;
   store.set("text", on ? "1" : "0");
   textBtn.title = showText ? t("text_on") : t("text_off");
   textBtn.classList.toggle("off", !showText);
-  if(!showText){ sayEl.classList.remove("show"); sayEl.style.display="none"; }
+  renderStatus();
 }
 
 // ---------- deployed version (latest commit touching white-hero) ----------
@@ -1558,7 +1562,7 @@ function stopPcm(){
 // ---------- common UI transitions shared by all providers ----------
 function uiUserStart(){ cancelIdle(); if(connected) setStatus(t("listening")); }
 function uiRespStart(){ cancelIdle(); if(connected) setStatus(t("talking")); }
-function uiRespDone(usageTotal){ if(typeof usageTotal==="number") addUsage(usageTotal); if(connected){ setStatus(t("your_turn")); scheduleIdle(); } }
+function uiRespDone(usageTotal){ if(typeof usageTotal==="number") addUsage(usageTotal); liveText=""; if(connected){ setStatus(t("your_turn")); scheduleIdle(); } }
 
 // ---------- connect / hangup ----------
 async function connect(){
@@ -1697,7 +1701,7 @@ function hangup(){
   cleanup(); connected=false; connecting=false;
   talkBtn.classList.remove("live"); talkBtn.innerHTML=t("talk_idle"); talkBtn.disabled=false;
   muteBtn.hidden=true; muted=false; setMuteVisual();
-  setStatus(t("bye"));
+  liveText=""; setStatus(t("bye"));
   stopAnim();
 }
 function cleanup(){
@@ -1742,12 +1746,12 @@ function onEvent(e){
 
   if(ty.includes("input_audio_transcription")){
     if(ty.endsWith("delta") && ev.delta){ kidText+=ev.delta; showSay("kid", kidText); }
-    else if(ty.endsWith("completed")||ty.endsWith("done")){ const q=ev.transcript||kidText; showSay("kid", q); rememberUser(q); kidText=""; }
+    else if(ty.endsWith("completed")||ty.endsWith("done")){ const q=ev.transcript||kidText; rememberUser(q); kidText=""; clearLive(); }
     return;
   }
   if(ty.includes("output_audio_transcript")||ty.includes("audio_transcript")||ty.includes("output_text")){
     if(ty.endsWith("delta") && ev.delta){ heroText+=ev.delta; showSay("hero", heroText); }
-    else if(ty.endsWith("done")){ const a=ev.transcript||heroText; if(a) showSay("hero", a); rememberHero(a); heroText=""; }
+    else if(ty.endsWith("done")){ const a=ev.transcript||heroText; rememberHero(a); heroText=""; clearLive(); }
     return;
   }
 
@@ -1761,6 +1765,7 @@ function onEvent(e){
         if(typeof u.total_tokens==="number") addUsage(u.total_tokens);
         addCost(costFromOpenAI(u));
       }
+      liveText="";
       if(connected){ setStatus(t("your_turn")); scheduleIdle(); }
       break;
   }
@@ -1801,7 +1806,7 @@ sizeWave();
 startAnim();                                  // heartbeat ambience runs from the start
 window.addEventListener("resize", ()=>{ sizeWave(); centerActiveFriend(); });
 window.addEventListener("orientationchange", ()=>{ setTimeout(()=>{ sizeWave(); centerActiveFriend(); }, 200); });
-if(!showText){ sayEl.style.display="none"; }
+sayEl.style.display="none";   // the old caption bubble is retired; transcript shows in the status line
 if(!providerKeyPresent()) openSettings();
 </script>
 </body>
