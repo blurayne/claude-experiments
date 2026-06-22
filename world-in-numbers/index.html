@@ -149,6 +149,8 @@
     <div class="btns" id="continentBtns"></div>
     <div class="ctl-label">Show rates per</div>
     <div class="btns" id="unitBtns"></div>
+    <div class="ctl-label">Update every</div>
+    <div class="btns" id="intervalBtns"></div>
     <div class="slider-wrap">
       <div class="slider-lead"><span>Project totals to the year</span><span class="year" id="yearOut">2100</span></div>
       <input type="range" id="yearSlider" min="2030" max="2100" step="1" value="2100">
@@ -167,15 +169,16 @@
       total</b> for that year, and the live <span style="color:var(--born)">born</span> /
       <span style="color:var(--killed)">killed</span> rates in the unit you picked. Projections follow study-based
       trajectories, so the number can go <i>up or down</i>. The <span class="est">est.</span> tag marks genuinely
-      uncertain figures — treat them as orders of magnitude. Everything refreshes every <b>5&nbsp;seconds</b>.
+      uncertain figures — treat them as orders of magnitude. The refresh interval (1–20&nbsp;s) is your choice.
     </p>
 
     <h2>How regions are estimated</h2>
     <p>
       <b>Humans</b> use each region's real population and birth/death numbers, so net growth flips sign by region
-      (Africa and India growing fast; Europe, Russia, China and Germany shrinking). For <b>trees, insects, birds and
-      fish</b> the world figure is scaled by the region's share of global land area; <b>animals</b> (livestock) are
-      scaled by population share. These shares are rough — a region's slice of nature, not a measured local census.
+      (Africa and India growing fast; Europe, Russia, China and Germany shrinking). Categories tied to nature —
+      <b>trees, insects, wild birds, wild fish</b> and <b>wild mammals</b> — are scaled by the region's share of
+      global land area. Categories tied to people — <b>livestock, farmed fish, pet fish</b> and <b>pets</b> — are
+      scaled by population share. These shares are rough — a region's slice, not a measured local census.
     </p>
 
     <h2>Sources &amp; assumptions</h2>
@@ -191,10 +194,18 @@
         <a href="https://www.si.edu/spotlight/buginfo/bugnos">Smithsonian</a>.</li>
       <li><b>Birds</b> — ~50&nbsp;billion wild birds; rough turnover + ~0.6%/yr decline.
         <a href="https://www.pnas.org/doi/10.1073/pnas.2023170118">Callaghan et&nbsp;al., PNAS (2021)</a>.</li>
-      <li><b>Fish</b> — ~3.5&nbsp;trillion ocean fish; ~1.6&nbsp;trillion caught/yr; ~0.8%/yr decline under overfishing.
+      <li><b>Wild fish</b> — ~3.5&nbsp;trillion ocean fish; ~1.6&nbsp;trillion caught/yr; ~0.8%/yr decline under overfishing.
         <a href="https://fishcount.org.uk/published/std/fishcountstudy.pdf">fishcount.org.uk</a>.</li>
-      <li><b>Animals</b> (land animals for food) — ~33&nbsp;billion alive; ~92&nbsp;billion slaughtered/yr; rising with meat demand.
+      <li><b>Farmed fish</b> (aquaculture) — ~130&nbsp;billion finfish slaughtered/yr (now more than land birds + mammals); rising fast.
+        <a href="https://www.cambridge.org/core/journals/animal-welfare/article/estimating-global-numbers-of-farmed-fishes-killed-for-food-annually-from-1990-to-2019/765A7CCA23ADA0249EF37CFC5014D351">Mood et&nbsp;al. (2024)</a>.</li>
+      <li><b>Pet fish</b> (aquarium) — &gt;1&nbsp;billion ornamental fish traded/yr; ~1.4&nbsp;billion kept (rough est).
+        <a href="https://awionline.org/awi-quarterly/2015-fall/ethical-and-ecological-implications-keeping-fish-captivity">Animal Welfare Institute</a>.</li>
+      <li><b>Livestock</b> (farm animals · Nutztiere) — ~33&nbsp;billion alive; ~92&nbsp;billion slaughtered/yr; rising with meat demand.
         <a href="https://ourworldindata.org/how-many-animals-get-slaughtered-every-day">Our World in Data</a>.</li>
+      <li><b>Wild mammals</b> (Wildtiere) — ~130&nbsp;billion individuals (bats ~56&nbsp;bn, rodents ~25&nbsp;bn); declining.
+        <a href="https://www.pnas.org/doi/10.1073/pnas.2204892120">Greenspoon et&nbsp;al., PNAS (2023)</a>.</li>
+      <li><b>Pets</b> (Haustiere) — ~1&nbsp;billion dogs &amp; cats (plus other companion animals); rising with pet ownership.
+        <a href="https://healthforanimals.org/reports/pet-care-report/global-trends-in-the-pet-population/">HealthforAnimals</a>.</li>
     </ul>
     <p style="margin-top:1.2rem">Totals are anchored to mid‑2026 and extrapolated. This is an illustrative experiment, not a scientific instrument.</p>
   </footer>
@@ -224,12 +235,24 @@
     { key:"birds",   emoji:"🐦", name:"Birds",   sub:"wild birds", scaleBy:"land",
       born:perYear(14e9), killed:perYear(15e9), bornLabel:"born", killedLabel:"killed", est:true,
       anchors:[[2026,50e9],[2050,43.3e9],[2075,37.3e9],[2100,32.0e9]] },
-    { key:"fish",    emoji:"🐟", name:"Fish",    sub:"ocean fish", scaleBy:"land",
+    { key:"fishWild",  emoji:"🐟", name:"Wild fish", sub:"ocean · Wildfische", scaleBy:"land",
       born:perYear(1.6e12), killed:perYear(1.65e12), bornLabel:"born", killedLabel:"caught", est:true,
       anchors:[[2026,3.5e12],[2050,2.89e12],[2075,2.36e12],[2100,1.94e12]] },
-    { key:"animals", emoji:"🐄", name:"Animals", sub:"land animals for food", scaleBy:"pop",
+    { key:"fishFarm",  emoji:"🐠", name:"Farmed fish", sub:"aquaculture · Zuchtfische", scaleBy:"pop",
+      born:perYear(150e9), killed:perYear(130e9), bornLabel:"raised", killedLabel:"slaughtered", est:true,
+      anchors:[[2026,200e9],[2050,360e9],[2075,450e9],[2100,520e9]] },
+    { key:"fishPet",   emoji:"🐡", name:"Pet fish", sub:"aquarium · Aquarienfische", scaleBy:"pop",
+      born:perYear(1.2e9), killed:perYear(1.1e9), bornLabel:"bred", killedLabel:"dying", est:true,
+      anchors:[[2026,1.4e9],[2050,2.0e9],[2075,2.4e9],[2100,2.7e9]] },
+    { key:"livestock", emoji:"🐄", name:"Livestock", sub:"farm animals · Nutztiere", scaleBy:"pop",
       born:perYear(95e9), killed:perYear(92.2e9), bornLabel:"born / raised", killedLabel:"slaughtered", est:false,
-      anchors:[[2026,33e9],[2050,47e9],[2075,54e9],[2100,58e9]] }
+      anchors:[[2026,33e9],[2050,47e9],[2075,54e9],[2100,58e9]] },
+    { key:"wildlife",  emoji:"🦌", name:"Wild mammals", sub:"wild animals · Wildtiere", scaleBy:"land",
+      born:perYear(64e9), killed:perYear(66e9), bornLabel:"born", killedLabel:"die / killed", est:true,
+      anchors:[[2026,130e9],[2050,112e9],[2075,95e9],[2100,78e9]] },
+    { key:"pets",      emoji:"🐕", name:"Pets", sub:"dogs, cats… · Haustiere", scaleBy:"pop",
+      born:perYear(120e6), killed:perYear(105e6), bornLabel:"born / acquired", killedLabel:"passing", est:false,
+      anchors:[[2026,1.3e9],[2050,1.8e9],[2075,2.1e9],[2100,2.3e9]] }
   ];
 
   // ---- regions -----------------------------------------------------------
@@ -261,6 +284,12 @@
     { id:"week",   label:"week",   min: 10080 },
     { id:"month",  label:"month",  min: 43800 },
     { id:"year",   label:"year",   min: 525600 }
+  ];
+
+  // ---- refresh intervals -------------------------------------------------
+  var INTERVALS = [
+    { label:"1 s", sec:1 }, { label:"2 s", sec:2 }, { label:"5 s", sec:5 },
+    { label:"10 s", sec:10 }, { label:"20 s", sec:20 }
   ];
 
   // ---- projection & scaling ---------------------------------------------
@@ -320,7 +349,7 @@
   }
 
   // ---- state -------------------------------------------------------------
-  var state = { region: REGIONS[0], unit: UNITS[1], endYear: 2100 };
+  var state = { region: REGIONS[0], unit: UNITS[1], endYear: 2100, intervalSec: 5 };
   var loadMs = Date.now();
 
   // ---- build control buttons --------------------------------------------
@@ -344,6 +373,9 @@
   buildButtons("unitBtns", UNITS,
     function (u) { return u.id === state.unit.id; },
     function (u) { state.unit = u; });
+  buildButtons("intervalBtns", INTERVALS,
+    function (it) { return it.sec === state.intervalSec; },
+    function (it) { state.intervalSec = it.sec; setTimer(); });
 
   // re-tag active buttons by comparing each button's position against state
   function tagActives() {
@@ -355,6 +387,9 @@
     });
     document.querySelectorAll("#unitBtns .btn").forEach(function (b, i) {
       b.classList.toggle("active", UNITS[i].id === state.unit.id);
+    });
+    document.querySelectorAll("#intervalBtns .btn").forEach(function (b, i) {
+      b.classList.toggle("active", INTERVALS[i].sec === state.intervalSec);
     });
   }
 
@@ -448,15 +483,22 @@
     });
 
     nowShowing.innerHTML = 'Showing <b>' + r.label + '</b> &middot; rates per <b>' + u.label +
-      '</b> &middot; projected to <b>' + state.endYear + '</b>';
+      '</b> &middot; projected to <b>' + state.endYear + '</b> &middot; updating every <b>' +
+      state.intervalSec + ' s</b>';
 
     var s = Math.floor((now - loadMs) / 1000);
     var hh = Math.floor(s / 3600), mm = Math.floor((s % 3600) / 60), ss = s % 60;
     clock.innerHTML = '<span class="dot"></span>on this page for ' + (hh ? hh + ":" : "") + pad(mm) + ":" + pad(ss);
   }
 
+  var timer = null;
+  function setTimer() {
+    if (timer) clearInterval(timer);
+    timer = setInterval(function () { render(false); }, state.intervalSec * 1000);
+  }
+
   render(true);
-  setInterval(function () { render(false); }, 5000);
+  setTimer();
 })();
 </script>
 </body>
