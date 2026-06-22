@@ -27,13 +27,13 @@
     line-height: 1.5;
     min-height: 100vh;
   }
-  .wrap { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.1rem 4rem; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 2.2rem 1.1rem 4rem; }
 
-  header.hero { text-align: center; margin-bottom: 1.6rem; }
+  header.hero { text-align: center; margin-bottom: 1.4rem; }
   header.hero h1 { font-size: clamp(1.8rem, 4.5vw, 3rem); margin: 0 0 .35rem; letter-spacing: -.02em; }
   header.hero p { color: var(--muted); margin: .2rem 0; }
   .clock {
-    display: inline-block; margin-top: .8rem; padding: .35rem .8rem;
+    display: inline-block; margin-top: .7rem; padding: .35rem .8rem;
     border: 1px solid var(--line); border-radius: 999px;
     color: var(--muted); font-size: .85rem; font-variant-numeric: tabular-nums;
   }
@@ -47,21 +47,28 @@
     30%,100% { box-shadow: 0 0 0 9px rgba(54,211,153,0); }
   }
 
-  /* year slider */
   .controls {
-    max-width: 640px; margin: 0 auto 2.2rem; padding: 1rem 1.2rem;
+    margin: 0 auto 2rem; padding: 1rem 1.2rem 1.2rem;
     background: linear-gradient(180deg, var(--bg-card), var(--bg-card-2));
     border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow);
   }
-  .controls .lead {
-    display: flex; align-items: baseline; justify-content: center; gap: .5rem;
-    margin-bottom: .7rem; flex-wrap: wrap;
+  .ctl-label { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); text-align: center; margin: .9rem 0 .45rem; }
+  .ctl-label:first-child { margin-top: 0; }
+  .btns { display: flex; flex-wrap: wrap; gap: .4rem; justify-content: center; }
+  .btn {
+    padding: .4rem .75rem; border: 1px solid var(--line); border-radius: 999px;
+    background: #0e1430; color: var(--muted); font-size: .82rem; cursor: pointer;
+    transition: background .15s, color .15s, border-color .15s; font-family: inherit;
   }
-  .controls .lead span { color: var(--muted); font-size: .9rem; }
-  .controls .lead .year {
-    font-size: 1.7rem; font-weight: 800; color: var(--accent);
-    font-variant-numeric: tabular-nums;
+  .btn:hover { border-color: var(--accent); color: var(--text); }
+  .btn.active {
+    background: linear-gradient(180deg, var(--accent), var(--accent-2));
+    color: #0b1020; border-color: transparent; font-weight: 700;
   }
+  .slider-wrap { margin-top: 1.1rem; }
+  .slider-lead { display: flex; align-items: baseline; justify-content: center; gap: .5rem; margin-bottom: .55rem; flex-wrap: wrap; }
+  .slider-lead span { color: var(--muted); font-size: .82rem; }
+  .slider-lead .year { font-size: 1.5rem; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
   input[type="range"] {
     -webkit-appearance: none; appearance: none; width: 100%; height: 8px;
     border-radius: 999px; background: #0e1430; border: 1px solid var(--line); outline: none;
@@ -77,6 +84,8 @@
     border: 2px solid #cfe0ff; cursor: pointer;
   }
   .ticks { display: flex; justify-content: space-between; color: var(--muted); font-size: .72rem; margin-top: .4rem; }
+  .now-showing { text-align: center; color: var(--muted); font-size: .85rem; margin-top: 1rem; }
+  .now-showing b { color: var(--text); }
 
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.1rem; }
 
@@ -91,10 +100,10 @@
   .card .sub { color: var(--muted); font-size: .8rem; margin-left: auto; text-align: right; }
 
   .total-label { color: var(--muted); font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; margin-top: .7rem; }
-  .total { font-size: clamp(1.6rem, 4.5vw, 2.1rem); font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.01em; line-height: 1.15; }
+  .total { font-size: clamp(1.5rem, 4.2vw, 2rem); font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.01em; line-height: 1.15; }
 
   .bar { margin-top: .7rem; height: 12px; background: #0e1430; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
-  .bar > span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--accent), var(--accent-2)); border-radius: 999px; transition: width 1.5s ease; }
+  .bar > span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--accent), var(--accent-2)); border-radius: 999px; transition: width 1.2s ease; }
   .bar-row { display: flex; justify-content: space-between; gap: .5rem; font-size: .7rem; color: var(--muted); margin-top: .35rem; }
   .bar-row b { color: var(--text); font-weight: 600; }
   .bar-row .delta.up { color: var(--born); }
@@ -105,11 +114,11 @@
   .flow .ftop { display: flex; align-items: center; gap: .35rem; font-size: .78rem; font-weight: 700; }
   .flow.born .ftop { color: var(--born); }
   .flow.killed .ftop { color: var(--killed); }
-  .flow .rate { font-size: .72rem; color: var(--muted); margin-top: .05rem; }
-  .flow .session { font-variant-numeric: tabular-nums; font-weight: 700; font-size: 1.15rem; margin-top: .35rem; }
-  .flow.born .session { color: var(--born); }
-  .flow.killed .session { color: var(--killed); }
-  .flow .slabel { font-size: .66rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+  .flow .big { font-variant-numeric: tabular-nums; font-weight: 800; font-size: 1.25rem; margin-top: .3rem; line-height: 1.1; }
+  .flow.born .big { color: var(--born); }
+  .flow.killed .big { color: var(--killed); }
+  .flow .unit { font-size: .68rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .flow .session { font-size: .72rem; color: var(--muted); margin-top: .35rem; font-variant-numeric: tabular-nums; }
 
   .net { margin-top: .9rem; font-size: .8rem; color: var(--muted); display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; }
   .net b { font-variant-numeric: tabular-nums; }
@@ -130,17 +139,22 @@
   <header class="hero">
     <h1>🌍 The World in Numbers</h1>
     <p>Live, ticking estimates of how life on Earth is being born and lost — right now.</p>
-    <p style="font-size:.82rem">Rates are <b>per minute</b>. Counters refresh every 5&nbsp;seconds.</p>
     <div class="clock" id="clock"><span class="dot"></span>on this page for 00:00</div>
   </header>
 
   <div class="controls">
-    <div class="lead">
-      <span>Project the world to the year</span>
-      <span class="year" id="yearOut">2100</span>
+    <div class="ctl-label">Region</div>
+    <div class="btns" id="regionBtns"></div>
+    <div class="ctl-label">Continents</div>
+    <div class="btns" id="continentBtns"></div>
+    <div class="ctl-label">Show rates per</div>
+    <div class="btns" id="unitBtns"></div>
+    <div class="slider-wrap">
+      <div class="slider-lead"><span>Project totals to the year</span><span class="year" id="yearOut">2100</span></div>
+      <input type="range" id="yearSlider" min="2030" max="2100" step="1" value="2100">
+      <div class="ticks"><span>2030</span><span>2050</span><span>2070</span><span>2084</span><span>2100</span></div>
     </div>
-    <input type="range" id="yearSlider" min="2030" max="2100" step="1" value="2100">
-    <div class="ticks"><span>2030</span><span>2050</span><span>2070</span><span>2084</span><span>2100</span></div>
+    <div class="now-showing" id="nowShowing"></div>
   </div>
 
   <div class="grid" id="grid"></div>
@@ -148,46 +162,41 @@
   <footer>
     <h2>How to read this</h2>
     <p class="disclaimer">
-      Each card shows a rough <b>total</b> today, a <b>progress bar</b> that fills as time runs from 2026 toward the
-      <b>year you pick on the slider</b>, and the <b>projected total</b> for that year. Every category follows a
-      study-based trajectory: humans grow, peak near 2084, then decline; livestock keeps rising with meat demand;
-      while trees, insects, wild birds and ocean fish keep shrinking — so the projected number can go <i>up or
-      down</i> as you move the slider. Two live flows show
-      <span style="color:var(--born)">born / added</span> and <span style="color:var(--killed)">killed / lost</span>
-      since you opened the page; the grey line is the assumed <b>rate per minute</b>. Everything refreshes every
-      <b>5&nbsp;seconds</b>. The <span class="est">est.</span> tag marks genuinely uncertain figures — treat them as
-      orders of magnitude.
+      Pick a <b>region</b> and a <b>time unit</b> at the top, and a target <b>year</b> on the slider. Each card shows a
+      rough <b>total</b> today, a bar that fills as time runs from 2026 toward your chosen year, the <b>projected
+      total</b> for that year, and the live <span style="color:var(--born)">born</span> /
+      <span style="color:var(--killed)">killed</span> rates in the unit you picked. Projections follow study-based
+      trajectories, so the number can go <i>up or down</i>. The <span class="est">est.</span> tag marks genuinely
+      uncertain figures — treat them as orders of magnitude. Everything refreshes every <b>5&nbsp;seconds</b>.
+    </p>
+
+    <h2>How regions are estimated</h2>
+    <p>
+      <b>Humans</b> use each region's real population and birth/death numbers, so net growth flips sign by region
+      (Africa and India growing fast; Europe, Russia, China and Germany shrinking). For <b>trees, insects, birds and
+      fish</b> the world figure is scaled by the region's share of global land area; <b>animals</b> (livestock) are
+      scaled by population share. These shares are rough — a region's slice of nature, not a measured local census.
     </p>
 
     <h2>Sources &amp; assumptions</h2>
     <ul>
-      <li><b>Humans</b> — ~8.30&nbsp;billion now; ~252&nbsp;births / ~121&nbsp;deaths per minute. Projection peaks at
-        ~10.3&nbsp;billion in 2084, then declines to ~10.2&nbsp;billion by 2100.
+      <li><b>Humans</b> — ~8.30&nbsp;billion; ~252&nbsp;births / ~121&nbsp;deaths per minute; UN projection peaks at
+        ~10.3&nbsp;billion in 2084. Regional births: India ~23.2M, Africa ~46.6M, Asia ~65.5M, China ~8.8M per year.
         <a href="https://www.worldometers.info/world-population/">Worldometer</a>,
-        <a href="https://population.un.org/wpp/">UN World Population Prospects 2024</a>.</li>
-      <li><b>Trees</b> — ~3.04&nbsp;trillion; ~15&nbsp;billion cut and ~5&nbsp;billion planted/grown per year (net −10&nbsp;billion/yr).
-        Projection: a continued net loss to ~2.3&nbsp;trillion by 2100.
+        <a href="https://population.un.org/wpp/">UN WPP 2024</a>,
+        <a href="https://database.earth/population/births/2024">database.earth</a>.</li>
+      <li><b>Trees</b> — ~3.04&nbsp;trillion; net loss ~10&nbsp;billion/yr → ~2.3&nbsp;trillion by 2100.
         <a href="https://www.nature.com/articles/nature14967">Crowther et&nbsp;al., Nature (2015)</a>.</li>
-      <li><b>Insects</b> — ~10&nbsp;quintillion (10¹⁹); born/killed are rough turnover estimates.
-        Projection: ~1%/yr decline (to ~4.8&nbsp;quintillion by 2100), reflecting the "insect decline" literature.
+      <li><b>Insects</b> — ~10&nbsp;quintillion (10¹⁹); rough turnover + ~1%/yr decline.
         <a href="https://www.si.edu/spotlight/buginfo/bugnos">Smithsonian</a>.</li>
-      <li><b>Birds</b> — ~50&nbsp;billion wild birds; born/killed are a rough turnover estimate (~30%/yr mortality).
-        Projection: ~0.6%/yr decline (to ~32&nbsp;billion by 2100).
+      <li><b>Birds</b> — ~50&nbsp;billion wild birds; rough turnover + ~0.6%/yr decline.
         <a href="https://www.pnas.org/doi/10.1073/pnas.2023170118">Callaghan et&nbsp;al., PNAS (2021)</a>.</li>
-      <li><b>Fish</b> — ~3.5&nbsp;trillion ocean fish; "killed" ≈ ~1.6&nbsp;trillion caught by humans per year; "born" is a rough estimate.
-        Projection: ~0.8%/yr decline under overfishing (to ~1.9&nbsp;trillion by 2100).
-        <a href="https://fishcount.org.uk/published/std/fishcountstudy.pdf">fishcount.org.uk</a>,
-        <a href="https://ourworldindata.org/fish-and-overfishing">Our World in Data</a>.</li>
-      <li><b>Animals</b> (land animals raised for food) — ~33&nbsp;billion alive; ~92&nbsp;billion slaughtered per year.
-        Projection: rising with global meat demand (to ~58&nbsp;billion alive by 2100).
-        <a href="https://ourworldindata.org/how-many-animals-get-slaughtered-every-day">Our World in Data</a>,
-        <a href="https://www.humaneworld.org/en/blog/more-animals-ever-922-billion-are-used">Humane World</a>,
-        <a href="https://www.fao.org/global-perspectives-studies/en/">FAO projections</a>.</li>
+      <li><b>Fish</b> — ~3.5&nbsp;trillion ocean fish; ~1.6&nbsp;trillion caught/yr; ~0.8%/yr decline under overfishing.
+        <a href="https://fishcount.org.uk/published/std/fishcountstudy.pdf">fishcount.org.uk</a>.</li>
+      <li><b>Animals</b> (land animals for food) — ~33&nbsp;billion alive; ~92&nbsp;billion slaughtered/yr; rising with meat demand.
+        <a href="https://ourworldindata.org/how-many-animals-get-slaughtered-every-day">Our World in Data</a>.</li>
     </ul>
-    <p style="margin-top:1.2rem">
-      Totals are anchored to mid‑2026. Where good study projections exist (humans) the curve follows them; otherwise
-      the trend is extrapolated linearly from current net rates. This is an illustrative experiment, not a scientific instrument.
-    </p>
+    <p style="margin-top:1.2rem">Totals are anchored to mid‑2026 and extrapolated. This is an illustrative experiment, not a scientific instrument.</p>
   </footer>
 </div>
 
@@ -195,49 +204,94 @@
 (function () {
   "use strict";
 
-  var MIN_PER_YEAR = 525600;            // minutes in a 365-day year
+  var MIN_PER_YEAR = 525600;
   var BASE_YEAR = 2026;
-  var EPOCH = Date.UTC(2026, 5, 22);    // anchor for the "total" figures (today)
+  var EPOCH = Date.UTC(2026, 5, 22);
+  var WORLD_POP = 8.30e9;
   var perYear = function (n) { return n / MIN_PER_YEAR; };
 
-  // total0 = value in 2026. born/killed are per-minute flow rates (used for the live
-  // session counters and the headline net rate). `anchors` (year -> value) drive the
-  // long-range projection when present; otherwise we extrapolate linearly from net rate.
+  // ---- categories (world figures + projection anchors) -------------------
   var DATA = [
-    { key:"humans",  emoji:"👤", name:"Humans",  sub:"people on Earth",
-      total0:8.30e9, born:252, killed:121, bornLabel:"born", killedLabel:"dying", est:false,
+    { key:"humans",  emoji:"👤", name:"Humans",  sub:"people", scaleBy:"none",
+      bornLabel:"born", killedLabel:"dying", est:false,
       anchors:[[2026,8.30e9],[2040,9.16e9],[2050,9.66e9],[2070,10.18e9],[2084,10.30e9],[2100,10.18e9]] },
-    { key:"trees",   emoji:"🌳", name:"Trees",   sub:"standing trees",
-      total0:3.04e12, born:perYear(5e9), killed:perYear(15e9), bornLabel:"planted / grown", killedLabel:"cut down", est:false,
+    { key:"trees",   emoji:"🌳", name:"Trees",   sub:"standing trees", scaleBy:"land",
+      born:perYear(5e9), killed:perYear(15e9), bornLabel:"planted / grown", killedLabel:"cut down", est:false,
       anchors:[[2026,3.04e12],[2050,2.80e12],[2075,2.55e12],[2100,2.30e12]] },
-    { key:"insects", emoji:"🐜", name:"Insects", sub:"individual insects",
-      total0:1.0e19, born:perYear(2.0e19), killed:perYear(2.1e19), bornLabel:"born", killedLabel:"killed", est:true,
+    { key:"insects", emoji:"🐜", name:"Insects", sub:"individuals", scaleBy:"land",
+      born:perYear(2.0e19), killed:perYear(2.1e19), bornLabel:"born", killedLabel:"killed", est:true,
       anchors:[[2026,1.0e19],[2050,7.85e18],[2075,6.12e18],[2100,4.76e18]] },
-    { key:"birds",   emoji:"🐦", name:"Birds",   sub:"wild birds",
-      total0:50e9, born:perYear(14e9), killed:perYear(15e9), bornLabel:"born", killedLabel:"killed", est:true,
+    { key:"birds",   emoji:"🐦", name:"Birds",   sub:"wild birds", scaleBy:"land",
+      born:perYear(14e9), killed:perYear(15e9), bornLabel:"born", killedLabel:"killed", est:true,
       anchors:[[2026,50e9],[2050,43.3e9],[2075,37.3e9],[2100,32.0e9]] },
-    { key:"fish",    emoji:"🐟", name:"Fish",    sub:"ocean fish",
-      total0:3.5e12, born:perYear(1.6e12), killed:perYear(1.65e12), bornLabel:"born", killedLabel:"caught / killed", est:true,
+    { key:"fish",    emoji:"🐟", name:"Fish",    sub:"ocean fish", scaleBy:"land",
+      born:perYear(1.6e12), killed:perYear(1.65e12), bornLabel:"born", killedLabel:"caught", est:true,
       anchors:[[2026,3.5e12],[2050,2.89e12],[2075,2.36e12],[2100,1.94e12]] },
-    { key:"animals", emoji:"🐄", name:"Animals", sub:"land animals for food",
-      total0:33e9, born:perYear(95e9), killed:perYear(92.2e9), bornLabel:"born / raised", killedLabel:"slaughtered", est:false,
+    { key:"animals", emoji:"🐄", name:"Animals", sub:"land animals for food", scaleBy:"pop",
+      born:perYear(95e9), killed:perYear(92.2e9), bornLabel:"born / raised", killedLabel:"slaughtered", est:false,
       anchors:[[2026,33e9],[2050,47e9],[2075,54e9],[2100,58e9]] }
   ];
 
-  // projected total for a (decimal) year
-  function project(d, year) {
-    if (d.anchors) {
-      var a = d.anchors;
-      if (year <= a[0][0]) return a[0][1];
-      if (year >= a[a.length - 1][0]) return a[a.length - 1][1];
-      for (var i = 0; i < a.length - 1; i++) {
-        if (year >= a[i][0] && year <= a[i + 1][0]) {
-          var t = (year - a[i][0]) / (a[i + 1][0] - a[i][0]);
-          return a[i][1] + t * (a[i + 1][1] - a[i][1]);
-        }
+  // ---- regions -----------------------------------------------------------
+  // pop = people; hBorn/hKilled = human births/deaths per minute; land = share of world land area.
+  var REGIONS = [
+    { id:"world", label:"🌍 World",         group:"main",      pop:WORLD_POP, hBorn:252,   hKilled:121,  land:1 },
+    { id:"de",    label:"🇩🇪 Germany",       group:"region",    pop:83.5e6,    hBorn:1.29,  hKilled:1.94, land:0.0024 },
+    { id:"eu",    label:"🇪🇺 Europe",        group:"region",    pop:744e6,     hBorn:13.02, hKilled:16.42,land:0.0683 },
+    { id:"us",    label:"🇺🇸 USA",           group:"region",    pop:340e6,     hBorn:6.85,  hKilled:5.90, land:0.0660 },
+    { id:"cn",    label:"🇨🇳 China",         group:"region",    pop:1.408e9,   hBorn:16.75, hKilled:21.12,land:0.0644 },
+    { id:"in",    label:"🇮🇳 India",         group:"region",    pop:1.451e9,   hBorn:44.10, hKilled:18.07,land:0.0221 },
+    { id:"ru",    label:"🇷🇺 Russia",        group:"region",    pop:144e6,     hBorn:2.41,  hKilled:3.37, land:0.1148 },
+    { id:"af",    label:"🌍 Africa",         group:"continent", pop:1.49e9,    hBorn:88.7,  hKilled:20.9, land:0.2038 },
+    { id:"as",    label:"🌏 Asia",           group:"continent", pop:4.80e9,    hBorn:124.6, hKilled:66.6, land:0.2992 },
+    { id:"euc",   label:"🌍 Europe",         group:"continent", pop:744e6,     hBorn:13.02, hKilled:16.42,land:0.0683 },
+    { id:"na",    label:"🌎 North America",  group:"continent", pop:600e6,     hBorn:15.98, hKilled:7.99, land:0.1658 },
+    { id:"sa",    label:"🌎 South America",  group:"continent", pop:440e6,     hBorn:11.72, hKilled:5.44, land:0.1197 },
+    { id:"oc",    label:"🌏 Oceania",        group:"continent", pop:45e6,      hBorn:1.37,  hKilled:0.61, land:0.0574 },
+    { id:"an",    label:"🐧 Antarctica",     group:"continent", pop:1500,      hBorn:0,     hKilled:0,    land:0.01 }
+  ];
+  REGIONS.forEach(function (r) { r.popShare = r.pop / WORLD_POP; });
+
+  // ---- time units --------------------------------------------------------
+  var UNITS = [
+    { id:"second", label:"second", min: 1/60 },
+    { id:"minute", label:"minute", min: 1 },
+    { id:"hour",   label:"hour",   min: 60 },
+    { id:"day",    label:"day",    min: 1440 },
+    { id:"week",   label:"week",   min: 10080 },
+    { id:"month",  label:"month",  min: 43800 },
+    { id:"year",   label:"year",   min: 525600 }
+  ];
+
+  // ---- projection & scaling ---------------------------------------------
+  function anchorInterp(a, year) {
+    if (year <= a[0][0]) return a[0][1];
+    if (year >= a[a.length - 1][0]) return a[a.length - 1][1];
+    for (var i = 0; i < a.length - 1; i++) {
+      if (year >= a[i][0] && year <= a[i + 1][0]) {
+        var t = (year - a[i][0]) / (a[i + 1][0] - a[i][0]);
+        return a[i][1] + t * (a[i + 1][1] - a[i][1]);
       }
     }
-    return d.total0 + (d.born - d.killed) * (year - BASE_YEAR) * MIN_PER_YEAR;
+    return a[a.length - 1][1];
+  }
+  function regionScale(d, r) {
+    if (d.scaleBy === "pop") return r.popShare;
+    if (d.scaleBy === "land") return r.land;
+    return 1;
+  }
+  function projectCat(d, year, r) {
+    if (d.key === "humans") {
+      if (r.id === "world") return anchorInterp(d.anchors, year);
+      return Math.max(0, r.pop + (r.hBorn - r.hKilled) * (year - BASE_YEAR) * MIN_PER_YEAR);
+    }
+    return anchorInterp(d.anchors, year) * regionScale(d, r);
+  }
+  // per-minute flow for a category in a region
+  function flowOf(d, r) {
+    if (d.key === "humans") return { born: r.hBorn, killed: r.hKilled };
+    var s = regionScale(d, r);
+    return { born: d.born * s, killed: d.killed * s };
   }
 
   // ---- number formatting -------------------------------------------------
@@ -256,25 +310,60 @@
     return (neg ? "−" : "") + Math.round(n).toLocaleString("en-US");
   }
   function intStr(n) { return n >= 1e15 ? abbrev(n) : Math.floor(n).toLocaleString("en-US"); }
-  function rateStr(perMin) {
-    if (perMin >= 1e6) return abbrev(perMin) + " / min";
-    if (perMin >= 1)   return Math.round(perMin).toLocaleString("en-US") + " / min";
-    var perHour = perMin * 60;
-    if (perHour >= 1)  return perHour.toFixed(perHour >= 10 ? 0 : 1) + " / hour";
-    return (perMin * 1440).toFixed(1) + " / day";
+  function rateNum(v) {
+    if (v === 0) return "0";
+    if (v >= 1e6) return abbrev(v);
+    if (v >= 1000) return Math.round(v).toLocaleString("en-US");
+    if (v >= 1) return v.toLocaleString("en-US", { maximumFractionDigits: 1 });
+    if (v >= 0.01) return v.toFixed(2);
+    return v.toFixed(3);
   }
 
-  // ---- build DOM ---------------------------------------------------------
+  // ---- state -------------------------------------------------------------
+  var state = { region: REGIONS[0], unit: UNITS[1], endYear: 2100 };
+  var loadMs = Date.now();
+
+  // ---- build control buttons --------------------------------------------
+  function buildButtons(containerId, items, isActive, onPick) {
+    var c = document.getElementById(containerId);
+    items.forEach(function (it) {
+      var b = document.createElement("button");
+      b.className = "btn" + (isActive(it) ? " active" : "");
+      b.textContent = it.label;
+      b.addEventListener("click", function () { onPick(it); render(true); });
+      c.appendChild(b);
+    });
+  }
+
+  buildButtons("regionBtns", REGIONS.filter(function (r) { return r.group === "main" || r.group === "region"; }),
+    function (r) { return r.id === state.region.id; },
+    function (r) { state.region = r; });
+  buildButtons("continentBtns", REGIONS.filter(function (r) { return r.group === "continent"; }),
+    function (r) { return r.id === state.region.id; },
+    function (r) { state.region = r; });
+  buildButtons("unitBtns", UNITS,
+    function (u) { return u.id === state.unit.id; },
+    function (u) { state.unit = u; });
+
+  // re-tag active buttons by comparing each button's position against state
+  function tagActives() {
+    var all = document.querySelectorAll("#regionBtns .btn, #continentBtns .btn");
+    var regionList = REGIONS.filter(function (r) { return r.group === "main" || r.group === "region"; })
+      .concat(REGIONS.filter(function (r) { return r.group === "continent"; }));
+    all.forEach(function (b, i) {
+      b.classList.toggle("active", regionList[i].id === state.region.id);
+    });
+    document.querySelectorAll("#unitBtns .btn").forEach(function (b, i) {
+      b.classList.toggle("active", UNITS[i].id === state.unit.id);
+    });
+  }
+
+  // ---- build cards -------------------------------------------------------
   var grid = document.getElementById("grid");
   var els = {};
-
   DATA.forEach(function (d) {
     var card = document.createElement("section");
     card.className = "card";
-    var net = d.born - d.killed;
-    var netCls = net >= 0 ? "up" : "down";
-    var netSign = net >= 0 ? "+" : "−";
-
     card.innerHTML =
       '<div class="head">' +
         '<div class="emoji">' + d.emoji + '</div>' +
@@ -284,90 +373,90 @@
       '<div class="total-label">total now</div>' +
       '<div class="total" data-total></div>' +
       '<div class="bar"><span data-bar></span></div>' +
-      '<div class="bar-row"><span>2026: <b>' + abbrev(d.total0) + '</b></span>' +
-        '<span data-proj></span></div>' +
+      '<div class="bar-row"><span>2026: <b data-base></b></span><span data-proj></span></div>' +
       '<div class="flows">' +
         '<div class="flow born">' +
           '<div class="ftop">▲ ' + d.bornLabel + '</div>' +
-          '<div class="rate">' + rateStr(d.born) + '</div>' +
-          '<div class="session" data-born>0</div>' +
-          '<div class="slabel">this session</div>' +
+          '<div class="big" data-born>0</div><div class="unit" data-bunit></div>' +
+          '<div class="session" data-bsession></div>' +
         '</div>' +
         '<div class="flow killed">' +
           '<div class="ftop">▼ ' + d.killedLabel + '</div>' +
-          '<div class="rate">' + rateStr(d.killed) + '</div>' +
-          '<div class="session" data-killed>0</div>' +
-          '<div class="slabel">this session</div>' +
+          '<div class="big" data-killed>0</div><div class="unit" data-kunit></div>' +
+          '<div class="session" data-ksession></div>' +
         '</div>' +
       '</div>' +
-      '<div class="net">current net <b class="' + netCls + '">' + netSign +
-        Math.abs(Math.round(net)).toLocaleString("en-US") + ' / min</b></div>';
-
+      '<div class="net" data-net></div>';
     grid.appendChild(card);
     els[d.key] = {
-      total: card.querySelector("[data-total]"),
-      bar:   card.querySelector("[data-bar]"),
-      proj:  card.querySelector("[data-proj]"),
-      born:  card.querySelector("[data-born]"),
-      killed:card.querySelector("[data-killed]")
+      total: card.querySelector("[data-total]"), bar: card.querySelector("[data-bar]"),
+      base: card.querySelector("[data-base]"), proj: card.querySelector("[data-proj]"),
+      born: card.querySelector("[data-born]"), killed: card.querySelector("[data-killed]"),
+      bunit: card.querySelector("[data-bunit]"), kunit: card.querySelector("[data-kunit]"),
+      bsession: card.querySelector("[data-bsession]"), ksession: card.querySelector("[data-ksession]"),
+      net: card.querySelector("[data-net]")
     };
   });
 
   // ---- slider ------------------------------------------------------------
   var slider = document.getElementById("yearSlider");
   var yearOut = document.getElementById("yearOut");
-  var endYear = parseInt(slider.value, 10);
-
-  function refreshProjections() {
-    var nowYear = BASE_YEAR + (Date.now() - EPOCH) / 60000 / MIN_PER_YEAR;
-    var span = Math.max(0.0001, endYear - BASE_YEAR);
-    var timeFrac = Math.max(0, Math.min(1, (nowYear - BASE_YEAR) / span));
-
-    DATA.forEach(function (d) {
-      var e = els[d.key];
-      var now = project(d, nowYear);
-      var proj = project(d, endYear);
-      var delta = proj - now;
-      var dCls = delta >= 0 ? "up" : "down";
-      var dSign = delta >= 0 ? "▲ +" : "▼ −";
-      e.bar.style.width = (timeFrac * 100).toFixed(3) + "%";
-      e.proj.innerHTML = endYear + ': <b>' + abbrev(proj) + '</b> ' +
-        '<span class="delta ' + dCls + '">' + dSign + abbrev(Math.abs(delta)) + '</span>';
-    });
-  }
-
   slider.addEventListener("input", function () {
-    endYear = parseInt(slider.value, 10);
-    yearOut.textContent = endYear;
-    refreshProjections();
+    state.endYear = parseInt(slider.value, 10);
+    yearOut.textContent = state.endYear;
+    render(false);
   });
 
-  // ---- update (every 5 seconds) -----------------------------------------
-  var loadMs = Date.now();
+  // ---- render ------------------------------------------------------------
   var clock = document.getElementById("clock");
+  var nowShowing = document.getElementById("nowShowing");
   function pad(n) { return (n < 10 ? "0" : "") + n; }
 
-  function update() {
+  function render(retag) {
+    if (retag) tagActives();
     var now = Date.now();
     var nowYear = BASE_YEAR + (now - EPOCH) / 60000 / MIN_PER_YEAR;
     var minsSinceLoad = (now - loadMs) / 60000;
+    var span = Math.max(0.0001, state.endYear - BASE_YEAR);
+    var timeFrac = Math.max(0, Math.min(1, (nowYear - BASE_YEAR) / span));
+    var r = state.region, u = state.unit;
 
     DATA.forEach(function (d) {
       var e = els[d.key];
-      e.total.textContent = abbrev(project(d, nowYear));
-      e.born.textContent = intStr(d.born * minsSinceLoad);
-      e.killed.textContent = intStr(d.killed * minsSinceLoad);
+      var totalNow = projectCat(d, nowYear, r);
+      var proj = projectCat(d, state.endYear, r);
+      var delta = proj - totalNow;
+      var f = flowOf(d, r);
+
+      e.total.textContent = abbrev(totalNow);
+      e.bar.style.width = (timeFrac * 100).toFixed(3) + "%";
+      e.base.textContent = abbrev(projectCat(d, BASE_YEAR, r));
+      e.proj.innerHTML = state.endYear + ': <b>' + abbrev(proj) + '</b> ' +
+        '<span class="delta ' + (delta >= 0 ? "up" : "down") + '">' +
+        (delta >= 0 ? "▲ +" : "▼ −") + abbrev(Math.abs(delta)) + '</span>';
+
+      e.born.textContent = rateNum(f.born * u.min);
+      e.killed.textContent = rateNum(f.killed * u.min);
+      e.bunit.textContent = "per " + u.label;
+      e.kunit.textContent = "per " + u.label;
+      e.bsession.textContent = "+" + intStr(f.born * minsSinceLoad) + " since you opened";
+      e.ksession.textContent = "−" + intStr(f.killed * minsSinceLoad) + " since you opened";
+
+      var net = f.born - f.killed;
+      e.net.innerHTML = 'net <b class="' + (net >= 0 ? "up" : "down") + '">' +
+        (net >= 0 ? "+" : "−") + rateNum(Math.abs(net) * u.min) + " / " + u.label + '</b>';
     });
-    refreshProjections();
+
+    nowShowing.innerHTML = 'Showing <b>' + r.label + '</b> &middot; rates per <b>' + u.label +
+      '</b> &middot; projected to <b>' + state.endYear + '</b>';
 
     var s = Math.floor((now - loadMs) / 1000);
     var hh = Math.floor(s / 3600), mm = Math.floor((s % 3600) / 60), ss = s % 60;
-    clock.innerHTML = '<span class="dot"></span>on this page for ' +
-      (hh ? hh + ":" : "") + pad(mm) + ":" + pad(ss);
+    clock.innerHTML = '<span class="dot"></span>on this page for ' + (hh ? hh + ":" : "") + pad(mm) + ":" + pad(ss);
   }
 
-  update();
-  setInterval(update, 5000);
+  render(true);
+  setInterval(function () { render(false); }, 5000);
 })();
 </script>
 </body>
