@@ -17,7 +17,7 @@
     --font: "Baloo 2", "Comic Sans MS", "Chalkboard SE", "Comic Neue", "Trebuchet MS", system-ui, sans-serif;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { height: 100%; margin: 0; }
+  html, body { height: 100%; margin: 0; overscroll-behavior: none; }
   body {
     font-family: var(--font); color: var(--ink); overflow: hidden;
     min-height: 100dvh; position: relative;
@@ -122,7 +122,9 @@
   .minirow { display: flex; gap: 10px; align-items: center; }
 
   /* friends chooser */
-  .friendsbar { width: 100%; max-width: 760px; margin-top: 28px; }
+  .friendsbar { width: 100%; max-width: 760px; margin-top: 28px; touch-action: none; }
+  /* the whole friends area handles its own drag — never let it pan/scroll the page (which would move the fixed background + speaking circle) */
+  .friendsbar, .friendsbar * { touch-action: none; }
   .friendslabel { text-align: center; color: #fff; font-size: 13px; font-weight: 700; opacity: .9; text-shadow: 0 1px 0 rgba(150,10,40,.4); margin-bottom: 6px; }
   .friends { position: relative; display: flex; gap: 8px; justify-content: center; flex-wrap: nowrap; overflow: visible; padding: 24px 6px 6px; scrollbar-width: none; align-items: flex-end; transition: transform .24s cubic-bezier(.2,.85,.3,1); will-change: transform; touch-action: none; cursor: grab; }
   .friends:active { cursor: grabbing; }
