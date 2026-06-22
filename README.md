@@ -15,6 +15,7 @@ A collection of small, self-contained experiments. Each subfolder is one experim
 - [climate-report](climate-report/) — Interactive climate-trend dashboard for Munich (warming trend with extrapolation to 2036, extremes, monthly heatmap, precipitation/sun/UV), built from real LMU and DWD data.
 - [gebrauchtwagen-kompass](gebrauchtwagen-kompass/) — Interactive used-car comparison dashboard (German) in a marine-compass theme: speed-dependent fuel curves, total cost of ownership, reliability dots and scale silhouettes.
 - [palestine-my-ass](palestine-my-ass/) — Interactive German fact-check page examining six accusations against journalist Sophie von der Tann, weighing each claim against counterpoints with verdict labels (light/dark theme).
+- [world-in-numbers](world-in-numbers/) — Live, ticking dashboard of how life on Earth is being born and lost (humans, trees, insects, birds, fish, animals): per-minute born/killed flows, a slider to project totals to any year up to 2100, and study-based trajectories that rise or fall.
 - [immune-heroes](immune-heroes/) — **Immune Heroes**: a kids' (DE/EN) browser voice app. Talk out loud to a cast of immune-system friends (Senua, Rubina, Theo, Kilian, Denni, Makro), each with its own voice and character, powered by the OpenAI Realtime API (speech↔speech over WebRTC) with an animated SVG character, audio-reactive visuals, idle story-telling, a token counter and a private on-device memory.
 
 ## How the site is built
