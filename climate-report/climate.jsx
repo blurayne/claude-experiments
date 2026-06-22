@@ -490,6 +490,8 @@ function renderExtDays(){
 }
 function renderExtremes(){
   renderExtTemp(); renderExtDays();
+  const avgHot=EXT.hot.reduce((a,b)=>a+b,0)/EXT.hot.length;
+  setTxt("exAvgHot",avgHot.toFixed(1)+" °C");
   setTxt("exRecHot",EXT.rec.hotV.toFixed(1)+" °C ("+EXT.rec.hotY+")");
   setTxt("exRecDays",EXT.rec.daysV+" Tage ("+EXT.rec.daysY+")");
 }
@@ -876,6 +878,7 @@ export default function App() {
               <div className="stat cool"><div className="k">Kälteste Nacht → {extrapYear}</div><div className="v" id="exCold">–</div></div>
               <div className="stat hot"><div className="k">Trend Tageshitze</div><div className="v" id="exHotTrend">–</div></div>
               <div className="stat cool"><div className="k">Trend Nachtkälte</div><div className="v" id="exColdTrend">–</div></div>
+              <div className="stat hot"><div className="k">Ø heißester Tag {EXT.years[0]}–{EXT.years[EXT.years.length-1]}</div><div className="v" id="exAvgHot">–</div></div>
             </div>
             <div className="cap">Orange = heißester Tag, blau = kälteste Nacht. Kälteste Nacht erwärmt sich, heißester Tag steigt — beide Trends mit großer Streuung. Station: {LOCATIONS[location].subtitle}, {EXT.years[0]}–{EXT.years[EXT.years.length-1]}.</div>
           </div>

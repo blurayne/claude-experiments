@@ -1315,6 +1315,8 @@ function renderExtDays() {
 function renderExtremes() {
   renderExtTemp();
   renderExtDays();
+  const avgHot = EXT.hot.reduce((a, b) => a + b, 0) / EXT.hot.length;
+  setTxt("exAvgHot", avgHot.toFixed(1) + " °C");
   setTxt("exRecHot", EXT.rec.hotV.toFixed(1) + " °C (" + EXT.rec.hotY + ")");
   setTxt("exRecDays", EXT.rec.daysV + " Tage (" + EXT.rec.daysY + ")");
 }
@@ -1997,6 +1999,13 @@ function App() {
   }, "Trend Nachtkälte"), /*#__PURE__*/React.createElement("div", {
     className: "v",
     id: "exColdTrend"
+  }, "–")), /*#__PURE__*/React.createElement("div", {
+    className: "stat hot"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "k"
+  }, "Ø heißester Tag ", EXT.years[0], "–", EXT.years[EXT.years.length - 1]), /*#__PURE__*/React.createElement("div", {
+    className: "v",
+    id: "exAvgHot"
   }, "–"))), /*#__PURE__*/React.createElement("div", {
     className: "cap"
   }, "Orange = heißester Tag, blau = kälteste Nacht. Kälteste Nacht erwärmt sich, heißester Tag steigt — beide Trends mit großer Streuung. Station: ", LOCATIONS[location].subtitle, ", ", EXT.years[0], "–", EXT.years[EXT.years.length - 1], ".")), /*#__PURE__*/React.createElement("div", {
