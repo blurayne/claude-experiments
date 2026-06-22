@@ -124,7 +124,7 @@
   .minirow { display: flex; gap: 10px; align-items: center; }
 
   /* friends chooser */
-  .friendsbar { width: 100%; max-width: 760px; margin-top: 28px; touch-action: none; }
+  .friendsbar { width: 100%; max-width: 760px; margin-top: auto; touch-action: none; }   /* sit at the bottom of the screen (wrap padding gives the gap) */
   /* the whole friends area handles its own drag — never let it pan/scroll the page (which would move the fixed background + speaking circle) */
   .friendsbar, .friendsbar * { touch-action: none; }
   .friendslabel { text-align: center; color: #fff; font-size: 13px; font-weight: 700; opacity: .9; text-shadow: 0 1px 0 rgba(150,10,40,.4); margin-bottom: 6px; }
