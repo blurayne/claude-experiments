@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <title data-i18n="doc_title">White Heroes — talk to your immune-system buddies!</title>
 <style>
   :root {
@@ -21,10 +21,14 @@
   body {
     font-family: var(--font); color: var(--ink); overflow: hidden;
     min-height: 100dvh; position: relative;
+    touch-action: manipulation;          /* no double-tap zoom / tap-resize */
     background: #aa1c41;
     background:
       radial-gradient(120% 90% at 50% -10%, #ff9bb0 0%, #e8456b 46%, #aa1c41 100%);
   }
+  /* never show scrollbars on the main screen (the settings modal may still scroll) */
+  .wrap, .wrap * { scrollbar-width: none; -ms-overflow-style: none; }
+  .wrap ::-webkit-scrollbar, .wrap::-webkit-scrollbar { width: 0; height: 0; display: none; }
 
   /* drifting bloodstream bits */
   .bg { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
