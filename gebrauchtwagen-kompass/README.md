@@ -25,6 +25,11 @@ hilft, sie entlang eines realen Nutzungsprofils zu vergleichen:
   je Tempo.
 - **Gesamtkosten (TCO):** Kaufpreis, Steuer, Wartung, Versicherung und
   Spritkosten über die geplante Haltedauer.
+- **Spritkosten & Ersparnis:** wie viel Sprit(-geld) die gewählten Autos bei
+  5.000 / 7.500 / 10.000 / 15.000 / 20.000 km/Jahr kosten und wie viel das
+  sparsamste gegenüber dem durstigsten spart — mit Reglern für Fahrleistung,
+  Spritpreis-Anstieg und Projektionszeitraum sowie einer Chart der über die
+  nächsten Jahre aufsummierten Spritkosten (extrapolierter Preisanstieg).
 - **Bewertungs-Matrix:** Zuverlässigkeit, AB-Ruhe, Schlauf-/Schlaftauglichkeit
   und Laderaum als Punkte-Dots.
 - **Karosserie-Silhouetten & Größenvergleich** maßstäblich, inkl. Lade- und

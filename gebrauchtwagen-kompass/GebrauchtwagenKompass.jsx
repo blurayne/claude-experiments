@@ -720,6 +720,164 @@ function EngineCompare() {
   );
 }
 
+// ---------- Spritkosten & Ersparnis ----------
+// Wie viel Sprit(-geld) spart das sparsamere Auto bei verschiedenen Fahrleistungen –
+// inkl. extrapoliertem Spritpreis-Anstieg für die kommenden Jahre.
+const KM_BUCKETS = [5000, 7500, 10000, 15000, 20000];
+// Liter-Preis im Jahr i (i = 0 = heute) = Basis · (1 + Anstieg)^i.
+const fuelYearCost = (v, km, mult) => (v.real / 100) * km * v.fuelP * mult;
+// Aufsummierte Spritkosten über `yrs` Jahre (Jahr 1 zu heutigem Preis, danach steigend).
+function fuelCumCost(v, km, risePct, yrs) {
+  let sum = 0;
+  for (let i = 0; i < yrs; i++) sum += fuelYearCost(v, km, Math.pow(1 + risePct / 100, i));
+  return sum;
+}
+
+function FuelSavings({ shown }) {
+  const [km, setKm] = useState(6000);
+  const [rise, setRise] = useState(5);     // % Spritpreis-Anstieg pro Jahr
+  const [horizon, setHorizon] = useState(5); // Projektionszeitraum in Jahren
+
+  if (shown.length === 0) {
+    return (
+      <div className="panel" style={{ padding: 16, marginBottom: 16 }}>
+        <div className="eyebrow" style={{ marginBottom: 4 }}>Spritkosten &amp; Ersparnis</div>
+        <div style={{ color: C.dim, fontSize: 13 }}>Wähle oben mindestens ein Fahrzeug, um die Spritersparnis zu berechnen.</div>
+      </div>
+    );
+  }
+
+  // Durstigstes (teuerstes) & sparsamstes (günstigstes) der gewählten Autos beim Slider-km.
+  const costNow = (v, k) => fuelYearCost(v, k, 1);
+  const thirsty = shown.reduce((a, b) => (costNow(b, km) > costNow(a, km) ? b : a), shown[0]);
+  const cheap = shown.reduce((a, b) => (costNow(b, km) < costNow(a, km) ? b : a), shown[0]);
+
+  // Tabelle: jährliche Spritkosten (heutiger Preis) je Auto × Fahrleistung, sparsamste zuerst.
+  const sorted = [...shown].sort((a, b) => a.real * a.fuelP - b.real * b.fuelP);
+  const minByBucket = KM_BUCKETS.map((k) => Math.min(...shown.map((v) => costNow(v, k))));
+
+  // Diagramm: kumulierte Spritkosten über die nächsten Jahre beim Slider-km, mit Preisanstieg.
+  const data = Array.from({ length: horizon + 1 }, (_, y) => {
+    const row = { year: y };
+    shown.forEach((v) => (row[v.id] = Math.round(fuelCumCost(v, km, rise, y))));
+    return row;
+  });
+
+  const saveYearNow = Math.round(costNow(thirsty, km) - costNow(cheap, km));
+  const saveCum = Math.round(fuelCumCost(thirsty, km, rise, horizon) - fuelCumCost(cheap, km, rise, horizon));
+  const single = shown.length < 2;
+
+  // Als reine Render-Funktion (kein eigenes Component) – sonst würde der Range-Input
+  // bei jedem Render neu gemountet und verlöre den Drag-Fokus.
+  const slider = (label, val, set, min, max, step, fmt, lo, hi) => (
+    <div style={{ marginBottom: 12 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, marginBottom: 5 }}>
+        <span>{label}</span>
+        <span className="num" style={{ color: C.needle }}>{fmt(val)}</span>
+      </div>
+      <input type="range" min={min} max={max} step={step} value={val} onChange={(e) => set(+e.target.value)} />
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10.5, color: C.faint, marginTop: 3 }}>
+        <span>{lo}</span><span>{hi}</span>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="panel" style={{ padding: "16px 12px 12px", marginBottom: 16 }}>
+      <div style={{ padding: "0 6px 6px" }}>
+        <div className="eyebrow" style={{ marginBottom: 4 }}>Spritkosten &amp; Ersparnis</div>
+        <h2>Wie viel Sprit du je Fahrleistung sparst</h2>
+        <div style={{ color: C.dim, fontSize: 12.5 }}>
+          Jährliche Spritkosten der gewählten Autos bei 5.000–20.000 km/Jahr (heutige Preise) – plus eine Projektion
+          über die nächsten Jahre mit extrapoliertem Spritpreis-Anstieg. Verglichen wird gegen das durstigste der gewählten Autos.
+        </div>
+      </div>
+
+      {/* Regler */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, padding: "10px 6px 4px" }} className="grid2">
+        {slider("Fahrleistung", km, setKm, 3000, 25000, 500, (v) => v.toLocaleString("de-DE") + " km/J", "3.000", "25.000")}
+        {slider("Spritpreis-Anstieg p.a.", rise, setRise, 0, 12, 0.5, (v) => "+" + v.toLocaleString("de-DE") + " %", "0 %", "12 %")}
+        {slider("Projektionszeitraum", horizon, setHorizon, 1, 10, 1, (v) => v + " J", "1 J", "10 J")}
+      </div>
+
+      {/* Dein Szenario */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 10, padding: "4px 6px 12px" }}>
+        <div style={{ flex: "1 1 220px", background: C.panelHi, borderRadius: 9, padding: "11px 13px", borderTop: `2px solid ${C.eco}` }}>
+          <div style={{ fontSize: 11, color: C.faint, marginBottom: 3 }}>Sparsamstes Auto · {km.toLocaleString("de-DE")} km/Jahr</div>
+          <div style={{ fontSize: 13.5, fontWeight: 700, color: cheap.color, marginBottom: 2 }}>{cheap.short}</div>
+          <div className="num" style={{ fontSize: 18, color: C.ink }}>{euro(Math.round(costNow(cheap, km)))}<span style={{ fontSize: 11, color: C.faint }}> / Jahr</span></div>
+        </div>
+        <div style={{ flex: "1 1 220px", background: C.panelHi, borderRadius: 9, padding: "11px 13px", borderTop: `2px solid ${C.needle}` }}>
+          <div style={{ fontSize: 11, color: C.faint, marginBottom: 3 }}>Ersparnis ggü. {single ? "—" : thirsty.short}</div>
+          <div className="num" style={{ fontSize: 18, color: single ? C.faint : C.eco, marginBottom: 2 }}>
+            {single ? "–" : euro(saveYearNow)}<span style={{ fontSize: 11, color: C.faint }}> / Jahr (heute)</span>
+          </div>
+          <div className="num" style={{ fontSize: 13, color: single ? C.faint : C.ink }}>
+            {single ? "nur ein Auto gewählt" : euro(saveCum) + " über " + horizon + " J (mit +" + rise.toLocaleString("de-DE") + " % p.a.)"}
+          </div>
+        </div>
+      </div>
+
+      {/* Tabelle: Spritkosten je Fahrleistung */}
+      <div className="scroll" style={{ padding: "0 2px 4px" }}>
+        <table>
+          <thead>
+            <tr>
+              <th>Fahrzeug</th>
+              {KM_BUCKETS.map((k) => <th key={k}>{(k / 1000).toLocaleString("de-DE")}k km/J</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {sorted.map((v) => (
+              <tr key={v.id}>
+                <td><span style={{ display: "inline-block", width: 8, height: 8, borderRadius: 2, background: v.color, marginRight: 7 }} />{v.short}</td>
+                {KM_BUCKETS.map((k, ki) => {
+                  const cost = costNow(v, k);
+                  const best = Math.abs(cost - minByBucket[ki]) < 0.5;
+                  const sav = Math.round(costNow(thirsty, k) - cost);
+                  return (
+                    <td key={k}>
+                      <div className="num" style={{ color: best ? C.eco : C.ink, fontWeight: best ? 700 : 400 }}>{euro(Math.round(cost))}</div>
+                      <div className="num" style={{ fontSize: 10.5, color: C.faint }}>{sav > 0 ? "−" + euro(sav) : "Basis"}</div>
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div style={{ fontSize: 11, color: C.faint, padding: "2px 8px 10px", lineHeight: 1.5 }}>
+        Obere Zahl: Spritkosten/Jahr zu <b style={{ color: C.dim }}>heutigen</b> Preisen ({shown[0].fuelP.toLocaleString("de-DE")} €/L {shown[0].fuel}).
+        Untere Zahl: Ersparnis/Jahr ggü. dem durstigsten gewählten Auto ({thirsty.short}). <b style={{ color: C.eco }}>Grün</b> = sparsamstes je Spalte.
+      </div>
+
+      {/* Diagramm: kumulierte Spritkosten mit Preisanstieg */}
+      <div style={{ padding: "0 6px 4px" }}>
+        <div className="eyebrow" style={{ marginBottom: 2 }}>Projektion · kumulierte Spritkosten bei {km.toLocaleString("de-DE")} km/Jahr</div>
+        <div style={{ color: C.dim, fontSize: 12 }}>Aufsummierte Spritausgaben mit +{rise.toLocaleString("de-DE")} % Preisanstieg pro Jahr. Der Abstand zwischen den Linien ist deine Ersparnis.</div>
+      </div>
+      <ResponsiveContainer width="100%" height={300}>
+        <LineChart data={data} margin={{ top: 10, right: 14, left: 6, bottom: 4 }}>
+          <CartesianGrid stroke={C.line} strokeDasharray="2 4" />
+          <XAxis dataKey="year" stroke={C.dim} tick={{ fontSize: 11 }} unit=" J" />
+          <YAxis stroke={C.dim} tick={{ fontSize: 11 }} width={58} tickFormatter={(v) => v.toLocaleString("de-DE") + " €"} />
+          <Tooltip contentStyle={tipStyle}
+            formatter={(val, key) => [euro(val), VEH.find((x) => x.id === key)?.short]}
+            labelFormatter={(l) => l === 0 ? "Heute" : `Nach ${l} Jahr${l === 1 ? "" : "en"}`} />
+          {shown.map((v) => (
+            <Line key={v.id} type="monotone" dataKey={v.id} stroke={v.color} strokeWidth={2.2} dot={{ r: 2 }} activeDot={{ r: 5 }} />
+          ))}
+        </LineChart>
+      </ResponsiveContainer>
+      <div style={{ fontSize: 11, color: C.faint, padding: "2px 8px 0", lineHeight: 1.5 }}>
+        Reine Spritkosten (ohne Steuer/Versicherung/Wartung), Real-Verbrauch je Auto × Fahrleistung × Spritpreis.
+        Der Preisanstieg ist eine lineare Extrapolation – tatsächliche Spritpreise schwanken stärker.
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [sel, setSel] = useState(() => new Set(["auris-hyb"]));
   const [w, setW] = useState(() => Object.fromEntries(PRIO.map((p) => [p.key, p.def])));
@@ -982,6 +1140,9 @@ export default function App() {
             Bei nur 6.000 km/Jahr ist der Sprit-Unterschied in € klein – die Kurven trennen sich vor allem über Versicherung/Steuer/Wartung. Die Versicherung steckt mit deinem oben gewählten Beitragssatz, Schutz & Anbieter drin. Reparaturrisiko (Zuverlässigkeit) ist hier <i>nicht</i> eingepreist und spricht zusätzlich für Toyota/Honda/Kia-Garantie.
           </div>
         </div>
+
+        {/* ---------- SPRITKOSTEN & ERSPARNIS ---------- */}
+        <FuelSavings shown={shown} />
 
         {/* ---------- VERGLEICHSTABELLE ---------- */}
         <div className="panel scroll" style={{ padding: 4, marginBottom: 16 }}>
