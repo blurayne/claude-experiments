@@ -1488,7 +1488,12 @@ function rosterDirective(){
     ? "\n\nDu darfst neue Freunde erfinden: gib jedem einen Namen, einen Zelltyp und eine kurze Eigenschaft. Sobald du einen neuen Freund erfindest, rufe das Werkzeug remember_friend auf, damit du dich später an ihn erinnerst. Nutze bekannte Freunde wieder."
     : "\n\nYou may invent new friends: give each a name, a cell type and one short trait. Whenever you invent a new friend, call the remember_friend tool so you remember it later, and reuse friends you already know.";
 }
-function fullInstructions(){ return charInstr(currentChar()) + "\n\n" + sharedText(lang) + rosterDirective() + rosterBlock() + memoryBlock(); }
+function pauseDirective(){
+  return lang==="de"
+    ? "\n\nWichtig zum Tempo: Sprich in kurzen Häppchen und mach danach eine echte Pause. Rede nicht ununterbrochen weiter. Sag nur dann von dir aus wieder etwas, wenn das Kind eine ganze Weile (mindestens etwa zehn Sekunden) still war – sonst warte geduldig, bis das Kind dich etwas fragt oder dir etwas sagt."
+    : "\n\nImportant about pacing: speak in short bites and then take a real pause. Do not keep talking nonstop. Only speak again on your own if the child has been quiet for a good while (at least about ten seconds) — otherwise wait patiently until the child asks you something or says something.";
+}
+function fullInstructions(){ return charInstr(currentChar()) + "\n\n" + sharedText(lang) + rosterDirective() + pauseDirective() + rosterBlock() + memoryBlock(); }
 const REMEMBER_TOOL_DESC = "Save a newly invented friend cell (name, its cell type, one short trait) so you remember it next time.";
 
 // ---------- OpenAI Realtime session config ----------
@@ -1541,16 +1546,21 @@ function greetNow(){
     : `Greet the child briefly and cheerfully in one sentence as ${charName(c)} (${charRole(c)}) and invite them to ask you something.`);
 }
 let idleTimer=null, inactivityTimer=null;
-const IDLE_MIN=5000, IDLE_MAX=15000, INACTIVITY_MS=30000;
+// Wait at least 10s after the hero's last word before saying anything unprompted.
+const IDLE_MIN=10000, IDLE_MAX=18000, INACTIVITY_MS=30000;
 function clearInactivity(){ if(inactivityTimer){ clearTimeout(inactivityTimer); inactivityTimer=null; } }
-function armInactivity(){ clearInactivity(); if(!connected) return; inactivityTimer=setTimeout(()=>{ if(connected) hangup(); }, INACTIVITY_MS); }
+function armInactivity(extra=0){ clearInactivity(); if(!connected) return; inactivityTimer=setTimeout(()=>{ if(connected) hangup(); }, extra + INACTIVITY_MS); }
 function cancelIdle(){ if(idleTimer){ clearTimeout(idleTimer); idleTimer=null; } clearInactivity(); }
 function scheduleIdle(){
   cancelIdle();
   if(!connected) return;
-  armInactivity();                 // stop the session after 30s with no input (even while muted)
+  // Count the wait from when the hero's audio actually finishes — not from when the
+  // response was generated — so a buffered or long answer can't talk over the next nudge.
+  const remainingAudio = (playCtx ? Math.max(0, playHead - playCtx.currentTime) : 0) * 1000;
+  armInactivity(remainingAudio);   // stop the session after 30s of real silence (even while muted)
   if(muted) return;
-  idleTimer = setTimeout(fireIdle, IDLE_MIN + Math.random()*(IDLE_MAX-IDLE_MIN));
+  const gap = IDLE_MIN + Math.random()*(IDLE_MAX-IDLE_MIN);
+  idleTimer = setTimeout(fireIdle, remainingAudio + gap);
 }
 function idlePrompt(){
   const p = Math.floor(Math.random()*3);

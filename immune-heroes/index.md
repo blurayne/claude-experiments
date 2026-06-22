@@ -28,9 +28,11 @@ Everything runs in the browser:
   (dendritic cell) and **Makro** (macrophage). Each has its own **voice**, colour and
   character; switching reconnects so the new voice takes effect, and the shared memory
   carries the conversation across.
-- **Idle nudges** — if the child is quiet for a random 5–15 s, the friend gently encourages
-  a question, shares a quick fact, or tells a **1–2 minute adventure story with a small
-  moral**. Normal answers stay to 1–2 short sentences.
+- **Idle nudges** — the friend always waits **at least ~10 s after its own last spoken word**
+  (counted from when the audio actually finishes, then a 10–18 s gap) and only speaks again
+  if the child stays quiet; it then gently encourages a question, shares a quick fact, or
+  tells a **1–2 minute adventure story with a small moral**. Normal answers stay to 1–2 short
+  sentences. The system prompt reinforces the same pacing so the friends don't talk nonstop.
 - **Text on/off toggle** — speech is the main channel, so on-screen captions are **off by
   default**; flip them on with the 💬 button (saved in `localStorage`).
 - **English / German** language selector — the whole UI and the friends' spoken language
