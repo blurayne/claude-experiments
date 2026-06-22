@@ -1,4 +1,4 @@
-# White Heroes — character prompts
+# Immune Heroes — character prompts
 
 These are the built-in system prompts for the friends in
 [`index.html`](index.html). They live in the `CHARACTERS`, `SHARED_DE`/`SHARED_EN`

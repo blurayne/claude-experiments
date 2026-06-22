@@ -1,11 +1,11 @@
-# White Heroes — talk to your immune-system buddies
+# Immune Heroes — talk to your immune-system buddies
 
 A browser voice app for kids (~7–10 years). You tap one big button and **talk out
 loud** to **Senua**, a brave white blood cell who lives in the body's immune system.
 Senua listens, thinks, and talks back in a real voice — explaining what immune cells
 do and naming the body's organs and their jobs, at roughly a ten-year-old's level.
 
-> The published page at `/white-hero/` serves the hand-written [`index.html`](index.html)
+> The published page at `/immune-heroes/` serves the hand-written [`index.html`](index.html)
 > so the app loads as the landing page. This `index.md` is kept as documentation.
 
 ## How it works
@@ -109,7 +109,7 @@ No build, no internet beyond the OpenAI + GitHub APIs. Microphone access needs a
 context**, so open it over `https://` (the deployed Pages URL works) or via `http://localhost`:
 
 ```bash
-python3 -m http.server 8000   # then open http://localhost:8000/white-hero/
+python3 -m http.server 8000   # then open http://localhost:8000/immune-heroes/
 ```
 
 ## Files
