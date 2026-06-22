@@ -10,9 +10,11 @@ of **animals** (livestock / wild mammals / pets) — each show:
 - the **projected total** for that year (which can go up *or* down), and
 - two live **born / killed** flows (rate per minute + a counter for what has happened since you opened the page).
 
-Buttons at the top pick a **region** (World, Germany, Europe, USA, China, India, Russia, plus every continent),
-a **time unit** for the rates (second → year), and a **refresh interval** (1/2/5/10/20 s). A **slider (2030–2100)**
-sets the projection horizon. Each category follows a study-based trajectory: humans grow and peak around 2084
+Buttons at the top let you select **one or more regions** (World, Germany, Europe, USA, China, India, Russia,
+plus every continent) — each selected region is **stacked as its own row inside every box**, scaled to a shared
+axis so they're comparable (the page starts with **World + Germany**). You also pick a **time unit** for the
+rates (second → year) and a **refresh interval** (1/2/5/10/20 s). A **slider (2030–2100)** sets the projection
+horizon. Each category follows a study-based trajectory: humans grow and peak around 2084
 before declining; livestock, farmed fish and pets rise; while trees, insects, wild birds, wild fish and wild
 mammals keep shrinking.
 

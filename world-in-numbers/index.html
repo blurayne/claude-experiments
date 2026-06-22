@@ -118,6 +118,17 @@
   .bar-legend i.gain::before { background: var(--born); }
   .bar-legend i.loss::before { background: var(--killed); }
 
+  .rows { margin-top: .3rem; }
+  .rrow { padding: .6rem 0 .55rem; border-top: 1px solid var(--line); }
+  .rrow:first-child { border-top: none; padding-top: .2rem; }
+  .rrow-head { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; }
+  .rname { font-size: .82rem; font-weight: 700; }
+  .rtot { font-variant-numeric: tabular-nums; font-weight: 800; font-size: 1.1rem; letter-spacing: -.01em; }
+  .rmeta { font-size: .69rem; color: var(--muted); margin-top: .35rem; font-variant-numeric: tabular-nums; line-height: 1.5; }
+  .rmeta b { color: var(--text); font-weight: 600; }
+  .rmeta .up { color: var(--born); }
+  .rmeta .down { color: var(--killed); }
+
   .flows { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin-top: 1rem; }
   .flow { border: 1px solid var(--line); border-radius: 12px; padding: .6rem .7rem; background: rgba(255,255,255,.015); }
   .flow .ftop { display: flex; align-items: center; gap: .35rem; font-size: .78rem; font-weight: 700; }
@@ -371,8 +382,21 @@
   }
 
   // ---- state -------------------------------------------------------------
-  var state = { region: REGIONS[0], unit: UNITS[1], endYear: 2100, intervalSec: 5 };
+  function findRegion(id) { for (var i = 0; i < REGIONS.length; i++) if (REGIONS[i].id === id) return REGIONS[i]; }
+  // multiple regions can be selected at once; each is stacked in every box
+  var state = { regions: [findRegion("world"), findRegion("de")], unit: UNITS[1], endYear: 2100, intervalSec: 5 };
   var loadMs = Date.now();
+
+  function isRegionSelected(r) { return state.regions.some(function (x) { return x.id === r.id; }); }
+  function toggleRegion(r) {
+    if (isRegionSelected(r)) {
+      if (state.regions.length > 1) state.regions = state.regions.filter(function (x) { return x.id !== r.id; });
+    } else {
+      state.regions.push(r);
+    }
+    state.regions.sort(function (a, b) { return REGIONS.indexOf(a) - REGIONS.indexOf(b); });
+    rebuildRows();
+  }
 
   // ---- build control buttons --------------------------------------------
   function buildButtons(containerId, items, isActive, onPick) {
@@ -387,11 +411,9 @@
   }
 
   buildButtons("regionBtns", REGIONS.filter(function (r) { return r.group === "main" || r.group === "region"; }),
-    function (r) { return r.id === state.region.id; },
-    function (r) { state.region = r; });
+    isRegionSelected, function (r) { toggleRegion(r); });
   buildButtons("continentBtns", REGIONS.filter(function (r) { return r.group === "continent"; }),
-    function (r) { return r.id === state.region.id; },
-    function (r) { state.region = r; });
+    isRegionSelected, function (r) { toggleRegion(r); });
   buildButtons("unitBtns", UNITS,
     function (u) { return u.id === state.unit.id; },
     function (u) { state.unit = u; });
@@ -405,7 +427,7 @@
     var regionList = REGIONS.filter(function (r) { return r.group === "main" || r.group === "region"; })
       .concat(REGIONS.filter(function (r) { return r.group === "continent"; }));
     all.forEach(function (b, i) {
-      b.classList.toggle("active", regionList[i].id === state.region.id);
+      b.classList.toggle("active", isRegionSelected(regionList[i]));
     });
     document.querySelectorAll("#unitBtns .btn").forEach(function (b, i) {
       b.classList.toggle("active", UNITS[i].id === state.unit.id);
@@ -427,36 +449,36 @@
         '<div class="name">' + d.name + '</div>' +
         '<div class="sub">' + d.sub + (d.est ? ' <span class="est">est.</span>' : '') + '</div>' +
       '</div>' +
-      '<div class="total-label">total now</div>' +
-      '<div class="total" data-total></div>' +
-      '<div class="bar"><span data-bar1></span><span data-bar2></span></div>' +
-      '<div class="bar-row"><span>now: <b data-cur></b></span><span data-proj></span></div>' +
-      '<div class="bar-legend" data-legend></div>' +
-      '<div class="flows">' +
-        '<div class="flow born">' +
-          '<div class="ftop">▲ ' + d.bornLabel + '</div>' +
-          '<div class="big" data-born>0</div><div class="unit" data-bunit></div>' +
-          '<div class="session" data-bsession></div>' +
-        '</div>' +
-        '<div class="flow killed">' +
-          '<div class="ftop">▼ ' + d.killedLabel + '</div>' +
-          '<div class="big" data-killed>0</div><div class="unit" data-kunit></div>' +
-          '<div class="session" data-ksession></div>' +
-        '</div>' +
-      '</div>' +
-      '<div class="net" data-net></div>';
+      '<div class="rows" data-rows></div>' +
+      '<div class="bar-legend"><i class="base">now / left</i><i class="gain">gain</i><i class="loss">loss</i></div>';
     grid.appendChild(card);
-    els[d.key] = {
-      total: card.querySelector("[data-total]"),
-      bar1: card.querySelector("[data-bar1]"), bar2: card.querySelector("[data-bar2]"),
-      legend: card.querySelector("[data-legend]"),
-      cur: card.querySelector("[data-cur]"), proj: card.querySelector("[data-proj]"),
-      born: card.querySelector("[data-born]"), killed: card.querySelector("[data-killed]"),
-      bunit: card.querySelector("[data-bunit]"), kunit: card.querySelector("[data-kunit]"),
-      bsession: card.querySelector("[data-bsession]"), ksession: card.querySelector("[data-ksession]"),
-      net: card.querySelector("[data-net]")
-    };
+    els[d.key] = { rowsEl: card.querySelector("[data-rows]"), rows: {} };
   });
+
+  // ---- build one stacked row per selected region, inside every box -------
+  function rebuildRows() {
+    DATA.forEach(function (d) {
+      var e = els[d.key];
+      e.rowsEl.innerHTML = "";
+      e.rows = {};
+      state.regions.forEach(function (reg) {
+        var row = document.createElement("div");
+        row.className = "rrow";
+        row.innerHTML =
+          '<div class="rrow-head"><span class="rname">' + reg.label + '</span>' +
+            '<span class="rtot" data-tot></span></div>' +
+          '<div class="bar"><span data-b1></span><span data-b2></span></div>' +
+          '<div class="rmeta" data-meta></div>';
+        e.rowsEl.appendChild(row);
+        e.rows[reg.id] = {
+          tot: row.querySelector("[data-tot]"),
+          b1: row.querySelector("[data-b1]"),
+          b2: row.querySelector("[data-b2]"),
+          meta: row.querySelector("[data-meta]")
+        };
+      });
+    });
+  }
 
   // ---- slider ------------------------------------------------------------
   var slider = document.getElementById("yearSlider");
@@ -472,56 +494,58 @@
   var nowShowing = document.getElementById("nowShowing");
   function pad(n) { return (n < 10 ? "0" : "") + n; }
 
+  function pct(frac) {
+    var x = frac * 100;
+    if (x > 0 && x < 0.6) x = 0.6; // keep tiny regions barely visible
+    return x.toFixed(3) + "%";
+  }
+
   function render(retag) {
     if (retag) tagActives();
     var now = Date.now();
     var nowYear = BASE_YEAR + (now - EPOCH) / 60000 / MIN_PER_YEAR;
-    var minsSinceLoad = (now - loadMs) / 60000;
-    var r = state.region, u = state.unit;
+    var u = state.unit, ey = state.endYear;
 
     DATA.forEach(function (d) {
       var e = els[d.key];
-      var totalNow = projectCat(d, nowYear, r);
-      var proj = projectCat(d, state.endYear, r);
-      var delta = proj - totalNow;
-      var f = flowOf(d, r);
+      // shared scale across all selected regions, so rows are comparable
+      var scale = 0;
+      state.regions.forEach(function (reg) { var p = peakOf(d, reg); if (p > scale) scale = p; });
+      if (scale <= 0) scale = 1;
 
-      e.total.textContent = abbrev(totalNow);
+      state.regions.forEach(function (reg) {
+        var ref = e.rows[reg.id];
+        if (!ref) return;
+        var totalNow = projectCat(d, nowYear, reg);
+        var proj = projectCat(d, ey, reg);
+        var delta = proj - totalNow;
+        var f = flowOf(d, reg);
 
-      // bar scaled to the metric's peak over 2026-2100 (leaves trailing space)
-      var peak = peakOf(d, r);
-      if (proj >= totalNow) {
-        // growing: [ current total (lila) ][ gain (green) ][ space ]
-        e.bar1.className = "base"; e.bar1.style.width = (totalNow / peak * 100).toFixed(3) + "%";
-        e.bar2.className = "gain"; e.bar2.style.width = ((proj - totalNow) / peak * 100).toFixed(3) + "%";
-        e.legend.innerHTML = '<i class="base">now</i><i class="gain">gain to ' + state.endYear + '</i>';
-      } else {
-        // shrinking: [ remaining (lila) ][ loss (red) ][ space ]
-        e.bar1.className = "base"; e.bar1.style.width = (proj / peak * 100).toFixed(3) + "%";
-        e.bar2.className = "loss"; e.bar2.style.width = ((totalNow - proj) / peak * 100).toFixed(3) + "%";
-        e.legend.innerHTML = '<i class="base">left in ' + state.endYear + '</i><i class="loss">lost by then</i>';
-      }
+        ref.tot.textContent = abbrev(totalNow);
+        if (proj >= totalNow) {
+          ref.b1.className = "base"; ref.b1.style.width = pct(totalNow / scale);
+          ref.b2.className = "gain"; ref.b2.style.width = pct((proj - totalNow) / scale);
+        } else {
+          ref.b1.className = "base"; ref.b1.style.width = pct(proj / scale);
+          ref.b2.className = "loss"; ref.b2.style.width = pct((totalNow - proj) / scale);
+        }
 
-      e.cur.textContent = abbrev(totalNow);
-      e.proj.innerHTML = state.endYear + ': <b>' + abbrev(proj) + '</b> ' +
-        '<span class="delta ' + (delta >= 0 ? "up" : "down") + '">' +
-        (delta >= 0 ? "▲ +" : "▼ −") + abbrev(Math.abs(delta)) + '</span>';
-
-      e.born.textContent = rateNum(f.born * u.min);
-      e.killed.textContent = rateNum(f.killed * u.min);
-      e.bunit.textContent = "per " + u.label;
-      e.kunit.textContent = "per " + u.label;
-      e.bsession.textContent = "+" + intStr(f.born * minsSinceLoad) + " since you opened";
-      e.ksession.textContent = "−" + intStr(f.killed * minsSinceLoad) + " since you opened";
-
-      var net = f.born - f.killed;
-      e.net.innerHTML = 'net <b class="' + (net >= 0 ? "up" : "down") + '">' +
-        (net >= 0 ? "+" : "−") + rateNum(Math.abs(net) * u.min) + " / " + u.label + '</b>';
+        var net = f.born - f.killed;
+        ref.meta.innerHTML =
+          '→ ' + ey + ': <b>' + abbrev(proj) + '</b> ' +
+          '<span class="' + (delta >= 0 ? "up" : "down") + '">' +
+          (delta >= 0 ? "+" : "−") + abbrev(Math.abs(delta)) + '</span>' +
+          ' &nbsp;·&nbsp; <span class="up">▲ ' + rateNum(f.born * u.min) + '</span> ' +
+          '<span class="down">▼ ' + rateNum(f.killed * u.min) + '</span> ' +
+          'net <b class="' + (net >= 0 ? "up" : "down") + '">' +
+          (net >= 0 ? "+" : "−") + rateNum(Math.abs(net) * u.min) + '</b> /' + u.label;
+      });
     });
 
-    nowShowing.innerHTML = 'Showing <b>' + r.label + '</b> &middot; rates per <b>' + u.label +
-      '</b> &middot; projected to <b>' + state.endYear + '</b> &middot; updating every <b>' +
-      state.intervalSec + ' s</b>';
+    nowShowing.innerHTML = 'Showing <b>' +
+      state.regions.map(function (r) { return r.label; }).join(", ") +
+      '</b> &middot; rates per <b>' + u.label + '</b> &middot; projected to <b>' + ey +
+      '</b> &middot; every <b>' + state.intervalSec + ' s</b>';
 
     var s = Math.floor((now - loadMs) / 1000);
     var hh = Math.floor(s / 3600), mm = Math.floor((s % 3600) / 60), ss = s % 60;
@@ -534,6 +558,7 @@
     timer = setInterval(function () { render(false); }, state.intervalSec * 1000);
   }
 
+  rebuildRows();
   render(true);
   setTimer();
 })();
