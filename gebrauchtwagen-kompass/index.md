@@ -39,6 +39,11 @@ hilft, sie entlang eines realen Nutzungsprofils zu vergleichen:
   gegenüberstellen — kuratierte Duelle (z. B. Civic Tourer vs. Auris Hybrid,
   Octavia vs. Auris, A4 vs. Insignia) mit redaktionellem Fazit, für alle
   übrigen Paarungen ein datengetriebener Vergleich aus den Fahrzeugwerten.
+- **Taxi-Perspektive:** was Vielfahrer/Taxibetriebe tatsächlich kaufen (der
+  Dauertest für Zuverlässigkeit & Unterhalt) — mit den typischen Taxi-Favoriten
+  und **Alternativen außerhalb der Liste** (Toyota Camry Hybrid, Lexus ES/CT,
+  Mercedes E-Klasse, VW Touran/Caddy, Tesla Model 3/Y, Dacia Jogger Hybrid).
+  „Im Vergleich"-Karten sind anklickbar und schalten das Fahrzeug zu.
 - **Klartext-Notizen** je Fahrzeug: typische Schwachstellen, Forenstimmung,
   Außenparker-Tauglichkeit und „passt-zu-dir"-Einschätzung.
 

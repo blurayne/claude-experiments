@@ -51,6 +51,20 @@ const VEH = [
     fit: "Ruhiger auf der Autobahn als der Hybrid, aber der einzige Toyota-Benziner mit echten Schwachstellen. Nur mit dokumentierter Zündspulen-Historie kaufen.",
   },
   {
+    id: "prius-plus", name: "Toyota Prius+ 1.8 Hybrid (XW40)", short: "Prius+",
+    body: "Kompakt-Van / Kombi (5–7 Sitze)", motor: "1.8 VVT-i Hybrid · 136 PS · eCVT", color: C.good,
+    priceNew: 32000, priceNow: 13500,
+    tax: 60, service: 340, insBase: 2480, real: 5.2, fuel: "Super", fuelP: 1.72,
+    cons: { Stadt: 4.5, "120": 5.6, "140": 6.8, "160": 8.2, "175": 9.6 },
+    boot: 485, bootMax: 1750, sleep: 4, quiet: 3, rel: 5,
+    outdoor: "Unkritisch. Wie beim Auris Hybrid nur die 12-V-Stützbatterie bei langer Standzeit + Kurzstrecke im Blick behalten (alle ~2 Wochen 30 min fahren oder Erhaltungslader).",
+    faults: ["Hybridsystem taxierprobt & extrem langlebig – oft 300.000–500.000 km mit der ersten HV-Batterie",
+      "Typische Kleinposten: 12-V-Stützbatterie und (selten) die Inverter-Wasserpumpe",
+      "eCVT dröhnt auf der Autobahn unter Last; viel Hartplastik, mäßiger Geradeauslauf bei Seitenwind"],
+    forum: "Der Taxi-Liebling: 7 Einzelsitze, Hybrid-Sparsamkeit und Toyota-Haltbarkeit. Taxibetriebe & Foren berichten 300.000–500.000 km ohne große Reparaturen, Bremsen halten dank Rekuperation extrem lange. Kritik: Plastik-Ambiente und eCVT-Dröhnen bei zügigem Tempo.",
+    fit: "Wenn Platz (5–7 Sitze), Sparsamkeit und maximale Haltbarkeit über Autobahn-Ruhe stehen: der vernünftigste Vielzweck-Hybrid der Runde. Bei deinen ~6.000 km/Jahr ist er overkill an Sitzen, aber als unkaputtbarer Außenparker-Hybrid mit Riesen-Laderaum eine ernste Option.",
+  },
+  {
     id: "octavia", name: "Škoda Octavia Combi III 1.5 TSI", short: "Octavia Combi",
     body: "Kombi (Klassenbester Laderaum)", motor: "1.5 TSI ACT · 150 PS · Schalt/DSG", color: "#5B8FF9",
     priceNew: 29000, priceNow: 13500,
@@ -154,6 +168,7 @@ const VEH = [
 const DIMS = {
   "auris-hyb": { len: "≈1,55 m", h: "≈0,72 m", note: "Solide, aber Boden mit Stufe und am kürzeren Ende. Zum Schlafen eher eine Person diagonal + Auflage." },
   "auris-12t": { len: "≈1,55 m", h: "≈0,72 m", note: "Wie Hybrid: Stufe im Boden, kürzeres Ende. Diagonal liegen + Auflage." },
+  "prius-plus": { len: "≈1,80 m", h: "≈0,78 m", note: "Langer, weitgehend ebener Ladeboden bei umgeklappten Sitzen (bis 1.750 L). Als 5-Sitzer gut gestreckt zum Schlafen; der eigentliche Trumpf sind aber die 7 Einzelsitze." },
   "octavia": { len: "≈1,95 m", h: "≈0,75 m", note: "Längster + größter. Mit Doppelboden fast plan – der Einzige, in dem man fast gestreckt liegt (Beifahrersitz vor: >2,1 m)." },
   "civic": { len: "≈1,65 m", h: "≈0,75 m", note: "Bester Boden: Magic Seats → topfeben, niedrige Kante, Doppelboden absenkbar. Foren bestätigen Übernachtung – aber kurz, also diagonal." },
   "ceed": { len: "≈1,75 m", h: "≈0,72 m", note: "Gut nutzbar, leichte Stufe, ordentliche Länge. Mittelfeld zum Schlafen." },
@@ -169,6 +184,7 @@ const SPEEDS = ["Stadt", "120", "140", "160", "175"];
 const SIZE = {
   "auris-hyb": { l: 4.57, h: 1.47, t: "wagon" },
   "auris-12t": { l: 4.57, h: 1.47, t: "wagon" },
+  "prius-plus": { l: 4.62, h: 1.58, t: "mpv" },
   "octavia": { l: 4.66, h: 1.47, t: "wagon" },
   "civic": { l: 4.59, h: 1.48, t: "wagon" },
   "ceed": { l: 4.60, h: 1.47, t: "wagon" },
@@ -473,6 +489,7 @@ const DUELS = {
 const SUGGEST = [
   { a: "civic", b: "auris-hyb" },
   { a: "auris-hyb", b: "octavia" },
+  { a: "prius-plus", b: "auris-hyb" },
   { a: "a4avant", b: "insignia" },
 ];
 
@@ -878,6 +895,76 @@ function FuelSavings({ shown }) {
   );
 }
 
+// ---------- Taxi-Perspektive: was Vielfahrer fahren ----------
+// Taxis sind ein Härtetest für Zuverlässigkeit & Unterhalt – darum hier die typischen
+// Taxi-Favoriten plus Alternativen, die im Hauptvergleich (noch) nicht auftauchen.
+const TAXI = [
+  { name: "Toyota Prius+ / Prius", drive: "Vollhybrid", tag: "im Vergleich", id: "prius-plus",
+    why: "Der Taxi-Maßstab schlechthin: 300.000–500.000 km mit der ersten HV-Batterie, Bremsen halten dank Rekuperation extrem lange, Stadt-Verbrauch um 4 L. Der Prius+ bringt zusätzlich 7 Einzelsitze." },
+  { name: "Toyota Corolla / Auris TS Hybrid", drive: "Vollhybrid", tag: "im Vergleich", id: "auris-hyb",
+    why: "Gleiche Hybridtechnik im Kombi-Format – als Corolla TS heute einer der meistgekauften Flotten-/Taxi-Toyotas. Genau das Auto, das hier oben schon im Vergleich steht." },
+  { name: "Toyota Camry Hybrid", drive: "Vollhybrid", tag: "Alternative", id: null,
+    why: "Große, sehr leise Limousine mit 2.5-Hybrid – löst bei vielen Betrieben die Mercedes E-Klasse ab. Komfortabel, sparsam, praktisch unkaputtbar. Gebraucht noch selten, aber stark im Kommen." },
+  { name: "Lexus ES / CT Hybrid", drive: "Vollhybrid", tag: "Alternative", id: null,
+    why: "Premium-Hybrid auf Toyota-Basis: Oberklasse-Komfort + Toyota-Haltbarkeit, oft günstiger als ein gleich alter Benz. Der CT ist faktisch ein Edel-Auris-Hybrid." },
+  { name: "Mercedes E-Klasse (W212/W213)", drive: "Diesel / Hybrid", tag: "Klassiker", id: null,
+    why: "Der klassische Taxi-König: langstreckenstark und sehr komfortabel. Aber teurer im Unterhalt und als Diesel für Kurzstrecke + Außenparker (DPF/Versottung) eher ungünstig – Marktanteil sinkt zugunsten der Hybride." },
+  { name: "Škoda Octavia / Superb", drive: "Benzin · Diesel · (mHEV)", tag: "im Vergleich", id: "octavia",
+    why: "Riesiger Laderaum zum Kleinwagenpreis – Liebling preisbewusster Betriebe. Der Octavia steht hier bereits im Vergleich; der Superb ist die größere, noch laufruhigere Stufe darüber." },
+  { name: "VW Touran / Caddy", drive: "Benzin · Diesel", tag: "Alternative", id: null,
+    why: "Wenn 5–7 Sitze plus viel Gepäck zählen (Großraum-Taxi). Robuste Basis, aber die bekannten TSI/DSG-Risiken des Konzerns – Servicehistorie ist hier alles." },
+  { name: "Tesla Model 3 / Model Y", drive: "Elektro", tag: "Alternative", id: null,
+    why: "In Großstädten stark wachsend: sehr niedrige Energiekosten, kaum Verschleiß. Nur sinnvoll mit verlässlicher Lademöglichkeit – für reine Außenparker ohne Wallbox/Lader schwierig." },
+  { name: "Dacia Jogger Hybrid", drive: "Vollhybrid", tag: "Alternative", id: null,
+    why: "Der günstigste 7-Sitzer mit Hybrid – als preiswerte Prius+-Alternative interessant. Einfacheres Niveau und (noch) wenig Langzeit-Taxidaten, aber sparsam und praktisch." },
+];
+
+function TaxiSection({ onPick }) {
+  const tagStyle = (tag) => {
+    const col = tag === "im Vergleich" ? C.eco : tag === "Alternative" ? C.amber : C.dim;
+    return { fontSize: 10, letterSpacing: 0.5, textTransform: "uppercase", color: col,
+      border: `1px solid ${col}66`, borderRadius: 999, padding: "2px 8px", whiteSpace: "nowrap" };
+  };
+  return (
+    <div className="panel" style={{ padding: "16px 16px 14px", marginBottom: 16, borderLeft: `3px solid ${C.amber}` }}>
+      <div className="eyebrow" style={{ marginBottom: 4, color: C.amber }}>Taxi-Perspektive</div>
+      <h2>Was Vielfahrer fahren – und gut versteckte Alternativen</h2>
+      <p style={{ fontSize: 13, color: C.dim, lineHeight: 1.65, margin: "6px 0 14px", maxWidth: 760 }}>
+        Taxis sind der härteste Dauertest für Zuverlässigkeit und Unterhalt: Wer 300.000 km am Stück abspult,
+        kauft nicht nach Gefühl. Auffällig: Vollhybride von Toyota haben der Diesel-Mercedes-E-Klasse den Rang
+        abgelaufen – wegen geringerem Verschleiß (Rekuperation schont die Bremsen) und Sparsamkeit in der Stadt.
+        Für dein Profil (<b style={{ color: C.ink }}>Kurzstrecke, Außenparker</b>) spricht genau das für <b style={{ color: C.ink }}>Hybrid statt Diesel</b>
+        {" "}(kein DPF/Versottungs-Thema) und gegen reines Elektro ohne eigene Lademöglichkeit.
+      </p>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }} className="grid2">
+        {TAXI.map((tx) => {
+          const clickable = !!tx.id;
+          return (
+            <div key={tx.name} onClick={() => clickable && onPick(tx.id)}
+              title={clickable ? "Im Vergleich öffnen/aktivieren" : undefined}
+              style={{
+                background: C.panelHi, borderRadius: 10, padding: "11px 13px",
+                border: `1px solid ${C.line}`, cursor: clickable ? "pointer" : "default",
+              }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 5 }}>
+                <span style={{ fontSize: 13.5, fontWeight: 650, color: C.ink }}>{tx.name}</span>
+                <span style={tagStyle(tx.tag)}>{tx.tag}</span>
+              </div>
+              <div style={{ fontSize: 11, color: C.faint, marginBottom: 5 }}>{tx.drive}</div>
+              <div style={{ fontSize: 12.5, color: C.dim, lineHeight: 1.55 }}>{tx.why}</div>
+              {clickable && <div style={{ fontSize: 11, color: C.eco, marginTop: 6 }}>↳ steht im Vergleich · tippen zum Aktivieren</div>}
+            </div>
+          );
+        })}
+      </div>
+      <div style={{ fontSize: 11, color: C.faint, marginTop: 12, lineHeight: 1.5 }}>
+        <b style={{ color: C.eco }}>Im Vergleich</b> = bereits oben enthalten · <b style={{ color: C.amber }}>Alternative</b> = einen Blick wert, hier (noch) nicht gelistet · <b style={{ color: C.dim }}>Klassiker</b> = traditioneller Taxi-Standard.
+        Quellen u. a. AUTO BILD (Taxifahrer-Ratgeber), taxi-times.de, MOTOR-TALK – Richtwerte, keine Kaufberatung.
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [sel, setSel] = useState(() => new Set(["auris-hyb"]));
   const [w, setW] = useState(() => Object.fromEntries(PRIO.map((p) => [p.key, p.def])));
@@ -1143,6 +1230,9 @@ export default function App() {
 
         {/* ---------- SPRITKOSTEN & ERSPARNIS ---------- */}
         <FuelSavings shown={shown} />
+
+        {/* ---------- TAXI-PERSPEKTIVE ---------- */}
+        <TaxiSection onPick={(id) => { setOpenId(id); if (!sel.has(id)) toggle(id); }} />
 
         {/* ---------- VERGLEICHSTABELLE ---------- */}
         <div className="panel scroll" style={{ padding: 4, marginBottom: 16 }}>
@@ -1623,6 +1713,9 @@ const PROFILE = {
   // Toyota Auris/Corolla TS: kompakter Kombi, leicht gerakte Scheibe, kurzer Hintern.
   "auris-hyb": { foh: .17, roh: .19, cowl: .31, aTop: .46, re: .82, tt: .91, belt: .47 },
   "auris-12t": { foh: .17, roh: .19, cowl: .31, aTop: .46, re: .82, tt: .91, belt: .47 },
+  // Toyota Prius+: kompakter One-Box-Van, lange flache Motorhaube, weit nach vorn gezogene
+  // Windschutzscheibe, hohes aufrechtes Heck (Monocab) – als Van klar erkennbar.
+  "prius-plus": { foh: .16, roh: .14, cowl: .24, aTop: .39, re: .85, tt: .94, hood: .42, nose: .52, belt: .45, roof: .05, rear: "vertical" },
   // Škoda Octavia Combi: langer, aufrechter Kombi, großes Glashaus, fast senkrechtes Heck.
   "octavia":   { foh: .17, roh: .22, cowl: .29, aTop: .43, re: .87, tt: .95, belt: .48, rear: "vertical" },
   // Honda Civic Tourer: sportlicher Kombi, stark gerakte Scheibe, zum Heck abfallendes Dach.
