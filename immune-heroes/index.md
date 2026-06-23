@@ -13,7 +13,8 @@ do and naming the body's organs and their jobs, at roughly a ten-year-old's leve
 A single self-contained HTML file — **no build step, no libraries, no backend**.
 Everything runs in the browser:
 
-- **Speech ↔ speech in real time** via the **OpenAI Realtime API** (`gpt-realtime`),
+- **Speech ↔ speech in real time** via the **OpenAI Realtime API** (default
+  `gpt-realtime-mini` — cheaper; switch to `gpt-realtime` in settings for the richest voice),
   connected straight from the browser over **WebRTC**. Audio flows peer-to-peer with
   OpenAI, so latency is low and Senua can be interrupted mid-sentence.
 - **Microphone** via `getUserMedia`; **Senua's voice** plays through an `<audio>` sink.

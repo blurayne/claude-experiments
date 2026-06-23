@@ -644,7 +644,7 @@ const I18N = {
     btn_reset_prompts: "Reset all to defaults",
     confirm_reset_prompts: "Reset every friend's personality back to the built-in default? Your custom edits will be lost.",
     label_model: "Realtime model",
-    hint_model: "Default: <code>gpt-realtime</code>. For ~3× lower cost use <code>gpt-realtime-mini</code> (a bit simpler, fine for kids).",
+    hint_model: "Default: <code>gpt-realtime-mini</code> (cheaper, fine for kids). For the richest voice use <code>gpt-realtime</code> (~3× the cost).",
     label_vad: "Speech detection",
     hint_vad: "How eagerly the friend jumps in. “Relaxed” lets her finish speaking and won't cut her off on quiet sounds; “Quick” lets the child interrupt her.",
     vad_relaxed: "Relaxed — waits for the child",
@@ -761,7 +761,7 @@ const I18N = {
     btn_reset_prompts: "Alle auf Standard zurücksetzen",
     confirm_reset_prompts: "Die Persönlichkeit aller Freunde auf den eingebauten Standard zurücksetzen? Deine eigenen Änderungen gehen verloren.",
     label_model: "Realtime-Modell",
-    hint_model: "Standard: <code>gpt-realtime</code>. Für ~3× geringere Kosten <code>gpt-realtime-mini</code> nehmen (etwas einfacher, für Kinder völlig okay).",
+    hint_model: "Standard: <code>gpt-realtime-mini</code> (günstiger, für Kinder völlig okay). Für die beste Stimme <code>gpt-realtime</code> (~3× teurer).",
     label_vad: "Spracherkennung",
     hint_vad: "Wie schnell der Freund einsteigt. „Entspannt“ lässt sie ausreden und bricht bei leisen Geräuschen nicht ab; „Flink“ erlaubt dem Kind, sie zu unterbrechen.",
     vad_relaxed: "Entspannt — wartet auf das Kind",
@@ -837,7 +837,7 @@ const LS = { key:"whitehero.openai_key", instr:"whitehero.instructions", model:"
   eleven_key:"whitehero.eleven_key", eleven_agent:"whitehero.eleven_agent", eleven_voice:"whitehero.eleven_voice", eleven_voice_name:"whitehero.eleven_voice_name",
   roster:"whitehero.roster", cost:"whitehero.cost_used", vad:"whitehero.vad", shared:"whitehero.shared", teammode:"whitehero.teammode",
   daily_limit:"whitehero.daily_limit", day_date:"whitehero.day_date", day_cost:"whitehero.day_cost", settings_pw:"whitehero.settings_pw" };
-const DEFAULTS = { model:"gpt-realtime", gemini_model:"gemini-2.0-flash-live-001", vad:"relaxed" };
+const DEFAULTS = { model:"gpt-realtime-mini", gemini_model:"gemini-2.0-flash-live-001", vad:"relaxed" };
 const store = {
   get: (k, d="") => localStorage.getItem(LS[k]) ?? d,
   set: (k, v) => localStorage.setItem(LS[k], v),
