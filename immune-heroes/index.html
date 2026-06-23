@@ -181,6 +181,7 @@
   .talk:active { transform: translateY(5px); box-shadow: 0 2px 0 var(--sun-d), 0 6px 14px rgba(120,0,30,.3); }
   .talk.live { background: var(--stop); color: #fff; box-shadow: 0 7px 0 #d83a3f, 0 12px 22px rgba(120,0,30,.3); }
   .talk[disabled] { opacity: .6; }
+  .talk.disabled { background: #c9c2c6; color: #6b5560; box-shadow: 0 7px 0 #ada6aa, 0 12px 22px rgba(80,60,70,.22); cursor: not-allowed; filter: grayscale(.5); }
   .mini {
     border: none; cursor: pointer; font-family: var(--font); font-weight: 700;
     background: rgba(255,255,255,.85); color: var(--ink); border-radius: 999px;
@@ -609,6 +610,9 @@ const I18N = {
     status_idle: "Tap the button and say hi! 👋",
     talk_idle: "🎤 Tap to talk!",
     talk_live: "⏹ Stop",
+    talk_disabled: "🚫 Disabled",
+    status_disabled: "Talking is switched off. A grown-up can turn it on in ⚙️.",
+    daily_disabled: "disabled — set above 0 to allow talking",
     mic_on: "🔊 Mic on",
     mic_off: "🔇 Mic off",
     who_kid: "You said",
@@ -700,7 +704,7 @@ const I18N = {
     price_info_openai: "OpenAI <code>gpt-realtime</code>: audio ≈ $32 / $64 per 1M tokens in/out (≈ $0.06 / $0.24 per min).",
     price_info_gemini: "Gemini Live: audio ≈ $3 / $12 per 1M tokens in/out — the cheapest here.",
     price_info_elevenlabs: "ElevenLabs: ≈ $0.10 per minute; the agent's LLM (Claude) is billed separately.",
-    label_daily: "Daily spending limit ($)",
+    label_daily: "Daily spending limit ($, 0 = off)",
     hint_daily: "Today: $s of $l. Resets at midnight.",
     daily_unlim: "no limit",
     label_changepw: "Settings password",
@@ -728,6 +732,9 @@ const I18N = {
     status_idle: "Tipp auf den Knopf und sag Hallo! 👋",
     talk_idle: "🎤 Zum Reden tippen!",
     talk_live: "⏹ Stopp",
+    talk_disabled: "🚫 Deaktiviert",
+    status_disabled: "Reden ist ausgeschaltet. Ein Erwachsener kann es in ⚙️ einschalten.",
+    daily_disabled: "deaktiviert — über 0 setzen, um Reden zu erlauben",
     mic_on: "🔊 Mikro an",
     mic_off: "🔇 Mikro aus",
     who_kid: "Du hast gesagt",
@@ -819,7 +826,7 @@ const I18N = {
     price_info_openai: "OpenAI <code>gpt-realtime</code>: Audio ≈ $32 / $64 pro 1 Mio. Tokens (rein/raus) (≈ $0,06 / $0,24 pro Min.).",
     price_info_gemini: "Gemini Live: Audio ≈ $3 / $12 pro 1 Mio. Tokens (rein/raus) — der günstigste hier.",
     price_info_elevenlabs: "ElevenLabs: ≈ $0,10 pro Minute; das LLM des Agenten (Claude) wird separat berechnet.",
-    label_daily: "Tageslimit ($)",
+    label_daily: "Tageslimit ($, 0 = aus)",
     hint_daily: "Heute: $s von $l. Setzt sich um Mitternacht zurück.",
     daily_unlim: "kein Limit",
     label_changepw: "Einstellungs-Passwort",
@@ -968,7 +975,23 @@ function showTimesUp(){
   overScrim.classList.add("show");
   try{ speechSynthesis.cancel(); const ut=new SpeechSynthesisUtterance(overStory.textContent); ut.lang = lang==="de" ? "de-DE" : "en-US"; ut.rate=0.95; ut.pitch=1.12; speechSynthesis.speak(ut); }catch(_){}
 }
-function updateDailyHint(){ if(!dailyHint) return; const lim=dailyLimit(); dailyHint.textContent = t("hint_daily",{ s:fmtCost(dailyCost()), l: lim>0 ? fmtCost(lim) : t("daily_unlim") }); }
+function updateDailyHint(){ if(!dailyHint) return; const lim=dailyLimit(); dailyHint.textContent = lim<=0 ? t("daily_disabled") : t("hint_daily",{ s:fmtCost(dailyCost()), l: fmtCost(lim) }); }
+// daily limit of 0 means "talking is turned off": disable + relabel the start button
+function talkOff(){ return dailyLimit() <= 0; }
+function refreshTalkButton(){
+  if(!talkBtn) return;
+  if(talkOff()){
+    talkBtn.disabled = true;
+    talkBtn.classList.remove("live");
+    talkBtn.classList.add("disabled");
+    talkBtn.innerHTML = t("talk_disabled");
+    if(!connected && !connecting) setStatus(t("status_disabled"));
+  } else if(!connected && !connecting){
+    talkBtn.disabled = false;
+    talkBtn.classList.remove("live","disabled");
+    talkBtn.innerHTML = t("talk_idle");
+  }
+}
 
 // ---------- secret memory of recent chats ----------
 function loadMemory(){ try{ return JSON.parse(store.get("memory","[]")) || []; }catch(_){ return []; } }
@@ -1184,6 +1207,7 @@ function applyLang(){
   textBtn.title = showText ? t("text_on") : t("text_off");   // icon-only toggle, text in the tooltip
   textBtn.classList.toggle("off", !showText);
   if(!connected && !connecting){ talkBtn.innerHTML = t("talk_idle"); setStatus(t("status_idle")); }
+  refreshTalkButton();
   if(typeof updateProviderFields==="function" && providerInput) updateProviderFields();
   updateTokenPill(); updateBudgetHint(); updateMemHint(); updateModelPill();
 }
@@ -1379,6 +1403,8 @@ $("saveBtn").onclick=()=>{
   lang = langInput.value;
   applyLang();
   updateTokenPill();
+  refreshTalkButton();
+  if(talkOff() && (connected||connecting)) hangup();
   closeSettings();
   if(connected) sendSessionConfig();
 };
@@ -1878,6 +1904,7 @@ function uiRespDone(usageTotal){ if(typeof usageTotal==="number") addUsage(usage
 
 // ---------- connect / hangup ----------
 async function connect(){
+  if(talkOff()){ refreshTalkButton(); return; }
   if(dailyLimitReached()){ showTimesUp(); return; }
   const p = curProvider();
   if(!providerKeyPresent(p)){ gateSettings(); return; }
@@ -2013,6 +2040,7 @@ function onConnected(){
 function hangup(){
   cleanup(); connected=false; connecting=false;
   talkBtn.classList.remove("live"); talkBtn.innerHTML=t("talk_idle"); talkBtn.disabled=false;
+  refreshTalkButton();
   muteBtn.hidden=true; muted=false; setMuteVisual();
   liveText=""; setStatus(t("bye"));
   stopAnim();
@@ -2126,6 +2154,7 @@ startAnim();                                  // heartbeat ambience runs from th
 window.addEventListener("resize", ()=>{ sizeWave(); measureHero(); centerActiveFriend(); });
 window.addEventListener("orientationchange", ()=>{ setTimeout(()=>{ sizeWave(); measureHero(); centerActiveFriend(); }, 200); });
 sayEl.style.display="none";   // the old caption bubble is retired; transcript shows in the status line
+refreshTalkButton();
 if(!providerKeyPresent()) gateSettings();
 </script>
 </body>
