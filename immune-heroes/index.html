@@ -193,6 +193,13 @@
   /* ---- grown-ups modal ---- */
   .scrim { position: fixed; inset: 0; background: rgba(40,8,20,.55); display: none; align-items: center; justify-content: center; padding: 18px; z-index: 60; backdrop-filter: blur(3px); }
   .scrim.show { display: flex; }
+  #pwScrim, #overScrim { z-index: 70; }
+  .pwmodal { max-width: 380px; }
+  .pwerr { color: #b3231f; font-weight: 700; min-height: 1.1em; }
+  .overmodal { max-width: 430px; text-align: center; }
+  .overmodal .overEmoji { font-size: 52px; line-height: 1; margin-bottom: 6px; }
+  .overmodal h2 { font-size: 22px; }
+  .overmodal .lead { font-size: 15.5px; line-height: 1.5; color: #4a3640; }
   .modal { background: #fff; border-radius: 22px; width: 100%; max-width: 470px; padding: 24px; box-shadow: 0 20px 60px rgba(80,0,30,.4); max-height: 92dvh; overflow-y: auto; font-family: system-ui, sans-serif; }
   .modal h2 { margin: 0 0 4px; font-size: 20px; }
   .modal .lead { margin: 0 0 16px; color: #6b5560; font-size: 14px; }
@@ -422,6 +429,12 @@
       </div>
 
       <div class="field">
+        <label for="dailyLimitInput" data-i18n="label_daily">Daily spending limit ($)</label>
+        <input id="dailyLimitInput" type="number" min="0" step="0.10" inputmode="decimal" placeholder="1.00" />
+        <div class="hint"><span id="dailyHint"></span> <button type="button" class="linklike" id="resetDaily" data-i18n="btn_reset">Reset</button></div>
+      </div>
+
+      <div class="field">
         <label data-i18n="label_memory">Senua's memory</label>
         <div class="hint"><span id="memHint"></span> <button type="button" class="linklike" id="clearMem" data-i18n="btn_clearmem">Clear memory</button></div>
       </div>
@@ -430,6 +443,15 @@
         <label for="modelInput" data-i18n="label_model">Realtime model</label>
         <input id="modelInput" type="text" spellcheck="false" />
         <div class="hint" data-i18n-html="hint_model"></div>
+      </div>
+
+      <div class="field">
+        <label for="newPwInput" data-i18n="label_changepw">Settings password</label>
+        <div class="voicerow">
+          <input id="newPwInput" type="password" autocomplete="off" spellcheck="false" />
+          <button type="button" class="mbtn ghost" id="setPwBtn" data-i18n="btn_setpw">Set</button>
+        </div>
+        <div class="hint"><span id="pwChangedHint" data-i18n="hint_changepw"></span></div>
       </div>
 
       <div class="row">
@@ -451,6 +473,33 @@
   </div>
 
   <audio id="sink" autoplay></audio>
+
+  <!-- Password gate for the grown-ups settings -->
+  <div class="scrim" id="pwScrim">
+    <div class="modal pwmodal">
+      <h2 id="pwTitle"></h2>
+      <p class="lead" id="pwMsg"></p>
+      <div class="field"><input id="pwInput" type="password" autocomplete="off" spellcheck="false" /></div>
+      <div class="field" id="pwConfirmField"><input id="pwConfirm" type="password" autocomplete="off" spellcheck="false" /></div>
+      <div class="hint pwerr" id="pwErr"></div>
+      <div class="row">
+        <button class="mbtn ghost" id="pwCancel">Cancel</button>
+        <button class="mbtn primary" id="pwOk">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- "Time's up" story shown when the daily budget is used up -->
+  <div class="scrim" id="overScrim">
+    <div class="modal overmodal">
+      <div class="overEmoji">🌙</div>
+      <h2 id="overTitle"></h2>
+      <p class="lead" id="overStory"></p>
+      <div class="row" style="justify-content:center;">
+        <button class="mbtn primary" id="overOk">OK</button>
+      </div>
+    </div>
+  </div>
 
 <script>
 "use strict";
@@ -641,6 +690,27 @@ const I18N = {
     price_info_openai: "OpenAI <code>gpt-realtime</code>: audio ≈ $32 / $64 per 1M tokens in/out (≈ $0.06 / $0.24 per min).",
     price_info_gemini: "Gemini Live: audio ≈ $3 / $12 per 1M tokens in/out — the cheapest here.",
     price_info_elevenlabs: "ElevenLabs: ≈ $0.10 per minute; the agent's LLM (Claude) is billed separately.",
+    label_daily: "Daily spending limit ($)",
+    hint_daily: "Today: $s of $l. Resets at midnight.",
+    daily_unlim: "no limit",
+    label_changepw: "Settings password",
+    hint_changepw: "Change the password that protects this settings dialog.",
+    btn_setpw: "Set",
+    pw_set_title: "Set a grown-up password",
+    pw_set_msg: "Create a password so only grown-ups can open the settings.",
+    pw_enter_title: "Grown-ups only",
+    pw_enter_msg: "Enter the password to open the settings.",
+    pw_ph: "Password",
+    pw_confirm_ph: "Repeat password",
+    pw_ok: "OK",
+    pw_cancel: "Cancel",
+    pw_wrong: "Wrong password — try again.",
+    pw_mismatch: "The two passwords don't match.",
+    pw_short: "Please use at least 4 characters.",
+    pw_changed: "Password updated ✓",
+    over_title: "That's all for today!",
+    over_story: "Phew! $c and all the tiny helper-cells have played so much today — now their break is over and they must hurry back to work inside the body to keep you healthy. Their playtime is used up for today. Come back tomorrow and we'll have lots more to talk about! 👋",
+    over_back: "See you tomorrow 👋",
   },
   de: {
     doc_title: "Immune Heroes — sprich mit deinen Immunsystem-Freunden!",
@@ -737,6 +807,27 @@ const I18N = {
     price_info_openai: "OpenAI <code>gpt-realtime</code>: Audio ≈ $32 / $64 pro 1 Mio. Tokens (rein/raus) (≈ $0,06 / $0,24 pro Min.).",
     price_info_gemini: "Gemini Live: Audio ≈ $3 / $12 pro 1 Mio. Tokens (rein/raus) — der günstigste hier.",
     price_info_elevenlabs: "ElevenLabs: ≈ $0,10 pro Minute; das LLM des Agenten (Claude) wird separat berechnet.",
+    label_daily: "Tageslimit ($)",
+    hint_daily: "Heute: $s von $l. Setzt sich um Mitternacht zurück.",
+    daily_unlim: "kein Limit",
+    label_changepw: "Einstellungs-Passwort",
+    hint_changepw: "Ändere das Passwort, das diesen Einstellungs-Dialog schützt.",
+    btn_setpw: "Setzen",
+    pw_set_title: "Erwachsenen-Passwort festlegen",
+    pw_set_msg: "Lege ein Passwort fest, damit nur Erwachsene die Einstellungen öffnen können.",
+    pw_enter_title: "Nur für Erwachsene",
+    pw_enter_msg: "Gib das Passwort ein, um die Einstellungen zu öffnen.",
+    pw_ph: "Passwort",
+    pw_confirm_ph: "Passwort wiederholen",
+    pw_ok: "OK",
+    pw_cancel: "Abbrechen",
+    pw_wrong: "Falsches Passwort — bitte nochmal.",
+    pw_mismatch: "Die beiden Passwörter stimmen nicht überein.",
+    pw_short: "Bitte mindestens 4 Zeichen verwenden.",
+    pw_changed: "Passwort aktualisiert ✓",
+    over_title: "Das war's für heute!",
+    over_story: "Puh! $c und all die kleinen Helfer-Zellen haben heute so viel gespielt — jetzt ist die Pause vorbei und sie müssen schnell zurück an die Arbeit im Körper, damit du gesund bleibst. Die Spielzeit für heute ist aufgebraucht. Komm morgen wieder, dann haben wir wieder ganz viel zu erzählen! 👋",
+    over_back: "Bis morgen 👋",
   },
 };
 
@@ -744,7 +835,8 @@ const I18N = {
 const LS = { key:"whitehero.openai_key", instr:"whitehero.instructions", model:"whitehero.model", lang:"whitehero.lang", used:"whitehero.tokens_used", budget:"whitehero.token_budget", memory:"whitehero.memory", char:"whitehero.character", text:"whitehero.show_text",
   provider:"whitehero.provider", gemini_key:"whitehero.gemini_key", gemini_model:"whitehero.gemini_model", gemini_apiver:"whitehero.gemini_apiver",
   eleven_key:"whitehero.eleven_key", eleven_agent:"whitehero.eleven_agent", eleven_voice:"whitehero.eleven_voice", eleven_voice_name:"whitehero.eleven_voice_name",
-  roster:"whitehero.roster", cost:"whitehero.cost_used", vad:"whitehero.vad", shared:"whitehero.shared", teammode:"whitehero.teammode" };
+  roster:"whitehero.roster", cost:"whitehero.cost_used", vad:"whitehero.vad", shared:"whitehero.shared", teammode:"whitehero.teammode",
+  daily_limit:"whitehero.daily_limit", day_date:"whitehero.day_date", day_cost:"whitehero.day_cost", settings_pw:"whitehero.settings_pw" };
 const DEFAULTS = { model:"gpt-realtime", gemini_model:"gemini-2.0-flash-live-001", vad:"relaxed" };
 const store = {
   get: (k, d="") => localStorage.getItem(LS[k]) ?? d,
@@ -788,7 +880,22 @@ const PRICING = {
   elevenlabs:  { kind:"minute", perMin:0.10 },
 };
 function addUsage(n){ if(!n) return; tokensUsed += n; store.set("used", String(tokensUsed)); updateTokenPill(); updateBudgetHint(); }
-function addCost(usd){ usd=+usd; if(!usd || usd<0) return; costUsed += usd; store.set("cost", costUsed.toFixed(6)); updateTokenPill(); updateBudgetHint(); }
+function addCost(usd){ usd=+usd; if(!usd || usd<0) return; costUsed += usd; store.set("cost", costUsed.toFixed(6)); addDailyCost(usd); updateTokenPill(); updateBudgetHint(); checkDailyLimit(); }
+
+// ---------- daily spending cap (client-side estimate, resets at local midnight) ----------
+const DAILY_DEFAULT = 1;   // $ per day, changeable in settings
+function todayStr(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function dailyLimit(){ const v=store.get("daily_limit",""); if(v==="") return DAILY_DEFAULT; const n=parseFloat(v); return isNaN(n)?DAILY_DEFAULT:n; }
+function dailyCost(){ if(store.get("day_date","")!==todayStr()){ store.set("day_date",todayStr()); store.set("day_cost","0"); return 0; } return parseFloat(store.get("day_cost","0"))||0; }
+function addDailyCost(usd){ const c=dailyCost()+(+usd||0); store.set("day_cost", c.toFixed(6)); }
+function dailyLimitReached(){ const lim=dailyLimit(); return lim>0 && dailyCost() >= lim; }
+// stop the session (if any) and tell the story that playtime is over
+function checkDailyLimit(){
+  if(!dailyLimitReached()) return false;
+  if(connected||connecting) hangup();
+  showTimesUp();
+  return true;
+}
 
 // cost of one OpenAI Realtime response from its usage object (uses the audio/text split when present)
 function costFromOpenAI(u){
@@ -827,7 +934,7 @@ function accrueGemini(um){
 // ElevenLabs is billed per minute (its own LLM/Claude billed separately) → meter the connected time
 let elevenStart=0, elevenTick=null;
 function elevenMinutes(){ return elevenStart ? (Date.now()-elevenStart)/60000 : 0; }
-function elevenStartMeter(){ elevenStart=Date.now(); updateTokenPill(); elevenTick=setInterval(updateTokenPill, 3000); }
+function elevenStartMeter(){ elevenStart=Date.now(); updateTokenPill(); elevenTick=setInterval(()=>{ updateTokenPill(); const lim=dailyLimit(); if(lim>0 && dailyCost()+elevenMinutes()*PRICING.elevenlabs.perMin >= lim){ elevenCommit(); checkDailyLimit(); } }, 3000); }
 function elevenCommit(){ if(elevenStart){ const c=elevenMinutes()*PRICING.elevenlabs.perMin; elevenStart=0; addCost(c); } if(elevenTick){ clearInterval(elevenTick); elevenTick=null; } }
 
 function updateTokenPill(){
@@ -836,9 +943,20 @@ function updateTokenPill(){
   let cost = costUsed;
   if(curProvider()==="elevenlabs") cost += elevenMinutes()*PRICING.elevenlabs.perMin;
   tokenPill.textContent = "≈ " + fmtCost(cost);   // pricing only — no token counts
-  tokenPill.classList.remove("low");
-  tokenPill.title = t("cost_used_title");
+  const lim = dailyLimit();
+  tokenPill.classList.toggle("low", lim>0 && dailyCost() >= lim*0.85);
+  tokenPill.title = t("cost_used_title") + (lim>0 ? "  ·  " + t("hint_daily",{ s:fmtCost(dailyCost()), l:fmtCost(lim) }) : "");
 }
+// the active "cell" tells the kids that playtime is over and they must go back to work
+function showTimesUp(){
+  if(!overScrim || overScrim.classList.contains("show")) return;
+  overTitle.textContent = t("over_title");
+  overStory.textContent = t("over_story",{ c: charName(currentChar()) });
+  overOk.textContent = t("over_back");
+  overScrim.classList.add("show");
+  try{ speechSynthesis.cancel(); const ut=new SpeechSynthesisUtterance(overStory.textContent); ut.lang = lang==="de" ? "de-DE" : "en-US"; ut.rate=0.95; ut.pitch=1.12; speechSynthesis.speak(ut); }catch(_){}
+}
+function updateDailyHint(){ if(!dailyHint) return; const lim=dailyLimit(); dailyHint.textContent = t("hint_daily",{ s:fmtCost(dailyCost()), l: lim>0 ? fmtCost(lim) : t("daily_unlim") }); }
 
 // ---------- secret memory of recent chats ----------
 function loadMemory(){ try{ return JSON.parse(store.get("memory","[]")) || []; }catch(_){ return []; } }
@@ -874,6 +992,9 @@ function setMuteVisual(){ muteBtn.textContent = muted ? "🔇" : "🔊"; muteBtn
 const sayEl=$("say"), sayWho=$("sayWho"), sayText=$("sayText");
 const scrim=$("scrim"), keyInput=$("keyInput"), instrInput=$("instrInput"), instrLabel=$("instrLabel"), modelInput=$("modelInput"), vadInput=$("vadInput"), langInput=$("langInput"), sharedInput=$("sharedInput");
 const budgetInput=$("budgetInput"), budgetHint=$("budgetHint"), memHint=$("memHint"), tokenPill=$("tokenPill"), modelPill=$("modelPill");
+const dailyLimitInput=$("dailyLimitInput"), dailyHint=$("dailyHint"), newPwInput=$("newPwInput"), pwChangedHint=$("pwChangedHint");
+const pwScrim=$("pwScrim"), pwInput=$("pwInput"), pwConfirm=$("pwConfirm"), pwConfirmField=$("pwConfirmField"), pwTitle=$("pwTitle"), pwMsg=$("pwMsg"), pwErr=$("pwErr"), pwOk=$("pwOk"), pwCancel=$("pwCancel");
+const overScrim=$("overScrim"), overTitle=$("overTitle"), overStory=$("overStory"), overOk=$("overOk");
 const textBtn=$("textBtn"), friendsEl=$("friends"), friendsLabel=$("friendsLabel");
 const teamBtn=$("teamBtn"), teamLayer=$("teamLayer");
 const providerInput=$("providerInput"), geminiKey=$("geminiKey"), geminiModel=$("geminiModel");
@@ -1185,14 +1306,17 @@ function openSettings(){
   instrInput.value = charInstr(currentChar());
   refreshSharedRules();
   budgetInput.value = tokenBudget() ? String(tokenBudget()) : "";
-  updateBudgetHint(); updateMemHint();
+  dailyLimitInput.value = String(dailyLimit());
+  if(newPwInput) newPwInput.value = "";
+  if(pwChangedHint) pwChangedHint.textContent = t("hint_changepw");
+  updateBudgetHint(); updateMemHint(); updateDailyHint();
   refreshModalHead();
   scrim.classList.add("show");
 }
 providerInput.onchange = updateProviderFields;
 vadInput.onchange = ()=>{ store.set("vad", vadInput.value); if(connected && curProvider()==="openai") sendSessionConfig(); };
 function closeSettings(){ scrim.classList.remove("show"); }
-$("settingsBtn").onclick=()=>openSettings();
+$("settingsBtn").onclick=()=>gateSettings();
 
 // switching language in the modal previews + persists it immediately
 langInput.onchange=()=>{
@@ -1237,12 +1361,67 @@ $("saveBtn").onclick=()=>{
   setOrDel("eleven_agent", elevenAgent.value);
   const b = parseInt(budgetInput.value,10) || 0;
   if(b>0) store.set("budget", String(b)); else store.del("budget");
+  const dlRaw = dailyLimitInput.value.trim();
+  const dl = parseFloat(dlRaw);
+  if(dlRaw==="" || isNaN(dl) || dl<0) store.del("daily_limit"); else store.set("daily_limit", String(dl));
   lang = langInput.value;
   applyLang();
   updateTokenPill();
   closeSettings();
   if(connected) sendSessionConfig();
 };
+// change the grown-ups password from inside the settings dialog
+if($("setPwBtn")) $("setPwBtn").onclick = async ()=>{
+  const v = newPwInput.value.trim();
+  if(v.length<4){ pwChangedHint.textContent = t("pw_short"); return; }
+  store.set("settings_pw", await sha256hex(v));
+  newPwInput.value = "";
+  pwChangedHint.textContent = t("pw_changed");
+};
+if($("resetDaily")) $("resetDaily").onclick = ()=>{ store.set("day_date", todayStr()); store.set("day_cost","0"); updateDailyHint(); updateTokenPill(); };
+
+// ---------- password gate for the grown-ups settings ----------
+async function sha256hex(s){
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+function hasPassword(){ return !!store.get("settings_pw"); }
+let pwResolve=null, pwMode="enter";
+function openPw(mode){
+  pwMode=mode; pwErr.textContent=""; pwInput.value=""; pwConfirm.value="";
+  pwConfirmField.style.display = mode==="create" ? "" : "none";
+  pwTitle.textContent = t(mode==="create" ? "pw_set_title" : "pw_enter_title");
+  pwMsg.textContent   = t(mode==="create" ? "pw_set_msg"   : "pw_enter_msg");
+  pwInput.placeholder = t("pw_ph"); pwConfirm.placeholder = t("pw_confirm_ph");
+  pwOk.textContent = t("pw_ok"); pwCancel.textContent = t("pw_cancel");
+  pwScrim.classList.add("show"); setTimeout(()=>pwInput.focus(), 60);
+  return new Promise(res=>{ pwResolve=res; });
+}
+function closePw(ok){ pwScrim.classList.remove("show"); const r=pwResolve; pwResolve=null; if(r) r(ok); }
+async function pwSubmit(){
+  const v = pwInput.value;
+  if(pwMode==="create"){
+    if(v.length<4){ pwErr.textContent=t("pw_short"); return; }
+    if(v!==pwConfirm.value){ pwErr.textContent=t("pw_mismatch"); return; }
+    store.set("settings_pw", await sha256hex(v));
+    closePw(true);
+  } else {
+    if(await sha256hex(v) === store.get("settings_pw")) closePw(true);
+    else { pwErr.textContent=t("pw_wrong"); pwInput.value=""; pwInput.focus(); }
+  }
+}
+pwOk.onclick = pwSubmit;
+pwCancel.onclick = ()=>closePw(false);
+pwScrim.onclick = (e)=>{ if(e.target===pwScrim) closePw(false); };
+pwInput.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); pwSubmit(); } });
+pwConfirm.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); pwSubmit(); } });
+// if no password yet → prompt to create one (then open settings); otherwise verify first
+async function gateSettings(){
+  const ok = await openPw(hasPassword() ? "enter" : "create");
+  if(ok) openSettings();
+}
+overOk.onclick = ()=>{ overScrim.classList.remove("show"); try{ speechSynthesis.cancel(); }catch(_){} };
+overScrim.onclick = (e)=>{ if(e.target===overScrim){ overScrim.classList.remove("show"); try{ speechSynthesis.cancel(); }catch(_){} } };
 $("forgetBtn").onclick=()=>{
   store.del("key"); store.del("gemini_key"); store.del("eleven_key");
   keyInput.value=""; geminiKey.value=""; elevenKey.value="";
@@ -1330,8 +1509,8 @@ $("resetPrompts").onclick=()=>{
   if(sharedInput) sharedInput.value = SHARED[langInput.value]||SHARED.en;
   if(connected) sendSessionConfig();                            // apply to a live session
 };
-tokenPill.onclick=()=>openSettings();
-if(modelPill) modelPill.onclick=()=>openSettings();
+tokenPill.onclick=()=>gateSettings();
+if(modelPill) modelPill.onclick=()=>gateSettings();
 // label of the model in use (top-right, next to the cost)
 function currentModelLabel(){
   const p=curProvider();
@@ -1687,8 +1866,9 @@ function uiRespDone(usageTotal){ if(typeof usageTotal==="number") addUsage(usage
 
 // ---------- connect / hangup ----------
 async function connect(){
+  if(dailyLimitReached()){ showTimesUp(); return; }
   const p = curProvider();
-  if(!providerKeyPresent(p)){ openSettings(); return; }
+  if(!providerKeyPresent(p)){ gateSettings(); return; }
   if(connecting||connected) return;
   hideError(); connecting=true; talkBtn.disabled=true; setStatus(t("waking"));
   try{
@@ -1934,7 +2114,7 @@ startAnim();                                  // heartbeat ambience runs from th
 window.addEventListener("resize", ()=>{ sizeWave(); measureHero(); centerActiveFriend(); });
 window.addEventListener("orientationchange", ()=>{ setTimeout(()=>{ sizeWave(); measureHero(); centerActiveFriend(); }, 200); });
 sayEl.style.display="none";   // the old caption bubble is retired; transcript shows in the status line
-if(!providerKeyPresent()) openSettings();
+if(!providerKeyPresent()) gateSettings();
 </script>
 </body>
 </html>

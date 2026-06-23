@@ -45,6 +45,15 @@ Everything runs in the browser:
   (audio-token rates for OpenAI/Gemini; ElevenLabs is metered **per minute** of connected
   time, so it shows `⏱ minutes · ~$`). Settings shows the per-provider rate card and which
   API is cheapest. Estimates only — not a bill.
+- **Daily spending limit** (default **$1/day**, changeable in settings): the app tracks the
+  estimated spend per local day in `localStorage`. When the day's budget is used up, any
+  live session ends and the active "cell" tells the child — in character, read aloud via the
+  browser's free speech synthesis — that playtime is over and the little helper-cells must go
+  back to work inside the body; come back tomorrow. The counter resets at local midnight.
+- **Password-protected settings**: the grown-ups panel is gated. On first use you're asked to
+  **set a password** (which then opens settings straight away); afterwards you're prompted for
+  it before the dialog opens. The password is stored only as a SHA-256 hash on the device, and
+  can be changed inside settings.
 - **Secret memory**: the last ~10 exchanges are summarised into a short, private note in
   `localStorage` and quietly injected into the system prompt on the next start, so the
   friends can pick up where you left off. Clear it any time in settings.
