@@ -11,8 +11,9 @@ usually done in 3D DCC tools (Blender), since that was a starting reference.
 ## 1. Modelling the vascular network (geometry)
 
 The picture you see is not hand-drawn — a directed graph of vessel segments is
-**grown procedurally** every time you press *New bed*. Two generators are
-provided and are switchable in the UI (**Vessel generator**).
+**grown procedurally** every time you press *New bed*. **Four** generators are
+switchable in the UI (**Vessel generator**), each a different real algorithm for
+growing branching networks.
 
 ### 1a. Space colonisation (default)
 
@@ -40,6 +41,22 @@ angles with random jitter, recursing until a minimum length. This is the family
 of approaches used by Blender's **Sapling Tree Gen** add-on and by L-systems —
 more tree-like and less space-filling than colonisation, which is exactly why
 it's offered as a contrast.
+
+### 1b-ii. Diffusion-limited aggregation (DLA)
+
+Random walkers are released near the structure and **stick** on contact, building a
+fractal, frost-like arbor — the classic *diffusion-limited aggregation* model
+(Witten & Sander). To keep it fast it uses the standard trick of spawning each
+walker just off a random existing node and abandoning walkers that stray too far,
+rather than launching them from infinity.
+
+### 1b-iii. Constrained Constructive Optimization (CCO)
+
+The method most associated with realistic vascular trees in the literature
+(Schreiner & Buxbaum): terminals are added one at a time, each connected to the
+**nearest existing segment**, stepping toward the new site. The implementation
+here is a simplified CCO (nearest-node attachment without the full geometric
+volume optimisation), which still yields dense, naturally space-filling arbors.
 
 ### 1c. Vessel calibre — Murray's law
 
@@ -93,8 +110,17 @@ arterioles → capillary → venule → venous root, then recycled):
 
 ## 3. Shading algorithms (switchable)
 
-The renderer is switchable (**Render algorithm**). One path is Canvas 2D; the
-rest are WebGL2 fragment shaders. Research starting points are linked below.
+Rendering is split into a **Backend** switch and a **Shading** switch:
+
+- **Backend** — *Canvas 2D*, *WebGL2*, or *WebGPU*. Canvas 2D is the analytic
+  fallback that works everywhere; WebGL2 and WebGPU draw the same SDF capsule
+  impostors (GLSL vs WGSL) and share the four lighting models below. WebGPU
+  requires a WebGPU-capable browser; if unavailable the app falls back to WebGL2
+  automatically.
+- **Shading** (GPU backends) — *Lit tubes* (Blinn–Phong), *Subsurface*, *Toon* or
+  *X-ray*.
+
+Research starting points are linked below.
 
 ### 3a. Stylized — Canvas 2D analytic tubes
 
@@ -161,7 +187,26 @@ by the carried oxygenation value (and made to glow in X-ray mode).
 
 ---
 
-## 4. Interaction & performance
+## 4. Tweakable parameters
+
+The panel exposes live controls. **Tree-shape** sliders rebuild the bed:
+
+- **Branching density** — attractor / node budget and branch spacing.
+- **Vessel length** — segment / limb length.
+- **Curviness** — how much each limb wanders.
+- **Taper (Murray exp)** — the exponent in Murray's law (lower = downstream
+  vessels stay relatively thick; higher = trunks dominate).
+
+**Appearance** sliders apply instantly (no rebuild) via shader/draw uniforms:
+
+- **Calibre** — overall vessel thickness multiplier.
+- **Wall thickness** — darkened wall band near the silhouette.
+- **Gloss** — specular intensity.
+
+Plus **Flow** (heart rate, flow speed, cell density) and **Show** toggles
+(walls, tissue, cells, anatomy labels).
+
+## 5. Interaction & performance
 
 - **Zoom / pan** via a single world→screen transform (wheel, drag, pinch,
   buttons, double-click), with a live microscope **scale bar** and magnification.
@@ -178,6 +223,9 @@ by the carried oxygenation value (and made to glow in X-ray mode).
 ## References
 
 - Runions, Lane, Prusinkiewicz — *Modeling Trees with a Space Colonization Algorithm*
+- Witten & Sander (1981) — *Diffusion-Limited Aggregation*
+- Schreiner & Buxbaum (1993) — *Computer-optimization of vascular trees* (Constrained Constructive Optimization)
+- [WebGPU / WGSL specification](https://www.w3.org/TR/webgpu/)
 - [Blender SE — techniques for modeling a network of blood vessels](https://blender.stackexchange.com/questions/61261/techniques-for-modeling-a-network-of-blood-vessels)
 - [gltut — Lies and Impostors](https://paroj.github.io/gltut/Illumination/Tutorial%2013.html)
 - [hg_sdf — signed distance function library](https://mercury.sexy/hg_sdf/)

@@ -12,20 +12,24 @@ rendered on an HTML canvas with switchable shading algorithms.
 ## What it does
 
 - **Procedurally grown vasculature** — every *New bed* grows a fresh arterial and
-  venous tree and bridges them with capillaries. Two **generators** are
-  switchable: organic *space-colonisation* and a *recursive (Sapling-style)* tree.
+  venous tree and bridges them with capillaries. **Four generators** are
+  switchable: *space-colonisation*, *recursive (Sapling-style)* tree,
+  *DLA* (diffusion-limited aggregation) and *CCO* (constrained constructive
+  optimization).
 - **Realistic arteriole → capillary → venule transition** — vessel calibre tapers
   down to roughly one red-cell width through the capillaries and back up to the
   venule, and the blood **deoxygenates** along the way (bright red → dark maroon).
 - **Pulsatile blood flow** — biconcave red cells (plus leukocytes and platelets)
   flow through the network, faster in big vessels and single-file in capillaries,
   pulsing with an adjustable heartbeat.
-- **Switchable shading algorithms**:
-  - **Stylized** — Canvas 2D analytic banded-cylinder shading (the no-WebGL fallback).
-  - **Lit tubes** — WebGL2 SDF capsule impostors with Blinn–Phong lighting.
-  - **Subsurface** — translucent-blood approximation (thickness glow + Fresnel).
-  - **Toon** — quantised cel shading with outlines.
-  - **X-ray** — additive angiograph glow.
+- **Switchable rendering backend** — *Canvas 2D* (analytic, works everywhere),
+  *WebGL2*, or *WebGPU* (with automatic fallback if WebGPU isn't supported). The
+  GPU backends draw SDF capsule impostors (GLSL / WGSL).
+- **Switchable shading** (GPU backends): **Lit tubes** (Blinn–Phong),
+  **Subsurface** (thickness glow + Fresnel), **Toon** (cel + outline), **X-ray**
+  (additive angiograph).
+- **Tweak sliders** — tree shape (branching density, vessel length, curviness,
+  Murray taper) and appearance (calibre, wall thickness, gloss).
 - **Zoom & pan** — scroll / pinch / buttons / double-click to zoom, drag to pan,
   with a live microscope **scale bar** and magnification readout. Zoom in until
   single red cells squeeze through a capillary.

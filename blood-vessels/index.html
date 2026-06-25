@@ -95,7 +95,7 @@
 </style>
 </head>
 <body>
-<div id="stage"><canvas id="g"></canvas><canvas id="c"></canvas></div>
+<div id="stage"><canvas id="gpu"></canvas><canvas id="g"></canvas><canvas id="c"></canvas></div>
 <div id="loader">culturing vessels…</div>
 
 <div class="ui" id="title">
@@ -120,17 +120,43 @@
   <div class="eyebrow">Vessel generator</div>
   <div class="toggles" id="gens">
     <span class="chip on" data-gen="spacecol" title="Attractor-driven space colonisation (organic, space-filling)">Space-colonisation</span>
-    <span class="chip" data-gen="recursive" title="Recursive dichotomous branching — Sapling / skin-modifier style (Blender techniques)">Recursive tree</span>
+    <span class="chip" data-gen="recursive" title="Recursive dichotomous branching — Sapling / skin-modifier style">Recursive tree</span>
+    <span class="chip" data-gen="dla" title="Diffusion-limited aggregation — fractal, frost-like branching">DLA</span>
+    <span class="chip" data-gen="cco" title="Constrained Constructive Optimization — classic vascular-growth model">CCO</span>
   </div>
 
-  <div class="eyebrow">Render algorithm</div>
-  <div class="toggles" id="modes">
-    <span class="chip" data-m="canvas" title="2D analytic banded cylinder shading (Canvas)">Stylized</span>
-    <span class="chip on" data-m="phong" title="SDF capsule impostors, Blinn–Phong lit cylinders (WebGL)">Lit tubes</span>
-    <span class="chip" data-m="sss" title="Subsurface-scattering blood: thickness glow + Fresnel (WebGL)">Subsurface</span>
-    <span class="chip" data-m="toon" title="Cel shading: quantized bands + outline (WebGL)">Toon</span>
-    <span class="chip" data-m="xray" title="Additive angiograph / x-ray glow (WebGL)">X-ray</span>
+  <div class="eyebrow">Backend</div>
+  <div class="toggles" id="backends">
+    <span class="chip" data-b="canvas2d" title="Canvas 2D — analytic banded-cylinder shading (works everywhere)">Canvas 2D</span>
+    <span class="chip on" data-b="webgl2" title="WebGL2 — SDF capsule impostors">WebGL2</span>
+    <span class="chip" data-b="webgpu" title="WebGPU — same impostors via WGSL (needs a WebGPU browser)">WebGPU</span>
   </div>
+
+  <div class="eyebrow">Shading <span style="text-transform:none;letter-spacing:0">(GPU backends)</span></div>
+  <div class="toggles" id="modes">
+    <span class="chip on" data-m="phong" title="Blinn–Phong lit cylinders">Lit tubes</span>
+    <span class="chip" data-m="sss" title="Subsurface-scattering blood: thickness glow + Fresnel">Subsurface</span>
+    <span class="chip" data-m="toon" title="Cel shading: quantized bands + outline">Toon</span>
+    <span class="chip" data-m="xray" title="Additive angiograph / x-ray glow">X-ray</span>
+  </div>
+
+  <div class="eyebrow">Tree shape <span style="text-transform:none;letter-spacing:0">(rebuilds bed)</span></div>
+  <label class="sl">Branching density <span class="v" id="densv">100%</span>
+    <input type="range" id="dens" min="40" max="200" value="100" step="5"></label>
+  <label class="sl">Vessel length <span class="v" id="lenv">1.0×</span>
+    <input type="range" id="len" min="50" max="200" value="100" step="5"></label>
+  <label class="sl">Curviness <span class="v" id="curlv">1.0×</span>
+    <input type="range" id="curl" min="0" max="250" value="100" step="5"></label>
+  <label class="sl">Taper (Murray exp) <span class="v" id="murrv">3.0</span>
+    <input type="range" id="murr" min="22" max="34" value="30" step="1"></label>
+
+  <div class="eyebrow">Appearance</div>
+  <label class="sl">Calibre <span class="v" id="calv">1.0×</span>
+    <input type="range" id="cal" min="40" max="220" value="100" step="5"></label>
+  <label class="sl">Wall thickness <span class="v" id="wallw">1.0×</span>
+    <input type="range" id="wallt" min="0" max="250" value="100" step="5"></label>
+  <label class="sl">Gloss <span class="v" id="glossv">1.0×</span>
+    <input type="range" id="gloss" min="0" max="200" value="100" step="5"></label>
 
   <div class="eyebrow">Flow</div>
   <label class="sl">Heart rate <span class="v" id="bpmv">72 bpm</span>
@@ -186,12 +212,17 @@
 const cv = document.getElementById('c');
 const ctx = cv.getContext('2d', { alpha:false });
 const glcv = document.getElementById('g');
+const gpucv = document.getElementById('gpu');
 let DPR = Math.min(window.devicePixelRatio||1, 2);
 let VW=0, VH=0; // viewport in CSS px
-let renderMode='phong';   // 'canvas' | 'phong' | 'sss' | 'toon' | 'xray'
+let shadeMode='phong';    // 'phong' | 'sss' | 'toon' | 'xray'  (GPU backends)
 const MODE_UNIFORM={phong:1,sss:2,toon:3,xray:4};
-let genPreset='spacecol'; // 'spacecol' | 'recursive'
+let genPreset='spacecol'; // 'spacecol' | 'recursive' | 'dla' | 'cco'
 let curSeed=20260625;
+let backend='webgl2';     // 'canvas2d' | 'webgl2' | 'webgpu'
+// tree-shape params (regenerate on change) and live appearance params
+const genParams ={ density:1, length:1, curl:1, murray:3 };
+const appear    ={ calibre:1, wall:1, gloss:1 };
 
 // ---- world (micrometres) ----------------------------------------------------
 const WORLD = { w: 3600, h: 2400 };
@@ -273,7 +304,7 @@ function growTree(rng, root, attractors, P){
       let dx=acc.x/acc.n, dy=acc.y/acc.n;
       // smooth against the parent direction so vessels don't kink
       if(node.parent){ dx+=(node.x-node.parent.x)/P.seg*0.55; dy+=(node.y-node.parent.y)/P.seg*0.55; }
-      dx+=(rng()-0.5)*0.32; dy+=(rng()-0.5)*0.32;
+      const cl=P.curl||1; dx+=(rng()-0.5)*0.32*cl; dy+=(rng()-0.5)*0.32*cl;
       const L=Math.hypot(dx,dy)||1;
       const nx=node.x+dx/L*P.seg, ny=node.y+dy/L*P.seg;
       if(nx<-40||ny<-40||nx>WORLD.w+40||ny>WORLD.h+40) continue;
@@ -294,12 +325,13 @@ function growTree(rng, root, attractors, P){
 function growRecursive(rng, root, baseAng, P){
   root.children=[]; root.parent=null; root.depth=0;
   const nodes=[root];
+  const cl=P.curl||1;
   (function grow(node,ang,len,depth){
     if(depth>P.maxDepth || len<P.minLen || nodes.length>P.maxNodes) return;
     let cur=node, a=ang;
     const subs=2;                                  // sub-segments give each limb a gentle curve
     for(let i=0;i<subs;i++){
-      a += (rng()-0.5)*0.28;
+      a += (rng()-0.5)*0.28*cl;
       const nx=cur.x+Math.cos(a)*len/subs, ny=cur.y+Math.sin(a)*len/subs;
       if(nx<-40||ny<-40||nx>WORLD.w+40||ny>WORLD.h+40) return;
       const c={x:nx,y:ny,children:[],parent:cur,depth:depth};
@@ -308,10 +340,70 @@ function growRecursive(rng, root, baseAng, P){
     const n = rng()<P.triProb?3:2;                 // bi- or tri-furcation
     const spread=P.spread*(0.7+rng()*0.6);
     for(let k=0;k<n;k++){
-      const off=(k-(n-1)/2)*spread + (rng()-0.5)*0.22;
+      const off=(k-(n-1)/2)*spread + (rng()-0.5)*0.22*cl;
       grow(cur, a+off, len*P.decay*(0.85+rng()*0.3), depth+1);
     }
   })(root, baseAng, P.len0, 1);
+  return nodes;
+}
+
+// Diffusion-Limited Aggregation — random walkers stick to the growing structure,
+// giving a fractal, frost-like branching. (Biased slightly toward the body so it
+// aggregates in reasonable time.) Same parent→children contract.
+function growDLA(rng, root, P){
+  root.children=[]; root.parent=null; root.depth=0;
+  const nodes=[root]; const grid=new Grid(P.stick*3); grid.add(root);
+  // scatter seed nuclei across the field so the aggregate spans it (not one blob)
+  const seeds=Math.max(6, Math.round(P.maxNodes/90));
+  for(let i=0;i<seeds;i++){
+    const x=lerp(WORLD.w*0.18,WORLD.w*0.96,rng()), y=lerp(WORLD.h*0.08,WORLD.h*0.92,rng());
+    const near=grid.nearest(x,y,1e4)||root;     // chain to nearest → spanning, no radial spokes
+    const c={x,y,children:[],parent:near,depth:near.depth+1};
+    near.children.push(c); nodes.push(c); grid.add(c);
+  }
+  const stick2=P.stick*P.stick; let att=0, maxAtt=P.maxNodes*14;
+  while(nodes.length<P.maxNodes && att<maxAtt){
+    att++;
+    // spawn a walker just off a random existing node (efficient DLA), walk randomly,
+    // stick on contact, abandon if it strays too far.
+    const seed=nodes[(rng()*nodes.length)|0];
+    const a=rng()*TAU; let x=seed.x+Math.cos(a)*P.spawn, y=seed.y+Math.sin(a)*P.spawn;
+    for(let s=0;s<P.steps;s++){
+      const near=grid.nearest(x,y,P.stick*2.5);
+      if(near){
+        const dx=near.x-x, dy=near.y-y, d2=dx*dx+dy*dy, d=Math.sqrt(d2)||1;
+        if(d2<=stick2){
+          const c={x:near.x-dx/d*P.stick, y:near.y-dy/d*P.stick, children:[], parent:near, depth:near.depth+1};
+          near.children.push(c); nodes.push(c); grid.add(c); break;
+        }
+      }
+      x+=(rng()-0.5)*P.step*2; y+=(rng()-0.5)*P.step*2;
+      if(Math.abs(x-seed.x)>P.kill||Math.abs(y-seed.y)>P.kill) break;
+      if(x<0||y<0||x>WORLD.w||y>WORLD.h) break;
+    }
+  }
+  return nodes;
+}
+
+// Constrained Constructive Optimization (simplified) — the classic vascular-growth
+// model (Schreiner & Buxbaum): add terminals one at a time, connecting each to the
+// nearest existing node, stepping toward it. Produces dense, realistic arbors.
+function growCCO(rng, root, P){
+  root.children=[]; root.parent=null; root.depth=0;
+  const first={x:Math.min(WORLD.w*0.20,root.x+P.maxStep), y:root.y+(rng()-0.5)*40, children:[], parent:root, depth:1};
+  root.children.push(first);
+  const nodes=[root,first]; const grid=new Grid(P.maxStep*2); grid.add(root); grid.add(first);
+  let guard=0;
+  while(nodes.length<P.maxNodes && guard++<P.maxNodes*10){
+    const x=lerp(WORLD.w*0.14,WORLD.w*0.99,rng()), y=lerp(WORLD.h*0.05,WORLD.h*0.95,rng());
+    const near=grid.nearest(x,y,P.maxConn);
+    if(!near){ continue; }
+    const dx=x-near.x, dy=y-near.y, d=Math.hypot(dx,dy)||1;
+    if(d<P.minDist) continue;
+    const L=Math.min(d,P.maxStep);
+    const c={x:near.x+dx/d*L, y:near.y+dy/d*L, children:[], parent:near, depth:near.depth+1};
+    near.children.push(c); nodes.push(c); grid.add(c);
+  }
   return nodes;
 }
 
@@ -360,24 +452,28 @@ function buildNetwork(seed, preset){
   const voidsA=[{x:WORLD.w*0.55,y:WORLD.h*0.30,r:230},{x:WORLD.w*0.78,y:WORLD.h*0.72,r:200}];
   const voidsV=[{x:WORLD.w*0.45,y:WORLD.h*0.70,r:230},{x:WORLD.w*0.70,y:WORLD.h*0.28,r:200}];
 
-  // generator chosen by preset: space-colonisation (organic, space-filling) or
-  // recursive dichotomous branching (Sapling/skin-modifier style).
+  // generator chosen by preset, scaled by the tree-shape sliders (genParams)
+  const D=genParams, dens=D.density, len=D.length, curl=D.curl;
   const grow = (root, voids, baseAng) => {
     if(preset==='recursive')
-      growRecursive(rng, root, baseAng, {maxDepth:11,minLen:14,len0:300,decay:0.76,spread:0.52,triProb:0.24,maxNodes:1500});
+      growRecursive(rng, root, baseAng, {maxDepth:11,minLen:14*len,len0:300*len,decay:0.76,spread:0.52,triProb:0.24*dens,curl,maxNodes:1600});
+    else if(preset==='dla')
+      growDLA(rng, root, {stick:14,step:7*len,steps:130,spawn:40,kill:130,maxNodes:Math.round(820*dens)});
+    else if(preset==='cco')
+      growCCO(rng, root, {maxConn:6000,minDist:26/Math.sqrt(dens),maxStep:62*len,maxNodes:Math.round(1150*dens)});
     else
-      growTree(rng, root, cloud(900,voids), {influence:300,kill:46,seg:22,maxIter:600,maxNodes:1300});
+      growTree(rng, root, cloud(Math.round(900*dens),voids), {influence:300,kill:46/Math.sqrt(dens),seg:22*len,maxIter:700,curl,maxNodes:Math.round(1400*dens)});
   };
 
   // ---- arterial tree (flows root -> leaves) ----
   const aRoot={x:-10,y:WORLD.h*0.40};
   grow(aRoot, voidsA, 0.12);
-  assignRadii(aRoot,ART_TIP,3);
+  assignRadii(aRoot,ART_TIP,D.murray);
 
   // ---- venous tree (structurally root->leaves; blood flows leaves->root) ----
   const vRoot={x:-10,y:WORLD.h*0.60};
   grow(vRoot, voidsV, -0.10);
-  assignRadii(vRoot,VEN_TIP,3);
+  assignRadii(vRoot,VEN_TIP,D.murray);
 
   // register nodes + structural edges
   function register(root,type){
@@ -664,26 +760,27 @@ function drawVessels(){
   for(const e of E){
     // cull by transformed bbox
     const ax=sx(e.a.x),ay=sy(e.a.y),bx=sx(e.b.x),by=sy(e.b.y);
-    const pad=e.radius*S+6;
+    const pad=e.radius*S*appear.calibre+6;
     if(Math.max(ax,bx)+pad<vx0||Math.min(ax,bx)-pad>vx1||
        Math.max(ay,by)+pad<vy0||Math.min(ay,by)-pad>vy1) continue;
-    const w=Math.max(0.5, e.radius*2*S);
+    const w=Math.max(0.5, e.radius*2*S*appear.calibre);
     const oxy=((e.oxyA||0)+(e.oxyB||0))*0.5;
     const blood=bloodColAt(oxy);
     const wallC = e.type==='ven'?WALL_V:WALL_A;
+    const wallW = w*0.22*appear.wall;
 
     bgx.beginPath(); bgx.moveTo(ax,ay); bgx.lineTo(bx,by);
 
     // 1) soft shadow / ambient occlusion onto the tissue
     if(w>2){ bgx.lineWidth=w+Math.max(2,w*0.5); bgx.strokeStyle='rgba(0,0,0,0.22)'; bgx.stroke(); }
     // 2) wall
-    if(show.wall && w>1.4){ bgx.lineWidth=w+Math.max(1.4,w*0.22); bgx.strokeStyle=rgb(wallC); bgx.stroke(); }
+    if(show.wall && w>1.4 && appear.wall>0){ bgx.lineWidth=w+Math.max(1.4,wallW); bgx.strokeStyle=rgb(wallC); bgx.stroke(); }
     // 3) blood lumen
     bgx.lineWidth=w; bgx.strokeStyle=rgb(mix(blood,[0,0,0],0.18)); bgx.stroke();
     // 4) bright core (cylindrical shading)
     if(w>2.2){ bgx.lineWidth=w*0.62; bgx.strokeStyle=rgba(mix(blood,[255,235,235],0.30),0.9); bgx.stroke(); }
     // 5) glossy sheen
-    if(w>4){ bgx.lineWidth=Math.max(1,w*0.20); bgx.strokeStyle='rgba(255,225,225,0.5)'; bgx.stroke(); }
+    if(w>4 && appear.gloss>0){ bgx.lineWidth=Math.max(1,w*0.20); bgx.strokeStyle=rgba([255,225,225],Math.min(1,0.5*appear.gloss)); bgx.stroke(); }
   }
 }
 
@@ -719,11 +816,15 @@ function frame(now){
 
   updateCells(dt,pulse);
 
-  if(renderMode==='canvas' || !GL){
+  const eff=effectiveBackend();
+  if(eff==='canvas2d'){
     if(staticDirty) drawStatic();
     ctx.setTransform(DPR,0,0,DPR,0,0);
     ctx.drawImage(bg,0,0,VW,VH);
     if(show.cells) drawCellsCanvas();
+  }else if(eff==='webgpu'){
+    try{ gpuRender(MODE_UNIFORM[shadeMode]||1); }
+    catch(err){ console.error('WebGPU render failed, falling back to WebGL2:',err); GPU=null; applyBackend(); }
   }else{
     glRender(pulse);
   }
@@ -818,7 +919,8 @@ function drawScaleBar(){
 function resize(){
   DPR=Math.min(window.devicePixelRatio||1,2);
   VW=window.innerWidth; VH=window.innerHeight;
-  for(const cnv of [cv,bg,glcv]){ cnv.width=VW*DPR; cnv.height=VH*DPR; cnv.style.width=VW+'px'; cnv.style.height=VH+'px'; }
+  for(const cnv of [cv,bg,glcv,gpucv]){ cnv.width=VW*DPR; cnv.height=VH*DPR; cnv.style.width=VW+'px'; cnv.style.height=VH+'px'; }
+  if(GPU&&GPU.ready&&GPU.configure) GPU.configure();
   staticDirty=true;
 }
 window.addEventListener('resize',resize);
@@ -899,13 +1001,36 @@ document.querySelectorAll('.chip[data-t]').forEach(ch=>{
   ch.onclick=()=>{ const t=ch.dataset.t; show[t]=!show[t]; ch.classList.toggle('on',show[t]); staticDirty=true; };
 });
 document.querySelectorAll('.chip[data-m]').forEach(ch=>{
-  ch.onclick=()=>{ if(!GL && ch.dataset.m!=='canvas') return; renderMode=ch.dataset.m; applyMode(); };
+  ch.onclick=()=>{ shadeMode=ch.dataset.m; applyBackend(); };
+});
+document.querySelectorAll('.chip[data-b]').forEach(ch=>{
+  ch.onclick=async()=>{ const want=ch.dataset.b;
+    if(want==='webgpu'){
+      if(!GPU){ ch.textContent='WebGPU…'; try{ GPU=await initWebGPU(); }catch(err){ console.error('WebGPU init failed:',err); GPU={ready:false,failed:true}; } ch.textContent='WebGPU'; }
+      if(!GPU||!GPU.ready){ ch.textContent='WebGPU ✗'; ch.title='WebGPU not available in this browser'; backend='webgpu'; applyBackend(); return; }
+    }
+    if(want==='webgl2' && !GL){ return; }
+    backend=want; applyBackend();
+  };
 });
 document.querySelectorAll('.chip[data-gen]').forEach(ch=>{
   ch.onclick=()=>{ genPreset=ch.dataset.gen;
     document.querySelectorAll('#gens .chip').forEach(x=>x.classList.toggle('on',x.dataset.gen===genPreset));
     regenerate(curSeed); };
 });
+
+// tree-shape sliders (rebuild the bed on release) + live appearance sliders
+const sl=(id,vid,fmt,fn,live)=>{ const el=document.getElementById(id), v=document.getElementById(vid);
+  const upd=()=>{ v.textContent=fmt(+el.value); };
+  el.oninput=()=>{ upd(); if(live) fn(+el.value); };
+  el.onchange=()=>{ upd(); if(!live) fn(+el.value); }; upd(); };
+sl('dens','densv', x=>x+'%',     x=>{ genParams.density=x/100; regenerate(curSeed); }, false);
+sl('len','lenv',   x=>(x/100).toFixed(2)+'×', x=>{ genParams.length=x/100; regenerate(curSeed); }, false);
+sl('curl','curlv', x=>(x/100).toFixed(2)+'×', x=>{ genParams.curl=x/100; regenerate(curSeed); }, false);
+sl('murr','murrv', x=>(x/10).toFixed(1),      x=>{ genParams.murray=x/10; regenerate(curSeed); }, false);
+sl('cal','calv',   x=>(x/100).toFixed(2)+'×', x=>{ appear.calibre=x/100; staticDirty=true; }, true);
+sl('wallt','wallw',x=>(x/100).toFixed(2)+'×', x=>{ appear.wall=x/100; staticDirty=true; }, true);
+sl('gloss','glossv',x=>(x/100).toFixed(2)+'×',x=>{ appear.gloss=x/100; staticDirty=true; }, true);
 
 document.addEventListener('keydown',(e)=>{
   if(e.key==='+'||e.key==='=') zoomAt(VW/2,VH/2,1.4);
@@ -958,12 +1083,12 @@ const VESS_VS=VS_HEAD+`
 layout(location=0) in vec2 corner;
 layout(location=1) in vec4 iAB;
 layout(location=2) in vec4 iPar;   // rA,rB,oxy,type
-uniform vec2 uCam; uniform float uScale; uniform vec2 uRes;
+uniform vec2 uCam; uniform float uScale; uniform vec2 uRes; uniform float uRad;
 out vec2 vP; out vec4 vAB; out vec4 vPar;
 void main(){
   vec2 A=iAB.xy,B=iAB.zw; vec2 ax=B-A; float L=length(ax);
   vec2 d=L>1e-4?ax/L:vec2(1.0,0.0); vec2 pp=vec2(-d.y,d.x);
-  float maxR=max(iPar.x,iPar.y)+2.0/uScale;
+  float maxR=max(iPar.x,iPar.y)*uRad+2.0/uScale;
   vec2 c=(A+B)*0.5;
   vec2 world=c+d*((L*0.5+maxR)*corner.x)+pp*(maxR*corner.y);
   vP=world; vAB=iAB; vPar=iPar;
@@ -973,7 +1098,7 @@ void main(){
 
 const VESS_FS=FS_HEAD+`
 in vec2 vP; in vec4 vAB; in vec4 vPar;
-uniform float uScale; uniform int uMode;
+uniform float uScale; uniform int uMode; uniform float uRad; uniform float uWall; uniform float uGloss;
 out vec4 o;
 const vec3 OXY=vec3(0.91,0.275,0.31);
 const vec3 DEO=vec3(0.47,0.15,0.25);
@@ -981,7 +1106,7 @@ void main(){
   vec2 A=vAB.xy,B=vAB.zw; vec2 ax=B-A; float L2=dot(ax,ax);
   float t=L2>1e-6?clamp(dot(vP-A,ax)/L2,0.0,1.0):0.0;
   vec2 proj=A+ax*t; vec2 rel=vP-proj; float dist=length(rel);
-  float rr=mix(vPar.x,vPar.y,t);
+  float rr=mix(vPar.x,vPar.y,t)*uRad;
   float aa=1.0/uScale; float sd=dist-rr;
   if(sd>aa) discard;
   float cov=clamp(smoothstep(aa,-aa,sd),0.0,1.0);
@@ -992,7 +1117,7 @@ void main(){
   vec3 Ld=normalize(vec3(-0.45,-0.55,0.72)); vec3 V=vec3(0.0,0.0,1.0);
   float oxy=vPar.z; vec3 blood=mix(DEO,OXY,oxy);
   float diff=max(dot(N,Ld),0.0);
-  vec3 H=normalize(Ld+V); float spec=pow(max(dot(N,H),0.0),28.0);
+  vec3 H=normalize(Ld+V); float spec=pow(max(dot(N,H),0.0),28.0)*clamp(uGloss,0.0,3.0);
   float rim=pow(1.0-hgt,2.5);
   vec3 col;
   if(uMode==1){
@@ -1013,6 +1138,8 @@ void main(){
     float core=smoothstep(1.0,0.0,abs(nperp));
     col=mix(vec3(0.10,0.0,0.03),blood*1.5,core)+blood*pow(hgt,2.0)*0.7;
   }
+  // "wall thickness": darken a band near the silhouette like a vessel wall
+  col *= 1.0 - smoothstep(0.45,1.0,1.0-hgt)*0.45*clamp(uWall,0.0,2.5);
   o=vec4(col*cov,cov);
 }`;
 
@@ -1089,6 +1216,8 @@ function initGL(){
   for(const k in P){ const pr=P[k].p;
     P[k].u={uCam:gl.getUniformLocation(pr,'uCam'),uScale:gl.getUniformLocation(pr,'uScale'),
             uRes:gl.getUniformLocation(pr,'uRes'),uMode:gl.getUniformLocation(pr,'uMode')}; }
+  const vu=P.vess.u, vp=P.vess.p;
+  vu.uRad=gl.getUniformLocation(vp,'uRad'); vu.uWall=gl.getUniformLocation(vp,'uWall'); vu.uGloss=gl.getUniformLocation(vp,'uGloss');
 
   // VAOs
   const vaoT=gl.createVertexArray(); gl.bindVertexArray(vaoT);
@@ -1128,7 +1257,7 @@ function uploadVessels(){
 }
 
 function glRender(pulse){
-  const gl=GL.gl, mode=MODE_UNIFORM[renderMode]||1;
+  const gl=GL.gl, mode=MODE_UNIFORM[shadeMode]||1;
   gl.viewport(0,0,glcv.width,glcv.height);
   gl.disable(gl.DEPTH_TEST);
   if(mode===4){ gl.clearColor(0.01,0.0,0.02,1); } else { gl.clearColor(0.07,0.02,0.03,1); }
@@ -1150,6 +1279,9 @@ function glRender(pulse){
   // vessels
   if(GL.vessCount){
     gl.useProgram(GL.P.vess.p); setU(GL.P.vess.u);
+    gl.uniform1f(GL.P.vess.u.uRad,appear.calibre);
+    gl.uniform1f(GL.P.vess.u.uWall,appear.wall);
+    gl.uniform1f(GL.P.vess.u.uGloss,appear.gloss);
     gl.bindVertexArray(GL.vaoV);
     gl.drawArraysInstanced(gl.TRIANGLE_STRIP,0,4,GL.vessCount);
   }
@@ -1178,13 +1310,220 @@ function glRender(pulse){
   gl.bindVertexArray(null);
 }
 
-function applyMode(){
-  const gl=!!GL;
-  const isCanvas = renderMode==='canvas' || !gl;
-  cv.classList.toggle('hidden', !isCanvas);
-  glcv.classList.toggle('hidden', isCanvas);
-  document.querySelectorAll('#modes .chip').forEach(ch=>ch.classList.toggle('on',ch.dataset.m===renderMode));
-  if(isCanvas) staticDirty=true;
+// resolve requested backend against what's actually available
+function effectiveBackend(){
+  if(backend==='webgpu') return (GPU&&GPU.ready)?'webgpu':(GL?'webgl2':'canvas2d');
+  if(backend==='webgl2') return GL?'webgl2':'canvas2d';
+  return 'canvas2d';
+}
+function applyBackend(){
+  const eff=effectiveBackend();
+  cv.classList.toggle('hidden', eff!=='canvas2d');
+  glcv.classList.toggle('hidden', eff!=='webgl2');
+  gpucv.classList.toggle('hidden', eff!=='webgpu');
+  document.querySelectorAll('#backends .chip').forEach(ch=>ch.classList.toggle('on',ch.dataset.b===backend));
+  document.querySelectorAll('#modes .chip').forEach(ch=>ch.classList.toggle('on',ch.dataset.m===shadeMode));
+  if(eff==='canvas2d') staticDirty=true;
+}
+
+// ============================================================================
+//  WEBGPU RENDERER  —  same SDF-capsule impostors + biconcave cells in WGSL.
+//  Mirrors the WebGL2 path; selectable shading via the uniform `mode`. Falls
+//  back automatically if WebGPU / a device / valid pipelines aren't available.
+// ============================================================================
+let GPU=null;
+const WGSL=`
+struct U { cam:vec2f, scale:f32, rad:f32, res:vec2f, wall:f32, gloss:f32, mode:f32, p0:f32, p1:f32, p2:f32 };
+@group(0) @binding(0) var<uniform> u: U;
+const OXY=vec3f(0.91,0.275,0.31);
+const DEO=vec3f(0.47,0.15,0.25);
+fn hash(p:vec2f)->f32{ var q=fract(p*vec2f(123.34,345.45)); q=q+dot(q,q+34.345); return fract(q.x*q.y); }
+fn noise(p:vec2f)->f32{ let i=floor(p); let f=fract(p); let w=f*f*(3.0-2.0*f);
+  let a=hash(i); let b=hash(i+vec2f(1.0,0.0)); let c=hash(i+vec2f(0.0,1.0)); let d=hash(i+vec2f(1.0,1.0));
+  return mix(mix(a,b,w.x),mix(c,d,w.x),w.y); }
+fn fbm(p0:vec2f)->f32{ var s=0.0; var a=0.5; var p=p0; for(var i=0;i<5;i=i+1){ s=s+a*noise(p); p=p*2.02+vec2f(1.7); a=a*0.5; } return s; }
+
+@vertex fn vtri(@builtin(vertex_index) vi:u32)->@builtin(position) vec4f{
+  var p=array<vec2f,3>(vec2f(-1.0,-1.0),vec2f(3.0,-1.0),vec2f(-1.0,3.0));
+  return vec4f(p[vi],0.0,1.0);
+}
+@fragment fn ftissue(@builtin(position) fc:vec4f)->@location(0) vec4f{
+  let world=(fc.xy-u.res*0.5)/u.scale+u.cam;
+  if(i32(u.mode)==4){ let v=fbm(world*0.012)*0.04; return vec4f(0.015+v,0.0,0.03+v,1.0); }
+  let q=world*0.012;
+  let w=q+vec2f(fbm(q+vec2f(1.3)),fbm(q+vec2f(4.7)))*1.4;
+  let n=fbm(w*1.25);
+  var base=mix(vec3f(0.085,0.028,0.045),vec3f(0.255,0.085,0.115),n);
+  let nuc=smoothstep(0.60,0.66,fbm(world*0.05+vec2f(5.0)));
+  base=mix(base,vec3f(0.17,0.05,0.13),nuc*0.45);
+  base=base*(0.6+0.4*fbm(world*0.004+vec2f(9.0)));
+  return vec4f(base,1.0);
+}
+
+struct VIn { @location(0) corner:vec2f, @location(1) iAB:vec4f, @location(2) iPar:vec4f };
+struct VOut { @builtin(position) pos:vec4f, @location(0) world:vec2f, @location(1) AB:vec4f, @location(2) par:vec4f };
+@vertex fn vvess(in:VIn)->VOut{
+  let A=in.iAB.xy; let B=in.iAB.zw; let ax=B-A; let L=length(ax);
+  var d=vec2f(1.0,0.0); if(L>1e-4){ d=ax/L; }
+  let pp=vec2f(-d.y,d.x);
+  let maxR=max(in.iPar.x,in.iPar.y)*u.rad+2.0/u.scale;
+  let c=(A+B)*0.5;
+  let world=c+d*((L*0.5+maxR)*in.corner.x)+pp*(maxR*in.corner.y);
+  var o:VOut; o.world=world; o.AB=in.iAB; o.par=in.iPar;
+  let scr=(world-u.cam)*u.scale+u.res*0.5;
+  o.pos=vec4f(scr.x/u.res.x*2.0-1.0, 1.0-scr.y/u.res.y*2.0, 0.0, 1.0);
+  return o;
+}
+@fragment fn fvess(in:VOut)->@location(0) vec4f{
+  let A=in.AB.xy; let B=in.AB.zw; let ax=B-A; let L2=dot(ax,ax);
+  var t=0.0; if(L2>1e-6){ t=clamp(dot(in.world-A,ax)/L2,0.0,1.0); }
+  let proj=A+ax*t; let rel=in.world-proj; let dist=length(rel);
+  let rr=mix(in.par.x,in.par.y,t)*u.rad;
+  let aa=1.0/u.scale; let sd=dist-rr;
+  if(sd>aa){ discard; }
+  let cov=clamp(0.5-sd/(2.0*aa),0.0,1.0);
+  var dn=vec2f(1.0,0.0); if(L2>1e-6){ dn=ax/sqrt(L2); }
+  let bn=vec2f(-dn.y,dn.x);
+  let nperp=clamp(dot(rel,bn)/max(rr,1e-3),-1.0,1.0);
+  let hgt=sqrt(max(0.0,1.0-nperp*nperp));
+  let N=normalize(vec3f(bn*nperp,hgt));
+  let Ld=normalize(vec3f(-0.45,-0.55,0.72)); let V=vec3f(0.0,0.0,1.0);
+  let oxy=in.par.z; let blood=mix(DEO,OXY,oxy);
+  let diff=max(dot(N,Ld),0.0);
+  let H=normalize(Ld+V); let spec=pow(max(dot(N,H),0.0),28.0)*clamp(u.gloss,0.0,3.0);
+  let rim=pow(1.0-hgt,2.5);
+  var col=vec3f(0.0); let m=i32(u.mode);
+  if(m==1){ col=blood*(0.30+0.85*diff)+vec3f(1.0,0.92,0.92)*spec*0.7+blood*rim*0.5; }
+  else if(m==2){ let fres=pow(1.0-hgt,3.0); let deep=blood*blood; let sss=mix(deep,blood*1.3,hgt);
+    let back=pow(max(dot(-N,Ld),0.0),2.0);
+    col=sss*(0.45+0.6*diff)+blood*back*0.85+vec3f(1.0,0.8,0.85)*fres*0.5*oxy+vec3f(spec*0.5); }
+  else if(m==3){ let qd=floor(diff*4.0)/4.0; col=blood*(0.32+0.8*qd);
+    if(spec>0.55){ col=col+vec3f(0.5); } let edge=smoothstep(0.0,0.13,1.0-hgt);
+    col=mix(col,vec3f(0.05,0.0,0.02),edge*0.9); }
+  else { let core=smoothstep(0.0,1.0,1.0-abs(nperp)); col=mix(vec3f(0.10,0.0,0.03),blood*1.5,core)+blood*pow(hgt,2.0)*0.7; }
+  col=col*(1.0-smoothstep(0.45,1.0,1.0-hgt)*0.45*clamp(u.wall,0.0,2.5));
+  return vec4f(col*cov,cov);
+}
+
+struct CIn { @location(0) corner:vec2f, @location(1) iPos:vec4f, @location(2) iMeta:vec2f };
+struct COut { @builtin(position) pos:vec4f, @location(0) uv:vec2f, @location(1) meta:vec2f };
+@vertex fn vcell(in:CIn)->COut{
+  let s=in.iPos.w; let a=in.iPos.z; let ca=cos(a); let sa=sin(a);
+  let lc=in.corner*s*1.3;
+  let world=in.iPos.xy+vec2f(lc.x*ca-lc.y*sa, lc.x*sa+lc.y*ca);
+  var o:COut; o.uv=in.corner*1.3; o.meta=in.iMeta;
+  let scr=(world-u.cam)*u.scale+u.res*0.5;
+  o.pos=vec4f(scr.x/u.res.x*2.0-1.0, 1.0-scr.y/u.res.y*2.0, 0.0, 1.0);
+  return o;
+}
+@fragment fn fcell(in:COut)->@location(0) vec4f{
+  let kind=in.meta.y; let oxy=in.meta.x; let m=i32(u.mode);
+  if(kind<0.5){
+    let p=vec2f(in.uv.x, in.uv.y/0.86); let r=length(p);
+    if(r>1.0){ discard; }
+    let col=mix(DEO,OXY,oxy);
+    let ring=(1.0-smoothstep(0.55,0.95,r))*smoothstep(0.0,0.34,r);
+    var c=mix(col*0.7,col,smoothstep(0.0,0.4,r));
+    c=mix(c,mix(col,vec3f(1.0,0.92,0.92),0.35),ring);
+    c=mix(c,col*0.6,smoothstep(0.85,1.0,r));
+    c=c+(1.0-smoothstep(0.0,0.5,length(p-vec2f(-0.3,-0.32))))*0.45;
+    if(m==4){ c=mix(vec3f(0.1,0.0,0.03),col*1.6,ring+0.3); }
+    let aa=fwidth(r)*1.5; let al=1.0-smoothstep(1.0-aa,1.0,r);
+    return vec4f(c*al,al);
+  } else if(kind<1.5){
+    let r=length(in.uv); if(r>1.0){ discard; }
+    var c=mix(vec3f(0.95,0.89,0.93),vec3f(0.80,0.69,0.78),r);
+    c=mix(c,vec3f(0.6,0.45,0.66),(1.0-smoothstep(0.2,0.7,r))*0.4);
+    if(m==4){ c=c*1.3; }
+    let al=1.0-smoothstep(0.9,1.0,r);
+    return vec4f(c*al,al);
+  }
+  let r=length(in.uv); if(r>1.0){ discard; }
+  let c=mix(vec3f(0.92,0.86,0.66),vec3f(0.74,0.66,0.47),r);
+  let al=1.0-smoothstep(0.85,1.0,r);
+  return vec4f(c*al,al);
+}`;
+
+async function initWebGPU(){
+  if(!navigator.gpu) return {ready:false};
+  const adapter=await navigator.gpu.requestAdapter();
+  if(!adapter) return {ready:false};
+  const device=await adapter.requestDevice();
+  const ctx=gpucv.getContext('webgpu');
+  if(!ctx) return {ready:false};
+  const format=navigator.gpu.getPreferredCanvasFormat();
+  const obj={ready:false,device,ctx,format,vessCount:0,cellData:new Float32Array(MAX_CELLS*6),uni:new Float32Array(12)};
+  obj.configure=()=>ctx.configure({device,format,alphaMode:'opaque'});
+  obj.configure();
+
+  device.pushErrorScope('validation');
+  const mod=device.createShaderModule({code:WGSL});
+  const bgl=device.createBindGroupLayout({entries:[{binding:0,
+    visibility:GPUShaderStage.VERTEX|GPUShaderStage.FRAGMENT,buffer:{type:'uniform'}}]});
+  const pl=device.createPipelineLayout({bindGroupLayouts:[bgl]});
+  const cornerL={arrayStride:8,stepMode:'vertex',attributes:[{shaderLocation:0,offset:0,format:'float32x2'}]};
+  const vInstL={arrayStride:32,stepMode:'instance',attributes:[{shaderLocation:1,offset:0,format:'float32x4'},{shaderLocation:2,offset:16,format:'float32x4'}]};
+  const cInstL={arrayStride:24,stepMode:'instance',attributes:[{shaderLocation:1,offset:0,format:'float32x4'},{shaderLocation:2,offset:16,format:'float32x2'}]};
+  const premult={color:{srcFactor:'one',dstFactor:'one-minus-src-alpha'},alpha:{srcFactor:'one',dstFactor:'one-minus-src-alpha'}};
+  const additive={color:{srcFactor:'one',dstFactor:'one'},alpha:{srcFactor:'one',dstFactor:'one'}};
+  const mk=(vs,fs,bufs,blend,topo)=>device.createRenderPipeline({layout:pl,
+    vertex:{module:mod,entryPoint:vs,buffers:bufs},
+    fragment:{module:mod,entryPoint:fs,targets:[blend?{format,blend}:{format}]},
+    primitive:{topology:topo}});
+  obj.pTissue=mk('vtri','ftissue',[],null,'triangle-list');
+  obj.pVess  =mk('vvess','fvess',[cornerL,vInstL],premult,'triangle-strip');
+  obj.pVessA =mk('vvess','fvess',[cornerL,vInstL],additive,'triangle-strip');
+  obj.pCell  =mk('vcell','fcell',[cornerL,cInstL],premult,'triangle-strip');
+  obj.pCellA =mk('vcell','fcell',[cornerL,cInstL],additive,'triangle-strip');
+  const err=await device.popErrorScope();
+  if(err){ console.error('WebGPU pipeline error:',err.message); return {ready:false}; }
+
+  obj.ubuf=device.createBuffer({size:48,usage:GPUBufferUsage.UNIFORM|GPUBufferUsage.COPY_DST});
+  obj.bind=device.createBindGroup({layout:bgl,entries:[{binding:0,resource:{buffer:obj.ubuf}}]});
+  obj.corner=device.createBuffer({size:32,usage:GPUBufferUsage.VERTEX|GPUBufferUsage.COPY_DST});
+  device.queue.writeBuffer(obj.corner,0,new Float32Array([-1,-1, 1,-1, -1,1, 1,1]));
+  obj.cbuf=device.createBuffer({size:MAX_CELLS*6*4,usage:GPUBufferUsage.VERTEX|GPUBufferUsage.COPY_DST});
+  obj.uploadVessels=()=>{
+    if(!NET) return;
+    const E=NET.drawEdges, arr=new Float32Array(E.length*8), tId={art:0,cap:1,ven:2};
+    for(let i=0;i<E.length;i++){ const e=E[i],o=i*8;
+      arr[o]=e.a.x;arr[o+1]=e.a.y;arr[o+2]=e.b.x;arr[o+3]=e.b.y;
+      arr[o+4]=e.a.radius;arr[o+5]=e.b.radius;
+      arr[o+6]=((e.oxyA||0)+(e.oxyB||0))*0.5;arr[o+7]=tId[e.type]||0; }
+    if(obj.vbuf) obj.vbuf.destroy();
+    obj.vbuf=device.createBuffer({size:arr.byteLength,usage:GPUBufferUsage.VERTEX|GPUBufferUsage.COPY_DST});
+    device.queue.writeBuffer(obj.vbuf,0,arr); obj.vessCount=E.length;
+  };
+  obj.ready=true;
+  obj.uploadVessels();
+  return obj;
+}
+
+function gpuRender(mode){
+  const {device,ctx}=GPU;
+  GPU.uni.set([cam.x,cam.y,cam.scale*DPR,appear.calibre, gpucv.width,gpucv.height,appear.wall,appear.gloss, mode,0,0,0]);
+  device.queue.writeBuffer(GPU.ubuf,0,GPU.uni);
+  // stream visible cells
+  let n=0; const data=GPU.cellData;
+  if(show.cells){ const vx0=-60,vy0=-60,vx1=VW+60,vy1=VH+60;
+    for(const c of CELLS){ const px=sx(c.wx),py=sy(c.wy);
+      if(px<vx0||px>vx1||py<vy0||py>vy1) continue;
+      const o=n*6; data[o]=c.wx; data[o+1]=c.wy; data[o+2]=c.ang;
+      data[o+3]=c.kind==='rbc'?RBC_R:c.kind==='wbc'?RBC_R*1.7:RBC_R*0.6;
+      data[o+4]=c.oxy; data[o+5]=c.kind==='rbc'?0:c.kind==='wbc'?1:2;
+      if(++n>=MAX_CELLS) break; }
+    if(n) device.queue.writeBuffer(GPU.cbuf,0,data,0,n*6);
+  }
+  const enc=device.createCommandEncoder();
+  const view=ctx.getCurrentTexture().createView();
+  const clearValue = mode===4?{r:0.01,g:0,b:0.02,a:1}:{r:0.07,g:0.02,b:0.03,a:1};
+  const pass=enc.beginRenderPass({colorAttachments:[{view,loadOp:'clear',storeOp:'store',clearValue}]});
+  if(show.tissue||mode===4){ pass.setPipeline(GPU.pTissue); pass.setBindGroup(0,GPU.bind); pass.draw(3); }
+  if(GPU.vessCount){ pass.setPipeline(mode===4?GPU.pVessA:GPU.pVess); pass.setBindGroup(0,GPU.bind);
+    pass.setVertexBuffer(0,GPU.corner); pass.setVertexBuffer(1,GPU.vbuf); pass.draw(4,GPU.vessCount); }
+  if(show.cells && n){ pass.setPipeline(mode===4?GPU.pCellA:GPU.pCell); pass.setBindGroup(0,GPU.bind);
+    pass.setVertexBuffer(0,GPU.corner); pass.setVertexBuffer(1,GPU.cbuf); pass.draw(4,n); }
+  pass.end(); device.queue.submit([enc.finish()]);
 }
 
 // ============================================================================
@@ -1196,17 +1535,19 @@ function regenerate(seed){
   buildTissue(seed);
   seedCells();
   uploadVessels();
+  if(GPU&&GPU.ready&&GPU.uploadVessels) GPU.uploadVessels();
   staticDirty=true;
 }
 function boot(){
   resize();
   buildSprites();
   try{ GL=initGL(); }catch(err){ console.error('WebGL init failed:',err); GL=null; }
-  if(!GL){ renderMode='canvas';
-    document.querySelectorAll('.chip[data-m]').forEach(ch=>{ if(ch.dataset.m!=='canvas') ch.style.display='none'; }); }
+  if(!GL){ backend='canvas2d';
+    document.querySelectorAll('.chip[data-b]').forEach(ch=>{ if(ch.dataset.b!=='canvas2d'){ ch.style.opacity=.4; ch.style.pointerEvents='none'; } });
+    document.querySelectorAll('.chip[data-m]').forEach(ch=>{ ch.style.opacity=.4; }); }
   regenerate(20260625);
   fit();
-  applyMode();
+  applyBackend();
   document.getElementById('loader').style.display='none';
   requestAnimationFrame((t)=>{lastT=t; requestAnimationFrame(frame);});
 }
