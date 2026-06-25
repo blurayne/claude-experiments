@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Blood Vessels — microvascular network</title>
+<style>
+  :root{
+    --ink:#f3e9ea; --dim:#c79aa2; --faint:#8c5f68; --line:#3a1820;
+    --panel:rgba(24,8,11,.82); --panelb:rgba(120,40,52,.32);
+    --artery:#e23b46; --vein:#7d3a55; --cap:#c0445a;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:#120407;overflow:hidden;
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;color:var(--ink)}
+  #stage{position:fixed;inset:0}
+  canvas{position:absolute;inset:0;display:block;touch-action:none;cursor:grab}
+  canvas.drag{cursor:grabbing}
+  canvas.hidden{display:none}
+
+  .ui{position:fixed;z-index:5;pointer-events:none}
+  .ui *{pointer-events:auto}
+
+  /* title */
+  #title{top:14px;left:16px;max-width:330px}
+  #title h1{margin:0;font-size:17px;font-weight:750;letter-spacing:.2px;
+    text-shadow:0 1px 8px #000}
+  #title p{margin:5px 0 0;font-size:11.5px;line-height:1.5;color:var(--dim);text-shadow:0 1px 6px #000}
+
+  /* control panel */
+  #panel{top:14px;right:16px;width:230px;background:var(--panel);border:1px solid var(--panelb);
+    border-radius:14px;padding:12px 13px 13px;backdrop-filter:blur(9px);
+    box-shadow:0 10px 40px rgba(0,0,0,.5)}
+  .row{display:flex;gap:7px;margin-bottom:9px}
+  .btn{flex:1;background:rgba(60,20,28,.55);border:1px solid var(--panelb);color:var(--ink);
+    border-radius:9px;padding:8px 0;font-size:13px;font-weight:600;cursor:pointer;transition:.13s;
+    display:flex;align-items:center;justify-content:center;gap:5px}
+  .btn:hover{background:rgba(120,40,52,.5);border-color:var(--artery)}
+  .btn:active{transform:translateY(1px)}
+  .btn.wide{font-size:12px}
+  .eyebrow{font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--faint);
+    margin:11px 0 6px}
+  label.sl{display:block;font-size:11.5px;color:var(--dim);margin-bottom:11px}
+  label.sl .v{float:right;color:var(--artery);font-variant-numeric:tabular-nums;font-weight:600}
+  input[type=range]{-webkit-appearance:none;width:100%;height:4px;border-radius:3px;margin-top:6px;
+    background:linear-gradient(90deg,var(--vein),var(--artery));outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;
+    background:#fff;border:2px solid var(--artery);cursor:pointer;box-shadow:0 1px 4px #000}
+  input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;background:#fff;
+    border:2px solid var(--artery);cursor:pointer}
+  .legend{font-size:11px;color:var(--dim);line-height:1.9}
+  .legend i{display:inline-block;width:18px;height:5px;border-radius:3px;margin-right:7px;vertical-align:middle}
+  .toggles{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{font-size:11px;padding:5px 9px;border-radius:999px;border:1px solid var(--panelb);
+    background:rgba(60,20,28,.4);color:var(--dim);cursor:pointer;user-select:none;transition:.13s}
+  .chip.on{color:var(--ink);border-color:var(--artery);background:rgba(226,59,70,.18)}
+
+  /* scale bar + readout */
+  #scalebar{left:16px;bottom:16px;background:var(--panel);border:1px solid var(--panelb);
+    border-radius:10px;padding:9px 12px;backdrop-filter:blur(9px);font-size:11px;color:var(--dim)}
+  #barline{height:7px;border-left:2px solid var(--ink);border-right:2px solid var(--ink);
+    border-bottom:2px solid var(--ink);margin:4px 0 5px}
+  #zoomout{font-size:10.5px;color:var(--faint);margin-top:2px}
+
+  /* heartbeat */
+  #hb{right:16px;bottom:16px;background:var(--panel);border:1px solid var(--panelb);border-radius:10px;
+    padding:8px 12px;backdrop-filter:blur(9px);display:flex;align-items:center;gap:9px}
+  #hbdot{width:13px;height:13px;border-radius:50%;background:var(--artery);box-shadow:0 0 10px var(--artery)}
+  #hb small{font-size:11px;color:var(--dim)}
+  #hb b{color:var(--ink);font-variant-numeric:tabular-nums}
+
+  #hint{left:50%;transform:translateX(-50%);bottom:14px;font-size:11px;color:var(--faint);
+    text-shadow:0 1px 6px #000;white-space:nowrap}
+  @media(max-width:760px){
+    #title{max-width:48vw}
+    #panel{width:200px}
+    #hint{display:none}
+  }
+  #loader{position:fixed;inset:0;z-index:9;display:flex;align-items:center;justify-content:center;
+    background:#120407;color:var(--dim);font-size:14px;letter-spacing:.5px}
+</style>
+</head>
+<body>
+<div id="stage"><canvas id="g"></canvas><canvas id="c"></canvas></div>
+<div id="loader">culturing vessels…</div>
+
+<div class="ui" id="title">
+  <h1>Microvascular Network</h1>
+  <p>A procedurally grown bed of arteries, capillaries and veins with pulsatile blood flow.
+     Scroll / pinch to zoom, drag to pan — zoom in until single red cells squeeze through a capillary.</p>
+</div>
+
+<div class="ui" id="panel">
+  <div class="row">
+    <button class="btn" id="zin" title="Zoom in">＋</button>
+    <button class="btn" id="zout" title="Zoom out">－</button>
+    <button class="btn" id="fit" title="Fit to view">⤢</button>
+  </div>
+  <div class="row">
+    <button class="btn wide" id="pause">⏸ Pause</button>
+    <button class="btn wide" id="regen">⟳ New bed</button>
+  </div>
+
+  <div class="eyebrow">Vessel generator</div>
+  <div class="toggles" id="gens">
+    <span class="chip on" data-gen="spacecol" title="Attractor-driven space colonisation (organic, space-filling)">Space-colonisation</span>
+    <span class="chip" data-gen="recursive" title="Recursive dichotomous branching — Sapling / skin-modifier style (Blender techniques)">Recursive tree</span>
+  </div>
+
+  <div class="eyebrow">Render algorithm</div>
+  <div class="toggles" id="modes">
+    <span class="chip" data-m="canvas" title="2D analytic banded cylinder shading (Canvas)">Stylized</span>
+    <span class="chip on" data-m="phong" title="SDF capsule impostors, Blinn–Phong lit cylinders (WebGL)">Lit tubes</span>
+    <span class="chip" data-m="sss" title="Subsurface-scattering blood: thickness glow + Fresnel (WebGL)">Subsurface</span>
+    <span class="chip" data-m="toon" title="Cel shading: quantized bands + outline (WebGL)">Toon</span>
+    <span class="chip" data-m="xray" title="Additive angiograph / x-ray glow (WebGL)">X-ray</span>
+  </div>
+
+  <div class="eyebrow">Flow</div>
+  <label class="sl">Heart rate <span class="v" id="bpmv">72 bpm</span>
+    <input type="range" id="bpm" min="40" max="160" value="72" step="1"></label>
+  <label class="sl">Flow speed <span class="v" id="spdv">1.0×</span>
+    <input type="range" id="spd" min="0" max="300" value="100" step="5"></label>
+  <label class="sl">Cell density <span class="v" id="denv">100%</span>
+    <input type="range" id="den" min="20" max="160" value="100" step="5"></label>
+
+  <div class="eyebrow">Show</div>
+  <div class="toggles">
+    <span class="chip on" data-t="wall">Vessel walls</span>
+    <span class="chip on" data-t="tissue">Tissue</span>
+    <span class="chip on" data-t="cells">Blood cells</span>
+    <span class="chip" data-t="labels">Anatomy labels</span>
+  </div>
+
+  <div class="eyebrow">Legend</div>
+  <div class="legend">
+    <div><i style="background:linear-gradient(90deg,#ff5a63,#e23b46)"></i>Artery → arteriole (O₂-rich)</div>
+    <div><i style="background:linear-gradient(90deg,#d6586e,#b23a52)"></i>Capillary transition</div>
+    <div><i style="background:linear-gradient(90deg,#7d3a55,#5b2a45)"></i>Venule → vein (O₂-poor)</div>
+  </div>
+</div>
+
+<div class="ui" id="scalebar">
+  <div id="barline" style="width:120px"></div>
+  <div><b id="barlabel" style="color:var(--ink)">— µm</b></div>
+  <div id="zoomout">magnification ×—</div>
+</div>
+
+<div class="ui" id="hb"><span id="hbdot"></span><small><b id="bpmread">72</b> bpm · pulsatile</small></div>
+<div class="ui" id="hint">scroll = zoom · drag = pan · double-click = zoom in</div>
+
+<script>
+"use strict";
+/* ============================================================================
+   BLOOD VESSELS — a procedurally grown microvascular bed
+   ----------------------------------------------------------------------------
+   • Two vascular trees (arterial + venous) are grown by SPACE COLONISATION,
+     the same attractor-driven algorithm used to model real vascular growth.
+   • Vessel calibre follows MURRAY'S LAW (parent³ = Σ child³), so trunks thicken
+     toward the root exactly as real vessels do.
+   • Each arteriolar tip is bridged to the nearest venular tip by a CAPILLARY
+     chain whose radius tapers arteriole → true-capillary → venule and whose
+     blood DEOXYGENATES along the way (bright red → dark maroon).
+   • Blood is simulated as particles (biconcave red cells, leukocytes, platelets)
+     flowing through the directed graph, pulsing with a synthetic heart beat.
+   • Full zoom / pan with a live microscope scale bar and level-of-detail.
+   ========================================================================== */
+
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d', { alpha:false });
+const glcv = document.getElementById('g');
+let DPR = Math.min(window.devicePixelRatio||1, 2);
+let VW=0, VH=0; // viewport in CSS px
+let renderMode='phong';   // 'canvas' | 'phong' | 'sss' | 'toon' | 'xray'
+const MODE_UNIFORM={phong:1,sss:2,toon:3,xray:4};
+let genPreset='spacecol'; // 'spacecol' | 'recursive'
+let curSeed=20260625;
+
+// ---- world (micrometres) ----------------------------------------------------
+const WORLD = { w: 3600, h: 2400 };
+
+// ---- tunables ---------------------------------------------------------------
+const CAP_R   = 3.2;   // true-capillary radius (µm) — ~ one red cell wide
+const ART_TIP = 4.6;   // arteriolar tip radius
+const VEN_TIP = 5.4;   // venular tip radius (veins run a touch wider)
+const RBC_R   = 3.7;   // red-cell radius (µm)
+
+// ---- small utils ------------------------------------------------------------
+const TAU = Math.PI*2;
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const lerp=(a,b,t)=>a+(b-a)*t;
+const mix=(a,b,t)=>[lerp(a[0],b[0],t),lerp(a[1],b[1],t),lerp(a[2],b[2],t)];
+const rgb=(c)=>`rgb(${c[0]|0},${c[1]|0},${c[2]|0})`;
+const rgba=(c,a)=>`rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a})`;
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+// ---- colour anchors ---------------------------------------------------------
+const C_OXY  = [232,70,78];    // oxygenated blood
+const C_DEO  = [120,38,64];    // deoxygenated blood
+const WALL_A = [58,18,26];     // arterial wall
+const WALL_V = [44,18,34];     // venous wall
+
+// ============================================================================
+//  SPATIAL HASH GRID  (fast nearest-node queries during growth)
+// ============================================================================
+class Grid{
+  constructor(cell){ this.cs=cell; this.m=new Map(); }
+  key(x,y){ return ((x/this.cs)|0)+','+((y/this.cs)|0); }
+  add(n){ const k=this.key(n.x,n.y); let a=this.m.get(k); if(!a){a=[];this.m.set(k,a);} a.push(n); }
+  nearest(x,y,maxR){
+    const cs=this.cs, r=Math.min(64,Math.ceil(maxR/cs)), cx=(x/cs)|0, cy=(y/cs)|0;
+    let best=null, bd=maxR*maxR;
+    for(let gy=cy-r; gy<=cy+r; gy++) for(let gx=cx-r; gx<=cx+r; gx++){
+      const a=this.m.get(gx+','+gy); if(!a) continue;
+      for(const n of a){ const dx=n.x-x, dy=n.y-y, d=dx*dx+dy*dy; if(d<bd){bd=d;best=n;} }
+    }
+    return best;
+  }
+}
+
+// ============================================================================
+//  VASCULAR GROWTH  (space colonisation)
+// ============================================================================
+function growTree(rng, root, attractors, P){
+  root.children=[]; root.parent=null; root.depth=0;
+  const nodes=[root];
+  const grid=new Grid(P.influence);
+  grid.add(root);
+  let live = attractors.map(p=>({x:p.x,y:p.y,dead:false}));
+  let liveN = live.length;
+
+  for(let it=0; it<P.maxIter && liveN>0 && nodes.length<P.maxNodes; it++){
+    const infl=new Map();
+    for(const at of live){
+      if(at.dead) continue;
+      const near=grid.nearest(at.x,at.y,P.influence);
+      if(!near) continue;
+      const dx=at.x-near.x, dy=at.y-near.y, L=Math.hypot(dx,dy)||1;
+      let e=infl.get(near); if(!e){e={x:0,y:0,n:0};infl.set(near,e);}
+      e.x+=dx/L; e.y+=dy/L; e.n++;
+    }
+    if(infl.size===0){
+      // The root can start outside the attractor cloud — extend the closest node
+      // toward the nearest live attractor (a tropism "reach") until growth catches.
+      if(nodes.length<60){
+        let bn=null,ba=null,bd=Infinity;
+        for(const at of live){ if(at.dead) continue;
+          for(const nd of nodes){ const d=(nd.x-at.x)**2+(nd.y-at.y)**2; if(d<bd){bd=d;bn=nd;ba=at;} } }
+        if(bn){ const dx=ba.x-bn.x,dy=ba.y-bn.y,L=Math.hypot(dx,dy)||1;
+          const child={x:bn.x+dx/L*P.seg,y:bn.y+dy/L*P.seg,children:[],parent:bn,depth:bn.depth+1};
+          bn.children.push(child); nodes.push(child); grid.add(child); continue; }
+      }
+      break;
+    }
+    for(const [node,acc] of infl){
+      let dx=acc.x/acc.n, dy=acc.y/acc.n;
+      // smooth against the parent direction so vessels don't kink
+      if(node.parent){ dx+=(node.x-node.parent.x)/P.seg*0.55; dy+=(node.y-node.parent.y)/P.seg*0.55; }
+      dx+=(rng()-0.5)*0.32; dy+=(rng()-0.5)*0.32;
+      const L=Math.hypot(dx,dy)||1;
+      const nx=node.x+dx/L*P.seg, ny=node.y+dy/L*P.seg;
+      if(nx<-40||ny<-40||nx>WORLD.w+40||ny>WORLD.h+40) continue;
+      const child={x:nx,y:ny,children:[],parent:node,depth:node.depth+1};
+      node.children.push(child); nodes.push(child); grid.add(child);
+    }
+    for(const at of live){
+      if(at.dead) continue;
+      if(grid.nearest(at.x,at.y,P.kill)){ at.dead=true; liveN--; }
+    }
+  }
+  return nodes;
+}
+
+// Alternative generator — recursive dichotomous branching ("Sapling"/skin-modifier
+// style, after the Blender techniques thread). Produces the same parent→children tree
+// contract as growTree, so radii / capillaries / flow all work unchanged.
+function growRecursive(rng, root, baseAng, P){
+  root.children=[]; root.parent=null; root.depth=0;
+  const nodes=[root];
+  (function grow(node,ang,len,depth){
+    if(depth>P.maxDepth || len<P.minLen || nodes.length>P.maxNodes) return;
+    let cur=node, a=ang;
+    const subs=2;                                  // sub-segments give each limb a gentle curve
+    for(let i=0;i<subs;i++){
+      a += (rng()-0.5)*0.28;
+      const nx=cur.x+Math.cos(a)*len/subs, ny=cur.y+Math.sin(a)*len/subs;
+      if(nx<-40||ny<-40||nx>WORLD.w+40||ny>WORLD.h+40) return;
+      const c={x:nx,y:ny,children:[],parent:cur,depth:depth};
+      cur.children.push(c); nodes.push(c); cur=c;
+    }
+    const n = rng()<P.triProb?3:2;                 // bi- or tri-furcation
+    const spread=P.spread*(0.7+rng()*0.6);
+    for(let k=0;k<n;k++){
+      const off=(k-(n-1)/2)*spread + (rng()-0.5)*0.22;
+      grow(cur, a+off, len*P.decay*(0.85+rng()*0.3), depth+1);
+    }
+  })(root, baseAng, P.len0, 1);
+  return nodes;
+}
+
+// Murray's law: assign radii bottom-up. Leaves get tipR, parents thicken.
+function assignRadii(root, tipR, exp){
+  (function rec(n){
+    if(n.children.length===0){ n.radius=tipR; return tipR; }
+    let s=0; for(const c of n.children) s+=Math.pow(rec(c),exp);
+    n.radius=Math.pow(s,1/exp);
+    return n.radius;
+  })(root);
+}
+
+// ============================================================================
+//  BUILD THE WHOLE NETWORK
+// ============================================================================
+let NET=null;
+function buildNetwork(seed, preset){
+  preset=preset||'spacecol';
+  const rng=mulberry32(seed);
+  const nodes=[]; const edges=[];
+  const addNode=(n)=>{ n.id=nodes.length; nodes.push(n); return n; };
+  const mkEdge=(a,b,type,kind)=>{
+    const dx=b.x-a.x, dy=b.y-a.y, len=Math.hypot(dx,dy)||1e-3;
+    const e={a,b,type,kind,len,ux:dx/len,uy:dy/len,
+             radius:(a.radius+b.radius)*0.5};
+    edges.push(e); return e;
+  };
+
+  // attractor clouds (separate for each tree, with a couple of soft voids
+  // so the bed has denser and sparser regions like real tissue)
+  function cloud(n, voids){
+    const a=[];
+    for(let i=0;i<n;i++){
+      let x,y,ok=false,guard=0;
+      do{
+        x=lerp(WORLD.w*0.16, WORLD.w*0.99, rng());
+        y=lerp(WORLD.h*0.05, WORLD.h*0.95, rng());
+        ok=true;
+        for(const v of voids){ if(Math.hypot(x-v.x,y-v.y)<v.r){ ok=false; break; } }
+      }while(!ok && ++guard<8);
+      a.push({x,y});
+    }
+    return a;
+  }
+  const voidsA=[{x:WORLD.w*0.55,y:WORLD.h*0.30,r:230},{x:WORLD.w*0.78,y:WORLD.h*0.72,r:200}];
+  const voidsV=[{x:WORLD.w*0.45,y:WORLD.h*0.70,r:230},{x:WORLD.w*0.70,y:WORLD.h*0.28,r:200}];
+
+  // generator chosen by preset: space-colonisation (organic, space-filling) or
+  // recursive dichotomous branching (Sapling/skin-modifier style).
+  const grow = (root, voids, baseAng) => {
+    if(preset==='recursive')
+      growRecursive(rng, root, baseAng, {maxDepth:11,minLen:14,len0:300,decay:0.76,spread:0.52,triProb:0.24,maxNodes:1500});
+    else
+      growTree(rng, root, cloud(900,voids), {influence:300,kill:46,seg:22,maxIter:600,maxNodes:1300});
+  };
+
+  // ---- arterial tree (flows root -> leaves) ----
+  const aRoot={x:-10,y:WORLD.h*0.40};
+  grow(aRoot, voidsA, 0.12);
+  assignRadii(aRoot,ART_TIP,3);
+
+  // ---- venous tree (structurally root->leaves; blood flows leaves->root) ----
+  const vRoot={x:-10,y:WORLD.h*0.60};
+  grow(vRoot, voidsV, -0.10);
+  assignRadii(vRoot,VEN_TIP,3);
+
+  // register nodes + structural edges
+  function register(root,type){
+    addNode(root);
+    (function rec(n){
+      for(const c of n.children){
+        addNode(c);
+        if(type==='art') mkEdge(n,c,'art','vessel');     // downstream = toward leaves
+        else             mkEdge(c,n,'ven','vessel');     // downstream = toward root
+        rec(c);
+      }
+    })(root);
+  }
+  register(aRoot,'art');
+  register(vRoot,'ven');
+
+  // collect leaves
+  const aLeaves=nodes.filter(n=>n.children.length===0 && n.depth!==undefined && isArt(n,aRoot));
+  // simpler: recompute membership flags
+  function isArt(){return false;}
+  const artSet=new Set(); (function mark(n){artSet.add(n);n.children.forEach(mark);})(aRoot);
+  const venSet=new Set(); (function mark(n){venSet.add(n);n.children.forEach(mark);})(vRoot);
+  const artLeaves=[...artSet].filter(n=>n.children.length===0);
+  const venLeaves=[...venSet].filter(n=>n.children.length===0);
+
+  // nearest venular tip for each arteriolar tip (linear scan — leaf counts are modest)
+  const nearestLeaf=(x,y,arr)=>{ let best=null,bd=Infinity;
+    for(const n of arr){ const d=(n.x-x)**2+(n.y-y)**2; if(d<bd){bd=d;best=n;} } return best; };
+
+  // ---- CAPILLARY TRANSITION: arteriole tip -> true capillary -> venule tip ----
+  // radius eases A_tip -> CAP_R -> V_tip; blood deoxygenates 0..1 along the run.
+  let capBeds=0;
+  for(const aL of artLeaves){
+    const vL = nearestLeaf(aL.x,aL.y, venLeaves);
+    if(!vL) continue;
+    const dist=Math.hypot(vL.x-aL.x, vL.y-aL.y);
+    if(dist>520) continue;                 // too far → leave as a dead tip
+    const segs = clamp(Math.round(dist/26), 3, 12);
+    // perpendicular for meander
+    let px=-(vL.y-aL.y)/dist, py=(vL.x-aL.x)/dist;
+    const amp = lerp(10,46,rng());
+    const phase = rng()*TAU, waves = 1+Math.floor(rng()*2);
+    let prev=aL;
+    for(let i=1;i<segs;i++){
+      const t=i/segs;
+      const wig=Math.sin(phase + t*Math.PI*waves)*amp*Math.sin(t*Math.PI); // 0 at both ends
+      const node={
+        x:lerp(aL.x,vL.x,t)+px*wig,
+        y:lerp(aL.y,vL.y,t)+py*wig,
+        children:[], parent:prev,
+        // calibre dips to a true capillary in the middle, widens to the venule
+        radius: t<0.5 ? lerp(aL.radius,CAP_R,t/0.5) : lerp(CAP_R,vL.radius,(t-0.5)/0.5),
+        oxy: 1-t
+      };
+      addNode(node);
+      const e=mkEdge(prev,node,'cap','vessel'); e.oxyA=prev.oxy!==undefined?prev.oxy:1; e.oxyB=node.oxy;
+      prev=node;
+    }
+    const e=mkEdge(prev,vL,'cap','vessel'); e.oxyA=prev.oxy!==undefined?prev.oxy:0.5; e.oxyB=0;
+    capBeds++;
+  }
+
+  // mark oxygenation on vessel edges (arteries oxy~1, veins ~0)
+  for(const e of edges){
+    if(e.type==='art'){ e.oxyA=1; e.oxyB=1; }
+    else if(e.type==='ven'){ e.oxyA=0; e.oxyB=0; }
+  }
+
+  // ---- directed flow graph ----
+  const outgoing = nodes.map(()=>[]);
+  for(const e of edges) outgoing[e.a.id].push(e);
+
+  // bounding boxes for culling
+  for(const e of edges){
+    e.minx=Math.min(e.a.x,e.b.x)-e.radius; e.maxx=Math.max(e.a.x,e.b.x)+e.radius;
+    e.miny=Math.min(e.a.y,e.b.y)-e.radius; e.maxy=Math.max(e.a.y,e.b.y)+e.radius;
+  }
+
+  // root arterial edges (for recycling particles)
+  const rootEdges = outgoing[aRoot.id].slice();
+
+  // edges sorted thick→thin so thin vessels paint on top
+  const drawEdges = edges.slice().sort((p,q)=>q.radius-p.radius);
+
+  return { nodes, edges, drawEdges, outgoing, rootEdges, aRoot, vRoot,
+           artLeaves, venLeaves, capBeds,
+           landmarks: pickLandmarks(aRoot,vRoot,edges) };
+}
+
+// a few anatomy labels placed on representative vessels
+function pickLandmarks(aRoot,vRoot,edges){
+  const big=(t)=>edges.filter(e=>e.type===t).sort((a,b)=>b.radius-a.radius);
+  const arts=big('art'), vens=big('ven'), caps=edges.filter(e=>e.type==='cap');
+  const L=[];
+  if(arts[0]) L.push({x:arts[0].a.x,y:arts[0].a.y,t:'Artery'});
+  if(arts[18]) L.push({x:arts[18].b.x,y:arts[18].b.y,t:'Arteriole'});
+  if(caps.length) { const m=caps[(caps.length/2)|0]; L.push({x:m.a.x,y:m.a.y,t:'Capillary bed'}); }
+  if(vens[18]) L.push({x:vens[18].a.x,y:vens[18].a.y,t:'Venule'});
+  if(vens[0]) L.push({x:vens[0].b.x,y:vens[0].b.y,t:'Vein'});
+  return L;
+}
+
+// ============================================================================
+//  TISSUE  (histology-style background cells in world space)
+// ============================================================================
+let TISSUE=[];
+function buildTissue(seed){
+  const rng=mulberry32(seed^0x9e3779b9);
+  TISSUE=[];
+  const sp=52;
+  for(let y=-sp; y<WORLD.h+sp; y+=sp){
+    for(let x=-sp; x<WORLD.w+sp; x+=sp){
+      const cx=x+(rng()-0.5)*sp*0.9, cy=y+(rng()-0.5)*sp*0.9;
+      const r=lerp(11,20,rng());
+      const tone=lerp(0,1,rng());
+      TISSUE.push({x:cx,y:cy,r,tone,
+        nx:cx+(rng()-0.5)*r*0.5, ny:cy+(rng()-0.5)*r*0.5, nr:r*lerp(0.26,0.4,rng())});
+    }
+  }
+}
+
+// ============================================================================
+//  CELL SPRITES  (pre-rendered for speed + quality)
+// ============================================================================
+let RBC_SPRITES=[], WBC_SPRITE=null, PLT_SPRITE=null;
+const OXY_STEPS=7;
+function buildSprites(){
+  RBC_SPRITES=[];
+  for(let i=0;i<OXY_STEPS;i++){
+    const oxy=i/(OXY_STEPS-1);
+    const col=mix(C_DEO,C_OXY,oxy);
+    const S=72, cnv=document.createElement('canvas'); cnv.width=cnv.height=S;
+    const g=cnv.getContext('2d'); g.translate(S/2,S/2);
+    const R=S*0.40;
+    // soft contact shadow
+    g.fillStyle='rgba(0,0,0,0.28)'; g.beginPath();
+    g.ellipse(R*0.10,R*0.16,R*1.02,R*0.92,0,0,TAU); g.fill();
+    // biconcave disc: radial gradient = bright torus, dim dimple, dark rim
+    const grd=g.createRadialGradient(0,0,R*0.05, 0,0,R);
+    grd.addColorStop(0.00, rgb(mix(col,[0,0,0],0.34)));   // central dimple
+    grd.addColorStop(0.34, rgb(col));
+    grd.addColorStop(0.60, rgb(mix(col,[255,235,235],0.34)));// bright rim ring
+    grd.addColorStop(0.86, rgb(col));
+    grd.addColorStop(1.00, rgb(mix(col,[0,0,0],0.45)));   // dark edge
+    g.fillStyle=grd; g.beginPath(); g.ellipse(0,0,R,R*0.9,0,0,TAU); g.fill();
+    // specular glint
+    const sp=g.createRadialGradient(-R*0.32,-R*0.34,0,-R*0.32,-R*0.34,R*0.5);
+    sp.addColorStop(0,'rgba(255,240,240,0.45)'); sp.addColorStop(1,'rgba(255,240,240,0)');
+    g.fillStyle=sp; g.beginPath(); g.ellipse(-R*0.28,-R*0.30,R*0.42,R*0.30,-0.5,0,TAU); g.fill();
+    RBC_SPRITES.push(cnv);
+  }
+  // leukocyte — pale, granular, lobed nucleus
+  {
+    const S=92, cnv=document.createElement('canvas'); cnv.width=cnv.height=S;
+    const g=cnv.getContext('2d'); g.translate(S/2,S/2); const R=S*0.40;
+    g.fillStyle='rgba(0,0,0,0.30)'; g.beginPath(); g.ellipse(R*0.1,R*0.14,R*1.02,R*1.0,0,0,TAU); g.fill();
+    const bg=g.createRadialGradient(-R*0.25,-R*0.25,R*0.1,0,0,R);
+    bg.addColorStop(0,'#fbf4f7'); bg.addColorStop(0.7,'#ecd9e2'); bg.addColorStop(1,'#cdb0bd');
+    g.fillStyle=bg; g.beginPath();
+    for(let a=0;a<TAU;a+=0.5){ const rr=R*(0.9+0.1*Math.sin(a*5)); const x=Math.cos(a)*rr,y=Math.sin(a)*rr; a?g.lineTo(x,y):g.moveTo(x,y);} g.closePath(); g.fill();
+    g.fillStyle='rgba(150,110,170,0.55)';
+    for(const o of [[-.2,-.15,.42],[.22,-.05,.38],[.02,.26,.40],[-.18,.2,.3]]){ g.beginPath(); g.ellipse(o[0]*R,o[1]*R,o[2]*R,o[2]*R,0,0,TAU); g.fill(); }
+    g.fillStyle='rgba(120,70,140,0.25)';
+    for(let i=0;i<26;i++){ const a=Math.random()*TAU,rr=Math.random()*R*0.85; g.beginPath(); g.arc(Math.cos(a)*rr,Math.sin(a)*rr,R*0.05,0,TAU); g.fill(); }
+    WBC_SPRITE=cnv;
+  }
+  // platelet — tiny pale fragment
+  {
+    const S=40, cnv=document.createElement('canvas'); cnv.width=cnv.height=S;
+    const g=cnv.getContext('2d'); g.translate(S/2,S/2); const R=S*0.34;
+    g.fillStyle='rgba(0,0,0,0.25)'; g.beginPath(); g.ellipse(0,R*0.1,R,R*0.8,0,0,TAU); g.fill();
+    const grd=g.createRadialGradient(-R*0.2,-R*0.2,0,0,0,R);
+    grd.addColorStop(0,'#efe6c9'); grd.addColorStop(1,'#bda878');
+    g.fillStyle=grd; g.beginPath();
+    for(let a=0;a<TAU;a+=0.6){ const rr=R*(0.78+0.22*Math.random()); const x=Math.cos(a)*rr,y=Math.sin(a)*rr*0.8; a?g.lineTo(x,y):g.moveTo(x,y);} g.closePath(); g.fill();
+    PLT_SPRITE=cnv;
+  }
+}
+
+// ============================================================================
+//  BLOOD CELLS  (particles travelling the directed graph)
+// ============================================================================
+let CELLS=[];
+const MAX_CELLS=4200;
+function seedCells(){
+  CELLS=[];
+  const E=NET.edges;
+  // weight by lumen volume so big vessels carry more cells
+  let tot=0; for(const e of E) tot+= e.len*e.radius*e.radius;
+  const want=Math.min(MAX_CELLS, (densityMul*2600)|0);
+  for(const e of E){
+    let n=Math.round(want * (e.len*e.radius*e.radius)/tot);
+    if(e.type==='cap') n=Math.max(n, e.radius>CAP_R*1.2?1:0); // keep some in capillaries
+    for(let i=0;i<n;i++) CELLS.push(makeCell(e, Math.random()));
+  }
+}
+function makeCell(e,s){
+  const r=Math.random();
+  let kind='rbc';
+  if(r>0.985) kind='wbc'; else if(r>0.93) kind='plt';
+  return { e, s, kind,
+    spin:(Math.random()-0.5)*0.6,
+    ang:Math.random()*TAU,
+    jit:0.8+Math.random()*0.5,
+    off:(Math.random()-0.5),          // lateral position in lumen (0=center)
+    oxy: e.oxyA!==undefined?e.oxyA:1 };
+}
+function pickNext(e){
+  const outs=NET.outgoing[e.b.id];
+  if(!outs || outs.length===0){ // reached a venous root → recycle into an artery
+    const r=NET.rootEdges; return r.length? r[(Math.random()*r.length)|0] : NET.edges[0];
+  }
+  if(outs.length===1) return outs[0];
+  let tot=0; for(const o of outs) tot+=o.radius*o.radius;
+  let x=Math.random()*tot;
+  for(const o of outs){ x-=o.radius*o.radius; if(x<=0) return o; }
+  return outs[outs.length-1];
+}
+
+// ============================================================================
+//  CAMERA
+// ============================================================================
+const cam={x:WORLD.w/2,y:WORLD.h/2,scale:0.3};
+let minScale=0.05, maxScale=22;
+function fit(){
+  cam.scale=Math.min(VW/WORLD.w, VH/WORLD.h)*0.92;
+  minScale=cam.scale*0.55;
+  cam.x=WORLD.w/2; cam.y=WORLD.h/2;
+  staticDirty=true;
+}
+const sx=(wx)=> (wx-cam.x)*cam.scale + VW/2;
+const sy=(wy)=> (wy-cam.y)*cam.scale + VH/2;
+const wX=(px)=> (px-VW/2)/cam.scale + cam.x;
+const wY=(py)=> (py-VH/2)/cam.scale + cam.y;
+
+// ============================================================================
+//  STATIC LAYER  (tissue + vessels, re-rendered only when the view changes)
+// ============================================================================
+let bg=document.createElement('canvas');
+let bgx=bg.getContext('2d');
+let staticDirty=true;
+const show={wall:true,tissue:true,cells:true,labels:false};
+
+function drawStatic(){
+  bgx.setTransform(DPR,0,0,DPR,0,0);
+  // deep tissue base
+  const bgrad=bgx.createRadialGradient(VW/2,VH*0.42,Math.min(VW,VH)*0.1, VW/2,VH/2,Math.max(VW,VH)*0.78);
+  bgrad.addColorStop(0,'#341019'); bgrad.addColorStop(0.55,'#22090f'); bgrad.addColorStop(1,'#120407');
+  bgx.fillStyle=bgrad; bgx.fillRect(0,0,VW,VH);
+
+  if(show.tissue) drawTissue();
+  drawVessels();
+  if(show.labels) drawLabels();
+  staticDirty=false;
+}
+
+function drawTissue(){
+  const m=40/cam.scale; // world margin
+  const x0=wX(-40), y0=wY(-40), x1=wX(VW+40), y1=wY(VH+40);
+  const rS=cam.scale;
+  for(const c of TISSUE){
+    if(c.x< x0-m||c.x>x1+m||c.y<y0-m||c.y>y1+m) continue;
+    const px=sx(c.x), py=sy(c.y), pr=c.r*rS;
+    if(pr<0.6) continue;
+    bgx.globalAlpha = pr<2 ? 0.12 : 0.20;
+    const t=c.tone;
+    bgx.fillStyle = `rgb(${120+t*30|0},${52+t*18|0},${66+t*20|0})`;
+    bgx.beginPath(); bgx.arc(px,py,pr,0,TAU); bgx.fill();
+    if(pr>5){ // nucleus (haematoxylin-ish)
+      bgx.globalAlpha=0.5;
+      bgx.fillStyle='#3a1430';
+      bgx.beginPath(); bgx.arc(sx(c.nx),sy(c.ny),c.nr*rS,0,TAU); bgx.fill();
+    }
+  }
+  bgx.globalAlpha=1;
+}
+
+function bloodColAt(oxy){ return mix(C_DEO,C_OXY,oxy); }
+
+function drawVessels(){
+  const E=NET.drawEdges, S=cam.scale;
+  const vx0=-30,vy0=-30,vx1=VW+30,vy1=VH+30;
+  bgx.lineJoin='round'; bgx.lineCap='round';
+  for(const e of E){
+    // cull by transformed bbox
+    const ax=sx(e.a.x),ay=sy(e.a.y),bx=sx(e.b.x),by=sy(e.b.y);
+    const pad=e.radius*S+6;
+    if(Math.max(ax,bx)+pad<vx0||Math.min(ax,bx)-pad>vx1||
+       Math.max(ay,by)+pad<vy0||Math.min(ay,by)-pad>vy1) continue;
+    const w=Math.max(0.5, e.radius*2*S);
+    const oxy=((e.oxyA||0)+(e.oxyB||0))*0.5;
+    const blood=bloodColAt(oxy);
+    const wallC = e.type==='ven'?WALL_V:WALL_A;
+
+    bgx.beginPath(); bgx.moveTo(ax,ay); bgx.lineTo(bx,by);
+
+    // 1) soft shadow / ambient occlusion onto the tissue
+    if(w>2){ bgx.lineWidth=w+Math.max(2,w*0.5); bgx.strokeStyle='rgba(0,0,0,0.22)'; bgx.stroke(); }
+    // 2) wall
+    if(show.wall && w>1.4){ bgx.lineWidth=w+Math.max(1.4,w*0.22); bgx.strokeStyle=rgb(wallC); bgx.stroke(); }
+    // 3) blood lumen
+    bgx.lineWidth=w; bgx.strokeStyle=rgb(mix(blood,[0,0,0],0.18)); bgx.stroke();
+    // 4) bright core (cylindrical shading)
+    if(w>2.2){ bgx.lineWidth=w*0.62; bgx.strokeStyle=rgba(mix(blood,[255,235,235],0.30),0.9); bgx.stroke(); }
+    // 5) glossy sheen
+    if(w>4){ bgx.lineWidth=Math.max(1,w*0.20); bgx.strokeStyle='rgba(255,225,225,0.5)'; bgx.stroke(); }
+  }
+}
+
+function drawLabels(){
+  bgx.font='600 13px Inter, sans-serif'; bgx.textAlign='left';
+  for(const l of NET.landmarks){
+    const px=sx(l.x),py=sy(l.y);
+    if(px<-60||px>VW+60||py<-30||py>VH+30) continue;
+    bgx.strokeStyle='rgba(255,255,255,0.5)'; bgx.lineWidth=1;
+    bgx.beginPath(); bgx.arc(px,py,3,0,TAU); bgx.moveTo(px,py); bgx.lineTo(px+14,py-14); bgx.stroke();
+    const w=bgx.measureText(l.t).width;
+    bgx.fillStyle='rgba(10,3,5,0.7)'; bgx.fillRect(px+16,py-26,w+10,17);
+    bgx.fillStyle='#ffe7ea'; bgx.fillText(l.t,px+21,py-13);
+  }
+}
+
+// ============================================================================
+//  RENDER LOOP
+// ============================================================================
+let paused=false, lastT=performance.now(), simTime=0;
+let bpm=72, speedMul=1, densityMul=1;
+
+function heart(t){ // synthetic pulse: systolic spike + dicrotic notch, range ~0..1
+  const p=(t/(60/bpm))%1;
+  const v=Math.exp(-Math.pow((p-0.12)/0.055,2))+0.42*Math.exp(-Math.pow((p-0.34)/0.10,2));
+  return v;
+}
+
+function frame(now){
+  let dt=(now-lastT)/1000; lastT=now; if(dt>0.05) dt=0.05;
+  if(!paused) simTime+=dt;
+  const pulse=heart(simTime);
+
+  updateCells(dt,pulse);
+
+  if(renderMode==='canvas' || !GL){
+    if(staticDirty) drawStatic();
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+    ctx.drawImage(bg,0,0,VW,VH);
+    if(show.cells) drawCellsCanvas();
+  }else{
+    glRender(pulse);
+  }
+
+  drawScaleBar();
+  // heartbeat indicator
+  const dot=document.getElementById('hbdot');
+  const s=0.7+pulse*0.9; dot.style.transform=`scale(${s})`;
+  dot.style.opacity=0.55+pulse*0.45;
+
+  requestAnimationFrame(frame);
+}
+
+// advance every cell along the directed graph + store world pose (shared by both renderers)
+function updateCells(dt,pulse){
+  const step = paused?0:dt;
+  for(const c of CELLS){
+    const e=c.e;
+    let pf;                                  // pulsatility differs along the tree
+    if(e.type==='art') pf=0.45+0.95*pulse;
+    else if(e.type==='cap') pf=0.55+0.35*pulse;
+    else pf=0.75+0.30*pulse;
+    const v=(4.2*e.radius)*speedMul*pf*c.jit; // velocity ∝ calibre (µm/s-ish)
+    c.s += v*step/e.len;
+    let guard=0;
+    while(c.s>=1 && guard++<8){
+      c.s-=1;
+      const ne=pickNext(e);
+      if(ne.type==='cap'){ c.oxy = ne.oxyB!==undefined? lerp(c.oxy,ne.oxyB,0.5):c.oxy; }
+      else if(ne.type==='art') c.oxy=1;
+      else if(ne.type==='ven') c.oxy=Math.min(c.oxy,0.08);
+      c.e=ne; break;
+    }
+    const ed=c.e, t=c.s;
+    const latMax=Math.max(0, ed.radius - RBC_R*0.7);
+    const lat=(ed.type==='cap'?0:c.off*latMax);
+    c.wx = ed.a.x+(ed.b.x-ed.a.x)*t + (-ed.uy)*lat;
+    c.wy = ed.a.y+(ed.b.y-ed.a.y)*t + ( ed.ux)*lat;
+    c.ang=Math.atan2(ed.uy,ed.ux)+(c.kind==='rbc'?c.spin*0.4:0);
+  }
+}
+
+function drawCellsCanvas(){
+  const S=cam.scale;
+  const vx0=-40,vy0=-40,vx1=VW+40,vy1=VH+40;
+  const rbcScreen=RBC_R*2*S;
+  for(const c of CELLS){
+    const px=sx(c.wx), py=sy(c.wy);
+    if(px<vx0||px>vx1||py<vy0||py>vy1) continue;
+    const ang=c.ang;
+    if(c.kind==='rbc'){
+      const w=rbcScreen;
+      if(w<1.4){ ctx.fillStyle=rgb(bloodColAt(c.oxy)); ctx.fillRect(px-0.6,py-0.6,1.2,1.2); continue; }
+      if(w<5){ ctx.fillStyle=rgb(bloodColAt(c.oxy));
+        ctx.beginPath(); ctx.ellipse(px,py,w*0.5,w*0.42,ang,0,TAU); ctx.fill(); continue; }
+      const idx=clamp(Math.round(c.oxy*(OXY_STEPS-1)),0,OXY_STEPS-1);
+      ctx.save(); ctx.translate(px,py); ctx.rotate(ang);
+      ctx.drawImage(RBC_SPRITES[idx],-w*0.62,-w*0.56,w*1.24,w*1.12); ctx.restore();
+    } else if(c.kind==='wbc'){
+      const w=Math.max(rbcScreen*1.7,2);
+      if(w<3){ ctx.fillStyle='#efe2ea'; ctx.fillRect(px-1,py-1,2,2); continue; }
+      ctx.save(); ctx.translate(px,py); ctx.rotate(ang*0.3);
+      ctx.drawImage(WBC_SPRITE,-w*0.7,-w*0.7,w*1.4,w*1.4); ctx.restore();
+    } else {
+      const w=Math.max(rbcScreen*0.6,1.5);
+      if(w<2) continue;
+      ctx.save(); ctx.translate(px,py); ctx.rotate(ang+c.ang);
+      ctx.drawImage(PLT_SPRITE,-w*0.7,-w*0.7,w*1.4,w*1.4); ctx.restore();
+    }
+  }
+}
+
+// ============================================================================
+//  SCALE BAR (microscope-style)
+// ============================================================================
+function niceNum(x){ const p=Math.pow(10,Math.floor(Math.log10(x))); const f=x/p;
+  return (f<1.5?1:f<3.5?2:f<7.5?5:10)*p; }
+function drawScaleBar(){
+  const targetPx=120;
+  const worldLen=niceNum(targetPx/cam.scale);
+  const barPx=worldLen*cam.scale;
+  document.getElementById('barline').style.width=barPx.toFixed(0)+'px';
+  const lbl = worldLen>=1000? (worldLen/1000)+' mm' : worldLen+' µm';
+  document.getElementById('barlabel').textContent=lbl;
+  // a 0.26µm/px reference ≈ a 400× light-microscope field; report relative mag
+  document.getElementById('zoomout').textContent='magnification ×'+(cam.scale*40).toFixed(cam.scale<0.5?1:0);
+}
+
+// ============================================================================
+//  INTERACTION
+// ============================================================================
+function resize(){
+  DPR=Math.min(window.devicePixelRatio||1,2);
+  VW=window.innerWidth; VH=window.innerHeight;
+  for(const cnv of [cv,bg,glcv]){ cnv.width=VW*DPR; cnv.height=VH*DPR; cnv.style.width=VW+'px'; cnv.style.height=VH+'px'; }
+  staticDirty=true;
+}
+window.addEventListener('resize',resize);
+
+function zoomAt(px,py,factor){
+  const wx=wX(px), wy=wY(py);
+  cam.scale=clamp(cam.scale*factor,minScale,maxScale);
+  // keep cursor world point fixed
+  cam.x = wx - (px-VW/2)/cam.scale;
+  cam.y = wy - (py-VH/2)/cam.scale;
+  staticDirty=true;
+}
+cv.addEventListener('wheel',(e)=>{ e.preventDefault();
+  zoomAt(e.clientX,e.clientY, Math.exp(-e.deltaY*0.0016)); },{passive:false});
+cv.addEventListener('dblclick',(e)=> zoomAt(e.clientX,e.clientY,1.8));
+
+let drag=null;
+cv.addEventListener('pointerdown',(e)=>{ drag={x:e.clientX,y:e.clientY}; cv.setPointerCapture(e.pointerId);
+  pointers.set(e.pointerId,{x:e.clientX,y:e.clientY}); cv.classList.add('drag'); });
+cv.addEventListener('pointermove',(e)=>{
+  if(pointers.has(e.pointerId)) pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pointers.size>=2){ pinch(); return; }
+  if(!drag) return;
+  cam.x-=(e.clientX-drag.x)/cam.scale; cam.y-=(e.clientY-drag.y)/cam.scale;
+  drag={x:e.clientX,y:e.clientY}; staticDirty=true;
+});
+function endPtr(e){ pointers.delete(e.pointerId); if(pointers.size<2) lastPinch=null; if(pointers.size===0){drag=null;cv.classList.remove('drag');} }
+cv.addEventListener('pointerup',endPtr); cv.addEventListener('pointercancel',endPtr);
+
+const pointers=new Map(); let lastPinch=null;
+function pinch(){
+  const p=[...pointers.values()];
+  const cx=(p[0].x+p[1].x)/2, cy=(p[0].y+p[1].y)/2;
+  const d=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y);
+  if(lastPinch){ zoomAt(cx,cy, d/lastPinch.d);
+    cam.x-=(cx-lastPinch.cx)/cam.scale; cam.y-=(cy-lastPinch.cy)/cam.scale; staticDirty=true; }
+  lastPinch={d,cx,cy}; drag=null;
+}
+
+// buttons + sliders
+document.getElementById('zin').onclick =()=>zoomAt(VW/2,VH/2,1.5);
+document.getElementById('zout').onclick=()=>zoomAt(VW/2,VH/2,1/1.5);
+document.getElementById('fit').onclick =fit;
+document.getElementById('pause').onclick=(e)=>{ paused=!paused; e.target.textContent=paused?'▶ Play':'⏸ Pause'; };
+document.getElementById('regen').onclick=()=> regenerate((Math.random()*1e9)|0);
+
+const bpmEl=document.getElementById('bpm');
+bpmEl.oninput=()=>{ bpm=+bpmEl.value; document.getElementById('bpmv').textContent=bpm+' bpm';
+  document.getElementById('bpmread').textContent=bpm; };
+const spdEl=document.getElementById('spd');
+spdEl.oninput=()=>{ speedMul=+spdEl.value/100; document.getElementById('spdv').textContent=speedMul.toFixed(1)+'×'; };
+const denEl=document.getElementById('den');
+denEl.onchange=()=>{ densityMul=+denEl.value/100; document.getElementById('denv').textContent=denEl.value+'%'; seedCells(); };
+denEl.oninput=()=>{ document.getElementById('denv').textContent=denEl.value+'%'; };
+
+document.querySelectorAll('.chip[data-t]').forEach(ch=>{
+  ch.onclick=()=>{ const t=ch.dataset.t; show[t]=!show[t]; ch.classList.toggle('on',show[t]); staticDirty=true; };
+});
+document.querySelectorAll('.chip[data-m]').forEach(ch=>{
+  ch.onclick=()=>{ if(!GL && ch.dataset.m!=='canvas') return; renderMode=ch.dataset.m; applyMode(); };
+});
+document.querySelectorAll('.chip[data-gen]').forEach(ch=>{
+  ch.onclick=()=>{ genPreset=ch.dataset.gen;
+    document.querySelectorAll('#gens .chip').forEach(x=>x.classList.toggle('on',x.dataset.gen===genPreset));
+    regenerate(curSeed); };
+});
+
+document.addEventListener('keydown',(e)=>{
+  if(e.key==='+'||e.key==='=') zoomAt(VW/2,VH/2,1.4);
+  else if(e.key==='-'||e.key==='_') zoomAt(VW/2,VH/2,1/1.4);
+  else if(e.key===' '){ e.preventDefault(); document.getElementById('pause').click(); }
+  else if(e.key.toLowerCase()==='f') fit();
+  else if(e.key.toLowerCase()==='r') regenerate((Math.random()*1e9)|0);
+});
+
+// ============================================================================
+//  WEBGL2 RENDERER  —  switchable shading algorithms
+//  Vessels are drawn as SDF capsule impostors (one instanced quad per segment);
+//  the fragment shader reconstructs a tube cross-section normal and shades it
+//  with a selectable model: Blinn–Phong, subsurface-scattering, toon or x-ray.
+//  Tissue is a procedural domain-warped fBm field; blood cells are instanced
+//  biconcave impostors.  (Refs: gltut "Lies and Impostors", hg_sdf, GPU Gems
+//  ch.16 real-time subsurface scattering.)
+// ============================================================================
+let GL=null;
+const VS_HEAD='#version 300 es\nprecision highp float;\n';
+const FS_HEAD='#version 300 es\nprecision highp float;\n';
+
+const TISSUE_VS=VS_HEAD+`
+layout(location=0) in vec2 corner;
+void main(){ gl_Position=vec4(corner,0.0,1.0); }`;
+
+const TISSUE_FS=FS_HEAD+`
+uniform vec2 uCam; uniform float uScale; uniform vec2 uRes; uniform int uMode;
+out vec4 o;
+float hash(vec2 p){ p=fract(p*vec2(123.34,345.45)); p+=dot(p,p+34.345); return fract(p.x*p.y); }
+float noise(vec2 p){ vec2 i=floor(p),f=fract(p); f=f*f*(3.0-2.0*f);
+  float a=hash(i),b=hash(i+vec2(1,0)),c=hash(i+vec2(0,1)),d=hash(i+vec2(1,1));
+  return mix(mix(a,b,f.x),mix(c,d,f.x),f.y); }
+float fbm(vec2 p){ float s=0.0,a=0.5; for(int i=0;i<5;i++){ s+=a*noise(p); p=p*2.02+1.7; a*=0.5; } return s; }
+void main(){
+  vec2 frag=vec2(gl_FragCoord.x, uRes.y-gl_FragCoord.y);
+  vec2 world=(frag-uRes*0.5)/uScale+uCam;
+  if(uMode==4){ float v=fbm(world*0.012)*0.04; o=vec4(0.015+v,0.0,0.03+v,1.0); return; }
+  vec2 q=world*0.012;
+  vec2 w=q+vec2(fbm(q+1.3),fbm(q+4.7))*1.4;
+  float n=fbm(w*1.25);
+  vec3 base=mix(vec3(0.085,0.028,0.045), vec3(0.255,0.085,0.115), n);
+  float nuc=smoothstep(0.60,0.66,fbm(world*0.05+5.0));
+  base=mix(base, vec3(0.17,0.05,0.13), nuc*0.45);
+  base*=0.6+0.4*fbm(world*0.004+9.0);   // large-scale shading
+  o=vec4(base,1.0);
+}`;
+
+const VESS_VS=VS_HEAD+`
+layout(location=0) in vec2 corner;
+layout(location=1) in vec4 iAB;
+layout(location=2) in vec4 iPar;   // rA,rB,oxy,type
+uniform vec2 uCam; uniform float uScale; uniform vec2 uRes;
+out vec2 vP; out vec4 vAB; out vec4 vPar;
+void main(){
+  vec2 A=iAB.xy,B=iAB.zw; vec2 ax=B-A; float L=length(ax);
+  vec2 d=L>1e-4?ax/L:vec2(1.0,0.0); vec2 pp=vec2(-d.y,d.x);
+  float maxR=max(iPar.x,iPar.y)+2.0/uScale;
+  vec2 c=(A+B)*0.5;
+  vec2 world=c+d*((L*0.5+maxR)*corner.x)+pp*(maxR*corner.y);
+  vP=world; vAB=iAB; vPar=iPar;
+  vec2 scr=(world-uCam)*uScale+uRes*0.5;
+  gl_Position=vec4(scr.x/uRes.x*2.0-1.0, 1.0-scr.y/uRes.y*2.0, 0.0,1.0);
+}`;
+
+const VESS_FS=FS_HEAD+`
+in vec2 vP; in vec4 vAB; in vec4 vPar;
+uniform float uScale; uniform int uMode;
+out vec4 o;
+const vec3 OXY=vec3(0.91,0.275,0.31);
+const vec3 DEO=vec3(0.47,0.15,0.25);
+void main(){
+  vec2 A=vAB.xy,B=vAB.zw; vec2 ax=B-A; float L2=dot(ax,ax);
+  float t=L2>1e-6?clamp(dot(vP-A,ax)/L2,0.0,1.0):0.0;
+  vec2 proj=A+ax*t; vec2 rel=vP-proj; float dist=length(rel);
+  float rr=mix(vPar.x,vPar.y,t);
+  float aa=1.0/uScale; float sd=dist-rr;
+  if(sd>aa) discard;
+  float cov=clamp(smoothstep(aa,-aa,sd),0.0,1.0);
+  vec2 dn=L2>1e-6?ax/sqrt(L2):vec2(1.0,0.0); vec2 bn=vec2(-dn.y,dn.x);
+  float nperp=clamp(dot(rel,bn)/max(rr,1e-3),-1.0,1.0);
+  float hgt=sqrt(max(0.0,1.0-nperp*nperp));
+  vec3 N=normalize(vec3(bn*nperp,hgt));
+  vec3 Ld=normalize(vec3(-0.45,-0.55,0.72)); vec3 V=vec3(0.0,0.0,1.0);
+  float oxy=vPar.z; vec3 blood=mix(DEO,OXY,oxy);
+  float diff=max(dot(N,Ld),0.0);
+  vec3 H=normalize(Ld+V); float spec=pow(max(dot(N,H),0.0),28.0);
+  float rim=pow(1.0-hgt,2.5);
+  vec3 col;
+  if(uMode==1){
+    col=blood*(0.30+0.85*diff)+vec3(1.0,0.92,0.92)*spec*0.7+blood*rim*0.5;
+  }else if(uMode==2){
+    float fres=pow(1.0-hgt,3.0);
+    vec3 deep=blood*blood;
+    vec3 sss=mix(deep,blood*1.3,hgt);
+    float back=pow(max(dot(-N,Ld),0.0),2.0);
+    col=sss*(0.45+0.6*diff)+blood*back*0.85+vec3(1.0,0.8,0.85)*fres*0.5*oxy+vec3(spec*0.5);
+  }else if(uMode==3){
+    float q=floor(diff*4.0)/4.0;
+    col=blood*(0.32+0.8*q);
+    if(spec>0.55) col+=vec3(0.5);
+    float edge=smoothstep(0.0,0.13,1.0-hgt);
+    col=mix(col,vec3(0.05,0.0,0.02),edge*0.9);
+  }else{
+    float core=smoothstep(1.0,0.0,abs(nperp));
+    col=mix(vec3(0.10,0.0,0.03),blood*1.5,core)+blood*pow(hgt,2.0)*0.7;
+  }
+  o=vec4(col*cov,cov);
+}`;
+
+const CELL_VS=VS_HEAD+`
+layout(location=0) in vec2 corner;
+layout(location=1) in vec4 iPos;   // x,y,angle,size
+layout(location=2) in vec2 iMeta;  // oxy,kind
+uniform vec2 uCam; uniform float uScale; uniform vec2 uRes;
+out vec2 vUv; out vec2 vMeta;
+void main(){
+  float s=iPos.w,a=iPos.z,ca=cos(a),sa=sin(a);
+  vec2 lc=corner*s*1.3;
+  vec2 world=iPos.xy+vec2(lc.x*ca-lc.y*sa, lc.x*sa+lc.y*ca);
+  vUv=corner*1.3; vMeta=iMeta;
+  vec2 scr=(world-uCam)*uScale+uRes*0.5;
+  gl_Position=vec4(scr.x/uRes.x*2.0-1.0, 1.0-scr.y/uRes.y*2.0, 0.0,1.0);
+}`;
+
+const CELL_FS=FS_HEAD+`
+in vec2 vUv; in vec2 vMeta; uniform int uMode; out vec4 o;
+const vec3 OXY=vec3(0.91,0.275,0.31), DEO=vec3(0.47,0.15,0.25);
+void main(){
+  float kind=vMeta.y, oxy=vMeta.x;
+  if(kind<0.5){
+    vec2 p=vec2(vUv.x, vUv.y/0.86); float r=length(p);
+    if(r>1.0) discard;
+    vec3 col=mix(DEO,OXY,oxy);
+    float ring=smoothstep(0.95,0.55,r)*smoothstep(0.0,0.34,r);
+    vec3 c=mix(col*0.7,col,smoothstep(0.0,0.4,r));
+    c=mix(c, mix(col,vec3(1.0,0.92,0.92),0.35), ring);
+    c=mix(c, col*0.6, smoothstep(0.85,1.0,r));
+    c+=smoothstep(0.5,0.0,length(p-vec2(-0.3,-0.32)))*0.45;
+    if(uMode==4) c=mix(vec3(0.1,0.0,0.03),col*1.6,ring+0.3);
+    float aa=fwidth(r)*1.5;
+    o=vec4(c, smoothstep(1.0,1.0-aa,r));
+  }else if(kind<1.5){
+    float r=length(vUv); if(r>1.0) discard;
+    vec3 c=mix(vec3(0.95,0.89,0.93),vec3(0.80,0.69,0.78),r);
+    c=mix(c,vec3(0.6,0.45,0.66),smoothstep(0.7,0.2,r)*0.4);
+    if(uMode==4) c*=1.3;
+    o=vec4(c, smoothstep(1.0,0.9,r));
+  }else{
+    float r=length(vUv); if(r>1.0) discard;
+    o=vec4(mix(vec3(0.92,0.86,0.66),vec3(0.74,0.66,0.47),r), smoothstep(1.0,0.85,r));
+  }
+}`;
+
+function glCompile(gl,type,src){
+  const s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s);
+  if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)) throw new Error('shader: '+gl.getShaderInfoLog(s)+'\n'+src);
+  return s;
+}
+function glProgram(gl,vs,fs){
+  const p=gl.createProgram();
+  gl.attachShader(p,glCompile(gl,gl.VERTEX_SHADER,vs));
+  gl.attachShader(p,glCompile(gl,gl.FRAGMENT_SHADER,fs));
+  gl.linkProgram(p);
+  if(!gl.getProgramParameter(p,gl.LINK_STATUS)) throw new Error('link: '+gl.getProgramInfoLog(p));
+  return p;
+}
+
+function initGL(){
+  const gl=glcv.getContext('webgl2',{alpha:false,antialias:true,premultipliedAlpha:false});
+  if(!gl) return null;
+  const quad=gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER,quad);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1, 1,-1, -1,1, 1,1]),gl.STATIC_DRAW);
+
+  const P={
+    tissue:{p:glProgram(gl,TISSUE_VS,TISSUE_FS)},
+    vess:{p:glProgram(gl,VESS_VS,VESS_FS)},
+    cell:{p:glProgram(gl,CELL_VS,CELL_FS)},
+  };
+  for(const k in P){ const pr=P[k].p;
+    P[k].u={uCam:gl.getUniformLocation(pr,'uCam'),uScale:gl.getUniformLocation(pr,'uScale'),
+            uRes:gl.getUniformLocation(pr,'uRes'),uMode:gl.getUniformLocation(pr,'uMode')}; }
+
+  // VAOs
+  const vaoT=gl.createVertexArray(); gl.bindVertexArray(vaoT);
+  gl.bindBuffer(gl.ARRAY_BUFFER,quad); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
+
+  const vessInst=gl.createBuffer();
+  const vaoV=gl.createVertexArray(); gl.bindVertexArray(vaoV);
+  gl.bindBuffer(gl.ARRAY_BUFFER,quad); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
+  gl.bindBuffer(gl.ARRAY_BUFFER,vessInst);
+  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,4,gl.FLOAT,false,32,0);  gl.vertexAttribDivisor(1,1);
+  gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2,4,gl.FLOAT,false,32,16); gl.vertexAttribDivisor(2,1);
+
+  const cellInst=gl.createBuffer();
+  const vaoC=gl.createVertexArray(); gl.bindVertexArray(vaoC);
+  gl.bindBuffer(gl.ARRAY_BUFFER,quad); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
+  gl.bindBuffer(gl.ARRAY_BUFFER,cellInst);
+  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,4,gl.FLOAT,false,24,0);  gl.vertexAttribDivisor(1,1);
+  gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2,2,gl.FLOAT,false,24,16); gl.vertexAttribDivisor(2,1);
+  gl.bindVertexArray(null);
+
+  return { gl,P,vaoT,vaoV,vaoC,vessInst,cellInst,
+           vessCount:0, cellData:new Float32Array(MAX_CELLS*6) };
+}
+
+function uploadVessels(){
+  if(!GL||!NET) return;
+  const gl=GL.gl, E=NET.drawEdges;
+  const arr=new Float32Array(E.length*8);
+  const typeId={art:0,cap:1,ven:2};
+  for(let i=0;i<E.length;i++){ const e=E[i], o=i*8;
+    arr[o]=e.a.x; arr[o+1]=e.a.y; arr[o+2]=e.b.x; arr[o+3]=e.b.y;
+    arr[o+4]=e.a.radius; arr[o+5]=e.b.radius;
+    arr[o+6]=((e.oxyA||0)+(e.oxyB||0))*0.5; arr[o+7]=typeId[e.type]||0; }
+  gl.bindBuffer(gl.ARRAY_BUFFER,GL.vessInst);
+  gl.bufferData(gl.ARRAY_BUFFER,arr,gl.STATIC_DRAW);
+  GL.vessCount=E.length;
+}
+
+function glRender(pulse){
+  const gl=GL.gl, mode=MODE_UNIFORM[renderMode]||1;
+  gl.viewport(0,0,glcv.width,glcv.height);
+  gl.disable(gl.DEPTH_TEST);
+  if(mode===4){ gl.clearColor(0.01,0.0,0.02,1); } else { gl.clearColor(0.07,0.02,0.03,1); }
+  gl.clear(gl.COLOR_BUFFER_BIT);
+
+  const setU=(u)=>{ gl.uniform2f(u.uCam,cam.x,cam.y); gl.uniform1f(u.uScale,cam.scale*DPR);
+    gl.uniform2f(u.uRes,glcv.width,glcv.height); gl.uniform1i(u.uMode,mode); };
+
+  // tissue (skip heavy field for x-ray which wants a near-black background but still cheap)
+  if(show.tissue || mode===4){
+    gl.useProgram(GL.P.tissue.p); setU(GL.P.tissue.u);
+    gl.bindVertexArray(GL.vaoT); gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+  }
+
+  gl.enable(gl.BLEND);
+  if(mode===4) gl.blendFunc(gl.SRC_ALPHA,gl.ONE);          // additive glow
+  else gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+
+  // vessels
+  if(GL.vessCount){
+    gl.useProgram(GL.P.vess.p); setU(GL.P.vess.u);
+    gl.bindVertexArray(GL.vaoV);
+    gl.drawArraysInstanced(gl.TRIANGLE_STRIP,0,4,GL.vessCount);
+  }
+
+  // cells
+  if(show.cells){
+    const data=GL.cellData; let n=0;
+    const vx0=-60,vy0=-60,vx1=VW+60,vy1=VH+60;
+    for(const c of CELLS){
+      const px=sx(c.wx), py=sy(c.wy);
+      if(px<vx0||px>vx1||py<vy0||py>vy1) continue;
+      const o=n*6;
+      data[o]=c.wx; data[o+1]=c.wy; data[o+2]=c.ang;
+      data[o+3]=c.kind==='rbc'?RBC_R:c.kind==='wbc'?RBC_R*1.7:RBC_R*0.6;
+      data[o+4]=c.oxy; data[o+5]=c.kind==='rbc'?0:c.kind==='wbc'?1:2;
+      if(++n>=MAX_CELLS) break;
+    }
+    if(n){
+      gl.bindBuffer(gl.ARRAY_BUFFER,GL.cellInst);
+      gl.bufferData(gl.ARRAY_BUFFER,data.subarray(0,n*6),gl.DYNAMIC_DRAW);
+      gl.useProgram(GL.P.cell.p); setU(GL.P.cell.u);
+      gl.bindVertexArray(GL.vaoC);
+      gl.drawArraysInstanced(gl.TRIANGLE_STRIP,0,4,n);
+    }
+  }
+  gl.bindVertexArray(null);
+}
+
+function applyMode(){
+  const gl=!!GL;
+  const isCanvas = renderMode==='canvas' || !gl;
+  cv.classList.toggle('hidden', !isCanvas);
+  glcv.classList.toggle('hidden', isCanvas);
+  document.querySelectorAll('#modes .chip').forEach(ch=>ch.classList.toggle('on',ch.dataset.m===renderMode));
+  if(isCanvas) staticDirty=true;
+}
+
+// ============================================================================
+//  BOOT
+// ============================================================================
+function regenerate(seed){
+  curSeed=seed;
+  NET=buildNetwork(seed,genPreset);
+  buildTissue(seed);
+  seedCells();
+  uploadVessels();
+  staticDirty=true;
+}
+function boot(){
+  resize();
+  buildSprites();
+  try{ GL=initGL(); }catch(err){ console.error('WebGL init failed:',err); GL=null; }
+  if(!GL){ renderMode='canvas';
+    document.querySelectorAll('.chip[data-m]').forEach(ch=>{ if(ch.dataset.m!=='canvas') ch.style.display='none'; }); }
+  regenerate(20260625);
+  fit();
+  applyMode();
+  document.getElementById('loader').style.display='none';
+  requestAnimationFrame((t)=>{lastT=t; requestAnimationFrame(frame);});
+}
+// allow the loader to paint first
+setTimeout(boot, 30);
+</script>
+</body>
+</html>
