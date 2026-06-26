@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hitze-Report · Hitzeglocke, Projektion &amp; Sterblichkeit</title>
+<style>
+  :root{
+    --bg:#080b12;--panel:#0e1521;--panel2:#0c121d;--line:#1d2738;--line2:#27344a;
+    --ink:#e8edf6;--ink2:#9fb0c8;--ink3:#65788f;
+    --ember:#ff7a2f;--red:#ff3b5c;--teal:#36d6c3;
+    --jung:#39c0e0;--mittel:#f2b134;--alt:#ff5470;--alt-glow:rgba(255,84,112,.5);
+    --grid:rgba(255,255,255,.05);
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:
+    radial-gradient(1200px 600px at 82% -12%,#1a1320 0%,transparent 55%),
+    radial-gradient(900px 500px at -8% 2%,#101b2a 0%,transparent 52%),var(--bg);
+    color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;line-height:1.5}
+  .wrap{max-width:1020px;margin:0 auto;padding:30px 18px 70px}
+
+  .eyebrow{font:600 11px/1 var(--mono);letter-spacing:.26em;text-transform:uppercase;color:var(--ink3);display:flex;align-items:center;gap:10px}
+  .eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ember);box-shadow:0 0 12px var(--ember)}
+  h1{font-size:clamp(27px,6vw,46px);line-height:1.0;margin:15px 0 8px;font-weight:780;letter-spacing:-.025em}
+  h1 .hi{background:linear-gradient(96deg,var(--ember),#ffd27a);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lede{color:var(--ink2);font-size:15px;max-width:66ch;line-height:1.6}
+  .meta{margin-top:14px;font:500 11.5px/1.6 var(--mono);color:var(--ink3);letter-spacing:.03em;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:10px 0;display:flex;gap:18px;flex-wrap:wrap}
+
+  .toc{margin:22px 0 6px;display:flex;flex-wrap:wrap;gap:8px}
+  .toc a{font:600 12px/1 var(--sans);color:var(--ink2);text-decoration:none;background:var(--panel2);border:1px solid var(--line);padding:8px 12px;border-radius:8px;transition:.15s}
+  .toc a:hover{color:var(--ink);border-color:var(--line2)}
+
+  section{margin-top:46px;scroll-margin-top:18px}
+  .sec-no{font:700 11px/1 var(--mono);letter-spacing:.2em;color:var(--ember)}
+  h2{font-size:clamp(20px,4vw,27px);font-weight:720;letter-spacing:-.02em;margin:8px 0 4px}
+  h3{font-size:16px;font-weight:680;margin:24px 0 8px;color:var(--ink)}
+  p{color:var(--ink2);font-size:14.5px;max-width:70ch}
+  p strong,li strong{color:var(--ink);font-weight:650}
+  .accent{color:var(--ember)} .acc-red{color:var(--red)} .acc-teal{color:var(--teal)}
+
+  .callout{margin:16px 0;font:500 13px/1.55 var(--sans);color:var(--ink2);background:linear-gradient(180deg,#0f1622,#0b111b);
+    border:1px solid var(--line);border-left:2px solid var(--ember);border-radius:9px;padding:12px 15px}
+  .callout.t{border-left-color:var(--teal)} .callout.r{border-left-color:var(--red)}
+  .callout b{color:var(--ink)}
+
+  /* controls / charts (shared) */
+  .controls{display:flex;flex-wrap:wrap;gap:16px;margin:18px 0 4px;align-items:flex-end}
+  .ctl-label{font:600 10px/1 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px}
+  .seg{display:inline-flex;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px}
+  .seg button{appearance:none;border:0;background:transparent;color:var(--ink2);font:600 12.5px/1 var(--sans);padding:9px 13px;border-radius:7px;cursor:pointer;transition:.15s;white-space:nowrap}
+  .seg button:hover{color:var(--ink)}
+  .seg button[aria-pressed="true"]{background:#1b2536;color:var(--ink);box-shadow:inset 0 0 0 1px var(--line2)}
+  .spacer{flex:1 1 24px}
+  .legend{display:flex;gap:14px;align-items:center;font:500 12px/1.4 var(--sans);color:var(--ink2);flex-wrap:wrap}
+  .legend i{display:inline-block;width:20px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle}
+  .lg-emb{background:var(--ember);box-shadow:0 0 8px var(--ember)} .lg-red{background:var(--red)}
+  .lg-j{background:var(--jung)} .lg-m{background:var(--mittel)} .lg-a{background:var(--alt);box-shadow:0 0 8px var(--alt)}
+
+  .chartcard{margin-top:12px;background:linear-gradient(180deg,#0e1521,#0a0f18);border:1px solid var(--line);border-radius:16px;padding:18px 14px 6px;position:relative;overflow:hidden}
+  .chart-h{display:flex;justify-content:space-between;align-items:baseline;padding:0 6px 6px;flex-wrap:wrap;gap:6px}
+  .chart-title{font-weight:680;font-size:14.5px;letter-spacing:-.01em}
+  .chart-unit{font:600 11px/1 var(--mono);color:var(--ink3)}
+  svg{display:block;width:100%;height:auto;overflow:visible}
+  .tip{position:absolute;pointer-events:none;background:#0a1018;border:1px solid var(--line2);border-radius:9px;padding:9px 11px;font:500 12px/1.45 var(--sans);color:var(--ink);opacity:0;transition:opacity .12s;z-index:5;box-shadow:0 10px 30px rgba(0,0,0,.5);min-width:158px}
+  .tip .y{font:700 12px/1 var(--mono);color:var(--ink2);margin-bottom:6px}
+  .tip .row{display:flex;justify-content:space-between;gap:14px}
+  .tip .row b{font-variant-numeric:tabular-nums}
+  .tip .emb b{color:var(--ember)} .tip .red b{color:var(--red)}
+  .tip .j b{color:var(--jung)} .tip .m b{color:var(--mittel)} .tip .a b{color:var(--alt)}
+
+  .stats{display:grid;gap:12px;margin-top:18px}
+  .stats.s4{grid-template-columns:repeat(4,1fr)}
+  .stats.s3{grid-template-columns:repeat(3,1fr)}
+  .stat{background:linear-gradient(180deg,#101824,#0b111a);border:1px solid var(--line);border-radius:13px;padding:14px;position:relative;overflow:hidden}
+  .stat::after{content:"";position:absolute;inset:0 0 auto 0;height:2px;background:linear-gradient(90deg,var(--ember),transparent)}
+  .stat.j::after{background:linear-gradient(90deg,var(--jung),transparent)}
+  .stat.m::after{background:linear-gradient(90deg,var(--mittel),transparent)}
+  .stat.a::after{background:linear-gradient(90deg,var(--alt),transparent)}
+  .stat .k{font:600 10px/1.2 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink3)}
+  .stat .pair{display:flex;align-items:flex-end;gap:4px;margin-top:10px}
+  .stat .big{font:740 27px/.9 var(--sans);letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:var(--ember)}
+  .stat .u{font:600 11px/1 var(--mono);color:var(--ink3);margin-bottom:3px}
+  .stat .sub{margin-top:8px;font:500 11.5px/1.3 var(--sans);color:var(--ink2);display:flex;justify-content:space-between}
+  .stat .sub .hv{color:var(--red);font-variant-numeric:tabular-nums;font-weight:700}
+  .stat .delta{margin-top:6px;font:600 10.5px/1 var(--mono);color:var(--ink3)}
+  .stat .delta b{color:#ffcaa0}
+  .stat .grp{margin-top:6px;font:740 15px/1.1 var(--sans)}
+  .stat.j .grp{color:var(--jung)} .stat.m .grp{color:var(--mittel)} .stat.a .grp{color:var(--alt)}
+  .stat .d{margin-top:8px;font:500 12px/1.45 var(--sans);color:var(--ink2)}
+
+  .refs{margin-top:18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:13px;overflow:hidden}
+  .ref{background:var(--panel2);padding:13px 14px}
+  .ref .v{font:740 18px/1 var(--sans);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .ref .v.hot{color:var(--ember)} .ref .v.red{color:var(--red)} .ref .v.am{color:var(--mittel)}
+  .ref .l{margin-top:6px;font:500 11.5px/1.35 var(--sans);color:var(--ink2)}
+
+  /* factor lists */
+  .flist{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:10px}
+  .flist li{background:linear-gradient(180deg,#101824,#0b111a);border:1px solid var(--line);border-radius:11px;padding:13px 15px 13px 16px;position:relative}
+  .flist li::before{content:"";position:absolute;left:0;top:12px;bottom:12px;width:3px;border-radius:2px;background:var(--ember)}
+  .flist.cold li::before{background:var(--jung)}
+  .flist.warm li::before{background:var(--mittel)}
+  .flist.red li::before{background:var(--alt)}
+  .flist b{color:var(--ink);font-weight:650}
+  .flist span{color:var(--ink2);font-size:13.5px}
+
+  details{margin-top:18px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);overflow:hidden}
+  summary{cursor:pointer;padding:14px 16px;font-weight:640;font-size:13.5px;list-style:none;display:flex;justify-content:space-between;align-items:center;color:var(--ink)}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"+";font:400 20px/1 var(--mono);color:var(--ink3)}
+  details[open] summary::after{content:"–"}
+  .cav{padding:2px 18px 18px;color:var(--ink2);font-size:13px;line-height:1.62}
+  .cav ul{margin:6px 0 0;padding-left:18px} .cav li{margin:7px 0} .cav b{color:var(--ink)}
+  .src{font:500 11.5px/1.65 var(--mono);color:var(--ink3);margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+  .foot{margin-top:24px;font:500 11px/1.5 var(--mono);color:var(--ink3);letter-spacing:.03em}
+  .disc{margin-top:18px;font:500 12px/1.5 var(--sans);color:var(--ink3);border:1px dashed var(--line2);border-radius:10px;padding:12px 14px}
+
+  @media(max-width:720px){
+    .stats.s4{grid-template-columns:repeat(2,1fr)}
+    .stats.s3{grid-template-columns:1fr}
+    .seg button{padding:8px 11px;font-size:12px}
+  }
+  .xlink{display:inline-flex;align-items:center;gap:8px;margin-bottom:18px;font:600 12.5px/1 var(--sans);
+    color:var(--ink2);text-decoration:none;background:var(--panel2);border:1px solid var(--line);
+    padding:9px 13px;border-radius:9px;transition:.15s}
+  .xlink:hover{color:var(--ink);border-color:var(--teal)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <a class="xlink" href="index.html">↩ München Klimatrend · Dashboard</a>
+  <div class="eyebrow">Hitze-Report · Bayern · Stand Juni 2026</div>
+  <h1>Hitzeglocke, Projektion<br>&amp; <span class="hi">wer an Hitze stirbt</span></h1>
+  <p class="lede">Von der aktuellen Hitzeglocke über Europa zu den realistischen Temperaturpfaden für München und die Oberpfalz bis 2100 — und der medizinischen Kernfrage: ab wann, wie lange und für wen wird Hitze tödlich.</p>
+  <div class="meta">
+    <span>RKI · DWD · LfU Bayern · EuroHEAT · Climate Action Tracker</span>
+    <span>Realistischer Pfad: aktuelle Politik ≈ +2,6 °C global</span>
+  </div>
+
+  <div class="toc">
+    <a href="#s0">1 · Die Hitzeglocke 2026</a>
+    <a href="#s1">2 · Wie heiß wird es?</a>
+    <a href="#s2">3 · Ab wann tötet Hitze?</a>
+    <a href="#s3">4 · Warum Kinder sterben</a>
+    <a href="#s4">5 · Wer sind die Sterbefälle?</a>
+    <a href="#s5">6 · Hilft Fitness?</a>
+    <a href="#s6">7 · Methodik &amp; Quellen</a>
+  </div>
+
+  <!-- ════ 1 ════ -->
+  <section id="s0">
+    <div class="sec-no">01</div>
+    <h2>Die Hitzeglocke über Europa</h2>
+    <p>Im Kern steht ein stabiles, blockierendes Hochdruckgebiet — eine <strong>Omega-Blockade</strong>. Meteorologen vergleichen sie mit einem Deckel auf dem Kochtopf: Unter dem Hoch sinkt Luft ab, komprimiert und erwärmt sich, der Himmel bleibt wolkenlos, der Boden heizt sich Tag für Tag weiter auf. Heiße Saharaluft strömt aus Afrika nach, ein nennenswerter Luftaustausch findet kaum statt.</p>
+    <p>Drei Verstärker machen die Lage 2026 außergewöhnlich: eine Serie atlantischer Tiefs <strong>stabilisiert</strong> das Hoch immer wieder; ungewöhnlich <strong>warmes Meerwasser</strong> (bis zu 5 °C über dem Mittel) kann die Hitze kaum noch mildern; und <strong>trockene Böden</strong> nach einem niederschlagsarmen Frühjahr heizen sich schneller auf, weil keine Energie ins Verdunsten geht. Ein El-Niño-Jahr legt zusätzlich oben drauf.</p>
+    <div class="callout"><b>Einmalig oder Trend?</b> Die einzelne Wetterlage ist Zufall — ihre Intensität nicht. Europa erwärmt sich seit den 1980ern doppelt so schnell wie der globale Durchschnitt. Solche Lagen werden häufiger und heftiger; die Basislinie liegt heute höher, dieselbe Wetterlage produziert heißere Rekorde.</p></div>
+    <div class="refs">
+      <div class="ref"><div class="v hot">bis 45 °C</div><div class="l">Spitzenwerte Frankreich &amp; Spanien, Juni 2026</div></div>
+      <div class="ref"><div class="v red">41,2 °C</div><div class="l">Deutschland-Rekord, 25. Juli 2019 (Tönisvorst/Duisburg)</div></div>
+      <div class="ref"><div class="v">2×</div><div class="l">So schnell erwärmt sich Europa ggü. globalem Mittel</div></div>
+      <div class="ref"><div class="v am">×2 schneller</div><div class="l">Hitzetage in Bayern seit den 1950ern mehr als verdreifacht</div></div>
+    </div>
+  </section>
+
+  <!-- ════ 2 ════ -->
+  <section id="s1">
+    <div class="sec-no">02</div>
+    <h2>Wie heiß wird es bis 2100?</h2>
+    <p>Das 2-Grad-Ziel ist faktisch außer Reichweite — die Erwärmung unter <strong>aktueller Klimapolitik</strong> liegt bei rund <span class="accent">+2,6 °C global</span> bis 2100 (Climate Action Tracker, Nov 2025). Mitteleuropa erwärmt sich deutlich stärker als der globale Schnitt. Darum zeigt der Chart den <span class="accent">realistischen Pfad</span> und — als Obergrenze — ein Szenario <span class="acc-red">ohne Trendwende</span>. Jahresauflösung bis 2050, danach Dekaden.</p>
+
+    <div class="controls">
+      <div><div class="ctl-label">Ort</div>
+        <div class="seg" id="proj-loc" role="group">
+          <button data-loc="muc" aria-pressed="true">München (Stadt)</button>
+          <button data-loc="opf" aria-pressed="false">Oberpfalz · Regensburg</button>
+        </div></div>
+      <div><div class="ctl-label">Kennwert</div>
+        <div class="seg" id="proj-metric" role="group">
+          <button data-metric="hitzetage" aria-pressed="true">Heiße Tage ≥30 °C</button>
+          <button data-metric="extrem" aria-pressed="false">Spitze Extremtag °C</button>
+        </div></div>
+      <div class="spacer"></div>
+      <div class="legend">
+        <span><i class="lg-emb"></i>realistisch (~+2,6 °C)</span>
+        <span><i class="lg-red"></i>ohne Trendwende</span>
+      </div>
+    </div>
+
+    <div class="chartcard">
+      <div class="chart-h"><div class="chart-title" id="proj-title"></div><div class="chart-unit" id="proj-unit"></div></div>
+      <svg id="proj-svg" viewBox="0 0 880 410" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="tip" id="proj-tip"></div>
+    </div>
+
+    <div class="controls" style="margin-top:18px">
+      <div><div class="ctl-label">Zeithorizont der Kennzahlen</div>
+        <div class="seg" id="proj-hz" role="group">
+          <button data-hz="2035" aria-pressed="false">2035</button>
+          <button data-hz="2050" aria-pressed="true">2050</button>
+          <button data-hz="2070" aria-pressed="false">2070</button>
+          <button data-hz="2100" aria-pressed="false">2100</button>
+        </div></div>
+    </div>
+    <div class="stats s4" id="proj-stats"></div>
+  </section>
+
+  <!-- ════ 3 ════ -->
+  <section id="s2">
+    <div class="sec-no">03</div>
+    <h2>Ab wann tötet Hitze? Nach Alter.</h2>
+    <p>Es gibt keine einzelne Todestemperatur. Die Sterblichkeit folgt einer Risikokurve, die ab einer Schwelle ansteigt — und das Alter verschiebt Schwelle <em>und</em> Steilheit massiv. In Deutschland wird ab einer Wochenmitteltemperatur von ~20 °C (Tag+Nacht) ein Anstieg sichtbar; das heißt Tageshöchstwerte klar über 30 °C. Zwei Hebel: wie heiß — und wie lange.</p>
+
+    <div class="controls">
+      <div><div class="ctl-label">Ansicht</div>
+        <div class="seg" id="mort-view" role="group">
+          <button data-view="temp" aria-pressed="true">Temperatur (Spitzentag)</button>
+          <button data-view="dauer" aria-pressed="false">Dauer (Tage in Folge)</button>
+        </div></div>
+      <div class="spacer"></div>
+      <div class="legend">
+        <span><i class="lg-a"></i>Alt 65+</span><span><i class="lg-m"></i>Mittel 16–64</span><span><i class="lg-j"></i>Jung 0–15</span>
+      </div>
+    </div>
+
+    <div class="chartcard">
+      <div class="chart-h"><div class="chart-title" id="mort-title"></div><div class="chart-unit" id="mort-unit"></div></div>
+      <svg id="mort-svg" viewBox="0 0 880 420" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="tip" id="mort-tip"></div>
+    </div>
+
+    <div class="stats s3" id="mort-stats"></div>
+
+    <div class="refs">
+      <div class="ref"><div class="v red">≈ 10.000</div><div class="l">Hitzetote in DE je 1994 &amp; 2003</div></div>
+      <div class="ref"><div class="v am">≈ 2.800</div><div class="l">Geschätzte Hitzetote DE 2024 (RKI)</div></div>
+      <div class="ref"><div class="v">+7,6 %</div><div class="l">Sterblichkeit/Hitzewellentag, München (über 65)</div></div>
+      <div class="ref"><div class="v">bis ×3</div><div class="l">Größerer Effekt bei langer &amp; intensiver Hitze</div></div>
+    </div>
+    <div class="callout r"><b>Verzögerung zählt.</b> Die Mehrsterblichkeit konzentriert sich auf den Spitzentag und die drei Folgetage. Tropennächte (≥20 °C) verhindern die nächtliche Erholung und verschärfen das Risiko — deshalb sind anhaltende Hitzeglocken gefährlicher als der einzelne 35-Grad-Tag.</div>
+  </section>
+
+  <!-- ════ 4 ════ -->
+  <section id="s3">
+    <div class="sec-no">04</div>
+    <h2>Warum Kinder an Hitze sterben</h2>
+    <p>Als Gruppe (0–15) sind Kinder am widerstandsfähigsten — mit einer entscheidenden Ausnahme: <strong>Säuglinge und Kleinkinder</strong>. Ihr Risiko ist weniger eine Frage „unreifer" Thermoregulation als eine Kombination aus Körperbau, Stoffwechsel und vollständiger Abhängigkeit von Betreuenden.</p>
+    <ul class="flist cold">
+      <li><b>Großes Oberflächen-zu-Masse-Verhältnis.</b> <span>Pro Kilo Körpergewicht viel mehr Hautfläche. Übersteigt die Lufttemperatur die Körpertemperatur, nehmen Kinder dadurch <em>mehr</em> Wärme aus der Umgebung auf als Erwachsene.</span></li>
+      <li><b>Hohe Stoffwechsel-Wärmeproduktion.</b> <span>Kleine Körper erzeugen relativ viel innere Wärme, die zusätzlich abgeführt werden muss.</span></li>
+      <li><b>Geringere Schweißleistung pro Drüse.</b> <span>Die wichtigste Kühlung — Verdunstung — ist begrenzter. In feuchter Hitze wird das kritisch.</span></li>
+      <li><b>Schnelle Dehydrierung.</b> <span>Kinder verlieren relativ mehr Flüssigkeit, als sie aufnehmen; der Wasserhaushalt kippt rascher. Unzureichende Flüssigkeitszufuhr ist ein dokumentierter Faktor bei hospitalisierten Säuglingen.</span></li>
+      <li><b>Blutvolumen-Verschiebung zur Haut.</b> <span>Zur Kühlung wandert ein großer Teil des Blutvolumens in die Haut — das reduziert das zentrale Kreislaufvolumen.</span></li>
+      <li><b>Abhängigkeit von Betreuenden.</b> <span>Säuglinge können sich nicht selbst in den Schatten bringen, nichts trinken, keine Kleidung ablegen — sie äußern Unbehagen nur durch Weinen. Betreuende schätzen den Wärmezustand oft am eigenen Empfinden ab und liegen falsch.</span></li>
+      <li><b>Fahrzeug-Hitzschlag.</b> <span>Der gefährlichste Einzelfaktor: ein im Auto zurückgelassenes Kind. Innenräume erreichen binnen ~60 Min. 60–80 °C; in den USA starben seit 1998 über 980 Kinder so, 31 % davon unter einem Jahr. Im Autositz fixierte Kleinkinder können sich nicht selbst befreien.</span></li>
+    </ul>
+  </section>
+
+  <!-- ════ 5 ════ -->
+  <section id="s4">
+    <div class="sec-no">05</div>
+    <h2>Wer sind die Sterbefälle?</h2>
+    <p>Die große Mehrheit hitzebedingter Todesfälle entfällt nicht auf Hitzschlag bei Gesunden, sondern auf das <strong>Zusammenwirken von Hitze und Vorerkrankung</strong> bei Älteren. Hitze steht deshalb selten auf dem Totenschein — die Zahlen müssen statistisch geschätzt werden.</p>
+    <ul class="flist red">
+      <li><b>Hochbetagte (75+, besonders 85+).</b> <span>Der mit Abstand größte Anteil aller Hitzetoten. Schwächere Thermoregulation, gedämpftes Durstempfinden, oft Multimorbidität.</span></li>
+      <li><b>Menschen mit Herz-Kreislauf-Erkrankungen.</b> <span>Hitze ist primär eine Kreislaufbelastung — das Herz muss mehr Blut zur Haut pumpen. Ein vorgeschädigtes Herz kommt nicht hinterher.</span></li>
+      <li><b>Lungen- &amp; Atemwegskranke.</b> <span>Atemwegstote reagieren am empfindlichsten auf Hitze; zusätzlich oft schlechte Luftqualität (Ozon) in Hitzephasen.</span></li>
+      <li><b>Diabetes, neurologische, psychiatrische &amp; Demenz-Erkrankungen.</b> <span>Gestörte Temperatur- und Flüssigkeitsregulation, eingeschränkte Wahrnehmung der Gefahr und des eigenen Zustands.</span></li>
+      <li><b>Bestimmte Medikamente.</b> <span>Entwässernde Mittel, Psychopharmaka, anticholinerge Wirkstoffe und einige Herzmedikamente können Schwitzen, Durst oder Kreislaufregulation beeinträchtigen.</span></li>
+      <li><b>Sozial isolierte &amp; alleinlebende Menschen.</b> <span>Studien zeigen erhöhtes Risiko bei Alleinstehenden — niemand bemerkt die Verschlechterung rechtzeitig.</span></li>
+      <li><b>Frauen in den hohen Altersgruppen.</b> <span>Absolut sterben mehr Frauen — wesentlich, weil in den ältesten Gruppen mehr Frauen leben; der höchste Effekt zeigte sich bei Frauen von 75–84.</span></li>
+      <li><b>Stadtbewohner in Wärmeinseln.</b> <span>Aufgeheizte, schlecht belüftete Dach- und Innenstadtwohnungen kühlen nachts kaum ab — die Erholungsphase fehlt.</span></li>
+      <li><b>Im Erwerbsalter: Outdoor-Arbeitende.</b> <span>Körperliche Arbeit in der Hitze ist der Hauptpfad für die sonst robuste mittlere Altersgruppe.</span></li>
+    </ul>
+  </section>
+
+  <!-- ════ 6 ════ -->
+  <section id="s5">
+    <div class="sec-no">06</div>
+    <h2>Hilft Fitness &amp; ein gesundes Herz?</h2>
+    <p><strong>Ja — aber nur teilweise, und nicht so, wie man hofft.</strong> Hitze zu bewältigen ist im Kern eine kardiovaskuläre Aufgabe: Das Herz muss gleichzeitig die Muskeln/Organe versorgen <em>und</em> viel Blut zur Haut pumpen, um über Schwitzen zu kühlen. Ein leistungsfähiges Herz-Kreislauf-System meistert das besser — genau deshalb dominieren Herzkranke die Sterbestatistik.</p>
+    <h3>Was Fitness konkret bringt</h3>
+    <ul class="flist warm">
+      <li><b>Höhere kardiorespiratorische Fitness = bessere Hitzetoleranz.</b> <span>Fittere Menschen haben unter Hitzebelastung eine niedrigere Herzfrequenz, höhere Schweißrate und einen geringeren Anstieg der Körperkerntemperatur.</span></li>
+      <li><b>Größeres Plasma- &amp; Blutvolumen.</b> <span>Ausdauertraining vergrößert das Blutvolumen — mehr Reserve, um Haut und Organe gleichzeitig zu versorgen.</span></li>
+      <li><b>Schnellere Akklimatisierung.</b> <span>Sehr fitte Menschen gewöhnen sich in der halben Zeit an Hitze. Akklimatisierung (1–2 Wochen wiederholter Exposition) ist ein eigener, starker Schutzmechanismus — teils wirksamer als Fitness allein.</span></li>
+    </ul>
+    <h3>Die wichtigen Einschränkungen</h3>
+    <ul class="flist red">
+      <li><b>Kein Schutz, sondern Reserve.</b> <span>Fitness verschiebt die Belastungsgrenze, hebt sie aber nicht auf. In <em>feuchter</em> Hitze, in der Schweiß nicht mehr verdunstet, schrumpft der Vorteil deutlich.</span></li>
+      <li><b>Sport in der Hitze ist selbst ein Risiko.</b> <span>Auch junge, gesunde Sportler sterben an Belastungs-Hitzschlag. Anstrengung erzeugt zusätzliche innere Wärme — der gefährlichste Kontext überhaupt.</span></li>
+      <li><b>Geringe Fitness verschärft das Risiko.</b> <span>In Fällen von Belastungs-Hitzschlag waren geringe Fitness (77 %) und Übergewicht (64 %) sehr häufig — Training senkt das Risiko, eliminiert es aber nicht.</span></li>
+      <li><b>Für die Sterbefälle kaum relevant.</b> <span>Die tatsächlich Sterbenden sind überwiegend hochbetagt und herzkrank — bei ihnen entscheidet nicht „mehr Sport", sondern Kühlung, Flüssigkeit, Medikamenten-Check und soziale Aufmerksamkeit.</span></li>
+    </ul>
+    <div class="callout t"><b>Fazit:</b> Ein gesundes, trainiertes Herz ist ein realer Vorteil bei moderater, trockener Hitze und beschleunigt die Akklimatisierung. Es macht aber nicht hitzefest — und ersetzt für Risikogruppen niemals Kühlung, Trinken und Schatten.</div>
+  </section>
+
+  <!-- ════ 7 ════ -->
+  <section id="s6">
+    <div class="sec-no">07</div>
+    <h2>Methodik &amp; Quellen</h2>
+    <details open>
+      <summary>Was die Zahlen können — und was nicht</summary>
+      <div class="cav">
+        <ul>
+          <li><b>Projektionen sind Trends, keine Jahresprognosen.</b> Klimamodelle sagen keine Einzeljahre voraus. Die Linien zeigen das gleitende 30-Jahres-Signal des Bayern-Ensembles, das ember-Band die natürliche Schwankung (Hitzejahr ↔ kühler Sommer). Referenzzeitraum: 1971–2000.</li>
+          <li><b>Realistischer Pfad statt 2-Grad-Ziel.</b> Zentrale Linie = aktuelle Klimapolitik (~+2,6 °C global bis 2100, Climate Action Tracker 11/2025). Mitteleuropa erwärmt sich stärker als der globale Schnitt. „Ohne Trendwende" = oberer Ensemble-Bereich (RCP 8.5-nah) als Obergrenze.</li>
+          <li><b>„Spitze Extremtag"</b> = plausibler Höchstwert des heißesten Tags eines Hitzejahres, kein Mittel. Extreme steigen oft schneller als das Mittel.</li>
+          <li><b>Oberpfalz</b> ist durch Regensburg/Donautal repräsentiert — Bayerns Hitze-Hotspot. Der höher gelegene Oberpfälzer Wald ist kühler. <b>München</b> = städtische Wärmeinsel (mehr Tropennächte).</li>
+          <li><b>Sterblichkeitskurven</b> sind an publizierte Effektstärken angelehnt (Größenordnung, nicht Nachkommastellen): RKI-Schwelle ~20 °C Wochenmittel; europäische Zeitreihen ~+7–10 % Sterberisiko je °C über Schwelle bei Älteren; EuroHEAT-Hitzewellentag +7,6 % (München) bis +33,6 % (Mailand), bis ×3 bei langer Dauer.</li>
+        </ul>
+        <div class="src">Quellen: LfU Bayern (Klimafaktenblätter, Bayern-Ensemble) · DWD (Münchner Klimabüro, Stadtklima München, Regensburg) · Umweltbundesamt (Bayern) · GDV/DWD (Hitzetage) · RKI (Hitzebedingte Mortalität, FAQ Klimawandel) · EuroHEAT (9 europäische Städte) · europäische Zeitreihen (Budapest/London/Mailand/Rom) · Nature Communications 2025 (Tag-Nacht-Hitze, Altersgruppen) · MDPI/PMC (Säuglings-Thermoregulation, Fahrzeug-Hitzschlag) · Korey Stringer Institute / Sports-Medicine (Akklimatisierung, Belastungs-Hitzschlag) · Climate Action Tracker (Warming Update 11/2025) · NZZ/Météo-France/Met Office (Hitzeglocke 2026).</div>
+      </div>
+    </details>
+    <div class="disc">Dieser Report fasst öffentlich zugängliche Klima- und Public-Health-Daten zusammen und dient der Information, nicht der medizinischen Beratung. Hitze ist ein sensibles Gesundheitsthema; bei akuten Beschwerden gilt der ärztliche Rat, bei Notfällen die 112.</div>
+  </section>
+
+  <div class="foot">Observatorium · Hitze-Report · Bandbreiten &amp; Größenordnungen, keine Einzelfallprognosen · Juni 2026.</div>
+
+</div>
+
+<script>
+/* ══════════ Gemeinsame Helfer ══════════ */
+const NS="http://www.w3.org/2000/svg";
+function el(t,a,p){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;}
+function interp(an,x){if(x<=an[0][0])return an[0][1];const L=an[an.length-1];if(x>=L[0])return L[1];
+  for(let i=0;i<an.length-1;i++){const[a,b]=an[i],[c,d]=an[i+1];if(x>=a&&x<=c)return b+(d-b)*(x-a)/(c-a);}return L[1];}
+function bindSeg(id,key,obj,cb){document.querySelectorAll("#"+id+" button").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll("#"+id+" button").forEach(x=>x.setAttribute("aria-pressed","false"));
+  b.setAttribute("aria-pressed","true");const v=b.dataset[key];obj[key]=isNaN(+v)?v:+v;cb();}));}
+
+/* ══════════ MODUL A · Projektion ══════════ */
+(function(){
+  const DATA={
+    muc:{label:"München",
+      hitzetage:{real:[[2025,13],[2035,18],[2050,24],[2070,29],[2085,33],[2100,36]],high:[[2025,13],[2035,20],[2050,27],[2070,35],[2085,42],[2100,47]]},
+      extrem:{real:[[2025,37.5],[2035,38.7],[2050,39.9],[2070,41.3],[2085,42.2],[2100,42.8]],high:[[2025,37.5],[2035,39.0],[2050,40.4],[2070,42.2],[2085,43.4],[2100,44.4]]},
+      sommer:{real:[[2025,17.8],[2050,19.6],[2100,21.9]],high:[[2025,17.8],[2050,20.0],[2100,23.4]]},
+      tropen:{real:[[2025,3],[2050,8],[2100,14]],high:[[2025,3],[2050,9],[2100,18]]}},
+    opf:{label:"Regensburg",
+      hitzetage:{real:[[2025,16],[2035,21],[2050,28],[2070,34],[2085,39],[2100,43]],high:[[2025,16],[2035,23],[2050,31],[2070,41],[2085,49],[2100,54]]},
+      extrem:{real:[[2025,38.8],[2035,40.0],[2050,41.3],[2070,43.0],[2085,44.0],[2100,44.7]],high:[[2025,38.8],[2035,40.2],[2050,41.8],[2070,43.7],[2085,45.1],[2100,46.1]]},
+      sommer:{real:[[2025,18.2],[2050,20.0],[2100,22.3]],high:[[2025,18.2],[2050,20.4],[2100,23.8]]},
+      tropen:{real:[[2025,2],[2050,6],[2100,11]],high:[[2025,2],[2050,7],[2100,15]]}}
+  };
+  const M={hitzetage:{title:"Heiße Tage pro Jahr (≥ 30 °C)",unit:"Tage / Jahr",ymax:60,band:v=>[v*0.55,v*1.55],fmt:v=>Math.round(v)},
+    extrem:{title:"Spitzentemperatur des heißesten Tags",unit:"°C",ymin:34,ymax:48,band:v=>[v-3,v+1.6],
+      yref:[{y:41.2,c:"#ff3b5c",t:"DE-Rekord 41,2 °C"},{y:45,c:"#ff7a2f",t:"Hitzeglocke 2026: 45 °C"}],fmt:v=>v.toFixed(1).replace('.',',')+"°"}};
+  const YEARS=[];for(let y=2025;y<=2050;y++)YEARS.push(y);[2060,2070,2080,2090,2100].forEach(y=>YEARS.push(y));
+  const Y0=2025,Y1=2100,W=880,H=410,padL=50,padR=22,padT=24,padB=44,pW=W-padL-padR,pH=H-padT-padB;
+  const svg=document.getElementById("proj-svg"),tip=document.getElementById("proj-tip");
+  const st={loc:"muc",metric:"hitzetage",hz:2050};
+  const xP=y=>padL+(y-Y0)/(Y1-Y0)*pW;
+  let guide=null;
+
+  function draw(){
+    svg.innerHTML="";const m=M[st.metric],d=DATA[st.loc][st.metric];
+    const ymin=m.ymin||0,ymax=m.ymax,yP=v=>padT+pH-(v-ymin)/(ymax-ymin)*pH;
+    document.getElementById("proj-title").textContent=m.title+" · "+DATA[st.loc].label;
+    document.getElementById("proj-unit").textContent=m.unit;
+    const steps=st.metric==="extrem"?[34,36,38,40,42,44,46,48]:[0,10,20,30,40,50,60];
+    steps.forEach(v=>{if(v<ymin||v>ymax)return;const y=yP(v);
+      el("line",{x1:padL,y1:y,x2:W-padR,y2:y,stroke:"var(--grid)","stroke-width":1},svg);
+      const t=el("text",{x:padL-9,y:y+4,"text-anchor":"end",fill:"var(--ink3)","font-size":11,"font-family":"var(--mono)"},svg);
+      t.textContent=st.metric==="extrem"?v+"°":v;});
+    if(m.yref)m.yref.forEach(r=>{if(r.y<ymin||r.y>ymax)return;const y=yP(r.y);
+      el("line",{x1:padL,y1:y,x2:W-padR,y2:y,stroke:r.c,"stroke-width":1.3,"stroke-dasharray":"5 5",opacity:.7},svg);
+      const t=el("text",{x:W-padR-4,y:y-6,"text-anchor":"end",fill:r.c,"font-size":11,"font-weight":600},svg);t.textContent=r.t;});
+    const divX=xP(2050);
+    el("line",{x1:divX,y1:padT,x2:divX,y2:padT+pH,stroke:"var(--line2)","stroke-width":1,"stroke-dasharray":"3 4",opacity:.7},svg);
+    const dl=el("text",{x:divX,y:padT-8,"text-anchor":"middle",fill:"var(--ink3)","font-size":9.5,"font-family":"var(--mono)"},svg);dl.textContent="JÄHRLICH ◂ ▸ DEKADEN";
+    [2025,2030,2035,2040,2045,2050,2060,2070,2080,2090,2100].forEach(yr=>{const x=xP(yr);
+      el("line",{x1:x,y1:padT+pH,x2:x,y2:padT+pH+5,stroke:"var(--line2)","stroke-width":1},svg);
+      const t=el("text",{x:x,y:padT+pH+19,"text-anchor":"middle",fill:"var(--ink3)","font-size":10.5,"font-family":"var(--mono)"},svg);t.textContent="'"+String(yr).slice(2);});
+    const pr=YEARS.map(y=>({y,v:interp(d.real,y)})),ph=YEARS.map(y=>({y,v:interp(d.high,y)}));
+    let top="",bot="";
+    pr.forEach((p,i)=>{let[lo,hi]=m.band(p.v);hi=Math.min(hi,ymax);top+=(i?" L":"M")+xP(p.y)+" "+yP(hi);});
+    for(let i=pr.length-1;i>=0;i--){let[lo]=m.band(pr[i].v);lo=Math.max(lo,ymin);bot+=" L"+xP(pr[i].y)+" "+yP(lo);}
+    const defs=el("defs",{},svg);const g=el("linearGradient",{id:"pl",x1:0,y1:0,x2:0,y2:1},defs);
+    el("stop",{offset:"0%","stop-color":"#ff7a2f","stop-opacity":.26},g);el("stop",{offset:"100%","stop-color":"#ff7a2f","stop-opacity":.04},g);
+    el("path",{d:top+bot+" Z",fill:"url(#pl)"},svg);
+    const lp=p=>p.map((x,i)=>(i?"L":"M")+xP(x.y)+" "+yP(x.v)).join(" ");
+    el("path",{d:lp(ph),fill:"none",stroke:"var(--red)","stroke-width":2.3,"stroke-dasharray":"7 4","stroke-linejoin":"round",opacity:.9},svg);
+    el("path",{d:lp(pr),fill:"none",stroke:"var(--ember)","stroke-width":3.4,"stroke-linejoin":"round","stroke-linecap":"round",filter:"drop-shadow(0 0 6px rgba(255,122,47,.55))"},svg);
+    pr.forEach(p=>el("circle",{cx:xP(p.y),cy:yP(p.v),r:p.y<=2050?2.4:3.4,fill:"#0a0f18",stroke:"var(--ember)","stroke-width":1.8},svg));
+    [2050,2100].forEach(yr=>{const v=interp(d.real,yr),x=xP(yr),y=yP(v);
+      const t=el("text",{x:x,y:y-12,"text-anchor":yr===2100?"end":"middle",fill:"#ffd27a","font-size":12.5,"font-weight":700,"font-family":"var(--mono)"},svg);t.textContent=m.fmt(v);});
+    const hit=el("rect",{x:padL,y:padT,width:pW,height:pH,fill:"transparent"},svg);
+    hit.addEventListener("mousemove",ev=>hover(ev,d,m));
+    hit.addEventListener("mouseleave",()=>{tip.style.opacity=0;if(guide){guide.remove();guide=null;}});
+  }
+  function hover(ev,d,m){const r=svg.getBoundingClientRect();const sx=(ev.clientX-r.left)/r.width*W;
+    const yr=Y0+(sx-padL)/pW*(Y1-Y0);let best=YEARS[0],bd=1e9;YEARS.forEach(y=>{const dd=Math.abs(y-yr);if(dd<bd){bd=dd;best=y;}});
+    if(guide)guide.remove();guide=el("line",{x1:xP(best),y1:padT,x2:xP(best),y2:padT+pH,stroke:"var(--line2)","stroke-width":1},svg);
+    tip.innerHTML='<div class="y">'+best+(best>2050?' (Dekade)':'')+'</div><div class="row emb">realistisch<b>'+m.fmt(interp(d.real,best))+'</b></div><div class="row red">ohne Trendwende<b>'+m.fmt(interp(d.high,best))+'</b></div>';
+    const px=xP(best)/W*r.width;tip.style.left=Math.min(Math.max(px-75,4),r.width-162)+"px";tip.style.top="14px";tip.style.opacity=1;}
+  function fmt(v,dec){return(dec?v.toFixed(dec):Math.round(v)).toString().replace('.',',');}
+  function stats(){const loc=DATA[st.loc],hz=st.hz;
+    const cards=[{k:"Heiße Tage / Jahr",m:"hitzetage",u:"Tage",dec:0},{k:"Sommermittel",m:"sommer",u:"°C",dec:1},
+      {k:"Extremtag-Spitze",m:"extrem",u:"°C",dec:1},{k:"Tropennächte / Jahr",m:"tropen",u:"Nächte",dec:0}];
+    const box=document.getElementById("proj-stats");box.innerHTML="";
+    cards.forEach(c=>{const vr=interp(loc[c.m].real,hz),vh=interp(loc[c.m].high,hz),base=interp(loc[c.m].real,2025),del=vr-base;
+      const e=document.createElement("div");e.className="stat";
+      e.innerHTML='<div class="k">'+c.k+'</div><div class="pair"><div class="big">'+fmt(vr,c.dec)+'</div><div class="u">'+c.u+'</div></div>'+
+        '<div class="sub"><span>ohne Trendwende</span><span class="hv">'+fmt(vh,c.dec)+' '+c.u+'</span></div>'+
+        '<div class="delta">ggü. 2025 (real.): <b>'+(del>=0?"+":"")+fmt(del,c.dec)+'</b></div>';box.appendChild(e);});}
+  bindSeg("proj-loc","loc",st,()=>{draw();stats();});
+  bindSeg("proj-metric","metric",st,draw);
+  bindSeg("proj-hz","hz",st,stats);
+  draw();stats();
+})();
+
+/* ══════════ MODUL B · Sterblichkeit ══════════ */
+(function(){
+  const V={temp:{title:"Mehrsterblichkeit vs. Tageshöchsttemperatur",unit:"% über Optimum",xlabel:"Tageshöchsttemperatur (°C)",
+      xmin:22,xmax:44,ymax:120,xticks:[22,26,30,34,38,42,44],xfmt:v=>v+"°",
+      thr:[{x:28,c:"var(--alt)",t:"65+ : ~28 °C"},{x:31,c:"var(--mittel)",t:"16–64 : ~31 °C"},{x:34,c:"var(--jung)",t:"0–15 : ~34 °C"}],
+      data:{alt:[[22,0],[28,0],[29,4],[31,14],[33,28],[35,44],[37,62],[39,80],[41,96],[43,110],[44,116]],
+        mittel:[[22,0],[31,0],[32,3],[34,8],[36,13],[38,18],[40,24],[42,31],[44,39]],
+        jung:[[22,0],[34,0],[36,1.5],[38,3],[40,5],[42,8],[44,12]]}},
+    dauer:{title:"Mehrsterblichkeit vs. aufeinanderfolgende Hitzetage",unit:"% über Optimum",xlabel:"Aufeinanderfolgende Hitzetage",
+      xmin:0,xmax:10,ymax:90,xticks:[0,1,2,3,4,5,7,10],xfmt:v=>v,marks:[{x:3,t:"Spitzentag + 3 Folgetage"}],
+      data:{alt:[[0,0],[1,18],[2,32],[3,45],[4,54],[5,60],[7,71],[10,82]],
+        mittel:[[0,0],[1,3],[2,6],[3,10],[5,15],[7,19],[10,24]],
+        jung:[[0,0],[1,.5],[3,1.5],[5,3],[7,4.5],[10,6]]}}};
+  const COL={jung:"var(--jung)",mittel:"var(--mittel)",alt:"var(--alt)"};
+  const W=880,H=420,padL=50,padR=22,padT=22,padB=50,pW=W-padL-padR,pH=H-padT-padB;
+  const svg=document.getElementById("mort-svg"),tip=document.getElementById("mort-tip");
+  const st={view:"temp"};let guide=null;
+  function draw(){svg.innerHTML="";const v=V[st.view];
+    const xS=x=>padL+(x-v.xmin)/(v.xmax-v.xmin)*pW,yS=y=>padT+pH-(y/v.ymax)*pH;
+    document.getElementById("mort-title").textContent=v.title;document.getElementById("mort-unit").textContent=v.unit;
+    const ys=v.ymax>100?20:15;for(let t=0;t<=v.ymax+.1;t+=ys){const y=yS(t);
+      el("line",{x1:padL,y1:y,x2:W-padR,y2:y,stroke:"var(--grid)","stroke-width":1},svg);
+      const e=el("text",{x:padL-9,y:y+4,"text-anchor":"end",fill:"var(--ink3)","font-size":11,"font-family":"var(--mono)"},svg);e.textContent="+"+t+"%";}
+    v.xticks.forEach(t=>{const x=xS(t);el("line",{x1:x,y1:padT+pH,x2:x,y2:padT+pH+5,stroke:"var(--line2)","stroke-width":1},svg);
+      const e=el("text",{x:x,y:padT+pH+19,"text-anchor":"middle",fill:"var(--ink3)","font-size":11,"font-family":"var(--mono)"},svg);e.textContent=v.xfmt(t);});
+    const xl=el("text",{x:padL+pW/2,y:H-8,"text-anchor":"middle",fill:"var(--ink2)","font-size":11.5,"font-weight":600},svg);xl.textContent=v.xlabel;
+    if(v.thr)v.thr.forEach(t=>{const x=xS(t.x);el("line",{x1:x,y1:padT,x2:x,y2:padT+pH,stroke:t.c,"stroke-width":1.2,"stroke-dasharray":"4 5",opacity:.55},svg);
+      const e=el("text",{x:x+4,y:padT+12,fill:t.c,"font-size":10,"font-weight":600,"font-family":"var(--mono)"},svg);e.textContent=t.t;});
+    if(v.marks)v.marks.forEach(mk=>{const x=xS(mk.x);el("line",{x1:x,y1:padT,x2:x,y2:padT+pH,stroke:"var(--ink3)","stroke-width":1.2,"stroke-dasharray":"4 5",opacity:.5},svg);
+      const e=el("text",{x:x+5,y:padT+12,fill:"var(--ink2)","font-size":10,"font-weight":600},svg);e.textContent=mk.t;});
+    const path=an=>{let p=[];for(let x=v.xmin;x<=v.xmax;x+=(v.xmax-v.xmin)/240)p.push(xS(x)+" "+yS(interp(an,x)));return "M"+p.join(" L");};
+    ["jung","mittel","alt"].forEach(g=>{const b=g==="alt";
+      el("path",{d:path(v.data[g]),fill:"none",stroke:COL[g],"stroke-width":b?3.6:2.6,"stroke-linejoin":"round","stroke-linecap":"round",filter:b?"drop-shadow(0 0 6px var(--alt-glow))":"",opacity:g==="jung"?.92:1},svg);});
+    ["alt","mittel","jung"].forEach(g=>{const val=interp(v.data[g],v.xmax),y=yS(val);
+      const e=el("text",{x:xS(v.xmax)-2,y:Math.max(y-7,padT+12),"text-anchor":"end",fill:COL[g],"font-size":12,"font-weight":700,"font-family":"var(--mono)"},svg);e.textContent="+"+Math.round(val)+"%";});
+    const hit=el("rect",{x:padL,y:padT,width:pW,height:pH,fill:"transparent"},svg);
+    hit.addEventListener("mousemove",ev=>hover(ev,v,xS));hit.addEventListener("mouseleave",()=>{tip.style.opacity=0;if(guide){guide.remove();guide=null;}});}
+  function hover(ev,v,xS){const r=svg.getBoundingClientRect();let x=v.xmin+((ev.clientX-r.left)/r.width*W-padL)/pW*(v.xmax-v.xmin);
+    x=Math.max(v.xmin,Math.min(v.xmax,x));if(st.view==="dauer")x=Math.round(x);
+    if(guide)guide.remove();guide=el("line",{x1:xS(x),y1:padT,x2:xS(x),y2:padT+pH,stroke:"var(--line2)","stroke-width":1},svg);
+    tip.innerHTML='<div class="y">'+(st.view==="temp"?Math.round(x)+" °C":(x===1?"1 Tag":x+" Tage"))+'</div>'+
+      '<div class="row a">Alt 65+<b>+'+Math.round(interp(v.data.alt,x))+'%</b></div>'+
+      '<div class="row m">Mittel<b>+'+Math.round(interp(v.data.mittel,x))+'%</b></div>'+
+      '<div class="row j">Jung<b>+'+Math.round(interp(v.data.jung,x))+'%</b></div>';
+    const px=xS(x)/W*r.width;tip.style.left=Math.min(Math.max(px-78,4),r.width-160)+"px";tip.style.top="12px";tip.style.opacity=1;}
+  function stats(){const cards=[
+    {c:"a",k:"Höchstes Risiko",grp:"Alt · 65+ (bes. 75+)",d:"Niedrigste Schwelle (~<b>28 °C</b>), steilste Kurve: ~<b>+7–10 % je °C</b>. Größter Anteil aller Hitzetoten."},
+    {c:"m",k:"Mittleres Risiko",grp:"Mittel · 16–64",d:"Reagiert später (~<b>30–31 °C</b>) und flacher. Hauptpfad: körperliche Arbeit in der Hitze."},
+    {c:"j",k:"Geringstes Risiko",grp:"Jung · 0–15",d:"Als Gruppe am robustesten (~<b>34 °C</b>). <b>Ausnahme:</b> Säuglinge unter 1 Jahr."}];
+    const box=document.getElementById("mort-stats");box.innerHTML="";
+    cards.forEach(c=>{const e=document.createElement("div");e.className="stat "+c.c;
+      e.innerHTML='<div class="k">'+c.k+'</div><div class="grp">'+c.grp+'</div><div class="d">'+c.d+'</div>';box.appendChild(e);});}
+  bindSeg("mort-view","view",st,draw);draw();stats();
+})();
+</script>
+</body>
+</html>
