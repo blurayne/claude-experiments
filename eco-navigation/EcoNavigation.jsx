@@ -401,8 +401,17 @@ function FullTable() {
 
 /* --------------------------------------------------------- annual impact */
 function Annual() {
-  const [perMonth, setPerMonth] = useState(16);
+  const [perMonth, setPerMonth] = useState(8);
+  const MIN = 0.1, MAX = 10;
+  const clamp = (v) => Math.max(MIN, Math.min(MAX, Math.round(v * 10) / 10));
+  const step = (d) => setPerMonth((v) => clamp(v + d));
   const trips = Math.round(perMonth * 12);
+  const stepBtn = {
+    cursor: "pointer", width: 30, height: 30, borderRadius: 8,
+    border: `1px solid ${C.line}`, background: C.panelHi, color: C.eco,
+    fontSize: 18, fontWeight: 700, lineHeight: 1, display: "flex",
+    alignItems: "center", justifyContent: "center", flex: "0 0 auto",
+  };
   const rows = CARS.map((c) => {
     const a = RES.arnbruck[c.id], b = RES.koetzting[c.id];
     return {
@@ -416,11 +425,18 @@ function Annual() {
         flexWrap: "wrap", marginBottom: 14 }}>
         <span style={{ color: C.ink, fontSize: 13.5, fontWeight: 600 }}>
           One-way trips per month</span>
-        <input type="range" min={0.5} max={60} step={0.1} value={perMonth}
-          onChange={(e) => setPerMonth(+e.target.value)}
-          style={{ flex: "1 1 160px", accentColor: C.eco }} />
+        <button onClick={() => step(-0.1)} disabled={perMonth <= MIN}
+          aria-label="decrease by 0.1" style={{ ...stepBtn,
+            opacity: perMonth <= MIN ? 0.4 : 1 }}>−</button>
+        <input type="range" min={MIN} max={MAX} step={0.1} value={perMonth}
+          onChange={(e) => setPerMonth(clamp(+e.target.value))}
+          style={{ flex: "1 1 140px", accentColor: C.eco }} />
+        <button onClick={() => step(0.1)} disabled={perMonth >= MAX}
+          aria-label="increase by 0.1" style={{ ...stepBtn,
+            opacity: perMonth >= MAX ? 0.4 : 1 }}>+</button>
         <span style={{ color: C.eco, fontWeight: 700, fontSize: 16,
-          minWidth: 130 }}>{fmt(perMonth, 1)}/month · {fmt(trips)}/yr</span>
+          minWidth: 130, textAlign: "right" }}>{fmt(perMonth, 1)}/month ·{" "}
+          {fmt(trips)}/yr</span>
       </div>
       <div style={{ display: "grid",
         gridTemplateColumns: "repeat(auto-fit,minmax(165px,1fr))", gap: 10 }}>
