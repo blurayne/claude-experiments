@@ -401,8 +401,8 @@ function FullTable() {
 
 /* --------------------------------------------------------- annual impact */
 function Annual() {
-  const [perWeek, setPerWeek] = useState(4);
-  const trips = perWeek * 52;
+  const [perMonth, setPerMonth] = useState(16);
+  const trips = Math.round(perMonth * 12);
   const rows = CARS.map((c) => {
     const a = RES.arnbruck[c.id], b = RES.koetzting[c.id];
     return {
@@ -415,12 +415,12 @@ function Annual() {
       <div style={{ display: "flex", alignItems: "center", gap: 12,
         flexWrap: "wrap", marginBottom: 14 }}>
         <span style={{ color: C.ink, fontSize: 13.5, fontWeight: 600 }}>
-          One-way trips per week</span>
-        <input type="range" min={1} max={14} value={perWeek}
-          onChange={(e) => setPerWeek(+e.target.value)}
+          One-way trips per month</span>
+        <input type="range" min={0.5} max={60} step={0.1} value={perMonth}
+          onChange={(e) => setPerMonth(+e.target.value)}
           style={{ flex: "1 1 160px", accentColor: C.eco }} />
         <span style={{ color: C.eco, fontWeight: 700, fontSize: 16,
-          minWidth: 110 }}>{perWeek}/week · {fmt(trips)}/yr</span>
+          minWidth: 130 }}>{fmt(perMonth, 1)}/month · {fmt(trips)}/yr</span>
       </div>
       <div style={{ display: "grid",
         gridTemplateColumns: "repeat(auto-fit,minmax(165px,1fr))", gap: 10 }}>

@@ -515,8 +515,8 @@
     } }, "All cars \xB7 both routes \xB7 per one-way trip"), /* @__PURE__ */ React.createElement("table", { style: { borderCollapse: "collapse", width: "100%", minWidth: 620 } }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { style: { ...head, textAlign: "left" } }, "Vehicle"), /* @__PURE__ */ React.createElement("th", { style: { ...head, textAlign: "left" } }, "Route"), /* @__PURE__ */ React.createElement("th", { style: head }, "per 100 km"), /* @__PURE__ */ React.createElement("th", { style: head }, "Used"), /* @__PURE__ */ React.createElement("th", { style: head }, "Cost"), /* @__PURE__ */ React.createElement("th", { style: head }, "CO\u2082"), /* @__PURE__ */ React.createElement("th", { style: head }, "Time"))), /* @__PURE__ */ React.createElement("tbody", null, CARS.map((c) => /* @__PURE__ */ React.createElement(Row, { key: c.id, c })))));
   }
   function Annual() {
-    const [perWeek, setPerWeek] = useState(4);
-    const trips = perWeek * 52;
+    const [perMonth, setPerMonth] = useState(16);
+    const trips = Math.round(perMonth * 12);
     const rows = CARS.map((c) => {
       const a = RES.arnbruck[c.id], b = RES.koetzting[c.id];
       return {
@@ -533,22 +533,23 @@
       gap: 12,
       flexWrap: "wrap",
       marginBottom: 14
-    } }, /* @__PURE__ */ React.createElement("span", { style: { color: C.ink, fontSize: 13.5, fontWeight: 600 } }, "One-way trips per week"), /* @__PURE__ */ React.createElement(
+    } }, /* @__PURE__ */ React.createElement("span", { style: { color: C.ink, fontSize: 13.5, fontWeight: 600 } }, "One-way trips per month"), /* @__PURE__ */ React.createElement(
       "input",
       {
         type: "range",
-        min: 1,
-        max: 14,
-        value: perWeek,
-        onChange: (e) => setPerWeek(+e.target.value),
+        min: 0.5,
+        max: 60,
+        step: 0.1,
+        value: perMonth,
+        onChange: (e) => setPerMonth(+e.target.value),
         style: { flex: "1 1 160px", accentColor: C.eco }
       }
     ), /* @__PURE__ */ React.createElement("span", { style: {
       color: C.eco,
       fontWeight: 700,
       fontSize: 16,
-      minWidth: 110
-    } }, perWeek, "/week \xB7 ", fmt(trips), "/yr")), /* @__PURE__ */ React.createElement("div", { style: {
+      minWidth: 130
+    } }, fmt(perMonth, 1), "/month \xB7 ", fmt(trips), "/yr")), /* @__PURE__ */ React.createElement("div", { style: {
       display: "grid",
       gridTemplateColumns: "repeat(auto-fit,minmax(165px,1fr))",
       gap: 10
