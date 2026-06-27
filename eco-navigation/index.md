@@ -62,7 +62,9 @@ assumption.
 - [`fetch_real_data.py`](fetch_real_data.py) — optional: pulls **real**
   elevation + speed limits where APIs are reachable, to replace the modelled
   profile.
-- [`METHODOLOGY.md`](METHODOLOGY.md) — full algorithm, equations and sources.
+- [`METHODOLOGY.md`](METHODOLOGY.md) — full algorithm, equations and sources
+  (rendered for the web as [`methodology.html`](methodology.html)).
+- [`render_docs.py`](render_docs.py) — regenerates `methodology.html` from the markdown.
 - `data/`
   - [`gpx/`](data/gpx/) — the two original tracks.
   - [`eco_data.json`](data/eco_data.json) — full data bundle.

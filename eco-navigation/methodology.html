@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Eco-Navigation — Methodology, algorithm &amp; data sources</title>
+<style>
+  :root{color-scheme:dark}
+  body{background:#0E1519;color:#E7EFEF;font-family:system-ui,-apple-system,
+    Segoe UI,sans-serif;line-height:1.65;max-width:52rem;margin:0 auto;
+    padding:2rem 1.1rem 5rem}
+  a{color:#65C7A8}
+  .back{display:inline-block;margin-bottom:1.2rem;font-size:.9rem}
+  h1,h2,h3{line-height:1.25;color:#fff}
+  h1{font-size:1.7rem} h2{font-size:1.3rem;margin-top:2.2rem;
+    border-top:1px solid #26383A;padding-top:1.2rem}
+  h3{font-size:1.05rem;color:#9FE3CC}
+  code{background:#15201F;border:1px solid #26383A;padding:.08em .35em;
+    border-radius:4px;font-size:.88em}
+  pre{background:#101a18;border:1px solid #26383A;border-radius:8px;
+    padding:.9em 1em;overflow-x:auto}
+  pre code{background:none;border:none;padding:0}
+  table{border-collapse:collapse;width:100%;margin:1rem 0;font-size:.92rem}
+  th,td{border:1px solid #26383A;padding:.45em .6em;text-align:left}
+  th{background:#15201F;color:#9FE3CC}
+  tr:nth-child(even) td{background:#121b1a}
+  blockquote{border-left:3px solid #38C7A6;margin:1rem 0;padding:.3rem 1rem;
+    background:#12201d;color:#bfeadd;border-radius:0 8px 8px 0}
+  hr{border:none;border-top:1px solid #26383A;margin:2rem 0}
+  img{max-width:100%}
+</style>
+</head>
+<body>
+<a class="back" href="index.html">← Back to the interactive comparison</a>
+<h1 id="methodology-how-the-routes-and-the-energy-model-were-built">Methodology — how the routes and the energy model were built</h1>
+<p>This document describes <strong>exactly</strong> how every number in the Eco-Navigation
+visualization was produced: the algorithms, the equations, the parameters, and
+where each input came from. The guiding principle is <strong>honest provenance</strong> —
+some inputs are <em>measured</em> (your GPS tracks), some are <em>rule-based</em> (German
+traffic law), and some are <em>modelled</em> (elevation and energy). Each is labelled
+as such here and in the app.</p>
+<blockquote>
+<p><strong>TL;DR of provenance</strong></p>
+<table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Source</th>
+<th>Confidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Route geometry, distance, shape</td>
+<td><strong>Measured</strong> — your CoMaps GPX</td>
+<td>High</td>
+</tr>
+<tr>
+<td>Curviness (heading change / 100 m)</td>
+<td><strong>Measured</strong> — from GPX geometry</td>
+<td>High</td>
+</tr>
+<tr>
+<td>Which towns each route passes</td>
+<td><strong>Measured</strong> — GPX nearest-approach</td>
+<td>High</td>
+</tr>
+<tr>
+<td>Village vs. rural speed zones</td>
+<td><strong>Rule-based</strong> — German StVO defaults</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td>Speed limits per segment</td>
+<td><strong>Rule-based</strong> — 50 town / 100 rural + curve cap</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td>Traffic-light / junction stops</td>
+<td><strong>Modelled</strong> — per-town stop count</td>
+<td>Low–Medium</td>
+</tr>
+<tr>
+<td>Elevation &amp; road grade</td>
+<td><strong>Modelled</strong> — researched town heights, interpolated</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td>Energy, fuel/kWh, cost, CO₂</td>
+<td><strong>Modelled</strong> — vehicle physics, calibrated</td>
+<td>Medium</td>
+</tr>
+</tbody>
+</table>
+</blockquote>
+<hr />
+<h2 id="0-the-two-routes">0. The two routes</h2>
+<p>Both tracks were exported from <strong>CoMaps</strong> (an OpenStreetMap-based navigation
+app) as GPX and supplied by the user. Analysis of the raw points shows:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Route A (<code>route_arnbruck.gpx</code>)</th>
+<th>Route B (<code>route_viechtach_koetzting.gpx</code>)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Track points</td>
+<td>1 802</td>
+<td>1 876</td>
+</tr>
+<tr>
+<td>Total distance</td>
+<td><strong>55.07 km</strong></td>
+<td><strong>65.76 km</strong></td>
+</tr>
+<tr>
+<td>Path</td>
+<td>Deggendorf → Teisnach → Drachselsried → <strong>Arnbruck</strong> → Engelshütt</td>
+<td>Deggendorf → Teisnach → <strong>Viechtach</strong> → <strong>Bad Kötzting</strong> → Engelshütt</td>
+</tr>
+</tbody>
+</table>
+<p>Both share the first <strong>22.2 km</strong> (Deggendorf → Teisnach) and the final climb
+into Engelshütt; they differ only in the middle. The GPX files contained <strong>no
+<code>&lt;ele&gt;</code> elevation tags</strong> (verified: zero <code>&lt;ele&gt;</code> elements), which is why
+elevation had to be modelled rather than read.</p>
+<p>The original start is Deggendorf (not Teisnach as first described) because that
+is what the exported tracks contain; the Teisnach→Engelshütt portion is simply
+the tail of each track, and it is where the two routes actually diverge.</p>
+<hr />
+<h2 id="1-data-sources">1. Data sources</h2>
+<h3 id="11-measured-from-the-gpx">1.1 Measured (from the GPX)</h3>
+<ul>
+<li><strong>Geometry</strong>: latitude/longitude of every track point.</li>
+<li><strong>Distance</strong>: sum of haversine distances between consecutive points.</li>
+<li><strong>Curvature</strong>: change of compass bearing between consecutive segments.</li>
+<li><strong>Town pass-through</strong>: nearest-approach of the track to each town centre.</li>
+</ul>
+<h3 id="12-researched-web-search-no-api-access">1.2 Researched (web search, no API access)</h3>
+<p>Routing/elevation APIs (OSRM, Open-Meteo, Overpass, OpenTopoData, Mapbox,
+GraphHopper, even Wikipedia) were <strong>all blocked</strong> by the build environment's
+egress policy, and the <code>WebFetch</code> tool returned HTTP 403 globally. Only text
+<strong>web search</strong> was available. From it the following anchor facts were gathered:</p>
+<table>
+<thead>
+<tr>
+<th>Town</th>
+<th>Elevation used (m a.s.l.)</th>
+<th>Notes / source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Deggendorf</td>
+<td>313</td>
+<td>Danube valley, ~312–320 m (elevation databases via search)</td>
+</tr>
+<tr>
+<td>Ruhmannsfelden</td>
+<td>470</td>
+<td>Bavarian-Forest plateau</td>
+</tr>
+<tr>
+<td>Patersdorf</td>
+<td>500</td>
+<td>ridge before Teisnach</td>
+</tr>
+<tr>
+<td>Teisnach</td>
+<td>467</td>
+<td>Schwarzer Regen valley</td>
+</tr>
+<tr>
+<td>Drachselsried</td>
+<td>533</td>
+<td>Zellertal</td>
+</tr>
+<tr>
+<td>Arnbruck</td>
+<td>590</td>
+<td>“~600 m, range 550–1080 m” (zellertal-online, arnbruck.de via search)</td>
+</tr>
+<tr>
+<td>Viechtach</td>
+<td>451</td>
+<td>Schwarzer Regen</td>
+</tr>
+<tr>
+<td>Bad Kötzting</td>
+<td>408</td>
+<td>lowest point on Route B (B85 valley)</td>
+</tr>
+<tr>
+<td>Engelshütt</td>
+<td>709</td>
+<td>hamlet above Arnbruck/Arrach, upper Zellertal (estimated)</td>
+</tr>
+</tbody>
+</table>
+<p>Leg distances were cross-checked against ViaMichelin/route-planner snippets
+(Teisnach–Viechtach ≈ 12 km, Viechtach–Bad Kötzting ≈ 13 km on the B85,
+Bad Kötzting–Arnbruck ≈ 14 km on St 2132).</p>
+<blockquote>
+<p>⚠️ Elevation anchors are <strong>researched point values</strong>, not a measured profile.
+The shape <em>between</em> anchors is interpolated. Net climb is reliable; the
+fine-grain wiggle is not. Run <code>fetch_real_data.py</code> where an elevation API is
+reachable to replace this with a true DEM profile.</p>
+</blockquote>
+<h3 id="13-rule-based-german-traffic-law">1.3 Rule-based (German traffic law)</h3>
+<ul>
+<li>Default speed limits under the <strong>StVO</strong>: <strong>50 km/h</strong> inside built-up areas,
+  <strong>100 km/h</strong> on rural roads outside built-up areas. (No per-sign scraping —
+  these are the legal defaults, which dominate on Staatsstraßen / B-roads.)</li>
+</ul>
+<h3 id="14-vehicle-market-parameters">1.4 Vehicle &amp; market parameters</h3>
+<p>Published specs + typical real-world figures (see §6). German 2026 price/CO₂
+assumptions: petrol <strong>1.79 €/L</strong>, diesel <strong>1.69 €/L</strong>, electricity
+<strong>0.40 €/kWh</strong> (home-charging blend); grid carbon <strong>0.35 kg CO₂/kWh</strong>; petrol
+<strong>2.32 kg CO₂/L</strong>, diesel <strong>2.65 kg CO₂/L</strong>.</p>
+<hr />
+<h2 id="2-geometry-distance-resampling">2. Geometry, distance &amp; resampling</h2>
+<p>The track is parsed and <strong>resampled to a uniform 25 m step</strong> along its length
+(linear interpolation between GPX points). A fine step is used so that tight
+bends are resolved and the curvature speed-cap behaves realistically; the
+display arrays are later down-sampled to ~100 m.</p>
+<p>Distance between two points uses the <strong>haversine</strong> formula on a sphere
+(R = 6 371 000 m):</p>
+<pre><code>a = sin²(Δφ/2) + cos φ₁ · cos φ₂ · sin²(Δλ/2)
+d = 2R · asin(√a)
+</code></pre>
+<h2 id="3-curvature-the-curviness-metric">3. Curvature (the “curviness” metric)</h2>
+<p>At each interior point the compass <strong>bearing</strong> of the incoming and outgoing
+segment is computed:</p>
+<pre><code>θ = atan2( sin Δλ · cos φ₂ ,  cos φ₁ · sin φ₂ − sin φ₁ · cos φ₂ · cos Δλ )
+</code></pre>
+<p>The <strong>heading change</strong> <code>Δθ = |wrap180(θ_out − θ_in)|</code> (degrees) is the local
+turning. Normalised to <strong>degrees of heading change per 100 m</strong>, it is the
+curviness series plotted in the app (smoothed over a ~125 m window).</p>
+<p>Summary statistics (computed on the <em>raw</em> polyline, so they don't depend on the
+resampling step):
+- <strong>Total heading change</strong> Σ|Δθ| over the whole route (deg).
+- <strong>deg/km</strong> = total ÷ distance.
+- <strong>Local radius</strong> at a vertex: <code>R = segment_length / radians(Δθ)</code>.
+  Counted as a <strong>tight bend</strong> if <code>R &lt; 80 m</code>, <strong>moderate</strong> if <code>80 ≤ R &lt; 200 m</code>.
+- <strong>Median curve radius</strong> across all vertices that actually turn (&gt; 0.5°).</p>
+<h2 id="4-elevation-grade-modelled">4. Elevation &amp; grade  <em>(modelled)</em></h2>
+<p>Researched town elevations (§1.2) are placed as <strong>anchors at their measured
+km-position</strong> on each track (the km-position comes from the GPX nearest-approach
+analysis). Elevation at every 25 m sample is then <strong>piecewise-linearly
+interpolated</strong> between anchors and <strong>smoothed</strong> (≈525 m moving average) to avoid
+artificial kinks.</p>
+<p>Road <strong>grade</strong> is the smoothed derivative, clamped to ±10 %:</p>
+<pre><code>grade_i = clamp( (ele_i − ele_{i−1}) / ds ,  −0.10, +0.10 )
+</code></pre>
+<p>Because anchors follow river valleys, modelled grades are gentle (max ≈ 2 %);
+the <strong>net</strong> climb (A: +396 m over 444 m of ascent; B: +396 m over 502 m of
+ascent, because it drops to Bad Kötzting first) is the energetically important
+quantity and is robust to the interpolation.</p>
+<h2 id="5-speed-model-rule-based-physics">5. Speed model  <em>(rule-based + physics)</em></h2>
+<p>For each 25 m sample the <strong>driven speed</strong> is the minimum of three limits:</p>
+<ol>
+<li><strong>Legal limit</strong> — 50 km/h if the point is within 800 m of a town centre
+   (built-up area), else 100 km/h.</li>
+<li><strong>Curve limit</strong> — lateral-acceleration cap. For local turn radius <code>R</code>,
+   <code>v_curve = √(a_lat · R)</code> with <code>a_lat = 2.2 m/s²</code> (a careful/eco driver).</li>
+<li><strong>Free-flow cap</strong> — <code>V_free = 88 km/h</code>, the speed actually sustainable on
+   these single-lane St/B roads (drivers rarely hold the 100 legal max).</li>
+</ol>
+<p>A <strong>forward + backward acceleration-limiting pass</strong> (<code>a_max = 1.2 m/s²</code>) then
+smooths the profile so the car cannot change speed faster than is physical:</p>
+<pre><code>v_i ← min( v_i, √(v_{i−1}² + 2·a_max·ds) )      # forward (accel)
+v_i ← min( v_i, √(v_{i+1}² + 2·a_max·ds) )      # backward (braking)
+</code></pre>
+<h3 id="51-traffic-light-junction-stops-modelled">5.1 Traffic-light / junction stops <em>(modelled)</em></h3>
+<p>The continuous speed profile above never reaches a full stop. Real driving does
+— at traffic lights, give-way junctions and pedestrian crossings. Each built-up
+area is assigned a <strong>typical number of stop events</strong> a through-driver actually
+faces:</p>
+<table>
+<thead>
+<tr>
+<th>Town</th>
+<th>Stops</th>
+<th>Town</th>
+<th>Stops</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Deggendorf</td>
+<td>3</td>
+<td>Drachselsried</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Viechtach</td>
+<td>2</td>
+<td>Arnbruck</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Bad Kötzting</td>
+<td>2</td>
+<td>Ruhmannsfelden</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Teisnach</td>
+<td>1</td>
+<td>Patersdorf</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<p>A stop only counts when the track actually enters that town's 800 m built-up
+radius — e.g. Route A bypasses Arnbruck's centre (it stays ~1.4 km out), so
+Arnbruck contributes no stop on either route. The resulting estimate is
+<strong>Route A ≈ 6 stops</strong> (Deggendorf 3, Ruhmannsfelden 1, Teisnach 1,
+Drachselsried 1) and <strong>Route B ≈ 9 stops</strong> (Deggendorf 3, Ruhmannsfelden 1,
+Teisnach 1, Viechtach 2, Bad Kötzting 2). Each stop adds:
+- <strong>standing/manoeuvre time</strong> of 22 s (idle), and
+- a <strong>stop-and-go energy</strong> cycle: brake from 50 km/h to 0 (regen-eligible) and
+  re-accelerate 0 → 50 km/h, i.e. <code>½·m·v_stop²</code> of fresh propulsion with
+  <code>v_stop = 50 km/h</code>.</p>
+<p>This is why Route A’s drive time is ≈49 min and Route B’s ≈58 min — close to
+what a commercial navigator would quote. (Commercial apps fold <em>historical</em>
+signal/junction delay into their ETA from fleet data; here it is a transparent
+per-town estimate. It does <strong>not</strong> model live traffic or queueing.)</p>
+<h2 id="6-energy-model-modelled-vehicle-physics">6. Energy model  <em>(modelled vehicle physics)</em></h2>
+<p>A standard <strong>longitudinal road-load</strong> model is integrated over every 25 m step.
+The tractive force at the wheels is the sum of four terms:</p>
+<pre><code>F = F_roll + F_aero + F_grade + F_inertia
+  = m·g·Crr  +  ½·ρ·CdA·v²  +  m·g·sin(atan(grade))  +  m·a
+</code></pre>
+<p>with air density <code>ρ = 1.20 kg/m³</code>, <code>g = 9.81 m/s²</code>, and <code>a</code> the acceleration
+implied by the speed profile (<code>a = (v_i² − v_{i−1}²)/2ds</code>). Energy for the step
+is <code>E = F·ds</code>.</p>
+<ul>
+<li>Steps with <code>E &gt; 0</code> accumulate <strong>propulsion energy</strong> <code>E_prop</code>.</li>
+<li>Steps with <code>E &lt; 0</code> accumulate <strong>braking energy</strong> <code>E_brake</code>.</li>
+<li>Stops (§5.1) add their kinetic cycle to both.</li>
+</ul>
+<p><strong>Regenerative braking</strong> recovers a fraction of <code>E_brake</code> for the hybrid and EV
+(charge-sustaining assumption for the hybrid):</p>
+<pre><code>net_prop = max( E_prop − regen · E_brake , 0 )
+</code></pre>
+<p><strong>Drivetrain conversion</strong> to fuel or electricity:</p>
+<pre><code>ICE   :  fuel_energy   = net_prop / η_drive  +  aux_energy / η_drive
+EV    :  battery_energy = net_prop / η_drive  +  aux_energy
+         wall_energy     = battery_energy / η_charge
+</code></pre>
+<p>where <code>aux_energy = P_aux · t</code> (constant electrical load for lights/HVAC/
+electronics). Fuel volume / electricity:</p>
+<pre><code>litres = fuel_energy / E_density        (petrol 32.04 MJ/L, diesel 35.64 MJ/L)
+kWh    = wall_energy / 3.6e6
+</code></pre>
+<p>Cost = amount × price; CO₂ = amount × emission factor (§1.4); and
+<code>per-100 km = amount / distance × 100</code>.</p>
+<h3 id="61-vehicle-parameters">6.1 Vehicle parameters</h3>
+<table>
+<thead>
+<tr>
+<th>Car</th>
+<th>Drivetrain</th>
+<th>Mass (kg)</th>
+<th>Cd·A (m²)</th>
+<th>Crr</th>
+<th>η_drive</th>
+<th>Regen</th>
+<th>Fuel</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Toyota Auris Hybrid 1.8 (2016)</td>
+<td>Full hybrid</td>
+<td>1500</td>
+<td>0.30·2.20</td>
+<td>0.0095</td>
+<td>0.34</td>
+<td>0.62</td>
+<td>petrol</td>
+</tr>
+<tr>
+<td>VW ID.3 (58 kWh)</td>
+<td>Battery-electric</td>
+<td>1900</td>
+<td>0.267·2.36</td>
+<td>0.0095</td>
+<td>0.90</td>
+<td>0.70</td>
+<td>electric (η_charge 0.88)</td>
+</tr>
+<tr>
+<td>Fiat Panda 1.2 (2016)</td>
+<td>Petrol</td>
+<td>1010</td>
+<td>0.33·2.10</td>
+<td>0.011</td>
+<td>0.27</td>
+<td>0</td>
+<td>petrol</td>
+</tr>
+<tr>
+<td>Opel 2005 (Kadett-class)</td>
+<td>Petrol, older</td>
+<td>1080</td>
+<td>0.34·2.05</td>
+<td>0.0125</td>
+<td>0.235</td>
+<td>0</td>
+<td>petrol</td>
+</tr>
+<tr>
+<td>Mercedes C-Class diesel</td>
+<td>Diesel</td>
+<td>1620</td>
+<td>0.27·2.20</td>
+<td>0.010</td>
+<td>0.34</td>
+<td>0</td>
+<td>diesel</td>
+</tr>
+</tbody>
+</table>
+<p>Auxiliary load <code>P_aux</code>: 0.25–0.45 kW per car. The drivetrain efficiencies were
+<strong>calibrated</strong> so combined consumption lands in each car's known real-world band
+(Auris ≈ 4.5 L, ID.3 ≈ 19 kWh, Panda ≈ 5.5 L, old Opel ≈ 7 L, C-diesel ≈ 5 L
+per 100 km). The model is therefore trustworthy for <strong>comparing the two routes</strong>
+(its main purpose); absolute values are good estimates, not dyno measurements.</p>
+<blockquote>
+<p><strong>“2005 Opel Cadet” note:</strong> the Opel <em>Kadett</em> ended production in 1991, so
+“2005 Opel Cadet” is ambiguous. It is modelled as a <strong>2005-era small Opel</strong>
+(Corsa/Kadett-class, older port-injection petrol, no regen). Tell me if you
+meant a specific model and I'll re-parameterise.</p>
+</blockquote>
+<h2 id="7-capability">7. Capability</h2>
+<p>“Can each car do each route?” — <strong>Yes, all five, comfortably.</strong> Modelled grades
+stay gentle (valley roads, max ≈ 2 %), so even the 51 kW Panda and the ~55 kW
+old Opel have ample power; no route needs more than a few kW of sustained climb
+power at these speeds. The differences between cars are <strong>efficiency, cost and
+comfort</strong>, not capability. The hybrid and EV gain the most here because the
+curvy, village-dotted, stop-and-go terrain rewards <strong>regenerative braking</strong>.</p>
+<h2 id="8-outputs-how-to-regenerate">8. Outputs &amp; how to regenerate</h2>
+<p><code>build.py</code> (pure Python standard library, no network) produces:</p>
+<ul>
+<li><code>data/eco_data.json</code> — full bundle (routes, profiles, cars, results, provenance)</li>
+<li><code>data.js</code> — the same bundle as <code>window.ECO_DATA</code> for the HTML viewer</li>
+<li><code>data/results.csv</code> — per-car, per-route consumption / cost / CO₂ / time</li>
+<li><code>data/profile_arnbruck.csv</code>, <code>data/profile_koetzting.csv</code> — per-25 m profiles</li>
+<li><code>data/gpx/*.gpx</code> — the original tracks (committed for reproducibility)</li>
+</ul>
+<pre><code class="language-bash">cd eco-navigation
+python3 build.py                       # regenerate all data
+npx esbuild EcoNavigation.jsx \        # recompile the UI (only if JSX changed)
+  --jsx=transform --format=iife --outfile=app.js
+</code></pre>
+<p>To replace modelled elevation/speed-limits with <strong>real</strong> data, run
+<code>fetch_real_data.py</code> in an environment where an elevation API
+(Open-Meteo / OpenTopoData) and Overpass are reachable; it rewrites the elevation
+anchors / per-point elevation and <code>maxspeed</code> tags, after which <code>build.py</code>
+reproduces the profiles from real measurements.</p>
+<h2 id="9-known-limitations">9. Known limitations</h2>
+<ul>
+<li>Elevation profile is <strong>interpolated</strong> between researched town heights, not a
+  measured DEM (the GPX had no elevation; APIs were blocked).</li>
+<li>Speed limits are <strong>legal defaults by zone</strong>, not per-sign (no live 70/80
+  zones, roadworks, or seasonal limits).</li>
+<li>Stops are a <strong>static per-town estimate</strong>; no live traffic, queueing, or
+  time-of-day.</li>
+<li>Energy model ignores wind, temperature, payload beyond a nominal driver,
+  tyre/road condition, and cold-start enrichment.</li>
+<li>Prices and grid carbon are <strong>2026 assumptions</strong> for Germany; edit the
+  constants at the top of <code>build.py</code> to localise.</li>
+</ul>
+<hr>
+<p style="font-size:.85rem;color:#5C7172">Rendered from
+<code>METHODOLOGY.md</code> by <code>render_docs.py</code>. Source data:
+<a href="data/results.csv">results.csv</a> ·
+<a href="data/eco_data.json">eco_data.json</a> ·
+<a href="data/gpx/">GPX tracks</a>.</p>
+</body>
+</html>

@@ -556,6 +556,19 @@ function App() {
         (the GPX carried no elevation data, and routing/elevation APIs were
         unreachable from the build sandbox).
       </p>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 4 }}>
+        {[["methodology.html", "📐 Method, algorithm & data sources"],
+          ["data/results.csv", "⬇ results.csv"],
+          ["data/eco_data.json", "⬇ data (JSON)"],
+          ["data/gpx/", "⬇ GPX tracks"]].map(([href, label], i) => (
+          <a key={i} href={href} style={{
+            fontSize: 12.5, textDecoration: "none", color: i === 0 ? C.eco : C.dim,
+            border: `1px solid ${i === 0 ? C.eco : C.line}`,
+            background: i === 0 ? `${C.eco}14` : "transparent",
+            borderRadius: 20, padding: "5px 12px",
+            fontWeight: i === 0 ? 700 : 500 }}>{label}</a>
+        ))}
+      </div>
 
       <SectionTitle>The two routes</SectionTitle>
       <RouteMap />
@@ -583,9 +596,12 @@ function App() {
 
       <div style={{ marginTop: 28, fontSize: 11.5, color: C.faint,
         borderTop: `1px solid ${C.line}`, paddingTop: 12 }}>
-        Generated {D.meta.generated}. Model + data: <code>build.py</code> ·
-        raw tracks in <code>data/gpx/</code> · numbers in{" "}
-        <code>data/results.csv</code> and <code>data/profile_*.csv</code>.
+        Generated {D.meta.generated}. Full method, equations &amp; data sources:{" "}
+        <a href="methodology.html" style={{ color: C.eco }}>methodology.html</a>{" "}
+        (source <code>METHODOLOGY.md</code>). Data &amp; model:{" "}
+        <code>build.py</code> → <code>data/results.csv</code>,{" "}
+        <code>data/profile_*.csv</code>; raw tracks in{" "}
+        <a href="data/gpx/" style={{ color: C.eco }}>data/gpx/</a>.
         To swap in real elevation, run <code>fetch_real_data.py</code> where an
         elevation API is reachable, then rebuild.
       </div>
