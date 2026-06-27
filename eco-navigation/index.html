@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Eco-Navigation — Deggendorf → Engelshütt</title>
+<meta name="description" content="Two Bavarian Forest routes (via Arnbruck vs. via Viechtach &amp; Bad Kötzting) compared for distance, elevation, curviness, speed and the energy, cost and CO₂ of five different cars.">
+<script src="vendor/react.production.min.js"></script>
+<script src="vendor/react-dom.production.min.js"></script>
+<script src="vendor/prop-types.min.js"></script>
+<script src="vendor/Recharts.js"></script>
+<script src="data.js"></script>
+<style>
+  html,body{margin:0;background:#0E1519}
+  #root{min-height:100vh}
+  *{box-sizing:border-box}
+  ::-webkit-scrollbar{height:10px;width:10px}
+  ::-webkit-scrollbar-thumb{background:#26383A;border-radius:6px}
+  button:hover{filter:brightness(1.15)}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<noscript style="color:#ccc;display:block;padding:2rem;font-family:sans-serif">
+  This interactive comparison needs JavaScript. The underlying numbers are in
+  <code>data/results.csv</code> and the method in <code>METHODOLOGY.md</code>.
+</noscript>
+<!-- Precompiled from EcoNavigation.jsx (esbuild, classic JSX runtime) — no in-browser transform. -->
+<script src="app.js"></script>
+</body>
+</html>
