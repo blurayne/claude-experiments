@@ -66,6 +66,36 @@ const VEH = [
     fit: "Zuverlässigkeit & Unterhalt top, Außenparker unkritisch. Schwäche genau bei deinem AB-Wunsch: eCVT-Dröhnen bei zügigem Tempo."
   },
   {
+    id: "corolla-hyb",
+    name: "Toyota Corolla TS 1.8 Hybrid (E210)",
+    short: "Corolla Hybrid",
+    body: "Kombi (Touring Sports)",
+    motor: "1.8 VVT-i Hybrid · 122 PS · eCVT",
+    color: "#46D6A6",
+    priceNew: 30500,
+    priceNow: 16500,
+    tax: 50,
+    service: 330,
+    insBase: 2480,
+    real: 4.6,
+    fuel: "Super",
+    fuelP: 1.72,
+    cons: { Stadt: 4, "120": 5.2, "140": 6.3, "160": 7.7, "175": 9 },
+    boot: 581,
+    bootMax: 1591,
+    sleep: 3,
+    quiet: 3.5,
+    rel: 5,
+    outdoor: "Unkritisch. Wie beim Auris nur die 12-V-Stützbatterie bei Standzeit + Kurzstrecke im Blick behalten – Erhaltungslader empfohlen.",
+    faults: [
+      "TNGA-Plattform: nochmal steifer & leiser gedämmt als der Auris – das eCVT-Dröhnen bei Volllast bleibt, stört im Alltag aber weniger",
+      "Praktisch keine Antriebsschäden; HV-System taxierprobt – Toyota-Relax-Garantie bis 15 J / 250.000 km bei jährlichem Hybrid-Check",
+      "12-V-Stützbatterie bleibt das Wenigfahrer-Thema (im Kofferraum); altbackenes Infotainment (Toyota Touch 2) bei frühen Baujahren"
+    ],
+    forum: "Der direkte Auris-TS-Nachfolger auf der TNGA-Plattform: spürbar leiser, satteres Fahrwerk, in der Praxis 4,0–4,8 L. Foren loben Verarbeitung & Ruhe, kritisieren das träge Infotainment früher Baujahre und – wie gehabt – das eCVT-Dröhnen bei Vollgas.",
+    fit: "Das modernste, leiseste Hybrid hier und der logische Auris-Nachfolger – nur liegt ein guter E210 mit ~16–19 k über deinem 14-k-Budget. Wer den Rahmen streckt, bekommt Toyota-Zuverlässigkeit plus mehr Autobahn-Ruhe als beim Auris."
+  },
+  {
     id: "auris-12t",
     name: "Toyota Auris TS 1.2 Turbo",
     short: "Auris 1.2T",
@@ -338,6 +368,7 @@ const VEH = [
 ];
 const DIMS = {
   "auris-hyb": { len: "≈1,55 m", h: "≈0,72 m", note: "Solide, aber Boden mit Stufe und am kürzeren Ende. Zum Schlafen eher eine Person diagonal + Auflage." },
+  "corolla-hyb": { len: "≈1,60 m", h: "≈0,72 m", note: "Etwas länger & ebener als der Auris (größter Kofferraum der Toyota-Kombis hier), aber weiter Reststufe. Schlafen für eine Person diagonal + Auflage." },
   "auris-12t": { len: "≈1,55 m", h: "≈0,72 m", note: "Wie Hybrid: Stufe im Boden, kürzeres Ende. Diagonal liegen + Auflage." },
   "prius-plus": { len: "≈1,80 m", h: "≈0,78 m", note: "Langer, weitgehend ebener Ladeboden bei umgeklappten Sitzen (bis 1.750 L). Als 5-Sitzer gut gestreckt zum Schlafen; der eigentliche Trumpf sind aber die 7 Einzelsitze." },
   "octavia": { len: "≈1,95 m", h: "≈0,75 m", note: "Längster + größter. Mit Doppelboden fast plan – der Einzige, in dem man fast gestreckt liegt (Beifahrersitz vor: >2,1 m)." },
@@ -351,6 +382,7 @@ const DIMS = {
 const SPEEDS = ["Stadt", "120", "140", "160", "175"];
 const SIZE = {
   "auris-hyb": { l: 4.57, h: 1.47, t: "wagon" },
+  "corolla-hyb": { l: 4.65, h: 1.46, t: "wagon" },
   "auris-12t": { l: 4.57, h: 1.47, t: "wagon" },
   "prius-plus": { l: 4.62, h: 1.58, t: "mpv" },
   "octavia": { l: 4.66, h: 1.47, t: "wagon" },
@@ -601,6 +633,43 @@ const WINTER = [
       "Thermostat/Warmlauf prüfen: wird er nicht warm = Thermostat hängt (mehr Verschleiß + schlechte Heizung).",
       "Zündspulen-/Kerzen-Historie checken; bei Kalt-Ruckeln zuerst dort suchen."
     ]
+  }
+];
+const MUC = [
+  {
+    icon: "🟢",
+    title: "Umweltzone & grüne Plakette",
+    body: "München fährt mit Umweltzone (grüne Plakette) und auf dem Mittleren Ring mit Diesel-Fahrverboten für Euro-4/5. Der Vollhybrid bekommt die grüne Plakette automatisch und ist von allen bisherigen wie geplanten Verschärfungen ausgenommen – das langfristig sorgloseste Antriebskonzept in einer Großstadt, ganz ohne Diesel-Restwert-Risiko.",
+    tag: "Vorteil",
+    color: C.eco
+  },
+  {
+    icon: "🚦",
+    title: "Stadtverkehr & Stop-and-go",
+    body: "Genau die Disziplin des Hybrids: Im dichten Verkehr (Mittlerer Ring, Innenstadt, Ampelpulks) kriecht der Corolla rein elektrisch, rekuperiert beim Bremsen und liegt real bei ~4,0 L. Die Bremsen halten dank Rekuperation oft über 100.000 km – im zähen Münchner Berufsverkehr der größte Spar- und Verschleißvorteil gegenüber Turbo/Diesel.",
+    tag: "Stärke",
+    color: C.eco
+  },
+  {
+    icon: "🅿️",
+    title: "Parken als Außenparker",
+    body: "Mit 4,65 m ist der TS ein vollwertiger Kombi – in engen Altbaustraßen (Schwabing, Haidhausen, Glockenbach) handlich genug, aber kein Kleinwagen. Klares Plus gegenüber einem E-Auto: Als Self-Charging-Hybrid brauchst du keine Wallbox und keinen Laternenparker-Ladeplatz. Anwohnerparkausweis (~30 €/Jahr) lohnt; auf Streusalz-Korrosion an Bremsscheiben achten.",
+    tag: "Praxis",
+    color: C.amber
+  },
+  {
+    icon: "🏔️",
+    title: "Pendeln & Ausflüge ins Umland",
+    body: "A8/A9/A99/A96, Flughafen (MUC/Erding) und die Seen/Berge (Tegernsee, Garmisch) liegen vor der Tür. Auf der TNGA-Plattform ist der Corolla spürbar leiser & satter als der Auris; bei konstanten 120–130 km/h ~5,5 L. Wermutstropfen bleibt das eCVT-Dröhnen bei Volllast – auf langen Steigungen (z. B. Richtung Alpen) hörbar, im Alltag selten.",
+    tag: "Langstrecke",
+    color: "#6FB1FC"
+  },
+  {
+    icon: "❄️",
+    title: "Winter & Kurzstrecke",
+    body: "Münchner Winter + viele Kurzstrecken sind der einzige Schwachpunkt: Die Kabine heizt über Motorabwärme, kalt läuft der Benziner öfter, der EV-Anteil (und damit der Spar-Vorteil) sinkt. Sitzheizung statt voll aufgedrehter Klima nutzen und die 12-V-Stützbatterie bei langer Standzeit per Erhaltungslader pflegen – sonst springt das System nicht in „READY“.",
+    tag: "Achtung",
+    color: C.amber
   }
 ];
 const DUELS = {
@@ -1020,7 +1089,7 @@ function TaxiSection({ onPick }) {
   })), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: C.faint, marginTop: 12, lineHeight: 1.5 } }, /* @__PURE__ */ React.createElement("b", { style: { color: C.eco } }, "Im Vergleich"), " = bereits oben enthalten · ", /* @__PURE__ */ React.createElement("b", { style: { color: C.amber } }, "Alternative"), " = einen Blick wert, hier (noch) nicht gelistet · ", /* @__PURE__ */ React.createElement("b", { style: { color: C.dim } }, "Klassiker"), " = traditioneller Taxi-Standard. Quellen u. a. AUTO BILD (Taxifahrer-Ratgeber), taxi-times.de, MOTOR-TALK – Richtwerte, keine Kaufberatung."));
 }
 function App() {
-  const [sel, setSel] = useState(() => /* @__PURE__ */ new Set(["auris-hyb"]));
+  const [sel, setSel] = useState(() => /* @__PURE__ */ new Set(["auris-hyb", "corolla-hyb"]));
   const [w, setW] = useState(() => Object.fromEntries(PRIO.map((p) => [p.key, p.def])));
   const [openId, setOpenId] = useState("auris-hyb");
   const [checked, setChecked] = useState(() => /* @__PURE__ */ new Set());
@@ -1213,7 +1282,7 @@ function App() {
       /* @__PURE__ */ React.createElement("span", { style: { width: 8, height: 8, borderRadius: 2, background: on ? rf.color : C.faint } }),
       rf.short
     );
-  })), /* @__PURE__ */ React.createElement(SizeChart, { rows: [...VEH.map((v) => ({ id: v.id, short: v.short, color: v.color, ...SIZE[v.id], boot: v.boot, bootMax: v.bootMax })), ...REF.filter((r) => refSel.has(r.id))] }), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11.5, color: C.faint, marginBottom: 24, lineHeight: 1.55 } }, /* @__PURE__ */ React.createElement("span", { style: { color: C.eco } }, "■"), " Kofferraum normal  · ", /* @__PURE__ */ React.createElement("span", { style: { color: "#5B8FF9" } }, "▢"), " umgeklappt (Quadratfläche ∝ Volumen). Oben deine Kandidaten (farbig), darunter die ", /* @__PURE__ */ React.createElement("b", { style: { color: C.dim } }, "grauen Referenzfahrzeuge"), " aus deinem Bild – der ", /* @__PURE__ */ React.createElement("span", { style: { color: "#7FD4B0" } }, "Corolla TS"), " ist farbig, weil er der direkte Auris-TS-Nachfolger und ein echter Kaufkandidat ist. Silhouetten auf die ", /* @__PURE__ */ React.createElement("b", { style: { color: C.dim } }, "echten Längen & Höhen"), " skaliert (gleicher Maßstab, Karosserietyp, Überhänge & Radstand modelliert); nach rechts wischen für die längeren Fahrzeuge. Bewusst Vektor-Silhouetten statt Fotos: herstellereigene Bilder sind urheberrechtlich geschützt und würden im Tool nicht zuverlässig laden – dafür sind diese exakt proportional."), /* @__PURE__ */ React.createElement(Versus, { annFor }), /* @__PURE__ */ React.createElement("div", { className: "eyebrow", style: { marginBottom: 10 } }, "Steckbriefe · Forenfazit & typische Fehler"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 } }, shown.map((v) => {
+  })), /* @__PURE__ */ React.createElement(SizeChart, { rows: [...VEH.map((v) => ({ id: v.id, short: v.short, color: v.color, ...SIZE[v.id], boot: v.boot, bootMax: v.bootMax })), ...REF.filter((r) => refSel.has(r.id))] }), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11.5, color: C.faint, marginBottom: 24, lineHeight: 1.55 } }, /* @__PURE__ */ React.createElement("span", { style: { color: C.eco } }, "■"), " Kofferraum normal  · ", /* @__PURE__ */ React.createElement("span", { style: { color: "#5B8FF9" } }, "▢"), " umgeklappt (Quadratfläche ∝ Volumen). Oben deine Kandidaten (farbig) – inklusive dem ", /* @__PURE__ */ React.createElement("span", { style: { color: "#46D6A6" } }, "Corolla TS Hybrid"), ", dem direkten Auris-TS-Nachfolger –, darunter die ", /* @__PURE__ */ React.createElement("b", { style: { color: C.dim } }, "grauen Referenzfahrzeuge"), " aus deinem Bild. Silhouetten auf die ", /* @__PURE__ */ React.createElement("b", { style: { color: C.dim } }, "echten Längen & Höhen"), " skaliert (gleicher Maßstab, Karosserietyp, Überhänge & Radstand modelliert); nach rechts wischen für die längeren Fahrzeuge. Bewusst Vektor-Silhouetten statt Fotos: herstellereigene Bilder sind urheberrechtlich geschützt und würden im Tool nicht zuverlässig laden – dafür sind diese exakt proportional."), /* @__PURE__ */ React.createElement(Versus, { annFor }), /* @__PURE__ */ React.createElement("div", { className: "eyebrow", style: { marginBottom: 10 } }, "Steckbriefe · Forenfazit & typische Fehler"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 } }, shown.map((v) => {
     const open = openId === v.id;
     return /* @__PURE__ */ React.createElement("div", { key: v.id, className: "panel", style: { borderLeft: `3px solid ${v.color}`, overflow: "hidden" } }, /* @__PURE__ */ React.createElement(
       "div",
@@ -1224,7 +1293,7 @@ function App() {
       /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { style: { fontWeight: 650, fontSize: 14.5 } }, v.name), /* @__PURE__ */ React.createElement("div", { style: { color: C.dim, fontSize: 12, marginTop: 2 } }, v.body, " · ", v.motor)),
       /* @__PURE__ */ React.createElement("div", { style: { textAlign: "right", flexShrink: 0 } }, /* @__PURE__ */ React.createElement("div", { className: "num", style: { fontSize: 15, color: v.color } }, euro(v.priceNow)), /* @__PURE__ */ React.createElement("div", { style: { color: C.faint, fontSize: 11 } }, open ? "▲ schließen" : "▼ Details"))
     ), open && /* @__PURE__ */ React.createElement("div", { style: { padding: "0 15px 15px", fontSize: 13, lineHeight: 1.6 } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexWrap: "wrap", gap: 14, color: C.dim, fontSize: 12, marginBottom: 12, borderTop: `1px solid ${C.line}`, paddingTop: 12 } }, /* @__PURE__ */ React.createElement("span", null, "Schlaf ", /* @__PURE__ */ React.createElement(Dots, { n: v.sleep, color: v.color })), /* @__PURE__ */ React.createElement("span", null, "AB-Ruhe ", /* @__PURE__ */ React.createElement(Dots, { n: v.quiet, color: v.color })), /* @__PURE__ */ React.createElement("span", null, "Zuverlässigkeit ", /* @__PURE__ */ React.createElement(Dots, { n: v.rel, color: v.color })), /* @__PURE__ */ React.createElement("span", { className: "num" }, "Kofferraum ", v.boot, "–", v.bootMax, " L")), /* @__PURE__ */ React.createElement("p", { style: { margin: "0 0 12px", color: C.ink } }, /* @__PURE__ */ React.createElement("b", { style: { color: C.eco } }, "Forenfazit · "), v.forum), /* @__PURE__ */ React.createElement("div", { style: { marginBottom: 12 } }, /* @__PURE__ */ React.createElement("div", { style: { color: C.amber, fontWeight: 600, fontSize: 12, marginBottom: 5 } }, "TYPISCHE FEHLER / WORAUF ACHTEN"), v.faults.map((f, i) => /* @__PURE__ */ React.createElement("div", { key: i, style: { display: "flex", gap: 8, marginBottom: 4 } }, /* @__PURE__ */ React.createElement("span", { style: { color: C.amber } }, "›"), /* @__PURE__ */ React.createElement("span", { style: { color: C.dim } }, f)))), /* @__PURE__ */ React.createElement("div", { style: { background: C.panelHi, borderRadius: 9, padding: "10px 12px", marginBottom: 8 } }, /* @__PURE__ */ React.createElement("b", { style: { color: v.color } }, "Für dein Profil · "), /* @__PURE__ */ React.createElement("span", { style: { color: C.ink } }, v.fit)), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: C.faint } }, /* @__PURE__ */ React.createElement("b", null, "Außenparker:"), " ", v.outdoor)));
-  })), /* @__PURE__ */ React.createElement("div", { className: "panel", style: { padding: 18, marginBottom: 16, borderLeft: `3px solid ${C.eco}` } }, /* @__PURE__ */ React.createElement("div", { className: "eyebrow", style: { marginBottom: 4, color: C.eco } }, "Modell-Check · genau dieses Inserat"), /* @__PURE__ */ React.createElement("h2", { style: { marginBottom: 6 } }, "Toyota Auris TS 1.8 Hybrid · Privatinserat Punkt für Punkt prüfen"), /* @__PURE__ */ React.createElement("p", { style: { fontSize: 12.5, color: C.dim, lineHeight: 1.6, margin: "0 0 12px" } }, "Laut Inserat: Scheckheft + frischer Service 20.05.2026 inkl. Hybrid-Batterie-Prüfung (i.O.), HU 7/2027, Euro6c, unfallfrei, 3 Vorbesitzer, AHK fest, Allwetterreifen, Privatanbieter (90584 Allersberg). Klingt solide – die folgenden Punkte machen aus „klingt gut“ ein ", /* @__PURE__ */ React.createElement("b", { style: { color: C.ink } }, "belegt gut"), ". Pro Punkt: ", /* @__PURE__ */ React.createElement("b", { style: { color: C.ink } }, "prüfen"), " → ", /* @__PURE__ */ React.createElement("b", { style: { color: C.faint } }, "Defekt erkennbar an"), " → ", /* @__PURE__ */ React.createElement("b", { style: { color: C.amber } }, "Wertminderung/Hebel"), "."), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 10, marginBottom: 14 } }, /* @__PURE__ */ React.createElement("div", { style: { flex: 1, height: 6, background: C.line, borderRadius: 4, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { height: "100%", width: `${mck.size / mTotal * 100}%`, background: C.eco, transition: ".2s" } })), /* @__PURE__ */ React.createElement("span", { className: "num", style: { fontSize: 12, color: C.dim } }, mck.size, "/", mTotal), mck.size > 0 && /* @__PURE__ */ React.createElement("span", { onClick: () => setMck(/* @__PURE__ */ new Set()), style: { fontSize: 11, color: C.faint, cursor: "pointer", textDecoration: "underline" } }, "Reset")), AURIS_CHECK.map((grp, gi) => /* @__PURE__ */ React.createElement("div", { key: gi, style: { marginBottom: 14 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, fontWeight: 650, color: C.amber, marginBottom: 6 } }, grp.g), grp.items.map((it, ii) => {
+  })), /* @__PURE__ */ React.createElement("div", { className: "panel", style: { padding: 18, marginBottom: 24, borderLeft: `3px solid #46D6A6` } }, /* @__PURE__ */ React.createElement("div", { className: "eyebrow", style: { marginBottom: 4 } }, "Kapitel · Corolla Hybrid im Alltag"), /* @__PURE__ */ React.createElement("h2", { style: { marginBottom: 6 } }, "Der Corolla HEV in München (MUC)"), /* @__PURE__ */ React.createElement("p", { style: { fontSize: 12.5, color: C.dim, lineHeight: 1.6, margin: "0 0 14px" } }, "Wie schlägt sich der Toyota Corolla TS 1.8 Hybrid in einer Großstadt wie München – Umweltzone, Stop-and-go auf dem Mittleren Ring, Außenparken, Pendeln ins Umland und der Münchner Winter? Kurz: Genau das Umfeld, für das ein Vollhybrid gemacht ist."), /* @__PURE__ */ React.createElement("div", { style: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }, className: "grid2" }, MUC.map((m, i) => /* @__PURE__ */ React.createElement("div", { key: i, className: "panel", style: { padding: 14, borderLeft: `3px solid ${m.color}` } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, marginBottom: 7 } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 13.5, fontWeight: 700, color: C.ink } }, m.icon, " ", m.title), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 10, color: m.color, border: `1px solid ${m.color}66`, borderRadius: 6, padding: "1px 6px", whiteSpace: "nowrap" } }, m.tag)), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: C.dim, lineHeight: 1.55 } }, m.body)))), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11.5, color: C.faint, lineHeight: 1.55, marginTop: 12 } }, /* @__PURE__ */ React.createElement("b", { style: { color: C.dim } }, "Fazit für MUC:"), " In der Stadt nahezu konkurrenzlos sparsam und sorglos (grüne Plakette, keine Ladeinfrastruktur nötig), auf der Autobahn leiser als der Auris. Einzige reale Schwäche bleibt der Kurzstrecken-Winterbetrieb – mit Erhaltungslader & Sitzheizung gut beherrschbar.")), /* @__PURE__ */ React.createElement("div", { className: "panel", style: { padding: 18, marginBottom: 16, borderLeft: `3px solid ${C.eco}` } }, /* @__PURE__ */ React.createElement("div", { className: "eyebrow", style: { marginBottom: 4, color: C.eco } }, "Modell-Check · genau dieses Inserat"), /* @__PURE__ */ React.createElement("h2", { style: { marginBottom: 6 } }, "Toyota Auris TS 1.8 Hybrid · Privatinserat Punkt für Punkt prüfen"), /* @__PURE__ */ React.createElement("p", { style: { fontSize: 12.5, color: C.dim, lineHeight: 1.6, margin: "0 0 12px" } }, "Laut Inserat: Scheckheft + frischer Service 20.05.2026 inkl. Hybrid-Batterie-Prüfung (i.O.), HU 7/2027, Euro6c, unfallfrei, 3 Vorbesitzer, AHK fest, Allwetterreifen, Privatanbieter (90584 Allersberg). Klingt solide – die folgenden Punkte machen aus „klingt gut“ ein ", /* @__PURE__ */ React.createElement("b", { style: { color: C.ink } }, "belegt gut"), ". Pro Punkt: ", /* @__PURE__ */ React.createElement("b", { style: { color: C.ink } }, "prüfen"), " → ", /* @__PURE__ */ React.createElement("b", { style: { color: C.faint } }, "Defekt erkennbar an"), " → ", /* @__PURE__ */ React.createElement("b", { style: { color: C.amber } }, "Wertminderung/Hebel"), "."), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 10, marginBottom: 14 } }, /* @__PURE__ */ React.createElement("div", { style: { flex: 1, height: 6, background: C.line, borderRadius: 4, overflow: "hidden" } }, /* @__PURE__ */ React.createElement("div", { style: { height: "100%", width: `${mck.size / mTotal * 100}%`, background: C.eco, transition: ".2s" } })), /* @__PURE__ */ React.createElement("span", { className: "num", style: { fontSize: 12, color: C.dim } }, mck.size, "/", mTotal), mck.size > 0 && /* @__PURE__ */ React.createElement("span", { onClick: () => setMck(/* @__PURE__ */ new Set()), style: { fontSize: 11, color: C.faint, cursor: "pointer", textDecoration: "underline" } }, "Reset")), AURIS_CHECK.map((grp, gi) => /* @__PURE__ */ React.createElement("div", { key: gi, style: { marginBottom: 14 } }, /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, fontWeight: 650, color: C.amber, marginBottom: 6 } }, grp.g), grp.items.map((it, ii) => {
     const id = `m${gi}-${ii}`, on = mck.has(id);
     return /* @__PURE__ */ React.createElement(
       "div",
@@ -1327,6 +1396,8 @@ const PROFILE = {
   // Toyota Auris/Corolla TS: kompakter Kombi, leicht gerakte Scheibe, kurzer Hintern.
   "auris-hyb": { foh: 0.17, roh: 0.19, cowl: 0.31, aTop: 0.46, re: 0.82, tt: 0.91, belt: 0.47 },
   "auris-12t": { foh: 0.17, roh: 0.19, cowl: 0.31, aTop: 0.46, re: 0.82, tt: 0.91, belt: 0.47 },
+  // Toyota Corolla TS (E210): flacher & länger als der Auris, stärker gerakte Scheibe, coupéhaftes Heck.
+  "corolla-hyb": { foh: 0.16, roh: 0.2, cowl: 0.33, aTop: 0.48, re: 0.81, tt: 0.9, belt: 0.49, hood: 0.45, nose: 0.55, rear: "sloped" },
   // Toyota Prius+: kompakter One-Box-Van, lange flache Motorhaube, weit nach vorn gezogene
   // Windschutzscheibe, hohes aufrechtes Heck (Monocab) – als Van klar erkennbar.
   "prius-plus": { foh: 0.16, roh: 0.14, cowl: 0.24, aTop: 0.39, re: 0.85, tt: 0.94, hood: 0.42, nose: 0.52, belt: 0.45, roof: 0.05, rear: "vertical" },
@@ -1353,8 +1424,7 @@ const REF = [
   { id: "ref-id3", short: "VW ID.3 (2020–)", l: 4.26, h: 1.56, t: "evhatch", boot: 385, bootMax: 1267, color: "#8AA0A1" },
   { id: "ref-aurishb", short: "Toyota Auris Hatchback (2013)", l: 4.28, h: 1.46, t: "hatch", boot: 360, bootMax: 1200, color: "#8AA0A1" },
   { id: "ref-verso", short: "Toyota Verso (2013–18)", l: 4.46, h: 1.62, t: "mpv", boot: 178, bootMax: 1740, color: "#8AA0A1" },
-  { id: "ref-aurists", short: "Toyota Auris TS (2013)", l: 4.57, h: 1.47, t: "wagon", boot: 530, bootMax: 1658, color: "#8AA0A1" },
-  { id: "ref-corollats", short: "Toyota Corolla TS (2019–)", l: 4.65, h: 1.46, t: "wagon", boot: 596, bootMax: 1604, color: "#7FD4B0" }
+  { id: "ref-aurists", short: "Toyota Auris TS (2013)", l: 4.57, h: 1.47, t: "wagon", boot: 530, bootMax: 1658, color: "#8AA0A1" }
 ];
 function shade(hex, amt) {
   const n = parseInt(hex.slice(1), 16);

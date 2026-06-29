@@ -37,6 +37,20 @@ const VEH = [
     fit: "Zuverlässigkeit & Unterhalt top, Außenparker unkritisch. Schwäche genau bei deinem AB-Wunsch: eCVT-Dröhnen bei zügigem Tempo.",
   },
   {
+    id: "corolla-hyb", name: "Toyota Corolla TS 1.8 Hybrid (E210)", short: "Corolla Hybrid",
+    body: "Kombi (Touring Sports)", motor: "1.8 VVT-i Hybrid · 122 PS · eCVT", color: "#46D6A6",
+    priceNew: 30500, priceNow: 16500,
+    tax: 50, service: 330, insBase: 2480, real: 4.6, fuel: "Super", fuelP: 1.72,
+    cons: { Stadt: 4.0, "120": 5.2, "140": 6.3, "160": 7.7, "175": 9.0 },
+    boot: 581, bootMax: 1591, sleep: 3, quiet: 3.5, rel: 5,
+    outdoor: "Unkritisch. Wie beim Auris nur die 12-V-Stützbatterie bei Standzeit + Kurzstrecke im Blick behalten – Erhaltungslader empfohlen.",
+    faults: ["TNGA-Plattform: nochmal steifer & leiser gedämmt als der Auris – das eCVT-Dröhnen bei Volllast bleibt, stört im Alltag aber weniger",
+      "Praktisch keine Antriebsschäden; HV-System taxierprobt – Toyota-Relax-Garantie bis 15 J / 250.000 km bei jährlichem Hybrid-Check",
+      "12-V-Stützbatterie bleibt das Wenigfahrer-Thema (im Kofferraum); altbackenes Infotainment (Toyota Touch 2) bei frühen Baujahren"],
+    forum: "Der direkte Auris-TS-Nachfolger auf der TNGA-Plattform: spürbar leiser, satteres Fahrwerk, in der Praxis 4,0–4,8 L. Foren loben Verarbeitung & Ruhe, kritisieren das träge Infotainment früher Baujahre und – wie gehabt – das eCVT-Dröhnen bei Vollgas.",
+    fit: "Das modernste, leiseste Hybrid hier und der logische Auris-Nachfolger – nur liegt ein guter E210 mit ~16–19 k über deinem 14-k-Budget. Wer den Rahmen streckt, bekommt Toyota-Zuverlässigkeit plus mehr Autobahn-Ruhe als beim Auris.",
+  },
+  {
     id: "auris-12t", name: "Toyota Auris TS 1.2 Turbo", short: "Auris 1.2T",
     body: "Kombi", motor: "1.2 Turbo (8NR-FTS) · 116 PS · Schalt/Multidrive", color: "#7FD4B0",
     priceNew: 22500, priceNow: 11000,
@@ -167,6 +181,7 @@ const VEH = [
 // ---------- Laderaum-/Schlafmaße (Praxis-Richtwerte) ----------
 const DIMS = {
   "auris-hyb": { len: "≈1,55 m", h: "≈0,72 m", note: "Solide, aber Boden mit Stufe und am kürzeren Ende. Zum Schlafen eher eine Person diagonal + Auflage." },
+  "corolla-hyb": { len: "≈1,60 m", h: "≈0,72 m", note: "Etwas länger & ebener als der Auris (größter Kofferraum der Toyota-Kombis hier), aber weiter Reststufe. Schlafen für eine Person diagonal + Auflage." },
   "auris-12t": { len: "≈1,55 m", h: "≈0,72 m", note: "Wie Hybrid: Stufe im Boden, kürzeres Ende. Diagonal liegen + Auflage." },
   "prius-plus": { len: "≈1,80 m", h: "≈0,78 m", note: "Langer, weitgehend ebener Ladeboden bei umgeklappten Sitzen (bis 1.750 L). Als 5-Sitzer gut gestreckt zum Schlafen; der eigentliche Trumpf sind aber die 7 Einzelsitze." },
   "octavia": { len: "≈1,95 m", h: "≈0,75 m", note: "Längster + größter. Mit Doppelboden fast plan – der Einzige, in dem man fast gestreckt liegt (Beifahrersitz vor: >2,1 m)." },
@@ -183,6 +198,7 @@ const SPEEDS = ["Stadt", "120", "140", "160", "175"];
 // ---------- echte Außenmaße (m) + Karosserietyp für maßstabsgetreue Silhouetten ----------
 const SIZE = {
   "auris-hyb": { l: 4.57, h: 1.47, t: "wagon" },
+  "corolla-hyb": { l: 4.65, h: 1.46, t: "wagon" },
   "auris-12t": { l: 4.57, h: 1.47, t: "wagon" },
   "prius-plus": { l: 4.62, h: 1.58, t: "mpv" },
   "octavia": { l: 4.66, h: 1.47, t: "wagon" },
@@ -421,6 +437,35 @@ const WINTER = [
       "Thermostat/Warmlauf prüfen: wird er nicht warm = Thermostat hängt (mehr Verschleiß + schlechte Heizung).",
       "Zündspulen-/Kerzen-Historie checken; bei Kalt-Ruckeln zuerst dort suchen.",
     ],
+  },
+];
+
+// ---------- Corolla HEV in München: Nutzungsprofil ----------
+const MUC = [
+  {
+    icon: "🟢", title: "Umweltzone & grüne Plakette",
+    body: "München fährt mit Umweltzone (grüne Plakette) und auf dem Mittleren Ring mit Diesel-Fahrverboten für Euro-4/5. Der Vollhybrid bekommt die grüne Plakette automatisch und ist von allen bisherigen wie geplanten Verschärfungen ausgenommen – das langfristig sorgloseste Antriebskonzept in einer Großstadt, ganz ohne Diesel-Restwert-Risiko.",
+    tag: "Vorteil", color: C.eco,
+  },
+  {
+    icon: "🚦", title: "Stadtverkehr & Stop-and-go",
+    body: "Genau die Disziplin des Hybrids: Im dichten Verkehr (Mittlerer Ring, Innenstadt, Ampelpulks) kriecht der Corolla rein elektrisch, rekuperiert beim Bremsen und liegt real bei ~4,0 L. Die Bremsen halten dank Rekuperation oft über 100.000 km – im zähen Münchner Berufsverkehr der größte Spar- und Verschleißvorteil gegenüber Turbo/Diesel.",
+    tag: "Stärke", color: C.eco,
+  },
+  {
+    icon: "🅿️", title: "Parken als Außenparker",
+    body: "Mit 4,65 m ist der TS ein vollwertiger Kombi – in engen Altbaustraßen (Schwabing, Haidhausen, Glockenbach) handlich genug, aber kein Kleinwagen. Klares Plus gegenüber einem E-Auto: Als Self-Charging-Hybrid brauchst du keine Wallbox und keinen Laternenparker-Ladeplatz. Anwohnerparkausweis (~30 €/Jahr) lohnt; auf Streusalz-Korrosion an Bremsscheiben achten.",
+    tag: "Praxis", color: C.amber,
+  },
+  {
+    icon: "🏔️", title: "Pendeln & Ausflüge ins Umland",
+    body: "A8/A9/A99/A96, Flughafen (MUC/Erding) und die Seen/Berge (Tegernsee, Garmisch) liegen vor der Tür. Auf der TNGA-Plattform ist der Corolla spürbar leiser & satter als der Auris; bei konstanten 120–130 km/h ~5,5 L. Wermutstropfen bleibt das eCVT-Dröhnen bei Volllast – auf langen Steigungen (z. B. Richtung Alpen) hörbar, im Alltag selten.",
+    tag: "Langstrecke", color: "#6FB1FC",
+  },
+  {
+    icon: "❄️", title: "Winter & Kurzstrecke",
+    body: "Münchner Winter + viele Kurzstrecken sind der einzige Schwachpunkt: Die Kabine heizt über Motorabwärme, kalt läuft der Benziner öfter, der EV-Anteil (und damit der Spar-Vorteil) sinkt. Sitzheizung statt voll aufgedrehter Klima nutzen und die 12-V-Stützbatterie bei langer Standzeit per Erhaltungslader pflegen – sonst springt das System nicht in „READY“.",
+    tag: "Achtung", color: C.amber,
   },
 ];
 
@@ -966,7 +1011,7 @@ function TaxiSection({ onPick }) {
 }
 
 export default function App() {
-  const [sel, setSel] = useState(() => new Set(["auris-hyb"]));
+  const [sel, setSel] = useState(() => new Set(["auris-hyb", "corolla-hyb"]));
   const [w, setW] = useState(() => Object.fromEntries(PRIO.map((p) => [p.key, p.def])));
   const [openId, setOpenId] = useState("auris-hyb");
   const [checked, setChecked] = useState(() => new Set());
@@ -1326,7 +1371,7 @@ export default function App() {
         <div style={{ fontSize: 11.5, color: C.faint, marginBottom: 24, lineHeight: 1.55 }}>
           <span style={{ color: C.eco }}>■</span> Kofferraum normal &nbsp;·&nbsp;
           <span style={{ color: "#5B8FF9" }}>▢</span> umgeklappt (Quadratfläche ∝ Volumen).
-          Oben deine Kandidaten (farbig), darunter die <b style={{ color: C.dim }}>grauen Referenzfahrzeuge</b> aus deinem Bild – der <span style={{ color: "#7FD4B0" }}>Corolla TS</span> ist farbig, weil er der direkte Auris-TS-Nachfolger und ein echter Kaufkandidat ist.
+          Oben deine Kandidaten (farbig) – inklusive dem <span style={{ color: "#46D6A6" }}>Corolla TS Hybrid</span>, dem direkten Auris-TS-Nachfolger –, darunter die <b style={{ color: C.dim }}>grauen Referenzfahrzeuge</b> aus deinem Bild.
           Silhouetten auf die <b style={{ color: C.dim }}>echten Längen & Höhen</b> skaliert (gleicher Maßstab, Karosserietyp, Überhänge & Radstand modelliert); nach rechts wischen für die längeren Fahrzeuge.
           Bewusst Vektor-Silhouetten statt Fotos: herstellereigene Bilder sind urheberrechtlich geschützt und würden im Tool nicht zuverlässig laden – dafür sind diese exakt proportional.
         </div>
@@ -1378,6 +1423,32 @@ export default function App() {
               </div>
             );
           })}
+        </div>
+
+        {/* ---------- CHAPTER: COROLLA HEV IN MÜNCHEN ---------- */}
+        <div className="panel" style={{ padding: 18, marginBottom: 24, borderLeft: `3px solid #46D6A6` }}>
+          <div className="eyebrow" style={{ marginBottom: 4 }}>Kapitel · Corolla Hybrid im Alltag</div>
+          <h2 style={{ marginBottom: 6 }}>Der Corolla HEV in München (MUC)</h2>
+          <p style={{ fontSize: 12.5, color: C.dim, lineHeight: 1.6, margin: "0 0 14px" }}>
+            Wie schlägt sich der Toyota Corolla TS 1.8 Hybrid in einer Großstadt wie München – Umweltzone,
+            Stop-and-go auf dem Mittleren Ring, Außenparken, Pendeln ins Umland und der Münchner Winter?
+            Kurz: Genau das Umfeld, für das ein Vollhybrid gemacht ist.
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }} className="grid2">
+            {MUC.map((m, i) => (
+              <div key={i} className="panel" style={{ padding: 14, borderLeft: `3px solid ${m.color}` }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, marginBottom: 7 }}>
+                  <span style={{ fontSize: 13.5, fontWeight: 700, color: C.ink }}>{m.icon} {m.title}</span>
+                  <span style={{ fontSize: 10, color: m.color, border: `1px solid ${m.color}66`, borderRadius: 6, padding: "1px 6px", whiteSpace: "nowrap" }}>{m.tag}</span>
+                </div>
+                <div style={{ fontSize: 12, color: C.dim, lineHeight: 1.55 }}>{m.body}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ fontSize: 11.5, color: C.faint, lineHeight: 1.55, marginTop: 12 }}>
+            <b style={{ color: C.dim }}>Fazit für MUC:</b> In der Stadt nahezu konkurrenzlos sparsam und sorglos (grüne Plakette, keine Ladeinfrastruktur nötig),
+            auf der Autobahn leiser als der Auris. Einzige reale Schwäche bleibt der Kurzstrecken-Winterbetrieb – mit Erhaltungslader & Sitzheizung gut beherrschbar.
+          </div>
         </div>
 
         {/* ---------- MODELL-CHECK: KONKRETES AURIS-HYBRID-INSERAT ---------- */}
@@ -1713,6 +1784,8 @@ const PROFILE = {
   // Toyota Auris/Corolla TS: kompakter Kombi, leicht gerakte Scheibe, kurzer Hintern.
   "auris-hyb": { foh: .17, roh: .19, cowl: .31, aTop: .46, re: .82, tt: .91, belt: .47 },
   "auris-12t": { foh: .17, roh: .19, cowl: .31, aTop: .46, re: .82, tt: .91, belt: .47 },
+  // Toyota Corolla TS (E210): flacher & länger als der Auris, stärker gerakte Scheibe, coupéhaftes Heck.
+  "corolla-hyb": { foh: .16, roh: .20, cowl: .33, aTop: .48, re: .81, tt: .90, belt: .49, hood: .45, nose: .55, rear: "sloped" },
   // Toyota Prius+: kompakter One-Box-Van, lange flache Motorhaube, weit nach vorn gezogene
   // Windschutzscheibe, hohes aufrechtes Heck (Monocab) – als Van klar erkennbar.
   "prius-plus": { foh: .16, roh: .14, cowl: .24, aTop: .39, re: .85, tt: .94, hood: .42, nose: .52, belt: .45, roof: .05, rear: "vertical" },
@@ -1742,7 +1815,6 @@ const REF = [
   { id: "ref-aurishb", short: "Toyota Auris Hatchback (2013)", l: 4.28, h: 1.46, t: "hatch", boot: 360, bootMax: 1200, color: "#8AA0A1" },
   { id: "ref-verso", short: "Toyota Verso (2013–18)", l: 4.46, h: 1.62, t: "mpv", boot: 178, bootMax: 1740, color: "#8AA0A1" },
   { id: "ref-aurists", short: "Toyota Auris TS (2013)", l: 4.57, h: 1.47, t: "wagon", boot: 530, bootMax: 1658, color: "#8AA0A1" },
-  { id: "ref-corollats", short: "Toyota Corolla TS (2019–)", l: 4.65, h: 1.46, t: "wagon", boot: 596, bootMax: 1604, color: "#7FD4B0" },
 ];
 
 // Farbe aufhellen/abdunkeln

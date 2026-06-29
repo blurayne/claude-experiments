@@ -46,6 +46,10 @@ hilft, sie entlang eines realen Nutzungsprofils zu vergleichen:
   „Im Vergleich"-Karten sind anklickbar und schalten das Fahrzeug zu.
 - **Klartext-Notizen** je Fahrzeug: typische Schwachstellen, Forenstimmung,
   Außenparker-Tauglichkeit und „passt-zu-dir"-Einschätzung.
+- **Kapitel „Corolla HEV in München (MUC)":** wie sich der neu aufgenommene
+  Toyota Corolla TS 1.8 Hybrid (E210) im Großstadt-Alltag schlägt — Umweltzone &
+  grüne Plakette, Stop-and-go auf dem Mittleren Ring, Außenparken,
+  Pendeln/Ausflüge ins Umland und der Münchner Winter.
 
 Alle €-Werte sind Marktrichtwerte (Stand Juni 2026, mobile.de / AutoScout24 /
 ADAC). Sprit: Super E10 1,72 €/L, Diesel 1,65 €/L.
