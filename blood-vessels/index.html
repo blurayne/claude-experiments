@@ -138,6 +138,7 @@
     <span class="chip" data-m="sss" title="Subsurface-scattering blood: thickness glow + Fresnel">Subsurface</span>
     <span class="chip" data-m="toon" title="Cel shading: quantized bands + outline">Toon</span>
     <span class="chip" data-m="xray" title="Additive angiograph / x-ray glow">X-ray</span>
+    <span class="chip" data-m="outline" title="Contour filter: spline-smoothed vessel outlines only — drawn on Canvas 2D, works on any backend">Outline</span>
   </div>
 
   <div class="eyebrow">Tree shape <span style="text-transform:none;letter-spacing:0">(rebuilds bed)</span></div>
@@ -215,7 +216,7 @@ const glcv = document.getElementById('g');
 const gpucv = document.getElementById('gpu');
 let DPR = Math.min(window.devicePixelRatio||1, 2);
 let VW=0, VH=0; // viewport in CSS px
-let shadeMode='phong';    // 'phong' | 'sss' | 'toon' | 'xray'  (GPU backends)
+let shadeMode='phong';    // 'phong' | 'sss' | 'toon' | 'xray' (GPU backends) | 'outline' (Canvas 2D contour filter)
 const MODE_UNIFORM={phong:1,sss:2,toon:3,xray:4};
 let genPreset='spacecol'; // 'spacecol' | 'recursive' | 'dla' | 'cco'
 let curSeed=20260625;
@@ -719,6 +720,13 @@ const show={wall:true,tissue:true,cells:true,labels:false};
 
 function drawStatic(){
   bgx.setTransform(DPR,0,0,DPR,0,0);
+  if(shadeMode==='outline'){          // contour filter: clean line-art on a flat backdrop
+    bgx.fillStyle='#0a0406'; bgx.fillRect(0,0,VW,VH);
+    if(show.tissue) drawTissueOutline();
+    drawVesselsOutline();
+    if(show.labels) drawLabels();
+    staticDirty=false; return;
+  }
   // deep tissue base
   const bgrad=bgx.createRadialGradient(VW/2,VH*0.42,Math.min(VW,VH)*0.1, VW/2,VH/2,Math.max(VW,VH)*0.78);
   bgrad.addColorStop(0,'#341019'); bgrad.addColorStop(0.55,'#22090f'); bgrad.addColorStop(1,'#120407');
@@ -784,6 +792,125 @@ function drawVessels(){
   }
 }
 
+// ============================================================================
+//  OUTLINE FILTER  —  spline-smoothed vessel contours (Canvas 2D, any backend)
+//  Vessels are reconstructed into connected polylines, smoothed with a
+//  Catmull-Rom spline, then rendered as outlines via a fill→erode mask so the
+//  whole network silhouette (incl. junctions) keeps a clean, gap-free contour.
+// ============================================================================
+let _maskC=null,_maskX=null;
+function maskCtx(){
+  if(!_maskC){ _maskC=document.createElement('canvas'); _maskX=_maskC.getContext('2d'); }
+  if(_maskC.width!==bg.width||_maskC.height!==bg.height){ _maskC.width=bg.width; _maskC.height=bg.height; }
+  return _maskX;
+}
+// Catmull-Rom densify a node polyline (carrying per-node radius) into a smooth curve
+function densifyPoly(pts){
+  if(pts.length<3) return pts.slice();
+  const out=[], SEG=6;
+  for(let i=0;i<pts.length-1;i++){
+    const p0=pts[i-1]||pts[i], p1=pts[i], p2=pts[i+1], p3=pts[i+2]||pts[i+1];
+    for(let s=0;s<SEG;s++){
+      const t=s/SEG, t2=t*t, t3=t2*t;
+      out.push({
+        x:0.5*(2*p1.x+(-p0.x+p2.x)*t+(2*p0.x-5*p1.x+4*p2.x-p3.x)*t2+(-p0.x+3*p1.x-3*p2.x+p3.x)*t3),
+        y:0.5*(2*p1.y+(-p0.y+p2.y)*t+(2*p0.y-5*p1.y+4*p2.y-p3.y)*t2+(-p0.y+3*p1.y-3*p2.y+p3.y)*t3),
+        r:p1.r+(p2.r-p1.r)*t });
+    }
+  }
+  out.push(pts[pts.length-1]);
+  return out;
+}
+// Reconstruct vessel polylines from the flat edge list (split at branch points
+// & leaves), smooth each one. Cached on NET (a fresh bed gets a fresh NET).
+function outlinePolys(){
+  if(NET._polys) return NET._polys;
+  const E=NET.edges, deg=new Map(), adj=new Map();
+  for(const e of E){
+    deg.set(e.a.id,(deg.get(e.a.id)||0)+1); deg.set(e.b.id,(deg.get(e.b.id)||0)+1);
+    (adj.get(e.a.id)||adj.set(e.a.id,[]).get(e.a.id)).push({e,n:e.b});
+    (adj.get(e.b.id)||adj.set(e.b.id,[]).get(e.b.id)).push({e,n:e.a});
+  }
+  const used=new Set(), polys=[], R=(n)=>n.radius||1;
+  function walk(start,first){
+    const pts=[{x:start.x,y:start.y,r:R(start)}], cnt={};
+    let e=first.e, nx=first.n;
+    while(true){
+      used.add(e); cnt[e.type]=(cnt[e.type]||0)+1;
+      pts.push({x:nx.x,y:nx.y,r:R(nx)});
+      if((deg.get(nx.id)||0)!==2) break;
+      const nb=(adj.get(nx.id)||[]).find(o=>o.e!==e && !used.has(o.e));
+      if(!nb) break;
+      e=nb.e; nx=nb.n;
+    }
+    let tt='art',b=-1; for(const k in cnt){ if(cnt[k]>b){b=cnt[k];tt=k;} }
+    if(pts.length>=2) polys.push({type:tt,d:densifyPoly(pts)});
+  }
+  // start every chain at a leaf/branch (degree≠2) so chains come out whole…
+  for(const n of NET.nodes){ if((deg.get(n.id)||0)===2) continue;
+    for(const o of (adj.get(n.id)||[])) if(!used.has(o.e)) walk(n,o); }
+  // …any leftover edges are pure loops — start anywhere on them
+  for(const e of E){ if(!used.has(e)) walk(e.a,{e,n:e.b}); }
+  NET._polys=polys; return polys;
+}
+function paintGroupOutline(g,polys,type,S,shrink){
+  const vx0=-30,vy0=-30,vx1=VW+30,vy1=VH+30;
+  for(const p of polys){
+    if(p.type!==type) continue;
+    const d=p.d;
+    for(let i=0;i<d.length-1;i++){
+      const a=d[i], b=d[i+1];
+      const w=(a.r+b.r)*S*appear.calibre-shrink;
+      if(w<=0.15) continue;
+      const ax=sx(a.x),ay=sy(a.y),bx=sx(b.x),by=sy(b.y), pad=w+4;
+      if(Math.max(ax,bx)+pad<vx0||Math.min(ax,bx)-pad>vx1||
+         Math.max(ay,by)+pad<vy0||Math.min(ay,by)-pad>vy1) continue;
+      g.lineWidth=w; g.beginPath(); g.moveTo(ax,ay); g.lineTo(bx,by); g.stroke();
+    }
+  }
+}
+function drawVesselsOutline(){
+  const S=cam.scale, INK=1.5, polys=outlinePolys(), mx=maskCtx();
+  // venous behind, capillaries, arterial on top
+  const groups=[{type:'ven',ink:[150,120,255]},{type:'cap',ink:[255,150,162]},{type:'art',ink:[255,92,98]}];
+  for(const grp of groups){
+    mx.setTransform(1,0,0,1,0,0); mx.clearRect(0,0,_maskC.width,_maskC.height);
+    mx.setTransform(DPR,0,0,DPR,0,0);
+    mx.lineCap='round'; mx.lineJoin='round'; mx.strokeStyle='#fff';
+    mx.globalCompositeOperation='source-over';  paintGroupOutline(mx,polys,grp.type,S,0);       // full silhouette
+    mx.globalCompositeOperation='destination-out'; paintGroupOutline(mx,polys,grp.type,S,2*INK); // erode interior → ring
+    mx.globalCompositeOperation='source-in';    mx.setTransform(1,0,0,1,0,0);                    // tint the ring
+    mx.fillStyle=rgb(grp.ink); mx.fillRect(0,0,_maskC.width,_maskC.height);
+    mx.globalCompositeOperation='source-over';
+    bgx.save(); bgx.setTransform(1,0,0,1,0,0); bgx.globalAlpha=0.96; bgx.drawImage(_maskC,0,0); bgx.restore();
+  }
+}
+// faint tissue cell contours, for context (only the larger cells)
+function drawTissueOutline(){
+  const S=cam.scale, x0=wX(-40),y0=wY(-40),x1=wX(VW+40),y1=wY(VH+40);
+  bgx.lineWidth=1; bgx.strokeStyle='rgba(150,90,110,0.16)';
+  for(const c of TISSUE){
+    if(c.x<x0||c.x>x1||c.y<y0||c.y>y1) continue;
+    const pr=c.r*S; if(pr<4) continue;
+    bgx.beginPath(); bgx.arc(sx(c.x),sy(c.y),pr,0,TAU); bgx.stroke();
+  }
+}
+// flowing cells as light outlines, to match the contour aesthetic
+function drawCellsOutline(){
+  const S=cam.scale, vx0=-40,vy0=-40,vx1=VW+40,vy1=VH+40, rbcScreen=RBC_R*2*S;
+  ctx.lineWidth=1.1; ctx.lineJoin='round';
+  for(const c of CELLS){
+    const px=sx(c.wx),py=sy(c.wy);
+    if(px<vx0||px>vx1||py<vy0||py>vy1) continue;
+    const w=c.kind==='rbc'?rbcScreen:c.kind==='wbc'?Math.max(rbcScreen*1.7,2):Math.max(rbcScreen*0.6,1.5);
+    if(w<2) continue;
+    ctx.strokeStyle=c.kind==='rbc'?'rgba(255,150,160,0.92)':c.kind==='wbc'?'rgba(235,226,234,0.92)':'rgba(255,200,150,0.85)';
+    ctx.save(); ctx.translate(px,py); ctx.rotate(c.ang); ctx.beginPath();
+    if(c.kind==='rbc') ctx.ellipse(0,0,w*0.5,w*0.42,0,0,TAU); else ctx.arc(0,0,w*0.5,0,TAU);
+    ctx.stroke(); ctx.restore();
+  }
+}
+
 function drawLabels(){
   bgx.font='600 13px Inter, sans-serif'; bgx.textAlign='left';
   for(const l of NET.landmarks){
@@ -821,7 +948,7 @@ function frame(now){
     if(staticDirty) drawStatic();
     ctx.setTransform(DPR,0,0,DPR,0,0);
     ctx.drawImage(bg,0,0,VW,VH);
-    if(show.cells) drawCellsCanvas();
+    if(show.cells){ if(shadeMode==='outline') drawCellsOutline(); else drawCellsCanvas(); }
   }else if(eff==='webgpu'){
     try{ gpuRender(MODE_UNIFORM[shadeMode]||1); }
     catch(err){ console.error('WebGPU render failed, falling back to WebGL2:',err); GPU=null; applyBackend(); }
@@ -1312,6 +1439,7 @@ function glRender(pulse){
 
 // resolve requested backend against what's actually available
 function effectiveBackend(){
+  if(shadeMode==='outline') return 'canvas2d'; // contour filter is a 2D pass; overrides the backend
   if(backend==='webgpu') return (GPU&&GPU.ready)?'webgpu':(GL?'webgl2':'canvas2d');
   if(backend==='webgl2') return GL?'webgl2':'canvas2d';
   return 'canvas2d';

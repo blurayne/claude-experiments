@@ -172,6 +172,27 @@ Vessels are drawn with **additive blending** on a near-black field, brightest
 along the lumen core — mimicking a contrast **angiogram**. The procedural tissue
 is suppressed so only the vasculature glows.
 
+### 3f-ii. Outline — spline-smoothed contour filter
+
+A line-art mode that draws **only the vessel outlines**. It runs on the Canvas 2D
+layer (so it overrides whatever backend is selected and works everywhere) in three
+steps:
+
+1. **Polyline reconstruction.** The flat list of straight sub-segment edges is
+   walked into connected **polylines**, splitting wherever a node's degree ≠ 2
+   (i.e. at leaves and bifurcations). Each chain carries its per-node radius and a
+   dominant vessel type (artery / capillary / vein).
+2. **Catmull–Rom smoothing.** Every chain is resampled with a centripetal-style
+   **Catmull–Rom spline** (6 samples per span), interpolating the radius along the
+   way, so the angular sub-segments become smooth curves.
+3. **Fill→erode contour mask.** Per vessel class, the smoothed tubes are stroked
+   at full (tapered) width into an offscreen mask, then the same tubes are stroked
+   again with `destination-out` at a slightly smaller width. What survives is a
+   thin **ring** — the outline of the *union* of all vessels, so junctions merge
+   into a single gap-free contour with no internal seams. The ring is tinted by
+   type (`source-in`) and composited back. Flowing cells are drawn as matching
+   light outlines.
+
 ### 3g. Procedural tissue (WebGL background)
 
 The tissue behind the vessels is a **domain-warped fBm noise** field (5-octave

@@ -28,6 +28,11 @@ rendered on an HTML canvas with switchable shading algorithms.
 - **Switchable shading** (GPU backends): **Lit tubes** (Blinn–Phong),
   **Subsurface** (thickness glow + Fresnel), **Toon** (cel + outline), **X-ray**
   (additive angiograph).
+- **Outline filter** — a contour mode that draws *only* the vessel outlines as
+  clean line art. The vessels are reconstructed into connected polylines,
+  smoothed with a **Catmull–Rom spline**, then rendered through a fill→erode
+  mask so the whole network silhouette (including junctions) keeps a gap-free
+  contour. Runs on Canvas 2D, so it works on **any** backend.
 - **Tweak sliders** — tree shape (branching density, vessel length, curviness,
   Murray taper) and appearance (calibre, wall thickness, gloss).
 - **Zoom & pan** — scroll / pinch / buttons / double-click to zoom, drag to pan,
