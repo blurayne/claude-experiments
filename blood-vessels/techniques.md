@@ -65,6 +65,20 @@ Whatever grows the skeleton, segment **radii** are assigned bottom-up with
 radii (`r_parent³ = Σ r_child³`). Trunks thicken toward the root exactly as real
 arteries do, and capillaries end at roughly one red-cell width.
 
+### 1c-ii. Spline segments (Catmull–Rom resample)
+
+The raw skeletons that come out of the growth algorithms are chains of short
+straight segments — organic in aggregate, but faceted up close, and unevenly
+sampled (space-colonisation over-tessellates, recursive limbs under-sample).
+Before radii are assigned, each **chain** (a maximal run of degree-2 nodes
+between branch points and leaves) is re-fitted with a **Catmull–Rom spline** and
+resampled at an even world-space spacing, keeping the branch points and leaves
+fixed so the tree contract — radii, capillary bridging and the flow graph — is
+untouched. The payoff is two-for-one: vessels read as smooth natural curves, and
+the resample *normalises the segment count* — dense beds shed redundant segments
+(fewer capsule impostors to draw) while sparse limbs gain enough to curve nicely.
+Smoothness and speed from the same pass.
+
 ### 1d. The capillary transition (arteriole → capillary → venule)
 
 Real microcirculation is *arteriole → true capillary → venule*; blood doesn't
@@ -114,13 +128,28 @@ Rendering is split into a **Backend** switch and a **Shading** switch:
 
 - **Backend** — *Canvas 2D*, *WebGL2*, or *WebGPU*. Canvas 2D is the analytic
   fallback that works everywhere; WebGL2 and WebGPU draw the same SDF capsule
-  impostors (GLSL vs WGSL) and share the four lighting models below. WebGPU
+  impostors (GLSL vs WGSL) and share the shading models below. WebGPU
   requires a WebGPU-capable browser; if unavailable the app falls back to WebGL2
   automatically.
-- **Shading** (GPU backends) — *Lit tubes* (Blinn–Phong), *Subsurface*, *Toon* or
-  *X-ray*.
+- **Shading** (GPU backends) — *Cutaway* (default), *Lit tubes* (Blinn–Phong),
+  *Subsurface*, *Toon* or *X-ray*.
 
 Research starting points are linked below.
+
+### 3a-0. Cutaway — the vessel sliced open (default)
+
+The default look, built for a game where cells, bacteria and viruses swim through
+the vessels: each tube is rendered as if **cut open lengthwise**, so you read the
+cross-section directly. Off the same SDF capsule normal, the shader splits the
+cross-section into an **endothelial wall band** near the silhouette (warm, lighter
+at the inner lining, darker toward a crisp dark "cut edge") and a **concave
+lumen** inside — bright down the centre and shading into the walls, which reads as
+looking down into an open half-pipe. Blood colour still follows the oxygenation
+parameter, and the flowing cells are drawn on top, single-file in the capillaries.
+On **Canvas 2D** the same look is faked in **layered passes** over the whole
+visible set (cut outline → wall → lumen → concave core → sheen) rather than
+segment-by-segment, so overlapping round line-caps never carve rings into their
+neighbours and the tubes stay clean and continuous.
 
 ### 3a. Stylized — Canvas 2D analytic tubes
 
@@ -142,7 +171,8 @@ per-pixel — is the standard way to draw lit tubes/spheres without dense geomet
 [hg_sdf distance-function library](https://mercury.sexy/hg_sdf/),
 [The Book of Shaders — Shapes](https://thebookofshaders.com/07/).
 
-On top of that SDF normal, four lighting models are selectable:
+On top of that SDF normal, several shading models are selectable (the *Cutaway*
+default is described in §3a-0):
 
 ### 3c. Lit tubes — Blinn–Phong
 
@@ -197,14 +227,17 @@ steps:
 
 The tissue behind the vessels is a **domain-warped fBm noise** field (5-octave
 value noise, warped by another noise lookup) with faint thresholded "nuclei",
-evaluated per-pixel in world space so it pans and zooms with the camera.
+fine capillary-bed mottling and a soft **depth vignette**, evaluated per-pixel in
+world space so it pans and zooms with the camera.
 
 ### 3h. Blood-cell impostors
 
 Cells are instanced quads too; the fragment shader draws a **biconcave disc**
 (bright torus + dim central dimple + dark rim + a specular glint) for red cells,
-a pale lobed body for leukocytes, and a small fragment for platelets, all tinted
-by the carried oxygenation value (and made to glow in X-ray mode).
+a pale lobed body for leukocytes, and a small fragment for platelets — plus, for
+the game framing, a **teal rod** (a capsule SDF) for bacteria and a **spiky
+yellow capsid** (a wavy radius + dark core) for viruses. All are tinted by the
+carried oxygenation value where relevant (and made to glow in X-ray mode).
 
 ---
 
@@ -236,7 +269,12 @@ Plus **Flow** (heart rate, flow speed, cell density) and **Show** toggles
   are culled.
 - **Instancing** — one draw call each for all vessels and all cells in WebGL;
   the vessel instance buffer is uploaded once per generated bed, the cell buffer
-  is streamed each frame.
+  is streamed only when the visible set changes.
+- **Spline resample** — normalising the segment count (see §1c-ii) is also a
+  performance lever: fewer capsule impostors for the same visual density.
+- **Idle skip** — when the simulation is **paused**, the loop skips the cell
+  update entirely, the GPU paths reuse the last streamed cell buffer, and the
+  Canvas 2D path stops repainting until the view changes.
 - **Static caching** in the Canvas 2D path so only moving cells repaint at 60 fps.
 
 ---

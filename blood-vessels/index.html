@@ -134,7 +134,8 @@
 
   <div class="eyebrow">Shading <span style="text-transform:none;letter-spacing:0">(GPU backends)</span></div>
   <div class="toggles" id="modes">
-    <span class="chip on" data-m="phong" title="Blinn–Phong lit cylinders">Lit tubes</span>
+    <span class="chip on" data-m="cutaway" title="Cross-section: vessels sliced open lengthwise — walls, lumen and flow, game-ready">Cutaway ✂</span>
+    <span class="chip" data-m="phong" title="Blinn–Phong lit cylinders">Lit tubes</span>
     <span class="chip" data-m="sss" title="Subsurface-scattering blood: thickness glow + Fresnel">Subsurface</span>
     <span class="chip" data-m="toon" title="Cel shading: quantized bands + outline">Toon</span>
     <span class="chip" data-m="xray" title="Additive angiograph / x-ray glow">X-ray</span>
@@ -216,8 +217,8 @@ const glcv = document.getElementById('g');
 const gpucv = document.getElementById('gpu');
 let DPR = Math.min(window.devicePixelRatio||1, 2);
 let VW=0, VH=0; // viewport in CSS px
-let shadeMode='phong';    // 'phong' | 'sss' | 'toon' | 'xray' (GPU backends) | 'outline' (Canvas 2D contour filter)
-const MODE_UNIFORM={phong:1,sss:2,toon:3,xray:4};
+let shadeMode='cutaway';  // 'cutaway' | 'phong' | 'sss' | 'toon' | 'xray' (GPU backends) | 'outline' (Canvas 2D contour filter)
+const MODE_UNIFORM={phong:1,sss:2,toon:3,xray:4,cutaway:5};
 let genPreset='spacecol'; // 'spacecol' | 'recursive' | 'dla' | 'cco'
 let curSeed=20260625;
 let backend='webgl2';     // 'canvas2d' | 'webgl2' | 'webgpu'
@@ -233,6 +234,7 @@ const CAP_R   = 3.2;   // true-capillary radius (µm) — ~ one red cell wide
 const ART_TIP = 4.6;   // arteriolar tip radius
 const VEN_TIP = 5.4;   // venular tip radius (veins run a touch wider)
 const RBC_R   = 3.7;   // red-cell radius (µm)
+const VESS_SPACING = 30; // spline resample spacing (µm) — smooths + evens out segments
 
 // ---- small utils ------------------------------------------------------------
 const TAU = Math.PI*2;
@@ -418,6 +420,64 @@ function assignRadii(root, tipR, exp){
   })(root);
 }
 
+// ---- SPLINE SEGMENTS --------------------------------------------------------
+// A single point on a Catmull-Rom segment (p1→p2, tangents from p0/p3).
+function catmull(p0,p1,p2,p3,t){
+  const t2=t*t, t3=t2*t;
+  return {
+    x:0.5*(2*p1.x+(-p0.x+p2.x)*t+(2*p0.x-5*p1.x+4*p2.x-p3.x)*t2+(-p0.x+3*p1.x-3*p2.x+p3.x)*t3),
+    y:0.5*(2*p1.y+(-p0.y+p2.y)*t+(2*p0.y-5*p1.y+4*p2.y-p3.y)*t2+(-p0.y+3*p1.y-3*p2.y+p3.y)*t3) };
+}
+// Fit a Catmull-Rom spline through a node polyline and resample it at ~`spacing`
+// world units (endpoints always kept). Returns an array of {x,y}.
+function resamplePolyline(chain, spacing){
+  const N=chain.length;
+  if(N<2) return chain.map(p=>({x:p.x,y:p.y}));
+  const dense=[]; const SUB=8;
+  for(let i=0;i<N-1;i++){
+    const p0=chain[i-1]||chain[i], p1=chain[i], p2=chain[i+1], p3=chain[i+2]||chain[i+1];
+    for(let s=0;s<SUB;s++) dense.push(catmull(p0,p1,p2,p3,s/SUB));
+  }
+  dense.push({x:chain[N-1].x,y:chain[N-1].y});
+  const out=[dense[0]]; let acc=0;
+  for(let i=1;i<dense.length;i++){
+    const d=Math.hypot(dense[i].x-dense[i-1].x, dense[i].y-dense[i-1].y);
+    acc+=d;
+    if(acc>=spacing && i<dense.length-1){ out.push(dense[i]); acc=0; }
+  }
+  const last=dense[dense.length-1], lp=out[out.length-1];
+  if(lp.x!==last.x||lp.y!==last.y) out.push(last);
+  return out;
+}
+// Replace every straight run of segments (a "chain" between branch/leaf anchors)
+// with an evenly-sampled Catmull-Rom spline. This makes vessels read as smooth
+// natural curves *and* evens out the segment count — heavy space-colonisation
+// beds get lighter, sparse recursive limbs get smoother. Preserves the tree
+// contract (branch points + leaves stay put) so radii / capillaries / flow are
+// all still valid.  Run BEFORE assignRadii.
+function resampleTree(root, spacing){
+  root.parent=null; root.depth=0;
+  const stack=[root];
+  while(stack.length){
+    const anchor=stack.pop();
+    const kids=anchor.children; anchor.children=[];
+    for(const child of kids){
+      const chain=[anchor, child]; let cur=child;
+      while(cur.children.length===1){ cur=cur.children[0]; chain.push(cur); }
+      const end=cur, endKids=end.children.slice();
+      const samp=resamplePolyline(chain, spacing);
+      let prev=anchor;
+      for(let i=1;i<samp.length-1;i++){
+        const nn={x:samp[i].x, y:samp[i].y, children:[], parent:prev, depth:prev.depth+1};
+        prev.children.push(nn); prev=nn;
+      }
+      end.parent=prev; end.depth=prev.depth+1; end.children=endKids;
+      prev.children.push(end);
+      stack.push(end);
+    }
+  }
+}
+
 // ============================================================================
 //  BUILD THE WHOLE NETWORK
 // ============================================================================
@@ -469,11 +529,13 @@ function buildNetwork(seed, preset){
   // ---- arterial tree (flows root -> leaves) ----
   const aRoot={x:-10,y:WORLD.h*0.40};
   grow(aRoot, voidsA, 0.12);
+  resampleTree(aRoot, VESS_SPACING/Math.sqrt(dens));  // spline-smooth the raw skeleton
   assignRadii(aRoot,ART_TIP,D.murray);
 
   // ---- venous tree (structurally root->leaves; blood flows leaves->root) ----
   const vRoot={x:-10,y:WORLD.h*0.60};
   grow(vRoot, voidsV, -0.10);
+  resampleTree(vRoot, VESS_SPACING/Math.sqrt(dens));
   assignRadii(vRoot,VEN_TIP,D.murray);
 
   // register nodes + structural edges
@@ -599,7 +661,7 @@ function buildTissue(seed){
 // ============================================================================
 //  CELL SPRITES  (pre-rendered for speed + quality)
 // ============================================================================
-let RBC_SPRITES=[], WBC_SPRITE=null, PLT_SPRITE=null;
+let RBC_SPRITES=[], WBC_SPRITE=null, PLT_SPRITE=null, BAC_SPRITE=null, VIR_SPRITE=null;
 const OXY_STEPS=7;
 function buildSprites(){
   RBC_SPRITES=[];
@@ -652,6 +714,35 @@ function buildSprites(){
     for(let a=0;a<TAU;a+=0.6){ const rr=R*(0.78+0.22*Math.random()); const x=Math.cos(a)*rr,y=Math.sin(a)*rr*0.8; a?g.lineTo(x,y):g.moveTo(x,y);} g.closePath(); g.fill();
     PLT_SPRITE=cnv;
   }
+  // bacterium — teal rod / capsule
+  {
+    const S=72, cnv=document.createElement('canvas'); cnv.width=cnv.height=S;
+    const g=cnv.getContext('2d'); g.translate(S/2,S/2); const R=S*0.40;
+    g.fillStyle='rgba(0,0,0,0.28)'; g.beginPath(); g.ellipse(R*0.1,R*0.14,R*1.05,R*0.5,0,0,TAU); g.fill();
+    const grd=g.createLinearGradient(0,-R*0.4,0,R*0.4);
+    grd.addColorStop(0,'#8fe0ad'); grd.addColorStop(0.5,'#3fa876'); grd.addColorStop(1,'#1c5340');
+    g.fillStyle=grd;
+    const rx=R*0.92, ry=R*0.4, k=ry;               // rounded capsule
+    g.beginPath();
+    g.moveTo(-rx+k,-ry); g.lineTo(rx-k,-ry); g.arc(rx-k,0,k,-Math.PI/2,Math.PI/2);
+    g.lineTo(-rx+k,ry); g.arc(-rx+k,0,k,Math.PI/2,-Math.PI/2); g.closePath(); g.fill();
+    g.fillStyle='rgba(255,255,255,0.28)'; g.beginPath(); g.ellipse(-R*0.2,-R*0.14,R*0.5,R*0.12,0,0,TAU); g.fill();
+    BAC_SPRITE=cnv;
+  }
+  // virus — spiky yellow capsid
+  {
+    const S=72, cnv=document.createElement('canvas'); cnv.width=cnv.height=S;
+    const g=cnv.getContext('2d'); g.translate(S/2,S/2); const R=S*0.38;
+    g.strokeStyle='#caa63a'; g.lineWidth=R*0.10; g.lineCap='round';
+    for(let i=0;i<9;i++){ const a=i/9*TAU; g.beginPath(); g.moveTo(Math.cos(a)*R*0.7,Math.sin(a)*R*0.7);
+      g.lineTo(Math.cos(a)*R*1.15,Math.sin(a)*R*1.15); g.stroke();
+      g.beginPath(); g.arc(Math.cos(a)*R*1.18,Math.sin(a)*R*1.18,R*0.10,0,TAU); g.fillStyle='#d8b846'; g.fill(); }
+    const grd=g.createRadialGradient(-R*0.2,-R*0.2,R*0.1,0,0,R*0.8);
+    grd.addColorStop(0,'#f4dd6b'); grd.addColorStop(0.7,'#c79a34'); grd.addColorStop(1,'#8a6320');
+    g.fillStyle=grd; g.beginPath(); g.arc(0,0,R*0.7,0,TAU); g.fill();
+    g.fillStyle='rgba(150,60,54,0.7)'; g.beginPath(); g.arc(0,0,R*0.28,0,TAU); g.fill();
+    VIR_SPRITE=cnv;
+  }
 }
 
 // ============================================================================
@@ -659,8 +750,13 @@ function buildSprites(){
 // ============================================================================
 let CELLS=[];
 const MAX_CELLS=4200;
+// particle kinds travelling the vessels — red cells plus, for the game framing,
+// leukocytes, platelets and the occasional bacterium / virus.
+const KIND_ID  ={rbc:0, wbc:1, plt:2, bac:3, vir:4};
+const KIND_SIZE={rbc:RBC_R, wbc:RBC_R*1.7, plt:RBC_R*0.6, bac:RBC_R*1.15, vir:RBC_R*0.72};
 function seedCells(){
   CELLS=[];
+  staticDirty=true;              // force the GPU cell buffer to re-stream next frame
   const E=NET.edges;
   // weight by lumen volume so big vessels carry more cells
   let tot=0; for(const e of E) tot+= e.len*e.radius*e.radius;
@@ -674,7 +770,10 @@ function seedCells(){
 function makeCell(e,s){
   const r=Math.random();
   let kind='rbc';
-  if(r>0.985) kind='wbc'; else if(r>0.93) kind='plt';
+  if(r>0.992) kind='wbc';
+  else if(r>0.985) kind='vir';
+  else if(r>0.977) kind='bac';
+  else if(r>0.93)  kind='plt';
   return { e, s, kind,
     spin:(Math.random()-0.5)*0.6,
     ang:Math.random()*TAU,
@@ -762,6 +861,7 @@ function drawTissue(){
 function bloodColAt(oxy){ return mix(C_DEO,C_OXY,oxy); }
 
 function drawVessels(){
+  if(shadeMode==='cutaway'){ drawVesselsCutaway(); return; }
   const E=NET.drawEdges, S=cam.scale;
   const vx0=-30,vy0=-30,vx1=VW+30,vy1=VH+30;
   bgx.lineJoin='round'; bgx.lineCap='round';
@@ -790,6 +890,41 @@ function drawVessels(){
     // 5) glossy sheen
     if(w>4 && appear.gloss>0){ bgx.lineWidth=Math.max(1,w*0.20); bgx.strokeStyle=rgba([255,225,225],Math.min(1,0.5*appear.gloss)); bgx.stroke(); }
   }
+}
+
+// Canvas 2D "cut in half" renderer. Vessels are stroked in LAYERED PASSES over
+// the whole visible set (cut outline → endothelial wall → lumen → concave core
+// → sheen) rather than segment-by-segment, so overlapping round caps never carve
+// rings into their neighbours — the tubes read as clean continuous cross-sections.
+function drawVesselsCutaway(){
+  const E=NET.drawEdges, S=cam.scale, cal=appear.calibre;
+  const vx0=-30,vy0=-30,vx1=VW+30,vy1=VH+30;
+  bgx.lineJoin='round'; bgx.lineCap='round';
+  // gather visible segments once
+  const segs=[];
+  for(const e of E){
+    const ax=sx(e.a.x),ay=sy(e.a.y),bx=sx(e.b.x),by=sy(e.b.y);
+    const w=Math.max(0.5, e.radius*2*S*cal), pad=w+6;
+    if(Math.max(ax,bx)+pad<vx0||Math.min(ax,bx)-pad>vx1||
+       Math.max(ay,by)+pad<vy0||Math.min(ay,by)-pad>vy1) continue;
+    const oxy=((e.oxyA||0)+(e.oxyB||0))*0.5;
+    segs.push({ax,ay,bx,by,w,ven:e.type==='ven',blood:bloodColAt(oxy)});
+  }
+  const wallW=(w)=>w*0.32*Math.max(appear.wall,0.001);
+  const pass=(each)=>{ for(const s of segs){ bgx.beginPath(); bgx.moveTo(s.ax,s.ay); bgx.lineTo(s.bx,s.by); each(s); } };
+  // 1) dark cut-edge outline (a continuous ink line around every vessel)
+  pass(s=>{ if(s.w<=1.6) return; bgx.lineWidth=s.w+Math.max(2,wallW(s.w))+2.2; bgx.strokeStyle='rgba(12,3,6,0.9)'; bgx.stroke(); });
+  // 2) endothelial wall — warm lining
+  if(show.wall && appear.wall>0) pass(s=>{ if(s.w<=1.4) return;
+    bgx.lineWidth=s.w+Math.max(1.4,wallW(s.w)); bgx.strokeStyle=s.ven?'rgb(126,78,108)':'rgb(182,100,104)'; bgx.stroke(); });
+  // 3) lumen floor — deep blood (walls read darker because the wall shows behind)
+  pass(s=>{ bgx.lineWidth=s.w; bgx.strokeStyle=rgb(mix(s.blood,[0,0,0],0.30)); bgx.stroke(); });
+  // 4) concave core — bright down the middle, tapering (looking into the open tube)
+  pass(s=>{ if(s.w<=2.2) return; bgx.lineWidth=s.w*0.62; bgx.strokeStyle=rgb(mix(s.blood,[255,235,235],0.14)); bgx.stroke(); });
+  pass(s=>{ if(s.w<=3) return; bgx.lineWidth=s.w*0.30; bgx.strokeStyle=rgb(mix(s.blood,[255,238,238],0.34)); bgx.stroke(); });
+  // 5) fluid sheen highlight
+  if(appear.gloss>0) pass(s=>{ if(s.w<=5) return; bgx.lineWidth=Math.max(1,s.w*0.12);
+    bgx.strokeStyle=rgba([255,228,228],Math.min(1,0.35*appear.gloss)); bgx.stroke(); });
 }
 
 // ============================================================================
@@ -936,24 +1071,35 @@ function heart(t){ // synthetic pulse: systolic spike + dicrotic notch, range ~0
   return v;
 }
 
+let _canvasReady=false;
 function frame(now){
   let dt=(now-lastT)/1000; lastT=now; if(dt>0.05) dt=0.05;
   if(!paused) simTime+=dt;
   const pulse=heart(simTime);
 
-  updateCells(dt,pulse);
+  // When paused, cells don't move — skip the whole update pass (all backends)
+  // and let the GPU paths reuse the last streamed cell buffer.
+  const moving=!paused;
+  if(moving) updateCells(dt,pulse);
+  const viewDirty=staticDirty;          // captured before drawStatic clears it
+  const restream=moving||viewDirty;     // rebuild the visible-cell buffer only when needed
 
   const eff=effectiveBackend();
   if(eff==='canvas2d'){
-    if(staticDirty) drawStatic();
-    ctx.setTransform(DPR,0,0,DPR,0,0);
-    ctx.drawImage(bg,0,0,VW,VH);
-    if(show.cells){ if(shadeMode==='outline') drawCellsOutline(); else drawCellsCanvas(); }
+    // idle skip: paused + view unchanged → the canvas already holds the frame
+    const idle = !moving && !viewDirty && _canvasReady;
+    if(!idle){
+      if(staticDirty) drawStatic();
+      ctx.setTransform(DPR,0,0,DPR,0,0);
+      ctx.drawImage(bg,0,0,VW,VH);
+      if(show.cells){ if(shadeMode==='outline') drawCellsOutline(); else drawCellsCanvas(); }
+      _canvasReady=true;
+    }
   }else if(eff==='webgpu'){
-    try{ gpuRender(MODE_UNIFORM[shadeMode]||1); }
+    try{ gpuRender(MODE_UNIFORM[shadeMode]||1, restream); staticDirty=false; }
     catch(err){ console.error('WebGPU render failed, falling back to WebGL2:',err); GPU=null; applyBackend(); }
   }else{
-    glRender(pulse);
+    glRender(pulse, restream); staticDirty=false;
   }
 
   drawScaleBar();
@@ -1015,6 +1161,16 @@ function drawCellsCanvas(){
       if(w<3){ ctx.fillStyle='#efe2ea'; ctx.fillRect(px-1,py-1,2,2); continue; }
       ctx.save(); ctx.translate(px,py); ctx.rotate(ang*0.3);
       ctx.drawImage(WBC_SPRITE,-w*0.7,-w*0.7,w*1.4,w*1.4); ctx.restore();
+    } else if(c.kind==='bac'){
+      const w=Math.max(rbcScreen*1.15,2);
+      if(w<3){ ctx.fillStyle='#3fa876'; ctx.fillRect(px-1,py-1,2,2); continue; }
+      ctx.save(); ctx.translate(px,py); ctx.rotate(ang);
+      ctx.drawImage(BAC_SPRITE,-w*0.7,-w*0.7,w*1.4,w*1.4); ctx.restore();
+    } else if(c.kind==='vir'){
+      const w=Math.max(rbcScreen*0.72,2);
+      if(w<3){ ctx.fillStyle='#d8b846'; ctx.fillRect(px-1,py-1,2,2); continue; }
+      ctx.save(); ctx.translate(px,py); ctx.rotate(ang+c.ang*0.5);
+      ctx.drawImage(VIR_SPRITE,-w*0.8,-w*0.8,w*1.6,w*1.6); ctx.restore();
     } else {
       const w=Math.max(rbcScreen*0.6,1.5);
       if(w<2) continue;
@@ -1203,7 +1359,10 @@ void main(){
   float nuc=smoothstep(0.60,0.66,fbm(world*0.05+5.0));
   base=mix(base, vec3(0.17,0.05,0.13), nuc*0.45);
   base*=0.6+0.4*fbm(world*0.004+9.0);   // large-scale shading
-  o=vec4(base,1.0);
+  // fine capillary-bed mottling + a soft depth vignette
+  base+=vec3(0.05,0.015,0.02)*(fbm(world*0.09+2.0)-0.5);
+  vec2 vd=frag/uRes-0.5; base*=clamp(1.0-dot(vd,vd)*0.85,0.5,1.0);
+  o=vec4(max(base,vec3(0.0)),1.0);
 }`;
 
 const VESS_VS=VS_HEAD+`
@@ -1261,12 +1420,31 @@ void main(){
     if(spec>0.55) col+=vec3(0.5);
     float edge=smoothstep(0.0,0.13,1.0-hgt);
     col=mix(col,vec3(0.05,0.0,0.02),edge*0.9);
-  }else{
+  }else if(uMode==4){
     float core=smoothstep(1.0,0.0,abs(nperp));
     col=mix(vec3(0.10,0.0,0.03),blood*1.5,core)+blood*pow(hgt,2.0)*0.7;
+  }else{
+    // ---- CUTAWAY: the vessel sliced open lengthwise (cross-section) --------
+    float a=abs(nperp);                              // 0 centre .. 1 wall/rim
+    float wf=clamp(0.16*uWall+0.09,0.07,0.44);       // endothelial wall fraction
+    float lumen=1.0-wf;
+    // concave lumen: bright down the middle, shading into the wall (AO in the cut)
+    float la=clamp(a/lumen,0.0,1.0);
+    float ao=smoothstep(1.0,0.12,la);
+    vec3 lumenCol=mix(blood*0.5, blood*1.14, ao);
+    lumenCol+=vec3(1.0,0.9,0.9)*pow(max(0.0,1.0-la),6.0)*0.22*clamp(uGloss,0.0,2.0);
+    // warm endothelial wall, lighter at the inner lining, darker toward the rim
+    float wa=clamp((a-lumen)/max(wf,1e-3),0.0,1.0);
+    vec3 wallCol=mix(vec3(0.80,0.44,0.47), vec3(0.33,0.13,0.18), wa);
+    col=mix(lumenCol, wallCol, step(lumen,a));
+    // crisp inner endothelium line + dark cut outline at the silhouette
+    col=mix(col, vec3(0.16,0.03,0.06), (1.0-smoothstep(0.0,0.05,abs(a-lumen)))*0.6);
+    col*=1.0-smoothstep(0.85,1.0,a)*0.7;
   }
   // "wall thickness": darken a band near the silhouette like a vessel wall
-  col *= 1.0 - smoothstep(0.45,1.0,1.0-hgt)*0.45*clamp(uWall,0.0,2.5);
+  // (cutaway models its own wall, so skip the generic darkening there)
+  float wallDark = (uMode==5)?0.0: smoothstep(0.45,1.0,1.0-hgt)*0.45*clamp(uWall,0.0,2.5);
+  col *= 1.0 - wallDark;
   o=vec4(col*cov,cov);
 }`;
 
@@ -1308,9 +1486,27 @@ void main(){
     c=mix(c,vec3(0.6,0.45,0.66),smoothstep(0.7,0.2,r)*0.4);
     if(uMode==4) c*=1.3;
     o=vec4(c, smoothstep(1.0,0.9,r));
-  }else{
+  }else if(kind<2.5){
     float r=length(vUv); if(r>1.0) discard;
     o=vec4(mix(vec3(0.92,0.86,0.66),vec3(0.74,0.66,0.47),r), smoothstep(1.0,0.85,r));
+  }else if(kind<3.5){
+    // bacterium — teal rod (capsule along the flow axis)
+    float bx=clamp(vUv.x,-0.62,0.62);
+    float d=length(vec2(vUv.x-bx,vUv.y*1.35));
+    if(d>0.5) discard;
+    vec3 c=mix(vec3(0.52,0.80,0.60),vec3(0.16,0.42,0.34),smoothstep(0.0,0.5,d));
+    c+=smoothstep(0.35,0.0,length(vec2(vUv.x*0.5+0.18,vUv.y+0.14)))*0.25;  // sheen
+    float aa=fwidth(d)*1.5;
+    o=vec4(c, smoothstep(0.5,0.5-aa,d));
+  }else{
+    // virus — spiky yellow capsid
+    float r=length(vUv), ang=atan(vUv.y,vUv.x);
+    float edge=0.44+0.14*cos(ang*9.0);
+    if(r>edge) discard;
+    vec3 c=mix(vec3(0.95,0.83,0.36),vec3(0.55,0.40,0.12),smoothstep(0.0,edge,r));
+    c=mix(c,vec3(0.72,0.30,0.28),smoothstep(0.30,0.0,r));   // dark core
+    float aa=fwidth(r)*1.5;
+    o=vec4(c, smoothstep(edge,edge-aa,r));
   }
 }`;
 
@@ -1383,8 +1579,9 @@ function uploadVessels(){
   GL.vessCount=E.length;
 }
 
-function glRender(pulse){
+function glRender(pulse, restream){
   const gl=GL.gl, mode=MODE_UNIFORM[shadeMode]||1;
+  if(restream===undefined) restream=true;
   gl.viewport(0,0,glcv.width,glcv.height);
   gl.disable(gl.DEPTH_TEST);
   if(mode===4){ gl.clearColor(0.01,0.0,0.02,1); } else { gl.clearColor(0.07,0.02,0.03,1); }
@@ -1413,22 +1610,27 @@ function glRender(pulse){
     gl.drawArraysInstanced(gl.TRIANGLE_STRIP,0,4,GL.vessCount);
   }
 
-  // cells
+  // cells — only re-pack + re-upload the visible set when it actually changed
   if(show.cells){
-    const data=GL.cellData; let n=0;
-    const vx0=-60,vy0=-60,vx1=VW+60,vy1=VH+60;
-    for(const c of CELLS){
-      const px=sx(c.wx), py=sy(c.wy);
-      if(px<vx0||px>vx1||py<vy0||py>vy1) continue;
-      const o=n*6;
-      data[o]=c.wx; data[o+1]=c.wy; data[o+2]=c.ang;
-      data[o+3]=c.kind==='rbc'?RBC_R:c.kind==='wbc'?RBC_R*1.7:RBC_R*0.6;
-      data[o+4]=c.oxy; data[o+5]=c.kind==='rbc'?0:c.kind==='wbc'?1:2;
-      if(++n>=MAX_CELLS) break;
+    const data=GL.cellData;
+    let n=GL._cellN||0;
+    if(restream){
+      n=0;
+      const vx0=-60,vy0=-60,vx1=VW+60,vy1=VH+60;
+      for(const c of CELLS){
+        const px=sx(c.wx), py=sy(c.wy);
+        if(px<vx0||px>vx1||py<vy0||py>vy1) continue;
+        const o=n*6;
+        data[o]=c.wx; data[o+1]=c.wy; data[o+2]=c.ang;
+        data[o+3]=KIND_SIZE[c.kind];
+        data[o+4]=c.oxy; data[o+5]=KIND_ID[c.kind];
+        if(++n>=MAX_CELLS) break;
+      }
+      GL._cellN=n;
+      if(n){ gl.bindBuffer(gl.ARRAY_BUFFER,GL.cellInst);
+        gl.bufferData(gl.ARRAY_BUFFER,data.subarray(0,n*6),gl.DYNAMIC_DRAW); }
     }
     if(n){
-      gl.bindBuffer(gl.ARRAY_BUFFER,GL.cellInst);
-      gl.bufferData(gl.ARRAY_BUFFER,data.subarray(0,n*6),gl.DYNAMIC_DRAW);
       gl.useProgram(GL.P.cell.p); setU(GL.P.cell.u);
       gl.bindVertexArray(GL.vaoC);
       gl.drawArraysInstanced(gl.TRIANGLE_STRIP,0,4,n);
@@ -1485,7 +1687,9 @@ fn fbm(p0:vec2f)->f32{ var s=0.0; var a=0.5; var p=p0; for(var i=0;i<5;i=i+1){ s
   let nuc=smoothstep(0.60,0.66,fbm(world*0.05+vec2f(5.0)));
   base=mix(base,vec3f(0.17,0.05,0.13),nuc*0.45);
   base=base*(0.6+0.4*fbm(world*0.004+vec2f(9.0)));
-  return vec4f(base,1.0);
+  base=base+vec3f(0.05,0.015,0.02)*(fbm(world*0.09+vec2f(2.0))-0.5);
+  let vd=fc.xy/u.res-0.5; base=base*clamp(1.0-dot(vd,vd)*0.85,0.5,1.0);
+  return vec4f(max(base,vec3f(0.0)),1.0);
 }
 
 struct VIn { @location(0) corner:vec2f, @location(1) iAB:vec4f, @location(2) iPar:vec4f };
@@ -1528,8 +1732,23 @@ struct VOut { @builtin(position) pos:vec4f, @location(0) world:vec2f, @location(
   else if(m==3){ let qd=floor(diff*4.0)/4.0; col=blood*(0.32+0.8*qd);
     if(spec>0.55){ col=col+vec3f(0.5); } let edge=smoothstep(0.0,0.13,1.0-hgt);
     col=mix(col,vec3f(0.05,0.0,0.02),edge*0.9); }
-  else { let core=smoothstep(0.0,1.0,1.0-abs(nperp)); col=mix(vec3f(0.10,0.0,0.03),blood*1.5,core)+blood*pow(hgt,2.0)*0.7; }
-  col=col*(1.0-smoothstep(0.45,1.0,1.0-hgt)*0.45*clamp(u.wall,0.0,2.5));
+  else if(m==4){ let core=smoothstep(0.0,1.0,1.0-abs(nperp)); col=mix(vec3f(0.10,0.0,0.03),blood*1.5,core)+blood*pow(hgt,2.0)*0.7; }
+  else {
+    // ---- CUTAWAY: vessel sliced open lengthwise (cross-section) ----
+    let a=abs(nperp);
+    let wf=clamp(0.16*u.wall+0.09,0.07,0.44);
+    let lumen=1.0-wf;
+    let la=clamp(a/lumen,0.0,1.0);
+    let ao=smoothstep(0.12,1.0,la);
+    var lumenCol=mix(blood*0.5, blood*1.14, 1.0-ao);
+    lumenCol=lumenCol+vec3f(1.0,0.9,0.9)*pow(max(0.0,1.0-la),6.0)*0.22*clamp(u.gloss,0.0,2.0);
+    let wa=clamp((a-lumen)/max(wf,1e-3),0.0,1.0);
+    let wallCol=mix(vec3f(0.80,0.44,0.47), vec3f(0.33,0.13,0.18), wa);
+    col=mix(lumenCol, wallCol, step(lumen,a));
+    col=mix(col, vec3f(0.16,0.03,0.06), (1.0-smoothstep(0.0,0.05,abs(a-lumen)))*0.6);
+    col=col*(1.0-smoothstep(0.85,1.0,a)*0.7);
+  }
+  if(m!=5){ col=col*(1.0-smoothstep(0.45,1.0,1.0-hgt)*0.45*clamp(u.wall,0.0,2.5)); }
   return vec4f(col*cov,cov);
 }
 
@@ -1565,10 +1784,28 @@ struct COut { @builtin(position) pos:vec4f, @location(0) uv:vec2f, @location(1) 
     if(m==4){ c=c*1.3; }
     let al=1.0-smoothstep(0.9,1.0,r);
     return vec4f(c*al,al);
+  } else if(kind<2.5){
+    let r=length(in.uv); if(r>1.0){ discard; }
+    let c=mix(vec3f(0.92,0.86,0.66),vec3f(0.74,0.66,0.47),r);
+    let al=1.0-smoothstep(0.85,1.0,r);
+    return vec4f(c*al,al);
+  } else if(kind<3.5){
+    // bacterium — teal rod
+    let bx=clamp(in.uv.x,-0.62,0.62);
+    let d=length(vec2f(in.uv.x-bx,in.uv.y*1.35));
+    if(d>0.5){ discard; }
+    var c=mix(vec3f(0.52,0.80,0.60),vec3f(0.16,0.42,0.34),smoothstep(0.0,0.5,d));
+    c=c+(1.0-smoothstep(0.0,0.35,length(vec2f(in.uv.x*0.5+0.18,in.uv.y+0.14))))*0.25;
+    let al=1.0-smoothstep(0.5-fwidth(d)*1.5,0.5,d);
+    return vec4f(c*al,al);
   }
-  let r=length(in.uv); if(r>1.0){ discard; }
-  let c=mix(vec3f(0.92,0.86,0.66),vec3f(0.74,0.66,0.47),r);
-  let al=1.0-smoothstep(0.85,1.0,r);
+  // virus — spiky yellow capsid
+  let r=length(in.uv); let ang=atan2(in.uv.y,in.uv.x);
+  let edge=0.44+0.14*cos(ang*9.0);
+  if(r>edge){ discard; }
+  var c=mix(vec3f(0.95,0.83,0.36),vec3f(0.55,0.40,0.12),smoothstep(0.0,edge,r));
+  c=mix(c,vec3f(0.72,0.30,0.28),(1.0-smoothstep(0.0,0.30,r)));
+  let al=1.0-smoothstep(edge-fwidth(r)*1.5,edge,r);
   return vec4f(c*al,al);
 }`;
 
@@ -1627,21 +1864,23 @@ async function initWebGPU(){
   return obj;
 }
 
-function gpuRender(mode){
+function gpuRender(mode, restream){
+  if(restream===undefined) restream=true;
   const {device,ctx}=GPU;
   GPU.uni.set([cam.x,cam.y,cam.scale*DPR,appear.calibre, gpucv.width,gpucv.height,appear.wall,appear.gloss, mode,0,0,0]);
   device.queue.writeBuffer(GPU.ubuf,0,GPU.uni);
-  // stream visible cells
-  let n=0; const data=GPU.cellData;
-  if(show.cells){ const vx0=-60,vy0=-60,vx1=VW+60,vy1=VH+60;
+  // stream visible cells (only when the visible set changed)
+  let n=GPU._cellN||0; const data=GPU.cellData;
+  if(show.cells && restream){ n=0; const vx0=-60,vy0=-60,vx1=VW+60,vy1=VH+60;
     for(const c of CELLS){ const px=sx(c.wx),py=sy(c.wy);
       if(px<vx0||px>vx1||py<vy0||py>vy1) continue;
       const o=n*6; data[o]=c.wx; data[o+1]=c.wy; data[o+2]=c.ang;
-      data[o+3]=c.kind==='rbc'?RBC_R:c.kind==='wbc'?RBC_R*1.7:RBC_R*0.6;
-      data[o+4]=c.oxy; data[o+5]=c.kind==='rbc'?0:c.kind==='wbc'?1:2;
+      data[o+3]=KIND_SIZE[c.kind];
+      data[o+4]=c.oxy; data[o+5]=KIND_ID[c.kind];
       if(++n>=MAX_CELLS) break; }
+    GPU._cellN=n;
     if(n) device.queue.writeBuffer(GPU.cbuf,0,data,0,n*6);
-  }
+  } else if(!show.cells){ n=0; }
   const enc=device.createCommandEncoder();
   const view=ctx.getCurrentTexture().createView();
   const clearValue = mode===4?{r:0.01,g:0,b:0.02,a:1}:{r:0.07,g:0.02,b:0.03,a:1};

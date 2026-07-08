@@ -16,18 +16,27 @@ rendered on an HTML canvas with switchable shading algorithms.
   switchable: *space-colonisation*, *recursive (Sapling-style)* tree,
   *DLA* (diffusion-limited aggregation) and *CCO* (constrained constructive
   optimization).
+- **Spline vessel segments** — the raw grown skeleton is re-fitted with
+  **Catmull–Rom splines** and resampled at an even spacing, so every vessel reads
+  as a smooth natural curve instead of a chain of straight sticks. The resample
+  also *evens out* the segment count (dense beds get lighter, sparse limbs get
+  smoother), which feeds straight into rendering speed.
 - **Realistic arteriole → capillary → venule transition** — vessel calibre tapers
   down to roughly one red-cell width through the capillaries and back up to the
   venule, and the blood **deoxygenates** along the way (bright red → dark maroon).
-- **Pulsatile blood flow** — biconcave red cells (plus leukocytes and platelets)
-  flow through the network, faster in big vessels and single-file in capillaries,
-  pulsing with an adjustable heartbeat.
+- **Pulsatile blood flow** — biconcave red cells (plus leukocytes, platelets and,
+  for the game framing, the occasional **bacterium** and **virus**) flow through
+  the network, faster in big vessels and single-file in capillaries, pulsing with
+  an adjustable heartbeat.
 - **Switchable rendering backend** — *Canvas 2D* (analytic, works everywhere),
   *WebGL2*, or *WebGPU* (with automatic fallback if WebGPU isn't supported). The
   GPU backends draw SDF capsule impostors (GLSL / WGSL).
-- **Switchable shading** (GPU backends): **Lit tubes** (Blinn–Phong),
-  **Subsurface** (thickness glow + Fresnel), **Toon** (cel + outline), **X-ray**
-  (additive angiograph).
+- **Switchable shading** (GPU backends): **Cutaway** (the default — vessels sliced
+  open lengthwise so you see the endothelial wall, the concave lumen and the cells
+  moving through it, game-ready), **Lit tubes** (Blinn–Phong), **Subsurface**
+  (thickness glow + Fresnel), **Toon** (cel + outline), **X-ray** (additive
+  angiograph). On Canvas 2D the cutaway is drawn in layered passes so the tubes
+  stay clean and continuous.
 - **Outline filter** — a contour mode that draws *only* the vessel outlines as
   clean line art. The vessels are reconstructed into connected polylines,
   smoothed with a **Catmull–Rom spline**, then rendered through a fill→erode
@@ -49,9 +58,12 @@ rendered on an HTML canvas with switchable shading algorithms.
 
 ## Tech
 
-A single self-contained HTML file. The default renderer is **WebGL2** (instanced
-SDF capsule impostors for vessels, instanced biconcave impostors for cells, a
-procedural domain-warped fBm tissue field); a **Canvas 2D** renderer is the
-fallback and the "Stylized" mode. Vessel networks are grown with
-space-colonisation or recursive branching and sized with Murray's law. No
-network access, no dependencies — it runs fully offline.
+A single self-contained HTML file. The default renderer is **WebGL2** in
+**Cutaway** shading (instanced SDF capsule impostors for vessels, instanced
+biconcave / rod / capsid impostors for cells, a procedural domain-warped fBm
+tissue field with a depth vignette); a **Canvas 2D** renderer is the fallback.
+Vessel networks are grown with space-colonisation or recursive branching, spline
+-smoothed, and sized with Murray's law. Performance touches: the spline resample
+evens out the segment count, and when paused the render loop skips the cell
+update and reuses the last streamed GPU buffer. No network access, no
+dependencies — it runs fully offline.
