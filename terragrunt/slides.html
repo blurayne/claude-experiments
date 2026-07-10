@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Terragrunt vs Terraform — Lightning Talk</title>
+  <link rel="stylesheet" href="https://unpkg.com/reveal.js@5.1.0/dist/reset.css" />
+  <link rel="stylesheet" href="https://unpkg.com/reveal.js@5.1.0/dist/reveal.css" />
+  <link rel="stylesheet" href="https://unpkg.com/reveal.js@5.1.0/dist/theme/black.css" id="theme" />
+  <link rel="stylesheet" href="https://unpkg.com/reveal.js@5.1.0/plugin/highlight/monokai.css" />
+  <style>
+    :root {
+      --accent:   #ff8a5c; /* terragrunt orange */
+      --accent-2: #b48ce8; /* terraform purple */
+      --accent-3: #ffd166; /* opentofu yellow */
+      --accent-4: #5cc8ff; /* atmos blue */
+      --muted:    #9aa6b2;
+    }
+    .reveal { font-family: "Inter", "Helvetica Neue", system-ui, sans-serif; }
+    .reveal h1, .reveal h2, .reveal h3 { text-transform: none; letter-spacing: -0.01em; }
+    .reveal h1 { color: var(--accent); font-weight: 800; }
+    .reveal h2 { color: var(--accent); font-weight: 600; }
+    .reveal h3 { color: var(--accent-2); font-weight: 600; }
+    .reveal .accent  { color: var(--accent); }
+    .reveal .accent2 { color: var(--accent-2); }
+    .reveal .accent3 { color: var(--accent-3); }
+    .reveal .accent4 { color: var(--accent-4); }
+    .reveal .muted   { color: var(--muted); }
+    .reveal pre {
+      box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+      font-size: 0.48em;
+      width: 100%;
+    }
+    .reveal pre code { padding: 16px 22px; line-height: 1.45; max-height: 480px; }
+    .reveal .small { font-size: 0.7em; }
+    .reveal .xsmall { font-size: 0.55em; }
+    .reveal .tag {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 999px;
+      background: rgba(255,138,92,0.15);
+      color: var(--accent);
+      font-size: 0.5em;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      vertical-align: middle;
+      margin-left: 10px;
+    }
+    .reveal .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+    .reveal .grid-2 h4 {
+      margin: 0 0 8px 0;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-size: 0.55em;
+    }
+    .reveal .logo {
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      letter-spacing: -0.04em;
+      font-weight: 800;
+    }
+    .reveal table { font-size: 0.55em; margin: 0 auto; }
+    .reveal th { color: var(--accent); font-weight: 600; }
+    .reveal td, .reveal th { padding: 6px 14px; border-bottom: 1px solid #233040; text-align: left; }
+    .reveal .kbd {
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      background: #1d2733;
+      border: 1px solid #2c3a4a;
+      padding: 1px 8px;
+      border-radius: 6px;
+      font-size: 0.8em;
+    }
+    .reveal .stack-diagram {
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 0.55em;
+      line-height: 1.7;
+      text-align: center;
+    }
+    .reveal .box {
+      display: inline-block;
+      border: 1px solid #2c3a4a;
+      border-radius: 10px;
+      padding: 8px 22px;
+      margin: 4px;
+      background: #17212d;
+    }
+    .reveal .box.hot  { border-color: var(--accent);   color: var(--accent); }
+    .reveal .box.tf   { border-color: var(--accent-2); color: var(--accent-2); }
+    .reveal .box.tofu { border-color: var(--accent-3); color: var(--accent-3); }
+    .reveal .box.plug { border-color: var(--muted);    color: var(--muted); font-size: 0.85em; }
+    .reveal .arrow { color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <!-- 1: Title -->
+      <section data-background-gradient="linear-gradient(135deg, #1d0f08 0%, #3d2013 100%)">
+        <h1 class="logo">terragrunt</h1>
+        <h3>what Terraform forgot, and how 1.0 finally finished it</h3>
+        <p class="small muted">10-minute lightning talk · <span class="kbd">space</span> to advance · <span class="kbd">s</span> speaker notes</p>
+        <aside class="notes">
+          Audience: people who already write Terraform. No "what is IaC" intro.
+          Promise: in 10 minutes you'll know what Terragrunt adds, what units/stacks are,
+          what 1.0 changed, and how it compares to Atmos.
+        </aside>
+      </section>
+
+      <!-- 2: Where Terraform hurts -->
+      <section>
+        <h2>Where vanilla Terraform hurts <span class="tag">at scale</span></h2>
+        <ul class="small">
+          <li><span class="accent3">The Terralith:</span> one root module, one state — every <code>plan</code> is slow, every <code>apply</code> risks <em>everything</em>, one lock for the whole team.</li>
+          <li>The <code>backend</code> block <span class="accent">forbids variables</span> → backend config is copy-pasted into every environment.</li>
+          <li>Provider blocks, versions, tags: duplicated per root module.</li>
+          <li>Split the state and you get the next problem: <span class="accent">no orchestrator</span>. Nothing in Terraform runs 30 states in dependency order.</li>
+          <li>Promoting dev → staging → prod = copy-paste directories and pray the drift is intentional.</li>
+        </ul>
+        <aside class="notes">
+          Key line: Terraform is great at ONE state. It has no story for MANY states.
+          terraform_remote_state is read-only glue, not orchestration.
+        </aside>
+      </section>
+
+      <!-- 3: Wrappers all the way down -->
+      <section>
+        <h2>Wrappers all the way down</h2>
+        <div class="stack-diagram">
+          <div><span class="box hot">terragrunt</span></div>
+          <div class="arrow">↓ wraps (exec + generated files)</div>
+          <div><span class="box tofu">tofu</span> <span class="muted">/</span> <span class="box tf">terraform</span> <span class="muted">— one single binary</span></div>
+          <div class="arrow">↓ wraps (go-plugin · gRPC)</div>
+          <div>
+            <span class="box plug">terraform-provider-aws</span>
+            <span class="box plug">…-google</span>
+            <span class="box plug">…-kubernetes</span>
+          </div>
+        </div>
+        <ul class="small">
+          <li>Terraform itself is an <span class="accent2">orchestrator of single binaries</span> — every provider is a separate plugin binary spoken to over RPC.</li>
+          <li>Terragrunt applies the same trick one level up: a thin single binary that <span class="accent">drives the real <code>tofu</code>/<code>terraform</code></span>.</li>
+          <li>It reimplements nothing — every <code>plan</code>/<code>apply</code> is the genuine article. <code>TG_TF_PATH</code> picks the wrapped binary.</li>
+        </ul>
+        <aside class="notes">
+          The analogy the audience should keep: providers are plugins to Terraform;
+          Terraform is a "plugin" to Terragrunt. Thin wrapper = low lock-in, easy to remove.
+        </aside>
+      </section>
+
+      <!-- 4: Units vs modules -->
+      <section>
+        <h2>The core concept: <span class="accent">units</span> vs modules</h2>
+        <table>
+          <thead><tr><th></th><th>Terraform module</th><th>Terragrunt unit</th></tr></thead>
+          <tbody>
+            <tr><td>What it is</td><td>reusable <code>.tf</code> code</td><td>a directory with <code>terragrunt.hcl</code></td></tr>
+            <tr><td>Role</td><td><span class="accent2">blueprint</span></td><td><span class="accent">deployed instance</span> of a module</td></tr>
+            <tr><td>State</td><td>none of its own</td><td><strong>its own state</strong>, always</td></tr>
+            <tr><td>Contains</td><td>resources, logic</td><td>module ref + version + inputs, no logic</td></tr>
+            <tr><td>Blast radius</td><td>wherever it's used</td><td>just this unit</td></tr>
+          </tbody>
+        </table>
+        <p class="small muted">Terraform answers "how is a VPC built?" — a unit answers <span class="accent">"which VPC, in which account, at which version, with which inputs?"</span></p>
+        <aside class="notes">
+          Modules were never the problem — instantiating them per env/account/region was.
+          A unit is the missing noun: the *deployment* of a module, with identity and state.
+        </aside>
+      </section>
+
+      <!-- 5: A unit in code -->
+      <section>
+        <h2>A unit is ~15 lines</h2>
+        <pre><code class="language-hcl" data-trim>
+# live/prod/eu-central-1/vpc/terragrunt.hcl
+include "root" {
+  path = find_in_parent_folders("root.hcl")   # inherit backend & provider
+}
+
+terraform {
+  source = "git::github.com/acme/modules.git//vpc?ref=v1.4.0"
+}
+
+inputs = {
+  cidr = "10.32.0.0/16"
+  azs  = 3
+}
+        </code></pre>
+        <p class="small muted">Pin a <span class="accent">version per environment</span>: dev runs <code>v1.5.0-rc1</code>, prod stays on <code>v1.4.0</code>. Promotion = bump one ref.</p>
+        <aside class="notes">
+          Point at the ref: this is how environments differ without copy-pasting code —
+          same module, different version + inputs. The unit file is boring on purpose.
+        </aside>
+      </section>
+
+      <!-- 6: DRY backend & provider -->
+      <section>
+        <h2>One backend definition, N states</h2>
+        <pre><code class="language-hcl" data-trim>
+# live/root.hcl — written ONCE for the whole estate
+remote_state {
+  backend = "s3"
+  generate = { path = "backend.tf", if_exists = "overwrite" }
+  config = {
+    bucket = "acme-tf-state"
+    key    = "${path_relative_to_include()}/tofu.tfstate"  # ← per-unit key
+    region = "eu-central-1"
+    use_lockfile = true
+  }
+}
+
+generate "provider" {
+  path     = "provider.tf"
+  if_exists = "overwrite"
+  contents = &lt;&lt;EOF
+provider "aws" { region = "eu-central-1", default_tags { ... } }
+EOF
+}
+        </code></pre>
+        <p class="small muted">Terragrunt <span class="accent">generates</span> the files Terraform refuses to parameterize. The directory path becomes the state key.</p>
+        <aside class="notes">
+          This was the original 2016 reason Terragrunt exists: backend blocks can't
+          interpolate. Solution: don't fight it — generate the file before calling terraform.
+        </aside>
+      </section>
+
+      <!-- 7: Dependencies -->
+      <section>
+        <h2>Wiring units: <code>dependency</code></h2>
+        <pre><code class="language-hcl" data-trim>
+# live/prod/eu-central-1/eks/terragrunt.hcl
+dependency "vpc" {
+  config_path = "../vpc"
+
+  mock_outputs = {                 # lets `plan` work before vpc exists
+    vpc_id = "vpc-mock0000"
+  }
+}
+
+inputs = {
+  vpc_id = dependency.vpc.outputs.vpc_id   # output → input, across states
+}
+        </code></pre>
+        <ul class="small">
+          <li>Outputs of one state become inputs of another — <span class="accent">explicitly, versioned, greppable</span>.</li>
+          <li>All <code>dependency</code> edges together form a <span class="accent3">DAG</span> over your whole estate.</li>
+        </ul>
+        <aside class="notes">
+          mock_outputs matter in CI: plan a whole new environment before anything exists.
+          The DAG is declared, not inferred — you can `terragrunt dag graph` it.
+        </aside>
+      </section>
+
+      <!-- 8: Orchestration -->
+      <section>
+        <h2>The missing orchestrator: <code>run --all</code></h2>
+        <pre><code class="language-bash" data-trim>
+$ terragrunt run --all plan          # every unit, in DAG order, in parallel
+$ terragrunt run --all apply --filter ./prod/eu-central-1/...
+$ terragrunt run --all apply --filter '--changed'   # only units touched in git
+        </code></pre>
+        <div class="stack-diagram">
+          <span class="box plug">vpc</span> <span class="arrow">→</span>
+          <span class="box plug">eks</span> <span class="arrow">→</span>
+          <span class="box plug">app</span>
+          <span class="muted">&nbsp;&nbsp;·&nbsp;&nbsp;</span>
+          <span class="box plug">dns</span> <span class="arrow">→</span>
+          <span class="box plug">cdn</span>
+          <span class="muted">&nbsp;&nbsp;(independent chains run in parallel)</span>
+        </div>
+        <ul class="small">
+          <li>Applies in dependency order, destroys in <span class="accent">reverse</span> order.</li>
+          <li>Failures stop the downstream part of the graph, not unrelated chains.</li>
+          <li>Plus quality-of-life: auto-<code>init</code>, retries on transient errors, before/after hooks.</li>
+        </ul>
+        <aside class="notes">
+          This is the answer to "we split our Terralith into 40 states and now deploys
+          are a runbook". One command walks the graph.
+        </aside>
+      </section>
+
+      <!-- 9: The leftover problem -->
+      <section>
+        <h2>The problem Terragrunt <em>created</em></h2>
+        <p class="big" style="font-size:1.1em">Hundreds of tiny <code>terragrunt.hcl</code> files,<br/>90% identical.</p>
+        <ul class="small">
+          <li>3 environments × 4 regions × 12 components = <span class="accent">144 near-clones</span>.</li>
+          <li>Community workarounds everywhere: <code>_envcommon/</code>, symlinks, custom generators.</li>
+          <li>DRY code, but <span class="accent3">WET structure</span>.</li>
+        </ul>
+        <p class="small muted">This is exactly what <span class="accent">Stacks</span> — the headline of 1.0 — fix.</p>
+        <aside class="notes">
+          Honest slide: Terragrunt solved state-splitting and orchestration but paid
+          with file sprawl. Stacks are the official answer to a decade of _envcommon hacks.
+        </aside>
+      </section>
+
+      <!-- 10: Stacks -->
+      <section>
+        <h2>Stacks: units, generated <span class="tag">1.0</span></h2>
+        <pre><code class="language-hcl" data-trim>
+# live/prod/eu-central-1/terragrunt.stack.hcl
+unit "vpc" {
+  source = "git::github.com/acme/units.git//vpc?ref=v2.1.0"
+  path   = "vpc"
+  values = { cidr = "10.32.0.0/16" }
+}
+
+unit "eks" {
+  source = "git::github.com/acme/units.git//eks?ref=v2.1.0"
+  path   = "eks"
+  values = { cluster_name = "prod-eu" }
+}
+
+stack "observability" {                    # stacks compose stacks
+  source = "git::github.com/acme/stacks.git//o11y?ref=v0.9.0"
+  path   = "o11y"
+}
+        </code></pre>
+        <ul class="small">
+          <li><code>terragrunt stack generate</code> materializes the units under <code>.terragrunt-stack/</code> — <code>run --all</code> just works on them.</li>
+          <li>One versioned file describes a whole environment; <code>values</code> flow into each unit.</li>
+        </ul>
+        <aside class="notes">
+          Mental model: unit = instance of a module; stack = instance of a *pattern* of units.
+          Environments shrink from 40 files to one stack file. Stacks nest.
+        </aside>
+      </section>
+
+      <!-- 11: 1.0 -->
+      <section data-background-gradient="linear-gradient(135deg, #1d0f08 0%, #3d2013 100%)">
+        <h2>Terragrunt 1.0 <span class="tag">2026-03-30</span></h2>
+        <ul class="small">
+          <li>After <span class="accent">~10 years</span> and <span class="accent">900+ releases</span> of <code>v0.x</code> — it's finally, officially <em>done</em>.</li>
+          <li><span class="accent3">Stacks GA</span> — <code>terragrunt.stack.hcl</code> as the standard way to define estates.</li>
+          <li><span class="accent3">Backwards-compatibility guarantee</span>: semver for real; breaking changes only in rare majors. <code>v0.x</code> could break any Friday.</li>
+          <li>CLI redesign:
+            <ul class="xsmall">
+              <li><code>run-all</code> → <code>terragrunt run --all</code>, flags lose their <code>--terragrunt-</code> prefix</li>
+              <li>new commands: <code>exec</code> · <code>find</code> · <code>list</code> · <code>backend</code></li>
+              <li>7 targeting flags collapsed into one <code>--filter</code> (paths, deps, git-changed)</li>
+            </ul>
+          </li>
+          <li>First-class OpenTofu: <code>tofu</code> is the preferred wrapped binary when installed.</li>
+        </ul>
+        <aside class="notes">
+          The compat guarantee is the real 1.0 feature — teams can finally upgrade
+          without reading 40 changelog entries. Ten years from "hack around the backend
+          block" to a stable product.
+        </aside>
+      </section>
+
+      <!-- 12: Atmos -->
+      <section>
+        <h2>And <span class="accent4">Atmos</span>? <span class="tag">quick compare</span></h2>
+        <table>
+          <thead><tr><th></th><th>Terragrunt</th><th class="accent4">Atmos (Cloud Posse)</th></tr></thead>
+          <tbody>
+            <tr><td>Config language</td><td>HCL (like Terraform)</td><td>YAML stack manifests</td></tr>
+            <tr><td>Building block</td><td>unit → module</td><td>component (a TF root module)</td></tr>
+            <tr><td>Environment model</td><td><strong>filesystem hierarchy</strong> + <code>include</code></td><td>filesystem is just folders; <strong>imports + deep-merge</strong> define everything</td></tr>
+            <tr><td>Reuse mechanism</td><td>inheritance up the dir tree</td><td>YAML inheritance, mixins, catalogs</td></tr>
+            <tr><td>Extra scope</td><td>tofu/terraform only</td><td>also helmfile, workflows, vendoring, validation (OPA/JSON-Schema)</td></tr>
+            <tr><td>Feel</td><td>thin wrapper, stays close to TF</td><td>full framework + conventions (tenant/env/stage)</td></tr>
+          </tbody>
+        </table>
+        <p class="xsmall muted">Rule of thumb: incremental adoption &amp; HCL-native → <span class="accent">Terragrunt</span>. Big multi-account estate, config-as-data, team willing to adopt a framework → <span class="accent4">Atmos</span>.</p>
+        <aside class="notes">
+          Same disease, different cure: Terragrunt keeps you in HCL and the directory
+          tree IS the model. Atmos moves all semantics into YAML — folders mean nothing,
+          imports and deep-merging mean everything. Atmos is more powerful and more opinionated;
+          Terragrunt is easier to add to an existing repo (and to remove again).
+        </aside>
+      </section>
+
+      <!-- 13: tl;dr -->
+      <section data-background-gradient="linear-gradient(135deg, #1d0f08 0%, #3d2013 100%)">
+        <h2>tl;dr</h2>
+        <ul>
+          <li>Terraform scales <span class="accent2">resources</span>; Terragrunt scales <span class="accent">states</span>.</li>
+          <li><span class="accent">Unit</span> = a module instance with its own state. <span class="accent">Stack</span> = a generated pattern of units.</li>
+          <li>DRY backend/provider, explicit <code>dependency</code> DAG, <code>run --all</code> orchestration.</li>
+          <li><span class="accent3">1.0 (2026)</span>: stacks GA, redesigned CLI, and — after 10 years — a compat promise.</li>
+          <li>It's wrappers all the way down: providers ← terraform/tofu ← terragrunt.</li>
+        </ul>
+        <p class="small muted">docs: <code>terragrunt.gruntwork.io</code> · atmos: <code>atmos.tools</code> — Thanks!</p>
+        <aside class="notes">
+          Closing line: if your Terraform repo has a wiki page titled "deploy order",
+          you already need Terragrunt — you're just running it by hand.
+        </aside>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/reveal.js@5.1.0/dist/reveal.js"></script>
+  <script src="https://unpkg.com/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+  <script src="https://unpkg.com/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+  <script>
+    Reveal.initialize({
+      hash: true,
+      slideNumber: 'c/t',
+      transition: 'slide',
+      controls: true,
+      progress: true,
+      plugins: [ RevealHighlight, RevealNotes ],
+    });
+  </script>
+</body>
+</html>

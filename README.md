@@ -12,6 +12,7 @@ A collection of small, self-contained experiments. Each subfolder is one experim
 - [steampipe-lightning-talk](steampipe-lightning-talk/) — A 3–5 minute reveal.js slide deck about Steampipe, with Kubernetes / AWS / aggregator / JSON examples and a DuckDB end note.
 - [jq-lightning-talk](jq-lightning-talk/) — A reveal.js slide deck about jq, its Turing-completeness, and the family of alternative implementations (gojq, jaq, fq, faq).
 - [esp32-iot-lightning-talk](esp32-iot-lightning-talk/) — A 5-minute reveal.js slide deck on using an ESP32 as an IoT sensor, shipping data to InfluxDB, and shipping firmware with OTA updates.
+- [terragrunt](terragrunt/) — A 10-minute reveal.js lightning talk on Terragrunt vs Terraform: units vs modules, DRY backend config, the dependency DAG, `run --all`, stacks, what Terragrunt 1.0 finished after ~10 years, and a quick Atmos comparison.
 - [climate-report](climate-report/) — Interactive climate-trend dashboard for Munich (warming trend with extrapolation to 2036, extremes, monthly heatmap, precipitation/sun/UV), built from real LMU and DWD data.
 - [gebrauchtwagen-kompass](gebrauchtwagen-kompass/) — Interactive used-car comparison dashboard (German) in a marine-compass theme: speed-dependent fuel curves, total cost of ownership, reliability dots and scale silhouettes.
 - [palestine-my-ass](palestine-my-ass/) — Interactive German fact-check page examining six accusations against journalist Sophie von der Tann, weighing each claim against counterpoints with verdict labels (light/dark theme).
