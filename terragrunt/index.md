@@ -20,38 +20,52 @@ experts — no "what is IaC" intro.
   - <kbd>f</kbd> fullscreen
   - <kbd>?</kbd> all shortcuts
 
-## What's in the talk (≈ 10 min, 13 slides)
+## What's in the talk (≈ 10 min, 15 slides)
 
 1. Title.
 2. **Where vanilla Terraform hurts** — the Terralith, the non-parameterizable
    `backend` block, duplicated provider config, no orchestrator across
    states, copy-paste promotion between environments.
-3. **Wrappers all the way down** — Terraform is itself an orchestrator of
+3. **"But Terraform has workspaces…"** — what workspaces wanted to solve
+   (cheap parallel states for *one* config: feature branches, ephemeral
+   envs) and why they don't isolate environments (same backend, same
+   credentials, same code version, invisible CLI state); where
+   `-var-file` + `-backend-config` *was* the right call (envs differ only
+   in values, one account, small estate) — and that a unit is that pattern
+   made first-class.
+4. **Wrappers all the way down** — Terraform is itself an orchestrator of
    single-binary provider plugins (go-plugin/gRPC); Terragrunt applies the
    same trick one level up and wraps the `tofu`/`terraform` binary.
-4. **Units vs modules** — module = reusable blueprint; unit = a deployed
+5. **Units vs modules** — module = reusable blueprint; unit = a deployed
    instance of a module with its own state and small blast radius.
-5. A unit in ~15 lines of `terragrunt.hcl` — module ref pinned per
+6. A unit in ~15 lines of `terragrunt.hcl` — module ref pinned per
    environment, promotion = bump one `ref`.
-6. **DRY backend & provider** — `remote_state` + `generate` in a single
+7. **DRY backend & provider** — `remote_state` + `generate` in a single
    `root.hcl`; the directory path becomes the state key.
-7. **`dependency` blocks** — outputs of one state wired into another,
+8. **`dependency` blocks** — outputs of one state wired into another,
    `mock_outputs` for planning not-yet-existing environments, all edges
    forming a DAG.
-8. **`run --all`** — the missing orchestrator: DAG-ordered plans/applies,
+9. **`run --all`** — the missing orchestrator: DAG-ordered plans/applies,
    reverse-order destroys, `--filter` (paths / git-changed).
-9. The problem Terragrunt created: hundreds of near-identical
-   `terragrunt.hcl` files (`_envcommon/` hacks).
-10. **Stacks** — `terragrunt.stack.hcl` with `unit`/`stack` blocks +
+10. The problem Terragrunt created: hundreds of near-identical
+    `terragrunt.hcl` files (`_envcommon/` hacks).
+11. **Stacks** — `terragrunt.stack.hcl` with `unit`/`stack` blocks +
     `terragrunt stack generate`; one versioned file per environment.
-11. **Terragrunt 1.0** (2026-03-30) — stacks GA, backwards-compatibility
+12. **Terragrunt 1.0** (2026-03-30) — stacks GA, backwards-compatibility
     guarantee (real semver), CLI redesign (`run-all` → `run --all`, new
     `exec`/`find`/`list`/`backend` commands, 7 targeting flags → one
     `--filter`), OpenTofu preferred.
-12. **Terragrunt vs Atmos** — HCL + filesystem hierarchy vs YAML stack
+13. **Secrets & backend init, compared** — Terraform: `TF_VAR_*`,
+    Vault/SSM data sources, `sensitive` (masks logs, doesn't encrypt),
+    ephemeral values; Terragrunt: `sops_decrypt_file()` (encrypted secrets
+    in git next to the unit), per-unit `iam_role`; both leak into state in
+    plaintext. Backend: static `backend` block + pre-existing bucket
+    (chicken & egg) vs generated `remote_state` + auto-init +
+    `terragrunt backend bootstrap`/`migrate`.
+14. **Terragrunt vs Atmos** — HCL + filesystem hierarchy vs YAML stack
     manifests + deep-merge imports; thin wrapper vs full framework; rule of
     thumb for choosing.
-13. tl;dr.
+15. tl;dr.
 
 ## Sources
 
@@ -59,3 +73,6 @@ experts — no "what is IaC" intro.
 - [Gruntwork: Terragrunt 1.0 released!](https://www.gruntwork.io/blog/terragrunt-1-0-released)
 - [Gruntwork: The road to Terragrunt 1.0](https://www.gruntwork.io/blog/the-road-to-terragrunt-1-0) (stacks, CLI redesign, release schedule)
 - [Atmos docs](https://atmos.tools/) — components, stacks, [Terragrunt migration notes](https://atmos.tools/migration/terragrunt).
+- [Gruntwork: A comprehensive guide to managing secrets in your Terraform code](https://www.gruntwork.io/blog/a-comprehensive-guide-to-managing-secrets-in-your-terraform-code)
+- [Terragrunt: State backend & `backend bootstrap`](https://terragrunt.gruntwork.io/docs/features/state-backend)
+- [Terraform docs: Workspaces](https://developer.hashicorp.com/terraform/language/state/workspaces) — including the caveat that they're not meant for strong environment isolation.

@@ -128,6 +128,42 @@
         </aside>
       </section>
 
+      <!-- 2b: workspaces & tfvars -->
+      <section>
+        <h2>"But Terraform has workspaces…" <span class="tag">advice</span></h2>
+        <div class="grid-2 small">
+          <div>
+            <h4 class="accent2">Workspaces wanted to solve</h4>
+            <p class="xsmall">Multiple states for <em>one</em> configuration — cheap parallel copies (feature branches, spikes, ephemeral test envs).</p>
+            <ul class="xsmall">
+              <li>Same backend, same credentials, <span class="accent">same code version</span> for every workspace</li>
+              <li>Active workspace = invisible CLI state → "applied to prod by accident"</li>
+              <li><code>terraform.workspace</code> conditionals scatter env logic through the code</li>
+              <li>Even HashiCorp's docs say: <em>not</em> for strong dev/prod isolation</li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="accent3">Where <code>-var-file</code> was the right call</h4>
+            <pre style="font-size:0.55em"><code class="language-bash" data-trim>
+terraform init  -backend-config=envs/prod.backend.hcl
+terraform apply -var-file=envs/prod.tfvars
+            </code></pre>
+            <ul class="xsmall">
+              <li>Envs differ <span class="accent3">only in values</span> — same structure, same version, one account</li>
+              <li>Small estate, one team → simplest thing that works</li>
+              <li>Breaks down when envs need different <em>module versions</em>, accounts/roles, or shape</li>
+            </ul>
+          </div>
+        </div>
+        <p class="xsmall muted">A unit is essentially "tfvars + backend-config + version pin" made <span class="accent">first-class and per-directory</span> — Terragrunt passes <code>inputs</code> as <code>TF_VAR_*</code> under the hood.</p>
+        <aside class="notes">
+          Advice framing: workspaces are fine for ephemeral copies of the SAME thing.
+          The moment envs drift in version, account or shape, you're fighting the tool.
+          tfvars + partial backend config is the honest small-scale path — Terragrunt is
+          that pattern, industrialized.
+        </aside>
+      </section>
+
       <!-- 3: Wrappers all the way down -->
       <section>
         <h2>Wrappers all the way down</h2>
@@ -352,6 +388,45 @@ stack "observability" {                    # stacks compose stacks
           The compat guarantee is the real 1.0 feature — teams can finally upgrade
           without reading 40 changelog entries. Ten years from "hack around the backend
           block" to a stable product.
+        </aside>
+      </section>
+
+      <!-- 11b: secrets & backend init -->
+      <section>
+        <h2>Secrets &amp; backend init, compared</h2>
+        <table>
+          <thead><tr><th></th><th class="accent2">Terraform / OpenTofu</th><th>with Terragrunt</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Secrets in</td>
+              <td class="xsmall"><code>TF_VAR_*</code> env vars, Vault/SSM/Secrets-Manager <em>data sources</em>, <code>sensitive</code> flag (masks logs only), ephemeral values (≥ 1.10), OpenTofu state encryption</td>
+              <td class="xsmall"><code>sops_decrypt_file("secrets.yaml")</code> → encrypted secrets live <em>in git, next to the unit</em> (KMS/age/GPG); <code>get_env()</code>; per-unit <code>iam_role</code> / <code>--auth-provider-cmd</code> → different credentials per env</td>
+            </tr>
+            <tr>
+              <td>Caveat</td>
+              <td class="xsmall" colspan="2"><span class="accent">both:</span> values written to a resource end up <strong>in state in plaintext</strong> — <code>sensitive</code> ≠ encryption; encrypt the state at rest (or OpenTofu client-side)</td>
+            </tr>
+            <tr>
+              <td>Backend config</td>
+              <td class="xsmall">static <code>backend</code> block, no variables; DRY only via <code>init -backend-config=…</code> per env</td>
+              <td class="xsmall">one <code>remote_state</code> in <code>root.hcl</code>, generated per unit, path ⇒ state key</td>
+            </tr>
+            <tr>
+              <td>Backend <em>exists</em>?</td>
+              <td class="xsmall">chicken &amp; egg: bucket/lock table must pre-exist (bootstrap stack or clickops)</td>
+              <td class="xsmall"><code>terragrunt backend bootstrap</code> creates + configures them (versioning, encryption, locking); <code>backend migrate</code> moves state</td>
+            </tr>
+            <tr>
+              <td><code>init</code></td>
+              <td class="xsmall">manual, per root module, easy to forget after changes</td>
+              <td class="xsmall">auto-init before every run</td>
+            </tr>
+          </tbody>
+        </table>
+        <aside class="notes">
+          Two honest points: Terragrunt does NOT fix the state-plaintext problem — nothing
+          wrapping terraform can. It fixes the workflow around secrets (SOPS in git, per-unit
+          roles). And it kills the backend chicken-and-egg: bootstrap is a command, not a wiki page.
         </aside>
       </section>
 
