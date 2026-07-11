@@ -189,6 +189,37 @@ terraform apply -var-file=envs/prod.tfvars
         </aside>
       </section>
 
+      <!-- 3b: how it works internally -->
+      <section>
+        <h2>Under the hood: one <code>terragrunt apply</code></h2>
+        <div class="grid-2">
+          <div>
+            <ol class="xsmall">
+              <li><span class="accent">Parse &amp; merge config</span> — read <code>terragrunt.hcl</code>, walk up the tree for <code>include</code>s, evaluate HCL functions (<code>find_in_parent_folders()</code>, <code>path_relative_to_include()</code>, …).</li>
+              <li><span class="accent">Resolve <code>dependency</code> blocks</span> — run <code>tofu output -json</code> in each upstream unit (or substitute <code>mock_outputs</code>).</li>
+              <li><span class="accent">Fetch the module source</span> — via <em>go-getter</em> (same library Terraform uses) into <code>.terragrunt-cache/&lt;hash&gt;/</code>.</li>
+              <li><span class="accent">Generate files</span> — write <code>backend.tf</code>, <code>provider.tf</code>, … into that working dir.</li>
+            </ol>
+          </div>
+          <div>
+            <ol class="xsmall" start="5">
+              <li><span class="accent">Prepare the environment</span> — <code>inputs</code> become <code>TF_VAR_*</code> env vars; assume the unit's <code>iam_role</code> if set.</li>
+              <li><span class="accent">Auto-<code>init</code></span> if needed (and bootstrap the backend if asked).</li>
+              <li><span class="accent">Run hooks &amp; exec</span> — <code>before_hook</code>s, then fork the real <code>tofu</code>/<code>terraform</code> as a subprocess, stream its output, retry on known transient errors, <code>after_hook</code>s / <code>error_hook</code>s.</li>
+            </ol>
+            <p class="xsmall muted"><code>run --all</code> = do the above per unit, scheduled over the <span class="accent3">dependency DAG</span> with a parallel worker queue.</p>
+          </div>
+        </div>
+        <p class="small muted">No daemon, no state of its own, no lock-in: delete <code>terragrunt.hcl</code> + <code>.terragrunt-cache/</code> and you're back to plain Terraform.</p>
+        <aside class="notes">
+          Demystify: Terragrunt is a config preprocessor + process supervisor.
+          Everything it "does" is either a generated file, an env var, or a subprocess call.
+          .terragrunt-cache is disposable; the state stays wherever your backend is.
+          Debug tip: `terragrunt render --json` shows the fully-evaluated config,
+          and the cache dir contains exactly what terraform actually saw.
+        </aside>
+      </section>
+
       <!-- 4: Units vs modules -->
       <section>
         <h2>The core concept: <span class="accent">units</span> vs modules</h2>
