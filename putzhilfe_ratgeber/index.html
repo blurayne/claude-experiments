@@ -203,6 +203,19 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .resetrow button { font: inherit; font-size: .78rem; color: var(--ink-muted); background: none; border: 1px solid var(--border); border-radius: 8px; padding: 4px 10px; cursor: pointer; }
 
 .twocol { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+
+/* Vorlagen */
+.tmpl { position: relative; border: 1px solid var(--border); border-radius: 12px; background: var(--page); padding: 16px 18px 14px; margin-top: 14px; }
+.tmpl h4 { margin: 0 0 10px; font-size: .95rem; padding-right: 90px; }
+.tmpl .body { white-space: pre-wrap; font-size: .9rem; color: var(--ink-2); line-height: 1.5; }
+.tmpl .body b { color: var(--ink-1); }
+.copybtn { position: absolute; top: 12px; right: 12px; font: inherit; font-size: .75rem; color: var(--ink-2); background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px; padding: 4px 10px; cursor: pointer; }
+.copybtn:hover { color: var(--ink-1); border-color: var(--baseline); }
+.signal { display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: baseline; margin: 7px 0; font-size: .92rem; }
+.signal .s { font-weight: 700; }
+.signal .s.good { color: var(--good-text); }
+.signal .s.bad { color: var(--critical); }
+.signal .s.neut { color: var(--ink-muted); }
 .srclist { font-size: .85rem; }
 .srclist li { margin: 6px 0; }
 footer { margin-top: 60px; color: var(--ink-muted); font-size: .8rem; border-top: 1px solid var(--grid); padding-top: 16px; }
@@ -228,6 +241,7 @@ footer { margin-top: 60px; color: var(--ink-muted); font-size: .8rem; border-top
   <a href="#rechner">Kostenrechner</a>
   <a href="#wege">Die 3 legalen Wege</a>
   <a href="#plattformen">Plattformen</a>
+  <a href="#anzeige">Anzeige &amp; Antworten</a>
   <a href="#sparen">Kosten sparen</a>
   <a href="#sicherheit">Sicherheit</a>
   <a href="#katzen">Katzen &amp; Kind</a>
@@ -403,6 +417,93 @@ footer { margin-top: 60px; color: var(--ink-muted); font-size: .8rem; border-top
       </tbody>
     </table>
     <p class="footnote">Preise sind Marktbeobachtungen (Quellen unten), keine Garantie – in München liegt fast alles am oberen Ende der bundesweiten Spannen.</p>
+  </div>
+</section>
+
+<!-- ============ ANZEIGE & ANTWORTEN ============ -->
+<section id="anzeige">
+  <h2>Anzeige schalten &amp; Bewerbungen beantworten</h2>
+  <p class="kicker">Vorlagen zum Kopieren · und woran ihr gute Bewerbungen erkennt</p>
+
+  <div class="card">
+    <h3 style="margin-top:0">Die Anzeige (Kleinanzeigen, nebenan.de, Aushang)</h3>
+    <p>Drei Dinge machen eine Anzeige gut: <strong>Lohn nennen</strong> (filtert Preisverhandler und zeigt Fairness), <strong>„angemeldet“ nennen</strong> (filtert früh, wer nur schwarz will) und <strong>konkrete Rückfragen stellen</strong> (wer sie beantwortet, hat wirklich gelesen – das erste Zuverlässigkeits-Signal). Geschlechtsneutral formulieren (m/w/d).</p>
+    <div class="tmpl">
+      <h4>Vorlage: Anzeigentext</h4>
+      <button class="copybtn" type="button">Kopieren</button>
+      <div class="body"><b>Putzhilfe gesucht (m/w/d) – Minijob, offiziell angemeldet &amp; fair bezahlt – [Stadtteil], ca. 3 h/Woche</b>
+
+Hallo! Wir sind eine Familie in [Stadtteil] (zwei Berufstätige, ein Schulkind, zwei verschmuste Wohnungskatzen) und suchen ab [Monat] eine zuverlässige Putzhilfe.
+
+• Umfang: ca. [3] Stunden pro Woche, Wochentag nach Absprache
+• Wohnung: ca. [80] m², [3] Zimmer, [Etage/Aufzug, ÖPNV-Anbindung]
+• Aufgaben: Bäder, Küche, Böden, Staub; gelegentlich Fenster
+• Lohn: [18] €/h, pünktlich per Überweisung
+• Wir melden dich offiziell bei der Minijob-Zentrale an und übernehmen alle Abgaben und den Papierkram. Für dich heißt das: voller Lohn wie besprochen, dazu bezahlter Urlaub, Lohnfortzahlung bei Krankheit und gesetzliche Unfallversicherung.
+• Der erste Termin ist ein bezahltes Probeputzen.
+
+Schreib uns bitte kurz: Wer bist du? Welche Erfahrung hast du, und kannst du 1–2 Referenzen aus früheren Haushalten nennen? An welchen Tagen kannst du regelmäßig? Wichtig wegen der Katzen: keine Tierhaarallergie – und Türen und Fenster müssen im Blick bleiben.
+
+Wir freuen uns auf deine Nachricht!</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h3 style="margin-top:0">Bewerbungen lesen: die Signale</h3>
+    <p>Auf eine Münchner Anzeige kommen schnell 10–30 Antworten – von der persönlichen Nachricht bis zum Massen-Copy-Paste. So sortiert ihr:</p>
+    <div class="signal"><span class="s good">✓</span><span><strong>Geht auf <em>eure</em> Anzeige ein</strong> (erwähnt Katzen, Kind, eure Zeiten) – die Person hat gelesen und meint euch, nicht irgendeinen Job.</span></div>
+    <div class="signal"><span class="s good">✓</span><span><strong>Nennt konkrete, prüfbare Erfahrung</strong> („2 Jahre Privathaushalt in Sendling“, „Arztpraxis“) statt Adjektiv-Listen – und im Idealfall Referenzen, die ihr anrufen könnt.</span></div>
+    <div class="signal"><span class="s good">✓</span><span><strong>Schlägt selbst ein Probeputzen oder Kennenlernen vor</strong> – wer die Prüfung anbietet, hat nichts zu verbergen.</span></div>
+    <div class="signal"><span class="s good">✓</span><span><strong>Antwortet zügig und verbindlich auf Rückfragen.</strong> Das Kommunikationsverhalten <em>vor</em> dem ersten Termin ist der beste Prädiktor für Zuverlässigkeit danach.</span></div>
+    <div class="signal"><span class="s neut">○</span><span><strong>Unperfektes Deutsch (z. B. B1) ist kein Warnsignal</strong> – fürs Putzen ist Sorgfalt wichtiger als Grammatik, und Übersetzungs-Apps schließen die Lücke. Beurteilt die Mühe, nicht die Sprache.</span></div>
+    <div class="signal"><span class="s neut">○</span><span><strong>Auszubildende/Studierende:</strong> oft motiviert und flexibel, aber mit begrenztem Zeithorizont (Semester, Examen, Umzug) – einplanen, nicht ausschließen.</span></div>
+    <div class="signal"><span class="s bad">✗</span><span><strong>Austauschbarer Textbaustein</strong>, der auf jede Anzeige passt (manchmal sogar mit vergessenen Platzhaltern), keine einzige konkrete Angabe, keine Referenzen → aussortieren oder mit den drei Rückfragen unten testen.</span></div>
+    <div class="signal"><span class="s bad">✗</span><span><strong>Besteht auf bar und „ohne Anmeldung“</strong>, weicht der Frage aus oder will sofort den Schlüssel → weitersuchen.</span></div>
+    <h3>„Eher männlich oder weiblich?“ – egal.</h3>
+    <p>Zuverlässigkeit und Ehrlichkeit hängen an <strong>prüfbaren Referenzen, Kommunikationsverhalten und Nähe zur Wohnung</strong> (kurzer Anfahrtsweg = weniger Ausfälle) – nicht an Geschlecht, Alter oder Herkunft. Der Markt ist überwiegend weiblich, ihr werdet also meist Bewerberinnen sehen; die Anzeige formuliert ihr trotzdem neutral (m/w/d), und auswählen dürft ihr im Privathaushalt ohnehin frei nach Vertrauen.</p>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h3 style="margin-top:0">Antwort-Vorlagen</h3>
+    <div class="tmpl">
+      <h4>1 · Interessiert → Rückfragen + Einladung</h4>
+      <button class="copybtn" type="button">Kopieren</button>
+      <div class="body">Hallo [Name],
+
+danke für deine Nachricht – das klingt gut! Bevor wir uns kennenlernen, drei kurze Fragen:
+
+1. Kannst du uns 1–2 Referenzen nennen (frühere Haushalte oder Arbeitgeber, gern mit Telefonnummer)?
+2. Welche Tage und Uhrzeiten passen dir regelmäßig, und wo wohnst du ungefähr?
+3. Wir melden das Arbeitsverhältnis offiziell als Minijob an – wir zahlen die Abgaben und machen den kompletten Papierkram, an deinem Auszahlungsbetrag ändert sich dadurch nichts. Ist das okay für dich? Und hast du aktuell weitere Minijobs oder einen Hauptjob? (Brauchen wir nur für die Anmeldung.)
+
+Wenn das passt, lernen wir uns gern kurz bei uns zu Hause kennen – z. B. [Terminvorschlag] – und vereinbaren danach ein bezahltes Probeputzen (ca. [2–3] Stunden, [18] €/h per Überweisung).
+
+Viele Grüße
+[Name]</div>
+    </div>
+    <div class="tmpl">
+      <h4>2 · Zusage nach dem Probeputzen</h4>
+      <button class="copybtn" type="button">Kopieren</button>
+      <div class="body">Hallo [Name],
+
+das Probeputzen war super – wir würden uns freuen, wenn du regelmäßig kommst: [Wochentag], [3] Stunden, [18] €/h, Überweisung jeweils zum Monatsende.
+
+Wir schicken diese Woche die Anmeldung an die Minijob-Zentrale. Dafür brauchen wir noch: Geburtsdatum, Anschrift und (falls vorhanden) deine Rentenversicherungsnummer. Außerdem: Möchtest du den eigenen Rentenbeitrag (13,6 %) zahlen oder dich davon befreien lassen? Das Formular bringen wir mit – zusammen mit einem kurzen schriftlichen Arbeitsvertrag und unserer Katzen-Infoliste, die wir einmal gemeinsam durchgehen.
+
+Bis [Datum], wir freuen uns!
+[Name]</div>
+    </div>
+    <div class="tmpl">
+      <h4>3 · Freundliche Absage</h4>
+      <button class="copybtn" type="button">Kopieren</button>
+      <div class="body">Hallo [Name],
+
+vielen Dank für deine Nachricht und dein Interesse! Wir haben uns inzwischen für eine andere Person entschieden, die zeitlich besser zu uns passt. Dir alles Gute bei der Suche – und danke, dass du dir die Zeit genommen hast.
+
+Viele Grüße
+[Name]</div>
+    </div>
+    <p class="footnote">Absagen kosten 20 Sekunden und sind in diesem Markt selten – wer sie verschickt, bleibt positiv in Erinnerung (und München ist ein Dorf).</p>
   </div>
 </section>
 
@@ -744,6 +845,23 @@ function wireChecklists() {
   });
 }
 wireChecklists();
+
+/* Vorlagen kopieren */
+document.querySelectorAll(".tmpl .copybtn").forEach(btn => {
+  btn.addEventListener("click", async () => {
+    const text = btn.closest(".tmpl").querySelector(".body").innerText;
+    try {
+      await navigator.clipboard.writeText(text);
+      btn.textContent = "Kopiert ✓";
+    } catch {
+      const ta = document.createElement("textarea");
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      document.execCommand("copy"); ta.remove();
+      btn.textContent = "Kopiert ✓";
+    }
+    setTimeout(() => btn.textContent = "Kopieren", 1800);
+  });
+});
 </script>
 </body>
 </html>

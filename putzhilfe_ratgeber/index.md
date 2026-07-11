@@ -14,6 +14,9 @@ Stand: Juli 2026, per Deep-Research mit adversarialer Quellen-Verifikation erste
 - **Die drei legalen Wege** und die Risiken von Schwarzarbeit.
 - **Plattformen & Wege in München** — Vergleichstabelle (Haushaltsjob-Börse, Helpling,
   Betreut.de, nebenan.de, Kleinanzeigen, lokale Agenturen …).
+- **Anzeige & Antworten** — kopierbare Vorlagen (Anzeigentext für Kleinanzeigen/nebenan.de,
+  Einladung mit Rückfragen, Zusage, Absage) und ein Leitfaden, woran man zuverlässige
+  Bewerbungen erkennt.
 - **Legal Kosten sparen** — § 35a, U1-Erstattung & Co.
 - **Sicherheit & Vertrauen** — Auswahl, Referenzen, Schlüssel, Haftung, Diebstahlprävention.
 - **Katzen & Kind** — Briefing und katzensichere Reinigungsmittel.
