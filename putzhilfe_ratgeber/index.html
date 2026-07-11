@@ -162,6 +162,15 @@ input[type=range] { width: 100%; accent-color: var(--series-1); margin: 0; heigh
 .baxis { border-left: 2px solid var(--baseline); position: absolute; inset: 0; pointer-events: none; }
 
 .abgaben-detail { margin-top: 22px; }
+.taxbox {
+  margin-top: 16px; border: 1px solid var(--border); border-left: 4px solid var(--series-1);
+  border-radius: 12px; background: var(--accent-wash); padding: 16px 18px 12px;
+}
+.taxbox h4 { margin: 0 0 8px; font-size: .95rem; }
+.taxbox p, .taxbox li { font-size: .9rem; }
+.taxbox ul { padding-left: 20px; margin: 8px 0; }
+.taxbox li { margin: 5px 0; }
+#taxExample b.good { color: var(--good-text); }
 details.abg { border: 1px solid var(--border); border-radius: 10px; background: var(--page); }
 details.abg summary { cursor: pointer; padding: 10px 14px; font-size: .88rem; color: var(--ink-2); }
 details.abg[open] summary { border-bottom: 1px solid var(--grid); }
@@ -339,6 +348,17 @@ footer { margin-top: 60px; color: var(--ink-muted); font-size: .8rem; border-top
           <p class="footnote" id="abgFoot"></p>
         </div>
       </details>
+    </div>
+
+    <div class="taxbox">
+      <h4>Was ist die „Steuerermäßigung nach § 35a EStG“?</h4>
+      <p>Ein <strong>direkter Steuerrabatt</strong> für legal beschäftigte Haushaltshilfen: Der Staat zieht <strong>20 % eurer Kosten unmittelbar von der Einkommensteuer</strong> ab – nicht nur vom zu versteuernden Einkommen. 100 € Ermäßigung = 100 € weniger Steuer, unabhängig von eurem Steuersatz. Es gelten zwei Deckel:</p>
+      <ul>
+        <li><strong>Minijob (Haushaltsscheck):</strong> 20 % von Lohn + Abgaben, max. <strong>510 €/Jahr</strong>. Nachweis: die Bescheinigung, die euch die Minijob-Zentrale jedes Frühjahr automatisch schickt.</li>
+        <li><strong>Selbstständige / Firma / Plattform:</strong> 20 % der Arbeitskosten laut Rechnung, max. <strong>4.000 €/Jahr</strong> – nur mit Rechnung und <strong>Überweisung</strong> (Barzahlung streicht den Bonus komplett).</li>
+      </ul>
+      <p id="taxExample"></p>
+      <p class="footnote">Beantragen: eine Zeile in der Steuererklärung („Anlage Haushaltsnahe Aufwendungen“). Wer nicht auf den Bescheid warten will: Antrag auf Lohnsteuer-Ermäßigung beim Finanzamt, dann wirkt der Betrag schon monatlich beim Gehalt. Gilt einmal pro Haushalt.</p>
     </div>
   </div>
   <p class="footnote">Alle Werte gerundet, ohne Gewähr, keine Steuer- oder Rechtsberatung. Quellen und Stand siehe <a href="#quellen">unten</a>.</p>
@@ -806,6 +826,21 @@ function calc() {
         <span class="bval" style="left:calc(${w}% + 8px)">${eur(d.v, 0)}</span>
       </div></div>`;
   }).join("");
+
+  /* §35a-Beispiel (dynamisch zu den Slidern) */
+  const totalYear = totalM * 12, abgYear = abgM * 12;
+  const bonusYear = Math.min(totalYear * CFG.tax35a.minijob.pct / 100, CFG.tax35a.minijob.capYear);
+  const vsSchwarz = bonusYear - abgYear;
+  $("taxExample").innerHTML =
+    `<strong>Mit euren aktuellen Slider-Werten</strong> (${fmt(hours, hours % 1 ? 2 : 1).replace(",00",",0")} h/Woche à ${eur(wageM)} im Minijob): ` +
+    `Jahreskosten ${eur(totalYear, 0)} → 20 % = ` +
+    (totalYear * 0.2 > CFG.tax35a.minijob.capYear
+      ? `${eur(totalYear * 0.2, 0)}, gedeckelt auf <b>${eur(CFG.tax35a.minijob.capYear, 0)}</b>`
+      : `<b>${eur(bonusYear, 0)}</b>`) +
+    ` Steuererstattung pro Jahr. Die Arbeitgeber-Abgaben kosten euch ${eur(abgYear, 0)}/Jahr – ` +
+    (vsSchwarz >= 0
+      ? `der Steuerbonus ist also <b class="good">${eur(vsSchwarz, 0)} größer als die Abgaben</b>: Legal angemeldet ist unterm Strich <b class="good">billiger als schwarz</b> (bei gleichem Auszahlungsbetrag an die Putzhilfe).`
+      : `der Steuerbonus deckt davon ${eur(bonusYear, 0)} – legal kostet euch netto nur ${eur(-vsSchwarz, 0)}/Jahr mehr als schwarz, inklusive voller Absicherung.`);
 
   /* Abgaben-Tabelle */
   $("abgSumLbl").textContent = fmt(abgabenTotalRate) + " %";
