@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dossier: Der Fall Sophie von der Tann (Neufassung 2026-07-11)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #FAF9F6;
+    --panel: #FFFFFF;
+    --ink: #17181A;
+    --muted: #55595F;
+    --faint: #8A8E95;
+    --hair: #E6E3DD;
+    --hair-strong: #D2CEC6;
+    --spine: #C4BFB6;
+    --accent: #B24A21;          /* Terracotta — Leitfarbe */
+    --accent-soft: #F4E4DC;
+    --claim-bg: #FDF6F3;
+    --claim-edge: #D8A08C;
+    --claim-label: #A03D22;
+    --counter-bg: #F2F6F1;
+    --counter-edge: #9DBCA2;
+    --counter-label: #2F6B45;
+    --v-debate: #A67C00;
+    --v-interp: #6A55B8;
+    --v-unver:  #6B7480;
+    --v-refut:  #1F7A5F;
+    --shadow: 0 10px 30px rgba(23,24,26,.07);
+  }
+  [data-theme="dark"] {
+    --paper: #111213;
+    --panel: #191A1C;
+    --ink: #ECEAE6;
+    --muted: #A3A19C;
+    --faint: #75736E;
+    --hair: #2A2B2D;
+    --hair-strong: #3A3B3E;
+    --spine: #46474A;
+    --accent: #E58256;
+    --accent-soft: #33221B;
+    --claim-bg: #221A17;
+    --claim-edge: #6B4434;
+    --claim-label: #DE9578;
+    --counter-bg: #17211A;
+    --counter-edge: #3E5A45;
+    --counter-label: #86BD97;
+    --v-debate: #D9A83F;
+    --v-interp: #A490D6;
+    --v-unver:  #9099A6;
+    --v-refut:  #55B392;
+    --shadow: 0 12px 34px rgba(0,0,0,.35);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 110px; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif; font-size: 16px; line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    transition: background .3s ease, color .3s ease;
+  }
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 0 26px; }
+
+  /* ---------- progress + top bar + toc ---------- */
+  .progress { position: fixed; top: 0; left: 0; height: 3px; width: 0; background: var(--accent); z-index: 90; transition: width .08s linear; }
+  header.bar {
+    position: sticky; top: 0; z-index: 60;
+    background: color-mix(in srgb, var(--paper) 92%, transparent);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--hair);
+  }
+  .bar-in { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 26px 9px; max-width: 1060px; margin: 0 auto; }
+  .bar-tag { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); }
+  .bar-tag b { color: var(--accent); font-weight: 600; }
+  .toggle {
+    border: 1px solid var(--hair-strong); background: transparent; color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+    padding: 6px 12px; border-radius: 3px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px;
+  }
+  .toggle:hover { border-color: var(--accent); color: var(--ink); }
+  .toggle .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+  nav.toc { max-width: 1060px; margin: 0 auto; padding: 0 26px 10px; display: flex; gap: 4px; overflow-x: auto; }
+  nav.toc a {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .06em; white-space: nowrap;
+    color: var(--muted); text-decoration: none; padding: 5px 11px; border: 1px solid var(--hair); border-radius: 3px;
+  }
+  nav.toc a:hover { color: var(--accent); border-color: var(--accent); }
+
+  /* ---------- hero ---------- */
+  .hero { padding: 78px 0 46px; border-bottom: 4px double var(--hair-strong); }
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: .26em; text-transform: uppercase;
+    color: var(--accent); margin: 0 0 20px; font-weight: 500;
+  }
+  h1 {
+    font-family: 'Sora', sans-serif; font-weight: 800;
+    font-size: clamp(2.2rem, 6vw, 4rem); line-height: 1.02; letter-spacing: -.035em;
+    margin: 0 0 22px; max-width: 20ch; text-wrap: balance;
+  }
+  h1 em { font-style: normal; color: var(--accent); }
+  .lede { font-size: clamp(1.02rem, 1.8vw, 1.15rem); color: var(--muted); max-width: 66ch; margin: 0 0 6px; line-height: 1.7; }
+
+  .glance {
+    margin-top: 40px; background: var(--panel); border: 1px solid var(--hair);
+    border-left: 5px solid var(--accent); border-radius: 4px; padding: 28px 32px; box-shadow: var(--shadow);
+  }
+  .glance h2 { font-family: 'Sora', sans-serif; font-size: 13px; letter-spacing: .18em; text-transform: uppercase; color: var(--accent); margin: 0 0 16px; font-weight: 700; }
+  .glance p { margin: 0 0 14px; font-size: 15.5px; }
+  .glance p:last-child { margin-bottom: 0; }
+  .pull { font-family: 'Sora', sans-serif; font-weight: 600; font-size: 1.12rem; line-height: 1.55; letter-spacing: -.01em; margin: 0 0 16px; }
+  .legend { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 26px; margin-top: 22px; padding-top: 20px; border-top: 1px dashed var(--hair-strong); }
+  .leg { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: var(--muted); }
+  .leg .sw { flex: 0 0 auto; width: 12px; height: 12px; border-radius: 2px; margin-top: 5px; }
+  .leg b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- context ---------- */
+  .context { padding: 44px 0; border-bottom: 1px solid var(--hair); }
+  .sec-label {
+    font-family: 'Sora', sans-serif; font-size: clamp(1.15rem, 2.6vw, 1.55rem); font-weight: 700; letter-spacing: -.02em;
+    color: var(--ink); margin: 0 0 26px; padding-bottom: 12px; border-bottom: 3px solid var(--accent); display: inline-block;
+  }
+  .ctx-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-bottom: 24px; }
+  .ctx-meta div { font-size: 13.5px; color: var(--muted); background: var(--panel); border: 1px solid var(--hair); border-radius: 4px; padding: 13px 16px; }
+  .ctx-meta div b { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; font-weight: 600; }
+  .ctx-meta div span { color: var(--ink); }
+  .ctx-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .ctx-card { background: var(--panel); border: 1px solid var(--hair); border-radius: 4px; padding: 20px 22px; }
+  .ctx-card.crit { border-top: 4px solid var(--claim-label); }
+  .ctx-card.def  { border-top: 4px solid var(--counter-label); }
+  .ctx-card h3 { font-family: 'Sora', sans-serif; font-size: 13px; text-transform: uppercase; letter-spacing: .08em; margin: 0 0 12px; font-weight: 700; }
+  .ctx-card.crit h3 { color: var(--claim-label); }
+  .ctx-card.def h3 { color: var(--counter-label); }
+  .ctx-card ul { margin: 0; padding: 0; list-style: none; }
+  .ctx-card li { font-size: 14px; color: var(--muted); padding: 6px 0 6px 18px; position: relative; line-height: 1.5; }
+  .ctx-card li::before { content:"—"; position: absolute; left: 0; color: var(--spine); }
+  .ctx-card li b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- cards ---------- */
+  .aspects { padding: 52px 0 14px; }
+  .card {
+    background: var(--panel); border: 1px solid var(--hair); border-radius: 4px;
+    margin-bottom: 26px; overflow: hidden;
+  }
+  .card:hover { box-shadow: var(--shadow); }
+  .card-head { display: flex; align-items: flex-start; gap: 18px; padding: 22px 26px 18px; border-bottom: 1px dashed var(--hair-strong); }
+  .num {
+    font-family: 'Sora', sans-serif; font-size: 1.05rem; font-weight: 800; line-height: 1;
+    flex: 0 0 auto; min-width: 46px; min-height: 46px; display: inline-flex; align-items: center; justify-content: center;
+    border: 2px solid var(--accent); color: var(--accent); border-radius: 3px; padding: 4px;
+  }
+  .card-head .htxt { flex: 1; }
+  .card-head h3 { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 1.25rem; line-height: 1.22; margin: 0 0 5px; letter-spacing: -.02em; }
+  .card-head .sub { font-size: 12.5px; color: var(--faint); font-family: 'IBM Plex Mono', monospace; letter-spacing: .02em; }
+
+  .chip {
+    flex: 0 0 auto; display: inline-flex; align-items: center; gap: 7px; align-self: flex-start;
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+    padding: 6px 10px; border-radius: 2px; border-left: 3px solid; white-space: nowrap;
+  }
+  .chip .pip { display: none; }
+  .chip.debate { color: var(--v-debate); border-color: var(--v-debate); background: color-mix(in srgb, var(--v-debate) 10%, transparent); }
+  .chip.interp { color: var(--v-interp); border-color: var(--v-interp); background: color-mix(in srgb, var(--v-interp) 10%, transparent); }
+  .chip.unver  { color: var(--v-unver);  border-color: var(--v-unver);  background: color-mix(in srgb, var(--v-unver) 10%, transparent); }
+  .chip.refut  { color: var(--v-refut);  border-color: var(--v-refut);  background: color-mix(in srgb, var(--v-refut) 10%, transparent); }
+  .chip.hold   { color: var(--v-refut);  border-color: var(--v-refut);  background: color-mix(in srgb, var(--v-refut) 10%, transparent); }
+  .chip.over   { color: var(--v-debate); border-color: var(--v-debate); background: color-mix(in srgb, var(--v-debate) 10%, transparent); }
+
+  .ledger { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  .side { padding: 20px 26px 22px; }
+  .side.claim { border-right: 1px dashed var(--hair-strong); }
+  .side .stag {
+    font-family: 'Sora', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+    margin: 0 0 12px; padding: 4px 9px; display: inline-block; border-radius: 2px;
+  }
+  .side.claim .stag { color: var(--claim-label); background: var(--claim-bg); border-left: 3px solid var(--claim-label); }
+  .side.counter .stag { color: var(--counter-label); background: var(--counter-bg); border-left: 3px solid var(--counter-label); }
+  .side p { margin: 0 0 10px; font-size: 14.5px; line-height: 1.62; }
+  .side p:last-child { margin-bottom: 0; }
+  .side .muted { color: var(--muted); }
+
+  .verdict-row {
+    padding: 15px 26px; border-top: 1px solid var(--hair); background: color-mix(in srgb, var(--paper) 55%, var(--panel));
+    display: flex; gap: 14px; align-items: baseline; font-size: 14px;
+  }
+  .verdict-row .vk { font-family: 'Sora', sans-serif; font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); font-weight: 700; flex: 0 0 auto; }
+  .verdict-row .vt { color: var(--muted); }
+  .verdict-row .vt b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- cc list ---------- */
+  .cc-body { padding: 6px 26px 20px; }
+  .cc-item { padding: 16px 0; border-top: 1px solid var(--hair); }
+  .cc-item:first-child { border-top: none; }
+  .cc-item h4 { font-family: 'Sora', sans-serif; font-size: 14.5px; font-weight: 700; margin: 0 0 6px; letter-spacing: -.01em; }
+  .cc-item p { font-size: 14px; color: var(--muted); margin: 0 0 6px; line-height: 1.6; }
+  .cc-item p:last-child { margin-bottom: 0; }
+  .cc-item p b { color: var(--ink); font-weight: 600; }
+  .cc-item .src { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--faint); letter-spacing: .05em; text-transform: uppercase; display: inline-block; margin-top: 7px; border-top: 1px dashed var(--hair-strong); padding-top: 5px; }
+
+  /* ---------- journalism types ---------- */
+  .types { padding: 56px 0; }
+  .types .verdict-final, .conclude .verdict-final {
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--accent); margin: 0 0 14px; font-weight: 600;
+  }
+  .types h2, .conclude h2 { font-family: 'Sora', sans-serif; font-weight: 800; font-size: clamp(1.5rem, 3.6vw, 2.2rem); margin: 0 0 18px; letter-spacing: -.025em; line-height: 1.15; }
+  .types > p.intro { font-size: 15.5px; max-width: 70ch; margin: 0 0 30px; color: var(--muted); }
+  .jgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 26px; }
+  .jcard { background: var(--panel); border: 1px solid var(--hair); border-radius: 4px; padding: 24px 26px; }
+  .jcard.vdt { border-top: 4px solid var(--counter-label); }
+  .jcard.sms { border-top: 4px solid var(--claim-label); }
+  .jcard .role { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; margin-bottom: 9px; font-weight: 600; }
+  .jcard.vdt .role { color: var(--counter-label); }
+  .jcard.sms .role { color: var(--claim-label); }
+  .jcard h3 { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 1.2rem; margin: 0 0 4px; letter-spacing: -.02em; }
+  .jcard .kind { font-size: 13px; color: var(--faint); margin-bottom: 16px; }
+  .jcard .block { margin-bottom: 14px; }
+  .jcard .bl-h { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); margin-bottom: 5px; font-weight: 600; }
+  .jcard .bl-h.plus { color: var(--v-refut); }
+  .jcard .bl-h.minus { color: var(--v-debate); }
+  .jcard p { font-size: 14px; color: var(--muted); margin: 0; line-height: 1.58; }
+  .jcard p b { color: var(--ink); font-weight: 600; }
+  .jverdict { font-size: 13.5px; color: var(--ink); border-top: 1px dashed var(--hair-strong); margin-top: 16px; padding-top: 13px; }
+  .jverdict b { font-weight: 700; }
+  .synthesis { background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); border-left: 5px solid var(--accent); border-radius: 4px; padding: 24px 28px; }
+  .synthesis h4 { font-family: 'Sora', sans-serif; font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); margin: 0 0 12px; font-weight: 700; }
+  .synthesis p { font-size: 15px; margin: 0 0 12px; line-height: 1.65; }
+  .synthesis p:last-child { margin-bottom: 0; }
+
+  /* ---------- conclusion ---------- */
+  .conclude { padding: 56px 0 30px; border-top: 4px double var(--hair-strong); margin-top: 34px; }
+  .conclude p { font-size: 15.5px; max-width: 72ch; margin: 0 0 16px; }
+  .conclude p.muted { color: var(--muted); }
+  .scorebar { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 28px; }
+  .score {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .04em;
+    padding: 8px 12px; border-radius: 2px; border: 1px solid var(--hair-strong); color: var(--muted);
+    display: inline-flex; align-items: center; gap: 9px; background: var(--panel);
+  }
+  .score .pip { width: 10px; height: 10px; border-radius: 2px; }
+
+  /* ---------- footer ---------- */
+  footer { padding: 44px 0 80px; border-top: 1px solid var(--hair); color: var(--muted); font-size: 13px; }
+  footer h4 { font-family: 'Sora', sans-serif; font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); margin: 0 0 14px; font-weight: 700; }
+  .meth { background: var(--panel); border: 1px solid var(--hair); border-left: 5px solid var(--spine); border-radius: 4px; padding: 20px 24px; margin-bottom: 28px; }
+  .meth p { margin: 0; font-size: 13.5px; line-height: 1.65; }
+  .src-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 30px; }
+  .src-list a { color: var(--muted); text-decoration: none; border-bottom: 1px solid var(--hair-strong); padding: 4px 0; display: inline-block; }
+  .src-list a:hover { color: var(--accent); border-color: var(--accent); }
+  .stamp { margin-top: 28px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .05em; color: var(--faint); }
+
+  table { border-color: var(--hair); }
+
+  @media (max-width: 760px) {
+    .ledger, .jgrid, .ctx-grid, .legend, .src-list { grid-template-columns: 1fr; }
+    .side.claim { border-right: none; border-bottom: 1px dashed var(--hair-strong); }
+    .hero { padding: 54px 0 36px; }
+    .card-head { flex-wrap: wrap; }
+    .chip { order: 3; margin-left: 64px; }
+    .cc-item table { display: block; overflow-x: auto; }
+  }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<header class="bar">
+  <div class="bar-in">
+    <div class="bar-tag">Dossier · <b>Der Fall von der Tann</b> · <span style="color:var(--faint)">2026-07-11</span></div>
+    <button class="toggle" id="themeToggle" aria-label="Farbschema wechseln">
+      <span class="dot"></span><span id="toggleLabel">Dunkel</span>
+    </button>
+  </div>
+  <nav class="toc" aria-label="Abschnitte">
+    <a href="#kritik">1 · Kritikpunkte</a>
+    <a href="#entlastung">2 · Entlastung</a>
+    <a href="#akteure">3 · Akteure</a>
+    <a href="#genres">4 · Genres</a>
+    <a href="#ki">5 · KI-Experiment</a>
+    <a href="#fazit">Fazit</a>
+  </nav>
+</header>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <section class="hero">
+    <p class="eyebrow">Kritik &amp; Entlastung, geprüft</p>
+    <h1>Der Fall <em>Sophie von der Tann</em></h1>
+    <p class="lede">Zehn Kritikpunkte an der ARD-Korrespondentin, einzeln geprüft — und ebenso gebündelt, was für sie spricht. Dazu: Portraits der Kritiker und Verteidiger, die Frage nach der Legitimität der Journalismus-Arten, und ein Kontrollexperiment, was eine schnelle KI-Recherche aus derselben Frage macht.</p>
+
+    <div class="glance">
+      <h2>Befund in Kürze</h2>
+      <p class="pull">Kein Beleg für „Pro-Hamas-Journalismus" oder Antisemitismus — aber ein vertretbar belegtes <strong>pro-palästinensisches Framing-Muster</strong>. Und: keine „Hetzkampagne", sondern eine Handvoll überwiegend jüdischer Kritikerstimmen, deren pauschale Pathologisierung ihrerseits das größte Begründungsproblem der Debatte ist.</p>
+      <p>Grundlage sind die vollständigen Transkripte der beiden ausführlichsten Kritik-Videos (Sander, Frey), deren Sendungs-O-Töne — wo möglich — an unabhängigen Zweitquellen geprüft wurden (Jüdische Rundschau, NZZ, SRF, HRW, Presseportal, Bertelsmann), sowie die publizierte Kritik und Verteidigung. Die Bewertung misst an der <strong>Beleglage</strong>, nicht an Autoritäten: Verbandsstimmen beider Seiten zählen als Argumente, nicht als Befunde.</p>
+
+      <div class="legend">
+        <div class="leg"><span class="sw" style="background:var(--v-debate)"></span><span><b>Sachlich diskutierbar</b> — überprüfbarer Kern oder legitime Fachdebatte vorhanden</span></div>
+        <div class="leg"><span class="sw" style="background:var(--v-interp)"></span><span><b>Wertend / interpretativ</b> — Beobachtung mit einer Deutung aufgeladen, die das Ergebnis voraussetzt</span></div>
+        <div class="leg"><span class="sw" style="background:var(--v-unver)"></span><span><b>Nicht unabhängig überprüfbar</b> — spezifische Behauptung ohne einsehbaren Beleg</span></div>
+        <div class="leg"><span class="sw" style="background:var(--v-refut)"></span><span><b>Bestritten / entkräftet</b> — durch Gegenbelege oder das eigene Material der Kritiker widersprochen</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTEXT -->
+  <section class="context">
+    <p class="sec-label">Der Streitfall in einem Absatz</p>
+    <div class="ctx-meta">
+      <div><b>Person</b><span>Sophie von der Tann, *1991, seit 2021 ARD-Korrespondentin Tel Aviv (BR), spricht Hebräisch &amp; Arabisch</span></div>
+      <div><b>Reichweite</b><span>Tagesschau 20 Uhr ≈ 10 Mio. Zuschauer; ARD-News führend offline (~40 %) wie online (~17 %)</span></div>
+      <div><b>Anlässe</b><span>Bartov-Genozid-Essay auf Instagram geteilt (Juli 2025) · Friedrichs-Preis (Dez. 2025)</span></div>
+      <div><b>Status</b><span>Öffentliche Kontroverse, keine abgeschlossene Prüfung</span></div>
+    </div>
+    <div class="ctx-grid">
+      <div class="ctx-card crit">
+        <h3>Der Kernvorwurf</h3>
+        <ul>
+          <li>Wiederkehrende Erzählmuster, die <b>Israel als Aggressor</b> zeichnen: Gewichtung, Auslassung, Wortwahl, Quellen-Asymmetrie</li>
+          <li>In der Zuspitzung: „Pro-Hamas-Journalismus", „Gesicht vom neu-deutschen Juden- und Israelhass"</li>
+        </ul>
+      </div>
+      <div class="ctx-card def">
+        <h3>Die Kernverteidigung</h3>
+        <ul>
+          <li>„Diffamierungskampagne" gegen eine Korrespondentin, die nur ihren Job macht; Vorwürfe „ohne echte Belege" (Übermedien)</li>
+          <li>In der Zuspitzung: „zum Teil orchestrierte Reaktionswellen" (Preis-Jury) — selbst heftig umstritten</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ASPECTS -->
+  <section class="aspects" id="kritik">
+    <p class="sec-label">Teil 1 · Die Kritikpunkte — zehn Punkte, einzeln geprüft</p>
+
+    <!-- 1 -->
+    <article class="card">
+      <div class="card-head">
+        <div class="num">01</div>
+        <div class="htxt">
+          <h3>„Militante Kämpfer" statt „Terroristen"</h3>
+          <div class="sub">Terminologie ab dem 7.10.2023 · erhoben von Frey, Sander, Botschafter Prosor</div>
+        </div>
+        <span class="chip debate"><span class="pip"></span>Sachlich diskutierbar</span>
+      </div>
+      <div class="ledger">
+        <div class="side claim">
+          <p class="stag">Vorwurf</p>
+          <p>In den Live-Schalten der ersten Kriegstage sprach von der Tann von „militanten palästinensischen Kämpfern", die „Geiseln nehmen, verschleppen" — das Wort „Terroristen" fiel nicht, die Massaker-Details blieben unerwähnt. Beide Sichtungsprotokolle zitieren dieselben Formulierungen; Prosor kritisierte die „Verharmlosung" unabhängig.</p>
+        </div>
+        <div class="side counter">
+          <p class="stag">Was dagegen spricht</p>
+          <p>Die Wortwahl ist belegt real. Aber: Zurückhaltende Terminologie in den ersten Stunden unübersichtlicher Lagen ist verbreitete Nachrichtenpraxis (auch international, vgl. BBC-Debatte), und die Tagesschau nannte Hamas an anderer Stelle „Terrororganisation" — die Anmoderation vom 10.10. sprach vom „Terrorangriff der Hamas". Ob die Linie der Korrespondentin oder der Redaktion zuzurechnen ist, lässt sich von außen nicht trennen.</p>
+        </div>
+      </div>
+      <div class="verdict-row">
+        <span class="vk">Beleglage</span>
+        <span class="vt"><b>Belegte Wortwahl, echte Fachdebatte.</b> Ein legitimer, konkreter Kritikpunkt — der aber Redaktionspraxis genauso trifft wie die Person.</span>
+      </div>
+    </article>
+
+    <!-- 2 -->
+    <article class="card">
+      <div class="card-head">
+        <div class="num">02</div>
+        <div class="htxt">
+          <h3>Die erste Woche: das Massaker als Leerstelle</h3>
+          <div class="sub">Tagesschau 20 Uhr, 7.–17.10.2023 · zwei unabhängige Sichtungsprotokolle (Frey, Sander)</div>
+        </div>
+        <span class="chip debate"><span class="pip"></span>Sachlich diskutierbar</span>
+      </div>
+      <div class="ledger">
+        <div class="side claim">
+          <p class="stag">Vorwurf</p>
+          <p>Datumsgenau protokolliert: Am 7.10. Raketenlage statt Massaker-Details; am 8.10. der Schwenk zu israelischen Luftangriffen mit „vielen Toten …, darunter auch Frauen und Kinder", während israelische Frauen und Kinder unerwähnt blieben; am 8.10. der kommentierende Einschub zu Netanyahus Evakuierungsappell („was auch immer das bedeuten soll …"); am 10.10. erneut Raketenfokus, während der als sauber gelobte Massaker-Bericht derselben Sendung von einer Kollegin (Ilanit Spinner) stammte; am 11.10. die humanitäre Lage Gazas ohne einen Satz zu den Geiseln.</p>
+        </div>
+        <div class="side counter">
+          <p class="stag">Was dagegen spricht</p>
+          <p>Zwei unabhängig entstandene Protokolle mit gleicher Stoßrichtung sind mehr als eine Anekdote — aber beide stammen von erklärten Kritikern und sind von uns nicht an allen Originalsendungen verifiziert (prüfbar in der ARD-Mediathek). Inhaltlich: Israel verkündete die „vollständige Belagerung" am 9.10. selbst — darüber zu berichten ist Nachricht. Und was eine 15-Minuten-Sendung zeigt, entscheidet die Redaktion, nicht die Korrespondentin allein.</p>
+        </div>
+      </div>
+      <div class="verdict-row">
+        <span class="vk">Beleglage</span>
+        <span class="vt"><b>Konsistent doppelt bezeugt, Zurechnung offen.</b> Die Gewichtungs-Kritik der ersten Woche ist der Kern des Framing-Vorwurfs — und sein am besten dokumentierter Teil.</span>
+      </div>
+    </article>
+
+    <!-- 3 -->
+    <article class="card">
+      <div class="card-head">
+        <div class="num">03</div>
+        <div class="htxt">
+          <h3>Asymmetrischer Umgang mit Zahlen &amp; Quellen</h3>
+          <div class="sub">al-Ahli (17.10.2023) · Fall Assai (7.9.2025) · „Überprüfen können wir das nicht"</div>
+        </div>
+        <span class="chip debate"><span class="pip"></span>Bestätigtes Kernbeispiel</span>
+      </div>
+      <div class="ledger">
+        <div class="side claim">
+          <p class="stag">Vorwurf</p>
+          <p>Palästinensische Angaben (de facto Hamas-kontrolliert) würden übernommen, israelische stets mit Distanzmarker versehen. <b>Bestätigtes Kernbeispiel al-Ahli:</b> Tagesschau 20 Uhr, 17.10.2023 — ein Krankenhaus sei „laut jüngsten palästinensischen Meldungen" getroffen, „mindestens 300" Tote, mit emotionalem Bildmaterial (wortgleich doppelt dokumentiert). Nach heutigem Stand: mit hoher Wahrscheinlichkeit eine fehlgezündete palästinensische Rakete, Opferzahl deutlich niedriger (HRW). <b>Fall Assai:</b> 120-Sekunden-Beitrag, 71 Sekunden unkommentierte Folter-Vorwürfe gegen Israel, 1 Satz „nicht verifizierbar", verschwiegen, dass Assai 2017 identische Vorwürfe gegen den palästinensischen Geheimdienst erhob (Cicero).</p>
+        </div>
+        <div class="side counter">
+          <p class="stag">Was dagegen spricht</p>
+          <p>Der Verifizierungs-Vorbehalt ist verantwortungsvoller Standard für <em>alle</em> Kriegsangaben — und beim UNRWA-Tunnel (Punkt 08) entsprach er exakt dem unabhängigen Kenntnisstand. Bei al-Ahli lagen in den ersten Stunden fast alle Weltmedien falsch; die Quelle wurde immerhin benannt, wenn auch nicht eingeordnet. Für den Nachweis einer <em>Systematik</em> bräuchte es eine repräsentative Inhaltsanalyse — die niemand vorgelegt hat.</p>
+        </div>
+      </div>
+      <div class="verdict-row">
+        <span class="vk">Beleglage</span>
+        <span class="vt"><b>Berechtigte Grundfrage mit zwei belastbaren Kernbeispielen</b> (al-Ahli doppelt belegt, Assai-Beitragsarchitektur dokumentiert) — Systematik unbewiesen.</span>
+      </div>
+    </article>
+
+    <!-- 4 -->
+    <article class="card">
+      <div class="card-head">
+        <div class="num">04</div>
+        <div class="htxt">
+          <h3>Framing-Vokabular</h3>
+          <div class="sub">„ethnische Säuberung", „Blockade als Kriegswaffe", „keine Lebensgrundlage mehr"</div>
+        </div>
+        <span class="chip interp"><span class="pip"></span>Wertend / interpretativ</span>
+      </div>
+      <div class="ledger">
+        <div class="side claim">
+          <p class="stag">Vorwurf</p>
+          <p>Wiederkehrende, emotional aufgeladene Begriffe zeichneten Israel als „ewigen Aggressor". Die O-Töne liegen vor („Zwangsvertreibung … Stichwort ethnische Säuberung", „Blockade von Hilfslieferungen als Kriegswaffe … Kriegsverbrechen"); der Satz „Da gibt's im Prinzip gar keine Lebensgrundlage mehr" (Maischberger, 8.10.2024) wurde von Rotstein als zum Sendezeitpunkt faktisch unhaltbar kritisiert.</p>
+        </div>
+        <div class="side counter">
+          <p class="stag">Was dagegen spricht</p>
+          <p>Begriffe wie „Besatzung" und „Blockade" sind UN-, IGH- und agenturübliches Standardvokabular. Entscheidend: Die O-Töne kursieren als <em>Collage ohne Datum, Sendung und Satzkontext</em> — ob von der Tann zitiert, zuschreibt („Stichwort …") oder selbst wertet, ist daraus nicht erkennbar. Genau der Kontext-Standard, den die Kritik bei ihr einfordert, fehlt der Collage selbst.</p>
+        </div>
+      </div>
+      <div class="verdict-row">
+        <span class="vk">Beleglage</span>
+        <span class="vt"><b>Wortwahl real, Funktion offen.</b> Einzelne Sätze („keine Lebensgrundlage") sind konkret kritisierbar; die Vokabular-Liste als Ganzes beweist ohne Kontext wenig.</span>
+      </div>
+    </article>
+
+    <!-- 5 -->
+    <article class="card">
+      <div class="card-head">
+        <div class="num">05</div>
+        <div class="htxt">
+          <h3>Interviewauswahl &amp; Repräsentativität</h3>
+          <div class="sub">Dienstverweigerer, „radikale Siedler", Westjordanland-Reportage · Sander, Schapira (JA)</div>
+        </div>
+        <span class="chip interp"><span class="pip"></span>Wertend / interpretativ</span>
+      </div>
+      <div class="ledger">
+        <div class="side claim">
+          <p class="stag">Vorwurf</p>
+          <p>Sie suche gezielt Randstimmen — die „linkesten Israelis" (Verweigerer) auf der einen, „radikale Siedler" auf der anderen Seite —, sodass eine Minderheit als das Ganze erscheine. Stärkstes Beispiel (Jüdische Allgemeine): Eine Westjordanland-Reportage fragte nach Radikalisierung durch Armut und Armee-Präsenz, benannte aber die Indoktrination durch Hamas, PIJ und Autonomiebehörde nicht; Sicherheitsgründe für Checkpoints blieben unerwähnt.</p>
+        </div>
+        <div class="side counter">
+          <p class="stag">Was dagegen spricht</p>
+          <p>Dissidenten zu interviewen ist normaler Journalismus; die Verweigerer-Debatte ist real (Brief der 41 Reservisten, weitere folgten). Die Absichts-Unterstellung („um eine Minderheit als Mehrheit zu verkaufen") wird behauptet, nicht gezeigt — und Sanders Begründung („nicht einen einzigen Israeli gefunden, der so denkt") ist eine Anekdote gegen dokumentierte Verweigerer-Briefe und monatelange Massenproteste. Der berechtigte Kern — Repräsentativität und ausgelassener Kontext — ist eine faire, prüfbare Kategorie.</p>
+        </div>
+      </div>
+      <div class="verdict-row">
+        <span class="vk">Beleglage</span>
+        <span class="vt"><b>Auswahl debattierbar, Absicht unterstellt.</b> Das Westjordanland-Beispiel ist der konkreteste Punkt; „Randstimmen = Täuschung" folgt daraus nicht.</span>
+      </div>
+    </article>
+
+    <!-- 6 -->
+    <article class="card">
+      <div class="card-head">
+        <div class="num">06</div>
+        <div class="htxt">
+          <h3>Geiseln &amp; Empathie</h3>
+          <div class="sub">Geiselvideo 17.10.2023 · Maischberger/Aviva Siegel 8.10.2024 · Tagesthemen-Kommentar · Juni-2025-Reportage</div>
+        </div>
+        <span class="chip interp"><span class="pip"></span>Subjektiv, mit dokumentierten Anlässen</span>
+      </div>
+      <div class="ledger">
+        <div class="side claim">
+          <p class="stag">Vorwurf</p>
+          <p>Sie begegne Geiselschicksalen mit politischer Analyse statt Anteilnahme. Dokumentierte Anlässe: <b>(a)</b> 17.10.2023 — Übersetzung des Hamas-Videos der Geisel Mia Schem („Wir werden gut behandelt, sagt diese Frau, holt uns heim nach Israel") ohne Einordnung als erzwungene Propaganda-Aussage; freigelassene Geiseln berichteten später über systematische Gewalt. <b>(b)</b> Maischberger, 8.10.2024 — direkt nach Aviva Siegels Schilderung von Vergewaltigungen antwortete sie auf die Regierungs-Frage analytisch, ohne Moment der Anteilnahme im gesendeten Ausschnitt; Kahane beschrieb ihre Mimik als „reglos". <b>(c)</b> Tagesthemen-Kommentar zu 60 Jahren deutsch-israelischen Beziehungen: Deutschlands „Verantwortung" = Völkerrecht und „das internationale System rund um die Vereinten Nationen" — nicht der Schutz von Juden. <b>(d)</b> Juni 2025: traumatisierten Israelis wird die Frage nach Mitgefühl für Gaza gestellt, mit Off-Kommentar „Ich frage mich aber: rechtfertigt das, so auf den Krieg zu schauen?"</p>
+        </div>
+        <div class="side counter">
+          <p class="stag">Was dagegen spricht</p>
+          <p>„Fehlende Empathie" ist eine Tonfall-Lesart: Was Kahane „reglos" nennt, nennt eine Gegenstimme schlicht „Zuhören" — dieselbe Sendung behandelte die Klagen der Geisel-Familien gegen Netanyahu ausführlich. Beim Geiselvideo zitierte dieselbe Sendung auch die Hamas-Drohung, Geiseln hinzurichten — von Übernahme der Propaganda-Erzählung kann keine Rede sein; strittig ist die fehlende explizite Einordnung. Der Tagesthemen-Kommentar ist ein Meinungsformat. Sie selbst: enge Freunde verloren am 7.10. Angehörige; ihr Job sei „Balance zwischen Empathie und Distanz".</p>
+        </div>
+      </div>
+      <div class="verdict-row">
+        <span class="vk">Beleglage</span>
+        <span class="vt"><b>Überwiegend Auslegungssache — mit zwei konkret kritisierbaren Momenten</b> (Geiselvideo ohne Einordnung; meinungsnaher Off-Kommentar im Nachrichtenformat).</span>
+      </div>
+    </article>
+
+    <!-- 7 -->
+    <article class="card">
+      <div class="card-head">
+        <div class="num">07</div>
+        <div class="htxt">
+          <h3>Der „Vorgeschichte"-Satz</h3>
+          <div class="sub">Angebliche Äußerung in einem Hintergrundgespräch (WELT-Bericht)</div>
+        </div>
+        <span class="chip refut"><span class="pip"></span>Bestritten / entkräftet</span>
+      </div>
+      <div class="ledger">
+        <div class="side claim">
+          <p class="stag">Vorwurf</p>
+          <p>Sie habe gesagt, das Massaker vom 7. Oktober habe „eine Vorgeschichte", und auf Nachfrage auf den Zerfall des Osmanischen Reiches verwiesen — gelesen als Relativierung des Massakers.</p>
+        </div>
+        <div class="side counter">
+          <p class="stag">Was dagegen spricht</p>
+          <p>Es existiert kein Originalzitat: Der WELT-Bericht stützt sich auf Teilnehmeraussagen, die ARD bestreitet die Darstellung, und andere Teilnehmer erinnern sich laut Spiegel (Reuter) „weder in dieser Form an das angeblich Gesagte, noch an einen Eklat". Bezeichnend: Selbst der gründlichste Kritiker (Frey) behandelt die Episode durchgehend konditional („sollte sich das so ereignet haben"). Historische Einordnung wäre zudem, so 72 Korrespondent:innen, „mitnichten eine Relativierung".</p>
+        </div>
+      </div>
+      <div class="verdict-row">
+        <span class="vk">Beleglage</span>
+        <span class="vt"><b>Als Beleg unbrauchbar.</b> Der meistzitierte Einzelvorwurf der Kampagnen-Wochen ruht auf bestrittener Indirektzitierung.</span>
+      </div>
+    </article>
+
+    <!-- 8 -->
+    <article class="card">
+      <div class="card-head">
+        <div class="num">08</div>
+        <div class="htxt">
+          <h3>„Relativiert Hamas-Tunnel"</h3>
+          <div class="sub">IDF-Pressetour Februar 2024, Tunnel unter UNRWA-Gelände · Sander</div>
+        </div>
+        <span class="chip refut"><span class="pip"></span>Vom eigenen Material widerlegt</span>
+      </div>
+      <div class="ledger">
+        <div class="side claim">
+          <p class="stag">Vorwurf</p>
+          <p>Sie stehe direkt vor einem Hamas-Tunnel „und kann diese Tatsache trotzdem relativieren und leugnen"; die Redaktionen vertrauten „blind den Zahlen aus Gaza", misstrauten aber allen israelischen Angaben.</p>
+        </div>
+        <div class="side counter">
+          <p class="stag">Was dagegen spricht</p>
+          <p>Der von der Kritikerin selbst gezeigte Ausschnitt widerlegt die Lesart: Von der Tann berichtet den Tunnel („aufwendig ausgebaute Räume", „unterhalb einer UNRWA-Schule"), nennt UNRWA-Bezug und -Reaktion. Ihre Kaveats („Überprüfen können wir das nicht") deckten sich exakt mit dem unabhängigen Kenntnisstand der NZZ: Tunnel und Hamas-Rechenzentrum real, Strom-Anbindung und UNRWA-Mitwisserschaft unbewiesen. Der Vorbehalt war hier kein Anti-Israel-Reflex, sondern korrekt.</p>
+        </div>
+      </div>
+      <div class="verdict-row">
+        <span class="vk">Beleglage</span>
+        <span class="vt"><b>Entkräftet — und lehrreich:</b> Das Kritik-Raster („jeder Vorbehalt = Parteinahme") schlägt auch an, wenn die Berichterstattung sachlich exakt richtig war.</span>
+      </div>
+    </article>
+
+    <!-- 9 -->
+    <article class="card">
+      <div class="card-head">
+        <div class="num">09</div>
+        <div class="htxt">
+          <h3>Die Anekdoten: Mai-2023-Video, Bethlehem, Bibas</h3>
+          <div class="sub">Instagram Mai 2023 · Weihnachtsbericht 2024 · Sarg-Rückführung Februar 2025 · Sander</div>
+        </div>
+        <span class="chip unver"><span class="pip"></span>Geteilt: entkräftet / offen</span>
+      </div>
+      <div class="ledger">
+        <div class="side claim">
+          <p class="stag">Vorwurf</p>
+          <p><b>(a)</b> Schon vor dem 7.10. „positioniert": Ein Instagram-Video vom Mai 2023 aus Gaza („Israel schließt nämlich immer sofort die Grenzen, wenn es irgendeine Art von Auseinandersetzung gibt"). <b>(b)</b> Bethlehem, Weihnachten 2024: „gedämpfte Stimmung … aus Solidarität mit den Menschen im Gazastreifen" — kein Wort zu Geiseln oder Hamas. <b>(c)</b> Am Tag der Sarg-Rückführung der Bibas-Kinder kein Post zu den Kindern; tags darauf Westjordanland-Berichterstattung.</p>
+        </div>
+        <div class="side counter">
+          <p class="stag">Was dagegen spricht</p>
+          <p><b>(a)</b> Echtes Zitat, flapsig-verkürzt — ein Festsitz-Video trägt keine Agenda-These. <b>(b) Entkräftet:</b> Die Absage der Feiern aus Gaza-Solidarität war eine Entscheidung der Kirchen vor Ort und wurde von SRF, ZDF und Tagesspiegel praktisch identisch berichtet. <b>(c)</b> Spezifisch und am Account prinzipiell prüfbar, liegt aber nur als Aussage der Kritikerin vor; wer den Account damals redaktionell steuerte, ist unklar (ab Sommer 2025 nachweislich ein BR-Team). Ein Einzeltag trägt keine Systematik.</p>
+        </div>
+      </div>
+      <div class="verdict-row">
+        <span class="vk">Beleglage</span>
+        <span class="vt"><b>Bethlehem entkräftet, Mai-Video überdehnt, Bibas offen.</b> Die stärkste Form dieses Punkts wäre eine systematische Auswertung ihrer Posts an Schlüsseltagen — die niemand liefert.</span>
+      </div>
+    </article>
+
+    <!-- 10 -->
+    <article class="card">
+      <div class="card-head">
+        <div class="num">10</div>
+        <div class="htxt">
+          <h3>Das Preis-Umfeld: Jury-Text, Laudatio, Instagram</h3>
+          <div class="sub">Friedrichs-Preis Dez. 2025 · Bambi-Laudatio Nov. 2024 · BR-Social-Team · Frey, Kahane, VJJ, Havemann</div>
+        </div>
+        <span class="chip debate"><span class="pip"></span>Sachlich diskutierbar</span>
+      </div>
+      <div class="ledger">
+        <div class="side claim">
+          <p class="stag">Vorwurf</p>
+          <p>Nicht die Person, das Umfeld: Die Jury-Begründung — „Wenn eine deutsche Korrespondentin auch kritisch über Israels Politik und Kriegsführung berichtet, macht das schon eher Probleme", „Auch deutsche Journalistinnen stehen im Kontext der deutschen Geschichte", „zum Teil orchestrierte Reaktionswellen" — bediene ohne jeden Beleg antisemitische Stereotype (VJJ: „Stereotypen einer verschwörerisch agierenden jüdischen Lobby … gefährlich nah"). Dazu: Die Bambi-Laudatio für Margot Friedländer sei „Instrumentalisierung" (Sander); der private Instagram-Account werde seit Sommer 2025 von einem BR-Team professionalisiert — möglicher „geldwerter Vorteil" aus Rundfunkbeiträgen (Havemann/t-online, Follower 20.000 → 86.000+).</p>
+        </div>
+        <div class="side counter">
+          <p class="stag">Was dagegen spricht</p>
+          <p><b>Jury-Text:</b> Zitate am veröffentlichten Text prüfbar; die „orchestriert"-Formulierung ist der am breitesten kritisierte Satz der ganzen Affäre — von VJJ über Kahane bis Frey — und trifft die <em>Verteidigerseite</em>, nicht von der Tann. <b>Laudatio:</b> Fakt ist nur, dass sie sie hielt; „Instrumentalisierung" ist Wertung. <b>Instagram:</b> belegtes Compliance-Thema, aber kein Berichterstattungs-Beleg. Nichts davon beweist etwas über ihre journalistische Arbeit.</p>
+        </div>
+      </div>
+      <div class="verdict-row">
+        <span class="vk">Beleglage</span>
+        <span class="vt"><b>Bestbelegter „neuer" Streitpunkt — trifft Jury und Sender, nicht die Berichterstattung.</b> Wer über von der Tann urteilt, muss ihn getrennt halten.</span>
+      </div>
+    </article>
+  </section>
+
+  <!-- PRO VDT -->
+  <section class="aspects" id="entlastung">
+    <p class="sec-label">Teil 2 · Was für sie spricht — die Entlastung, gebündelt</p>
+    <article class="card">
+      <div class="card-head">
+        <div class="num" style="font-size:1.4rem;color:var(--v-refut);padding-top:4px">✓</div>
+        <div class="htxt">
+          <h3>Acht Punkte zu ihren Gunsten</h3>
+          <div class="sub">aus der Prüfung der Kritik selbst gewonnen — nicht aus Verbandsstimmen</div>
+        </div>
+        <span class="chip hold"><span class="pip"></span>Entlastung</span>
+      </div>
+      <div class="cc-body">
+        <div class="cc-item">
+          <h4>1 · Ihre Vorbehalte waren teils nachweislich korrekt</h4>
+          <p>Der als „Relativierung" kritisierte Satz „Überprüfen können wir das nicht" entsprach beim UNRWA-Tunnel exakt dem unabhängigen Kenntnisstand (NZZ): Tunnel real, UNRWA-Mitwisserschaft unbewiesen. Vorsicht ist kein Beleg für Parteinahme.</p>
+        </div>
+        <div class="cc-item">
+          <h4>2 · Der meistzitierte Einzelvorwurf ist bestritten</h4>
+          <p>Für den „Vorgeschichte"-Satz existiert kein Originalzitat; die ARD bestreitet die Darstellung, andere Teilnehmer erinnern sich nicht (Spiegel/Reuter). Selbst ihr gründlichster Kritiker trägt ihn nur konditional vor.</p>
+        </div>
+        <div class="cc-item">
+          <h4>3 · Einzelne Vorzeige-Beispiele der Kritik halten nicht</h4>
+          <p>Bethlehem 2024 (die „gedämpfte Stimmung aus Gaza-Solidarität" war eine dokumentierte Realität, identisch berichtet von SRF/ZDF/Tagesspiegel) und der Tunnel-Vorwurf fielen bei der Prüfung in sich zusammen — beide vom Material der Kritiker selbst widerlegt.</p>
+        </div>
+        <div class="cc-item">
+          <h4>4 · Kritik kommt von beiden Flanken</h4>
+          <p>Während die eine Seite sie für zu palästinensisch-nah hält, wirft die andere dem ÖRR im Nahost-Thema das Gegenteil vor (Monitor/Studio M, K. Hafez: „Staatsräson über Standards"; LMU-Umfrage: 30 % sehen Verzerrung <em>zugunsten</em> Israels, 9 % zugunsten der Palästinenser). Beidseitiger Beschuss spricht gegen eine eindeutige Agenda.</p>
+        </div>
+        <div class="cc-item">
+          <h4>5 · Zurechnungsproblem: Redaktion, nicht Person</h4>
+          <p>Themensetzung, Sendezeit und Anmoderationen (etwa „Israel hat auch heute seine Vergeltungsschläge fortgesetzt", gesprochen vom Moderator) verantwortet die Redaktion. Kein Sichtungsprotokoll kann trennen, welche Auslassung wessen Entscheidung war — ein Punkt, den die Kritiker selbst einräumen.</p>
+        </div>
+        <div class="cc-item">
+          <h4>6 · Fachliche Substanz ist unstrittig</h4>
+          <p>Hebräisch- und Arabischkenntnisse, Zugang auf beiden Seiten der Grenze, Berichterstattung unter Beschuss; Medium Magazin kürte sie zur „Journalistin des Jahres 2024" (Kategorie), der Deutsche Fernsehpreis vergab einen Förderpreis. Auch scharfe Kritiker attestieren ihr Präsenz und Handwerk in Teilen.</p>
+        </div>
+        <div class="cc-item">
+          <h4>7 · Sie stellt sich der Kritik</h4>
+          <p>Interviews u. a. mit der Jüdischen Allgemeinen („Die Kritik trifft mich, entbehrt aber jeder Grundlage"); Selbstbeschreibung des Jobs als „Balance zwischen Empathie und Distanz"; enge Freunde verloren am 7. Oktober Angehörige. Das widerlegt keine Framing-Kritik, aber das Zerrbild der abgeschotteten Aktivistin.</p>
+        </div>
+        <div class="cc-item">
+          <h4>8 · Die harten Etiketten trägt nicht einmal die Kritik</h4>
+          <p>„Pro-Hamas", „Antisemitin", „Judenhass-Gesicht": Der präziseste Kritiker (Frey) verweigert den Antisemitismus-Vorwurf ausdrücklich; selbst Sander schiebt ihn in den Konjunktiv. Was bleibt, ist eine Gewichtungs- und Framing-Debatte — keine Gesinnungsanklage, die Belege hätte.</p>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <!-- PORTRAITS -->
+  <section class="aspects" id="akteure">
+    <p class="sec-label">Teil 3 · Die Akteure — Portraits der Kritiker und Verteidiger</p>
+
+    <article class="card">
+      <div class="card-head">
+        <div class="num" style="font-size:1rem;font-family:'IBM Plex Mono',monospace;color:var(--claim-label);padding-top:8px">KRIT</div>
+        <div class="htxt">
+          <h3>Die Kritiker</h3>
+          <div class="sub">vom quellenbasierten Prüfer bis zur Diffamierung — die Bandbreite ist der Schlüssel zur Debatte</div>
+        </div>
+      </div>
+      <div class="cc-body">
+        <div class="cc-item">
+          <h4>Tom David Frey — der Präziseste</h4>
+          <p>Freier Journalist, Podcaster und Dokumentarfilmer mit Nahost-Reisen, selbstverortet „freiheitlich-konservativ", crowdfinanziert. Sichtete Tagesschau-Sendungen datumsgenau und prüfte beide Thesen der Debatte. Befund: „Natürlich ist sie voreingenommen" — aber ausdrücklich kein Antisemitismus-Vorwurf, keine „Hetzkampagne" („eine Handvoll Artikel"), und die schärfste Kritik gilt der Preis-Jury. Schwächen: Versprecher-Exegese als Beleg, crowdfunding-typische Zuspitzung.<span class="src">Podcast „Antisemitismus-Skandal oder Hetzkampagne?", 04.12.2025 · Transkript ausgewertet</span></p>
+        </div>
+        <div class="cc-item">
+          <h4>Sarah Maria Sander — die Materialsammlerin</h4>
+          <p>*1995, ausgebildete Schauspielerin, seit dem 7.10.2023 Berichterstatterin aus Israel („monatelang an der Grenze zum Libanon"), erklärte Aktivistin („setzt sich für den jüdischen Staat ein"). Ihre Video-Analysen liefern die umfangreichste O-Ton-Sammlung — und die am weitesten überdehnten Schlüsse („Pro-Hamas-Journalismus", Berichterstattung „befürwortet den Antisemitismus"). Absolutaussagen („die israelische Armee schießt niemals einfach so auf Zivilisten"), Spekulationen und ein vom eigenen Material widerlegtes Beispiel (Tunnel) machen sie zur wertvollen Quelle mit unzuverlässigem Urteil.<span class="src">Video „Eine Analyse ihrer Berichterstattung seit dem 7. Oktober" · Transkript ausgewertet · JA-Gastbeitrag „Nur scheinbar ausgewogen"</span></p>
+        </div>
+        <div class="cc-item">
+          <h4>Esther Schapira — die sachlichste Feder</h4>
+          <p>Langjährige ARD-Journalistin und Dokumentarfilmerin, seit Jahren Kritikerin der ÖRR-Nahostberichterstattung. Ihr FAZ-Beitrag zur Preisverleihung gilt selbst Verteidigern als konstruktiv formulierte, zivile Kritik — das Gegenbeispiel zur „Hetzkampagnen"-These.</p>
+        </div>
+        <div class="cc-item">
+          <h4>Christoph Lemmer &amp; die Kommentar-Schiene</h4>
+          <p>WELT-Meinungsredakteur („Diese Preisverleihung ist ein öffentlich-rechtlicher Skandal"; von der Tann verkörpere „das Generalproblem des öffentlich-rechtlichen Rundfunks … abgeschirmte Wahrnehmung, verbunden mit erheblichem Missionierungsbedürfnis"). Rhetorisch scharf, empirisch dünn — Zuschreibungen ohne Inhaltsanalyse. Ähnlich: Mena-Watch, Achgut, Israelnetz, pro Medienmagazin; früh dabei (Jan. 2024): der Blog freitagsmedien.</p>
+        </div>
+        <div class="cc-item">
+          <h4>Daniel Rotstein — der Systemiker</h4>
+          <p>Dokumentierte im Perlentaucher Beispiele einer ÖRR-weiten Schlagseite (ZDF-, DLF-, Monitor-, Tagesschau-Formulierungen) — macht aus dem Personen- einen Struktur-Vorwurf. Sein konkretester VdT-Beleg: „keine Lebensgrundlage mehr" (Maischberger).</p>
+        </div>
+        <div class="cc-item">
+          <h4>Anetta Kahane &amp; Lorenz Beckhardt (VJJ) — die Jury-Kritiker</h4>
+          <p>Kahane (Belltower) und Beckhardt (Vorsitzender des Verbands Jüdischer Journalist:innen, WDR) zielen weniger auf die Berichterstattung als auf die Preis-Begründung: Der Jury-Text reanimiere mit „orchestrierten Reaktionswellen" das „Gerücht über die Juden" — „Stereotypen einer verschwörerisch agierenden jüdischen Lobby gefährlich nah". Kahanes zusätzliche Mimik-Beschreibung (Maischberger) ist dagegen bestrittene Wahrnehmung, kein Beleg.</p>
+        </div>
+        <div class="cc-item">
+          <h4>Ron Prosor, Ludwig Spaenle — die offiziellen Stimmen</h4>
+          <p>Israels Botschafter („Aktivistin"; „Die Dämonisierung Israels ist heute der schnellste Weg zu einem Medienpreis") und der bayerische Antisemitismusbeauftragte. Gewichtige Stimmen — aber ein Botschafter, der eine einzelne Journalistin namentlich angreift, ist selbst ein Streitfall: RSF wertete genau das als Grenzüberschreitung.</p>
+        </div>
+        <div class="cc-item">
+          <h4>Arye Sharuz Shalicar — die Eskalation</h4>
+          <p>IDF-Reservesprecher und Autor; sein X-Post („das Gesicht vom neu-deutschen Juden- und Israelhass") ist die schärfste Einzelstimme der Debatte — diffamierend, ohne Beleg, und von den ernsthaften Kritikern nicht übernommen. Zugleich der Satz, an dem sich die „Hetzkampagnen"-Erzählung fast vollständig aufhängt: Eine Einzelstimme wurde zum Zerrbild des gesamten Kritikfelds.</p>
+        </div>
+        <div class="cc-item">
+          <h4>Am Rand: Jüdische Rundschau, Tobias Huch, Jenny Havemann</h4>
+          <p>Die Jüdische Rundschau dokumentierte die al-Ahli-Passage wortgleich (wichtigste Zweitquelle); Huch reagierte auf YouTube/X; Havemann brachte den Instagram-/BR-Team-Vorwurf auf, den t-online bestätigte.</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <div class="num" style="font-size:1rem;font-family:'IBM Plex Mono',monospace;color:var(--counter-label);padding-top:8px">DEF</div>
+        <div class="htxt">
+          <h3>Die Verteidiger</h3>
+          <div class="sub">massiv, prominent — und fast vollständig aus dem eigenen Berufsfeld</div>
+        </div>
+      </div>
+      <div class="cc-body">
+        <div class="cc-item">
+          <h4>72 Nahost-Korrespondent:innen — der offene Brief</h4>
+          <p>„Diffamierungskampagne", die Angriffe hätten „jedes Maß verloren". Die gewichtigste Solidaritätsbekundung — und ein Autoritätsargument aus demselben Berufsfeld, das laut TU Dortmund 2024 zu 41 % den Grünen zuneigt (Bevölkerung: 11 %) und dessen Nahost-Linie genau der Streitgegenstand ist. Kollegiale Solidarität ist kein unabhängiger Befund.</p>
+        </div>
+        <div class="cc-item">
+          <h4>Reporter ohne Grenzen — das Pressefreiheits-Argument</h4>
+          <p>Verurteilte „Einschüchterungsversuche": Wenn Staatsvertreter einzelne Journalistinnen namentlich diffamieren, sei eine Grenze überschritten. Stark, wo es um Prosor und Drohungen geht — es prüft aber nicht die Inhalte der Berichterstattung. Pressefreiheits-Mandat ≠ Qualitäts-Review.</p>
+        </div>
+        <div class="cc-item">
+          <h4>Übermedien &amp; Spiegel — die fachliche Prüfung der Gegenseite</h4>
+          <p>Übermedien (Martens) prüfte die Vorwürfe und fand sie unterbelegt („alles andere als substanzielle Journalismuskritik"); Reuter (Spiegel) entkräftete das Vorgeschichte-Zitat. Die stärkste inhaltliche Verteidigung — allerdings anhand der <em>schwächsten</em> Vorwürfe; die belastbaren Beispiele (al-Ahli, Assai) behandelte sie nicht.</p>
+        </div>
+        <div class="cc-item">
+          <h4>Jury, BR, Prominenz — Institutionen im eigenen Interesse</h4>
+          <p>Die Friedrichs-Jury (u. a. Sandra Maischberger) hielt an der Auszeichnung fest — beschädigte ihre Preisträgerin aber mit der eigenen Begründung („orchestrierte Reaktionswellen") mehr als jeder Kritiker. Der BR („professionelle Journalistin, die gute Arbeit macht"), Meron Mendel, Andreas Voßkuhle, taz und nd komplettieren ein Verteidigungsfeld, in dem keine einzige Stimme institutionell unabhängig vom verteidigten System ist.</p>
+        </div>
+      </div>
+      <div class="verdict-row">
+        <span class="vk">Einordnung</span>
+        <span class="vt"><b>Beide Lager sind perspektivisch — keines ist neutral.</b> Die Kritik bündelt sich im pro-israelischen/konservativen Raum, die Verteidigung im links-liberalen Berufsfeld. Deshalb misst diese Seite an Belegen, nicht an Lagern.</span>
+      </div>
+    </article>
+  </section>
+
+  <!-- JOURNALISM TYPES -->
+  <section class="types" id="genres">
+    <p class="verdict-final">Teil 4 · Die Grundsatzfrage</p>
+    <h2>Drei Arten von Journalismus — und die Legitimität jeder einzelnen</h2>
+    <p class="intro">Im Streit stehen sich nicht nur Personen gegenüber, sondern <strong>Genres</strong> mit unterschiedlichen Regeln: der institutionell gebundene Korrespondentenjournalismus, die erklärt parteiische Advocacy-Kritik und die quellenbasierte freie Medienkritik. Der Kern des Konflikts ist eine Kategorienverwechslung — jede Form wird am Maßstab einer anderen gemessen.</p>
+
+    <div class="jgrid">
+      <div class="jcard vdt">
+        <div class="role">Genre A · ÖRR-Korrespondentin</div>
+        <h3>Sophie von der Tann</h3>
+        <div class="kind">Festangestellt, gebunden an Neutralitätsgebot, Rundfunkrat und Programmbeschwerden</div>
+        <div class="block">
+          <div class="bl-h plus">Spricht für das Genre</div>
+          <p>Institutionelle Rechenschaft, Zugang vor Ort, Transparenz über Verifikationsgrenzen. Das Genre ist der Maßstab, an dem alle anderen messen — und muss sich deshalb die härteste Prüfung gefallen lassen.</p>
+        </div>
+        <div class="block">
+          <div class="bl-h minus">Die offene Frage</div>
+          <p>Nicht „darf sie das?", sondern „erfüllt sie den Neutralitätsanspruch ihrer Rolle?" — Gewichtung, Auswahl, Wortwahl. Diese Frage ist berechtigt, teilweise mit Belegen unterfüttert und nicht entschieden. Sie wird von beiden Flanken gestellt.</p>
+        </div>
+        <p class="jverdict"><b>Legitimität:</b> unstrittig — aber an den höchsten Maßstab gebunden, den es im Journalismus gibt: den eigenen.</p>
+      </div>
+
+      <div class="jcard sms">
+        <div class="role">Genre B · Advocacy-Kritik</div>
+        <h3>Sarah Maria Sander</h3>
+        <div class="kind">Erklärt parteiisch („setzt sich für den jüdischen Staat ein"), aktivistisch, crowdfinanziert</div>
+        <div class="block">
+          <div class="bl-h plus">Spricht für das Genre</div>
+          <p>Medienkritik ist Teil der Pressefreiheit; genaue Sichtung einzelner Sendungen ist wertvoll, zumal Programmbeschwerden oft ins Leere laufen. Offenheit über den eigenen Standpunkt ist redlich.</p>
+        </div>
+        <div class="block">
+          <div class="bl-h minus">Die Grenze</div>
+          <p>Sie fordert eine Unparteilichkeit ein, die sie selbst nicht beansprucht, arbeitet mit Rastern, die das Ergebnis voraussetzen, und ihre Etiketten („Pro-Hamas") überdehnen das eigene Material. Ironie: Am Friedrichs-Ideal („sich nicht gemein machen") gemessen ist ihre Arbeit Aktivismus — das merkte selbst das wohlgesonnene Achgut an.</p>
+        </div>
+        <p class="jverdict"><b>Legitimität:</b> als offen perspektivisches Argument ja — als neutraler Befund nein. Zu lesen wie ein Schriftsatz, nicht wie ein Urteil.</p>
+      </div>
+
+      <div class="jcard vdt">
+        <div class="role">Genre C · Quellenbasierte freie Kritik</div>
+        <h3>Tom David Frey</h3>
+        <div class="kind">Perspektivisch, aber methodisch: datierte Sichtung, beide Thesen geprüft, Etiketten verweigert</div>
+        <div class="block">
+          <div class="bl-h plus">Spricht für das Genre</div>
+          <p>Das fehlende Bindeglied der Debatte: Kritik, die am Sendungsmaterial arbeitet statt an Zuschreibungen, zwischen Person, Redaktion und Preis-Jury unterscheidet und die eigenen Grenzen benennt. Sein enger Befund („voreingenommen — nicht antisemitisch; Kritik legitim — keine Hetzkampagne") hielt der Gegenprüfung dieser Seite am besten stand.</p>
+        </div>
+        <div class="block">
+          <div class="bl-h minus">Die Grenze</div>
+          <p>Auch er ist Partei (konservativ, pro-israelische Berichtsposition, Spendenmodell), einzelne Deutungen überdehnen (Versprecher-Exegese), und ein Einzelner kann keine repräsentative Inhaltsanalyse ersetzen.</p>
+        </div>
+        <p class="jverdict"><b>Legitimität:</b> die produktivste Form der Kritik in dieser Debatte — perspektivisch, aber falsifizierbar.</p>
+      </div>
+
+      <div class="jcard sms">
+        <div class="role">Außerhalb der Genres</div>
+        <h3>Diffamierung &amp; Pathologisierung</h3>
+        <div class="kind">Shalicars „Judenhass-Gesicht" auf der einen — „orchestrierte Reaktionswellen" auf der anderen Seite</div>
+        <div class="block">
+          <div class="bl-h minus">Warum beides herausfällt</div>
+          <p>Die Gesinnungsanklage ohne Beleg gegen die Person und die belegfreie Verschwörungs-Zuschreibung gegen die Kritiker sind spiegelbildlich dieselbe Operation: Sie ersetzen die prüfbare Sachfrage durch ein Motiv-Urteil. Beides hat die Debatte vergiftet — und beides stammt nicht aus der Mitte der jeweiligen Lager, prägte aber deren Wahrnehmung voneinander.</p>
+        </div>
+        <p class="jverdict"><b>Legitimität:</b> keine. Weder als Journalismus noch als Kritik.</p>
+      </div>
+    </div>
+
+    <div class="synthesis">
+      <h4>Die Synthese</h4>
+      <p><strong>Korrespondentenjournalismus, Advocacy-Kritik und quellenbasierte Kritik sind alle drei legitim — an je eigenen Maßstäben.</strong> Die Korrespondentin ist an Ausgewogenheit zu messen, die Aktivistin an der Ehrlichkeit über ihren Standpunkt und daran, ob ihre Belege ihre Schlüsse tragen, der freie Prüfer an seiner Methode. Der Streit eskalierte, weil jede Seite die andere am falschen Maßstab maß — und weil die Ränder (Diffamierung hier, Pathologisierung dort) die Wahrnehmung der Mitte bestimmten.</p>
+      <p>Demokratisch gesund ist, dass alle drei existieren: die Korrespondentin trotz Botschafter-Angriffen, die Kritikerinnen und Kritiker trotz Gegenwind. Ungesund ist nur der Kurzschluss, Kritik an einer Journalistin sei per se Hetze — oder eine Journalistin mit Millionenreichweite sei über die Prüfung ihrer Arbeit erhaben.</p>
+    </div>
+  </section>
+
+  <!-- A/B EXPERIMENT -->
+  <section class="aspects" id="ki">
+    <p class="sec-label">Teil 5 · Das KI-Kontrollexperiment — dieselbe Frage, oberflächlich gestellt</p>
+    <article class="card">
+      <div class="card-head">
+        <div class="num" style="font-size:1rem;font-family:'IBM Plex Mono',monospace;color:var(--accent);padding-top:8px">A/B</div>
+        <div class="htxt">
+          <h3>Was bekommt, wer „einfach mal die KI fragt"?</h3>
+          <div class="sub">Claude Opus 4.8, frische Sitzung, nur Websuche, keinerlei Kenntnis dieser Seite · Einzeldurchlauf, 11.07.2026</div>
+        </div>
+        <span class="chip interp"><span class="pip"></span>Experiment</span>
+      </div>
+
+      <div class="side claim" style="border-bottom:1px solid var(--hair);border-right:none">
+        <p class="stag">Der Versuchsaufbau</p>
+        <p>Ein zweites KI-Modell wurde so gefragt, wie ein normaler Nutzer fragen würde — inklusive der naheliegenden Gewichtungsanweisung, sich an „seriösen Stimmen" zu orientieren: <em>„…manche sprechen von einer Hetzkampagne gegen sie. Was ist da dran? Bitte recherchiere und finde Belege: Wer kritisiert sie und warum, wer verteidigt sie? Was sagen seriöse Stimmen dazu — zum Beispiel Journalistenverbände, Reporter ohne Grenzen, die Preis-Jurys oder die Medien-Fachpresse? Gib mir eine klare Einschätzung: Ist die Kritik berechtigt, oder handelt es sich um eine Hetzkampagne?"</em> Das entspricht dem Maßstab, mit dem die meisten Menschen (und viele Redaktionen) solche Fragen tatsächlich klären: Autoritäts- und Verbandsstimmen als primäre Instanz.</p>
+      </div>
+
+      <div class="cc-body">
+        <div class="cc-item">
+          <h4>Das Ergebnis der oberflächlichen Recherche (Opus, ~3 Minuten, 19 Quellenzugriffe)</h4>
+          <p class="muted">Die Antwort war sauber gearbeitet und korrekt referenziert — und kam zum Gegenteil dieser Seite: Die Kritik sei „bei der fachlichen Überprüfung durch Übermedien und Kolleginnen <b>weitgehend belegfrei</b>" geblieben; der Befund der „glaubwürdigsten unabhängigen Stimmen — Reporter ohne Grenzen, über 70 Fachkolleginnen, die Medienfachpresse, die Preis-Jury" — deute „klar in eine Richtung: eine <b>personalisierte, staatlich mitbefeuerte Diffamierungs- und Einschüchterungskampagne</b>", die „kritischen Journalismus zu delegitimieren" versuche. Der Begriff „Hetzkampagne" decke sich „mit der Bewertung durch Instanzen, die man gerade in dieser Frage ernst nehmen sollte". Immerhin mit Restvorbehalt („Wer einzelne ihrer Beiträge inhaltlich kritisiert, betreibt damit noch keine Hetze") — und transparent: Mehrere Quellen waren nicht direkt abrufbar (403), zitiert wurde teils aus Suchergebnis-Zusammenfassungen.</p>
+        </div>
+
+        <div class="cc-item">
+          <h4>Wie Opus vorging — das Suchprotokoll (aus dem Agenten-Log rekonstruiert)</h4>
+          <p>19 Tool-Aufrufe in ~3 Minuten: 8 Websuchen, 7 Seitenabrufe, 4 Technik-Umwege. Die acht Suchanfragen im Wortlaut:</p>
+          <p class="muted" style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;line-height:1.8">1 · „Sophie von der Tann ARD Kontroverse Kritik"<br>2 · „Sophie von der Tann Hetzkampagne Israel Berichterstattung"<br>3 · „Sophie von der Tann Reporter ohne Grenzen Journalistenverband"<br>4 · „Sophie von der Tann Hanns-Joachim-Friedrichs-Preis Jury Begründung 2025"<br>5 · „Ron Prosor Botschafter Sophie von der Tann Aktivistin Vorwurf Welt"<br>6 · „Sophie von der Tann offener Brief 72 Korrespondenten Solidarität Voßkuhle"<br>7 · „Übermedien Sophie von der Tann Kritik fehlen Belege substanzielle Journalismuskritik"<br>8 · „Sophie von der Tann BR Bayerischer Rundfunk Stellungnahme Rückendeckung Vorwürfe konkret Beispiele"</p>
+          <p class="muted">Vier Beobachtungen. <b>Erstens — nur Meta-Ebene:</b> Alle acht Anfragen kreisen um Kontroverse, Kampagne, Verbände, Jury, Solidarität, Sender-Reaktion. Keine einzige zielt auf die Sachebene: kein „Tagesschau 17.10.2023", kein „al-Ahli", kein „Maischberger Aviva Siegel", kein „Assai", keine Suche nach den Kritik-Videos. Opus recherchierte die Debatte <em>über</em> die Kritik — nie das Material <em>der</em> Kritik. <b>Zweitens — Bestätigungssuche:</b> Anfrage 7 kodiert das erwartete Ergebnis bereits in die Suchbegriffe („Kritik fehlen Belege"); die Übermedien-Überschrift war in früheren Snippets aufgetaucht und wurde gezielt wiedergesucht. <b>Drittens — die Snippet-Schicht:</b> Alle sieben Direktabrufe (RSF, taz, Jüdische Allgemeine, epd …) scheiterten an Bot-Blockaden (403), vier weitere Aufrufe gingen für Proxy-Diagnose drauf. Gelesen hat Opus am Ende fast nur Suchmaschinen-Snippets plus Wikipedia — die SEO-sichtbarste Schicht, und das ist die Meta-Erzählung der reichweitenstarken Häuser. Bezeichnend: Selbst die <em>Kritiker</em>-Positionen kennt Opus überwiegend aus der Darstellung der Verteidiger-Seite, weil die Originaltexte nicht abrufbar waren. <b>Viertens — Abbruch bei Kohärenz:</b> Beendet wurde die Recherche mit „Ich habe genug belastbares Material" — das Kriterium war narrative Geschlossenheit, nicht Behauptungs-Abdeckung. Geprüft wurde genau <em>ein</em> Kritikpunkt (das Vorgeschichte-Zitat), und dessen Widerlegung wurde zu „weitgehend belegfrei" verallgemeinert; kein einziger Verteidiger-Claim wurde gegengeprüft.</p>
+          <p class="muted"><b>Was ihm dadurch entging — und warum:</b> die al-Ahli-Passage (Jüdische Rundschau — Nischenmedium, rankt auf Meta-Anfragen nicht), beide Kritik-Transkripte (Videos sind für Textsuche unsichtbar), die VJJ-Kritik am Jury-Text (Anfrage 4 war nah dran — die Snippets lieferten aber die Würdigung, nicht deren Kritiker), der Assai-Fall (Cicero, Nische), die NZZ-Tunnel-Einordnung (kein Anlass, danach zu suchen) und die Selbst-Widersprüche der Verteidigung. Nichts davon ist versteckt — es liegt eine Suchtiefe unterhalb der gestellten Frage. Der Fragerahmen bestimmte die Suchbegriffe, die Suchbegriffe die Quellenschicht, die Quellenschicht das Urteil.</p>
+        </div>
+
+        <div class="cc-item">
+          <h4>Der Unterschied, Punkt für Punkt</h4>
+          <table style="width:100%;border-collapse:collapse;font-size:13px;color:var(--muted);margin:8px 0 10px">
+            <thead><tr style="background:var(--hair)"><th style="padding:6px 10px;border:1px solid var(--hair-strong);text-align:left;font-weight:600;color:var(--ink)">Frage</th><th style="padding:6px 10px;border:1px solid var(--hair-strong);text-align:left;font-weight:600;color:var(--ink)">Oberflächliche Recherche (B)</th><th style="padding:6px 10px;border:1px solid var(--hair-strong);text-align:left;font-weight:600;color:var(--ink)">Diese Seite (A)</th></tr></thead>
+            <tbody>
+              <tr><td style="padding:6px 10px;border:1px solid var(--hair)"><b>Prüfmaßstab</b></td><td style="padding:6px 10px;border:1px solid var(--hair)">Wer sagt es? — RSF, 72 Korrespondent:innen, Jury, Fachpresse als „glaubwürdigste unabhängige Stimmen"</td><td style="padding:6px 10px;border:1px solid var(--hair)">Was steht im Material? — Sendungs-O-Töne, zwei Sichtungsprotokolle, Zweitquellenprüfung; Verbandsstimmen als Autoritätsargumente markiert</td></tr>
+              <tr style="background:color-mix(in srgb,var(--claim-bg) 40%,transparent)"><td style="padding:6px 10px;border:1px solid var(--hair)"><b>„Hetzkampagne"?</b></td><td style="padding:6px 10px;border:1px solid var(--hair)">Ja — „staatlich mitbefeuerte Diffamierungskampagne"</td><td style="padding:6px 10px;border:1px solid var(--hair)">Nein — „eine Handvoll Artikel", überwiegend jüdischer Autoren; so sieht es sogar Kritiker Frey. Diffamierend war die schärfste Einzelstimme (Shalicar), nicht das Kritikfeld</td></tr>
+              <tr><td style="padding:6px 10px;border:1px solid var(--hair)"><b>Substanz der Kritik</b></td><td style="padding:6px 10px;border:1px solid var(--hair)">„Weitgehend belegfrei" — Generalisierung aus <em>einem</em> widerlegten Punkt (Vorgeschichte-Zitat, Übermedien/Spiegel)</td><td style="padding:6px 10px;border:1px solid var(--hair)">Gemischt: al-Ahli doppelt belegt, Assai, Libanon-Auslassung, Maischberger-O-Ton — <em>und</em> zwei Vorzeigebeispiele entkräftet (UNRWA-Tunnel, Bethlehem)</td></tr>
+              <tr style="background:color-mix(in srgb,var(--claim-bg) 40%,transparent)"><td style="padding:6px 10px;border:1px solid var(--hair)"><b>Jury-Begründung</b></td><td style="padding:6px 10px;border:1px solid var(--hair)">Als Instanz gewertet („hielt an der Auszeichnung fest") — ihr Text bleibt ungeprüft</td><td style="padding:6px 10px;border:1px solid var(--hair)">Eigener Streitpunkt (10): „orchestrierte Reaktionswellen" ohne Beleg; VJJ warnt vor antisemitischem Stereotyp — der bestbelegte Vorwurf der Debatte, und er trifft die <em>Verteidigerseite</em></td></tr>
+              <tr><td style="padding:6px 10px;border:1px solid var(--hair)"><b>Quellenkritik an Verteidigern</b></td><td style="padding:6px 10px;border:1px solid var(--hair)">Keine — Berufsfeld = „seriöse Instanzen"; sogar die junge Welt („rechte Kampagne ging nach hinten los") läuft als Bestätigung mit</td><td style="padding:6px 10px;border:1px solid var(--hair)">Systemische Gleichrichtung benannt (TU Dortmund: 41 % Grüne); Berufsstand-interne Solidarität ≠ unabhängiger Befund</td></tr>
+              <tr style="background:color-mix(in srgb,var(--claim-bg) 40%,transparent)"><td style="padding:6px 10px;border:1px solid var(--hair)"><b>Primärquellen</b></td><td style="padding:6px 10px;border:1px solid var(--hair)">Keine gesichtet — Sekundärquellen-Aggregation, teils nur Such-Snippets (403-Blockaden, selbst offengelegt)</td><td style="padding:6px 10px;border:1px solid var(--hair)">Beide Kritik-Transkripte vollständig, O-Töne an Zweitquellen geprüft (Jüdische Rundschau, NZZ, SRF, HRW, Presseportal, Bertelsmann)</td></tr>
+              <tr><td style="padding:6px 10px;border:1px solid var(--hair)"><b>Gemeinsamer Kern</b></td><td style="padding:6px 10px;border:1px solid var(--hair)" colspan="2">Beide trennen Person und Sache, beide halten die personalisierten Etiketten („Judenhass-Gesicht", „Pro-Hamas") für unbelegt, beide sehen Prosors Botschafter-Intervention als eigenes Problem. Der Dissens liegt in der Mitte: Ist die inhaltliche Kritik substanzlos — oder teilweise belegt und teilweise entkräftet?</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="cc-item">
+          <h4>Die Lehre — warum die Antworten auseinanderlaufen</h4>
+          <p>Nicht, weil ein Modell klüger wäre: Die oberflächliche Antwort ist in sich schlüssig, ehrlich über ihre Grenzen und referenziert korrekt. Sie läuft in die Falle des Maßstabs: <b>Wer „seriöse Stimmen" aggregiert, misst die Glaubwürdigkeit der Kritik am Urteil des Berufsstands, der sich selbst verteidigt.</b> RSF, Korrespondenten-Brief, Jury und Fachpresse sind in dieser Frage Partei — nicht, weil sie unredlich wären, sondern weil sie dasselbe systemisch gleichgerichtete Feld bilden. Aus „ein zentraler Vorwurf ist widerlegt" (Vorgeschichte-Zitat) wird per Autoritätsschluss „die Kritik ist belegfrei" — und die Beispiele, die der Prüfung standhalten (al-Ahli, Assai, Maischberger), tauchen gar nicht erst auf, weil sie auf den ersten Suchseiten nicht vorkommen.</p>
+          <p class="muted">Die Warnung gilt spiegelbildlich auch für diese Seite: Erst die Materialprüfung hat gezeigt, dass zwei Vorzeige-Beispiele der <em>Kritik</em> nicht halten (UNRWA-Tunnel, Bethlehem). Wer nur das Kritiker-Material aggregiert hätte, wäre in die umgekehrte Falle gelaufen. Der Unterschied ist nicht die Richtung des Ergebnisses, sondern die Ebene: <b>Autoritäten zählen ersetzt kein Belege prüfen.</b> Die schnelle Antwort liefert in polarisierten Personaldebatten zuverlässig das Urteil der lautesten institutionellen Stimmen — hier: Freispruch erster Klasse. Die langsame findet das unbequemere Bild: berechtigter Kern, entkräftete Einzelbeispiele, unbelegte Etiketten auf <em>beiden</em> Seiten und eine Jury, die ihrer eigenen Preisträgerin mit der Begründung den größten Schaden zugefügt hat.</p>
+          <p class="muted" style="font-size:12px"><b>Methodische Grenzen des Experiments:</b> Einzeldurchlauf (n=1), nicht deterministisch reproduzierbar; das Modell folgte der Gewichtungsanweisung im Prompt („seriöse Stimmen wie Journalistenverbände…"), die eine typische Laienanfrage simuliert, das Ergebnis aber mitprägt; mehrere Primärquellen waren für das Modell technisch nicht abrufbar. Das Experiment misst nicht die Fähigkeit des Modells, sondern den Effekt des Prüfmaßstabs.</p>
+        </div>
+      </div>
+
+      <div class="verdict-row">
+        <span class="vk">Befund</span>
+        <span class="vt"><b>Dieselbe Frage, zwei Prüfmaßstäbe, zwei gegensätzliche Urteile.</b> Die oberflächliche Recherche reproduziert die Selbstbeschreibung des Feldes („Hetzkampagne, Kritik belegfrei"); die Materialprüfung findet teilweise belegte Kritik ohne Kampagne. Wer sich in polarisierten Mediendebatten auf schnelle Autoritäts-Aggregation verlässt — ob per KI oder per Zeitungslektüre —, erfährt zuverlässig, was die etablierten Instanzen über ihre Kritiker denken. Nicht mehr.</span>
+      </div>
+    </article>
+  </section>
+
+  <!-- CONCLUSION -->
+  <section class="conclude" id="fazit">
+    <p class="verdict-final">Gesamtbewertung</p>
+    <h2>Kein „Pro-Hamas", keine „Hetzkampagne" — ein belegbares Framing-Muster und eine vergiftete Debatte</h2>
+    <p>Die Prüfung der zehn Punkte ergibt ein dreigeteiltes Bild: Vier Punkte haben einen sachlich diskutierbaren, teils doppelt belegten Kern (Terminologie, erste Woche, Quellen-Asymmetrie, Preis-Umfeld); drei sind Wertungsfragen mit einzelnen dokumentierten Anlässen (Vokabular, Interviewauswahl, Empathie); einer ist geteilt (Anekdoten); zwei sind entkräftet (Vorgeschichte-Satz, Tunnel-Vorwurf). Zusammen trägt das die Einordnung <strong>„konsistentes pro-palästinensisches Framing-Muster"</strong> — als Beschreibung von Gewichtung, Auslassung und Wortwahl, nicht als Gesinnungsurteil. Ob es Person oder Redaktion zuzurechnen ist, kann von außen niemand trennen.</p>
+
+    <div class="scorebar">
+      <span class="score"><span class="pip" style="background:var(--v-debate)"></span>4× sachlich diskutierbar <em style="color:var(--faint)">(01, 02, 03, 10)</em></span>
+      <span class="score"><span class="pip" style="background:var(--v-interp)"></span>3× wertend / interpretativ <em style="color:var(--faint)">(04, 05, 06)</em></span>
+      <span class="score"><span class="pip" style="background:var(--v-unver)"></span>1× geteilt <em style="color:var(--faint)">(09)</em></span>
+      <span class="score"><span class="pip" style="background:var(--v-refut)"></span>2× entkräftet <em style="color:var(--faint)">(07, 08)</em></span>
+    </div>
+
+    <p><strong>Dreistufiges Fazit:</strong></p>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:14px 0 18px">
+      <div style="background:color-mix(in srgb,var(--v-refut) 10%,var(--panel));border:1px solid color-mix(in srgb,var(--v-refut) 30%,transparent);border-top:3px solid var(--v-refut);border-radius:10px;padding:14px 15px">
+        <p style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--v-refut);margin:0 0 7px;font-weight:600">❌ Nicht belegt</p>
+        <p style="font-size:13px;color:var(--ink);margin:0;line-height:1.55"><strong>„Pro-Hamas-Journalismus" / Antisemitismus</strong> — Etiketten ohne Beleg, die selbst die gründlichsten Kritiker nicht tragen. Sie machen die berechtigte Kritik angreifbar.</p>
+      </div>
+      <div style="background:color-mix(in srgb,var(--v-debate) 10%,var(--panel));border:1px solid color-mix(in srgb,var(--v-debate) 30%,transparent);border-top:3px solid var(--v-debate);border-radius:10px;padding:14px 15px">
+        <p style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--v-debate);margin:0 0 7px;font-weight:600">⚠ Partiell belegt</p>
+        <p style="font-size:13px;color:var(--ink);margin:0;line-height:1.55"><strong>Pro-palästinensisches Framing-Muster</strong> — al-Ahli doppelt belegt, Assai dokumentiert, zwei unabhängige Sichtungsprotokolle mit gleicher Stoßrichtung. Systematik-Beweis steht aus.</p>
+      </div>
+      <div style="background:color-mix(in srgb,var(--v-unver) 10%,var(--panel));border:1px solid color-mix(in srgb,var(--v-unver) 30%,transparent);border-top:3px solid var(--v-unver);border-radius:10px;padding:14px 15px">
+        <p style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--v-unver);margin:0 0 7px;font-weight:600">✗ Auch nicht belegt</p>
+        <p style="font-size:13px;color:var(--ink);margin:0;line-height:1.55"><strong>„Hetzkampagne" &amp; „neutral und ausgewogen"</strong> — die Kampagnen-These scheitert an der Realität einer Handvoll ziviler Artikel; die Neutralitäts-Bescheinigung stammt vom Berufsfeld über sich selbst.</p>
+      </div>
+    </div>
+    <p class="muted">Bezeichnend bleibt: Von der Tann wird aus beiden Richtungen kritisiert — das spricht gegen eine eindeutige Agenda. Und der am besten belegte Skandal der ganzen Affäre steckt nicht in ihrer Berichterstattung, sondern im Begründungstext ihrer eigenen Preis-Jury. Der einzige Test, der die Kernfrage entscheiden könnte — eine systematische Inhaltsanalyse einer repräsentativen Sendungsstichprobe —, wurde von keiner Seite vorgelegt.</p>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="meth">
+      <h4>Methodik &amp; Grenzen</h4>
+      <p>Grundlage sind die vollständigen (automatisch erstellten) Transkripte der beiden ausführlichsten Kritik-Videos — Sarah Maria Sanders Analyse und Tom David Freys Podcast vom 04.12.2025 —, deren ASR-Fehler sinnwahrend normalisiert wurden, sowie die publizierte Kritik und Verteidigung. Die in den Videos zitierten Sendungs-O-Töne sind Sichtungsprotokolle der Kritiker, keine amtlichen Sendemanuskripte; wo möglich wurden sie an Zweitquellen geprüft (al-Ahli: Jüdische Rundschau, wortgleich; Jury-Text: Originalveröffentlichung; UNRWA-Tunnel: NZZ; Bethlehem: SRF/ZDF; Maischberger-Datum: Presseportal; Bertelsmann-Zahlen: Original). Die Originalsendungen wurden nicht vollständig selbst gesichtet — datumsgenaue Protokollangaben sind an der ARD-Mediathek prüfbar. Verbands- und Prominenten-Stimmen beider Seiten werden als Autoritätsargumente behandelt, nicht als Befunde. Bewertet wird die <b>Beleg- und Argumentationslage</b>, kein Endurteil über einzelne Sendungen oder die Sachfragen des Nahostkonflikts. Zahlenkontext, wo zitiert: RIAS (8.627 antisemitische Vorfälle 2024, 68 % israelbezogen), TU Dortmund 2024 (41 % der Journalist:innen Grünen-nah vs. ~11 % Bevölkerung), Bertelsmann Religionsmonitor 2023 (43 % Zustimmung zum Israel-Nazi-Vergleich, 21 % „zu viel jüdischer Einfluss").</p>
+    </div>
+    <h4>Verwendete Quellen</h4>
+    <div class="src-list">
+      <a href="https://de.wikipedia.org/wiki/Sophie_von_der_Tann" target="_blank" rel="noopener">Wikipedia — Sophie von der Tann</a>
+      <a href="https://www.youtube.com/watch?v=wdx6mbCvEZU" target="_blank" rel="noopener">YouTube — Sander: „Eine Analyse ihrer Berichterstattung seit dem 7. Oktober" (Transkript ausgewertet)</a>
+      <a href="https://www.youtube.com/watch?v=Kiw6kgUhd1o" target="_blank" rel="noopener">YouTube — Frey: „Der Fall Sophie von der Tann" (04.12.2025, Transkript ausgewertet)</a>
+      <a href="https://www.youtube.com/watch?v=g7nQ03Su37U" target="_blank" rel="noopener">YouTube — WELT/Lemmer</a>
+      <a href="https://www.juedische-allgemeine.de/meinung/nur-scheinbar-ausgewogen/" target="_blank" rel="noopener">Jüdische Allgemeine — Sander, „Nur scheinbar ausgewogen"</a>
+      <a href="https://www.juedische-allgemeine.de/meinung/gratulation/" target="_blank" rel="noopener">Jüdische Allgemeine / Beckhardt (VJJ) — „Warum die Auszeichnung … aberwitzig ist"</a>
+      <a href="https://www.juedische-allgemeine.de/israel/die-kritik-trifft-mich-entbehrt-aber-jeder-grundlage/" target="_blank" rel="noopener">Jüdische Allgemeine — Reaktion von der Tann</a>
+      <a href="https://www.juedische-allgemeine.de/israel/besonders-perfide/" target="_blank" rel="noopener">Jüdische Allgemeine — Prosor &amp; der Bartov-Post</a>
+      <a href="https://www.hanns-joachim-friedrichs.de/index.php/preistraeger-2025.html" target="_blank" rel="noopener">Friedrichs-Preis — Jury-Begründung 2025 (Originaltext)</a>
+      <a href="https://www.belltower.news/anetta-kahane-ein-journalismuspreis-und-die-antisemitische-schlagseite-163501/" target="_blank" rel="noopener">Belltower / Kahane — Journalismuspreis und antisemitische Schlagseite</a>
+      <a href="https://juedischerundschau.de/article.2025-10.tagesschau-luegen-und-betruegen-auf-gebuehrenzahlerkosten.html" target="_blank" rel="noopener">Jüdische Rundschau 10/2025 — dokumentiert die al-Ahli-Passage (17.10.2023)</a>
+      <a href="https://www.hrw.org/de/news/2023/11/26/gaza-erkenntnisse-zur-explosion-am-al-ahli-krankenhaus" target="_blank" rel="noopener">Human Rights Watch — al-Ahli-Explosion (26.11.2023)</a>
+      <a href="https://www.nzz.ch/international/der-hamas-tunnel-unter-dem-unrwa-hauptquartier-was-ist-dran-an-den-vorwuerfen-der-israelischen-armee-ld.1819958" target="_blank" rel="noopener">NZZ — Hamas-Tunnel unter der UNRWA (Feb. 2024)</a>
+      <a href="https://www.cicero.de/kultur/ard-tagesschau-assai-israel-nahost-medien" target="_blank" rel="noopener">Cicero — Fall Assai („nicht verifizierbar")</a>
+      <a href="https://www.perlentaucher.de/essay/die-antiisraelische-tendenz-deutsche-medien-seit-dem-7-oktober.html" target="_blank" rel="noopener">Perlentaucher / Rotstein — Antiisraelische Tendenz deutscher Medien</a>
+      <a href="https://www.srf.ch/news/international/im-schatten-des-gaza-kriegs-traurige-weihnachten-in-bethlehem" target="_blank" rel="noopener">SRF — Traurige Weihnachten in Bethlehem (Dez. 2024)</a>
+      <a href="https://www.presseportal.de/pm/6694/5880508" target="_blank" rel="noopener">Presseportal/ARD — maischberger 8.10.2024 (Siegel &amp; von der Tann)</a>
+      <a href="https://www.youtube.com/watch?v=S7H6LBHkgsw" target="_blank" rel="noopener">YouTube — maischberger: Aviva Siegel &amp; Sophie von der Tann</a>
+      <a href="https://etosmedia.de/politik/die-selbstradikalisierung-der-liberalen-mitte/" target="_blank" rel="noopener">Etos/diskurskorrektur — Gegenstimme zur Kahane-Lesart</a>
+      <a href="https://uebermedien.de/111859/alles-andere-als-substanzielle-journalismuskritik/" target="_blank" rel="noopener">Übermedien — „Alles andere als substanzielle Journalismuskritik"</a>
+      <a href="https://media.reporter-ohne-grenzen.de/production/5499/Offener-Brief-Solidarita%CC%88t-mit-Sophie-von-der-Tann.pdf" target="_blank" rel="noopener">Offener Brief der 72 Korrespondent:innen (PDF, via RSF)</a>
+      <a href="https://www.reporter-ohne-grenzen.de/artikel/pressemitteilungen/4148/" target="_blank" rel="noopener">RSF — Einschüchterungsversuche / Solidarität</a>
+      <a href="https://www.tagesspiegel.de/kultur/mich-trifft-das-auch-personlich-ard-israel-korrespondentin-sophie-von-der-tann-weist-kritik-an-ihrer-arbeit-als-diffamierung-zuruck-15008462.html" target="_blank" rel="noopener">Tagesspiegel — von der Tann weist Kritik zurück; BR-Rückendeckung</a>
+      <a href="https://taz.de/Kritik-an-ARD-Israel-Korrespondentin/!6134451/" target="_blank" rel="noopener">taz — „Was wir schützen müssen" (inkl. LMU-Umfrage)</a>
+      <a href="https://www.nd-aktuell.de/artikel/1195925.html" target="_blank" rel="noopener">nd — Verteidigung &amp; „Vorgeschichte"</a>
+      <a href="https://www.t-online.de/unterhaltung/tv/id_101017238/sophie-von-der-tann-vorwuerfe-gegen-ard-korrespondentin.html" target="_blank" rel="noopener">t-online — Instagram-Vorwürfe: BR-Team betreut Privataccount</a>
+      <a href="https://www.t-online.de/nachrichten/ausland/krisen/id_100260868/mia-schem-21-hamas-veroeffentlicht-geisel-video.html" target="_blank" rel="noopener">t-online — Hamas-Geiselvideo Mia Schem (Okt. 2023)</a>
+      <a href="https://www.gmx.net/magazine/unterhaltung/stars/buehne-erhoben-gaeste-40320058" target="_blank" rel="noopener">GMX — Bambi 2024: Friedländer-Ehrung, Laudatio von der Tann</a>
+      <a href="https://www.bertelsmann-stiftung.de/en/unsere-projekte/religionsmonitor/projektnachrichten/anti-semitism-and-racism-the-war-in-the-middle-east-reveals-cracks-in-german-society" target="_blank" rel="noopener">Bertelsmann Religionsmonitor 2023 — 43 % / 21 %</a>
+      <a href="https://report-antisemitism.de/documents/04-06-25_RIAS_Bund_Jahresbericht_2024.pdf" target="_blank" rel="noopener">RIAS Jahresbericht 2024 (PDF)</a>
+      <a href="https://www.journalismusstudie.fb15.tu-dortmund.de/" target="_blank" rel="noopener">TU Dortmund — Journalismusbefragung 2024</a>
+      <a href="https://www.mena-watch.com/israelberichterstattung-keine-luegen-framing/" target="_blank" rel="noopener">Mena-Watch — „Keine Lügen, sondern Framing"</a>
+      <a href="https://www.mena-watch.com/preisgekronte-einseitigkeit-sophie-von-der-tann/" target="_blank" rel="noopener">Mena-Watch — „Preisgekrönte Einseitigkeit"</a>
+      <a href="https://www.achgut.com/artikel/sophie_von_der_tann_hanns_joachim_friedrichs_preis_fuer_anti_israel_framing" target="_blank" rel="noopener">Achgut — Friedrichs-Standard &amp; Sander</a>
+      <a href="https://www.pro-medienmagazin.de/umstrittene-ard-korrespondentin-fuer-israelberichterstattung-geehrt/" target="_blank" rel="noopener">pro Medienmagazin — Preisverleihung &amp; Jury-Zitate</a>
+      <a href="https://freitagsmedien.com/2024/01/04/sophie-von-der-tann-israel-ard/" target="_blank" rel="noopener">freitagsmedien — frühe Einzelkritik (Jan. 2024)</a>
+      <a href="https://www.ruhrbarone.de/preiswuerdig-protest-gegen-die-preisverleihung-an-die-ard-israelkorrespondentin-sophie-von-der-tann/253758/" target="_blank" rel="noopener">Ruhrbarone / haGalil — „Preiswürdig?"</a>
+      <a href="https://www.bpb.de/kurz-knapp/hintergrund-aktuell/547184/sechs-monate-nach-dem-angriff-der-hamas-auf-israel-chronologie-des-kriegsgeschehens/" target="_blank" rel="noopener">BPB — Chronologie des Kriegsgeschehens (u. a. Belagerungs-Ankündigung 9.10.)</a>
+      <a href="https://www.dwdl.de/bildschirmhelden2023/95864/sophie_von_der_tann_ein_neuer_typ_kriegs_und_krisenkorrespondentin/" target="_blank" rel="noopener">DWDL — Korrespondentinnen-Profil</a>
+    </div>
+    <p class="stamp">Faktencheck-Aufbereitung · Neufassung 11.07.2026 (Europe/Berlin) · Struktur: Kritikpunkte · Entlastung · Portraits · Journalismus-Genres · KI-Kontrollexperiment · frühere Fassungen in der Git-Historie des Repositories.</p>
+  </footer>
+
+</div>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var btn = document.getElementById('themeToggle');
+    var label = document.getElementById('toggleLabel');
+    var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    setTheme(prefersDark ? 'dark' : 'light');
+    function setTheme(t) {
+      root.setAttribute('data-theme', t);
+      label.textContent = (t === 'dark') ? 'Hell' : 'Dunkel';
+    }
+    btn.addEventListener('click', function () {
+      setTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+  })();
+  (function () {
+    var bar = document.getElementById('progress');
+    function upd() {
+      var d = document.documentElement;
+      var max = d.scrollHeight - d.clientHeight;
+      bar.style.width = (max > 0 ? (d.scrollTop / max) * 100 : 0) + '%';
+    }
+    window.addEventListener('scroll', upd, { passive: true });
+    upd();
+  })();
+</script>
+</body>
+</html>

@@ -56,4 +56,12 @@ Hell-/Dunkel-Umschalter; Schriften werden von Google Fonts geladen.
 
 ## Dateien
 
-- [`index.html`](index.html) – die Faktencheck-Seite (standalone).
+- [`report-2026-07-11.html`](report-2026-07-11.html) – **Neufassung (empfohlen)**:
+  neu strukturiert (Kritikpunkte → Entlastung → Akteurs-Portraits →
+  Journalismus-Genres → KI-Kontrollexperiment → Fazit) und neu gestaltet
+  (eigenes Dossier-Layout mit Abschnitts-Navigation), ohne die
+  Dokumenten-/Versionsgeschichte der Langfassung. Benannt nach dem
+  Erstellungsdatum; spätere Neufassungen erhalten neue Timestamps.
+- [`index.html`](index.html) – die ausführliche Langfassung (Faktencheck mit
+  Transkript-Deep-Dives, Video-Register, Zahlen- und Systemkontext,
+  Versionshistorie), verlinkt oben auf die Neufassung.
