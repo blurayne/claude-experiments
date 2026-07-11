@@ -35,6 +35,16 @@ bestehen — konkreter gestützt und zugleich schärfer begrenzt: Zwei
 Vorzeige-Beispiele der Kritik fielen bei der Transkript-Prüfung in sich
 zusammen.
 
+Als Abschlusskapitel (v4) enthält die Seite eine **A/B-Gegenprobe**: Dieselbe
+Frage („Hetzkampagne gegen von der Tann — was ist dran?") wurde einem zweiten
+KI-Modell (Claude Opus 4.8) so gestellt, wie ein normaler Nutzer fragen würde —
+ohne Kenntnis dieser Seite, mit Orientierung an „seriösen Stimmen"
+(Journalistenverbände, RSF, Fachpresse). Ergebnis: das gegenteilige Urteil
+(„staatlich mitbefeuerte Diffamierungskampagne, Kritik weitgehend belegfrei").
+Das Kapitel vergleicht beide Antworten Punkt für Punkt und zieht die Lehre:
+Autoritäts-Aggregation reproduziert die Selbstbeschreibung des Feldes —
+Belege prüfen ersetzt sie nicht.
+
 Die Darstellung ist meinungsstark und bezieht selbst Position (etwa mit einem
 methodischen Vorbehalt gegenüber den Verteidigern der Journalistin) – sie
 versteht sich als Medienkritik, nicht als neutrale Nachricht.
