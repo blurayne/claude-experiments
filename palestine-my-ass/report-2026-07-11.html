@@ -91,6 +91,33 @@
   }
   nav.toc a:hover { color: var(--accent); border-color: var(--accent); }
 
+  /* ---------- table of contents ---------- */
+  .toc-box { background: var(--panel); border: 1px solid var(--hair); border-left: 5px solid var(--accent); border-radius: 4px; padding: 4px 0; }
+  .toc-box summary {
+    cursor: pointer; list-style: none; padding: 16px 24px;
+    font-family: 'Sora', sans-serif; font-size: 13.5px; font-weight: 700; letter-spacing: .02em; color: var(--ink);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .toc-box summary::-webkit-details-marker { display: none; }
+  .toc-box summary::before { content: "▸"; color: var(--accent); font-size: 12px; transition: transform .15s ease; }
+  .toc-box[open] summary::before { transform: rotate(90deg); }
+  .toc-box summary:hover { color: var(--accent); }
+  .toc-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 4px 28px;
+    padding: 4px 24px 20px; border-top: 1px dashed var(--hair-strong); margin-top: -2px;
+  }
+  .toc-group { padding-top: 14px; }
+  .toc-h { margin: 0 0 6px; }
+  .toc-h a {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--accent); text-decoration: none; font-weight: 600;
+  }
+  .toc-h a:hover { text-decoration: underline; }
+  .toc-grid ul { margin: 0; padding: 0; list-style: none; }
+  .toc-grid li { padding: 3px 0; }
+  .toc-grid a { font-size: 13px; color: var(--muted); text-decoration: none; line-height: 1.5; }
+  .toc-grid a:hover { color: var(--accent); text-decoration: underline; }
+
   /* ---------- hero ---------- */
   .hero { padding: 78px 0 46px; border-bottom: 4px double var(--hair-strong); }
   .eyebrow {
@@ -275,6 +302,7 @@
     </button>
   </div>
   <nav class="toc" aria-label="Abschnitte">
+    <a href="#inhalt">Inhalt</a>
     <a href="#antworten">Die 3 Antworten</a>
     <a href="#kritik">1 · Kritikpunkte</a>
     <a href="#entlastung">2 · Entlastung</a>
@@ -307,6 +335,17 @@
     </div>
   </section>
 
+
+  <!-- TOC -->
+  <section class="aspects" id="inhalt" style="padding-top:0;padding-bottom:8px">
+    <details class="toc-box">
+      <summary>Inhaltsverzeichnis — alle Abschnitte &amp; Überschriften</summary>
+      <div class="toc-grid">
+        <div class="toc-group"><p class="toc-h"><a href="#antworten">Die 3 Antworten</a></p><ul><li><a href="#haette-sie-den-preis-fuer-qualitaetsjour">Hätte sie den Preis für Qualitätsjournalismus verdient?</a></li><li><a href="#betreibt-sie-pro-palaestina-framing">Betreibt sie Pro-Palästina-Framing?</a></li><li><a href="#gibt-es-eine-diffamierungskampagne">Gibt es eine Diffamierungskampagne?</a></li><li><a href="#der-kernvorwurf">Der Kernvorwurf</a></li><li><a href="#die-kernverteidigung">Die Kernverteidigung</a></li></ul></div><div class="toc-group"><p class="toc-h"><a href="#kritik">Teil 1 · Kritikpunkte</a></p><ul><li><a href="#militante-kaempfer-statt-terroristen">„Militante Kämpfer" statt „Terroristen"</a></li><li><a href="#die-erste-woche-das-massaker-als-leerste">Die erste Woche: das Massaker als Leerstelle</a></li><li><a href="#asymmetrischer-umgang-mit-zahlen-quellen">Asymmetrischer Umgang mit Zahlen &amp; Quellen</a></li><li><a href="#framing-vokabular">Framing-Vokabular</a></li><li><a href="#interviewauswahl-repraesentativitaet">Interviewauswahl &amp; Repräsentativität</a></li><li><a href="#geiseln-empathie">Geiseln &amp; Empathie</a></li><li><a href="#der-vorgeschichte-satz">Der „Vorgeschichte"-Satz</a></li><li><a href="#relativiert-hamas-tunnel">„Relativiert Hamas-Tunnel"</a></li><li><a href="#die-anekdoten-mai-2023-video-bethlehem-b">Die Anekdoten: Mai-2023-Video, Bethlehem, Bibas</a></li><li><a href="#das-preis-umfeld-jury-text-laudatio-inst">Das Preis-Umfeld: Jury-Text, Laudatio, Instagram</a></li></ul></div><div class="toc-group"><p class="toc-h"><a href="#entlastung">Teil 2 · Entlastung</a></p><ul><li><a href="#acht-punkte-zu-ihren-gunsten">Acht Punkte zu ihren Gunsten</a></li></ul></div><div class="toc-group"><p class="toc-h"><a href="#akteure">Teil 3 · Akteure</a></p><ul><li><a href="#die-kritiker">Die Kritiker</a></li><li><a href="#die-verteidiger">Die Verteidiger</a></li><li><a href="#systemkontext-das-framing-jenseits-der-p">Systemkontext — das Framing jenseits der Person</a></li></ul></div><div class="toc-group"><p class="toc-h"><a href="#genres">Teil 4 · Genres</a></p><ul><li><a href="#sophie-von-der-tann">Sophie von der Tann</a></li><li><a href="#sarah-maria-sander">Sarah Maria Sander</a></li><li><a href="#tom-david-frey">Tom David Frey</a></li><li><a href="#diffamierung-pathologisierung">Diffamierung &amp; Pathologisierung</a></li></ul></div><div class="toc-group"><p class="toc-h"><a href="#ki">Teil 5 · KI-Experiment</a></p><ul><li><a href="#was-bekommt-wer-einfach-mal-die-ki-fragt">Was bekommt, wer „einfach mal die KI fragt"?</a></li></ul></div>
+      </div>
+    </details>
+  </section>
+
   <!-- DREI ANTWORTEN -->
   <section class="aspects" id="antworten" style="padding-bottom:6px">
     <p class="sec-label">Die drei Fragen, direkt beantwortet</p>
@@ -315,7 +354,7 @@
       <div class="card-head">
         <div class="num">?1</div>
         <div class="htxt">
-          <h3>Hätte sie den Preis für Qualitätsjournalismus verdient?</h3>
+          <h3 id="haette-sie-den-preis-fuer-qualitaetsjour">Hätte sie den Preis für Qualitätsjournalismus verdient?</h3>
           <div class="sub">Hanns-Joachim-Friedrichs-Preis 2025 · Jury: „zuverlässig erstklassige Arbeit … cool, aber nicht kalt"</div>
         </div>
         <span class="chip debate"><span class="pip"></span>Nach dieser Beleglage: Nein</span>
@@ -332,7 +371,7 @@
       <div class="card-head">
         <div class="num">?2</div>
         <div class="htxt">
-          <h3>Betreibt sie Pro-Palästina-Framing?</h3>
+          <h3 id="betreibt-sie-pro-palaestina-framing">Betreibt sie Pro-Palästina-Framing?</h3>
           <div class="sub">Gewichtung, Auslassung, Wortwahl, Quellen-Asymmetrie</div>
         </div>
         <span class="chip debate"><span class="pip"></span>Ja — als belegtes Muster, nicht als Agenda</span>
@@ -349,7 +388,7 @@
       <div class="card-head">
         <div class="num">?3</div>
         <div class="htxt">
-          <h3>Gibt es eine Diffamierungskampagne?</h3>
+          <h3 id="gibt-es-eine-diffamierungskampagne">Gibt es eine Diffamierungskampagne?</h3>
           <div class="sub">„Hetzkampagne", „orchestrierte Reaktionswellen" vs. das reale Kritikfeld</div>
         </div>
         <span class="chip refut"><span class="pip"></span>Nein — Diffamierung ja, Kampagne nein</span>
@@ -374,14 +413,14 @@
     </div>
     <div class="ctx-grid">
       <div class="ctx-card crit">
-        <h3>Der Kernvorwurf</h3>
+        <h3 id="der-kernvorwurf">Der Kernvorwurf</h3>
         <ul>
           <li>Wiederkehrende Erzählmuster, die <b>Israel als Aggressor</b> zeichnen: Gewichtung, Auslassung, Wortwahl, Quellen-Asymmetrie</li>
           <li>In der Zuspitzung: „Pro-Hamas-Journalismus", „Gesicht vom neu-deutschen Juden- und Israelhass"</li>
         </ul>
       </div>
       <div class="ctx-card def">
-        <h3>Die Kernverteidigung</h3>
+        <h3 id="die-kernverteidigung">Die Kernverteidigung</h3>
         <ul>
           <li>„Diffamierungskampagne" gegen eine Korrespondentin, die nur ihren Job macht; Vorwürfe „ohne echte Belege" (Übermedien)</li>
           <li>In der Zuspitzung: „zum Teil orchestrierte Reaktionswellen" (Preis-Jury) — selbst heftig umstritten</li>
@@ -399,7 +438,7 @@
       <div class="card-head">
         <div class="num">01</div>
         <div class="htxt">
-          <h3>„Militante Kämpfer" statt „Terroristen"</h3>
+          <h3 id="militante-kaempfer-statt-terroristen">„Militante Kämpfer" statt „Terroristen"</h3>
           <div class="sub">Terminologie ab dem 7.10.2023 · erhoben von Frey, Sander, Botschafter Prosor</div>
         </div>
         <span class="chip debate"><span class="pip"></span>Sachlich diskutierbar</span>
@@ -425,7 +464,7 @@
       <div class="card-head">
         <div class="num">02</div>
         <div class="htxt">
-          <h3>Die erste Woche: das Massaker als Leerstelle</h3>
+          <h3 id="die-erste-woche-das-massaker-als-leerste">Die erste Woche: das Massaker als Leerstelle</h3>
           <div class="sub">Tagesschau 20 Uhr, 7.–17.10.2023 · zwei unabhängige Sichtungsprotokolle (Frey, Sander)</div>
         </div>
         <span class="chip debate"><span class="pip"></span>Sachlich diskutierbar</span>
@@ -451,7 +490,7 @@
       <div class="card-head">
         <div class="num">03</div>
         <div class="htxt">
-          <h3>Asymmetrischer Umgang mit Zahlen &amp; Quellen</h3>
+          <h3 id="asymmetrischer-umgang-mit-zahlen-quellen">Asymmetrischer Umgang mit Zahlen &amp; Quellen</h3>
           <div class="sub">al-Ahli (17.10.2023) · Fall Assai (7.9.2025) · „Überprüfen können wir das nicht"</div>
         </div>
         <span class="chip debate"><span class="pip"></span>Bestätigtes Kernbeispiel</span>
@@ -477,7 +516,7 @@
       <div class="card-head">
         <div class="num">04</div>
         <div class="htxt">
-          <h3>Framing-Vokabular</h3>
+          <h3 id="framing-vokabular">Framing-Vokabular</h3>
           <div class="sub">„ethnische Säuberung", „Blockade als Kriegswaffe", „keine Lebensgrundlage mehr"</div>
         </div>
         <span class="chip interp"><span class="pip"></span>Wertend / interpretativ</span>
@@ -503,7 +542,7 @@
       <div class="card-head">
         <div class="num">05</div>
         <div class="htxt">
-          <h3>Interviewauswahl &amp; Repräsentativität</h3>
+          <h3 id="interviewauswahl-repraesentativitaet">Interviewauswahl &amp; Repräsentativität</h3>
           <div class="sub">Dienstverweigerer, „radikale Siedler", Westjordanland-Reportage · Sander, Schapira (JA)</div>
         </div>
         <span class="chip interp"><span class="pip"></span>Wertend / interpretativ</span>
@@ -529,7 +568,7 @@
       <div class="card-head">
         <div class="num">06</div>
         <div class="htxt">
-          <h3>Geiseln &amp; Empathie</h3>
+          <h3 id="geiseln-empathie">Geiseln &amp; Empathie</h3>
           <div class="sub">Geiselvideo 17.10.2023 · Maischberger/Aviva Siegel 8.10.2024 · Tagesthemen-Kommentar · Juni-2025-Reportage</div>
         </div>
         <span class="chip interp"><span class="pip"></span>Subjektiv, mit dokumentierten Anlässen</span>
@@ -555,7 +594,7 @@
       <div class="card-head">
         <div class="num">07</div>
         <div class="htxt">
-          <h3>Der „Vorgeschichte"-Satz</h3>
+          <h3 id="der-vorgeschichte-satz">Der „Vorgeschichte"-Satz</h3>
           <div class="sub">Angebliche Äußerung in einem Hintergrundgespräch (WELT-Bericht)</div>
         </div>
         <span class="chip refut"><span class="pip"></span>Bestritten / entkräftet</span>
@@ -582,7 +621,7 @@
       <div class="card-head">
         <div class="num">08</div>
         <div class="htxt">
-          <h3>„Relativiert Hamas-Tunnel"</h3>
+          <h3 id="relativiert-hamas-tunnel">„Relativiert Hamas-Tunnel"</h3>
           <div class="sub">IDF-Pressetour Februar 2024, Tunnel unter UNRWA-Gelände · Sander</div>
         </div>
         <span class="chip refut"><span class="pip"></span>Vom eigenen Material widerlegt</span>
@@ -608,7 +647,7 @@
       <div class="card-head">
         <div class="num">09</div>
         <div class="htxt">
-          <h3>Die Anekdoten: Mai-2023-Video, Bethlehem, Bibas</h3>
+          <h3 id="die-anekdoten-mai-2023-video-bethlehem-b">Die Anekdoten: Mai-2023-Video, Bethlehem, Bibas</h3>
           <div class="sub">Instagram Mai 2023 · Weihnachtsbericht 2024 · Sarg-Rückführung Februar 2025 · Sander</div>
         </div>
         <span class="chip unver"><span class="pip"></span>Geteilt: entkräftet / offen</span>
@@ -634,7 +673,7 @@
       <div class="card-head">
         <div class="num">10</div>
         <div class="htxt">
-          <h3>Das Preis-Umfeld: Jury-Text, Laudatio, Instagram</h3>
+          <h3 id="das-preis-umfeld-jury-text-laudatio-inst">Das Preis-Umfeld: Jury-Text, Laudatio, Instagram</h3>
           <div class="sub">Friedrichs-Preis Dez. 2025 · Bambi-Laudatio Nov. 2024 · BR-Social-Team · Frey, Kahane, VJJ, Havemann</div>
         </div>
         <span class="chip debate"><span class="pip"></span>Sachlich diskutierbar</span>
@@ -663,7 +702,7 @@
       <div class="card-head">
         <div class="num" style="font-size:1.4rem;color:var(--v-refut);padding-top:4px">✓</div>
         <div class="htxt">
-          <h3>Acht Punkte zu ihren Gunsten</h3>
+          <h3 id="acht-punkte-zu-ihren-gunsten">Acht Punkte zu ihren Gunsten</h3>
           <div class="sub">aus der Prüfung der Kritik selbst gewonnen — nicht aus Verbandsstimmen</div>
         </div>
         <span class="chip hold"><span class="pip"></span>Entlastung</span>
@@ -713,7 +752,7 @@
       <div class="card-head">
         <div class="num" style="font-size:1rem;font-family:'IBM Plex Mono',monospace;color:var(--claim-label);padding-top:8px">KRIT</div>
         <div class="htxt">
-          <h3>Die Kritiker</h3>
+          <h3 id="die-kritiker">Die Kritiker</h3>
           <div class="sub">vom quellenbasierten Prüfer bis zur Diffamierung — die Bandbreite ist der Schlüssel zur Debatte</div>
         </div>
       </div>
@@ -766,7 +805,7 @@
       <div class="card-head">
         <div class="num" style="font-size:1rem;font-family:'IBM Plex Mono',monospace;color:var(--counter-label);padding-top:8px">DEF</div>
         <div class="htxt">
-          <h3>Die Verteidiger</h3>
+          <h3 id="die-verteidiger">Die Verteidiger</h3>
           <div class="sub">massiv, prominent — und fast vollständig aus dem eigenen Berufsfeld</div>
         </div>
       </div>
@@ -798,7 +837,7 @@
       <div class="card-head">
         <div class="num" style="font-size:1rem;font-family:'IBM Plex Mono',monospace;color:var(--accent);padding-top:8px">SYS</div>
         <div class="htxt">
-          <h3>Systemkontext — das Framing jenseits der Person</h3>
+          <h3 id="systemkontext-das-framing-jenseits-der-p">Systemkontext — das Framing jenseits der Person</h3>
           <div class="sub">ÖRR-weite Beispiele, der ZDF-Komplex 2025 und das Reaktions-Stream-Ökosystem (ergänzt 12.07.2026)</div>
         </div>
         <span class="chip debate"><span class="pip"></span>Kontext, gemischte Beweisqualität</span>
@@ -837,7 +876,7 @@
     <div class="jgrid">
       <div class="jcard vdt">
         <div class="role">Genre A · ÖRR-Korrespondentin</div>
-        <h3>Sophie von der Tann</h3>
+        <h3 id="sophie-von-der-tann">Sophie von der Tann</h3>
         <div class="kind">Festangestellt, gebunden an Neutralitätsgebot, Rundfunkrat und Programmbeschwerden</div>
         <div class="block">
           <div class="bl-h plus">Spricht für das Genre</div>
@@ -852,7 +891,7 @@
 
       <div class="jcard sms">
         <div class="role">Genre B · Advocacy-Kritik</div>
-        <h3>Sarah Maria Sander</h3>
+        <h3 id="sarah-maria-sander">Sarah Maria Sander</h3>
         <div class="kind">Erklärt parteiisch („setzt sich für den jüdischen Staat ein"), aktivistisch, crowdfinanziert</div>
         <div class="block">
           <div class="bl-h plus">Spricht für das Genre</div>
@@ -867,7 +906,7 @@
 
       <div class="jcard vdt">
         <div class="role">Genre C · Quellenbasierte freie Kritik</div>
-        <h3>Tom David Frey</h3>
+        <h3 id="tom-david-frey">Tom David Frey</h3>
         <div class="kind">Perspektivisch, aber methodisch: datierte Sichtung, beide Thesen geprüft, Etiketten verweigert</div>
         <div class="block">
           <div class="bl-h plus">Spricht für das Genre</div>
@@ -882,7 +921,7 @@
 
       <div class="jcard sms">
         <div class="role">Außerhalb der Genres</div>
-        <h3>Diffamierung &amp; Pathologisierung</h3>
+        <h3 id="diffamierung-pathologisierung">Diffamierung &amp; Pathologisierung</h3>
         <div class="kind">Shalicars „Judenhass-Gesicht" auf der einen — „orchestrierte Reaktionswellen" auf der anderen Seite</div>
         <div class="block">
           <div class="bl-h minus">Warum beides herausfällt</div>
@@ -906,7 +945,7 @@
       <div class="card-head">
         <div class="num" style="font-size:1rem;font-family:'IBM Plex Mono',monospace;color:var(--accent);padding-top:8px">A/B</div>
         <div class="htxt">
-          <h3>Was bekommt, wer „einfach mal die KI fragt"?</h3>
+          <h3 id="was-bekommt-wer-einfach-mal-die-ki-fragt">Was bekommt, wer „einfach mal die KI fragt"?</h3>
           <div class="sub">Claude Opus 4.8, frische Sitzung, nur Websuche, keinerlei Kenntnis dieser Seite · Einzeldurchlauf, 11.07.2026</div>
         </div>
         <span class="chip interp"><span class="pip"></span>Experiment</span>
@@ -1096,7 +1135,7 @@
       <a href="https://www.youtube.com/watch?v=s58C2a3Q-tc" target="_blank" rel="noopener">YouTube — Reaktions-Stream „War der 7. Oktober nur ein Missverständnis?" (Transkript ausgewertet)</a>
       <a href="https://youtube.com/playlist?list=PL0-bk4VL4-BVXEKHQZMlqdPaorCkprktK" target="_blank" rel="noopener">YouTube — Playlist ÖRR-Kritik-Serie (Titel als Anhaltspunkte)</a>
     </div>
-    <p class="stamp">Faktencheck-Aufbereitung · Neufassung 11.07.2026, ergänzt 12.07.2026 (Europe/Berlin) · Struktur: Systemkontext-Karte (ÖRR-weit, ZDF-Komplex, Stream-Ökosystem) · Drei Antworten · Kritikpunkte · Entlastung · Portraits · Journalismus-Genres · KI-Kontrollexperimente B1/B2 + Grok-Quervergleich + Praxis-Tipp mit Komplett-Prompt · frühere Fassungen in der Git-Historie des Repositories.</p>
+    <p class="stamp">Faktencheck-Aufbereitung · Neufassung 11.07.2026, ergänzt 12.07.2026 (Europe/Berlin) · Struktur: Inhaltsverzeichnis mit Anker-Links auf jede Überschrift · Systemkontext-Karte (ÖRR-weit, ZDF-Komplex, Stream-Ökosystem) · Drei Antworten · Kritikpunkte · Entlastung · Portraits · Journalismus-Genres · KI-Kontrollexperimente B1/B2 + Grok-Quervergleich + Praxis-Tipp mit Komplett-Prompt · frühere Fassungen in der Git-Historie des Repositories.</p>
   </footer>
 
 </div>
