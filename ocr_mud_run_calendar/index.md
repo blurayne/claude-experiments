@@ -14,7 +14,7 @@ Enthalten sind die großen kommerziellen Serien (Spartan Race, Mud Masters, Mudd
   - Slider für die **Reichweite** (25–400 km Luftlinie)
   - **Datumsfeld „Ab wann“** (Startdatum des Zeitfensters, vorbelegt mit heute)
   - Slider für den **Zeitraum** (wie viele Tage ab dem Startdatum, 2 Wochen bis ~18 Monate)
-  - Haken **„vergangene Events anzeigen“**: Events ohne Termin im Fenster erscheinen ausgegraut mit ihrem letzten gelaufenen Termin („bereits gelaufen“)
+  - Haken **„vergangene Events anzeigen“**: Events ohne kommenden Termin im Fenster erscheinen ausgegraut mit ihrem letzten gelaufenen Termin („bereits gelaufen“); bei kommenden Events wird zusätzlich „zuletzt gelaufen“ eingeblendet. Die Datenbank enthält dafür die belegten Termine der letzten 2 Jahre (Juli 2024 – Juli 2026) je Event.
   - Slider für die **max. Startgebühr** (Kostenfilter; Events ohne Preisangabe bleiben sichtbar)
   - **Sortierung** wählbar: nächstes Event zuerst oder nach Entfernung
   - Filter nach Event-Typ (Großevents / kleine Vereins-Events / nur mit Kids-Lauf)

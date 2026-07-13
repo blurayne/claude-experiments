@@ -287,16 +287,16 @@
       if (state.kidsOnly && !ev.kids) return;
       // Kostenfilter: Events ohne Preisangabe bleiben sichtbar
       if (state.maxPrice < PRICE_CAP && ev.priceMin != null && ev.priceMin > state.maxPrice) return;
-      var all = ev.dates.map(function (s) { return new Date(s + "T00:00:00"); })
+      var all = ev.dates.concat(ev.pastDates || []).map(function (s) { return new Date(s + "T00:00:00"); })
         .sort(function (a, b) { return a - b; });
-      var upcoming = all.filter(function (d) { return d >= start && d <= until; });
+      var pastAll = all.filter(function (d) { return d < today; });
+      var lastRun = pastAll.length ? pastAll[pastAll.length - 1] : null;
+      var upcoming = all.filter(function (d) { return d >= start && d <= until && d >= today; });
       if (upcoming.length) {
-        items.push({ ev: ev, dist: dist, next: upcoming[0], more: upcoming.slice(1), isPast: false });
-      } else if (state.showPast) {
-        // Kein Termin im Fenster: letzten bereits vergangenen Termin zeigen
-        var past = all.filter(function (d) { return d < start; });
-        if (!past.length) return;
-        items.push({ ev: ev, dist: dist, next: past[past.length - 1], more: [], isPast: true });
+        items.push({ ev: ev, dist: dist, next: upcoming[0], more: upcoming.slice(1), isPast: false, lastRun: state.showPast ? lastRun : null });
+      } else if (state.showPast && lastRun) {
+        // Kein kommender Termin im Fenster: letzten gelaufenen Termin zeigen
+        items.push({ ev: ev, dist: dist, next: lastRun, more: [], isPast: true, lastRun: null });
       }
     });
 
@@ -335,6 +335,7 @@
       if (ev.kidsInfo) metaBits.push("Kids: " + esc(ev.kidsInfo));
       if (ev.priceTiers) metaBits.push("Kosten: " + esc(ev.priceTiers));
       if (it.more.length) metaBits.push("weitere Termine: " + it.more.map(fmtDate).join(", "));
+      if (it.lastRun) metaBits.push("zuletzt gelaufen: " + fmtDate(it.lastRun));
 
       var chips = "";
       (ev.distancesKm || []).forEach(function (km) {
