@@ -18,7 +18,8 @@ Enthalten sind die großen kommerziellen OCR-Serien (Spartan Race, XLETIX, Muddy
   - Slider für die **max. Startgebühr** (Kostenfilter; Events ohne Preisangabe bleiben sichtbar)
   - **Sortierung** wählbar: nächstes Event zuerst oder nach Entfernung
   - Filter nach **Art** (OCR-/Hindernisläufe / reine Laufevents / offenes Training) und nach Event-Typ (Großevents / kleine Vereins-Events / nur mit Kids-Lauf)
-  - Wiederkehrende Termine (parkrun, Social Runs, offenes Training) mit Badge „wiederkehrend" – ihr nächstes Vorkommen wird automatisch berechnet
+  - Wiederkehrende Termine (parkrun, Social Runs, offenes Training) mit Badge „wiederkehrend" – ihr nächstes Vorkommen wird automatisch berechnet; per Haken lassen sie sich auch komplett aus der Liste ausblenden
+  - Alle Filtereinstellungen werden im **localStorage des Browsers** gespeichert und beim nächsten Besuch automatisch wiederhergestellt (außer dem Datumsfeld „Ab wann", das immer auf heute vorbelegt wird); ein Button „Einstellungen zurücksetzen" stellt die Standardwerte wieder her
   - pro Event: **Strecken als Chips**, Preisspanne (von–bis) und Kostenstaffelung nach Distanz/Buchungsphase
 - **[events.js](events.js)** – die Event-Datenbank (Name, Ort, Koordinaten, Termine, Strecken, Kids-Angebot, Preisstaffelung, Website). Neue Events einfach als weiteres Objekt ergänzen.
 - **[EVENTS.md](EVENTS.md)** – Archiv-/Nachschlagetabelle aller erfassten Events nach Art gruppiert (zum schnellen Finden ähnlicher Events, nicht die Live-Datenquelle).

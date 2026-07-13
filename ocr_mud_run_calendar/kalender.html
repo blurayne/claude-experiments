@@ -104,6 +104,17 @@
   .checks { display: flex; flex-wrap: wrap; gap: .4rem .9rem; font-size: .9rem; align-items: center; }
   .checks label { display: flex; align-items: center; gap: .35rem; text-transform: none; font-weight: 500; letter-spacing: 0; color: var(--ink); font-size: .9rem; margin: 0; cursor: pointer; }
   .checks input { accent-color: var(--accent); }
+  .reset-btn {
+    font: inherit;
+    font-size: .85rem;
+    color: var(--muted);
+    background: none;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: .35rem .7rem;
+    cursor: pointer;
+  }
+  .reset-btn:hover { color: var(--ink); border-color: var(--accent); }
   .count { color: var(--muted); font-size: .9rem; margin: 1rem 0 .5rem; }
   .month {
     font-size: 1.05rem;
@@ -238,8 +249,12 @@
       <label><input type="checkbox" id="fGross" checked> Großevents (Spartan &amp; Co.)</label>
       <label><input type="checkbox" id="fKlein" checked> Kleine / Vereins-Events</label>
       <label><input type="checkbox" id="fKidsOnly"> nur Events mit Kinder-/Familienlauf</label>
+      <label><input type="checkbox" id="fRecurring" checked> wiederkehrende Events einbeziehen (z. B. wöchentliche Läufe, offene Trainings)</label>
       <label><input type="checkbox" id="fPast"> vergangene Events anzeigen</label>
     </div>
+  </div>
+  <div class="ctrl" style="grid-column: 1 / -1;">
+    <button type="button" id="resetSettings" class="reset-btn">Einstellungen zurücksetzen</button>
   </div>
 </section>
 
@@ -273,7 +288,30 @@
   var WEEKDAYS = ["So","Mo","Di","Mi","Do","Fr","Sa"];
 
   var PRICE_CAP = 160; // Sliderwert, der "egal" bedeutet
-  var state = { origin: "muc", range: 200, days: 365, sort: "date", gross: true, klein: true, kidsOnly: false, maxPrice: PRICE_CAP, from: "", showPast: false, tOcr: true, tLauf: true, tTraining: true };
+  var DEFAULT_STATE = { origin: "muc", range: 200, days: 365, sort: "date", gross: true, klein: true, kidsOnly: false, maxPrice: PRICE_CAP, showPast: false, tOcr: true, tLauf: true, tTraining: true, includeRecurring: true };
+  var STORAGE_KEY = "ocrMudRunCalendar.settings";
+
+  function loadSettings() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return {};
+      var parsed = JSON.parse(raw);
+      return (parsed && typeof parsed === "object") ? parsed : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function saveSettings() {
+    try {
+      var toSave = {};
+      Object.keys(DEFAULT_STATE).forEach(function (k) { toSave[k] = state[k]; });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+    } catch (e) { /* localStorage nicht verfügbar (z. B. privater Modus) — Einstellungen bleiben dann nur für die Sitzung erhalten */ }
+  }
+
+  // "from" (Startdatum) wird bewusst nicht persistiert und immer mit heute vorbelegt
+  var state = Object.assign({}, DEFAULT_STATE, loadSettings(), { from: "" });
 
   function haversine(lat1, lon1, lat2, lon2) {
     var R = 6371, toRad = Math.PI / 180;
@@ -317,6 +355,7 @@
 
       // Wiederkehrende Termine (z. B. parkrun, offene Trainings): nächstes Vorkommen berechnen
       if (ev.recurringWeekdays && ev.recurringWeekdays.length) {
+        if (!state.includeRecurring) return;
         var base = new Date(Math.max(+start, +today));
         var best = null;
         ev.recurringWeekdays.forEach(function (wd) {
@@ -422,22 +461,50 @@
     if (!btn) return;
     state.origin = btn.dataset.origin;
     this.querySelectorAll("button").forEach(function (b) { b.classList.toggle("on", b === btn); });
+    saveSettings(); build();
+  });
+  document.getElementById("range").addEventListener("input", function () { state.range = +this.value; syncOutputs(); saveSettings(); build(); });
+  document.getElementById("days").addEventListener("input", function () { state.days = +this.value; syncOutputs(); saveSettings(); build(); });
+  document.getElementById("price").addEventListener("input", function () { state.maxPrice = +this.value; syncOutputs(); saveSettings(); build(); });
+  document.getElementById("from").addEventListener("change", function () { state.from = this.value; build(); });
+  document.getElementById("fPast").addEventListener("change", function () { state.showPast = this.checked; saveSettings(); build(); });
+  document.getElementById("tOcr").addEventListener("change", function () { state.tOcr = this.checked; saveSettings(); build(); });
+  document.getElementById("tLauf").addEventListener("change", function () { state.tLauf = this.checked; saveSettings(); build(); });
+  document.getElementById("tTraining").addEventListener("change", function () { state.tTraining = this.checked; saveSettings(); build(); });
+  document.getElementById("sort").addEventListener("change", function () { state.sort = this.value; saveSettings(); build(); });
+  document.getElementById("fGross").addEventListener("change", function () { state.gross = this.checked; saveSettings(); build(); });
+  document.getElementById("fKlein").addEventListener("change", function () { state.klein = this.checked; saveSettings(); build(); });
+  document.getElementById("fKidsOnly").addEventListener("change", function () { state.kidsOnly = this.checked; saveSettings(); build(); });
+  document.getElementById("fRecurring").addEventListener("change", function () { state.includeRecurring = this.checked; saveSettings(); build(); });
+
+  document.getElementById("resetSettings").addEventListener("click", function () {
+    try { localStorage.removeItem(STORAGE_KEY); } catch (e) { /* ignore */ }
+    Object.assign(state, DEFAULT_STATE);
+    applyStateToControls();
     build();
   });
-  document.getElementById("range").addEventListener("input", function () { state.range = +this.value; syncOutputs(); build(); });
-  document.getElementById("days").addEventListener("input", function () { state.days = +this.value; syncOutputs(); build(); });
-  document.getElementById("price").addEventListener("input", function () { state.maxPrice = +this.value; syncOutputs(); build(); });
-  document.getElementById("from").addEventListener("change", function () { state.from = this.value; build(); });
-  document.getElementById("fPast").addEventListener("change", function () { state.showPast = this.checked; build(); });
-  document.getElementById("tOcr").addEventListener("change", function () { state.tOcr = this.checked; build(); });
-  document.getElementById("tLauf").addEventListener("change", function () { state.tLauf = this.checked; build(); });
-  document.getElementById("tTraining").addEventListener("change", function () { state.tTraining = this.checked; build(); });
-  document.getElementById("sort").addEventListener("change", function () { state.sort = this.value; build(); });
-  document.getElementById("fGross").addEventListener("change", function () { state.gross = this.checked; build(); });
-  document.getElementById("fKlein").addEventListener("change", function () { state.klein = this.checked; build(); });
-  document.getElementById("fKidsOnly").addEventListener("change", function () { state.kidsOnly = this.checked; build(); });
 
-  // Datumsfeld mit heutigem Datum vorbelegen
+  // Bedienelemente auf den (ggf. aus localStorage geladenen) Zustand setzen
+  function applyStateToControls() {
+    document.querySelectorAll("#originSeg button").forEach(function (b) {
+      b.classList.toggle("on", b.dataset.origin === state.origin);
+    });
+    document.getElementById("range").value = state.range;
+    document.getElementById("days").value = state.days;
+    document.getElementById("price").value = state.maxPrice;
+    document.getElementById("sort").value = state.sort;
+    document.getElementById("fPast").checked = state.showPast;
+    document.getElementById("tOcr").checked = state.tOcr;
+    document.getElementById("tLauf").checked = state.tLauf;
+    document.getElementById("tTraining").checked = state.tTraining;
+    document.getElementById("fGross").checked = state.gross;
+    document.getElementById("fKlein").checked = state.klein;
+    document.getElementById("fKidsOnly").checked = state.kidsOnly;
+    document.getElementById("fRecurring").checked = state.includeRecurring;
+    syncOutputs();
+  }
+
+  // Datumsfeld immer mit heutigem Datum vorbelegen (nicht persistiert)
   (function () {
     var t = new Date();
     var iso = t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" + String(t.getDate()).padStart(2, "0");
@@ -445,7 +512,7 @@
     state.from = iso;
   })();
 
-  syncOutputs();
+  applyStateToControls();
   build();
 })();
 </script>
