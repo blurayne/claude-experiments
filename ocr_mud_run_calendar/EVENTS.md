@@ -41,6 +41,7 @@ Stand: Juli 2026. „Region" ist grob nach Nähe zu München (81373) bzw. Lam (9
 | The Muddy Älbler | Straßberg bei Albstadt | — | muddy-aelbler.de |
 | Dinkelsbühler Wald- und Crosslauf | Dinkelsbühl | — | tsv-dinkelsbühl.de/crosslauf-anmeldung |
 | Raiffeisen-Crosslauf Inn-Salzach (Serie) | Region Inn-Salzach | Crosslaufserie Inn-Salzach | crosslauf-is.de |
+| Wald- und Wiesen-Wuidl'n | Moosham (Lkr. Regensburg) | — | bfsf-moosham.de/wald-und-wiesen-wuidl-n |
 
 ## Reine Laufevents
 
