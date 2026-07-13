@@ -41,9 +41,9 @@
   .sofa h2{font-size:1.05rem;margin:0}
   .klasse{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;border-radius:6px;padding:.1rem .45rem;display:inline-block;margin-right:.4rem}
   .klasse.budget{background:#dcecdf;color:#25603c} .klasse.mittel{background:#e3e7f5;color:#3b4a8f}
-  .klasse.oben{background:#f3e3d3;color:#8a5217} .klasse.gebraucht{background:var(--chip);color:var(--muted)}
+  .klasse.oben{background:#f3e3d3;color:#8a5217} .klasse.premium{background:#ecdff0;color:#6d3a80} .klasse.gebraucht{background:var(--chip);color:var(--muted)}
   @media (prefers-color-scheme: dark){
-    .klasse.budget{background:#24382a;color:#8fd0a4} .klasse.mittel{background:#272c40;color:#a3b1e8} .klasse.oben{background:#3d3021;color:#e0b077}
+    .klasse.budget{background:#24382a;color:#8fd0a4} .klasse.mittel{background:#272c40;color:#a3b1e8} .klasse.oben{background:#3d3021;color:#e0b077} .klasse.premium{background:#35283c;color:#cfa3e0}
   }
   .typ{color:var(--muted);font-size:.84rem}
   .price{display:flex;gap:1.2rem;font-size:.95rem}
@@ -66,7 +66,7 @@
 <div class="wrap">
 <header>
   <h1>🛋️ Schlafsofa Feature-Matrix</h1>
-  <p>~40 konkrete Modelle für den <strong>täglichen Gebrauch</strong> auf dem deutschen Markt (recherchiert Juli 2026), von Budget bis 2.000&nbsp;€ Neupreis —
+  <p>~55 konkrete Modelle für den <strong>täglichen Gebrauch</strong> auf dem deutschen Markt (recherchiert Juli 2026), von Budget bis 3.500&nbsp;€ Neupreis, inklusive Wohnlandschaften/Ecksofas mit Schlaffunktion —
      mit typischen Gebrauchtpreisen auf Kleinanzeigen. Slider und Checkboxen setzen, die Liste filtert live.
      Hintergrund, Kauf-Checkliste &amp; Life-Hacks im <a href="index.html">Ratgeber</a>. Mit „≈" markierte Gebrauchtspannen sind Schätzungen.</p>
 </header>
@@ -75,11 +75,11 @@
   <div class="filters">
     <div class="filter">
       <label>Neupreis (max.) <output id="oNeu">egal</output></label>
-      <input type="range" id="fNeu" min="100" max="2000" step="50" value="2000">
+      <input type="range" id="fNeu" min="100" max="3500" step="50" value="3500">
     </div>
     <div class="filter">
       <label>Budget gebraucht (max.) <output id="oBudget">egal</output></label>
-      <input type="range" id="fBudget" min="50" max="1200" step="25" value="1200">
+      <input type="range" id="fBudget" min="50" max="1600" step="25" value="1600">
     </div>
     <div class="filter">
       <label>Liegebreite (min.) <output id="oBreite">80 cm</output></label>
@@ -105,6 +105,7 @@
     <label><input type="checkbox" data-k="zweip"> 👫 für 2 Personen (Liegebreite ≥ 130)</label>
     <label><input type="checkbox" data-k="verfuegbar"> 🔎 gut verfügbar auf Kleinanzeigen</label>
     <label><input type="checkbox" data-k="neukauf"> 🛒 neu erhältlich (2026)</label>
+    <label><input type="checkbox" data-k="wohnland"> 🛋️ Wohnlandschaft / Ecksofa (L/U)</label>
   </div>
 </div>
 
@@ -132,7 +133,7 @@ Tipp: Der <a href="index.html">Topper-Trick</a> macht auch einfachere Sofas daue
   Bewertungen: Redaktions-Einschätzung für tägliche Nutzung (5 = sehr gut), auf Basis einer Multi-Quellen-Recherche (Juli 2026) mit
   Hersteller-/Händlerangaben und Reviews — „Dauerschläfer"-Deklarationen sind überwiegend Händlerangaben, keine unabhängigen Tests.
   Neupreise sind Momentaufnahmen (Aktionen schwanken), Gebrauchtspannen typische Kleinanzeigen-Preise je nach Zustand und Region;
-  „≈" = Schätzung ohne belegte Anzeigen. Luxussegment über 2.000&nbsp;€ (Brühl, franz fertig, Swiss Plus, reguläre Signet/Sedda-Konfigurationen)
+  „≈" = Schätzung ohne belegte Anzeigen. Luxussegment über 3.500&nbsp;€ (Swiss Plus ~6.500 €, COR ab ~4.700 €, frei konfigurierte Brühl-/franz-fertig-Modelle)
   bewusst ausgeklammert. Ausgeklappte Tiefe vor dem Kauf ausmessen: Sofatiefe + 60 cm Laufweg.
 </footer>
 </div>
@@ -158,7 +159,7 @@ const SOFAS = [
   {name:"POCO Rovigo", klasse:"budget", typ:"Querschläfer mit Bonellfederkern + Bettkasten", neu:329, neuTxt:"329 €", used:[100,200], estUsed:true,
    avail:3, lb:107, ll:190, stell:214, daily:2, einfachN:4, robustN:3, bettkasten:true, waschbar:false, matratze:false, dauer:false, transport:false,
    note:"Bonellfederkern im Sitz statt Matratze, nur 107×190 cm Liegefläche — von POCO selbst nicht als Dauerschläfer geführt."},
-  {name:"IKEA Bruksvara", klasse:"budget", typ:"3er mit Récamiere und Staufach", neu:399, neuTxt:"399 € (Abverkäufe ab 149 €)", used:[150,250], estUsed:true,
+  {name:"IKEA Bruksvara", klasse:"budget", typ:"3er mit Récamiere und Staufach (L-Form)", neu:399, neuTxt:"399 € (Abverkäufe ab 149 €)", used:[150,250], estUsed:true, wohnland:true,
    avail:1, lb:140, ll:190, stell:225, daily:2, einfachN:4, robustN:3, bettkasten:true, waschbar:false, matratze:false, dauer:false, transport:true,
    note:"Neue Budget-Serie für die Erstwohnung: ebene Liegefläche, Staufach — aber fester (nicht abnehmbarer) Bezug und Gästebett-Polsterung."},
 
@@ -169,7 +170,7 @@ const SOFAS = [
   {name:"COLLECTION AB Chicago (OTTO/Cnouch)", klasse:"mittel", typ:"Querschläfer, Cord-Samt, Bettkasten", neu:480, neuTxt:"ab 479,99 €", used:[180,280], estUsed:true,
    avail:3, lb:146, ll:200, stell:200, daily:2, einfachN:4, robustN:3, bettkasten:true, waschbar:false, matratze:false, dauer:false, transport:false,
    note:"Nur 2 m Stellbreite bei 146×200 cm Liegefläche — gutes Kleinraum-Format, aber Polsterung auf Gästebett-Niveau und Samt zeigt Liegespuren."},
-  {name:"IKEA Bårslöv", klasse:"mittel", typ:"3er mit Récamiere, Schaummatratze, Bettkasten", neu:600, neuTxt:"549–649 € je Variante", used:[300,450], estUsed:true,
+  {name:"IKEA Bårslöv", klasse:"mittel", typ:"3er mit Récamiere, Schaummatratze, Bettkasten (L-Form)", neu:600, neuTxt:"549–649 € je Variante", used:[300,450], estUsed:true, wohnland:true,
    avail:1, lb:142, ll:200, stell:245, daily:3, einfachN:4, robustN:3, bettkasten:true, waschbar:true, matratze:true, dauer:false, transport:true,
    note:"Friheten-Nachfolger im Sortiment: Schaummatratze, verriegelbarer Bettkasten, 4,2/5 Bewertungen — Stimmen zu Härte/Haltbarkeit beim täglichen Schlafen gemischt."},
   {name:"Traumnacht Toulouse (OTTO/Amazon)", klasse:"mittel", typ:"2er + Récamiere, ausziehbar, Bettkasten", neu:650, neuTxt:"549–756 €", used:[200,350], estUsed:true,
@@ -178,7 +179,7 @@ const SOFAS = [
   {name:"Fredriks Latina (home24)", klasse:"mittel", typ:"Klappsofa mit Schaummatratze auf Federholzleisten", neu:585, neuTxt:"~585 € (Serie ab ~450 €)", used:[200,300], estUsed:true,
    avail:2, lb:120, ll:204, stell:170, daily:3, einfachN:4, robustN:3, bettkasten:true, waschbar:false, matratze:true, dauer:false, transport:true,
    note:"Futon-Prinzip mit richtiger Schaummatratze und nur 1,70 m Stellbreite — home24 führt die Serie unter „Schlafsofas mit Matratze“."},
-  {name:"IKEA Friheten (Eckbettsofa)", klasse:"mittel", typ:"Eckbettsofa mit Riesen-Bettkasten", neu:590, neuTxt:"579–599 € (3er ab 479 €)", used:[150,400], estUsed:false,
+  {name:"IKEA Friheten (Eckbettsofa)", klasse:"mittel", typ:"Eckbettsofa mit Riesen-Bettkasten", neu:590, neuTxt:"579–599 € (3er ab 479 €)", used:[150,400], estUsed:false, wohnland:true,
    avail:4, lb:140, ll:204, stell:230, daily:2, einfachN:4, robustN:4, bettkasten:true, waschbar:false, matratze:false, dauer:false, transport:true,
    note:"Kleinanzeigen-Dauerbrenner und zerlegbar — aber die Liegefläche ruht auf geschlossener Spanplatte, PU-Schaum nur ~30 kg/m³: laut Reviews Gästebett, kein Dauerschläfer. Topper-Pflicht."},
   {name:"Karup Design Roots 140", klasse:"mittel", typ:"Futonsofa, Massiv-Kiefer (FSC)", neu:600, neuTxt:"599,99 €", used:[150,400], estUsed:false,
@@ -199,7 +200,7 @@ const SOFAS = [
   {name:"INOSIGN Berlin / Alexander (OTTO)", klasse:"mittel", typ:"Boxspring-Ausklappsofa mit Bettkasten", neu:850, neuTxt:"799,99–899,99 €", used:[300,500], estUsed:true,
    avail:3, lb:158, ll:200, stell:202, daily:4, einfachN:3, robustN:4, bettkasten:true, waschbar:false, matratze:false, dauer:true, transport:false,
    note:"Bestbelegter Mittelklasse-Dauerschläfer der Recherche: FSC-Holzrahmen, Federkern + Kaltschaumtopper, ~160×200 cm (Queensize), 55 cm Komforthöhe, 300 kg belastbar."},
-  {name:"GMK Home&Living Györ (OTTO)", klasse:"mittel", typ:"Ecksofa mit Bettfunktion + Bettkasten", neu:850, neuTxt:"839,99–869,99 € (UVP 1.299,99 €)", used:[300,500], estUsed:true,
+  {name:"GMK Home&Living Györ (OTTO)", klasse:"mittel", typ:"Ecksofa mit Bettfunktion + Bettkasten", neu:850, neuTxt:"839,99–869,99 € (UVP 1.299,99 €)", used:[300,500], estUsed:true, wohnland:true,
    avail:2, lb:140, ll:210, stell:250, daily:2, einfachN:3, robustN:3, bettkasten:true, waschbar:false, matratze:false, dauer:false, transport:false,
    note:"Hübsches Wohnzimmer-Ecksofa mit vollflächigem Federkern — Bettfunktion fürs Gästebett, kein Dauerschläfer-Anspruch."},
 
@@ -210,7 +211,7 @@ const SOFAS = [
   {name:"Innovation Living Splitback", klasse:"oben", typ:"Klappsofa, geteilte Rückenlehne, 3 Positionen", neu:1015, neuTxt:"ab ~1.015 €", used:[250,500], estUsed:false,
    avail:3, lb:115, ll:210, stell:210, daily:3, einfachN:5, robustN:4, bettkasten:false, waschbar:true, matratze:false, dauer:false, transport:true,
    note:"Design-Klassiker mit Taschenfederkern-Polsterung, sekundenschnell umgelegt, gebraucht sehr präsent — für jede Nacht empfiehlt der Hersteller einen Topper. Schwestermodelle: Dublexo, Cubed 140 (140×200, ~1.247 €)."},
-  {name:"Roller Ecksofa Boxspring „Dauerschläfer“", klasse:"oben", typ:"Ecksofa, umlegbarer Rücken mit Aufziehhilfe", neu:1199, neuTxt:"1.199,20 €", used:[450,700], estUsed:true,
+  {name:"Roller Ecksofa Boxspring „Dauerschläfer“", klasse:"oben", typ:"Ecksofa, umlegbarer Rücken mit Aufziehhilfe", neu:1199, neuTxt:"1.199,20 €", used:[450,700], estUsed:true, wohnland:true,
    avail:1, lb:120, ll:240, stell:264, daily:4, einfachN:3, robustN:3, bettkasten:true, waschbar:false, matratze:false, dauer:true, transport:false,
    note:"Großes Dauerschläfer-Ecksofa mit Boxspringaufbau und belüftetem Bettkasten — braucht 2,64 m Wand."},
   {name:"Bali Flexa", klasse:"oben", typ:"Querschläfer: Auszug + Gitterrost + echte Matratze", neu:1350, neuTxt:"1.211–1.481 € (120–160 cm)", used:[500,800], estUsed:true,
@@ -234,7 +235,7 @@ const SOFAS = [
   {name:"Nehl Grace (Querschläfer)", klasse:"oben", typ:"Querschläfer mit Stauraum, Made in Germany", neu:1605, neuTxt:"~1.605 € (Nehl-Spanne 900–2.400 €)", used:[550,900], estUsed:true,
    avail:1, lb:160, ll:200, stell:220, daily:5, einfachN:4, robustN:5, bettkasten:true, waschbar:false, matratze:false, dauer:true, transport:false,
    note:"Dauerschläfer-Spezialist: Schlafen auf Sitzhöhe (2×80×200), Sitzfläche vorziehen + Lehne klappen — Boxspring-Schwester „Boxx“ mit 47 cm Liegehöhe."},
-  {name:"Sedda easy (Einstiegsgrößen)", klasse:"oben", typ:"Patentiertes easy®-Schlafsystem, Längsschläfer", neu:1749, neuTxt:"ab ~1.749 € (gängige Größen 2.099–2.399 €)", used:[600,1000], estUsed:true,
+  {name:"Sedda easy (Einstiegsgrößen)", klasse:"oben", typ:"Patentiertes easy®-Schlafsystem, Längsschläfer", neu:1749, neuTxt:"Einstieg ~1.749–1.999 €, gängige Größen 2.099–2.399 € (184 cm mit Bettkasten: 2.099 €)", used:[600,1000], estUsed:true,
    avail:1, lb:130, ll:200, stell:180, daily:5, einfachN:5, robustN:5, bettkasten:true, waschbar:false, matratze:false, dauer:true, transport:false,
    note:"Manufaktur-Referenz: Umbau in ~5 Sekunden im Stehen, automatischer Matratzenschoner + Wechsel-Leintuch, Polsterwahl Federkern/Kaltschaum — nur Einstiegsgrößen bleiben unter 2.000 €."},
   {name:"Home affaire Roma (OTTO)", klasse:"oben", typ:"Ausklappen: Unterfederung + Lattenrost + 14-cm-Matratze", neu:1812, neuTxt:"ab ~1.812 € (UVP 2.911 €, Aktionen ~1.400–1.700 €)", used:[650,1000], estUsed:true,
@@ -243,6 +244,61 @@ const SOFAS = [
   {name:"Nehl Memphis (Segmüller)", klasse:"oben", typ:"Längsschläfer: umklappbare Rücken- + Sitzfläche", neu:1999, neuTxt:"1.999 € inkl. Lieferung", used:[700,1100], estUsed:true,
    avail:1, lb:140, ll:200, stell:160, daily:5, einfachN:4, robustN:5, bettkasten:false, waschbar:false, matratze:true, dauer:true, transport:false,
    note:"Punktlandung ans 2.000-€-Limit: separate Kaltschaummatratze 140×200 vom Dauerschläfer-Spezialisten Nehl, kompakte Stellbreite."},
+
+  // ---------- Wohnlandschaften mit Schlaffunktion ----------
+  {name:"COLLECTION AB Josy XXL (OTTO)", klasse:"mittel", typ:"U-Wohnlandschaft, 2 Récamieren, Federkern", neu:900, neuTxt:"~869–950 €", used:[250,450], estUsed:true, wohnland:true,
+   avail:3, lb:137, ll:266, stell:333, daily:2, einfachN:3, robustN:3, bettkasten:true, waschbar:false, matratze:false, dauer:false, transport:false,
+   note:"Viel Landschaft fürs Geld (3,33 m!), aber Bettfunktion auf Gästebett-Niveau — Liegefläche aus Polsterelementen mit Übergängen."},
+  {name:"XXXLutz Nelly U", klasse:"oben", typ:"U-Wohnlandschaft, Cord, Klappmechanismus", neu:999, neuTxt:"999 € (UVP 1.299 €)", used:[300,500], estUsed:true, wohnland:true,
+   avail:2, lb:138, ll:218, stell:300, daily:2, einfachN:4, robustN:3, bettkasten:true, waschbar:false, matratze:false, dauer:false, transport:false,
+   note:"Wellenfedern + Schaum, einfacher Klappmechanismus — als tägliches Bett nicht gedacht, als Gäste-Landschaft okay."},
+  {name:"INOSIGN Göteborg (OTTO)", klasse:"oben", typ:"L-Ecksofa mit Boxspring-Bettfunktion + Topper", neu:1373, neuTxt:"ab ~1.373 €", used:[500,800], estUsed:true, wohnland:true,
+   avail:2, lb:180, ll:200, stell:290, daily:4, einfachN:3, robustN:3, bettkasten:true, waschbar:false, matratze:false, dauer:true, transport:false,
+   note:"„Dauerschlaffunktion“ (Händlerangabe): Federkern + Topper im Ecksofa-Format — Einstieg in die Dauerschläfer-Wohnlandschaften."},
+  {name:"INOSIGN / Home affaire Night & Day (OTTO)", klasse:"oben", typ:"L-Ecksofa, Boxspring, durchgehende 180×200-Fläche", neu:1500, neuTxt:"~1.350–1.630 €", used:[500,850], estUsed:true, wohnland:true,
+   avail:2, lb:180, ll:200, stell:324, daily:5, einfachN:3, robustN:4, bettkasten:true, waschbar:false, matratze:false, dauer:true, transport:false,
+   note:"Die überzeugendste Dauerschläfer-Wohnlandschaft der Recherche: Taschenfederkern + Kaltschaum, echtes Bettmaß 180×200 ohne Quer-Ritzen, Bettkasten — braucht aber 3,24 m Wand."},
+  {name:"Jockenhöfer Sunset (OTTO/Baur)", klasse:"oben", typ:"L-Ecksofa, Tonnentaschenfederkern + 5-cm-Topper", neu:1449, neuTxt:"1.449–1.638 € (UVP 2.099 €)", used:[500,850], estUsed:true, wohnland:true,
+   avail:2, lb:160, ll:223, stell:257, daily:4, einfachN:3, robustN:4, bettkasten:true, waschbar:false, matratze:false, dauer:true, transport:false,
+   note:"„Dauerschlafsofa“: TTFK-Polsterung, der Kaltschaumtopper wandert tagsüber in den Bettkasten, Ottomane beidseitig montierbar — kompakteste DS-Landschaft (2,57 m)."},
+  {name:"Jockenhöfer Madrid (OTTO)", klasse:"oben", typ:"L-Ecksofa im Boxspringaufbau, eindrehbares Schwenkteil", neu:1836, neuTxt:"ab 1.835,99 €", used:[600,1000], estUsed:true, wohnland:true,
+   avail:1, lb:180, ll:200, stell:306, daily:4, einfachN:3, robustN:4, bettkasten:true, waschbar:false, matratze:false, dauer:true, transport:false,
+   note:"Boxspring-Wohnlandschaft mit 180×200-Liegefläche, Bettkasten plus Regal im Schwenkteil — „Dauerschläfer“ laut Händler."},
+  {name:"Höffner bobb Lisa de Luxe", klasse:"oben", typ:"Boxspringsofa/Wohnlandschaft, Taschenfederkern", neu:1514, neuTxt:"1.513,85 € Kundenkarte (UVP 2.329 €)", used:[500,900], estUsed:true, wohnland:true,
+   avail:1, lb:150, ll:200, stell:280, daily:4, einfachN:3, robustN:4, bettkasten:true, waschbar:false, matratze:false, dauer:true, transport:false,
+   note:"Boxspring-Taschenfederkern über die Liegefläche, Schwestermodell der Viannie — Kundenkartenpreis deutlich unter UVP."},
+
+  // ---------- Premium: 2.000–3.500 € neu ----------
+  {name:"franz fertig Minnie", klasse:"premium", typ:"Kompakter Längsschläfer mit Teleskopauszug", neu:2328, neuTxt:"Liste ab 2.328 €, Aktionen ab 1.990 €", used:[600,1400], estUsed:true,
+   avail:1, lb:150, ll:200, stell:190, daily:4, einfachN:4, robustN:5, bettkasten:true, waschbar:true, matratze:false, dauer:true, transport:false,
+   note:"Nur 82 cm tief — Manufaktur-Schlafsofa für kleine Räume, Teleskopauszug ohne Gitterrost-Gefühl, Chaise-Variante mit Bettkasten."},
+  {name:"Innovation Living Eivor 160 (Spring)", klasse:"premium", typ:"Separate Matratze + Metall-Lattenrost, 160 cm breit", neu:2214, neuTxt:"UVP 2.214 € (Varianten bis ~2.500 €)", used:[800,1200], estUsed:true,
+   avail:1, lb:160, ll:200, stell:220, daily:5, einfachN:4, robustN:4, bettkasten:false, waschbar:true, matratze:true, dauer:true, transport:true,
+   note:"Wie Eivor 140, aber 160×200: 12-cm-5-Zonen-Taschenfederkern (650 Federn/m²) auf Lattenrost, Bezug bei 60° waschbar — getrennte Sitz-/Schlafmatratzen."},
+  {name:"sofaplus Hamburg / Rotterdam Deluxe (mysofabed)", klasse:"premium", typ:"Längsschläfer: echter Lattenrost + Wahl-Matratze", neu:2199, neuTxt:"2.199 € (Hamburg, 120–160 cm) / 2.299 € (Rotterdam, 140–180 cm)", used:[700,1300], estUsed:true,
+   avail:1, lb:160, ll:200, stell:200, daily:5, einfachN:4, robustN:4, bettkasten:true, waschbar:true, matratze:true, dauer:true, transport:false,
+   note:"Bett im Sofa: Lattenrost plus Matratze nach Wahl (Kaltschaum, Sensoform, Gel, Taschenfederkern, mehrere Härtegrade), getrennte Sitz-/Schlaffläche — Showrooms u. a. in Hamburg."},
+  {name:"Ligne Roset Multy", klasse:"premium", typ:"Design-Klassiker (seit 1983): Klappmechanismus, 3 Positionen", neu:2290, neuTxt:"UVP 2.300–3.195 € je Stoff, Aktionen ab 2.290 € (3-Sitzer)", used:[400,1500], estUsed:false,
+   avail:2, lb:153, ll:194, stell:203, daily:5, einfachN:5, robustN:5, bettkasten:false, waschbar:true, matratze:true, dauer:true, transport:false,
+   note:"Der Klassiker unter den Alltags-Schlafsofas: durchgehende Matratze auf Lattenrost, ohne Ritzen, Bezug komplett abnehmbar — Bultex-Matratzen-Option ausdrücklich für häufiges Schlafen. Gebraucht regelmäßig ab ~800 € in gutem Zustand."},
+  {name:"franz fertig Malou", klasse:"premium", typ:"Verwandlungssofa: klappbare Armlehnen, Längsschläfer", neu:2390, neuTxt:"Liste 2.390–2.892 € (130–180 cm), Aktionen ab 2.190 €", used:[600,1600], estUsed:false,
+   avail:1, lb:150, ll:200, stell:190, daily:4, einfachN:4, robustN:5, bettkasten:false, waschbar:true, matratze:false, dauer:true, transport:false,
+   note:"Manufaktur-Bestseller seit 25+ Jahren: fester Kaltschaumaufbau ohne Klappfalten in der Liegefläche, Bettkasten optional — gebraucht für 600–1.600 € ein Premium-Schnäppchen."},
+  {name:"Nehl Boxx", klasse:"premium", typ:"Boxspring-Querschläfer mit Lift-&-Swing-Hebetechnik", neu:2400, neuTxt:"~2.000–2.800 € je Stoffgruppe (Angebotsanfrage)", used:[800,1400], estUsed:true,
+   avail:1, lb:160, ll:200, stell:220, daily:5, einfachN:4, robustN:5, bettkasten:true, waschbar:false, matratze:false, dauer:true, transport:false,
+   note:"Taschenfederkern-Doppelfederung, Liegehöhe 47 cm, innenbelüfteter Bettkasten — die Liegefläche „schwebt“ beim Umbau, nichts schleift über den Boden."},
+  {name:"Brühl roro small classic", klasse:"premium", typ:"2 Drehsitze, stufenlos verstellbar → Einzel-/Doppelbett", neu:2690, neuTxt:"Aktion 2.690 € (Liste 3.296 €; konfiguriert schnell >3.500 €)", used:[1200,2300], estUsed:true,
+   avail:1, lb:160, ll:200, stell:200, daily:3, einfachN:3, robustN:5, bettkasten:false, waschbar:true, matratze:false, dauer:false, transport:false,
+   note:"Grenzfall: geniales Multifunktions-Designsofa, aber eher Relax-/Gästekonzept — tägliches Schlafen nur mit Abstrichen (Polster statt Matratze)."},
+  {name:"Signet Veda", klasse:"premium", typ:"Klappcouch nach 60er-Jahre-Prinzip, Querschläfer", neu:2820, neuTxt:"ab 2.820 €", used:[900,1500], estUsed:true,
+   avail:1, lb:145, ll:200, stell:200, daily:4, einfachN:4, robustN:5, bettkasten:false, waschbar:true, matratze:false, dauer:true, transport:false,
+   note:"Robuste Klappmechanik ohne Gestänge, deutsche Manufaktur (Hochstadt/Main) — unverwüstliches Arbeitstier im Retro-Look."},
+  {name:"Signet Good Life (Ecksofa)", klasse:"premium", typ:"Querschläfer-Ecksofa: Sitz vorziehen, Lehne einlegen", neu:2995, neuTxt:"Aktion 2.995 € (Liste 3.423–3.631 €)", used:[1000,1700], estUsed:true, wohnland:true,
+   avail:1, lb:138, ll:210, stell:250, daily:5, einfachN:4, robustN:5, bettkasten:true, waschbar:true, matratze:false, dauer:true, transport:false,
+   note:"Manufaktur-Ecksofa mit Federholzleisten-Unterbau und integriertem Bettkasten — nur als Aktionsware unter der 3.500-€-Grenze."},
+  {name:"Signet Kyoto / Kyoto-GO", klasse:"premium", typ:"Rückenlehne vorziehen → integrierte Faltmatratze entfaltet sich", neu:3073, neuTxt:"ab 3.073 € (günstigster Stoff)", used:[1100,1800], estUsed:true,
+   avail:1, lb:160, ll:200, stell:210, daily:5, einfachN:4, robustN:5, bettkasten:false, waschbar:true, matratze:true, dauer:true, transport:false,
+   note:"2024 neu vorgestellt: echte integrierte Matratze statt Sitzpolster als Liegefläche — konstruktiv die sauberste Lösung im Premium-Segment."},
 
   // ---------- Nur noch gebraucht / Sonderformen ----------
   {name:"IKEA Beddinge (nur gebraucht)", klasse:"gebraucht", typ:"Klick-Klack-Klassiker: Lattenrost + Matratze", neu:null, neuTxt:"— (aus Sortiment)", used:[10,200], estUsed:false,
@@ -273,7 +329,7 @@ const boxes = [...document.querySelectorAll("#checks input")];
 const eur = n => n.toLocaleString("de-DE") + " €";
 const mid = s => (s.used[0]+s.used[1])/2;
 const AVAIL_TXT = ["", "selten (Suchauftrag + Geduld)", "regelmäßig (alle 1–2 Wochen)", "häufig (wenige Tage Suche)", "sehr häufig (sofort, gut verhandelbar)"];
-const KLASSE_TXT = {budget:"bis 400 € neu", mittel:"400–900 € neu", oben:"900–2.000 € neu", gebraucht:"nur gebraucht"};
+const KLASSE_TXT = {budget:"bis 400 € neu", mittel:"400–900 € neu", oben:"900–2.000 € neu", premium:"2.000–3.500 € neu", gebraucht:"nur gebraucht"};
 const DERIVED = {
   einfach: s => s.einfachN >= 4,
   klein: s => s.stell <= 210,
@@ -292,7 +348,7 @@ function card(s){
   const tags = [
     ["🌙 Dauerschläfer", s.dauer], ["🛏️ echte Matratze", s.matratze], ["📦 Bettkasten", s.bettkasten],
     ["🧺 waschbar", s.waschbar], ["🚚 zerlegbar", s.transport], ["🏙️ kleinzimmertauglich", DERIVED.klein(s)],
-    ["👫 2 Personen", DERIVED.zweip(s)]
+    ["👫 2 Personen", DERIVED.zweip(s)], ["🛋️ Wohnlandschaft/Eck", !!s.wohnland]
   ].map(([t,on]) => `<span class="tag ${on?"on":""}">${t}${on?"":" ✕"}</span>`).join("");
   const verdictCls = s.daily >= 4 ? "ok" : s.daily === 3 ? "warn" : "bad";
   return `<article class="sofa">
@@ -316,16 +372,16 @@ function card(s){
 function render(){
   const neuMax = +els.neu.value, budget = +els.budget.value, breite = +els.breite.value,
         daily = +els.daily.value, stell = +els.stell.value;
-  els.oNeu.textContent = neuMax >= 2000 ? "egal" : eur(neuMax);
-  els.oBudget.textContent = budget >= 1200 ? "egal" : eur(budget);
+  els.oNeu.textContent = neuMax >= 3500 ? "egal" : eur(neuMax);
+  els.oBudget.textContent = budget >= 1600 ? "egal" : eur(budget);
   els.oBreite.textContent = breite + " cm";
   els.oDaily.textContent = daily + " / 5";
   els.oStell.textContent = stell >= 270 ? "egal" : stell + " cm";
 
   const need = boxes.filter(b => b.checked).map(b => b.dataset.k);
   let list = SOFAS.filter(s =>
-    (neuMax >= 2000 || s.neu === null || s.neu <= neuMax) &&
-    (budget >= 1200 || mid(s) <= budget) &&
+    (neuMax >= 3500 || s.neu === null || s.neu <= neuMax) &&
+    (budget >= 1600 || mid(s) <= budget) &&
     s.lb >= breite && s.daily >= daily &&
     (stell >= 270 || s.stell <= stell) &&
     need.every(k => DERIVED[k] ? DERIVED[k](s) : s[k]));
@@ -347,7 +403,7 @@ function render(){
 boxes.forEach(b => b.addEventListener("change", render));
 els.sort.addEventListener("change", render);
 $("reset").addEventListener("click", () => {
-  els.neu.value = 2000; els.budget.value = 1200; els.breite.value = 80; els.daily.value = 1; els.stell.value = 270;
+  els.neu.value = 3500; els.budget.value = 1600; els.breite.value = 80; els.daily.value = 1; els.stell.value = 270;
   boxes.forEach(b => b.checked = false); els.sort.value = "daily"; render();
 });
 render();
