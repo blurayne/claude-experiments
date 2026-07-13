@@ -20,6 +20,8 @@ Stand: Juli 2026. „Region" ist grob nach Nähe zu München (81373) bzw. Lam (9
 | Motorman Run | Neuenstadt am Kocher | — | motormanrun.de |
 | Gladiator Race Praha | Prag, CZ | Gladiator Race | gladiatorrace.cz/ocr/praha.html |
 | Predator Race MASTER Weekend Dobřany | Dobřany bei Pilsen, CZ | Predator Race | predatorrace.cz |
+| Strong Viking Obstacle Run Frankfurt (Wächtersbach) | Wächtersbach | Strong Viking | strongviking.com/en/obstacle-run/frankfurt |
+| Strong Viking Water Edition Tropical Islands (Berlin) | Krausnick-Groß Wasserburg | Strong Viking | strongviking.com |
 | Survival Race Kids München | München | Survival Race | survivalrace.de/kids-munchen |
 | Survival Race Kids Nürnberg | Nürnberg | Survival Race | survivalrace.de |
 | Survival Race Kids Stuttgart | Stuttgart | Survival Race | survivalrace.de |

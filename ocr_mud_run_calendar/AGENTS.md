@@ -38,6 +38,7 @@ Jede Rechercheaufgabe wurde als eigenständiger Web-Recherche-Agent mit klar abg
 - Motorman Run: [motormanrun.de](https://motormanrun.de/)
 - Gladiator Race: [gladiatorrace.cz](https://gladiatorrace.cz/)
 - Predator Race: [predatorrace.cz](https://www.predatorrace.cz/)
+- Strong Viking: [strongviking.com](https://strongviking.com/)
 - Survival Race (Kids): [survivalrace.de](https://survivalrace.de/)
 - DragonRun Schnaittach: [fc-schnaittach.de/dragonrun](https://www.fc-schnaittach.de/dragonrun/)
 - Rats-Runners Cup: [rats-runners.de](https://www.rats-runners.de/)

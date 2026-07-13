@@ -237,6 +237,44 @@ var EVENTS = [
     priceTiers: "Ca. 600–1.200 CZK (ca. 24–48 €) je nach Rennen und Anmeldephase (geschätzt)",
     desc: "Westböhmische OCR-Serie; Highlight in Reichweite ist das MASTER-Wochenende auf dem ehemaligen Panzerübungsgelände bei Dobřany – nur ca. 60 km von Lam."
   },
+  {
+    name: "Strong Viking Obstacle Run Frankfurt (Wächtersbach)",
+    series: "Strong Viking",
+    location: "Wächtersbach (Weiherhof, Büdinger Wald), Deutschland",
+    lat: 50.2859, lon: 9.2639,
+    dates: ["2027-07-03", "2027-07-04"],
+    pastDates: ["2024-06-01", "2025-06-28", "2026-07-04", "2026-07-05"],
+    estimated: false,
+    distancesKm: [4, 7, 13, 19, 42, 60],
+    obstacles: "Über 40 Hindernisse; Lightning 7 km ca. 28, Warrior 13 km ca. 33, Beast 19 km ca. 46; seit 2026 zusätzlich Ultra Viking (60 km, 135 Hindernisse, 10-h-Limit)",
+    kids: true,
+    kidsInfo: "Family Edition 4 km für Eltern/Betreuer mit Kindern ab 5 Jahren (Wasserrutsche, Schlammhügel, Tunnel)",
+    category: "gross",
+    url: "https://strongviking.com/en/obstacle-run/frankfurt/",
+    priceFrom: "ca. 30–45 € (Early Bird, kürzeste Strecke)",
+    priceMin: 30, priceMax: 120,
+    priceTiers: "Lightning 4–7 km ca. 30–45 €, Warrior 13–19 km ca. 45–65 €, Beast 19–42 km ca. 60–85 €, Iron Viking 42 km ca. 95–120 € (Early Bird bis Last Minute); Family Edition ca. 10–15 € (Preise unsicher, nicht direkt von offizieller Ticketseite verifiziert)",
+    desc: "Größtes deutsches Strong-Viking-Event im Büdinger Wald bei Wächtersbach mit bis zu 10.000 Teilnehmern, ca. 295 km von München/Lam. Nächster Termin 3./4. Juli 2027."
+  },
+  {
+    name: "Strong Viking Water Edition Tropical Islands (Berlin)",
+    series: "Strong Viking",
+    location: "Krausnick-Groß Wasserburg (Tropical Islands, Spreewald), Deutschland",
+    lat: 52.0333, lon: 13.7335,
+    dates: [],
+    pastDates: ["2024-06-29"],
+    estimated: false,
+    distancesKm: [4, 7, 13, 19, 42],
+    obstacles: "Über 40 Hindernisse entlang der 360 m langen, 107 m hohen Tropical-Islands-Kuppel",
+    kids: true,
+    kidsInfo: "Family Edition 4 km für Kinder ab 5 Jahren mit Erwachsenen (2024er Family Edition laut einer Quelle abgesagt)",
+    category: "gross",
+    url: "https://strongviking.com/en/",
+    priceFrom: null,
+    priceMin: 30, priceMax: 120,
+    priceTiers: "Preisstruktur vermutlich analog zu anderen Strong-Viking-Standorten; keine aktuellen standortspezifischen Preise auffindbar, da kein neuer Termin geplant ist",
+    desc: "Wasser-Edition von Strong Viking im Ferienresort Tropical Islands im Spreewald – von Lam aus mit ca. 319 km sogar näher als Wächtersbach. Nach der zweiten Ausgabe 2024 ist derzeit kein Folgetermin bekannt; Standort vermutlich pausiert."
+  },
 
   // ── Kleine & Vereins-Events ───────────────────────────────────────────────
   {
