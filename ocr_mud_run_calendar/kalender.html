@@ -155,6 +155,14 @@
   .b-kids  { background: var(--badge-kids); }
   .b-est   { background: var(--badge-est); }
   .b-past  { background: var(--muted); }
+  .b-lauf  { background: #2f6f8f; }
+  .b-training { background: #a1522d; }
+  .b-rec   { background: #4a7a8c; }
+  @media (prefers-color-scheme: dark) {
+    .b-lauf { background: #7fb8d4; }
+    .b-training { background: #d78e63; }
+    .b-rec { background: #8fbccb; }
+  }
   .card.past { opacity: .6; }
   .chips { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .35rem; }
   .chip {
@@ -182,7 +190,7 @@
 <body>
 <header>
   <h1>OCR- &amp; <span class="mud">Mud-Run</span>-Kalender</h1>
-  <p class="sub">Hindernisläufe, Matschläufe &amp; Vereins-Crossläufe rund um München (81373) und Lam im Bayerischen Wald (93462) – vom Spartan Race bis zum Dorf-Drecklauf.</p>
+  <p class="sub">Hindernisläufe, Matschläufe &amp; Vereins-Crossläufe rund um München (81373) und Lam im Bayerischen Wald (93462) – vom Spartan Race bis zum Dorf-Drecklauf. Dazu reine Laufevents, wiederkehrende Läufe wie der parkrun und offene OCR-Trainings.</p>
 </header>
 
 <section class="panel" aria-label="Filter">
@@ -215,6 +223,14 @@
       <option value="date">Nächstes Event zuerst</option>
       <option value="dist">Entfernung (nächstgelegen zuerst)</option>
     </select>
+  </div>
+  <div class="ctrl" style="grid-column: 1 / -1;">
+    <label>Art</label>
+    <div class="checks">
+      <label><input type="checkbox" id="tOcr" checked> OCR- / Hindernisläufe</label>
+      <label><input type="checkbox" id="tLauf" checked> reine Laufevents</label>
+      <label><input type="checkbox" id="tTraining" checked> offenes Training</label>
+    </div>
   </div>
   <div class="ctrl" style="grid-column: 1 / -1;">
     <label>Event-Typ</label>
@@ -250,7 +266,7 @@
   var WEEKDAYS = ["So","Mo","Di","Mi","Do","Fr","Sa"];
 
   var PRICE_CAP = 160; // Sliderwert, der "egal" bedeutet
-  var state = { origin: "muc", range: 200, days: 365, sort: "date", gross: true, klein: true, kidsOnly: false, maxPrice: PRICE_CAP, from: "", showPast: false };
+  var state = { origin: "muc", range: 200, days: 365, sort: "date", gross: true, klein: true, kidsOnly: false, maxPrice: PRICE_CAP, from: "", showPast: false, tOcr: true, tLauf: true, tTraining: true };
 
   function haversine(lat1, lon1, lat2, lon2) {
     var R = 6371, toRad = Math.PI / 180;
@@ -282,11 +298,31 @@
     EVENTS.forEach(function (ev) {
       var dist = haversine(origin.lat, origin.lon, ev.lat, ev.lon);
       if (dist > state.range) return;
+      var type = ev.type || "ocr";
+      if (type === "ocr" && !state.tOcr) return;
+      if (type === "lauf" && !state.tLauf) return;
+      if (type === "training" && !state.tTraining) return;
       if (ev.category === "gross" && !state.gross) return;
       if (ev.category !== "gross" && !state.klein) return;
       if (state.kidsOnly && !ev.kids) return;
       // Kostenfilter: Events ohne Preisangabe bleiben sichtbar
       if (state.maxPrice < PRICE_CAP && ev.priceMin != null && ev.priceMin > state.maxPrice) return;
+
+      // Wiederkehrende Termine (z. B. parkrun, offene Trainings): nächstes Vorkommen berechnen
+      if (ev.recurringWeekdays && ev.recurringWeekdays.length) {
+        var base = new Date(Math.max(+start, +today));
+        var best = null;
+        ev.recurringWeekdays.forEach(function (wd) {
+          var delta = (wd - base.getDay() + 7) % 7;
+          var cand = new Date(+base + delta * 86400000);
+          if (!best || cand < best) best = cand;
+        });
+        if (best && best <= until) {
+          items.push({ ev: ev, dist: dist, next: best, more: [], isPast: false, lastRun: null, recurring: true });
+        }
+        return;
+      }
+
       var all = ev.dates.concat(ev.pastDates || []).map(function (s) { return new Date(s + "T00:00:00"); })
         .sort(function (a, b) { return a - b; });
       var pastAll = all.filter(function (d) { return d < today; });
@@ -322,15 +358,20 @@
         if (mk !== lastMonth) { html += '<h2 class="month">' + mk + "</h2>"; lastMonth = mk; }
       }
       var badges = "";
+      var evType = ev.type || "ocr";
+      if (evType === "lauf") badges += '<span class="badge b-lauf">Laufevent</span>';
+      if (evType === "training") badges += '<span class="badge b-training">Training</span>';
       badges += ev.category === "gross" ? '<span class="badge b-gross">Großevent</span>'
               : ev.category === "kids" ? '<span class="badge b-kids">Kids-Event</span>'
               : '<span class="badge b-klein">Klein &amp; fein</span>';
+      if (it.recurring) badges += '<span class="badge b-rec">wiederkehrend</span>';
       if (ev.kids && ev.category !== "kids") badges += '<span class="badge b-kids">Kids-Lauf</span>';
       if (ev.estimated) badges += '<span class="badge b-est">Termin geschätzt</span>';
       if (it.isPast) badges += '<span class="badge b-past">bereits gelaufen</span>';
 
       var metaBits = [];
       metaBits.push("<strong>" + esc(ev.location) + "</strong> · ≈ " + Math.round(it.dist) + " km Luftlinie");
+      if (it.recurring && ev.recurringLabel) metaBits.push("wiederkehrend: " + esc(ev.recurringLabel));
       if (ev.obstacles) metaBits.push(esc(ev.obstacles));
       if (ev.kidsInfo) metaBits.push("Kids: " + esc(ev.kidsInfo));
       if (ev.priceTiers) metaBits.push("Kosten: " + esc(ev.priceTiers));
@@ -341,7 +382,8 @@
       (ev.distancesKm || []).forEach(function (km) {
         chips += '<span class="chip">' + km + " km</span>";
       });
-      var priceLabel = ev.priceMin != null && ev.priceMax != null && ev.priceMax > ev.priceMin
+      var priceLabel = ev.priceMin === 0 && !ev.priceMax ? "kostenlos"
+        : ev.priceMin != null && ev.priceMax != null && ev.priceMax > ev.priceMin
         ? ev.priceMin + "–" + ev.priceMax + " €"
         : ev.priceMin != null ? "ab " + ev.priceMin + " €"
         : ev.priceFrom ? esc(ev.priceFrom) : null;
@@ -380,6 +422,9 @@
   document.getElementById("price").addEventListener("input", function () { state.maxPrice = +this.value; syncOutputs(); build(); });
   document.getElementById("from").addEventListener("change", function () { state.from = this.value; build(); });
   document.getElementById("fPast").addEventListener("change", function () { state.showPast = this.checked; build(); });
+  document.getElementById("tOcr").addEventListener("change", function () { state.tOcr = this.checked; build(); });
+  document.getElementById("tLauf").addEventListener("change", function () { state.tLauf = this.checked; build(); });
+  document.getElementById("tTraining").addEventListener("change", function () { state.tTraining = this.checked; build(); });
   document.getElementById("sort").addEventListener("change", function () { state.sort = this.value; build(); });
   document.getElementById("fGross").addEventListener("change", function () { state.gross = this.checked; build(); });
   document.getElementById("fKlein").addEventListener("change", function () { state.klein = this.checked; build(); });

@@ -4,6 +4,8 @@
 // "category": "gross" (kommerzielles Großevent), "klein" (Vereins-/Lokalevent), "kids" (reines Kinder-Event).
 // "priceMin"/"priceMax": Startgebühr Erwachsene in € (günstigste bis teuerste Distanz/Buchungsstufe), null = unbekannt.
 // "pastDates": belegte Termine der letzten 2 Jahre (Juli 2024 – Juli 2026) für die Ansicht "vergangene Events anzeigen".
+// "type": "ocr" (Standard, Hindernis-/Matsch-/Crosslauf), "lauf" (reines Laufevent), "training" (offenes Training/Gelände).
+// "recurringWeekdays"/"recurringLabel": wiederkehrende Termine (0=So … 6=Sa), z. B. parkrun jeden Samstag.
 // Recherche-Stand: Juli 2026.
 var EVENTS = [
   // ── Großevents ────────────────────────────────────────────────────────────
