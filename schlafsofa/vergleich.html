@@ -91,6 +91,7 @@
     <label><input type="checkbox" data-k="transport"> 🚚 zerlegbar / leicht zu transportieren</label>
     <label><input type="checkbox" data-k="klein"> 🏙️ für kleine Stadtwohnung</label>
     <label><input type="checkbox" data-k="zweip"> 👫 für 2 Personen</label>
+    <label><input type="checkbox" data-k="verfuegbar"> 🔎 gut verfügbar auf Kleinanzeigen</label>
   </div>
 </div>
 
@@ -103,6 +104,7 @@
       <option value="price">Gebrauchtpreis (aufsteigend)</option>
       <option value="breite">Liegebreite</option>
       <option value="robust">Robustheit</option>
+      <option value="avail">Angebotslage auf Kleinanzeigen</option>
     </select>
   </label>
   <button id="reset">Zurücksetzen</button>
@@ -122,51 +124,51 @@ Tipp: Der <a href="index.html">Topper-Trick</a> macht auch einfachere Sofas daue
 <script>
 const SOFAS = [
   {name:"IKEA Nyhamn", typ:"3er-Klappsofa mit echter Matratze", neu:380, used:[100,200],
-   lb:140, ll:200, stell:200, daily:4, einfachN:5, robustN:4,
+   avail:3, lb:140, ll:200, stell:200, daily:4, einfachN:5, robustN:4,
    bettkasten:false, waschbar:true, matratze:true, einfach:true, transport:true, klein:true, zweip:true,
    verdict:"ok", note:"Preis-Leistungs-Tipp für jede Nacht: Kaltschaummatratze wählen, Bezug waschbar, federleichter Mechanismus. Kein Bettkasten — Bettzeug-Beutel dahinter."},
   {name:"IKEA Beddinge (gebraucht)", typ:"Klassiker: Lattenrost + Matratze", neu:null, used:[50,150],
-   lb:140, ll:200, stell:200, daily:4, einfachN:4, robustN:4,
+   avail:3, lb:140, ll:200, stell:200, daily:4, einfachN:4, robustN:4,
    bettkasten:true, waschbar:true, matratze:true, einfach:true, transport:true, klein:true, zweip:true,
    verdict:"ok", note:"Nur noch gebraucht — dafür spottbillig, unverwüstliches Stahlgestell, Matratze einzeln nachkaufbar. Bettkasten als Zubehör oft dabei."},
   {name:"IKEA Friheten", typ:"Eckbettsofa mit Riesen-Bettkasten", neu:650, used:[150,350],
-   lb:140, ll:204, stell:230, daily:3, einfachN:4, robustN:4,
+   avail:4, lb:140, ll:204, stell:230, daily:3, einfachN:4, robustN:4,
    bettkasten:true, waschbar:false, matratze:false, einfach:true, transport:true, klein:false, zweip:true,
    verdict:"warn", note:"Kleinanzeigen-Dauerbrenner, riesiger Bettkasten, zerlegbar für den Transport. Liegefläche hart mit spürbarer Querstrebe — täglich nur mit Topper."},
   {name:"IKEA Asarum", typ:"3er Klick-Klack", neu:280, used:[100,180],
-   lb:140, ll:200, stell:191, daily:2, einfachN:5, robustN:3,
+   avail:3, lb:140, ll:200, stell:191, daily:2, einfachN:5, robustN:3,
    bettkasten:false, waschbar:false, matratze:false, einfach:true, transport:true, klein:true, zweip:true,
    verdict:"warn", note:"Sekundenschnell umgeklappt und schmal — gut für Gäste und Übergangswohnungen, auf Dauer zu weiche Polsterfläche."},
   {name:"IKEA Hammarn", typ:"Futon-Stil, superleicht", neu:180, used:[50,120],
-   lb:140, ll:200, stell:200, daily:1, einfachN:5, robustN:2,
+   avail:2, lb:140, ll:200, stell:200, daily:1, einfachN:5, robustN:2,
    bettkasten:false, waschbar:true, matratze:false, einfach:true, transport:true, klein:true, zweip:true,
    verdict:"bad", note:"Billigste Option, trägt eine Person die Treppe hoch. Dünne Auflage — fürs tägliche Schlafen nur mit dickem Topper erträglich."},
   {name:"IKEA Flottebo", typ:"Lounge-Sofa mit dicker Matratze", neu:650, used:[250,450],
-   lb:90, ll:200, stell:200, daily:5, einfachN:5, robustN:4,
+   avail:1, lb:90, ll:200, stell:200, daily:5, einfachN:5, robustN:4,
    bettkasten:true, waschbar:true, matratze:true, einfach:true, transport:true, klein:true, zweip:false,
    verdict:"ok", note:"Für Alleinschläfer die bequemste Lösung: durchgehende 12-cm-Matratze, Handgriff = Rückenkissen wegnehmen. Nur 90 cm Liegebreite."},
   {name:"IKEA Vimle Schlafsofa", typ:"3er mit Bettfunktion + Kasten", neu:900, used:[300,600],
-   lb:140, ll:200, stell:241, daily:4, einfachN:3, robustN:4,
+   avail:2, lb:140, ll:200, stell:241, daily:4, einfachN:3, robustN:4,
    bettkasten:true, waschbar:true, matratze:false, einfach:false, transport:true, klein:false, zweip:true,
    verdict:"ok", note:"Wohnzimmertauglicher Allrounder, ordentliche Liegefläche, Bezüge einzeln nachkaufbar. Gebraucht fair, neu an der Budgetgrenze."},
   {name:"IKEA Grönlid Schlafsofa", typ:"3er mit Bettfunktion", neu:950, used:[300,500],
-   lb:140, ll:200, stell:247, daily:4, einfachN:3, robustN:4,
+   avail:1, lb:140, ll:200, stell:247, daily:4, einfachN:3, robustN:4,
    bettkasten:true, waschbar:true, matratze:false, einfach:false, transport:true, klein:false, zweip:true,
    verdict:"ok", note:"Sehr bequemes Sofa, solide Bettfunktion, waschbare Bezüge — braucht aber ein großes Zimmer (Stellbreite ~2,5 m)."},
   {name:"Boxspring-Schlafsofa (Roller/POCO/Sconto)", typ:"Querschläfer mit Federkern + Kasten", neu:450, used:[100,250],
-   lb:120, ll:200, stell:200, daily:3, einfachN:4, robustN:3,
+   avail:4, lb:120, ll:200, stell:200, daily:3, einfachN:4, robustN:3,
    bettkasten:true, waschbar:false, matratze:false, einfach:true, transport:false, klein:true, zweip:false,
    verdict:"warn", note:"Diverse Eigenmarken-Namen, gebraucht sehr günstig. Federkern liegt ok — vor Ort auf knarzende Gestelle und durchgesessene Kanten prüfen."},
   {name:"Querschläfer Cord/Webstoff (OTTO: Inosign u. ä.)", typ:"Ausziehmechanismus, Bettkasten", neu:500, used:[150,300],
-   lb:140, ll:200, stell:190, daily:3, einfachN:3, robustN:3,
+   avail:3, lb:140, ll:200, stell:190, daily:3, einfachN:3, robustN:3,
    bettkasten:true, waschbar:false, matratze:false, einfach:false, transport:false, klein:true, zweip:true,
    verdict:"warn", note:"Spart Raumtiefe (man liegt quer), oft unter 2 m Stellbreite. Qualität streut stark — Polsterkern und Mechanismus genau anschauen."},
   {name:"Schlafsessel (z. B. IKEA Lycksele, gebraucht)", typ:"1-Person-Notlösung", neu:250, used:[40,120],
-   lb:80, ll:188, stell:80, daily:1, einfachN:4, robustN:3,
+   avail:2, lb:80, ll:188, stell:80, daily:1, einfachN:4, robustN:3,
    bettkasten:false, waschbar:true, matratze:false, einfach:true, transport:true, klein:true, zweip:false,
    verdict:"bad", note:"Passt in jede Nische und kostet fast nichts — aber nur für Gäste. Für jede Nacht ist die Faltmatratze zu dünn."},
   {name:"IKEA Utåker Tagesbett (stapelbar)", typ:"2 stapelbare Betten = Sofa-Ersatz", neu:350, used:[120,250],
-   lb:80, ll:200, stell:205, daily:5, einfachN:4, robustN:5,
+   avail:2, lb:80, ll:200, stell:205, daily:5, einfachN:4, robustN:5,
    bettkasten:false, waschbar:false, matratze:true, einfach:true, transport:true, klein:true, zweip:true,
    verdict:"ok", note:"Geheimtipp: tagsüber gestapelt als Sitzbank, nachts 1 oder 2 vollwertige Matratzen (2× 80 cm nebeneinander = 160 cm). Massivholz, quasi unkaputtbar."}
 ];
@@ -178,6 +180,7 @@ const els = {budget:$("fBudget"), breite:$("fBreite"), daily:$("fDaily"), stell:
 const boxes = [...document.querySelectorAll("#checks input")];
 const eur = n => n.toLocaleString("de-DE") + " €";
 const mid = s => (s.used[0]+s.used[1])/2;
+const AVAIL_TXT = ["", "selten (Suchauftrag + Geduld)", "regelmäßig (alle 1–2 Wochen)", "häufig (wenige Tage Suche)", "sehr häufig (sofort, gut verhandelbar)"];
 
 function dots(n){
   let h = "";
@@ -197,6 +200,7 @@ function card(s){
       <div class="used"><b>${eur(s.used[0])}–${eur(s.used[1])}</b><span>gebraucht (Kleinanzeigen)</span></div>
       <div><b>${s.neu ? "ca. " + eur(s.neu) : "—"}</b><span>Neupreis</span></div>
     </div>
+    <div class="typ">🔎 Angebotslage Kleinanzeigen: <strong>${AVAIL_TXT[s.avail]}</strong></div>
     <div class="bars">
       <span>Täglich schlafen</span><span class="dots">${dots(s.daily)}</span>
       <span>Handhabung</span><span class="dots">${dots(s.einfachN)}</span>
@@ -219,12 +223,13 @@ function render(){
   let list = SOFAS.filter(s =>
     (budget >= 700 || mid(s) <= budget) && s.lb >= breite && s.daily >= daily &&
     (stell >= 240 || s.stell <= stell) &&
-    need.every(k => s[k]));
+    need.every(k => k === "verfuegbar" ? s.avail >= 3 : s[k]));
 
   const key = els.sort.value;
   list.sort((a,b) => key==="price" ? mid(a)-mid(b)
                    : key==="breite" ? b.lb-a.lb
                    : key==="robust" ? b.robustN-a.robustN
+                   : key==="avail" ? b.avail-a.avail || mid(a)-mid(b)
                    : b.daily-a.daily || mid(a)-mid(b));
 
   els.grid.innerHTML = list.map(card).join("");

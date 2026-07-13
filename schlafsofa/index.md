@@ -33,20 +33,29 @@ Wer **jede Nacht** auf dem Sofa schläft, braucht ein anderes Gerät als für de
 
 Typische Spannen (Stand Juli 2026, je nach Zustand und Region — Großstadt meist günstiger, weil Angebot größer):
 
-| Modell | Typ | Neu ca. | Gebraucht (Kleinanzeigen) | Täglich schlafen? |
-|---|---|---|---|---|
-| IKEA **Nyhamn** | 3er, Klappmechanismus, echte Matratze | 380 € | 100–200 € | ✅ gut (mit Kaltschaummatratze) |
-| IKEA **Beddinge** (nur noch gebraucht) | Klassiker mit Lattenrost + Matratze | — | 50–150 € | ✅ gut, Matratze ggf. tauschen |
-| IKEA **Friheten** | Eckbettsofa mit großem Bettkasten | 650 € | 150–350 € | ⚠️ mit Topper ja (Querstrebe spürbar) |
-| IKEA **Asarum** | 3er Klick-Klack | 280 € | 100–180 € | ⚠️ eher Gäste/Übergang |
-| IKEA **Hammarn** | Futon-Stil, superleicht | 180 € | 50–120 € | ❌ zu dünn für jede Nacht |
-| IKEA **Flottebo** | Lounge-Sofa, dicke Matratze, 90×200 | 650 € | 250–450 € | ✅ sehr gut für 1 Person |
-| IKEA **Vimle** Schlafsofa | 3er mit Bettfunktion + Kasten | 900 € | 300–600 € | ✅ ordentlich |
-| IKEA **Grönlid** Schlafsofa | 3er mit Bettfunktion | 950 € | 300–500 € | ✅ ordentlich |
-| Boxspring-Schlafsofa (Roller/POCO/Sconto, div. Namen) | Querschläfer mit Federkern + Bettkasten | 350–500 € | 100–250 € | ⚠️ Federkern ok, Verarbeitung prüfen |
-| Querschläfer Cord/Webstoff (OTTO: Inosign, Collection AB u. ä.) | Ausziehmechanismus, Bettkasten | 400–600 € | 150–300 € | ⚠️ je nach Polsterkern |
-| Schlafsessel (z. B. IKEA Lycksele, gebraucht) | 1-Person-Notlösung | 250 € | 40–120 € | ❌ Gäste ja, täglich nein |
-| Tagesbett IKEA **Utåker** (stapelbar) | 2 Betten übereinander = Sofa-Ersatz | 350 € | 120–250 € | ✅ echte Matratzen! |
+Die Spalte **Angebotslage** sagt, wie oft das Modell auf Kleinanzeigen auftaucht — und damit, wie gut man verhandeln kann und wie lange die Suche dauert:
+
+- **sehr häufig** = in jeder Großstadt Dutzende aktive Anzeigen, sofort verfügbar, Preise stark drückbar
+- **häufig** = ständig einige Anzeigen, wenige Tage Suche
+- **regelmäßig** = taucht alle 1–2 Wochen auf, Suchauftrag anlegen
+- **selten** = Suchauftrag + Geduld (Wochen), dafür wenig Konkurrenz beim Verhandeln nur bedingt
+
+| Modell | Typ | Neu ca. | Gebraucht (Kleinanzeigen) | Angebotslage | Täglich schlafen? |
+|---|---|---|---|---|---|
+| IKEA **Nyhamn** | 3er, Klappmechanismus, echte Matratze | 380 € | 100–200 € | häufig | ✅ gut (mit Kaltschaummatratze) |
+| IKEA **Beddinge** (nur noch gebraucht) | Klassiker mit Lattenrost + Matratze | — | 50–150 € | häufig (Altbestand) | ✅ gut, Matratze ggf. tauschen |
+| IKEA **Friheten** | Eckbettsofa mit großem Bettkasten | 650 € | 150–350 € | sehr häufig | ⚠️ mit Topper ja (Querstrebe spürbar) |
+| IKEA **Asarum** | 3er Klick-Klack | 280 € | 100–180 € | häufig | ⚠️ eher Gäste/Übergang |
+| IKEA **Hammarn** | Futon-Stil, superleicht | 180 € | 50–120 € | regelmäßig | ❌ zu dünn für jede Nacht |
+| IKEA **Flottebo** | Lounge-Sofa, dicke Matratze, 90×200 | 650 € | 250–450 € | selten | ✅ sehr gut für 1 Person |
+| IKEA **Vimle** Schlafsofa | 3er mit Bettfunktion + Kasten | 900 € | 300–600 € | regelmäßig | ✅ ordentlich |
+| IKEA **Grönlid** Schlafsofa | 3er mit Bettfunktion | 950 € | 300–500 € | selten | ✅ ordentlich |
+| Boxspring-Schlafsofa (Roller/POCO/Sconto, div. Namen) | Querschläfer mit Federkern + Bettkasten | 350–500 € | 100–250 € | sehr häufig | ⚠️ Federkern ok, Verarbeitung prüfen |
+| Querschläfer Cord/Webstoff (OTTO: Inosign, Collection AB u. ä.) | Ausziehmechanismus, Bettkasten | 400–600 € | 150–300 € | häufig | ⚠️ je nach Polsterkern |
+| Schlafsessel (z. B. IKEA Lycksele, gebraucht) | 1-Person-Notlösung | 250 € | 40–120 € | regelmäßig | ❌ Gäste ja, täglich nein |
+| Tagesbett IKEA **Utåker** (stapelbar) | 2 Betten übereinander = Sofa-Ersatz | 350 € | 120–250 € | regelmäßig | ✅ echte Matratzen! |
+
+**Faustregel zur Häufigkeit:** IKEA-Dauerbrenner (Friheten, generische Boxspring-Schlafsofas) sind Käufermarkt — nie den ersten Preis zahlen, es kommt morgen das nächste Angebot. Bei seltenen Modellen (Flottebo, Grönlid Schlafsofa) in gutem Zustand dagegen schnell zuschlagen.
 
 **Merkregel:** je näher das Sofa an „Bett mit Sofafunktion" (Nyhamn, Beddinge, Flottebo, Utåker), desto besser schläft man. Je näher an „Sofa mit Notbett" (Hammarn, Klick-Klack), desto schlechter.
 
@@ -54,9 +63,19 @@ Typische Spannen (Stand Juli 2026, je nach Zustand und Region — Großstadt mei
 
 - **Suchbegriffe:** Modellname direkt suchen („Nyhamn", „Friheten"), zusätzlich „Schlafsofa Lattenrost", „Dauerschläfer". Tippfehler-Varianten („Frieheten") finden Schnäppchen ohne Konkurrenz.
 - **Beste Deals:** Anzeigen mit „Umzug", „muss bis Samstag raus", Auktion ab 1 €. Ende des Monats (Umzugstermine) ist Hochsaison.
-- **Vor Ort prüfen:** 3× komplett auf- und zuklappen (Mechanismus!), auf der Liegefläche probeliegen, Gestell auf Risse/Knarzen prüfen, unter das Sofa schauen (Flecken, Schimmel am Bettkasten), riechen (Rauch, Feuchtigkeit).
 - **Preisanker:** Neupreis googeln und mitnehmen — mehr als 50 % vom Neupreis zahlt man gebraucht nur für neuwertige Ware mit Rechnung.
 - **Transport:** Maße vorher erfragen; Friheten & Co. sind zerlegbar (Rückenlehne abschrauben), passen dann in einen Kombi. Sackkarre + Spanngurt mitnehmen.
+
+### Checkliste für die Besichtigung (5 Minuten)
+
+1. **Mechanismus 3× komplett auf- und zuklappen** — muss ohne Kraft und Verkanten laufen; ausgeleierte Beschläge sind der häufigste Totalschaden.
+2. **Probeliegen** (nicht nur sitzen): Kuhle in der Liegefläche? Querstreben spürbar? Durchgelegene Sitzkissen erkennt man am Höhenunterschied zur Kante.
+3. **Gestell rütteln und anheben:** Knarzen, Wackeln, gebrochene Latten, nachgezogene/fehlende Schrauben, Risse an den Ecken des Rahmens.
+4. **Unter das Sofa und in den Bettkasten schauen:** Stockflecken/Schimmel (weiße/schwarze Punkte), Wasserränder, Bezug-Rückseite prüfen.
+5. **Riechen:** Rauch, Feuchtigkeit und Tiergeruch bekommt man aus Polstern praktisch nicht mehr heraus — dann weitergehen, das nächste Angebot kommt.
+6. **Reißverschlüsse & Bezug:** Lassen sich die Bezüge abnehmen? Flecken auf der Liegezone? Pilling/Liegespuren bei Samt?
+7. **Fragen stellen:** Wie oft wurde darauf geschlafen? Nichtraucherhaushalt? Haustiere? Originalrechnung (Alter, Garantie-Rest)?
+8. **Maße nachmessen** (Stellbreite, ausgeklappte Tiefe, Türbreite beim Verkäufer *und* zu Hause) — bevor man Geld übergibt.
 
 ## 4. Life-Hacks für den Alltag
 
