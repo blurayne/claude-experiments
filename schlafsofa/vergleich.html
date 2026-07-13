@@ -31,6 +31,11 @@
   .filter label{display:flex;justify-content:space-between;font-weight:600;font-size:.88rem;margin-bottom:.25rem;gap:.4rem}
   .filter output{color:var(--accent);font-variant-numeric:tabular-nums;white-space:nowrap}
   input[type=range]{width:100%;accent-color:var(--accent)}
+  .raum-toggle{display:flex;align-items:center;gap:.55rem;font-size:.95rem;font-weight:600;cursor:pointer;margin:0}
+  .raum-toggle input{accent-color:var(--accent);width:1.15rem;height:1.15rem;cursor:pointer}
+  .raum-sliders{margin-top:.9rem;transition:opacity .15s ease}
+  .raum-sliders.disabled{opacity:.4}
+  .raum-hint{font-size:.78rem;color:var(--muted);margin:.7rem 0 0}
   .checks{display:flex;flex-wrap:wrap;gap:.4rem .5rem;margin-top:.9rem}
   .checks label{display:inline-flex;align-items:center;gap:.4rem;background:var(--chip);border:1px solid var(--line);
     border-radius:999px;padding:.3rem .8rem;font-size:.88rem;cursor:pointer;user-select:none}
@@ -69,6 +74,8 @@
   .links a:hover{border-color:var(--accent);color:var(--accent)}
   .links a[title]{padding:.28rem .55rem;font-size:.95rem}
   .empty{padding:2.5rem;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:14px}
+  .empty .raum-empty-hint{display:none}
+  .empty.raum-empty .raum-empty-hint{display:block;margin-top:.4rem}
   footer{margin:1.4rem 0 .4rem;color:var(--muted);font-size:.82rem;max-width:80ch}
 </style>
 </head>
@@ -100,10 +107,6 @@
       <label>Alltagstauglichkeit (min.) <output id="oDaily">1 / 5</output></label>
       <input type="range" id="fDaily" min="1" max="5" step="1" value="1">
     </div>
-    <div class="filter">
-      <label>Stellbreite (max.) <output id="oStell">egal</output></label>
-      <input type="range" id="fStell" min="140" max="270" step="10" value="270">
-    </div>
   </div>
   <div class="checks" id="checks">
     <label><input type="checkbox" data-k="dauer"> 🌙 als Dauerschläfer konzipiert/deklariert</label>
@@ -118,6 +121,24 @@
     <label><input type="checkbox" data-k="neukauf"> 🛒 neu erhältlich (2026)</label>
     <label><input type="checkbox" data-k="wohnland"> 🛋️ Wohnlandschaft / Ecksofa (L/U)</label>
   </div>
+</div>
+
+<div class="panel">
+  <label class="raum-toggle" for="fMasseEin">
+    <input type="checkbox" id="fMasseEin">
+    📐 Maße einbeziehen — nur Sofas zeigen, die in mein Zimmer passen
+  </label>
+  <div class="filters raum-sliders" id="raumSliders">
+    <div class="filter">
+      <label>Verfügbare Breite an der Wand <output id="oRaumBreite">1,80 m</output></label>
+      <input type="range" id="fRaumBreite" min="150" max="300" step="5" value="180">
+    </div>
+    <div class="filter">
+      <label>Verfügbare Tiefe (max.) <output id="oRaumTiefe">2,20 m</output></label>
+      <input type="range" id="fRaumTiefe" min="100" max="300" step="5" value="220">
+    </div>
+  </div>
+  <p class="raum-hint">Breite = Stellbreite des Sofas an der Wand · Tiefe ≈ Liegelänge des ausgeklappten Sofas (Richtwert — die tatsächlich benötigte Tiefe vor Ort nachmessen). Diese Einstellung wird lokal in deinem Browser gespeichert.</p>
 </div>
 
 <div class="toolbar">
@@ -138,7 +159,8 @@
 
 <div class="grid" id="grid"></div>
 <div class="empty" id="empty" hidden>Kein Modell erfüllt alle Kriterien — Budget erhöhen oder einen Haken entfernen.<br>
-Tipp: Der <a href="index.html">Topper-Trick</a> macht auch einfachere Sofas dauerschlaftauglich.</div>
+Tipp: Der <a href="index.html">Topper-Trick</a> macht auch einfachere Sofas dauerschlaftauglich.
+<span class="raum-empty-hint">Auch die Zimmer-Maße (Breite/Tiefe) prüfen — vielleicht passt ein kleineres Modell.</span></div>
 
 <footer>
   Bewertungen: Redaktions-Einschätzung für tägliche Nutzung (5 = sehr gut), auf Basis einer Multi-Quellen-Recherche (Juli 2026) mit
@@ -351,12 +373,46 @@ const SOFAS = [
 ];
 
 const $ = id => document.getElementById(id);
-const els = {neu:$("fNeu"), budget:$("fBudget"), breite:$("fBreite"), daily:$("fDaily"), stell:$("fStell"),
-             oNeu:$("oNeu"), oBudget:$("oBudget"), oBreite:$("oBreite"), oDaily:$("oDaily"), oStell:$("oStell"),
+const els = {neu:$("fNeu"), budget:$("fBudget"), breite:$("fBreite"), daily:$("fDaily"),
+             oNeu:$("oNeu"), oBudget:$("oBudget"), oBreite:$("oBreite"), oDaily:$("oDaily"),
+             raumEin:$("fMasseEin"), raumBreite:$("fRaumBreite"), raumTiefe:$("fRaumTiefe"),
+             oRaumBreite:$("oRaumBreite"), oRaumTiefe:$("oRaumTiefe"), raumSliders:$("raumSliders"),
              grid:$("grid"), empty:$("empty"), count:$("count"), sort:$("sort")};
 const boxes = [...document.querySelectorAll("#checks input")];
 const eur = n => n.toLocaleString("de-DE") + " €";
 const mid = s => (s.used[0]+s.used[1])/2;
+
+// Zimmer-Maße: Breite/Tiefe/Ein-Aus in localStorage merken
+const RAUM_KEY = "schlafsofa-raummasse-v1";
+const RAUM_DEFAULT = {breite: 180, tiefe: 220, einbeziehen: false};
+function loadRaum(){
+  try {
+    const saved = JSON.parse(localStorage.getItem(RAUM_KEY));
+    if (saved && typeof saved === "object") return {...RAUM_DEFAULT, ...saved};
+  } catch(e) {}
+  return {...RAUM_DEFAULT};
+}
+function saveRaum(){
+  try {
+    localStorage.setItem(RAUM_KEY, JSON.stringify({
+      breite: +els.raumBreite.value, tiefe: +els.raumTiefe.value, einbeziehen: els.raumEin.checked
+    }));
+  } catch(e) {}
+}
+const fmtM = cm => (cm/100).toLocaleString("de-DE", {minimumFractionDigits:2, maximumFractionDigits:2}) + " m";
+{
+  const raum = loadRaum();
+  els.raumBreite.value = raum.breite;
+  els.raumTiefe.value = raum.tiefe;
+  els.raumEin.checked = raum.einbeziehen;
+}
+function updateRaumUI(){
+  els.oRaumBreite.textContent = fmtM(+els.raumBreite.value);
+  els.oRaumTiefe.textContent = fmtM(+els.raumTiefe.value);
+  els.raumSliders.classList.toggle("disabled", !els.raumEin.checked);
+  els.raumBreite.disabled = !els.raumEin.checked;
+  els.raumTiefe.disabled = !els.raumEin.checked;
+}
 const AVAIL_TXT = ["", "selten (Suchauftrag + Geduld)", "regelmäßig (alle 1–2 Wochen)", "häufig (wenige Tage Suche)", "sehr häufig (sofort, gut verhandelbar)"];
 const KLASSE_TXT = {budget:"bis 400 € neu", mittel:"400–900 € neu", oben:"900–2.000 € neu", premium:"2.000–3.500 € neu", gebraucht:"nur gebraucht"};
 const DERIVED = {
@@ -403,20 +459,20 @@ function card(s){
 }
 
 function render(){
-  const neuMax = +els.neu.value, budget = +els.budget.value, breite = +els.breite.value,
-        daily = +els.daily.value, stell = +els.stell.value;
+  const neuMax = +els.neu.value, budget = +els.budget.value, breite = +els.breite.value, daily = +els.daily.value;
   els.oNeu.textContent = neuMax >= 3500 ? "egal" : eur(neuMax);
   els.oBudget.textContent = budget >= 1600 ? "egal" : eur(budget);
   els.oBreite.textContent = breite + " cm";
   els.oDaily.textContent = daily + " / 5";
-  els.oStell.textContent = stell >= 270 ? "egal" : stell + " cm";
+  updateRaumUI();
+  const raumOn = els.raumEin.checked, raumBreite = +els.raumBreite.value, raumTiefe = +els.raumTiefe.value;
 
   const need = boxes.filter(b => b.checked).map(b => b.dataset.k);
   let list = SOFAS.filter(s =>
     (neuMax >= 3500 || s.neu === null || s.neu <= neuMax) &&
     (budget >= 1600 || mid(s) <= budget) &&
     s.lb >= breite && s.daily >= daily &&
-    (stell >= 270 || s.stell <= stell) &&
+    (!raumOn || (s.stell <= raumBreite && s.ll <= raumTiefe)) &&
     need.every(k => DERIVED[k] ? DERIVED[k](s) : s[k]));
 
   const key = els.sort.value;
@@ -429,14 +485,19 @@ function render(){
 
   els.grid.innerHTML = list.map(card).join("");
   els.empty.hidden = list.length > 0;
+  els.empty.classList.toggle("raum-empty", list.length === 0 && raumOn);
   els.count.textContent = list.length + " von " + SOFAS.length + " Modellen";
 }
 
-[els.neu, els.budget, els.breite, els.daily, els.stell].forEach(e => e.addEventListener("input", render));
+[els.neu, els.budget, els.breite, els.daily].forEach(e => e.addEventListener("input", render));
+[els.raumBreite, els.raumTiefe].forEach(e => e.addEventListener("input", () => { saveRaum(); render(); }));
+els.raumEin.addEventListener("change", () => { saveRaum(); render(); });
 boxes.forEach(b => b.addEventListener("change", render));
 els.sort.addEventListener("change", render);
 $("reset").addEventListener("click", () => {
-  els.neu.value = 3500; els.budget.value = 1600; els.breite.value = 80; els.daily.value = 1; els.stell.value = 270;
+  els.neu.value = 3500; els.budget.value = 1600; els.breite.value = 80; els.daily.value = 1;
+  els.raumBreite.value = RAUM_DEFAULT.breite; els.raumTiefe.value = RAUM_DEFAULT.tiefe; els.raumEin.checked = RAUM_DEFAULT.einbeziehen;
+  saveRaum();
   boxes.forEach(b => b.checked = false); els.sort.value = "daily"; render();
 });
 render();
