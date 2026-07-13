@@ -63,6 +63,8 @@ Stand: Juli 2026. „Region" ist grob nach Nähe zu München (81373) bzw. Lam (9
 | Rötzer Schwarzwihrberglauf | Rötz | Laufcup Cham | hdsports.org/laufen/schwarzwihrberglauf-roetz |
 | ARBERLAND Ultra Trail | Bayerisch Eisenstein | — | woidlaeufer.de |
 | Regensburg Marathon | Regensburg | — | regensburg-marathon.de |
+| Grenzüberschreitender Freundschaftslauf Waldmünchen–Klenčí | Waldmünchen / Klenčí, CZ | — | tv-waldmünchen.de |
+| Viechtacher Bürgerfestlauf (Stadtlauf) | Viechtach | — | wsv-viechtach.de |
 
 ## Wiederkehrende Läufe (parkrun, Social Runs)
 
