@@ -12,7 +12,9 @@ Enthalten sind die großen kommerziellen Serien (Spartan Race, Mud Masters, Mudd
 - **[kalender.html](kalender.html)** – der interaktive Kalender:
   - Umschalter für den **Ursprungsort** (München oder Lam)
   - Slider für die **Reichweite** (25–400 km Luftlinie)
-  - Slider für den **Zeitraum** (wie viele Tage im Voraus, 2 Wochen bis ~18 Monate)
+  - **Datumsfeld „Ab wann“** (Startdatum des Zeitfensters, vorbelegt mit heute)
+  - Slider für den **Zeitraum** (wie viele Tage ab dem Startdatum, 2 Wochen bis ~18 Monate)
+  - Haken **„vergangene Events anzeigen“**: Events ohne Termin im Fenster erscheinen ausgegraut mit ihrem letzten gelaufenen Termin („bereits gelaufen“)
   - Slider für die **max. Startgebühr** (Kostenfilter; Events ohne Preisangabe bleiben sichtbar)
   - **Sortierung** wählbar: nächstes Event zuerst oder nach Entfernung
   - Filter nach Event-Typ (Großevents / kleine Vereins-Events / nur mit Kids-Lauf)

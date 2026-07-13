@@ -75,6 +75,15 @@
   }
   .ctrl output { font-weight: 700; color: var(--ink); text-transform: none; letter-spacing: 0; }
   input[type=range] { width: 100%; accent-color: var(--accent); }
+  input[type=date] {
+    font: inherit;
+    color: var(--ink);
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: .35rem .6rem;
+    width: 100%;
+  }
   select, .seg button {
     font: inherit;
     color: var(--ink);
@@ -145,6 +154,8 @@
   .b-klein { background: var(--badge-klein); }
   .b-kids  { background: var(--badge-kids); }
   .b-est   { background: var(--badge-est); }
+  .b-past  { background: var(--muted); }
+  .card.past { opacity: .6; }
   .chips { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .35rem; }
   .chip {
     font-size: .78rem;
@@ -187,6 +198,10 @@
     <input type="range" id="range" min="25" max="400" step="25" value="200">
   </div>
   <div class="ctrl">
+    <label for="from">Ab wann</label>
+    <input type="date" id="from">
+  </div>
+  <div class="ctrl">
     <label for="days">Zeitraum: <output id="daysOut"></output></label>
     <input type="range" id="days" min="14" max="545" step="7" value="365">
   </div>
@@ -207,6 +222,7 @@
       <label><input type="checkbox" id="fGross" checked> Großevents (Spartan &amp; Co.)</label>
       <label><input type="checkbox" id="fKlein" checked> Kleine / Vereins-Events</label>
       <label><input type="checkbox" id="fKidsOnly"> nur Events mit Kinder-/Familienlauf</label>
+      <label><input type="checkbox" id="fPast"> vergangene Events anzeigen</label>
     </div>
   </div>
 </section>
@@ -234,7 +250,7 @@
   var WEEKDAYS = ["So","Mo","Di","Mi","Do","Fr","Sa"];
 
   var PRICE_CAP = 160; // Sliderwert, der "egal" bedeutet
-  var state = { origin: "muc", range: 200, days: 365, sort: "date", gross: true, klein: true, kidsOnly: false, maxPrice: PRICE_CAP };
+  var state = { origin: "muc", range: 200, days: 365, sort: "date", gross: true, klein: true, kidsOnly: false, maxPrice: PRICE_CAP, from: "", showPast: false };
 
   function haversine(lat1, lon1, lat2, lon2) {
     var R = 6371, toRad = Math.PI / 180;
@@ -258,7 +274,9 @@
   function build() {
     var origin = ORIGINS[state.origin];
     var today = new Date(); today.setHours(0, 0, 0, 0);
-    var until = new Date(today.getTime() + state.days * 86400000);
+    var start = state.from ? new Date(state.from + "T00:00:00") : today;
+    if (isNaN(start)) start = today;
+    var until = new Date(start.getTime() + state.days * 86400000);
 
     var items = [];
     EVENTS.forEach(function (ev) {
@@ -269,11 +287,17 @@
       if (state.kidsOnly && !ev.kids) return;
       // Kostenfilter: Events ohne Preisangabe bleiben sichtbar
       if (state.maxPrice < PRICE_CAP && ev.priceMin != null && ev.priceMin > state.maxPrice) return;
-      var upcoming = ev.dates.map(function (s) { return new Date(s + "T00:00:00"); })
-        .filter(function (d) { return d >= today && d <= until; })
+      var all = ev.dates.map(function (s) { return new Date(s + "T00:00:00"); })
         .sort(function (a, b) { return a - b; });
-      if (!upcoming.length) return;
-      items.push({ ev: ev, dist: dist, next: upcoming[0], more: upcoming.slice(1) });
+      var upcoming = all.filter(function (d) { return d >= start && d <= until; });
+      if (upcoming.length) {
+        items.push({ ev: ev, dist: dist, next: upcoming[0], more: upcoming.slice(1), isPast: false });
+      } else if (state.showPast) {
+        // Kein Termin im Fenster: letzten bereits vergangenen Termin zeigen
+        var past = all.filter(function (d) { return d < start; });
+        if (!past.length) return;
+        items.push({ ev: ev, dist: dist, next: past[past.length - 1], more: [], isPast: true });
+      }
     });
 
     items.sort(state.sort === "dist"
@@ -282,7 +306,7 @@
 
     var list = document.getElementById("list");
     document.getElementById("count").textContent = items.length
-      ? items.length + " Event" + (items.length === 1 ? "" : "s") + " im Umkreis von " + state.range + " km um " + origin.name + " in den nächsten " + state.days + " Tagen (bis " + fmtDate(until) + ")"
+      ? items.length + " Event" + (items.length === 1 ? "" : "s") + " im Umkreis von " + state.range + " km um " + origin.name + " zwischen " + fmtDate(start) + " und " + fmtDate(until) + (state.showPast ? " (inkl. bereits gelaufener)" : "")
       : "";
 
     if (!items.length) {
@@ -303,6 +327,7 @@
               : '<span class="badge b-klein">Klein &amp; fein</span>';
       if (ev.kids && ev.category !== "kids") badges += '<span class="badge b-kids">Kids-Lauf</span>';
       if (ev.estimated) badges += '<span class="badge b-est">Termin geschätzt</span>';
+      if (it.isPast) badges += '<span class="badge b-past">bereits gelaufen</span>';
 
       var metaBits = [];
       metaBits.push("<strong>" + esc(ev.location) + "</strong> · ≈ " + Math.round(it.dist) + " km Luftlinie");
@@ -325,7 +350,7 @@
         ? '<a href="' + esc(ev.url) + '" target="_blank" rel="noopener">' + esc(ev.name) + "</a>"
         : esc(ev.name);
 
-      html += '<article class="card">' +
+      html += '<article class="card' + (it.isPast ? " past" : "") + '">' +
         '<div class="date"><div class="wd">' + WEEKDAYS[d.getDay()] + '</div><div class="d">' + d.getDate() + '</div><div class="m">' + MONTHS_SHORT[d.getMonth()] + " " + String(d.getFullYear()).slice(2) + "</div></div>" +
         "<div><h3>" + title + "</h3>" +
         '<div class="meta">' + metaBits.join(" · ") + "</div>" +
@@ -352,10 +377,20 @@
   document.getElementById("range").addEventListener("input", function () { state.range = +this.value; syncOutputs(); build(); });
   document.getElementById("days").addEventListener("input", function () { state.days = +this.value; syncOutputs(); build(); });
   document.getElementById("price").addEventListener("input", function () { state.maxPrice = +this.value; syncOutputs(); build(); });
+  document.getElementById("from").addEventListener("change", function () { state.from = this.value; build(); });
+  document.getElementById("fPast").addEventListener("change", function () { state.showPast = this.checked; build(); });
   document.getElementById("sort").addEventListener("change", function () { state.sort = this.value; build(); });
   document.getElementById("fGross").addEventListener("change", function () { state.gross = this.checked; build(); });
   document.getElementById("fKlein").addEventListener("change", function () { state.klein = this.checked; build(); });
   document.getElementById("fKidsOnly").addEventListener("change", function () { state.kidsOnly = this.checked; build(); });
+
+  // Datumsfeld mit heutigem Datum vorbelegen
+  (function () {
+    var t = new Date();
+    var iso = t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" + String(t.getDate()).padStart(2, "0");
+    document.getElementById("from").value = iso;
+    state.from = iso;
+  })();
 
   syncOutputs();
   build();

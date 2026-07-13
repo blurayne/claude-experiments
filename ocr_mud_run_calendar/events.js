@@ -125,7 +125,7 @@ var EVENTS = [
     obstacles: "Kindgerechte Hindernisse aus Matsch, Wasser und Kies",
     kids: true,
     kidsInfo: "Reines Kinder-Event (ca. 4–14 Jahre), Distanz nach Altersklasse",
-    category: "kids",
+    category: "gross",
     url: "https://www.xletix.com/kids/",
     priceFrom: "ab ~25 €",
     priceMin: 25, priceMax: 45,
