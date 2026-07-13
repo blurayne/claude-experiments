@@ -486,6 +486,26 @@ var EVENTS = [
     priceTiers: null,
     desc: "Vereinsgetragene Crosslaufserie der Leichtathletik-Region Inn-Salzach östlich von München mit ca. 6 Etappen pro Saison. Nächste Läufe 2026: Winhöring 26.09., Burgkirchen 24.10., Finale Mühldorf 21.11."
   },
+  {
+    name: "Wald- und Wiesen-Wuidl'n",
+    series: null,
+    location: "Moosham (Gemeinde Mintraching, Lkr. Regensburg), Deutschland",
+    lat: 48.9268, lon: 12.2697,
+    dates: ["2027-07-09", "2027-07-11"],
+    pastDates: ["2026-07-10", "2026-07-12"],
+    estimated: true,
+    distancesKm: [1, 3, 5, 10],
+    obstacles: "Natürliches Wald-/Wiesengelände (Unterholz, Gräben) kombiniert mit einfachen gebauten Hindernissen: Schlammgruben, Wassergräben, Reifen zum Überspringen",
+    kids: true,
+    kidsInfo: "Kinderlauf 1 km ab 3 Jahren und Jugendlauf 3 km ab 8 Jahren mit Wasser-/Schlammhindernissen, jeweils am Vortag des Hauptlaufs",
+    category: "klein",
+    type: "ocr",
+    url: "https://www.bfsf-moosham.de/wald-und-wiesen-wuidl-n/",
+    priceFrom: null,
+    priceMin: null, priceMax: null,
+    priceTiers: "Startgebühr nicht öffentlich einsehbar; Nachmeldung für den Erwachsenenlauf war 2026 laut Presseberichten noch am Veranstaltungstag möglich",
+    desc: "Kleiner, ehrenamtlich organisierter Hindernislauf des BFSF Moosham in der Oberpfalz. Nach mehrjähriger Pause fand 2026 die 4. Auflage statt (Kinder-/Jugendlauf Fr., Hauptlauf So.); Termin 2027 noch unbestätigt."
+  },
 
   // ── Survival Race Kids (deutschlandweite Kinder-Hindernislauf-Serie) ─────
   {
