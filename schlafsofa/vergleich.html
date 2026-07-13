@@ -72,7 +72,7 @@
 <header>
   <a class="back" href="index.html">← zurück zum Ratgeber</a>
   <h1>🛋️ Schlafsofa Feature-Matrix</h1>
-  <p>~55 konkrete Modelle für den <strong>täglichen Gebrauch</strong> auf dem deutschen Markt (recherchiert Juli 2026), von Budget bis 3.500&nbsp;€ Neupreis, inklusive Wohnlandschaften/Ecksofas mit Schlaffunktion —
+  <p>60 konkrete Modelle für den <strong>täglichen Gebrauch</strong> auf dem deutschen Markt (recherchiert Juli 2026), von Budget bis 3.500&nbsp;€ Neupreis, inklusive Wohnlandschaften/Ecksofas mit Schlaffunktion und Eck-Dauerschläfern mit echter Matratze —
      mit typischen Gebrauchtpreisen auf Kleinanzeigen. Slider und Checkboxen setzen, die Liste filtert live.
      Hintergrund, Kauf-Checkliste &amp; Life-Hacks im <a href="index.html">Ratgeber</a>. Mit „≈" markierte Gebrauchtspannen sind Schätzungen.</p>
 </header>
@@ -306,10 +306,27 @@ const SOFAS = [
    avail:1, lb:160, ll:200, stell:210, daily:5, einfachN:4, robustN:5, bettkasten:false, waschbar:true, matratze:true, dauer:true, transport:false,
    note:"2024 neu vorgestellt: echte integrierte Matratze statt Sitzpolster als Liegefläche — konstruktiv die sauberste Lösung im Premium-Segment."},
 
+  // ---------- Ecksofas MIT echter Matratze (Nachrecherche) ----------
+  {name:"Places of Style Goldpoint (OTTO/Baur)", klasse:"premium", typ:"L-Ecksofa, nach vorn ausklappbar, echte Federkernmatratze", neu:2076, neuTxt:"ab ~2.076 €", used:[700,1200], estUsed:true, wohnland:true,
+   avail:1, lb:140, ll:200, stell:264, daily:3, einfachN:3, robustN:3, bettkasten:true, waschbar:false, matratze:true, dauer:true, transport:false,
+   note:"Preiseinstieg der Eck-Dauerschläfer mit echter Matratze — allerdings Bonell-Federkern in H2 und eher Klappunterfederung statt Lattenrost."},
+  {name:"Bali Messina (Eckvariante)", klasse:"premium", typ:"Ecksofa/Longchair mit Lattenrost + separater Matratze", neu:2522, neuTxt:"ab ~2.522 € reduziert (regulär ~3.553 €)", used:[900,1500], estUsed:true, wohnland:true,
+   avail:1, lb:160, ll:200, stell:280, daily:5, einfachN:4, robustN:4, bettkasten:true, waschbar:true, matratze:true, dauer:true, transport:false,
+   note:"Deutscher DS-Spezialist als Ecklösung: Kaltschaum- oder Sensoform-Matratze auf Rost, Bezug 60° waschbar, Bettkasten — „als Dauerschläfer geeignet“."},
+  {name:"Nehl Boston Deluxe (Eckschlafsofa)", klasse:"premium", typ:"Baukasten-Ecksofa: Umbauecke/Longchair, 18-cm-Matratze", neu:3150, neuTxt:"~3.149,90 € Aktion (UVP ~4.062 €)", used:[1000,1700], estUsed:true, wohnland:true,
+   avail:1, lb:150, ll:200, stell:280, daily:5, einfachN:4, robustN:5, bettkasten:true, waschbar:true, matratze:true, dauer:true, transport:false,
+   note:"Dickste Matratze der Eck-Nische (18 cm) auf Holz-Lattenrost, Bezug 60° waschbar, Bettkasten im Longchair — Budget nur als Aktionspreis."},
+  {name:"Home affaire Roma L (OTTO)", klasse:"premium", typ:"L-Ecksofa: Unterfederung + Lattenrost + echte 14-cm-Matratze", neu:3200, neuTxt:"3.199,99 €", used:[1100,1800], estUsed:true, wohnland:true,
+   avail:1, lb:163, ll:198, stell:280, daily:5, einfachN:3, robustN:4, bettkasten:true, waschbar:false, matratze:true, dauer:true, transport:false,
+   note:"Die Eck-Variante des Roma: echtes Bett (Lattenrost + 14-cm-Matratze, 163×198) zum Ausfalten plus Bettkasten — Ecke dient als Sitz-/Stauraummodul."},
+  {name:"sofaplus Hamburg Deluxe Eckschlafsofa (mysofabed)", klasse:"premium", typ:"Ecksofa mit Longchair: Lattenrost + Wahl-Matratze", neu:3399, neuTxt:"~3.399 € (konfigurationsabhängig; München Deluxe ähnlich)", used:[1100,1900], estUsed:true, wohnland:true,
+   avail:1, lb:160, ll:200, stell:290, daily:5, einfachN:4, robustN:4, bettkasten:true, waschbar:true, matratze:true, dauer:true, transport:false,
+   note:"Volles Bett-im-Ecksofa: Holz-Lattenrost + Matratze nach Wahl (Kaltschaum/Sensoform/Gel/TFK) bis 160×200, Bettkasten im Longchair. Schwestermodell Heidelberg (20-cm-Matratze) liegt mit 3.799 € über dem Limit."},
+
   // ---------- Nur noch gebraucht / Sonderformen ----------
   {name:"IKEA Beddinge (nur gebraucht)", klasse:"gebraucht", typ:"Klick-Klack-Klassiker: Lattenrost + Matratze", neu:null, neuTxt:"— (aus Sortiment)", used:[10,200], estUsed:false,
    avail:3, lb:140, ll:200, stell:200, daily:4, einfachN:4, robustN:4, bettkasten:true, waschbar:true, matratze:true, dauer:false, transport:true,
-   note:"Ø-Gebrauchtpreis ~68 €: unverwüstliches Stahlgestell, Lövås-Matratze einzeln nachkaufbar, Bettkasten war Zubehör — bestes Preis-Leistungs-Verhältnis überhaupt."},
+   note:"Ø-Gebrauchtpreis ~68 €: unverwüstliches Stahlgestell, Bettkasten war Zubehör. Achtung: Lövås-Matratze ist eingestellt — Ersatz nur gebraucht oder als faltbare 140×200-Drittanbieter-Matratze (~150–400 €)."},
   {name:"IKEA Flottebo (nur gebraucht)", klasse:"gebraucht", typ:"Lounge-Sofa mit durchgehender Matratze", neu:null, neuTxt:"— (aus Sortiment, letzter NP 549 €)", used:[250,350], estUsed:false,
    avail:2, lb:120, ll:200, stell:200, daily:5, einfachN:5, robustN:4, bettkasten:true, waschbar:true, matratze:true, dauer:false, transport:true,
    note:"Für Alleinschläfer die bequemste IKEA-Lösung: quasi vollwertige Matratze, Handgriff = Rückenkissen wegnehmen, Stauraum unterm Sitz."},
