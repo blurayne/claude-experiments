@@ -185,7 +185,9 @@ Sortiert nach Platzbedarf tagsüber (Stellfläche im Wohnmodus):
 
 ## Dateien
 
+- [`index.html`](index.html) — gestaltete Kurzfassung dieses Ratgebers (Hero, Preisklassen-Karten, Checkliste, Life-Hacks); wird vom Site-Build als Startseite des Experiments ausgeliefert
 - [`vergleich.html`](vergleich.html) — interaktive Feature-Matrix (Slider + Checkboxen) über alle ~55 recherchierten Modelle inkl. Wohnlandschaften und Premium-Klasse
+- `index.md` — diese ausführliche Textversion mit allen Tabellen und Quellen
 
 ## Recherche-Stand & Quellen
 
