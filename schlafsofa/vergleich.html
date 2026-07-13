@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Schlafsofa Feature-Matrix — Filter &amp; Vergleich</title>
+<style>
+  :root{
+    --bg:#f6f4ef; --card:#ffffff; --ink:#26221c; --muted:#6f675c;
+    --accent:#b4552d; --accent-soft:#f3e0d5; --line:#e4ded3;
+    --ok:#2e7d4f; --warn:#b07b1e; --bad:#b0442e; --chip:#efe9dd;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#1d1a16; --card:#28241f; --ink:#ede7dc; --muted:#a89e8f;
+      --accent:#e08a5c; --accent-soft:#3d2c22; --line:#3a342c;
+      --ok:#6fbf8f; --warn:#d9a94f; --bad:#e07a63; --chip:#332e27;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);padding:1.2rem}
+  .wrap{max-width:1100px;margin:0 auto}
+  header h1{font-size:1.7rem;margin:.2rem 0 .3rem}
+  header p{color:var(--muted);margin:0 0 1rem;max-width:60ch}
+  a{color:var(--accent)}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:1rem 1.2rem;margin-bottom:1rem}
+  .filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1rem 1.6rem}
+  .filter label{display:flex;justify-content:space-between;font-weight:600;font-size:.9rem;margin-bottom:.25rem}
+  .filter output{color:var(--accent);font-variant-numeric:tabular-nums}
+  input[type=range]{width:100%;accent-color:var(--accent)}
+  .checks{display:flex;flex-wrap:wrap;gap:.4rem .5rem;margin-top:.9rem}
+  .checks label{display:inline-flex;align-items:center;gap:.4rem;background:var(--chip);border:1px solid var(--line);
+    border-radius:999px;padding:.3rem .8rem;font-size:.88rem;cursor:pointer;user-select:none}
+  .checks label:has(input:checked){background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:600}
+  .checks input{accent-color:var(--accent)}
+  .toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:.8rem;margin:.2rem 0 1rem}
+  .toolbar .count{font-weight:700}
+  .toolbar select,.toolbar button{font:inherit;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:.35rem .6rem;cursor:pointer}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1rem}
+  .sofa{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:1rem 1.1rem;display:flex;flex-direction:column;gap:.55rem}
+  .sofa h2{font-size:1.08rem;margin:0;display:flex;justify-content:space-between;gap:.5rem;align-items:baseline}
+  .typ{color:var(--muted);font-size:.85rem}
+  .price{display:flex;gap:1.2rem;font-size:.95rem}
+  .price b{font-variant-numeric:tabular-nums}
+  .price .used b{color:var(--ok)}
+  .price span{display:block;font-size:.75rem;color:var(--muted)}
+  .bars{display:grid;grid-template-columns:auto 1fr;gap:.15rem .6rem;font-size:.82rem;align-items:center}
+  .bars .dots{letter-spacing:.15em;color:var(--accent)}
+  .bars .dots i{font-style:normal;opacity:.22}
+  .tags{display:flex;flex-wrap:wrap;gap:.35rem;font-size:.78rem}
+  .tag{background:var(--chip);border-radius:6px;padding:.14rem .5rem;color:var(--muted)}
+  .tag.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+  .verdict{font-size:.85rem;border-left:3px solid var(--line);padding-left:.6rem;color:var(--muted)}
+  .verdict.ok{border-color:var(--ok)} .verdict.warn{border-color:var(--warn)} .verdict.bad{border-color:var(--bad)}
+  .empty{padding:2.5rem;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:14px}
+  footer{margin:1.4rem 0 .4rem;color:var(--muted);font-size:.82rem;max-width:75ch}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>🛋️ Schlafsofa Feature-Matrix</h1>
+  <p>Gängige, bezahlbare Modelle für den <strong>täglichen Gebrauch</strong> — mit typischen Gebrauchtpreisen auf Kleinanzeigen (Juli 2026).
+     Slider und Checkboxen setzen, die Liste filtert sich live. Hintergrund &amp; Life-Hacks im <a href="index.html">Ratgeber</a>.</p>
+</header>
+
+<div class="panel">
+  <div class="filters">
+    <div class="filter">
+      <label>Budget gebraucht (max.) <output id="oBudget">700 €</output></label>
+      <input type="range" id="fBudget" min="50" max="700" step="10" value="700">
+    </div>
+    <div class="filter">
+      <label>Liegebreite (min.) <output id="oBreite">80 cm</output></label>
+      <input type="range" id="fBreite" min="80" max="160" step="10" value="80">
+    </div>
+    <div class="filter">
+      <label>Alltagstauglichkeit (min.) <output id="oDaily">1 / 5</output></label>
+      <input type="range" id="fDaily" min="1" max="5" step="1" value="1">
+    </div>
+    <div class="filter">
+      <label>Stellbreite (max.) <output id="oStell">egal</output></label>
+      <input type="range" id="fStell" min="80" max="240" step="10" value="240">
+    </div>
+  </div>
+  <div class="checks" id="checks">
+    <label><input type="checkbox" data-k="bettkasten"> 📦 Bettkasten</label>
+    <label><input type="checkbox" data-k="waschbar"> 🧺 Bezug abnehmbar/waschbar</label>
+    <label><input type="checkbox" data-k="matratze"> 🛏️ echte Matratze (Dauerschläfer)</label>
+    <label><input type="checkbox" data-k="einfach"> 👌 einfacher Mechanismus</label>
+    <label><input type="checkbox" data-k="transport"> 🚚 zerlegbar / leicht zu transportieren</label>
+    <label><input type="checkbox" data-k="klein"> 🏙️ für kleine Stadtwohnung</label>
+    <label><input type="checkbox" data-k="zweip"> 👫 für 2 Personen</label>
+    <label><input type="checkbox" data-k="verfuegbar"> 🔎 gut verfügbar auf Kleinanzeigen</label>
+  </div>
+</div>
+
+<div class="toolbar">
+  <span class="count" id="count"></span>
+  <span style="flex:1"></span>
+  <label>Sortieren:
+    <select id="sort">
+      <option value="daily">Alltagstauglichkeit</option>
+      <option value="price">Gebrauchtpreis (aufsteigend)</option>
+      <option value="breite">Liegebreite</option>
+      <option value="robust">Robustheit</option>
+      <option value="avail">Angebotslage auf Kleinanzeigen</option>
+    </select>
+  </label>
+  <button id="reset">Zurücksetzen</button>
+</div>
+
+<div class="grid" id="grid"></div>
+<div class="empty" id="empty" hidden>Kein Modell erfüllt alle Kriterien — Budget erhöhen oder einen Haken entfernen.<br>
+Tipp: Der <a href="index.html">Topper-Trick</a> macht auch einfachere Sofas dauerschlaftauglich.</div>
+
+<footer>
+  Bewertungen: Redaktions-Einschätzung für tägliche Nutzung (5 = sehr gut). Preise = typische Kleinanzeigen-Spannen je nach Zustand
+  und Region, keine Garantie. Luxusmodelle (≳ 1.000 € gebraucht) bewusst ausgeklammert. Ausgeklappte Tiefe vor dem Kauf im Zimmer
+  ausmessen: Sofatiefe + 60 cm Laufweg.
+</footer>
+</div>
+
+<script>
+const SOFAS = [
+  {name:"IKEA Nyhamn", typ:"3er-Klappsofa mit echter Matratze", neu:380, used:[100,200],
+   avail:3, lb:140, ll:200, stell:200, daily:4, einfachN:5, robustN:4,
+   bettkasten:false, waschbar:true, matratze:true, einfach:true, transport:true, klein:true, zweip:true,
+   verdict:"ok", note:"Preis-Leistungs-Tipp für jede Nacht: Kaltschaummatratze wählen, Bezug waschbar, federleichter Mechanismus. Kein Bettkasten — Bettzeug-Beutel dahinter."},
+  {name:"IKEA Beddinge (gebraucht)", typ:"Klassiker: Lattenrost + Matratze", neu:null, used:[50,150],
+   avail:3, lb:140, ll:200, stell:200, daily:4, einfachN:4, robustN:4,
+   bettkasten:true, waschbar:true, matratze:true, einfach:true, transport:true, klein:true, zweip:true,
+   verdict:"ok", note:"Nur noch gebraucht — dafür spottbillig, unverwüstliches Stahlgestell, Matratze einzeln nachkaufbar. Bettkasten als Zubehör oft dabei."},
+  {name:"IKEA Friheten", typ:"Eckbettsofa mit Riesen-Bettkasten", neu:650, used:[150,350],
+   avail:4, lb:140, ll:204, stell:230, daily:3, einfachN:4, robustN:4,
+   bettkasten:true, waschbar:false, matratze:false, einfach:true, transport:true, klein:false, zweip:true,
+   verdict:"warn", note:"Kleinanzeigen-Dauerbrenner, riesiger Bettkasten, zerlegbar für den Transport. Liegefläche hart mit spürbarer Querstrebe — täglich nur mit Topper."},
+  {name:"IKEA Asarum", typ:"3er Klick-Klack", neu:280, used:[100,180],
+   avail:3, lb:140, ll:200, stell:191, daily:2, einfachN:5, robustN:3,
+   bettkasten:false, waschbar:false, matratze:false, einfach:true, transport:true, klein:true, zweip:true,
+   verdict:"warn", note:"Sekundenschnell umgeklappt und schmal — gut für Gäste und Übergangswohnungen, auf Dauer zu weiche Polsterfläche."},
+  {name:"IKEA Hammarn", typ:"Futon-Stil, superleicht", neu:180, used:[50,120],
+   avail:2, lb:140, ll:200, stell:200, daily:1, einfachN:5, robustN:2,
+   bettkasten:false, waschbar:true, matratze:false, einfach:true, transport:true, klein:true, zweip:true,
+   verdict:"bad", note:"Billigste Option, trägt eine Person die Treppe hoch. Dünne Auflage — fürs tägliche Schlafen nur mit dickem Topper erträglich."},
+  {name:"IKEA Flottebo", typ:"Lounge-Sofa mit dicker Matratze", neu:650, used:[250,450],
+   avail:1, lb:90, ll:200, stell:200, daily:5, einfachN:5, robustN:4,
+   bettkasten:true, waschbar:true, matratze:true, einfach:true, transport:true, klein:true, zweip:false,
+   verdict:"ok", note:"Für Alleinschläfer die bequemste Lösung: durchgehende 12-cm-Matratze, Handgriff = Rückenkissen wegnehmen. Nur 90 cm Liegebreite."},
+  {name:"IKEA Vimle Schlafsofa", typ:"3er mit Bettfunktion + Kasten", neu:900, used:[300,600],
+   avail:2, lb:140, ll:200, stell:241, daily:4, einfachN:3, robustN:4,
+   bettkasten:true, waschbar:true, matratze:false, einfach:false, transport:true, klein:false, zweip:true,
+   verdict:"ok", note:"Wohnzimmertauglicher Allrounder, ordentliche Liegefläche, Bezüge einzeln nachkaufbar. Gebraucht fair, neu an der Budgetgrenze."},
+  {name:"IKEA Grönlid Schlafsofa", typ:"3er mit Bettfunktion", neu:950, used:[300,500],
+   avail:1, lb:140, ll:200, stell:247, daily:4, einfachN:3, robustN:4,
+   bettkasten:true, waschbar:true, matratze:false, einfach:false, transport:true, klein:false, zweip:true,
+   verdict:"ok", note:"Sehr bequemes Sofa, solide Bettfunktion, waschbare Bezüge — braucht aber ein großes Zimmer (Stellbreite ~2,5 m)."},
+  {name:"Boxspring-Schlafsofa (Roller/POCO/Sconto)", typ:"Querschläfer mit Federkern + Kasten", neu:450, used:[100,250],
+   avail:4, lb:120, ll:200, stell:200, daily:3, einfachN:4, robustN:3,
+   bettkasten:true, waschbar:false, matratze:false, einfach:true, transport:false, klein:true, zweip:false,
+   verdict:"warn", note:"Diverse Eigenmarken-Namen, gebraucht sehr günstig. Federkern liegt ok — vor Ort auf knarzende Gestelle und durchgesessene Kanten prüfen."},
+  {name:"Querschläfer Cord/Webstoff (OTTO: Inosign u. ä.)", typ:"Ausziehmechanismus, Bettkasten", neu:500, used:[150,300],
+   avail:3, lb:140, ll:200, stell:190, daily:3, einfachN:3, robustN:3,
+   bettkasten:true, waschbar:false, matratze:false, einfach:false, transport:false, klein:true, zweip:true,
+   verdict:"warn", note:"Spart Raumtiefe (man liegt quer), oft unter 2 m Stellbreite. Qualität streut stark — Polsterkern und Mechanismus genau anschauen."},
+  {name:"Schlafsessel (z. B. IKEA Lycksele, gebraucht)", typ:"1-Person-Notlösung", neu:250, used:[40,120],
+   avail:2, lb:80, ll:188, stell:80, daily:1, einfachN:4, robustN:3,
+   bettkasten:false, waschbar:true, matratze:false, einfach:true, transport:true, klein:true, zweip:false,
+   verdict:"bad", note:"Passt in jede Nische und kostet fast nichts — aber nur für Gäste. Für jede Nacht ist die Faltmatratze zu dünn."},
+  {name:"IKEA Utåker Tagesbett (stapelbar)", typ:"2 stapelbare Betten = Sofa-Ersatz", neu:350, used:[120,250],
+   avail:2, lb:80, ll:200, stell:205, daily:5, einfachN:4, robustN:5,
+   bettkasten:false, waschbar:false, matratze:true, einfach:true, transport:true, klein:true, zweip:true,
+   verdict:"ok", note:"Geheimtipp: tagsüber gestapelt als Sitzbank, nachts 1 oder 2 vollwertige Matratzen (2× 80 cm nebeneinander = 160 cm). Massivholz, quasi unkaputtbar."}
+];
+
+const $ = id => document.getElementById(id);
+const els = {budget:$("fBudget"), breite:$("fBreite"), daily:$("fDaily"), stell:$("fStell"),
+             oBudget:$("oBudget"), oBreite:$("oBreite"), oDaily:$("oDaily"), oStell:$("oStell"),
+             grid:$("grid"), empty:$("empty"), count:$("count"), sort:$("sort")};
+const boxes = [...document.querySelectorAll("#checks input")];
+const eur = n => n.toLocaleString("de-DE") + " €";
+const mid = s => (s.used[0]+s.used[1])/2;
+const AVAIL_TXT = ["", "selten (Suchauftrag + Geduld)", "regelmäßig (alle 1–2 Wochen)", "häufig (wenige Tage Suche)", "sehr häufig (sofort, gut verhandelbar)"];
+
+function dots(n){
+  let h = "";
+  for(let i=1;i<=5;i++) h += i<=n ? "●" : "<i>●</i>";
+  return h;
+}
+
+function card(s){
+  const tags = [
+    ["📦 Bettkasten", s.bettkasten], ["🧺 waschbar", s.waschbar], ["🛏️ echte Matratze", s.matratze],
+    ["🚚 zerlegbar", s.transport], ["🏙️ kleinzimmertauglich", s.klein], ["👫 2 Personen", s.zweip]
+  ].map(([t,on]) => `<span class="tag ${on?"on":""}">${t}${on?"":" ✕"}</span>`).join("");
+  return `<article class="sofa">
+    <h2>${s.name}</h2>
+    <div class="typ">${s.typ} · Liegefläche ${s.lb}×${s.ll} cm · Stellbreite ~${s.stell} cm</div>
+    <div class="price">
+      <div class="used"><b>${eur(s.used[0])}–${eur(s.used[1])}</b><span>gebraucht (Kleinanzeigen)</span></div>
+      <div><b>${s.neu ? "ca. " + eur(s.neu) : "—"}</b><span>Neupreis</span></div>
+    </div>
+    <div class="typ">🔎 Angebotslage Kleinanzeigen: <strong>${AVAIL_TXT[s.avail]}</strong></div>
+    <div class="bars">
+      <span>Täglich schlafen</span><span class="dots">${dots(s.daily)}</span>
+      <span>Handhabung</span><span class="dots">${dots(s.einfachN)}</span>
+      <span>Robustheit</span><span class="dots">${dots(s.robustN)}</span>
+    </div>
+    <div class="tags">${tags}</div>
+    <div class="verdict ${s.verdict}">${s.note}</div>
+  </article>`;
+}
+
+function render(){
+  const budget = +els.budget.value, breite = +els.breite.value,
+        daily = +els.daily.value, stell = +els.stell.value;
+  els.oBudget.textContent = budget >= 700 ? "egal" : eur(budget);
+  els.oBreite.textContent = breite + " cm";
+  els.oDaily.textContent = daily + " / 5";
+  els.oStell.textContent = stell >= 240 ? "egal" : stell + " cm";
+
+  const need = boxes.filter(b => b.checked).map(b => b.dataset.k);
+  let list = SOFAS.filter(s =>
+    (budget >= 700 || mid(s) <= budget) && s.lb >= breite && s.daily >= daily &&
+    (stell >= 240 || s.stell <= stell) &&
+    need.every(k => k === "verfuegbar" ? s.avail >= 3 : s[k]));
+
+  const key = els.sort.value;
+  list.sort((a,b) => key==="price" ? mid(a)-mid(b)
+                   : key==="breite" ? b.lb-a.lb
+                   : key==="robust" ? b.robustN-a.robustN
+                   : key==="avail" ? b.avail-a.avail || mid(a)-mid(b)
+                   : b.daily-a.daily || mid(a)-mid(b));
+
+  els.grid.innerHTML = list.map(card).join("");
+  els.empty.hidden = list.length > 0;
+  els.count.textContent = list.length + " von " + SOFAS.length + " Modellen";
+}
+
+[els.budget, els.breite, els.daily, els.stell].forEach(e => e.addEventListener("input", render));
+boxes.forEach(b => b.addEventListener("change", render));
+els.sort.addEventListener("change", render);
+$("reset").addEventListener("click", () => {
+  els.budget.value = 700; els.breite.value = 80; els.daily.value = 1; els.stell.value = 240;
+  boxes.forEach(b => b.checked = false); els.sort.value = "daily"; render();
+});
+render();
+</script>
+</body>
+</html>
