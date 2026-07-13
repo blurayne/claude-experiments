@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Schlafsofa-Ratgeber — täglich schlafen, Budget bis 3.500 €</title>
+<style>
+  :root{
+    --bg:#f6f4ef; --card:#ffffff; --ink:#26221c; --muted:#6f675c;
+    --accent:#b4552d; --accent-ink:#fff; --accent-soft:#f3e0d5; --line:#e4ded3;
+    --ok:#2e7d4f; --warn:#b07b1e; --bad:#b0442e; --chip:#efe9dd;
+    --ok-soft:#e2efe6; --warn-soft:#f5ecd8; --bad-soft:#f5e0da;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#1d1a16; --card:#28241f; --ink:#ede7dc; --muted:#a89e8f;
+      --accent:#e08a5c; --accent-ink:#1d1a16; --accent-soft:#3d2c22; --line:#3a342c;
+      --ok:#6fbf8f; --warn:#d9a94f; --bad:#e07a63; --chip:#332e27;
+      --ok-soft:#243428; --warn-soft:#38301d; --bad-soft:#3a251f;
+    }
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
+  .wrap{max-width:1000px;margin:0 auto;padding:1.2rem}
+  a{color:var(--accent)}
+
+  /* Hero */
+  .hero{padding:2.2rem 0 1.6rem;text-align:center}
+  .hero .emoji{font-size:2.6rem;display:block;margin-bottom:.4rem}
+  .hero h1{font-size:clamp(1.6rem,4.5vw,2.4rem);margin:.1rem 0 .5rem;line-height:1.2}
+  .hero p.sub{color:var(--muted);max-width:62ch;margin:0 auto 1.3rem}
+  .cta-row{display:flex;flex-wrap:wrap;gap:.7rem;justify-content:center}
+  .btn{display:inline-flex;align-items:center;gap:.5rem;border-radius:999px;padding:.7rem 1.4rem;font-weight:700;
+       text-decoration:none;border:1.5px solid var(--accent);transition:transform .12s ease}
+  .btn:hover{transform:translateY(-2px)}
+  .btn.primary{background:var(--accent);color:var(--accent-ink);font-size:1.05rem}
+  .btn.ghost{color:var(--accent);background:transparent}
+  .hero .meta{margin-top:1rem;font-size:.82rem;color:var(--muted)}
+
+  section{margin:2.4rem 0}
+  h2{font-size:1.35rem;margin:0 0 .3rem}
+  .lead{color:var(--muted);margin:.1rem 0 1.1rem;max-width:70ch}
+
+  /* Liga-Karten */
+  .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:.9rem}
+  .liga{border-radius:14px;padding:1rem 1.1rem;border:1px solid var(--line);background:var(--card)}
+  .liga h3{margin:.1rem 0 .35rem;font-size:1rem;display:flex;gap:.5rem;align-items:center}
+  .liga p{margin:0;font-size:.9rem;color:var(--muted)}
+  .pill{font-size:.72rem;font-weight:700;border-radius:6px;padding:.1rem .5rem;text-transform:uppercase;letter-spacing:.04em}
+  .liga.bad{background:var(--bad-soft)} .liga.bad .pill{background:var(--bad);color:var(--bg)}
+  .liga.warn{background:var(--warn-soft)} .liga.warn .pill{background:var(--warn);color:var(--bg)}
+  .liga.ok{background:var(--ok-soft)} .liga.ok .pill{background:var(--ok);color:var(--bg)}
+
+  /* Preisklassen */
+  .klassen{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:.9rem}
+  .klasse-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:1rem 1.1rem;display:flex;flex-direction:column;gap:.5rem}
+  .klasse-card h3{margin:0;font-size:1.02rem;display:flex;justify-content:space-between;align-items:baseline;gap:.5rem}
+  .klasse-card h3 .range{font-size:.78rem;color:var(--muted);font-weight:600;white-space:nowrap}
+  .pick{display:flex;justify-content:space-between;gap:.6rem;font-size:.88rem;padding:.4rem 0;border-top:1px dashed var(--line)}
+  .pick:first-of-type{border-top:none}
+  .pick .p-name{font-weight:650}
+  .gsearch{display:inline-block;text-decoration:none;font-size:.82em;margin-left:.3em;opacity:.7;vertical-align:baseline}
+  .gsearch:hover{opacity:1}
+  .pick .p-note{color:var(--muted);font-size:.8rem;display:block}
+  .pick .p-price{white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums;color:var(--ok);font-weight:700;font-size:.85rem}
+  .pick .p-price small{display:block;color:var(--muted);font-weight:400}
+  .klasse-card .more{font-size:.82rem;margin-top:auto;padding-top:.4rem}
+
+  /* Zweispalter */
+  .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:.9rem}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:1rem 1.2rem}
+  .panel h3{margin:.1rem 0 .5rem;font-size:1rem}
+  .panel ol,.panel ul{margin:.3rem 0;padding-left:1.2rem;font-size:.9rem}
+  .panel li{margin:.3rem 0}
+  .panel li b{font-weight:650}
+
+  /* Hacks */
+  .hacks{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:.9rem}
+  .hack{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:.9rem 1rem;font-size:.88rem}
+  .hack b{display:block;margin-bottom:.2rem}
+  .hack span{color:var(--muted)}
+
+  /* Platz-Liste */
+  .platz{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.45rem}
+  .platz li{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:.55rem .9rem;font-size:.9rem;
+            display:flex;gap:.8rem;align-items:baseline}
+  .platz .qm{min-width:4.6rem;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;font-size:.85rem}
+  .platz span:last-child{color:var(--muted)}
+
+  details{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:.7rem 1rem;margin:.6rem 0}
+  summary{cursor:pointer;font-weight:650;font-size:.92rem}
+  details ul{font-size:.85rem;color:var(--muted)}
+  footer{margin:2.5rem 0 1rem;color:var(--muted);font-size:.82rem;text-align:center}
+  footer p{max-width:75ch;margin:.4rem auto}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <span class="emoji">🛋️🌙</span>
+  <h1>Schlafsofa-Ratgeber<br>täglich schlafen, wenig Platz, bis 3.500 €</h1>
+  <p class="sub">60 recherchierte Modelle vom 130-€-Klappsofa bis zur Manufaktur — mit Kleinanzeigen-Gebrauchtpreisen,
+     Wohnlandschaften mit Schlaffunktion, Besichtigungs-Checkliste und Life-Hacks. Stand Juli 2026, Quellen verlinkt.</p>
+  <div class="cta-row">
+    <a class="btn primary" href="vergleich.html">🔍 Feature-Matrix öffnen — 60 Modelle filtern</a>
+    <a class="btn ghost" href="#checkliste">✅ Besichtigungs-Checkliste</a>
+    <a class="btn ghost" href="#klassen">💶 Preisklassen</a>
+  </div>
+  <div class="meta">Slider für Neupreis · Gebraucht-Budget · Liegebreite · Stellbreite — Checkboxen für Dauerschläfer, echte Matratze, Bettkasten, Wohnlandschaft …</div>
+</header>
+
+<section id="ligen">
+  <h2>In 30 Sekunden: die drei Konstruktions-Ligen</h2>
+  <p class="lead">Dauerschläfer-Eignung hängt am <strong>Aufbau, nicht am Preis</strong>. Erst die Liga bestimmen, dann das Budget.</p>
+  <div class="grid3">
+    <div class="liga bad">
+      <h3><span class="pill">Gästebett</span> Polster im Sitz</h3>
+      <p>Schaum oder Bonellfederkern direkt im Sitz, Liegefläche mit Ritzen. Egal wie groß: kuhlt bei täglicher Nutzung aus.
+         Dazu zählen <b>IKEA Friheten</b> (Spanplatten-Basis!), POCO Rovigo, Klick-Klacks unter 300 € — und fast alle normalen Wohnlandschaften.</p>
+    </div>
+    <div class="liga warn">
+      <h3><span class="pill">Solide</span> Boxspring + Topper</h3>
+      <p>Federkern-Unterfederung mit fest vernähtem Kaltschaumtopper, ab ~650 €: Roller/POCO „Dauerschlafsofa",
+         <b>INOSIGN Bea/Ben/Berlin</b>, Jockenhöfer Lincoln — als Wohnlandschaft Night&nbsp;&amp;&nbsp;Day, Sunset, Madrid. Ehrliche Alltagsklasse, Bezug meist nicht abnehmbar.</p>
+    </div>
+    <div class="liga ok">
+      <h3><span class="pill">Beste Liga</span> Lattenrost + echte Matratze</h3>
+      <p>Wechselbare Matratze auf Unterfederung — schläft wie ein Bett. Budget-Ausnahme <b>IKEA Nyhamn (ab 299 €)</b>,
+         dann Bali Flexa, XXXLutz Livetastic, <b>Innovation Eivor</b>, Home affaire Roma — Premium: <b>Ligne Roset Multy</b>, Signet Kyoto, sofaplus.</p>
+    </div>
+  </div>
+</section>
+
+<section id="klassen">
+  <h2>Preisklassen &amp; Top-Empfehlungen</h2>
+  <p class="lead">Kurzfassung mit typischen Kleinanzeigen-Gebrauchtpreisen („≈" = Schätzung) — alle 60 Modelle mit Details in der <a href="vergleich.html">Matrix</a>.</p>
+  <div class="klassen">
+    <div class="klasse-card">
+      <h3>💚 Budget <span class="range">bis 400 € neu</span></h3>
+      <div class="pick"><span><span class="p-name">IKEA Nyhamn</span><a class="gsearch" href="https://www.google.com/search?q=IKEA+Nyhamn+schlafsofa" target="_blank" rel="noopener noreferrer" title="Google-Suche für „IKEA Nyhamn“">🔍</a><span class="p-note">einzige echte Jede-Nacht-Option: Wechselmatratze (TFK wählen!), waschbarer Bezug</span></span><span class="p-price">299–349 €<small>gebr. 75–200 €</small></span></div>
+      <div class="pick"><span><span class="p-name">IKEA Beddinge (nur gebraucht)</span><a class="gsearch" href="https://www.google.com/search?q=IKEA+Beddinge+%28nur+gebraucht%29+schlafsofa" target="_blank" rel="noopener noreferrer" title="Google-Suche für „IKEA Beddinge (nur gebraucht)“">🔍</a><span class="p-note">Lattenrost + nachkaufbare Matratze, unverwüstlich</span></span><span class="p-price">Ø ~68 €<small>gebraucht</small></span></div>
+      <div class="pick"><span><span class="p-name">IKEA Utåker Tagesbett</span><a class="gsearch" href="https://www.google.com/search?q=IKEA+Ut%C3%A5ker+Tagesbett+schlafsofa" target="_blank" rel="noopener noreferrer" title="Google-Suche für „IKEA Utåker Tagesbett“">🔍</a><span class="p-note">stapelbar: tags Sitzbank, nachts 1–2 echte Matratzen</span></span><span class="p-price">~350 €<small>gebr. ≈ 120–250 €</small></span></div>
+      <div class="more">Rest der Klasse (Asarum, Hammarn, Rovigo, Melanie …) = Gästebetten → <a href="vergleich.html">Matrix</a></div>
+    </div>
+    <div class="klasse-card">
+      <h3>💙 Mittelklasse <span class="range">400–900 € neu</span></h3>
+      <div class="pick"><span><span class="p-name">INOSIGN Berlin / Alexander (OTTO)</span><a class="gsearch" href="https://www.google.com/search?q=INOSIGN+Berlin+/+Alexander+%28OTTO%29+schlafsofa" target="_blank" rel="noopener noreferrer" title="Google-Suche für „INOSIGN Berlin / Alexander (OTTO)“">🔍</a><span class="p-note">bestbelegter Dauerschläfer: Boxspring, ~160×200, 300 kg, Bettkasten</span></span><span class="p-price">800–900 €<small>gebr. ≈ 300–500 €</small></span></div>
+      <div class="pick"><span><span class="p-name">Jockenhöfer Lincoln / INOSIGN Bea &amp; Ben</span><a class="gsearch" href="https://www.google.com/search?q=Jockenh%C3%B6fer+Lincoln+/+INOSIGN+Bea+%26amp%3B+Ben+schlafsofa" target="_blank" rel="noopener noreferrer" title="Google-Suche für „Jockenhöfer Lincoln / INOSIGN Bea &amp;amp; Ben“">🔍</a><span class="p-note">gleiche Liga, 158–160 cm Liegebreite</span></span><span class="p-price">ab 800 €<small>gebr. ≈ 300–500 €</small></span></div>
+      <div class="pick"><span><span class="p-name">Roller Boxspringsofa „Dauerschläfer"</span><a class="gsearch" href="https://www.google.com/search?q=Roller+Boxspringsofa+%E2%80%9EDauerschl%C3%A4fer%22+schlafsofa" target="_blank" rel="noopener noreferrer" title="Google-Suche für „Roller Boxspringsofa „Dauerschläfer&quot;“">🔍</a><span class="p-note">günstigster Ketten-Dauerschläfer</span></span><span class="p-price">649,99 €<small>gebr. ≈ 250–400 €</small></span></div>
+      <div class="more">⚠️ Friheten (579–599 €) ist trotz Bestseller-Status Gästebett — nur mit Topper. → <a href="vergleich.html">Matrix</a></div>
+    </div>
+    <div class="klasse-card">
+      <h3>🧡 Gehobene Klasse <span class="range">900–2.000 € neu</span></h3>
+      <div class="pick"><span><span class="p-name">Bali Flexa</span><a class="gsearch" href="https://www.google.com/search?q=Bali+Flexa+schlafsofa" target="_blank" rel="noopener noreferrer" title="Google-Suche für „Bali Flexa“">🔍</a><span class="p-note">DS-Spezialist: Gitterrost + Wahl-Matratze (Kaltschaum/TTFK), Bettkasten</span></span><span class="p-price">1.211–1.481 €<small>gebr. ≈ 500–800 €</small></span></div>
+      <div class="pick"><span><span class="p-name">Innovation Eivor 140</span><a class="gsearch" href="https://www.google.com/search?q=Innovation+Eivor+140+schlafsofa" target="_blank" rel="noopener noreferrer" title="Google-Suche für „Innovation Eivor 140“">🔍</a><span class="p-note">getrennte Sitz-/Schlafmatratzen, 5-Zonen-TFK auf Lattenrost</span></span><span class="p-price">ab 1.599 €<small>gebr. ≈ 600–950 €</small></span></div>
+      <div class="pick"><span><span class="p-name">XXXLutz Livetastic</span><a class="gsearch" href="https://www.google.com/search?q=XXXLutz+Livetastic+schlafsofa" target="_blank" rel="noopener noreferrer" title="Google-Suche für „XXXLutz Livetastic“">🔍</a><span class="p-note">Metall-Lattenrost + 13-cm-Matratze</span></span><span class="p-price">1.449 €<small>gebr. ≈ 500–800 €</small></span></div>
+      <div class="more">Dazu: Nehl Grace/Memphis, Home affaire Roma, Sedda-Einstieg, Höffner bobb → <a href="vergleich.html">Matrix</a></div>
+    </div>
+    <div class="klasse-card">
+      <h3>💜 Premium <span class="range">2.000–3.500 € neu</span></h3>
+      <div class="pick"><span><span class="p-name">Ligne Roset Multy</span><a class="gsearch" href="https://www.google.com/search?q=Ligne+Roset+Multy+schlafsofa" target="_blank" rel="noopener noreferrer" title="Google-Suche für „Ligne Roset Multy“">🔍</a><span class="p-note">der Klassiker seit 1983: durchgehende Matratze auf Lattenrost, Bultex für jede Nacht</span></span><span class="p-price">ab 2.290 €<small>gebr. 400–1.500 €</small></span></div>
+      <div class="pick"><span><span class="p-name">Signet Kyoto</span><a class="gsearch" href="https://www.google.com/search?q=Signet+Kyoto+schlafsofa" target="_blank" rel="noopener noreferrer" title="Google-Suche für „Signet Kyoto“">🔍</a><span class="p-note">integrierte echte Faltmatratze — konstruktiv die sauberste Lösung</span></span><span class="p-price">ab 3.073 €<small>gebr. ≈ 1.100–1.800 €</small></span></div>
+      <div class="pick"><span><span class="p-name">franz fertig Malou</span><a class="gsearch" href="https://www.google.com/search?q=franz+fertig+Malou+schlafsofa" target="_blank" rel="noopener noreferrer" title="Google-Suche für „franz fertig Malou“">🔍</a><span class="p-note">Manufaktur-Bestseller, gebraucht ein Schnäppchen</span></span><span class="p-price">ab 2.190 €<small>gebr. 600–1.600 €</small></span></div>
+      <div class="more">Dazu: Nehl Boxx, Eivor 160, sofaplus, Sedda, Signet Veda/Good Life. Raus (&gt;3.500 €): Swiss Plus, COR. → <a href="vergleich.html">Matrix</a></div>
+    </div>
+  </div>
+</section>
+
+<section id="wohnlandschaft">
+  <h2>Wohnlandschaften mit Schlaffunktion</h2>
+  <p class="lead">Standard-Wohnlandschaften mit „Bettfunktion" sind <strong>Gästebetten</strong> (Liegefläche über Eck, Polster statt Matratze).
+     Aber es gibt zwei echte Dauerschläfer-Nischen — Boxspring-Landschaften der OTTO-Gruppe und (Nachrecherche!) <strong>Eck-Dauerschläfer mit echter Matratze + Lattenrost</strong>.
+     Konstruktiv gilt überall: eine Matratze lässt sich nicht um die Ecke falten — das Eckelement ist immer Sitz-/Stauraummodul, das Bett klappt aus dem geraden Teil aus.</p>
+  <div class="cols">
+    <div class="panel">
+      <h3>✅✅ Mit echter Matratze + Lattenrost (2.076–3.400 €)</h3>
+      <ul>
+        <li><b>Home affaire Roma L</b> <a class="gsearch" href="https://www.google.com/search?q=Home+affaire+Roma+L+schlafsofa" target="_blank" rel="noopener noreferrer" title="Google-Suche für „Home affaire Roma L“">🔍</a> (OTTO, 3.199,99 €) — Unterfederung + Lattenrost + <b>14-cm-Matratze</b>, Liegefläche 163×198, Bettkasten</li>
+        <li><b>sofaplus Hamburg / München Deluxe Eck</b> <a class="gsearch" href="https://www.google.com/search?q=sofaplus+Hamburg+/+M%C3%BCnchen+Deluxe+Eck+schlafsofa" target="_blank" rel="noopener noreferrer" title="Google-Suche für „sofaplus Hamburg / München Deluxe Eck“">🔍</a> (mysofabed, ~3.399 €) — Holz-Lattenrost + Wahl-Matratze bis 160×200 (Kaltschaum/Gel/TFK)</li>
+        <li><b>Bali Messina Eck</b> <a class="gsearch" href="https://www.google.com/search?q=Bali+Messina+Eck+schlafsofa" target="_blank" rel="noopener noreferrer" title="Google-Suche für „Bali Messina Eck“">🔍</a> (ab ~2.522 € reduziert) — Matratze auf Rost, Bezug 60° waschbar</li>
+        <li><b>Nehl Boston Deluxe</b> <a class="gsearch" href="https://www.google.com/search?q=Nehl+Boston+Deluxe+schlafsofa" target="_blank" rel="noopener noreferrer" title="Google-Suche für „Nehl Boston Deluxe“">🔍</a> (~3.150 € Aktion) — dickste Matratze der Nische (<b>18 cm</b>) auf Holz-Lattenrost</li>
+        <li><b>Places of Style Goldpoint</b> <a class="gsearch" href="https://www.google.com/search?q=Places+of+Style+Goldpoint+schlafsofa" target="_blank" rel="noopener noreferrer" title="Google-Suche für „Places of Style Goldpoint“">🔍</a> (OTTO, ab ~2.076 €) — Preiseinstieg, aber nur Bonell-Matratze H2</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h3>✅ Boxspring + Topper (1.350–1.900 €)</h3>
+      <ul>
+        <li><b>INOSIGN / Home affaire Night &amp; Day</b> <a class="gsearch" href="https://www.google.com/search?q=INOSIGN+/+Home+affaire+Night+%26amp%3B+Day+schlafsofa" target="_blank" rel="noopener noreferrer" title="Google-Suche für „INOSIGN / Home affaire Night &amp;amp; Day“">🔍</a> (~1.350–1.630 €) — echtes Bettmaß <b>180×200 ohne Quer-Ritzen</b>, 3,24 m breit</li>
+        <li><b>Jockenhöfer Sunset</b> <a class="gsearch" href="https://www.google.com/search?q=Jockenh%C3%B6fer+Sunset+schlafsofa" target="_blank" rel="noopener noreferrer" title="Google-Suche für „Jockenhöfer Sunset“">🔍</a> (1.449–1.638 €) — TTFK + 5-cm-Topper, kompakteste mit 2,57 m</li>
+        <li><b>Jockenhöfer Madrid</b> <a class="gsearch" href="https://www.google.com/search?q=Jockenh%C3%B6fer+Madrid+schlafsofa" target="_blank" rel="noopener noreferrer" title="Google-Suche für „Jockenhöfer Madrid“">🔍</a> (ab 1.836 €) · <b>INOSIGN Göteborg</b> (ab ~1.373 €) · <b>Höffner bobb Lisa</b> (1.514 € KK)</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h3>❌ Nur Gästebett (trotz Größe)</h3>
+      <ul>
+        <li><b>COLLECTION AB Josy XXL</b> (~900 €, U-Form 3,33 m) — Federkern-Polster, Ritzen</li>
+        <li><b>XXXLutz Nelly U</b> (999 €) — Wellenfedern + Schaum</li>
+        <li>POCO-/Kaufland-Ecksofas mit „Schlaffunktion" (650–900 €)</li>
+        <li>Gebraucht-Tipp: Wohnlandschaften verlieren am stärksten — nach 2–3 Jahren nur 20–40 % vom Neupreis, aber sperrige Abholung einplanen.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="kleinanzeigen">
+  <h2>Kleinanzeigen: Taktik &amp; Checkliste</h2>
+  <div class="cols">
+    <div class="panel">
+      <h3>🔎 So kauft man gebraucht</h3>
+      <ul>
+        <li><b>Angebotslage nutzen:</b> Friheten &amp; Ketten-Boxspring = Käufermarkt (nie den ersten Preis zahlen); Bali/Nehl/Sedda/Flottebo = Suchauftrag + bei gutem Zustand sofort zuschlagen.</li>
+        <li><b>Suchbegriffe:</b> Modellnamen direkt („Nyhamn", „Multy", „Eivor"), plus „Dauerschläfer", „Schlafsofa Lattenrost" — Tippfehler-Varianten finden Schnäppchen.</li>
+        <li><b>Timing:</b> Monatsende = Umzugssaison; „muss raus"-Anzeigen verhandeln.</li>
+        <li><b>Preisanker:</b> max. ~50 % vom Neupreis, nur neuwertig mit Rechnung mehr.</li>
+        <li><b>Premium-Geheimtipp:</b> Ligne Roset Multy ab ~800 €, franz fertig Malou 600–1.600 € — Manufaktur zum Ketten-Neupreis.</li>
+        <li><b>Transport:</b> Maße + Türbreiten vorher klären; IKEA/Innovation sind zerlegbar. Sackkarre + Spanngurt mitnehmen.</li>
+      </ul>
+    </div>
+    <div class="panel" id="checkliste">
+      <h3>✅ Besichtigung in 5 Minuten</h3>
+      <ol>
+        <li><b>Mechanismus 3× komplett</b> auf- und zuklappen — muss ohne Kraft laufen</li>
+        <li><b>Probeliegen</b> — Kuhle? Querstreben spürbar?</li>
+        <li><b>Gestell rütteln:</b> Knarzen, Risse, fehlende Schrauben</li>
+        <li><b>Bettkasten &amp; Unterseite:</b> Stockflecken, Schimmel, Wasserränder</li>
+        <li><b>Riechen:</b> Rauch/Tier/Feuchte geht nie wieder raus → weitergehen</li>
+        <li><b>Bezug:</b> abnehmbar? Flecken/Liegespuren auf der Liegezone?</li>
+        <li><b>Fragen:</b> wie oft beschlafen? Rechnung/Garantie-Rest?</li>
+        <li><b>Nachmessen:</b> Stellbreite + ausgeklappte Tiefe + 60 cm Laufweg</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<section id="hacks">
+  <h2>Life-Hacks für den Alltag <small style="font-size:.7em;color:var(--muted)">(faktengecheckt Juli 2026)</small></h2>
+  <div class="hacks">
+    <div class="hack"><b>🧸 Topper-Trick (der wichtigste)</b><span>Ein 6–8-cm-Kaltschaum-Topper wertet die meisten mittelmäßigen Klappsofas fürs tägliche Schlafen deutlich auf. Realistisch 60–160 € in brauchbarer Qualität (RG ≥ 40; 40-€-Discounterware ist dünner und weicher). Grenzen: harte Querstreben und durchgelegene Basis kaschiert er nur teilweise — und auf glattem Bezug braucht er eine Antirutsch-Unterlage.</span></div>
+    <div class="hack"><b>🌀 Topper rollen — nur Kaltschaum!</b><span>Kaltschaum darf täglich gerollt in den Bettkasten (locker, nicht stramm; vorher kurz auslüften). Visco-/Memory-Schaum verformt sich beim Rollen dauerhaft — nicht rollen.</span></div>
+    <div class="hack"><b>🛏️ Matratze statt Möbel tauschen</b><span>Nyhamn: IKEA verkauft Schaum- und TFK-Matratze einzeln. Utåker/Hemnes/Brimnes: Standard-80×200er (ÅFJÄLL ab ~75 €). Innovation & Ligne Roset Multy: Original-Ersatzmatratzen über Händler. Beddinge: Lövås ist eingestellt — nur gebraucht oder faltbare 140×200-Drittanbieter-Matratze (~150–400 €).</span></div>
+    <div class="hack"><b>🎒 Bettzeug-Logistik</b><span>Decke + Kissen in einen atmungsaktiven Stoffbeutel (z. B. IKEA Skubb) in den gelüfteten Bettkasten. Vakuumbeutel taugen nur zur Saisonlagerung von Synthetik — täglich vakuumieren schließt Nachtfeuchte ein (Schimmel) und ruiniert Daunen.</span></div>
+    <div class="hack"><b>🔇 Knarzen stoppen</b><span>Zuerst alle Schrauben nachziehen (häufigste Ursache). Dann: Silikon-/PTFE-Spray auf Metallgelenke (kein öliges WD-40 nahe Stoff), Kerzenwachs oder dauerhafter Filzstreifen auf Holzlatten-Auflagen, Filzgleiter unters Sofa.</span></div>
+    <div class="hack"><b>💨 Schimmel vorbeugen</b><span>Bettkasten 1×/Woche ~20 Min. offen lüften und nicht überfüllen, Matratze monatlich wenden, mindestens 10 cm Abstand zu Außenwänden, Bettzeug morgens erst auslüften lassen. Entfeuchter-Granulat im Bettkasten hilft zusätzlich, ersetzt Lüften aber nicht.</span></div>
+    <div class="hack"><b>🧴 Matratzenschoner &amp; Encasing</b><span>Ein 60 °C waschbarer Schoner schützt Topper/Matratze vor Schweiß; bei Hausstaubmilben-Allergie sind Encasings medizinisch etabliert (wirken nur, wenn auch Decke + Kissen bezogen sind).</span></div>
+    <div class="hack"><b>🧺 Bezug schonen</b><span>Waschbare Tagesdecke über die Liegezone. Ersatzbezüge auch für eingestellte IKEA-Serien gibt es von Bemz, Comfort Works und Comfortly (stoffabhängig, meist dreistellig) sowie gebraucht; Innovation-Originalbezüge über Händler wie mysofabed.</span></div>
+  </div>
+</section>
+
+<section id="matratzen">
+  <h2>Wo passen echte Standard-Matratzen rein?</h2>
+  <p class="lead">Faustregel: Standardmatratzen (80/90/140/160×200) passen überall dort, wo die Matratze <strong>flach liegen bleibt</strong>.
+     In Klapp-/Faltsofas muss die Matratze faltbar sein (max. ~12–13 cm Kaltschaum) — eine normale 20-cm-Matratze lässt sich nicht in die Sofaposition knicken.</p>
+  <div class="cols">
+    <div class="panel">
+      <h3>✅ Standardmatratze passt uneingeschränkt</h3>
+      <ul>
+        <li><b>IKEA Utåker / Hemnes / Brimnes</b> — 2× normale 80×200 (nebeneinander = 160×200); jede handelsübliche 80×200 passt</li>
+        <li><b>Tagesbett + Rückenkissen</b> („Daybed-Hack": Bettgestell längs an die Wand) — Standard-Lattenrost + 90×200-Standardmatratze</li>
+        <li><b>Schrankbett/Klappbett</b> (z. B. SMARTBett, 140×200 ab ~1.174 €) — handelsübliche Matratzen ausdrücklich vorgesehen, Höhenlimit 18–22 cm beachten</li>
+        <li><b>Podest oder Palettensofa</b> — Matratze liegt frei auf, keinerlei Einschränkung</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h3>⚠️ Normmaß ja, aber faltbar/Hersteller-Zubehör</h3>
+      <ul>
+        <li><b>IKEA Nyhamn</b> — 140×200-Grundmaß; IKEA-eigene faltbare Matratzen (Schaum/TFK) einzeln kaufbar; faltbare 140×200-Drittanbieter funktionieren (ohne IKEA-Freigabe)</li>
+        <li><b>Karup-Futons (Roots, Poetry)</b> — Standard-Futons 140/160×200 im Futonhandel nachkaufbar (muss über die Lehne knickbar sein)</li>
+        <li><b>Bali, sofaplus, sofadepot, Nehl, Sedda</b> — Liegeflächen in Normmaßen, Matratze separat wählbar/nachkaufbar, aber als faltbares Hersteller-Zubehör (Kaltschaum/Gel/TFK, 14–18 cm; sofadepot wirbt explizit mit „Matratze austauschbar")</li>
+        <li><b>Innovation Living / Ligne Roset Multy</b> — Original-Ersatzmatratzen (12–13 cm, faltbar) über Händler</li>
+        <li><b>❌ Gar nicht:</b> Friheten (fest integrierte Polster), Flottebo/Vimle (Spezialmatratzen mit Sonderbezug)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="platz">
+  <h2>Wenig Platz: Optionen fürs Stadt-Wohnzimmer</h2>
+  <p class="lead">Sortiert nach Stellfläche tagsüber. Faustregel: ausgeklappte Tiefe + 60 cm Laufweg müssen ins Zimmer passen — unter 3 m Raumtiefe → Querschläfer, kompakter Längsschläfer oder Tagesbett.</p>
+  <ul class="platz">
+    <li><span class="qm">~0 m²</span><b>Klappmatratze/Futon</b><span>30–120 €, verschwindet im Schrank — täglich nur bedingt</span></li>
+    <li><span class="qm">~0,7 m²</span><b>Schlafsessel</b><span>Gäste-Notlösung (Lycksele gebraucht 40–120 €)</span></li>
+    <li><span class="qm">~1,2 m²</span><b>Karup Roots 140</b><span>kompaktestes „richtiges" Sofa, 146 cm breit, Futon</span></li>
+    <li><span class="qm">~1,6 m²</span><b>Tagesbett Utåker</b><span>stapelbar, echte Matratzen — Preis-Leistungs-Geheimtipp</span></li>
+    <li><span class="qm">&lt; 1,9 m²</span><b>Kompakte Längsschläfer</b><span>Nehl Memphis (160 cm), Latina (170 cm), Julian (180 cm), Morgan (187 cm) — echtes Bett an kurzer Wand</span></li>
+    <li><span class="qm">~2 m²</span><b>Querschläfer</b><span>Chicago (200 cm), Bali Flexa (215 cm) — wenig Raumtiefe nötig</span></li>
+    <li><span class="qm">2–2,5 m²</span><b>3-Sitzer mit Bettfunktion</b><span>Nyhamn (200 cm) … Grönlid (247 cm) — ausgeklappte Tiefe messen!</span></li>
+    <li><span class="qm">2,6–3,3 m²</span><b>DS-Wohnlandschaften</b><span>Night &amp; Day, Sunset, Madrid — nur fürs große Wohnzimmer</span></li>
+  </ul>
+</section>
+
+<section style="text-align:center">
+  <a class="btn primary" href="vergleich.html">🔍 Jetzt filtern: alle 60 Modelle in der Feature-Matrix</a>
+</section>
+
+<footer>
+  <p><strong>Recherche-Stand:</strong> Multi-Quellen-Recherche Juli 2026 (Deep-Research mit adversarialer Verifikation + 6 Nachrecherchen).
+     Preise sind Momentaufnahmen aus Suchindex/Preisvergleichen (viele Shops blockieren Crawler); „≈"-Gebrauchtspannen sind Schätzungen.
+     „Dauerschläfer"-Labels sind überwiegend Händlerangaben — den Aufbau prüfen, nicht das Label glauben.</p>
+  <details>
+    <summary>Quellen (Auswahl)</summary>
+    <ul style="text-align:left">
+      <li>IKEA: <a href="https://www.ikea.com/de/de/cat/schlafsofas-10663/">Schlafsofa-Kategorie</a> · <a href="https://www.ikea.com/de/de/p/nyhamn-3er-bettsofa-mit-schaummatratze-knisa-grau-beige-s39306368/">Nyhamn</a> · <a href="https://www.sleep-hero.de/ikea-schlafsofa">Sleep-Hero-Review (Friheten-Kritik)</a></li>
+      <li>OTTO-Gruppe: <a href="https://www.otto.de/p/inosign-schlafsofa-berlin-dauerschlaefer-mit-boxspringfederung-bettfunktion-und-bettkasten-698495250/">INOSIGN Berlin</a> · <a href="https://www.otto.de/p/jockenhoefer-gruppe-schlafsofa-lincoln-mit-bettfunktion-und-bettkasten-als-dauerschlaefer-geeignet-1008964708/">Jockenhöfer Lincoln</a> · <a href="https://www.otto.de/p/home-affaire-schlafsofa-roma-matratzenhoehe-14-cm-dauerschlaffunktion-mit-unterfederung-lattenrost-matratze-738937901/">Home affaire Roma</a> · <a href="https://www.otto.de/p/inosign-ecksofa-night-day-l-form-mit-dauer-schlaffunktion-mit-armlehne-mit-boxspring-bettfunktion-180x200-cm-und-bettkasten-dauerschlaefer-589349018/">Night &amp; Day</a> · <a href="https://www.otto.de/p/jockenhoefer-gruppe-ecksofa-sunset-dauerschlafsofa-mit-tonnentaschen-federkern-5cm-kaltschaumtopper-flexible-montierbar-1938941737/">Sunset</a></li>
+      <li>Möbelhäuser: <a href="https://www.roller.de/boxspringsofas/boxspringsofa-grau-mit-staukasten-dauerschlaefer/1206001900/">Roller</a> · <a href="https://www.poco.de/p/dauerschlafsofa-grau-polyester-b-h-t-ca-203x85x106-cm-508723200">POCO</a> · <a href="https://www.hoeffner.de/artikel/40402623">Höffner bobb</a> · <a href="https://www.xxxlutz.de/p/livetastic-schlafsofa-flachgewebe-graublau-002410000201">XXXLutz Livetastic</a> · <a href="https://www.segmueller.de/produkte/schlafsofa-memphis-3222420-00001">Segmüller/Nehl Memphis</a></li>
+      <li>Spezialisten &amp; Premium: <a href="https://www.innovationliving.de/produkte/detachable-cover/product-details/eivor-140-schlafsofa-spring-matratze">Innovation Eivor</a> · <a href="https://www.schlaf-store.de/de/moebelshop/43/Bali_Polstermoebel/818974/Bali_Schlafsofa_Flexa_ca__140_x_200_cm_als_Dauerschlaefer_geeignet.html">Bali Flexa</a> · <a href="https://www.roset-moebel.de/kollektion/schlafsofas/multy-aktion.html">Ligne Roset Multy</a> · <a href="https://www.wohnwerk-berlin.com/produkt/sale/angebote/aktionsmodell-schlafsofa-malou-von-franz-fertig/">franz fertig Malou</a> · <a href="https://www.cramer-moebel.de/aktionen/schlafsofa-good-life-von-signet-a1857">Signet Good Life</a> · <a href="https://online-moebel-kaufen.de/shop/Polstermoebel/Schlafsofas/Nehl-Schlafsofas/Boxx-von-Nehl-Schlafsofa-anthrazit::19183.html">Nehl Boxx</a> · <a href="https://www.sedda.at/de/produkt/easy-schlafsystem">Sedda easy</a></li>
+      <li>Gebrauchtmarkt: <a href="https://www.kleinanzeigen.de/s-haus-garten/ikea-schlafsofa/k0c80">Kleinanzeigen IKEA</a> · <a href="https://www.kleinanzeigen.de/s-haus-garten/ligne-roset-multy/k0c80">Multy</a> · <a href="https://www.kleinanzeigen.de/s-haus-garten/franz-fertig-schlafsofa/k0c80">franz fertig</a> · <a href="https://www.gebraucht-kaufen.de/ikea-schlafsofa-beddinge">Beddinge-Aggregat</a> · <a href="https://www.kleinanzeigen.de/s-haus-garten/wohnlandschaft-schlaffunktion/k0c80">Wohnlandschaften</a></li>
+    </ul>
+  </details>
+  <p>Ausführliche Textversion: <a href="index.md">index.md</a> · Interaktiver Vergleich: <a href="vergleich.html">vergleich.html</a></p>
+</footer>
+</div>
+</body>
+</html>

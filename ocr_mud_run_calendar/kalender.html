@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OCR- &amp; Mud-Run-Kalender · München &amp; Lam</title>
+<style>
+  :root {
+    --bg: #f5f3ee;
+    --card: #ffffff;
+    --ink: #2b2620;
+    --muted: #7a7264;
+    --line: #e2ddd2;
+    --accent: #7a5c2e;
+    --accent-ink: #ffffff;
+    --badge-gross: #5b4a86;
+    --badge-klein: #3f7a4e;
+    --badge-kids: #b06a2c;
+    --badge-est: #8a8272;
+    --mud: #6b4f2a;
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #201c17;
+      --card: #2a251e;
+      --ink: #ece5d8;
+      --muted: #a89d8a;
+      --line: #3a342b;
+      --accent: #c9a05a;
+      --accent-ink: #201c17;
+      --badge-gross: #9c8ac9;
+      --badge-klein: #7dba8c;
+      --badge-kids: #d99a5b;
+      --badge-est: #8a8272;
+      --mud: #c9a05a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.5;
+  }
+  header {
+    padding: 2rem 1.25rem 1rem;
+    max-width: 60rem;
+    margin: 0 auto;
+  }
+  h1 { margin: 0 0 .25rem; font-size: 1.6rem; }
+  h1 .mud { color: var(--mud); }
+  .sub { color: var(--muted); margin: 0; font-size: .95rem; }
+  .panel {
+    max-width: 60rem;
+    margin: 1rem auto;
+    padding: 1rem 1.25rem;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  }
+  .wrap { max-width: 60rem; margin: 0 auto; padding: 0 1.25rem 4rem; }
+  .ctrl label {
+    display: block;
+    font-size: .8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--muted);
+    margin-bottom: .35rem;
+  }
+  .ctrl output { font-weight: 700; color: var(--ink); text-transform: none; letter-spacing: 0; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  input[type=date] {
+    font: inherit;
+    color: var(--ink);
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: .35rem .6rem;
+    width: 100%;
+  }
+  select, .seg button {
+    font: inherit;
+    color: var(--ink);
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: .4rem .6rem;
+  }
+  select { width: 100%; }
+  .seg { display: flex; gap: .4rem; flex-wrap: wrap; }
+  .seg button { cursor: pointer; }
+  .seg button.on {
+    background: var(--accent);
+    color: var(--accent-ink);
+    border-color: var(--accent);
+    font-weight: 600;
+  }
+  .checks { display: flex; flex-wrap: wrap; gap: .4rem .9rem; font-size: .9rem; align-items: center; }
+  .checks label { display: flex; align-items: center; gap: .35rem; text-transform: none; font-weight: 500; letter-spacing: 0; color: var(--ink); font-size: .9rem; margin: 0; cursor: pointer; }
+  .checks input { accent-color: var(--accent); }
+  .count { color: var(--muted); font-size: .9rem; margin: 1rem 0 .5rem; }
+  .month {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 1.6rem 0 .6rem;
+    padding-bottom: .25rem;
+    border-bottom: 2px solid var(--line);
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: .9rem 1.1rem;
+    margin-bottom: .7rem;
+    display: grid;
+    grid-template-columns: 5.2rem 1fr;
+    gap: .2rem 1rem;
+  }
+  @media (max-width: 480px) { .card { grid-template-columns: 1fr; } }
+  .date {
+    text-align: center;
+    align-self: start;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: .35rem .2rem;
+  }
+  .date .d { font-size: 1.3rem; font-weight: 800; line-height: 1.1; }
+  .date .m { font-size: .75rem; text-transform: uppercase; color: var(--muted); }
+  .date .wd { font-size: .7rem; color: var(--muted); }
+  .card h3 { margin: 0; font-size: 1.05rem; }
+  .card h3 a { color: inherit; text-decoration: none; }
+  .card h3 a:hover { text-decoration: underline; }
+  .meta { font-size: .88rem; color: var(--muted); }
+  .meta strong { color: var(--ink); font-weight: 600; }
+  .desc { font-size: .9rem; margin-top: .25rem; }
+  .badges { margin-top: .4rem; display: flex; flex-wrap: wrap; gap: .35rem; }
+  .badge {
+    font-size: .72rem;
+    font-weight: 700;
+    padding: .1rem .5rem;
+    border-radius: 999px;
+    color: #fff;
+    letter-spacing: .02em;
+  }
+  @media (prefers-color-scheme: dark) { .badge { color: #201c17; } }
+  .b-gross { background: var(--badge-gross); }
+  .b-klein { background: var(--badge-klein); }
+  .b-kids  { background: var(--badge-kids); }
+  .b-est   { background: var(--badge-est); }
+  .b-past  { background: var(--muted); }
+  .b-lauf  { background: #2f6f8f; }
+  .b-training { background: #a1522d; }
+  .b-rec   { background: #4a7a8c; }
+  @media (prefers-color-scheme: dark) {
+    .b-lauf { background: #7fb8d4; }
+    .b-training { background: #d78e63; }
+    .b-rec { background: #8fbccb; }
+  }
+  .card.past { opacity: .6; }
+  .chips { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .35rem; }
+  .chip {
+    font-size: .78rem;
+    font-weight: 600;
+    padding: .05rem .5rem;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    color: var(--ink);
+  }
+  .chip.price { border-color: var(--accent); color: var(--accent); }
+  .empty {
+    text-align: center;
+    color: var(--muted);
+    padding: 3rem 1rem;
+    border: 1px dashed var(--line);
+    border-radius: 12px;
+    margin-top: 1.5rem;
+  }
+  footer { max-width: 60rem; margin: 0 auto; padding: 0 1.25rem 2rem; color: var(--muted); font-size: .8rem; }
+  footer a { color: inherit; }
+</style>
+</head>
+<body>
+<header>
+  <h1>OCR- &amp; <span class="mud">Mud-Run</span>-Kalender</h1>
+  <p class="sub">Hindernisläufe, Matschläufe &amp; Vereins-Crossläufe rund um München (81373) und Lam im Bayerischen Wald (93462) – vom Spartan Race bis zum Dorf-Drecklauf. Dazu reine Laufevents, wiederkehrende Läufe wie der parkrun und offene OCR-Trainings.</p>
+</header>
+
+<section class="panel" aria-label="Filter">
+  <div class="ctrl">
+    <label>Ursprungsort</label>
+    <div class="seg" id="originSeg">
+      <button data-origin="muc" class="on">München (81373)</button>
+      <button data-origin="lam">Lam (93462)</button>
+    </div>
+  </div>
+  <div class="ctrl">
+    <label for="range">Reichweite: <output id="rangeOut"></output></label>
+    <input type="range" id="range" min="25" max="700" step="25" value="200">
+  </div>
+  <div class="ctrl">
+    <label for="from">Ab wann</label>
+    <input type="date" id="from">
+  </div>
+  <div class="ctrl">
+    <label for="days">Zeitraum: <output id="daysOut"></output></label>
+    <input type="range" id="days" min="14" max="545" step="7" value="365">
+  </div>
+  <div class="ctrl">
+    <label for="price">Max. Startgebühr: <output id="priceOut"></output></label>
+    <input type="range" id="price" min="5" max="160" step="5" value="160">
+  </div>
+  <div class="ctrl">
+    <label for="sort">Sortierung</label>
+    <select id="sort">
+      <option value="date">Nächstes Event zuerst</option>
+      <option value="dist">Entfernung (nächstgelegen zuerst)</option>
+    </select>
+  </div>
+  <div class="ctrl" style="grid-column: 1 / -1;">
+    <label>Art</label>
+    <div class="checks">
+      <label><input type="checkbox" id="tOcr" checked> OCR- / Hindernisläufe</label>
+      <label><input type="checkbox" id="tLauf" checked> reine Laufevents</label>
+      <label><input type="checkbox" id="tTraining" checked> offenes Training</label>
+    </div>
+  </div>
+  <div class="ctrl" style="grid-column: 1 / -1;">
+    <label>Event-Typ</label>
+    <div class="checks">
+      <label><input type="checkbox" id="fGross" checked> Großevents (Spartan &amp; Co.)</label>
+      <label><input type="checkbox" id="fKlein" checked> Kleine / Vereins-Events</label>
+      <label><input type="checkbox" id="fKidsOnly"> nur Events mit Kinder-/Familienlauf</label>
+      <label><input type="checkbox" id="fPast"> vergangene Events anzeigen</label>
+    </div>
+  </div>
+</section>
+
+<main class="wrap">
+  <p class="count" id="count"></p>
+  <div id="list"></div>
+</main>
+
+<footer>
+  <p>Entfernungen sind Luftlinie ab dem gewählten Ursprungsort; Fahrstrecke ist meist 20–40 % länger.
+  Termine mit <span class="badge b-est">Termin geschätzt</span> sind aus Vorjahren abgeleitet – vor Anmeldung auf der Event-Website prüfen.
+  Datenstand: Juli 2026.</p>
+  <p>Recherchiert per Websuche gegen die offiziellen Veranstalterseiten sowie Aggregatoren wie
+  <a href="https://mudradar.de/" target="_blank" rel="noopener">mudradar.de</a>,
+  <a href="https://www.larasch.de/" target="_blank" rel="noopener">larasch.de</a>,
+  <a href="https://www.hdsports.org/" target="_blank" rel="noopener">hdsports.org</a>,
+  <a href="https://spoferan.com/" target="_blank" rel="noopener">spoferan.com</a> und
+  <a href="https://www.parkrun.com.de/" target="_blank" rel="noopener">parkrun.com.de</a>.
+  Vollständige Quellenliste: <a href="AGENTS.md">AGENTS.md</a> · Alle Events im Überblick: <a href="EVENTS.md">EVENTS.md</a>.</p>
+</footer>
+
+<script src="events.js"></script>
+<script>
+(function () {
+  var ORIGINS = {
+    muc: { name: "München (81373)", lat: 48.1195, lon: 11.5382 },
+    lam: { name: "Lam (93462)", lat: 49.1963, lon: 13.0499 }
+  };
+  var MONTHS = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+  var MONTHS_SHORT = ["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
+  var WEEKDAYS = ["So","Mo","Di","Mi","Do","Fr","Sa"];
+
+  var PRICE_CAP = 160; // Sliderwert, der "egal" bedeutet
+  var state = { origin: "muc", range: 200, days: 365, sort: "date", gross: true, klein: true, kidsOnly: false, maxPrice: PRICE_CAP, from: "", showPast: false, tOcr: true, tLauf: true, tTraining: true };
+
+  function haversine(lat1, lon1, lat2, lon2) {
+    var R = 6371, toRad = Math.PI / 180;
+    var dLat = (lat2 - lat1) * toRad, dLon = (lon2 - lon1) * toRad;
+    var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * toRad) * Math.cos(lat2 * toRad) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
+  }
+
+  function fmtDate(d) {
+    return WEEKDAYS[d.getDay()] + ", " + d.getDate() + ". " + MONTHS_SHORT[d.getMonth()] + " " + d.getFullYear();
+  }
+
+  function build() {
+    var origin = ORIGINS[state.origin];
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    var start = state.from ? new Date(state.from + "T00:00:00") : today;
+    if (isNaN(start)) start = today;
+    var until = new Date(start.getTime() + state.days * 86400000);
+
+    var items = [];
+    EVENTS.forEach(function (ev) {
+      var dist = haversine(origin.lat, origin.lon, ev.lat, ev.lon);
+      if (dist > state.range) return;
+      var type = ev.type || "ocr";
+      if (type === "ocr" && !state.tOcr) return;
+      if (type === "lauf" && !state.tLauf) return;
+      if (type === "training" && !state.tTraining) return;
+      if (ev.category === "gross" && !state.gross) return;
+      if (ev.category !== "gross" && !state.klein) return;
+      if (state.kidsOnly && !ev.kids) return;
+      // Kostenfilter: Events ohne Preisangabe bleiben sichtbar
+      if (state.maxPrice < PRICE_CAP && ev.priceMin != null && ev.priceMin > state.maxPrice) return;
+
+      // Wiederkehrende Termine (z. B. parkrun, offene Trainings): nächstes Vorkommen berechnen
+      if (ev.recurringWeekdays && ev.recurringWeekdays.length) {
+        var base = new Date(Math.max(+start, +today));
+        var best = null;
+        ev.recurringWeekdays.forEach(function (wd) {
+          var delta = (wd - base.getDay() + 7) % 7;
+          var cand = new Date(+base + delta * 86400000);
+          if (!best || cand < best) best = cand;
+        });
+        if (best && best <= until) {
+          items.push({ ev: ev, dist: dist, next: best, more: [], isPast: false, lastRun: null, recurring: true });
+        }
+        return;
+      }
+
+      var all = ev.dates.concat(ev.pastDates || []).map(function (s) { return new Date(s + "T00:00:00"); })
+        .sort(function (a, b) { return a - b; });
+      var pastAll = all.filter(function (d) { return d < today; });
+      var lastRun = pastAll.length ? pastAll[pastAll.length - 1] : null;
+      var upcoming = all.filter(function (d) { return d >= start && d <= until && d >= today; });
+      if (upcoming.length) {
+        items.push({ ev: ev, dist: dist, next: upcoming[0], more: upcoming.slice(1), isPast: false, lastRun: state.showPast ? lastRun : null });
+      } else if (state.showPast && lastRun) {
+        // Kein kommender Termin im Fenster: letzten gelaufenen Termin zeigen
+        items.push({ ev: ev, dist: dist, next: lastRun, more: [], isPast: true, lastRun: null });
+      }
+    });
+
+    items.sort(state.sort === "dist"
+      ? function (a, b) { return a.dist - b.dist || a.next - b.next; }
+      : function (a, b) { return a.next - b.next || a.dist - b.dist; });
+
+    var list = document.getElementById("list");
+    document.getElementById("count").textContent = items.length
+      ? items.length + " Event" + (items.length === 1 ? "" : "s") + " im Umkreis von " + state.range + " km um " + origin.name + " zwischen " + fmtDate(start) + " und " + fmtDate(until) + (state.showPast ? " (inkl. bereits gelaufener)" : "")
+      : "";
+
+    if (!items.length) {
+      list.innerHTML = '<div class="empty">Keine Events gefunden – Reichweite oder Zeitraum vergrößern, oder mehr Event-Typen einschalten.</div>';
+      return;
+    }
+
+    var html = "", lastMonth = null;
+    items.forEach(function (it) {
+      var ev = it.ev, d = it.next;
+      if (state.sort === "date") {
+        var mk = MONTHS[d.getMonth()] + " " + d.getFullYear();
+        if (mk !== lastMonth) { html += '<h2 class="month">' + mk + "</h2>"; lastMonth = mk; }
+      }
+      var badges = "";
+      var evType = ev.type || "ocr";
+      if (evType === "lauf") badges += '<span class="badge b-lauf">Laufevent</span>';
+      if (evType === "training") badges += '<span class="badge b-training">Training</span>';
+      badges += ev.category === "gross" ? '<span class="badge b-gross">Großevent</span>'
+              : ev.category === "kids" ? '<span class="badge b-kids">Kids-Event</span>'
+              : '<span class="badge b-klein">Klein &amp; fein</span>';
+      if (it.recurring) badges += '<span class="badge b-rec">wiederkehrend</span>';
+      if (ev.kids && ev.category !== "kids") badges += '<span class="badge b-kids">Kids-Lauf</span>';
+      if (ev.estimated) badges += '<span class="badge b-est">Termin geschätzt</span>';
+      if (it.isPast) badges += '<span class="badge b-past">bereits gelaufen</span>';
+
+      var metaBits = [];
+      metaBits.push("<strong>" + esc(ev.location) + "</strong> · ≈ " + Math.round(it.dist) + " km Luftlinie");
+      if (it.recurring && ev.recurringLabel) metaBits.push("wiederkehrend: " + esc(ev.recurringLabel));
+      if (ev.obstacles) metaBits.push(esc(ev.obstacles));
+      if (ev.kidsInfo) metaBits.push("Kids: " + esc(ev.kidsInfo));
+      if (ev.priceTiers) metaBits.push("Kosten: " + esc(ev.priceTiers));
+      if (it.more.length) metaBits.push("weitere Termine: " + it.more.map(fmtDate).join(", "));
+      if (it.lastRun) metaBits.push("zuletzt gelaufen: " + fmtDate(it.lastRun));
+
+      var chips = "";
+      (ev.distancesKm || []).forEach(function (km) {
+        chips += '<span class="chip">' + km + " km</span>";
+      });
+      var priceLabel = ev.priceMin === 0 && !ev.priceMax ? "kostenlos"
+        : ev.priceMin != null && ev.priceMax != null && ev.priceMax > ev.priceMin
+        ? ev.priceMin + "–" + ev.priceMax + " €"
+        : ev.priceMin != null ? "ab " + ev.priceMin + " €"
+        : ev.priceFrom ? esc(ev.priceFrom) : null;
+      if (priceLabel) chips += '<span class="chip price">' + priceLabel + "</span>";
+
+      var title = ev.url
+        ? '<a href="' + esc(ev.url) + '" target="_blank" rel="noopener">' + esc(ev.name) + "</a>"
+        : esc(ev.name);
+
+      html += '<article class="card' + (it.isPast ? " past" : "") + '">' +
+        '<div class="date"><div class="wd">' + WEEKDAYS[d.getDay()] + '</div><div class="d">' + d.getDate() + '</div><div class="m">' + MONTHS_SHORT[d.getMonth()] + " " + String(d.getFullYear()).slice(2) + "</div></div>" +
+        "<div><h3>" + title + "</h3>" +
+        '<div class="meta">' + metaBits.join(" · ") + "</div>" +
+        (chips ? '<div class="chips">' + chips + "</div>" : "") +
+        (ev.desc ? '<div class="desc">' + esc(ev.desc) + "</div>" : "") +
+        '<div class="badges">' + badges + "</div></div></article>";
+    });
+    list.innerHTML = html;
+  }
+
+  function syncOutputs() {
+    document.getElementById("rangeOut").textContent = state.range + " km";
+    document.getElementById("daysOut").textContent = state.days + " Tage";
+    document.getElementById("priceOut").textContent = state.maxPrice >= PRICE_CAP ? "egal" : state.maxPrice + " €";
+  }
+
+  document.getElementById("originSeg").addEventListener("click", function (e) {
+    var btn = e.target.closest("button[data-origin]");
+    if (!btn) return;
+    state.origin = btn.dataset.origin;
+    this.querySelectorAll("button").forEach(function (b) { b.classList.toggle("on", b === btn); });
+    build();
+  });
+  document.getElementById("range").addEventListener("input", function () { state.range = +this.value; syncOutputs(); build(); });
+  document.getElementById("days").addEventListener("input", function () { state.days = +this.value; syncOutputs(); build(); });
+  document.getElementById("price").addEventListener("input", function () { state.maxPrice = +this.value; syncOutputs(); build(); });
+  document.getElementById("from").addEventListener("change", function () { state.from = this.value; build(); });
+  document.getElementById("fPast").addEventListener("change", function () { state.showPast = this.checked; build(); });
+  document.getElementById("tOcr").addEventListener("change", function () { state.tOcr = this.checked; build(); });
+  document.getElementById("tLauf").addEventListener("change", function () { state.tLauf = this.checked; build(); });
+  document.getElementById("tTraining").addEventListener("change", function () { state.tTraining = this.checked; build(); });
+  document.getElementById("sort").addEventListener("change", function () { state.sort = this.value; build(); });
+  document.getElementById("fGross").addEventListener("change", function () { state.gross = this.checked; build(); });
+  document.getElementById("fKlein").addEventListener("change", function () { state.klein = this.checked; build(); });
+  document.getElementById("fKidsOnly").addEventListener("change", function () { state.kidsOnly = this.checked; build(); });
+
+  // Datumsfeld mit heutigem Datum vorbelegen
+  (function () {
+    var t = new Date();
+    var iso = t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" + String(t.getDate()).padStart(2, "0");
+    document.getElementById("from").value = iso;
+    state.from = iso;
+  })();
+
+  syncOutputs();
+  build();
+})();
+</script>
+</body>
+</html>
