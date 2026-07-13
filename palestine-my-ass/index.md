@@ -40,3 +40,6 @@ auf jede Überschrift; Schriften werden von Google Fonts geladen.
 ## Dateien
 
 - [`report-2026-07-11.html`](report-2026-07-11.html) – das Dossier.
+- [`PODCAST.md`](PODCAST.md) – Feature-Skript im Deutschlandfunk-Stil (zwei
+  Erzählstimmen, ~25 min): „Zwischen den Fronten" – Freispruch für die Person,
+  das ÖRR-Muster dahinter, und die KI, die Google nachspricht.
