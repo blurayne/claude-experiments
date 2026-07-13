@@ -2,7 +2,7 @@
 
 Kaufratgeber für ein **Schlafsofa im täglichen Gebrauch**: robust, einfach zu bedienen, bezahlbar — mit recherchierter Modell-Landschaft von ~130 € bis 3.500 € Neupreis (Stand Juli 2026), inklusive **Wohnlandschaften/Ecksofas mit Schlaffunktion**, typischen **Gebrauchtpreisen auf Kleinanzeigen**, Life-Hacks und Platz-Optionen für kleine Stadtwohnungen. Das Luxussegment über 3.500 € (Swiss Plus, COR, frei konfigurierte Brühl-/franz-fertig-Modelle) ist bewusst außen vor.
 
-**➜ [Interaktive Feature-Matrix öffnen](vergleich.html)** — ~55 konkrete Modelle, filterbar mit Slidern (Neupreis, Gebraucht-Budget, Liegebreite, Stellbreite, Alltagstauglichkeit) und Checkboxen (Dauerschläfer, echte Matratze, Bettkasten, waschbarer Bezug, Wohnlandschaft …).
+**➜ [Interaktive Feature-Matrix öffnen](vergleich.html)** — ~60 konkrete Modelle, filterbar mit Slidern (Neupreis, Gebraucht-Budget, Liegebreite, Stellbreite, Alltagstauglichkeit) und Checkboxen (Dauerschläfer, echte Matratze, Bettkasten, waschbarer Bezug, Wohnlandschaft …).
 
 ---
 
@@ -31,7 +31,7 @@ Wer **jede Nacht** auf dem Sofa schläft, braucht ein anderes Gerät als für de
 
 ## 3. Die Modell-Landschaft nach Preisklassen
 
-Ergebnis einer Multi-Quellen-Recherche (Juli 2026; verifizierter Kern per adversarialem Fact-Checking, Rest aus Händler-/Preisvergleichsdaten — Details und alle ~40 Modelle in der [Feature-Matrix](vergleich.html)). Preise sind Momentaufnahmen; **Angebotslage** = wie oft das Modell auf Kleinanzeigen auftaucht:
+Ergebnis einer Multi-Quellen-Recherche (Juli 2026; verifizierter Kern per adversarialem Fact-Checking, Rest aus Händler-/Preisvergleichsdaten — Details und alle ~60 Modelle in der [Feature-Matrix](vergleich.html)). Preise sind Momentaufnahmen; **Angebotslage** = wie oft das Modell auf Kleinanzeigen auftaucht:
 
 - **sehr häufig** = Dutzende aktive Anzeigen pro Großstadt, Preise stark drückbar
 - **häufig** = ständig einige Anzeigen, wenige Tage Suche
@@ -108,6 +108,20 @@ Ergebnis einer Multi-Quellen-Recherche (Juli 2026; verifizierter Kern per advers
 
 Dazu die kleineren Eck-Verwandten aus den Tabellen oben: IKEA Friheten/Bårslöv (Récamiere), GMK Györ, Roller Ecksofa Boxspring, Signet Good Life. **Platz-Warnung:** DS-Wohnlandschaften brauchen 2,6–3,3 m Wand — fürs Mini-Wohnzimmer sind sie die falsche Kategorie.
 
+#### Eck-Dauerschläfer mit ECHTER Matratze + Lattenrost (Nachrecherche)
+
+Diese Nische existiert — sie wird von Spezialanbietern und zwei OTTO-Eigenmarken bedient. Konstruktiv gilt immer: **eine Matratze lässt sich nicht um die Ecke falten** — das Eckelement/der Longchair ist Sitz- und Stauraummodul (Bettkasten), das echte Bett klappt aus dem geraden Sofateil aus.
+
+| Modell | Neu | Matratze | Liegefläche | Täglich schlafen? |
+|---|---|---|---|---|
+| Places of Style **Goldpoint** (OTTO/Baur) | ab ~2.076 € | Bonell-Federkern H2 | 140×200 | ⚠️ Preiseinstieg, aber schwache Matratze/kein echter Lattenrost |
+| Bali **Messina** Eck | ab ~2.522 € red. (regulär ~3.553 €) | Kaltschaum/Sensoform auf Rost, Bezug 60° waschbar | 140/160×200 | ✅✅ DS-Spezialist |
+| Nehl **Boston Deluxe** (Umbauecke/Longchair) | ~3.150 € Aktion (UVP ~4.062 €) | **18 cm** auf Holz-Lattenrost | ~140–160×200 | ✅✅ dickste Matratze der Nische |
+| Home affaire **Roma L** (OTTO) | 3.199,99 € | 14 cm + Unterfederung + Lattenrost | 163×198 | ✅✅ Eck-Variante des Roma |
+| sofaplus **Hamburg/München Deluxe Eck** (mysofabed) | ~3.399 € | Wahl: Kaltschaum/Sensoform/Gel/TFK auf Holz-Lattenrost | bis 160×200 | ✅✅ volles Bett im Ecksofa |
+
+Knapp über dem Limit: sofaplus Heidelberg Deluxe Eck (3.799 €, 20-cm-Matratze), Nehl Kingston (~3.210 €), sofadepot-Eck-Dauerschläfer (konfigurationsabhängig, Showroom Hamburg), Sedda-Eckkombinationen (meist >3.500 €).
+
 ### Premium: 2.000–3.500 € neu
 
 | Modell | Neu | Gebraucht | Täglich schlafen? |
@@ -158,15 +172,33 @@ Swiss Plus/BED for LIVING (ab ~6.500 €), COR Trio/Pilotis (ab ~4.700 €), fra
 7. **Fragen stellen:** Wie oft wurde darauf geschlafen? Nichtraucherhaushalt? Haustiere? Originalrechnung (Alter, Garantie-Rest)?
 8. **Maße nachmessen** (Stellbreite, ausgeklappte Tiefe, Türbreiten beim Verkäufer *und* zu Hause) — bevor Geld übergeben wird.
 
-## 4. Life-Hacks für den Alltag
+## 4. Life-Hacks für den Alltag (faktengecheckt Juli 2026)
 
-- **Topper-Trick (der wichtigste):** Ein 6–8 cm Kaltschaum-Topper (140×200, 40–80 €) macht fast jedes mittelmäßige Klappsofa dauerschlaftauglich — und verschwindet tagsüber gerollt im Bettkasten. Macht aus einem 250-€-Gebraucht-Friheten ein brauchbares Alltagsbett.
-- **Matratze statt Möbel tauschen:** Bei Nyhamn/Beddinge/Utåker/Eivor ist die Matratze Standardware — durchgelegen? Nur die Matratze neu kaufen statt ein neues Sofa.
-- **Bettzeug-Logistik:** Decke + Kissen in einen großen Vakuum- oder IKEA-Skubb-Beutel — passt in jeden Bettkasten und die Couch riecht nicht nach Schlafzimmer.
-- **Knarzen stoppen:** Metallgelenke mit Silikonspray, Holzlatten-Auflagen mit Kerzenwachs behandeln. Filzgleiter unter die Füße schützen Parkett beim täglichen Ausklappen.
-- **Schimmel vorbeugen:** Bettkasten 1×/Woche offen auslüften, Matratze monatlich wenden; bei Sofas an der Wand 5–10 cm Abstand lassen. Belüftete Bettkästen (Roller-Ecksofa) sind Gold wert.
-- **Bezug-Verschleiß:** Waschbare Tagesdecke über die Liegezone — der Originalbezug hält Jahre länger; für IKEA-Klassiker und Innovation Living gibt es Ersatzbezüge gebraucht und von Drittanbietern.
+- **Topper-Trick (der wichtigste):** Ein 6–8 cm Kaltschaum-Topper wertet die meisten mittelmäßigen Klappsofas fürs tägliche Schlafen deutlich auf. Realistischer Preis in brauchbarer Qualität (RG ≥ 40): **60–160 €** — 40-€-Discounterware ist meist dünner (4–6 cm) und weicher. Grenzen: harte Querstreben und stark durchgelegene Basis kaschiert ein Topper nur teilweise; auf glattem Bezug Antirutsch-Unterlage verwenden.
+- **Topper rollen — nur Kaltschaum:** Kaltschaum darf täglich (locker!) gerollt in den Bettkasten, vorher kurz auslüften lassen. **Visco-/Memory-Schaum verformt sich beim Rollen dauerhaft** — nicht rollen.
+- **Matratze statt Möbel tauschen:** Nyhamn — IKEA verkauft Schaum- und Taschenfederkern-Matratze einzeln. Utåker/Hemnes/Brimnes — Standard-80×200er (ÅFJÄLL ab ~75 €). Innovation Living und Ligne Roset Multy — Original-Ersatzmatratzen über Händler. **Beddinge: Lövås ist eingestellt** — Ersatz nur gebraucht oder als faltbare 140×200-Drittanbieter-Matratze (~150–400 €, z. B. shogazi). Achtung: Lycksele-Lövås (140×188) passt *nicht* aufs Beddinge.
+- **Bettzeug-Logistik:** Decke + Kissen in einen **atmungsaktiven Stoffbeutel** (z. B. IKEA Skubb) in den gelüfteten Bettkasten. Vakuumbeutel nur zur Saisonlagerung von Synthetik — tägliches Vakuumieren schließt Nachtfeuchte ein (Schimmel) und ruiniert Daunen.
+- **Knarzen stoppen:** Zuerst **alle Schrauben nachziehen** (häufigste Ursache). Dann Silikon-/PTFE-Spray auf Metallgelenke (kein öliges WD-40 nahe Stoff), Kerzenwachs oder — dauerhafter — Filzstreifen auf Holzlatten-Auflagen. Filzgleiter unter die Füße schützen Parkett.
+- **Schimmel vorbeugen:** Bettkasten 1×/Woche ~20 Min. offen lüften und nicht überfüllen, Matratze monatlich wenden, **mindestens 10 cm** Abstand zu Außenwänden, Bettzeug morgens vor dem Verstauen auslüften, 2× täglich stoßlüften. Entfeuchter-Granulat im Bettkasten unterstützt, ersetzt Lüften aber nicht. Belüftete Bettkästen (Roller-Ecksofa, Nehl Boxx) sind Gold wert.
+- **Matratzenschoner & Encasing:** Ein 60 °C waschbarer Schoner schützt Topper/Matratze vor Schweiß; bei Hausstaubmilben-Allergie sind Encasings medizinisch etabliert (Stiftung Warentest) — wirken aber nur, wenn auch Decke und Kissen bezogen sind.
+- **Bezug-Verschleiß:** Waschbare Tagesdecke über die Liegezone — der Originalbezug hält Jahre länger. Ersatzbezüge auch für eingestellte IKEA-Serien fertigen Bemz, Comfort Works und Comfortly (stoffabhängig, meist mittlerer dreistelliger Bereich); Innovation-Originalbezüge über Händler wie mysofabed; gebraucht auf eBay/Kleinanzeigen.
 - **Zweite Lebensdauer:** Ausgeleierte Klick-Klack-Sofas als Gästesofa weiterverkaufen und aufs Modell mit echter Matratze upgraden — der Gebrauchtmarkt nimmt alles ab.
+
+### Wo lassen sich echte Standard-Matratzen einlegen?
+
+Faustregel: Standardmatratzen (80/90/140/160×200) passen überall dort, wo die Matratze **flach liegen bleibt**. In Klapp-/Faltsofas muss sie faltbar sein (max. ~12–13 cm Kaltschaum) — eine normale 20-cm-Matratze lässt sich nicht in die Sofaposition knicken.
+
+| Möbel | Standardmatratze? | Details |
+|---|---|---|
+| IKEA **Utåker / Hemnes / Brimnes** | ✅ uneingeschränkt | 2× 80×200 (nebeneinander = 160×200), jede handelsübliche 80×200 passt |
+| **Tagesbett + Rückenkissen** („Daybed-Hack") | ✅ | Bettgestell längs an die Wand: Standard-Lattenrost + 90×200 |
+| **Schrankbett/Klappbett** (z. B. SMARTBett) | ✅ (Höhe!) | handelsübliche Matratzen vorgesehen, Höhenlimit 18–22 cm; 140×200 ab ~1.174 € |
+| **Podest / Palettensofa** | ✅ | Matratze liegt frei auf |
+| IKEA **Nyhamn** | ⚠️ Normmaß, faltbar | IKEA-eigene faltbare 140×200-Matratzen einzeln kaufbar; faltbare Drittanbieter funktionieren (ohne IKEA-Freigabe) |
+| **Karup-Futons** (Roots, Poetry) | ⚠️ | Standard-Futons 140/160×200 im Futonhandel nachkaufbar (muss knickbar sein) |
+| **Bali / sofaplus / sofadepot / Nehl / Sedda** | ⚠️ Normmaß, Hersteller-Zubehör | Liegeflächen in Normmaßen, Matratze separat wählbar/nachkaufbar (faltbare Spezialkerne 14–18 cm); sofadepot wirbt explizit mit „Matratze austauschbar" |
+| **Innovation Living / Ligne Roset Multy** | ⚠️ | Original-Ersatzmatratzen (12–13 cm, faltbar) über Händler |
+| IKEA **Friheten / Flottebo / Vimle** | ❌ | fest integrierte Polster bzw. Spezialmatratzen mit Sonderbezug |
 
 ## 5. Wenig Platz: Möglichkeiten in der Stadtwohnung
 
@@ -186,7 +218,7 @@ Sortiert nach Platzbedarf tagsüber (Stellfläche im Wohnmodus):
 ## Dateien
 
 - [`index.html`](index.html) — gestaltete Kurzfassung dieses Ratgebers (Hero, Preisklassen-Karten, Checkliste, Life-Hacks); wird vom Site-Build als Startseite des Experiments ausgeliefert
-- [`vergleich.html`](vergleich.html) — interaktive Feature-Matrix (Slider + Checkboxen) über alle ~55 recherchierten Modelle inkl. Wohnlandschaften und Premium-Klasse
+- [`vergleich.html`](vergleich.html) — interaktive Feature-Matrix (Slider + Checkboxen) über alle ~60 recherchierten Modelle inkl. Wohnlandschaften und Premium-Klasse
 - `index.md` — diese ausführliche Textversion mit allen Tabellen und Quellen
 
 ## Recherche-Stand & Quellen
@@ -199,6 +231,8 @@ Multi-Quellen-Recherche Juli 2026 (Deep-Research-Workflow mit adversarialer Veri
 - Spezialisten: [Innovation Eivor](https://www.innovationliving.de/produkte/detachable-cover/product-details/eivor-140-schlafsofa-spring-matratze) · [Bali Flexa](https://www.schlaf-store.de/de/moebelshop/43/Bali_Polstermoebel/818974/Bali_Schlafsofa_Flexa_ca__140_x_200_cm_als_Dauerschlaefer_geeignet.html) · [Nehl Querschläfer](https://www.nehl.de/platzsparender-querschlaefer-mit-stauraum/) · [Sedda easy-System](https://www.sedda.at/de/produkt/easy-schlafsystem) · [Karup Roots (OTTO)](https://www.otto.de/p/karup-design-schlafsofa-roots-inkl-futonmatratze-liegeflaeche-140x200-cm-618319818/)
 - Wohnlandschaften: [INOSIGN Night & Day](https://www.otto.de/p/inosign-ecksofa-night-day-l-form-mit-dauer-schlaffunktion-mit-armlehne-mit-boxspring-bettfunktion-180x200-cm-und-bettkasten-dauerschlaefer-589349018/) · [Jockenhöfer Sunset](https://www.otto.de/p/jockenhoefer-gruppe-ecksofa-sunset-dauerschlafsofa-mit-tonnentaschen-federkern-5cm-kaltschaumtopper-flexible-montierbar-1938941737/) · [XXXLutz Nelly U](https://www.xxxlutz.de/p/wohnlandschaft-nelly-u-mit-bettkasten-und-schlaffunktion-cordstoff-in-u-form-800001015150) · [COLLECTION AB Josy XXL](https://www.otto.de/p/collection-ab-wohnlandschaft-josy-xxl-u-form-b-333-cm-mit-2-recamieren-77-97-cm-bettfunktion-bettkasten-2-zierkissen-federkern-614677269/)
 - Premium: [Ligne Roset Multy](https://www.roset-moebel.de/kollektion/schlafsofas/multy-aktion.html) · [franz fertig Malou (Aktion)](https://www.wohnwerk-berlin.com/produkt/sale/angebote/aktionsmodell-schlafsofa-malou-von-franz-fertig/) · [Signet Good Life (Aktion)](https://www.cramer-moebel.de/aktionen/schlafsofa-good-life-von-signet-a1857) · [Signet Kyoto-GO](https://www.izabela-k.com/signet/kyoto-go/) · [Nehl Boxx](https://online-moebel-kaufen.de/shop/Polstermoebel/Schlafsofas/Nehl-Schlafsofas/Boxx-von-Nehl-Schlafsofa-anthrazit::19183.html) · [Innovation Eivor 160 (Segmüller)](https://www.segmueller.de/produkte/schlafsofa-eivor-m026009-00000) · [sofaplus Rotterdam Deluxe](https://www.mysofabed.de/hersteller/sofaplus-de/rotterdam-deluxe-schlafsofa/) · [Brühl roro small (Aktion)](https://www.cramer-moebel.de/aktionen/roro-small-von-bruehl-a1320)
+- Eck-Dauerschläfer mit Matratze: [Home affaire Roma L](https://www.otto.de/p/home-affaire-ecksofa-roma-l-dauerschlaffunktion-mit-unterfederung-lattenrost-und-echter-matratze-zum-ausfalten-in-hoher-qualitaet-mit-bettkasten-liegemasse-ca-163x198-cm-mit-2-zierkissen-1455774990/) · [sofaplus Hamburg Deluxe Eck](https://www.mysofabed.de/eckschlafsofa/mit-bett-fuer-jeden-tag/hamburg-deluxe-eckschlafsofa-mit-lattenrost-und-matratze-von-sofaplus) · [Bali Messina](https://www.schlaf-store.de/de/moebelshop/43/Bali_Polstermoebel/643319/Bali_Schlafsofa_Messina_mit_Matratze_als_Dauerschlaefer_geeignet_.html) · [Nehl Boston Deluxe](https://www.moebelhaus-remer.de/nehl-wohnideen-eckschlafsofa-boston-deluxe-mit-umbauecke-23582) · [Places of Style Goldpoint](https://www.otto.de/p/places-of-style-schlafsofa-goldpoint-mit-dauerschlaefer-funktion-1055809178/) · [sofadepot Eck-Dauerschläfer](https://sofadepot.de/sofa/dauerschlaefer-ecksofa-mit-matratze/)
+- Hack-Faktencheck: [Topper fürs Schlafsofa (meos)](https://meos.de/pages/topper-schlafsofa-couch) · [Kaltschaum rollen (bx.eu)](https://bx.eu/de/blog/kaltschaum-viscoschaum-matratzentopper-vor-und-nachteile-auf-einen-blick) · [Daunen nicht vakuumieren (paradies)](https://paradies.de/blogs/aktuelles/bettdecken-richtig-lagern) · [Schimmel im Schlafzimmer (bett1)](https://www.bett1.de/infoportal/ratgeber/schimmel-im-schlafzimmer-vorbeugen) · [Encasings (Stiftung Warentest)](https://www.test.de/Allergikerbezuege-fuer-Matratzen-Milben-muerbe-machen-1085499-1085500/) · [Bemz-Ersatzbezüge](https://bemz.com/de-de/ikea-serien/friheten/sofa-covers) · [Nyhamn-Ersatzmatratze](https://www.ikea.com/de/de/p/nyhamn-taschenfederkernmatratze-20535888/) · [ÅFJÄLL 80×200](https://www.ikea.com/de/de/p/afjaell-schaummatratze-mittelfest-weiss-30568642/)
 - Gebrauchtmarkt: [Kleinanzeigen IKEA Schlafsofa](https://www.kleinanzeigen.de/s-haus-garten/ikea-schlafsofa/k0c80) · [Friheten](https://www.kleinanzeigen.de/s-haus-garten/ikea-friheten/k0c80) · [Beddinge-Preisaggregat](https://www.gebraucht-kaufen.de/ikea-schlafsofa-beddinge) · [Innovation Splitback](https://www.kleinanzeigen.de/s-haus-garten/innovation-splitback/k0c80) · [Ligne Roset Multy](https://www.kleinanzeigen.de/s-haus-garten/ligne-roset-multy/k0c80) · [franz fertig](https://www.kleinanzeigen.de/s-haus-garten/franz-fertig-schlafsofa/k0c80) · [Wohnlandschaften mit Schlaffunktion](https://www.kleinanzeigen.de/s-haus-garten/wohnlandschaft-schlaffunktion/k0c80)
 
 *Preise sind typische Spannen bzw. Listenpreise (Juli 2026), keine Garantie — Kleinanzeigen-Preise schwanken stark nach Region und Zustand.*
