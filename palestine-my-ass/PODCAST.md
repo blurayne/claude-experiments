@@ -3,7 +3,7 @@
 **Feature-Skript im Stil eines Deutschlandfunk-Features · zwei Erzählstimmen · ca. 25 Minuten**
 
 > Produktionshinweis: Dieses Skript ist ein redaktioneller Entwurf auf Grundlage des
-> Dossiers [`report-2026-07-11.html`](report-2026-07-11.html). Alle als Zitat
+> Dossiers [`report.html`](report.html). Alle als Zitat
 > gekennzeichneten Passagen sind dort mit Quellen belegt; O-Töne liegen nicht als
 > Audio vor und werden von Zitator:innen gelesen. Wertende Passagen sind als
 > Einordnung der Autoren gekennzeichnet. Das Feature ist Medienkritik — keine
@@ -162,6 +162,6 @@
 
 ## Shownotes
 
-- Dossier mit vollständigem Quellenverzeichnis: [`report-2026-07-11.html`](report-2026-07-11.html)
+- Dossier mit vollständigem Quellenverzeichnis: [`report.html`](report.html)
 - Kernbefunde: Zehn Kritikpunkte einzeln geprüft (4 diskutierbar, 3 wertend, 1 geteilt, 2 entkräftet) · al-Ahli-Passage doppelt belegt · „Vorgeschichte"-Zitat bestritten · Tunnel- und Bethlehem-Vorwurf entkräftet · Jury-Text als eigener Streitpunkt · KI-Experimente B1/B2 und Modell-Quervergleich · Portrait und Motiv-Hypothesen mit Gegenlesarten
 - Methodischer Hinweis: Dieses Skript verdichtet und wertet. Die Beleglage, einschließlich der Gegenargumente zu jeder These dieses Features, steht im Dossier.
