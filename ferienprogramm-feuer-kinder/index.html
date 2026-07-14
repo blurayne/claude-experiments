@@ -33,6 +33,10 @@
     --gold:#C9A227;
     --rose:#E8737D;
     --green:#7BC96F;
+    --violet:#A78BFA;
+    --blue:#4FB8F0;
+    --brown:#D2916B;
+    --pink:#F472B6;
     --on-amber:#10161A;
     --shadow:none;
     --radius:4px;
@@ -54,6 +58,10 @@
     --gold:#8A6B12;
     --rose:#C23A48;
     --green:#2F8F44;
+    --violet:#6D28D9;
+    --blue:#0A6FA8;
+    --brown:#8A5A2B;
+    --pink:#B0206B;
     --on-amber:#FFFFFF;
     --shadow:0 1px 2px rgba(28,20,10,.05), 0 2px 10px rgba(28,20,10,.04);
   }
@@ -75,6 +83,10 @@
       --gold:#8A6B12;
       --rose:#C23A48;
       --green:#2F8F44;
+      --violet:#6D28D9;
+      --blue:#0A6FA8;
+      --brown:#8A5A2B;
+      --pink:#B0206B;
       --on-amber:#FFFFFF;
       --shadow:0 1px 2px rgba(28,20,10,.05), 0 2px 10px rgba(28,20,10,.04);
     }
@@ -98,11 +110,25 @@
 
   /* ---------- Header ---------- */
   header{border-bottom:1px solid var(--line);padding:36px 0 0;background:linear-gradient(180deg,var(--bg-2),var(--bg))}
-  .eyebrow-row{display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .eyebrow-row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
   .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+  .controls-row{display:flex;align-items:center;gap:10px;flex:0 0 auto}
   h1{font-size:clamp(28px,4.4vw,44px);font-weight:700;letter-spacing:-.02em;margin:10px 0 6px}
   h1 em{font-style:normal;color:var(--teal)}
   .sub{color:var(--muted);max-width:66ch;font-size:15px;margin:0 0 22px}
+
+  /* ---------- Standort-Umschalter ---------- */
+  .loc-switch{
+    display:flex;border:1px solid var(--line);border-radius:999px;background:var(--panel);
+    padding:2px;box-shadow:var(--shadow);
+  }
+  .loc-switch button{
+    font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.04em;
+    background:transparent;border:none;color:var(--muted);
+    padding:6px 12px;border-radius:999px;cursor:pointer;transition:.15s;
+  }
+  .loc-switch button:hover{color:var(--ink)}
+  .loc-switch button[aria-pressed="true"]{background:color-mix(in srgb, var(--teal) 14%, transparent);color:var(--teal);font-weight:600}
 
   /* ---------- Theme-Toggle ---------- */
   .theme-toggle{
@@ -153,6 +179,15 @@
   .reset{margin-left:auto;background:none;border:none;color:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:11px;cursor:pointer;text-decoration:underline}
   .reset:hover{color:var(--rose)}
 
+  /* ---------- Entfernungs-Slider ---------- */
+  .dist-ctrl{display:flex;align-items:center;gap:8px}
+  input[type="range"]{
+    width:130px;accent-color:var(--teal);cursor:pointer;
+  }
+  .dist-out{font-size:12px;color:var(--muted);min-width:52px;display:inline-block}
+  .tag.dist{color:var(--ink)}
+  .tag.dist.near{color:var(--teal);border-color:color-mix(in srgb, var(--teal) 35%, transparent)}
+
   /* ---------- Ergebnisleiste ---------- */
   .bar{display:flex;flex-wrap:wrap;gap:14px;align-items:baseline;margin-bottom:14px}
   .count{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted)}
@@ -174,6 +209,10 @@
   .c-sport{color:var(--amber)} .c-sport .dot{background:var(--amber)}
   .c-kreativ{color:var(--gold)} .c-kreativ .dot{background:var(--gold)}
   .c-natur{color:var(--green)} .c-natur .dot{background:var(--green)}
+  .c-forschen{color:var(--violet)} .c-forschen .dot{background:var(--violet)}
+  .c-wasser{color:var(--blue)} .c-wasser .dot{background:var(--blue)}
+  .c-tiere{color:var(--brown)} .c-tiere .dot{background:var(--brown)}
+  .c-sprachen{color:var(--pink)} .c-sprachen .dot{background:var(--pink)}
   .card h3{margin:0;font-size:17px;font-weight:500;letter-spacing:-.01em;line-height:1.3;padding-right:34px}
   .prov{font-size:13px;color:var(--muted);margin:-4px 0 0}
   .meta{display:flex;flex-wrap:wrap;gap:6px}
@@ -224,7 +263,7 @@
 
   @media print{
     body{background:#fff;color:#000}
-    .filters,.grid-weeks,.tray,.pick,.theme-toggle,section.sources{display:none}
+    .filters,.grid-weeks,.tray,.pick,.theme-toggle,.loc-switch,section.sources{display:none}
     .card{break-inside:avoid;border:1px solid #999;background:#fff;color:#000}
     .card:not(.picked){display:none}
   }
@@ -243,13 +282,19 @@
   <div class="wrap">
     <div class="eyebrow-row">
       <div class="eyebrow">Sommerferien Bayern · 3. August – 14. September 2026</div>
-      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Hell-/Dunkelmodus umschalten" aria-pressed="false" title="Hell-/Dunkelmodus umschalten">
-        <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
-        <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z"/></svg>
-      </button>
+      <div class="controls-row">
+        <div class="loc-switch" id="locSwitch" role="group" aria-label="Standort wählen">
+          <button type="button" data-loc="muc" aria-pressed="true">München (81373)</button>
+          <button type="button" data-loc="lam" aria-pressed="false">Lam (93462)</button>
+        </div>
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="Hell-/Dunkelmodus umschalten" aria-pressed="false" title="Hell-/Dunkelmodus umschalten">
+          <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+          <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z"/></svg>
+        </button>
+      </div>
     </div>
-    <h1>Ferien-Kompass <em>Sendling</em></h1>
-    <p class="sub">Kurse, Camps und offene Angebote im Umkreis von 81373 München – nach Aktivität filterbar, Auswahl zum Mitnehmen. Woche antippen zum Filtern.</p>
+    <h1 id="pageH1">Ferien-Kompass <em id="pageH1em">Sendling</em></h1>
+    <p class="sub" id="pageSub">Kurse, Camps und offene Angebote im Umkreis von 81373 München – nach Aktivität filterbar, Auswahl zum Mitnehmen. Woche antippen zum Filtern.</p>
 
     <div class="grid-weeks" id="weekGrid"></div>
 
@@ -260,7 +305,11 @@
       </div>
       <div class="frow">
         <span class="flabel">Filter</span>
-        <button class="chip" id="fNear" aria-pressed="false">◎ Sendling-nah</button>
+        <div class="dist-ctrl">
+          <label for="distRange" class="flabel" style="min-width:auto">Entfernung</label>
+          <input type="range" id="distRange" min="2" max="50" step="1" value="50">
+          <span class="mono dist-out" id="distOut">alle</span>
+        </div>
         <button class="chip amber" id="fFree" aria-pressed="false">◎ gratis / unter 60 €</button>
         <button class="chip" id="fOpen" aria-pressed="false">◎ nur freie Plätze</button>
         <label class="flabel" for="age" style="min-width:auto;margin-left:8px">Alter</label>
@@ -291,18 +340,8 @@
 </div>
 
 <section class="sources wrap">
-  <h2>Kalender & Quellen, die aktuell gepflegt werden</h2>
-  <div class="src-grid">
-    <div class="src"><h4><a href="https://muenchenmitkind.de/veranstaltungskalender/" target="_blank" rel="noopener">HIMBEER / München mit Kind</a></h4><p>Bester redaktioneller Familien-Eventkalender der Stadt. Rubriken „Kurstipps“ und „Wochenendtipps“ werden laufend aktualisiert.</p></div>
-    <div class="src"><h4><a href="https://www.feierwerk.de/ferienprogramm-fuer-kinder-und-jugendliche" target="_blank" rel="noopener">Feierwerk Ferienprogramm</a></h4><p>Tagesgenaue Liste aller Workshops inkl. Status „Ausgebucht“. Dschungelpalast liegt in deiner PLZ.</p></div>
-    <div class="src"><h4><a href="https://stadt.muenchen.de/service/info/ferienangebote/1071749/" target="_blank" rel="noopener">Ferienpass & Ferienangebote (LHM)</a></h4><p>Ferienpass, Erlebnisreisen, Ferienfreizeiten. Büro: Meindlstraße 16, 81373 – bei dir um die Ecke.</p></div>
-    <div class="src"><h4><a href="https://stadt.muenchen.de/infos/spielaktionen.html" target="_blank" rel="noopener">FreizeitSport München</a></h4><p>Feriensport-Broschüre (PDF, Stand Mai 2026) plus kostenlose Spielaktionen & Open Sports.</p></div>
-    <div class="src"><h4><a href="https://www.musenkuss-muenchen.de/" target="_blank" rel="noopener">Musenkuss München</a></h4><p>Nicht-kommerzielles Portal für kulturelle Bildung: Werkstätten, Forschen, Programmieren, Theater – gut gefiltert.</p></div>
-    <div class="src"><h4><a href="https://www.kindaling.de/programmiercamps/muenchen" target="_blank" rel="noopener">Kindaling</a></h4><p>Buchbare Kurse & Camps mit Filter nach Stadtteil und Alter. Kommerziell, aber vollständig.</p></div>
-    <div class="src"><h4><a href="https://www.kjr-m.de/themen/ferien/" target="_blank" rel="noopener">Kreisjugendring „Ferien Extra!“</a></h4><p>Sommercamps, Zirkusprojekte, Restplätze – häufig günstiger als kommerzielle Anbieter.</p></div>
-    <div class="src"><h4><a href="https://www.instagram.com/feierwerk_familie/" target="_blank" rel="noopener">@feierwerk_familie</a> · Instagram</h4><p>Restplätze und spontane Aktionen werden hier zuerst gepostet – für kurzfristige Lücken.</p></div>
-    <div class="src"><h4><a href="https://www.instagram.com/spielstadtminimuenchen/" target="_blank" rel="noopener">@spielstadtminimuenchen</a></h4><p>Live-Updates aus der Spielstadt (3.–21.8., Fröttmaning). Kostenlos, ohne Anmeldung.</p></div>
-  </div>
+  <h2 id="sourcesTitle">Kalender & Quellen, die aktuell gepflegt werden</h2>
+  <div class="src-grid" id="srcGrid"></div>
   <p class="disclaimer">
     Stand der Recherche: 14.07.2026. Preise, Termine und Restplätze ändern sich täglich – vor der Buchung immer direkt beim Anbieter prüfen.<br>
     Wochen: W1 = 3.–7.8. · W2 = 10.–14.8. · W3 = 17.–21.8. · W4 = 24.–28.8. · W5 = 31.8.–4.9. · W6 = 7.–11.9.
@@ -320,15 +359,126 @@ const WEEKS = [
 ];
 
 const CATS = {
-  mint:   {label:"Robotik & Maker", cls:"c-mint"},
-  tanz:   {label:"Tanz",            cls:"c-tanz"},
-  sport:  {label:"Sport & Bewegung",cls:"c-sport"},
-  kreativ:{label:"Kreativ & Kultur",cls:"c-kreativ"},
-  natur:  {label:"Draußen & Natur", cls:"c-natur"}
+  mint:    {label:"Robotik & Maker",         cls:"c-mint"},
+  tanz:    {label:"Tanz",                    cls:"c-tanz"},
+  sport:   {label:"Sport & Bewegung",        cls:"c-sport"},
+  kreativ: {label:"Kreativ & Kultur",        cls:"c-kreativ"},
+  natur:   {label:"Draußen & Natur",         cls:"c-natur"},
+  forschen:{label:"Forschen & Wissenschaft", cls:"c-forschen"},
+  wasser:  {label:"Wasser & Baden",          cls:"c-wasser"},
+  tiere:   {label:"Tiere & Bauernhof",       cls:"c-tiere"},
+  sprachen:{label:"Sprachen & International",cls:"c-sprachen"}
 };
 
-// weeks: 1-basiert. near: ≈ ≤20 Min von Sendling. eur: Richtpreis für die Filterlogik (0 = gratis)
-const DATA = [
+const LOCATIONS = {
+  muc: {
+    label:"München (81373)",
+    h1:"Ferien-Kompass", h1em:"Sendling",
+    sub:"Kurse, Camps und offene Angebote in und rund um München – von Sendling bis weit ins Umland, per Entfernungs-Regler eingrenzbar. Nach Aktivität filterbar, Auswahl zum Mitnehmen. Woche antippen zum Filtern.",
+    origin:{lat:48.1195, lon:11.5382},
+    title:"Ferien-Kompass · Sommerferien 2026 · München-Sendling",
+    sourcesTitle:"Kalender & Quellen, die aktuell gepflegt werden",
+    sources:[
+      {name:"HIMBEER / München mit Kind", url:"https://muenchenmitkind.de/veranstaltungskalender/", desc:"Bester redaktioneller Familien-Eventkalender der Stadt. Rubriken „Kurstipps“ und „Wochenendtipps“ werden laufend aktualisiert."},
+      {name:"Feierwerk Ferienprogramm", url:"https://www.feierwerk.de/ferienprogramm-fuer-kinder-und-jugendliche", desc:"Tagesgenaue Liste aller Workshops inkl. Status „Ausgebucht“. Dschungelpalast liegt in deiner PLZ."},
+      {name:"Ferienpass & Ferienangebote (LHM)", url:"https://stadt.muenchen.de/service/info/ferienangebote/1071749/", desc:"Ferienpass, Erlebnisreisen, Ferienfreizeiten. Büro: Meindlstraße 16, 81373 – bei dir um die Ecke."},
+      {name:"FreizeitSport München", url:"https://stadt.muenchen.de/infos/spielaktionen.html", desc:"Feriensport-Broschüre (PDF, Stand Mai 2026) plus kostenlose Spielaktionen & Open Sports."},
+      {name:"Musenkuss München", url:"https://www.musenkuss-muenchen.de/", desc:"Nicht-kommerzielles Portal für kulturelle Bildung: Werkstätten, Forschen, Programmieren, Theater – gut gefiltert."},
+      {name:"Kindaling", url:"https://www.kindaling.de/programmiercamps/muenchen", desc:"Buchbare Kurse & Camps mit Filter nach Stadtteil und Alter. Kommerziell, aber vollständig."},
+      {name:"Kreisjugendring „Ferien Extra!“", url:"https://www.kjr-m.de/themen/ferien/", desc:"Sommercamps, Zirkusprojekte, Restplätze – häufig günstiger als kommerzielle Anbieter."},
+      {name:"Deutsches Museum – Programm heute", url:"https://www.deutsches-museum.de/museumsinsel/programm", desc:"Tagesaktuelles Mitmach- und Ferienprogramm für Kinder auf der Museumsinsel und im Verkehrszentrum."},
+      {name:"veranstaltungen.muenchen.de – Ferienangebote & Familienpass", url:"https://veranstaltungen.muenchen.de/ferienangebote-familienpass/", desc:"Offizielle Übersicht der Ferienpass- und Familienpass-Aktionen der Stadt, u. a. im Tierpark Hellabrunn."},
+      {name:"Münchner Kinder- und Jugendfarm e.V.", url:"https://jugendfarm-muenchen.de/", desc:"Kostenlose, offene Bauernhof-Treffs für Kinder und Jugendliche an mehreren Standorten in München."},
+      {name:"@feierwerk_familie · Instagram", url:"https://www.instagram.com/feierwerk_familie/", desc:"Restplätze und spontane Aktionen werden hier zuerst gepostet – für kurzfristige Lücken."},
+      {name:"@spielstadtminimuenchen", url:"https://www.instagram.com/spielstadtminimuenchen/", desc:"Live-Updates aus der Spielstadt (3.–21.8., Fröttmaning). Kostenlos, ohne Anmeldung."}
+    ]
+  },
+  lam: {
+    label:"Lam (93462)",
+    h1:"Ferien-Kompass", h1em:"Lamer Winkel",
+    sub:"Ausflüge, Ferienprogramme und offene Angebote rund um 93462 Lam im Bayerischen Wald – per Entfernungs-Regler eingrenzbar, nach Aktivität filterbar, Auswahl zum Mitnehmen. Woche antippen zum Filtern.",
+    origin:{lat:49.1963, lon:13.0499},
+    title:"Ferien-Kompass · Sommerferien 2026 · Lam / Bayerischer Wald",
+    sourcesTitle:"Kalender & Quellen für den Lamer Winkel und Umgebung",
+    sources:[
+      {name:"Landkreis Cham – Ferienprogramme (Hinweise)", url:"https://www.landkreis-cham.de/gesundheit-soziales/jugend-familie/ferienprogramme-hinweise/", desc:"Übersichtsseite des Landkreises zu kommunalen Ferienprogrammen mit Link zum Ferienkalender."},
+      {name:"Ferienkalender Landkreis Cham", url:"https://www.landkreis-cham.de/ferienkalender/", desc:"Zentraler, nach Ort und Zeitraum filterbarer Veranstaltungskalender, aktiv von Juli bis September mit laufend neuen Einträgen."},
+      {name:"Kreisjugendring Cham", url:"https://kjr-cham.de/", desc:"Organisiert Ferienfreizeiten und Jugendfahrten im Landkreis Cham, Details direkt erfragen."},
+      {name:"Lamer Winkel – Kinderveranstaltungen", url:"https://www.bayerischer-wald.org/regionen/lamer-winkel/freizeit/familie/kinderveranstaltungen", desc:"Übersicht der Tourismusregion Lamer Winkel (Lam, Lohberg, Arrach) zu Kinder- und Familienangeboten."},
+      {name:"Nationalpark Bayerischer Wald – Veranstaltungen", url:"https://www.nationalpark-bayerischer-wald.bayern.de/aktuelles/veranstaltungen/index.htm", desc:"Offizieller Veranstaltungskalender des Nationalparks mit allen Führungen und Ferienprogrammen an beiden Nationalparkzentren."},
+      {name:"Marktgemeinde Lam – Aktuelles", url:"https://www.markt-lam.de/gemeindeverwaltung/aktuelles/", desc:"Amtliche Mitteilungen der Gemeinde Lam, u. a. zu Ferienbetreuung und lokalen Terminen."},
+      {name:"aktivCARD Bayerischer Wald", url:"https://www.aktivcard-bayerischer-wald.de/", desc:"Gästekarte vieler Unterkünfte in der Region mit kostenlosem Eintritt u. a. ins Osserbad Lam und den Bayerwald-Tierpark Lohberg."}
+    ]
+  }
+};
+
+// Koordinaten (WGS84, lat/lon) für Einträge ohne eigenes lat/lon-Feld, per "loc"-Text nachgeschlagen.
+const LOC_COORDS = {
+  muc: {
+    "Gollierstraße, Westend": [48.1325, 11.5443],
+    "Schwabing-Freimann": [48.1868, 11.6047],
+    "München (Standort je Woche)": [48.1372, 11.5755],
+    "Ludwigsvorstadt-Isarvorstadt": [48.1300, 11.5650],
+    "Stadion Dantestraße (Westfriedhof)": [48.1645, 11.5395],
+    "Erich-Kästner-Realschule, Moosach": [48.2095, 11.5460],
+    "Neuperlach Süd": [48.0965, 11.6280],
+    "Laim": [48.1350, 11.5090],
+    "Gotzinger Platz 1a, Sendling": [48.1225, 11.5430],
+    "DAV Kletterzentrum Süd, Thalkirchen": [48.0975, 11.5445],
+    "Kletterzentrum Süd, Thalkirchen": [48.0975, 11.5445],
+    "Häberlstraße (Goetheplatz) · Werdenfelsstr. · Bootshaus Thalkirchen": [48.1275, 11.5620],
+    "Berg am Laim · Freiham · Milbertshofen": [48.1230, 11.6230],
+    "München (zentrale Sporthallen)": [48.1372, 11.5755],
+    "Grasweg 67a (Bus 63, Siegenburger Str.)": [48.1090, 11.5160],
+    "Heiglhofstraße (U6 Großhadern)": [48.1075, 11.4700],
+    "Grundschule Lerchenauer Str., Feldmoching": [48.1980, 11.5460],
+    "TSV Nymphenburg, Stievestraße": [48.1580, 11.5020],
+    "Sporthalle Auenstraße 19, Isarvorstadt": [48.1235, 11.5665],
+    "Daglfing (S8)": [48.1640, 11.6330],
+    "Dirtpark Allach": [48.1980, 11.4550],
+    "Dachauer Straße 110c": [48.1548, 11.5432],
+    "Skatepark Freiham": [48.1150, 11.4050],
+    "Föhringer Ring 5": [48.1810, 11.6100],
+    "München": [48.1372, 11.5755],
+    "Freibad Germering": [48.1300, 11.3950],
+    "Hansastraße 41, 81373 Sendling-Westpark": [48.1210, 11.5230],
+    "Showpalast-Gelände, Fröttmaning": [48.2200, 11.6250],
+    "Tasso33, Milbertshofen u. a.": [48.1870, 11.5700],
+    "Gustav-Heinemann-Ring 19, 81739 München (Neuperlach Süd)": [48.0970, 11.6290],
+    "Wasserspielplatz Ost, Westpark": [48.1275, 11.5230],
+    "Westpark und viele Parks": [48.1250, 11.5150],
+    "online oder an Verkaufsstellen": [48.1150, 11.5350],
+    "Ausflüge ab München": [48.1372, 11.5755],
+    "Museumsinsel 1, 80538 München": [48.1299, 11.5836],
+    "Theresienhöhe 14a, 80339 München": [48.1300, 11.5462],
+    "Rosenheimer Str. 145h, 81671 München": [48.1180, 11.6150],
+    "Tierparkstraße 30, 81543 München (Thalkirchen)": [48.0969, 11.5477],
+    "Kinder- und Jugendfarm Neuaubing, München-Aubing": [48.1520, 11.4180],
+    "Unterleiten 36, 83623 Dietramszell": [47.9050, 11.6500],
+    "Südbad, Valleystraße 37, 81371 München-Sendling": [48.1150, 11.5460],
+    "Bootsverleih Olympiapark, Spiridon-Louis-Ring, 80809 München": [48.1755, 11.5490],
+    "Münchner Bank Bootshaus, nahe Tierpark Hellabrunn, München-Thalkirchen": [48.0990, 11.5430],
+    "Burg Schwaneck, Pullach im Isartal": [48.0470, 11.5150],
+    "Ammersee bzw. Chiemsee, ca. 1 Std. von München": [47.9997, 11.1691]
+  },
+  lam: {
+    "Osserbad, 93462 Lam": [49.1930, 13.0480],
+    "Drachensee-Freibad, 93437 Furth im Wald": [49.2960, 12.8500],
+    "Lohberg (Ortsteil, ca. 5 km von Lam)": [49.1710, 13.1280],
+    "Dorfstr. 8, 93470 Lohberg": [49.1850, 13.0850],
+    "Treffpunkt Tourist-Info Lam": [49.1965, 13.0500],
+    "Nationalparkzentrum Falkenstein, Ludwigsthal (Gem. Lindberg)": [49.0648, 13.2306],
+    "Nationalparkzentrum Falkenstein, Ludwigsthal": [49.0648, 13.2306],
+    "Start meist Viechtach / Teisnach, Region Regen": [49.0790, 12.8860],
+    "Geißkopf, 94255 Bischofsmais": [48.9650, 13.1400],
+    "Bad Kötzting, ca. 16 km von Lam": [49.1700, 12.8600],
+    "Zwiesel und Umgebung (Großer Arber)": [49.0180, 13.2280],
+    "Altenstadter Straße 7a, 93413 Cham": [49.2200, 12.6650]
+  }
+};
+
+// weeks: 1-basiert. near: legacy/grobe Einordnung, ersetzt durch den Entfernungs-Regler (siehe LOC_COORDS/lat/lon). eur: Richtpreis für die Filterlogik (0 = gratis)
+const DATA_MUC = [
 /* ---------- ROBOTIK & MAKER ---------- */
 {cat:"mint", t:"Robotik-Schnupperkurs Programmieren", p:"FabLab Kids", loc:"Gollierstraße, Westend", near:true, a:[5,8], w:[1], price:"Tageskurs · Ferienpass-Rabatt", eur:45, when:"Di 4.8., 10:00", url:"https://www.fablabkids.de/allgemein/kinderkurse-ferien-mint-muenchen-sommer-2026/", note:"Erster Kontakt mit Robotern und Blockprogrammierung. Kleine Gruppe."},
 {cat:"mint", t:"Robotik – LEGO WeDo", p:"FabLab Kids", loc:"Gollierstraße, Westend", near:true, a:[7,12], w:[1], price:"Tageskurs", eur:45, when:"Di 4.8., 14:00", url:"https://www.fablabkids.de/allgemein/kinderkurse-ferien-mint-muenchen-sommer-2026/", note:"Bauen und programmieren mit LEGO WeDo – der klassische Einstieg."},
@@ -379,46 +529,106 @@ const DATA = [
 {cat:"kreativ", t:"Radio-Intensiv-Workshop (2 Tage)", p:"Feierwerk Südpolstation", loc:"Neuperlach Süd", near:false, a:[8,14], w:[3,4,5,6], price:"Feierwerk-Tarif", eur:20, when:"mehrere Termine ab 20.8.", url:"https://www.feierwerk.de/ferienprogramm-fuer-kinder-und-jugendliche", note:"Läuft in vier Ferienwochen – gute Chance auf einen freien Platz."},
 {cat:"kreativ", t:"Zirkus aus dem Koffer", p:"Feierwerk Funkstation", loc:"Schwabing-Freimann", near:false, a:[6,12], w:[6], price:"Feierwerk-Tarif", eur:25, when:"10.–12.9., nachmittags", url:"https://www.feierwerk.de/ferienprogramm-fuer-kinder-und-jugendliche", note:"Drei Tage Manegenluft am Ende der Ferien."},
 {cat:"kreativ", t:"Ferien Extra! – Sommercamp & Zirkusprojekt", p:"Kreisjugendring München-Stadt", loc:"Tasso33, Milbertshofen u. a.", near:false, a:[7,13], w:[1,2], price:"KJR-Tarif (sozial gestaffelt)", eur:80, when:"Zirkus 3.–7.8. · Sommercamp 10.–14.8.", url:"https://www.kjr-m.de/themen/ferien/", note:"100 Kinder schnuppern Zirkusluft. Der KJR meldet regelmäßig freie Restplätze."},
+{cat:"kreativ", t:"mix your beat! – DJ-Workshop für Kinder", p:"Feierwerk Südpolstation", loc:"Gustav-Heinemann-Ring 19, 81739 München (Neuperlach Süd)", near:false, a:[8,12], w:[1], price:"ca. 10 €", eur:10, when:"4.8.2026, Anmeldeschluss 28.7.2026", url:"https://www.feierwerk.de/kinder-jugend-familieneinrichtungen/suedpolstation/programm/gesamt", note:"Mixen, Scratchen und Effekte ausprobieren – ein niedrigschwelliger Ferienworkshop der Feierwerk-Jugendarbeit, Anmeldung erforderlich."},
 
 /* ---------- DRAUSSEN & NATUR / KOSTENLOS ---------- */
 {cat:"natur", t:"Sommerferienprogramm im Westpark", p:"Feierwerk Dschungelpalast", loc:"Wasserspielplatz Ost, Westpark", near:true, a:[3,14], w:[3,4], price:"kostenlos", eur:0, when:"17.–28.8.", url:"https://www.feierwerk.de/kinder-jugend-familieneinrichtungen/dschungelpalast/programm/gesamt/dv/sommerferienprogramm-im-westpark-am-wasserspielplatz-ost", note:"Offenes Spiel- und Bastelprogramm im Park, keine Anmeldung. Für die zwei Wochen, in denen viele Kurse Pause machen."},
 {cat:"natur", t:"Spielaktionen & Open Sports", p:"FreizeitSport der Stadt München", loc:"Westpark und viele Parks", near:true, a:[5,17], w:[1,2,3,4,5,6], price:"kostenlos", eur:0, when:"bei gutem Wetter, laufend", url:"https://stadt.muenchen.de/infos/spielaktionen.html", note:"Einfach hingehen. Die Spielnachmittage im Westpark sind barrierefrei zugänglich."},
 {cat:"natur", t:"Münchner Ferienpass 2025/26", p:"Stadtjugendamt (Meindlstraße 16, 81373)", loc:"online oder an Verkaufsstellen", near:true, a:[6,17], w:[1,2,3,4,5,6], price:"14 € (6–14 J.) · 10 € (15–17 J.)", eur:14, when:"gültig bis Ende der Sommerferien", url:"https://stadt.muenchen.de/service/info/ferienangebote/1071749/", note:"Zuerst kaufen, dann buchen: freie Fahrt im MVV (Zonen M–6) die ganzen Sommerferien, freier Eintritt in die Freibäder und ermäßigte Kurspreise – u. a. bei FabLab Kids, HIGH FIVE, Lacrosse und Voltigieren. Foto nicht vergessen. Das Amt sitzt in deiner PLZ."},
-{cat:"natur", t:"Bachbettbegehung Finzbachklamm · Isar-Rafting · Flusswanderung Würm", p:"Feierwerk Boom / Funkstation", loc:"Ausflüge ab München", near:false, a:[10,15], w:[1,5,6], price:"Feierwerk-Tarif", eur:35, when:"4.8. · 7.8. (ausgebucht) · 10.9.", url:"https://www.feierwerk.de/ferienprogramm-fuer-kinder-und-jugendliche", note:"Die Wasser-Ausflüge sind schnell weg. Für ältere Kinder ab 10."}
+{cat:"natur", t:"Bachbettbegehung Finzbachklamm · Isar-Rafting · Flusswanderung Würm", p:"Feierwerk Boom / Funkstation", loc:"Ausflüge ab München", near:false, a:[10,15], w:[1,5,6], price:"Feierwerk-Tarif", eur:35, when:"4.8. · 7.8. (ausgebucht) · 10.9.", url:"https://www.feierwerk.de/ferienprogramm-fuer-kinder-und-jugendliche", note:"Die Wasser-Ausflüge sind schnell weg. Für ältere Kinder ab 10."},
+
+/* ---------- FORSCHEN & WISSENSCHAFT ---------- */
+{cat:"forschen", t:"Mitmachprogramm für 3- bis 8-Jährige im Kinderreich", p:"Deutsches Museum", loc:"Museumsinsel 1, 80538 München", near:false, a:[3,8], w:[], price:"Museumseintritt: Kind 9 € / Familie 33 €", eur:9, when:"täglich Mo–Fr, Tagesprogramm ab ca. 9:20 Uhr online, Kinderreich 9–16:30 Uhr", url:"https://www.deutsches-museum.de/museumsinsel/programm/programm-heute/mitmachprogramm-fuer-kinder-von-3-bis-8-jahren", note:"Jeden Tag ein anderes Ausprobier- oder Bastelthema im Kinderreich – ohne Anmeldung, ideal als spontaner Ferientag zwischendurch."},
+{cat:"forschen", t:"Kinderbereich im Verkehrszentrum – bauen, malen, ausprobieren", p:"Deutsches Museum Verkehrszentrum", loc:"Theresienhöhe 14a, 80339 München", near:true, a:[4,10], w:[], price:"Tagesticket 9 € / ermäßigt 6 €, Kinder bis 5 frei", eur:9, when:"täglich während der Öffnungszeiten, freies Spiel in Halle III", url:"https://www.deutsches-museum.de/verkehrszentrum/ausstellungen/kinderbereich", note:"Nur einen Katzensprung von Sendling entfernt: Zwischen historischen Zügen und Autos gibt es einen eigenen Kinderbereich zum Bauen und Ausprobieren, im Eintritt inbegriffen."},
+{cat:"forschen", t:"Kinderplanetarium: Die Abenteuer von Rosetta und Philae", p:"Bayerische Volkssternwarte München e.V.", loc:"Rosenheimer Str. 145h, 81671 München", near:false, a:[6,11], w:[1,2,3,4,5,6], price:"Familienkarte ab 15 € (2 Pers.)", eur:15, when:"montags 17 Uhr, durchgehend Mai–Oktober 2026, Voranmeldung nötig", url:"https://sternwarte-muenchen.de/kinderplanetarium/", note:"Kleine Kuppel, große Wirkung: eine kindgerechte Show über die Kometenmission Rosetta, jeden Ferienmontag im Programm."},
+
+/* ---------- TIERE & BAUERNHOF ---------- */
+{cat:"tiere", t:"Exklusive Ferienpass-Führung im Tierpark Hellabrunn", p:"Tierpark Hellabrunn / Ferienpass München", loc:"Tierparkstraße 30, 81543 München (Thalkirchen)", near:true, a:[6,12], w:[], price:"im Ferienpass enthalten (Pass ca. 9–13 €)", eur:12, when:"1,5-stündige Führung, Termine über den Ferienpass buchbar", url:"https://veranstaltungen.muenchen.de/ferienangebote-familienpass/veranstaltungen/exklusive-fuehrungen-im-tierpark-hellabrunn-ab-6-jahre/", note:"Mit Ferienpass geht's hinter die Kulissen von Hellabrunn – von Sendling aus mit der U3 in wenigen Minuten erreichbar."},
+{cat:"tiere", t:"Offener Ferienbetrieb auf der Kinder- und Jugendfarm Neuaubing", p:"Münchner Kinder- und Jugendfarm e.V.", loc:"Kinder- und Jugendfarm Neuaubing, München-Aubing", near:false, a:[6,17], w:[1,2,3,4,5,6], price:"kostenlos, keine Anmeldung", eur:0, when:"in den Sommerferien Di–Sa, unterschiedliche Öffnungszeiten je Wochentag", url:"https://jugendfarm-muenchen.de/farmen/farm-neuaubing/", note:"Ponys, Ziegen, Schafe und Kaninchen versorgen, im Garten mitarbeiten oder am Lagerfeuer chillen – spontan und gratis, aber ohne Erwachsene."},
+{cat:"tiere", t:"VOGELWUID – Falknerei-Workshop für Familien", p:"Falkenhof Paul Klima", loc:"Unterleiten 36, 83623 Dietramszell", near:false, a:[10,16], w:[], price:"45 € (Wochentag) / 60 € (Feiertag)", eur:45, when:"2 Stunden, Termine Mitte April bis Mitte Oktober 2026 online buchbar", url:"https://derfalkenhof.de/", note:"Rund 30 Minuten südlich von München am Isarhochufer: Grundlagen der Falknerei erleben und einen Greifvogel selbst auf die Faust nehmen."},
+
+/* ---------- WASSER & BADEN ---------- */
+{cat:"wasser", t:"Intensiv-Schwimmkurs für Kinder im Südbad", p:"SWM / M-Bäder München", loc:"Südbad, Valleystraße 37, 81371 München-Sendling", near:true, a:[6,14], w:[], price:"ab 133,50 € (9 x 60 Min.)", eur:134, when:"als Ferien-Intensivkurs in den Sommerferien 2026, Buchung online", url:"https://www.swm.de/baeder/schwimmkurse", note:"Das Hallenbad direkt in Sendling bietet in den Ferien verdichtete Schwimmkurse an – praktisch für alle, die den Umweg quer durch die Stadt sparen wollen."},
+{cat:"wasser", t:"SUP-Kurs für Kinder auf dem Olympiasee", p:"SAYAQ Adventures München", loc:"Bootsverleih Olympiapark, Spiridon-Louis-Ring, 80809 München", near:false, a:[8,14], w:[1,2,3,4,5,6], price:"29 € (inkl. SUP-Verleih)", eur:29, when:"60 Min., Mo/Do/So 13–14 Uhr, 1.8.–12.9.2026, Schwimmkenntnisse erforderlich", url:"https://sayaq-adventures-muenchen.com/en/sup-kurs-fuer-kinder/", note:"Erste Balanceübungen und eine kleine Runde über den Olympiasee – ein schöner Ferienvormittag auf dem Wasser mitten in der Stadt."},
+{cat:"wasser", t:"Ferienprogramm am Münchner Bank Bootshaus – Kanu, Isarwanderung, Floßbau", p:"MTV München von 1879 e.V. (Fanni.CLUB)", loc:"Münchner Bank Bootshaus, nahe Tierpark Hellabrunn, München-Thalkirchen", near:true, a:[5,13], w:[], price:"250 € / Woche (190 € für MTV-Mitglieder)", eur:250, when:"wochenweise, Mo–Fr, mehrere Termine in den Sommerferien 2026", url:"https://www.mtv-muenchen.de/Kursangebote/Ferienprogramme/", note:"Kanufahren, Isarwanderungen und Floßbau direkt am Fluss bei Thalkirchen – mit München-Pass sind Ermäßigungen möglich."},
+
+/* ---------- SPRACHEN & INTERNATIONAL ---------- */
+{cat:"sprachen", t:"Englisches Sport- & Action-Daycamp auf Burg Schwaneck", p:"English Education (Kirsten Raithel)", loc:"Burg Schwaneck, Pullach im Isartal", near:true, a:[6,14], w:[1,2], price:"475 € · 5 Tage", eur:475, when:"3.–7.8. und 10.–14.8.2026, Mo–Fr 9–16 Uhr", url:"https://www.oskar-lernt-englisch.de/daycamps/burg-schwaneck-sport-und-action-daycamp", note:"Englisch lernen am Vormittag, Isar-Floßfahrt und Sportprogramm am Nachmittag – auf der Burg direkt an der Stadtgrenze, gut mit der S7 erreichbar."},
+{cat:"sprachen", t:"Englisch-Feriencamp am Ammersee/Chiemsee", p:"FOKUS Camps", loc:"Ammersee bzw. Chiemsee, ca. 1 Std. von München", near:false, a:[8,16], w:[], price:"ab 699 € · 7 Tage (Vollpension, Übernachtung)", eur:699, when:"Termine nach bayerischem Ferienkalender in den Sommerferien 2026", url:"https://www.fokuscamps.com/englisch-camp-M%C3%BCnchen", note:"Übernachtungscamp mit Muttersprachler-Coaches für alle, die Englisch mit echtem Ferienlager-Feeling verbinden wollen."}
 ];
 
+const DATA_LAM = [
+/* ---------- WASSER & BADEN ---------- */
+{cat:"wasser", t:"Osserbad Lam – Frei- und Hallenbad", p:"Markt Lam", loc:"Osserbad, 93462 Lam", near:true, a:[0,17], w:[], price:"Erwachsene 11 €, Kinder/Jugend 7 €, Familie 18,50 €, bis 5 Jahre frei", eur:7, when:"ganze Sommerferien geöffnet, Wochentage/Sa 10–21 Uhr, So/Feiertag 10–19 Uhr", url:"https://www.bayerischer-wald.org/regionen/lamer-winkel/freizeit/wasserspass/osserbad/oeffnungszeiten-preise-1", note:"Freibad mit Rutschen, Kinderbecken und Sauna direkt im Ort – der Klassiker für heiße Ferientage in Lam selbst."},
+{cat:"wasser", t:"Drachensee-Freibad Furth im Wald", p:"Stadtwerke Furth im Wald", loc:"Drachensee-Freibad, 93437 Furth im Wald", near:false, a:[0,17], w:[], price:"Tageskarte an der Kasse (Familien-/Kinderpreise); 10er-Karte Kinder 34 €", eur:4, when:"Saison 23. Mai – 12. September 2026, Mitte Juni–Mitte Aug. täglich 9–20 Uhr", url:"https://furth.de/drachensee-freibad/", note:"Großes Freibad mit Rutsche und Liegewiese, gut 20 km von Lam – bietet fast die komplette Ferienzeit über einen Sommertag am Wasser."},
+
+/* ---------- TIERE & BAUERNHOF ---------- */
+{cat:"tiere", t:"Bayerwald-Tierpark Lohberg", p:"Bayerwald-Tierpark Lohberg", loc:"Lohberg (Ortsteil, ca. 5 km von Lam)", near:true, a:[0,16], w:[], price:"Erwachsene 6 €, Kinder (4–16) 4 €, Familientageskarte 15 €", eur:4, when:"täglich geöffnet, April–Oktober ab 9 Uhr (letzter Einlass 17 Uhr)", url:"https://www.bayerwald-tierpark.de/besucher-info/eintrittspreise", note:"Heimische Wildtiere, Abenteuerspielplatz mit Rutschturm und Wasserspielanlage – ideal für einen halben Ferientag ganz in Lams Nähe."},
+{cat:"tiere", t:"Ponyführen & Reitunterricht am Reiterhof Woferlbauer", p:"Reiterhof Woferlbauer", loc:"Dorfstr. 8, 93470 Lohberg", near:true, a:[3,16], w:[], price:"Ponyführen 10 €/halbe Std., Reitstunde/Ausritt 20–23 €", eur:10, when:"Dienstag bis Samstag, 10–12 und 14–17 Uhr", url:"https://www.reiterhof-woferlbauer.de/reiten.html", note:"Reiter- und Ferienbauernhof am Ortsrand von Lohberg: Ponyführen für die Kleinen, Reitstunden in Gruppen für Fortgeschrittene."},
+{cat:"tiere", t:"Kinderfest am Reiterhof Woferlbauer", p:"Reiterhof Woferlbauer", loc:"Dorfstr. 8, 93470 Lohberg", near:true, a:[0,12], w:[], price:"Ponyreiten, Spiele, Tombola und Essen, Details/Preise vor Ort", eur:5, when:"2025 fand es am 10. August statt; Termin 2026 laut Website noch nicht online", url:"https://veranstaltungen.erlebe.bayern/lohberg/kinderfest-am-reiterhof-woferlbauer-ef16d6c97f678427b081881f79fd38d8c.html", note:"Familienfest mit Ponyreiten und Tombola – 2026er Termin beim Reiterhof (Tel. 09943/2508) direkt erfragen, in den letzten Jahren immer im August."},
+
+/* ---------- DRAUSSEN & NATUR / KOSTENLOS ---------- */
+{cat:"natur", t:"SAGENhafter Rundweg – Familienwanderung", p:"Tourist-Information Lam / Lamer Winkel", loc:"Treffpunkt Tourist-Info Lam", near:true, a:[5,99], w:[], price:"kostenlos mit Gästekarte Lamer Winkel bzw. für Einheimische, sonst 10 € p. P.", eur:10, when:"wöchentlich Mai–September, Start 19:30 Uhr, ca. 5 km / 2,5 Std., Anmeldung bis 11 Uhr am Veranstaltungstag, min. 4 Personen", url:"https://www.bayerischer-wald.de/attraktion/sagenhafter-rundweg-im-lamer-winkel-09645c983d", note:"Leichte, sagenumwobene Abendwanderung über Hexen, Drachen und den Osserriesen – direkt ab der Tourist-Info Lam, bestens für Familien mit älteren Kindern."},
+{cat:"natur", t:"„Waldentdecker“ – Erlebnisnachmittag am Nationalparkzentrum Falkenstein", p:"Nationalpark Bayerischer Wald", loc:"Nationalparkzentrum Falkenstein, Ludwigsthal (Gem. Lindberg)", near:false, a:[5,10], w:[1,2,3,4,5,6], price:"kostenlos", eur:0, when:"jeden Donnerstag in den Sommerferien, Treffpunkt 14 Uhr am Bahntunnel/Parkplatz NPZ Falkenstein; Anmeldung bis Vortag 17 Uhr über den Führungsservice", url:"https://www.bayerischer-wald.de/service/aktuelles/sommerferienprogramm-des-nationalparks", note:"Rund 3-stündiger Streifzug durchs Waldspielgelände rund ums Haus zur Wildnis mit Spielen und Tierentdeckungen – kostenlos, aber Anmeldepflicht beim Nationalpark-Führungsservice (0800 0776650)."},
+{cat:"natur", t:"Tier-Freigelände Nationalparkzentrum Falkenstein", p:"Nationalpark Bayerischer Wald", loc:"Nationalparkzentrum Falkenstein, Ludwigsthal", near:false, a:[0,99], w:[], price:"kostenlos (geführte Sonderführungen ggf. mit Gebühr)", eur:0, when:"ganzjährig frei zugänglich, ca. 3 km Rundweg / 1,5 Std., kinderwagen- und rollstuhltauglich", url:"https://www.nationalpark-bayerischer-wald.bayern.de/besucher/einrichtungen/npz_falkenstein/index.htm", note:"Luchse, heulende Wölfe, Wildpferde und Ur-Rinder in naturnahen Gehegen zum selbst Erkunden – jederzeit möglich, kostenlos, kein Anmeldezwang."},
+{cat:"natur", t:"Familien-Kanutour auf dem Schwarzen/Weißen Regen", p:"Hölzl Kanutouren", loc:"Start meist Viechtach / Teisnach, Region Regen", near:false, a:[4,99], w:[], price:"Familientour (Kanu für 2 Erw. + 2 Kinder) 80 € pro Boot", eur:80, when:"April bis Oktober, Tour A (Familientour) ca. 2,5–4,5 Std., Strecke Viechtach–Höllensteinsee", url:"https://www.kanutouren-regen.de/tourenangebot/tour-a/", note:"Ruhige, technisch einfache Kanustrecke im sogenannten „Bayerisch Kanada“ mit stabilen Familienbooten – Einweisung inklusive, komplette Ausrüstung wird gestellt."},
+
+/* ---------- SPORT & BEWEGUNG ---------- */
+{cat:"sport", t:"Sommerrodelbahn & Bikepark Geißkopf", p:"Geißkopf Bergbahnen (Bischofsmais)", loc:"Geißkopf, 94255 Bischofsmais", near:false, a:[4,99], w:[], price:"ab 5,00 € Kinder / ab 6,50 € Erwachsene pro Fahrt (Karten für mehrere Fahrten günstiger)", eur:5, when:"Saison seit 7. April 2026 geöffnet, täglich in den Sommerferien", url:"https://geisskopf.de/sommer/preise-sommer/", note:"615 m lange Sommerrodelbahn mit selbst regulierbarem Tempo, dazu Bikepark – ein beliebter Tagesausflug am Rand des Suchradius, gut mit Bodenmais/Zwiesel kombinierbar."},
+{cat:"sport", t:"Kinderferienprogramm Bad Kötzting", p:"Stadt Bad Kötzting / Haus der Begegnung", loc:"Bad Kötzting, ca. 16 km von Lam", near:false, a:[6,13], w:[], price:"Programm meist kostengünstig, Details bei Anmeldung", eur:5, when:"2025 startete die Anmeldung am 4. Juli; Termine 2026 laut Website noch nicht veröffentlicht, Ablauf ähnlich erwartet", url:"https://bad-koetzting.de/buergerinfo/leben-und-wohnen/einrichtungen-der-stadt/haus-der-begegnung/ferienprogramm/", note:"Wandern, Sport & Spiele sowie Werkstätten mit Entdeckertouren durch die Stadt (Feuerwehr, Bücherei, Kurpark) – Anmeldung ist meist schnell ausgebucht, früh informieren lohnt sich."},
+
+/* ---------- KREATIV & KULTUR ---------- */
+{cat:"kreativ", t:"Kinderferienprogramm der Stadt Zwiesel", p:"Stadt Zwiesel / Tourist-Information Zwiesel", loc:"Zwiesel und Umgebung (Großer Arber)", near:false, a:[6,14], w:[1,2,3,4,5,6], price:"je nach Aktion unterschiedlich, Details im Programm", eur:5, when:"Juli bis September, mehrmals wöchentlich; Broschüre ab Pfingsten bei der TI Zwiesel bzw. online", url:"https://www.zwiesel.de/stadt-und-buerger/aktuelles/aktuelles-single/umfangreiches-ferienprogramm-fuer-kinder-und-jugendliche.html", note:"Glasmalen in der Glasstadt, Stadtführungen für Kinder, Hofbesuche und Familienwanderungen – ca. 35 km von Lam, das genaue 2026-Programm gibt es unter zwiesel.de/kinderprogramm."},
+{cat:"kreativ", t:"„Kreatives Walderleben“ – dreitägiges Ferienprogramm am Nationalparkzentrum Falkenstein", p:"Nationalpark Bayerischer Wald", loc:"Nationalparkzentrum Falkenstein, Ludwigsthal", near:false, a:[7,12], w:[2], price:"kostenlos", eur:0, when:"11.–13. August 2026, jeweils 10–14:30 Uhr, Treffpunkt Bahntunnel am Parkplatz", url:"https://www.bayerischer-wald.de/service/aktuelles/sommerferienprogramm-des-nationalparks", note:"Drei Tage rund um Geschichten, Musik und Bilder der Natur – ein Highlight für kreative Kinder, allerdings mit ca. 40 km Anfahrt von Lam der weiteste Ausflug in dieser Liste."},
+{cat:"kreativ", t:"Offener Jugendtreff im Jugendzentrum Cham", p:"Jugendzentrum Cham (Stadt Cham)", loc:"Altenstadter Straße 7a, 93413 Cham", near:false, a:[12,18], w:[], price:"kostenlos", eur:0, when:"offener Treff nach regulären Öffnungszeiten, Details/Ferienzeiten direkt erfragen (Tel. 09971 761981)", url:"https://www.cham.de/kultur-freizeit/jugendzentrum/angebot", note:"Cafeteria, Kicker, Billard, Tonstudio drinnen sowie Kletterturm, Beachvolleyball und Basketball draußen – ein kostenloser Anlaufpunkt für Jugendliche, die während der Ferien in Cham sind."}
+];
+
+const DATA = DATA_MUC.map(d => Object.assign({region:"muc"}, d)).concat(DATA_LAM.map(d => Object.assign({region:"lam"}, d)));
+
 /* ---------------- State ---------------- */
-const state = { cats:new Set(), weeks:new Set(), near:false, free:false, open:false, age:null, q:"", picked:new Set() };
+const state = { region:"muc", cats:new Set(), weeks:new Set(), maxDist:null, free:false, open:false, age:null, q:"", picked:new Set() };
 
 /* ---------------- Render Filter-UI ---------------- */
 const weekGrid = document.getElementById("weekGrid");
-WEEKS.forEach((w,i)=>{
-  const b=document.createElement("button");
-  b.className="wk"; b.setAttribute("aria-pressed","false");
-  const num=i+1;
-  const c=DATA.filter(d=>d.w.includes(num)).length;
-  b.innerHTML=`<span class="n">${w.n}</span><span class="d">${w.d}</span><span class="c">${c} Angebote</span>`;
-  b.addEventListener("click",()=>{
-    if(state.weeks.has(num)){state.weeks.delete(num);b.setAttribute("aria-pressed","false");}
-    else{state.weeks.add(num);b.setAttribute("aria-pressed","true");}
-    render();
-  });
-  weekGrid.appendChild(b);
-});
+const catChips = document.getElementById("catChips");
 
-const catChips=document.getElementById("catChips");
-Object.entries(CATS).forEach(([key,c])=>{
-  const b=document.createElement("button");
-  b.className="chip"; b.setAttribute("aria-pressed","false");
-  const n=DATA.filter(d=>d.cat===key).length;
-  b.textContent=`${c.label} · ${n}`;
-  b.addEventListener("click",()=>{
-    if(state.cats.has(key)){state.cats.delete(key);b.setAttribute("aria-pressed","false");}
-    else{state.cats.add(key);b.setAttribute("aria-pressed","true");}
-    render();
+function regionData(){ return DATA.filter(d=>d.region===state.region); }
+
+function buildWeekGrid(){
+  const rd=regionData();
+  weekGrid.innerHTML="";
+  WEEKS.forEach((w,i)=>{
+    const b=document.createElement("button");
+    b.className="wk"; b.setAttribute("aria-pressed", String(state.weeks.has(i+1)));
+    const num=i+1;
+    const c=rd.filter(d=>d.w.includes(num)).length;
+    b.innerHTML=`<span class="n">${w.n}</span><span class="d">${w.d}</span><span class="c">${c} Angebote</span>`;
+    b.addEventListener("click",()=>{
+      if(state.weeks.has(num)){state.weeks.delete(num);b.setAttribute("aria-pressed","false");}
+      else{state.weeks.add(num);b.setAttribute("aria-pressed","true");}
+      render();
+    });
+    weekGrid.appendChild(b);
   });
-  catChips.appendChild(b);
-});
+}
+
+function buildCatChips(){
+  const rd=regionData();
+  catChips.innerHTML="";
+  Object.entries(CATS).forEach(([key,c])=>{
+    const n=rd.filter(d=>d.cat===key).length;
+    if(!n) return;
+    const b=document.createElement("button");
+    b.className="chip"; b.setAttribute("aria-pressed", String(state.cats.has(key)));
+    b.textContent=`${c.label} · ${n}`;
+    b.addEventListener("click",()=>{
+      if(state.cats.has(key)){state.cats.delete(key);b.setAttribute("aria-pressed","false");}
+      else{state.cats.add(key);b.setAttribute("aria-pressed","true");}
+      render();
+    });
+    catChips.appendChild(b);
+  });
+}
 
 function toggleBtn(id,key){
   const el=document.getElementById(id);
@@ -428,23 +638,86 @@ function toggleBtn(id,key){
     render();
   });
 }
-toggleBtn("fNear","near"); toggleBtn("fFree","free"); toggleBtn("fOpen","open");
+toggleBtn("fFree","free"); toggleBtn("fOpen","open");
 document.getElementById("age").addEventListener("input",e=>{
   const v=parseInt(e.target.value,10); state.age=Number.isFinite(v)?v:null; render();
 });
 document.getElementById("q").addEventListener("input",e=>{ state.q=e.target.value.toLowerCase().trim(); render(); });
+
+const DIST_MAX=50;
+const distRange=document.getElementById("distRange");
+const distOut=document.getElementById("distOut");
+function syncDistOut(){ distOut.textContent = state.maxDist==null ? "alle" : `≤ ${state.maxDist} km`; }
+distRange.addEventListener("input",e=>{
+  const v=+e.target.value;
+  state.maxDist = v>=DIST_MAX ? null : v;
+  syncDistOut();
+  render();
+});
+
 document.getElementById("reset").addEventListener("click",()=>{
-  state.cats.clear(); state.weeks.clear(); state.near=state.free=state.open=false; state.age=null; state.q="";
-  document.querySelectorAll('[aria-pressed="true"]').forEach(b=>b.setAttribute("aria-pressed","false"));
+  state.cats.clear(); state.weeks.clear(); state.free=state.open=false; state.age=null; state.q=""; state.maxDist=null;
+  document.querySelectorAll('.wk[aria-pressed="true"], .chip[aria-pressed="true"]').forEach(b=>b.setAttribute("aria-pressed","false"));
   document.getElementById("age").value=""; document.getElementById("q").value="";
+  distRange.value=DIST_MAX; syncDistOut();
+  render();
+});
+
+/* ---------------- Entfernung (Haversine) ---------------- */
+function haversine(lat1,lon1,lat2,lon2){
+  const R=6371, toRad=x=>x*Math.PI/180;
+  const dLat=toRad(lat2-lat1), dLon=toRad(lon2-lon1);
+  const a=Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+function coordsOf(d){
+  if(d.lat!=null && d.lon!=null) return [d.lat, d.lon];
+  const c=LOC_COORDS[d.region] && LOC_COORDS[d.region][d.loc];
+  return c || null;
+}
+function distKm(d){
+  const c=coordsOf(d);
+  if(!c) return null;
+  const o=LOCATIONS[d.region].origin;
+  return haversine(o.lat, o.lon, c[0], c[1]);
+}
+
+/* ---------------- Standort-Umschalter ---------------- */
+function applyLocationText(){
+  const L=LOCATIONS[state.region];
+  document.title=L.title;
+  document.getElementById("pageH1em").textContent=L.h1em;
+  document.getElementById("pageSub").textContent=L.sub;
+  document.getElementById("sourcesTitle").textContent=L.sourcesTitle;
+}
+
+function renderSources(){
+  const L=LOCATIONS[state.region];
+  const grid=document.getElementById("srcGrid");
+  grid.innerHTML=L.sources.map(s=>
+    `<div class="src"><h4><a href="${s.url}" target="_blank" rel="noopener">${s.name}</a></h4><p>${s.desc}</p></div>`
+  ).join("");
+}
+
+document.getElementById("locSwitch").addEventListener("click",e=>{
+  const btn=e.target.closest("button[data-loc]");
+  if(!btn || btn.dataset.loc===state.region) return;
+  state.region=btn.dataset.loc;
+  document.querySelectorAll("#locSwitch button").forEach(b=>b.setAttribute("aria-pressed", String(b===btn)));
+  state.cats.clear(); state.weeks.clear(); state.free=state.open=false; state.age=null; state.q=""; state.maxDist=null;
+  document.getElementById("age").value=""; document.getElementById("q").value="";
+  distRange.value=DIST_MAX; syncDistOut();
+  applyLocationText();
+  buildWeekGrid(); buildCatChips(); renderSources();
   render();
 });
 
 /* ---------------- Filter + Render ---------------- */
 function match(d){
+  if(d.region!==state.region) return false;
   if(state.cats.size && !state.cats.has(d.cat)) return false;
   if(state.weeks.size && !d.w.some(w=>state.weeks.has(w))) return false;
-  if(state.near && !d.near) return false;
+  if(state.maxDist!=null){ const dist=distKm(d); if(dist==null || dist>state.maxDist) return false; }
   if(state.free && d.eur > 60) return false;
   if(state.open && d.full) return false;
   if(state.age!=null && (state.age < d.a[0] || state.age > d.a[1])) return false;
@@ -460,7 +733,7 @@ const countEl=document.getElementById("count");
 
 function render(){
   const list=DATA.filter(match);
-  countEl.innerHTML=`<b>${list.length}</b> von ${DATA.length} Angeboten${state.weeks.size?` · Woche ${[...state.weeks].sort().map(n=>"W"+n).join(", ")}`:""}`;
+  countEl.innerHTML=`<b>${list.length}</b> von ${regionData().length} Angeboten${state.weeks.size?` · Woche ${[...state.weeks].sort().map(n=>"W"+n).join(", ")}`:""}`;
   cardsEl.innerHTML="";
   if(!list.length){
     const e=document.createElement("div");
@@ -474,6 +747,8 @@ function render(){
     const c=document.createElement("article");
     c.className="card"+(state.picked.has(id)?" picked":"");
     const weekBar=WEEKS.map((_,i)=>`<span class="${d.w.includes(i+1)?"on":""}"></span>`).join("");
+    const dist=distKm(d);
+    const distTxt=dist==null?null:(dist<1?"< 1 km":Math.round(dist)+" km");
     c.innerHTML=`
       <button class="pick" aria-label="Zur Merkliste">${state.picked.has(id)?"✓":"+"}</button>
       <div class="cat ${CATS[d.cat].cls}"><span class="dot"></span>${CATS[d.cat].label}</div>
@@ -482,7 +757,7 @@ function render(){
       <div class="weeks" title="Ferienwochen">${weekBar}</div>
       <div class="meta">
         <span class="tag">${d.a[0]}–${d.a[1]} Jahre</span>
-        ${d.near?'<span class="tag near">Sendling-nah</span>':""}
+        ${distTxt?`<span class="tag dist${dist<=10?' near':''}">${distTxt}</span>`:""}
         ${d.eur===0?'<span class="tag free">kostenlos</span>':""}
         ${d.full?'<span class="tag full">ausgebucht / Warteliste</span>':""}
       </div>
@@ -524,6 +799,9 @@ document.getElementById("copy").addEventListener("click",async()=>{
   catch(e){ alert("Kopieren hat nicht geklappt. Auswahl drucken funktioniert aber."); }
 });
 
+applyLocationText();
+syncDistOut();
+buildWeekGrid(); buildCatChips(); renderSources();
 render(); renderTray();
 
 /* ---------------- Theme-Toggle ---------------- */
