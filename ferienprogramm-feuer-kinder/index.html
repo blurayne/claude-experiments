@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ferien-Kompass · Sommerferien 2026 · München-Sendling</title>
+<script>
+  (function(){
+    var stored=null;
+    try{ stored=localStorage.getItem("ferien-theme"); }catch(e){}
+    var theme=stored||(window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches?"light":"dark");
+    document.documentElement.setAttribute("data-theme",theme);
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B0F12;
+    --bg-2:#0E141A;
+    --panel:#131A20;
+    --panel-2:#182229;
+    --line:#24333C;
+    --line-strong:#33474F;
+    --ink:#E7EEF2;
+    --muted:#8AA0AC;
+    --note:#B4C4CD;
+    --track:#1E2A31;
+    --tray-bg:rgba(11,15,18,.94);
+    --teal:#2DD4BF;
+    --amber:#F5B942;
+    --gold:#C9A227;
+    --rose:#E8737D;
+    --green:#7BC96F;
+    --on-amber:#10161A;
+    --shadow:none;
+    --radius:4px;
+  }
+  :root[data-theme="light"]{
+    --bg:#F6F4EE;
+    --bg-2:#FFFFFF;
+    --panel:#FFFFFF;
+    --panel-2:#F1EEE4;
+    --line:#E3DDCE;
+    --line-strong:#CEC6B0;
+    --ink:#1C2226;
+    --muted:#6B7580;
+    --note:#4B555E;
+    --track:#E7E1D2;
+    --tray-bg:rgba(255,255,255,.92);
+    --teal:#0E7C71;
+    --amber:#B0760A;
+    --gold:#8A6B12;
+    --rose:#C23A48;
+    --green:#2F8F44;
+    --on-amber:#FFFFFF;
+    --shadow:0 1px 2px rgba(28,20,10,.05), 0 2px 10px rgba(28,20,10,.04);
+  }
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){
+      --bg:#F6F4EE;
+      --bg-2:#FFFFFF;
+      --panel:#FFFFFF;
+      --panel-2:#F1EEE4;
+      --line:#E3DDCE;
+      --line-strong:#CEC6B0;
+      --ink:#1C2226;
+      --muted:#6B7580;
+      --note:#4B555E;
+      --track:#E7E1D2;
+      --tray-bg:rgba(255,255,255,.92);
+      --teal:#0E7C71;
+      --amber:#B0760A;
+      --gold:#8A6B12;
+      --rose:#C23A48;
+      --green:#2F8F44;
+      --on-amber:#FFFFFF;
+      --shadow:0 1px 2px rgba(28,20,10,.05), 0 2px 10px rgba(28,20,10,.04);
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Space Grotesk",system-ui,sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    transition:background-color .25s ease, color .25s ease;
+  }
+  .mono{font-family:"IBM Plex Mono",monospace}
+  a{color:var(--teal);text-decoration:none;border-bottom:1px solid color-mix(in srgb, var(--teal) 30%, transparent)}
+  a:hover{border-bottom-color:var(--teal)}
+  :focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+
+  .wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+
+  /* ---------- Header ---------- */
+  header{border-bottom:1px solid var(--line);padding:36px 0 0;background:linear-gradient(180deg,var(--bg-2),var(--bg))}
+  .eyebrow-row{display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+  h1{font-size:clamp(28px,4.4vw,44px);font-weight:700;letter-spacing:-.02em;margin:10px 0 6px}
+  h1 em{font-style:normal;color:var(--teal)}
+  .sub{color:var(--muted);max-width:66ch;font-size:15px;margin:0 0 22px}
+
+  /* ---------- Theme-Toggle ---------- */
+  .theme-toggle{
+    flex:0 0 auto;width:34px;height:34px;border-radius:50%;
+    background:var(--panel);border:1px solid var(--line);color:var(--muted);
+    cursor:pointer;display:grid;place-items:center;transition:.2s;box-shadow:var(--shadow);
+  }
+  .theme-toggle:hover{border-color:var(--amber);color:var(--amber)}
+  .theme-toggle svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .theme-toggle .i-sun{display:none}
+  .theme-toggle .i-moon{display:block}
+  :root[data-theme="light"] .theme-toggle .i-sun{display:block}
+  :root[data-theme="light"] .theme-toggle .i-moon{display:none}
+
+  /* ---------- Wochenraster (Signature) ---------- */
+  .grid-weeks{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;padding-bottom:0;margin-bottom:-1px}
+  .wk{
+    background:var(--panel);border:1px solid var(--line);border-bottom:none;
+    border-radius:var(--radius) var(--radius) 0 0;
+    padding:10px 12px 12px;cursor:pointer;text-align:left;color:var(--muted);
+    font-family:"IBM Plex Mono",monospace;transition:.15s;
+  }
+  .wk:hover{background:var(--panel-2);color:var(--ink)}
+  .wk .n{display:block;font-size:11px;letter-spacing:.12em;color:var(--gold)}
+  .wk .d{display:block;font-size:13px;margin-top:3px;font-weight:500}
+  .wk .c{display:block;font-size:11px;margin-top:6px;opacity:.7}
+  .wk[aria-pressed="true"]{background:color-mix(in srgb, var(--teal) 10%, transparent);border-color:var(--teal);color:var(--ink);box-shadow:inset 0 2px 0 var(--teal)}
+  .wk[aria-pressed="true"] .n{color:var(--teal)}
+
+  /* ---------- Filterleiste ---------- */
+  .filters{background:var(--panel);border:1px solid var(--line);border-radius:0 0 var(--radius) var(--radius);padding:16px;margin-bottom:22px;box-shadow:var(--shadow)}
+  .frow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .frow + .frow{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+  .flabel{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-right:4px;min-width:74px}
+  .chip{
+    font-family:"IBM Plex Mono",monospace;font-size:12px;
+    background:transparent;border:1px solid var(--line);color:var(--muted);
+    padding:6px 11px;border-radius:999px;cursor:pointer;transition:.15s;
+  }
+  .chip:hover{border-color:var(--muted);color:var(--ink)}
+  .chip[aria-pressed="true"]{background:color-mix(in srgb, var(--teal) 12%, transparent);border-color:var(--teal);color:var(--teal)}
+  .chip.amber[aria-pressed="true"]{background:color-mix(in srgb, var(--amber) 12%, transparent);border-color:var(--amber);color:var(--amber)}
+  input[type="number"],input[type="search"]{
+    background:var(--bg);border:1px solid var(--line);color:var(--ink);
+    font-family:"IBM Plex Mono",monospace;font-size:13px;padding:7px 10px;border-radius:var(--radius);
+  }
+  input[type="search"]{min-width:220px;flex:1}
+  .reset{margin-left:auto;background:none;border:none;color:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:11px;cursor:pointer;text-decoration:underline}
+  .reset:hover{color:var(--rose)}
+
+  /* ---------- Ergebnisleiste ---------- */
+  .bar{display:flex;flex-wrap:wrap;gap:14px;align-items:baseline;margin-bottom:14px}
+  .count{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted)}
+  .count b{color:var(--ink)}
+
+  /* ---------- Karten ---------- */
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;padding-bottom:40px}
+  .card{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:16px;display:flex;flex-direction:column;gap:10px;position:relative;transition:.15s;
+    box-shadow:var(--shadow);
+  }
+  .card:hover{border-color:var(--line-strong);transform:translateY(-1px)}
+  .card.picked{border-color:var(--amber);background:linear-gradient(180deg,color-mix(in srgb, var(--amber) 6%, transparent),var(--panel))}
+  .cat{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;display:flex;gap:8px;align-items:center}
+  .dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+  .c-mint{color:var(--teal)} .c-mint .dot{background:var(--teal)}
+  .c-tanz{color:var(--rose)} .c-tanz .dot{background:var(--rose)}
+  .c-sport{color:var(--amber)} .c-sport .dot{background:var(--amber)}
+  .c-kreativ{color:var(--gold)} .c-kreativ .dot{background:var(--gold)}
+  .c-natur{color:var(--green)} .c-natur .dot{background:var(--green)}
+  .card h3{margin:0;font-size:17px;font-weight:500;letter-spacing:-.01em;line-height:1.3;padding-right:34px}
+  .prov{font-size:13px;color:var(--muted);margin:-4px 0 0}
+  .meta{display:flex;flex-wrap:wrap;gap:6px}
+  .tag{font-family:"IBM Plex Mono",monospace;font-size:11px;background:var(--panel-2);border:1px solid var(--line);color:var(--muted);padding:3px 7px;border-radius:2px}
+  .tag.near{color:var(--teal);border-color:color-mix(in srgb, var(--teal) 35%, transparent)}
+  .tag.free{color:var(--green);border-color:color-mix(in srgb, var(--green) 35%, transparent)}
+  .tag.full{color:var(--rose);border-color:color-mix(in srgb, var(--rose) 35%, transparent)}
+  .note{font-size:13px;color:var(--note);margin:0}
+  /* Wochenbalken auf der Karte */
+  .weeks{display:flex;gap:3px;margin-top:2px}
+  .weeks span{flex:1;height:5px;background:var(--track);border-radius:1px}
+  .weeks span.on{background:var(--teal)}
+  .foot{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:8px;border-top:1px dashed var(--line)}
+  .price{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--ink)}
+  .pick{
+    position:absolute;top:12px;right:12px;width:26px;height:26px;border-radius:3px;
+    background:var(--panel-2);border:1px solid var(--line);color:var(--muted);
+    cursor:pointer;font-size:15px;line-height:1;display:grid;place-items:center;transition:.15s
+  }
+  .pick:hover{border-color:var(--amber);color:var(--amber)}
+  .card.picked .pick{background:var(--amber);border-color:var(--amber);color:var(--on-amber);font-weight:700}
+
+  /* ---------- Merkliste ---------- */
+  .tray{
+    position:sticky;bottom:0;z-index:20;background:var(--tray-bg);backdrop-filter:blur(8px);
+    border-top:1px solid var(--amber);padding:12px 0;
+  }
+  .tray-in{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .tray b{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--amber);letter-spacing:.1em;text-transform:uppercase}
+  .btn{
+    font-family:"IBM Plex Mono",monospace;font-size:12px;background:transparent;border:1px solid var(--line);
+    color:var(--ink);padding:7px 12px;border-radius:var(--radius);cursor:pointer;transition:.15s
+  }
+  .btn:hover{border-color:var(--amber);color:var(--amber)}
+  .btn.primary{background:var(--amber);border-color:var(--amber);color:var(--on-amber);font-weight:600}
+  .btn.primary:hover{filter:brightness(1.1);color:var(--on-amber)}
+  #trayList{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);flex:1;min-width:200px}
+  .empty{padding:60px 20px;text-align:center;color:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:13px;border:1px dashed var(--line);border-radius:var(--radius)}
+
+  /* ---------- Quellen ---------- */
+  section.sources{border-top:1px solid var(--line);padding:34px 0 60px;margin-top:20px}
+  section.sources h2{font-size:13px;font-family:"IBM Plex Mono",monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin:0 0 16px}
+  .src-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+  .src{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:13px;box-shadow:var(--shadow)}
+  .src h4{margin:0 0 4px;font-size:14px;font-weight:500}
+  .src p{margin:0;font-size:12.5px;color:var(--muted)}
+  .disclaimer{margin-top:24px;font-size:12px;color:var(--muted);font-family:"IBM Plex Mono",monospace;line-height:1.7}
+
+  @media print{
+    body{background:#fff;color:#000}
+    .filters,.grid-weeks,.tray,.pick,.theme-toggle,section.sources{display:none}
+    .card{break-inside:avoid;border:1px solid #999;background:#fff;color:#000}
+    .card:not(.picked){display:none}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+  @media (max-width:640px){
+    .grid-weeks{grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:8px}
+    .wk{border-bottom:1px solid var(--line);border-radius:var(--radius)}
+    .filters{border-radius:var(--radius)}
+    .flabel{min-width:100%}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="eyebrow-row">
+      <div class="eyebrow">Sommerferien Bayern · 3. August – 14. September 2026</div>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Hell-/Dunkelmodus umschalten" aria-pressed="false" title="Hell-/Dunkelmodus umschalten">
+        <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z"/></svg>
+      </button>
+    </div>
+    <h1>Ferien-Kompass <em>Sendling</em></h1>
+    <p class="sub">Kurse, Camps und offene Angebote im Umkreis von 81373 München – nach Aktivität filterbar, Auswahl zum Mitnehmen. Woche antippen zum Filtern.</p>
+
+    <div class="grid-weeks" id="weekGrid"></div>
+
+    <div class="filters">
+      <div class="frow">
+        <span class="flabel">Aktivität</span>
+        <div id="catChips" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+      </div>
+      <div class="frow">
+        <span class="flabel">Filter</span>
+        <button class="chip" id="fNear" aria-pressed="false">◎ Sendling-nah</button>
+        <button class="chip amber" id="fFree" aria-pressed="false">◎ gratis / unter 60 €</button>
+        <button class="chip" id="fOpen" aria-pressed="false">◎ nur freie Plätze</button>
+        <label class="flabel" for="age" style="min-width:auto;margin-left:8px">Alter</label>
+        <input type="number" id="age" min="3" max="18" placeholder="z. B. 9" style="width:88px">
+        <input type="search" id="q" placeholder="Suchen: Roboter, Skate, Tanz …">
+        <button class="reset" id="reset">alles zurücksetzen</button>
+      </div>
+    </div>
+
+    <div class="bar">
+      <span class="count" id="count"></span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="cards" id="cards"></div>
+</main>
+
+<div class="tray">
+  <div class="wrap tray-in">
+    <b>Merkliste <span id="trayCount">0</span></b>
+    <span id="trayList">Noch nichts ausgewählt – tippe auf das + einer Karte.</span>
+    <button class="btn" id="clear">leeren</button>
+    <button class="btn" id="copy">als Text kopieren</button>
+    <button class="btn primary" id="print">Auswahl drucken</button>
+  </div>
+</div>
+
+<section class="sources wrap">
+  <h2>Kalender & Quellen, die aktuell gepflegt werden</h2>
+  <div class="src-grid">
+    <div class="src"><h4><a href="https://muenchenmitkind.de/veranstaltungskalender/" target="_blank" rel="noopener">HIMBEER / München mit Kind</a></h4><p>Bester redaktioneller Familien-Eventkalender der Stadt. Rubriken „Kurstipps“ und „Wochenendtipps“ werden laufend aktualisiert.</p></div>
+    <div class="src"><h4><a href="https://www.feierwerk.de/ferienprogramm-fuer-kinder-und-jugendliche" target="_blank" rel="noopener">Feierwerk Ferienprogramm</a></h4><p>Tagesgenaue Liste aller Workshops inkl. Status „Ausgebucht“. Dschungelpalast liegt in deiner PLZ.</p></div>
+    <div class="src"><h4><a href="https://stadt.muenchen.de/service/info/ferienangebote/1071749/" target="_blank" rel="noopener">Ferienpass & Ferienangebote (LHM)</a></h4><p>Ferienpass, Erlebnisreisen, Ferienfreizeiten. Büro: Meindlstraße 16, 81373 – bei dir um die Ecke.</p></div>
+    <div class="src"><h4><a href="https://stadt.muenchen.de/infos/spielaktionen.html" target="_blank" rel="noopener">FreizeitSport München</a></h4><p>Feriensport-Broschüre (PDF, Stand Mai 2026) plus kostenlose Spielaktionen & Open Sports.</p></div>
+    <div class="src"><h4><a href="https://www.musenkuss-muenchen.de/" target="_blank" rel="noopener">Musenkuss München</a></h4><p>Nicht-kommerzielles Portal für kulturelle Bildung: Werkstätten, Forschen, Programmieren, Theater – gut gefiltert.</p></div>
+    <div class="src"><h4><a href="https://www.kindaling.de/programmiercamps/muenchen" target="_blank" rel="noopener">Kindaling</a></h4><p>Buchbare Kurse & Camps mit Filter nach Stadtteil und Alter. Kommerziell, aber vollständig.</p></div>
+    <div class="src"><h4><a href="https://www.kjr-m.de/themen/ferien/" target="_blank" rel="noopener">Kreisjugendring „Ferien Extra!“</a></h4><p>Sommercamps, Zirkusprojekte, Restplätze – häufig günstiger als kommerzielle Anbieter.</p></div>
+    <div class="src"><h4><a href="https://www.instagram.com/feierwerk_familie/" target="_blank" rel="noopener">@feierwerk_familie</a> · Instagram</h4><p>Restplätze und spontane Aktionen werden hier zuerst gepostet – für kurzfristige Lücken.</p></div>
+    <div class="src"><h4><a href="https://www.instagram.com/spielstadtminimuenchen/" target="_blank" rel="noopener">@spielstadtminimuenchen</a></h4><p>Live-Updates aus der Spielstadt (3.–21.8., Fröttmaning). Kostenlos, ohne Anmeldung.</p></div>
+  </div>
+  <p class="disclaimer">
+    Stand der Recherche: 14.07.2026. Preise, Termine und Restplätze ändern sich täglich – vor der Buchung immer direkt beim Anbieter prüfen.<br>
+    Wochen: W1 = 3.–7.8. · W2 = 10.–14.8. · W3 = 17.–21.8. · W4 = 24.–28.8. · W5 = 31.8.–4.9. · W6 = 7.–11.9.
+  </p>
+</section>
+
+<script>
+const WEEKS = [
+  {n:"W1", d:"3.–7.8."},
+  {n:"W2", d:"10.–14.8."},
+  {n:"W3", d:"17.–21.8."},
+  {n:"W4", d:"24.–28.8."},
+  {n:"W5", d:"31.8.–4.9."},
+  {n:"W6", d:"7.–11.9."}
+];
+
+const CATS = {
+  mint:   {label:"Robotik & Maker", cls:"c-mint"},
+  tanz:   {label:"Tanz",            cls:"c-tanz"},
+  sport:  {label:"Sport & Bewegung",cls:"c-sport"},
+  kreativ:{label:"Kreativ & Kultur",cls:"c-kreativ"},
+  natur:  {label:"Draußen & Natur", cls:"c-natur"}
+};
+
+// weeks: 1-basiert. near: ≈ ≤20 Min von Sendling. eur: Richtpreis für die Filterlogik (0 = gratis)
+const DATA = [
+/* ---------- ROBOTIK & MAKER ---------- */
+{cat:"mint", t:"Robotik-Schnupperkurs Programmieren", p:"FabLab Kids", loc:"Gollierstraße, Westend", near:true, a:[5,8], w:[1], price:"Tageskurs · Ferienpass-Rabatt", eur:45, when:"Di 4.8., 10:00", url:"https://www.fablabkids.de/allgemein/kinderkurse-ferien-mint-muenchen-sommer-2026/", note:"Erster Kontakt mit Robotern und Blockprogrammierung. Kleine Gruppe."},
+{cat:"mint", t:"Robotik – LEGO WeDo", p:"FabLab Kids", loc:"Gollierstraße, Westend", near:true, a:[7,12], w:[1], price:"Tageskurs", eur:45, when:"Di 4.8., 14:00", url:"https://www.fablabkids.de/allgemein/kinderkurse-ferien-mint-muenchen-sommer-2026/", note:"Bauen und programmieren mit LEGO WeDo – der klassische Einstieg."},
+{cat:"mint", t:"Robotik – SpheroBolts", p:"FabLab Kids", loc:"Gollierstraße, Westend", near:true, a:[8,14], w:[1], price:"Tageskurs", eur:45, when:"Fr 7.8., 10:00", url:"https://www.fablabkids.de/allgemein/kinderkurse-ferien-mint-muenchen-sommer-2026/", note:"Rollende Roboterkugeln steuern, Parcours programmieren."},
+{cat:"mint", t:"maker-Ferien – eine Woche in der Hightech-Werkstatt", p:"FabLab Kids", loc:"Gollierstraße, Westend", near:true, a:[8,14], w:[3,5,6], price:"gefördert · 5 Tage", eur:120, when:"17.8. / 31.8. (Warteliste) · 7.9. frei", url:"https://www.fablabkids.de/allgemein/kinderkurse-ferien-mint-muenchen-sommer-2026/", note:"Das Highlight: 5 Tage 3D-Druck, Löten, Lasercut, Programmieren. Woche 6 ist noch buchbar."},
+{cat:"mint", t:"3D-Kids – Modellieren & 3D-Druck", p:"FabLab Kids", loc:"Gollierstraße, Westend", near:true, a:[9,14], w:[1], price:"Tageskurs", eur:45, when:"Mi 5.8., 10:00", url:"https://www.fablabkids.de/allgemein/kinderkurse-ferien-mint-muenchen-sommer-2026/", note:"Tinkercad, eigenes Modell, echter Druck zum Mitnehmen."},
+{cat:"mint", t:"3D-LED-Rainbow-Spiegel bauen", p:"FabLab Kids", loc:"Gollierstraße, Westend", near:true, a:[9,14], w:[2], price:"Tageskurs", eur:45, when:"Di 11.8., 10:00", url:"https://www.fablabkids.de/allgemein/kinderkurse-ferien-mint-muenchen-sommer-2026/", note:"Löten + LEDs + Unendlichkeitsspiegel. Sehr beliebt."},
+{cat:"mint", t:"Making & Coding für kleine Maker", p:"FabLab Kids", loc:"Gollierstraße, Westend", near:true, a:[5,7], w:[1,2], price:"Ferienpass-Preis", eur:20, when:"Mo 3.8. & Mo 10.8., 11:00", url:"https://www.fablabkids.de/allgemein/kinderkurse-ferien-mint-muenchen-sommer-2026/", note:"Günstigster MINT-Einstieg – nur mit Münchner Ferienpass."},
+{cat:"mint", t:"3D-scribbeln mit dem 3D-Stift", p:"FabLab Kids", loc:"Gollierstraße, Westend", near:true, a:[8,12], w:[], price:"Tageskurs", eur:45, when:"Sa 1.8., 10:00 (Wochenende vor Ferienstart)", url:"https://www.fablabkids.de/allgemein/kinderkurse-ferien-mint-muenchen-sommer-2026/", note:"Freihand in 3D zeichnen – kein Rechner nötig."},
+{cat:"mint", t:"Minecraft Bastel-Werkstatt", p:"FabLab Kids", loc:"Gollierstraße, Westend", near:true, a:[7,12], w:[1], price:"Tageskurs", eur:45, when:"Mo 3.8., 10:00", full:true, url:"https://www.fablabkids.de/allgemein/kinderkurse-ferien-mint-muenchen-sommer-2026/", note:"Aktuell Warteliste – nachfragen lohnt sich, es rutschen oft Plätze nach."},
+{cat:"mint", t:"Scratch-Programmierworkshop (2 Tage)", p:"Feierwerk Funkstation", loc:"Schwabing-Freimann", near:false, a:[10,12], w:[3], price:"Feierwerk-Tarif", eur:25, when:"21.–22.8.", full:true, url:"https://www.feierwerk.de/ferienprogramm-fuer-kinder-und-jugendliche", note:"Ausgebucht – Restplatzanfrage direkt bei der Funkstation möglich."},
+{cat:"mint", t:"Roboter-Feriencamp (LEGO Spike)", p:"Feriencamp Fuchs / campcheck24", loc:"München (Standort je Woche)", near:false, a:[6,10], w:[6], price:"375 € · 5 Tage", eur:375, when:"7.–11.9. · Thema Super Mario + Programmierung", url:"https://campcheck24.com/camp/roboter-feriencamp-in-muenchen/", note:"Ganztags, max. 6 Kinder pro Betreuungsperson. Weitere Termine über „Alle Termine ansehen“."},
+
+/* ---------- TANZ ---------- */
+{cat:"tanz", t:"Tanzcamp mit Abschluss-Show", p:"Dance Up! Munich", loc:"Ludwigsvorstadt-Isarvorstadt", near:true, a:[6,14], w:[5,6], price:"Ganztags-Camp", eur:250, when:"Woche 5 & 6 der Sommerferien", url:"https://www.danceupmunich.com/", note:"Verschiedene Tanzstile, Choreos, Akrobatik, dazwischen Basteln und Spielen. Freitag Aufführung für die Eltern. Der naheliegendste Tanz-Treffer."},
+{cat:"tanz", t:"Cheerleading-Workshop", p:"Munich Cowboys", loc:"Stadion Dantestraße (Westfriedhof)", near:false, a:[8,14], w:[1], price:"150 € inkl. Mittagessen", eur:150, when:"3.–7.8., 9–16 Uhr", url:"https://stadt.muenchen.de/infos/spielaktionen.html", note:"Motions, Stunts, Tumbling, kleine Abschlussshow am Freitag. Ermäßigung auf Anfrage per Mail."},
+{cat:"tanz", t:"Cheerleading-Ferienkurse (halbtags)", p:"Trampolin.Pro", loc:"Erich-Kästner-Realschule, Moosach", near:false, a:[6,14], w:[2,3,4,5], price:"Halbtagskurs", eur:159, when:"vormittags 9–12 oder nachmittags 13.30–16.30", url:"https://trampolin.pro/cheerleading-ferienkurse-muenchen/", note:"Sprünge, Motions, Tanz, Tumbling mit AirTrack und Airbag. Wochen 2 bis 5."},
+{cat:"tanz", t:"Freier Tanz mit Zirkuselementen", p:"Feierwerk Südpolstation", loc:"Neuperlach Süd", near:false, a:[8,12], w:[4], price:"günstig", eur:15, when:"Mo 24.8., 10:00", url:"https://www.feierwerk.de/ferienprogramm-fuer-kinder-und-jugendliche", note:"Ein Tag, niedrige Schwelle, viel Bewegung."},
+{cat:"tanz", t:"Breakdance & Bewegung im Wochenmix", p:"KiBeLino (ESV München)", loc:"Laim", near:false, a:[4,14], w:[1,2,5,6], price:"196 € · Förderung ab 17,50 €", eur:196, when:"7.30–16.30 Uhr, inkl. warmem Mittagessen", url:"https://ferienbetreuung.kibelino.de/angebote-anmeldung/", note:"Breakdance, Akrobatik, Parcours, Kampfsport, Graffiti, Laborexperimente – „von allem etwas“. Stark reduzierbar bei Einkommensnachweis."},
+
+/* ---------- SPORT & BEWEGUNG ---------- */
+{cat:"sport", t:"Skateboard-Ferienkurs", p:"HIGH FIVE e.V.", loc:"Gotzinger Platz 1a, Sendling", near:true, a:[8,16], w:[1,2,3,4], price:"225 € · 5 Tage (Ferienpass –3 €)", eur:225, when:"9–16 Uhr, Bringzeit ab 8.45", url:"https://wearehighfive.com/ferienkurse", note:"Der Standort Süd liegt direkt bei dir. Boards, Helme und Schoner werden gestellt. Anfänger bis Fortgeschrittene."},
+{cat:"sport", t:"Klettercamp (Ganztag)", p:"DAV Sektionen München & Oberland", loc:"DAV Kletterzentrum Süd, Thalkirchen", near:true, a:[8,12], w:[1,2], price:"255 € Mitglieder · 445 € nicht", eur:255, when:"3.–7.8. und 10.–14.8., 9–16 Uhr", url:"https://www.alpinprogramm.de/KIJU8", note:"Vorstieg, Nachstieg, Technik. Halleneintritt (~7,60 €/Tag) kommt dazu. Brotzeit mitgeben."},
+{cat:"sport", t:"Sportklettern Grund- & Aufbaukurse", p:"DAV / Alpinprogramm", loc:"Kletterzentrum Süd, Thalkirchen", near:true, a:[6,13], w:[1,2,3,5,6], price:"90 € Mitglieder · 162 € nicht", eur:90, when:"3-tägig, viele Zeitfenster", url:"https://www.alpinprogramm.de/KIJU2", note:"Sehr viele Termine über alle Ferienwochen – gute Chance auf Restplätze. Kursnummern im Feriensport-PDF."},
+{cat:"sport", t:"Fanni.CLUB – Sport, Spiel & Kreativ", p:"MTV München von 1879", loc:"Häberlstraße (Goetheplatz) · Werdenfelsstr. · Bootshaus Thalkirchen", near:true, a:[5,12], w:[1,2,3,5,6], price:"190 € Mitglieder · 250 € nicht", eur:250, when:"8–16 Uhr, Mittagessen inklusive", url:"https://www.mtv-muenchen.de/Kursangebote/Ferienprogramme/", note:"Ganztagsbetreuung mit Wahlworkshops: Klettern, Fechten, Hockey, Ultimate Frisbee, Kanu. Alle drei Standorte gut von Sendling erreichbar."},
+{cat:"sport", t:"Parkour, Trampolin, Ninja Warrior – Kids Fun", p:"FAM München e.V.", loc:"Berg am Laim · Freiham · Milbertshofen", near:false, a:[6,8], w:[1,2,3,4,5,6], price:"299 € ganztags · 189 € vormittags", eur:189, when:"8.30–16.30 oder 8.30–12.30", url:"https://parkourworkshop.com/muenchen-ferienkurse", note:"Kursauslastung in Echtzeit auf der Website – praktisch für kurzfristige Buchung."},
+{cat:"sport", t:"Parkour & Freestyle Mix", p:"FAM München e.V.", loc:"Berg am Laim · Freiham · Milbertshofen", near:false, a:[8,16], w:[1,2,3,4,5,6], price:"279 € ganztags · 189 € halbtags", eur:189, when:"ganztags, vormittags oder nachmittags", url:"https://parkourworkshop.com/muenchen-ferienkurse", note:"Gruppen nach Alter, auf Wunsch Schwerpunkte. Ausflüge zu Parkour-Spots in der Stadt (MVV-Ticket mitgeben)."},
+{cat:"sport", t:"Trampolin, Akrobatik & Tumbling", p:"Trampolin.Pro", loc:"München (zentrale Sporthallen)", near:false, a:[6,14], w:[1,2,3,4,5,6], price:"159 € halbtags · 289–319 € ganztags", eur:159, when:"9–12, 13.30–16.30 oder 8–17 Uhr", url:"https://trampolin.pro/", note:"AirTrack-Landschaft und AirBag. Mixed-Kurs: das Kind entscheidet jeden Tag neu."},
+{cat:"sport", t:"Lacrosse-Camp", p:"HLC Rot-Weiß München", loc:"Grasweg 67a (Bus 63, Siegenburger Str.)", near:true, a:[6,14], w:[1,6], price:"80 € inkl. Mittagessen (Ferienpass 70 €)", eur:80, when:"3.–5.8. und 10.–12.9., 9–15 Uhr", url:"https://rotweissmuenchen.de/", note:"Schnellster Mannschaftssport auf zwei Beinen. Schläger und Schutzausrüstung werden gestellt. Preis-Leistung top."},
+{cat:"sport", t:"MultiSportCamp", p:"TSV München-Großhadern", loc:"Heiglhofstraße (U6 Großhadern)", near:true, a:[6,10], w:[1,2,3,4,5,6], price:"220 € Mitglieder · 290 € nicht", eur:290, when:"5 Tage inkl. Mittagessen", url:"https://www.tsv-grosshadern.de/ferien-angebote", note:"Judo, Aikido, Karate, Ballspiele, LifeKinetik – plus täglicher Schach-Crashkurs. Max. 20 Kinder."},
+{cat:"sport", t:"Bogenschießen", p:"FreizeitSport München", loc:"Grundschule Lerchenauer Str., Feldmoching", near:false, a:[8,17], w:[1], price:"50 € (Ferienpass 45 €)", eur:50, when:"3.–7.8., vier Zeitfenster von 8.30 bis 17.15", url:"https://veranstaltungen.muenchen.de/rbs/feriensport/", note:"Pfeil und Bogen werden gestellt, Zahlung bar am ersten Kurstag."},
+{cat:"sport", t:"Fechten – Schnupperkurs", p:"Fechtschule München", loc:"TSV Nymphenburg, Stievestraße", near:false, a:[7,16], w:[1,6], price:"35 € (3 Tage)", eur:35, when:"3.–5.8. oder 7.–9.9., je 2 Std.", url:"mailto:a.rosenhammer@mnet-mail.de", note:"Ausrüstung wird gestellt. Anmeldung formlos per Mail, verbindlich bis 25.7. bzw. 31.8. Günstigster Kurs der Liste."},
+{cat:"sport", t:"Hobby Horsing – Parcours & Bewegung", p:"FABLEHORSE", loc:"Sporthalle Auenstraße 19, Isarvorstadt", near:true, a:[8,12], w:[2,6], price:"45 € pro Tag", eur:45, when:"11./12.8. und 10./11.9., 10–13 Uhr", url:"https://fablehorse.com/sommerferien", note:"Dressur- und Springelemente, Rhythmus, Technik. Eigenes Steckenpferd darf mit, sonst Leihpferde. Max. 16 Kinder."},
+{cat:"sport", t:"Voltigieren – rund ums Pferd", p:"RV München-Daglfing", loc:"Daglfing (S8)", near:false, a:[6,10], w:[1,2,6], price:"240 € (Ferienpass 230 €)", eur:240, when:"9–12 oder 14–17 Uhr, Mittagsbetreuung zubuchbar", url:"https://rvv-daglfing.de/schnupper-ferienkurse", note:"Füttern, Putzen, Satteln, Führen – und natürlich Reiten und Voltigieren."},
+{cat:"sport", t:"BMX- & Dirtbike-Camp", p:"Shred Dogs", loc:"Dirtpark Allach", near:false, a:[6,15], w:[1,5,6], price:"290 €", eur:290, when:"9–15 Uhr, Leihbikes buchbar", url:"https://shreddogs.de/bmx-camps", note:"Eigenes Bike, Helm und Protektoren mitbringen. Findet ab 4 Teilnehmenden statt."},
+{cat:"sport", t:"Skateboard in der Halle (SpaceForSkate)", p:"Skateschule München", loc:"Dachauer Straße 110c", near:false, a:[6,16], w:[1,2,3,4,5,6], price:"309 €", eur:309, when:"Di–Fr, 9.30–14.30 Uhr, alle 6 Wochen", url:"https://skateschulemuenchen.de/skatenlernen", note:"Wetterunabhängig – die einzige Skatehalle im Stadtzentrum. Equipment inklusive."},
+{cat:"sport", t:"Skateboard-Schnupperkurs (2 Stunden)", p:"TomCat Skate", loc:"Skatepark Freiham", near:false, a:[6,14], w:[], price:"49 €", eur:49, when:"Sa 1.8., 10–12 oder 12.30–14.30 Uhr", url:"https://tomcatskate.com", note:"Zum Reinschnuppern, bevor die Ferien starten. Profi-Boards und Schoner inklusive."},
+{cat:"sport", t:"Tennis- & Beachsport-Camp", p:"Beacharena", loc:"Föhringer Ring 5", near:false, a:[6,16], w:[1,2,3,4,6], price:"135 € halbtags · 230 € ganztags", eur:135, when:"9–13 oder 9–16 Uhr, inkl. Mittagessen", url:"https://www.beacharena.com", note:"Tennis auf Sand plus Beach-Volleyball, -Soccer, -Badminton. Nach dem Kurs täglich eine Stunde gratis weiterspielen."},
+{cat:"sport", t:"Multisport-Camp (10+ Sportarten)", p:"Kidz Multisport Camps", loc:"München", near:false, a:[5,13], w:[1,2,3,4,5,6], price:"269 € · Krankenkassen-Zuschuss möglich", eur:269, when:"7.45–17.00 Uhr, Mittagessen inklusive", url:"https://www.kidz-camps.de/camps/muenchen/", note:"Viele Kassen erstatten aus dem Präventionsbudget (teils 100 € pro Kind) – vorher nachfragen."},
+{cat:"sport", t:"Tauchen – Schnupperkurs", p:"DiveSport München", loc:"Freibad Germering", near:false, a:[8,16], w:[2], price:"50 € inkl. Eintritt", eur:50, when:"Mi 12.8., 18.30–21 Uhr", url:"https://www.divesport.de", note:"Nur 10 Plätze pro Termin. Kind muss schwimmen können, Einverständniserklärung nötig."},
+
+/* ---------- KREATIV & KULTUR ---------- */
+{cat:"kreativ", t:"Ferien im Ideenreich – Kreativprogramm", p:"Feierwerk Dschungelpalast", loc:"Hansastraße 41, 81373 Sendling-Westpark", near:true, a:[6,12], w:[1], price:"Feierwerk-Tarif", eur:30, when:"Mo–Fr 3.–7.8., ab 9 Uhr", url:"https://www.feierwerk.de/ferienprogramm-fuer-kinder-und-jugendliche", note:"Deine PLZ, dein Haus: fünf Tage Kreativwerkstatt zu Fuß erreichbar. Woche 1 der Ferien."},
+{cat:"kreativ", t:"Kinderatelier, Mosaik, Papier- & Wollzauber", p:"Feierwerk Dschungelpalast", loc:"Hansastraße 41, 81373 Sendling-Westpark", near:true, a:[6,12], w:[2], price:"Tagesworkshops", eur:20, when:"10.–14.8., jeweils 9 Uhr", url:"https://www.feierwerk.de/ferienprogramm-fuer-kinder-und-jugendliche", note:"Fünf einzeln buchbare Tage: Künstler:innen-Atelier, Mosaik, Mini-Gärtchen für die Fensterbank, Papierzauber, Wollzauber."},
+{cat:"kreativ", t:"Spielstadt Mini-München", p:"Kultur & Spielraum e.V.", loc:"Showpalast-Gelände, Fröttmaning", near:false, a:[7,15], w:[1,2,3], price:"kostenlos", eur:0, when:"3.–21.8., Mo–Fr 10–17 Uhr", url:"https://www.mini-muenchen.info/", note:"Nur alle zwei Jahre – 2026 ist wieder Jahr. Kinder arbeiten, verdienen Spielgeld, studieren, machen Politik, drehen Trickfilme. Keine Anmeldung, kein Eintritt, kommen und gehen wann man will. Ab 7 Jahren nur in der dritten Woche."},
+{cat:"kreativ", t:"Trickfilm-Workshop", p:"Feierwerk Funkstation", loc:"Schwabing-Freimann", near:false, a:[8,12], w:[4], price:"Feierwerk-Tarif", eur:20, when:"Mi 26.8., 10:00", full:true, url:"https://www.feierwerk.de/ferienprogramm-fuer-kinder-und-jugendliche", note:"Ausgebucht – Restplätze telefonisch erfragen."},
+{cat:"kreativ", t:"Podcast-Lab", p:"Feierwerk Funkstation", loc:"Schwabing-Freimann", near:false, a:[10,14], w:[5], price:"Feierwerk-Tarif", eur:20, when:"Sa 5.9., 10:00", url:"https://www.feierwerk.de/ferienprogramm-fuer-kinder-und-jugendliche", note:"Eigene Sendung konzipieren, aufnehmen, schneiden – im echten Radiostudio."},
+{cat:"kreativ", t:"Radio-Intensiv-Workshop (2 Tage)", p:"Feierwerk Südpolstation", loc:"Neuperlach Süd", near:false, a:[8,14], w:[3,4,5,6], price:"Feierwerk-Tarif", eur:20, when:"mehrere Termine ab 20.8.", url:"https://www.feierwerk.de/ferienprogramm-fuer-kinder-und-jugendliche", note:"Läuft in vier Ferienwochen – gute Chance auf einen freien Platz."},
+{cat:"kreativ", t:"Zirkus aus dem Koffer", p:"Feierwerk Funkstation", loc:"Schwabing-Freimann", near:false, a:[6,12], w:[6], price:"Feierwerk-Tarif", eur:25, when:"10.–12.9., nachmittags", url:"https://www.feierwerk.de/ferienprogramm-fuer-kinder-und-jugendliche", note:"Drei Tage Manegenluft am Ende der Ferien."},
+{cat:"kreativ", t:"Ferien Extra! – Sommercamp & Zirkusprojekt", p:"Kreisjugendring München-Stadt", loc:"Tasso33, Milbertshofen u. a.", near:false, a:[7,13], w:[1,2], price:"KJR-Tarif (sozial gestaffelt)", eur:80, when:"Zirkus 3.–7.8. · Sommercamp 10.–14.8.", url:"https://www.kjr-m.de/themen/ferien/", note:"100 Kinder schnuppern Zirkusluft. Der KJR meldet regelmäßig freie Restplätze."},
+
+/* ---------- DRAUSSEN & NATUR / KOSTENLOS ---------- */
+{cat:"natur", t:"Sommerferienprogramm im Westpark", p:"Feierwerk Dschungelpalast", loc:"Wasserspielplatz Ost, Westpark", near:true, a:[3,14], w:[3,4], price:"kostenlos", eur:0, when:"17.–28.8.", url:"https://www.feierwerk.de/kinder-jugend-familieneinrichtungen/dschungelpalast/programm/gesamt/dv/sommerferienprogramm-im-westpark-am-wasserspielplatz-ost", note:"Offenes Spiel- und Bastelprogramm im Park, keine Anmeldung. Für die zwei Wochen, in denen viele Kurse Pause machen."},
+{cat:"natur", t:"Spielaktionen & Open Sports", p:"FreizeitSport der Stadt München", loc:"Westpark und viele Parks", near:true, a:[5,17], w:[1,2,3,4,5,6], price:"kostenlos", eur:0, when:"bei gutem Wetter, laufend", url:"https://stadt.muenchen.de/infos/spielaktionen.html", note:"Einfach hingehen. Die Spielnachmittage im Westpark sind barrierefrei zugänglich."},
+{cat:"natur", t:"Münchner Ferienpass 2025/26", p:"Stadtjugendamt (Meindlstraße 16, 81373)", loc:"online oder an Verkaufsstellen", near:true, a:[6,17], w:[1,2,3,4,5,6], price:"14 € (6–14 J.) · 10 € (15–17 J.)", eur:14, when:"gültig bis Ende der Sommerferien", url:"https://stadt.muenchen.de/service/info/ferienangebote/1071749/", note:"Zuerst kaufen, dann buchen: freie Fahrt im MVV (Zonen M–6) die ganzen Sommerferien, freier Eintritt in die Freibäder und ermäßigte Kurspreise – u. a. bei FabLab Kids, HIGH FIVE, Lacrosse und Voltigieren. Foto nicht vergessen. Das Amt sitzt in deiner PLZ."},
+{cat:"natur", t:"Bachbettbegehung Finzbachklamm · Isar-Rafting · Flusswanderung Würm", p:"Feierwerk Boom / Funkstation", loc:"Ausflüge ab München", near:false, a:[10,15], w:[1,5,6], price:"Feierwerk-Tarif", eur:35, when:"4.8. · 7.8. (ausgebucht) · 10.9.", url:"https://www.feierwerk.de/ferienprogramm-fuer-kinder-und-jugendliche", note:"Die Wasser-Ausflüge sind schnell weg. Für ältere Kinder ab 10."}
+];
+
+/* ---------------- State ---------------- */
+const state = { cats:new Set(), weeks:new Set(), near:false, free:false, open:false, age:null, q:"", picked:new Set() };
+
+/* ---------------- Render Filter-UI ---------------- */
+const weekGrid = document.getElementById("weekGrid");
+WEEKS.forEach((w,i)=>{
+  const b=document.createElement("button");
+  b.className="wk"; b.setAttribute("aria-pressed","false");
+  const num=i+1;
+  const c=DATA.filter(d=>d.w.includes(num)).length;
+  b.innerHTML=`<span class="n">${w.n}</span><span class="d">${w.d}</span><span class="c">${c} Angebote</span>`;
+  b.addEventListener("click",()=>{
+    if(state.weeks.has(num)){state.weeks.delete(num);b.setAttribute("aria-pressed","false");}
+    else{state.weeks.add(num);b.setAttribute("aria-pressed","true");}
+    render();
+  });
+  weekGrid.appendChild(b);
+});
+
+const catChips=document.getElementById("catChips");
+Object.entries(CATS).forEach(([key,c])=>{
+  const b=document.createElement("button");
+  b.className="chip"; b.setAttribute("aria-pressed","false");
+  const n=DATA.filter(d=>d.cat===key).length;
+  b.textContent=`${c.label} · ${n}`;
+  b.addEventListener("click",()=>{
+    if(state.cats.has(key)){state.cats.delete(key);b.setAttribute("aria-pressed","false");}
+    else{state.cats.add(key);b.setAttribute("aria-pressed","true");}
+    render();
+  });
+  catChips.appendChild(b);
+});
+
+function toggleBtn(id,key){
+  const el=document.getElementById(id);
+  el.addEventListener("click",()=>{
+    state[key]=!state[key];
+    el.setAttribute("aria-pressed",String(state[key]));
+    render();
+  });
+}
+toggleBtn("fNear","near"); toggleBtn("fFree","free"); toggleBtn("fOpen","open");
+document.getElementById("age").addEventListener("input",e=>{
+  const v=parseInt(e.target.value,10); state.age=Number.isFinite(v)?v:null; render();
+});
+document.getElementById("q").addEventListener("input",e=>{ state.q=e.target.value.toLowerCase().trim(); render(); });
+document.getElementById("reset").addEventListener("click",()=>{
+  state.cats.clear(); state.weeks.clear(); state.near=state.free=state.open=false; state.age=null; state.q="";
+  document.querySelectorAll('[aria-pressed="true"]').forEach(b=>b.setAttribute("aria-pressed","false"));
+  document.getElementById("age").value=""; document.getElementById("q").value="";
+  render();
+});
+
+/* ---------------- Filter + Render ---------------- */
+function match(d){
+  if(state.cats.size && !state.cats.has(d.cat)) return false;
+  if(state.weeks.size && !d.w.some(w=>state.weeks.has(w))) return false;
+  if(state.near && !d.near) return false;
+  if(state.free && d.eur > 60) return false;
+  if(state.open && d.full) return false;
+  if(state.age!=null && (state.age < d.a[0] || state.age > d.a[1])) return false;
+  if(state.q){
+    const hay=(d.t+" "+d.p+" "+d.loc+" "+d.note+" "+CATS[d.cat].label).toLowerCase();
+    if(!hay.includes(state.q)) return false;
+  }
+  return true;
+}
+
+const cardsEl=document.getElementById("cards");
+const countEl=document.getElementById("count");
+
+function render(){
+  const list=DATA.filter(match);
+  countEl.innerHTML=`<b>${list.length}</b> von ${DATA.length} Angeboten${state.weeks.size?` · Woche ${[...state.weeks].sort().map(n=>"W"+n).join(", ")}`:""}`;
+  cardsEl.innerHTML="";
+  if(!list.length){
+    const e=document.createElement("div");
+    e.className="empty"; e.style.gridColumn="1/-1";
+    e.textContent="Keine Treffer. Nimm einen Filter weg – oder probier die Woche daneben.";
+    cardsEl.appendChild(e);
+    return;
+  }
+  list.forEach(d=>{
+    const id=d.t+"|"+d.p;
+    const c=document.createElement("article");
+    c.className="card"+(state.picked.has(id)?" picked":"");
+    const weekBar=WEEKS.map((_,i)=>`<span class="${d.w.includes(i+1)?"on":""}"></span>`).join("");
+    c.innerHTML=`
+      <button class="pick" aria-label="Zur Merkliste">${state.picked.has(id)?"✓":"+"}</button>
+      <div class="cat ${CATS[d.cat].cls}"><span class="dot"></span>${CATS[d.cat].label}</div>
+      <h3>${d.t}</h3>
+      <p class="prov">${d.p} · ${d.loc}</p>
+      <div class="weeks" title="Ferienwochen">${weekBar}</div>
+      <div class="meta">
+        <span class="tag">${d.a[0]}–${d.a[1]} Jahre</span>
+        ${d.near?'<span class="tag near">Sendling-nah</span>':""}
+        ${d.eur===0?'<span class="tag free">kostenlos</span>':""}
+        ${d.full?'<span class="tag full">ausgebucht / Warteliste</span>':""}
+      </div>
+      <p class="note">${d.note}</p>
+      <p class="note mono" style="font-size:12px;color:var(--muted)">${d.when}</p>
+      <div class="foot">
+        <span class="price">${d.price}</span>
+        <a href="${d.url}" target="_blank" rel="noopener" class="mono" style="font-size:12px">buchen →</a>
+      </div>`;
+    c.querySelector(".pick").addEventListener("click",()=>{
+      state.picked.has(id)?state.picked.delete(id):state.picked.add(id);
+      render(); renderTray();
+    });
+    cardsEl.appendChild(c);
+  });
+}
+
+/* ---------------- Merkliste ---------------- */
+const trayList=document.getElementById("trayList");
+const trayCount=document.getElementById("trayCount");
+function pickedItems(){ return DATA.filter(d=>state.picked.has(d.t+"|"+d.p)); }
+function renderTray(){
+  const items=pickedItems();
+  trayCount.textContent=items.length;
+  trayList.textContent = items.length ? items.map(d=>d.t).join("  ·  ")
+    : "Noch nichts ausgewählt – tippe auf das + einer Karte.";
+}
+document.getElementById("clear").addEventListener("click",()=>{state.picked.clear();render();renderTray();});
+document.getElementById("print").addEventListener("click",()=>{
+  if(!pickedItems().length){alert("Erst etwas merken, dann drucken.");return;}
+  window.print();
+});
+document.getElementById("copy").addEventListener("click",async()=>{
+  const items=pickedItems();
+  if(!items.length){alert("Erst etwas merken, dann kopieren.");return;}
+  const txt="FERIENPROGRAMM SOMMER 2026 – AUSWAHL\n\n"+items.map(d=>
+    `▸ ${d.t}\n  ${d.p} · ${d.loc}\n  ${d.a[0]}–${d.a[1]} Jahre · ${d.when}\n  ${d.price}\n  ${d.url}\n`).join("\n");
+  try{ await navigator.clipboard.writeText(txt); const b=document.getElementById("copy"); b.textContent="kopiert ✓"; setTimeout(()=>b.textContent="als Text kopieren",1600); }
+  catch(e){ alert("Kopieren hat nicht geklappt. Auswahl drucken funktioniert aber."); }
+});
+
+render(); renderTray();
+
+/* ---------------- Theme-Toggle ---------------- */
+(function(){
+  const root=document.documentElement;
+  const btn=document.getElementById("themeToggle");
+  function current(){ return root.getAttribute("data-theme")==="light" ? "light" : "dark"; }
+  function sync(){ btn.setAttribute("aria-pressed", String(current()==="light")); }
+  sync();
+  btn.addEventListener("click",()=>{
+    const next = current()==="light" ? "dark" : "light";
+    root.setAttribute("data-theme", next);
+    try{ localStorage.setItem("ferien-theme", next); }catch(e){}
+    sync();
+  });
+  if(window.matchMedia){
+    window.matchMedia("(prefers-color-scheme: light)").addEventListener("change",e=>{
+      let stored=null;
+      try{ stored=localStorage.getItem("ferien-theme"); }catch(err){}
+      if(!stored){ root.setAttribute("data-theme", e.matches?"light":"dark"); sync(); }
+    });
+  }
+})();
+</script>
+</body>
+</html>
