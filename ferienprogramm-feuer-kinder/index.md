@@ -7,18 +7,20 @@ offenen Angeboten für Kinder, umschaltbar zwischen zwei Standorten:
 
 ## Worum geht's
 
-Statt einer langen Linkliste bündelt die Seite über 100 konkrete Angebote
-(105 in München, 14 in Lam) aus mehreren Anbietern in einzelnen Karten und
+Statt einer langen Linkliste bündelt die Seite über 175 konkrete Angebote
+(162 in München, 14 in Lam) aus mehreren Anbietern in einzelnen Karten und
 lässt sie nach den Kriterien filtern, die bei der Ferienplanung wirklich
 zählen:
 
 - **Standort-Umschalter** oben im Header: München (81373) ↔ Lam (93462) —
   wechselt Titel, Angebote, Kategorien und Quellenliste.
-- **Entfernungs-Regler** (2–50 km, „alle" am rechten Anschlag): jede Karte
+- **Entfernungs-Regler** (2–100 km, „alle" am rechten Anschlag): jede Karte
   zeigt die per Luftlinie berechnete Entfernung vom jeweiligen Standort
-  (Sendling bzw. Lam) an. Für München reicht das Netz inzwischen weit ins
-  Umland — Fürstenfeldbruck, Dachau, Starnberg/Ammersee, Erding, Freising,
-  Ebersberg und die Landkreis-Gemeinden dazwischen.
+  (Sendling bzw. Lam) an. Für München reicht das Netz inzwischen bis zu
+  100 km ins Umland — von Fürstenfeldbruck, Dachau, Starnberg/Ammersee,
+  Erding, Freising und Ebersberg im Nahbereich bis raus nach Augsburg,
+  Garmisch-Partenkirchen, Bad Tölz, Rosenheim/Chiemsee, Wasserburg/
+  Mühldorf, Burghausen, Ingolstadt und Landshut im äußeren Ring.
 - **Ferienwoche** (W1–W6, antippbar im Wochenraster oben) — zeigt live, wie
   viele Angebote pro Woche verfügbar sind.
 - **Aktivität**: Robotik & Maker, Tanz, Sport & Bewegung, Kreativ & Kultur,
