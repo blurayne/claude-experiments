@@ -97,9 +97,9 @@ footer{margin-top:70px;padding-top:24px;border-top:1px solid var(--line);font-fa
   <h1>KI, Arbeit &amp; Steuern<br><span class="dim">Wer trägt die Last, wenn Maschinen mitverdienen?</span></h1>
   <p class="sub">Adversarialer Primärquellen-Vergleich zu den Arbeitsmarkteffekten generativer KI, zur Besteuerung von Arbeit vs. Kapital und zur fiskalpolitischen Strategie des IWF — mit Deutschland-Fokus, Evidenzgraden und einem illustrativen Prognosemodell.</p>
   <div class="meta">
-    <span>STAND: 2026-07-14</span>
+    <span>STAND: 2026-07-14 · aktualisiert nach Δ2-Nachrecherche</span>
     <span>SPRACHE: DE</span>
-    <span>QUELLEN: 14 (primär bevorzugt)</span>
+    <span>QUELLEN: 19 (primär bevorzugt)</span>
     <button class="toggle" onclick="toggleTheme()" id="tbtn">☀ Hell</button>
   </div>
   <div class="legend">
@@ -107,6 +107,13 @@ footer{margin-top:70px;padding-top:24px;border-top:1px solid var(--line);font-fa
     <span class="chip gB">B · Modellrechnung</span>
     <span class="chip gC">C · Experteneinschätzung</span>
     <span class="chip gD">D · Autoritätszitat / Interessenlage</span>
+  </div>
+  <div class="panel" style="margin-top:20px">
+    <h3 style="margin-top:0">Dokumente dieser Serie</h3>
+    <ul class="tight">
+      <li><b>Dieser Bericht</b> — narrativer Evidenzbericht mit adversarialen Quellen-Duellen und interaktivem Prognosemodell. Für die volle Nachvollziehbarkeit einzelner Zahlen (Erstquellen-Status, Prüfstatus, Restliste) siehe das Audit unten.</li>
+      <li><a href="../ki-arbeitsmarkt/20260714_kiarbeitsmarkt_protokollaudit.html">KI &amp; Arbeitsmarkt — Protokoll-Audit</a> — dieselbe Fragestellung, zerlegt in 17 atomare Einzelbehauptungen mit Erstquellen-Prüfung, Prüfstatus, Restliste und dreistufigem Verdikt je Hypothese (2. Nachrecherche-Passage, Δ2). Die hier aktualisierten Werte (B05, B09, B15, B16, B17 in der Zählung des Audits) stammen aus diesem Dokument.</li>
+    </ul>
   </div>
 </header>
 
@@ -135,7 +142,7 @@ footer{margin-top:70px;padding-top:24px;border-top:1px solid var(--line);font-fa
     <ul class="tight">
       <li>Das Yale Budget Lab zeigt, dass Expositions-Maße (OpenAI-basiert) und tatsächliche Nutzungsdaten (Anthropic Economic Index) nur schwach korrelieren — hoch „exponierte“ Büroberufe nutzen KI teils kaum, Entwickler dagegen massiv. Exposition allein ist ein schlechter Prädiktor.</li>
       <li>Das IAB betont für Deutschland: Hohes Substituierbarkeits­potenzial führte historisch selten zu Beschäftigungs­abbau — eher zu verlangsamtem Wachstum und veränderten Tätigkeitsprofilen.</li>
-      <li>Beschäftigung in hoch KI-exponierten Berufen wuchs in Deutschland zuletzt sogar <i>stärker</i> (+5,9 %) als in gering (+2,5 %) oder gar nicht exponierten (−1,7 %) — Exposition korreliert bislang mit Wachstum, nicht mit Abbau.</li>
+      <li>Beschäftigung in hoch KI-exponierten Berufen wuchs in Deutschland zuletzt sogar <i>stärker</i> (+5,9 %) als in gering (+2,5 %) oder gar nicht exponierten (−1,7 %) — Exposition korreliert bislang mit Wachstum, nicht mit Abbau. <span class="chip gC">C</span> Vermutliche Quelle: IAB DiWaBe 2.0, eine Querschnittsumfrage unter ca. 9.800 Beschäftigten (2024) — Umfrage-, nicht Registerdaten; die exakte Primärfundstelle ist trotz Nachrecherche nicht abschließend bestätigt.</li>
     </ul>
     <p class="note">Konsequenz für diesen Bericht: Jede Zahl trägt einen Evidenzgrad. Modellrechnungen (B) werden nie als Messdaten (A) verkauft — der häufigste rhetorische Trick in der Berichterstattung.</p>
   </div>
@@ -158,15 +165,15 @@ footer{margin-top:70px;padding-top:24px;border-top:1px solid var(--line);font-fa
 
   <figure class="panel">
     <div id="chart-iab"></div>
-    <figcaption>Links: Anteil der sv-Beschäftigten in Berufen mit hohem Substituierbarkeitspotenzial (&gt;70 % der Kerntätigkeiten automatisierbar), IAB. Rechts: Beschäftigungswachstum nach KI-Exposition — der kontraintuitive Befund. Quellen: IAB [4][5]. <span class="chip gA">A</span> Registerdaten (BA-Beschäftigtenstatistik), Klassifikation der Potenziale jedoch <span class="chip gB">B</span>.</figcaption>
+    <figcaption>Links: Anteil der sv-Beschäftigten in Berufen mit hohem Substituierbarkeitspotenzial (&gt;70 % der Kerntätigkeiten automatisierbar), IAB. Quelle: IAB Kurzbericht 5/2024 [4]. <span class="chip gA">A</span> Registerdaten (BA-Beschäftigtenstatistik), Klassifikation der Potenziale jedoch <span class="chip gB">B</span>. Rechts: Beschäftigungswachstum nach KI-Exposition — der kontraintuitive Befund. Quelle: vermutlich IAB DiWaBe 2.0 [5], nicht am Primärdokument verifiziert. <span class="chip gC">C</span> Umfragedaten (n≈9.800), keine Registerdaten — nicht altersstratifiziert.</figcaption>
   </figure>
 
   <h3>Wen es real trifft: die Berufseinsteiger-Front</h3>
-  <p>Die derzeit beste kausale Annäherung liefern Brynjolfsson/Chandar/Chen („Canaries in the Coal Mine“, Stanford Digital Economy Lab) mit ADP-Lohnabrechnungsdaten von Millionen US-Beschäftigten: In hoch exponierten Berufen sank die Beschäftigung der 22–25-Jährigen relativ um 13–16 %, während erfahrene Kollegen stabil blieben. Der Effekt konzentriert sich auf Berufe, in denen KI laut Anthropic Economic Index <b>automatisierend</b> statt augmentierend genutzt wird — und er vertieft sich: von −2,8 %/Jahr (April 2024) auf über −4 %/Jahr (bis April 2026). Der Mechanismus ist leise: Unternehmen entlassen nicht, sie <b>besetzen Einstiegsstellen nicht nach</b> — die unteren Sprossen der Karriereleiter verschwinden.</p>
+  <p>Die derzeit beste kausale Annäherung liefern Brynjolfsson/Chandar/Chen („Canaries in the Coal Mine“, Stanford Digital Economy Lab) mit ADP-Lohnabrechnungsdaten von Millionen US-Beschäftigten: In hoch exponierten Berufen sank die Beschäftigung der 22–25-Jährigen relativ um 13–16 %, während erfahrene Kollegen stabil blieben. Der Effekt konzentriert sich auf Berufe, in denen KI laut Anthropic Economic Index <b>automatisierend</b> statt augmentierend genutzt wird — und er vertieft sich: von −2,8 %/Jahr (April 2024) auf −3,8 %/Jahr, mit Tendenz über −4 %/Jahr (Stand 04–06/2026). Der Mechanismus ist leise: Unternehmen entlassen nicht, sie <b>besetzen Einstiegsstellen nicht nach</b> — die unteren Sprossen der Karriereleiter verschwinden. Ein Autoren-Robustheitscheck (02/2026) schließt den Zinszyklus explizit als Alternativerklärung aus.</p>
 
   <figure class="panel">
     <div id="chart-canaries"></div>
-    <figcaption>Relative jährliche Beschäftigungsänderung, 22–25-Jährige, USA (ADP-Payroll). Hoch KI-exponierte vs. gering exponierte Berufe. Quellen: Brynjolfsson et al. [6], Canaries-Dashboard [7]. <span class="chip gA">A</span> Payroll-Messdaten; Expositions-Zuordnung <span class="chip gB">B</span>.</figcaption>
+    <figcaption>Relative jährliche Beschäftigungsänderung, 22–25-Jährige, USA (ADP-Payroll). Hoch KI-exponierte vs. gering exponierte Berufe. Quellen: Brynjolfsson et al. [6], AI Economic Indicators / Canaries-Dashboard, seit 06/2026 als eigene Stanford-Plattform [7]. <span class="chip gA">A</span> Payroll-Messdaten; Expositions-Zuordnung <span class="chip gB">B</span>.</figcaption>
   </figure>
 
   <div class="panel panel2">
@@ -265,7 +272,8 @@ footer{margin-top:70px;padding-top:24px;border-top:1px solid var(--line);font-fa
 <section>
   <span class="secnum">05 / DEUTSCHLAND</span>
   <h2>Die deutsche Sonderlage: Sozialstaat am Lohn-Tropf</h2>
-  <p>Deutschland ist für die Lohn-vs.-Kapital-Frage der Extremfall der OECD. Laut <i>Taxing Wages 2026</i> lag der Abgabenkeil 2025 für Alleinstehende bei <b>49,3 %</b> (Platz 2 hinter Belgien; OECD-Schnitt 35,1 %), für Doppelverdiener-Familien bei 42,6 %. Kapitalerträge tragen dagegen pauschal <b>~26,4 %</b> (Abgeltungsteuer inkl. Soli). Jeder Euro Wertschöpfung, der von Lohn zu Kapitalertrag wandert, halbiert also grob seinen Beitrag zur Staatsfinanzierung — und entzieht sich der Sozialversicherung vollständig.</p>
+  <p>Deutschland ist für die Lohn-vs.-Kapital-Frage der Extremfall der OECD. Laut <i>Taxing Wages 2026</i> lag der Abgabenkeil 2025 für Alleinstehende bei <b>49,3 %</b> (Platz 2 hinter Belgien; OECD-Schnitt 35,1 %), für Zweiverdiener-Ehepaare mit zwei Kindern (100+67 % Ø-Lohn) bei 42,6 % (OECD-Schnitt für diesen Haushaltstyp: 29,8 %). Kapitalerträge tragen dagegen pauschal <b>~26,4 %</b> (Abgeltungsteuer inkl. Soli). Jeder Euro Wertschöpfung, der von Lohn zu Kapitalertrag wandert, senkt also grob seinen Beitrag zur Staatsfinanzierung — und entzieht sich der Sozialversicherung vollständig.</p>
+  <p class="note">Wichtige Einschränkung (Bundesbank, Monatsbericht 06/2024): Ein Teil des Abgabenkeils ist kein reiner Steueranteil, sondern beitragsäquivalente Rentenanwartschaft mit individuellem Gegenleistungsanspruch. Nach Herausrechnung dieses Anteils sinkt der deutsche Keil von ca. 48 % auf einen „reinen" Steueranteil von ca. 33 % — die Bundesbank selbst nennt diese Aufteilung „schematisch und stark vereinfacht", keine versicherungsmathematische Diskontierung. Der 49,3-vs-26,4-Kontrast oben überzeichnet die Belastungsdifferenz entsprechend etwas, ohne sie in der Richtung zu widerlegen.</p>
 
   <figure class="panel">
     <div id="chart-wedge"></div>
@@ -341,9 +349,9 @@ footer{margin-top:70px;padding-top:24px;border-top:1px solid var(--line);font-fa
         <td><span class="chip gB">B</span></td>
       </tr>
       <tr>
-        <td>„CEO X: Wir bauen Stellen wegen KI ab“</td>
-        <td>Nicht überprüfbare Selbstauskunft mit Anreiz zur Umetikettierung („AI-Washing“, Yale Budget Lab): KI klingt vor Investoren besser als Fehlplanung bei Zöllen, Zinsen, Nachfrage.</td>
-        <td><span class="chip gD">D</span></td>
+        <td>„KI-Layoffs explodieren: 40 % der US-Entlassungen wegen KI“ (Challenger-Daten, Mai 2026, Rekordwert)</td>
+        <td>Real und quantifiziert (7 % Januar → 40 % Mai 2026) — aber Challenger erfasst reine Selbstauskünfte der Unternehmen aus Pressemitteilungen, keine unabhängige Kausalprüfung. Sam Altman räumte 03/2026 selbst ein, praktisch jede Firma mit Entlassungen schiebe es auf KI, „ob es nun stimmt oder nicht“ — von Deutsche Bank bereits 01/2026 als Muster prognostiziert.</td>
+        <td><span class="chip gC">C</span></td>
       </tr>
       <tr>
         <td>„Studien zeigen: In Deutschland sind 1,6 Mio. Jobs betroffen / 4,5 Bio. € Potenzial“</td>
@@ -366,7 +374,7 @@ footer{margin-top:70px;padding-top:24px;border-top:1px solid var(--line);font-fa
   <div class="panel">
     <p>Die Evidenz trägt derzeit folgendes Bild: <b>Keine Jobapokalypse, aber eine begonnene Umverteilung</b> — entlang dreier Achsen: von jung zu erfahren (Einstiegsstellen), von Routine-Kognition zu Kontext-Kognition (Automatisierung vs. Augmentierung) und potenziell von Lohn zu Kapital (Verteilungsfrage). Die ersten beiden Achsen sind gemessen, die dritte ist bislang Modell — aber sie ist die fiskalisch gefährlichste, und Deutschland ist wegen seines lohnzentrierten Abgabensystems maximal exponiert.</p>
     <p>Die IWF-Strategie (Kapitalbesteuerung stärken statt KI besteuern, Sozialschutz und Skills vorfinanzieren, agil zwischen zwei Szenarien navigieren) ist die derzeit kohärenteste institutionelle Antwort — ihre Schwäche ist die Durchsetzbarkeit: Kapitaleinkommen ist mobil, Arbeit ist es nicht. Genau deshalb verweisen sowohl IWF als auch Acemoglu auf internationale Koordination als Bedingung, und genau dort ist die Erfolgsbilanz (globale Mindeststeuer) bislang gemischt.</p>
-    <p><b>Beobachtungsindikatoren für die nächsten 24 Monate:</b> (1) Kohortendaten Berufseinsteiger auch für Deutschland/EU, (2) Entwicklung der Lohnquote in KI-intensiven Branchen, (3) ob die OECD-Abgabenkeil-Rekorde politisch zu einer SV-Finanzierungsreform führen, (4) ob die „Canaries“-Rate sich weiter vertieft oder plateauiert.</p>
+    <p><b>Beobachtungsindikatoren für die nächsten 24 Monate:</b> (1) Registerdaten-Kohortenstudien für Deutschland/EU — laut Fachliteratur angekündigt, aber noch nicht veröffentlicht; bis dahin bleiben nur Umfrage-Näherungen (IAB DiWaBe 2.0) verfügbar. (2) Entwicklung der Lohnquote in KI-intensiven Branchen. (3) ob die OECD-Abgabenkeil-Rekorde politisch zu einer SV-Finanzierungsreform führen. (4) ob die „Canaries“-Rate sich weiter vertieft oder plateauiert.</p>
   </div>
 </section>
 
@@ -391,12 +399,17 @@ footer{margin-top:70px;padding-top:24px;border-top:1px solid var(--line);font-fa
       <tr><td class="srcnum">[12]</td><td>Goldman Sachs Global Investment Research (2023); McKinsey Global Institute (2023) — zitiert nach [11]</td><td>Sekundär · <span class="chip gD">D</span></td></tr>
       <tr><td class="srcnum">[13]</td><td>Atkeson, Chari, Kehoe, „Taxing Capital Income: A Bad Idea", FRB Minneapolis QR 1999 — Gegenposition, zitiert nach [10]</td><td>Primär · <span class="chip gC">C</span></td></tr>
       <tr><td class="srcnum">[14]</td><td>IMF Blog, <a href="https://www.imf.org/en/blogs/articles/2024/06/17/fiscal-policy-can-help-broaden-the-gains-of-ai-to-humanity">Fiscal Policy Can Help Broaden the Gains of AI</a>, Juni 2024</td><td>Primär (populär) · <span class="chip gC">C</span></td></tr>
+      <tr><td class="srcnum">[15]</td><td>IAB DiWaBe 2.0 (Querschnittsumfrage, n≈9.800, 2024) — vermutliche Quelle der +5,9/+2,5/−1,7-%-Werte, zitiert via jobfellow.de; nicht am IAB-Primärdokument verifiziert</td><td>Sekundär, konvergent · <span class="chip gC">C</span></td></tr>
+      <tr><td class="srcnum">[16]</td><td>Stanford Digital Economy Lab, <a href="https://digitaleconomy.stanford.edu/project/indicators/canaries-dashboard/">AI Economic Indicators / Canaries Dashboard</a> (Launch 06/2026) + <a href="https://digitaleconomy.stanford.edu/news/canaries-interest-rates-and-timinga-more-on-recent-drivers-of-employment-changes-for-young-workers/">Robustheitscheck 02/2026</a></td><td>Primär (Autoren-eigen), konvergent · <span class="chip gA">A</span></td></tr>
+      <tr><td class="srcnum">[17]</td><td>Deutsche Bundesbank, Monatsbericht Juni 2024, „Abgabenlast auf Arbeitseinkommen im internationalen Vergleich: zum Unterschied von Rentenbeitrag und Steuerzahlung" (Art.-ID 932986)</td><td>Sekundär, konvergent · <span class="chip gC">C</span></td></tr>
+      <tr><td class="srcnum">[18]</td><td>Challenger, Gray &amp; Christmas, Job Cuts Reports Jan–Jun 2026; zit. t3n.de (05–06/2026)</td><td>Sekundär, konvergent · <span class="chip gC">C</span></td></tr>
+      <tr><td class="srcnum">[19]</td><td><a href="../ki-arbeitsmarkt/20260714_kiarbeitsmarkt_protokollaudit.html">KI &amp; Arbeitsmarkt — Protokoll-Audit</a> (Companion-Dokument dieser Serie)</td><td>Volle Erstquellen-Prüfung, Prüfstatus und Restliste je Behauptung</td></tr>
     </table>
   </div>
 </section>
 
 <footer>
-  <p>OBSERVATORIUM · 2026-07-14 · Erstellt mit Claude. Limitationen: Deutsche Kohortendaten zu Berufseinsteigern fehlen bislang; die Verlagerungs-Parameter des Prognosemodells sind gesetzt, nicht geschätzt; IWF-Positionen können sich mit dem nächsten Fiscal Monitor verschieben. Zahlen gerundet, Sekundärzahlen (1,6 Mio / 4,5 Bio €) nur mit Deklassifizierungs-Vermerk verwendet.</p>
+  <p>OBSERVATORIUM · 2026-07-14, aktualisiert nach Δ2-Nachrecherche · Erstellt mit Claude. Limitationen: Registerdaten-Kohortenstudien zu Berufseinsteigern fehlen für Deutschland/EU weiterhin (Umfrage-Näherungen wie IAB DiWaBe 2.0 vorhanden, siehe [15]); die Verlagerungs-Parameter des Prognosemodells sind gesetzt, nicht geschätzt; IWF-Positionen können sich mit dem nächsten Fiscal Monitor verschieben. Die Bundesbank-Einordnung des Abgabenkeils ([17], ca. 48 %→33 %) und der Challenger-Befund zu KI-Layoffs ([18]) wurden per Websuche-Konvergenz nachrecherchiert, nicht am Primärdokument selbst — Details und vollständige Prüfstatus siehe das Protokoll-Audit [19]. Zahlen gerundet, Sekundärzahlen (1,6 Mio / 4,5 Bio €) nur mit Deklassifizierungs-Vermerk verwendet.</p>
 </footer>
 
 </div>
@@ -504,11 +517,12 @@ function drawWedge(){
   const host=document.getElementById('chart-wedge');host.innerHTML='';
   const data=[
     {l:'DE · Arbeit, Single',v:49.3,c:'--red'},
-    {l:'DE · Arbeit, Familie (2 Kinder)',v:42.6,c:'--amber'},
+    {l:'DE · Arbeit, Zweiverdiener-Familie (2 Kinder)',v:42.6,c:'--amber'},
     {l:'OECD-Schnitt · Arbeit, Single',v:35.1,c:'--blue'},
+    {l:'OECD-Schnitt · Arbeit, Zweiverdiener-Familie',v:29.8,c:'--blue'},
     {l:'DE · Kapitalertrag (Abgeltungst. + Soli)',v:26.4,c:'--teal'}
   ];
-  const W=880,H=240,pad=300,bw=32,gap=18,xs=(W-pad-100)/55;
+  const W=880,H=280,pad=300,bw=32,gap=18,xs=(W-pad-100)/55;
   const svg=el('svg',{viewBox:`0 0 ${W} ${H}`,width:'100%'});
   data.forEach((d,i)=>{
     const y=20+i*(bw+gap);
