@@ -179,6 +179,15 @@
   .reset{margin-left:auto;background:none;border:none;color:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:11px;cursor:pointer;text-decoration:underline}
   .reset:hover{color:var(--rose)}
 
+  /* ---------- Entfernungs-Slider ---------- */
+  .dist-ctrl{display:flex;align-items:center;gap:8px}
+  input[type="range"]{
+    width:130px;accent-color:var(--teal);cursor:pointer;
+  }
+  .dist-out{font-size:12px;color:var(--muted);min-width:52px;display:inline-block}
+  .tag.dist{color:var(--ink)}
+  .tag.dist.near{color:var(--teal);border-color:color-mix(in srgb, var(--teal) 35%, transparent)}
+
   /* ---------- Ergebnisleiste ---------- */
   .bar{display:flex;flex-wrap:wrap;gap:14px;align-items:baseline;margin-bottom:14px}
   .count{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted)}
@@ -296,7 +305,11 @@
       </div>
       <div class="frow">
         <span class="flabel">Filter</span>
-        <button class="chip" id="fNear" aria-pressed="false">◎ <span id="fNearLabel">Sendling-nah</span></button>
+        <div class="dist-ctrl">
+          <label for="distRange" class="flabel" style="min-width:auto">Entfernung</label>
+          <input type="range" id="distRange" min="2" max="50" step="1" value="50">
+          <span class="mono dist-out" id="distOut">alle</span>
+        </div>
         <button class="chip amber" id="fFree" aria-pressed="false">◎ gratis / unter 60 €</button>
         <button class="chip" id="fOpen" aria-pressed="false">◎ nur freie Plätze</button>
         <label class="flabel" for="age" style="min-width:auto;margin-left:8px">Alter</label>
@@ -361,8 +374,8 @@ const LOCATIONS = {
   muc: {
     label:"München (81373)",
     h1:"Ferien-Kompass", h1em:"Sendling",
-    sub:"Kurse, Camps und offene Angebote im Umkreis von 81373 München – nach Aktivität filterbar, Auswahl zum Mitnehmen. Woche antippen zum Filtern.",
-    nearLabel:"Sendling-nah",
+    sub:"Kurse, Camps und offene Angebote in und rund um München – von Sendling bis weit ins Umland, per Entfernungs-Regler eingrenzbar. Nach Aktivität filterbar, Auswahl zum Mitnehmen. Woche antippen zum Filtern.",
+    origin:{lat:48.1195, lon:11.5382},
     title:"Ferien-Kompass · Sommerferien 2026 · München-Sendling",
     sourcesTitle:"Kalender & Quellen, die aktuell gepflegt werden",
     sources:[
@@ -383,8 +396,8 @@ const LOCATIONS = {
   lam: {
     label:"Lam (93462)",
     h1:"Ferien-Kompass", h1em:"Lamer Winkel",
-    sub:"Ausflüge, Ferienprogramme und offene Angebote rund um 93462 Lam im Bayerischen Wald – nach Aktivität filterbar, Auswahl zum Mitnehmen. Woche antippen zum Filtern.",
-    nearLabel:"vor Ort",
+    sub:"Ausflüge, Ferienprogramme und offene Angebote rund um 93462 Lam im Bayerischen Wald – per Entfernungs-Regler eingrenzbar, nach Aktivität filterbar, Auswahl zum Mitnehmen. Woche antippen zum Filtern.",
+    origin:{lat:49.1963, lon:13.0499},
     title:"Ferien-Kompass · Sommerferien 2026 · Lam / Bayerischer Wald",
     sourcesTitle:"Kalender & Quellen für den Lamer Winkel und Umgebung",
     sources:[
@@ -399,7 +412,72 @@ const LOCATIONS = {
   }
 };
 
-// weeks: 1-basiert. near (München): ≈ ≤20 Min von Sendling. near (Lam): in Lam/Lambach oder ≤10 km. eur: Richtpreis für die Filterlogik (0 = gratis)
+// Koordinaten (WGS84, lat/lon) für Einträge ohne eigenes lat/lon-Feld, per "loc"-Text nachgeschlagen.
+const LOC_COORDS = {
+  muc: {
+    "Gollierstraße, Westend": [48.1325, 11.5443],
+    "Schwabing-Freimann": [48.1868, 11.6047],
+    "München (Standort je Woche)": [48.1372, 11.5755],
+    "Ludwigsvorstadt-Isarvorstadt": [48.1300, 11.5650],
+    "Stadion Dantestraße (Westfriedhof)": [48.1645, 11.5395],
+    "Erich-Kästner-Realschule, Moosach": [48.2095, 11.5460],
+    "Neuperlach Süd": [48.0965, 11.6280],
+    "Laim": [48.1350, 11.5090],
+    "Gotzinger Platz 1a, Sendling": [48.1225, 11.5430],
+    "DAV Kletterzentrum Süd, Thalkirchen": [48.0975, 11.5445],
+    "Kletterzentrum Süd, Thalkirchen": [48.0975, 11.5445],
+    "Häberlstraße (Goetheplatz) · Werdenfelsstr. · Bootshaus Thalkirchen": [48.1275, 11.5620],
+    "Berg am Laim · Freiham · Milbertshofen": [48.1230, 11.6230],
+    "München (zentrale Sporthallen)": [48.1372, 11.5755],
+    "Grasweg 67a (Bus 63, Siegenburger Str.)": [48.1090, 11.5160],
+    "Heiglhofstraße (U6 Großhadern)": [48.1075, 11.4700],
+    "Grundschule Lerchenauer Str., Feldmoching": [48.1980, 11.5460],
+    "TSV Nymphenburg, Stievestraße": [48.1580, 11.5020],
+    "Sporthalle Auenstraße 19, Isarvorstadt": [48.1235, 11.5665],
+    "Daglfing (S8)": [48.1640, 11.6330],
+    "Dirtpark Allach": [48.1980, 11.4550],
+    "Dachauer Straße 110c": [48.1548, 11.5432],
+    "Skatepark Freiham": [48.1150, 11.4050],
+    "Föhringer Ring 5": [48.1810, 11.6100],
+    "München": [48.1372, 11.5755],
+    "Freibad Germering": [48.1300, 11.3950],
+    "Hansastraße 41, 81373 Sendling-Westpark": [48.1210, 11.5230],
+    "Showpalast-Gelände, Fröttmaning": [48.2200, 11.6250],
+    "Tasso33, Milbertshofen u. a.": [48.1870, 11.5700],
+    "Gustav-Heinemann-Ring 19, 81739 München (Neuperlach Süd)": [48.0970, 11.6290],
+    "Wasserspielplatz Ost, Westpark": [48.1275, 11.5230],
+    "Westpark und viele Parks": [48.1250, 11.5150],
+    "online oder an Verkaufsstellen": [48.1150, 11.5350],
+    "Ausflüge ab München": [48.1372, 11.5755],
+    "Museumsinsel 1, 80538 München": [48.1299, 11.5836],
+    "Theresienhöhe 14a, 80339 München": [48.1300, 11.5462],
+    "Rosenheimer Str. 145h, 81671 München": [48.1180, 11.6150],
+    "Tierparkstraße 30, 81543 München (Thalkirchen)": [48.0969, 11.5477],
+    "Kinder- und Jugendfarm Neuaubing, München-Aubing": [48.1520, 11.4180],
+    "Unterleiten 36, 83623 Dietramszell": [47.9050, 11.6500],
+    "Südbad, Valleystraße 37, 81371 München-Sendling": [48.1150, 11.5460],
+    "Bootsverleih Olympiapark, Spiridon-Louis-Ring, 80809 München": [48.1755, 11.5490],
+    "Münchner Bank Bootshaus, nahe Tierpark Hellabrunn, München-Thalkirchen": [48.0990, 11.5430],
+    "Burg Schwaneck, Pullach im Isartal": [48.0470, 11.5150],
+    "Ammersee bzw. Chiemsee, ca. 1 Std. von München": [47.9997, 11.1691]
+  },
+  lam: {
+    "Osserbad, 93462 Lam": [49.1930, 13.0480],
+    "Drachensee-Freibad, 93437 Furth im Wald": [49.2960, 12.8500],
+    "Lohberg (Ortsteil, ca. 5 km von Lam)": [49.1710, 13.1280],
+    "Dorfstr. 8, 93470 Lohberg": [49.1850, 13.0850],
+    "Treffpunkt Tourist-Info Lam": [49.1965, 13.0500],
+    "Nationalparkzentrum Falkenstein, Ludwigsthal (Gem. Lindberg)": [49.0648, 13.2306],
+    "Nationalparkzentrum Falkenstein, Ludwigsthal": [49.0648, 13.2306],
+    "Start meist Viechtach / Teisnach, Region Regen": [49.0790, 12.8860],
+    "Geißkopf, 94255 Bischofsmais": [48.9650, 13.1400],
+    "Bad Kötzting, ca. 16 km von Lam": [49.1700, 12.8600],
+    "Zwiesel und Umgebung (Großer Arber)": [49.0180, 13.2280],
+    "Altenstadter Straße 7a, 93413 Cham": [49.2200, 12.6650]
+  }
+};
+
+// weeks: 1-basiert. near: legacy/grobe Einordnung, ersetzt durch den Entfernungs-Regler (siehe LOC_COORDS/lat/lon). eur: Richtpreis für die Filterlogik (0 = gratis)
 const DATA_MUC = [
 /* ---------- ROBOTIK & MAKER ---------- */
 {cat:"mint", t:"Robotik-Schnupperkurs Programmieren", p:"FabLab Kids", loc:"Gollierstraße, Westend", near:true, a:[5,8], w:[1], price:"Tageskurs · Ferienpass-Rabatt", eur:45, when:"Di 4.8., 10:00", url:"https://www.fablabkids.de/allgemein/kinderkurse-ferien-mint-muenchen-sommer-2026/", note:"Erster Kontakt mit Robotern und Blockprogrammierung. Kleine Gruppe."},
@@ -508,7 +586,7 @@ const DATA_LAM = [
 const DATA = DATA_MUC.map(d => Object.assign({region:"muc"}, d)).concat(DATA_LAM.map(d => Object.assign({region:"lam"}, d)));
 
 /* ---------------- State ---------------- */
-const state = { region:"muc", cats:new Set(), weeks:new Set(), near:false, free:false, open:false, age:null, q:"", picked:new Set() };
+const state = { region:"muc", cats:new Set(), weeks:new Set(), maxDist:null, free:false, open:false, age:null, q:"", picked:new Set() };
 
 /* ---------------- Render Filter-UI ---------------- */
 const weekGrid = document.getElementById("weekGrid");
@@ -560,17 +638,49 @@ function toggleBtn(id,key){
     render();
   });
 }
-toggleBtn("fNear","near"); toggleBtn("fFree","free"); toggleBtn("fOpen","open");
+toggleBtn("fFree","free"); toggleBtn("fOpen","open");
 document.getElementById("age").addEventListener("input",e=>{
   const v=parseInt(e.target.value,10); state.age=Number.isFinite(v)?v:null; render();
 });
 document.getElementById("q").addEventListener("input",e=>{ state.q=e.target.value.toLowerCase().trim(); render(); });
-document.getElementById("reset").addEventListener("click",()=>{
-  state.cats.clear(); state.weeks.clear(); state.near=state.free=state.open=false; state.age=null; state.q="";
-  document.querySelectorAll('.wk[aria-pressed="true"], .chip[aria-pressed="true"]').forEach(b=>b.setAttribute("aria-pressed","false"));
-  document.getElementById("age").value=""; document.getElementById("q").value="";
+
+const DIST_MAX=50;
+const distRange=document.getElementById("distRange");
+const distOut=document.getElementById("distOut");
+function syncDistOut(){ distOut.textContent = state.maxDist==null ? "alle" : `≤ ${state.maxDist} km`; }
+distRange.addEventListener("input",e=>{
+  const v=+e.target.value;
+  state.maxDist = v>=DIST_MAX ? null : v;
+  syncDistOut();
   render();
 });
+
+document.getElementById("reset").addEventListener("click",()=>{
+  state.cats.clear(); state.weeks.clear(); state.free=state.open=false; state.age=null; state.q=""; state.maxDist=null;
+  document.querySelectorAll('.wk[aria-pressed="true"], .chip[aria-pressed="true"]').forEach(b=>b.setAttribute("aria-pressed","false"));
+  document.getElementById("age").value=""; document.getElementById("q").value="";
+  distRange.value=DIST_MAX; syncDistOut();
+  render();
+});
+
+/* ---------------- Entfernung (Haversine) ---------------- */
+function haversine(lat1,lon1,lat2,lon2){
+  const R=6371, toRad=x=>x*Math.PI/180;
+  const dLat=toRad(lat2-lat1), dLon=toRad(lon2-lon1);
+  const a=Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+function coordsOf(d){
+  if(d.lat!=null && d.lon!=null) return [d.lat, d.lon];
+  const c=LOC_COORDS[d.region] && LOC_COORDS[d.region][d.loc];
+  return c || null;
+}
+function distKm(d){
+  const c=coordsOf(d);
+  if(!c) return null;
+  const o=LOCATIONS[d.region].origin;
+  return haversine(o.lat, o.lon, c[0], c[1]);
+}
 
 /* ---------------- Standort-Umschalter ---------------- */
 function applyLocationText(){
@@ -578,7 +688,6 @@ function applyLocationText(){
   document.title=L.title;
   document.getElementById("pageH1em").textContent=L.h1em;
   document.getElementById("pageSub").textContent=L.sub;
-  document.getElementById("fNearLabel").textContent=L.nearLabel;
   document.getElementById("sourcesTitle").textContent=L.sourcesTitle;
 }
 
@@ -595,8 +704,9 @@ document.getElementById("locSwitch").addEventListener("click",e=>{
   if(!btn || btn.dataset.loc===state.region) return;
   state.region=btn.dataset.loc;
   document.querySelectorAll("#locSwitch button").forEach(b=>b.setAttribute("aria-pressed", String(b===btn)));
-  state.cats.clear(); state.weeks.clear(); state.near=state.free=state.open=false; state.age=null; state.q="";
+  state.cats.clear(); state.weeks.clear(); state.free=state.open=false; state.age=null; state.q=""; state.maxDist=null;
   document.getElementById("age").value=""; document.getElementById("q").value="";
+  distRange.value=DIST_MAX; syncDistOut();
   applyLocationText();
   buildWeekGrid(); buildCatChips(); renderSources();
   render();
@@ -607,7 +717,7 @@ function match(d){
   if(d.region!==state.region) return false;
   if(state.cats.size && !state.cats.has(d.cat)) return false;
   if(state.weeks.size && !d.w.some(w=>state.weeks.has(w))) return false;
-  if(state.near && !d.near) return false;
+  if(state.maxDist!=null){ const dist=distKm(d); if(dist==null || dist>state.maxDist) return false; }
   if(state.free && d.eur > 60) return false;
   if(state.open && d.full) return false;
   if(state.age!=null && (state.age < d.a[0] || state.age > d.a[1])) return false;
@@ -637,6 +747,8 @@ function render(){
     const c=document.createElement("article");
     c.className="card"+(state.picked.has(id)?" picked":"");
     const weekBar=WEEKS.map((_,i)=>`<span class="${d.w.includes(i+1)?"on":""}"></span>`).join("");
+    const dist=distKm(d);
+    const distTxt=dist==null?null:(dist<1?"< 1 km":Math.round(dist)+" km");
     c.innerHTML=`
       <button class="pick" aria-label="Zur Merkliste">${state.picked.has(id)?"✓":"+"}</button>
       <div class="cat ${CATS[d.cat].cls}"><span class="dot"></span>${CATS[d.cat].label}</div>
@@ -645,7 +757,7 @@ function render(){
       <div class="weeks" title="Ferienwochen">${weekBar}</div>
       <div class="meta">
         <span class="tag">${d.a[0]}–${d.a[1]} Jahre</span>
-        ${d.near?`<span class="tag near">${LOCATIONS[state.region].nearLabel}</span>`:""}
+        ${distTxt?`<span class="tag dist${dist<=10?' near':''}">${distTxt}</span>`:""}
         ${d.eur===0?'<span class="tag free">kostenlos</span>':""}
         ${d.full?'<span class="tag full">ausgebucht / Warteliste</span>':""}
       </div>
@@ -688,6 +800,7 @@ document.getElementById("copy").addEventListener("click",async()=>{
 });
 
 applyLocationText();
+syncDistOut();
 buildWeekGrid(); buildCatChips(); renderSources();
 render(); renderTray();
 
