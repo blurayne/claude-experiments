@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KI, Arbeit & Steuern — Adversarialer Evidenzbericht</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0f14; --panel:#121821; --panel2:#0f141c; --line:#1f2a37;
+  --ink:#e6edf3; --muted:#8b98a5; --teal:#2dd4bf; --amber:#f5b84d;
+  --red:#e5484d; --blue:#6cb2f5; --violet:#b18cf0;
+  --chipA:#2dd4bf; --chipB:#6cb2f5; --chipC:#f5b84d; --chipD:#e5484d;
+  --shadow:0 6px 24px rgba(0,0,0,.35);
+}
+html[data-theme="light"]{
+  --bg:#f4f6f8; --panel:#ffffff; --panel2:#eef1f5; --line:#d7dee6;
+  --ink:#15202b; --muted:#5b6b7a; --teal:#0d9488; --amber:#b97e12;
+  --red:#c4363b; --blue:#2266aa; --violet:#7a4fd0;
+  --chipA:#0d9488; --chipB:#2266aa; --chipC:#b97e12; --chipD:#c4363b;
+  --shadow:0 6px 24px rgba(20,30,40,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:16px;line-height:1.65;transition:background .25s,color .25s}
+.wrap{max-width:980px;margin:0 auto;padding:0 20px 80px}
+header.hero{padding:56px 0 28px;border-bottom:1px solid var(--line)}
+.kicker{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--teal);margin-bottom:14px}
+h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(28px,5vw,44px);line-height:1.12;letter-spacing:-.01em}
+h1 .dim{color:var(--muted);font-weight:400}
+.sub{color:var(--muted);margin-top:14px;max-width:70ch}
+.meta{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);margin-top:18px;display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+.toggle{margin-left:auto;background:var(--panel);border:1px solid var(--line);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:12px;padding:6px 12px;border-radius:999px;cursor:pointer}
+.toggle:hover{border-color:var(--teal)}
+section{margin-top:52px}
+h2{font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:700;margin-bottom:6px;letter-spacing:-.01em}
+h3{font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:500;margin:22px 0 8px}
+.secnum{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--teal);letter-spacing:.15em;display:block;margin-bottom:6px}
+p{margin:10px 0;max-width:76ch}
+p.lede{font-size:17px}
+a{color:var(--teal);text-decoration:none;border-bottom:1px dotted var(--teal)}
+a:hover{border-bottom-style:solid}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 24px;margin:18px 0;box-shadow:var(--shadow)}
+.panel2{background:var(--panel2)}
+.chip{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.06em;padding:2px 9px;border-radius:999px;border:1px solid;vertical-align:2px;white-space:nowrap}
+.gA{color:var(--chipA);border-color:var(--chipA)}
+.gB{color:var(--chipB);border-color:var(--chipB)}
+.gC{color:var(--chipC);border-color:var(--chipC)}
+.gD{color:var(--chipD);border-color:var(--chipD)}
+.legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.duel{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:18px 0}
+@media(max-width:720px){.duel{grid-template-columns:1fr}}
+.duel .side{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
+.duel .side.a{border-top:3px solid var(--amber)}
+.duel .side.b{border-top:3px solid var(--blue)}
+.side .who{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);margin-bottom:6px}
+.side .claim{font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:500;margin-bottom:10px}
+.verdict{background:var(--panel2);border:1px dashed var(--line);border-radius:14px;padding:18px 22px;margin:6px 0 0}
+.verdict .vlabel{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--teal);margin-bottom:6px}
+figure{margin:20px 0}
+figcaption{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);margin-top:8px;max-width:76ch}
+svg text{font-family:'IBM Plex Mono',monospace;fill:var(--muted)}
+svg .val{fill:var(--ink);font-weight:500}
+svg .axis{stroke:var(--line)}
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14.5px}
+th{font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:none}
+.num{font-family:'IBM Plex Mono',monospace}
+.slider-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px 28px;margin:16px 0}
+@media(max-width:720px){.slider-grid{grid-template-columns:1fr}}
+.sctl label{display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--muted);margin-bottom:6px}
+.sctl label b{color:var(--ink);font-weight:500}
+input[type=range]{width:100%;accent-color:var(--teal);cursor:pointer}
+.results{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:20px}
+@media(max-width:720px){.results{grid-template-columns:1fr}}
+.res{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:16px}
+.res .rl{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.res .rv{font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700;margin-top:4px}
+.res .rv.pos{color:var(--teal)} .res .rv.neg{color:var(--red)} .res .rv.neu{color:var(--amber)}
+.bar-io{height:14px;border-radius:7px;background:var(--panel2);border:1px solid var(--line);overflow:hidden;display:flex;margin-top:18px}
+.bar-io .loss{background:var(--red);height:100%}
+.bar-io .gain{background:var(--teal);height:100%}
+.note{font-size:13.5px;color:var(--muted)}
+ul.tight{margin:8px 0 8px 22px}
+ul.tight li{margin:7px 0;max-width:72ch}
+.srcnum{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--teal)}
+footer{margin-top:70px;padding-top:24px;border-top:1px solid var(--line);font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted)}
+.warnbox{border-left:3px solid var(--amber);padding-left:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="kicker">Observatorium · Evidenzbericht · Arbeitsmarkt × Fiskalpolitik</div>
+  <h1>KI, Arbeit &amp; Steuern<br><span class="dim">Wer trägt die Last, wenn Maschinen mitverdienen?</span></h1>
+  <p class="sub">Adversarialer Primärquellen-Vergleich zu den Arbeitsmarkteffekten generativer KI, zur Besteuerung von Arbeit vs. Kapital und zur fiskalpolitischen Strategie des IWF — mit Deutschland-Fokus, Evidenzgraden und einem illustrativen Prognosemodell.</p>
+  <div class="meta">
+    <span>STAND: 2026-07-14</span>
+    <span>SPRACHE: DE</span>
+    <span>QUELLEN: 14 (primär bevorzugt)</span>
+    <button class="toggle" onclick="toggleTheme()" id="tbtn">☀ Hell</button>
+  </div>
+  <div class="legend">
+    <span class="chip gA">A · Messdaten</span>
+    <span class="chip gB">B · Modellrechnung</span>
+    <span class="chip gC">C · Experteneinschätzung</span>
+    <span class="chip gD">D · Autoritätszitat / Interessenlage</span>
+  </div>
+</header>
+
+<!-- ============ 0 KERNBEFUNDE ============ -->
+<section>
+  <span class="secnum">00 / KERNBEFUNDE</span>
+  <h2>Das Wichtigste in fünf Sätzen</h2>
+  <div class="panel">
+    <ul class="tight">
+      <li><b>Betroffenheit:</b> Der IWF schätzt ~40 % der Beschäftigung weltweit und ~60 % in Industrieländern als „KI-exponiert“ — davon jeweils etwa die Hälfte mit hohem Komplementaritäts-Potenzial (Aufwertung statt Ersatz). <span class="chip gB">B</span></li>
+      <li><b>Realdaten bisher:</b> Gesamtwirtschaftlich ist (Stand 2026) <i>keine</i> breite Verdrängung messbar (Yale Budget Lab) — aber ein klares, sich vertiefendes Signal bei Berufseinsteigern 22–25 in automatisierungsnahen Berufen (Stanford/ADP: −13 bis −16 % relativ). <span class="chip gA">A</span></li>
+      <li><b>Steuer-Asymmetrie:</b> Arbeit wird in Industrieländern deutlich höher belastet als Kapital; in Deutschland extrem (Abgabenkeil Single 49,3 % vs. Abgeltungsteuer ~26,4 %). Das setzt einen fiskalischen Anreiz zu <i>übermäßiger</i> Automatisierung (Acemoglu et al.). <span class="chip gA">A</span>/<span class="chip gB">B</span></li>
+      <li><b>IWF-Strategie:</b> Keine KI-Sondersteuer, stattdessen Kapitaleinkommens­besteuerung stärken, Sozialschutz und Weiterbildung ausbauen, und „agil“ für zwei Szenarien planen (business as usual vs. hochdisruptiv). <span class="chip gC">C</span></li>
+      <li><b>Deutschland-Risiko:</b> Der Sozialstaat hängt fast vollständig am Faktor Arbeit. Verschiebt KI Wertschöpfung von Lohn zu Kapital, erodiert die Bemessungsgrundlage genau dort, wo sie am höchsten belastet ist — das Prognosemodell unten macht die Größenordnung greifbar.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ 1 METHODIK-WARNUNG ============ -->
+<section>
+  <span class="secnum">01 / METHODIK ZUERST</span>
+  <h2>„Exponiert“ ist nicht „bedroht“</h2>
+  <div class="panel warnbox">
+    <p class="lede">Fast alle großen Zahlen in dieser Debatte („40 % der Jobs!“) sind <b>Expositions-Maße</b>: Sie messen, welcher Anteil der <i>Tätigkeiten</i> eines Berufs theoretisch von KI erledigt werden <i>könnte</i>. Sie messen nicht, ob das wirtschaftlich, rechtlich oder organisatorisch tatsächlich passiert.</p>
+    <p>Drei empirische Gründe zur Vorsicht:</p>
+    <ul class="tight">
+      <li>Das Yale Budget Lab zeigt, dass Expositions-Maße (OpenAI-basiert) und tatsächliche Nutzungsdaten (Anthropic Economic Index) nur schwach korrelieren — hoch „exponierte“ Büroberufe nutzen KI teils kaum, Entwickler dagegen massiv. Exposition allein ist ein schlechter Prädiktor.</li>
+      <li>Das IAB betont für Deutschland: Hohes Substituierbarkeits­potenzial führte historisch selten zu Beschäftigungs­abbau — eher zu verlangsamtem Wachstum und veränderten Tätigkeitsprofilen.</li>
+      <li>Beschäftigung in hoch KI-exponierten Berufen wuchs in Deutschland zuletzt sogar <i>stärker</i> (+5,9 %) als in gering (+2,5 %) oder gar nicht exponierten (−1,7 %) — Exposition korreliert bislang mit Wachstum, nicht mit Abbau.</li>
+    </ul>
+    <p class="note">Konsequenz für diesen Bericht: Jede Zahl trägt einen Evidenzgrad. Modellrechnungen (B) werden nie als Messdaten (A) verkauft — der häufigste rhetorische Trick in der Berichterstattung.</p>
+  </div>
+</section>
+
+<!-- ============ 2 BETROFFENE BEREICHE ============ -->
+<section>
+  <span class="secnum">02 / BETROFFENE BEREICHE</span>
+  <h2>Wo KI ansetzt — global und in Deutschland</h2>
+
+  <p>Die IWF-Studie <i>Gen-AI: Artificial Intelligence and the Future of Work</i> (Cazzaniga et al., SDN 2024/001) verortet die Exposition dort, wo <b>kognitive Tätigkeiten</b> dominieren — ein Bruch mit früheren Automatisierungswellen, die Routine- und manuelle Arbeit trafen. Entscheidend ist die Aufteilung in <b>hohe Komplementarität</b> (KI als Werkzeug: Ärztinnen, Richter, Führungskräfte — geschützt durch Verantwortung, Kontext, physische Präsenz) und <b>niedrige Komplementarität</b> (KI als Ersatz: Sachbearbeitung, Telemarketing, Textproduktion, Übersetzung).</p>
+
+  <figure class="panel">
+    <div id="chart-exposure"></div>
+    <figcaption>KI-Exposition der Beschäftigung nach Ländergruppen. Balken unterteilt in niedrige Komplementarität (Substitutionsrisiko, rot) und hohe Komplementarität (Aufwertungspotenzial, teal). Quelle: IWF SDN 2024/001 [1]. <span class="chip gB">B</span> Modellbasierte Klassifikation von Berufen, keine Beschäftigungsprognose.</figcaption>
+  </figure>
+
+  <h3>Deutschland: IAB-Substituierbarkeitspotenziale</h3>
+  <p>Das IAB (Kurzbericht 5/2024 und Folgeanalysen) misst je Beruf den Anteil der Kerntätigkeiten, die heute technisch automatisierbar wären. Neu seit generativer KI: Das Potenzial steigt am stärksten in <b>Expertenberufen</b> — IT- und naturwissenschaftliche Dienstleistungen, Softwareentwicklung (via Low-Code/KI-Assistenz), Medien­gestaltung, Übersetzung, Synchronsprechen, CAD/Konstruktion. Der Anteil sozialversicherungspflichtig Beschäftigter in Berufen mit <i>hohem</i> Potenzial stieg von 34 % (2019) auf 38 %.</p>
+
+  <figure class="panel">
+    <div id="chart-iab"></div>
+    <figcaption>Links: Anteil der sv-Beschäftigten in Berufen mit hohem Substituierbarkeitspotenzial (&gt;70 % der Kerntätigkeiten automatisierbar), IAB. Rechts: Beschäftigungswachstum nach KI-Exposition — der kontraintuitive Befund. Quellen: IAB [4][5]. <span class="chip gA">A</span> Registerdaten (BA-Beschäftigtenstatistik), Klassifikation der Potenziale jedoch <span class="chip gB">B</span>.</figcaption>
+  </figure>
+
+  <h3>Wen es real trifft: die Berufseinsteiger-Front</h3>
+  <p>Die derzeit beste kausale Annäherung liefern Brynjolfsson/Chandar/Chen („Canaries in the Coal Mine“, Stanford Digital Economy Lab) mit ADP-Lohnabrechnungsdaten von Millionen US-Beschäftigten: In hoch exponierten Berufen sank die Beschäftigung der 22–25-Jährigen relativ um 13–16 %, während erfahrene Kollegen stabil blieben. Der Effekt konzentriert sich auf Berufe, in denen KI laut Anthropic Economic Index <b>automatisierend</b> statt augmentierend genutzt wird — und er vertieft sich: von −2,8 %/Jahr (April 2024) auf über −4 %/Jahr (bis April 2026). Der Mechanismus ist leise: Unternehmen entlassen nicht, sie <b>besetzen Einstiegsstellen nicht nach</b> — die unteren Sprossen der Karriereleiter verschwinden.</p>
+
+  <figure class="panel">
+    <div id="chart-canaries"></div>
+    <figcaption>Relative jährliche Beschäftigungsänderung, 22–25-Jährige, USA (ADP-Payroll). Hoch KI-exponierte vs. gering exponierte Berufe. Quellen: Brynjolfsson et al. [6], Canaries-Dashboard [7]. <span class="chip gA">A</span> Payroll-Messdaten; Expositions-Zuordnung <span class="chip gB">B</span>.</figcaption>
+  </figure>
+
+  <div class="panel panel2">
+    <h3 style="margin-top:0">Verdichtung: die Betroffenheits-Matrix</h3>
+    <table>
+      <tr><th>Bereich</th><th>Muster</th><th>Evidenz</th></tr>
+      <tr><td>Übersetzung, Synchron, Mediengestaltung, Content-Produktion</td><td>Hohes Substitutionspotenzial, bereits messbarer Nachfragerückgang</td><td><span class="chip gA">A</span>/<span class="chip gB">B</span></td></tr>
+      <tr><td>Softwareentwicklung, Kundensupport (Einstiegslevel)</td><td>Stärkstes reales Displacement-Signal (junge Kohorten, USA)</td><td><span class="chip gA">A</span></td></tr>
+      <tr><td>Sachbearbeitung, Verwaltung, Backoffice</td><td>Hoch „exponiert“, aber langsame reale Adoption — Verzögerungseffekt wahrscheinlich</td><td><span class="chip gB">B</span></td></tr>
+      <tr><td>Medizin, Recht, Führung, Bildung</td><td>Hohe Exposition, hohe Komplementarität → eher Produktivitäts- als Verdrängungseffekt</td><td><span class="chip gB">B</span></td></tr>
+      <tr><td>Handwerk, Pflege, Bau, Logistik (physisch)</td><td>Geringe Exposition; in Deutschland zugleich Fachkräftemangel-Zone</td><td><span class="chip gA">A</span></td></tr>
+    </table>
+    <p class="note">Deutschland-Kontext: Das IAB-Basismodell (QuBe) erwartet bis 2040 demografisch ~900.000 Erwerbstätige <i>weniger</i>. KI-Produktivität und Arbeitskräfteschwund laufen hier gegeneinander — das dämpft Verdrängung, verschiebt das Problem aber in die Verteilungsfrage (Abschnitt 04).</p>
+  </div>
+</section>
+
+<!-- ============ 3 QUELLEN-DUELLE ============ -->
+<section>
+  <span class="secnum">03 / ADVERSARIALER VERGLEICH</span>
+  <h2>Drei Quellen-Duelle</h2>
+
+  <h3>Duell I — Makro-Prognosen: Revolution vs. Rundungsfehler</h3>
+  <div class="duel">
+    <div class="side a">
+      <div class="who">GOLDMAN SACHS (2023) / McKINSEY GLOBAL INSTITUTE · <span class="chip gD">D</span> Sell-Side/Beratung</div>
+      <div class="claim">+7 % globales BIP (~7 Bio. $), bis zu 25,6 Bio. $ Wertschöpfung, +1,5 pp US-Produktivitätswachstum p.a.</div>
+      <p class="note">Methodik: Top-down-Extrapolation aus Expositions-Maßen und optimistischen Adoptionspfaden. Interessenlage: Beide Häuser verkaufen KI-Transformations­beratung bzw. profitieren von Tech-Bewertungen. Das macht die Zahlen nicht falsch — aber es sind Verkaufsprospekte, keine Peer-Review-Forschung.</p>
+    </div>
+    <div class="side b">
+      <div class="who">ACEMOGLU, „The Simple Macroeconomics of AI" (NBER 2024) · <span class="chip gB">B</span></div>
+      <div class="claim">Max. +0,53–0,66 % TFP über zehn Jahre; BIP-Effekt ~1–1,6 % — Größenordnungen unter Goldman.</div>
+      <p class="note">Methodik: Hulten-Theorem — Effekt = (Anteil betroffener Tasks) × (Kosteneinsparung je Task). Mit ~20 % exponierten Tasks, davon ~23 % profitabel automatisierbar, und ~27 % Ersparnis je Task bleibt wenig übrig. Ebenfalls Annahme-getrieben: unterstellt, dass KI-Fähigkeiten nicht qualitativ springen und keine neuen Tasks entstehen.</p>
+    </div>
+  </div>
+  <div class="verdict">
+    <div class="vlabel">Prüfvermerk</div>
+    <p>Beide Seiten rechnen mit denselben unsicheren Bausteinen (Expositions-Schätzungen) und kommen um den Faktor 10 auseinander — der Unterschied liegt fast vollständig in den <i>Annahmen über Adoptionsgeschwindigkeit und Fähigkeitszuwachs</i>, nicht in den Daten. Wer eine der beiden Zahlen ohne diese Einordnung zitiert, argumentiert mit Autorität, nicht mit Evidenz.</p>
+  </div>
+
+  <h3>Duell II — Empirie 2025/26: Kanarienvögel vs. Flatline</h3>
+  <div class="duel">
+    <div class="side a">
+      <div class="who">STANFORD DIGITAL ECONOMY LAB / ADP (Brynjolfsson et al., laufend) · <span class="chip gA">A</span></div>
+      <div class="claim">Reales Displacement ist da — konzentriert auf 22–25-Jährige in automatisierungsnahen Berufen, robust gegen Zins-, Tech-Sektor- und Remote-Work-Erklärungen, und es beschleunigt sich.</div>
+      <p class="note">Stärke: Individuelle Payroll-Daten (ca. jeder 6. US-Beschäftigte), Kontrolle für Firmen-Schocks, Trennung Automatisierung/Augmentierung via Nutzungsdaten. Schwäche: USA-spezifisch; relative Verschiebung, kein Netto-Jobverlust der Gesamtwirtschaft.</p>
+    </div>
+    <div class="side b">
+      <div class="who">YALE BUDGET LAB (Gimbel et al., monatliches Monitoring) · <span class="chip gA">A</span></div>
+      <div class="claim">33+ Monate nach ChatGPT: keine erkennbare gesamtwirtschaftliche Disruption. Berufsmix, Arbeitslosigkeit nach Expositions-Quintil, Arbeitslosigkeitsdauer — alles im historischen Rahmen.</div>
+      <p class="note">Pointe: „AI-Washing“ — CEOs schieben Entlassungen auf KI, weil das besser klingt als Missmanagement von Zöllen, Zinsen und Nachfrage. Schwäche: Aggregat-Metriken können genau die Kohorten-Effekte glätten, die Stanford findet; explizit nicht prädiktiv gemeint.</p>
+    </div>
+  </div>
+  <div class="verdict">
+    <div class="vlabel">Prüfvermerk</div>
+    <p>Kein echter Widerspruch, sondern zwei Auflösungsstufen desselben Bildes: <b>makro stabil, mikro selektiv</b>. Die Verdrängung läuft (noch) nicht über Kündigungswellen, sondern über nicht nachbesetzte Einstiegsstellen — unsichtbar in Arbeitslosenquoten, sichtbar in Kohortendaten. Genau dieses Muster würde man in der Frühphase einer langsamen Basistechnologie-Diffusion erwarten.</p>
+  </div>
+
+  <h3>Duell III — Steuerpolitik: Kapital besteuern vs. Kapital schonen</h3>
+  <div class="duel">
+    <div class="side a">
+      <div class="who">IWF SDN 2024/002 + ACEMOGLU/MANERA/RESTREPO (Brookings/NBER) · <span class="chip gB">B</span></div>
+      <div class="claim">Die Schieflage ist das Problem: Arbeit hoch, Kapital niedrig besteuert → Firmen automatisieren über das effiziente Maß hinaus. Angleichung würde (US-Modell) Beschäftigung um ~4 % und die Lohnquote um ~0,8 pp heben — ohne Einnahmeverlust.</div>
+      <p class="note">Acemoglu et al. dokumentieren: effektive US-Steuer auf Arbeit ~25–33 %, auf Ausrüstung/Software durch Sofortabschreibung teils unter 10 %. Der IWF ergänzt: Seit den 1980ern sank die Kapitalbelastung in Industrieländern stetig, während die Arbeitsbelastung stieg — dieser Trend müsse umgekehrt werden.</p>
+    </div>
+    <div class="side b">
+      <div class="who">KLASSISCHE OPTIMALSTEUER-SCHULE (Atkeson/Chari/Kehoe u.a.) &amp; EU-PRAXIS · <span class="chip gC">C</span></div>
+      <div class="claim">Kapitalbesteuerung ist verzerrend: Sie besteuert künftigen Konsum doppelt, drückt Investitionen und ist bei mobilen Bemessungsgrundlagen kaum durchsetzbar. Das EU-Parlament lehnte eine „Robotersteuer“ 2017 ab; auch der IWF rät explizit von KI-Sondersteuern ab.</div>
+      <p class="note">Kernargument: Eine Automatisierungssteuer bremst Produktivität, die eine alternde Gesellschaft (Deutschland!) dringend braucht, und ist praktisch kaum abgrenzbar (was ist „ein Roboter“, was „KI-Kapital“?). Acemoglu selbst räumt ein, dass Kapital- und Arbeitsangebot ähnlich steuerelastisch sind — das relativiert die alte Null-Kapitalsteuer-Doktrin allerdings auch.</p>
+    </div>
+  </div>
+  <div class="verdict">
+    <div class="vlabel">Prüfvermerk</div>
+    <p>Der eigentliche Konsens ist größer als der Streit: <b>Niemand Seriöses fordert eine KI-Sondersteuer</b>, und kaum jemand verteidigt noch die volle Asymmetrie zulasten der Arbeit. Der Streit geht um das <i>Wie</i>: allgemeine Kapitaleinkommens­besteuerung stärken (IWF), Abschreibungs­privilegien kappen (Acemoglu), oder Arbeit entlasten statt Kapital belasten (Optimalsteuer-Schule). Für Deutschland konvergieren alle drei auf denselben ersten Schritt: den Abgabenkeil auf Arbeit senken.</p>
+  </div>
+</section>
+
+<!-- ============ 4 IWF-STRATEGIE ============ -->
+<section>
+  <span class="secnum">04 / DIE IWF-STRATEGIE</span>
+  <h2>Was der IWF konkret verfolgt</h2>
+  <p>Der IWF hat 2024–2026 eine erkennbar kohärente Linie aufgebaut, verteilt auf drei Staff Discussion Notes: die Diagnose (SDN 2024/001, Exposition &amp; Ungleichheit), die Fiskal-Therapie (SDN 2024/002, Brollo/Dabla-Norris/de Mooij et al.) und die Skills-Agenda (SDN 2026/001). Kernpunkte der Fiskal-Note:</p>
+  <div class="panel">
+    <table>
+      <tr><th>Baustein</th><th>Position</th><th>Begründung</th></tr>
+      <tr><td class="num">1</td><td><b>Keine KI-Sondersteuer / Robotersteuer</b></td><td>Kaum abgrenzbar, bremst Innovation, lädt zu Ausweichgestaltung ein.</td></tr>
+      <tr><td class="num">2</td><td><b>Kapitaleinkommens­besteuerung stärken</b></td><td>Umkehr des Trends seit den 1980ern (Kapital runter, Arbeit rauf). Instrumente: Körperschaftsteuer robuster machen, Übergewinne erfassen, internationale Koordination, Prüfung der großzügigen Software-/Hardware-Abschreibungen, die Automatisierung implizit subventionieren.</td></tr>
+      <tr><td class="num">3</td><td><b>Sozialschutz ausbauen, nicht umbauen</b></td><td>Arbeitslosenversicherung verbreitern und Ersatzquoten stützen statt bedingungsloses Grundeinkommen — BGE gilt als teuer und nur im hochdisruptiven Szenario diskutabel.</td></tr>
+      <tr><td class="num">4</td><td><b>Bildung &amp; lebenslange Weiterbildung finanzieren</b></td><td>Erfordert genau die Einnahmen, die eine erodierende Lohnbasis gefährdet — daher die Kopplung an Punkt 2. Die 2026er Skills-Note misst ~3 % Lohnprämie je neuer Kompetenz in Stellenanzeigen.</td></tr>
+      <tr><td class="num">5</td><td><b>Agilität: zwei Szenarien parallel planen</b></td><td>„Business as usual“ und „hochdisruptiv“ — Fiskalpolitik soll Trigger-Punkte definieren, statt auf eine Prognose zu wetten.</td></tr>
+    </table>
+    <p class="note"><b>Deklassifizierung:</b> Die IWF-Empfehlungen sind Politik-Urteile auf Basis von Modellsimulationen (<span class="chip gB">B</span>/<span class="chip gC">C</span>) — legitim, aber der institutionelle Absender ersetzt nicht die empirische Prüfung. Die zugrunde liegende Verteilungssorge (KI-Gewinne fließen an Kapital und Hochverdiener) ist dagegen mit historischen Automatisierungsdaten gut belegt.</p>
+  </div>
+</section>
+
+<!-- ============ 5 DEUTSCHLAND ============ -->
+<section>
+  <span class="secnum">05 / DEUTSCHLAND</span>
+  <h2>Die deutsche Sonderlage: Sozialstaat am Lohn-Tropf</h2>
+  <p>Deutschland ist für die Lohn-vs.-Kapital-Frage der Extremfall der OECD. Laut <i>Taxing Wages 2026</i> lag der Abgabenkeil 2025 für Alleinstehende bei <b>49,3 %</b> (Platz 2 hinter Belgien; OECD-Schnitt 35,1 %), für Doppelverdiener-Familien bei 42,6 %. Kapitalerträge tragen dagegen pauschal <b>~26,4 %</b> (Abgeltungsteuer inkl. Soli). Jeder Euro Wertschöpfung, der von Lohn zu Kapitalertrag wandert, halbiert also grob seinen Beitrag zur Staatsfinanzierung — und entzieht sich der Sozialversicherung vollständig.</p>
+
+  <figure class="panel">
+    <div id="chart-wedge"></div>
+    <figcaption>Effektive Belastung im Vergleich, Deutschland 2025. Abgabenkeil = Lohnsteuer + SV-Beiträge beider Seiten in % der Arbeitskosten (OECD Taxing Wages 2026 [8]); Abgeltungsteuer = 25 % + Soli. <span class="chip gA">A</span> Steuerstatistik/OECD-Berechnung.</figcaption>
+  </figure>
+
+  <ul class="tight">
+    <li><b>Verstärker 1 — Demografie:</b> ~900.000 Erwerbstätige weniger bis 2040 (IAB/QuBe). KI-Produktivität ist hier eher Lückenfüller als Jobkiller — aber die Beitragsbasis schrumpft doppelt: weniger Köpfe <i>und</i> ggf. sinkende Lohnquote.</li>
+    <li><b>Verstärker 2 — Beitragsfinanzierung:</b> Rente, Gesundheit, Pflege hängen an sv-pflichtigen Löhnen, nicht am BIP. Ein Produktivitätsboom, der als Kapitalertrag anfällt, saniert die Kassen nicht.</li>
+    <li><b>Verstärker 3 — Anreizwirkung:</b> Genau die Acemoglu-Logik: Bei 49 % Keil auf Arbeit und 26 % auf Kapital lohnt Automatisierung schon dann, wenn sie <i>keinerlei</i> echten Produktivitätsgewinn bringt („so-so automation“) — der Fiskus subventioniert den Ersatz seiner eigenen Bemessungsgrundlage.</li>
+  </ul>
+</section>
+
+<!-- ============ 6 PROGNOSEMODELL ============ -->
+<section>
+  <span class="secnum">06 / PROGNOSEMODELL</span>
+  <h2>Interaktiv: Was kostet die Verschiebung Lohn → Kapital?</h2>
+  <p class="note">Illustratives Rechenmodell, keine Prognose. Annahmen: Bruttolohnsumme Deutschland ~2.000 Mrd €/Jahr (Größenordnung 2024/25). „Verlagerung“ = Anteil der Lohnsumme, deren Wertschöpfung bis 2035 durch KI-Automatisierung von Löhnen zu Kapitaleinkommen wandert. „Kapitalisierungsquote“ = wie viel davon als steuerbares Kapitaleinkommen ankommt (Rest wird zu Preissenkungen/Konsumentenrente). Statisch, ohne Verhaltensreaktionen und Zweitrundeneffekte.</p>
+
+  <div class="panel">
+    <div class="slider-grid">
+      <div class="sctl">
+        <label>Verlagerung der Lohnsumme bis 2035 <b><span id="v-s">6</span> %</b></label>
+        <input type="range" id="in-s" min="0" max="20" step="0.5" value="6" oninput="calc()">
+      </div>
+      <div class="sctl">
+        <label>Ø Abgabenlast auf Arbeit (Steuer + SV) <b><span id="v-a">40</span> %</b></label>
+        <input type="range" id="in-a" min="30" max="50" step="0.5" value="40" oninput="calc()">
+      </div>
+      <div class="sctl">
+        <label>Kapitalisierungsquote <b><span id="v-p">60</span> %</b></label>
+        <input type="range" id="in-p" min="20" max="120" step="5" value="60" oninput="calc()">
+      </div>
+      <div class="sctl">
+        <label>Effektiver Steuersatz auf dieses Kapitaleinkommen <b><span id="v-k">26.4</span> %</b></label>
+        <input type="range" id="in-k" min="0" max="45" step="0.1" value="26.4" oninput="calc()">
+      </div>
+    </div>
+
+    <div class="results">
+      <div class="res"><div class="rl">Ausfall Arbeit (Steuer + SV)</div><div class="rv neg" id="r-loss">–48 Mrd €</div></div>
+      <div class="res"><div class="rl">Mehreinnahmen Kapital</div><div class="rv pos" id="r-gain">+19 Mrd €</div></div>
+      <div class="res"><div class="rl">Netto p.a. (2035)</div><div class="rv neu" id="r-net">–29 Mrd €</div></div>
+    </div>
+    <div class="bar-io" id="bar-io" title="Verhältnis Ausfall (rot) zu Mehreinnahmen (teal)">
+      <div class="loss" id="bar-loss" style="width:72%"></div>
+      <div class="gain" id="bar-gain" style="width:28%"></div>
+    </div>
+    <p class="note" style="margin-top:14px">Break-even: Der Kapitalsteuersatz müsste <b><span id="r-be">66,7</span> %</b> betragen, um den Arbeits-Ausfall bei diesen Annahmen auszugleichen. <span id="r-comment">Das illustriert den IWF-Punkt: Ohne Reform der Kapitalbesteuerung ist die Verschiebung fiskalisch strukturell defizitär.</span></p>
+  </div>
+</section>
+
+<!-- ============ 7 DEKLASSIFIZIERUNG ============ -->
+<section>
+  <span class="secnum">07 / AUTORITÄTSBEWEISE, DEKLASSIFIZIERT</span>
+  <h2>Was die berühmten Sätze wirklich sind</h2>
+  <div class="panel">
+    <table>
+      <tr><th>Zitierte Behauptung</th><th>Tatsächlicher Status</th><th>Grad</th></tr>
+      <tr>
+        <td>„IWF: 40 % der Jobs weltweit durch KI <b>bedroht</b>“</td>
+        <td>Primärquelle sagt „exposed“ (exponiert), nicht „bedroht“ — und rechnet die Hälfte davon der Komplementarität zu. Die Umdeutung Exposition → Bedrohung geschieht in der Sekundärverwertung; die IWF-Autorität wird dabei als Beleg für eine Aussage geliehen, die der IWF so nicht trifft.</td>
+        <td><span class="chip gB">B</span>→<span class="chip gD">D</span></td>
+      </tr>
+      <tr>
+        <td>„Goldman Sachs: KI bringt 7 % Welt-BIP / 300 Mio. Jobs betroffen“</td>
+        <td>Sell-Side-Research mit direkter Interessenlage an der KI-Erzählung. Methodisch dieselben Expositions-Bausteine wie Acemoglus 0,66 % — der Faktor ~10 entsteht in den Annahmen.</td>
+        <td><span class="chip gD">D</span></td>
+      </tr>
+      <tr>
+        <td>„Nobelpreisträger Acemoglu: KI-Effekt nur 0,66 %“</td>
+        <td>Back-of-the-envelope-Modell (Hulten-Theorem) mit früh erhobenen Task-Parametern; der Autor selbst nennt es Näherung. Der Nobelpreis adelt die Methode nicht — er wird im Diskurs aber genau dafür eingesetzt.</td>
+        <td><span class="chip gB">B</span></td>
+      </tr>
+      <tr>
+        <td>„CEO X: Wir bauen Stellen wegen KI ab“</td>
+        <td>Nicht überprüfbare Selbstauskunft mit Anreiz zur Umetikettierung („AI-Washing“, Yale Budget Lab): KI klingt vor Investoren besser als Fehlplanung bei Zöllen, Zinsen, Nachfrage.</td>
+        <td><span class="chip gD">D</span></td>
+      </tr>
+      <tr>
+        <td>„Studien zeigen: In Deutschland sind 1,6 Mio. Jobs betroffen / 4,5 Bio. € Potenzial“</td>
+        <td>Sekundärberichte über IAB-Szenariorechnungen; „betroffen“ heißt dort tätigkeitsverändert, nicht vernichtet, und die Potenzialsumme ist kumuliert über Jahrzehnte. Ohne diese Fußnoten sind beide Zahlen Schlagzeilen-Artefakte.</td>
+        <td><span class="chip gB">B</span>→<span class="chip gD">D</span></td>
+      </tr>
+      <tr>
+        <td>„Payroll-Daten: −13 % bei jungen Beschäftigten in KI-Berufen“</td>
+        <td>Derzeit härteste Evidenz im Feld: Messdaten, große Stichprobe, Robustheitstests gegen Alternativerklärungen. Aber: relativer Effekt, USA, Frühphase — kein Beleg für Netto-Jobverluste der Gesamtwirtschaft.</td>
+        <td><span class="chip gA">A</span></td>
+      </tr>
+    </table>
+  </div>
+</section>
+
+<!-- ============ 8 SYNTHESE ============ -->
+<section>
+  <span class="secnum">08 / SYNTHESE</span>
+  <h2>Lesart des Observatoriums</h2>
+  <div class="panel">
+    <p>Die Evidenz trägt derzeit folgendes Bild: <b>Keine Jobapokalypse, aber eine begonnene Umverteilung</b> — entlang dreier Achsen: von jung zu erfahren (Einstiegsstellen), von Routine-Kognition zu Kontext-Kognition (Automatisierung vs. Augmentierung) und potenziell von Lohn zu Kapital (Verteilungsfrage). Die ersten beiden Achsen sind gemessen, die dritte ist bislang Modell — aber sie ist die fiskalisch gefährlichste, und Deutschland ist wegen seines lohnzentrierten Abgabensystems maximal exponiert.</p>
+    <p>Die IWF-Strategie (Kapitalbesteuerung stärken statt KI besteuern, Sozialschutz und Skills vorfinanzieren, agil zwischen zwei Szenarien navigieren) ist die derzeit kohärenteste institutionelle Antwort — ihre Schwäche ist die Durchsetzbarkeit: Kapitaleinkommen ist mobil, Arbeit ist es nicht. Genau deshalb verweisen sowohl IWF als auch Acemoglu auf internationale Koordination als Bedingung, und genau dort ist die Erfolgsbilanz (globale Mindeststeuer) bislang gemischt.</p>
+    <p><b>Beobachtungsindikatoren für die nächsten 24 Monate:</b> (1) Kohortendaten Berufseinsteiger auch für Deutschland/EU, (2) Entwicklung der Lohnquote in KI-intensiven Branchen, (3) ob die OECD-Abgabenkeil-Rekorde politisch zu einer SV-Finanzierungsreform führen, (4) ob die „Canaries“-Rate sich weiter vertieft oder plateauiert.</p>
+  </div>
+</section>
+
+<!-- ============ QUELLEN ============ -->
+<section>
+  <span class="secnum">09 / QUELLEN</span>
+  <h2>Quellenverzeichnis</h2>
+  <div class="panel">
+    <table>
+      <tr><th>#</th><th>Quelle</th><th>Typ</th></tr>
+      <tr><td class="srcnum">[1]</td><td>Cazzaniga et al., <a href="https://www.imf.org/-/media/files/publications/sdn/2024/english/sdnea2024001.pdf">Gen-AI: Artificial Intelligence and the Future of Work</a>, IMF SDN 2024/001</td><td>Primär · <span class="chip gB">B</span></td></tr>
+      <tr><td class="srcnum">[2]</td><td>Brollo, Dabla-Norris, de Mooij et al., <a href="https://www.imf.org/-/media/files/publications/sdn/2024/english/sdnea2024002.pdf">Broadening the Gains from Generative AI: The Role of Fiscal Policies</a>, IMF SDN 2024/002</td><td>Primär · <span class="chip gB">B</span>/<span class="chip gC">C</span></td></tr>
+      <tr><td class="srcnum">[3]</td><td>IMF, <a href="https://www.imf.org/-/media/files/publications/sdn/2026/english/sdnea2026001.pdf">Bridging Skill Gaps for the Future: New Jobs Creation in the AI Age</a>, IMF SDN 2026/001</td><td>Primär · <span class="chip gB">B</span></td></tr>
+      <tr><td class="srcnum">[4]</td><td>IAB, <a href="https://doku.iab.de/kurzber/2024/kb2024-05.pdf">Kurzbericht 5/2024: Substituierbarkeitspotenziale</a> &amp; Job-Futuromat</td><td>Primär · <span class="chip gA">A</span>/<span class="chip gB">B</span></td></tr>
+      <tr><td class="srcnum">[5]</td><td>IAB-Forschungsbericht 2025 (KI-Transformation, QuBe-Projektion); Beschäftigungswachstum nach KI-Exposition</td><td>Primär · <span class="chip gA">A</span></td></tr>
+      <tr><td class="srcnum">[6]</td><td>Brynjolfsson, Chandar, Chen, <a href="https://digitaleconomy.stanford.edu/publication/canaries-in-the-coal-mine-six-facts-about-the-recent-employment-effects-of-artificial-intelligence/">Canaries in the Coal Mine?</a>, Stanford Digital Economy Lab, 2025 (Rev. Nov 2025)</td><td>Primär · <span class="chip gA">A</span></td></tr>
+      <tr><td class="srcnum">[7]</td><td>Canaries-Dashboard (Stanford × ADP Research), Datenstand April 2026</td><td>Primär · <span class="chip gA">A</span></td></tr>
+      <tr><td class="srcnum">[8]</td><td>OECD, <a href="https://www.oecd.org/en/publications/taxing-wages-2026.html">Taxing Wages 2026</a> (Berichtsjahr 2025)</td><td>Primär · <span class="chip gA">A</span></td></tr>
+      <tr><td class="srcnum">[9]</td><td>Yale Budget Lab, <a href="https://budgetlab.yale.edu/topic/artificial-intelligence">Evaluating the Impact of AI on the Labor Market</a> (laufende CPS-Updates bis 2026)</td><td>Primär · <span class="chip gA">A</span></td></tr>
+      <tr><td class="srcnum">[10]</td><td>Acemoglu, Manera, Restrepo, <a href="https://economics.mit.edu/sites/default/files/publications/Does%20the%20US%20Tax%20Code%20Favor%20Automation.pdf">Does the US Tax Code Favor Automation?</a>, Brookings Papers / NBER w27052</td><td>Primär · <span class="chip gB">B</span></td></tr>
+      <tr><td class="srcnum">[11]</td><td>Acemoglu, <a href="https://www.nber.org/papers/w32487">The Simple Macroeconomics of AI</a>, NBER w32487, 2024</td><td>Primär · <span class="chip gB">B</span></td></tr>
+      <tr><td class="srcnum">[12]</td><td>Goldman Sachs Global Investment Research (2023); McKinsey Global Institute (2023) — zitiert nach [11]</td><td>Sekundär · <span class="chip gD">D</span></td></tr>
+      <tr><td class="srcnum">[13]</td><td>Atkeson, Chari, Kehoe, „Taxing Capital Income: A Bad Idea", FRB Minneapolis QR 1999 — Gegenposition, zitiert nach [10]</td><td>Primär · <span class="chip gC">C</span></td></tr>
+      <tr><td class="srcnum">[14]</td><td>IMF Blog, <a href="https://www.imf.org/en/blogs/articles/2024/06/17/fiscal-policy-can-help-broaden-the-gains-of-ai-to-humanity">Fiscal Policy Can Help Broaden the Gains of AI</a>, Juni 2024</td><td>Primär (populär) · <span class="chip gC">C</span></td></tr>
+    </table>
+  </div>
+</section>
+
+<footer>
+  <p>OBSERVATORIUM · 2026-07-14 · Erstellt mit Claude. Limitationen: Deutsche Kohortendaten zu Berufseinsteigern fehlen bislang; die Verlagerungs-Parameter des Prognosemodells sind gesetzt, nicht geschätzt; IWF-Positionen können sich mit dem nächsten Fiscal Monitor verschieben. Zahlen gerundet, Sekundärzahlen (1,6 Mio / 4,5 Bio €) nur mit Deklassifizierungs-Vermerk verwendet.</p>
+</footer>
+
+</div>
+
+<script>
+/* ---------- Theme ---------- */
+function toggleTheme(){
+  const h=document.documentElement;
+  const next=h.dataset.theme==='dark'?'light':'dark';
+  h.dataset.theme=next;
+  document.getElementById('tbtn').textContent=next==='dark'?'☀ Hell':'☾ Dunkel';
+  drawAll();
+}
+if(window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches){toggleTheme();}
+
+/* ---------- SVG helpers ---------- */
+function cssVar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
+function el(tag,attrs,txt){
+  const e=document.createElementNS('http://www.w3.org/2000/svg',tag);
+  for(const k in attrs)e.setAttribute(k,attrs[k]);
+  if(txt!==undefined)e.textContent=txt;
+  return e;
+}
+
+/* ---------- Chart 1: Exposition nach Ländergruppen (stacked) ---------- */
+function drawExposure(){
+  const host=document.getElementById('chart-exposure');host.innerHTML='';
+  const data=[
+    {l:'Welt',        low:20, high:20},
+    {l:'Industrieländer', low:33, high:27},
+    {l:'Schwellenländer', low:24, high:16},
+    {l:'Niedrigeinkommen', low:18, high:8}
+  ];
+  const W=880,H=250,pad=140,bw=34,gap=22,x0=pad,xs=(W-pad-40)/70;
+  const svg=el('svg',{viewBox:`0 0 ${W} ${H}`,width:'100%'});
+  data.forEach((d,i)=>{
+    const y=26+i*(bw+gap);
+    svg.appendChild(el('text',{x:pad-12,y:y+bw/2+4,'text-anchor':'end','font-size':13},d.l));
+    svg.appendChild(el('rect',{x:x0,y:y,width:d.low*xs,height:bw,rx:4,fill:cssVar('--red'),opacity:.85}));
+    svg.appendChild(el('rect',{x:x0+d.low*xs,y:y,width:d.high*xs,height:bw,rx:4,fill:cssVar('--teal'),opacity:.85}));
+    svg.appendChild(el('text',{x:x0+(d.low+d.high)*xs+10,y:y+bw/2+4,'font-size':13,class:'val'},(d.low+d.high)+' % exponiert'));
+  });
+  const ly=H-14;
+  svg.appendChild(el('rect',{x:x0,y:ly-11,width:12,height:12,rx:3,fill:cssVar('--red'),opacity:.85}));
+  svg.appendChild(el('text',{x:x0+18,y:ly,'font-size':12},'niedrige Komplementarität (Substitutionsrisiko)'));
+  svg.appendChild(el('rect',{x:x0+330,y:ly-11,width:12,height:12,rx:3,fill:cssVar('--teal'),opacity:.85}));
+  svg.appendChild(el('text',{x:x0+348,y:ly,'font-size':12},'hohe Komplementarität (Aufwertung)'));
+  host.appendChild(svg);
+}
+
+/* ---------- Chart 2: IAB (zwei Panels) ---------- */
+function drawIAB(){
+  const host=document.getElementById('chart-iab');host.innerHTML='';
+  const W=880,H=230;
+  const svg=el('svg',{viewBox:`0 0 ${W} ${H}`,width:'100%'});
+  // Panel A: high substitutability share
+  const a=[{l:'2019',v:34},{l:'2025',v:38}];
+  svg.appendChild(el('text',{x:20,y:24,'font-size':12,fill:cssVar('--muted')},'Beschäftigte in Berufen mit hohem Potenzial (%)'));
+  a.forEach((d,i)=>{
+    const x=60+i*130,h=d.v*3.4,y=190-h;
+    svg.appendChild(el('rect',{x:x,y:y,width:80,height:h,rx:5,fill:i?cssVar('--amber'):cssVar('--blue'),opacity:.85}));
+    svg.appendChild(el('text',{x:x+40,y:y-8,'text-anchor':'middle','font-size':14,class:'val'},d.v+' %'));
+    svg.appendChild(el('text',{x:x+40,y:210,'text-anchor':'middle','font-size':12},d.l));
+  });
+  svg.appendChild(el('line',{x1:390,y1:20,x2:390,y2:210,class:'axis','stroke-dasharray':'3 5'}));
+  // Panel B: growth by exposure
+  const b=[{l:'hoch exponiert',v:5.9},{l:'gering exponiert',v:2.5},{l:'nicht exponiert',v:-1.7}];
+  svg.appendChild(el('text',{x:420,y:24,'font-size':12,fill:cssVar('--muted')},'Beschäftigungswachstum nach KI-Exposition (%)'));
+  const base=130, sc=11;
+  b.forEach((d,i)=>{
+    const x=450+i*140, h=Math.abs(d.v)*sc, y=d.v>0?base-h:base;
+    svg.appendChild(el('rect',{x:x,y:y,width:86,height:h,rx:5,fill:d.v>0?cssVar('--teal'):cssVar('--red'),opacity:.85}));
+    svg.appendChild(el('text',{x:x+43,y:d.v>0?y-8:y+h+16,'text-anchor':'middle','font-size':14,class:'val'},(d.v>0?'+':'')+d.v.toLocaleString('de-DE')+' %'));
+    svg.appendChild(el('text',{x:x+43,y:210,'text-anchor':'middle','font-size':11.5},d.l));
+  });
+  svg.appendChild(el('line',{x1:440,y1:base,x2:870,y2:base,class:'axis'}));
+  host.appendChild(svg);
+}
+
+/* ---------- Chart 3: Canaries ---------- */
+function drawCanaries(){
+  const host=document.getElementById('chart-canaries');host.innerHTML='';
+  const W=880,H=230;
+  const svg=el('svg',{viewBox:`0 0 ${W} ${H}`,width:'100%'});
+  const rows=[
+    {l:'hoch exponiert · Apr 2024',v:-2.8,c:'--red'},
+    {l:'hoch exponiert · Apr 2026',v:-3.8,c:'--red'},
+    {l:'gering exponiert · Apr 2026',v:2.0,c:'--teal'}
+  ];
+  const mid=440, sc=70, bw=36;
+  rows.forEach((d,i)=>{
+    const y=30+i*(bw+22), w=Math.abs(d.v)*sc;
+    const x=d.v<0?mid-w:mid;
+    svg.appendChild(el('text',{x:mid+(d.v<0?-w-12:-12),y:y+bw/2+4,'text-anchor':'end','font-size':12.5},d.l));
+    svg.appendChild(el('rect',{x:x,y:y,width:w,height:bw,rx:5,fill:cssVar(d.c),opacity:.85}));
+    svg.appendChild(el('text',{x:d.v<0?x-0+w+10:x+w+10,y:y+bw/2+4,'font-size':14,class:'val'},(d.v>0?'+':'')+d.v.toLocaleString('de-DE')+' % p.a.'));
+  });
+  svg.appendChild(el('line',{x1:mid,y1:16,x2:mid,y2:200,class:'axis'}));
+  svg.appendChild(el('text',{x:mid,y:216,'text-anchor':'middle','font-size':11.5},'Beschäftigungsänderung 22–25-Jährige, jährliche Rate (ADP/USA)'));
+  host.appendChild(svg);
+}
+
+/* ---------- Chart 4: Steuerkeil ---------- */
+function drawWedge(){
+  const host=document.getElementById('chart-wedge');host.innerHTML='';
+  const data=[
+    {l:'DE · Arbeit, Single',v:49.3,c:'--red'},
+    {l:'DE · Arbeit, Familie (2 Kinder)',v:42.6,c:'--amber'},
+    {l:'OECD-Schnitt · Arbeit, Single',v:35.1,c:'--blue'},
+    {l:'DE · Kapitalertrag (Abgeltungst. + Soli)',v:26.4,c:'--teal'}
+  ];
+  const W=880,H=240,pad=300,bw=32,gap=18,xs=(W-pad-100)/55;
+  const svg=el('svg',{viewBox:`0 0 ${W} ${H}`,width:'100%'});
+  data.forEach((d,i)=>{
+    const y=20+i*(bw+gap);
+    svg.appendChild(el('text',{x:pad-12,y:y+bw/2+4,'text-anchor':'end','font-size':12.5},d.l));
+    svg.appendChild(el('rect',{x:pad,y:y,width:d.v*xs,height:bw,rx:5,fill:cssVar(d.c),opacity:.88}));
+    svg.appendChild(el('text',{x:pad+d.v*xs+10,y:y+bw/2+4,'font-size':14,class:'val'},d.v.toLocaleString('de-DE')+' %'));
+  });
+  host.appendChild(svg);
+}
+
+/* ---------- Prognosemodell ---------- */
+const L=2000; // Mrd € Lohnsumme
+function fmt(x){return (x>0?'+':x<0?'–':'')+Math.abs(x).toLocaleString('de-DE',{maximumFractionDigits:0})+' Mrd €';}
+function calc(){
+  const s=+document.getElementById('in-s').value;
+  const a=+document.getElementById('in-a').value;
+  const p=+document.getElementById('in-p').value;
+  const k=+document.getElementById('in-k').value;
+  document.getElementById('v-s').textContent=s.toLocaleString('de-DE');
+  document.getElementById('v-a').textContent=a.toLocaleString('de-DE');
+  document.getElementById('v-p').textContent=p.toLocaleString('de-DE');
+  document.getElementById('v-k').textContent=k.toLocaleString('de-DE');
+  const loss=L*(s/100)*(a/100);
+  const gain=L*(s/100)*(p/100)*(k/100);
+  const net=gain-loss;
+  document.getElementById('r-loss').textContent=fmt(-loss);
+  document.getElementById('r-gain').textContent=fmt(gain);
+  const rn=document.getElementById('r-net');
+  rn.textContent=fmt(net);
+  rn.className='rv '+(net>1?'pos':net<-1?'neg':'neu');
+  const tot=loss+gain||1;
+  document.getElementById('bar-loss').style.width=(loss/tot*100)+'%';
+  document.getElementById('bar-gain').style.width=(gain/tot*100)+'%';
+  const be=p>0?(a/(p/100)):Infinity;
+  document.getElementById('r-be').textContent=isFinite(be)?be.toLocaleString('de-DE',{maximumFractionDigits:1}):'∞';
+  document.getElementById('r-comment').textContent =
+    net<-5 ? 'Das illustriert den IWF-Punkt: Ohne Reform der Kapitalbesteuerung ist die Verschiebung fiskalisch strukturell defizitär.' :
+    net>5  ? 'In dieser Konstellation überkompensiert die Kapitalbesteuerung den Ausfall — das entspräche einer weitgehenden Angleichung der Belastung.' :
+             'Nahe am Gleichgewicht: Ausfall und Mehreinnahmen heben sich ungefähr auf.';
+}
+
+function drawAll(){drawExposure();drawIAB();drawCanaries();drawWedge();}
+drawAll();calc();
+window.addEventListener('resize',()=>{});
+</script>
+</body>
+</html>

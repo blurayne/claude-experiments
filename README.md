@@ -26,6 +26,7 @@ A collection of small, self-contained experiments. Each subfolder is one experim
 - [immune-heroes](immune-heroes/)
 - [reise-ins-allerkleinste](reise-ins-allerkleinste/) — German reveal.js slide deck "Die Reise ins Allerkleinste": particle physics from cells to quarks, part of the *Quarks for Kids* series. — **Immune Heroes**: a kids' (DE/EN) browser voice app. Talk out loud to a cast of immune-system friends (Senua, Rubina, Theo, Kilian, Denni, Makro), each with its own voice and character, powered by the OpenAI Realtime API (speech↔speech over WebRTC) with an animated SVG character, audio-reactive visuals, idle story-telling, a token counter and a private on-device memory.
 - [ferienprogramm-feuer-kinder](ferienprogramm-feuer-kinder/) — Interactive German "Ferien-Kompass" for the 2026 Bavarian summer holidays (3 Aug–14 Sep): ~50 curated courses, camps and drop-in activities for kids near Munich-Sendling (81373), filterable by week, activity (robotics/maker, dance, sports, creative, outdoors), distance, price/free, open slots, age and free-text search, with a print/copy-friendly shortlist tray.
+- [ki-impact](ki-impact/) — Berichte und Analysen zur volkswirtschaftlichen Wirkung von KI; enthält einen interaktiven adversarialen Evidenzbericht zum IWF-Papier über KI, Arbeitsmarkt und Besteuerung.
 
 ## How the site is built
 
