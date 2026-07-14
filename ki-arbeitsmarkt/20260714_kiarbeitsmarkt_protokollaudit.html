@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KI &amp; Arbeitsmarkt — Protokoll-Audit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0f14; --panel:#121821; --panel2:#0f141c; --line:#1f2a37;
+  --ink:#e6edf3; --muted:#8b98a5; --teal:#2dd4bf; --amber:#f5b84d;
+  --red:#e5484d; --blue:#6cb2f5; --violet:#b18cf0;
+  --shadow:0 6px 24px rgba(0,0,0,.35);
+}
+html[data-theme="light"]{
+  --bg:#f4f6f8; --panel:#ffffff; --panel2:#eef1f5; --line:#d7dee6;
+  --ink:#15202b; --muted:#5b6b7a; --teal:#0d9488; --amber:#b97e12;
+  --red:#c4363b; --blue:#2266aa; --violet:#7a4fd0;
+  --shadow:0 6px 24px rgba(20,30,40,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:16px;line-height:1.65;transition:background .25s,color .25s}
+.wrap{max-width:1060px;margin:0 auto;padding:0 20px 80px}
+header.hero{padding:56px 0 28px;border-bottom:1px solid var(--line)}
+.kicker{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--teal);margin-bottom:14px}
+h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(28px,5vw,42px);line-height:1.12;letter-spacing:-.01em}
+h1 .dim{color:var(--muted);font-weight:400}
+.sub{color:var(--muted);margin-top:14px;max-width:72ch}
+.meta{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);margin-top:18px;display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+.toggle{margin-left:auto;background:var(--panel);border:1px solid var(--line);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:12px;padding:6px 12px;border-radius:999px;cursor:pointer}
+.toggle:hover{border-color:var(--teal)}
+section{margin-top:52px}
+h2{font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:700;margin-bottom:6px;letter-spacing:-.01em}
+h3{font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:500;margin:22px 0 8px}
+.secnum{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--teal);letter-spacing:.15em;display:block;margin-bottom:6px}
+p{margin:10px 0;max-width:80ch}
+a{color:var(--teal);text-decoration:none;border-bottom:1px dotted var(--teal)}
+a:hover{border-bottom-style:solid}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 24px;margin:18px 0;box-shadow:var(--shadow)}
+.panel2{background:var(--panel2)}
+.chip{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.05em;padding:2px 9px;border-radius:999px;border:1px solid;vertical-align:1px;white-space:nowrap}
+.gA{color:var(--teal);border-color:var(--teal)}
+.gB{color:var(--blue);border-color:var(--blue)}
+.gC{color:var(--amber);border-color:var(--amber)}
+.gD{color:var(--red);border-color:var(--red)}
+.st-b{color:var(--teal);border-color:var(--teal)}
+.st-t{color:var(--amber);border-color:var(--amber)}
+.st-e{color:var(--red);border-color:var(--red)}
+.st-n{color:var(--muted);border-color:var(--muted)}
+.legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px}
+th{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);text-align:left;padding:8px 9px;border-bottom:1px solid var(--line)}
+td{padding:10px 9px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:none}
+.num{font-family:'IBM Plex Mono',monospace;white-space:nowrap}
+.wl{color:var(--muted);font-style:italic}
+ul.tight{margin:8px 0 8px 22px}
+ul.tight li{margin:7px 0;max-width:76ch}
+.hyp{border-left:3px solid var(--violet);padding-left:16px;margin:14px 0}
+.hyp .hid{font-family:'IBM Plex Mono',monospace;color:var(--violet);font-size:13px}
+.vgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:760px){.vgrid{grid-template-columns:1fr}}
+.vcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
+.vcard .vh{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:16px;margin-bottom:8px}
+.vcard .conf{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);margin-top:10px}
+figure{margin:20px 0}
+figcaption{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);margin-top:8px;max-width:80ch}
+svg text{font-family:'IBM Plex Mono',monospace;fill:var(--muted)}
+svg .val{fill:var(--ink);font-weight:500}
+svg .axis{stroke:var(--line)}
+.note{font-size:13.5px;color:var(--muted)}
+footer{margin-top:70px;padding-top:24px;border-top:1px solid var(--line);font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted)}
+.warn{border-left:3px solid var(--amber);padding-left:18px}
+.delta{border-left:3px solid var(--teal);padding-left:18px}
+.srcnum{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--teal)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="kicker">Observatorium · Protokoll-Audit · Recherche-Protokoll v1 angewandt · 2. Passage</div>
+  <h1>KI &amp; Arbeitsmarkt<br><span class="dim">Vier Hypothesen, siebzehn Behauptungen, eine kleinere Restliste</span></h1>
+  <p class="sub">Anwendung des adversarialen Recherche-Protokolls auf die Frage nach den Arbeitsmarkt- und Fiskaleffekten generativer KI. Kein Narrativ-Bericht: Hypothesen → atomare Einzelbehauptungen → Erstquellen-Prüfung → Belegtabelle → Restliste → dreistufiges Verdikt. Enthält die Selbstkorrekturen gegenüber dem Vorbericht sowie eine zweite Nachrecherche-Passage, die sechs der sieben ursprünglichen Restliste-Punkte adressiert (Δ2).</p>
+  <div class="meta">
+    <span>STAND: 2026-07-14 (2. Passage)</span>
+    <span>ERSTQUELLEN DIREKT GEPRÜFT: 9 / 17 · +5 KONVERGENT NACHRECHERCHIERT</span>
+    <button class="toggle" onclick="toggleTheme()" id="tbtn">☀ Hell</button>
+  </div>
+  <div class="legend">
+    <span class="chip gA">A Messdaten</span>
+    <span class="chip gB">B Modellrechnung</span>
+    <span class="chip gC">C Experteneinschätzung</span>
+    <span class="chip gD">D Interessenzitat</span>
+    <span style="width:14px"></span>
+    <span class="chip st-b">bestätigt</span>
+    <span class="chip st-t">teilbestätigt</span>
+    <span class="chip st-e">entkräftet</span>
+    <span class="chip st-n">nicht prüfbar</span>
+  </div>
+</header>
+
+<!-- ===== REGEL 0 ===== -->
+<section>
+  <span class="secnum">R0 / ZERLEGEN STATT URTEILEN</span>
+  <h2>Konkurrierende Hypothesen</h2>
+  <p>Die übliche Lagerfrage („KI vernichtet Jobs — ja oder nein?") wird ersetzt durch vier prüfbare Hypothesen. H1–H3 sind konkurrierende Erklärungen desselben Datenbilds; H4 ist die fiskalische Anschlusshypothese.</p>
+  <div class="panel">
+    <div class="hyp"><span class="hid">H1 · „Disruption läuft"</span><br>Generative KI verdrängt bereits jetzt gesamtwirtschaftlich messbar Arbeitsplätze in großem Umfang.</div>
+    <div class="hyp"><span class="hid">H2 · „Selektive Umverteilung"</span><br>KI wirkt real, aber selektiv: Berufseinsteiger in automatisierungsnahen Berufen verlieren, Tätigkeiten verschieben sich — ohne gesamtwirtschaftlichen Netto-Abbau.</div>
+    <div class="hyp"><span class="hid">H3 · „Nullhypothese / Hype"</span><br>KI-Arbeitsmarkteffekte sind bislang vernachlässigbar; KI-Zuschreibungen bei Entlassungen sind überwiegend Narrativ („AI-Washing").</div>
+    <div class="hyp"><span class="hid">H4 · „Fiskalische Asymmetrie"</span><br>Die Abgaben-Asymmetrie (Arbeit hoch, Kapital niedrig) treibt Automatisierung über das effiziente Maß und gefährdet die Finanzierungsbasis lohnbasierter Sozialstaaten — besonders in Deutschland.</div>
+  </div>
+</section>
+
+<!-- ===== BELEGTABELLE ===== -->
+<section>
+  <span class="secnum">R1–R3, R7 / BELEGTABELLE</span>
+  <h2>Einzelbehauptungen mit Prüfstatus</h2>
+  <p class="note">Jede Zeile: Original-Wortlaut (kursiv, übersetzt wo nötig), Urheber + Datum, Evidenzgrad, ob die Erstquelle in dieser Recherche direkt eingesehen wurde, Prüfstatus, Anmerkung zu Wording-Verschiebungen in der Sekundärverwertung (Regel 3). Zeilen mit „konvergent" bei Erstquelle wurden in der 2. Passage nicht direkt am Primärdokument, sondern über mehrere unabhängige, übereinstimmende Sekundärquellen geprüft — der Recherche-Proxy dieser Sitzung blockierte den direkten Zugriff auf iab.de, bundesbank.de, oecd.org, stanford.edu und t3n.de durchgehend (HTTP 403, auch bei Kontroll-URLs).</p>
+
+  <figure class="panel panel2">
+    <div id="chart-status"></div>
+    <figcaption>Prüfstatus-Verteilung der 17 Einzelbehauptungen. Das Protokoll erzwingt diese Übersicht — sie ersetzt das runde Fazit.</figcaption>
+  </figure>
+
+  <div class="panel" style="overflow-x:auto">
+    <table>
+      <tr><th>#</th><th>Behauptung (Wortlaut-Kern)</th><th>Urheber · Datum</th><th>Grad</th><th>Erstquelle</th><th>Status</th><th>Anmerkung</th></tr>
+      <tr><td class="num">B01</td><td><span class="wl">„Almost 40 percent of global employment is exposed to AI"</span></td><td>IWF / Cazzaniga et al. · 01/2024</td><td><span class="chip gB">B</span></td><td>ja (PDF)</td><td><span class="chip st-b">bestätigt</span></td><td>Als Modellaussage. Original: „exposed" — Sekundärverwertung macht daraus „bedroht"/„at risk".</td></tr>
+      <tr><td class="num">B02</td><td><span class="wl">~60 % Exposition in Industrieländern; davon 27 % hohe / 33 % niedrige Komplementarität</span></td><td>IWF / Cazzaniga et al. · 01/2024</td><td><span class="chip gB">B</span></td><td>ja (PDF)</td><td><span class="chip st-b">bestätigt</span></td><td>Split unabhängig gegengeprüft (Bundestag WD 5-066/25 referiert identische Werte).</td></tr>
+      <tr><td class="num">B03</td><td><span class="wl">22–25-Jährige in hoch KI-exponierten Berufen: −13 % (rev. −16 %) relative Beschäftigung</span></td><td>Brynjolfsson/Chandar/Chen · 08/2025 (Rev. 11/2025)</td><td><span class="chip gA">A</span></td><td>ja (PDF)</td><td><span class="chip st-b">bestätigt</span></td><td>Relative Verschiebung, USA, ADP-Sample. Kein Beleg für Netto-Jobverlust der Gesamtwirtschaft.</td></tr>
+      <tr><td class="num">B04</td><td><span class="wl">Rückgänge konzentriert, wo KI automatisiert statt augmentiert</span></td><td>dito, Klassifikation via Anthropic Economic Index</td><td><span class="chip gA">A</span>/<span class="chip gB">B</span></td><td>ja (PDF)</td><td><span class="chip st-b">bestätigt</span></td><td>Messdaten × Modell-Zuordnung der Tasks; Zuordnung selbst ist Grad B.</td></tr>
+      <tr><td class="num">B05</td><td><span class="wl">Rate vertieft sich: −2,8 %/a (04/2024) → 3,8 %/a, z.T. &gt;4 %/a (04/2026)</span></td><td>Canaries-Dashboard / AI Economic Indicators (Stanford × ADP) · 04–06/2026</td><td><span class="chip gA">A</span></td><td>konvergent (Stanford-eigene PR + Research Note, nicht Fortune allein)</td><td><span class="chip st-b">bestätigt</span></td><td>2. Passage: Dashboard ist unter <span class="srcnum">indicators.stanford.edu</span> als eigene Plattform gelauncht (06/2026), begleitet von Autoren-Robustheitscheck (02/2026), der Zinszyklus als Alternativerklärung explizit ausschließt. PDF/Dashboard selbst technisch nicht abrufbar (Proxy-Block) — Konvergenz beruht auf mehreren von Fortune unabhängigen Quellen inkl. Stanfords eigener Pressemeldung.</td></tr>
+      <tr><td class="num">B06</td><td><span class="wl">„…has not experienced a discernible disruption" (gesamtwirtschaftlich, 33+ Monate nach ChatGPT)</span></td><td>Yale Budget Lab / Gimbel et al. · 10/2025–2026</td><td><span class="chip gA">A</span></td><td>ja (Reports)</td><td><span class="chip st-b">bestätigt</span></td><td>Eigene Caveats der Autoren: nicht prädiktiv; Aggregatmaße können Kohorteneffekte glätten.</td></tr>
+      <tr><td class="num">B07</td><td><span class="wl">Expositions-Maße korrelieren nur begrenzt mit realen Nutzungsdaten</span></td><td>Yale Budget Lab · 10/2025</td><td><span class="chip gA">A</span></td><td>ja</td><td><span class="chip st-b">bestätigt</span></td><td>Zentraler Methodik-Einwand gegen alle expositionsbasierten Schlagzeilen (B01, B02, B08).</td></tr>
+      <tr><td class="num">B08</td><td><span class="wl">38 % der sv-Beschäftigten in Berufen mit hohem Substituierbarkeitspotenzial (2019: 34 %)</span></td><td>IAB Kurzbericht 5/2024 u. Folgeauswertungen</td><td><span class="chip gA">A</span>/<span class="chip gB">B</span></td><td>ja (KB-PDF/Spiegel-Mirror)</td><td><span class="chip st-b">bestätigt</span></td><td>Beschäftigtenzahlen = Registerdaten (A); Potenzial-Einstufung je Beruf = Expertenmodell (B).</td></tr>
+      <tr><td class="num">B09</td><td><span class="wl">Beschäftigung wuchs in hoch exponierten Berufen (+5,9 %) stärker als in gering (+2,5 %) / nicht exponierten (−1,7 %)</span></td><td>vermutlich IAB DiWaBe 2.0 (Querschnittsumfrage, n≈9.800) · 2024</td><td><span class="chip gC">C</span></td><td>konvergent, nicht am Primärdokument</td><td><span class="chip st-t">teilbestätigt</span></td><td>2. Passage: wahrscheinliche Quelle identifiziert — nicht mehr komplett unverankert, aber weiterhin nicht am IAB-Primärdokument selbst verifiziert (Fetch-Block auf doku.iab.de). Wichtige Korrektur: Datentyp ist Umfrage (n≈9.800), keine Registerdaten wie ursprünglich vermutet — Grad daher C statt A. Nicht altersstratifiziert, also kein direkter H2-Beleg für Berufseinsteiger.</td></tr>
+      <tr><td class="num">B10</td><td><span class="wl">„…etwa 1,6 Millionen Stellen … entweder wegfallen oder neu entstehen"; +0,8 pp BIP p.a.; kumuliert ~4,5 Bio. €</span></td><td>IAB/BIBB/GWS, FB 23/2025 (Zika et al.) · 11/2025</td><td><span class="chip gB">B</span></td><td>ja (IAB-Presseinfo + FB-PDF)</td><td><span class="chip st-b">bestätigt</span></td><td>Als Szenariorechnung. Sekundärverwertung („1,6 Mio. betroffen") unterschlägt das „oder neu entstehen". Caveat: Datenbasis reicht nur bis 2023 — Gen-KI-Boom nur teilweise abgebildet.</td></tr>
+      <tr><td class="num">B11</td><td><span class="wl">Goldman: +7 % Welt-BIP; McKinsey: 17–26 Bio. $ Potenzial</span></td><td>GS 2023 / MGI 2023</td><td><span class="chip gD">D</span></td><td>nein (zitiert nach Acemoglu w32487)</td><td><span class="chip st-t">teilbestätigt</span></td><td>Als Zitat korrekt wiedergegeben; Original-Reports nicht eingesehen. Interessenlage: Sell-Side/Beratung.</td></tr>
+      <tr><td class="num">B12</td><td><span class="wl">„…no more than a 0.66% increase in total factor productivity over 10 years"</span></td><td>Acemoglu, NBER w32487 · 05/2024</td><td><span class="chip gB">B</span></td><td>ja (PDF)</td><td><span class="chip st-b">bestätigt</span></td><td>Als Modell. Tragende Annahmen: keine qualitativen Fähigkeitssprünge, keine neuen Tasks, frühe Task-Parameter — fällt eine, fällt die Zahl.</td></tr>
+      <tr><td class="num">B13</td><td><span class="wl">US-Steuersystem begünstigt exzessive Automatisierung; optimale Angleichung: +4,02 % Beschäftigung, +0,78 pp Lohnquote</span></td><td>Acemoglu/Manera/Restrepo · 2020</td><td><span class="chip gB">B</span></td><td>ja (PDF)</td><td><span class="chip st-b">bestätigt</span></td><td>Als Modell mit US-Parametern; Übertrag auf DE plausibel, aber nicht gerechnet.</td></tr>
+      <tr><td class="num">B14</td><td><span class="wl">DE-Abgabenkeil Single 49,3 % (2025), Platz 2 von 38; OECD-Ø 35,1 %</span></td><td>OECD Taxing Wages 2026 · 04/2026</td><td><span class="chip gA">A</span></td><td>ja (OECD Country Note)</td><td><span class="chip st-b">bestätigt</span></td><td>Erstquelle ergänzt Kontext, den die dt. Sekundärberichte weglassen: 2000 lag der Keil bei 52,9 % — langfristig gesunken, zuletzt wieder steigend (+1,34 pp ggü. 2024).</td></tr>
+      <tr><td class="num">B15</td><td><span class="wl">„42,6 % für Familien mit zwei Kindern, bei denen beide Eltern arbeiten"</span></td><td>dt. Steuerportale nach OECD · 06/2026</td><td><span class="chip gA">A</span></td><td>konvergent, nicht am OECD.Stat-Rohdokument</td><td><span class="chip st-b">bestätigt</span></td><td>2. Passage: exakter Haushaltstyp identifiziert — „Zweiverdiener-Ehepaar, 100 %+67 % Ø-Lohn, 2 Kinder" (Standard-OECD-Typ). Kein Widerspruch zu den 34,9 % (Einverdiener-Typ): beide Zahlen sind sachlich getrennte, korrekte Kennziffern für unterschiedliche Haushaltskonstellationen. OECD-Ø für diesen Typ: 29,8 %; DE Rang 2 hinter Belgien (44,8 %). Zirkularitäts-Fund bleibt: 6+ dt. Kanzlei-Seiten teilen denselben Newsfeed.</td></tr>
+      <tr><td class="num">B16</td><td><span class="wl">Rentenbeiträge mit Leistungsäquivalenz sind ökonomisch teils keine Steuer — der Keil überzeichnet die Belastung</span></td><td>Deutsche Bundesbank, Monatsbericht 06/2024</td><td><span class="chip gC">C</span></td><td>konvergent, nicht am Volltext-PDF</td><td><span class="chip st-t">teilbestätigt</span></td><td>2. Passage: jetzt quantifiziert — Gesamtkeil Single/Ø-Lohn ca. 48 % → nach Herausrechnung des beitragsäquivalenten Rentenanteils ca. 33 % („Steueranteil"), Differenz ca. 15 Prozentpunkte. Bundesbank selbst nennt die Aufteilung „schematisch und stark vereinfacht", keine versicherungsmathematische Diskontierung. Leichte Abweichung zum OECD-Wert 49,3 % (anderes Berichtsjahr/Datenvintage) — kein Widerspruch, aber Näherungswert.</td></tr>
+      <tr><td class="num">B17</td><td><span class="wl">„KI ist für 25 Prozent der Entlassungen verantwortlich" / „KI-Layoffs explodieren"</span></td><td>Challenger, Gray &amp; Christmas (Job Cuts Report), zit. t3n · 05–06/2026</td><td><span class="chip gC">C</span></td><td>konvergent (Challenger-Monatsreports + CFO/HR Dive)</td><td><span class="chip st-t">teilbestätigt</span></td><td>Neu in 2. Passage (vormals nur Restliste, Grad D). Anteil KI-begründeter US-Entlassungen: 7 % (Jan) → 25 % (März) → 26 % (Apr) → <b>40 % (Mai, Rekordwert seit Tracking-Start 2023)</b> → 31 % (Jun); YTD Mai bereits über Gesamtjahr 2025. Methodischer Vorbehalt entscheidend: Zahlen sind Selbstauskünfte der Unternehmen aus Pressemitteilungen, keine unabhängige Kausalprüfung — Sam Altman selbst räumte im 03/2026 ein, fast jede Firma mit Entlassungen schiebe es auf KI, „ob es nun stimmt oder nicht" (AI-Washing, von Deutsche Bank bereits 01/2026 prognostiziert). Daher Grad C statt D, aber Status nur „teilbestätigt": Messung des Zuschreibungs-Anteils ja, Kausalitätsnachweis nein.</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ===== ADVERSARIALE PRÜFUNG ===== -->
+<section>
+  <span class="secnum">R4 / WIDERLEGUNGSVERSUCHE</span>
+  <h2>Angriff auf jede Hypothese</h2>
+
+  <div class="panel">
+    <h3 style="margin-top:0">Gegen H1 („Disruption läuft")</h3>
+    <p>Stärkste Gegenevidenz: B06/B07 (Yale) — über 33 Monate keine Verschiebung des Berufsmixes, der Arbeitslosigkeit nach Expositions-Quintil oder der Arbeitslosigkeitsdauer außerhalb historischer Bandbreiten; zusätzlich B08-Kontext (IAB: hohes Potenzial führte historisch selten zu Abbau) und B09-Richtung. <b>Ergebnis: H1 hält dem Angriff für den Zeitraum bis Anfang 2026 nicht stand.</b> Verteidigung der H1 („Verzögerung, Diffusion dauert Jahrzehnte") ist legitim, macht H1 aber unfalsifizierbar für die Gegenwart — sie wird damit zur Prognose, nicht zum Befund.</p>
+    <h3>Gegen H2 („Selektive Umverteilung")</h3>
+    <p>Angriffslinien: (a) ADP-Sample nicht repräsentativ (Privatwirtschaft, Payroll-Kunden); (b) Kohorteneffekt könnte Tech-Überhiring-Korrektur oder Zinszyklus sein; (c) Expositions-Zuordnung ist Modell. Die Autoren adressieren (b) durch Robustheitstests (Effekt bleibt ohne Tech-Sektor; zinssensitive Berufe sind gering exponiert — jetzt zusätzlich durch einen eigenen Robustheitscheck vom 02/2026 untermauert, der Zinsen explizit als Alternativerklärung ausschließt) und (c) durch Nutzungs- statt Expositionsdaten. (a) bleibt offen, ebenso die Übertragbarkeit auf Deutschland — dort existieren schlicht keine Registerdaten-Kohortenstudien (nur Umfrage-Näherungen wie B09/DiWaBe 2.0); laut Sekundärliteratur sind EU-Replikationsstudien mit Registerdaten angekündigt, aber noch nicht veröffentlicht. Zusätzliche Textur für DE: die IAB-Szenariorechnung (B10) beziffert grobe Branchengewinner/-verlierer (IT/Informationsdienstleister +110.000, Unternehmensdienstleister/Back-Office −120.000 nach 15 Jahren) — als Modellrechnung (Grad B), nicht als Beobachtung. <b>Ergebnis: H2 übersteht den Angriff für die USA; für DE weiterhin nicht direkt prüfbar, aber die Richtungsindizien verdichten sich.</b></p>
+    <h3>Gegen H3 („Nullhypothese / AI-Washing")</h3>
+    <p>Die starke Form („gar kein Effekt") wird durch B03–B05 widerlegt: Der Berufseinsteiger-Effekt ist gemessen, robust und vertieft sich. Die schwache Form (AI-Washing bei Entlassungs-Kommunikation) ist plausibel (B17: 7 %→40 % KI-zugeschriebene US-Entlassungen binnen fünf Monaten 2026, inkl. Rekordwert Mai) und jetzt mit einem prominenten Selbstzeugnis unterlegt — Sam Altman räumte 03/2026 ein, praktisch jede Firma mit Entlassungen schiebe es auf KI, unabhängig vom tatsächlichen Grund. Die Zuschreibungs-<i>Häufigkeit</i> ist damit quantifiziert; der tatsächliche kausale Anteil bleibt unquantifizierbar, da Challenger-Daten reine Selbstauskünfte sind. <b>Ergebnis: starke Form entkräftet, schwache Form jetzt mit Zahlen unterlegt — aber weiterhin nicht kausal belegt.</b></p>
+    <h3>Gegen H4 („Fiskalische Asymmetrie")</h3>
+    <p>Angriffslinien: (a) Bundesbank-Einwand B16 — jetzt quantifiziert: von ca. 48 % Gesamtkeil sind nur ca. 33 % „reiner" Steueranteil, der Rest (ca. 15 Pp.) ist beitragsäquivalente Rentenanwartschaft; der 49,3-vs-26,4-Kontrast überzeichnet entsprechend, auch wenn die Bundesbank ihre eigene Aufteilung als „schematisch" bezeichnet; (b) OECD-Langfristdaten B14 — der deutsche Keil ist seit 2000 <i>gesunken</i> (52,9→49,3), die Asymmetrie ist kein neues KI-Phänomen; (c) Kapitalbesteuerung hat Effizienzkosten und Mobilitätsprobleme (Optimalsteuer-Einwand); (d) die Wirkungsbehauptung „übermäßige Automatisierung" beruht auf einem US-kalibrierten Modell (B13), nicht auf deutschen Messdaten. Die Faktenbasis (Belastungsdifferenz) übersteht den Angriff, ist aber durch (a) jetzt präziser eingehegt; die Wirkungs- und Erosionsthese bleibt Modell. <b>Ergebnis: Faktenkern bestätigt und quantifiziert abgeschwächt, Kausalkette weiterhin teilbelegt.</b></p>
+  </div>
+
+  <figure class="panel panel2">
+    <div id="chart-wedge"></div>
+    <figcaption>Der adversariale Fund zu H4: Deutschlands Abgabenkeil (Single, Ø-Lohn) im Langfristverlauf — hoch, aber seit 2000 gesunken; zuletzt wieder steigend. Quelle: OECD Taxing Wages 2026, Country Note Deutschland (Erstquelle). Die Schlagzeile „Rekordbelastung" gilt für den OECD-Schnitt, nicht für den deutschen Langfristtrend.</figcaption>
+  </figure>
+</section>
+
+<!-- ===== RESTLISTE ===== -->
+<section>
+  <span class="secnum">R7 / RESTLISTE</span>
+  <h2>Nicht geprüft — mit Grund</h2>
+  <p class="note">Sechs der sieben Punkte der ursprünglichen Restliste wurden in einer 2. Nachrecherche-Passage adressiert (siehe Δ2) — vier davon konnten hochgestuft werden. Verbleibend offen:</p>
+  <div class="panel warn">
+    <table>
+      <tr><th>Offener Punkt</th><th>Grund</th><th>Auswirkung</th></tr>
+      <tr><td>B09 exakte Primärfundstelle</td><td>Wahrscheinliche Quelle (IAB DiWaBe 2.0) identifiziert, aber nicht am Primärdokument selbst verifiziert (Fetch-Block auf doku.iab.de)</td><td>Zuschreibung bleibt „wahrscheinlich", nicht „gesichert"</td></tr>
+      <tr><td>Goldman-/McKinsey-Originalreports (B11)</td><td>Registrierungs-/Paywall; in 2. Passage nicht erneut geprüft</td><td>D-Zitate weiterhin nur nach Acemoglus Wiedergabe</td></tr>
+      <tr><td>Bundesbank-Volltext, exakte Zahlen (B16)</td><td>48 %/33 %/15-Pp.-Werte nur über Suchindex-Konvergenz, nicht am PDF selbst; empfohlen: manuelle Prüfung durch Person mit Browserzugriff</td><td>Quantifizierung plausibel, aber nicht letztgültig bestätigt</td></tr>
+      <tr><td>IAB FB 23/2025: vollständige Branchen-/WZ-Tabelle</td><td>Zwei Kernzahlen gefunden (IT +110.000 / Unternehmensdienstleister −120.000 nach 15 Jahren), aber die Tabellenkapitel 4–5 mit vollständiger Branchenaufschlüsselung nicht ausgewertet</td><td>DE-Sektorprognose nur in Grobkontur, nicht vollständig referierbar</td></tr>
+      <tr><td>Deutsche/EU-Registerdaten Berufseinsteiger × KI-Exposition</td><td>Bestätigt: es existiert keine öffentliche Studie mit echten Personal-/Lohndaten analog zur US-ADP-Studie; nur Umfrage- (DiWaBe, ifo/Randstad) und Vakanzdaten (Stepstone/FAZ). Laut Fachartikel sind EU-Replikationsstudien mit Registerdaten „should be hitting soon" — Stand dieser Recherche noch nicht veröffentlicht.</td><td>H2 für DE bleibt prinzipiell nicht direkt prüfbar — wichtigste Datenlücke des Themas, aber jetzt präziser gefasst</td></tr>
+      <tr><td>Methodische Einschränkung dieser 2. Passage</td><td>Alle sechs Nachrecherchen erfolgten über Websuche-Konvergenz, nicht über direkten Dokumentenzugriff — der Recherche-Proxy blockierte WebFetch auf iab.de, bundesbank.de, oecd.org, stanford.edu und t3n.de durchgehend (HTTP 403, auch bei Kontroll-URLs wie example.com)</td><td>Gilt für alle in Δ2 hochgestuften Behauptungen — Konvergenz mehrerer unabhängiger Quellen ist gut, aber kein Ersatz für Primärdokument-Einsicht</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ===== VERDIKT ===== -->
+<section>
+  <span class="secnum">R8 / VERDIKT</span>
+  <h2>Dreistufig, je Hypothese</h2>
+  <p><b>Kippende offene Fragen — nach Δ2 aktualisiert:</b> (1) Fehlen deutscher/EU-<i>Register</i>-Kohortendaten — solange sie fehlen, ist jede DE-Übertragung von H2 Analogie, nicht Befund; laut Sekundärliteratur sind Replikationsstudien angekündigt, aber noch nicht da. (2) Die Verzögerungsthese macht H1 vs. H3 auf Aggregatebene derzeit unentscheidbar; entscheidbar wird sie, wenn die Canaries-Rate plateauiert (→ H3 gestärkt) oder auf ältere Kohorten übergreift (→ H1 gestärkt). (3) B09-Zuschreibung an IAB DiWaBe 2.0 ist wahrscheinlich, aber nicht am Primärdokument bestätigt. (4) Die Bundesbank-Quantifizierung (48 %→33 %) steht noch unter Vorbehalt einer manuellen Primärprüfung.</p>
+  <div class="vgrid">
+    <div class="vcard">
+      <div class="vh">H1 · Disruption läuft</div>
+      <p><b>Belegt:</b> nichts auf Aggregatebene.<br><b>Teilbelegt:</b> Vorstufen-Mechanik (Nicht-Nachbesetzung) als möglicher Frühindikator.<br><b>Unbelegt:</b> gesamtwirtschaftliche Verdrängung bis Anfang 2026 — aktiv gegenbelegt durch A-Daten (B06).</p>
+      <div class="conf">Konfidenz: für den Ist-Zeitraum sehr wahrscheinlich falsch · als Prognose: unklar</div>
+    </div>
+    <div class="vcard">
+      <div class="vh">H2 · Selektive Umverteilung</div>
+      <p><b>Belegt:</b> USA — Berufseinsteiger-Effekt in automatisierungsnahen Berufen (B03–B04), Tätigkeitsverschiebung statt Netto-Abbau (B06+B03 konsistent), Vertiefungstrend jetzt an Stanford-eigenen Quellen bestätigt (B05).<br><b>Teilbelegt:</b> Übertragbarkeit auf DE — Umfrage-Indiz B09 (IAB DiWaBe 2.0, +5,9/+2,5/−1,7 % nach Exposition, nicht altersstratifiziert) und Branchengrobkontur aus der B10-Szenariorechnung (IT +110.000 / Back-Office −120.000 nach 15 Jahren).<br><b>Unbelegt:</b> Lohneffekte (Anpassung läuft über Menge, nicht Preis — bisher); DE-spezifischer Berufseinsteiger-Effekt (Registerdaten fehlen weiterhin).</p>
+      <div class="conf">Konfidenz: wahrscheinlich zutreffend (USA) · für DE: plausibler geworden, aber weiterhin ohne direkten Beleg</div>
+    </div>
+    <div class="vcard">
+      <div class="vh">H3 · Nullhypothese / AI-Washing</div>
+      <p><b>Belegt:</b> Aggregat-Stabilität (B06) — der Teil der H3, der mit H2 kompatibel ist.<br><b>Teilbelegt:</b> AI-Washing als Kommunikationsmuster — jetzt mit Zahlen (B17: 7 %→40 % KI-zugeschriebene US-Entlassungen 2026) und einem Selbstzeugnis (Altman 03/2026) unterlegt, aber weiterhin ohne unabhängige Kausalprüfung.<br><b>Unbelegt / entkräftet:</b> die starke Form „kein realer Effekt" — widerlegt durch B03–B04.</p>
+      <div class="conf">Konfidenz: starke Form wahrscheinlich falsch · schwache Form jetzt gut dokumentiert (Häufigkeit), kausal weiter offen</div>
+    </div>
+    <div class="vcard">
+      <div class="vh">H4 · Fiskalische Asymmetrie</div>
+      <p><b>Belegt:</b> die Belastungsdifferenz selbst (B14 an Erstquelle; Kapitalertrag ~26,4 % vs. Keil 49,3 %; für Zweiverdiener-Familien 42,6 % vs. OECD-Ø 29,8 %, B15) und der IWF-Kurs (Kapitaleinkommensbesteuerung stärken, keine KI-Sondersteuer).<br><b>Teilbelegt:</b> Anreizwirkung „übermäßige Automatisierung" (US-Modell B13, für DE nicht gerechnet); Erosionsrisiko der SV-Basis (Mechanik zwingend, Ausmaß offen); Bundesbank-Abschlag jetzt quantifiziert (ca. 15 Pp. des Keils sind Rentenäquivalent, B16) — aber nur konvergent, nicht am Primärdokument bestätigt.<br><b>Unbelegt:</b> dass die Verschiebung Lohn→Kapital in DE bereits stattfindet (Lohnquoten-Evidenz fehlt).</p>
+      <div class="conf">Konfidenz: Faktenkern sehr wahrscheinlich korrekt, jetzt präziser eingehegt · Kausal-/Zukunftsteil unklar</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== DELTA ===== -->
+<section>
+  <span class="secnum">Δ / SELBSTKORREKTUR</span>
+  <h2>Was das Protokoll am Vorbericht geändert hat</h2>
+  <div class="panel delta">
+    <ul class="tight">
+      <li><b>B09 heruntergestuft:</b> Die IAB-Wachstumszahlen nach Exposition (+5,9/+2,5/−1,7 %) standen im Vorbericht als Fakt mit Grad A — Primärfundstelle wurde nicht gefunden, Status jetzt „nicht prüfbar". Die Chart-Aussage des Vorberichts hängt an einer Sekundärquelle.</li>
+      <li><b>B15 präzisiert:</b> „42,6 % Familie" im Vorbericht-Chart war der Doppelverdiener-Haushaltstyp; die OECD-Erstquelle weist für die Einverdiener-Familie 34,9 % aus. Ohne Haushaltstyp-Angabe war das Chart-Label irreführend genau.</li>
+      <li><b>B10 aufgewertet und geschärft:</b> „1,6 Mio. / 4,5 Bio. €" ist jetzt an der Erstquelle (IAB-Presseinfo, FB 23/2025) verankert — inklusive Original-Wording „wegfallen <i>oder neu entstehen</i>" und dem im Vorbericht fehlenden Caveat: Datenbasis nur bis 2023.</li>
+      <li><b>Neuer Gegenbefund zu H4:</b> Bundesbank-Einwand (Beitrags-Äquivalenz) und OECD-Langfristtrend (Keil seit 2000 gesunken) — beide fehlten im Vorbericht und schwächen die dortige Zuspitzung „Extremfall" ab, ohne sie zu kippen.</li>
+      <li><b>Zirkularitäts-Fund:</b> Die scheinbar vielen deutschen Quellen zum 49,3-%-Wert sind Verwertungen derselben OECD-Pressemeldung — im Vorbericht zählten sie implizit als Bestätigung.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===== DELTA 2 ===== -->
+<section>
+  <span class="secnum">Δ2 / NACHRECHERCHE DER RESTLISTE</span>
+  <h2>Zweite Passage: sechs offene Punkte gezielt adressiert</h2>
+  <p>Fünf parallele Recherche-Durchgänge zu den sieben Restliste-Punkten des Erstberichts. Wichtige methodische Einschränkung vorab: Der Recherche-Proxy dieser Sitzung blockierte direkten Dokumentenzugriff (WebFetch/curl) auf iab.de, bundesbank.de, oecd.org, digitaleconomy.stanford.edu und t3n.de durchgehend mit HTTP 403 — auch bei Kontroll-URLs. Alle folgenden Befunde beruhen daher auf konvergenten Websuche-Ergebnissen (mehrere unabhängige Quellen, die dieselben Zahlen nennen), nicht auf direkter Primärdokument-Einsicht. Das ist schwächer als „ja (PDF)" im Erstbericht, aber stärker als eine einzelne Sekundärquelle.</p>
+  <div class="panel delta">
+    <ul class="tight">
+      <li><b>B05 hochgestuft (teilbestätigt → bestätigt):</b> Das Canaries-Dashboard ist seit Juni 2026 als eigene Plattform „AI Economic Indicators" unter indicators.stanford.edu gelauncht, begleitet von einer eigenen Research Note. Ein Autoren-Blogpost vom Februar 2026 prüft und verwirft Zinszyklen als Alternativerklärung. Mehrere von Fortune unabhängige Quellen (u. a. Stanfords eigene Pressemeldung) nennen übereinstimmend April 2026: −3,8 %/Jahr, mit einer seither erreichten Spanne von über −4 %/Jahr.</li>
+      <li><b>B09 hochgestuft (nicht prüfbar → teilbestätigt), aber Grad korrigiert:</b> Eine zweite, unabhängig davon recherchierende Suche (im Rahmen der Kohortendaten-Gegenprüfung) stieß auf „IAB DiWaBe 2.0" — eine Querschnittsumfrage unter ca. 9.800 Beschäftigten (2024) — mit exakt denselben Werten (+5,9 %/+2,5 %/−1,7 %). Das ist ein plausibler Treffer, aber nicht am IAB-Primärdokument selbst verifiziert. Wichtiger: Es handelt sich um Umfrage-, nicht Registerdaten — der ursprünglich vermutete Grad A war zu hoch angesetzt, korrekt ist Grad C.</li>
+      <li><b>B15 hochgestuft (teilbestätigt → bestätigt):</b> Der 42,6-%-Wert ließ sich einem präzisen OECD-Haushaltstyp zuordnen („Zweiverdiener-Ehepaar, 100+67 % Ø-Lohn, 2 Kinder") und steht in keinem Widerspruch zu den bereits am Primärdokument bestätigten 34,9 % (Einverdiener-Typ). Neu: OECD-Durchschnitt für den Zweiverdiener-Typ liegt bei 29,8 %, Deutschland auf Rang 2 hinter Belgien.</li>
+      <li><b>B16 quantifiziert (teilbestätigt, jetzt mit Zahl statt nur Abstract):</b> Bundesbank Monatsbericht 06/2024 identifiziert und Kernzahl gefunden — vom Gesamtkeil (~48 %) sind nach Herausrechnung des beitragsäquivalenten Rentenanteils nur noch ~33 % „reiner" Steueranteil (Differenz ~15 Pp.). Die Bundesbank selbst nennt diese Aufteilung „schematisch und stark vereinfacht" — kein Ersatz für eine versicherungsmathematische Diskontierung.</li>
+      <li><b>Neue Behauptung B17 formalisiert (vormals nur Restliste, Grad D):</b> Die t3n-Berichterstattung zu „explodierenden KI-Layoffs" stützt sich auf reale, monatlich aktualisierte Challenger-Gray&amp;-Christmas-Daten: Anteil KI-begründeter US-Entlassungen stieg von 7 % (Januar) auf einen Rekordwert von 40 % (Mai 2026). Grad auf C angehoben (reale Trackingdaten statt reines Zitat), Status bleibt „teilbestätigt": Challenger erfasst Selbstauskünfte der Unternehmen, keine unabhängige Kausalprüfung — von Sam Altman selbst als „AI-Washing"-Phänomen benannt.</li>
+      <li><b>IAB FB 23/2025 Branchendetail ergänzt:</b> Zwei Kernzahlen zur Umschichtung gefunden — IT-/Informationsdienstleister +110.000 Stellen, Unternehmensdienstleister (Back-Office) −120.000 Stellen, jeweils nach 15 Jahren. Vollständige Branchentabelle (Kap. 4–5 des 58-seitigen PDFs) weiterhin nicht ausgewertet.</li>
+      <li><b>Kohortendaten-Lücke präzisiert statt nur bestätigt:</b> Es existiert tatsächlich keine öffentliche deutsche/EU-Studie mit administrativen Personal-/Lohndaten analog zur US-ADP-Studie. Was es gibt: Umfrage-Näherungen (DiWaBe 2.0, ifo/Randstad-Firmenbefragung: 40 % der Unternehmen planen KI-Ersatz von Einsteigertätigkeiten, bei Großunternehmen 63 %) und Vakanzdaten (Stepstone/FAZ: −34 % Einsteiger-Stellenanzeigen binnen 2 Jahren). Laut einem Fachartikel sind Registerdaten-Replikationsstudien für die EU angekündigt, aber zum Stand dieser Recherche noch nicht veröffentlicht.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===== QUELLEN ===== -->
+<section>
+  <span class="secnum">Q / QUELLEN</span>
+  <h2>Quellenverzeichnis</h2>
+  <div class="panel">
+    <table>
+      <tr><th>#</th><th>Quelle</th><th>Rolle</th></tr>
+      <tr><td class="srcnum">[1]</td><td>Cazzaniga et al., <a href="https://www.imf.org/-/media/files/publications/sdn/2024/english/sdnea2024001.pdf">Gen-AI: AI and the Future of Work</a>, IMF SDN 2024/001</td><td>Erstquelle B01–B02</td></tr>
+      <tr><td class="srcnum">[2]</td><td>Brollo et al., <a href="https://www.imf.org/-/media/files/publications/sdn/2024/english/sdnea2024002.pdf">Broadening the Gains from Generative AI</a>, IMF SDN 2024/002</td><td>Erstquelle IWF-Fiskalkurs (H4)</td></tr>
+      <tr><td class="srcnum">[3]</td><td>Brynjolfsson/Chandar/Chen, <a href="https://digitaleconomy.stanford.edu/app/uploads/2025/11/CanariesintheCoalMine_Nov25.pdf">Canaries in the Coal Mine? (Rev. Nov 2025)</a></td><td>Erstquelle B03–B04</td></tr>
+      <tr><td class="srcnum">[4]</td><td>Yale Budget Lab, <a href="https://budgetlab.yale.edu/topic/artificial-intelligence">AI &amp; Labor Market Monitoring</a> (Reports 10/2025–2026)</td><td>Erstquelle B06–B07</td></tr>
+      <tr><td class="srcnum">[5]</td><td>IAB, <a href="https://doku.iab.de/kurzber/2024/kb2024-05.pdf">Kurzbericht 5/2024</a></td><td>Erstquelle B08</td></tr>
+      <tr><td class="srcnum">[6]</td><td>Zika et al., <a href="https://doku.iab.de/forschungsbericht/2025/fb2325.pdf">IAB-Forschungsbericht 23/2025</a> + <a href="https://iab.de/presseinfo/kuenstliche-intelligenz-koennte-das-bip-wachstum-in-den-naechsten-15-jahren-um-jaehrlich-08-prozentpunkte-erhoehen/">IAB-Presseinfo 11/2025</a></td><td>Erstquelle B10</td></tr>
+      <tr><td class="srcnum">[7]</td><td>Acemoglu, <a href="https://www.nber.org/papers/w32487">The Simple Macroeconomics of AI</a>, NBER w32487</td><td>Erstquelle B12, Wiedergabe B11</td></tr>
+      <tr><td class="srcnum">[8]</td><td>Acemoglu/Manera/Restrepo, <a href="https://economics.mit.edu/sites/default/files/publications/Does%20the%20US%20Tax%20Code%20Favor%20Automation.pdf">Does the US Tax Code Favor Automation?</a></td><td>Erstquelle B13</td></tr>
+      <tr><td class="srcnum">[9]</td><td>OECD, <a href="https://www.oecd.org/content/dam/oecd/en/publications/reports/2026/04/taxing-wages-2026-country-notes_491a0e97/germany_649f0784/ca03c391-en.pdf">Taxing Wages 2026 — Country Note Germany</a></td><td>Erstquelle B14, teils B15</td></tr>
+      <tr><td class="srcnum">[10]</td><td>Deutsche Bundesbank, <a href="https://publikationen.bundesbank.de/content/932710">Tax wedge on labour: pension contributions vs. taxes</a> (2024)</td><td>Teilquelle B16</td></tr>
+      <tr><td class="srcnum">[11]</td><td>Bundestag, Wissenschaftliche Dienste, <a href="https://www.bundestag.de/resource/blob/1136522/WD-5-066-25.pdf">WD 5-066/25</a></td><td>unabhängige Gegenprüfung B02</td></tr>
+      <tr><td class="srcnum">[12]</td><td>IAB-Forum, <a href="https://iab-forum.de/ki-kompetenzen-gefragt-studie-zeigt-tendenziell-steigende-nachfrage-in-stellenanzeigen/">Peede-Interview</a> (2024)</td><td>Richtungs-Stütze B09</td></tr>
+      <tr><td class="srcnum">[13]</td><td>Canaries-Dashboard-Berichte (Fortune/Aggregatoren, 04–06/2026)</td><td>Sekundär B05</td></tr>
+      <tr><td class="srcnum">[14]</td><td>Dt. Steuerportale zu Taxing Wages 2026 (06/2026)</td><td>Sekundär B15 — zirkulär</td></tr>
+      <tr><td class="srcnum">[15]</td><td>Stanford Digital Economy Lab, <a href="https://digitaleconomy.stanford.edu/project/indicators/canaries-dashboard/">AI Economic Indicators / Canaries Dashboard</a> (Launch 06/2026) + <a href="https://digitaleconomy.stanford.edu/news/canaries-interest-rates-and-timinga-more-on-recent-drivers-of-employment-changes-for-young-workers/">Robustheitscheck 02/2026</a></td><td>Δ2-Quelle B05 (Stanford-eigen, nicht Fortune)</td></tr>
+      <tr><td class="srcnum">[16]</td><td>jobfellow.de, „IAB-Studie: KI substituiert kaum, schafft aber neue Anforderungen"; vermutete Primärquelle: IAB DiWaBe 2.0 (Querschnittsumfrage, n≈9.800, 2024)</td><td>Δ2-Quelle B09 — Zuschreibung wahrscheinlich, nicht am IAB-Dokument verifiziert</td></tr>
+      <tr><td class="srcnum">[17]</td><td>Deutsche Bundesbank, Monatsbericht Juni 2024, „Abgabenlast auf Arbeitseinkommen im internationalen Vergleich: zum Unterschied von Rentenbeitrag und Steuerzahlung" (Art.-ID 932986)</td><td>Δ2-Quelle B16, quantifiziert (48 %→33 %)</td></tr>
+      <tr><td class="srcnum">[18]</td><td>Challenger, Gray &amp; Christmas, Job Cuts Reports Jan–Jun 2026; zit. t3n.de (05–06/2026), CFO Dive/HR Dive, CBS News</td><td>Δ2-Quelle B17 (neu)</td></tr>
+      <tr><td class="srcnum">[19]</td><td>IAB-Forschungsbericht 23/2025 (Zika et al.) — Branchendetail (IT +110.000 / Unternehmensdienstleister −120.000)</td><td>Δ2-Ergänzung B10, Sektorkontext für H2</td></tr>
+    </table>
+  </div>
+</section>
+
+<footer>
+  <p>OBSERVATORIUM · 2026-07-14 · Protokoll-Audit nach Recherche-Protokoll v1 (CLAUDE.md-Fassung), 2. Passage. Erstquellen-Quote 9/17 direkt eingesehen, +5 Behauptungen (B05, B09, B15, B16, B17) über Sekundärquellen-Konvergenz nachrecherchiert — direkter Dokumentenzugriff auf iab.de, bundesbank.de, oecd.org, stanford.edu und t3n.de war in dieser Sitzung technisch blockiert. Restliste auf sechs verbleibende Punkte verdichtet (siehe R7). Dieses Dokument ersetzt die Verdikts-Abschnitte des Vorberichts (ki-impact/2026-07-14_ki-arbeitsmarkt-besteuerung-iwf_report.html); dessen erklärende Abschnitte und das Prognosemodell bleiben gültig — mit den unter Δ und Δ2 gelisteten Korrekturen.</p>
+</footer>
+
+</div>
+
+<script>
+function cssVar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
+function el(tag,attrs,txt){
+  const e=document.createElementNS('http://www.w3.org/2000/svg',tag);
+  for(const k in attrs)e.setAttribute(k,attrs[k]);
+  if(txt!==undefined)e.textContent=txt;
+  return e;
+}
+function toggleTheme(){
+  const h=document.documentElement;
+  const next=h.dataset.theme==='dark'?'light':'dark';
+  h.dataset.theme=next;
+  document.getElementById('tbtn').textContent=next==='dark'?'☀ Hell':'☾ Dunkel';
+  drawAll();
+}
+if(window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches){toggleTheme();}
+
+/* Prüfstatus-Verteilung */
+function drawStatus(){
+  const host=document.getElementById('chart-status');host.innerHTML='';
+  const data=[
+    {l:'bestätigt',v:13,c:'--teal'},
+    {l:'teilbestätigt',v:4,c:'--amber'},
+    {l:'nicht prüfbar',v:0,c:'--muted'},
+    {l:'entkräftet',v:0,c:'--red'}
+  ];
+  const W=880,H=170,pad=190,bw=26,gap=12,xs=(W-pad-140)/13;
+  const svg=el('svg',{viewBox:`0 0 ${W} ${H}`,width:'100%'});
+  data.forEach((d,i)=>{
+    const y=14+i*(bw+gap);
+    svg.appendChild(el('text',{x:pad-12,y:y+bw/2+4,'text-anchor':'end','font-size':13},d.l));
+    svg.appendChild(el('rect',{x:pad,y:y,width:Math.max(d.v*xs,2),height:bw,rx:5,fill:d.c==='--muted'?cssVar('--muted'):cssVar(d.c),opacity:.85}));
+    svg.appendChild(el('text',{x:pad+Math.max(d.v*xs,2)+10,y:y+bw/2+4,'font-size':14,class:'val'},d.v+' / 17'));
+  });
+  host.appendChild(svg);
+}
+
+/* DE-Keil Langfrist */
+function drawWedge(){
+  const host=document.getElementById('chart-wedge');host.innerHTML='';
+  const de=[[2000,52.9],[2005,52.1],[2010,49.0],[2015,49.4],[2020,48.8],[2023,47.7],[2024,47.9],[2025,49.3]];
+  const oecd=[[2000,36.2],[2005,35.5],[2010,34.4],[2015,35.2],[2020,34.7],[2023,34.9],[2024,34.9],[2025,35.1]];
+  const W=880,H=260,pl=70,pr=30,pt=20,pb=40;
+  const x=v=>pl+(v-2000)/(2025-2000)*(W-pl-pr);
+  const y=v=>pt+(56-v)/(56-30)*(H-pt-pb);
+  const svg=el('svg',{viewBox:`0 0 ${W} ${H}`,width:'100%'});
+  [30,35,40,45,50,55].forEach(g=>{
+    svg.appendChild(el('line',{x1:pl,y1:y(g),x2:W-pr,y2:y(g),class:'axis','stroke-dasharray':'2 6'}));
+    svg.appendChild(el('text',{x:pl-10,y:y(g)+4,'text-anchor':'end','font-size':11},g+'%'));
+  });
+  [2000,2005,2010,2015,2020,2025].forEach(yr=>{
+    svg.appendChild(el('text',{x:x(yr),y:H-16,'text-anchor':'middle','font-size':11},yr));
+  });
+  function path(series,color){
+    const d=series.map((p,i)=>(i?'L':'M')+x(p[0])+','+y(p[1])).join(' ');
+    svg.appendChild(el('path',{d:d,fill:'none',stroke:cssVar(color),'stroke-width':2.5}));
+    series.forEach(p=>svg.appendChild(el('circle',{cx:x(p[0]),cy:y(p[1]),r:3.5,fill:cssVar(color)})));
+  }
+  path(de,'--amber'); path(oecd,'--blue');
+  svg.appendChild(el('text',{x:x(2001),y:y(53.6),'font-size':12,fill:cssVar('--amber')},'Deutschland (Single, Ø-Lohn)'));
+  svg.appendChild(el('text',{x:x(2001),y:y(37.4),'font-size':12,fill:cssVar('--blue')},'OECD-Durchschnitt'));
+  svg.appendChild(el('text',{x:x(2025),y:y(49.3)-12,'text-anchor':'end','font-size':13,class:'val'},'49,3'));
+  host.appendChild(svg);
+}
+function drawAll(){drawStatus();drawWedge();}
+drawAll();
+</script>
+</body>
+</html>
