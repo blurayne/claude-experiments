@@ -7,21 +7,26 @@ offenen Angeboten für Kinder, umschaltbar zwischen zwei Standorten:
 
 ## Worum geht's
 
-Statt einer langen Linkliste bündelt die Seite ~70 konkrete Angebote aus
-mehreren Anbietern in einzelnen Karten und lässt sie nach den Kriterien
-filtern, die bei der Ferienplanung wirklich zählen:
+Statt einer langen Linkliste bündelt die Seite über 100 konkrete Angebote
+(105 in München, 14 in Lam) aus mehreren Anbietern in einzelnen Karten und
+lässt sie nach den Kriterien filtern, die bei der Ferienplanung wirklich
+zählen:
 
 - **Standort-Umschalter** oben im Header: München (81373) ↔ Lam (93462) —
-  wechselt Titel, Angebote, Kategorien, Quellenliste und die
-  „vor Ort"/„Sendling-nah"-Markierung.
+  wechselt Titel, Angebote, Kategorien und Quellenliste.
+- **Entfernungs-Regler** (2–50 km, „alle" am rechten Anschlag): jede Karte
+  zeigt die per Luftlinie berechnete Entfernung vom jeweiligen Standort
+  (Sendling bzw. Lam) an. Für München reicht das Netz inzwischen weit ins
+  Umland — Fürstenfeldbruck, Dachau, Starnberg/Ammersee, Erding, Freising,
+  Ebersberg und die Landkreis-Gemeinden dazwischen.
 - **Ferienwoche** (W1–W6, antippbar im Wochenraster oben) — zeigt live, wie
   viele Angebote pro Woche verfügbar sind.
 - **Aktivität**: Robotik & Maker, Tanz, Sport & Bewegung, Kreativ & Kultur,
   Draußen & Natur, Forschen & Wissenschaft, Wasser & Baden, Tiere &
   Bauernhof, Sprachen & International — pro Standort werden nur Kategorien
   mit tatsächlichen Treffern angezeigt.
-- **Sendling-nah/vor Ort**, **gratis / unter 60 €** und **nur freie Plätze**
-  (blendet ausgebuchte Kurse/Wartelisten aus).
+- **gratis / unter 60 €** und **nur freie Plätze** (blendet ausgebuchte
+  Kurse/Wartelisten aus).
 - **Alter** (Jahre) und **Volltextsuche** (z. B. „Roboter", „Skate", „Tanz").
 
 Jede Karte zeigt Anbieter, Ort, Zielalter, betroffene Wochen, Preis, Status
