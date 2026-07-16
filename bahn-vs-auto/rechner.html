@@ -436,10 +436,16 @@ function rechne() {
   const autoZeitMax = aMax * richtungen;
   const spritKosten = km * richtungen * (verbrauch / 100) * benzin;
   const verschleissKosten = km * richtungen * verschleiss;
+  const fahrtKosten = spritKosten + verschleissKosten;
   // Kilometerpauschale als Erstattung (z. B. Arbeitgeber/Steuer): mindert die Autokosten
-  const pauschale = pauschaleBox.checked ? (wertVon("pauschale") ?? 0) : 0;
+  const pauschaleAn = pauschaleBox.checked;
+  const pauschale = pauschaleAn ? (wertVon("pauschale") ?? 0) : 0;
   const erstattung = km * richtungen * pauschale;
-  const autoKosten = spritKosten + verschleissKosten - erstattung;
+  const autoKosten = fahrtKosten - erstattung;
+  // explizite Rechnung „Fahrtkosten − Pauschale = Gesamtkosten“, wenn aktiviert
+  const autoKostenText = pauschaleAn
+    ? fmtEur(fahrtKosten) + " − " + fmtEur(erstattung) + " Pauschale = " + fmtEur(autoKosten)
+    : fmtEur(autoKosten);
 
   // Urteil auf Basis der Mittelwerte
   const bahnMittel = (bahnZeitMin + bahnZeitMax) / 2;
@@ -478,7 +484,8 @@ function rechne() {
     '<div class="verdict">' + urteil + "</div>" +
     '<table class="cmp"><thead><tr><th></th><th>Zeit (' + fahrtLabel + ')</th><th class="num">Kosten</th></tr></thead><tbody>' +
     '<tr><td class="tag-bahn">🚆 Bahn</td><td>' + fmtSpanne(bahnZeitMin, bahnZeitMax) + '</td><td class="num">' + fmtEur(bahnKosten) + "</td></tr>" +
-    '<tr><td class="tag-auto">🚗 Auto</td><td>' + fmtSpanne(autoZeitMin, autoZeitMax) + '</td><td class="num">' + fmtEur(autoKosten) + "</td></tr>" +
+    '<tr><td class="tag-auto">🚗 Auto</td><td>' + fmtSpanne(autoZeitMin, autoZeitMax) + '</td><td class="num">' +
+      (pauschaleAn ? fmtEur(fahrtKosten) + " Fahrtkosten − " + fmtEur(erstattung) + " Pauschale = <b>" + fmtEur(autoKosten) + "</b>" : fmtEur(autoKosten)) + "</td></tr>" +
     "</tbody></table>" +
     "<details><summary>Rechenweg anzeigen</summary><ul class=\"breakdown\">" +
     "<li>Bahn-Zeit: " + fmtDauer(wegStart) + " Fußweg Start + " + fmtDauer(bahnHin) + " Fahrt + " + fmtDauer(wegZiel) + " Fußweg Ziel" +
@@ -489,8 +496,10 @@ function rechne() {
     "<li>Auto-Kosten: " + (km * richtungen).toLocaleString("de-DE") + " km × (" + verbrauch.toLocaleString("de-DE") +
       " l/100 km × " + fmtEur(benzin) + " + " + fmtEur(verschleiss) + " Verschleiß) = " +
       fmtEur(spritKosten) + " Sprit + " + fmtEur(verschleissKosten) + " Verschleiß</li>" +
-    (erstattung > 0 ? "<li>Kilometerpauschale: −" + fmtEur(erstattung) + " (" + (km * richtungen).toLocaleString("de-DE") +
-      " km × " + fmtEur(pauschale) + "/km, als Erstattung von den Autokosten abgezogen)</li>" : "") +
+    (pauschaleAn ? "<li>Kilometerpauschale: " + (km * richtungen).toLocaleString("de-DE") + " km × " + fmtEur(pauschale) +
+      "/km = " + fmtEur(erstattung) + " Erstattung</li>" +
+      "<li>Auto gesamt: " + fmtEur(fahrtKosten) + " Fahrtkosten − " + fmtEur(erstattung) +
+      " Kilometerpauschale = " + fmtEur(autoKosten) + " Gesamtkosten</li>" : "") +
     "</ul></details>";
 
   // Klartext für Copy'n'Paste
@@ -499,14 +508,15 @@ function rechne() {
     "Bahn vs. Auto — " + (calcName ? calcName + " — " : "") + fahrtLabel,
     "",
     "🚆 BAHN:  Zeit " + fmtSpanne(bahnZeitMin, bahnZeitMax) + "  ·  Kosten " + fmtEur(bahnKosten),
-    "🚗 AUTO:  Zeit " + fmtSpanne(autoZeitMin, autoZeitMax) + "  ·  Kosten " + fmtEur(autoKosten),
+    "🚗 AUTO:  Zeit " + fmtSpanne(autoZeitMin, autoZeitMax) + "  ·  Kosten " +
+      (pauschaleAn ? fmtEur(fahrtKosten) + " Fahrtkosten − " + fmtEur(erstattung) + " Kilometerpauschale = " + fmtEur(autoKosten) + " Gesamtkosten" : fmtEur(autoKosten)),
     "",
     "→ " + urteil,
     "",
     "Details Bahn: " + fmtDauer(bahnHin) + " Fahrt" + (rueck ? " / " + fmtDauer(bahnRueck) + " zurück" : "") +
       ", je " + fmtDauer(wegStart) + " + " + fmtDauer(wegZiel) + " Fußweg, bis zu " + fmtDauer(vHin + vRueck) + " Verspätung",
     "Details Auto: " + (km * richtungen).toLocaleString("de-DE") + " km, " + fmtEur(spritKosten) + " Sprit + " + fmtEur(verschleissKosten) + " Verschleiß" +
-      (erstattung > 0 ? " − " + fmtEur(erstattung) + " Kilometerpauschale" : "")
+      (pauschaleAn ? " − " + fmtEur(erstattung) + " Kilometerpauschale (" + fmtEur(pauschale) + "/km) = " + fmtEur(autoKosten) + " Gesamtkosten" : "")
   ];
   const text = zeilen.join("\n");
   document.getElementById("klartext").textContent = text;
@@ -518,7 +528,8 @@ function rechne() {
       '<table border="1" cellpadding="6" style="border-collapse:collapse">' +
       "<tr><th></th><th>Zeit</th><th>Kosten</th></tr>" +
       "<tr><td>🚆 Bahn</td><td>" + fmtSpanne(bahnZeitMin, bahnZeitMax) + "</td><td>" + fmtEur(bahnKosten) + "</td></tr>" +
-      "<tr><td>🚗 Auto</td><td>" + fmtSpanne(autoZeitMin, autoZeitMax) + "</td><td>" + fmtEur(autoKosten) + "</td></tr>" +
+      "<tr><td>🚗 Auto</td><td>" + fmtSpanne(autoZeitMin, autoZeitMax) + "</td><td>" +
+        (pauschaleAn ? fmtEur(fahrtKosten) + " Fahrtkosten − " + fmtEur(erstattung) + " Pauschale = <b>" + fmtEur(autoKosten) + "</b>" : fmtEur(autoKosten)) + "</td></tr>" +
       "</table><p>→ " + urteil + "</p></div>"
   };
 }
