@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bahn vs. Auto — Anfahrts-Rechner</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --card: #ffffff;
+    --text: #1c2430;
+    --muted: #5b6673;
+    --line: #dfe3e8;
+    --accent: #0f62fe;
+    --bahn: #c0392b;
+    --auto: #1f7a4d;
+    --warn: #b7791f;
+    --field-bg: #ffffff;
+    --result-bg: #f0f4ff;
+    --mono-bg: #10151c;
+    --mono-text: #d7e0ea;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12161c;
+      --card: #1a2029;
+      --text: #e6ebf1;
+      --muted: #98a4b3;
+      --line: #2c3542;
+      --accent: #6ea2ff;
+      --bahn: #ff8a7a;
+      --auto: #5fd39a;
+      --warn: #e2b45a;
+      --field-bg: #12161c;
+      --result-bg: #1c2536;
+      --mono-bg: #0b0f14;
+      --mono-text: #cfd9e4;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.45;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 1.5rem; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 20px; font-size: .95rem; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px 18px 14px;
+    margin-bottom: 18px;
+  }
+  .card h2 {
+    font-size: 1.05rem;
+    margin: 0 0 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card h2 .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px 16px; }
+  label.field { display: block; font-size: .85rem; color: var(--muted); }
+  label.field b { display: block; color: var(--text); font-weight: 600; margin-bottom: 3px; font-size: .87rem; }
+  .field input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--field-bg);
+    color: var(--text);
+    font-size: .95rem;
+  }
+  .field input:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
+  .field input.invalid { outline: 2px solid var(--bahn); outline-offset: -1px; }
+  .parsed { min-height: 1.1em; font-size: .78rem; color: var(--muted); margin-top: 2px; }
+  .parsed.err { color: var(--bahn); }
+  .toggle {
+    display: flex; align-items: center; gap: 10px;
+    font-size: .95rem; font-weight: 600; cursor: pointer;
+    padding: 4px 0;
+  }
+  .toggle input { width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer; }
+  .toggle .always { font-weight: 400; color: var(--muted); font-size: .85rem; }
+  .rueck-only { display: none; }
+  body.mit-rueckfahrt .rueck-only { display: block; }
+  .hint {
+    background: color-mix(in srgb, var(--warn) 12%, var(--card));
+    border: 1px solid color-mix(in srgb, var(--warn) 40%, var(--line));
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: .85rem;
+    margin: 12px 0 0;
+  }
+  .hint a { color: var(--accent); }
+  /* Ergebnis */
+  #ergebnis .verdict {
+    font-size: 1.05rem; font-weight: 600;
+    background: var(--result-bg);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+  }
+  table.cmp { width: 100%; border-collapse: collapse; font-size: .92rem; }
+  table.cmp th, table.cmp td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); }
+  table.cmp th { color: var(--muted); font-weight: 600; font-size: .82rem; text-transform: uppercase; letter-spacing: .03em; }
+  table.cmp td.num, table.cmp th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .tag-bahn { color: var(--bahn); font-weight: 700; }
+  .tag-auto { color: var(--auto); font-weight: 700; }
+  details { margin-top: 12px; }
+  details summary { cursor: pointer; color: var(--muted); font-size: .88rem; }
+  .breakdown { font-size: .85rem; color: var(--muted); margin: 8px 0 0; padding-left: 18px; }
+  .breakdown li { margin: 2px 0; }
+  /* Copy-Block */
+  .copybar { display: flex; gap: 10px; flex-wrap: wrap; margin: 14px 0 8px; }
+  .copybar button {
+    padding: 8px 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--accent);
+    color: #fff;
+    font-size: .88rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .copybar button.secondary { background: transparent; color: var(--accent); border-color: var(--accent); }
+  .copybar button:active { transform: translateY(1px); }
+  pre#klartext {
+    background: var(--mono-bg);
+    color: var(--mono-text);
+    border-radius: 8px;
+    padding: 14px;
+    font-size: .82rem;
+    overflow-x: auto;
+    white-space: pre;
+    margin: 0;
+  }
+  .copied { color: var(--auto); font-size: .85rem; align-self: center; }
+  .muted { color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🚆 Bahn vs. 🚗 Auto</h1>
+  <p class="sub">Lohnt sich die Anfahrt eher mit der Bahn oder mit dem Auto? Zeiten gehen auch als
+  <code>1h 50m</code>, <code>10min</code>, <code>1:30h</code> oder einfach <code>90</code> (Minuten).</p>
+
+  <!-- Fahrtrichtung -->
+  <div class="card">
+    <h2><span class="dot" style="background:var(--accent)"></span>Fahrt</h2>
+    <label class="toggle"><input type="checkbox" checked disabled> Hinfahrt <span class="always">(immer)</span></label>
+    <label class="toggle"><input type="checkbox" id="mitRueckfahrt"> Rückfahrt</label>
+    <p class="hint">💡 Tipp: Ankunft am entsprechenden Zieltag in
+      <a href="https://maps.google.com" target="_blank" rel="noopener">maps.google.com</a> prüfen und die Bahn passend dazu buchen.</p>
+  </div>
+
+  <!-- Bahn -->
+  <div class="card">
+    <h2><span class="dot" style="background:var(--bahn)"></span>Bahn</h2>
+    <div class="grid">
+      <label class="field"><b>Weg vom/zum Bahnhof am Start</b>
+        <input type="text" id="wegStart" value="20min" data-kind="dur">
+        <span class="parsed"></span></label>
+      <label class="field"><b>Weg vom/zum Bahnhof am Ziel</b>
+        <input type="text" id="wegZiel" value="20min" data-kind="dur">
+        <span class="parsed"></span></label>
+      <label class="field"><b>Anfahrt Bahnhof: Unkosten am Start (€)</b>
+        <input type="text" id="unkostenStart" value="5" inputmode="decimal" data-kind="eur">
+        <span class="parsed"></span></label>
+      <label class="field"><b>Dauer Bahnfahrt (Hinfahrt)</b>
+        <input type="text" id="bahnDauerHin" placeholder="z. B. 1:30h" data-kind="dur">
+        <span class="parsed"></span></label>
+      <label class="field"><b>Erwartete Verspätung (Hinfahrt)</b>
+        <input type="text" id="verspHin" value="30min" data-kind="dur">
+        <span class="parsed"></span></label>
+      <label class="field"><b>Kosten Bahnfahrt hin (€)</b>
+        <input type="text" id="bahnKostenHin" placeholder="z. B. 17,50" inputmode="decimal" data-kind="eur">
+        <span class="parsed"></span></label>
+      <div class="rueck-only"><label class="field"><b>Dauer Bahnfahrt (Rückfahrt)</b>
+        <input type="text" id="bahnDauerRueck" placeholder="wie Hinfahrt" data-kind="dur" data-mirror-of="bahnDauerHin">
+        <span class="parsed"></span></label></div>
+      <div class="rueck-only"><label class="field"><b>Erwartete Verspätung (Rückfahrt)</b>
+        <input type="text" id="verspRueck" value="30min" data-kind="dur" data-mirror-of="verspHin">
+        <span class="parsed"></span></label></div>
+      <div class="rueck-only"><label class="field"><b>Kosten Bahnfahrt zurück (€)</b>
+        <input type="text" id="bahnKostenRueck" placeholder="wie Hinfahrt" inputmode="decimal" data-kind="eur" data-mirror-of="bahnKostenHin">
+        <span class="parsed"></span></label></div>
+      <div class="rueck-only"><label class="field"><b>Unkosten Bahnhof bei Rückkehr (€)</b>
+        <input type="text" id="unkostenRueck" value="5" inputmode="decimal" data-kind="eur" data-mirror-of="unkostenStart">
+        <span class="parsed"></span></label></div>
+    </div>
+  </div>
+
+  <!-- Auto -->
+  <div class="card">
+    <h2><span class="dot" style="background:var(--auto)"></span>Auto <span class="muted" style="font-weight:400;font-size:.85rem">(gilt für Hin- wie Rückfahrt)</span></h2>
+    <div class="grid">
+      <label class="field"><b>Fahrzeit mindestens (einfach)</b>
+        <input type="text" id="autoMin" placeholder="z. B. 1h 10m" data-kind="dur">
+        <span class="parsed"></span></label>
+      <label class="field"><b>Fahrzeit höchstens (einfach)</b>
+        <input type="text" id="autoMax" placeholder="z. B. 1h 40m" data-kind="dur">
+        <span class="parsed"></span></label>
+      <label class="field"><b>Strecke einfach (km)</b>
+        <input type="text" id="autoKm" placeholder="z. B. 120" inputmode="decimal" data-kind="num">
+        <span class="parsed"></span></label>
+      <label class="field"><b>Benzinpreis (€/Liter)</b>
+        <input type="text" id="benzin" value="1,75" inputmode="decimal" data-kind="eur">
+        <span class="parsed"></span></label>
+      <label class="field"><b>Verbrauch (l/100 km)</b>
+        <input type="text" id="verbrauch" value="6,5" inputmode="decimal" data-kind="num">
+        <span class="parsed"></span></label>
+      <label class="field"><b>Verschleiß (€/km)</b>
+        <input type="text" id="verschleiss" value="0,10" inputmode="decimal" data-kind="eur">
+        <span class="parsed"></span></label>
+    </div>
+    <p class="hint">🔧 Verschleiß-Richtwert für einen ~10 Jahre alten Toyota Auris: Wartung, Reparaturen &amp; Reifen ≈ 0,05–0,07 €/km,
+    dazu Restwertverlust ≈ 0,03–0,05 €/km → im Schnitt <b>0,10 €/km</b> (ohne Fixkosten wie Versicherung/Steuer, die ohnehin anfallen).</p>
+  </div>
+
+  <!-- Ergebnis -->
+  <div class="card" id="ergebnis">
+    <h2><span class="dot" style="background:var(--warn)"></span>Ergebnis</h2>
+    <div id="ergebnisInhalt"><p class="muted">Bitte mindestens die Dauer der Bahnfahrt, die Bahnkosten sowie Fahrzeit und Strecke fürs Auto ausfüllen.</p></div>
+    <div class="copybar">
+      <button id="copyText">Ergebnis kopieren (Klartext)</button>
+      <button id="copyHtml" class="secondary">Als HTML kopieren</button>
+      <span class="copied" id="copiedMsg"></span>
+    </div>
+    <pre id="klartext">–</pre>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* ---------- Parsen ---------- */
+
+// Dauer-Eingaben: "90", "90m", "10min", "1h", "1h 50m", "1:30", "1:30h", "1,5h", "1.5 std"
+function parseDauer(str) {
+  if (str == null) return null;
+  let s = String(str).trim().toLowerCase().replace(/,/g, ".");
+  if (s === "") return null;
+
+  // "1:30" oder "1:30h"
+  let m = s.match(/^(\d{1,2}):([0-5]?\d)\s*(?:h|std\.?|stunden?)?$/);
+  if (m) return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+
+  // reine Zahl → Minuten
+  m = s.match(/^(\d+(?:\.\d+)?)$/);
+  if (m) return Math.round(parseFloat(m[1]));
+
+  // Kombinationen aus Stunden- und Minuten-Teilen, z. B. "1h 50m", "1h50m", "1.5h", "45min", "1 std 5 min"
+  let rest = s, minuten = 0, gefunden = false;
+  const teil = /(\d+(?:\.\d+)?)\s*(stunden?|std\.?|h|minuten?|min\.?|m)/g;
+  let t;
+  while ((t = teil.exec(s)) !== null) {
+    gefunden = true;
+    const wert = parseFloat(t[1]);
+    minuten += /^h|^s/.test(t[2]) ? wert * 60 : wert;
+    rest = rest.replace(t[0], "").trim();
+  }
+  if (!gefunden || rest !== "") return null;
+  return Math.round(minuten);
+}
+
+// Zahl/Euro-Eingaben: "5", "17,50", "1.75"
+function parseZahl(str) {
+  if (str == null) return null;
+  let s = String(str).trim().replace(/€/g, "").replace(/\s/g, "");
+  if (s === "") return null;
+  // deutsches Format: letztes Komma als Dezimaltrenner
+  if (s.includes(",")) s = s.replace(/\./g, "").replace(",", ".");
+  const v = parseFloat(s);
+  return (isFinite(v) && /^[\d.]+$/.test(s)) ? v : null;
+}
+
+function fmtDauer(min) {
+  if (min == null) return "–";
+  min = Math.round(min);
+  const h = Math.floor(min / 60), m = min % 60;
+  if (h === 0) return m + " min";
+  if (m === 0) return h + " h";
+  return h + " h " + String(m).padStart(2, "0") + " min";
+}
+function fmtSpanne(a, b) { return (Math.round(a) === Math.round(b)) ? fmtDauer(a) : fmtDauer(a) + " – " + fmtDauer(b); }
+function fmtEur(v) {
+  if (v == null) return "–";
+  return v.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+}
+
+/* ---------- Felder ---------- */
+
+const felder = document.querySelectorAll("input[data-kind]");
+
+function wertVon(id) {
+  const el = document.getElementById(id);
+  const kind = el.dataset.kind;
+  return kind === "dur" ? parseDauer(el.value) : parseZahl(el.value);
+}
+
+function zeigeParsed(el) {
+  const out = el.closest("label").querySelector(".parsed");
+  const leer = el.value.trim() === "";
+  let wert = el.dataset.kind === "dur" ? parseDauer(el.value) : parseZahl(el.value);
+  if (leer) { out.textContent = ""; el.classList.remove("invalid"); out.classList.remove("err"); return; }
+  if (wert == null) {
+    out.textContent = "Eingabe nicht verstanden"; out.classList.add("err"); el.classList.add("invalid");
+  } else {
+    el.classList.remove("invalid"); out.classList.remove("err");
+    out.textContent = el.dataset.kind === "dur" ? "= " + fmtDauer(wert) : "";
+  }
+}
+
+/* Rückfahrt-Felder beim ersten Ausfüllen der Hinfahrt mitbefüllen,
+   solange sie der Nutzer nicht selbst angefasst hat. */
+document.querySelectorAll("input[data-mirror-of]").forEach(dst => {
+  dst.addEventListener("input", e => { if (e.isTrusted) dst.dataset.eigenerWert = "1"; });
+});
+felder.forEach(el => {
+  el.addEventListener("input", () => {
+    document.querySelectorAll('input[data-mirror-of="' + el.id + '"]').forEach(dst => {
+      if (!dst.dataset.eigenerWert) { dst.value = el.value; zeigeParsed(dst); }
+    });
+    zeigeParsed(el);
+    rechne();
+  });
+});
+
+const rueckBox = document.getElementById("mitRueckfahrt");
+rueckBox.addEventListener("change", () => {
+  document.body.classList.toggle("mit-rueckfahrt", rueckBox.checked);
+  if (rueckBox.checked) {
+    // beim Einblenden einmalig aus der Hinfahrt vorbelegen
+    document.querySelectorAll("input[data-mirror-of]").forEach(dst => {
+      const src = document.getElementById(dst.dataset.mirrorOf);
+      if (!dst.dataset.eigenerWert && dst.value.trim() === "" && src.value.trim() !== "") {
+        dst.value = src.value; zeigeParsed(dst);
+      }
+    });
+  }
+  rechne();
+});
+
+/* ---------- Rechnen ---------- */
+
+let letztesErgebnis = null;
+
+function rechne() {
+  const rueck = rueckBox.checked;
+
+  const wegStart = wertVon("wegStart") ?? 0;
+  const wegZiel = wertVon("wegZiel") ?? 0;
+  const unkStart = wertVon("unkostenStart") ?? 0;
+  const bahnHin = wertVon("bahnDauerHin");
+  const vHin = wertVon("verspHin") ?? 0;
+  const kHin = wertVon("bahnKostenHin");
+
+  const bahnRueck = rueck ? wertVon("bahnDauerRueck") : null;
+  const vRueck = rueck ? (wertVon("verspRueck") ?? 0) : 0;
+  const kRueck = rueck ? wertVon("bahnKostenRueck") : null;
+  const unkRueck = rueck ? (wertVon("unkostenRueck") ?? 0) : 0;
+
+  const aMin = wertVon("autoMin");
+  const aMax = wertVon("autoMax") ?? aMin;
+  const km = wertVon("autoKm");
+  const benzin = wertVon("benzin") ?? 0;
+  const verbrauch = wertVon("verbrauch") ?? 0;
+  const verschleiss = wertVon("verschleiss") ?? 0;
+
+  const inhalt = document.getElementById("ergebnisInhalt");
+  const fehlt = [];
+  if (bahnHin == null) fehlt.push("Dauer Bahnfahrt (hin)");
+  if (kHin == null) fehlt.push("Kosten Bahnfahrt (hin)");
+  if (rueck && bahnRueck == null) fehlt.push("Dauer Bahnfahrt (zurück)");
+  if (rueck && kRueck == null) fehlt.push("Kosten Bahnfahrt (zurück)");
+  if (aMin == null) fehlt.push("Fahrzeit Auto");
+  if (km == null) fehlt.push("Strecke (km)");
+  if (fehlt.length) {
+    inhalt.innerHTML = '<p class="muted">Es fehlt noch: ' + fehlt.join(", ") + ".</p>";
+    document.getElementById("klartext").textContent = "–";
+    letztesErgebnis = null;
+    return;
+  }
+
+  const richtungen = rueck ? 2 : 1;
+
+  // Bahn: Fußwege fallen je Richtung an; Verspätung 0 … erwartete Verspätung
+  const bahnBasisHin = wegStart + bahnHin + wegZiel;
+  const bahnBasisRueck = rueck ? (wegZiel + bahnRueck + wegStart) : 0;
+  const bahnZeitMin = bahnBasisHin + bahnBasisRueck;
+  const bahnZeitMax = bahnZeitMin + vHin + vRueck;
+  const bahnKosten = kHin + unkStart + (rueck ? (kRueck + unkRueck) : 0);
+
+  // Auto
+  const autoZeitMin = aMin * richtungen;
+  const autoZeitMax = aMax * richtungen;
+  const autoKostenProKm = (verbrauch / 100) * benzin + verschleiss;
+  const autoKosten = km * richtungen * autoKostenProKm;
+  const spritKosten = km * richtungen * (verbrauch / 100) * benzin;
+  const verschleissKosten = km * richtungen * verschleiss;
+
+  // Urteil auf Basis der Mittelwerte
+  const bahnMittel = (bahnZeitMin + bahnZeitMax) / 2;
+  const autoMittel = (autoZeitMin + autoZeitMax) / 2;
+  const zeitDiff = bahnMittel - autoMittel;      // > 0: Auto schneller
+  const kostenDiff = bahnKosten - autoKosten;    // > 0: Auto günstiger
+
+  const schneller = zeitDiff > 5 ? "auto" : (zeitDiff < -5 ? "bahn" : "gleich");
+  const guenstiger = kostenDiff > 0.5 ? "auto" : (kostenDiff < -0.5 ? "bahn" : "gleich");
+
+  let urteil, empfehlung;
+  const name = { auto: "Das Auto", bahn: "Die Bahn" };
+  if (schneller === guenstiger && schneller !== "gleich") {
+    urteil = name[schneller] + " ist schneller UND günstiger — klare Sache.";
+    empfehlung = schneller;
+  } else if (schneller === "gleich" && guenstiger !== "gleich") {
+    urteil = "Zeitlich etwa gleich — " + name[guenstiger].toLowerCase() + " ist aber günstiger.";
+    empfehlung = guenstiger;
+  } else if (guenstiger === "gleich" && schneller !== "gleich") {
+    urteil = "Kosten etwa gleich — " + name[schneller].toLowerCase() + " ist aber schneller.";
+    empfehlung = schneller;
+  } else if (schneller === "gleich" && guenstiger === "gleich") {
+    urteil = "Zeit und Kosten sind praktisch gleich — nimm, was bequemer ist.";
+    empfehlung = null;
+  } else {
+    // Zielkonflikt: der schnellere ist der teurere
+    const proStunde = Math.abs(kostenDiff) / (Math.abs(zeitDiff) / 60);
+    urteil = name[schneller] + " spart ø " + fmtDauer(Math.abs(zeitDiff)) + ", kostet aber " +
+             fmtEur(Math.abs(kostenDiff)) + " mehr → " + fmtEur(proStunde) + " pro gesparter Stunde.";
+    empfehlung = null;
+  }
+
+  const fahrtLabel = rueck ? "Hin- und Rückfahrt" : "nur Hinfahrt";
+
+  inhalt.innerHTML =
+    '<div class="verdict">' + urteil + "</div>" +
+    '<table class="cmp"><thead><tr><th></th><th>Zeit (' + fahrtLabel + ')</th><th class="num">Kosten</th></tr></thead><tbody>' +
+    '<tr><td class="tag-bahn">🚆 Bahn</td><td>' + fmtSpanne(bahnZeitMin, bahnZeitMax) + '</td><td class="num">' + fmtEur(bahnKosten) + "</td></tr>" +
+    '<tr><td class="tag-auto">🚗 Auto</td><td>' + fmtSpanne(autoZeitMin, autoZeitMax) + '</td><td class="num">' + fmtEur(autoKosten) + "</td></tr>" +
+    "</tbody></table>" +
+    "<details><summary>Rechenweg anzeigen</summary><ul class=\"breakdown\">" +
+    "<li>Bahn-Zeit: " + fmtDauer(wegStart) + " Fußweg Start + " + fmtDauer(bahnHin) + " Fahrt + " + fmtDauer(wegZiel) + " Fußweg Ziel" +
+      (rueck ? " (Rückfahrt entsprechend mit " + fmtDauer(bahnRueck) + " Fahrt)" : "") +
+      "; Verspätung 0–" + fmtDauer(vHin + vRueck) + " obendrauf</li>" +
+    "<li>Bahn-Kosten: " + fmtEur(kHin) + " Ticket hin + " + fmtEur(unkStart) + " Anfahrt Bahnhof" +
+      (rueck ? " + " + fmtEur(kRueck) + " Ticket zurück + " + fmtEur(unkRueck) + " Rückkehr" : "") + "</li>" +
+    "<li>Auto-Kosten: " + (km * richtungen).toLocaleString("de-DE") + " km × (" + verbrauch.toLocaleString("de-DE") +
+      " l/100 km × " + fmtEur(benzin) + " + " + fmtEur(verschleiss) + " Verschleiß) = " +
+      fmtEur(spritKosten) + " Sprit + " + fmtEur(verschleissKosten) + " Verschleiß</li>" +
+    "</ul></details>";
+
+  // Klartext für Copy'n'Paste
+  const zeilen = [
+    "Bahn vs. Auto — " + fahrtLabel,
+    "",
+    "🚆 BAHN:  Zeit " + fmtSpanne(bahnZeitMin, bahnZeitMax) + "  ·  Kosten " + fmtEur(bahnKosten),
+    "🚗 AUTO:  Zeit " + fmtSpanne(autoZeitMin, autoZeitMax) + "  ·  Kosten " + fmtEur(autoKosten),
+    "",
+    "→ " + urteil,
+    "",
+    "Details Bahn: " + fmtDauer(bahnHin) + " Fahrt" + (rueck ? " / " + fmtDauer(bahnRueck) + " zurück" : "") +
+      ", je " + fmtDauer(wegStart) + " + " + fmtDauer(wegZiel) + " Fußweg, bis zu " + fmtDauer(vHin + vRueck) + " Verspätung",
+    "Details Auto: " + (km * richtungen).toLocaleString("de-DE") + " km, " + fmtEur(spritKosten) + " Sprit + " + fmtEur(verschleissKosten) + " Verschleiß"
+  ];
+  const text = zeilen.join("\n");
+  document.getElementById("klartext").textContent = text;
+
+  letztesErgebnis = {
+    text: text,
+    html: '<div style="font-family:system-ui,sans-serif;line-height:1.5">' +
+      "<p><b>Bahn vs. Auto — " + fahrtLabel + "</b></p>" +
+      '<table border="1" cellpadding="6" style="border-collapse:collapse">' +
+      "<tr><th></th><th>Zeit</th><th>Kosten</th></tr>" +
+      "<tr><td>🚆 Bahn</td><td>" + fmtSpanne(bahnZeitMin, bahnZeitMax) + "</td><td>" + fmtEur(bahnKosten) + "</td></tr>" +
+      "<tr><td>🚗 Auto</td><td>" + fmtSpanne(autoZeitMin, autoZeitMax) + "</td><td>" + fmtEur(autoKosten) + "</td></tr>" +
+      "</table><p>→ " + urteil + "</p></div>"
+  };
+}
+
+/* ---------- Kopieren ---------- */
+
+function meldeKopiert(msg) {
+  const el = document.getElementById("copiedMsg");
+  el.textContent = msg;
+  setTimeout(() => { el.textContent = ""; }, 2500);
+}
+document.getElementById("copyText").addEventListener("click", async () => {
+  if (!letztesErgebnis) { meldeKopiert("Noch kein Ergebnis"); return; }
+  try { await navigator.clipboard.writeText(letztesErgebnis.text); meldeKopiert("✓ Klartext kopiert"); }
+  catch { meldeKopiert("Kopieren fehlgeschlagen"); }
+});
+document.getElementById("copyHtml").addEventListener("click", async () => {
+  if (!letztesErgebnis) { meldeKopiert("Noch kein Ergebnis"); return; }
+  try {
+    await navigator.clipboard.write([new ClipboardItem({
+      "text/html": new Blob([letztesErgebnis.html], { type: "text/html" }),
+      "text/plain": new Blob([letztesErgebnis.text], { type: "text/plain" })
+    })]);
+    meldeKopiert("✓ HTML kopiert");
+  } catch {
+    try { await navigator.clipboard.writeText(letztesErgebnis.html); meldeKopiert("✓ HTML-Quelltext kopiert"); }
+    catch { meldeKopiert("Kopieren fehlgeschlagen"); }
+  }
+});
+
+felder.forEach(zeigeParsed);
+rechne();
+</script>
+</body>
+</html>
