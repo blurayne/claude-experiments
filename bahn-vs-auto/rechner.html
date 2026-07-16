@@ -590,9 +590,11 @@ function ladeSaves() {
 function speichereSaves(saves) {
   try { localStorage.setItem(SAVES_KEY, JSON.stringify(saves)); } catch {}
 }
-// aktueller Formularstand überlebt einen Reload auch ohne explizites Speichern
+// aktueller Formularstand überlebt einen Reload auch ohne explizites Speichern;
+// zusätzlich wird die URL mit den kompakten Parametern nachgeführt
 function persistAktuell() {
   try { localStorage.setItem(AKTUELL_KEY, JSON.stringify(formZustand())); } catch {}
+  aktualisiereUrl();
 }
 
 function fuelleSelect(auswahl) {
@@ -613,6 +615,7 @@ document.getElementById("calcSave").addEventListener("click", () => {
   saves[name] = formZustand();
   speichereSaves(saves);
   fuelleSelect(name);
+  persistAktuell(); // Parameter auch in die URL schreiben
   melde("✓ „" + name + "“ gespeichert", "calcMsg");
 });
 
@@ -638,28 +641,76 @@ calcSelect.addEventListener("change", () => {
 
 nameFeld.addEventListener("input", rechne);
 
-/* ---------- Teilen per Link (Zustand im URL-Hash) ---------- */
+/* ---------- Zustand in der URL (kompakt im Hash) ----------
+   Nur Abweichungen vom Standard landen als Kurz-Parameter in der URL,
+   z. B. #n=Ausflug&r=1&p=3&bh=1%3A30h&kh=17%2C50&am=1h+10m&km=120        */
 
-function zustandZuHash(z) {
-  const bytes = new TextEncoder().encode(JSON.stringify(z));
-  let bin = "";
-  bytes.forEach(b => { bin += String.fromCharCode(b); });
-  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+const KURZ = {
+  wegStart: "ws", wegZiel: "wz", unkostenStart: "us",
+  bahnDauerHin: "bh", verspHin: "vh", bahnKostenHin: "kh",
+  bahnDauerRueck: "br", verspRueck: "vr", bahnKostenRueck: "kr", unkostenRueck: "ur",
+  autoMin: "am", autoMax: "ax", autoKm: "km",
+  benzin: "bp", verbrauch: "vb", verschleiss: "vs", pauschale: "pk", personen: "p"
+};
+const LANG = Object.fromEntries(Object.entries(KURZ).map(([l, k]) => [k, l]));
+
+function zustandZuUrlHash(z) {
+  const sp = new URLSearchParams();
+  if (z.name) sp.set("n", z.name);
+  if (z.mitRueckfahrt) sp.set("r", "1");
+  if (z.pauschaleAktiv) sp.set("pa", "1");
+  for (const [id, kurz] of Object.entries(KURZ)) {
+    const v = (z.werte && z.werte[id]) || "";
+    if (v !== "" && v !== STANDARDWERTE.werte[id]) sp.set(kurz, v);
+  }
+  if (z.eigene && z.eigene.length) sp.set("e", z.eigene.map(id => KURZ[id]).filter(Boolean).join("."));
+  return sp.toString();
 }
 
-function zustandAusHash() {
-  const m = location.hash.match(/^#z=([A-Za-z0-9_-]+)$/);
-  if (!m) return null;
-  try {
-    let b64 = m[1].replace(/-/g, "+").replace(/_/g, "/");
-    while (b64.length % 4) b64 += "=";
-    const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
-    return JSON.parse(new TextDecoder().decode(bytes));
-  } catch { return null; }
+function zustandAusUrl() {
+  const h = location.hash.replace(/^#/, "");
+  if (!h) return null;
+
+  // Altformat (#z=<base64-json>) weiterhin lesbar
+  const alt = h.match(/^z=([A-Za-z0-9_-]+)$/);
+  if (alt) {
+    try {
+      let b64 = alt[1].replace(/-/g, "+").replace(/_/g, "/");
+      while (b64.length % 4) b64 += "=";
+      const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+      return JSON.parse(new TextDecoder().decode(bytes));
+    } catch { return null; }
+  }
+
+  const sp = new URLSearchParams(h);
+  const bekannt = new Set(["n", "r", "pa", "e", ...Object.values(KURZ)]);
+  if (![...sp.keys()].some(k => bekannt.has(k))) return null;
+
+  // von den Standardwerten ausgehen, nur URL-Parameter überschreiben
+  const z = JSON.parse(JSON.stringify(STANDARDWERTE));
+  z.name = sp.get("n") || "";
+  z.mitRueckfahrt = sp.get("r") === "1";
+  z.pauschaleAktiv = sp.get("pa") === "1";
+  for (const [id, kurz] of Object.entries(KURZ)) {
+    if (sp.has(kurz)) z.werte[id] = sp.get(kurz);
+  }
+  z.eigene = (sp.get("e") || "").split(".").map(k => LANG[k]).filter(Boolean);
+  return z;
+}
+
+// URL laufend aktuell halten (leicht entprellt, ohne History-Einträge)
+let urlTimer = null;
+function aktualisiereUrl() {
+  clearTimeout(urlTimer);
+  urlTimer = setTimeout(() => {
+    const q = zustandZuUrlHash(formZustand());
+    history.replaceState(null, "", location.pathname + location.search + (q ? "#" + q : ""));
+  }, 250);
 }
 
 document.getElementById("calcShare").addEventListener("click", async () => {
-  const link = location.href.split("#")[0] + "#z=" + zustandZuHash(formZustand());
+  const q = zustandZuUrlHash(formZustand());
+  const link = location.href.split("#")[0] + (q ? "#" + q : "");
   try { await navigator.clipboard.writeText(link); melde("✓ Link kopiert", "calcMsg"); }
   catch { melde("Kopieren fehlgeschlagen", "calcMsg"); }
 });
@@ -696,11 +747,9 @@ document.getElementById("copyHtml").addEventListener("click", async () => {
 // Ausgangszustand der Seite als Vorlage für „neue Berechnung“
 const STANDARDWERTE = formZustand();
 
-// geteilter Link hat Vorrang, sonst letzten Stand wiederherstellen
-let start = zustandAusHash();
-if (start) {
-  history.replaceState(null, "", location.pathname + location.search);
-} else {
+// Parameter in der URL haben Vorrang, sonst letzten Stand wiederherstellen
+let start = zustandAusUrl();
+if (!start) {
   try { start = JSON.parse(localStorage.getItem(AKTUELL_KEY)); } catch {}
 }
 if (start) {
