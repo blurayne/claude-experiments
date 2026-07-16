@@ -165,6 +165,7 @@
         <div class="copybar" style="margin:0">
           <button id="calcSave">Speichern</button>
           <button id="calcDelete" class="secondary">Löschen</button>
+          <button id="calcShare" class="secondary">Link kopieren</button>
           <span class="copied" id="calcMsg"></span>
         </div>
         <span class="parsed">Eingaben bleiben lokal im Browser (localStorage).</span>
@@ -177,6 +178,12 @@
     <h2><span class="dot" style="background:var(--accent)"></span>Fahrt</h2>
     <label class="toggle"><input type="checkbox" checked disabled> Hinfahrt <span class="always">(immer)</span></label>
     <label class="toggle"><input type="checkbox" id="mitRueckfahrt"> Rückfahrt</label>
+    <div class="grid" style="margin-top:10px">
+      <label class="field"><b>Personen</b>
+        <input type="text" id="personen" value="1" inputmode="numeric" data-kind="num">
+        <span class="parsed"></span>
+        <span class="parsed">Bahntickets zählen pro Person, das Auto fährt für alle.</span></label>
+    </div>
     <p class="hint">💡 Tipp: Ankunft am entsprechenden Zieltag in
       <a href="https://maps.google.com" target="_blank" rel="noopener">maps.google.com</a> prüfen und die Bahn passend dazu buchen.</p>
   </div>
@@ -387,6 +394,7 @@ let letztesErgebnis = null;
 function rechne() {
   persistAktuell();
   const rueck = rueckBox.checked;
+  const personen = Math.max(1, Math.round(wertVon("personen") ?? 1));
 
   const wegStart = wertVon("wegStart") ?? 0;
   const wegZiel = wertVon("wegZiel") ?? 0;
@@ -429,7 +437,8 @@ function rechne() {
   const bahnBasisRueck = rueck ? (wegZiel + bahnRueck + wegStart) : 0;
   const bahnZeitMin = bahnBasisHin + bahnBasisRueck;
   const bahnZeitMax = bahnZeitMin + vHin + vRueck;
-  const bahnKosten = kHin + unkStart + (rueck ? (kRueck + unkRueck) : 0);
+  // Tickets zählen pro Person; Bahnhofs-Unkosten (z. B. Parken/Anfahrt) einmal je Richtung
+  const bahnKosten = (kHin + (rueck ? kRueck : 0)) * personen + unkStart + (rueck ? unkRueck : 0);
 
   // Auto
   const autoZeitMin = aMin * richtungen;
@@ -478,7 +487,8 @@ function rechne() {
     empfehlung = null;
   }
 
-  const fahrtLabel = rueck ? "Hin- und Rückfahrt" : "nur Hinfahrt";
+  const fahrtLabel = (rueck ? "Hin- und Rückfahrt" : "nur Hinfahrt") + (personen > 1 ? ", " + personen + " Personen" : "");
+  const persText = personen > 1 ? " × " + personen + " Personen" : "";
 
   inhalt.innerHTML =
     '<div class="verdict">' + urteil + "</div>" +
@@ -491,8 +501,9 @@ function rechne() {
     "<li>Bahn-Zeit: " + fmtDauer(wegStart) + " Fußweg Start + " + fmtDauer(bahnHin) + " Fahrt + " + fmtDauer(wegZiel) + " Fußweg Ziel" +
       (rueck ? " (Rückfahrt entsprechend mit " + fmtDauer(bahnRueck) + " Fahrt)" : "") +
       "; Verspätung 0–" + fmtDauer(vHin + vRueck) + " obendrauf</li>" +
-    "<li>Bahn-Kosten: " + fmtEur(kHin) + " Ticket hin + " + fmtEur(unkStart) + " Anfahrt Bahnhof" +
-      (rueck ? " + " + fmtEur(kRueck) + " Ticket zurück + " + fmtEur(unkRueck) + " Rückkehr" : "") + "</li>" +
+    "<li>Bahn-Kosten: " + fmtEur(kHin) + " Ticket hin" + persText + " + " + fmtEur(unkStart) + " Anfahrt Bahnhof" +
+      (rueck ? " + " + fmtEur(kRueck) + " Ticket zurück" + persText + " + " + fmtEur(unkRueck) + " Rückkehr" : "") +
+      " = " + fmtEur(bahnKosten) + "</li>" +
     "<li>Auto-Kosten: " + (km * richtungen).toLocaleString("de-DE") + " km × (" + verbrauch.toLocaleString("de-DE") +
       " l/100 km × " + fmtEur(benzin) + " + " + fmtEur(verschleiss) + " Verschleiß) = " +
       fmtEur(spritKosten) + " Sprit + " + fmtEur(verschleissKosten) + " Verschleiß</li>" +
@@ -627,6 +638,32 @@ calcSelect.addEventListener("change", () => {
 
 nameFeld.addEventListener("input", rechne);
 
+/* ---------- Teilen per Link (Zustand im URL-Hash) ---------- */
+
+function zustandZuHash(z) {
+  const bytes = new TextEncoder().encode(JSON.stringify(z));
+  let bin = "";
+  bytes.forEach(b => { bin += String.fromCharCode(b); });
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function zustandAusHash() {
+  const m = location.hash.match(/^#z=([A-Za-z0-9_-]+)$/);
+  if (!m) return null;
+  try {
+    let b64 = m[1].replace(/-/g, "+").replace(/_/g, "/");
+    while (b64.length % 4) b64 += "=";
+    const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+    return JSON.parse(new TextDecoder().decode(bytes));
+  } catch { return null; }
+}
+
+document.getElementById("calcShare").addEventListener("click", async () => {
+  const link = location.href.split("#")[0] + "#z=" + zustandZuHash(formZustand());
+  try { await navigator.clipboard.writeText(link); melde("✓ Link kopiert", "calcMsg"); }
+  catch { melde("Kopieren fehlgeschlagen", "calcMsg"); }
+});
+
 /* ---------- Kopieren ---------- */
 
 function melde(msg, ziel) {
@@ -659,9 +696,13 @@ document.getElementById("copyHtml").addEventListener("click", async () => {
 // Ausgangszustand der Seite als Vorlage für „neue Berechnung“
 const STANDARDWERTE = formZustand();
 
-// letzten Stand wiederherstellen (falls vorhanden)
-let start = null;
-try { start = JSON.parse(localStorage.getItem(AKTUELL_KEY)); } catch {}
+// geteilter Link hat Vorrang, sonst letzten Stand wiederherstellen
+let start = zustandAusHash();
+if (start) {
+  history.replaceState(null, "", location.pathname + location.search);
+} else {
+  try { start = JSON.parse(localStorage.getItem(AKTUELL_KEY)); } catch {}
+}
 if (start) {
   setzeZustand(start);
 } else {
