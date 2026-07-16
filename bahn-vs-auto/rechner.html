@@ -62,9 +62,9 @@
   }
   .card h2 .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px 16px; }
-  label.field { display: block; font-size: .85rem; color: var(--muted); }
-  label.field b { display: block; color: var(--text); font-weight: 600; margin-bottom: 3px; font-size: .87rem; }
-  .field input {
+  .field { display: block; font-size: .85rem; color: var(--muted); }
+  .field b { display: block; color: var(--text); font-weight: 600; margin-bottom: 3px; font-size: .87rem; }
+  .field input, .field select {
     width: 100%;
     padding: 8px 10px;
     border: 1px solid var(--line);
@@ -73,8 +73,11 @@
     color: var(--text);
     font-size: .95rem;
   }
-  .field input:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
+  .field input:focus, .field select:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
   .field input.invalid { outline: 2px solid var(--bahn); outline-offset: -1px; }
+  .field input[disabled] { opacity: .45; }
+  .inlinecheck { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+  .inlinecheck input { width: 16px; height: 16px; accent-color: var(--accent); margin: 0; }
   .parsed { min-height: 1.1em; font-size: .78rem; color: var(--muted); margin-top: 2px; }
   .parsed.err { color: var(--bahn); }
   .toggle {
@@ -147,6 +150,28 @@
   <p class="sub">Lohnt sich die Anfahrt eher mit der Bahn oder mit dem Auto? Zeiten gehen auch als
   <code>1h 50m</code>, <code>10min</code>, <code>1:30h</code> oder einfach <code>90</code> (Minuten).</p>
 
+  <!-- Berechnung speichern/laden -->
+  <div class="card">
+    <h2><span class="dot" style="background:#8e6bd8"></span>Berechnung</h2>
+    <div class="grid">
+      <label class="field"><b>Name der Berechnung</b>
+        <input type="text" id="calcName" placeholder="z. B. München → Lam">
+        <span class="parsed"></span></label>
+      <label class="field"><b>Gespeicherte Berechnung laden</b>
+        <select id="calcSelect"><option value="">— neue Berechnung —</option></select>
+        <span class="parsed"></span></label>
+      <div class="field">
+        <b>&nbsp;</b>
+        <div class="copybar" style="margin:0">
+          <button id="calcSave">Speichern</button>
+          <button id="calcDelete" class="secondary">Löschen</button>
+          <span class="copied" id="calcMsg"></span>
+        </div>
+        <span class="parsed">Eingaben bleiben lokal im Browser (localStorage).</span>
+      </div>
+    </div>
+  </div>
+
   <!-- Fahrtrichtung -->
   <div class="card">
     <h2><span class="dot" style="background:var(--accent)"></span>Fahrt</h2>
@@ -215,6 +240,11 @@
       <label class="field"><b>Verschleiß (€/km)</b>
         <input type="text" id="verschleiss" value="0,10" inputmode="decimal" data-kind="eur">
         <span class="parsed"></span></label>
+      <div class="field">
+        <b><label class="inlinecheck"><input type="checkbox" id="pauschaleAktiv"> Kilometerpauschale einrechnen (€/km)</label></b>
+        <input type="text" id="pauschale" value="0,30" inputmode="decimal" data-kind="eur" disabled>
+        <span class="parsed"></span>
+      </div>
     </div>
     <p class="hint">🔧 Verschleiß-Richtwert für einen ~10 Jahre alten Toyota Auris: Wartung, Reparaturen &amp; Reifen ≈ 0,05–0,07 €/km,
     dazu Restwertverlust ≈ 0,03–0,05 €/km → im Schnitt <b>0,10 €/km</b> (ohne Fixkosten wie Versicherung/Steuer, die ohnehin anfallen).</p>
@@ -302,7 +332,7 @@ function wertVon(id) {
 }
 
 function zeigeParsed(el) {
-  const out = el.closest("label").querySelector(".parsed");
+  const out = el.closest(".field").querySelector(".parsed");
   const leer = el.value.trim() === "";
   let wert = el.dataset.kind === "dur" ? parseDauer(el.value) : parseZahl(el.value);
   if (leer) { out.textContent = ""; el.classList.remove("invalid"); out.classList.remove("err"); return; }
@@ -330,6 +360,12 @@ felder.forEach(el => {
 });
 
 const rueckBox = document.getElementById("mitRueckfahrt");
+const pauschaleBox = document.getElementById("pauschaleAktiv");
+const pauschaleFeld = document.getElementById("pauschale");
+pauschaleBox.addEventListener("change", () => {
+  pauschaleFeld.disabled = !pauschaleBox.checked;
+  rechne();
+});
 rueckBox.addEventListener("change", () => {
   document.body.classList.toggle("mit-rueckfahrt", rueckBox.checked);
   if (rueckBox.checked) {
@@ -349,6 +385,7 @@ rueckBox.addEventListener("change", () => {
 let letztesErgebnis = null;
 
 function rechne() {
+  persistAktuell();
   const rueck = rueckBox.checked;
 
   const wegStart = wertVon("wegStart") ?? 0;
@@ -397,10 +434,12 @@ function rechne() {
   // Auto
   const autoZeitMin = aMin * richtungen;
   const autoZeitMax = aMax * richtungen;
-  const autoKostenProKm = (verbrauch / 100) * benzin + verschleiss;
-  const autoKosten = km * richtungen * autoKostenProKm;
   const spritKosten = km * richtungen * (verbrauch / 100) * benzin;
   const verschleissKosten = km * richtungen * verschleiss;
+  // Kilometerpauschale als Erstattung (z. B. Arbeitgeber/Steuer): mindert die Autokosten
+  const pauschale = pauschaleBox.checked ? (wertVon("pauschale") ?? 0) : 0;
+  const erstattung = km * richtungen * pauschale;
+  const autoKosten = spritKosten + verschleissKosten - erstattung;
 
   // Urteil auf Basis der Mittelwerte
   const bahnMittel = (bahnZeitMin + bahnZeitMax) / 2;
@@ -450,11 +489,14 @@ function rechne() {
     "<li>Auto-Kosten: " + (km * richtungen).toLocaleString("de-DE") + " km × (" + verbrauch.toLocaleString("de-DE") +
       " l/100 km × " + fmtEur(benzin) + " + " + fmtEur(verschleiss) + " Verschleiß) = " +
       fmtEur(spritKosten) + " Sprit + " + fmtEur(verschleissKosten) + " Verschleiß</li>" +
+    (erstattung > 0 ? "<li>Kilometerpauschale: −" + fmtEur(erstattung) + " (" + (km * richtungen).toLocaleString("de-DE") +
+      " km × " + fmtEur(pauschale) + "/km, als Erstattung von den Autokosten abgezogen)</li>" : "") +
     "</ul></details>";
 
   // Klartext für Copy'n'Paste
+  const calcName = document.getElementById("calcName").value.trim();
   const zeilen = [
-    "Bahn vs. Auto — " + fahrtLabel,
+    "Bahn vs. Auto — " + (calcName ? calcName + " — " : "") + fahrtLabel,
     "",
     "🚆 BAHN:  Zeit " + fmtSpanne(bahnZeitMin, bahnZeitMax) + "  ·  Kosten " + fmtEur(bahnKosten),
     "🚗 AUTO:  Zeit " + fmtSpanne(autoZeitMin, autoZeitMax) + "  ·  Kosten " + fmtEur(autoKosten),
@@ -463,7 +505,8 @@ function rechne() {
     "",
     "Details Bahn: " + fmtDauer(bahnHin) + " Fahrt" + (rueck ? " / " + fmtDauer(bahnRueck) + " zurück" : "") +
       ", je " + fmtDauer(wegStart) + " + " + fmtDauer(wegZiel) + " Fußweg, bis zu " + fmtDauer(vHin + vRueck) + " Verspätung",
-    "Details Auto: " + (km * richtungen).toLocaleString("de-DE") + " km, " + fmtEur(spritKosten) + " Sprit + " + fmtEur(verschleissKosten) + " Verschleiß"
+    "Details Auto: " + (km * richtungen).toLocaleString("de-DE") + " km, " + fmtEur(spritKosten) + " Sprit + " + fmtEur(verschleissKosten) + " Verschleiß" +
+      (erstattung > 0 ? " − " + fmtEur(erstattung) + " Kilometerpauschale" : "")
   ];
   const text = zeilen.join("\n");
   document.getElementById("klartext").textContent = text;
@@ -471,7 +514,7 @@ function rechne() {
   letztesErgebnis = {
     text: text,
     html: '<div style="font-family:system-ui,sans-serif;line-height:1.5">' +
-      "<p><b>Bahn vs. Auto — " + fahrtLabel + "</b></p>" +
+      "<p><b>Bahn vs. Auto — " + (calcName ? calcName + " — " : "") + fahrtLabel + "</b></p>" +
       '<table border="1" cellpadding="6" style="border-collapse:collapse">' +
       "<tr><th></th><th>Zeit</th><th>Kosten</th></tr>" +
       "<tr><td>🚆 Bahn</td><td>" + fmtSpanne(bahnZeitMin, bahnZeitMax) + "</td><td>" + fmtEur(bahnKosten) + "</td></tr>" +
@@ -480,13 +523,107 @@ function rechne() {
   };
 }
 
+/* ---------- Speichern & Laden (localStorage) ---------- */
+
+const SAVES_KEY = "bahnVsAuto.saves";
+const AKTUELL_KEY = "bahnVsAuto.aktuell";
+const nameFeld = document.getElementById("calcName");
+const calcSelect = document.getElementById("calcSelect");
+
+function formZustand() {
+  const werte = {}, eigene = [];
+  felder.forEach(el => {
+    werte[el.id] = el.value;
+    if (el.dataset.eigenerWert) eigene.push(el.id);
+  });
+  return {
+    name: nameFeld.value,
+    mitRueckfahrt: rueckBox.checked,
+    pauschaleAktiv: pauschaleBox.checked,
+    werte, eigene
+  };
+}
+
+function setzeZustand(z) {
+  felder.forEach(el => {
+    if (z.werte && el.id in z.werte) el.value = z.werte[el.id];
+    delete el.dataset.eigenerWert;
+  });
+  (z.eigene || []).forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.dataset.eigenerWert = "1";
+  });
+  nameFeld.value = z.name || "";
+  rueckBox.checked = !!z.mitRueckfahrt;
+  document.body.classList.toggle("mit-rueckfahrt", rueckBox.checked);
+  pauschaleBox.checked = !!z.pauschaleAktiv;
+  pauschaleFeld.disabled = !pauschaleBox.checked;
+  felder.forEach(zeigeParsed);
+  rechne();
+}
+
+function ladeSaves() {
+  try { return JSON.parse(localStorage.getItem(SAVES_KEY)) || {}; } catch { return {}; }
+}
+function speichereSaves(saves) {
+  try { localStorage.setItem(SAVES_KEY, JSON.stringify(saves)); } catch {}
+}
+// aktueller Formularstand überlebt einen Reload auch ohne explizites Speichern
+function persistAktuell() {
+  try { localStorage.setItem(AKTUELL_KEY, JSON.stringify(formZustand())); } catch {}
+}
+
+function fuelleSelect(auswahl) {
+  const saves = ladeSaves();
+  calcSelect.innerHTML = '<option value="">— neue Berechnung —</option>';
+  Object.keys(saves).sort((a, b) => a.localeCompare(b, "de")).forEach(n => {
+    const o = document.createElement("option");
+    o.value = n; o.textContent = n;
+    calcSelect.appendChild(o);
+  });
+  calcSelect.value = (auswahl && saves[auswahl]) ? auswahl : "";
+}
+
+document.getElementById("calcSave").addEventListener("click", () => {
+  let name = nameFeld.value.trim();
+  if (!name) { name = "Unbenannt"; nameFeld.value = name; }
+  const saves = ladeSaves();
+  saves[name] = formZustand();
+  speichereSaves(saves);
+  fuelleSelect(name);
+  melde("✓ „" + name + "“ gespeichert", "calcMsg");
+});
+
+document.getElementById("calcDelete").addEventListener("click", () => {
+  const name = calcSelect.value || nameFeld.value.trim();
+  const saves = ladeSaves();
+  if (name && saves[name]) {
+    delete saves[name];
+    speichereSaves(saves);
+    fuelleSelect("");
+    melde("„" + name + "“ gelöscht", "calcMsg");
+  } else {
+    melde("Nichts zu löschen", "calcMsg");
+  }
+});
+
+calcSelect.addEventListener("change", () => {
+  const name = calcSelect.value;
+  if (!name) { setzeZustand(STANDARDWERTE); return; }
+  const saves = ladeSaves();
+  if (saves[name]) setzeZustand(saves[name]);
+});
+
+nameFeld.addEventListener("input", rechne);
+
 /* ---------- Kopieren ---------- */
 
-function meldeKopiert(msg) {
-  const el = document.getElementById("copiedMsg");
+function melde(msg, ziel) {
+  const el = document.getElementById(ziel || "copiedMsg");
   el.textContent = msg;
   setTimeout(() => { el.textContent = ""; }, 2500);
 }
+const meldeKopiert = msg => melde(msg);
 document.getElementById("copyText").addEventListener("click", async () => {
   if (!letztesErgebnis) { meldeKopiert("Noch kein Ergebnis"); return; }
   try { await navigator.clipboard.writeText(letztesErgebnis.text); meldeKopiert("✓ Klartext kopiert"); }
@@ -506,8 +643,21 @@ document.getElementById("copyHtml").addEventListener("click", async () => {
   }
 });
 
-felder.forEach(zeigeParsed);
-rechne();
+/* ---------- Start ---------- */
+
+// Ausgangszustand der Seite als Vorlage für „neue Berechnung“
+const STANDARDWERTE = formZustand();
+
+// letzten Stand wiederherstellen (falls vorhanden)
+let start = null;
+try { start = JSON.parse(localStorage.getItem(AKTUELL_KEY)); } catch {}
+if (start) {
+  setzeZustand(start);
+} else {
+  felder.forEach(zeigeParsed);
+  rechne();
+}
+fuelleSelect(start && start.name);
 </script>
 </body>
 </html>

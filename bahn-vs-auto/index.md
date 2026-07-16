@@ -6,6 +6,8 @@ Ein kleiner, eigenständiger Rechner (eine HTML-Datei, kein Backend), der prüft
 
 ## Was er kann
 
+- **Berechnungen benennen, speichern und wechseln:** Ein Namensfeld plus „Speichern"/„Löschen" legt die komplette Eingabe unter diesem Namen im localStorage des Browsers ab; über eine Auswahlbox wechselt man zwischen gespeicherten Berechnungen („— neue Berechnung —" setzt auf die Standardwerte zurück). Der aktuelle Formularstand überlebt außerdem jeden Reload automatisch.
+- **Kilometerpauschale (optional):** Per Checkbox zuschaltbares Feld (Standard 0,30 €/km). Wenn aktiv, wird die Pauschale als Erstattung (Arbeitgeber/Steuer) von den Autokosten abgezogen und im Rechenweg ausgewiesen.
 - **Hinfahrt** wird immer gerechnet, **Rückfahrt** ist per Häkchen zuschaltbar. Beim Aktivieren erscheinen die zusätzlichen Felder und werden — solange man sie nicht selbst ändert — automatisch aus den Hinfahrt-Werten vorbelegt.
 - **Flexible Zeiteingaben:** `1h 50m`, `10min`, `1:30h`, `1,5h` oder einfach `90` (Minuten) werden alle verstanden; unter jedem Feld steht die geparste Dauer.
 - **Bahn-Seite:** Fußwege vom/zum Bahnhof an Start und Ziel (Standard je 20 min), Unkosten für die Anfahrt zum Bahnhof (Standard 5 €), Fahrtdauer, erwartete Verspätung (Standard 30 min) und Ticketkosten — jeweils für Hin- und ggf. Rückfahrt.
