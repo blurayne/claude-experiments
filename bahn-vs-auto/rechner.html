@@ -78,6 +78,8 @@
   .field input[disabled] { opacity: .45; }
   .inlinecheck { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
   .inlinecheck input { width: 16px; height: 16px; accent-color: var(--accent); margin: 0; }
+  .openlink { font-weight: 400; font-size: .8rem; color: var(--accent); margin-left: 6px; }
+  .field input[data-kind="url"] { font-size: .8rem; color: var(--muted); }
   .parsed { min-height: 1.1em; font-size: .78rem; color: var(--muted); margin-top: 2px; }
   .parsed.err { color: var(--bahn); }
   .toggle {
@@ -257,6 +259,31 @@
     dazu Restwertverlust ≈ 0,03–0,05 €/km → im Schnitt <b>0,10 €/km</b> (ohne Fixkosten wie Versicherung/Steuer, die ohnehin anfallen).</p>
   </div>
 
+  <!-- Buchungslinks -->
+  <div class="card">
+    <h2><span class="dot" style="background:#3f8ac2"></span>Buchungslinks</h2>
+    <div class="grid" style="grid-template-columns:1fr">
+      <div class="field">
+        <b>Google-Maps-URL (Auto) <a id="urlAutoOpen" class="openlink" href="#" target="_blank" rel="noopener">öffnen ↗</a></b>
+        <input type="text" id="urlAuto" data-kind="url" placeholder="wird aus dem Namen der Berechnung erzeugt">
+        <span class="parsed"></span>
+      </div>
+      <div class="field">
+        <b>Bahn-URL Hinfahrt <a id="urlBahnHinOpen" class="openlink" href="#" target="_blank" rel="noopener">öffnen ↗</a></b>
+        <input type="text" id="urlBahnHin" data-kind="url" placeholder="wird aus dem Namen der Berechnung erzeugt">
+        <span class="parsed"></span>
+      </div>
+      <div class="rueck-only"><div class="field">
+        <b>Bahn-URL Rückfahrt <a id="urlBahnRueckOpen" class="openlink" href="#" target="_blank" rel="noopener">öffnen ↗</a></b>
+        <input type="text" id="urlBahnRueck" data-kind="url" placeholder="wird aus dem Namen der Berechnung erzeugt">
+        <span class="parsed"></span>
+      </div></div>
+    </div>
+    <p class="hint">🔗 Solange eine URL nicht von Hand geändert wurde, wird sie automatisch erzeugt:
+    Ziel = <b>Name der Berechnung</b>, Start immer <b>„Harras, München"</b>, Ankunft <b>nächster Montag 9:00</b>
+    (Rückfahrt: Abfahrt ab 17:00 am selben Tag). Bahn-Links: 1 Reisender mit <b>BahnCard 50</b>, 2. Klasse, keine Mitfahrer.</p>
+  </div>
+
   <!-- Ergebnis -->
   <div class="card" id="ergebnis">
     <h2><span class="dot" style="background:var(--warn)"></span>Ergebnis</h2>
@@ -340,6 +367,7 @@ function wertVon(id) {
 
 function zeigeParsed(el) {
   const out = el.closest(".field").querySelector(".parsed");
+  if (el.dataset.kind === "url") { out.textContent = ""; el.classList.remove("invalid"); return; }
   const leer = el.value.trim() === "";
   let wert = el.dataset.kind === "dur" ? parseDauer(el.value) : parseZahl(el.value);
   if (leer) { out.textContent = ""; el.classList.remove("invalid"); out.classList.remove("err"); return; }
@@ -355,6 +383,10 @@ function zeigeParsed(el) {
    solange sie der Nutzer nicht selbst angefasst hat. */
 document.querySelectorAll("input[data-mirror-of]").forEach(dst => {
   dst.addEventListener("input", e => { if (e.isTrusted) dst.dataset.eigenerWert = "1"; });
+});
+// URL-Felder: sobald von Hand geändert, nicht mehr automatisch erzeugen
+document.querySelectorAll('input[data-kind="url"]').forEach(el => {
+  el.addEventListener("input", e => { if (e.isTrusted) el.dataset.eigenerWert = "1"; });
 });
 felder.forEach(el => {
   el.addEventListener("input", () => {
@@ -387,11 +419,55 @@ rueckBox.addEventListener("change", () => {
   rechne();
 });
 
+/* ---------- Buchungslinks ---------- */
+
+const LINK_START = "Harras, München";
+
+function naechsterMontag() {
+  const heute = new Date();
+  const tage = ((8 - heute.getDay()) % 7) || 7; // heute Montag → nächste Woche
+  return new Date(heute.getFullYear(), heute.getMonth(), heute.getDate() + tage);
+}
+function isoDatum(d) {
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+// Google Maps: Route mit Ankunftszeit; !8j = Wandzeit-als-UTC-Timestamp, !3e0 = Auto
+function mapsUrl(von, nach, datum) {
+  const ts = Date.UTC(datum.getFullYear(), datum.getMonth(), datum.getDate(), 9) / 1000;
+  return "https://www.google.com/maps/dir/" + encodeURIComponent(von) + "/" + encodeURIComponent(nach) +
+         "/data=!4m6!4m5!2m3!6e1!7e2!8j" + ts + "!3e0";
+}
+// bahn.de: hza=A → Ankunftszeit, hza=D → Abfahrtszeit; r = 1 Erwachsener, BahnCard 50, 2. Klasse
+function bahnUrl(von, nach, datum, zeit, ankunft) {
+  return "https://www.bahn.de/buchung/fahrplan/suche#sts=true&kl=2&r=13:23:KLASSE_2:1" +
+         "&so=" + encodeURIComponent(von) + "&zo=" + encodeURIComponent(nach) +
+         "&hd=" + isoDatum(datum) + "T" + zeit + ":00&hza=" + (ankunft ? "A" : "D");
+}
+
+function aktualisiereLinks() {
+  const ziel = nameFeld.value.trim();
+  const mo = naechsterMontag();
+  const vorgaben = {
+    urlAuto: ziel ? mapsUrl(LINK_START, ziel, mo) : "",
+    urlBahnHin: ziel ? bahnUrl(LINK_START, ziel, mo, "09:00", true) : "",
+    urlBahnRueck: (ziel && rueckBox.checked) ? bahnUrl(ziel, LINK_START, mo, "17:00", false) : ""
+  };
+  for (const [id, vorgabe] of Object.entries(vorgaben)) {
+    const el = document.getElementById(id);
+    if (!el.dataset.eigenerWert) el.value = vorgabe;
+    const a = document.getElementById(id + "Open");
+    const hatUrl = el.value.trim() !== "";
+    a.style.visibility = hatUrl ? "visible" : "hidden";
+    if (hatUrl) a.href = el.value.trim();
+  }
+}
+
 /* ---------- Rechnen ---------- */
 
 let letztesErgebnis = null;
 
 function rechne() {
+  aktualisiereLinks();
   persistAktuell();
   const rueck = rueckBox.checked;
   const personen = Math.max(1, Math.round(wertVon("personen") ?? 1));
