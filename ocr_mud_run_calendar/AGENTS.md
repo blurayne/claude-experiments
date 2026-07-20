@@ -16,6 +16,15 @@ Die Daten wurden per Websuche zusammengetragen (keine automatisierte API-Abfrage
 
 Jede Rechercheaufgabe wurde als eigenständiger Web-Recherche-Agent mit klar abgegrenztem Auftrag durchgeführt; die Ergebnisse wurden von Hand gegen die offiziellen Veranstalterseiten geprüft, bevor sie in `events.js` übernommen wurden. Termine ohne aktuelle offizielle Bestätigung sind in der Datenbank mit `estimated: true` markiert.
 
+**Nachrecherche Juli 2026** (4 parallele Rechercheaufträge):
+
+8. Rock the Race Würzburg (offizieller Name, Termine 2024–2026, Preise) — der gesuchte „Rock Race in Würzburg"
+9. Weitere OCR-/Mud-Runs im Umkreis bis ca. 250 km (≈ Würzburg-Entfernung) um München und Lam, inkl. Österreich (Athlon-Serie, XLETIX Tirol, Runmageddon Filzmoos, OCR Challenge Hohenems, PRAM.AT.RACE) und Tschechien (weitere Gladiator-Race-Standorte, Army Run) sowie neue deutsche Standorte (Spartan Kulmbach, Mud Masters Wassertrüdingen, Getting Tough, CrossDeLuxe, Skip & Crawl, INN RUN Passau)
+10. Lauf- und Crossevents im Korridor München–Lam (Erding, Freising, Moosburg, Landshut, Straubing, Bogen, Deggendorf, Regensburg, Neutraubling, Bodenmais, Arrach) — u. a. Landshut läuft, Herzogstadtlauf, Nightrun & Beats, Spindellauf, U.Trail Lamer Winkel
+11. Event-Kalender der OCR-Trainingsvereine (OCR Munich e.V., SurvivalRunning Augsburg, Runtopia) und weiterer OCR-Vereine: ergab den WertachXrun Schwabmünchen als Austragungsort der Deutschen Meisterschaft im Hindernislauf (OCRA Germany) sowie den Trainingspark „Die Finisher" in Wallern an der Trattnach (AT); eigene Rennen der drei Vereine existieren nicht mehr bzw. sind vereinsintern (siehe Ausschlussliste in `EVENTS.md`)
+
+Hinweis zur Nachrecherche: Viele Veranstalter- und Aggregatorseiten (rocktherace.de, mudradar.de, hindernislaufguru.de, hdsports.org, time2run.org, gladiatorrace.cz u. a.) blockierten den direkten Abruf über den Recherche-Proxy (HTTP 403); Angaben stammen dort aus Suchmaschinen-Snippets mehrerer unabhängiger Quellen und sind bei Preisen entsprechend als „geschätzt/prüfen" gekennzeichnet.
+
 ## Genutzte Quellentypen
 
 **Übersichts-/Aggregatorseiten für Lauf- und OCR-Events** (hier lohnt sich ein Blick bei künftigen Updates zuerst):
@@ -57,6 +66,23 @@ Jede Rechercheaufgabe wurde als eigenständiger Web-Recherche-Agent mit klar abg
 - Laufcup Cham (Lamer Woid-Reim, Gibacht-Berglauf, Bad Kötztinger Stadtlauf, Chamer Stadtlauf, Rötzer Schwarzwihrberglauf): [spvgg-lam-nordisch.de](https://spvgg-lam-nordisch.de/), [skiclub-furth.de](https://skiclub-furth.de/), [tvbadkoetzting-la.de](https://tvbadkoetzting-la.de/), [asv-cham.de](https://www.asv-cham.de/)
 - ARBERLAND Ultra Trail: [woidlaeufer.de](https://www.woidlaeufer.de/)
 - Regensburg Marathon: [regensburg-marathon.de](https://www.regensburg-marathon.de/)
+- Rock the Race Würzburg: [rocktherace.de](https://www.rocktherace.de/)
+- Spartan Kulmbach: [de.spartan.com/de/races/kulmbach](https://de.spartan.com/de/races/kulmbach)
+- Mud Masters: [mudmasters.com](https://mudmasters.com/)
+- Getting Tough: [gettingtough-race.de](https://www.gettingtough-race.de/)
+- CrossDeLuxe: [crossdeluxe.de](https://crossdeluxe.de/)
+- Beat the City / Athlon (Innsbruckathlon, Linzathlon): [beatthecity.at](https://beatthecity.at/)
+- Runmageddon: [runmageddon.com](https://www.runmageddon.com/)
+- OCR Challenge Hohenems: [ocr-challenge.at](https://www.ocr-challenge.at/)
+- PRAM.AT.RACE: [atv-andorf.com/pram-at-race](https://atv-andorf.com/pram-at-race/)
+- WertachXrun / TIME2RUN (DM Hindernislauf): [time2run.org](https://www.time2run.org/)
+- Skip & Crawl Villenbach: [skip-crawl.de](https://skip-crawl.de/)
+- INN RUN Passau: [innrun.de](https://innrun.de/)
+- Heimat Trails: [heimattrails.de](https://www.heimattrails.de/)
+- Landshut läuft: [landshut-laeuft.de](https://landshut-laeuft.de/)
+- Straubinger Herzogstadtlauf: [herzogstadtlauf.de](https://www.herzogstadtlauf.de/)
+- LLC Marathon Regensburg (Firmenlauf, Spindellauf): [regensburg-marathon.de](https://www.regensburg-marathon.de/)
+- U.Trail Lamer Winkel: [utlw.de](https://www.utlw.de/)
 - OCR Munich e.V.: [ocr-munich.de](https://www.ocr-munich.de/)
 - SurvivalRunning Augsburg: [sr-augsburg.de](https://sr-augsburg.de/)
 - Runtopia e.V.: [runtopia.jimdofree.com](https://runtopia.jimdofree.com/)

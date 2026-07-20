@@ -5,7 +5,7 @@ Interaktiver Event-Kalender für Hindernisläufe (OCR), Matschläufe, Vereins-Cr
 - **München** (PLZ 81373)
 - **Lam im Bayerischen Wald** (PLZ 93462)
 
-Enthalten sind die großen kommerziellen OCR-Serien (Spartan Race, XLETIX, Muddy Angel Run, Survival Race Kids, …) genauso wie kleine, familiäre „Dreckläufe“ von lokalen Vereinen, reine Laufevents (Marathon München, Laufcup Cham, …), wiederkehrende Läufe wie der Westpark parkrun sowie offene OCR-Trainingsgeländer (z. B. OCR Munich e.V.) – inklusive Kinder- und Familienläufen.
+Enthalten sind die großen kommerziellen OCR-Serien (Spartan Race, XLETIX, Muddy Angel Run, Mud Masters, Getting Tough, Survival Race Kids, …) genauso wie kleine, familiäre „Dreckläufe“ von lokalen Vereinen (Rock the Race Würzburg, WertachXrun mit der Deutschen Meisterschaft im Hindernislauf, INN RUN Passau, …), reine Laufevents (Marathon München, Laufcup Cham, die Stadt- und Volksläufe im Korridor München–Lam von Erding über Landshut, Straubing und Deggendorf bis Regensburg, der U.Trail Lamer Winkel, …), wiederkehrende Läufe wie der Westpark parkrun sowie offene OCR-Trainingsgeländer (z. B. OCR Munich e.V.) – inklusive Kinder- und Familienläufen. Auch grenznahe Events in Österreich (Innsbruckathlon, Linzathlon, OCR Challenge Hohenems) und Tschechien (Gladiator Race, Predator Race, Army Run) sind erfasst.
 
 ## Dateien
 
