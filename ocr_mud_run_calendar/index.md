@@ -12,11 +12,11 @@ Enthalten sind die großen kommerziellen OCR-Serien (Spartan Race, XLETIX, Muddy
 - **[kalender.html](kalender.html)** – der interaktive Kalender:
   - Umschalter für den **Ursprungsort** (München oder Lam)
   - Slider für die **Reichweite** (25–400 km Luftlinie)
-  - **Datumsfeld „Ab wann“** (Startdatum des Zeitfensters, vorbelegt mit heute)
+  - **Datumsfeld „Ab wann“** (Startdatum des Zeitfensters, vorbelegt mit heute); liegt es in der Vergangenheit, werden auch bereits gelaufene Termine im Zeitraum gelistet – chronologisch, alte zuerst, ausgegraut mit Badge „bereits gelaufen“
   - Slider für den **Zeitraum** (wie viele Tage ab dem Startdatum, 2 Wochen bis ~18 Monate)
   - Haken **„vergangene Events anzeigen“**: Events ohne kommenden Termin im Fenster erscheinen ausgegraut mit ihrem letzten gelaufenen Termin („bereits gelaufen“); bei kommenden Events wird zusätzlich „zuletzt gelaufen“ eingeblendet. Die Datenbank enthält dafür die belegten Termine der letzten 2 Jahre (Juli 2024 – Juli 2026) je Event.
   - Slider für die **max. Startgebühr** (Kostenfilter; Events ohne Preisangabe bleiben sichtbar)
-  - **Sortierung** wählbar: nächstes Event zuerst oder nach Entfernung
+  - **Sortierung** wählbar: nach Zeitpunkt oder nach Entfernung
   - Filter nach **Art** (OCR-/Hindernisläufe / reine Laufevents / offenes Training) und nach Event-Typ (Großevents / kleine Vereins-Events / nur mit Kids-Lauf)
   - Wiederkehrende Termine (parkrun, Social Runs, offenes Training) mit Badge „wiederkehrend" – ihr nächstes Vorkommen wird automatisch berechnet; per Haken lassen sie sich auch komplett aus der Liste ausblenden
   - Alle Filtereinstellungen werden im **localStorage des Browsers** gespeichert und beim nächsten Besuch automatisch wiederhergestellt (außer dem Datumsfeld „Ab wann", das immer auf heute vorbelegt wird); ein Button „Einstellungen zurücksetzen" stellt die Standardwerte wieder her
