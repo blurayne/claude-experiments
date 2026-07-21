@@ -231,7 +231,7 @@
   <div class="ctrl">
     <label for="sort">Sortierung</label>
     <select id="sort">
-      <option value="date">Nächstes Event zuerst</option>
+      <option value="date">Nach Zeitpunkt</option>
       <option value="dist">Entfernung (nächstgelegen zuerst)</option>
     </select>
   </div>
@@ -373,11 +373,13 @@
         .sort(function (a, b) { return a - b; });
       var pastAll = all.filter(function (d) { return d < today; });
       var lastRun = pastAll.length ? pastAll[pastAll.length - 1] : null;
-      var upcoming = all.filter(function (d) { return d >= start && d <= until && d >= today; });
-      if (upcoming.length) {
-        items.push({ ev: ev, dist: dist, next: upcoming[0], more: upcoming.slice(1), isPast: false, lastRun: state.showPast ? lastRun : null });
+      // Liegt "Ab wann" vor heute, zählen auch bereits gelaufene Termine im Zeitraum
+      var inWindow = all.filter(function (d) { return d >= start && d <= until && (d >= today || start < today); });
+      if (inWindow.length) {
+        var first = inWindow[0];
+        items.push({ ev: ev, dist: dist, next: first, more: inWindow.slice(1), isPast: first < today, lastRun: (state.showPast && first >= today) ? lastRun : null });
       } else if (state.showPast && lastRun) {
-        // Kein kommender Termin im Fenster: letzten gelaufenen Termin zeigen
+        // Kein Termin im Fenster: letzten gelaufenen Termin zeigen
         items.push({ ev: ev, dist: dist, next: lastRun, more: [], isPast: true, lastRun: null });
       }
     });
@@ -388,7 +390,7 @@
 
     var list = document.getElementById("list");
     document.getElementById("count").textContent = items.length
-      ? items.length + " Event" + (items.length === 1 ? "" : "s") + " im Umkreis von " + state.range + " km um " + origin.name + " zwischen " + fmtDate(start) + " und " + fmtDate(until) + (state.showPast ? " (inkl. bereits gelaufener)" : "")
+      ? items.length + " Event" + (items.length === 1 ? "" : "s") + " im Umkreis von " + state.range + " km um " + origin.name + " zwischen " + fmtDate(start) + " und " + fmtDate(until) + (state.showPast || start < today ? " (inkl. bereits gelaufener)" : "")
       : "";
 
     if (!items.length) {
