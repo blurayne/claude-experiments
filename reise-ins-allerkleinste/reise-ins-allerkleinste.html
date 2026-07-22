@@ -173,7 +173,8 @@
 
   .ladder{ display:flex; flex-direction:column; gap:.35em; font-family:var(--display); }
   .ladder .row{ display:flex; align-items:center; gap:.7em; padding:.4em .7em; border-radius:10px; background:rgba(255,255,255,.02); border:1px solid var(--line); }
-  .ladder .row .n{ font-family:var(--mono); font-size:.5em; color:var(--muted); width:2.4em; }
+  .ladder .row .n{ font-family:var(--mono); font-size:.5em; color:#fff; width:3.2em; background:none; box-shadow:none; }
+  .ladder .row .n .exp{ color:#ffe08a; }
   .ladder .row .t{ font-size:.72em; }
   .ladder .row .s{ margin-left:auto; font-family:var(--mono); font-size:.48em; color:#5f6b85; }
   .ladder .row .d{ width:.7em; height:.7em; border-radius:50%; }
@@ -677,12 +678,12 @@
       <div class="eyebrow"><span class="dot"></span> Die ganze Reise auf einen Blick</div>
       <h2>Von groß nach winzig</h2>
       <div class="ladder" style="margin-top:.3em">
-        <div class="row"><span class="n">10⁻⁵</span><span class="d" style="background:var(--bio)"></span><span class="t">Zelle</span><span class="s">lebendiger Baustein</span></div>
-        <div class="row"><span class="n">10⁻⁹</span><span class="d" style="background:var(--electron)"></span><span class="t">Molekül</span><span class="s">Atome zusammengesteckt</span></div>
-        <div class="row"><span class="n">10⁻¹⁰</span><span class="d" style="background:var(--proton)"></span><span class="t">Atom</span><span class="s">Kern + Elektronenhülle</span></div>
-        <div class="row"><span class="n">10⁻¹⁵</span><span class="d" style="background:var(--neutron)"></span><span class="t">Proton &amp; Neutron</span><span class="s">im Kern</span></div>
-        <div class="row"><span class="n">&lt;10⁻¹⁸</span><span class="d" style="background:var(--quark)"></span><span class="t">Quarks &amp; Elektron</span><span class="s">Grundbausteine — Ende der Teilchen</span></div>
-        <div class="row"><span class="n">10⁻³⁵</span><span class="d" style="background:var(--force)"></span><span class="t">Planck-Länge</span><span class="s">Quantenschaum — kleiner geht&rsquo;s nicht</span></div>
+        <div class="row"><span class="n">10<span class="exp">⁻⁵</span></span><span class="d" style="background:var(--bio)"></span><span class="t">Zelle</span><span class="s">lebendiger Baustein</span></div>
+        <div class="row"><span class="n">10<span class="exp">⁻⁹</span></span><span class="d" style="background:var(--electron)"></span><span class="t">Molekül</span><span class="s">Atome zusammengesteckt</span></div>
+        <div class="row"><span class="n">10<span class="exp">⁻¹⁰</span></span><span class="d" style="background:var(--proton)"></span><span class="t">Atom</span><span class="s">Kern + Elektronenhülle</span></div>
+        <div class="row"><span class="n">10<span class="exp">⁻¹⁵</span></span><span class="d" style="background:var(--neutron)"></span><span class="t">Proton &amp; Neutron</span><span class="s">im Kern</span></div>
+        <div class="row"><span class="n">&lt;10<span class="exp">⁻¹⁸</span></span><span class="d" style="background:var(--quark)"></span><span class="t">Quarks &amp; Elektron</span><span class="s">Grundbausteine — Ende der Teilchen</span></div>
+        <div class="row"><span class="n">10<span class="exp">⁻³⁵</span></span><span class="d" style="background:var(--force)"></span><span class="t">Planck-Länge</span><span class="s">Quantenschaum — kleiner geht&rsquo;s nicht</span></div>
       </div>
       <p class="tiny" style="margin-top:1em">…und <strong>vier Kräfte</strong> halten jede Stufe zusammen. Fertig ist das Universum. ✨</p>
     </div>
