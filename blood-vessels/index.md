@@ -79,12 +79,19 @@ network, same flow, same renderer.
 - **Switchable rendering backend** — *Canvas 2D* (analytic, works everywhere),
   *WebGL2*, or *WebGPU* (with automatic fallback if WebGPU isn't supported). The
   GPU backends draw SDF capsule impostors (GLSL / WGSL).
+- **Depth of field in the lumen** — every cell carries a depth across the tube's
+  unseen thickness. Cells at the back are seen *through* blood: soft-edged,
+  washed out, sunk toward the blood colour; cells at the front stay crisp. That
+  separation is what makes a flat vessel read as a volume you are inside of.
 - **Switchable shading** (GPU backends): **Cutaway** (the default — vessels sliced
   open lengthwise so you see the endothelial wall, the concave lumen and the cells
   moving through it, game-ready), **Lit tubes** (Blinn–Phong), **Subsurface**
   (thickness glow + Fresnel), **Toon** (cel + outline), **X-ray** (additive
-  angiograph). On Canvas 2D the cutaway is drawn in layered passes so the tubes
-  stay clean and continuous.
+  angiograph), and **Anatomy** — a medical-illustration look: warm, softly lit
+  tissue, saturated glossy vessels with a specular streak, and a contact-shadow
+  pass so the vessels sit *on* the tissue instead of floating over it. On
+  Canvas 2D the cutaway is drawn in layered passes so the tubes stay clean and
+  continuous.
 - **Outline filter** — a contour mode that draws *only* the vessel outlines as
   clean line art. The vessels are reconstructed into connected polylines,
   smoothed with a **Catmull–Rom spline**, then rendered through a fill→erode

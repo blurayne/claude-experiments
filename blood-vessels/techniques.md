@@ -326,6 +326,24 @@ The diffuse term is **quantised** into a few bands, the specular becomes a hard
 spot, and a dark **outline** is drawn near the silhouette (where the SDF height
 goes to zero). A stylised, illustrative look.
 
+### 3e-ii. Anatomy — the medical-illustration look
+
+A deliberately non-microscopic mode, aimed at how vessels are *drawn* rather
+than how they look down a lens:
+
+- **Warm, lit tissue** — a domain-warped fBm field remapped to flesh tones with
+  a soft radial falloff, instead of the near-black histology field.
+- **Glossy tubes** — a saturated body shaded by the reconstructed tube normal,
+  a Gaussian specular streak offset to one side, a translucent rim bleed and a
+  darkened edge. Arterial and venous hues are kept clearly apart.
+- **Contact shadows** — the vessel instances are drawn twice: a first pass
+  expands each capsule by `0.55·r + 6 µm` and writes a soft black alpha, so the
+  vessels sit *on* the tissue instead of floating over it. On WebGPU the two
+  passes need two bind groups (the pass flag lives in the uniform block, and a
+  uniform buffer cannot be rewritten inside a render pass).
+- The blood traffic is hidden here — the tubes are opaque, so cells inside them
+  would read as cells crawling on the outside. Only the game's actors stay.
+
 ### 3f. X-ray — additive angiograph
 
 Vessels are drawn with **additive blending** on a near-black field, brightest
@@ -359,6 +377,26 @@ The tissue behind the vessels is a **domain-warped fBm noise** field (5-octave
 value noise, warped by another noise lookup) with faint thresholded "nuclei",
 fine capillary-bed mottling and a soft **depth vignette**, evaluated per-pixel in
 world space so it pans and zooms with the camera.
+
+### 3g-ii. Depth of field — making a flat lumen read as a volume
+
+The lumen is a tube, but this is a flat view of one, so every cell carries a
+**depth** `z ∈ [−1, 1]` across the thickness we cannot see. In the cell shader
+that depth drives four things at once, which together read as an out-of-focus
+layer rather than four separate tricks:
+
+- the **edge softens** (the antialias width grows with distance), which for a
+  round blob *is* a blur;
+- the **internal detail washes out** — the biconcave ring, the specular glint,
+  the granular nucleus all fade;
+- the colour **sinks toward the blood behind it**, as if seen through plasma;
+- the alpha drops, and the vertex shader shrinks far cells slightly.
+
+The particle list is sorted by depth once at seeding, so the instanced draw is
+naturally back-to-front; the game's actors are packed into reserved slots at the
+*end* of the buffer, which both protects them from the visible-cell budget and
+keeps them in front of the traffic. Canvas 2D approximates the same effect with
+alpha alone.
 
 ### 3h. Blood-cell impostors
 
