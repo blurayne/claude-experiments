@@ -79,6 +79,14 @@ network, same flow, same renderer.
 - **Switchable rendering backend** — *Canvas 2D* (analytic, works everywhere),
   *WebGL2*, or *WebGPU* (with automatic fallback if WebGPU isn't supported). The
   GPU backends draw SDF capsule impostors (GLSL / WGSL).
+- **Tumbling red cells** — a red cell is a biconcave disc, and it rolls as it
+  flows. The impostor projects the actual solid of revolution for its current
+  tumble angle, so the traffic shows round faces, foreshortened ellipses and
+  edge-on peanuts all at once, exactly as blood does.
+- **Clean branches and fading tips** — no spherical caps anywhere: a branch node
+  gets a short faded stub from each segment instead of a ball, an end tapers to
+  transparent, and the tube's outline is measured in a frame shared with its
+  neighbour so it stays continuous through every bend.
 - **Depth of field in the lumen** — every cell carries a depth across the tube's
   unseen thickness. Cells at the back are seen *through* blood: soft-edged,
   washed out, sunk toward the blood colour; cells at the front stay crisp. That

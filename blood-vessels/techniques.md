@@ -244,13 +244,25 @@ every joint. Three things fix it, all fed by per-instance data:
    (< ~44°), both are clipped against the shared bisector plane through the node
    instead of drawing their caps, and the tube is extended along its axis rather
    than capped. Consecutive segments then tile exactly — no bulge, no dark ring.
-3. **Caps only where they close something.** Tips (degree 1), branch points
-   (degree ≥ 3) and sharp kinks keep their round caps: at a bifurcation the
-   overlapping caps of the three segments are precisely what fills the junction,
-   and a steep bisector would cut a flat wedge out of the tube.
+3. **No spherical caps at all.** Every segment is the slab around its own
+   (extended) axis. Hemispherical caps used to union into a visible ball at
+   every bifurcation — and in the additive x-ray those balls piled up into
+   white discs. Instead:
+   - a **branch node** gets a short stub (0.6·r) from each incident segment,
+     faded out over its length: where the neighbouring branches cover it the
+     fade is invisible, where they don't it dissolves instead of ending in a
+     cut-off rectangle;
+   - an **open tip** gets nothing past the end and fades to transparent over
+     the last ~1.6·r, so a terminal vessel dissolves into the tissue.
+4. **A frame-continuous silhouette.** The lateral offset is measured in the
+   *smoothed* frame — the perpendicular of `mix(tA, tB, t)` — against the point
+   `A + ax·t`. At a shared node both neighbours therefore measure from the same
+   origin with the same frame, so the outline matches exactly across the joint.
+   Measuring each segment against its own chord instead left a visible wedge
+   sticking out of every bend.
 
-The mitre flags are packed into the instance attribute's unused `type` slot
-(`clip + 4·type`), so the whole thing costs no extra bandwidth.
+The flags are packed into the instance attribute's unused `type` slot
+(`clip + 4·tips + 16·type`), so the whole thing costs no extra bandwidth.
 
 ### 3a-ii. A living lumen — what makes the inside look real
 
@@ -344,11 +356,19 @@ than how they look down a lens:
 - The blood traffic is hidden here — the tubes are opaque, so cells inside them
   would read as cells crawling on the outside. Only the game's actors stay.
 
-### 3f. X-ray — additive angiograph
+### 3f. X-ray — MAX-composited angiograph
 
-Vessels are drawn with **additive blending** on a near-black field, brightest
-along the lumen core — mimicking a contrast **angiogram**. The procedural tissue
-is suppressed so only the vasculature glows.
+Vessels are drawn on a near-black field, brightest along the lumen core —
+mimicking a contrast **angiogram**. The procedural tissue is suppressed so only
+the vasculature glows.
+
+The compositing is **`MAX`, not a sum** (`blendEquation(gl.MAX)` / WGSL
+`operation:'max'`). Summing made every overlap blow out to white: junction
+stubs, crossing vessels, and above all the old spherical caps, which turned
+every bifurcation into a saturated disc. Taking the brightest fragment keeps the
+glow, never saturates, and makes a branch read as a branch. It also means a
+faded stub is simply invisible wherever a neighbour covers it — the fade and the
+blend mode do the junction work together.
 
 ### 3f-ii. Outline — spline-smoothed contour filter
 
@@ -377,6 +397,28 @@ The tissue behind the vessels is a **domain-warped fBm noise** field (5-octave
 value noise, warped by another noise lookup) with faint thresholded "nuclei",
 fine capillary-bed mottling and a soft **depth vignette**, evaluated per-pixel in
 world space so it pans and zooms with the camera.
+
+### 3g-i. Red cells that tumble
+
+A red cell is a **biconcave disc**, and it rolls as it flows — which is why real
+blood shows round faces, foreshortened ellipses and edge-on peanuts all at once.
+The impostor reproduces that from a single tumble angle per cell (phase + rate,
+advanced from the clock at pack time, so it costs no per-frame state):
+
+- The silhouette is the projection of the solid of revolution: the outer rim
+  (which carries no thickness) against the **rim torus** at r ≈ 0.8 swung toward
+  the viewer, `max(cosθ·√(1−x²), cosθ·√(0.64−x²) + sinθ·t(x))`. Face-on this
+  collapses to an exact circle; edge-on to the peanut.
+- `t(r)` is the Evans–Fung half-thickness, softened: the true 0.31 dimple-to-rim
+  ratio reads as a bowtie at this scale, and a `^0.35` falloff keeps the ends of
+  the edge-on silhouette rounded instead of pointed.
+- A uniformly spun disc spends most of its time near edge-on, so the angle is
+  biased toward the face (`cosθ^0.45`) — otherwise the traffic looks like a
+  drawer of coins.
+- Shading reconstructs an approximate in-plane radius from the silhouette and
+  lights it as a solid: diffuse + specular off a rounded normal, the rim torus
+  catching the light, the central dimple darkening only as the cell turns
+  face-on.
 
 ### 3g-ii. Depth of field — making a flat lumen read as a volume
 

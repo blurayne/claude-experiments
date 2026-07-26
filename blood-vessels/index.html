@@ -755,7 +755,11 @@ function buildNetwork(seed, preset){
     const e0=inc[0].e, e1=inc[1].e;                     // both oriented downstream
     nodes[i].mitre = (e0.ux*e1.ux+e0.uy*e1.uy) > 0.72;  // turn < ~44°
   }
-  for(const e of edges) e.clip=(e.a.mitre?1:0)+(e.b.mitre?2:0);
+  for(const n of nodes) n.tip=(incident[n.id]||[]).length===1;
+  // bit 0/1 mitre, bit 2/3 open tip — the shader needs both to decide what to
+  // do past each end (tile into the neighbour, stub into a junction, or fade)
+  for(const e of edges)
+    e.clip=(e.a.mitre?1:0)+(e.b.mitre?2:0)+(e.a.tip?4:0)+(e.b.tip?8:0);
 
   // ---- arc length along the network ----------------------------------------
   // A single continuous "distance from the root" coordinate, in µm, running
@@ -948,7 +952,8 @@ function packCell(data,n,c,limit){
   data[o]=c.wx; data[o+1]=c.wy; data[o+2]=c.ang;
   data[o+3]=c.size||KIND_SIZE[c.kind];
   data[o+4]=c.oxy; data[o+5]=KIND_ID[c.kind];
-  data[o+6]=c.z||0; data[o+7]=0;
+  data[o+6]=c.z||0;
+  data[o+7]=c.tr!==undefined ? c.tp+simTime*c.tr : 0;
   return n+1;
 }
 function packGameCells(data,n){
@@ -986,7 +991,9 @@ function makeCell(e,s){
     ang:Math.random()*TAU,
     jit:0.8+Math.random()*0.5,
     off:(Math.random()*2-1),          // lateral position in lumen (0=centre, ±1=wall)
-    z:(Math.random()*2-1),            // depth across the lumen's unseen thickness
+    z:(Math.random()+Math.random()-1),// depth across the lumen's unseen thickness
+    tp:Math.random()*TAU,             // tumble phase and rate — red cells are
+    tr:(Math.random()-0.5)*1.5,       // discs, and they roll as they flow
     oxy: e.oxyA!==undefined?e.oxyA:1 };
 }
 function pickNext(e){
@@ -1632,7 +1639,7 @@ function makePlayer(){
   const cand=NET.edges.filter(e=>e.type==='art'&&e.radius>ART_TIP*1.5&&e.radius<ART_TIP*3.4);
   const e=cand.length? cand[(Math.random()*cand.length)|0] : (NET.rootEdges[0]||NET.edges[0]);
   const base=RBC_R*2.2;                       // a neutrophil is ~2 red cells wide
-  return { e, s:0.5, kind:'wbc', base, size:base, oxy:1, ang:0, o2:100, lat:0, z:1,
+  return { e, s:0.5, kind:'wbc', base, size:base, oxy:1, ang:0, o2:100, lat:0, z:0.3,
            wx:lerp(e.a.x,e.b.x,0.5), wy:lerp(e.a.y,e.b.y,0.5),
            sx:0, sy:0, boosting:false, vel:0 };
 }
@@ -1644,7 +1651,7 @@ function spawnFoe(kind,edge,s,spawned){
   const c={ e:edge, s, kind, foe:true, spawned:!!spawned,
             spin:(Math.random()-0.5)*0.6, ang:Math.random()*TAU,
             jit:(kind==='vir'?1.3:1.0)+Math.random()*0.35,
-            off:(Math.random()*2-1), z:0.35+Math.random()*0.65,
+            off:(Math.random()*2-1), z:0.1+Math.random()*0.4,
             oxy:edge.oxyA!==undefined?edge.oxyA:1,
             wx:lerp(edge.a.x,edge.b.x,s), wy:lerp(edge.a.y,edge.b.y,s),
             div:foeDivTime() };
@@ -2189,20 +2196,49 @@ void main(){
   // MITRE: on a plain chain node, clip against the shared bisector plane and let
   // the tube run straight through instead of drawing a round cap. Neighbouring
   // segments then tile exactly — one continuous tube, no ring at the joint.
-  float ty=floor(vPar.w/4.0);          // 0 artery · 1 capillary · 2 vein
-  float cl=vPar.w-ty*4.0;              // mitre flags
-  bool clipA = mod(cl,2.0)>=1.0;
-  bool clipB = cl>=2.0;
+  float fl=vPar.w;
+  float ty=floor(fl/16.0); fl-=ty*16.0;   // 0 artery · 1 capillary · 2 vein
+  bool tipB=fl>=8.0;  if(tipB) fl-=8.0;
+  bool tipA=fl>=4.0;  if(tipA) fl-=4.0;
+  bool clipB=fl>=2.0; if(clipB) fl-=2.0;
+  bool clipA=fl>=1.0;
+  // Mitred chain joint: the neighbour owns everything past the shared bisector.
   if(clipA && dot(vP-A,tA)<0.0) discard;
   if(clipB && dot(vP-B,tB)>0.0) discard;
   float tRaw=L2>1e-6?dot(vP-A,ax)/L2:0.0;
   float t=clamp(tRaw,0.0,1.0);
-  // A mitred end runs straight through (flat slab); an unmitred one keeps its
-  // round cap, which is also what fills the ball of a bifurcation.
-  bool mitred=(tRaw<0.0&&clipA)||(tRaw>1.0&&clipB);
-  float tUse=mitred?tRaw:t;
-  vec2 rel=vP-(A+ax*tUse); float dist=length(rel);
+  // NO SPHERICAL CAPS. The tube is always the slab around the (extended) axis:
+  // a hemisphere at each end used to union into a visible ball at every
+  // bifurcation — and in the additive x-ray those balls piled up into white
+  // discs. A branch node instead gets a short stub from each segment, which
+  // fills the crotch without protruding; an open tip gets nothing at all and
+  // simply fades out into the tissue.
+  // The lateral offset is measured in the *smoothed* frame (tA at t=0 rotating
+  // to tB at t=1) against the point A+ax·t. At a shared node both neighbours
+  // therefore measure from the same origin with the same frame, so the tube's
+  // silhouette is continuous across the joint — measuring against each chord
+  // separately left a visible wedge sticking out of every bend.
+  vec2 tg=normalize(mix(tA,tB,t));
+  vec2 bn=vec2(-tg.y,tg.x);
+  float lateral=dot(vP-(A+ax*t),bn);
+  float dist=abs(lateral);
   float rr=mix(vPar.x,vPar.y,t)*uRad*dilate(ty,uPulse);
+  float L=sqrt(max(L2,1e-6));
+  float endFade=1.0;
+  // The junction stub fades over its length instead of ending in a flat face:
+  // where the neighbouring branches cover it the fade is invisible, and where
+  // they don't it dissolves rather than showing a cut-off rectangle.
+  if(tRaw<0.0){
+    float over=-tRaw*L;
+    if(tipA || over>rr*0.6) discard;
+    endFade*=1.0-smoothstep(0.0,rr*0.6,over);
+  }else if(tRaw>1.0){
+    float over=(tRaw-1.0)*L;
+    if(tipB || over>rr*0.6) discard;
+    endFade*=1.0-smoothstep(0.0,rr*0.6,over);
+  }
+  if(tipA) endFade*=clamp(tRaw*L/max(rr*1.6,1e-3),0.0,1.0);
+  if(tipB) endFade*=clamp((1.0-tRaw)*L/max(rr*1.6,1e-3),0.0,1.0);
   float aa=1.0/uScale; float sd=dist-rr;
   // shadow pass (anatomy mode): a soft contact shadow spread into the tissue,
   // drawn under the vessels so they sit *on* the tissue instead of floating
@@ -2215,11 +2251,7 @@ void main(){
   }
   if(sd>aa) discard;
   float cov=clamp(smoothstep(aa,-aa,sd),0.0,1.0);
-  // cross-section frame from the smoothed tangent (interpolated end to end), so
-  // the tube's shading is continuous through a joint instead of per-capsule
-  vec2 tg=normalize(mix(tA,tB,t));
-  vec2 bn=vec2(-tg.y,tg.x);
-  float nperp=clamp(dot(rel,bn)/max(rr,1e-3),-1.0,1.0);
+  float nperp=clamp(lateral/max(rr,1e-3),-1.0,1.0);
   float hgt=sqrt(max(0.0,1.0-nperp*nperp));
   vec3 N=normalize(vec3(bn*nperp,hgt));
   vec3 Ld=normalize(vec3(-0.45,-0.55,0.72)); vec3 V=vec3(0.0,0.0,1.0);
@@ -2304,6 +2336,11 @@ void main(){
       lumenCol+=blood*0.22*haze*hazeW*ao;
     }
     lumenCol=mix(lumenCol, mix(blood,vec3(1.0,0.82,0.80),0.42)*0.9, sleeve*0.45);
+    // a few bright motes riding the plasma — lipid droplets catching the light
+    vec2 sp=vec2((sA-adv*1.15)/34.0, across/34.0);
+    vec2 sf=fract(sp)-0.5;
+    lumenCol+=vec3(1.0,0.86,0.78)*step(0.94,vhash(floor(sp)+31.0))
+             *smoothstep(0.14,0.0,length(sf))*0.55;
     lumenCol+=vec3(1.0,0.9,0.9)*pow(max(0.0,1.0-la),6.0)*0.22*clamp(uGloss,0.0,2.0);
 
     // --- endothelium: the far inner wall is a mosaic of flat, flow-aligned
@@ -2327,6 +2364,9 @@ void main(){
     float rings=sin(sA*0.24+vhash(vec2(floor(sA*0.04),3.0))*2.0)*0.5+0.5;
     float muscle=(ty<0.5?0.24:(ty<1.5?0.04:0.12))*smoothstep(0.15,0.6,wa);
     wallCol*=1.0-muscle+muscle*2.0*rings;
+    // fine collagen fibres running lengthwise along the wall
+    float fib=sin(wa*31.0+vhash(vec2(floor(sA*0.05),9.0))*6.0)*0.5+0.5;
+    wallCol*=0.90+0.20*fib;
     col=mix(lumenCol, wallCol, step(lumen,a));
     // crisp inner endothelium line + dark cut outline at the silhouette
     col=mix(col, vec3(0.16,0.03,0.06), (1.0-smoothstep(0.0,0.05,abs(a-lumen)))*0.6);
@@ -2336,52 +2376,94 @@ void main(){
   // (cutaway models its own wall, so skip the generic darkening there)
   float wallDark = (uMode==5||uMode==6)?0.0: smoothstep(0.45,1.0,1.0-hgt)*0.45*clamp(uWall,0.0,2.5);
   col *= 1.0 - wallDark;
+  cov*=endFade;
   o=vec4(col*cov,cov);
 }`;
 
 const CELL_VS=VS_HEAD+`
 layout(location=0) in vec2 corner;
 layout(location=1) in vec4 iPos;   // x,y,angle,size
-layout(location=2) in vec4 iMeta;  // oxy,kind,depth,spare
+layout(location=2) in vec4 iMeta;  // oxy,kind,depth,tilt
 uniform vec2 uCam; uniform float uScale; uniform vec2 uRes;
-out vec2 vUv; out vec3 vMeta;
+out vec2 vUv; out vec4 vMeta;
 void main(){
-  // depth across the (unseen) thickness of the lumen: −1 far, +1 near. Near
-  // cells are drawn a touch larger, far ones smaller — cheap perspective.
-  float s=iPos.w*(1.0+iMeta.z*0.13), a=iPos.z, ca=cos(a), sa=sin(a);
+  // Depth across the (unseen) thickness of the lumen: −1 far, +1 near, focus a
+  // little in front of the middle. Near cells are drawn larger and softer, far
+  // ones smaller — so the traffic layers the way it does down a real vessel.
+  float z=iMeta.z;
+  float near=smoothstep(0.62,1.0,z);
+  float s=iPos.w*(1.0+z*0.13+near*0.55), a=iPos.z, ca=cos(a), sa=sin(a);
   vec2 lc=corner*s*1.3;
   vec2 world=iPos.xy+vec2(lc.x*ca-lc.y*sa, lc.x*sa+lc.y*ca);
-  vUv=corner*1.3; vMeta=iMeta.xyz;
+  vUv=corner*1.3; vMeta=iMeta;
   vec2 scr=(world-uCam)*uScale+uRes*0.5;
   gl_Position=vec4(scr.x/uRes.x*2.0-1.0, 1.0-scr.y/uRes.y*2.0, 0.0,1.0);
 }`;
 
 const CELL_FS=FS_HEAD+`
-in vec2 vUv; in vec3 vMeta; uniform int uMode; out vec4 o;
+in vec2 vUv; in vec4 vMeta; uniform int uMode; out vec4 o;
 const vec3 OXY=vec3(0.91,0.275,0.31), DEO=vec3(0.47,0.15,0.25);
+// Evans–Fung half-thickness of a red cell at in-plane radius r (normalised to
+// the cell radius): ~0.10 at the dimple, peaking ~0.31 at the rim torus.
+// Evans-Fung profile, softened a little: the true 0.31 dimple-to-rim ratio
+// reads as a bowtie at this scale, and the ^0.35 falloff keeps the ends of the
+// edge-on silhouette rounded instead of pointed.
+float rbcHalfThickness(float r2){
+  return 0.5*pow(max(0.0,1.0-r2),0.35)*(0.32+1.70*r2-1.00*r2*r2);
+}
 void main(){
-  float kind=vMeta.y, oxy=vMeta.x, z=vMeta.z;
+  float kind=vMeta.y, oxy=vMeta.x, z=vMeta.z, tilt=vMeta.w;
   // DEPTH OF FIELD. The lumen is a volume, but this is a flat view of it, so
-  // cells carry a depth across the tube's unseen thickness. Far cells are seen
-  // *through* blood: their edge goes soft, their internal detail washes out and
-  // they sink toward the blood colour. Near cells stay crisp and bright. That
-  // separation is what makes a flat vessel read as something you are inside of.
-  float blur=smoothstep(0.25,-1.0,z);          // 0 near .. 1 far
-  float soft=blur*0.55, fade=blur*0.62;
+  // cells carry a depth across the tube's unseen thickness. Cells away from the
+  // focal plane — behind *and* in front — go soft; the far ones are seen
+  // *through* blood and sink toward its colour, the near ones swell into big
+  // translucent shapes drifting past. That is what makes a flat vessel read as
+  // something you are inside of.
+  float blurFar=smoothstep(0.05,-1.0,z);
+  float blurNear=smoothstep(0.62,1.0,z);
+  float blur=max(blurFar,blurNear);
+  float soft=blur*0.55, fade=blurFar*0.62;
   vec3 deep=mix(DEO,OXY,oxy)*0.42;             // colour of the blood behind
   vec3 c; float alpha;
   if(kind<0.5){
-    vec2 p=vec2(vUv.x, vUv.y/0.86); float r=length(p);
-    if(r>1.0+soft) discard;
-    vec3 col=mix(DEO,OXY,oxy);
-    float ring=smoothstep(0.95,0.55,r)*smoothstep(0.0,0.34,r);
-    c=mix(col*0.7,col,smoothstep(0.0,0.4,r));
-    c=mix(c, mix(col,vec3(1.0,0.92,0.92),0.22), ring*(1.0-blur*0.8));
-    c=mix(c, col*0.6, smoothstep(0.85,1.0,r));
-    c+=smoothstep(0.5,0.0,length(p-vec2(-0.3,-0.32)))*0.26*(1.0-blur);
-    if(uMode==4) c=mix(vec3(0.1,0.0,0.03),col*1.6,ring+0.3);
-    float aa=fwidth(r)*1.5+soft;
-    alpha=smoothstep(1.0,1.0-aa,r);
+    // ---- RED CELL: a biconcave disc seen from an arbitrary angle ----------
+    // The cell is a surface of revolution, and it tumbles as it flows. Tilting
+    // it foreshortens the face while swinging the rim torus into view, so one
+    // cell runs from a round face-on disc, through an ellipse, to the classic
+    // edge-on peanut — which is what blood actually looks like in there.
+    // A uniformly spun disc spends most of its time near edge-on; bias toward
+    // the face so the traffic reads as blood rather than a drawer of coins.
+    float ct=pow(abs(cos(tilt)),0.45);
+    float st=sqrt(max(0.0,1.0-ct*ct));
+    vec2 p=vUv;
+    float ix=1.0-p.x*p.x;
+    if(ix<=0.0) discard;
+    float sq=sqrt(ix);
+    // Silhouette of the projected solid: the outer rim (which carries no
+    // thickness) against the rim torus at r≈0.8 swung toward the viewer.
+    // Face-on this collapses to an exact circle; edge-on to the peanut.
+    float y2=sqrt(max(0.0,0.64-p.x*p.x));
+    float thE=mix(rbcHalfThickness(p.x*p.x), rbcHalfThickness(max(0.64,p.x*p.x)), 0.45);
+    float hh=max(ct*sq, ct*y2+st*thE);
+    float d=max(abs(p.y)-hh, abs(p.x)-1.0);
+    float aa=fwidth(p.x)*1.6+soft;
+    if(d>aa) discard;
+    // reconstruct an approximate in-plane radius, then light it as a solid
+    float u=clamp(p.y/max(hh,1e-4),-1.0,1.0);
+    float rin=clamp(length(vec2(p.x,u*sq)),0.0,1.0);
+    vec3 col=mix(vec3(0.55,0.16,0.20),OXY,oxy);   // venous cells stay red, not mauve
+    vec3 N=normalize(vec3(p.x*0.9, u*0.9, sqrt(max(0.06,1.0-0.78*(p.x*p.x+u*u)))));
+    vec3 L=normalize(vec3(-0.42,-0.52,0.74));
+    float dif=max(dot(N,L),0.0);
+    float spec=pow(max(dot(reflect(-L,N),vec3(0.0,0.0,1.0)),0.0),20.0);
+    float torus=smoothstep(0.34,0.86,rin)*(1.0-smoothstep(0.86,1.0,rin));
+    c=col*(0.26+0.94*dif);
+    c=mix(c, col*0.52, smoothstep(0.44,0.0,rin)*ct*(1.0-blur*0.7));  // dimple
+    c+=col*torus*0.30;                                               // lit rim
+    c+=vec3(1.0,0.88,0.86)*spec*0.55*(1.0-blur*0.8);
+    c*=1.0-smoothstep(0.84,1.0,rin)*0.35;
+    if(uMode==4) c=mix(vec3(0.1,0.0,0.03),col*1.6,torus+0.3);
+    alpha=clamp(0.5-d/(2.0*aa),0.0,1.0);
   }else if(kind<1.5){
     float r=length(vUv); if(r>1.0+soft) discard;
     c=mix(vec3(0.95,0.89,0.93),vec3(0.80,0.69,0.78),r);
@@ -2411,7 +2493,11 @@ void main(){
     float aa=fwidth(r)*1.5+soft*0.5;
     alpha=smoothstep(edge,edge-aa,r);
   }
-  if(uMode!=4){ c=mix(c,deep,fade); alpha*=1.0-blur*0.30; }
+  if(uMode!=4){
+    c=mix(c,deep,fade);                        // far cells sink into the blood
+    c+=c*blurNear*0.25;                        // near ones catch the light
+    alpha*=1.0-blurFar*0.30-blurNear*0.55;     // ...and stay translucent
+  }
   o=vec4(c,alpha);
 }`;
 
@@ -2481,7 +2567,7 @@ function uploadVessels(){
   for(let i=0;i<E.length;i++){ const e=E[i], o=i*16;
     arr[o]=e.a.x; arr[o+1]=e.a.y; arr[o+2]=e.b.x; arr[o+3]=e.b.y;
     arr[o+4]=e.a.radius; arr[o+5]=e.b.radius;
-    arr[o+6]=((e.oxyA||0)+(e.oxyB||0))*0.5; arr[o+7]=(e.clip||0)+4*(TYPE_ID[e.type]||0);
+    arr[o+6]=((e.oxyA||0)+(e.oxyB||0))*0.5; arr[o+7]=(e.clip||0)+16*(TYPE_ID[e.type]||0);
     arr[o+8]=e.a.tx; arr[o+9]=e.a.ty; arr[o+10]=e.b.tx; arr[o+11]=e.b.ty;
     arr[o+12]=e.a.arc; arr[o+13]=e.b.arc; arr[o+14]=e.flowBase; arr[o+15]=0; }
   gl.bindBuffer(gl.ARRAY_BUFFER,GL.vessInst);
@@ -2509,8 +2595,17 @@ function glRender(pulse, restream){
   }
 
   gl.enable(gl.BLEND);
-  if(mode===4) gl.blendFunc(gl.SRC_ALPHA,gl.ONE);          // additive glow
-  else gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+  if(mode===4){
+    // X-ray composites with MAX rather than by summing. Summing made every
+    // place two pieces of geometry overlap — junction stubs, crossing vessels —
+    // blow out to white; taking the brightest keeps the angiographic glow but
+    // never saturates, so a bifurcation reads as a bifurcation.
+    gl.blendEquation(gl.MAX);
+    gl.blendFunc(gl.ONE,gl.ONE);
+  }else{
+    gl.blendEquation(gl.FUNC_ADD);
+    gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+  }
 
   // vessels
   if(GL.vessCount){
@@ -2642,18 +2737,36 @@ fn dilate(ty:f32,pulse:f32)->f32{ var k=0.018; if(ty<0.5){ k=0.085; } else if(ty
   if(dot(tA,dn)<0.0){ tA=-tA; }
   if(dot(tB,dn)<0.0){ tB=-tB; }
   tA=normalize(tA); tB=normalize(tB);
-  let ty=floor(in.par.w/4.0);          // 0 artery · 1 capillary · 2 vein
-  let cl=in.par.w-ty*4.0;
-  let clipA = (cl%2.0)>=1.0;
-  let clipB = cl>=2.0;
+  var fl=in.par.w;
+  let ty=floor(fl/16.0); fl=fl-ty*16.0;   // 0 artery · 1 capillary · 2 vein
+  let tipB=fl>=8.0;  if(tipB){ fl=fl-8.0; }
+  let tipA=fl>=4.0;  if(tipA){ fl=fl-4.0; }
+  let clipB=fl>=2.0; if(clipB){ fl=fl-2.0; }
+  let clipA=fl>=1.0;
   if(clipA && dot(in.world-A,tA)<0.0){ discard; }
   if(clipB && dot(in.world-B,tB)>0.0){ discard; }
   var tRaw=0.0; if(L2>1e-6){ tRaw=dot(in.world-A,ax)/L2; }
   let t=clamp(tRaw,0.0,1.0);
-  let mitred=(tRaw<0.0 && clipA)||(tRaw>1.0 && clipB);
-  var tUse=t; if(mitred){ tUse=tRaw; }
-  let rel=in.world-(A+ax*tUse); let dist=length(rel);
+  // no spherical caps — see the WebGL2 shader
+  // lateral offset in the smoothed frame — see the WebGL2 shader
+  let tg=normalize(mix(tA,tB,t));
+  let bn=vec2f(-tg.y,tg.x);
+  let lateral=dot(in.world-(A+ax*t),bn);
+  let dist=abs(lateral);
   let rr=mix(in.par.x,in.par.y,t)*u.rad*dilate(ty,u.p1);
+  let Ln=sqrt(max(L2,1e-6));
+  var endFade=1.0;
+  if(tRaw<0.0){
+    let over=-tRaw*Ln;
+    if(tipA || over>rr*0.6){ discard; }
+    endFade=endFade*(1.0-smoothstep(0.0,rr*0.6,over));
+  } else if(tRaw>1.0){
+    let over=(tRaw-1.0)*Ln;
+    if(tipB || over>rr*0.6){ discard; }
+    endFade=endFade*(1.0-smoothstep(0.0,rr*0.6,over));
+  }
+  if(tipA){ endFade=endFade*clamp(tRaw*Ln/max(rr*1.6,1e-3),0.0,1.0); }
+  if(tipB){ endFade=endFade*clamp((1.0-tRaw)*Ln/max(rr*1.6,1e-3),0.0,1.0); }
   let aa=1.0/u.scale; let sd=dist-rr;
   if(u.p2>0.5){                       // contact-shadow pass (anatomy mode)
     let g=rr*0.55+6.0;
@@ -2664,9 +2777,7 @@ fn dilate(ty:f32,pulse:f32)->f32{ var k=0.018; if(ty<0.5){ k=0.085; } else if(ty
   }
   if(sd>aa){ discard; }
   let cov=clamp(0.5-sd/(2.0*aa),0.0,1.0);
-  let tg=normalize(mix(tA,tB,t));
-  let bn=vec2f(-tg.y,tg.x);
-  let nperp=clamp(dot(rel,bn)/max(rr,1e-3),-1.0,1.0);
+  let nperp=clamp(lateral/max(rr,1e-3),-1.0,1.0);
   let hgt=sqrt(max(0.0,1.0-nperp*nperp));
   let N=normalize(vec3f(bn*nperp,hgt));
   let Ld=normalize(vec3f(-0.45,-0.55,0.72)); let V=vec3f(0.0,0.0,1.0);
@@ -2730,6 +2841,11 @@ fn dilate(ty:f32,pulse:f32)->f32{ var k=0.018; if(ty<0.5){ k=0.085; } else if(ty
       lumenCol=lumenCol+blood*0.22*haze*hazeW*ao;
     }
     lumenCol=mix(lumenCol, mix(blood,vec3f(1.0,0.82,0.80),0.42)*0.9, sleeve*0.45);
+    // bright motes riding the plasma
+    let sp=vec2f((sA-adv*1.15)/34.0, across/34.0);
+    let sf=fract(sp)-vec2f(0.5);
+    lumenCol=lumenCol+vec3f(1.0,0.86,0.78)*step(0.94,hash(floor(sp)+vec2f(31.0)))
+            *(1.0-smoothstep(0.0,0.14,length(sf)))*0.55;
     lumenCol=lumenCol+vec3f(1.0,0.9,0.9)*pow(max(0.0,1.0-la),6.0)*0.22*clamp(u.gloss,0.0,2.0);
     // endothelial mosaic on the far inner wall
     var ec=vec2f(sA/46.0, across/14.0);
@@ -2748,46 +2864,72 @@ fn dilate(ty:f32,pulse:f32)->f32{ var k=0.018; if(ty<0.5){ k=0.085; } else if(ty
     var muscle=0.15; if(ty<0.5){ muscle=0.30; } else if(ty<1.5){ muscle=0.05; }
     muscle=muscle*smoothstep(0.15,0.6,wa);
     wallCol=wallCol*(1.0-muscle+muscle*2.0*rings);
+    let fib=sin(wa*31.0+hash(vec2f(floor(sA*0.05),9.0))*6.0)*0.5+0.5;
+    wallCol=wallCol*(0.90+0.20*fib);
     col=mix(lumenCol, wallCol, step(lumen,a));
     col=mix(col, vec3f(0.16,0.03,0.06), (1.0-smoothstep(0.0,0.05,abs(a-lumen)))*0.6);
     col=col*(1.0-smoothstep(0.85,1.0,a)*0.7);
   }
   if(m!=5 && m!=6){ col=col*(1.0-smoothstep(0.45,1.0,1.0-hgt)*0.45*clamp(u.wall,0.0,2.5)); }
-  return vec4f(col*cov,cov);
+  let cv=cov*endFade;
+  return vec4f(col*cv,cv);
 }
 
 struct CIn { @location(0) corner:vec2f, @location(1) iPos:vec4f, @location(2) iMeta:vec4f };
-struct COut { @builtin(position) pos:vec4f, @location(0) uv:vec2f, @location(1) cmeta:vec3f };
+struct COut { @builtin(position) pos:vec4f, @location(0) uv:vec2f, @location(1) cmeta:vec4f };
+fn rbcHalfThickness(r2:f32)->f32{
+  return 0.5*pow(max(0.0,1.0-r2),0.35)*(0.32+1.70*r2-1.00*r2*r2);
+}
 @vertex fn vcell(in:CIn)->COut{
-  let s=in.iPos.w*(1.0+in.iMeta.z*0.13); let a=in.iPos.z; let ca=cos(a); let sa=sin(a);
+  let z=in.iMeta.z;
+  let near=smoothstep(0.62,1.0,z);
+  let s=in.iPos.w*(1.0+z*0.13+near*0.55); let a=in.iPos.z; let ca=cos(a); let sa=sin(a);
   let lc=in.corner*s*1.3;
   let world=in.iPos.xy+vec2f(lc.x*ca-lc.y*sa, lc.x*sa+lc.y*ca);
-  var o:COut; o.uv=in.corner*1.3; o.cmeta=in.iMeta.xyz;
+  var o:COut; o.uv=in.corner*1.3; o.cmeta=in.iMeta;
   let scr=(world-u.cam)*u.scale+u.res*0.5;
   o.pos=vec4f(scr.x/u.res.x*2.0-1.0, 1.0-scr.y/u.res.y*2.0, 0.0, 1.0);
   return o;
 }
 @fragment fn fcell(in:COut)->@location(0) vec4f{
-  let kind=in.cmeta.y; let oxy=in.cmeta.x; let z=in.cmeta.z; let m=i32(u.mode);
+  let kind=in.cmeta.y; let oxy=in.cmeta.x; let z=in.cmeta.z; let tilt=in.cmeta.w; let m=i32(u.mode);
   // taken up front: WGSL only allows fwidth() in uniform control flow, and
   // every shape below is a function of uv, so one derivative covers them all
   let dpx=max(length(fwidth(in.uv)),1e-5);
   // depth of field across the unseen thickness of the lumen — see CELL_FS
-  let blur=smoothstep(-1.0,0.25,z);
-  let bl=1.0-blur; let soft=bl*0.55; let fade=bl*0.62;
+  let blurFar=1.0-smoothstep(-1.0,0.05,z);
+  let blurNear=smoothstep(0.62,1.0,z);
+  let bl=max(blurFar,blurNear); let soft=bl*0.55; let fade=blurFar*0.62;
   let deep=mix(DEO,OXY,oxy)*0.42;
   var c=vec3f(0.0); var al=0.0;
   if(kind<0.5){
-    let p=vec2f(in.uv.x, in.uv.y/0.86); let r=length(p);
-    if(r>1.0+soft){ discard; }
-    let col=mix(DEO,OXY,oxy);
-    let ring=(1.0-smoothstep(0.55,0.95,r))*smoothstep(0.0,0.34,r);
-    c=mix(col*0.7,col,smoothstep(0.0,0.4,r));
-    c=mix(c,mix(col,vec3f(1.0,0.92,0.92),0.22),ring*(1.0-bl*0.8));
-    c=mix(c,col*0.6,smoothstep(0.85,1.0,r));
-    c=c+(1.0-smoothstep(0.0,0.5,length(p-vec2f(-0.3,-0.32))))*0.26*blur;
-    if(m==4){ c=mix(vec3f(0.1,0.0,0.03),col*1.6,ring+0.3); }
-    let aa=dpx*1.5+soft; al=1.0-smoothstep(1.0-aa,1.0,r);
+    // tumbling biconcave disc — see CELL_FS for the geometry
+    let ct=pow(abs(cos(tilt)),0.45); let st=sqrt(max(0.0,1.0-ct*ct));
+    let p=in.uv;
+    let ix=1.0-p.x*p.x;
+    if(ix<=0.0){ discard; }
+    let sq=sqrt(ix);
+    let y2=sqrt(max(0.0,0.64-p.x*p.x));
+    let thE=mix(rbcHalfThickness(p.x*p.x), rbcHalfThickness(max(0.64,p.x*p.x)), 0.45);
+    let hh=max(ct*sq, ct*y2+st*thE);
+    let d=max(abs(p.y)-hh, abs(p.x)-1.0);
+    let aa=dpx*1.6+soft;
+    if(d>aa){ discard; }
+    let uu=clamp(p.y/max(hh,1e-4),-1.0,1.0);
+    let rin=clamp(length(vec2f(p.x,uu*sq)),0.0,1.0);
+    let col=mix(vec3f(0.55,0.16,0.20),OXY,oxy);
+    let N=normalize(vec3f(p.x*0.9, uu*0.9, sqrt(max(0.06,1.0-0.78*(p.x*p.x+uu*uu)))));
+    let L=normalize(vec3f(-0.42,-0.52,0.74));
+    let dif=max(dot(N,L),0.0);
+    let spec=pow(max(dot(reflect(-L,N),vec3f(0.0,0.0,1.0)),0.0),20.0);
+    let torus=smoothstep(0.34,0.86,rin)*(1.0-smoothstep(0.86,1.0,rin));
+    c=col*(0.26+0.94*dif);
+    c=mix(c, col*0.52, (1.0-smoothstep(0.0,0.44,rin))*ct*(1.0-bl*0.7));
+    c=c+col*torus*0.30;
+    c=c+vec3f(1.0,0.88,0.86)*spec*0.55*(1.0-bl*0.8);
+    c=c*(1.0-smoothstep(0.84,1.0,rin)*0.35);
+    if(m==4){ c=mix(vec3f(0.1,0.0,0.03),col*1.6,torus+0.3); }
+    al=clamp(0.5-d/(2.0*aa),0.0,1.0);
   } else if(kind<1.5){
     let r=length(in.uv); if(r>1.0+soft){ discard; }
     c=mix(vec3f(0.95,0.89,0.93),vec3f(0.80,0.69,0.78),r);
@@ -2804,7 +2946,7 @@ struct COut { @builtin(position) pos:vec4f, @location(0) uv:vec2f, @location(1) 
     let d=length(vec2f(in.uv.x-bx,in.uv.y*1.35));
     if(d>0.5+soft*0.5){ discard; }
     c=mix(vec3f(0.52,0.80,0.60),vec3f(0.16,0.42,0.34),smoothstep(0.0,0.5,d));
-    c=c+(1.0-smoothstep(0.0,0.35,length(vec2f(in.uv.x*0.5+0.18,in.uv.y+0.14))))*0.25*blur;
+    c=c+(1.0-smoothstep(0.0,0.35,length(vec2f(in.uv.x*0.5+0.18,in.uv.y+0.14))))*0.25*(1.0-bl);
     al=1.0-smoothstep(0.5-dpx*1.5-soft*0.5,0.5,d);
   } else {
     // virus — spiky yellow capsid
@@ -2815,7 +2957,11 @@ struct COut { @builtin(position) pos:vec4f, @location(0) uv:vec2f, @location(1) 
     c=mix(c,vec3f(0.72,0.30,0.28),(1.0-smoothstep(0.0,0.30,r)));
     al=1.0-smoothstep(edge-dpx*1.5-soft*0.5,edge,r);
   }
-  if(m!=4){ c=mix(c,deep,fade); al=al*(1.0-bl*0.30); }
+  if(m!=4){
+    c=mix(c,deep,fade);
+    c=c+c*blurNear*0.25;
+    al=al*(1.0-blurFar*0.30-blurNear*0.55);
+  }
   return vec4f(c*al,al);
 }`;
 
@@ -2840,7 +2986,8 @@ async function initWebGPU(){
   const vInstL={arrayStride:64,stepMode:'instance',attributes:[{shaderLocation:1,offset:0,format:'float32x4'},{shaderLocation:2,offset:16,format:'float32x4'},{shaderLocation:3,offset:32,format:'float32x4'},{shaderLocation:4,offset:48,format:'float32x4'}]};
   const cInstL={arrayStride:32,stepMode:'instance',attributes:[{shaderLocation:1,offset:0,format:'float32x4'},{shaderLocation:2,offset:16,format:'float32x4'}]};
   const premult={color:{srcFactor:'one',dstFactor:'one-minus-src-alpha'},alpha:{srcFactor:'one',dstFactor:'one-minus-src-alpha'}};
-  const additive={color:{srcFactor:'one',dstFactor:'one'},alpha:{srcFactor:'one',dstFactor:'one'}};
+  // MAX rather than a sum — see the WebGL2 path
+  const additive={color:{srcFactor:'one',dstFactor:'one',operation:'max'},alpha:{srcFactor:'one',dstFactor:'one',operation:'max'}};
   const mk=(vs,fs,bufs,blend,topo)=>device.createRenderPipeline({layout:pl,
     vertex:{module:mod,entryPoint:vs,buffers:bufs},
     fragment:{module:mod,entryPoint:fs,targets:[blend?{format,blend}:{format}]},
@@ -2868,7 +3015,7 @@ async function initWebGPU(){
     for(let i=0;i<E.length;i++){ const e=E[i],o=i*16;
       arr[o]=e.a.x;arr[o+1]=e.a.y;arr[o+2]=e.b.x;arr[o+3]=e.b.y;
       arr[o+4]=e.a.radius;arr[o+5]=e.b.radius;
-      arr[o+6]=((e.oxyA||0)+(e.oxyB||0))*0.5;arr[o+7]=(e.clip||0)+4*(TYPE_ID[e.type]||0);
+      arr[o+6]=((e.oxyA||0)+(e.oxyB||0))*0.5;arr[o+7]=(e.clip||0)+16*(TYPE_ID[e.type]||0);
       arr[o+8]=e.a.tx;arr[o+9]=e.a.ty;arr[o+10]=e.b.tx;arr[o+11]=e.b.ty;
       arr[o+12]=e.a.arc;arr[o+13]=e.b.arc;arr[o+14]=e.flowBase;arr[o+15]=0; }
     if(obj.vbuf) obj.vbuf.destroy();
