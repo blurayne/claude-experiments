@@ -111,7 +111,19 @@ Blood cells are **particles** travelling the *directed* graph (arterial root →
 arterioles → capillary → venule → venous root, then recycled):
 
 - **Velocity ∝ calibre** — fast in big vessels, slow single-file in capillaries
-  (a stand-in for Poiseuille flow).
+  (a stand-in for Poiseuille flow), sub-linear in the radius (~r^0.6) so real
+  Murray trunks do not turn into a blur.
+- **Advanced in micrometres, not in edge fractions.** Carrying the raw curve
+  parameter across a boundary (`s -= 1`) silently rescales the leftover by the
+  ratio of the two edge lengths, so cells lurch wherever the segment length
+  changes — most visibly at the arteriole → capillary transition. The step is
+  taken in µm and converted per edge, and the loop keeps consuming edges if one
+  step spans several.
+- **Bifurcations split by volumetric flow** (Q = A·v ∝ r²·v), not by
+  cross-section alone: the wider branch is also the faster one, so it takes more
+  than its area share of the cells.
+- **Single file in a capillary** — the per-cell speed jitter is dropped there,
+  since a one-cell-wide lumen leaves no room to overtake.
 - **Pulsatile** — a synthetic heartbeat waveform (systolic spike + dicrotic
   notch) modulates arterial speed strongly and venous speed weakly; the heart
   rate is adjustable.
@@ -254,7 +266,34 @@ every joint. Three things fix it, all fed by per-instance data:
      cut-off rectangle;
    - an **open tip** gets nothing past the end and fades to transparent over
      the last ~1.6·r, so a terminal vessel dissolves into the tissue.
-4. **A frame-continuous silhouette.** The lateral offset is measured in the
+4. **A smooth-union fillet at the branches.** Where a hard V remains — the
+   crotch of a bifurcation — each segment smooth-unions its own field with one
+   neighbour's, using Iñigo Quilez's polynomial `smin`. Each edge records, per
+   end, the incident edge whose outward direction is closest to its own: the
+   pair that forms the sharpest corner, which is the one that needs filleting.
+   The blend weight falls off with distance from the shared node, so far down
+   the vessel the field is untouched and a segment never paints its neighbour's
+   body. The cross-section coordinate is then taken from the *blended* field
+   (`a = 1 + d/r`) rather than from the raw lateral offset, so the fillet shades
+   as a continuation of the lumen instead of as wall.
+
+   **Its limit is worth stating.** The influence radius is capped at the segment
+   length, because the next segment along the chain does not carry the partner
+   and would compute a different surface — which showed up as a hard step
+   across their shared boundary. For a thin vessel (radius ≲ segment length) the
+   fillet is therefore full-size; for a trunk, where many short segments tile a
+   very wide tube, it only rounds the tip of the crotch.
+
+   The principled fix is an **order-independent smooth union**: the exponential
+   smooth minimum, `smin(d₁…dₙ) = −log(Σ exp(−k·dᵢ))/k`, is associative, so
+   rendering `exp(−k·dᵢ)` into a float target with *additive* blending and
+   taking the log in a resolve pass blends any number of segments with no
+   neighbour data at all. Attributes come along for the ride as
+   `Σ wᵢ·attrᵢ / Σ wᵢ`. It needs an offscreen float MRT, a resolve pass, and
+   care with the exponential's range (normalising the field by the local radius
+   keeps it bounded), which is why the cheaper per-neighbour version ships here.
+
+5. **A frame-continuous silhouette.** The lateral offset is measured in the
    *smoothed* frame — the perpendicular of `mix(tA, tB, t)` — against the point
    `A + ax·t`. At a shared node both neighbours therefore measure from the same
    origin with the same frame, so the outline matches exactly across the joint.
@@ -263,6 +302,32 @@ every joint. Three things fix it, all fed by per-instance data:
 
 The flags are packed into the instance attribute's unused `type` slot
 (`clip + 4·tips + 16·type`), so the whole thing costs no extra bandwidth.
+
+### 3a-iii. Depth — which vessel is in front
+
+The bed is a flat projection of a network that is really three-dimensional, so
+every crossing used to be ambiguous — and worse, the blood cells were simply
+drawn last, which meant a cell in the vessel *behind* was painted over the
+vessel in front of it.
+
+Each node now carries a **pseudo-depth**, seeded at the root and drifting only
+at branch points, so a chain keeps its depth and just the junctions reshuffle
+the layering. On the GPU that depth goes into `gl_Position.z` and the depth
+buffer does the rest; cells write the depth of the vessel they are travelling
+in. Two details make it work with alpha blending:
+
+- **Two passes for the vessels.** The first writes depth but discards anything
+  below ~0.85 coverage; the second draws the soft fringe with depth writes off.
+  Without this, the antialiased rim, the faded junction stubs and the fading
+  vessel tips would occlude whatever passed behind them while showing almost
+  nothing themselves — which punched flat-edged holes in every crossing vessel.
+- **Cells are depth-*tested* but never depth-*writing*.** The out-of-focus ones
+  are deliberately translucent; letting them write depth would punch holes of
+  their own.
+
+Canvas 2D has no depth buffer, so it approximates with a painter's pass: the
+static layer is split into vessels behind the mid-plane and vessels in front,
+and the cells are drawn between the two halves.
 
 ### 3a-ii. A living lumen — what makes the inside look real
 

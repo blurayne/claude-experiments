@@ -761,6 +761,57 @@ function buildNetwork(seed, preset){
   for(const e of edges)
     e.clip=(e.a.mitre?1:0)+(e.b.mitre?2:0)+(e.a.tip?4:0)+(e.b.tip?8:0);
 
+  // ---- junction partners (for the smooth-union fillet) ---------------------
+  // At a branch point the segments meet in a hard V. To let them *warp* into
+  // each other the shader smooth-unions each segment with one neighbour near
+  // the shared node — so each edge records, per end, the incident edge whose
+  // outward direction is closest to its own, i.e. the one it forms the sharpest
+  // crotch with. That is the pair whose corner actually needs filleting.
+  for(const e of edges){ e.pA=null; e.pB=null; }
+  for(let i=0;i<nodes.length;i++){
+    const inc=incident[i];
+    if(inc.length<3) continue;
+    const node=nodes[i];
+    const dirs=inc.map(it=>{
+      const far=it.d>0?it.e.b:it.e.a;
+      const dx=far.x-node.x, dy=far.y-node.y, L=Math.hypot(dx,dy)||1;
+      return {it, ox:dx/L, oy:dy/L, far};
+    });
+    for(const a of dirs){
+      let best=null, bs=-2;
+      for(const b of dirs){
+        if(b===a) continue;
+        const sc=a.ox*b.ox+a.oy*b.oy;
+        if(sc>bs){ bs=sc; best=b; }
+      }
+      if(!best) continue;
+      const partner={x:best.far.x, y:best.far.y, r:best.far.radius||CAP_R};
+      if(a.it.d>0) a.it.e.pA=partner; else a.it.e.pB=partner;
+    }
+  }
+
+  // ---- pseudo-depth (z-order) ----------------------------------------------
+  // The bed is a flat projection of a network that is really three-dimensional.
+  // Without a depth every crossing is ambiguous — and worse, blood cells in the
+  // vessel *behind* were drawn over the one in front. Each root starts at
+  // mid-depth and every branch point drifts a little, so a chain keeps its
+  // depth and only junctions reshuffle the layering.
+  {
+    for(const n of nodes) n.zd=-1;
+    const q=[aRoot]; aRoot.zd=0.5;
+    for(let qi=0; qi<q.length; qi++){
+      const n=q[qi], inc=incident[n.id], branch=inc.length>2;
+      for(const it of inc){
+        const o=it.d>0?it.e.b:it.e.a;
+        if(o.zd>=0) continue;
+        o.zd=clamp(n.zd+(branch?(rng()-0.5)*0.34:(rng()-0.5)*0.015),0.06,0.94);
+        q.push(o);
+      }
+    }
+    for(const n of nodes) if(n.zd<0) n.zd=0.5;
+    for(const e of edges) e.zd=(e.a.zd+e.b.zd)*0.5;
+  }
+
   // ---- arc length along the network ----------------------------------------
   // A single continuous "distance from the root" coordinate, in µm, running
   // through every chain. The shaders draw the endothelial lining and the
@@ -787,7 +838,11 @@ function buildNetwork(seed, preset){
   // (~r^0.6): straight proportionality was fine when the widest vessel was a few
   // cells across, but with real Murray trunks it would make the arteries a blur.
   // This lands at ~35 µm/s in a capillary, ~90 in an arteriole, ~220 in a trunk.
-  for(const e of edges) e.flowBase = 15*Math.pow(Math.max(e.radius,0.5),0.6);
+  for(const e of edges){
+    e.flowBase = 15*Math.pow(Math.max(e.radius,0.5),0.6);
+    // volumetric flow Q = A·v ∝ r²·v — the weight a bifurcation splits by
+    e.qw = e.radius*e.radius*e.flowBase;
+  }
 
   // bounding boxes for culling
   for(const e of edges){
@@ -799,7 +854,9 @@ function buildNetwork(seed, preset){
   const rootEdges = outgoing[aRoot.id].slice();
 
   // edges sorted thick→thin so thin vessels paint on top
-  const drawEdges = edges.slice().sort((p,q)=>q.radius-p.radius);
+  // far → near, so the Canvas 2D painter's pass and the blended GPU fringe
+  // both composite in depth order
+  const drawEdges = edges.slice().sort((p,q)=>q.zd-p.zd);
 
   return { nodes, edges, drawEdges, outgoing, incident, rootEdges, aRoot, vRoot,
            artLeaves, venLeaves, capBeds,
@@ -948,12 +1005,13 @@ function packCell(data,n,c,limit){
   if(n>=(limit||MAX_CELLS) || (!c.foe && !c.e.vis)) return n;
   const px=sx(c.wx), py=sy(c.wy);
   if(px<-60||px>VW+60||py<-60||py>VH+60) return n;
-  const o=n*8;
+  const o=n*12;
   data[o]=c.wx; data[o+1]=c.wy; data[o+2]=c.ang;
   data[o+3]=c.size||KIND_SIZE[c.kind];
   data[o+4]=c.oxy; data[o+5]=KIND_ID[c.kind];
   data[o+6]=c.z||0;
   data[o+7]=c.tr!==undefined ? c.tp+simTime*c.tr : 0;
+  data[o+8]=c.e.zd; data[o+9]=0; data[o+10]=0; data[o+11]=0;
   return n+1;
 }
 function packGameCells(data,n){
@@ -987,6 +1045,7 @@ function makeCell(e,s){
   else if(r>0.977) kind='bac';
   else if(r>0.93)  kind='plt';
   return { e, s, kind,
+    wx:lerp(e.a.x,e.b.x,s), wy:lerp(e.a.y,e.b.y,s),   // a pose before the first update
     spin:(Math.random()-0.5)*0.6,
     ang:Math.random()*TAU,
     jit:0.8+Math.random()*0.5,
@@ -1002,9 +1061,12 @@ function pickNext(e){
     const r=NET.rootEdges; return r.length? r[(Math.random()*r.length)|0] : NET.edges[0];
   }
   if(outs.length===1) return outs[0];
-  let tot=0; for(const o of outs) tot+=o.radius*o.radius;
+  // Split by volumetric flow (Q = A·v ∝ r²·v), not by cross-section alone:
+  // the wider branch is also the faster one, so it takes more than its area
+  // share of the cells.
+  let tot=0; for(const o of outs) tot+=o.qw;
   let x=Math.random()*tot;
-  for(const o of outs){ x-=o.radius*o.radius; if(x<=0) return o; }
+  for(const o of outs){ x-=o.qw; if(x<=0) return o; }
   return outs[outs.length-1];
 }
 
@@ -1027,8 +1089,15 @@ const wY=(py)=> (py-VH/2)/cam.scale + cam.y;
 // ============================================================================
 //  STATIC LAYER  (tissue + vessels, re-rendered only when the view changes)
 // ============================================================================
+// Canvas 2D has no depth buffer, so the static layer is split in two: vessels
+// behind the mid-plane and vessels in front of it. Blood cells are drawn
+// between the halves (and after the front half for the near ones), which is a
+// two-bucket stand-in for the GPU depth test.
 let bg=document.createElement('canvas');
 let bgx=bg.getContext('2d');
+let bgF=document.createElement('canvas');
+let bgFx=bgF.getContext('2d');
+const Z_SPLIT=0.5;
 let staticDirty=true;
 const show={wall:true,tissue:true,cells:true,labels:false};
 
@@ -1049,8 +1118,11 @@ function drawStatic(){
   bgx.fillStyle=bgrad; bgx.fillRect(0,0,VW,VH);
 
   if(show.tissue && !anat) drawTissue();
-  drawVessels();
+  drawVessels(bgx, e=>e.zd>=Z_SPLIT);            // everything behind the mid-plane
   if(show.labels) drawLabels();
+  bgFx.setTransform(DPR,0,0,DPR,0,0);
+  bgFx.clearRect(0,0,VW,VH);
+  drawVessels(bgFx, e=>e.zd<Z_SPLIT);            // ...and everything in front
   staticDirty=false;
 }
 
@@ -1077,12 +1149,14 @@ function drawTissue(){
 
 function bloodColAt(oxy){ return mix(C_DEO,C_OXY,oxy); }
 
-function drawVessels(){
-  if(shadeMode==='cutaway'){ drawVesselsCutaway(); return; }
+function drawVessels(g,keep){
+  g=g||bgx; keep=keep||(()=>true);
+  if(shadeMode==='cutaway'){ drawVesselsCutaway(g,keep); return; }
   const E=NET.drawEdges, S=cam.scale;
   const vx0=-30,vy0=-30,vx1=VW+30,vy1=VH+30;
-  bgx.lineJoin='round'; bgx.lineCap='round';
+  g.lineJoin='round'; g.lineCap='round';
   for(const e of E){
+    if(!keep(e)) continue;
     // cull by transformed bbox
     const ax=sx(e.a.x),ay=sy(e.a.y),bx=sx(e.b.x),by=sy(e.b.y);
     const pad=e.radius*S*appear.calibre+6;
@@ -1094,19 +1168,19 @@ function drawVessels(){
     const wallC = e.type==='ven'?WALL_V:WALL_A;
     const wallW = Math.min(w*0.22, 4+w*0.06)*appear.wall;   // sub-linear in calibre
 
-    bgx.beginPath(); bgx.moveTo(ax,ay); bgx.lineTo(bx,by);
+    g.beginPath(); g.moveTo(ax,ay); g.lineTo(bx,by);
 
     // 1) soft shadow / ambient occlusion onto the tissue
-    if(w>2){ bgx.lineWidth=w+Math.max(2,w*0.5); bgx.strokeStyle='rgba(0,0,0,0.22)'; bgx.stroke(); }
+    if(w>2){ g.lineWidth=w+Math.max(2,w*0.5); g.strokeStyle='rgba(0,0,0,0.22)'; g.stroke(); }
     // 2) wall
-    if(show.wall && w>1.4 && appear.wall>0){ bgx.lineWidth=w+Math.max(1.4,wallW); bgx.strokeStyle=rgb(wallC); bgx.stroke(); }
+    if(show.wall && w>1.4 && appear.wall>0){ g.lineWidth=w+Math.max(1.4,wallW); g.strokeStyle=rgb(wallC); g.stroke(); }
     // 3) blood lumen
-    bgx.lineWidth=w; bgx.strokeStyle=rgb(mix(blood,[0,0,0],0.18)); bgx.stroke();
+    g.lineWidth=w; g.strokeStyle=rgb(mix(blood,[0,0,0],0.18)); g.stroke();
     // 4) bright core (cylindrical shading)
-    if(w>2.2){ bgx.lineWidth=w*0.62; bgx.strokeStyle=rgba(mix(blood,[255,235,235],0.20),0.9); bgx.stroke(); }
+    if(w>2.2){ g.lineWidth=w*0.62; g.strokeStyle=rgba(mix(blood,[255,235,235],0.20),0.9); g.stroke(); }
     // 5) glossy sheen
-    if(w>4 && appear.gloss>0){ bgx.lineWidth=Math.min(Math.max(1,w*0.20),9);
-      bgx.strokeStyle=rgba([255,225,225],Math.min(1,0.34*appear.gloss)); bgx.stroke(); }
+    if(w>4 && appear.gloss>0){ g.lineWidth=Math.min(Math.max(1,w*0.20),9);
+      g.strokeStyle=rgba([255,225,225],Math.min(1,0.34*appear.gloss)); g.stroke(); }
   }
 }
 
@@ -1114,13 +1188,15 @@ function drawVessels(){
 // the whole visible set (cut outline → endothelial wall → lumen → concave core
 // → sheen) rather than segment-by-segment, so overlapping round caps never carve
 // rings into their neighbours — the tubes read as clean continuous cross-sections.
-function drawVesselsCutaway(){
+function drawVesselsCutaway(g,keep){
+  g=g||bgx; keep=keep||(()=>true);
   const E=NET.drawEdges, S=cam.scale, cal=appear.calibre;
   const vx0=-30,vy0=-30,vx1=VW+30,vy1=VH+30;
-  bgx.lineJoin='round'; bgx.lineCap='round';
+  g.lineJoin='round'; g.lineCap='round';
   // gather visible segments once
   const segs=[];
   for(const e of E){
+    if(!keep(e)) continue;
     const ax=sx(e.a.x),ay=sy(e.a.y),bx=sx(e.b.x),by=sy(e.b.y);
     const w=Math.max(0.5, e.radius*2*S*cal), pad=w+6;
     if(Math.max(ax,bx)+pad<vx0||Math.min(ax,bx)-pad>vx1||
@@ -1131,20 +1207,20 @@ function drawVesselsCutaway(){
   // The wall and the highlights are sub-linear in calibre: a wide vessel should
   // read as a broad lumen with a thin lining, not as a scaled-up thin one.
   const wallW=(w)=>Math.min(w*0.32, 5+w*0.09)*Math.max(appear.wall,0.001);
-  const pass=(each)=>{ for(const s of segs){ bgx.beginPath(); bgx.moveTo(s.ax,s.ay); bgx.lineTo(s.bx,s.by); each(s); } };
+  const pass=(each)=>{ for(const s of segs){ g.beginPath(); g.moveTo(s.ax,s.ay); g.lineTo(s.bx,s.by); each(s); } };
   // 1) dark cut-edge outline (a continuous ink line around every vessel)
-  pass(s=>{ if(s.w<=1.6) return; bgx.lineWidth=s.w+Math.max(2,wallW(s.w))+2.2; bgx.strokeStyle='rgba(12,3,6,0.9)'; bgx.stroke(); });
+  pass(s=>{ if(s.w<=1.6) return; g.lineWidth=s.w+Math.max(2,wallW(s.w))+2.2; g.strokeStyle='rgba(12,3,6,0.9)'; g.stroke(); });
   // 2) endothelial wall — warm lining
   if(show.wall && appear.wall>0) pass(s=>{ if(s.w<=1.4) return;
-    bgx.lineWidth=s.w+Math.max(1.4,wallW(s.w)); bgx.strokeStyle=s.ven?'rgb(126,78,108)':'rgb(182,100,104)'; bgx.stroke(); });
+    g.lineWidth=s.w+Math.max(1.4,wallW(s.w)); g.strokeStyle=s.ven?'rgb(126,78,108)':'rgb(182,100,104)'; g.stroke(); });
   // 3) lumen floor — deep blood (walls read darker because the wall shows behind)
-  pass(s=>{ bgx.lineWidth=s.w; bgx.strokeStyle=rgb(mix(s.blood,[0,0,0],0.30)); bgx.stroke(); });
+  pass(s=>{ g.lineWidth=s.w; g.strokeStyle=rgb(mix(s.blood,[0,0,0],0.30)); g.stroke(); });
   // 4) concave core — bright down the middle, tapering (looking into the open tube)
-  pass(s=>{ if(s.w<=2.2) return; bgx.lineWidth=s.w*0.66; bgx.strokeStyle=rgb(mix(s.blood,[255,235,235],0.09)); bgx.stroke(); });
-  pass(s=>{ if(s.w<=3) return; bgx.lineWidth=s.w*0.30; bgx.strokeStyle=rgb(mix(s.blood,[255,238,238],0.20)); bgx.stroke(); });
+  pass(s=>{ if(s.w<=2.2) return; g.lineWidth=s.w*0.66; g.strokeStyle=rgb(mix(s.blood,[255,235,235],0.09)); g.stroke(); });
+  pass(s=>{ if(s.w<=3) return; g.lineWidth=s.w*0.30; g.strokeStyle=rgb(mix(s.blood,[255,238,238],0.20)); g.stroke(); });
   // 5) fluid sheen highlight
-  if(appear.gloss>0) pass(s=>{ if(s.w<=5) return; bgx.lineWidth=Math.min(Math.max(1,s.w*0.10),7);
-    bgx.strokeStyle=rgba([255,228,228],Math.min(1,0.22*appear.gloss)); bgx.stroke(); });
+  if(appear.gloss>0) pass(s=>{ if(s.w<=5) return; g.lineWidth=Math.min(Math.max(1,s.w*0.10),7);
+    g.strokeStyle=rgba([255,228,228],Math.min(1,0.22*appear.gloss)); g.stroke(); });
 }
 
 // ============================================================================
@@ -1320,7 +1396,15 @@ function frame(now){
       if(staticDirty) drawStatic();
       ctx.setTransform(DPR,0,0,DPR,0,0);
       ctx.drawImage(bg,0,0,VW,VH);
-      if(showTraffic||GAME.on){ if(shadeMode==='outline') drawCellsOutline(); else drawCellsCanvas(); }
+      if(shadeMode==='outline'){
+        if(showTraffic||GAME.on) drawCellsOutline();
+      }else{
+        // far vessels → their cells → near vessels → their cells, so a cell in
+        // a vessel that passes behind another one is covered by it
+        if(showTraffic||GAME.on) drawCellsCanvas(e=>e.zd>=Z_SPLIT);
+        ctx.drawImage(bgF,0,0,VW,VH);
+        if(showTraffic||GAME.on) drawCellsCanvas(e=>e.zd<Z_SPLIT);
+      }
       _canvasReady=true;
     }
   }else if(eff==='webgpu'){
@@ -1365,13 +1449,19 @@ function markVisibleEdges(){
 function updateCells(dt,pulse){
   const step = paused?0:dt;
   for(const c of CELLS){
-    const e=c.e;
-    if(!c.foe && (!cellsLOD || !e.vis)) continue;   // off-screen / too small to see
-    const v=flowV(e,pulse)*c.jit;
-    c.s += v*step/e.len;
+    if(!c.foe && (!cellsLOD || !c.e.vis)) continue;  // off-screen / too small to see
+    let e=c.e;
+    // Advance in micrometres and convert per edge. Carrying the raw parameter
+    // across a boundary (s -= 1) silently rescaled the leftover by the ratio of
+    // the two edge lengths, so cells lurched every time the segment length
+    // changed — most visibly at the arteriole → capillary transition.
+    // In a capillary the per-cell speed jitter is dropped as well: the lumen is
+    // one cell wide there, so they queue single file instead of passing through
+    // one another.
+    let pos=c.s*e.len + flowV(e,pulse)*(e.type==='cap'?1:c.jit)*step;
     let guard=0;
-    while(c.s>=1 && guard++<8){
-      c.s-=1;
+    while(pos>=e.len && guard++<8){
+      pos-=e.len;
       // a particle leaving the venous root drains back to the heart; in game
       // mode a pathogen doing that has spread through the circulation.
       const outs=NET.outgoing[e.b.id];
@@ -1380,13 +1470,15 @@ function updateCells(dt,pulse){
       if(ne.type==='cap'){ c.oxy = ne.oxyB!==undefined? lerp(c.oxy,ne.oxyB,0.5):c.oxy; }
       else if(ne.type==='art') c.oxy=1;
       else if(ne.type==='ven') c.oxy=Math.min(c.oxy,0.08);
-      c.e=ne; break;
+      e=ne;
     }
-    const ed=c.e, t=c.s;
+    c.e=e; c.s=clamp(pos/e.len,0,1);
+    const ed=e, t=c.s;
     // fill the whole lumen, not just the middle lane — a wide vessel should
-    // carry cells shoulder to shoulder right up to the endothelium
+    // carry cells shoulder to shoulder right up to the endothelium. A capillary
+    // needs no special case: its lumen simply leaves no room to be off-axis.
     const latMax=Math.max(0, ed.radius*0.88 - (KIND_SIZE[c.kind]||RBC_R)*0.8);
-    const lat=(ed.type==='cap'?0:c.off*latMax);
+    const lat=c.off*latMax;
     c.wx = ed.a.x+(ed.b.x-ed.a.x)*t + (-ed.uy)*lat;
     c.wy = ed.a.y+(ed.b.y-ed.a.y)*t + ( ed.ux)*lat;
     c.ang=Math.atan2(ed.uy,ed.ux)+(c.kind==='rbc'?c.spin*0.4:0);
@@ -1467,7 +1559,7 @@ function drawScaleBar(){
 function resize(){
   DPR=Math.min(window.devicePixelRatio||1,2);
   VW=window.innerWidth; VH=window.innerHeight;
-  for(const cnv of [cv,bg,glcv,gpucv,fxcv]){ cnv.width=VW*DPR; cnv.height=VH*DPR; cnv.style.width=VW+'px'; cnv.style.height=VH+'px'; }
+  for(const cnv of [cv,bg,bgF,glcv,gpucv,fxcv]){ cnv.width=VW*DPR; cnv.height=VH*DPR; cnv.style.width=VW+'px'; cnv.style.height=VH+'px'; }
   if(GPU&&GPU.ready&&GPU.configure) GPU.configure();
   staticDirty=true;
 }
@@ -2158,31 +2250,48 @@ layout(location=0) in vec2 corner;
 layout(location=1) in vec4 iAB;
 layout(location=2) in vec4 iPar;   // rA,rB,oxy,type
 layout(location=3) in vec4 iTan;   // smoothed tube tangent at A and at B
-layout(location=4) in vec4 iEx;    // arcA, arcB, flow speed (µm/s), spare
+layout(location=4) in vec4 iEx;    // arcA, arcB, flow speed (µm/s), z-order
+layout(location=5) in vec4 iPA;    // junction partner at A: far point + radius
+layout(location=6) in vec4 iPB;    // junction partner at B
 uniform vec2 uCam; uniform float uScale; uniform vec2 uRes; uniform float uRad;
 uniform float uPulse;
 out vec2 vP; out vec4 vAB; out vec4 vPar; out vec4 vTan; out vec4 vEx;
+out vec4 vPA; out vec4 vPB;
 // arteries visibly dilate on the pressure wave, veins hardly at all
 float dilate(float ty,float pulse){ return 1.0+pulse*(ty<0.5?0.085:(ty<1.5?0.030:0.018)); }
 void main(){
   vec2 A=iAB.xy,B=iAB.zw; vec2 ax=B-A; float L=length(ax);
   vec2 d=L>1e-4?ax/L:vec2(1.0,0.0); vec2 pp=vec2(-d.y,d.x);
-  float maxR=max(iPar.x,iPar.y)*uRad*dilate(floor(iPar.w/4.0),uPulse)+2.0/uScale;
+  // 1.35× so the smooth-union fillet at a junction stays inside the quad
+  float maxR=max(iPar.x,iPar.y)*uRad*dilate(floor(iPar.w/16.0),uPulse)*1.35+2.0/uScale;
   vec2 c=(A+B)*0.5;
   vec2 world=c+d*((L*0.5+maxR)*corner.x)+pp*(maxR*corner.y);
-  vP=world; vAB=iAB; vPar=iPar; vTan=iTan; vEx=iEx;
+  vP=world; vAB=iAB; vPar=iPar; vTan=iTan; vEx=iEx; vPA=iPA; vPB=iPB;
   vec2 scr=(world-uCam)*uScale+uRes*0.5;
-  gl_Position=vec4(scr.x/uRes.x*2.0-1.0, 1.0-scr.y/uRes.y*2.0, 0.0,1.0);
+  gl_Position=vec4(scr.x/uRes.x*2.0-1.0, 1.0-scr.y/uRes.y*2.0, iEx.w*2.0-1.0, 1.0);
 }`;
 
 const VESS_FS=FS_HEAD+`
-in vec2 vP; in vec4 vAB; in vec4 vPar; in vec4 vTan; in vec4 vEx;
+in vec2 vP; in vec4 vAB; in vec4 vPar; in vec4 vTan; in vec4 vEx; in vec4 vPA; in vec4 vPB;
 uniform float uScale; uniform int uMode; uniform float uRad; uniform float uWall; uniform float uGloss;
-uniform float uTime; uniform float uPulse; uniform int uPass;
+uniform float uTime; uniform float uPulse; uniform int uPass; uniform float uCut;
 out vec4 o;
 const vec3 OXY=vec3(0.91,0.275,0.31);
 const vec3 DEO=vec3(0.47,0.15,0.25);
 float vhash(vec2 p){ p=fract(p*vec2(123.34,345.45)); p+=dot(p,p+34.345); return fract(p.x*p.y); }
+// signed distance to a round cone (a capsule with different end radii)
+float capsDist(vec2 p, vec2 A, vec2 B, float ra, float rb){
+  vec2 ab=B-A, ap=p-A;
+  float h=clamp(dot(ap,ab)/max(dot(ab,ab),1e-6),0.0,1.0);
+  return length(ap-ab*h)-mix(ra,rb,h);
+}
+// Polynomial smooth minimum (Iñigo Quilez) — the smooth *union* of two fields.
+// Blending a branch's field with its neighbour's near the shared node is what
+// turns the hard V of a bifurcation into a fillet that warps them together.
+float smin(float a, float b, float k){
+  float h=clamp(0.5+0.5*(b-a)/k,0.0,1.0);
+  return mix(b,a,h)-k*h*(1.0-h);
+}
 float dilate(float ty,float pulse){ return 1.0+pulse*(ty<0.5?0.085:(ty<1.5?0.030:0.018)); }
 void main(){
   vec2 A=vAB.xy,B=vAB.zw; vec2 ax=B-A; float L2=dot(ax,ax);
@@ -2221,21 +2330,45 @@ void main(){
   vec2 tg=normalize(mix(tA,tB,t));
   vec2 bn=vec2(-tg.y,tg.x);
   float lateral=dot(vP-(A+ax*t),bn);
-  float dist=abs(lateral);
   float rr=mix(vPar.x,vPar.y,t)*uRad*dilate(ty,uPulse);
+  float dil=dilate(ty,uPulse);
+  // ---- SMOOTH-UNION FILLET AT THE JUNCTIONS ------------------------------
+  // Our own field, then blended with the neighbour that shares this node. The
+  // blend weight falls off with distance from the node, so far down the vessel
+  // the field is untouched (otherwise a segment would paint its neighbour's
+  // body as well) and only the crotch gets the fillet.
+  float d=abs(lateral)-rr;
+  {
+    float Lc=sqrt(max(L2,1e-6));
+    float rA=vPar.x*uRad*dil, rB=vPar.y*uRad*dil;
+    // The influence never reaches past this segment. Its neighbour along the
+    // chain does not carry the partner and would compute a different surface,
+    // which showed up as a hard step across the shared boundary.
+    if(vPA.z>0.0){
+      float R=min(rA*2.4,Lc*0.95);
+      float w=1.0-smoothstep(0.0,R,distance(vP,A));
+      if(w>0.002) d=mix(d, smin(d, capsDist(vP,A,vPA.xy,rA,vPA.z*uRad*dil), R*0.5), w);
+    }
+    if(vPB.z>0.0){
+      float R=min(rB*2.4,Lc*0.95);
+      float w=1.0-smoothstep(0.0,R,distance(vP,B));
+      if(w>0.002) d=mix(d, smin(d, capsDist(vP,B,vPB.xy,rB,vPB.z*uRad*dil), R*0.5), w);
+    }
+  }
+  float dist=d+rr;                       // keep the old "distance to axis" meaning
   float L=sqrt(max(L2,1e-6));
   float endFade=1.0;
   // The junction stub fades over its length instead of ending in a flat face:
   // where the neighbouring branches cover it the fade is invisible, and where
   // they don't it dissolves rather than showing a cut-off rectangle.
   if(tRaw<0.0){
-    float over=-tRaw*L;
-    if(tipA || over>rr*0.6) discard;
-    endFade*=1.0-smoothstep(0.0,rr*0.6,over);
+    float over=-tRaw*L, lim=rr*(vPA.z>0.0?1.35:0.6);
+    if(tipA || over>lim) discard;
+    endFade*=1.0-smoothstep(lim*0.45,lim,over);
   }else if(tRaw>1.0){
-    float over=(tRaw-1.0)*L;
-    if(tipB || over>rr*0.6) discard;
-    endFade*=1.0-smoothstep(0.0,rr*0.6,over);
+    float over=(tRaw-1.0)*L, lim=rr*(vPB.z>0.0?1.35:0.6);
+    if(tipB || over>lim) discard;
+    endFade*=1.0-smoothstep(lim*0.45,lim,over);
   }
   if(tipA) endFade*=clamp(tRaw*L/max(rr*1.6,1e-3),0.0,1.0);
   if(tipB) endFade*=clamp((1.0-tRaw)*L/max(rr*1.6,1e-3),0.0,1.0);
@@ -2251,7 +2384,9 @@ void main(){
   }
   if(sd>aa) discard;
   float cov=clamp(smoothstep(aa,-aa,sd),0.0,1.0);
-  float nperp=clamp(lateral/max(rr,1e-3),-1.0,1.0);
+  // cross-section coordinate taken from the *blended* field, so the fillet at
+  // a junction shades as a continuation of the lumen rather than as wall
+  float nperp=sign(lateral)*clamp(1.0+d/max(rr,1e-3),0.0,1.0);
   float hgt=sqrt(max(0.0,1.0-nperp*nperp));
   vec3 N=normalize(vec3(bn*nperp,hgt));
   vec3 Ld=normalize(vec3(-0.45,-0.55,0.72)); vec3 V=vec3(0.0,0.0,1.0);
@@ -2377,13 +2512,20 @@ void main(){
   float wallDark = (uMode==5||uMode==6)?0.0: smoothstep(0.45,1.0,1.0-hgt)*0.45*clamp(uWall,0.0,2.5);
   col *= 1.0 - wallDark;
   cov*=endFade;
+  // Vessels are drawn twice: an opaque pass that writes depth (uCut high, so
+  // only solid interior survives) and a blend pass that writes none (uCut low).
+  // Otherwise the antialiased rim, the faded junction stubs and the fading
+  // vessel tips would occlude whatever passed behind them while showing almost
+  // nothing themselves — which punched holes in every crossing vessel.
+  if(cov<max(uCut,0.15)) discard;
   o=vec4(col*cov,cov);
 }`;
 
 const CELL_VS=VS_HEAD+`
 layout(location=0) in vec2 corner;
 layout(location=1) in vec4 iPos;   // x,y,angle,size
-layout(location=2) in vec4 iMeta;  // oxy,kind,depth,tilt
+layout(location=2) in vec4 iMeta;  // oxy,kind,depth-in-lumen,tilt
+layout(location=3) in vec4 iZ;     // z-order of the vessel this cell is in
 uniform vec2 uCam; uniform float uScale; uniform vec2 uRes;
 out vec2 vUv; out vec4 vMeta;
 void main(){
@@ -2397,7 +2539,7 @@ void main(){
   vec2 world=iPos.xy+vec2(lc.x*ca-lc.y*sa, lc.x*sa+lc.y*ca);
   vUv=corner*1.3; vMeta=iMeta;
   vec2 scr=(world-uCam)*uScale+uRes*0.5;
-  gl_Position=vec4(scr.x/uRes.x*2.0-1.0, 1.0-scr.y/uRes.y*2.0, 0.0,1.0);
+  gl_Position=vec4(scr.x/uRes.x*2.0-1.0, 1.0-scr.y/uRes.y*2.0, iZ.x*2.0-1.0, 1.0);
 }`;
 
 const CELL_FS=FS_HEAD+`
@@ -2498,6 +2640,7 @@ void main(){
     c+=c*blurNear*0.25;                        // near ones catch the light
     alpha*=1.0-blurFar*0.30-blurNear*0.55;     // ...and stay translucent
   }
+  if(alpha<0.12) discard;                      // see the vessel shader
   o=vec4(c,alpha);
 }`;
 
@@ -2534,6 +2677,7 @@ function initGL(){
   vu.uRad=gl.getUniformLocation(vp,'uRad'); vu.uWall=gl.getUniformLocation(vp,'uWall'); vu.uGloss=gl.getUniformLocation(vp,'uGloss');
   vu.uTime=gl.getUniformLocation(vp,'uTime'); vu.uPulse=gl.getUniformLocation(vp,'uPulse');
   vu.uPass=gl.getUniformLocation(vp,'uPass');
+  vu.uCut=gl.getUniformLocation(vp,'uCut');
 
   // VAOs
   const vaoT=gl.createVertexArray(); gl.bindVertexArray(vaoT);
@@ -2543,33 +2687,37 @@ function initGL(){
   const vaoV=gl.createVertexArray(); gl.bindVertexArray(vaoV);
   gl.bindBuffer(gl.ARRAY_BUFFER,quad); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
   gl.bindBuffer(gl.ARRAY_BUFFER,vessInst);
-  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,4,gl.FLOAT,false,64,0);  gl.vertexAttribDivisor(1,1);
-  gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2,4,gl.FLOAT,false,64,16); gl.vertexAttribDivisor(2,1);
-  gl.enableVertexAttribArray(3); gl.vertexAttribPointer(3,4,gl.FLOAT,false,64,32); gl.vertexAttribDivisor(3,1);
-  gl.enableVertexAttribArray(4); gl.vertexAttribPointer(4,4,gl.FLOAT,false,64,48); gl.vertexAttribDivisor(4,1);
+  for(let i=1;i<=6;i++){
+    gl.enableVertexAttribArray(i);
+    gl.vertexAttribPointer(i,4,gl.FLOAT,false,96,(i-1)*16);
+    gl.vertexAttribDivisor(i,1);
+  }
 
   const cellInst=gl.createBuffer();
   const vaoC=gl.createVertexArray(); gl.bindVertexArray(vaoC);
   gl.bindBuffer(gl.ARRAY_BUFFER,quad); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
   gl.bindBuffer(gl.ARRAY_BUFFER,cellInst);
-  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,4,gl.FLOAT,false,32,0);  gl.vertexAttribDivisor(1,1);
-  gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2,4,gl.FLOAT,false,32,16); gl.vertexAttribDivisor(2,1);
+  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,4,gl.FLOAT,false,48,0);  gl.vertexAttribDivisor(1,1);
+  gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2,4,gl.FLOAT,false,48,16); gl.vertexAttribDivisor(2,1);
+  gl.enableVertexAttribArray(3); gl.vertexAttribPointer(3,4,gl.FLOAT,false,48,32); gl.vertexAttribDivisor(3,1);
   gl.bindVertexArray(null);
 
   return { gl,P,vaoT,vaoV,vaoC,vessInst,cellInst,
-           vessCount:0, cellData:new Float32Array(MAX_CELLS*8) };
+           vessCount:0, cellData:new Float32Array(MAX_CELLS*12) };
 }
 
 function uploadVessels(){
   if(!GL||!NET) return;
   const gl=GL.gl, E=NET.drawEdges;
-  const arr=new Float32Array(E.length*16);
-  for(let i=0;i<E.length;i++){ const e=E[i], o=i*16;
+  const arr=new Float32Array(E.length*24);
+  for(let i=0;i<E.length;i++){ const e=E[i], o=i*24;
     arr[o]=e.a.x; arr[o+1]=e.a.y; arr[o+2]=e.b.x; arr[o+3]=e.b.y;
     arr[o+4]=e.a.radius; arr[o+5]=e.b.radius;
     arr[o+6]=((e.oxyA||0)+(e.oxyB||0))*0.5; arr[o+7]=(e.clip||0)+16*(TYPE_ID[e.type]||0);
     arr[o+8]=e.a.tx; arr[o+9]=e.a.ty; arr[o+10]=e.b.tx; arr[o+11]=e.b.ty;
-    arr[o+12]=e.a.arc; arr[o+13]=e.b.arc; arr[o+14]=e.flowBase; arr[o+15]=0; }
+    arr[o+12]=e.a.arc; arr[o+13]=e.b.arc; arr[o+14]=e.flowBase; arr[o+15]=e.zd;
+    if(e.pA){ arr[o+16]=e.pA.x; arr[o+17]=e.pA.y; arr[o+18]=e.pA.r; }
+    if(e.pB){ arr[o+20]=e.pB.x; arr[o+21]=e.pB.y; arr[o+22]=e.pB.r; } }
   gl.bindBuffer(gl.ARRAY_BUFFER,GL.vessInst);
   gl.bufferData(gl.ARRAY_BUFFER,arr,gl.STATIC_DRAW);
   GL.vessCount=E.length;
@@ -2579,19 +2727,29 @@ function glRender(pulse, restream){
   const gl=GL.gl, mode=MODE_UNIFORM[shadeMode]||1;
   if(restream===undefined) restream=true;
   gl.viewport(0,0,glcv.width,glcv.height);
-  gl.disable(gl.DEPTH_TEST);
+  // Depth sorting. Every vessel carries a z-order and writes it; blood cells
+  // write the z-order of the vessel they are in. A cell in a vessel that passes
+  // *behind* another one is therefore rejected by the depth test instead of
+  // being painted over the vessel in front — which is what used to happen,
+  // since the cells were simply drawn last.
+  gl.enable(gl.DEPTH_TEST);
+  gl.depthFunc(gl.LEQUAL);
+  gl.depthMask(true);
   if(mode===4){ gl.clearColor(0.01,0.0,0.02,1); }
   else if(mode===6){ gl.clearColor(0.55,0.28,0.29,1); }
   else { gl.clearColor(0.07,0.02,0.03,1); }
-  gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.clearDepth(1.0);
+  gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
 
   const setU=(u)=>{ gl.uniform2f(u.uCam,cam.x,cam.y); gl.uniform1f(u.uScale,cam.scale*DPR);
     gl.uniform2f(u.uRes,glcv.width,glcv.height); gl.uniform1i(u.uMode,mode); };
 
   // tissue (skip heavy field for x-ray which wants a near-black background but still cheap)
   if(show.tissue || mode===4){
+    gl.depthMask(false);                 // backdrop: never occludes anything
     gl.useProgram(GL.P.tissue.p); setU(GL.P.tissue.u);
     gl.bindVertexArray(GL.vaoT); gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+    gl.depthMask(true);
   }
 
   gl.enable(gl.BLEND);
@@ -2618,10 +2776,18 @@ function glRender(pulse, restream){
     gl.bindVertexArray(GL.vaoV);
     if(mode===6){                       // contact shadows under the vessels
       gl.uniform1i(GL.P.vess.u.uPass,1);
+      gl.depthMask(false);
       gl.drawArraysInstanced(gl.TRIANGLE_STRIP,0,4,GL.vessCount);
+      gl.depthMask(true);
     }
     gl.uniform1i(GL.P.vess.u.uPass,0);
+    gl.uniform1f(GL.P.vess.u.uCut,0.85);        // solid core — writes depth
+    gl.depthMask(true);
     gl.drawArraysInstanced(gl.TRIANGLE_STRIP,0,4,GL.vessCount);
+    gl.uniform1f(GL.P.vess.u.uCut,0.0);         // soft fringe — depth-tested only
+    gl.depthMask(false);
+    gl.drawArraysInstanced(gl.TRIANGLE_STRIP,0,4,GL.vessCount);
+    gl.depthMask(true);
   }
 
   // cells — only re-pack + re-upload the visible set when it actually changed
@@ -2639,12 +2805,16 @@ function glRender(pulse, restream){
       n=packGameCells(data,n);
       GL._cellN=n;
       if(n){ gl.bindBuffer(gl.ARRAY_BUFFER,GL.cellInst);
-        gl.bufferData(gl.ARRAY_BUFFER,data.subarray(0,n*8),gl.DYNAMIC_DRAW); }
+        gl.bufferData(gl.ARRAY_BUFFER,data.subarray(0,n*12),gl.DYNAMIC_DRAW); }
     }
     if(n){
+      // cells are depth-*tested* but never depth-*writing*: the out-of-focus
+      // ones are deliberately translucent and must not punch holes
+      gl.depthMask(false);
       gl.useProgram(GL.P.cell.p); setU(GL.P.cell.u);
       gl.bindVertexArray(GL.vaoC);
       gl.drawArraysInstanced(gl.TRIANGLE_STRIP,0,4,n);
+      gl.depthMask(true);
     }
   }
   gl.bindVertexArray(null);
@@ -2674,7 +2844,7 @@ function applyBackend(){
 // ============================================================================
 let GPU=null;
 const WGSL=`
-struct U { cam:vec2f, scale:f32, rad:f32, res:vec2f, wall:f32, gloss:f32, mode:f32, p0:f32, p1:f32, p2:f32 };
+struct U { cam:vec2f, scale:f32, rad:f32, res:vec2f, wall:f32, gloss:f32, mode:f32, p0:f32, p1:f32, p2:f32, cut:f32, q0:f32, q1:f32, q2:f32 };
 @group(0) @binding(0) var<uniform> u: U;
 const OXY=vec3f(0.91,0.275,0.31);
 const DEO=vec3f(0.47,0.15,0.25);
@@ -2712,19 +2882,28 @@ fn fbm(p0:vec2f)->f32{ var s=0.0; var a=0.5; var p=p0; for(var i=0;i<5;i=i+1){ s
   return vec4f(max(base,vec3f(0.0)),1.0);
 }
 
-struct VIn { @location(0) corner:vec2f, @location(1) iAB:vec4f, @location(2) iPar:vec4f, @location(3) iTan:vec4f, @location(4) iEx:vec4f };
-struct VOut { @builtin(position) pos:vec4f, @location(0) world:vec2f, @location(1) AB:vec4f, @location(2) par:vec4f, @location(3) tng:vec4f, @location(4) ex:vec4f };
+struct VIn { @location(0) corner:vec2f, @location(1) iAB:vec4f, @location(2) iPar:vec4f, @location(3) iTan:vec4f, @location(4) iEx:vec4f, @location(5) iPA:vec4f, @location(6) iPB:vec4f };
+struct VOut { @builtin(position) pos:vec4f, @location(0) world:vec2f, @location(1) AB:vec4f, @location(2) par:vec4f, @location(3) tng:vec4f, @location(4) ex:vec4f, @location(5) pA:vec4f, @location(6) pB:vec4f };
 fn dilate(ty:f32,pulse:f32)->f32{ var k=0.018; if(ty<0.5){ k=0.085; } else if(ty<1.5){ k=0.030; } return 1.0+pulse*k; }
+fn capsDist(p:vec2f, A:vec2f, B:vec2f, ra:f32, rb:f32)->f32{
+  let ab=B-A; let ap=p-A;
+  let h=clamp(dot(ap,ab)/max(dot(ab,ab),1e-6),0.0,1.0);
+  return length(ap-ab*h)-mix(ra,rb,h);
+}
+fn smin(a:f32,b:f32,k:f32)->f32{
+  let h=clamp(0.5+0.5*(b-a)/k,0.0,1.0);
+  return mix(b,a,h)-k*h*(1.0-h);
+}
 @vertex fn vvess(in:VIn)->VOut{
   let A=in.iAB.xy; let B=in.iAB.zw; let ax=B-A; let L=length(ax);
   var d=vec2f(1.0,0.0); if(L>1e-4){ d=ax/L; }
   let pp=vec2f(-d.y,d.x);
-  let maxR=max(in.iPar.x,in.iPar.y)*u.rad*dilate(floor(in.iPar.w/4.0),u.p1)+2.0/u.scale;
+  let maxR=max(in.iPar.x,in.iPar.y)*u.rad*dilate(floor(in.iPar.w/16.0),u.p1)*1.35+2.0/u.scale;
   let c=(A+B)*0.5;
   let world=c+d*((L*0.5+maxR)*in.corner.x)+pp*(maxR*in.corner.y);
-  var o:VOut; o.world=world; o.AB=in.iAB; o.par=in.iPar; o.tng=in.iTan; o.ex=in.iEx;
+  var o:VOut; o.world=world; o.AB=in.iAB; o.par=in.iPar; o.tng=in.iTan; o.ex=in.iEx; o.pA=in.iPA; o.pB=in.iPB;
   let scr=(world-u.cam)*u.scale+u.res*0.5;
-  o.pos=vec4f(scr.x/u.res.x*2.0-1.0, 1.0-scr.y/u.res.y*2.0, 0.0, 1.0);
+  o.pos=vec4f(scr.x/u.res.x*2.0-1.0, 1.0-scr.y/u.res.y*2.0, in.iEx.w, 1.0);
   return o;
 }
 @fragment fn fvess(in:VOut)->@location(0) vec4f{
@@ -2752,18 +2931,35 @@ fn dilate(ty:f32,pulse:f32)->f32{ var k=0.018; if(ty<0.5){ k=0.085; } else if(ty
   let tg=normalize(mix(tA,tB,t));
   let bn=vec2f(-tg.y,tg.x);
   let lateral=dot(in.world-(A+ax*t),bn);
-  let dist=abs(lateral);
   let rr=mix(in.par.x,in.par.y,t)*u.rad*dilate(ty,u.p1);
+  let dil=dilate(ty,u.p1);
+  // smooth-union fillet at the junctions — see the WebGL2 shader
+  var d=abs(lateral)-rr;
+  {
+    let Lc=sqrt(max(L2,1e-6));
+    let rA=in.par.x*u.rad*dil; let rB=in.par.y*u.rad*dil;
+    if(in.pA.z>0.0){
+      let R=min(rA*2.4,Lc*0.95);
+      let wgt=1.0-smoothstep(0.0,R,distance(in.world,A));
+      if(wgt>0.002){ d=mix(d, smin(d, capsDist(in.world,A,in.pA.xy,rA,in.pA.z*u.rad*dil), R*0.5), wgt); }
+    }
+    if(in.pB.z>0.0){
+      let R=min(rB*2.4,Lc*0.95);
+      let wgt=1.0-smoothstep(0.0,R,distance(in.world,B));
+      if(wgt>0.002){ d=mix(d, smin(d, capsDist(in.world,B,in.pB.xy,rB,in.pB.z*u.rad*dil), R*0.5), wgt); }
+    }
+  }
+  let dist=d+rr;
   let Ln=sqrt(max(L2,1e-6));
   var endFade=1.0;
   if(tRaw<0.0){
-    let over=-tRaw*Ln;
-    if(tipA || over>rr*0.6){ discard; }
-    endFade=endFade*(1.0-smoothstep(0.0,rr*0.6,over));
+    let over=-tRaw*Ln; var lim=rr*0.6; if(in.pA.z>0.0){ lim=rr*1.35; }
+    if(tipA || over>lim){ discard; }
+    endFade=endFade*(1.0-smoothstep(lim*0.45,lim,over));
   } else if(tRaw>1.0){
-    let over=(tRaw-1.0)*Ln;
-    if(tipB || over>rr*0.6){ discard; }
-    endFade=endFade*(1.0-smoothstep(0.0,rr*0.6,over));
+    let over=(tRaw-1.0)*Ln; var lim=rr*0.6; if(in.pB.z>0.0){ lim=rr*1.35; }
+    if(tipB || over>lim){ discard; }
+    endFade=endFade*(1.0-smoothstep(lim*0.45,lim,over));
   }
   if(tipA){ endFade=endFade*clamp(tRaw*Ln/max(rr*1.6,1e-3),0.0,1.0); }
   if(tipB){ endFade=endFade*clamp((1.0-tRaw)*Ln/max(rr*1.6,1e-3),0.0,1.0); }
@@ -2777,7 +2973,7 @@ fn dilate(ty:f32,pulse:f32)->f32{ var k=0.018; if(ty<0.5){ k=0.085; } else if(ty
   }
   if(sd>aa){ discard; }
   let cov=clamp(0.5-sd/(2.0*aa),0.0,1.0);
-  let nperp=clamp(lateral/max(rr,1e-3),-1.0,1.0);
+  let nperp=sign(lateral)*clamp(1.0+d/max(rr,1e-3),0.0,1.0);
   let hgt=sqrt(max(0.0,1.0-nperp*nperp));
   let N=normalize(vec3f(bn*nperp,hgt));
   let Ld=normalize(vec3f(-0.45,-0.55,0.72)); let V=vec3f(0.0,0.0,1.0);
@@ -2872,10 +3068,11 @@ fn dilate(ty:f32,pulse:f32)->f32{ var k=0.018; if(ty<0.5){ k=0.085; } else if(ty
   }
   if(m!=5 && m!=6){ col=col*(1.0-smoothstep(0.45,1.0,1.0-hgt)*0.45*clamp(u.wall,0.0,2.5)); }
   let cv=cov*endFade;
+  if(cv<max(u.cut,0.15)){ discard; }
   return vec4f(col*cv,cv);
 }
 
-struct CIn { @location(0) corner:vec2f, @location(1) iPos:vec4f, @location(2) iMeta:vec4f };
+struct CIn { @location(0) corner:vec2f, @location(1) iPos:vec4f, @location(2) iMeta:vec4f, @location(3) iZ:vec4f };
 struct COut { @builtin(position) pos:vec4f, @location(0) uv:vec2f, @location(1) cmeta:vec4f };
 fn rbcHalfThickness(r2:f32)->f32{
   return 0.5*pow(max(0.0,1.0-r2),0.35)*(0.32+1.70*r2-1.00*r2*r2);
@@ -2888,7 +3085,7 @@ fn rbcHalfThickness(r2:f32)->f32{
   let world=in.iPos.xy+vec2f(lc.x*ca-lc.y*sa, lc.x*sa+lc.y*ca);
   var o:COut; o.uv=in.corner*1.3; o.cmeta=in.iMeta;
   let scr=(world-u.cam)*u.scale+u.res*0.5;
-  o.pos=vec4f(scr.x/u.res.x*2.0-1.0, 1.0-scr.y/u.res.y*2.0, 0.0, 1.0);
+  o.pos=vec4f(scr.x/u.res.x*2.0-1.0, 1.0-scr.y/u.res.y*2.0, in.iZ.x, 1.0);
   return o;
 }
 @fragment fn fcell(in:COut)->@location(0) vec4f{
@@ -2962,6 +3159,7 @@ fn rbcHalfThickness(r2:f32)->f32{
     c=c+c*blurNear*0.25;
     al=al*(1.0-blurFar*0.30-blurNear*0.55);
   }
+  if(al<0.12){ discard; }
   return vec4f(c*al,al);
 }`;
 
@@ -2973,7 +3171,7 @@ async function initWebGPU(){
   const ctx=gpucv.getContext('webgpu');
   if(!ctx) return {ready:false};
   const format=navigator.gpu.getPreferredCanvasFormat();
-  const obj={ready:false,device,ctx,format,vessCount:0,cellData:new Float32Array(MAX_CELLS*8),uni:new Float32Array(12)};
+  const obj={ready:false,device,ctx,format,vessCount:0,cellData:new Float32Array(MAX_CELLS*12),uni:new Float32Array(16)};
   obj.configure=()=>ctx.configure({device,format,alphaMode:'opaque'});
   obj.configure();
 
@@ -2983,41 +3181,59 @@ async function initWebGPU(){
     visibility:GPUShaderStage.VERTEX|GPUShaderStage.FRAGMENT,buffer:{type:'uniform'}}]});
   const pl=device.createPipelineLayout({bindGroupLayouts:[bgl]});
   const cornerL={arrayStride:8,stepMode:'vertex',attributes:[{shaderLocation:0,offset:0,format:'float32x2'}]};
-  const vInstL={arrayStride:64,stepMode:'instance',attributes:[{shaderLocation:1,offset:0,format:'float32x4'},{shaderLocation:2,offset:16,format:'float32x4'},{shaderLocation:3,offset:32,format:'float32x4'},{shaderLocation:4,offset:48,format:'float32x4'}]};
-  const cInstL={arrayStride:32,stepMode:'instance',attributes:[{shaderLocation:1,offset:0,format:'float32x4'},{shaderLocation:2,offset:16,format:'float32x4'}]};
+  const vInstL={arrayStride:96,stepMode:'instance',attributes:[0,1,2,3,4,5].map(i=>({shaderLocation:i+1,offset:i*16,format:'float32x4'}))};
+  const cInstL={arrayStride:48,stepMode:'instance',attributes:[{shaderLocation:1,offset:0,format:'float32x4'},{shaderLocation:2,offset:16,format:'float32x4'},{shaderLocation:3,offset:32,format:'float32x4'}]};
   const premult={color:{srcFactor:'one',dstFactor:'one-minus-src-alpha'},alpha:{srcFactor:'one',dstFactor:'one-minus-src-alpha'}};
   // MAX rather than a sum — see the WebGL2 path
   const additive={color:{srcFactor:'one',dstFactor:'one',operation:'max'},alpha:{srcFactor:'one',dstFactor:'one',operation:'max'}};
-  const mk=(vs,fs,bufs,blend,topo)=>device.createRenderPipeline({layout:pl,
+  const DEPTH='depth24plus';
+  const mk=(vs,fs,bufs,blend,topo,dw)=>device.createRenderPipeline({layout:pl,
     vertex:{module:mod,entryPoint:vs,buffers:bufs},
     fragment:{module:mod,entryPoint:fs,targets:[blend?{format,blend}:{format}]},
+    depthStencil:{format:DEPTH,depthWriteEnabled:!!dw,depthCompare:dw?'less-equal':(dw===false?'less-equal':'always')},
     primitive:{topology:topo}});
-  obj.pTissue=mk('vtri','ftissue',[],null,'triangle-list');
-  obj.pVess  =mk('vvess','fvess',[cornerL,vInstL],premult,'triangle-strip');
-  obj.pVessA =mk('vvess','fvess',[cornerL,vInstL],additive,'triangle-strip');
-  obj.pCell  =mk('vcell','fcell',[cornerL,cInstL],premult,'triangle-strip');
-  obj.pCellA =mk('vcell','fcell',[cornerL,cInstL],additive,'triangle-strip');
+  obj.pTissue=mk('vtri','ftissue',[],null,'triangle-list',null);   // backdrop
+  obj.pVess  =mk('vvess','fvess',[cornerL,vInstL],premult,'triangle-strip',true);
+  obj.pVessB =mk('vvess','fvess',[cornerL,vInstL],premult,'triangle-strip',false);
+  obj.pVessA =mk('vvess','fvess',[cornerL,vInstL],additive,'triangle-strip',true);
+  obj.pVessAB=mk('vvess','fvess',[cornerL,vInstL],additive,'triangle-strip',false);
+  obj.pCell  =mk('vcell','fcell',[cornerL,cInstL],premult,'triangle-strip',false);
+  obj.pCellA =mk('vcell','fcell',[cornerL,cInstL],additive,'triangle-strip',false);
   const err=await device.popErrorScope();
   if(err){ console.error('WebGPU pipeline error:',err.message); return {ready:false}; }
 
-  obj.ubuf=device.createBuffer({size:48,usage:GPUBufferUsage.UNIFORM|GPUBufferUsage.COPY_DST});
-  obj.bind=device.createBindGroup({layout:bgl,entries:[{binding:0,resource:{buffer:obj.ubuf}}]});
-  // a second set carrying the same uniforms with the shadow-pass flag on, so
-  // both passes can be recorded into one render pass
-  obj.ubufS=device.createBuffer({size:48,usage:GPUBufferUsage.UNIFORM|GPUBufferUsage.COPY_DST});
-  obj.bindS=device.createBindGroup({layout:bgl,entries:[{binding:0,resource:{buffer:obj.ubufS}}]});
+  // Three uniform sets, because a uniform buffer cannot be rewritten inside a
+  // render pass: the solid depth-writing pass, the soft fringe pass, and the
+  // anatomy contact shadow.
+  const mkU=()=>{
+    const b=device.createBuffer({size:64,usage:GPUBufferUsage.UNIFORM|GPUBufferUsage.COPY_DST});
+    return {buf:b, grp:device.createBindGroup({layout:bgl,entries:[{binding:0,resource:{buffer:b}}]})};
+  };
+  const U0=mkU(), U1=mkU(), U2=mkU();
+  obj.ubuf=U0.buf;  obj.bind=U0.grp;
+  obj.ubufB=U1.buf; obj.bindB=U1.grp;
+  obj.ubufS=U2.buf; obj.bindS=U2.grp;
+  obj.depthFor=(w,h)=>{
+    if(obj.depthTex && obj.depthW===w && obj.depthH===h) return obj.depthTex;
+    if(obj.depthTex) obj.depthTex.destroy();
+    obj.depthW=w; obj.depthH=h;
+    obj.depthTex=device.createTexture({size:[w,h],format:DEPTH,usage:GPUTextureUsage.RENDER_ATTACHMENT});
+    return obj.depthTex;
+  };
   obj.corner=device.createBuffer({size:32,usage:GPUBufferUsage.VERTEX|GPUBufferUsage.COPY_DST});
   device.queue.writeBuffer(obj.corner,0,new Float32Array([-1,-1, 1,-1, -1,1, 1,1]));
-  obj.cbuf=device.createBuffer({size:MAX_CELLS*8*4,usage:GPUBufferUsage.VERTEX|GPUBufferUsage.COPY_DST});
+  obj.cbuf=device.createBuffer({size:MAX_CELLS*12*4,usage:GPUBufferUsage.VERTEX|GPUBufferUsage.COPY_DST});
   obj.uploadVessels=()=>{
     if(!NET) return;
-    const E=NET.drawEdges, arr=new Float32Array(E.length*16);
-    for(let i=0;i<E.length;i++){ const e=E[i],o=i*16;
+    const E=NET.drawEdges, arr=new Float32Array(E.length*24);
+    for(let i=0;i<E.length;i++){ const e=E[i],o=i*24;
       arr[o]=e.a.x;arr[o+1]=e.a.y;arr[o+2]=e.b.x;arr[o+3]=e.b.y;
       arr[o+4]=e.a.radius;arr[o+5]=e.b.radius;
       arr[o+6]=((e.oxyA||0)+(e.oxyB||0))*0.5;arr[o+7]=(e.clip||0)+16*(TYPE_ID[e.type]||0);
       arr[o+8]=e.a.tx;arr[o+9]=e.a.ty;arr[o+10]=e.b.tx;arr[o+11]=e.b.ty;
-      arr[o+12]=e.a.arc;arr[o+13]=e.b.arc;arr[o+14]=e.flowBase;arr[o+15]=0; }
+      arr[o+12]=e.a.arc;arr[o+13]=e.b.arc;arr[o+14]=e.flowBase;arr[o+15]=e.zd;
+      if(e.pA){ arr[o+16]=e.pA.x;arr[o+17]=e.pA.y;arr[o+18]=e.pA.r; }
+      if(e.pB){ arr[o+20]=e.pB.x;arr[o+21]=e.pB.y;arr[o+22]=e.pB.r; } }
     if(obj.vbuf) obj.vbuf.destroy();
     obj.vbuf=device.createBuffer({size:arr.byteLength,usage:GPUBufferUsage.VERTEX|GPUBufferUsage.COPY_DST});
     device.queue.writeBuffer(obj.vbuf,0,arr); obj.vessCount=E.length;
@@ -3030,8 +3246,9 @@ async function initWebGPU(){
 function gpuRender(mode, restream, pulse){
   if(restream===undefined) restream=true;
   const {device,ctx}=GPU;
-  GPU.uni.set([cam.x,cam.y,cam.scale*DPR,appear.calibre, gpucv.width,gpucv.height,appear.wall,appear.gloss, mode,simTime%1200,pulse||0,0]);
-  device.queue.writeBuffer(GPU.ubuf,0,GPU.uni);
+  GPU.uni.set([cam.x,cam.y,cam.scale*DPR,appear.calibre, gpucv.width,gpucv.height,appear.wall,appear.gloss, mode,simTime%1200,pulse||0,0, 0.85,0,0,0]);
+  device.queue.writeBuffer(GPU.ubuf,0,GPU.uni);          // solid pass
+  GPU.uni[12]=0.0; device.queue.writeBuffer(GPU.ubufB,0,GPU.uni);   // fringe pass
   if(mode===6){ GPU.uni[11]=1; device.queue.writeBuffer(GPU.ubufS,0,GPU.uni); GPU.uni[11]=0; }
   // stream visible cells (only when the visible set changed)
   let n=GPU._cellN||0; const data=GPU.cellData;
@@ -3040,19 +3257,26 @@ function gpuRender(mode, restream, pulse){
     if(showTraffic) for(const c of CELLS){ if(c.foe) continue; n=packCell(data,n,c,lim); if(n>=lim) break; }
     n=packGameCells(data,n);
     GPU._cellN=n;
-    if(n) device.queue.writeBuffer(GPU.cbuf,0,data,0,n*8);
+    if(n) device.queue.writeBuffer(GPU.cbuf,0,data,0,n*12);
   } else if(!showTraffic&&!GAME.on){ n=0; }
   const enc=device.createCommandEncoder();
   const view=ctx.getCurrentTexture().createView();
   const clearValue = mode===4?{r:0.01,g:0,b:0.02,a:1}:mode===6?{r:0.55,g:0.28,b:0.29,a:1}:{r:0.07,g:0.02,b:0.03,a:1};
-  const pass=enc.beginRenderPass({colorAttachments:[{view,loadOp:'clear',storeOp:'store',clearValue}]});
+  const depthView=GPU.depthFor(gpucv.width,gpucv.height).createView();
+  const pass=enc.beginRenderPass({
+    colorAttachments:[{view,loadOp:'clear',storeOp:'store',clearValue}],
+    depthStencilAttachment:{view:depthView,depthLoadOp:'clear',depthStoreOp:'store',depthClearValue:1.0}});
   if(show.tissue||mode===4){ pass.setPipeline(GPU.pTissue); pass.setBindGroup(0,GPU.bind); pass.draw(3); }
   if(GPU.vessCount){
-    pass.setPipeline(mode===4?GPU.pVessA:GPU.pVess);
     pass.setVertexBuffer(0,GPU.corner); pass.setVertexBuffer(1,GPU.vbuf);
-    if(mode===6){ pass.setBindGroup(0,GPU.bindS); pass.draw(4,GPU.vessCount); }
-    pass.setBindGroup(0,GPU.bind); pass.draw(4,GPU.vessCount); }
-  if((showTraffic||GAME.on) && n){ pass.setPipeline(mode===4?GPU.pCellA:GPU.pCell); pass.setBindGroup(0,GPU.bind);
+    if(mode===6){                                  // contact shadows, no depth
+      pass.setPipeline(GPU.pVessB); pass.setBindGroup(0,GPU.bindS); pass.draw(4,GPU.vessCount);
+    }
+    pass.setPipeline(mode===4?GPU.pVessA:GPU.pVess);    // solid core, writes depth
+    pass.setBindGroup(0,GPU.bind); pass.draw(4,GPU.vessCount);
+    pass.setPipeline(mode===4?GPU.pVessAB:GPU.pVessB);  // soft fringe, tested only
+    pass.setBindGroup(0,GPU.bindB); pass.draw(4,GPU.vessCount); }
+  if((showTraffic||GAME.on) && n){ pass.setPipeline(mode===4?GPU.pCellA:GPU.pCell); pass.setBindGroup(0,GPU.bindB);
     pass.setVertexBuffer(0,GPU.corner); pass.setVertexBuffer(1,GPU.cbuf); pass.draw(4,n); }
   pass.end(); device.queue.submit([enc.finish()]);
 }

@@ -83,6 +83,15 @@ network, same flow, same renderer.
   flows. The impostor projects the actual solid of revolution for its current
   tumble angle, so the traffic shows round faces, foreshortened ellipses and
   edge-on peanuts all at once, exactly as blood does.
+- **Depth-correct crossings** — every vessel carries a pseudo-depth, so where
+  one passes over another the blood cells in the vessel behind disappear behind
+  it instead of being painted on top. Depth-buffered on the GPU (with the
+  vessels drawn in a solid depth-writing pass and a soft fringe pass, so
+  antialiased rims and faded tips don't punch holes), painter's-order on
+  Canvas 2D.
+- **Filleted branches** — at a bifurcation each segment smooth-unions its field
+  with the neighbour it forms the sharpest corner with, so the branches warp
+  into each other instead of meeting in a hard V.
 - **Clean branches and fading tips** — no spherical caps anywhere: a branch node
   gets a short faded stub from each segment instead of a ball, an end tapers to
   transparent, and the tube's outline is measured in a frame shared with its
