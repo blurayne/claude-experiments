@@ -266,32 +266,54 @@ every joint. Three things fix it, all fed by per-instance data:
      cut-off rectangle;
    - an **open tip** gets nothing past the end and fades to transparent over
      the last ~1.6·r, so a terminal vessel dissolves into the tissue.
-4. **A smooth-union fillet at the branches.** Where a hard V remains — the
-   crotch of a bifurcation — each segment smooth-unions its own field with one
-   neighbour's, using Iñigo Quilez's polynomial `smin`. Each edge records, per
-   end, the incident edge whose outward direction is closest to its own: the
-   pair that forms the sharpest corner, which is the one that needs filleting.
-   The blend weight falls off with distance from the shared node, so far down
-   the vessel the field is untouched and a segment never paints its neighbour's
-   body. The cross-section coordinate is then taken from the *blended* field
-   (`a = 1 + d/r`) rather than from the raw lateral offset, so the fillet shades
-   as a continuation of the lumen instead of as wall.
+4. **A shared metaball at each branch node.** Where a hard V remains — the
+   crotch of a bifurcation — the fix is the one named for junctions in the
+   Blender-technique table below: a **metaball union**. One small disc is placed
+   at the node, sized to the *thickest* tube meeting there (≈ 0.72 · node
+   radius), and **every incident segment smooth-unions its own field with that
+   same disc** (Iñigo Quilez's polynomial `smin`). Because the disc is identical
+   for all of them, neighbouring segments agree on the merged surface — no step
+   — and because a single shared primitive is order-independent, it merges a
+   3-, 4- or 5-way node correctly regardless of which segment draws a pixel
+   first. The blob fills the crotch and rounds it, so the junction swells
+   slightly the way a real bifurcation does.
 
-   **Its limit is worth stating.** The influence radius is capped at the segment
-   length, because the next segment along the chain does not carry the partner
-   and would compute a different surface — which showed up as a hard step
-   across their shared boundary. For a thin vessel (radius ≲ segment length) the
-   fillet is therefore full-size; for a trunk, where many short segments tile a
-   very wide tube, it only rounds the tip of the crotch.
+   An earlier version smooth-unioned each segment with *one chosen neighbour*
+   instead. That was **not** robust: the influence had to be capped at the
+   segment length (the next segment along the chain didn't carry the same
+   partner and computed a different surface, showing a hard step), so on a wide
+   trunk tiled by many short segments the fillet shrank to nothing. The shared
+   disc has no such cap — every segment references the identical node blob, so
+   there is nothing to disagree about.
 
-   The principled fix is an **order-independent smooth union**: the exponential
-   smooth minimum, `smin(d₁…dₙ) = −log(Σ exp(−k·dᵢ))/k`, is associative, so
-   rendering `exp(−k·dᵢ)` into a float target with *additive* blending and
-   taking the log in a resolve pass blends any number of segments with no
-   neighbour data at all. Attributes come along for the ride as
-   `Σ wᵢ·attrᵢ / Σ wᵢ`. It needs an offscreen float MRT, a resolve pass, and
-   care with the exponential's range (normalising the field by the local radius
-   keeps it bounded), which is why the cheaper per-neighbour version ships here.
+   Two shading touches finish it: inside the blob the tube frame no longer
+   describes the surface, so the lighting normal is taken from the **screen-space
+   gradient of the merged field** (`dFdx/dFdy` of the signed distance) — the
+   light then follows the rounded blob, not the straight tube it grew from. And
+   the cutaway's per-segment wall lines, which cross each other at a junction,
+   are faded back to open lumen inside the blob so the merge reads as flowing
+   blood rather than two tubes overlapping.
+
+   **The principled next step**, confirmed by researching the rendering
+   literature, is an **order-independent exponential smooth union** across *all*
+   segments, not just the node disc. The exponential smooth minimum
+   `smin(d₁…dₙ) = −log(Σ exp(−k·dᵢ))/k` is the only `smin` family that is both
+   associative *and* separable into a per-primitive sum, so each instanced quad
+   can simply *add* `exp(−k·dᵢ)` (and `exp(−k·dᵢ)·attrᵢ` for colour /
+   oxygenation / normal) into a floating-point accumulation buffer with additive
+   blending; a resolve pass reconstructs the merged field as `−log(W)/k` (iso at
+   `W = 1`), gets clean `fwidth` antialiasing, and reads attributes as
+   `Σ wᵢ·attrᵢ / Σ wᵢ` — exactly weighted-blended OIT. The one trap is range:
+   `exp(−k·d)` blows up in a segment's interior, so `d` must be normalised by a
+   local radius and the interior exponent clamped to stay under the RGBA16F
+   ceiling (`k·|d| ≲ 11`). This environment does support the float MRT and float
+   blending it needs (verified), but it is a two-pass rewrite touching all six
+   shading modes plus the depth sort, so the cheaper shared-disc union ships
+   here and this is documented as the upgrade path.
+   (Refs: [IQ smooth minimum](https://iquilezles.org/articles/smin/),
+   [mini.gmshaders SDF](https://mini.gmshaders.com/p/sdf),
+   [GPU Gems 3 ch.7 metaballs](https://developer.nvidia.com/gpugems/gpugems3/part-i-geometry/chapter-7-point-based-visualization-metaballs-gpu),
+   [LearnOpenGL weighted-blended OIT](https://learnopengl.com/Guest-Articles/2020/OIT/Weighted-Blended).)
 
 5. **A frame-continuous silhouette.** The lateral offset is measured in the
    *smoothed* frame — the perpendicular of `mix(tA, tB, t)` — against the point

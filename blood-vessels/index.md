@@ -89,9 +89,13 @@ network, same flow, same renderer.
   vessels drawn in a solid depth-writing pass and a soft fringe pass, so
   antialiased rims and faded tips don't punch holes), painter's-order on
   Canvas 2D.
-- **Filleted branches** — at a bifurcation each segment smooth-unions its field
-  with the neighbour it forms the sharpest corner with, so the branches warp
-  into each other instead of meeting in a hard V.
+- **Merged branches (junction metaballs)** — at each bifurcation a shared blob
+  is placed on the node and every incident segment smooth-unions the *same* disc,
+  so the branches warp into one filled, rounded junction instead of meeting in a
+  hard V. Because the primitive is shared, neighbouring segments never disagree
+  (no step) and 3-way or more junctions merge correctly; the lighting inside the
+  junction follows the merged field's gradient, and the cutaway's wall lines fade
+  to open lumen there so the merge reads as flowing blood.
 - **Clean branches and fading tips** — no spherical caps anywhere: a branch node
   gets a short faded stub from each segment instead of a ball, an end tapers to
   transparent, and the tube's outline is measured in a frame shared with its

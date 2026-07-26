@@ -761,33 +761,29 @@ function buildNetwork(seed, preset){
   for(const e of edges)
     e.clip=(e.a.mitre?1:0)+(e.b.mitre?2:0)+(e.a.tip?4:0)+(e.b.tip?8:0);
 
-  // ---- junction partners (for the smooth-union fillet) ---------------------
-  // At a branch point the segments meet in a hard V. To let them *warp* into
-  // each other the shader smooth-unions each segment with one neighbour near
-  // the shared node — so each edge records, per end, the incident edge whose
-  // outward direction is closest to its own, i.e. the one it forms the sharpest
-  // crotch with. That is the pair whose corner actually needs filleting.
+  // ---- junction metaballs (shared smooth-union blob per branch node) --------
+  // At a branch point the segments meet in a hard V. The robust way to merge
+  // implicit tubes is a metaball union (see the Blender-technique table in
+  // techniques.md): place ONE small disc at the node and have *every* incident
+  // segment smooth-union its own field with that same disc. Because the disc is
+  // identical for all of them, neighbouring segments agree on the merged
+  // surface — no step — and the blob fills the crotch and rounds it into a
+  // fillet the way a real bifurcation swells slightly. A single shared
+  // primitive is also order-independent, so it works no matter which segment
+  // happens to draw a given pixel first.
   for(const e of edges){ e.pA=null; e.pB=null; }
   for(let i=0;i<nodes.length;i++){
     const inc=incident[i];
     if(inc.length<3) continue;
     const node=nodes[i];
-    const dirs=inc.map(it=>{
-      const far=it.d>0?it.e.b:it.e.a;
-      const dx=far.x-node.x, dy=far.y-node.y, L=Math.hypot(dx,dy)||1;
-      return {it, ox:dx/L, oy:dy/L, far};
-    });
-    for(const a of dirs){
-      let best=null, bs=-2;
-      for(const b of dirs){
-        if(b===a) continue;
-        const sc=a.ox*b.ox+a.oy*b.oy;
-        if(sc>bs){ bs=sc; best=b; }
-      }
-      if(!best) continue;
-      const partner={x:best.far.x, y:best.far.y, r:best.far.radius||CAP_R};
-      if(a.it.d>0) a.it.e.pA=partner; else a.it.e.pB=partner;
-    }
+    // size the blob to the thickest tube meeting here, so it matches the trunk
+    let nodeR=node.radius||0;
+    for(const it of inc){ const near=it.d>0?it.e.a:it.e.b; if(near.radius>nodeR) nodeR=near.radius; }
+    if(nodeR<=0) nodeR=CAP_R;
+    // disc radius sits a little inside the tube so the swelling stays subtle;
+    // k (fillet width) is generous so the transition is smooth, not a bead.
+    const blob={x:node.x, y:node.y, r:nodeR*0.72, k:nodeR*1.15};
+    for(const it of inc){ if(it.d>0) it.e.pA=blob; else it.e.pB=blob; }
   }
 
   // ---- pseudo-depth (z-order) ----------------------------------------------
@@ -2262,8 +2258,15 @@ float dilate(float ty,float pulse){ return 1.0+pulse*(ty<0.5?0.085:(ty<1.5?0.030
 void main(){
   vec2 A=iAB.xy,B=iAB.zw; vec2 ax=B-A; float L=length(ax);
   vec2 d=L>1e-4?ax/L:vec2(1.0,0.0); vec2 pp=vec2(-d.y,d.x);
-  // 1.35× so the smooth-union fillet at a junction stays inside the quad
-  float maxR=max(iPar.x,iPar.y)*uRad*dilate(floor(iPar.w/16.0),uPulse)*1.35+2.0/uScale;
+  // The quad must cover this tube AND any junction blob at its ends — the blob
+  // is sized to the thickest tube at the node, which can be far wider than a
+  // thin branch's own calibre, so it drives the expansion.
+  float dl=dilate(floor(iPar.w/16.0),uPulse);
+  float ownR=max(iPar.x,iPar.y)*uRad*dl*1.35;
+  float maxR=ownR;
+  if(iPA.z>0.0) maxR=max(maxR, iPA.z+iPA.w*0.5);
+  if(iPB.z>0.0) maxR=max(maxR, iPB.z+iPB.w*0.5);
+  maxR+=2.0/uScale;
   vec2 c=(A+B)*0.5;
   vec2 world=c+d*((L*0.5+maxR)*corner.x)+pp*(maxR*corner.y);
   vP=world; vAB=iAB; vPar=iPar; vTan=iTan; vEx=iEx; vPA=iPA; vPB=iPB;
@@ -2332,46 +2335,31 @@ void main(){
   float lateral=dot(vP-(A+ax*t),bn);
   float rr=mix(vPar.x,vPar.y,t)*uRad*dilate(ty,uPulse);
   float dil=dilate(ty,uPulse);
-  // ---- SMOOTH-UNION FILLET AT THE JUNCTIONS ------------------------------
-  // Our own field, then blended with the neighbour that shares this node. The
-  // blend weight falls off with distance from the node, so far down the vessel
-  // the field is untouched (otherwise a segment would paint its neighbour's
-  // body as well) and only the crotch gets the fillet.
+  // ---- JUNCTION METABALLS (shared smooth-union blob per node) ------------
+  // Start from our own tube field, then smooth-union the disc placed at each
+  // branch node this segment touches. Every incident segment unions the SAME
+  // disc, so they agree on the merged surface — no step across chain
+  // neighbours — and the blob fills the crotch into a rounded fillet.
   float d=abs(lateral)-rr;
-  {
-    float Lc=sqrt(max(L2,1e-6));
-    float rA=vPar.x*uRad*dil, rB=vPar.y*uRad*dil;
-    // The influence never reaches past this segment. Its neighbour along the
-    // chain does not carry the partner and would compute a different surface,
-    // which showed up as a hard step across the shared boundary.
-    if(vPA.z>0.0){
-      float R=min(rA*2.4,Lc*0.95);
-      float w=1.0-smoothstep(0.0,R,distance(vP,A));
-      if(w>0.002) d=mix(d, smin(d, capsDist(vP,A,vPA.xy,rA,vPA.z*uRad*dil), R*0.5), w);
-    }
-    if(vPB.z>0.0){
-      float R=min(rB*2.4,Lc*0.95);
-      float w=1.0-smoothstep(0.0,R,distance(vP,B));
-      if(w>0.002) d=mix(d, smin(d, capsDist(vP,B,vPB.xy,rB,vPB.z*uRad*dil), R*0.5), w);
-    }
-  }
+  float dj=1e9;                          // distance to the nearest junction blob
+  if(vPA.z>0.0){ float dd=length(vP-vPA.xy)-vPA.z; dj=min(dj,dd); d=smin(d,dd,vPA.w); }
+  if(vPB.z>0.0){ float dd=length(vP-vPB.xy)-vPB.z; dj=min(dj,dd); d=smin(d,dd,vPB.w); }
   float dist=d+rr;                       // keep the old "distance to axis" meaning
   float L=sqrt(max(L2,1e-6));
   float endFade=1.0;
-  // The junction stub fades over its length instead of ending in a flat face:
-  // where the neighbouring branches cover it the fade is invisible, and where
-  // they don't it dissolves rather than showing a cut-off rectangle.
+  // Past a plain end the tube stub fades out; but where a junction blob covers
+  // the fragment (dj<0) keep it — the merged surface, not the raw stub length,
+  // decides coverage there.
+  bool inBlob = dj<0.0;
   if(tRaw<0.0){
-    float over=-tRaw*L, lim=rr*(vPA.z>0.0?1.35:0.6);
-    if(tipA || over>lim) discard;
-    endFade*=1.0-smoothstep(lim*0.45,lim,over);
+    float over=-tRaw*L, lim=rr*0.6;
+    if(!inBlob){ if(tipA || over>lim) discard; endFade*=1.0-smoothstep(lim*0.45,lim,over); }
   }else if(tRaw>1.0){
-    float over=(tRaw-1.0)*L, lim=rr*(vPB.z>0.0?1.35:0.6);
-    if(tipB || over>lim) discard;
-    endFade*=1.0-smoothstep(lim*0.45,lim,over);
+    float over=(tRaw-1.0)*L, lim=rr*0.6;
+    if(!inBlob){ if(tipB || over>lim) discard; endFade*=1.0-smoothstep(lim*0.45,lim,over); }
   }
-  if(tipA) endFade*=clamp(tRaw*L/max(rr*1.6,1e-3),0.0,1.0);
-  if(tipB) endFade*=clamp((1.0-tRaw)*L/max(rr*1.6,1e-3),0.0,1.0);
+  if(tipA && !inBlob) endFade*=clamp(tRaw*L/max(rr*1.6,1e-3),0.0,1.0);
+  if(tipB && !inBlob) endFade*=clamp((1.0-tRaw)*L/max(rr*1.6,1e-3),0.0,1.0);
   float aa=1.0/uScale; float sd=dist-rr;
   // shadow pass (anatomy mode): a soft contact shadow spread into the tissue,
   // drawn under the vessels so they sit *on* the tissue instead of floating
@@ -2388,7 +2376,17 @@ void main(){
   // a junction shades as a continuation of the lumen rather than as wall
   float nperp=sign(lateral)*clamp(1.0+d/max(rr,1e-3),0.0,1.0);
   float hgt=sqrt(max(0.0,1.0-nperp*nperp));
-  vec3 N=normalize(vec3(bn*nperp,hgt));
+  // Inside a junction blob the tube frame no longer describes the surface, so
+  // take the outward direction from the gradient of the merged field instead —
+  // the lighting then follows the actual rounded blob rather than the straight
+  // tube it grew from. jw ramps in as the fragment enters the blob.
+  float jw = (vPA.z>0.0||vPB.z>0.0) ? (1.0-smoothstep(-rr*0.15,rr*0.55,dj)) : 0.0;
+  vec2 bnv=bn;
+  if(jw>0.001){
+    vec2 g=vec2(dFdx(d),dFdy(d)); g.y=-g.y;   // screen→world (y is flipped)
+    if(dot(g,g)>1e-10) bnv=mix(bn, normalize(g)*sign(nperp), jw);
+  }
+  vec3 N=normalize(vec3(bnv*abs(nperp),hgt));
   vec3 Ld=normalize(vec3(-0.45,-0.55,0.72)); vec3 V=vec3(0.0,0.0,1.0);
   float oxy=vPar.z; vec3 blood=mix(DEO,OXY,oxy);
   float diff=max(dot(N,Ld),0.0);
@@ -2506,6 +2504,10 @@ void main(){
     // crisp inner endothelium line + dark cut outline at the silhouette
     col=mix(col, vec3(0.16,0.03,0.06), (1.0-smoothstep(0.0,0.05,abs(a-lumen)))*0.6);
     col*=1.0-smoothstep(0.85,1.0,a)*0.7;
+    // Inside a junction blob the per-segment wall lines of the two merging tubes
+    // cross each other. Read the junction as open, flowing lumen instead — the
+    // merged silhouette keeps its own rim darkening below.
+    col=mix(col, lumenCol, jw*0.9);
   }
   // "wall thickness": darken a band near the silhouette like a vessel wall
   // (cutaway models its own wall, so skip the generic darkening there)
@@ -2716,8 +2718,8 @@ function uploadVessels(){
     arr[o+6]=((e.oxyA||0)+(e.oxyB||0))*0.5; arr[o+7]=(e.clip||0)+16*(TYPE_ID[e.type]||0);
     arr[o+8]=e.a.tx; arr[o+9]=e.a.ty; arr[o+10]=e.b.tx; arr[o+11]=e.b.ty;
     arr[o+12]=e.a.arc; arr[o+13]=e.b.arc; arr[o+14]=e.flowBase; arr[o+15]=e.zd;
-    if(e.pA){ arr[o+16]=e.pA.x; arr[o+17]=e.pA.y; arr[o+18]=e.pA.r; }
-    if(e.pB){ arr[o+20]=e.pB.x; arr[o+21]=e.pB.y; arr[o+22]=e.pB.r; } }
+    if(e.pA){ arr[o+16]=e.pA.x; arr[o+17]=e.pA.y; arr[o+18]=e.pA.r; arr[o+19]=e.pA.k; }
+    if(e.pB){ arr[o+20]=e.pB.x; arr[o+21]=e.pB.y; arr[o+22]=e.pB.r; arr[o+23]=e.pB.k; } }
   gl.bindBuffer(gl.ARRAY_BUFFER,GL.vessInst);
   gl.bufferData(gl.ARRAY_BUFFER,arr,gl.STATIC_DRAW);
   GL.vessCount=E.length;
@@ -2898,7 +2900,11 @@ fn smin(a:f32,b:f32,k:f32)->f32{
   let A=in.iAB.xy; let B=in.iAB.zw; let ax=B-A; let L=length(ax);
   var d=vec2f(1.0,0.0); if(L>1e-4){ d=ax/L; }
   let pp=vec2f(-d.y,d.x);
-  let maxR=max(in.iPar.x,in.iPar.y)*u.rad*dilate(floor(in.iPar.w/16.0),u.p1)*1.35+2.0/u.scale;
+  let dl=dilate(floor(in.iPar.w/16.0),u.p1);
+  var maxR=max(in.iPar.x,in.iPar.y)*u.rad*dl*1.35;
+  if(in.iPA.z>0.0){ maxR=max(maxR, in.iPA.z+in.iPA.w*0.5); }
+  if(in.iPB.z>0.0){ maxR=max(maxR, in.iPB.z+in.iPB.w*0.5); }
+  maxR=maxR+2.0/u.scale;
   let c=(A+B)*0.5;
   let world=c+d*((L*0.5+maxR)*in.corner.x)+pp*(maxR*in.corner.y);
   var o:VOut; o.world=world; o.AB=in.iAB; o.par=in.iPar; o.tng=in.iTan; o.ex=in.iEx; o.pA=in.iPA; o.pB=in.iPB;
@@ -2933,36 +2939,24 @@ fn smin(a:f32,b:f32,k:f32)->f32{
   let lateral=dot(in.world-(A+ax*t),bn);
   let rr=mix(in.par.x,in.par.y,t)*u.rad*dilate(ty,u.p1);
   let dil=dilate(ty,u.p1);
-  // smooth-union fillet at the junctions — see the WebGL2 shader
+  // junction metaballs — see the WebGL2 shader
   var d=abs(lateral)-rr;
-  {
-    let Lc=sqrt(max(L2,1e-6));
-    let rA=in.par.x*u.rad*dil; let rB=in.par.y*u.rad*dil;
-    if(in.pA.z>0.0){
-      let R=min(rA*2.4,Lc*0.95);
-      let wgt=1.0-smoothstep(0.0,R,distance(in.world,A));
-      if(wgt>0.002){ d=mix(d, smin(d, capsDist(in.world,A,in.pA.xy,rA,in.pA.z*u.rad*dil), R*0.5), wgt); }
-    }
-    if(in.pB.z>0.0){
-      let R=min(rB*2.4,Lc*0.95);
-      let wgt=1.0-smoothstep(0.0,R,distance(in.world,B));
-      if(wgt>0.002){ d=mix(d, smin(d, capsDist(in.world,B,in.pB.xy,rB,in.pB.z*u.rad*dil), R*0.5), wgt); }
-    }
-  }
+  var dj=1e9;
+  if(in.pA.z>0.0){ let dd=length(in.world-in.pA.xy)-in.pA.z; dj=min(dj,dd); d=smin(d,dd,in.pA.w); }
+  if(in.pB.z>0.0){ let dd=length(in.world-in.pB.xy)-in.pB.z; dj=min(dj,dd); d=smin(d,dd,in.pB.w); }
   let dist=d+rr;
   let Ln=sqrt(max(L2,1e-6));
   var endFade=1.0;
+  let inBlob = dj<0.0;
   if(tRaw<0.0){
-    let over=-tRaw*Ln; var lim=rr*0.6; if(in.pA.z>0.0){ lim=rr*1.35; }
-    if(tipA || over>lim){ discard; }
-    endFade=endFade*(1.0-smoothstep(lim*0.45,lim,over));
+    let over=-tRaw*Ln; let lim=rr*0.6;
+    if(!inBlob){ if(tipA || over>lim){ discard; } endFade=endFade*(1.0-smoothstep(lim*0.45,lim,over)); }
   } else if(tRaw>1.0){
-    let over=(tRaw-1.0)*Ln; var lim=rr*0.6; if(in.pB.z>0.0){ lim=rr*1.35; }
-    if(tipB || over>lim){ discard; }
-    endFade=endFade*(1.0-smoothstep(lim*0.45,lim,over));
+    let over=(tRaw-1.0)*Ln; let lim=rr*0.6;
+    if(!inBlob){ if(tipB || over>lim){ discard; } endFade=endFade*(1.0-smoothstep(lim*0.45,lim,over)); }
   }
-  if(tipA){ endFade=endFade*clamp(tRaw*Ln/max(rr*1.6,1e-3),0.0,1.0); }
-  if(tipB){ endFade=endFade*clamp((1.0-tRaw)*Ln/max(rr*1.6,1e-3),0.0,1.0); }
+  if(tipA && !inBlob){ endFade=endFade*clamp(tRaw*Ln/max(rr*1.6,1e-3),0.0,1.0); }
+  if(tipB && !inBlob){ endFade=endFade*clamp((1.0-tRaw)*Ln/max(rr*1.6,1e-3),0.0,1.0); }
   let aa=1.0/u.scale; let sd=dist-rr;
   if(u.p2>0.5){                       // contact-shadow pass (anatomy mode)
     let g=rr*0.55+6.0;
@@ -2975,7 +2969,14 @@ fn smin(a:f32,b:f32,k:f32)->f32{
   let cov=clamp(0.5-sd/(2.0*aa),0.0,1.0);
   let nperp=sign(lateral)*clamp(1.0+d/max(rr,1e-3),0.0,1.0);
   let hgt=sqrt(max(0.0,1.0-nperp*nperp));
-  let N=normalize(vec3f(bn*nperp,hgt));
+  // gradient-based normal inside a junction blob — see the WebGL2 shader.
+  // dpdx/dpdy must be evaluated in uniform control flow, so take them up front.
+  var gfield=vec2f(dpdx(d),-dpdy(d));
+  var jw=0.0;
+  if(in.pA.z>0.0||in.pB.z>0.0){ jw=1.0-smoothstep(-rr*0.15,rr*0.55,dj); }
+  var bnv=bn;
+  if(jw>0.001 && dot(gfield,gfield)>1e-10){ bnv=mix(bn, normalize(gfield)*sign(nperp), jw); }
+  let N=normalize(vec3f(bnv*abs(nperp),hgt));
   let Ld=normalize(vec3f(-0.45,-0.55,0.72)); let V=vec3f(0.0,0.0,1.0);
   let oxy=in.par.z; let blood=mix(DEO,OXY,oxy);
   let diff=max(dot(N,Ld),0.0);
@@ -3065,6 +3066,7 @@ fn smin(a:f32,b:f32,k:f32)->f32{
     col=mix(lumenCol, wallCol, step(lumen,a));
     col=mix(col, vec3f(0.16,0.03,0.06), (1.0-smoothstep(0.0,0.05,abs(a-lumen)))*0.6);
     col=col*(1.0-smoothstep(0.85,1.0,a)*0.7);
+    col=mix(col, lumenCol, jw*0.9);          // junction reads as open lumen
   }
   if(m!=5 && m!=6){ col=col*(1.0-smoothstep(0.45,1.0,1.0-hgt)*0.45*clamp(u.wall,0.0,2.5)); }
   let cv=cov*endFade;
@@ -3232,8 +3234,8 @@ async function initWebGPU(){
       arr[o+6]=((e.oxyA||0)+(e.oxyB||0))*0.5;arr[o+7]=(e.clip||0)+16*(TYPE_ID[e.type]||0);
       arr[o+8]=e.a.tx;arr[o+9]=e.a.ty;arr[o+10]=e.b.tx;arr[o+11]=e.b.ty;
       arr[o+12]=e.a.arc;arr[o+13]=e.b.arc;arr[o+14]=e.flowBase;arr[o+15]=e.zd;
-      if(e.pA){ arr[o+16]=e.pA.x;arr[o+17]=e.pA.y;arr[o+18]=e.pA.r; }
-      if(e.pB){ arr[o+20]=e.pB.x;arr[o+21]=e.pB.y;arr[o+22]=e.pB.r; } }
+      if(e.pA){ arr[o+16]=e.pA.x;arr[o+17]=e.pA.y;arr[o+18]=e.pA.r;arr[o+19]=e.pA.k; }
+      if(e.pB){ arr[o+20]=e.pB.x;arr[o+21]=e.pB.y;arr[o+22]=e.pB.r;arr[o+23]=e.pB.k; } }
     if(obj.vbuf) obj.vbuf.destroy();
     obj.vbuf=device.createBuffer({size:arr.byteLength,usage:GPUBufferUsage.VERTEX|GPUBufferUsage.COPY_DST});
     device.queue.writeBuffer(obj.vbuf,0,arr); obj.vessCount=E.length;
