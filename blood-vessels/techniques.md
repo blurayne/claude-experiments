@@ -122,6 +122,83 @@ arterioles → capillary → venule → venous root, then recycled):
 
 ---
 
+## 2b. The bed as a playfield — "Immune Patrol"
+
+The same graph that carries the particles is also a **game board**: you steer a
+neutrophil through the lumen and engulf pathogens before the infection meter
+fills. Everything below rides on the simulation that is already there, so the
+game and the sandbox share one network, one flow model and one renderer.
+
+### 2b-i. Swimming a graph instead of a plane
+
+A cell inside a vessel cannot move freely in 2D — it can only push **along the
+tube axis**. So the player is a point `(edge, s)` on the directed graph, exactly
+like a blood cell, with three additions:
+
+1. **Signed velocity.** `v = 0.9·flow(e) + SWIM·dir·mag·power·squeeze(e)`, where
+   `flow(e)` is the same pulsatile bulk-flow term the particles use. `v` may be
+   negative, i.e. you can swim *upstream* — but only if your thrust beats the
+   flow, which it does in arterioles and capillaries and barely does in a trunk
+   artery. That single sign is the whole difficulty curve: arteries are fast
+   one-way highways, capillary beds are where you can actually corner something.
+2. **Heading, not thrust.** Naïvely projecting the steering vector onto the
+   vessel axis (`v += SWIM·(d·û)`) makes the controls feel dead: push sideways
+   in a horizontal vessel and the projection is ~0, so you sit still. Instead
+   the steering picks a **heading** — sign from `d·û` with a dead zone that
+   keeps the previous heading, magnitude `max(|d·û|, 0.72)`. You always make
+   progress toward *a* junction; the steering decides which one.
+3. **Squeeze.** Thrust scales with `clamp(r/8, 0.45, 1.25)`, and the drawn cell
+   radius is clamped to the local lumen, so the leukocyte visibly deforms and
+   slows as it works through a capillary.
+
+### 2b-ii. Junctions
+
+Blood cells only ever need `outgoing[]` (the directed flow graph). A swimmer can
+go either way, so the network also exports an **undirected incidence list**,
+`incident[nodeId] = [{edge, d}]` with `d = ±1` for the direction that *leaves*
+the node. On reaching a node the candidates are:
+
+- **filtered by physics** — a candidate is only enterable if the velocity the
+  player would have on it actually points away from the node. Without this
+  filter a swimmer fighting a strong artery rattles between two branches every
+  frame and appears pinned;
+- **ranked by heading** — the branch whose outward direction best matches
+  `0.6·(current travel) + (steering)`, with a small penalty for the branch you
+  arrived on so junctions prefer a fresh vessel.
+
+The **venous root** is a portal rather than a dead end: reaching it recirculates
+you through the heart back into an arterial root — which is also exactly what
+happens to a pathogen you failed to catch, except that counts as a spread.
+
+### 2b-iii. Pathogens, oxygen and the loss condition
+
+- **Pathogens** are ordinary flow particles (`kind: 'bac' | 'vir'`) with a
+  division timer. They drift the network with the blood; they cannot be steered.
+  Division adds infection, so a pathogen left alone is an exponential problem.
+- **Escape.** The recycle branch in `updateCells` — the point where a particle
+  leaving the venous root is put back into an artery — doubles as the escape
+  detector: a pathogen through that gate raises infection sharply.
+- **Oxygen** is drawn from the local blood: it refills in bright arterial blood
+  (`oxy ≈ 1`) and drains in the veins, so the arteries are both the fastest and
+  the only place to refuel. Boosting burns it at ~30 %/s.
+- **Infection** rises with divisions and escapes, decays slowly on its own, and
+  ends the run at 100 %.
+
+### 2b-iv. Rendering the actors on every backend
+
+The player and the pathogens are packed into the **same instance buffer** as the
+blood cells (`packCell`), so they pick up whichever backend and shading model is
+active — no separate game renderer. Two details make that safe and readable:
+
+- game actors are packed **first**, so the visible-cell budget (`MAX_CELLS`) can
+  never drop the thing you are chasing;
+- a fourth, always-visible **2D overlay canvas** carries what the shaders cannot:
+  the amoeboid membrane outline, the capture-reach ring, dashed reticles on
+  pathogens, bearing arrows for off-screen ones projected onto the screen
+  border, capture bursts, score pops and the infection / recirculation vignettes.
+
+---
+
 ## 3. Shading algorithms (switchable)
 
 Rendering is split into a **Backend** switch and a **Shading** switch:
@@ -150,6 +227,59 @@ On **Canvas 2D** the same look is faked in **layered passes** over the whole
 visible set (cut outline → wall → lumen → concave core → sheen) rather than
 segment-by-segment, so overlapping round line-caps never carve rings into their
 neighbours and the tubes stay clean and continuous.
+
+### 3a-i. Mitred capsules — making a chain of segments into one tube
+
+Each vessel segment is an SDF capsule impostor (§3b). Drawn naively, a chain of
+them reads as a row of sausages: every joint shows the round end cap of one
+capsule bulging into its neighbour, and each capsule shades its cross-section
+from *its own* chord direction, so the highlight and the cutaway banding jump at
+every joint. Three things fix it, all fed by per-instance data:
+
+1. **Shared node tangents.** Summing the (consistently downstream-oriented)
+   chords of every edge meeting at a node gives one tangent per node. The
+   fragment shader interpolates the cross-section frame between the two endpoint
+   tangents, so lighting and banding run continuously through a joint.
+2. **Mitre clipping.** Where exactly two segments meet at a gentle angle
+   (< ~44°), both are clipped against the shared bisector plane through the node
+   instead of drawing their caps, and the tube is extended along its axis rather
+   than capped. Consecutive segments then tile exactly — no bulge, no dark ring.
+3. **Caps only where they close something.** Tips (degree 1), branch points
+   (degree ≥ 3) and sharp kinks keep their round caps: at a bifurcation the
+   overlapping caps of the three segments are precisely what fills the junction,
+   and a steep bisector would cut a flat wedge out of the tube.
+
+The mitre flags are packed into the instance attribute's unused `type` slot
+(`clip + 4·type`), so the whole thing costs no extra bandwidth.
+
+### 3a-ii. A living lumen — what makes the inside look real
+
+The cutaway needs the vessel interior to read as *flowing blood in a living
+tube*, not a red-painted pipe. Every layer below is a function of two
+coordinates the network exports per instance: **arc length** `s` (µm from the
+root, continuous through every chain, computed by a breadth-first walk) and the
+signed position **across** the open lumen.
+
+- **Advected plasma shear** — two crossed sine waves scrolled along `s` at the
+  vessel's own flow speed, with a **parabolic velocity profile** (the middle of
+  the lumen visibly outruns the sides) and a surge on each heartbeat.
+- **Cell haze** — two layers of jittered, cell-sized blobs advected with the
+  same flow. Below the zoom where individual red cells are drawn, this is what
+  makes the lumen read as a dense *suspension*; it fades out exactly as the real
+  cell sprites become resolvable, so the two never fight.
+- **Cell-free plasma sleeve** — the Fåhræus–Lindqvist layer: red cells crowd to
+  the axis and leave a paler, thinner film of plasma sliding along the lining.
+- **Endothelial mosaic** — the far inner wall is a staggered grid of flat,
+  flow-aligned cells with bulging nuclei, blended in by how thin the blood
+  column is. It shows toward the edges of the cut, which is what gives the open
+  tube its depth.
+- **Banded media** — the wall carries circumferential smooth-muscle striations,
+  strong in arteries, faint in veins, absent in capillaries (which are a bare
+  endothelial tube).
+- **Pulsatile dilation** — the radius is scaled by the live pulse in the vertex
+  *and* fragment shader: ~8.5 % in arteries, ~3 % in capillaries, ~2 % in veins.
+
+All of it is mirrored in GLSL and WGSL, so WebGL2 and WebGPU render identically.
 
 ### 3a. Stylized — Canvas 2D analytic tubes
 
@@ -266,7 +396,11 @@ Plus **Flow** (heart rate, flow speed, cell density) and **Show** toggles
   buttons, double-click), with a live microscope **scale bar** and magnification.
 - **Level of detail** — red cells fall back from a detailed sprite/impostor to a
   simple ellipse to a single pixel as you zoom out; off-screen cells and segments
-  are culled.
+  are culled. Two coarser levels sit above that, because the bed spans
+  millimetres and carries tens of thousands of particles: below ~1 px per red
+  cell the whole particle system is skipped (the shader's cell haze covers the
+  look), and above it only the cells in vessels near the viewport are advanced —
+  the rest simply freeze where nobody can see them.
 - **Instancing** — one draw call each for all vessels and all cells in WebGL;
   the vessel instance buffer is uploaded once per generated bed, the cell buffer
   is streamed only when the visible set changes.

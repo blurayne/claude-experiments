@@ -30,7 +30,11 @@
   /* control panel */
   #panel{top:14px;right:16px;width:230px;background:var(--panel);border:1px solid var(--panelb);
     border-radius:14px;padding:12px 13px 13px;backdrop-filter:blur(9px);
-    box-shadow:0 10px 40px rgba(0,0,0,.5)}
+    box-shadow:0 10px 40px rgba(0,0,0,.5);
+    max-height:calc(100vh - 28px);overflow-y:auto;scrollbar-width:thin;
+    scrollbar-color:rgba(226,59,70,.5) transparent}
+  #panel::-webkit-scrollbar{width:7px}
+  #panel::-webkit-scrollbar-thumb{background:rgba(226,59,70,.45);border-radius:4px}
   /* collapsible panel */
   #panelhdr{display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;
     margin:-2px 0 10px;user-select:none}
@@ -92,10 +96,66 @@
   }
   #loader{position:fixed;inset:0;z-index:9;display:flex;align-items:center;justify-content:center;
     background:#120407;color:var(--dim);font-size:14px;letter-spacing:.5px}
+
+  /* ===================== game mode: Immune Patrol ===================== */
+  #playbtn{background:linear-gradient(180deg,rgba(226,59,70,.34),rgba(120,30,44,.5));border-color:var(--artery)}
+  #playbtn:hover{background:linear-gradient(180deg,rgba(226,59,70,.55),rgba(140,34,50,.6))}
+
+  #ghud{left:50%;transform:translateX(-50%);top:12px;display:none;flex-direction:column;gap:7px;
+    background:var(--panel);border:1px solid var(--panelb);border-radius:14px;padding:9px 15px 11px;
+    backdrop-filter:blur(9px);box-shadow:0 10px 40px rgba(0,0,0,.5);width:min(430px,94vw)}
+  body.gaming #ghud{display:flex}
+  #ghudbar{display:flex;gap:15px;align-items:baseline;justify-content:space-between;flex-wrap:wrap}
+  .gstat{font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--faint);
+    display:flex;gap:6px;align-items:baseline}
+  .gstat b{font-size:15px;color:var(--ink);letter-spacing:0;font-variant-numeric:tabular-nums}
+  .gstat b.hot{color:#ffca5f}
+  #gbars{display:flex;gap:12px}
+  .gbar{flex:1;font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:var(--faint)}
+  .gbar .track{height:7px;border-radius:5px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:3px;
+    border:1px solid rgba(255,255,255,.07)}
+  .gbar i{display:block;height:100%;width:0%;transition:width .1s linear}
+  #ginf{background:linear-gradient(90deg,#f0b23c,#e23b46)}
+  #go2{background:linear-gradient(90deg,#4bd1c4,#59a6ff)}
+  body.gaming #hint{display:none}
+  #ghint{left:50%;transform:translateX(-50%);bottom:14px;font-size:11px;color:var(--faint);
+    text-shadow:0 1px 6px #000;white-space:nowrap;display:none;text-align:center}
+  body.gaming #ghint{display:block}
+
+  #gboost{display:none;right:16px;bottom:78px;position:fixed;z-index:6;
+    width:82px;height:82px;border-radius:50%;border:1px solid var(--artery);
+    background:radial-gradient(circle at 40% 35%,rgba(226,59,70,.55),rgba(60,16,24,.75));
+    color:var(--ink);font-size:11px;font-weight:800;letter-spacing:1.5px;cursor:pointer;
+    backdrop-filter:blur(6px);touch-action:none;user-select:none}
+  #gboost.on{background:radial-gradient(circle at 40% 35%,rgba(255,120,110,.85),rgba(120,26,36,.9))}
+  body.gaming.coarse #gboost{display:block}
+
+  #gcard{display:none;left:50%;top:50%;transform:translate(-50%,-50%);width:min(440px,92vw);z-index:8;
+    background:rgba(22,7,10,.95);border:1px solid var(--panelb);border-radius:18px;padding:22px 24px 18px;
+    backdrop-filter:blur(12px);box-shadow:0 24px 80px rgba(0,0,0,.75);text-align:center;
+    max-height:92vh;overflow:auto}
+  body.gcard #gcard{display:block}
+  #gcard h2{margin:0 0 4px;font-size:21px;letter-spacing:.2px}
+  #gcard .sub{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--artery);margin-bottom:11px}
+  #gcard p{margin:0 0 13px;font-size:12.5px;line-height:1.7;color:var(--dim);text-align:left}
+  #gcard p b{color:var(--ink)}
+  .kbd{display:inline-block;border:1px solid var(--panelb);background:rgba(60,20,28,.55);border-radius:5px;
+    padding:1px 6px;font-size:11px;color:var(--ink);font-family:ui-monospace,monospace}
+  #gcstats{display:flex;gap:10px;justify-content:center;margin:0 0 14px;flex-wrap:wrap}
+  #gcstats div{background:rgba(60,20,28,.42);border:1px solid var(--panelb);border-radius:10px;
+    padding:7px 13px;font-size:9.5px;letter-spacing:1.3px;text-transform:uppercase;color:var(--faint)}
+  #gcstats div b{display:block;font-size:18px;color:var(--ink);letter-spacing:0;margin-top:2px;
+    font-variant-numeric:tabular-nums}
+  #gcard .cbtns{display:flex;gap:8px}
+  #gcard button{flex:1;border-radius:10px;padding:11px 0;font-size:13px;font-weight:700;cursor:pointer;
+    border:1px solid var(--panelb);background:rgba(60,20,28,.55);color:var(--ink);transition:.13s}
+  #gcard button:hover{background:rgba(120,40,52,.55);border-color:var(--artery)}
+  #gcbtn{background:linear-gradient(180deg,rgba(226,59,70,.45),rgba(120,30,44,.55));border-color:var(--artery)}
+  @media(max-width:760px){ #ghud{top:8px;padding:7px 11px 9px} .gstat b{font-size:13px} }
 </style>
 </head>
 <body>
-<div id="stage"><canvas id="gpu"></canvas><canvas id="g"></canvas><canvas id="c"></canvas></div>
+<div id="stage"><canvas id="gpu"></canvas><canvas id="g"></canvas><canvas id="c"></canvas><canvas id="fx"></canvas></div>
 <div id="loader">culturing vessels…</div>
 
 <div class="ui" id="title">
@@ -115,6 +175,16 @@
   <div class="row">
     <button class="btn wide" id="pause">⏸ Pause</button>
     <button class="btn wide" id="regen">⟳ New bed</button>
+  </div>
+
+  <div class="eyebrow">Game <span style="text-transform:none;letter-spacing:0">— play inside the vessels</span></div>
+  <div class="row">
+    <button class="btn wide" id="playbtn">🦠 Play “Immune Patrol”</button>
+  </div>
+  <div class="toggles" id="diffs">
+    <span class="chip" data-d="calm" title="Slow spread, forgiving">Calm</span>
+    <span class="chip on" data-d="normal" title="Standard infection pressure">Normal</span>
+    <span class="chip" data-d="fever" title="Fast division, heavy spread">Fever</span>
   </div>
 
   <div class="eyebrow">Vessel generator</div>
@@ -194,6 +264,33 @@
 <div class="ui" id="hb"><span id="hbdot"></span><small><b id="bpmread">72</b> bpm · pulsatile</small></div>
 <div class="ui" id="hint">scroll = zoom · drag = pan · double-click = zoom in</div>
 
+<!-- ===================== game mode UI ===================== -->
+<div class="ui" id="ghud">
+  <div id="ghudbar">
+    <span class="gstat">Wave <b id="gwave">1</b></span>
+    <span class="gstat">Score <b id="gscore">0</b></span>
+    <span class="gstat">Combo <b id="gcombo">×1</b></span>
+    <span class="gstat">Pathogens <b id="gfoes">0</b></span>
+  </div>
+  <div id="gbars">
+    <div class="gbar">Infection<div class="track"><i id="ginf"></i></div></div>
+    <div class="gbar">Oxygen<div class="track"><i id="go2"></i></div></div>
+  </div>
+</div>
+<div id="ghint" class="ui">move: <b>mouse / WASD / arrows</b> · boost: <b>space</b> · leave: <b>esc</b></div>
+<button id="gboost">BOOST</button>
+
+<div class="ui" id="gcard">
+  <div class="sub" id="gcsub">Game mode</div>
+  <h2 id="gctitle">Immune Patrol</h2>
+  <div id="gcstats"></div>
+  <p id="gctext"></p>
+  <div class="cbtns">
+    <button id="gcbtn">Start patrol</button>
+    <button id="gcexit">Back to sandbox</button>
+  </div>
+</div>
+
 <script>
 "use strict";
 /* ============================================================================
@@ -215,10 +312,13 @@ const cv = document.getElementById('c');
 const ctx = cv.getContext('2d', { alpha:false });
 const glcv = document.getElementById('g');
 const gpucv = document.getElementById('gpu');
+const fxcv = document.getElementById('fx');            // game overlay (always on top)
+const fxx = fxcv.getContext('2d');
 let DPR = Math.min(window.devicePixelRatio||1, 2);
 let VW=0, VH=0; // viewport in CSS px
 let shadeMode='cutaway';  // 'cutaway' | 'phong' | 'sss' | 'toon' | 'xray' (GPU backends) | 'outline' (Canvas 2D contour filter)
 const MODE_UNIFORM={phong:1,sss:2,toon:3,xray:4,cutaway:5};
+const TYPE_ID={art:0,cap:1,ven:2};
 let genPreset='spacecol'; // 'spacecol' | 'recursive' | 'dla' | 'cco'
 let curSeed=20260625;
 let backend='webgl2';     // 'canvas2d' | 'webgl2' | 'webgpu'
@@ -227,14 +327,19 @@ const genParams ={ density:1, length:1, curl:1, murray:3 };
 const appear    ={ calibre:1, wall:1, gloss:1 };
 
 // ---- world (micrometres) ----------------------------------------------------
-const WORLD = { w: 3600, h: 2400 };
+const WORLD = { w: 11500, h: 7700 };  // µm — scaled with the calibre so the
+                                      // gaps between vessels grew with them
 
 // ---- tunables ---------------------------------------------------------------
-const CAP_R   = 3.2;   // true-capillary radius (µm) — ~ one red cell wide
-const ART_TIP = 4.6;   // arteriolar tip radius
-const VEN_TIP = 5.4;   // venular tip radius (veins run a touch wider)
-const RBC_R   = 3.7;   // red-cell radius (µm)
-const VESS_SPACING = 30; // spline resample spacing (µm) — smooths + evens out segments
+// Calibre is anchored to the red cell: a true capillary is one cell wide, while
+// the terminal arteriole already carries ~3 abreast and Murray's law widens the
+// trunks from there — a mid-tree vessel holds 10–15 cells across, so the lumen
+// reads as a channel with traffic in it rather than a two-cell pipe.
+const RBC_R   = 3.7;   // red-cell radius (µm) — a real RBC is ~7.5 µm across
+const CAP_R   = RBC_R*1.06;  // true-capillary radius — one red cell, single file
+const ART_TIP = RBC_R*4.0;   // arteriolar tip radius (~4 cells abreast)
+const VEN_TIP = RBC_R*4.6;   // venular tip radius (veins run a touch wider)
+const VESS_SPACING = 34; // spline resample spacing (µm) — smooths + evens out segments
 
 // ---- small utils ------------------------------------------------------------
 const TAU = Math.PI*2;
@@ -510,20 +615,20 @@ function buildNetwork(seed, preset){
     }
     return a;
   }
-  const voidsA=[{x:WORLD.w*0.55,y:WORLD.h*0.30,r:230},{x:WORLD.w*0.78,y:WORLD.h*0.72,r:200}];
-  const voidsV=[{x:WORLD.w*0.45,y:WORLD.h*0.70,r:230},{x:WORLD.w*0.70,y:WORLD.h*0.28,r:200}];
+  const voidsA=[{x:WORLD.w*0.55,y:WORLD.h*0.30,r:700},{x:WORLD.w*0.78,y:WORLD.h*0.72,r:620}];
+  const voidsV=[{x:WORLD.w*0.45,y:WORLD.h*0.70,r:700},{x:WORLD.w*0.70,y:WORLD.h*0.28,r:620}];
 
   // generator chosen by preset, scaled by the tree-shape sliders (genParams)
   const D=genParams, dens=D.density, len=D.length, curl=D.curl;
   const grow = (root, voids, baseAng) => {
     if(preset==='recursive')
-      growRecursive(rng, root, baseAng, {maxDepth:11,minLen:14*len,len0:300*len,decay:0.76,spread:0.52,triProb:0.24*dens,curl,maxNodes:1600});
+      growRecursive(rng, root, baseAng, {maxDepth:11,minLen:44*len,len0:950*len,decay:0.76,spread:0.52,triProb:0.24*dens,curl,maxNodes:1600});
     else if(preset==='dla')
-      growDLA(rng, root, {stick:14,step:7*len,steps:130,spawn:40,kill:130,maxNodes:Math.round(820*dens)});
+      growDLA(rng, root, {stick:44,step:23*len,steps:130,spawn:125,kill:400,maxNodes:Math.round(820*dens)});
     else if(preset==='cco')
-      growCCO(rng, root, {maxConn:6000,minDist:26/Math.sqrt(dens),maxStep:62*len,maxNodes:Math.round(1150*dens)});
+      growCCO(rng, root, {maxConn:6000,minDist:82/Math.sqrt(dens),maxStep:200*len,maxNodes:Math.round(1150*dens)});
     else
-      growTree(rng, root, cloud(Math.round(900*dens),voids), {influence:300,kill:46/Math.sqrt(dens),seg:22*len,maxIter:700,curl,maxNodes:Math.round(1400*dens)});
+      growTree(rng, root, cloud(Math.round(900*dens),voids), {influence:950,kill:150/Math.sqrt(dens),seg:70*len,maxIter:700,curl,maxNodes:Math.round(1400*dens)});
   };
 
   // ---- arterial tree (flows root -> leaves) ----
@@ -573,11 +678,11 @@ function buildNetwork(seed, preset){
     const vL = nearestLeaf(aL.x,aL.y, venLeaves);
     if(!vL) continue;
     const dist=Math.hypot(vL.x-aL.x, vL.y-aL.y);
-    if(dist>520) continue;                 // too far → leave as a dead tip
-    const segs = clamp(Math.round(dist/26), 3, 12);
+    if(dist>1500) continue;                // too far → leave as a dead tip
+    const segs = clamp(Math.round(dist/70), 4, 16);
     // perpendicular for meander
     let px=-(vL.y-aL.y)/dist, py=(vL.x-aL.x)/dist;
-    const amp = lerp(10,46,rng());
+    const amp = lerp(30,140,rng());
     const phase = rng()*TAU, waves = 1+Math.floor(rng()*2);
     let prev=aL;
     for(let i=1;i<segs;i++){
@@ -609,6 +714,76 @@ function buildNetwork(seed, preset){
   const outgoing = nodes.map(()=>[]);
   for(const e of edges) outgoing[e.a.id].push(e);
 
+  // ---- smoothed node tangents (B-spline-ish tube frames) --------------------
+  // Every segment is drawn as a capsule impostor, but shading it with its own
+  // chord direction makes each capsule read as a separate sausage link. Summing
+  // the (consistently downstream-oriented) chords of all edges meeting at a node
+  // gives one shared tangent per node; the shader then interpolates the tube's
+  // cross-section frame between the two endpoint tangents, so the lighting,
+  // the cutaway banding and the highlight run continuously through a joint.
+  for(const n of nodes){ n.tx=0; n.ty=0; }
+  for(const e of edges){
+    e.a.tx+=e.ux; e.a.ty+=e.uy;
+    e.b.tx+=e.ux; e.b.ty+=e.uy;
+  }
+  for(const e of edges){                       // fall back to the chord if degenerate
+    for(const n of [e.a,e.b]){
+      if(n._tn) continue;
+      const L=Math.hypot(n.tx,n.ty);
+      if(L>1e-6){ n.tx/=L; n.ty/=L; } else { n.tx=e.ux; n.ty=e.uy; }
+      n._tn=true;
+    }
+  }
+
+  // ---- undirected adjacency (game mode: a swimmer may go against the flow) ----
+  // incident[nodeId] = [{e, d}] with d=+1 when leaving the node along a→b,
+  // d=-1 when leaving along b→a.
+  const incident = nodes.map(()=>[]);
+  for(const e of edges){ incident[e.a.id].push({e,d:1}); incident[e.b.id].push({e,d:-1}); }
+
+  // Mitre flags. Where exactly two segments meet at a gentle angle (a plain
+  // chain node) the two capsules are clipped against the shared bisector plane
+  // instead of drawing their round end caps, so consecutive segments tile into
+  // one continuous tube — no cap bulge, no dark ring at every joint. Tips
+  // (degree 1), branch points (degree ≥ 3) and sharp kinks keep their round
+  // caps: a steep bisector would cut a long flat wedge out of the tube.
+  for(const n of nodes) n.mitre=false;
+  for(let i=0;i<nodes.length;i++){
+    const inc=incident[i];
+    if(inc.length!==2) continue;
+    const e0=inc[0].e, e1=inc[1].e;                     // both oriented downstream
+    nodes[i].mitre = (e0.ux*e1.ux+e0.uy*e1.uy) > 0.72;  // turn < ~44°
+  }
+  for(const e of edges) e.clip=(e.a.mitre?1:0)+(e.b.mitre?2:0);
+
+  // ---- arc length along the network ----------------------------------------
+  // A single continuous "distance from the root" coordinate, in µm, running
+  // through every chain. The shaders draw the endothelial lining and the
+  // advected plasma streaks in this coordinate, so both patterns flow along the
+  // vessel and stay seamless across segment and branch boundaries.
+  {
+    for(const n of nodes) n.arc=-1;
+    const walk=(start)=>{
+      const q=[start]; start.arc=0;
+      for(let qi=0; qi<q.length; qi++){
+        const n=q[qi];
+        for(const it of incident[n.id]){
+          const o=it.d>0?it.e.b:it.e.a;
+          if(o.arc>=0) continue;
+          o.arc=n.arc+it.e.len; q.push(o);
+        }
+      }
+    };
+    walk(aRoot);
+    for(const n of nodes) if(n.arc<0) walk(n);      // any detached fragment
+  }
+
+  // Bulk-flow speed per segment. Velocity rises with calibre but sub-linearly
+  // (~r^0.6): straight proportionality was fine when the widest vessel was a few
+  // cells across, but with real Murray trunks it would make the arteries a blur.
+  // This lands at ~35 µm/s in a capillary, ~90 in an arteriole, ~220 in a trunk.
+  for(const e of edges) e.flowBase = 15*Math.pow(Math.max(e.radius,0.5),0.6);
+
   // bounding boxes for culling
   for(const e of edges){
     e.minx=Math.min(e.a.x,e.b.x)-e.radius; e.maxx=Math.max(e.a.x,e.b.x)+e.radius;
@@ -621,7 +796,7 @@ function buildNetwork(seed, preset){
   // edges sorted thick→thin so thin vessels paint on top
   const drawEdges = edges.slice().sort((p,q)=>q.radius-p.radius);
 
-  return { nodes, edges, drawEdges, outgoing, rootEdges, aRoot, vRoot,
+  return { nodes, edges, drawEdges, outgoing, incident, rootEdges, aRoot, vRoot,
            artLeaves, venLeaves, capBeds,
            landmarks: pickLandmarks(aRoot,vRoot,edges) };
 }
@@ -646,7 +821,7 @@ let TISSUE=[];
 function buildTissue(seed){
   const rng=mulberry32(seed^0x9e3779b9);
   TISSUE=[];
-  const sp=52;
+  const sp=132;
   for(let y=-sp; y<WORLD.h+sp; y+=sp){
     for(let x=-sp; x<WORLD.w+sp; x+=sp){
       const cx=x+(rng()-0.5)*sp*0.9, cy=y+(rng()-0.5)*sp*0.9;
@@ -749,20 +924,45 @@ function buildSprites(){
 //  BLOOD CELLS  (particles travelling the directed graph)
 // ============================================================================
 let CELLS=[];
-const MAX_CELLS=4200;
+// Wide lumina over a millimetre-scale bed hold a lot more traffic than a
+// two-cell pipe, so the particle budget is large — see the two levels of detail
+// in `frame()`: cells are skipped entirely below ~1 px, and above that only the
+// ones in vessels near the viewport are advanced.
+const MAX_CELLS=56000;
 // particle kinds travelling the vessels — red cells plus, for the game framing,
 // leukocytes, platelets and the occasional bacterium / virus.
 const KIND_ID  ={rbc:0, wbc:1, plt:2, bac:3, vir:4};
 const KIND_SIZE={rbc:RBC_R, wbc:RBC_R*1.7, plt:RBC_R*0.6, bac:RBC_R*1.15, vir:RBC_R*0.72};
+// pack one cell into a GPU instance slot (x,y,angle,size, oxy,kind) if it is on
+// screen — shared by the WebGL2 and WebGPU streams.
+function packCell(data,n,c){
+  if(n>=MAX_CELLS || (!c.foe && !c.e.vis)) return n;
+  const px=sx(c.wx), py=sy(c.wy);
+  if(px<-60||px>VW+60||py<-60||py>VH+60) return n;
+  const o=n*6;
+  data[o]=c.wx; data[o+1]=c.wy; data[o+2]=c.ang;
+  data[o+3]=c.size||KIND_SIZE[c.kind];
+  data[o+4]=c.oxy; data[o+5]=KIND_ID[c.kind];
+  return n+1;
+}
+// game actors are packed first so the visible-cell budget can never drop them
+function packGameCells(data,n){
+  if(!GAME.on) return n;
+  for(const f of GAME.foes) n=packCell(data,n,f);
+  if(GAME.player) n=packCell(data,n,GAME.player);
+  return n;
+}
 function seedCells(){
   CELLS=[];
   staticDirty=true;              // force the GPU cell buffer to re-stream next frame
   const E=NET.edges;
-  // weight by lumen volume so big vessels carry more cells
-  let tot=0; for(const e of E) tot+= e.len*e.radius*e.radius;
-  const want=Math.min(MAX_CELLS, (densityMul*2600)|0);
+  // Weight by the lumen's *visible area* (len × diameter), not its volume: this
+  // is a cross-section view, so area is what has to be filled, and volume
+  // weighting would starve the small vessels to over-pack the trunks.
+  let tot=0; for(const e of E) tot+= e.len*e.radius;
+  const want=Math.min(MAX_CELLS, (densityMul*38000)|0);
   for(const e of E){
-    let n=Math.round(want * (e.len*e.radius*e.radius)/tot);
+    let n=Math.round(want * (e.len*e.radius)/tot);
     if(e.type==='cap') n=Math.max(n, e.radius>CAP_R*1.2?1:0); // keep some in capillaries
     for(let i=0;i<n;i++) CELLS.push(makeCell(e, Math.random()));
   }
@@ -778,7 +978,7 @@ function makeCell(e,s){
     spin:(Math.random()-0.5)*0.6,
     ang:Math.random()*TAU,
     jit:0.8+Math.random()*0.5,
-    off:(Math.random()-0.5),          // lateral position in lumen (0=center)
+    off:(Math.random()*2-1),          // lateral position in lumen (0=centre, ±1=wall)
     oxy: e.oxyA!==undefined?e.oxyA:1 };
 }
 function pickNext(e){
@@ -875,7 +1075,7 @@ function drawVessels(){
     const oxy=((e.oxyA||0)+(e.oxyB||0))*0.5;
     const blood=bloodColAt(oxy);
     const wallC = e.type==='ven'?WALL_V:WALL_A;
-    const wallW = w*0.22*appear.wall;
+    const wallW = Math.min(w*0.22, 4+w*0.06)*appear.wall;   // sub-linear in calibre
 
     bgx.beginPath(); bgx.moveTo(ax,ay); bgx.lineTo(bx,by);
 
@@ -886,9 +1086,10 @@ function drawVessels(){
     // 3) blood lumen
     bgx.lineWidth=w; bgx.strokeStyle=rgb(mix(blood,[0,0,0],0.18)); bgx.stroke();
     // 4) bright core (cylindrical shading)
-    if(w>2.2){ bgx.lineWidth=w*0.62; bgx.strokeStyle=rgba(mix(blood,[255,235,235],0.30),0.9); bgx.stroke(); }
+    if(w>2.2){ bgx.lineWidth=w*0.62; bgx.strokeStyle=rgba(mix(blood,[255,235,235],0.20),0.9); bgx.stroke(); }
     // 5) glossy sheen
-    if(w>4 && appear.gloss>0){ bgx.lineWidth=Math.max(1,w*0.20); bgx.strokeStyle=rgba([255,225,225],Math.min(1,0.5*appear.gloss)); bgx.stroke(); }
+    if(w>4 && appear.gloss>0){ bgx.lineWidth=Math.min(Math.max(1,w*0.20),9);
+      bgx.strokeStyle=rgba([255,225,225],Math.min(1,0.34*appear.gloss)); bgx.stroke(); }
   }
 }
 
@@ -910,7 +1111,9 @@ function drawVesselsCutaway(){
     const oxy=((e.oxyA||0)+(e.oxyB||0))*0.5;
     segs.push({ax,ay,bx,by,w,ven:e.type==='ven',blood:bloodColAt(oxy)});
   }
-  const wallW=(w)=>w*0.32*Math.max(appear.wall,0.001);
+  // The wall and the highlights are sub-linear in calibre: a wide vessel should
+  // read as a broad lumen with a thin lining, not as a scaled-up thin one.
+  const wallW=(w)=>Math.min(w*0.32, 5+w*0.09)*Math.max(appear.wall,0.001);
   const pass=(each)=>{ for(const s of segs){ bgx.beginPath(); bgx.moveTo(s.ax,s.ay); bgx.lineTo(s.bx,s.by); each(s); } };
   // 1) dark cut-edge outline (a continuous ink line around every vessel)
   pass(s=>{ if(s.w<=1.6) return; bgx.lineWidth=s.w+Math.max(2,wallW(s.w))+2.2; bgx.strokeStyle='rgba(12,3,6,0.9)'; bgx.stroke(); });
@@ -920,11 +1123,11 @@ function drawVesselsCutaway(){
   // 3) lumen floor — deep blood (walls read darker because the wall shows behind)
   pass(s=>{ bgx.lineWidth=s.w; bgx.strokeStyle=rgb(mix(s.blood,[0,0,0],0.30)); bgx.stroke(); });
   // 4) concave core — bright down the middle, tapering (looking into the open tube)
-  pass(s=>{ if(s.w<=2.2) return; bgx.lineWidth=s.w*0.62; bgx.strokeStyle=rgb(mix(s.blood,[255,235,235],0.14)); bgx.stroke(); });
-  pass(s=>{ if(s.w<=3) return; bgx.lineWidth=s.w*0.30; bgx.strokeStyle=rgb(mix(s.blood,[255,238,238],0.34)); bgx.stroke(); });
+  pass(s=>{ if(s.w<=2.2) return; bgx.lineWidth=s.w*0.66; bgx.strokeStyle=rgb(mix(s.blood,[255,235,235],0.09)); bgx.stroke(); });
+  pass(s=>{ if(s.w<=3) return; bgx.lineWidth=s.w*0.30; bgx.strokeStyle=rgb(mix(s.blood,[255,238,238],0.20)); bgx.stroke(); });
   // 5) fluid sheen highlight
-  if(appear.gloss>0) pass(s=>{ if(s.w<=5) return; bgx.lineWidth=Math.max(1,s.w*0.12);
-    bgx.strokeStyle=rgba([255,228,228],Math.min(1,0.35*appear.gloss)); bgx.stroke(); });
+  if(appear.gloss>0) pass(s=>{ if(s.w<=5) return; bgx.lineWidth=Math.min(Math.max(1,s.w*0.10),7);
+    bgx.strokeStyle=rgba([255,228,228],Math.min(1,0.22*appear.gloss)); bgx.stroke(); });
 }
 
 // ============================================================================
@@ -1079,8 +1282,13 @@ function frame(now){
 
   // When paused, cells don't move — skip the whole update pass (all backends)
   // and let the GPU paths reuse the last streamed cell buffer.
+  // level of detail: below ~1 px a red cell is not worth simulating or drawing
+  cellsLOD = RBC_R*2*cam.scale > 1.15;
+  markVisibleEdges();
+
   const moving=!paused;
   if(moving) updateCells(dt,pulse);
+  if(GAME.on && moving) updateGame(dt,pulse);
   const viewDirty=staticDirty;          // captured before drawStatic clears it
   const restream=moving||viewDirty;     // rebuild the visible-cell buffer only when needed
 
@@ -1092,16 +1300,18 @@ function frame(now){
       if(staticDirty) drawStatic();
       ctx.setTransform(DPR,0,0,DPR,0,0);
       ctx.drawImage(bg,0,0,VW,VH);
-      if(show.cells){ if(shadeMode==='outline') drawCellsOutline(); else drawCellsCanvas(); }
+      if(show.cells&&(cellsLOD||GAME.on)){ if(shadeMode==='outline') drawCellsOutline(); else drawCellsCanvas(); }
       _canvasReady=true;
     }
   }else if(eff==='webgpu'){
-    try{ gpuRender(MODE_UNIFORM[shadeMode]||1, restream); staticDirty=false; }
+    try{ gpuRender(MODE_UNIFORM[shadeMode]||1, restream, pulse); staticDirty=false; }
     catch(err){ console.error('WebGPU render failed, falling back to WebGL2:',err); GPU=null; applyBackend(); }
   }else{
     glRender(pulse, restream); staticDirty=false;
   }
 
+  drawFX();
+  updateHUD();
   drawScaleBar();
   // heartbeat indicator
   const dot=document.getElementById('hbdot');
@@ -1111,20 +1321,41 @@ function frame(now){
   requestAnimationFrame(frame);
 }
 
+// bulk-flow velocity on an edge (µm/s), shared by the drifting cells and the
+// game swimmer — velocity ∝ calibre, modulated by the pulse per vessel class.
+function flowV(e,pulse){
+  let pf;                                    // pulsatility differs along the tree
+  if(e.type==='art') pf=0.45+0.95*pulse;
+  else if(e.type==='cap') pf=0.55+0.35*pulse;
+  else pf=0.75+0.30*pulse;
+  return e.flowBase*speedMul*pf;
+}
+
+// Mark the vessels near the viewport. Cells in vessels nobody can see are left
+// frozen — the bed spans millimetres and carries tens of thousands of particles,
+// and advancing the off-screen ones is work with no pixels to show for it.
+let cellsLOD=true;
+function markVisibleEdges(){
+  const M=120/cam.scale;
+  const x0=wX(0)-M, x1=wX(VW)+M, y0=wY(0)-M, y1=wY(VH)+M;
+  for(const e of NET.edges) e.vis = !(e.maxx<x0||e.minx>x1||e.maxy<y0||e.miny>y1);
+}
+
 // advance every cell along the directed graph + store world pose (shared by both renderers)
 function updateCells(dt,pulse){
   const step = paused?0:dt;
   for(const c of CELLS){
     const e=c.e;
-    let pf;                                  // pulsatility differs along the tree
-    if(e.type==='art') pf=0.45+0.95*pulse;
-    else if(e.type==='cap') pf=0.55+0.35*pulse;
-    else pf=0.75+0.30*pulse;
-    const v=(4.2*e.radius)*speedMul*pf*c.jit; // velocity ∝ calibre (µm/s-ish)
+    if(!c.foe && (!cellsLOD || !e.vis)) continue;   // off-screen / too small to see
+    const v=flowV(e,pulse)*c.jit;
     c.s += v*step/e.len;
     let guard=0;
     while(c.s>=1 && guard++<8){
       c.s-=1;
+      // a particle leaving the venous root drains back to the heart; in game
+      // mode a pathogen doing that has spread through the circulation.
+      const outs=NET.outgoing[e.b.id];
+      if((!outs||outs.length===0) && c.foe) foeEscaped(c);
       const ne=pickNext(e);
       if(ne.type==='cap'){ c.oxy = ne.oxyB!==undefined? lerp(c.oxy,ne.oxyB,0.5):c.oxy; }
       else if(ne.type==='art') c.oxy=1;
@@ -1132,7 +1363,9 @@ function updateCells(dt,pulse){
       c.e=ne; break;
     }
     const ed=c.e, t=c.s;
-    const latMax=Math.max(0, ed.radius - RBC_R*0.7);
+    // fill the whole lumen, not just the middle lane — a wide vessel should
+    // carry cells shoulder to shoulder right up to the endothelium
+    const latMax=Math.max(0, ed.radius*0.88 - (KIND_SIZE[c.kind]||RBC_R)*0.8);
     const lat=(ed.type==='cap'?0:c.off*latMax);
     c.wx = ed.a.x+(ed.b.x-ed.a.x)*t + (-ed.uy)*lat;
     c.wy = ed.a.y+(ed.b.y-ed.a.y)*t + ( ed.ux)*lat;
@@ -1140,44 +1373,49 @@ function updateCells(dt,pulse){
   }
 }
 
+function drawCellCanvas(c,S){
+  if(!c.foe && !c.e.vis) return;
+  const px=sx(c.wx), py=sy(c.wy);
+  if(px<-40||px>VW+40||py<-40||py>VH+40) return;
+  const ang=c.ang, w0=(c.size||KIND_SIZE[c.kind])*2*S;
+  if(c.kind==='rbc'){
+    const w=w0;
+    if(w<1.4){ ctx.fillStyle=rgb(bloodColAt(c.oxy)); ctx.fillRect(px-0.6,py-0.6,1.2,1.2); return; }
+    if(w<5){ ctx.fillStyle=rgb(bloodColAt(c.oxy));
+      ctx.beginPath(); ctx.ellipse(px,py,w*0.5,w*0.42,ang,0,TAU); ctx.fill(); return; }
+    const idx=clamp(Math.round(c.oxy*(OXY_STEPS-1)),0,OXY_STEPS-1);
+    ctx.save(); ctx.translate(px,py); ctx.rotate(ang);
+    ctx.drawImage(RBC_SPRITES[idx],-w*0.62,-w*0.56,w*1.24,w*1.12); ctx.restore();
+  } else if(c.kind==='wbc'){
+    const w=Math.max(w0,2);
+    if(w<3){ ctx.fillStyle='#efe2ea'; ctx.fillRect(px-1,py-1,2,2); return; }
+    ctx.save(); ctx.translate(px,py); ctx.rotate(ang*0.3);
+    ctx.drawImage(WBC_SPRITE,-w*0.7,-w*0.7,w*1.4,w*1.4); ctx.restore();
+  } else if(c.kind==='bac'){
+    const w=Math.max(w0,2);
+    if(w<3){ ctx.fillStyle='#3fa876'; ctx.fillRect(px-1,py-1,2,2); return; }
+    ctx.save(); ctx.translate(px,py); ctx.rotate(ang);
+    ctx.drawImage(BAC_SPRITE,-w*0.7,-w*0.7,w*1.4,w*1.4); ctx.restore();
+  } else if(c.kind==='vir'){
+    const w=Math.max(w0,2);
+    if(w<3){ ctx.fillStyle='#d8b846'; ctx.fillRect(px-1,py-1,2,2); return; }
+    ctx.save(); ctx.translate(px,py); ctx.rotate(ang*1.5);
+    ctx.drawImage(VIR_SPRITE,-w*0.8,-w*0.8,w*1.6,w*1.6); ctx.restore();
+  } else {
+    const w=Math.max(w0,1.5);
+    if(w<2) return;
+    ctx.save(); ctx.translate(px,py); ctx.rotate(ang*2);
+    ctx.drawImage(PLT_SPRITE,-w*0.7,-w*0.7,w*1.4,w*1.4); ctx.restore();
+  }
+}
 function drawCellsCanvas(){
   const S=cam.scale;
-  const vx0=-40,vy0=-40,vx1=VW+40,vy1=VH+40;
-  const rbcScreen=RBC_R*2*S;
-  for(const c of CELLS){
-    const px=sx(c.wx), py=sy(c.wy);
-    if(px<vx0||px>vx1||py<vy0||py>vy1) continue;
-    const ang=c.ang;
-    if(c.kind==='rbc'){
-      const w=rbcScreen;
-      if(w<1.4){ ctx.fillStyle=rgb(bloodColAt(c.oxy)); ctx.fillRect(px-0.6,py-0.6,1.2,1.2); continue; }
-      if(w<5){ ctx.fillStyle=rgb(bloodColAt(c.oxy));
-        ctx.beginPath(); ctx.ellipse(px,py,w*0.5,w*0.42,ang,0,TAU); ctx.fill(); continue; }
-      const idx=clamp(Math.round(c.oxy*(OXY_STEPS-1)),0,OXY_STEPS-1);
-      ctx.save(); ctx.translate(px,py); ctx.rotate(ang);
-      ctx.drawImage(RBC_SPRITES[idx],-w*0.62,-w*0.56,w*1.24,w*1.12); ctx.restore();
-    } else if(c.kind==='wbc'){
-      const w=Math.max(rbcScreen*1.7,2);
-      if(w<3){ ctx.fillStyle='#efe2ea'; ctx.fillRect(px-1,py-1,2,2); continue; }
-      ctx.save(); ctx.translate(px,py); ctx.rotate(ang*0.3);
-      ctx.drawImage(WBC_SPRITE,-w*0.7,-w*0.7,w*1.4,w*1.4); ctx.restore();
-    } else if(c.kind==='bac'){
-      const w=Math.max(rbcScreen*1.15,2);
-      if(w<3){ ctx.fillStyle='#3fa876'; ctx.fillRect(px-1,py-1,2,2); continue; }
-      ctx.save(); ctx.translate(px,py); ctx.rotate(ang);
-      ctx.drawImage(BAC_SPRITE,-w*0.7,-w*0.7,w*1.4,w*1.4); ctx.restore();
-    } else if(c.kind==='vir'){
-      const w=Math.max(rbcScreen*0.72,2);
-      if(w<3){ ctx.fillStyle='#d8b846'; ctx.fillRect(px-1,py-1,2,2); continue; }
-      ctx.save(); ctx.translate(px,py); ctx.rotate(ang+c.ang*0.5);
-      ctx.drawImage(VIR_SPRITE,-w*0.8,-w*0.8,w*1.6,w*1.6); ctx.restore();
-    } else {
-      const w=Math.max(rbcScreen*0.6,1.5);
-      if(w<2) continue;
-      ctx.save(); ctx.translate(px,py); ctx.rotate(ang+c.ang);
-      ctx.drawImage(PLT_SPRITE,-w*0.7,-w*0.7,w*1.4,w*1.4); ctx.restore();
-    }
+  // game actors first so they are never dropped by the visible-cell budget
+  if(GAME.on){
+    for(const f of GAME.foes) drawCellCanvas(f,S);
+    if(GAME.player) drawCellCanvas(GAME.player,S);
   }
+  for(const c of CELLS){ if(c.foe) continue; drawCellCanvas(c,S); }
 }
 
 // ============================================================================
@@ -1202,7 +1440,7 @@ function drawScaleBar(){
 function resize(){
   DPR=Math.min(window.devicePixelRatio||1,2);
   VW=window.innerWidth; VH=window.innerHeight;
-  for(const cnv of [cv,bg,glcv,gpucv]){ cnv.width=VW*DPR; cnv.height=VH*DPR; cnv.style.width=VW+'px'; cnv.style.height=VH+'px'; }
+  for(const cnv of [cv,bg,glcv,gpucv,fxcv]){ cnv.width=VW*DPR; cnv.height=VH*DPR; cnv.style.width=VW+'px'; cnv.style.height=VH+'px'; }
   if(GPU&&GPU.ready&&GPU.configure) GPU.configure();
   staticDirty=true;
 }
@@ -1224,15 +1462,25 @@ const pointers=new Map(); let drag=null, lastPinch=null;
 
 stage.addEventListener('wheel',(e)=>{ e.preventDefault();
   zoomAt(e.clientX,e.clientY, Math.exp(-e.deltaY*0.0016)); },{passive:false});
-stage.addEventListener('dblclick',(e)=> zoomAt(e.clientX,e.clientY,1.8));
+stage.addEventListener('dblclick',(e)=>{ if(GAME.state!=='play') zoomAt(e.clientX,e.clientY,1.8); });
 
 stage.addEventListener('pointerdown',(e)=>{
   pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
   try{ stage.setPointerCapture(e.pointerId); }catch(_){}
+  if(GAME.state==='play'){                       // playing: pointer steers, no panning
+    if(pointers.size>=2) lastPinch=null; else gameSteerAt(e.clientX,e.clientY);
+    return;
+  }
   if(pointers.size===1){ drag={x:e.clientX,y:e.clientY}; stage.classList.add('drag'); }
   else lastPinch=null;           // a second finger landed → (re)start pinch baseline
 });
 stage.addEventListener('pointermove',(e)=>{
+  if(GAME.state==='play'){
+    if(pointers.has(e.pointerId)) pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(pointers.size>=2){ pinch(); return; }    // pinch-zoom still works while playing
+    if(e.pointerType==='mouse'||pointers.has(e.pointerId)) gameSteerAt(e.clientX,e.clientY);
+    return;
+  }
   if(!pointers.has(e.pointerId)) return;
   pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
   if(pointers.size>=2){ pinch(); return; }
@@ -1243,6 +1491,8 @@ stage.addEventListener('pointermove',(e)=>{
 function endPtr(e){
   pointers.delete(e.pointerId);
   try{ stage.releasePointerCapture(e.pointerId); }catch(_){}
+  // touch steering stops when the finger lifts (a mouse keeps steering by hover)
+  if(GAME.state==='play' && e.pointerType!=='mouse' && pointers.size===0) GAME.steer=null;
   if(pointers.size<2) lastPinch=null;
   if(pointers.size===1){ const r=[...pointers.values()][0]; drag={x:r.x,y:r.y}; } // resume one-finger pan cleanly
   if(pointers.size===0){ drag=null; stage.classList.remove('drag'); }
@@ -1316,12 +1566,512 @@ sl('wallt','wallw',x=>(x/100).toFixed(2)+'×', x=>{ appear.wall=x/100; staticDir
 sl('gloss','glossv',x=>(x/100).toFixed(2)+'×',x=>{ appear.gloss=x/100; staticDirty=true; }, true);
 
 document.addEventListener('keydown',(e)=>{
+  if(GAME.on && gameKey(e,true)) return;   // game mode claims WASD / space / esc
   if(e.key==='+'||e.key==='=') zoomAt(VW/2,VH/2,1.4);
   else if(e.key==='-'||e.key==='_') zoomAt(VW/2,VH/2,1/1.4);
   else if(e.key===' '){ e.preventDefault(); document.getElementById('pause').click(); }
   else if(e.key.toLowerCase()==='f') fit();
   else if(e.key.toLowerCase()==='r') regenerate((Math.random()*1e9)|0);
 });
+
+// ============================================================================
+//  GAME MODE — "IMMUNE PATROL"
+//  ----------------------------------------------------------------------------
+//  The vascular bed doubles as a playfield. You steer a neutrophil that swims
+//  the vessel graph itself: movement is constrained to the lumen, and every
+//  segment carries you along with its own bulk flow, so
+//    • arteries are fast one-way highways (hard to swim back up),
+//    • capillaries are a slow squeeze (the cell deforms to the calibre),
+//    • the venous root drains to the heart and recirculates you to the aorta.
+//  Bacteria and viruses drift with the blood, divide on a timer, and push the
+//  infection meter up every time they divide or drain out through a vein.
+//  ==========================================================================
+const GAME={
+  on:false, state:'off',            // 'off' | 'play' | 'over'
+  diff:'normal',
+  player:null, foes:[], artEdges:[], fx:[], pops:[],
+  score:0, best:0, combo:0, comboT:0,
+  infection:0, wave:1, t:0, spawnT:0, kills:0, escapes:0,
+  steer:null, boost:false, keys:{}, flash:0, heart:0, toast:'', toastT:0,
+};
+try{ GAME.best=+(localStorage.getItem('bv-best')||0)||0; }catch(_){}
+
+// difficulty: spawn interval (s), division time (s), wave length (s),
+// infection per division / per escape, natural clearance per second, foe cap
+const DIFF={
+  calm  :{spawn:6.5, div:17, waveT:55, infDiv:1.4, infEsc:3.5, decay:1.15, cap:16, start:2},
+  normal:{spawn:4.6, div:12, waveT:42, infDiv:2.2, infEsc:6.0, decay:0.75, cap:24, start:3},
+  fever :{spawn:3.0, div:8.5,waveT:32, infDiv:3.0, infEsc:8.0, decay:0.45, cap:34, start:4},
+};
+const SWIM=112;                     // self-propulsion along the vessel (µm/s)
+const LAT_SWIM=70;                  // ...and across the lumen (µm/s)
+
+// ---------------------------------------------------------------- entities --
+function makePlayer(){
+  // start on a mid-calibre arteriole — wide enough to move, deep in the bed
+  const cand=NET.edges.filter(e=>e.type==='art'&&e.radius>ART_TIP*1.5&&e.radius<ART_TIP*3.4);
+  const e=cand.length? cand[(Math.random()*cand.length)|0] : (NET.rootEdges[0]||NET.edges[0]);
+  const base=RBC_R*2.2;                       // a neutrophil is ~2 red cells wide
+  return { e, s:0.5, kind:'wbc', base, size:base, oxy:1, ang:0, o2:100, lat:0,
+           wx:lerp(e.a.x,e.b.x,0.5), wy:lerp(e.a.y,e.b.y,0.5),
+           sx:0, sy:0, boosting:false, vel:0 };
+}
+function foeDivTime(){
+  const D=DIFF[GAME.diff];
+  return D.div*(0.65+Math.random()*0.7)/(1+(GAME.wave-1)*0.13);
+}
+function spawnFoe(kind,edge,s,spawned){
+  const c={ e:edge, s, kind, foe:true, spawned:!!spawned,
+            spin:(Math.random()-0.5)*0.6, ang:Math.random()*TAU,
+            jit:(kind==='vir'?1.3:1.0)+Math.random()*0.35,
+            off:(Math.random()*2-1), oxy:edge.oxyA!==undefined?edge.oxyA:1,
+            wx:lerp(edge.a.x,edge.b.x,s), wy:lerp(edge.a.y,edge.b.y,s),
+            div:foeDivTime() };
+  CELLS.push(c); GAME.foes.push(c);
+  return c;
+}
+// invaders arrive with the arterial blood, upstream, so they have a long run
+// through the bed before they can drain out on the venous side
+function spawnInvader(){
+  const pool=GAME.artEdges.length?GAME.artEdges:NET.edges;
+  const e=pool[(Math.random()*pool.length)|0];
+  return spawnFoe(Math.random()<0.65?'bac':'vir', e, Math.random(), true);
+}
+// re-scatter a little harmless flora when the game is left, so the sandbox
+// keeps the odd bacterium / virus drifting past
+function seedFlora(n){
+  for(let i=0;i<n;i++){
+    const e=NET.edges[(Math.random()*NET.edges.length)|0];
+    CELLS.push(makeCell(e,Math.random()));
+    const c=CELLS[CELLS.length-1];
+    c.kind=Math.random()<0.6?'bac':'vir';
+  }
+}
+function purgePathogens(){
+  for(let i=CELLS.length-1;i>=0;i--){ const k=CELLS[i].kind; if(k==='bac'||k==='vir') CELLS.splice(i,1); }
+}
+function removeFoe(f,i){
+  GAME.foes.splice(i,1);
+  const j=CELLS.indexOf(f); if(j>=0) CELLS.splice(j,1);
+}
+function clearFoes(){
+  for(let i=GAME.foes.length-1;i>=0;i--){
+    const f=GAME.foes[i];
+    if(f.spawned){ const j=CELLS.indexOf(f); if(j>=0) CELLS.splice(j,1); }
+    else f.foe=false;                       // native flora stays in the bed
+  }
+  GAME.foes.length=0;
+}
+
+// ------------------------------------------------------------ player motion --
+function updatePlayer(dt,pulse){
+  const p=GAME.player; if(!p) return;
+  // steering: keyboard wins over pointer
+  let dx=0,dy=0; const k=GAME.keys;
+  if(k.l)dx-=1; if(k.r)dx+=1; if(k.u)dy-=1; if(k.d)dy+=1;
+  if(!dx&&!dy&&GAME.steer){ dx=GAME.steer.x; dy=GAME.steer.y; }
+  const L=Math.hypot(dx,dy); if(L>1e-4){dx/=L;dy/=L;} else {dx=0;dy=0;}
+  p.sx=dx; p.sy=dy;
+  const moving=(dx||dy)?1:0;
+
+  // oxygen: refills in oxygen-rich arterial blood, burns while swimming
+  const e=p.e, oxyHere=(((e.oxyA||0)+(e.oxyB||0))*0.5);
+  const boosting=!!(GAME.boost&&moving&&p.o2>2);
+  p.boosting=boosting;
+  p.o2=clamp(p.o2 + (oxyHere*17-3.2)*dt - (moving*4+(boosting?30:0))*dt, 0, 100);
+  const power=(p.o2>0.5?1:0.4)*(boosting?2.15:1);
+
+  // Commit to travelling one way along the current segment. A swimmer inside a
+  // tube can only push along its axis, so the steering vector picks a *heading*
+  // (down- or up-stream) rather than scaling the thrust away to nothing — a
+  // dead zone around the perpendicular keeps the last heading, so pushing
+  // sideways in a horizontal vessel still carries you to the next junction.
+  let dir=0;
+  if(moving){
+    const along=dx*e.ux+dy*e.uy;
+    dir = along>0.12 ? 1 : along<-0.12 ? -1 : (p.dirSign||1);
+  }
+  p.dirSign=dir;
+  const v=axialV(e,pulse,dir,dx,dy,power);
+  p.s += v*dt/e.len;
+
+  let guard=0;
+  while((p.s>1||p.s<0) && guard++<8){
+    const cur=p.e, atB=p.s>1, node=atB?cur.b:cur.a;
+    if(!stepJunction(p,node, atB?cur.ux:-cur.ux, atB?cur.uy:-cur.uy, dx,dy, pulse,power)) break;
+  }
+  p.s=clamp(p.s,0,1);
+  const ed=p.e, sgn=v>=0?1:-1;
+  // the cell deforms to the lumen — it squeezes thin in a capillary
+  p.size=Math.min(p.base, Math.max(p.base*0.6, ed.radius*1.5));
+  // ...and crosses it: the sideways part of the steering changes lane, so a wide
+  // vessel is a channel you swim *in*, not a rail you slide along
+  const perp=dx*(-ed.uy)+dy*ed.ux;
+  const latMax=Math.max(0, ed.radius*0.88-p.size*0.85);
+  p.lat=clamp((p.lat||0)+perp*LAT_SWIM*power*dt, -latMax, latMax);
+  p.wx=ed.a.x+(ed.b.x-ed.a.x)*p.s + (-ed.uy)*p.lat;
+  p.wy=ed.a.y+(ed.b.y-ed.a.y)*p.s + ( ed.ux)*p.lat;
+  p.ang=Math.atan2(ed.uy*sgn, ed.ux*sgn);
+  p.oxy=oxyHere; p.vel=v;
+}
+
+// Net velocity along a segment (+ = a→b): bulk flow plus the swim. `dir` is the
+// heading the swimmer commits to (+1 a→b, -1 b→a, 0 = drifting); thrust is
+// full-ish whenever a heading is held, and damped in narrow vessels where a
+// leukocyte has to squeeze through.
+const DRIVE_MIN=0.72;
+function axialV(e,pulse,dir,dx,dy,power){
+  if(!dir) return flowV(e,pulse)*0.9;
+  const mag=Math.max(Math.abs(dx*e.ux+dy*e.uy),DRIVE_MIN);
+  return flowV(e,pulse)*0.9 + SWIM*dir*mag*power*clamp(e.radius/8,0.45,1.25);
+}
+// Pick the branch that best matches where the player is heading — but only from
+// the branches the player could actually *enter*: on a candidate whose flow
+// would immediately push back into this node, you simply don't get in. That
+// keeps a swimmer fighting a strong artery from rattling between two branches.
+function stepJunction(p,node,tvx,tvy,dx,dy,pulse,power){
+  const inc=NET.incident[node.id];
+  if(!inc||!inc.length){ p.s=clamp(p.s,0,1); return false; }
+  if(node===NET.vRoot){ recirculate(p); return false; }   // drained to the heart
+  let px=tvx*0.6+dx, py=tvy*0.6+dy;
+  const L=Math.hypot(px,py)||1; px/=L; py/=L;
+  let best=null, bs=-Infinity;
+  for(const it of inc){
+    const v=axialV(it.e,pulse,it.d,dx,dy,power);
+    if(it.d>0 ? v<=1e-3 : v>=-1e-3) continue;             // can't get in against it
+    const other=it.d>0?it.e.b:it.e.a;
+    const ox=other.x-node.x, oy=other.y-node.y, m=Math.hypot(ox,oy)||1;
+    let sc=(ox/m)*px+(oy/m)*py;
+    if(it.e===p.e) sc-=0.15;                              // prefer a fresh branch
+    if(sc>bs){ bs=sc; best=it; }
+  }
+  if(!best){ p.s=clamp(p.s,0,1); return false; }          // pinned against the flow
+  p.e=best.e; p.s=best.d>0?0.002:0.998; p.dirSign=best.d;
+  return true;
+}
+function recirculate(p){
+  const r=NET.rootEdges;
+  p.e=r.length? r[(Math.random()*r.length)|0] : NET.edges[0];
+  p.s=0.02; p.o2=clamp(p.o2+25,0,100);
+  GAME.heart=1;
+  toast('♥ through the heart — back into the artery');
+}
+
+// ------------------------------------------------------------------ scoring --
+function captureFoe(f,i){
+  const p=GAME.player;
+  GAME.combo++; GAME.comboT=3.4;
+  const mult=1+Math.min(GAME.combo-1,9)*0.25;
+  const gain=Math.round((f.kind==='vir'?25:10)*mult);
+  GAME.score+=gain; GAME.kills++;
+  GAME.infection=clamp(GAME.infection-1.2,0,100);
+  p.o2=clamp(p.o2+4,0,100);
+  GAME.pops.push({x:f.wx,y:f.wy,t:0,txt:'+'+gain});
+  GAME.fx.push({x:f.wx,y:f.wy,t:0,life:0.5,r:KIND_SIZE[f.kind]*3.2,c:f.kind==='vir'?'240,205,90':'90,220,170'});
+  removeFoe(f,i);
+}
+function divideFoe(f){
+  const D=DIFF[GAME.diff];
+  f.div=foeDivTime();
+  if(GAME.foes.length>=D.cap) return;
+  spawnFoe(f.kind, f.e, clamp(f.s+(Math.random()-0.5)*0.12,0,1), true);
+  GAME.infection=clamp(GAME.infection+D.infDiv,0,100);
+  GAME.fx.push({x:f.wx,y:f.wy,t:0,life:0.45,r:KIND_SIZE[f.kind]*2.6,c:'255,120,90'});
+}
+// called from updateCells when a particle drains out of the venous root
+function foeEscaped(f){
+  if(GAME.state!=='play') return;
+  const D=DIFF[GAME.diff];
+  GAME.infection=clamp(GAME.infection+D.infEsc,0,100);
+  GAME.escapes++; GAME.combo=0; GAME.flash=1;
+  toast('a pathogen drained into the circulation');
+}
+function toast(txt){ GAME.toast=txt; GAME.toastT=2.6; }
+
+// --------------------------------------------------------------- game clock --
+function updateGame(dt,pulse){
+  GAME.t+=dt;
+  if(GAME.heart>0) GAME.heart=Math.max(0,GAME.heart-dt*1.5);
+  if(GAME.flash>0) GAME.flash=Math.max(0,GAME.flash-dt*1.6);
+  if(GAME.toastT>0) GAME.toastT-=dt;
+  for(let i=GAME.fx.length-1;i>=0;i--){ const x=GAME.fx[i]; x.t+=dt; if(x.t>x.life) GAME.fx.splice(i,1); }
+  for(let i=GAME.pops.length-1;i>=0;i--){ const x=GAME.pops[i]; x.t+=dt; if(x.t>1.1) GAME.pops.splice(i,1); }
+  if(GAME.state!=='play') return;
+
+  const D=DIFF[GAME.diff];
+  updatePlayer(dt,pulse);
+
+  if(GAME.comboT>0){ GAME.comboT-=dt; if(GAME.comboT<=0) GAME.combo=0; }
+
+  const wave=1+Math.floor(GAME.t/D.waveT);
+  if(wave>GAME.wave){
+    GAME.wave=wave;
+    toast('Wave '+wave+' — the infection intensifies');
+    for(let i=0;i<Math.min(wave,5);i++) if(GAME.foes.length<D.cap) spawnInvader();
+  }
+  GAME.spawnT-=dt;
+  if(GAME.spawnT<=0){
+    GAME.spawnT=D.spawn/(1+(GAME.wave-1)*0.22)*(0.7+Math.random()*0.6);
+    if(GAME.foes.length<D.cap) spawnInvader();
+  }
+
+  const p=GAME.player;
+  for(let i=GAME.foes.length-1;i>=0;i--){
+    const f=GAME.foes[i];
+    f.div-=dt;
+    if(f.div<=0) divideFoe(f);
+    const dx=f.wx-p.wx, dy=f.wy-p.wy;
+    const R=p.size*2.0+KIND_SIZE[f.kind]+(p.boosting?7:0);   // pseudopod reach
+    if(dx*dx+dy*dy<R*R) captureFoe(f,i);
+  }
+
+  GAME.infection=clamp(GAME.infection-D.decay*dt,0,100);
+  if(GAME.infection>=100){ gameOver(); return; }
+
+  // camera rides along with the player
+  const kf=1-Math.exp(-dt*6.5);
+  cam.x=lerp(cam.x,p.wx,kf); cam.y=lerp(cam.y,p.wy,kf);
+  staticDirty=true;
+}
+
+// ------------------------------------------------------------------ overlay --
+function drawFX(){
+  const g=fxx;
+  g.setTransform(DPR,0,0,DPR,0,0);
+  g.clearRect(0,0,VW,VH);
+  if(!GAME.on) return;
+  const S=cam.scale, p=GAME.player;
+
+  // pathogens: on-screen reticles, off-screen bearing markers
+  for(const f of GAME.foes){
+    const px=sx(f.wx), py=sy(f.wy);
+    const col=f.kind==='vir'?'240,205,90':'90,220,170';
+    if(px>-20&&px<VW+20&&py>-20&&py<VH+20){
+      const r=Math.max(9, KIND_SIZE[f.kind]*S*1.9);
+      g.strokeStyle='rgba('+col+','+(0.42+0.24*Math.sin(GAME.t*6+f.s*9)).toFixed(3)+')';
+      g.lineWidth=1.4; g.setLineDash([4,4]);
+      g.beginPath(); g.arc(px,py,r,0,TAU); g.stroke();
+      g.setLineDash([]);
+    }else if(p){
+      // bearing marker parked on the screen border, pointing at the pathogen
+      const ox=sx(p.wx), oy=sy(p.wy);
+      const a=Math.atan2(py-oy,px-ox), ca=Math.cos(a), sa=Math.sin(a);
+      let t=Infinity;
+      if(ca>1e-6) t=Math.min(t,(VW-26-ox)/ca); else if(ca<-1e-6) t=Math.min(t,(26-ox)/ca);
+      if(sa>1e-6) t=Math.min(t,(VH-26-oy)/sa); else if(sa<-1e-6) t=Math.min(t,(96-oy)/sa);
+      if(!isFinite(t)||t<0) continue;
+      const L=Math.hypot(f.wx-p.wx,f.wy-p.wy)||1;
+      g.save(); g.translate(ox+ca*t, oy+sa*t); g.rotate(a);
+      g.fillStyle='rgba('+col+','+clamp(1-L/2600,0.16,0.8).toFixed(3)+')';
+      g.beginPath(); g.moveTo(10,0); g.lineTo(-7,7); g.lineTo(-7,-7); g.closePath(); g.fill();
+      g.restore();
+    }
+  }
+
+  // capture / division bursts
+  for(const x of GAME.fx){
+    const k=x.t/x.life, r=(x.r*(0.5+k*1.9))*S;
+    g.strokeStyle='rgba('+x.c+','+((1-k)*0.85).toFixed(3)+')';
+    g.lineWidth=Math.max(1,3*(1-k));
+    g.beginPath(); g.arc(sx(x.x),sy(x.y),Math.max(2,r),0,TAU); g.stroke();
+  }
+
+  // the player: amoeboid membrane + reach + heading tick
+  if(p){
+    const px=sx(p.wx), py=sy(p.wy);
+    const r=Math.max(12,p.size*S*1.45);
+    // a wobbling pseudopod outline, stretched along the direction of travel
+    g.lineWidth=2;
+    g.strokeStyle=p.boosting?'rgba(130,235,255,0.95)':'rgba(255,255,255,0.6)';
+    g.beginPath();
+    for(let i=0;i<=16;i++){
+      const a=i/16*TAU;
+      const wob=1+0.13*Math.sin(a*3+GAME.t*3.1)+0.08*Math.sin(a*5-GAME.t*2.3);
+      const st=1+0.16*Math.cos(a-p.ang);          // leading edge reaches forward
+      const rr=r*wob*st;
+      const x=px+Math.cos(a)*rr, y=py+Math.sin(a)*rr;
+      i?g.lineTo(x,y):g.moveTo(x,y);
+    }
+    g.closePath(); g.stroke();
+    g.lineWidth=1;
+    g.strokeStyle=p.boosting?'rgba(130,235,255,0.32)':'rgba(255,255,255,0.15)';
+    g.beginPath(); g.arc(px,py,(p.size*2.0+RBC_R+(p.boosting?7:0))*S,0,TAU); g.stroke();
+    if(p.sx||p.sy){
+      g.strokeStyle='rgba(255,255,255,0.5)'; g.lineWidth=2;
+      g.beginPath(); g.moveTo(px+p.sx*r,py+p.sy*r);
+      g.lineTo(px+p.sx*(r+12),py+p.sy*(r+12)); g.stroke();
+    }
+  }
+
+  // score pops
+  g.textAlign='center'; g.font='700 13px Inter,sans-serif';
+  for(const x of GAME.pops){
+    const k=x.t/1.1;
+    g.fillStyle='rgba(255,240,200,'+((1-k)*0.95).toFixed(3)+')';
+    g.fillText(x.txt, sx(x.x), sy(x.y)-14-k*26);
+  }
+
+  // vignettes: escape flash, heart recirculation, high infection
+  const danger=GAME.state==='play'?clamp((GAME.infection-62)/38,0,1):0;
+  const warn=Math.max(GAME.flash,danger*0.55);
+  if(warn>0.01) vignette('220,40,50',warn*0.55);
+  if(GAME.heart>0.01) vignette('255,190,190',GAME.heart*0.32);
+
+  // toast line under the HUD
+  if(GAME.toastT>0){
+    g.font='600 12.5px Inter,sans-serif';
+    g.fillStyle='rgba(255,225,215,'+clamp(GAME.toastT,0,1).toFixed(3)+')';
+    g.fillText(GAME.toast, VW/2, 104);
+  }
+}
+function vignette(col,a){
+  const g=fxx, R=Math.hypot(VW,VH)*0.55;
+  const grd=g.createRadialGradient(VW/2,VH/2,R*0.35, VW/2,VH/2,R);
+  grd.addColorStop(0,'rgba('+col+',0)');
+  grd.addColorStop(1,'rgba('+col+','+a.toFixed(3)+')');
+  g.fillStyle=grd; g.fillRect(0,0,VW,VH);
+}
+
+// ---------------------------------------------------------------------- HUD --
+const HUD={};
+function setHud(id,val){ if(HUD[id]===val) return; HUD[id]=val; document.getElementById(id).textContent=val; }
+function updateHUD(){
+  if(!GAME.on) return;
+  setHud('gwave',GAME.wave);
+  setHud('gscore',GAME.score);
+  setHud('gcombo','×'+(1+Math.min(GAME.combo>0?GAME.combo-1:0,9)*0.25).toFixed(2).replace(/\.?0+$/,''));
+  setHud('gfoes',GAME.foes.length);
+  document.getElementById('gcombo').classList.toggle('hot',GAME.combo>=3);
+  document.getElementById('ginf').style.width=GAME.infection.toFixed(1)+'%';
+  document.getElementById('go2').style.width=(GAME.player?GAME.player.o2:0).toFixed(1)+'%';
+}
+
+// ------------------------------------------------------------- state changes --
+function startGame(){
+  if(!NET) return;
+  clearFoes();
+  GAME.on=true; GAME.state='play';
+  GAME.score=0; GAME.combo=0; GAME.comboT=0; GAME.infection=8;
+  GAME.wave=1; GAME.t=0; GAME.spawnT=1.2; GAME.kills=0; GAME.escapes=0;
+  GAME.flash=0; GAME.heart=0; GAME.toastT=0;
+  GAME.steer=null; GAME.boost=false; GAME.keys={};
+  GAME.fx=[]; GAME.pops=[];
+  // invaders enter through the larger arteries; the bed itself starts sterile so
+  // every teal rod / yellow capsid on screen is a target
+  GAME.artEdges=NET.edges.filter(e=>e.type==='art'&&e.radius>ART_TIP*1.6);
+  if(!GAME.artEdges.length) GAME.artEdges=NET.edges.filter(e=>e.type==='art');
+  GAME.player=makePlayer();
+  purgePathogens();
+  for(let i=0;i<DIFF[GAME.diff].start;i++) spawnInvader();
+  if(!show.cells){ show.cells=true; document.querySelector('.chip[data-t="cells"]').classList.add('on'); }
+  paused=false; document.getElementById('pause').textContent='⏸ Pause';
+  document.body.classList.add('gaming');
+  hideCard();
+  // frame the action: ~300 µm of vessel across the short side, so the player
+  // cell and the traffic around it are both legible
+  cam.scale=clamp(Math.min(VW,VH)/420,1.0,6);
+  cam.x=GAME.player.wx; cam.y=GAME.player.wy;
+  document.getElementById('panel').classList.add('collapsed');
+  titleEl.classList.add('collapsed');
+  document.getElementById('ghint').innerHTML = document.body.classList.contains('coarse')
+    ? 'drag anywhere to swim · hold <b>BOOST</b> · pinch to zoom'
+    : 'swim: <b>mouse / WASD / arrows</b> · boost: <b>space</b> · leave: <b>esc</b>';
+  staticDirty=true;
+}
+function gameOver(){
+  GAME.state='over';
+  if(GAME.score>GAME.best){ GAME.best=GAME.score; try{ localStorage.setItem('bv-best',GAME.best); }catch(_){} }
+  showCard('over');
+}
+function exitGame(){
+  const wasPlaying=GAME.state!=='off';
+  GAME.on=false; GAME.state='off'; GAME.player=null;
+  clearFoes(); hideCard();
+  if(wasPlaying){ purgePathogens(); seedFlora(12); }   // back to a quiet sandbox
+  document.body.classList.remove('gaming');
+  GAME.steer=null; GAME.boost=false; GAME.keys={};
+  document.getElementById('gboost').classList.remove('on');
+  fit();
+}
+// the bed was rebuilt underneath us — re-seat the player on the new graph
+function gameRebind(){
+  if(!GAME.on) return;
+  clearFoes();
+  GAME.artEdges=NET.edges.filter(e=>e.type==='art');
+  GAME.player=makePlayer();
+  cam.x=GAME.player.wx; cam.y=GAME.player.wy;
+}
+
+const CARD_INTRO=
+  '<b>You are a neutrophil</b> — a white blood cell loose in the microvascular bed. '+
+  'Swim the vessels, run down <b>bacteria</b> (teal rods) and <b>viruses</b> (yellow capsids), '+
+  'and engulf them by touching them.<br><br>'+
+  'Every pathogen <b>division</b>, and every one that drains out through the venous root, '+
+  'raises <b>infection</b>. At 100% the host is overwhelmed.<br><br>'+
+  'The blood carries you: arteries are fast one-way highways, capillaries a slow squeeze. '+
+  '<b>Oxygen</b> refills in bright arterial blood and drains in the veins — boosting burns it fast.';
+function showCard(kind){
+  const sub=document.getElementById('gcsub'), tit=document.getElementById('gctitle'),
+        txt=document.getElementById('gctext'), st=document.getElementById('gcstats'),
+        btn=document.getElementById('gcbtn');
+  if(kind==='over'){
+    sub.textContent='Host overwhelmed'; tit.textContent='Infection wins';
+    st.innerHTML='<div>Score<b>'+GAME.score+'</b></div><div>Best<b>'+GAME.best+'</b></div>'+
+                 '<div>Wave<b>'+GAME.wave+'</b></div><div>Engulfed<b>'+GAME.kills+'</b></div>';
+    txt.innerHTML='The infection meter hit 100% — '+GAME.kills+' pathogens engulfed, '+GAME.escapes+
+                  ' drained back into the circulation. They divide faster every wave: work the '+
+                  'capillary beds where the flow is slow enough to corner them, and refuel in the arteries.';
+    btn.textContent='↻ Patrol again';
+  }else{
+    sub.textContent='Game mode · '+GAME.diff; tit.textContent='Immune Patrol';
+    st.innerHTML='<div>Best<b>'+GAME.best+'</b></div>';
+    txt.innerHTML=CARD_INTRO;
+    btn.textContent='▶ Start patrol';
+  }
+  document.body.classList.add('gcard');
+}
+function hideCard(){ document.body.classList.remove('gcard'); }
+
+// ------------------------------------------------------------------- input ---
+function gameSteerAt(px,py){
+  const p=GAME.player; if(!p) return;
+  const dx=px-sx(p.wx), dy=py-sy(p.wy), L=Math.hypot(dx,dy);
+  GAME.steer = L<26 ? null : {x:dx/L, y:dy/L};
+}
+function gameKey(e,down){
+  const K=GAME.keys, k=e.key.toLowerCase();
+  if(k==='arrowleft'||k==='a') K.l=down;
+  else if(k==='arrowright'||k==='d') K.r=down;
+  else if(k==='arrowup'||k==='w') K.u=down;
+  else if(k==='arrowdown'||k==='s') K.d=down;
+  else if(k===' ') GAME.boost=down;
+  else if(k==='escape'){ if(down) exitGame(); }
+  else if(k==='enter'){ if(down&&GAME.state!=='play') startGame(); }
+  else return false;
+  e.preventDefault();
+  if(down&&(K.l||K.r||K.u||K.d)) GAME.steer=null;
+  return true;
+}
+document.addEventListener('keyup',(e)=>{ if(GAME.on) gameKey(e,false); });
+
+document.getElementById('playbtn').onclick=()=>{
+  GAME.on=true; GAME.state='off';
+  showCard('intro');
+};
+document.getElementById('gcbtn').onclick=startGame;
+document.getElementById('gcexit').onclick=exitGame;
+document.querySelectorAll('.chip[data-d]').forEach(ch=>{
+  ch.onclick=()=>{ GAME.diff=ch.dataset.d;
+    document.querySelectorAll('#diffs .chip').forEach(x=>x.classList.toggle('on',x.dataset.d===GAME.diff));
+    if(document.body.classList.contains('gcard')) showCard(GAME.state==='over'?'over':'intro'); };
+});
+{
+  const b=document.getElementById('gboost');
+  const set=(v)=>{ GAME.boost=v; b.classList.toggle('on',v); };
+  b.addEventListener('pointerdown',(e)=>{ e.preventDefault(); set(true); });
+  for(const ev of ['pointerup','pointercancel','pointerleave']) b.addEventListener(ev,()=>set(false));
+}
+if(window.matchMedia&&window.matchMedia('(pointer:coarse)').matches) document.body.classList.add('coarse');
 
 // ============================================================================
 //  WEBGL2 RENDERER  —  switchable shading algorithms
@@ -1369,34 +2119,66 @@ const VESS_VS=VS_HEAD+`
 layout(location=0) in vec2 corner;
 layout(location=1) in vec4 iAB;
 layout(location=2) in vec4 iPar;   // rA,rB,oxy,type
+layout(location=3) in vec4 iTan;   // smoothed tube tangent at A and at B
+layout(location=4) in vec4 iEx;    // arcA, arcB, flow speed (µm/s), spare
 uniform vec2 uCam; uniform float uScale; uniform vec2 uRes; uniform float uRad;
-out vec2 vP; out vec4 vAB; out vec4 vPar;
+uniform float uPulse;
+out vec2 vP; out vec4 vAB; out vec4 vPar; out vec4 vTan; out vec4 vEx;
+// arteries visibly dilate on the pressure wave, veins hardly at all
+float dilate(float ty,float pulse){ return 1.0+pulse*(ty<0.5?0.085:(ty<1.5?0.030:0.018)); }
 void main(){
   vec2 A=iAB.xy,B=iAB.zw; vec2 ax=B-A; float L=length(ax);
   vec2 d=L>1e-4?ax/L:vec2(1.0,0.0); vec2 pp=vec2(-d.y,d.x);
-  float maxR=max(iPar.x,iPar.y)*uRad+2.0/uScale;
+  float maxR=max(iPar.x,iPar.y)*uRad*dilate(floor(iPar.w/4.0),uPulse)+2.0/uScale;
   vec2 c=(A+B)*0.5;
   vec2 world=c+d*((L*0.5+maxR)*corner.x)+pp*(maxR*corner.y);
-  vP=world; vAB=iAB; vPar=iPar;
+  vP=world; vAB=iAB; vPar=iPar; vTan=iTan; vEx=iEx;
   vec2 scr=(world-uCam)*uScale+uRes*0.5;
   gl_Position=vec4(scr.x/uRes.x*2.0-1.0, 1.0-scr.y/uRes.y*2.0, 0.0,1.0);
 }`;
 
 const VESS_FS=FS_HEAD+`
-in vec2 vP; in vec4 vAB; in vec4 vPar;
+in vec2 vP; in vec4 vAB; in vec4 vPar; in vec4 vTan; in vec4 vEx;
 uniform float uScale; uniform int uMode; uniform float uRad; uniform float uWall; uniform float uGloss;
+uniform float uTime; uniform float uPulse;
 out vec4 o;
 const vec3 OXY=vec3(0.91,0.275,0.31);
 const vec3 DEO=vec3(0.47,0.15,0.25);
+float vhash(vec2 p){ p=fract(p*vec2(123.34,345.45)); p+=dot(p,p+34.345); return fract(p.x*p.y); }
+float dilate(float ty,float pulse){ return 1.0+pulse*(ty<0.5?0.085:(ty<1.5?0.030:0.018)); }
 void main(){
   vec2 A=vAB.xy,B=vAB.zw; vec2 ax=B-A; float L2=dot(ax,ax);
-  float t=L2>1e-6?clamp(dot(vP-A,ax)/L2,0.0,1.0):0.0;
-  vec2 proj=A+ax*t; vec2 rel=vP-proj; float dist=length(rel);
-  float rr=mix(vPar.x,vPar.y,t)*uRad;
+  vec2 dn=L2>1e-6?ax/sqrt(L2):vec2(1.0,0.0);
+  // smoothed tube tangents at both ends, oriented along this chord
+  vec2 tA=vTan.xy, tB=vTan.zw;
+  if(dot(tA,tA)<1e-6) tA=dn; if(dot(tB,tB)<1e-6) tB=dn;
+  if(dot(tA,dn)<0.0) tA=-tA;
+  if(dot(tB,dn)<0.0) tB=-tB;
+  tA=normalize(tA); tB=normalize(tB);
+  // MITRE: on a plain chain node, clip against the shared bisector plane and let
+  // the tube run straight through instead of drawing a round cap. Neighbouring
+  // segments then tile exactly — one continuous tube, no ring at the joint.
+  float ty=floor(vPar.w/4.0);          // 0 artery · 1 capillary · 2 vein
+  float cl=vPar.w-ty*4.0;              // mitre flags
+  bool clipA = mod(cl,2.0)>=1.0;
+  bool clipB = cl>=2.0;
+  if(clipA && dot(vP-A,tA)<0.0) discard;
+  if(clipB && dot(vP-B,tB)>0.0) discard;
+  float tRaw=L2>1e-6?dot(vP-A,ax)/L2:0.0;
+  float t=clamp(tRaw,0.0,1.0);
+  // A mitred end runs straight through (flat slab); an unmitred one keeps its
+  // round cap, which is also what fills the ball of a bifurcation.
+  bool mitred=(tRaw<0.0&&clipA)||(tRaw>1.0&&clipB);
+  float tUse=mitred?tRaw:t;
+  vec2 rel=vP-(A+ax*tUse); float dist=length(rel);
+  float rr=mix(vPar.x,vPar.y,t)*uRad*dilate(ty,uPulse);
   float aa=1.0/uScale; float sd=dist-rr;
   if(sd>aa) discard;
   float cov=clamp(smoothstep(aa,-aa,sd),0.0,1.0);
-  vec2 dn=L2>1e-6?ax/sqrt(L2):vec2(1.0,0.0); vec2 bn=vec2(-dn.y,dn.x);
+  // cross-section frame from the smoothed tangent (interpolated end to end), so
+  // the tube's shading is continuous through a joint instead of per-capsule
+  vec2 tg=normalize(mix(tA,tB,t));
+  vec2 bn=vec2(-tg.y,tg.x);
   float nperp=clamp(dot(rel,bn)/max(rr,1e-3),-1.0,1.0);
   float hgt=sqrt(max(0.0,1.0-nperp*nperp));
   vec3 N=normalize(vec3(bn*nperp,hgt));
@@ -1431,11 +2213,65 @@ void main(){
     // concave lumen: bright down the middle, shading into the wall (AO in the cut)
     float la=clamp(a/lumen,0.0,1.0);
     float ao=smoothstep(1.0,0.12,la);
+    // coordinates *on the vessel*: µm along it, µm across the open lumen
+    float sA=mix(vEx.x,vEx.y,t);
+    float across=nperp*rr;
+
+    // --- plasma: an advected shear texture. The streaks travel at the vessel's
+    // own flow speed with a parabolic profile, so the middle of the lumen visibly
+    // runs faster than the sides and everything surges on each heartbeat.
+    float prof=1.0-la*la*0.85;
+    float adv=uTime*vEx.z*(0.35+0.85*uPulse)*prof;
+    float streak=(sin((sA-adv)*0.115+across*0.20)*0.5+0.5)
+                *(sin((sA-adv)*0.043-across*0.08+2.1)*0.5+0.5);
+    // cell-free plasma sleeve (Fåhræus–Lindqvist): red cells crowd to the axis
+    // and leave a paler, thinner layer of plasma sliding along the lining
+    float sleeve=smoothstep(0.68,0.99,la);
     vec3 lumenCol=mix(blood*0.5, blood*1.14, ao);
+    lumenCol*=0.93+0.16*streak;
+    // --- cell haze: below the zoom where individual red cells are drawn, the
+    // lumen still has to read as a *suspension*, not a painted tube. Two layers
+    // of advected, cell-sized blobs give it that packed, granular texture, and
+    // they fade out exactly as the real cell sprites become resolvable.
+    float hazeW=1.0-smoothstep(2.2,6.5,uScale*7.4);
+    if(hazeW>0.01){
+      float haze=0.0;
+      for(int k=0;k<2;k++){
+        float sc=k==0?9.5:15.0;
+        vec2 hp=vec2((sA-adv*(k==0?1.0:0.82))/sc, across/sc+float(k)*0.37);
+        vec2 hi=floor(hp), hf=fract(hp)-0.5;
+        float rnd=vhash(hi+float(k)*17.0);
+        hf+=vec2(rnd-0.5,vhash(hi.yx+float(k)*7.0)-0.5)*0.55;
+        haze+=smoothstep(0.46,0.12,length(hf))*(0.45+0.55*rnd);
+      }
+      haze=clamp(haze,0.0,1.4)*(1.0-sleeve);
+      lumenCol=mix(lumenCol, blood*0.62, haze*0.55*hazeW);
+      lumenCol+=blood*0.22*haze*hazeW*ao;
+    }
+    lumenCol=mix(lumenCol, mix(blood,vec3(1.0,0.82,0.80),0.42)*0.9, sleeve*0.45);
     lumenCol+=vec3(1.0,0.9,0.9)*pow(max(0.0,1.0-la),6.0)*0.22*clamp(uGloss,0.0,2.0);
-    // warm endothelial wall, lighter at the inner lining, darker toward the rim
+
+    // --- endothelium: the far inner wall is a mosaic of flat, flow-aligned
+    // cells, each with a bulging nucleus. It only shows through where the blood
+    // column is thin — toward the edges of the cut — and that is what gives the
+    // open tube its sense of depth.
+    vec2 ec=vec2(sA/46.0, across/14.0);
+    ec.x+=floor(ec.y)*0.5;                           // stagger the rows
+    vec2 ef=fract(ec)-0.5;
+    float border=smoothstep(0.28,0.46,length(vec2(ef.x*0.60,ef.y)));
+    float nuc=smoothstep(0.17,0.05,length(vec2(ef.x*0.85,ef.y*1.5)));
+    vec3 endo=mix(vec3(0.60,0.30,0.33), vec3(0.36,0.15,0.20), border);
+    endo=mix(endo, vec3(0.33,0.12,0.25), nuc*0.75);
+    endo*=0.86+0.28*vhash(floor(ec));                // per-cell tone variation
+    lumenCol=mix(lumenCol, endo, (1.0-ao)*0.5);
+
+    // --- wall: a bright intimal lining over a banded media. Arteries carry the
+    // thick ring of smooth muscle; capillaries are a bare endothelial tube.
     float wa=clamp((a-lumen)/max(wf,1e-3),0.0,1.0);
     vec3 wallCol=mix(vec3(0.80,0.44,0.47), vec3(0.33,0.13,0.18), wa);
+    float rings=sin(sA*0.24+vhash(vec2(floor(sA*0.04),3.0))*2.0)*0.5+0.5;
+    float muscle=(ty<0.5?0.24:(ty<1.5?0.04:0.12))*smoothstep(0.15,0.6,wa);
+    wallCol*=1.0-muscle+muscle*2.0*rings;
     col=mix(lumenCol, wallCol, step(lumen,a));
     // crisp inner endothelium line + dark cut outline at the silhouette
     col=mix(col, vec3(0.16,0.03,0.06), (1.0-smoothstep(0.0,0.05,abs(a-lumen)))*0.6);
@@ -1474,9 +2310,9 @@ void main(){
     vec3 col=mix(DEO,OXY,oxy);
     float ring=smoothstep(0.95,0.55,r)*smoothstep(0.0,0.34,r);
     vec3 c=mix(col*0.7,col,smoothstep(0.0,0.4,r));
-    c=mix(c, mix(col,vec3(1.0,0.92,0.92),0.35), ring);
+    c=mix(c, mix(col,vec3(1.0,0.92,0.92),0.22), ring);
     c=mix(c, col*0.6, smoothstep(0.85,1.0,r));
-    c+=smoothstep(0.5,0.0,length(p-vec2(-0.3,-0.32)))*0.45;
+    c+=smoothstep(0.5,0.0,length(p-vec2(-0.3,-0.32)))*0.26;
     if(uMode==4) c=mix(vec3(0.1,0.0,0.03),col*1.6,ring+0.3);
     float aa=fwidth(r)*1.5;
     o=vec4(c, smoothstep(1.0,1.0-aa,r));
@@ -1541,6 +2377,7 @@ function initGL(){
             uRes:gl.getUniformLocation(pr,'uRes'),uMode:gl.getUniformLocation(pr,'uMode')}; }
   const vu=P.vess.u, vp=P.vess.p;
   vu.uRad=gl.getUniformLocation(vp,'uRad'); vu.uWall=gl.getUniformLocation(vp,'uWall'); vu.uGloss=gl.getUniformLocation(vp,'uGloss');
+  vu.uTime=gl.getUniformLocation(vp,'uTime'); vu.uPulse=gl.getUniformLocation(vp,'uPulse');
 
   // VAOs
   const vaoT=gl.createVertexArray(); gl.bindVertexArray(vaoT);
@@ -1550,8 +2387,10 @@ function initGL(){
   const vaoV=gl.createVertexArray(); gl.bindVertexArray(vaoV);
   gl.bindBuffer(gl.ARRAY_BUFFER,quad); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
   gl.bindBuffer(gl.ARRAY_BUFFER,vessInst);
-  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,4,gl.FLOAT,false,32,0);  gl.vertexAttribDivisor(1,1);
-  gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2,4,gl.FLOAT,false,32,16); gl.vertexAttribDivisor(2,1);
+  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,4,gl.FLOAT,false,64,0);  gl.vertexAttribDivisor(1,1);
+  gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2,4,gl.FLOAT,false,64,16); gl.vertexAttribDivisor(2,1);
+  gl.enableVertexAttribArray(3); gl.vertexAttribPointer(3,4,gl.FLOAT,false,64,32); gl.vertexAttribDivisor(3,1);
+  gl.enableVertexAttribArray(4); gl.vertexAttribPointer(4,4,gl.FLOAT,false,64,48); gl.vertexAttribDivisor(4,1);
 
   const cellInst=gl.createBuffer();
   const vaoC=gl.createVertexArray(); gl.bindVertexArray(vaoC);
@@ -1568,12 +2407,13 @@ function initGL(){
 function uploadVessels(){
   if(!GL||!NET) return;
   const gl=GL.gl, E=NET.drawEdges;
-  const arr=new Float32Array(E.length*8);
-  const typeId={art:0,cap:1,ven:2};
-  for(let i=0;i<E.length;i++){ const e=E[i], o=i*8;
+  const arr=new Float32Array(E.length*16);
+  for(let i=0;i<E.length;i++){ const e=E[i], o=i*16;
     arr[o]=e.a.x; arr[o+1]=e.a.y; arr[o+2]=e.b.x; arr[o+3]=e.b.y;
     arr[o+4]=e.a.radius; arr[o+5]=e.b.radius;
-    arr[o+6]=((e.oxyA||0)+(e.oxyB||0))*0.5; arr[o+7]=typeId[e.type]||0; }
+    arr[o+6]=((e.oxyA||0)+(e.oxyB||0))*0.5; arr[o+7]=(e.clip||0)+4*(TYPE_ID[e.type]||0);
+    arr[o+8]=e.a.tx; arr[o+9]=e.a.ty; arr[o+10]=e.b.tx; arr[o+11]=e.b.ty;
+    arr[o+12]=e.a.arc; arr[o+13]=e.b.arc; arr[o+14]=e.flowBase; arr[o+15]=0; }
   gl.bindBuffer(gl.ARRAY_BUFFER,GL.vessInst);
   gl.bufferData(gl.ARRAY_BUFFER,arr,gl.STATIC_DRAW);
   GL.vessCount=E.length;
@@ -1606,25 +2446,22 @@ function glRender(pulse, restream){
     gl.uniform1f(GL.P.vess.u.uRad,appear.calibre);
     gl.uniform1f(GL.P.vess.u.uWall,appear.wall);
     gl.uniform1f(GL.P.vess.u.uGloss,appear.gloss);
+    gl.uniform1f(GL.P.vess.u.uTime,simTime%1200);
+    gl.uniform1f(GL.P.vess.u.uPulse,pulse);
     gl.bindVertexArray(GL.vaoV);
     gl.drawArraysInstanced(gl.TRIANGLE_STRIP,0,4,GL.vessCount);
   }
 
   // cells — only re-pack + re-upload the visible set when it actually changed
-  if(show.cells){
+  if(show.cells&&(cellsLOD||GAME.on)){
     const data=GL.cellData;
     let n=GL._cellN||0;
     if(restream){
-      n=0;
-      const vx0=-60,vy0=-60,vx1=VW+60,vy1=VH+60;
+      n=packGameCells(data,0);
       for(const c of CELLS){
-        const px=sx(c.wx), py=sy(c.wy);
-        if(px<vx0||px>vx1||py<vy0||py>vy1) continue;
-        const o=n*6;
-        data[o]=c.wx; data[o+1]=c.wy; data[o+2]=c.ang;
-        data[o+3]=KIND_SIZE[c.kind];
-        data[o+4]=c.oxy; data[o+5]=KIND_ID[c.kind];
-        if(++n>=MAX_CELLS) break;
+        if(c.foe) continue;
+        n=packCell(data,n,c);
+        if(n>=MAX_CELLS) break;
       }
       GL._cellN=n;
       if(n){ gl.bindBuffer(gl.ARRAY_BUFFER,GL.cellInst);
@@ -1692,30 +2529,48 @@ fn fbm(p0:vec2f)->f32{ var s=0.0; var a=0.5; var p=p0; for(var i=0;i<5;i=i+1){ s
   return vec4f(max(base,vec3f(0.0)),1.0);
 }
 
-struct VIn { @location(0) corner:vec2f, @location(1) iAB:vec4f, @location(2) iPar:vec4f };
-struct VOut { @builtin(position) pos:vec4f, @location(0) world:vec2f, @location(1) AB:vec4f, @location(2) par:vec4f };
+struct VIn { @location(0) corner:vec2f, @location(1) iAB:vec4f, @location(2) iPar:vec4f, @location(3) iTan:vec4f, @location(4) iEx:vec4f };
+struct VOut { @builtin(position) pos:vec4f, @location(0) world:vec2f, @location(1) AB:vec4f, @location(2) par:vec4f, @location(3) tan:vec4f, @location(4) ex:vec4f };
+fn dilate(ty:f32,pulse:f32)->f32{ var k=0.018; if(ty<0.5){ k=0.085; } else if(ty<1.5){ k=0.030; } return 1.0+pulse*k; }
 @vertex fn vvess(in:VIn)->VOut{
   let A=in.iAB.xy; let B=in.iAB.zw; let ax=B-A; let L=length(ax);
   var d=vec2f(1.0,0.0); if(L>1e-4){ d=ax/L; }
   let pp=vec2f(-d.y,d.x);
-  let maxR=max(in.iPar.x,in.iPar.y)*u.rad+2.0/u.scale;
+  let maxR=max(in.iPar.x,in.iPar.y)*u.rad*dilate(floor(in.iPar.w/4.0),u.p1)+2.0/u.scale;
   let c=(A+B)*0.5;
   let world=c+d*((L*0.5+maxR)*in.corner.x)+pp*(maxR*in.corner.y);
-  var o:VOut; o.world=world; o.AB=in.iAB; o.par=in.iPar;
+  var o:VOut; o.world=world; o.AB=in.iAB; o.par=in.iPar; o.tan=in.iTan; o.ex=in.iEx;
   let scr=(world-u.cam)*u.scale+u.res*0.5;
   o.pos=vec4f(scr.x/u.res.x*2.0-1.0, 1.0-scr.y/u.res.y*2.0, 0.0, 1.0);
   return o;
 }
 @fragment fn fvess(in:VOut)->@location(0) vec4f{
   let A=in.AB.xy; let B=in.AB.zw; let ax=B-A; let L2=dot(ax,ax);
-  var t=0.0; if(L2>1e-6){ t=clamp(dot(in.world-A,ax)/L2,0.0,1.0); }
-  let proj=A+ax*t; let rel=in.world-proj; let dist=length(rel);
-  let rr=mix(in.par.x,in.par.y,t)*u.rad;
+  var dn=vec2f(1.0,0.0); if(L2>1e-6){ dn=ax/sqrt(L2); }
+  // mitred, smoothly framed tube — see the WebGL2 shader for the reasoning
+  var tA=in.tan.xy; var tB=in.tan.zw;
+  if(dot(tA,tA)<1e-6){ tA=dn; }
+  if(dot(tB,tB)<1e-6){ tB=dn; }
+  if(dot(tA,dn)<0.0){ tA=-tA; }
+  if(dot(tB,dn)<0.0){ tB=-tB; }
+  tA=normalize(tA); tB=normalize(tB);
+  let ty=floor(in.par.w/4.0);          // 0 artery · 1 capillary · 2 vein
+  let cl=in.par.w-ty*4.0;
+  let clipA = (cl%2.0)>=1.0;
+  let clipB = cl>=2.0;
+  if(clipA && dot(in.world-A,tA)<0.0){ discard; }
+  if(clipB && dot(in.world-B,tB)>0.0){ discard; }
+  var tRaw=0.0; if(L2>1e-6){ tRaw=dot(in.world-A,ax)/L2; }
+  let t=clamp(tRaw,0.0,1.0);
+  let mitred=(tRaw<0.0 && clipA)||(tRaw>1.0 && clipB);
+  var tUse=t; if(mitred){ tUse=tRaw; }
+  let rel=in.world-(A+ax*tUse); let dist=length(rel);
+  let rr=mix(in.par.x,in.par.y,t)*u.rad*dilate(ty,u.p1);
   let aa=1.0/u.scale; let sd=dist-rr;
   if(sd>aa){ discard; }
   let cov=clamp(0.5-sd/(2.0*aa),0.0,1.0);
-  var dn=vec2f(1.0,0.0); if(L2>1e-6){ dn=ax/sqrt(L2); }
-  let bn=vec2f(-dn.y,dn.x);
+  let tg=normalize(mix(tA,tB,t));
+  let bn=vec2f(-tg.y,tg.x);
   let nperp=clamp(dot(rel,bn)/max(rr,1e-3),-1.0,1.0);
   let hgt=sqrt(max(0.0,1.0-nperp*nperp));
   let N=normalize(vec3f(bn*nperp,hgt));
@@ -1734,16 +2589,58 @@ struct VOut { @builtin(position) pos:vec4f, @location(0) world:vec2f, @location(
     col=mix(col,vec3f(0.05,0.0,0.02),edge*0.9); }
   else if(m==4){ let core=smoothstep(0.0,1.0,1.0-abs(nperp)); col=mix(vec3f(0.10,0.0,0.03),blood*1.5,core)+blood*pow(hgt,2.0)*0.7; }
   else {
-    // ---- CUTAWAY: vessel sliced open lengthwise (cross-section) ----
+    // ---- CUTAWAY: vessel sliced open lengthwise — see the WebGL2 shader ----
     let a=abs(nperp);
     let wf=clamp(0.16*u.wall+0.09,0.07,0.44);
     let lumen=1.0-wf;
     let la=clamp(a/lumen,0.0,1.0);
-    let ao=smoothstep(0.12,1.0,la);
-    var lumenCol=mix(blood*0.5, blood*1.14, 1.0-ao);
+    let ao=1.0-smoothstep(0.12,1.0,la);
+    let sA=mix(in.ex.x,in.ex.y,t);
+    let across=nperp*rr;
+    // advected plasma shear, parabolic profile, surging on the pulse
+    let prof=1.0-la*la*0.85;
+    let adv=u.p0*in.ex.z*(0.35+0.85*u.p1)*prof;
+    let streak=(sin((sA-adv)*0.115+across*0.20)*0.5+0.5)
+              *(sin((sA-adv)*0.043-across*0.08+2.1)*0.5+0.5);
+    let sleeve=smoothstep(0.68,0.99,la);          // cell-free plasma sleeve
+    var lumenCol=mix(blood*0.5, blood*1.14, ao);
+    lumenCol=lumenCol*(0.93+0.16*streak);
+    // advected cell haze — fades out as real cell sprites become resolvable
+    let hazeW=1.0-smoothstep(2.2,6.5,u.scale*7.4);
+    if(hazeW>0.01){
+      var haze=0.0;
+      for(var k=0;k<2;k=k+1){
+        var sc=15.0; var advk=adv*0.82;
+        if(k==0){ sc=9.5; advk=adv; }
+        let hp=vec2f((sA-advk)/sc, across/sc+f32(k)*0.37);
+        let hi=floor(hp);
+        let rnd=hash(hi+vec2f(f32(k)*17.0));
+        let hf=fract(hp)-vec2f(0.5)+vec2f(rnd-0.5, hash(hi.yx+vec2f(f32(k)*7.0))-0.5)*0.55;
+        haze=haze+(1.0-smoothstep(0.12,0.46,length(hf)))*(0.45+0.55*rnd);
+      }
+      haze=clamp(haze,0.0,1.4)*(1.0-sleeve);
+      lumenCol=mix(lumenCol, blood*0.62, haze*0.55*hazeW);
+      lumenCol=lumenCol+blood*0.22*haze*hazeW*ao;
+    }
+    lumenCol=mix(lumenCol, mix(blood,vec3f(1.0,0.82,0.80),0.42)*0.9, sleeve*0.45);
     lumenCol=lumenCol+vec3f(1.0,0.9,0.9)*pow(max(0.0,1.0-la),6.0)*0.22*clamp(u.gloss,0.0,2.0);
+    // endothelial mosaic on the far inner wall
+    var ec=vec2f(sA/46.0, across/14.0);
+    ec.x=ec.x+floor(ec.y)*0.5;
+    let ef=fract(ec)-vec2f(0.5);
+    let border=smoothstep(0.28,0.46,length(vec2f(ef.x*0.60,ef.y)));
+    let nuc=1.0-smoothstep(0.05,0.17,length(vec2f(ef.x*0.85,ef.y*1.5)));
+    var endo=mix(vec3f(0.60,0.30,0.33), vec3f(0.36,0.15,0.20), border);
+    endo=mix(endo, vec3f(0.33,0.12,0.25), nuc*0.75);
+    endo=endo*(0.86+0.28*hash(floor(ec)));
+    lumenCol=mix(lumenCol, endo, (1.0-ao)*0.5);
+    // banded smooth-muscle media in the wall
     let wa=clamp((a-lumen)/max(wf,1e-3),0.0,1.0);
-    let wallCol=mix(vec3f(0.80,0.44,0.47), vec3f(0.33,0.13,0.18), wa);
+    var wallCol=mix(vec3f(0.80,0.44,0.47), vec3f(0.33,0.13,0.18), wa);
+    let rings=sin(sA*0.40+hash(vec2f(floor(sA*0.064),3.0))*2.0)*0.5+0.5;
+    var muscle=0.15; if(ty<0.5){ muscle=0.30; } else if(ty<1.5){ muscle=0.05; }
+    muscle=muscle*smoothstep(0.15,0.6,wa);
+    wallCol=wallCol*(1.0-muscle+muscle*2.0*rings);
     col=mix(lumenCol, wallCol, step(lumen,a));
     col=mix(col, vec3f(0.16,0.03,0.06), (1.0-smoothstep(0.0,0.05,abs(a-lumen)))*0.6);
     col=col*(1.0-smoothstep(0.85,1.0,a)*0.7);
@@ -1771,9 +2668,9 @@ struct COut { @builtin(position) pos:vec4f, @location(0) uv:vec2f, @location(1) 
     let col=mix(DEO,OXY,oxy);
     let ring=(1.0-smoothstep(0.55,0.95,r))*smoothstep(0.0,0.34,r);
     var c=mix(col*0.7,col,smoothstep(0.0,0.4,r));
-    c=mix(c,mix(col,vec3f(1.0,0.92,0.92),0.35),ring);
+    c=mix(c,mix(col,vec3f(1.0,0.92,0.92),0.22),ring);
     c=mix(c,col*0.6,smoothstep(0.85,1.0,r));
-    c=c+(1.0-smoothstep(0.0,0.5,length(p-vec2f(-0.3,-0.32))))*0.45;
+    c=c+(1.0-smoothstep(0.0,0.5,length(p-vec2f(-0.3,-0.32))))*0.26;
     if(m==4){ c=mix(vec3f(0.1,0.0,0.03),col*1.6,ring+0.3); }
     let aa=fwidth(r)*1.5; let al=1.0-smoothstep(1.0-aa,1.0,r);
     return vec4f(c*al,al);
@@ -1827,7 +2724,7 @@ async function initWebGPU(){
     visibility:GPUShaderStage.VERTEX|GPUShaderStage.FRAGMENT,buffer:{type:'uniform'}}]});
   const pl=device.createPipelineLayout({bindGroupLayouts:[bgl]});
   const cornerL={arrayStride:8,stepMode:'vertex',attributes:[{shaderLocation:0,offset:0,format:'float32x2'}]};
-  const vInstL={arrayStride:32,stepMode:'instance',attributes:[{shaderLocation:1,offset:0,format:'float32x4'},{shaderLocation:2,offset:16,format:'float32x4'}]};
+  const vInstL={arrayStride:64,stepMode:'instance',attributes:[{shaderLocation:1,offset:0,format:'float32x4'},{shaderLocation:2,offset:16,format:'float32x4'},{shaderLocation:3,offset:32,format:'float32x4'},{shaderLocation:4,offset:48,format:'float32x4'}]};
   const cInstL={arrayStride:24,stepMode:'instance',attributes:[{shaderLocation:1,offset:0,format:'float32x4'},{shaderLocation:2,offset:16,format:'float32x2'}]};
   const premult={color:{srcFactor:'one',dstFactor:'one-minus-src-alpha'},alpha:{srcFactor:'one',dstFactor:'one-minus-src-alpha'}};
   const additive={color:{srcFactor:'one',dstFactor:'one'},alpha:{srcFactor:'one',dstFactor:'one'}};
@@ -1850,11 +2747,13 @@ async function initWebGPU(){
   obj.cbuf=device.createBuffer({size:MAX_CELLS*6*4,usage:GPUBufferUsage.VERTEX|GPUBufferUsage.COPY_DST});
   obj.uploadVessels=()=>{
     if(!NET) return;
-    const E=NET.drawEdges, arr=new Float32Array(E.length*8), tId={art:0,cap:1,ven:2};
-    for(let i=0;i<E.length;i++){ const e=E[i],o=i*8;
+    const E=NET.drawEdges, arr=new Float32Array(E.length*16);
+    for(let i=0;i<E.length;i++){ const e=E[i],o=i*16;
       arr[o]=e.a.x;arr[o+1]=e.a.y;arr[o+2]=e.b.x;arr[o+3]=e.b.y;
       arr[o+4]=e.a.radius;arr[o+5]=e.b.radius;
-      arr[o+6]=((e.oxyA||0)+(e.oxyB||0))*0.5;arr[o+7]=tId[e.type]||0; }
+      arr[o+6]=((e.oxyA||0)+(e.oxyB||0))*0.5;arr[o+7]=(e.clip||0)+4*(TYPE_ID[e.type]||0);
+      arr[o+8]=e.a.tx;arr[o+9]=e.a.ty;arr[o+10]=e.b.tx;arr[o+11]=e.b.ty;
+      arr[o+12]=e.a.arc;arr[o+13]=e.b.arc;arr[o+14]=e.flowBase;arr[o+15]=0; }
     if(obj.vbuf) obj.vbuf.destroy();
     obj.vbuf=device.createBuffer({size:arr.byteLength,usage:GPUBufferUsage.VERTEX|GPUBufferUsage.COPY_DST});
     device.queue.writeBuffer(obj.vbuf,0,arr); obj.vessCount=E.length;
@@ -1864,23 +2763,19 @@ async function initWebGPU(){
   return obj;
 }
 
-function gpuRender(mode, restream){
+function gpuRender(mode, restream, pulse){
   if(restream===undefined) restream=true;
   const {device,ctx}=GPU;
-  GPU.uni.set([cam.x,cam.y,cam.scale*DPR,appear.calibre, gpucv.width,gpucv.height,appear.wall,appear.gloss, mode,0,0,0]);
+  GPU.uni.set([cam.x,cam.y,cam.scale*DPR,appear.calibre, gpucv.width,gpucv.height,appear.wall,appear.gloss, mode,simTime%1200,pulse||0,0]);
   device.queue.writeBuffer(GPU.ubuf,0,GPU.uni);
   // stream visible cells (only when the visible set changed)
   let n=GPU._cellN||0; const data=GPU.cellData;
-  if(show.cells && restream){ n=0; const vx0=-60,vy0=-60,vx1=VW+60,vy1=VH+60;
-    for(const c of CELLS){ const px=sx(c.wx),py=sy(c.wy);
-      if(px<vx0||px>vx1||py<vy0||py>vy1) continue;
-      const o=n*6; data[o]=c.wx; data[o+1]=c.wy; data[o+2]=c.ang;
-      data[o+3]=KIND_SIZE[c.kind];
-      data[o+4]=c.oxy; data[o+5]=KIND_ID[c.kind];
-      if(++n>=MAX_CELLS) break; }
+  if(show.cells && (cellsLOD||GAME.on) && restream){
+    n=packGameCells(data,0);
+    for(const c of CELLS){ if(c.foe) continue; n=packCell(data,n,c); if(n>=MAX_CELLS) break; }
     GPU._cellN=n;
     if(n) device.queue.writeBuffer(GPU.cbuf,0,data,0,n*6);
-  } else if(!show.cells){ n=0; }
+  } else if(!show.cells||!(cellsLOD||GAME.on)){ n=0; }
   const enc=device.createCommandEncoder();
   const view=ctx.getCurrentTexture().createView();
   const clearValue = mode===4?{r:0.01,g:0,b:0.02,a:1}:{r:0.07,g:0.02,b:0.03,a:1};
@@ -1888,7 +2783,7 @@ function gpuRender(mode, restream){
   if(show.tissue||mode===4){ pass.setPipeline(GPU.pTissue); pass.setBindGroup(0,GPU.bind); pass.draw(3); }
   if(GPU.vessCount){ pass.setPipeline(mode===4?GPU.pVessA:GPU.pVess); pass.setBindGroup(0,GPU.bind);
     pass.setVertexBuffer(0,GPU.corner); pass.setVertexBuffer(1,GPU.vbuf); pass.draw(4,GPU.vessCount); }
-  if(show.cells && n){ pass.setPipeline(mode===4?GPU.pCellA:GPU.pCell); pass.setBindGroup(0,GPU.bind);
+  if(show.cells && (cellsLOD||GAME.on) && n){ pass.setPipeline(mode===4?GPU.pCellA:GPU.pCell); pass.setBindGroup(0,GPU.bind);
     pass.setVertexBuffer(0,GPU.corner); pass.setVertexBuffer(1,GPU.cbuf); pass.draw(4,n); }
   pass.end(); device.queue.submit([enc.finish()]);
 }
@@ -1903,6 +2798,7 @@ function regenerate(seed){
   seedCells();
   uploadVessels();
   if(GPU&&GPU.ready&&GPU.uploadVessels) GPU.uploadVessels();
+  gameRebind();                    // the game's actors live on the old graph
   staticDirty=true;
 }
 function boot(){
