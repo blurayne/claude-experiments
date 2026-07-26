@@ -240,90 +240,109 @@ visible set (cut outline → wall → lumen → concave core → sheen) rather t
 segment-by-segment, so overlapping round line-caps never carve rings into their
 neighbours and the tubes stay clean and continuous.
 
-### 3a-i. Mitred capsules — making a chain of segments into one tube
+### 3a-i. One smooth surface — the order-independent smooth union
 
-Each vessel segment is an SDF capsule impostor (§3b). Drawn naively, a chain of
-them reads as a row of sausages: every joint shows the round end cap of one
-capsule bulging into its neighbour, and each capsule shades its cross-section
-from *its own* chord direction, so the highlight and the cutaway banding jump at
-every joint. Three things fix it, all fed by per-instance data:
+Each vessel segment is an SDF capsule (§3b), and drawn naively a chain of them
+reads as a row of sausages: every joint shows the round end cap of one capsule
+bulging into its neighbour, and every bifurcation meets in a hard V. Several
+per-segment fixes were tried first — mitre-clipping neighbours against their
+shared bisector plane, smooth-unioning each segment with one chosen neighbour,
+and finally a **shared metaball disc** placed on each branch node. All of them
+have the same ceiling: an instanced quad's fragment only knows about *one*
+tube, so two neighbours either crease where they disagree or need their fillet
+influence capped at the segment length — and a capped fillet vanishes on a wide
+trunk that is tiled by short segments. The result was still visible seams.
 
-1. **Shared node tangents.** Summing the (consistently downstream-oriented)
-   chords of every edge meeting at a node gives one tangent per node. The
-   fragment shader interpolates the cross-section frame between the two endpoint
-   tangents, so lighting and banding run continuously through a joint.
-2. **Mitre clipping.** Where exactly two segments meet at a gentle angle
-   (< ~44°), both are clipped against the shared bisector plane through the node
-   instead of drawing their caps, and the tube is extended along its axis rather
-   than capped. Consecutive segments then tile exactly — no bulge, no dark ring.
-3. **No spherical caps at all.** Every segment is the slab around its own
-   (extended) axis. Hemispherical caps used to union into a visible ball at
-   every bifurcation — and in the additive x-ray those balls piled up into
-   white discs. Instead:
-   - a **branch node** gets a short stub (0.6·r) from each incident segment,
-     faded out over its length: where the neighbouring branches cover it the
-     fade is invisible, where they don't it dissolves instead of ending in a
-     cut-off rectangle;
-   - an **open tip** gets nothing past the end and fades to transparent over
-     the last ~1.6·r, so a terminal vessel dissolves into the tissue.
-4. **A shared metaball at each branch node.** Where a hard V remains — the
-   crotch of a bifurcation — the fix is the one named for junctions in the
-   Blender-technique table below: a **metaball union**. One small disc is placed
-   at the node, sized to the *thickest* tube meeting there (≈ 0.72 · node
-   radius), and **every incident segment smooth-unions its own field with that
-   same disc** (Iñigo Quilez's polynomial `smin`). Because the disc is identical
-   for all of them, neighbouring segments agree on the merged surface — no step
-   — and because a single shared primitive is order-independent, it merges a
-   3-, 4- or 5-way node correctly regardless of which segment draws a pixel
-   first. The blob fills the crotch and rounds it, so the junction swells
-   slightly the way a real bifurcation does.
+The vessels are therefore no longer composited per segment at all. They are
+**accumulated** into a floating-point buffer and resolved once, so every pixel
+sees the union of *all* segments that touch it, in one shot, in any order.
 
-   An earlier version smooth-unioned each segment with *one chosen neighbour*
-   instead. That was **not** robust: the influence had to be capped at the
-   segment length (the next segment along the chain didn't carry the same
-   partner and computed a different surface, showing a hard step), so on a wide
-   trunk tiled by many short segments the fillet shrank to nothing. The shared
-   disc has no such cap — every segment references the identical node blob, so
-   there is nothing to disagree about.
+**Why the exponential smooth minimum.** Of the usual `smin` families, only the
+exponential one
 
-   Two shading touches finish it: inside the blob the tube frame no longer
-   describes the surface, so the lighting normal is taken from the **screen-space
-   gradient of the merged field** (`dFdx/dFdy` of the signed distance) — the
-   light then follows the rounded blob, not the straight tube it grew from. And
-   the cutaway's per-segment wall lines, which cross each other at a junction,
-   are faded back to open lumen inside the blob so the merge reads as flowing
-   blood rather than two tubes overlapping.
+```
+smin(d₁ … dₙ) = −k · log₂( Σᵢ 2^(−dᵢ/k) )
+```
 
-   **The principled next step**, confirmed by researching the rendering
-   literature, is an **order-independent exponential smooth union** across *all*
-   segments, not just the node disc. The exponential smooth minimum
-   `smin(d₁…dₙ) = −log(Σ exp(−k·dᵢ))/k` is the only `smin` family that is both
-   associative *and* separable into a per-primitive sum, so each instanced quad
-   can simply *add* `exp(−k·dᵢ)` (and `exp(−k·dᵢ)·attrᵢ` for colour /
-   oxygenation / normal) into a floating-point accumulation buffer with additive
-   blending; a resolve pass reconstructs the merged field as `−log(W)/k` (iso at
-   `W = 1`), gets clean `fwidth` antialiasing, and reads attributes as
-   `Σ wᵢ·attrᵢ / Σ wᵢ` — exactly weighted-blended OIT. The one trap is range:
-   `exp(−k·d)` blows up in a segment's interior, so `d` must be normalised by a
-   local radius and the interior exponent clamped to stay under the RGBA16F
-   ceiling (`k·|d| ≲ 11`). This environment does support the float MRT and float
-   blending it needs (verified), but it is a two-pass rewrite touching all six
-   shading modes plus the depth sort, so the cheaper shared-disc union ships
-   here and this is documented as the upgrade path.
-   (Refs: [IQ smooth minimum](https://iquilezles.org/articles/smin/),
-   [mini.gmshaders SDF](https://mini.gmshaders.com/p/sdf),
-   [GPU Gems 3 ch.7 metaballs](https://developer.nvidia.com/gpugems/gpugems3/part-i-geometry/chapter-7-point-based-visualization-metaballs-gpu),
-   [LearnOpenGL weighted-blended OIT](https://learnopengl.com/Guest-Articles/2020/OIT/Weighted-Blended).)
+is both **associative** (so an n-way junction merges the same as nested pairs)
+and **separable into a sum over primitives** (so it can be evaluated by additive
+blending, with no knowledge of neighbours and no ordering). Each segment simply
+adds its own `wᵢ = 2^(−nᵢ/k)`; the resolve pass reads the sum `W = Σ wᵢ` and
+recovers the merged distance as `−k·log₂(W)`, with the surface at `W = 1`.
+Polynomial and power smooth minima have neither property, which is exactly why
+the per-segment attempts creased.
 
-5. **A frame-continuous silhouette.** The lateral offset is measured in the
-   *smoothed* frame — the perpendicular of `mix(tA, tB, t)` — against the point
-   `A + ax·t`. At a shared node both neighbours therefore measure from the same
-   origin with the same frame, so the outline matches exactly across the joint.
-   Measuring each segment against its own chord instead left a visible wedge
-   sticking out of every bend.
+**The two passes.**
 
-The flags are packed into the instance attribute's unused `type` slot
-(`clip + 4·tips + 16·type`), so the whole thing costs no extra bandwidth.
+1. **Accumulate.** Every segment quad writes, additively, into three float
+   render targets: `W`, and the *weighted* attributes it wants blended —
+   radius, oxygenation, pseudo-depth, tube tangent, flow rate, vessel type and
+   arc length, each pre-multiplied by `wᵢ`. Nothing is shaded here.
+2. **Resolve.** One full-screen pass reads the accumulator, reconstructs
+   `dW = −k·log₂(W)·r_b`, divides every attribute by `W` (`Σ wᵢ·attrᵢ / Σ wᵢ` —
+   exactly weighted-blended OIT), takes the lighting normal from the
+   *screen-space gradient* of the merged field, and runs all six shading modes
+   on that single continuous surface.
+
+Because the surface is reconstructed from the sum, a bifurcation is not a joint
+at all — it is one field with one iso-line, so there is nothing left to crease
+and no valence limit: 3-, 4- and 5-way nodes merge identically.
+
+**Three details make it survive contact with real hardware.**
+
+- **Normalised distance.** `exp2(−d/k)` explodes inside a wide tube, so the
+  distance is normalised by a local blend radius `r_b = clamp(r, 3, 45) µm`
+  before the exponent, and the interior is clamped at `n = −3`. That bounds the
+  sum inside RGBA16F and makes the fillet width scale with the calibre, which
+  is also what looks right: a trunk gets a broad fillet, a capillary a tight
+  one. Flow rate is additionally scaled by 1/256 on the way in, because
+  `W · flow` would otherwise pass the fp16 ceiling.
+- **Tessellation-density normalisation.** The sum counts *primitives*, not
+  surface — so where a chain is tessellated finer than the blend width, several
+  consecutive capsules overlap the same pixel and inflate `W`, which pushes the
+  reconstructed surface outward by `k·r_b·log₂(N)` and washes the tube out.
+  Summing the Gaussian tail of the neighbours gives the effective over-count
+  `N ≈ 3.01·√(x·k·r_b)/L` for a segment of length `L` at cross-distance `x`, so
+  each segment divides its weight by `√(1+N²)`. With that, a 94 µm trunk tiled
+  by 34 µm segments reconstructs at the same radius as a single long capsule.
+- **Arc length gets its own fp32 target.** Arc runs to millimetres and drives a
+  ~46 µm-period pattern; fp16's three significant digits leave ~7 µm of error,
+  which showed up as a visible wobble crawling along the wall. It is
+  accumulated into a separate R32F attachment. (An earlier attempt to derive it
+  from `dot(world, tangent)` instead produced moiré and was abandoned.)
+
+Two things are still per-segment because they belong to the *skeleton*, not the
+surface: **shared node tangents** (the consistently oriented chords of every
+edge at a node are summed into one tangent, and the fragment interpolates the
+cross-section frame between the two endpoint tangents, so the banding and the
+highlight run continuously along a vessel), and **fading tips** — an open end
+shrinks its radius to 0.16·r so its field dies out instead of ending in a cap,
+and the vessel dissolves into the tissue.
+
+(Refs: [IQ smooth minimum](https://iquilezles.org/articles/smin/),
+[mini.gmshaders SDF](https://mini.gmshaders.com/p/sdf),
+[GPU Gems 3 ch.7 metaballs](https://developer.nvidia.com/gpugems/gpugems3/part-i-geometry/chapter-7-point-based-visualization-metaballs-gpu),
+[LearnOpenGL weighted-blended OIT](https://learnopengl.com/Guest-Articles/2020/OIT/Weighted-Blended).)
+
+Both GPU backends implement it: WebGL2 with `EXT_color_buffer_float` +
+`EXT_float_blend` and an MRT framebuffer, WebGPU with three float colour
+attachments (falling back from `rgba32float` to `rgba16float` for the arc target
+when the optional `float32-blendable` feature is missing).
+
+### 3a-i-b. Merge layers — merging without fusing crossings
+
+A single global accumulation would happily fuse two vessels that merely *cross*
+on screen, which is wrong: one passes in front of the other. Merging is
+therefore done **per tree**, in two passes — the arterial layer and the venous
+layer — each accumulated and resolved on its own, compositing against the shared
+depth buffer. Crossings between the two trees, which is the overwhelmingly
+common case, still occlude correctly.
+
+The capillary bridges span both trees, so each bridge chain is **split at its
+midpoint**: the arteriolar half joins layer 0, the venular half layer 1. That
+seam sits exactly where the tube is one red cell wide and the blood changes
+colour anyway, so it is invisible — and it is the only place in the bed where
+two vessels meet without merging.
 
 ### 3a-iii. Depth — which vessel is in front
 
@@ -338,11 +357,13 @@ the layering. On the GPU that depth goes into `gl_Position.z` and the depth
 buffer does the rest; cells write the depth of the vessel they are travelling
 in. Two details make it work with alpha blending:
 
-- **Two passes for the vessels.** The first writes depth but discards anything
-  below ~0.85 coverage; the second draws the soft fringe with depth writes off.
-  Without this, the antialiased rim, the faded junction stubs and the fading
-  vessel tips would occlude whatever passed behind them while showing almost
-  nothing themselves — which punched flat-edged holes in every crossing vessel.
+- **Depth comes out of the resolve.** Pseudo-depth is one of the attributes
+  blended through the accumulator, so the resolve pass writes the *merged*
+  depth per pixel via `gl_FragDepth` — one value for the whole junction, not one
+  per segment. That replaced an older solid-plus-fringe two-pass hack, which
+  existed only because a per-segment antialiased rim would otherwise occlude
+  whatever passed behind it while showing almost nothing itself, punching
+  flat-edged holes in every crossing vessel.
 - **Cells are depth-*tested* but never depth-*writing*.** The out-of-focus ones
   are deliberately translucent; letting them write depth would punch holes of
   their own.

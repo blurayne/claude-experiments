@@ -54,10 +54,10 @@ network, same flow, same renderer.
   abreast, and Murray's law widens the trunks until a mid-tree vessel holds
   10–15 cells across. The field, the branch spacing and the segment lengths are
   scaled to match, so the vessels have room to breathe.
-- **Continuous tubes, not sausage links** — segments are still drawn as capsule
-  impostors, but each plain chain joint is **mitred** against the shared
-  bisector plane and shaded with an interpolated tube frame, so a vessel reads
-  as one smooth tube instead of a row of capsules.
+- **Continuous tubes, not sausage links** — the whole tree is resolved as one
+  implicit surface (below), and the cross-section frame is interpolated between
+  shared node tangents, so a vessel reads as one smooth tube instead of a row of
+  capsules.
 - **A living lumen** — the vessel interior is shaded with an advected plasma
   shear texture (parabolic velocity profile, surging with each heartbeat), a
   cell-free plasma sleeve at the wall, a cell-sized granular haze that stands in
@@ -85,21 +85,24 @@ network, same flow, same renderer.
   edge-on peanuts all at once, exactly as blood does.
 - **Depth-correct crossings** — every vessel carries a pseudo-depth, so where
   one passes over another the blood cells in the vessel behind disappear behind
-  it instead of being painted on top. Depth-buffered on the GPU (with the
-  vessels drawn in a solid depth-writing pass and a soft fringe pass, so
-  antialiased rims and faded tips don't punch holes), painter's-order on
-  Canvas 2D.
-- **Merged branches (junction metaballs)** — at each bifurcation a shared blob
-  is placed on the node and every incident segment smooth-unions the *same* disc,
-  so the branches warp into one filled, rounded junction instead of meeting in a
-  hard V. Because the primitive is shared, neighbouring segments never disagree
-  (no step) and 3-way or more junctions merge correctly; the lighting inside the
-  junction follows the merged field's gradient, and the cutaway's wall lines fade
-  to open lumen there so the merge reads as flowing blood.
-- **Clean branches and fading tips** — no spherical caps anywhere: a branch node
-  gets a short faded stub from each segment instead of a ball, an end tapers to
-  transparent, and the tube's outline is measured in a frame shared with its
-  neighbour so it stays continuous through every bend.
+  it instead of being painted on top. On the GPU the depth is blended through the
+  same accumulator as everything else, so the resolve pass writes one merged
+  depth per pixel; Canvas 2D approximates it in painter's order.
+- **Seamless junctions (order-independent smooth union)** — the vessels are not
+  composited segment by segment at all. Every segment *adds* its exponential
+  weight `2^(−d/k)` and its weighted attributes into a floating-point buffer, and
+  a full-screen resolve pass reconstructs the merged surface as `−k·log₂(ΣW)`.
+  The exponential smooth minimum is the only one that is both associative and
+  separable into a per-primitive sum, so the merge is exact, order-independent
+  and valence-free: a bifurcation is no longer a joint but one continuous
+  field with one iso-line, with **no sharp edges** anywhere. The lighting normal
+  comes from the merged field's gradient and the cutaway's wall lines follow it
+  through the junction, so a branch reads as flowing blood. Merging runs once per
+  tree (arterial / venous) so vessels that merely *cross* still occlude instead of
+  fusing.
+- **Fading tips** — no spherical caps anywhere: an open end shrinks its field
+  away instead of ending in a ball, so a terminal vessel dissolves into the
+  tissue rather than stopping at a cut-off rim.
 - **Depth of field in the lumen** — every cell carries a depth across the tube's
   unseen thickness. Cells at the back are seen *through* blood: soft-edged,
   washed out, sunk toward the blood colour; cells at the front stay crisp. That
@@ -140,7 +143,8 @@ network, same flow, same renderer.
 
 A single self-contained HTML file, no build step and no libraries — the game
 mode included. The default renderer is **WebGL2** in
-**Cutaway** shading (instanced SDF capsule impostors for vessels, instanced
+**Cutaway** shading (instanced SDF capsule impostors accumulated into a float
+smooth-union buffer and resolved full-screen, instanced
 biconcave / rod / capsid impostors for cells, a procedural domain-warped fBm
 tissue field with a depth vignette); a **Canvas 2D** renderer is the fallback.
 Vessel networks are grown with space-colonisation or recursive branching, spline
