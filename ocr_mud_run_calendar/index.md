@@ -28,5 +28,5 @@ Enthalten sind die großen kommerziellen OCR-Serien (Spartan Race, XLETIX, Muddy
 ## Hinweise zu den Daten
 
 - Entfernungen werden als **Luftlinie** per Haversine-Formel berechnet; die Fahrstrecke ist typischerweise 20–40 % länger.
-- Termine, die noch nicht offiziell bestätigt sind, wurden aus den Vorjahren abgeleitet und sind im Kalender als **„Termin geschätzt“** markiert – vor einer Anmeldung immer die Event-Website prüfen.
-- Datenstand: Juli 2026.
+- Termine, die noch nicht offiziell bestätigt sind, wurden aus den Vorjahren abgeleitet und sind im Kalender als **„Termin geschätzt“** markiert – vor einer Anmeldung immer die Event-Website prüfen. Die Markierung gilt **pro Termin**: bei vielen Events ist der 2026er-Termin offiziell, der 2027er abgeleitet (Feld `estimatedDates` in `events.js`).
+- Datenstand: Juli 2026, inklusive Nachrecherche der 2027-Termine. 76 der 96 Events haben einen 2027-Termin; bestätigt sind u. a. Spartan München (09./10.04.), Braveheart Battle (19./20.03.), Regensburg Marathon (08./09.05.), Wings for Life World Run (09.05.), SILBERSTROM CrossDeLuxe (30.05.), Spartan Kulmbach (11.–13.06.), Spartan St. Pölten (18.–20.06.), Linzathlon (12.06.), Getting Tough Oberhof (25./26.06.), Innsbruckathlon und XLETIX Tirol (26.06.), Muddy Angel Run München (03.07.), SportScheck RUN München (04.07.), Strong Viking Frankfurt (03./04.07.), U.Trail Lamer Winkel (03.07.), XLETIX München Erding (17.07.) und Spartan Zell am See-Kaprun (10.–12.09.).

@@ -332,6 +332,17 @@
     return WEEKDAYS[d.getDay()] + ", " + d.getDate() + ". " + MONTHS_SHORT[d.getMonth()] + " " + d.getFullYear();
   }
 
+  function isoDate(d) {
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+
+  // "estimated" gilt für das ganze Event; "estimatedDates" markiert einzelne Termine
+  // (z. B. 2026 offiziell bestätigt, 2027 aus dem Vorjahresmuster abgeleitet).
+  function isEstimated(ev, d) {
+    if (ev.estimatedDates) return ev.estimatedDates.indexOf(isoDate(d)) !== -1;
+    return !!ev.estimated;
+  }
+
   function build() {
     var origin = ORIGINS[state.origin];
     var today = new Date(); today.setHours(0, 0, 0, 0);
@@ -414,7 +425,7 @@
               : '<span class="badge b-klein">Klein &amp; fein</span>';
       if (it.recurring) badges += '<span class="badge b-rec">wiederkehrend</span>';
       if (ev.kids && ev.category !== "kids") badges += '<span class="badge b-kids">Kids-Lauf</span>';
-      if (ev.estimated) badges += '<span class="badge b-est">Termin geschätzt</span>';
+      if (isEstimated(ev, d)) badges += '<span class="badge b-est">Termin geschätzt</span>';
       if (it.isPast) badges += '<span class="badge b-past">bereits gelaufen</span>';
 
       var metaBits = [];

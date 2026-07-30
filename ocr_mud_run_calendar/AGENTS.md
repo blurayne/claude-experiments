@@ -23,6 +23,23 @@ Jede Rechercheaufgabe wurde als eigenständiger Web-Recherche-Agent mit klar abg
 10. Lauf- und Crossevents im Korridor München–Lam (Erding, Freising, Moosburg, Landshut, Straubing, Bogen, Deggendorf, Regensburg, Neutraubling, Bodenmais, Arrach) — u. a. Landshut läuft, Herzogstadtlauf, Nightrun & Beats, Spindellauf, U.Trail Lamer Winkel
 11. Event-Kalender der OCR-Trainingsvereine (OCR Munich e.V., SurvivalRunning Augsburg, Runtopia) und weiterer OCR-Vereine: ergab den WertachXrun Schwabmünchen als Austragungsort der Deutschen Meisterschaft im Hindernislauf (OCRA Germany) sowie den Trainingspark „Die Finisher" in Wallern an der Trattnach (AT); eigene Rennen der drei Vereine existieren nicht mehr bzw. sind vereinsintern (siehe Ausschlussliste in `EVENTS.md`)
 
+**Nachrecherche 2027-Termine (Juli 2026):** Gezielter Durchgang über alle Events ohne bestätigten 2027-Termin sowie über die 2027-Termine, die bis dahin nur geschätzt waren. Bestätigt/korrigiert wurden dabei:
+
+| Event | Termin 2027 | Status |
+|---|---|---|
+| XLETIX Challenge München Erding | 17.07.2027 | neu bestätigt |
+| schauinsland Muddy Angel Run München | 03.07.2027 | neu bestätigt (Ticketstart 04.08.2026) |
+| Spartan Trifecta Weekend Kulmbach | 11.–13.06.2027 | neu bestätigt |
+| Braveheart Battle | 19./20.03.2027 | Freitagstermin ergänzt |
+| XLETIX Challenge Tirol (Kühtai) | 26.06.2027 | von „geschätzt" auf bestätigt |
+| Getting Tough – 5Elements Oberhof | 25./26.06.2027 | von „geschätzt" auf bestätigt |
+| SILBERSTROM CrossDeLuxe Erzgebirge | 30.05.2027 | von „geschätzt" auf bestätigt |
+| SportScheck RUN München | 04.07.2027 | von „geschätzt" auf bestätigt |
+| Wings for Life World Run | 09.05.2027 | **korrigiert** (vorher geschätzt 02.05.) |
+| Regensburg Marathon | 08./09.05.2027 | **korrigiert** (vorher geschätzt 16.05.) |
+
+Für Events ohne offiziellen 2027-Termin wurden Termine aus dem stabilen Vorjahresmuster abgeleitet (gleicher Wochentag, gleiche Woche im Monat) und mit `estimatedDates` markiert. Bewusst **ohne** 2027-Termin blieben Events mit unklarem oder eingestelltem Rhythmus: Spartan Liberec/Lipno-Vorgaben aus CZ (2027 noch unveröffentlicht — Lipno wurde dennoch abgeleitet, Liberec nicht), Predator Race Dobřany (Termin springt zwischen April und August), Gladiator Race Josefov (mehrere unregelmäßige Termine pro Jahr), Runmageddon X Filzmoos, Mud Masters Süddeutschland (Standort seit 2026 ohne Termin), Getting Tough Rudolstadt (eingestellt), Strong Viking Water Edition, TRAIL in den Mai, die Raiffeisen-Crosslauf-Serie Inn-Salzach (wechselnde Etappenorte) und die drei Survival-Race-Kids-Standorte (Termine springen zwischen Mai, Juli und Oktober).
+
 Hinweis zur Nachrecherche: Viele Veranstalter- und Aggregatorseiten (rocktherace.de, mudradar.de, hindernislaufguru.de, hdsports.org, time2run.org, gladiatorrace.cz u. a.) blockierten den direkten Abruf über den Recherche-Proxy (HTTP 403); Angaben stammen dort aus Suchmaschinen-Snippets mehrerer unabhängiger Quellen und sind bei Preisen entsprechend als „geschätzt/prüfen" gekennzeichnet.
 
 ## Genutzte Quellentypen
@@ -92,7 +109,7 @@ Hinweis zur Nachrecherche: Viele Veranstalter- und Aggregatorseiten (rocktherace
 
 ## Bekannte Lücken / Unsicherheiten
 
-- Termine, die nur aus Vorjahresmustern abgeleitet wurden, tragen `estimated: true` und sollten vor einer Anmeldung gegen die Veranstalterseite geprüft werden.
+- Termine, die nur aus Vorjahresmustern abgeleitet wurden, tragen `estimated: true` (ganzes Event) bzw. `estimatedDates: [...]` (einzelne Termine) und sollten vor einer Anmeldung gegen die Veranstalterseite geprüft werden. `estimatedDates` gibt es, weil bei vielen Events der 2026er-Termin offiziell bestätigt ist, der 2027er aber abgeleitet — ein einzelnes `estimated`-Flag pro Event wäre für eines der beiden Jahre falsch.
 - Für Tschechien (Region Lam) gibt es keinen parkrun-Standort; die nächstgelegenen parkruns liegen in München und Nürnberg.
 - Manche Vereinsseiten (z. B. Buchental-Crosslauf, Arnstorfer Crosslauf) nennen keine öffentliche Preisliste — dort bleibt `priceMin`/`priceMax` bewusst `null` statt geraten.
 - Koordinaten kleinerer Vereinsgelände (z. B. OCR-Trainingsgeländer) sind teils aus Adressangaben angenähert, nicht vermessen.

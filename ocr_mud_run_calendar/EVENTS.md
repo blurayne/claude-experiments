@@ -2,7 +2,9 @@
 
 Vollständige Liste aller in `events.js` erfassten Einträge, nach Art gruppiert. Dient nur zur Archivierung/zum schnellen Nachschlagen — die eigentlichen Daten (Termine, Preise, Koordinaten …) stehen in `events.js`, die interaktive Ansicht in `kalender.html`. Quellen siehe [`AGENTS.md`](AGENTS.md).
 
-Stand: Juli 2026. „Region" ist grob nach Nähe zu München (81373) bzw. Lam (93462) sortiert, nicht nach Distanz-Ranking.
+Stand: Juli 2026, inkl. Nachrecherche der 2027-Termine. „Region" ist grob nach Nähe zu München (81373) bzw. Lam (93462) sortiert, nicht nach Distanz-Ranking.
+
+Ohne 2027-Termin sind derzeit nur: Spartan Race Liberec, Predator Race Dobřany, Gladiator Race Josefov, Runmageddon X Filzmoos, Mud Masters Süddeutschland, Getting Tough Rudolstadt, Strong Viking Water Edition, TRAIL in den Mai, Raiffeisen-Crosslauf Inn-Salzach und die drei Survival-Race-Kids-Standorte – Begründung je Event siehe [`AGENTS.md`](AGENTS.md).
 
 ## OCR- / Hindernis-/Matschläufe — Großevents
 
