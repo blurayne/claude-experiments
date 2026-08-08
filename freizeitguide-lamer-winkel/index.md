@@ -1,7 +1,7 @@
 # Freizeit-Guide Lamer Winkel & Bad Kötzting
 
 Interaktiver deutscher **Freizeit-Guide für Familien** rund um Lam und Bad
-Kötzting im Bayerischen Wald — 99 Einträge (74 Einrichtungen + 25 Events)
+Kötzting im Bayerischen Wald — 97 Einträge (74 Einrichtungen + 23 Events)
 aus Deutschland und Tschechien, ausgelegt auf ein Kind von etwa 7 Jahren.
 Recherche-Stand 08.08.2026, Termine bis 15.01.2027 erfasst.
 
@@ -12,7 +12,7 @@ Die Seite ist eine einzelne, in sich geschlossene Datei:
 
 Statt einer Linkliste bündelt der Guide jedes Ziel als eigene Karte mit
 Entfernung, Fahrzeit, Preis, Öffnungszeiten, einer Einschätzung „taugt das
-für ein 7-jähriges Kind?" und **allen** Belegquellen (209 Links). Entfernung
+für ein 7-jähriges Kind?" und **allen** Belegquellen (206 Links). Entfernung
 und Fahrzeit stammen aus einer OSRM-Routenberechnung auf OpenStreetMap-Daten
 ab Marktplatz Lam bzw. Marktplatz Bad Kötzting — ohne Verkehr, Baustellen
 und Parkplatzsuche, also Untergrenze.
@@ -46,7 +46,7 @@ nicht kennt).
 
 ### Gebündelte Beschriftungen
 
-13 Koordinaten tragen mehr als ein Ziel — das Fest am Ort der Einrichtung,
+11 Koordinaten tragen mehr als ein Ziel — das Fest am Ort der Einrichtung,
 sieben Drachenstich-Termine auf demselben Festplatz in Furth im Wald.
 Einzeln gezeichnet legen sich ihre Namen übereinander. Deshalb zeichnen
 Radar und Karte **einen Punkt je Koordinate** und stapeln die Namen
@@ -105,6 +105,32 @@ sehen ist:
 Jede Angabe trägt eine Evidenzstufe: **A** Erstquelle 2025/26 ·
 **B** Portal/Verzeichnis/Kartendienst · **C** Blog, Rezension, ältere
 Angabe · **D** ungeprüft.
+
+## Datenpflege
+
+Entfernt wurden zwei Event-Karten, die nur den Regelbetrieb ihrer
+Einrichtung wiederholten — gleiche Wochentage, gleiche Uhrzeiten, gleiche
+Preise, gleiche Quellen: „Führung Besucherbergwerk Fürstenzeche" (deckte
+sich mit `fuerstenzeche`) und „Führung Further Felsengänge" (deckte sich
+mit `felsengaenge`). Treffpunkt, Parkplatz und Saisonende stehen jetzt auf
+der Karte der Einrichtung selbst, ebenso der zusätzliche Kalenderlink.
+
+Einträge ohne eigene Koordinate übernehmen per `geo:"<id>"` den Punkt eines
+anderen Eintrags. Das stimmt, solange der Termin am Ort der Einrichtung
+stattfindet. In einigen Fällen stimmt es **nicht** — die Beschreibung nennt
+dort selbst eine andere Adresse: `ev-rauhnacht` (Dorfanger Engelshütt),
+`ev-sperlhammer` und `ev-schupfa` (Ortsteile von Bad Kötzting),
+`ev-festschiessen` (Schießsportzentrum Eschlkamer Straße), `ev-flohmarkt`
+(Lagerplatz Kötztinger Straße), `ev-volksfest` (Festwiese),
+`ev-panduren`/`ev-country` (Stadtpark Waldmünchen). Vier weitere Einträge
+haben von Natur aus keinen Punkt: `ev-woidwander`, `ev-perchten`,
+`ev-christkindl` (vier Städte in einem Eintrag) und `sternenpark` (eine
+ganze Region, sitzt auf dem Gebäude der Sternwarte Neuhütte).
+
+Diese Koordinaten sind bewusst **nicht** geraten: jeder Eintrag trägt mit
+`kl/kb`, `ml/mb` und `dl/db` geroutete Werte, die zu seiner Koordinate
+gehören. Eine Koordinate zu ändern, ohne neu zu routen, würde genau die
+Zahlen falsch machen, mit denen der Guide arbeitet.
 
 ## Abhängigkeiten
 
