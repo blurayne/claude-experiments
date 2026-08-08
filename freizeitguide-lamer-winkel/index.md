@@ -24,6 +24,8 @@ Bedienelemente:
 - **Umkreis-Regler** in Fahrminuten oder Kilometern (bis 90).
 - **Filter** für Typ (Einrichtung / Event), Land (DE / CZ), Kategorie
   (Bäder, Tiere, Action, Themenwege, Spielplätze …) und Favoriten.
+- **Zeitfenster** für Termine, tagesgenau von „nur heute" über 1 bis 10 Tage
+  bis hinauf zu zwei Jahren.
 - **Sortierung** nach Entfernung oder Termin, ab frei wählbarem Datum.
 - **Favoriten** per Stern, in `localStorage` gespeichert.
 - **Nacht-/Tagmodus** über den Schalter oben rechts.
@@ -41,6 +43,26 @@ Bedienelemente:
 Beide Ansichten lassen sich per **⛶ Vollbild** groß schalten (mit
 Rückfall-Darstellung für iOS-Safari, das `requestFullscreen` auf Elementen
 nicht kennt).
+
+### Gebündelte Beschriftungen
+
+13 Koordinaten tragen mehr als ein Ziel — das Fest am Ort der Einrichtung,
+sieben Drachenstich-Termine auf demselben Festplatz in Furth im Wald.
+Einzeln gezeichnet legen sich ihre Namen übereinander. Deshalb zeichnen
+Radar und Karte **einen Punkt je Koordinate** und stapeln die Namen
+darunter, eine Zeile je Ziel; ab fünf Zielen zählt die letzte Zeile den Rest
+(„+3 weitere hier"). Der Punkt wächst mit der Zahl der Ziele, die auf ihm
+liegen, und führt eine Einrichtung vor einem Event als Farbgeber an.
+
+**Ein Klick auf eine Namenszeile scrollt zur ausführlichen Karteikarte**
+und hebt sie kurz hervor — im Radar wie auf der Karte, aus dem Vollbild
+heraus wird dieses zuerst beendet. Ein Klick auf den Punkt selbst öffnet
+weiterhin das Popup, das alle Ziele dieser Koordinate mit Entfernung,
+Fahrzeit und Links auflistet.
+
+Das Bündeln greift nur bei *identischer* Koordinate. Ziele, die nur
+nahe beieinander liegen, überlagern sich im Radar bei Zoomstufe 1 nach wie
+vor — dafür ist der Zoomregler da.
 
 ## Kartenebenen (OpenStreetMap)
 

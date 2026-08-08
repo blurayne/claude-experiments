@@ -240,7 +240,20 @@ h2.verlauf .idx{-webkit-text-fill-color:var(--muted); color:var(--muted); opacit
       <button class="minibtn" id="heuteBtn" title="Auf heute zurücksetzen">Heute</button>
       <span class="flabel mono" style="min-width:auto">Zeitfenster</span>
       <select id="spanSel" aria-label="Zeitfenster für Termine">
+        <optgroup label="Tagesgenau">
+        <option value="0">nur heute</option>
+        <option value="1">heute &amp; morgen</option>
+        <option value="2">nächste 2 Tage</option>
+        <option value="3">nächste 3 Tage</option>
+        <option value="4">nächste 4 Tage</option>
+        <option value="5">nächste 5 Tage</option>
+        <option value="6">nächste 6 Tage</option>
+        <option value="7">nächste 7 Tage</option>
+        <option value="8">nächste 8 Tage</option>
+        <option value="9">nächste 9 Tage</option>
         <option value="10">nächste 10 Tage</option>
+        </optgroup>
+        <optgroup label="Wochen &amp; Monate">
         <option value="14">nächste 2 Wochen</option>
         <option value="28">nächste 4 Wochen</option>
         <option value="60">nächste 2 Monate</option>
@@ -249,6 +262,7 @@ h2.verlauf .idx{-webkit-text-fill-color:var(--muted); color:var(--muted); opacit
         <option value="180">nächste 6 Monate</option>
         <option value="365">nächstes Jahr</option>
         <option value="730">nächste 2 Jahre</option>
+        </optgroup>
       </select>
       <span class="flabel mono" style="min-width:auto">Sortierung</span>
       <div class="seg" role="group" aria-label="Sortierung">
@@ -328,6 +342,12 @@ h2.verlauf .idx{-webkit-text-fill-color:var(--muted); color:var(--muted); opacit
 .kartenlabel{background:rgba(255,255,255,.86); border:none; box-shadow:0 1px 3px rgba(0,0,0,.25); border-radius:8px; padding:1px 6px; font-family:"Nunito",sans-serif; font-size:11px; font-weight:700; color:#23222f; white-space:nowrap}
 .kartenlabel::before{display:none}
 .kartenlabel.start{background:#f5a93c; color:#1a1a1a}
+/* Mehrere Ziele auf einer Koordinate: ein Etikett, eine Zeile je Ziel.
+   nowrap bleibt — <br> bricht trotzdem, lange Namen brechen aber nicht um. */
+.kartenlabel.mehrfach{line-height:1.45; padding:3px 7px}
+.kartenlabel a{color:#23222f; text-decoration:none}
+.kartenlabel a:hover{color:#0b6b57; text-decoration:underline}
+.leaflet-popup-content .poptrenn{border:none; border-top:1px solid rgba(35,34,47,.18); margin:9px 0}
 .leaflet-control-layers, .leaflet-control-scale-line{font-family:"Nunito",sans-serif; font-size:12px; border-radius:10px}
 /* Ebenenauswahl im Seitenlook: auf großen Schirmen steht sie offen,
    eingeklappt bleibt sie hell, damit das dunkle Leaflet-Symbol sichtbar ist. */
@@ -365,6 +385,18 @@ input[type="date"]{background:var(--panel2); border:1px solid var(--line); color
 .card{background:var(--panel); border:1px solid var(--line); border-radius:13px; padding:16px 17px; display:flex; flex-direction:column; gap:8px; box-shadow:var(--shadow)}
 .card.event{border-top:3px solid var(--amber)}
 .card:target{border-color:var(--amber)}
+/* Angesprungene Karte kurz hervorheben, damit klar ist, wo man gelandet ist.
+   scroll-margin hält sie unter der klebenden Kopfzeile hervor. */
+.card{scroll-margin-top:84px}
+.card.angesprungen{border-color:var(--amber)}
+@media (prefers-reduced-motion:no-preference){
+  .card.angesprungen{animation:angesprungen 1.8s ease-out}
+}
+@keyframes angesprungen{
+  0%{box-shadow:0 0 0 0 var(--amber)}
+  18%{box-shadow:0 0 0 4px var(--amber)}
+  100%{box-shadow:var(--shadow)}
+}
 .card .head{display:flex; justify-content:space-between; align-items:flex-start; gap:10px}
 .card h3{font-size:16px; line-height:1.3}
 .card .ort{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em}
@@ -1579,7 +1611,9 @@ const mn=e=>origin==="lam"?e.ml:e.mb;
 const deg=e=>origin==="lam"?e.dl:e.db;
 const iso=d=>d.toISOString().slice(0,10);
 function bisDatum(){ const d=new Date(ab+"T12:00:00"); d.setDate(d.getDate()+spanDays); return iso(d); }
-const SPANTEXT={10:"nächste 10 Tage",14:"nächste 2 Wochen",28:"nächste 4 Wochen",60:"nächste 2 Monate",90:"nächste 3 Monate",120:"nächste 4 Monate",180:"nächste 6 Monate",365:"nächstes Jahr",730:"nächste 2 Jahre"};
+const SPANTEXT={0:"nur heute",1:"heute & morgen",2:"nächste 2 Tage",3:"nächste 3 Tage",4:"nächste 4 Tage",
+  5:"nächste 5 Tage",6:"nächste 6 Tage",7:"nächste 7 Tage",8:"nächste 8 Tage",9:"nächste 9 Tage",
+  10:"nächste 10 Tage",14:"nächste 2 Wochen",28:"nächste 4 Wochen",60:"nächste 2 Monate",90:"nächste 3 Monate",120:"nächste 4 Monate",180:"nächste 6 Monate",365:"nächstes Jahr",730:"nächste 2 Jahre"};
 
 function nextWin(e){
   if(e.typ!=="event")return null;
@@ -1655,6 +1689,64 @@ function renderGrid(){
   else renderKarte(vis);
 }
 
+/* ---------- Ziele am selben Punkt bündeln ---------- */
+/* Viele Einträge teilen sich exakt eine Koordinate: das Fest am Ort der
+   Einrichtung, sieben Drachenstich-Termine auf demselben Festplatz. Einzeln
+   gezeichnet überlagern sich ihre Beschriftungen zu Brei — deshalb ein Punkt
+   je Koordinate und die Namen darunter mehrzeilig. */
+const MAXZEILEN=4;
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+function buendeln(liste){
+  const nach={}, reihe=[];
+  liste.forEach(function(e){
+    if(!Number.isFinite(e.la))return;
+    const k=e.la.toFixed(5)+","+e.lo.toFixed(5);
+    if(!nach[k]){ nach[k]={teile:[]}; reihe.push(nach[k]); }
+    nach[k].teile.push(e);
+  });
+  return reihe;
+}
+/* Die Einrichtung führt die Gruppe an, nicht das Event — sie ist der Ort,
+   das Event nur ein Termin dort. */
+function gruppenAnker(teile){
+  return teile.filter(function(e){ return e.typ!=="event" })[0]||teile[0];
+}
+/* Namen einer Gruppe, auf MAXZEILEN gekürzt: die letzte Zeile zählt den Rest. */
+function gruppenZeilen(teile,maxLen){
+  const kurz=function(s){ return s.length>maxLen?s.slice(0,maxLen-1)+"…":s; };
+  if(teile.length<=MAXZEILEN)
+    return teile.map(function(e){ return {id:e.id, text:kurz(e.n)}; });
+  const z=teile.slice(0,MAXZEILEN-1).map(function(e){ return {id:e.id, text:kurz(e.n)}; });
+  z.push({id:teile[MAXZEILEN-1].id, text:"+"+(teile.length-(MAXZEILEN-1))+" weitere hier"});
+  return z;
+}
+
+/* ---------- Vom Punkt zur Karteikarte ---------- */
+/* Ein Klick auf eine Beschriftung — im Radar wie auf der Karte — soll zur
+   ausführlichen Karteikarte scrollen. Aus dem Vollbild heraus muss die
+   Ansicht dafür erst zurück, sonst passiert scheinbar nichts. */
+function zumEintrag(id){
+  const ziel=document.getElementById("c-"+id);
+  if(!ziel)return;
+  const warVoll=vollbildAn();
+  vollbildBeenden();
+  setTimeout(function(){
+    ziel.scrollIntoView({behavior:"smooth",block:"center"});
+    ziel.classList.remove("angesprungen");
+    void ziel.offsetWidth;              /* erzwingt den Neustart der Animation */
+    ziel.classList.add("angesprungen");
+  },warVoll?160:0);
+}
+/* In der Erfassungsphase, damit Leaflet den Klick auf eine Etikettzeile nicht
+   zusätzlich als Klick auf den Marker wertet und das Popup aufzieht: der Name
+   führt zur Karteikarte, der Punkt selbst öffnet weiterhin das Popup. */
+document.addEventListener("click",function(ev){
+  const a=ev.target.closest&&ev.target.closest('a[href^="#c-"]');
+  if(!a)return;
+  ev.preventDefault(); ev.stopPropagation();
+  zumEintrag(a.getAttribute("href").slice(3));
+},true);
+
 function renderRadar(ids){
   const svg=document.getElementById("radar"),cx=320+panX,cy=240+panY,R=205;
   const px=function(v){ return R*v/SKALA*zoomF; };
@@ -1674,19 +1766,38 @@ function renderRadar(ids){
     if(a[1]<8||a[1]>632||a[2]<14||a[2]>472)return;
     out+='<text x="'+a[1]+'" y="'+a[2]+'" text-anchor="middle" font-family="IBM Plex Mono" font-size="'+fs(11.5)+'" fill="var(--muted)">'+a[0]+'</text>'; });
   out+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(5.5*Math.min(1+(zoomF-1)/11,2)).toFixed(1)+'" fill="var(--amber)"/><text x="'+(cx+10)+'" y="'+(cy+4)+'" font-family="IBM Plex Mono" font-size="'+fs(11)+'" fill="var(--amber)">'+(origin==="lam"?"LAM":"BAD KÖTZTING")+'</text>';
-  let versteckt=0; const belegt={};
-  ALL.forEach(function(e){
-    const r=px(dist(e)), a=(deg(e)-90)*Math.PI/180;
-    let x=cx+r*Math.cos(a), y=cy+r*Math.sin(a); const on=!!ids[e.id];
-    /* Ziele mit identischer Lage (etwa Event am selben Ort) leicht auffächern */
+  let versteckt=0; const belegt={}, beschriftet=[];
+  const gr=+fs(10.5), zh=gr*1.18, pg=Math.min(1+(zoomF-1)/11*1.2,2.2);
+  buendeln(ALL).forEach(function(g){
+    /* Alle Teile der Gruppe liegen auf derselben Koordinate, also genügt einer
+       für Entfernung und Peilung. */
+    const e0=g.teile[0];
+    const r=px(dist(e0)), a=(deg(e0)-90)*Math.PI/180;
+    let x=cx+r*Math.cos(a), y=cy+r*Math.sin(a);
+    const dabei=g.teile.filter(function(e){ return !!ids[e.id] });
+    const on=dabei.length>0;
+    /* Verschiedene Orte, die trotzdem auf dasselbe Pixelraster fallen,
+       weiterhin leicht auffächern */
     const schluessel=Math.round(x/9)+","+Math.round(y/9);
     const n=belegt[schluessel]||0; belegt[schluessel]=n+1;
     if(n>0){ const w=n*1.9, sp=(7+n*2.5)*Math.min(1+(zoomF-1)/11*1.5,2.5); x+=Math.cos(w)*sp; y+=Math.sin(w)*sp; }
-    if(x<-30||x>670||y<-30||y>510){ if(on)versteckt++; return; }
-    const c=e.typ==="event"?"var(--amber)":(CATCOLOR[e.cat[0]]||"var(--teal)");
-    const pg=Math.min(1+(zoomF-1)/11*1.2,2.2);
-    out+='<a href="#c-'+e.id+'"><circle cx="'+x+'" cy="'+y+'" r="'+((on?6.5:3.5)*pg).toFixed(1)+'" fill="'+c+'" opacity="'+(on?0.95:0.16)+'"><title>'+e.n+' · '+km(e)+' km / '+mn(e)+' min</title></circle>'+
-      (on?'<text x="'+(x+9*Math.min(zoomF,2))+'" y="'+(y+3.5)+'" font-family="Nunito" font-size="'+fs(10.5)+'" font-weight="700" fill="var(--ink)">'+(e.n.length>22?e.n.slice(0,21)+"…":e.n)+'</text>':'')+'</a>';
+    if(x<-30||x>670||y<-30||y>510){ versteckt+=dabei.length; return; }
+    const anker=gruppenAnker(on?dabei:g.teile);
+    const c=anker.typ==="event"?"var(--amber)":(CATCOLOR[anker.cat[0]]||"var(--teal)");
+    /* Der Punkt wächst mit der Zahl der Ziele, die auf ihm liegen. */
+    const rad=((on?6.5+Math.min(dabei.length-1,4)*0.9:3.5)*pg).toFixed(1);
+    const titel=(on?dabei:g.teile).map(function(e){ return esc(e.n)+" · "+km(e)+" km / "+mn(e)+" min" }).join("\n");
+    out+='<a href="#c-'+anker.id+'"><circle cx="'+x+'" cy="'+y+'" r="'+rad+'" fill="'+c+'" opacity="'+(on?0.95:0.16)+'"><title>'+titel+'</title></circle></a>';
+    if(on) beschriftet.push({x:x, y:y, rad:+rad, zeilen:gruppenZeilen(dabei,22)});
+  });
+  /* Beschriftungen liegen über allen Punkten, damit kein Punkt sie zerschneidet.
+     Mehrere Namen an einem Punkt stehen untereinander, um ihn zentriert —
+     jede Zeile führt zu ihrer eigenen Karteikarte. */
+  beschriftet.forEach(function(b){
+    const x1=(b.x+4+b.rad).toFixed(1), oben=b.y+3.5-(b.zeilen.length-1)*zh/2;
+    b.zeilen.forEach(function(z,i){
+      out+='<a href="#c-'+z.id+'"><text x="'+x1+'" y="'+(oben+i*zh).toFixed(1)+'" font-family="Nunito" font-size="'+gr+'" font-weight="700" fill="var(--ink)">'+esc(z.text)+'</text></a>';
+    });
   });
   if(versteckt>0) out+='<text x="632" y="470" text-anchor="end" font-family="IBM Plex Mono" font-size="'+fs(10.5)+'" fill="var(--muted)">'+versteckt+' Ziel'+(versteckt===1?"":"e")+' außerhalb des Ausschnitts — verschieben</text>';
   svg.innerHTML=out;
@@ -1754,18 +1865,29 @@ function renderKarte(vis){
    .bindTooltip("Start: "+(origin==="lam"?"Lam":"Bad Kötzting"),{permanent:true,direction:"right",offset:[8,0],className:"kartenlabel start"})
    .bindPopup("<b>Start: "+(origin==="lam"?"Lam":"Bad Kötzting")+"</b>").addTo(lschicht);
   punkte.push(start);
-  vis.forEach(function(e){
-    if(!Number.isFinite(e.la))return;
-    const c=e.typ==="event"?"#f5a93c":(CATCOLOR[e.cat[0]]||"#35c9b4");
-    const g="https://www.google.com/maps/search/?api=1&query="+e.la+","+e.lo;
-    const o="https://www.openstreetmap.org/?mlat="+e.la+"&mlon="+e.lo+"#map=15/"+e.la+"/"+e.lo;
-    L.circleMarker([e.la,e.lo],{radius:8,color:"#fff",weight:2,fillColor:c,fillOpacity:.95,className:"pin"})
-     .bindTooltip(e.n,{permanent:true,direction:"right",offset:[8,0],className:"kartenlabel"})
-     .bindPopup("<b>"+e.n+"</b><br>"+e.o+"<br>"+km(e).toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1})+" km · "+mn(e)+" min"+
-       '<br><a href="'+g+'" target="_blank" rel="noopener">Google Maps</a> · <a href="'+o+'" target="_blank" rel="noopener">OpenStreetMap</a>'+
-       ' · <a href="#c-'+e.id+'">zur Karte im Guide</a>')
+  buendeln(vis).forEach(function(gr){
+    const teile=gr.teile, e0=teile[0], anker=gruppenAnker(teile);
+    const c=anker.typ==="event"?"#f5a93c":(CATCOLOR[anker.cat[0]]||"#35c9b4");
+    /* Eine Beschriftung für alle Ziele auf diesem Punkt, Zeile für Zeile —
+       jede Zeile ist anklickbar und führt zu ihrer Karteikarte. */
+    const beschriftung=gruppenZeilen(teile,34).map(function(z){
+      return '<a href="#c-'+z.id+'">'+esc(z.text)+'</a>';
+    }).join("<br>");
+    const inhalt=teile.map(function(e){
+      const g="https://www.google.com/maps/search/?api=1&query="+e.la+","+e.lo;
+      const o="https://www.openstreetmap.org/?mlat="+e.la+"&mlon="+e.lo+"#map=15/"+e.la+"/"+e.lo;
+      return "<b>"+esc(e.n)+"</b><br>"+esc(e.o)+"<br>"+km(e).toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1})+" km · "+mn(e)+" min"+
+        '<br><a href="'+g+'" target="_blank" rel="noopener">Google Maps</a> · <a href="'+o+'" target="_blank" rel="noopener">OpenStreetMap</a>'+
+        ' · <a href="#c-'+e.id+'">zur Karte im Guide</a>';
+    }).join('<hr class="poptrenn">');
+    L.circleMarker([e0.la,e0.lo],
+      {radius:8+Math.min(teile.length-1,4)*0.9,color:"#fff",weight:2,fillColor:c,fillOpacity:.95,className:"pin"})
+     .bindTooltip(beschriftung,
+       {permanent:true,direction:"right",offset:[8,0],interactive:true,
+        className:"kartenlabel"+(teile.length>1?" mehrfach":"")})
+     .bindPopup(inhalt,{maxHeight:280})
      .addTo(lschicht);
-    punkte.push([e.la,e.lo]);
+    punkte.push([e0.la,e0.lo]);
   });
   if(punkte.length>1)lmap.fitBounds(L.latLngBounds(punkte).pad(0.12));
   setTimeout(function(){ lmap.invalidateSize(); },60);
@@ -1821,10 +1943,15 @@ document.getElementById("radarReset").addEventListener("click",function(){
 function vollbildAn(){ return !!document.fullscreenElement || document.querySelector(".radarwrap").classList.contains("pseudovoll"); }
 function vollbildKnopf(){ document.getElementById("vollbild").textContent=vollbildAn()?"⛡ Beenden":"⛶ Vollbild"; }
 function nachVollbild(){ vollbildKnopf(); if(lmap)setTimeout(function(){ lmap.invalidateSize(); },120); renderGrid(); }
-document.getElementById("vollbild").addEventListener("click",function(){
+/* Beendet beide Spielarten: echtes Vollbild und die iOS-Ersatzdarstellung. */
+function vollbildBeenden(){
   const box=document.querySelector(".radarwrap");
   if(document.fullscreenElement){ (document.exitFullscreen||document.webkitExitFullscreen).call(document); return; }
-  if(box.classList.contains("pseudovoll")){ box.classList.remove("pseudovoll"); document.body.style.overflow=""; nachVollbild(); return; }
+  if(box.classList.contains("pseudovoll")){ box.classList.remove("pseudovoll"); document.body.style.overflow=""; nachVollbild(); }
+}
+document.getElementById("vollbild").addEventListener("click",function(){
+  const box=document.querySelector(".radarwrap");
+  if(vollbildAn()){ vollbildBeenden(); return; }
   const anfrage=box.requestFullscreen||box.webkitRequestFullscreen;
   if(anfrage){ anfrage.call(box).catch(function(){ box.classList.add("pseudovoll"); document.body.style.overflow="hidden"; nachVollbild(); }); }
   else { /* iOS Safari kennt requestFullscreen für Elemente nicht — eigene Vollflächen-Darstellung */
@@ -1833,8 +1960,7 @@ document.getElementById("vollbild").addEventListener("click",function(){
 document.addEventListener("fullscreenchange",nachVollbild);
 document.addEventListener("webkitfullscreenchange",nachVollbild);
 document.addEventListener("keydown",function(ev){
-  if(ev.key==="Escape"&&document.querySelector(".radarwrap").classList.contains("pseudovoll")){
-    document.querySelector(".radarwrap").classList.remove("pseudovoll"); document.body.style.overflow=""; nachVollbild(); }
+  if(ev.key==="Escape"&&document.querySelector(".radarwrap").classList.contains("pseudovoll")) vollbildBeenden();
 });
 /* Gesten: ein Finger verschiebt, zwei Finger zoomen */
 (function(){
