@@ -130,6 +130,18 @@ ZIELE = {
     "weinschiff":       (49.85560, 6.88940),
     "wasserleitung":    (49.73610, 6.75000),
     "qanat-poelich":    (49.81060, 6.80470),
+    # --- makaber, bizarr, unterirdisch ---
+    "matthias":         (49.74050, 6.63550),
+    "paulin":           (49.76600, 6.64800),
+    "maximin":          (49.76350, 6.64550),
+    "judenfriedhof":    (49.75300, 6.63300),
+    "dreikoenigenhaus": (49.75800, 6.64250),
+    "frankenturm":      (49.75620, 6.63950),
+    "klause":           (49.56200, 6.60500),
+    "genoveva":         (49.83900, 6.62500),
+    "teufelsschlucht":  (49.83900, 6.43100),
+    "kasematten":       (49.61150, 6.13400),
+    "muellerthal":      (49.79000, 6.31300),
     # --- zweites Programm: Kind, Katzen, ruhiger Tag ---
     "katzentempel":     (49.75510, 6.64070),
     "petrispark":       (49.75250, 6.67400),

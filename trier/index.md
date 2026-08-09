@@ -4,9 +4,9 @@ Interaktiver deutscher **Reise-Guide für Trier**, gebaut nach der Vorlage des
 [Freizeit-Guides Lamer Winkel](../freizeitguide-lamer-winkel/), aber auf ein
 Interesse zugespitzt: **Was muss man als Rom-Fan gesehen haben — und wo sollte
 man gegessen haben?** Dazu ein zweites, gleichwertig recherchiertes Programm für
-alle Mitreisenden, die nicht wegen der Römer da sind. 75 Einträge (60 Ziele +
-15 Termine) aus Deutschland und Luxemburg, 131 Belege, Recherche-Stand
-09.08.2026, Reisewoche 17.–23.08.2026.
+alle Mitreisenden, die nicht wegen der Römer da sind — und ein Kapitel für das
+Abseitige. 88 Einträge (72 Ziele + 16 Termine) aus Deutschland und Luxemburg,
+158 Belege, Recherche-Stand 09.08.2026, Reisewoche 17.–23.08.2026.
 
 Die Seite ist eine einzelne, in sich geschlossene Datei:
 [`index.html`](index.html). Daneben liegt das Rechenskript
@@ -62,6 +62,27 @@ Kapitel 5 enthält außerdem eine Tabelle der **Kombinationen**, bei denen sich
 die Gruppe nicht aufteilen muss — der Petrispark liegt direkt über dem
 Amphitheater, der Eifelpark zwanzig Minuten von der Villa Otrang.
 
+Und ein drittes Register (Kapitel 6) für das Abseitige:
+
+- **💀 Makaber** — Basilika St. Matthias mit dem einzigen Apostelgrab nördlich
+  der Alpen, St. Paulin mit dem größten Deckengemälde des Rheinlands (Martyrium
+  der Thebäischen Legion), der alte jüdische Friedhof Weidegasse von 1651, auf
+  dem die Vorfahren von Karl Marx und die Urgroßeltern von Marcel Proust liegen,
+  sowie die Trierer Hexenprozesse mit dem Fall Dietrich Flade.
+- **🌀 Bizarr & Kurios** — der Domstein, den der Legende nach der Teufel gegen
+  den Dom geschleudert hat; das Dreikönigenhaus mit der Haustür im ersten Stock;
+  die Klause Kastel-Staadt, eine leere Schinkel-Grabkapelle für einen blinden
+  König; die Genovevahöhle bei Kordel; Teufelsschlucht und Müllerthal.
+- **🕳 Unterirdisch** — von den Bedienungsgängen der Kaiserthermen und dem
+  Arenakeller des Amphitheaters über die Nekropole mit rund 1.000 Sarkophagen
+  unter der heutigen Turnhalle St. Maximin bis zu den Bock-Kasematten.
+
+Dazu der Chip **🧭 Atlas-Obscura-Fund**. Die Plattform wurde gezielt abgefragt —
+mit einem Befund, der selbst im Report steht: **Für Trier führt Atlas Obscura
+ganze zwei Orte** (Porta Nigra und Karl-Marx-Haus), für Luxemburg 34. Die
+Kuriositätenliste musste deshalb aus Denkmaldatenbanken, Kirchengemeinden und
+Ortsseiten selbst gebaut werden.
+
 Dazu ein **Tagesplan für den 17.–23. August** in Kapitel 0: Jeder Tag trägt
 unten eine **Alternative ohne Antike**, die am selben Tag und meist am selben
 Ort funktioniert, plus eine eigene Karte für den **Besuchstag**. Der Montag ist
@@ -79,7 +100,9 @@ markiert, weil Landesmuseum, Simeonstift und Villa Borg dann geschlossen sind.
 - **Filter** für Typ (Ziel / Termin), Land (DE / LU) und Kategorie: 🏛 Rom-Pflicht,
   🏺 Römisch, ♨️ Bäder & Thermen, 🖼 Museum, 🍷 Wein, 🍽 Essen, 🏙 Stadt & Kirche,
   🧒 Mit Kind (7 J.), 🐈 Katzen, ☕ Gemütlich, 🌾 Ohne Antike,
-  🌿 Natur & Aussicht, ☔ Schlechtwetter, 0 € Gratis, ⭐ Favoriten, 📱 Portal-Fund.
+  💀 Makaber, 🌀 Bizarr & Kurios, 🕳 Unterirdisch,
+  🌿 Natur & Aussicht, ☔ Schlechtwetter, 0 € Gratis, ⭐ Favoriten,
+  📱 Portal-Fund, 🧭 Atlas-Obscura-Fund.
 - **Sortierung** nach Entfernung oder Termin, ab frei wählbarem Datum.
 - **Favoriten** per Stern, in `localStorage` gespeichert.
 - **Nacht-/Tagmodus** über den Schalter oben rechts.
@@ -136,11 +159,12 @@ Koordinate.
 3. Vorgehen: Ort für Ort abgefragt (20 Gemeinden, tabelliert)
 4. Römische Bäder im Direktvergleich — und der Rom-Fan-Teller
 5. Das zweite Programm — für alle, die nicht wegen der Römer mitfahren
-6. Was offen bleibt (8 ungelöste Punkte)
-7. Belegtabelle — 42 Kernbehauptungen einzeln geprüft
-8. Restliste — nicht Geprüftes, mit Grund
-9. Quellenverzeichnis mit Evidenzgrad
-10. Der Prompt, der genau diesen Report erzeugt
+6. Makabres, Bizarres, Unterirdisches — und was Atlas Obscura dazu sagt
+7. Was offen bleibt (8 ungelöste Punkte)
+8. Belegtabelle — 56 Kernbehauptungen einzeln geprüft
+9. Restliste — nicht Geprüftes, mit Grund
+10. Quellenverzeichnis mit Evidenzgrad
+11. Der Prompt, der genau diesen Report erzeugt
 
 Jede Angabe trägt eine Evidenzstufe: **A** Erstquelle 2026 ·
 **B** Portal/Verzeichnis/Kartendienst · **C** Blog, Rezension, ältere Angabe ·
@@ -172,6 +196,11 @@ Vorlage sind zwei Abschnitte neu:
   Punkt e) die Gegenfrage, wer sonst mitfährt: Daraus entsteht das zweite
   Programm mit eigenen Filtern, eigenem Kapitel und Alternativzeilen im
   Tagesplan, ohne dass am Themenprogramm gekürzt wird.
+- **Regel 11 — das Abseitige und die Kuriositäten-Plattformen**: Atlas Obscura
+  und Verwandte gezielt abfragen, aber als Quelle statt als Autorität behandeln
+  — die Zahl der Einträge zählen und als Befund ausweisen, die Funde markieren,
+  die Lücke aus Denkmaldatenbanken und Kirchengemeinden selbst füllen, eigene
+  Kategorien anlegen und bei dunklen Themen nüchtern belegen statt auszuschmücken.
 - **Regel 10 — Notfallregel für gesperrte Dienste**: Ausfall benennen,
   Ersatz *rechnen* statt raten, Rechenskript mitliefern, Ersatzwerte als
   Rechnung kennzeichnen, Folgen abmildern.
