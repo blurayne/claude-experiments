@@ -3,8 +3,10 @@
 Interaktiver deutscher **Reise-Guide für Trier**, gebaut nach der Vorlage des
 [Freizeit-Guides Lamer Winkel](../freizeitguide-lamer-winkel/), aber auf ein
 Interesse zugespitzt: **Was muss man als Rom-Fan gesehen haben — und wo sollte
-man gegessen haben?** 62 Einträge (48 Ziele + 14 Termine) aus Deutschland und
-Luxemburg, 105 Belege, Recherche-Stand 09.08.2026, Reisewoche 17.–23.08.2026.
+man gegessen haben?** Dazu ein zweites, gleichwertig recherchiertes Programm für
+alle Mitreisenden, die nicht wegen der Römer da sind. 75 Einträge (60 Ziele +
+15 Termine) aus Deutschland und Luxemburg, 131 Belege, Recherche-Stand
+09.08.2026, Reisewoche 17.–23.08.2026.
 
 Die Seite ist eine einzelne, in sich geschlossene Datei:
 [`index.html`](index.html). Daneben liegt das Rechenskript
@@ -38,9 +40,32 @@ Inhaltlich abgedeckt:
 - **Museen, Stadt und Umland** für die Tage dazwischen, inklusive
   Schlechtwetter-Filter.
 
-Dazu ein **Tagesplan für den 17.–23. August** in Kapitel 0, der die festen
-Termine der Woche einsortiert und den Montag markiert, an dem Landesmuseum,
-Simeonstift und Villa Borg geschlossen sind.
+Und daneben das **zweite Programm** (Kapitel 5), das ohne einen einzigen
+römischen Stein auskommt:
+
+- **🧒 Mit Kind (7 J.)** — Eifelpark Gondorf (Sommerrodelbahn, Wasserbahn,
+  200 Wildtiere, in der Reisewoche tägl. 10–17), Petrispark mit Wasserspielplatz
+  und Riesenrutsche, NordBad und SüdBad, Kinderrundgang „2000 Jahre – 4000
+  Schrittchen“ samstags 15 Uhr. Dazu die Einordnung, welche Römerziele für
+  dieses Alter tragen — und dass „Der Gladiator Valerius“ es mit ab etwa zehn
+  Jahren ausdrücklich nicht tut.
+- **🐈 Katzen** — Katzentempel in der Brotstraße (Katzencafé mit
+  Tierschutzkatzen, rein vegan) und der Wildkatzen-Erlebnispfad im Wild- und
+  Wanderpark Weiskirchen (5 km, neun Stationen, Eintritt frei).
+- **☕ Gemütlich** — kurze Wege, Sitzen, Kaffee: Römer-Express, Moselrundfahrt,
+  Nells Park, Mattheiser Weiher, Konditoreien Razen und Raab; für einen Tag,
+  an dem Besuch dazukommt.
+- **🌾 Ohne Antike** — Baumwipfelpfad Saarschleife, Saarburg, Bernkastel-Kues,
+  Luxemburg-Stadt, Roscheider Hof, Karl-Marx-Haus, Zurlaubener Ufer.
+
+Kapitel 5 enthält außerdem eine Tabelle der **Kombinationen**, bei denen sich
+die Gruppe nicht aufteilen muss — der Petrispark liegt direkt über dem
+Amphitheater, der Eifelpark zwanzig Minuten von der Villa Otrang.
+
+Dazu ein **Tagesplan für den 17.–23. August** in Kapitel 0: Jeder Tag trägt
+unten eine **Alternative ohne Antike**, die am selben Tag und meist am selben
+Ort funktioniert, plus eine eigene Karte für den **Besuchstag**. Der Montag ist
+markiert, weil Landesmuseum, Simeonstift und Villa Borg dann geschlossen sind.
 
 ## Bedienelemente
 
@@ -53,6 +78,7 @@ Simeonstift und Villa Borg geschlossen sind.
 - **Zeitfenster** für Termine, tagesgenau von „nur heute" bis zwei Jahre.
 - **Filter** für Typ (Ziel / Termin), Land (DE / LU) und Kategorie: 🏛 Rom-Pflicht,
   🏺 Römisch, ♨️ Bäder & Thermen, 🖼 Museum, 🍷 Wein, 🍽 Essen, 🏙 Stadt & Kirche,
+  🧒 Mit Kind (7 J.), 🐈 Katzen, ☕ Gemütlich, 🌾 Ohne Antike,
   🌿 Natur & Aussicht, ☔ Schlechtwetter, 0 € Gratis, ⭐ Favoriten, 📱 Portal-Fund.
 - **Sortierung** nach Entfernung oder Termin, ab frei wählbarem Datum.
 - **Favoriten** per Stern, in `localStorage` gespeichert.
@@ -109,11 +135,12 @@ Koordinate.
 2. Social-Media-Runde: was dort steht — und was davon hält
 3. Vorgehen: Ort für Ort abgefragt (20 Gemeinden, tabelliert)
 4. Römische Bäder im Direktvergleich — und der Rom-Fan-Teller
-5. Was offen bleibt (7 ungelöste Punkte)
-6. Belegtabelle — 33 Kernbehauptungen einzeln geprüft
-7. Restliste — nicht Geprüftes, mit Grund
-8. Quellenverzeichnis mit Evidenzgrad
-9. Der Prompt, der genau diesen Report erzeugt
+5. Das zweite Programm — für alle, die nicht wegen der Römer mitfahren
+6. Was offen bleibt (8 ungelöste Punkte)
+7. Belegtabelle — 42 Kernbehauptungen einzeln geprüft
+8. Restliste — nicht Geprüftes, mit Grund
+9. Quellenverzeichnis mit Evidenzgrad
+10. Der Prompt, der genau diesen Report erzeugt
 
 Jede Angabe trägt eine Evidenzstufe: **A** Erstquelle 2026 ·
 **B** Portal/Verzeichnis/Kartendienst · **C** Blog, Rezension, ältere Angabe ·
@@ -121,13 +148,14 @@ Jede Angabe trägt eine Evidenzstufe: **A** Erstquelle 2026 ·
 
 ## Was in der Reisewoche tatsächlich läuft
 
-Elf Termine fallen in den 17.–23.08.2026: die Zenturio-Erlebnisführung an der
+Zwölf Termine fallen in den 17.–23.08.2026: die Zenturio-Erlebnisführung an der
 Porta Nigra (Di/Sa/So), „Der Gladiator Valerius" im Amphitheater (Mi/Fr/Sa
 18 Uhr), die Kellerführung der Vereinigten Hospitien (Mi/Fr 11 Uhr), das
 Trierer Viezfest am Domfreihof (Sa 22.08., Eintritt frei), „Anatevka" Open-Air
 auf dem Augustinerhof (Do–So), die St.-Rochus-Weinkirmes Nittel (21.–24.08.),
-Sonntagsführungen in Tawern, Longuich und Wittlich, Fahrten des Römerweinschiffs
-und der Wochenmarkt am Viehmarkt (Di/Fr).
+Sonntagsführungen in Tawern, Longuich und Wittlich, Fahrten des Römerweinschiffs,
+der Kinderrundgang „2000 Jahre – 4000 Schrittchen“ (Sa 15 Uhr) und der
+Wochenmarkt am Viehmarkt (Di/Fr).
 
 Wichtig für die Planung: Die rheinland-pfälzischen Sommerferien enden vor dem
 17. August. Damit entfallen die Ferien-Zusatztermine der Erlebnisführungen, und
@@ -140,7 +168,10 @@ Vorlage sind zwei Abschnitte neu:
 
 - **Teil 0 — Themenanker**: macht das Interesse zum Filter (eigene
   „Pflicht"-Kategorie, thematische Begründung je Eintrag, thematisch gefilterte
-  Gastronomie, Querverbindungen wie „römischer Weinbau an der Mosel").
+  Gastronomie, Querverbindungen wie „römischer Weinbau an der Mosel") — und in
+  Punkt e) die Gegenfrage, wer sonst mitfährt: Daraus entsteht das zweite
+  Programm mit eigenen Filtern, eigenem Kapitel und Alternativzeilen im
+  Tagesplan, ohne dass am Themenprogramm gekürzt wird.
 - **Regel 10 — Notfallregel für gesperrte Dienste**: Ausfall benennen,
   Ersatz *rechnen* statt raten, Rechenskript mitliefern, Ersatzwerte als
   Rechnung kennzeichnen, Folgen abmildern.
