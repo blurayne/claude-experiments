@@ -1,0 +1,1872 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rom an der Mosel — Trier-Guide 17.–23. August 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Nunito:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root, [data-theme="dark"]{
+  /* NACHT — Porphyr, Basalt, Gold: die Farben der kaiserlichen Bauten */
+  --bg:#171216; --panel:#221a20; --panel2:#1d161b; --ink:#f4ede1; --muted:#b6a493;
+  --teal:#d9b25c; --teal-dim:rgba(217,178,92,.15); --amber:#d8734a; --amber-dim:rgba(216,115,74,.16);
+  --rose:#c4708c; --violet:#a98fd0; --line:#3a2d36;
+  --chipA:#8fb877; --chipB:#7fb0cf; --chipC:#d9b25c; --chipD:#c4708c;
+  --shadow:0 12px 34px rgba(0,0,0,.45); --scheme:dark;
+}
+[data-theme="light"]{
+  /* TAG — Travertin, Kalkputz, Terrakotta */
+  --bg:#faf4e9; --panel:#ffffff; --panel2:#f2e9d9; --ink:#2c2620; --muted:#6d6153;
+  --teal:#9a6f16; --teal-dim:rgba(154,111,22,.13); --amber:#b0512a; --amber-dim:rgba(176,81,42,.14);
+  --rose:#a33f5f; --violet:#6a4bb0; --line:#e2d5be;
+  --chipA:#4c7a33; --chipB:#2a6c92; --chipC:#9a6f16; --chipD:#a33f5f;
+  --shadow:0 8px 22px rgba(80,60,30,.13); --scheme:light;
+}
+*{box-sizing:border-box; margin:0; padding:0}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} *{transition:none!important} }
+body{background:var(--bg); color:var(--ink); font-family:"Nunito",system-ui,sans-serif; font-size:16px; line-height:1.62}
+.mono{font-family:"IBM Plex Mono",monospace}
+.wrap{max-width:1060px; margin:0 auto; padding:0 20px}
+a{color:var(--teal); text-decoration:none}
+a:hover{text-decoration:underline}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--teal); outline-offset:2px}
+
+.topbar{position:sticky; top:0; z-index:50; background:color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter:blur(8px); border-bottom:1px solid var(--line)}
+.topbar .wrap{display:flex; align-items:center; justify-content:space-between; padding-top:10px; padding-bottom:10px; gap:12px}
+.brand{font-family:"Cinzel",serif; font-size:12.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted)}
+.brand b{color:var(--teal)}
+#themeBtn{background:var(--panel); color:var(--ink); border:2px solid var(--line); border-radius:999px; padding:6px 14px; font-family:"Nunito",sans-serif; font-weight:700; font-size:13px; cursor:pointer}
+#themeBtn:hover{background:var(--amber-dim); border-color:var(--amber)}
+
+header.hero{padding:50px 0 26px; border-bottom:1px solid var(--line)}
+.kicker{font-family:"IBM Plex Mono",monospace; color:var(--amber); font-size:12px; letter-spacing:.18em; text-transform:uppercase; margin-bottom:14px}
+h1{font-size:clamp(27px,4.6vw,41px); line-height:1.14; font-weight:700; letter-spacing:.01em}
+h1 .accent{color:var(--amber)}
+.hero-meta{display:flex; flex-wrap:wrap; gap:8px; margin-top:18px}
+.tag{font-family:"IBM Plex Mono",monospace; font-size:11.5px; border:2px solid var(--line); border-radius:999px; padding:4px 11px; color:var(--muted); background:var(--panel); font-weight:500}
+.tag.hot{color:var(--amber); border-color:color-mix(in srgb, var(--amber) 45%, var(--line))}
+.tag.new{color:var(--violet); border-color:color-mix(in srgb, var(--violet) 45%, var(--line))}
+
+section{padding:38px 0; border-bottom:1px solid var(--line)}
+h2{font-size:clamp(20px,3vw,27px); margin-bottom:6px; letter-spacing:.01em}
+h2 .idx{font-family:"IBM Plex Mono",monospace; color:var(--teal); font-size:.72em; margin-right:10px}
+.sub{color:var(--muted); font-size:14.6px; margin-bottom:22px; max-width:78ch}
+.sub b{color:var(--ink)}
+.panel{background:var(--panel); border:2px solid var(--line); border-radius:18px; padding:20px 22px; box-shadow:var(--shadow)}
+
+h1,h2,h3,.brand,.card h3,.sumcard h3{font-family:"Cinzel","EB Garamond",Georgia,serif; font-weight:600; letter-spacing:.012em}
+h2{font-weight:700}
+
+.ev{display:inline-flex; align-items:center; font-family:"IBM Plex Mono",monospace; font-size:10.5px; font-weight:600; border-radius:999px; padding:3px 9px; letter-spacing:.05em}
+.evA{color:var(--chipA); background:color-mix(in srgb, var(--chipA) 15%, transparent)}
+.evB{color:var(--chipB); background:color-mix(in srgb, var(--chipB) 15%, transparent)}
+.evC{color:var(--chipC); background:color-mix(in srgb, var(--chipC) 15%, transparent)}
+.evD{color:var(--chipD); background:color-mix(in srgb, var(--chipD) 15%, transparent)}
+
+.sumgrid{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px; margin-top:8px}
+.sumcard{background:var(--panel); border:2px solid var(--line); border-left:6px solid var(--teal); border-radius:18px; padding:16px 18px}
+.sumcard h3{font-size:15.5px; margin-bottom:6px}
+.sumcard p{font-size:13.8px; color:var(--muted)}
+
+/* --- Pastell-freie Antikenpalette: Travertin, Purpur, Oliv, Terrakotta --- */
+:root, [data-theme="dark"]{
+  --p-gold:#dcb865; --p-himmel:#8bbdd9; --p-purpur:#c07fa4; --p-terra:#e08a5e;
+  --p-oliv:#a3bd78; --p-marmor:#cfd6d2; --p-wein:#c26b7a;
+}
+[data-theme="light"]{
+  --p-gold:#9a6f16; --p-himmel:#2a6c92; --p-purpur:#8a3f68; --p-terra:#b0512a;
+  --p-oliv:#5a7a2f; --p-marmor:#5d6b66; --p-wein:#96324a;
+}
+section:nth-of-type(1) h2{color:var(--p-gold)}
+section:nth-of-type(2) h2{color:var(--p-terra)}
+section:nth-of-type(3) h2{color:var(--p-purpur)}
+section:nth-of-type(4) h2{color:var(--p-himmel)}
+section:nth-of-type(5) h2{color:var(--p-wein)}
+section:nth-of-type(6) h2{color:var(--p-oliv)}
+section:nth-of-type(7) h2{color:var(--p-marmor)}
+section:nth-of-type(8) h2{color:var(--p-terra)}
+section:nth-of-type(9) h2{color:var(--p-gold)}
+section:nth-of-type(10) h2{color:var(--p-purpur)}
+h2 .idx{color:currentColor; opacity:.55}
+.sumgrid .sumcard:nth-child(1){border-left-color:var(--p-gold)}
+.sumgrid .sumcard:nth-child(2){border-left-color:var(--p-himmel)}
+.sumgrid .sumcard:nth-child(3){border-left-color:var(--p-terra)}
+.sumgrid .sumcard:nth-child(4){border-left-color:var(--p-oliv)}
+.sumgrid .sumcard:nth-child(1) h3{color:var(--p-gold)}
+.sumgrid .sumcard:nth-child(2) h3{color:var(--p-himmel)}
+.sumgrid .sumcard:nth-child(3) h3{color:var(--p-terra)}
+.sumgrid .sumcard:nth-child(4) h3{color:var(--p-oliv)}
+.card h3{color:var(--p-gold)}
+.card.event h3{color:var(--p-terra)}
+.card .ort{color:var(--p-himmel)}
+.fchip[data-cat="roemisch"].active{background:color-mix(in srgb,var(--p-gold) 22%,transparent); border-color:var(--p-gold); color:var(--p-gold)}
+.fchip[data-cat="pflicht"].active{background:color-mix(in srgb,var(--p-terra) 22%,transparent); border-color:var(--p-terra); color:var(--p-terra)}
+.fchip[data-cat="thermen"].active{background:color-mix(in srgb,var(--p-himmel) 22%,transparent); border-color:var(--p-himmel); color:var(--p-himmel)}
+.fchip[data-cat="museum"].active{background:color-mix(in srgb,var(--p-purpur) 22%,transparent); border-color:var(--p-purpur); color:var(--p-purpur)}
+.fchip[data-cat="wein"].active{background:color-mix(in srgb,var(--p-wein) 22%,transparent); border-color:var(--p-wein); color:var(--p-wein)}
+.fchip[data-cat="essen"].active{background:color-mix(in srgb,var(--p-terra) 22%,transparent); border-color:var(--p-terra); color:var(--p-terra)}
+.fchip[data-cat="stadt"].active{background:color-mix(in srgb,var(--p-marmor) 22%,transparent); border-color:var(--p-marmor); color:var(--p-marmor)}
+.fchip[data-cat="natur"].active{background:color-mix(in srgb,var(--p-oliv) 22%,transparent); border-color:var(--p-oliv); color:var(--p-oliv)}
+.fchip[data-cat="indoor"].active{background:color-mix(in srgb,var(--p-himmel) 22%,transparent); border-color:var(--p-himmel); color:var(--p-himmel)}
+.fchip[data-cat="gratis"].active{background:color-mix(in srgb,var(--p-oliv) 22%,transparent); border-color:var(--p-oliv); color:var(--p-oliv)}
+.hero-meta .tag:nth-child(1){color:var(--p-gold); border-color:color-mix(in srgb,var(--p-gold) 45%,var(--line))}
+.hero-meta .tag:nth-child(2){color:var(--p-purpur); border-color:color-mix(in srgb,var(--p-purpur) 45%,var(--line))}
+.hero-meta .tag:nth-child(3){color:var(--p-himmel); border-color:color-mix(in srgb,var(--p-himmel) 45%,var(--line))}
+.hero-meta .tag:nth-child(4){color:var(--p-terra); border-color:color-mix(in srgb,var(--p-terra) 45%,var(--line))}
+.hero-meta .tag:nth-child(5){color:var(--p-oliv); border-color:color-mix(in srgb,var(--p-oliv) 45%,var(--line))}
+.kicker{color:var(--p-purpur)}
+.card .fit b{color:var(--p-terra)}
+
+/* --- Überschriften mit ruhigem Dreifarb-Verlauf --- */
+.verlauf{-webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent}
+h2.verlauf .idx{-webkit-text-fill-color:var(--muted); color:var(--muted); opacity:.75}
+@supports not (background-clip:text){ .verlauf{color:var(--ink); -webkit-text-fill-color:var(--ink)} }
+
+/* --- Favoriten-Stern --- */
+.fav{background:none; border:none; cursor:pointer; font-size:22px; line-height:1; padding:0 0 0 4px; color:var(--muted); transition:transform .12s ease}
+.fav:hover{transform:scale(1.18); color:var(--p-gold)}
+.fav.on{color:var(--p-gold)}
+.leer{grid-column:1/-1; background:var(--panel2); border:2px dashed var(--line); border-radius:18px; padding:26px 22px; text-align:center; color:var(--muted); font-size:14px}
+
+.tblwrap{overflow-x:auto; border:2px solid var(--line); border-radius:18px; background:var(--panel)}
+.tbl{width:100%; border-collapse:collapse; font-size:13.5px; min-width:720px}
+.tbl th{font-family:"IBM Plex Mono",monospace; font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); text-align:left; padding:10px 12px; border-bottom:2px solid var(--line)}
+.tbl td{padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top}
+.tbl tr:last-child td{border-bottom:none}
+.tbl td.mono{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--teal)}
+.tbl td b{color:var(--ink)}
+
+.tage{display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:12px; margin-top:14px}
+.tag-karte{background:var(--panel); border:2px solid var(--line); border-radius:18px; padding:14px 16px}
+.tag-karte h4{font-family:"Cinzel",serif; font-size:14px; color:var(--p-gold); margin-bottom:6px; letter-spacing:.04em}
+.tag-karte .dat{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--amber); letter-spacing:.08em; display:block; margin-bottom:4px}
+.tag-karte p{font-size:13.4px; color:var(--muted)}
+.tag-karte p b{color:var(--ink)}
+.tag-karte.fix{border-color:color-mix(in srgb,var(--amber) 55%,var(--line))}
+
+.duel{background:var(--panel); border:2px solid var(--line); border-left:6px solid var(--amber); border-radius:18px; padding:16px 18px; margin-bottom:12px}
+.duel h3{font-size:15px; margin-bottom:8px; color:var(--amber)}
+.duel p{font-size:13.8px; color:var(--muted); margin-bottom:6px}
+.duel .loesung{font-size:13.8px; color:var(--ink); border-top:1px dashed var(--line); padding-top:8px; margin-top:8px}
+.soc{background:var(--panel); border:2px solid var(--line); border-radius:18px; padding:16px 18px}
+.soggrid{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; margin-bottom:18px}
+.soc h3{font-size:14.5px; margin-bottom:7px; color:var(--p-purpur)}
+.soc p{font-size:13.6px; color:var(--muted)}
+.edgebox{margin-top:22px; background:var(--panel2); border:2px dashed var(--line); border-radius:18px; padding:16px 18px}
+.edgebox h3{font-size:12px; color:var(--amber); letter-spacing:.1em; margin-bottom:8px; font-family:"IBM Plex Mono",monospace}
+.edgebox p{font-size:13.6px; color:var(--muted)}
+.edgebox p + p{margin-top:8px}
+ul.liste{margin:10px 0 0 20px; font-size:13.8px; color:var(--muted)}
+ul.liste li{margin-bottom:6px}
+ul.liste b{color:var(--ink)}
+footer{padding:34px 0 60px; color:var(--muted); font-size:13px}
+footer p + p{margin-top:8px}
+</style>
+</head>
+<body>
+
+<nav class="topbar"><div class="wrap">
+  <span class="brand">🏛 <b>AUGUSTA TREVERORUM</b> · TRIER 17.–23. AUG 2026</span>
+  <button id="themeBtn" aria-label="Zwischen Nacht- und Tagmodus umschalten">🌙 Nacht · ☀️ Tag</button>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <div class="kicker">Recherche-Stand 09.08.2026 · Reisewoche 17.–23.08.2026 · Quellen einzeln geprüft</div>
+  <h1>Rom an der Mosel — <span class="accent">Trier</span> für Leute, die wegen der Römer kommen</h1>
+  <div class="hero-meta">
+    <span class="tag">Start: Porta Nigra ↔ Hauptbahnhof</span>
+    <span class="tag new">62 Einträge: 48 Ziele + 14 Termine</span>
+    <span class="tag">Deutschland + Luxemburg · Länderfilter</span>
+    <span class="tag hot">Alle 9 UNESCO-Bauten · römische Bäder · Apicius-Küche</span>
+    <span class="tag">Umkreis bis 90 min · 🌙/☀️ · Prompt am Ende</span>
+  </div>
+</div></header>
+
+<!-- 0 · KURZFAZIT -->
+<section id="fazit"><div class="wrap">
+  <h2><span class="idx">0</span>Kurzfazit &amp; Bedienung</h2>
+  <p class="sub">Trier ist keine Stadt mit Römerresten, sondern eine römische Stadt mit einer Stadt darauf. Für einen Rom-Fan zerfällt die Woche in vier Blöcke. <b>Das Pflichtprogramm</b> — die neun Bauten des UNESCO-Welterbes: Porta Nigra, Amphitheater, Kaiserthermen, Barbarathermen, Römerbrücke, Igeler Säule, Konstantin-Basilika, Dom und Liebfrauenkirche. Alle bis auf die Igeler Säule liegen in Gehweite. <b>Die Bäder</b> — Trier hat gleich drei Thermenanlagen im Stadtgebiet, dazu ein komplettes römisches Privatbad in Longuich und ein funktionierendes rekonstruiertes in der Villa Borg. <b>Das Umland</b> — Gladiatorenmosaik in Nennig, Villenlandschaft in Otrang, Borg, Echternach und Wittlich, Tempelbezirk Tawern, Kelteranlagen an der Mosel, das fahrtüchtige Römerweinschiff in Neumagen. <b>Und der Wein</b> — der Moselweinbau ist römisches Erbe; der älteste Weinkeller Deutschlands steht seit rund 330 n. Chr. am Trierer Krahnenufer und wird bis heute benutzt.</p>
+  <p class="sub">Bedienung: <b>Start</b> wählen (Porta Nigra oder Hauptbahnhof), <b>Umkreis</b> ziehen — umschaltbar zwischen <b>Anreiseminuten</b> und <b>Kilometern</b>. <b>„ab Datum“</b> steht beim Öffnen auf dem heutigen Tag des Geräts; ein Klick auf <b>„Reisewoche“</b> springt auf den 17.08.2026 und stellt das Zeitfenster auf sieben Tage. Vergangene Termine verschwinden, Ziele bleiben. Dazu Filter nach <b>Typ</b>, <b>Land</b> und <b>Kategorie</b> — darunter <b>🏛 Rom-Pflicht</b> für die Ziele, die man als Rom-Fan gesehen haben muss, und <b>🍽 Essen</b> für die, an denen man gegessen haben sollte. Jede Karte trägt Entfernung, Preis, Zeiten, Evidenzgrad und alle Belege; der <b>Stern</b> merkt sie im Browser vor. Über der Liste lässt sich zwischen <b>Radar</b> und <b>echter Karte</b> umschalten.</p>
+
+  <div class="sumgrid">
+    <div class="sumcard">
+      <h3>🏛 Das Ticket, das sich rechnet</h3>
+      <p>Die <b>AntikenCard Premium</b> für <b class="mono">28 €</b> deckt alle vier kostenpflichtigen Römerbauten (Porta Nigra, Kaiserthermen, Amphitheater, Thermen am Viehmarkt) <i>und</i> das Rheinische Landesmuseum ab. Einzeln kostet das 34 €. Die <b>Basic</b> für 18 € deckt zwei Bauten plus Museum. Barbarathermen, Basilika, Römerbrücke, Dom und Igeler Säule kosten ohnehin nichts.</p>
+    </div>
+    <div class="sumcard">
+      <h3>♨️ Drei Thermen, drei Zustände</h3>
+      <p><b>Kaiserthermen</b>: aufrecht stehende Mauern bis 19 m, begehbare Untergänge. <b>Barbarathermen</b>: der Grundriss von oben, über einen kostenlosen Steg — nach den Trajansthermen in Rom die zweitgrößte Anlage des Reichs. <b>Thermen am Viehmarkt</b>: unter Glas, mit Kloster und Mittelalter darüber gestapelt. Wer alle drei sieht, hat römische Badearchitektur in drei Schnitten.</p>
+    </div>
+    <div class="sumcard">
+      <h3>🍽 Wo ein Rom-Fan gegessen haben sollte</h3>
+      <p><b>Zum Domstein</b> am Hauptmarkt kocht abends nach dem Apicius-Kochbuch <i>De re coquinaria</i> und hat im Keller einen Pfeiler der konstantinischen Doppelkirche samt römischer Glassammlung. Der zweite Pflichtteller steht in der <b>Taverne der Villa Borg</b> — römische Rezepte in einer rekonstruierten Villa. Dazu ein Riesling im <b>ältesten Weinkeller Deutschlands</b>, gebaut um 330 n. Chr.</p>
+    </div>
+    <div class="sumcard">
+      <h3>📅 Was in genau dieser Woche läuft</h3>
+      <p>Die Erlebnisführungen laufen durch: <b>Zenturio an der Porta Nigra</b> (Di, Sa, So), <b>Gladiator Valerius im Amphitheater</b> (Mi, Fr, Sa 18 Uhr). Dazu <b>Viezfest</b> am Domfreihof (Sa 22.08.), <b>Anatevka Open-Air</b> auf dem Augustinerhof (Do–So), die <b>St.-Rochus-Weinkirmes</b> in Nittel (21.–24.08.) und Sonntagsführungen in Tawern, Longuich und Wittlich. Die rheinland-pfälzischen Sommerferien sind da bereits vorbei — die Zusatztermine an Di/Do entfallen.</p>
+    </div>
+  </div>
+
+  <h3 style="margin:26px 0 4px; font-size:17px; color:var(--p-terra)">Sieben Tage, ohne Hetze</h3>
+  <p class="sub" style="margin-bottom:6px">Ein Vorschlag, kein Stundenplan. Die festen Termine sind hervorgehoben — alles andere lässt sich tauschen. Montag ist der kritische Tag: Landesmuseum, Simeonstift und Villa Borg haben zu, die Römerbauten selbst nicht.</p>
+  <div class="tage">
+    <div class="tag-karte"><span class="dat">MO · 17.08.</span><h4>Ankommen im Stadtkern</h4><p><b>Porta Nigra</b> (Wehrgang), <b>Konstantin-Basilika</b>, <b>Dom</b> mit römischer Nordmauer, <b>Liebfrauen</b>. Abends <b>Zum Domstein</b>, Apicius-Menü ab 17:30. <i>Landesmuseum und Simeonstift sind montags geschlossen.</i></p></div>
+    <div class="tag-karte fix"><span class="dat">DI · 18.08.</span><h4>Museum und Zenturio</h4><p><b>Rheinisches Landesmuseum</b> (Neumagener Weinschiff, Mosaike, Goldschatz) — dafür einen halben Tag einplanen. <b>13:00 Erlebnisführung „Das Geheimnis der Porta Nigra“</b> mit dem Zenturio. Vormittags <b>Wochenmarkt am Viehmarkt</b> (7–14 Uhr).</p></div>
+    <div class="tag-karte fix"><span class="dat">MI · 19.08.</span><h4>Bäder — und der Gladiator</h4><p><b>Kaiserthermen</b> mit den Untergängen, <b>Barbarathermen</b> (gratis), <b>Thermen am Viehmarkt</b>. <b>11:00 Kellerführung Vereinigte Hospitien</b>, <b>18:00 „Der Gladiator Valerius“</b> im Amphitheater — 75 Minuten, auch in den Untergängen.</p></div>
+    <div class="tag-karte"><span class="dat">DO · 20.08.</span><h4>Villenland Saargau</h4><p><b>Villa Nennig</b> mit dem Gladiatorenmosaik, danach <b>Villa Borg</b> mit Taverne — beide im Saarland, zusammen ein voller Tag. Abends zurück: <b>Anatevka Open-Air</b> auf dem Augustinerhof, 19:30.</p></div>
+    <div class="tag-karte fix"><span class="dat">FR · 21.08.</span><h4>Eifel oder Echternach</h4><p><b>Villa Otrang</b> (Mosaike, Eintritt frei) oder die <b>Gallo-römische Villa Echternach</b> in Luxemburg (frei, Mo zu). Zurück über <b>Igel</b> zur <b>Igeler Säule</b>. Abends noch einmal <b>Gladiator Valerius</b> möglich, oder <b>Weinkirmes Nittel</b>.</p></div>
+    <div class="tag-karte fix"><span class="dat">SA · 22.08.</span><h4>Viez, Wein und Weinschiff</h4><p><b>Viezfest am Domfreihof</b> — Trierer Apfelwein, immaterielles Kulturerbe, Eintritt frei. Nachmittags <b>Stella Noviomagi</b> in Neumagen-Dhron oder <b>Zenturio-Führung 13:00/15:00</b>. Abends <b>Bagatelle</b> oder <b>Zurlaubener Ufer</b>.</p></div>
+    <div class="tag-karte fix"><span class="dat">SO · 23.08.</span><h4>Tempel, Wasser, Aussicht</h4><p><b>Tempelbezirk Tawern</b>, Führung 14:30–16:30, gratis. Vormittags wahlweise <b>Villa Urbana Longuich</b> (10:30) oder die <b>Römische Ruwerwasserleitung</b>. Zum Abschluss <b>Petrisberg</b> über dem Amphitheater oder die <b>Mariensäule</b>.</p></div>
+    <div class="tag-karte"><span class="dat">RESERVE</span><h4>Wenn es regnet</h4><p><b>Thermen am Viehmarkt</b> (unter Glas), <b>Museum am Dom</b> mit den Deckenmalereien aus Konstantins Palast, <b>Domschatzkammer</b>, <b>Stadtmuseum Simeonstift</b>, <b>Karl-Marx-Haus</b>. Alle fünf liegen im Umkreis von zehn Gehminuten.</p></div>
+  </div>
+
+  <div class="edgebox">
+    <h3>▸ Woher die Kilometer und Minuten kommen</h3>
+    <p>Anders als es der Vorlagen-Prompt verlangt, konnten die Entfernungen <b>nicht</b> geroutet werden: In der Umgebung, in der dieser Report entstanden ist, sind OSRM, Valhalla und Nominatim per Netzwerkrichtlinie gesperrt (403 am Egress-Proxy). Statt Fahrzeiten zu erfinden, sind sie <b>gerechnet und der Rechenweg offengelegt</b>: Luftlinie per Haversine über die Koordinaten, Wegstrecke mal Umwegfaktor 1,28, danach zu Fuß mit 4,7 km/h plus 2 Minuten oder mit dem Auto mit 32/50/62/72 km/h je nach Entfernungsband plus 4 Minuten. Das Skript dazu liegt offen: <a href="build_geo.py">build_geo.py</a>.</p>
+    <p>Praktisch heißt das: In der Altstadt stimmen die Gehzeiten gut, weil kurze Wege wenig Spielraum lassen. Für die Fahrten ins Umland sind die Werte <b>Näherungen</b> — rechnen Sie auf der Autobahnstrecke nach Perl oder Bernkastel eher zehn Minuten dazu. Alle Ziele mit <span class="mono">🚶</span> sind Fußziele, alle mit <span class="mono">🚗</span> Fahrziele; welche Art gilt, entscheidet der Guide je Ziel, nicht je Startpunkt — sonst stünde dasselbe Ziel einmal als Fußweg und einmal als Fahrt da.</p>
+  </div>
+</div></section>
+
+<!-- 1 · GUIDE -->
+<section id="guide"><div class="wrap">
+  <h2><span class="idx">1</span>Guide: Umkreis, Datum, Typ, Sortierung</h2>
+  <p class="sub">Ziele (📍 jederzeit besuchbar) und Termine (📅 datiert) in einer Liste. Entfernung und Zeit sind <b>gerechnet, nicht geroutet</b> — Rechenweg siehe Kapitel 0. Jede Karte trägt unten <b>alle Belege</b>: zuerst die Betreiber- bzw. Terminseite, danach die Fundstelle. Evidenz: <span class="ev evA">A</span> Erstquelle 2026 · <span class="ev evB">B</span> Portal, Verzeichnis, Kartendienst · <span class="ev evC">C</span> Blog, Rezension, Angabe ohne Jahresstempel · <span class="ev evD">D</span> ungeprüft.</p>
+
+  <div class="radarwrap panel">
+    <div class="mapbar">
+      <div class="seg" role="group" aria-label="Kartenansicht">
+        <button class="segbtn viewbtn active" data-view="radar">◎ Radar</button>
+        <button class="segbtn viewbtn" data-view="karte">🗺 Karte</button>
+      </div>
+      <div class="zoomrow" id="zoomrow">
+        <span class="mono">Zoomstufe</span>
+        <input type="range" id="radarZoom" min="10" max="120" step="2" value="10" aria-label="Zoomstufe des Radars">
+        <span class="mono"><output id="radarZoomOut">1,0</output>×</span>
+        <button class="minibtn" id="radarReset" title="Ansicht zurücksetzen">⟲</button>
+      </div>
+      <button class="minibtn vollbildbtn" id="vollbild" title="Vollbild ein- und ausschalten">⛶ Vollbild</button>
+    </div>
+    <svg id="radar" viewBox="0 0 640 480" role="img" aria-label="Entfernungs-Radar der gefilterten Einträge"></svg>
+    <div id="karte" class="aus"></div>
+    <p class="radarnote mono" id="radarNote">Richtung = tatsächliche Himmelsrichtung ab gewähltem Start · Abstand = <span id="radarUnit">Anreiseminuten</span> · Alle Ringe bleiben erhalten — der Zoom vergrößert nur den Ausschnitt, damit dicht beieinanderliegende Ziele auseinanderrücken · zwei Finger zoomen, ein Finger verschiebt · Punkt antippen springt zur Karte.</p>
+  </div>
+
+  <div class="filters panel">
+    <div class="fgroup">
+      <span class="flabel mono">Start</span>
+      <div class="seg" role="group" aria-label="Startpunkt">
+        <button class="segbtn active" data-origin="pn">Porta Nigra</button>
+        <button class="segbtn" data-origin="hb">Hauptbahnhof</button>
+      </div>
+      <span class="flabel mono" style="min-width:auto">Umkreis</span>
+      <div class="seg" role="group" aria-label="Einheit für den Umkreis">
+        <button class="segbtn unitbtn active" data-unit="min">Anreisezeit</button>
+        <button class="segbtn unitbtn" data-unit="km">Kilometer</button>
+      </div>
+      <input type="range" id="maxRange" min="5" max="90" step="5" value="90" aria-label="Maximaler Umkreis">
+      <span class="flabel mono" style="min-width:auto">≤ <output id="maxOut">90</output> <span id="maxUnit">min</span></span>
+    </div>
+    <div class="fgroup">
+      <span class="flabel mono">Ab Datum</span>
+      <input type="date" id="abDate" aria-label="Termine ab Datum">
+      <button class="minibtn" id="heuteBtn" title="Auf heute zurücksetzen">Heute</button>
+      <button class="minibtn" id="reiseBtn" title="Auf die Reisewoche 17.–23.08.2026 springen">🏛 Reisewoche 17.–23.08.</button>
+      <span class="flabel mono" style="min-width:auto">Zeitfenster</span>
+      <select id="spanSel" aria-label="Zeitfenster für Termine">
+        <optgroup label="Tagesgenau">
+        <option value="0">nur heute</option>
+        <option value="1">heute &amp; morgen</option>
+        <option value="2">nächste 2 Tage</option>
+        <option value="3">nächste 3 Tage</option>
+        <option value="4">nächste 4 Tage</option>
+        <option value="5">nächste 5 Tage</option>
+        <option value="6">nächste 6 Tage</option>
+        <option value="7">nächste 7 Tage</option>
+        <option value="8">nächste 8 Tage</option>
+        <option value="9">nächste 9 Tage</option>
+        <option value="10">nächste 10 Tage</option>
+        </optgroup>
+        <optgroup label="Wochen &amp; Monate">
+        <option value="14">nächste 2 Wochen</option>
+        <option value="28">nächste 4 Wochen</option>
+        <option value="60">nächste 2 Monate</option>
+        <option value="90" selected>nächste 3 Monate</option>
+        <option value="120">nächste 4 Monate</option>
+        <option value="180">nächste 6 Monate</option>
+        <option value="365">nächstes Jahr</option>
+        <option value="730">nächste 2 Jahre</option>
+        </optgroup>
+      </select>
+      <span class="flabel mono" style="min-width:auto">Sortierung</span>
+      <div class="seg" role="group" aria-label="Sortierung">
+        <button class="segbtn sortbtn active" data-sort="dist">↕ Entfernung</button>
+        <button class="segbtn sortbtn" data-sort="date">↕ Datum</button>
+      </div>
+    </div>
+    <div class="fgroup">
+      <span class="flabel mono">Typ</span>
+      <div class="seg" role="group" aria-label="Eintragstyp">
+        <button class="segbtn typbtn active" data-typ="alle">Alle</button>
+        <button class="segbtn typbtn" data-typ="ort">📍 Ziele</button>
+        <button class="segbtn typbtn" data-typ="event">📅 Termine</button>
+      </div>
+      <span class="flabel mono" style="min-width:auto">Land</span>
+      <div class="seg" role="group" aria-label="Land">
+        <button class="segbtn landbtn active" data-land="alle">Alle</button>
+        <button class="segbtn landbtn" data-land="de">🇩🇪 Deutschland</button>
+        <button class="segbtn landbtn" data-land="lu">🇱🇺 Luxemburg</button>
+      </div>
+    </div>
+    <div class="fgroup catrow">
+      <span class="flabel mono">Kategorie</span>
+      <button class="fchip active" data-cat="alle">Alle</button>
+      <button class="fchip" data-cat="pflicht">🏛 Rom-Pflicht</button>
+      <button class="fchip" data-cat="roemisch">🏺 Römisch</button>
+      <button class="fchip" data-cat="thermen">♨️ Bäder &amp; Thermen</button>
+      <button class="fchip" data-cat="museum">🖼 Museum</button>
+      <button class="fchip" data-cat="wein">🍷 Wein</button>
+      <button class="fchip" data-cat="essen">🍽 Essen</button>
+      <button class="fchip" data-cat="stadt">🏙 Stadt &amp; Kirche</button>
+      <button class="fchip" data-cat="natur">🌿 Natur &amp; Aussicht</button>
+      <button class="fchip" data-cat="indoor">☔ Schlechtwetter</button>
+      <button class="fchip" data-cat="gratis">0 € Gratis</button>
+      <button class="fchip" data-cat="favoriten">⭐ Favoriten</button>
+      <button class="fchip" data-cat="social">📱 Portal-Fund</button>
+    </div>
+  </div>
+
+  <p class="count mono" id="countLine"></p>
+  <div class="grid" id="grid"></div>
+
+  <div class="edgebox">
+    <h3>▸ Zur Reichweite</h3>
+    <p>Der Regler geht bis <b>90 Minuten</b>, weil ein paar Ziele die Fahrt wert sind: <b>Villa Nennig</b> mit dem Gladiatorenmosaik (rund 43 min), <b>Villa Borg</b> mit der Taverne (45 min), <b>Bernkastel-Kues</b> (48 min), <b>Luxemburg-Stadt</b> (47 min). Für einen Tag ohne Auto reicht der Regler bei <b>25 Minuten</b> — dann bleiben alle neun UNESCO-Bauten außer der Igeler Säule übrig, dazu sämtliche Museen und die Weinstuben.</p>
+    <p><b>Luxemburg</b> ist über den Länderfilter zuschaltbar; die Gallo-römische Villa Echternach liegt näher als Bernkastel und kostet keinen Eintritt. Personalausweis mitnehmen. <b>Perl-Nennig und Perl-Borg</b> liegen im Saarland, also weiterhin Deutschland — sie tauchen im Filter „🇩🇪 Deutschland“ auf.</p>
+  </div>
+</div></section>
+
+<style>
+.radarwrap{padding:14px 14px 10px; margin-bottom:18px; border-radius:18px}
+.mapbar{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px}
+.zoomrow{display:flex; align-items:center; gap:8px; font-size:11.5px; color:var(--muted)}
+#radarZoom{width:130px; accent-color:var(--teal)}
+.minibtn{background:var(--panel2); border:2px solid var(--line); border-radius:999px; color:var(--muted); cursor:pointer; font-size:13px; padding:4px 11px; font-family:"Nunito",sans-serif; font-weight:600}
+.minibtn:hover{border-color:var(--teal); color:var(--teal)}
+#radar{touch-action:none; cursor:grab}
+#radar[hidden],#karte[hidden],.aus{display:none !important}
+.radarwrap:fullscreen, .radarwrap:-webkit-full-screen, .radarwrap.pseudovoll{
+  background:var(--bg); display:flex; flex-direction:column; padding:14px; border-radius:0}
+.radarwrap.pseudovoll{position:fixed; inset:0; z-index:9999; margin:0; overflow:auto}
+.radarwrap:fullscreen #radar, .radarwrap:-webkit-full-screen #radar, .radarwrap.pseudovoll #radar{
+  flex:1 1 auto; min-height:0; height:auto; width:100%}
+.radarwrap:fullscreen #karte, .radarwrap:-webkit-full-screen #karte, .radarwrap.pseudovoll #karte{
+  flex:1 1 auto; min-height:0; height:auto}
+.radarwrap:fullscreen .radarnote, .radarwrap.pseudovoll .radarnote{flex:0 0 auto}
+.vollbildbtn{margin-left:auto}
+@media(max-width:560px){ .vollbildbtn{margin-left:0} }
+#radar.greift{cursor:grabbing}
+#radar text{paint-order:stroke; stroke:var(--bg); stroke-width:2.6px; stroke-linejoin:round}
+#karte{height:420px; border-radius:14px; overflow:hidden; border:2px solid var(--line)}
+.leaflet-container{background:var(--panel2); font-family:"Nunito",sans-serif}
+.leaflet-popup-content{font-family:"Nunito",sans-serif; font-size:13px; margin:10px 12px}
+.leaflet-popup-content b{font-family:"Cinzel",serif}
+.pin{border-radius:50%; border:2px solid #fff; box-shadow:0 1px 4px rgba(0,0,0,.5)}
+.kartenlabel{background:rgba(255,255,255,.88); border:none; box-shadow:0 1px 3px rgba(0,0,0,.25); border-radius:8px; padding:1px 6px; font-family:"Nunito",sans-serif; font-size:11px; font-weight:700; color:#2c2620; white-space:nowrap}
+.kartenlabel::before{display:none}
+.kartenlabel.start{background:#d8734a; color:#fff}
+/* Mehrere Ziele auf einer Koordinate: ein Etikett, eine Zeile je Ziel. */
+.kartenlabel.mehrfach{line-height:1.45; padding:3px 7px}
+.kartenlabel a{color:#2c2620; text-decoration:none}
+.kartenlabel a:hover{color:#8a4a1e; text-decoration:underline}
+.leaflet-popup-content .poptrenn{border:none; border-top:1px solid rgba(44,38,32,.18); margin:9px 0}
+.leaflet-control-layers, .leaflet-control-scale-line{font-family:"Nunito",sans-serif; font-size:12px; border-radius:10px}
+.leaflet-control-layers{background:var(--panel); color:var(--ink); border:2px solid var(--line); box-shadow:var(--shadow)}
+.leaflet-control-layers:not(.leaflet-control-layers-expanded){background:#fff}
+.leaflet-control-layers-expanded{padding:9px 13px 9px 9px}
+/* Leaflet baut die Ebenenliste als <section> — die globale section-Regel
+   weiter oben (38 px Polster, Trennlinie) darf hier nicht durchschlagen. */
+.leaflet-control-layers-list{color:var(--ink); margin:0; padding:0; border:none}
+.leaflet-control-layers-base{line-height:1.35}
+.leaflet-control-layers label{display:block; margin:0; padding:2px 0; cursor:pointer}
+.leaflet-control-layers-selector{margin:0 6px 0 0; vertical-align:middle; accent-color:var(--teal)}
+.ebenenkopf{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.13em; text-transform:uppercase; color:var(--muted); margin-bottom:5px}
+.kartenhinweis{position:absolute; left:50%; bottom:14px; transform:translateX(-50%); z-index:1000; max-width:88%;
+  background:var(--panel); color:var(--ink); border:2px solid var(--amber); border-radius:999px;
+  padding:6px 14px; font-size:12px; font-weight:600; box-shadow:var(--shadow); text-align:center; pointer-events:none}
+.leaflet-control-attribution{font-size:10px}
+#radar{width:100%; height:auto; display:block}
+.radarnote{font-size:11px; color:var(--muted); text-align:center; padding:8px 4px 4px}
+.filters{display:flex; flex-direction:column; gap:14px; margin-bottom:14px; padding:16px 18px}
+.fgroup{display:flex; align-items:center; flex-wrap:wrap; gap:10px}
+.flabel{font-size:11.5px; color:var(--muted); min-width:78px; text-transform:uppercase; letter-spacing:.08em}
+.seg{display:inline-flex; border:2px solid var(--line); border-radius:999px; overflow:hidden; background:var(--panel2)}
+.segbtn{background:transparent; border:none; color:var(--muted); font-family:"IBM Plex Mono",monospace; font-size:12.5px; padding:7px 14px; cursor:pointer; font-weight:500}
+.segbtn.active{background:var(--teal-dim); color:var(--teal)}
+.fchip{background:var(--panel2); border:2px solid var(--line); border-radius:999px; color:var(--muted); font-family:"Nunito",sans-serif; font-size:13px; padding:7px 14px; cursor:pointer; font-weight:700}
+.fchip:hover{border-color:var(--teal)}
+.fchip.active{background:var(--teal-dim); border-color:var(--teal); color:var(--teal)}
+#maxRange{flex:1; min-width:140px; max-width:260px; accent-color:var(--teal)}
+select#spanSel{background:var(--panel2); border:2px solid var(--line); color:var(--ink); border-radius:999px; padding:7px 13px; font-family:"Nunito",sans-serif; font-weight:700; font-size:12.5px; cursor:pointer}
+select#spanSel:hover{border-color:var(--teal)}
+input[type="date"]{background:var(--panel2); border:2px solid var(--line); color:var(--ink); border-radius:8px; padding:6px 11px; font-family:"IBM Plex Mono",monospace; font-size:12.5px; color-scheme:var(--scheme)}
+.count{font-size:12px; color:var(--muted); margin-bottom:14px}
+.grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px}
+.card{background:var(--panel); border:2px solid var(--line); border-radius:18px; padding:16px 17px; display:flex; flex-direction:column; gap:8px; box-shadow:var(--shadow); scroll-margin-top:84px}
+.card.event{border-top:4px solid var(--amber)}
+.card.angesprungen{border-color:var(--amber)}
+.card:hover{border-color:color-mix(in srgb, var(--teal) 55%, var(--line))}
+@media (prefers-reduced-motion:no-preference){
+  .card{transition:transform .18s ease, border-color .18s ease}
+  .card:hover{transform:translateY(-3px)}
+  .card.angesprungen{animation:angesprungen 1.8s ease-out}
+  .fchip,.segbtn{transition:background .15s ease, color .15s ease}
+}
+@keyframes angesprungen{
+  0%{box-shadow:0 0 0 0 var(--amber)}
+  18%{box-shadow:0 0 0 4px var(--amber)}
+  100%{box-shadow:var(--shadow)}
+}
+.card .head{display:flex; justify-content:space-between; align-items:flex-start; gap:10px}
+.card h3{font-size:16px; line-height:1.32}
+.card .ort{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em}
+.card .drive{font-family:"IBM Plex Mono",monospace; font-size:12.5px; color:var(--teal); white-space:nowrap; text-align:right; line-height:1.35}
+.card .drive b{display:block; font-size:15px; font-weight:600}
+.badges{display:flex; flex-wrap:wrap; gap:6px}
+.datebadge{display:inline-block; font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--amber); background:var(--amber-dim); border-radius:999px; padding:3px 10px; font-weight:600}
+.datebadge.always{color:var(--muted); background:var(--panel2)}
+.pflichtbadge{display:inline-block; font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--p-gold); background:color-mix(in srgb,var(--p-gold) 14%,transparent); border-radius:999px; padding:3px 10px; font-weight:600}
+.socialbadge{display:inline-block; font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--violet); background:color-mix(in srgb, var(--violet) 13%, transparent); border-radius:999px; padding:3px 10px; font-weight:600}
+.card p.desc{font-size:13.6px; color:var(--muted)}
+.card .fit{font-size:13px; border-left:4px solid var(--amber); border-radius:0 10px 10px 0; background:var(--amber-dim); padding:8px 10px; color:var(--ink)}
+.card .fit b{color:var(--p-terra); font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.06em}
+.card .meta{display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--muted); margin-top:auto; padding-top:6px; border-top:1px dashed var(--line)}
+.card .meta a{font-size:11.5px}
+.card .meta .sep{opacity:.45}
+</style>
+
+<!-- 2 · SOCIAL / PORTALE -->
+<section id="social"><div class="wrap">
+  <h2><span class="idx">2</span>Social-Media-Runde: was dort steht — und was davon hält</h2>
+  <p class="sub">Diese Runde fiel härter aus als vorgesehen, und das gehört offen gesagt: In der Umgebung, in der der Report entstand, ließ die Netzwerkrichtlinie <b>ausschließlich die Websuche</b> zu. Der direkte Abruf einzelner Seiten — auch der offiziellen — war gesperrt (Egress-Proxy, „EGRESS_BLOCKED“). Damit gilt: Instagram und Facebook sind wie üblich ohne Login nicht auswertbar, aber auch trier-info.de, zentrum-der-antike.de oder villa-borg.de konnten <b>nicht direkt gelesen</b> werden. Verwertbar waren die indexierten Inhalte dieser Seiten über die Suche — also Erstquellen-<i>Inhalt</i> in zweiter Hand. Jede so gewonnene Angabe trägt deshalb höchstens <span class="ev evA">A</span>, wenn die Suche wörtlich aus der Betreiberseite zitiert, sonst <span class="ev evB">B</span>. Alle Funde aus Bewertungsportalen tragen im Guide den Chip <span class="socialbadge">📱 Portal-Fund</span>.</p>
+
+  <div class="soggrid">
+    <div class="soc">
+      <h3>Was Bewertungsportale beisteuern</h3>
+      <p>Tripadvisor-Ranglisten sind für Trier ungewöhnlich brauchbar, weil die Stadt viele Lokale und viele Besucher hat: <b>Weinstube Kesselstatt</b> steht auf Platz 7 von 256, <b>Blesius Garten</b> auf Platz 11 von 255, <b>Kartoffel-Restaurant Kiste</b> auf Platz 14 von 256. Das sind keine Belege für Qualität, aber gute Belege dafür, dass ein Laden existiert, offen ist und Publikum findet — und genau dafür sind sie hier benutzt.</p>
+    </div>
+    <div class="soc">
+      <h3>Was die Blogs beitragen — und was nicht</h3>
+      <p>Reiseblogs liefern zuverlässig die <b>Reihenfolge</b>: fast alle raten, mit der Porta Nigra zu beginnen und das Landesmuseum <i>vor</i> die Ruinen zu legen, weil die Ruinen danach lesbar werden. Das deckt sich mit dem, was das Museum selbst über seine Rolle schreibt. Unbrauchbar sind Blogs bei Preisen und Zeiten: die Angaben stammen oft aus dem Erscheinungsjahr des Beitrags und wandern ungeprüft weiter. Kein Preis in diesem Guide stammt aus einem Blog.</p>
+    </div>
+    <div class="soc">
+      <h3>Der nützlichste Nebensatz</h3>
+      <p>Dass das Restaurant <b>Zum Domstein</b> nicht nur „römisch angehaucht“ ist, sondern nach dem Apicius-Kochbuch <i>De re coquinaria</i> kocht und im Keller den südwestlichen Pfeiler der konstantinischen Doppelkirche stehen hat, stand nicht in den Gastro-Listen, sondern auf der Unterseite „Historisches“ des Hauses selbst. Genau dieser Fund beantwortet die Frage „wo sollte man als Rom-Fan gegessen haben“ — und er wäre bei einer reinen Kategoriesuche nach „Restaurant Trier“ nie aufgetaucht.</p>
+    </div>
+    <div class="soc">
+      <h3>Was Social hier nicht liefern konnte</h3>
+      <p>Kein einziger Termin dieses Guides stammt aus einem Social-Post. Die Termine kommen aus Veranstalterseiten, dem Landkreis-Kalender, Ticketportalen und lokalen Nachrichtenseiten. Das ist kein Verzicht aus Prinzip, sondern eine Folge der Zugangslage — und es bedeutet, dass <b>kurzfristige Absagen und Verlegungen in diesem Report nicht sichtbar sind</b>. Für die Reisewoche selbst lohnt ein Blick auf die Instagram-Kanäle von Trier Tourismus und Theater Trier.</p>
+    </div>
+  </div>
+
+  <div class="edgebox">
+    <h3>▸ Gedrucktes schlägt alles</h3>
+    <p>Falls vor Ort ein <b>Programmheft der Tourist-Information an der Porta Nigra</b> oder der Monatsflyer des Zentrums der Antike in die Hände fällt: Der schlägt jede Angabe hier. Erlebnisführungen werden kurzfristig ergänzt, ausgebucht oder witterungsbedingt verlegt, und genau das steht nur im gedruckten Aushang und an der Kasse.</p>
+  </div>
+</div></section>
+
+<!-- 3 · VORGEHEN -->
+<section id="vorgehen"><div class="wrap">
+  <h2><span class="idx">3</span>Vorgehen: Ort für Ort abgefragt</h2>
+  <p class="sub">Nicht nach Kategorien gesucht, sondern nach Orten: Für jede Gemeinde im Umkreis wurde abgefragt, was sie <b>selbst</b> als römisches Erbe und als Ausflugsziel führt. Diese Runde bringt die Ziele, die in keiner „Top 10 Trier“-Liste stehen — den Qanat in Pölich, die Kelteranlage in Brauneberg, die Villa Rustica mitten in Wittlich. Ortsangaben sind Eigenwerbung und gelten höchstens als <span class="ev evB">B</span>; jeder Fund wurde danach gegen die Betreiber- oder Landesseite gehalten.</p>
+  <div class="tblwrap">
+  <table class="tbl">
+    <thead><tr><th>Ort / Träger</th><th class="mono">ab Porta Nigra</th><th>Was der Ort selbst nennt</th><th>Neu aufgenommen</th></tr></thead>
+    <tbody>
+      <tr><td><b>Trier</b> (Stadt + Zentrum der Antike)</td><td class="mono">0 km</td><td>Neun UNESCO-Bauten, AntikenCard, Erlebnisführungen, Trierer Unterwelten, Viezfest, Museen</td><td>Alle Römerbauten, Landesmuseum, Museum am Dom, Domschatz, Simeonstift, Karl-Marx-Haus, Römer-Express, Viezfest, Zenturio- und Gladiatorenführung</td></tr>
+      <tr><td><b>Igel</b></td><td class="mono">12,3 km</td><td>Igeler Säule als Ortswahrzeichen, ganzjährig frei</td><td>Igeler Säule</td></tr>
+      <tr><td><b>Tawern</b> (Verein Römisches Tawern e.V.)</td><td class="mono">18,3 km</td><td>Gallo-römischer Tempelbezirk Metzenberg, Sonntagsführungen Mai–Okt, Römerfest alle zwei Jahre</td><td>Tempelbezirk + Sonntagsführung</td></tr>
+      <tr><td><b>Konz</b></td><td class="mono">9,7 km</td><td>Freilichtmuseum Roscheider Hof, Heimat- und Weinfest, Saarmündung</td><td>Roscheider Hof</td></tr>
+      <tr><td><b>Longuich</b> (Römische Weinstraße)</td><td class="mono">15,2 km</td><td>Villa Urbana mit Badetrakt, Sonntagsführungen, Weinstraßenkirmes im August</td><td>Villa Urbana + Führung</td></tr>
+      <tr><td><b>Waldrach / Ruwertal</b></td><td class="mono">10,3 km</td><td>Römische Ruwerwasserleitung, Nachbau an der Ruwertalstraße, Radweg</td><td>Ruwerwasserleitung</td></tr>
+      <tr><td><b>Pölich</b></td><td class="mono">16,4 km</td><td>Römischer Qanat, Themenweg in die Weinberge</td><td>Qanat Pölich</td></tr>
+      <tr><td><b>Neumagen-Dhron</b></td><td class="mono">26,3 km</td><td>„Ältester Weinort Deutschlands“, Römerweinschiff Stella Noviomagi, Info-Pavillon</td><td>Weinschiff + Fahrten</td></tr>
+      <tr><td><b>Piesport</b></td><td class="mono">31,0 km</td><td>Größte römische Kelteranlage nördlich der Alpen, Kelterfest im Oktober, Pferdefestival im August</td><td>Kelteranlage Piesport</td></tr>
+      <tr><td><b>Brauneberg</b></td><td class="mono">37,2 km</td><td>Spätrömische Kelteranlage, Weingüter</td><td>Kelteranlage Brauneberg</td></tr>
+      <tr><td><b>Wittlich</b></td><td class="mono">39,5 km</td><td>Villa Rustica als eines der größten Landgüter nördlich der Alpen, Sonntagsführungen</td><td>Villa Rustica Wittlich</td></tr>
+      <tr><td><b>Fließem</b> (Bitburger Land)</td><td class="mono">35,8 km</td><td>Römische Villa Otrang mit Mosaiken, freier Eintritt, monatliche Führungen</td><td>Villa Otrang + Führungstermine</td></tr>
+      <tr><td><b>Perl</b> (Saarland)</td><td class="mono">40,7 / 42,2 km</td><td>Villa Nennig mit Gladiatorenmosaik und Tumulus, Archäologiepark Villa Borg mit Taverne, Römertage</td><td>Villa Nennig, Villa Borg, Taverne</td></tr>
+      <tr><td><b>Echternach</b> (Luxemburg)</td><td class="mono">22,4 km</td><td>Gallo-römische Villa mit Museum, rekonstruiertem Garten und freiem Eintritt</td><td>Villa Echternach</td></tr>
+      <tr><td><b>Nittel</b> (Obermosel)</td><td class="mono">26,1 km</td><td>St.-Rochus-Weinkirmes 21.–24.08., Elbling und Burgunder entlang der Weinstraße</td><td>Weinkirmes Nittel</td></tr>
+      <tr><td><b>Saarburg</b></td><td class="mono">23,4 km</td><td>Wasserfall mitten in der Altstadt, Burgruine, Greifvogelpark</td><td>Saarburg, Greifvogelpark</td></tr>
+      <tr><td><b>Mettlach-Orscholz</b></td><td class="mono">36,1 km</td><td>Saarschleife, Cloef-Aussicht, Baumwipfelpfad</td><td>Baumwipfelpfad Saarschleife</td></tr>
+      <tr><td><b>Bernkastel-Kues</b></td><td class="mono">45,0 km</td><td>Fachwerkaltstadt, Burg Landshut, Moselschifffahrt</td><td>Bernkastel-Kues, Burg Landshut</td></tr>
+      <tr><td><b>Luxemburg-Stadt</b></td><td class="mono">51,7 km</td><td>UNESCO-Altstadt, Kasematten, Museen</td><td>Luxemburg-Stadt (als Tagesziel)</td></tr>
+      <tr><td><b>Erden</b></td><td class="mono">≈ 49 km</td><td>Römische Kelteranlage, heute für Weinproben und antike Kochkurse genutzt</td><td>— nur in der Restliste: keine öffentlichen Termine gefunden</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="edgebox">
+    <h3>▸ Was diese Runde gebracht hat</h3>
+    <p>Von den 21 römischen Zielen dieses Guides standen <b>elf</b> in keiner der überregionalen „Römer in Trier“-Listen: Qanat Pölich, Ruwerwasserleitung Waldrach, Kelteranlagen Piesport und Brauneberg, Villa Rustica Wittlich, Villa Urbana Longuich, Villa Echternach, Tempelbezirk Tawern und der Weinkeller der Vereinigten Hospitien. Sie kamen alle über die Ortsabfrage.</p>
+  </div>
+</div></section>
+
+<!-- 4 · BÄDER-VERGLEICH + ROM-FAN-TELLER -->
+<section id="baeder"><div class="wrap">
+  <h2><span class="idx">4</span>Römische Bäder im Direktvergleich — und der Rom-Fan-Teller</h2>
+  <p class="sub">Trier hat drei Thermenanlagen im Stadtgebiet, dazu zwei Privatbäder im Umland: eines als Ausgrabung unter Schutzbau, eines rekonstruiert und beheizbar. Zusammen ergibt das die vollständige Bandbreite römischer Badearchitektur — von der Kaisertherme bis zur Villenbadestube.</p>
+  <div class="tblwrap">
+  <table class="tbl">
+    <thead><tr><th>Anlage</th><th class="mono">Zeit ab Porta Nigra</th><th>Was übrig ist</th><th class="mono">Eintritt</th><th class="mono">Zeiten</th><th>Evidenz</th></tr></thead>
+    <tbody>
+      <tr><td><b>Kaiserthermen</b><br>Trier</td><td class="mono">🚶 19 min</td><td>Aufgehendes Mauerwerk bis 19 m, begehbare Bedienungsgänge und Heizkanäle, Aussichtspunkt über den Palastbezirk, Filmanimation</td><td class="mono">6 € / 5 € / 3 €</td><td class="mono">Apr–Sep 9–18</td><td><span class="ev evA">A</span></td></tr>
+      <tr><td><b>Barbarathermen</b><br>Trier</td><td class="mono">🚶 21 min</td><td>Grundriss von rund 42.000 m², nach den Trajansthermen in Rom die zweitgrößte Anlage des Reichs; Besuchersteg über die Heizkeller</td><td class="mono">0 €</td><td class="mono">tägl. 10–18</td><td><span class="ev evA">A</span></td></tr>
+      <tr><td><b>Thermen am Viehmarkt</b><br>Trier</td><td class="mono">🚶 15 min</td><td>Thermenreste unter Glaskubus, darüber Klosterfundamente und mittelalterliche Keller — 1.800 Jahre im Schnitt, komplett überdacht</td><td class="mono">6 € / 5 € / 3 €</td><td class="mono">tägl. 11–17</td><td><span class="ev evA">A</span></td></tr>
+      <tr><td><b>Villa Urbana</b><br>Longuich</td><td class="mono">🚗 22 min</td><td>Vollständiger Badetrakt einer Villa des 2. Jh.: Frigidarium, Tepidarium, Caldarium, Sudatorium, Praefurnium unter Schutzbau</td><td class="mono">3 €, Kinder frei</td><td class="mono">Führung Mai–Okt So 10:30</td><td><span class="ev evB">B</span></td></tr>
+      <tr><td><b>Villa Borg</b><br>Perl-Borg</td><td class="mono">🚗 45 min</td><td>Rekonstruiertes Bad mit funktionierender Hypokaustenheizung, dazu Herrenhaus, Küche, Garten und Taverne</td><td class="mono">6 € / Kind 2 € / Fam. 12 €</td><td class="mono">Apr–Okt Di–So 10–18</td><td><span class="ev evA">A</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 style="margin:26px 0 6px; font-size:17px; color:var(--p-terra)">Wo ein Rom-Fan gegessen haben sollte</h3>
+  <p class="sub" style="margin-bottom:14px">Die Frage hat in Trier eine engere Antwort als anderswo, weil zwei Häuser tatsächlich <b>nach römischen Rezepten</b> kochen und nicht nur römisch dekorieren. Der Rest der Liste steht dafür, dass die Mosel selbst römisches Erbe ist: Der Weinbau hier ist von den Römern angelegt worden, und der älteste benutzte Weinkeller Deutschlands ist ein römischer Bau.</p>
+  <div class="tblwrap">
+  <table class="tbl">
+    <thead><tr><th>Adresse</th><th>Warum gerade als Rom-Fan</th><th class="mono">Zeiten</th><th>Evidenz</th></tr></thead>
+    <tbody>
+      <tr><td><b>Zum Domstein</b><br>Hauptmarkt, Trier</td><td>Kocht abends nach <i>De re coquinaria</i> des Apicius — dem ältesten erhaltenen römischen Kochbuch —, als Menü oder à la carte. Im Römerkeller steht der südwestliche Pfeiler der konstantinischen Doppelkirche, dazu Funde und eine der besten privaten Sammlungen römischen Glases aus 150–350 n. Chr. <b>Das ist der Pflichtabend.</b></td><td class="mono">tägl. 9:30–24 · röm. Küche 17:30–21:30</td><td><span class="ev evA">A</span></td></tr>
+      <tr><td><b>Taverne der Römischen Villa Borg</b><br>Perl-Borg</td><td>Ebenfalls Apicius-Rezepte, aber im rekonstruierten Landgut selbst — man isst in der Villa, deren Bad man vorher besichtigt hat. Der zweite Pflichtteller, und der einzige, den man mit einer Museumsführung verbinden kann.</td><td class="mono">Di–So 11–18</td><td><span class="ev evA">A</span></td></tr>
+      <tr><td><b>Vereinigte Hospitien</b><br>Krahnenufer 19, Trier</td><td>Kein Restaurant, sondern der Grund, warum es hier Wein gibt: Der Keller wurde um <b>330 n. Chr.</b> als römisches Magazin gebaut und wird seither durchgehend genutzt — ältester Weinkeller Deutschlands. Führung 60 Minuten mit zwei Weinen.</td><td class="mono">Apr–Okt Mi &amp; Fr 11:00, 17,50 €</td><td><span class="ev evA">A</span></td></tr>
+      <tr><td><b>Weinstube Kesselstatt</b><br>Liebfrauenstraße 10</td><td>Weingarten direkt gegenüber Dom und Liebfrauenkirche — man sitzt im Blickfeld zweier UNESCO-Bauten. Selbstbedienung am Buffet, Moselweine aus dem eigenen Gut.</td><td class="mono">Terrasse, saisonale Karte</td><td><span class="ev evC">C</span></td></tr>
+      <tr><td><b>Blesius Garten</b><br>Olewig</td><td>Altes Hofgut im Weinort Olewig, eigene Hausbrauerei, regionale und Bio-Küche. Liegt am Weinkulturpfad, der die Steillagen erklärt, die die Römer angelegt haben.</td><td class="mono">ganzjährig</td><td><span class="ev evC">C</span></td></tr>
+      <tr><td><b>Bagatelle</b><br>Zurlaubener Ufer</td><td>Ein Michelin-Stern seit 2023, moderne Küche auf klassisch französischer Basis mit japanischen Akzenten, direkt an der Mosel. Der Abend, an dem es nicht römisch sein muss.</td><td class="mono">Reservierung nötig</td><td><span class="ev evB">B</span></td></tr>
+      <tr><td><b>Viez am Domfreihof</b><br>Sa 22.08.2026</td><td>Der Trierer Apfelwein steht als immaterielles Kulturerbe auf der UNESCO-Liste und wird aus dem „Porz“ getrunken. Einmal im Jahr genau an dem Platz, an dem Konstantins Palastbezirk lag — und in dieser Reisewoche fällt das Viezfest genau hinein.</td><td class="mono">Sa 22.08., Eintritt frei</td><td><span class="ev evA">A</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</div></section>
+
+<!-- 5 · WAS OFFEN BLEIBT -->
+<section id="offen"><div class="wrap">
+  <h2><span class="idx">5</span>Was für diesen Report offen bleibt</h2>
+  <p class="sub">Nur ungelöste Fragen. Was sich klären ließ, ist still eingearbeitet und taucht hier nicht mehr auf. Zu jedem Punkt steht, wo er sich vor Ort in einer Minute klären lässt.</p>
+
+  <div class="duel">
+    <h3>Stella Noviomagi: Samstag 15:30 oder 16:00 — und fährt sie mittwochs?</h3>
+    <p><b>Angabe 1</b> (Neumagen-Dhron, Betreiberseite): Einzelgäste Mai–Oktober samstags 16:00, sonntags 10:00, zusätzlich mittwochs 14:00 — „Termine für 2026 werden derzeit überarbeitet“.</p>
+    <p><b>Angabe 2</b> (regionales Tourismusportal): Ostern–Oktober samstags 15:30, sonntags 10:00, Mittwochsfahrten <i>nur in den rheinland-pfälzischen Sommerferien</i>.</p>
+    <p class="loesung"><b>Ungelöst und für diese Woche relevant:</b> Die Sommerferien enden am 7. bzw. 9. August 2026 — nach beiden Lesarten fällt der 19.08. also womöglich aus, aber sicher ist das nicht. Der Guide führt Samstag und Sonntag als gesichert und den Mittwoch gar nicht. Klärung: Info-Pavillon Römerweinschiff, Pelzergasse 7, Neumagen-Dhron.</p>
+  </div>
+
+  <div class="duel">
+    <h3>Sommerferien Rheinland-Pfalz 2026: bis 7. oder bis 9. August?</h3>
+    <p><b>Angabe 1</b> (Ferienkalender-Portale): 29.06.–07.08.2026.</p>
+    <p><b>Angabe 2</b> (Zentrum der Antike, zur Freieintritts-Aktion für unter 18-Jährige): 26.06.–09.08.2026.</p>
+    <p class="loesung"><b>Folgenlos für diese Reise, deshalb nur notiert:</b> Beide Lesarten enden deutlich vor dem 17. August. Für die Reisewoche gilt in jedem Fall: keine Ferien-Zusatztermine bei Zenturio- und Gladiatorenführung, kein freier Eintritt für unter 18-Jährige mehr. Die zweite Angabe umfasst vermutlich die Wochenenden am Rand der Ferien.</p>
+  </div>
+
+  <div class="duel">
+    <h3>Konstantin-Basilika: die Sommeröffnungszeiten fehlen</h3>
+    <p>Gefunden wurden nur die <b>Winterzeiten</b> (November und Januar–März: Di–Sa 10–12 und 14–16, So 14–16; Dezember Mo–Sa). Für August gilt erfahrungsgemäß ein längeres Fenster, aber keine gefundene Quelle nennt es ausdrücklich.</p>
+    <p class="loesung"><b>Ungelöst.</b> Der Guide führt die Basilika deshalb mit <span class="ev evC">C</span> und ohne feste Zeitangabe. Sie ist eine aktive evangelische Kirche — Gottesdienste, Konzerte und Trauungen gehen vor. Klärung: Aushang am Konstantinplatz oder Kirchengemeinde.</p>
+  </div>
+
+  <div class="duel">
+    <h3>Römer-Leben 2026: Findet im August eine Runde statt?</h3>
+    <p>Die Reihe ist als Nachfolgerin von „Brot &amp; Spiele“ dokumentiert und läuft laut Beschreibung <b>am ersten Wochenende jedes Monats von Mai bis September</b>. Belegt sind mit konkreten Terminen aber nur die Gladiatorentage am 6. und 7. Juni 2026 im Amphitheater und die Römertage der Villa Borg am 1. und 2. August.</p>
+    <p class="loesung"><b>Teilweise gelöst:</b> Für die Reisewoche ist es egal — der erste August-Termin liegt vor dem 17., der September-Termin danach. Der Guide führt den September-Termin als abgeleitet mit <span class="ev evC">C</span>. Klärung: Zentrum der Antike Trier.</p>
+  </div>
+
+  <div class="duel">
+    <h3>Öffentliches Führungsprogramm: eine Lücke genau in der Reisewoche</h3>
+    <p>Das gefundene Programm des Zentrums der Antike nennt für August 2026 Termine am 2., 9., 16., 26. und 30. — <b>zwischen dem 17. und 23. August steht dort nichts</b>.</p>
+    <p class="loesung"><b>Ungelöst, ob Lücke oder Listenfehler.</b> Die Auflistung stammt aus einer Suchzusammenfassung, nicht aus dem vollständigen Kalender, und der direkte Abruf war gesperrt. Die kommerziellen Erlebnisführungen (Zenturio, Gladiator Valerius) laufen davon unabhängig weiter und sind belegt. Klärung: Tourist-Information Trier, 0651 / 97808-0.</p>
+  </div>
+
+  <div class="duel">
+    <h3>Mosel Musikfestival: Konzerte in der Reisewoche?</h3>
+    <p>Für August 2026 sind Konzerte am 1., 2., 5., 6., 8., 9. und 27. dokumentiert, das Festival läuft bis zum 3. Oktober mit fast 50 Konzerten zwischen Luxemburg und Koblenz.</p>
+    <p class="loesung"><b>Ungelöst.</b> Für den 17.–23. August wurde kein Termin gefunden — das kann an der unvollständigen Fundliste liegen, nicht am Programm. Der Guide führt deshalb <i>keinen</i> Festivaltermin. Klärung: moselmusikfestival.de.</p>
+  </div>
+
+  <div class="duel">
+    <h3>Koordinaten: gerechnet statt geokodiert</h3>
+    <p>Nominatim und alle Routing-Dienste waren gesperrt. Die Koordinaten stammen daher aus Kartenkenntnis der Standorte, nicht aus einem Geocoder.</p>
+    <p class="loesung"><b>Bewusst abgemildert, nicht gelöst:</b> Die Google-Maps-Links in den Kartenpopups zeigen deshalb auf die <b>Namenssuche</b> und nicht auf die reine Koordinate — ein Zahlendreher schickt damit niemanden auf einen Feldweg. Für die Innenstadtziele ist die Lage auf wenige Dutzend Meter genau; bei den Umlandzielen kann der Punkt am Ortsrand statt an der Adresse liegen.</p>
+  </div>
+</div></section>
+
+<!-- 6 · BELEGTABELLE -->
+<section id="belege"><div class="wrap">
+  <h2><span class="idx">6</span>Belegtabelle — Kernbehauptungen einzeln geprüft</h2>
+  <p class="sub">Die Aussagen, auf denen die Planung steht. Jede einzeln, mit Status und Beleg. <span class="ev evA">A</span> Erstquelle 2026 · <span class="ev evB">B</span> Portal/Verzeichnis · <span class="ev evC">C</span> Blog, Rezension, Angabe ohne Jahresstempel · <span class="ev evD">D</span> ungeprüft.</p>
+  <div class="tblwrap">
+  <table class="tbl">
+    <thead><tr><th>Behauptung</th><th>Status</th><th>Beleg</th></tr></thead>
+    <tbody>
+      <tr><td>AntikenCard Premium kostet 28 € und deckt alle vier kostenpflichtigen Römerbauten plus Landesmuseum</td><td><span class="ev evA">A</span> bestätigt</td><td><a href="https://www.zentrum-der-antike.de/angebote-programm/antikencard" target="_blank" rel="noopener">Zentrum der Antike · AntikenCard ↗</a></td></tr>
+      <tr><td>Einzeleintritt Römerbauten: 6 € / erm. 5 € / Kind 6–17 J. 3 €, Familienkarte 6 bzw. 12 €</td><td><span class="ev evA">A</span> bestätigt</td><td><a href="https://www.zentrum-der-antike.de/monumente/thermen-am-viehmarkt" target="_blank" rel="noopener">Zentrum der Antike ↗</a></td></tr>
+      <tr><td>Römerbauten Apr–Sep täglich 9–18 Uhr; Thermen am Viehmarkt 11–17, Barbarathermen 10–18</td><td><span class="ev evA">A</span> bestätigt</td><td><a href="https://www.zentrum-der-antike.de/monumente/kaiserthermen" target="_blank" rel="noopener">Kaiserthermen ↗</a> · <a href="https://www.trier-info.de/sehenswuerdigkeiten/barbarathermen" target="_blank" rel="noopener">Barbarathermen ↗</a></td></tr>
+      <tr><td>Landesmuseum Di–So 10–17, montags geschlossen, 10 € / erm. 8 €</td><td><span class="ev evA">A</span> bestätigt</td><td><a href="https://www.zentrum-der-antike.de/rheinisches-landesmuseum/eintrittspreise-und-anreise" target="_blank" rel="noopener">Eintrittspreise Landesmuseum ↗</a></td></tr>
+      <tr><td>Barbarathermen: Besuchersteg kostenlos zugänglich</td><td><span class="ev evA">A</span> bestätigt</td><td><a href="https://www.trier-info.de/sehenswuerdigkeiten/barbarathermen" target="_blank" rel="noopener">Tourist-Information Trier ↗</a></td></tr>
+      <tr><td>„Der Gladiator Valerius“ läuft 31.03.–31.10.2026, Apr–Sep Mi/Fr/Sa 18:00, 75 min, 19 € / 17 € / Kind 10 € / Familie 48 €</td><td><span class="ev evA">A</span> bestätigt</td><td><a href="https://www.trier-info.de/oeffentliche-fuehrungen/der-gladiator-valerius" target="_blank" rel="noopener">Tourist-Information · Gladiator Valerius ↗</a></td></tr>
+      <tr><td>„Das Geheimnis der Porta Nigra“ samstags 13:00, April–Oktober zusätzlich Di und So 13:00, Juli–September zusätzlich Sa 15:00; 19 € / 17 € / 10 € / 48 €</td><td><span class="ev evA">A</span> bestätigt</td><td><a href="https://www.trier-info.de/fuehrungen/das-geheimnis-der-porta-nigra" target="_blank" rel="noopener">Tourist-Information · Porta Nigra ↗</a></td></tr>
+      <tr><td>Zusatztermine beider Erlebnisführungen gelten nur in rheinland-pfälzischen Schulferien — in der Reisewoche also nicht</td><td><span class="ev evA">A</span> hergeleitet, beide Angaben decken sich</td><td><a href="https://www.kalenderferien.de/sommerferien-rheinland-pfalz-2026/" target="_blank" rel="noopener">Ferienkalender RLP 2026 ↗</a></td></tr>
+      <tr><td>Vereinigte Hospitien: Weinkeller um 330 n. Chr. erbaut, ältester Weinkeller Deutschlands; Führung Apr–Okt Mi/Fr 11:00, 17,50 €</td><td><span class="ev evA">A</span> bestätigt</td><td><a href="https://weingut.vereinigtehospitien.de/pages/kellerfuhrungen" target="_blank" rel="noopener">Weingut Vereinigte Hospitien ↗</a></td></tr>
+      <tr><td>Zum Domstein kocht nach Apicius; im Römerkeller steht der SW-Pfeiler der konstantinischen Doppelkirche</td><td><span class="ev evA">A</span> bestätigt</td><td><a href="https://domstein.de/historisches/" target="_blank" rel="noopener">domstein.de · Historisches ↗</a></td></tr>
+      <tr><td>Villa Nennig: über 160 m² Mosaik, größtes und besterhaltenes nördlich der Alpen, Gladiatorenszenen; 3 € / erm. 1,50 €, unter 18 frei</td><td><span class="ev evA">A</span> bestätigt</td><td><a href="https://www.roemischevillanennig.de/de/ihr-besuch" target="_blank" rel="noopener">Römische Villa Nennig ↗</a></td></tr>
+      <tr><td>Villa Borg: Apr–Okt Di–So 10–18, 6 € / Kind 2 € / Familie 12 €; Taverne kocht nach Apicius, Di–So 11–18</td><td><span class="ev evA">A</span> bestätigt</td><td><a href="https://www.villa-borg.de/oeffnungszeiten/" target="_blank" rel="noopener">villa-borg.de ↗</a></td></tr>
+      <tr><td>Villa Otrang: Apr–Okt Mi–So 10–17, Eintritt und öffentliche Führungen kostenfrei; nächste Führung 30.08.2026, 11 Uhr</td><td><span class="ev evA">A</span> bestätigt</td><td><a href="https://www.rlp-tourismus.com/de/ausflugsziele/roemische-villa-otrang/poi.html" target="_blank" rel="noopener">RLP-Tourismus · Villa Otrang ↗</a></td></tr>
+      <tr><td>Igeler Säule: rund 23 m, rote Sandsteinpfeiler der Secundinier, 1. Hälfte 3. Jh., einziges römisches Grabmal nördlich der Alpen am Originalstandort neben dem Drususstein; frei zugänglich</td><td><span class="ev evA">A</span> bestätigt</td><td><a href="https://www.zentrum-der-antike.de/monumente/igeler-saeule" target="_blank" rel="noopener">Zentrum der Antike · Igeler Säule ↗</a></td></tr>
+      <tr><td>Tempelbezirk Tawern ganzjährig frei; Führungen Mai–Okt sonntags 14:30–16:30</td><td><span class="ev evA">A</span> bestätigt</td><td><a href="https://www.roemisches-tawern.de/tempelbezirk/" target="_blank" rel="noopener">Verein Römisches Tawern e.V. ↗</a></td></tr>
+      <tr><td>Trierer Viezfest am 22.08.2026 auf dem Domfreihof, Eintritt frei</td><td><span class="ev evA">A</span> bestätigt</td><td><a href="https://www.trier-info.de/vieztradition/viezfest" target="_blank" rel="noopener">Tourist-Information · Viezfest ↗</a></td></tr>
+      <tr><td>„Anatevka“ Open-Air auf dem Augustinerhof am 20., 21., 22., 23., 25.–28.08.2026, jeweils 19:30</td><td><span class="ev evA">A</span> bestätigt</td><td><a href="https://theater-trier.de/seiten/open-air.html" target="_blank" rel="noopener">Theater Trier · Open-Air ↗</a></td></tr>
+      <tr><td>St.-Rochus-Weinkirmes Nittel 21.–24.08.2026</td><td><span class="ev evB">B</span> Portal</td><td><a href="https://www.regio-trier-saarburg.com/weinfeste-in-trier-und-umgebung/" target="_blank" rel="noopener">Regio Trier-Saarburg ↗</a></td></tr>
+      <tr><td>Wochenmarkt Viehmarktplatz dienstags und freitags 7–14 Uhr (Apr–Sep)</td><td><span class="ev evB">B</span> Portal</td><td><a href="https://www.trier.de/wirtschaft-arbeit/einzelhandel/wochenmaerkte/" target="_blank" rel="noopener">Stadt Trier · Wochenmärkte ↗</a></td></tr>
+      <tr><td>Villa Urbana Longuich: Führungen Mai–Okt sonntags 10:30, 3 € Erwachsene, Kinder frei</td><td><span class="ev evB">B</span> Portal</td><td><a href="https://longuich.de/tourismus/roemische-villa/" target="_blank" rel="noopener">Gemeinde Longuich ↗</a></td></tr>
+      <tr><td>Villa Rustica Wittlich: Führungen Mai–Okt sonntags 10:30, 3 €, Außenbereich frei</td><td><span class="ev evB">B</span> Portal</td><td><a href="https://www.wittlich.de/de/leben-in-wittlich/kultur/museen/roemische-villa/" target="_blank" rel="noopener">Stadt Wittlich ↗</a></td></tr>
+      <tr><td>Gallo-römische Villa Echternach: Saison 28.03.–27.09.2026, Di–So 10–12 und 13–17, Eintritt frei seit 2015</td><td><span class="ev evA">A</span> bestätigt</td><td><a href="https://www.mnaha.lu/en/roman-villa-echternach" target="_blank" rel="noopener">Nationalmusée Luxembourg ↗</a></td></tr>
+      <tr><td>Römerweinschiff Stella Noviomagi: Kulturfahrt 18 €, Kinder 6–14 J. halber Preis, Start Info-Pavillon Pelzergasse 7</td><td><span class="ev evA">A</span> bestätigt</td><td><a href="https://www.neumagen-dhron.de/weinschiff-stella-noviomagi/" target="_blank" rel="noopener">Neumagen-Dhron ↗</a></td></tr>
+      <tr><td>Römische Kelteranlage Piesport: 44 × 20 m, 4. Jh., größte nördlich der Alpen; zweite Anlage 15 × 6 m aus dem 2. Jh.</td><td><span class="ev evB">B</span> Portal</td><td><a href="https://atlas-der-weinkultur-rlp.de/roemerwein-im-moseltal-kelteranlagen-piesport" target="_blank" rel="noopener">Atlas der Weinkultur RLP ↗</a></td></tr>
+      <tr><td>Römische Ruwerwasserleitung: 12,8 km, Gefälle 0,016 %, rund 25.000 m³ pro Tag</td><td><span class="ev evB">B</span> Portal</td><td><a href="https://de.wikipedia.org/wiki/R%C3%B6mische_Ruwerwasserleitung" target="_blank" rel="noopener">Römische Ruwerwasserleitung ↗</a></td></tr>
+      <tr><td>Römer-Express: 45 min ab Porta Nigra, Apr–Okt tägl. 10–18 alle 30 min, 10 € / Kind 5 € / Familie 25 €</td><td><span class="ev evA">A</span> bestätigt</td><td><a href="https://www.roemer-express.de/de/content/preise" target="_blank" rel="noopener">roemer-express.de ↗</a></td></tr>
+      <tr><td>Trier Card 12 € (Familie 26 €), zwei Tage, freie Stadtbusse, 10 % auf Römerbauten-Einzeltickets</td><td><span class="ev evA">A</span> bestätigt</td><td><a href="https://www.trier-info.de/vorteilskarten/trier-card" target="_blank" rel="noopener">Tourist-Information · Trier Card ↗</a></td></tr>
+      <tr><td>Karl-Marx-Haus Di–So 10–18, 7 € / erm. 5 € / Familie 10 €; Domschatz 3 €, Kombiticket mit Museum am Dom 5,50 €</td><td><span class="ev evA">A</span> bestätigt</td><td><a href="https://www.fes.de/museum-karl-marx-haus/besuchs-info/oeffnungszeiten-und-preise" target="_blank" rel="noopener">Karl-Marx-Haus ↗</a> · <a href="https://www.trier-info.de/museen/domschatzkammer" target="_blank" rel="noopener">Domschatzkammer ↗</a></td></tr>
+      <tr><td>Freier Eintritt für unter 18-Jährige in Römerbauten und Landesmuseum: 26.06.–09.08.2026 — <b>endet vor der Reisewoche</b></td><td><span class="ev evA">A</span> bestätigt</td><td><a href="https://www.zentrum-der-antike.de/rheinisches-landesmuseum/eintrittspreise-und-anreise" target="_blank" rel="noopener">Zentrum der Antike ↗</a></td></tr>
+      <tr><td>Amphitheater schließt am 17., 18. und 22.–25. Juli 2026 vorzeitig um 16 Uhr; am 14.09.2026 öffnen alle Römerbauten erst um 13 Uhr</td><td><span class="ev evA">A</span> bestätigt — <b>beides außerhalb der Reisewoche</b></td><td><a href="https://www.trier-info.de/en/places-of-interest/the-amphitheatre" target="_blank" rel="noopener">Tourist-Information · Amphitheater ↗</a></td></tr>
+      <tr><td>Entfernungen und Zeiten dieses Guides sind gerechnet, nicht geroutet</td><td><span class="ev evD">D</span> Rechnung, offengelegt</td><td><a href="build_geo.py">build_geo.py in diesem Ordner</a></td></tr>
+      <tr><td>Konstantin-Basilika: Sommeröffnungszeiten</td><td><span class="ev evC">C</span> nur Winterzeiten belegt</td><td>siehe Kapitel 5</td></tr>
+      <tr><td>Weinstube Kesselstatt, Blesius Garten, Kartoffel-Restaurant Kiste: Existenz, Lage und Publikum</td><td><span class="ev evC">C</span> Bewertungsportal</td><td><a href="https://www.tripadvisor.com/Restaurants-g187394-Trier_Rhineland_Palatinate.html" target="_blank" rel="noopener">Tripadvisor Trier ↗</a></td></tr>
+    </tbody>
+  </table>
+  </div>
+</div></section>
+
+<!-- 7 · RESTLISTE -->
+<section id="rest"><div class="wrap">
+  <h2><span class="idx">7</span>Restliste — nicht Geprüftes, mit Grund</h2>
+  <p class="sub">Was aufgefallen ist, aber nicht belastbar genug für eine eigene Karte wurde. Aufgeführt, damit klar ist, dass es existiert — und woran die Prüfung scheiterte.</p>
+  <div class="tblwrap">
+  <table class="tbl">
+    <thead><tr><th>Ziel / Angabe</th><th>Was bekannt ist</th><th>Warum ungeprüft</th></tr></thead>
+    <tbody>
+      <tr><td><b>Römisches Kelterfest Piesport</b></td><td>Findet laut Beschreibung jedes Jahr Anfang Oktober statt; dann läuft die rekonstruierte Baumpresse.</td><td>Kein Datum für 2026 gefunden. Bewusst <b>nicht</b> als Termin aufgenommen, statt ein Wochenende zu raten.</td></tr>
+      <tr><td><b>Römische Kelteranlage Erden</b></td><td>Sieben Räume, mehrfach umgebaut zwischen 3. und 7. Jh.; wird heute für Weinproben und Kochkurse mit antiker Küche genutzt.</td><td>Keine öffentlichen Termine und keine regulären Öffnungszeiten gefunden — offenbar nur auf Anfrage/Gruppen.</td></tr>
+      <tr><td><b>Trierer Unterwelten</b></td><td>Keller, Katakomben, Souterrains und Krypten unter der Innenstadt; Festival mit Führungen und Theater.</td><td>Das Festival läuft 29.10.–21.11.2026, also weit nach der Reisewoche. Einzelne Führungen außerhalb des Festivals nicht belegbar.</td></tr>
+      <tr><td><b>Kryptoportikus unter dem Palastgarten</b></td><td>Römischer Wandelgang, nur im Rahmen der Führung „Auf kaiserlichen Spuren“ zugänglich, die zu den Grabungen unter der Basilika und in die Kaiserthermen führt.</td><td>Keine öffentlichen Einzeltermine für die Reisewoche gefunden — die Führung ist als buchbares Angebot April–Oktober beschrieben. Anfrage bei der Tourist-Information nötig.</td></tr>
+      <tr><td><b>Amphitheater Open Air (Konzerte)</b></td><td>Nach drei Jahren Pause 2026 zurück, sechs bis acht Termine an zwei Wochenenden.</td><td>Die Termine liegen am 16.–19. und 23.–26. Juli 2026 — komplett vor der Reisewoche.</td></tr>
+      <tr><td><b>Museum am Dom: Öffnungszeiten</b></td><td>Preise und Kombiticket sind belegt, die Deckenmalereien aus dem konstantinischen Palast ebenfalls.</td><td>Die genauen Öffnungszeiten 2026 tauchten in keiner Fundstelle auf. Karte trägt deshalb keine Zeitangabe.</td></tr>
+      <tr><td><b>Freilichtmuseum Roscheider Hof: Eintrittspreis</b></td><td>Saison 21.03.–02.11.2026, täglich 10–18 Uhr, Kasse bis 17 Uhr, Gaststätte montags zu.</td><td>Erwachsenenpreis in keiner Fundstelle genannt.</td></tr>
+      <tr><td><b>Greifvogelpark Saarburg</b></td><td>Existiert, eigene Website mit Öffnungszeiten-Seite.</td><td>Weder Zeiten noch Preise für 2026 in den Fundstellen. Karte trägt beides nicht.</td></tr>
+      <tr><td><b>Moselrundfahrten ab Trier: Fahrplan und Preise</b></td><td>Personenschifffahrt Gebr. Kolb, Anleger Zurlauben, eigener Fahrplan „Region Trier/Saarburg 2026“.</td><td>Der Fahrplan liegt als PDF vor, das nicht abgerufen werden konnte. Karte nennt deshalb keine Abfahrtszeit.</td></tr>
+      <tr><td><b>Theater Trier: Ticketpreise Anatevka</b></td><td>Termine und Spielort sind belegt.</td><td>Preise nur über den Ticketshop, der nicht abrufbar war.</td></tr>
+      <tr><td><b>Villa Borg: Römertage</b></td><td>1. und 2. August 2026, Gladiatorenkämpfe um 12, 14 und 17 Uhr mit der Gladiatorenschule Trier e.V.</td><td>Belegt, aber vor der Reisewoche. Nur als Hinweis für die Planung künftiger Jahre notiert.</td></tr>
+      <tr><td><b>Langmauer</b> (römische Bezirksmauer in der Eifel)</td><td>Als römisches Bauwerk der Region bekannt, Reste im Wald zwischen Trier und der Eifel.</td><td>Keine belastbare Angabe zu Zugang, Parkplatz oder Wegführung gefunden.</td></tr>
+      <tr><td><b>Instagram- und Facebook-Kanäle</b></td><td>Trier Tourismus, Zentrum der Antike, Theater Trier betreiben aktive Kanäle.</td><td>Ohne Login nicht auswertbar — und in dieser Umgebung war auch der Abruf öffentlicher Seiten gesperrt.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</div></section>
+
+<!-- 8 · QUELLEN -->
+<section id="quellen"><div class="wrap">
+  <h2><span class="idx">8</span>Quellenverzeichnis mit Evidenzgrad</h2>
+  <p class="sub">Alle Quellen, aus denen dieser Report gebaut ist, nach Trägerschaft geordnet. Zur Einordnung noch einmal: Der <b>direkte Abruf</b> dieser Seiten war in der Arbeitsumgebung gesperrt; gelesen wurden ihre über die Websuche indexierten Inhalte. Wo die Suche wörtlich aus der Betreiberseite zitiert, steht <span class="ev evA">A</span>, sonst <span class="ev evB">B</span>.</p>
+
+  <div class="tblwrap">
+  <table class="tbl">
+    <thead><tr><th>Quelle</th><th>Träger</th><th>Wofür benutzt</th><th>Evidenz</th></tr></thead>
+    <tbody>
+      <tr><td><a href="https://www.zentrum-der-antike.de/" target="_blank" rel="noopener">zentrum-der-antike.de ↗</a></td><td>GDKE Rheinland-Pfalz</td><td>Öffnungszeiten und Preise aller Römerbauten, AntikenCard, Landesmuseum, Führungsprogramm</td><td><span class="ev evA">A</span></td></tr>
+      <tr><td><a href="https://www.trier-info.de/" target="_blank" rel="noopener">trier-info.de ↗</a></td><td>Trier Tourismus und Marketing GmbH</td><td>Erlebnisführungen, Sehenswürdigkeiten, Museen, Viezfest, Trier Card, Unterwelten</td><td><span class="ev evA">A</span></td></tr>
+      <tr><td><a href="https://theater-trier.de/seiten/open-air.html" target="_blank" rel="noopener">theater-trier.de ↗</a></td><td>Theater Trier</td><td>Anatevka Open-Air, Termine und Spielort</td><td><span class="ev evA">A</span></td></tr>
+      <tr><td><a href="https://domstein.de/historisches/" target="_blank" rel="noopener">domstein.de ↗</a></td><td>Restaurant Zum Domstein</td><td>Apicius-Küche, Römerkeller, Pfeiler der Doppelkirche, Glassammlung, Öffnungszeiten</td><td><span class="ev evA">A</span></td></tr>
+      <tr><td><a href="https://weingut.vereinigtehospitien.de/pages/kellerfuhrungen" target="_blank" rel="noopener">weingut.vereinigtehospitien.de ↗</a></td><td>Weingut Vereinigte Hospitien</td><td>Ältester Weinkeller Deutschlands, Führungstermine und Preise</td><td><span class="ev evA">A</span></td></tr>
+      <tr><td><a href="https://www.villa-borg.de/oeffnungszeiten/" target="_blank" rel="noopener">villa-borg.de ↗</a></td><td>Archäologiepark Römische Villa Borg</td><td>Öffnungszeiten, Preise, Taverne, Römertage</td><td><span class="ev evA">A</span></td></tr>
+      <tr><td><a href="https://www.roemischevillanennig.de/de/ihr-besuch" target="_blank" rel="noopener">roemischevillanennig.de ↗</a></td><td>Stiftung saarländischer Kulturbesitz</td><td>Gladiatorenmosaik, Öffnungszeiten, Preise, Freitage</td><td><span class="ev evA">A</span></td></tr>
+      <tr><td><a href="https://www.mnaha.lu/en/roman-villa-echternach" target="_blank" rel="noopener">mnaha.lu ↗</a></td><td>Nationalmusée d'archéologie, d'histoire et d'art Luxembourg</td><td>Villa Echternach: Saison, Zeiten, freier Eintritt</td><td><span class="ev evA">A</span></td></tr>
+      <tr><td><a href="https://www.roemisches-tawern.de/tempelbezirk/" target="_blank" rel="noopener">roemisches-tawern.de ↗</a></td><td>Verein Römisches Tawern e.V.</td><td>Tempelbezirk Metzenberg, Sonntagsführungen, Zugang</td><td><span class="ev evA">A</span></td></tr>
+      <tr><td><a href="https://www.neumagen-dhron.de/weinschiff-stella-noviomagi/" target="_blank" rel="noopener">neumagen-dhron.de ↗</a></td><td>Gemeinde Neumagen-Dhron</td><td>Stella Noviomagi: Fahrten, Preise, Treffpunkt</td><td><span class="ev evA">A</span></td></tr>
+      <tr><td><a href="https://longuich.de/tourismus/roemische-villa/" target="_blank" rel="noopener">longuich.de ↗</a></td><td>Gemeinde Longuich</td><td>Villa Urbana: Badetrakt, Führungen, Preis</td><td><span class="ev evB">B</span></td></tr>
+      <tr><td><a href="https://www.wittlich.de/de/leben-in-wittlich/kultur/museen/roemische-villa/" target="_blank" rel="noopener">wittlich.de ↗</a></td><td>Stadt Wittlich</td><td>Villa Rustica: Baujahr, Schutzbau, Führungen</td><td><span class="ev evB">B</span></td></tr>
+      <tr><td><a href="https://www.trier.de/wirtschaft-arbeit/einzelhandel/wochenmaerkte/" target="_blank" rel="noopener">trier.de ↗</a></td><td>Stadt Trier</td><td>Wochenmärkte, Amphitheater Open Air, städtische Museen</td><td><span class="ev evA">A</span></td></tr>
+      <tr><td><a href="https://www.fes.de/museum-karl-marx-haus/besuchs-info/oeffnungszeiten-und-preise" target="_blank" rel="noopener">fes.de · Karl-Marx-Haus ↗</a></td><td>Friedrich-Ebert-Stiftung</td><td>Öffnungszeiten und Preise</td><td><span class="ev evA">A</span></td></tr>
+      <tr><td><a href="https://www.trierer-dom.de/" target="_blank" rel="noopener">trierer-dom.de ↗</a></td><td>Hohe Domkirche Trier</td><td>Öffnungszeiten Dom und Domschatzkammer, Heiliger Rock</td><td><span class="ev evA">A</span></td></tr>
+      <tr><td><a href="https://www.roemer-express.de/de/content/preise" target="_blank" rel="noopener">roemer-express.de ↗</a></td><td>Römer-Express Trier</td><td>Fahrplan, Preise, Abfahrtsort</td><td><span class="ev evA">A</span></td></tr>
+      <tr><td><a href="https://www.rlp-tourismus.com/de/ausflugsziele/roemische-villa-otrang/poi.html" target="_blank" rel="noopener">rlp-tourismus.com ↗</a></td><td>Rheinland-Pfalz Tourismus</td><td>Villa Otrang: Zeiten, freier Eintritt, Führungstermine 2026</td><td><span class="ev evA">A</span></td></tr>
+      <tr><td><a href="https://www.strassen-der-roemer.eu/sehenswertes/" target="_blank" rel="noopener">strassen-der-roemer.eu ↗</a></td><td>Straßen der Römer (Regionalprojekt)</td><td>Übersicht der rund 80 römischen Ziele der Großregion, Einordnung einzelner Stationen</td><td><span class="ev evB">B</span></td></tr>
+      <tr><td><a href="https://atlas-der-weinkultur-rlp.de/roemerwein-im-moseltal-kelteranlagen-piesport" target="_blank" rel="noopener">atlas-der-weinkultur-rlp.de ↗</a></td><td>Atlas der Weinkultur Rheinland-Pfalz</td><td>Römische Kelteranlagen Piesport, Brauneberg, Erden</td><td><span class="ev evB">B</span></td></tr>
+      <tr><td><a href="https://www.regio-trier-saarburg.com/weinfeste-in-trier-und-umgebung/" target="_blank" rel="noopener">regio-trier-saarburg.com ↗</a></td><td>Landkreis Trier-Saarburg</td><td>Weinfest-Kalender August 2026, Weinkirmes Nittel, Viezfest</td><td><span class="ev evB">B</span></td></tr>
+      <tr><td><a href="https://www.moselmusikfestival.de/" target="_blank" rel="noopener">moselmusikfestival.de ↗</a></td><td>Mosel Musikfestival</td><td>Festivalzeitraum und August-Termine (unvollständig, siehe Kapitel 5)</td><td><span class="ev evB">B</span></td></tr>
+      <tr><td><a href="https://www.moselrundfahrten.de/" target="_blank" rel="noopener">moselrundfahrten.de ↗</a></td><td>Personenschifffahrt Gebr. Kolb</td><td>Anleger und Fahrtangebot ab Trier</td><td><span class="ev evB">B</span></td></tr>
+      <tr><td><a href="https://www.baumwipfelpfad.de/baumwipfelpfad-saarschleife" target="_blank" rel="noopener">baumwipfelpfad.de ↗</a></td><td>Erlebnis Akademie AG</td><td>Baumwipfelpfad Saarschleife: Länge, Barrierearmut, Zeiten</td><td><span class="ev evB">B</span></td></tr>
+      <tr><td><a href="https://www.kalenderferien.de/sommerferien-rheinland-pfalz-2026/" target="_blank" rel="noopener">kalenderferien.de ↗</a></td><td>Ferienkalender-Portal</td><td>Sommerferien Rheinland-Pfalz 2026 — entscheidend für die Zusatztermine der Führungen</td><td><span class="ev evB">B</span></td></tr>
+      <tr><td><a href="https://de.wikipedia.org/wiki/R%C3%B6mische_Ruwerwasserleitung" target="_blank" rel="noopener">Römische Ruwerwasserleitung ↗</a></td><td>Wikipedia</td><td>Länge, Gefälle, Tagesleistung des Aquädukts</td><td><span class="ev evB">B</span></td></tr>
+      <tr><td><a href="https://de.wikipedia.org/wiki/Brot_&_Spiele" target="_blank" rel="noopener">Brot &amp; Spiele ↗</a></td><td>Wikipedia</td><td>Geschichte der Römerspiele, Nachfolgereihe „Römer-Leben“ seit 2024</td><td><span class="ev evB">B</span></td></tr>
+      <tr><td><a href="https://www.tripadvisor.com/Restaurants-g187394-Trier_Rhineland_Palatinate.html" target="_blank" rel="noopener">Tripadvisor Trier ↗</a></td><td>Bewertungsportal</td><td>Existenz, Lage und Publikumszuspruch der Gastronomie — ausdrücklich <b>nicht</b> als Qualitätsbeleg</td><td><span class="ev evC">C</span></td></tr>
+      <tr><td><a href="https://guide.michelin.com/at/de/rheinland-pfalz/trier/restaurant/bagatelle" target="_blank" rel="noopener">Guide Michelin · Bagatelle ↗</a></td><td>Guide Michelin</td><td>Stern seit 2023, Küchenstil, Lage</td><td><span class="ev evB">B</span></td></tr>
+      <tr><td><a href="https://lokalo.de/artikel/421801/olewiger-weinfest-2026-dieses-programm-erwartet-euch-im-blesius-garten/" target="_blank" rel="noopener">lokalo.de ↗</a></td><td>Lokale Nachrichtenseite Trier</td><td>Olewiger Weinfest und Zurlaubener Moselfest 2026 — beide vor der Reisewoche</td><td><span class="ev evC">C</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</div></section>
+
+<!-- 9 · PROMPT -->
+<section id="prompt"><div class="wrap">
+  <h2><span class="idx">9</span>Der Prompt, der genau diesen Report erzeugt</h2>
+  <p class="sub">Zum Kopieren und Wiederverwenden — für eine andere Stadt, ein anderes Thema oder eine andere Woche. Die Platzhalter in geschweiften Klammern ersetzen, alles andere so lassen: Die Recherche-Regeln sind der Grund, warum im Report Ortsverwechslungen, veraltete Preise und geratene Termine auffallen statt durchzurutschen. Gegenüber der Vorlage sind zwei Abschnitte neu — der <b>Themenanker</b>, der das Interesse zum Filter macht, und die <b>Notfallregel für gesperrte Dienste</b>, ohne die dieser Report an der ersten Routing-Anfrage stehengeblieben wäre.</p>
+  <div class="promptbox">
+    <div class="promptbar">
+      <span class="mono">PROMPT · Themenreise mit Evidenzprotokoll</span>
+      <button id="copyPrompt" class="copybtn">Prompt kopieren</button>
+    </div>
+    <pre id="promptText">ROLLE
+Du bist Rechercheur und Frontend-Entwickler in einer Person. Du lieferst einen
+selbst-enthaltenen HTML-Guide, der einer Reisegruppe konkrete Entscheidungen
+abnimmt — und der jede Angabe nachprüfbar macht.
+
+PARAMETER
+  Basisorte:       {ORT_A} und {ORT_B} (beide als umschaltbarer Startpunkt,
+                   sinnvoll: das Wahrzeichen und der Bahnhof)
+  Radius:          Regelfall {MINUTEN} Minuten — bis {MAXMINUTEN} Minuten,
+                   wenn ein Ziel den ganzen Tag trägt
+  Länder:          {LAENDER} — Grenzregionen mitnehmen, im Guide über einen
+                   Länderfilter trennbar
+  Reisezeitraum:   {VON} bis {BIS} — der Guide muss diese Tage besonders
+                   auflösen, aber auch danach noch benutzbar bleiben
+  Themenanker:     {THEMA} — das Interesse, wegen dem gereist wird
+  Sprache:         Deutsch, Du-Ansprache im Fließtext vermeiden
+
+TEIL 0 — DER THEMENANKER (neu gegenüber der Grundfassung)
+
+  Reisen mit einem klaren Interesse — Römer, Industriekultur, Bergbau,
+  Jugendstil, Vogelbeobachtung — brauchen keine ausgewogene Stadtliste,
+  sondern eine gewichtete. Deshalb:
+
+  a) Eine eigene Kategorie „{THEMA}-Pflicht“ einführen und darin die Ziele
+     sammeln, die zum Thema gehören und ohne die die Reise unvollständig
+     wäre. Sparsam vergeben: Alles ist Pflicht heißt nichts ist Pflicht.
+  b) Jeder Eintrag bekommt statt einer allgemeinen Einschätzung eine Zeile
+     „für {THEMA}-Fans“: WARUM gerade dieses Ziel für dieses Interesse zählt.
+     Ein Satz, konkret, gern mit dem Detail, das es besonders macht.
+  c) Auch das Essen wird thematisch gefiltert: nicht „gute Restaurants“,
+     sondern „wo man als {THEMA}-Fan gegessen haben sollte“ — Häuser mit
+     echtem Bezug zuerst, danach erst die allgemein guten Adressen.
+     Ausdrücklich unterscheiden zwischen echtem Bezug und Dekoration.
+  d) Wenn das Thema in der Region eine Fortsetzung hat, die im Reiseführer
+     nicht unter dem Thema steht, dann gehört sie hinein: römischer Weinbau
+     an der Mosel, Zechenhäuser im Ruhrgebiet, Sternwarten im Nachthimmel.
+     Diese Querverbindungen sind die wertvollsten Funde.
+
+TEIL 1 — RECHERCHE (verbindlich)
+
+1. Zerlegen statt zusammenfassen. Formuliere jede Angabe als einzeln prüfbare
+   Behauptung mit Urheber und Datum: Öffnungszeit, Preis, Termin, Ausstattung.
+   Kein Satz ohne zuordenbare Quelle.
+
+2. Erstquelle vor Bericht. Prüfe in dieser Reihenfolge:
+   a) Betreiberseite, Kommune, Veranstalterverein, Landesdenkmalpflege
+   b) Veranstaltungskalender des Landkreises und der Orte
+   c) Tourismusportale und Verzeichnisse
+   d) Fachblogs MIT Datum
+   e) Kartendienst-Daten (Adresse, Koordinaten, hinterlegte Öffnungszeiten)
+   f) Nutzerrezensionen — ausschließlich als Warnsignal und als Existenz-
+      nachweis, nie als Faktenbasis
+   Gedruckte Programme, Flyer und Fotos, die der Nutzer beisteuert, schlagen
+   ALLE Onlinequellen. Frage aktiv danach, wenn ein Termin unklar bleibt.
+
+3. Rückwärts-Suche für JEDEN Treffer. Sobald ein Ziel gefunden ist, wird es
+   selbst zum Suchbegriff — einmal pro Ziel, nicht nur einmal pro Region:
+     "{ORTSNAME} Veranstaltungen"   "{ORTSNAME} Termine"
+     "{ORTSNAME} Sehenswürdigkeiten"
+     "{ZIELNAME} {ORTSNAME} Führung"  "{ZIELNAME} Öffnungszeiten {JAHR}"
+   Dasselbe für jede Nachbargemeinde im Radius, auch für die kleinen ohne
+   eigenes Tourismusbüro. Wer nur nach Kategorien sucht, übersieht
+   systematisch das, was nur der Ort selbst über sich schreibt.
+
+4. Gemeinde-Durchgang. Liste zuerst alle Ortschaften im Radius auf, frage
+   dann für JEDE einzeln ab, was der Ort SELBST empfiehlt — und was davon
+   zum Themenanker gehört. Ergebnis als Tabelle in den Report: Ort,
+   Entfernung, was der Ort nennt, was davon neu aufgenommen wurde. So ist
+   nachvollziehbar, welche Orte abgearbeitet sind und welche noch fehlen.
+   Ortsangaben sind Eigenwerbung — höchstens Evidenzgrad B.
+
+5. Evidenzgrade vergeben, sichtbar im Output:
+   A Erstquelle aus der laufenden Saison
+   B Portal, Verzeichnis, Kartendienst
+   C Blog, Rezension, Angabe ohne Jahresstempel
+   D ungeprüft — trotzdem aufnehmen, aber als ungeprüft markieren
+
+6. Widersprüche auflösen, wenn es geht — sonst offenlegen. Erst weitersuchen.
+   Was sich klären lässt, wird still übernommen und taucht im Report NICHT
+   mehr auf. Nur was offen BLEIBT, kommt in „Was offen bleibt“: beide
+   Angaben, Interessenlage, Telefonnummer für die Klärung.
+
+7. Namensfallen aktiv suchen. Gleichnamige Orte im Umkreis sind der häufigste
+   Fehler. Adresse und Postleitzahl jedes Ziels gegen die Koordinaten prüfen,
+   bevor eine Entfernung berechnet wird.
+
+8. Den Reisezeitraum tagesgenau durchgehen. Für JEDEN Tag des Zeitraums
+   einzeln prüfen, was läuft und was zu ist. Besonders achten auf:
+   Schließtage (Montag ist der Klassiker), Schulferien des Bundeslands —
+   an ihnen hängen Zusatztermine von Führungen —, Feiertage, sowie
+   Veranstaltungen, die reguläre Öffnungszeiten verkürzen. Ein Termin, der
+   nur außerhalb des Zeitraums stattfindet, gehört trotzdem in den Guide,
+   aber sichtbar als „vor/nach der Reise“.
+
+9. Entfernungen berechnen, nicht schätzen. Koordinaten je Ziel über einen
+   Kartendienst holen, dann eine Routing-Matrix rechnen; Ergebnis in
+   Kilometern UND Minuten speichern, dazu die Peilung in Grad für das Radar.
+   In Städten zusätzlich unterscheiden zwischen Fuß- und Fahrzielen — und
+   die Zuordnung am ZIEL festmachen, nicht am Startpunkt, sonst steht
+   dasselbe Ziel je nach Start einmal als Fußweg und einmal als Fahrt da.
+
+10. NOTFALLREGEL: gesperrte Dienste (neu gegenüber der Grundfassung).
+   Wenn Routing, Geokodierung oder der direkte Seitenabruf nicht verfügbar
+   sind — Netzwerkrichtlinie, Paywall, Rate Limit —, dann gilt in dieser
+   Reihenfolge:
+     a) Den Ausfall im Report benennen, mit Fehlerbild und betroffenem Dienst.
+     b) Ersatz rechnen statt raten: Luftlinie per Haversine, Umwegfaktor,
+        offengelegte Geschwindigkeitsannahmen. Das Rechenskript mit
+        ausliefern, damit die Zahlen nachvollziehbar und korrigierbar sind.
+     c) Die Ersatzwerte überall als Rechnung kennzeichnen, nie als Messung.
+     d) Die Folgen abmildern: Wenn Koordinaten ungeprüft sind, Kartenlinks
+        auf die NAMENSSUCHE legen statt auf die Koordinate.
+   Niemals Zahlen erfinden, die wie gemessene aussehen.
+
+11. Bewusst breit suchen. Neben den offensichtlichen Zielen gezielt nach dem
+   fragen, was in Standardlisten fehlt: freie Ausgrabungen ohne Kasse,
+   Vereinsmuseen, Themenwege, Wasserbauwerke, Grabmäler, rekonstruierte
+   Anlagen, Vereins- und Ortsfeste mit Themenbezug, Kellerführungen,
+   Gastronomie mit historischem Substrat. Kostenlose Ziele gleichwertig
+   behandeln — der freie Besuchersteg kann mehr zeigen als das Ticketziel.
+
+12. Abbruchkriterium. Nicht aufhören, wenn die Liste rund aussieht, sondern
+   wenn die Prüfliste abgearbeitet ist. Was offen bleibt, kommt mit Grund in
+   die Restliste: Paywall, Login-Wall, PDF nicht lesbar, Zeitbudget.
+
+TEIL 2 — DATENMODELL
+
+Jeder Eintrag trägt: id, Typ (Ziel oder Termin), Name, Ort, Kategorien,
+Beschreibung (was es konkret gibt, mit Zahlen und Jahreszahlen), eine eigene
+Zeile „für {THEMA}-Fans“ mit ehrlicher Einschätzung inklusive Nachteilen,
+Preis, Zeiten, Evidenzgrad, Terminfenster oder Wochentagsregel bei Terminen,
+Kilometer und Minuten ab beiden Basisorten, Art der Anreise (zu Fuß oder
+fahrend), Peilung — und eine Linkliste: zuerst Veranstalter- beziehungsweise
+Terminseite, danach die Fundstelle. Jeder Eintrag mindestens ein Link,
+wiederkehrende Termine als Wochentagsregel mit Saisonende, damit der
+Datumsfilter rechnen kann.
+
+TEIL 3 — INTERAKTIVER GUIDE
+
+  Startpunkt umschaltbar zwischen den beiden Basisorten
+  Umkreis-Regler, umschaltbar zwischen Minuten und Kilometern
+  Länderfilter, sobald Ziele in mehr als einem Land liegen
+  Feld „ab Datum“: steht beim Laden immer auf dem tatsächlichen heutigen
+  Datum des Geräts, nicht auf dem Recherchedatum. Datum lokal bilden, nicht
+  über toISOString: das rechnet in UTC und springt abends einen Tag zurück.
+  Dazu zwei Schaltflächen: „Heute“ und ein Sprung auf den Reisezeitraum, der
+  zugleich das Zeitfenster passend setzt.
+  Abgelaufene Termine verschwinden, Ziele bleiben
+  Zeitfenster-Auswahl, gestuft von tagesgenau bis zwei Jahre; Standard
+  3 Monate. Das Fenster begrenzt nur Termine — Ziele bleiben immer sichtbar.
+  Typfilter Alle / Ziele / Termine
+  Kategorie-Chips inklusive „{THEMA}-Pflicht“, Gratis, Schlechtwetter, Essen
+  Sortierung nach Entfernung oder nach nächstem Termin
+  Favoriten: Stern auf jeder Karte, im lokalen Browserspeicher gesichert und
+  als eigener Filter abrufbar. Der Favoritenfilter ignoriert Umkreis, Land
+  und Zeitfenster — wer etwas markiert hat, will es sehen. Speicherzugriff in
+  try/catch kapseln und bei Fehlschlag auf die Sitzung zurückfallen.
+  Signatur-Element: ein Radar als SVG — Richtung gleich echte Himmelsrichtung,
+  Abstand gleich Entfernung, Ringe beschriftet, Punkte klickbar und mit der
+  Kartenliste verknüpft; Termine farblich abgesetzt. Zoom-Regler, Pinch-Zoom
+  mit zwei Fingern, Verschieben mit einem Finger (Pointer-Events,
+  touch-action:none). Beim Zoomen ändert sich nur die Ringskala, nicht die
+  Schriftgröße — bis auf eine bewusste Ausnahme: Bei starkem Zoom darf die
+  Schrift bis auf etwa das Dreifache mitwachsen, weil dann ohnehin nur noch
+  wenige Ziele im Bild sind. Der Zoom ist reine Darstellung, kein Filter:
+  Alle Ringe behalten ihre echten Werte, der Zoom vergrößert nur den
+  Ausschnitt. Was aus dem Ausschnitt fällt, wird nicht gelöscht, sondern
+  durch Verschieben erreichbar; eine Zeile am Rand nennt die Zahl der gerade
+  nicht sichtbaren Ziele.
+  Ziele auf identischer Koordinate bündeln: ein Punkt je Koordinate, die
+  Namen darunter gestapelt, eine Zeile je Ziel; ab fünf Zielen zählt die
+  letzte Zeile den Rest. Ein Klick auf eine Namenszeile scrollt zur
+  Karteikarte und hebt sie kurz hervor.
+  Vollbild-Schaltfläche für beide Ansichten — sie gehört in die Kopfzeile des
+  Kartenbereichs, nicht in die Zoomzeile, sonst verschwindet sie beim
+  Umschalten auf die Karte mit. Zwei Wege vorsehen: die Fullscreen-API und,
+  wo sie für einzelne Elemente fehlt (iOS Safari), eine eigene
+  Vollflächen-Darstellung per position:fixed samt Escape-Taste. Nach jedem
+  Wechsel die Karte neu vermessen.
+  Stolperstein beim Umschalten: SVG-Elemente erben nicht von HTMLElement, die
+  Eigenschaft hidden greift dort nicht. Sichtbarkeit deshalb über eine Klasse
+  schalten, nicht über element.hidden — sonst bleibt das Radar stehen.
+  Beschriftungen bekommen über paint-order und einen Umriss in
+  Hintergrundfarbe eine feine Kontur, damit sie über Punkten lesbar bleiben.
+  Zweite Ansicht: eine echte Karte, umschaltbar neben dem Radar, mit allen
+  gefilterten Zielen als Marker in Kategoriefarbe, jeder Marker sofort mit
+  dauerhafter Beschriftung — nicht erst beim Antippen. Mehrere Kartenebenen
+  zur Auswahl plus Maßstabsleiste. Kartendaten über eine freie Bibliothek und
+  offene Kacheln, Attribution sichtbar. Jeder Marker bekommt ein Popup mit
+  Name, Ort, Entfernung und je einem Direktlink nach Google Maps und
+  OpenStreetMap sowie einem Sprung zur Karte im Guide.
+
+TEIL 4 — PFLICHTABSCHNITTE
+
+  0 Kurzfazit, Bedienung und ein Tagesplan für den Reisezeitraum
+  1 Der interaktive Guide
+  2 Social-Media-Runde: was gefunden wurde und was davon trägt
+  3 Vorgehen: Tabelle des Gemeinde-Durchgangs
+  4 Vergleichstabelle für die Kernkategorie des Themas — plus die Tabelle
+    „wo man als {THEMA}-Fan gegessen haben sollte“
+  5 Was offen bleibt — ausschließlich ungelöste Fragen
+  6 Belegtabelle: Behauptung, Status, Beleg
+  7 Restliste des Ungeprüften mit Grund
+  8 Quellenverzeichnis mit Evidenzgrad
+  9 Dieser Prompt
+
+  Der Report beschreibt den Stand, nicht seine Entstehung: keine Sektion mit
+  Änderungen gegenüber einer Vorfassung, kein „neu in dieser Runde“, keine
+  Versionsvergleiche im Fließtext. Korrekturen werden still eingearbeitet;
+  was strittig BLEIBT, gehört in Kapitel 5, was ungeprüft bleibt in Kapitel 7.
+
+TEIL 5 — GESTALTUNG (zwei Modi, thematisch eingefärbt)
+
+  Ein Theme in zwei Modi, umschaltbar per Button:
+    Nacht — dunkler Grund aus der Farbwelt des Themas
+    Tag   — heller Grund aus derselben Farbwelt
+  Die Palette aus dem Thema ableiten, nicht aus einer Standardliste: für
+  Antike Porphyr, Basalt, Travertin, Gold und Terrakotta; für Bergbau
+  Anthrazit, Rost und Messing. Jede Sektionsüberschrift bekommt eine eigene
+  Farbe, Kartentitel, Ortszeile und Kategorie-Chips ebenfalls — jede
+  Kategorie in ihrer eigenen Farbe, damit die Filter über Farbe statt über
+  Text wiedererkannt werden.
+  Schrift: für Überschriften eine Schrift mit thematischem Bezug, aber nur
+  eine — für Antike eine Kapitalis-Serife (etwa Cinzel), sonst wird es
+  Kostümfest. Fließtext in einer sehr gut lesbaren Grotesk, Monospace
+  ausschließlich für Zahlen, Zeiten und Kürzel. So bleibt die Datenebene
+  nüchtern, während die Ansprache zum Thema passt.
+  Farbige Überschriften: je Überschrift ein weicher Verlauf über genau drei
+  Töne der Palette, zufällig gewählt — per background-clip auf den Text
+  gelegt, nicht buchstabenweise. Sektionsnummern von der Einfärbung ausnehmen
+  und für Browser ohne background-clip eine einfarbige Rückfallebene vorsehen.
+  Große Radien, kräftige Rahmen, deutliche Hover-Zustände, sichtbarer
+  Tastaturfokus, responsiv bis Handybreite, reduzierte Bewegung respektieren.
+
+TEIL 6 — QUALITÄTSSICHERUNG VOR DER AUSGABE
+
+  JavaScript-Syntax prüfen (Skriptblock extrahieren, Syntaxcheck laufen lassen)
+  HTML-Verschachtelung prüfen
+  Datumslogik testen: wiederkehrender Termin nach dem Stichtag, abgelaufener
+  Termin verschwindet, Saisonende greift, Reisezeitraum-Sprung setzt Datum
+  UND Zeitfenster
+  Prüfen, dass jeder Eintrag Geodaten, Links und Pflichtfelder hat
+  Prüfen, dass jede id in den Geodaten auch wirklich existiert — ein Tippfehler
+  im Schlüssel lässt einen Eintrag lautlos aus Radar und Karte verschwinden
+  Typografische Anführungszeichen in Datenstrings kontrollieren — ein gerades
+  Schlusszeichen beendet sonst den String
+
+AUSGABE
+  Eine einzige Datei: {JJJJ-MM-TT}_{HHMM}_{slug}.html mit exaktem Zeitstempel
+  im Namen — bei mehreren Runden am selben Tag sonst nicht unterscheidbar;
+  selbst-enthalten, Schriften per Web-Link, sonst keine externen
+  Abhängigkeiten außer der Kartenbibliothek. Rechenskripte für abgeleitete
+  Zahlen daneben legen.
+  Abschließend im Chat: knappe Zusammenfassung der wichtigsten Funde und
+  jeder Korrektur — keine Wiederholung des Reports.
+
+VERBOTEN
+  URLs erfinden oder aus dem Gedächtnis konstruieren
+  Preise oder Zeiten ohne Evidenzgrad angeben
+  Widersprüche glätten
+  Entfernungen schätzen und wie gemessene darstellen
+  Einen Termin erfinden, weil ein Fest „traditionell im Oktober“ stattfindet
+  Ein Ziel aufnehmen, ohne Adresse und Koordinaten gegengeprüft zu haben —
+  und wenn das Gegenprüfen nicht möglich ist: sagen, dass es nicht möglich war
+
+NACHSCHÄRFEN (Folgeprompts, die sich bewährt haben)
+  „Nimm das Thema als Filter: was muss ich als {THEMA}-Fan gesehen haben?“
+  „Und wo sollte ich als {THEMA}-Fan gegessen haben — mit echtem Bezug,
+   nicht mit Deko?“
+  „Geh den Reisezeitraum Tag für Tag durch und sag mir, was montags zu ist.“
+  „Prüf, ob in der Reisewoche Schulferien sind — daran hängen Zusatztermine.“
+  „Such für jeden Ort im Umkreis nochmal, was der Ort selbst über sich sagt.“
+  „Setze bei jedem Eintrag Links: Veranstaltungsseite, sonst die Fundstelle.“
+  „Wenn Routing gesperrt ist: rechne ersatzweise und leg den Rechenweg offen.“
+  „Blende gelöste Widersprüche aus, zeig nur echte Unklarheiten.“
+  „Mach das Zeitfenster für Termine einstellbar, Standard 3 Monate.“
+  „Zeitauswahl immer ab dem aktuellen Datum, plus Sprung auf die Reisewoche.“
+  „Gib mir Favoriten mit Stern, gespeichert und filterbar.“
+  „Radar zoombar mit zwei Fingern, plus Umschalter auf eine echte Karte.“
+  „Zoom soll nur den Maßstab ändern, nicht die Auswahl beschneiden.“
+  „Kartenmarker gleich beschriften, nicht erst im Popup.“
+  „Vollbild für Radar und Karte anbieten.“
+  „Dateiname mit exaktem Zeitstempel.“</pre>
+  </div>
+  <p class="method mono">Erfahrungswert aus diesem Projekt: Die drei wertvollsten Funde kamen nicht aus den Römer-Listen, sondern aus Nebensätzen — die Apicius-Küche stand auf der Unterseite „Historisches“ eines Restaurants, der älteste Weinkeller Deutschlands auf der Kellerführungs-Seite eines Weinguts, und dass in der Reisewoche das Viezfest liegt, stand im Weinfest-Kalender des Landkreises. Deshalb steht die Ortsabfrage im Prompt vor jeder Kategoriesuche.</p>
+</div></section>
+
+<style>
+.promptbox{background:var(--panel); border:2px solid var(--line); border-radius:18px; overflow:hidden; box-shadow:var(--shadow)}
+.promptbar{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 16px; background:var(--panel2); border-bottom:2px solid var(--line)}
+.promptbar .mono{font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted)}
+.copybtn{background:var(--teal-dim); color:var(--teal); border:2px solid color-mix(in srgb, var(--teal) 45%, transparent); border-radius:999px; padding:7px 16px; font-family:"Nunito",sans-serif; font-weight:700; font-size:13px; cursor:pointer; white-space:nowrap}
+.copybtn:hover{background:var(--teal); color:var(--bg)}
+#promptText{margin:0; padding:18px 18px 22px; font-family:"IBM Plex Mono",monospace; font-size:12.2px; line-height:1.62; color:var(--ink); white-space:pre-wrap; overflow-x:auto; max-height:640px; overflow-y:auto}
+.method{margin-top:14px; font-size:11.5px; color:var(--muted); line-height:1.7}
+@media(max-width:560px){ #promptText{font-size:11.2px; padding:14px} .promptbar{flex-direction:column; align-items:flex-start} }
+</style>
+
+<footer><div class="wrap">
+  <p class="mono">Recherche-Stand 09.08.2026 · Reisewoche 17.–23.08.2026 · 62 Einträge · 105 Belege · Entfernungen gerechnet, nicht geroutet</p>
+  <p>Kartendaten © OpenStreetMap-Mitwirkende. Kartendarstellung über <a href="https://leafletjs.com/" target="_blank" rel="noopener">Leaflet</a>. Preise und Öffnungszeiten ändern sich — vor der Fahrt an der jeweils verlinkten Erstquelle gegenprüfen.</p>
+</div></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+/* ---- Geodaten: Haversine + Umwegfaktor, KEIN Routing (siehe build_geo.py und Kapitel 0) ---- */
+const G={
+ "porta-nigra":{kp:0.0,mp:2,kh:1.0,mh:15,dp:0,dh:298,art:"fuss",la:49.75972,lo:6.64400},
+ "amphitheater":{kp:1.5,mp:21,kh:0.8,mh:12,dp:149,dh:193,art:"fuss",la:49.75090,lo:6.65220},
+ "kaiserthermen":{kp:1.3,mp:19,kh:1.3,mh:18,dp:181,dh:229,art:"fuss",la:49.75050,lo:6.64380},
+ "barbarathermen":{kp:1.5,mp:21,kh:2.0,mh:28,dp:224,dh:253,art:"fuss",la:49.75220,lo:6.63290},
+ "viehmarktthermen":{kp:1.0,mp:15,kh:1.5,mh:22,dp:216,dh:258,art:"fuss",la:49.75410,lo:6.63770},
+ "basilika":{kp:0.9,mp:13,kh:1.0,mh:15,dp:182,dh:248,art:"fuss",la:49.75360,lo:6.64370},
+ "roemerbruecke":{kp:1.6,mp:23,kh:2.3,mh:31,dp:233,dh:258,art:"fuss",la:49.75290,lo:6.63000},
+ "kryptoportikus":{kp:1.0,mp:14,kh:1.0,mh:15,dp:180,dh:242,art:"fuss",la:49.75290,lo:6.64400},
+ "dom":{kp:0.5,mp:8,kh:1.0,mh:14,dp:183,dh:270,art:"fuss",la:49.75630,lo:6.64370},
+ "liebfrauen":{kp:0.6,mp:9,kh:0.9,mh:14,dp:182,dh:266,art:"fuss",la:49.75580,lo:6.64380},
+ "landesmuseum":{kp:1.1,mp:16,kh:1.1,mh:16,dp:178,dh:235,art:"fuss",la:49.75190,lo:6.64440},
+ "museum-am-dom":{kp:0.4,mp:6,kh:0.9,mh:13,dp:168,dh:279,art:"fuss",la:49.75730,lo:6.64480},
+ "domschatz":{kp:0.5,mp:8,kh:0.9,mh:14,dp:178,dh:271,art:"fuss",la:49.75640,lo:6.64420},
+ "simeonstift":{kp:0.1,mp:3,kh:1.1,mh:16,dp:238,dh:294,art:"fuss",la:49.75940,lo:6.64320},
+ "igel":{kp:12.3,mp:19,kh:12.8,mh:19,dp:233,dh:237,art:"auto",la:49.70750,lo:6.53750},
+ "hauptmarkt":{kp:0.6,mp:9,kh:1.2,mh:17,dp:205,dh:269,art:"fuss",la:49.75610,lo:6.64140},
+ "karl-marx":{kp:1.1,mp:16,kh:1.7,mh:24,dp:223,dh:259,art:"fuss",la:49.75390,lo:6.63570},
+ "petrisberg":{kp:2.8,mp:37,kh:1.7,mh:24,dp:116,dh:115,art:"fuss",la:49.75130,lo:6.67100},
+ "mariensaeule":{kp:2.5,mp:33,kh:3.1,mh:41,dp:235,dh:252,art:"fuss",la:49.74970,lo:6.62220},
+ "weinkulturpfad":{kp:2.9,mp:39,kh:1.9,mh:26,dp:128,dh:133,art:"fuss",la:49.74720,lo:6.66900},
+ "roemerexpress":{kp:0.1,mp:3,kh:1.0,mh:15,dp:141,dh:296,art:"fuss",la:49.75940,lo:6.64440},
+ "moselschiff":{kp:1.1,mp:16,kh:2.1,mh:29,dp:277,dh:287,art:"fuss",la:49.76070,lo:6.63200},
+ "wochenmarkt":{kp:1.0,mp:15,kh:1.5,mh:22,dp:216,dh:258,art:"fuss",la:49.75410,lo:6.63770},
+ "hospitien":{kp:0.9,mp:14,kh:1.8,mh:26,dp:257,dh:279,art:"fuss",la:49.75830,lo:6.63430},
+ "domstein":{kp:0.6,mp:9,kh:1.1,mh:16,dp:199,dh:268,art:"fuss",la:49.75600,lo:6.64200},
+ "kesselstatt":{kp:0.6,mp:10,kh:1.0,mh:15,dp:187,dh:264,art:"fuss",la:49.75560,lo:6.64320},
+ "kiste":{kp:0.9,mp:14,kh:1.4,mh:20,dp:208,dh:257,art:"fuss",la:49.75410,lo:6.63940},
+ "bagatelle":{kp:1.2,mp:17,kh:2.2,mh:30,dp:290,dh:293,art:"fuss",la:49.76250,lo:6.63200},
+ "blesius":{kp:2.9,mp:39,kh:1.9,mh:26,dp:136,dh:146,art:"fuss",la:49.74520,lo:6.66560},
+ "zurlauben":{kp:1.2,mp:17,kh:2.2,mh:30,dp:286,dh:292,art:"fuss",la:49.76200,lo:6.63200},
+ "oechsle":{kp:0.7,mp:11,kh:1.2,mh:18,dp:204,dh:261,art:"fuss",la:49.75500,lo:6.64080},
+ "tawern":{kp:18.3,mp:26,kh:18.4,mh:26,dp:210,dh:213,art:"auto",la:49.64780,lo:6.54600},
+ "villa-otrang":{kp:35.8,mp:39,kh:36.5,mh:39,dp:347,dh:345,art:"auto",la:50.00440,lo:6.55330},
+ "villa-nennig":{kp:40.7,mp:43,kh:40.9,mh:44,dp:218,dh:220,art:"auto",la:49.53480,lo:6.37110},
+ "villa-borg":{kp:42.2,mp:45,kh:42.3,mh:45,dp:209,dh:211,art:"auto",la:49.50110,lo:6.41940},
+ "villa-longuich":{kp:15.2,mp:22,kh:14.8,mh:22,dp:50,dh:46,art:"auto",la:49.82880,lo:6.77020},
+ "villa-echternach":{kp:22.4,mp:31,kh:23.4,mh:32,dp:289,dh:289,art:"auto",la:49.81060,lo:6.41390},
+ "villa-wittlich":{kp:39.5,mp:42,kh:39.4,mh:42,dp:35,dh:34,art:"auto",la:49.98610,lo:6.89310},
+ "kelter-piesport":{kp:31.0,mp:34,kh:30.5,mh:34,dp:56,dh:55,art:"auto",la:49.88000,lo:6.92560},
+ "kelter-brauneberg":{kp:37.2,mp:40,kh:36.7,mh:40,dp:56,dh:55,art:"auto",la:49.90420,lo:6.98190},
+ "weinschiff":{kp:26.3,mp:29,kh:25.8,mh:29,dp:59,dh:57,art:"auto",la:49.85560,lo:6.88940},
+ "wasserleitung":{kp:10.3,mp:16,kh:9.3,mh:21,dp:109,dh:108,art:"auto",la:49.73610,lo:6.75000},
+ "qanat-poelich":{kp:16.4,mp:24,kh:15.9,mh:23,dp:64,dh:61,art:"auto",la:49.81060,lo:6.80470},
+ "roscheider-hof":{kp:9.7,mp:22,kh:9.9,mh:23,dp:216,dh:222,art:"auto",la:49.70420,lo:6.58220},
+ "saarburg":{kp:23.4,mp:32,kh:23.4,mh:32,dp:202,dh:204,art:"auto",la:49.60670,lo:6.54970},
+ "greifvogelpark":{kp:24.5,mp:33,kh:24.4,mh:33,dp:201,dh:203,art:"auto",la:49.59890,lo:6.54860},
+ "baumwipfelpfad":{kp:36.1,mp:39,kh:35.8,mh:39,dp:196,dh:197,art:"auto",la:49.51580,lo:6.53860},
+ "bernkastel":{kp:45.0,mp:48,kh:44.4,mh:47,dp:60,dh:59,art:"auto",la:49.91610,lo:7.07000},
+ "luxemburg":{kp:51.7,mp:47,kh:52.3,mh:48,dp:246,dh:247,art:"auto",la:49.61100,lo:6.13190},
+ "nittel":{kp:26.1,mp:29,kh:26.6,mh:30,dp:230,dh:232,art:"auto",la:49.64060,lo:6.42780},
+ "augustinerhof":{kp:0.6,mp:10,kh:1.3,mh:18,dp:216,dh:270,art:"fuss",la:49.75630,lo:6.64010},
+ "domfreihof":{kp:0.4,mp:7,kh:1.0,mh:15,dp:187,dh:276,art:"fuss",la:49.75700,lo:6.64350}
+};
+
+/* ---- Einträge ---- */
+const M=[
+ /* ===== Die neun UNESCO-Bauten ===== */
+ {id:"porta-nigra",typ:"ort",n:"Porta Nigra",o:"Trier-Altstadt",cat:["roemisch","pflicht","stadt"],
+  d:"Um 170 n. Chr. aus rund 7.200 Sandsteinquadern ohne Mörtel gefügt und mit Eisenklammern verbunden — das besterhaltene römische Stadttor nördlich der Alpen. Dass es steht, verdankt es dem Einsiedler Simeon, der sich 1028 im Ostturm einmauern ließ; daraus wurde eine Doppelkirche, die Napoleon 1802 bis auf den römischen Kern zurückbauen ließ. Über zwei Ebenen begehbar.",
+  rom:"Der erste Blick, der klarmacht: Trier ist keine Stadt mit Römerresten, sondern eine römische Stadt. Oben im Wehrgang steht man in den Öffnungen der Kaiserzeit. Die schwarze Farbe ist übrigens Verwitterung, kein Bauentscheid.",
+  p:"6 € / erm. 5 € / Kind 6–17 J. 3 € · Familie 6 bzw. 12 €",z:"Apr–Sep tägl. 9–18",ev:"A",
+  lk:[["Zentrum der Antike · Porta Nigra","https://www.zentrum-der-antike.de/monumente/porta-nigra"],["AntikenCard","https://www.zentrum-der-antike.de/angebote-programm/antikencard"]]},
+ {id:"amphitheater",typ:"ort",n:"Amphitheater",o:"Trier, am Petrisberg",cat:["roemisch","pflicht"],
+  d:"120 × 145 m, um 100 n. Chr. in den Hang gebaut, Platz für rund 18.000 Zuschauer — zehntgrößtes erhaltenes Amphitheater der römischen Welt. Erhalten sind die Arenaebene, die Zuschauerwälle und vor allem der Keller unter der Arena mit den Schächten, über die Tiere und Kulissen nach oben gehievt wurden.",
+  rom:"Der Keller ist der Punkt, an dem das Bild vom bloßen Erdwall kippt: Man steht dort, wo die Aufzüge standen. Wer nur oben herumläuft, hat die Hälfte verpasst.",
+  p:"6 € / erm. 5 € / Kind 3 €",z:"Apr–Sep tägl. 9–18",ev:"A",
+  lk:[["Tourist-Information · Amphitheater","https://www.trier-info.de/en/places-of-interest/the-amphitheatre"],["Zentrum der Antike","https://www.zentrum-der-antike.de/"]]},
+ {id:"kaiserthermen",typ:"ort",n:"Kaiserthermen",o:"Trier-Süd",cat:["roemisch","thermen","pflicht"],
+  d:"Begonnen unter Konstantin im frühen 4. Jh., die größte Thermenanlage des Römischen Reichs außerhalb Roms. Die Reste des Caldariums ragen bis 19 m auf. Unter dem Boden liegt ein begehbares Labyrinth aus Bedienungsgängen und Heizkanälen, dazu ein Aussichtspunkt über den ehemaligen Palastbezirk und eine Filmanimation zur Baugeschichte.",
+  rom:"Die Pointe der Anlage: Wahrscheinlich hat hier nie jemand gebadet — der Bau wurde umgeplant und diente später als Kaserne. Wer die Untergänge abläuft, versteht römische Bautechnik besser als in jeder Vitrine.",
+  p:"6 € / erm. 5 € / Kind 3 €",z:"Apr–Sep tägl. 9–18",ev:"A",
+  lk:[["Zentrum der Antike · Kaiserthermen","https://www.zentrum-der-antike.de/monumente/kaiserthermen"],["Tourist-Information","https://www.trier-info.de/sehenswuerdigkeiten/kaiserthermen"]]},
+ {id:"barbarathermen",typ:"ort",n:"Barbarathermen",o:"Trier, Südallee",cat:["roemisch","thermen","gratis","pflicht"],
+  d:"2. Jh. n. Chr., mit rund 42.000 m² nach den Trajansthermen in Rom die zweitgrößte Thermenanlage des Reichs. Oberirdisch ist wenig geblieben — die Anlage war jahrhundertelang Steinbruch —, dafür führt ein Besuchersteg über den freigelegten Grundriss samt Heizkellern.",
+  rom:"Der Steg kostet nichts und zeigt genau das, wofür man in Rom ein Ticket braucht: den Unterbau einer Großtherme im Schnitt, von oben lesbar wie ein Bauplan.",
+  p:"0 € · Besuchersteg frei zugänglich",z:"tägl. 10–18",ev:"A",
+  lk:[["Tourist-Information · Barbarathermen","https://www.trier-info.de/sehenswuerdigkeiten/barbarathermen"],["Zentrum der Antike","https://www.zentrum-der-antike.de/monumente/barbarathermen"]]},
+ {id:"viehmarktthermen",typ:"ort",n:"Thermen am Viehmarkt",o:"Trier, Viehmarktplatz",cat:["roemisch","thermen","indoor"],
+  d:"1987 beim Bau einer Tiefgarage entdeckt, heute unter einem Glaskubus von Oswald Mathias Ungers: römische Thermenreste, darüber Fundamente eines Kapuzinerklosters und mittelalterliche Keller — 1.800 Jahre Stadtgeschichte in einem Schnitt, komplett überdacht.",
+  rom:"Das trockenste Ziel bei Regen — und der beste Ort, um zu begreifen, wie viel römisches Trier unter dem heutigen Pflaster noch steckt.",
+  p:"6 € / erm. 5 € / Kind 3 €",z:"tägl. 11–17",ev:"A",
+  lk:[["Zentrum der Antike · Thermen am Viehmarkt","https://www.zentrum-der-antike.de/monumente/thermen-am-viehmarkt"],["Tourist-Information","https://www.trier-info.de/sehenswuerdigkeiten/thermen-am-viehmarkt"]]},
+ {id:"basilika",typ:"ort",n:"Konstantin-Basilika (Palastaula)",o:"Trier, Konstantinplatz",cat:["roemisch","stadt","gratis","pflicht","indoor"],
+  d:"Thronsaal Konstantins, um 310 n. Chr.: 67 m lang, 27,5 m breit, 33 m hoch — der größte erhaltene stützenfreie Innenraum der Antike. Die Fenster der Apsis sind bewusst kleiner gebaut als die des Saals, damit der Raum länger und der Kaiser größer wirkt. Heute evangelische Kirche.",
+  rom:"Man steht in dem Raum, in dem ein römischer Kaiser Audienz hielt, und es kostet nichts. Die Sommerzeiten sind nicht belegt (siehe Kapitel 5) — Gottesdienste und Konzerte gehen vor.",
+  p:"0 €",z:"Sommerzeiten nicht belegt · Winter Di–Sa 10–12 und 14–16, So 14–16",ev:"C",
+  lk:[["Tourist-Information · Konstantin-Basilika","https://www.trier-info.de/sehenswuerdigkeiten/konstantin-basilika/trier-fuer-alle"],["Straßen der Römer","https://www.strassen-der-roemer.eu/stationen/konstantin-basilika-trier/"]]},
+ {id:"roemerbruecke",typ:"ort",n:"Römerbrücke",o:"Trier, über die Mosel",cat:["roemisch","gratis","pflicht","stadt"],
+  d:"Fünf Strompfeiler aus den Jahren 144–152 n. Chr., aus Basalt- und Sandsteinquadern auf Eichenpfahlrosten gegründet. Die Fahrbahn ist barock, die Pfeiler sind römisch — und tragen bis heute den Verkehr der Bundesstraße.",
+  rom:"Das älteste noch benutzte Bauwerk Deutschlands. Man fährt über 1.870 Jahre altes römisches Ingenieurwesen, ohne dass ein Schild darauf hinweist. Zu Fuß vom Ufer aus sieht man die Pfeiler am besten.",
+  p:"0 €",z:"immer",ev:"A",
+  lk:[["Zentrum der Antike","https://www.zentrum-der-antike.de/"],["Straßen der Römer","https://www.strassen-der-roemer.eu/sehenswertes/"]]},
+ {id:"dom",typ:"ort",n:"Hohe Domkirche St. Peter",o:"Trier",cat:["stadt","roemisch","gratis","pflicht","indoor"],
+  d:"Ältester Bischofssitz Deutschlands und der einzige Dom mit römischem Kernbau: Das Mauerwerk des Quadratbaus aus dem 4. Jh. steckt bis in große Höhe im heutigen Bauwerk. An der Nordseite liegt der „Domstein“, ein Granitmonolith der antiken Anlage. UNESCO-Welterbe seit 1986, dazu der Heilige Rock als bedeutendste Reliquie.",
+  rom:"Die Nordwand ist römisches Mauerwerk in Originalhöhe — anfassbar, ohne Vitrine. Wer die Steinlagen von außen abgeht, sieht die antike Bauhöhe am Materialwechsel.",
+  p:"0 €",z:"Apr–Okt tägl. 6:30–18",ev:"A",
+  lk:[["Trierer Dom","https://www.trierer-dom.de/start/"],["Tourist-Information · Dom","https://www.trier-info.de/sehenswuerdigkeiten/dom-in-trier"]]},
+ {id:"liebfrauen",typ:"ort",n:"Liebfrauenkirche",o:"Trier, am Dom",cat:["stadt","gratis","indoor"],
+  d:"1235–1260 direkt an den Dom gebaut: einer der frühesten gotischen Kirchenbauten Deutschlands, als Zentralbau über einem zwölfblättrigen Grundriss. Teil desselben UNESCO-Welterbes wie Dom und Römerbauten.",
+  rom:"Der Kontrast, der den Dom erklärt: römischer Massivbau neben gotischem Rippenwerk, zwei Meter voneinander entfernt.",
+  p:"0 €",z:"tagsüber geöffnet",ev:"B",
+  lk:[["Tourist-Information · Museen und Kirchen","https://www.trier-info.de/sehenswuerdigkeiten/dom-in-trier"]]},
+ {id:"igel",typ:"ort",n:"Igeler Säule",o:"Igel an der Mosel",cat:["roemisch","gratis","pflicht"],
+  d:"Rund 23 m hoher Pfeiler aus rotem Sandstein, errichtet in der ersten Hälfte des 3. Jh. von der Tuchhändlerfamilie der Secundinier. Die Reliefs zeigen Alltag und Berufsleben der Händler sowie mythologische Szenen. Ganzjährig frei zugänglich; die Treppenanlage kann bei Wetter gesperrt sein.",
+  rom:"Neben dem Mainzer Drususstein das einzige römische Grabmal nördlich der Alpen, das seit der Antike an seinem Originalstandort oberirdisch steht — nichts daran ist rekonstruiert oder versetzt.",
+  p:"0 €",z:"ganzjährig frei",ev:"A",
+  lk:[["Zentrum der Antike · Igeler Säule","https://www.zentrum-der-antike.de/monumente/igeler-saeule"],["Gemeinde Igel","https://gemeinde-igel.de/tourismus/sehenswertes/"]]},
+
+ /* ===== Museen ===== */
+ {id:"landesmuseum",typ:"ort",n:"Rheinisches Landesmuseum",o:"Trier, Weimarer Allee",cat:["museum","roemisch","pflicht","indoor"],
+  d:"Eine der bedeutendsten Antikensammlungen Deutschlands: rund 4.500 Objekte in der Dauerausstellung, dazu ein Münzkabinett mit etwa 12.000 Stücken. Hier stehen die Originale der Neumagener Grabdenkmäler samt Weinschiff, die großen Mosaike und das Modell des römischen Trier.",
+  rom:"Wenn nur ein Innenraum drin ist, dann dieser — und zwar VOR den Ruinen. Das Neumagener Weinschiff und die Grabpfeiler machen die Region lesbar; danach sieht man in den Kaiserthermen mehr als vorher.",
+  p:"10 € / erm. 8 € · in der AntikenCard enthalten",z:"Di–So 10–17, letzter Einlass 16:30 · Mo geschlossen",ev:"A",
+  lk:[["Eintrittspreise & Anreise","https://www.zentrum-der-antike.de/rheinisches-landesmuseum/eintrittspreise-und-anreise"],["Zentrum der Antike","https://www.zentrum-der-antike.de/rheinisches-landesmuseum"]]},
+ {id:"museum-am-dom",typ:"ort",n:"Museum am Dom",o:"Trier, Bischof-Stein-Platz",cat:["museum","roemisch","indoor"],
+  d:"Beherbergt die rekonstruierten Deckenmalereien aus dem konstantinischen Palast unter dem Dom — aus zehntausenden Fragmenten zusammengesetzte Freskenfelder, das bedeutendste römische Wandmalerei-Ensemble nördlich der Alpen. Dazu Modelle des römischen und mittelalterlichen Doms.",
+  rom:"Der direkte Blick in die Wohnräume der kaiserlichen Familie — bemalte Decken, keine Grundrisse. Ergänzt die Basilika, die außer Raum nichts mehr zeigt.",
+  p:"Kombiticket mit Domschatz 5,50 € / erm. 3,20 € · Familie 8–10 €",z:"Öffnungszeiten 2026 nicht belegt — siehe Kapitel 7",ev:"B",
+  lk:[["Museum am Dom","https://www.museum-am-dom-trier.de/Ihr-Besuch/index.html"],["Tourist-Information","https://www.trier-info.de/museen/museum-am-dom"]]},
+ {id:"domschatz",typ:"ort",n:"Domschatzkammer",o:"Trier, im Dom",cat:["museum","indoor"],
+  d:"Reliquiare, Handschriften und Goldschmiedearbeiten aus 1.700 Jahren Bistumsgeschichte, darunter Stücke, die den Übergang von der Spätantike ins Mittelalter zeigen.",
+  rom:"Für Rom-Fans der Nachklang: Was aus der spätantiken Kirchenausstattung wurde, als das Imperium schon Geschichte war.",
+  p:"3 € / erm. 1 € · Familie 7 € · Kombi mit Museum am Dom 5,50 €",z:"Apr–Okt tägl. 10–17",ev:"A",
+  lk:[["Tourist-Information · Domschatzkammer","https://www.trier-info.de/museen/domschatzkammer"],["Trierer Dom · Domschatz","https://www.trierer-dom.de/bauwerk/domschatz/index.html"]]},
+ {id:"simeonstift",typ:"ort",n:"Stadtmuseum Simeonstift",o:"Trier, an der Porta Nigra",cat:["museum","indoor"],
+  d:"Im rund 950 Jahre alten Simeonstift — dem Stift, das aus der Porta Nigra hervorging. Stadtgeschichte von der Antike bis heute, dazu die Originale der Palastgarten-Skulpturen von Ferdinand Tietz.",
+  rom:"Erklärt den zweiten Teil der Porta-Nigra-Geschichte: wie aus einem römischen Tor eine Kirche und daraus wieder ein Tor wurde.",
+  p:"Familienkarte 5 € bzw. 9,50 € · Gruppen 4,50 € p. P. · jeder 1. So im Monat 1 €",z:"Di–So · Mo geschlossen",ev:"B",
+  lk:[["Besucherinfos Stadtmuseum","https://museum-trier.de/besucherinfos/"],["Museen in Trier","https://www.trier.de/5077"]]},
+ {id:"karl-marx",typ:"ort",n:"Museum Karl-Marx-Haus",o:"Trier, Brückenstraße 10",cat:["museum","indoor"],
+  d:"Geburtshaus von Karl Marx, seit 1947 Museum der Friedrich-Ebert-Stiftung: Leben, Werk und weltweite Wirkung, mit Blick auf das Trier des 19. Jahrhunderts.",
+  rom:"Kein Römerziel — aber das zweite Trier, wegen dem Leute anreisen, und zehn Gehminuten vom Hauptmarkt. Zwischen 13:00 und 13:30 kein Einlass.",
+  p:"7 € / erm. 5 € / Familie 10 €",z:"Di–So 10–18 · letzter Einlass 17:30",ev:"A",
+  lk:[["Öffnungszeiten & Preise","https://www.fes.de/museum-karl-marx-haus/besuchs-info/oeffnungszeiten-und-preise"],["Museum Karl-Marx-Haus","https://www.fes.de/museum-karl-marx-haus/"]]},
+
+ /* ===== Stadt, frei zugänglich ===== */
+ {id:"hauptmarkt",typ:"ort",n:"Hauptmarkt, Steipe & Marktkreuz",o:"Trier-Altstadt",cat:["stadt","gratis"],
+  d:"Seit 958 Marktplatz. Das Marktkreuz trägt eine antike Granitsäule als Schaft — römisches Material, mittelalterlich weiterverwendet. Ringsum Steipe, Rotes Haus, Petrusbrunnen; Mo–Sa 8–19 Uhr stehen die Stände des ständigen Markts.",
+  rom:"Ein Lehrstück in Spolienverwendung: Die Römer sind hier nicht verschwunden, sie sind verbaut worden.",
+  p:"0 €",z:"immer · Marktstände Mo–Sa 8–19",ev:"B",
+  lk:[["Stadt Trier · Märkte","https://www.trier.de/wirtschaft-arbeit/einzelhandel/wochenmaerkte/"],["Tourist-Information","https://www.trier-info.de/maerkte-in-trier"]]},
+ {id:"kryptoportikus",typ:"ort",n:"Kurfürstliches Palais & Palastgarten",o:"Trier, an der Basilika",cat:["stadt","gratis","natur"],
+  d:"Rokoko-Palais direkt an die Konstantin-Basilika gebaut, davor ein Barockgarten mit Kopien der Putten und Sphingen von Ferdinand Tietz. Unter dem Gelände liegt die Kryptoportikus, ein römischer Wandelgang — nur im Rahmen von Führungen zugänglich.",
+  rom:"Der Garten ist der beste Platz, um die Basilika von außen zu begreifen: Rokoko-Fassade und römische Ziegelwand stoßen hier direkt aneinander.",
+  p:"0 € (Garten) · Innenräume nur zu Veranstaltungen",z:"Garten tagsüber frei",ev:"B",
+  lk:[["Tourist-Information · Kurfürstliches Palais","https://www.trier-info.de/sehenswuerdigkeiten/kurfuerstliches-palais"]]},
+ {id:"petrisberg",typ:"ort",n:"Aussichtspunkt Petrisberg",o:"Trier-Petrisberg",cat:["natur","gratis"],
+  d:"Der Hang über dem Amphitheater. Von hier sieht man die Altstadt, das Moseltal und an klaren Tagen bis nach Luxemburg — mit den Weinbergen der Kürenzer und Olewiger Lagen im Vordergrund.",
+  rom:"Von oben versteht man die Standortwahl der Arena in einer Sekunde: Die Römer haben sich zwei Drittel des Erdbaus gespart und den Hang benutzt.",
+  p:"0 €",z:"immer",ev:"B",
+  lk:[["Tourist-Information · Petrisberg","https://www.trier-info.de/sehenswuerdigkeiten/aussichtspunkt-petrisberg"]]},
+ {id:"mariensaeule",typ:"ort",n:"Mariensäule",o:"Trier, Markusberg",cat:["natur","gratis"],
+  d:"40 m hoher Denkmalsturm über dem westlichen Moselhang, nachts gelb angestrahlt, weitgehend aus privaten Spenden finanziert. Der Vorplatz dient als Aussichtspunkt über Stadt und Moseltal.",
+  rom:"Der Gegenblick zum Petrisberg: Von hier liegt die antike Stadtachse zwischen Porta Nigra und Kaiserthermen als Linie vor einem.",
+  p:"0 €",z:"immer",ev:"B",
+  lk:[["Aussichtspunkte Trier","https://www.trierer-original.de/fuer-Touristen/Aussichtspunkte-51610.html"]]},
+ {id:"weinkulturpfad",typ:"ort",n:"Weinkulturpfad Olewig",o:"Trier-Olewig",cat:["natur","wein","gratis"],
+  d:"Rund 1,6 km durch die Olewiger Steillagen mit Tafeln zu Rebsorten, Devonschiefer, Erziehungs- und Pflanzmethoden, Lese und Weinbereitung. Blick über das Olewiger Tal und die Innenstadt. Nutzung kostenlos.",
+  rom:"Der Weinbau, den er erklärt, ist römisch angelegt — die Steillagen an der Mosel gehen auf die Antike zurück. Der Pfad macht aus „die Römer brachten den Wein“ eine begehbare Aussage.",
+  p:"0 €",z:"immer",ev:"A",
+  lk:[["Tourist-Information · Weinkulturpfad","https://www.trier-info.de/sehenswuerdigkeiten/weinkulturpfad"]]},
+ {id:"roemerexpress",typ:"ort",n:"Römer-Express (Stadtrundfahrt)",o:"ab Porta Nigra",cat:["stadt"],
+  d:"45-Minuten-Rundfahrt ab Porta Nigra an den Römerbauten vorbei, Ansage vom Band auf Deutsch, Englisch, Niederländisch und Französisch. April bis Oktober täglich 10–18 Uhr, etwa alle 30 Minuten mit zwei Bahnen.",
+  rom:"Nützlich am ersten Tag, um die Lage der Bauten zueinander zu sortieren — danach zu Fuß, weil die Bahn an keinem hält.",
+  p:"10 € / Kind 6–14 J. 5 € / unter 6 J. frei / Familie 25 €",z:"Apr–Okt tägl. 10–18, ca. alle 30 min",ev:"A",
+  lk:[["Römer-Express · Preise","https://www.roemer-express.de/de/content/preise"],["Fahrplan","https://www.roemer-express.de/de/content/fahrplan"]]},
+ {id:"moselschiff",typ:"ort",n:"Moselrundfahrt ab Zurlauben",o:"Trier-Zurlauben",cat:["natur","stadt"],
+  d:"Personenschifffahrt Gebrüder Kolb, Anleger am Zurlaubener Ufer: Rundfahrten auf der Mosel und Linienfahrten Richtung Saarburg beziehungsweise moselabwärts. Fahrplan „Region Trier/Saarburg 2026“ beim Betreiber.",
+  rom:"Die Mosel war die Verkehrsader, an der Augusta Treverorum lag — vom Wasser aus sieht man die Römerbrücke so, wie sie gedacht war.",
+  p:"je nach Fahrt · Fahrplan siehe Betreiber",z:"Saison · Abfahrtszeiten nicht belegt (Kapitel 7)",ev:"B",
+  lk:[["Moselrundfahrten Gebr. Kolb","https://www.moselrundfahrten.de/"],["Tourist-Information · Schifffahrten","https://www.trier-info.de/schifffahrten/informationen-und-planung"]]},
+
+ /* ===== Wein & Essen ===== */
+ {id:"hospitien",typ:"ort",n:"Vereinigte Hospitien — ältester Weinkeller Deutschlands",o:"Trier, Krahnenufer 19",cat:["wein","roemisch","pflicht","essen"],
+  d:"Der Kellerraum wurde um 330 n. Chr. als römisches Magazin gebaut und wird seither ununterbrochen genutzt — der älteste Weinkeller Deutschlands. Die Entdeckerführung dauert rund 60 Minuten und schließt zwei Weine des VDP-Guts ein; Treffpunkt ist die Vinothek.",
+  rom:"Römische Mauern, in denen heute Riesling liegt. Näher kommt man der Kontinuität zwischen Augusta Treverorum und der Mosel an keinem anderen Ort — und man darf sie trinken.",
+  p:"Führung 17,50 € p. P. · Gruppen 27 € (Sekt + fünf Weine, 90 min)",z:"Apr–Okt Mi & Fr sowie ausgewählte Sa, 11:00",ev:"A",
+  lk:[["Weingut · Kellerführungen","https://weingut.vereinigtehospitien.de/pages/kellerfuhrungen"],["Tourist-Information","https://www.trier-info.de/oeffentliche-fuehrungen/entdeckerfuehrung-im-aeltesten-weinkeller-deutschlands"]]},
+ {id:"domstein",typ:"ort",n:"Zum Domstein & Römerkeller",o:"Trier, Hauptmarkt",cat:["essen","roemisch","pflicht","indoor"],
+  d:"Serviert seit Jahrzehnten römische Gerichte nach „De re coquinaria“ des Apicius — als Menü oder à la carte, abends von 17:30 bis 21:30. Im Keller steht der südwestliche Pfeiler der konstantinischen Doppelkirche, freigelegt beim U-Bahn-ähnlichen Tiefbau der 1970er; dazu Funde, Repliken und eine der besten privaten Sammlungen römischen Glases aus 150–350 n. Chr.",
+  rom:"Die eindeutige Antwort auf „wo sollte man als Rom-Fan gegessen haben“: hier, abends, mit dem Apicius-Menü — und vorher runter in den Römerkeller. Warme Küche schon ab 11:30, die römische Karte aber erst abends.",
+  p:"römische Küche als Menü oder à la carte",z:"tägl. 9:30–24 · warme Küche 11:30–21:30 · römisch 17:30–21:30",ev:"A",
+  lk:[["Zum Domstein · Historisches","https://domstein.de/historisches/"],["Speisekarte","https://domstein.de/?lang=en"]]},
+ {id:"kesselstatt",typ:"ort",n:"Weinstube Kesselstatt",o:"Trier, Liebfrauenstraße 10",cat:["essen","wein"],soc:1,
+  d:"Weingarten direkt gegenüber Dom und Liebfrauenkirche, Bedienung am Buffet, Moselweine aus dem eigenen Gut, saisonale deutsche Küche. Auf Tripadvisor Platz 7 von 256 Trierer Lokalen.",
+  rom:"Der Platz, an dem man mit einem Glas Riesling zwei UNESCO-Bauten gleichzeitig im Blick hat. Kein römischer Bezug im Haus — dafür der beste Sitzplatz der Altstadt.",
+  p:"Weinstube mit Terrasse",z:"saisonal",ev:"C",
+  lk:[["Weinstube Kesselstatt (Tripadvisor)","https://www.tripadvisor.com/Restaurant_Review-g187394-d1349750-Reviews-Weinstube_Kesselstatt-Trier_Rhineland_Palatinate.html"]]},
+ {id:"kiste",typ:"ort",n:"Kartoffel-Restaurant Kiste",o:"Trier, Fahrstraße",cat:["essen","indoor"],soc:1,
+  d:"Familie Betz, Kartoffelgerichte in allen Varianten, mitten in der Altstadt. Platz 14 von 256 auf Tripadvisor.",
+  rom:"Der unaufgeregte Mittagstisch zwischen zwei Römerbauten — und der Ort, an dem man erklärt bekommt, dass die Kartoffel das einzige ist, was die Römer hier nicht gebracht haben.",
+  p:"bürgerlich",z:"ganzjährig",ev:"C",
+  lk:[["Kartoffel Restaurant Kiste","https://www.kistetrier.de/"],["Speisekarte","https://www.kistetrier.de/speisekarte/"]]},
+ {id:"bagatelle",typ:"ort",n:"Bagatelle",o:"Trier-Zurlauben",cat:["essen"],soc:1,
+  d:"Ein Michelin-Stern seit 2023, Küchenchef Gerald Schöberl: moderne Küche auf klassisch französischer Basis mit japanischen Akzenten, Blick auf die Mosel.",
+  rom:"Der Abend, an dem es nicht römisch sein muss. Reservierung nötig.",
+  p:"Sternegastronomie · Reservierung nötig",z:"ganzjährig",ev:"B",
+  lk:[["Guide Michelin · Bagatelle","https://guide.michelin.com/at/de/rheinland-pfalz/trier/restaurant/bagatelle"]]},
+ {id:"blesius",typ:"ort",n:"Blesius Garten",o:"Trier-Olewig",cat:["essen","wein"],soc:1,
+  d:"Restaurant mit eigener Hausbrauerei in einem alten Hofgut im Weinort Olewig, regionale und biologisch erzeugte Produkte. Hauptbühne des Olewiger Weinfests. Platz 11 von 255 auf Tripadvisor.",
+  rom:"Liegt am Fuß der Steillagen, die der Weinkulturpfad erklärt — der passende Abschluss eines Nachmittags in Olewig.",
+  p:"Restaurant und Brauerei",z:"ganzjährig",ev:"C",
+  lk:[["Tourist-Information · Blesius Garten","https://www.trier-info.de/gastronomie/restaurant-blesius-garten-anzeige"]]},
+ {id:"zurlauben",typ:"ort",n:"Zurlaubener Ufer",o:"Trier-Zurlauben",cat:["essen","natur","gratis"],
+  d:"Die alte Fischersiedlung an der Mosel, heute Trierer Gastro-Meile mit Terrassen direkt am Wasser. Im Juli steigt hier das Zurlaubener Heimat- und Moselfest — 2026 vom 10. bis 12. Juli, also vor der Reisewoche.",
+  rom:"Kein römischer Ort, aber der Platz, an dem Trier abends stattfindet. Fußweg vom Hauptmarkt rund 15 Minuten am Fluss entlang.",
+  p:"0 € (Uferweg) · Gastronomie nach Karte",z:"immer",ev:"B",
+  lk:[["Zurlaubener Heimatfest","https://en.visitmosel.de/cities-culture/event/zurlaubener-heimatfest"],["Programm 2026 (lokalo.de)","https://lokalo.de/artikel/419250/zurlaubener-moselfest-trier-2026-programm-feuerwerk-kirmes-clouds/"]]},
+ {id:"oechsle",typ:"ort",n:"Weinhaus Oechsle & Weinwirtschaft Friedrich Wilhelm",o:"Trier-Altstadt",cat:["essen","wein"],soc:1,
+  d:"Zwei häufig empfohlene Adressen für Moselwein in der Altstadt: Weinhaus Oechsle in der Palaststraße 5–7 und die Weinwirtschaft Friedrich Wilhelm in der Weberbach 75.",
+  rom:"Für den Abend, an dem es nur um den Wein geht — das Produkt, das die Römer hierher gebracht haben.",
+  p:"Weinstube",z:"nicht belegt",ev:"C",
+  lk:[["Stadterlebnis Trier (visitmosel)","https://en.visitmosel.de/cities-culture/city-experiences/trier"]]},
+
+ /* ===== Römisches Umland ===== */
+ {id:"tawern",typ:"ort",n:"Gallo-römischer Tempelbezirk Tawern",o:"Tawern, Metzenberg",cat:["roemisch","gratis","natur"],
+  d:"Rekonstruierter Tempelbezirk auf dem Metzenberg über der römischen Fernstraße von Trier nach Metz: ein Merkurtempel und mehrere Nebenbauten, mitten im Wald. Vom ausgeschilderten Parkplatz am Ortsrand rund 10 Minuten zu Fuß. Ganzjährig geöffnet, kein Eintritt.",
+  rom:"Aufgebaute Tempel statt Grundrisse — und die Lage erklärt, warum sie hier stehen: an einer Fernstraße, auf einer Höhe, mit Blick.",
+  p:"0 €",z:"ganzjährig frei · Führungen Mai–Okt So 14:30–16:30",ev:"A",
+  lk:[["Verein Römisches Tawern e.V.","https://www.roemisches-tawern.de/tempelbezirk/"],["Führungen","http://www.roemisches-tawern.de/?page_id=503"]]},
+ {id:"villa-otrang",typ:"ort",n:"Römische Villa Otrang",o:"Fließem, Bitburger Land",cat:["roemisch","museum","gratis"],
+  d:"Eines der größten römischen Landgüter der Region, ab 1833 freigelegt. Zwei Schutzhäuser bewahren die Mosaikböden, dazu Bade- und Wohntrakt im Außengelände. Eintritt und öffentliche Führungen kostenfrei; im Winter geschlossen.",
+  rom:"Mosaike im Original und ohne Kasse. Die nächste öffentliche Führung ist am 30.08.2026 um 11 Uhr — also eine Woche nach der Reise; das Gelände ist aber ohnehin frei begehbar.",
+  p:"0 €",z:"Apr–Okt Mi–So 10–17, auch feiertags · Winter geschlossen",ev:"A",
+  lk:[["RLP-Tourismus · Villa Otrang","https://www.rlp-tourismus.com/de/ausflugsziele/roemische-villa-otrang/poi.html"],["Naturpark Südeifel","https://www.naturpark-suedeifel.de/pois/roemische-villa-otrang"]]},
+ {id:"villa-nennig",typ:"ort",n:"Römische Villa Nennig — Gladiatorenmosaik",o:"Perl-Nennig (Saarland)",cat:["roemisch","museum","pflicht"],
+  d:"Über 160 m² Mosaikboden, der größte und besterhaltene nördlich der Alpen: Tierhetzen, Musiker mit Wasserorgel und Hornbläser, der Kampf zweier Gladiatoren — die Arena in Bildern. In der Nähe der rekonstruierte Grabhügel (Tumulus).",
+  rom:"Wer „Gladiator“ im Kopf hat, findet hier die Szene als römisches Bild statt als Hollywood-Deutung — und zwar an dem Ort, für den sie gelegt wurde. Mittwochs ab 15 Uhr und am 1. Sonntag im Monat ist der Eintritt frei.",
+  p:"3 € / erm. 1,50 € · unter 18 J., Studierende, Azubis frei",z:"Apr–Okt tägl. 10–18",ev:"A",
+  lk:[["Römische Villa Nennig · Ihr Besuch","https://www.roemischevillanennig.de/de/ihr-besuch"],["Stiftung saarländischer Kulturbesitz","https://www.kulturbesitz.de/de/museen/roemische-villa-nennig"]]},
+ {id:"villa-borg",typ:"ort",n:"Archäologiepark Römische Villa Borg & Taverne",o:"Perl-Borg (Saarland)",cat:["roemisch","essen","museum","thermen","pflicht"],
+  d:"Auf den Originalfundamenten rekonstruierte Villa: Herrenhaus, Bad mit funktionierender Hypokaustenheizung, Küche, römischer Garten und Taverne. Die Taverne kocht nach Rezepten des Apicius, Di–So 11–18.",
+  rom:"Der einzige Ort der Region, an dem man ein römisches Landgut betritt statt einen Grundriss zu lesen — und im selben Haus römisch isst. Montags komplett geschlossen.",
+  p:"6 € / Kind bis 14 J. 2 € / Familie 12 € / Gruppen ab 20 P. 3 €",z:"Apr–Okt Di–So & feiertags 10–18 · Mo geschlossen",ev:"A",
+  lk:[["villa-borg.de · Öffnungszeiten","https://www.villa-borg.de/oeffnungszeiten/"],["Taverne","https://taverne-borg.de/"]]},
+ {id:"villa-longuich",typ:"ort",n:"Römische Villa Urbana Longuich",o:"Longuich-Kirsch",cat:["roemisch","thermen"],
+  d:"1987 ausgegraben: der Badetrakt einer Villa urbana des 2. Jh. mit Frigidarium, Tepidarium, Caldarium, Sudatorium und Praefurnium unter einem Schutzbau. Die Gesamtanlage war rund 100 m breit und 28 m tief.",
+  rom:"Ein komplettes römisches Privatbad im Schnitt — der Gegenpol zu den Kaiserthermen: dieselbe Technik, ein Fünfzigstel der Größe.",
+  p:"3 € Erwachsene · Kinder frei",z:"Führungen Mai–Okt So 10:30 oder nach Vereinbarung",ev:"B",
+  lk:[["Gemeinde Longuich · Römische Villa","https://longuich.de/tourismus/roemische-villa/"],["Museumsportal RLP","https://www.museumsportal-rlp.de/museen/roemische-villa-urbana-longuich"]]},
+ {id:"villa-echternach",typ:"ort",n:"Gallo-römische Villa Echternach",o:"Echternach (Luxemburg)",land:"lu",cat:["roemisch","museum","gratis","indoor"],
+  d:"Der größte römische Villenkomplex Luxemburgs, mit angeschlossenem Museum: lebensgroße Figuren stellen den Alltag nach, dazu ein Film über römische Kultur und ein rekonstruierter römischer Garten mit über 70 Pflanzen. Großer kostenloser Parkplatz daneben. Eintritt seit 2015 frei.",
+  rom:"Das didaktisch beste Villenmuseum der Großregion, und es kostet nichts. Saison 28.03.–27.09.2026, montags geschlossen — Personalausweis für die Grenze mitnehmen.",
+  p:"0 €",z:"Apr–Okt Di–So 10–12 und 13–17 · Mo geschlossen",ev:"A",
+  lk:[["Nationalmusée Luxembourg","https://www.mnaha.lu/en/roman-villa-echternach"],["Visit Luxembourg","https://www.visitluxembourg.com/de/attraktion/gallo-romische-statte-echternach"]]},
+ {id:"villa-wittlich",typ:"ort",n:"Römische Villa Rustica Wittlich",o:"Wittlich",cat:["roemisch","gratis"],
+  d:"Zwischen 150 und 200 n. Chr. erbaut, eines der größten Landgüter nördlich der Alpen; der Mittelteil des Hauptgebäudes liegt unter einem Schutzbau. Von außen frei zugänglich, Führungen gegen Gebühr.",
+  rom:"Zeigt die Betriebsseite der römischen Provinz: kein Palast, sondern ein Gut, das Trier ernährt hat.",
+  p:"0 € von außen · Führung 3 € p. P., Kinder frei",z:"Führungen Mai–Okt So 10:30",ev:"B",
+  lk:[["Stadt Wittlich · Römische Villa","https://www.wittlich.de/de/leben-in-wittlich/kultur/museen/roemische-villa/"],["Rom in Deutschland","https://rom-in-deutschland.de/Seiten/roemische-villa-rustica-wittlich.html"]]},
+ {id:"kelter-piesport",typ:"ort",n:"Römische Kelteranlage Piesport",o:"Piesport",cat:["roemisch","wein"],
+  d:"Größte römische Kelteranlage nördlich der Alpen: 44 × 20 m, 4. Jh. n. Chr.; 1992 kam eine zweite Anlage von 15 × 6 m mit vier Becken aus dem 2. Jh. dazu. Maischebecken, Fumarium und große Baumpresse sind funktionsfähig.",
+  rom:"Hier wurde römischer Moselwein gemacht — in der Anlage, nicht in der Vorstellung. In Betrieb ist sie beim Kelterfest, dessen Termin für 2026 nicht zu belegen war (Kapitel 7).",
+  p:"Außenanlage frei zugänglich",z:"Vorführungen zum Kelterfest (Termin 2026 unbelegt)",ev:"B",
+  lk:[["Atlas der Weinkultur RLP","https://atlas-der-weinkultur-rlp.de/roemerwein-im-moseltal-kelteranlagen-piesport"],["Deutsche Weine","https://www.deutscheweine.de/hoehepunkt-der-weinkultur/360/r%C3%B6mische-kelteranlage-piesport"]]},
+ {id:"kelter-brauneberg",typ:"ort",n:"Spätrömische Kelteranlage Brauneberg",o:"Brauneberg",cat:["roemisch","wein","gratis"],
+  d:"Kelteranlage des 2. Jh., zwischen den Anlagen von Piesport und Erden gelegen — im Zentrum des römischen Anbaugebiets an der Mittelmosel.",
+  rom:"Der dritte Punkt, der aus zwei Fundstellen eine Weinlandschaft macht: Die Römer haben hier nicht ein Gut betrieben, sondern eine Industrie.",
+  p:"frei zugänglich",z:"ganzjährig",ev:"C",
+  lk:[["Regio drei · Kelteranlage Brauneberg","https://regiodrei.de/roemer-wein-und-mosel-kelteranlage-in-brauneberg/"],["Brauneberg","https://www.brauneberg.de/weingenuss/"]]},
+ {id:"wasserleitung",typ:"ort",n:"Römische Ruwerwasserleitung",o:"Waldrach im Ruwertal",cat:["roemisch","gratis","natur"],
+  d:"12,8 km lange Wasserleitung des 2. Jh. von der Ruwer nach Trier, Gefälle 0,016 % bei 7,7 m Höhenunterschied auf der ganzen Strecke, Leistung rund 25.000 m³ am Tag — ungefähr der Trinkwasserbedarf des heutigen Trier. An der Ruwertalstraße steht ein nachgebautes Stück auf Betonsockel, das Querschnitt und Bauweise zeigt.",
+  rom:"Die Zahl, die hängen bleibt: 7,7 Meter Gefälle auf 12,8 Kilometer. Wer wissen will, was römische Vermessung konnte, findet hier die Antwort.",
+  p:"0 €",z:"immer",ev:"B",
+  lk:[["Römische Ruwerwasserleitung","https://de.wikipedia.org/wiki/R%C3%B6mische_Ruwerwasserleitung"],["Ruwer-Hochwald-Radweg","https://www.ruwer-hochwald-radweg.de/sehenswertes-und-wissenswertes/attraktionen-pool/roemische-wasserleitung-waldrach/"]]},
+ {id:"qanat-poelich",typ:"ort",n:"Römischer Qanat Pölich",o:"Pölich an der Mosel",cat:["roemisch","gratis","natur"],
+  d:"Tunnelwasserleitung römischen Ursprungs, in den Schieferfels gehauen. 1987/88 wurden rund 50 m der insgesamt etwa 400 m langen Anlage freigelegt; ein Themenweg führt den weiteren Verlauf hinauf in die Weinberge.",
+  rom:"Ein Qanat an der Mosel — dieselbe Technik wie im Vorderen Orient, von der römischen Verwaltung mitgebracht. Steht in keiner Trier-Liste.",
+  p:"0 €",z:"immer",ev:"B",
+  lk:[["Römische Wasserleitung Pölich","https://en.visitmosel.de/cities-culture/poi/roman-water-pipe"],["Römische Wasserleitungen der Region","http://www.abel-perl.com/Die-Roemer-in-der-Region/Roemische-Wasserleitungen/"]]},
+ {id:"weinschiff",typ:"ort",n:"Römerweinschiff Stella Noviomagi",o:"Neumagen-Dhron",cat:["roemisch","wein","pflicht"],
+  d:"Fahrtüchtiger Nachbau des Neumagener Weinschiffs; das Original steht als Grabdenkmal im Rheinischen Landesmuseum Trier. Treffpunkt ist der Info-Pavillon Römerweinschiff, Pelzergasse 7, wo die Fahrt mit einem Film beginnt.",
+  rom:"Das Denkmal, das man im Museum als Stein sieht, fährt hier auf dem Fluss — die einzige Gelegenheit dieser Art. Erst ins Landesmuseum, dann aufs Schiff: in dieser Reihenfolge.",
+  p:"Kulturfahrt 18 € p. P. · Kinder 6–14 J. halber Preis",z:"Mai–Okt Sa 15:30/16:00, So 10:00 · Samstagszeit widersprüchlich (Kapitel 5)",ev:"A",
+  lk:[["Neumagen-Dhron · Weinschiff","https://www.neumagen-dhron.de/weinschiff-stella-noviomagi/"],["Mosel-Touristinformation","https://www.mosel.de/freizeit/schifffahrt/details/?tx_ttnews%5Btt_news%5D=554&cHash=5394458d8ee91cfff911209e0d2163d7"]]},
+
+ /* ===== Umland allgemein ===== */
+ {id:"roscheider-hof",typ:"ort",n:"Freilichtmuseum Roscheider Hof",o:"Konz",cat:["museum","natur"],
+  d:"Volkskunde- und Freilichtmuseum über der Saarmündung: historische Gebäude, Handwerk und ländliches Leben der Region. Saison 21.03.–02.11.2026, täglich 10–18 Uhr, Kasse bis 17 Uhr; die Museumsgaststätte ist montags geschlossen.",
+  rom:"Kein Römerziel, aber die Fortsetzung derselben Frage: wie in dieser Landschaft gearbeitet und gewohnt wurde, nur 1.500 Jahre später.",
+  p:"Kinder bis 6 J. frei · Erwachsenenpreis nicht belegt (Kapitel 7)",z:"21.03.–02.11.2026 tägl. 10–18",ev:"B",
+  lk:[["Museumsportal RLP","https://www.museumsportal-rlp.de/museen/volkskunde-und-freilichtmuseum-roscheider-hof"],["Saar-Obermosel","https://www.saar-obermosel.de/infosystem/is/Freilichtmuseum-Roscheider-Hof-Konz_Konz"]]},
+ {id:"saarburg",typ:"ort",n:"Saarburg — Wasserfall & Altstadt",o:"Saarburg",cat:["natur","stadt","gratis"],
+  d:"Der Leukbach stürzt mitten in der Altstadt rund 18 m in die Tiefe; darüber die Burgruine, ringsum Gassen, Weinstuben und die Saar.",
+  rom:"Der Nachmittag ohne Antike — dafür der Ort, an dem sich das Saartal am besten erklärt. Lässt sich mit Tawern auf einer Fahrt verbinden.",
+  p:"0 €",z:"immer",ev:"B",
+  lk:[["Saar-Obermosel","https://www.saar-obermosel.de/"]]},
+ {id:"greifvogelpark",typ:"ort",n:"Greifvogelpark Saarburg",o:"Saarburg",cat:["natur"],
+  d:"Greifenwarte über Saarburg mit Flugvorführungen. Zeiten und Preise für 2026 waren nicht zu belegen (Kapitel 7) — vor der Fahrt beim Betreiber prüfen.",
+  rom:"Für die Begleitung, die nach dem vierten Mosaik genug hat.",
+  p:"nicht belegt",z:"nicht belegt",ev:"D",
+  lk:[["Greifvogelpark Saarburg","https://www.greifvogelpark-saarburg.de/"]]},
+ {id:"baumwipfelpfad",typ:"ort",n:"Baumwipfelpfad Saarschleife & Cloef",o:"Mettlach-Orscholz",cat:["natur"],
+  d:"1.250 m Holzsteg durch den Laubmischwald zu einem Aussichtsturm über der Saarschleife, barrierearm mit maximal 6 % Steigung und kinderwagentauglich. Der klassische Blick von der Cloef ist kostenlos.",
+  rom:"Der Landschaftsblick der Region — und die einzige Stelle, an der man begreift, warum die römischen Straßen hier oben und nicht am Fluss verliefen.",
+  p:"Baumwipfelpfad kostenpflichtig · Cloef-Aussicht 0 €",z:"ganzjährig, saisonale Zeiten (Sommer bis 18 Uhr)",ev:"B",
+  lk:[["Baumwipfelpfad Saarschleife","https://www.baumwipfelpfad.de/baumwipfelpfad-saarschleife"],["Besucherinformationen","https://treetop-walks.com/saarschleife/en/treetop-walk/visitor-information/"]]},
+ {id:"bernkastel",typ:"ort",n:"Bernkastel-Kues & Burg Landshut",o:"Bernkastel-Kues",cat:["stadt","wein","natur"],
+  d:"Fachwerkaltstadt mit St.-Michaels-Brunnen und historischem Marktplatz, darüber die Ruine der Burg Landshut aus dem 13. Jh., Sommerresidenz der Trierer Erzbischöfe, 1692 abgebrannt. Vom Marktplatz rund 30 Minuten hinauf; der Turm ist begehbar, im Hof gibt es Gastronomie.",
+  rom:"Die weiteste Tagesfahrt dieses Guides und die am wenigsten römische — dafür der Ort, an dem die Mosel am schönsten ist. Lässt sich mit Piesport, Neumagen und Brauneberg zu einer Kelter-Runde verketten.",
+  p:"Altstadt 0 € · Burg nach Angebot",z:"immer",ev:"B",
+  lk:[["Bernkastel · Burg Landshut","https://en.bernkastel.de/landshut-castle"],["Altstadt Bernkastel-Kues","https://www.altstadt-bernkastel-kues.de/burg-landshut/"]]},
+ {id:"luxemburg",typ:"ort",n:"Luxemburg-Stadt",o:"Luxembourg (Luxemburg)",land:"lu",cat:["stadt","natur","museum"],
+  d:"UNESCO-Altstadt mit Kasematten, Felsen und Museen, rund 50 km von Trier. Als ganztägiger Ausflug an einem Tag, an dem die Römerbauten geschlossen sind oder das Wetter kippt.",
+  rom:"Streng genommen ein Themenbruch — aber die Villa Echternach liegt auf dem Weg, und beide zusammen ergeben einen vollen Luxemburg-Tag.",
+  p:"je nach Ziel",z:"—",ev:"C",
+  lk:[["Visit Luxembourg","https://www.visitluxembourg.com/"]]},
+
+ /* ===== Termine im und um den Reisezeitraum ===== */
+ {id:"ev-zenturio",typ:"event",geo:"porta-nigra",n:"Das Geheimnis der Porta Nigra — Erlebnisführung mit einem römischen Zenturio",o:"Trier, Porta Nigra",cat:["roemisch","pflicht"],
+  d:"Ein professioneller Schauspieler führt als römischer Zenturio durch das Tor und erzählt von römischer Pracht und Kampf. Dauer 60 Minuten, Treffpunkt ist die Tourist-Information an der Porta Nigra.",
+  rom:"Die bekannteste Erlebnisführung der Stadt und der beste Einstieg, wenn Kinder oder Mitreisende dabei sind, die sonst nur graue Mauern sehen. Samstags im Sommer zusätzlich um 15:00.",
+  p:"19 € / erm. 17 € / Kind 6–14 J. 10 € / Familie 48 €",z:"Di, Sa, So 13:00 · Sa Jul–Sep zusätzlich 15:00",t:"13:00 (Sa auch 15:00)",rw:[0,2,6],until:"2026-10-31",ev:"A",
+  lk:[["Tourist-Information · Porta Nigra","https://www.trier-info.de/fuehrungen/das-geheimnis-der-porta-nigra"],["Ticket Regional","https://www.ticket-regional.de/events_info.php?eventID=196215"]]},
+ {id:"ev-valerius",typ:"event",geo:"amphitheater",n:"Der Gladiator Valerius — Erlebnisführung im Amphitheater",o:"Trier, Amphitheater",cat:["roemisch","pflicht"],
+  d:"75-minütige Führung durch Arena und Untergänge: Der Gladiator Valerius folgt den Spuren der Tiere, Kämpfer und Freunde, die in der Arena umkamen. Läuft vom 31.03. bis 31.10.2026; empfohlen ab etwa 10 Jahren, die Untergänge sind nicht barrierefrei.",
+  rom:"Der Grund, abends noch einmal ins Amphitheater zu gehen — bei Tageslicht sieht man den Keller, hier sieht man, wofür er da war.",
+  p:"19 € / erm. 17 € / Kind 6–14 J. 10 € / Familie 48 €",z:"Apr–Sep Mi, Fr, Sa 18:00 · Okt 17:00",t:"18:00",rw:[3,5,6],until:"2026-10-31",ev:"A",
+  lk:[["Tourist-Information · Gladiator Valerius","https://www.trier-info.de/oeffentliche-fuehrungen/der-gladiator-valerius"],["Ticket Regional","https://www.ticket-regional.de/events_info.php?eventID=175564"]]},
+ {id:"ev-keller",typ:"event",geo:"hospitien",n:"Entdeckerführung im ältesten Weinkeller Deutschlands",o:"Trier, Krahnenufer 19",cat:["wein","roemisch","pflicht","essen"],
+  d:"Rund 60 Minuten durch den um 330 n. Chr. gebauten römischen Kellerraum, mit zwei Weinen des VDP-Guts. Treffpunkt Vinothek der Vereinigten Hospitien.",
+  rom:"Römischer Bau, römisches Produkt, 1.700 Jahre ohne Unterbrechung — der kompakteste Beleg für Kontinuität, den die Region zu bieten hat.",
+  p:"17,50 € p. P.",z:"Apr–Okt Mi & Fr 11:00 sowie ausgewählte Samstage",t:"11:00",rw:[3,5],until:"2026-10-30",ev:"A",
+  lk:[["Weingut Vereinigte Hospitien","https://weingut.vereinigtehospitien.de/pages/kellerfuhrungen"],["Tourist-Information","https://www.trier-info.de/oeffentliche-fuehrungen/entdeckerfuehrung-im-aeltesten-weinkeller-deutschlands"]]},
+ {id:"ev-tawern",typ:"event",geo:"tawern",n:"Sonntagsführung im Tempelbezirk Tawern",o:"Tawern, Metzenberg",cat:["roemisch","gratis"],
+  d:"Der Verein Römisches Tawern e.V. führt von Mai bis Oktober jeden Sonntag von 14:30 bis 16:30 durch den Tempelbezirk. Auf Wunsch gibt es vor Ort Kaffee und Kuchen.",
+  rom:"Ehrenamtlich geführt, kostenlos und detailversessen — die Art von Führung, die man in großen Museen nicht bekommt.",
+  p:"0 €",z:"Mai–Okt sonntags 14:30–16:30",t:"14:30–16:30",rw:[0],until:"2026-10-25",ev:"A",
+  lk:[["Verein Römisches Tawern e.V.","http://www.roemisches-tawern.de/?page_id=503"]]},
+ {id:"ev-weinschiff",typ:"event",geo:"weinschiff",n:"Fahrt mit dem Römerweinschiff Stella Noviomagi",o:"Neumagen-Dhron",cat:["roemisch","wein","pflicht"],
+  d:"Kulturfahrt für Einzelgäste ab dem Info-Pavillon Pelzergasse 7: erst ein Film als Auftakt der Zeitreise, dann die Fahrt auf der Mosel im Nachbau des Neumagener Weinschiffs.",
+  rom:"Für die Samstagszeit nennen die Quellen 15:30 und 16:00 — vor der Fahrt anrufen. Mittwochsfahrten gelten nur in den rheinland-pfälzischen Sommerferien, die vor der Reisewoche enden; sie sind hier deshalb nicht geführt.",
+  p:"18 € p. P. · Kinder 6–14 J. halber Preis",z:"Mai–Okt Sa nachmittags, So 10:00",t:"Sa 15:30/16:00 · So 10:00",rw:[0,6],until:"2026-10-25",ev:"A",
+  lk:[["Neumagen-Dhron","https://www.neumagen-dhron.de/weinschiff-stella-noviomagi/"],["Bernkastel-Portal","https://en.bernkastel.de/poi/stella-noviomagi-roman-wine/poi.html"]]},
+ {id:"ev-longuich",typ:"event",geo:"villa-longuich",n:"Führung Römische Villa Urbana Longuich",o:"Longuich-Kirsch",cat:["roemisch","thermen"],
+  d:"Sonntägliche Führung durch den Badetrakt der Villa urbana: Frigidarium, Tepidarium, Caldarium, Sudatorium und Heizraum. Anmeldung über die Tourist-Information Longuich oder direkt bei den Villenführern.",
+  rom:"Ein Privatbad, das man nur mit Führung zu sehen bekommt — und der beste Vergleichspunkt zu den Kaiserthermen.",
+  p:"3 € Erwachsene · Kinder frei",z:"Mai–Okt sonntags 10:30",t:"10:30",rw:[0],until:"2026-10-25",ev:"B",
+  lk:[["Gemeinde Longuich","https://www.longuich.de/Veranstaltung/fuehrung-der-roemischen-villa/"]]},
+ {id:"ev-wittlich",typ:"event",geo:"villa-wittlich",n:"Führung Römische Villa Rustica Wittlich",o:"Wittlich",cat:["roemisch"],
+  d:"Führung durch das römische Landgut unter dem Schutzbau, sonntags von Mai bis Oktober; Gruppen bis 15 Personen nach Absprache.",
+  rom:"Die Betriebsseite der Provinz, erklärt von Leuten, die die Grabungsgeschichte kennen.",
+  p:"3 € p. P. · Kinder frei",z:"Mai–Okt sonntags 10:30",t:"10:30",rw:[0],until:"2026-10-25",ev:"B",
+  lk:[["Stadt Wittlich","https://www.wittlich.de/de/leben-in-wittlich/kultur/museen/roemische-villa/"]]},
+ {id:"ev-markt",typ:"event",geo:"wochenmarkt",n:"Wochenmarkt am Viehmarktplatz",o:"Trier, Viehmarkt",cat:["stadt","essen","gratis"],
+  d:"Regionale Erzeuger mit Obst, Gemüse, Backwaren, Fleisch, Fisch, Käse, Eiern und Honig — dienstags und freitags. Fällt einer der Tage auf einen Feiertag, findet der Markt einen Tag früher statt.",
+  rom:"Liegt direkt über den Thermen am Viehmarkt: erst Markt, dann eine Etage tiefer ins 2. Jahrhundert.",
+  p:"0 €",z:"Di & Fr 7–14 (Apr–Sep)",t:"7–14 Uhr",rw:[2,5],until:"2026-12-31",ev:"B",
+  lk:[["Stadt Trier · Wochenmärkte","https://www.trier.de/wirtschaft-arbeit/einzelhandel/wochenmaerkte/"]]},
+ {id:"ev-viezfest",typ:"event",geo:"domfreihof",n:"Trierer Viezfest",o:"Trier, Domfreihof",cat:["essen","stadt","gratis"],
+  d:"Die Trierer Viezbruderschaft stellt Viez-Varianten regionaler Erzeuger vor: Livemusik, regionale Spezialitäten, Verkostungen, offizielle Eröffnung am Vormittag und das limitierte Künstlerporzellan-Gefäß des Jahres — 2026 mit Porta-Nigra-Motiv von Roland Dahm. Eintritt frei.",
+  rom:"Der Trierer Apfelwein steht als immaterielles Kulturerbe auf der UNESCO-Liste und wird aus dem „Porz“ getrunken — und der Domfreihof liegt mitten im ehemaligen konstantinischen Palastbezirk. Fällt genau in die Reisewoche.",
+  p:"0 €",z:"Sa 22.08.2026, Domfreihof",t:"ganztags",w:[["2026-08-22","2026-08-22"]],ev:"A",
+  lk:[["Tourist-Information · Viezfest","https://www.trier-info.de/vieztradition/viezfest"],["Festivalkalender","https://www.festivalsindeutschland.de/festival/viezfest-trier"]]},
+ {id:"ev-anatevka",typ:"event",geo:"augustinerhof",n:"Anatevka — Open-Air auf dem Augustinerhof",o:"Trier, Augustinerhof",cat:["stadt"],
+  d:"Das Musical „Anatevka / Fiddler on the Roof“ von Jerry Bock, Joseph Stein und Sheldon Harnick, gespielt von Musiktheater- und Schauspielensemble des Theaters Trier unter freiem Himmel. Beginn jeweils 19:30.",
+  rom:"Kein Römerabend, aber der einzige Open-Air-Termin der Reisewoche — und der Augustinerhof liegt fünf Gehminuten vom Hauptmarkt. Preise nur über den Ticketshop (Kapitel 7).",
+  p:"Ticketpreise nicht belegt",z:"20.–23. und 25.–28.08.2026, 19:30",t:"19:30",w:[["2026-08-20","2026-08-23"],["2026-08-25","2026-08-28"]],ev:"A",
+  lk:[["Theater Trier · Open-Air","https://theater-trier.de/seiten/open-air.html"],["Produktionsseite","https://theater-trier.de/produktionen/anatevka-2.html"]]},
+ {id:"ev-nittel",typ:"event",geo:"nittel",n:"St.-Rochus-Weinkirmes Nittel",o:"Nittel an der Obermosel",cat:["wein","essen"],
+  d:"Vier Tage Weinkirmes an der Obermosel: entlang der Weinstraße und auf dem Kirmesplatz schenken die Betriebe Elbling und Burgunder aus — die Obermosel ist das Elbling-Gebiet, nicht Rieslingland.",
+  rom:"Elbling gilt als die Rebsorte, die am ehesten auf die römische Anbautradition zurückgeht. Wer den römischen Wein sucht, trinkt hier näher dran als in Trier.",
+  p:"Eintritt frei",z:"21.–24.08.2026",t:"Fr–Mo",w:[["2026-08-21","2026-08-24"]],ev:"B",
+  lk:[["Weinfeste Trier-Saarburg","https://www.regio-trier-saarburg.com/weinfeste-in-trier-und-umgebung/"]]},
+ {id:"ev-otrang",typ:"event",geo:"villa-otrang",n:"Öffentliche Führung Römische Villa Otrang",o:"Fließem",cat:["roemisch","gratis","museum"],
+  d:"Führung durch die Villa und ihre Mosaiken, jeweils am letzten Sonntag des Monats um 11 Uhr. Am 13.09.2026 zusätzlich zum Tag des offenen Denkmals: 11 Uhr Expertenführung, 14 Uhr Familienführung.",
+  rom:"Kostenlos geführt — aber der nächste Termin liegt eine Woche NACH der Reisewoche. Das Gelände selbst ist Mi–So ohnehin frei zugänglich.",
+  p:"0 €",z:"letzter So im Monat, 11:00",t:"11:00",w:[["2026-08-30","2026-08-30"],["2026-09-13","2026-09-13"],["2026-09-27","2026-09-27"],["2026-10-25","2026-10-25"]],ev:"A",
+  lk:[["RLP-Tourismus · Villa Otrang","https://www.rlp-tourismus.com/de/ausflugsziele/roemische-villa-otrang/poi.html"]]},
+ {id:"ev-puppen",typ:"event",geo:"porta-nigra",n:"Handpuppenführung durch die Porta Nigra",o:"Trier, Porta Nigra",cat:["roemisch","museum"],
+  d:"Führung mit Handpuppen durch das Tor, angeboten vom Zentrum der Antike.",
+  rom:"Für Familien der sanftere Einstieg als der Zenturio — liegt aber eine Woche nach der Reisewoche.",
+  p:"nach Angebot",z:"30.08.2026, 15:00",t:"15:00",w:[["2026-08-30","2026-08-30"]],ev:"B",
+  lk:[["Zentrum der Antike · Kalender","https://www.zentrum-der-antike.de/veranstaltungen/kalender"]]},
+ {id:"ev-roemerleben",typ:"event",geo:"amphitheater",n:"Römer-Leben im Amphitheater (Septembertermin)",o:"Trier, Amphitheater",cat:["roemisch","pflicht"],
+  d:"Nachfolgereihe von „Brot & Spiele“, seit 2024: An einem Wochenende je Monat von Mai bis September zeigen Reenactment-Gruppen Aspekte des römischen Alltags; die Gladiatorenschule Trier e.V. führt Schaukämpfe und Ausrüstung vor.",
+  rom:"Der einzige Termin, an dem im Trierer Amphitheater wieder gekämpft wird — allerdings erst im September, also nach der Reisewoche. Der Termin ist aus der Regel „erstes Wochenende im Monat“ abgeleitet und vor der Fahrt zu bestätigen.",
+  p:"Amphitheater-Eintritt",z:"abgeleiteter Termin, unbestätigt",t:"Wochenende",w:[["2026-09-05","2026-09-06"]],ev:"C",
+  lk:[["Zentrum der Antike · Römer-Leben","https://www.zentrum-der-antike.de/events-alle/detail/2026-06-06_0900/roemer-leben-2026-1"],["Brot & Spiele (Geschichte)","https://de.wikipedia.org/wiki/Brot_&_Spiele"]]}
+];
+
+const ALL=M.map(m=>Object.assign({land:'de'},m,G[m.geo||m.id]));
+
+/* ---------- Zustand & Logik ---------- */
+const CATCOLOR={roemisch:"#d9b25c",pflicht:"#e08a5e",thermen:"#7fb0cf",museum:"#c07fa4",wein:"#c26b7a",
+  essen:"#e08a5e",stadt:"#a9b4b0",natur:"#8fb877",indoor:"#7fb0cf",gratis:"#8fb877"};
+const CATLABEL={roemisch:"Römisch",pflicht:"Rom-Pflicht",thermen:"Bäder & Thermen",museum:"Museum",wein:"Wein",
+  essen:"Essen",stadt:"Stadt & Kirche",natur:"Natur & Aussicht",indoor:"Schlechtwetter",gratis:"Gratis",
+  favoriten:"Favoriten",social:"Portal-Fund"};
+const ORTNAME={pn:"Porta Nigra",hb:"Hauptbahnhof"};
+const STARTPUNKT={pn:[49.75972,6.64400],hb:[49.75630,6.65410]};
+/* Reisezeitraum, auf den die Schaltfläche springt */
+const REISE_VON="2026-08-17", REISE_TAGE=7;
+
+/* Lokales Datum, nicht toISOString — das rechnet in UTC und springt abends einen Tag zurück */
+function heuteISO(){
+  const d=new Date();
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+const FAVKEY="trierguide.favoriten";
+let favs=new Set();
+try{ const raw=localStorage.getItem(FAVKEY); if(raw)favs=new Set(JSON.parse(raw)); }catch(err){ /* Speicher nicht verfügbar — Favoriten gelten nur für diese Sitzung */ }
+function favSpeichern(){ try{ localStorage.setItem(FAVKEY,JSON.stringify(Array.from(favs))); }catch(err){} }
+let ansicht="radar",zoomF=1,panX=0,panY=0,lmap=null,lschicht=null;
+const SKALA=90; /* 205 px entsprechen bei Zoom 1 genau 90 min bzw. 90 km */
+let origin="pn",cat="alle",typ="alle",land="alle",unit="min",maxVal=90,ab=heuteISO(),spanDays=90,sortBy="dist";
+
+const dist=e=>unit==="min"?(origin==="pn"?e.mp:e.mh):(origin==="pn"?e.kp:e.kh);
+const km=e=>origin==="pn"?e.kp:e.kh;
+const mn=e=>origin==="pn"?e.mp:e.mh;
+const deg=e=>origin==="pn"?e.dp:e.dh;
+const artIcon=e=>e.art==="fuss"?"🚶":"🚗";
+const iso=d=>d.toISOString().slice(0,10);
+function bisDatum(){ const d=new Date(ab+"T12:00:00"); d.setDate(d.getDate()+spanDays); return iso(d); }
+
+function nextWin(e){
+  if(e.typ!=="event")return null;
+  if(e.rw){
+    const start=new Date(ab+"T12:00:00"), end=new Date(e.until+"T12:00:00");
+    for(let i=0;i<400;i++){
+      const c=new Date(start); c.setDate(start.getDate()+i);
+      if(c>end)return null;
+      if(e.rw.includes(c.getDay()))return {c:iso(c),s:iso(c),e:iso(c),single:true};
+    }
+    return null;
+  }
+  let best=null;
+  for(const [s,en] of e.w){ if(en>=ab){ const c=s>ab?s:ab; if(!best||c<best.c)best={c:c,s:s,e:en}; } }
+  return best;
+}
+const fmtD=s=>new Date(s+"T12:00:00").toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit"});
+
+function dateBadge(e){
+  if(e.typ!=="event")return '<span class="datebadge always">📍 jederzeit</span>';
+  const w=nextWin(e); if(!w)return "";
+  let txt;
+  if(w.s<=ab&&w.e>=ab&&w.s!==w.e) txt="läuft · bis "+fmtD(w.e);
+  else if(w.s===w.e) txt=(w.s===ab?"heute, ":"")+fmtD(w.s);
+  else txt=fmtD(w.s)+" – "+fmtD(w.e);
+  if(e.t)txt+=" · "+e.t;
+  return '<span class="datebadge">📅 '+txt+'</span>';
+}
+function visible(e){
+  if(cat==="favoriten")return favs.has(e.id);
+  if(dist(e)>maxVal)return false;
+  if(land!=="alle"&&(e.land||"de")!==land)return false;
+  if(typ!=="alle"&&e.typ!==typ)return false;
+  if(cat==="social"){ if(!e.soc)return false; }
+  else if(cat!=="alle"&&!e.cat.includes(cat))return false;
+  if(e.typ==="event"){ const w=nextWin(e); if(!w||w.c>bisDatum())return false; }
+  return true;
+}
+function sorted(list){
+  const l=list.slice();
+  if(sortBy==="dist") l.sort((a,b)=>dist(a)-dist(b)||a.n.localeCompare(b.n,"de"));
+  else l.sort((a,b)=>{
+    const da=a.typ==="event"?nextWin(a).c:ab, db2=b.typ==="event"?nextWin(b).c:ab;
+    if(da!==db2)return da<db2?-1:1;
+    if(a.typ!==b.typ)return a.typ==="event"?-1:1;
+    return dist(a)-dist(b);
+  });
+  return l;
+}
+
+function renderGrid(){
+  const vis=sorted(ALL.filter(visible));
+  document.getElementById("grid").innerHTML=vis.map(function(e){
+    return '<article class="card '+e.typ+'" id="c-'+e.id+'">'+
+      '<div class="head"><div><div class="ort">'+(e.typ==="event"?"TERMIN · ":"")+(e.land==="lu"?"🇱🇺 ":"")+e.o+'</div><h3>'+e.n+'</h3></div>'+
+      '<span class="drive"><b>'+km(e).toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1})+' km</b>'+artIcon(e)+' '+mn(e)+' min</span>'+
+      '<button class="fav'+(favs.has(e.id)?" on":"")+'" data-fav="'+e.id+'" title="Als Favorit merken" aria-label="Als Favorit merken">'+(favs.has(e.id)?"★":"☆")+'</button></div>'+
+      '<div class="badges">'+dateBadge(e)+
+        (e.cat.indexOf("pflicht")>=0?'<span class="pflichtbadge">🏛 Rom-Pflicht</span>':'')+
+        (e.soc?'<span class="socialbadge">📱 Portal-Fund</span>':'')+'</div>'+
+      '<p class="desc">'+e.d+'</p>'+
+      '<p class="fit"><b>ROM-FANS ▸</b> '+e.rom+'</p>'+
+      '<div class="meta"><span class="ev ev'+e.ev+'">'+e.ev+'</span><span>'+e.p+'</span>'+
+      (e.z?'<span>·</span><span>'+e.z+'</span>':'')+
+      e.lk.map(function(l){return '<a href="'+l[1]+'" target="_blank" rel="noopener">'+l[0]+' ↗</a>'}).join('<span class="sep">·</span>')+'</div></article>';
+  }).join("");
+  if(cat==="favoriten"&&vis.length===0){
+    document.getElementById("grid").innerHTML='<p class="leer">Noch keine Favoriten. Tippen Sie auf den Stern rechts oben auf einer Karte — die Auswahl bleibt auch nach dem Schließen der Seite erhalten.</p>';
+  }
+  const nEv=vis.filter(function(x){return x.typ==="event"}).length;
+  document.getElementById("countLine").textContent=
+    vis.length+" Treffer ("+nEv+" Termine, "+(vis.length-nEv)+" Ziele) · Start "+ORTNAME[origin]+
+    " · ≤ "+maxVal+(unit==="min"?" Anreiseminuten":" km")+" · "+(land==="alle"?"DE + LU":(land==="de"?"nur Deutschland":"nur Luxemburg"))+" · ab "+fmtD(ab)+" · Sortierung: "+(sortBy==="dist"?"Entfernung":"Datum");
+  if(ansicht==="radar") renderRadar(vis.reduce(function(s,v){s[v.id]=1;return s},{}));
+  else renderKarte(vis);
+}
+
+/* ---------- Ziele am selben Punkt bündeln ---------- */
+/* Mehrere Einträge teilen sich exakt eine Koordinate: die Erlebnisführung am
+   Ort des Bauwerks, der Wochenmarkt über den Thermen. Einzeln gezeichnet
+   überlagern sich ihre Beschriftungen — deshalb ein Punkt je Koordinate und
+   die Namen darunter mehrzeilig. */
+const MAXZEILEN=4;
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+function buendeln(liste){
+  const nach={}, reihe=[];
+  liste.forEach(function(e){
+    if(!Number.isFinite(e.la))return;
+    const k=e.la.toFixed(5)+","+e.lo.toFixed(5);
+    if(!nach[k]){ nach[k]={teile:[]}; reihe.push(nach[k]); }
+    nach[k].teile.push(e);
+  });
+  return reihe;
+}
+/* Das Ziel führt die Gruppe an, nicht der Termin — es ist der Ort, der Termin
+   nur eine Uhrzeit dort. */
+function gruppenAnker(teile){
+  return teile.filter(function(e){ return e.typ!=="event" })[0]||teile[0];
+}
+/* Namen einer Gruppe, auf MAXZEILEN gekürzt: die letzte Zeile zählt den Rest. */
+function gruppenZeilen(teile,maxLen){
+  const kurz=function(s){ return s.length>maxLen?s.slice(0,maxLen-1)+"…":s; };
+  if(teile.length<=MAXZEILEN)
+    return teile.map(function(e){ return {id:e.id, text:kurz(e.n)}; });
+  const z=teile.slice(0,MAXZEILEN-1).map(function(e){ return {id:e.id, text:kurz(e.n)}; });
+  z.push({id:teile[MAXZEILEN-1].id, text:"+"+(teile.length-(MAXZEILEN-1))+" weitere hier"});
+  return z;
+}
+
+/* ---------- Vom Punkt zur Karteikarte ---------- */
+function zumEintrag(id){
+  const ziel=document.getElementById("c-"+id);
+  if(!ziel)return;
+  const warVoll=vollbildAn();
+  vollbildBeenden();
+  setTimeout(function(){
+    ziel.scrollIntoView({behavior:"smooth",block:"center"});
+    ziel.classList.remove("angesprungen");
+    void ziel.offsetWidth;              /* erzwingt den Neustart der Animation */
+    ziel.classList.add("angesprungen");
+  },warVoll?160:0);
+}
+/* In der Erfassungsphase, damit Leaflet den Klick auf eine Etikettzeile nicht
+   zusätzlich als Klick auf den Marker wertet und das Popup aufzieht. */
+document.addEventListener("click",function(ev){
+  const a=ev.target.closest&&ev.target.closest('a[href^="#c-"]');
+  if(!a)return;
+  ev.preventDefault(); ev.stopPropagation();
+  zumEintrag(a.getAttribute("href").slice(3));
+},true);
+
+function renderRadar(ids){
+  const svg=document.getElementById("radar"),cx=320+panX,cy=240+panY,R=205;
+  const px=function(v){ return R*v/SKALA*zoomF; };
+  /* Schrift wächst mit dem Zoom bis auf das Dreifache bei Stufe 12 */
+  const fs=function(basis){ return (basis*(1+(Math.min(zoomF,12)-1)/11*2)).toFixed(1); };
+  const RINGE=[5,10,15,20,30,45,60,90];
+  const sichtbar=function(r){ return r>14 && r<1600; };
+  let out="";
+  RINGE.forEach(function(m){
+    const r=px(m); if(!sichtbar(r))return;
+    const aussen=Math.abs(m-SKALA)<0.01;
+    out+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="var(--line)" stroke-width="'+(aussen?1.6:1)+'"'+(aussen?'':' stroke-dasharray="3 5"')+'/>';
+    const ly=cy-r-6;
+    if(ly>16&&ly<474) out+='<text x="'+(cx+5)+'" y="'+ly+'" font-family="IBM Plex Mono" font-size="'+fs(10.5)+'" fill="var(--muted)">'+m+(unit==="min"?"′":" km")+'</text>';
+  });
+  [["N",cx,cy-232],["O",cx+236,cy+4],["S",cx,cy+238],["W",cx-240,cy+4]].forEach(function(a){
+    if(a[1]<8||a[1]>632||a[2]<14||a[2]>472)return;
+    out+='<text x="'+a[1]+'" y="'+a[2]+'" text-anchor="middle" font-family="IBM Plex Mono" font-size="'+fs(11.5)+'" fill="var(--muted)">'+a[0]+'</text>'; });
+  out+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(5.5*Math.min(1+(zoomF-1)/11,2)).toFixed(1)+'" fill="var(--amber)"/><text x="'+(cx+10)+'" y="'+(cy+4)+'" font-family="IBM Plex Mono" font-size="'+fs(11)+'" fill="var(--amber)">'+ORTNAME[origin].toUpperCase()+'</text>';
+  let versteckt=0; const belegt={}, beschriftet=[];
+  const gr=+fs(10.5), zh=gr*1.18, pg=Math.min(1+(zoomF-1)/11*1.2,2.2);
+  buendeln(ALL).forEach(function(g){
+    /* Alle Teile der Gruppe liegen auf derselben Koordinate, also genügt einer
+       für Entfernung und Peilung. */
+    const e0=g.teile[0];
+    const r=px(dist(e0)), a=(deg(e0)-90)*Math.PI/180;
+    let x=cx+r*Math.cos(a), y=cy+r*Math.sin(a);
+    const dabei=g.teile.filter(function(e){ return !!ids[e.id] });
+    const on=dabei.length>0;
+    /* Verschiedene Orte, die trotzdem auf dasselbe Pixelraster fallen,
+       weiterhin leicht auffächern */
+    const schluessel=Math.round(x/9)+","+Math.round(y/9);
+    const n=belegt[schluessel]||0; belegt[schluessel]=n+1;
+    if(n>0){ const w=n*1.9, sp=(7+n*2.5)*Math.min(1+(zoomF-1)/11*1.5,2.5); x+=Math.cos(w)*sp; y+=Math.sin(w)*sp; }
+    if(x<-30||x>670||y<-30||y>510){ versteckt+=dabei.length; return; }
+    const anker=gruppenAnker(on?dabei:g.teile);
+    const c=anker.typ==="event"?"var(--amber)":(CATCOLOR[anker.cat[0]]||"var(--teal)");
+    /* Der Punkt wächst mit der Zahl der Ziele, die auf ihm liegen. */
+    const rad=((on?6.5+Math.min(dabei.length-1,4)*0.9:3.5)*pg).toFixed(1);
+    const titel=(on?dabei:g.teile).map(function(e){ return esc(e.n)+" · "+km(e)+" km / "+mn(e)+" min" }).join("\n");
+    out+='<a href="#c-'+anker.id+'"><circle cx="'+x+'" cy="'+y+'" r="'+rad+'" fill="'+c+'" opacity="'+(on?0.95:0.16)+'"><title>'+titel+'</title></circle></a>';
+    if(on) beschriftet.push({x:x, y:y, rad:+rad, zeilen:gruppenZeilen(dabei,22)});
+  });
+  /* Beschriftungen liegen über allen Punkten, damit kein Punkt sie zerschneidet. */
+  beschriftet.forEach(function(b){
+    const x1=(b.x+4+b.rad).toFixed(1), oben=b.y+3.5-(b.zeilen.length-1)*zh/2;
+    b.zeilen.forEach(function(z,i){
+      out+='<a href="#c-'+z.id+'"><text x="'+x1+'" y="'+(oben+i*zh).toFixed(1)+'" font-family="Nunito" font-size="'+gr+'" font-weight="700" fill="var(--ink)">'+esc(z.text)+'</text></a>';
+    });
+  });
+  if(versteckt>0) out+='<text x="632" y="470" text-anchor="end" font-family="IBM Plex Mono" font-size="'+fs(10.5)+'" fill="var(--muted)">'+versteckt+' Ziel'+(versteckt===1?"":"e")+' außerhalb des Ausschnitts — verschieben</text>';
+  svg.innerHTML=out;
+}
+
+/* ---------- Kartenansicht ---------- */
+function sichtbareIds(){ return sorted(ALL.filter(visible)).reduce(function(a,v){a[v.id]=1;return a;},{}); }
+/* Kurzer Hinweis über der Karte, verschwindet nach ein paar Sekunden. */
+function kartenHinweis(text){
+  const box=lmap.getContainer();
+  let el=box.querySelector(".kartenhinweis");
+  if(!el) el=L.DomUtil.create("div","kartenhinweis",box);
+  el.textContent=text;
+  clearTimeout(el._weg);
+  el._weg=setTimeout(function(){ el.remove(); },7000);
+}
+/* Wacht über eine Zusatzebene: Kommt keine einzige Kachel an, während schon
+   mehrere Fehlschläge gezählt sind, liegt der Server flach — dann zurück auf
+   die Standardebene. */
+function kachelWache(standard,ebene,name){
+  let ok=0, fehler=0;
+  ebene.on("add",function(){ ok=0; fehler=0; });
+  ebene.on("tileload",function(){ ok++; });
+  ebene.on("tileerror",function(){
+    fehler++;
+    if(ok>0||fehler<4||!lmap.hasLayer(ebene))return;
+    lmap.removeLayer(ebene); standard.addTo(lmap);
+    kartenHinweis("Ebene „"+name+"“ antwortet gerade nicht — zurück auf „Straßen & Orte“.");
+  });
+}
+function renderKarte(vis){
+  if(typeof L==="undefined"){ document.getElementById("karte").innerHTML='<p class="leer">Karte konnte nicht geladen werden — bitte Internetverbindung prüfen. Das Radar funktioniert offline.</p>'; return; }
+  const start=STARTPUNKT[origin];
+  if(!lmap){
+    /* Ein früherer Ladefehler hat womöglich den Hinweistext hinterlassen —
+       der säße sonst unter der fertigen Karte weiter im Container. */
+    document.getElementById("karte").innerHTML="";
+    lmap=L.map("karte",{scrollWheelZoom:false, maxZoom:19}).setView(start,12);
+    /* Drei OpenStreetMap-Ebenen, alle ohne Schlüssel oder Anmeldung.
+       maxNativeZoom statt eines kleinen maxZoom: OpenTopoMap liefert nur bis
+       Stufe 17 eigene Kacheln — darüber werden sie hochskaliert, statt dass
+       die Ebene leer bleibt oder die Karte den Zoom deckelt. */
+    const strassen=L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+      {maxZoom:19, maxNativeZoom:19, attribution:'© OpenStreetMap-Mitwirkende'});
+    const klar=L.tileLayer("https://tile-{s}.openstreetmap.fr/hot/{z}/{x}/{y}.png",
+      {maxZoom:19, maxNativeZoom:19, subdomains:"ab", attribution:'© OpenStreetMap-Mitwirkende · Humanitarian OSM Team'});
+    const topo=L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+      {maxZoom:19, maxNativeZoom:17, subdomains:"abc", attribution:'Kartendaten © OpenStreetMap-Mitwirkende · SRTM · Darstellung © OpenTopoMap (CC-BY-SA)'});
+    strassen.addTo(lmap);
+    /* Ebenenauswahl ab 700 px offen ausgeklappt — eingeklappt ist sie nur ein
+       kleines Symbol, das kaum jemand antippt. */
+    const ebenen={"Straßen &amp; Orte":strassen,"Kontrastreich":klar,"Topografie":topo};
+    const ebenenSchalter=L.control.layers(ebenen,null,
+      {position:"topright", collapsed:window.innerWidth<700}).addTo(lmap);
+    const liste=ebenenSchalter.getContainer().querySelector(".leaflet-control-layers-base");
+    if(liste) liste.insertAdjacentHTML("beforebegin",'<div class="ebenenkopf">Kartenebene</div>');
+    kachelWache(strassen,klar,"Kontrastreich"); kachelWache(strassen,topo,"Topografie");
+    L.control.scale({imperial:false,metric:true}).addTo(lmap);
+    lschicht=L.layerGroup().addTo(lmap);
+  }
+  lschicht.clearLayers();
+  const punkte=[];
+  L.circleMarker(start,{radius:9,color:"#fff",weight:2,fillColor:"#d8734a",fillOpacity:1})
+   .bindTooltip("Start: "+ORTNAME[origin],{permanent:true,direction:"right",offset:[8,0],className:"kartenlabel start"})
+   .bindPopup("<b>Start: "+ORTNAME[origin]+"</b>").addTo(lschicht);
+  punkte.push(start);
+  buendeln(vis).forEach(function(gr){
+    const teile=gr.teile, e0=teile[0], anker=gruppenAnker(teile);
+    const c=anker.typ==="event"?"#d8734a":(CATCOLOR[anker.cat[0]]||"#d9b25c");
+    /* Eine Beschriftung für alle Ziele auf diesem Punkt, Zeile für Zeile —
+       jede Zeile ist anklickbar und führt zu ihrer Karteikarte. */
+    const beschriftung=gruppenZeilen(teile,34).map(function(z){
+      return '<a href="#c-'+z.id+'">'+esc(z.text)+'</a>';
+    }).join("<br>");
+    const inhalt=teile.map(function(e){
+      /* Namenssuche statt reiner Koordinate: Die Koordinaten sind nicht
+         geokodiert (siehe Kapitel 5) — ein Zahlendreher soll niemanden
+         auf einen Feldweg schicken. */
+      const g="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(e.n+", "+e.o);
+      const o="https://www.openstreetmap.org/?mlat="+e.la+"&mlon="+e.lo+"#map=15/"+e.la+"/"+e.lo;
+      return "<b>"+esc(e.n)+"</b><br>"+esc(e.o)+"<br>"+km(e).toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1})+" km · "+artIcon(e)+" "+mn(e)+" min"+
+        '<br><a href="'+g+'" target="_blank" rel="noopener">Google Maps</a> · <a href="'+o+'" target="_blank" rel="noopener">OpenStreetMap</a>'+
+        ' · <a href="#c-'+e.id+'">zur Karte im Guide</a>';
+    }).join('<hr class="poptrenn">');
+    L.circleMarker([e0.la,e0.lo],
+      {radius:8+Math.min(teile.length-1,4)*0.9,color:"#fff",weight:2,fillColor:c,fillOpacity:.95,className:"pin"})
+     .bindTooltip(beschriftung,
+       {permanent:true,direction:"right",offset:[8,0],interactive:true,
+        className:"kartenlabel"+(teile.length>1?" mehrfach":"")})
+     .bindPopup(inhalt,{maxHeight:280})
+     .addTo(lschicht);
+    punkte.push([e0.la,e0.lo]);
+  });
+  if(punkte.length>1)lmap.fitBounds(L.latLngBounds(punkte).pad(0.12));
+  setTimeout(function(){ lmap.invalidateSize(); },60);
+}
+
+/* ---------- Bedienelemente ---------- */
+function group(sel,fn){ document.querySelectorAll(sel).forEach(function(b){ b.addEventListener("click",function(){
+  document.querySelectorAll(sel).forEach(function(x){x.classList.remove("active")});
+  b.classList.add("active"); fn(b); renderGrid(); }); }); }
+group("[data-origin]",function(b){origin=b.dataset.origin});
+group(".sortbtn",function(b){sortBy=b.dataset.sort});
+group(".typbtn",function(b){typ=b.dataset.typ});
+group(".landbtn",function(b){land=b.dataset.land});
+group(".fchip",function(b){cat=b.dataset.cat});
+group(".unitbtn",function(b){
+  unit=b.dataset.unit; maxVal=90;
+  const r=document.getElementById("maxRange");
+  r.value=90; document.getElementById("maxOut").textContent=90;
+  document.getElementById("maxUnit").textContent=unit==="min"?"min":"km";
+  const ru=document.getElementById("radarUnit"); if(ru)ru.textContent=unit==="min"?"Anreiseminuten":"Kilometer";
+  zoomF=1; panX=0; panY=0;
+  document.getElementById("radarZoom").value=10;
+  document.getElementById("radarZoomOut").textContent="1,0";
+});
+const rng=document.getElementById("maxRange");
+rng.addEventListener("input",function(){ maxVal=+rng.value; document.getElementById("maxOut").textContent=maxVal; renderGrid(); });
+document.getElementById("grid").addEventListener("click",function(ev){
+  const b=ev.target.closest("[data-fav]"); if(!b)return;
+  const id=b.getAttribute("data-fav");
+  if(favs.has(id))favs.delete(id); else favs.add(id);
+  favSpeichern(); renderGrid();
+});
+group(".viewbtn",function(b){
+  ansicht=b.dataset.view;
+  const svg=document.getElementById("radar"), karte=document.getElementById("karte"), zr=document.getElementById("zoomrow");
+  /* SVGElement erbt nicht von HTMLElement — die hidden-Eigenschaft greift dort nicht.
+     Deshalb über eine Klasse schalten, die für beide Elementtypen funktioniert. */
+  svg.classList.toggle("aus", ansicht!=="radar");
+  karte.classList.toggle("aus", ansicht==="radar");
+  karte.removeAttribute("hidden");
+  zr.style.display=ansicht==="radar"?"flex":"none";
+  if(ansicht!=="radar"&&lmap)setTimeout(function(){ lmap.invalidateSize(); },80);
+  document.getElementById("radarNote").innerHTML= ansicht==="radar"
+    ? 'Richtung = tatsächliche Himmelsrichtung ab gewähltem Start · Abstand = <span id="radarUnit">'+(unit==="min"?"Anreiseminuten":"Kilometer")+'</span> · Zoom ändert nur den Maßstab, nicht die Auswahl · zwei Finger zoomen, ein Finger verschiebt · Punkt antippen springt zur Karte.'
+    : 'Echte Karte mit Straßen und Ortschaften · Kartenebene oben rechts umschaltbar: Straßen &amp; Orte, kontrastreich oder Topografie — auf schmalen Displays hinter dem Ebenen-Symbol · jeder Marker ist beschriftet, im Popup öffnet sich das Ziel direkt in Google Maps oder OpenStreetMap.';
+});
+const rz=document.getElementById("radarZoom");
+function zoomAnzeigen(){ document.getElementById("radarZoomOut").textContent=zoomF.toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1}); }
+rz.addEventListener("input",function(){ zoomF=(+rz.value)/10; zoomAnzeigen(); renderRadar(sichtbareIds()); });
+document.getElementById("radarReset").addEventListener("click",function(){
+  zoomF=1; panX=0; panY=0; rz.value=10; zoomAnzeigen(); renderRadar(sichtbareIds());
+});
+function vollbildAn(){ return !!document.fullscreenElement || document.querySelector(".radarwrap").classList.contains("pseudovoll"); }
+function vollbildKnopf(){ document.getElementById("vollbild").textContent=vollbildAn()?"⛡ Beenden":"⛶ Vollbild"; }
+function nachVollbild(){ vollbildKnopf(); if(lmap)setTimeout(function(){ lmap.invalidateSize(); },120); renderGrid(); }
+/* Beendet beide Spielarten: echtes Vollbild und die iOS-Ersatzdarstellung. */
+function vollbildBeenden(){
+  const box=document.querySelector(".radarwrap");
+  if(document.fullscreenElement){ (document.exitFullscreen||document.webkitExitFullscreen).call(document); return; }
+  if(box.classList.contains("pseudovoll")){ box.classList.remove("pseudovoll"); document.body.style.overflow=""; nachVollbild(); }
+}
+document.getElementById("vollbild").addEventListener("click",function(){
+  const box=document.querySelector(".radarwrap");
+  if(vollbildAn()){ vollbildBeenden(); return; }
+  const anfrage=box.requestFullscreen||box.webkitRequestFullscreen;
+  if(anfrage){ anfrage.call(box).catch(function(){ box.classList.add("pseudovoll"); document.body.style.overflow="hidden"; nachVollbild(); }); }
+  else { /* iOS Safari kennt requestFullscreen für Elemente nicht — eigene Vollflächen-Darstellung */
+    box.classList.add("pseudovoll"); document.body.style.overflow="hidden"; nachVollbild(); }
+});
+document.addEventListener("fullscreenchange",nachVollbild);
+document.addEventListener("webkitfullscreenchange",nachVollbild);
+document.addEventListener("keydown",function(ev){
+  if(ev.key==="Escape"&&document.querySelector(".radarwrap").classList.contains("pseudovoll")) vollbildBeenden();
+});
+/* Gesten: ein Finger verschiebt, zwei Finger zoomen */
+(function(){
+  const svg=document.getElementById("radar");
+  let zeiger=new Map(), startAbstand=0, startMax=1, letzte=null;
+  const abstand=function(){ const p=Array.from(zeiger.values());
+    return Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y); };
+  svg.addEventListener("pointerdown",function(ev){
+    svg.setPointerCapture(ev.pointerId); zeiger.set(ev.pointerId,{x:ev.clientX,y:ev.clientY});
+    if(zeiger.size===1){ letzte={x:ev.clientX,y:ev.clientY}; svg.classList.add("greift"); }
+    if(zeiger.size===2){ startAbstand=abstand(); startMax=zoomF; letzte=null; }
+  });
+  svg.addEventListener("pointermove",function(ev){
+    if(!zeiger.has(ev.pointerId))return;
+    zeiger.set(ev.pointerId,{x:ev.clientX,y:ev.clientY});
+    if(zeiger.size===2&&startAbstand>0){
+      const f=abstand()/startAbstand;
+      zoomF=Math.min(12,Math.max(1,Math.round(startMax*f*10)/10));
+      rz.value=Math.round(zoomF*10); zoomAnzeigen();
+      renderRadar(sichtbareIds()); ev.preventDefault(); return;
+    }
+    if(zeiger.size===1&&letzte){
+      const box=svg.getBoundingClientRect(), skala=640/box.width;
+      panX+=(ev.clientX-letzte.x)*skala; panY+=(ev.clientY-letzte.y)*skala;
+      const spanne=260*Math.max(1,zoomF);
+      panX=Math.max(-spanne,Math.min(spanne,panX)); panY=Math.max(-spanne*0.78,Math.min(spanne*0.78,panY));
+      letzte={x:ev.clientX,y:ev.clientY};
+      renderRadar(sichtbareIds()); ev.preventDefault();
+    }
+  });
+  const ende=function(ev){ zeiger.delete(ev.pointerId); if(zeiger.size<2)startAbstand=0;
+    if(zeiger.size===0){ letzte=null; svg.classList.remove("greift"); } };
+  svg.addEventListener("pointerup",ende); svg.addEventListener("pointercancel",ende);
+})();
+const spanSel=document.getElementById("spanSel");
+spanSel.addEventListener("change",function(){ spanDays=+spanSel.value; renderGrid(); });
+const dIn=document.getElementById("abDate");
+dIn.value=ab; dIn.min="2026-01-01";
+dIn.addEventListener("change",function(){ ab=dIn.value||heuteISO(); renderGrid(); });
+document.getElementById("heuteBtn").addEventListener("click",function(){
+  ab=heuteISO(); dIn.value=ab; renderGrid();
+});
+/* Sprung auf die Reisewoche setzt Datum UND Zeitfenster — ein Datum ohne
+   passendes Fenster zeigt sonst weiter drei Monate Termine an. */
+document.getElementById("reiseBtn").addEventListener("click",function(){
+  ab=REISE_VON; dIn.value=ab;
+  spanDays=REISE_TAGE; spanSel.value=String(REISE_TAGE);
+  renderGrid();
+});
+document.getElementById("themeBtn").addEventListener("click",function(){
+  const h=document.documentElement;
+  h.dataset.theme=h.dataset.theme==="dark"?"light":"dark";
+});
+document.getElementById("copyPrompt").addEventListener("click",function(){
+  const t=document.getElementById("promptText").innerText, b=this;
+  navigator.clipboard.writeText(t).then(function(){
+    b.textContent="Kopiert ✓"; setTimeout(function(){b.textContent="Prompt kopieren"},1800);
+  }).catch(function(){
+    const r=document.createRange(); r.selectNodeContents(document.getElementById("promptText"));
+    const sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+    b.textContent="Markiert — bitte kopieren"; setTimeout(function(){b.textContent="Prompt kopieren"},2600);
+  });
+});
+/* Farbverlauf über drei Töne der Antikenpalette je Überschrift */
+const PALETTE=["--p-gold","--p-himmel","--p-purpur","--p-terra","--p-oliv","--p-marmor","--p-wein"];
+function verlauf(el,seed){
+  const a=PALETTE[seed%PALETTE.length],
+        b=PALETTE[(seed+2)%PALETTE.length],
+        c=PALETTE[(seed+4)%PALETTE.length];
+  el.style.backgroundImage="linear-gradient(100deg, var("+a+") 0%, var("+b+") 50%, var("+c+") 100%)";
+  el.classList.add("verlauf");
+}
+document.querySelectorAll("h1, section > .wrap > h2").forEach(function(h,i){
+  verlauf(h, Math.floor(Math.random()*7)+i);
+});
+
+renderGrid();
+</script>
+</body>
+</html>
