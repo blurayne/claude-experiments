@@ -89,6 +89,24 @@ a{color:var(--teal)}
 footer{margin-top:70px;padding-top:22px;border-top:1px solid var(--line);color:var(--tx3);font-size:12px;
   font-family:'IBM Plex Mono',monospace;line-height:1.7}
 :focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+
+nav#toc{padding-top:40px}
+nav#toc h2{font-size:11px;font-family:'IBM Plex Mono',monospace;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--tx3);margin:0 0 14px;display:flex;align-items:center;gap:10px}
+nav#toc h2::after{content:"";flex:1;height:1px;background:var(--line)}
+.tocgrid{display:grid;grid-template-columns:1fr;gap:1px;background:var(--line);
+  border:1px solid var(--line);border-radius:3px;overflow:hidden}
+@media(min-width:640px){.tocgrid{grid-template-columns:1fr 1fr}}
+@media(min-width:960px){.tocgrid{grid-template-columns:1fr 1fr 1fr}}
+.tocit{display:flex;gap:11px;align-items:baseline;background:var(--panel);padding:11px 13px;
+  text-decoration:none;color:var(--tx);transition:background .15s}
+.tocit:hover{background:var(--bg2)}
+.tocit:hover .tocn{color:var(--amber)}
+.tocn{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--tx3);flex:0 0 auto;transition:color .15s}
+.toct{font-size:14px;font-weight:600;line-height:1.3;display:block}
+.toct em{display:block;font-style:normal;font-weight:400;font-size:11.5px;color:var(--tx3);
+  margin-top:2px;line-height:1.4}
+section{scroll-margin-top:18px}
 @media(prefers-reduced-motion:no-preference){
   .fade{animation:f .6s ease both}@keyframes f{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 }
@@ -109,9 +127,34 @@ footer{margin-top:70px;padding-top:22px;border-top:1px solid var(--line);color:v
     <span>EN 169 · EN ISO 16321 (11/2025) · ISO 12312-2</span>
     <span>Chou et al. 2021, AJ 162:103</span>
     <span>DOG · BVA · BfS · AAS · NASA · ASRS</span>
-    <span>Stand 11.08.2026 abends</span>
+    <span>Stand 11.08.2026, 23:49 MESZ</span>
   </div>
 </header>
+
+
+<nav id="toc" aria-label="Inhaltsverzeichnis">
+  <h2>Inhalt · 18 Kapitel</h2>
+  <div class="tocgrid">
+      <a class="tocit" href="#verdikt"><span class="tocn">01</span><span class="toct">Verdikt<em>Vier Behauptungen, vier Urteile</em></span></a>
+      <a class="tocit" href="#leiter"><span class="tocn">02</span><span class="toct">Transmissionsleiter<em>Alles auf einer Skala</em></span></a>
+      <a class="tocit" href="#physik"><span class="tocn">03</span><span class="toct">Physik verifiziert<em>Formel, Messwerte, Stapelrechnung</em></span></a>
+      <a class="tocit" href="#autoritaeten"><span class="tocn">04</span><span class="toct">Positionslage<em>DOG, BVA, BfS, AAS, NASA — wer sagt was</em></span></a>
+      <a class="tocit" href="#hardware"><span class="tocn">05</span><span class="toct">Fallbeispiel Hardware<em>Herstellerangaben im Volltext</em></span></a>
+      <a class="tocit" href="#normen"><span class="tocn">06</span><span class="toct">Normenlandschaft<em>Kennzeichnung lesen, Vorzahlen unterscheiden</em></span></a>
+      <a class="tocit" href="#dosis"><span class="tocn">07</span><span class="toct">Dosimetrie<em>Was eine Minute durch Stufe 15 bedeutet</em></span></a>
+      <a class="tocit" href="#spektrum"><span class="tocn">08</span><span class="toct">Spektralbilanz<em>Boden → Filter → Netzhaut</em></span></a>
+      <a class="tocit" href="#vergleich"><span class="tocn">09</span><span class="toct">Spektralvergleich<em>Stapel, ISO-Brille, Fälschung, Einzelgläser</em></span></a>
+      <a class="tocit" href="#betrieb"><span class="tocn">10</span><span class="toct">Betriebsplan<em>Helligkeit über den Abend, zwei Stufen</em></span></a>
+      <a class="tocit" href="#faelle"><span class="tocn">11</span><span class="toct">Fallrecherche<em>Schadensfälle in Literatur und Foren</em></span></a>
+      <a class="tocit" href="#faelschungen"><span class="tocn">12</span><span class="toct">Fälschungen 2026<em>Umfang, Folgen, Erkennung an der Brille</em></span></a>
+      <a class="tocit" href="#haendler"><span class="tocn">13</span><span class="toct">Verkäuferprüfung<em>Die Marke sagt nichts — der Verkäufer alles</em></span></a>
+      <a class="tocit" href="#gemini"><span class="tocn">14</span><span class="toct">Faktenprüfung<em>Die Gegenbehauptungen, Claim für Claim</em></span></a>
+      <a class="tocit" href="#praxis"><span class="tocn">15</span><span class="toct">Praxis 12.08.2026<em>Regelwerk für den Abend in Lam</em></span></a>
+      <a class="tocit" href="#belege"><span class="tocn">16</span><span class="toct">Belegtabelle<em>Prüfstatus je Einzelbehauptung</em></span></a>
+      <a class="tocit" href="#rest"><span class="tocn">17</span><span class="toct">Restliste<em>Was nicht geprüft wurde</em></span></a>
+      <a class="tocit" href="#quellen"><span class="tocn">18</span><span class="toct">Quellen<em>Primärmaterial mit Interessenlage</em></span></a>
+  </div>
+</nav>
 
 <section id="verdikt">
   <h2>Verdikt · dreistufig je Hypothese</h2>
@@ -198,7 +241,7 @@ footer{margin-top:70px;padding-top:22px;border-top:1px solid var(--line);color:v
       <tr><td>DIN 13 · = 5+9</td><td class="num">13</td><td class="num">7,20·10⁻⁶</td><td class="num">0,00072 %</td><td class="ok">ok</td><td class="ok">ok</td></tr>
       <tr><td>DIN 14</td><td class="num">14</td><td class="num">2,68·10⁻⁶</td><td class="num">0,00027 %</td><td class="ok">ok</td><td class="ok">ok</td></tr>
       <tr><td><b>5 + 11 = 15</b></td><td class="num"><b>15</b></td><td class="num"><b>1,00·10⁻⁶</b></td><td class="num"><b>0,0001 %</b></td><td class="ok"><b>ok</b></td><td class="ok"><b>ok</b></td></tr>
-      <tr><td>5+5+11 = 19</td><td class="num">19</td><td class="num">1,93·10⁻⁸</td><td class="num">2·10⁻⁶ %</td><td class="warn">zu dunkel</td><td class="warn">zu dunkel</td></tr>
+      <tr><td>5+5+11 = 19</td><td class="num">19</td><td class="num">1,93·10⁻⁸</td><td class="num">0,0000019 %</td><td class="warn">32× unter Min.</td><td class="warn">21× unter Min.</td></tr>
       <tr><td>11+11 = 21</td><td class="num">21</td><td class="num">2,68·10⁻⁹</td><td class="num">3·10⁻⁷ %</td><td class="warn">zu dunkel</td><td class="warn">zu dunkel</td></tr>
     </tbody>
   </table></div>
@@ -265,6 +308,86 @@ footer{margin-top:70px;padding-top:22px;border-top:1px solid var(--line);color:v
   Wer die institutionelle Deckung will, kauft eine ISO-Brille oder ein einzelnes DIN-13/14-Glas.</p>
 </section>
 
+<section id="hardware">
+  <h2>Fallbeispiel · die konkrete Hardware</h2>
+  <h3>Herstellerangaben im Volltext — und was sich daraus rechnen lässt</h3>
+  <p>Alle folgenden Angaben stammen aus Verpackung und Beipackzetteln der tatsächlich vorhandenen Teile
+  (fotografiert, 11.08.2026). Sie machen aus der bisherigen Modellrechnung ein durchgerechnetes Beispiel
+  mit belegten Eingangsgrößen.</p>
+
+  <h3 style="margin-top:26px">A · Schutzbrille, Sichtscheiben Schutzstufe 5</h3>
+  <div class="tscroll"><table>
+    <tbody>
+      <tr><td style="width:34%">Produkt</td><td><b>GSF-Arbeitsschutzbrille</b>, CFH-Nr. 52520/52522/52524 (Modelle 879 / 717 / 722; zugehörig auch 70258, Modell 590)</td></tr>
+      <tr><td>Hersteller</td><td>GSF — <b>Georg Schmerler GmbH &amp; Co. KG</b>, Reitweg 7, D-90587 Veitsbronn</td></tr>
+      <tr><td>Vertrieb</td><td>CFH Löt- und Gasgeräte GmbH, Bahnhofstr. 50, D-74254 Offenau</td></tr>
+      <tr><td>Zertifizierungsstelle</td><td><b>ECS GmbH</b>, Hüttfeldstraße 50, 73430 Aalen · Kennnummer <b>1883</b></td></tr>
+      <tr><td>Rechtsrahmen</td><td>PSA-Kategorie II, VO (EU) 2016/425, baumustergeprüft, CE</td></tr>
+      <tr><td>Erfüllte Normen</td><td>EN 166:2001 · EN 169:2002 · EN 170:2002 · EN 171:2002 · EN 172:1994+A1+A2 · EN 175:1997 · EN 1731:2006</td></tr>
+      <tr><td><b>Kennzeichnung Sichtscheibe</b></td><td class="mono"><b>5 SCS 1 CE</b><br>
+        <span class="note">5 = Schweißer-Schutzfilter nach EN 169 · SCS = Kennbuchstabe Hersteller · 1 = optische Klasse (beste) · CE</span></td></tr>
+      <tr><td><b>UV-Angaben des Herstellers</b><br><span class="note">für die Scheibe „5"</span></td>
+        <td><b>bis 313 nm: max. 0,0003 %</b><br><b>bis 365 nm: max. 0,3 %</b><br>
+        <span class="note">zum Vergleich τv (sichtbar) = 1,93 % — UV wird also 6,4× stärker gedämpft als Licht</span></td></tr>
+      <tr><td>Herstellerhinweis</td><td>„Keine Tragkörper/Sichtscheiben verwenden, bei denen die Kennzeichnung fehlt/nicht lesbar!"</td></tr>
+    </tbody>
+  </table></div>
+  <p style="margin-top:12px"><strong>Die im Beipackzettel dokumentierte Verwechslungsgefahr:</strong>
+  Dieselbe Legende listet für dieselbe Brillenserie auch <span class="mono">5-3,1</span> (Sonnenschutzfilter
+  nach EN 172) und <span class="mono">2-1,2</span> (UV-Schutzfilter nach EN 170) als mögliche Bestückung.
+  Nur die <em>zusatzlose</em> 5 ist die EN-169-Schweißskala. Genau dieser Unterschied trägt die gesamte
+  Stapelrechnung.</p>
+
+  <h3 style="margin-top:26px">B · Schweißerschutzfilterglas, Schutzstufe 11 (und 9)</h3>
+  <div class="tscroll"><table>
+    <tbody>
+      <tr><td style="width:34%">Produkt</td><td><b>CFH 52538</b> Schweiß-Schutzgläser DIN 11 SG 538 · Artikel-Nr. 52538 (70538)<br>
+        <b>CFH 52536</b> Schweiß-Schutzgläser DIN 9 SG 536 · Artikel-Nr. 52536 (70536)</td></tr>
+      <tr><td>Art des Filters</td><td>Schweißerschutzfilter plan · Bezeichnung: Schweißerschutzfilterglas</td></tr>
+      <tr><td>Abmessungen / Menge</td><td><b>90 × 110 mm</b>, 2 Stück je Packung</td></tr>
+      <tr><td>Passend für</td><td>Schweiß-Schutzschild <b>HS 528</b> (CFH-Nr. 52528) und Kopfschutzschirm <b>KS 532</b> (CFH-Nr. 52532)</td></tr>
+      <tr><td>Werkstoff</td><td><b>Spezial-Filterglas aus Mineralglas</b></td></tr>
+      <tr><td>Normenkonformität</td><td><b>EN ISO 16321-2:2021</b> (Nachfolgenorm von EN 166/169 seit 11/2025)</td></tr>
+      <tr><td><b>Kennzeichnung</b></td><td class="mono"><b>16321 XTW W11 CE</b> · Herstellungsdatum-Feld (Beispiel 01/2025)<br>
+        <span class="note">16321 = Norm · XTW = Hersteller · W11 = Schutzstufe Schweißerfilter · CE</span></td></tr>
+      <tr><td>Hersteller</td><td>Xuchang Tianhe Welding Device Co., Yulin Industrial Zone, Xuchang County, 461100 Henan, P.R. China</td></tr>
+      <tr><td>Autorisierter EU-Vertrieb</td><td><b>WKS GmbH</b>, Robert-Bosch-Str. 80/1, D-73431 Aalen</td></tr>
+      <tr><td>Vertreiber</td><td>CFH Löt- und Gasgeräte GmbH, Offenau</td></tr>
+      <tr><td>Zertifizierungsorganisation</td><td>Notified Body Kenn-Nr. <b>0196</b> — DIN CERTCO GmbH, Alboinstr. 56, 12013 Berlin</td></tr>
+      <tr><td>Einsatzbereiche laut Hersteller</td><td>Stufe 4–7 Hartlöten/Gasschweißen · 5–7 Brennschneiden · <b>4–14 Lichtbogenschweißen</b></td></tr>
+      <tr><td><b>Konstruktionsvorgabe</b></td><td>„Bei Schweißerschutzfiltern aus Mineralglas muss eine <b>Hinterlegscheibe</b> (den Augen zugewandt) aus nichtsplitterndem, glasklarem Material (z.&nbsp;B. PET) verwendet werden."</td></tr>
+      <tr><td>Pflege / Lagerung</td><td>Klares Wasser + Haushaltsspülmittel, keine Scheuermittel · trocken in Verpackung</td></tr>
+      <tr><td>Warnhinweise</td><td>Beschädigte Sichtscheiben nie verwenden · bei Kratzern, Spritzern, Verunreinigungen wechseln · nach Aufprall austauschen · Risse/Abschürfungen = Ausschluss · Bruch- und Verletzungsgefahr beim Anfassen · verändert Farbwahrnehmung und Erkennung von Lichtsignalen</td></tr>
+    </tbody>
+  </table></div>
+  <p style="margin-top:12px"><strong>Zwei Nebenbefunde mit Folgen:</strong> Das <em>Mineralglas</em> ist genau
+  das eisendotierte Athermal-Material, auf dem die IR-Abschätzung dieses Dossiers beruht — die schwächste
+  Flanke ist damit belegt statt angenommen. Und die geforderte augenseitige Hinterlegscheibe wird durch die
+  Anordnung <em>Brille auf, Scheibe davor</em> automatisch erfüllt: <strong>die Brillengläser sind die
+  Hinterlegscheibe.</strong> Umgekehrt — bloßes Glas direkt vors Auge — wäre die Herstellervorgabe verletzt.</p>
+
+  <h3 style="margin-top:26px">C · Die Rechnung mit diesen Teilen</h3>
+  <div class="tscroll"><table>
+    <thead><tr><th>Schritt</th><th class="num">Wert</th><th>Herkunft</th></tr></thead>
+    <tbody>
+      <tr><td>τ Brille (Stufe 5)</td><td class="num">1,93·10⁻²</td><td>EN-169-Formel, Kennzeichnung „5" belegt</td></tr>
+      <tr><td>τ Scheibe (Stufe 11)</td><td class="num">5,18·10⁻⁵</td><td>EN-169-Formel, Kennzeichnung „W11" belegt</td></tr>
+      <tr><td>Stapel: N = 5 + 11 − 1</td><td class="num"><b>Stufe 15</b></td><td>Beer–Lambert; Formel gegen Chou et al. 2021 verifiziert</td></tr>
+      <tr><td>τ Stapel sichtbar</td><td class="num"><b>1,00·10⁻⁶ = 0,0001 %</b></td><td>Produkt beider Transmissionen</td></tr>
+      <tr><td>ISO 12312-2:2015 (0,000061–0,0032 %)</td><td class="num ok">erfüllt</td><td>mittig im Fenster</td></tr>
+      <tr><td>ISO/DIS 12312-2:2025 (0,00004–0,0012 %)</td><td class="num ok">erfüllt</td><td>ebenfalls mittig</td></tr>
+      <tr><td>BfS-Marke „max. 0,001 %"</td><td class="num ok">10× unterschritten</td><td>strengste öffentlich kommunizierte Grenze</td></tr>
+      <tr><td>UVA-Schranke aus Herstellerdaten</td><td class="num">≤ 1,6·10⁻⁷</td><td>0,3 % (Brille) × τv (Scheibe, EN-169-Klausel)</td></tr>
+      <tr><td>UVB-Schranke</td><td class="num">≤ 9·10⁻¹²</td><td>0,0003 % × konservativ gleiche Schranke</td></tr>
+      <tr><td>Alternative 5 + 9 − 1</td><td class="num">Stufe 13</td><td>für die letzte halbe Stunde, ebenfalls normkonform</td></tr>
+      <tr><td class="bad">Brille allein (Stufe 5)</td><td class="num bad">603× zu hell</td><td>nie allein Richtung Sonne</td></tr>
+      <tr><td class="warn">Scheibe allein (Stufe 11)</td><td class="num warn">1,6× zu hell</td><td>knapp außerhalb — sieht ausreichend aus, ist es nicht</td></tr>
+    </tbody>
+  </table></div>
+  <p style="margin-top:12px" class="note">Alle Transmissionen sind Normvorgaben der jeweiligen Schutzstufe,
+  keine Messwerte dieser Exemplare. Verifiziert sind Kennzeichnung, Norm, benannte Stelle und Werkstoff.</p>
+</section>
+
 <section id="normen">
   <h2>Normenlandschaft · Kennzeichnung lesen</h2>
   <h3>EN 166 ist abgelöst — und die Vorzahl entscheidet alles</h3>
@@ -280,8 +403,10 @@ footer{margin-top:70px;padding-top:22px;border-top:1px solid var(--line);color:v
   <div class="tscroll"><table>
     <thead><tr><th>Randkennzeichnung</th><th>Norm</th><th>Filtertyp</th><th>Für die Stapelrechnung</th></tr></thead>
     <tbody>
-      <tr><td class="mono"><b>reine Zahl</b> — z.&nbsp;B. „5", „11"</td><td>EN 169 / EN ISO 16321-2</td>
+      <tr><td class="mono"><b>reine Zahl</b> — z.&nbsp;B. „5"</td><td>EN 169 (bis 2025)</td>
         <td>Schweißerschutzfilter</td><td class="ok"><b>ja</b> — das ist die Schutzstufe N</td></tr>
+      <tr><td class="mono"><b>W + Zahl</b> — z.&nbsp;B. „W9", „W11"</td><td>EN ISO 16321-2 (ab 11/2025)</td>
+        <td>Schweißerschutzfilter, neue Kennzeichnung</td><td class="ok"><b>ja</b> — dieselbe Skala, nur mit W-Präfix</td></tr>
       <tr><td class="mono">2- oder 2C- — z.&nbsp;B. „2C-1,2"</td><td>EN 170</td>
         <td>UV-Schutzfilter</td><td class="bad">nein</td></tr>
       <tr><td class="mono">4- — z.&nbsp;B. „4-5"</td><td>EN 171</td>
@@ -292,14 +417,15 @@ footer{margin-top:70px;padding-top:22px;border-top:1px solid var(--line);color:v
         <td class="bad">nein — „5-3,1" ist keine Stufe 5, sondern Sonnenbrillenniveau</td></tr>
     </tbody>
   </table></div>
-  <p style="margin-top:14px"><strong>Die realistische Verwechslung im konkreten Fall:</strong> Eine als
-  „DIN 5" verkaufte Brille kann statt eines Schweißfilters (Kennzeichnung reine „5", τ ≈ 1,9 %) ein
-  Sonnenblendfilter „5-3,1" nach EN 172 sein — der lässt grob das Zehn- bis Hundertfache durch, und die
-  ganze Stapelrechnung verschiebt sich. Auch die EN-172-Nomenklatur selbst führt in die Irre: Sie regelt
-  Blendschutz am Arbeitsplatz, ausdrücklich <em>nicht</em> den direkten Sonnenblick. Prüfregel vor dem
-  Einsatz morgen: <strong>Randkennzeichnung ohne Bindestrich-Vorzahl = Schweißfilter, alles andere fällt
-  aus der Rechnung.</strong> Ebenso gilt: Ein EN-171-IR-Filter ist für Ofenstrahlung spezifiziert und ersetzt
-  im Sichtbaren nichts.</p>
+  <p style="margin-top:14px"><strong>Die realistische Verwechslung:</strong> Eine als „DIN 5" verkaufte
+  Brille kann statt eines Schweißfilters (Kennzeichnung „5", τ = 1,93 %) einen Sonnenblendfilter „5-3,1"
+  nach EN 172 tragen (τ = 12,6 %). <strong>Korrektur einer früheren Angabe in dieser Arbeit:</strong>
+  Das ist Faktor <b>6,5</b> heller, nicht das Zehn- bis Hundertfache. Der Stapel läge dann bei Stufe 13,1
+  statt 15 — für sichtbares Licht immer noch innerhalb beider ISO-Fenster. Entscheidend ist der Unterschied
+  trotzdem: Bei EN 172 gilt die EN-169-UV-Klausel nicht, und eine IR-Anforderung besteht nur, wenn der
+  Hersteller sie ausdrücklich zusagt — die gesamte UV/IR-Argumentation hängt am Zusatz-losen „5".
+  Prüfregel: <strong>reine Zahl oder W-Präfix = Schweißfilter; jede Bindestrich-Vorzahl (2-, 4-, 5-, 6-)
+  fällt aus der Rechnung.</strong></p>
 </section>
 
 <section id="dosis">
@@ -329,6 +455,261 @@ footer{margin-top:70px;padding-top:22px;border-top:1px solid var(--line);color:v
   ein relevanter Anteil behält reduzierten Visus oder ein kleines para-/zentrales Skotom. Expositionsdauern
   in den 1999er-Fallserien: <b>1 bis 30 Minuten ungeschützt</b> — vier bis sechs Größenordnungen über der
   hier verhandelten Äquivalentdosis.</p>
+</section>
+
+<section id="spektrum">
+  <h2>Spektralbilanz · Boden → Filter → Netzhaut</h2>
+  <h3>Was am Maximum tatsächlich ankommt</h3>
+  <p>Eigenes Spektralmodell: Planck 5778 K auf 1361 W/m² normiert, dann Rayleigh-Streuung, Aerosol
+  (AOD₅₀₀ = 0,06, sehr klar), Ozon (300 DU, Huggins-Flanke + Chappuis), Wasserdampfbanden (15 mm PW),
+  O₂/CO₂-Banden — Standort Lam, 576 m. Anschließend Filtertransmission je Band, dann die Augenmedien.
+  Bei 1,8° Sonnenhöhe beträgt die Luftmasse <b>20,5</b>; die Direktstrahlung bricht auf <b>77 W/m²</b>
+  ein (Zenitreferenz ≈ 920 W/m²).</p>
+  <div class="tscroll"><table>
+    <thead><tr><th>Band</th><th class="num">am Boden</th><th class="num">Anteil</th><th class="num">hinter 5+11</th><th class="num">auf der Netzhaut</th><th>Anmerkung</th></tr></thead>
+    <tbody>
+      <tr><td>UVB 280–315 nm</td><td class="num">≈ 0</td><td class="num">0 %</td><td class="num">6·10⁻²⁵ W/m²</td><td class="num ok"><b>0</b></td><td>Ozon bei AM 20 + Hornhaut</td></tr>
+      <tr><td>UVA 315–400 nm</td><td class="num">0,003 W/m²</td><td class="num">0,004 %</td><td class="num">3,8·10⁻¹⁰</td><td class="num">5,6·10⁻¹³ W/cm²</td><td>Linse absorbiert ~98,5 %</td></tr>
+      <tr><td>Sichtbar 400–780 nm</td><td class="num">22,9 W/m²</td><td class="num">30 %</td><td class="num">2,3·10⁻⁵</td><td class="num">1,6·10⁻⁶ W/cm²</td><td>photochemisch relevant</td></tr>
+      <tr><td><b>IR-A 780–1400 nm</b></td><td class="num">27,4 W/m²</td><td class="num"><b>35 %</b></td><td class="num">2,7·10⁻³</td><td class="num warn"><b>1,6·10⁻⁴ W/cm²</b></td><td>dominiert die Netzhautlast</td></tr>
+      <tr><td>IR-B/C &gt; 1400 nm</td><td class="num">26,6 W/m²</td><td class="num">34 %</td><td class="num">2,7·10⁻³</td><td class="num ok"><b>0</b></td><td>Hornhaut/Glaskörper absorbieren vollständig</td></tr>
+    </tbody>
+  </table></div>
+  <p style="margin-top:14px">Zwei Befunde, die man ohne die Rechnung nicht sieht. <strong>Erstens: UV ist bei
+  1,8° physikalisch nicht mehr da.</strong> Bei Luftmasse 20 hat das Ozon UVB um mehr als zwanzig
+  Größenordnungen entfernt — vor jedem Filter. Die gesamte UV-Debatte ist für morgen Abend gegenstandslos;
+  relevant bliebe sie nur beim Blick in die Mittagssonne. <strong>Zweitens: die tiefstehende Sonne ist
+  überwiegend eine Infrarotquelle</strong> — nur 30 % der Bodenstrahlung ist sichtbar. Davon erreicht
+  jedoch alles jenseits 1400 nm die Netzhaut nie. Übrig bleibt IR-A, und das dominiert die Bilanz, weil
+  Schweißglas dort schwächer sperrt als im Sichtbaren.</p>
+
+  <h3 style="margin-top:30px">Gegen die ICNIRP-Expositionsgrenzwerte</h3>
+  <p>Umgerechnet in Radianz über den Raumwinkel der Sonnenscheibe (6,8·10⁻⁵ sr, Sehwinkel 9,3 mrad):</p>
+  <div class="tscroll"><table>
+    <thead><tr><th>Gefährdung</th><th class="num">Maximum 20:14</th><th class="num">Mittagssonne (Vortest)</th><th class="num">ICNIRP-Grenzwert</th><th>Abstand</th></tr></thead>
+    <tbody>
+      <tr><td>IR-A, retinal-thermisch (t &gt; 10 s)</td><td class="num">4,0·10⁻³</td><td class="num">3,9·10⁻²</td><td class="num">0,6/α = 65 W/cm²/sr</td><td class="ok">16.000× / 1.645×</td></tr>
+      <tr><td>Blaulicht, photochemisch (t &gt; 10⁴ s)</td><td class="num">1,7·10⁻⁶</td><td class="num">3,8·10⁻⁵</td><td class="num">0,01 W/cm²/sr</td><td class="ok">5.900× / 266×</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 style="margin-top:30px">Sensitivität — wo die Unsicherheit sitzt</h3>
+  <p>Der IR-Wert hängt an einer einzigen Annahme: dem Verhältnis <span class="mono">r = τ_IR / τ_sichtbar</span>
+  je Scheibe. Gerechnet wurde mit r = 10. Athermal-Mineralglas ist eisendotiert, gerade um NIR zu absorbieren —
+  realistisch liegt r im einstelligen Bereich.</p>
+  <div class="tscroll"><table>
+    <thead><tr><th class="num">r je Scheibe</th><th class="num">τ_IR Stapel</th><th class="num">Radianz IR-A</th><th>Abstand zur ICNIRP-Grenze</th></tr></thead>
+    <tbody>
+      <tr><td class="num">1</td><td class="num">1,0·10⁻⁶</td><td class="num">4,0·10⁻⁵</td><td class="ok">1.600.000×</td></tr>
+      <tr><td class="num">3</td><td class="num">9,0·10⁻⁶</td><td class="num">3,6·10⁻⁴</td><td class="ok">177.828×</td></tr>
+      <tr><td class="num"><b>10</b> (Annahme)</td><td class="num">1,0·10⁻⁴</td><td class="num">4,0·10⁻³</td><td class="ok"><b>16.005×</b></td></tr>
+      <tr><td class="num">30</td><td class="num">9,0·10⁻⁴</td><td class="num">3,6·10⁻²</td><td class="ok">1.778×</td></tr>
+      <tr><td class="num">100 (unrealistisch schlecht)</td><td class="num">5,2·10⁻³</td><td class="num">2,1·10⁻¹</td><td class="ok">309×</td></tr>
+    </tbody>
+  </table></div>
+  <p style="margin-top:14px"><strong>Zum Kalibrieren:</strong> Ein Filter, der die ISO-Obergrenze von 3 %
+  solarer IR-Transmission gerade ausschöpft, läge bei Mittagssonne nur <b>Faktor 5,5</b> unter der
+  ICNIRP-Grenze. Das erklärt die AAS-Formulierung, die 3 % seien bewusst lockerer angesetzt — und zeigt,
+  wie weit diese Kombination davon entfernt ist. Die IR-Flanke bleibt die schwächste des Aufbaus,
+  aber sie hat drei bis sechs Größenordnungen Luft.</p>
+</section>
+
+<section id="vergleich">
+  <h2>Spektralvergleich · Stapel, ISO-Brille, Fälschung</h2>
+  <h3>Sechs Filter über sechs Größenordnungen</h3>
+  <p>Modellierte Transmissionskurven von 280 bis 2000 nm. Die Schweißglaskurven sind an den
+  Herstellerangaben der DIN-5-Scheibe verankert (τ ≤ 0,0003 % bei 313 nm, ≤ 0,3 % bei 365 nm, τv = 1,93 %)
+  und über das Beer-Lambert-Gesetz auf die dunkleren Stufen skaliert — dieselbe Glassorte, größere
+  Dichte, also linear wachsende Absorbanz. Die zertifizierte Brille ist als rußgefülltes Schwarzpolymer
+  modelliert (τv = 1,5·10⁻⁵), die Fälschung als unterdichte Folie (τv = 1·10⁻³, rund 30× über der
+  ISO-Obergrenze).</p>
+  <div class="sigwrap" style="color:var(--tx)">
+    <svg viewBox="0 0 980 470" role="img" aria-label="Spektrale Transmission der Filter">
+<rect x="54.0" y="30" width="56.6" height="382" fill="#9b8cf0" fill-opacity=".07"/>
+<text x="82.3" y="21" text-anchor="middle" fill="#9b8cf0" font-family="IBM Plex Mono" font-size="10.5" font-weight="600">UVB</text>
+<line x1="110.6" y1="30" x2="110.6" y2="412" stroke="currentColor" stroke-opacity=".18" stroke-width="1"/>
+<rect x="110.6" y="30" width="137.4" height="382" fill="#7a6fd0" fill-opacity=".07"/>
+<text x="179.3" y="21" text-anchor="middle" fill="#7a6fd0" font-family="IBM Plex Mono" font-size="10.5" font-weight="600">UVA</text>
+<line x1="248.0" y1="30" x2="248.0" y2="412" stroke="currentColor" stroke-opacity=".18" stroke-width="1"/>
+<rect x="248.0" y="30" width="81.7" height="382" fill="#4a90d9" fill-opacity=".07"/>
+<text x="288.8" y="21" text-anchor="middle" fill="#4a90d9" font-family="IBM Plex Mono" font-size="10.5" font-weight="600">Blau</text>
+<line x1="329.7" y1="30" x2="329.7" y2="412" stroke="currentColor" stroke-opacity=".18" stroke-width="1"/>
+<rect x="329.7" y="30" width="228.7" height="382" fill="#5fbf6e" fill-opacity=".07"/>
+<text x="444.0" y="21" text-anchor="middle" fill="#5fbf6e" font-family="IBM Plex Mono" font-size="10.5" font-weight="600">Grün–Rot</text>
+<line x1="558.4" y1="30" x2="558.4" y2="412" stroke="currentColor" stroke-opacity=".18" stroke-width="1"/>
+<rect x="558.4" y="30" width="138.0" height="382" fill="#e8843a" fill-opacity=".07"/>
+<text x="627.4" y="21" text-anchor="middle" fill="#e8843a" font-family="IBM Plex Mono" font-size="10.5" font-weight="600">IR-A</text>
+<line x1="696.4" y1="30" x2="696.4" y2="412" stroke="currentColor" stroke-opacity=".18" stroke-width="1"/>
+<rect x="696.4" y="30" width="133.6" height="382" fill="#8a5a3a" fill-opacity=".07"/>
+<text x="763.2" y="21" text-anchor="middle" fill="#8a5a3a" font-family="IBM Plex Mono" font-size="10.5" font-weight="600">IR-B/C</text>
+<line x1="830.0" y1="30" x2="830.0" y2="412" stroke="currentColor" stroke-opacity=".18" stroke-width="1"/>
+<rect x="248.0" y="137.3" width="310.4" height="41.1" fill="none" stroke="#5fbf6e" stroke-width="1.2" stroke-dasharray="5 3"/>
+<text x="562.4" y="157.8" fill="#5fbf6e" font-family="IBM Plex Mono" font-size="9.5">ISO-Fenster</text>
+<line x1="54" y1="66.4" x2="830" y2="66.4" stroke="#e8843a" stroke-width="1" stroke-dasharray="3 4" opacity=".8"/>
+<text x="826" y="62.4" text-anchor="end" fill="#e8843a" font-family="IBM Plex Mono" font-size="9.5">ISO-Grenze IR 3 %</text>
+<line x1="54" y1="30" x2="54" y2="412" stroke="currentColor" stroke-opacity=".45"/>
+<line x1="54" y1="412" x2="830" y2="412" stroke="currentColor" stroke-opacity=".45"/>
+<line x1="50" y1="30.0" x2="830" y2="30.0" stroke="currentColor" stroke-opacity=".08"/>
+<text x="46" y="33.5" text-anchor="end" fill="currentColor" fill-opacity=".55" font-family="IBM Plex Mono" font-size="9.5">1</text>
+<line x1="50" y1="77.8" x2="830" y2="77.8" stroke="currentColor" stroke-opacity=".08"/>
+<text x="46" y="81.2" text-anchor="end" fill="currentColor" fill-opacity=".55" font-family="IBM Plex Mono" font-size="9.5">10⁻²</text>
+<line x1="50" y1="125.5" x2="830" y2="125.5" stroke="currentColor" stroke-opacity=".08"/>
+<text x="46" y="129.0" text-anchor="end" fill="currentColor" fill-opacity=".55" font-family="IBM Plex Mono" font-size="9.5">10⁻⁴</text>
+<line x1="50" y1="173.2" x2="830" y2="173.2" stroke="currentColor" stroke-opacity=".08"/>
+<text x="46" y="176.8" text-anchor="end" fill="currentColor" fill-opacity=".55" font-family="IBM Plex Mono" font-size="9.5">10⁻⁶</text>
+<line x1="50" y1="221.0" x2="830" y2="221.0" stroke="currentColor" stroke-opacity=".08"/>
+<text x="46" y="224.5" text-anchor="end" fill="currentColor" fill-opacity=".55" font-family="IBM Plex Mono" font-size="9.5">10⁻⁸</text>
+<line x1="50" y1="268.8" x2="830" y2="268.8" stroke="currentColor" stroke-opacity=".08"/>
+<text x="46" y="272.2" text-anchor="end" fill="currentColor" fill-opacity=".55" font-family="IBM Plex Mono" font-size="9.5">10⁻¹⁰</text>
+<line x1="50" y1="316.5" x2="830" y2="316.5" stroke="currentColor" stroke-opacity=".08"/>
+<text x="46" y="320.0" text-anchor="end" fill="currentColor" fill-opacity=".55" font-family="IBM Plex Mono" font-size="9.5">10⁻¹²</text>
+<line x1="50" y1="364.2" x2="830" y2="364.2" stroke="currentColor" stroke-opacity=".08"/>
+<text x="46" y="367.8" text-anchor="end" fill="currentColor" fill-opacity=".55" font-family="IBM Plex Mono" font-size="9.5">10⁻¹⁴</text>
+<line x1="50" y1="412.0" x2="830" y2="412.0" stroke="currentColor" stroke-opacity=".08"/>
+<text x="46" y="415.5" text-anchor="end" fill="currentColor" fill-opacity=".55" font-family="IBM Plex Mono" font-size="9.5">10⁻¹⁶</text>
+<line x1="86.3" y1="412" x2="86.3" y2="417" stroke="currentColor" stroke-opacity=".45"/>
+<text x="86.3" y="429" text-anchor="middle" fill="currentColor" fill-opacity=".55" font-family="IBM Plex Mono" font-size="9.5">300</text>
+<line x1="248.0" y1="412" x2="248.0" y2="417" stroke="currentColor" stroke-opacity=".45"/>
+<text x="248.0" y="429" text-anchor="middle" fill="currentColor" fill-opacity=".55" font-family="IBM Plex Mono" font-size="9.5">400</text>
+<line x1="329.7" y1="412" x2="329.7" y2="417" stroke="currentColor" stroke-opacity=".45"/>
+<text x="329.7" y="429" text-anchor="middle" fill="currentColor" fill-opacity=".55" font-family="IBM Plex Mono" font-size="9.5">500</text>
+<line x1="411.4" y1="412" x2="411.4" y2="417" stroke="currentColor" stroke-opacity=".45"/>
+<text x="411.4" y="429" text-anchor="middle" fill="currentColor" fill-opacity=".55" font-family="IBM Plex Mono" font-size="9.5">600</text>
+<line x1="493.1" y1="412" x2="493.1" y2="417" stroke="currentColor" stroke-opacity=".45"/>
+<text x="493.1" y="429" text-anchor="middle" fill="currentColor" fill-opacity=".55" font-family="IBM Plex Mono" font-size="9.5">700</text>
+<line x1="607.4" y1="412" x2="607.4" y2="417" stroke="currentColor" stroke-opacity=".45"/>
+<text x="607.4" y="429" text-anchor="middle" fill="currentColor" fill-opacity=".55" font-family="IBM Plex Mono" font-size="9.5">1000</text>
+<line x1="718.7" y1="412" x2="718.7" y2="417" stroke="currentColor" stroke-opacity=".45"/>
+<text x="718.7" y="429" text-anchor="middle" fill="currentColor" fill-opacity=".55" font-family="IBM Plex Mono" font-size="9.5">1500</text>
+<line x1="830.0" y1="412" x2="830.0" y2="417" stroke="currentColor" stroke-opacity=".45"/>
+<text x="830.0" y="429" text-anchor="middle" fill="currentColor" fill-opacity=".55" font-family="IBM Plex Mono" font-size="9.5">2000</text>
+<text x="442.0" y="449" text-anchor="middle" fill="currentColor" fill-opacity=".5" font-family="IBM Plex Mono" font-size="10">Wellenlänge (nm) — Achse abschnittsweise gedehnt: UV 25 %, sichtbar 40 %, IR 35 % der Breite</text>
+<text x="14" y="221.0" text-anchor="middle" transform="rotate(-90 14 221.0)" fill="currentColor" fill-opacity=".5" font-family="IBM Plex Mono" font-size="10">Transmission τ(λ)</text>
+<path d="M54.0,234.6 L57.2,229.7 L60.5,224.8 L63.7,219.9 L66.9,215.0 L70.2,210.1 L73.4,205.2 L76.6,200.3 L79.9,195.4 L83.1,190.4 L86.3,185.5 L89.6,181.9 L92.8,178.2 L96.0,174.6 L99.3,170.9 L102.5,167.3 L105.7,163.6 L109.0,160.1 L112.2,156.7 L115.4,153.3 L118.7,149.9 L121.9,146.5 L125.1,143.1 L128.4,139.7 L131.6,136.3 L134.8,132.9 L138.1,129.5 L141.3,126.1 L144.5,122.7 L147.8,119.3 L151.0,116.0 L154.2,113.9 L157.5,111.8 L160.7,109.8 L163.9,107.7 L167.2,105.6 L170.4,103.6 L173.6,101.5 L176.9,99.4 L180.1,97.4 L183.3,95.3 L186.6,93.3 L189.8,91.2 L193.0,89.7 L196.3,88.8 L199.5,87.8 L202.7,86.9 L206.0,86.0 L209.2,85.1 L212.4,84.1 L215.7,83.2 L218.9,82.6 L222.1,82.0 L225.4,81.4 L228.6,80.8 L231.8,80.1 L235.1,79.5 L238.3,78.9 L241.5,78.3 L244.8,77.7 L248.0,77.1 L251.3,76.7 L254.5,76.2 L257.8,75.8 L261.1,75.4 L264.3,75.0 L267.6,74.7 L270.9,74.5 L274.1,74.2 L277.4,73.9 L280.7,73.7 L283.9,73.4 L287.2,73.1 L290.5,72.8 L293.7,72.5 L297.0,72.2 L300.3,71.8 L303.5,71.5 L306.8,71.2 L310.1,70.8 L313.3,70.5 L316.6,70.2 L319.9,69.9 L323.1,69.5 L326.4,69.2 L329.7,68.9 L333.0,68.6 L336.2,68.3 L339.5,68.1 L342.8,67.8 L346.0,67.5 L349.3,67.2 L352.6,67.0 L355.8,66.9 L359.1,67.1 L362.4,67.2 L365.6,67.4 L368.9,67.6 L372.2,67.7 L375.4,67.9 L378.7,68.1 L382.0,68.4 L385.2,68.6 L388.5,68.9 L391.8,69.2 L395.0,69.5 L398.3,69.8 L401.6,70.1 L404.8,70.4 L408.1,70.6 L411.4,70.9 L414.6,71.2 L417.9,71.5 L421.2,71.7 L424.4,72.0 L427.7,72.2 L431.0,72.5 L434.2,72.8 L437.5,73.0 L440.8,73.3 L444.0,73.5 L447.3,73.8 L450.6,74.1 L453.8,74.3 L457.1,74.5 L460.4,74.8 L463.6,75.0 L466.9,75.2 L470.2,75.5 L473.4,75.7 L476.7,75.9 L480.0,76.2 L483.3,76.4 L486.5,76.6 L489.8,76.8 L493.1,77.1 L496.3,77.3 L499.6,77.6 L502.9,77.8 L506.1,78.1 L509.4,78.3 L512.7,78.5 L515.9,78.8 L519.2,79.0 L522.5,79.3 L525.7,79.5 L529.0,79.8 L532.3,80.0 L535.5,80.3 L538.8,80.5 L542.1,80.8 L545.3,81.0 L548.6,81.2 L551.9,81.5 L555.1,81.7 L558.4,82.0 L560.6,82.6 L562.9,83.2 L565.1,83.8 L567.3,84.4 L569.5,85.0 L571.8,85.7 L574.0,86.3 L576.2,86.9 L578.4,87.5 L580.7,88.1 L582.9,88.7 L585.1,89.3 L587.3,89.8 L589.6,90.2 L591.8,90.6 L594.0,91.0 L596.2,91.4 L598.5,91.8 L600.7,92.2 L602.9,92.6 L605.2,93.0 L607.4,93.4 L609.6,93.4 L611.8,93.4 L614.1,93.4 L616.3,93.4 L618.5,93.4 L620.7,93.4 L623.0,93.4 L625.2,93.4 L627.4,93.4 L629.6,93.4 L631.9,93.1 L634.1,92.8 L636.3,92.5 L638.5,92.2 L640.8,91.9 L643.0,91.6 L645.2,91.3 L647.4,91.0 L649.7,90.7 L651.9,90.4 L654.1,90.1 L656.4,89.8 L658.6,89.4 L660.8,89.1 L663.0,88.8 L665.3,88.5 L667.5,88.2 L669.7,87.9 L671.9,87.6 L674.2,87.3 L676.4,86.9 L678.6,86.5 L680.8,86.1 L683.1,85.7 L685.3,85.3 L687.5,84.8 L689.7,84.4 L692.0,84.0 L694.2,83.6 L696.4,83.2 L698.7,82.8 L700.9,82.4 L703.1,82.0 L705.3,81.6 L707.6,81.2 L709.8,80.8 L712.0,80.3 L714.2,79.9 L716.5,79.5 L718.7,79.1 L720.9,79.0 L723.1,78.8 L725.4,78.7 L727.6,78.6 L729.8,78.4 L732.0,78.3 L734.3,78.2 L736.5,78.0 L738.7,77.9 L741.0,77.8 L743.2,77.6 L745.4,77.5 L747.6,77.3 L749.9,77.2 L752.1,77.1 L754.3,76.9 L756.5,76.8 L758.8,76.7 L761.0,76.5 L763.2,76.4 L765.4,76.2 L767.7,76.1 L769.9,76.0 L772.1,75.8 L774.3,75.7 L776.6,75.6 L778.8,75.4 L781.0,75.3 L783.2,75.2 L785.5,75.0 L787.7,75.4 L789.9,75.8 L792.2,76.2 L794.4,76.7 L796.6,77.1 L798.8,77.5 L801.1,77.9 L803.3,78.3 L805.5,78.7 L807.7,79.1 L810.0,79.5 L812.2,79.9 L814.4,80.3 L816.6,80.8 L818.9,81.2 L821.1,81.6 L823.3,82.0 L825.5,82.4 L827.8,82.8 L830.0,83.2" fill="none" stroke="#e8604c" stroke-width="1.2" stroke-linejoin="round" stroke-dasharray="4 3"/>
+<path d="M54.0,412.0 L57.2,412.0 L60.5,412.0 L63.7,409.8 L66.9,400.0 L70.2,390.2 L73.4,380.3 L76.6,370.5 L79.9,360.7 L83.1,350.9 L86.3,341.1 L89.6,333.8 L92.8,326.4 L96.0,319.1 L99.3,311.8 L102.5,304.5 L105.7,297.2 L109.0,290.2 L112.2,283.4 L115.4,276.6 L118.7,269.8 L121.9,263.0 L125.1,256.2 L128.4,249.4 L131.6,242.6 L134.8,235.9 L138.1,229.1 L141.3,222.3 L144.5,215.5 L147.8,208.7 L151.0,201.9 L154.2,197.8 L157.5,193.6 L160.7,189.5 L163.9,185.4 L167.2,181.3 L170.4,177.1 L173.6,173.0 L176.9,168.9 L180.1,164.8 L183.3,160.6 L186.6,156.5 L189.8,152.4 L193.0,149.4 L196.3,147.5 L199.5,145.7 L202.7,143.8 L206.0,142.0 L209.2,140.1 L212.4,138.3 L215.7,136.4 L218.9,135.2 L222.1,134.0 L225.4,132.7 L228.6,131.5 L231.8,130.3 L235.1,129.0 L238.3,127.8 L241.5,126.6 L244.8,125.4 L248.0,124.1 L251.3,123.3 L254.5,122.5 L257.8,121.7 L261.1,120.9 L264.3,120.0 L267.6,119.5 L270.9,119.0 L274.1,118.4 L277.4,117.9 L280.7,117.3 L283.9,116.8 L287.2,116.2 L290.5,115.6 L293.7,115.0 L297.0,114.3 L300.3,113.7 L303.5,113.0 L306.8,112.3 L310.1,111.7 L313.3,111.0 L316.6,110.4 L319.9,109.7 L323.1,109.1 L326.4,108.4 L329.7,107.8 L333.0,107.2 L336.2,106.7 L339.5,106.1 L342.8,105.6 L346.0,105.0 L349.3,104.5 L352.6,103.9 L355.8,103.8 L359.1,104.2 L362.4,104.5 L365.6,104.8 L368.9,105.1 L372.2,105.5 L375.4,105.8 L378.7,106.1 L382.0,106.7 L385.2,107.3 L388.5,107.8 L391.8,108.4 L395.0,109.0 L398.3,109.6 L401.6,110.1 L404.8,110.7 L408.1,111.3 L411.4,111.9 L414.6,112.4 L417.9,112.9 L421.2,113.4 L424.4,114.0 L427.7,114.5 L431.0,115.0 L434.2,115.5 L437.5,116.0 L440.8,116.6 L444.0,117.1 L447.3,117.6 L450.6,118.1 L453.8,118.6 L457.1,119.1 L460.4,119.6 L463.6,120.0 L466.9,120.5 L470.2,120.9 L473.4,121.4 L476.7,121.8 L480.0,122.3 L483.3,122.8 L486.5,123.2 L489.8,123.7 L493.1,124.1 L496.3,124.6 L499.6,125.1 L502.9,125.6 L506.1,126.1 L509.4,126.6 L512.7,127.1 L515.9,127.6 L519.2,128.1 L522.5,128.6 L525.7,129.0 L529.0,129.5 L532.3,130.0 L535.5,130.5 L538.8,131.0 L542.1,131.5 L545.3,132.0 L548.6,132.5 L551.9,133.0 L555.1,133.5 L558.4,134.0 L560.6,135.2 L562.9,136.4 L565.1,137.6 L567.3,138.9 L569.5,140.1 L571.8,141.3 L574.0,142.6 L576.2,143.8 L578.4,145.0 L580.7,146.2 L582.9,147.5 L585.1,148.7 L587.3,149.5 L589.6,150.3 L591.8,151.1 L594.0,152.0 L596.2,152.8 L598.5,153.6 L600.7,154.4 L602.9,155.2 L605.2,156.1 L607.4,156.9 L609.6,156.9 L611.8,156.9 L614.1,156.9 L616.3,156.9 L618.5,156.9 L620.7,156.9 L623.0,156.9 L625.2,156.9 L627.4,156.9 L629.6,156.9 L631.9,156.3 L634.1,155.7 L636.3,155.0 L638.5,154.4 L640.8,153.8 L643.0,153.2 L645.2,152.6 L647.4,152.0 L649.7,151.4 L651.9,150.7 L654.1,150.1 L656.4,149.5 L658.6,148.9 L660.8,148.3 L663.0,147.7 L665.3,147.1 L667.5,146.4 L669.7,145.8 L671.9,145.2 L674.2,144.6 L676.4,143.8 L678.6,143.0 L680.8,142.1 L683.1,141.3 L685.3,140.5 L687.5,139.7 L689.7,138.9 L692.0,138.1 L694.2,137.2 L696.4,136.4 L698.7,135.6 L700.9,134.8 L703.1,134.0 L705.3,133.1 L707.6,132.3 L709.8,131.5 L712.0,130.7 L714.2,129.9 L716.5,129.0 L718.7,128.2 L720.9,128.0 L723.1,127.7 L725.4,127.4 L727.6,127.1 L729.8,126.9 L732.0,126.6 L734.3,126.3 L736.5,126.0 L738.7,125.8 L741.0,125.5 L743.2,125.2 L745.4,125.0 L747.6,124.7 L749.9,124.4 L752.1,124.1 L754.3,123.9 L756.5,123.6 L758.8,123.3 L761.0,123.0 L763.2,122.8 L765.4,122.5 L767.7,122.2 L769.9,122.0 L772.1,121.7 L774.3,121.4 L776.6,121.1 L778.8,120.9 L781.0,120.6 L783.2,120.3 L785.5,120.0 L787.7,120.9 L789.9,121.7 L792.2,122.5 L794.4,123.3 L796.6,124.1 L798.8,125.0 L801.1,125.8 L803.3,126.6 L805.5,127.4 L807.7,128.2 L810.0,129.0 L812.2,129.9 L814.4,130.7 L816.6,131.5 L818.9,132.3 L821.1,133.1 L823.3,134.0 L825.5,134.8 L827.8,135.6 L830.0,136.4" fill="none" stroke="#c98a3a" stroke-width="1.2" stroke-linejoin="round" stroke-dasharray="4 3"/>
+<path d="M54.0,412.0 L57.2,412.0 L60.5,412.0 L63.7,412.0 L66.9,412.0 L70.2,412.0 L73.4,412.0 L76.6,412.0 L79.9,412.0 L83.1,412.0 L86.3,412.0 L89.6,409.7 L92.8,400.6 L96.0,391.4 L99.3,382.3 L102.5,373.2 L105.7,364.0 L109.0,355.2 L112.2,346.7 L115.4,338.3 L118.7,329.8 L121.9,321.3 L125.1,312.8 L128.4,304.3 L131.6,295.8 L134.8,287.3 L138.1,278.8 L141.3,270.3 L144.5,261.9 L147.8,253.4 L151.0,244.9 L154.2,239.7 L157.5,234.6 L160.7,229.4 L163.9,224.2 L167.2,219.1 L170.4,213.9 L173.6,208.8 L176.9,203.6 L180.1,198.5 L183.3,193.3 L186.6,188.1 L189.8,183.0 L193.0,179.3 L196.3,176.9 L199.5,174.6 L202.7,172.3 L206.0,170.0 L209.2,167.7 L212.4,165.3 L215.7,163.0 L218.9,161.5 L222.1,159.9 L225.4,158.4 L228.6,156.9 L231.8,155.3 L235.1,153.8 L238.3,152.3 L241.5,150.7 L244.8,149.2 L248.0,147.7 L251.3,146.6 L254.5,145.6 L257.8,144.6 L261.1,143.6 L264.3,142.6 L267.6,141.9 L270.9,141.2 L274.1,140.5 L277.4,139.8 L280.7,139.1 L283.9,138.5 L287.2,137.8 L290.5,137.0 L293.7,136.2 L297.0,135.4 L300.3,134.6 L303.5,133.8 L306.8,132.9 L310.1,132.1 L313.3,131.3 L316.6,130.5 L319.9,129.7 L323.1,128.8 L326.4,128.0 L329.7,127.2 L333.0,126.5 L336.2,125.8 L339.5,125.2 L342.8,124.5 L346.0,123.8 L349.3,123.1 L352.6,122.4 L355.8,122.3 L359.1,122.7 L362.4,123.1 L365.6,123.5 L368.9,123.9 L372.2,124.3 L375.4,124.7 L378.7,125.2 L382.0,125.9 L385.2,126.6 L388.5,127.3 L391.8,128.0 L395.0,128.7 L398.3,129.5 L401.6,130.2 L404.8,130.9 L408.1,131.6 L411.4,132.3 L414.6,133.0 L417.9,133.6 L421.2,134.3 L424.4,134.9 L427.7,135.6 L431.0,136.3 L434.2,136.9 L437.5,137.6 L440.8,138.2 L444.0,138.9 L447.3,139.5 L450.6,140.2 L453.8,140.8 L457.1,141.4 L460.4,141.9 L463.6,142.5 L466.9,143.1 L470.2,143.7 L473.4,144.2 L476.7,144.8 L480.0,145.4 L483.3,146.0 L486.5,146.5 L489.8,147.1 L493.1,147.7 L496.3,148.3 L499.6,148.9 L502.9,149.5 L506.1,150.1 L509.4,150.7 L512.7,151.4 L515.9,152.0 L519.2,152.6 L522.5,153.2 L525.7,153.8 L529.0,154.4 L532.3,155.0 L535.5,155.7 L538.8,156.3 L542.1,156.9 L545.3,157.5 L548.6,158.1 L551.9,158.7 L555.1,159.3 L558.4,159.9 L560.6,161.5 L562.9,163.0 L565.1,164.6 L567.3,166.1 L569.5,167.6 L571.8,169.2 L574.0,170.7 L576.2,172.2 L578.4,173.8 L580.7,175.3 L582.9,176.8 L585.1,178.4 L587.3,179.4 L589.6,180.4 L591.8,181.4 L594.0,182.5 L596.2,183.5 L598.5,184.5 L600.7,185.5 L602.9,186.6 L605.2,187.6 L607.4,188.6 L609.6,188.6 L611.8,188.6 L614.1,188.6 L616.3,188.6 L618.5,188.6 L620.7,188.6 L623.0,188.6 L625.2,188.6 L627.4,188.6 L629.6,188.6 L631.9,187.8 L634.1,187.1 L636.3,186.3 L638.5,185.5 L640.8,184.8 L643.0,184.0 L645.2,183.2 L647.4,182.5 L649.7,181.7 L651.9,180.9 L654.1,180.2 L656.4,179.4 L658.6,178.6 L660.8,177.9 L663.0,177.1 L665.3,176.3 L667.5,175.6 L669.7,174.8 L671.9,174.0 L674.2,173.2 L676.4,172.2 L678.6,171.2 L680.8,170.2 L683.1,169.2 L685.3,168.1 L687.5,167.1 L689.7,166.1 L692.0,165.1 L694.2,164.0 L696.4,163.0 L698.7,162.0 L700.9,161.0 L703.1,159.9 L705.3,158.9 L707.6,157.9 L709.8,156.9 L712.0,155.9 L714.2,154.8 L716.5,153.8 L718.7,152.8 L720.9,152.4 L723.1,152.1 L725.4,151.8 L727.6,151.4 L729.8,151.1 L732.0,150.7 L734.3,150.4 L736.5,150.1 L738.7,149.7 L741.0,149.4 L743.2,149.0 L745.4,148.7 L747.6,148.4 L749.9,148.0 L752.1,147.7 L754.3,147.3 L756.5,147.0 L758.8,146.6 L761.0,146.3 L763.2,146.0 L765.4,145.6 L767.7,145.3 L769.9,144.9 L772.1,144.6 L774.3,144.3 L776.6,143.9 L778.8,143.6 L781.0,143.2 L783.2,142.9 L785.5,142.6 L787.7,143.6 L789.9,144.6 L792.2,145.6 L794.4,146.6 L796.6,147.7 L798.8,148.7 L801.1,149.7 L803.3,150.7 L805.5,151.8 L807.7,152.8 L810.0,153.8 L812.2,154.8 L814.4,155.9 L816.6,156.9 L818.9,157.9 L821.1,158.9 L823.3,159.9 L825.5,161.0 L827.8,162.0 L830.0,163.0" fill="none" stroke="#9b8cf0" stroke-width="1.2" stroke-linejoin="round" stroke-dasharray="4 3"/>
+<path d="M54.0,412.0 L57.2,412.0 L60.5,412.0 L63.7,412.0 L66.9,412.0 L70.2,412.0 L73.4,412.0 L76.6,412.0 L79.9,412.0 L83.1,412.0 L86.3,412.0 L89.6,412.0 L92.8,412.0 L96.0,412.0 L99.3,412.0 L102.5,412.0 L105.7,412.0 L109.0,412.0 L112.2,412.0 L115.4,412.0 L118.7,412.0 L121.9,412.0 L125.1,412.0 L128.4,412.0 L131.6,402.1 L134.8,390.2 L138.1,378.4 L141.3,366.5 L144.5,354.6 L147.8,342.7 L151.0,330.8 L154.2,323.6 L157.5,316.4 L160.7,309.2 L163.9,301.9 L167.2,294.7 L170.4,287.5 L173.6,280.3 L176.9,273.1 L180.1,265.8 L183.3,258.6 L186.6,251.4 L189.8,244.2 L193.0,239.0 L196.3,235.7 L199.5,232.5 L202.7,229.2 L206.0,226.0 L209.2,222.7 L212.4,219.5 L215.7,216.2 L218.9,214.1 L222.1,211.9 L225.4,209.8 L228.6,207.6 L231.8,205.5 L235.1,203.3 L238.3,201.2 L241.5,199.0 L244.8,196.9 L248.0,194.7 L251.3,193.3 L254.5,191.9 L257.8,190.4 L261.1,189.0 L264.3,187.6 L267.6,186.6 L270.9,185.7 L274.1,184.7 L277.4,183.8 L280.7,182.8 L283.9,181.8 L287.2,180.9 L290.5,179.8 L293.7,178.7 L297.0,177.5 L300.3,176.4 L303.5,175.3 L306.8,174.1 L310.1,173.0 L313.3,171.8 L316.6,170.7 L319.9,169.5 L323.1,168.4 L326.4,167.2 L329.7,166.1 L333.0,165.1 L336.2,164.2 L339.5,163.2 L342.8,162.3 L346.0,161.3 L349.3,160.4 L352.6,159.4 L355.8,159.2 L359.1,159.8 L362.4,160.4 L365.6,160.9 L368.9,161.5 L372.2,162.1 L375.4,162.6 L378.7,163.2 L382.0,164.2 L385.2,165.2 L388.5,166.2 L391.8,167.2 L395.0,168.2 L398.3,169.2 L401.6,170.2 L404.8,171.2 L408.1,172.2 L411.4,173.2 L414.6,174.2 L417.9,175.1 L421.2,176.0 L424.4,176.9 L427.7,177.8 L431.0,178.8 L434.2,179.7 L437.5,180.6 L440.8,181.5 L444.0,182.4 L447.3,183.3 L450.6,184.3 L453.8,185.1 L457.1,185.9 L460.4,186.7 L463.6,187.5 L466.9,188.3 L470.2,189.1 L473.4,189.9 L476.7,190.7 L480.0,191.5 L483.3,192.3 L486.5,193.1 L489.8,193.9 L493.1,194.7 L496.3,195.6 L499.6,196.5 L502.9,197.3 L506.1,198.2 L509.4,199.0 L512.7,199.9 L515.9,200.8 L519.2,201.6 L522.5,202.5 L525.7,203.3 L529.0,204.2 L532.3,205.1 L535.5,205.9 L538.8,206.8 L542.1,207.6 L545.3,208.5 L548.6,209.3 L551.9,210.2 L555.1,211.1 L558.4,211.9 L560.6,214.1 L562.9,216.2 L565.1,218.4 L567.3,220.5 L569.5,222.7 L571.8,224.8 L574.0,227.0 L576.2,229.1 L578.4,231.3 L580.7,233.4 L582.9,235.6 L585.1,237.7 L587.3,239.1 L589.6,240.6 L591.8,242.0 L594.0,243.4 L596.2,244.9 L598.5,246.3 L600.7,247.7 L602.9,249.2 L605.2,250.6 L607.4,252.0 L609.6,252.0 L611.8,252.0 L614.1,252.0 L616.3,252.0 L618.5,252.0 L620.7,252.0 L623.0,252.0 L625.2,252.0 L627.4,252.0 L629.6,252.0 L631.9,251.0 L634.1,249.9 L636.3,248.8 L638.5,247.7 L640.8,246.7 L643.0,245.6 L645.2,244.5 L647.4,243.4 L649.7,242.4 L651.9,241.3 L654.1,240.2 L656.4,239.1 L658.6,238.1 L660.8,237.0 L663.0,235.9 L665.3,234.8 L667.5,233.8 L669.7,232.7 L671.9,231.6 L674.2,230.5 L676.4,229.1 L678.6,227.7 L680.8,226.3 L683.1,224.8 L685.3,223.4 L687.5,222.0 L689.7,220.5 L692.0,219.1 L694.2,217.7 L696.4,216.2 L698.7,214.8 L700.9,213.4 L703.1,211.9 L705.3,210.5 L707.6,209.1 L709.8,207.6 L712.0,206.2 L714.2,204.8 L716.5,203.3 L718.7,201.9 L720.9,201.4 L723.1,200.9 L725.4,200.5 L727.6,200.0 L729.8,199.5 L732.0,199.0 L734.3,198.6 L736.5,198.1 L738.7,197.6 L741.0,197.1 L743.2,196.6 L745.4,196.2 L747.6,195.7 L749.9,195.2 L752.1,194.7 L754.3,194.3 L756.5,193.8 L758.8,193.3 L761.0,192.8 L763.2,192.3 L765.4,191.9 L767.7,191.4 L769.9,190.9 L772.1,190.4 L774.3,190.0 L776.6,189.5 L778.8,189.0 L781.0,188.5 L783.2,188.1 L785.5,187.6 L787.7,189.0 L789.9,190.4 L792.2,191.9 L794.4,193.3 L796.6,194.7 L798.8,196.2 L801.1,197.6 L803.3,199.0 L805.5,200.5 L807.7,201.9 L810.0,203.3 L812.2,204.8 L814.4,206.2 L816.6,207.6 L818.9,209.1 L821.1,210.5 L823.3,211.9 L825.5,213.4 L827.8,214.8 L830.0,216.2" fill="none" stroke="#3fd0c9" stroke-width="2.6" stroke-linejoin="round"/>
+<path d="M54.0,317.9 L57.2,315.6 L60.5,313.3 L63.7,311.0 L66.9,308.7 L70.2,306.4 L73.4,304.1 L76.6,301.8 L79.9,299.5 L83.1,297.2 L86.3,294.9 L89.6,292.6 L92.8,290.3 L96.0,288.0 L99.3,285.7 L102.5,283.4 L105.7,281.1 L109.0,278.8 L112.2,276.5 L115.4,274.2 L118.7,271.9 L121.9,269.6 L125.1,267.3 L128.4,264.9 L131.6,262.6 L134.8,260.3 L138.1,258.0 L141.3,255.7 L144.5,253.4 L147.8,251.1 L151.0,248.8 L154.2,246.5 L157.5,244.2 L160.7,241.9 L163.9,239.6 L167.2,237.3 L170.4,233.5 L173.6,229.6 L176.9,225.8 L180.1,222.0 L183.3,218.1 L186.6,214.3 L189.8,210.4 L193.0,206.6 L196.3,202.8 L199.5,198.9 L202.7,195.1 L206.0,191.2 L209.2,187.4 L212.4,183.6 L215.7,179.7 L218.9,178.0 L222.1,176.3 L225.4,174.5 L228.6,172.8 L231.8,171.1 L235.1,169.4 L238.3,167.6 L241.5,165.9 L244.8,164.2 L248.0,162.4 L251.3,161.5 L254.5,160.6 L257.8,159.7 L261.1,158.8 L264.3,157.8 L267.6,156.9 L270.9,156.0 L274.1,155.1 L277.4,154.2 L280.7,153.2 L283.9,152.3 L287.2,151.4 L290.5,150.8 L293.7,150.6 L297.0,150.4 L300.3,150.1 L303.5,149.9 L306.8,149.7 L310.1,149.4 L313.3,149.2 L316.6,149.0 L319.9,148.7 L323.1,148.5 L326.4,148.3 L329.7,148.1 L333.0,147.8 L336.2,147.6 L339.5,147.4 L342.8,147.1 L346.0,146.9 L349.3,146.7 L352.6,146.4 L355.8,146.2 L359.1,146.0 L362.4,145.7 L365.6,145.5 L368.9,145.3 L372.2,145.1 L375.4,144.8 L378.7,144.6 L382.0,144.4 L385.2,144.1 L388.5,143.9 L391.8,143.7 L395.0,143.4 L398.3,143.2 L401.6,143.0 L404.8,142.8 L408.1,142.5 L411.4,142.3 L414.6,142.1 L417.9,141.8 L421.2,141.6 L424.4,141.4 L427.7,141.1 L431.0,140.9 L434.2,140.7 L437.5,140.4 L440.8,140.2 L444.0,140.0 L447.3,139.8 L450.6,139.5 L453.8,139.2 L457.1,138.9 L460.4,138.5 L463.6,138.2 L466.9,137.8 L470.2,137.5 L473.4,137.1 L476.7,136.8 L480.0,136.4 L483.3,136.0 L486.5,135.7 L489.8,135.3 L493.1,135.0 L496.3,134.6 L499.6,134.3 L502.9,133.9 L506.1,133.6 L509.4,133.2 L512.7,132.9 L515.9,132.5 L519.2,132.1 L522.5,131.8 L525.7,131.4 L529.0,131.1 L532.3,130.7 L535.5,130.4 L538.8,130.0 L542.1,129.7 L545.3,129.3 L548.6,129.0 L551.9,128.6 L555.1,128.2 L558.4,127.9 L560.6,126.8 L562.9,125.8 L565.1,124.8 L567.3,123.7 L569.5,122.7 L571.8,121.6 L574.0,120.6 L576.2,119.5 L578.4,118.5 L580.7,117.4 L582.9,116.4 L585.1,115.3 L587.3,114.3 L589.6,113.2 L591.8,112.2 L594.0,111.1 L596.2,110.1 L598.5,109.0 L600.7,108.0 L602.9,107.0 L605.2,105.9 L607.4,104.9 L609.6,104.4 L611.8,104.0 L614.1,103.6 L616.3,103.1 L618.5,102.7 L620.7,102.3 L623.0,101.8 L625.2,101.4 L627.4,101.0 L629.6,100.5 L631.9,100.1 L634.1,99.7 L636.3,99.2 L638.5,98.8 L640.8,98.4 L643.0,98.0 L645.2,97.5 L647.4,97.1 L649.7,96.7 L651.9,96.2 L654.1,95.8 L656.4,95.4 L658.6,94.9 L660.8,94.5 L663.0,94.1 L665.3,93.6 L667.5,93.2 L669.7,92.8 L671.9,92.3 L674.2,91.9 L676.4,91.5 L678.6,91.0 L680.8,90.6 L683.1,90.2 L685.3,89.7 L687.5,89.3 L689.7,88.9 L692.0,88.4 L694.2,88.0 L696.4,87.6 L698.7,87.5 L700.9,87.4 L703.1,87.3 L705.3,87.2 L707.6,87.1 L709.8,87.0 L712.0,86.9 L714.2,86.8 L716.5,86.7 L718.7,86.6 L720.9,86.5 L723.1,86.4 L725.4,86.3 L727.6,86.2 L729.8,86.1 L732.0,86.0 L734.3,86.0 L736.5,85.9 L738.7,85.8 L741.0,85.7 L743.2,85.6 L745.4,85.5 L747.6,85.4 L749.9,85.3 L752.1,85.2 L754.3,85.1 L756.5,85.0 L758.8,84.9 L761.0,84.8 L763.2,84.7 L765.4,84.6 L767.7,84.5 L769.9,84.4 L772.1,84.3 L774.3,84.2 L776.6,84.1 L778.8,84.0 L781.0,83.9 L783.2,83.8 L785.5,83.7 L787.7,83.7 L789.9,83.6 L792.2,83.5 L794.4,83.4 L796.6,83.3 L798.8,83.2 L801.1,83.1 L803.3,83.0 L805.5,82.9 L807.7,82.8 L810.0,82.7 L812.2,82.6 L814.4,82.5 L816.6,82.4 L818.9,82.3 L821.1,82.2 L823.3,82.1 L825.5,82.0 L827.8,81.9 L830.0,81.8" fill="none" stroke="#5fbf6e" stroke-width="2.2" stroke-linejoin="round"/>
+<path d="M54.0,123.1 L57.2,122.8 L60.5,122.4 L63.7,122.0 L66.9,121.7 L70.2,121.3 L73.4,121.0 L76.6,120.6 L79.9,120.2 L83.1,119.9 L86.3,119.5 L89.6,119.2 L92.8,118.8 L96.0,118.5 L99.3,118.1 L102.5,117.7 L105.7,117.4 L109.0,117.0 L112.2,116.7 L115.4,116.3 L118.7,115.9 L121.9,115.6 L125.1,115.3 L128.4,115.0 L131.6,114.7 L134.8,114.4 L138.1,114.0 L141.3,113.7 L144.5,113.4 L147.8,113.1 L151.0,112.8 L154.2,112.4 L157.5,112.1 L160.7,111.8 L163.9,111.5 L167.2,111.2 L170.4,110.9 L173.6,110.5 L176.9,110.2 L180.1,109.9 L183.3,109.6 L186.6,109.3 L189.8,108.9 L193.0,108.7 L196.3,108.5 L199.5,108.3 L202.7,108.1 L206.0,107.9 L209.2,107.7 L212.4,107.5 L215.7,107.3 L218.9,107.0 L222.1,106.8 L225.4,106.6 L228.6,106.4 L231.8,106.2 L235.1,106.0 L238.3,105.8 L241.5,105.6 L244.8,105.4 L248.0,105.2 L251.3,105.0 L254.5,104.9 L257.8,104.7 L261.1,104.5 L264.3,104.3 L267.6,104.2 L270.9,104.0 L274.1,103.8 L277.4,103.7 L280.7,103.5 L283.9,103.3 L287.2,103.1 L290.5,103.0 L293.7,103.0 L297.0,102.9 L300.3,102.9 L303.5,102.8 L306.8,102.7 L310.1,102.7 L313.3,102.6 L316.6,102.6 L319.9,102.5 L323.1,102.5 L326.4,102.4 L329.7,102.3 L333.0,102.3 L336.2,102.2 L339.5,102.2 L342.8,102.1 L346.0,102.1 L349.3,102.0 L352.6,101.9 L355.8,101.9 L359.1,101.8 L362.4,101.8 L365.6,101.7 L368.9,101.7 L372.2,101.6 L375.4,101.4 L378.7,101.3 L382.0,101.1 L385.2,101.0 L388.5,100.8 L391.8,100.7 L395.0,100.6 L398.3,100.4 L401.6,100.3 L404.8,100.1 L408.1,100.0 L411.4,99.8 L414.6,99.7 L417.9,99.5 L421.2,99.4 L424.4,99.3 L427.7,99.1 L431.0,99.0 L434.2,98.8 L437.5,98.7 L440.8,98.5 L444.0,98.4 L447.3,98.3 L450.6,98.1 L453.8,97.8 L457.1,97.2 L460.4,96.7 L463.6,96.1 L466.9,95.6 L470.2,95.0 L473.4,94.5 L476.7,93.9 L480.0,93.4 L483.3,92.8 L486.5,92.3 L489.8,91.7 L493.1,91.2 L496.3,90.6 L499.6,90.1 L502.9,89.5 L506.1,89.0 L509.4,88.4 L512.7,87.9 L515.9,87.3 L519.2,86.7 L522.5,86.2 L525.7,85.6 L529.0,85.1 L532.3,84.5 L535.5,84.0 L538.8,83.4 L542.1,82.9 L545.3,82.3 L548.6,81.8 L551.9,81.2 L555.1,80.7 L558.4,80.1 L560.6,79.2 L562.9,78.2 L565.1,77.2 L567.3,76.2 L569.5,75.3 L571.8,74.3 L574.0,73.3 L576.2,72.3 L578.4,71.3 L580.7,70.4 L582.9,69.4 L585.1,68.4 L587.3,67.4 L589.6,66.5 L591.8,65.5 L594.0,64.5 L596.2,63.5 L598.5,62.6 L600.7,61.6 L602.9,60.6 L605.2,59.6 L607.4,58.7 L609.6,58.6 L611.8,58.5 L614.1,58.4 L616.3,58.3 L618.5,58.2 L620.7,58.1 L623.0,58.0 L625.2,57.9 L627.4,57.8 L629.6,57.8 L631.9,57.7 L634.1,57.6 L636.3,57.5 L638.5,57.4 L640.8,57.3 L643.0,57.2 L645.2,57.1 L647.4,57.0 L649.7,56.9 L651.9,56.9 L654.1,56.8 L656.4,56.7 L658.6,56.6 L660.8,56.5 L663.0,56.4 L665.3,56.3 L667.5,56.2 L669.7,56.1 L671.9,56.1 L674.2,56.0 L676.4,55.9 L678.6,55.8 L680.8,55.7 L683.1,55.6 L685.3,55.5 L687.5,55.4 L689.7,55.3 L692.0,55.2 L694.2,55.2 L696.4,55.1 L698.7,55.1 L700.9,55.1 L703.1,55.1 L705.3,55.1 L707.6,55.1 L709.8,55.1 L712.0,55.1 L714.2,55.1 L716.5,55.1 L718.7,55.1 L720.9,55.1 L723.1,55.1 L725.4,55.1 L727.6,55.1 L729.8,55.1 L732.0,55.1 L734.3,55.1 L736.5,55.1 L738.7,55.1 L741.0,55.1 L743.2,55.1 L745.4,55.1 L747.6,55.1 L749.9,55.1 L752.1,55.1 L754.3,55.1 L756.5,55.1 L758.8,55.1 L761.0,55.1 L763.2,55.1 L765.4,55.1 L767.7,55.1 L769.9,55.1 L772.1,55.1 L774.3,55.1 L776.6,55.1 L778.8,55.1 L781.0,55.1 L783.2,55.1 L785.5,55.1 L787.7,55.1 L789.9,55.1 L792.2,55.1 L794.4,55.1 L796.6,55.1 L798.8,55.1 L801.1,55.1 L803.3,55.1 L805.5,55.1 L807.7,55.1 L810.0,55.1 L812.2,55.1 L814.4,55.1 L816.6,55.1 L818.9,55.1 L821.1,55.1 L823.3,55.1 L825.5,55.1 L827.8,55.1 L830.0,55.1" fill="none" stroke="#e8604c" stroke-width="2.2" stroke-linejoin="round" stroke-dasharray="7 4"/>
+<line x1="842" y1="38" x2="864" y2="38" stroke="#e8604c" stroke-width="1.2" stroke-dasharray="4 3"/>
+<text x="869" y="41.5" fill="currentColor" fill-opacity=".8" font-family="IBM Plex Mono" font-size="9.5">DIN 5 einzeln</text>
+<line x1="842" y1="57" x2="864" y2="57" stroke="#c98a3a" stroke-width="1.2" stroke-dasharray="4 3"/>
+<text x="869" y="60.5" fill="currentColor" fill-opacity=".8" font-family="IBM Plex Mono" font-size="9.5">DIN 9 einzeln</text>
+<line x1="842" y1="76" x2="864" y2="76" stroke="#9b8cf0" stroke-width="1.2" stroke-dasharray="4 3"/>
+<text x="869" y="79.5" fill="currentColor" fill-opacity=".8" font-family="IBM Plex Mono" font-size="9.5">DIN 11 einzeln</text>
+<line x1="842" y1="95" x2="864" y2="95" stroke="#3fd0c9" stroke-width="2.6"/>
+<text x="869" y="98.5" fill="currentColor" fill-opacity=".8" font-family="IBM Plex Mono" font-size="9.5">DIN 5+11 (Stufe 15)</text>
+<line x1="842" y1="114" x2="864" y2="114" stroke="#5fbf6e" stroke-width="2.2"/>
+<text x="869" y="117.5" fill="currentColor" fill-opacity=".8" font-family="IBM Plex Mono" font-size="9.5">zertifiziert ISO 12312-2</text>
+<line x1="842" y1="133" x2="864" y2="133" stroke="#e8604c" stroke-width="2.2" stroke-dasharray="7 4"/>
+<text x="869" y="136.5" fill="currentColor" fill-opacity=".8" font-family="IBM Plex Mono" font-size="9.5">Fälschung (unterdicht)</text>
+</svg>
+  </div>
+  <p class="note" style="margin-top:8px">Logarithmische Ordinate über 16 Dekaden. Das gestrichelte
+  grüne Rechteck ist das ISO-Fenster für sichtbares Licht, die orange Linie die ISO-Obergrenze
+  von 3 % für Infrarot.</p>
+
+  <h3 style="margin-top:30px">Bandmittelwerte im direkten Vergleich</h3>
+  <div class="tscroll"><table>
+    <thead><tr><th>Filter</th><th class="num">UVB<br>280–315</th><th class="num">UVA<br>315–400</th><th class="num">Blau<br>400–500</th><th class="num">Grün–Rot<br>500–780</th><th class="num">IR-A<br>780–1400</th><th class="num">IR-B/C<br>1400–2000</th></tr></thead>
+    <tbody>
+      <tr><td class="bad"><b>DIN 5 einzeln</b></td><td class="num">5,8·10⁻⁷</td><td class="num bad">2,8·10⁻³</td><td class="num bad">1,5·10⁻²</td><td class="num bad">1,6·10⁻²</td><td class="num">3,4·10⁻³</td><td class="num">9,5·10⁻³</td></tr>
+      <tr><td>DIN 9 einzeln</td><td class="num">1,1·10⁻¹²</td><td class="num">1,7·10⁻⁵</td><td class="num warn">2,6·10⁻⁴</td><td class="num warn">3,2·10⁻⁴</td><td class="num">1,3·10⁻⁵</td><td class="num">9,5·10⁻⁵</td></tr>
+      <tr><td>DIN 11 einzeln</td><td class="num">1,7·10⁻¹⁵</td><td class="num">1,4·10⁻⁶</td><td class="num warn">3,4·10⁻⁵</td><td class="num warn">4,7·10⁻⁵</td><td class="num">8,3·10⁻⁷</td><td class="num">9,7·10⁻⁶</td></tr>
+      <tr style="background:rgba(63,208,201,.07)"><td class="ok"><b>DIN 5 + 11 (Stufe 15)</b></td><td class="num ok"><b>4,5·10⁻²¹</b></td><td class="num ok"><b>1,1·10⁻⁸</b></td><td class="num ok"><b>6,1·10⁻⁷</b></td><td class="num ok"><b>1,1·10⁻⁶</b></td><td class="num ok"><b>3,7·10⁻⁹</b></td><td class="num ok"><b>1,0·10⁻⁷</b></td></tr>
+      <tr><td class="ok"><b>zertifiziert ISO 12312-2</b></td><td class="num">9,6·10⁻¹²</td><td class="num">3,0·10⁻⁷</td><td class="num">7,1·10⁻⁶</td><td class="num">3,1·10⁻⁵</td><td class="num warn">1,3·10⁻³</td><td class="num warn">5,1·10⁻³</td></tr>
+      <tr><td class="bad"><b>Fälschung</b></td><td class="num bad">1,7·10⁻⁴</td><td class="num bad">4,3·10⁻⁴</td><td class="num bad">8,1·10⁻⁴</td><td class="num bad">2,2·10⁻³</td><td class="num bad">5,7·10⁻²</td><td class="num bad">8,8·10⁻²</td></tr>
+    </tbody>
+  </table></div>
+  <p style="margin-top:14px"><strong>Das überraschendste Ergebnis:</strong> Der Schweißglas-Stapel ist der
+  zertifizierten Brille in <em>jedem</em> Band überlegen — im Blauen um Faktor 12, im UVA um 27, und im
+  Infrarot-A um den Faktor <b>350.000</b>. Der Grund ist Materialphysik: Mineralisches Schweißglas ist
+  eisendotiert und absorbiert gerade im nahen Infrarot besonders stark, während rußgefülltes Schwarzpolymer
+  dort deutlich durchlässiger wird. Genau deshalb erlaubt ISO 12312-2 bis zu 3 % IR — das Fenster ist auf
+  das machbare Polymer zugeschnitten, nicht auf das physikalisch Mögliche. Das passt zum Befund von
+  Chou et al., dass grüne Schweißfilter bei gleicher Leuchtdichtetransmission besser bewertet wurden als
+  Sonnenfilter.</p>
+  <p><strong>Die Fälschung fällt in jedem Band durch</strong> — 30× zu hell im Sichtbaren, 1400× mehr UVA
+  als eine zertifizierte Brille, und mit 5,7 % IR-A oberhalb der ISO-Grenze. Sie sieht dabei aus wie eine
+  echte: gleiche Pappe, gleiche Folienfarbe, gleicher Aufdruck.</p>
+  <p><strong>Und der Blick auf die Einzelgläser</strong> erklärt die Regeln dieses Dossiers besser als jede
+  Warnung: DIN 5 allein lässt im Blauen 1,5 % durch — <b>2.000-fach mehr</b> als eine zertifizierte Brille.
+  DIN 11 allein liegt im Blauen nur Faktor 5 darüber und wirkt deshalb subjektiv völlig ausreichend;
+  genau das macht die Einzelscheibe zur Falle.</p>
+
+  <h3 style="margin-top:30px">Wie gefährlich ist welcher Bereich?</h3>
+  <div class="tscroll"><table>
+    <thead><tr><th>Band</th><th>Wohin es gelangt</th><th>Schadensmechanismus</th><th>Relevanz für die Finsternis</th></tr></thead>
+    <tbody>
+      <tr><td><b>UVB</b> 280–315 nm</td><td>Hornhaut absorbiert nahezu vollständig — erreicht die Netzhaut <b>nie</b></td>
+        <td>Photokeratitis („Verblitzen", Schneeblindheit): schmerzhaft, heilt in 1–2 Tagen. Langfristig Pterygium, Beitrag zur Katarakt</td>
+        <td class="ok">morgen null — bei Luftmasse 20,5 hat das Ozon UVB vollständig entfernt</td></tr>
+      <tr><td><b>UVA</b> 315–400 nm</td><td>Augenlinse absorbiert &gt; 98 % beim Erwachsenen; <b>bei Kindern deutlich weniger</b></td>
+        <td>kumulativ Kataraktbildung; der Rest, der die Netzhaut erreicht, wirkt photochemisch</td>
+        <td class="ok">morgen vernachlässigbar; relevant beim Blick in die Mittagssonne</td></tr>
+      <tr><td class="bad"><b>Blau/Violett</b> 400–500 nm</td><td>erreicht die Netzhaut nahezu ungehindert</td>
+        <td><b>Der eigentliche Killer.</b> Photochemische Schädigung der Photorezeptoren und des Pigmentepithels, Wirkungsmaximum 435–440 nm. Dosis = Leistung × Zeit (Bunsen-Roscoe) — <b>ohne Wärme, ohne Schmerz.</b> Das ist der Mechanismus der solaren Retinopathie bei kurzer Exposition</td>
+        <td class="bad">der entscheidende Bereich — und der einzige, dessentwegen der Filter überhaupt existiert</td></tr>
+      <tr><td><b>Grün–Rot</b> 500–780 nm</td><td>erreicht die Netzhaut</td>
+        <td>photochemisch stark abfallend (bei 550 nm nur noch ~1 % der Blauwirkung), zunehmend thermisch. Trägt zur Erwärmung des Pigmentepithels bei</td>
+        <td class="warn">relevant, aber pro Watt weit harmloser als Blau</td></tr>
+      <tr><td><b>IR-A</b> 780–1400 nm</td><td>erreicht die Netzhaut (das „optische Fenster" endet erst bei ~1400 nm)</td>
+        <td>rein thermisch: Erwärmung des Pigmentepithels, keine Reziprozität — braucht hohe Momentanleistung. Zusätzlich Linsentrübung („Glasbläserstar") bei chronischer Exposition</td>
+        <td class="warn">die schwächste Flanke jedes Filters; morgen 35 % der Bodenstrahlung, aber 16.000× unter der ICNIRP-Grenze</td></tr>
+      <tr><td><b>IR-B/C</b> &gt; 1400 nm</td><td>Hornhaut und Kammerwasser absorbieren vollständig — erreicht die Netzhaut <b>nie</b></td>
+        <td>Hornhautverbrennung nur bei extremer Bestrahlungsstärke (Laser, Industrieöfen)</td>
+        <td class="ok">bei Sonnenbeobachtung ohne Optik irrelevant, obwohl 34 % der Bodenstrahlung</td></tr>
+    </tbody>
+  </table></div>
+  <p style="margin-top:14px" class="note"><strong>Modellgrenze:</strong> Die Kurven sind physikalisch
+  motivierte Rekonstruktionen aus Normvorgaben und Herstellerangaben, keine Spektrometermessungen dieser
+  Exemplare. Am unsichersten ist der NIR-Verlauf der Schweißgläser: Er hängt vom Eisengehalt des konkreten
+  Glases ab, und der ist nicht spezifiziert. Der Faktor 350.000 gegenüber der ISO-Brille ist deshalb als
+  Größenordnung zu lesen — die Richtung des Befunds ist robust, der Betrag nicht.</p>
+</section>
+
+<section id="betrieb">
+  <h2>Betriebsplan · Helligkeit über den Abend</h2>
+  <h3>Zwei Stufen statt einer — und warum mehr Dunkelheit schadet</h3>
+  <p>Die Sonne verliert zwischen 1. Kontakt und Maximum durch Luftmasse und Bedeckung rund den Faktor 50.
+  Ein einziger Filter kann nicht beide Enden bedienen. Beide hier möglichen Stufen liegen innerhalb beider
+  ISO-Fenster und im Bereich, den DOG (12–14) und AAS (12+) ausdrücklich nennen:</p>
+  <div class="tscroll"><table>
+    <thead><tr><th>Zeit (Lam)</th><th class="num">Sonnenhöhe</th><th class="num">5 + 11 · Stufe 15</th><th class="num">5 + 9 · Stufe 13</th><th class="num">+ Sonnenbrille · Stufe 17</th></tr></thead>
+    <tbody>
+      <tr><td>19:21 · 1. Kontakt</td><td class="num">9,9°</td><td class="num">413 cd/m²</td><td class="num">2974</td><td class="num">52</td></tr>
+      <tr><td>19:50</td><td class="num">6,0°</td><td class="num">180</td><td class="num">1298</td><td class="num">23</td></tr>
+      <tr><td>20:05</td><td class="num">3,0°</td><td class="num">35</td><td class="num">251</td><td class="num">4,4</td></tr>
+      <tr><td><b>20:14 · Maximum 87,4 %</b></td><td class="num">1,8°</td><td class="num"><b>8,6</b></td><td class="num"><b>62</b></td><td class="num bad">1,1</td></tr>
+      <tr><td colspan="2"><b>Normstatus</b></td><td class="ok">ISO 2015 + 2025 ok</td><td class="ok">ISO 2015 + 2025 ok</td><td class="bad">unter ISO-Minimum</td></tr>
+    </tbody>
+  </table></div>
+  <p style="margin-top:14px"><strong>Fahrplan:</strong> 5 + 11 von 19:21 bis etwa 19:50, danach Wechsel auf
+  5 + 9. Beim Tausch wegschauen, tauschen, dann erst wieder hochblicken — nie beide Scheiben gleichzeitig ab.
+  Die zweite DIN-11-Scheibe bleibt für die Handylinse in der frühen Phase (dort allein, nicht gestapelt:
+  ~14 Blendenstufen).</p>
+
+  <h3 style="margin-top:30px">Warum Nachdunkeln der falsche Reflex ist</h3>
+  <p>ISO 12312-2 hat nicht nur eine Ober-, sondern auch eine <strong>Untergrenze</strong>. Ein Filter soll die
+  Sonne noch zeigen — sonst nimmt der Beobachter ihn ab. Beide Nachdunkel-Varianten verletzen sie:</p>
+  <div class="tscroll"><table>
+    <thead><tr><th>Variante</th><th class="num">Stufe</th><th class="num">τ</th><th class="num">bei 20:14</th><th>Bewertung</th></tr></thead>
+    <tbody>
+      <tr><td>5 + 11 + Sonnenbrille</td><td class="num">17,1</td><td class="num">1,3·10⁻⁷</td><td class="num">1,1 cd/m²</td>
+        <td class="warn">an der Wahrnehmungsgrenze; Sonnenbrille zudem ohne garantierte IR-Sperrung</td></tr>
+      <tr><td><b>5 + 5 + 11</b></td><td class="num"><b>19,0</b></td><td class="num">1,93·10⁻⁸</td><td class="num">0,17 cd/m²</td>
+        <td class="warn">52× dunkler als 5+11; 32× unter dem ISO-Minimum 2015</td></tr>
+    </tbody>
+  </table></div>
+  <p style="margin-top:14px">Zu 5 + 5 + 11 im Detail — das ist die Konfiguration des Vortests bei voller Sonne:
+  Dort ergaben sich <b>34 cd/m²</b>, etwa graues Papier auf dem Schreibtisch. Dass die Sonne dabei sichtbar
+  blieb, ist kein Warnzeichen, sondern die Folge ihrer absurden Flächenhelligkeit von 1,8 Mrd. cd/m² —
+  neun Größenordnungen Dämpfung bringen sie gerade auf Zimmerniveau. Morgen Abend dagegen liefert dieselbe
+  Kombination bei 1,8° nur noch 0,17 cd/m²: <strong>faktisch unsichtbar.</strong>
+  UV wäre dabei mit ≤ 4,7·10⁻¹⁰ (365 nm) absurd niedrig, die Dosis einer Minute entspräche
+  <b>1,2 Mikrosekunden</b> ungefilterten Sonnenblicks — Sicherheitsabstand zur Retinopathie-Schwelle
+  Faktor 2,6·10⁷. Sicherheitstechnisch also völlig unbedenklich; der Grund gegen diese Kombination ist
+  ausschließlich, dass man nichts mehr sieht — und wer nichts sieht, greift an den Filter.</p>
 </section>
 
 <section id="faelle">
@@ -381,6 +762,132 @@ footer{margin-top:70px;padding-top:22px;border-top:1px solid var(--line);color:v
   Die Fallrecherche <em>stützt</em> also das Dosimetrie-Verdikt, sie ersetzt es nicht: Für Stufe 12–14 ist
   „keine Fälle + explizite Empfehlung durch ASRS, AAS, NASA, DOG" die bestmögliche Evidenzlage dieser Art;
   für Stapel bleibt die Sicherheit eine Rechengröße.</p>
+</section>
+
+<section id="faelschungen">
+  <h2>Fälschungen 2026 · Umfang, Folgen, Erkennung</h2>
+  <h3>Die Datenlage am Vortag der Finsternis</h3>
+  <p>Eine belastbare Fälschungsquote für Europa 2026 existiert nicht — es gibt kein Register, keine
+  Marktüberwachungsstatistik für diese Produktgruppe und keine Meldepflicht. Was es gibt, sind vier
+  Datenpunkte, und die zeigen in eine überraschende Richtung.</p>
+  <div class="tscroll"><table>
+    <thead><tr><th>Befund</th><th>Quelle / Datum</th><th>Bedeutung</th></tr></thead>
+    <tbody>
+      <tr><td><b>10 Modelle im Labor geprüft — alle 10 filtern normgerecht.</b> Kein einziges stellt ein
+        Risiko für die Augengesundheit dar. Bezugsquellen: Apotheken, Optiker, Supermärkte, Fachmagazine,
+        Internet; gekauft Anfang Juli 2026.</td>
+        <td>UFC-Que Choisir, Labortest, 05.08.2026</td>
+        <td class="ok">optisch sicher</td></tr>
+      <tr><td><b>Bei mehreren derselben 10 Modelle: gravierende Mängel bei Kennzeichnung, Anleitung
+        oder Konformitätszertifikat.</b> Fehlende Hersteller- und Importeursidentität, Anleitung nur auf
+        Englisch statt in der Landessprache.</td>
+        <td>ebd.</td>
+        <td class="warn">formal nicht konform</td></tr>
+      <tr><td>Kioskheft „Éclipse 2026, Hors-Série Premium" (6,99 €, 16 Seiten, Brille „gratis"):
+        Anleitung nur englisch, Herkunftsland und Firmenname des Herstellers vollständig fehlend,
+        kein Verlagsname, zitiert Personen und Verbände, die nie mitgewirkt haben. ISO- und CE-Aufdruck
+        vorhanden. Rückruf bei der französischen Verbraucherschutzbehörde beantragt.</td>
+        <td>Association Française d'Astronomie, Mitte Juni 2026</td>
+        <td class="bad">Rückverfolgbarkeit null</td></tr>
+      <tr><td>Optikerkette verteilte ab Juni über <b>600.000</b> Brillen gratis, auch in Kindergröße.
+        Anfang Juli von der Behörde gestoppt: Das online hinterlegte Zertifikat stammte von einer Stelle,
+        die für den europäischen Markt <em>nicht</em> als Zertifizierer geführt wird. Inzwischen bereinigt.</td>
+        <td>DGCCRF-Prüfkampagne, Juli 2026</td>
+        <td class="warn">Zertifikat nicht anerkannt</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 style="margin-top:30px">Schätzung — mit offengelegter Herleitung</h3>
+  <p>Die entscheidende Unterscheidung, die in der öffentlichen Diskussion fast immer untergeht:
+  <strong>formale Nichtkonformität ist nicht dasselbe wie optisches Versagen.</strong> Der Labortest fand
+  beides in derselben Stichprobe — viele Papierfehler, null Filterfehler. Daraus lässt sich ein
+  strukturierter Schätzrahmen bauen:</p>
+  <div class="tscroll"><table>
+    <thead><tr><th>Kategorie</th><th class="num">geschätzter Anteil</th><th>Grundlage</th></tr></thead>
+    <tbody>
+      <tr><td><b>Formalmängel</b> (Kennzeichnung, Sprache, Rückverfolgbarkeit, Zertifikat) im Gesamtmarkt</td>
+        <td class="num warn">30–60 %</td>
+        <td>mehrere von 10 im Labortest; dazu zwei behördlich beanstandete Großvorgänge in Frankreich</td></tr>
+      <tr><td><b>Optisch unsichere Filter</b> im etablierten Handel (Optiker, Apotheke, Fachhandel, seriöse Magazine)</td>
+        <td class="num ok">&lt; 2 %</td>
+        <td>0 von 10 im Labortest — 95 %-Obergrenze rein statistisch 30 %, durch Kanalstruktur und die 2024er-Erfahrung deutlich enger einzugrenzen</td></tr>
+      <tr><td><b>Optisch unsichere Filter</b> bei Marktplatz-Drittanbietern ohne Historie, Panikkäufen der letzten Tage, Kioskheften unbekannter Herkunft</td>
+        <td class="num bad">unbekannt, deutlich höher</td>
+        <td>genau dieser Kanal lieferte 2017 (Amazon-Rückruf) und 2024 (≥ 100.000 Fälschungen eines einzigen Produkts) die dokumentierten Fälle</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note" style="margin-top:10px">Konfidenz: niedrig bis mittel. Die Stichprobe von zehn Modellen
+  ist zu klein für Prozentangaben, deckt aber die Hauptvertriebswege ab. Amazon legte 2017 den Umfang
+  seines Rückrufs nie offen. Für Deutschland liegt keine vergleichbare Untersuchung vor —
+  die französischen Werte werden hier als Näherung für einen strukturell ähnlichen EU-Markt verwendet.</p>
+  <p style="margin-top:12px"><strong>Der Trend spricht gegen Entwarnung:</strong> Je näher der 12. August
+  rückt und je leerer die Regale werden, desto mehr zweifelhafte Ware erscheint — die Nachfrage explodiert
+  in Wochen, die Käufer sind gehetzt, und das Produkt kostet wenige Euro. Der EU-Zoll stoppte 2023
+  152 Millionen gefälschte und potenziell gefährliche Waren, ein Plus von 77 % gegenüber dem Vorjahr.</p>
+
+  <h3 style="margin-top:30px">Warum eine Fälschung gefährlicher ist als gar kein Filter</h3>
+  <p>Der Mechanismus ist perfide: Eine Fälschung ist dunkel genug, dass die Blendung verschwindet — und
+  damit fällt der Lidschluss- und Abwendreflex weg, der ungeschützt nach Sekundenbruchteilen einsetzt.
+  Man schaut bequem und schmerzfrei minutenlang hin, während ein Vielfaches der zulässigen Strahlung auf
+  die Fovea trifft. Die Netzhaut hat keine Schmerzrezeptoren. Ein echtes ISO-Filter sperrt über 99,99 %
+  des sichtbaren Lichts plus UV und IR; eine Fälschung kann optisch identisch aussehen — gleiche Pappe,
+  gleiche Folienfarbe — und Strahlung tausendfach zu intensiv durchlassen.</p>
+  <div class="tscroll"><table>
+    <thead><tr><th>Phase</th><th>Was passiert</th></tr></thead>
+    <tbody>
+      <tr><td>Während der Beobachtung</td><td>keinerlei Warnsignal — kein Schmerz, keine Blendung, kein Tränen</td></tr>
+      <tr><td>Nach Minuten bis Stunden</td><td>verschwommenes Zentrum, grauer oder dunkler Fleck genau im Blickpunkt, verbogene Linien (Metamorphopsie), veränderte Farbwahrnehmung; meist beidseitig</td></tr>
+      <tr><td>Wochen bis 6 Monate</td><td>bei überwiegend ödematösem Befund weitgehende Rückbildung — die Mehrheit der Fälle erholt sich</td></tr>
+      <tr><td>Bleibend</td><td>bei Untergang von Photorezeptoren: dauerhaftes zentrales oder parazentrales Skotom, reduzierter Visus. Keine Behandlung, keine Regeneration von Zapfen</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note" style="margin-top:10px">Kinder sind stärker gefährdet: klarere Augenlinse, weniger
+  Eigenfilterung, geringere Impulskontrolle. Das BfS empfiehlt für Kinder ausdrücklich die Projektion
+  statt des direkten Blicks.</p>
+
+  <h3 style="margin-top:30px">Erkennung an der Brille selbst</h3>
+  <p><strong>Vorweg die unbequeme Wahrheit:</strong> Als Privatperson kann man die Sicherheit einer Brille
+  zu Hause nicht <em>beweisen</em>. Man kann nur erkennen, wann man ihr besser nicht traut. Der Aufdruck
+  „ISO 12312-2" ist keine Prüfung, sondern Text — und Text lässt sich mitdrucken. Diese Prüfungen kosten
+  zusammen zwei Minuten:</p>
+  <div class="tscroll"><table>
+    <thead><tr><th>#</th><th>Prüfung</th><th>Muss erfüllt sein</th><th>Aussagekraft</th></tr></thead>
+    <tbody>
+      <tr><td class="num">1</td><td><b>Zimmerprobe</b></td>
+        <td>Drinnen oder im Schatten aufgesetzt: <b>vollständig undurchsichtig</b>. Keine Möbelkontur, kein Fensterrahmen, keine Deckenleuchte. Nur eine sehr helle Glühwendel darf schwach durchkommen.</td>
+        <td class="ok"><b>hoch</b> — wer die Umgebung sieht, hält bestenfalls eine getarnte Sonnenbrille in der Hand</td></tr>
+      <tr><td class="num">2</td><td><b>Gegenlichtprobe auf Pinholes</b></td>
+        <td>Folie gegen eine starke Lampe halten: keine Nadelstiche, keine Risse, keine hellen Punkte</td>
+        <td class="ok">hoch — metallbedampfte Folien haben nach ISO nur eng begrenzte Pinhole-Toleranz</td></tr>
+      <tr><td class="num">3</td><td><b>Kennzeichnung auf dem Rahmen</b></td>
+        <td>ISO 12312-2 <b>direkt auf der Brille</b>, nicht nur in der Anzeige · CE-Zeichen · <b>Herstellername und -anschrift</b> · bei Herstellern außerhalb der EU zusätzlich <b>Name und Anschrift des Importeurs</b> · Produktidentifikation (Referenz, Charge)</td>
+        <td class="warn">mittel — fälschbar, aber Fälscher lassen die Traceability-Angaben meist weg</td></tr>
+      <tr><td class="num">4</td><td><b>Sprache der Gebrauchshinweise</b></td>
+        <td>PSA der Kategorie II verlangt eine Anleitung <b>in der Landessprache</b>. Nur Englisch auf einem in Deutschland verkauften Produkt ist ein Rechtsverstoß — und war exakt der Auslöser der französischen Beanstandung.</td>
+        <td class="ok">hoch — billiges, verlässliches Warnsignal</td></tr>
+      <tr><td class="num">5</td><td><b>Haftungsklausel lesen</b></td>
+        <td>Formulierungen wie „mit dem Kauf entbinden Sie Hersteller und Importeur unwiderruflich von jeder Haftung" sind unwirksam — aber ein starkes Indiz für einen Anbieter, der seiner eigenen Ware nicht traut.</td>
+        <td class="warn">mittel</td></tr>
+      <tr><td class="num">6</td><td><b>Zertifikat nachverfolgen</b></td>
+        <td>EU-Konformitätserklärung auffindbar, ausgestellt von einer <b>tatsächlich benannten Stelle</b>. Genau hier scheiterte die 600.000er-Gratisaktion: Der Zertifizierer war für den EU-Markt nicht gelistet.</td>
+        <td class="ok">hoch, wenn man es tut</td></tr>
+      <tr><td class="num">7</td><td><b>Unversehrtheit und Sitz</b></td>
+        <td>Keine Kratzer, keine Ablösung der Folie vom Karton, kein Lichteinfall seitlich. Modelle vor 2015 oder aus unklarer Lagerung: aussortieren — Mikrorisse sind unsichtbar.</td>
+        <td class="ok">hoch</td></tr>
+      <tr><td class="num">8</td><td><b>Herkunft</b></td>
+        <td>Optiker, Apotheke, Planetarium, Astronomiefachhandel, etablierte Fachzeitschrift — oder Marke auf der AAS-Liste. Bei Marktplätzen: neue Drittanbieter mit generischem Namen und ohne Verkaufshistorie meiden.</td>
+        <td class="ok"><b>höchste</b> — der einzige Faktor, der die Lieferkette abdeckt</td></tr>
+    </tbody>
+  </table></div>
+  <p style="margin-top:14px"><strong>Was <em>kein</em> Warnsignal ist:</strong> der Preis allein.
+  Eine zertifizierte Brille kostet regulär 2–5 €; kostenlose Exemplare von Optikern oder Planetarien sind
+  bei intakter Kennzeichnung genauso sicher wie gekaufte. Verdächtig wird billig erst in Kombination mit
+  unbekanntem Verkäufer, künstlicher Verknappung („letzte Chance, begrenzter Vorrat") und fehlender
+  Herstellerangabe.</p>
+  <p style="margin-top:12px"><strong>Und im Zweifel:</strong> Nicht benutzen. Ein EN-169-Schweißfilter
+  aus dem Arbeitsschutzhandel, eine Lochkamera aus Alufolie und Karton oder ein Küchensieb sind
+  hundertprozentige Alternativen — die ersten beiden mit geprägter Kennzeichnung und ohne
+  Fälschungsmarkt, die dritte ohne jeden Blick zur Sonne.</p>
 </section>
 
 <section id="haendler">
@@ -471,9 +978,11 @@ footer{margin-top:70px;padding-top:22px;border-top:1px solid var(--line);color:v
     Richtung Sonne zeigt — das ist der einzige realistische Unfall in diesem Aufbau.</li>
     <li><strong>Zimmerprobe vorher:</strong> Durch den Stapel darf drinnen nichts erkennbar sein — keine
     Möbelkontur, keine Deckenleuchte. Eine sehr helle Glühwendel darf schwach durchkommen (Millionen cd/m²).</li>
-    <li><strong>Kennzeichnungsprobe:</strong> Beide Scheiben müssen am Rand eine <em>reine Zahl ohne
-    Bindestrich-Vorzahl</em> tragen (EN-169-Schweißskala). Steht dort „4-…" (IR-Filter EN 171) oder
-    „5-…"/„6-…" (Sonnenblendschutz EN 172), gilt die Stapelrechnung nicht — nicht verwenden.</li>
+    <li><strong>Kennzeichnungsprobe — erledigt:</strong> Brille <span class="mono">5 SCS 1 CE</span>,
+    Scheiben <span class="mono">16321 XTW W11</span> bzw. <span class="mono">W9</span>. Reine Zahl bzw.
+    W-Präfix = Schweißskala. Keine Bindestrich-Vorzahl (2-/4-/5-/6-) im Spiel, die Rechnung gilt.</li>
+    <li><strong>Nicht nachdunkeln:</strong> keine Sonnenbrille zusätzlich, kein zweites DIN-5-Glas.
+    Wird zu dunkel gebraucht, ist der richtige Griff die <em>hellere</em> Scheibe (DIN 9), nicht mehr Schichten.</li>
     <li><strong>Erwartung ans Bild:</strong> ~1 800 cd/m² zu Beginn (Handydisplay-Niveau), gegen 20:10
     durch die Extinktion nur noch ~7 cd/m² — dunkel, aber sichtbar. Nicht nachdunkeln, nicht aufhellen.</li>
     <li><strong>Nie mit Optik:</strong> Fernglas, Teleskop, Kamera bündeln das Licht und zerstören Filter
@@ -511,6 +1020,12 @@ footer{margin-top:70px;padding-top:22px;border-top:1px solid var(--line);color:v
       <tr><td>60 s ≡ 60 µs; Sicherheitsabstand ~5·10⁵ zur Retinopathie-Schwelle</td>
         <td><span class="grade gB">B</span></td><td class="st ok">bestätigt (rechnerisch)</td>
         <td>Reziprozitätsgesetz; Schwellenwert ~30 s aus klinischer Literatur (Größenordnung, keine scharfe Kante)</td></tr>
+      <tr><td>Spektralvergleich: Schweißglas-Stapel in allen Bändern besser als zertifizierte ISO-Brille, besonders im IR-A</td>
+        <td><span class="grade gC">C</span></td><td class="st part" style="color:var(--amber)">Modellrechnung</td>
+        <td>Beer-Lambert-Skalierung der Herstellerangaben (DIN 5) auf höhere Stufen; ISO-Brille und Fälschung als Materialmodelle. Richtung durch Chou et al. gestützt (grüne Schweißfilter besser bewertet), Betrag nicht gemessen</td></tr>
+      <tr><td>Spektralbilanz: UV bei 1,8° physikalisch abwesend (Ozon, AM 20,5); IR-B/C erreicht Netzhaut nie; IR-A dominiert, liegt aber 16.000× unter der ICNIRP-Grenze</td>
+        <td><span class="grade gB">B</span></td><td class="st ok">bestätigt (Modellrechnung)</td>
+        <td>Eigenes Spektralmodell (Planck + Rayleigh/Aerosol/Ozon/H₂O), Augenmedien-Transmission aus Standardliteratur, ICNIRP-Grenzwerte für IR-A retinal-thermisch und Blaulicht</td></tr>
       <tr><td>IR des Stapels unkritisch (Worst Case 2,5 % &lt; 3 %)</td>
         <td><span class="grade gB">B</span></td><td class="st part2" style="color:var(--amber)">teilbestätigt</td>
         <td>Schrankenabschätzung ohne Messung der konkreten Scheiben; Athermalglas-IR-Sperrung aus Herstellerangaben (~97 % bei Stufe 14)</td></tr>
@@ -520,6 +1035,15 @@ footer{margin-top:70px;padding-top:22px;border-top:1px solid var(--line);color:v
       <tr><td>BfS: max. 0,001 % Durchlass; Lochkamera sicherste Methode für Kinder</td>
         <td><span class="grade gA">A</span></td><td class="st ok">bestätigt</td>
         <td>BfS-Pressemitteilung 007/2026, wörtlich</td></tr>
+      <tr><td>Labortest 2026: 10 von 10 im französischen Handel gekauften SoFi-Brillen filtern normgerecht; mehrere zugleich mit Kennzeichnungs-/Zertifikatsmängeln</td>
+        <td><span class="grade gA">A</span></td><td class="st ok">bestätigt</td>
+        <td>UFC-Que Choisir, Labortest veröffentlicht 05.08.2026, Kaufdatum Anfang Juli — Stichprobe n=10, statistische 95 %-Obergrenze für Ausfälle 30 %</td></tr>
+      <tr><td>Zwei behördlich beanstandete Großvorgänge Frankreich 2026: Kioskheft ohne Rückverfolgbarkeit (AFA/DGCCRF) und 600.000er-Gratisaktion mit nicht anerkanntem Zertifikat</td>
+        <td><span class="grade gA">A</span></td><td class="st ok">bestätigt</td>
+        <td>Association Française d'Astronomie (Juni 2026), DGCCRF-Prüfkampagne (Juli 2026), Berichterstattung Acuité / Ciel &amp; Espace / Que Choisir</td></tr>
+      <tr><td>Geschätzte Fälschungsquote 2026: &lt; 2 % optisch unsicher im etablierten Handel, 30–60 % Formalmängel, unbekannt höher bei Marktplatz-Drittanbietern</td>
+        <td><span class="grade gC">C</span></td><td class="st part" style="color:var(--amber)">Schätzung</td>
+        <td>Extrapolation aus n=10 plus Kanalstruktur und Präzedenzfällen 2017/2024; kein Register, keine deutsche Untersuchung, niedrige Konfidenz — Herleitung im Text offengelegt</td></tr>
       <tr><td>Verkäuferbefunde: Lunt = Hersteller selbst, AAS-gelistet · DALLA L.L.C-FZ = Freezone-Zwischenhändler, Konto Tage alt</td>
         <td><span class="grade gB">B</span></td><td class="st ok">bestätigt</td>
         <td>Amazon-Verkäuferangaben (vom Nutzer beigebracht) + Fachpresse zu Lunt/AAS-Listung; ORRO-AAS-Listung nur als Selbstauskunft, nicht unabhängig verifiziert</td></tr>
@@ -532,9 +1056,15 @@ footer{margin-top:70px;padding-top:22px;border-top:1px solid var(--line);color:v
       <tr><td>EN 166 seit 11/2025 durch EN ISO 16321 abgelöst; Schweißfilter in Teil 16321-2; Vorzahlsystem (—/2/4/5–6) trennt vier Stufenskalen</td>
         <td><span class="grade gA">A</span></td><td class="st ok">bestätigt</td>
         <td>uvex-Normenübersicht (Hersteller-Fachseite, vom Nutzer beigebracht); Vorzahlsystem konsistent mit EN-166-Kennzeichnungsschema</td></tr>
-      <tr><td>Kennzeichnung „5" und „11" der konkreten Scheiben korrekt (reine Schweißskala, keine 4-/5-Vorzahl); Stapel saß lückenlos</td>
+      <tr><td>Kennzeichnung der konkreten Hardware: Brille „5 SCS 1 CE" (EN 169), Scheiben „16321 XTW W11/W9" (EN ISO 16321-2)</td>
+        <td><span class="grade gA">A</span></td><td class="st ok">verifiziert am Objekt</td>
+        <td>Fotografierte Beipackzettel und Verpackung: CFH/GSF, Notified Bodies 1883 (ECS Aalen) und 0196 (DIN CERTCO Berlin), optische Klasse 1, Mineralglas</td></tr>
+      <tr><td>UV des Stapels: ≤ 1,6·10⁻⁷ (365 nm), ≤ 9·10⁻¹² (313 nm)</td>
+        <td><span class="grade gB">B</span></td><td class="st ok">bestätigt</td>
+        <td>Herstellerangaben der DIN-5-Scheibe (≤ 0,0003 % / ≤ 0,3 %) × EN-169-Schranke τ(365–380) ≤ τv für DIN 11</td></tr>
+      <tr><td>Stapel saß während des Vortests lückenlos</td>
         <td><span class="grade gC">C</span></td><td class="st bad">nicht prüfbar</td>
-        <td>Tatsachenfrage vor Ort — die einzige echte Restunsicherheit der Dosisaussage</td></tr>
+        <td>Tatsachenfrage vor Ort — verbleibende Restunsicherheit der Dosisaussage; Größenordnungsabstand macht sie unkritisch</td></tr>
     </tbody>
   </table></div>
 </section>
@@ -546,11 +1076,17 @@ footer{margin-top:70px;padding-top:22px;border-top:1px solid var(--line);color:v
     <li><strong>EN-169-Originaltabelle.</strong> Die normativen Transmissionsbereiche je Stufe stehen hinter
     der Bezahlschranke. Die Formel ist gegen unabhängige Messwerte verifiziert; die exakten Toleranzbänder
     (±0,5 Stufen) sind rekonstruiert, nicht zitiert.</li>
-    <li><strong>Keine Spektralmessung der konkreten Scheiben.</strong> Alle Aussagen setzen voraus, dass
-    „5" und „11" stimmen und die Gläser echte EN-166/169-Ware sind. Ein Spektrometer würde die Frage in
-    Minuten erledigen; stand nicht zur Verfügung.</li>
-    <li><strong>IR-Verhältnis r geschätzt.</strong> Die 3-%-Prüfung arbeitet mit Schranken (r = 1…100 je
-    Scheibe). Athermalglas liegt realistisch im niedrigen Bereich, belegt ist das für diese Scheiben nicht.</li>
+    <li><strong>Keine Spektralmessung der konkreten Scheiben.</strong> Kennzeichnung, Norm, Prüfstelle und
+    Werkstoff sind inzwischen am Objekt verifiziert; die tatsächlichen Transmissionswerte bleiben
+    Normvorgaben, keine Messwerte. Ein Spektrometer würde die Frage in Minuten erledigen; stand nicht zur Verfügung.</li>
+    <li><strong>IR-Verhältnis r geschätzt.</strong> Die gesamte IR-Aussage hängt an r = τ_IR/τ_sichtbar
+    je Scheibe; gerechnet mit r = 10, Sensitivität von 1 bis 100 durchgespielt. Athermalglas liegt
+    realistisch im einstelligen Bereich, belegt ist das für diese Scheiben nicht. Das ist die einzige
+    Größe im Dossier, die eine Messung wirklich verbessern würde.</li>
+    <li><strong>Spektralmodell ist ein Modell.</strong> Aerosolgehalt, Wasserdampfsäule und Ozonmenge sind
+    plausible Annahmen, keine Messwerte des 12.08.2026. Die Bandanteile können um Faktor 1,5–2 abweichen —
+    bei Sicherheitsabständen von 10³ bis 10⁶ ohne Belang, für die Belichtungszeiten der Kamera dagegen
+    der Grund, breit zu bracketen.</li>
     <li><strong>Stapel nicht zertifiziert.</strong> ISO 12312-2 prüft integrale Größen über das
     Sonnenspektrum, EN 169 Einzelwellenlängen. Die Kombination erfüllt die Grenzwerte rechnerisch —
     ein Konformitätsnachweis ist das nicht, und keine Fachgesellschaft hat Stapel-Lösungen adressiert.</li>
@@ -564,6 +1100,10 @@ footer{margin-top:70px;padding-top:22px;border-top:1px solid var(--line);color:v
     Selbstauskunft des Herstellers; Lunt ist über Fachpresse als gelistet belegt. Die AAS warnt ausdrücklich:
     Wer behauptet gelistet zu sein und nicht auf der Liste steht, ist nicht vertrauenswürdig — diese
     Zwei-Minuten-Prüfung bleibt beim Käufer.</li>
+    <li><strong>Keine deutsche Marktuntersuchung.</strong> Die Fälschungsschätzung stützt sich auf einen
+    französischen Labortest mit zehn Modellen und zwei französische Behördenvorgänge. Für den deutschen
+    Markt liegt nichts Vergleichbares vor; die Übertragung unterstellt strukturgleiche EU-Vertriebswege.
+    Die Prozentangaben sind Größenordnungen, keine Messwerte.</li>
     <li><strong>Fallrecherche ohne Register.</strong> Es existiert kein Melderegister für solare
     Retinopathie; die Suche stützt sich auf publizierte Fälle, ED-Datenbankauswertungen und Foren.
     Ein unpublizierter Schadensfall durch Stufe-12+-Glas ist damit nicht ausschließbar — nur unwahrscheinlich
@@ -593,6 +1133,16 @@ footer{margin-top:70px;padding-top:22px;border-top:1px solid var(--line);color:v
     <span class="note">Interessenlage: Fachgesellschaft; führt Händlerliste, empfiehlt aber ausdrücklich auch Schweißglas 12–14.</span></li>
     <li><strong>NASA Sun-Earth Day Beobachtungshinweise</strong> — science.gsfc.nasa.gov.
     <span class="note">Interessenlage: Behörde, keine.</span></li>
+    <li><strong>UFC-Que Choisir</strong>, „Lunettes pour éclipse solaire", 05.08.2026 — Labortest von
+    10 Modellen aus dem französischen Handel.
+    <span class="note">Interessenlage: unabhängige Verbraucherorganisation ohne Produktinteresse; Labortest, keine Selbstauskunft. Stärkste Einzelquelle dieses Kapitels.</span></li>
+    <li><strong>Association Française d'Astronomie</strong> (Warnung Juni 2026) und <strong>DGCCRF</strong>
+    (Prüfkampagne Juli 2026), berichtet u.&nbsp;a. bei Acuité und Ciel &amp; Espace.
+    <span class="note">Interessenlage: Fachverband bzw. Verbraucherschutzbehörde; die AFA vertreibt selbst Brillen — bei der Bewertung fremder Produkte mitzudenken, der Sachverhalt wurde jedoch behördlich bestätigt.</span></li>
+    <li><strong>Amazon-Rückruf 2017</strong>, Berichterstattung PBS NewsHour u.&nbsp;a.; Umfang nie offengelegt.
+    <span class="note">Interessenlage: Plattformbetreiber mit Reputationsinteresse; AAS kritisierte den Rückruf zugleich als zu pauschal, weil auch seriöse Händler erfasst wurden.</span></li>
+    <li><strong>Europäische Kommission / EUIPO</strong>, Zollbericht 2023: 152 Mio. Artikel, 3,4 Mrd. €, +77 %.
+    <span class="note">Interessenlage: Behörde; Zahl bezieht sich auf alle Produktgruppen, nicht auf Sonnenfilter — hier nur als Trendindikator verwendet.</span></li>
     <li><strong>ASRS Special Safety Editions 2017/2024</strong> — Fallsammlung (Türkei 1976, Nordeuropa 1999,
     UK 2012, Tschechien 2015, USA/Kanada 2017) und zugleich Stufe-14-Empfehlung.
     <span class="note">Interessenlage: US-Retina-Fachgesellschaft, keine kommerzielle.</span></li>
@@ -617,7 +1167,7 @@ footer{margin-top:70px;padding-top:22px;border-top:1px solid var(--line);color:v
 </section>
 
 <footer>
-  Verifikationsdossier, erstellt 11.08.2026 abends · Rechnungen: EN-169-Stufenformel, verifiziert gegen
+  Verifikationsdossier · Dateistand 11.08.2026, 23:49 MESZ · <span class="mono">2026-08-11_2349_sofi-augenschutz-dossier.html</span> · erstellt 11.08.2026 · Rechnungen: EN-169-Stufenformel, verifiziert gegen
   Chou et al. 2021 · Dosimetrie: Bunsen-Roscoe-Reziprozität · Anlass: partielle Sonnenfinsternis 12.08.2026,
   Lam (Bayer. Wald), Maximum 20:14 MESZ, 87,4 %, Sonnenhöhe 1,8°.<br>
   Dieses Dossier ersetzt keine augenärztliche Untersuchung. Bei Sehstörungen: 116117, im Notfall 112.

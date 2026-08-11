@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sonnenfinsternisse München &amp; Lam · 1976–2126</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080c11; --bg2:#0e141c; --panel:#111a24; --line:#1e2b39;
+  --tx:#dbe6f0; --tx2:#8ba0b5; --tx3:#5c7186;
+  --teal:#3fd0c9; --amber:#f5a623; --red:#e8604c; --violet:#9b8cf0;
+  --gA:#3fd0c9; --gB:#f5a623; --gC:#9b8cf0; --gD:#e8604c;
+  --shadow:0 1px 0 rgba(255,255,255,.03), 0 8px 30px rgba(0,0,0,.5);
+}
+html[data-theme="light"]{
+  --bg:#f6f4ef; --bg2:#fffdf8; --panel:#ffffff; --line:#ddd6c8;
+  --tx:#1a2028; --tx2:#5a6572; --tx3:#8a95a2;
+  --teal:#0a8f88; --amber:#b56b00; --red:#b8341f; --violet:#5a49c0;
+  --gA:#0a8f88; --gB:#b56b00; --gC:#5a49c0; --gD:#b8341f;
+  --shadow:0 1px 2px rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.06);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);
+  font-family:'Space Grotesk',system-ui,sans-serif;line-height:1.55;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:0 18px 90px}
+code,.mono,td.num,th.num{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+
+/* ---------- Kopf ---------- */
+header{padding:46px 0 24px;border-bottom:1px solid var(--line);position:relative}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--teal);padding-right:96px}
+h1{font-size:clamp(30px,5.4vw,52px);line-height:1.04;margin:12px 0 8px;font-weight:700;letter-spacing:-.022em}
+h1 em{font-style:normal;color:var(--tx3)}
+.sub{color:var(--tx2);max-width:66ch;font-size:16px}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.meta span{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--tx2);
+  border:1px solid var(--line);border-radius:2px;padding:4px 9px;background:var(--bg2)}
+#themeBtn{position:absolute;top:42px;right:0;z-index:5;background:var(--bg2);color:var(--tx2);
+  border:1px solid var(--line);border-radius:2px;padding:7px 12px;cursor:pointer;
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em}
+#themeBtn:hover{color:var(--teal);border-color:var(--teal)}
+
+/* ---------- Struktur ---------- */
+section{padding-top:52px}
+h2{font-size:11px;font-family:'IBM Plex Mono',monospace;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--tx3);margin:0 0 6px;display:flex;align-items:center;gap:10px}
+h2::after{content:"";flex:1;height:1px;background:var(--line)}
+h3{font-size:22px;margin:6px 0 14px;font-weight:600;letter-spacing:-.01em}
+p{max-width:74ch;color:var(--tx2)}
+p strong,li strong{color:var(--tx);font-weight:600}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:20px;box-shadow:var(--shadow)}
+
+/* ---------- Kennzahlen ---------- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:18px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-left:2px solid var(--teal);
+  border-radius:3px;padding:14px 16px}
+.kpi .v{font-family:'IBM Plex Mono',monospace;font-size:27px;font-weight:600;letter-spacing:-.02em;line-height:1.15}
+.kpi .k{font-size:11px;font-family:'IBM Plex Mono',monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--tx3);margin-top:5px}
+.kpi .n{font-size:12.5px;color:var(--tx2);margin-top:7px}
+.kpi.amber{border-left-color:var(--amber)} .kpi.amber .v{color:var(--amber)}
+.kpi.red{border-left-color:var(--red)} .kpi.red .v{color:var(--red)}
+.kpi.teal .v{color:var(--teal)}
+
+/* ---------- Signatur: Horizontprofil ---------- */
+.sigwrap{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:16px 8px 8px;margin-top:16px;box-shadow:var(--shadow)}
+.sigctl{display:flex;flex-wrap:wrap;gap:14px;align-items:center;padding:0 12px 12px;
+  font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--tx2)}
+.sigctl label{display:flex;align-items:center;gap:6px;cursor:pointer}
+svg{display:block;width:100%;height:auto;overflow:visible}
+.legend{display:flex;flex-wrap:wrap;gap:16px;padding:10px 12px 4px;
+  font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--tx2)}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+
+/* ---------- Filter ---------- */
+.filters{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:16px 0 12px;
+  font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--tx2)}
+.chip{border:1px solid var(--line);background:var(--bg2);color:var(--tx2);border-radius:2px;
+  padding:6px 11px;cursor:pointer;font-family:inherit;font-size:11.5px;letter-spacing:.04em}
+.chip[aria-pressed="true"]{border-color:var(--teal);color:var(--teal);background:color-mix(in srgb,var(--teal) 10%,transparent)}
+input[type=range]{accent-color:var(--teal);width:130px;vertical-align:middle}
+
+/* ---------- Tabelle ---------- */
+.tscroll{overflow-x:auto;border:1px solid var(--line);border-radius:3px;background:var(--panel);box-shadow:var(--shadow)}
+table{border-collapse:collapse;width:100%;font-size:13px;min-width:900px}
+thead th{position:sticky;top:0;z-index:3;background:var(--bg2);color:var(--tx3);
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.11em;text-transform:uppercase;
+  font-weight:500;text-align:right;padding:9px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+thead th:first-child,tbody td:first-child{text-align:left}
+tbody td{padding:8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap;color:var(--tx2)}
+tbody tr:hover td{background:var(--bg2)}
+td.d{font-family:'IBM Plex Mono',monospace;color:var(--tx);font-weight:500}
+td.num{color:var(--tx)}
+.bar{position:relative;display:block;min-width:74px}
+.bar span{position:absolute;inset:0 auto 0 0;background:color-mix(in srgb,var(--teal) 26%,transparent);border-radius:1px}
+.bar b{position:relative;font-weight:500;font-family:'IBM Plex Mono',monospace;padding-right:4px}
+.tag{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+  border:1px solid;border-radius:2px;padding:2px 6px}
+.tag.total{color:var(--red);border-color:var(--red)}
+.tag.near{color:var(--amber);border-color:var(--amber)}
+.tag.part{color:var(--tx3);border-color:var(--line)}
+.warn{color:var(--amber)}
+.past{opacity:.55}
+tr.hi td{background:color-mix(in srgb,var(--amber) 9%,transparent)}
+
+/* ---------- Belegtabelle / Chips ---------- */
+.grade{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;border-radius:2px;
+  padding:2px 6px;border:1px solid;letter-spacing:.06em}
+.gA{color:var(--gA);border-color:var(--gA)} .gB{color:var(--gB);border-color:var(--gB)}
+.gC{color:var(--gC);border-color:var(--gC)} .gD{color:var(--gD);border-color:var(--gD)}
+.st{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.05em}
+.ok{color:var(--teal)} .part2{color:var(--amber)} .no{color:var(--red)}
+table.ev{min-width:720px;font-size:13px}
+table.ev td{white-space:normal;text-align:left;vertical-align:top}
+table.ev th{text-align:left}
+
+/* ---------- Verdikt / Boxen ---------- */
+.verdict{display:grid;gap:12px;margin-top:16px}
+.vbox{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--teal);
+  border-radius:3px;padding:16px 18px}
+.vbox h4{margin:0 0 6px;font-size:15px;font-weight:600;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.vbox p{margin:0;font-size:14px}
+.vbox.b{border-left-color:var(--amber)} .vbox.c{border-left-color:var(--violet)}
+.conf{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);
+  border:1px solid var(--line);border-radius:2px;padding:2px 7px}
+
+/* ---------- Rechner ---------- */
+.calc{display:grid;grid-template-columns:1fr;gap:16px;margin-top:16px}
+@media(min-width:820px){.calc{grid-template-columns:300px 1fr}}
+.ctl{margin-bottom:14px}
+.ctl label{display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;
+  font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);margin-bottom:6px}
+.ctl label b{color:var(--teal);font-weight:600;letter-spacing:0;text-transform:none;font-size:13px}
+.ctl input[type=range]{width:100%}
+.res{font-family:'IBM Plex Mono',monospace;font-size:40px;font-weight:600;color:var(--amber);line-height:1}
+ul{color:var(--tx2);max-width:74ch;font-size:14.5px}
+li{margin-bottom:7px}
+.note{font-size:12.5px;color:var(--tx3);font-family:'IBM Plex Mono',monospace;line-height:1.6}
+a{color:var(--teal)}
+footer{margin-top:70px;padding-top:22px;border-top:1px solid var(--line);color:var(--tx3);font-size:12px;
+  font-family:'IBM Plex Mono',monospace}
+@media(prefers-reduced-motion:no-preference){
+  .fade{animation:f .6s ease both}@keyframes f{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+}
+:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="fade">
+  <button id="themeBtn" aria-label="Hell/Dunkel umschalten">HELL</button>
+  <div class="eyebrow">Observatory · Ephemeriden-Rechnung</div>
+  <h1>Sonnenfinsternisse<br><em>München &amp; Lam, 1976–2126</em></h1>
+  <p class="sub">Alle partiellen, ringförmigen und totalen Sonnenfinsternisse, die von beiden Orten
+  aus tatsächlich über dem Horizont stattfinden — mit Bedeckungsgrad, Ortszeit, Sonnenhöhe,
+  Geländehorizont und der klimatologischen Wahrscheinlichkeit, dass keine Wolke dazwischen steht.</p>
+  <div class="meta">
+    <span>JPL DE440s · Skyfield 1.55</span>
+    <span>ERA5 1976–2025, kalibriert an DWD</span>
+    <span>Copernicus DEM 90 m</span>
+    <span id="cnt">59 Ereignisse</span>
+    <span>Stand 11.08.2026</span>
+  </div>
+</header>
+
+<section id="verdikt">
+  <h2>Verdikt · dreistufig je Hypothese</h2>
+  <h3>Was die Rechnung hergibt</h3>
+  <div class="verdict">
+    <div class="vbox">
+      <h4>H1 · „In 150 Jahren gibt es mehrere totale Finsternisse über München."
+        <span class="conf">entkräftet · sehr hohe Konfidenz</span></h4>
+      <p>Genau <strong>eine</strong>: 11.08.1999. Zwei weitere Totalitäten (2061, 2090) finden statt,
+      während die Sonne unter dem Horizont steht bzw. schon untergegangen ist. Für Lam: <strong>null</strong> —
+      1999 blieben dort 98,4 % Bedeckung, also außerhalb der Totalitätszone.</p>
+    </div>
+    <div class="vbox b">
+      <h4>H2 · „2081 wird München wieder total."
+        <span class="conf">teilbelegt · knapp verfehlt</span></h4>
+      <p>Am 03.09.2081 erreicht München <strong>99,82 % Bedeckung</strong> (Größe 0,9957) — die
+      Nordgrenze der Totalität verläuft bei 48,00° N, rund <strong>15 km südlich des Marienplatzes</strong>.
+      Ab Sauerlach/Otterfing wird es total. Von Lam sind es 163 km. Die Grenzlage hängt an der
+      ΔT-Prognose und am Mondrandprofil; ±5 km Unschärfe sind realistisch, aber München bleibt außerhalb.</p>
+    </div>
+    <div class="vbox c">
+      <h4>H3 · „Der Bedeckungsgrad entscheidet, ob sich Hinfahren lohnt."
+        <span class="conf">unvollständig · Höhe und Horizont entscheiden mit</span></h4>
+      <p>Der Geländehorizont in <strong>Lam liegt bei 2,3° bis 9,6°</strong> — kein Randdetail:
+      Am 12.08.2026 verschwindet die Sonne dort hinter dem Osser-Kamm, während in München noch
+      87 % Bedeckung sichtbar sind. In Sendling liegt der Geländehorizont bei 0,0–0,7°; dort
+      entscheidet ausschließlich die Bebauung.</p>
+    </div>
+  </div>
+  <div class="kpis">
+    <div class="kpi red"><div class="v" id="k1">1</div><div class="k">Totale, München</div><div class="n">11.08.1999 · 2 min 11 s · Sonne 56° hoch</div></div>
+    <div class="kpi amber"><div class="v">88,8 %</div><div class="k">Nächste große · 12.08.2026</div><div class="n">Sonne nur 2,1° hoch, Maximum 20:15 MESZ</div></div>
+    <div class="kpi teal"><div class="v">99,8 %</div><div class="k">03.09.2081</div><div class="n">Totalitätsgrenze 15 km südlich</div></div>
+    <div class="kpi"><div class="v" id="k4">59</div><div class="k">sichtbare Finsternisse</div><div class="n">von 128 geometrisch möglichen; 69 laufen nachts ab</div></div>
+  </div>
+</section>
+
+<section id="horizont">
+  <h2>Signatur · Horizontprofil</h2>
+  <h3>Wo am Himmel jede Finsternis steht — und was davor steht</h3>
+  <p>Die graue Silhouette ist der echte, aus Höhendaten gerechnete Geländehorizont (inkl. Erdkrümmung
+  und Refraktion). Jeder Punkt ist das Maximum einer Finsternis, aufgetragen nach Azimut und Höhe;
+  die Fläche des Punktes entspricht dem Bedeckungsgrad. Punkte <em>unterhalb</em> der Silhouette
+  finden hinter einem Berg statt. Die gestrichelte Linie ist die Bebauungsschwelle aus dem Rechner weiter unten.</p>
+  <div class="sigwrap">
+    <div class="sigctl">
+      <label><input type="radio" name="hsite" value="muenchen" checked> München / Sendling</label>
+      <label><input type="radio" name="hsite" value="lam"> Lam</label>
+      <label id="hBuildLab"><input type="checkbox" id="hBuild"> Bebauungsschwelle einblenden (nur München)</label>
+    </div>
+    <div id="horizonChart"></div>
+    <div class="legend">
+      <span><i style="background:var(--red)"></i>≥ 90 % Bedeckung</span>
+      <span><i style="background:var(--amber)"></i>50–90 %</span>
+      <span><i style="background:var(--teal)"></i>&lt; 50 %</span>
+      <span><i style="background:var(--tx3)"></i>Geländehorizont</span>
+    </div>
+  </div>
+</section>
+
+<section id="tabelle">
+  <h2>Datentabelle</h2>
+  <h3>Alle Finsternisse mit Ortszeit, Höhe und Wetterchance</h3>
+  <div class="filters">
+    <button class="chip" data-range="2081" aria-pressed="true">bis 2081</button>
+    <button class="chip" data-range="all" aria-pressed="false">bis 2126</button>
+    <button class="chip" data-range="past" aria-pressed="false">nur vergangene</button>
+    <button class="chip" data-range="future" aria-pressed="false">nur künftige</button>
+    <span style="margin-left:auto">Mind. Bedeckung <b id="minLab" class="mono" style="color:var(--teal)">0 %</b>
+      <input type="range" id="minOb" min="0" max="95" step="5" value="0"></span>
+  </div>
+  <div class="tscroll">
+    <table id="tbl">
+      <thead><tr>
+        <th>Datum</th><th style="text-align:left">Typ</th>
+        <th class="num">Bedeckung MUC</th><th class="num">Größe</th>
+        <th class="num">Beginn</th><th class="num">Maximum</th><th class="num">Ende</th>
+        <th class="num">Höhe ⊙</th><th class="num">Azimut</th><th class="num">Dauer</th>
+        <th class="num">Bedeckung LAM</th><th class="num">Max LAM</th><th class="num">Höhe ⊙</th>
+        <th class="num">Horizont LAM</th><th class="num">real sichtbar</th>
+        <th class="num">P(Sonne frei)</th><th class="num">P(klar)</th><th class="num">P(bedeckt)</th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+  <p class="note" style="margin-top:10px">
+    Alle Zeiten in gesetzlicher Ortszeit (MEZ/MESZ), Sommerzeitregel der EU als fortbestehend angenommen.
+    „Höhe ⊙" = scheinbare Sonnenhöhe zum Maximum über dem astronomischen Horizont. „real sichtbar" =
+    höchster Bedeckungsgrad, den das Gelände in Lam durchlässt. ↓ = Sonne geht während der Finsternis unter,
+    ↑ = Finsternis läuft bei Sonnenaufgang bereits.
+  </p>
+</section>
+
+<section id="rechner">
+  <h2>Interaktives Modell · Illustration, keine Prognose</h2>
+  <h3>Ab wie viel Grad sieht man die Sonne in der Stadt?</h3>
+  <p>In München ist das Gelände irrelevant (0,0–0,7°). Was zählt, ist die Häuserzeile gegenüber.
+  Aus OpenStreetMap ergibt die Bebauung im Bereich Sendling/Westend/Isarvorstadt
+  <strong>Median 4 Geschosse</strong>, 75. Perzentil 5, 90. Perzentil 6 (n = 11 314 Gebäude mit Geschossangabe).
+  Der Rechner nimmt 3,2 m je Geschoss plus 1,5 m Dachrand, Augenhöhe 1,6 m.</p>
+  <div class="calc">
+    <div class="panel">
+      <div class="ctl"><label>Geschosse gegenüber <b id="lvLab">4</b></label>
+        <input type="range" id="lv" min="1" max="10" step="1" value="4"></div>
+      <div class="ctl"><label>Abstand / Straßenbreite <b id="wLab">18 m</b></label>
+        <input type="range" id="w" min="6" max="60" step="1" value="18"></div>
+      <div class="ctl" style="margin-bottom:6px"><label>Nötige Sonnenhöhe</label></div>
+      <div class="res" id="angRes">35°</div>
+      <p class="note" style="margin-top:10px">Freie Achse entlang der Straße, Balkon oder Dachterrasse
+      senken den Wert erheblich; ein Innenhof erhöht ihn.</p>
+    </div>
+    <div class="panel">
+      <div id="calcOut"></div>
+    </div>
+  </div>
+  <p style="margin-top:16px"><strong>Praxisregel München:</strong> über <strong>30°</strong> Sonnenhöhe
+  fast überall sichtbar · <strong>15–30°</strong> nur mit freier Achse in Richtung Sonne ·
+  <strong>5–15°</strong> Parks, Plätze, Isarauen, Aufschüttungen · <strong>unter 5°</strong> nur an
+  Kanten mit echter Fernsicht: Theresienwiese (freier Westhorizont), Flaucher, Westpark-Hügel,
+  Olympiaberg, Neuhofener Berg. Für 2026 (2,1°) ist genau das die Vorbereitung, die zählt.</p>
+</section>
+
+<section id="wetter">
+  <h2>Wetterchance · Methodik und Kalibrierung</h2>
+  <h3>Warum die naheliegende Zahl falsch war</h3>
+  <p>Erster Ansatz war die Direktstrahlung aus dem Open-Meteo-Archiv mit der WMO-Schwelle 120 W/m².
+  Ergebnis: <strong>2 921 Sonnenstunden pro Jahr</strong> für München. Die Messung der DWD-Station
+  München-Stadt (03379) liefert für 1991–2020 aber <strong>1 845 Stunden</strong> — die Strahlungsreihe
+  überschätzt um 58 % und zeigt an Tagen mit 100 % Bewölkung eine Direktstrahlung von 740 W/m².
+  Verworfen.</p>
+  <p>Stattdessen: ERA5-Gesamtbewölkung, stündlich, 1976–2025, in eine Sichtbarkeitsfunktion
+  überführt und deren Monatsmittel gegen die DWD-Messreihe angepasst (Sonne voll sichtbar bis
+  <span class="mono">44 %</span> Bewölkung, linear abfallend bis <span class="mono">101 %</span>;
+  RMSE 0,023). Für Lam dient Zwiesel (05800, 1 740 h/a) als Referenzstation.</p>
+  <div class="sigwrap"><div id="calChart"></div>
+    <div class="legend"><span><i style="background:var(--amber)"></i>DWD gemessen</span>
+      <span><i style="background:var(--teal)"></i>ERA5 kalibriert</span></div></div>
+  <p style="margin-top:14px"><strong>P(Sonne frei)</strong> ist der erwartete Zeitanteil mit unverdeckter
+  Sonne zur Maximumsstunde, gemittelt über ein ±10-Tage-Fenster und 50 Jahre.
+  <strong>P(klar)</strong> = Anteil der Fälle mit ≤ 25 % Bewölkung, <strong>P(bedeckt)</strong> = ≥ 85 %.
+  Bei Sonnenhöhen unter 5° ist die Kalibrierung eine Extrapolation und eher optimistisch — Dunst und
+  ferne Wolkenbänke am Horizont sind darin nicht enthalten.</p>
+</section>
+
+<section id="belege">
+  <h2>Belegtabelle</h2>
+  <h3>Jede tragende Einzelbehauptung mit Prüfstatus</h3>
+  <div class="tscroll"><table class="ev">
+    <thead><tr><th>Behauptung</th><th>Grad</th><th>Status</th><th>Erstquelle / Prüfweg</th></tr></thead>
+    <tbody>
+      <tr><td>Zeitpunkte, Bedeckungsgrade und Sonnenhöhen aller 128 Ereignisse</td>
+        <td><span class="grade gA">A</span></td><td class="st ok">bestätigt</td>
+        <td>Eigene topozentrische Rechnung, JPL DE440s (Abdeckung 1849–2150) über Skyfield 1.55; Mondradius 1737,4 km, Sonnenradius 696 000 km</td></tr>
+      <tr><td>1999 einzige über München sichtbare Totalität; Dauer 2 min 11 s</td>
+        <td><span class="grade gA">A</span></td><td class="st ok">bestätigt</td>
+        <td>Rechnung; publizierte Werte für München nennen ca. 2 min 06 s — Abweichung durch Mondradius-Konstante und Standortwahl (Marienplatz)</td></tr>
+      <tr><td>Lam 1999 bei 98,4 %, also außerhalb der Totalitätszone</td>
+        <td><span class="grade gA">A</span></td><td class="st ok">bestätigt</td>
+        <td>Rechnung; Größe 0,983 &lt; 1,0 mit deutlichem Abstand zur Unschärfe</td></tr>
+      <tr><td>2081 Nordgrenze der Totalität 15 km südlich des Marienplatzes (48,00° N)</td>
+        <td><span class="grade gB">B</span></td><td class="st part2">teilbestätigt</td>
+        <td>Rechnung per Bisektion auf Größe = 1,0 entlang 11,576° O; Mondrandprofil (Watts/LRO) nicht modelliert, ΔT-Prognose 2081 unsicher → ±5 km</td></tr>
+      <tr><td>Geländehorizont Lam 2,3°–9,6°, Sendling 0,0°–0,7°</td>
+        <td><span class="grade gB">B</span></td><td class="st ok">bestätigt</td>
+        <td>Copernicus DEM GLO-90 über Open-Meteo-Elevation, 36 Azimute × 20 Distanzen bis 33 km, Erdkrümmung mit R<sub>eff</sub> = 7 200 km</td></tr>
+      <tr><td>Sonnenscheindauer München-Stadt 1 845 h/a, Zwiesel 1 740 h/a (1991–2020)</td>
+        <td><span class="grade gA">A</span></td><td class="st ok">bestätigt</td>
+        <td>DWD Climate Data Center, Monatswerte KL, Stationen 03379 und 05800 — Messreihen, nicht Modell</td></tr>
+      <tr><td>Open-Meteo-Direktstrahlung überschätzt Sonnenschein um 58 %</td>
+        <td><span class="grade gA">A</span></td><td class="st ok">bestätigt</td>
+        <td>Direkter Vergleich 2 921 h vs. 1 845 h; Einzelfallprüfung 24.04.2020: Bewölkung 100 %, DNI 741 W/m² — physikalisch unvereinbar</td></tr>
+      <tr><td>Kalibrierte Bewölkungs-Sichtfunktion, RMSE 0,023 (MUC) / 0,038 (Lam)</td>
+        <td><span class="grade gB">B</span></td><td class="st part2">teilbestätigt</td>
+        <td>Zweiparametrige Anpassung an 12 Monatswerte; Gütemaß gilt für Monatsmittel, nicht für die Einzelstunde</td></tr>
+      <tr><td>Bebauung Sendling/Westend: Median 4 Geschosse</td>
+        <td><span class="grade gB">B</span></td><td class="st part2">teilbestätigt</td>
+        <td>OpenStreetMap via Overpass, n = 11 314 Gebäude <em>mit</em> <span class="mono">building:levels</span> — Crowdsourcing, systematische Untererfassung nicht ausgeschlossen</td></tr>
+      <tr><td>Zeitangaben nach 2027 in MESZ</td>
+        <td><span class="grade gC">C</span></td><td class="st no">nicht prüfbar</td>
+        <td>Setzung: EU-Sommerzeitregel bleibt bestehen. Fällt die Annahme, verschieben sich alle Sommertermine um eine Stunde</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="rest">
+  <h2>Restliste</h2>
+  <h3>Was nicht geprüft wurde — und warum</h3>
+  <ul>
+    <li><strong>Mondrandprofil.</strong> Berge und Täler am Mondrand (Watts-Profil, LRO-Daten) verschieben
+    Kontaktzeiten um ±1–2 s und die Totalitätsgrenzen um bis zu 1 km. Nicht modelliert — relevant nur für
+    2081 und 1999, dort im Text markiert.</li>
+    <li><strong>ΔT für ferne Termine.</strong> Skyfields Standard-Extrapolation der Erdrotation. Für 2126
+    sind ±30–60 s plausibel, was den Schattenpfad um 15–30 km in Länge verschiebt. Datum und Sonnenhöhe
+    bleiben robust, Ortszeit und Bedeckungsgrad ferner Termine sind mit dieser Unschärfe zu lesen.</li>
+    <li><strong>Klimastationarität.</strong> Alle Wetterwahrscheinlichkeiten stammen aus 1976–2025 und
+    werden unverändert auf 2081 oder 2119 übertragen. Änderungen der sommerlichen Bewölkung in
+    Mitteleuropa sind damit ausdrücklich <em>nicht</em> abgebildet.</li>
+    <li><strong>Kein 3D-Stadtmodell.</strong> Für München wäre LoD2 (Bayerische Vermessungsverwaltung)
+    die saubere Quelle für einen adressgenauen Horizont. Nicht abgerufen — der Rechner bleibt eine
+    Geometrie-Illustration.</li>
+    <li><strong>Zwiesel als Lam-Proxy.</strong> 20 km entfernt, 615 m statt 576 m, andere Talausrichtung.
+    Die Lamer Werte sind damit belastbar für die Jahreszeit, nicht für das Mikroklima im Lamer Winkel.</li>
+    <li><strong>DEM statt Sichtprüfung.</strong> Copernicus GLO-90 ist ein Oberflächenmodell: Wald und
+    Gebäude stecken teilweise darin, 90 m Raster glättet schmale Kämme. Der Lamer Horizont kann lokal
+    1–2° abweichen.</li>
+    <li><strong>Keine Sichtprüfung an publizierten Katalogen.</strong> Ein Abgleich gegen den
+    NASA-Finsterniskatalog wurde nicht durchgeführt (Serverzugriff nur für die Ephemeridendatei genutzt);
+    die Rechnung steht für sich.</li>
+  </ul>
+</section>
+
+<section id="quellen">
+  <h2>Quellen</h2>
+  <h3>Primärmaterial mit Interessenlage</h3>
+  <ul>
+    <li><strong>JPL DE440s</strong> — Planeten- und Mondephemeride, NASA/JPL Solar System Dynamics.
+    <span class="note">Interessenlage: keine kommerzielle; Standardreferenz der Fachgemeinde.</span>
+    <a href="https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/">naif.jpl.nasa.gov</a></li>
+    <li><strong>DWD Climate Data Center</strong> — Monatswerte KL, Stationen 03379 München-Stadt und
+    05800 Zwiesel, 1991–2020. <span class="note">Interessenlage: Bundesbehörde, gesetzlicher Messauftrag; Messdaten, keine Modellierung.</span>
+    <a href="https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/monthly/kl/historical/">opendata.dwd.de</a></li>
+    <li><strong>ERA5 / Open-Meteo Archive API</strong> — stündliche Gesamtbewölkung 1976–2025.
+    <span class="note">Interessenlage: kommerzieller Anbieter mit Gratisstufe; Reanalyse = Modell mit Datenassimilation, nicht Messung. Die Strahlungsvariable derselben Quelle wurde nach Prüfung verworfen.</span>
+    <a href="https://open-meteo.com/en/docs/historical-weather-api">open-meteo.com</a></li>
+    <li><strong>Copernicus DEM GLO-90</strong> — Höhenmodell für den Geländehorizont, über Open-Meteo-Elevation.
+    <span class="note">Interessenlage: ESA/EU-Programm; Oberflächenmodell inkl. Vegetation.</span></li>
+    <li><strong>OpenStreetMap</strong> — Gebäudegeschosse, Abruf über Overpass.
+    <span class="note">Interessenlage: Freiwilligenprojekt, Erfassungsgrad ortsabhängig.</span>
+    <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap-Mitwirkende, ODbL</a></li>
+    <li><strong>Skyfield 1.55</strong> — Rechenbibliothek, Brandon Rhodes.
+    <span class="note">Interessenlage: Open Source, keine.</span></li>
+  </ul>
+</section>
+
+<footer>
+  Eigene Rechnung, 11.08.2026 · Ephemeride DE440s · Klimatologie ERA5 1976–2025, kalibriert an DWD 1991–2020 ·
+  Höhenmodell Copernicus GLO-90 · Gebäudedaten © OpenStreetMap-Mitwirkende (ODbL)<br>
+  Zeitangaben München = Marienplatz (48,1372° N / 11,5755° O / 519 m), Lam = Ortsmitte (49,1978° N / 13,0525° O / 576 m).
+</footer>
+</div>
+
+<script>
+const DATA = {"rows":[{"d":"1976-04-29","s":{"muenchen":{"ty":"partial","tg":"annular","mag":0.5723,"ob":0.4634,"c1":"10:00","mx":"11:26","c4":"12:56","a1":47.0,"am":55.2,"a4":55.1,"z1":130.2,"zm":161.1,"z4":199.7,"tz":"CET","dur":176.0,"cs":null,"trs":false,"tre":false,"hz":0.5,"tob":0.4634,"thh":"11:26","tal":55.2,"psun":0.466,"pclr":0.232,"povc":0.496,"cc":64.9,"pany":0.306,"phop":0.382},"lam":{"ty":"partial","tg":"annular","mag":0.5603,"ob":0.4499,"c1":"10:05","mx":"11:30","c4":"12:59","a1":47.6,"am":54.7,"a4":53.7,"z1":134.2,"zm":165.5,"z4":202.4,"tz":"CET","dur":174.0,"cs":null,"trs":false,"tre":false,"hz":5.1,"tob":0.4499,"thh":"11:30","tal":54.7,"psun":0.462,"pclr":0.214,"povc":0.479,"cc":65.1,"pany":0.31,"phop":0.367}}},{"d":"1982-07-20","s":{"lam":{"ty":"partial","tg":"partial","mag":0.0232,"ob":0.0043,"c1":"21:01","mx":"21:03","c4":"21:03","a1":-0.1,"am":-0.2,"a4":-0.2,"z1":303.5,"zm":303.8,"z4":303.8,"tz":"CEST","dur":1.7,"cs":null,"trs":false,"tre":true,"hz":4.6,"tob":0.0,"thh":null,"tal":null,"psun":0.572,"pclr":0.266,"povc":0.35,"cc":56.6,"pany":0.266,"phop":0.35}}},{"d":"1982-12-15","s":{"muenchen":{"ty":"partial","tg":"partial","mag":0.4199,"ob":0.2969,"c1":"08:22","mx":"09:32","c4":"10:49","a1":2.7,"am":10.6,"a4":16.5,"z1":129.9,"zm":143.9,"z4":161.0,"tz":"CET","dur":147.1,"cs":null,"trs":false,"tre":false,"hz":0.6,"tob":0.2969,"thh":"09:32","tal":10.6,"psun":0.271,"pclr":0.11,"povc":0.706,"cc":81.4,"pany":0.139,"phop":0.607},"lam":{"ty":"partial","tg":"partial","mag":0.4488,"ob":0.3263,"c1":"08:22","mx":"09:34","c4":"10:53","a1":2.8,"am":10.5,"a4":16.0,"z1":131.1,"zm":145.8,"z4":163.6,"tz":"CET","dur":151.2,"cs":null,"trs":false,"tre":false,"hz":3.1,"tob":0.3263,"thh":"09:34","tal":10.5,"psun":0.263,"pclr":0.106,"povc":0.705,"cc":81.7,"pany":0.131,"phop":0.625}}},{"d":"1983-12-04","s":{"muenchen":{"ty":"partial","tg":"annular","mag":0.0109,"ob":0.0013,"c1":"13:17","mx":"13:31","c4":"13:45","a1":17.8,"am":17.0,"a4":16.1,"z1":197.9,"zm":201.2,"z4":204.4,"tz":"CET","dur":28.1,"cs":null,"trs":false,"tre":false,"hz":0.5,"tob":0.0013,"thh":"13:31","tal":17.0,"psun":0.317,"pclr":0.126,"povc":0.652,"cc":77.9,"pany":0.126,"phop":0.652}}},{"d":"1984-05-30","s":{"muenchen":{"ty":"partial","tg":"annular","mag":0.4583,"ob":0.3442,"c1":"19:20","mx":"20:11","c4":"20:58","a1":14.6,"am":6.9,"a4":0.4,"z1":286.7,"zm":295.5,"z4":304.1,"tz":"CEST","dur":97.7,"cs":null,"trs":false,"tre":false,"hz":0.4,"tob":0.3442,"thh":"20:11","tal":6.9,"psun":0.501,"pclr":0.204,"povc":0.438,"cc":64.2,"pany":0.228,"phop":0.39},"lam":{"ty":"partial","tg":"annular","mag":0.4256,"ob":0.3098,"c1":"19:20","mx":"20:09","c4":"20:55","a1":14.0,"am":6.7,"a4":0.5,"z1":287.5,"zm":296.2,"z4":304.7,"tz":"CEST","dur":94.8,"cs":null,"trs":false,"tre":false,"hz":4.5,"tob":0.3097,"thh":"20:09","tal":6.7,"psun":0.506,"pclr":0.23,"povc":0.428,"cc":61.9,"pany":0.256,"phop":0.372}}},{"d":"1994-05-10","s":{"muenchen":{"ty":"partial","tg":"annular","mag":0.5277,"ob":0.4123,"c1":"19:40","mx":"20:36","c4":"20:39","a1":8.2,"am":0.1,"a4":-0.3,"z1":287.5,"zm":297.7,"z4":298.2,"tz":"CEST","dur":58.3,"cs":null,"trs":false,"tre":true,"hz":0.4,"tob":0.4094,"thh":"20:33","tal":0.4,"psun":0.472,"pclr":0.227,"povc":0.484,"cc":65.2,"pany":0.246,"phop":0.443},"lam":{"ty":"partial","tg":"annular","mag":0.5003,"ob":0.3826,"c1":"19:40","mx":"20:34","c4":"20:36","a1":7.7,"am":-0.0,"a4":-0.3,"z1":288.3,"zm":298.4,"z4":298.8,"tz":"CEST","dur":56.5,"cs":null,"trs":false,"tre":true,"hz":4.5,"tob":0.165,"thh":"20:02","tal":4.4,"psun":0.498,"pclr":0.226,"povc":0.429,"cc":62.3,"pany":0.249,"phop":0.39}}},{"d":"1996-10-12","s":{"muenchen":{"ty":"partial","tg":"partial","mag":0.6042,"ob":0.5028,"c1":"15:20","mx":"16:35","c4":"17:44","a1":26.3,"am":16.9,"a4":6.7,"z1":219.4,"zm":236.9,"z4":250.8,"tz":"CEST","dur":144.5,"cs":null,"trs":false,"tre":false,"hz":0.4,"tob":0.5028,"thh":"16:35","tal":16.9,"psun":0.434,"pclr":0.216,"povc":0.525,"cc":67.6,"pany":0.284,"phop":0.416},"lam":{"ty":"partial","tg":"partial","mag":0.6187,"ob":0.5195,"c1":"15:20","mx":"16:35","c4":"17:43","a1":24.9,"am":15.6,"a4":5.6,"z1":220.5,"zm":237.7,"z4":251.6,"tz":"CEST","dur":143.8,"cs":null,"trs":false,"tre":false,"hz":3.8,"tob":0.5195,"thh":"16:35","tal":15.6,"psun":0.407,"pclr":0.208,"povc":0.538,"cc":68.8,"pany":0.259,"phop":0.43}}},{"d":"1999-08-11","s":{"muenchen":{"ty":"total","tg":"total","mag":1.0089,"ob":1.0,"c1":"11:16","mx":"12:38","c4":"14:01","a1":48.7,"am":56.2,"a4":56.0,"z1":131.9,"zm":162.2,"z4":198.6,"tz":"CEST","dur":165.1,"cs":130.8,"trs":false,"tre":false,"hz":0.5,"tob":1.0,"thh":"12:37","tal":56.1,"psun":0.572,"pclr":0.271,"povc":0.366,"cc":57.3,"pany":0.392,"phop":0.234},"lam":{"ty":"partial","tg":"total","mag":0.983,"ob":0.9843,"c1":"11:19","mx":"12:40","c4":"14:02","a1":49.0,"am":55.5,"a4":54.6,"z1":135.5,"zm":166.0,"z4":201.0,"tz":"CEST","dur":163.6,"cs":null,"trs":false,"tre":false,"hz":5.2,"tob":0.9842,"thh":"12:40","tal":55.5,"psun":0.533,"pclr":0.225,"povc":0.383,"cc":60.2,"pany":0.33,"phop":0.238}}},{"d":"2003-05-31","s":{"muenchen":{"ty":"partial","tg":"annular","mag":0.8445,"ob":0.7819,"c1":"05:18","mx":"05:23","c4":"06:20","a1":-0.3,"am":0.3,"a4":8.2,"z1":55.0,"zm":55.8,"z4":66.2,"tz":"CEST","dur":61.7,"cs":null,"trs":true,"tre":false,"hz":-0.2,"tob":0.7819,"thh":"05:23","tal":0.2,"psun":0.513,"pclr":0.258,"povc":0.447,"cc":61.4,"pany":0.293,"phop":0.392},"lam":{"ty":"partial","tg":"annular","mag":0.8476,"ob":0.7857,"c1":"05:08","mx":"05:23","c4":"06:21","a1":-0.3,"am":1.6,"a4":9.7,"z1":54.1,"zm":57.0,"z4":67.6,"tz":"CEST","dur":73.3,"cs":null,"trs":true,"tre":false,"hz":8.6,"tob":0.0565,"thh":"06:13","tal":8.4,"psun":0.496,"pclr":0.267,"povc":0.446,"cc":61.2,"pany":0.307,"phop":0.399}}},{"d":"2005-10-03","s":{"muenchen":{"ty":"partial","tg":"annular","mag":0.6131,"ob":0.5116,"c1":"09:56","mx":"11:11","c4":"12:32","a1":23.9,"am":32.5,"a4":37.4,"z1":127.5,"zm":146.7,"z4":170.5,"tz":"CEST","dur":156.2,"cs":null,"trs":false,"tre":false,"hz":0.6,"tob":0.5116,"thh":"11:11","tal":32.5,"psun":0.433,"pclr":0.188,"povc":0.531,"cc":68.7,"pany":0.274,"phop":0.397},"lam":{"ty":"partial","tg":"annular","mag":0.5731,"ob":0.466,"c1":"09:58","mx":"11:13","c4":"12:31","a1":24.3,"am":32.2,"a4":36.5,"z1":129.9,"zm":149.0,"z4":172.3,"tz":"CEST","dur":153.2,"cs":null,"trs":false,"tre":false,"hz":3.2,"tob":0.4659,"thh":"11:13","tal":32.2,"psun":0.416,"pclr":0.198,"povc":0.524,"cc":68.4,"pany":0.276,"phop":0.399}}},{"d":"2006-03-29","s":{"muenchen":{"ty":"partial","tg":"total","mag":0.4772,"ob":0.371,"c1":"11:41","mx":"12:42","c4":"13:45","a1":40.6,"am":44.6,"a4":44.9,"z1":147.1,"zm":167.4,"z4":189.4,"tz":"CEST","dur":124.1,"cs":null,"trs":false,"tre":false,"hz":0.4,"tob":0.371,"thh":"12:42","tal":44.6,"psun":0.398,"pclr":0.196,"povc":0.557,"cc":70.3,"pany":0.267,"phop":0.434},"lam":{"ty":"partial","tg":"total","mag":0.4815,"ob":0.3756,"c1":"11:44","mx":"12:45","c4":"13:47","a1":40.5,"am":43.9,"a4":43.6,"z1":150.3,"zm":170.7,"z4":192.2,"tz":"CEST","dur":123.9,"cs":null,"trs":false,"tre":false,"hz":6.0,"tob":0.3756,"thh":"12:45","tal":43.9,"psun":0.379,"pclr":0.171,"povc":0.566,"cc":71.5,"pany":0.23,"phop":0.461}}},{"d":"2008-08-01","s":{"muenchen":{"ty":"partial","tg":"total","mag":0.1607,"ob":0.0763,"c1":"10:53","mx":"11:36","c4":"12:19","a1":47.7,"am":53.1,"a4":57.3,"z1":122.8,"zm":136.2,"z4":152.8,"tz":"CEST","dur":86.0,"cs":null,"trs":false,"tre":false,"hz":0.4,"tob":0.0763,"thh":"11:36","tal":53.1,"psun":0.593,"pclr":0.284,"povc":0.35,"cc":55.6,"pany":0.379,"phop":0.261},"lam":{"ty":"partial","tg":"total","mag":0.2014,"ob":0.1064,"c1":"10:51","mx":"11:38","c4":"12:26","a1":47.6,"am":53.2,"a4":57.2,"z1":124.8,"zm":140.0,"z4":158.7,"tz":"CEST","dur":94.5,"cs":null,"trs":false,"tre":false,"hz":2.8,"tob":0.1064,"thh":"11:38","tal":53.2,"psun":0.544,"pclr":0.269,"povc":0.389,"cc":58.4,"pany":0.345,"phop":0.294}}},{"d":"2011-01-04","s":{"muenchen":{"ty":"partial","tg":"partial","mag":0.7649,"ob":0.6886,"c1":"08:03","mx":"09:18","c4":"10:44","a1":-0.3,"am":8.5,"a4":16.1,"z1":124.3,"zm":138.7,"z4":157.5,"tz":"CET","dur":160.8,"cs":null,"trs":true,"tre":false,"hz":0.5,"tob":0.6886,"thh":"09:18","tal":8.5,"psun":0.332,"pclr":0.136,"povc":0.623,"cc":76.7,"pany":0.177,"phop":0.537},"lam":{"ty":"partial","tg":"partial","mag":0.7798,"ob":0.7064,"c1":"08:02","mx":"09:21","c4":"10:48","a1":-0.2,"am":8.7,"a4":15.7,"z1":125.1,"zm":140.7,"z4":159.9,"tz":"CET","dur":166.0,"cs":null,"trs":false,"tre":false,"hz":2.8,"tob":0.7064,"thh":"09:21","tal":8.7,"psun":0.285,"pclr":0.118,"povc":0.685,"cc":79.9,"pany":0.147,"phop":0.6}}},{"d":"2015-03-20","s":{"muenchen":{"ty":"partial","tg":"total","mag":0.7361,"ob":0.6779,"c1":"09:30","mx":"10:39","c4":"11:51","a1":29.2,"am":36.8,"a4":41.2,"z1":129.1,"zm":147.4,"z4":169.9,"tz":"CET","dur":140.4,"cs":null,"trs":false,"tre":false,"hz":0.6,"tob":0.6779,"thh":"10:39","tal":36.8,"psun":0.449,"pclr":0.25,"povc":0.512,"cc":65.3,"pany":0.293,"phop":0.423},"lam":{"ty":"partial","tg":"total","mag":0.7407,"ob":0.6836,"c1":"09:33","mx":"10:42","c4":"11:54","a1":29.7,"am":36.7,"a4":40.4,"z1":131.8,"zm":150.6,"z4":173.1,"tz":"CET","dur":140.5,"cs":null,"trs":false,"tre":false,"hz":3.3,"tob":0.6836,"thh":"10:42","tal":36.7,"psun":0.381,"pclr":0.196,"povc":0.575,"cc":70.6,"pany":0.238,"phop":0.479}}},{"d":"2021-06-10","s":{"muenchen":{"ty":"partial","tg":"annular","mag":0.1438,"ob":0.0632,"c1":"11:37","mx":"12:28","c4":"13:22","a1":58.5,"am":63.4,"a4":64.9,"z1":134.4,"zm":156.6,"z4":184.8,"tz":"CEST","dur":104.6,"cs":null,"trs":false,"tre":false,"hz":0.5,"tob":0.0632,"thh":"12:28","tal":63.4,"psun":0.511,"pclr":0.214,"povc":0.429,"cc":63.2,"pany":0.294,"phop":0.305},"lam":{"ty":"partial","tg":"annular","mag":0.1599,"ob":0.0739,"c1":"11:39","mx":"12:33","c4":"13:29","a1":58.7,"am":63.0,"a4":63.5,"z1":138.7,"zm":162.7,"z4":191.4,"tz":"CEST","dur":109.4,"cs":null,"trs":false,"tre":false,"hz":4.5,"tob":0.0739,"thh":"12:33","tal":63.0,"psun":0.456,"pclr":0.18,"povc":0.473,"cc":66.7,"pany":0.25,"phop":0.347}}},{"d":"2022-10-25","s":{"muenchen":{"ty":"partial","tg":"partial","mag":0.3512,"ob":0.2359,"c1":"11:14","mx":"12:14","c4":"13:16","a1":25.5,"am":29.0,"a4":29.6,"z1":151.8,"zm":167.9,"z4":185.3,"tz":"CEST","dur":122.3,"cs":null,"trs":false,"tre":false,"hz":0.4,"tob":0.2359,"thh":"12:14","tal":29.0,"psun":0.341,"pclr":0.148,"povc":0.627,"cc":75.5,"pany":0.224,"phop":0.47},"lam":{"ty":"partial","tg":"partial","mag":0.3864,"ob":0.2706,"c1":"11:13","mx":"12:15","c4":"13:19","a1":24.9,"am":28.2,"a4":28.3,"z1":153.3,"zm":170.0,"z4":187.7,"tz":"CEST","dur":126.4,"cs":null,"trs":false,"tre":false,"hz":6.0,"tob":0.2706,"thh":"12:15","tal":28.2,"psun":0.377,"pclr":0.17,"povc":0.564,"cc":72.0,"pany":0.244,"phop":0.446}}},{"d":"2025-03-29","s":{"muenchen":{"ty":"partial","tg":"partial","mag":0.2031,"ob":0.1079,"c1":"11:28","mx":"12:11","c4":"12:55","a1":44.2,"am":45.4,"a4":44.7,"z1":162.4,"zm":177.7,"z4":193.2,"tz":"CET","dur":87.6,"cs":null,"trs":false,"tre":false,"hz":0.5,"tob":0.1079,"thh":"12:11","tal":45.4,"psun":0.398,"pclr":0.196,"povc":0.557,"cc":70.3,"pany":0.239,"phop":0.47},"lam":{"ty":"partial","tg":"partial","mag":0.2014,"ob":0.1066,"c1":"11:31","mx":"12:15","c4":"12:58","a1":43.6,"am":44.4,"a4":43.4,"z1":165.9,"zm":180.9,"z4":196.0,"tz":"CET","dur":86.9,"cs":null,"trs":false,"tre":false,"hz":6.6,"tob":0.1066,"thh":"12:15","tal":44.4,"psun":0.379,"pclr":0.171,"povc":0.566,"cc":71.5,"pany":0.218,"phop":0.496}}},{"d":"2026-08-12","s":{"muenchen":{"ty":"partial","tg":"total","mag":0.9051,"ob":0.8878,"c1":"19:23","mx":"20:15","c4":"20:32","a1":10.3,"am":2.1,"a4":-0.2,"z1":280.8,"zm":290.4,"z4":293.5,"tz":"CEST","dur":69.7,"cs":null,"trs":false,"tre":true,"hz":0.3,"tob":0.8877,"thh":"20:15","tal":2.1,"psun":0.595,"pclr":0.267,"povc":0.343,"cc":56.2,"pany":0.294,"phop":0.3},"lam":{"ty":"partial","tg":"total","mag":0.894,"ob":0.8736,"c1":"19:21","mx":"20:13","c4":"20:29","a1":9.9,"am":1.9,"a4":-0.3,"z1":281.3,"zm":291.0,"z4":294.1,"tz":"CEST","dur":68.6,"cs":null,"trs":false,"tre":true,"hz":4.3,"tob":0.6389,"thh":"19:59","tal":4.0,"psun":0.588,"pclr":0.306,"povc":0.343,"cc":54.7,"pany":0.34,"phop":0.299}}},{"d":"2027-08-02","s":{"muenchen":{"ty":"partial","tg":"total","mag":0.591,"ob":0.5045,"c1":"10:08","mx":"11:11","c4":"12:16","a1":40.8,"am":49.9,"a4":57.0,"z1":111.0,"zm":128.0,"z4":151.6,"tz":"CEST","dur":128.7,"cs":null,"trs":false,"tre":false,"hz":0.1,"tob":0.5045,"thh":"11:11","tal":50.0,"psun":0.592,"pclr":0.28,"povc":0.351,"cc":55.7,"pany":0.377,"phop":0.262},"lam":{"ty":"partial","tg":"total","mag":0.5506,"ob":0.4569,"c1":"10:11","mx":"11:13","c4":"12:17","a1":41.8,"am":50.3,"a4":56.5,"z1":114.1,"zm":131.5,"z4":154.8,"tz":"CEST","dur":125.5,"cs":null,"trs":false,"tre":false,"hz":3.3,"tob":0.4569,"thh":"11:13","tal":50.3,"psun":0.545,"pclr":0.266,"povc":0.385,"cc":58.4,"pany":0.343,"phop":0.293}}},{"d":"2028-01-26","s":{"muenchen":{"ty":"partial","tg":"annular","mag":0.2731,"ob":0.1596,"c1":"16:41","mx":"17:03","c4":"17:03","a1":2.5,"am":-0.2,"a4":-0.2,"z1":238.3,"zm":242.3,"z4":242.3,"tz":"CET","dur":21.4,"cs":null,"trs":false,"tre":true,"hz":0.3,"tob":0.1106,"thh":"16:58","tal":0.3,"psun":0.415,"pclr":0.207,"povc":0.543,"cc":69.0,"pany":0.23,"phop":0.501},"lam":{"ty":"partial","tg":"annular","mag":0.1569,"ob":0.0709,"c1":"16:41","mx":"16:53","c4":"16:53","a1":1.3,"am":-0.3,"a4":-0.3,"z1":239.4,"zm":241.7,"z4":241.7,"tz":"CET","dur":12.3,"cs":null,"trs":false,"tre":true,"hz":3.8,"tob":0.0,"thh":null,"tal":null,"psun":0.362,"pclr":0.184,"povc":0.589,"cc":72.4,"pany":0.184,"phop":0.589}}},{"d":"2029-06-12","s":{"muenchen":{"ty":"partial","tg":"partial","mag":0.0591,"ob":0.0169,"c1":"05:13","mx":"05:13","c4":"05:20","a1":-0.3,"am":-0.3,"a4":0.6,"z1":52.7,"zm":52.7,"z4":54.1,"tz":"CEST","dur":7.4,"cs":null,"trs":true,"tre":false,"hz":-0.2,"tob":0.0155,"thh":"05:13","tal":-0.2,"psun":0.517,"pclr":0.235,"povc":0.435,"cc":62.2,"pany":0.235,"phop":0.435},"lam":{"ty":"partial","tg":"partial","mag":0.1207,"ob":0.0489,"c1":"05:02","mx":"05:02","c4":"05:21","a1":-0.2,"am":-0.2,"a4":2.0,"z1":51.8,"zm":51.8,"z4":55.4,"tz":"CEST","dur":19.1,"cs":null,"trs":true,"tre":false,"hz":8.1,"tob":0.0,"thh":null,"tal":null,"psun":0.494,"pclr":0.253,"povc":0.437,"cc":61.9,"pany":0.253,"phop":0.437}}},{"d":"2030-06-01","s":{"muenchen":{"ty":"partial","tg":"annular","mag":0.7119,"ob":0.6237,"c1":"06:13","mx":"07:14","c4":"08:21","a1":7.2,"am":16.8,"a4":27.8,"z1":64.7,"zm":75.4,"z4":87.3,"tz":"CEST","dur":128.8,"cs":null,"trs":false,"tre":false,"hz":-0.1,"tob":0.6237,"thh":"07:14","tal":16.8,"psun":0.515,"pclr":0.267,"povc":0.438,"cc":61.0,"pany":0.329,"phop":0.345},"lam":{"ty":"partial","tg":"annular","mag":0.7076,"ob":0.6188,"c1":"06:14","mx":"07:16","c4":"08:24","a1":8.7,"am":18.2,"a4":29.2,"z1":66.0,"zm":77.1,"z4":89.4,"tz":"CEST","dur":130.0,"cs":null,"trs":false,"tre":false,"hz":8.7,"tob":0.6187,"thh":"07:16","tal":18.3,"psun":0.502,"pclr":0.291,"povc":0.433,"cc":60.2,"pany":0.354,"phop":0.359}}},{"d":"2034-03-20","s":{"muenchen":{"ty":"partial","tg":"total","mag":0.1387,"ob":0.0613,"c1":"10:54","mx":"11:33","c4":"12:12","a1":38.3,"am":40.7,"a4":41.8,"z1":152.0,"zm":164.2,"z4":177.2,"tz":"CET","dur":78.1,"cs":null,"trs":false,"tre":false,"hz":0.5,"tob":0.0613,"thh":"11:33","tal":40.7,"psun":0.446,"pclr":0.227,"povc":0.515,"cc":66.2,"pany":0.291,"phop":0.434},"lam":{"ty":"partial","tg":"total","mag":0.1332,"ob":0.0578,"c1":"10:58","mx":"11:36","c4":"12:14","a1":38.1,"am":40.1,"a4":40.8,"z1":155.4,"zm":167.4,"z4":179.9,"tz":"CET","dur":76.2,"cs":null,"trs":false,"tre":false,"hz":5.5,"tob":0.0578,"thh":"11:36","tal":40.1,"psun":0.384,"pclr":0.19,"povc":0.573,"cc":70.7,"pany":0.229,"phop":0.468}}},{"d":"2036-08-21","s":{"muenchen":{"ty":"partial","tg":"partial","mag":0.6727,"ob":0.6003,"c1":"19:21","mx":"20:09","c4":"20:15","a1":8.0,"am":0.5,"a4":-0.3,"z1":278.8,"zm":287.7,"z4":288.7,"tz":"CEST","dur":54.1,"cs":null,"trs":false,"tre":true,"hz":0.3,"tob":0.6003,"thh":"20:09","tal":0.5,"psun":0.6,"pclr":0.258,"povc":0.341,"cc":56.1,"pany":0.29,"phop":0.293},"lam":{"ty":"partial","tg":"partial","mag":0.6899,"ob":0.6214,"c1":"19:19","mx":"20:07","c4":"20:11","a1":7.6,"am":0.2,"a4":-0.2,"z1":279.3,"zm":288.4,"z4":289.2,"tz":"CEST","dur":52.6,"cs":null,"trs":false,"tre":true,"hz":4.0,"tob":0.3849,"thh":"19:47","tal":3.2,"psun":0.587,"pclr":0.301,"povc":0.337,"cc":54.9,"pany":0.331,"phop":0.291}}},{"d":"2037-01-16","s":{"muenchen":{"ty":"partial","tg":"partial","mag":0.5832,"ob":0.4716,"c1":"08:55","mx":"10:18","c4":"11:48","a1":6.9,"am":15.6,"a4":20.6,"z1":132.1,"zm":149.7,"z4":171.2,"tz":"CET","dur":172.7,"cs":null,"trs":false,"tre":false,"hz":0.6,"tob":0.4716,"thh":"10:18","tal":15.6,"psun":0.328,"pclr":0.134,"povc":0.642,"cc":77.0,"pany":0.201,"phop":0.496},"lam":{"ty":"partial","tg":"partial","mag":0.5987,"ob":0.4889,"c1":"08:57","mx":"10:21","c4":"11:51","a1":7.2,"am":15.4,"a4":19.8,"z1":133.9,"zm":152.0,"z4":173.6,"tz":"CET","dur":174.0,"cs":null,"trs":false,"tre":false,"hz":3.4,"tob":0.4889,"thh":"10:21","tal":15.4,"psun":0.302,"pclr":0.127,"povc":0.653,"cc":78.4,"pany":0.181,"phop":0.53}}},{"d":"2038-01-05","s":{"muenchen":{"ty":"partial","tg":"annular","mag":0.2502,"ob":0.1428,"c1":"15:00","mx":"15:53","c4":"16:34","a1":10.7,"am":4.8,"a4":-0.3,"z1":217.4,"zm":228.2,"z4":236.1,"tz":"CET","dur":94.8,"cs":null,"trs":false,"tre":true,"hz":0.5,"tob":0.1428,"thh":"15:53","tal":4.8,"psun":0.398,"pclr":0.184,"povc":0.559,"cc":71.0,"pany":0.227,"phop":0.501},"lam":{"ty":"partial","tg":"annular","mag":0.245,"ob":0.1385,"c1":"15:01","mx":"15:52","c4":"16:24","a1":9.2,"am":3.4,"a4":-0.2,"z1":218.7,"zm":229.2,"z4":235.3,"tz":"CET","dur":83.5,"cs":null,"trs":false,"tre":true,"hz":3.4,"tob":0.1385,"thh":"15:52","tal":3.4,"psun":0.334,"pclr":0.143,"povc":0.626,"cc":75.5,"pany":0.171,"phop":0.567}}},{"d":"2038-07-02","s":{"muenchen":{"ty":"partial","tg":"annular","mag":0.172,"ob":0.0831,"c1":"15:35","mx":"16:21","c4":"17:04","a1":53.0,"am":46.0,"a4":39.0,"z1":239.6,"zm":251.8,"z4":261.4,"tz":"CEST","dur":89.0,"cs":null,"trs":false,"tre":false,"hz":0.3,"tob":0.0831,"thh":"16:21","tal":46.0,"psun":0.569,"pclr":0.229,"povc":0.365,"cc":59.4,"pany":0.294,"phop":0.26},"lam":{"ty":"partial","tg":"annular","mag":0.1361,"ob":0.0588,"c1":"15:40","mx":"16:21","c4":"16:59","a1":50.8,"am":44.7,"a4":38.6,"z1":241.7,"zm":252.2,"z4":260.8,"tz":"CEST","dur":78.9,"cs":null,"trs":false,"tre":false,"hz":2.7,"tob":0.0588,"thh":"16:21","tal":44.7,"psun":0.491,"pclr":0.16,"povc":0.411,"cc":64.8,"pany":0.188,"phop":0.344}}},{"d":"2039-06-21","s":{"muenchen":{"ty":"partial","tg":"annular","mag":0.7549,"ob":0.6754,"c1":"19:35","mx":"20:36","c4":"21:17","a1":14.1,"am":5.0,"a4":-0.3,"z1":289.6,"zm":300.2,"z4":307.8,"tz":"CEST","dur":101.9,"cs":null,"trs":false,"tre":true,"hz":0.5,"tob":0.6754,"thh":"20:36","tal":5.1,"psun":0.564,"pclr":0.241,"povc":0.376,"cc":59.2,"pany":0.312,"phop":0.284},"lam":{"ty":"partial","tg":"annular","mag":0.7809,"ob":0.7064,"c1":"19:33","mx":"20:34","c4":"21:16","a1":13.9,"am":5.0,"a4":-0.2,"z1":290.0,"zm":300.8,"z4":308.7,"tz":"CEST","dur":103.3,"cs":null,"trs":false,"tre":true,"hz":4.6,"tob":0.7064,"thh":"20:33","tal":5.1,"psun":0.55,"pclr":0.233,"povc":0.371,"cc":58.8,"pany":0.329,"phop":0.288}}},{"d":"2048-06-11","s":{"muenchen":{"ty":"partial","tg":"annular","mag":0.6986,"ob":0.6101,"c1":"14:15","mx":"15:47","c4":"17:09","a1":62.2,"am":50.7,"a4":37.5,"z1":211.7,"zm":244.4,"z4":263.4,"tz":"CEST","dur":174.0,"cs":null,"trs":false,"tre":false,"hz":0.3,"tob":0.6101,"thh":"15:47","tal":50.7,"psun":0.509,"pclr":0.175,"povc":0.432,"cc":64.6,"pany":0.281,"phop":0.29},"lam":{"ty":"partial","tg":"annular","mag":0.7334,"ob":0.6514,"c1":"14:16","mx":"15:47","c4":"17:09","a1":60.7,"am":49.3,"a4":36.5,"z1":213.6,"zm":244.9,"z4":263.8,"tz":"CEST","dur":173.0,"cs":null,"trs":false,"tre":false,"hz":3.4,"tob":0.6514,"thh":"15:47","tal":49.3,"psun":0.445,"pclr":0.135,"povc":0.456,"cc":68.8,"pany":0.22,"phop":0.307}}},{"d":"2050-11-14","s":{"muenchen":{"ty":"partial","tg":"partial","mag":0.7441,"ob":0.6634,"c1":"13:43","mx":"15:09","c4":"16:26","a1":19.5,"am":11.1,"a4":1.0,"z1":206.6,"zm":225.8,"z4":241.0,"tz":"CET","dur":163.0,"cs":null,"trs":false,"tre":false,"hz":0.4,"tob":0.6634,"thh":"15:09","tal":11.1,"psun":0.36,"pclr":0.163,"povc":0.606,"cc":74.2,"pany":0.24,"phop":0.475},"lam":{"ty":"partial","tg":"partial","mag":0.7522,"ob":0.6729,"c1":"13:44","mx":"15:09","c4":"16:26","a1":18.0,"am":9.6,"a4":-0.1,"z1":208.1,"zm":226.9,"z4":242.0,"tz":"CET","dur":161.2,"cs":null,"trs":false,"tre":false,"hz":3.5,"tob":0.6729,"thh":"15:09","tal":9.6,"psun":0.327,"pclr":0.153,"povc":0.63,"cc":75.9,"pany":0.209,"phop":0.503}}},{"d":"2053-09-12","s":{"muenchen":{"ty":"partial","tg":"total","mag":0.5879,"ob":0.4944,"c1":"09:19","mx":"10:23","c4":"11:32","a1":24.0,"am":33.3,"a4":41.1,"z1":112.6,"zm":127.6,"z4":146.9,"tz":"CEST","dur":133.3,"cs":null,"trs":false,"tre":false,"hz":0.1,"tob":0.4944,"thh":"10:23","tal":33.3,"psun":0.498,"pclr":0.253,"povc":0.457,"cc":62.3,"pany":0.337,"phop":0.347},"lam":{"ty":"partial","tg":"total","mag":0.5514,"ob":0.4521,"c1":"09:22","mx":"10:25","c4":"11:33","a1":25.0,"am":33.7,"a4":40.8,"z1":115.0,"zm":130.2,"z4":149.4,"tz":"CEST","dur":130.9,"cs":null,"trs":false,"tre":false,"hz":3.4,"tob":0.4521,"thh":"10:25","tal":33.7,"psun":0.471,"pclr":0.257,"povc":0.464,"cc":62.9,"pany":0.303,"phop":0.369}}},{"d":"2059-11-05","s":{"muenchen":{"ty":"partial","tg":"annular","mag":0.7583,"ob":0.6771,"c1":"07:28","mx":"08:42","c4":"10:02","a1":3.0,"am":12.9,"a4":21.3,"z1":117.4,"zm":132.1,"z4":150.3,"tz":"CET","dur":153.8,"cs":null,"trs":false,"tre":false,"hz":0.2,"tob":0.6771,"thh":"08:42","tal":12.9,"psun":0.294,"pclr":0.122,"povc":0.685,"cc":79.5,"pany":0.189,"phop":0.55},"lam":{"ty":"partial","tg":"annular","mag":0.7197,"ob":0.6316,"c1":"07:30","mx":"08:43","c4":"10:03","a1":3.6,"am":13.1,"a4":20.9,"z1":118.9,"zm":133.8,"z4":152.2,"tz":"CET","dur":153.1,"cs":null,"trs":false,"tre":false,"hz":3.1,"tob":0.6316,"thh":"08:43","tal":13.1,"psun":0.309,"pclr":0.144,"povc":0.642,"cc":77.3,"pany":0.206,"phop":0.524}}},{"d":"2060-04-30","s":{"muenchen":{"ty":"partial","tg":"total","mag":0.4166,"ob":0.307,"c1":"11:27","mx":"12:24","c4":"13:23","a1":50.6,"am":55.6,"a4":56.9,"z1":138.3,"zm":160.0,"z4":185.7,"tz":"CEST","dur":116.6,"cs":null,"trs":false,"tre":false,"hz":0.5,"tob":0.307,"thh":"12:24","tal":55.6,"psun":0.472,"pclr":0.221,"povc":0.484,"cc":64.9,"pany":0.29,"phop":0.384},"lam":{"ty":"partial","tg":"total","mag":0.4141,"ob":0.3043,"c1":"11:30","mx":"12:27","c4":"13:26","a1":50.8,"am":55.0,"a4":55.6,"z1":142.2,"zm":164.2,"z4":189.2,"tz":"CEST","dur":116.0,"cs":null,"trs":false,"tre":false,"hz":4.8,"tob":0.3043,"thh":"12:27","tal":55.1,"psun":0.459,"pclr":0.209,"povc":0.471,"cc":65.4,"pany":0.279,"phop":0.37}}},{"d":"2065-02-05","s":{"muenchen":{"ty":"partial","tg":"partial","mag":0.7515,"ob":0.6764,"c1":"09:40","mx":"11:03","c4":"12:29","a1":16.2,"am":23.5,"a4":26.2,"z1":138.1,"zm":158.0,"z4":180.6,"tz":"CET","dur":169.3,"cs":null,"trs":false,"tre":false,"hz":0.5,"tob":0.6764,"thh":"11:03","tal":23.5,"psun":0.366,"pclr":0.171,"povc":0.596,"cc":73.4,"pany":0.231,"phop":0.456},"lam":{"ty":"partial","tg":"partial","mag":0.7475,"ob":0.6716,"c1":"09:44","mx":"11:07","c4":"12:32","a1":16.4,"am":23.1,"a4":25.1,"z1":140.5,"zm":160.5,"z4":182.9,"tz":"CET","dur":168.4,"cs":null,"trs":false,"tre":false,"hz":4.1,"tob":0.6716,"thh":"11:07","tal":23.1,"psun":0.348,"pclr":0.15,"povc":0.604,"cc":74.5,"pany":0.205,"phop":0.476}}},{"d":"2066-06-22","s":{"muenchen":{"ty":"partial","tg":"annular","mag":0.0187,"ob":0.003,"c1":"21:16","mx":"21:18","c4":"21:18","a1":-0.1,"am":-0.2,"a4":-0.2,"z1":307.5,"zm":307.7,"z4":307.7,"tz":"CEST","dur":1.2,"cs":null,"trs":false,"tre":true,"hz":0.1,"tob":0.0,"thh":null,"tal":null,"psun":0.582,"pclr":0.257,"povc":0.357,"cc":57.6,"pany":0.257,"phop":0.357},"lam":{"ty":"partial","tg":"annular","mag":0.0357,"ob":0.0079,"c1":"21:14","mx":"21:17","c4":"21:17","a1":-0.0,"am":-0.3,"a4":-0.3,"z1":308.3,"zm":308.7,"z4":308.7,"tz":"CEST","dur":2.2,"cs":null,"trs":false,"tre":true,"hz":4.6,"tob":0.0,"thh":null,"tal":null,"psun":0.584,"pclr":0.286,"povc":0.336,"cc":55.3,"pany":0.286,"phop":0.336}}},{"d":"2067-12-06","s":{"muenchen":{"ty":"partial","tg":"total","mag":0.0282,"ob":0.0056,"c1":"15:55","mx":"16:12","c4":"16:20","a1":2.8,"am":0.7,"a4":-0.2,"z1":231.3,"zm":234.5,"z4":236.1,"tz":"CET","dur":25.3,"cs":null,"trs":false,"tre":true,"hz":0.4,"tob":0.0056,"thh":"16:12","tal":0.7,"psun":0.369,"pclr":0.172,"povc":0.606,"cc":73.0,"pany":0.19,"phop":0.562},"lam":{"ty":"partial","tg":"total","mag":0.022,"ob":0.0039,"c1":"15:56","mx":"16:10","c4":"16:10","a1":1.3,"am":-0.2,"a4":-0.2,"z1":232.7,"zm":235.3,"z4":235.3,"tz":"CET","dur":13.6,"cs":null,"trs":false,"tre":true,"hz":3.6,"tob":0.0,"thh":null,"tal":null,"psun":0.332,"pclr":0.15,"povc":0.624,"cc":75.5,"pany":0.167,"phop":0.591}}},{"d":"2069-04-21","s":{"muenchen":{"ty":"partial","tg":"partial","mag":0.1741,"ob":0.0863,"c1":"11:18","mx":"11:58","c4":"12:40","a1":46.8,"am":50.9,"a4":53.4,"z1":136.8,"zm":150.7,"z4":166.8,"tz":"CEST","dur":82.5,"cs":null,"trs":false,"tre":false,"hz":0.6,"tob":0.0863,"thh":"11:58","tal":50.8,"psun":0.461,"pclr":0.239,"povc":0.495,"cc":65.0,"pany":0.266,"phop":0.423},"lam":{"ty":"partial","tg":"partial","mag":0.1842,"ob":0.0937,"c1":"11:20","mx":"12:02","c4":"12:45","a1":47.0,"am":50.6,"a4":52.7,"z1":140.3,"zm":154.8,"z4":171.4,"tz":"CEST","dur":84.5,"cs":null,"trs":false,"tre":false,"hz":3.6,"tob":0.0937,"thh":"12:02","tal":50.6,"psun":0.437,"pclr":0.205,"povc":0.508,"cc":67.0,"pany":0.241,"phop":0.444}}},{"d":"2072-09-12","s":{"muenchen":{"ty":"partial","tg":"total","mag":0.1686,"ob":0.0822,"c1":"09:11","mx":"09:47","c4":"10:25","a1":22.7,"am":28.2,"a4":33.5,"z1":111.0,"zm":119.1,"z4":128.3,"tz":"CEST","dur":74.5,"cs":null,"trs":false,"tre":false,"hz":0.1,"tob":0.0822,"thh":"09:47","tal":28.2,"psun":0.464,"pclr":0.244,"povc":0.49,"cc":64.9,"pany":0.292,"phop":0.398},"lam":{"ty":"partial","tg":"total","mag":0.2051,"ob":0.1097,"c1":"09:10","mx":"09:50","c4":"10:31","a1":23.1,"am":28.9,"a4":34.3,"z1":112.5,"zm":121.5,"z4":131.9,"tz":"CEST","dur":81.6,"cs":null,"trs":false,"tre":false,"hz":3.0,"tob":0.1097,"thh":"09:49","tal":28.8,"psun":0.458,"pclr":0.253,"povc":0.479,"cc":63.9,"pany":0.286,"phop":0.406}}},{"d":"2075-07-13","s":{"muenchen":{"ty":"partial","tg":"annular","mag":0.9114,"ob":0.8586,"c1":"05:41","mx":"06:42","c4":"07:48","a1":1.5,"am":10.2,"a4":20.8,"z1":57.7,"zm":68.5,"z4":80.1,"tz":"CEST","dur":126.7,"cs":null,"trs":false,"tre":false,"hz":-0.1,"tob":0.8586,"thh":"06:42","tal":10.2,"psun":0.569,"pclr":0.288,"povc":0.384,"cc":56.9,"pany":0.362,"phop":0.287},"lam":{"ty":"partial","tg":"annular","mag":0.9054,"ob":0.8525,"c1":"05:42","mx":"06:43","c4":"07:50","a1":2.8,"am":11.7,"a4":22.2,"z1":58.9,"zm":70.0,"z4":81.9,"tz":"CEST","dur":128.0,"cs":null,"trs":false,"tre":false,"hz":8.1,"tob":0.8525,"thh":"06:43","tal":11.7,"psun":0.52,"pclr":0.275,"povc":0.422,"cc":59.5,"pany":0.347,"phop":0.329}}},{"d":"2076-11-26","s":{"muenchen":{"ty":"partial","tg":"partial","mag":0.5794,"ob":0.4772,"c1":"11:05","mx":"12:23","c4":"13:41","a1":19.6,"am":20.6,"a4":17.2,"z1":166.1,"zm":185.4,"z4":204.4,"tz":"CET","dur":156.6,"cs":null,"trs":false,"tre":false,"hz":0.6,"tob":0.4772,"thh":"12:23","tal":20.6,"psun":0.284,"pclr":0.099,"povc":0.69,"cc":80.8,"pany":0.164,"phop":0.543},"lam":{"ty":"partial","tg":"partial","mag":0.5993,"ob":0.5,"c1":"11:06","mx":"12:24","c4":"13:43","a1":18.9,"am":19.4,"a4":15.7,"z1":167.9,"zm":187.2,"z4":206.0,"tz":"CET","dur":156.9,"cs":null,"trs":false,"tre":false,"hz":6.8,"tob":0.5,"thh":"12:25","tal":19.4,"psun":0.288,"pclr":0.128,"povc":0.662,"cc":79.2,"pany":0.166,"phop":0.557}}},{"d":"2078-05-11","s":{"muenchen":{"ty":"partial","tg":"total","mag":0.0133,"ob":0.0019,"c1":"20:40","mx":"20:41","c4":"20:41","a1":-0.1,"am":-0.3,"a4":-0.3,"z1":298.7,"zm":298.9,"z4":298.9,"tz":"CEST","dur":0.9,"cs":null,"trs":false,"tre":true,"hz":0.5,"tob":0.0,"thh":null,"tal":null,"psun":0.471,"pclr":0.218,"povc":0.483,"cc":65.5,"pany":0.218,"phop":0.483}}},{"d":"2079-05-01","s":{"muenchen":{"ty":"partial","tg":"total","mag":0.2379,"ob":0.1363,"c1":"12:13","mx":"13:01","c4":"13:50","a1":55.0,"am":57.0,"a4":56.1,"z1":155.5,"zm":175.9,"z4":197.2,"tz":"CEST","dur":96.6,"cs":null,"trs":false,"tre":false,"hz":0.5,"tob":0.1363,"thh":"13:01","tal":57.0,"psun":0.458,"pclr":0.214,"povc":0.486,"cc":66.4,"pany":0.248,"phop":0.424},"lam":{"ty":"partial","tg":"total","mag":0.2446,"ob":0.1419,"c1":"12:17","mx":"13:05","c4":"13:54","a1":54.6,"am":56.0,"a4":54.6,"z1":159.7,"zm":180.1,"z4":200.8,"tz":"CEST","dur":97.4,"cs":null,"trs":false,"tre":false,"hz":6.6,"tob":0.1419,"thh":"13:05","tal":56.0,"psun":0.44,"pclr":0.194,"povc":0.489,"cc":67.4,"pany":0.238,"phop":0.423}}},{"d":"2080-09-13","s":{"muenchen":{"ty":"partial","tg":"partial","mag":0.8209,"ob":0.7811,"c1":"18:04","mx":"19:01","c4":"19:29","a1":13.3,"am":3.9,"a4":-0.3,"z1":259.9,"zm":270.7,"z4":275.8,"tz":"CEST","dur":84.4,"cs":null,"trs":false,"tre":true,"hz":0.1,"tob":0.781,"thh":"19:01","tal":4.0,"psun":0.557,"pclr":0.279,"povc":0.393,"cc":58.2,"pany":0.31,"phop":0.332},"lam":{"ty":"partial","tg":"partial","mag":0.8298,"ob":0.7924,"c1":"18:02","mx":"18:59","c4":"19:23","a1":12.4,"am":3.3,"a4":-0.2,"z1":260.5,"zm":271.4,"z4":275.9,"tz":"CEST","dur":80.9,"cs":null,"trs":false,"tre":true,"hz":2.6,"tob":0.7924,"thh":"18:59","tal":3.3,"psun":0.51,"pclr":0.223,"povc":0.408,"cc":61.6,"pany":0.277,"phop":0.35}}},{"d":"2081-09-03","s":{"muenchen":{"ty":"partial","tg":"total","mag":0.9957,"ob":0.9982,"c1":"08:41","mx":"09:45","c4":"10:53","a1":20.1,"am":30.2,"a4":39.5,"z1":101.9,"zm":115.4,"z4":132.5,"tz":"CEST","dur":131.6,"cs":null,"trs":false,"tre":false,"hz":0.1,"tob":0.9982,"thh":"09:45","tal":30.2,"psun":0.5,"pclr":0.259,"povc":0.449,"cc":62.2,"pany":0.329,"phop":0.341},"lam":{"ty":"partial","tg":"total","mag":0.9544,"ob":0.9554,"c1":"08:43","mx":"09:46","c4":"10:54","a1":21.1,"am":30.8,"a4":39.7,"z1":103.8,"zm":117.7,"z4":135.2,"tz":"CEST","dur":131.5,"cs":null,"trs":false,"tre":false,"hz":3.2,"tob":0.9554,"thh":"09:46","tal":30.8,"psun":0.48,"pclr":0.263,"povc":0.457,"cc":62.4,"pany":0.319,"phop":0.348}}},{"d":"2082-02-27","s":{"muenchen":{"ty":"partial","tg":"annular","mag":0.915,"ob":0.84,"c1":"16:22","mx":"17:35","c4":"17:55","a1":13.8,"am":2.6,"a4":-0.2,"z1":240.9,"zm":255.3,"z4":258.9,"tz":"CET","dur":93.2,"cs":null,"trs":false,"tre":true,"hz":0.2,"tob":0.84,"thh":"17:35","tal":2.6,"psun":0.406,"pclr":0.205,"povc":0.558,"cc":69.3,"pany":0.223,"phop":0.516},"lam":{"ty":"partial","tg":"annular","mag":0.8925,"ob":0.823,"c1":"16:22","mx":"17:35","c4":"17:48","a1":12.3,"am":1.5,"a4":-0.2,"z1":241.9,"zm":256.3,"z4":258.7,"tz":"CET","dur":85.6,"cs":null,"trs":false,"tre":true,"hz":2.5,"tob":0.7668,"thh":"17:28","tal":2.6,"psun":0.367,"pclr":0.186,"povc":0.57,"cc":71.9,"pany":0.2,"phop":0.53}}},{"d":"2088-04-21","s":{"muenchen":{"ty":"partial","tg":"total","mag":0.6817,"ob":0.6099,"c1":"11:25","mx":"12:37","c4":"13:52","a1":47.8,"am":53.4,"a4":53.2,"z1":139.2,"zm":165.7,"z4":196.3,"tz":"CEST","dur":146.4,"cs":null,"trs":false,"tre":false,"hz":0.4,"tob":0.6098,"thh":"12:38","tal":53.4,"psun":0.465,"pclr":0.217,"povc":0.484,"cc":65.3,"pany":0.284,"phop":0.383},"lam":{"ty":"partial","tg":"total","mag":0.6689,"ob":0.5942,"c1":"11:29","mx":"12:41","c4":"13:54","a1":48.0,"am":52.7,"a4":51.8,"z1":143.1,"zm":169.7,"z4":199.0,"tz":"CEST","dur":144.9,"cs":null,"trs":false,"tre":false,"hz":5.9,"tob":0.5942,"thh":"12:41","tal":52.7,"psun":0.437,"pclr":0.205,"povc":0.508,"cc":67.0,"pany":0.262,"phop":0.404}}},{"d":"2090-09-23","s":{"muenchen":{"ty":"partial","tg":"total","mag":0.4939,"ob":0.3896,"c1":"18:42","mx":"19:09","c4":"19:09","a1":3.8,"am":-0.3,"a4":-0.3,"z1":265.2,"zm":270.2,"z4":270.2,"tz":"CEST","dur":26.8,"cs":114.1,"trs":false,"tre":true,"hz":0.1,"tob":0.3346,"thh":"19:06","tal":0.1,"psun":0.501,"pclr":0.251,"povc":0.454,"cc":62.5,"pany":0.273,"phop":0.397},"lam":{"ty":"partial","tg":"total","mag":0.4165,"ob":0.3057,"c1":"18:40","mx":"19:03","c4":"19:03","a1":3.1,"am":-0.3,"a4":-0.3,"z1":266.0,"zm":270.3,"z4":270.3,"tz":"CEST","dur":22.5,"cs":145.3,"trs":false,"tre":true,"hz":2.7,"tob":0.0168,"thh":"18:43","tal":2.6,"psun":0.492,"pclr":0.222,"povc":0.436,"cc":62.7,"pany":0.252,"phop":0.395}}},{"d":"2091-02-18","s":{"muenchen":{"ty":"partial","tg":"partial","mag":0.4789,"ob":0.3597,"c1":"09:25","mx":"10:43","c4":"12:05","a1":18.1,"am":26.1,"a4":30.2,"z1":132.6,"zm":151.3,"z4":173.8,"tz":"CET","dur":160.4,"cs":null,"trs":false,"tre":false,"hz":0.6,"tob":0.3597,"thh":"10:43","tal":26.1,"psun":0.375,"pclr":0.197,"povc":0.593,"cc":71.8,"pany":0.271,"phop":0.455},"lam":{"ty":"partial","tg":"partial","mag":0.4845,"ob":0.3656,"c1":"09:28","mx":"10:47","c4":"12:09","a1":18.4,"am":25.9,"a4":29.3,"z1":134.9,"zm":154.1,"z4":176.6,"tz":"CET","dur":160.8,"cs":null,"trs":false,"tre":false,"hz":3.6,"tob":0.3656,"thh":"10:47","tal":25.9,"psun":0.369,"pclr":0.175,"povc":0.573,"cc":72.4,"pany":0.242,"phop":0.442}}},{"d":"2092-02-07","s":{"muenchen":{"ty":"partial","tg":"annular","mag":0.6055,"ob":0.506,"c1":"16:35","mx":"17:23","c4":"17:23","a1":6.4,"am":-0.3,"a4":-0.3,"z1":238.9,"zm":248.0,"z4":248.0,"tz":"CET","dur":47.6,"cs":null,"trs":false,"tre":true,"hz":0.3,"tob":0.455,"thh":"17:18","tal":0.3,"psun":0.413,"pclr":0.212,"povc":0.554,"cc":68.8,"pany":0.23,"phop":0.504},"lam":{"ty":"partial","tg":"annular","mag":0.5103,"ob":0.3985,"c1":"16:35","mx":"17:14","c4":"17:14","a1":5.0,"am":-0.2,"a4":-0.2,"z1":240.0,"zm":247.5,"z4":247.5,"tz":"CET","dur":39.1,"cs":null,"trs":false,"tre":true,"hz":3.1,"tob":0.0511,"thh":"16:44","tal":3.8,"psun":0.376,"pclr":0.178,"povc":0.575,"cc":71.3,"pany":0.202,"phop":0.54}}},{"d":"2093-07-23","s":{"muenchen":{"ty":"partial","tg":"annular","mag":0.8825,"ob":0.8308,"c1":"13:17","mx":"14:56","c4":"16:26","a1":61.7,"am":55.7,"a4":43.2,"z1":178.5,"zm":222.7,"z4":249.4,"tz":"CEST","dur":188.9,"cs":null,"trs":false,"tre":false,"hz":0.4,"tob":0.8308,"thh":"14:56","tal":55.8,"psun":0.566,"pclr":0.239,"povc":0.379,"cc":59.4,"pany":0.359,"phop":0.224},"lam":{"ty":"partial","tg":"annular","mag":0.917,"ob":0.8703,"c1":"13:19","mx":"14:57","c4":"16:26","a1":60.6,"am":54.2,"a4":42.0,"z1":182.4,"zm":224.0,"z4":249.8,"tz":"CEST","dur":186.5,"cs":null,"trs":false,"tre":false,"hz":3.7,"tob":0.8703,"thh":"14:57","tal":54.2,"psun":0.486,"pclr":0.158,"povc":0.415,"cc":65.3,"pany":0.249,"phop":0.249}}},{"d":"2102-07-15","s":{"muenchen":{"ty":"partial","tg":"annular","mag":0.1314,"ob":0.0551,"c1":"07:58","mx":"08:37","c4":"09:17","a1":22.2,"am":28.5,"a4":35.3,"z1":82.0,"zm":88.9,"z4":96.7,"tz":"CEST","dur":79.2,"cs":null,"trs":false,"tre":false,"hz":-0.0,"tob":0.0551,"thh":"08:37","tal":28.6,"psun":0.585,"pclr":0.295,"povc":0.376,"cc":55.5,"pany":0.369,"phop":0.27},"lam":{"ty":"partial","tg":"annular","mag":0.149,"ob":0.0664,"c1":"07:58","mx":"08:39","c4":"09:23","a1":23.3,"am":30.0,"a4":37.1,"z1":83.5,"zm":91.1,"z4":99.9,"tz":"CEST","dur":84.8,"cs":null,"trs":false,"tre":false,"hz":7.1,"tob":0.0664,"thh":"08:39","tal":30.0,"psun":0.538,"pclr":0.297,"povc":0.393,"cc":57.6,"pany":0.35,"phop":0.309}}},{"d":"2103-07-04","s":{"muenchen":{"ty":"partial","tg":"annular","mag":0.5251,"ob":0.4151,"c1":"09:56","mx":"11:11","c4":"12:32","a1":42.8,"am":54.3,"a4":63.1,"z1":103.8,"zm":123.6,"z4":155.7,"tz":"CEST","dur":156.0,"cs":null,"trs":false,"tre":false,"hz":0.1,"tob":0.4151,"thh":"11:11","tal":54.3,"psun":0.582,"pclr":0.272,"povc":0.355,"cc":56.8,"pany":0.409,"phop":0.232},"lam":{"ty":"partial","tg":"annular","mag":0.4965,"ob":0.3838,"c1":"10:00","mx":"11:14","c4":"12:32","a1":44.1,"am":54.9,"a4":62.5,"z1":107.1,"zm":127.7,"z4":159.8,"tz":"CEST","dur":152.9,"cs":null,"trs":false,"tre":false,"hz":3.3,"tob":0.3838,"thh":"11:14","tal":54.9,"psun":0.513,"pclr":0.216,"povc":0.405,"cc":61.9,"pany":0.308,"phop":0.29}}},{"d":"2104-12-17","s":{"muenchen":{"ty":"partial","tg":"partial","mag":0.584,"ob":0.4743,"c1":"14:36","mx":"15:53","c4":"16:21","a1":11.4,"am":3.0,"a4":-0.2,"z1":214.0,"zm":229.6,"z4":234.7,"tz":"CET","dur":104.4,"cs":null,"trs":false,"tre":true,"hz":0.5,"tob":0.4743,"thh":"15:53","tal":3.0,"psun":0.363,"pclr":0.152,"povc":0.6,"cc":74.2,"pany":0.21,"phop":0.494},"lam":{"ty":"partial","tg":"partial","mag":0.5889,"ob":0.4798,"c1":"14:37","mx":"15:53","c4":"16:10","a1":9.9,"am":1.7,"a4":-0.2,"z1":215.3,"zm":230.6,"z4":233.9,"tz":"CET","dur":93.1,"cs":null,"trs":false,"tre":true,"hz":3.3,"tob":0.429,"thh":"15:37","tal":3.5,"psun":0.289,"pclr":0.128,"povc":0.671,"cc":79.1,"pany":0.157,"phop":0.582}}},{"d":"2107-10-16","s":{"muenchen":{"ty":"partial","tg":"total","mag":0.1383,"ob":0.0608,"c1":"09:25","mx":"09:59","c4":"10:36","a1":16.2,"am":20.7,"a4":24.9,"z1":123.9,"zm":131.6,"z4":140.2,"tz":"CEST","dur":71.1,"cs":null,"trs":false,"tre":false,"hz":0.2,"tob":0.0608,"thh":"09:59","tal":20.7,"psun":0.353,"pclr":0.146,"povc":0.61,"cc":75.1,"pany":0.195,"phop":0.52},"lam":{"ty":"partial","tg":"total","mag":0.1011,"ob":0.0382,"c1":"09:31","mx":"10:01","c4":"10:33","a1":17.2,"am":21.0,"a4":24.4,"z1":126.9,"zm":133.7,"z4":141.3,"tz":"CEST","dur":61.6,"cs":null,"trs":false,"tre":false,"hz":3.2,"tob":0.0382,"thh":"10:01","tal":21.0,"psun":0.383,"pclr":0.183,"povc":0.556,"cc":71.2,"pany":0.199,"phop":0.511}}},{"d":"2113-12-08","s":{"muenchen":{"ty":"partial","tg":"annular","mag":0.5968,"ob":0.4868,"c1":"07:51","mx":"08:37","c4":"09:56","a1":-0.2,"am":5.3,"a4":13.5,"z1":124.2,"zm":132.9,"z4":149.4,"tz":"CET","dur":125.1,"cs":null,"trs":true,"tre":false,"hz":0.3,"tob":0.4868,"thh":"08:37","tal":5.3,"psun":0.286,"pclr":0.104,"povc":0.684,"cc":80.6,"pany":0.144,"phop":0.6},"lam":{"ty":"partial","tg":"annular","mag":0.563,"ob":0.4492,"c1":"07:49","mx":"08:39","c4":"09:57","a1":-0.3,"am":5.5,"a4":13.2,"z1":125.0,"zm":134.6,"z4":151.1,"tz":"CET","dur":127.9,"cs":null,"trs":true,"tre":false,"hz":3.1,"tob":0.4492,"thh":"08:39","tal":5.5,"psun":0.276,"pclr":0.114,"povc":0.686,"cc":80.5,"pany":0.141,"phop":0.601}}},{"d":"2114-06-03","s":{"muenchen":{"ty":"partial","tg":"total","mag":0.0454,"ob":0.0117,"c1":"10:33","mx":"10:53","c4":"11:14","a1":49.3,"am":52.2,"a4":55.0,"z1":115.1,"zm":120.7,"z4":127.1,"tz":"CEST","dur":40.4,"cs":null,"trs":false,"tre":false,"hz":0.1,"tob":0.0117,"thh":"10:53","tal":52.2,"psun":0.533,"pclr":0.27,"povc":0.417,"cc":59.5,"pany":0.301,"phop":0.359},"lam":{"ty":"partial","tg":"total","mag":0.0391,"ob":0.0094,"c1":"10:38","mx":"10:56","c4":"11:15","a1":50.3,"am":52.9,"a4":55.3,"z1":119.0,"zm":124.6,"z4":130.8,"tz":"CEST","dur":37.6,"cs":null,"trs":false,"tre":false,"hz":3.1,"tob":0.0094,"thh":"10:56","tal":52.8,"psun":0.505,"pclr":0.246,"povc":0.416,"cc":61.4,"pany":0.27,"phop":0.373}}},{"d":"2119-03-11","s":{"muenchen":{"ty":"partial","tg":"annular","mag":0.5771,"ob":0.4744,"c1":"10:28","mx":"11:43","c4":"12:59","a1":32.2,"am":37.3,"a4":37.5,"z1":145.1,"zm":167.1,"z4":191.1,"tz":"CET","dur":151.2,"cs":null,"trs":false,"tre":false,"hz":0.4,"tob":0.4744,"thh":"11:43","tal":37.3,"psun":0.439,"pclr":0.224,"povc":0.517,"cc":66.9,"pany":0.277,"phop":0.44},"lam":{"ty":"partial","tg":"annular","mag":0.5705,"ob":0.4669,"c1":"10:32","mx":"11:46","c4":"13:02","a1":32.2,"am":36.5,"a4":36.2,"z1":148.2,"zm":170.1,"z4":193.5,"tz":"CET","dur":150.1,"cs":null,"trs":false,"tre":false,"hz":6.0,"tob":0.4669,"thh":"11:46","tal":36.5,"psun":0.377,"pclr":0.181,"povc":0.577,"cc":71.5,"pany":0.241,"phop":0.439}}},{"d":"2120-07-25","s":{"muenchen":{"ty":"partial","tg":"annular","mag":0.5439,"ob":0.4319,"c1":"16:16","mx":"17:26","c4":"18:30","a1":44.6,"am":33.3,"a4":22.7,"z1":246.5,"zm":262.2,"z4":274.3,"tz":"CEST","dur":134.3,"cs":null,"trs":false,"tre":false,"hz":0.1,"tob":0.4318,"thh":"17:26","tal":33.4,"psun":0.575,"pclr":0.242,"povc":0.357,"cc":58.5,"pany":0.326,"phop":0.259},"lam":{"ty":"partial","tg":"annular","mag":0.5688,"ob":0.4596,"c1":"16:14","mx":"17:25","c4":"18:29","a1":43.6,"am":32.5,"a4":22.0,"z1":246.5,"zm":262.4,"z4":274.7,"tz":"CEST","dur":135.1,"cs":null,"trs":false,"tre":false,"hz":2.4,"tob":0.4596,"thh":"17:24","tal":32.6,"psun":0.507,"pclr":0.172,"povc":0.403,"cc":63.7,"pany":0.25,"phop":0.27}}},{"d":"2126-10-16","s":{"muenchen":{"ty":"partial","tg":"total","mag":0.6599,"ob":0.5839,"c1":"09:03","mx":"10:05","c4":"11:10","a1":13.0,"am":21.2,"a4":28.1,"z1":119.5,"zm":132.9,"z4":149.1,"tz":"CEST","dur":127.4,"cs":null,"trs":false,"tre":false,"hz":0.3,"tob":0.5839,"thh":"10:05","tal":21.3,"psun":0.394,"pclr":0.172,"povc":0.565,"cc":71.8,"pany":0.243,"phop":0.462},"lam":{"ty":"partial","tg":"total","mag":0.698,"ob":0.6306,"c1":"09:04","mx":"10:07","c4":"11:13","a1":13.4,"am":21.4,"a4":27.9,"z1":121.1,"zm":135.0,"z4":151.7,"tz":"CEST","dur":129.6,"cs":null,"trs":false,"tre":false,"hz":3.1,"tob":0.6306,"thh":"10:07","tal":21.5,"psun":0.383,"pclr":0.183,"povc":0.556,"cc":71.2,"pany":0.238,"phop":0.432}}}],"calib":{"muenchen":{"clo":0.44,"chi":1.0100000000000005,"rmse":0.022990078192003695,"fmeas":[0.3155,0.3747,0.4379,0.4944,0.4964,0.4972,0.5511,0.5685,0.4983,0.4138,0.3132,0.3061],"fmod":[0.3522,0.3791,0.4098,0.4649,0.4842,0.5291,0.5739,0.5656,0.4739,0.3921,0.325,0.3263],"S0":{"1":236.6,"2":254.0,"3":331.8,"4":376.1,"5":429.1,"6":450.0,"7":438.2,"8":408.4,"9":340.6,"10":297.9,"11":236.1,"12":217.0},"dwd_sun":{"1":74.6,"2":95.2,"3":145.3,"4":186.0,"5":213.0,"6":223.7,"7":241.5,"8":232.1,"9":169.7,"10":123.3,"11":74.0,"12":66.4},"dwd_station":3379,"dwd_year":1844.8},"lam":{"clo":0.36,"chi":1.0200000000000005,"rmse":0.037597515887091815,"fmeas":[0.271,0.3653,0.4351,0.4896,0.4488,0.4538,0.4912,0.5222,0.4855,0.3971,0.3505,0.2684],"fmod":[0.3094,0.3583,0.362,0.4324,0.4623,0.4887,0.5167,0.5295,0.4411,0.3848,0.311,0.3006],"S0":{"1":229.4,"2":250.5,"3":330.0,"4":379.7,"5":436.3,"6":450.0,"7":449.5,"8":409.5,"9":339.4,"10":296.9,"11":230.5,"12":217.0},"dwd_sun":{"1":62.2,"2":91.5,"3":143.6,"4":185.9,"5":195.8,"6":204.2,"7":220.8,"8":213.9,"9":164.8,"10":117.9,"11":80.8,"12":58.2},"dwd_station":5800,"dwd_year":1739.6}},"horizon":{"lam":{"0":7.18,"10":7.85,"20":8.13,"30":9.05,"40":9.57,"50":7.89,"60":8.89,"70":8.13,"80":8.95,"90":7.29,"100":5.16,"110":4.29,"120":2.93,"130":3.38,"140":2.77,"150":3.3,"160":3.97,"170":6.0,"180":6.6,"190":6.81,"200":6.16,"210":6.09,"220":3.98,"230":3.31,"240":3.95,"250":2.84,"260":2.29,"270":2.7,"280":2.29,"290":4.29,"300":4.57,"310":4.57,"320":7.12,"330":7.41,"340":7.41,"350":6.87},"sendling":{"0":0.11,"10":-0.04,"20":-0.08,"30":-0.12,"40":-0.11,"50":-0.22,"60":-0.14,"70":-0.04,"80":-0.08,"90":-0.03,"100":0.02,"110":0.03,"120":0.08,"130":0.15,"140":0.57,"150":0.57,"160":0.49,"170":0.41,"180":0.57,"190":0.65,"200":0.46,"210":0.52,"220":0.4,"230":0.48,"240":0.33,"250":0.28,"260":0.16,"270":0.11,"280":0.17,"290":0.29,"300":0.49,"310":-0.08,"320":-0.12,"330":-0.16,"340":-0.17,"350":-0.16}},"base":{"lam":566.0,"sendling":542.0},"osm":{"n":11314,"mean":3.46,"pct":{"10":1.0,"25":2.0,"50":4.0,"75":5.0,"90":6.0,"95":6.0}}};
+const R = DATA.rows, HZ = DATA.horizon, CAL = DATA.calib;
+
+/* ---------- Theme ---------- */
+const tb = document.getElementById('themeBtn');
+tb.onclick = () => {
+  const d = document.documentElement;
+  const n = d.dataset.theme === 'dark' ? 'light' : 'dark';
+  d.dataset.theme = n; tb.textContent = n === 'dark' ? 'HELL' : 'DUNKEL';
+  drawHorizon(); drawCal();
+};
+
+/* ---------- Helfer ---------- */
+const pct = v => v == null ? '–' : (v * 100).toFixed(1).replace('.', ',') + ' %';
+const p0  = v => v == null ? '–' : Math.round(v * 100) + ' %';
+const num = (v, d = 1) => v == null ? '–' : v.toFixed(d).replace('.', ',');
+const dateDE = s => { const [y, m, d] = s.split('-'); return d + '.' + m + '.' + y; };
+const TODAY = '2026-08-11';
+
+const GT = {total:'anderswo total', annular:'anderswo ringförmig', partial:'nirgends zentral'};
+function typeTag(m, l) {
+  const a = m || l; if (!a) return '';
+  if (m && m.ty === 'total') return '<span class="tag total">total</span>';
+  const ob = Math.max(m ? m.ob : 0, l ? l.ob : 0);
+  const g = `<span class="note" style="margin-left:6px">${GT[a.tg] || ''}</span>`;
+  if (ob >= 0.9) return '<span class="tag near">fast total</span>' + g;
+  return '<span class="tag part">partiell</span>' + g;
+}
+
+/* ---------- Tabelle ---------- */
+let range = '2081', minOb = 0;
+function rowsFiltered() {
+  return R.filter(r => {
+    const m = r.s.muenchen, l = r.s.lam;
+    const ob = Math.max(m ? m.ob : 0, l ? l.ob : 0);
+    if (ob * 100 < minOb) return false;
+    if (range === '2081') return r.d <= '2081-12-31';
+    if (range === 'past') return r.d < TODAY;
+    if (range === 'future') return r.d >= TODAY;
+    return true;
+  });
+}
+function render() {
+  const rows = rowsFiltered();
+  document.getElementById('tbody').innerHTML = rows.map(r => {
+    const m = r.s.muenchen, l = r.s.lam;
+    const past = r.d < TODAY ? ' past' : '';
+    const hi = (m && (m.ty === 'total' || m.ob >= 0.9)) ? ' hi' : '';
+    const arrow = x => (x ? (x.trs ? ' ↑' : '') + (x.tre ? ' ↓' : '') : '');
+    const bar = v => v == null ? '–' :
+      `<span class="bar"><span style="width:${(v*100).toFixed(0)}%"></span><b>${pct(v)}</b></span>`;
+    const cut = l && l.tob < l.ob - 0.03;
+    return `<tr class="${past}${hi}">
+      <td class="d">${dateDE(r.d)}</td>
+      <td style="text-align:left">${typeTag(m, l)}</td>
+      <td class="num">${m ? bar(m.ob) : '–'}</td>
+      <td class="num">${m ? num(m.mag, 3) : '–'}</td>
+      <td class="num">${m ? m.c1 : '–'}</td>
+      <td class="num"><b>${m ? m.mx : '–'}</b>${arrow(m)}</td>
+      <td class="num">${m ? m.c4 : '–'}</td>
+      <td class="num">${m ? num(m.am) + '°' : '–'}</td>
+      <td class="num">${m ? Math.round(m.zm) + '°' : '–'}</td>
+      <td class="num">${m ? Math.round(m.dur) + ' min' : '–'}</td>
+      <td class="num">${l ? bar(l.ob) : '–'}</td>
+      <td class="num">${l ? l.mx : '–'}</td>
+      <td class="num">${l ? num(l.am) + '°' : '–'}</td>
+      <td class="num">${l ? num(l.hz) + '°' : '–'}</td>
+      <td class="num ${cut ? 'warn' : ''}">${l ? (cut ? pct(l.tob) : '—') : '–'}</td>
+      <td class="num">${m ? p0(m.psun) : '–'}</td>
+      <td class="num">${m ? p0(m.pclr) : '–'}</td>
+      <td class="num">${m ? p0(m.povc) : '–'}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('cnt').textContent = rows.length + ' von ' + R.length + ' sichtbaren';
+}
+document.querySelectorAll('[data-range]').forEach(b => b.onclick = () => {
+  document.querySelectorAll('[data-range]').forEach(x => x.setAttribute('aria-pressed', 'false'));
+  b.setAttribute('aria-pressed', 'true'); range = b.dataset.range; render();
+});
+document.getElementById('minOb').oninput = e => {
+  minOb = +e.target.value;
+  document.getElementById('minLab').textContent = minOb + ' %';
+  render();
+};
+
+/* ---------- Horizontprofil ---------- */
+function cssv(n){return getComputedStyle(document.body).getPropertyValue(n).trim()}
+let hsite = 'muenchen';
+function drawHorizon() {
+  const key = hsite === 'lam' ? 'lam' : 'sendling';
+  const W = 960, H = 400, ml = 46, mr = 16, mt = 14, mb = 40;
+  const iw = W - ml - mr, ih = H - mt - mb;
+  const YMAX = 70;
+  const X = az => ml + az / 360 * iw;
+  const Y = al => mt + ih - Math.max(0, Math.min(YMAX, al)) / YMAX * ih;
+  const line = cssv('--line'), tx3 = cssv('--tx3'), tx2 = cssv('--tx2');
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Horizontprofil">`;
+  // Raster
+  for (let a = 0; a <= 70; a += 10)
+    s += `<line x1="${ml}" y1="${Y(a)}" x2="${W-mr}" y2="${Y(a)}" stroke="${line}" stroke-width="1"/>
+          <text x="${ml-8}" y="${Y(a)+4}" text-anchor="end" fill="${tx3}" font-family="IBM Plex Mono" font-size="10">${a}°</text>`;
+  const dirs = [[0,'N'],[45,'NO'],[90,'O'],[135,'SO'],[180,'S'],[225,'SW'],[270,'W'],[315,'NW'],[360,'N']];
+  dirs.forEach(([a, n]) => {
+    s += `<line x1="${X(a)}" y1="${mt}" x2="${X(a)}" y2="${mt+ih}" stroke="${line}" stroke-width="1"/>
+          <text x="${X(a)}" y="${H-16}" text-anchor="middle" fill="${tx3}" font-family="IBM Plex Mono" font-size="10">${n}</text>`;
+  });
+  // Silhouette
+  const az = Object.keys(HZ[key]).map(Number).sort((a, b) => a - b);
+  let pts = az.map(a => `${X(a)},${Y(HZ[key][a])}`);
+  pts.push(`${X(360)},${Y(HZ[key][az[0]])}`);
+  s += `<polygon points="${ml},${mt+ih} ${pts.join(' ')} ${W-mr},${mt+ih}"
+        fill="${tx3}" fill-opacity=".22" stroke="${tx3}" stroke-width="1.5"/>`;
+  // Bebauungsschwelle
+  if (document.getElementById('hBuild').checked && hsite !== 'lam') {
+    const a = buildAngle();
+    s += `<line x1="${ml}" y1="${Y(a)}" x2="${W-mr}" y2="${Y(a)}" stroke="${cssv('--violet')}"
+          stroke-width="1.5" stroke-dasharray="6 4"/>
+          <text x="${W-mr-4}" y="${Y(a)-7}" text-anchor="end" fill="${cssv('--violet')}"
+          font-family="IBM Plex Mono" font-size="10">Bebauung ${a}°</text>`;
+  }
+  // Punkte
+  R.forEach(r => {
+    const d = r.s[hsite]; if (!d) return;
+    const c = d.ob >= 0.9 ? cssv('--red') : d.ob >= 0.5 ? cssv('--amber') : cssv('--teal');
+    const rad = 3 + Math.sqrt(d.ob) * 11;
+    const below = d.am < d.hz;
+    s += `<circle cx="${X(d.zm)}" cy="${Y(Math.max(d.am,0))}" r="${rad}" fill="${c}"
+          fill-opacity="${below ? .16 : .5}" stroke="${c}" stroke-width="1.4"
+          stroke-dasharray="${below ? '3 2' : ''}"><title>${dateDE(r.d)} · ${pct(d.ob)} · ${num(d.am)}° hoch · Az ${Math.round(d.zm)}° · ${d.mx}</title></circle>`;
+  });
+  // Marker für Schlüsseltermine
+  [['1999-08-11','1999 · total',0],['2026-08-12','2026 · 89 %',-16],['2081-09-03','2081 · 99,8 %',-13]].forEach(([dt, lab, dy]) => {
+    const r = R.find(x => x.d === dt); if (!r || !r.s[hsite]) return;
+    const d = r.s[hsite];
+    const yy = Y(Math.max(d.am,0)) - 6 - (3 + Math.sqrt(d.ob)*11) + dy;
+    s += `<text x="${X(d.zm)}" y="${yy}" text-anchor="middle" fill="${tx2}"
+          font-family="IBM Plex Mono" font-size="10.5" font-weight="500">${lab}</text>`;
+  });
+  s += `<text x="${ml}" y="${mt+ih+14}" fill="${tx3}" font-family="IBM Plex Mono" font-size="9.5" opacity=".7">Azimut</text>`;
+  s += '</svg>';
+  document.getElementById('horizonChart').innerHTML = s;
+}
+document.querySelectorAll('[name=hsite]').forEach(el => el.onchange = e => {
+  hsite = e.target.value;
+  document.getElementById('hBuildLab').style.opacity = hsite === 'lam' ? .35 : 1;
+  drawHorizon();
+});
+document.getElementById('hBuild').onchange = drawHorizon;
+
+/* ---------- Bebauungsrechner ---------- */
+function buildAngle() {
+  const lv = +document.getElementById('lv').value, w = +document.getElementById('w').value;
+  const h = lv * 3.2 + 1.5 - 1.6;
+  return Math.round(Math.atan(h / w) * 180 / Math.PI);
+}
+function calc() {
+  const lv = +document.getElementById('lv').value, w = +document.getElementById('w').value;
+  document.getElementById('lvLab').textContent = lv;
+  document.getElementById('wLab').textContent = w + ' m';
+  const a = buildAngle();
+  document.getElementById('angRes').textContent = a + '°';
+  const fut = R.filter(r => r.d >= TODAY && r.s.muenchen);
+  const blocked = fut.filter(r => r.s.muenchen.am < a);
+  const ok = fut.filter(r => r.s.muenchen.am >= a);
+  const big = blocked.filter(r => r.s.muenchen.ob >= 0.4);
+  document.getElementById('calcOut').innerHTML = `
+    <p style="margin-top:0">Bei <b style="color:var(--tx)">${a}°</b> Verschattung wären von den
+    <b style="color:var(--tx)">${fut.length}</b> noch kommenden Finsternissen über München
+    <b style="color:var(--teal)">${ok.length}</b> von diesem Standpunkt aus sichtbar und
+    <b style="color:var(--amber)">${blocked.length}</b> verdeckt.</p>
+    ${big.length ? `<p style="font-size:14px"><strong>Davon nennenswert verdeckt</strong> (≥ 40 % Bedeckung):<br>${
+      big.slice(0, 10).map(r => `<span class="mono" style="color:var(--amber)">${dateDE(r.d)}</span>
+        <span class="note">${pct(r.s.muenchen.ob)}, Sonne ${num(r.s.muenchen.am)}° hoch, Azimut ${Math.round(r.s.muenchen.zm)}°</span>`).join('<br>')
+    }${big.length > 10 ? '<br><span class="note">… und ' + (big.length - 10) + ' weitere</span>' : ''}</p>` :
+    '<p style="font-size:14px">Bei dieser Geometrie ist keine der kommenden nennenswerten Finsternisse verdeckt.</p>'}
+    <p class="note">Azimut 90° = Osten, 180° = Süden, 270° = Westen. Entscheidend ist die freie Sicht
+    genau in diese Richtung, nicht der Rundumhorizont.</p>`;
+  if (document.getElementById('hBuild').checked) drawHorizon();
+}
+document.getElementById('lv').oninput = calc;
+document.getElementById('w').oninput = calc;
+
+/* ---------- Kalibrierungs-Chart ---------- */
+function drawCal() {
+  const W = 960, H = 300, ml = 46, mr = 16, mt = 16, mb = 36;
+  const iw = W - ml - mr, ih = H - mt - mb;
+  const M = ['J','F','M','A','M','J','J','A','S','O','N','D'];
+  const line = cssv('--line'), tx3 = cssv('--tx3');
+  const X = i => ml + (i + .5) / 12 * iw;
+  const Y = v => mt + ih - v / 0.7 * ih;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Kalibrierung">`;
+  for (let v = 0; v <= 0.7; v += 0.1)
+    s += `<line x1="${ml}" y1="${Y(v)}" x2="${W-mr}" y2="${Y(v)}" stroke="${line}"/>
+          <text x="${ml-8}" y="${Y(v)+4}" text-anchor="end" fill="${tx3}" font-family="IBM Plex Mono" font-size="10">${Math.round(v*100)}%</text>`;
+  M.forEach((m, i) => s += `<text x="${X(i)}" y="${H-14}" text-anchor="middle" fill="${tx3}" font-family="IBM Plex Mono" font-size="10">${m}</text>`);
+  ['muenchen', 'lam'].forEach((k, si) => {
+    const c = si === 0 ? 1 : .45;
+    const a = CAL[k].fmeas, b = CAL[k].fmod;
+    s += `<polyline points="${a.map((v,i)=>X(i)+','+Y(v)).join(' ')}" fill="none"
+          stroke="${cssv('--amber')}" stroke-width="${si?1.4:2.2}" opacity="${c}" stroke-dasharray="${si?'5 3':''}"/>`;
+    s += `<polyline points="${b.map((v,i)=>X(i)+','+Y(v)).join(' ')}" fill="none"
+          stroke="${cssv('--teal')}" stroke-width="${si?1.4:2.2}" opacity="${c}" stroke-dasharray="${si?'5 3':''}"/>`;
+    a.forEach((v, i) => s += `<circle cx="${X(i)}" cy="${Y(v)}" r="${si?2:3}" fill="${cssv('--amber')}" opacity="${c}"/>`);
+  });
+  s += `<text x="${ml+6}" y="${mt+14}" fill="${tx3}" font-family="IBM Plex Mono" font-size="10">
+        Anteil der Tagstunden mit sichtbarer Sonne · durchgezogen = München, gestrichelt = Lam/Zwiesel</text>`;
+  s += '</svg>';
+  document.getElementById('calChart').innerHTML = s;
+}
+
+render(); drawHorizon(); calc(); drawCal();
+</script>
+</body>
+</html>
