@@ -261,9 +261,12 @@ footer p + p{margin-top:8px}
 
   <div class="radarwrap panel">
     <div class="mapbar">
-      <div class="seg" role="group" aria-label="Kartenansicht">
-        <button class="segbtn viewbtn active" data-view="radar">◎ Radar</button>
-        <button class="segbtn viewbtn" data-view="karte">🗺 Karte</button>
+      <div class="ansichtwahl">
+        <div class="seg" role="group" aria-label="Kartenansicht">
+          <button class="segbtn viewbtn active" data-view="radar">◎ Radar</button>
+          <button class="segbtn viewbtn" data-view="karte">🗺 Karte</button>
+        </div>
+        <button class="minibtn vollbildbtn" id="vollbild" title="Vollbild ein- und ausschalten">⛶ Vollbild</button>
       </div>
       <div class="zoomrow" id="zoomrow">
         <span class="mono">Zoomstufe</span>
@@ -271,11 +274,10 @@ footer p + p{margin-top:8px}
         <span class="mono"><output id="radarZoomOut">1,0</output>×</span>
         <button class="minibtn" id="radarReset" title="Ansicht zurücksetzen">⟲</button>
       </div>
-      <button class="minibtn vollbildbtn" id="vollbild" title="Vollbild ein- und ausschalten">⛶ Vollbild</button>
     </div>
     <svg id="radar" viewBox="0 0 640 480" role="img" aria-label="Entfernungs-Radar der gefilterten Einträge"></svg>
     <div id="karte" class="aus"></div>
-    <p class="radarnote mono" id="radarNote">Richtung = tatsächliche Himmelsrichtung ab gewähltem Start · Abstand = <span id="radarUnit">Anreiseminuten</span> · Hinter jedem Namen steht die Anreisezeit in Minuten · Alle Ringe bleiben erhalten, der Zoom vergrößert nur den Ausschnitt, damit dicht beieinanderliegende Ziele auseinanderrücken, und die Schrift wird dabei kleiner · Mausrad zoomt auf den Zeiger, zwei Finger zoomen, ein Finger verschiebt · Punkt antippen springt zur Karte.</p>
+    <p class="radarnote mono" id="radarNote">Richtung = tatsächliche Himmelsrichtung ab gewähltem Start · Abstand = <span id="radarUnit">Anreiseminuten</span> · Hinter jedem Namen steht die Anreisezeit in Minuten · Alle Ringe bleiben erhalten, der Zoom vergrößert nur den Ausschnitt, damit dicht beieinanderliegende Ziele auseinanderrücken · Mausrad zoomt auf den Zeiger, zwei Finger zoomen, ein Finger verschiebt · Punkt antippen springt zur Karte.</p>
   </div>
 
   <div class="filters panel">
@@ -397,8 +399,10 @@ footer p + p{margin-top:8px}
 .radarwrap:fullscreen #karte, .radarwrap:-webkit-full-screen #karte, .radarwrap.pseudovoll #karte{
   flex:1 1 auto; min-height:0; height:auto}
 .radarwrap:fullscreen .radarnote, .radarwrap.pseudovoll .radarnote{flex:0 0 auto}
-.vollbildbtn{margin-left:auto}
-@media(max-width:560px){ .vollbildbtn{margin-left:0} }
+/* Der Vollbild-Knopf steht direkt neben dem Umschalter Radar/Karte, gehört
+   aber weiterhin NICHT in die Zoomzeile: die wird in der Kartenansicht
+   ausgeblendet, und der Knopf verschwände mit ihr. */
+.ansichtwahl{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
 #radar.greift{cursor:grabbing}
 #radar text{paint-order:stroke; stroke:var(--bg); stroke-width:2.6px; stroke-linejoin:round}
 #karte{height:420px; border-radius:14px; overflow:hidden; border:2px solid var(--line)}
@@ -1130,9 +1134,9 @@ TEIL 3: INTERAKTIVER GUIDE
   Namen darunter gestapelt, eine Zeile je Ziel. Ab fünf Zielen zählt die
   letzte Zeile den Rest. Ein Klick auf eine Namenszeile scrollt zur
   Karteikarte und hebt sie kurz hervor.
-  Vollbild-Schaltfläche für beide Ansichten. Sie gehört in die Kopfzeile des
-  Kartenbereichs, nicht in die Zoomzeile, sonst verschwindet sie beim
-  Umschalten auf die Karte mit. Zwei Wege vorsehen: die Fullscreen-API und,
+  Vollbild-Schaltfläche für beide Ansichten, direkt neben den Umschalter der
+  Ansichten. Sie gehört in die Kopfzeile des Kartenbereichs und nicht in die
+  Zoomzeile, sonst verschwindet sie beim Umschalten auf die Karte mit. Zwei Wege vorsehen: die Fullscreen-API und,
   wo sie für einzelne Elemente fehlt (iOS Safari), eine eigene
   Vollflächen-Darstellung per position:fixed samt Escape-Taste. Nach jedem
   Wechsel die Karte neu vermessen.
@@ -2043,15 +2047,14 @@ document.addEventListener("click",function(ev){
 function renderRadar(ids){
   const svg=document.getElementById("radar"),cx=320+panX,cy=240+panY,R=205;
   const px=function(v){ return R*v/SKALA*zoomF; };
-  /* Beim Hineinzoomen wird die Schrift KLEINER, nicht größer. Der Zoom dient
-     dazu, dicht beieinanderliegende Ziele auseinanderzuziehen. Dabei stehen
-     plötzlich viele Beschriftungen nebeneinander, und große Schrift verdeckt
-     genau das, was man sehen wollte. Untergrenze 0,62 mal bei Stufe 12. */
-  const fs=function(basis){ return (basis*(1-(Math.min(zoomF,12)-1)/11*0.38)).toFixed(1); };
+  /* Feste Schriftgröße für alles im Radar, unabhängig von der Zoomstufe.
+     Der Zoom ändert nur die Ringskala und den Ausschnitt, die Beschriftung
+     bleibt gleich groß und damit bei jeder Stufe gleich gut lesbar. */
+  const SCHRIFT=12;
   /* Der Namensplatz wird um die angehängte Zeit gekürzt: 18 Zeichen statt der
-     früheren 22, dazu rund sechs für „ · 39′“. Die Zeile bleibt damit etwa so
-     breit wie vor der Zeitangabe. Weil die Schrift beim Zoomen schrumpft, darf
-     der Name danach wachsen, bis 34 Zeichen bei voller Zoomstufe. */
+     früheren 22, dazu rund sechs für „ · 39′“. Bei hoher Zoomstufe stehen
+     weniger Ziele im Ausschnitt, deshalb ist dort Platz für längere Namen,
+     bis 34 Zeichen. */
   const namensLaenge=Math.round(18+(Math.min(zoomF,12)-1)/11*16);
   const RINGE=[5,10,15,20,30,45,60,90];
   const sichtbar=function(r){ return r>14 && r<1600; };
@@ -2061,14 +2064,14 @@ function renderRadar(ids){
     const aussen=Math.abs(m-SKALA)<0.01;
     out+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="var(--line)" stroke-width="'+(aussen?1.6:1)+'"'+(aussen?'':' stroke-dasharray="3 5"')+'/>';
     const ly=cy-r-6;
-    if(ly>16&&ly<474) out+='<text x="'+(cx+5)+'" y="'+ly+'" font-family="IBM Plex Mono" font-size="'+fs(10.5)+'" fill="var(--muted)">'+m+(unit==="min"?"′":" km")+'</text>';
+    if(ly>16&&ly<474) out+='<text x="'+(cx+5)+'" y="'+ly+'" font-family="IBM Plex Mono" font-size="'+SCHRIFT+'" fill="var(--muted)">'+m+(unit==="min"?"′":" km")+'</text>';
   });
   [["N",cx,cy-232],["O",cx+236,cy+4],["S",cx,cy+238],["W",cx-240,cy+4]].forEach(function(a){
     if(a[1]<8||a[1]>632||a[2]<14||a[2]>472)return;
-    out+='<text x="'+a[1]+'" y="'+a[2]+'" text-anchor="middle" font-family="IBM Plex Mono" font-size="'+fs(11.5)+'" fill="var(--muted)">'+a[0]+'</text>'; });
-  out+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(5.5*Math.min(1+(zoomF-1)/11*0.4,1.4)).toFixed(1)+'" fill="var(--amber)"/><text x="'+(cx+10)+'" y="'+(cy+4)+'" font-family="IBM Plex Mono" font-size="'+fs(11)+'" fill="var(--amber)">'+ORTNAME[origin].toUpperCase()+'</text>';
+    out+='<text x="'+a[1]+'" y="'+a[2]+'" text-anchor="middle" font-family="IBM Plex Mono" font-size="'+SCHRIFT+'" fill="var(--muted)">'+a[0]+'</text>'; });
+  out+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(5.5*Math.min(1+(zoomF-1)/11*0.4,1.4)).toFixed(1)+'" fill="var(--amber)"/><text x="'+(cx+10)+'" y="'+(cy+4)+'" font-family="IBM Plex Mono" font-size="'+SCHRIFT+'" fill="var(--amber)">'+ORTNAME[origin].toUpperCase()+'</text>';
   let versteckt=0; const belegt={}, beschriftet=[];
-  const gr=+fs(10.5), zh=gr*1.18, pg=Math.min(1+(zoomF-1)/11*0.35,1.35);
+  const gr=SCHRIFT, zh=gr*1.18, pg=Math.min(1+(zoomF-1)/11*0.35,1.35);
   buendeln(ALL).forEach(function(g){
     /* Alle Teile der Gruppe liegen auf derselben Koordinate, also genügt einer
        für Entfernung und Peilung. */
@@ -2102,7 +2105,7 @@ function renderRadar(ids){
         (z.zusatz?'<tspan font-weight="400" fill="var(--muted)"> · '+esc(z.zusatz)+'</tspan>':'')+'</text></a>';
     });
   });
-  if(versteckt>0) out+='<text x="632" y="470" text-anchor="end" font-family="IBM Plex Mono" font-size="'+fs(10.5)+'" fill="var(--muted)">'+versteckt+' Ziel'+(versteckt===1?"":"e")+' außerhalb des Ausschnitts, bitte verschieben</text>';
+  if(versteckt>0) out+='<text x="632" y="470" text-anchor="end" font-family="IBM Plex Mono" font-size="'+SCHRIFT+'" fill="var(--muted)">'+versteckt+' Ziel'+(versteckt===1?"":"e")+' außerhalb des Ausschnitts, bitte verschieben</text>';
   svg.innerHTML=out;
 }
 
@@ -2236,7 +2239,7 @@ group(".viewbtn",function(b){
   zr.style.display=ansicht==="radar"?"flex":"none";
   if(ansicht!=="radar"&&lmap)setTimeout(function(){ lmap.invalidateSize(); },80);
   document.getElementById("radarNote").innerHTML= ansicht==="radar"
-    ? 'Richtung = tatsächliche Himmelsrichtung ab gewähltem Start · Abstand = <span id="radarUnit">'+(unit==="min"?"Anreiseminuten":"Kilometer")+'</span> · Hinter jedem Namen steht die Anreisezeit in Minuten · Zoom ändert nur den Maßstab, nicht die Auswahl, und die Schrift wird beim Hineinzoomen kleiner · Mausrad zoomt auf den Zeiger, zwei Finger zoomen, ein Finger verschiebt · Punkt antippen springt zur Karte.'
+    ? 'Richtung = tatsächliche Himmelsrichtung ab gewähltem Start · Abstand = <span id="radarUnit">'+(unit==="min"?"Anreiseminuten":"Kilometer")+'</span> · Hinter jedem Namen steht die Anreisezeit in Minuten · Zoom ändert nur den Maßstab, nicht die Auswahl · Mausrad zoomt auf den Zeiger, zwei Finger zoomen, ein Finger verschiebt · Punkt antippen springt zur Karte.'
     : 'Echte Karte mit Straßen und Ortschaften · Kartenebene oben rechts umschaltbar: Straßen &amp; Orte, kontrastreich oder Topografie, auf schmalen Displays hinter dem Ebenen-Symbol · jeder Marker ist beschriftet, im Popup öffnet sich das Ziel direkt in Google Maps oder OpenStreetMap.';
 });
 const rz=document.getElementById("radarZoom");
