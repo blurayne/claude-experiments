@@ -130,6 +130,15 @@ ZIELE = {
     "weinschiff":       (49.85560, 6.88940),
     "wasserleitung":    (49.73610, 6.75000),
     "qanat-poelich":    (49.81060, 6.80470),
+    # --- römisches Umland, weiter gefasst (2026 ergänzt) ---
+    "belginum":         (49.85541, 7.16458),
+    "dalheim":          (49.53940, 6.25650),
+    "bitburg-beda":     (49.97495, 6.52388),
+    "titelberg":        (49.53750, 5.86250),
+    "otzenhausen":      (49.62306, 7.00222),
+    "bliesbruck":       (49.13530, 7.18310),
+    "schwarzenacker":   (49.28260, 7.31600),
+    "ausonius":         (49.92509, 7.35227),
     # --- makaber, bizarr, unterirdisch ---
     "matthias":         (49.74050, 6.63550),
     "paulin":           (49.76600, 6.64800),

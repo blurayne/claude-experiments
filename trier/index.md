@@ -5,8 +5,9 @@ Interaktiver deutscher **Reise-Guide für Trier**, gebaut nach der Vorlage des
 Interesse zugespitzt: **Was muss man als Rom-Fan gesehen haben, und wo sollte
 man gegessen haben?** Dazu ein zweites, gleichwertig recherchiertes Programm für
 alle Mitreisenden, die nicht wegen der Römer da sind, dazu ein Kapitel für das
-Abseitige. 88 Einträge (72 Ziele + 16 Termine) aus Deutschland und Luxemburg,
-158 Belege, Recherche-Stand 09.08.2026, Reisewoche 17.–23.08.2026.
+Abseitige. 96 Einträge (80 Ziele + 16 Termine) aus Deutschland und Luxemburg,
+174 Belege, Recherche-Stand 09.08.2026, Link-, Adress- und Telefon-Nachprüfung
+11.08.2026, Reisewoche 17.–23.08.2026.
 
 Die Seite ist eine einzelne, in sich geschlossene Datei:
 [`index.html`](index.html). Daneben liegt das Rechenskript
@@ -31,7 +32,12 @@ Inhaltlich abgedeckt:
 - **Römisches Umland**: Gladiatorenmosaik Nennig, Villa Otrang, Villa Borg,
   Villa Echternach (LU), Villa Rustica Wittlich, Tempelbezirk Tawern,
   Kelteranlagen Piesport und Brauneberg, Ruwerwasserleitung, Qanat Pölich,
-  Römerweinschiff Stella Noviomagi.
+  Römerweinschiff Stella Noviomagi. In der Nachrecherche vom 11.08.2026 über
+  Reise- und Reenactment-Blogs ergänzt: Archäologiepark Belginum, gallo-römisches
+  Theater Ricciacum in Dalheim (LU), römisches Beda in Bitburg mit der Gruppe
+  Milites Bedenses, Treverer-Oppidum Titelberg (LU), keltischer Ringwall
+  Otzenhausen, Ausoniusstraße mit dem Römerturm bei Dill und die Saarland-Museen
+  Schwarzenacker und Bliesbruck-Reinheim.
 - **Wo man als Rom-Fan gegessen haben sollte**: „Zum Domstein" am Hauptmarkt
   (Küche nach Apicius, Römerkeller mit Pfeiler der konstantinischen
   Doppelkirche), die Taverne der Villa Borg (ebenfalls Apicius-Rezepte) und der
@@ -112,8 +118,8 @@ markiert, weil Landesmuseum, Simeonstift und Villa Borg dann geschlossen sind.
   einzeilig und lässt sich seitlich schieben.
 - **🖨 Auswahl drucken** über der Liste: druckt genau die gerade gefilterten
   Karten, zweispaltig auf A4, mit **Adresse und Telefonnummer** statt der
-  Belegverweise, die auf Papier nur Platz kosten. Belegt sind 32 Adressen und
-  18 Telefonnummern. Wo nichts zu finden war, steht „nicht belegt“ statt einer
+  Belegverweise, die auf Papier nur Platz kosten. Belegt sind 40 Adressen und
+  21 Telefonnummern. Wo nichts zu finden war, steht „nicht belegt“ statt einer
   erfundenen Angabe.
 
 ## Zwei Ansichten: Radar und Karte
@@ -136,13 +142,15 @@ Karteikarte.
 
 ## Belegverweise
 
-158 Verweise auf 74 Domains. Sie sind formal geprüft, nicht abgerufen: Schema,
-Host, Zeichensatz, doppelte Pfadtrenner, Dubletten und die Zuordnung zum
-Quellenverzeichnis. Das Skript dazu liegt bei: [`pruef_links.py`](pruef_links.py).
-Dabei gefunden und behoben wurden zwei unverschlüsselte Verweise und sieben
-Fälle, in denen dieselbe Adresse unter zwei Beschriftungen stand. Ob eine
-Adresse antwortet, war nicht zu prüfen, weil der Egress-Proxy dieser Umgebung
-jedes CONNECT mit 403 beantwortet.
+174 Verweise auf 86 Domains. Sie sind formal geprüft: Schema, Host, Zeichensatz,
+doppelte Pfadtrenner, Dubletten und die Zuordnung zum Quellenverzeichnis. Das
+Skript dazu liegt bei: [`pruef_links.py`](pruef_links.py). In der Überarbeitung
+vom 11.08.2026 wurden die Verweise zusätzlich einzeln live abgerufen. Dabei
+ersetzt oder korrigiert wurden unter anderem ein toter Domstein-Pfad, ein ins
+Leere laufender Mosel-Deeplink, die Michelin- und die Anatevka-Seite, ein 500er
+der Teufelsschlucht-Seite und der auf die Museumsliste umgeleitete
+Spielzeugmuseum-Link. Ältere Fassungen konnten nur formal prüfen, weil der
+Egress-Proxy dieser Umgebung jedes CONNECT mit 403 beantwortete.
 
 ## Entfernungen: gerechnet, nicht geroutet
 
