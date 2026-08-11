@@ -2051,11 +2051,11 @@ function renderRadar(ids){
      Der Zoom ändert nur die Ringskala und den Ausschnitt, die Beschriftung
      bleibt gleich groß und damit bei jeder Stufe gleich gut lesbar. */
   const SCHRIFT=12;
-  /* Der Namensplatz wird um die angehängte Zeit gekürzt: 18 Zeichen statt der
-     früheren 22, dazu rund sechs für „ · 39′“. Bei hoher Zoomstufe stehen
-     weniger Ziele im Ausschnitt, deshalb ist dort Platz für längere Namen,
-     bis 34 Zeichen. */
-  const namensLaenge=Math.round(18+(Math.min(zoomF,12)-1)/11*16);
+  /* Auch die Namenslänge ist fest, nicht zoomabhängig: 18 Zeichen, dazu rund
+     sechs für „ · 39′“. Damit bleibt die Zeile bei jeder Zoomstufe gleich breit
+     und etwa so breit wie vor der Zeitangabe, als 22 Zeichen ohne Zusatz
+     standen. Der vollständige Name steht im Tooltip des Punktes. */
+  const namensLaenge=18;
   const RINGE=[5,10,15,20,30,45,60,90];
   const sichtbar=function(r){ return r>14 && r<1600; };
   let out="";
@@ -2141,7 +2141,10 @@ function renderKarte(vis){
     /* Ein früherer Ladefehler hat womöglich den Hinweistext hinterlassen —
        der säße sonst unter der fertigen Karte weiter im Container. */
     document.getElementById("karte").innerHTML="";
-    lmap=L.map("karte",{scrollWheelZoom:false, maxZoom:19}).setView(start,12);
+    /* Mausrad zoomt wie im Radar. Leaflet hat das ab Werk aus, weil es das
+       Scrollen der Seite abfängt; hier ist genau das gewollt, damit sich beide
+       Ansichten gleich anfühlen. */
+    lmap=L.map("karte",{scrollWheelZoom:true, wheelPxPerZoomLevel:120, maxZoom:19}).setView(start,12);
     /* Drei OpenStreetMap-Ebenen, alle ohne Schlüssel oder Anmeldung.
        maxNativeZoom statt eines kleinen maxZoom: OpenTopoMap liefert nur bis
        Stufe 17 eigene Kacheln — darüber werden sie hochskaliert, statt dass
@@ -2240,7 +2243,7 @@ group(".viewbtn",function(b){
   if(ansicht!=="radar"&&lmap)setTimeout(function(){ lmap.invalidateSize(); },80);
   document.getElementById("radarNote").innerHTML= ansicht==="radar"
     ? 'Richtung = tatsächliche Himmelsrichtung ab gewähltem Start · Abstand = <span id="radarUnit">'+(unit==="min"?"Anreiseminuten":"Kilometer")+'</span> · Hinter jedem Namen steht die Anreisezeit in Minuten · Zoom ändert nur den Maßstab, nicht die Auswahl · Mausrad zoomt auf den Zeiger, zwei Finger zoomen, ein Finger verschiebt · Punkt antippen springt zur Karte.'
-    : 'Echte Karte mit Straßen und Ortschaften · Kartenebene oben rechts umschaltbar: Straßen &amp; Orte, kontrastreich oder Topografie, auf schmalen Displays hinter dem Ebenen-Symbol · jeder Marker ist beschriftet, im Popup öffnet sich das Ziel direkt in Google Maps oder OpenStreetMap.';
+    : 'Echte Karte mit Straßen und Ortschaften · Kartenebene oben rechts umschaltbar: Straßen &amp; Orte, kontrastreich oder Topografie, auf schmalen Displays hinter dem Ebenen-Symbol · Mausrad zoomt wie im Radar · jeder Marker ist beschriftet, im Popup öffnet sich das Ziel direkt in Google Maps oder OpenStreetMap.';
 });
 const rz=document.getElementById("radarZoom");
 function zoomAnzeigen(){ document.getElementById("radarZoomOut").textContent=zoomF.toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1}); }

@@ -113,11 +113,12 @@ markiert, weil Landesmuseum, Simeonstift und Villa Borg dann geschlossen sind.
   ab dem gewählten Startort, Abstand = Anreiseminuten oder Kilometer, und hinter
   jedem Namen steht die Anreisezeit in Minuten. Zoombar per **Mausrad** (zoomt
   auf den Zeiger, wie man es von Karten kennt), per Regler und mit zwei Fingern,
-  verschiebbar mit einem Finger. Die Beschriftung bleibt dabei immer gleich
-  groß: Der Zoom ändert nur Ringskala und Ausschnitt. Funktioniert ohne Netz.
+  verschiebbar mit einem Finger. Beschriftung und Namenslänge bleiben dabei
+  immer gleich: Der Zoom ändert nur Ringskala und Ausschnitt. Den vollständigen
+  Namen zeigt der Tooltip des Punktes. Funktioniert ohne Netz.
 - **🗺 Karte:** [Leaflet](https://leafletjs.com/) mit drei umschaltbaren
   OpenStreetMap-Ebenen (Standard, Humanitarian/HOT, OpenTopoMap), beschrifteten
-  Markern und Popups.
+  Markern und Popups. Das Mausrad zoomt hier genauso wie im Radar.
 
 Beide Ansichten lassen sich per **⛶ Vollbild** groß schalten (mit
 Rückfall-Darstellung für iOS-Safari). Ziele auf identischer Koordinate werden
