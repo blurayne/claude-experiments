@@ -275,7 +275,7 @@ footer p + p{margin-top:8px}
     </div>
     <svg id="radar" viewBox="0 0 640 480" role="img" aria-label="Entfernungs-Radar der gefilterten Einträge"></svg>
     <div id="karte" class="aus"></div>
-    <p class="radarnote mono" id="radarNote">Richtung = tatsächliche Himmelsrichtung ab gewähltem Start · Abstand = <span id="radarUnit">Anreiseminuten</span> · Alle Ringe bleiben erhalten, der Zoom vergrößert nur den Ausschnitt, damit dicht beieinanderliegende Ziele auseinanderrücken · zwei Finger zoomen, ein Finger verschiebt · Punkt antippen springt zur Karte.</p>
+    <p class="radarnote mono" id="radarNote">Richtung = tatsächliche Himmelsrichtung ab gewähltem Start · Abstand = <span id="radarUnit">Anreiseminuten</span> · Hinter jedem Namen steht die Anreisezeit in Minuten · Alle Ringe bleiben erhalten, der Zoom vergrößert nur den Ausschnitt, damit dicht beieinanderliegende Ziele auseinanderrücken, und die Schrift wird dabei kleiner · Mausrad zoomt auf den Zeiger, zwei Finger zoomen, ein Finger verschiebt · Punkt antippen springt zur Karte.</p>
   </div>
 
   <div class="filters panel">
@@ -2005,13 +2005,16 @@ function buendeln(liste){
 function gruppenAnker(teile){
   return teile.filter(function(e){ return e.typ!=="event" })[0]||teile[0];
 }
-/* Namen einer Gruppe, auf MAXZEILEN gekürzt: die letzte Zeile zählt den Rest. */
-function gruppenZeilen(teile,maxLen){
+/* Namen einer Gruppe, auf MAXZEILEN gekürzt: die letzte Zeile zählt den Rest.
+   zusatz ist optional und liefert je Eintrag einen Nachsatz, im Radar die
+   Anreisezeit. Die Sammelzeile am Ende bekommt keinen, sie steht für mehrere
+   Ziele mit verschiedenen Zeiten. */
+function gruppenZeilen(teile,maxLen,zusatz){
   const kurz=function(s){ return s.length>maxLen?s.slice(0,maxLen-1)+"…":s; };
-  if(teile.length<=MAXZEILEN)
-    return teile.map(function(e){ return {id:e.id, text:kurz(e.n)}; });
-  const z=teile.slice(0,MAXZEILEN-1).map(function(e){ return {id:e.id, text:kurz(e.n)}; });
-  z.push({id:teile[MAXZEILEN-1].id, text:"+"+(teile.length-(MAXZEILEN-1))+" weitere hier"});
+  const eine=function(e){ return {id:e.id, text:kurz(e.n), zusatz:zusatz?zusatz(e):null}; };
+  if(teile.length<=MAXZEILEN) return teile.map(eine);
+  const z=teile.slice(0,MAXZEILEN-1).map(eine);
+  z.push({id:teile[MAXZEILEN-1].id, text:"+"+(teile.length-(MAXZEILEN-1))+" weitere hier", zusatz:null});
   return z;
 }
 
@@ -2040,8 +2043,16 @@ document.addEventListener("click",function(ev){
 function renderRadar(ids){
   const svg=document.getElementById("radar"),cx=320+panX,cy=240+panY,R=205;
   const px=function(v){ return R*v/SKALA*zoomF; };
-  /* Schrift wächst mit dem Zoom bis auf das Dreifache bei Stufe 12 */
-  const fs=function(basis){ return (basis*(1+(Math.min(zoomF,12)-1)/11*2)).toFixed(1); };
+  /* Beim Hineinzoomen wird die Schrift KLEINER, nicht größer. Der Zoom dient
+     dazu, dicht beieinanderliegende Ziele auseinanderzuziehen. Dabei stehen
+     plötzlich viele Beschriftungen nebeneinander, und große Schrift verdeckt
+     genau das, was man sehen wollte. Untergrenze 0,62 mal bei Stufe 12. */
+  const fs=function(basis){ return (basis*(1-(Math.min(zoomF,12)-1)/11*0.38)).toFixed(1); };
+  /* Der Namensplatz wird um die angehängte Zeit gekürzt: 18 Zeichen statt der
+     früheren 22, dazu rund sechs für „ · 39′“. Die Zeile bleibt damit etwa so
+     breit wie vor der Zeitangabe. Weil die Schrift beim Zoomen schrumpft, darf
+     der Name danach wachsen, bis 34 Zeichen bei voller Zoomstufe. */
+  const namensLaenge=Math.round(18+(Math.min(zoomF,12)-1)/11*16);
   const RINGE=[5,10,15,20,30,45,60,90];
   const sichtbar=function(r){ return r>14 && r<1600; };
   let out="";
@@ -2055,9 +2066,9 @@ function renderRadar(ids){
   [["N",cx,cy-232],["O",cx+236,cy+4],["S",cx,cy+238],["W",cx-240,cy+4]].forEach(function(a){
     if(a[1]<8||a[1]>632||a[2]<14||a[2]>472)return;
     out+='<text x="'+a[1]+'" y="'+a[2]+'" text-anchor="middle" font-family="IBM Plex Mono" font-size="'+fs(11.5)+'" fill="var(--muted)">'+a[0]+'</text>'; });
-  out+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(5.5*Math.min(1+(zoomF-1)/11,2)).toFixed(1)+'" fill="var(--amber)"/><text x="'+(cx+10)+'" y="'+(cy+4)+'" font-family="IBM Plex Mono" font-size="'+fs(11)+'" fill="var(--amber)">'+ORTNAME[origin].toUpperCase()+'</text>';
+  out+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(5.5*Math.min(1+(zoomF-1)/11*0.4,1.4)).toFixed(1)+'" fill="var(--amber)"/><text x="'+(cx+10)+'" y="'+(cy+4)+'" font-family="IBM Plex Mono" font-size="'+fs(11)+'" fill="var(--amber)">'+ORTNAME[origin].toUpperCase()+'</text>';
   let versteckt=0; const belegt={}, beschriftet=[];
-  const gr=+fs(10.5), zh=gr*1.18, pg=Math.min(1+(zoomF-1)/11*1.2,2.2);
+  const gr=+fs(10.5), zh=gr*1.18, pg=Math.min(1+(zoomF-1)/11*0.35,1.35);
   buendeln(ALL).forEach(function(g){
     /* Alle Teile der Gruppe liegen auf derselben Koordinate, also genügt einer
        für Entfernung und Peilung. */
@@ -2078,13 +2089,17 @@ function renderRadar(ids){
     const rad=((on?6.5+Math.min(dabei.length-1,4)*0.9:3.5)*pg).toFixed(1);
     const titel=(on?dabei:g.teile).map(function(e){ return esc(e.n)+" · "+km(e)+" km / "+mn(e)+" min" }).join("\n");
     out+='<a href="#c-'+anker.id+'"><circle cx="'+x+'" cy="'+y+'" r="'+rad+'" fill="'+c+'" opacity="'+(on?0.95:0.16)+'"><title>'+titel+'</title></circle></a>';
-    if(on) beschriftet.push({x:x, y:y, rad:+rad, zeilen:gruppenZeilen(dabei,22)});
+    if(on) beschriftet.push({x:x, y:y, rad:+rad,
+      zeilen:gruppenZeilen(dabei,namensLaenge,function(e){ return mn(e)+"′"; })});
   });
   /* Beschriftungen liegen über allen Punkten, damit kein Punkt sie zerschneidet. */
   beschriftet.forEach(function(b){
     const x1=(b.x+4+b.rad).toFixed(1), oben=b.y+3.5-(b.zeilen.length-1)*zh/2;
     b.zeilen.forEach(function(z,i){
-      out+='<a href="#c-'+z.id+'"><text x="'+x1+'" y="'+(oben+i*zh).toFixed(1)+'" font-family="Nunito" font-size="'+gr+'" font-weight="700" fill="var(--ink)">'+esc(z.text)+'</text></a>';
+      /* Die Zeit steht als tspan im selben text-Element, damit sie die Kontur
+         aus paint-order mitbekommt und der Klick zur selben Karte führt. */
+      out+='<a href="#c-'+z.id+'"><text x="'+x1+'" y="'+(oben+i*zh).toFixed(1)+'" font-family="Nunito" font-size="'+gr+'" font-weight="700" fill="var(--ink)">'+esc(z.text)+
+        (z.zusatz?'<tspan font-weight="400" fill="var(--muted)"> · '+esc(z.zusatz)+'</tspan>':'')+'</text></a>';
     });
   });
   if(versteckt>0) out+='<text x="632" y="470" text-anchor="end" font-family="IBM Plex Mono" font-size="'+fs(10.5)+'" fill="var(--muted)">'+versteckt+' Ziel'+(versteckt===1?"":"e")+' außerhalb des Ausschnitts, bitte verschieben</text>';
@@ -2221,7 +2236,7 @@ group(".viewbtn",function(b){
   zr.style.display=ansicht==="radar"?"flex":"none";
   if(ansicht!=="radar"&&lmap)setTimeout(function(){ lmap.invalidateSize(); },80);
   document.getElementById("radarNote").innerHTML= ansicht==="radar"
-    ? 'Richtung = tatsächliche Himmelsrichtung ab gewähltem Start · Abstand = <span id="radarUnit">'+(unit==="min"?"Anreiseminuten":"Kilometer")+'</span> · Zoom ändert nur den Maßstab, nicht die Auswahl · zwei Finger zoomen, ein Finger verschiebt · Punkt antippen springt zur Karte.'
+    ? 'Richtung = tatsächliche Himmelsrichtung ab gewähltem Start · Abstand = <span id="radarUnit">'+(unit==="min"?"Anreiseminuten":"Kilometer")+'</span> · Hinter jedem Namen steht die Anreisezeit in Minuten · Zoom ändert nur den Maßstab, nicht die Auswahl, und die Schrift wird beim Hineinzoomen kleiner · Mausrad zoomt auf den Zeiger, zwei Finger zoomen, ein Finger verschiebt · Punkt antippen springt zur Karte.'
     : 'Echte Karte mit Straßen und Ortschaften · Kartenebene oben rechts umschaltbar: Straßen &amp; Orte, kontrastreich oder Topografie, auf schmalen Displays hinter dem Ebenen-Symbol · jeder Marker ist beschriftet, im Popup öffnet sich das Ziel direkt in Google Maps oder OpenStreetMap.';
 });
 const rz=document.getElementById("radarZoom");
@@ -2252,12 +2267,45 @@ document.addEventListener("webkitfullscreenchange",nachVollbild);
 document.addEventListener("keydown",function(ev){
   if(ev.key==="Escape"&&document.querySelector(".radarwrap").classList.contains("pseudovoll")) vollbildBeenden();
 });
-/* Gesten: ein Finger verschiebt, zwei Finger zoomen */
+/* Gesten: ein Finger verschiebt, zwei Finger zoomen, Mausrad zoomt */
 (function(){
   const svg=document.getElementById("radar");
   let zeiger=new Map(), startAbstand=0, startMax=1, letzte=null;
   const abstand=function(){ const p=Array.from(zeiger.values());
     return Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y); };
+
+  /* Zeigerposition in Koordinaten des viewBox, nicht in Bildschirmpixeln. */
+  function imBild(ev){
+    const box=svg.getBoundingClientRect();
+    return {x:(ev.clientX-box.left)*(640/box.width),
+            y:(ev.clientY-box.top)*(480/box.height)};
+  }
+  function panBegrenzen(){
+    const spanne=260*Math.max(1,zoomF);
+    panX=Math.max(-spanne,Math.min(spanne,panX));
+    panY=Math.max(-spanne*0.78,Math.min(spanne*0.78,panY));
+  }
+  /* Zoomt so, dass der Punkt unter dem Zeiger stehen bleibt, wie man es von
+     Karten kennt. Das Radar zeichnet um den Mittelpunkt (320+panX, 240+panY)
+     und skaliert alle Abstände mit zoomF; die Verschiebung muss also um
+     denselben Faktor mitgeführt werden. */
+  function zoomAufPunkt(neu, punkt){
+    neu=Math.min(12,Math.max(1,Math.round(neu*10)/10));
+    if(neu===zoomF)return false;
+    const k=neu/zoomF;
+    panX=(punkt.x-k*(punkt.x-(320+panX)))-320;
+    panY=(punkt.y-k*(punkt.y-(240+panY)))-240;
+    zoomF=neu; panBegrenzen();
+    rz.value=Math.round(zoomF*10); zoomAnzeigen();
+    return true;
+  }
+  /* passive:false, weil das Rad sonst die Seite scrollt statt zu zoomen. */
+  svg.addEventListener("wheel",function(ev){
+    if(ansicht!=="radar")return;
+    ev.preventDefault();
+    const schritt=ev.deltaY<0?1.18:1/1.18;
+    if(zoomAufPunkt(zoomF*schritt, imBild(ev))) renderRadar(sichtbareIds());
+  },{passive:false});
   svg.addEventListener("pointerdown",function(ev){
     svg.setPointerCapture(ev.pointerId); zeiger.set(ev.pointerId,{x:ev.clientX,y:ev.clientY});
     if(zeiger.size===1){ letzte={x:ev.clientX,y:ev.clientY}; svg.classList.add("greift"); }
@@ -2275,8 +2323,7 @@ document.addEventListener("keydown",function(ev){
     if(zeiger.size===1&&letzte){
       const box=svg.getBoundingClientRect(), skala=640/box.width;
       panX+=(ev.clientX-letzte.x)*skala; panY+=(ev.clientY-letzte.y)*skala;
-      const spanne=260*Math.max(1,zoomF);
-      panX=Math.max(-spanne,Math.min(spanne,panX)); panY=Math.max(-spanne*0.78,Math.min(spanne*0.78,panY));
+      panBegrenzen();
       letzte={x:ev.clientX,y:ev.clientY};
       renderRadar(sichtbareIds()); ev.preventDefault();
     }
