@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Schweißglas &amp; Augenschutz · SoFi 12.08.2026 · Dossier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080c11; --bg2:#0e141c; --panel:#111a24; --line:#1e2b39;
+  --tx:#dbe6f0; --tx2:#8ba0b5; --tx3:#5c7186;
+  --teal:#3fd0c9; --amber:#f5a623; --red:#e8604c; --violet:#9b8cf0; --green:#5fbf6e;
+  --shadow:0 1px 0 rgba(255,255,255,.03), 0 8px 30px rgba(0,0,0,.5);
+}
+html[data-theme="light"]{
+  --bg:#f6f4ef; --bg2:#fffdf8; --panel:#ffffff; --line:#ddd6c8;
+  --tx:#1a2028; --tx2:#5a6572; --tx3:#8a95a2;
+  --teal:#0a8f88; --amber:#b56b00; --red:#b8341f; --violet:#5a49c0; --green:#2e7d3a;
+  --shadow:0 1px 2px rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.06);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);
+  font-family:'Space Grotesk',system-ui,sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:0 18px 90px}
+code,.mono,td.num,th.num{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+header{padding:46px 0 24px;border-bottom:1px solid var(--line);position:relative}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--teal);padding-right:96px}
+h1{font-size:clamp(28px,5vw,46px);line-height:1.06;margin:12px 0 8px;font-weight:700;letter-spacing:-.02em}
+h1 em{font-style:normal;color:var(--tx3)}
+.sub{color:var(--tx2);max-width:70ch;font-size:15.5px}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.meta span{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--tx2);
+  border:1px solid var(--line);border-radius:2px;padding:4px 9px;background:var(--bg2)}
+#themeBtn{position:absolute;top:42px;right:0;z-index:5;background:var(--bg2);color:var(--tx2);
+  border:1px solid var(--line);border-radius:2px;padding:7px 12px;cursor:pointer;
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em}
+#themeBtn:hover{color:var(--teal);border-color:var(--teal)}
+section{padding-top:52px}
+h2{font-size:11px;font-family:'IBM Plex Mono',monospace;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--tx3);margin:0 0 6px;display:flex;align-items:center;gap:10px}
+h2::after{content:"";flex:1;height:1px;background:var(--line)}
+h3{font-size:21px;margin:6px 0 14px;font-weight:600;letter-spacing:-.01em}
+p{max-width:74ch;color:var(--tx2)}
+p strong,li strong{color:var(--tx);font-weight:600}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:18px 20px;box-shadow:var(--shadow)}
+.verdict{display:grid;gap:12px;margin-top:16px}
+.vbox{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--teal);border-radius:3px;padding:16px 18px}
+.vbox h4{margin:0 0 6px;font-size:15px;font-weight:600;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.vbox p{margin:0;font-size:14px}
+.vbox.b{border-left-color:var(--amber)} .vbox.r{border-left-color:var(--red)} .vbox.g{border-left-color:var(--green)}
+.conf{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);
+  border:1px solid var(--line);border-radius:2px;padding:2px 7px}
+.tscroll{overflow-x:auto;border:1px solid var(--line);border-radius:3px;background:var(--panel);box-shadow:var(--shadow)}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:640px}
+thead th{background:var(--bg2);color:var(--tx3);font-family:'IBM Plex Mono',monospace;font-size:10px;
+  letter-spacing:.11em;text-transform:uppercase;font-weight:500;text-align:left;padding:9px 10px;
+  border-bottom:1px solid var(--line);white-space:nowrap}
+tbody td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--tx2)}
+tbody tr:last-child td{border-bottom:none}
+td.num,th.num{text-align:right}
+td b{color:var(--tx);font-weight:600}
+.ok{color:var(--green)} .warn{color:var(--amber)} .bad{color:var(--red)}
+.grade{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;border-radius:2px;
+  padding:2px 6px;border:1px solid;letter-spacing:.06em;white-space:nowrap}
+.gA{color:var(--teal);border-color:var(--teal)} .gB{color:var(--amber);border-color:var(--amber)}
+.gC{color:var(--violet);border-color:var(--violet)} .gD{color:var(--red);border-color:var(--red)}
+.st{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.05em;white-space:nowrap}
+.sigwrap{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:18px 14px 8px;margin-top:16px;box-shadow:var(--shadow)}
+svg{display:block;width:100%;height:auto;overflow:visible}
+.legend{display:flex;flex-wrap:wrap;gap:16px;padding:10px 8px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--tx2)}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.calc{display:grid;grid-template-columns:1fr;gap:16px;margin-top:16px}
+@media(min-width:760px){.calc{grid-template-columns:280px 1fr}}
+.ctl{margin-bottom:16px}
+.ctl label{display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;
+  font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);margin-bottom:6px}
+.ctl label b{color:var(--teal);font-weight:600;letter-spacing:0;text-transform:none;font-size:13px}
+.ctl input[type=range]{width:100%;accent-color:var(--teal)}
+.res{font-family:'IBM Plex Mono',monospace;font-size:38px;font-weight:600;color:var(--amber);line-height:1}
+.note{font-size:12.5px;color:var(--tx3);font-family:'IBM Plex Mono',monospace;line-height:1.6}
+ul{color:var(--tx2);max-width:74ch;font-size:14.5px}
+li{margin-bottom:8px}
+a{color:var(--teal)}
+.q{border-left:2px solid var(--line);padding:2px 0 2px 14px;margin:10px 0;color:var(--tx2);font-size:14px;max-width:70ch}
+.q .src{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--tx3);letter-spacing:.06em;text-transform:uppercase;margin-top:4px}
+footer{margin-top:70px;padding-top:22px;border-top:1px solid var(--line);color:var(--tx3);font-size:12px;
+  font-family:'IBM Plex Mono',monospace;line-height:1.7}
+:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+@media(prefers-reduced-motion:no-preference){
+  .fade{animation:f .6s ease both}@keyframes f{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="fade">
+  <button id="themeBtn" aria-label="Hell/Dunkel umschalten">HELL</button>
+  <div class="eyebrow">Observatory · Verifikationsdossier</div>
+  <h1>Schweißglas gegen die Sonne<br><em>Was nach der Prüfung wirklich gilt</em></h1>
+  <p class="sub">Konsolidierter Stand zur Frage, ob und wie Schweißerschutzgläser — einzeln und gestapelt —
+  für die direkte Sonnenbeobachtung taugen. Formeln gegen Labormesswerte verifiziert, Grenzwerte aus den
+  Normtexten, Positionen der Fachgesellschaften vom Vortag der Finsternis, und eine Faktenprüfung
+  der Gegenbehauptungen. Anlass: partielle Sonnenfinsternis 12.08.2026, Maximum in Lam 20:14 MESZ, 87,4 %.</p>
+  <div class="meta">
+    <span>EN 169 · EN ISO 16321 (11/2025) · ISO 12312-2</span>
+    <span>Chou et al. 2021, AJ 162:103</span>
+    <span>DOG · BVA · BfS · AAS · NASA · ASRS</span>
+    <span>Stand 11.08.2026 abends</span>
+  </div>
+</header>
+
+<section id="verdikt">
+  <h2>Verdikt · dreistufig je Hypothese</h2>
+  <h3>Vier Behauptungen, vier Urteile</h3>
+  <div class="verdict">
+    <div class="vbox g">
+      <h4>H1 · „DIN 5 + DIN 11 gestapelt ist für den direkten Sonnenblick sicher."
+        <span class="conf">belegt · hohe Konfidenz, mit einer ehrlichen Grenze</span></h4>
+      <p>Der Stapel ergibt Schutzstufe 15, Transmission 1,0·10⁻⁶ — <strong>innerhalb</strong> des
+      ISO-12312-2-Fensters (2015 <em>und</em> Entwurf 2025), dunkler als die von DOG und AAS empfohlenen
+      Stufen 12–14, und exakt auf der BfS-Marke „höchstens 0,001 %". Die Grenze: Fachgesellschaften decken
+      <em>einzelne</em> Schweißgläser 12–14; die Stapel-Lösung ist eine rechnerisch saubere, aber nicht
+      zertifizierte Extrapolation. Bedingungen: Kennzeichnung lesbar, Scheiben unbeschädigt, Stapel lückenlos,
+      DIN 5 nie allein, nie mit Optik.</p>
+    </div>
+    <div class="vbox r">
+      <h4>H2 · „Beim Stapeln addieren sich die Schutzstufen nicht; schädliche Anteile lassen sich nicht nachträglich herausfiltern." <span class="conf">entkräftet · sehr hohe Konfidenz</span></h4>
+      <p>Physikalisch falsch. Transmissionen multiplizieren sich bei jeder Wellenlänge (Beer–Lambert),
+      daraus folgt N = N₁ + N₂ − 1. Dreifach unabhängig bestätigt: gegen Labormesswerte aus Chou et al.
+      (Stufe 9,4 → 0,025119 %, Stufe 14,4 → 0,000181 % — Übereinstimmung auf alle Stellen), gegen die
+      3M-Vorsatzscheibe „+2 DIN", gegen ANSI-Transmissionsbereiche aus einer US-Patentschrift.
+      Der wahre Kern der Behauptung: 5 + 9 ergibt nur 13, nicht 14 — aus arithmetischen Gründen.</p>
+    </div>
+    <div class="vbox r">
+      <h4>H3 · „60 Sekunden Test durch den Stapel waren eine Überdosis."
+        <span class="conf">entkräftet · sehr hohe Konfidenz</span></h4>
+      <p>60 s durch τ = 10⁻⁶ entsprechen <strong>60 Mikrosekunden</strong> ungefilterten Sonnenblicks
+      (Bunsen-Roscoe-Reziprozität). Die Retinopathie-Schwelle bei ungeschütztem Fixieren liegt bei
+      ~30 s — Sicherheitsabstand Faktor ~500 000. Um die Schwelle durch den Stapel zu erreichen, wären
+      ~347 Tage Dauerbeobachtung nötig. Netzhautbestrahlungsstärke dabei: ~8 µW/cm², Bildschirm-Größenordnung.</p>
+    </div>
+    <div class="vbox b">
+      <h4>H4 · „Infrarot ist die Schwachstelle des Stapels."
+        <span class="conf">teilentkräftet · für diesen Fall unkritisch</span></h4>
+      <p>ISO erlaubt 3 % solare IR-Transmission — bewusst tausendfach lockerer als im Sichtbaren, weil IR
+      ohne vergrößernde Optik keine thermische Netzhautgefahr darstellt. Selbst im absurden Worst Case
+      (DIN 5 lässt 50 % IR, DIN 11 lässt 5 %) bleibt der Stapel mit 2,5 % unter der Grenze; realistisch
+      liegt er zwei bis vier Größenordnungen darunter. Echter Kern: Beim Stapeln quadriert sich das
+      IR-zu-Sichtbar-Verhältnis — relevant erst, wenn die Grenze knapp wäre. Ist sie nicht.
+      Ungeprüft bleibt: die konkreten Scheiben wurden nicht spektral vermessen.</p>
+    </div>
+  </div>
+</section>
+
+<section id="leiter">
+  <h2>Signatur · Die Transmissionsleiter</h2>
+  <h3>Alles auf einer Skala</h3>
+  <p>Neun Größenordnungen von der nackten Sonne bis zum blinden Doppel-11-Stapel. Das grüne Band ist das
+  ISO-Fenster für Sonnenfilter (Fassung 2015; der Entwurf 2025 verengt es auf den schraffierten Kern).
+  Alles oberhalb ist zu hell für den direkten Blick, alles unterhalb normwidrig dunkel.</p>
+  <div class="sigwrap">
+    <div id="ladder"></div>
+    <div class="legend">
+      <span><i style="background:var(--green)"></i>ISO-Fenster 2015</span>
+      <span><i style="background:var(--teal)"></i>geprüfte Kombination</span>
+      <span><i style="background:var(--red)"></i>ungeeignet</span>
+      <span><i style="background:var(--tx3)"></i>Einzelstufen EN 169</span>
+    </div>
+  </div>
+</section>
+
+<section id="physik">
+  <h2>Physik · verifiziert</h2>
+  <h3>Formel, Messwerte, Stapelrechnung</h3>
+  <p>Schutzstufe nach EN 169: <span class="mono">N = 1 + (7/3)·log₁₀(1/τ)</span>. Da sich Transmissionen
+  beim Stapeln multiplizieren, addieren sich Stufen als <span class="mono">N = N₁ + N₂ − 1</span>.
+  Verifikation gegen laborgemessene Schweißfilter aus der begutachteten ISO-Evaluationsstudie:</p>
+  <div class="tscroll"><table>
+    <thead><tr><th>Stufe</th><th class="num">Formel</th><th class="num">Messung (Chou et al. 2021)</th><th class="num">Abweichung</th></tr></thead>
+    <tbody>
+      <tr><td>9,4</td><td class="num">0,025119 %</td><td class="num">0,025119 %</td><td class="num ok">0,00 %</td></tr>
+      <tr><td>14,4</td><td class="num">0,000181 %</td><td class="num">0,000181 %</td><td class="num ok">0,12 %</td></tr>
+    </tbody>
+  </table></div>
+  <p style="margin-top:18px">Damit die Gesamttabelle — jede Zeile gegen beide ISO-Fassungen geprüft
+  (2015: 0,000061–0,0032 % · Entwurf 2025: 0,00004–0,0012 %):</p>
+  <div class="tscroll"><table>
+    <thead><tr><th>Filter</th><th class="num">Stufe</th><th class="num">τ sichtbar</th><th class="num">in %</th><th>ISO 2015</th><th>Entwurf 2025</th></tr></thead>
+    <tbody>
+      <tr><td>DIN 5 allein</td><td class="num">5</td><td class="num">1,93·10⁻²</td><td class="num">1,93 %</td><td class="bad">603× zu hell</td><td class="bad">1609× zu hell</td></tr>
+      <tr><td>DIN 9 allein</td><td class="num">9</td><td class="num">3,73·10⁻⁴</td><td class="num">0,037 %</td><td class="bad">zu hell</td><td class="bad">zu hell</td></tr>
+      <tr><td>DIN 11 allein</td><td class="num">11</td><td class="num">5,18·10⁻⁵</td><td class="num">0,0052 %</td><td class="bad">zu hell</td><td class="bad">zu hell</td></tr>
+      <tr><td>DIN 12</td><td class="num">12</td><td class="num">1,93·10⁻⁵</td><td class="num">0,0019 %</td><td class="ok">ok</td><td class="bad">zu hell</td></tr>
+      <tr><td>DIN 13 · = 5+9</td><td class="num">13</td><td class="num">7,20·10⁻⁶</td><td class="num">0,00072 %</td><td class="ok">ok</td><td class="ok">ok</td></tr>
+      <tr><td>DIN 14</td><td class="num">14</td><td class="num">2,68·10⁻⁶</td><td class="num">0,00027 %</td><td class="ok">ok</td><td class="ok">ok</td></tr>
+      <tr><td><b>5 + 11 = 15</b></td><td class="num"><b>15</b></td><td class="num"><b>1,00·10⁻⁶</b></td><td class="num"><b>0,0001 %</b></td><td class="ok"><b>ok</b></td><td class="ok"><b>ok</b></td></tr>
+      <tr><td>5+5+11 = 19</td><td class="num">19</td><td class="num">1,93·10⁻⁸</td><td class="num">2·10⁻⁶ %</td><td class="warn">zu dunkel</td><td class="warn">zu dunkel</td></tr>
+      <tr><td>11+11 = 21</td><td class="num">21</td><td class="num">2,68·10⁻⁹</td><td class="num">3·10⁻⁷ %</td><td class="warn">zu dunkel</td><td class="warn">zu dunkel</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note" style="margin-top:10px">Die BfS-Formulierung „höchstens 0,001 Prozent des Sonnenlichts"
+  ist strenger als ISO 2015 (0,0032 %) und entspricht ziemlich genau dem Entwurf 2025 (0,0012 %) —
+  der Stapel 5+11 erfüllt auch diese schärfste öffentlich kommunizierte Marke.</p>
+
+  <h3 style="margin-top:34px">Stapelrechner</h3>
+  <div class="calc">
+    <div class="panel">
+      <div class="ctl"><label>Scheibe 1 <b id="l1">DIN 5</b></label>
+        <input type="range" id="s1" min="3" max="14" step="1" value="5"></div>
+      <div class="ctl"><label>Scheibe 2 <b id="l2">DIN 11</b></label>
+        <input type="range" id="s2" min="0" max="14" step="1" value="11"></div>
+      <div class="ctl" style="margin-bottom:6px"><label>Ergebnis</label></div>
+      <div class="res" id="rN">15</div>
+      <p class="note" id="rTau" style="margin-top:8px"></p>
+    </div>
+    <div class="panel"><div id="rOut"></div></div>
+  </div>
+</section>
+
+<section id="autoritaeten">
+  <h2>Positionslage · Fachgesellschaften und Behörden</h2>
+  <h3>Wer sagt was — Stand 11.08.2026</h3>
+  <div class="tscroll"><table>
+    <thead><tr><th>Instanz</th><th>Position zu Schweißglas</th><th>Kernaussage</th></tr></thead>
+    <tbody>
+      <tr><td><b>DOG</b><br><span class="note">Dt. Ophthalmologische Gesellschaft, PM 11.08.2026</span></td>
+        <td class="ok">ausdrücklich zugelassen</td>
+        <td>„Für die direkte Beobachtung kommen laut DOG außerdem <b>Schweißgläser der Schutzstufen 12 bis 14</b>
+        oder zertifizierte Solarfolien in Frage … Geeignete Schweißgläser sind in vielen Baumärkten oder im
+        Arbeitsschutzfachhandel erhältlich." Erste Wahl bleibt die ISO-Brille; Lochkamera als sichere Alternative.</td></tr>
+      <tr><td><b>BVA</b><br><span class="note">Berufsverband der Augenärzte, PM zur SoFi 2026</span></td>
+        <td class="warn">nicht erwähnt / restriktiver</td>
+        <td>Nur „geprüfte und unbeschädigte Schutzbrillen"; warnt vor „selbstgebauten Filtern". Schweißglas
+        kommt in der Mitteilung nicht vor — die BVA-Linie ist enger als die der DOG. Zusätzlich: Auch die
+        schmale Restsichel schädigt; Brille nie abnehmen; Kinder lückenlos beaufsichtigen.</td></tr>
+      <tr><td><b>BfS</b><br><span class="note">Bundesamt für Strahlenschutz, PM 2026</span></td>
+        <td class="warn">nicht erwähnt</td>
+        <td>SoFi-Brillen nach DIN EN ISO 12312-2 mit CE: „Es dürfen höchstens <b>0,001 Prozent</b> des
+        Sonnenlichts durchkommen." Keine Kratzer. Für Kinder ist die Lochkamera „die sicherste Methode".
+        Optik nur mit objektivseitigem Filter.</td></tr>
+      <tr><td><b>AAS</b><br><span class="note">American Astronomical Society, eclipse.aas.org</span></td>
+        <td class="ok">Stufe 12+ zugelassen</td>
+        <td>„The only ones that are safe for direct viewing … are those of <b>Shade 12, 13, or 14</b>."
+        ISO-Max entspricht Stufe 12, ISO-Min Stufe 15. Stufe 12 vielen zu hell, 13/14 der Komfortbereich.
+        <b>Verboten:</b> Automatik-Helme — falsche Einstellung, zu langsame Abdunklung.</td></tr>
+      <tr><td><b>NASA</b><br><span class="note">Sun-Earth Day, Beobachtungshinweise</span></td>
+        <td class="ok">Stufe 14 als Referenz</td>
+        <td>„Imperative that the welding hood houses a <b>#14 or darker</b> filter … A welding glass that
+        permits you to see the landscape is not safe." Unbekannte Stufe = tabu.</td></tr>
+      <tr><td><b>Chou · Dain · Fienberg</b><br><span class="note">Astronomical Journal 162:103, 2021, peer-reviewed</span></td>
+        <td class="ok">Messdaten</td>
+        <td>43 Sonnenfilter + 6 Schweißfilter spektral vermessen (280–2000 nm). Alle 43 erfüllten UV- und
+        IR-Anforderungen. Grüne Schweißfilter wurden bei gleicher Transmission <i>besser</i> bewertet,
+        weil sie Blau — den photochemisch wirksamen Anteil — stärker dämpfen.</td></tr>
+    </tbody>
+  </table></div>
+  <p style="margin-top:14px"><strong>Synthese:</strong> Einzelne Schweißgläser 12–14 sind von DOG, AAS und
+  NASA gedeckt — die pauschale Behauptung „Schweißglas ist ungeeignet" ist falsch. Uneinheitlich ist die
+  Kommunikationslinie (BVA und BfS nennen nur ISO-Brillen), nicht die Physik. <strong>Für den Stapel gilt:</strong>
+  rechnerisch dunkler und blauärmer als alles Empfohlene, aber von keiner Instanz explizit adressiert.
+  Wer die institutionelle Deckung will, kauft eine ISO-Brille oder ein einzelnes DIN-13/14-Glas.</p>
+</section>
+
+<section id="normen">
+  <h2>Normenlandschaft · Kennzeichnung lesen</h2>
+  <h3>EN 166 ist abgelöst — und die Vorzahl entscheidet alles</h3>
+  <p>Seit <strong>November 2025</strong> ersetzt die <strong>EN ISO 16321</strong> die alte
+  Augenschutz-Grundnorm EN 166; Schweißerschutzfilter sind jetzt in <strong>Teil 16321-2</strong> geregelt
+  (16321-1: allgemeine Anforderungen sowie UV-, Sonnenschutz- und IR-Filter; 16321-3: Gittervisiere).
+  Im Handel laufen beide Kennzeichnungssysteme nebeneinander — ältere EN-166/169-Ware bleibt persönliche
+  Schutzausrüstung nach Verordnung (EU) 2016/425. Für die Rechnungen dieses Dossiers ändert das nichts:
+  Die Schutzstufenskala der Schweißfilter und ihre Transmissionsbänder bleiben identisch.</p>
+  <p>Praktisch entscheidend ist etwas anderes: Auf Sichtscheiben existieren <strong>vier verschiedene
+  Stufenskalen</strong>, unterscheidbar allein an der Vorzahl vor dem Bindestrich. Nur eine davon ist die
+  Schweißskala, mit der hier gerechnet wurde:</p>
+  <div class="tscroll"><table>
+    <thead><tr><th>Randkennzeichnung</th><th>Norm</th><th>Filtertyp</th><th>Für die Stapelrechnung</th></tr></thead>
+    <tbody>
+      <tr><td class="mono"><b>reine Zahl</b> — z.&nbsp;B. „5", „11"</td><td>EN 169 / EN ISO 16321-2</td>
+        <td>Schweißerschutzfilter</td><td class="ok"><b>ja</b> — das ist die Schutzstufe N</td></tr>
+      <tr><td class="mono">2- oder 2C- — z.&nbsp;B. „2C-1,2"</td><td>EN 170</td>
+        <td>UV-Schutzfilter</td><td class="bad">nein</td></tr>
+      <tr><td class="mono">4- — z.&nbsp;B. „4-5"</td><td>EN 171</td>
+        <td>Infrarotschutzfilter (Schmieden, Glasblasen, Gießereien; Quellen 1&thinsp;090–1&thinsp;510&nbsp;°C)</td>
+        <td class="bad">nein — „4-5" ist <b>nicht</b> Schweißstufe 5</td></tr>
+      <tr><td class="mono">5- oder 6- — z.&nbsp;B. „5-3,1"</td><td>EN 172</td>
+        <td>Sonnenblendschutz für den <em>betrieblichen</em> Gebrauch</td>
+        <td class="bad">nein — „5-3,1" ist keine Stufe 5, sondern Sonnenbrillenniveau</td></tr>
+    </tbody>
+  </table></div>
+  <p style="margin-top:14px"><strong>Die realistische Verwechslung im konkreten Fall:</strong> Eine als
+  „DIN 5" verkaufte Brille kann statt eines Schweißfilters (Kennzeichnung reine „5", τ ≈ 1,9 %) ein
+  Sonnenblendfilter „5-3,1" nach EN 172 sein — der lässt grob das Zehn- bis Hundertfache durch, und die
+  ganze Stapelrechnung verschiebt sich. Auch die EN-172-Nomenklatur selbst führt in die Irre: Sie regelt
+  Blendschutz am Arbeitsplatz, ausdrücklich <em>nicht</em> den direkten Sonnenblick. Prüfregel vor dem
+  Einsatz morgen: <strong>Randkennzeichnung ohne Bindestrich-Vorzahl = Schweißfilter, alles andere fällt
+  aus der Rechnung.</strong> Ebenso gilt: Ein EN-171-IR-Filter ist für Ofenstrahlung spezifiziert und ersetzt
+  im Sichtbaren nichts.</p>
+</section>
+
+<section id="dosis">
+  <h2>Dosimetrie · der 60-Sekunden-Fall</h2>
+  <h3>Was eine Minute durch Stufe 15 bedeutet</h3>
+  <div class="tscroll"><table>
+    <thead><tr><th>Größe</th><th class="num">Wert</th><th>Einordnung</th></tr></thead>
+    <tbody>
+      <tr><td>Netzhautbestrahlungsstärke, ungefiltert</td><td class="num">~8 W/cm²</td><td>0,16-mm-Sonnenbildchen, verengte Pupille, Medientransmission 0,5</td></tr>
+      <tr><td>… durch τ = 10⁻⁶</td><td class="num"><b>~8 µW/cm²</b></td><td>Bildschirm-Größenordnung</td></tr>
+      <tr><td>Äquivalentdosis 60 s gefiltert</td><td class="num"><b>60 µs</b> ungefiltert</td><td>Bunsen-Roscoe-Reziprozität (photochemisch, gültig s–h)</td></tr>
+      <tr><td>Schwelle solare Retinopathie</td><td class="num">~30 s ungefiltert</td><td>Sicherheitsabstand <b>Faktor ~5·10⁵</b></td></tr>
+      <tr><td>ISO-Logik skaliert</td><td class="num">9,3 Tage</td><td>ISO-Max-Filter: &gt;25 000 s zulässig; 32× dunklerer Filter linear skaliert</td></tr>
+      <tr><td>Thermische Schädigung</td><td class="num">—</td><td>braucht hohe Momentanleistung; hier um ~10⁶ verfehlt, keine Reziprozität nötig</td></tr>
+    </tbody>
+  </table></div>
+  <p style="margin-top:16px"><strong>Der einzige Fall mit dünner Reserve:</strong> DIN 5 <em>allein</em>.
+  60 s ≡ 1,2 s ungefiltert — unter der Schwelle, aber ohne Puffer. Die reale Unsicherheit der ganzen
+  Episode liegt nicht in der Dosisrechnung, sondern in zwei Tatsachenfragen: Stimmt die aufgedruckte
+  Kennzeichnung, und saß der Stapel während des gesamten Tests lückenlos?</p>
+  <h3 style="margin-top:30px">Klinische Referenz: die Finsternis vom 11.08.1999</h3>
+  <p>Prospektive Kohorte der Leicester Royal Infirmary (Lancet 2001): 45 Vorstellungen nach der Finsternis,
+  20 mit Sehsymptomen, 5 mit sichtbaren Netzhautveränderungen, 4 nach 7 Monaten noch symptomatisch.
+  Langzeit-Follow-up: Nach 14 Monaten bemerkten drei Nachverfolgbare ein Zentralskotom nur noch bei
+  Dämmerlicht, <strong>nach 21 Monaten waren alle drei symptomfrei</strong> mit normalisiertem Sehen.
+  Die Übersichtsliteratur: Prognose der akuten Form günstig, die meisten Fälle erholen sich vollständig;
+  ein relevanter Anteil behält reduzierten Visus oder ein kleines para-/zentrales Skotom. Expositionsdauern
+  in den 1999er-Fallserien: <b>1 bis 30 Minuten ungeschützt</b> — vier bis sechs Größenordnungen über der
+  hier verhandelten Äquivalentdosis.</p>
+</section>
+
+<section id="faelle">
+  <h2>Fallrecherche · Schadensfälle in Literatur und Foren</h2>
+  <h3>Null Treffer für intakte Filter ab Stufe 12 — und was das wert ist</h3>
+  <p>Systematische Suche in klinischen Fallserien (1976, 1999, 2012, 2015, 2017, 2024), Übersichtsarbeiten,
+  Fachgesellschafts-Fallsammlungen sowie Laien- und Fachforen nach Retinopathie-Fällen, bei denen durch
+  einen Schweißfilter ≥ Stufe 12 oder eine Stapel-Kombination geschaut wurde.
+  <strong>Ergebnis: kein einziger publizierter Fall.</strong> Gegenprobe: Die US-Retina-Fachgesellschaft
+  ASRS führt die dokumentierten Schadensserien aller genannten Finsternisse und empfiehlt im selben
+  Dokument Stufe-14-Schweißglas als sicheren Filter — eine Empfehlung, die eine fallsammelnde
+  Fachgesellschaft bei Gegenbeispielen nicht halten würde.</p>
+  <div class="tscroll"><table>
+    <thead><tr><th>Dokumentierter Schadenstyp</th><th>Beispiel</th><th>Schutzstatus</th></tr></thead>
+    <tbody>
+      <tr><td><b>Ungeschützt, Schutz zu spät</b></td>
+        <td>JAMA Ophthalmology 2017 (Wu et al., erste Adaptive-Optics-Bilder): mehrmals ~6 s <em>ohne</em>
+        Brille auf den Sonnenrand, danach 15–20 s mit Brille unbekannten Herstellers; Zentralskotom links
+        persistierend. Schwerer 2024er-Fall (Visus 20/800 beidseits): ganz ohne Schutzbrille.</td>
+        <td class="bad">kein wirksamer Filter</td></tr>
+      <tr><td><b>Gefälschte / nicht rückverfolgbare Brillen</b></td>
+        <td>J. of Medical Optometry 2024: 18-Jährige mit Retinopathie nach partieller Finsternis, gefälschte
+        „Finsternisbrille"; ein Hersteller schätzte ≥ 100&thinsp;000 verkaufte Fälschungen seines Produkts
+        allein vor April 2024.</td>
+        <td class="bad">Filterwirkung unbekannt</td></tr>
+      <tr><td><b>Untaugliche Behelfsfilter</b></td>
+        <td>Fallserien 1999: Sonnenbrillen, belichteter Film, Röntgenfilm, berußtes Glas. RASC führt die
+        Transmissionskurve eines <em>Stufe-8</em>-Schweißfilters ausdrücklich unter „unsafe materials" —
+        zu hell im Sichtbaren, zu viel IR.</td>
+        <td class="bad">zu heller Filter</td></tr>
+      <tr><td><b>Schweißfilter ≥ 12, intakt</b></td>
+        <td>—</td>
+        <td class="ok">keine Fälle gefunden</td></tr>
+      <tr><td><b>Stapel-Kombinationen</b></td>
+        <td>Keine Schadensfälle — aber auch kaum Anwender. Einziger relevanter Forenfund (Traktorforum,
+        1999er-Ära): Warnung vor dem Stapeln mit <em>korrekten Zahlen</em> („Stufe 14 lässt ein Zehntel von
+        Stufe 12 durch"), aber falscher Schlussregel — der Schreiber verwechselt Nummern-Addieren mit
+        N₁+N₂−1 und rät deshalb ab. Lehrstück: Das reale Risiko der Methode sind Rechen- und
+        Kennzeichnungsfehler, nicht die Physik.</td>
+        <td class="warn">Evidenz aus Rechnung, nicht Erfahrung</td></tr>
+    </tbody>
+  </table></div>
+  <p style="margin-top:14px"><strong>Epistemische Einordnung — warum „null Fälle" kein Beweis ist:</strong>
+  Erstens ist die exponierte Population klein: Stufe-13/14-Gläser sind selten, Stapel-Anwender eine
+  Winzigkeit gegenüber Millionen Brillenträgern; seltene Ereignisse in kleinen Populationen hinterlassen
+  keine Literaturspur. Zweitens ist die Erfassung löchrig — selbst die große US-Notaufnahme-Auswertung
+  zur Finsternis 2024 (Epic Cosmos, &gt; 270 Mio. Patientenakten) räumt unvollständige Suchbegriffe ein,
+  und Deutschland erfasst solche Fälle laut DOG gar nicht systematisch. Drittens fehlt jeder Fallbericht
+  eine Expositions-Verifikation: Was Patienten über ihren Schutz berichten, ist Anamnese, keine Messung.
+  Die Fallrecherche <em>stützt</em> also das Dosimetrie-Verdikt, sie ersetzt es nicht: Für Stufe 12–14 ist
+  „keine Fälle + explizite Empfehlung durch ASRS, AAS, NASA, DOG" die bestmögliche Evidenzlage dieser Art;
+  für Stapel bleibt die Sicherheit eine Rechengröße.</p>
+</section>
+
+<section id="haendler">
+  <h2>Beschaffung · Verkäuferprüfung</h2>
+  <h3>Die Marke sagt nichts — der Verkäufer alles</h3>
+  <p>Auf Marktplätzen sind Listing-Marke und tatsächlicher Verkäufer zwei verschiedene Dinge. Die Fälschungs-
+  und Minderwarenfälle laufen fast nie über gefälschte Aufdrucke im engeren Sinn, sondern über
+  <strong>unterbrochene Lieferketten</strong>: Die AAS dokumentiert einen gelisteten Anbieter, der von der
+  geprüften Fabrik zu einer anderen wechselte, sowie Händler mit Ware, deren Herkunftsfabrik sich nicht
+  mehr identifizieren ließ. Aufdrucke wie „ISO 12312-2", „CE", „NASA approved" lassen sich mitdrucken —
+  <em>Rückverfolgbarkeit</em> nicht.</p>
+  <div class="tscroll"><table>
+    <thead><tr><th>Geprüfter Verkäufer</th><th>Befund</th><th>Urteil</th></tr></thead>
+    <tbody>
+      <tr><td><b>LUNT SOLAR SYSTEMS, LLC</b><br>
+        <span class="note">2520 N. Coyote Dr., Suite 111, Tucson AZ · a.lunt@luntsolarsystems.com · USt-ID DE421549951</span></td>
+        <td>Hersteller verkauft selbst. Etablierter Sonnenteleskop-Bauer (H-Alpha-Teleskope), Sonnenbeobachtung
+        ist Kerngeschäft, nicht Saisonartikel. Adresse = bekannter Firmensitz, E-Mail passt zum Gründernamen,
+        deutsche USt-ID plausibel für Amazon.de-Lagerverkauf. AAS-gelistet.
+        <b>Aber:</b> Lieferung laut Fachpresse erst Donnerstag, 13.08. — nach der Finsternis.</td>
+        <td class="ok"><b>vertrauenswürdig</b><br><span class="note">Lieferdatum ist das K.-o.-Kriterium, nicht die Seriosität</span></td></tr>
+      <tr><td><b>„Solar Optics Supply" / DALLA L.L.C-FZ</b><br>
+        <span class="note">Meydan Grandstand, 6. Stock, Dubai · USt-ID PL5263984166 · UK-Servicenummer · hussein@houseofdalla.com</span></td>
+        <td>Zwischenhändler ohne Bezug zum Produkt. Briefkasten-Konstrukt über drei Rechtsräume
+        (Dubai Freezone / Polen / UK). Storefront-Name ≠ Firmenname; E-Mail-Domain verweist auf Lifestyle-Handel.
+        Konto wenige Tage alt: 14 Bewertungen, Gros vom 09.08.2026. Eine davon meldet bereits
+        Teillieferung (6 bestellt, 2 erhalten).</td>
+        <td class="bad"><b>nicht empfohlen</b><br><span class="note">Lieferkette nicht nachvollziehbar</span></td></tr>
+    </tbody>
+  </table></div>
+  <p style="margin-top:14px"><strong>Der Unterschied ist strukturell:</strong> Bei Lunt ist Verkäufer =
+  Hersteller, die Kette hat kein unbekanntes Glied. Beim zweiten Fall ist selbst eine saubere Marke
+  (ORRO wirkt als Hersteller plausibel: eigene Website, Großhandel an Schulen und Hotels, korrekte
+  Normnennung — Selbstauskunft zur AAS-Listung allerdings nicht unabhängig geprüft) durch einen
+  intransparenten Zwischenhändler entwertet. FBA-Versand hilft nicht: Amazon prüft Logistik, nicht
+  Transmissionskurven; die A-bis-Z-Garantie ersetzt Geld, nicht Netzhaut.</p>
+  <h3 style="margin-top:28px">Prüfreihenfolge für jeden Brillenkauf</h3>
+  <ul>
+    <li><strong>Marke auf der AAS-Liste?</strong> eclipse.aas.org → „Suppliers of Safe Solar Viewers".
+    Behauptet ein Anbieter, gelistet zu sein, und steht nicht drauf: nicht kaufen.</li>
+    <li><strong>Wer ist der Verkäufer?</strong> Hersteller selbst oder Amazon direkt = gut. Marketplace-Dritter
+    in fremdem Listing = der klassische Weg, auf dem Minderware unter echtem Markennamen ausgeliefert wird.</li>
+    <li><strong>Kontoalter und Impressum.</strong> Frisch angelegtes Konto, Freezone-Adresse, Servicenummer
+    aus einem dritten Land, Storefront-Name ≠ Firmenname — jedes einzeln erklärbar, zusammen ein Muster.</li>
+    <li><strong>Lieferdatum verbindlich?</strong> „Versand in 2–4 Wochen" ist für einen Finsternistermin
+    wertlos und deutet auf Direktversand ohne EU-Konformitätsprüfung.</li>
+    <li><strong>Am Exemplar:</strong> Zimmerprobe (nichts sichtbar außer sehr hellen Glühwendeln),
+    Unversehrtheit (keine Kratzer, Löcher, Ablösung der Folie vom Karton).</li>
+  </ul>
+  <p class="note" style="margin-top:12px">Bemerkenswert im Vergleich: EN-169-Schweißgläser aus dem
+  Arbeitsschutzhandel sind in diesem Punkt <em>robuster</em> als Finsternisbrillen — geprägte statt
+  aufgedruckte Kennzeichnung, kein Panikmarkt für Stufe 11, keine bekannten Fälschungen.</p>
+</section>
+
+<section id="gemini">
+  <h2>Faktenprüfung · die Gegenbehauptungen im Detail</h2>
+  <h3>Claim für Claim</h3>
+  <div class="tscroll"><table>
+    <thead><tr><th>Behauptung (Gemini Flash)</th><th>Urteil</th><th>Befund</th></tr></thead>
+    <tbody>
+      <tr><td>„Keine mathematische Addition bei niedrigen Filterstufen"</td><td class="st bad">falsch</td>
+        <td>Addition gilt für alle Stufen: N = ΣN − (n−1). Formel dreifach unabhängig bestätigt (Labormessung, Hersteller, ANSI-Bereiche).</td></tr>
+      <tr><td>„Schädliche Anteile lassen sich durch Stapeln nicht nachträglich herausfiltern"</td><td class="st bad">falsch</td>
+        <td>Beer–Lambert: Scheibe 2 dämpft jede Wellenlänge weiter, die Scheibe 1 durchließ. „Ungefilterte Reststrahlung" existiert nicht.</td></tr>
+      <tr><td>„5 + 9 erreicht keine DIN-14-Wirkung"</td><td class="st ok">richtig — falsch begründet</td>
+        <td>5+9−1 = 13, eine Stufe unter 14. Arithmetik, keine Spektralphysik. (Nach ISO 2015 und AAS wäre 13 dennoch zulässig.)</td></tr>
+      <tr><td>„30 Sekunden sind für die Netzhaut eine extrem lange Zeit"</td><td class="st bad">Kontext&nbsp;fehlt</td>
+        <td>Gilt für den <i>ungefilterten</i> Blick. Durch Stufe 15 sind 60 s ≡ 60 µs — der Satz überträgt die Schwelle um sechs Größenordnungen falsch.</td></tr>
+      <tr><td>„Nahe an Schutzstufe 13 herangekommen"</td><td class="st bad">falsch</td>
+        <td>Die Kombination ist Stufe 15 — dunkler als 13, 14 und jede handelsübliche SoFi-Brille.</td></tr>
+      <tr><td>„Keine theoretische Entwarnung möglich"</td><td class="st warn">halbrichtig</td>
+        <td>Dosimetrie <i>ist</i> die Methode des Strahlenschutzes. Richtig ist nur: Sie setzt voraus, dass Kennzeichnung stimmt und der Aufbau lückenlos war — Tatsachen-, keine Rechenfragen.</td></tr>
+      <tr><td>„OCT gibt 100 % Sicherheit" / Verlauf Ödem vs. Zelltod</td><td class="st warn">im Kern brauchbar</td>
+        <td>OCT ist das richtige Verfahren; die saubere Zweiteilung ist klinisch aber ein Kontinuum, frühe Befunde prognostizieren unzuverlässig. Zeitrahmen 3–6 Monate stimmt.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="praxis">
+  <h2>Praxis · 12.08.2026, Lam</h2>
+  <h3>Regelwerk für morgen Abend</h3>
+  <ul>
+    <li><strong>19:21</strong> 1. Kontakt (Sonne 9,9°) · <strong>20:14</strong> Maximum 87,4 % (1,8°) ·
+    <strong>~20:16</strong> hinter dem Geländehorizont (1,5° bei Az 291°) · Sonnenuntergang ~20:27.
+    Wetterlage: alle vier Modelle 0 % Bewölkung.</li>
+    <li><strong>Reihenfolge ist alles:</strong> DIN-5-Brille aufsetzen, DIN-11-Glas mit beiden Händen fest
+    davor, <em>dann</em> den Kopf heben. Vor dem Absetzen wegschauen. Kein Zustand, in dem DIN 5 allein
+    Richtung Sonne zeigt — das ist der einzige realistische Unfall in diesem Aufbau.</li>
+    <li><strong>Zimmerprobe vorher:</strong> Durch den Stapel darf drinnen nichts erkennbar sein — keine
+    Möbelkontur, keine Deckenleuchte. Eine sehr helle Glühwendel darf schwach durchkommen (Millionen cd/m²).</li>
+    <li><strong>Kennzeichnungsprobe:</strong> Beide Scheiben müssen am Rand eine <em>reine Zahl ohne
+    Bindestrich-Vorzahl</em> tragen (EN-169-Schweißskala). Steht dort „4-…" (IR-Filter EN 171) oder
+    „5-…"/„6-…" (Sonnenblendschutz EN 172), gilt die Stapelrechnung nicht — nicht verwenden.</li>
+    <li><strong>Erwartung ans Bild:</strong> ~1 800 cd/m² zu Beginn (Handydisplay-Niveau), gegen 20:10
+    durch die Extinktion nur noch ~7 cd/m² — dunkel, aber sichtbar. Nicht nachdunkeln, nicht aufhellen.</li>
+    <li><strong>Nie mit Optik:</strong> Fernglas, Teleskop, Kamera bündeln das Licht und zerstören Filter
+    wie Netzhaut. Kamerafilter gehören vors Objektiv (DIN 11 allein reicht dort), nie ans Okular.</li>
+    <li><strong>Automatik-Schweißhelme sind tabu</strong> (AAS): falsche Einstellung möglich, Abdunklung zu langsam.</li>
+    <li><strong>Parallel die Projektion aufbauen:</strong> Alufolie mit 1-mm-Nadelloch über Kartonöffnung,
+    Bild auf weißes Blatt in 2–3 m — oder das Küchensieb: dutzende Sicheln auf dem Boden. BfS-Linie für
+    Kinder: Projektion ist die sicherste Methode. Fürs Kind gilt: nur Projektion oder lückenlos beaufsichtigt.</li>
+    <li><strong>Falls doch Symptome</strong> (Fleck im Zentrum, verbogene Linien, Stunden später):
+    augenärztlich abklären, 116117; bei akutem Sehverlust 112. OCT ist das Verfahren der Wahl.</li>
+  </ul>
+</section>
+
+<section id="belege">
+  <h2>Belegtabelle</h2>
+  <h3>Tragende Einzelbehauptungen mit Prüfstatus</h3>
+  <div class="tscroll"><table>
+    <thead><tr><th>Behauptung</th><th>Grad</th><th>Status</th><th>Erstquelle / Prüfweg</th></tr></thead>
+    <tbody>
+      <tr><td>Stufenformel N = 1 + (7/3)·log₁₀(1/τ) und Additionsregel</td>
+        <td><span class="grade gA">A</span></td><td class="st ok">bestätigt</td>
+        <td>Reproduziert Labormesswerte aus Chou et al. 2021 (AJ 162:103) auf alle angegebenen Stellen; konsistent mit 3M-„+2-DIN"-Vorsatzscheibe und ANSI-Z87.1-Bereichen</td></tr>
+      <tr><td>ISO-Fenster 2015: 0,000061–0,0032 % · Entwurf 2025: 0,00004–0,0012 % · IR-Grenze 3 % (beide)</td>
+        <td><span class="grade gA">A</span></td><td class="st ok">bestätigt</td>
+        <td>Normtext-Tabellen 1, EN ISO 12312-2:2015 und ISO/DIS 12312-2:2025 (iTeh-Vorschau, wörtlich)</td></tr>
+      <tr><td>DOG lässt Schweißgläser 12–14 ausdrücklich zu</td>
+        <td><span class="grade gA">A</span></td><td class="st ok">bestätigt</td>
+        <td>DOG-Pressemitteilung 11.08.2026, mehrfach unabhängig wiedergegeben (idw, Ärzteblatt, DGP, MedWiss)</td></tr>
+      <tr><td>AAS: Stufe 12/13/14 sicher; Automatik-Helme verboten; ISO-Max ≙ Stufe 12, ISO-Min ≙ Stufe 15</td>
+        <td><span class="grade gA">A</span></td><td class="st ok">bestätigt</td>
+        <td>eclipse.aas.org/eye-safety und AAS-Pressemitteilung; Sky &amp; Telescope</td></tr>
+      <tr><td>Stapel 5+11 = Stufe 15 = τ 1,0·10⁻⁶, innerhalb beider ISO-Fenster</td>
+        <td><span class="grade gB">B</span></td><td class="st ok">bestätigt (rechnerisch)</td>
+        <td>Eigene Rechnung auf verifizierter Formel; <b>nicht</b> spektral gemessen, nicht zertifiziert — B statt A</td></tr>
+      <tr><td>60 s ≡ 60 µs; Sicherheitsabstand ~5·10⁵ zur Retinopathie-Schwelle</td>
+        <td><span class="grade gB">B</span></td><td class="st ok">bestätigt (rechnerisch)</td>
+        <td>Reziprozitätsgesetz; Schwellenwert ~30 s aus klinischer Literatur (Größenordnung, keine scharfe Kante)</td></tr>
+      <tr><td>IR des Stapels unkritisch (Worst Case 2,5 % &lt; 3 %)</td>
+        <td><span class="grade gB">B</span></td><td class="st part2" style="color:var(--amber)">teilbestätigt</td>
+        <td>Schrankenabschätzung ohne Messung der konkreten Scheiben; Athermalglas-IR-Sperrung aus Herstellerangaben (~97 % bei Stufe 14)</td></tr>
+      <tr><td>Leicester-Kohorte 1999: 45/20/5/4; alle Nachverfolgbaren nach 21 Monaten symptomfrei</td>
+        <td><span class="grade gA">A</span></td><td class="st ok">bestätigt</td>
+        <td>Lancet 2001 (Eclipse burns) + Follow-up-Korrespondenz Lancet 358:674</td></tr>
+      <tr><td>BfS: max. 0,001 % Durchlass; Lochkamera sicherste Methode für Kinder</td>
+        <td><span class="grade gA">A</span></td><td class="st ok">bestätigt</td>
+        <td>BfS-Pressemitteilung 007/2026, wörtlich</td></tr>
+      <tr><td>Verkäuferbefunde: Lunt = Hersteller selbst, AAS-gelistet · DALLA L.L.C-FZ = Freezone-Zwischenhändler, Konto Tage alt</td>
+        <td><span class="grade gB">B</span></td><td class="st ok">bestätigt</td>
+        <td>Amazon-Verkäuferangaben (vom Nutzer beigebracht) + Fachpresse zu Lunt/AAS-Listung; ORRO-AAS-Listung nur als Selbstauskunft, nicht unabhängig verifiziert</td></tr>
+      <tr><td>Kein publizierter Retinopathie-Fall durch intakten Schweißfilter ≥ Stufe 12 (Fallserien 1976–2024, Reviews, Foren)</td>
+        <td><span class="grade gB">B</span></td><td class="st ok">bestätigt (Negativbefund)</td>
+        <td>Systematische Suche; Gegenprobe ASRS-Fallsammlung + Stufe-14-Empfehlung im selben Dokument. Abwesenheitsevidenz — kleine exponierte Population, löchrige Erfassung</td></tr>
+      <tr><td>Dokumentierte Schadensfälle korrelieren mit fehlendem, verspätetem, gefälschtem oder zu hellem Schutz</td>
+        <td><span class="grade gA">A</span></td><td class="st ok">bestätigt</td>
+        <td>JAMA Ophthalmol. 2017 (Wu et al.); J. Med. Optometry 2024 (Fälschungsfall, ≥ 100 000 Fälschungen); Lancet 2001; RASC-Transmissionskurven (Stufe 8 als „unsafe")</td></tr>
+      <tr><td>EN 166 seit 11/2025 durch EN ISO 16321 abgelöst; Schweißfilter in Teil 16321-2; Vorzahlsystem (—/2/4/5–6) trennt vier Stufenskalen</td>
+        <td><span class="grade gA">A</span></td><td class="st ok">bestätigt</td>
+        <td>uvex-Normenübersicht (Hersteller-Fachseite, vom Nutzer beigebracht); Vorzahlsystem konsistent mit EN-166-Kennzeichnungsschema</td></tr>
+      <tr><td>Kennzeichnung „5" und „11" der konkreten Scheiben korrekt (reine Schweißskala, keine 4-/5-Vorzahl); Stapel saß lückenlos</td>
+        <td><span class="grade gC">C</span></td><td class="st bad">nicht prüfbar</td>
+        <td>Tatsachenfrage vor Ort — die einzige echte Restunsicherheit der Dosisaussage</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="rest">
+  <h2>Restliste</h2>
+  <h3>Was nicht geprüft wurde — und warum es zählt</h3>
+  <ul>
+    <li><strong>EN-169-Originaltabelle.</strong> Die normativen Transmissionsbereiche je Stufe stehen hinter
+    der Bezahlschranke. Die Formel ist gegen unabhängige Messwerte verifiziert; die exakten Toleranzbänder
+    (±0,5 Stufen) sind rekonstruiert, nicht zitiert.</li>
+    <li><strong>Keine Spektralmessung der konkreten Scheiben.</strong> Alle Aussagen setzen voraus, dass
+    „5" und „11" stimmen und die Gläser echte EN-166/169-Ware sind. Ein Spektrometer würde die Frage in
+    Minuten erledigen; stand nicht zur Verfügung.</li>
+    <li><strong>IR-Verhältnis r geschätzt.</strong> Die 3-%-Prüfung arbeitet mit Schranken (r = 1…100 je
+    Scheibe). Athermalglas liegt realistisch im niedrigen Bereich, belegt ist das für diese Scheiben nicht.</li>
+    <li><strong>Stapel nicht zertifiziert.</strong> ISO 12312-2 prüft integrale Größen über das
+    Sonnenspektrum, EN 169 Einzelwellenlängen. Die Kombination erfüllt die Grenzwerte rechnerisch —
+    ein Konformitätsnachweis ist das nicht, und keine Fachgesellschaft hat Stapel-Lösungen adressiert.</li>
+    <li><strong>BVA-Spannung.</strong> Der Berufsverband warnt pauschal vor „selbstgebauten Filtern",
+    ohne Schweißglas zu differenzieren. Die DOG-Position ist die fachlich präzisere; die Spannung zwischen
+    beiden Verlautbarungen bleibt aber bestehen und ist hier nicht auflösbar.</li>
+    <li><strong>Retinopathie-Schwelle „~30 s".</strong> Klinische Größenordnung aus Fallserien, keine
+    scharfe physiologische Konstante — individuell streuend (Pupille, Fixationsstabilität, Aderhautdurchblutung).
+    Für die Verdikte irrelevant, weil der Abstand fünf Größenordnungen beträgt.</li>
+    <li><strong>AAS-Lieferantenliste nicht direkt eingesehen.</strong> Die Listung von ORRO beruht auf
+    Selbstauskunft des Herstellers; Lunt ist über Fachpresse als gelistet belegt. Die AAS warnt ausdrücklich:
+    Wer behauptet gelistet zu sein und nicht auf der Liste steht, ist nicht vertrauenswürdig — diese
+    Zwei-Minuten-Prüfung bleibt beim Käufer.</li>
+    <li><strong>Fallrecherche ohne Register.</strong> Es existiert kein Melderegister für solare
+    Retinopathie; die Suche stützt sich auf publizierte Fälle, ED-Datenbankauswertungen und Foren.
+    Ein unpublizierter Schadensfall durch Stufe-12+-Glas ist damit nicht ausschließbar — nur unwahrscheinlich
+    und mit der Dosimetrie unvereinbar, solange Kennzeichnung und Zustand stimmten.</li>
+    <li><strong>Blaulicht-Bewertung nicht separat gerechnet.</strong> Die grüne Glascharakteristik senkt den
+    photochemisch wirksamen Anteil unter den einer neutralen Folie gleicher Dichte (Befund Chou et al.);
+    quantifiziert wurde das hier nicht — es wirkt ausschließlich als zusätzliche Reserve.</li>
+  </ul>
+</section>
+
+<section id="quellen">
+  <h2>Quellen</h2>
+  <h3>Primärmaterial mit Interessenlage</h3>
+  <ul>
+    <li><strong>EN ISO 12312-2:2015 &amp; ISO/DIS 12312-2:2025</strong> — Normtexte (iTeh-Vorschau der Tabelle 1).
+    <span class="note">Interessenlage: Normungsgremien; Verkauf der Volltexte, Tabellen aber öffentlich einsehbar.</span></li>
+    <li><strong>Chou, Dain, Fienberg (2021)</strong>, Astronomical Journal 162:103 — spektrale Vermessung
+    von 43 Sonnenfiltern und 6 Schweißfiltern, Grundlage der Formelverifikation.
+    <span class="note">Interessenlage: peer-reviewed; Fienberg ist AAS-Funktionär (Task Force), Befunde aber messbasiert.</span></li>
+    <li><strong>DOG-Pressemitteilung 11.08.2026</strong> — via idw-online, Deutsches Ärzteblatt, DGP, MedWiss.
+    <span class="note">Interessenlage: wissenschaftliche Fachgesellschaft, kein Produktinteresse.</span></li>
+    <li><strong>BVA-Pressemitteilung zur SoFi 2026</strong> — via verbaende.com.
+    <span class="note">Interessenlage: Berufsverband niedergelassener Augenärzte; kommunikativ konservativste Linie.</span></li>
+    <li><strong>BfS-Pressemitteilung 007/2026</strong> — bfs.de.
+    <span class="note">Interessenlage: Bundesbehörde mit gesetzlichem Schutzauftrag; adressiert Laienpublikum, daher bewusst eng.</span></li>
+    <li><strong>AAS eclipse.aas.org/eye-safety</strong> + Pressemitteilung 2017, Sky &amp; Telescope.
+    <span class="note">Interessenlage: Fachgesellschaft; führt Händlerliste, empfiehlt aber ausdrücklich auch Schweißglas 12–14.</span></li>
+    <li><strong>NASA Sun-Earth Day Beobachtungshinweise</strong> — science.gsfc.nasa.gov.
+    <span class="note">Interessenlage: Behörde, keine.</span></li>
+    <li><strong>ASRS Special Safety Editions 2017/2024</strong> — Fallsammlung (Türkei 1976, Nordeuropa 1999,
+    UK 2012, Tschechien 2015, USA/Kanada 2017) und zugleich Stufe-14-Empfehlung.
+    <span class="note">Interessenlage: US-Retina-Fachgesellschaft, keine kommerzielle.</span></li>
+    <li><strong>Wu et al. 2017, JAMA Ophthalmology</strong> — Adaptive-Optics-Fallbericht (ungeschützt + späte
+    Brille unbekannter Herkunft); <strong>J. of Medical Optometry 2024</strong> — Fälschungsfall;
+    <strong>Cureus/PMC 2024</strong> — schwerer ungeschützter Fall (20/800); <strong>Epic-Cosmos-ED-Studie 2024</strong>.
+    <span class="note">Interessenlage: peer-reviewed Fallberichte; Anamnese-basiert, Exposition nicht messtechnisch verifiziert.</span></li>
+    <li><strong>RASC (Royal Astronomical Society of Canada), Eye Safety</strong> — Transmissionskurven,
+    Stufe 8 als „unsafe" klassifiziert; <strong>tractorbynet-Forum (1999er-Ära)</strong> — einziger relevanter
+    Stapel-Diskussionsfund, mit dokumentiertem Rechenfehler.
+    <span class="note">Interessenlage: Fachgesellschaft bzw. Laienforum; Forum nur als Anschauungsmaterial für Fehlermodi.</span></li>
+    <li><strong>Lancet 2001</strong>: „Eclipse burns" (Leicester-Kohorte) + Follow-up 358:674; Übersicht
+    Surv Ophthalmol (UV-Retinopathie); Ophthalmology Times/Modern Retina (Verlaufsdaten).
+    <span class="note">Interessenlage: klinische Literatur, peer-reviewed bzw. Fachpresse.</span></li>
+    <li><strong>uvex safety: „Schutzbrillen — Normen und Richtlinien"</strong> — Übergang EN 166 → EN ISO 16321
+    (in Kraft 11/2025), Teilstruktur 16321-1/-2/-3, EN-171-IR-Stufen (4-1,7 bis 4-6), EN-172-Sonnenblendschutz.
+    <span class="note">Interessenlage: PSA-Hersteller; herangezogen für Normstruktur und Kennzeichnung, nicht für Sicherheitsurteile. uvex-safety.com/de/wissen/normen-und-richtlinien/schutzbrillen/</span></li>
+    <li><strong>3M Speedglas-Zubehör, Merkle Schweiß-Shop, Athermal-Datenblätter</strong> — Herstellerangaben
+    zu Vorsatzscheiben, DIN-14-Schild, IR-Sperrung.
+    <span class="note">Interessenlage: kommerzielle Anbieter; nur für technische Detailangaben herangezogen, nicht für Sicherheitsurteile.</span></li>
+  </ul>
+</section>
+
+<footer>
+  Verifikationsdossier, erstellt 11.08.2026 abends · Rechnungen: EN-169-Stufenformel, verifiziert gegen
+  Chou et al. 2021 · Dosimetrie: Bunsen-Roscoe-Reziprozität · Anlass: partielle Sonnenfinsternis 12.08.2026,
+  Lam (Bayer. Wald), Maximum 20:14 MESZ, 87,4 %, Sonnenhöhe 1,8°.<br>
+  Dieses Dossier ersetzt keine augenärztliche Untersuchung. Bei Sehstörungen: 116117, im Notfall 112.
+</footer>
+</div>
+
+<script>
+/* Theme */
+const tb=document.getElementById('themeBtn');
+tb.onclick=()=>{const d=document.documentElement;const n=d.dataset.theme==='dark'?'light':'dark';
+  d.dataset.theme=n;tb.textContent=n==='dark'?'HELL':'DUNKEL';ladder();};
+
+function cssv(n){return getComputedStyle(document.body).getPropertyValue(n).trim()}
+const tau=N=>Math.pow(10,-(N-1)*3/7);
+
+/* ---------- Transmissionsleiter ---------- */
+function ladder(){
+  const W=960,H=340,ml=20,mr=20,mt=46,mb=54;
+  const iw=W-ml-mr;
+  // log10(tau) von 0 (=1) bis -9
+  const X=t=>ml+(-Math.log10(t))/9*iw;
+  const line=cssv('--line'),tx3=cssv('--tx3'),tx2=cssv('--tx2'),tx=cssv('--tx');
+  const green=cssv('--green'),teal=cssv('--teal'),red=cssv('--red'),amber=cssv('--amber');
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Transmissionsleiter">`;
+  const axY=H-mb;
+  // Achse + Dekaden
+  s+=`<line x1="${ml}" y1="${axY}" x2="${W-mr}" y2="${axY}" stroke="${tx3}" stroke-width="1.5"/>`;
+  const SUP=['\u2070','\u00B9','\u00B2','\u00B3','\u2074','\u2075','\u2076','\u2077','\u2078','\u2079'];
+  for(let d=0;d<=9;d++){
+    const x=ml+d/9*iw;
+    s+=`<line x1="${x}" y1="${axY}" x2="${x}" y2="${axY+6}" stroke="${tx3}"/>`;
+    s+=`<text x="${x}" y="${axY+22}" text-anchor="middle" fill="${tx3}" font-family="IBM Plex Mono" font-size="10">${d===0?'1':'10\u207B'+SUP[d]}</text>`;
+  }
+  s+=`<text x="${W-mr}" y="${axY+40}" text-anchor="end" fill="${tx3}" font-family="IBM Plex Mono" font-size="10">Transmission \u03c4 (sichtbar) \u2192 dunkler</text>`;
+  // ISO-Fenster 2015
+  const x1=X(3.2e-5),x2=X(6.1e-7);
+  s+=`<rect x="${x1}" y="${mt}" width="${x2-x1}" height="${axY-mt}" fill="${green}" fill-opacity=".13" stroke="${green}" stroke-width="1"/>`;
+  // Entwurf 2025 (Kern)
+  const x3=X(1.2e-5),x4=X(4e-7);
+  s+=`<rect x="${x3}" y="${mt}" width="${x4-x3}" height="${axY-mt}" fill="none" stroke="${green}" stroke-width="1" stroke-dasharray="4 3"/>`;
+  s+=`<text x="${(x1+x2)/2}" y="${mt-8}" text-anchor="middle" fill="${green}" font-family="IBM Plex Mono" font-size="10.5">ISO-Fenster (gestrichelt: Entwurf 2025)</text>`;
+  // Marker
+  const items=[
+    [1,'nackte Sonne',red,0],
+    [tau(5),'DIN 5',red,0],
+    [tau(9),'DIN 9',red,1],
+    [tau(11),'DIN 11',red,0],
+    [tau(12),'DIN 12',tx2,1],
+    [tau(13),'DIN 13 = 5+9',tx2,0],
+    [tau(14),'DIN 14',tx2,1],
+    [tau(15),'5+11 = 15',teal,0],
+    [tau(19),'5+5+11',amber,1],
+    [tau(21),'11+11',amber,0],
+  ];
+  items.forEach(([t,lab,col,row])=>{
+    const x=X(Math.max(t,1e-9));
+    const yTip=axY, yLab=mt+34+row*54;
+    s+=`<line x1="${x}" y1="${yLab+14}" x2="${x}" y2="${yTip}" stroke="${col}" stroke-width="1" opacity=".55"/>
+        <circle cx="${x}" cy="${yTip}" r="5" fill="${col}"/>
+        <text x="${x}" y="${yLab}" text-anchor="middle" fill="${col}" font-family="IBM Plex Mono" font-size="10.5" font-weight="600">${lab}</text>
+        <text x="${x}" y="${yLab+11}" text-anchor="middle" fill="${tx3}" font-family="IBM Plex Mono" font-size="9">${t===1?'\u03c4 = 1':('\u03c4 '+t.toExponential(1).replace('e-','\u00b710\u207B').replace('.',','))}</text>`;
+  });
+  s+='</svg>';
+  document.getElementById('ladder').innerHTML=s;
+}
+
+/* ---------- Stapelrechner ---------- */
+function fmt(t){return t.toExponential(2).replace('e-','\u00b710\u207B').replace('.',',');}
+function calc(){
+  const a=+document.getElementById('s1').value, b=+document.getElementById('s2').value;
+  document.getElementById('l1').textContent='DIN '+a;
+  document.getElementById('l2').textContent=b===0?'— (keine)':'DIN '+b;
+  const N=b===0?a:a+b-1;
+  const t=tau(N);
+  document.getElementById('rN').textContent=N;
+  document.getElementById('rTau').textContent='\u03c4 = '+fmt(t)+'  =  '+(t*100).toPrecision(3).replace('.',',')+' %';
+  const iso15=t<=3.2e-5&&t>=6.1e-7, iso25=t<=1.2e-5&&t>=4e-7;
+  const tooBright15=t>3.2e-5, tooDark15=t<6.1e-7;
+  let verdict, cls;
+  if(iso15&&iso25){verdict='Innerhalb beider ISO-Fenster \u2014 f\u00fcr den direkten Blick geeignet (Kennzeichnung vorausgesetzt).';cls='ok';}
+  else if(iso15){verdict='Innerhalb ISO 2015, aber heller als der Entwurf 2025 zul\u00e4sst \u2014 Grenzbereich.';cls='warn';}
+  else if(tooBright15){verdict='ZU HELL f\u00fcr den direkten Sonnenblick \u2014 '+Math.round(t/3.2e-5)+'\u00d7 \u00fcber der ISO-Obergrenze. Nicht verwenden.';cls='bad';}
+  else{verdict='Normwidrig dunkel \u2014 sicher, aber die Sonne ist kaum oder nicht mehr erkennbar. Gefahr: Filter wird abgenommen.';cls='warn';}
+  const refs=[];
+  if(N>=12&&N<=14&&b===0)refs.push('Einzelglas dieser Stufe ist von DOG (12\u201314) und AAS (12+) ausdr\u00fccklich gedeckt.');
+  if(b>0)refs.push('Stapel-L\u00f6sung: rechnerisch sauber, aber von keiner Fachgesellschaft explizit adressiert \u2014 keine Zertifizierung.');
+  if(N>=15&&(iso15||iso25))refs.push('Entspricht der ISO-Untergrenze (Stufe 15 \u2259 ISO-Minimum): dunkelste normkonforme Auslegung.');
+  document.getElementById('rOut').innerHTML=
+    `<p style="margin-top:0" class="${cls}"><strong>${verdict}</strong></p>
+     <p style="font-size:14px">Helligkeit der Mittagssonne durch diesen Filter: <b>${Math.round(1.77e9*t).toLocaleString('de-DE')} cd/m\u00b2</b>
+     <span class="note">(Referenz: Handydisplay ~1\u202f000, Monitor ~250, Papier im Zimmer ~50)</span></p>
+     <p style="font-size:13.5px;color:var(--tx2)">${refs.join(' ')}</p>
+     <p class="note">Regeln unver\u00e4ndert: beide Scheiben mit lesbarer EN-169-Kennzeichnung, unbesch\u00e4digt,
+     l\u00fcckenlos gestapelt, hellste Scheibe nie allein, niemals hinter Fernglas/Teleskop/Kamera.</p>`;
+}
+document.getElementById('s1').oninput=calc;
+document.getElementById('s2').oninput=calc;
+ladder();calc();
+</script>
+</body>
+</html>
