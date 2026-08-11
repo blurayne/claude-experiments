@@ -96,10 +96,11 @@ markiert, weil Landesmuseum, Simeonstift und Villa Borg dann geschlossen sind.
 
 ## Bedienelemente
 
-- **Startort-Umschalter** Porta Nigra ↔ Hauptbahnhof, rechnet alle
-  Entfernungen und Zeiten neu.
-- **Umkreis-Regler**, umschaltbar zwischen **Anreiseminuten** und **Kilometern**
-  (bis 90).
+- **Startort-Umschalter** Porta Nigra ↔ Hauptbahnhof ↔ **Kenn** (rund 9 km
+  moselabwärts, oft die Unterkunft), rechnet alle Entfernungen und Zeiten neu.
+  Von Kenn zählt die Altstadt als Fahrt statt als Fußweg, das Symbol wechselt mit.
+- **Radar-Einheit**, umschaltbar zwischen **Anreiseminuten** und **Kilometern**.
+  Sie bestimmt den Maßstab der Radarringe. Einen Umkreis-Regler gibt es nicht mehr.
 - **„🏛 Reisewoche 17.–23.08."** setzt Datum *und* Zeitfenster in einem Klick.
   Daneben „Heute" für den Normalbetrieb.
 - **Zeitfenster** für Termine, tagesgenau von „nur heute" bis zwei Jahre.
@@ -117,10 +118,10 @@ markiert, weil Landesmuseum, Simeonstift und Villa Borg dann geschlossen sind.
   Kapitel wird hervorgehoben. Unter 1.100 px Breite bleibt die Leiste
   einzeilig und lässt sich seitlich schieben.
 - **🖨 Auswahl drucken** über der Liste: druckt genau die gerade gefilterten
-  Karten, zweispaltig auf A4, mit **Adresse und Telefonnummer** statt der
-  Belegverweise, die auf Papier nur Platz kosten. Belegt sind 40 Adressen und
-  21 Telefonnummern. Wo nichts zu finden war, steht „nicht belegt“ statt einer
-  erfundenen Angabe.
+  Karten auf A4, mit **Adresse und Telefonnummer** statt der Belegverweise, die
+  auf Papier nur Platz kosten. Daneben lässt sich die **Spaltenzahl 1, 2 oder 3**
+  wählen. Belegt sind 40 Adressen und 21 Telefonnummern. Wo nichts zu finden war,
+  steht „nicht belegt“ statt einer erfundenen Angabe.
 
 ## Zwei Ansichten: Radar und Karte
 
@@ -130,10 +131,14 @@ markiert, weil Landesmuseum, Simeonstift und Villa Borg dann geschlossen sind.
   auf den Zeiger, wie man es von Karten kennt), per Regler und mit zwei Fingern,
   verschiebbar mit einem Finger. Beschriftung und Namenslänge bleiben dabei
   immer gleich: Der Zoom ändert nur Ringskala und Ausschnitt. Den vollständigen
-  Namen zeigt der Tooltip des Punktes. Funktioniert ohne Netz.
+  Namen zeigt der Tooltip des Punktes. Funktioniert ohne Netz. Am Rechner springt
+  ein Klick auf Punkt oder Name zur Karteikarte. Auf dem Handy, wo sich die
+  Etiketten überlagern, holt die erste Berührung das getroffene Etikett nach vorn
+  und die zweite springt.
 - **🗺 Karte:** [Leaflet](https://leafletjs.com/) mit drei umschaltbaren
   OpenStreetMap-Ebenen (Standard, Humanitarian/HOT, OpenTopoMap), beschrifteten
-  Markern und Popups. Das Mausrad zoomt hier genauso wie im Radar.
+  Markern und Popups. Das Mausrad zoomt hier genauso wie im Radar. Auch hier gilt:
+  am Rechner ein Klick auf den Namen, auf dem Handy die zweite Berührung.
 
 Beide Ansichten lassen sich per **⛶ Vollbild** groß schalten (mit
 Rückfall-Darstellung für iOS-Safari). Ziele auf identischer Koordinate werden
@@ -171,10 +176,11 @@ einem offengelegten Modell:
 | Zeit mit Auto | 32 / 50 / 62 / 72 km/h nach Entfernungsband + 4 min |
 | Peilung | Anfangskurs (forward azimuth), für das Radar |
 
-Ob ein Ziel als Fuß- oder Fahrziel gilt, entscheidet der Guide **je Ziel**, nicht
-je Startpunkt. Sonst stünde dasselbe Ziel je nach gewähltem Start einmal als
-33-Minuten-Fußweg und einmal als 10-Minuten-Fahrt da, und der Umkreisregler
-verglich Äpfel mit Birnen. Jede Karte zeigt die Art als 🚶 oder 🚗.
+Zwischen den beiden Stadtstarts Porta Nigra und Hauptbahnhof gilt die Fuß- oder
+Fahr-Art **je Ziel**, nicht je Startpunkt. Sonst stünde dasselbe Ziel je nach
+gewähltem Start einmal als 33-Minuten-Fußweg und einmal als 10-Minuten-Fahrt da.
+Nur der rund 9 km außerhalb gelegene Start Kenn bekommt eine eigene Kennung, weil
+von dort auch die Altstadt eine Fahrt ist. Jede Karte zeigt die Art als 🚶 oder 🚗.
 
 Die Koordinaten stammen aus Kartenkenntnis der Standorte, nicht aus einem
 Geocoder. Deshalb zeigen die **Google-Maps-Links in den Kartenpopups auf die

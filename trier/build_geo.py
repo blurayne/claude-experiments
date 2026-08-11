@@ -76,6 +76,8 @@ def strecke(start, ziel, zu_fuss):
 # --- Startpunkte -------------------------------------------------------
 PORTA_NIGRA = (49.75972, 6.64400)
 HAUPTBAHNHOF = (49.75630, 6.65410)
+# Dritter Start: Kenn, rund 9 km moselabwärts, oft die Unterkunft für Trier.
+KENN = (49.80194, 6.72250)
 
 # --- Ziele -------------------------------------------------------------
 # Koordinaten aus Kartenkenntnis der Standorte, nicht aus einem Geocoder
@@ -186,9 +188,15 @@ def main():
         zu_fuss = nah <= FUSSGRENZE
         kp, mp, dp, art = strecke(PORTA_NIGRA, koord, zu_fuss)
         kh, mh, dh, _ = strecke(HAUPTBAHNHOF, koord, zu_fuss)
+        # Kenn liegt rund 9 km außerhalb. Ob ein Ziel von dort zu Fuß zählt,
+        # entscheidet die Kenner Entfernung selbst — sonst stünde für die
+        # Altstadt eine unsinnige Gehzeit über neun Kilometer. Deshalb hat der
+        # Kenn-Start eine eigene Fuß-/Fahr-Kennung (artk).
+        zu_fuss_k = haversine(KENN, koord) <= FUSSGRENZE
+        kk, mk, dk, artk = strecke(KENN, koord, zu_fuss_k)
         zeilen.append(
-            ' "%s":{kp:%.1f,mp:%d,kh:%.1f,mh:%d,dp:%d,dh:%d,art:"%s",la:%.5f,lo:%.5f},'
-            % (zid, kp, mp, kh, mh, dp, dh, art, koord[0], koord[1])
+            ' "%s":{kp:%.1f,mp:%d,kh:%.1f,mh:%d,kk:%.1f,mk:%d,dp:%d,dh:%d,dk:%d,art:"%s",artk:"%s",la:%.5f,lo:%.5f},'
+            % (zid, kp, mp, kh, mh, kk, mk, dp, dh, dk, art, artk, koord[0], koord[1])
         )
     print("const G={")
     print("\n".join(zeilen).rstrip(","))
