@@ -36,12 +36,40 @@ a:hover{text-decoration:underline}
 a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--teal); outline-offset:2px}
 
 .topbar{position:sticky; top:0; z-index:50; background:color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter:blur(8px); border-bottom:1px solid var(--line)}
-.topbar .wrap{display:flex; align-items:center; justify-content:space-between; padding-top:10px; padding-bottom:10px; gap:12px}
-.brand{font-family:"Cinzel",serif; font-size:12.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted)}
+/* Die Navigationsleiste darf breiter laufen als die Textspalte, sonst drängt
+   der Markentext die Sprungmarken aus dem Bild. */
+.topbar .wrap{display:flex; align-items:center; justify-content:space-between; padding-top:10px; padding-bottom:10px; gap:12px; max-width:1240px}
+.brand{font-family:"Cinzel",serif; font-size:12.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); text-decoration:none; white-space:nowrap; flex:0 0 auto}
+.brand:hover{text-decoration:none}
 .brand b{color:var(--teal)}
-#themeBtn{background:var(--panel); color:var(--ink); border:2px solid var(--line); border-radius:999px; padding:6px 14px; font-family:"Nunito",sans-serif; font-weight:700; font-size:13px; cursor:pointer}
+/* Sprungmarken zu den Kapiteln. Auf schmalen Displays bleiben sie einzeilig
+   und werden seitlich gescrollt, statt die Kopfzeile umzubrechen. */
+.sprung{display:flex; align-items:center; gap:2px; overflow-x:auto; overflow-y:hidden;
+  flex:1 1 auto; min-width:0; scrollbar-width:none; -webkit-overflow-scrolling:touch}
+.sprung::-webkit-scrollbar{display:none}
+.sprung a{font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.04em;
+  color:var(--muted); white-space:nowrap; padding:5px 9px; border-radius:999px; text-decoration:none}
+.sprung a:hover{color:var(--teal); background:var(--teal-dim); text-decoration:none}
+.sprung a.hier{color:var(--teal); background:var(--teal-dim)}
+#themeBtn{background:var(--panel); color:var(--ink); border:2px solid var(--line); border-radius:999px; padding:6px 14px; font-family:"Nunito",sans-serif; font-weight:700; font-size:13px; cursor:pointer; white-space:nowrap; flex:0 0 auto}
 #themeBtn:hover{background:var(--amber-dim); border-color:var(--amber)}
 
+@media(max-width:1180px){ .brandrest{display:none} }
+/* Auf schmalen Displays bleibt die Leiste einzeilig: die Sprungmarken werden
+   seitlich gescrollt, ein weicher Rand zeigt, dass da noch mehr kommt. */
+@media(max-width:760px){
+  .topbar .wrap{gap:8px; padding-left:12px; padding-right:12px}
+  .sprung{-webkit-mask-image:linear-gradient(to right,#000 88%,transparent);
+          mask-image:linear-gradient(to right,#000 88%,transparent)}
+  .brand{font-size:11px; letter-spacing:.1em}
+  /* Nur noch das Symbol, damit die Zeile nicht umbricht. */
+  #themeBtn .knopftext{display:none}
+  #themeBtn{padding:6px 10px; font-size:15px; line-height:1}
+}
+@media(max-width:420px){
+  .brand b{font-size:0}
+  .brand b::after{content:"AT"; font-size:11px}
+}
 header.hero{padding:50px 0 26px; border-bottom:1px solid var(--line)}
 .kicker{font-family:"IBM Plex Mono",monospace; color:var(--amber); font-size:12px; letter-spacing:.18em; text-transform:uppercase; margin-bottom:14px}
 h1{font-size:clamp(27px,4.6vw,41px); line-height:1.14; font-weight:700; letter-spacing:.01em}
@@ -184,8 +212,19 @@ footer p + p{margin-top:8px}
 <body>
 
 <nav class="topbar"><div class="wrap">
-  <span class="brand">🏛 <b>AUGUSTA TREVERORUM</b> · TRIER 17.–23. AUG 2026</span>
-  <button id="themeBtn" aria-label="Zwischen Nacht- und Tagmodus umschalten">🌙 Nacht · ☀️ Tag</button>
+  <a class="brand" href="#fazit">🏛 <b>AUGUSTA TREVERORUM</b> <span class="brandrest">· TRIER 17.–23. AUG 2026</span></a>
+  <nav class="sprung" aria-label="Sprung zu den Kapiteln">
+    <a href="#fazit">Fazit</a>
+    <a href="#guide">Guide</a>
+    <a href="#baeder">Bäder</a>
+    <a href="#zweitprogramm">Zweitprogramm</a>
+    <a href="#dunkel">Makabres</a>
+    <a href="#offen">Offen</a>
+    <a href="#belege">Belege</a>
+    <a href="#quellen">Quellen</a>
+    <a href="#prompt">Prompt</a>
+  </nav>
+  <button id="themeBtn" aria-label="Zwischen Nacht- und Tagmodus umschalten" title="Zwischen Nacht- und Tagmodus umschalten"><span aria-hidden="true">🌙</span><span class="knopftext">&nbsp;Nacht · ☀️ Tag</span></button>
 </div></nav>
 
 <header class="hero"><div class="wrap">
@@ -372,7 +411,11 @@ footer p + p{margin-top:8px}
     </div>
   </div>
 
-  <p class="count mono" id="countLine"></p>
+  <div class="zaehlzeile">
+    <p class="druckkopf">Rom an der Mosel · Trier, 17.–23. August 2026</p>
+    <p class="count mono" id="countLine"></p>
+    <button class="minibtn" id="druckBtn" title="Die gerade angezeigten Karten zweispaltig ausdrucken">🖨 Auswahl drucken</button>
+  </div>
   <div class="grid" id="grid"></div>
 
   <div class="edgebox">
@@ -448,7 +491,9 @@ footer p + p{margin-top:8px}
 select#spanSel{background:var(--panel2); border:2px solid var(--line); color:var(--ink); border-radius:999px; padding:7px 13px; font-family:"Nunito",sans-serif; font-weight:700; font-size:12.5px; cursor:pointer}
 select#spanSel:hover{border-color:var(--teal)}
 input[type="date"]{background:var(--panel2); border:2px solid var(--line); color:var(--ink); border-radius:8px; padding:6px 11px; font-family:"IBM Plex Mono",monospace; font-size:12.5px; color-scheme:var(--scheme)}
-.count{font-size:12px; color:var(--muted); margin-bottom:14px}
+.zaehlzeile{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:14px}
+.count{font-size:12px; color:var(--muted)}
+.druckdaten{display:none}
 .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px}
 .card{background:var(--panel); border:2px solid var(--line); border-radius:18px; padding:16px 17px; display:flex; flex-direction:column; gap:8px; box-shadow:var(--shadow); scroll-margin-top:84px}
 .card.event{border-top:4px solid var(--amber)}
@@ -846,6 +891,8 @@ input[type="date"]{background:var(--panel2); border:2px solid var(--line); color
       <tr><td><b>Trierer Hexenprozesse: Standort der Gedenktafel</b></td><td>Eine Gedenktafel für die Opfer existiert seit 2015.</td><td>Der genaue Standort war nicht zu belegen. Der Kartenpunkt liegt deshalb bei St. Maximin, dem belegten Zentrum der Verfolgung, nicht an der Tafel.</td></tr>
       <tr><td><b>Hexenturm Trier</b></td><td>In der Denkmaldatenbank der Region Trier als Objekt geführt.</td><td>Weder Lage, Zugang noch Zusammenhang mit den Prozessen belastbar zu klären, bewusst nicht als Ziel aufgenommen.</td></tr>
       <tr><td><b>St. Paulin: Öffnungszeiten</b></td><td>Als „tagsüber geöffnet“ beschrieben, Märtyrertage jährlich Anfang Oktober.</td><td>Keine belegten Uhrzeiten. Es ist eine aktive Pfarrkirche. Gottesdienste gehen vor.</td></tr>
+      <tr><td><b>Erreichbarkeit der 158 Belegverweise</b></td><td>Alle Verweise sind formal geprüft: Schema, Host, Zeichensatz, doppelte Pfadtrenner, dazu Dubletten und die Zuordnung zum Quellenverzeichnis. Das Skript dazu liegt bei: <a href="pruef_links.py">pruef_links.py</a>.</td><td>Ob eine Adresse tatsächlich antwortet, war nicht zu prüfen. Der Egress-Proxy dieser Umgebung beantwortet jedes CONNECT mit 403, ein HTTP-Status je Link ist damit nicht zu haben. Gefunden und behoben wurden dabei zwei Verweise ohne Verschlüsselung und sieben Fälle, in denen dieselbe Adresse unter zwei Beschriftungen stand.</td></tr>
+      <tr><td><b>Adressen und Telefonnummern für den Ausdruck</b></td><td>Belegt sind 32 Adressen und 18 Telefonnummern, darunter alle vier kostenpflichtigen Römerbauten, Landesmuseum, Karl-Marx-Haus, Vereinigte Hospitien, St. Matthias, Villa Borg, Eifelpark, Wildpark Weiskirchen und Roscheider Hof.</td><td>Für die übrigen Einträge war keine belastbare Angabe zu finden. Der Ausdruck schreibt dort „nicht belegt“, statt eine Nummer zu erfinden.</td></tr>
       <tr><td><b>Instagram- und Facebook-Kanäle</b></td><td>Trier Tourismus, Zentrum der Antike, Theater Trier betreiben aktive Kanäle.</td><td>Ohne Login nicht auswertbar, und in dieser Umgebung war auch der Abruf öffentlicher Seiten gesperrt.</td></tr>
     </tbody>
   </table>
@@ -855,7 +902,7 @@ input[type="date"]{background:var(--panel2); border:2px solid var(--line); color
 <!-- 10 · QUELLEN -->
 <section id="quellen"><div class="wrap">
   <h2><span class="idx">10</span>Quellenverzeichnis mit Evidenzgrad</h2>
-  <p class="sub">Alle Quellen, aus denen dieser Report gebaut ist, nach Trägerschaft geordnet. Zur Einordnung noch einmal: Der <b>direkte Abruf</b> dieser Seiten war in der Arbeitsumgebung gesperrt. Gelesen wurden ihre über die Websuche indexierten Inhalte. Wo die Suche wörtlich aus der Betreiberseite zitiert, steht <span class="ev evA">A</span>, sonst <span class="ev evB">B</span>.</p>
+  <p class="sub">Die tragenden Quellen dieses Reports, nach Trägerschaft geordnet, darunter die übrigen Domains, die nur auf einzelnen Karteikarten auftauchen. Zur Einordnung noch einmal: Der <b>direkte Abruf</b> dieser Seiten war in der Arbeitsumgebung gesperrt. Gelesen wurden ihre über die Websuche indexierten Inhalte. Wo die Suche wörtlich aus der Betreiberseite zitiert, steht <span class="ev evA">A</span>, sonst <span class="ev evB">B</span>.</p>
 
   <div class="tblwrap">
   <table class="tbl">
@@ -907,6 +954,49 @@ input[type="date"]{background:var(--panel2); border:2px solid var(--line); color
       <tr><td><a href="https://www.tripadvisor.com/Restaurants-g187394-Trier_Rhineland_Palatinate.html" target="_blank" rel="noopener">Tripadvisor Trier ↗</a></td><td>Bewertungsportal</td><td>Existenz, Lage und Publikumszuspruch der Gastronomie, ausdrücklich <b>nicht</b> als Qualitätsbeleg</td><td><span class="ev evC">C</span></td></tr>
       <tr><td><a href="https://guide.michelin.com/at/de/rheinland-pfalz/trier/restaurant/bagatelle" target="_blank" rel="noopener">Guide Michelin · Bagatelle ↗</a></td><td>Guide Michelin</td><td>Stern seit 2023, Küchenstil, Lage</td><td><span class="ev evB">B</span></td></tr>
       <tr><td><a href="https://lokalo.de/artikel/421801/olewiger-weinfest-2026-dieses-programm-erwartet-euch-im-blesius-garten/" target="_blank" rel="noopener">lokalo.de ↗</a></td><td>Lokale Nachrichtenseite Trier</td><td>Olewiger Weinfest und Zurlaubener Moselfest 2026, beide vor der Reisewoche</td><td><span class="ev evC">C</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 style="margin:26px 0 6px; font-size:17px; color:var(--p-terra)">Weitere Belegquellen der Karteikarten</h3>
+  <p class="sub" style="margin-bottom:14px">Die Tabelle oben nennt die tragenden Quellen nach Trägerschaft. Damit die Aussage „alle Quellen“ auch stimmt, stehen hier die übrigen 33 Domains, die auf einzelnen Karteikarten als Beleg oder als Fundstelle verlinkt sind, mit der Zahl der Verweise. Alle tragen höchstens <span class="ev evB">B</span>, viele nur <span class="ev evC">C</span>: Es sind Portale, Verzeichnisse und Betreiberseiten einzelner Ziele, keine übergreifenden Erstquellen.</p>
+  <div class="tblwrap">
+  <table class="tbl">
+    <thead><tr><th>Domain</th><th class="mono">Verweise</th><th>Belegt im Guide</th></tr></thead>
+    <tbody>
+      <tr><td><a href="https://en.visitmosel.de/" target="_blank" rel="noopener">en.visitmosel.de ↗</a></td><td class="mono">3</td><td>Zurlaubener Ufer, Weinhaus Oechsle &amp; Weinwirtschaft Friedrich Wilhelm, Römischer Qanat Pölich</td></tr>
+      <tr><td><a href="https://rutschenforscher.de/" target="_blank" rel="noopener">rutschenforscher.de ↗</a></td><td class="mono">3</td><td>Freibad NordBad, Freibad SüdBad, Mattheiser Weiher &amp; Volkspark Trier-Süd</td></tr>
+      <tr><td><a href="https://www.museumsportal-rlp.de/" target="_blank" rel="noopener">www.museumsportal-rlp.de ↗</a></td><td class="mono">3</td><td>Römische Villa Urbana Longuich, Freilichtmuseum Roscheider Hof, Spielzeugmuseum Trier</td></tr>
+      <tr><td><a href="https://en.bernkastel.de/" target="_blank" rel="noopener">en.bernkastel.de ↗</a></td><td class="mono">2</td><td>Bernkastel-Kues &amp; Burg Landshut, Fahrt mit dem Römerweinschiff Stella Noviomagi</td></tr>
+      <tr><td><a href="https://www.abel-perl.com/" target="_blank" rel="noopener">www.abel-perl.com ↗</a></td><td class="mono">2</td><td>Römischer Qanat Pölich, Die Trierer Hexenprozesse</td></tr>
+      <tr><td><a href="https://www.ich-geh-wandern.de/" target="_blank" rel="noopener">www.ich-geh-wandern.de ↗</a></td><td class="mono">2</td><td>Genovevahöhle &amp; Burg Ramstein, Müllerthal</td></tr>
+      <tr><td><a href="https://www.kistetrier.de/" target="_blank" rel="noopener">www.kistetrier.de ↗</a></td><td class="mono">2</td><td>Kartoffel-Restaurant Kiste</td></tr>
+      <tr><td><a href="https://www.ticket-regional.de/" target="_blank" rel="noopener">www.ticket-regional.de ↗</a></td><td class="mono">2</td><td>Das Geheimnis der Porta Nigra, Der Gladiator Valerius</td></tr>
+      <tr><td><a href="https://antenne-trier.com/" target="_blank" rel="noopener">antenne-trier.com ↗</a></td><td class="mono">1</td><td>Katzentempel Trier</td></tr>
+      <tr><td><a href="https://freizeitinsider.de/" target="_blank" rel="noopener">freizeitinsider.de ↗</a></td><td class="mono">1</td><td>Trampolinpark &amp; Spielcenter Trier-Nord</td></tr>
+      <tr><td><a href="https://gemeinde-igel.de/" target="_blank" rel="noopener">gemeinde-igel.de ↗</a></td><td class="mono">1</td><td>Igeler Säule</td></tr>
+      <tr><td><a href="https://museum-trier.de/" target="_blank" rel="noopener">museum-trier.de ↗</a></td><td class="mono">1</td><td>Stadtmuseum Simeonstift</td></tr>
+      <tr><td><a href="https://regiodrei.de/" target="_blank" rel="noopener">regiodrei.de ↗</a></td><td class="mono">1</td><td>Spätrömische Kelteranlage Brauneberg</td></tr>
+      <tr><td><a href="https://rom-in-deutschland.de/" target="_blank" rel="noopener">rom-in-deutschland.de ↗</a></td><td class="mono">1</td><td>Römische Villa Rustica Wittlich</td></tr>
+      <tr><td><a href="https://taverne-borg.de/" target="_blank" rel="noopener">taverne-borg.de ↗</a></td><td class="mono">1</td><td>Archäologiepark Römische Villa Borg &amp; Taverne</td></tr>
+      <tr><td><a href="https://treetop-walks.com/" target="_blank" rel="noopener">treetop-walks.com ↗</a></td><td class="mono">1</td><td>Baumwipfelpfad Saarschleife &amp; Cloef</td></tr>
+      <tr><td><a href="https://www.altstadt-bernkastel-kues.de/" target="_blank" rel="noopener">www.altstadt-bernkastel-kues.de ↗</a></td><td class="mono">1</td><td>Bernkastel-Kues &amp; Burg Landshut</td></tr>
+      <tr><td><a href="https://www.brauneberg.de/" target="_blank" rel="noopener">www.brauneberg.de ↗</a></td><td class="mono">1</td><td>Spätrömische Kelteranlage Brauneberg</td></tr>
+      <tr><td><a href="https://www.deutscheweine.de/" target="_blank" rel="noopener">www.deutscheweine.de ↗</a></td><td class="mono">1</td><td>Römische Kelteranlage Piesport</td></tr>
+      <tr><td><a href="https://www.felsenlabyrinth.com/" target="_blank" rel="noopener">www.felsenlabyrinth.com ↗</a></td><td class="mono">1</td><td>Müllerthal</td></tr>
+      <tr><td><a href="https://www.felsenland-suedeifel.de/" target="_blank" rel="noopener">www.felsenland-suedeifel.de ↗</a></td><td class="mono">1</td><td>Teufelsschlucht &amp; Dinosaurierpark Ernzen</td></tr>
+      <tr><td><a href="https://www.festivalsindeutschland.de/" target="_blank" rel="noopener">www.festivalsindeutschland.de ↗</a></td><td class="mono">1</td><td>Trierer Viezfest</td></tr>
+      <tr><td><a href="https://www.greifvogelpark-saarburg.de/" target="_blank" rel="noopener">www.greifvogelpark-saarburg.de ↗</a></td><td class="mono">1</td><td>Greifvogelpark Saarburg</td></tr>
+      <tr><td><a href="https://www.kulturbesitz.de/" target="_blank" rel="noopener">www.kulturbesitz.de ↗</a></td><td class="mono">1</td><td>Römische Villa Nennig mit dem Gladiatorenmosaik</td></tr>
+      <tr><td><a href="https://www.longuich.de/" target="_blank" rel="noopener">www.longuich.de ↗</a></td><td class="mono">1</td><td>Führung Römische Villa Urbana Longuich</td></tr>
+      <tr><td><a href="https://www.luxembourg-city.com/" target="_blank" rel="noopener">www.luxembourg-city.com ↗</a></td><td class="mono">1</td><td>Bock-Kasematten Luxemburg</td></tr>
+      <tr><td><a href="https://www.mosel.de/" target="_blank" rel="noopener">www.mosel.de ↗</a></td><td class="mono">1</td><td>Römerweinschiff Stella Noviomagi</td></tr>
+      <tr><td><a href="https://www.museum-am-dom-trier.de/" target="_blank" rel="noopener">www.museum-am-dom-trier.de ↗</a></td><td class="mono">1</td><td>Museum am Dom</td></tr>
+      <tr><td><a href="https://www.naturpark-suedeifel.de/" target="_blank" rel="noopener">www.naturpark-suedeifel.de ↗</a></td><td class="mono">1</td><td>Römische Villa Otrang</td></tr>
+      <tr><td><a href="https://www.ruwer-hochwald-radweg.de/" target="_blank" rel="noopener">www.ruwer-hochwald-radweg.de ↗</a></td><td class="mono">1</td><td>Römische Ruwerwasserleitung</td></tr>
+      <tr><td><a href="https://www.st-maximin-trier.de/" target="_blank" rel="noopener">www.st-maximin-trier.de ↗</a></td><td class="mono">1</td><td>St. Maximin</td></tr>
+      <tr><td><a href="https://www.teufelsschlucht-eifel.de/" target="_blank" rel="noopener">www.teufelsschlucht-eifel.de ↗</a></td><td class="mono">1</td><td>Genovevahöhle &amp; Burg Ramstein</td></tr>
+      <tr><td><a href="https://www.trierer-original.de/" target="_blank" rel="noopener">www.trierer-original.de ↗</a></td><td class="mono">1</td><td>Mariensäule</td></tr>
     </tbody>
   </table>
   </div>
@@ -1314,6 +1404,53 @@ NACHSCHÄRFEN (Folgeprompts, die sich bewährt haben)
 </div></section>
 
 <style>
+.druckkopf{display:none}
+/* ---------- Druckansicht ----------
+   Gedruckt wird genau das, was gerade in der Liste steht: dieselben Filter,
+   dieselbe Sortierung. Alles andere der Seite fällt weg. Zwei Spalten, und
+   eine Karte darf nicht über den Spaltenumbruch zerreißen. */
+@media print{
+  @page{ size:A4 portrait; margin:14mm 12mm; }
+  html,body{background:#fff !important; color:#111 !important; font-size:9.6pt}
+  .topbar, header.hero, .radarwrap, .filters, .edgebox, footer,
+  section:not(#guide), #guide > .wrap > h2, #guide > .wrap > .sub,
+  #druckBtn, .fav, .zaehlzeile button{ display:none !important; }
+  section{border:none; padding:0}
+  .wrap{max-width:none; padding:0}
+  .zaehlzeile{display:block; margin:0 0 4mm; border-bottom:1px solid #999; padding-bottom:2mm}
+  .count{font-size:8.4pt; color:#333}
+  .druckkopf{display:block; font-family:"Cinzel",serif; font-size:13pt; margin-bottom:1mm; color:#111}
+  .grid{display:block; column-count:2; column-gap:7mm}
+  .card{ break-inside:avoid; page-break-inside:avoid; -webkit-column-break-inside:avoid;
+    display:block; border:1px solid #bbb !important; border-radius:3mm; box-shadow:none !important;
+    padding:3mm 3.4mm; margin:0 0 4mm; background:#fff !important; transform:none !important; }
+  .card.event{border-top:2px solid #999 !important}
+  .card h3{font-size:10.6pt; color:#111 !important; background:none !important;
+    -webkit-text-fill-color:#111 !important; margin-bottom:.6mm}
+  .card .ort{font-size:7.4pt; color:#555 !important}
+  .card .drive{font-size:8.4pt; color:#111 !important; text-align:right}
+  .card .drive b{font-size:9.4pt}
+  .card p.desc{font-size:8.4pt; color:#222 !important; margin-top:1mm}
+  .card .fit{font-size:8.4pt; color:#111 !important; background:#f2f2f2 !important;
+    border-left:2px solid #999 !important; padding:1.4mm 2mm}
+  .card .fit b{color:#444 !important}
+  .badges{gap:1.5mm}
+  .datebadge,.pflichtbadge,.socialbadge,.atlasbadge{
+    font-size:7.2pt; color:#111 !important; background:#eee !important; border:none !important; padding:.4mm 1.6mm}
+  .ev{font-size:7pt; color:#111 !important; background:#e6e6e6 !important}
+  /* Belege sind auf Papier unbrauchbar lang. An ihre Stelle treten Adresse
+     und Telefon, die man unterwegs wirklich braucht. */
+  .card .meta a, .card .meta .sep{display:none !important}
+  .card .meta{font-size:7.6pt; color:#333 !important; border-top:1px dotted #999; gap:1.5mm}
+  .druckdaten{display:block !important; font-family:"IBM Plex Mono",monospace;
+    font-size:7.8pt; color:#111; margin-top:1.2mm; line-height:1.45}
+  .druckdaten b{font-weight:600}
+  .druckdaten .fehlt{color:#777}
+  a{color:#111 !important; text-decoration:none}
+}
+</style>
+
+<style>
 .promptbox{background:var(--panel); border:2px solid var(--line); border-radius:18px; overflow:hidden; box-shadow:var(--shadow)}
 .promptbar{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 16px; background:var(--panel2); border-bottom:2px solid var(--line)}
 .promptbar .mono{font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted)}
@@ -1413,27 +1550,27 @@ const G={
 /* ---- Einträge ---- */
 const M=[
  /* ===== Die neun UNESCO-Bauten ===== */
- {id:"porta-nigra",typ:"ort",n:"Porta Nigra",o:"Trier-Altstadt",cat:["roemisch","pflicht","stadt","kind"],ao:1,
+ {id:"porta-nigra",typ:"ort",n:"Porta Nigra",o:"Trier-Altstadt",adr:"Simeonstraße 60, 54290 Trier",tel:"0651 9774-218",cat:["roemisch","pflicht","stadt","kind"],ao:1,
   d:"Um 170 n. Chr. aus rund 7.200 Sandsteinquadern ohne Mörtel gefügt und mit Eisenklammern verbunden: das besterhaltene römische Stadttor nördlich der Alpen. Dass es steht, verdankt es dem Einsiedler Simeon, der sich 1028 im Ostturm einmauern ließ. Daraus wurde eine Doppelkirche, die Napoleon 1802 bis auf den römischen Kern zurückbauen ließ. Über zwei Ebenen begehbar.",
   rom:"Der erste Blick, der klarmacht: Trier ist keine Stadt mit Römerresten, sondern eine römische Stadt. Oben im Wehrgang steht man in den Öffnungen der Kaiserzeit. Die schwarze Farbe ist übrigens Verwitterung, kein Bauentscheid.",
   p:"6 € / erm. 5 € / Kind 6–17 J. 3 € · Familie 6 bzw. 12 €",z:"Apr–Sep tägl. 9–18",ev:"A",
   lk:[["Zentrum der Antike · Porta Nigra","https://www.zentrum-der-antike.de/monumente/porta-nigra"],["AntikenCard","https://www.zentrum-der-antike.de/angebote-programm/antikencard"]]},
- {id:"amphitheater",typ:"ort",n:"Amphitheater",o:"Trier, am Petrisberg",cat:["roemisch","pflicht","kind","unterirdisch","makaber"],
+ {id:"amphitheater",typ:"ort",n:"Amphitheater",o:"Trier, am Petrisberg",adr:"Olewiger Straße 25, 54295 Trier",tel:"0651 9774-210",cat:["roemisch","pflicht","kind","unterirdisch","makaber"],
   d:"120 × 145 m, um 100 n. Chr. in den Hang gebaut, Platz für rund 18.000 Zuschauer, womit es unter den erhaltenen Amphitheatern der römischen Welt an zehnter Stelle steht. Erhalten sind die Arenaebene, die Zuschauerwälle und vor allem der Keller unter der Arena mit den Schächten, über die Tiere und Kulissen nach oben gehievt wurden.",
   rom:"Der Keller ist der Punkt, an dem das Bild vom bloßen Erdwall kippt: Man steht dort, wo die Aufzüge standen. Wer nur oben herumläuft, hat die Hälfte verpasst.",
   p:"6 € / erm. 5 € / Kind 3 €",z:"Apr–Sep tägl. 9–18",ev:"A",
   lk:[["Tourist-Information · Amphitheater","https://www.trier-info.de/en/places-of-interest/the-amphitheatre"],["Zentrum der Antike","https://www.zentrum-der-antike.de/"]]},
- {id:"kaiserthermen",typ:"ort",n:"Kaiserthermen",o:"Trier-Süd",cat:["roemisch","thermen","pflicht","unterirdisch"],
+ {id:"kaiserthermen",typ:"ort",n:"Kaiserthermen",o:"Trier-Süd",adr:"Weberbach 41, 54290 Trier",tel:"0651 9774-212",cat:["roemisch","thermen","pflicht","unterirdisch"],
   d:"Begonnen unter Konstantin im frühen 4. Jh., die größte Thermenanlage des Römischen Reichs außerhalb Roms. Die Reste des Caldariums ragen bis 19 m auf. Unter dem Boden liegt ein begehbares Labyrinth aus Bedienungsgängen und Heizkanälen, dazu ein Aussichtspunkt über den ehemaligen Palastbezirk und eine Filmanimation zur Baugeschichte.",
   rom:"Die Pointe der Anlage: Wahrscheinlich hat hier nie jemand gebadet, weil der Bau mitten in der Ausführung umgeplant wurde und später als Kaserne diente. Wer die Untergänge abläuft, versteht römische Bautechnik besser als in jeder Vitrine.",
   p:"6 € / erm. 5 € / Kind 3 €",z:"Apr–Sep tägl. 9–18",ev:"A",
   lk:[["Zentrum der Antike · Kaiserthermen","https://www.zentrum-der-antike.de/monumente/kaiserthermen"],["Tourist-Information","https://www.trier-info.de/sehenswuerdigkeiten/kaiserthermen"]]},
- {id:"barbarathermen",typ:"ort",n:"Barbarathermen",o:"Trier, Südallee",cat:["roemisch","thermen","gratis","pflicht","unterirdisch"],
+ {id:"barbarathermen",typ:"ort",n:"Barbarathermen",o:"Trier, Südallee",adr:"Südallee, 54290 Trier",tel:"0651 4608965",cat:["roemisch","thermen","gratis","pflicht","unterirdisch"],
   d:"2. Jh. n. Chr., mit rund 42.000 m² nach den Trajansthermen in Rom die zweitgrößte Thermenanlage des Reichs. Oberirdisch ist wenig geblieben, die Anlage war jahrhundertelang Steinbruch. Dafür führt ein Besuchersteg über den freigelegten Grundriss samt Heizkellern.",
   rom:"Der Steg kostet nichts und zeigt genau das, wofür man in Rom ein Ticket braucht: den Unterbau einer Großtherme im Schnitt, von oben lesbar wie ein Bauplan.",
   p:"0 € · Besuchersteg frei zugänglich",z:"tägl. 10–18",ev:"A",
   lk:[["Tourist-Information · Barbarathermen","https://www.trier-info.de/sehenswuerdigkeiten/barbarathermen"],["Zentrum der Antike","https://www.zentrum-der-antike.de/monumente/barbarathermen"]]},
- {id:"viehmarktthermen",typ:"ort",n:"Thermen am Viehmarkt",o:"Trier, Viehmarktplatz",cat:["roemisch","thermen","indoor","unterirdisch"],
+ {id:"viehmarktthermen",typ:"ort",n:"Thermen am Viehmarkt",o:"Trier, Viehmarktplatz",adr:"Viehmarktplatz 2, 54290 Trier",tel:"0651 9774-214",cat:["roemisch","thermen","indoor","unterirdisch"],
   d:"1987 beim Bau einer Tiefgarage entdeckt, heute unter einem Glaskubus von Oswald Mathias Ungers: römische Thermenreste, darüber Fundamente eines Kapuzinerklosters und mittelalterliche Keller, sodass man 1.800 Jahre Stadtgeschichte in einem einzigen Schnitt und dabei komplett überdacht vor sich hat.",
   rom:"Das trockenste Ziel bei Regen. Und der beste Ort, um zu begreifen, wie viel römisches Trier unter dem heutigen Pflaster noch steckt.",
   p:"6 € / erm. 5 € / Kind 3 €",z:"tägl. 11–17",ev:"A",
@@ -1457,15 +1594,15 @@ const M=[
   d:"1235–1260 direkt an den Dom gebaut: einer der frühesten gotischen Kirchenbauten Deutschlands, als Zentralbau über einem zwölfblättrigen Grundriss. Teil desselben UNESCO-Welterbes wie Dom und Römerbauten.",
   rom:"Der Kontrast, der den Dom erklärt: römischer Massivbau neben gotischem Rippenwerk, zwei Meter voneinander entfernt.",
   p:"0 €",z:"tagsüber geöffnet",ev:"B",
-  lk:[["Tourist-Information · Museen und Kirchen","https://www.trier-info.de/sehenswuerdigkeiten/dom-in-trier"]]},
- {id:"igel",typ:"ort",n:"Igeler Säule",o:"Igel an der Mosel",cat:["roemisch","gratis","pflicht","makaber"],
+  lk:[["Tourist-Information · Dom","https://www.trier-info.de/sehenswuerdigkeiten/dom-in-trier"]]},
+ {id:"igel",typ:"ort",n:"Igeler Säule",o:"Igel an der Mosel",adr:"54298 Igel",cat:["roemisch","gratis","pflicht","makaber"],
   d:"Rund 23 m hoher Pfeiler aus rotem Sandstein, errichtet in der ersten Hälfte des 3. Jh. von der Tuchhändlerfamilie der Secundinier. Die Reliefs zeigen Alltag und Berufsleben der Händler sowie mythologische Szenen. Ganzjährig frei zugänglich. Die Treppenanlage kann bei Wetter gesperrt sein.",
   rom:"Neben dem Mainzer Drususstein ist das hier das einzige römische Grabmal nördlich der Alpen, das seit der Antike an seinem Originalstandort oberirdisch steht, ohne dass irgendetwas daran rekonstruiert oder versetzt worden wäre.",
   p:"0 €",z:"ganzjährig frei",ev:"A",
   lk:[["Zentrum der Antike · Igeler Säule","https://www.zentrum-der-antike.de/monumente/igeler-saeule"],["Gemeinde Igel","https://gemeinde-igel.de/tourismus/sehenswertes/"]]},
 
  /* ===== Museen ===== */
- {id:"landesmuseum",typ:"ort",n:"Rheinisches Landesmuseum",o:"Trier, Weimarer Allee",cat:["museum","roemisch","pflicht","indoor","kind"],
+ {id:"landesmuseum",typ:"ort",n:"Rheinisches Landesmuseum",o:"Trier, Weimarer Allee",adr:"Weimarer Allee 1, 54290 Trier",cat:["museum","roemisch","pflicht","indoor","kind"],
   d:"Eine der bedeutendsten Antikensammlungen Deutschlands: rund 4.500 Objekte in der Dauerausstellung, dazu ein Münzkabinett mit etwa 12.000 Stücken. Hier stehen die Originale der Neumagener Grabdenkmäler samt Weinschiff, die großen Mosaike und das Modell des römischen Trier.",
   rom:"Wenn nur ein Innenraum drin ist, dann dieser, und zwar vor den Ruinen. Das Neumagener Weinschiff und die Grabpfeiler machen die Region lesbar. Danach sieht man in den Kaiserthermen mehr als vorher.",
   p:"10 € / erm. 8 € · in der AntikenCard enthalten",z:"Di–So 10–17, letzter Einlass 16:30 · Mo geschlossen",ev:"A",
@@ -1485,7 +1622,7 @@ const M=[
   rom:"Erklärt den zweiten Teil der Porta-Nigra-Geschichte: wie aus einem römischen Tor eine Kirche und daraus wieder ein Tor wurde.",
   p:"Familienkarte 5 € bzw. 9,50 € · Gruppen 4,50 € p. P. · jeder 1. So im Monat 1 €",z:"Di–So · Mo geschlossen",ev:"B",
   lk:[["Besucherinfos Stadtmuseum","https://museum-trier.de/besucherinfos/"],["Museen in Trier","https://www.trier.de/5077"]]},
- {id:"karl-marx",typ:"ort",n:"Museum Karl-Marx-Haus",o:"Trier, Brückenstraße 10",cat:["museum","indoor","ohneantike"],ao:1,
+ {id:"karl-marx",typ:"ort",n:"Museum Karl-Marx-Haus",o:"Trier, Brückenstraße 10",adr:"Brückenstraße 10, 54290 Trier",tel:"0651 970680",cat:["museum","indoor","ohneantike"],ao:1,
   d:"Geburtshaus von Karl Marx, seit 1947 Museum der Friedrich-Ebert-Stiftung: Leben, Werk und weltweite Wirkung, mit Blick auf das Trier des 19. Jahrhunderts.",
   rom:"Kein Römerziel. Aber das zweite Trier, wegen dem Leute anreisen, und zehn Gehminuten vom Hauptmarkt. Zwischen 13:00 und 13:30 kein Einlass.",
   p:"7 € / erm. 5 € / Familie 10 €",z:"Di–So 10–18 · letzter Einlass 17:30",ev:"A",
@@ -1496,7 +1633,7 @@ const M=[
   d:"Seit 958 Marktplatz. Das Marktkreuz trägt eine antike Granitsäule als Schaft, also römisches Material, das man im Mittelalter einfach weiterverwendet hat. Ringsum Steipe, Rotes Haus, Petrusbrunnen. Mo–Sa 8–19 Uhr stehen die Stände des ständigen Markts.",
   rom:"Ein Lehrstück in Spolienverwendung: Die Römer sind hier nicht verschwunden, sie sind verbaut worden.",
   p:"0 €",z:"immer · Marktstände Mo–Sa 8–19",ev:"B",
-  lk:[["Stadt Trier · Märkte","https://www.trier.de/wirtschaft-arbeit/einzelhandel/wochenmaerkte/"],["Tourist-Information","https://www.trier-info.de/maerkte-in-trier"]]},
+  lk:[["Stadt Trier · Wochenmärkte","https://www.trier.de/wirtschaft-arbeit/einzelhandel/wochenmaerkte/"],["Tourist-Information","https://www.trier-info.de/maerkte-in-trier"]]},
  {id:"kryptoportikus",typ:"ort",n:"Kurfürstliches Palais & Palastgarten",o:"Trier, an der Basilika",cat:["stadt","gratis","natur","gemuetlich","ohneantike","unterirdisch"],
   d:"Rokoko-Palais direkt an die Konstantin-Basilika gebaut, davor ein Barockgarten mit Kopien der Putten und Sphingen von Ferdinand Tietz. Unter dem Gelände liegt die Kryptoportikus, ein römischer Wandelgang, nur im Rahmen von Führungen zugänglich.",
   rom:"Der Garten ist der beste Platz, um die Basilika von außen zu begreifen: Rokoko-Fassade und römische Ziegelwand stoßen hier direkt aneinander.",
@@ -1517,7 +1654,7 @@ const M=[
   rom:"Der Weinbau, den er erklärt, ist römisch angelegt. Die Steillagen an der Mosel gehen auf die Antike zurück. Der Pfad macht aus „die Römer brachten den Wein“ eine begehbare Aussage.",
   p:"0 €",z:"immer",ev:"A",
   lk:[["Tourist-Information · Weinkulturpfad","https://www.trier-info.de/sehenswuerdigkeiten/weinkulturpfad"]]},
- {id:"roemerexpress",typ:"ort",n:"Römer-Express (Stadtrundfahrt)",o:"ab Porta Nigra",cat:["stadt","kind","gemuetlich"],
+ {id:"roemerexpress",typ:"ort",n:"Römer-Express (Stadtrundfahrt)",o:"ab Porta Nigra",adr:"Abfahrt an der Porta Nigra, Trier",cat:["stadt","kind","gemuetlich"],
   d:"45-Minuten-Rundfahrt ab Porta Nigra an den Römerbauten vorbei, Ansage vom Band auf Deutsch, Englisch, Niederländisch und Französisch. April bis Oktober täglich 10–18 Uhr, etwa alle 30 Minuten mit zwei Bahnen.",
   rom:"Nützlich am ersten Tag, um die Lage der Bauten zueinander zu sortieren. Danach zu Fuß, weil die Bahn an keinem hält.",
   p:"10 € / Kind 6–14 J. 5 € / unter 6 J. frei / Familie 25 €",z:"Apr–Okt tägl. 10–18, ca. alle 30 min",ev:"A",
@@ -1529,17 +1666,17 @@ const M=[
   lk:[["Moselrundfahrten Gebr. Kolb","https://www.moselrundfahrten.de/"],["Tourist-Information · Schifffahrten","https://www.trier-info.de/schifffahrten/informationen-und-planung"]]},
 
  /* ===== Wein & Essen ===== */
- {id:"hospitien",typ:"ort",n:"Vereinigte Hospitien, ältester Weinkeller Deutschlands",o:"Trier, Krahnenufer 19",cat:["wein","roemisch","pflicht","essen","unterirdisch"],
+ {id:"hospitien",typ:"ort",n:"Vereinigte Hospitien, ältester Weinkeller Deutschlands",o:"Trier, Krahnenufer 19",adr:"Krahnenufer 19, 54290 Trier",tel:"0651 945-1210",cat:["wein","roemisch","pflicht","essen","unterirdisch"],
   d:"Der Kellerraum wurde um 330 n. Chr. als römisches Magazin gebaut und wird seither ununterbrochen genutzt, was ihn zum ältesten Weinkeller Deutschlands macht. Die Entdeckerführung dauert rund 60 Minuten und schließt zwei Weine des VDP-Guts ein. Treffpunkt ist die Vinothek.",
   rom:"Römische Mauern, in denen heute Riesling liegt. Näher kommt man der Kontinuität zwischen Augusta Treverorum und der Mosel an keinem anderen Ort. Und man darf sie trinken.",
   p:"Führung 17,50 € p. P. · Gruppen 27 € (Sekt + fünf Weine, 90 min)",z:"Apr–Okt Mi & Fr sowie ausgewählte Sa, 11:00",ev:"A",
   lk:[["Weingut · Kellerführungen","https://weingut.vereinigtehospitien.de/pages/kellerfuhrungen"],["Tourist-Information","https://www.trier-info.de/oeffentliche-fuehrungen/entdeckerfuehrung-im-aeltesten-weinkeller-deutschlands"]]},
- {id:"domstein",typ:"ort",n:"Zum Domstein & Römerkeller",o:"Trier, Hauptmarkt",cat:["essen","roemisch","pflicht","indoor","unterirdisch"],
+ {id:"domstein",typ:"ort",n:"Zum Domstein & Römerkeller",o:"Trier, Hauptmarkt",adr:"Hauptmarkt, 54290 Trier",cat:["essen","roemisch","pflicht","indoor","unterirdisch"],
   d:"Serviert seit Jahrzehnten römische Gerichte nach „De re coquinaria“ des Apicius, als Menü oder à la carte, abends von 17:30 bis 21:30. Im Keller steht der südwestliche Pfeiler der konstantinischen Doppelkirche, freigelegt beim U-Bahn-ähnlichen Tiefbau der 1970er. Dazu Funde, Repliken und eine der besten privaten Sammlungen römischen Glases aus 150–350 n. Chr.",
   rom:"Die eindeutige Antwort auf „wo sollte man als Rom-Fan gegessen haben“: hier, abends, mit dem Apicius-Menü. Vorher runter in den Römerkeller. Warme Küche gibt es schon ab 11:30, die römische Karte aber erst abends.",
   p:"römische Küche als Menü oder à la carte",z:"tägl. 9:30–24 · warme Küche 11:30–21:30 · römisch 17:30–21:30",ev:"A",
   lk:[["Zum Domstein · Historisches","https://domstein.de/historisches/"],["Speisekarte","https://domstein.de/?lang=en"]]},
- {id:"kesselstatt",typ:"ort",n:"Weinstube Kesselstatt",o:"Trier, Liebfrauenstraße 10",cat:["essen","wein","gemuetlich"],soc:1,
+ {id:"kesselstatt",typ:"ort",n:"Weinstube Kesselstatt",o:"Trier, Liebfrauenstraße 10",adr:"Liebfrauenstraße 10, 54290 Trier",cat:["essen","wein","gemuetlich"],soc:1,
   d:"Weingarten direkt gegenüber Dom und Liebfrauenkirche, Bedienung am Buffet, Moselweine aus dem eigenen Gut, saisonale deutsche Küche. Auf Tripadvisor Platz 7 von 256 Trierer Lokalen.",
   rom:"Der Platz, an dem man mit einem Glas Riesling zwei UNESCO-Bauten gleichzeitig im Blick hat. Kein römischer Bezug im Haus. Dafür der beste Sitzplatz der Altstadt.",
   p:"Weinstube mit Terrasse",z:"saisonal",ev:"C",
@@ -1564,7 +1701,7 @@ const M=[
   rom:"Kein römischer Ort, aber der Platz, an dem Trier abends stattfindet. Fußweg vom Hauptmarkt rund 15 Minuten am Fluss entlang.",
   p:"0 € (Uferweg) · Gastronomie nach Karte",z:"immer",ev:"B",
   lk:[["Zurlaubener Heimatfest","https://en.visitmosel.de/cities-culture/event/zurlaubener-heimatfest"],["Programm 2026 (lokalo.de)","https://lokalo.de/artikel/419250/zurlaubener-moselfest-trier-2026-programm-feuerwerk-kirmes-clouds/"]]},
- {id:"oechsle",typ:"ort",n:"Weinhaus Oechsle & Weinwirtschaft Friedrich Wilhelm",o:"Trier-Altstadt",cat:["essen","wein","gemuetlich","ohneantike"],soc:1,
+ {id:"oechsle",typ:"ort",n:"Weinhaus Oechsle & Weinwirtschaft Friedrich Wilhelm",o:"Trier-Altstadt",adr:"Palaststraße 5–7 bzw. Weberbach 75, Trier",cat:["essen","wein","gemuetlich","ohneantike"],soc:1,
   d:"Zwei häufig empfohlene Adressen für Moselwein in der Altstadt: Weinhaus Oechsle in der Palaststraße 5–7 und die Weinwirtschaft Friedrich Wilhelm in der Weberbach 75.",
   rom:"Für den Abend, an dem es nur um den Wein geht. Also um das Produkt, das die Römer hierher gebracht haben.",
   p:"Weinstube",z:"nicht belegt",ev:"C",
@@ -1575,7 +1712,7 @@ const M=[
   d:"Rekonstruierter Tempelbezirk auf dem Metzenberg über der römischen Fernstraße von Trier nach Metz: ein Merkurtempel und mehrere Nebenbauten, mitten im Wald. Vom ausgeschilderten Parkplatz am Ortsrand rund 10 Minuten zu Fuß. Ganzjährig geöffnet, kein Eintritt.",
   rom:"Aufgebaute Tempel statt Grundrisse. Und die Lage erklärt, warum sie hier stehen: an einer Fernstraße, auf einer Höhe, mit Blick.",
   p:"0 €",z:"ganzjährig frei · Führungen Mai–Okt So 14:30–16:30",ev:"A",
-  lk:[["Verein Römisches Tawern e.V.","https://www.roemisches-tawern.de/tempelbezirk/"],["Führungen","http://www.roemisches-tawern.de/?page_id=503"]]},
+  lk:[["Verein Römisches Tawern e.V.","https://www.roemisches-tawern.de/tempelbezirk/"],["Verein Römisches Tawern e.V.","https://www.roemisches-tawern.de/?page_id=503"]]},
  {id:"villa-otrang",typ:"ort",n:"Römische Villa Otrang",o:"Fließem, Bitburger Land",cat:["roemisch","museum","gratis"],
   d:"Eines der größten römischen Landgüter der Region, ab 1833 freigelegt. Zwei Schutzhäuser bewahren die Mosaikböden, dazu Bade- und Wohntrakt im Außengelände. Eintritt und öffentliche Führungen kostenfrei. Im Winter geschlossen.",
   rom:"Mosaike im Original und ohne Kasse. Die nächste öffentliche Führung ist am 30.08.2026 um 11 Uhr, also eine Woche nach der Reise. Das Gelände ist ohnehin frei begehbar.",
@@ -1586,7 +1723,7 @@ const M=[
   rom:"Wer „Gladiator“ im Kopf hat, findet hier die Szene als römisches Bild statt als Hollywood-Deutung, und zwar an dem Ort, für den sie gelegt wurde. Mittwochs ab 15 Uhr und am 1. Sonntag im Monat ist der Eintritt frei.",
   p:"3 € / erm. 1,50 € · unter 18 J., Studierende, Azubis frei",z:"Apr–Okt tägl. 10–18",ev:"A",
   lk:[["Römische Villa Nennig · Ihr Besuch","https://www.roemischevillanennig.de/de/ihr-besuch"],["Stiftung saarländischer Kulturbesitz","https://www.kulturbesitz.de/de/museen/roemische-villa-nennig"]]},
- {id:"villa-borg",typ:"ort",n:"Archäologiepark Römische Villa Borg & Taverne",o:"Perl-Borg (Saarland)",cat:["roemisch","essen","museum","thermen","pflicht","kind"],
+ {id:"villa-borg",typ:"ort",n:"Archäologiepark Römische Villa Borg & Taverne",o:"Perl-Borg (Saarland)",adr:"Im Meeswald 1, 66706 Perl-Borg",tel:"06865 9117-0",cat:["roemisch","essen","museum","thermen","pflicht","kind"],
   d:"Auf den Originalfundamenten rekonstruierte Villa: Herrenhaus, Bad mit funktionierender Hypokaustenheizung, Küche, römischer Garten und Taverne. Die Taverne kocht nach Rezepten des Apicius, Di–So 11–18.",
   rom:"Der einzige Ort der Region, an dem man ein römisches Landgut betritt statt einen Grundriss zu lesen. Und im selben Haus römisch isst. Montags komplett geschlossen.",
   p:"6 € / Kind bis 14 J. 2 € / Familie 12 € / Gruppen ab 20 P. 3 €",z:"Apr–Okt Di–So & feiertags 10–18 · Mo geschlossen",ev:"A",
@@ -1625,15 +1762,15 @@ const M=[
   d:"Tunnelwasserleitung römischen Ursprungs, in den Schieferfels gehauen. 1987/88 wurden rund 50 m der insgesamt etwa 400 m langen Anlage freigelegt. Ein Themenweg führt den weiteren Verlauf hinauf in die Weinberge.",
   rom:"Ein Qanat an der Mosel, also dieselbe Technik wie im Vorderen Orient, von der römischen Verwaltung mitgebracht und trotzdem in keiner Trier-Liste zu finden.",
   p:"0 €",z:"immer",ev:"B",
-  lk:[["Römische Wasserleitung Pölich","https://en.visitmosel.de/cities-culture/poi/roman-water-pipe"],["Römische Wasserleitungen der Region","http://www.abel-perl.com/Die-Roemer-in-der-Region/Roemische-Wasserleitungen/"]]},
- {id:"weinschiff",typ:"ort",n:"Römerweinschiff Stella Noviomagi",o:"Neumagen-Dhron",cat:["roemisch","wein","pflicht"],
+  lk:[["Römische Wasserleitung Pölich","https://en.visitmosel.de/cities-culture/poi/roman-water-pipe"],["Römische Wasserleitungen der Region","https://www.abel-perl.com/Die-Roemer-in-der-Region/Roemische-Wasserleitungen/"]]},
+ {id:"weinschiff",typ:"ort",n:"Römerweinschiff Stella Noviomagi",o:"Neumagen-Dhron",adr:"Info-Pavillon, Pelzergasse 7, 54347 Neumagen-Dhron",cat:["roemisch","wein","pflicht"],
   d:"Fahrtüchtiger Nachbau des Neumagener Weinschiffs. Das Original steht als Grabdenkmal im Rheinischen Landesmuseum Trier. Treffpunkt ist der Info-Pavillon Römerweinschiff, Pelzergasse 7, wo die Fahrt mit einem Film beginnt.",
   rom:"Das Denkmal, das man im Museum als Stein sieht, fährt hier auf dem Fluss. Die einzige Gelegenheit dieser Art. Erst ins Landesmuseum, dann aufs Schiff, in dieser Reihenfolge.",
   p:"Kulturfahrt 18 € p. P. · Kinder 6–14 J. halber Preis",z:"Mai–Okt Sa 15:30/16:00, So 10:00 · Samstagszeit widersprüchlich (Kapitel 7)",ev:"A",
   lk:[["Neumagen-Dhron · Weinschiff","https://www.neumagen-dhron.de/weinschiff-stella-noviomagi/"],["Mosel-Touristinformation","https://www.mosel.de/freizeit/schifffahrt/details/?tx_ttnews%5Btt_news%5D=554&cHash=5394458d8ee91cfff911209e0d2163d7"]]},
 
  /* ===== Umland allgemein ===== */
- {id:"roscheider-hof",typ:"ort",n:"Freilichtmuseum Roscheider Hof",o:"Konz",cat:["museum","natur","kind","ohneantike"],
+ {id:"roscheider-hof",typ:"ort",n:"Freilichtmuseum Roscheider Hof",o:"Konz",adr:"Roscheiderhof 1, 54329 Konz",tel:"06501 83-0",cat:["museum","natur","kind","ohneantike"],
   d:"Volkskunde- und Freilichtmuseum über der Saarmündung: historische Gebäude, Handwerk und ländliches Leben der Region. Saison 21.03.–02.11.2026, täglich 10–18 Uhr, Kasse bis 17 Uhr. Die Museumsgaststätte ist montags geschlossen.",
   rom:"Kein Römerziel, aber die Fortsetzung derselben Frage: wie in dieser Landschaft gearbeitet und gewohnt wurde, nur 1.500 Jahre später.",
   p:"Kinder bis 6 J. frei · Erwachsenenpreis nicht belegt (Kapitel 9)",z:"21.03.–02.11.2026 tägl. 10–18",ev:"B",
@@ -1665,17 +1802,17 @@ const M=[
   lk:[["Visit Luxembourg","https://www.visitluxembourg.com/"]]},
 
 /* ===== Makabres, Bizarres, Unterirdisches ===== */
- {id:"matthias",typ:"ort",n:"Basilika St. Matthias, das einzige Apostelgrab nördlich der Alpen",o:"Trier-Süd, Matthiasstraße",cat:["makaber","unterirdisch","stadt","gratis","indoor"],
+ {id:"matthias",typ:"ort",n:"Basilika St. Matthias, das einzige Apostelgrab nördlich der Alpen",o:"Trier-Süd, Matthiasstraße",adr:"Matthiasstraße 85, 54290 Trier",tel:"0651 1709-0",cat:["makaber","unterirdisch","stadt","gratis","indoor"],
   d:"Romanische Basilika der Benediktinerabtei. In der Krypta liegt neben den Gräbern der beiden Trierer Gründerbischöfe Eucharius und Valerius das Grab des Apostels Matthias, das einzige Apostelgrab auf deutschem Boden und nördlich der Alpen, seit dem 12. Jahrhundert Ziel Tausender Pilger. Die Basilika ist von der Morgenhore bis 20 Uhr durchgehend offen.",
   rom:"Trier hat nicht nur Kaiser, sondern auch einen Apostel im Boden, und zwei spätantike Bischöfe gleich daneben. Wer die Reihe Rom, Christentum, Mittelalter zu Ende gehen will, endet hier und nicht am Dom.",
   p:"0 €",z:"tägl. bis 20:00 · Klosterladen Mo–Fr 14–17:45, Sa 9:30–12, So 11–12:45",ev:"A",
   lk:[["Benediktinerabtei St. Matthias","https://abteistmatthias.de/"],["Tourist-Information · St. Matthias","https://www.trier-info.de/sehenswuerdigkeiten/st-matthias"]]},
- {id:"paulin",typ:"ort",n:"St. Paulin: gemalte Märtyrer an der größten Decke des Rheinlands",o:"Trier-Nord, Thebäerstraße",cat:["makaber","bizarr","stadt","gratis","indoor"],
+ {id:"paulin",typ:"ort",n:"St. Paulin: gemalte Märtyrer an der größten Decke des Rheinlands",o:"Trier-Nord, Thebäerstraße",adr:"Thebäerstraße, Trier-Nord",cat:["makaber","bizarr","stadt","gratis","indoor"],
   d:"Spätbarocker Bau von 1734–1757, ausgestattet nach Entwürfen Balthasar Neumanns. Das Deckengemälde von Christoph Thomas Scheffler aus 1743 ist das größte im gesamten Rheinland: Im Chor Szenen aus dem Leben des heiligen Paulinus, im Hauptschiff das <b>Martyrium der Soldaten der Thebäischen Legion</b>, einer der Legende nach christlichen römischen Legion, die hingerichtet wurde, weil sie ihrem Glauben nicht abschwor. Die römischen Knochenfunde unter der Kirche werden ihr zugeschrieben.",
   rom:"Ein barocker Hinrichtungshimmel über einem antiken Knochenfeld, und die Straße draußen heißt Thebäerstraße. Makaberer wird Trier nicht. Gedacht wird der Legion jährlich Anfang Oktober an den Märtyrertagen.",
   p:"0 €",z:"tagsüber geöffnet",ev:"B",
   lk:[["Tourist-Information · St. Paulin","https://www.trier-info.de/sehenswuerdigkeiten/st-paulin"],["St. Paulin (Übersicht)","https://de.wikipedia.org/wiki/St._Paulin"]]},
- {id:"maximin",typ:"ort",n:"St. Maximin: Turnhalle über tausend Sarkophagen",o:"Trier, Maximinstraße",cat:["makaber","unterirdisch","bizarr","roemisch"],
+ {id:"maximin",typ:"ort",n:"St. Maximin: Turnhalle über tausend Sarkophagen",o:"Trier, Maximinstraße",adr:"Maximinstraße, Trier",cat:["makaber","unterirdisch","bizarr","roemisch"],
   d:"Die ehemalige Reichsabtei ist heute <b>Turn- und Veranstaltungshalle</b>: In dem gewaltigen ehemaligen Kirchenraum findet Schulsport statt. Darunter liegt eine antike Nekropole, denn um die Grablege der Bischöfe Agritius und Maximinus entstand im 4. Jahrhundert ein Bau mit Platz für rund 1.000 Sarkophage, deren älteste aus dem 2. Jahrhundert stammen und teils als Fundament der heutigen Kirche zweitverwendet wurden. Das antike Gräberfeld ist wieder zugänglich, aber nur in Gruppen bis 16 Personen und nur mit Führung.",
   rom:"Zwei Dinge auf einmal: eine römische Totenstadt im Keller und Schulsport darüber. Dazu die dunkelste Zahl der Region. Im Territorium der Abtei wurden zwischen 1586 und 1596 rund 400 Menschen als Hexen hingerichtet, ein Fünftel der Bevölkerung.",
   p:"Innenbesichtigung nur mit Führung",z:"nur im Rahmen von Führungen · Anmeldung nötig",ev:"B",
@@ -1685,7 +1822,7 @@ const M=[
   rom:"Der Fall, der die Sache kippen lässt: <b>Dietrich Flade</b>, Jurist, Richter und stellvertretender Statthalter, führte die Prozesse zunächst selbst. Dann zweifelte er an den Anschuldigungen und stellte sich gegen die routinemäßige Folter. 1588 wurde er selbst denunziert, monatelang gefoltert, zum Geständnis gezwungen und öffentlich verbrannt.",
   p:"0 €",z:"dauerhaft zugänglich",t:"jederzeit",w:[["2026-01-01","2027-12-31"]],ev:"B",
   lk:[["Stadt Trier · Erpresste Geständnisse, entvölkerte Dörfer","https://www.trier.de/leben-in-trier/stadtportrait/geschichte/ueberblick/triers-vergessene-geschichten/16811.Erpresste-Gestaendnisse-entvoelkerte-Doerfer.html"],["Die Trierer Hexenprozesse (Übersicht)","https://www.abel-perl.com/Ausfluege-nach-Rheinland-Pfalz/Trier/Die-Trierer-Hexenprozesse/"]]},
- {id:"judenfriedhof",typ:"ort",n:"Alter jüdischer Friedhof Weidegasse",o:"Trier, Weidegasse",cat:["makaber","stadt"],
+ {id:"judenfriedhof",typ:"ort",n:"Alter jüdischer Friedhof Weidegasse",o:"Trier, Weidegasse",adr:"Weidegasse, Trier",cat:["makaber","stadt"],
   d:"1651 vor der damaligen Stadtmauer angelegt: im alten Teil rund 150 Gräber, im napoleonisch erweiterten Teil etwas mehr als 350. Zuletzt belegt wurde er 1922, und von den Schändungen der NS-Zeit blieb er weitgehend verschont. Besichtigung sinnvoll im Rahmen der Führung, die Synagoge und Friedhof verbindet.",
   rom:"Auf demselben Friedhof liegen die Großeltern und Urgroßeltern von <b>Karl Marx</b> und die Urgroßeltern von <b>Marcel Proust</b>. Zwei Namen, die sonst in keiner gemeinsamen Fußnote vorkommen. Dazu Meir Bernkastel und Dr. Joseph Kahn.",
   p:"Führung über die Tourist-Information",z:"Zugang über Führung",ev:"B",
@@ -1695,12 +1832,12 @@ const M=[
   rom:"Der beste Ort, um zu zeigen, wie römisches Material weiterlebt: Auch das Marktkreuz am Hauptmarkt steht auf einer spätantiken Granitsäule des 4. Jahrhunderts. Der Stein liegt frei zugänglich, und die Geschichte funktioniert bei Kindern besser als jede Jahreszahl.",
   p:"0 €",z:"immer",ev:"B",
   lk:[["KuLaDig · Domstein Trier","https://www.kuladig.de/Objektansicht/O-110945-20150105-2"],["Marktkreuz Trier","https://de.wikipedia.org/wiki/Marktkreuz_(Trier)"]]},
- {id:"dreikoenigenhaus",typ:"ort",n:"Dreikönigenhaus, die Haustür im ersten Stock",o:"Trier, Simeonstraße",cat:["bizarr","stadt","gratis"],
+ {id:"dreikoenigenhaus",typ:"ort",n:"Dreikönigenhaus, die Haustür im ersten Stock",o:"Trier, Simeonstraße",adr:"Simeonstraße, Trier",cat:["bizarr","stadt","gratis"],
   d:"Patrizierhaus in Form eines frühgotischen Wohnturms, nach Jahrringdatierung um 1200 begonnen und bis 1231 fertiggestellt. Der ursprüngliche Haupteingang war ein <b>Hocheingang im ersten Obergeschoss</b>, erreichbar nur über eine hochklappbare Holztreppe erreichbar, die man bei Gefahr einfach hochzog. Die zugehörige Tür sitzt noch heute sichtbar neben den drei gekuppelten Zwillingsfenstern.",
   rom:"Zwei Minuten von der Porta Nigra, und fast alle laufen daran vorbei. Von den 13 in Trier nachweisbaren mittelalterlichen Turmhäusern sind nur noch vier weitgehend erhalten.",
   p:"0 € (Außenansicht)",z:"immer",ev:"B",
   lk:[["KuLaDig · Dreikönigenhaus","https://www.kuladig.de/Objektansicht/O-55288-20121010-4"],["Dreikönigenhaus (Übersicht)","https://de.wikipedia.org/wiki/Dreik%C3%B6nigenhaus_(Trier)"]]},
- {id:"frankenturm",typ:"ort",n:"Frankenturm",o:"Trier, Dietrichstraße",cat:["bizarr","stadt","gratis"],
+ {id:"frankenturm",typ:"ort",n:"Frankenturm",o:"Trier, Dietrichstraße",adr:"Dietrichstraße, Trier",cat:["bizarr","stadt","gratis"],
   d:"Der „klassische“ Trierer Wohnturm und deutlich älter als das Dreikönigenhaus: massiver hochmittelalterlicher Wehrbau mitten in der heutigen Fußgängerzone. Zusammen mit dem Turm Jerusalem (11. Jh.) und dem Konviktsturm (wohl 12. Jh.) einer der vier erhaltenen von einst 13.",
   rom:"Der Nachweis, dass Trier nach den Römern nicht verschwand, sondern sich nur kleiner und wehrhafter machte.",
   p:"0 € (Außenansicht)",z:"immer",ev:"B",
@@ -1732,7 +1869,7 @@ const M=[
   lk:[["Mullerthal Trail (Wanderatlas)","https://www.ich-geh-wandern.de/mullerthal-trail"],["Felsenlabyrinth Mullerthal","https://www.felsenlabyrinth.com/mullerthal/"]]},
 
  /* ===== Zweites Programm: mit Kind, mit Katzen, für einen ruhigen Tag ===== */
- {id:"katzentempel",typ:"ort",n:"Katzentempel Trier",o:"Trier, Brotstraße 6",cat:["katzen","essen","kind","gemuetlich","ohneantike","indoor"],
+ {id:"katzentempel",typ:"ort",n:"Katzentempel Trier",o:"Trier, Brotstraße 6",adr:"Brotstraße 6, 54290 Trier",cat:["katzen","essen","kind","gemuetlich","ohneantike","indoor"],
   d:"Katzencafé mitten in der Altstadt, rein vegane Karte von Frühstück bis Abendessen. Die „Tempelkatzen“ stammen alle aus dem Tierschutz und können sich jederzeit in einen Ruheraum zurückziehen. Gestreichelt wird nur, wenn die Katze es will.",
   rom:"Das Gegenprogramm zum Steinhaufen, drei Gehminuten vom Hauptmarkt: Wer nach der dritten Ruine nicht mehr kann, sitzt hier mit einer Katze auf dem Nachbarstuhl. Lange Öffnungszeiten. Funktioniert deshalb auch als Treffpunkt, wenn sich die Gruppe für ein paar Stunden aufteilt.",
   p:"Café-Karte, vegan",z:"Mo–Do 10–20 · Fr 10–21 · Sa 9–21 · So 9–20",ev:"A",
@@ -1761,8 +1898,8 @@ const M=[
   d:"Unterer Mühlenweiher und oberer Herrenweiher bilden zusammen rund 1,5 Hektar Wasserfläche im Volkspark Trier-Süd, Naherholungsgebiet und Naturschutzfläche zugleich, mit Rundwegen ums Wasser.",
   rom:"Enten statt Kaiser: der kürzeste Weg zu einer Runde am Wasser, ohne die Stadt zu verlassen. Lässt sich mit dem SüdBad zu einem Nachmittag verbinden.",
   p:"0 €",z:"immer",ev:"B",
-  lk:[["Bäder- und Weiherübersicht Trier","https://rutschenforscher.de/bundesland/rheinland-pfalz/trier/"]]},
- {id:"spielzeugmuseum",typ:"ort",n:"Spielzeugmuseum Trier",o:"Trier, Hauptmarkt 14",cat:["museum","kind","indoor","gemuetlich","ohneantike"],
+  lk:[["Bäderübersicht Trier","https://rutschenforscher.de/bundesland/rheinland-pfalz/trier/"]]},
+ {id:"spielzeugmuseum",typ:"ort",n:"Spielzeugmuseum Trier",o:"Trier, Hauptmarkt 14",adr:"Hauptmarkt 14, 54290 Trier",tel:"0651 75850",cat:["museum","kind","indoor","gemuetlich","ohneantike"],
   d:"Zwei Etagen Blechspielzeug, Modelleisenbahnen, Zinnfiguren, Puppen und Puppenstuben, direkt am Hauptmarkt.",
   rom:"Wäre das ideale Schlechtwetterziel für sieben Jahre. <b>Aber:</b> Eine Quelle führt das Haus als „bis auf weiteres geschlossen“, während Zeiten und Preise andernorts unverändert stehen. Vor dem Hingehen anrufen: 0651 75850. Siehe Kapitel 8.",
   p:"5 € / Jugendliche 11–18 J. 2,50 € / Kind 4–11 J. 2 € / Familie 12 €",z:"laut Angabe Di–So 11–17, Mo zu. Betrieb 2026 unklar",ev:"C",
@@ -1772,7 +1909,7 @@ const M=[
   rom:"Der Fixpunkt für einen Nachmittag mit Besuch: sitzen, Kuchen, kein Programm. Adressen und Zeiten sind hier nicht belegt. Beide liegen in der Altstadt, der Kartenpunkt ist ein Sammelpunkt und kein Hauseingang.",
   p:"Café-Karte",z:"nicht belegt",ev:"C",
   lk:[["Café Razen","https://cafe-razen.de/"],["Café-Übersicht Trier-Saarburg","https://www.regio-trier-saarburg.com/cafe-in-trier-10-spots-fuer-start-in-den-tag/"]]},
- {id:"cityquest",typ:"ort",n:"City & Quest, Rätseltour durch Trier",o:"ab Tourist-Information Porta Nigra",cat:["kind","stadt","ohneantike"],
+ {id:"cityquest",typ:"ort",n:"City & Quest, Rätseltour durch Trier",o:"ab Tourist-Information Porta Nigra",adr:"Tourist-Information an der Porta Nigra, Trier",tel:"0651 97808-0",cat:["kind","stadt","ohneantike"],
   d:"Interaktives Erlebnis, das einen Stadtrundgang mit Rätseln und Teamaufgaben verbindet: Man läuft die Stadt ab und löst unterwegs Aufgaben, statt einer Führung zuzuhören.",
   rom:"Für alle, die sich keine weitere Erklärung anhören wollen: Hier ist die Stadt Kulisse für ein Spiel. Mit einem siebenjährigen Kind funktioniert das nur, wenn Erwachsene mitraten.",
   p:"nach Angebot",z:"nach Buchung",ev:"B",
@@ -1782,48 +1919,48 @@ const M=[
   rom:"Die Reißleine für einen Regentag, an dem das Kind keine Vitrine mehr sehen will. Weder Zeiten noch Preise waren zu belegen, und der Kartenpunkt ist grob. Vorher anrufen.",
   p:"nicht belegt",z:"nicht belegt",ev:"D",
   lk:[["Indoor-Aktivitäten Trier-Saarburg","https://www.regio-trier-saarburg.com/indoor-aktivitaeten/"],["Indoorspielplätze Trier","https://freizeitinsider.de/lotse/mit-kindern/trier/"]]},
- {id:"eifelpark",typ:"ort",n:"Eifelpark Gondorf",o:"Gondorf bei Bitburg",cat:["kind","natur","ohneantike"],
+ {id:"eifelpark",typ:"ort",n:"Eifelpark Gondorf",o:"Gondorf bei Bitburg",adr:"Weißstraße 12, 54647 Gondorf",tel:"06565 95660",cat:["kind","natur","ohneantike"],
   d:"Freizeit- und Tierpark in einem: über 60 Attraktionen (Sommerrodelbahn, Wasserbahn, Achterbahn) und über 200 Wildtiere im Freigehege, darunter Wölfe, Bären und Ziegen. Alle Attraktionen, Shows und Tierfütterungen sind im Eintritt enthalten, Vorabreservierung ist nicht nötig.",
   rom:"Der Tag, an dem das Kind bestimmt, wo es hingeht. Und der einzige Punkt dieses Guides, an dem niemand etwas über Rom erfährt. In der Reisewoche täglich 10–17 Uhr geöffnet.",
   p:"Tagesticket vor Ort · alle Attraktionen inklusive",z:"10.–30.08.2026 tägl. 10–17",ev:"A",
   lk:[["Eifelpark · Öffnungszeiten 2026","https://www.eifelpark.de/oeffnungszeiten/"],["Eifelpark Gondorf","https://www.eifelpark.de/"]]},
- {id:"wildpark-weiskirchen",typ:"ort",n:"Wild- und Wanderpark Weiskirchen mit Wildkatzen-Erlebnispfad",o:"Weiskirchen-Rappweiler (Saarland)",cat:["katzen","kind","natur","gratis","ohneantike"],
+ {id:"wildpark-weiskirchen",typ:"ort",n:"Wild- und Wanderpark Weiskirchen mit Wildkatzen-Erlebnispfad",o:"Weiskirchen-Rappweiler (Saarland)",adr:"Zum Wildpark, 66709 Weiskirchen",tel:"06876 70937",cat:["katzen","kind","natur","gratis","ohneantike"],
   d:"Waldpark mit Rot- und Damwild, Auerochsen, Wisenten, Ziegen und weiteren Wild- und Haustierarten, ganzjährig geöffnet und ohne Eintritt. Mittendrin der vom BUND Saar angelegte <b>Wildkatzen-Erlebnispfad</b>: 5 km, neun Stationen mit Infotafeln in Form einer Wildkatze, ausgezeichnet als Premium-Spazierwanderweg.",
   rom:"Der Tagesausflug, der Katzen, Kind und Spaziergang auf einmal erledigt, und zwar um die europäische Wildkatze, die in diesen Wäldern tatsächlich lebt. Wer die vollen 5 km nicht laufen will, dreht im Tiergehege um.",
   p:"0 € · Spendenbox",z:"ganzjährig 9:00 bis eine Stunde vor Sonnenuntergang",ev:"A",
   lk:[["Gemeinde Weiskirchen · Wild- und Wanderpark","https://www.weiskirchen.de/tourismus-wirtschaft/tourismus/wild-und-wanderpark"],["BUND Saar · Wildkatzenerlebnispfad","https://www.bund-saar.de/tiere-und-pflanzen/wildkatzenerlebnispfad"],["Deutsches Wanderinstitut","https://www.wanderinstitut.de/premium-spazierwanderwege/wege/saarland/weiskircher-wildkatzenpfad/"]]},
 
  /* ===== Termine im und um den Reisezeitraum ===== */
- {id:"ev-kinderfuehrung",typ:"event",geo:"porta-nigra",n:"Kinderrundgang „2000 Jahre – 4000 Schrittchen“",o:"ab Tourist-Information Porta Nigra",cat:["kind","stadt"],
+ {id:"ev-kinderfuehrung",typ:"event",geo:"porta-nigra",adr:"Treffpunkt Tourist-Information an der Porta Nigra",tel:"0651 97808-0",n:"Kinderrundgang „2000 Jahre – 4000 Schrittchen“",o:"ab Tourist-Information Porta Nigra",cat:["kind","stadt"],
   d:"Kindgerechter Stadtrundgang durch die Innenstadt mit Innenbesichtigungen, rund 90 Minuten, geeignet für Kinder zwischen 5 und 14 Jahren. April bis Oktober samstags um 15 Uhr. Die Zusatztermine an Di und Fr gelten nur in den rheinland-pfälzischen Schulferien, die vor der Reisewoche enden.",
   rom:"Die Version für sieben Jahre: gleiche Stadt, andere Tonlage, und mit 90 Minuten kurz genug. Der Samstagstermin fällt auf den 22.08. und kollidiert damit mit dem Viezfest am selben Nachmittag.",
   p:"13 € / erm. 11 € / Kind 6–14 J. 6 € / Familie 30 € (2 Erw. + bis 4 Kinder)",z:"Apr–Okt samstags 15:00",t:"15:00",rw:[6],until:"2026-10-31",ev:"A",
   lk:[["Tourist-Information · Kinderrundgang","https://www.trier-info.de/oeffentliche-fuehrungen/stadtrundgang-fuer-kinder"],["Trier für Kinder","https://www.trier-info.de/trier-fuer-kinder"]]},
- {id:"ev-zenturio",typ:"event",geo:"porta-nigra",n:"Das Geheimnis der Porta Nigra: Erlebnisführung mit einem römischen Zenturio",o:"Trier, Porta Nigra",cat:["roemisch","pflicht","kind"],
+ {id:"ev-zenturio",typ:"event",geo:"porta-nigra",adr:"Treffpunkt Tourist-Information an der Porta Nigra",tel:"0651 97808-0",n:"Das Geheimnis der Porta Nigra: Erlebnisführung mit einem römischen Zenturio",o:"Trier, Porta Nigra",cat:["roemisch","pflicht","kind"],
   d:"Ein professioneller Schauspieler führt als römischer Zenturio durch das Tor und erzählt von römischer Pracht und Kampf. Dauer 60 Minuten, Treffpunkt ist die Tourist-Information an der Porta Nigra.",
   rom:"Die bekannteste Erlebnisführung der Stadt und der beste Einstieg, wenn Kinder oder Mitreisende dabei sind, die sonst nur graue Mauern sehen. Samstags im Sommer zusätzlich um 15:00.",
   p:"19 € / erm. 17 € / Kind 6–14 J. 10 € / Familie 48 €",z:"Di, Sa, So 13:00 · Sa Jul–Sep zusätzlich 15:00",t:"13:00 (Sa auch 15:00)",rw:[0,2,6],until:"2026-10-31",ev:"A",
   lk:[["Tourist-Information · Porta Nigra","https://www.trier-info.de/fuehrungen/das-geheimnis-der-porta-nigra"],["Ticket Regional","https://www.ticket-regional.de/events_info.php?eventID=196215"]]},
- {id:"ev-valerius",typ:"event",geo:"amphitheater",n:"Der Gladiator Valerius: Erlebnisführung im Amphitheater",o:"Trier, Amphitheater",cat:["roemisch","pflicht"],
+ {id:"ev-valerius",typ:"event",geo:"amphitheater",adr:"Amphitheater, Olewiger Straße 25, 54295 Trier",tel:"0651 97808-0",n:"Der Gladiator Valerius: Erlebnisführung im Amphitheater",o:"Trier, Amphitheater",cat:["roemisch","pflicht"],
   d:"75-minütige Führung durch Arena und Untergänge: Der Gladiator Valerius folgt den Spuren der Tiere, Kämpfer und Freunde, die in der Arena umkamen. Läuft vom 31.03. bis 31.10.2026. Empfohlen ab etwa 10 Jahren. Die Untergänge sind nicht barrierefrei.",
   rom:"Der Grund, abends noch einmal ins Amphitheater zu gehen: Bei Tageslicht sieht man den Keller, und hier sieht man, wofür er da war.",
   p:"19 € / erm. 17 € / Kind 6–14 J. 10 € / Familie 48 €",z:"Apr–Sep Mi, Fr, Sa 18:00 · Okt 17:00",t:"18:00",rw:[3,5,6],until:"2026-10-31",ev:"A",
   lk:[["Tourist-Information · Gladiator Valerius","https://www.trier-info.de/oeffentliche-fuehrungen/der-gladiator-valerius"],["Ticket Regional","https://www.ticket-regional.de/events_info.php?eventID=175564"]]},
- {id:"ev-keller",typ:"event",geo:"hospitien",n:"Entdeckerführung im ältesten Weinkeller Deutschlands",o:"Trier, Krahnenufer 19",cat:["wein","roemisch","pflicht","essen"],
+ {id:"ev-keller",typ:"event",geo:"hospitien",adr:"Vinothek Vereinigte Hospitien, Krahnenufer 19, Trier",tel:"0651 945-1210",n:"Entdeckerführung im ältesten Weinkeller Deutschlands",o:"Trier, Krahnenufer 19",cat:["wein","roemisch","pflicht","essen"],
   d:"Rund 60 Minuten durch den um 330 n. Chr. gebauten römischen Kellerraum, mit zwei Weinen des VDP-Guts. Treffpunkt Vinothek der Vereinigten Hospitien.",
   rom:"Römischer Bau, römisches Produkt, 1.700 Jahre ohne Unterbrechung. Kompakter lässt sich Kontinuität in dieser Region nicht belegen.",
   p:"17,50 € p. P.",z:"Apr–Okt Mi & Fr 11:00 sowie ausgewählte Samstage",t:"11:00",rw:[3,5],until:"2026-10-30",ev:"A",
-  lk:[["Weingut Vereinigte Hospitien","https://weingut.vereinigtehospitien.de/pages/kellerfuhrungen"],["Tourist-Information","https://www.trier-info.de/oeffentliche-fuehrungen/entdeckerfuehrung-im-aeltesten-weinkeller-deutschlands"]]},
+  lk:[["Weingut · Kellerführungen","https://weingut.vereinigtehospitien.de/pages/kellerfuhrungen"],["Tourist-Information","https://www.trier-info.de/oeffentliche-fuehrungen/entdeckerfuehrung-im-aeltesten-weinkeller-deutschlands"]]},
  {id:"ev-tawern",typ:"event",geo:"tawern",n:"Sonntagsführung im Tempelbezirk Tawern",o:"Tawern, Metzenberg",cat:["roemisch","gratis","kind"],
   d:"Der Verein Römisches Tawern e.V. führt von Mai bis Oktober jeden Sonntag von 14:30 bis 16:30 durch den Tempelbezirk. Auf Wunsch gibt es vor Ort Kaffee und Kuchen.",
   rom:"Ehrenamtlich geführt, kostenlos und detailversessen. Die Art von Führung, die man in großen Museen nicht bekommt.",
   p:"0 €",z:"Mai–Okt sonntags 14:30–16:30",t:"14:30–16:30",rw:[0],until:"2026-10-25",ev:"A",
-  lk:[["Verein Römisches Tawern e.V.","http://www.roemisches-tawern.de/?page_id=503"]]},
- {id:"ev-weinschiff",typ:"event",geo:"weinschiff",n:"Fahrt mit dem Römerweinschiff Stella Noviomagi",o:"Neumagen-Dhron",cat:["roemisch","wein","pflicht"],
+  lk:[["Verein Römisches Tawern e.V.","https://www.roemisches-tawern.de/?page_id=503"]]},
+ {id:"ev-weinschiff",typ:"event",geo:"weinschiff",adr:"Info-Pavillon, Pelzergasse 7, 54347 Neumagen-Dhron",n:"Fahrt mit dem Römerweinschiff Stella Noviomagi",o:"Neumagen-Dhron",cat:["roemisch","wein","pflicht"],
   d:"Kulturfahrt für Einzelgäste ab dem Info-Pavillon Pelzergasse 7: erst ein Film als Auftakt der Zeitreise, dann die Fahrt auf der Mosel im Nachbau des Neumagener Weinschiffs.",
   rom:"Für die Samstagszeit nennen die Quellen 15:30 und 16:00. Vor der Fahrt anrufen. Mittwochsfahrten gelten nur in den rheinland-pfälzischen Sommerferien, die vor der Reisewoche enden. Sie sind hier deshalb nicht geführt.",
   p:"18 € p. P. · Kinder 6–14 J. halber Preis",z:"Mai–Okt Sa nachmittags, So 10:00",t:"Sa 15:30/16:00 · So 10:00",rw:[0,6],until:"2026-10-25",ev:"A",
-  lk:[["Neumagen-Dhron","https://www.neumagen-dhron.de/weinschiff-stella-noviomagi/"],["Bernkastel-Portal","https://en.bernkastel.de/poi/stella-noviomagi-roman-wine/poi.html"]]},
+  lk:[["Neumagen-Dhron · Weinschiff","https://www.neumagen-dhron.de/weinschiff-stella-noviomagi/"],["Bernkastel-Portal","https://en.bernkastel.de/poi/stella-noviomagi-roman-wine/poi.html"]]},
  {id:"ev-longuich",typ:"event",geo:"villa-longuich",n:"Führung Römische Villa Urbana Longuich",o:"Longuich-Kirsch",cat:["roemisch","thermen"],
   d:"Sonntägliche Führung durch den Badetrakt der Villa urbana: Frigidarium, Tepidarium, Caldarium, Sudatorium und Heizraum. Anmeldung über die Tourist-Information Longuich oder direkt bei den Villenführern.",
   rom:"Ein Privatbad, das man nur mit Führung zu sehen bekommt. Und der beste Vergleichspunkt zu den Kaiserthermen.",
@@ -1833,7 +1970,7 @@ const M=[
   d:"Führung durch das römische Landgut unter dem Schutzbau, sonntags von Mai bis Oktober. Gruppen bis 15 Personen nach Absprache.",
   rom:"Die Betriebsseite der Provinz, erklärt von Leuten, die die Grabungsgeschichte kennen.",
   p:"3 € p. P. · Kinder frei",z:"Mai–Okt sonntags 10:30",t:"10:30",rw:[0],until:"2026-10-25",ev:"B",
-  lk:[["Stadt Wittlich","https://www.wittlich.de/de/leben-in-wittlich/kultur/museen/roemische-villa/"]]},
+  lk:[["Stadt Wittlich · Römische Villa","https://www.wittlich.de/de/leben-in-wittlich/kultur/museen/roemische-villa/"]]},
  {id:"ev-markt",typ:"event",geo:"wochenmarkt",n:"Wochenmarkt am Viehmarktplatz",o:"Trier, Viehmarkt",cat:["stadt","essen","gratis","gemuetlich"],
   d:"Regionale Erzeuger mit Obst, Gemüse, Backwaren, Fleisch, Fisch, Käse, Eiern und Honig, dienstags und freitags. Fällt einer der Tage auf einen Feiertag, findet der Markt einen Tag früher statt.",
   rom:"Liegt direkt über den Thermen am Viehmarkt: erst Markt, dann eine Etage tiefer ins 2. Jahrhundert.",
@@ -1973,8 +2110,12 @@ function renderGrid(){
       '<p class="desc">'+e.d+'</p>'+
       '<p class="fit"><b>ROM-FANS ▸</b> '+e.rom+'</p>'+
       '<div class="meta"><span class="ev ev'+e.ev+'">'+e.ev+'</span><span>'+e.p+'</span>'+
-      (e.z?'<span>·</span><span>'+e.z+'</span>':'')+
-      e.lk.map(function(l){return '<a href="'+l[1]+'" target="_blank" rel="noopener">'+l[0]+' ↗</a>'}).join('<span class="sep">·</span>')+'</div></article>';
+      (e.z?'<span class="sep">·</span><span>'+e.z+'</span>':'')+
+      e.lk.map(function(l){return '<a href="'+l[1]+'" target="_blank" rel="noopener">'+l[0]+' ↗</a>'}).join('<span class="sep">·</span>')+'</div>'+
+      '<p class="druckdaten">'+
+        (e.adr?'<b>Adresse</b> '+e.adr:'<span class="fehlt">Adresse nicht belegt</span>')+
+        (e.tel?'<br><b>Telefon</b> '+e.tel:'<br><span class="fehlt">Telefon nicht belegt</span>')+
+      '</p></article>';
   }).join("");
   if(cat==="favoriten"&&vis.length===0){
     document.getElementById("grid").innerHTML='<p class="leer">Noch keine Favoriten. Tippen Sie auf den Stern rechts oben auf einer Karte. Die Auswahl bleibt auch nach dem Schließen der Seite erhalten.</p>';
@@ -2353,6 +2494,25 @@ document.getElementById("reiseBtn").addEventListener("click",function(){
   spanDays=REISE_TAGE; spanSel.value=String(REISE_TAGE);
   renderGrid();
 });
+/* Gedruckt wird die aktuelle Auswahl. Das Druck-Stylesheet blendet alles
+   andere aus, deshalb genügt hier der Aufruf. */
+document.getElementById("druckBtn").addEventListener("click",function(){ window.print(); });
+/* Sprungmarken in der Kopfzeile: das gerade sichtbare Kapitel wird markiert. */
+(function(){
+  const marken=Array.from(document.querySelectorAll(".sprung a"));
+  const nach={}; marken.forEach(function(a){ nach[a.getAttribute("href").slice(1)]=a; });
+  const ziele=Object.keys(nach).map(function(id){ return document.getElementById(id); }).filter(Boolean);
+  if(!("IntersectionObserver" in window)||!ziele.length)return;
+  const beobachter=new IntersectionObserver(function(eintraege){
+    eintraege.forEach(function(e){
+      const a=nach[e.target.id]; if(!a)return;
+      if(e.isIntersecting){ marken.forEach(function(x){x.classList.remove("hier")}); a.classList.add("hier");
+        /* Die Marke in die Sicht holen, falls die Leiste seitlich gescrollt ist. */
+        if(a.scrollIntoView) a.scrollIntoView({block:"nearest",inline:"nearest"}); }
+    });
+  },{rootMargin:"-45% 0px -50% 0px"});
+  ziele.forEach(function(z){ beobachter.observe(z); });
+})();
 document.getElementById("themeBtn").addEventListener("click",function(){
   const h=document.documentElement;
   h.dataset.theme=h.dataset.theme==="dark"?"light":"dark";

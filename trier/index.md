@@ -105,7 +105,16 @@ markiert, weil Landesmuseum, Simeonstift und Villa Borg dann geschlossen sind.
   📱 Portal-Fund, 🧭 Atlas-Obscura-Fund.
 - **Sortierung** nach Entfernung oder Termin, ab frei wählbarem Datum.
 - **Favoriten** per Stern, in `localStorage` gespeichert.
-- **Nacht-/Tagmodus** über den Schalter oben rechts.
+- **Nacht-/Tagmodus** über den Schalter oben rechts. Auf schmalen Displays
+  zeigt er nur noch das Symbol, damit die Kopfzeile einzeilig bleibt.
+- **Sprungmarken** zu den Kapiteln in der Kopfzeile. Das gerade sichtbare
+  Kapitel wird hervorgehoben. Unter 1.100 px Breite bleibt die Leiste
+  einzeilig und lässt sich seitlich schieben.
+- **🖨 Auswahl drucken** über der Liste: druckt genau die gerade gefilterten
+  Karten, zweispaltig auf A4, mit **Adresse und Telefonnummer** statt der
+  Belegverweise, die auf Papier nur Platz kosten. Belegt sind 32 Adressen und
+  18 Telefonnummern. Wo nichts zu finden war, steht „nicht belegt“ statt einer
+  erfundenen Angabe.
 
 ## Zwei Ansichten: Radar und Karte
 
@@ -124,6 +133,16 @@ Beide Ansichten lassen sich per **⛶ Vollbild** groß schalten (mit
 Rückfall-Darstellung für iOS-Safari). Ziele auf identischer Koordinate werden
 gebündelt: ein Punkt, die Namen darunter gestapelt, jede Zeile springt zu ihrer
 Karteikarte.
+
+## Belegverweise
+
+158 Verweise auf 74 Domains. Sie sind formal geprüft, nicht abgerufen: Schema,
+Host, Zeichensatz, doppelte Pfadtrenner, Dubletten und die Zuordnung zum
+Quellenverzeichnis. Das Skript dazu liegt bei: [`pruef_links.py`](pruef_links.py).
+Dabei gefunden und behoben wurden zwei unverschlüsselte Verweise und sieben
+Fälle, in denen dieselbe Adresse unter zwei Beschriftungen stand. Ob eine
+Adresse antwortet, war nicht zu prüfen, weil der Egress-Proxy dieser Umgebung
+jedes CONNECT mit 403 beantwortet.
 
 ## Entfernungen: gerechnet, nicht geroutet
 
