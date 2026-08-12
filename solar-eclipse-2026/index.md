@@ -6,7 +6,7 @@ Zwei Dossiers rund um die partielle Sonnenfinsternis vom **12. August 2026** (Ma
 
 ### [Schweißglas & Augenschutz — Verifikationsdossier](2026-08-11_schweissglas-augenschutz_dossier.html)
 
-Konsolidierter Stand (11.08.2026) zur Frage, ob und wie Schweißerschutzgläser — einzeln und **gestapelt** — für die direkte Sonnenbeobachtung taugen. Adversarial aufgebaut: vier Hypothesen mit dreistufigem Verdikt, Formeln gegen Labormesswerte verifiziert, Grenzwerte aus den Normtexten, Positionen der Fachgesellschaften und eine Faktenprüfung der Gegenbehauptungen. 22 Kapitel mit Inhaltsverzeichnis.
+Konsolidierter Stand (11.08.2026) zur Frage, ob und wie Schweißerschutzgläser — einzeln und **gestapelt** — für die direkte Sonnenbeobachtung taugen. Adversarial aufgebaut: vier Hypothesen mit dreistufigem Verdikt, Formeln gegen Labormesswerte verifiziert, Grenzwerte aus den Normtexten, Positionen der Fachgesellschaften und eine Faktenprüfung der Gegenbehauptungen. 23 Kapitel mit Inhaltsverzeichnis.
 
 Die vier Hypothesen:
 
@@ -36,6 +36,7 @@ Inhalt im Einzelnen:
 - **Beschaffung** — Verkäuferprüfung auf Marktplätzen (Hersteller vs. Freezone-Zwischenhändler) und eine Prüfreihenfolge für jeden Brillenkauf.
 - **Praxis** — Regelwerk für den Abend des 12.08. in Lam: Kontaktzeiten, Reihenfolge beim Auf- und Absetzen, Zimmerprobe, Kennzeichnungsprobe, Projektion für Kinder.
 - **Belegtabelle & Restliste** — tragende Einzelbehauptungen mit Prüfstatus (A/B/C) und Erstquelle, dazu was ausdrücklich *nicht* geprüft wurde.
+- **Selbst messen** — wie man die offenen Punkte schließt: das Kaskadenverfahren, mit dem sich sechs Dekaden Transmission mit einem Zehn-Euro-Sensor oder einer Kamera in vier Schritten messen lassen, ohne je in die ungefilterte Sonne zu messen; was zu Hause prinzipiell nicht geht (UV, solargewichtete Integrale, Gleichmäßigkeit) und warum eine Heimmessung deshalb nur ausschließen, nie freigeben kann; wo man richtig messen lässt (Hochschullabor, die auf der Verpackung genannten benannten Stellen ECS 1883 und DIN CERTCO 0196); und wie man an die Normwerte kommt — über 90 DIN-Normen-Infopoints erlauben kostenlose Volltexteinsicht vor Ort, dazu Chou et al. 2021 und die AAS-Normseite als freie Zweitbelege.
 
 > Das Dossier ersetzt keine augenärztliche Untersuchung. Bei Sehstörungen: 116117, im Notfall 112.
 
