@@ -6,7 +6,7 @@ Zwei Dossiers rund um die partielle Sonnenfinsternis vom **12. August 2026** (Ma
 
 ### [Schweißglas & Augenschutz — Verifikationsdossier](2026-08-11_schweissglas-augenschutz_dossier.html)
 
-Konsolidierter Stand (11.08.2026) zur Frage, ob und wie Schweißerschutzgläser — einzeln und **gestapelt** — für die direkte Sonnenbeobachtung taugen. Adversarial aufgebaut: vier Hypothesen mit dreistufigem Verdikt, Formeln gegen Labormesswerte verifiziert, Grenzwerte aus den Normtexten, Positionen der Fachgesellschaften und eine Faktenprüfung der Gegenbehauptungen. 18 Kapitel mit Inhaltsverzeichnis.
+Konsolidierter Stand (11.08.2026) zur Frage, ob und wie Schweißerschutzgläser — einzeln und **gestapelt** — für die direkte Sonnenbeobachtung taugen. Adversarial aufgebaut: vier Hypothesen mit dreistufigem Verdikt, Formeln gegen Labormesswerte verifiziert, Grenzwerte aus den Normtexten, Positionen der Fachgesellschaften und eine Faktenprüfung der Gegenbehauptungen. 21 Kapitel mit Inhaltsverzeichnis.
 
 Die vier Hypothesen:
 
@@ -21,12 +21,15 @@ Inhalt im Einzelnen:
 - **Physik verifiziert** — EN-169-Stufenformel `N = 1 + (7/3)·log₁₀(1/τ)`, gegen die Labormessungen aus Chou et al. 2021 (AJ 162:103) geprüft, plus Gesamttabelle aller Stufen gegen beide ISO-Fassungen.
 - **Interaktiver Stapelrechner** — zwei Slider für die Schutzstufen, mit Transmission, Leuchtdichte des Sonnenbildes und Normurteil (zu hell / im Fenster / normwidrig dunkel).
 - **Positionslage** — DOG, BVA, BfS, AAS, NASA und die peer-reviewte Messstudie im Vergleich.
-- **Fallbeispiel Hardware** — die tatsächlich vorhandenen Teile mit Herstellerangaben im Volltext (GSF/CFH-Schutzbrille Stufe 5, Zertifizierungsstelle ECS 1883, PSA-Kategorie II nach VO (EU) 2016/425): aus der Modellrechnung wird ein Beispiel mit belegten Eingangsgrößen.
+- **Fallbeispiel Hardware** — die tatsächlich vorhandenen Teile mit Herstellerangaben im Volltext und Produktlinks ([CFH SB 524](https://cfh-gmbh.de/produkt/hochklappbare-brille-sb-524/), Schutzstufe 5, hochklappbar; [CFH SG 538](https://cfh-gmbh.de/produkt/schweiss-schutzglaeser-din-11-sg-538/), DIN 11, 90 × 110 mm), samt Zertifizierungsstelle ECS 1883 und PSA-Kategorie II nach VO (EU) 2016/425. Neu darin: der Klappmechanismus als eigener Fehlermodus — hochgeklappt bleibt die DIN-11-Scheibe allein übrig, 1,6× über der ISO-Obergrenze.
 - **Normenlandschaft** — EN 166 ist seit 11/2025 durch EN ISO 16321 abgelöst; warum die Vorzahl vor dem Bindestrich (—/2/4/5–6) über vier verschiedene Stufenskalen entscheidet und wo die realistische Verwechslung lauert.
 - **Dosimetrie** — der 60-Sekunden-Fall durchgerechnet (Bunsen-Roscoe-Reziprozität), dazu die klinische Referenz der Leicester-Kohorte von der Finsternis 1999.
 - **Spektralbilanz** — eigenes Spektralmodell (Planck 5778 K, Rayleigh, Aerosol, Ozon, Wasserdampf- und O₂/CO₂-Banden für Lam auf 576 m) und was bei Luftmasse 20,5 bandweise am Boden, hinter dem Filter und auf der Netzhaut ankommt.
 - **Spektralvergleich** — modellierte Transmissionskurven von 280 bis 2000 nm für sechs Filter (Stapel, Einzelgläser, zertifizierte ISO-Brille, unterdichte Fälschung), an den Herstellerangaben der DIN-5-Scheibe verankert und über Beer-Lambert skaliert.
 - **Betriebsplan** — die Sonne verliert zwischen 1. Kontakt und Maximum den Faktor ~50, ein Filter kann nicht beide Enden bedienen: Helligkeitstabelle über den Abend und der Wechsel von Stufe 15 auf Stufe 13, plus warum mehr Dunkelheit schadet.
+- **Filterfahrplan** — dieselbe Frage allgemein: welches Glas zu welcher Uhrzeit, auch ohne Finsternis. Leuchtdichtetabelle vom Sonnenhöchststand (55,7°) bis 1,8° über dem Horizont, die Faustregel „über 5° Stufe 15, darunter Stufe 13", und eine Zuordnung nach Vorhaben (Sonnenflecken, Kind, Fernglas, Kamera).
+- **Kamera** — warum für den Sensor andere Regeln gelten als für die Netzhaut: Filterdichten und Startbelichtungen für DIN 11 und DIN 9 vor dem Objektiv, der Filter gehört immer vor die Frontlinse, kein optischer Sucher, Auflösungsgrenze von Filterglas, Grünstich und Weißabgleich, und was in der Tiefstandsphase zu tun ist.
+- **Bester Schutz** — was am sichersten *und* am farbneutralsten ist: Medienvergleich (aluminisierte Solarfolie, Schwarzpolymer, metallbedampftes Glas, Schweißglas, Stapel, Herschelkeil) mit Farbwiedergabe, Eignung für Auge und Kamera und optischer Güte — inklusive des unbequemen Befunds, dass Farbtreue hier ein Stück Sicherheitsmarge kostet.
 - **Fallrecherche** — systematische Suche nach Retinopathie-Fällen durch Schweißfilter ≥ Stufe 12: null Treffer, samt epistemischer Einordnung, warum „null Fälle" kein Beweis ist.
 - **Fälschungen 2026** — die Datenlage am Vortag: keine belastbare Quote, aber vier Datenpunkte (u. a. der UFC-Que-Choisir-Labortest vom 05.08.2026, in dem alle zehn geprüften Modelle optisch normgerecht filtern, mehrere aber bei Kennzeichnung und Konformitätsnachweis durchfallen).
 - **Beschaffung** — Verkäuferprüfung auf Marktplätzen (Hersteller vs. Freezone-Zwischenhändler) und eine Prüfreihenfolge für jeden Brillenkauf.
@@ -47,6 +50,7 @@ Die drei Hypothesen:
 
 Dazu:
 
+- **Reiseziele** — wohin man für die Totalität fährt: die Finsternisse 2027 bis 2090 mit Typ, Maximaldauer, bestem Ziel in Europa und weltweit (2027 Südspanien vs. Luxor, 2028 der Ring über Andalusien, 2028 Sydney, 2081 die Totalität 15 km südlich des Marienplatzes), plus die Auswahlregeln — Wolkenwahrscheinlichkeit schlägt Dauer, Wüste schlägt Küste, mobil bleiben.
 - **Horizontprofil** — SVG-Panorama mit dem aus Höhendaten gerechneten Geländehorizont (inklusive Erdkrümmung und Refraktion), jede Finsternis als Punkt nach Azimut und Höhe, Punktfläche = Bedeckungsgrad; umschaltbar München / Lam.
 - **Datentabelle** — alle Ereignisse mit Kontaktzeiten, Höhe, Azimut, Dauer, dem in Lam real sichtbaren Bedeckungsgrad und den Wetterwahrscheinlichkeiten; filterbar nach Zeitraum und Mindestbedeckung.
 - **Sichtbarkeitsrechner für die Stadt** — ab welcher Sonnenhöhe man in München über die Häuserzeile gegenüber schaut: Slider für Geschosszahl und Straßenbreite, kalibriert an 11.314 OSM-Gebäuden in Sendling/Westend/Isarvorstadt (Median 4 Geschosse).
