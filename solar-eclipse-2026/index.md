@@ -6,7 +6,7 @@ Zwei Dossiers rund um die partielle Sonnenfinsternis vom **12. August 2026** (Ma
 
 ### [Schweißglas & Augenschutz — Verifikationsdossier](2026-08-11_schweissglas-augenschutz_dossier.html)
 
-Konsolidierter Stand (11.08.2026) zur Frage, ob und wie Schweißerschutzgläser — einzeln und **gestapelt** — für die direkte Sonnenbeobachtung taugen. Adversarial aufgebaut: vier Hypothesen mit dreistufigem Verdikt, Formeln gegen Labormesswerte verifiziert, Grenzwerte aus den Normtexten, Positionen der Fachgesellschaften und eine Faktenprüfung der Gegenbehauptungen. 21 Kapitel mit Inhaltsverzeichnis.
+Konsolidierter Stand (11.08.2026) zur Frage, ob und wie Schweißerschutzgläser — einzeln und **gestapelt** — für die direkte Sonnenbeobachtung taugen. Adversarial aufgebaut: vier Hypothesen mit dreistufigem Verdikt, Formeln gegen Labormesswerte verifiziert, Grenzwerte aus den Normtexten, Positionen der Fachgesellschaften und eine Faktenprüfung der Gegenbehauptungen. 22 Kapitel mit Inhaltsverzeichnis.
 
 Die vier Hypothesen:
 
@@ -20,7 +20,8 @@ Inhalt im Einzelnen:
 - **Transmissionsleiter** — selbstgezeichnetes SVG über neun Größenordnungen, von der nackten Sonne bis zum blinden Doppel-11-Stapel, mit dem ISO-Fenster 2015 und dem verengten Entwurf 2025.
 - **Physik verifiziert** — EN-169-Stufenformel `N = 1 + (7/3)·log₁₀(1/τ)`, gegen die Labormessungen aus Chou et al. 2021 (AJ 162:103) geprüft, plus Gesamttabelle aller Stufen gegen beide ISO-Fassungen.
 - **Interaktiver Stapelrechner** — zwei Slider für die Schutzstufen, mit Transmission, Leuchtdichte des Sonnenbildes und Normurteil (zu hell / im Fenster / normwidrig dunkel).
-- **Positionslage** — DOG, BVA, BfS, AAS, NASA und die peer-reviewte Messstudie im Vergleich.
+- **Positionslage** — DOG, BVA, BfS, ZVA, AAS, NASA und die peer-reviewte Messstudie im Vergleich. Es steht drei zu drei, und die Trennlinie verläuft danach, ob eine Instanz Schutzstufen nennt oder an Laien schreibt. Enthält die Korrektur vom 12.08.2026: Das BfS führt Schweißerbrillen ausdrücklich in seiner Negativliste — frühere Stände dieses Dossiers gaben „nicht erwähnt" an.
+- **Behelfsfilter** — warum CD, Film, Röntgenbild, Ruß, Rettungsdecke, Sonnen- und Gletscherbrille scheitern, aufgeschlüsselt nach vier Ausfallmustern: zu hell, spektral schief, ungleichmäßig, unprüfbar. Mit der CD als Beugungsgitter (1,6 µm Rillenabstand ≙ 625 Linien/mm, unzerlegte nullte Ordnung), dem historischen Kern der Filmmethode (Silber ja, Farbstoff nein), der Delamination in den Falten der Rettungsdecke — und der Korrektur eines verbreiteten Mythos: Behelfsfilter sind nicht primär wegen des Infrarots gefährlich, sondern weil sie sichtbares Licht durchlassen und dabei den Lidschlussreflex ausschalten.
 - **Fallbeispiel Hardware** — die tatsächlich vorhandenen Teile mit Herstellerangaben im Volltext und Produktlinks ([CFH SB 524](https://cfh-gmbh.de/produkt/hochklappbare-brille-sb-524/), Schutzstufe 5, hochklappbar; [CFH SG 538](https://cfh-gmbh.de/produkt/schweiss-schutzglaeser-din-11-sg-538/), DIN 11, 90 × 110 mm), samt Zertifizierungsstelle ECS 1883 und PSA-Kategorie II nach VO (EU) 2016/425. Neu darin: der Klappmechanismus als eigener Fehlermodus — hochgeklappt bleibt die DIN-11-Scheibe allein übrig, 1,6× über der ISO-Obergrenze.
 - **Normenlandschaft** — EN 166 ist seit 11/2025 durch EN ISO 16321 abgelöst; warum die Vorzahl vor dem Bindestrich (—/2/4/5–6) über vier verschiedene Stufenskalen entscheidet und wo die realistische Verwechslung lauert.
 - **Dosimetrie** — der 60-Sekunden-Fall durchgerechnet (Bunsen-Roscoe-Reziprozität), dazu die klinische Referenz der Leicester-Kohorte von der Finsternis 1999.
