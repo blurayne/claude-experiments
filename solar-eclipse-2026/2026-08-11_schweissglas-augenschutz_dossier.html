@@ -1460,6 +1460,55 @@ section{scroll-margin-top:18px}
         <td class="warn">Evidenz aus Rechnung, nicht Erfahrung</td></tr>
     </tbody>
   </table></div>
+  <h3 style="margin-top:30px">Nachfrage: Gibt es Fälle mit ausgerechnet Stufe 12?</h3>
+  <p>Die Frage ist die richtige, denn Stufe 12 ist der <em>Rand</em> des empfohlenen Bereichs — die
+  Fachgesellschaften nennen 12 als untere Grenze, nicht als Empfehlung. Eine gezielte Nachsuche speziell auf
+  diese Stufe hat <strong>keinen publizierten Fall ergeben</strong>; der Negativbefund des Kapitels hält also
+  auch der spitzeren Frage stand. Zwei Funde gehören trotzdem ins Protokoll, und einer davon ist eine
+  Rechnung, keine Recherche.</p>
+  <div class="tscroll"><table>
+    <thead><tr><th>Fund</th><th>Was er zeigt</th><th>Belastbarkeit</th></tr></thead>
+    <tbody>
+      <tr><td><b>Automatik-Schweißhelm, Forenbericht</b><br><span class="note">Beobachter schilderte, der Helm sei während der Beobachtung aufgeklart</span></td>
+        <td>Der Helm ging mitten im Blick auf hell — beschrieben als Blitz „wie ein Blitzschlag durch den Kopf",
+        danach vorübergehende Sehstörungen, die sich zurückbildeten. Das ist exakt der Ausfall, vor dem die AAS
+        warnt: nicht ein zu heller Filter, sondern ein Filter, der <em>aufhört</em>, einer zu sein.</td>
+        <td class="warn">Laienforum, keine augenärztliche Dokumentation — Anschauungsmaterial für den Fehlermodus, kein Fallbericht</td></tr>
+      <tr><td><b>Choi et al., Plasmaschweißen</b></td>
+        <td>Netzhautschaden mit beidseitigem Zentralskotom nach Lichtbogenexposition, vollständige Erholung nach
+        einem Monat. <b>Aber:</b> Der Schaden kam vom <em>Bogen ohne Schutz</em>, nicht durch einen Filter.
+        Schweißbezogene Netzhautschäden existieren also — sie entstehen dort, wo nicht durchs Glas geschaut wurde.</td>
+        <td class="ok">peer-reviewed, aber für die Filterfrage nur als Gegenprobe relevant</td></tr>
+    </tbody>
+  </table></div>
+  <p style="margin-top:16px"><strong>Der eigentliche Grund zur Vorsicht bei Stufe 12 steht nicht in der
+  Fallliteratur, sondern in der Toleranz.</strong> EN 169 gibt je Schutzstufe ein Transmissionsband, nicht
+  einen Punktwert. Rechnet man diese Bänder gegen die ISO-Fenster, zeigt sich, warum 12 anders ist als 13:</p>
+  <div class="tscroll"><table>
+    <thead><tr><th class="num">Stufe</th><th class="num">Toleranzband τ</th><th class="num">Reserve am hellen Ende zu ISO 2015</th><th>Entwurf 2025</th></tr></thead>
+    <tbody>
+      <tr><td class="num">11</td><td class="num">3,2·10⁻⁵ … 8,5·10⁻⁵</td><td class="num bad">keine — 2,7× darüber</td><td class="bad">7,1× darüber</td></tr>
+      <tr><td class="num"><b>12</b></td><td class="num">1,2·10⁻⁵ … 3,2·10⁻⁵</td><td class="num warn"><b>1,2 %</b></td><td class="bad">2,6× darüber</td></tr>
+      <tr><td class="num">13</td><td class="num">4,4·10⁻⁶ … 1,2·10⁻⁵</td><td class="num ok">172 %</td><td class="ok">ok</td></tr>
+      <tr><td class="num">14</td><td class="num">1,6·10⁻⁶ … 4,4·10⁻⁶</td><td class="num ok">628 %</td><td class="ok">ok</td></tr>
+      <tr><td class="num">15 <span class="note">= 5 + 11</span></td><td class="num">6,1·10⁻⁷ … 1,6·10⁻⁶</td><td class="num ok">1 854 %</td><td class="ok">ok</td></tr>
+    </tbody>
+  </table></div>
+  <p style="margin-top:14px"><strong>Ein Glas am hellen Ende der Stufe-12-Toleranz unterschreitet die
+  ISO-Obergrenze um 1,2 %.</strong> Das ist keine Sicherheitsmarge, das ist ein Rundungsfehler. Stufe 13 hat an
+  derselben Stelle Faktor 2,7, Stufe 14 Faktor 7,3. Und gegen den Entwurf 2025 fällt Stufe 12 fast über ihr
+  ganzes Band durch — <em>die vorgeschlagene Normverschärfung würde Stufe 12 aus dem zulässigen Bereich
+  nehmen</em>. Damit erklärt sich auch die auffällig vorsichtige Formulierung der AAS, die Stufe 12 zwar
+  zulässt, aber im selben Atemzug anmerkt, vielen sei sie zu hell.</p>
+  <p><strong>Fazit zur Nachfrage:</strong> Keine Fälle — aber Stufe 12 ist die einzige empfohlene Stufe, bei
+  der das so knapp ausgeht, dass die Abwesenheit von Fällen eher an der kleinen Anwenderzahl liegen könnte als
+  an der Reserve. <span class="ok">Wer die Wahl hat, nimmt 13 oder 14</span>; wer nur eine 12 hat, ist damit
+  nach geltender Norm gedeckt, aber ohne Puffer für Fertigungstoleranz, Alterung und Kratzer. Für den
+  Stapel 5 + 11 ist die Frage ohnehin nachrangig: Er liegt bei Stufe 15, mit Faktor 20 Reserve zum hellen Ende.</p>
+  <p class="note">Die Toleranzbänder sind aus der Stufenformel als ±0,5 Stufen rekonstruiert, nicht aus dem
+  Normtext zitiert — dieselbe Einschränkung, die die Restliste für EN 169 durchgehend führt. Die Aussage
+  „Stufe 12 ist die knappste" ist gegen diese Unsicherheit robust, die exakte Zahl „1,2 %" nicht.</p>
+
   <p style="margin-top:14px"><strong>Epistemische Einordnung — warum „null Fälle" kein Beweis ist:</strong>
   Erstens ist die exponierte Population klein: Stufe-13/14-Gläser sind selten, Stapel-Anwender eine
   Winzigkeit gegenüber Millionen Brillenträgern; seltene Ereignisse in kleinen Populationen hinterlassen
@@ -1913,6 +1962,12 @@ section{scroll-margin-top:18px}
       <tr><td>UV des Stapels: ≤ 1,6·10⁻⁷ (365 nm), ≤ 9·10⁻¹² (313 nm)</td>
         <td><span class="grade gB">B</span></td><td class="st ok">bestätigt</td>
         <td>Herstellerangaben der DIN-5-Scheibe (≤ 0,0003 % / ≤ 0,3 %) × EN-169-Schranke τ(365–380) ≤ τv für DIN 11</td></tr>
+      <tr><td>Kein publizierter Fall speziell mit Schutzstufe 12; Stufe 12 unterschreitet die ISO-Obergrenze am hellen Toleranzende aber nur um 1,2 % und fällt gegen den Entwurf 2025 fast ganz durch</td>
+        <td><span class="grade gB">B</span></td><td class="st ok">bestätigt (Negativbefund + Rechnung)</td>
+        <td>Gezielte Nachsuche auf Stufe 12: kein Fallbericht. Toleranzrechnung aus der Stufenformel (±0,5 Stufen, rekonstruiert) gegen beide ISO-Fassungen — die Rangfolge 12 ≪ 13 &lt; 14 ist gegen die Rekonstruktionsunsicherheit robust, der Zahlenwert 1,2 % nicht. Konsistent mit der AAS-Formulierung, Stufe 12 sei vielen zu hell</td></tr>
+      <tr><td>Automatik-Schweißhelme: dokumentierter Ausfall durch Aufklaren während der Beobachtung</td>
+        <td><span class="grade gC">C</span></td><td class="st warn">Forenbericht</td>
+        <td>Schilderung eines Beobachters, der Helm sei mitten im Blick hell geworden, mit vorübergehenden Sehstörungen. Keine augenärztliche Dokumentation. Belegt nicht die Häufigkeit, wohl aber die Realität des Fehlermodus, vor dem die AAS warnt</td></tr>
       <tr><td>Robustheit: 5 + 11 bleibt auch dann innerhalb beider ISO-Fenster, wenn die „5" ein EN-172-Blendschutz „5-3,1" ist (Stufe 12,7–13,6); 5 + 9 dagegen nicht (bis 2,1× zu hell)</td>
         <td><span class="grade gB">B</span></td><td class="st ok">bestätigt (rechnerisch)</td>
         <td>τ-Bereich der EN-172-Skalenzahl 3,1 (8–17,8 %, Sonnenschutzkategorie 3) × τ der Stufe 11. Entscheidend ist die niedrige Hürde: Stufe 11 allein liegt nur 1,62× über der ISO-Obergrenze, selbst der hellste Fehlgriff trägt Faktor 5,6 bei. Die Kennzeichnung der Filterscheibe (W11) ist verwechslungsfrei — das Risiko sitzt allein im schwächeren Glied</td></tr>
