@@ -443,6 +443,49 @@ section{scroll-margin-top:18px}
   </table></div>
   <p style="margin-top:12px" class="note">Alle Transmissionen sind Normvorgaben der jeweiligen Schutzstufe,
   keine Messwerte dieser Exemplare. Verifiziert sind Kennzeichnung, Norm, benannte Stelle und Werkstoff.</p>
+
+  <h3 style="margin-top:32px">D · Robustheit: Was passiert, wenn die „5" gar keine Schweißstufe ist?</h3>
+  <p>Das Dossier nennt die Kennzeichnungsverwechslung durchgehend als größtes Restrisiko — bisher ohne sie
+  durchzurechnen. Das ist nachzuholen, denn das Ergebnis fällt anders aus als erwartet.</p>
+  <p>Zunächst die Asymmetrie: <strong>Nur die Brille trägt das Risiko.</strong> Die Kennzeichnung der
+  Filterscheibe lautet <span class="mono">16321 XTW W11</span> — das <span class="mono">W</span> steht für
+  Schweißerfilter, ein Vorzahlsystem gibt es dort nicht, eine Verwechslung ist ausgeschlossen. Unklar ist
+  allein die „5" der Brille, und genau die ist das <em>schwächere</em> der beiden Glieder.</p>
+  <p>Daraus folgt eine überraschend niedrige Hürde: <strong>Die Scheibe allein liegt nur um Faktor 1,62 über
+  der ISO-Obergrenze.</strong> Die Brille muss also, was immer sie ist, lediglich einen Faktor 1,6 beitragen,
+  damit die Kombination in die Norm fällt. Selbst der hellste denkbare Fehlgriff — ein Sonnenblendschutz
+  <span class="mono">5-3,1</span> nach EN 172, τ zwischen 8 und 17,8 % — trägt mindestens Faktor 5,6 bei:</p>
+  <div class="tscroll"><table>
+    <thead><tr><th>Annahme über die Brille</th><th class="num">τ Brille</th><th class="num">5 + 11</th><th>ISO 2015 / 2025</th><th class="num">5 + 9</th><th>ISO 2015</th></tr></thead>
+    <tbody>
+      <tr><td><b>echte EN-169-„5"</b></td><td class="num">1,93·10⁻²</td>
+        <td class="num"><b>1,0·10⁻⁶ · Stufe 15,0</b></td><td class="ok">ok / ok</td>
+        <td class="num">7,2·10⁻⁶ · Stufe 13,0</td><td class="ok">ok</td></tr>
+      <tr><td>EN 172 „5-3,1", dunkles Ende</td><td class="num">8,0·10⁻²</td>
+        <td class="num">4,1·10⁻⁶ · Stufe 13,6</td><td class="ok">ok / ok</td>
+        <td class="num">3,0·10⁻⁵ · Stufe 11,6</td><td class="warn">gerade noch ok</td></tr>
+      <tr><td>EN 172 „5-3,1", helles Ende</td><td class="num">1,78·10⁻¹</td>
+        <td class="num">9,2·10⁻⁶ · Stufe 12,7</td><td class="ok">ok / ok</td>
+        <td class="num bad">6,6·10⁻⁵ · Stufe 10,7</td><td class="bad">2,1× zu hell</td></tr>
+    </tbody>
+  </table></div>
+  <p style="margin-top:14px"><strong>Der Befund in einem Satz:</strong> <span class="ok">Der Stapel 5 + 11
+  bleibt in <em>jedem</em> dieser Fälle innerhalb beider ISO-Fenster</span> — er wandert lediglich von
+  Schutzstufe 15 auf 12,7 bis 13,6, also mitten in den Bereich, den DOG (12–14) und AAS (12+) ausdrücklich
+  empfehlen. <strong>Die Kombination ist gegen ihr eigenes größtes Restrisiko robust.</strong> Sie wird im
+  Fehlerfall heller, nicht unsicher, und landet dabei ausgerechnet dort, wo die Fachgesellschaften ohnehin
+  hinzeigen.</p>
+  <p><strong>Für 5 + 9 gilt das nicht.</strong> Dieselbe Verwechslung schiebt die Alternative auf Stufe 10,7
+  bis 11,6 — im ungünstigen Fall <span class="bad">Faktor 2,1 über der ISO-Obergrenze</span>. Daraus folgt
+  eine handfeste Betriebsregel: <strong>Solange die Randkennzeichnung der Brille nicht als zusatzlose „5"
+  gelesen wurde, wird nicht auf 5 + 9 gewechselt.</strong> Dann lieber die letzte halbe Stunde durch 5 + 11
+  mit dunklerem Bild als eine Kombination, deren Normkonformität an einer ungeprüften Annahme hängt.
+  Der Betriebsplan ist entsprechend zu lesen: Der Wechsel setzt die Kennzeichnungsprobe voraus, er ersetzt
+  sie nicht.</p>
+  <p class="note">Grundlage: τ-Bereich der EN-172-Skalenzahl 3,1 nach der Kategorieneinteilung (8–17,8 %,
+  identisch mit Sonnenschutzkategorie 3); Stufenformel und Multiplikationsregel wie im Physikkapitel.
+  Die Rechnung beantwortet nicht, <em>ob</em> die Kennzeichnung stimmt — sie zeigt, dass die Antwort für
+  5 + 11 folgenlos bleibt und für 5 + 9 nicht.</p>
 </section>
 
 <section id="normen">
@@ -741,7 +784,11 @@ section{scroll-margin-top:18px}
       <tr><td colspan="2"><b>Normstatus</b></td><td class="ok">ISO 2015 + 2025 ok</td><td class="ok">ISO 2015 + 2025 ok</td><td class="bad">unter ISO-Minimum</td></tr>
     </tbody>
   </table></div>
-  <p style="margin-top:14px"><strong>Fahrplan:</strong> 5 + 11 von 19:21 bis etwa 19:50, danach Wechsel auf
+  <p style="margin-top:14px" class="warn"><strong>Vorbehalt zum Wechsel:</strong> Der Übergang auf 5 + 9 setzt
+  voraus, dass die Randkennzeichnung der Brille als <em>zusatzlose</em> „5" gelesen wurde. Ist sie in Wahrheit
+  ein EN-172-Blendschutz „5-3,1", bleibt 5 + 11 normkonform, 5 + 9 aber nicht (bis Faktor 2,1 zu hell) —
+  Rechnung im Hardware-Kapitel, Abschnitt D. Ohne gelesene Kennzeichnung: durchgehend 5 + 11.</p>
+  <p><strong>Fahrplan:</strong> 5 + 11 von 19:21 bis etwa 19:50, danach Wechsel auf
   5 + 9. Beim Tausch wegschauen, tauschen, dann erst wieder hochblicken — nie beide Scheiben gleichzeitig ab.
   Die zweite DIN-11-Scheibe bleibt für die Handylinse in der frühen Phase (dort allein, nicht gestapelt:
   ~14 Blendenstufen).</p>
@@ -1693,6 +1740,9 @@ section{scroll-margin-top:18px}
       <tr><td>UV des Stapels: ≤ 1,6·10⁻⁷ (365 nm), ≤ 9·10⁻¹² (313 nm)</td>
         <td><span class="grade gB">B</span></td><td class="st ok">bestätigt</td>
         <td>Herstellerangaben der DIN-5-Scheibe (≤ 0,0003 % / ≤ 0,3 %) × EN-169-Schranke τ(365–380) ≤ τv für DIN 11</td></tr>
+      <tr><td>Robustheit: 5 + 11 bleibt auch dann innerhalb beider ISO-Fenster, wenn die „5" ein EN-172-Blendschutz „5-3,1" ist (Stufe 12,7–13,6); 5 + 9 dagegen nicht (bis 2,1× zu hell)</td>
+        <td><span class="grade gB">B</span></td><td class="st ok">bestätigt (rechnerisch)</td>
+        <td>τ-Bereich der EN-172-Skalenzahl 3,1 (8–17,8 %, Sonnenschutzkategorie 3) × τ der Stufe 11. Entscheidend ist die niedrige Hürde: Stufe 11 allein liegt nur 1,62× über der ISO-Obergrenze, selbst der hellste Fehlgriff trägt Faktor 5,6 bei. Die Kennzeichnung der Filterscheibe (W11) ist verwechslungsfrei — das Risiko sitzt allein im schwächeren Glied</td></tr>
       <tr><td>Stapel saß während des Vortests lückenlos</td>
         <td><span class="grade gC">C</span></td><td class="st bad">nicht prüfbar</td>
         <td>Tatsachenfrage vor Ort — verbleibende Restunsicherheit der Dosisaussage; Größenordnungsabstand macht sie unkritisch</td></tr>
