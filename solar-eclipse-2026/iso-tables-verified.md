@@ -40,13 +40,17 @@ Als Bruch: **Fenster 2015 = 6,1·10⁻⁷ … 3,2·10⁻⁵** (Lichttransmission
 
 *Comparison of transmittance properties (%) of solar and welding filters.* Werte in Prozent; sichtbarer Bereich = τ_v nach ISO 12311:2013, 7.1.2.
 
-| Kategorie | UV 280–315 | UV 315–380 | Sichtbar max | Sichtbar min | IR 780–1400 |
+| Kategorie | UV 280–315 nm | UV 315–380 nm | Sichtbar max | Sichtbar min | IR 780–1400 nm |
 |---|---|---|---|---|---|
 | Solar (direkte Beobachtung) | τ_v | τ_v | 0,003 2 | 0,000 061 | 3 |
 | Schweißen **W12** | 0,000 3 | 0,001 2 | 0,003 2 | 0,001 2 | 12 |
 | Schweißen **W13** | 0,000 3 | 0,000 44 | 0,001 2 | 0,000 44 | 8 |
 | Schweißen **W14** | 0,000 16 | 0,000 16 | 0,000 44 | 0,000 16 | 6 |
 | Schweißen **W15** | 0,000 061 | 0,000 061 | 0,000 16 | 0,000 061 | 4 |
+
+**NOTE der Norm (wörtlich übertragen):** Die UV-Werte der Schweißfilter sind *maximale* Spektraltransmissionen, gemessen bei **313 nm** (UVB-Spalte) und **365 nm** (UVA-Spalte). Der IR-Wert ist die **mittlere** Transmission über das angegebene Band (780–1400 nm). Im sichtbaren Bereich ist die Größe die Lichttransmission τ_v nach ISO 12311:2013, 7.1.2.
+
+**Umfang der Tabelle.** Die echte Table A.1 listet als Schweißfilter **ausschließlich die Stufen W12, W13, W14 und W15** — keine helleren (≤ W11) und keine dunkleren (≥ W16). Das ist kein Auszug, sondern der vollständige Tabelleninhalt der Norm. Werte für andere Stufen stehen **nicht** in ISO 12312-2:2015; wer sie braucht, muss sie aus der EN-169-Stufenformel *rechnen* (siehe unten), nicht aus dieser Tabelle *ablesen*.
 
 Der A-Anhang stellt zudem im Klartext fest: **Schweißerfilter der Stufen 12 bis 15 (nach ISO 16321) sind für das bloße Auge „equally suitable"** — W12 ausreichend, aber hell; W14 möglicherweise zu dunkel. Genau die Position, die DOG und AAS vertreten — hier aus der Norm selbst.
 
@@ -224,6 +228,32 @@ Ja — und anders als beim Stapel. Anhang A.1 **tabelliert** IR-Maxima je Schwei
 
 **Aber der Beleg reicht nicht:** 6 % ist das Doppelte der 3-%-Grenze — und sogar **W15 liegt mit 4 % darüber**. Aus den Norm-Maxima allein erfüllt damit **kein** gelisteter Schweißgrad die ISO-12312-2-IR-Grenze. Die Anhang-A-Aussage „Stufen 12–15 geeignet" ist *informativ* und stützt sich auf das **reale** Verhalten (Chou: echte Filter liegen weit unter ihren Maxima), nicht auf die Maxima. Selbst im günstigsten Fall — zertifizierter Einzelfilter mit tabelliertem IR-Max — beweist die Tabelle nur ≤ 6 %; für ≤ 3 % bleibt die **Messung** nötig. Die Umkehrung verschärft den Befund also, statt ihn aufzuheben.
 
+### Was NASA, DOG und ISO zum IR sagen — drei verschiedene Latten
+
+Die IR-Frage ist nicht akademisch: Die drei maßgeblichen Stellen ziehen die Grenze an *verschiedenen* Orten, und die strengste stammt nicht von der Norm.
+
+| Stelle | IR als Gefahr benannt? | Eigener IR-Grenzwert? | genutzte IR-Vorgabe |
+|---|---|---|---|
+| **NASA** (GSFC, Espenak) | ja, wörtlich: „near-infrared radiation causes heating that literally cooks the exposed tissue" | **ja** | Nah-IR 780–1400 nm ≤ **0,5 %** (sichtbar < 0,003 %) |
+| **DOG** (12.08.2026) | ja: Schaden „durch **Wärme** und photochemische Prozesse" | nein | verweist auf DIN EN ISO 12312-2 + Schutzstufe 12–14 |
+| **ISO 12312-2:2015** | ja | ja | τ_SIR ≤ **3 %** |
+
+Zwei Dinge fallen auf. **Erstens:** NASA setzt mit **0,5 %** die mit Abstand strengste IR-Latte — **sechsmal enger als die 3 % der ISO**. Wer also die IR-Sicherheit an NASA misst, hat einen deutlich schärferen Maßstab als die Norm selbst. **Zweitens:** Genau an dieser NASA-Latte reißt sogar der *zertifizierte Einzelfilter* auf dem Papier. Anhang A.1 erlaubt W14 ein IR-Maximum von 6 %, W15 von 4 % — beides liegt **über** NASAs 0,5 %. Ein rated W14/W15 besteht NASAs Test also nicht wegen seiner Schutzstufe, sondern nur, weil reale Schweißgläser weit unter ihrem tabellierten Maximum liegen (Chou et al.). Die Schutzstufe garantiert das Nah-IR bei keiner der drei Stellen — sie muss gemessen werden.
+
+DOG wiederum nennt die Wärme (also den IR-Thermalpfad) als Schadensmechanismus ausdrücklich, legt aber **keine eigene Zahl** fest, sondern übernimmt die 3-%-Grenze mittelbar über die ISO-Norm. Die inhaltliche Position „Stufe 12–14, sonst zertifizierte Solarfolie" deckt sich mit AAS und mit Anhang A.1.
+
+### Was die anderen Normen sagen — und wo die W5/W11-IR-Werte herkommen
+
+ISO 12312-2 steht nicht allein. Vier weitere Normen fassen dieselben Filter an, und eine davon ist genau die, die das IR unterhalb von W12 überhaupt regelt.
+
+- **EN 169:2002 — Schweißerfilter.** Das ist die Norm, aus der die Schutzstufen-Skala stammt. Anders als die ISO-Tabelle A.1 (nur W12–15) setzt EN 169 Transmissionsgrenzen — **einschließlich Nah-IR und Mittel-IR** — für die **gesamte Skala 1,2 bis 16**. Hier, nicht in ISO 12312-2, stehen also die IR-Obergrenzen für **W5 und W11**. Die exakten Zahlen je Stufe stecken in § 5.2 und ließen sich in diesem Durchgang nicht aus einer freien Primärquelle ziehen (die rs-online-Kopie lief in einen Timeout). Genau diese Lücke füllt der separate IR-Rechenlauf.
+- **EN ISO 16321-2:2021 — der Nachfolger.** Löst seit **11.11.2025** EN 169 und EN 379 (automatische Schweißfilter) ab; ISO 12312-2 verweist bereits auf „scale numbers nach ISO 16321". Neu ist unter anderem die optionale **verstärkte IR-Reflexion**, gekennzeichnet mit „R". Der IR-Nachweis eines Schweißglases läuft künftig über diese Norm.
+- **EN 171 — Infrarotfilter** (Code 4-x). Für Wärmequellen wie Öfen, Glut oder geschmolzenes Metall gedacht, **nicht** fürs Sonnengucken; ebenfalls in ISO 16321 aufgegangen.
+- **ISO 12312-1 — Sonnenbrillen/Allgemeines.** Ausdrücklich **nicht** für den direkten Blick in Sonne oder Finsternis. Dafür ist allein **Teil 2** zuständig, um den es hier geht.
+- **Übersee.** AS/NZS 1338.1 (Australien/Neuseeland) und ANSI Z80.3 / Z87.1 (USA) regeln Sonnenschutzfilter bzw. Augenschutz; in der US-Praxis verweisen AAS und NASA aber faktisch auf ISO 12312-2.
+
+Kurz: **Für das IR eines Schweißglases ist EN 169 bzw. ISO 16321 die einschlägige Norm**, nicht ISO 12312-2 — die tabelliert IR nur für die Stufen 12–15. Wer W5 oder W11 im IR bewerten will, schlägt dort nach oder rechnet.
+
 ### Wer es untersuchen will — Studiendesign ;)
 
 Der Stapel-Fall ist eine echte Forschungslücke: Chou deckt **Einzel**filter ab, die (real verbreitete) **gestapelte** Behelfslösung ist nicht systematisch vermessen.
@@ -263,6 +293,11 @@ Der Stapel sitzt bei 1,0·10⁻⁶ **nahe dem dunklen Rand** des Fensters 2015 (
 - **prEN ISO 12312-2** (Entwurf 2025), Katalog & Vorschau: [standards.iteh.ai/…/pren-iso-12312-2](https://standards.iteh.ai/catalog/standards/cen/c4732134-617e-4e4a-b313-c5f363ceec7b/pren-iso-12312-2)
 - **Chou, Dain, Fienberg 2021**, *AJ* 162:103, DOI [10.3847/1538-3881/ac013e](https://iopscience.iop.org/article/10.3847/1538-3881/ac013e) — Messdatensatz & Evidenz für den Entwurf
 - **AAS zur Norm**: [eclipse.aas.org/eye-safety/iso12312-2](https://eclipse.aas.org/eye-safety/iso12312-2)
+- **NASA/GSFC** (Espenak), Augensicherheit inkl. Nah-IR-Grenze ≤ 0,5 %: [eclipse.gsfc.nasa.gov/SEhelp/safety2.html](https://eclipse.gsfc.nasa.gov/SEhelp/safety2.html)
+- **DOG-Pressemeldung** zur partiellen Sonnenfinsternis 12.08.2026 (Wärme + photochemisch, Schutzstufe 12–14): [dog.org/pressemeldungen/sonnenfinsternis](https://dog.org/pressemeldungen/sonnenfinsternis)
+- **EN 169:2002** (Schweißerfilter, IR-Grenzen je Stufe 1,2–16), Katalog: [standards.iteh.ai/…/en-169-2002](https://standards.iteh.ai/catalog/standards/cen/373524e2-2c01-47bd-936c-c151c336c86e/en-169-2002)
+- **EN ISO 16321-2:2021** (Schweiß-Augenschutz, löst EN 169/EN 379 ab), Katalog: [standards.iteh.ai/…/en-iso-16321-2-2021](https://standards.iteh.ai/catalog/standards/cen/ca0578d0-5cb2-4326-b8ef-8539fffa38b7/en-iso-16321-2-2021)
+- **BSI-Überblick zu EN ISO 16321** (Umstellung 11.11.2025, „R"-Kennzeichnung): [bsigroup.com/…/understanding-en-iso-16321](https://www.bsigroup.com/en-US/insights-and-media/insights/blogs/a-new-era-in-eye-protection-understanding-en-iso-16321/)
 - **EuGH C-588/21 P** („Malamud", 5.3.2024), Pressemitteilung: [curia.europa.eu/…/cp240041en.pdf](https://curia.europa.eu/site/upload/docs/application/pdf/2024-03/cp240041en.pdf)
 - **§ 5 UrhG**: [gesetze-im-internet.de/urhg/__5.html](https://www.gesetze-im-internet.de/urhg/__5.html)
 - **Zugangsportal C-588/21 P**, Erläuterung: [ds.dk/…/public-access-portal](https://www.ds.dk/en/news/2024/public-access-portal-related-to-case-c-588-21-p-is-now-accessible)

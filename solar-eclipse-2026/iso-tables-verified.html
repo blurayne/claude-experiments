@@ -263,11 +263,11 @@ code{background:var(--bg2);border:1px solid var(--line);padding:1px 5px;border-r
 <thead>
 <tr>
 <th>Kategorie</th>
-<th>UV 280–315</th>
-<th>UV 315–380</th>
+<th>UV 280–315 nm</th>
+<th>UV 315–380 nm</th>
 <th>Sichtbar max</th>
 <th>Sichtbar min</th>
-<th>IR 780–1400</th>
+<th>IR 780–1400 nm</th>
 </tr>
 </thead>
 <tbody>
@@ -313,6 +313,8 @@ code{background:var(--bg2);border:1px solid var(--line);padding:1px 5px;border-r
 </tr>
 </tbody>
 </table></div>
+<p><strong>NOTE der Norm (wörtlich übertragen):</strong> Die UV-Werte der Schweißfilter sind <em>maximale</em> Spektraltransmissionen, gemessen bei <strong>313 nm</strong> (UVB-Spalte) und <strong>365 nm</strong> (UVA-Spalte). Der IR-Wert ist die <strong>mittlere</strong> Transmission über das angegebene Band (780–1400 nm). Im sichtbaren Bereich ist die Größe die Lichttransmission τ_v nach ISO 12311:2013, 7.1.2.</p>
+<p><strong>Umfang der Tabelle.</strong> Die echte Table A.1 listet als Schweißfilter <strong>ausschließlich die Stufen W12, W13, W14 und W15</strong> — keine helleren (≤ W11) und keine dunkleren (≥ W16). Das ist kein Auszug, sondern der vollständige Tabelleninhalt der Norm. Werte für andere Stufen stehen <strong>nicht</strong> in ISO 12312-2:2015; wer sie braucht, muss sie aus der EN-169-Stufenformel <em>rechnen</em> (siehe unten), nicht aus dieser Tabelle <em>ablesen</em>.</p>
 <p>Der A-Anhang stellt zudem im Klartext fest: <strong>Schweißerfilter der Stufen 12 bis 15 (nach ISO 16321) sind für das bloße Auge „equally suitable"</strong> — W12 ausreichend, aber hell; W14 möglicherweise zu dunkel. Genau die Position, die DOG und AAS vertreten — hier aus der Norm selbst.</p>
 <h3>Die Sichtbar-Spalten sind exakt die Stufenformel</h3>
 <p>Bevor ergänzt wird, die Probe. Setzt man in <code>τ_v = 10^(−3(N−1)/7)</code> die Bandränder <code>N∓0,5</code> ein, ergeben sich <strong>alle acht</strong> Sichtbar-Werte des Anhangs auf die angegebenen Stellen:</p>
@@ -821,6 +823,50 @@ code{background:var(--bg2);border:1px solid var(--line);padding:1px 5px;border-r
 <h3>Umkehrprobe — hat ein <em>einzelner</em> DIN 14 einen IR-Beleg?</h3>
 <p>Ja — und anders als beim Stapel. Anhang A.1 <strong>tabelliert</strong> IR-Maxima je Schweißgrad: <strong>W12 → 12 %, W13 → 8 %, W14 → 6 %, W15 → 4 %</strong> (solare Grenze = 3 %). Ein zertifizierter DIN 14 hat also eine garantierte, materialgestützte IR-Obergrenze von <strong>6 %</strong> — genau der Beleg, der dem DIN-5+DIN-11-Stapel fehlt (A.1 listet unter Stufe 12 nichts, und die Stapel-IR ist ein untabelliertes Produkt).</p>
 <p><strong>Aber der Beleg reicht nicht:</strong> 6 % ist das Doppelte der 3-%-Grenze — und sogar <strong>W15 liegt mit 4 % darüber</strong>. Aus den Norm-Maxima allein erfüllt damit <strong>kein</strong> gelisteter Schweißgrad die ISO-12312-2-IR-Grenze. Die Anhang-A-Aussage „Stufen 12–15 geeignet" ist <em>informativ</em> und stützt sich auf das <strong>reale</strong> Verhalten (Chou: echte Filter liegen weit unter ihren Maxima), nicht auf die Maxima. Selbst im günstigsten Fall — zertifizierter Einzelfilter mit tabelliertem IR-Max — beweist die Tabelle nur ≤ 6 %; für ≤ 3 % bleibt die <strong>Messung</strong> nötig. Die Umkehrung verschärft den Befund also, statt ihn aufzuheben.</p>
+<h3>Was NASA, DOG und ISO zum IR sagen — drei verschiedene Latten</h3>
+<p>Die IR-Frage ist nicht akademisch: Die drei maßgeblichen Stellen ziehen die Grenze an <em>verschiedenen</em> Orten, und die strengste stammt nicht von der Norm.</p>
+<div class="tscroll"><table>
+<thead>
+<tr>
+<th>Stelle</th>
+<th>IR als Gefahr benannt?</th>
+<th>Eigener IR-Grenzwert?</th>
+<th>genutzte IR-Vorgabe</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>NASA</strong> (GSFC, Espenak)</td>
+<td>ja, wörtlich: „near-infrared radiation causes heating that literally cooks the exposed tissue"</td>
+<td><strong>ja</strong></td>
+<td>Nah-IR 780–1400 nm ≤ <strong>0,5 %</strong> (sichtbar &lt; 0,003 %)</td>
+</tr>
+<tr>
+<td><strong>DOG</strong> (12.08.2026)</td>
+<td>ja: Schaden „durch <strong>Wärme</strong> und photochemische Prozesse"</td>
+<td>nein</td>
+<td>verweist auf DIN EN ISO 12312-2 + Schutzstufe 12–14</td>
+</tr>
+<tr>
+<td><strong>ISO 12312-2:2015</strong></td>
+<td>ja</td>
+<td>ja</td>
+<td>τ_SIR ≤ <strong>3 %</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>Zwei Dinge fallen auf. <strong>Erstens:</strong> NASA setzt mit <strong>0,5 %</strong> die mit Abstand strengste IR-Latte — <strong>sechsmal enger als die 3 % der ISO</strong>. Wer also die IR-Sicherheit an NASA misst, hat einen deutlich schärferen Maßstab als die Norm selbst. <strong>Zweitens:</strong> Genau an dieser NASA-Latte reißt sogar der <em>zertifizierte Einzelfilter</em> auf dem Papier. Anhang A.1 erlaubt W14 ein IR-Maximum von 6 %, W15 von 4 % — beides liegt <strong>über</strong> NASAs 0,5 %. Ein rated W14/W15 besteht NASAs Test also nicht wegen seiner Schutzstufe, sondern nur, weil reale Schweißgläser weit unter ihrem tabellierten Maximum liegen (Chou et al.). Die Schutzstufe garantiert das Nah-IR bei keiner der drei Stellen — sie muss gemessen werden.</p>
+<p>DOG wiederum nennt die Wärme (also den IR-Thermalpfad) als Schadensmechanismus ausdrücklich, legt aber <strong>keine eigene Zahl</strong> fest, sondern übernimmt die 3-%-Grenze mittelbar über die ISO-Norm. Die inhaltliche Position „Stufe 12–14, sonst zertifizierte Solarfolie" deckt sich mit AAS und mit Anhang A.1.</p>
+<h3>Was die anderen Normen sagen — und wo die W5/W11-IR-Werte herkommen</h3>
+<p>ISO 12312-2 steht nicht allein. Vier weitere Normen fassen dieselben Filter an, und eine davon ist genau die, die das IR unterhalb von W12 überhaupt regelt.</p>
+<ul>
+<li><strong>EN 169:2002 — Schweißerfilter.</strong> Das ist die Norm, aus der die Schutzstufen-Skala stammt. Anders als die ISO-Tabelle A.1 (nur W12–15) setzt EN 169 Transmissionsgrenzen — <strong>einschließlich Nah-IR und Mittel-IR</strong> — für die <strong>gesamte Skala 1,2 bis 16</strong>. Hier, nicht in ISO 12312-2, stehen also die IR-Obergrenzen für <strong>W5 und W11</strong>. Die exakten Zahlen je Stufe stecken in § 5.2 und ließen sich in diesem Durchgang nicht aus einer freien Primärquelle ziehen (die rs-online-Kopie lief in einen Timeout). Genau diese Lücke füllt der separate IR-Rechenlauf.</li>
+<li><strong>EN ISO 16321-2:2021 — der Nachfolger.</strong> Löst seit <strong>11.11.2025</strong> EN 169 und EN 379 (automatische Schweißfilter) ab; ISO 12312-2 verweist bereits auf „scale numbers nach ISO 16321". Neu ist unter anderem die optionale <strong>verstärkte IR-Reflexion</strong>, gekennzeichnet mit „R". Der IR-Nachweis eines Schweißglases läuft künftig über diese Norm.</li>
+<li><strong>EN 171 — Infrarotfilter</strong> (Code 4-x). Für Wärmequellen wie Öfen, Glut oder geschmolzenes Metall gedacht, <strong>nicht</strong> fürs Sonnengucken; ebenfalls in ISO 16321 aufgegangen.</li>
+<li><strong>ISO 12312-1 — Sonnenbrillen/Allgemeines.</strong> Ausdrücklich <strong>nicht</strong> für den direkten Blick in Sonne oder Finsternis. Dafür ist allein <strong>Teil 2</strong> zuständig, um den es hier geht.</li>
+<li><strong>Übersee.</strong> AS/NZS 1338.1 (Australien/Neuseeland) und ANSI Z80.3 / Z87.1 (USA) regeln Sonnenschutzfilter bzw. Augenschutz; in der US-Praxis verweisen AAS und NASA aber faktisch auf ISO 12312-2.</li>
+</ul>
+<p>Kurz: <strong>Für das IR eines Schweißglases ist EN 169 bzw. ISO 16321 die einschlägige Norm</strong>, nicht ISO 12312-2 — die tabelliert IR nur für die Stufen 12–15. Wer W5 oder W11 im IR bewerten will, schlägt dort nach oder rechnet.</p>
 <h3>Wer es untersuchen will — Studiendesign ;)</h3>
 <p>Der Stapel-Fall ist eine echte Forschungslücke: Chou deckt <strong>Einzel</strong>filter ab, die (real verbreitete) <strong>gestapelte</strong> Behelfslösung ist nicht systematisch vermessen.</p>
 <ul>
@@ -886,6 +932,11 @@ code{background:var(--bg2);border:1px solid var(--line);padding:1px 5px;border-r
 <li><strong>prEN ISO 12312-2</strong> (Entwurf 2025), Katalog &amp; Vorschau: <a href="https://standards.iteh.ai/catalog/standards/cen/c4732134-617e-4e4a-b313-c5f363ceec7b/pren-iso-12312-2">standards.iteh.ai/…/pren-iso-12312-2</a></li>
 <li><strong>Chou, Dain, Fienberg 2021</strong>, <em>AJ</em> 162:103, DOI <a href="https://iopscience.iop.org/article/10.3847/1538-3881/ac013e">10.3847/1538-3881/ac013e</a> — Messdatensatz &amp; Evidenz für den Entwurf</li>
 <li><strong>AAS zur Norm</strong>: <a href="https://eclipse.aas.org/eye-safety/iso12312-2">eclipse.aas.org/eye-safety/iso12312-2</a></li>
+<li><strong>NASA/GSFC</strong> (Espenak), Augensicherheit inkl. Nah-IR-Grenze ≤ 0,5 %: <a href="https://eclipse.gsfc.nasa.gov/SEhelp/safety2.html">eclipse.gsfc.nasa.gov/SEhelp/safety2.html</a></li>
+<li><strong>DOG-Pressemeldung</strong> zur partiellen Sonnenfinsternis 12.08.2026 (Wärme + photochemisch, Schutzstufe 12–14): <a href="https://dog.org/pressemeldungen/sonnenfinsternis">dog.org/pressemeldungen/sonnenfinsternis</a></li>
+<li><strong>EN 169:2002</strong> (Schweißerfilter, IR-Grenzen je Stufe 1,2–16), Katalog: <a href="https://standards.iteh.ai/catalog/standards/cen/373524e2-2c01-47bd-936c-c151c336c86e/en-169-2002">standards.iteh.ai/…/en-169-2002</a></li>
+<li><strong>EN ISO 16321-2:2021</strong> (Schweiß-Augenschutz, löst EN 169/EN 379 ab), Katalog: <a href="https://standards.iteh.ai/catalog/standards/cen/ca0578d0-5cb2-4326-b8ef-8539fffa38b7/en-iso-16321-2-2021">standards.iteh.ai/…/en-iso-16321-2-2021</a></li>
+<li><strong>BSI-Überblick zu EN ISO 16321</strong> (Umstellung 11.11.2025, „R"-Kennzeichnung): <a href="https://www.bsigroup.com/en-US/insights-and-media/insights/blogs/a-new-era-in-eye-protection-understanding-en-iso-16321/">bsigroup.com/…/understanding-en-iso-16321</a></li>
 <li><strong>EuGH C-588/21 P</strong> („Malamud", 5.3.2024), Pressemitteilung: <a href="https://curia.europa.eu/site/upload/docs/application/pdf/2024-03/cp240041en.pdf">curia.europa.eu/…/cp240041en.pdf</a></li>
 <li><strong>§ 5 UrhG</strong>: <a href="https://www.gesetze-im-internet.de/urhg/__5.html">gesetze-im-internet.de/urhg/__5.html</a></li>
 <li><strong>Zugangsportal C-588/21 P</strong>, Erläuterung: <a href="https://www.ds.dk/en/news/2024/public-access-portal-related-to-case-c-588-21-p-is-now-accessible">ds.dk/…/public-access-portal</a></li>
