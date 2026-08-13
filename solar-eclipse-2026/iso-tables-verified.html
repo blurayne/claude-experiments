@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ISO 12312-2 &mdash; verifiziert &amp; neu durchgerechnet &middot; SoFi 12.08.2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080c11; --bg2:#0e141c; --panel:#111a24; --line:#1e2b39;
+  --tx:#dbe6f0; --tx2:#8ba0b5; --tx3:#5c7186;
+  --teal:#3fd0c9; --amber:#f5a623; --red:#e8604c; --violet:#9b8cf0; --green:#5fbf6e;
+  --shadow:0 1px 0 rgba(255,255,255,.03), 0 8px 30px rgba(0,0,0,.5);
+}
+html[data-theme="light"]{
+  --bg:#f6f4ef; --bg2:#fffdf8; --panel:#ffffff; --line:#ddd6c8;
+  --tx:#1a2028; --tx2:#5a6572; --tx3:#8a95a2;
+  --teal:#0a8f88; --amber:#b56b00; --red:#b8341f; --violet:#5a49c0; --green:#2e7d3a;
+  --shadow:0 1px 2px rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.06);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);
+  font-family:'Space Grotesk',system-ui,sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:0 18px 90px}
+code,.mono,td.num,th.num{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+header{padding:46px 0 24px;border-bottom:1px solid var(--line);position:relative}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--teal);padding-right:96px}
+h1{font-size:clamp(28px,5vw,46px);line-height:1.06;margin:12px 0 8px;font-weight:700;letter-spacing:-.02em}
+h1 em{font-style:normal;color:var(--tx3)}
+.sub{color:var(--tx2);font-size:15.5px}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.meta span{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--tx2);
+  border:1px solid var(--line);border-radius:2px;padding:4px 9px;background:var(--bg2)}
+#themeBtn{position:absolute;top:42px;right:0;z-index:5;background:var(--bg2);color:var(--tx2);
+  border:1px solid var(--line);border-radius:2px;padding:7px 12px;cursor:pointer;
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em}
+#themeBtn:hover{color:var(--teal);border-color:var(--teal)}
+section{padding-top:52px}
+h2{font-size:11px;font-family:'IBM Plex Mono',monospace;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--tx3);margin:0 0 6px;display:flex;align-items:center;gap:10px}
+h2::after{content:"";flex:1;height:1px;background:var(--line)}
+h3{font-size:21px;margin:6px 0 14px;font-weight:600;letter-spacing:-.01em}
+p{color:var(--tx2)}
+p strong,li strong{color:var(--tx);font-weight:600}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:18px 20px;box-shadow:var(--shadow)}
+.verdict{display:grid;gap:12px;margin-top:16px}
+.vbox{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--teal);border-radius:3px;padding:16px 18px}
+.vbox h4{margin:0 0 6px;font-size:15px;font-weight:600;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.vbox p{margin:0;font-size:14px}
+.vbox.b{border-left-color:var(--amber)} .vbox.r{border-left-color:var(--red)} .vbox.g{border-left-color:var(--green)}
+.conf{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);
+  border:1px solid var(--line);border-radius:2px;padding:2px 7px}
+.tscroll{overflow-x:auto;border:1px solid var(--line);border-radius:3px;background:var(--panel);box-shadow:var(--shadow)}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:640px}
+thead th{background:var(--bg2);color:var(--tx3);font-family:'IBM Plex Mono',monospace;font-size:10px;
+  letter-spacing:.11em;text-transform:uppercase;font-weight:500;text-align:left;padding:9px 10px;
+  border-bottom:1px solid var(--line);white-space:nowrap}
+tbody td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--tx2)}
+tbody tr:last-child td{border-bottom:none}
+td.num,th.num{text-align:right}
+td b{color:var(--tx);font-weight:600}
+.ok{color:var(--green)} .warn{color:var(--amber)} .bad{color:var(--red)}
+.grade{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;border-radius:2px;
+  padding:2px 6px;border:1px solid;letter-spacing:.06em;white-space:nowrap}
+.gA{color:var(--teal);border-color:var(--teal)} .gB{color:var(--amber);border-color:var(--amber)}
+.gC{color:var(--violet);border-color:var(--violet)} .gD{color:var(--red);border-color:var(--red)}
+.st{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.05em;white-space:nowrap}
+.sigwrap{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:18px 14px 8px;margin-top:16px;box-shadow:var(--shadow)}
+svg{display:block;width:100%;height:auto;overflow:visible}
+.legend{display:flex;flex-wrap:wrap;gap:16px;padding:10px 8px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--tx2)}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.calc{display:grid;grid-template-columns:1fr;gap:16px;margin-top:16px}
+@media(min-width:760px){.calc{grid-template-columns:280px 1fr}}
+.ctl{margin-bottom:16px}
+.ctl label{display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;
+  font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);margin-bottom:6px}
+.ctl label b{color:var(--teal);font-weight:600;letter-spacing:0;text-transform:none;font-size:13px}
+.ctl input[type=range]{width:100%;accent-color:var(--teal)}
+.res{font-family:'IBM Plex Mono',monospace;font-size:38px;font-weight:600;color:var(--amber);line-height:1}
+.note{font-size:12.5px;color:var(--tx3);font-family:'IBM Plex Mono',monospace;line-height:1.6}
+ul{color:var(--tx2);font-size:14.5px}
+li{margin-bottom:8px}
+a{color:var(--teal)}
+.q{border-left:2px solid var(--line);padding:2px 0 2px 14px;margin:10px 0;color:var(--tx2);font-size:14px;}
+.q .src{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--tx3);letter-spacing:.06em;text-transform:uppercase;margin-top:4px}
+footer{margin-top:70px;padding-top:22px;border-top:1px solid var(--line);color:var(--tx3);font-size:12px;
+  font-family:'IBM Plex Mono',monospace;line-height:1.7}
+:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+
+nav#toc{padding-top:40px}
+nav#toc h2{font-size:11px;font-family:'IBM Plex Mono',monospace;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--tx3);margin:0 0 14px;display:flex;align-items:center;gap:10px}
+nav#toc h2::after{content:"";flex:1;height:1px;background:var(--line)}
+.tocgrid{display:grid;grid-template-columns:1fr;gap:1px;background:var(--line);
+  border:1px solid var(--line);border-radius:3px;overflow:hidden}
+@media(min-width:640px){.tocgrid{grid-template-columns:1fr 1fr}}
+@media(min-width:960px){.tocgrid{grid-template-columns:1fr 1fr 1fr}}
+.tocit{display:flex;gap:11px;align-items:baseline;background:var(--panel);padding:11px 13px;
+  text-decoration:none;color:var(--tx);transition:background .15s}
+.tocit:hover{background:var(--bg2)}
+.tocit:hover .tocn{color:var(--amber)}
+.tocn{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--tx3);flex:0 0 auto;transition:color .15s}
+.toct{font-size:14px;font-weight:600;line-height:1.3;display:block}
+.toct em{display:block;font-style:normal;font-weight:400;font-size:11.5px;color:var(--tx3);
+  margin-top:2px;line-height:1.4}
+section{scroll-margin-top:18px}
+@media(prefers-reduced-motion:no-preference){
+  .fade{animation:f .6s ease both}@keyframes f{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+}
+
+/* ================= Kosmos · Deep-Field-Theme ================= */
+body{
+  background:
+    radial-gradient(1250px 820px at 82% -12%, color-mix(in srgb,var(--violet) 24%,transparent), transparent 58%),
+    radial-gradient(1050px 720px at 4% 2%, color-mix(in srgb,var(--teal) 18%,transparent), transparent 55%),
+    radial-gradient(900px 900px at 60% 118%, color-mix(in srgb,var(--amber) 12%,transparent), transparent 60%),
+    linear-gradient(180deg, var(--bg2) 0%, var(--bg) 46%, #03060a 100%);
+  background-attachment:fixed;
+}
+html[data-theme="light"] body{
+  background:
+    radial-gradient(1150px 780px at 82% -12%, color-mix(in srgb,var(--violet) 12%,transparent), transparent 60%),
+    radial-gradient(1000px 700px at 4% 2%, color-mix(in srgb,var(--teal) 12%,transparent), transparent 58%),
+    linear-gradient(180deg, #fffdf8 0%, var(--bg) 100%);
+  background-attachment:fixed;
+}
+/* Sternenfeld – zwei Ebenen für Tiefe */
+body::before,body::after{content:"";position:fixed;inset:-60px;z-index:-1;pointer-events:none}
+body::before{
+  background-image:
+    radial-gradient(1px 1px at 24px 32px,#ffffff,transparent 60%),
+    radial-gradient(1px 1px at 88px 118px,#eaf3ff,transparent 60%),
+    radial-gradient(1.6px 1.6px at 158px 66px,#cfe5ff,transparent 60%),
+    radial-gradient(1px 1px at 202px 176px,#ffffff,transparent 60%),
+    radial-gradient(1.6px 1.6px at 120px 208px,#ffe7c2,transparent 60%),
+    radial-gradient(1px 1px at 264px 96px,#ffffff,transparent 60%);
+  background-size:300px 300px;opacity:.7;
+}
+body::after{
+  background-image:
+    radial-gradient(2px 2px at 60px 80px,#bfe9ff,transparent 55%),
+    radial-gradient(2px 2px at 300px 210px,#ffffff,transparent 55%),
+    radial-gradient(2.4px 2.4px at 150px 40px,#c9b8ff,transparent 55%);
+  background-size:420px 420px;opacity:.5;
+}
+html[data-theme="light"] body::before{opacity:.12}
+html[data-theme="light"] body::after{opacity:.1}
+@media(prefers-reduced-motion:no-preference){
+  body::before{animation:drift 180s linear infinite}
+  body::after{animation:twinkle 7s ease-in-out infinite alternate, drift2 240s linear infinite}
+  @keyframes drift{to{background-position:300px 300px}}
+  @keyframes drift2{to{background-position:-420px 210px}}
+  @keyframes twinkle{from{opacity:.26}to{opacity:.58}}
+}
+/* Farbverlauf-Überschriften */
+h1{
+  background:linear-gradient(100deg,var(--teal) 0%,var(--tx) 34%,var(--amber) 66%,var(--violet) 100%);
+  background-size:220% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 22px color-mix(in srgb,var(--teal) 26%,transparent));
+}
+h1 em{-webkit-text-fill-color:var(--tx3);filter:none}
+h3{background:linear-gradient(92deg,var(--tx) 0%,var(--teal) 118%);-webkit-background-clip:text;background-clip:text;color:transparent}
+@media(prefers-reduced-motion:no-preference){
+  h1{animation:hue 16s ease-in-out infinite alternate}
+  @keyframes hue{from{background-position:0% 50%}to{background-position:100% 50%}}
+}
+h2::after{background:linear-gradient(90deg,color-mix(in srgb,var(--teal) 70%,transparent),transparent)}
+header{border-bottom:1px solid transparent;border-image:linear-gradient(90deg,var(--teal),color-mix(in srgb,var(--violet) 60%,transparent),transparent) 1}
+/* Glas-Konsolen für Karten */
+.panel,.kpi,.vbox{background:color-mix(in srgb,var(--panel) 82%,transparent);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+
+/* ---- iso-tables appendix overrides ---- */
+h2{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:600;
+  text-transform:none;letter-spacing:-.01em;margin:8px 0 12px;
+  background:linear-gradient(100deg,var(--teal),var(--tx) 46%,var(--amber));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+h3{font-size:16.5px;margin:22px 0 8px}
+table{min-width:0}
+.tscroll table{min-width:0}
+tbody td,thead th{white-space:normal}
+blockquote{border-left:2px solid var(--amber);margin:18px 0;padding:6px 0 6px 15px;
+  color:var(--tx2);font-size:14px;background:color-mix(in srgb,var(--amber) 6%,transparent);
+  border-radius:0 3px 3px 0}
+blockquote p{margin:0}
+hr{border:none;border-top:1px solid var(--line);margin:34px 0}
+code{background:var(--bg2);border:1px solid var(--line);padding:1px 5px;border-radius:3px;font-size:.88em}
+.content>p:first-of-type{font-size:16px;color:var(--tx2)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="fade">
+  <button id="themeBtn" aria-label="Hell/Dunkel umschalten">HELL</button>
+  <div class="eyebrow">Observatory &middot; Norm-Verifikation</div>
+  <h1>ISO 12312-2<br><em>verifiziert &amp; neu durchgerechnet</em></h1>
+  <p class="sub">Die Originalwerte der Norm, belegt wie sie legitim beschafft wurden, und die
+  Sicherheitsaussage des Augenschutz-Dossiers (DIN&nbsp;5&nbsp;+&nbsp;DIN&nbsp;11 gestapelt) direkt gegen
+  den Normtext nachgerechnet.</p>
+  <div class="meta">
+    <span>Stand 13.08.2026</span>
+    <span>EN ISO 12312-2:2015</span>
+    <span>ISO/DIS 12312-2:2025</span>
+    <span>Chou et al. 2021 (AJ 162:103)</span>
+    <span>Anhang zum Augenschutz-Dossier</span>
+  </div>
+</header>
+
+<section class="content fade">
+<p>Anhang zum <a href="2026-08-11_schweissglas-augenschutz_dossier.html">Schweißglas-&amp;-Augenschutz-Dossier</a>. Er hält die <strong>Originalwerte</strong> der Norm fest, die das Dossier bislang nur aus Sekundärquellen zitiert, belegt, <strong>wie</strong> sie beschafft wurden, und rechnet die zentrale Sicherheitsaussage (DIN 5 + DIN 11 gestapelt) noch einmal direkt gegen den Normtext durch.</p>
+<p>Stand: 13.08.2026. Wiedergegeben werden Zahlenwerte (Fakten, nicht urheberrechtsfähig) und die eigene Nachrechnung — nicht der urheberrechtlich geschützte Fließtext der Norm.</p>
+<hr>
+<h2>Wie die Norm beschafft wurde</h2>
+<p>Kurz vorweg: Es war <strong>keine Umgehung von Bezahlschranken</strong> nötig und es wurde keine vorgenommen. ISO 12312-2:2015 ist nur fünf Seiten Normtext lang, und die frei zugängliche <strong>Verlags-Vorschau</strong> (iTeh „STANDARD PREVIEW", <code>cdn.standards.iteh.ai/samples/59289/…/ISO-12312-2-2015.pdf</code>) enthält den <strong>kompletten</strong> normativen Teil — Tabelle 1, Anhang A.1 und den informativen Netzhaut­sicherheits­anhang. Jeder Wert, den das Dossier behauptet, ist damit gegen den Quelltext bestätigt.</p>
+<p>Zur Frage nach „Gratis-Bibliotheks"-Wegen und der Lücke im deutschen Recht:</p>
+<ul>
+<li><strong>§ 5 Abs. 3 UrhG — die deutsche „Lücke", die in die andere Richtung wirkt.</strong> Eine DIN/ISO-Norm wird <strong>nicht</strong> gemeinfrei, nur weil ein Gesetz auf sie <em>verweist</em>. Sie verliert den Schutz erst, wenn der Gesetzestext ihren <em>Wortlaut wiedergibt</em> (Inkorporation). Der erhoffte deutsche Schlupfweg befreit ISO 12312-2 also nicht. Der praktische Gratis-Weg, den § 5 doch eröffnet: die <strong>Normen-Auslegestellen</strong> — kostenloses Lesen vor Ort (kein Download, keine Kopie) in DIN-Auslegestellen und vielen Universitätsbibliotheken. Das Dossier nennt sie bereits; das ist der legitime, §-5-nahe Pfad.</li>
+<li><strong>Die eigentliche Lücke ist EU-Recht, nicht deutsches (EuGH C-588/21 P „Malamud", 5. März 2024).</strong> Harmonisierte Normen sind <strong>Teil des Unionsrechts und müssen frei zugänglich sein</strong>. EN ISO 12312-2 ist unter der <strong>PSA-Verordnung (EU) 2016/425</strong> harmonisiert (Finsternisbrillen = PSA-Kategorie II), gelistet über den jeweils geltenden Durchführungsbeschluss (aktuell (EU) 2026/1279). Nach dem Urteil besteht ein <strong>Recht auf kostenlosen Zugang auf Anfrage</strong> — über das nach dem Urteil eingerichtete Zugangsportal der EU-Kommission oder über eine nationale Normungsstelle (z. B. gibt Danish Standard die Normen nach kostenloser Registrierung frei). Das Urheberrecht bleibt bestehen (nur Lesen, keine kommerzielle Weiterverwendung), der Zugang darf aber nicht verweigert werden.</li>
+<li><strong>Offene Primärquelle.</strong> Chou, Dain &amp; Fienberg 2021 (<em>AJ</em> 162:103, Open Access) gibt den gemessenen Transmissions­datensatz wieder (dort Tabelle 3) und ist die Evidenzgrundlage für die verschärften Grenzwerte des Entwurfs 2025 — vollständig frei und im Dossier ohnehin zentral.</li>
+</ul>
+<p><strong>Fazit:</strong> Die Originaltabellen sind legitim zu bekommen. Der ganze 2015er-Normtext steht in der Verlags-Vorschau, die Tabelle 1 des Entwurfs 2025 ist ebenfalls bestätigt.</p>
+<hr>
+<h2>ISO 12312-2:2015 — Tabelle 1 (Originalwerte)</h2>
+<p><em>Transmittance requirements for filters for the direct observation of the sun</em> — gemessen/gerechnet am „boxed centre" bei senkrechtem Einfall.</p>
+<div class="tscroll"><table>
+<thead>
+<tr>
+<th>Anforderung</th>
+<th>Grenzwert</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Maximale Lichttransmission τ_v</td>
+<td><strong>0,003 2 %</strong></td>
+</tr>
+<tr>
+<td>Minimale Lichttransmission τ_v</td>
+<td><strong>0,000 061 %</strong></td>
+</tr>
+<tr>
+<td>Maximale solare UVB-Transmission τ_SUVB</td>
+<td>≤ τ_v</td>
+</tr>
+<tr>
+<td>Maximale solare UVA-Transmission τ_SUVA</td>
+<td>≤ τ_v</td>
+</tr>
+<tr>
+<td>Maximale solare IR-Transmission τ_SIR</td>
+<td><strong>3 %</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>Ergänzend: § 4.1.2 <strong>Gleichmäßigkeit</strong> (relative Differenz zweier Punkte ≤ 10 %, innerhalb eines Kreises von 40 mm um das boxed centre); § 4.2 Materialgüte (metallbedampft: höchstens ein Pinhole ≤ 200 µm je 5-mm-Kreis); § 4.3 Maße (≥ 115 mm × 35 mm, beide Augen); § 5 Kennzeichnung.</p>
+<p>Als Bruch: <strong>Fenster 2015 = 6,1·10⁻⁷ … 3,2·10⁻⁵</strong> (Lichttransmission).</p>
+<h2>ISO 12312-2:2015 — Anhang A.1 (Solar vs. Schweißfilter)</h2>
+<p><em>Comparison of transmittance properties (%) of solar and welding filters.</em> Werte in Prozent; sichtbarer Bereich = τ_v nach ISO 12311:2013, 7.1.2.</p>
+<div class="tscroll"><table>
+<thead>
+<tr>
+<th>Kategorie</th>
+<th>UV 280–315</th>
+<th>UV 315–380</th>
+<th>Sichtbar max</th>
+<th>Sichtbar min</th>
+<th>IR 780–1400</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Solar (direkte Beobachtung)</td>
+<td>τ_v</td>
+<td>τ_v</td>
+<td>0,003 2</td>
+<td>0,000 061</td>
+<td>3</td>
+</tr>
+<tr>
+<td>Schweißen <strong>W12</strong></td>
+<td>0,000 3</td>
+<td>0,001 2</td>
+<td>0,003 2</td>
+<td>0,001 2</td>
+<td>12</td>
+</tr>
+<tr>
+<td>Schweißen <strong>W13</strong></td>
+<td>0,000 3</td>
+<td>0,000 44</td>
+<td>0,001 2</td>
+<td>0,000 44</td>
+<td>8</td>
+</tr>
+<tr>
+<td>Schweißen <strong>W14</strong></td>
+<td>0,000 16</td>
+<td>0,000 16</td>
+<td>0,000 44</td>
+<td>0,000 16</td>
+<td>6</td>
+</tr>
+<tr>
+<td>Schweißen <strong>W15</strong></td>
+<td>0,000 061</td>
+<td>0,000 061</td>
+<td>0,000 16</td>
+<td>0,000 061</td>
+<td>4</td>
+</tr>
+</tbody>
+</table></div>
+<p>Der A-Anhang stellt zudem im Klartext fest: <strong>Schweißerfilter der Stufen 12 bis 15 (nach ISO 16321) sind für das bloße Auge „equally suitable"</strong> — W12 ausreichend, aber hell; W14 möglicherweise zu dunkel. Genau die Position, die DOG und AAS vertreten — hier aus der Norm selbst.</p>
+<h2>ISO/DIS 12312-2:2025 — Tabelle 1 (Entwurf, bestätigt)</h2>
+<p>Aus der iTeh-Vorschau des Entwurfs <code>prEN ISO 12312-2</code>:</p>
+<div class="tscroll"><table>
+<thead>
+<tr>
+<th>Anforderung</th>
+<th>Grenzwert</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Maximale Lichttransmission τ_v (D65)</td>
+<td><strong>0,0012 %</strong></td>
+</tr>
+<tr>
+<td>Minimale Lichttransmission τ_v (D65)</td>
+<td><strong>0,00004 %</strong></td>
+</tr>
+<tr>
+<td>Maximale solare UVB-Transmission</td>
+<td><strong>0,0012 %</strong></td>
+</tr>
+<tr>
+<td>Maximale solare UVA-Transmission</td>
+<td><strong>0,0012 %</strong></td>
+</tr>
+<tr>
+<td>Maximale solare IR-Transmission</td>
+<td><strong>3 %</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>Als Bruch: <strong>Fenster 2025 = 4,0·10⁻⁷ … 1,2·10⁻⁵</strong> — an beiden Enden enger als 2015, oben um Faktor ~2,7.</p>
+<hr>
+<h2>Nachrechnung &amp; Neubewertung der Sicherheit</h2>
+<p><strong>Ausgangslage.</strong> EN-169-Stufenformel: <code>N = 1 + (7/3)·log₁₀(1/τ_v)</code>, also <code>τ_v = 10^(−3(N−1)/7)</code>. Stapeln zweier Filter (Beer–Lambert): <code>τ_gesamt = τ₁ · τ₂</code>, entsprechend der Stufenaddition <code>N = N₁ + N₂ − 1</code>. Interne Mehrfachreflexionen zwischen den Scheiben machen den Stapel geringfügig <em>dunkler</em> (sicherer) — hier vernachlässigt, konservativ.</p>
+<h3>Welche Einzelstufe liegt in welchem ISO-Fenster?</h3>
+<div class="tscroll"><table>
+<thead>
+<tr>
+<th>Stufe N</th>
+<th>τ_v</th>
+<th>in %</th>
+<th>Fenster 2015</th>
+<th>Fenster 2025</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>5</td>
+<td>1,93·10⁻²</td>
+<td>1,931 %</td>
+<td><strong>zu hell</strong></td>
+<td><strong>zu hell</strong></td>
+</tr>
+<tr>
+<td>11</td>
+<td>5,18·10⁻⁵</td>
+<td>0,005180 %</td>
+<td><strong>zu hell</strong> (1,6×)</td>
+<td><strong>zu hell</strong></td>
+</tr>
+<tr>
+<td>12</td>
+<td>1,93·10⁻⁵</td>
+<td>0,001931 %</td>
+<td>✅ im Fenster</td>
+<td><strong>zu hell</strong> (1,6×)</td>
+</tr>
+<tr>
+<td>13</td>
+<td>7,20·10⁻⁶</td>
+<td>0,000720 %</td>
+<td>✅ im Fenster</td>
+<td>✅ im Fenster</td>
+</tr>
+<tr>
+<td>14</td>
+<td>2,68·10⁻⁶</td>
+<td>0,000268 %</td>
+<td>✅ im Fenster</td>
+<td>✅ im Fenster</td>
+</tr>
+<tr>
+<td>15</td>
+<td>1,00·10⁻⁶</td>
+<td>0,000100 %</td>
+<td>✅ im Fenster</td>
+<td>✅ im Fenster</td>
+</tr>
+<tr>
+<td>16</td>
+<td>3,73·10⁻⁷</td>
+<td>0,0000373 %</td>
+<td><strong>zu dunkel</strong></td>
+<td><strong>zu dunkel</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Ergebnis 1 — unabhängige Bestätigung der Norm.</strong> Die Formel reproduziert exakt die Aussage aus Anhang A.1: <strong>Stufen 12–15 liegen im Fenster 2015.</strong> Stufe 11 fällt knapp heraus (zu hell), Stufe 16 fällt heraus (zu dunkel). Der <strong>Entwurf 2025 verengt das nutzbare Band auf die Stufen 13–15</strong> — er würde die Stufe 12 fallen lassen. Das ist die rechnerische Fassung der DOG/AAS-Empfehlung „12–14".</p>
+<h3>Der Stapel DIN 5 + DIN 11</h3>
+<ul>
+<li>τ(DIN 5) = 1,93·10⁻² · τ(DIN 11) = 5,18·10⁻⁵ → <strong>τ(Stapel) = 1,00·10⁻⁶</strong> (0,0001 %), das entspricht <strong>Stufe 15,0</strong>.</li>
+</ul>
+<div class="tscroll"><table>
+<thead>
+<tr>
+<th>Prüfung</th>
+<th>Fenster</th>
+<th>Innerhalb?</th>
+<th>Abstand zur Untergrenze</th>
+<th>Abstand zur Obergrenze</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ISO 12312-2:<strong>2015</strong></td>
+<td>6,1·10⁻⁷ … 3,2·10⁻⁵</td>
+<td>✅ ja</td>
+<td>×1,64 über dem Boden</td>
+<td>×32 unter der Decke</td>
+</tr>
+<tr>
+<td>ISO/DIS 12312-2:<strong>2025</strong></td>
+<td>4,0·10⁻⁷ … 1,2·10⁻⁵</td>
+<td>✅ ja</td>
+<td>×2,50 über dem Boden</td>
+<td>×12 unter der Decke</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Ergebnis 2.</strong> Der Stapel liegt <strong>in beiden Fenstern</strong>, mittig bis leicht zur dunklen Seite. Die frühere Kernaussage des Dossiers (H1: „belegt, mit einer ehrlichen Grenze") ist gegen den <strong>Originaltext</strong> bestätigt — nicht mehr nur gegen Sekundärquellen.</p>
+<h3>Einzelgläser — die Gegenprobe</h3>
+<ul>
+<li><strong>DIN 11 allein:</strong> τ = 5,18·10⁻⁵ liegt <strong>1,62× über der Obergrenze 2015</strong> → zu hell, normwidrig. (Bestätigt die Dossier-Aussage zum hochgeklappten Zustand.)</li>
+<li><strong>DIN 5 allein:</strong> τ = 1,9 % → rund 600× über der Obergrenze. Nie allein, nie mit Optik.</li>
+</ul>
+<h3>UV und IR — was die Stufenarithmetik <em>nicht</em> garantiert</h3>
+<p>Die Stufenaddition betrifft <strong>nur die Lichttransmission</strong>. Die beiden übrigen ISO-Kriterien:</p>
+<ul>
+<li><strong>UVA/UVB ≤ τ_v</strong> (2015: ≤ 1,0·10⁻⁶ für den Stapel). Schweißglas dämpft UV massiv stärker als sichtbares Licht (im Dossier Faktor ~64.000). Aus Anhang A.1: schon W15 hat UV = 6,1·10⁻⁷; der stufe-15-äquivalente Stapel liegt gleichauf oder darunter. <strong>Erfüllt mit großem Abstand</strong> — qualitativ sicher, exakt belegt durch die Messungen von Chou et al.</li>
+<li><strong>IR ≤ 3 %.</strong> Das ist das einzige Kriterium, das die Stufenrechnung <strong>nicht</strong> beweist: Anhang A.1 erlaubt Schweißgläsern hohe IR-Maxima (W12 bis 12 %), und das Produkt zweier <em>Maxima</em> könnte 3 % überschreiten. In der Praxis liegen reale Schweißgläser weit unter dem Maximum; Chou et al. messen den IR-Anteil als unkritisch. <strong>In diesem Fall erfüllt, aber nur messgestützt, nicht aus der Stufe ableitbar</strong> — deckt sich mit H4 („teilentkräftet, für diesen Fall unkritisch").</li>
+</ul>
+<h3>Beweisführung — warum „IR ≤ 3 %" nicht aus der Stufe folgt</h3>
+<p><strong>Behauptung.</strong> Die IR-Grenze (τ_SIR ≤ 3 %) lässt sich für den Stapel <em>nicht</em> aus der Schutzstufe errechnen — sie ist nur durch Messung zu belegen. Zweistufiger Beweis, dann die Messdefinition.</p>
+<ul>
+<li><strong>A · Die Stufe ist definitorisch blind für IR.</strong></li>
+<li>Die EN-169-Stufe ist <code>N = 1 + (7/3)·log₁₀(1/τ_v)</code>, und <strong>τ_v ist ausschließlich das photopische Integral über 380–780 nm</strong>, gewichtet mit der Hellempfindlichkeit V(λ).</li>
+<li>Die IR-Anforderung ist ein <strong>disjunktes</strong> Integral: <code>τ_SIR = ∫τ(λ)·E_s(λ)dλ / ∫E_s(λ)dλ</code> über <strong>780–1400 nm</strong> gegen das solare Referenzspektrum E_s.</li>
+<li>Die Definition von N liest dieses Band <strong>nicht</strong>. Die Abbildung <em>Stufe → τ_SIR</em> ist damit <strong>ein-zu-viele</strong>: zwei Filter gleicher Stufe können sich im NIR um Größenordnungen unterscheiden, weil IR-Absorption eine Materialeigenschaft <strong>unabhängig</strong> von der sichtbaren Absorption ist (metallbedampftes Polymer vs. körpergefärbtes Glas: gleiche Stufe, verschiedene IR-Kurve).</li>
+<li>Eine Ein-zu-viele-Relation ist <strong>keine Funktion</strong> ⇒ keine Arithmetik auf N kann eine IR-Schranke ausgeben. ∎ <em>(„nicht ableitbar")</em></li>
+<li><strong>B · Auch die Norm-Maxima schließen die Lücke für <em>diesen</em> Stapel nicht.</strong></li>
+<li>Anhang A.1 tabelliert IR-Maxima <strong>nur für die Stufen 12–15</strong>; für DIN 5 oder DIN 11 einzeln gibt es keinen Eintrag.</li>
+<li>Die Stapel-IR ist das <strong>Produkt</strong> <code>τ_SIR,1 · τ_SIR,2</code>, das die (rein sichtbare) Stufenaddition <code>N = N₁+N₂−1</code> niemals berührt.</li>
+<li>⇒ Aus den beschafften Tabellen ist <strong>nicht einmal eine Worst-Case-Schranke</strong> für den Stapel rechenbar.</li>
+<li><strong>Schluss · Nur Messung beweist es.</strong></li>
+<li><strong>Sekundär (was das Dossier nutzt):</strong> Chou et al. 2021 haben genau dieses ISO-Integral an realen Schweißfiltern ausgeführt (Spektralscan 280–2000 nm) und IR ≪ 3 % gefunden — Beweis für die <em>Klasse</em>.</li>
+<li><strong>Für genau diesen Stapel:</strong> Labor-Spektralphotometer nach ISO-12311-Methode (z. B. ECS 1883 / DIN CERTCO) ist der eigentliche Beweis.</li>
+<li><strong>Heim-NIR-Check</strong> (Si-Photodiode + 780-nm-Langpass, Stapel gegen ohne) ist nur eine <strong>einseitige</strong> Schranke: schließt grobe IR-Leckage aus, <strong>zertifiziert nie</strong> ≤ 3 %.</li>
+</ul>
+<h3>Umkehrprobe — hat ein <em>einzelner</em> DIN 14 einen IR-Beleg?</h3>
+<p>Ja — und anders als beim Stapel. Anhang A.1 <strong>tabelliert</strong> IR-Maxima je Schweißgrad: <strong>W12 → 12 %, W13 → 8 %, W14 → 6 %, W15 → 4 %</strong> (solare Grenze = 3 %). Ein zertifizierter DIN 14 hat also eine garantierte, materialgestützte IR-Obergrenze von <strong>6 %</strong> — genau der Beleg, der dem DIN-5+DIN-11-Stapel fehlt (A.1 listet unter Stufe 12 nichts, und die Stapel-IR ist ein untabelliertes Produkt).</p>
+<p><strong>Aber der Beleg reicht nicht:</strong> 6 % ist das Doppelte der 3-%-Grenze — und sogar <strong>W15 liegt mit 4 % darüber</strong>. Aus den Norm-Maxima allein erfüllt damit <strong>kein</strong> gelisteter Schweißgrad die ISO-12312-2-IR-Grenze. Die Anhang-A-Aussage „Stufen 12–15 geeignet" ist <em>informativ</em> und stützt sich auf das <strong>reale</strong> Verhalten (Chou: echte Filter liegen weit unter ihren Maxima), nicht auf die Maxima. Selbst im günstigsten Fall — zertifizierter Einzelfilter mit tabelliertem IR-Max — beweist die Tabelle nur ≤ 6 %; für ≤ 3 % bleibt die <strong>Messung</strong> nötig. Die Umkehrung verschärft den Befund also, statt ihn aufzuheben.</p>
+<h3>Wer es untersuchen will — Studiendesign ;)</h3>
+<p>Der Stapel-Fall ist eine echte Forschungslücke: Chou deckt <strong>Einzel</strong>filter ab, die (real verbreitete) <strong>gestapelte</strong> Behelfslösung ist nicht systematisch vermessen.</p>
+<ul>
+<li><strong>Frage / H₀.</strong> Gestapelte Schweißfilter mit <code>N₁+N₂−1 = 15</code> erfüllen τ_SIR ≤ 3 % <strong>unabhängig von der Materialpaarung</strong>. H₁: es gibt normgerecht-sichtbare Paarungen, die im IR reißen.</li>
+<li><strong>Stichprobe.</strong> Matrix <em>Materialklasse × Stufe</em>: körpergefärbtes Mineralglas, metallbedampftes Glas, Polycarbonat/Polymer, Auto-Schweißkassetten; Einzelstufen 4–6 × 9–13 plus die realen Paare (DIN 5 + DIN 11 usw.). n ≥ 3 je Zelle, mehrere <strong>Chargen/Hersteller</strong> (Chargenstreuung ist der wunde Punkt).</li>
+<li><strong>Messgröße &amp; Methode.</strong> Spektrale Transmission 280–2000 nm, Doppelstrahl-Spektralphotometer <strong>mit Vergleichsstrahl-Abschwächer</strong> (hohe OD nötig); τ_SIR, τ_v, τ_SUVA, τ_SUVB nach ISO-Definition gegen das Referenzspektrum integriert. Messunsicherheit ≤ 25 % (Normvorgabe).</li>
+<li><strong>Kernvariable — der eigentliche Befund.</strong> Prüfen, ob <strong>bandweise Multiplikativität</strong> exakt gilt: <code>τ_gesamt(λ) = τ₁(λ)·τ₂(λ)</code>? Oder verschieben Beschichtungs-Interferenzen und Zwischenreflexe die IR-Bilanz? Regression <code>τ_SIR(Stapel)</code> gegen das Produkt der Einzelwerte — die <strong>Abweichung</strong> ist das wissenschaftliche Ergebnis.</li>
+<li><strong>Realbedingungen.</strong> Einfallswinkel 0–30° (metallbedampfte Filter kippen spektral), Temperatur, Alterung/Delamination.</li>
+<li><strong>Falsifikator.</strong> Eine <strong>einzige</strong> stufe-15-sichtbare Paarung mit τ_SIR &gt; 3 % widerlegt „Stapeln ist im IR unkritisch".</li>
+<li><strong>Deliverable.</strong> Eine <strong>Stapel-Version von Chous Tabelle 3</strong> — die es noch nicht gibt. Publikationsfähig (<em>AJ</em> / <em>Ophthalmic &amp; Physiological Optics</em>). Arbeitstitel: „Do stacked welding filters stay within ISO 12312-2 in the near-IR? A spectroradiometric survey."</li>
+<li><strong>Aufwand.</strong> UV-VIS-NIR-Spektralphotometer mit OD &gt; 6 (Hochschullabor), ~1–2 Wochen Messzeit — oder Auftrag an eine benannte Stelle.</li>
+<li><strong>Sicherheit/Ethik.</strong> Rein Laborbank, nie am Auge oder an der realen Sonne; das Ergebnis darf <strong>nicht</strong> als Freigabe-Empfehlung für Laien gerahmt werden.</li>
+</ul>
+<h3>Marge &amp; Robustheit</h3>
+<p>Der Stapel sitzt bei 1,0·10⁻⁶ <strong>nahe dem dunklen Rand</strong> des Fensters 2015 (nur ×1,64 über dem Boden). Wird eine Scheibe etwas dunkler als nominal geliefert, oder kommt eine dritte Scheibe hinzu, kann τ_v <strong>unter die Untergrenze</strong> rutschen — „normwidrig dunkel". Zu dunkel ist keine harmlose Reserve: Das Sonnenbild wird schwer auffindbar, was zu längerem Suchen und Abnehmen des Filters verleitet. Der informative 2015-Anhang nennt als <em>komfortable</em> Werte τ_v &lt; 6·10⁻⁶ (Mittagssonne) bzw. &gt; 4,4·10⁻⁶ (tiefer Stand) — der Stapel ist mit 1,0·10⁻⁶ also <strong>~6× dunkler als „komfortabel"</strong>. Das stützt die Betriebsplan-Empfehlung des Dossiers, in der Tiefstandsphase von Stufe 15 auf Stufe 13 zu wechseln (7,2·10⁻⁶, mitten im komfortablen Band).</p>
+<h3>Gesamturteil</h3>
+<div class="tscroll"><table>
+<thead>
+<tr>
+<th>Kriterium</th>
+<th>Stapel DIN 5+11 (Stufe 15)</th>
+<th>Quelle der Bewertung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Lichttransmission 2015</td>
+<td>✅ im Fenster (mittig-dunkel)</td>
+<td>Tabelle 1, direkt gerechnet</td>
+</tr>
+<tr>
+<td>Lichttransmission 2025 (Entwurf)</td>
+<td>✅ im Fenster</td>
+<td>Tabelle 1 Entwurf, direkt gerechnet</td>
+</tr>
+<tr>
+<td>UVA/UVB</td>
+<td>✅ großer Abstand</td>
+<td>Anhang A.1 + Chou et al.</td>
+</tr>
+<tr>
+<td>IR ≤ 3 %</td>
+<td>✅ erfüllt, aber messgestützt</td>
+<td>Chou et al. (nicht aus Stufe)</td>
+</tr>
+<tr>
+<td>Marge</td>
+<td>⚠️ nahe der dunklen Grenze</td>
+<td>Tabelle 1 + informativer Anhang</td>
+</tr>
+<tr>
+<td>Zertifizierung</td>
+<td>❌ keine (Extrapolation)</td>
+<td>unverändert</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Neubewertung:</strong> Das Sicherheitsurteil des Dossiers <strong>hält gegen den Originaltext</strong> — der Stapel ist rechnerisch in beiden ISO-Fenstern, optisch mit deutlichem Sicherheitsabstand zur Schädigungsschwelle, und der einzige nicht aus der Stufe beweisbare Punkt (IR) ist messtechnisch geschlossen. Unverändert bleibt die <em>institutionelle</em> Grenze: eine saubere Extrapolation, aber kein zertifiziertes Produkt.</p>
+<hr>
+<h2>Quellen</h2>
+<ul>
+<li><strong>EN ISO 12312-2:2015</strong>, vollständige Verlags-Vorschau: <a href="https://cdn.standards.iteh.ai/samples/59289/e9b5355a291643ac8cfec6ec1f78d4b2/ISO-12312-2-2015.pdf">cdn.standards.iteh.ai/samples/59289/…/ISO-12312-2-2015.pdf</a></li>
+<li><strong>prEN ISO 12312-2</strong> (Entwurf 2025), Katalog &amp; Vorschau: <a href="https://standards.iteh.ai/catalog/standards/cen/c4732134-617e-4e4a-b313-c5f363ceec7b/pren-iso-12312-2">standards.iteh.ai/…/pren-iso-12312-2</a></li>
+<li><strong>Chou, Dain, Fienberg 2021</strong>, <em>AJ</em> 162:103, DOI <a href="https://iopscience.iop.org/article/10.3847/1538-3881/ac013e">10.3847/1538-3881/ac013e</a> — Messdatensatz &amp; Evidenz für den Entwurf</li>
+<li><strong>AAS zur Norm</strong>: <a href="https://eclipse.aas.org/eye-safety/iso12312-2">eclipse.aas.org/eye-safety/iso12312-2</a></li>
+<li><strong>EuGH C-588/21 P</strong> („Malamud", 5.3.2024), Pressemitteilung: <a href="https://curia.europa.eu/site/upload/docs/application/pdf/2024-03/cp240041en.pdf">curia.europa.eu/…/cp240041en.pdf</a></li>
+<li><strong>§ 5 UrhG</strong>: <a href="https://www.gesetze-im-internet.de/urhg/__5.html">gesetze-im-internet.de/urhg/__5.html</a></li>
+<li><strong>Zugangsportal C-588/21 P</strong>, Erläuterung: <a href="https://www.ds.dk/en/news/2024/public-access-portal-related-to-case-c-588-21-p-is-now-accessible">ds.dk/…/public-access-portal</a></li>
+<li><strong>Durchführungsbeschluss (EU) 2026/1279</strong> (PSA-Normenliste): <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32026D1279">eur-lex.europa.eu/…/32026D1279</a></li>
+</ul>
+<blockquote>
+<p>Kein Ersatz für eine augenärztliche Untersuchung. Bei Sehstörungen: 116117, im Notfall 112.</p>
+</blockquote>
+</section>
+
+<footer>
+  Anhang zum <a href="2026-08-11_schweissglas-augenschutz_dossier.html">Schwei&szlig;glas-&amp;-Augenschutz-Dossier</a>
+  &middot; Zahlenwerte aus der Verlags-Vorschau der Norm, eigene Nachrechnung nach der EN-169-Stufenformel
+  &middot; Stand 13.08.2026.<br>
+  Dieser Anhang ersetzt keine augen&auml;rztliche Untersuchung. Bei Sehst&ouml;rungen: 116117, im Notfall 112.
+</footer>
+</div>
+
+<script>
+const tb=document.getElementById('themeBtn');
+tb.textContent=document.documentElement.dataset.theme==='dark'?'HELL':'DUNKEL';
+tb.onclick=()=>{const d=document.documentElement;
+  const n=d.dataset.theme==='dark'?'light':'dark';
+  d.dataset.theme=n;tb.textContent=n==='dark'?'HELL':'DUNKEL';};
+</script>
+</body>
+</html>
