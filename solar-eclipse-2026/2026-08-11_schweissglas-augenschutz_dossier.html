@@ -661,6 +661,44 @@ header{border-bottom:1px solid transparent;border-image:linear-gradient(90deg,va
   Hersteller sie ausdrücklich zusagt — die gesamte UV/IR-Argumentation hängt am Zusatz-losen „5".
   Prüfregel: <strong>reine Zahl oder W-Präfix = Schweißfilter; jede Bindestrich-Vorzahl (2-, 4-, 5-, 6-)
   fällt aus der Rechnung.</strong></p>
+
+  <h3 style="margin-top:30px">Und in den USA? Warum die NASA-Empfehlung hier überhaupt gilt</h3>
+  <p>Die naheliegende Sorge: Die NASA schreibt „<em>#14 or darker</em>", die DOG schreibt „Schutzstufe 14" —
+  sind das dieselben Gläser? <strong>Ja.</strong> Die Schutzstufenskala für Schweißfilter ist keine europäische
+  Erfindung, sondern international, und ihr gemeinsamer Vorfahr ist <strong>ISO 4850:1979</strong> („Personal
+  eye-protectors for welding and related techniques — Filters — Utilisation and transmittance requirements").
+  EN 169 ist die europäische Umsetzung, <strong>ANSI Z87.1</strong> die amerikanische. Beide nummerieren
+  dieselbe logarithmische Skala; die US-Norm setzt lediglich ein <span class="mono">W</span> davor
+  (W1.3 bis W14), weil sie im selben Dokument auch UV- und IR-Filterklassen führt. „DIN 14",
+  „Schutzstufe 14", „shade 14" und „W14" bezeichnen dasselbe Glas — das „DIN" im deutschen Sprachgebrauch
+  ist Gewohnheit, keine Normangabe.</p>
+  <p><strong>Dabei ist eine Gegenprobe abgefallen, die eine offene Stelle dieses Dossiers schließt.</strong>
+  ANSI Z87.1 veröffentlicht für die Stufe <span class="mono">W7</span> eine maximale Lichttransmission von
+  <b>0,44 %</b>. Setzt man in die EN-169-Stufenformel das helle Bandende ein, also Stufe 6,5, ergibt sich
+  <span class="mono">τ = 0,4394 %</span> — <strong>Übereinstimmung auf zwei Stellen.</strong> Damit ist
+  zweierlei belegt: Die beiden Normen verwenden nachweislich dieselben Transmissionsbänder, <em>und</em> die
+  ±0,5-Stufen-Rekonstruktion dieser Bänder — bisher als ungeprüfte Annahme in der Restliste geführt und
+  Grundlage der Stufe-12-Analyse — stimmt gegen eine unabhängig publizierte Zahl.</p>
+  <div class="tscroll"><table>
+    <thead><tr><th>Wer</th><th>Bezeichnung</th><th>Norm</th><th>Transmissionsband Stufe 14</th></tr></thead>
+    <tbody>
+      <tr><td>NASA, AAS, ASRS</td><td class="mono">#14 · shade 14 · W14</td><td>ANSI Z87.1</td>
+        <td rowspan="3" class="ok" style="vertical-align:middle"><b>identisch</b><br>1,6·10⁻⁶ … 4,4·10⁻⁶</td></tr>
+      <tr><td>DOG, deutscher Handel</td><td class="mono">DIN 14 · Schutzstufe 14</td><td>EN 169 / EN ISO 16321-2</td></tr>
+      <tr><td>international</td><td class="mono">scale number 14</td><td>ISO 4850 (Ursprung)</td></tr>
+    </tbody>
+  </table></div>
+  <p style="margin-top:12px">Praktische Folge: Die NASA-Empfehlung ist ohne Umrechnung übertragbar, und ein im
+  Baumarkt gekauftes DIN-14-Glas ist genau das, was die amerikanischen Fachgesellschaften meinen.
+  <b>Nicht</b> übertragbar sind die <em>Kennzeichnungsregeln</em>: Das Vorzahlsystem der EN-Normen (2- für UV,
+  4- für IR, 5-/6- für Blendschutz) existiert in ANSI Z87.1 so nicht, dort steht das <span class="mono">W</span>
+  für Schweißen. Wer amerikanische Ware kauft, prüft auf <span class="mono">W14</span>; wer deutsche kauft, auf
+  eine <em>zusatzlose</em> 14. Dieselbe Frage, andere Schreibweise — und in beiden Fällen der Grund, warum die
+  Randkennzeichnung überhaupt gelesen werden muss.</p>
+  <p class="note">Belegt über die ANSI-Z87.1-Transmissionstabelle (W1.3 bis W7, 85 % bis 0,44 %) und die Existenz
+  von ISO 4850 als gemeinsamem Ursprung; die Normvolltexte selbst wurden nicht eingesehen. Die Zuordnung
+  „W14 = Stufe 14" ist aus der Skalenidentität geschlossen, nicht aus einer Umrechnungstabelle zitiert — die
+  W7-Übereinstimmung macht diesen Schluss aber belastbar.</p>
 </section>
 
 <section id="dosis">
@@ -681,6 +719,71 @@ header{border-bottom:1px solid transparent;border-image:linear-gradient(90deg,va
   60 s ≡ 1,2 s ungefiltert — unter der Schwelle, aber ohne Puffer. Die reale Unsicherheit der ganzen
   Episode liegt nicht in der Dosisrechnung, sondern in zwei Tatsachenfragen: Stimmt die aufgedruckte
   Kennzeichnung, und saß der Stapel während des gesamten Tests lückenlos?</p>
+  <h3 style="margin-top:30px">Pessimistisches Szenario: Was, wenn das Glas 6 % IR durchließe?</h3>
+  <p>Die IR-Flanke ist die einzige, die nicht gemessen ist. Also die Gegenrechnung mit einer Annahme, die
+  <em>doppelt so schlecht</em> ist wie die ISO-Obergrenze: Der Stapel lasse 6 % der solaren IR-A-Strahlung
+  durch — 600-mal mehr als das Modell dieses Dossiers annimmt und rund 60 000-mal mehr, als Athermalglas
+  realistisch zulässt. Und dazu die Frage, wie sich 15, 30 und 60 Sekunden unterscheiden.</p>
+  <p><strong>Die Antwort auf die Dauerfrage ist überraschend: gar nicht.</strong> Für die thermische
+  Netzhautgefährdung gibt ICNIRP oberhalb von 10 Sekunden keinen Dosis-, sondern einen
+  <strong>Radianzgrenzwert</strong> an (0,6/α, hier 65 W/cm²/sr). Der Grund ist physiologisch: Nach wenigen
+  Sekunden stellt sich am Netzhautfleck ein thermisches Gleichgewicht ein — zugeführte Leistung gegen
+  Wärmeabfuhr durch Aderhautdurchblutung. Danach steigt die Temperatur nicht weiter, egal wie lange man
+  hinsieht. <em>Es gibt für den thermischen Kanal keine Dosisakkumulation.</em> Wer 60 s hineinsieht, hat
+  dieselbe Spitzentemperatur wie nach 15 s — entweder die Radianz reicht für einen Schaden, oder sie reicht
+  nie.</p>
+  <div class="tscroll"><table>
+    <thead><tr><th>Annahme τ_IR</th><th class="num">Radianz bei Maximum</th><th class="num">Abstand ICNIRP</th><th class="num">Radianz Mittagssonne</th><th class="num">Abstand ICNIRP</th></tr></thead>
+    <tbody>
+      <tr><td><b>6 % (Hypothese)</b></td><td class="num">2,4 W/cm²/sr</td><td class="num ok"><b>27×</b></td>
+        <td class="num">23,6</td><td class="num warn"><b>2,8×</b></td></tr>
+      <tr><td>3 % (ISO-Obergrenze)</td><td class="num">1,2</td><td class="num ok">54×</td><td class="num">11,8</td><td class="num ok">5,5×</td></tr>
+      <tr><td>1·10⁻⁴ (Modell, r = 10)</td><td class="num">4,0·10⁻³</td><td class="num ok">16 000×</td><td class="num">3,9·10⁻²</td><td class="num ok">1 650×</td></tr>
+      <tr><td>1·10⁻⁶ (Athermalglas, r = 1)</td><td class="num">4,0·10⁻⁵</td><td class="num ok">1 600 000×</td><td class="num">3,9·10⁻⁴</td><td class="num ok">165 000×</td></tr>
+    </tbody>
+  </table></div>
+  <p style="margin-top:14px">Selbst unter der absurden 6-%-Annahme wird der ICNIRP-Grenzwert <strong>nicht
+  erreicht</strong> — beim Blick in die volle Mittagssonne bleibt Faktor 2,8, beim Finsternismaximum
+  Faktor 27. Und der ICNIRP-Grenzwert ist selbst schon mit Sicherheitsabstand unterhalb der
+  Schädigungsschwelle angesetzt, üblicherweise etwa eine Größenordnung. Der reale Abstand zur Schädigung
+  wäre also auch im schlechtesten hier denkbaren Fall rund <b>30-fach</b> — und das bei einer Annahme, die
+  dem verwendeten Werkstoff widerspricht.</p>
+  <p><strong>Der photochemische Kanal ist der einzige, in dem die Dauer zählt</strong> — dort gilt
+  Dosisakkumulation, und der Blaulicht-Grenzwert entspricht 100 J/cm²/sr. Die 6-%-Annahme ändert daran
+  übrigens nichts, weil sie ein anderes Band betrifft:</p>
+  <div class="tscroll"><table>
+    <thead><tr><th class="num">Blickdauer</th><th class="num">Blaulichtdosis bei Maximum</th><th class="num">Abstand</th><th class="num">bei Mittagssonne</th><th class="num">Abstand</th></tr></thead>
+    <tbody>
+      <tr><td class="num">15 s</td><td class="num">2,6·10⁻⁵ J/cm²/sr</td><td class="num ok">3,9 Mio.×</td><td class="num">5,7·10⁻⁴</td><td class="num ok">175 000×</td></tr>
+      <tr><td class="num">30 s</td><td class="num">5,1·10⁻⁵</td><td class="num ok">2,0 Mio.×</td><td class="num">1,1·10⁻³</td><td class="num ok">88 000×</td></tr>
+      <tr><td class="num"><b>60 s</b></td><td class="num">1,0·10⁻⁴</td><td class="num ok"><b>1,0 Mio.×</b></td><td class="num">2,3·10⁻³</td><td class="num ok"><b>44 000×</b></td></tr>
+    </tbody>
+  </table></div>
+  <p style="margin-top:14px"><strong>Wo die Dauer tatsächlich etwas ändern würde:</strong> nicht bei intaktem
+  Stapel, sondern wenn der Aufbau nicht gehalten hätte. Als Äquivalent ungefilterten Blicks, gegen die
+  Retinopathieschwelle von etwa 30 s:</p>
+  <div class="tscroll"><table>
+    <thead><tr><th>Was tatsächlich vor dem Auge war</th><th class="num">15 s</th><th class="num">30 s</th><th class="num">60 s</th></tr></thead>
+    <tbody>
+      <tr><td><b>5 + 11 · Stufe 15</b> (Sollzustand)</td><td class="num ok">0,015 ms · 2 Mio.×</td><td class="num ok">0,03 ms · 1 Mio.×</td><td class="num ok">0,06 ms · 500 000×</td></tr>
+      <tr><td>nur DIN 11 (Brille verrutscht/hochgeklappt)</td><td class="num ok">0,78 ms · 38 600×</td><td class="num ok">1,6 ms · 19 300×</td><td class="num ok">3,1 ms · 9 700×</td></tr>
+      <tr><td class="warn">nur DIN 5 (Scheibe weggerutscht)</td><td class="num warn">0,29 s · 104×</td><td class="num warn">0,58 s · 52×</td><td class="num warn">1,16 s · <b>26×</b></td></tr>
+    </tbody>
+  </table></div>
+  <p style="margin-top:14px"><strong>Gesamturteil für alle drei Dauern:</strong> <span class="ok">Kein Schaden
+  zu erwarten</span> — thermisch nicht, weil der Grenzwert dauerunabhängig und selbst unter der 6-%-Hypothese
+  nicht erreicht ist; photochemisch nicht, weil vier bis sechs Größenordnungen Abstand bleiben. Der Unterschied
+  zwischen 15 und 60 Sekunden ist ein Faktor 4 auf einer Skala, auf der 10⁵ bis 10⁶ Reserve steht. Selbst die
+  ungünstigste Ausfallvariante — eine volle Minute versehentlich nur durch die Stufe-5-Brille — bliebe noch
+  Faktor 26 unter der Schwelle, allerdings ohne komfortablen Puffer; das ist genau der Fall, den dieses
+  Kapitel oben als „einzigen mit dünner Reserve" führt.</p>
+  <p class="note">Wie bei jeder Rechnung dieses Dossiers: Sie gilt unter der Voraussetzung, dass die
+  Kennzeichnung stimmt und der Stapel saß. Beides sind Tatsachen-, keine Rechenfragen. Und sie ersetzt keine
+  Untersuchung: Symptome einer solaren Retinopathie treten typischerweise nach 4 bis 6 Stunden auf — Fleck im
+  Zentrum, verbogene Linien, verschwommene Mitte. Sind nach einem Tag keine aufgetreten, deckt sich das mit
+  dem, was die Rechnung erwarten lässt. Treten welche auf, gilt unverändert: augenärztlich abklären, 116117,
+  bei akutem Sehverlust 112.</p>
+
   <h3 style="margin-top:30px">Klinische Referenz: die Finsternis vom 11.08.1999</h3>
   <p>Prospektive Kohorte der Leicester Royal Infirmary (Lancet 2001): 45 Vorstellungen nach der Finsternis,
   20 mit Sehsymptomen, 5 mit sichtbaren Netzhautveränderungen, 4 nach 7 Monaten noch symptomatisch.
@@ -2097,6 +2200,12 @@ header{border-bottom:1px solid transparent;border-image:linear-gradient(90deg,va
       <tr><td>UV des Stapels: ≤ 1,6·10⁻⁷ (365 nm), ≤ 9·10⁻¹² (313 nm)</td>
         <td><span class="grade gB">B</span></td><td class="st ok">bestätigt</td>
         <td>Herstellerangaben der DIN-5-Scheibe (≤ 0,0003 % / ≤ 0,3 %) × EN-169-Schranke τ(365–380) ≤ τv für DIN 11</td></tr>
+      <tr><td>Schutzstufenskala ist international identisch (ISO 4850 → EN 169 / ANSI Z87.1 „W"); die ±0,5-Toleranzbänder sind gegen die ANSI-Tabelle bestätigt</td>
+        <td><span class="grade gA">A</span></td><td class="st ok">bestätigt</td>
+        <td>ANSI Z87.1 nennt für W7 max. 0,44 % Lichttransmission; die EN-169-Stufenformel liefert für das helle Bandende (Stufe 6,5) 0,4394 % — Übereinstimmung auf zwei Stellen. Damit ist sowohl die Skalenidentität als auch die zuvor nur rekonstruierte Bandbreite belegt. Normvolltexte nicht eingesehen</td></tr>
+      <tr><td>Auch bei hypothetischen 6 % IR-Transmission bleibt der ICNIRP-Grenzwert unerreicht (Faktor 2,8 bei Mittagssonne, 27 beim Maximum); 15/30/60 s unterscheiden sich thermisch nicht</td>
+        <td><span class="grade gB">B</span></td><td class="st ok">bestätigt (rechnerisch)</td>
+        <td>ICNIRP setzt oberhalb 10 s einen Radianz-, keinen Dosisgrenzwert (0,6/α) — thermisches Gleichgewicht, keine Akkumulation. Photochemisch akkumuliert die Dosis, dort bleiben bei 60 s noch 44 000× (Mittagssonne) bis 10⁶ (Maximum). Skalierung linear aus der Sensitivitätstabelle des Spektralkapitels</td></tr>
       <tr><td>Kein publizierter Fall speziell mit Schutzstufe 12; Stufe 12 unterschreitet die ISO-Obergrenze am hellen Toleranzende aber nur um 1,2 % und fällt gegen den Entwurf 2025 fast ganz durch</td>
         <td><span class="grade gB">B</span></td><td class="st ok">bestätigt (Negativbefund + Rechnung)</td>
         <td>Gezielte Nachsuche auf Stufe 12: kein Fallbericht. Toleranzrechnung aus der Stufenformel (±0,5 Stufen, rekonstruiert) gegen beide ISO-Fassungen — die Rangfolge 12 ≪ 13 &lt; 14 ist gegen die Rekonstruktionsunsicherheit robust, der Zahlenwert 1,2 % nicht. Konsistent mit der AAS-Formulierung, Stufe 12 sei vielen zu hell</td></tr>
@@ -2137,7 +2246,10 @@ header{border-bottom:1px solid transparent;border-image:linear-gradient(90deg,va
   <ul>
     <li><strong>EN-169-Originaltabelle.</strong> Die normativen Transmissionsbereiche je Stufe stehen hinter
     der Bezahlschranke. Die Formel ist gegen unabhängige Messwerte verifiziert; die exakten Toleranzbänder
-    (±0,5 Stufen) sind rekonstruiert, nicht zitiert. <b>Nachtrag:</b> „Bezahlschranke" war zu pauschal — über
+    (±0,5 Stufen) sind rekonstruiert, nicht zitiert. <b>Nachtrag 12.08.2026 — weitgehend erledigt:</b> Die
+    ANSI-Z87.1-Tabelle nennt für W7 eine Obergrenze von 0,44 %, die Formel liefert für Stufe 6,5 den Wert
+    0,4394 %. Die ±0,5-Rekonstruktion ist damit gegen eine unabhängig publizierte Zahl bestätigt; offen bleibt
+    nur, ob EN 169 an einzelnen Stufen von der Systematik abweicht. <b>Weiterer Nachtrag:</b> „Bezahlschranke" war zu pauschal — über
     die Normen-Infopoints ist der Volltext kostenlos und legal einsehbar, nur eben vor Ort. Damit ist dieser
     Punkt nicht mehr <em>unzugänglich</em>, sondern schlicht noch nicht erledigt. Siehe Kapitel „Selbst messen".</li>
     <li><strong>Keine Spektralmessung der konkreten Scheiben.</strong> Kennzeichnung, Norm, Prüfstelle und
