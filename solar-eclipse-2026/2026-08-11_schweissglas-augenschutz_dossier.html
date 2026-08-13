@@ -110,6 +110,67 @@ section{scroll-margin-top:18px}
 @media(prefers-reduced-motion:no-preference){
   .fade{animation:f .6s ease both}@keyframes f{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 }
+
+/* ================= Kosmos · Deep-Field-Theme ================= */
+body{
+  background:
+    radial-gradient(1250px 820px at 82% -12%, color-mix(in srgb,var(--violet) 24%,transparent), transparent 58%),
+    radial-gradient(1050px 720px at 4% 2%, color-mix(in srgb,var(--teal) 18%,transparent), transparent 55%),
+    radial-gradient(900px 900px at 60% 118%, color-mix(in srgb,var(--amber) 12%,transparent), transparent 60%),
+    linear-gradient(180deg, var(--bg2) 0%, var(--bg) 46%, #03060a 100%);
+  background-attachment:fixed;
+}
+html[data-theme="light"] body{
+  background:
+    radial-gradient(1150px 780px at 82% -12%, color-mix(in srgb,var(--violet) 12%,transparent), transparent 60%),
+    radial-gradient(1000px 700px at 4% 2%, color-mix(in srgb,var(--teal) 12%,transparent), transparent 58%),
+    linear-gradient(180deg, #fffdf8 0%, var(--bg) 100%);
+  background-attachment:fixed;
+}
+/* Sternenfeld – zwei Ebenen für Tiefe */
+body::before,body::after{content:"";position:fixed;inset:-60px;z-index:-1;pointer-events:none}
+body::before{
+  background-image:
+    radial-gradient(1px 1px at 24px 32px,#ffffff,transparent 60%),
+    radial-gradient(1px 1px at 88px 118px,#eaf3ff,transparent 60%),
+    radial-gradient(1.6px 1.6px at 158px 66px,#cfe5ff,transparent 60%),
+    radial-gradient(1px 1px at 202px 176px,#ffffff,transparent 60%),
+    radial-gradient(1.6px 1.6px at 120px 208px,#ffe7c2,transparent 60%),
+    radial-gradient(1px 1px at 264px 96px,#ffffff,transparent 60%);
+  background-size:300px 300px;opacity:.7;
+}
+body::after{
+  background-image:
+    radial-gradient(2px 2px at 60px 80px,#bfe9ff,transparent 55%),
+    radial-gradient(2px 2px at 300px 210px,#ffffff,transparent 55%),
+    radial-gradient(2.4px 2.4px at 150px 40px,#c9b8ff,transparent 55%);
+  background-size:420px 420px;opacity:.5;
+}
+html[data-theme="light"] body::before{opacity:.12}
+html[data-theme="light"] body::after{opacity:.1}
+@media(prefers-reduced-motion:no-preference){
+  body::before{animation:drift 180s linear infinite}
+  body::after{animation:twinkle 7s ease-in-out infinite alternate, drift2 240s linear infinite}
+  @keyframes drift{to{background-position:300px 300px}}
+  @keyframes drift2{to{background-position:-420px 210px}}
+  @keyframes twinkle{from{opacity:.26}to{opacity:.58}}
+}
+/* Farbverlauf-Überschriften */
+h1{
+  background:linear-gradient(100deg,var(--teal) 0%,var(--tx) 34%,var(--amber) 66%,var(--violet) 100%);
+  background-size:220% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 22px color-mix(in srgb,var(--teal) 26%,transparent));
+}
+h1 em{-webkit-text-fill-color:var(--tx3);filter:none}
+h3{background:linear-gradient(92deg,var(--tx) 0%,var(--teal) 118%);-webkit-background-clip:text;background-clip:text;color:transparent}
+@media(prefers-reduced-motion:no-preference){
+  h1{animation:hue 16s ease-in-out infinite alternate}
+  @keyframes hue{from{background-position:0% 50%}to{background-position:100% 50%}}
+}
+h2::after{background:linear-gradient(90deg,color-mix(in srgb,var(--teal) 70%,transparent),transparent)}
+header{border-bottom:1px solid transparent;border-image:linear-gradient(90deg,var(--teal),color-mix(in srgb,var(--violet) 60%,transparent),transparent) 1}
+/* Glas-Konsolen für Karten */
+.panel,.kpi,.vbox{background:color-mix(in srgb,var(--panel) 82%,transparent);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
 </style>
 </head>
 <body>

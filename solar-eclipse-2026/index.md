@@ -40,6 +40,8 @@ Inhalt im Einzelnen:
 - **Belegtabelle & Restliste** — tragende Einzelbehauptungen mit Prüfstatus (A/B/C) und Erstquelle, dazu was ausdrücklich *nicht* geprüft wurde.
 - **Selbst messen** — wie man die offenen Punkte schließt: das Kaskadenverfahren, mit dem sich sechs Dekaden Transmission mit einem Zehn-Euro-Sensor oder einer Kamera in vier Schritten messen lassen, ohne je in die ungefilterte Sonne zu messen; was zu Hause prinzipiell nicht geht (UV, solargewichtete Integrale, Gleichmäßigkeit) und warum eine Heimmessung deshalb nur ausschließen, nie freigeben kann; wo man richtig messen lässt (Hochschullabor, die auf der Verpackung genannten benannten Stellen ECS 1883 und DIN CERTCO 0196); und wie man an die Normwerte kommt — über 90 DIN-Normen-Infopoints erlauben kostenlose Volltexteinsicht vor Ort, dazu Chou et al. 2021 und die AAS-Normseite als freie Zweitbelege.
 
+**Anhang: [ISO-12312-2-Tabellen — verifiziert & neu durchgerechnet](iso-tables-verified.md).** Die Originalwerte der Norm (Tabelle 1 und Anhang A.1 von 2015, Tabelle 1 des Entwurfs 2025), belegt wie sie legitim beschafft wurden — Verlags-Vorschau, die deutsche §-5-UrhG-Lücke (die in die andere Richtung wirkt), der EuGH-Weg über harmonisierte Normen — und die Kernaussage (DIN 5 + DIN 11 = Stufe 15) direkt gegen den Normtext nachgerechnet: in beiden ISO-Fenstern, nahe der dunklen Grenze. Die Formel reproduziert unabhängig, dass 2015 die Stufen 12–15 im Fenster liegen und der Entwurf 2025 auf 13–15 verengt.
+
 > Das Dossier ersetzt keine augenärztliche Untersuchung. Bei Sehstörungen: 116117, im Notfall 112.
 
 ### [Sonnenfinsternisse München & Lam, 1976–2126](2026-08-11_sonnenfinsternisse-muenchen-lam_1976-2126.html)
