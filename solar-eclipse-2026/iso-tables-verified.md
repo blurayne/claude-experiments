@@ -50,6 +50,38 @@ Als Bruch: **Fenster 2015 = 6,1·10⁻⁷ … 3,2·10⁻⁵** (Lichttransmission
 
 Der A-Anhang stellt zudem im Klartext fest: **Schweißerfilter der Stufen 12 bis 15 (nach ISO 16321) sind für das bloße Auge „equally suitable"** — W12 ausreichend, aber hell; W14 möglicherweise zu dunkel. Genau die Position, die DOG und AAS vertreten — hier aus der Norm selbst.
 
+### Die Sichtbar-Spalten sind exakt die Stufenformel
+
+Bevor ergänzt wird, die Probe. Setzt man in `τ_v = 10^(−3(N−1)/7)` die Bandränder `N∓0,5` ein, ergeben sich **alle acht** Sichtbar-Werte des Anhangs auf die angegebenen Stellen:
+
+| Grad | A.1 max | gerechnet τ(N−0,5) | A.1 min | gerechnet τ(N+0,5) |
+|---|---|---|---|---|
+| W12 | 0,003 2 | 0,003 162 | 0,001 2 | 0,001 179 |
+| W13 | 0,001 2 | 0,001 179 | 0,000 44 | 0,000 439 4 |
+| W14 | 0,000 44 | 0,000 439 4 | 0,000 16 | 0,000 163 8 |
+| W15 | 0,000 16 | 0,000 163 8 | 0,000 061 | 0,000 061 05 |
+
+Acht von acht. Damit ist die ±0,5-Bandbreite nicht länger eine Rekonstruktion, sondern gegen den Normtext belegt — und die Skalenidentität mit ANSI Z87.1 bestätigt es unabhängig ein zweites Mal (ANSI nennt für **W7** eine Obergrenze von 0,44 %, die Formel liefert für Stufe 6,5 den Wert 0,439 4 %).
+
+### Ergänzung: die Stufen W5 bis W11
+
+Diese Grade stehen **nicht** in Anhang A.1 — der Anhang beginnt bei W12, weil er nur die für die Sonnenbeobachtung in Frage kommenden Grade vergleicht. Die Sichtbar-Spalten lassen sich nach der oben verifizierten Formel trotzdem exakt angeben. Die UV- und IR-Spalten dagegen **nicht**: Deren Werte stehen in EN 169 bzw. ISO 4850, nicht hier, und werden deshalb offen gelassen statt geraten.
+
+| Grad | Sichtbar max | Sichtbar min | UV 280–315 | UV 315–380 | IR 780–1400 | Lage zum Solarfenster 2015 |
+|---|---|---|---|---|---|---|
+| W5 | 3,162 | 1,179 | — | — | — | ~600× zu hell |
+| W6 | 1,179 | 0,439 4 | — | — | — | ~230× zu hell |
+| W7 | 0,439 4 | 0,163 8 | — | — | — | ~85× zu hell |
+| W8 | 0,163 8 | 0,061 05 | — | — | — | ~32× zu hell (RASC: „unsafe") |
+| W9 | 0,061 05 | 0,022 76 | — | — | — | ~12× zu hell |
+| W10 | 0,022 76 | 0,008 483 | — | — | — | ~4,4× zu hell |
+| W11 | 0,008 483 | 0,003 162 | — | — | — | **1,6× zu hell** (dunkles Bandende trifft die Grenze genau) |
+| W12 | 0,003 162 | 0,001 179 | 0,000 3 | 0,001 2 | 12 | ✅ vollständig im Fenster |
+
+Angaben in Prozent; „zu hell" bezogen auf den Nennwert τ(N) gegen die Obergrenze 0,003 2 %. Die Zeile W12 ist zum Anschluss aus A.1 übernommen.
+
+**Zwei Dinge werden daran sichtbar.** Erstens der Abstand: Zwischen der DIN-5-Brille und dem Solarfenster liegen rund zweieinhalb Größenordnungen, nicht ein bisschen. Zweitens die Grenzlage von W11 — sein Nennwert liegt 1,6× über der Obergrenze, aber das **dunkle Ende seines Toleranzbands trifft mit 0,003 162 % die Grenze 0,003 2 % praktisch exakt**. Ein besonders dunkel ausgefallenes Stufe-11-Glas wäre also gerade noch normkonform, ein nominelles nicht. Das ist kein Freibrief, sondern die Erklärung, warum die Aussage „Stufe 11 allein ist zu hell" zwar richtig ist, aber knapp: Es fehlt weniger als eine halbe Schutzstufe.
+
 ## ISO/DIS 12312-2:2025 — Tabelle 1 (Entwurf, bestätigt)
 
 Aus der iTeh-Vorschau des Entwurfs `prEN ISO 12312-2`:

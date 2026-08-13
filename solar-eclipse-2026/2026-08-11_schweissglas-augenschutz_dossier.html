@@ -719,11 +719,17 @@ header{border-bottom:1px solid transparent;border-image:linear-gradient(90deg,va
   60 s ≡ 1,2 s ungefiltert — unter der Schwelle, aber ohne Puffer. Die reale Unsicherheit der ganzen
   Episode liegt nicht in der Dosisrechnung, sondern in zwei Tatsachenfragen: Stimmt die aufgedruckte
   Kennzeichnung, und saß der Stapel während des gesamten Tests lückenlos?</p>
-  <h3 style="margin-top:30px">Pessimistisches Szenario: Was, wenn das Glas 6 % IR durchließe?</h3>
-  <p>Die IR-Flanke ist die einzige, die nicht gemessen ist. Also die Gegenrechnung mit einer Annahme, die
-  <em>doppelt so schlecht</em> ist wie die ISO-Obergrenze: Der Stapel lasse 6 % der solaren IR-A-Strahlung
-  durch — 600-mal mehr als das Modell dieses Dossiers annimmt und rund 60 000-mal mehr, als Athermalglas
-  realistisch zulässt. Und dazu die Frage, wie sich 15, 30 und 60 Sekunden unterscheiden.</p>
+  <h3 style="margin-top:30px">Die 6 % sind keine Hypothese — sie stehen in der Norm</h3>
+  <p><strong>Korrektur vom 13.08.2026.</strong> Frühere Fassungen dieses Kapitels behandelten eine
+  IR-Transmission von 6 % als absurdes Gedankenexperiment. Das war falsch. Anhang A.1 der
+  ISO 12312-2:2015 <em>tabelliert</em> IR-Maxima je Schweißgrad, und sie liegen sämtlich über der
+  Solargrenze von 3 %: <span class="mono">W12 → 12 % · W13 → 8 % · <b>W14 → 6 %</b> · W15 → 4 %</span>.
+  Die 6 % sind also genau das, was ein zertifizierter DIN-14-Filter im nahen Infrarot durchlassen
+  <em>darf</em> — und für die Stufe 15, die dem Stapel entspricht, sind es 4 %. Belege und Herleitung im
+  <a href="iso-tables-verified.html">Normanhang</a>.</p>
+  <p>Damit ist die Rechnung unten keine Worst-Case-Spielerei mehr, sondern die Frage: Was passiert, wenn ein
+  Schweißfilter seine normative IR-Erlaubnis voll ausschöpft? Und dazu die eigentliche Frage nach der Dauer —
+  wie unterscheiden sich 15, 30 und 60 Sekunden?</p>
   <p><strong>Die Antwort auf die Dauerfrage ist überraschend: gar nicht.</strong> Für die thermische
   Netzhautgefährdung gibt ICNIRP oberhalb von 10 Sekunden keinen Dosis-, sondern einen
   <strong>Radianzgrenzwert</strong> an (0,6/α, hier 65 W/cm²/sr). Der Grund ist physiologisch: Nach wenigen
@@ -735,19 +741,26 @@ header{border-bottom:1px solid transparent;border-image:linear-gradient(90deg,va
   <div class="tscroll"><table>
     <thead><tr><th>Annahme τ_IR</th><th class="num">Radianz bei Maximum</th><th class="num">Abstand ICNIRP</th><th class="num">Radianz Mittagssonne</th><th class="num">Abstand ICNIRP</th></tr></thead>
     <tbody>
-      <tr><td><b>6 % (Hypothese)</b></td><td class="num">2,4 W/cm²/sr</td><td class="num ok"><b>27×</b></td>
+      <tr><td><b>6 % — Normmaximum W14</b></td><td class="num">2,4 W/cm²/sr</td><td class="num ok"><b>27×</b></td>
         <td class="num">23,6</td><td class="num warn"><b>2,8×</b></td></tr>
-      <tr><td>3 % (ISO-Obergrenze)</td><td class="num">1,2</td><td class="num ok">54×</td><td class="num">11,8</td><td class="num ok">5,5×</td></tr>
+      <tr><td>4 % — Normmaximum W15</td><td class="num">1,6</td><td class="num ok">40×</td><td class="num">15,7</td><td class="num ok">4,1×</td></tr>
+      <tr><td>3 % (Solargrenze ISO 12312-2)</td><td class="num">1,2</td><td class="num ok">54×</td><td class="num">11,8</td><td class="num ok">5,5×</td></tr>
       <tr><td>1·10⁻⁴ (Modell, r = 10)</td><td class="num">4,0·10⁻³</td><td class="num ok">16 000×</td><td class="num">3,9·10⁻²</td><td class="num ok">1 650×</td></tr>
       <tr><td>1·10⁻⁶ (Athermalglas, r = 1)</td><td class="num">4,0·10⁻⁵</td><td class="num ok">1 600 000×</td><td class="num">3,9·10⁻⁴</td><td class="num ok">165 000×</td></tr>
     </tbody>
   </table></div>
-  <p style="margin-top:14px">Selbst unter der absurden 6-%-Annahme wird der ICNIRP-Grenzwert <strong>nicht
-  erreicht</strong> — beim Blick in die volle Mittagssonne bleibt Faktor 2,8, beim Finsternismaximum
-  Faktor 27. Und der ICNIRP-Grenzwert ist selbst schon mit Sicherheitsabstand unterhalb der
-  Schädigungsschwelle angesetzt, üblicherweise etwa eine Größenordnung. Der reale Abstand zur Schädigung
-  wäre also auch im schlechtesten hier denkbaren Fall rund <b>30-fach</b> — und das bei einer Annahme, die
-  dem verwendeten Werkstoff widerspricht.</p>
+  <p style="margin-top:14px">Selbst wenn ein Filter seine normative IR-Erlaubnis von 6 % voll ausschöpft, wird
+  der ICNIRP-Grenzwert <strong>nicht erreicht</strong> — beim Blick in die volle Mittagssonne bleibt Faktor 2,8,
+  beim Finsternismaximum Faktor 27. Der ICNIRP-Grenzwert ist selbst mit Sicherheitsabstand unterhalb der
+  Schädigungsschwelle angesetzt, üblicherweise etwa eine Größenordnung; der reale Abstand zur Schädigung wäre
+  also auch dann noch rund <b>30-fach</b>. Das ist die beruhigende Hälfte des Befunds.</p>
+  <p><strong>Die unbequeme Hälfte:</strong> Faktor 2,8 ist keine komfortable Marge, und die 6 % sind
+  normkonform. Ein Schweißfilter, der sein IR-Maximum ausschöpft, verfehlt die Solargrenze von 3 % um das
+  Doppelte — <em>nach der Norm, nicht nach einer Schätzung</em>. Dass reale Schweißgläser weit darunter
+  liegen, ist gemessen (Chou et al.), nicht garantiert. Genau deshalb bleibt H4 „teilentkräftet" und nicht
+  „entkräftet", und genau deshalb ist die IR-Flanke die einzige Stelle des Aufbaus, an der eine Messung
+  wirklich etwas ändern würde. Die vollständige Beweisführung, warum sich die IR-Grenze <em>nicht</em> aus
+  der Schutzstufe ableiten lässt, steht im <a href="iso-tables-verified.html">Normanhang</a>.</p>
   <p><strong>Der photochemische Kanal ist der einzige, in dem die Dauer zählt</strong> — dort gilt
   Dosisakkumulation, und der Blaulicht-Grenzwert entspricht 100 J/cm²/sr. Die 6-%-Annahme ändert daran
   übrigens nichts, weil sie ein anderes Band betrifft:</p>
@@ -1258,6 +1271,14 @@ header{border-bottom:1px solid transparent;border-image:linear-gradient(90deg,va
   — normkonformer, robuster, institutionell gedeckt, und laut DOG „in vielen Baumärkten oder im
   Arbeitsschutzfachhandel erhältlich". Es kostet wenige Euro, trägt eine geprägte statt gedruckte
   Kennzeichnung und hat, anders als Finsternisbrillen, keinen Fälschungsmarkt.</p>
+  <p style="margin-top:14px"><strong>Nachtrag 13.08.2026 — die IR-Umkehrprobe schwächt dieses Argument ab.</strong>
+  Für ein Einzelglas gibt es, anders als für den Stapel, einen <em>tabellierten</em> IR-Grenzwert: Anhang A.1
+  nennt für W14 <b>6 %</b>. Das klingt nach dem Beleg, der dem Stapel fehlt — ist aber
+  <strong>das Doppelte der solaren 3-%-Grenze</strong>, und selbst W15 liegt mit 4 % darüber. Aus den
+  Norm-Maxima allein erfüllt damit <em>kein</em> gelisteter Schweißgrad die IR-Anforderung der ISO 12312-2.
+  Dass reale Gläser weit darunter liegen, ist gemessen (Chou et al.), nicht garantiert. Die Empfehlung für
+  Stufe 14 bleibt gültig — sie stützt sich aber auf dieselbe Messevidenz wie der Stapel, nicht auf einen
+  besseren Normbeleg. Herleitung im <a href="iso-tables-verified.html">Normanhang</a>.</p>
   <p class="note">Zwei Einschränkungen bleiben auch hier. Erstens gilt die BfS-Warnung vor Schweißerbrillen
   pauschal, also auch für Stufe 14 — die Deckung durch DOG, AAS, NASA und ASRS steht dagegen, aufgelöst ist
   der Widerspruch nicht. Zweitens gilt die Kennzeichnungsprobe unverändert: eine <em>zusatzlose</em> „14",
@@ -1574,10 +1595,13 @@ header{border-bottom:1px solid transparent;border-image:linear-gradient(90deg,va
   dunkler und das Verhältnis von unsichtbarer zu sichtbarer Strahlung <em>schlechter</em>. Genau diese
   Kombination — dunkel genug zum langen Hinsehen, durchlässig für alles andere — ist das, was die Fallserien
   produziert hat.</p>
-  <p><strong>Drittens, und das ist die Antwort auf die naheliegendste Frage:</strong> <span class="ok">Es gibt
-  in dieser Tabelle keine einzige Spalte, in der Schweißglas rot und die ISO-Brille grün wäre.</span>
-  Kein Band, das ein korrekt gekennzeichneter Schweißfilter durchlässt und ein Sonnenfilter sperrt.
-  Die Asymmetrie läuft in die andere Richtung — dazu der nächste Abschnitt.</p>
+  <p><strong>Drittens, und hier ist eine Korrektur nötig:</strong> Frühere Fassungen dieses Kapitels
+  behaupteten, es gebe kein Band, das ein Schweißfilter durchlässt und ein Sonnenfilter sperrt. <span class="bad">Das
+  stimmt nicht.</span> Anhang A.1 der ISO 12312-2 tabelliert für Schweißfilter <em>höhere</em> IR-Maxima als
+  für Sonnenfilter: <span class="mono">W12 → 12 %, W13 → 8 %, W14 → 6 %, W15 → 4 %</span> gegen die solare
+  Grenze von <span class="mono">3 %</span>. Es gibt dieses Band also, es heißt IR-A, und es steht in der Norm.
+  Warum es für diesen Aufbau trotzdem unkritisch bleibt, steht im nächsten Abschnitt — aber die Behauptung
+  „kein Unterschied" war falsch.</p>
 
   <h3 style="margin-top:30px">Gibt es ein Band, das Schweißglas offenlässt und die ISO-Brille schließt?</h3>
   <p>Die Frage ist berechtigt, weil die beiden Filtertypen für <em>verschiedene Lichtquellen</em> ausgelegt

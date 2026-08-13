@@ -314,6 +314,141 @@ code{background:var(--bg2);border:1px solid var(--line);padding:1px 5px;border-r
 </tbody>
 </table></div>
 <p>Der A-Anhang stellt zudem im Klartext fest: <strong>Schweißerfilter der Stufen 12 bis 15 (nach ISO 16321) sind für das bloße Auge „equally suitable"</strong> — W12 ausreichend, aber hell; W14 möglicherweise zu dunkel. Genau die Position, die DOG und AAS vertreten — hier aus der Norm selbst.</p>
+<h3>Die Sichtbar-Spalten sind exakt die Stufenformel</h3>
+<p>Bevor ergänzt wird, die Probe. Setzt man in <code>τ_v = 10^(−3(N−1)/7)</code> die Bandränder <code>N∓0,5</code> ein, ergeben sich <strong>alle acht</strong> Sichtbar-Werte des Anhangs auf die angegebenen Stellen:</p>
+<div class="tscroll"><table>
+<thead>
+<tr>
+<th>Grad</th>
+<th>A.1 max</th>
+<th>gerechnet τ(N−0,5)</th>
+<th>A.1 min</th>
+<th>gerechnet τ(N+0,5)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>W12</td>
+<td>0,003 2</td>
+<td>0,003 162</td>
+<td>0,001 2</td>
+<td>0,001 179</td>
+</tr>
+<tr>
+<td>W13</td>
+<td>0,001 2</td>
+<td>0,001 179</td>
+<td>0,000 44</td>
+<td>0,000 439 4</td>
+</tr>
+<tr>
+<td>W14</td>
+<td>0,000 44</td>
+<td>0,000 439 4</td>
+<td>0,000 16</td>
+<td>0,000 163 8</td>
+</tr>
+<tr>
+<td>W15</td>
+<td>0,000 16</td>
+<td>0,000 163 8</td>
+<td>0,000 061</td>
+<td>0,000 061 05</td>
+</tr>
+</tbody>
+</table></div>
+<p>Acht von acht. Damit ist die ±0,5-Bandbreite nicht länger eine Rekonstruktion, sondern gegen den Normtext belegt — und die Skalenidentität mit ANSI Z87.1 bestätigt es unabhängig ein zweites Mal (ANSI nennt für <strong>W7</strong> eine Obergrenze von 0,44 %, die Formel liefert für Stufe 6,5 den Wert 0,439 4 %).</p>
+<h3>Ergänzung: die Stufen W5 bis W11</h3>
+<p>Diese Grade stehen <strong>nicht</strong> in Anhang A.1 — der Anhang beginnt bei W12, weil er nur die für die Sonnenbeobachtung in Frage kommenden Grade vergleicht. Die Sichtbar-Spalten lassen sich nach der oben verifizierten Formel trotzdem exakt angeben. Die UV- und IR-Spalten dagegen <strong>nicht</strong>: Deren Werte stehen in EN 169 bzw. ISO 4850, nicht hier, und werden deshalb offen gelassen statt geraten.</p>
+<div class="tscroll"><table>
+<thead>
+<tr>
+<th>Grad</th>
+<th>Sichtbar max</th>
+<th>Sichtbar min</th>
+<th>UV 280–315</th>
+<th>UV 315–380</th>
+<th>IR 780–1400</th>
+<th>Lage zum Solarfenster 2015</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>W5</td>
+<td>3,162</td>
+<td>1,179</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>~600× zu hell</td>
+</tr>
+<tr>
+<td>W6</td>
+<td>1,179</td>
+<td>0,439 4</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>~230× zu hell</td>
+</tr>
+<tr>
+<td>W7</td>
+<td>0,439 4</td>
+<td>0,163 8</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>~85× zu hell</td>
+</tr>
+<tr>
+<td>W8</td>
+<td>0,163 8</td>
+<td>0,061 05</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>~32× zu hell (RASC: „unsafe")</td>
+</tr>
+<tr>
+<td>W9</td>
+<td>0,061 05</td>
+<td>0,022 76</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>~12× zu hell</td>
+</tr>
+<tr>
+<td>W10</td>
+<td>0,022 76</td>
+<td>0,008 483</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>~4,4× zu hell</td>
+</tr>
+<tr>
+<td>W11</td>
+<td>0,008 483</td>
+<td>0,003 162</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td><strong>1,6× zu hell</strong> (dunkles Bandende trifft die Grenze genau)</td>
+</tr>
+<tr>
+<td>W12</td>
+<td>0,003 162</td>
+<td>0,001 179</td>
+<td>0,000 3</td>
+<td>0,001 2</td>
+<td>12</td>
+<td>✅ vollständig im Fenster</td>
+</tr>
+</tbody>
+</table></div>
+<p>Angaben in Prozent; „zu hell" bezogen auf den Nennwert τ(N) gegen die Obergrenze 0,003 2 %. Die Zeile W12 ist zum Anschluss aus A.1 übernommen.</p>
+<p><strong>Zwei Dinge werden daran sichtbar.</strong> Erstens der Abstand: Zwischen der DIN-5-Brille und dem Solarfenster liegen rund zweieinhalb Größenordnungen, nicht ein bisschen. Zweitens die Grenzlage von W11 — sein Nennwert liegt 1,6× über der Obergrenze, aber das <strong>dunkle Ende seines Toleranzbands trifft mit 0,003 162 % die Grenze 0,003 2 % praktisch exakt</strong>. Ein besonders dunkel ausgefallenes Stufe-11-Glas wäre also gerade noch normkonform, ein nominelles nicht. Das ist kein Freibrief, sondern die Erklärung, warum die Aussage „Stufe 11 allein ist zu hell" zwar richtig ist, aber knapp: Es fehlt weniger als eine halbe Schutzstufe.</p>
 <h2>ISO/DIS 12312-2:2025 — Tabelle 1 (Entwurf, bestätigt)</h2>
 <p>Aus der iTeh-Vorschau des Entwurfs <code>prEN ISO 12312-2</code>:</p>
 <div class="tscroll"><table>
