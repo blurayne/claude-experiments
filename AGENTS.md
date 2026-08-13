@@ -18,3 +18,23 @@ Sobald eine Aufgabe Recherche mit externen Quellen erfordert (Kontroversen, Bewe
 **Pflicht-Output:** Belegtabelle je Behauptung [bestätigt/teilbestätigt/entkräftet/nicht prüfbar] mit Erstquelle · Restliste des Ungeprüften mit Grund (Paywall, Bot-Blockade, Zeitbudget …) · Verdikt je Hypothese dreistufig (belegt/teilbelegt/unbelegt) mit sprachlich kalibrierter Konfidenz, offene Fragen zuerst.
 
 Volle Vorlage mit Copy-&-Paste-Prompts, optionalen Modulen und Herleitung: [`recherche-protokoll/`](recherche-protokoll/).
+
+## Landing-Pages kurz halten
+
+Die Wurzel-`README.md` und die `index.md` jedes Experiments sind Landing-Pages, nicht die Dokumente selbst. Sie bleiben kurz.
+
+- Jedes Dokument bekommt ein oder zwei Sätze: was es ist und warum man es öffnet, dann Schluss. Die Details stehen im Dokument und werden hier nicht wiederholt.
+- In schlichter, menschlicher Prosa schreiben. Die üblichen Maschinen-Signale meiden: keine Wörter wie „delve", „leverage", „robust", „seamless", kein „nicht nur X, sondern Y", und keine Gedankenstriche (—, –) innerhalb eines Satzes (Komma, Punkt oder Klammern nehmen). Satzlängen variieren, damit nicht drei Zeilen gleich klingen.
+- Beim Kürzen, Umbenennen oder Ergänzen den funktionierenden Link behalten. Nie den Link entfernen, während man die Prosa drumherum bearbeitet.
+
+Das Listenformat `- [name](pfad) — eine Zeile` in der README ist gesetzt; für neue Einträge so weiterführen.
+
+## Alles verlinken
+
+Jede Datei, die ein Besucher lesen soll, muss über einen Link erreichbar sein.
+
+- Die Dateien eines Experiments werden aus seiner `index.md` (oder der handgeschriebenen `index.html`) verlinkt.
+- Jedes Experiment wird aus der Wurzel-`README.md` verlinkt.
+- Generierte Artefakte und Build-Skripte (etwa `build_*.py`) sind die Ausnahme und brauchen keinen Link.
+
+Wer ein Dokument anlegt und nicht verlinkt, macht es auf der Website unsichtbar. Beim Hinzufügen oder Umbenennen einer Datei den Index im selben Schritt aktualisieren.
