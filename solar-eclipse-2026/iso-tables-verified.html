@@ -449,6 +449,161 @@ code{background:var(--bg2);border:1px solid var(--line);padding:1px 5px;border-r
 </table></div>
 <p>Angaben in Prozent; „zu hell" bezogen auf den Nennwert τ(N) gegen die Obergrenze 0,003 2 %. Die Zeile W12 ist zum Anschluss aus A.1 übernommen.</p>
 <p><strong>Zwei Dinge werden daran sichtbar.</strong> Erstens der Abstand: Zwischen der DIN-5-Brille und dem Solarfenster liegen rund zweieinhalb Größenordnungen, nicht ein bisschen. Zweitens die Grenzlage von W11 — sein Nennwert liegt 1,6× über der Obergrenze, aber das <strong>dunkle Ende seines Toleranzbands trifft mit 0,003 162 % die Grenze 0,003 2 % praktisch exakt</strong>. Ein besonders dunkel ausgefallenes Stufe-11-Glas wäre also gerade noch normkonform, ein nominelles nicht. Das ist kein Freibrief, sondern die Erklärung, warum die Aussage „Stufe 11 allein ist zu hell" zwar richtig ist, aber knapp: Es fehlt weniger als eine halbe Schutzstufe.</p>
+<h3>Der Befund hinter den Zahlen: Das Solarfenster <em>ist</em> W12 bis W15</h3>
+<p>Die beiden Grenzlagen sind kein Zufall. Setzt man die Fensterränder gegen die Stufenformel, fallen sie exakt auf Bandgrenzen:</p>
+<div class="tscroll"><table>
+<thead>
+<tr>
+<th>Fensterrand</th>
+<th>Wert der Norm</th>
+<th>Stufenformel</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ISO 2015, Obergrenze</td>
+<td>0,003 2 %</td>
+<td>τ(11,5) = 0,003 162 %</td>
+<td><strong>identisch</strong></td>
+</tr>
+<tr>
+<td>ISO 2015, Untergrenze</td>
+<td>0,000 061 %</td>
+<td>τ(15,5) = 0,000 061 05 %</td>
+<td><strong>identisch</strong></td>
+</tr>
+<tr>
+<td>Entwurf 2025, Obergrenze</td>
+<td>0,001 2 %</td>
+<td>τ(12,5) = 0,001 179 %</td>
+<td><strong>identisch</strong></td>
+</tr>
+<tr>
+<td>Entwurf 2025, Untergrenze</td>
+<td>0,000 04 %</td>
+<td>τ(15,5) = 0,000 061 05 %</td>
+<td>Faktor 1,5 tiefer</td>
+</tr>
+</tbody>
+</table></div>
+<p>Das Solarfenster von 2015 ist also <strong>wörtlich die Vereinigung der Schweißgrade 12 bis 15</strong> — obere Kante = heller Rand von W12, untere Kante = dunkler Rand von W15. Damit erklärt sich, warum Anhang A.1 ausgerechnet diese vier Grade vergleicht und keinen mehr: Es sind genau die, die hineinpassen. Der Entwurf 2025 zieht die Oberkante auf den hellen Rand von W13 und lässt die Unterkante etwas nach unten laufen; sein Fenster ist damit <strong>W13 bis W15 plus ein Stück</strong>. Die DOG/AAS-Empfehlung „12 bis 14" ist also keine Faustregel, sondern die Norm in anderer Schreibweise — und die vorgeschlagene Verschärfung ist exakt das Streichen von W12.</p>
+<h3>Ergänzung nach oben: W16 bis W20</h3>
+<p><strong>W16 ist die letzte Stufe der EN-169-Schweißreihe.</strong> Was darüber steht, gibt es als Produkt nicht: W17 bis W20 sind keine Normstufen, sondern nur rechnerisch erreichbar, indem man Filter stapelt. Sie stehen hier, weil genau das die Konfiguration ist, um die es im Dossier geht.</p>
+<div class="tscroll"><table>
+<thead>
+<tr>
+<th>Grad</th>
+<th>Sichtbar max</th>
+<th>nominal</th>
+<th>Sichtbar min</th>
+<th>Lage zum Solarfenster 2015</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>W15</td>
+<td>0,000 16</td>
+<td>0,000 100</td>
+<td>0,000 061</td>
+<td>✅ im Fenster, letzte Stufe darin</td>
+<td>Normstufe (A.1)</td>
+</tr>
+<tr>
+<td><strong>W16</strong></td>
+<td><strong>0,000 061 05</strong></td>
+<td>0,000 037 3</td>
+<td>0,000 022 8</td>
+<td>1,6× <strong>zu dunkel</strong> — heller Rand trifft die Untergrenze exakt</td>
+<td>Normstufe, letzte der Reihe</td>
+</tr>
+<tr>
+<td>W17</td>
+<td>0,000 022 8</td>
+<td>0,000 013 9</td>
+<td>0,000 008 48</td>
+<td>4,4× zu dunkel</td>
+<td>nur gestapelt</td>
+</tr>
+<tr>
+<td>W18</td>
+<td>0,000 008 48</td>
+<td>0,000 005 18</td>
+<td>0,000 003 16</td>
+<td>11,8× zu dunkel</td>
+<td>nur gestapelt</td>
+</tr>
+<tr>
+<td><strong>W19</strong></td>
+<td>0,000 003 16</td>
+<td><strong>0,000 001 93</strong></td>
+<td>0,000 001 18</td>
+<td><strong>31,6× zu dunkel</strong></td>
+<td>nur gestapelt</td>
+</tr>
+<tr>
+<td>W20</td>
+<td>0,000 001 18</td>
+<td>0,000 000 720</td>
+<td>0,000 000 439</td>
+<td>84,8× zu dunkel</td>
+<td>nur gestapelt</td>
+</tr>
+</tbody>
+</table></div>
+<p>Angaben in Prozent. Die Symmetrie ist hübsch: Wie W11 von unten an die Obergrenze stößt, stößt <strong>W16 von oben an die Untergrenze</strong> — sein heller Bandrand ist mit 0,000 061 05 % exakt der ISO-Boden. Das Fenster ist an beiden Enden von je einer Stufe eingerahmt, die es um weniger als eine halbe Stufe verfehlt.</p>
+<h3>Was aus der vorhandenen Hardware rechnerisch herauskommt</h3>
+<p>Mit den Scheiben des Fallbeispiels (Brille Stufe 5, Filter Stufe 9 und 11) und der Regel <code>N = ΣN − (n−1)</code>:</p>
+<div class="tscroll"><table>
+<thead>
+<tr>
+<th>Kombination</th>
+<th>Stufe</th>
+<th>τ_v</th>
+<th>Bewertung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>5 + 9</td>
+<td>13</td>
+<td>7,20·10⁻⁶</td>
+<td>✅ in beiden Fenstern, komfortabel hell</td>
+</tr>
+<tr>
+<td><strong>5 + 11</strong></td>
+<td><strong>15</strong></td>
+<td><strong>1,00·10⁻⁶</strong></td>
+<td>✅ in beiden Fenstern, nahe dem dunklen Rand</td>
+</tr>
+<tr>
+<td><strong>11 + 5 + 5</strong></td>
+<td><strong>19</strong></td>
+<td><strong>1,93·10⁻⁸</strong></td>
+<td>⚠️ 31,6× unter dem Minimum — sicher, aber praktisch blind</td>
+</tr>
+<tr>
+<td>9 + 11</td>
+<td>19</td>
+<td>1,93·10⁻⁸</td>
+<td>identisch mit 11+5+5, nur mit zwei Filterscheiben statt Brille doppelt</td>
+</tr>
+<tr>
+<td>11 + 11</td>
+<td>21</td>
+<td>2,68·10⁻⁹</td>
+<td>228× unter dem Minimum</td>
+</tr>
+<tr>
+<td>5 + 9 + 11</td>
+<td>23</td>
+<td>3,73·10⁻¹⁰</td>
+<td>1 636× unter dem Minimum</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Zu W19 im Besonderen</strong>, weil es zwei verschiedene Wege dorthin gibt: <code>11+5+5</code> und <code>9+11</code> landen beide exakt auf Stufe 19. Beide sind normwidrig dunkel, beide sicherheitstechnisch unbedenklich, beide beobachtungstechnisch wertlos — beim Finsternismaximum bleiben 0,17 cd/m². Der Unterschied ist praktisch: <code>9+11</code> braucht nur die beiden Filterscheiben und keine zweite Brille, ist also der einfachere Weg zu derselben nutzlosen Dunkelheit. Die ausführliche Bewertung samt Kennzeichnungsszenarien steht im Dossier, Hardware-Abschnitt E.</p>
 <h2>ISO/DIS 12312-2:2025 — Tabelle 1 (Entwurf, bestätigt)</h2>
 <p>Aus der iTeh-Vorschau des Entwurfs <code>prEN ISO 12312-2</code>:</p>
 <div class="tscroll"><table>
@@ -549,6 +704,60 @@ code{background:var(--bg2);border:1px solid var(--line);padding:1px 5px;border-r
 </tbody>
 </table></div>
 <p><strong>Ergebnis 1 — unabhängige Bestätigung der Norm.</strong> Die Formel reproduziert exakt die Aussage aus Anhang A.1: <strong>Stufen 12–15 liegen im Fenster 2015.</strong> Stufe 11 fällt knapp heraus (zu hell), Stufe 16 fällt heraus (zu dunkel). Der <strong>Entwurf 2025 verengt das nutzbare Band auf die Stufen 13–15</strong> — er würde die Stufe 12 fallen lassen. Das ist die rechnerische Fassung der DOG/AAS-Empfehlung „12–14".</p>
+<h3>Welche Einzelstufe erfüllt die Norm mit Reserve?</h3>
+<p>„Im Fenster" ist eine Ja/Nein-Aussage. Interessanter ist, wie viel Luft ein Grad zu den vier Grenzen hat — Ober- und Untergrenze, je Fassung. Faktor &gt; 1 heißt Abstand, die kleinste Zahl je Zeile ist die schwächste Flanke:</p>
+<div class="tscroll"><table>
+<thead>
+<tr>
+<th>Grad</th>
+<th>2015 oben</th>
+<th>2015 unten</th>
+<th>2025 oben</th>
+<th>2025 unten</th>
+<th>schwächste Flanke</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>W12</td>
+<td>1,01×</td>
+<td>19,3×</td>
+<td><strong>0,38×</strong></td>
+<td>29,5×</td>
+<td>❌ fällt aus dem Entwurf</td>
+</tr>
+<tr>
+<td>W13</td>
+<td>2,71×</td>
+<td>7,20×</td>
+<td><strong>1,02×</strong></td>
+<td>11,0×</td>
+<td>⚠️ 2 % Luft zur Entwurfs-Obergrenze</td>
+</tr>
+<tr>
+<td><strong>W14</strong></td>
+<td>7,28×</td>
+<td><strong>2,69×</strong></td>
+<td>2,73×</td>
+<td>4,09×</td>
+<td>✅ <strong>2,7× auf allen vier Seiten</strong></td>
+</tr>
+<tr>
+<td>W15</td>
+<td>19,5×</td>
+<td><strong>1,00×</strong></td>
+<td>7,33×</td>
+<td>1,53×</td>
+<td>⚠️ sitzt exakt auf dem Boden von 2015</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Damit ist die Frage „welches Glas erfüllt die Norm?" eindeutig beantwortet: W14.</strong> Es ist der einzige Grad, dessen <strong>gesamtes Toleranzband</strong> in beiden Fassungen mit Abstand nach oben <em>und</em> unten liegt. W13 streift mit seinem hellen Rand die Obergrenze des Entwurfs auf 2 % genau, W15 steht mit seinem dunklen Rand exakt auf dem Boden von 2015, und W12 fällt aus dem Entwurf ganz heraus. Ein zu dunkel geratenes W15 oder ein zu hell geratenes W13 wäre normwidrig — bei W14 muss die Fertigung um mehr als eine halbe Stufe danebenliegen, bevor etwas passiert.</p>
+<p>Zwei Einschränkungen, damit der Satz nicht mehr trägt, als er kann:</p>
+<ul>
+<li>Das gilt für die <strong>Lichttransmission</strong>. Die IR-Anforderung ist damit nicht erfüllt, sondern nur nicht widerlegt: A.1 erlaubt W14 bis zu 6 % IR gegen die solare Grenze von 3 % (siehe Umkehrprobe weiter unten). Kein Schweißgrad beweist ≤ 3 % aus seinen Norm-Maxima.</li>
+<li>„Erfüllt die Norm" heißt hier: <strong>die Zahlen werden eingehalten</strong>. Zertifiziert <em>nach</em> ISO 12312-2 ist ein Schweißglas trotzdem nicht, denn Konformität ist ein Verfahren, kein Messwert. Wer ein Produkt will, das die Norm nicht nur trifft, sondern nach ihr geprüft ist, kauft eine ISO-12312-2-Brille oder aluminisierte Sonnenfilterfolie.</li>
+</ul>
 <h3>Der Stapel DIN 5 + DIN 11</h3>
 <ul>
 <li>τ(DIN 5) = 1,93·10⁻² · τ(DIN 11) = 5,18·10⁻⁵ → <strong>τ(Stapel) = 1,00·10⁻⁶</strong> (0,0001 %), das entspricht <strong>Stufe 15,0</strong>.</li>
