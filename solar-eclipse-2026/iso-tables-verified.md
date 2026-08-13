@@ -242,6 +242,16 @@ Zwei Dinge fallen auf. **Erstens:** NASA setzt mit **0,5 %** die mit Abstand str
 
 DOG wiederum nennt die Wärme (also den IR-Thermalpfad) als Schadensmechanismus ausdrücklich, legt aber **keine eigene Zahl** fest, sondern übernimmt die 3-%-Grenze mittelbar über die ISO-Norm. Die inhaltliche Position „Stufe 12–14, sonst zertifizierte Solarfolie" deckt sich mit AAS und mit Anhang A.1.
 
+### Was NASA zu den Gläsern sagt — und ob sie *unsere* Gläser meint
+
+NASA wird beim Augenschutz oft als Kronzeuge fürs Schweißglas zitiert. Es lohnt, genau zu lesen, **welches** Glas gemeint ist.
+
+NASAs Finsternis-Seite (Espenak, GSFC) nennt konkret **ein einzelnes Schweißglas der Stufe 14**, „obtained from welding supply outlets", und stellt daneben zwei Alternativen: eigens für die Sonnenbeobachtung gefertigte **aluminisierte Mylar-Folie** und **voll belichteter, auf maximale Dichte entwickelter Schwarzweißfilm** (die Silberschicht filtert, Farbfilm nicht). Dazu die harte Transmissionsvorgabe: sichtbar < 0,003 %, Nah-IR ≤ 0,5 %.
+
+Und jetzt der Punkt, auf den es ankommt: **NASA meint einen einzelnen, für sich genommen dunklen Filter — nicht unseren Stapel.** Die Seite erwähnt das Übereinanderlegen mehrerer Gläser mit keinem Wort und empfiehlt keine improvisierte Kombination hellerer Filter. Unser DIN 5 + DIN 11 erreicht im Sichtbaren Stufe 15 (τ_v = 1,0·10⁻⁶) und ist damit sogar **dunkler** als NASAs Stufe-14-Empfehlung (2,68·10⁻⁶). Aber die Empfehlung hängt am **zertifizierten Einzelfilter**, nicht an „irgendeiner Paarung, die zusammen Stufe 14 ergibt". Genau die eine Größe, die ein Stapel *nicht* aus der Schutzstufe erbt — das IR — ist die, die NASA am schärfsten festzurrt (≤ 0,5 %).
+
+Fazit: NASAs Rückendeckung gilt einem **einzelnen Schweißglas Stufe 14**, nicht dem gestapelten Behelf. Unser Stapel ist im Sichtbaren mindestens so dunkel, muss sich beim IR aber auf die **Messung** stützen (Chou et al.), nicht auf NASA. Wer sich strikt an NASA halten will, nimmt ein rated Stufe-14-Glas (oder eine zertifizierte Solarfolie) statt der Kombination.
+
 ### Was die anderen Normen sagen — und wo die W5/W11-IR-Werte herkommen
 
 ISO 12312-2 steht nicht allein. Vier weitere Normen fassen dieselben Filter an, und eine davon ist genau die, die das IR unterhalb von W12 überhaupt regelt.
