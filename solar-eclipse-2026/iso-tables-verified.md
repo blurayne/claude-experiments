@@ -107,6 +107,44 @@ Die Stufenaddition betrifft **nur die Lichttransmission**. Die beiden übrigen I
 - **UVA/UVB ≤ τ_v** (2015: ≤ 1,0·10⁻⁶ für den Stapel). Schweißglas dämpft UV massiv stärker als sichtbares Licht (im Dossier Faktor ~64.000). Aus Anhang A.1: schon W15 hat UV = 6,1·10⁻⁷; der stufe-15-äquivalente Stapel liegt gleichauf oder darunter. **Erfüllt mit großem Abstand** — qualitativ sicher, exakt belegt durch die Messungen von Chou et al.
 - **IR ≤ 3 %.** Das ist das einzige Kriterium, das die Stufenrechnung **nicht** beweist: Anhang A.1 erlaubt Schweißgläsern hohe IR-Maxima (W12 bis 12 %), und das Produkt zweier *Maxima* könnte 3 % überschreiten. In der Praxis liegen reale Schweißgläser weit unter dem Maximum; Chou et al. messen den IR-Anteil als unkritisch. **In diesem Fall erfüllt, aber nur messgestützt, nicht aus der Stufe ableitbar** — deckt sich mit H4 („teilentkräftet, für diesen Fall unkritisch").
 
+### Beweisführung — warum „IR ≤ 3 %" nicht aus der Stufe folgt
+
+**Behauptung.** Die IR-Grenze (τ_SIR ≤ 3 %) lässt sich für den Stapel *nicht* aus der Schutzstufe errechnen — sie ist nur durch Messung zu belegen. Zweistufiger Beweis, dann die Messdefinition.
+
+- **A · Die Stufe ist definitorisch blind für IR.**
+  - Die EN-169-Stufe ist `N = 1 + (7/3)·log₁₀(1/τ_v)`, und **τ_v ist ausschließlich das photopische Integral über 380–780 nm**, gewichtet mit der Hellempfindlichkeit V(λ).
+  - Die IR-Anforderung ist ein **disjunktes** Integral: `τ_SIR = ∫τ(λ)·E_s(λ)dλ / ∫E_s(λ)dλ` über **780–1400 nm** gegen das solare Referenzspektrum E_s.
+  - Die Definition von N liest dieses Band **nicht**. Die Abbildung *Stufe → τ_SIR* ist damit **ein-zu-viele**: zwei Filter gleicher Stufe können sich im NIR um Größenordnungen unterscheiden, weil IR-Absorption eine Materialeigenschaft **unabhängig** von der sichtbaren Absorption ist (metallbedampftes Polymer vs. körpergefärbtes Glas: gleiche Stufe, verschiedene IR-Kurve).
+  - Eine Ein-zu-viele-Relation ist **keine Funktion** ⇒ keine Arithmetik auf N kann eine IR-Schranke ausgeben. ∎ *(„nicht ableitbar")*
+- **B · Auch die Norm-Maxima schließen die Lücke für *diesen* Stapel nicht.**
+  - Anhang A.1 tabelliert IR-Maxima **nur für die Stufen 12–15**; für DIN 5 oder DIN 11 einzeln gibt es keinen Eintrag.
+  - Die Stapel-IR ist das **Produkt** `τ_SIR,1 · τ_SIR,2`, das die (rein sichtbare) Stufenaddition `N = N₁+N₂−1` niemals berührt.
+  - ⇒ Aus den beschafften Tabellen ist **nicht einmal eine Worst-Case-Schranke** für den Stapel rechenbar.
+- **Schluss · Nur Messung beweist es.**
+  - **Sekundär (was das Dossier nutzt):** Chou et al. 2021 haben genau dieses ISO-Integral an realen Schweißfiltern ausgeführt (Spektralscan 280–2000 nm) und IR ≪ 3 % gefunden — Beweis für die *Klasse*.
+  - **Für genau diesen Stapel:** Labor-Spektralphotometer nach ISO-12311-Methode (z. B. ECS 1883 / DIN CERTCO) ist der eigentliche Beweis.
+  - **Heim-NIR-Check** (Si-Photodiode + 780-nm-Langpass, Stapel gegen ohne) ist nur eine **einseitige** Schranke: schließt grobe IR-Leckage aus, **zertifiziert nie** ≤ 3 %.
+
+### Umkehrprobe — hat ein *einzelner* DIN 14 einen IR-Beleg?
+
+Ja — und anders als beim Stapel. Anhang A.1 **tabelliert** IR-Maxima je Schweißgrad: **W12 → 12 %, W13 → 8 %, W14 → 6 %, W15 → 4 %** (solare Grenze = 3 %). Ein zertifizierter DIN 14 hat also eine garantierte, materialgestützte IR-Obergrenze von **6 %** — genau der Beleg, der dem DIN-5+DIN-11-Stapel fehlt (A.1 listet unter Stufe 12 nichts, und die Stapel-IR ist ein untabelliertes Produkt).
+
+**Aber der Beleg reicht nicht:** 6 % ist das Doppelte der 3-%-Grenze — und sogar **W15 liegt mit 4 % darüber**. Aus den Norm-Maxima allein erfüllt damit **kein** gelisteter Schweißgrad die ISO-12312-2-IR-Grenze. Die Anhang-A-Aussage „Stufen 12–15 geeignet" ist *informativ* und stützt sich auf das **reale** Verhalten (Chou: echte Filter liegen weit unter ihren Maxima), nicht auf die Maxima. Selbst im günstigsten Fall — zertifizierter Einzelfilter mit tabelliertem IR-Max — beweist die Tabelle nur ≤ 6 %; für ≤ 3 % bleibt die **Messung** nötig. Die Umkehrung verschärft den Befund also, statt ihn aufzuheben.
+
+### Wer es untersuchen will — Studiendesign ;)
+
+Der Stapel-Fall ist eine echte Forschungslücke: Chou deckt **Einzel**filter ab, die (real verbreitete) **gestapelte** Behelfslösung ist nicht systematisch vermessen.
+
+- **Frage / H₀.** Gestapelte Schweißfilter mit `N₁+N₂−1 = 15` erfüllen τ_SIR ≤ 3 % **unabhängig von der Materialpaarung**. H₁: es gibt normgerecht-sichtbare Paarungen, die im IR reißen.
+- **Stichprobe.** Matrix *Materialklasse × Stufe*: körpergefärbtes Mineralglas, metallbedampftes Glas, Polycarbonat/Polymer, Auto-Schweißkassetten; Einzelstufen 4–6 × 9–13 plus die realen Paare (DIN 5 + DIN 11 usw.). n ≥ 3 je Zelle, mehrere **Chargen/Hersteller** (Chargenstreuung ist der wunde Punkt).
+- **Messgröße & Methode.** Spektrale Transmission 280–2000 nm, Doppelstrahl-Spektralphotometer **mit Vergleichsstrahl-Abschwächer** (hohe OD nötig); τ_SIR, τ_v, τ_SUVA, τ_SUVB nach ISO-Definition gegen das Referenzspektrum integriert. Messunsicherheit ≤ 25 % (Normvorgabe).
+- **Kernvariable — der eigentliche Befund.** Prüfen, ob **bandweise Multiplikativität** exakt gilt: `τ_gesamt(λ) = τ₁(λ)·τ₂(λ)`? Oder verschieben Beschichtungs-Interferenzen und Zwischenreflexe die IR-Bilanz? Regression `τ_SIR(Stapel)` gegen das Produkt der Einzelwerte — die **Abweichung** ist das wissenschaftliche Ergebnis.
+- **Realbedingungen.** Einfallswinkel 0–30° (metallbedampfte Filter kippen spektral), Temperatur, Alterung/Delamination.
+- **Falsifikator.** Eine **einzige** stufe-15-sichtbare Paarung mit τ_SIR > 3 % widerlegt „Stapeln ist im IR unkritisch".
+- **Deliverable.** Eine **Stapel-Version von Chous Tabelle 3** — die es noch nicht gibt. Publikationsfähig (*AJ* / *Ophthalmic & Physiological Optics*). Arbeitstitel: „Do stacked welding filters stay within ISO 12312-2 in the near-IR? A spectroradiometric survey."
+- **Aufwand.** UV-VIS-NIR-Spektralphotometer mit OD > 6 (Hochschullabor), ~1–2 Wochen Messzeit — oder Auftrag an eine benannte Stelle.
+- **Sicherheit/Ethik.** Rein Laborbank, nie am Auge oder an der realen Sonne; das Ergebnis darf **nicht** als Freigabe-Empfehlung für Laien gerahmt werden.
+
 ### Marge & Robustheit
 
 Der Stapel sitzt bei 1,0·10⁻⁶ **nahe dem dunklen Rand** des Fensters 2015 (nur ×1,64 über dem Boden). Wird eine Scheibe etwas dunkler als nominal geliefert, oder kommt eine dritte Scheibe hinzu, kann τ_v **unter die Untergrenze** rutschen — „normwidrig dunkel". Zu dunkel ist keine harmlose Reserve: Das Sonnenbild wird schwer auffindbar, was zu längerem Suchen und Abnehmen des Filters verleitet. Der informative 2015-Anhang nennt als *komfortable* Werte τ_v < 6·10⁻⁶ (Mittagssonne) bzw. > 4,4·10⁻⁶ (tiefer Stand) — der Stapel ist mit 1,0·10⁻⁶ also **~6× dunkler als „komfortabel"**. Das stützt die Betriebsplan-Empfehlung des Dossiers, in der Tiefstandsphase von Stufe 15 auf Stufe 13 zu wechseln (7,2·10⁻⁶, mitten im komfortablen Band).
