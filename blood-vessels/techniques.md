@@ -58,6 +58,114 @@ The method most associated with realistic vascular trees in the literature
 here is a simplified CCO (nearest-node attachment without the full geometric
 volume optimisation), which still yields dense, naturally space-filling arbors.
 
+### 1b-iv. CCO+ — faithful Constrained Constructive Optimization
+
+The complete version of the model, and the generator that most looks like a real
+arterial tree. It keeps CCO's one-terminal-at-a-time growth but adds the parts the
+simple version drops:
+
+1. **Spacing criterion.** A candidate terminal is accepted only if it is at least
+   `d ∝ √(A_perf / N)` from the existing terminals — the same shrinking distance
+   real CCO uses, so the tree lays down a coarse skeleton first and fills in
+   progressively.
+2. **Splicing, not hanging.** Rather than attach the terminal to the nearest
+   *node*, it **splices an existing segment** `p→c`, introducing a new bifurcation
+   node `b` so the segment becomes `p→b` with children `b→c` and `b→t`.
+3. **Optimal bifurcation point.** `b` is moved to the position that minimises the
+   local intravascular volume `Σ rᵢ²·ℓᵢ` — a weighted Steiner point found with a
+   few **Weiszfeld iterations** over `{p, c, t}`, weighted by each limb's flow
+   (downstream terminal count) raised to `2/γ`. This is what reproduces the
+   physiological, non-perpendicular **bifurcation angles**.
+4. **Least-cost, crossing-free choice.** Among the nearest `nCon` candidate
+   segments it takes the cheapest splice whose three new segments **cross no other
+   vessel** — so the arbor never self-intersects.
+
+Radii then come from `assignRadii` exactly as before: with equal terminal radii,
+Murray's bottom-up rule gives `r ∝ (downstream terminals)^{1/γ}`, which is
+precisely the flow-based calibre CCO prescribes. *Refs:* Schreiner & Buxbaum
+(1993), Karch et al. (1999).
+
+### 1b-v. Angiogenesis — demand-field (VEGF-style) sprouting
+
+The mechanism real vessels actually grow by, and the one generator that
+**self-regulates its own density**. A coarse grid holds a scalar **demand** field
+(`1` = starved tissue, `0` = already perfused). A handful of vessel **tips** are
+released from a hub and, each step:
+
+1. **Sense** the demand gradient over a neighbourhood — a distance-weighted sum of
+   `demand · direction` to nearby grid cells — and head up it (chemotaxis toward
+   the hungriest tissue), blended with the tip's own heading (persistence) and a
+   little noise.
+2. **Extend** one segment, and **supply** the tissue around the new node: every
+   cell within a radius has its demand pushed toward `0`.
+3. **Branch** stochastically (after a minimum run length), and **terminate** when
+   the sensed demand falls below a threshold — i.e. the tissue here is already
+   fed — or on reaching the domain boundary.
+
+Because growth both follows and erases demand, it steers itself into the gaps and
+thins out next to existing vessels: dense where tissue was under-served, sparse by
+a trunk. The feeding trunk runs in from the inlet to a hub inside the tissue and
+the bed **radiates outward** from there, the way an organ fills from its hilum. A
+tip that meets served tissue simply stops (it doesn't fuse), so the result stays a
+tree and the spline / Murray / capillary / flow stages are unchanged. *Refs:*
+Anderson–Chaplain (1998) tumour-angiogenesis model; tip/stalk-cell sprouting.
+
+### 1b-vi. Loops — adaptive flow network (Hu–Cai / Katifori)
+
+The only generator that is **not a tree**. It's a physical optimisation rather
+than a growth rule, and it produces the hierarchical **loops** real dense beds
+have.
+
+1. **Mesh.** Start from a jittered triangular lattice of nodes with one inlet
+   **source**, and connect lattice neighbours into a dense graph full of little
+   triangles (loops).
+2. **Flow solve.** Treat every edge as a resistive tube of conductance `κ_e`. For
+   a demand pattern (currents `q_i`, source positive, sinks negative) the node
+   pressures solve the **graph Laplacian** `L(κ)·p = q` — Kirchhoff's laws — which
+   we solve matrix-free with **conjugate gradient** (the Laplacian is singular but
+   consistent; the gauge is fixed by keeping everything mean-zero). Edge flow is
+   `Q_e = (κ_e/ℓ_e)(p_a − p_b)`.
+3. **Adapt.** Move each conductance toward the optimum `κ_e ∝ ⟨Q_e²⟩^{1/(1+γ)}`
+   (a cost/dissipation trade-off; `γ` is the material exponent), relaxing
+   gradually rather than replacing outright, and repeat.
+4. **Fluctuating load — the crucial part.** A single steady demand would collapse
+   the mesh to a tree. Instead each adaptation step averages `Q²` over many random
+   loads (here: all the supply draining to **one random node** at a time). Serving
+   every possible load makes redundant loops worth their cost, so loops **survive
+   at every scale** — the Corson / Katifori result.
+
+Tube radius comes from the converged conductance (`r ∝ κ^p`, so a few fat channels
+feed a fine reticular mesh), the weakest tubes are pruned, edges are oriented and
+coloured by the final flow potential, and the network is handed to the same merge
+/ z-order / flow machinery as the trees — which already works on a general graph,
+loops and all. *Refs:* Hu & Cai (2013); Ronellenfitsch & Katifori (2016);
+Corson (2010); Katifori et al. (2010).
+
+### 1b-vii. Four more generators
+
+- **L-system (parametric).** A stochastic branching grammar: each internode is a
+  couple of curving sub-segments bent toward a **tropism** direction, then splits
+  **asymmetrically** — a dominant child that keeps the heading at a shallow angle
+  and long length, plus minor children at wider angles and shorter lengths. The
+  asymmetry (versus the even fork of *recursive*) is what reads as organic.
+- **DBM (dielectric-breakdown / Laplacian growth).** A "voltage" field φ is held
+  at 1 on the domain frame and 0 on the growing cluster and relaxed to be harmonic
+  in between; new growth attaches to a surface cell with probability `∝ |φ|^η`.
+  Tips race into open field while interiors are screened, giving ramified,
+  frost/lightning-like branching (η tunes compact→feathery). Runs on an
+  8-connected grid so branches aren't axis-locked. *Ref:* Niemeyer–Pietronero–
+  Wiesmann (1984).
+- **Retinal arcades.** Vessels leave an optic disc and sweep toward the temporal
+  periphery, **bowing around a macular exclusion zone** (a radial push when close)
+  while shedding dichotomous twigs — the fundus pattern.
+- **Cortical.** A pial trunk runs along the surface; at intervals a **penetrating**
+  vessel dives perpendicularly into the tissue and branches as it descends — the
+  columnar supply of cortex.
+
+All four produce the same parent→children tree the pipeline expects, so splining,
+Murray radii, capillary bridging and flow are unchanged. The generator and shading
+selectors are both drop-downs.
+
 ### 1c. Vessel calibre — Murray's law
 
 Whatever grows the skeleton, segment **radii** are assigned bottom-up with

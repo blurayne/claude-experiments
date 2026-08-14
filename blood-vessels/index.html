@@ -72,6 +72,13 @@
   .chip{font-size:11px;padding:5px 9px;border-radius:999px;border:1px solid var(--panelb);
     background:rgba(60,20,28,.4);color:var(--dim);cursor:pointer;user-select:none;transition:.13s}
   .chip.on{color:var(--ink);border-color:var(--artery);background:rgba(226,59,70,.18)}
+  select.sel{width:100%;font:inherit;font-size:12px;color:var(--ink);cursor:pointer;
+    background:rgba(60,20,28,.55);border:1px solid var(--panelb);border-radius:9px;
+    padding:7px 26px 7px 10px;outline:none;-webkit-appearance:none;appearance:none;transition:.13s;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%23c79aa2'/></svg>");
+    background-repeat:no-repeat;background-position:right 10px center}
+  select.sel:hover{border-color:var(--artery)}
+  select.sel option{background:#1b0a0e;color:var(--ink)}
 
   /* scale bar + readout */
   #scalebar{left:16px;bottom:16px;background:var(--panel);border:1px solid var(--panelb);
@@ -82,7 +89,11 @@
 
   /* heartbeat */
   #hb{right:16px;bottom:16px;background:var(--panel);border:1px solid var(--panelb);border-radius:10px;
-    padding:8px 12px;backdrop-filter:blur(9px);display:flex;align-items:center;gap:9px}
+    padding:8px 12px;backdrop-filter:blur(9px);display:flex;align-items:center;gap:9px;cursor:pointer;
+    user-select:none;transition:border-color .15s}
+  #hb:hover{border-color:var(--artery)}
+  #hb.snd{border-color:var(--artery);box-shadow:0 0 0 1px var(--artery)}
+  #hbsnd{font-size:13px;opacity:.75}
   #hbdot{width:13px;height:13px;border-radius:50%;background:var(--artery);box-shadow:0 0 10px var(--artery)}
   #hb small{font-size:11px;color:var(--dim)}
   #hb b{color:var(--ink);font-variant-numeric:tabular-nums}
@@ -188,12 +199,25 @@
   </div>
 
   <div class="eyebrow">Vessel generator</div>
-  <div class="toggles" id="gens">
-    <span class="chip on" data-gen="spacecol" title="Attractor-driven space colonisation (organic, space-filling)">Space-colonisation</span>
-    <span class="chip" data-gen="recursive" title="Recursive dichotomous branching — Sapling / skin-modifier style">Recursive tree</span>
-    <span class="chip" data-gen="dla" title="Diffusion-limited aggregation — fractal, frost-like branching">DLA</span>
-    <span class="chip" data-gen="cco" title="Constrained Constructive Optimization — classic vascular-growth model">CCO</span>
-  </div>
+  <select class="sel" id="genSel" title="Vessel-growth algorithm (rebuilds the bed)">
+    <optgroup label="Growth">
+      <option value="spacecol">Space-colonisation</option>
+      <option value="lsystem">L-system (branching)</option>
+      <option value="recursive">Recursive tree</option>
+      <option value="angio">Angiogenesis (demand field)</option>
+    </optgroup>
+    <optgroup label="Optimization / physics">
+      <option value="ccoplus">CCO+ (optimal arbor)</option>
+      <option value="cco">CCO (simple)</option>
+      <option value="loops">Loops — adaptive (Hu–Cai / Katifori)</option>
+      <option value="dbm">DBM — Laplacian growth</option>
+      <option value="dla">DLA (diffusion-limited)</option>
+    </optgroup>
+    <optgroup label="Anatomy templates">
+      <option value="retina">Retinal arcades</option>
+      <option value="cortical">Cortical (penetrating)</option>
+    </optgroup>
+  </select>
 
   <div class="eyebrow">Backend</div>
   <div class="toggles" id="backends">
@@ -203,15 +227,15 @@
   </div>
 
   <div class="eyebrow">Shading <span style="text-transform:none;letter-spacing:0">(GPU backends)</span></div>
-  <div class="toggles" id="modes">
-    <span class="chip on" data-m="cutaway" title="Cross-section: vessels sliced open lengthwise — walls, lumen and flow, game-ready">Cutaway ✂</span>
-    <span class="chip" data-m="phong" title="Blinn–Phong lit cylinders">Lit tubes</span>
-    <span class="chip" data-m="sss" title="Subsurface-scattering blood: thickness glow + Fresnel">Subsurface</span>
-    <span class="chip" data-m="toon" title="Cel shading: quantized bands + outline">Toon</span>
-    <span class="chip" data-m="anatomy" title="Anatomical illustration: glossy vessels over warm, lit tissue with contact shadows">Anatomy 🩸</span>
-    <span class="chip" data-m="xray" title="Additive angiograph / x-ray glow">X-ray</span>
-    <span class="chip" data-m="outline" title="Contour filter: spline-smoothed vessel outlines only — drawn on Canvas 2D, works on any backend">Outline</span>
-  </div>
+  <select class="sel" id="modeSel" title="Shading style (GPU backends; Cutaway &amp; Outline also render on Canvas 2D)">
+    <option value="cutaway">Cutaway ✂ — sliced open</option>
+    <option value="anatomy">Anatomy 🩸 — illustration</option>
+    <option value="phong">Lit tubes (Blinn–Phong)</option>
+    <option value="sss">Subsurface</option>
+    <option value="toon">Toon</option>
+    <option value="xray">X-ray</option>
+    <option value="outline">Outline (contour)</option>
+  </select>
 
   <div class="eyebrow">Tree shape <span style="text-transform:none;letter-spacing:0">(rebuilds bed)</span></div>
   <label class="sl">Branching density <span class="v" id="densv">100%</span>
@@ -262,7 +286,7 @@
   <div id="zoomout">magnification ×—</div>
 </div>
 
-<div class="ui" id="hb"><span id="hbdot"></span><small><b id="bpmread">72</b> bpm · pulsatile</small></div>
+<div class="ui" id="hb" title="Click for a synced heartbeat sound"><span id="hbdot"></span><small><b id="bpmread">72</b> bpm · pulsatile</small> <span id="hbsnd">🔈</span></div>
 <div class="ui" id="hint">scroll = zoom · drag = pan · double-click = zoom in</div>
 
 <!-- ===================== game mode UI ===================== -->
@@ -320,7 +344,7 @@ let VW=0, VH=0; // viewport in CSS px
 let shadeMode='cutaway';  // 'cutaway' | 'anatomy' | 'phong' | 'sss' | 'toon' | 'xray' (GPU backends) | 'outline' (Canvas 2D contour filter)
 const MODE_UNIFORM={phong:1,sss:2,toon:3,xray:4,cutaway:5,anatomy:6};
 const TYPE_ID={art:0,cap:1,ven:2};
-let genPreset='spacecol'; // 'spacecol' | 'recursive' | 'dla' | 'cco'
+let genPreset='spacecol'; // spacecol|lsystem|recursive|angio|ccoplus|cco|loops|dbm|dla|retina|cortical
 let curSeed=20260625;
 let backend='webgl2';     // 'canvas2d' | 'webgl2' | 'webgpu'
 // tree-shape params (regenerate on change) and live appearance params
@@ -516,6 +540,445 @@ function growCCO(rng, root, P){
   return nodes;
 }
 
+// ============================================================================
+//  CCO+  —  faithful Constrained Constructive Optimization
+//  ----------------------------------------------------------------------------
+//  The classic vascular-growth model (Schreiner & Buxbaum; Karch et al.), the
+//  more complete cousin of the simple `growCCO` above. Terminals are added ONE
+//  AT A TIME into the perfusion domain, each spaced from the others by a
+//  shrinking distance criterion d ∝ √(A_perf / N). A new terminal is not merely
+//  hung off the nearest node — it SPLICES an existing segment, introducing a new
+//  bifurcation whose junction point is moved to the geometrically OPTIMAL spot: a
+//  weighted Steiner point that minimises intravascular volume Σ r²·ℓ, found with
+//  a few Weiszfeld iterations (this reproduces the physiological bifurcation
+//  angles). Among the nearest candidate segments we take the least-cost splice
+//  and REJECT any that would cross an existing vessel. Murray radii then follow
+//  from the downstream terminal counts via assignRadii. The result is a textbook
+//  arterial arbor: correct taper, realistic angles, no self-intersections.
+//  Refs: Schreiner 1993; Karch 1999; iquilezles.org (Steiner/volume min).
+// ============================================================================
+function segCross(a,b,c,d){                 // do open segments ab, cd properly cross?
+  const o=(p,q,r)=>Math.sign((q.x-p.x)*(r.y-p.y)-(q.y-p.y)*(r.x-p.x));
+  return o(a,b,c)!==o(a,b,d) && o(c,d,a)!==o(c,d,b);
+}
+function closestOnSeg(p,a,b){
+  const abx=b.x-a.x, aby=b.y-a.y, dd=abx*abx+aby*aby||1;
+  const t=clamp(((p.x-a.x)*abx+(p.y-a.y)*aby)/dd,0,1);
+  return {x:a.x+abx*t, y:a.y+aby*t};
+}
+function growCCOPlus(rng, root, P){
+  root.children=[]; root.parent=null; root.depth=0; root.term=1;
+  const voids=P.voids||[];
+  const inVoid=(x,y)=>{ for(const v of voids){ if(Math.hypot(x-v.x,y-v.y)<v.r) return true; } return false; };
+  // first terminal, a short way in from the inlet
+  const first={x:clamp(root.x+P.minSeg*4+400*rng(), WORLD.w*P.xLo, WORLD.w*0.5),
+               y:root.y+(rng()-0.5)*260, children:[], parent:root, depth:1, term:1};
+  root.children.push(first);
+  const nodes=[root,first], terminals=[first], segs=[{a:root,b:first}];
+  const tgrid=new Grid(160); tgrid.add(first);
+  const e2=2/P.gamma, dCap=WORLD.w*0.22;
+  let guard=0, maxGuard=P.nTerm*26;
+  while(terminals.length<P.nTerm && guard++<maxGuard){
+    const x=lerp(WORLD.w*P.xLo,WORLD.w*P.xHi,rng()), y=lerp(WORLD.h*P.yLo,WORLD.h*P.yHi,rng());
+    if(inVoid(x,y)) continue;
+    const dThresh=Math.min(dCap, P.dScale*Math.sqrt(P.area/terminals.length));
+    if(tgrid.nearest(x,y,dThresh)) continue;                 // spacing criterion
+    const T={x,y};
+    // score every segment by distance from T, keep the nearest nCon as candidates
+    const scored=[];
+    for(const s of segs){ const cp=closestOnSeg(T,s.a,s.b);
+      scored.push({s, d:Math.hypot(cp.x-T.x,cp.y-T.y)}); }
+    scored.sort((u,v)=>u.d-v.d);
+    const K=Math.min(P.nCon,scored.length), evald=[];
+    for(let i=0;i<K;i++){
+      const s=scored[i].s, p=s.a, c=s.b, nc=c.term||1;
+      const wpb=Math.pow(nc+1,e2), wbc=Math.pow(nc,e2), wbt=1;
+      // optimal junction b = weighted geometric median of {p,c,T} (Weiszfeld)
+      let b=closestOnSeg(T,p,c);
+      for(let it=0; it<6; it++){
+        const dp=Math.max(Math.hypot(b.x-p.x,b.y-p.y),1e-3);
+        const dc=Math.max(Math.hypot(b.x-c.x,b.y-c.y),1e-3);
+        const dt=Math.max(Math.hypot(b.x-T.x,b.y-T.y),1e-3);
+        const kp=wpb/dp, kc=wbc/dc, kt=wbt/dt, ks=kp+kc+kt;
+        b={x:(p.x*kp+c.x*kc+T.x*kt)/ks, y:(p.y*kp+c.y*kc+T.y*kt)/ks};
+      }
+      const lpb=Math.hypot(b.x-p.x,b.y-p.y), lbc=Math.hypot(b.x-c.x,b.y-c.y), lbt=Math.hypot(b.x-T.x,b.y-T.y);
+      if(lpb<P.minSeg||lbc<P.minSeg||lbt<P.minSeg) continue;
+      evald.push({s,p,c,b, cost:wpb*lpb+wbc*lbc+wbt*lbt});
+    }
+    evald.sort((u,v)=>u.cost-v.cost);
+    let chosen=null;
+    for(const cand of evald){                                // accept cheapest crossing-free splice
+      const {p,c,b}=cand; let bad=false;
+      for(const s of segs){
+        if(s===cand.s||s.a===p||s.b===p||s.a===c||s.b===c) continue;
+        if(segCross(p,b,s.a,s.b)||segCross(b,c,s.a,s.b)||segCross(b,T,s.a,s.b)){ bad=true; break; }
+      }
+      if(!bad){ chosen=cand; break; }
+    }
+    if(!chosen) continue;
+    // commit: p -> bn -> {c, t}
+    const {p,c,b}=chosen;
+    const bn={x:b.x,y:b.y,children:[],parent:p,depth:p.depth+1,term:(c.term||1)+1};
+    const t ={x:T.x,y:T.y,children:[],parent:bn,depth:bn.depth+1,term:1};
+    const idx=p.children.indexOf(c); if(idx>=0) p.children.splice(idx,1);
+    p.children.push(bn); bn.children.push(c,t); c.parent=bn;
+    chosen.s.a=p; chosen.s.b=bn; segs.push({a:bn,b:c},{a:bn,b:t});
+    nodes.push(bn,t); terminals.push(t); tgrid.add(t);
+    for(let a=p; a; a=a.parent) a.term=(a.term||1)+1;         // one more terminal downstream of every ancestor
+  }
+  return nodes;
+}
+
+// ============================================================================
+//  ANGIOGENESIS  —  demand-field (VEGF-style) sprouting
+//  ----------------------------------------------------------------------------
+//  The mechanism real vessels actually grow by, and it self-regulates its own
+//  density. A coarse grid holds a scalar DEMAND field (1 = starved tissue, 0 =
+//  perfused). Vessel TIPS migrate up the demand gradient (chemotaxis toward the
+//  hungriest nearby tissue), branch stochastically, and stop when the tissue
+//  around them is already served. Every node a tip lays down SUPPLIES the tissue
+//  in a radius around it, driving demand there toward 0 — so growth steers itself
+//  into the gaps and thins out where the bed is already fed. The outcome is
+//  organic, uniform perfusion: dense where tissue was under-served, sparse next
+//  to a trunk — unlike fixed-attractor space colonisation. Stays a tree (a tip
+//  that reaches served tissue simply terminates), so radii / capillaries / flow
+//  all work unchanged. Refs: Anderson–Chaplain angiogenesis; snake/tip models.
+// ============================================================================
+function growAngio(rng, root, P){
+  root.children=[]; root.parent=null; root.depth=0;
+  const gs=P.gs, cols=Math.ceil(WORLD.w/gs)+1, rows=Math.ceil(WORLD.h/gs)+1;
+  const D=new Float32Array(cols*rows); D.fill(1);              // demand field
+  const ci=(x)=>clamp(Math.floor(x/gs),0,cols-1), cj=(y)=>clamp(Math.floor(y/gs),0,rows-1);
+  // domain box + voids start with zero demand (vessels won't chase them)
+  for(let j=0;j<rows;j++) for(let i=0;i<cols;i++){ const x=i*gs, y=j*gs;
+    if(x<WORLD.w*P.xLo||x>WORLD.w*P.xHi||y<WORLD.h*P.yLo||y>WORLD.h*P.yHi){ D[j*cols+i]=0; continue; }
+    for(const v of (P.voids||[])){ if(Math.hypot(x-v.x,y-v.y)<v.r){ D[j*cols+i]=0; break; } }
+  }
+  const Rsup=P.Rsup, rc=Math.ceil(Rsup/gs);
+  const supply=(x,y)=>{ const i0=ci(x),j0=cj(y);
+    for(let dj=-rc;dj<=rc;dj++) for(let di=-rc;di<=rc;di++){ const i=i0+di,j=j0+dj;
+      if(i<0||j<0||i>=cols||j>=rows) continue;
+      const dx=i*gs-x, dy=j*gs-y, d2=dx*dx+dy*dy; if(d2>Rsup*Rsup) continue;
+      const f=1-Math.sqrt(d2)/Rsup; D[j*cols+i]*=(1-0.92*f); } };
+  const Rsen=P.Rsen, rs=Math.ceil(Rsen/gs);
+  const sense=(x,y)=>{ const i0=ci(x),j0=cj(y); let sx=0,sy=0,tot=0;
+    for(let dj=-rs;dj<=rs;dj++) for(let di=-rs;di<=rs;di++){ const i=i0+di,j=j0+dj;
+      if(i<0||j<0||i>=cols||j>=rows) continue;
+      const dx=i*gs-x, dy=j*gs-y, d=Math.hypot(dx,dy); if(d<1e-3||d>Rsen) continue;
+      const w=D[j*cols+i]; sx+=dx/d*w/d; sy+=dy/d*w/d; tot+=w; } return {sx,sy,tot}; };
+
+  const nodes=[root];
+  // the feeding trunk runs in from the inlet to a HUB inside the tissue, then the
+  // bed radiates out from there — the way an organ fills from its hilum
+  const first={x:clamp((P.hubX!=null?P.hubX:0.38)*WORLD.w, WORLD.w*P.xLo, WORLD.w*0.94),
+               y:root.y, children:[], parent:root, depth:1};
+  root.children.push(first); nodes.push(first); supply(first.x,first.y);
+  const tips=[], fanStep=(P.fan||2.4)/Math.max(P.seeds-1,1), fanBias=P.fanBias||0;
+  for(let s=0;s<P.seeds;s++){ const ang=fanBias+(s-(P.seeds-1)/2)*fanStep + (rng()-0.5)*0.2;
+    tips.push({node:first, dx:Math.cos(ang), dy:Math.sin(ang), since:0}); }
+
+  let iter=0;
+  while(tips.length && nodes.length<P.maxNodes && iter++<P.maxIter){
+    const next=[];
+    for(const tip of tips){
+      const n0=tip.node, s=sense(n0.x,n0.y);
+      if(s.tot<P.demandEps) continue;                          // served → tip terminates
+      let dx=s.sx, dy=s.sy; const sl=Math.hypot(dx,dy)||1; dx/=sl; dy/=sl;
+      dx=dx*P.chemo + tip.dx*P.persist + (rng()-0.5)*P.jitter;
+      dy=dy*P.chemo + tip.dy*P.persist + (rng()-0.5)*P.jitter;
+      const L=Math.hypot(dx,dy)||1; dx/=L; dy/=L;
+      const nx=n0.x+dx*P.seg, ny=n0.y+dy*P.seg;
+      if(nx<WORLD.w*P.xLo||nx>WORLD.w*P.xHi||ny<WORLD.h*P.yLo||ny>WORLD.h*P.yHi) continue;  // boundary → stop
+      const nn={x:nx,y:ny,children:[],parent:n0,depth:n0.depth+1};
+      n0.children.push(nn); nodes.push(nn); supply(nx,ny);
+      tip.node=nn; tip.dx=dx; tip.dy=dy; tip.since++; next.push(tip);
+      if(tip.since>=P.branchMin && rng()<P.branchProb && nodes.length<P.maxNodes){
+        tip.since=0;
+        const a=Math.atan2(dy,dx)+(rng()<0.5?1:-1)*(0.4+rng()*0.5);
+        next.push({node:nn, dx:Math.cos(a), dy:Math.sin(a), since:0});
+      }
+    }
+    tips.length=0; for(const t of next) tips.push(t);
+  }
+  return nodes;
+}
+
+// ============================================================================
+//  ADAPTIVE FLOW NETWORK WITH LOOPS  (Hu–Cai / Ronellenfitsch–Katifori)
+//  ----------------------------------------------------------------------------
+//  The one generator that isn't a tree. A dense mesh graph (a jittered triangular
+//  lattice) is treated as a network of resistive tubes: one inlet SOURCE feeds
+//  every node (tissue demand). We solve the flow — the graph-Laplacian analogue
+//  of Kirchhoff's laws, `L(κ)·p = q`, by conjugate gradient — then ADAPT each
+//  tube's conductance κ toward the optimum `κ ∝ ⟨Q²⟩^{1/(1+γ)}` under a cost
+//  budget, and repeat. The trick that keeps loops instead of collapsing to a
+//  tree is FLUCTUATING loads: averaging Q² over many random demand patterns makes
+//  redundant, resilient loops worth their cost (Corson 2010; Katifori 2010). The
+//  result is a hierarchical, *looped* network — thick channels feeding a fine
+//  reticular mesh — coloured by the flow potential and oriented along it, so the
+//  existing merge / z-order / flow stages all still work on the general graph.
+//  Refs: Hu & Cai (2013); Ronellenfitsch & Katifori (2016); Corson (2010).
+// ============================================================================
+// Conjugate-gradient solve of the (singular, consistent) graph Laplacian
+// L·p = q, matrix-free over the edge list. q must sum to ~0; gauge fixed by
+// keeping the residual and solution mean-zero (L's null space is the constants).
+function solveCG(N, ei, ej, g, q, iters){
+  const E=ei.length;
+  const p=new Float64Array(N), r=new Float64Array(N), Ap=new Float64Array(N), pd=new Float64Array(N);
+  const apply=(x,out)=>{ out.fill(0);
+    for(let e=0;e<E;e++){ const i=ei[e], j=ej[e], d=g[e]*(x[i]-x[j]); out[i]+=d; out[j]-=d; } };
+  let mean=0; for(let i=0;i<N;i++) mean+=q[i]; mean/=N;
+  for(let i=0;i<N;i++){ r[i]=q[i]-mean; pd[i]=r[i]; }
+  let rs=0; for(let i=0;i<N;i++) rs+=r[i]*r[i];
+  const tol=rs*1e-8+1e-12;
+  for(let it=0; it<iters && rs>tol; it++){
+    apply(pd,Ap); let pAp=0; for(let i=0;i<N;i++) pAp+=pd[i]*Ap[i];
+    if(pAp<=1e-20) break; const al=rs/pAp;
+    for(let i=0;i<N;i++){ p[i]+=al*pd[i]; r[i]-=al*Ap[i]; }
+    let rs2=0; for(let i=0;i<N;i++) rs2+=r[i]*r[i]; const be=rs2/rs; rs=rs2;
+    for(let i=0;i<N;i++) pd[i]=r[i]+be*pd[i];
+  }
+  let pm=0; for(let i=0;i<N;i++) pm+=p[i]; pm/=N; for(let i=0;i<N;i++) p[i]-=pm;
+  return p;
+}
+function buildLoops(rng, addNode, mkEdge, P){
+  const xLo=WORLD.w*P.xLo, xHi=WORLD.w*P.xHi, yLo=WORLD.h*P.yLo, yHi=WORLD.h*P.yHi, sp=P.spacing;
+  // --- jittered triangular lattice of nodes (index 0 = the inlet source) ---
+  const pos=[{x:xLo, y:WORLD.h*0.5}];
+  for(let y=yLo, r=0; y<=yHi; y+=sp*0.866, r++){ const off=(r&1)*sp*0.5;
+    for(let x=xLo+off; x<=xHi; x+=sp){
+      let bad=false; for(const v of (P.voids||[])) if(Math.hypot(x-v.x,y-v.y)<v.r){ bad=true; break; }
+      if(bad) continue;
+      pos.push({x:x+(rng()-0.5)*sp*0.30, y:y+(rng()-0.5)*sp*0.30}); } }
+  const N=pos.length;
+  // --- lattice edges: neighbours within ~1.42·spacing (hash grid) ---
+  const cs=sp, grid=new Map();
+  for(let i=0;i<N;i++){ const k=((pos[i].x/cs)|0)+','+((pos[i].y/cs)|0);
+    let a=grid.get(k); if(!a){ a=[]; grid.set(k,a); } a.push(i); }
+  const ei=[], ej=[], elen=[], R2=(1.42*sp)*(1.42*sp);
+  for(let i=0;i<N;i++){ const cx=(pos[i].x/cs)|0, cy=(pos[i].y/cs)|0;
+    for(let gy=cy-1;gy<=cy+1;gy++) for(let gx=cx-1;gx<=cx+1;gx++){
+      const a=grid.get(gx+','+gy); if(!a) continue;
+      for(const j of a){ if(j<=i) continue;
+        const dx=pos[i].x-pos[j].x, dy=pos[i].y-pos[j].y, d2=dx*dx+dy*dy;
+        if(d2>R2) continue; ei.push(i); ej.push(j); elen.push(Math.sqrt(d2)); } } }
+  const E=ei.length;
+  // --- adapt conductances with fluctuating demand (this is what keeps loops) ---
+  const kappa=new Float64Array(E); for(let e=0;e<E;e++) kappa[e]=0.5+rng();
+  const g=new Float64Array(E), q=new Float64Array(N), gammaC=P.gammaC, relax=P.relax;
+  for(let it=0; it<P.T; it++){
+    for(let e=0;e<E;e++) g[e]=kappa[e]/elen[e];
+    const Q2=new Float64Array(E);
+    for(let m=0;m<P.M;m++){
+      // fluctuating load: all the supply drains to ONE random node this scenario.
+      // Averaging Q² over many such loads is what makes redundant loops worth
+      // their cost — a single steady load would collapse to a tree.
+      q.fill(0); const k=1+((rng()*(N-1))|0); q[k]=-1; q[0]=1;
+      const p=solveCG(N, ei, ej, g, q, 220);
+      for(let e=0;e<E;e++){ const d=g[e]*(p[ei[e]]-p[ej[e]]); Q2[e]+=d*d; }
+    }
+    // gradual relaxation toward the fixed point κ ∝ ⟨Q²⟩^{1/(1+γ)} — a full
+    // replacement each step would over-commit and prune the loops away
+    let mx=0;
+    for(let e=0;e<E;e++){ const tgt=Math.pow(Q2[e]/P.M+1e-15, 1/(1+gammaC));
+      kappa[e]=(1-relax)*kappa[e]+relax*tgt; if(kappa[e]>mx) mx=kappa[e]; }
+    if(mx>0) for(let e=0;e<E;e++) kappa[e]/=mx;      // normalise (keep the hierarchy)
+  }
+  // --- final steady potentials (uniform demand) → orientation + colour ---
+  for(let e=0;e<E;e++) g[e]=kappa[e]/elen[e];
+  { let s=0; for(let i=1;i<N;i++){ q[i]=-1; s++; } q[0]=s; }
+  const pot=solveCG(N, ei, ej, g, q, 400);
+  let pmin=Infinity,pmax=-Infinity; for(let i=0;i<N;i++){ if(pot[i]<pmin)pmin=pot[i]; if(pot[i]>pmax)pmax=pot[i]; }
+  const pn=(i)=>(pot[i]-pmin)/((pmax-pmin)||1);
+  // --- radius from conductance; prune the weakest tubes to expose the hierarchy.
+  // κ is normalised to a max of 1, so r = rMax·κ^p spans a wide range: a small
+  // exponent p keeps the fine mesh thin while the flow-bearing channels stay fat.
+  const rMax=ART_TIP*6.0;
+  const radOf=(e)=>Math.min(rMax, Math.max(CAP_R, rMax*Math.pow(kappa[e], 0.38)));
+  // prune only the truly negligible tubes (by conductance) so the fine looped mesh
+  // survives — the width hierarchy, not pruning, is what exposes the channels
+  const keep=new Uint8Array(E); for(let e=0;e<E;e++) keep[e]= kappa[e]>8e-4 ?1:0;
+  // --- keep only the connected component that contains the source ---
+  const adj=Array.from({length:N},()=>[]);
+  for(let e=0;e<E;e++) if(keep[e]){ adj[ei[e]].push(e); adj[ej[e]].push(e); }
+  const inComp=new Uint8Array(N), stack=[0]; inComp[0]=1;
+  while(stack.length){ const i=stack.pop(); for(const e of adj[i]){ const o=ei[e]===i?ej[e]:ei[e]; if(!inComp[o]){ inComp[o]=1; stack.push(o); } } }
+  // node radius = widest incident kept tube
+  const nodeR=new Float64Array(N).fill(CAP_R);
+  for(let e=0;e<E;e++){ if(!keep[e]||!inComp[ei[e]]) continue; const v=radOf(e);
+    if(v>nodeR[ei[e]]) nodeR[ei[e]]=v; if(v>nodeR[ej[e]]) nodeR[ej[e]]=v; }
+  // --- materialise nodes + oriented edges into the app graph ---
+  const nodeObj=new Array(N).fill(null);
+  const ensure=(i)=>{ if(nodeObj[i]) return nodeObj[i];
+    const n={x:pos[i].x,y:pos[i].y,children:[],parent:null,radius:nodeR[i]}; addNode(n); nodeObj[i]=n; return n; };
+  for(let e=0;e<E;e++){
+    if(!keep[e]||!inComp[ei[e]]||!inComp[ej[e]]) continue;
+    let i=ei[e], j=ej[e]; if(pot[i]<pot[j]){ const t=i; i=j; j=t; }   // orient a→b downstream
+    const a=ensure(i), b=ensure(j);
+    const ed=mkEdge(a,b,'art','vessel'); ed.radius=(nodeR[i]+nodeR[j])*0.5;
+    ed.oxyFixed=true; ed.oxyA=pn(i); ed.oxyB=pn(j);                   // colour by flow potential
+  }
+  const source=ensure(0);
+  let far=0, fp=Infinity; for(let i=0;i<N;i++){ if(inComp[i]&&nodeObj[i]&&pot[i]<fp){ fp=pot[i]; far=i; } }
+  return { source, sink: nodeObj[far]||source };
+}
+
+const _inWorld=(x,y)=> x>-40 && y>-40 && x<WORLD.w+40 && y<WORLD.h+40;
+
+// ============================================================================
+//  L-SYSTEM  (parametric, with tropism) — a proper upgrade of "recursive"
+//  ----------------------------------------------------------------------------
+//  A stochastic branching grammar: each internode is a few curving sub-segments
+//  bent toward a tropism direction, then splits ASYMMETRICALLY — a dominant child
+//  that keeps the heading at a shallow angle and a long length, and minor children
+//  at wider angles and shorter lengths. That asymmetry (rather than the even fork
+//  of the recursive generator) is what gives real, botanically-organic arbors.
+// ============================================================================
+function growLSystem(rng, root, baseAng, P){
+  root.children=[]; root.parent=null; root.depth=0; const nodes=[root];
+  (function grow(node, ang, len, depth){
+    if(depth>P.maxDepth || len<P.minLen || nodes.length>P.maxNodes) return;
+    let cur=node, a=ang; const subs=2;
+    for(let i=0;i<subs;i++){
+      a += Math.sin(P.tropAng-a)*P.tropStr + (rng()-0.5)*0.30*P.curl;   // tropism + wander
+      const nx=cur.x+Math.cos(a)*len/subs, ny=cur.y+Math.sin(a)*len/subs;
+      if(!_inWorld(nx,ny)) return;
+      const c={x:nx,y:ny,children:[],parent:cur,depth}; cur.children.push(c); nodes.push(c); cur=c;
+    }
+    const n = rng()<P.triProb?3:2;
+    for(let k=0;k<n;k++){
+      const major=k===0;
+      const off=(k-(n-1)/2)*P.spread*(major?0.5:1.25) + (rng()-0.5)*0.16;
+      grow(cur, a+off, len*(major?P.decayM:P.decaym)*(0.85+rng()*0.3), depth+1);
+    }
+  })(root, baseAng, P.len0, 1);
+  return nodes;
+}
+
+// ============================================================================
+//  RETINAL ARCADES — the iconic fundus pattern
+//  ----------------------------------------------------------------------------
+//  Vessels leave an optic disc, sweep superiorly and inferiorly in great arcs
+//  that bow AROUND a central macular exclusion zone, and shed dichotomous twigs
+//  toward the periphery. Each arcade is a growth walk steered tangentially around
+//  the macula while drifting outward; twigs branch off at intervals.
+// ============================================================================
+function growRetina(rng, root, P){
+  root.children=[]; root.parent=null; root.depth=0; const nodes=[root];
+  const disc={x:WORLD.w*0.14, y:clamp(root.y,WORLD.h*0.36,WORLD.h*0.64)}, mac={x:WORLD.w*0.52, y:WORLD.h*0.5, r:WORLD.h*0.20};
+  const hub={x:disc.x,y:disc.y,children:[],parent:root,depth:1}; root.children.push(hub); nodes.push(hub);
+  function twig(node, ang, len, depth){
+    if(depth>P.twigDepth || len<P.minLen || nodes.length>P.maxNodes) return;
+    let cur=node, a=ang;
+    for(let i=0;i<2;i++){ a+=(rng()-0.5)*0.45*P.curl;
+      const nx=cur.x+Math.cos(a)*len/2, ny=cur.y+Math.sin(a)*len/2; if(!_inWorld(nx,ny)) return;
+      const c={x:nx,y:ny,children:[],parent:cur,depth}; cur.children.push(c); nodes.push(c); cur=c; }
+    const n=rng()<0.55?2:1;
+    for(let k=0;k<n;k++) twig(cur, a+(k-(n-1)/2)*0.75+(rng()-0.5)*0.3, len*0.72*(0.8+rng()*0.4), depth+1);
+  }
+  function arcade(sign){                       // sign −1 = superior, +1 = inferior
+    let cur=hub, a=sign*0.85+(rng()-0.5)*0.2, len=P.arcSeg;
+    for(let s=0; s<P.arcLen && nodes.length<P.maxNodes; s++){
+      // head toward the temporal periphery (rightward) with a vertical bias, and
+      // bow AROUND the macula when close so the arcade sweeps over / under it
+      let hx=1.0, hy=sign*0.42;
+      const dx=cur.x-mac.x, dy=cur.y-mac.y, dm=Math.hypot(dx,dy)||1;
+      if(dm<mac.r*2.2){ const f=(mac.r*2.2-dm)/(mac.r*2.2); hx+=(dx/dm)*f*1.6; hy+=(dy/dm)*f*1.9; }
+      a += Math.sin(Math.atan2(hy,hx)-a)*0.30 + (rng()-0.5)*0.11;
+      const nx=cur.x+Math.cos(a)*len, ny=cur.y+Math.sin(a)*len;
+      if(!_inWorld(nx,ny)) break;
+      const c={x:nx,y:ny,children:[],parent:cur,depth:cur.depth+1}; cur.children.push(c); nodes.push(c); cur=c;
+      if(s%P.twigEvery===P.twigEvery-1) twig(cur, a+sign*(0.9+rng()*0.5), len*1.5, 1);   // toward periphery
+      if(s%(P.twigEvery*2)===1) twig(cur, a-sign*(1.0+rng()*0.4), len*1.1, 1);           // inner field
+    }
+  }
+  arcade(-1); arcade(-1); arcade(1); arcade(1);
+  return nodes;
+}
+
+// ============================================================================
+//  CORTICAL — a surface (pial) network with penetrating vessels
+//  ----------------------------------------------------------------------------
+//  A pial trunk runs along the surface; at intervals a penetrating vessel dives
+//  perpendicularly into the tissue and branches as it descends — the columnar
+//  supply of cortex.
+// ============================================================================
+function growCortical(rng, root, P){
+  root.children=[]; root.parent=null; root.depth=0; const nodes=[root];
+  const surfY=WORLD.h*0.09;
+  function penetrate(node){
+    (function dive(nd, ang, ln, dp){
+      if(dp>P.penDepth || ln<P.minLen || nodes.length>P.maxNodes) return;
+      let cc=nd, a=ang;
+      for(let i=0;i<2;i++){ a+=(rng()-0.5)*0.30*P.curl;
+        const nx=cc.x+Math.cos(a)*ln/2, ny=cc.y+Math.sin(a)*ln/2;
+        if(!_inWorld(nx,ny) || ny>WORLD.h*0.97) return;
+        const n2={x:nx,y:ny,children:[],parent:cc,depth:dp}; cc.children.push(n2); nodes.push(n2); cc=n2; }
+      const nb = rng()<P.branchProb?2:1;
+      for(let k=0;k<nb;k++) dive(cc, a+(k-(nb-1)/2)*0.62+(rng()-0.5)*0.25, ln*(P.penDecay||0.80)*(0.85+rng()*0.3), dp+1);
+    })(node, Math.PI/2 + (rng()-0.5)*0.35, P.penSeg, 1);
+  }
+  let cur={x:WORLD.w*0.05, y:surfY, children:[], parent:root, depth:1}; root.children.push(cur); nodes.push(cur);
+  let x=cur.x;
+  while(x<WORLD.w*0.97 && nodes.length<P.maxNodes){
+    x += P.pialStep*(0.8+rng()*0.4);
+    const n={x, y:surfY+(rng()-0.5)*P.pialStep*0.4, children:[], parent:cur, depth:cur.depth+1};
+    cur.children.push(n); nodes.push(n); cur=n;
+    if(rng()<P.penProb) penetrate(n);
+  }
+  return nodes;
+}
+
+// ============================================================================
+//  DBM — dielectric-breakdown / Laplacian growth
+//  ----------------------------------------------------------------------------
+//  The controllable, physically-grounded cousin of DLA. A "voltage" field φ is
+//  held at 1 on the domain frame and 0 on the growing cluster, and relaxed to be
+//  harmonic (∇²φ=0) in between. New growth attaches to a surface cell with
+//  probability ∝ |φ|^η at that cell — so tips race into open field and interiors
+//  are screened, producing ramified, frost/lightning-like branching. η tunes it
+//  from compact (η→0) to feathery (η large); η≈1 is the classic look.
+// ============================================================================
+function growDBM(rng, root, P){
+  root.children=[]; root.parent=null; root.depth=0; const nodes=[root];
+  const gs=P.gs, cols=Math.ceil(WORLD.w/gs)+1, rows=Math.ceil(WORLD.h/gs)+1, NC=cols*rows;
+  const occ=new Uint8Array(NC), fixed=new Uint8Array(NC), phi=new Float32Array(NC);
+  const nodeAt=new Int32Array(NC); nodeAt.fill(-1);
+  const at=(i,j)=>j*cols+i;
+  for(let i=0;i<cols;i++){ phi[at(i,0)]=1; fixed[at(i,0)]=1; phi[at(i,rows-1)]=1; fixed[at(i,rows-1)]=1; }
+  for(let j=0;j<rows;j++){ phi[at(0,j)]=1; fixed[at(0,j)]=1; phi[at(cols-1,j)]=1; fixed[at(cols-1,j)]=1; }
+  for(let k=0;k<NC;k++) if(!fixed[k]) phi[k]=1;
+  const relax=(sw)=>{ for(let s=0;s<sw;s++) for(let j=1;j<rows-1;j++) for(let i=1;i<cols-1;i++){
+    const k=at(i,j); if(fixed[k]) continue; phi[k]=0.25*(phi[k-1]+phi[k+1]+phi[k-cols]+phi[k+cols]); } };
+  const si=clamp(Math.round(WORLD.w*0.12/gs),2,cols-3), sj=clamp(Math.round(root.y/gs),2,rows-3);
+  const seed={x:si*gs, y:sj*gs, children:[], parent:root, depth:1}; root.children.push(seed); nodes.push(seed);
+  occ[at(si,sj)]=1; phi[at(si,sj)]=0; fixed[at(si,sj)]=1; nodeAt[at(si,sj)]=1;
+  relax(P.sweeps0);
+  const surf=new Set();
+  const addSurf=(i,j)=>{ if(i<1||j<1||i>=cols-1||j>=rows-1) return; const k=at(i,j); if(!occ[k]&&!fixed[k]) surf.add(k); };
+  const NB8=[[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[1,-1],[-1,1],[1,1]];   // 8-connectivity → organic, not Manhattan
+  const surfAround=(i,j)=>{ for(const nb of NB8) addSurf(i+nb[0],j+nb[1]); };
+  surfAround(si,sj);
+  const eta=P.eta; let since=0;
+  while(nodes.length<P.maxNodes && surf.size){
+    let tot=0; const arr=[];
+    for(const k of surf){ if(occ[k]){ continue; } const w=Math.pow(Math.max(phi[k],0),eta)+1e-6; arr.push(k); arr.push(w); tot+=w; }
+    if(!arr.length) break;
+    let r=rng()*tot, pick=arr[0];
+    for(let a=0;a<arr.length;a+=2){ r-=arr[a+1]; if(r<=0){ pick=arr[a]; break; } }
+    const i=pick%cols, j=(pick/cols)|0;
+    let pk=-1; for(const nb of NB8){ const nk=at(i+nb[0],j+nb[1]); if(occ[nk]){ pk=nk; break; } }
+    const par = pk>=0 ? nodes[nodeAt[pk]] : seed;
+    const nn={x:i*gs+(rng()-0.5)*gs*0.35, y:j*gs+(rng()-0.5)*gs*0.35, children:[], parent:par, depth:par.depth+1};
+    par.children.push(nn); nodes.push(nn);
+    occ[pick]=1; phi[pick]=0; fixed[pick]=1; nodeAt[pick]=nodes.length-1; surf.delete(pick);
+    surfAround(i,j);
+    if(++since>=P.reSolve){ since=0; relax(P.sweeps); }
+  }
+  return nodes;
+}
+
 // Murray's law: assign radii bottom-up. Leaves get tipR, parents thicken.
 function assignRadii(root, tipR, exp){
   (function rec(n){
@@ -628,18 +1091,47 @@ function buildNetwork(seed, preset){
       growDLA(rng, root, {stick:44,step:23*len,steps:130,spawn:125,kill:400,maxNodes:Math.round(820*dens)});
     else if(preset==='cco')
       growCCO(rng, root, {maxConn:6000,minDist:82/Math.sqrt(dens),maxStep:200*len,maxNodes:Math.round(1150*dens)});
+    else if(preset==='ccoplus')
+      growCCOPlus(rng, root, {nTerm:Math.round(560*dens), nCon:14, dScale:0.72, minSeg:40*len,
+                              area:WORLD.w*WORLD.h*0.78, gamma:D.murray, voids,
+                              xLo:0.13, xHi:0.99, yLo:0.05, yHi:0.95});
+    else if(preset==='angio')
+      growAngio(rng, root, {gs:82, seg:82*len, Rsup:215, Rsen:380, seeds:9, fan:5.3, hubX:0.40,
+                            persist:0.70, chemo:1.05, jitter:0.55*curl, branchMin:3, branchProb:0.19,
+                            demandEps:0.5, maxNodes:Math.round(3200*dens), maxIter:11000, voids,
+                            xLo:0.04, xHi:0.99, yLo:0.05, yHi:0.95});
+    else if(preset==='lsystem')
+      growLSystem(rng, root, baseAng, {maxDepth:13, minLen:50*len, len0:1350*len, decayM:0.80, decaym:0.62,
+                            spread:0.66, triProb:0.18*dens, curl, tropAng:baseAng, tropStr:0.16,
+                            maxNodes:Math.round(5200*dens)});
+    else if(preset==='retina')
+      growRetina(rng, root, {arcSeg:150*len, arcLen:Math.round(60*Math.sqrt(dens)), twigEvery:3, twigDepth:7,
+                            minLen:34*len, curl, maxNodes:Math.round(1700*dens)});
+    else if(preset==='cortical')
+      growCortical(rng, root, {pialStep:150*len, penSeg:360*len, penDepth:13, penDecay:0.86, branchProb:0.30*dens,
+                            penProb:0.55, minLen:34*len, curl, maxNodes:Math.round(3400*dens)});
+    else if(preset==='dbm')
+      growDBM(rng, root, {gs:Math.max(95,150/Math.sqrt(dens)), eta:1.0, sweeps0:240, sweeps:26, reSolve:6,
+                            maxNodes:Math.round(1150*dens)});
     else
       growTree(rng, root, cloud(Math.round(900*dens),voids), {influence:950,kill:150/Math.sqrt(dens),seg:70*len,maxIter:700,curl,maxNodes:Math.round(1400*dens)});
   };
 
+  let aRoot, vRoot, artLeaves=[], venLeaves=[], capBeds=0;
+  if(preset==='loops'){
+    const L=buildLoops(rng, addNode, mkEdge, {
+      spacing:Math.max(235, 380/Math.sqrt(dens)), T:18, M:22, gammaC:0.85, relax:0.4, voids:voidsA,
+      xLo:0.05, xHi:0.97, yLo:0.07, yHi:0.93});
+    aRoot=L.source; vRoot=L.sink;
+  } else {
   // ---- arterial tree (flows root -> leaves) ----
-  const aRoot={x:-10,y:WORLD.h*0.40};
+  aRoot={x:-10,y:WORLD.h*0.40};
   grow(aRoot, voidsA, 0.12);
   resampleTree(aRoot, VESS_SPACING/Math.sqrt(dens));  // spline-smooth the raw skeleton
   assignRadii(aRoot,ART_TIP,D.murray);
 
   // ---- venous tree (structurally root->leaves; blood flows leaves->root) ----
-  const vRoot={x:-10,y:WORLD.h*0.60};
+  vRoot={x:-10,y:WORLD.h*0.60};
   grow(vRoot, voidsV, -0.10);
   resampleTree(vRoot, VESS_SPACING/Math.sqrt(dens));
   assignRadii(vRoot,VEN_TIP,D.murray);
@@ -665,8 +1157,8 @@ function buildNetwork(seed, preset){
   function isArt(){return false;}
   const artSet=new Set(); (function mark(n){artSet.add(n);n.children.forEach(mark);})(aRoot);
   const venSet=new Set(); (function mark(n){venSet.add(n);n.children.forEach(mark);})(vRoot);
-  const artLeaves=[...artSet].filter(n=>n.children.length===0);
-  const venLeaves=[...venSet].filter(n=>n.children.length===0);
+  artLeaves=[...artSet].filter(n=>n.children.length===0);
+  venLeaves=[...venSet].filter(n=>n.children.length===0);
 
   // nearest venular tip for each arteriolar tip (linear scan — leaf counts are modest)
   const nearestLeaf=(x,y,arr)=>{ let best=null,bd=Infinity;
@@ -674,7 +1166,7 @@ function buildNetwork(seed, preset){
 
   // ---- CAPILLARY TRANSITION: arteriole tip -> true capillary -> venule tip ----
   // radius eases A_tip -> CAP_R -> V_tip; blood deoxygenates 0..1 along the run.
-  let capBeds=0;
+  capBeds=0;
   for(const aL of artLeaves){
     const vL = nearestLeaf(aL.x,aL.y, venLeaves);
     if(!vL) continue;
@@ -710,9 +1202,11 @@ function buildNetwork(seed, preset){
     e.layer=1;
     capBeds++;
   }
+  } // end non-loops tree construction
 
   // mark oxygenation on vessel edges (arteries oxy~1, veins ~0)
   for(const e of edges){
+    if(e.oxyFixed) continue;                 // loops network carries its own gradient
     if(e.type==='art'){ e.oxyA=1; e.oxyB=1; }
     else if(e.type==='ven'){ e.oxyA=0; e.oxyB=0; }
   }
@@ -1356,6 +1850,57 @@ function heart(t){ // synthetic pulse: systolic spike + dicrotic notch, range ~0
   return v;
 }
 
+// ============================================================================
+//  HEARTBEAT SOUND  —  synthesized "lub-dub" (WebAudio), locked to the pulse
+//  ----------------------------------------------------------------------------
+//  S1 ("lub") and S2 ("dub") are short low thumps: a pitch-dropping sine for the
+//  soft body plus a band-passed noise burst for the valve click. They are
+//  scheduled on the audio clock at the two phases the pulse curve peaks (0.12 &
+//  0.34), so the sound stays exactly in step with the animation and the BPM
+//  slider. Click the heartbeat readout to toggle it (audio may only start from a
+//  user gesture). Nothing is created until then — silent by default.
+// ============================================================================
+let audioCtx=null, master=null, noiseBuf=null, soundOn=false, _beatPhase=1;
+function initAudio(){
+  try{
+    if(!audioCtx){
+      audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+      master=audioCtx.createGain(); master.gain.value=0.9; master.connect(audioCtx.destination);
+      noiseBuf=audioCtx.createBuffer(1, (audioCtx.sampleRate*0.4)|0, audioCtx.sampleRate);
+      const d=noiseBuf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+    }
+    if(audioCtx.state==='suspended') audioCtx.resume().catch(()=>{});
+    return true;
+  }catch(_){ audioCtx=null; return false; }
+}
+function thump(at, freq, gain, dur){
+  const c=audioCtx;
+  const o=c.createOscillator(); o.type='sine';
+  o.frequency.setValueAtTime(freq*1.7, at);
+  o.frequency.exponentialRampToValueAtTime(freq*0.6, at+dur);
+  const g=c.createGain();
+  g.gain.setValueAtTime(1e-4, at);
+  g.gain.exponentialRampToValueAtTime(gain, at+0.010);   // fast attack
+  g.gain.exponentialRampToValueAtTime(1e-4, at+dur);     // exponential thud
+  o.connect(g).connect(master); o.start(at); o.stop(at+dur+0.03);
+  const n=c.createBufferSource(); n.buffer=noiseBuf;
+  const bp=c.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=freq*2.4; bp.Q.value=0.8;
+  const ng=c.createGain();
+  ng.gain.setValueAtTime(gain*0.5, at);
+  ng.gain.exponentialRampToValueAtTime(1e-4, at+0.045);  // brief valve click
+  n.connect(bp).connect(ng).connect(master); n.start(at); n.stop(at+0.06);
+}
+function heartbeatAudio(){
+  if(!soundOn||!audioCtx||paused){ _beatPhase=(simTime/(60/bpm))%1; return; }
+  const T=60/bpm, p=(simTime/T)%1;
+  if(p<_beatPhase){                                       // a new cardiac cycle began this frame
+    const now=audioCtx.currentTime;
+    thump(now+Math.max(0,0.12-p)*T, 44, 0.85, 0.15);     // S1 "lub" — lower, louder
+    thump(now+Math.max(0,0.34-p)*T, 62, 0.50, 0.11);     // S2 "dub" — higher, softer
+  }
+  _beatPhase=p;
+}
+
 let _canvasReady=false;
 function frame(now){
   let dt=(now-lastT)/1000; lastT=now; if(dt>0.05) dt=0.05;
@@ -1406,10 +1951,11 @@ function frame(now){
   drawFX();
   updateHUD();
   drawScaleBar();
-  // heartbeat indicator
+  // heartbeat indicator + synced sound
   const dot=document.getElementById('hbdot');
   const s=0.7+pulse*0.9; dot.style.transform=`scale(${s})`;
   dot.style.opacity=0.55+pulse*0.45;
+  heartbeatAudio();
 
   requestAnimationFrame(frame);
 }
@@ -1628,6 +2174,11 @@ document.getElementById('zout').onclick=()=>zoomAt(VW/2,VH/2,1/1.5);
 document.getElementById('fit').onclick =fit;
 document.getElementById('pause').onclick=(e)=>{ paused=!paused; e.target.textContent=paused?'▶ Play':'⏸ Pause'; };
 document.getElementById('regen').onclick=()=> regenerate((Math.random()*1e9)|0);
+// click the heartbeat readout to toggle the synced lub-dub sound
+(function(){ const hb=document.getElementById('hb'), tag=document.getElementById('hbsnd'); if(!hb) return;
+  hb.addEventListener('click',()=>{ soundOn=!soundOn; if(soundOn) initAudio();
+    if(tag){ tag.textContent=soundOn?'🔊':'🔈'; tag.style.opacity=soundOn?'1':'0.75'; }
+    hb.classList.toggle('snd',soundOn); }); })();
 
 const bpmEl=document.getElementById('bpm');
 bpmEl.oninput=()=>{ bpm=+bpmEl.value; document.getElementById('bpmv').textContent=bpm+' bpm';
@@ -1641,9 +2192,9 @@ denEl.oninput=()=>{ document.getElementById('denv').textContent=denEl.value+'%';
 document.querySelectorAll('.chip[data-t]').forEach(ch=>{
   ch.onclick=()=>{ const t=ch.dataset.t; show[t]=!show[t]; ch.classList.toggle('on',show[t]); staticDirty=true; };
 });
-document.querySelectorAll('.chip[data-m]').forEach(ch=>{
-  ch.onclick=()=>{ shadeMode=ch.dataset.m; applyBackend(); };
-});
+const modeSel=document.getElementById('modeSel');
+modeSel.value=shadeMode;
+modeSel.onchange=()=>{ shadeMode=modeSel.value; applyBackend(); };
 document.querySelectorAll('.chip[data-b]').forEach(ch=>{
   ch.onclick=async()=>{ const want=ch.dataset.b;
     if(want==='webgpu'){
@@ -1654,11 +2205,9 @@ document.querySelectorAll('.chip[data-b]').forEach(ch=>{
     backend=want; applyBackend();
   };
 });
-document.querySelectorAll('.chip[data-gen]').forEach(ch=>{
-  ch.onclick=()=>{ genPreset=ch.dataset.gen;
-    document.querySelectorAll('#gens .chip').forEach(x=>x.classList.toggle('on',x.dataset.gen===genPreset));
-    regenerate(curSeed); };
-});
+const genSel=document.getElementById('genSel');
+genSel.value=genPreset;
+genSel.onchange=()=>{ genPreset=genSel.value; regenerate(curSeed); };
 
 // tree-shape sliders (rebuild the bed on release) + live appearance sliders
 const sl=(id,vid,fmt,fn,live)=>{ const el=document.getElementById(id), v=document.getElementById(vid);
@@ -2906,7 +3455,7 @@ function applyBackend(){
   glcv.classList.toggle('hidden', eff!=='webgl2');
   gpucv.classList.toggle('hidden', eff!=='webgpu');
   document.querySelectorAll('#backends .chip').forEach(ch=>ch.classList.toggle('on',ch.dataset.b===backend));
-  document.querySelectorAll('#modes .chip').forEach(ch=>ch.classList.toggle('on',ch.dataset.m===shadeMode));
+  { const ms=document.getElementById('modeSel'); if(ms) ms.value=shadeMode; }
   if(eff==='canvas2d') staticDirty=true;
 }
 
@@ -3456,7 +4005,9 @@ function boot(){
   try{ GL=initGL(); }catch(err){ console.error('WebGL init failed:',err); GL=null; }
   if(!GL){ backend='canvas2d';
     document.querySelectorAll('.chip[data-b]').forEach(ch=>{ if(ch.dataset.b!=='canvas2d'){ ch.style.opacity=.4; ch.style.pointerEvents='none'; } });
-    document.querySelectorAll('.chip[data-m]').forEach(ch=>{ ch.style.opacity=.4; }); }
+    // no WebGL: only the Canvas-2D shading styles render distinctly
+    const ms=document.getElementById('modeSel');
+    if(ms) for(const o of ms.options){ if(o.value!=='cutaway'&&o.value!=='outline') o.disabled=true; } }
   regenerate(20260625);
   fit();
   applyBackend();
