@@ -2393,7 +2393,15 @@ void main(){
   gl_FragDepth=zd;
   float a=clamp(1.0+dW/rr,0.0,1.0);     // 0 at the axis, 1 at the wall
   vec2 bn=vec2(-tg.y,tg.x);
-  float nperp=a*(dot(gn,bn)<0.0?-1.0:1.0);
+  // Tangent coherence |Σ w·t̂|/Σ w: ~1 on a clean tube, →0 where tubes cross at an
+  // angle so their blended tangent — and this "which side of the tube" coordinate
+  // — is ill-defined. Relax nperp toward the axis there, so the direction-keyed
+  // shading (silhouette darkening, gloss streak, the open-lumen split) dissolves
+  // into a smooth confluence instead of snapping along a hard seam at the crossing.
+  // (a clean/curving tube stays ≈1; two tubes crossing near 90° fall to ~0.7,
+  //  anti-parallel to 0 — so this band catches real crossings, not gentle bends)
+  float tcoh=clamp(tl/max(W,1e-4),0.0,1.0);
+  float nperp=a*(dot(gn,bn)<0.0?-1.0:1.0)*smoothstep(0.55,0.86,tcoh);
   float hgt=sqrt(max(0.0,1.0-a*a));
   vec3 N=normalize(vec3(gn*a,hgt));
   vec3 Ld=normalize(vec3(-0.45,-0.55,0.72)); vec3 V=vec3(0.0,0.0,1.0);
@@ -3049,7 +3057,12 @@ struct RFOut { @location(0) col:vec4f, @builtin(frag_depth) depth:f32 };
   let a=clamp(1.0+dW/rr,0.0,1.0);
   let bn=vec2f(-tg.y,tg.x);
   var sgn=1.0; if(dot(gn,bn)<0.0){ sgn=-1.0; }
-  let nperp=a*sgn;
+  // Tangent coherence: ~1 on a clean tube, →0 where tubes cross at an angle and
+  // the blended tangent (this "which side" coordinate) is ill-defined. Relax
+  // nperp toward the axis there so directional shading dissolves into a smooth
+  // confluence instead of a hard seam. (See the WebGL2 resolve for the rationale.)
+  let tcoh=clamp(tl/max(W,1e-4),0.0,1.0);
+  let nperp=a*sgn*smoothstep(0.55,0.86,tcoh);
   let hgt=sqrt(max(0.0,1.0-a*a));
   let N=normalize(vec3f(gn*a,hgt));
   let Ld=normalize(vec3f(-0.45,-0.55,0.72)); let V=vec3f(0.0,0.0,1.0);
