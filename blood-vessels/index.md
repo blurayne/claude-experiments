@@ -45,18 +45,21 @@ network, same flow, same renderer.
 ## What it does
 
 - **Procedurally grown vasculature** — every *New bed* grows a fresh arterial and
-  venous tree and bridges them with capillaries. **Seven generators** are
-  switchable: *space-colonisation*, *recursive (Sapling-style)* tree,
-  *DLA* (diffusion-limited aggregation), *CCO* (constrained constructive
-  optimization), *CCO+* — the faithful CCO that splices each new terminal at the
-  **volume-minimizing bifurcation point**, avoids vessel crossings, and produces
-  a textbook arterial arbor with realistic branch angles and taper; *Angiogenesis*,
-  a **demand-field (VEGF-style)** model where vessel tips chase under-served tissue,
-  branch, and stop where the bed is already fed, radiating from a hub the way a real
-  organ does; and *Loops (adaptive)* — a **Hu–Cai / Ronellenfitsch–Katifori** flow
-  network: a resistive mesh whose tube conductances are optimized under fluctuating
-  load, which (unlike every other generator) keeps hierarchical **loops** rather
-  than collapsing to a tree.
+  venous tree and bridges them with capillaries. **Eleven generators** are
+  switchable from a drop-down, grouped as:
+  - *Growth* — **space-colonisation**, **L-system** (parametric, asymmetric
+    branching with a tropism), **recursive** (Sapling-style), and **Angiogenesis**
+    (a demand-field / VEGF-style model where tips chase under-served tissue and
+    stop where the bed is already fed, radiating from a hub the way an organ does).
+  - *Optimization / physics* — **CCO+** (the faithful CCO: each terminal spliced
+    at the **volume-minimizing bifurcation point**, crossing-free — a textbook
+    arterial arbor), **CCO** (simple), **Loops — adaptive** (a **Hu–Cai /
+    Ronellenfitsch–Katifori** flow network optimized under fluctuating load, which
+    keeps hierarchical **loops** instead of a tree), **DBM** (dielectric-breakdown
+    / Laplacian growth — ramified, frost/lightning-like), and **DLA**.
+  - *Anatomy templates* — **Retinal arcades** (arcs sweeping from an optic disc
+    around a macula) and **Cortical** (a pial surface network with penetrating
+    columns).
 - **Anatomically scaled calibre** — everything is anchored to the red cell: a
   true capillary is exactly one cell wide, a terminal arteriole carries ~4
   abreast, and Murray's law widens the trunks until a mid-tree vessel holds

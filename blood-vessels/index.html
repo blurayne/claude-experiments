@@ -72,6 +72,13 @@
   .chip{font-size:11px;padding:5px 9px;border-radius:999px;border:1px solid var(--panelb);
     background:rgba(60,20,28,.4);color:var(--dim);cursor:pointer;user-select:none;transition:.13s}
   .chip.on{color:var(--ink);border-color:var(--artery);background:rgba(226,59,70,.18)}
+  select.sel{width:100%;font:inherit;font-size:12px;color:var(--ink);cursor:pointer;
+    background:rgba(60,20,28,.55);border:1px solid var(--panelb);border-radius:9px;
+    padding:7px 26px 7px 10px;outline:none;-webkit-appearance:none;appearance:none;transition:.13s;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%23c79aa2'/></svg>");
+    background-repeat:no-repeat;background-position:right 10px center}
+  select.sel:hover{border-color:var(--artery)}
+  select.sel option{background:#1b0a0e;color:var(--ink)}
 
   /* scale bar + readout */
   #scalebar{left:16px;bottom:16px;background:var(--panel);border:1px solid var(--panelb);
@@ -192,15 +199,25 @@
   </div>
 
   <div class="eyebrow">Vessel generator</div>
-  <div class="toggles" id="gens">
-    <span class="chip on" data-gen="spacecol" title="Attractor-driven space colonisation (organic, space-filling)">Space-colonisation</span>
-    <span class="chip" data-gen="recursive" title="Recursive dichotomous branching — Sapling / skin-modifier style">Recursive tree</span>
-    <span class="chip" data-gen="dla" title="Diffusion-limited aggregation — fractal, frost-like branching">DLA</span>
-    <span class="chip" data-gen="cco" title="Constrained Constructive Optimization — classic vascular-growth model">CCO</span>
-    <span class="chip" data-gen="ccoplus" title="CCO+ — optimal (volume-minimizing) bifurcation points, Murray radii and crossing avoidance: a textbook arterial arbor">CCO+</span>
-    <span class="chip" data-gen="angio" title="Angiogenesis — demand-field (VEGF-style) sprouting: tips chase under-served tissue and thin out where it is already fed">Angiogenesis</span>
-    <span class="chip" data-gen="loops" title="Adaptive flow network (Hu–Cai / Katifori) — a resistive mesh adapted under fluctuating load: keeps hierarchical LOOPS, not just a tree">Loops (adaptive)</span>
-  </div>
+  <select class="sel" id="genSel" title="Vessel-growth algorithm (rebuilds the bed)">
+    <optgroup label="Growth">
+      <option value="spacecol">Space-colonisation</option>
+      <option value="lsystem">L-system (branching)</option>
+      <option value="recursive">Recursive tree</option>
+      <option value="angio">Angiogenesis (demand field)</option>
+    </optgroup>
+    <optgroup label="Optimization / physics">
+      <option value="ccoplus">CCO+ (optimal arbor)</option>
+      <option value="cco">CCO (simple)</option>
+      <option value="loops">Loops — adaptive (Hu–Cai / Katifori)</option>
+      <option value="dbm">DBM — Laplacian growth</option>
+      <option value="dla">DLA (diffusion-limited)</option>
+    </optgroup>
+    <optgroup label="Anatomy templates">
+      <option value="retina">Retinal arcades</option>
+      <option value="cortical">Cortical (penetrating)</option>
+    </optgroup>
+  </select>
 
   <div class="eyebrow">Backend</div>
   <div class="toggles" id="backends">
@@ -210,15 +227,15 @@
   </div>
 
   <div class="eyebrow">Shading <span style="text-transform:none;letter-spacing:0">(GPU backends)</span></div>
-  <div class="toggles" id="modes">
-    <span class="chip on" data-m="cutaway" title="Cross-section: vessels sliced open lengthwise — walls, lumen and flow, game-ready">Cutaway ✂</span>
-    <span class="chip" data-m="phong" title="Blinn–Phong lit cylinders">Lit tubes</span>
-    <span class="chip" data-m="sss" title="Subsurface-scattering blood: thickness glow + Fresnel">Subsurface</span>
-    <span class="chip" data-m="toon" title="Cel shading: quantized bands + outline">Toon</span>
-    <span class="chip" data-m="anatomy" title="Anatomical illustration: glossy vessels over warm, lit tissue with contact shadows">Anatomy 🩸</span>
-    <span class="chip" data-m="xray" title="Additive angiograph / x-ray glow">X-ray</span>
-    <span class="chip" data-m="outline" title="Contour filter: spline-smoothed vessel outlines only — drawn on Canvas 2D, works on any backend">Outline</span>
-  </div>
+  <select class="sel" id="modeSel" title="Shading style (GPU backends; Cutaway &amp; Outline also render on Canvas 2D)">
+    <option value="cutaway">Cutaway ✂ — sliced open</option>
+    <option value="anatomy">Anatomy 🩸 — illustration</option>
+    <option value="phong">Lit tubes (Blinn–Phong)</option>
+    <option value="sss">Subsurface</option>
+    <option value="toon">Toon</option>
+    <option value="xray">X-ray</option>
+    <option value="outline">Outline (contour)</option>
+  </select>
 
   <div class="eyebrow">Tree shape <span style="text-transform:none;letter-spacing:0">(rebuilds bed)</span></div>
   <label class="sl">Branching density <span class="v" id="densv">100%</span>
@@ -327,7 +344,7 @@ let VW=0, VH=0; // viewport in CSS px
 let shadeMode='cutaway';  // 'cutaway' | 'anatomy' | 'phong' | 'sss' | 'toon' | 'xray' (GPU backends) | 'outline' (Canvas 2D contour filter)
 const MODE_UNIFORM={phong:1,sss:2,toon:3,xray:4,cutaway:5,anatomy:6};
 const TYPE_ID={art:0,cap:1,ven:2};
-let genPreset='spacecol'; // 'spacecol' | 'recursive' | 'dla' | 'cco' | 'ccoplus' | 'angio' | 'loops'
+let genPreset='spacecol'; // spacecol|lsystem|recursive|angio|ccoplus|cco|loops|dbm|dla|retina|cortical
 let curSeed=20260625;
 let backend='webgl2';     // 'canvas2d' | 'webgl2' | 'webgpu'
 // tree-shape params (regenerate on change) and live appearance params
@@ -807,6 +824,161 @@ function buildLoops(rng, addNode, mkEdge, P){
   return { source, sink: nodeObj[far]||source };
 }
 
+const _inWorld=(x,y)=> x>-40 && y>-40 && x<WORLD.w+40 && y<WORLD.h+40;
+
+// ============================================================================
+//  L-SYSTEM  (parametric, with tropism) — a proper upgrade of "recursive"
+//  ----------------------------------------------------------------------------
+//  A stochastic branching grammar: each internode is a few curving sub-segments
+//  bent toward a tropism direction, then splits ASYMMETRICALLY — a dominant child
+//  that keeps the heading at a shallow angle and a long length, and minor children
+//  at wider angles and shorter lengths. That asymmetry (rather than the even fork
+//  of the recursive generator) is what gives real, botanically-organic arbors.
+// ============================================================================
+function growLSystem(rng, root, baseAng, P){
+  root.children=[]; root.parent=null; root.depth=0; const nodes=[root];
+  (function grow(node, ang, len, depth){
+    if(depth>P.maxDepth || len<P.minLen || nodes.length>P.maxNodes) return;
+    let cur=node, a=ang; const subs=2;
+    for(let i=0;i<subs;i++){
+      a += Math.sin(P.tropAng-a)*P.tropStr + (rng()-0.5)*0.30*P.curl;   // tropism + wander
+      const nx=cur.x+Math.cos(a)*len/subs, ny=cur.y+Math.sin(a)*len/subs;
+      if(!_inWorld(nx,ny)) return;
+      const c={x:nx,y:ny,children:[],parent:cur,depth}; cur.children.push(c); nodes.push(c); cur=c;
+    }
+    const n = rng()<P.triProb?3:2;
+    for(let k=0;k<n;k++){
+      const major=k===0;
+      const off=(k-(n-1)/2)*P.spread*(major?0.5:1.25) + (rng()-0.5)*0.16;
+      grow(cur, a+off, len*(major?P.decayM:P.decaym)*(0.85+rng()*0.3), depth+1);
+    }
+  })(root, baseAng, P.len0, 1);
+  return nodes;
+}
+
+// ============================================================================
+//  RETINAL ARCADES — the iconic fundus pattern
+//  ----------------------------------------------------------------------------
+//  Vessels leave an optic disc, sweep superiorly and inferiorly in great arcs
+//  that bow AROUND a central macular exclusion zone, and shed dichotomous twigs
+//  toward the periphery. Each arcade is a growth walk steered tangentially around
+//  the macula while drifting outward; twigs branch off at intervals.
+// ============================================================================
+function growRetina(rng, root, P){
+  root.children=[]; root.parent=null; root.depth=0; const nodes=[root];
+  const disc={x:WORLD.w*0.14, y:clamp(root.y,WORLD.h*0.36,WORLD.h*0.64)}, mac={x:WORLD.w*0.52, y:WORLD.h*0.5, r:WORLD.h*0.20};
+  const hub={x:disc.x,y:disc.y,children:[],parent:root,depth:1}; root.children.push(hub); nodes.push(hub);
+  function twig(node, ang, len, depth){
+    if(depth>P.twigDepth || len<P.minLen || nodes.length>P.maxNodes) return;
+    let cur=node, a=ang;
+    for(let i=0;i<2;i++){ a+=(rng()-0.5)*0.45*P.curl;
+      const nx=cur.x+Math.cos(a)*len/2, ny=cur.y+Math.sin(a)*len/2; if(!_inWorld(nx,ny)) return;
+      const c={x:nx,y:ny,children:[],parent:cur,depth}; cur.children.push(c); nodes.push(c); cur=c; }
+    const n=rng()<0.55?2:1;
+    for(let k=0;k<n;k++) twig(cur, a+(k-(n-1)/2)*0.75+(rng()-0.5)*0.3, len*0.72*(0.8+rng()*0.4), depth+1);
+  }
+  function arcade(sign){                       // sign −1 = superior, +1 = inferior
+    let cur=hub, a=sign*0.85+(rng()-0.5)*0.2, len=P.arcSeg;
+    for(let s=0; s<P.arcLen && nodes.length<P.maxNodes; s++){
+      // head toward the temporal periphery (rightward) with a vertical bias, and
+      // bow AROUND the macula when close so the arcade sweeps over / under it
+      let hx=1.0, hy=sign*0.42;
+      const dx=cur.x-mac.x, dy=cur.y-mac.y, dm=Math.hypot(dx,dy)||1;
+      if(dm<mac.r*2.2){ const f=(mac.r*2.2-dm)/(mac.r*2.2); hx+=(dx/dm)*f*1.6; hy+=(dy/dm)*f*1.9; }
+      a += Math.sin(Math.atan2(hy,hx)-a)*0.30 + (rng()-0.5)*0.11;
+      const nx=cur.x+Math.cos(a)*len, ny=cur.y+Math.sin(a)*len;
+      if(!_inWorld(nx,ny)) break;
+      const c={x:nx,y:ny,children:[],parent:cur,depth:cur.depth+1}; cur.children.push(c); nodes.push(c); cur=c;
+      if(s%P.twigEvery===P.twigEvery-1) twig(cur, a+sign*(0.9+rng()*0.5), len*1.5, 1);   // toward periphery
+      if(s%(P.twigEvery*2)===1) twig(cur, a-sign*(1.0+rng()*0.4), len*1.1, 1);           // inner field
+    }
+  }
+  arcade(-1); arcade(-1); arcade(1); arcade(1);
+  return nodes;
+}
+
+// ============================================================================
+//  CORTICAL — a surface (pial) network with penetrating vessels
+//  ----------------------------------------------------------------------------
+//  A pial trunk runs along the surface; at intervals a penetrating vessel dives
+//  perpendicularly into the tissue and branches as it descends — the columnar
+//  supply of cortex.
+// ============================================================================
+function growCortical(rng, root, P){
+  root.children=[]; root.parent=null; root.depth=0; const nodes=[root];
+  const surfY=WORLD.h*0.09;
+  function penetrate(node){
+    (function dive(nd, ang, ln, dp){
+      if(dp>P.penDepth || ln<P.minLen || nodes.length>P.maxNodes) return;
+      let cc=nd, a=ang;
+      for(let i=0;i<2;i++){ a+=(rng()-0.5)*0.30*P.curl;
+        const nx=cc.x+Math.cos(a)*ln/2, ny=cc.y+Math.sin(a)*ln/2;
+        if(!_inWorld(nx,ny) || ny>WORLD.h*0.97) return;
+        const n2={x:nx,y:ny,children:[],parent:cc,depth:dp}; cc.children.push(n2); nodes.push(n2); cc=n2; }
+      const nb = rng()<P.branchProb?2:1;
+      for(let k=0;k<nb;k++) dive(cc, a+(k-(nb-1)/2)*0.62+(rng()-0.5)*0.25, ln*(P.penDecay||0.80)*(0.85+rng()*0.3), dp+1);
+    })(node, Math.PI/2 + (rng()-0.5)*0.35, P.penSeg, 1);
+  }
+  let cur={x:WORLD.w*0.05, y:surfY, children:[], parent:root, depth:1}; root.children.push(cur); nodes.push(cur);
+  let x=cur.x;
+  while(x<WORLD.w*0.97 && nodes.length<P.maxNodes){
+    x += P.pialStep*(0.8+rng()*0.4);
+    const n={x, y:surfY+(rng()-0.5)*P.pialStep*0.4, children:[], parent:cur, depth:cur.depth+1};
+    cur.children.push(n); nodes.push(n); cur=n;
+    if(rng()<P.penProb) penetrate(n);
+  }
+  return nodes;
+}
+
+// ============================================================================
+//  DBM — dielectric-breakdown / Laplacian growth
+//  ----------------------------------------------------------------------------
+//  The controllable, physically-grounded cousin of DLA. A "voltage" field φ is
+//  held at 1 on the domain frame and 0 on the growing cluster, and relaxed to be
+//  harmonic (∇²φ=0) in between. New growth attaches to a surface cell with
+//  probability ∝ |φ|^η at that cell — so tips race into open field and interiors
+//  are screened, producing ramified, frost/lightning-like branching. η tunes it
+//  from compact (η→0) to feathery (η large); η≈1 is the classic look.
+// ============================================================================
+function growDBM(rng, root, P){
+  root.children=[]; root.parent=null; root.depth=0; const nodes=[root];
+  const gs=P.gs, cols=Math.ceil(WORLD.w/gs)+1, rows=Math.ceil(WORLD.h/gs)+1, NC=cols*rows;
+  const occ=new Uint8Array(NC), fixed=new Uint8Array(NC), phi=new Float32Array(NC);
+  const nodeAt=new Int32Array(NC); nodeAt.fill(-1);
+  const at=(i,j)=>j*cols+i;
+  for(let i=0;i<cols;i++){ phi[at(i,0)]=1; fixed[at(i,0)]=1; phi[at(i,rows-1)]=1; fixed[at(i,rows-1)]=1; }
+  for(let j=0;j<rows;j++){ phi[at(0,j)]=1; fixed[at(0,j)]=1; phi[at(cols-1,j)]=1; fixed[at(cols-1,j)]=1; }
+  for(let k=0;k<NC;k++) if(!fixed[k]) phi[k]=1;
+  const relax=(sw)=>{ for(let s=0;s<sw;s++) for(let j=1;j<rows-1;j++) for(let i=1;i<cols-1;i++){
+    const k=at(i,j); if(fixed[k]) continue; phi[k]=0.25*(phi[k-1]+phi[k+1]+phi[k-cols]+phi[k+cols]); } };
+  const si=clamp(Math.round(WORLD.w*0.12/gs),2,cols-3), sj=clamp(Math.round(root.y/gs),2,rows-3);
+  const seed={x:si*gs, y:sj*gs, children:[], parent:root, depth:1}; root.children.push(seed); nodes.push(seed);
+  occ[at(si,sj)]=1; phi[at(si,sj)]=0; fixed[at(si,sj)]=1; nodeAt[at(si,sj)]=1;
+  relax(P.sweeps0);
+  const surf=new Set();
+  const addSurf=(i,j)=>{ if(i<1||j<1||i>=cols-1||j>=rows-1) return; const k=at(i,j); if(!occ[k]&&!fixed[k]) surf.add(k); };
+  const NB8=[[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[1,-1],[-1,1],[1,1]];   // 8-connectivity → organic, not Manhattan
+  const surfAround=(i,j)=>{ for(const nb of NB8) addSurf(i+nb[0],j+nb[1]); };
+  surfAround(si,sj);
+  const eta=P.eta; let since=0;
+  while(nodes.length<P.maxNodes && surf.size){
+    let tot=0; const arr=[];
+    for(const k of surf){ if(occ[k]){ continue; } const w=Math.pow(Math.max(phi[k],0),eta)+1e-6; arr.push(k); arr.push(w); tot+=w; }
+    if(!arr.length) break;
+    let r=rng()*tot, pick=arr[0];
+    for(let a=0;a<arr.length;a+=2){ r-=arr[a+1]; if(r<=0){ pick=arr[a]; break; } }
+    const i=pick%cols, j=(pick/cols)|0;
+    let pk=-1; for(const nb of NB8){ const nk=at(i+nb[0],j+nb[1]); if(occ[nk]){ pk=nk; break; } }
+    const par = pk>=0 ? nodes[nodeAt[pk]] : seed;
+    const nn={x:i*gs+(rng()-0.5)*gs*0.35, y:j*gs+(rng()-0.5)*gs*0.35, children:[], parent:par, depth:par.depth+1};
+    par.children.push(nn); nodes.push(nn);
+    occ[pick]=1; phi[pick]=0; fixed[pick]=1; nodeAt[pick]=nodes.length-1; surf.delete(pick);
+    surfAround(i,j);
+    if(++since>=P.reSolve){ since=0; relax(P.sweeps); }
+  }
+  return nodes;
+}
+
 // Murray's law: assign radii bottom-up. Leaves get tipR, parents thicken.
 function assignRadii(root, tipR, exp){
   (function rec(n){
@@ -928,6 +1100,19 @@ function buildNetwork(seed, preset){
                             persist:0.70, chemo:1.05, jitter:0.55*curl, branchMin:3, branchProb:0.19,
                             demandEps:0.5, maxNodes:Math.round(3200*dens), maxIter:11000, voids,
                             xLo:0.04, xHi:0.99, yLo:0.05, yHi:0.95});
+    else if(preset==='lsystem')
+      growLSystem(rng, root, baseAng, {maxDepth:13, minLen:50*len, len0:1350*len, decayM:0.80, decaym:0.62,
+                            spread:0.66, triProb:0.18*dens, curl, tropAng:baseAng, tropStr:0.16,
+                            maxNodes:Math.round(5200*dens)});
+    else if(preset==='retina')
+      growRetina(rng, root, {arcSeg:150*len, arcLen:Math.round(60*Math.sqrt(dens)), twigEvery:3, twigDepth:7,
+                            minLen:34*len, curl, maxNodes:Math.round(1700*dens)});
+    else if(preset==='cortical')
+      growCortical(rng, root, {pialStep:150*len, penSeg:360*len, penDepth:13, penDecay:0.86, branchProb:0.30*dens,
+                            penProb:0.55, minLen:34*len, curl, maxNodes:Math.round(3400*dens)});
+    else if(preset==='dbm')
+      growDBM(rng, root, {gs:Math.max(95,150/Math.sqrt(dens)), eta:1.0, sweeps0:240, sweeps:26, reSolve:6,
+                            maxNodes:Math.round(1150*dens)});
     else
       growTree(rng, root, cloud(Math.round(900*dens),voids), {influence:950,kill:150/Math.sqrt(dens),seg:70*len,maxIter:700,curl,maxNodes:Math.round(1400*dens)});
   };
@@ -2007,9 +2192,9 @@ denEl.oninput=()=>{ document.getElementById('denv').textContent=denEl.value+'%';
 document.querySelectorAll('.chip[data-t]').forEach(ch=>{
   ch.onclick=()=>{ const t=ch.dataset.t; show[t]=!show[t]; ch.classList.toggle('on',show[t]); staticDirty=true; };
 });
-document.querySelectorAll('.chip[data-m]').forEach(ch=>{
-  ch.onclick=()=>{ shadeMode=ch.dataset.m; applyBackend(); };
-});
+const modeSel=document.getElementById('modeSel');
+modeSel.value=shadeMode;
+modeSel.onchange=()=>{ shadeMode=modeSel.value; applyBackend(); };
 document.querySelectorAll('.chip[data-b]').forEach(ch=>{
   ch.onclick=async()=>{ const want=ch.dataset.b;
     if(want==='webgpu'){
@@ -2020,11 +2205,9 @@ document.querySelectorAll('.chip[data-b]').forEach(ch=>{
     backend=want; applyBackend();
   };
 });
-document.querySelectorAll('.chip[data-gen]').forEach(ch=>{
-  ch.onclick=()=>{ genPreset=ch.dataset.gen;
-    document.querySelectorAll('#gens .chip').forEach(x=>x.classList.toggle('on',x.dataset.gen===genPreset));
-    regenerate(curSeed); };
-});
+const genSel=document.getElementById('genSel');
+genSel.value=genPreset;
+genSel.onchange=()=>{ genPreset=genSel.value; regenerate(curSeed); };
 
 // tree-shape sliders (rebuild the bed on release) + live appearance sliders
 const sl=(id,vid,fmt,fn,live)=>{ const el=document.getElementById(id), v=document.getElementById(vid);
@@ -3272,7 +3455,7 @@ function applyBackend(){
   glcv.classList.toggle('hidden', eff!=='webgl2');
   gpucv.classList.toggle('hidden', eff!=='webgpu');
   document.querySelectorAll('#backends .chip').forEach(ch=>ch.classList.toggle('on',ch.dataset.b===backend));
-  document.querySelectorAll('#modes .chip').forEach(ch=>ch.classList.toggle('on',ch.dataset.m===shadeMode));
+  { const ms=document.getElementById('modeSel'); if(ms) ms.value=shadeMode; }
   if(eff==='canvas2d') staticDirty=true;
 }
 
@@ -3822,7 +4005,9 @@ function boot(){
   try{ GL=initGL(); }catch(err){ console.error('WebGL init failed:',err); GL=null; }
   if(!GL){ backend='canvas2d';
     document.querySelectorAll('.chip[data-b]').forEach(ch=>{ if(ch.dataset.b!=='canvas2d'){ ch.style.opacity=.4; ch.style.pointerEvents='none'; } });
-    document.querySelectorAll('.chip[data-m]').forEach(ch=>{ ch.style.opacity=.4; }); }
+    // no WebGL: only the Canvas-2D shading styles render distinctly
+    const ms=document.getElementById('modeSel');
+    if(ms) for(const o of ms.options){ if(o.value!=='cutaway'&&o.value!=='outline') o.disabled=true; } }
   regenerate(20260625);
   fit();
   applyBackend();

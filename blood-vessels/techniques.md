@@ -141,6 +141,31 @@ coloured by the final flow potential, and the network is handed to the same merg
 loops and all. *Refs:* Hu & Cai (2013); Ronellenfitsch & Katifori (2016);
 Corson (2010); Katifori et al. (2010).
 
+### 1b-vii. Four more generators
+
+- **L-system (parametric).** A stochastic branching grammar: each internode is a
+  couple of curving sub-segments bent toward a **tropism** direction, then splits
+  **asymmetrically** — a dominant child that keeps the heading at a shallow angle
+  and long length, plus minor children at wider angles and shorter lengths. The
+  asymmetry (versus the even fork of *recursive*) is what reads as organic.
+- **DBM (dielectric-breakdown / Laplacian growth).** A "voltage" field φ is held
+  at 1 on the domain frame and 0 on the growing cluster and relaxed to be harmonic
+  in between; new growth attaches to a surface cell with probability `∝ |φ|^η`.
+  Tips race into open field while interiors are screened, giving ramified,
+  frost/lightning-like branching (η tunes compact→feathery). Runs on an
+  8-connected grid so branches aren't axis-locked. *Ref:* Niemeyer–Pietronero–
+  Wiesmann (1984).
+- **Retinal arcades.** Vessels leave an optic disc and sweep toward the temporal
+  periphery, **bowing around a macular exclusion zone** (a radial push when close)
+  while shedding dichotomous twigs — the fundus pattern.
+- **Cortical.** A pial trunk runs along the surface; at intervals a **penetrating**
+  vessel dives perpendicularly into the tissue and branches as it descends — the
+  columnar supply of cortex.
+
+All four produce the same parent→children tree the pipeline expects, so splining,
+Murray radii, capillary bridging and flow are unchanged. The generator and shading
+selectors are both drop-downs.
+
 ### 1c. Vessel calibre — Murray's law
 
 Whatever grows the skeleton, segment **radii** are assigned bottom-up with
