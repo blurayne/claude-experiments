@@ -82,7 +82,11 @@
 
   /* heartbeat */
   #hb{right:16px;bottom:16px;background:var(--panel);border:1px solid var(--panelb);border-radius:10px;
-    padding:8px 12px;backdrop-filter:blur(9px);display:flex;align-items:center;gap:9px}
+    padding:8px 12px;backdrop-filter:blur(9px);display:flex;align-items:center;gap:9px;cursor:pointer;
+    user-select:none;transition:border-color .15s}
+  #hb:hover{border-color:var(--artery)}
+  #hb.snd{border-color:var(--artery);box-shadow:0 0 0 1px var(--artery)}
+  #hbsnd{font-size:13px;opacity:.75}
   #hbdot{width:13px;height:13px;border-radius:50%;background:var(--artery);box-shadow:0 0 10px var(--artery)}
   #hb small{font-size:11px;color:var(--dim)}
   #hb b{color:var(--ink);font-variant-numeric:tabular-nums}
@@ -194,6 +198,7 @@
     <span class="chip" data-gen="dla" title="Diffusion-limited aggregation — fractal, frost-like branching">DLA</span>
     <span class="chip" data-gen="cco" title="Constrained Constructive Optimization — classic vascular-growth model">CCO</span>
     <span class="chip" data-gen="ccoplus" title="CCO+ — optimal (volume-minimizing) bifurcation points, Murray radii and crossing avoidance: a textbook arterial arbor">CCO+</span>
+    <span class="chip" data-gen="angio" title="Angiogenesis — demand-field (VEGF-style) sprouting: tips chase under-served tissue and thin out where it is already fed">Angiogenesis</span>
   </div>
 
   <div class="eyebrow">Backend</div>
@@ -263,7 +268,7 @@
   <div id="zoomout">magnification ×—</div>
 </div>
 
-<div class="ui" id="hb"><span id="hbdot"></span><small><b id="bpmread">72</b> bpm · pulsatile</small></div>
+<div class="ui" id="hb" title="Click for a synced heartbeat sound"><span id="hbdot"></span><small><b id="bpmread">72</b> bpm · pulsatile</small> <span id="hbsnd">🔈</span></div>
 <div class="ui" id="hint">scroll = zoom · drag = pan · double-click = zoom in</div>
 
 <!-- ===================== game mode UI ===================== -->
@@ -321,7 +326,7 @@ let VW=0, VH=0; // viewport in CSS px
 let shadeMode='cutaway';  // 'cutaway' | 'anatomy' | 'phong' | 'sss' | 'toon' | 'xray' (GPU backends) | 'outline' (Canvas 2D contour filter)
 const MODE_UNIFORM={phong:1,sss:2,toon:3,xray:4,cutaway:5,anatomy:6};
 const TYPE_ID={art:0,cap:1,ven:2};
-let genPreset='spacecol'; // 'spacecol' | 'recursive' | 'dla' | 'cco' | 'ccoplus'
+let genPreset='spacecol'; // 'spacecol' | 'recursive' | 'dla' | 'cco' | 'ccoplus' | 'angio'
 let curSeed=20260625;
 let backend='webgl2';     // 'canvas2d' | 'webgl2' | 'webgpu'
 // tree-shape params (regenerate on change) and live appearance params
@@ -607,6 +612,80 @@ function growCCOPlus(rng, root, P){
   return nodes;
 }
 
+// ============================================================================
+//  ANGIOGENESIS  —  demand-field (VEGF-style) sprouting
+//  ----------------------------------------------------------------------------
+//  The mechanism real vessels actually grow by, and it self-regulates its own
+//  density. A coarse grid holds a scalar DEMAND field (1 = starved tissue, 0 =
+//  perfused). Vessel TIPS migrate up the demand gradient (chemotaxis toward the
+//  hungriest nearby tissue), branch stochastically, and stop when the tissue
+//  around them is already served. Every node a tip lays down SUPPLIES the tissue
+//  in a radius around it, driving demand there toward 0 — so growth steers itself
+//  into the gaps and thins out where the bed is already fed. The outcome is
+//  organic, uniform perfusion: dense where tissue was under-served, sparse next
+//  to a trunk — unlike fixed-attractor space colonisation. Stays a tree (a tip
+//  that reaches served tissue simply terminates), so radii / capillaries / flow
+//  all work unchanged. Refs: Anderson–Chaplain angiogenesis; snake/tip models.
+// ============================================================================
+function growAngio(rng, root, P){
+  root.children=[]; root.parent=null; root.depth=0;
+  const gs=P.gs, cols=Math.ceil(WORLD.w/gs)+1, rows=Math.ceil(WORLD.h/gs)+1;
+  const D=new Float32Array(cols*rows); D.fill(1);              // demand field
+  const ci=(x)=>clamp(Math.floor(x/gs),0,cols-1), cj=(y)=>clamp(Math.floor(y/gs),0,rows-1);
+  // domain box + voids start with zero demand (vessels won't chase them)
+  for(let j=0;j<rows;j++) for(let i=0;i<cols;i++){ const x=i*gs, y=j*gs;
+    if(x<WORLD.w*P.xLo||x>WORLD.w*P.xHi||y<WORLD.h*P.yLo||y>WORLD.h*P.yHi){ D[j*cols+i]=0; continue; }
+    for(const v of (P.voids||[])){ if(Math.hypot(x-v.x,y-v.y)<v.r){ D[j*cols+i]=0; break; } }
+  }
+  const Rsup=P.Rsup, rc=Math.ceil(Rsup/gs);
+  const supply=(x,y)=>{ const i0=ci(x),j0=cj(y);
+    for(let dj=-rc;dj<=rc;dj++) for(let di=-rc;di<=rc;di++){ const i=i0+di,j=j0+dj;
+      if(i<0||j<0||i>=cols||j>=rows) continue;
+      const dx=i*gs-x, dy=j*gs-y, d2=dx*dx+dy*dy; if(d2>Rsup*Rsup) continue;
+      const f=1-Math.sqrt(d2)/Rsup; D[j*cols+i]*=(1-0.92*f); } };
+  const Rsen=P.Rsen, rs=Math.ceil(Rsen/gs);
+  const sense=(x,y)=>{ const i0=ci(x),j0=cj(y); let sx=0,sy=0,tot=0;
+    for(let dj=-rs;dj<=rs;dj++) for(let di=-rs;di<=rs;di++){ const i=i0+di,j=j0+dj;
+      if(i<0||j<0||i>=cols||j>=rows) continue;
+      const dx=i*gs-x, dy=j*gs-y, d=Math.hypot(dx,dy); if(d<1e-3||d>Rsen) continue;
+      const w=D[j*cols+i]; sx+=dx/d*w/d; sy+=dy/d*w/d; tot+=w; } return {sx,sy,tot}; };
+
+  const nodes=[root];
+  // the feeding trunk runs in from the inlet to a HUB inside the tissue, then the
+  // bed radiates out from there — the way an organ fills from its hilum
+  const first={x:clamp((P.hubX!=null?P.hubX:0.38)*WORLD.w, WORLD.w*P.xLo, WORLD.w*0.94),
+               y:root.y, children:[], parent:root, depth:1};
+  root.children.push(first); nodes.push(first); supply(first.x,first.y);
+  const tips=[], fanStep=(P.fan||2.4)/Math.max(P.seeds-1,1), fanBias=P.fanBias||0;
+  for(let s=0;s<P.seeds;s++){ const ang=fanBias+(s-(P.seeds-1)/2)*fanStep + (rng()-0.5)*0.2;
+    tips.push({node:first, dx:Math.cos(ang), dy:Math.sin(ang), since:0}); }
+
+  let iter=0;
+  while(tips.length && nodes.length<P.maxNodes && iter++<P.maxIter){
+    const next=[];
+    for(const tip of tips){
+      const n0=tip.node, s=sense(n0.x,n0.y);
+      if(s.tot<P.demandEps) continue;                          // served → tip terminates
+      let dx=s.sx, dy=s.sy; const sl=Math.hypot(dx,dy)||1; dx/=sl; dy/=sl;
+      dx=dx*P.chemo + tip.dx*P.persist + (rng()-0.5)*P.jitter;
+      dy=dy*P.chemo + tip.dy*P.persist + (rng()-0.5)*P.jitter;
+      const L=Math.hypot(dx,dy)||1; dx/=L; dy/=L;
+      const nx=n0.x+dx*P.seg, ny=n0.y+dy*P.seg;
+      if(nx<WORLD.w*P.xLo||nx>WORLD.w*P.xHi||ny<WORLD.h*P.yLo||ny>WORLD.h*P.yHi) continue;  // boundary → stop
+      const nn={x:nx,y:ny,children:[],parent:n0,depth:n0.depth+1};
+      n0.children.push(nn); nodes.push(nn); supply(nx,ny);
+      tip.node=nn; tip.dx=dx; tip.dy=dy; tip.since++; next.push(tip);
+      if(tip.since>=P.branchMin && rng()<P.branchProb && nodes.length<P.maxNodes){
+        tip.since=0;
+        const a=Math.atan2(dy,dx)+(rng()<0.5?1:-1)*(0.4+rng()*0.5);
+        next.push({node:nn, dx:Math.cos(a), dy:Math.sin(a), since:0});
+      }
+    }
+    tips.length=0; for(const t of next) tips.push(t);
+  }
+  return nodes;
+}
+
 // Murray's law: assign radii bottom-up. Leaves get tipR, parents thicken.
 function assignRadii(root, tipR, exp){
   (function rec(n){
@@ -723,6 +802,11 @@ function buildNetwork(seed, preset){
       growCCOPlus(rng, root, {nTerm:Math.round(560*dens), nCon:14, dScale:0.72, minSeg:40*len,
                               area:WORLD.w*WORLD.h*0.78, gamma:D.murray, voids,
                               xLo:0.13, xHi:0.99, yLo:0.05, yHi:0.95});
+    else if(preset==='angio')
+      growAngio(rng, root, {gs:82, seg:82*len, Rsup:215, Rsen:380, seeds:9, fan:5.3, hubX:0.40,
+                            persist:0.70, chemo:1.05, jitter:0.55*curl, branchMin:3, branchProb:0.19,
+                            demandEps:0.5, maxNodes:Math.round(3200*dens), maxIter:11000, voids,
+                            xLo:0.04, xHi:0.99, yLo:0.05, yHi:0.95});
     else
       growTree(rng, root, cloud(Math.round(900*dens),voids), {influence:950,kill:150/Math.sqrt(dens),seg:70*len,maxIter:700,curl,maxNodes:Math.round(1400*dens)});
   };
@@ -1451,6 +1535,57 @@ function heart(t){ // synthetic pulse: systolic spike + dicrotic notch, range ~0
   return v;
 }
 
+// ============================================================================
+//  HEARTBEAT SOUND  —  synthesized "lub-dub" (WebAudio), locked to the pulse
+//  ----------------------------------------------------------------------------
+//  S1 ("lub") and S2 ("dub") are short low thumps: a pitch-dropping sine for the
+//  soft body plus a band-passed noise burst for the valve click. They are
+//  scheduled on the audio clock at the two phases the pulse curve peaks (0.12 &
+//  0.34), so the sound stays exactly in step with the animation and the BPM
+//  slider. Click the heartbeat readout to toggle it (audio may only start from a
+//  user gesture). Nothing is created until then — silent by default.
+// ============================================================================
+let audioCtx=null, master=null, noiseBuf=null, soundOn=false, _beatPhase=1;
+function initAudio(){
+  try{
+    if(!audioCtx){
+      audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+      master=audioCtx.createGain(); master.gain.value=0.9; master.connect(audioCtx.destination);
+      noiseBuf=audioCtx.createBuffer(1, (audioCtx.sampleRate*0.4)|0, audioCtx.sampleRate);
+      const d=noiseBuf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+    }
+    if(audioCtx.state==='suspended') audioCtx.resume().catch(()=>{});
+    return true;
+  }catch(_){ audioCtx=null; return false; }
+}
+function thump(at, freq, gain, dur){
+  const c=audioCtx;
+  const o=c.createOscillator(); o.type='sine';
+  o.frequency.setValueAtTime(freq*1.7, at);
+  o.frequency.exponentialRampToValueAtTime(freq*0.6, at+dur);
+  const g=c.createGain();
+  g.gain.setValueAtTime(1e-4, at);
+  g.gain.exponentialRampToValueAtTime(gain, at+0.010);   // fast attack
+  g.gain.exponentialRampToValueAtTime(1e-4, at+dur);     // exponential thud
+  o.connect(g).connect(master); o.start(at); o.stop(at+dur+0.03);
+  const n=c.createBufferSource(); n.buffer=noiseBuf;
+  const bp=c.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=freq*2.4; bp.Q.value=0.8;
+  const ng=c.createGain();
+  ng.gain.setValueAtTime(gain*0.5, at);
+  ng.gain.exponentialRampToValueAtTime(1e-4, at+0.045);  // brief valve click
+  n.connect(bp).connect(ng).connect(master); n.start(at); n.stop(at+0.06);
+}
+function heartbeatAudio(){
+  if(!soundOn||!audioCtx||paused){ _beatPhase=(simTime/(60/bpm))%1; return; }
+  const T=60/bpm, p=(simTime/T)%1;
+  if(p<_beatPhase){                                       // a new cardiac cycle began this frame
+    const now=audioCtx.currentTime;
+    thump(now+Math.max(0,0.12-p)*T, 44, 0.85, 0.15);     // S1 "lub" — lower, louder
+    thump(now+Math.max(0,0.34-p)*T, 62, 0.50, 0.11);     // S2 "dub" — higher, softer
+  }
+  _beatPhase=p;
+}
+
 let _canvasReady=false;
 function frame(now){
   let dt=(now-lastT)/1000; lastT=now; if(dt>0.05) dt=0.05;
@@ -1501,10 +1636,11 @@ function frame(now){
   drawFX();
   updateHUD();
   drawScaleBar();
-  // heartbeat indicator
+  // heartbeat indicator + synced sound
   const dot=document.getElementById('hbdot');
   const s=0.7+pulse*0.9; dot.style.transform=`scale(${s})`;
   dot.style.opacity=0.55+pulse*0.45;
+  heartbeatAudio();
 
   requestAnimationFrame(frame);
 }
@@ -1723,6 +1859,11 @@ document.getElementById('zout').onclick=()=>zoomAt(VW/2,VH/2,1/1.5);
 document.getElementById('fit').onclick =fit;
 document.getElementById('pause').onclick=(e)=>{ paused=!paused; e.target.textContent=paused?'▶ Play':'⏸ Pause'; };
 document.getElementById('regen').onclick=()=> regenerate((Math.random()*1e9)|0);
+// click the heartbeat readout to toggle the synced lub-dub sound
+(function(){ const hb=document.getElementById('hb'), tag=document.getElementById('hbsnd'); if(!hb) return;
+  hb.addEventListener('click',()=>{ soundOn=!soundOn; if(soundOn) initAudio();
+    if(tag){ tag.textContent=soundOn?'🔊':'🔈'; tag.style.opacity=soundOn?'1':'0.75'; }
+    hb.classList.toggle('snd',soundOn); }); })();
 
 const bpmEl=document.getElementById('bpm');
 bpmEl.oninput=()=>{ bpm=+bpmEl.value; document.getElementById('bpmv').textContent=bpm+' bpm';

@@ -85,6 +85,31 @@ Murray's bottom-up rule gives `r ∝ (downstream terminals)^{1/γ}`, which is
 precisely the flow-based calibre CCO prescribes. *Refs:* Schreiner & Buxbaum
 (1993), Karch et al. (1999).
 
+### 1b-v. Angiogenesis — demand-field (VEGF-style) sprouting
+
+The mechanism real vessels actually grow by, and the one generator that
+**self-regulates its own density**. A coarse grid holds a scalar **demand** field
+(`1` = starved tissue, `0` = already perfused). A handful of vessel **tips** are
+released from a hub and, each step:
+
+1. **Sense** the demand gradient over a neighbourhood — a distance-weighted sum of
+   `demand · direction` to nearby grid cells — and head up it (chemotaxis toward
+   the hungriest tissue), blended with the tip's own heading (persistence) and a
+   little noise.
+2. **Extend** one segment, and **supply** the tissue around the new node: every
+   cell within a radius has its demand pushed toward `0`.
+3. **Branch** stochastically (after a minimum run length), and **terminate** when
+   the sensed demand falls below a threshold — i.e. the tissue here is already
+   fed — or on reaching the domain boundary.
+
+Because growth both follows and erases demand, it steers itself into the gaps and
+thins out next to existing vessels: dense where tissue was under-served, sparse by
+a trunk. The feeding trunk runs in from the inlet to a hub inside the tissue and
+the bed **radiates outward** from there, the way an organ fills from its hilum. A
+tip that meets served tissue simply stops (it doesn't fuse), so the result stays a
+tree and the spline / Murray / capillary / flow stages are unchanged. *Refs:*
+Anderson–Chaplain (1998) tumour-angiogenesis model; tip/stalk-cell sprouting.
+
 ### 1c. Vessel calibre — Murray's law
 
 Whatever grows the skeleton, segment **radii** are assigned bottom-up with
