@@ -58,6 +58,33 @@ The method most associated with realistic vascular trees in the literature
 here is a simplified CCO (nearest-node attachment without the full geometric
 volume optimisation), which still yields dense, naturally space-filling arbors.
 
+### 1b-iv. CCO+ — faithful Constrained Constructive Optimization
+
+The complete version of the model, and the generator that most looks like a real
+arterial tree. It keeps CCO's one-terminal-at-a-time growth but adds the parts the
+simple version drops:
+
+1. **Spacing criterion.** A candidate terminal is accepted only if it is at least
+   `d ∝ √(A_perf / N)` from the existing terminals — the same shrinking distance
+   real CCO uses, so the tree lays down a coarse skeleton first and fills in
+   progressively.
+2. **Splicing, not hanging.** Rather than attach the terminal to the nearest
+   *node*, it **splices an existing segment** `p→c`, introducing a new bifurcation
+   node `b` so the segment becomes `p→b` with children `b→c` and `b→t`.
+3. **Optimal bifurcation point.** `b` is moved to the position that minimises the
+   local intravascular volume `Σ rᵢ²·ℓᵢ` — a weighted Steiner point found with a
+   few **Weiszfeld iterations** over `{p, c, t}`, weighted by each limb's flow
+   (downstream terminal count) raised to `2/γ`. This is what reproduces the
+   physiological, non-perpendicular **bifurcation angles**.
+4. **Least-cost, crossing-free choice.** Among the nearest `nCon` candidate
+   segments it takes the cheapest splice whose three new segments **cross no other
+   vessel** — so the arbor never self-intersects.
+
+Radii then come from `assignRadii` exactly as before: with equal terminal radii,
+Murray's bottom-up rule gives `r ∝ (downstream terminals)^{1/γ}`, which is
+precisely the flow-based calibre CCO prescribes. *Refs:* Schreiner & Buxbaum
+(1993), Karch et al. (1999).
+
 ### 1c. Vessel calibre — Murray's law
 
 Whatever grows the skeleton, segment **radii** are assigned bottom-up with

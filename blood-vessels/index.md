@@ -45,10 +45,12 @@ network, same flow, same renderer.
 ## What it does
 
 - **Procedurally grown vasculature** — every *New bed* grows a fresh arterial and
-  venous tree and bridges them with capillaries. **Four generators** are
+  venous tree and bridges them with capillaries. **Five generators** are
   switchable: *space-colonisation*, *recursive (Sapling-style)* tree,
-  *DLA* (diffusion-limited aggregation) and *CCO* (constrained constructive
-  optimization).
+  *DLA* (diffusion-limited aggregation), *CCO* (constrained constructive
+  optimization) and *CCO+* — the faithful CCO that splices each new terminal at
+  the **volume-minimizing bifurcation point**, avoids vessel crossings, and thus
+  produces a textbook arterial arbor with realistic branch angles and taper.
 - **Anatomically scaled calibre** — everything is anchored to the red cell: a
   true capillary is exactly one cell wide, a terminal arteriole carries ~4
   abreast, and Murray's law widens the trunks until a mid-tree vessel holds

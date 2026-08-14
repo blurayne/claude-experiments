@@ -193,6 +193,7 @@
     <span class="chip" data-gen="recursive" title="Recursive dichotomous branching — Sapling / skin-modifier style">Recursive tree</span>
     <span class="chip" data-gen="dla" title="Diffusion-limited aggregation — fractal, frost-like branching">DLA</span>
     <span class="chip" data-gen="cco" title="Constrained Constructive Optimization — classic vascular-growth model">CCO</span>
+    <span class="chip" data-gen="ccoplus" title="CCO+ — optimal (volume-minimizing) bifurcation points, Murray radii and crossing avoidance: a textbook arterial arbor">CCO+</span>
   </div>
 
   <div class="eyebrow">Backend</div>
@@ -320,7 +321,7 @@ let VW=0, VH=0; // viewport in CSS px
 let shadeMode='cutaway';  // 'cutaway' | 'anatomy' | 'phong' | 'sss' | 'toon' | 'xray' (GPU backends) | 'outline' (Canvas 2D contour filter)
 const MODE_UNIFORM={phong:1,sss:2,toon:3,xray:4,cutaway:5,anatomy:6};
 const TYPE_ID={art:0,cap:1,ven:2};
-let genPreset='spacecol'; // 'spacecol' | 'recursive' | 'dla' | 'cco'
+let genPreset='spacecol'; // 'spacecol' | 'recursive' | 'dla' | 'cco' | 'ccoplus'
 let curSeed=20260625;
 let backend='webgl2';     // 'canvas2d' | 'webgl2' | 'webgpu'
 // tree-shape params (regenerate on change) and live appearance params
@@ -516,6 +517,96 @@ function growCCO(rng, root, P){
   return nodes;
 }
 
+// ============================================================================
+//  CCO+  —  faithful Constrained Constructive Optimization
+//  ----------------------------------------------------------------------------
+//  The classic vascular-growth model (Schreiner & Buxbaum; Karch et al.), the
+//  more complete cousin of the simple `growCCO` above. Terminals are added ONE
+//  AT A TIME into the perfusion domain, each spaced from the others by a
+//  shrinking distance criterion d ∝ √(A_perf / N). A new terminal is not merely
+//  hung off the nearest node — it SPLICES an existing segment, introducing a new
+//  bifurcation whose junction point is moved to the geometrically OPTIMAL spot: a
+//  weighted Steiner point that minimises intravascular volume Σ r²·ℓ, found with
+//  a few Weiszfeld iterations (this reproduces the physiological bifurcation
+//  angles). Among the nearest candidate segments we take the least-cost splice
+//  and REJECT any that would cross an existing vessel. Murray radii then follow
+//  from the downstream terminal counts via assignRadii. The result is a textbook
+//  arterial arbor: correct taper, realistic angles, no self-intersections.
+//  Refs: Schreiner 1993; Karch 1999; iquilezles.org (Steiner/volume min).
+// ============================================================================
+function segCross(a,b,c,d){                 // do open segments ab, cd properly cross?
+  const o=(p,q,r)=>Math.sign((q.x-p.x)*(r.y-p.y)-(q.y-p.y)*(r.x-p.x));
+  return o(a,b,c)!==o(a,b,d) && o(c,d,a)!==o(c,d,b);
+}
+function closestOnSeg(p,a,b){
+  const abx=b.x-a.x, aby=b.y-a.y, dd=abx*abx+aby*aby||1;
+  const t=clamp(((p.x-a.x)*abx+(p.y-a.y)*aby)/dd,0,1);
+  return {x:a.x+abx*t, y:a.y+aby*t};
+}
+function growCCOPlus(rng, root, P){
+  root.children=[]; root.parent=null; root.depth=0; root.term=1;
+  const voids=P.voids||[];
+  const inVoid=(x,y)=>{ for(const v of voids){ if(Math.hypot(x-v.x,y-v.y)<v.r) return true; } return false; };
+  // first terminal, a short way in from the inlet
+  const first={x:clamp(root.x+P.minSeg*4+400*rng(), WORLD.w*P.xLo, WORLD.w*0.5),
+               y:root.y+(rng()-0.5)*260, children:[], parent:root, depth:1, term:1};
+  root.children.push(first);
+  const nodes=[root,first], terminals=[first], segs=[{a:root,b:first}];
+  const tgrid=new Grid(160); tgrid.add(first);
+  const e2=2/P.gamma, dCap=WORLD.w*0.22;
+  let guard=0, maxGuard=P.nTerm*26;
+  while(terminals.length<P.nTerm && guard++<maxGuard){
+    const x=lerp(WORLD.w*P.xLo,WORLD.w*P.xHi,rng()), y=lerp(WORLD.h*P.yLo,WORLD.h*P.yHi,rng());
+    if(inVoid(x,y)) continue;
+    const dThresh=Math.min(dCap, P.dScale*Math.sqrt(P.area/terminals.length));
+    if(tgrid.nearest(x,y,dThresh)) continue;                 // spacing criterion
+    const T={x,y};
+    // score every segment by distance from T, keep the nearest nCon as candidates
+    const scored=[];
+    for(const s of segs){ const cp=closestOnSeg(T,s.a,s.b);
+      scored.push({s, d:Math.hypot(cp.x-T.x,cp.y-T.y)}); }
+    scored.sort((u,v)=>u.d-v.d);
+    const K=Math.min(P.nCon,scored.length), evald=[];
+    for(let i=0;i<K;i++){
+      const s=scored[i].s, p=s.a, c=s.b, nc=c.term||1;
+      const wpb=Math.pow(nc+1,e2), wbc=Math.pow(nc,e2), wbt=1;
+      // optimal junction b = weighted geometric median of {p,c,T} (Weiszfeld)
+      let b=closestOnSeg(T,p,c);
+      for(let it=0; it<6; it++){
+        const dp=Math.max(Math.hypot(b.x-p.x,b.y-p.y),1e-3);
+        const dc=Math.max(Math.hypot(b.x-c.x,b.y-c.y),1e-3);
+        const dt=Math.max(Math.hypot(b.x-T.x,b.y-T.y),1e-3);
+        const kp=wpb/dp, kc=wbc/dc, kt=wbt/dt, ks=kp+kc+kt;
+        b={x:(p.x*kp+c.x*kc+T.x*kt)/ks, y:(p.y*kp+c.y*kc+T.y*kt)/ks};
+      }
+      const lpb=Math.hypot(b.x-p.x,b.y-p.y), lbc=Math.hypot(b.x-c.x,b.y-c.y), lbt=Math.hypot(b.x-T.x,b.y-T.y);
+      if(lpb<P.minSeg||lbc<P.minSeg||lbt<P.minSeg) continue;
+      evald.push({s,p,c,b, cost:wpb*lpb+wbc*lbc+wbt*lbt});
+    }
+    evald.sort((u,v)=>u.cost-v.cost);
+    let chosen=null;
+    for(const cand of evald){                                // accept cheapest crossing-free splice
+      const {p,c,b}=cand; let bad=false;
+      for(const s of segs){
+        if(s===cand.s||s.a===p||s.b===p||s.a===c||s.b===c) continue;
+        if(segCross(p,b,s.a,s.b)||segCross(b,c,s.a,s.b)||segCross(b,T,s.a,s.b)){ bad=true; break; }
+      }
+      if(!bad){ chosen=cand; break; }
+    }
+    if(!chosen) continue;
+    // commit: p -> bn -> {c, t}
+    const {p,c,b}=chosen;
+    const bn={x:b.x,y:b.y,children:[],parent:p,depth:p.depth+1,term:(c.term||1)+1};
+    const t ={x:T.x,y:T.y,children:[],parent:bn,depth:bn.depth+1,term:1};
+    const idx=p.children.indexOf(c); if(idx>=0) p.children.splice(idx,1);
+    p.children.push(bn); bn.children.push(c,t); c.parent=bn;
+    chosen.s.a=p; chosen.s.b=bn; segs.push({a:bn,b:c},{a:bn,b:t});
+    nodes.push(bn,t); terminals.push(t); tgrid.add(t);
+    for(let a=p; a; a=a.parent) a.term=(a.term||1)+1;         // one more terminal downstream of every ancestor
+  }
+  return nodes;
+}
+
 // Murray's law: assign radii bottom-up. Leaves get tipR, parents thicken.
 function assignRadii(root, tipR, exp){
   (function rec(n){
@@ -628,6 +719,10 @@ function buildNetwork(seed, preset){
       growDLA(rng, root, {stick:44,step:23*len,steps:130,spawn:125,kill:400,maxNodes:Math.round(820*dens)});
     else if(preset==='cco')
       growCCO(rng, root, {maxConn:6000,minDist:82/Math.sqrt(dens),maxStep:200*len,maxNodes:Math.round(1150*dens)});
+    else if(preset==='ccoplus')
+      growCCOPlus(rng, root, {nTerm:Math.round(560*dens), nCon:14, dScale:0.72, minSeg:40*len,
+                              area:WORLD.w*WORLD.h*0.78, gamma:D.murray, voids,
+                              xLo:0.13, xHi:0.99, yLo:0.05, yHi:0.95});
     else
       growTree(rng, root, cloud(Math.round(900*dens),voids), {influence:950,kill:150/Math.sqrt(dens),seg:70*len,maxIter:700,curl,maxNodes:Math.round(1400*dens)});
   };
