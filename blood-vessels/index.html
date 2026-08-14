@@ -199,6 +199,7 @@
     <span class="chip" data-gen="cco" title="Constrained Constructive Optimization — classic vascular-growth model">CCO</span>
     <span class="chip" data-gen="ccoplus" title="CCO+ — optimal (volume-minimizing) bifurcation points, Murray radii and crossing avoidance: a textbook arterial arbor">CCO+</span>
     <span class="chip" data-gen="angio" title="Angiogenesis — demand-field (VEGF-style) sprouting: tips chase under-served tissue and thin out where it is already fed">Angiogenesis</span>
+    <span class="chip" data-gen="loops" title="Adaptive flow network (Hu–Cai / Katifori) — a resistive mesh adapted under fluctuating load: keeps hierarchical LOOPS, not just a tree">Loops (adaptive)</span>
   </div>
 
   <div class="eyebrow">Backend</div>
@@ -326,7 +327,7 @@ let VW=0, VH=0; // viewport in CSS px
 let shadeMode='cutaway';  // 'cutaway' | 'anatomy' | 'phong' | 'sss' | 'toon' | 'xray' (GPU backends) | 'outline' (Canvas 2D contour filter)
 const MODE_UNIFORM={phong:1,sss:2,toon:3,xray:4,cutaway:5,anatomy:6};
 const TYPE_ID={art:0,cap:1,ven:2};
-let genPreset='spacecol'; // 'spacecol' | 'recursive' | 'dla' | 'cco' | 'ccoplus' | 'angio'
+let genPreset='spacecol'; // 'spacecol' | 'recursive' | 'dla' | 'cco' | 'ccoplus' | 'angio' | 'loops'
 let curSeed=20260625;
 let backend='webgl2';     // 'canvas2d' | 'webgl2' | 'webgpu'
 // tree-shape params (regenerate on change) and live appearance params
@@ -686,6 +687,126 @@ function growAngio(rng, root, P){
   return nodes;
 }
 
+// ============================================================================
+//  ADAPTIVE FLOW NETWORK WITH LOOPS  (Hu–Cai / Ronellenfitsch–Katifori)
+//  ----------------------------------------------------------------------------
+//  The one generator that isn't a tree. A dense mesh graph (a jittered triangular
+//  lattice) is treated as a network of resistive tubes: one inlet SOURCE feeds
+//  every node (tissue demand). We solve the flow — the graph-Laplacian analogue
+//  of Kirchhoff's laws, `L(κ)·p = q`, by conjugate gradient — then ADAPT each
+//  tube's conductance κ toward the optimum `κ ∝ ⟨Q²⟩^{1/(1+γ)}` under a cost
+//  budget, and repeat. The trick that keeps loops instead of collapsing to a
+//  tree is FLUCTUATING loads: averaging Q² over many random demand patterns makes
+//  redundant, resilient loops worth their cost (Corson 2010; Katifori 2010). The
+//  result is a hierarchical, *looped* network — thick channels feeding a fine
+//  reticular mesh — coloured by the flow potential and oriented along it, so the
+//  existing merge / z-order / flow stages all still work on the general graph.
+//  Refs: Hu & Cai (2013); Ronellenfitsch & Katifori (2016); Corson (2010).
+// ============================================================================
+// Conjugate-gradient solve of the (singular, consistent) graph Laplacian
+// L·p = q, matrix-free over the edge list. q must sum to ~0; gauge fixed by
+// keeping the residual and solution mean-zero (L's null space is the constants).
+function solveCG(N, ei, ej, g, q, iters){
+  const E=ei.length;
+  const p=new Float64Array(N), r=new Float64Array(N), Ap=new Float64Array(N), pd=new Float64Array(N);
+  const apply=(x,out)=>{ out.fill(0);
+    for(let e=0;e<E;e++){ const i=ei[e], j=ej[e], d=g[e]*(x[i]-x[j]); out[i]+=d; out[j]-=d; } };
+  let mean=0; for(let i=0;i<N;i++) mean+=q[i]; mean/=N;
+  for(let i=0;i<N;i++){ r[i]=q[i]-mean; pd[i]=r[i]; }
+  let rs=0; for(let i=0;i<N;i++) rs+=r[i]*r[i];
+  const tol=rs*1e-8+1e-12;
+  for(let it=0; it<iters && rs>tol; it++){
+    apply(pd,Ap); let pAp=0; for(let i=0;i<N;i++) pAp+=pd[i]*Ap[i];
+    if(pAp<=1e-20) break; const al=rs/pAp;
+    for(let i=0;i<N;i++){ p[i]+=al*pd[i]; r[i]-=al*Ap[i]; }
+    let rs2=0; for(let i=0;i<N;i++) rs2+=r[i]*r[i]; const be=rs2/rs; rs=rs2;
+    for(let i=0;i<N;i++) pd[i]=r[i]+be*pd[i];
+  }
+  let pm=0; for(let i=0;i<N;i++) pm+=p[i]; pm/=N; for(let i=0;i<N;i++) p[i]-=pm;
+  return p;
+}
+function buildLoops(rng, addNode, mkEdge, P){
+  const xLo=WORLD.w*P.xLo, xHi=WORLD.w*P.xHi, yLo=WORLD.h*P.yLo, yHi=WORLD.h*P.yHi, sp=P.spacing;
+  // --- jittered triangular lattice of nodes (index 0 = the inlet source) ---
+  const pos=[{x:xLo, y:WORLD.h*0.5}];
+  for(let y=yLo, r=0; y<=yHi; y+=sp*0.866, r++){ const off=(r&1)*sp*0.5;
+    for(let x=xLo+off; x<=xHi; x+=sp){
+      let bad=false; for(const v of (P.voids||[])) if(Math.hypot(x-v.x,y-v.y)<v.r){ bad=true; break; }
+      if(bad) continue;
+      pos.push({x:x+(rng()-0.5)*sp*0.30, y:y+(rng()-0.5)*sp*0.30}); } }
+  const N=pos.length;
+  // --- lattice edges: neighbours within ~1.42·spacing (hash grid) ---
+  const cs=sp, grid=new Map();
+  for(let i=0;i<N;i++){ const k=((pos[i].x/cs)|0)+','+((pos[i].y/cs)|0);
+    let a=grid.get(k); if(!a){ a=[]; grid.set(k,a); } a.push(i); }
+  const ei=[], ej=[], elen=[], R2=(1.42*sp)*(1.42*sp);
+  for(let i=0;i<N;i++){ const cx=(pos[i].x/cs)|0, cy=(pos[i].y/cs)|0;
+    for(let gy=cy-1;gy<=cy+1;gy++) for(let gx=cx-1;gx<=cx+1;gx++){
+      const a=grid.get(gx+','+gy); if(!a) continue;
+      for(const j of a){ if(j<=i) continue;
+        const dx=pos[i].x-pos[j].x, dy=pos[i].y-pos[j].y, d2=dx*dx+dy*dy;
+        if(d2>R2) continue; ei.push(i); ej.push(j); elen.push(Math.sqrt(d2)); } } }
+  const E=ei.length;
+  // --- adapt conductances with fluctuating demand (this is what keeps loops) ---
+  const kappa=new Float64Array(E); for(let e=0;e<E;e++) kappa[e]=0.5+rng();
+  const g=new Float64Array(E), q=new Float64Array(N), gammaC=P.gammaC, relax=P.relax;
+  for(let it=0; it<P.T; it++){
+    for(let e=0;e<E;e++) g[e]=kappa[e]/elen[e];
+    const Q2=new Float64Array(E);
+    for(let m=0;m<P.M;m++){
+      // fluctuating load: all the supply drains to ONE random node this scenario.
+      // Averaging Q² over many such loads is what makes redundant loops worth
+      // their cost — a single steady load would collapse to a tree.
+      q.fill(0); const k=1+((rng()*(N-1))|0); q[k]=-1; q[0]=1;
+      const p=solveCG(N, ei, ej, g, q, 220);
+      for(let e=0;e<E;e++){ const d=g[e]*(p[ei[e]]-p[ej[e]]); Q2[e]+=d*d; }
+    }
+    // gradual relaxation toward the fixed point κ ∝ ⟨Q²⟩^{1/(1+γ)} — a full
+    // replacement each step would over-commit and prune the loops away
+    let mx=0;
+    for(let e=0;e<E;e++){ const tgt=Math.pow(Q2[e]/P.M+1e-15, 1/(1+gammaC));
+      kappa[e]=(1-relax)*kappa[e]+relax*tgt; if(kappa[e]>mx) mx=kappa[e]; }
+    if(mx>0) for(let e=0;e<E;e++) kappa[e]/=mx;      // normalise (keep the hierarchy)
+  }
+  // --- final steady potentials (uniform demand) → orientation + colour ---
+  for(let e=0;e<E;e++) g[e]=kappa[e]/elen[e];
+  { let s=0; for(let i=1;i<N;i++){ q[i]=-1; s++; } q[0]=s; }
+  const pot=solveCG(N, ei, ej, g, q, 400);
+  let pmin=Infinity,pmax=-Infinity; for(let i=0;i<N;i++){ if(pot[i]<pmin)pmin=pot[i]; if(pot[i]>pmax)pmax=pot[i]; }
+  const pn=(i)=>(pot[i]-pmin)/((pmax-pmin)||1);
+  // --- radius from conductance; prune the weakest tubes to expose the hierarchy.
+  // κ is normalised to a max of 1, so r = rMax·κ^p spans a wide range: a small
+  // exponent p keeps the fine mesh thin while the flow-bearing channels stay fat.
+  const rMax=ART_TIP*6.0;
+  const radOf=(e)=>Math.min(rMax, Math.max(CAP_R, rMax*Math.pow(kappa[e], 0.38)));
+  // prune only the truly negligible tubes (by conductance) so the fine looped mesh
+  // survives — the width hierarchy, not pruning, is what exposes the channels
+  const keep=new Uint8Array(E); for(let e=0;e<E;e++) keep[e]= kappa[e]>8e-4 ?1:0;
+  // --- keep only the connected component that contains the source ---
+  const adj=Array.from({length:N},()=>[]);
+  for(let e=0;e<E;e++) if(keep[e]){ adj[ei[e]].push(e); adj[ej[e]].push(e); }
+  const inComp=new Uint8Array(N), stack=[0]; inComp[0]=1;
+  while(stack.length){ const i=stack.pop(); for(const e of adj[i]){ const o=ei[e]===i?ej[e]:ei[e]; if(!inComp[o]){ inComp[o]=1; stack.push(o); } } }
+  // node radius = widest incident kept tube
+  const nodeR=new Float64Array(N).fill(CAP_R);
+  for(let e=0;e<E;e++){ if(!keep[e]||!inComp[ei[e]]) continue; const v=radOf(e);
+    if(v>nodeR[ei[e]]) nodeR[ei[e]]=v; if(v>nodeR[ej[e]]) nodeR[ej[e]]=v; }
+  // --- materialise nodes + oriented edges into the app graph ---
+  const nodeObj=new Array(N).fill(null);
+  const ensure=(i)=>{ if(nodeObj[i]) return nodeObj[i];
+    const n={x:pos[i].x,y:pos[i].y,children:[],parent:null,radius:nodeR[i]}; addNode(n); nodeObj[i]=n; return n; };
+  for(let e=0;e<E;e++){
+    if(!keep[e]||!inComp[ei[e]]||!inComp[ej[e]]) continue;
+    let i=ei[e], j=ej[e]; if(pot[i]<pot[j]){ const t=i; i=j; j=t; }   // orient a→b downstream
+    const a=ensure(i), b=ensure(j);
+    const ed=mkEdge(a,b,'art','vessel'); ed.radius=(nodeR[i]+nodeR[j])*0.5;
+    ed.oxyFixed=true; ed.oxyA=pn(i); ed.oxyB=pn(j);                   // colour by flow potential
+  }
+  const source=ensure(0);
+  let far=0, fp=Infinity; for(let i=0;i<N;i++){ if(inComp[i]&&nodeObj[i]&&pot[i]<fp){ fp=pot[i]; far=i; } }
+  return { source, sink: nodeObj[far]||source };
+}
+
 // Murray's law: assign radii bottom-up. Leaves get tipR, parents thicken.
 function assignRadii(root, tipR, exp){
   (function rec(n){
@@ -811,14 +932,21 @@ function buildNetwork(seed, preset){
       growTree(rng, root, cloud(Math.round(900*dens),voids), {influence:950,kill:150/Math.sqrt(dens),seg:70*len,maxIter:700,curl,maxNodes:Math.round(1400*dens)});
   };
 
+  let aRoot, vRoot, artLeaves=[], venLeaves=[], capBeds=0;
+  if(preset==='loops'){
+    const L=buildLoops(rng, addNode, mkEdge, {
+      spacing:Math.max(235, 380/Math.sqrt(dens)), T:18, M:22, gammaC:0.85, relax:0.4, voids:voidsA,
+      xLo:0.05, xHi:0.97, yLo:0.07, yHi:0.93});
+    aRoot=L.source; vRoot=L.sink;
+  } else {
   // ---- arterial tree (flows root -> leaves) ----
-  const aRoot={x:-10,y:WORLD.h*0.40};
+  aRoot={x:-10,y:WORLD.h*0.40};
   grow(aRoot, voidsA, 0.12);
   resampleTree(aRoot, VESS_SPACING/Math.sqrt(dens));  // spline-smooth the raw skeleton
   assignRadii(aRoot,ART_TIP,D.murray);
 
   // ---- venous tree (structurally root->leaves; blood flows leaves->root) ----
-  const vRoot={x:-10,y:WORLD.h*0.60};
+  vRoot={x:-10,y:WORLD.h*0.60};
   grow(vRoot, voidsV, -0.10);
   resampleTree(vRoot, VESS_SPACING/Math.sqrt(dens));
   assignRadii(vRoot,VEN_TIP,D.murray);
@@ -844,8 +972,8 @@ function buildNetwork(seed, preset){
   function isArt(){return false;}
   const artSet=new Set(); (function mark(n){artSet.add(n);n.children.forEach(mark);})(aRoot);
   const venSet=new Set(); (function mark(n){venSet.add(n);n.children.forEach(mark);})(vRoot);
-  const artLeaves=[...artSet].filter(n=>n.children.length===0);
-  const venLeaves=[...venSet].filter(n=>n.children.length===0);
+  artLeaves=[...artSet].filter(n=>n.children.length===0);
+  venLeaves=[...venSet].filter(n=>n.children.length===0);
 
   // nearest venular tip for each arteriolar tip (linear scan — leaf counts are modest)
   const nearestLeaf=(x,y,arr)=>{ let best=null,bd=Infinity;
@@ -853,7 +981,7 @@ function buildNetwork(seed, preset){
 
   // ---- CAPILLARY TRANSITION: arteriole tip -> true capillary -> venule tip ----
   // radius eases A_tip -> CAP_R -> V_tip; blood deoxygenates 0..1 along the run.
-  let capBeds=0;
+  capBeds=0;
   for(const aL of artLeaves){
     const vL = nearestLeaf(aL.x,aL.y, venLeaves);
     if(!vL) continue;
@@ -889,9 +1017,11 @@ function buildNetwork(seed, preset){
     e.layer=1;
     capBeds++;
   }
+  } // end non-loops tree construction
 
   // mark oxygenation on vessel edges (arteries oxy~1, veins ~0)
   for(const e of edges){
+    if(e.oxyFixed) continue;                 // loops network carries its own gradient
     if(e.type==='art'){ e.oxyA=1; e.oxyB=1; }
     else if(e.type==='ven'){ e.oxyA=0; e.oxyB=0; }
   }

@@ -110,6 +110,37 @@ tip that meets served tissue simply stops (it doesn't fuse), so the result stays
 tree and the spline / Murray / capillary / flow stages are unchanged. *Refs:*
 Anderson–Chaplain (1998) tumour-angiogenesis model; tip/stalk-cell sprouting.
 
+### 1b-vi. Loops — adaptive flow network (Hu–Cai / Katifori)
+
+The only generator that is **not a tree**. It's a physical optimisation rather
+than a growth rule, and it produces the hierarchical **loops** real dense beds
+have.
+
+1. **Mesh.** Start from a jittered triangular lattice of nodes with one inlet
+   **source**, and connect lattice neighbours into a dense graph full of little
+   triangles (loops).
+2. **Flow solve.** Treat every edge as a resistive tube of conductance `κ_e`. For
+   a demand pattern (currents `q_i`, source positive, sinks negative) the node
+   pressures solve the **graph Laplacian** `L(κ)·p = q` — Kirchhoff's laws — which
+   we solve matrix-free with **conjugate gradient** (the Laplacian is singular but
+   consistent; the gauge is fixed by keeping everything mean-zero). Edge flow is
+   `Q_e = (κ_e/ℓ_e)(p_a − p_b)`.
+3. **Adapt.** Move each conductance toward the optimum `κ_e ∝ ⟨Q_e²⟩^{1/(1+γ)}`
+   (a cost/dissipation trade-off; `γ` is the material exponent), relaxing
+   gradually rather than replacing outright, and repeat.
+4. **Fluctuating load — the crucial part.** A single steady demand would collapse
+   the mesh to a tree. Instead each adaptation step averages `Q²` over many random
+   loads (here: all the supply draining to **one random node** at a time). Serving
+   every possible load makes redundant loops worth their cost, so loops **survive
+   at every scale** — the Corson / Katifori result.
+
+Tube radius comes from the converged conductance (`r ∝ κ^p`, so a few fat channels
+feed a fine reticular mesh), the weakest tubes are pruned, edges are oriented and
+coloured by the final flow potential, and the network is handed to the same merge
+/ z-order / flow machinery as the trees — which already works on a general graph,
+loops and all. *Refs:* Hu & Cai (2013); Ronellenfitsch & Katifori (2016);
+Corson (2010); Katifori et al. (2010).
+
 ### 1c. Vessel calibre — Murray's law
 
 Whatever grows the skeleton, segment **radii** are assigned bottom-up with
