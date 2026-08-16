@@ -22,6 +22,8 @@
   --muted: #a1826a;
   --border: #f0e4d3;
   --card-bg: #fffdf9;
+  --shimmer-a: #f0e4d3;
+  --shimmer-b: #fffdf9;
 }
 [data-theme="dark"] {
   --bg: #1c1712;
@@ -30,6 +32,8 @@
   --muted: #b6a48f;
   --border: #3c3226;
   --card-bg: #241e18;
+  --shimmer-a: #3c3226;
+  --shimmer-b: #4a3d2e;
 }
 * { box-sizing: border-box; }
 body {
@@ -88,6 +92,52 @@ header.hero h1 {
   font-size: .85rem;
 }
 
+.dropdown-wrap { position: relative; }
+.dropdown-panel {
+  display: none;
+  position: absolute;
+  top: 115%;
+  left: 0;
+  background: var(--panel-bg);
+  color: var(--ink);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  padding: .8rem;
+  z-index: 100;
+  min-width: 15rem;
+  box-shadow: 0 8px 24px rgba(0,0,0,.25);
+  flex-direction: column;
+  gap: .6rem;
+}
+.dropdown-panel.open { display: flex; }
+.dropdown-panel label {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  font-size: .82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.dropdown-panel .opt-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  font-size: .8rem;
+  font-weight: 700;
+}
+.dropdown-panel select {
+  font-family: inherit;
+  font-size: .8rem;
+  font-weight: 600;
+  padding: .25rem .5rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  color: var(--ink);
+}
+.dropdown-panel hr { border: none; border-top: 1px solid var(--border); margin: .1rem 0; width: 100%; }
+
 .filters-panel {
   background: var(--panel-bg);
   border-bottom: 2px dashed var(--border);
@@ -124,9 +174,9 @@ header.hero h1 {
 
 main { max-width: 1200px; margin: 0 auto; padding: 1rem 1.2rem 3rem; }
 main.layout-screen { max-width: none; }
-main.layout-screen .card img { max-height: calc(var(--card-width, 9rem) * 0.55); }
-main.layout-screen .cal-entry { font-size: calc(var(--card-width, 9rem) * 0.055); }
-main.layout-screen .cal-entry img { width: calc(var(--card-width, 9rem) * 0.15); height: calc(var(--card-width, 9rem) * 0.15); }
+main.layout-screen .card img, main.layout-screen .card .placeholder { height: calc(var(--card-width, 15vw) * 0.55); }
+main.layout-screen .cal-entry { font-size: calc(var(--card-width, 15vw) * 0.055 * var(--text-scale, 1)); }
+main.layout-screen .cal-entry img { width: calc(var(--card-width, 15vw) * 0.15); height: calc(var(--card-width, 15vw) * 0.15); }
 
 .day-block { margin-bottom: 1.6rem; break-inside: avoid-page; }
 .year-block { margin-bottom: 1.6rem; }
@@ -162,12 +212,38 @@ main.layout-screen .cal-entry img { width: calc(var(--card-width, 9rem) * 0.15);
   text-align: center;
   background: var(--card-bg);
 }
-.card img { max-width: 90%; max-height: 3.6rem; object-fit: contain; margin-bottom: .25rem; cursor: zoom-in; }
-.card .placeholder { height: 3.6rem; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; margin-bottom: .25rem; }
-.card .cname { font-weight: 700; font-size: .7rem; line-height: 1.15; }
-.card .cyear { font-size: .62rem; color: var(--muted); }
+.card img { width: 100%; height: 3.6rem; object-fit: contain; margin-bottom: .25rem; cursor: zoom-in; border-radius: 4px; }
+.card .placeholder { width: 100%; height: 3.6rem; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; margin-bottom: .25rem; }
+.card .cname { font-weight: 700; font-size: calc(.7rem * var(--text-scale, 1)); line-height: 1.15; }
+.card .cdesc { font-size: calc(.64rem * var(--text-scale, 1)); color: var(--muted); font-style: italic; line-height: 1.1; }
+.card .cyear { font-size: calc(.62rem * var(--text-scale, 1)); color: var(--muted); }
 .card a.cname-link { color: var(--ty-red-dark); text-decoration: none; }
 .card a.cname-link:hover { text-decoration: underline; }
+.card-badges { display: flex; flex-wrap: wrap; gap: .2rem; justify-content: center; margin-top: .2rem; }
+.badge-pill {
+  font-size: calc(.58rem * var(--text-scale, 1));
+  font-weight: 800;
+  padding: .1rem .45rem;
+  border-radius: 999px;
+  color: white;
+  white-space: nowrap;
+}
+.badge-pill.type { background: var(--ty-red-dark); }
+.badge-pill.current { background: var(--grass-green); }
+.badge-pill.oos { background: var(--orange); }
+.badge-pill.retired { background: var(--purple); }
+
+/* Shimmer placeholder while an image loads, sized so nothing jumps once it's ready. */
+img.beanie-img {
+  background-image: linear-gradient(100deg, var(--shimmer-a) 30%, var(--shimmer-b) 50%, var(--shimmer-a) 70%);
+  background-size: 300% 100%;
+  animation: beanie-shimmer 1.3s ease-in-out infinite;
+}
+img.beanie-img.loaded { animation: none; background-image: none; }
+@keyframes beanie-shimmer {
+  0% { background-position: 150% 0; }
+  100% { background-position: -150% 0; }
+}
 
 section.month { margin-bottom: 2rem; scroll-margin-top: 1rem; }
 section.month h2 {
@@ -194,7 +270,7 @@ section.month h2 {
 .cal-day.empty { background: transparent; border-color: transparent; }
 .cal-day .daynum { font-weight: 800; font-size: .75rem; color: var(--muted); margin-bottom: .2rem; }
 .cal-entries { display: grid; grid-template-columns: 1fr 1fr; gap: 0 .3rem; }
-.cal-entry { display: flex; align-items: center; gap: .2rem; font-size: .62rem; line-height: 1.1; margin-bottom: .15rem; min-width: 0; }
+.cal-entry { display: flex; align-items: center; gap: .2rem; font-size: calc(.62rem * var(--text-scale, 1)); line-height: 1.1; margin-bottom: .15rem; min-width: 0; }
 .cal-entry img { width: 1rem; height: 1rem; object-fit: contain; border-radius: 2px; background: var(--bg); flex-shrink: 0; cursor: zoom-in; }
 .cal-entry .ename { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .cal-entry.oos { color: var(--orange); }
@@ -223,11 +299,54 @@ footer { text-align: center; padding: 1.5rem; color: var(--muted); font-size: .8
   display: none;
   align-items: center;
   justify-content: center;
-  background: rgba(0,0,0,.82);
+  background: rgba(0,0,0,.85);
   z-index: 2000;
-  cursor: zoom-out;
+  touch-action: pan-y;
 }
-#lightbox img { max-width: 90vw; max-height: 90vh; object-fit: contain; background: white; border-radius: 10px; padding: 1rem; }
+#lightbox .lb-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 92vw;
+  max-height: 92vh;
+  cursor: default;
+}
+#lightbox img { max-width: 88vw; max-height: 70vh; object-fit: contain; background: white; border-radius: 10px; padding: 1rem; }
+#lightbox .lb-info { color: white; text-align: center; margin-top: .8rem; max-width: 30rem; }
+#lightbox .lb-info .lb-name { font-size: 1.3rem; font-weight: 800; }
+#lightbox .lb-info .lb-desc { font-size: .95rem; font-style: italic; opacity: .9; margin-top: .2rem; }
+#lightbox .lb-info .lb-meta { font-size: .85rem; opacity: .8; margin-top: .4rem; }
+.lb-nav {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255,255,255,.15);
+  color: white;
+  border: 2px solid rgba(255,255,255,.6);
+  border-radius: 999px;
+  width: 3rem;
+  height: 3rem;
+  font-size: 1.4rem;
+  cursor: pointer;
+  z-index: 2001;
+}
+.lb-nav:hover { background: rgba(255,255,255,.3); }
+#lb-prev { left: 1.5rem; }
+#lb-next { right: 1.5rem; }
+#lb-close {
+  position: fixed;
+  top: 1.2rem;
+  right: 1.5rem;
+  background: rgba(255,255,255,.15);
+  color: white;
+  border: 2px solid rgba(255,255,255,.6);
+  border-radius: 999px;
+  width: 2.4rem;
+  height: 2.4rem;
+  font-size: 1.1rem;
+  cursor: pointer;
+  z-index: 2001;
+}
 
 @media print {
   .filters-panel, .controls, footer, #hover-preview, #lightbox { display: none !important; }
@@ -258,7 +377,30 @@ footer { text-align: center; padding: 1.5rem; color: var(--muted); font-size: .8
       <option value="print">Print Layout</option>
       <option value="screen">Screen Layout</option>
     </select>
-    <input type="range" id="cell-size" min="5" max="16" step="0.5" title="Cell size">
+    <input type="range" id="cell-size" min="5" max="100" step="1" title="Cell size">
+    <input type="range" id="text-size" min="0.6" max="2.5" step="0.1" title="Text size">
+    <div class="dropdown-wrap">
+      <button id="display-opts-btn" type="button">⚙️ Display Options</button>
+      <div id="display-opts-panel" class="dropdown-panel">
+        <label><input type="checkbox" id="opt-year"> Show Year</label>
+        <label><input type="checkbox" id="opt-type"> Show Product Type</label>
+        <label><input type="checkbox" id="opt-desc"> Show Description</label>
+        <hr>
+        <div class="opt-row"><span>Product type as</span>
+          <select id="opt-type-mode">
+            <option value="label">Label</option>
+            <option value="inline">Part of name</option>
+          </select>
+        </div>
+        <div class="opt-row"><span>Status as</span>
+          <select id="opt-status-mode">
+            <option value="sections">Section headers</option>
+            <option value="labels">Labels</option>
+            <option value="hidden">Hidden</option>
+          </select>
+        </div>
+      </div>
+    </div>
     <button id="theme-btn" type="button">🌙 Dark</button>
     <button id="print-btn" type="button">🖨️ Print / Save as PDF</button>
     <span class="stat-pill" id="stat-total">Loading&hellip;</span>
@@ -322,7 +464,19 @@ footer { text-align: center; padding: 1.5rem; color: var(--muted); font-size: .8
 </footer>
 
 <div id="hover-preview"><img src="" alt=""></div>
-<div id="lightbox"><img src="" alt=""></div>
+<div id="lightbox">
+  <button id="lb-prev" class="lb-nav" type="button" aria-label="Previous">&#8592;</button>
+  <button id="lb-next" class="lb-nav" type="button" aria-label="Next">&#8594;</button>
+  <button id="lb-close" type="button" aria-label="Close">&#10005;</button>
+  <div class="lb-content">
+    <img id="lb-img" src="" alt="">
+    <div class="lb-info">
+      <div class="lb-name" id="lb-name"></div>
+      <div class="lb-desc" id="lb-desc"></div>
+      <div class="lb-meta" id="lb-meta"></div>
+    </div>
+  </div>
+</div>
 
 <script>
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -338,8 +492,14 @@ const DEFAULT_SETTINGS = {
   statusFilters: ["current", "oos", "retired"],
   typeFilters: ALL_PRODUCT_TYPES.slice(),
   layoutMode: "print",
-  cardWidth: 9,
-  search: ""
+  cardWidth: 15,
+  textScale: 1,
+  search: "",
+  showYear: true,
+  showType: true,
+  showDescription: false,
+  typeDisplayMode: "label",
+  statusDisplayMode: "sections"
 };
 
 function loadSettings() {
@@ -359,11 +519,16 @@ let ALL_ITEMS = [];
 let settings = loadSettings();
 let statusFilters = new Set(settings.statusFilters);
 let typeFilters = new Set(settings.typeFilters);
+let LIGHTBOX_ITEMS = [];
+let lightboxIndex = -1;
 
 function statusKey(item) {
   if (item.is_retired) return "retired";
   if (item.is_out_of_stock) return "oos";
   return "current";
+}
+function statusLabel(key) {
+  return key === "current" ? "Current" : (key === "oos" ? "Out of Stock" : "Retired");
 }
 
 function base64ToBytes(b64) {
@@ -389,32 +554,57 @@ async function loadData() {
   render();
 }
 
-function displayLabel(item) {
-  const name = item.web_display_name;
-  const idx = name.indexOf(" - ");
-  if (idx === -1) return titleCase(name);
-  return titleCase(name.slice(0, idx)) + " \u2014 " + name.slice(idx + 3);
-}
 function titleCase(s) {
   return s.replace(/\w\S*/g, t => t[0].toUpperCase() + t.slice(1).toLowerCase());
 }
+function splitName(item) {
+  const name = item.web_display_name;
+  const idx = name.indexOf(" - ");
+  if (idx === -1) return { name: titleCase(name), description: "" };
+  return { name: titleCase(name.slice(0, idx)), description: name.slice(idx + 3) };
+}
+
+function typeBadgeHtml(item) {
+  if (!settings.showType || settings.typeDisplayMode !== "label") return "";
+  return `<span class="badge-pill type">${item.product_type}</span>`;
+}
+function statusBadgeHtml(item) {
+  if (settings.statusDisplayMode !== "labels") return "";
+  return `<span class="badge-pill ${item._statusKey}">${statusLabel(item._statusKey)}</span>`;
+}
+
+function trackItem(item) {
+  LIGHTBOX_ITEMS.push(item);
+  return LIGHTBOX_ITEMS.length - 1;
+}
 
 function cardHtml(item) {
-  const label = displayLabel(item);
+  const { name, description } = splitName(item);
+  let nameText = name;
+  if (settings.showType && settings.typeDisplayMode === "inline") nameText += ` (${item.product_type})`;
+  const idx = trackItem(item);
   const img = item.image_file
-    ? `<img src="${item.image_file}" alt="" loading="lazy" data-preview="${item.image_file}">`
+    ? `<img class="beanie-img" src="${item.image_file}" alt="" loading="lazy" data-idx="${idx}" onload="this.classList.add('loaded')">`
     : `<div class="placeholder">\ud83e\uddf8</div>`;
   const nameHtml = item.product_url
-    ? `<a class="cname cname-link" href="${item.product_url}" target="_blank" rel="noopener">${label}</a>`
-    : `<div class="cname">${label}</div>`;
-  return `<div class="card">${img}${nameHtml}<div class="cyear">${item._year}</div></div>`;
+    ? `<a class="cname cname-link" href="${item.product_url}" target="_blank" rel="noopener">${nameText}</a>`
+    : `<div class="cname">${nameText}</div>`;
+  const descHtml = settings.showDescription && description ? `<div class="cdesc">${description}</div>` : "";
+  const yearHtml = settings.showYear ? `<div class="cyear">${item._year}</div>` : "";
+  const badges = typeBadgeHtml(item) + statusBadgeHtml(item);
+  const badgesHtml = badges ? `<div class="card-badges">${badges}</div>` : "";
+  return `<div class="card">${img}${nameHtml}${descHtml}${yearHtml}${badgesHtml}</div>`;
 }
 
 function calEntryHtml(item) {
-  const label = displayLabel(item);
-  const cls = item._statusKey === "oos" ? " oos" : (item._statusKey === "retired" ? " retired" : "");
+  const { name } = splitName(item);
+  let label = name;
+  if (settings.showType && settings.typeDisplayMode === "inline") label += ` (${item.product_type})`;
+  const cls = settings.statusDisplayMode === "hidden" ? "" :
+    (item._statusKey === "oos" ? " oos" : (item._statusKey === "retired" ? " retired" : ""));
+  const idx = trackItem(item);
   const img = item.image_file
-    ? `<img src="${item.image_file}" alt="" data-preview="${item.image_file}">`
+    ? `<img class="beanie-img" src="${item.image_file}" alt="" data-idx="${idx}" onload="this.classList.add('loaded')">`
     : `<span>\ud83e\uddf8</span>`;
   return `<div class="cal-entry${cls}">${img}<span class="ename">${label}</span></div>`;
 }
@@ -449,6 +639,20 @@ function visibleItems() {
   return applyDedup(applyStatusTypeFilters());
 }
 
+function statusSections(dayItems, rowClass) {
+  if (settings.statusDisplayMode === "sections") {
+    const sections = [];
+    [["current", "Current"], ["oos", "Out of Stock"], ["retired", "Retired"]].forEach(([key, label]) => {
+      const bucket = dayItems.filter(i => i._statusKey === key).sort((a, b) => b.birth_date.localeCompare(a.birth_date));
+      if (!bucket.length) return;
+      sections.push(`<div class="status-label ${key}">${label} (${bucket.length})</div><div class="${rowClass}">${bucket.map(i => cardHtml(i)).join("")}</div>`);
+    });
+    return sections.join("");
+  }
+  const sorted = dayItems.slice().sort((a, b) => b.birth_date.localeCompare(a.birth_date));
+  return `<div class="${rowClass}">${sorted.map(i => cardHtml(i)).join("")}</div>`;
+}
+
 function renderByBirthday(items) {
   const byDay = new Map();
   items.forEach(i => {
@@ -462,13 +666,7 @@ function renderByBirthday(items) {
     for (let day = 1; day <= 31; day++) {
       const dayItems = byDay.get(month + "-" + day);
       if (!dayItems || !dayItems.length) continue;
-      const sections = [];
-      [["current", "Current"], ["oos", "Out of Stock"], ["retired", "Retired"]].forEach(([key, label]) => {
-        const bucket = dayItems.filter(i => i._statusKey === key).sort((a, b) => b.birth_date.localeCompare(a.birth_date));
-        if (!bucket.length) return;
-        sections.push(`<div class="status-label ${key}">${label} (${bucket.length})</div><div class="card-row">${bucket.map(i => cardHtml(i)).join("")}</div>`);
-      });
-      blocks.push(`<div class="day-block"><div class="block-head">${MONTHS[month - 1]} ${day}</div>${sections.join("")}</div>`);
+      blocks.push(`<div class="day-block"><div class="block-head">${MONTHS[month - 1]} ${day}</div>${statusSections(dayItems, "card-row")}</div>`);
     }
   }
   return blocks.length ? blocks.join("") : emptyState();
@@ -483,8 +681,8 @@ function renderByReleaseDate(items) {
   const years = Array.from(byYear.keys()).sort((a, b) => b - a);
   if (!years.length) return emptyState();
   return years.map(year => {
-    const yearItems = byYear.get(year).slice().sort((a, b) => b.birth_date.localeCompare(a.birth_date));
-    return `<div class="year-block"><div class="block-head">${year} (${yearItems.length})</div><div class="card-row">${yearItems.map(i => cardHtml(i)).join("")}</div></div>`;
+    const yearItems = byYear.get(year);
+    return `<div class="year-block"><div class="block-head">${year} (${yearItems.length})</div>${statusSections(yearItems, "card-row")}</div>`;
   }).join("");
 }
 
@@ -532,9 +730,11 @@ function render() {
   if (mode.startsWith("cal")) classes.push("mode-calendar");
   if (settings.layoutMode === "screen") classes.push("layout-screen");
   main.className = classes.join(" ");
-  main.style.setProperty("--card-width", settings.cardWidth + "rem");
+  main.style.setProperty("--card-width", settings.cardWidth + (settings.layoutMode === "screen" ? "vw" : "rem"));
+  main.style.setProperty("--text-scale", settings.textScale);
   document.getElementById("stat-shown").textContent = "Filtered: " + items.length;
 
+  LIGHTBOX_ITEMS = [];
   if (mode === "birthday") {
     main.innerHTML = renderByBirthday(items);
   } else if (mode === "release") {
@@ -559,12 +759,12 @@ function setupPreview() {
   const hoverPreview = document.getElementById("hover-preview");
   const hoverImg = hoverPreview.querySelector("img");
   const lightbox = document.getElementById("lightbox");
-  const lightboxImg = lightbox.querySelector("img");
+  const lightboxImg = document.getElementById("lb-img");
 
   document.getElementById("main-content").addEventListener("mouseover", e => {
-    const img = e.target.closest("img[data-preview]");
+    const img = e.target.closest("img[data-idx]");
     if (!img) return;
-    hoverImg.src = img.dataset.preview;
+    hoverImg.src = img.src;
     hoverPreview.style.display = "block";
   });
   document.getElementById("main-content").addEventListener("mousemove", e => {
@@ -578,16 +778,66 @@ function setupPreview() {
     hoverPreview.style.top = Math.max(0, y) + "px";
   });
   document.getElementById("main-content").addEventListener("mouseout", e => {
-    if (e.target.closest("img[data-preview]")) hoverPreview.style.display = "none";
+    if (e.target.closest("img[data-idx]")) hoverPreview.style.display = "none";
   });
   document.getElementById("main-content").addEventListener("click", e => {
-    const img = e.target.closest("img[data-preview]");
+    const img = e.target.closest("img[data-idx]");
     if (!img) return;
-    lightboxImg.src = img.dataset.preview;
-    lightbox.style.display = "flex";
+    showLightbox(Number(img.dataset.idx));
     hoverPreview.style.display = "none";
   });
-  lightbox.addEventListener("click", () => { lightbox.style.display = "none"; });
+
+  function showLightbox(idx) {
+    if (!LIGHTBOX_ITEMS.length) return;
+    lightboxIndex = ((idx % LIGHTBOX_ITEMS.length) + LIGHTBOX_ITEMS.length) % LIGHTBOX_ITEMS.length;
+    const item = LIGHTBOX_ITEMS[lightboxIndex];
+    const { name, description } = splitName(item);
+    lightboxImg.classList.remove("loaded");
+    lightboxImg.src = item.image_file || "";
+    document.getElementById("lb-name").textContent = name;
+    document.getElementById("lb-desc").textContent = description || "";
+    document.getElementById("lb-desc").style.display = description ? "block" : "none";
+    document.getElementById("lb-meta").textContent = [item.product_type, item._year, statusLabel(item._statusKey)].join("  \u00b7  ");
+    lightbox.style.display = "flex";
+  }
+  window.beanieShowLightbox = showLightbox;
+
+  function closeLightbox() { lightbox.style.display = "none"; }
+  function prev() { showLightbox(lightboxIndex - 1); }
+  function next() { showLightbox(lightboxIndex + 1); }
+
+  document.getElementById("lb-prev").addEventListener("click", prev);
+  document.getElementById("lb-next").addEventListener("click", next);
+  document.getElementById("lb-close").addEventListener("click", closeLightbox);
+  lightbox.addEventListener("click", e => {
+    if (e.target === lightbox) closeLightbox();
+  });
+  document.addEventListener("keydown", e => {
+    if (lightbox.style.display !== "flex") return;
+    if (e.key === "ArrowLeft") prev();
+    else if (e.key === "ArrowRight") next();
+    else if (e.key === "Escape") closeLightbox();
+  });
+
+  let touchStartX = null;
+  lightbox.addEventListener("touchstart", e => { touchStartX = e.changedTouches[0].clientX; }, { passive: true });
+  lightbox.addEventListener("touchend", e => {
+    if (touchStartX === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 40) { dx > 0 ? prev() : next(); }
+    touchStartX = null;
+  }, { passive: true });
+}
+
+function setupDropdown(btnId, panelId) {
+  const btn = document.getElementById(btnId);
+  const panel = document.getElementById(panelId);
+  btn.addEventListener("click", e => {
+    e.stopPropagation();
+    panel.classList.toggle("open");
+  });
+  panel.addEventListener("click", e => e.stopPropagation());
+  document.addEventListener("click", () => panel.classList.remove("open"));
 }
 
 function initControls() {
@@ -611,15 +861,23 @@ function initControls() {
   const layoutModeEl = document.getElementById("layout-mode");
   const cellSizeEl = document.getElementById("cell-size");
   layoutModeEl.value = settings.layoutMode;
+  cellSizeEl.min = settings.layoutMode === "screen" ? 5 : 4;
+  cellSizeEl.max = settings.layoutMode === "screen" ? 100 : 20;
   cellSizeEl.value = settings.cardWidth;
   cellSizeEl.style.display = settings.layoutMode === "screen" ? "inline-block" : "none";
   layoutModeEl.addEventListener("change", e => {
     settings.layoutMode = e.target.value;
+    cellSizeEl.min = settings.layoutMode === "screen" ? 5 : 4;
+    cellSizeEl.max = settings.layoutMode === "screen" ? 100 : 20;
     cellSizeEl.style.display = settings.layoutMode === "screen" ? "inline-block" : "none";
     saveSettings();
     render();
   });
   cellSizeEl.addEventListener("input", e => { settings.cardWidth = Number(e.target.value); saveSettings(); render(); });
+
+  const textSizeEl = document.getElementById("text-size");
+  textSizeEl.value = settings.textScale;
+  textSizeEl.addEventListener("input", e => { settings.textScale = Number(e.target.value); saveSettings(); render(); });
 
   const searchEl = document.getElementById("search-box");
   searchEl.value = settings.search;
@@ -645,6 +903,24 @@ function initControls() {
       render();
     });
   });
+
+  const optYear = document.getElementById("opt-year");
+  const optType = document.getElementById("opt-type");
+  const optDesc = document.getElementById("opt-desc");
+  const optTypeMode = document.getElementById("opt-type-mode");
+  const optStatusMode = document.getElementById("opt-status-mode");
+  optYear.checked = settings.showYear;
+  optType.checked = settings.showType;
+  optDesc.checked = settings.showDescription;
+  optTypeMode.value = settings.typeDisplayMode;
+  optStatusMode.value = settings.statusDisplayMode;
+  optYear.addEventListener("change", () => { settings.showYear = optYear.checked; saveSettings(); render(); });
+  optType.addEventListener("change", () => { settings.showType = optType.checked; saveSettings(); render(); });
+  optDesc.addEventListener("change", () => { settings.showDescription = optDesc.checked; saveSettings(); render(); });
+  optTypeMode.addEventListener("change", () => { settings.typeDisplayMode = optTypeMode.value; saveSettings(); render(); });
+  optStatusMode.addEventListener("change", () => { settings.statusDisplayMode = optStatusMode.value; saveSettings(); render(); });
+
+  setupDropdown("display-opts-btn", "display-opts-panel");
 }
 
 document.addEventListener("DOMContentLoaded", () => {
