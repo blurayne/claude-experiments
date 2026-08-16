@@ -11,8 +11,11 @@ MONTHS = [
 ]
 
 
-def fmt_date(birth_date, month_name):
-    dt = datetime.strptime(birth_date, "%Y-%m-%d %H:%M:%S")
+def parse_birth_date(birth_date):
+    return datetime.strptime(birth_date, "%Y-%m-%d %H:%M:%S")
+
+
+def fmt_birthday(dt, month_name):
     return f"{month_name} {dt.day}, {dt.year}"
 
 
@@ -119,6 +122,11 @@ nav.month-nav a:hover { transform: scale(1.08); background: var(--sky-blue); col
   border-radius: 8px;
 }
 .filters label:hover { background: #f3f3f3; }
+.filters .sep {
+  width: 2px;
+  background: #eee;
+  margin: 0 .3rem;
+}
 
 main { max-width: 1100px; margin: 0 auto; padding: 1rem 1rem 3rem; }
 
@@ -222,6 +230,10 @@ footer {
   font-size: .85rem;
 }
 footer a { color: var(--ty-red-dark); }
+
+@media print {
+  footer { display: none; }
+}
 """
 
 JS = """
@@ -239,17 +251,36 @@ function applyFilters() {
     card.classList.toggle('hidden', !visible);
   });
 }
+function applySort() {
+  var mode = document.querySelector('input[name="sort-mode"]:checked').value;
+  document.querySelectorAll('.card-grid').forEach(function (grid) {
+    var cards = Array.from(grid.children);
+    cards.sort(function (a, b) {
+      var ka = mode === 'birthday' ? a.dataset.birthday : a.dataset.day.padStart(2, '0');
+      var kb = mode === 'birthday' ? b.dataset.birthday : b.dataset.day.padStart(2, '0');
+      if (ka < kb) return -1;
+      if (ka > kb) return 1;
+      return a.dataset.name.localeCompare(b.dataset.name);
+    });
+    cards.forEach(function (card) { grid.appendChild(card); });
+  });
+}
 document.addEventListener('DOMContentLoaded', function () {
   ['f-current', 'f-oos', 'f-retired'].forEach(function (id) {
     document.getElementById(id).addEventListener('change', applyFilters);
   });
+  document.querySelectorAll('input[name="sort-mode"]').forEach(function (el) {
+    el.addEventListener('change', applySort);
+  });
   applyFilters();
+  applySort();
 });
 """
 
 
 def card_html(item, month_name):
-    date_str = fmt_date(item["birth_date"], month_name)
+    dt = parse_birth_date(item["birth_date"])
+    date_str = fmt_birthday(dt, month_name)
     label = escape(display_label(item))
     is_current_notoos = item["is_current"] and not item["is_out_of_stock"]
 
@@ -277,7 +308,10 @@ def card_html(item, month_name):
     return f"""<div class="card{' is-retired' if item['is_retired'] else ''}"
      data-current="{1 if is_current_notoos else 0}"
      data-oos="{1 if item['is_out_of_stock'] else 0}"
-     data-retired="{1 if item['is_retired'] else 0}">
+     data-retired="{1 if item['is_retired'] else 0}"
+     data-day="{dt.day}"
+     data-birthday="{item['birth_date'][:10]}"
+     data-name="{escape(item['display_name'])}">
   {img_html}
   <div class="info">
     <div class="date">{date_str}</div>
@@ -307,8 +341,11 @@ def main():
     month_sections = []
     for month in range(1, 13):
         month_name = MONTHS[month - 1]
+        # Default sort: month+day (day-of-month), not full birth_date, so e.g.
+        # day 2 sorts before day 10 regardless of birth year.
         month_items = sorted(
-            by_month[month], key=lambda i: (i["birth_date"], i["display_name"])
+            by_month[month],
+            key=lambda i: (parse_birth_date(i["birth_date"]).day, i["birth_date"], i["display_name"]),
         )
         cards = "\n".join(card_html(i, month_name) for i in month_items)
         month_sections.append(f"""
@@ -350,6 +387,9 @@ def main():
   <label><input type="checkbox" id="f-current" checked> ✅ Show Current</label>
   <label><input type="checkbox" id="f-oos" checked> 📦 Show Out of Stock</label>
   <label><input type="checkbox" id="f-retired" checked> 🏛️ Show Retired</label>
+  <span class="sep"></span>
+  <label><input type="radio" name="sort-mode" value="monthday" checked> 🔁 Sort by Month + Day</label>
+  <label><input type="radio" name="sort-mode" value="birthday"> 📅 Sort by Birthday (Year)</label>
 </div>
 
 <main>

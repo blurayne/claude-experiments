@@ -10,8 +10,11 @@ MONTHS = [
 ]
 
 
-def fmt_date(birth_date, month_name):
-    dt = datetime.strptime(birth_date, "%Y-%m-%d %H:%M:%S")
+def parse_birth_date(birth_date):
+    return datetime.strptime(birth_date, "%Y-%m-%d %H:%M:%S")
+
+
+def fmt_birthday(dt, month_name):
     return f"{month_name} {dt.day}, {dt.year}"
 
 
@@ -65,17 +68,21 @@ def main():
 
     for month in range(1, 13):
         month_name = MONTHS[month - 1]
+        # Sort by (day, year) so e.g. day 2 sorts before day 10 regardless of
+        # birth year -- a plain birth_date string sort puts year first.
         month_items = sorted(
-            by_month[month], key=lambda i: (i["birth_date"], i["display_name"])
+            by_month[month],
+            key=lambda i: (parse_birth_date(i["birth_date"]).day, i["birth_date"], i["display_name"]),
         )
         lines.append(f"## {month_name}")
         lines.append("")
         lines.append(f"{len(month_items)} Beanie Babies born in {month_name}.")
         lines.append("")
-        lines.append("| Date | Image | Name | Current | Out of Stock | Retired |")
-        lines.append("|---|---|---|:---:|:---:|:---:|")
+        lines.append("| Month | Day | Birthday | Image | Name | Current | Out of Stock | Retired |")
+        lines.append("|---|---|---|---|---|:---:|:---:|:---:|")
         for item in month_items:
-            date_str = fmt_date(item["birth_date"], month_name)
+            dt = parse_birth_date(item["birth_date"])
+            birthday_str = fmt_birthday(dt, month_name)
             if item["image_file"]:
                 img = f'<img src="{item["image_file"]}" width="56" alt="{item["display_name"]}">'
             else:
@@ -84,7 +91,7 @@ def main():
             name_cell = f"[{label}]({item['product_url']})" if item["product_url"] else label
             is_current_notoos = item["is_current"] and not item["is_out_of_stock"]
             lines.append(
-                f"| {date_str} | {img} | {name_cell} | {check(is_current_notoos)} "
+                f"| {month_name} | {dt.day} | {birthday_str} | {img} | {name_cell} | {check(is_current_notoos)} "
                 f"| {check(item['is_out_of_stock'])} | {check(item['is_retired'])} |"
             )
         lines.append("")
