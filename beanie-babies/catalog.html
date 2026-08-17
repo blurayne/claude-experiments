@@ -135,16 +135,16 @@ header.hero {
 .dropdown-wrap { position: relative; }
 .dropdown-panel {
   display: none;
-  position: absolute;
-  top: 115%;
-  left: 0;
+  position: fixed;
   background: var(--panel-bg);
   color: var(--ink);
   border: 2px solid var(--border);
   border-radius: 10px;
   padding: .8rem;
-  z-index: 100;
+  z-index: 1000;
   min-width: 15rem;
+  max-height: 80vh;
+  overflow-y: auto;
   box-shadow: 0 8px 24px rgba(0,0,0,.25);
   flex-direction: column;
   gap: .6rem;
@@ -990,10 +990,21 @@ function setupPreview() {
 function setupDropdown(btnId, panelId) {
   const btn = document.getElementById(btnId);
   const panel = document.getElementById(panelId);
+  function positionPanel() {
+    const rect = btn.getBoundingClientRect();
+    const width = Math.max(panel.offsetWidth, 240);
+    let left = rect.left;
+    if (left + width > window.innerWidth - 8) left = window.innerWidth - width - 8;
+    panel.style.top = (rect.bottom + 6) + "px";
+    panel.style.left = Math.max(8, left) + "px";
+  }
   btn.addEventListener("click", e => {
     e.stopPropagation();
-    panel.classList.toggle("open");
+    const opening = !panel.classList.contains("open");
+    if (opening) positionPanel();
+    panel.classList.toggle("open", opening);
   });
+  window.addEventListener("resize", () => { if (panel.classList.contains("open")) positionPanel(); });
   panel.addEventListener("click", e => e.stopPropagation());
   document.addEventListener("click", () => panel.classList.remove("open"));
 }
