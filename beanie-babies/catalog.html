@@ -14,6 +14,7 @@
   --grass-green: #4caf50;
   --orange: #f0a02c;
   --purple: #9c6ade;
+  --sky-blue: #3fb6f0;
 }
 [data-theme="light"] {
   --bg: #fff8ee;
@@ -261,6 +262,16 @@ main.layout-screen { max-width: none; }
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  cursor: help;
+}
+.card .cdesc:hover, .card .cdesc.expanded {
+  -webkit-line-clamp: unset;
+  overflow: visible;
+}
+main.full-desc .card .cdesc {
+  -webkit-line-clamp: unset;
+  overflow: visible;
+  cursor: default;
 }
 .card .cyear { font-size: calc(.62rem * var(--text-scale, 1)); color: var(--muted); }
 .card a.cname-link { color: var(--ty-red-dark); text-decoration: none; }
@@ -275,6 +286,7 @@ main.layout-screen { max-width: none; }
   white-space: nowrap;
 }
 .badge-pill.type { background: var(--ty-red-dark); }
+.badge-pill.animal { background: var(--sky-blue); }
 .badge-pill.current { background: var(--grass-green); }
 .badge-pill.oos { background: var(--orange); }
 .badge-pill.retired { background: var(--purple); }
@@ -453,10 +465,18 @@ footer { text-align: center; padding: 1.5rem; color: var(--muted); font-size: .8
       <div id="display-opts-panel" class="dropdown-panel">
         <label><input type="checkbox" id="opt-year"> Show Year</label>
         <label><input type="checkbox" id="opt-type"> Show Product Type</label>
+        <label><input type="checkbox" id="opt-animal"> Show Animal Type</label>
         <label><input type="checkbox" id="opt-desc"> Show Description</label>
+        <label><input type="checkbox" id="opt-full-desc"> Show Full Description (not cut off)</label>
         <hr>
         <div class="opt-row"><span>Product type as</span>
           <select id="opt-type-mode">
+            <option value="label">Label</option>
+            <option value="inline">Part of name</option>
+          </select>
+        </div>
+        <div class="opt-row"><span>Animal type as</span>
+          <select id="opt-animal-mode">
             <option value="label">Label</option>
             <option value="inline">Part of name</option>
           </select>
@@ -567,8 +587,11 @@ const DEFAULT_SETTINGS = {
   search: "",
   showYear: true,
   showType: true,
+  showAnimal: true,
   showDescription: false,
+  fullDescription: false,
   typeDisplayMode: "label",
+  animalDisplayMode: "label",
   statusDisplayMode: "sections",
   optionsOpen: true
 };
@@ -653,9 +676,19 @@ function typeBadgeHtml(item) {
   if (!settings.showType || settings.typeDisplayMode !== "label") return "";
   return `<span class="badge-pill type">${item.product_type}</span>`;
 }
+function animalBadgeHtml(item) {
+  if (!settings.showAnimal || settings.animalDisplayMode !== "label" || !(item.animal_types || []).length) return "";
+  return item.animal_types.map(a => `<span class="badge-pill animal">${a}</span>`).join("");
+}
 function statusBadgeHtml(item) {
   if (settings.statusDisplayMode !== "labels") return "";
   return `<span class="badge-pill ${item._statusKey}">${statusLabel(item._statusKey)}</span>`;
+}
+function inlineSuffix(item) {
+  const parts = [];
+  if (settings.showType && settings.typeDisplayMode === "inline") parts.push(item.product_type);
+  if (settings.showAnimal && settings.animalDisplayMode === "inline" && (item.animal_types || []).length) parts.push(item.animal_types.join("/"));
+  return parts.length ? ` (${parts.join(", ")})` : "";
 }
 
 function trackItem(item) {
@@ -665,8 +698,7 @@ function trackItem(item) {
 
 function cardHtml(item) {
   const { name, description } = splitName(item);
-  let nameText = name;
-  if (settings.showType && settings.typeDisplayMode === "inline") nameText += ` (${item.product_type})`;
+  const nameText = name + inlineSuffix(item);
   const idx = trackItem(item);
   const img = item.image_file
     ? `<img class="beanie-img" src="${item.image_file}" alt="" loading="lazy" data-idx="${idx}" onload="this.classList.add('loaded')" onerror="if(!this.dataset.retried){this.dataset.retried=1;this.src=this.src;}">`
@@ -674,17 +706,16 @@ function cardHtml(item) {
   const nameHtml = item.product_url
     ? `<a class="cname cname-link" href="${item.product_url}" target="_blank" rel="noopener">${nameText}</a>`
     : `<div class="cname">${nameText}</div>`;
-  const descHtml = settings.showDescription && description ? `<div class="cdesc">${description}</div>` : "";
+  const descHtml = settings.showDescription && description ? `<div class="cdesc" data-tap-expand="1">${description}</div>` : "";
   const yearHtml = settings.showYear ? `<div class="cyear">${item._year}</div>` : "";
-  const badges = typeBadgeHtml(item) + statusBadgeHtml(item);
+  const badges = typeBadgeHtml(item) + animalBadgeHtml(item) + statusBadgeHtml(item);
   const badgesHtml = badges ? `<div class="card-badges">${badges}</div>` : "";
   return `<div class="card">${img}${nameHtml}${descHtml}${yearHtml}${badgesHtml}</div>`;
 }
 
 function calEntryHtml(item) {
   const { name } = splitName(item);
-  let label = name;
-  if (settings.showType && settings.typeDisplayMode === "inline") label += ` (${item.product_type})`;
+  const label = name + inlineSuffix(item);
   const cls = settings.statusDisplayMode === "hidden" ? "" :
     (item._statusKey === "oos" ? " oos" : (item._statusKey === "retired" ? " retired" : ""));
   const idx = trackItem(item);
@@ -843,6 +874,7 @@ function render() {
   const classes = [];
   if (isCalendar) classes.push("mode-calendar");
   if (settings.layoutMode === "screen") classes.push("layout-screen");
+  if (settings.fullDescription) classes.push("full-desc");
   main.className = classes.join(" ");
   main.style.setProperty("--columns", settings.columns);
   main.style.setProperty("--text-scale", settings.textScale);
@@ -900,6 +932,11 @@ function setupPreview() {
     if (e.target.closest("img[data-idx]")) hoverPreview.style.display = "none";
   });
   document.getElementById("main-content").addEventListener("click", e => {
+    const desc = e.target.closest("[data-tap-expand]");
+    if (desc) {
+      desc.classList.toggle("expanded");
+      return;
+    }
     const img = e.target.closest("img[data-idx]");
     if (!img) return;
     showLightbox(Number(img.dataset.idx));
@@ -1045,18 +1082,27 @@ function initControls() {
 
   const optYear = document.getElementById("opt-year");
   const optType = document.getElementById("opt-type");
+  const optAnimal = document.getElementById("opt-animal");
   const optDesc = document.getElementById("opt-desc");
+  const optFullDesc = document.getElementById("opt-full-desc");
   const optTypeMode = document.getElementById("opt-type-mode");
+  const optAnimalMode = document.getElementById("opt-animal-mode");
   const optStatusMode = document.getElementById("opt-status-mode");
   optYear.checked = settings.showYear;
   optType.checked = settings.showType;
+  optAnimal.checked = settings.showAnimal;
   optDesc.checked = settings.showDescription;
+  optFullDesc.checked = settings.fullDescription;
   optTypeMode.value = settings.typeDisplayMode;
+  optAnimalMode.value = settings.animalDisplayMode;
   optStatusMode.value = settings.statusDisplayMode;
   optYear.addEventListener("change", () => { settings.showYear = optYear.checked; saveSettings(); render(); });
   optType.addEventListener("change", () => { settings.showType = optType.checked; saveSettings(); render(); });
+  optAnimal.addEventListener("change", () => { settings.showAnimal = optAnimal.checked; saveSettings(); render(); });
   optDesc.addEventListener("change", () => { settings.showDescription = optDesc.checked; saveSettings(); render(); });
+  optFullDesc.addEventListener("change", () => { settings.fullDescription = optFullDesc.checked; saveSettings(); render(); });
   optTypeMode.addEventListener("change", () => { settings.typeDisplayMode = optTypeMode.value; saveSettings(); render(); });
+  optAnimalMode.addEventListener("change", () => { settings.animalDisplayMode = optAnimalMode.value; saveSettings(); render(); });
   optStatusMode.addEventListener("change", () => { settings.statusDisplayMode = optStatusMode.value; saveSettings(); render(); });
 
   setupDropdown("display-opts-btn", "display-opts-panel");

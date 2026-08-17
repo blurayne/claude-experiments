@@ -24,9 +24,11 @@ named). Current items link straight to their product page on ty.com.
   search that matches name, description, animal type, color, pattern, size
   and retailer/region exclusive (with a singular/plural fallback), and
   multi-select status/product-type filters. "Display Options" lets you
-  show/hide year, product type and description, show product type inline in
-  the name or as a label, and show status as section headers, as per-item
-  labels, or hidden. Click a photo for a full-size preview with
+  show/hide year, product type, animal type and description (clamped to 3
+  lines by default -- hover or tap a description to expand it in place, or
+  turn on "Show Full Description" to never clamp), show product/animal type
+  inline in the name or as a label, and show status as section headers, as
+  per-item labels, or hidden. Click a photo for a full-size preview with
   arrow-key/swipe navigation and a slide animation, plus the full name,
   description, product type, year and status; hover for a smaller preview.
   Every setting persists to `localStorage`. The whole dataset is
