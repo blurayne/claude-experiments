@@ -1,0 +1,187 @@
+# AGENTS.md — how this was built
+
+This is a narrative log of building the GIANTmicrobes catalog: what the two sites'
+actual structure turned out to be (neither was what it looked like at first glance),
+what broke and why, and where an LLM was used deliberately instead of a regex.
+`index.md` is the reader-facing summary; this is the build log.
+
+## The two sites are nothing alike
+
+**giantmicrobes.com/us** is Magento. Product pages are `/us/products/<slug>.html`,
+and a `shopall/products/index` listing (Magento's own `?p=N` pagination) plus every
+`/us/main/<category>` page enumerate the current catalog — `fetch_us_catalog_list.py`
+crawls both, unioning the product slugs and recording which category pages each one
+appeared under, since GIANTmicrobes doesn't otherwise expose "category" as a clean
+per-product field the way `/main/*` navigation implies it.
+
+About a third of live product pages (`fetch_us_product_details.py`) don't carry the
+`schema.org/Product` JSON-LD block that most do — diffing a working page (`ecoli.html`,
+small, has JSON-LD) against a failing one (`chocolate.html`, 800KB+, no JSON-LD, no
+gallery markup of any kind, dominated by an unrelated cross-sell widget dump) showed
+these are a different Magento template, used mostly for the accessory-format lines
+(keychains, stickers, ornaments, gift boxes, deluxe packs, skull models) rather than
+anything to do with stock status. The fix was two-layered: fall back to `<title>`/meta
+description for name and description, "Out of stock" text presence for availability,
+and — since these pages also don't expose a scrapeable full-size image — a *second*
+fallback sourced from the small thumbnail images that already show up in the listing
+pages `fetch_us_catalog_list.py` was crawling anyway (Magento serves those from a
+`/media/catalog/product/cache/<hash>/...` path; stripping the `cache/<hash>/` segment
+gets back to the original unresized file path). Lower resolution than the JSON-LD
+path's image, but present — flagged `image_is_fallback_thumb` on the record.
+
+**riesenmikroben.de** looked like a client-rendered SPA at first — `curl` on `/` or
+`/products` returned a ~250KB app shell with no product links, and `curl` on a guessed
+API route (`/products.json`) came back `406 Not Applicable`. A Playwright-driven
+headless-browser probe (`playwright.chromium`, launched directly rather than via the
+`chrome-devtools` MCP server, which was locked by another concurrent session on this
+machine the whole time) showed the *rendered* page had the full catalog with prices —
+but captured zero XHR/fetch requests. That meant it was server-rendered after all, and
+the earlier `curl` output was misleading only because its content (`product/<slug>`
+links, single-quoted HTML attributes like `href='/products/bandwurm?locale=de'`) didn't
+match the double-quoted-`href` regex `fetch_us_catalog_list.py`'s pattern used for the
+US site. Once that was noticed, plain `curl` worked fine and no browser automation was
+needed for the actual scrape.
+
+The real find: riesenmikroben.de embeds its **entire catalog — current, out-of-stock,
+and retired — in the homepage HTML in one request**, using CSS/JS-driven
+`display:none` toggling for client-side category filtering instead of separate pages
+or API calls per category. Each product `<div class='item CLASSES' id='varN'
+style='display:...'>` carries a space-separated set of short codes, and the sidebar's
+own `data-filter='<code>' data-id='<n>'` links give the code → label mapping directly
+from the markup:
+
+```
+s=Bestseller, n=Neue Artikel, c1=Health, c2=Maladies, c3=Probiotics, c4=Venereals,
+c5=Humanities, c6=Little Creatures, c7=Little Critters, ff=Fuzzy Fossils,
+b=Geschenkboxen & Andere, r=RIESENmikroben (standard line), x=XL-Mikroben,
+k=Schluesselanhaenger (keychains), ar=Archiv
+```
+
+`ar` is riesenmikroben.de's own retired/archive marker — so unlike the US site, DE
+retired status needed no Wayback archaeology at all, just this one homepage fetch
+(`fetch_de_catalog.py`). A price is only rendered for orderable items, which
+doubles as a second (redundant, confirming) signal for availability. Per-item
+description/size/confirmed-stock-line come from a lightweight follow-up fetch of each
+product's own detail page (`Sofort lieferbar` / `Derzeit nicht verfügbar` /
+`Ausverkauft`).
+
+## US retired-item archaeology (Wayback Machine)
+
+giantmicrobes.com just delists retired products (404) — no archive section like DE's.
+`discover_retired_products.py` queries the Internet Archive's CDX API
+(`web.archive.org/cdx/search/cdx`) for every historical `/us/products/*.html` capture,
+diffs that against the current live-slug set to get retired candidates (303 of them),
+and fetches each one's most recent surviving snapshot (`web.archive.org/web/<ts>id_/<url>`,
+the `id_` modifier returning the raw unmodified page) to extract name/description/image
+the same way as a live page, with the same JSON-LD → meta-tag fallback chain. Recovery
+was partial and getting a reliable fetch there took three rewrites:
+
+1. **First attempt (plain `urllib`, 6 concurrent workers, exponential backoff on
+   failure):** hung for 20+ minutes with barely any CPU time used. archive.org was
+   occasionally sending `503`s under load, but the real problem was worse than that —
+2. **Second attempt (same, but with a daemon-thread wrapper meant to give `urlopen` a
+   real wall-clock deadline):** still hung, and *memory kept growing* the whole time.
+   `urllib`'s `timeout=` parameter is an *inactivity* timeout (no data for N seconds),
+   not a deadline on the total transfer — a connection that trickles bytes slowly
+   enough never triggers it, and daemon-thread requests that got "abandoned" by the
+   caller kept running and buffering in the background, forever, since nothing ever
+   cancelled the underlying socket read.
+3. **What actually worked:** shelling out to `curl --max-time N`, which *is* a real
+   deadline on the whole request regardless of how the server behaves. Once that
+   swapped in, 303 items finished in about 6 minutes.
+
+Even so, 131 of 303 candidates (43%) never returned a usable snapshot at all (archive.org
+genuinely has no working capture, or it's timing out even with curl), and of the 172
+that did, only 12 still had the JSON-LD template; the rest needed the `<title>`/meta
+fallback. Those 291 items collectively end up with only their URL slug as a name in the
+final dataset (`name_us` == `slug_us`) — documented, not silently dropped, per
+`index.md`'s data-quality notes. "Release date" and "retired" status derived this way
+are labeled `date_confidence: "approximate"` throughout — they're bounded by what the
+Wayback Machine happened to crawl, not the product's real lifecycle.
+
+## Matching US and DE, and translating what's left (this is where the Workflow tool came in)
+
+The user asked explicitly for this to use workflow agents where the task genuinely
+needed judgment, and for a language toggle with translation rather than just "show
+whatever's there." Two passes:
+
+1. **Deterministic pass** (`match_us_de_availability.py`): normalize each item's
+   trailing parenthetical/species string (`"E. coli (Escherichia coli)"` → `escherichia
+   coli`) and match exact string equality across the two catalogs — works because DE's
+   equivalent `sub` field holds the same scientific name for real microbes, *and*, for
+   non-biological novelty items, often holds a literal English gloss instead (DE
+   "Angst" has sub "Anxiety") which also matches directly. A fuzzy-name fallback
+   (`difflib`, 0.85 threshold) catches near-duplicates the species match missed. This
+   found only 69 of 1056 pre-merge items — expected, since riesenmikroben.de simply
+   doesn't stock most of the US accessory-format catalog (keychains, stickers,
+   earrings...), so most "unmatched" items are correctly single-locale, not a matching
+   failure.
+2. **LLM-assisted pass** (a `Workflow` script, `gm-match-translate`, run directly from
+   the orchestrating session rather than as a `.py` file, since only the agent
+   orchestration layer can spawn subagents): the 704 remaining US-only and 283
+   remaining DE-only items were written to compact `{slug, name, species}` JSON files
+   in `/tmp` (`us_compact.json`, `de_compact.json`) — deliberately *not* passed as
+   in-context `args` to the workflow, since reading either file directly into the
+   orchestrator's own context to relay it cost tens of thousands of tokens for no
+   reason; instead every spawned agent read the files itself with its own `Read` tool,
+   which doesn't touch the orchestrator's context at all. Stage A batched the US-only
+   list (50 items/batch, 15 batches in parallel) against the *full* DE-only list each
+   time, asking each agent to find real cross-language matches (e.g. "MRSA
+   (Methicillin-resistant Staphylococcus aureus)" ↔ DE "MRSA" species "staphylococcus
+   aureus"; explicitly told not to match a US keychain/sticker/accessory to a DE item
+   unless the DE item was clearly that same accessory) and, for anything left
+   unmatched, produce a natural German translation of the US name. Stage B then
+   translated whatever DE-only items stage A didn't claim as a match into English.
+   Result: 238 additional matched pairs (307 total, up from 69), 440 US-only items
+   given a German name, 44 DE-only items given an English name. `apply_llm_matches.py`
+   folds `llm_matches.json` back into `merged_catalog.json` — merging matched pairs
+   into single records and flagging every machine-translated name with
+   `name_us_is_translation` / `name_de_is_translation` so the catalog doesn't imply a
+   translation is the retailer's own copy.
+
+US takes precedence as the canonical `name` field, per the user's explicit
+instruction — a product exists in the US line first, if it's ever offered elsewhere,
+so `name = name_us or name_de`. The catalog's 🇺🇸/🇩🇪 toggle switches every
+displayed name/description/price/status between locales live.
+
+## Images: background removal is real work here, not a format hop
+
+beanie-babies' ty.com photos were already pre-cut transparent PNGs; GIANTmicrobes'
+product photos are plain studio shots on a white background. `remove_background.py`
+runs `rembg` (the `u2net` ONNX model, ~176MB, downloaded on first run) over every
+downloaded photo before AVIF conversion. One real bug here: the script renamed files
+on disk (`.jpg` → `.png`) but the first version never updated `merged_catalog.json`'s
+`image_file` field to match — so `convert_to_avif.py`'s own rename-tracking (which
+diffs old vs. new *basenames* to patch the dataset) was comparing against a filename
+that no longer existed, and every single image reference in the dataset silently went
+stale, pointing at a deleted file. Caught by an actual browser check (Playwright
+navigating the generated `catalog.html` and asserting `.loaded` image count > 0, not
+just "the script exited 0") — the generation script had run cleanly and reported
+success; only opening the page showed nothing was rendering. Fixed by having
+`remove_background.py` build and apply its own filename-map the same way
+`convert_to_avif.py` already did, and by a one-off repair pass matching each item's
+`images/<slug>.avif` against what was actually on disk.
+
+Only one image per item is kept (US preferred over DE when both exist) — both sites
+show a full photo gallery per product, and processing 10+ images/item through
+background removal for 818 items wasn't worth it for a catalog viewer.
+
+## Rate limiting / politeness
+
+Small per-page delays (`time.sleep(0.2)`) during the US category-page crawl; `curl`
+with real deadlines rather than unbounded retries against archive.org; a custom
+desktop `User-Agent` and `Referer` header throughout (matching the pattern from
+`beanie-babies/scripts/`) so requests look like an ordinary browser rather than a
+bare script. Both sites' `robots.txt` were checked — neither disallows the paths this
+pipeline touches (giantmicrobes.com only excludes a few special-offer landing pages
+irrelevant here; riesenmikroben.de has no `robots.txt` restrictions found).
+
+## Re-running
+
+See `index.md`'s "Note on rebuilding" for the script order. Every script is a
+`uv`-shebang (`#!/usr/bin/env -S uv run --script`) single file with inline PEP 723
+dependency metadata — `chmod +x` and run directly, or `uv run scripts/<name>.py`. The
+LLM matching/translation step (`gm-match-translate`) is a `Workflow` script, not a
+plain Python file — it isn't meant to be re-run standalone unless the deterministic
+match in `match_us_de_availability.py` has been re-run first and produced fresh
+`us_unmatched.json`/`de_unmatched.json` to feed it.
