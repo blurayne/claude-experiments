@@ -74,14 +74,16 @@ body {
   background: var(--bg);
   color: var(--ink);
 }
-header.hero {
+.sticky-wrap {
   position: sticky;
   top: 0;
   z-index: 500;
+  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+}
+header.hero {
   background: linear-gradient(135deg, var(--ty-red) 0%, #ff6a5c 50%, var(--sunny-yellow) 100%);
   color: white;
   padding: .8rem 1.5rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,.15);
 }
 .hero-top {
   display: flex;
@@ -422,16 +424,25 @@ footer { text-align: center; padding: 1.5rem; color: var(--muted); font-size: .8
 
 @media print {
   #options-panel, #options-toggle-btn, footer, #hover-preview, #lightbox { display: none !important; }
-  header.hero { position: static; padding: .5rem 1rem; box-shadow: none; }
+  .sticky-wrap { position: static; box-shadow: none; }
+  header.hero { padding: .5rem 1rem; }
   .hero-top h1 { font-size: 1.2rem; }
   body { background: white; }
   [data-theme="dark"] { --bg: white; --panel-bg: white; --ink: black; --card-bg: white; }
   .day-block, .card { break-inside: avoid; }
   section.month { break-before: page; }
   section.month:first-of-type { break-before: auto; }
-  @page { size: A4 portrait; margin: 12mm; }
+  @page {
+    size: A4 portrait;
+    margin: 12mm;
+    @bottom-center { content: "Page " counter(page) " of " counter(pages); font-size: 9pt; color: #a1826a; }
+  }
   main.mode-calendar { page: calendar-page; }
-  @page calendar-page { size: A4 landscape; margin: 10mm; }
+  @page calendar-page {
+    size: A4 landscape;
+    margin: 10mm;
+    @bottom-center { content: "Page " counter(page) " of " counter(pages); font-size: 9pt; color: #a1826a; }
+  }
 }
 """
 
@@ -957,6 +968,7 @@ def main():
 <style>{CSS}</style>
 </head>
 <body>
+<div class="sticky-wrap">
 <header class="hero">
   <div class="hero-top">
     <h1>\U0001f9f8 Ty Beanie Baby Catalog</h1>
@@ -1044,6 +1056,7 @@ def main():
       </div>
     </div>
   </div>
+</div>
 </div>
 
 <main id="main-content"></main>
