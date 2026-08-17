@@ -1,6 +1,6 @@
 # Ty Beanie Baby Birthday Calendar
 
-Every Ty Beanie Baby's birthday, parsed straight from Ty's own [birthday calendar tool](https://www.ty.com/birthdaycalendar.html?lang=en), with downloaded photos and current/out-of-stock/retired status for each one. See [calendar.html](calendar.html) for the styled, browsable version.
+Every Ty Beanie Baby's birthday, parsed straight from Ty's own [birthday calendar tool](https://www.ty.com/birthdaycalendar.html?lang=en), with downloaded photos and current/out-of-stock/retired status for each one. See [catalog.html](catalog.html) for the interactive, browsable version.
 
 **2779 Beanie Babies** across the year — 287 current, 37 current but out of stock, 2455 retired.
 

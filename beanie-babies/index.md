@@ -5,26 +5,30 @@ A full year of Ty Beanie Baby birthdays, parsed straight from
 (which turned out to be a small Nuxt app at `tools.ty.com` backed by a JSON API,
 `GET /api/birthday-calendar/month/{1-12}`). Every Beanie Baby with a birthday —
 2,779 of them — with its photo downloaded locally (AVIF, transparent background),
-marked as **current**, **out of stock**, or **retired**, and classified by
+marked as **current**, **out of stock**, or **retired**, classified by
 **product type** (Beanie Baby, Beanie Boo, Beanie Belly, Slipper, Clip/Keychain,
-Sparkle/Sequin Beanie, and more — see `scripts/classify_product_types.py`).
+Sparkle/Sequin Beanie, and more), and with structured details extracted from
+its description (animal type, colors, patterns, size, retailer exclusive).
 Current items link straight to their product page on ty.com.
 
-- [**catalog.html**](catalog.html) — the interactive, all-in-one browser.
-  Switch between three views (by birthday day/month, by release date, or a
-  real monthly wall calendar for this year or next), toggle light/dark theme
-  and a print/screen layout with an adjustable cell-size slider, search by
-  keyword, deduplicate by name or name+year (keeping the oldest or newest
-  variant), filter by status and product type (multi-select), and click any
-  photo for a full-size preview (hover for a smaller one). Every setting is
-  remembered in `localStorage`. The whole dataset is embedded in the page, so
-  it works opened directly from disk (`file://`) — no server needed. Print via
-  the browser's own Ctrl/Cmd+P; the monthly-calendar view starts each month on
-  its own page.
-- [**calendar.html**](calendar.html) — the original styled, browsable version.
-  Bright TY-red/sunny-yellow styling, a sticky month jump bar, checkboxes to
-  filter by Current / Out of Stock / Retired, and a toggle to sort by
-  month+day or by full birthday (year).
+- [**catalog.html**](catalog.html) — the interactive, all-in-one browser. A
+  sticky header with a collapsible options panel holds every control:
+  display mode (by birthday, by release date, by name, or a real monthly
+  wall calendar for this year or next — each with an up/down sort-order
+  toggle except the calendar), a print/screen layout switch with a columns
+  slider and an independent text-size slider, light/dark theme, dedup (by
+  name or name+year, keeping the oldest or newest variant), a free-text
+  search that matches name, description, animal type, color, pattern, size
+  and retailer/region exclusive, and multi-select status/product-type
+  filters. "Display Options" lets you show/hide year, product type and
+  description, show product type inline in the name or as a label, and show
+  status as section headers, as per-item labels, or hidden. Click a photo
+  for a full-size preview with arrow-key/swipe navigation and a slide
+  animation; hover for a smaller one. Every setting persists to
+  `localStorage`. The whole dataset is base64-embedded in the page, so it
+  works opened directly from disk (`file://`) — no server needed. Print via
+  the browser's own Ctrl/Cmd+P (page numbers included); the monthly-calendar
+  view starts each month on its own page.
 - [**calendar.md**](calendar.md) — the same data as a plain markdown table,
   one section per month, with separate Month/Day/Birthday columns.
 - [`images/`](images/) — every downloaded product photo (AVIF), named by item
@@ -37,9 +41,11 @@ Current items link straight to their product page on ty.com.
   it), `download_images.py` (pulls every photo), `convert_to_avif.py`
   (AVIF + transparency), `classify_product_types.py` (fetches ty.com's own
   catalog category listings as ground truth, falls back to keyword rules for
-  retired items), `integrate_found_images.py` (the 10 manually-sourced
-  replacement photos), and `generate_markdown.py` / `generate_html.py` /
-  `generate_unified_catalog.py` (render the three output files from
+  retired items), `classify_animal_types.py` and `extract_descriptions.py`
+  (derive animal type, colors, patterns, size and retailer-exclusive from
+  each item's description), `integrate_found_images.py` (the 10
+  manually-sourced replacement photos), and `generate_markdown.py` /
+  `generate_unified_catalog.py` (render the two output files from
   `calendar_data.json.gz`).
 
 ## By the numbers
@@ -65,4 +71,5 @@ catalog and re-running it later would just produce diffs from stock/retirement
 changes over time, not from anything in this repo. Re-run the scripts manually
 if you want a fresh snapshot, roughly in this order: `fetch_calendar_data.py`,
 `verify_links.py`, `download_images.py`, `convert_to_avif.py`,
-`classify_product_types.py`, then the three `generate_*.py` renderers.
+`classify_product_types.py`, `classify_animal_types.py`,
+`extract_descriptions.py`, then the two `generate_*.py` renderers.

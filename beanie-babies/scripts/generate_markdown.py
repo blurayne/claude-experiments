@@ -45,7 +45,7 @@ def main():
         "Every Ty Beanie Baby's birthday, parsed straight from Ty's own "
         "[birthday calendar tool](https://www.ty.com/birthdaycalendar.html?lang=en), "
         "with downloaded photos and current/out-of-stock/retired status for each one. "
-        "See [calendar.html](calendar.html) for the styled, browsable version."
+        "See [catalog.html](catalog.html) for the interactive, browsable version."
     )
     lines.append("")
 

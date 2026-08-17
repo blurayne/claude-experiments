@@ -519,6 +519,16 @@ async function loadData() {
     item._year = y;
     item._day = d;
     item._statusKey = statusKey(item);
+    item._searchText = [
+      item.web_display_name,
+      item.product_type,
+      item.description,
+      item.retailer_exclusive,
+      ...(item.animal_types || []),
+      ...(item.colors || []),
+      ...(item.patterns || []),
+      item.size,
+    ].filter(Boolean).join(" ").toLowerCase();
   });
   document.getElementById("stat-total").textContent = "Total: " + ALL_ITEMS.length;
   render();
@@ -594,8 +604,7 @@ function applyStatusTypeFilters() {
   return ALL_ITEMS.filter(i => {
     if (!statusFilters.has(i._statusKey) || !typeFilters.has(i.product_type)) return false;
     if (!query) return true;
-    const haystack = i.web_display_name.toLowerCase() + " " + i.product_type.toLowerCase() + " " + (i.animal_types || []).join(" ");
-    return variants.some(v => haystack.includes(v));
+    return variants.some(v => i._searchText.includes(v));
   });
 }
 
@@ -1074,7 +1083,7 @@ def main():
 
 <footer>
   Data parsed from <a href="https://www.ty.com/birthdaycalendar.html?lang=en" target="_blank" rel="noopener">ty.com's birthday calendar</a>.
-  Also available as <a href="calendar.md">plain markdown</a> and the <a href="calendar.html">card-view calendar</a>.
+  Also available as <a href="calendar.md">plain markdown</a>.
 </footer>
 
 <div id="hover-preview"><img src="" alt=""></div>
