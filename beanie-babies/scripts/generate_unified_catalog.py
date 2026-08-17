@@ -579,12 +579,23 @@ function calEntryHtml(item) {
   return `<div class="cal-entry${cls}">${img}<span class="ename">${label}</span></div>`;
 }
 
+function queryVariants(query) {
+  // Cheap singular/plural fallback so "cats" also matches "cat" and
+  // "bouncers" also matches the product type "Beanie Bouncer".
+  const variants = [query];
+  if (query.endsWith("s") && query.length > 3) variants.push(query.slice(0, -1));
+  else variants.push(query + "s");
+  return variants;
+}
+
 function applyStatusTypeFilters() {
   const query = settings.search.trim().toLowerCase();
+  const variants = query ? queryVariants(query) : [];
   return ALL_ITEMS.filter(i => {
     if (!statusFilters.has(i._statusKey) || !typeFilters.has(i.product_type)) return false;
     if (!query) return true;
-    return i.web_display_name.toLowerCase().includes(query) || i.product_type.toLowerCase().includes(query);
+    const haystack = i.web_display_name.toLowerCase() + " " + i.product_type.toLowerCase() + " " + (i.animal_types || []).join(" ");
+    return variants.some(v => haystack.includes(v));
   });
 }
 
