@@ -284,7 +284,16 @@ main.layout-screen { max-width: none; }
 .card img { cursor: zoom-in; }
 .card .placeholder { display: flex; align-items: center; justify-content: center; font-size: 1.6rem; background: var(--bg); }
 .card .cname { font-weight: 700; font-size: calc(.7rem * var(--text-scale, 1)); line-height: 1.15; }
-.card .cdesc { font-size: calc(.64rem * var(--text-scale, 1)); color: var(--muted); font-style: italic; line-height: 1.1; }
+.card .cdesc {
+  font-size: calc(.64rem * var(--text-scale, 1));
+  color: var(--muted);
+  font-style: italic;
+  line-height: 1.15;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 .card .cyear { font-size: calc(.62rem * var(--text-scale, 1)); color: var(--muted); }
 .card a.cname-link { color: var(--ty-red-dark); text-decoration: none; }
 .card a.cname-link:hover { text-decoration: underline; }
@@ -523,6 +532,7 @@ async function loadData() {
       item.web_display_name,
       item.product_type,
       item.description,
+      item.product_description,
       item.retailer_exclusive,
       ...(item.animal_types || []),
       ...(item.colors || []),
@@ -540,8 +550,11 @@ function titleCase(s) {
 function splitName(item) {
   const name = item.web_display_name;
   const idx = name.indexOf(" - ");
-  if (idx === -1) return { name: titleCase(name), description: "" };
-  return { name: titleCase(name.slice(0, idx)), description: name.slice(idx + 3) };
+  const shortName = idx === -1 ? titleCase(name) : titleCase(name.slice(0, idx));
+  // Prefer the richer marketing description fetched from ty.com's product
+  // page (current items only); fall back to the terse calendar-API text.
+  const description = item.product_description || (idx === -1 ? "" : name.slice(idx + 3));
+  return { name: shortName, description };
 }
 
 function typeBadgeHtml(item) {
@@ -1083,7 +1096,6 @@ def main():
 
 <footer>
   Data parsed from <a href="https://www.ty.com/birthdaycalendar.html?lang=en" target="_blank" rel="noopener">ty.com's birthday calendar</a>.
-  Also available as <a href="calendar.md">plain markdown</a>.
 </footer>
 
 <div id="hover-preview"><img src="" alt=""></div>

@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
 """Add an `animal_types` field (list of canonical animal names, usually one)
-to every item in calendar_data.json.gz, derived from web_display_name.
+to every item in calendar_data.json.gz, derived from web_display_name and,
+when available (current items only), the richer product_description fetched
+from ty.com's product page by fetch_product_descriptions.py -- run that
+script first if you want this pass to benefit from it.
 
 The keyword list below was built by frequency-counting every word that
-appears in the description half of web_display_name across all 2,779 items
-(see conversation), so it's grounded in what's actually in the data rather
-than guessed. Specific breeds/species map to a general canonical animal
-(e.g. "chihuahua", "husky", "poodle" -> "dog") so a search for "dog" or
-"dogs" finds all of them; distinctive animals (fox, panda, koala...) keep
-their own category. Non-animal costume/character words (ghost, witch,
-santa, gnome, snowman...) are intentionally excluded.
+appears in the description half of web_display_name (and later, the
+product_description text) across all items, so it's grounded in what's
+actually in the data rather than guessed. Specific breeds/species map to a
+general canonical animal (e.g. "chihuahua", "husky", "poodle" -> "dog") so a
+search for "dog" or "dogs" finds all of them; distinctive animals (fox,
+panda, koala...) keep their own category. Non-animal costume/character
+words (ghost, witch, santa, gnome, snowman...) are intentionally excluded.
 """
 import gzip
 import json
@@ -17,12 +20,12 @@ import re
 
 # canonical animal -> keywords that map to it (word-boundary matched)
 ANIMAL_KEYWORDS = {
-    "dog": ["dog", "dogs", "puppy", "chihuahua", "chihauhau", "poodle", "husky",
+    "dog": ["dog", "dogs", "puppy", "pup", "chihuahua", "chihauhau", "poodle", "husky",
             "corgi", "dachshund", "dauchand", "bulldog", "schnauzer", "spaniel",
             "terrier", "pug", "labrador", "shepherd", "cocker", "rottweiler",
             "rottweiller", "retreiver", "retriever", "dalmatian", "dalmation",
             "basset", "hound", "doodle", "beagle"],
-    "cat": ["cat", "cats", "kitten", "siamese", "tabby", "calico"],
+    "cat": ["cat", "cats", "kitten", "kitty", "siamese", "tabby", "calico"],
     "bear": ["bear", "bears", "teddy"],
     "panda": ["panda"],
     "unicorn": ["unicorn"],
@@ -124,13 +127,15 @@ for animal, keywords in ANIMAL_KEYWORDS.items():
 WORD_RE = re.compile(r"[a-z]+")
 
 
-def derive_animal_types(web_display_name):
-    words = WORD_RE.findall(web_display_name.lower())
+def derive_animal_types(*texts):
     found = []
-    for w in words:
-        animal = KEYWORD_TO_ANIMAL.get(w)
-        if animal and animal not in found:
-            found.append(animal)
+    for text in texts:
+        if not text:
+            continue
+        for w in WORD_RE.findall(text.lower()):
+            animal = KEYWORD_TO_ANIMAL.get(w)
+            if animal and animal not in found:
+                found.append(animal)
     return found
 
 
@@ -139,16 +144,21 @@ def main():
         items = json.load(f)
 
     n_with_animal = 0
+    n_from_product_desc_only = 0
     for item in items:
-        types = derive_animal_types(item["web_display_name"])
+        from_name = derive_animal_types(item["web_display_name"])
+        types = derive_animal_types(item["web_display_name"], item.get("product_description"))
         item["animal_types"] = types
         if types:
             n_with_animal += 1
+        if types and not from_name:
+            n_from_product_desc_only += 1
 
     with gzip.open("calendar_data.json.gz", "wt") as f:
         json.dump(items, f, indent=2)
 
     print(f"Classified {len(items)} items: {n_with_animal} matched an animal type, {len(items) - n_with_animal} unmatched")
+    print(f"  (of which {n_from_product_desc_only} were only found via the richer product_description text)")
 
     from collections import Counter
     counts = Counter(t for i in items for t in i["animal_types"])
