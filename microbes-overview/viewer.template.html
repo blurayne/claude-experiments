@@ -317,7 +317,7 @@ main{max-width:var(--maxw); margin:0 auto; padding:clamp(20px,4vw,44px) clamp(14
   color:var(--accent); margin-bottom:8px}
 .set-head h2{font-family:var(--font-display); font-weight:var(--display-weight); letter-spacing:var(--display-spacing);
   font-size:clamp(22px,3.4vw,32px); margin:0 0 10px}
-.set-head p{max-width:78ch; color:var(--fg-dim); font-size:14.5px; line-height:1.62; margin:0}
+.set-head p{color:var(--fg-dim); font-size:14.5px; line-height:1.62; margin:0}
 
 .cards{display:flex; flex-direction:column; gap:26px}
 .card{scroll-margin-top:calc(var(--bar-h) + 14px)}
@@ -325,8 +325,31 @@ main{max-width:var(--maxw); margin:0 auto; padding:clamp(20px,4vw,44px) clamp(14
   margin:0 0 14px; display:flex; align-items:center; gap:11px; flex-wrap:wrap}
 .card-title .key{font-family:var(--font-mono); font-size:11px; color:var(--fg-faint);
   border:1px solid var(--border); border-radius:6px; padding:2px 7px; font-weight:400}
+/* kids-mode narration controls, right of the title. The stop button's slot is
+   always reserved (kept in the layout at width 0→auto) so it fades in/out
+   without shifting the play button or wrapping the title. */
+.audio-ctl{display:inline-flex; align-items:center; gap:6px; margin-left:2px}
+.audio-play{display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px;
+  border-radius:50%; border:1px solid var(--border); background:var(--card); color:var(--fg);
+  cursor:pointer; flex:none; font-size:12px; transition:border-color .15s, background .15s, transform .15s}
+.audio-play:hover{border-color:var(--accent); background:var(--card-hi)}
+.audio-play:active{transform:scale(.92)}
+.audio-play .ic-pause{display:none}
+.audio-ctl.playing .audio-play .ic-play{display:none}
+.audio-ctl.playing .audio-play .ic-pause{display:inline}
+.audio-ctl.playing .audio-play{border-color:var(--accent); color:var(--accent-ink); background:var(--accent)}
+.audio-stop{display:inline-flex; align-items:center; justify-content:center;
+  width:0; height:26px; border-radius:50%; border:1px solid transparent; background:var(--card); color:var(--fg-dim);
+  cursor:pointer; flex:none; font-size:10px; opacity:0; overflow:hidden; padding:0;
+  transition:width .22s var(--ease), opacity .22s var(--ease), border-color .15s, background .15s}
+.audio-ctl.active .audio-stop{width:26px; opacity:1; border-color:var(--border); padding:0}
+.audio-stop:hover{border-color:var(--accent); background:var(--card-hi)}
+/* word-by-word narration highlight inside the kids prose paragraph */
+.prose .w{transition:background-color .12s, color .12s; border-radius:3px}
+.prose .w.said{color:var(--fg-dim)}
+.prose .w.active{background:var(--accent); color:var(--accent-ink); padding:0 2px; margin:0 -2px}
 /* one-line summary, shown ABOVE the picture grid (both mobile + desktop) */
-.card-lead{font-size:13.5px; color:var(--fg-dim); margin:0 0 14px; font-style:italic; line-height:1.5; max-width:78ch}
+.card-lead{font-size:13.5px; color:var(--fg-dim); margin:0 0 14px; font-style:italic; line-height:1.5}
 .card-body{display:grid; gap:clamp(16px,2.4vw,28px); align-items:start}
 @media(min-width:860px){ .card-body{grid-template-columns:minmax(0,1fr) minmax(280px,.85fr)} }
 
@@ -416,13 +439,15 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 0 0 2px #
    picture is scaled UP on large screens too (upscaling blur accepted). */
 .lb-stage{position:relative; width:98vw; height:89vh; background:var(--box-bg); border:1px solid var(--border-hi); border-radius:16px; overflow:hidden;
   box-shadow:var(--shadow); display:flex; align-items:center; justify-content:center}
-/* label-mode switch, bottom-right over the enlarged image */
-.lb-labels{position:absolute; right:12px; bottom:12px; z-index:5; display:none}
+/* label-mode switch and color-mode switch (Real style only) — both toggles
+   share the same bottom-center spot over the enlarged image (never shown
+   together: color mode only applies to the Real style, which has no
+   label overlay). */
+.lb-labels{position:absolute; left:50%; bottom:12px; transform:translateX(-50%); z-index:5; display:none}
 .lb-labels.on{display:inline-flex}
 .lb-labels button{min-width:34px; font-family:var(--font-mono); font-size:12px}
 .lb-labels button[data-m="none"]{font-size:15px}
-/* color-mode switch (Real style only), bottom-left over the enlarged image */
-.lb-color{position:absolute; left:12px; bottom:12px; z-index:5; display:none}
+.lb-color{position:absolute; left:50%; bottom:12px; transform:translateX(-50%); z-index:5; display:none}
 .lb-color.on{display:inline-flex}
 .lb-color button{font-family:var(--font-mono); font-size:12px}
 .lb-stage img, .lb-stage svg{width:100%; height:100%; object-fit:contain; display:block}
@@ -630,19 +655,21 @@ const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
 const html = document.documentElement;
 
 // ---- style options -------------------------------------------------------
-const STYLE_LABEL = {reference:'Real', sem:'SEM', '3d':'3D', textbook:'Textbook', watercolor:'Watercolor', coloring:'Coloring'};
+// "·gen" marks styles rendered by an AI image model (everything but the real
+// micrograph) so it's clear at a glance which pictures are not photographs.
+const STYLE_LABEL = {reference:'Real', sem:'SEM·gen', '3d':'3D·gen', textbook:'Textbook·gen', watercolor:'Watercolor·gen', coloring:'Coloring·gen'};
 const OPTIONS = [
   ['none','— None —'],
   ['reference','Real (colored)'],
   ['reference-bw','Real (B&W)'],
-  ['sem','SEM'],
-  ['3d','3D'],
-  ['3d-l','3D · labelled'],
-  ['textbook','Textbook'],
-  ['textbook-l','Textbook · labelled'],
-  ['watercolor','Watercolor'],
-  ['watercolor-l','Watercolor · labelled'],
-  ['coloring','Coloring · B&W (kids)'],
+  ['sem','SEM · gen'],
+  ['3d','3D · gen'],
+  ['3d-l','3D · gen · labelled'],
+  ['textbook','Textbook · gen'],
+  ['textbook-l','Textbook · gen · labelled'],
+  ['watercolor','Watercolor · gen'],
+  ['watercolor-l','Watercolor · gen · labelled'],
+  ['coloring','Coloring · gen · B&W (kids)'],
 ];
 const NUM_BOXES = 6;
 const DEFAULT_BOXES = ['reference','sem','3d','textbook-l','none','none'];
@@ -658,14 +685,18 @@ function parseOpt(v){
 const LS='microbes-viewer-v1';
 const state = Object.assign({
   aud:'kids', lang:'en', theme:'petri', mode:'dark',
-  boxes:DEFAULT_BOXES.slice(), enlargeLabels:true, search:''
+  boxes:DEFAULT_BOXES.slice(), enlargeLabels:true, search:'',
+  lbLabelMode:null, lbBw:null
 }, load());
 // normalise a persisted (possibly older/shorter) box array to NUM_BOXES slots
 if(!Array.isArray(state.boxes)) state.boxes=DEFAULT_BOXES.slice();
 while(state.boxes.length<NUM_BOXES) state.boxes.push('none');
 state.boxes=state.boxes.slice(0,NUM_BOXES);
+// the search box is never restored across reloads/sessions — always start empty
+state.search='';
 function load(){ try{return JSON.parse(localStorage.getItem(LS))||{}}catch(e){return{}} }
-function save(){ try{localStorage.setItem(LS,JSON.stringify(state))}catch(e){} }
+// persist everything except the live search query (see above)
+function save(){ try{ const {search,...rest}=state; localStorage.setItem(LS,JSON.stringify(rest)); }catch(e){} }
 
 // ---- svg text cache + concurrency gate -----------------------------------
 // The labelled SVGs embed their base raster (~1–2.7 MB each). Fetching many at
@@ -859,17 +890,40 @@ const LANG_LABEL={en:{en:'English',de:'English'},de:{en:'German',de:'Deutsch'}};
 // hero copy, switched by updateHero() on language change (see item 9)
 const HERO={
   en:{h1:'An interactive <span class="em">microbe</span> atlas.',
-      sub:'Scientifically verified, AI-rendered teaching images of the cells, pathogens and antibodies of the human body — in five styles, with switchable labels. Choose your audience, language and picture layout.',
+      sub:'Scientifically verified, AI-rendered teaching images of the cells, pathogens and antibodies of the human body — in five styles, with switchable labels. Choose your audience, language and picture layout. Styles tagged “·gen” are AI-generated from a verified reference; only the plain “Real” style is an actual photomicrograph.',
       a:'sets ·', b:'subjects ·', c:'styles + real microscopy'},
   de:{h1:'Ein interaktiver <span class="em">Mikroben</span>-Atlas.',
-      sub:'Wissenschaftlich geprüfte, KI-gerenderte Lehrbilder der Zellen, Erreger und Antikörper des menschlichen Körpers — in fünf Stilen, mit umschaltbaren Beschriftungen. Wähle Zielgruppe, Sprache und Bildlayout.',
+      sub:'Wissenschaftlich geprüfte, KI-gerenderte Lehrbilder der Zellen, Erreger und Antikörper des menschlichen Körpers — in fünf Stilen, mit umschaltbaren Beschriftungen. Wähle Zielgruppe, Sprache und Bildlayout. Mit „·gen“ markierte Stile sind KI-generiert aus einer geprüften Referenz; nur der reine „Real“-Stil ist eine echte mikroskopische Aufnahme.',
       a:'Sets ·', b:'Themen ·', c:'Stile + echte Mikroskopie'},
 };
+
+// narration for the CURRENT language, kids mode only (that's the only
+// audience the TTS pipeline generated audio for)
+function audioFor(m){ return state.aud==='kids' && m.audio && m.audio[state.lang]; }
+// kids prose, word-by-word spans (one per narrated word) when narration is
+// available, so playback can highlight the word currently being spoken;
+// falls back to the plain search-highlighted text otherwise.
+function proseHTML(m){
+  const a=audioFor(m);
+  if(a && a.words && a.words.length)
+    return a.words.map((w,i)=>'<span class="w" data-i="'+i+'">'+esc(w.w)+'</span>').join(' ');
+  return highlight(audText(m));
+}
+// play/pause + stop controls, right of the card title (kids mode, narrated
+// microbes only — see playback engine below for the click handling)
+function audioCtlHTML(m){
+  if(!audioFor(m)) return '';
+  return '<span class="audio-ctl" data-key="'+esc(m.key)+'">'+
+    '<button type="button" class="audio-play" title="Play narration" aria-label="Play narration" aria-pressed="false">'+
+      '<span class="ic-play">▶</span><span class="ic-pause">❚❚</span></button>'+
+    '<button type="button" class="audio-stop" title="Stop narration" aria-label="Stop narration" tabindex="-1">■</button>'+
+  '</span>';
+}
 
 // ---- build one microbe card body ----------------------------------------
 function descHTML(m){
   let h='<div class="aud-tag">'+esc(L(AUD_LABEL[state.aud]))+'</div>'+
-    '<p class="prose'+(state.aud==='sci'?' sci':'')+'">'+highlight(audText(m))+'</p>';
+    '<p class="prose'+(state.aud==='sci'?' sci':'')+'">'+proseHTML(m)+'</p>';
   // when a real micrograph is on display, credit its source (with full link)
   if(state.boxes.includes('reference') && m.ref && (m.ref.url || m.ref.license)){
     const bits=[]; if(m.ref.modality) bits.push(esc(m.ref.modality)); if(m.ref.license) bits.push(esc(m.ref.license));
@@ -1022,7 +1076,9 @@ function renderStage(m,opt){
   lbName.innerHTML=esc(L(m.name));
   lbStyle.textContent=(STYLE_LABEL[style]||style)+(bw?' · B&W':'')+(supports?' · labelled':'');
   lbStage.innerHTML='';
-  lbBw = bw;
+  // a persisted color-mode preference wins for the Real style; other styles
+  // always take their B&W-ness from the chosen box (they have no toggle).
+  lbBw = style==='reference' && state.lbBw!=null ? state.lbBw : bw;
   if(style==='coloring'){
     if(m.coloring){ const load=loadingTile(); lbStage.appendChild(load);
       const holder=document.createElement('div'); lbStage.appendChild(holder);
@@ -1092,10 +1148,13 @@ function animateOpenFrom(originEl){
 }
 function openLightbox(m,opt,originEl){
   const {style,labels}=parseOpt(opt);
-  // default the label switch: a labelled box or "show labels on enlarge" starts
-  // in the current language (Latin for scientists); otherwise labels start off.
-  lbLabelMode = (labels || state.enlargeLabels) && styleSupportsLabels(m,style)
-    ? (state.aud==='sci'?'la':state.lang) : 'none';
+  // default the label switch: a previously-chosen mode (persisted) wins; else a
+  // labelled box or "show labels on enlarge" starts in the current language
+  // (Latin for scientists); otherwise labels start off.
+  lbLabelMode = state.lbLabelMode!=null && styleSupportsLabels(m,style)
+    ? state.lbLabelMode
+    : (labels || state.enlargeLabels) && styleSupportsLabels(m,style)
+      ? (state.aud==='sci'?'la':state.lang) : 'none';
   navList=buildNavList();
   navIdx=navList.findIndex(x=>x.m===m && x.opt===opt);
   if(navIdx<0){ navList=[{m,opt,setId:null}]; navIdx=0; }
@@ -1141,6 +1200,96 @@ function printColoringDirect(m){
     window.print();
   });
 }
+
+// ---- kids-mode narration playback -----------------------------------------
+// One <audio> per microbe+language, created lazily and cached for the whole
+// session — pausing/resuming keeps its position even if the card's body gets
+// torn down by the lazy-build IntersectionObserver (the title, and thus the
+// play button, is never torn down; see buildCard/teardownCard above).
+const audioCache=new Map();
+// the single narration currently PLAYING (never more than one at a time);
+// null once paused/stopped/ended. Each ctx also carries its own `.active`
+// flag (stop button shown) which — unlike `playingCtx` — survives a pause,
+// since pausing one player to start another must NOT hide its stop button.
+let playingCtx=null;
+function proseEl(card){ return card._body ? card._body.querySelector('.prose') : null; }
+function clearWordHighlight(ctx){
+  const p=proseEl(ctx.card); if(!p) return;
+  p.querySelectorAll('.w.active,.w.said').forEach(s=>s.classList.remove('active','said'));
+}
+function updateWordHighlight(ctx){
+  const p=proseEl(ctx.card); if(!p) return;
+  const words=ctx.words; if(!words.length) return;
+  const t=ctx.el.currentTime;
+  let i=words.findIndex(w=>t>=w.s && t<=w.e);
+  if(i<0){ const nxt=words.findIndex(w=>t<w.s); i=nxt<0?words.length-1:Math.max(0,nxt-1); }
+  if(i===ctx.wordIdx) return;
+  ctx.wordIdx=i;
+  const spans=p.querySelectorAll('.w');
+  spans.forEach((s,k)=>{ s.classList.toggle('said',k<i); s.classList.toggle('active',k===i); });
+}
+function onAudioEnded(ctx){
+  ctx.el.currentTime=0; ctx.wordIdx=-1; ctx.active=false; clearWordHighlight(ctx);
+  if(playingCtx===ctx) playingCtx=null;
+  syncCtl(ctx.card);
+}
+function getAudioCtx(card,m,lang){
+  const a=m.audio && m.audio[lang]; if(!a) return null;
+  const key=m.key+'|'+lang;
+  let ctx=audioCache.get(key);
+  if(!ctx){
+    const el=new Audio(a.src); el.preload='none';
+    ctx={el, card, words:a.words||[], wordIdx:-1, active:false};
+    el.addEventListener('timeupdate',()=>updateWordHighlight(ctx));
+    el.addEventListener('ended',()=>onAudioEnded(ctx));
+    el.addEventListener('play',()=>{ ctx.active=true; playingCtx=ctx; syncCtl(ctx.card); });
+    el.addEventListener('pause',()=>{ if(playingCtx===ctx) playingCtx=null; syncCtl(ctx.card); });
+    audioCache.set(key,ctx);
+  }
+  // remember the most recently interacted-with ctx per card, so syncAllCtls()
+  // (called after the title/prose DOM gets rebuilt on lang/aud change) knows
+  // which narration to reflect for this card.
+  card._curCtx=ctx;
+  return ctx;
+}
+// reflect one card's play/pause icon + the stop button's reserved-space reveal
+function syncCtl(card){
+  const ctl=card.querySelector('.audio-ctl'); if(!ctl) return;
+  const ctx=card._curCtx;
+  const active = !!(ctx && ctx.active);
+  ctl.classList.toggle('active', active);
+  const playing = active && !ctx.el.paused;
+  ctl.classList.toggle('playing', playing);
+  const btn=ctl.querySelector('.audio-play'); if(btn) btn.setAttribute('aria-pressed', String(playing));
+}
+function syncAllCtls(){ allCards.forEach(syncCtl); }
+// "if stop is pressed this will pause all players" — reset every cached
+// narration, not just the one whose stop button was clicked.
+function stopAllAudio(){
+  audioCache.forEach(ctx=>{
+    if(!ctx.el.paused){ ctx.el.pause(); }
+    if(ctx.el.currentTime>0){ ctx.el.currentTime=0; }
+    ctx.wordIdx=-1; ctx.active=false; clearWordHighlight(ctx);
+  });
+  playingCtx=null;
+  syncAllCtls();
+}
+document.addEventListener('click',e=>{
+  const playBtn=e.target.closest('.audio-play');
+  if(playBtn){
+    const card=playBtn.closest('.card'); const m=card && card._m; if(!m) return;
+    const ctx=getAudioCtx(card,m,state.lang); if(!ctx) return;
+    if(playingCtx && playingCtx!==ctx){
+      // starting a different narration pauses the previous one (it stays
+      // paused-with-stop-visible, per spec — not stopped/reset)
+      playingCtx.el.pause();
+    }
+    ctx.el.paused ? ctx.el.play() : ctx.el.pause();
+    return;
+  }
+  const stopBtn=e.target.closest('.audio-stop');
+  if(stopBtn) stopAllAudio();
+});
 // hard-reset the lightbox to closed (used at the end of the close animation,
 // or immediately when there's no origin box to animate back to)
 function finishClose(){
@@ -1180,9 +1329,10 @@ $('#lbPrint').addEventListener('click',()=>{
   window.print();
 });
 window.addEventListener('afterprint',()=>{ printArea.innerHTML=''; });
-lbLabels.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return; lbLabelMode=b.dataset.m; updateLbLabels(); });
+lbLabels.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return;
+  lbLabelMode=b.dataset.m; state.lbLabelMode=lbLabelMode; save(); updateLbLabels(); });
 lbColor.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return;
-  lbBw = b.dataset.c==='bw'; applyLbBw(); updateLbColor('reference'); });
+  lbBw = b.dataset.c==='bw'; state.lbBw=lbBw; save(); applyLbBw(); updateLbColor('reference'); });
 
 // arrow keys: walk the enlarged sequence when the preview is open, otherwise jump
 // between microbe anchor positions in the page.
@@ -1232,7 +1382,7 @@ function render(){
     const cards=document.createElement('div'); cards.className='cards';
     set.microbes.forEach(m=>{
       const card=document.createElement('article'); card.className='card'; card.id='mc-'+set.id+'-'+m.key; card._m=m; card._set=set;
-      card.innerHTML='<h3 class="card-title">'+highlight(L(m.name))+'<span class="key">'+esc(m.key)+'</span></h3>';
+      card.innerHTML='<h3 class="card-title">'+highlight(L(m.name))+'<span class="key">'+esc(m.key)+'</span>'+audioCtlHTML(m)+'</h3>';
       cards.appendChild(card); allCards.push(card);
     });
     sec.appendChild(cards); setsWrap.appendChild(sec);
@@ -1266,7 +1416,7 @@ function observeCards(){
 function refreshBuilt(){
   allCards.forEach(card=>{
     // titles + nav always reflect language/search
-    card.querySelector('.card-title').innerHTML=highlight(L(card._m.name))+'<span class="key">'+esc(card._m.key)+'</span>';
+    card.querySelector('.card-title').innerHTML=highlight(L(card._m.name))+'<span class="key">'+esc(card._m.key)+'</span>'+audioCtlHTML(card._m);
     if(!card._built) return;
     if(card._lead) card._lead.innerHTML=highlight(L(card._m.short));
     card._body.querySelector('.desc').innerHTML=descHTML(card._m);
@@ -1282,6 +1432,7 @@ function refreshBuilt(){
     det.querySelector('summary').childNodes[0].nodeValue=L(set.title);
     $$('.nav-links a',det).forEach((a,j)=>{ if(set.microbes[j]) a.textContent=L(set.microbes[j].name); });
   });
+  syncAllCtls();
 }
 // picture layout changed: rebuild each grid + refresh the source credit line
 function rebuildBoxes(){
@@ -1339,9 +1490,11 @@ function syncToggles(){
   html.dataset.theme=state.theme; html.dataset.mode=state.mode;
 }
 $('#audSeg').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b)return;
+  stopAllAudio(); // the title/prose DOM is about to be rebuilt below
   state.aud=b.dataset.aud; save(); syncToggles(); refreshBuilt();
   toast(L(AUD_LABEL[state.aud])+' · '+L(LANG_LABEL[state.lang]));});
 $('#langSeg').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b)return;
+  stopAllAudio();
   state.lang=b.dataset.lang; save(); syncToggles(); refreshBuilt(); updateHero();
   toast(L(AUD_LABEL[state.aud])+' · '+L(LANG_LABEL[state.lang]));});
 $('#modeBtn').addEventListener('click',()=>{ state.mode=state.mode==='dark'?'light':'dark'; save(); syncToggles(); });
