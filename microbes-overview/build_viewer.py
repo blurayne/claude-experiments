@@ -174,6 +174,19 @@ def build():
             col_path = set_dir / "coloring" / f"{key}.coloring.svg"
             coloring = col_path.relative_to(HERE).as_posix() if col_path.exists() else ""
 
+            # kids' text-to-speech narration (mp3 + word-level timing for
+            # karaoke-style highlighting during playback), EN + DE
+            audio = {}
+            for lang in ("en", "de"):
+                abase = set_dir / "audio" / f"{key}.kids-{lang}"
+                amp3, ajson = abase.with_name(abase.name + ".mp3"), abase.with_name(abase.name + ".json")
+                if amp3.exists() and ajson.exists():
+                    try:
+                        words = json.loads(ajson.read_text())
+                    except Exception:
+                        words = []
+                    audio[lang] = {"src": amp3.relative_to(HERE).as_posix(), "words": words}
+
             # present labelled SVGs (kept as a lightbox fallback) + the compact
             # label geometry, which the viewer renders live as an overlay on the
             # small AVIF final (the committed .svg files embed the full raster and
@@ -216,6 +229,7 @@ def build():
                     "svg": svg,
                     "lab": lab,
                     "coloring": coloring,
+                    "audio": audio,
                     "ref": ref_info,
                     "search": blob,
                     "_order": look.get("order", order.get(name_en, 10_000)),
