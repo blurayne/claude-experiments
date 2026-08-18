@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rechenzentren aus Hirngewebe: Was davon gemessen ist</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080b11; --bg-2:#0d1219; --bg-3:#121a24; --panel:#0f151e;
+  --line:#1e2a38; --line-2:#2a3a4d;
+  --fg:#dce6f0; --fg-2:#93a4b8; --fg-3:#5f7186;
+  --teal:#3fd8c4; --teal-dim:#1b6f66; --amber:#f0a63c; --amber-dim:#7a5219;
+  --magenta:#d95d9a; --violet:#8b7ff0; --red:#e05c62; --green:#4fc98a;
+  --grid:rgba(63,216,196,.055); --shadow:rgba(0,0,0,.5);
+}
+[data-theme="light"]{
+  --bg:#f4f6f8; --bg-2:#eaeef2; --bg-3:#e0e6ec; --panel:#ffffff;
+  --line:#d3dce4; --line-2:#b9c6d2;
+  --fg:#141c26; --fg-2:#42566b; --fg-3:#6d8298;
+  --teal:#0d8478; --teal-dim:#8fd6cd; --amber:#a86a10; --amber-dim:#e8cfa4;
+  --magenta:#a8306a; --violet:#5647c4; --red:#b3383e; --green:#207d54;
+  --grid:rgba(13,132,120,.06); --shadow:rgba(20,40,60,.12);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--bg); color:var(--fg);
+  font-family:'Space Grotesk',ui-sans-serif,system-ui,sans-serif;
+  font-size:17px; line-height:1.65;
+  background-image:
+    linear-gradient(var(--grid) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:44px 44px;
+  transition:background-color .25s,color .25s;
+}
+.wrap{max-width:960px;margin:0 auto;padding:0 24px 120px}
+code,.mono,td.num{font-family:'IBM Plex Mono',ui-monospace,monospace}
+
+/* ---------- header ---------- */
+header{padding:72px 0 40px;position:relative}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--teal);margin-bottom:18px}
+h1{font-size:clamp(30px,5.2vw,50px);line-height:1.08;margin:0 0 18px;font-weight:700;letter-spacing:-.02em}
+.dek{font-size:19px;color:var(--fg-2);max-width:62ch;margin:0 0 26px}
+.meta{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--fg-3);
+  display:flex;flex-wrap:wrap;gap:8px 20px;padding-top:18px;border-top:1px solid var(--line)}
+.meta a{color:var(--fg-2)}
+
+#themeToggle{
+  position:fixed;top:18px;right:18px;z-index:50;
+  background:var(--panel);color:var(--fg-2);border:1px solid var(--line-2);
+  border-radius:999px;padding:8px 15px;cursor:pointer;
+  font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.09em;
+  text-transform:uppercase;box-shadow:0 3px 14px var(--shadow);transition:.2s;
+}
+#themeToggle:hover{color:var(--teal);border-color:var(--teal-dim)}
+
+/* ---------- structure ---------- */
+h2{font-size:27px;margin:64px 0 6px;letter-spacing:-.015em;line-height:1.2}
+h2 .num{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--teal);
+  display:block;letter-spacing:.14em;margin-bottom:8px;font-weight:500}
+h3{font-size:19.5px;margin:38px 0 10px;color:var(--fg)}
+h4{font-size:15px;margin:26px 0 6px;font-family:'IBM Plex Mono',monospace;
+  letter-spacing:.05em;color:var(--fg-2);text-transform:uppercase}
+p{margin:0 0 17px}
+a{color:var(--teal);text-decoration:none;border-bottom:1px solid var(--teal-dim)}
+a:hover{border-bottom-color:var(--teal)}
+strong{font-weight:600;color:var(--fg)}
+hr{border:0;border-top:1px solid var(--line);margin:56px 0}
+.lede{font-size:19px;color:var(--fg-2)}
+
+/* ---------- chips ---------- */
+.chip{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:11px;
+  font-weight:600;letter-spacing:.07em;padding:2px 7px;border-radius:4px;
+  vertical-align:.08em;white-space:nowrap;border:1px solid}
+.g-A{color:var(--teal);border-color:var(--teal-dim);background:color-mix(in srgb,var(--teal) 11%,transparent)}
+.g-B{color:var(--violet);border-color:var(--violet);background:color-mix(in srgb,var(--violet) 11%,transparent)}
+.g-C{color:var(--amber);border-color:var(--amber-dim);background:color-mix(in srgb,var(--amber) 11%,transparent)}
+.g-D{color:var(--magenta);border-color:var(--magenta);background:color-mix(in srgb,var(--magenta) 11%,transparent)}
+.v-ok{color:var(--green);border-color:var(--green);background:color-mix(in srgb,var(--green) 12%,transparent)}
+.v-part{color:var(--amber);border-color:var(--amber-dim);background:color-mix(in srgb,var(--amber) 12%,transparent)}
+.v-no{color:var(--red);border-color:var(--red);background:color-mix(in srgb,var(--red) 12%,transparent)}
+.v-na{color:var(--fg-3);border-color:var(--line-2);background:transparent}
+
+.legend{display:flex;flex-wrap:wrap;gap:14px;padding:16px 18px;background:var(--panel);
+  border:1px solid var(--line);border-radius:10px;margin:22px 0 0;font-size:14px;color:var(--fg-2)}
+.legend div{display:flex;align-items:center;gap:8px}
+
+/* ---------- verdict cards ---------- */
+.verdicts{display:grid;gap:12px;margin:30px 0 0}
+.vc{background:var(--panel);border:1px solid var(--line);border-radius:11px;
+  padding:17px 20px;display:grid;grid-template-columns:52px 1fr auto;gap:6px 16px;align-items:start}
+.vc:hover{border-color:var(--line-2)}
+.vc .h{font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600;color:var(--teal)}
+.vc .t{font-weight:500;font-size:16.5px}
+.vc .c{grid-column:2/-1;color:var(--fg-2);font-size:14.5px;line-height:1.55}
+@media(max-width:640px){.vc{grid-template-columns:44px 1fr}.vc>span.vchip{grid-column:2}}
+
+/* ---------- duel panel ---------- */
+.duel{display:grid;grid-template-columns:1fr 1fr;gap:0;margin:26px 0;
+  border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel)}
+.duel>div{padding:20px 22px}
+.duel>div:first-child{border-right:1px solid var(--line)}
+.duel h5{margin:0 0 4px;font-size:15.5px}
+.duel .who{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--fg-3);
+  letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px}
+.duel blockquote{margin:0 0 13px;padding-left:13px;border-left:2px solid var(--line-2);
+  font-size:14.5px;color:var(--fg-2);line-height:1.55;font-style:normal}
+.pruef{margin-top:14px;padding-top:13px;border-top:1px dashed var(--line-2);
+  font-size:13.5px;color:var(--fg-2)}
+.pruef b{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--teal);display:block;margin-bottom:4px}
+@media(max-width:720px){.duel{grid-template-columns:1fr}
+  .duel>div:first-child{border-right:0;border-bottom:1px solid var(--line)}}
+
+/* ---------- callout ---------- */
+.callout{background:var(--bg-2);border:1px solid var(--line);border-left:3px solid var(--amber);
+  border-radius:0 10px 10px 0;padding:18px 22px;margin:26px 0;font-size:15.5px;color:var(--fg-2)}
+.callout.teal{border-left-color:var(--teal)}
+.callout b{color:var(--fg)}
+
+/* ---------- figures ---------- */
+figure{margin:32px 0;background:var(--panel);border:1px solid var(--line);
+  border-radius:12px;padding:22px}
+figure svg{display:block;width:100%;height:auto;overflow:visible}
+figcaption{font-size:13.5px;color:var(--fg-3);margin-top:16px;padding-top:13px;
+  border-top:1px solid var(--line);line-height:1.55}
+.svg-lbl{font-family:'IBM Plex Mono',monospace;font-size:11px;fill:var(--fg-2)}
+.svg-lbl-s{font-family:'IBM Plex Mono',monospace;font-size:9.5px;fill:var(--fg-3)}
+.svg-ttl{font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;fill:var(--fg)}
+.axis{stroke:var(--line-2);stroke-width:1}
+.gridline{stroke:var(--line);stroke-width:1;stroke-dasharray:2 4}
+
+/* ---------- model ---------- */
+.model{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  padding:24px;margin:30px 0}
+.model .hd{display:flex;justify-content:space-between;align-items:baseline;
+  flex-wrap:wrap;gap:10px;margin-bottom:6px}
+.model h3{margin:0;font-size:18px}
+.disclaimer{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--amber);border:1px solid var(--amber-dim);
+  padding:3px 8px;border-radius:4px}
+.sliders{display:grid;gap:19px;margin:22px 0 6px}
+.sl label{display:flex;justify-content:space-between;align-items:baseline;
+  font-size:14.5px;gap:12px;margin-bottom:7px}
+.sl .val{font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--teal);font-weight:600}
+.sl .src{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--fg-3);
+  display:block;margin-top:5px;letter-spacing:.03em}
+.sl .src.set{color:var(--amber)}
+input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:4px;
+  background:var(--bg-3);border-radius:3px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:17px;height:17px;
+  border-radius:50%;background:var(--teal);cursor:pointer;border:2px solid var(--bg)}
+input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;
+  background:var(--teal);cursor:pointer;border:2px solid var(--bg)}
+.readout{margin-top:24px;padding-top:20px;border-top:1px solid var(--line);
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:18px}
+.ro .k{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--fg-3);margin-bottom:5px}
+.ro .v{font-family:'IBM Plex Mono',monospace;font-size:21px;font-weight:600;color:var(--fg)}
+.ro .v.bad{color:var(--red)} .ro .v.good{color:var(--green)}
+#verdictLine{margin-top:20px;padding:14px 16px;background:var(--bg-2);
+  border-radius:8px;font-size:15px;color:var(--fg-2);border:1px solid var(--line)}
+
+/* ---------- tables ---------- */
+.tw{overflow-x:auto;margin:26px 0;border:1px solid var(--line);border-radius:11px;background:var(--panel)}
+table{width:100%;border-collapse:collapse;font-size:14.5px}
+th{text-align:left;padding:13px 15px;background:var(--bg-2);color:var(--fg-2);
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;font-weight:600;border-bottom:1px solid var(--line-2);white-space:nowrap}
+td{padding:12px 15px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.5}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--bg-2)}
+
+/* ---------- lists ---------- */
+ul.rest{list-style:none;padding:0;margin:24px 0}
+ul.rest li{padding:14px 0 14px 26px;border-bottom:1px solid var(--line);position:relative;
+  color:var(--fg-2);font-size:15.5px}
+ul.rest li:before{content:"○";position:absolute;left:2px;top:14px;color:var(--amber);font-size:13px}
+ul.rest li b{color:var(--fg)}
+ul.plain{padding-left:22px;color:var(--fg-2)}
+ul.plain li{margin-bottom:9px}
+
+.srcgrp{margin:28px 0}
+.srcgrp ol{padding-left:22px;font-size:14.5px;color:var(--fg-2)}
+.srcgrp li{margin-bottom:12px;line-height:1.55}
+footer{margin-top:72px;padding-top:26px;border-top:1px solid var(--line);
+  font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--fg-3)}
+</style>
+</head>
+<body>
+<button id="themeToggle" aria-label="Farbschema wechseln">Hell</button>
+
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Adversariales Dossier · Organoid-Compute</div>
+  <h1>Rechenzentren aus Hirngewebe:<br>Was davon gemessen ist</h1>
+  <p class="dek">Sieben Hypothesen zu Organoid-Compute, gegen Primärquellen geprüft. Zum Stand der Technik, zum Vergleich mit LLMs, und zu der Frage, ab wann Moralstatus empirisch relevant wird statt bloß rhetorisch.</p>
+  <div class="meta">
+    <span>Stand: 18.08.2026</span>
+    <span>618 geprüfte Einzelbehauptungen</span>
+    <span>91 Volltranskripte</span>
+    <span><a href="AGENTS.md">Methodik</a></span>
+    <span><a href="research/2026-08-18_rechercheplan.md">Plan</a></span>
+    <span><a href="2026-08-18_organoid-datacenter.md">Markdown-Fassung</a></span>
+  </div>
+</header>
+
+<div class="legend">
+  <div><span class="chip g-A">A</span> Messdaten</div>
+  <div><span class="chip g-B">B</span> Modell- oder Schätzrechnung</div>
+  <div><span class="chip g-C">C</span> Experteneinschätzung</div>
+  <div><span class="chip g-D">D</span> Interessenzitat</div>
+</div>
+
+<h2><span class="num">01 — Kurzbefund</span>Sieben Hypothesen, dreistufig</h2>
+
+<div class="verdicts">
+  <div class="vc"><span class="h">H1</span><span class="t">Organoid-Compute ist ein nutzbares Rechensubstrat</span><span class="chip v-part vchip">teilbelegt</span>
+    <span class="c">Geräte sind käuflich und laufen in Rechenzentren in Singapur und Melbourne (sehr wahrscheinlich). Dass sie Rechenaufgaben außerhalb eigener Benchmarks lösen, ist unbelegt.</span></div>
+  <div class="vc"><span class="h">H2</span><span class="t">Die berichteten Lernleistungen sind Plastizität</span><span class="chip v-part vchip">teilbelegt</span>
+    <span class="c">Kontrollbedingungen existieren, die Effekte sind statistisch deutlich (wahrscheinlich). Lernen über Sitzungsgrenzen hinweg fehlt, von den Autoren selbst eingeräumt.</span></div>
+  <div class="vc"><span class="h">H3</span><span class="t">Der Energievorteil ist real und skaliert</span><span class="chip v-no vchip">unbelegt</span>
+    <span class="c">Der Faktor „eine Million" steht in keiner Primärquelle. Gemessen zieht ein CL1-Rack 850 bis 1.000 Watt (sehr wahrscheinlich).</span></div>
+  <div class="vc"><span class="h">H4</span><span class="t">Organoide entwickeln sich wie fetales Hirngewebe</span><span class="chip v-part vchip">teilbelegt</span>
+    <span class="c">Zelltypklassen entstehen, Subtypspezifikation und Reifung divergieren nachweisbar und mechanistisch verstanden. Einzelne Defizite sind inzwischen behoben.</span></div>
+  <div class="vc"><span class="h">H5</span><span class="t">Es gibt Evidenz für Nozizeption oder Schmerz</span><span class="chip v-no vchip">unbelegt</span>
+    <span class="c">Keine Primärstudie zeigt Nozizeption. Die US-Akademien halten Schmerzempfinden auf absehbare Zeit für äußerst unwahrscheinlich. Selbst die stärkste Vorsichtsposition räumt es ein.</span></div>
+  <div class="vc"><span class="h">H6</span><span class="t">Ein Pfad zu Fähigkeiten jenseits von LLMs</span><span class="chip v-part vchip">teilbelegt</span>
+    <span class="c">Ein Stichproben-Effizienzvorteil in einem eng gefassten Pong-Setting ist publiziert (wahrscheinlich). Er stammt von derselben Gruppe und überträgt sich auf nichts anderes.</span></div>
+  <div class="vc"><span class="h">H7</span><span class="t">Moralstatus und Recht sind entscheidungsreif</span><span class="chip v-no vchip">unbelegt</span>
+    <span class="c">Die juristische Analyse existiert und ist präzise. Die empirische Voraussetzung, an der sie hängt, ist nicht erfüllt.</span></div>
+</div>
+
+<p class="lede" style="margin-top:32px">Die Frage nach William Gibson lässt sich beantworten, allerdings anders als die Schlagzeilen sie stellen. Angekommen ist die Infrastruktur. Man kann heute ein Gerät mit menschlichen Neuronen kaufen, per Python-SDK ansprechen und in einem Rechenzentrum in Singapur mieten. Nicht angekommen ist der Grund, warum man das tun sollte. Am weitesten entfernt ist das, was die Berichterstattung ins Zentrum stellt, nämlich ein empfindungsfähiges Etwas in der Petrischale.</p>
+
+<h2><span class="num">02 — Kategorien</span>Eine Unterscheidung, die fast überall fehlt</h2>
+
+<p>Drei verschiedene Dinge laufen in der Berichterstattung unter „Hirnorganoid".</p>
+
+<p><strong>Monolayer-Kulturen.</strong> Ausgesäte kortikale Neuronen in einer Schicht auf einem Elektrodenarray. Das ist das Substrat von DishBrain, dem Pong-Experiment von 2022. Kagan und Kollegen beschreiben es selbst als „incredibly simple" gegenüber dreidimensionalen Gehirnen. <span class="chip g-A">A</span></p>
+
+<p><strong>Neuronen auf planarem Array.</strong> Der CL1 von Cortical Labs. 800.000 Neuronen, aus Haut- oder Blutproben erwachsener Spender reprogrammiert, auf einer strukturierten Metall-Glas-Schnittstelle.</p>
+
+<p><strong>Echte 3D-Organoide.</strong> Kugelige Zellaggregate von etwa einem halben Millimeter Durchmesser, wie FinalSpark sie auf Multi-Elektroden-Arrays betreibt.</p>
+
+<div class="callout"><b>Warum das zählt.</b> Die berühmteste Lernstudie lief auf Monolayern, nicht auf Organoiden. Die Divergenz-Literatur zu Zellstress betrifft Organoide, nicht Monolayer. Wer beides zusammenwirft, überträgt Befunde auf Systeme, für die sie nicht erhoben wurden. Im untersuchten Kanal passiert das durchgängig, in der Fachpresse häufig.</div>
+
+<hr>
+
+<h2><span class="num">03 — Säule 1: Technik</span>Die Geräte, mit Preisschild</h2>
+
+<h3>Cortical Labs CL1</h3>
+<p>Vorstellung März 2025, erste 115 Einheiten ab Sommer 2025 ausgeliefert. 35.000 US-Dollar pro Einheit, 20.000 beim Kauf im 30er-Rack. Fernzugriff als „wetware-as-a-service" für 300 Dollar pro Woche und Einheit. 800.000 menschliche Neuronen, 59 Eingangselektroden (der DishBrain-Prototyp hatte acht), Latenz unter einer Millisekunde (vorher fünf). Zelllebensdauer laut Herstellerseite „up to 6 months". Leistungsaufnahme 850 bis 1.000 Watt pro Rack. <span class="chip g-D">D</span> <span class="chip g-C">C</span></p>
+
+<p>Cortical Labs betreibt die „Cortical Cloud" mit Rechenzentren in <strong>Singapur und Melbourne</strong>. Die Beschreibung auf der Herstellerseite lautet „an always-on network of living neurons", der Zugang läuft über ein Python-SDK und Jupyter-Notebooks. Damit existiert der Sache nach, was die Schlagzeilen „Rechenzentrum aus menschlichen Hirnzellen" nennen. Belastbare Zahlen zur installierten Kapazität veröffentlicht die Firma nicht.</p>
+
+<h3>FinalSpark Neuroplatform</h3>
+<p>Start 15. Mai 2024 in Vevey. Das begleitende Paper nennt über 1.000 verwendete Organoide über drei Jahre, vier MEAs mit je vier Organoiden, acht Elektroden pro Organoid, also 32 Elektroden insgesamt. Lebensdauer anfangs wenige Stunden, „up to 100 days in best cases". <span class="chip g-A">A</span></p>
+
+<p>Was die Organoide dort taten, ist im Paper nachlesbar und bescheidener als die Berichterstattung: Modulation spontaner Aktivität durch hochfrequente Stimulation mit 95,5 Prozent Klassifikationsgenauigkeit, Parameteroptimierung zur Auslösung von Aktionspotentialen, und eine Closed-Loop-Bedingung mit Dopamin-Freisetzung als Belohnungssignal. Eine gelöste Rechenaufgabe ist das nicht. Es sind Aktivitätsänderungen.</p>
+
+<h2><span class="num">04</span>Was DishBrain wirklich zeigte</h2>
+
+<p>Kagan et al., <em>Neuron</em> 110:3952–3969.e8. Die Studie ist besser kontrolliert, als ihre Kritik vermuten lässt, und schwächer, als ihr Titel verspricht.</p>
+
+<figure>
+<svg viewBox="0 0 860 250" role="img" aria-label="Sitzungszahlen nach Bedingung">
+  <text class="svg-ttl" x="0" y="14">Kagan et al. 2022: 399 Sitzungen, vier Kontrollarme</text>
+  <line class="axis" x1="150" y1="34" x2="150" y2="212"/>
+  <!-- bars: max 138 -> scale 600px -->
+  <g>
+    <rect x="150" y="44" width="600" height="22" fill="var(--teal)" opacity=".95"/>
+    <text class="svg-lbl" x="140" y="59" text-anchor="end">HCC (Mensch)</text>
+    <text class="svg-lbl-s" x="758" y="59">138 Sitzungen · 11 Kulturen</text>
+  </g>
+  <g>
+    <rect x="150" y="76" width="439" height="22" fill="var(--teal)" opacity=".75"/>
+    <text class="svg-lbl" x="140" y="91" text-anchor="end">MCC (Maus)</text>
+    <text class="svg-lbl-s" x="597" y="91">101 Sitzungen · 9 Kulturen</text>
+  </g>
+  <g>
+    <rect x="150" y="108" width="348" height="22" fill="var(--fg-3)" opacity=".7"/>
+    <text class="svg-lbl" x="140" y="123" text-anchor="end">Medium-Kontrolle</text>
+    <text class="svg-lbl-s" x="506" y="123">80 Sitzungen · 6 MEAs</text>
+  </g>
+  <g>
+    <rect x="150" y="140" width="183" height="22" fill="var(--fg-3)" opacity=".55"/>
+    <text class="svg-lbl" x="140" y="155" text-anchor="end">Ruhebedingung</text>
+    <text class="svg-lbl-s" x="341" y="155">42 Sitzungen · 20 Kulturen</text>
+  </g>
+  <g>
+    <rect x="150" y="172" width="165" height="22" fill="var(--fg-3)" opacity=".45"/>
+    <text class="svg-lbl" x="140" y="187" text-anchor="end">In-silico-Kontrolle</text>
+    <text class="svg-lbl-s" x="323" y="187">38 Sitzungen · 3 Seeds</text>
+  </g>
+  <text class="svg-lbl-s" x="150" y="234">Teal: Zellkulturen · Grau: Kontrollen. Ein zweites Experiment variierte die Rückkopplung über 486 weitere Sitzungen.</text>
+</svg>
+<figcaption>Die Behauptung, hier sei ohne Kontrollen gearbeitet worden, ist entkräftet. Vier Kontrollarme, insgesamt 399 Sitzungen im Hauptexperiment. <span class="chip g-A">A</span></figcaption>
+</figure>
+
+<p>Die Effekte sind statistisch deutlich. Für menschliche kortikale Zellen berichten die Autoren eine Verbesserung über die Zeit mit <span class="mono">t = 10,44</span> und <span class="mono">p = 3,92 × 10⁻¹⁹</span>, eine Zunahme langer Ballwechsel mit <span class="mono">t = 10,38</span>, eine Abnahme der Aufschlagfehler mit <span class="mono">t = 5,95</span>. In der Bedingung ohne Rückkopplung trat kein signifikantes Lernen auf.</p>
+
+<div class="callout"><b>Die entscheidende Einschränkung stammt von den Autoren selbst.</b> „Between-session learning over multiple days was not robustly observed." Die Kulturen lernten die Assoziation in jeder Sitzung neu. Gezeigt ist kurzfristige, aktivitätsabhängige Anpassung innerhalb von etwa 20 Minuten. Nicht gezeigt ist Gedächtnis über Tage. Genau dort liegt die Grenze zwischen Plastizität und dem, was man umgangssprachlich Lernen nennt.</div>
+
+<p>Weitere Selbstauskünfte: Die sensorische Stimulation sei „much coarser compared with that for even simple in vivo organisms", Propriozeption fehle, die Monolayer-Architektur sei einfach. Das Wort „pain" kommt im gesamten Paper nicht vor.</p>
+
+<h3>Der Streit um das Wort</h3>
+<p>Der Titel sagt „exhibit sentience". Das Abstract sagt „apparent learning" und nennt das Ergebnis „synthetic biological intelligence". Die Definition in der Einleitung lautet, Sentienz sei „responsive to sensory impressions", nach Friston, Wiese und Hobson 2020. Das ist ein technischer, entleerter Begriff. Er sagt nichts über Erleben.</p>
+
+<div class="duel">
+  <div>
+    <h5>29 Neurowissenschaftler</h5>
+    <div class="who">Balcı et al. · Neuron 111:604–605 · 2023 <span class="chip g-C">C</span></div>
+    <blockquote>„attributing intelligence to a network that displays short-term plasticity is not supported by relevant scientific fields such as machine learning, neurobiology, and psychology."</blockquote>
+    <blockquote>„The term sentience is notoriously hard to define but refers to a process that encompasses feeling, sensing, and subjective evaluation."</blockquote>
+    <blockquote>„Instead, it is based on the authors' own recent theoretical propositions, which are general enough to allow the term to be applied to nearly any interactive computational system of even modest complexity."</blockquote>
+    <blockquote>„Strong conclusions are compromised by weak results, some of which fail to adequately match control and experimental conditions."</blockquote>
+    <div class="pruef"><b>Interessenlage</b>Unterzeichnet von Sabatini, Svoboda, Mainen, Lee, Schall und 24 weiteren. Für die beiden korrespondierenden Autoren erklärt: keine Patente, keine Interessen. Die übrigen 27 sind Mitzeichner.</div>
+  </div>
+  <div>
+    <h5>Kagan und Kollegen</h5>
+    <div class="who">Neuron 111:606–607 · 2023 <span class="chip g-D">D</span></div>
+    <blockquote>Titel der Antwort: „Scientific communication and the semantics of sentience."</blockquote>
+    <p style="font-size:14.5px;color:var(--fg-2)">Der Titel räumt ein, worum der Streit geht. Es ist ein Streit über Wortgebrauch, nicht über Messwerte. Der Volltext liegt hinter der Paywall und wurde nicht eingesehen, weshalb hier nur der Titel zitiert wird.</p>
+    <div class="pruef"><b>Interessenlage</b>Cortical Labs ist ein Unternehmen, Kagan dessen wissenschaftlicher Leiter. Die Kritiker benennen ausdrücklich „potential future financial benefits for the possible usage of the methods in this paper".</div>
+  </div>
+</div>
+
+<div class="callout teal"><b>Prüfvermerk.</b> Die Messungen halten. Die Begriffe halten nicht. Wer aus diesem Paper Empfindungsfähigkeit liest, liest den Titel, nicht die Daten. Ein wissenschaftskommunikativer Einwand der Kritiker trifft dieses Dossier im Kern: „Media tend to directly republish information included in abstracts and significance statements."</div>
+
+<h3>Was seither dazugekommen ist</h3>
+<p>Alam El Din et al. 2025, <em>Communications Biology</em>, aus dem Umfeld von Smirnova, Hartung und Kagan. Die Gruppe zeigt an Organoiden bis Woche 14 Synapsenbildung, glutamaterge und GABAerge Rezeptorexpression, eingangsspezifische Kurz- und Langzeitpotenzierung sowie -depression nach Theta-Burst-Stimulation, funktionelle Konnektivität und Kritikalität. Gemessen mit hochdichten MEAs, Calcium-Imaging und qPCR auf ARC, NPAS4, FOS, EGR1, BDNF und NPTX2. <span class="chip g-A">A</span></p>
+
+<p>Der Titel des Papers ist präzise gewählt: „the building blocks necessary for basic learning and memory". Bausteine, nicht Lernen. Aussagen über Bewusstsein macht das Paper nicht. Das ist wichtig, weil im untersuchten Kanal Kritikalität mit Bewusstsein verknüpft wird. Notwendig und hinreichend sind hier verschiedene Dinge. Kritikalität findet man auch in Sandhaufen und Waldbränden.</p>
+
+<hr>
+
+<h2><span class="num">05 — Zahlen-Regel</span>Die Energiefrage</h2>
+
+<p>Hier steht die prominenteste Zahl des Feldes, und sie hält der Prüfung nicht stand.</p>
+
+<figure>
+<svg viewBox="0 0 860 300" role="img" aria-label="Herkunft der Energiebehauptung">
+  <text class="svg-ttl" x="0" y="14">Wie aus zwei zitierten Zahlen ein Faktor wird</text>
+
+  <rect x="0" y="38" width="250" height="76" rx="8" fill="var(--bg-3)" stroke="var(--line-2)"/>
+  <text class="svg-lbl" x="14" y="60">Gehirn: 86 Mrd. Neuronen</text>
+  <text class="svg-lbl" x="14" y="78">bei 20 Watt</text>
+  <text class="svg-lbl-s" x="14" y="98">Clark &amp; Sokoloff 1999, zitiert</text>
+
+  <rect x="0" y="128" width="250" height="76" rx="8" fill="var(--bg-3)" stroke="var(--line-2)"/>
+  <text class="svg-lbl" x="14" y="150">GPT-3-Training:</text>
+  <text class="svg-lbl" x="14" y="168">ca. 10 GWh</text>
+  <text class="svg-lbl-s" x="14" y="188">de Vries 2023, zitiert</text>
+
+  <path d="M250 76 L320 76 L320 121 L340 121" stroke="var(--line-2)" fill="none" stroke-width="1.5"/>
+  <path d="M250 166 L320 166 L320 121 L340 121" stroke="var(--line-2)" fill="none" stroke-width="1.5"/>
+
+  <rect x="340" y="96" width="210" height="52" rx="8" fill="color-mix(in srgb,var(--violet) 16%,transparent)" stroke="var(--violet)"/>
+  <text class="svg-lbl" x="354" y="118" fill="var(--violet)">Extrapolation</text>
+  <text class="svg-lbl-s" x="354" y="136">Silizium-Simulation desselben</text>
+
+  <path d="M550 122 L610 122" stroke="var(--violet)" fill="none" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <rect x="610" y="90" width="250" height="64" rx="8" fill="color-mix(in srgb,var(--magenta) 16%,transparent)" stroke="var(--magenta)"/>
+  <text class="svg-lbl" x="624" y="114" fill="var(--magenta)">„a million times less power"</text>
+  <text class="svg-lbl-s" x="624" y="134">Firmenaussage, Presse 2024</text>
+
+  <rect x="0" y="228" width="860" height="56" rx="8" fill="color-mix(in srgb,var(--red) 12%,transparent)" stroke="var(--red)"/>
+  <text class="svg-lbl" x="16" y="250" fill="var(--red)">Gemessen an realer Hardware: 850 bis 1.000 Watt pro CL1-Rack</text>
+  <text class="svg-lbl-s" x="16" y="270">Der Strom fließt in Inkubation, Temperaturregelung, Perfusion, Verstärker und Steuerelektronik, nicht in die Neuronen.</text>
+</svg>
+<figcaption>Der Faktor entsteht als Modellrechnung <span class="chip g-B">B</span> und wird als Messdatum <span class="chip g-A">A</span> weitergegeben. Im Primärpaper kommt er nicht vor; zwei Volltextprüfungen bestätigen das.</figcaption>
+</figure>
+
+<p><strong>Was in der Primärquelle steht.</strong> Im Paper in <em>Frontiers in Artificial Intelligence</em> kommt kein Faktor „eine Million" für Energieeffizienz vor. Was dort steht, sind zwei zitierte Zahlen: das menschliche Gehirn arbeite mit etwa 86 Milliarden Neuronen bei 20 Watt, und das Training von GPT-3 habe etwa 10 GWh erfordert. Beides ist übernommene Literatur. Eigene Energiemessungen an den Organoiden enthält das Paper nicht.</p>
+
+<p><strong>Warum die Messung in die andere Richtung zeigt.</strong> Die 20 Watt des menschlichen Gehirns enthalten einen Körper, der Temperatur, pH und Nährstoffversorgung mitliefert. Ein Organoid in Kultur hat keinen Körper und braucht deshalb eine Maschine, die ihn ersetzt. Diese Maschine ist der Energieverbrauch.</p>
+
+<div class="model">
+  <div class="hd">
+    <h3>Rechenmodell: Energie pro Operation</h3>
+    <span class="disclaimer">Illustration, keine Prognose</span>
+  </div>
+  <p style="font-size:14.5px;color:var(--fg-2);margin:8px 0 0">Was müsste wahr sein, damit biologisches Substrat pro Operation günstiger ist als ein Beschleuniger? Parameter mit Quelle sind als solche markiert, gesetzte Parameter ausdrücklich als „gesetzt, nicht geschätzt".</p>
+
+  <div class="sliders">
+    <div class="sl">
+      <label><span>Neuronen pro Rack</span><span class="val" id="vNeurons">24 Mio.</span></label>
+      <input type="range" id="sNeurons" min="6" max="12" step="0.05" value="7.38">
+      <span class="src">Quelle: 30 × 800.000 laut Hersteller (CL1-Rack)</span>
+    </div>
+    <div class="sl">
+      <label><span>Spikes pro Neuron und Sekunde</span><span class="val" id="vRate">1,0 Hz</span></label>
+      <input type="range" id="sRate" min="-1" max="2" step="0.02" value="0">
+      <span class="src set">gesetzt, nicht geschätzt</span>
+    </div>
+    <div class="sl">
+      <label><span>Nutzbare Operationen pro Spike</span><span class="val" id="vOps">1</span></label>
+      <input type="range" id="sOps" min="0" max="4" step="0.05" value="0">
+      <span class="src set">gesetzt, nicht geschätzt</span>
+    </div>
+    <div class="sl">
+      <label><span>Leistungsaufnahme pro Rack</span><span class="val" id="vWatt">925 W</span></label>
+      <input type="range" id="sWatt" min="100" max="2000" step="25" value="925">
+      <span class="src">Quelle: 850 bis 1.000 W, IEEE Spectrum</span>
+    </div>
+    <div class="sl">
+      <label><span>Vergleichsbeschleuniger: Operationen pro Sekunde</span><span class="val" id="vGpu">10¹⁵</span></label>
+      <input type="range" id="sGpu" min="12" max="18" step="0.1" value="15">
+      <span class="src set">gesetzt, nicht geschätzt (700 W angenommen)</span>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div class="ro"><div class="k">Biologisch, J pro Operation</div><div class="v" id="oBio">–</div></div>
+    <div class="ro"><div class="k">Silizium, J pro Operation</div><div class="v" id="oSi">–</div></div>
+    <div class="ro"><div class="k">Verhältnis</div><div class="v" id="oRatio">–</div></div>
+  </div>
+  <div id="verdictLine"></div>
+</div>
+
+<p>Mit den belegten Werten, also 24 Millionen Neuronen pro Rack und 925 Watt, und mit den gesetzten Annahmen von einem Spike pro Neuron und Sekunde und einer nutzbaren Operation pro Spike, steht es <span class="mono">3,9 × 10⁻⁵</span> Joule pro Operation biologisch gegen <span class="mono">7,0 × 10⁻¹³</span> Joule beim Beschleuniger. Ein Faktor von etwa <span class="mono">5,5 × 10⁷</span> zuungunsten der Biologie. Gleichstand verlangte 1,3 × 10¹⁵ Operationen pro Sekunde aus dem Rack.</p>
+
+<p>Die beiden gesetzten Annahmen sind die Schwachstelle dieser Rechnung, und sie sind bewusst großzügig zugunsten der Biologie gewählt. Eine Operation pro Spike unterstellt, dass jeder Spike vollständig nutzbare Information trägt. Wer der Biologie mehr zutraut, kann die Regler nach oben schieben und sieht, wie weit es reicht. Der Punkt ist nicht die exakte Zahl, sondern die Richtung des Vorzeichens. Sie steht der Marketingaussage entgegen.</p>
+
+<p>Damit ist H3 in der verbreiteten Form <strong>unbelegt</strong>. Ein Effizienzvorteil auf der Ebene der reinen Signalverarbeitung bleibt physikalisch plausibel und ist der ernsthafte Kern der Idee. Für heutige Geräte ist er nicht nur unbewiesen, er zeigt in der Messung in die andere Richtung.</p>
+
+<hr>
+
+<h2><span class="num">06</span>Vergleich mit LLMs</h2>
+
+<p>Es gibt eine einzige belastbare Publikation, die biologische Kulturen direkt gegen moderne Lernalgorithmen stellt: Khajehnejad, Habibollahi, Paul, Razi und Kagan, arXiv:2405.16946. Verglichen wurden DishBrain-Kulturen mit DQN, A2C und PPO im selben vereinfachten Pong.</p>
+
+<blockquote style="margin:22px 0;padding:16px 20px;background:var(--bg-2);border-left:3px solid var(--teal);border-radius:0 8px 8px 0;font-size:15.5px;color:var(--fg-2)">„when samples are limited to a real-world time course, even these very simple biological cultures outperformed deep RL algorithms across various game performance characteristics, implying a higher sample efficiency." <span class="chip g-A">A</span></blockquote>
+
+<p><strong>Was das trägt.</strong> Eine Aussage über Stichprobeneffizienz unter Echtzeitbedingungen in einer Aufgabe. <strong>Was es nicht trägt.</strong> Absolute Leistung, Generalisierung, andere Aufgaben, Skalierung. Die Autorengruppe ist dieselbe, die das Substrat kommerzialisiert, was die Interessenlage nicht entwertet, aber deklariert werden muss.</p>
+
+<p>Der Vergleich mit LLMs ist schief, und zwar in beide Richtungen. Ein Sprachmodell hat keine Aufgabe, in der es mit 800.000 Neuronen in einer Nährlösung konkurriert, und die Neuronen haben keine Aufgabe, in der sie Text verarbeiten. Bei den Parametern liegen sechs bis sieben Größenordnungen zwischen den Systemen. Was die biologische Seite vorführt, ist Anpassung in Sekunden bis Minuten aus sehr wenigen Beispielen. Was die Transformer-Seite vorführt, ist Kompetenz aus sehr vielen Beispielen. Beide Beobachtungen sind interessant. Ein gemeinsamer Maßstab existiert nicht.</p>
+
+<p>Der Satz „Biocomputing ist der Weg zu echter KI" ist im untersuchten Kanal mehrfach zu finden. In der Literatur ist er eine Absichtserklärung. Die Roadmap-Papiere zur „organoid intelligence" aus Johns Hopkins formulieren ihn selbst als Programm, nicht als Befund. <span class="chip g-C">C</span></p>
+
+<hr>
+
+<h2><span class="num">07</span>Entwicklungstreue: Wie anders sind sie?</h2>
+
+<p>Hier ist die Beleglage am dichtesten, und sie hat die Ausgangsvermutung dieses Dossiers teilweise widerlegt.</p>
+
+<h4>Was divergiert</h4>
+<p>Bhaduri et al. 2020, <em>Nature</em> 578:142–148, aus dem Labor von Arnold Kriegstein. Einzelzell-Transkriptome primärer menschlicher Kortexzellen gegen Organoide. Befund: Die groben Zellklassen entstehen, aber die Organoide „do not recapitulate distinct cellular subtype identities and appropriate progenitor maturation". Areale Signaturen erscheinen, sind aber räumlich nicht getrennt. Ursache ist ektopisch aktivierter Zellstress, und zwar kausal: Aktiviert man denselben Stress in primären Zellen in Kultur, verschlechtert sich die Subtypspezifikation ebenfalls. <span class="chip g-A">A</span></p>
+
+<div class="callout teal"><b>Die Rettungsbedingung ist der interessante Teil.</b> Nach Transplantation in Mauskortex geht der Stress zurück, messbar an reduzierter Expression von PGK1, ARCN1 und GORASP2, und die Subtypidentitäten verbessern sich. Der Defekt liegt nicht im Gewebe, sondern in der Kultur. Das ist die stärkste vorliegende Antwort auf die Frage, ob den Organoiden echte Körperzellen zur Interaktion fehlen. Ja, und am Transplantationsexperiment sieht man genau, was ihr Fehlen anrichtet.</div>
+
+<h4>Was nicht mehr stimmt</h4>
+<p>Die Behauptung, Organoiden fehlten grundsätzlich Mikroglia, ist überholt. Ormel et al. 2018 zeigen, dass Mikroglia sich in zerebralen Organoiden von selbst entwickeln, mit charakteristischer verzweigter Morphologie und Phagozytose-Funktion. Diese Lücke war Teil der Gegenhypothese dieses Dossiers. Sie ist geschlossen. <span class="chip g-A">A</span></p>
+
+<p>Ähnlich bei der Vaskularisierung. Mansour et al. 2018 erreichen funktionelle Blutgefäße und Graft-zu-Host-Synapsen durch Transplantation. Shi et al. 2020 halten vaskularisierte Organoide über 200 Tage. Die Grenze ist keine prinzipielle mehr, sondern eine der Kulturbedingungen.</p>
+
+<h4>Was bleibt</h4>
+<p>Die Reifung endet vor der Geburt. Kortikale Schichtung, Gyrifizierung und komplexe Schaltkreise bleiben unvollständig. Quantitative Obergrenzen für nicht vaskularisierte Organoide, etwa eine kritische Größe für nekrotische Kerne, waren in der Literatur nicht in belastbarer Form zu finden. Das steht in der Restliste.</p>
+
+<p>Der Kanal-Claim, Organoide entwickelten spontan funktionierende Augen, hat einen echten Kern. Gabriel et al. 2021 berichten bilaterale optische Vesikel mit retinalen Vorläuferzellen, und „various light intensities could trigger photosensitive activity", zurücksetzbar nach transientem Photobleaching. Lichtempfindliches Gewebe ist damit belegt. Sehen ist es nicht, und ein Empfänger, der aus dem Signal etwas machen könnte, existiert im Organoid nicht. <span class="chip g-A">A</span></p>
+
+<hr>
+
+<h2><span class="num">08 — Brücke</span>Was müsste wahr sein, damit Moralstatus zur Frage wird?</h2>
+
+<p>Jede Moralstatus-Behauptung setzt stillschweigend etwas Empirisches voraus. Vier Bedingungen tauchen in der Literatur immer wieder auf. Für jede lässt sich sagen, wie die Beleglage steht.</p>
+
+<figure>
+<svg viewBox="0 0 860 244" role="img" aria-label="Vier Voraussetzungen und ihr Status">
+  <text class="svg-ttl" x="0" y="14">Voraussetzungen für moralisch relevantes Erleben</text>
+  <g>
+    <rect x="0" y="34" width="860" height="44" rx="7" fill="var(--bg-3)" stroke="var(--line)"/>
+    <circle cx="24" cy="56" r="7" fill="var(--red)"/>
+    <text class="svg-lbl" x="44" y="52" style="font-size:12px;fill:var(--fg)">Integration über Distanz</text>
+    <text class="svg-lbl-s" x="44" y="68">Millimeter-Größe schließt weiträumige kortiko-kortikale Kopplung aus. Nicht erfüllt, aus geometrischen Gründen.</text>
+    <text class="svg-lbl-s" x="846" y="60" text-anchor="end" style="fill:var(--red)">nicht erfüllt</text>
+  </g>
+  <g>
+    <rect x="0" y="86" width="860" height="44" rx="7" fill="var(--bg-3)" stroke="var(--line)"/>
+    <circle cx="24" cy="108" r="7" fill="var(--amber)"/>
+    <text class="svg-lbl" x="44" y="104" style="font-size:12px;fill:var(--fg)">Bewertungssignale</text>
+    <text class="svg-lbl-s" x="44" y="120">Dopamin im Regelkreis ist ein Reizmuster mit Belohnungsfunktion. Interne Valenz-Repräsentation ist nicht gezeigt.</text>
+    <text class="svg-lbl-s" x="846" y="112" text-anchor="end" style="fill:var(--amber)">offen</text>
+  </g>
+  <g>
+    <rect x="0" y="138" width="860" height="44" rx="7" fill="var(--bg-3)" stroke="var(--line)"/>
+    <circle cx="24" cy="160" r="7" fill="var(--red)"/>
+    <text class="svg-lbl" x="44" y="156" style="font-size:12px;fill:var(--fg)">Persistenz</text>
+    <text class="svg-lbl-s" x="44" y="172">Ohne Gedächtnis über die Sitzung hinaus kein Subjekt, dem etwas widerfährt. Von den Autoren selbst verneint.</text>
+    <text class="svg-lbl-s" x="846" y="164" text-anchor="end" style="fill:var(--red)">nicht erfüllt</text>
+  </g>
+  <g>
+    <rect x="0" y="190" width="860" height="44" rx="7" fill="var(--bg-3)" stroke="var(--line)"/>
+    <circle cx="24" cy="212" r="7" fill="var(--red)"/>
+    <text class="svg-lbl" x="44" y="208" style="font-size:12px;fill:var(--fg)">Nozizeption</text>
+    <text class="svg-lbl-s" x="44" y="224">Nozizeptoren sitzen in der Peripherie. Ein kortikales Organoid hat keine Peripherie, kein Rückenmark, keinen Thalamus.</text>
+    <text class="svg-lbl-s" x="846" y="216" text-anchor="end" style="fill:var(--red)">nicht erfüllt</text>
+  </g>
+</svg>
+<figcaption>Die ethische Debatte ist nicht deshalb voreilig, weil ihre Fragen falsch wären, sondern weil alle vier Voraussetzungen, an denen sie hängt, derzeit unerfüllt oder unprüfbar sind.</figcaption>
+</figure>
+
+<p>Wer für Vorsicht argumentiert, argumentiert für Vorsicht gegenüber einer künftigen Konfiguration. Das ist legitim, sollte aber so gesagt werden.</p>
+
+<hr>
+
+<h2><span class="num">09 — Säule 2</span>Schmerz</h2>
+
+<p>Die Ausgangsfrage lautete, ob diese Zellen Schmerz empfinden und wie. Die Antwort ist so klar, wie sie in diesem Feld werden kann.</p>
+
+<div class="callout"><b>US-Akademien 2021, Befund III.5.</b> „The complexity of neural organoids is currently limited. It is extremely unlikely that in the foreseeable future they would possess capacities that, given current understanding, would be recognized as awareness, consciousness, emotion, or the experience of pain." <span class="chip g-C">C</span></div>
+
+<p>Befund IV.2 ergänzt eine methodische Warnung, die in beide Richtungen schneidet: „Most current methods for assessing consciousness (sometimes called awareness or sentience) and pain cannot be applied to organoids because understanding of these capacities depends largely on observing behaviors in whole animals." Man kann es nicht direkt messen. Das ist kein Argument für Empfindungsfähigkeit, sondern eines für Zurückhaltung bei Behauptungen in beide Richtungen.</p>
+
+<h3>Die Gegenprobe an der stärksten Vorsichtsposition</h3>
+<p>Andrea Lavazza hat über ein Dutzend Arbeiten zu diesem Thema veröffentlicht und argumentiert konsequent für Vorsorge. Er stützt sich auf die Integrated Information Theory, auf den Perturbational Complexity Index und auf den Befund, dass ein auf EEG-Merkmalen von Frühgeborenen trainiertes Modell das Alter einer Organoidkultur aus deren Aktivität vorhersagen kann. Und selbst er kommt zu dem Schluss, „current biotechnologies seem incapable of producing cerebral organoids that mature beyond the equivalent of a prenatal brain", und nennt als fehlend: Vaskularisierung, Mikroglia, sensorische Eingänge und „structured relations with the external environment".</p>
+
+<div class="callout teal"><b>Prüfvermerk.</b> Wenn die stärkste Position für Vorsicht die empirische Behauptung nicht erhebt, dann erhebt sie niemand, der die Literatur kennt. Der Kanal-Claim vom September 2023, Organoide „experience pain and stimuli unlike your own brain", ist entkräftet. Der Claim vom April 2025, sie könnten „pain and pleasure" erfahren, ebenso.</div>
+
+<p>Zur Gegenevidenz gegen das eigene Ergebnis: Eine Abfrage über Europe PMC nach Hirn- oder Kortexorganoiden in Verbindung mit Nozizeption, Schmerz oder Leiden ergibt 478 Treffer, von denen die höchstzitierten sich mit Virusinfektion und Krankheitsmodellen befassen. Eine Arbeit, die Nozizeption in Organoiden untersucht, ist darunter nicht. Das ist ein Negativbefund und als solcher schwächer als ein Positivbefund. Er steht in der Restliste.</p>
+
+<h2><span class="num">10</span>Bewusstsein</h2>
+
+<p>Zwei Dinge müssen getrennt bleiben. Der klinische Bewusstseinsbegriff verlangt Wachheit und Wachheitszyklen, und dafür braucht es Hirnstamm und aufsteigendes retikuläres System. Beides fehlt in kortikalen Organoiden. Der Kanal sagt das an einer Stelle korrekt und widerspricht sich an anderen Stellen selbst.</p>
+
+<p>Der theoretische Bewusstseinsbegriff ist offen. Unter IIT wäre Integration graduell und ließe sich prinzipiell auch kleinen Systemen zusprechen. Unter Global Workspace scheitert es an der Reichweite der Verbindungen. Unter der temporo-spatialen Theorie, die Zilio und Lavazza diskutieren, ist die Frage nicht entschieden. Wer aus dieser Theorienlage eine Tatsachenbehauptung macht, macht aus Uneinigkeit Gewissheit.</p>
+
+<p>Die US-Akademien halten auf dieser Basis fest: „it appears at present that neural organoids have no more moral standing than other in vitro human neural tissues or cultures." <span class="chip g-C">C</span></p>
+
+<h2><span class="num">11</span>Recht</h2>
+
+<p>Hier existiert präzise Arbeit, die in der öffentlichen Debatte fast nie zitiert wird. Kataoka, Lee und Sawai, <em>Journal of Law and the Biosciences</em> 2023, trennen zwei Begriffe, die durchgängig verwechselt werden. Natürliche Rechtspersönlichkeit hängt an Eigenschaften des Wesens. Juristische Rechtspersönlichkeit ist eine Zuschreibung und kann Schiffen, Stiftungen und Flüssen zukommen. Aus der Frage „ist es empfindungsfähig?" folgt für die zweite Kategorie nichts, und aus einer Schutzregelung folgt nicht Personalität.</p>
+
+<p>Was regulatorisch gilt, sagt Befund V.2 des Akademien-Berichts: „Neural organoids will not raise issues that require additional oversight until and unless they become significantly more complex." Für Transplantate und Chimären genügen die bestehenden Mechanismen, mit der Empfehlung, die Entwicklung zu beobachten.</p>
+
+<p>Der Kanal-Claim vom Februar 2025, für im Labor gezogene körperlose menschliche Organe existiere kein Rechtsrahmen, ist damit <strong>teilbestätigt</strong>. Ein eigener Rahmen fehlt tatsächlich. Ein rechtliches Vakuum besteht nicht, weil das Gewebe als menschliches biologisches Material geregelt ist, über Einwilligung der Spender, Biobank- und Gewebevorschriften.</p>
+
+<hr>
+
+<h2><span class="num">12 — Claim-Quelle</span>Der Kanal und seine Drift</h2>
+
+<p>Geprüft wurden 217 von 802 Videos des Kanals <span class="mono">@bearbaitofficial</span>, davon 91 im Volltranskript. Daraus wurden 618 prüfbare Behauptungen extrahiert, 485 davon aus den letzten zwei Jahren. Die Betreiberin stellt sich im Video als Molekularbiologin vor. Der Kanal ist damit <span class="chip g-D">D</span>, eine Stimme mit Reichweiteninteresse, kein Beleg.</p>
+
+<p>Der Kanal arbeitet dicht an der Literatur. Viele Einzelangaben treffen zu: die Existenz von CL1 und Neuroplatform, die kommerzielle Verfügbarkeit, 16 Organoide pro Chip bei FinalSpark, DARPA-Interesse an Organ-on-Chip seit 2012, die Organoide aus dem Blut eines verstorbenen Musikers, militärische Finanzierung im Umfeld von DishBrain. Das ist mehr, als bei Wissenschafts-Kanälen üblich ist.</p>
+
+<p>Systematisch verschiebt sich etwas anderes, nämlich die Modalität. Aus „meets a formal definition of sentience" wird „is sentient". Aus „responds to stimuli" wird „experiences pain". Aus „the company claims" wird „it is".</p>
+
+<figure>
+<svg viewBox="0 0 860 250" role="img" aria-label="Claim-Drift im Kanal">
+  <text class="svg-ttl" x="0" y="14">Drift der Sentienz-Aussage im Kanal</text>
+  <line class="axis" x1="40" y1="200" x2="830" y2="200"/>
+  <g class="svg-lbl-s">
+    <text x="40" y="220">09/2023</text><text x="240" y="220">01/2025</text>
+    <text x="400" y="220">03/2025</text><text x="560" y="220">04–09/2025</text><text x="750" y="220">08/2026</text>
+  </g>
+  <line class="gridline" x1="40" y1="40" x2="830" y2="40"/>
+  <text class="svg-lbl-s" x="40" y="34">unqualifiziert behauptet</text>
+  <line class="gridline" x1="40" y1="130" x2="830" y2="130"/>
+  <text class="svg-lbl-s" x="40" y="124">mit Vorbehalt</text>
+
+  <path d="M55 60 L255 130 L415 130 L600 55 L780 60" stroke="var(--magenta)" fill="none" stroke-width="2.5"/>
+  <circle cx="55" cy="60" r="5.5" fill="var(--magenta)"/>
+  <circle cx="255" cy="130" r="5.5" fill="var(--magenta)"/>
+  <circle cx="415" cy="130" r="5.5" fill="var(--magenta)"/>
+  <circle cx="600" cy="55" r="5.5" fill="var(--magenta)"/>
+  <circle cx="780" cy="60" r="5.5" fill="var(--magenta)"/>
+
+  <text class="svg-lbl-s" x="55" y="80" style="fill:var(--fg-2)">„experience pain"</text>
+  <text class="svg-lbl-s" x="200" y="152" style="fill:var(--fg-2)">„ohne Schlaf-Wach-Zyklus</text>
+  <text class="svg-lbl-s" x="200" y="164" style="fill:var(--fg-2)">nicht bewusst"</text>
+  <text class="svg-lbl-s" x="380" y="152" style="fill:var(--fg-2)">„lack brainstem,</text>
+  <text class="svg-lbl-s" x="380" y="164" style="fill:var(--fg-2)">fail medical criteria"</text>
+  <text class="svg-lbl-s" x="540" y="40" style="fill:var(--fg-2)">„technically sentient",</text>
+  <text class="svg-lbl-s" x="540" y="28" style="fill:var(--fg-2)">„capable of preferences"</text>
+</svg>
+<figcaption>Am 12. März 2025 sagt der Kanal in einem Video beides: Organoide erfüllten funktionale Sentienz-Definitionen, und ihnen fehlten Hirnstammstrukturen. Zwischen April und September 2025 verschwindet der Vorbehalt, die Aussage bleibt.</figcaption>
+</figure>
+
+<p><strong>Preisdrift.</strong> Der CL1 kostet im Kanal durchgängig „about $30,000", von März 2025 bis Mai 2026. Der Listenpreis ist 35.000 Dollar, im Rack 20.000. Keine große Sache, aber ein Indikator: Die Zahl wurde einmal aufgenommen und nicht mehr geprüft.</p>
+
+<p><strong>Lebensdauer-Drift.</strong> Am 20. Mai 2026 heißt es, CL1-Organoide hätten drei Monate Lebensdauer. Am 4. August 2026 sind es etwa sechs Monate. Der Hersteller sagt „up to 6 months". Hier korrigiert sich der Kanal nach oben, also zum Hersteller hin, ohne die frühere Angabe zu erwähnen.</p>
+
+<p>Der interessanteste Fall ist keine Übertreibung, sondern eine sachliche Neuigkeit. Am 4. August 2026 berichtet der Kanal von einem Biocomputer-Rechenzentrum in Singapur. Das trifft zu. Die begleitende Zahl von 1.000 Organoid-Einheiten ließ sich nicht verifizieren; die Firma veröffentlicht keine Kapazitätsangaben. Sie steht in der Restliste.</p>
+
+<hr>
+
+<h2><span class="num">13</span>Belegtabelle</h2>
+<p style="color:var(--fg-2);font-size:15.5px">Auswahl der tragenden Einzelbehauptungen. Vollständiger Rohbestand in <a href="research/claims.md">research/claims.md</a>.</p>
+
+<div class="tw">
+<table>
+<thead><tr><th>Behauptung</th><th>Urheber</th><th>Prüfstatus</th><th>Erstquelle</th><th>Grad</th></tr></thead>
+<tbody>
+<tr><td>CL1 ist kommerziell verfügbar</td><td>Cortical Labs, 03/2025</td><td><span class="chip v-ok">bestätigt</span></td><td>corticallabs.com; IEEE Spectrum</td><td><span class="chip g-D">D</span></td></tr>
+<tr><td>CL1 kostet ca. 30.000 USD</td><td>Kanal, 03/2025–05/2026</td><td><span class="chip v-no">entkräftet</span></td><td>Listenpreis 35.000 USD, 20.000 im 30er-Rack</td><td><span class="chip g-C">C</span></td></tr>
+<tr><td>CL1 enthält 800.000 Neuronen</td><td>Cortical Labs</td><td><span class="chip v-ok">bestätigt</span></td><td>Herstellerangabe, IEEE Spectrum</td><td><span class="chip g-D">D</span></td></tr>
+<tr><td>Zelllebensdauer CL1 drei Monate</td><td>Kanal, 05/2026</td><td><span class="chip v-no">entkräftet</span></td><td>Hersteller: „up to 6 months"</td><td><span class="chip g-D">D</span></td></tr>
+<tr><td>59 Eingangselektroden, Latenz &lt; 1 ms</td><td>Cortical Labs</td><td><span class="chip v-ok">bestätigt</span></td><td>IEEE Spectrum</td><td><span class="chip g-C">C</span></td></tr>
+<tr><td>Leistungsaufnahme 850–1.000 W pro Rack</td><td>Fachpresse</td><td><span class="chip v-ok">bestätigt</span></td><td>IEEE Spectrum</td><td><span class="chip g-C">C</span></td></tr>
+<tr><td>Rechenzentrum mit Hirngewebe in Singapur</td><td>Kanal, 08/2026</td><td><span class="chip v-ok">bestätigt</span></td><td>corticallabs.com/cloud: Singapur, Melbourne</td><td><span class="chip g-D">D</span></td></tr>
+<tr><td>Dort 1.000 Organoid-Einheiten</td><td>Kanal, 08/2026</td><td><span class="chip v-na">nicht prüfbar</span></td><td>keine Kapazitätsangabe der Firma</td><td><span class="chip v-na">–</span></td></tr>
+<tr><td>Bioprozessoren brauchen 1 Mio. mal weniger Energie</td><td>FinalSpark/Presse, 2024</td><td><span class="chip v-no">entkräftet</span></td><td>Primärpaper enthält den Faktor nicht; Herleitung ist Modellrechnung</td><td><span class="chip g-B">B</span></td></tr>
+<tr><td>Gehirn: 86 Mrd. Neuronen bei 20 W</td><td>FinalSpark-Paper</td><td><span class="chip v-ok">bestätigt</span></td><td>Clark und Sokoloff 1999, zitiert</td><td><span class="chip g-A">A</span></td></tr>
+<tr><td>GPT-3-Training ca. 10 GWh</td><td>FinalSpark-Paper</td><td><span class="chip v-ok">bestätigt</span></td><td>de Vries 2023, zitiert</td><td><span class="chip g-B">B</span></td></tr>
+<tr><td>&gt;1.000 Organoide über 3 Jahre, 32 Elektroden</td><td>FinalSpark-Paper</td><td><span class="chip v-ok">bestätigt</span></td><td>10.3389/frai.2024.1376042</td><td><span class="chip g-A">A</span></td></tr>
+<tr><td>Organoid-Lebensdauer bis 100 Tage</td><td>FinalSpark-Paper</td><td><span class="chip v-ok">bestätigt</span></td><td>ebd.</td><td><span class="chip g-A">A</span></td></tr>
+<tr><td>Neuronen lernten Pong in fünf Minuten</td><td>Kagan et al. 2022</td><td><span class="chip v-part">teilbestätigt</span></td><td>„apparent learning within five minutes"; Effekt real, Begriff strittig</td><td><span class="chip g-A">A</span></td></tr>
+<tr><td>Kontrollbedingungen fehlten</td><td>Kritik-Lesart</td><td><span class="chip v-no">entkräftet</span></td><td>vier Kontrollarme, 399 Sitzungen</td><td><span class="chip g-A">A</span></td></tr>
+<tr><td>Lernen über Sitzungen hinweg</td><td>implizit im Kanal</td><td><span class="chip v-no">entkräftet</span></td><td>Autoren: „not robustly observed"</td><td><span class="chip g-A">A</span></td></tr>
+<tr><td>Kagan et al. behaupteten Sentienz</td><td>Kanal, mehrfach</td><td><span class="chip v-part">teilbestätigt</span></td><td>im Titel ja, definiert als „responsive to sensory impressions"</td><td><span class="chip g-A">A</span></td></tr>
+<tr><td>Organoide empfinden Schmerz</td><td>Kanal, 09/2023, 04/2025</td><td><span class="chip v-no">entkräftet</span></td><td>NASEM Befund III.5; „pain" fehlt in Kagan et al.</td><td><span class="chip g-C">C</span></td></tr>
+<tr><td>Organoide sind „technisch sentient"</td><td>Kanal, 2025–2026</td><td><span class="chip v-part">teilbestätigt</span></td><td>trifft nur für die entleerte Definition zu, nicht für Erleben</td><td><span class="chip g-A">A</span></td></tr>
+<tr><td>Organoide erfüllen klinische Bewusstseinskriterien</td><td>Kanal, 10/2024</td><td><span class="chip v-no">entkräftet</span></td><td>Hirnstamm und Wachheitszyklen fehlen; NASEM</td><td><span class="chip g-C">C</span></td></tr>
+<tr><td>Organoide entwickeln spontan Augen</td><td>Kanal, mehrfach</td><td><span class="chip v-part">teilbestätigt</span></td><td>Gabriel et al. 2021: optische Vesikel, photosensitiv; kein Sehen</td><td><span class="chip g-A">A</span></td></tr>
+<tr><td>Organoide divergieren von fetalem Kortex</td><td>–</td><td><span class="chip v-ok">bestätigt</span></td><td>Bhaduri et al. 2020, Nature 578:142–148</td><td><span class="chip g-A">A</span></td></tr>
+<tr><td>Organoiden fehlen Mikroglia</td><td>eigene Gegenhypothese</td><td><span class="chip v-no">entkräftet</span></td><td>Ormel et al. 2018</td><td><span class="chip g-A">A</span></td></tr>
+<tr><td>Vaskularisierung ist prinzipielle Grenze</td><td>eigene Gegenhypothese</td><td><span class="chip v-no">entkräftet</span></td><td>Mansour et al. 2018; Shi et al. 2020 (&gt;200 Tage)</td><td><span class="chip g-A">A</span></td></tr>
+<tr><td>Biologische Kulturen schlagen Deep RL</td><td>Kagan-Gruppe 2024</td><td><span class="chip v-part">teilbestätigt</span></td><td>arXiv:2405.16946, nur Stichprobeneffizienz, zeitgematcht</td><td><span class="chip g-A">A</span></td></tr>
+<tr><td>Kein Rechtsrahmen für körperlose Hirne</td><td>Kanal, 02/2025</td><td><span class="chip v-part">teilbestätigt</span></td><td>kein eigener Rahmen, aber Gewebe- und Einwilligungsrecht greift</td><td><span class="chip g-C">C</span></td></tr>
+<tr><td>Kein US-Bundesgesetz verbietet reproduktives Klonen</td><td>Kanal, 12/2025</td><td><span class="chip v-ok">bestätigt</span></td><td>Bundesebene; Einzelstaaten abweichend</td><td><span class="chip g-C">C</span></td></tr>
+<tr><td>Organoide brauchen (noch) keine neue Aufsicht</td><td>–</td><td><span class="chip v-ok">bestätigt</span></td><td>NASEM Befund V.2</td><td><span class="chip g-C">C</span></td></tr>
+<tr><td>Organoide aus Blut eines verstorbenen Musikers</td><td>Kanal, 04/2025</td><td><span class="chip v-na">nicht abgeschlossen</span></td><td>Projekt existiert; Primärmaterial nicht geprüft</td><td><span class="chip v-na">–</span></td></tr>
+<tr><td>DARPA-Interesse an Organ-on-Chip seit 2012</td><td>Kanal, 09/2024</td><td><span class="chip v-na">nicht abgeschlossen</span></td><td>plausibel, Programmdokumente nicht eingesehen</td><td><span class="chip v-na">–</span></td></tr>
+<tr><td>NeXorg sammelte über 42 Mio. USD ein</td><td>Kanal, 06/2026</td><td><span class="chip v-na">nicht prüfbar</span></td><td>keine unabhängige Quelle gefunden</td><td><span class="chip v-na">–</span></td></tr>
+</tbody>
+</table>
+</div>
+
+<h2><span class="num">14</span>Restliste</h2>
+
+<ul class="rest">
+<li><b>Installierte Kapazität der Cortical Cloud.</b> Firma veröffentlicht keine Zahlen. Die Kanal-Angabe von 1.000 Einheiten bleibt offen.</li>
+<li><b>Nozizeption in Organoiden, Positivbefund.</b> 478 Treffer in Europe PMC, keine Arbeit zum Thema unter den höchstzitierten. Ein systematisches Screening aller Treffer stand im Zeitbudget nicht zur Verfügung. Der Befund ist ein Negativbefund und schwächer als eine geprüfte Nichtexistenz.</li>
+<li><b>Quantitative Größengrenze nicht vaskularisierter Organoide.</b> Diffusionsgrenzen und kritische Durchmesser für nekrotische Kerne werden in Reviews als Herausforderung genannt, aber nicht beziffert.</li>
+<li><b>Kagan et al., Antwort auf die Kritik, Volltext.</b> Titel und Fundstelle sind gesichert (Neuron 111:606–607). Der Volltext liegt hinter der Elsevier-Paywall, HTTP 403. Zitiert wird nur der Titel.</li>
+<li><b>NeXorg, 42 Mio. USD.</b> Keine unabhängige Bestätigung gefunden. Firmenname möglicherweise durch die Auto-Untertitel verstümmelt.</li>
+<li><b>Revivification, Alvin Lucier.</b> Projekt im Kanal genannt, Primärmaterial der Ausstellung nicht eingesehen.</li>
+<li><b>DARPA-Programmdokumente ab 2012.</b> Nicht eingesehen.</li>
+<li><b>Videoauswahl.</b> Die 217 Videos wurden über Titel-Stichwörter ausgewählt. Einschlägige Videos mit unauffälligem Titel können fehlen. 126 Videos liegen nur als Metadaten vor, nicht als Transkript.</li>
+<li><b>Auto-Untertitel.</b> Alle Kanal-Zitate stammen aus maschinellen Untertiteln. Eigennamen sind darin häufig verstümmelt („Critical Labs" für Cortical Labs, „neurop platform" für Neuroplatform). Kein Zitat wurde am Video gegengehört.</li>
+<li><b>Kritikalität und Bewusstsein.</b> Dass Kritikalität für Bewusstsein notwendig sei, wird im Kanal behauptet. Die Primärarbeit erhebt diese Behauptung nicht. Ob sie in der Bewusstseinsliteratur belastbar vertreten wird, wurde nicht geprüft.</li>
+</ul>
+
+<h2><span class="num">15</span>Was das Ergebnis kippen könnte</h2>
+
+<p>Eine unabhängige Replikation des DishBrain-Effekts durch eine Gruppe ohne kommerzielles Interesse liegt nicht vor. Fällt sie positiv aus, wird H2 stärker; fällt sie negativ aus, bricht der empirische Kern des Feldes weg. Bisher hat niemand außerhalb der Gruppe es öffentlich versucht, was für ein Feld dieser Sichtbarkeit auffällig ist.</p>
+
+<p>Eine Messung der Energie pro Operation an einem realen Gerät, gegen einen Beschleuniger auf derselben Aufgabe, existiert nicht. Solange sie fehlt, ist jede Effizienzaussage in diesem Feld <span class="chip g-B">B</span>.</p>
+
+<p>Ein Assembloid mit kortiko-hippocampaler Verschaltung würde die Persistenz-Bedingung angreifen. Alam El Din et al. nennen es selbst als nächsten nötigen Schritt. Gelingt Gedächtnis über Tage, verschiebt sich die Diskussion um Moralstatus von einer künftigen zu einer gegenwärtigen.</p>
+
+<div class="callout"><b>Grenze des eigenen Verdikts.</b> Befund IV.2 der US-Akademien sagt, dass die etablierten Verfahren zur Bewusstseins- und Schmerzmessung auf Organoide nicht anwendbar sind. Das Verdikt zu H5 stützt sich deshalb auf ein Strukturargument, nämlich das Fehlen von Peripherie, Rückenmark und Thalamus, nicht auf eine negative Messung. Strukturargumente sind belastbar, solange die Struktur bekannt ist. Sie sind kein Beweis.</div>
+
+<hr>
+
+<h2><span class="num">16</span>Quellen</h2>
+
+<div class="srcgrp">
+<h4>Primärliteratur</h4>
+<ol>
+<li>Kagan BJ, Kitchen AC, Tran NT, Habibollahi F, Khajehnejad M, Parker BJ, Bhat A, Rollo B, Razi A, Friston KJ (2022). In vitro neurons learn and exhibit sentience when embodied in a simulated game-world. <em>Neuron</em> 110:3952–3969.e8. <a href="https://doi.org/10.1016/j.neuron.2022.09.001">doi:10.1016/j.neuron.2022.09.001</a>, <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9747182/">PMC9747182</a></li>
+<li>Balcı F, Ben Hamed S, Boraud T, Bouret S, Brochier T, Brun C, Cohen JY, Coutureau E, Deffains M, Doyère V, Gregoriou GG, Heimel JA, Kilavik BE, Lee D, Leuthardt EC, Mainen ZF, Mathis M, Monosov IE, Naudé J, Orsborn AL, Padoa-Schioppa C, Procyk E, Sabatini B, Sallet J, Sandi C, Schall JD, Soltani A, Svoboda K, Wilson CRE, Zimmermann J (2023). A response to claims of emergent intelligence and sentience in a dish. <em>Neuron</em> 111:604–605. <a href="https://doi.org/10.1016/j.neuron.2023.02.009">doi:10.1016/j.neuron.2023.02.009</a></li>
+<li>Kagan BJ, Razi A, Bhat A et al. (2023). Scientific communication and the semantics of sentience. <em>Neuron</em> 111:606–607. <a href="https://doi.org/10.1016/j.neuron.2023.02.008">doi:10.1016/j.neuron.2023.02.008</a></li>
+<li>Khajehnejad M, Habibollahi F, Paul A, Razi A, Kagan BJ (2024). Biological neurons compete with deep reinforcement learning in sample efficiency in a simulated gameworld. <a href="https://arxiv.org/abs/2405.16946">arXiv:2405.16946</a></li>
+<li>Jordan FD et al. (2024). Open and remotely accessible Neuroplatform for research in wetware computing. <em>Frontiers in Artificial Intelligence</em>. <a href="https://doi.org/10.3389/frai.2024.1376042">doi:10.3389/frai.2024.1376042</a></li>
+<li>Alam El Din DM, Moenkemoeller L, Loeffler A, Habibollahi F, Schenkman J, Mitra A, van der Molen T, Ding L, Laird J, Schenke M, Johnson EC, Kagan BJ, Hartung T, Smirnova L (2025). Human neural organoid microphysiological systems show the building blocks necessary for basic learning and memory. <em>Communications Biology</em>. <a href="https://doi.org/10.1038/s42003-025-08632-5">doi:10.1038/s42003-025-08632-5</a></li>
+<li>Bhaduri A, Andrews MG, Mancia Leon W et al. (2020). Cell stress in cortical organoids impairs molecular subtype specification. <em>Nature</em> 578:142–148. <a href="https://doi.org/10.1038/s41586-020-1962-0">doi:10.1038/s41586-020-1962-0</a></li>
+<li>Gabriel E, Albanna W, Pasquini G et al. (2021). Human brain organoids assemble functionally integrated bilateral optic vesicles. <em>Cell Stem Cell</em> 28:1740–1757.e8. <a href="https://doi.org/10.1016/j.stem.2021.07.010">doi:10.1016/j.stem.2021.07.010</a></li>
+<li>Ormel PR, Vieira de Sá R, van Bodegraven EJ et al. (2018). Microglia innately develop within cerebral organoids. <em>Nature Communications</em>. <a href="https://doi.org/10.1038/s41467-018-06684-2">doi:10.1038/s41467-018-06684-2</a></li>
+<li>Mansour AA, Gonçalves JT, Bloyd CW et al. (2018). An in vivo model of functional and vascularized human brain organoids. <em>Nature Biotechnology</em>. <a href="https://doi.org/10.1038/nbt.4127">doi:10.1038/nbt.4127</a></li>
+<li>Shi Y, Sun L, Wang M et al. (2020). Vascularized human cortical organoids model cortical development in vivo. <em>PLoS Biology</em>. <a href="https://doi.org/10.1371/journal.pbio.3000705">doi:10.1371/journal.pbio.3000705</a></li>
+</ol>
+</div>
+
+<div class="srcgrp">
+<h4>Ethik, Recht, Gremien</h4>
+<ol start="12">
+<li>National Academies of Sciences, Engineering, and Medicine (2021). <em>The Emerging Field of Human Neural Organoids, Transplants, and Chimeras</em>. Befunde III.5, IV.2, V.2. <a href="https://nap.nationalacademies.org/catalog/26078/">nap.edu/26078</a></li>
+<li>Lavazza A (2020). Human cerebral organoids and consciousness: a double-edged sword. <em>Monash Bioethics Review</em>. <a href="https://doi.org/10.1007/s40592-020-00116-y">doi:10.1007/s40592-020-00116-y</a></li>
+<li>Kataoka M, Lee TL, Sawai T (2023). The legal personhood of human brain organoids. <em>Journal of Law and the Biosciences</em>. <a href="https://doi.org/10.1093/jlb/lsad007">doi:10.1093/jlb/lsad007</a></li>
+<li>Koplin JJ, Savulescu J (2019). Moral limits of brain organoid research. <em>Journal of Law, Medicine &amp; Ethics</em>. <a href="https://doi.org/10.1177/1073110519897789">doi:10.1177/1073110519897789</a></li>
+<li>Sawai T, Sakaguchi H, Thomas E, Takahashi J, Fujita M (2019). The ethics of cerebral organoid research: being conscious of consciousness. <em>Stem Cell Reports</em>. <a href="https://doi.org/10.1016/j.stemcr.2019.08.003">doi:10.1016/j.stemcr.2019.08.003</a></li>
+<li>Kataoka M, Niikawa T, Nagaishi N, Lee TL, Erler A, Savulescu J, Sawai T (2025). Beyond consciousness: ethical, legal, and social issues in human brain organoid research. <em>European Journal of Cell Biology</em>. <a href="https://doi.org/10.1016/j.ejcb.2024.151470">doi:10.1016/j.ejcb.2024.151470</a></li>
+<li>Morales Pantoja IE, Smirnova L, Muotri AR et al. (2023). First Organoid Intelligence (OI) workshop to form an OI community. <em>Frontiers in Artificial Intelligence</em>. <a href="https://doi.org/10.3389/frai.2023.1116870">doi:10.3389/frai.2023.1116870</a></li>
+<li>Smirnova L, Morales Pantoja IE, Hartung T (2023). Organoid intelligence (OI): the ultimate functionality of a brain microphysiological system. <em>ALTEX</em>. <a href="https://doi.org/10.14573/altex.2303261">doi:10.14573/altex.2303261</a></li>
+</ol>
+</div>
+
+<div class="srcgrp">
+<h4>Hersteller und Presse <span class="chip g-D">D</span> <span class="chip g-C">C</span></h4>
+<ol start="21">
+<li>Cortical Labs, <a href="https://corticallabs.com/cl1.html">CL1</a> und <a href="https://corticallabs.com/cloud">Cortical Cloud</a></li>
+<li>FinalSpark, <a href="https://finalspark.com/">finalspark.com</a></li>
+<li>IEEE Spectrum, <a href="https://spectrum.ieee.org/biological-computer-for-sale">Biological computer for sale</a></li>
+<li>Forbes, <a href="https://www.forbes.com/sites/johnkoetsier/2025/06/04/hardware-software-meet-wetware-a-computer-with-800000-human-neurons/">A computer with 800,000 human neurons</a></li>
+<li>Tom's Hardware, <a href="https://www.tomshardware.com/pc-components/cpus/worlds-first-bioprocessor-uses-16-human-brain-organoids-for-a-million-times-less-power-consumption-than-a-digital-chip">World's first bioprocessor</a></li>
+</ol>
+</div>
+
+<div class="srcgrp">
+<h4>Claim-Quelle <span class="chip g-D">D</span></h4>
+<p style="font-size:14.5px;color:var(--fg-2)">YouTube-Kanal <span class="mono">@bearbaitofficial</span>, 802 Videos, davon 217 ausgewählt und 91 im Volltranskript. Rohmaterial in <a href="sources/youtube/">sources/youtube/</a>, extrahierte Behauptungen in <a href="research/claims.md">research/claims.md</a>.</p>
+</div>
+
+<footer>
+  Erstellt nach dem adversarialen Recherche-Protokoll in <a href="AGENTS.md">AGENTS.md</a>.
+  Verdikte sind dreistufig und je Hypothese getrennt. Konfidenz ist sprachlich kalibriert und von Relevanz getrennt.
+  Das Rechenmodell in Abschnitt 05 ist Illustration, keine Prognose.
+</footer>
+
+</div>
+
+<script>
+(function(){
+  var root=document.documentElement, btn=document.getElementById('themeToggle');
+  var stored=null;
+  try{stored=localStorage.getItem('oi-theme');}catch(e){}
+  if(stored){root.setAttribute('data-theme',stored);}
+  function sync(){btn.textContent=root.getAttribute('data-theme')==='dark'?'Hell':'Dunkel';}
+  sync();
+  btn.addEventListener('click',function(){
+    var next=root.getAttribute('data-theme')==='dark'?'light':'dark';
+    root.setAttribute('data-theme',next);
+    try{localStorage.setItem('oi-theme',next);}catch(e){}
+    sync();
+  });
+})();
+
+(function(){
+  var els={
+    n:document.getElementById('sNeurons'), r:document.getElementById('sRate'),
+    o:document.getElementById('sOps'), w:document.getElementById('sWatt'),
+    g:document.getElementById('sGpu')
+  };
+  var out={
+    n:document.getElementById('vNeurons'), r:document.getElementById('vRate'),
+    o:document.getElementById('vOps'), w:document.getElementById('vWatt'),
+    g:document.getElementById('vGpu'),
+    bio:document.getElementById('oBio'), si:document.getElementById('oSi'),
+    ratio:document.getElementById('oRatio'), line:document.getElementById('verdictLine')
+  };
+  var GPU_W=700;
+
+  function sci(x){
+    if(!isFinite(x)||x===0) return '0';
+    var e=Math.floor(Math.log10(Math.abs(x)));
+    var m=x/Math.pow(10,e);
+    var sup='⁰¹²³⁴⁵⁶⁷⁸⁹';
+    var es=String(Math.abs(e)).split('').map(function(d){return sup[+d];}).join('');
+    return m.toFixed(1).replace('.',',')+' × 10'+(e<0?'⁻':'')+es;
+  }
+  function human(x){
+    if(x>=1e9) return (x/1e9).toFixed(1).replace('.',',')+' Mrd.';
+    if(x>=1e6) return (x/1e6).toFixed(0)+' Mio.';
+    if(x>=1e3) return (x/1e3).toFixed(0)+' Tsd.';
+    return x.toFixed(0);
+  }
+  function pow10(sl){return Math.pow(10,parseFloat(sl.value));}
+
+  function update(){
+    var neurons=pow10(els.n), rate=pow10(els.r), ops=pow10(els.o);
+    var watt=parseFloat(els.w.value), gpuOps=pow10(els.g);
+
+    out.n.textContent=human(neurons);
+    out.r.textContent=rate<10?rate.toFixed(2).replace('.',',')+' Hz':rate.toFixed(0)+' Hz';
+    out.o.textContent=ops<10?ops.toFixed(1).replace('.',','):human(ops);
+    out.w.textContent=Math.round(watt)+' W';
+    out.g.textContent=sci(gpuOps);
+
+    var bioOps=neurons*rate*ops;
+    var bioJ=watt/bioOps;
+    var siJ=GPU_W/gpuOps;
+    var ratio=bioJ/siJ;
+
+    out.bio.textContent=sci(bioJ)+' J';
+    out.si.textContent=sci(siJ)+' J';
+
+    if(ratio>1){
+      out.ratio.textContent=sci(ratio)+' × schlechter';
+      out.ratio.className='v bad';
+      out.line.innerHTML='Bei diesen Werten braucht das biologische Substrat <b>'+sci(ratio)+
+        ' mal mehr</b> Energie pro Operation als der Vergleichsbeschleuniger. Um gleichzuziehen, müsste das Produkt aus Neuronenzahl, Spikerate und Operationen pro Spike auf <b>'+
+        sci(watt/siJ)+' Operationen pro Sekunde</b> steigen.';
+    } else {
+      out.ratio.textContent=sci(1/ratio)+' × besser';
+      out.ratio.className='v good';
+      out.line.innerHTML='Bei diesen Werten wäre das biologische Substrat <b>'+sci(1/ratio)+
+        ' mal günstiger</b> pro Operation. Diese Konfiguration ist mit heutiger Hardware nicht erreicht; sie zeigt, was gelten müsste.';
+    }
+  }
+  Object.keys(els).forEach(function(k){els[k].addEventListener('input',update);});
+  update();
+})();
+</script>
+</body>
+</html>
