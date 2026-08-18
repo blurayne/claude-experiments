@@ -1,0 +1,18 @@
+{
+  "name": "Chondrocyte (cartilage cell)",
+  "short_description": "Round to ovoid cell sitting alone or in small isogenous groups inside a matrix-carved lacuna; rich rough ER and Golgi for producing/maintaining the collagen-II and proteoglycan cartilage matrix around it. Cartilage is avascular, so chondrocytes rely on diffusion and store glycogen/lipid as energy reserve.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {"1": "pass (gemini-2.5-flash-image; single round-to-oval cell in a wavy-walled lacuna surrounded by a pale fibrous matrix halo, eccentric nucleus with prominent nucleolus, extensive folded rough ER, curved perinuclear Golgi stack, several mitochondria, glycogen/lipid inclusions, fine intermediate-filament cytoskeleton mesh; muted desaturated palette with thin clean outlines matching the house textbook style; no blood vessels, no elongated body, no baked text or border)"},
+    "sem": {"1": "pass (gemini-2.5-flash-image; single plump round cell nestled in its own lacunar pocket within a fibrous cartilage matrix meshwork, surface-only detail appropriate for SEM, warm sandy-gold false colour against a cooler grey-lavender matrix, single specimen, no text or border)"},
+    "3d": {"1": "pass (gemini-2.5-flash-image; translucent round cell with soft global illumination sitting inside a rounded lacuna within a pale semi-translucent matrix shell, cutaway shows eccentric nucleus with nucleolus, folded rough ER, curved Golgi stack, mitochondria (one large curved plus small round ones) and scattered glycogen/lipid inclusions, fine filament mesh, natural warm biological tones (not neon/monochrome), no elongated body, no border)"},
+    "watercolor": {"1": "pass (gemini-2.5-flash-image; hand-painted naturalist plate, aged paper fills the frame edge-to-edge with a soft dark wash halo directly behind the subject representing the fibrous matrix, round cell resting inside a painted lacuna, cutaway reveals nucleus/nucleolus, rod-like rough ER profiles, a curved blue-line Golgi stack, mitochondria, glycogen granule clusters and lipid droplets in soft washes with fine ink linework, no separate sheet/mat/border, no baked text)"}
+  },
+  "reference": "pass (Wikimedia Commons 'Hyaline cartilage of rabbit ribs.jpg', CC BY-SA 4.0, attribution A.o.dvoretska; H&E light micrograph showing perichondrium transitioning into hyaline cartilage matrix populated by chondrocytes, with isogenous groups of 2-8 cells each in its own lacuna clearly visible deeper in the matrix - matches textbook chondrocyte histology; raw download had a circular microscope field-of-view vignette (black border) and no text/scale bar; a cleaned, edge-to-edge recomposed version centred on a clear isogenous group was produced with edit_image.py for display)",
+  "decision": [
+    ["textbook", "pass", 1, "use as final; accurate round-cell cutaway with lacuna/matrix halo, matches the muted textbook palette/line-style exemplars"],
+    ["sem", "pass", 1, "use as final; correct surface-only false-colour rendering of a single cell inside its lacuna within fibrous matrix"],
+    ["3d", "pass", 1, "use as final; correct natural-tone cutaway with all core organelles present, round non-elongated body"],
+    ["watercolor", "pass", 1, "use as final; full-bleed aged-paper naturalist plate matching the exemplar composition"]
+  ]
+}

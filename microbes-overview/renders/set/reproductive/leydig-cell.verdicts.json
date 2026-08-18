@@ -1,0 +1,27 @@
+{
+  "name": "Leydig cell",
+  "short_description": "Hormone factory of the testis: makes testosterone on orders from the pituitary. Drives sperm production and male traits.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {
+      "1": "pass (gemini-2.5-flash-image; rounded polygonal cell, large pale eccentric nucleus with 2 nucleoli, dense smooth-ER tubule network dominating cytoplasm, tubulovesicular-cristae mitochondria, lipid droplets, Golgi, Reinke crystal rod, lipofuscin granules, small capillary/RBC context in the interstitium — matches the science reference; used as SVG base after fixing label-collision layout)",
+      "2": "fail (gemini-2.5-flash-image; odd amoeboid outline with a notch/tail-like protrusion, less faithful to the polygonal/rounded Leydig-cell morphology than attempt 1; not used)"
+    },
+    "sem": {
+      "1": "pass (gemini-2.5-flash-image; rounded/polygonal cell surface with subtle micro-folds, sitting in a fibrous interstitial substrate beside a smooth-walled capillary, false-colour peach/tan cell vs dusty-rose connective tissue vs blue-grey vessel, surface-only as expected for SEM, no internal organelles, no text/border)"
+    },
+    "3d": {
+      "1": "pass (gemini-2.5-flash-image; natural-tint cutaway — pale eccentric nucleus with 2 nucleoli, dense lavender SER tangle, terracotta mitochondria with tubular cristae, lipid droplets, violet Golgi cluster, pink Reinke-crystal rod, lipofuscin granules, small capillary/RBC context bud outside the cell; label layout re-annotated so the plasma-membrane leader no longer crosses into the nucleus)"
+    },
+    "watercolor": {
+      "1": "pass (gemini-2.5-flash-image; full-bleed aged paper, octagonal/rounded cell with the same organelle set as the other styles rendered as ink-and-wash, single specimen; label layout re-annotated to fix a text collision and a mitochondria leader line that originally terminated inside the nucleus)"
+    }
+  },
+  "reference": "pass (Wikimedia Commons 'Leydig cells - very high mag.jpg', CC BY-SA 3.0, Nephron — genuine H&E light-photomicrograph of a small nest of Leydig cells with large round nuclei, visible nucleoli and abundant eosinophilic cytoplasm, immediately beside a small interstitial capillary filled with red blood cells; matches Leydig-cell morphology and the natural perivascular small-nest arrangement; cleaned/recomposed version used for display)",
+  "decision": [
+    ["textbook", "pass", 2, "use attempt 1 as final; re-annotated to remove two label text collisions"],
+    ["sem", "pass", 1, "use as final; correct surface-only false-colour rendering, no internal organelles"],
+    ["3d", "pass", 1, "use as final; re-annotated to keep the plasma-membrane leader line out of the nucleus"],
+    ["watercolor", "pass", 1, "use as final; re-annotated to fix a text collision and a mislabelled leader line into the nucleus"]
+  ]
+}

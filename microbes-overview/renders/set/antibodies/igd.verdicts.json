@@ -1,0 +1,19 @@
+{
+  "name": "Immunoglobulin D (IgD)",
+  "short_description": "The \"training-wheels\" antibody of the naive B cell - a single T/Y-shaped monomer of two heavy (delta) and two light chains, co-expressed with IgM on the surface of every mature naive B cell via a short transmembrane anchor as part of the B-cell receptor, and marked by the longest, most flexible hinge of any human immunoglobulin.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {"1": "pass (gemini-2.5-flash-image; unmistakable wide T-shape (not a compact IgG-style Y): two Fab arms each a 3-bead heavy+light chain string, a strikingly long thin extended hinge with a fine glycan fringe and one disulfide cross-link, a compact 3-bead Fc stem plugging into a short transmembrane anchor through a small local double-layer membrane strip - not a full enclosing cell; muted educational palette matching the house style, no text/border/face/organelles)"},
+    "sem": {"1": "fail (gemini-2.5-flash-image; molecular-cluster arm tips read as small-molecule ball-and-stick chemistry rather than a protein surface, and the glycan fringe was drawn along the whole arm instead of confined to the hinge, superseded)", "2": "fail (gemini-2.5-flash-image; the hinge/Fc junction collapsed into a tangled knot-like mass instead of reading as a long extended hinge, understating IgD's defining feature, superseded)", "3": "pass (gemini-2.5-flash-image; clean false-colour molecular-surface T-shape, correct heavy/light chain false-colour split along each arm, distinct bilobed Fc stem, short transmembrane segment through a small local double-layer membrane strip at the bottom edge - not a full cell; explicit in-prompt note that this is a stylised surface rendering, not a literal SEM claim; no baked text/border)"}
+    ,
+    "3d": {"1": "pass (gemini-2.5-flash-image; wide T-shape topology, natural dusty teal/gold biological tints, visibly extended hinge with glycan fringe and a bright disulfide cross-link, compact Fc stem feeding into a transmembrane anchor seated on a small local membrane patch (rendered as a disc rather than a full enclosing cell) - no face/organelles/text)"},
+    "watercolor": {"1": "pass (gemini-2.5-flash-image; full-bleed aged-paper plate matching the cocci/rod-bacterium exemplar style, wide T-shape with 3-bead heavy+light chain arms, a distinctly long wavy hinge carrying fine ink-dot glycan marks and a cross-hatched disulfide mark, compact Fc stem into a small local membrane strip - no mat/frame/sheet-on-surface, no baked text)"}
+  },
+  "reference": "pass (RCSB PDB Structure Summary page image for PDB 1ZVO, CC0 1.0, auto-rendered ribbon diagram from the deposited solution-scattering coordinates of human myeloma IgD, Sun et al. 2005 J. Mol. Biol.; clearly shows the real semi-extended T/Y-shaped IgD topology - two Fab domains connected via an unusually long, visibly extended hinge/linker to one Fc domain, matching the published structure; cleaned via edit_image.py to strip any residual page chrome while keeping the original colourisation)",
+  "decision": [
+    ["textbook", "pass", 1, "use as final; wide T-shape, long extended hinge with glycan fringe and disulfide mark, small local membrane strip, no full cell"],
+    ["sem", "pass", 3, "use as final after 2 re-renders; stylised false-colour molecular-surface rendering (explicitly not a literal SEM claim), clean T-shape with correct heavy/light false-colour split"],
+    ["3d", "pass", 1, "use as final; natural biological tints, unmistakable T-shape with extended hinge, membrane patch rendered as a small local disc (not an enclosing cell)"],
+    ["watercolor", "pass", 1, "use as final; full-bleed aged-paper plate matching the set's exemplar style, distinctly long hinge and small local membrane strip"]
+  ]
+}

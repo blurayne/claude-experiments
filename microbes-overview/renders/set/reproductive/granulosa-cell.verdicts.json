@@ -1,0 +1,18 @@
+{
+  "name": "Granulosa cell",
+  "short_description": "Small cuboidal-to-columnar epithelial cell that forms the wall of the ovarian follicle around the maturing oocyte, nurses it via gap junctions, and converts theca-cell androgens into estrogen; after ovulation it becomes part of the corpus luteum.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {"1": "fail (gemini-2.5-flash-image; baked-in text \"FSH\" and misspelled \"BASAL LANIHIA\" on the image - no baked text allowed)", "2": "pass (gemini-2.5-flash-image; clean muted-palette cutaway of a small cuboidal cell, distinct soft colour fills for nucleus/Golgi/rough ER/smooth ER/mitochondria/lipid droplets/FSH receptors/gap junctions, no text, dark charcoal background edge-to-edge, faint neighbouring cells for context)"},
+    "sem": {"1": "pass (gemini-2.5-flash-image; false-colour SEM of a small rosette/cluster of cuboidal granulosa cells with microvillus surface texture, correct size/shape, no baked text, clean dark background)"},
+    "3d": {"1": "fail (gemini-2.5-flash-image; near-monochrome pale pink/beige palette, organelles not colour-distinguishable, fails the 3d 'natural tones, not near-monochrome' rule)", "2": "pass (gemini-2.5-flash-image; teal/blue-green cell body with gold mitochondria, pale nucleus, distinct membrane receptor knobs and a gap-junction bead-chain to neighbouring cells, natural biological tint variety, no baked text, dark studio background)"},
+    "watercolor": {"1": "fail (gemini-2.5-flash-image; baked-in text \"FSH\" and vertical label-like text on the plate)", "2": "fail (gemini-2.5-flash-image; still baked-in text - \"FSH\", \"GAP Junction\" and other words on the paper)", "3": "fail (gemini-3-pro-image; model added explicit callout labels with leader lines - \"Golgi stack\", \"Gap-junction contacts\", \"Basal-lamina\", \"Tiny membrane-surface marking FSH receptors\" - baked-in annotation, not a plain plate)", "4": "pass (gemini-3-pro-image, re-prompted with an explicit no-annotations constraint; warm aged paper fills the frame edge-to-edge, single cutaway cell with clear nucleus/Golgi/rough+smooth ER/mitochondria/lipid droplets/gap-junction dots/basal-lamina oval, softly sketched neighbouring cells at the margins, no text anywhere)"}
+  },
+  "reference": "pass (Wikimedia Commons \"Graafian follicle of human ovary.jpg\", Ed Uthman M.D., CC BY 2.0; genuine H&E light micrograph of a human antral follicle - oocyte with zona pellucida centrally, dense mass of small darkly-nucleated granulosa cells (corona radiata/cumulus + mural granulosa) surrounding it, follicular antrum visible; no baked text/scale bar, no cleaning needed)",
+  "decision": [
+    ["textbook", "pass", 2, "use as final; muted educational palette, all core organelles distinct and labelable, no text after re-render"],
+    ["sem", "pass", 1, "use as final; correct false-colour cuboidal-cell-cluster surface rendering, no re-render needed"],
+    ["3d", "pass", 2, "use as final; natural teal/gold biological tints after re-render fixed the initial near-monochrome fail"],
+    ["watercolor", "pass", 4, "use as final after three re-renders (baked text twice, then baked explicit callout labels once) to reach a clean unlabeled aged-paper plate"]
+  ]
+}

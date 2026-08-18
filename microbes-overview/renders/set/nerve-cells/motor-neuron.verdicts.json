@@ -1,0 +1,26 @@
+{
+  "name": "Motor neuron (Motoneuron)",
+  "short_description": "Large multipolar nerve cell of the brainstem/spinal-cord anterior horn, with a star-shaped soma full of Nissl bodies, many branching dendrites and a single long myelinated axon that can reach a meter in length, ending at the motor end plate on a skeletal-muscle fibre.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {
+      "1": "PASS (gemini-2.5-flash-image) — star-shaped multipolar soma with branching dendrites, single axon leaving a pale Nissl-free axon hillock, nucleus + single nucleolus, coarse purple Nissl-body clumps confined to soma, segmented myelin sheath with visible nodes of Ranvier, axon terminal ending on a small muscle-fibre patch (motor end plate); muted educational palette matching house look, no border, no text."
+    },
+    "sem": {
+      "1": "PASS (gemini-2.5-flash-image) — false-colour amber/coral surface-only render of a single multipolar soma with tapering dendrites and one trailing axon, smooth domed surface texture, shallow depth of field, dark uncluttered background, no internal organelles (correct for SEM), no text/scale bar."
+    },
+    "3d": {
+      "1": "PASS (gemini-2.5-flash-image) — natural biological tints, translucent soma with nucleus/nucleolus, Nissl clumps fading out at the hillock, segmented myelin with nodes of Ranvier, single axon ending in a small motor-end-plate flag; clean dark studio background, no border."
+    },
+    "watercolor": {
+      "1": "PASS (gemini-2.5-flash-image) — warm aged paper fills the frame edge-to-edge with a soft wash halo, single multipolar soma with fine ink linework, nucleus + nucleolus, violet Nissl-body dots, segmented myelin with nodes, terminal axon fraying into fine boutons; no mat/frame/sheet-on-surface, no text."
+    }
+  },
+  "reference": "PASS (2026-08-15) — Wikimedia Commons Nissl/luxol-fast-blue LM section, CC BY-SA 4.0, Tulemo. Two large, clearly readable multipolar motor-neuron cell bodies with pale nucleus, dark nucleolus and coarse purple Nissl-body clumping. Cleaned with edit_image.py to remove baked-in pointer arrows and scale bar and recompose around the single largest cell body.",
+  "decision": [
+    ["textbook", "pass", 1, "correct multipolar anatomy, Nissl confined to soma, segmented myelin with nodes, matches house palette/line style"],
+    ["sem", "pass", 1, "correct surface-only false-colour rendering of soma + dendrites + axon"],
+    ["3d", "pass", 1, "natural tints, correct anatomy, clean labels"],
+    ["watercolor", "pass", 1, "full-bleed aged paper, correct anatomy, clean labels"]
+  ]
+}

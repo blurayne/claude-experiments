@@ -1,0 +1,31 @@
+{
+  "name": "Helicobacter pylori",
+  "short_description": "Spiral, flagellated Gram-negative bacterium that colonises the stomach mucus layer; survives gastric acid via urease and causes gastritis, peptic ulcers and raises stomach-cancer risk.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {
+      "1": "reject: correct spiral shape and polar flagella tuft, but flat cartoon-ish shading, thicker outlines and simpler palette than rod-bacterium exemplar",
+      "2": "reject: improved but still a bit flat/cartoonish, envelope layers not clearly separated",
+      "3": "reject: good structure but colour palette too warm/orange, envelope layering not crisp",
+      "4": "reject: strong render, but nucleoid drawn slightly too tidy/loop-like and palette a touch saturated",
+      "5": "accept: refined muted cutaway matching rod-bacterium/parasite look, correct helical body, unipolar sheathed flagellar tuft with terminal bulbs, three distinct Gram-negative envelope layers, diffuse tangled nucleoid, scattered ribosome dots, no text/border/vignette"
+    },
+    "3d": {
+      "1": "accept: believable teal/orange 3D medical-illustration style, correct helical corkscrew body with 2-3 turns, unipolar tuft of sheathed flagella with terminal bulbs, gentle cutaway showing translucent cytoplasm, tangled nucleoid and scattered ribosomes, no text/border/vignette, full-bleed dark studio background"
+    },
+    "sem": {
+      "1": "accept: photorealistic false-colour salmon/orange helical rod with 2-3 turns and rounded ends, unipolar tuft of whip-like flagella, surface-only detail (no interior), dark uncluttered background, no text/scale bar/border"
+    },
+    "watercolor": {
+      "1": "reject: nice hand-painted look and correct helical anatomy, but the coil reads slightly too tight/ring-like and the cutaway window is small",
+      "2": "accept: full-bleed warm aged paper matching cocci/rod exemplars (paper fills frame, no sheet-on-surface), correct helical corkscrew body with 2-3 turns, unipolar sheathed flagellar tuft trailing off, soft painterly cutaway revealing washed cytoplasm, loose irregular nucleoid tangle and scattered ribosome specks, three envelope layers visible, no text/border"
+    }
+  },
+  "reference": "accept: CDC PHIL public-domain SEM of a grouping of spiral, flagellated Helicobacter-genus bacteria (real-01); cleaned of any residual artefacts via edit pass (real-02) — clear helical morphology and polar flagella, no baked text/scale bar/border, greyscale converted to false-colour salmon/orange",
+  "decision": [
+    ["textbook", "accept", 5, "gen-05__gemini-3-pro-image — refined muted cutaway, matches rod-bacterium/parasite exemplar style; used as base for labels.json and RENDER-STATUS svg_theme"],
+    ["3d", "accept", 1, "gen-01__gemini-2.5-flash-image — first attempt already natural, anatomically faithful, no re-render needed"],
+    ["sem", "accept", 1, "gen-01__gemini-2.5-flash-image — first attempt already photorealistic false-colour surface-only SEM, no re-render needed"],
+    ["watercolor", "accept", 2, "gen-02__gemini-3-pro-image — full-bleed aged-paper look with clearer cutaway than attempt 1"]
+  ]
+}

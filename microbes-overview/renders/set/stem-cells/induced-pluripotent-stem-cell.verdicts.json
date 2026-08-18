@@ -1,0 +1,48 @@
+{
+ "name": "Induced pluripotent stem cell (iPS)",
+ "short_description": "A body cell reprogrammed by a few transcription factors (Yamanaka factors: OCT4, SOX2, KLF4, c-MYC) back into an embryonic-like pluripotent state; small, round, with a huge nucleus, prominent nucleoli and immature mitochondria.",
+ "svg_theme": "textbook",
+ "themes": {
+  "textbook": {
+   "1": "FAIL (gemini-2.5-flash-image) — correctly coloured and anatomically reasonable, but the artwork sits inset on a dark-charcoal square with a visible pale/white margin around it (a baked-in border/frame), violating the edge-to-edge fill rule; re-rendered.",
+   "2": "PASS (gemini-2.5-flash-image) — huge dominant nucleus with 2 nucleoli, thin cytoplasm rim, immature rounded mitochondria (sparse cristae), ER, Golgi stack, scattered ribosomes; muted dusty palette, thin clean outlines, neutral dark-charcoal background filling the frame edge-to-edge; no bacterial/plant features, no text. Chosen for the labelled SVG.",
+   "3": "PARTIAL (gemini-2.5-flash-image) — fills the frame correctly but structures are washed-out/under-differentiated (mitochondria barely readable, one odd flat pale shape lower-right not matching any labelled organelle); superseded by attempt 2."
+  },
+  "sem": {
+   "1": "PASS (gemini-2.5-flash-image) — one dominant plump, rounded cell in the foreground with two neighbours just touching it (accurate cobblestone-colony morphology, consistent with the embryonic-stem-cell precedent in this set), false-colour rose/lilac surface only, fine membrane ruffles and microvilli-like surface texture, no internal structures (correct for SEM), no text, fills the frame."
+  },
+  "3d": {
+   "1": "PASS (gemini-2.5-flash-image) — translucent warm cell body with natural biological tints, dominant nucleus with 2 nucleoli, immature rounded mitochondria, ER, Golgi, scattered ribosomes, soft rim light and subsurface scattering, clean dark studio background filling the frame; no bacterial/plant features, no text."
+  },
+  "watercolor": {
+   "1": "PASS (gemini-2.5-flash-image) — aged paper fills the entire frame edge-to-edge with a soft wash halo behind the single centred cell, fine ink linework, nucleus with 2 nucleoli, immature mitochondria, DNA strands with Yamanaka-factor dots, dispersed ribosome specks; anatomically correct, no text, no matting/frame."
+  }
+ },
+ "reference": "PASS — NIH/National Eye Institute confocal immunofluorescence of a human iPSC colony (OCT4 red, SSEA-4 green, nuclei blue); Public Domain. Cleaned with edit_image.py (real-02): recomposed/centred on a clean background, no borders or scale bars, false-colour kept as-is. Directly shows the defining biology (Yamanaka factor + pluripotency marker + nucleus-dense compact colony).",
+ "decision": [
+  [
+   "textbook",
+   "pass",
+   2,
+   "correct high N:C-ratio anatomy, muted educational palette, clean leader-line targets"
+  ],
+  [
+   "sem",
+   "pass",
+   1,
+   "cobblestone colony surface morphology, false-colour, no internal structures"
+  ],
+  [
+   "3d",
+   "pass",
+   1,
+   "natural-tint translucent cutaway, correct organelles, clean labels"
+  ],
+  [
+   "watercolor",
+   "pass",
+   1,
+   "full-bleed aged paper, correct anatomy, clean leader lines"
+  ]
+ ]
+}

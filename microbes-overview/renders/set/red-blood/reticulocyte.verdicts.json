@@ -1,0 +1,28 @@
+{
+ "name": "Reticulocyte",
+ "short_description": "Young red blood cell, just released from bone marrow, still carrying residual RNA. Matures into a full erythrocyte in one to two days; its blood share (~1%) is a key clinical marker of marrow output.",
+ "svg_theme": "textbook",
+ "themes": {
+  "textbook": {
+   "1": "PASS (gemini-2.5-flash-image) — anucleate cutaway disc, plump/not-yet-perfectly-biconcave shape, dense haemoglobin-packed cytoplasm, sparse blue-black filamentous RNA reticulum, a few small ringed mitochondria-like remnants with faint internal texture, scattered ribosome dots, one irregular autophagic-vesicle shape; no nucleus, no platelet/neutrophil granules, no crescent shape, no cell wall."
+  },
+  "sem": {
+   "1": "PASS (gemini-2.5-flash-image) — single smooth-surfaced plump disc, false-colour crimson-rose, shallow central depression (not a sharp mature-cell dimple, not a true hole), no internal detail shown (correct for SEM), clean dark background, no text/scale bar."
+  },
+  "3d": {
+   "1": "PARTIAL — nearly featureless glossy sphere with almost no visible biconcave/disc cue and only one odd angular pale shape inside; interior reads as too sparse/underspecified for clean labelling; re-rendered.",
+   "2": "PARTIAL — interior organelle population overshoots 'sparse': 4 mitochondria-like ovals plus 2 large glowing vesicle spheres read as a busy, secretory-cell-like population rather than a cell being cleared of organelles; re-rendered with explicit count limits.",
+   "3": "PASS (gemini-2.5-flash-image) — plump, rounded (not-yet-biconcave, scientifically appropriate for this immature stage) cell, cutaway shows sparse scattered RNA-reticulum mesh clusters, 2 small oval mitochondria remnants, 2 small vesicle-like remnants and light ribosome dots — within the research's 'one or a few' count allowance, no nucleus, natural crimson colour, no cell wall/granules/crescent."
+  },
+  "watercolor": {
+   "1": "PASS (gemini-2.5-flash-image) — full-bleed aged paper (no sheet/mat/border), ink-and-wash cutaway of a single plump disc, dense red haemoglobin wash, sparse dark blue-black ink reticulum mesh, three small ringed oval mitochondria remnants, scattered ribosome dots; no nucleus, no granules, no crescent, single specimen."
+  }
+ },
+ "reference": "PASS — Wikimedia Commons 'Reticulocytes Human Blood Supravital Stain.jpg' (Ed Uthman, MD; CC BY 3.0): authentic light-microscopy supravital (new methylene blue) smear showing several reticulocytes with clearly visible dark-blue filamentous/granular reticulum next to plain mature red cells for contrast; no baked-in text/scale bar. Cleaned/recomposed with edit_image.py (attempt 2) to centre 2-3 clearly reticulated cells plus 2 plain cells on a clean background, same authentic photographic colourization kept, no text added.",
+ "decision": [
+  ["textbook", "pass", 1, "correct anucleate morphology, sparse correctly-placed organelle remnants, clean cutaway"],
+  ["sem", "pass", 1, "smooth plump-disc surface, false-colour, no internal detail (correct for SEM), single specimen"],
+  ["3d", "pass", 3, "plump not-yet-biconcave shape (scientifically appropriate), sparse interior remnants after 2 re-renders to fix organelle counts"],
+  ["watercolor", "pass", 1, "full-bleed aged-paper plate, correct sparse anatomy, single specimen"]
+ ]
+}

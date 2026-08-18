@@ -1,0 +1,18 @@
+{
+  "name": "Enterocyte (gut cell)",
+  "short_description": "Tall column-shaped absorptive cell with a dense apical brush border (microvilli). Absorbs nutrients from the gut lumen and passes them into the body; replaced every few days by intestinal stem cells and forms a barrier against gut microbes.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {"1": "pass (gemini-2.5-flash-image; unmistakable tall narrow column ~4-5x taller than wide, dense uniform apical microvillar fringe with faint terminal web band, basal oval nucleus, apical/supranuclear mitochondria, rough ER, Golgi, smooth ER and a distinct tight-junction mark at the apicolateral corner, muted dusty textbook palette, thin outlines, dark charcoal background, no border, no text)"},
+    "sem": {"1": "pass (gemini-2.5-flash-image; single tall column-shaped cell shown mostly cropped to its apical/upper body, densely packed velvety carpet of short finger-like microvilli in warm golden-tan false colour with true 3D surface texture, hint of neighbouring cells at the lateral edges, shallow depth of field, dark uncluttered background, no internal organelles as expected for SEM, no border, no text)"},
+    "3d": {"1": "pass (gemini-2.5-flash-image; tall narrow column with soft global illumination and subsurface scattering on the membrane, dense upright brush border catching rim light, basal nucleus, apical mitochondria cluster, rough ER wrap, Golgi stack, smooth ER network and a dark junctional band at the top-lateral corner, natural warm biological tones (not neon, not monochrome), clean dark studio background, no border, no text)"},
+    "watercolor": {"1": "fail (gemini-2.5-flash-image; otherwise correct tall-column composition on full-bleed aged paper, but baked-in handwritten labels 'Terminal web' and a garbled second word appear directly in the image - violates the no-text rule)", "2": "pass (gemini-2.5-flash-image; same correct composition with all text removed - tall narrow column, fine ink-outlined microvillus fringe, basal nucleus low in the cell, mitochondria/Golgi/rough ER/smooth ER washed into the upper-middle cytoplasm, thin tight-junction ink line, warm aged paper fills the entire frame edge-to-edge with a soft darker wash halo directly on the paper (matches cocci/rod-bacterium exemplar, not a separate matted sheet), single specimen, no text)"}
+  },
+  "reference": "pass (Wikimedia Commons - 'Human jejunum microvilli 1 - TEM.jpg', genuine transmission electron micrograph of a human jejunal enterocyte brush border, Public domain, Louisa Howard & Katherine Connolly / Dartmouth EM Facility; cleaned with edit_image.py to crop to a single enterocyte's apical brush border plus underlying mitochondria-rich cytoplasm, natural sepia false-colour kept, no text/scale bar/border in the cleaned version; original real-01 kept for provenance)",
+  "decision": [
+    ["textbook", "pass", 1, "use as final; accurate tall-column morphology, basal nucleus and correct organelle placement, matches textbook exemplar palette/line style"],
+    ["sem", "pass", 1, "use as final; correct brush-border surface texture and false colour, surface-only as expected for SEM"],
+    ["3d", "pass", 1, "use as final; correct silhouette and organelle layering with natural biological tones"],
+    ["watercolor", "pass", 2, "use as final after one re-render to strip baked-in handwritten labels; now correct full-bleed aged-paper composition with all core structures visible and no text"]
+  ]
+}

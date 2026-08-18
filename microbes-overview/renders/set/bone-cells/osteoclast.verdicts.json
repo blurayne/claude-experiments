@@ -1,0 +1,18 @@
+{
+  "name": "Osteoclast",
+  "short_description": "Multi-nucleated giant cell that resorbs bone. Secretes acid and enzymes that dissolve calcium and matrix.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {"1": "pass (gemini-2.5-flash-image; muted educational palette, thin outlines matching cocci/rod-bacterium house style, tight cluster of ~10 violet nuclei, correct ruffled-border/sealing-zone anatomy against a bone-matrix band, no baked text)"},
+    "sem": {"1": "pass (gemini-2.5-flash-image; false-colour surface-only SEM, correct cauliflower-like ruffled border and domed nuclear bulges, single specimen on a textured bone substrate, no internal organelles as expected for SEM)"},
+    "3d": {"1": "pass (gemini-2.5-flash-image; natural biological tints, translucent membrane with subsurface scattering, correct internal layering (nuclei cluster, mitochondria, Golgi, secretory vesicles) and ruffled border/sealing zone against the bone slab, clean dark studio background, no border)"},
+    "watercolor": {"1": "pass (gemini-2.5-flash-image; warm aged paper fills the full frame edge-to-edge with a soft wash halo, no mat/frame/sheet-on-surface, correct structures and multinucleated morphology)"}
+  },
+  "reference": "pass (Wikimedia Commons \"Osteoclast.jpg\", public domain, Robert M. Hunt; single dominant multinucleated cell with ~10+ clustered dark-staining nuclei in foamy cytoplasm directly against a darker bone matrix band, RBCs above for scale — unambiguous classic osteoclast histology; cleaned/false-colorized version used for display)",
+  "decision": [
+    ["textbook", "pass", 1, "use as final; accurate cutaway multinucleated osteoclast on bone, matches exemplar palette/line style"],
+    ["sem", "pass", 1, "use as final; accurate false-colour surface rendering of a giant cell with domed nuclear bulges and a fringed ruffled border"],
+    ["3d", "pass", 1, "use as final; natural tints, correct internal layering and ruffled-border/sealing-zone anatomy"],
+    ["watercolor", "pass", 1, "use as final; full-bleed aged-paper plate, correct multinucleated morphology, no framing violations"]
+  ]
+}

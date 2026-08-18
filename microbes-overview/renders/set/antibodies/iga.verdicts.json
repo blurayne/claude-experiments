@@ -1,0 +1,18 @@
+{
+  "name": "Immunoglobulin A (IgA)",
+  "short_description": "Secretory IgA — two Y-shaped IgA monomers joined tail-to-tail at their Fc stems by a J-chain, wrapped in a protective secretory component picked up while crossing the mucosal epithelium; the guardian antibody of saliva, tears, gut and breast milk.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {"1": "fail (gemini-2.5-flash-image; each of the 4 arms forked into 2 sub-tips, giving 8 outer tips total - misleading topology, superseded)", "2": "pass (gemini-2.5-flash-image; exactly 4 Fab arms fused at a central Fc trunk with distinct J-chain and secretory-component wrap, matches rod-bacterium/parasite textbook palette and line style)"},
+    "sem": {"1": "fail (gemini-2.5-flash-image; each of the 4 lobes forked into 2 sub-lobes, giving 8 outer tips total - misleading topology, superseded)", "2": "pass (gemini-2.5-flash-image; false-colour molecular-surface rendering with exactly 4 Fab lobes, central Fc/J-chain/secretory-component hub, correctly framed as stylised surface render not literal SEM)"},
+    "3d": {"1": "fail (gemini-2.5-flash-image; rendered as an abstract alpha-helix/coiled-coil bundle with no recognizable Fab-arm/Fc-trunk topology, superseded)", "2": "pass (gemini-2.5-flash-image; smooth sculpted 4-arm topology with clear amber Fc hub, magenta J-chain, violet secretory-component wrap, natural biological tints)"},
+    "watercolor": {"1": "pass (gemini-2.5-flash-image; exactly 4 Fab arms converging on a shared Fc/J-chain/secretory-component core, full-bleed aged paper matching cocci/rod-bacterium exemplar)"}
+  },
+  "reference": "pass (RCSB PDB-101 Molecule of the Month #272 illustration, CC BY 4.0, based on cryo-EM structure PDB 6UE7 + PDB 3CHN; cleaned version with baked-in labels removed shows the same 2-monomer/4-Fab/J-chain/secretory-component topology described in §1)",
+  "decision": [
+    ["textbook", "pass", 2, "use as final; correct 4-arm secretory-dimer topology after fixing the doubled-tip fail in attempt 1"],
+    ["sem", "pass", 2, "use as final; stylised false-colour molecular-surface rendering (explicitly not a literal SEM) with correct topology after fixing the doubled-lobe fail in attempt 1"],
+    ["3d", "pass", 2, "use as final; correct topology after replacing the non-representational helix-bundle look of attempt 1 with sculpted Fab/Fc/J-chain/SC lobes"],
+    ["watercolor", "pass", 1, "use as final; correct topology and full-bleed paper on first attempt"]
+  ]
+}

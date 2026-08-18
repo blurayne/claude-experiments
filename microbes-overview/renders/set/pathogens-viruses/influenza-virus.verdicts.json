@@ -1,0 +1,19 @@
+{
+  "name": "Influenza virus (flu)",
+  "short_description": "Enveloped, pleomorphic respiratory RNA virus (~80-120 nm) of the Orthomyxoviridae, studded with hemagglutinin and neuraminidase spikes and carrying a segmented 8-piece negative-sense RNA genome; constant mutation drives seasonal flu and pandemics.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {"1": "⚠️ PARTIAL (gemini-2.5-flash-image) — near-monochrome grey/mauve palette, all spikes the same dumbbell shape (no HA-vs-NA distinction), and an odd butterfly-wing cutaway rather than a clean quarter-wedge.", "2": "✅ PASS (gemini-3-pro-image) — clean cutaway matching rod-bacterium/parasite style: two distinct spike shapes (HA rods, NA mushrooms), sparse M2 channels, matrix layer, 8 separate coiled RNP rods with polymerase knobs, muted palette, thin outlines, dark charcoal background, no text/border/face. Chosen as label base."},
+    "sem": {"1": "⚠️ PARTIAL (gemini-2.5-flash-image) — good false-colour sphere but spike shapes too uniform.", "2": "✅ PASS (gemini-3-pro-image) — photorealistic false-colour SEM, single pleomorphic virion, two visibly different spike shapes (slender rods + mushroom knobs), warm salmon body on cool teal substrate, fills frame edge-to-edge, no text/border."},
+    "3d": {"1": "⚠️ PARTIAL (gemini-2.5-flash-image) — natural tints but interior RNP bundle too sparse/geometric.", "2": "✅ PASS (gemini-3-pro-image) — believable 3D medical-illustration virion, translucent membrane with soft rim light, cutaway reveals coppery helical RNP bundle (~8 rods) with polymerase beads, natural biological tints throughout, dark studio background, no text/border/face."},
+    "watercolor": {"1": "⚠️ PARTIAL (gemini-2.5-flash-image) — full-bleed paper was fine, but all spikes were one uniform dumbbell shape (no HA-vs-NA distinction) and the genome was a single continuous ribbon rather than 8 separate RNP segments.", "2": "✅ PASS (gemini-3-pro-image) — full-bleed warm aged paper matching cocci/rod exemplars, soft dark halo behind specimen, two distinct spike shapes (reddish HA rods, gold/blue-grey NA and M2 knobs), painterly cutaway with beaded coiled RNP strands, no sheet/mat/border, no text."}
+  },
+  "reference": "✅ PASS — CDC PHIL negative-stain TEM (public domain, Dr. F. A. Murphy): several roughly spherical influenza virions with the characteristic fuzzy spike-coat fringe clearly visible; a group image but individual virion shape/spikes are readable, acceptable as teaching reference.",
+  "decision": [
+    ["textbook", "✅ teaching-ready (label base)", "2", "gemini-3-pro-image; best structural clarity for labelling"],
+    ["sem", "✅ teaching-ready", "2", "gemini-3-pro-image; realistic false-colour surface, two spike shapes"],
+    ["3d", "✅ teaching-ready", "2", "gemini-3-pro-image; natural tints, believable cutaway with RNP bundle"],
+    ["watercolor", "✅ teaching-ready", "2", "gemini-3-pro-image; full-bleed paper, correct morphology"],
+    ["reference TEM", "✅ verified (group image, acceptable)", "1", "CDC PHIL public domain negative-stain TEM"]
+  ]
+}

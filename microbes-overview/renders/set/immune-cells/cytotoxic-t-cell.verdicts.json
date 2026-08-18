@@ -1,0 +1,31 @@
+{
+  "name": "Cytotoxic T cell (CD8)",
+  "short_description": "Killer cell: spots infected or tumour cells by their MHC-I signal and kills them precisely with perforin and granzymes.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {
+      "1": "fail (gemini-2.5-flash-image; nearly monochrome beige/grey palette — heterochromatin, mitochondria, Golgi and granules all read as the same dusty tone, violating the 'every structure must be a clearly distinct colour' rule; two ribosome dots also fused into a figure-eight shape)",
+      "2": "fail (gemini-2.5-flash-image; colour separation still too muted/washed out between adjacent organelles, re-rendered for stronger legend-accurate colour coding)",
+      "3": "pass (gemini-2.5-flash-image; nucleus clearly dominates the cell with only a thin cream-tan cytoplasm rim, slate-indigo heterochromatin clumped at the nuclear periphery around a pale peach nucleolus, seafoam mitochondria, apricot-orange Golgi stack, grey-blue centriole pair, dusty plum-maroon cytotoxic granule cluster and fine microvilli fringe all individually distinct colours per the house legend; thin clean outlines, dark charcoal background, no baked text/border)"
+    },
+    "sem": {
+      "1": "fail (gemini-2.5-flash-image; cell far too small within the frame and surface texture too sparse/wispy, doesn't fill the composition or convincingly read as a dense microvillus surface)",
+      "2": "fail (gemini-2.5-flash-image; improved density but surface texture still reads more like a smooth fuzzy ball than the branching ridge-and-microvilli texture of a real T-cell SEM)",
+      "3": "pass (gemini-2.5-flash-image; single round lymphocyte filling the frame, densely covered in fine branching microvilli/membrane-ridge texture, cool blue-to-violet surface with pale gold highlights on raised ridges, clean dark navy background, closely matches the real NIAID 'Healthy Human T Cell' reference's texture and palette; no text/scale bar/border)"
+    },
+    "3d": {
+      "1": "fail (gemini-2.5-flash-image; nucleus proportion smaller than required relative to a thick cytoplasm band, and colour palette trended toward washed-out pastel rather than natural biological tones)",
+      "2": "pass (gemini-2.5-flash-image; natural biological tints — warm peach-tan translucent cytoplasm, soft violet nucleus with dark clumped heterochromatin and a small peach nucleolus, seafoam mitochondria, orange Golgi stack, pale blue centriole pair, dense plum-red cytotoxic granule cluster polarised to one side, fine microvilli fringe with soft rim light on a clean dark studio background; structures individually readable for labelling, no border/text)"
+    },
+    "watercolor": {
+      "1": "pass (gemini-2.5-flash-image; hand-painted naturalist-plate look, warm aged paper fills the frame edge-to-edge with a soft darker wash halo directly behind the single centred specimen, nucleus dominates with fine ink hatching for heterochromatin and a small red nucleolus, mitochondria/Golgi/granules/centrioles all rendered as distinct washes with fine ink linework and a stippled ribosome scatter, fine ink microvilli fringe; no mat/frame/drop-shadow, no baked text)"
+    }
+  },
+  "reference": "pass (Wikimedia Commons \"Healthy Human T Cell.jpg\", NIAID/NIH, Public Domain — colorized SEM of a single isolated human T lymphocyte showing the characteristic dense, ruffled microvillus surface; clean dark background, no baked-in text/scale bar/border; used as-is, no cleaning edit needed. Note: CD4 vs CD8 T cells are not visually distinguishable by shape alone under EM/light microscopy — a 'T lymphocyte' micrograph is the standard honest reference for this cell.)",
+  "decision": [
+    ["textbook", "pass", 3, "use as final; nucleus-dominated cutaway with every organelle in a distinct legend colour, matches house textbook palette"],
+    ["sem", "pass", 3, "use as final; dense branching microvillus surface texture and false-colour palette closely match the real NIAID reference"],
+    ["3d", "pass", 2, "use as final; natural biological tints, nucleus dominates, all structures readable and correctly placed"],
+    ["watercolor", "pass", 1, "use as final; full-bleed aged-paper plate with soft wash halo, single centred specimen, all structures present"]
+  ]
+}

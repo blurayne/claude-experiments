@@ -1,0 +1,18 @@
+{
+  "name": "Salmonella enterica",
+  "short_description": "Gram-negative, peritrichously flagellated enteric rod (~0.7-1.5 x 2-5 um) spread by contaminated eggs and poultry; causes gastroenteritis or, for the typhoidal serovars, typhoid fever.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {"1": "fail (gemini-2.5-flash-image; full longitudinal cross-section split open lengthwise and a flat symmetric horizontal pose, not the angled quarter cut-away of the house exemplar - superseded)", "2": "pass (gemini-2.5-flash-image; angled quarter cut-away matching rod-bacterium/parasite exemplar palette and line style, correct peritrichous flagella, fimbriae, nucleoid tangle, plasmids, ribosomes, three-layer Gram-negative envelope)"},
+    "sem": {"1": "fail (gemini-2.5-flash-image; solid black border/frame around the full edge of the image - violates no-border rule, superseded)", "2": "pass (gemini-2.5-flash-image; fills edge-to-edge with no border, plump rounded-pole rod, numerous peritrichous flagella, fine fimbriae texture, warm reddish-orange false colour on dark charcoal substrate)"},
+    "3d": {"1": "pass (gemini-2.5-flash-image; natural biological tints - warm amber cytoplasm, bluish nucleoid tangle, green plasmids, distinct envelope layers, peritrichous flagella and fimbriae, clean dark studio background, no border)"},
+    "watercolor": {"1": "pass (gemini-2.5-flash-image; warm aged paper fills the entire frame edge-to-edge with a soft wash halo, no mat/frame/sheet-on-surface, correct rounded-pole rod with quarter cut-away showing diffuse nucleoid tangle, two plasmid rings, ribosome dots and three envelope layers, peritrichous flagella and fimbriae)"}
+  },
+  "reference": "pass (NIAID/RML colour SEM, public domain; cleaned via edit_image.py to crop to a single isolated rod with clearly readable peritrichous flagella and rounded poles, all text/borders removed, false colour preserved)",
+  "decision": [
+    ["textbook", "pass", 2, "use as final; accurate angled quarter cut-away matching exemplar palette/line style after one re-render fixed the composition"],
+    ["sem", "pass", 2, "use as final; accurate false-colour surface-only rod after one re-render removed a baked-in black border"],
+    ["3d", "pass", 1, "use as final; correct internal layering and natural biological tints on first attempt"],
+    ["watercolor", "pass", 1, "use as final; correct anatomy and full-bleed aged-paper composition on first attempt"]
+  ]
+}

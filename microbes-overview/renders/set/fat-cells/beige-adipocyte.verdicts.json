@@ -1,0 +1,31 @@
+{
+  "name": "Beige adipocyte",
+  "short_description": "In-between form: lives in white fat depots but can be switched on by cold or exercise to a heat-producing state ('browning'). Responds to irisin (from muscle) and noradrenaline. A therapeutic target against obesity.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {
+      "1": "fail (gemini-2.5-flash-image; a thin curly thread with small bead-like segments trails off the cell's cut edge like a bacterial flagellum/second organism attached outside the cell body - violates the do-not-draw rule against appendages)",
+      "2": "fail (gemini-2.5-flash-image; hexagonal faceted cell reads more like a cut gem than a soft cell, only ~7 sparse droplets/mitochondria that read closer to resting white fat than the intended intermediate/activated beige state, and three unbalanced green receptor patches vs a single blue one; re-escalated for a cleaner, more consistent house look matching the sibling brown/white adipocyte plates)",
+      "3": "pass (gemini-3-pro-image, escalated after 2 flash attempts; clean round cutaway, ~10 varied-size paucilocular lipid droplets, one off-centre round nucleus with a visible nucleolus, a moderately dense population of cristae-bearing mitochondria clearly intermediate between white and brown fat, rough ER sheets + Golgi stack near the nucleus, two small membrane receptor patches (β3-adrenergic blue, irisin-responsive green), muted educational palette, thin outlines, fills frame edge-to-edge, no baked text, no border)"
+    },
+    "sem": {
+      "1": "fail (gemini-2.5-flash-image; the specimen reads as a lobed cluster of small balls resembling a raspberry/mulberry or morula rather than one continuous cell, plus stray thread-like appendages at the rim - both explicit do-not-draw violations)",
+      "2": "pass (gemini-2.5-flash-image; single continuous smoothly rounded cell body with only gentle, shallow quilted undulations from the underlying lipid droplets, warm amber-to-coral false colour, clean dark uncluttered background, shallow depth of field, no appendages, no text, no border)"
+    },
+    "3d": {
+      "1": "fail (gemini-2.5-flash-image; a small rod-shaped bacterium-like object with trailing flagella is rendered attached to the outside of the cell - a second organism/appendage explicitly disallowed)",
+      "2": "pass (gemini-2.5-flash-image; translucent round cell with natural warm amber/gold tints, ~7 lipid droplets of varying size, one round off-centre nucleus, a moderate scattered population of small oval mitochondria, a small Golgi stack and a rough-ER patch near the nucleus, two membrane receptor patches (blue β3, green irisin), soft studio lighting, fills frame edge-to-edge, no text, no border)"
+    },
+    "watercolor": {
+      "1": "fail (gemini-2.5-flash-image; a small bead-and-thread appendage resembling a second organism is painted trailing off the cell's rim - do-not-draw violation)",
+      "2": "pass (gemini-2.5-flash-image; full-bleed warm aged paper with a soft wash halo directly behind the cell, no mat/frame/sheet-on-surface, round cell with ~7 cream/honey-amber lipid droplets, one round nucleus with a visible nucleolus washed slightly off-centre, a moderate scatter of rust-orange mitochondria, a small Golgi crescent and a stippled rough-ER patch, two small membrane receptor patches (blue β3, green irisin) painted directly on the ink outline, fine ink linework, no baked text)"
+    }
+  },
+  "reference": "pass (NCBI PMC, Rosell et al. 2014, Am J Physiol Endocrinol Metab, Figure 3B - CC BY 3.0, American Physiological Society; genuine H&E light micrograph of mouse subcutaneous white adipose tissue after 6 degC cold exposure, showing large unilocular white-adipocyte polygons flanking a band of smaller, more numerous, densely-nucleated, eosinophilic multilocular cells - the diagnostic beige-fat 'browning' mosaic tied directly to the cold-exposure trigger described in the research section; cleaned of its baked-in scale bar and panel border with edit_image.py over 4 passes)",
+  "decision": [
+    ["textbook", "pass", 3, "use as final; escalated to gemini-3-pro-image after 2 flash attempts (an appendage/second-organism artifact, then an overly faceted low-detail cell) - clean intermediate paucilocular anatomy, correct organelle set, matches the sibling brown/white adipocyte house look"],
+    ["sem", "pass", 2, "use as final after one re-render to fix a raspberry/morula-cluster silhouette and stray appendages into a single continuous gently-quilted cell"],
+    ["3d", "pass", 2, "use as final after one re-render to remove an attached bacterium-like appendage; correct natural-tint anatomy with all core organelles distinguishable"],
+    ["watercolor", "pass", 2, "use as final after one re-render to remove a thread/appendage artifact; full-bleed aged-paper composition with correct intermediate anatomy"]
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "name": "Brown adipocyte",
+  "short_description": "Body heater: many small lipid droplets and unusually many mitochondria. Burns fat directly into heat (via UCP1) rather than ATP.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {
+      "1": "fail (gemini-2.5-flash-image; baked-in gibberish digit text hidden inside the cytoplasm background, e.g. a legible \"2890\"-like numeral)",
+      "2": "fail (gemini-2.5-flash-image, re-render with stronger no-text wording; still had a stray hook/arrow-like glitch mark near one mitochondrion)",
+      "3": "fail (gemini-2.5-flash-image; naming the protein \"UCP1\" in the prompt caused the model to render the literal letters \"UCP1\" as baked text on several mitochondria)",
+      "4": "fail (gemini-2.5-flash-image, UCP1 acronym removed from prompt but cristae stippling still degenerated into small digit/letter-like glyphs (a '2', 'N', 'P') scattered across multiple mitochondria)",
+      "5": "pass (gemini-3-pro-image, escalated after repeated flash text/glyph glitches; cristae rewritten as plain straight parallel bars only - clean quarter cut-away, many small multilocular lipid droplets, dense large mitochondria with correct zigzag cristae and no lettering, round central nucleus, rough ER + Golgi near nucleus, fills frame edge-to-edge, no border)"
+    },
+    "sem": {
+      "1": "pass (gemini-2.5-flash-image; small readable cluster of 2-3 bumpy-surfaced brown adipocytes, warm rust-bronze false colour, two small capillary profiles in the surrounding connective tissue for context, surface-only as expected for SEM, no text, no border)"
+    },
+    "3d": {
+      "1": "pass (gemini-2.5-flash-image; natural biological tints, many small multilocular lipid droplets, dense large mitochondria with fibrous cristae texture packed between them, round central translucent nucleus, rough ER + Golgi beside it, soft studio lighting, no text, fills frame edge-to-edge, no border)"
+    },
+    "watercolor": {
+      "1": "fail (gemini-2.5-flash-image; mitochondrial cristae rendered as cursive handwriting-like squiggles that read as illegible baked-in text)",
+      "2": "pass (gemini-2.5-flash-image, re-rendered with cristae restricted to plain straight hash-mark lines only; warm aged paper fills the frame edge-to-edge with a soft wash halo, no mat/frame, many small multilocular droplets, dense mitochondria, round central nucleus, rough ER + Golgi, no text)"
+    }
+  },
+  "reference": "pass (Wikimedia Commons \"Tecido adiposo multilocular brown adipose tissue.gif\", public domain US federal-government work; genuine light micrograph of human brown adipose tissue showing numerous multilocular adipocytes with dense granular mitochondria-rich cytoplasm)",
+  "decision": [
+    ["textbook", "pass", 5, "use as final; escalated to gemini-3-pro-image after 4 flash attempts kept producing baked-in text/glyph glitches inside the cristae texture - clean once cristae were constrained to plain bars and the UCP1 acronym was removed from the prompt"],
+    ["sem", "pass", 1, "use as final; correct false-colour surface-only rendering of a small readable cluster with tissue context"],
+    ["3d", "pass", 1, "use as final; correct natural-tint composition with all core organelles distinguishable"],
+    ["watercolor", "pass", 2, "use as final after one re-render to remove cursive-squiggle cristae artifacts that read as illegible text"]
+  ]
+}

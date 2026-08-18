@@ -1,0 +1,19 @@
+{
+  "name": "Coccus (spherical bacterium)",
+  "short_description": "Textbook Gram-positive coccus (~1 µm)",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {"1": "✅ PASS — sphere with cutaway, THICK peptidoglycan wall + single membrane (Gram-positive, no outer membrane), diffuse nucleoid, plasmids inside, ribosome dots; no flagella/text. Chosen as label base."},
+    "sem": {"1": "✅ PASS — realistic false-colour SEM cluster of smooth spheres with surface microtexture; matches the staph reference; surface-only; no border."},
+    "3d": {"1": "✅ PASS (pale) — sphere cutaway, thick wall, diffuse nucleoid, plasmids inside, ribosomes; no flagella.", "2": "✅ PASS — recolorized with natural tones: warm gold cell, distinct thick wall + single membrane, blue nucleoid, plasmids inside. Chosen final."},
+    "watercolor": {"1": "✅ PASS — naturalist plate; cross-hatched band conveys the thick peptidoglycan wall; diffuse nucleoid, plasmid inside; no flagella."}
+  },
+  "reference": "✅ PASS (2026-08-13) — Staphylococcus aureus SEM (public domain), AI-cleaned to remove the data/scale bar and any borders while keeping the purple/green colorization; cocci fill the frame.",
+  "decision": [
+    ["textbook", "✅ teaching-ready (label base)", "1", "best for full labelling"],
+    ["sem", "✅ teaching-ready", "1", "cluster; surface features; no border"],
+    ["3d", "✅ teaching-ready", "2", "colorized natural tones; plasmids inside"],
+    ["watercolor", "✅ teaching-ready", "1", "hatched wall = thick peptidoglycan"],
+    ["reference SEM", "✅ verified + cleaned", "2", "S. aureus, PD, cleaned"]
+  ]
+}

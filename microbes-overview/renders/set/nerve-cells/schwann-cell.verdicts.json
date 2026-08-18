@@ -1,0 +1,31 @@
+{
+ "name": "Schwann cell",
+ "short_description": "Myelin-making glial cell of the peripheral nervous system: a single Schwann cell spirally wraps its own plasma membrane around one segment (internode) of one axon, with its flattened nucleus pressed into the outer myelin it built. Also drives peripheral nerve regeneration after injury by clearing debris and guiding regrowing axons.",
+ "svg_theme": "textbook",
+ "themes": {
+  "textbook": {
+   "1": "fail (gemini-2.5-flash-image; nucleus drawn as a fat oval dead-centre where the axon core should be, with no distinct axon visible running through the cutaway - conflates axon and nucleus, contradicts the do-NOT-draw rule that the nucleus must sit in the OUTER wrap, not replace the axon; superseded)",
+   "2": "pass (gemini-2.5-flash-image; fix-prompt re-render - continuous tan axon now visible running through the exact centre of the cutaway, flattened crescent-shaped nucleus correctly embedded in the outer third of the wrap with rough ER/Golgi/mitochondria beside it, matches muted textbook palette/thin-outline house style)"
+  },
+  "sem": {
+   "1": "fail (gemini-2.5-flash-image; correct surface morphology but colourisation reads as near-monochrome warm beige rather than a false-colour SEM palette)",
+   "2": "pass (gemini-2.5-flash-image; crisp false-colour (cyan bare axon vs warm bronze myelin sheath) surface-only SEM with visible nuclear bulge ridge, Schmidt-Lanterman seam and tapered nodes of Ranvier at both ends, matches sem exemplar)"
+  },
+  "3d": {
+   "1": "fail (gemini-2.5-flash-image; same axon/nucleus conflation as textbook attempt 1 - organelle-filled oval sits centred on the axon's path instead of the nucleus being a crescent in the outer wrap)",
+   "2": "partial (gemini-2.5-flash-image; fix-prompt re-render corrected the science - axon visible through centre, nucleus now a crescent in the outer wrap - but the palette reads too close to monochrome cream/tan, against the 3d style's natural-but-distinguishable-tints rule)",
+   "3": "pass (gemini-2.5-flash-image; second fix-prompt re-render adds a deep-violet nucleus crescent, dusty-rose rough ER, mustard Golgi and blue-grey mitochondria against pale blue-grey myelin and a warm tan axon - correct anatomy AND clearly distinguishable natural tints)"
+  },
+  "watercolor": {
+   "1": "fail (gemini-2.5-flash-image; same axon/nucleus conflation - a solid pink/purple oval fills the centre of the cutaway where the axon core should continue, no distinct axon visible through the wrap)",
+   "2": "pass (gemini-2.5-flash-image; fix-prompt re-render - axon now painted as a continuous pale line straight through the wrap's centre, nucleus repainted as a kidney/crescent shape in the outer band with ER/Golgi/mitochondria beside it, full-bleed aged paper with soft wash halo matching the watercolor exemplar)"
+  }
+ },
+ "reference": "pass (Wikimedia Commons \"Cultured schwann cell.jpg\", CC BY-SA 3.0 / GFDL, Ucbtbej 2009; fluorescence micrograph of a real cultured human Schwann cell, phalloidin-actin stain - single isolated cell, clear bipolar/tripolar spindle morphology with tapering branched processes at both ends, matching the described Schwann-cell body shape; cleaned/recomposed version used for display, see render.md §2 for the culture-vs-wrapped-ultrastructure caveat)",
+ "decision": [
+  ["textbook", "pass", 2, "use as final; axon unbroken through centre, nucleus correctly a crescent embedded in the outer wrap, matches house textbook palette"],
+  ["sem", "pass", 2, "use as final; crisp false-colour surface-only SEM, correct single-segment morphology with nodes of Ranvier at both ends"],
+  ["3d", "pass", 3, "use as final after two fix-prompt re-renders; correct axon/nucleus placement with clearly distinguishable natural biological tints"],
+  ["watercolor", "pass", 2, "use as final after one fix-prompt re-render; axon continuous through the wrap, nucleus correctly a crescent in the outer band, full-bleed aged-paper plate"]
+ ]
+}

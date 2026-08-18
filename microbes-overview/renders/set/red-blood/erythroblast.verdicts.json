@@ -1,0 +1,18 @@
+{
+  "name": "Erythroblast",
+  "short_description": "Nucleated red-blood-cell precursor in bone marrow; a round cell with an eccentric, densely condensed \"clock-face\" nucleus, actively synthesising haemoglobin.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {"1": "fail (gemini-2.5-flash-image, baked-in gibberish text labels on the rough ER and Golgi structures - violates no-baked-text rule, superseded)", "2": "pass (gemini-2.5-flash-image; clean cutaway, eccentric round nucleus with coarse radially-clumped \"clock-face\" chromatin, mixed blue-grey/salmon polychromatic cytoplasm, free polyribosomes, rough ER, Golgi, mitochondria, no text, matches exemplar palette/line style)"},
+    "sem": {"1": "pass (gemini-2.5-flash-image; single smooth-surfaced round cell distinctly larger than neighbouring biconcave erythrocytes, false-colour rose/violet vs salmon-pink RBCs, surface-only detail (no internal organelles, correct for SEM), no text, no border)"},
+    "3d": {"1": "fail (gemini-2.5-flash-image, baked-in gibberish text labels on mitochondria/RER structures - violates no-baked-text rule, superseded)", "2": "pass (gemini-2.5-flash-image; spherical translucent cell, eccentric nucleus with clock-face chromatin texture, natural biological tints, polyribosomes/RER/Golgi/mitochondria with cristae visible, no text, no border)"},
+    "watercolor": {"1": "pass (gemini-2.5-flash-image; full-bleed aged paper background, hand-painted single round cell with ink-dark clock-face nucleus, mixed blue/pink washes, RER/Golgi/mitochondria/polyribosome dots, two erythrocytes for scale, no border/frame)"}
+  },
+  "reference": "pass (Wikimedia Commons \"Hem1PolychromaticErythroblast.jpg\", CC BY-SA 3.0, El*Falaf; light micrograph of Wright/Giemsa-stained blood smear showing a single polychromatic erythroblast with dense irregularly-clumped nucleus and thin blue-grey/lavender cytoplasm rim, surrounded by mature erythrocytes - matches representative teaching stage. Cleaned/recomposed/enlarged version used for display)",
+  "decision": [
+    ["textbook", "pass", 2, "use as final; accurate cutaway with clock-face nucleus and polychromatic cytoplasm, matches exemplar palette/line style, no baked text after re-render"],
+    ["sem", "pass", 1, "use as final; correct false-colour surface-only rendering, size/shape distinction vs neighbouring erythrocytes"],
+    ["3d", "pass", 2, "use as final; correct internal layering and natural tints, no baked text after re-render"],
+    ["watercolor", "pass", 1, "use as final; full-bleed aged-paper composition with all core structures visible"]
+  ]
+}

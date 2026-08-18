@@ -1,0 +1,27 @@
+{
+ "name": "Microglia",
+ "short_description": "Brain-resident macrophage with a small soma and many thin, highly branched processes that constantly probe the tissue, clear debris and prune synapses; yolk-sac derived and the CNS's first line of immune defence.",
+ "svg_theme": "textbook",
+ "themes": {
+  "textbook": {
+   "1": "pass (gemini-2.5-flash-image; compact soma with correct quarter-style cutaway showing a small bean-shaped nucleus with a visible dense heterochromatin band, lysosomes, a phagosome with an engulfed debris fragment, mitochondria, rough ER and a Golgi stack, surrounded by 7-10 thin, repeatedly branching processes tipped with small bulbous ends; muted dusty palette, thin clean outlines, neutral dark-charcoal full-bleed background matching the textbook house style, no baked text or border"
+  },
+  "sem": {
+   "1": "pass (gemini-2.5-flash-image; single compact domed soma with a fine, densely and repeatedly forked arbour reaching to the frame edges, false-colour sandy-beige-to-coral surface-only rendering on a dark charcoal background matching the sem exemplar, correctly shows no interior organelles since SEM is surface-only, no text or border)"
+  },
+  "3d": {
+   "1": "pass (gemini-2.5-flash-image; small soma with soft translucent cut-away revealing a bean-shaped nucleus with a dark heterochromatin band, lysosomes, a phagosome, mitochondrion with cristae, rough ER and Golgi in clearly distinguishable natural biological tints against a warm cell body, radiating fine branching processes, clean dark studio background, no text or border)"
+  },
+  "watercolor": {
+   "1": "fail (gemini-2.5-flash-image; otherwise correct full-bleed aged-paper composition with a fine lace-like branching arbour, but a baked-in italic Latin caption \"MICROGLIA HUMANA\" appears beneath the specimen - violates the no-baked-text golden rule; superseded)",
+   "2": "pass (gemini-2.5-flash-image; fix-prompt re-render with an explicit no-caption instruction - text removed, elongated soma with visible nucleus (dark crescent with dense band), phagosome (debris fragment in a pale sac), lysosomes, mitochondria and rough ER painted in soft translucent washes, full-bleed warm aged paper with a soft wash halo behind the cell matching the watercolor exemplar, no text or border)"
+  }
+ },
+ "reference": "pass (Wikimedia Commons \"Microglia in a Healthy Adult Mouse Retina (40264110974).jpg\", NIH Image Gallery / Wai T. Wong, National Eye Institute, Public Domain (CC PDM 1.0); Iba1/GFP-lineage immunofluorescence confocal micrograph showing several individually well-separated ramified microglia tiling healthy retina, each with a clear compact soma and a dense, finely branching arbour - textbook example of the resting/surveying morphology; no baked-in text, scale bar or border on the downloaded file, used as-is (real-01) with no edit_image.py cleaning pass needed)",
+ "decision": [
+  ["textbook", "pass", 1, "use as final; accurate quarter cut-away with all core organelles present, matches muted educational palette/thin-outline house style"],
+  ["sem", "pass", 1, "use as final; correct false-colour surface-only rendering of the compact soma and fine branching arbour, matches sem exemplar"],
+  ["3d", "pass", 1, "use as final; correct anatomy with clearly distinguishable natural biological tints, radiating processes read clearly against the dark studio background"],
+  ["watercolor", "pass", 2, "use as final after one fix-prompt re-render to remove a baked-in Latin caption; full-bleed aged-paper plate with correct core organelles"]
+ ]
+}

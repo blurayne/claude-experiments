@@ -1,0 +1,18 @@
+{
+  "name": "Streptococcus pneumoniae",
+  "short_description": "Lancet-shaped Gram-positive coccus in pairs and short chains, wrapped in a thick polysaccharide capsule; leading cause of pneumonia, otitis media and meningitis.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {"1": "fail (flash-image, wrong flat cartoon composition, superseded)", "2": "fail (gemini-3-pro-image, minor composition issues, superseded)", "3": "pass (gemini-3-pro-image; accurate diplococcus cutaway matching cocci/rod-bacterium exemplar palette and line style)"},
+    "sem": {"1": "pass (gemini-2.5-flash-image; sharp lancet-shaped diplococcus + short-chain grouping, granular surface texture, violet-blue false colour on warm substrate, matches sem exemplar)"},
+    "3d": {"1": "fail (gemini-2.5-flash-image, weaker composition, superseded)", "2": "pass (gemini-2.5-flash-image; short chain of touching cells with clear capsule/cell-wall/membrane/cytoplasm/nucleoid/ribosome layers, natural biological tints, no border)"},
+    "watercolor": {"1": "fail (gemini-2.5-flash-image, unclear composition, superseded)", "2": "fail (gemini-2.5-flash-image; satellite cells connected by a thin stalk/tube instead of touching at a shared pole - misleading, reads as a stalked organism not a diplococcus)", "3": "pass (gemini-3-pro-image; cells now directly touching at a flattened shared pole, full-bleed aged paper matching cocci/rod-bacterium exemplar, all core structures visible)"}
+  },
+  "reference": "pass (CDC PHIL #262 SEM, public domain; cleaned/false-colorized version used for display - clearly shows diplococcus pairs and a short chain)",
+  "decision": [
+    ["textbook", "pass", 3, "use as final; accurate cutaway diplococcus + short chain, matches exemplar palette/line style"],
+    ["sem", "pass", 1, "use as final; accurate lancet-shaped diplococcus grouping, correct false-colour surface-only rendering"],
+    ["3d", "pass", 2, "use as final; short touching chain with correct internal layering and natural tints"],
+    ["watercolor", "pass", 3, "use as final after one re-render to fix a misleading stalk-like connection between cells in attempt 2"]
+  ]
+}

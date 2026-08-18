@@ -1,0 +1,29 @@
+{
+  "name": "Mycobacterium tuberculosis (TB)",
+  "short_description": "Slender, waxy-coated acid-fast rod (~0.2–0.5 × 2–4 µm) that hides inside macrophages and can lurk in the lungs for years; the cause of tuberculosis.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {
+      "1": "PASS — slender rod (~8–12x longer than wide, not a fat E. coli sausage), quarter cutaway with clearly distinct concentric envelope layers (plasma membrane, peptidoglycan, arabinogalactan, waxy mycolic-acid mycomembrane, outer capsule halo), diffuse irregular nucleoid tangle, scattered ribosome dots, two round lipid inclusion bodies; no flagella/pili/spores/mesosome; muted refined palette matching the rod-bacterium/parasite textbook house look; dark charcoal background fills the frame edge-to-edge; no baked text. Chosen as label base."
+    },
+    "sem": {
+      "1": "PASS — photorealistic false-colour SEM, one or two slender ridged rods (thin, not fat), warm amber-orange colour against a dark uncluttered charcoal background filling the frame edge-to-edge, no appendages, no text, no border."
+    },
+    "3d": {
+      "1": "PASS — natural warm amber/gold cell body with clearly distinguishable concentric envelope layers (rose/green/blue tints) plus a translucent waxy mycomembrane, diffuse nucleoid tangle rendered with subsurface glow, magenta ribosome dots, two lipid inclusion bodies, slender rod proportions, clean dark studio background edge-to-edge, no text."
+    },
+    "watercolor": {
+      "1": "FAIL — letters/text-like glyphs are baked into the nucleoid tangle (looks like embossed lettering), unacceptable per no-baked-text rule.",
+      "2": "FAIL — morphology broken: one pole balloons into an odd round pink-mottled head instead of a slender rounded rod end; wash halo is patchy rather than a clean full-bleed paper background.",
+      "3": "PASS — slender rod with gently rounded ends, warm aged paper fills the frame edge-to-edge with a soft darker wash halo directly behind the specimen (no sheet-on-surface/mat), fine ink linework, distinct concentric envelope layers (capsule/mycolic-acid/arabinogalactan visible as separate washes), diffuse nucleoid tangle, ribosome specks, two lipid inclusion bodies, no text. Chosen as label base."
+    }
+  },
+  "reference": "PASS — CDC PHIL #8438 SEM (public domain), cleaned with edit_image.py to remove the baked caption/scale and apply a natural warm false-colour; shows a loose cluster of slender, ridged, waxy rods lying in a cord — individually readable and scientifically apt (cord factor produces this serpentine clumping), so a group image is acceptable here.",
+  "decision": [
+    ["textbook", "✅ teaching-ready (label base)", 1, "clean concentric-layer cutaway, refined muted palette, matches house style"],
+    ["sem", "✅ teaching-ready", 1, "slender ridged false-colour rod, no border, no text"],
+    ["3d", "✅ teaching-ready (label base)", 1, "natural biological tints, layered envelope, plasmids/lipid bodies inside"],
+    ["watercolor", "✅ teaching-ready (label base)", 3, "re-rendered twice: attempt 1 had baked-in lettering in the nucleoid, attempt 2 had a broken balloon-shaped pole; attempt 3 is a clean full-bleed naturalist plate"],
+    ["reference SEM", "✅ verified + cleaned", 2, "CDC PHIL #8438, public domain, cording rods, cleaned of caption/scale and false-coloured"]
+  ]
+}

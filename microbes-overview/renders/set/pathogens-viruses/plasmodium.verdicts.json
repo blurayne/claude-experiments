@@ -1,0 +1,18 @@
+{
+  "name": "Plasmodium (malaria)",
+  "short_description": "Single-celled apicomplexan parasite that causes malaria, spread by Anopheles mosquitoes. Shown here as the invasive merozoite (~1.5 µm): a small egg-shaped eukaryotic cell with a pointed apical complex (rhoptries, micronemes) for entering red blood cells, one nucleus, a single mitochondrion and a relict apicoplast. Not a worm, not a bacterium.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {"1": "fail (gemini-2.5-flash-image; light-grey background instead of the required dark-charcoal house background, flat shading with little dimensionality - style-consistency miss, superseded)", "2": "fail (gemini-2.5-flash-image; near-monochrome grey/tan/white palette on the correct dark-charcoal background - reads as an uncoloured line drawing, explicit FAIL mode, superseded)", "3": "pass (gemini-3-pro-image; dark-charcoal background matching rod-bacterium/parasite exemplars, every organelle a distinct saturated soft fill (purple nucleus, teal mitochondrion, olive apicoplast, blue micronemes, orange rhoptry), thin clean outlines with soft gradient shading, quarter cutaway, egg shape with pointed apical end, no text/border)"},
+    "sem": {"1": "pass (gemini-2.5-flash-image; single egg-shaped specimen with a distinct pointed apical prominence, crisp true 3D surface texture, false-color warm amber/rose on a dark charcoal background, surface only (no internal structures, correctly), no text/border)"},
+    "3d": {"1": "pass (gemini-2.5-flash-image; natural warm amber translucent cell body with clearly distinguishable tinted structures - two club-shaped rhoptries converging to the apical tip, rod-shaped microneme cluster, dense granules, pink nucleus, blue-grey apicoplast, curved tubular mitochondrion; soft global illumination, dark studio background, no text/border)"},
+    "watercolor": {"1": "pass (gemini-2.5-flash-image; warm aged paper fills the frame edge-to-edge with a soft darker wash halo directly behind the subject (no mat/frame/sheet-on-surface), egg shape with pointed apical top, paired rhoptries converging to the tip, microneme/dense-granule clusters, nucleus, curved mitochondrion, small apicoplast, black ink linework in the naturalist-plate style matching cocci/rod-bacterium exemplars, no text)"}
+  },
+  "reference": "pass (CDC PHIL #5856 Giemsa thin blood film, public domain; cleaned/contrast-enhanced edit used for display - clearly shows ring-stage trophozoites (chromatin dot + cytoplasm ring) in multiple red blood cells plus one classic banana/crescent-shaped gametocyte; illustration styles intentionally show the later merozoite stage while this reference shows the ring-stage/gametocyte blood-smear view - documented in §1-2, the two stages complement each other as the standard malaria teaching pair)",
+  "decision": [
+    ["textbook", "pass", 3, "use as final after escalating to gemini-3-pro-image; attempts 1-2 (flash) failed the style-consistency check (wrong background / near-monochrome), attempt 3 matches the exemplar palette and line style with all labelled structures present"],
+    ["sem", "pass", 1, "use as final; accurate egg-shaped merozoite with pointed apical prominence, correct surface-only SEM rendering, false-colour matches house style"],
+    ["3d", "pass", 1, "use as final; correct natural biological tints, all apical-complex and organelle structures clearly distinguishable and correctly placed"],
+    ["watercolor", "pass", 1, "use as final; full-bleed aged-paper plate matching the cocci/rod-bacterium exemplars, all structures present and correctly placed"]
+  ]
+}

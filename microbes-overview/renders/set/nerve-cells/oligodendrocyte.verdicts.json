@@ -1,0 +1,27 @@
+{
+ "name": "Oligodendrocyte",
+ "short_description": "CNS glial cell with a small, dense-nucleus cell body and several non-branching processes, each ending in a flattened membrane sheet that spirals into compact myelin around a segment (internode) of a nearby axon; one oligodendrocyte myelinates several axons at once. Partly fuels the axons it wraps via a lactate shuttle; its myelin is the target in multiple sclerosis.",
+ "svg_theme": "textbook",
+ "themes": {
+  "textbook": {
+   "1": "fail (gemini-2.5-flash-image; a visible white margin/border strip along the top and left edges violates the no-border/fill-edge-to-edge rule; otherwise correct anatomy - superseded)",
+   "2": "pass (gemini-2.5-flash-image; fills the frame edge-to-edge on neutral charcoal, compact star-shaped cell body with dense-heterochromatin nucleus, rough ER, Golgi stack and small mitochondria clearly separated from the myelin it forms, 8 radiating non-branching processes each reaching a distinct axon with a clean myelin internode and bare node-of-Ranvier gaps, muted dusty-tint palette with thin outlines matching house textbook style)"
+  },
+  "sem": {
+   "1": "pass (gemini-2.5-flash-image; false-colour surface-only SEM, small irregular star-shaped cell body sitting apart from its several myelinated axon targets, ridged coiled myelin wraps with bare gaps between segments, sandy-bronze cell/processes against pale ivory myelin on a clean dark background, no internal organelles as expected for SEM, no text/border)"
+  },
+  "3d": {
+   "1": "pass (gemini-2.5-flash-image; semi-realistic 3D still with soft global illumination and natural biological tones - warm translucent cell body with visible nucleus, purple rough ER threads, olive Golgi stack and grey mitochondria in a gentle cutaway, several thin processes reaching separate axon segments each spiralled into a distinct pale myelin internode with bare nodes of Ranvier, clearly distinguishable tints (not monochrome/neon), no text/border)"
+  },
+  "watercolor": {
+   "1": "pass (gemini-2.5-flash-image; hand-painted naturalist plate, warm aged paper fills the frame edge-to-edge with a soft wash halo behind the cell (no separate sheet/mat/frame), small star-shaped cell body with fine-ink-outlined nucleus, rough ER and Golgi/mitochondria visible in a delicate cutaway, several thin processes each winding into a distinct concentric-ink myelin internode with bare node gaps, single specimen, no text)"
+  }
+ },
+ "reference": "pass (Wikimedia Commons \"Oligodendrocyte HE stain high mag.jpg\", CC BY-SA 4.0, Jensflorian 2015; H&E light micrograph of human cerebral white matter showing several oligodendrocytes with the classic small dense round nucleus in a clear perinuclear 'fried-egg' halo (a fixation artifact, noted in render.md so it isn't mistaken for a real structure) - features clearly readable, cleaned real-02 edit removes stray scale/text and keeps the natural H&E colourisation, used for display)",
+ "decision": [
+  ["textbook", "pass", 2, "use as final; re-rendered once to fix a border/margin violation, then anatomically correct and on-style"],
+  ["sem", "pass", 1, "use as final; correct surface-only false-colour morphology on first attempt"],
+  ["3d", "pass", 1, "use as final; correct anatomy with clearly distinguishable natural tints on first attempt"],
+  ["watercolor", "pass", 1, "use as final; full-bleed aged-paper plate, correct anatomy on first attempt"]
+ ]
+}

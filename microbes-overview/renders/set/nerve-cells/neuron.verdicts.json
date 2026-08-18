@@ -1,0 +1,33 @@
+{
+ "name": "Neuron",
+ "short_description": "Compute-and-signal cell of the nervous system: a star-shaped soma with branching dendrites collects synaptic input, sums it up and, if threshold is reached, fires an electrical impulse down its single axon to the next cell.",
+ "svg_theme": "textbook",
+ "themes": {
+  "textbook": {
+   "1": "fail (gemini-2.5-flash-image; several pastel oval organelle-look shapes floating in the background OUTSIDE the cell body, and an oversized featureless pale-blue nucleus that crowds out any visible Nissl substance - contradicts the do-NOT-draw rule that organelles must stay inside the specimen)",
+   "2": "fail (gemini-2.5-flash-image; better cutaway with visible nucleus/nucleolus/Nissl/Golgi, but still shows isolated green oval shapes floating free in the background away from any dendrite or the soma - same floating-organelle problem)",
+   "3": "fail (gemini-2.5-flash-image; clean soma cutaway and correct segmented myelin/nodes, but the axon terminal renders as a glitchy reddish hand-like blob with a dark scribble artifact behind it, and the axon's colour breaks continuity with the rest of the cell - escalate after 2 prior fails)",
+   "4": "pass (gemini-3-pro-image; single specimen, muted desaturated educational palette matching the textbook house style, correct quarter cutaway with pale euchromatic nucleus + dark nucleolus, purple Nissl bodies filling the cytoplasm but absent from the Nissl-free axon hillock/axon, green Golgi ribbon, oval mitochondria, branching dendrites with small spine bumps, exactly one axon with clearly segmented myelin internodes and visible Nodes of Ranvier, terminal boutons with synaptic-vesicle dots, no text/artifacts, no floating organelles)"
+  },
+  "sem": {
+   "1": "pass (gemini-2.5-flash-image; single specimen, false-colour golden-tan surface-only rendering with correct multipolar soma, tapering dendrites, one longer axon with distinct beaded myelin segments and narrow Node-of-Ranvier constrictions ending in small terminal swellings, cool studio lighting, no internal organelles as expected for SEM, no baked text; used as final on first attempt)"
+  },
+  "3d": {
+   "1": "fail (gemini-2.5-flash-image; correct anatomy but the palette reads as near-monochrome pale pink/cream throughout, violating the 3d style's natural-but-clearly-distinguishable-tints rule)",
+   "2": "pass (gemini-2.5-flash-image; warm amber soma with clearly distinguishable natural tints - white nucleus with dark nucleolus, purple Nissl bodies, green Golgi ribbon, red-orange mitochondria - single axon with visibly segmented pale myelin internodes and narrow gaps at the Nodes of Ranvier, branching terminal with glowing vesicle-dot boutons, dendrites studded with small spine beads, clean dark studio background, no text)",
+   "3": "partial (gemini-2.5-flash-image; good natural colouring and organelle placement, but the axon is rendered as a continuous spiral/candy-cane striped tube rather than clearly separated sausage-shaped internodes with bare Node-of-Ranvier gaps - borderline misleading toward the 'unbroken sheath' failure mode; not used, gen-02 preferred"
+  },
+  "watercolor": {
+   "1": "fail (gemini-2.5-flash-image; TWO processes show myelin-style beaded segmentation and end in terminal-bouton-like bulbs - a left-side tail AND a right-side branch - violating the 'only ONE axon may be myelinated' rule; also has an odd embedded photographic head/eye motif inside the nucleus)",
+   "2": "fail (gemini-2.5-flash-image; ALL SIX radiating branches show the same dark banding/segmentation and end in round terminal bulbs, so the single true axon cannot be distinguished from the five dendrites - contradicts the requirement that only one process carries myelin)",
+   "3": "pass (gemini-3-pro-image; escalated after 2 fails - full-bleed warm aged paper background with a soft wash halo, single specimen, correct cutaway with pale nucleus + dark nucleolus, purple Nissl wash fading out before the hillock/axon, small Golgi and mitochondria motifs, five plain tapering unsegmented dendrites with pointed tips versus exactly ONE axon showing clear sausage-shaped myelin internodes with bare Node-of-Ranvier gaps and a terminal bouton cluster, fine ink linework, no text, no frame/mat/sheet-on-surface)"
+  }
+ },
+ "reference": "pass (Wikimedia Commons \"Nissl bodies in neurons of the spinal cord.jpg\", CC BY-SA 4.0, Tulemo; real cresyl-violet Nissl-stained light-photomicrograph of spinal-cord neuron cell bodies - large pale-staining nucleus with dark punctate nucleolus and coarse purple Nissl-body stippling filling the cytoplasm, short dendrite stumps at the margins; raw download carried two overlaid pointer arrows and a scale bar, cleaned/recomposed to a single-neuron crop with edit_image.py for display, see render.md §2)",
+ "decision": [
+  ["textbook", "pass", 4, "use as final after escalating to gemini-3-pro-image following 3 flash fails (floating organelles, then a glitchy terminal); correct anatomy, muted house palette, no artifacts"],
+  ["sem", "pass", 1, "use as final on first attempt; correct false-colour surface-only SEM morphology with segmented myelin and Nodes of Ranvier"],
+  ["3d", "pass", 2, "use as final; second flash attempt fixed the near-monochrome palette of attempt 1 with clearly distinguishable natural biological tints and correctly segmented myelin"],
+  ["watercolor", "pass", 3, "use as final after escalating to gemini-3-pro-image following 2 flash fails (multiple branches shown as myelinated axons); correctly shows exactly one segmented axon among five plain dendrites, full-bleed aged-paper plate"]
+ ]
+}

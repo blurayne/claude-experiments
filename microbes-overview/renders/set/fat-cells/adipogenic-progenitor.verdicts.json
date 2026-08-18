@@ -1,0 +1,18 @@
+{
+  "name": "Adipogenic progenitor",
+  "short_description": "Mesenchymal-stem-cell-derived precursor that sits as a mural (pericyte-like) cell wrapped around small blood vessels in adipose tissue; still uncommitted, but usually differentiates into a fat cell. Compact, stellate body with several thin radiating processes, a large euchromatic nucleus, moderate rough ER/Golgi/mitochondria, and (once adipogenic signalling starts) a handful of small early lipid droplets.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {"1": "fail (gemini-2.5-flash-image; baked-in handwritten text labels ('MITEM'/'HISTONE'-like scrawls) on the mitochondria/Golgi-like structures - violates no-baked-text rule, superseded)", "2": "pass (gemini-2.5-flash-image; fills frame edge-to-edge on charcoal background, compact stellate body with 4+ thin branching processes, correct nucleus/nucleolus, moderate rough ER, small Golgi stack, elongated mitochondria with cristae, actin filaments through the body, only a handful of small separate lipid droplets, no baked text)"},
+    "sem": {"1": "fail (gemini-2.5-flash-image; solid black border frames the whole square - violates no-border rule, superseded)", "2": "pass (gemini-2.5-flash-image; stellate body with domed nuclear bulge and long tapering branching filopodia at multiple poles, false-colour sandy/bronze surface only, no internal organelles or lipid bulge as expected for SEM, no border, clean dark background)"},
+    "3d": {"1": "fail (gemini-2.5-flash-image; small lipid-droplet-like spheres and fine cytoskeletal-looking filaments rendered floating OUTSIDE the plasma membrane instead of inside the cytoplasm, misleading placement, superseded)", "2": "pass (gemini-2.5-flash-image; translucent compact stellate body, all lipid droplets and filaments correctly contained within the cytoplasm, correct nucleus/nucleolus, rough ER, Golgi stack, elongated mitochondria, natural warm tints, no border, no text)"},
+    "watercolor": {"1": "pass (gemini-2.5-flash-image; full-bleed aged paper background, ink-outline stellate body with 4 thin tapering branching processes, nucleus with nucleolus, folded rough ER, mitochondria, a couple of small separate lipid droplets, no baked text, matches cocci/rod-bacterium watercolor exemplar)"}
+  },
+  "reference": "pass (Wikimedia Commons '3T3-l1 cells clone.jpg', 3T3-L1 preadipocyte cell line phase-contrast light micrograph, CC BY-SA 4.0, KristyPet; well-separated cells with compact bodies and several thin tapering processes, small phase-bright inclusions consistent with early vesicles/granules, no unilocular lipid-filled cells confirming the pre-induction/uncommitted state; mouse cell line used as the closest freely-licensed substitute for human adipogenic-progenitor morphology, flagged in the log; cleaned/cropped false-colour version used for display)",
+  "decision": [
+    ["textbook", "pass", 2, "use as final after one re-render to remove baked-in handwritten text labels from attempt 1"],
+    ["sem", "pass", 2, "use as final after one re-render to remove the black border frame from attempt 1"],
+    ["3d", "pass", 2, "use as final after one re-render to move lipid droplets/filaments from outside the membrane into the cytoplasm"],
+    ["watercolor", "pass", 1, "use as final; correct stellate anatomy, full-bleed paper, no text"]
+  ]
+}

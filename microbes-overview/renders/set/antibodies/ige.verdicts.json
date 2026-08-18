@@ -1,0 +1,40 @@
+{
+  "name": "Immunoglobulin E (IgE)",
+  "short_description": "The rarest serum antibody and the allergy trigger - a single ~190 kDa monomer of two heavy (epsilon) and two light chains with NO hinge region; an extra pair of constant domains (Cε2-Cε4) makes the Fc fold back on itself into an acutely bent conformation, giving the whole molecule a curved, fishhook-like silhouette rather than a flat Y.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {
+      "1": "fail (gemini-2.5-flash-image; early attempt, open-Y topology misread, superseded)",
+      "2": "fail (gemini-2.5-flash-image; open-Y topology misread, superseded)",
+      "3": "fail (gemini-2.5-flash-image; arms spread wide with a disconnected scorpion-tail-like curl below the junction, molecule too small in frame, wrong topology, superseded)",
+      "4": "fail (gemini-3-pro-image; correct beaded-domain materials but rendered as a standard open Y with a visible double-band at the junction that reads as a hinge - violates the defining NO-HINGE feature - plus a decorative curl tacked on below the Fc rather than a true bent topology, superseded)",
+      "5": "fail (gemini-3-pro-image; shape prompt over-corrected into a near-closed 'letter G' ring/spiral - loses the two-distinct-Fab-arms readability entirely, superseded)",
+      "6": "pass (gemini-3-pro-image; open hook-shaped silhouette (~270° arc, not a closed loop), two individually visible Fab arms each with heavy(teal)+light(gold) domain pairing and a glowing variable-region tip, converging with a clear gap toward a heavy-chain-only 3-domain Fc spine, no hinge band - only two small disulfide stitch marks at the fold; minor imperfection: the Fc's own curled terminus is a little tighter/more spiral-like than an idealized single hook)"
+    },
+    "sem": {
+      "1": "fail (gemini-2.5-flash-image; early open-topology attempt, superseded)",
+      "2": "fail (gemini-2.5-flash-image; superseded)",
+      "3": "fail (gemini-2.5-flash-image; superseded)",
+      "4": "fail (gemini-3-pro-image; nicely bumpy false-colour molecular surface but rendered as an open Y with looped-back arm tips and a separate curled tail past the Fc - wrong topology, superseded)",
+      "5": "pass (gemini-3-pro-image; densely bumpy false-colour molecular-surface texture forming a clear ~270° open hook/'C' with no hinge gap; minor imperfection: the two Fab arms blend into one twisted band rather than staying fully distinct structures, an acceptable simplification for this stylised molecular-surface look)"
+    },
+    "3d": {
+      "1": "fail (gemini-2.5-flash-image; superseded)",
+      "2": "fail (gemini-2.5-flash-image; superseded)",
+      "3": "fail (gemini-2.5-flash-image; superseded)",
+      "4": "fail (gemini-3-pro-image; natural tints and good bead domains, but open Y with looped arm tips and a separate decorative curl past the Fc - wrong topology, superseded)",
+      "5": "pass (gemini-3-pro-image; unmistakably bent, open hook silhouette (~270°) with natural teal/gold tints, heavy-chain-only curved Fc and disulfide cross-links tucked at the fold, no hinge band; minor imperfection: the two Fab-arm tips sit close together/nearly fused rather than fully separated, though both variable-region tips remain individually visible as a forked double-tip)"
+    },
+    "watercolor": {
+      "1": "fail (gemini-2.5-flash-image; promising C/hook silhouette but the two Fab arms still splay apart rather than converging tightly toward the Fc, superseded)",
+      "2": "pass (gemini-3-pro-image; strong open-hook silhouette with two clearly parallel beaded Fab-arm tracks converging toward a shared Fc band, correct ink cross-hatched disulfide marks tucked at the fold with no hinge gap, full-bleed aged-paper plate matching the cocci/rod-bacterium house style; minor imperfection: the gold light-chain wash runs a little further down the shared band than anatomically ideal - light chain should taper off before the pure-Fc portion)"
+    }
+  },
+  "reference": "pass (EBI/PDBe public-domain deposited-structure chain image from PDB 4J4P - Drinkwater et al. 2014, Nat Struct Mol Biol 21:397-404, 'Human immunoglobulin E flexes between acutely bent and extended conformations'; cleaned via edit_image.py to strip text/border while preserving the original ribbon colourisation. The image shows real crystallographic Ig-fold beta-sandwich domains from the bent-Fc structural study; full-length IgE including both Fab arms has never been solved as a single static crystal structure because of its inherent conformational flexibility (the point of the cited paper), so this domain-level structural render documents the genuine PDB evidence for the bent-conformation finding rather than a literal whole-monomer photograph, which does not exist at this resolution)",
+  "decision": [
+    ["textbook", "pass", 6, "use as final; after fixing the hinge-band/decorative-tail issue (gen-04) and the over-corrected closed-loop issue (gen-05), gen-06 clearly reads as an open bent hook with two distinct Fab arms, no hinge, and correct domain composition"],
+    ["sem", "pass", 5, "use as final; stylised false-colour molecular-surface hook, no hinge gap, correct bent topology (Fab-arm separation is blended, acceptable for this style)"],
+    ["3d", "pass", 5, "use as final; natural-toned open hook silhouette, correct heavy/light-chain colour banding and disulfide marks, no hinge (Fab-arm tips nearly fused but both individually visible)"],
+    ["watercolor", "pass", 2, "use as final; full-bleed aged-paper hook plate with two visible parallel Fab-arm tracks and a correct disulfide/no-hinge fold"]
+  ]
+}

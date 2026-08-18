@@ -1,0 +1,18 @@
+{
+  "name": "Sertoli cell",
+  "short_description": "Tall, irregular columnar \"nurse\" cell that spans the seminiferous epithelium from the basal lamina to the tubule lumen, cradles and feeds developing sperm cells in deep lateral recesses, and forms the blood-testis barrier via tight junctions between neighbouring Sertoli cells.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {"1": "pass (gemini-2.5-flash-image; tall pyramidal-to-columnar cutaway on a basal-lamina line, apical crown of finger-like recesses, basal nucleus with tripartite nucleolus, ER meshwork, Golgi, mitochondria, lipid droplet and a distinct rod-shaped Charcot-Böttcher crystalloid; muted educational palette, thin clean outlines, matches rod-bacterium/parasite house look)"},
+    "sem": {"1": "fail (gemini-2.5-flash-image; only two apical prongs instead of an elaborate multi-fingered crown, plus a large unexplained bulbous sphere fused mid-body that reads as an attached foreign cell rather than an integrated Sertoli-cell structure - re-rendered)", "2": "pass (gemini-2.5-flash-image; tall columnar cell with a broader multi-fingered apical crown reaching toward the lumen, granular false-colour surface, resting on a fibrous substrate at the base, no stray bulge, matches sem false-colour surface style)"},
+    "3d": {"1": "pass (gemini-2.5-flash-image; tall irregular column on a basal lamina with apical processes fanning upward, natural warm biological tints, visible nucleus/nucleolus, ER, Golgi-like stacks, mitochondria and lateral recesses, soft studio lighting, no border)"},
+    "watercolor": {"1": "pass (gemini-2.5-flash-image; hand-painted naturalist plate, warm aged paper filling the frame edge-to-edge, ink linework cutaway of the tall columnar cell on a basal-lamina line with nucleus/nucleolus, branching cytoskeleton, ER, Golgi, lipid droplets and two rod-shaped Charcot-Böttcher-like inclusions, single specimen, no text)"}
+  },
+  "reference": "pass (Wikimedia Commons, H&E light micrograph of boar testis seminiferous tubules, CC BY-SA 3.0/GFDL, Mikael Häggström M.D.; raw download carried a baked-in numbered legend (1-8) which was removed and the tissue recomposed with edit_image.py - cleaned version shows multiple full tubule cross-sections with a readable epithelium of germ-cell layers and interstitial tissue; genuine H&E tissue, appropriate since Sertoli cells are not free specimens but an intrinsic part of the tubule wall)",
+  "decision": [
+    ["textbook", "pass", 1, "use as final; accurate cutaway matching house palette/line style"],
+    ["sem", "pass", 2, "use as final after one re-render to remove a misleading fused bulge and narrow two-prong crown"],
+    ["3d", "pass", 1, "use as final; natural tints, correct tall columnar morphology and organelle layout"],
+    ["watercolor", "pass", 1, "use as final; full-bleed aged-paper plate, single specimen, accurate structures"]
+  ]
+}

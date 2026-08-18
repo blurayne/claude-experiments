@@ -1,0 +1,18 @@
+{
+  "name": "Alveolar cell type II",
+  "short_description": "Small cuboidal lung cell packed with lamellar bodies that store and secrete pulmonary surfactant, the lipid-protein film that keeps the alveoli from collapsing; also acts as the resident stem/progenitor cell that repopulates the thin, gas-exchanging type I cells.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {"1": "pass (gemini-2.5-flash-image; compact cuboidal-to-rounded silhouette (not thin/flattened like a type I cell), short sparse apical microvilli, four distinct golden-amber concentric onion-like lamellar bodies clustered near the apex, large central nucleus with visible nucleolus wrapped by folded rough ER, oval mitochondria dispersed in the cytoplasm, thin tight-junction marks at the apicolateral corners, muted dusty textbook palette, thin outlines, dark charcoal background, no border, no text)"},
+    "sem": {"1": "pass (gemini-2.5-flash-image; single dome-shaped cuboidal cell bulging up from the flat, thin surrounding epithelium (correctly reading as a type II cell among type I cells), short sparse microvillar stippling on the apical surface, warm rose-tan false colour against a pale flat surround, shallow depth of field, dark uncluttered background, no internal organelles as expected for SEM, no border, no text)"},
+    "3d": {"1": "pass (gemini-2.5-flash-image; compact cuboidal-to-rounded cell with soft global illumination and subsurface scattering on the translucent membrane, short sparse apical microvilli, three golden-amber lamellar bodies with a layered/whorled surface texture, a clearly modelled curved Golgi stack, a coiled rough-ER ribbon wrapping the central translucent nucleus with a visible nucleolus, several oval mitochondria, natural warm biological tones (not neon, not monochrome), clean dark studio background, no border, no text)"},
+    "watercolor": {"1": "pass (gemini-2.5-flash-image; compact cuboidal cell sitting on a fine ink baseline, warm aged paper fills the entire frame edge-to-edge with a soft darker wash halo directly on the paper, short apical microvilli, two concentric golden-amber lamellar-body whorls, a distinct curved Golgi stack, purple-ink rough ER wrapping the central nucleus with a nucleolus, oval mitochondria, single specimen, no text)"}
+  },
+  "reference": "pass (Wikimedia Commons - 'Alveolar sac region of the lung - TEM.jpg', genuine transmission electron micrograph of the alveolar sac region of mouse lung, Public domain, Louisa Howard & Michael Binder / Dartmouth EM Facility; shows an alveolar type II cell with a cluster of dark, densely whorled lamellar bodies beside its nucleus, plus a capillary red blood cell showing the alveolus/capillary relationship; cleaned with edit_image.py into a text-free, warm false-colour crop recomposed around the single AT2 cell and its lamellar bodies; original real-01 kept for provenance)",
+  "decision": [
+    ["textbook", "pass", 1, "use as final; correct compact cuboidal morphology, diagnostic golden onion-whorl lamellar bodies, and correct organelle placement matching the textbook exemplar palette/line style"],
+    ["sem", "pass", 1, "use as final; correct dome-over-flat-epithelium composition and false colour, surface-only as expected for SEM"],
+    ["3d", "pass", 1, "use as final; correct silhouette with clearly distinguishable organelles (Golgi, rough ER, lamellar bodies, mitochondria) in natural biological tones"],
+    ["watercolor", "pass", 1, "use as final; correct full-bleed aged-paper composition with all core structures visible and no baked-in text"]
+  ]
+}

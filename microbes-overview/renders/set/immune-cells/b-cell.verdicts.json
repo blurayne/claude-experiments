@@ -1,0 +1,18 @@
+{
+  "name": "B cell",
+  "short_description": "Antibody factory: a small round agranulocyte that recognises antigen with its B-cell receptor (surface IgM/IgD) and, usually with CD4 T-cell help, matures into plasma cells that pump out tailored antibodies against free bacteria, virus particles and toxins in blood and tissue.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {"1": "pass (gemini-2.5-flash-image; muted desaturated educational palette, thin clean outlines, correct cutaway showing dominant round nucleus with peripheral heterochromatin clumps around a small nucleolus, thin cytoplasmic rim with mitochondria, compact Golgi, centriole pair and a modest rough-ER patch, microvilli-fringed membrane with Y-shaped BCR + MHC-II stubs; matches helper-t-cell/cocci house look, no border, single specimen, not a plasma-cell clock-face nucleus)"},
+    "sem": {"1": "pass (gemini-2.5-flash-image; single round cell densely covered in fine ruffled microvilli giving the characteristic shaggy lymphocyte surface, warm coral/rose-gold false colour, crisp 3D surface texture, clean dark uncluttered background, no internal structures shown as expected for SEM, no text/border, matches the real B-lymphocyte SEM reference closely)"},
+    "3d": {"1": "fail (gemini-2.5-flash-image; nucleus and cytoplasm read as pale icy white/blue and near-monochrome, violating the 'not pale white, not glassy/glowing monochrome' rule — superseded)", "2": "pass (gemini-2.5-flash-image; warm peachy-orange translucent cytoplasm, dusty-rose nucleus with visible heterochromatin patches and nucleolus, golden BCR stubs, striped mitochondria, lavender Golgi cluster — natural saturated biological tones, soft rim light, no border, not neon/monochrome)"},
+    "watercolor": {"1": "pass (gemini-2.5-flash-image; warm aged paper fills the entire frame edge-to-edge with a soft darker wash halo directly on the paper (no mat/frame/sheet-on-surface), fine ink linework, dominant nucleus with heterochromatin stippling and small nucleolus, thin cytoplasmic rim with mitochondria and a comma-shaped rough-ER/Golgi patch, delicate ink microvilli fringe, matches cocci/rod-bacterium watercolor house look)"}
+  },
+  "reference": "pass (Wikimedia Commons 'Human_B_Lymphocyte_-_NIAID.jpg', NIAID CC BY 2.0 colorized SEM of a single human B lymphocyte; densely ruffled microvillus surface, clean near-black background, no baked-in text/scale bar, used as-is; caveat noted in render.md that light/EM cannot distinguish B from T lymphocytes by shape alone)",
+  "decision": [
+    ["textbook", "pass", 1, "use as final; accurate cutaway lymphocyte matching exemplar palette/line style, correctly avoids the plasma-cell clock-face look"],
+    ["sem", "pass", 1, "use as final; accurate microvillus-covered surface, correct false-colour SEM rendering, matches real reference"],
+    ["3d", "pass", 2, "use as final after one re-render to fix a pale/icy-monochrome colour failure in attempt 1; natural warm biological tints and correct internal layering"],
+    ["watercolor", "pass", 1, "use as final; full-bleed aged-paper composition with correct eukaryotic anatomy"]
+  ]
+}

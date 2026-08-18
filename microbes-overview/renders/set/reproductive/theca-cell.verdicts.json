@@ -1,0 +1,27 @@
+{
+  "name": "Theca cell",
+  "short_description": "Steroidogenic stromal cell forming the outer capsule (theca interna + externa) of a growing ovarian follicle; under LH stimulation it makes androgens that the neighbouring granulosa cells aromatize into estrogen.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {
+      "1": "pass (gemini-2.5-flash-image; round-to-polygonal cutaway cell with a large euchromatic nucleus showing two nucleoli, a dense tangled mesh of smooth ER tubules dominating the cytoplasm, numerous mitochondria with visible tubular/looped cristae, several pale lipid droplets, a distinct Golgi stack, a stippled rough-ER/ribosome patch, a flap-like basal lamina at one edge with an adjoining capillary and blurred RBC-like context outside the cell; muted desaturated educational palette, thin clean outlines, dark charcoal background, no text/border; matches the science reference and the house textbook look; used as SVG base)"
+    },
+    "sem": {
+      "1": "pass (gemini-2.5-flash-image; single round-to-polygonal cell in warm salmon/coral false colour nestled among neighbouring grey cells with a hint of surface texture and a fibrous edge, cool studio lighting, shallow depth of field, surface-only as expected for SEM with no internal organelles, no text/border; matches the false-colour SEM house look used elsewhere in this set)"
+    },
+    "3d": {
+      "1": "pass (gemini-2.5-flash-image; translucent rounded-polygonal cell with subsurface scattering, central nucleus with a visible nucleolus, dense reddish SER tubule mesh, several striated mitochondria, glossy round lipid droplets, a stippled rough-ER patch, a thin basal-lamina line with an adjoining capillary threading alongside, and an out-of-focus tan/orange collagenous theca-externa patch at one edge; natural biological tones, not neon/monochrome, clean dark studio background, no text/border)"
+    },
+    "watercolor": {
+      "1": "fail (gemini-2.5-flash-image; rendered as a monochrome sepia/graphite pencil sketch on aged paper with no colour washes at all — fails the mandatory house-style check that watercolor renders must use rich translucent colour washes like `rod-bacterium__watercolor`/`cocci__watercolor`; re-rendered with a strengthened prompt)",
+      "2": "pass (gemini-2.5-flash-image; full-colour hand-painted plate — dusty blue-grey nucleus, rose-pink striated mitochondria, sage/ochre SER tracery, lilac Golgi crescent, pale-gold lipid droplets, fine ink outlines, warm aged paper filling the frame edge-to-edge with a soft darker wash halo behind the cell, single specimen, no mat/frame/border, no text; matches the house watercolor look)"
+    }
+  },
+  "reference": "pass (Wikimedia Commons 'Graafian Follicle, Human Ovary (3595817584).jpg', CC BY 2.0, Ed Uthman — genuine H&E light-photomicrograph of a human ovarian follicle; the cleaned/recomposed crop (real-03) foregrounds a vascularized band of spindle-to-polygonal stromal cells with elongated nuclei just outside the darkly-nucleated granulosa layer bordering the antral space, with small capillary profiles visible in the band — consistent with theca interna grading into theca externa/stroma; no baked-in text/scale bar/white mat border in the final crop; raw download kept for provenance)",
+  "decision": [
+    ["textbook", "pass", 1, "use as final; annotated with 11 labels (nucleus, nucleolus, plasma membrane, SER, mitochondria, lipid droplets, Golgi, rough ER/ribosomes, basal lamina, capillary, theca-externa context), label rows shortened/staggered to avoid text collisions"],
+    ["sem", "pass", 1, "use as final; not annotated per pipeline (SEM is surface-only, no labels)"],
+    ["3d", "pass", 1, "use as final; annotated with the same 11-label set, staggered rows to avoid collisions"],
+    ["watercolor", "pass", 2, "attempt 1 rejected for being a monochrome pencil sketch (no colour washes); attempt 2 (full-colour) used as final and annotated with black-on-paper label styling"]
+  ]
+}

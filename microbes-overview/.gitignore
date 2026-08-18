@@ -1,2 +1,22 @@
 __pycache__/
 *.pyc
+
+# microbe-render: HEIC archival masters are large & Safari-only — keep local
+renders/**/*.heic
+renders/**/*.png
+
+# microbe-render: intermediate generation frames — finals/*.avif is the kept copy
+renders/**/*.attempts/
+
+# Labelled overlays embed the full raster (1–3 MB each, ~280 MB total) and are
+# NOT needed by viewer.html — it renders labels live from the geometry baked into
+# viewer-data.json. Keep the repo lean by not committing the per-theme SVG/HTML.
+renders/**/theme/**/*.svg
+renders/**/theme/**/*.html
+
+# Stray/accidental artifacts
+renders/set/set/
+renders/OVERVIEW (copy).md
+
+# BioArt poster illustrations are fetched on demand (fetch_images.sh), not committed
+images/

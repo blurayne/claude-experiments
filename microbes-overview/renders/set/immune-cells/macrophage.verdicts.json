@@ -1,0 +1,18 @@
+{
+  "name": "Macrophage",
+  "short_description": "'Big eater' of the innate immune system: a large, irregular ameboid cell with abundant cytoplasm, an eccentric kidney-shaped nucleus, dense lysosomes and phagosomes; engulfs bacteria, dead cells and debris, presents fragments to T cells and calls reinforcements with cytokines.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {"1": "pass (gemini-2.5-flash-image; muted desaturated educational palette, thin clean outlines, correct cutaway showing a large ameboid body with broad lamellipodia and thin filopodia, small eccentric kidney-shaped nucleus with visible nucleolus, rough ER, Golgi stack, several mitochondria, numerous small dense lysosomes, and a small rod-shaped bacterium being engulfed at the margin (phagosome); matches cocci/rod-bacterium house look, neutral dark-charcoal background, single specimen, no border)"},
+    "sem": {"1": "pass (gemini-2.5-flash-image; single dominant ameboid cell with a ruffled, textured surface and numerous long thin branching filopodia radiating outward across a subtly textured substrate, teal-over-warm-beige false colour, crisp 3D surface texture with shallow depth of field, clean uncluttered background, surface only (no internal structures, correct for SEM), no text/border, matches the real macrophage SEM reference well)"},
+    "3d": {"1": "pass (gemini-2.5-flash-image; natural warm translucent cytoplasm, soft global illumination and rim light, subsurface scattering on the ruffled membrane, small eccentric oval nucleus with visible nucleolus, rough ER, Golgi stack, mitochondria, numerous small reddish-purple lysosome dots, a bacterium mid-engulfment at the margin (phagosome), broad pseudopodia and fine filopodia radiating outward on a clean dark studio background; natural biological tones, not neon/monochrome)"},
+    "watercolor": {"1": "pass (gemini-2.5-flash-image; warm aged paper fills the entire frame edge-to-edge with a soft darker wash halo directly on the paper (no mat/frame/sheet-on-surface), fine ink linework, irregular ameboid body with ruffled pseudopodial edge and thin filopodia, small off-centre kidney-shaped nucleus with nucleolus, rough ER, Golgi, mitochondria, lysosome dots, and a small elongated organism being engulfed at the margin (phagosome); matches cocci/rod-bacterium watercolor house look)"}
+  },
+  "reference": "pass (Wikimedia Commons 'Macrophage (17195150690).jpg', NIAID via Flickr, CC BY 2.0 colorized SEM; single dominant macrophage body with a smaller second lobe/cell touching it at one edge, characteristic ruffled membrane-bound surface and numerous long thin branching filopodia reaching outward — a textbook depiction of a macrophage patrolling/probing its surroundings; no baked-in text/scale bar, used as-is)",
+  "decision": [
+    ["textbook", "pass", 1, "use as final; accurate ameboid morphology with correct organelle set matching exemplar palette/line style"],
+    ["sem", "pass", 1, "use as final; accurate ruffled surface with radiating filopodia, correct false-colour SEM rendering, matches real reference"],
+    ["3d", "pass", 1, "use as final; correct internal layering, natural biological tints, phagocytosis clearly depicted"],
+    ["watercolor", "pass", 1, "use as final; full-bleed aged-paper composition with correct ameboid anatomy"]
+  ]
+}

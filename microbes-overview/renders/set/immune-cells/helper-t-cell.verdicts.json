@@ -1,0 +1,18 @@
+{
+  "name": "Helper T cell (CD4)",
+  "short_description": "Conductor of the immune response: a small, round agranulocyte with a huge heterochromatic nucleus and a thin rim of ribosome-rich cytoplasm; recognises antigen fragments on MHC class II via its TCR-CD4 complex and releases cytokines that switch on B cells, CD8 killer cells and macrophages.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {"1": "pass (gemini-2.5-flash-image; muted desaturated educational palette, thin clean outlines, correct cutaway showing dominant nucleus with peripheral heterochromatin clumps, small nucleolus, thin cytoplasmic rim with free-ribosome stipple, mitochondria, Golgi, centriole pair, cortical cytoskeleton hint and paired TCR-CD3/CD4 receptor stubs on the microvillus-fringed membrane; matches cocci/rod-bacterium house look, no border, single specimen)"},
+    "sem": {"1": "pass (gemini-2.5-flash-image; single round cell densely covered in fine ruffled microvilli/membrane folds, warm orange-gold false colour with brighter ridge highlights, crisp 3D surface texture, clean near-black background, no internal structures shown as expected for SEM, no text/border, matches the real T-lymphocyte SEM reference closely)"},
+    "3d": {"1": "pass (gemini-2.5-flash-image; natural warm translucent cytoplasm and deep violet-blue nucleus, soft global illumination and rim light, subsurface scattering on the microvillus-fringed membrane, visible heterochromatin clumps, nucleolus, mitochondria, Golgi, centriole pair and cortical mesh, clean dark studio background, no border, not neon/monochrome)"},
+    "watercolor": {"1": "pass (gemini-2.5-flash-image; warm aged paper fills the entire frame edge-to-edge with a soft darker wash halo directly on the paper (no mat/frame/sheet-on-surface), fine ink linework, dominant nucleus with heterochromatin stippling and pale nucleolus, thin cytoplasmic rim with mitochondria/centrioles/receptor stubs, delicate ink microvilli fringe, matches cocci/rod-bacterium watercolor house look)"}
+  },
+  "reference": "pass (Wikimedia Commons 'T_Lymphocyte.jpg', NIAID CC BY 2.0 colorized SEM of a single human T lymphocyte; densely ruffled microvillus surface, clean background, no baked-in text/scale bar, used as-is; caveat noted in render.md that light/EM cannot distinguish CD4 from CD8 by shape alone)",
+  "decision": [
+    ["textbook", "pass", 1, "use as final; accurate cutaway lymphocyte matching exemplar palette/line style"],
+    ["sem", "pass", 1, "use as final; accurate microvillus-covered surface, correct false-colour SEM rendering, matches real reference"],
+    ["3d", "pass", 1, "use as final; correct internal layering and natural biological tints"],
+    ["watercolor", "pass", 1, "use as final; full-bleed aged-paper composition with correct structures"]
+  ]
+}

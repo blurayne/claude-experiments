@@ -1,0 +1,28 @@
+{
+ "name": "Hematopoietic stem cell (HSC)",
+ "short_description": "Rare bone-marrow stem cell (~7–10 µm), the mother of all blood cells — a small round agranular cell with a large euchromatic nucleus and a thin cytoplasmic rim, that self-renews and gives rise to every blood lineage.",
+ "svg_theme": "textbook",
+ "themes": {
+  "textbook": {
+   "1": "FAIL (gemini-2.5-flash-image) — monochrome/uncoloured line drawing (greyscale outlines only, no distinct structure fills); house style requires a coloured muted-palette plate.",
+   "2": "PASS (gemini-2.5-flash-image) — muted desaturated palette, thin clean outlines, distinct soft-colour fill per structure (lavender nucleus with dispersed chromatin dashes, magenta nucleolus, reddish-brown mitochondria, green Golgi stack, teal ribosome dots, orange membrane rim with microvilli); correct high N:C ratio, agranular cytoplasm, no cell wall/lobed nucleus."
+  },
+  "sem": {
+   "1": "PASS (gemini-2.5-flash-image) — single round false-colour cell, dense fine microvilli/fuzz over the whole surface, warm amber-bronze palette, surface only (no interior), clean dark background, a couple of anchoring filopodia to the substrate; no text/border."
+  },
+  "3d": {
+   "1": "PARTIAL (gemini-2.5-flash-image) — correct organelle set (nucleus, nucleolus, mitochondria, Golgi stack, ribosome speckles, microvilli) and natural tints, but nucleus is off-centre/asymmetric and the branching surface-receptor linework reads slightly busy; superseded by attempt 2.",
+   "2": "PASS (gemini-2.5-flash-image) — large centred translucent blue-tinted nucleus (high N:C ratio) with visible nucleolus, thin cytoplasm rim with reddish-brown mitochondria, pale Golgi stack, faint ribosome speckles, fine microvilli on the membrane; natural biological tones, no cell wall/granules/lobed nucleus, clean dark studio background."
+  },
+  "watercolor": {
+   "1": "PASS (gemini-2.5-flash-image) — warm aged paper fills the frame edge-to-edge (no mat/frame/sheet-on-surface), fine ink linework, single centred cell with large indented nucleus + small nucleolus, thin agranular cytoplasm rim with a few mitochondria and a striped Golgi stack, delicate microvilli hairs at the perimeter; anatomically correct animal-cell cutaway."
+  }
+ },
+ "reference": "PASS with caveat — genuine CC0 H&E bone-marrow histology (Trilineage hematopoiesis, Mikael Häggström) showing the HSC niche among differentiating myeloid/erythroid/megakaryocytic cells; a dense but individually-readable marrow field, not an isolated identified HSC (none exists publicly — HSCs are only identifiable by CD34/marker flow cytometry, not light-microscope morphology). Cleaned/recomposed with edit_image.py (real-02) for display.",
+ "decision": [
+  ["textbook", "pass", 2, "coloured muted plate, correct eukaryotic anatomy, high N:C ratio"],
+  ["sem", "pass", 1, "false-colour surface with dense microvilli, correct scale/shape"],
+  ["3d", "pass", 2, "natural tints, centred nucleus, correct organelle set"],
+  ["watercolor", "pass", 1, "full-bleed aged paper, correct anatomy"]
+ ]
+}

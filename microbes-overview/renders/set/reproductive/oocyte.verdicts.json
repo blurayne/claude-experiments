@@ -1,0 +1,25 @@
+{
+  "name": "Oocyte (egg cell)",
+  "short_description": "The largest human cell (~100–120 µm), arrested in meiosis II at ovulation, wrapped in the glycoprotein zona pellucida and a corona of cumulus cells; packed with nutrient stores, mitochondria and cortical granules that block polyspermy after fertilisation.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {"1": "pass (gemini-2.5-flash-image; large cutaway sphere with thick pale zona pellucida shell, attached corona radiata + looser cumulus oophorus follicle cells, muted educational palette with thin clean outlines matching the house look; interior shows barrel-shaped meiotic spindle, single first polar body in the perivitelline space, thin subcortical band of cortical granules, dispersed teal mitochondria, pale lipid/yolk granules and a small Golgi/ER cluster; no text/border, single specimen, structures well separated for labelling)"},
+    "sem": {"1": "pass (gemini-2.5-flash-image; single large smooth oocyte with a fine microvillar fringe and an attached ring of smaller rounded follicle cells (corona radiata/cumulus), false-color sandy-cream vs dusty-rose palette on a dark charcoal background, surface-only detail as correct for SEM, no text/border)"},
+    "3d": {
+      "1": "pass (gemini-2.5-flash-image; translucent zona pellucida shell over the ooplasm with correct interior structures and natural tints, but the attached follicle cells only cover two partial arcs rather than a full ring — superseded for a more complete corona/cumulus wrap)",
+      "2": "pass (gemini-2.5-flash-image; full ring of attached follicle cells, correct cutaway anatomy incl. spindle/polar body/Golgi cluster/cortical-granule band, natural tones, but follicle-cell tint is sage-green, inconsistent with the pink corona/cumulus used across the other three styles — superseded for palette consistency)",
+      "3": "pass (gemini-2.5-flash-image; full ring of pink-toned follicle cells (matches textbook/sem/watercolor palette), clean equatorial cutaway revealing ooplasm with dispersed mitochondria/lipid granules, barrel-shaped spindle, single first polar body, Golgi/ER cluster and a cortical-granule band along the cut plane; soft global illumination, no text/border — used as final, annotated)"
+    },
+    "watercolor": {
+      "1": "pass (gemini-2.5-flash-image; full-bleed aged paper, correct anatomy incl. spindle/polar body/cortical-granule band/Golgi cluster/lipid droplets, but two thin stray coiled tendril lines extend from the follicle cluster off-canvas — minor unrequested artifact, superseded)",
+      "2": "pass (gemini-2.5-flash-image; full-bleed aged paper filling the frame edge-to-edge, clean single specimen with corona radiata ring distinct from the looser cumulus oophorus cluster, correct cutaway anatomy, black ink linework and soft washes, no stray artifacts, no text/border — used as final, annotated with black-on-paper label ink)"
+    }
+  },
+  "reference": "pass (Wikimedia Commons – \"Oocyte with Zona pellucida (27771482282).jpg\", ZEISS Microscopy (Germany), CC BY-SA 2.0; real light PlasDIC photomicrograph from an IVF/ICSI lab clearly showing a single human oocyte with its zona pellucida; cleaned with edit_image.py to recompose tighter on the single oocyte and remove the neighbouring embryo in the original frame, keeping the greyscale PlasDIC rendering and the real injection pipette as genuine scene content)",
+  "decision": [
+    ["textbook", "pass", 1, "use as final; accurate cutaway anatomy, matches house palette/line style, annotated"],
+    ["sem", "pass", 1, "use as final; correct surface-only false-colour rendering with attached follicle cells, no internal detail (correct for SEM)"],
+    ["3d", "pass", 3, "use as final after picking the pink-toned full-ring attempt for cross-style palette consistency; correct natural-tint cutaway, annotated"],
+    ["watercolor", "pass", 2, "use as final; full-bleed aged-paper plate, distinct corona/cumulus, correct anatomy, no stray artifacts, annotated"]
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "name": "Thrombocyte (platelet)",
+  "short_description": "Tiny anucleate, disc-shaped cell fragment pinched off from megakaryocytes; carries a marginal microtubule band, alpha- and dense granules, and an open canalicular system. Plugs wounds, forms the first clot and triggers the coagulation cascade.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {
+      "1": "fail (gemini-2.5-flash-image; rendered as a round circle rather than a flattened biconvex disc, and framed as a grey square with a white margin around it - not edge-to-edge, superseded)",
+      "2": "pass (gemini-2.5-flash-image; correct flattened elongated biconvex disc shape, quarter cutaway clearly shows marginal microtubule band, alpha and dense granules, mitochondrion, glycogen, OCS and DTS, muted textbook palette matching house style, no nucleus, no border)"
+    },
+    "sem": {
+      "1": "pass (gemini-2.5-flash-image; single activated platelet with characteristic spread central body and radiating spiky pseudopod extensions, granular surface texture, warm false-colour palette on dark background, correctly surface-only with no internal structures shown, no text/border)"
+    },
+    "3d": {
+      "1": "fail (gemini-2.5-flash-image; rendered as a round sphere rather than a flattened biconvex disc, superseded)",
+      "2": "pass (gemini-2.5-flash-image; correct flattened elongated biconvex disc shape, gentle cutaway with natural biological tints reveals coiled marginal microtubule band, alpha/dense granules, mitochondrion, glycogen clusters, OCS channel network and DTS tubule cluster, no nucleus, no border)"
+    },
+    "watercolor": {
+      "1": "fail (gemini-2.5-flash-image; round rather than flattened-disc shape, subject too small with excess empty paper margin, and a central rosette structure reads misleadingly nucleus-like, superseded)",
+      "2": "pass (gemini-2.5-flash-image; correct flattened elongated biconvex disc shape, large and centred, full-bleed aged paper filling the frame, ink-and-wash cutaway shows marginal band, granules, mitochondrion, OCS/DTS, no nucleus, no sheet-on-surface artifact)"
+    }
+  },
+  "reference": "pass (Wikimedia Commons \"Giant Platelet, Peripheral Blood Smear\", Ed Uthman via Flickr, CC BY 2.0: authentic Wright-stained light micrograph showing a single clearly isolated giant/reactive platelet among red blood cells; no baked-in text or scale bar. Used directly without edit_image.py cleaning since it already had natural stain colour and no text/border to strip. Size caveat noted in the render log: this is a giant/reactive platelet, larger than a typical resting 2-4 µm platelet.)",
+  "decision": [
+    ["textbook", "pass", 2, "correct flattened biconvex disc after 1 re-render to fix a round/sphere-shaped, non-edge-to-edge first attempt; all core organelles present and labellable"],
+    ["sem", "pass", 1, "convincing false-colour activated platelet with spiky pseudopods and correct surface-only rendering on first attempt"],
+    ["3d", "pass", 2, "correct flattened biconvex disc with natural-tint cutaway after 1 re-render to fix a spherical first attempt"],
+    ["watercolor", "pass", 2, "correct flattened, large, centred disc on full-bleed aged paper after 1 re-render to fix a small round shape with a misleading nucleus-like central rosette"]
+  ]
+}

@@ -4,9 +4,13 @@ Print-ready, bilingual A4-landscape posters that introduce body cells and pathog
 
 Each entry shows a single illustration above a short function description and a "depends on / targets" line. All illustrations come from the public-domain [NIH BioArt](https://bioart.niaid.nih.gov) collection.
 
+## → [Open the interactive atlas](viewer.html)
+
+**[`viewer.html`](viewer.html)** is a single-page, mobile-and-desktop viewer for the AI-rendered image library: browse all 12 sets, switch the **audience** (Kids / Adult / Scientist), **language** (EN / DE) and **picture layout**, search across names and descriptions, and open any figure fullscreen. The labelled diagrams relabel themselves by language, and show the Latin scientific terms in Scientist mode. Three science themes (Dark lab / Blueprint / Petri), each with a light and dark mode. Rebuild it with `uv run build_viewer.py` (see [`AGENTS.md`](AGENTS.md)).
+
 ## Page structure
 
-Eleven pages — eight body-cell categories taken from the "Arten von Zellen" reference image, plus three pathogen pages:
+Twelve pages — eight body-cell categories taken from the "Arten von Zellen" reference image, an antibodies page, plus three pathogen pages:
 
 | # | Deutsch | English |
 | --- | --- | --- |
@@ -18,11 +22,12 @@ Eleven pages — eight body-cell categories taken from the "Arten von Zellen" re
 | 6 | Fettzellen | Fat cells |
 | 7 | Rote Blutkörperchen | Red blood cells |
 | 8 | Immunzellen | Immune cells |
-| 9 | Pathogene | Pathogens (overview) |
-| 10 | Bekannte Bakterien | Well-known bacteria |
-| 11 | Bekannte Viren & andere Erreger | Well-known viruses & other pathogens |
+| 9 | Antikörper — Immunglobuline | Antibodies — Immunoglobulins |
+| 10 | Pathogene | Pathogens (overview) |
+| 11 | Bekannte Bakterien | Well-known bacteria |
+| 12 | Bekannte Viren & andere Erreger | Well-known viruses & other pathogens |
 
-Each page has exactly 6 entries.
+Each page has 6 entries (the antibodies page has 5).
 
 ## Output
 
@@ -61,3 +66,16 @@ The build is tolerant of missing files — any entry whose illustration hasn't b
 python3 build.py            # all populated tiers × both languages → HTML + PDF
 python3 build.py --no-pdf   # HTML only
 ```
+
+## AI-rendered teaching images (`microbe-render` skill)
+
+A separate workflow renders scientifically-verified microbe images with Google's
+image models (Nano Banana / Gemini / Imagen) in four styles, wraps each in a
+labelled SVG with switchable Latin/English/German layers, and logs everything.
+
+- Skill: [`.claude/skills/microbe-render/`](.claude/skills/microbe-render/) (`SKILL.md`, `SPEC.md`, `reference/`, `scripts/`).
+- Per-microbe logs + images: [`renders/`](renders/) (e.g. [`rod-bacterium`](renders/set/pathogens-generic/rod-bacterium.render.md)).
+- Overview table with tokens/costs: [`RENDER-STATUS.md`](RENDER-STATUS.md).
+
+PNG masters and HEIC archival copies stay local (git-ignored); committed images are
+the web-safe AVIF plus the SVG/HTML overlays.

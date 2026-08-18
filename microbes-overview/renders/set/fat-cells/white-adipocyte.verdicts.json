@@ -1,0 +1,27 @@
+{
+ "name": "White adipocyte",
+ "short_description": "Classic fat cell: a single huge lipid droplet pushes the nucleus and cytoplasm to the rim. Stores energy for lean times; releases leptin to signal the brain about fat reserves.",
+ "svg_theme": "textbook",
+ "themes": {
+  "textbook": {
+   "1": "PASS (gemini-2.5-flash-image) — coloured cutaway, muted educational palette, thin outlines; single giant unilocular lipid droplet fills ~90% of the cell, flattened crescent nucleus pushed to the rim (signet-ring shape), few small mitochondria, small Golgi stack, patch of rough ER near nucleus, thin basal-lamina line outside the membrane; no baked text."
+  },
+  "sem": {
+   "1": "PASS (gemini-2.5-flash-image) — false-colour SEM, single smoothly rounded taut specimen (surface stretched tight over the stored fat, no ruffles/spikes), surface only (no interior organelles, correct for SEM), clean dark background, no baked text."
+  },
+  "3d": {
+   "1": "PASS (gemini-2.5-flash-image) — natural warm-gold translucent lipid droplet dominating the cell, thin cutaway wedge showing the flattened nucleus, small mitochondria, Golgi stack and rough-ER dot cluster pressed into the rim; natural biological tints, no baked text."
+  },
+  "watercolor": {
+   "1": "FAIL — baked-in gibberish cursive pseudo-text visible along the cytoplasmic rim near the mitochondria (violates no-baked-text rule); otherwise correct anatomy and full-bleed aged-paper background.",
+   "2": "PASS (gemini-2.5-flash-image) — full-bleed aged-paper watercolour, single huge pale-cream lipid droplet, flattened nucleus and organelles confined to a thin painted rim, delicate ink linework, no baked text (the dashed marks on one mitochondrion are cristae texture, confirmed on close inspection, not lettering)."
+  }
+ },
+ "reference": "light microscopy (H&E-type paraffin section), CC BY-SA 3.0 (also GFDL), Department of Histology, Jagiellonian University Medical College — per render.md §2.",
+ "decision": [
+  ["textbook", "pass", 1, "correct signet-ring anatomy, clean labels"],
+  ["sem", "pass", 1, "smooth taut single specimen, surface only"],
+  ["3d", "pass", 1, "natural tints, correct anatomy, clean labels"],
+  ["watercolor", "pass", 2, "attempt 1 rejected for baked text; attempt 2 full-bleed, correct anatomy"]
+ ]
+}

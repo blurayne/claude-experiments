@@ -1,0 +1,18 @@
+{
+  "name": "Spermatozoon (sperm)",
+  "short_description": "Highly polarized, streamlined male germ cell (~55-60 micrometres long): a flattened oval head carrying the haploid, ultra-condensed nucleus under an enzyme-filled acrosomal cap, a short neck with the centrioles, a mitochondria-wrapped midpiece for ATP, and a long flagellar tail (principal piece + end piece) built around a 9+2 axoneme that drives whip-like swimming toward the egg.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {"1": "pass (gemini-2.5-flash-image; paddle-shaped head cutaway with condensed-chromatin nucleus + acrosomal cap over the front two-thirds, teal proximal centriole at the neck, coiled orange mitochondrial sheath around the midpiece axoneme, tapering principal piece + bare end piece; muted educational palette matches house look)"},
+    "sem": {"1": "pass (gemini-2.5-flash-image; smooth flattened oval head, distinct neck/midpiece transition, long gently-tapering whip-like tail to a fine tip, warm sandy-bronze false colour on dark charcoal-blue background, surface only as expected for SEM)", "2": "pass (gemini-2.5-flash-image; same anatomy from the opposite diagonal, comparable quality — kept as an alternate attempt, attempt 1 used as final)"},
+    "3d": {"1": "pass (gemini-2.5-flash-image; vertical composition, correct cutaway anatomy and natural tints, less dynamic framing - superseded)", "2": "pass (gemini-2.5-flash-image; diagonal composition showing the full tail length, correct cutaway with nucleus/acrosome/centriole/mitochondrial sheath/axoneme/fibrous sheath all distinguishable, natural biological tones, no border - used as final)"},
+    "watercolor": {"1": "pass (gemini-2.5-flash-image; full-bleed aged paper, ink-outlined cutaway head with violet nucleus + cream acrosomal cap + teal centriole dot, twisted reddish-orange mitochondrial sheath at the midpiece, long tapering tail sweeping across the page, single specimen, no text/border)"}
+  },
+  "reference": "pass (two licensed micrographs used together: LM — Wikimedia Commons \"Human sperm 100x.jpg\", CC BY-SA 4.0, FinerFocus, single isolated specimen with head+tail clearly readable, used as-is; SEM — Wikimedia Commons \"Spermatozoa-human-3140x.jpg\", public domain, Forskerunv, raw download showed a readable group of 3 with a baked-in scale bar, cleaned with edit_image.py to isolate a single false-colored specimen and remove the scale bar for display)",
+  "decision": [
+    ["textbook", "pass", 1, "use as final; accurate cutaway anatomy, matches house palette/line style, annotated"],
+    ["sem", "pass", 1, "use as final; correct surface-only false-colour rendering, smooth taper, no internal detail (correct for SEM)"],
+    ["3d", "pass", 2, "use as final after picking the more dynamic diagonal composition; correct natural-tint cutaway, annotated"],
+    ["watercolor", "pass", 1, "use as final; full-bleed aged-paper plate, correct anatomy, annotated"]
+  ]
+}

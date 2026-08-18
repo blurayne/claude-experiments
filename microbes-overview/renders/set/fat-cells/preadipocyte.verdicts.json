@@ -1,0 +1,18 @@
+{
+  "name": "Preadipocyte",
+  "short_description": "Direct precursor of the fat cell. Waits as a spindle-shaped cell in adipose tissue and matures into an adipocyte on demand.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {"1": "fail (gemini-2.5-flash-image; image does not fill the frame - a white letterbox border surrounds the charcoal square and the cell renders tiny/under-detailed inside it, violates no-border rule, superseded)", "2": "pass (gemini-2.5-flash-image; fills frame edge-to-edge, elongated bipolar spindle with tapering processes, correct nucleus/nucleolus/rough ER/Golgi/mitochondria, membrane Pref-1 dots, fibrous pericellular halo, no lipid droplets)"},
+    "sem": {"1": "pass (gemini-2.5-flash-image; stellate fibroblast-like body with domed nuclear bulge and long tapering filopodia at multiple poles, false-colour sandy surface only, no lipid bulge, clean dark background)"},
+    "3d": {"1": "pass (gemini-2.5-flash-image; translucent bipolar spindle with subsurface scattering, correct organelle set including Pref-1 membrane dots and fibronectin halo, natural warm tints, no lipid droplets)"},
+    "watercolor": {"1": "fail (gemini-2.5-flash-image; baked-in handwritten text labels 'Pref-1/DLK1' and 'mitochondrion' on the paper - violates no-baked-text rule, superseded)", "2": "pass (gemini-2.5-flash-image; full-bleed aged paper, correct spindle anatomy with all organelles, no text, matches cocci/rod-bacterium watercolor exemplar)"}
+  },
+  "reference": "pass (Wikimedia Commons 3T3-L1 preadipocyte culture, phase-contrast LM, CC BY-SA 4.0; well-spread individual stellate/bipolar cells with clearly readable tapering processes, no lipid droplets; mouse cell line used as the closest freely-licensed substitute for human preadipocyte morphology, flagged in the log; cleaned/contrast-enhanced version used for display)",
+  "decision": [
+    ["textbook", "pass", 2, "use as final; correct elongated spindle morphology and organelle set, clean leader lines"],
+    ["sem", "pass", 1, "use as final; correct stellate fibroblast-like surface morphology, false-colour, no baked text"],
+    ["3d", "pass", 1, "use as final; correct translucent spindle anatomy, natural tints, clean labels"],
+    ["watercolor", "pass", 2, "use as final after one re-render to remove baked-in handwritten labels from attempt 1"]
+  ]
+}

@@ -1,0 +1,53 @@
+{
+ "name": "Neural stem cell (NSC)",
+ "short_description": "Precursor of all neural cell types (neurons, astrocytes, oligodendrocytes); a radial-glia-like cell with a single apical primary cilium and a long basal process, high nucleus-to-cytoplasm ratio and a nestin/GFAP intermediate-filament cytoskeleton. In the adult brain only active in a few niches (e.g. the hippocampus).",
+ "svg_theme": "textbook",
+ "themes": {
+  "textbook": {
+   "1": "FAIL (gemini-2.5-flash-image) — a THIRD stray appendage present: a separate short pink oval blob-on-a-stalk at the apical pole plus an extra reddish tipped process on the right, violating the exactly-two-appendages rule.",
+   "2": "FAIL (gemini-2.5-flash-image) — near-monochrome/sepia uncoloured line drawing (fails the textbook 'must be COLOURED' rule) and a separate floating 'blood vessel' object drawn outside the cell body.",
+   "3": "FAIL (gemini-2.5-flash-image) — both processes rendered as identical sharp needle-spikes crossing through the cell body (no distinguishable short apical cilium vs long basal process); malformed bowtie/X silhouette.",
+   "4": "PASS (gemini-3-pro-image) — correct polarized bipolar shape: one short apical process with a fine cilium, one long unbranched basal process; coloured muted-pastel cutaway with nucleus+nucleolus, rough ER, Golgi, mitochondria, intermediate-filament mesh, free ribosome dots; matches the house textbook palette; no text/border."
+  },
+  "sem": {
+   "1": "PASS (gemini-2.5-flash-image) — photorealistic false-colour (blue-teal) SEM surface only, correct bipolar shape with a short apical knob bearing a fine single non-motile cilium and one long tapering basal process, true 3D surface texture, single specimen, no internal organelles (correct for SEM), no text."
+  },
+  "3d": {
+   "1": "FAIL (gemini-2.5-flash-image) — basal process tip forks into two thin branches, violating the single-unbranched-tail rule.",
+   "2": "FAIL (gemini-2.5-flash-image) — basal process ends in an oval bud/blob shape at its tip instead of tapering to a bare point.",
+   "3": "FAIL (gemini-2.5-flash-image) — faint baked-in illegible text/letterforms visible around the nucleus rim.",
+   "4": "FAIL (gemini-2.5-flash-image) — anatomy/appendages correct (no fork, no blob, no text) but the render is near-monochrome pale cream/white, failing the '3d must use natural, not near-monochrome, biological tones' rule.",
+   "5": "PASS (gemini-3-pro-image) — natural biological tints (warm translucent peach/rose body, tan nucleus, pink mitochondria, sage Golgi), correct bipolar shape with exactly one short apical cilium process and one long unbranched tapering basal process, soft global illumination/subsurface scattering, no text."
+  },
+  "watercolor": {
+   "1": "PASS (gemini-2.5-flash-image) — full-bleed aged-paper background (paper IS the background, no mat/frame), correct bipolar shape (one short apical process with cilium tip, one long unbranched basal process), pencil/sepia-wash cutaway with nucleus+nucleolus, mitochondria, a folded rough-ER ribbon, fine intermediate-filament linework; no distinct Golgi stack or separate free-ribosome dots rendered (only the ER-like ribbon + 4 mitochondria are visibly distinguishable in this attempt) so those two keys are left unlabelled on this style rather than mislabelled; no text."
+  }
+ },
+ "reference": "PASS (2026-08-14). Genuine fluorescence photomicrograph (not a diagram) of cultured mouse neural stem cells, Wellcome Collection via Wikimedia Commons (CC BY-SA 4.0): numerous small, bipolar/multipolar green-stained cell bodies with fine, elongated processes radiating between blue DAPI-stained nuclei — matches the described in-vitro NSC morphology (thin processes, high nucleus:cytoplasm ratio). The raw download shows a dense field of many overlapping cells rather than one isolated specimen; a cleaned/recomposed edit (edit_image.py) emphasizing two clearly bipolar cells and removing stray artifacts was produced and is used as the display image.",
+ "decision": [
+  [
+   "textbook",
+   "pass",
+   4,
+   "escalated to gemini-3-pro-image after 3 Nano-Banana fails (extra appendage; uncoloured+floating object; malformed spikes); correct anatomy + house palette"
+  ],
+  [
+   "sem",
+   "pass",
+   1,
+   "correct bipolar surface morphology, false-colour, single specimen"
+  ],
+  [
+   "3d",
+   "pass",
+   5,
+   "escalated to gemini-3-pro-image after 4 Nano-Banana fails (forked tail; blob tip; baked text; near-monochrome); correct anatomy + natural tints"
+  ],
+  [
+   "watercolor",
+   "pass",
+   1,
+   "full-bleed paper, correct bipolar anatomy; Golgi/free-ribosome labels omitted as not visually distinct in this attempt"
+  ]
+ ]
+}

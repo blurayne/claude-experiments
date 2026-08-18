@@ -1,0 +1,19 @@
+{
+  "name": "Candida albicans",
+  "short_description": "Dimorphic yeast (~3-6 um ovoid) that lives harmlessly in the mouth, gut and genital tract; when immunity weakens or after antibiotics it switches to invasive hyphae and can cause thrush or serious infection. Kept in check by Th17 cells, neutrophils and the mucosal microbiome.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {"1": "PARTIAL - correct budding yeast + germ tube, but ribosome/ER structure crowded and mitochondria placement slightly asymmetric", "2": "PARTIAL - similar composition, palette still a touch flat in places", "3": "PASS - refined muted educational palette matching rod-bacterium/parasite house style; thin clean outlines; distinct soft fills for wall, membrane, nucleus (with nucleolus-like layering), 2 mitochondria, vacuole, ER/ribosome dots; bud at constricted neck; narrow parallel-sided germ tube; no text; fills frame edge-to-edge on dark charcoal background. Chosen as label base."},
+    "sem": {"1": "PASS - photorealistic false-colour amber SEM, single ovoid cell with smoothly rounded surface, bud at constricted neck, faint bud-scar dot, narrow germ tube emerging from the body, shallow depth of field with soft out-of-focus specks in background reading as neighbouring cells, no internal structures (correct for SEM), no text/border."},
+    "3d": {"1": "PASS - natural warm golden translucent cell body with distinct believable tints: blue nucleus, pale vacuole, red-brown mitochondria, fine ribosome speckles/ER, bud at constricted neck, narrow parallel-sided germ tube; soft studio lighting, dark seamless background, no neon/monochrome, no text."},
+    "watercolor": {"1": "PASS - warm aged paper fills the entire frame edge-to-edge with a soft darker wash halo directly on the paper (no mat/sheet-on-surface), matching cocci/rod-bacterium house style; single specimen with bud at constricted neck and narrow germ tube; painterly cutaway shows wall, membrane line, nucleus, small mitochondria-like ovals, stippled ribosomes; no text."}
+  },
+  "reference": "PASS - Wikimedia (Y tambe, CC BY-SA 3.0) bright-field LM of budding C. albicans, ovoid cells with visible internal droplets/vacuoles and a clear budding neck; AI-cleaned (edit_image.py, real-02) to remove caption/border while keeping the original greyscale photographic character - genuine light micrograph, not re-illustrated.",
+  "decision": [
+    ["textbook", "teaching-ready (label base)", 3, "muted refined cutaway; correct dimorphic morphology (yeast + bud + germ tube); best for full labelling"],
+    ["sem", "teaching-ready", 1, "realistic false-colour surface-only SEM; single specimen; no border"],
+    ["3d", "teaching-ready", 1, "natural biological tints; organelles inside, bud + germ tube correct"],
+    ["watercolor", "teaching-ready", 1, "full-bleed aged-paper naturalist plate; bud + germ tube + cutaway organelles"],
+    ["reference LM", "verified + cleaned", 2, "Wikimedia CC BY-SA budding yeast pair, cleaned of caption/border"]
+  ]
+}

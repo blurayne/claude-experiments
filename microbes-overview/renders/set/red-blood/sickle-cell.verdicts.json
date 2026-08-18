@@ -1,0 +1,26 @@
+{
+ "name": "Sickle cell (deformed erythrocyte)",
+ "short_description": "Pathological erythrocyte form: mutated haemoglobin (HbS) deforms the cell into a sickle when oxygen drops. Clogs capillaries and causes sickle-cell anaemia.",
+ "svg_theme": "textbook",
+ "themes": {
+  "textbook": {
+   "1": "PASS (gemini-2.5-flash-image) — rigid crescent/sickle outline with two pointed tapering ends (not a disc); muted desaturated palette, thin clean outlines, soft natural crimson cell body; wedge cut-away shows a hexagonal spectrin-actin mesh (with a couple of frayed spots) and long parallel HbS fibre bundles filling the rest of the interior; no nucleus/organelles; fills frame edge-to-edge on neutral dark charcoal background, no border/text."
+  },
+  "sem": {
+   "1": "PASS (gemini-2.5-flash-image) — single false-colour crescent with two sharp tapering points, taut rigid-looking surface with a subtle ridge along the concave inner edge, warm crimson-rose tones, surface only (correctly no interior), clean dark charcoal background, no text/border."
+  },
+  "3d": {
+   "1": "PASS (gemini-2.5-flash-image) — natural crimson-red translucent cell with rim light tracing the pointed tips and curved edge; wedge cut-away reveals hexagonal membrane-skeleton mesh with visibly frayed/broken patches plus long parallel HbS fibre bundles; no nucleus/organelles; clean dark studio background, no border/text."
+  },
+  "watercolor": {
+   "1": "PASS (gemini-2.5-flash-image) — warm aged paper fills the frame edge-to-edge with a soft wash halo behind the cell (no sheet-on-surface/mat/frame); crimson-rose washes with fine ink linework; painterly cut-away shows a faint hexagonal mesh and parallel fibre brushstrokes; rigid pointed crescent silhouette, no nucleus/organelles."
+  }
+ },
+ "reference": "PASS — Wikimedia Commons \"Sicklecells.jpg\", genuine SEM (public domain, NIDDK/NIH, Drs. Noguchi/Rodgers/Schechter) showing a field of red cells including several unmistakably elongated crescent-shaped cells with pointed tapering ends alongside normal round biconcave cells; each cell individually readable (not a dense clump), giving a clear shape contrast. Raw download is greyscale with no baked-in text/scale bar; a cleaned, false-colorized (crimson-red) version was produced with edit_image.py and is used for display, original kept for provenance.",
+ "decision": [
+  ["textbook", "pass", 1, "correct rigid sickle silhouette, correct interior (membrane skeleton mesh + HbS fibre bundles), matches house palette/line style"],
+  ["sem", "pass", 1, "false-colour surface-only crescent with sharp pointed ends, correct scale/shape"],
+  ["3d", "pass", 1, "natural crimson tints, correct rigid crescent shape, correct interior detail incl. frayed membrane skeleton"],
+  ["watercolor", "pass", 1, "full-bleed aged paper, correct rigid crescent anatomy and interior"]
+ ]
+}

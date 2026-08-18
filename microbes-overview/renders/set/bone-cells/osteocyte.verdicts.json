@@ -1,0 +1,21 @@
+{
+  "name": "Osteocyte",
+  "short_description": "Mature, star-shaped bone cell walled inside a lacuna within its own mineralised matrix, connected to dozens of neighbours by long dendritic processes running through canaliculi. Senses mechanical strain on the skeleton and orchestrates remodeling by signalling osteoblasts and osteoclasts (via sclerostin and the RANKL/OPG axis). Terminally differentiated from an osteoblast; can live for decades.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {
+      "1": "fail (gemini-2.5-flash-image; correct stellate osteocyte morphology with lacuna, canaliculi, nucleus, rough ER, Golgi and mitochondria, muted palette matching house style, BUT a visible ~30px darker grey frame/border ran around all four edges of the canvas, violating the no-border rule)",
+      "2": "pass (gemini-2.5-flash-image, re-rendered with an explicit anti-border instruction; single dominant stellate osteocyte centred in a bone-shaft cross-section, lacuna clearly carved into the mineralised matrix, dozens of dendritic processes running through canaliculi (a few touching a smaller cropped neighbour cell for network context), cutaway shows a single central nucleus, folded rough ER, small Golgi stack and several mitochondria, muted dusty educational palette with thin clean outlines, dark charcoal background fills edge-to-edge with no border/frame, no baked text"
+    },
+    "sem": {"1": "pass (gemini-2.5-flash-image; single osteocyte cell body centred with dozens of long, thin, branching dendritic processes radiating through canaliculi in an etched, honeycombed bone-matrix background, correct surface-only SEM detail (no interior organelles), warm sandy false-colour palette against a cooler pale matrix and clean dark background, single specimen, no text or border)"},
+    "3d": {"1": "pass (gemini-2.5-flash-image; small stellate cell body inside a subtly glowing ellipsoidal lacuna with dozens of long branching dendritic processes radiating outward, soft global illumination and subsurface scattering, cutaway reveals a single central nucleus, rough ER, small Golgi stack and mitochondria in natural warm biological tones (not neon/monochrome), clean seamless dark studio background fills edge-to-edge, no cell wall or multinucleation, no border)"},
+    "watercolor": {"1": "pass (gemini-2.5-flash-image; hand-painted naturalist plate, aged paper fills the frame edge-to-edge with a soft dark wash halo directly behind the subject (no separate sheet/mat/border), small star-shaped cell body inside a painterly ellipsoidal lacuna set within a richly textured painted mineralised-matrix band, fine ink-lined dendritic processes radiate through the matrix, cutaway shows nucleus, rough ER, Golgi and mitochondria in soft washes, no baked text)"}
+  },
+  "reference": "pass (Wikimedia Commons 'An osteocyte in rat bone exposed by resin cast etching.tif', CC BY-SA 4.0, attribution Shahfa84; genuine resin-cast-etching SEM showing a single, clearly dominant osteocyte cell body with a dense meshwork of branching canaliculi/processes radiating through the surrounding etched bone matrix - the classic stellate osteocyte image; the wider canalicular mesh is an expected feature of this imaging technique (whole-tissue-block etching), not a dense clump of cells, and the cell body plus its immediate processes remain individually readable; raw download had no baked-in text/scale bar found in the crop; a false-colourised version (natural warm sandy/amber cell body and processes against a cooler grey matrix) was produced with edit_image.py for display)",
+  "decision": [
+    ["textbook", "pass", 2, "use gen-02 as final; attempt 1 rejected for a visible border/frame, attempt 2 fixed with an explicit anti-border prompt and is otherwise anatomically faithful"],
+    ["sem", "pass", 1, "use as final; correct surface-only false-colour rendering of a single stellate osteocyte with radiating canaliculi"],
+    ["3d", "pass", 1, "use as final; correct natural-tone cutaway with all core organelles present and stellate morphology intact"],
+    ["watercolor", "pass", 1, "use as final; full-bleed aged-paper naturalist plate matching the exemplar composition"]
+  ]
+}

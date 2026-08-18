@@ -760,7 +760,86 @@ PAGES = [
         ],
     },
     # ------------------------------------------------------------------
-    # Page 9 — Pathogens (overview)
+    # Page 9 — Antibodies (immunoglobulin isotypes)
+    # ------------------------------------------------------------------
+    {
+        "id": "antibodies",
+        "title_de": "Antikörper — Immunglobuline",
+        "title_en": "Antibodies — Immunoglobulins",
+        "subtitle_de": "Fünf Bauformen desselben Y-förmigen Grundplans.",
+        "subtitle_en": "Five builds of the same Y-shaped blueprint.",
+        "description_de": "Ein Antikörper (Immunglobulin, Ig) ist kein Lebewesen, sondern ein Y-förmiges Protein aus zwei schweren und zwei leichten Ketten, das eine B-Zelle nach Kontakt mit einem Antigen produziert. Die Spitzen der Arme (Fab) binden hochspezifisch an ein Antigen, der Stamm (Fc) ruft andere Immunzellen oder das Komplementsystem herbei. Menschen besitzen fünf Klassen (Isotypen) — IgG, IgA, IgM, IgD, IgE —, die sich in der schweren Kette, der Bauform (Monomer, Dimer, Pentamer) und ihrem Einsatzort unterscheiden.",
+        "description_en": "An antibody (immunoglobulin, Ig) is not a living thing but a Y-shaped protein of two heavy and two light chains, made by a B cell after it meets an antigen. The arm tips (Fab) bind one specific antigen; the stem (Fc) recruits other immune cells or the complement system. Humans have five classes (isotypes) — IgG, IgA, IgM, IgD, IgE — that differ in their heavy chain, their build (monomer, dimer, pentamer) and where they work.",
+        "entries": [
+            {
+                "name_de": "Immunglobulin G (IgG)",
+                "name_en": "Immunoglobulin G (IgG)",
+                "tier": "basic",
+                "image_filename": "antibodies__igg.png",
+                "image_url": "",
+                "image_credit": BIOART_CREDIT,
+                "image_license": BIOART_LICENSE,
+                "func_de": "Häufigster Antikörper im Blut (~75%). Einzelnes Y (Monomer) mit vier Unterklassen; neutralisiert Erreger, aktiviert Komplement und markiert sie für Fresszellen. Einziger Antikörper, der die Plazenta passiert.",
+                "func_en": "The most abundant blood antibody (~75%). A single Y (monomer) with four subclasses; neutralises pathogens, activates complement and tags them for phagocytes. The only antibody that crosses the placenta.",
+                "deps_de": "Wird von Plasmazellen nach dem Klassenwechsel produziert; trägt die Immunität von Mutter auf Ungeborenes und liefert das Langzeitgedächtnis nach Impfung oder Infektion.",
+                "deps_en": "Produced by plasma cells after class-switching; carries immunity from mother to unborn child and provides the long-term memory response after vaccination or infection.",
+            },
+            {
+                "name_de": "Immunglobulin A (IgA)",
+                "name_en": "Immunoglobulin A (IgA)",
+                "tier": "basic",
+                "image_filename": "antibodies__iga.png",
+                "image_url": "",
+                "image_credit": BIOART_CREDIT,
+                "image_license": BIOART_LICENSE,
+                "func_de": "Wächter der Schleimhäute: als Dimer (zwei Y-Einheiten über eine J-Kette verbunden, plus Sekretkomponente) in Speichel, Tränen, Muttermilch und Darm. Fängt Erreger ab, ohne Entzündung auszulösen.",
+                "func_en": "Guardian of the mucous membranes: as a dimer (two Y-units joined by a J-chain, plus a secretory component) in saliva, tears, breast milk and gut. Traps pathogens without triggering inflammation.",
+                "deps_de": "Die Sekretkomponente schützt es vor Verdauungsenzymen; Stillen überträgt mütterliches IgA auf den Säugling.",
+                "deps_en": "The secretory component shields it from digestive enzymes; breastfeeding passes maternal IgA on to the infant.",
+            },
+            {
+                "name_de": "Immunglobulin M (IgM)",
+                "name_en": "Immunoglobulin M (IgM)",
+                "tier": "basic",
+                "image_filename": "antibodies__igm.png",
+                "image_url": "",
+                "image_credit": BIOART_CREDIT,
+                "image_license": BIOART_LICENSE,
+                "func_de": "Erster Antikörper einer Immunantwort: ein sternförmiges Pentamer aus fünf Y-Einheiten (über eine J-Kette verbunden) mit zehn Bindestellen — schwächer bindend pro Stelle, dafür extrem stark im Verklumpen von Erregern und Aktivieren von Komplement.",
+                "func_en": "The first antibody of an immune response: a star-shaped pentamer of five Y-units (joined by a J-chain) with ten binding sites — weaker binding per site, but extremely strong at clumping pathogens and activating complement.",
+                "deps_de": "Als membrangebundenes Monomer zugleich Teil des B-Zell-Rezeptors auf unreifen B-Zellen; Serum-IgM-Spiegel zeigen eine frische Infektion an.",
+                "deps_en": "As a membrane-bound monomer, it also forms part of the B-cell receptor on naive B cells; serum IgM levels signal a fresh infection.",
+            },
+            {
+                "name_de": "Immunglobulin D (IgD)",
+                "name_en": "Immunoglobulin D (IgD)",
+                "tier": "basic",
+                "image_filename": "antibodies__igd.png",
+                "image_url": "",
+                "image_credit": BIOART_CREDIT,
+                "image_license": BIOART_LICENSE,
+                "func_de": "Seltenster Antikörper im Blut. Meist membrangebundenes Monomer neben IgM auf naiven B-Zellen — hilft, die B-Zelle scharfzustellen. Seine freie, gelöste Rolle ist noch nicht vollständig geklärt.",
+                "func_en": "The rarest antibody in blood. Mostly a membrane-bound monomer sitting alongside IgM on naive B cells — helps prime the B cell for activation. Its free, secreted role is still not fully understood.",
+                "deps_de": "Wird zusammen mit IgM als Doppel-Rezeptor auf derselben B-Zelle exprimiert, bevor ein Klassenwechsel stattfindet.",
+                "deps_en": "Co-expressed with IgM as a dual receptor on the same B cell, before any class-switching has happened.",
+            },
+            {
+                "name_de": "Immunglobulin E (IgE)",
+                "name_en": "Immunoglobulin E (IgE)",
+                "tier": "basic",
+                "image_filename": "antibodies__ige.png",
+                "image_url": "",
+                "image_credit": BIOART_CREDIT,
+                "image_license": BIOART_LICENSE,
+                "func_de": "Am wenigsten im Blut, aber am längsten aktiv, sobald an Mastzellen und Basophile gebunden. Löst bei erneutem Antigenkontakt die Freisetzung von Histamin aus — zentral bei Allergien und der Abwehr von Parasiten (Würmern).",
+                "func_en": "Least abundant in blood, but the longest-acting once bound to mast cells and basophils. Triggers histamine release on renewed antigen contact — central to allergic reactions and defence against parasitic worms.",
+                "deps_de": "Bindet mit hoher Affinität an FcεRI-Rezeptoren auf Mastzellen/Basophilen; überschießende IgE-Antworten sind die Ursache von Heuschnupfen, Asthma und Anaphylaxie.",
+                "deps_en": "Binds with high affinity to FcεRI receptors on mast cells/basophils; runaway IgE responses are the cause of hay fever, asthma and anaphylaxis.",
+            },
+        ],
+    },
+    # ------------------------------------------------------------------
+    # Page 10 — Pathogens (overview)
     # ------------------------------------------------------------------
     {
         "id": "pathogens",
@@ -852,7 +931,7 @@ PAGES = [
         ],
     },
     # ------------------------------------------------------------------
-    # Page 10 — Well-known bacteria
+    # Page 11 — Well-known bacteria
     # ------------------------------------------------------------------
     {
         "id": "pathogens-bacteria",
@@ -944,7 +1023,7 @@ PAGES = [
         ],
     },
     # ------------------------------------------------------------------
-    # Page 11 — Well-known viruses & other pathogens
+    # Page 12 — Well-known viruses & other pathogens
     # ------------------------------------------------------------------
     {
         "id": "pathogens-viruses",

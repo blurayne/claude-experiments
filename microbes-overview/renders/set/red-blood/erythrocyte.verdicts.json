@@ -1,0 +1,31 @@
+{
+  "name": "Erythrocyte (red blood cell)",
+  "short_description": "Anucleate, biconcave-disc blood cell packed with haemoglobin; carries oxygen from the lungs to every tissue and CO₂ back, living about 120 days while squeezing through the entire capillary network millions of times.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {
+      "1": "fail (gemini-2.5-flash-image; flat top-down view with a hard-edged dark central circle that reads as a nucleus rather than a shallow biconcave dimple, superseded)",
+      "2": "fail (gemini-2.5-flash-image; cutaway confined to a thin sliver at the rim, central oval still reads ambiguous/nucleus-like, superseded)",
+      "3": "fail (gemini-2.5-flash-image; rim too thick/tall relative to diameter, reads as a hollow bowl or napkin-ring rather than a true biconcave disc, superseded)",
+      "4": "pass (gemini-2.5-flash-image; convincing biconcave disc thinning to a shallow dimple on both faces, quarter cutaway clearly shows thin membrane + hexagonal spectrin-actin mesh + homogeneous haemoglobin cytoplasm with no organelles, muted textbook palette, no border)"
+    },
+    "sem": {
+      "1": "pass (gemini-2.5-flash-image; single false-colour crimson biconcave disc at three-quarter angle, clear rounded rim sinking into a shallow central dimple, granular surface texture, dark uncluttered background, no text/border, no internal structures shown as expected for SEM)"
+    },
+    "3d": {
+      "1": "pass (gemini-2.5-flash-image; glossy natural-crimson biconcave disc with visible central dimple on the front face, wedge cutaway reveals thin membrane + hexagonal spectrin-actin mesh + uniform dense haemoglobin cytoplasm, no organelles, no border)"
+    },
+    "watercolor": {
+      "1": "fail (gemini-2.5-flash-image; central dimple rendered as a raised glossy ball that reads like a nucleus rather than a shallow depression, superseded)",
+      "2": "fail (gemini-2.5-flash-image; dark central sphere again reads as a nucleus-like ball sitting in the dimple, misleading, superseded)",
+      "3": "pass (gemini-2.5-flash-image; true biconcave-disc profile with a softly shaded circular dimple on both faces, full-bleed aged-paper background, wedge cutaway shows ink-line membrane + faint hexagonal mesh + uniform red cytoplasm wash, no nucleus/organelles, no sheet-on-surface artifact)"
+    }
+  },
+  "reference": "pass (Wikimedia Commons \"SEM blood cells.jpg\", NCI/Wetzel & Schaefer, public domain; cropped + cleaned/false-colorized display version clearly shows three biconcave-disc red blood cells with visible central dimples, no text or scale bar)",
+  "decision": [
+    ["textbook", "pass", 4, "use as final; accurate biconcave-disc cutaway with membrane skeleton mesh and homogeneous haemoglobin cytoplasm after 3 earlier attempts read as nucleus-like or bowl-shaped"],
+    ["sem", "pass", 1, "use as final; convincing false-colour surface-only biconcave disc, correct shape and texture on first attempt"],
+    ["3d", "pass", 1, "use as final; natural-tint glossy biconcave disc with correct interior cutaway on first attempt"],
+    ["watercolor", "pass", 3, "use as final after 2 re-renders to fix a misleading nucleus-like central ball; final attempt shows a true shallow dimple"]
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "Embryonic stem cell (ESC)",
+  "short_description": "Pluripotent cell from the inner cell mass of the early blastocyst: small, with a very large nucleus, a prominent nucleolus and only a thin rim of cytoplasm; can become any of the body's 200+ cell types.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {"1": "✅ PASS — round animal cell, very high nucleus:cytoplasm ratio, one prominent nucleolus, thin cytoplasm rim with a few small mitochondria, Golgi and ER, muted desaturated palette with thin outlines matching the rod-bacterium/cocci house look, fills frame edge-to-edge on a neutral dark background, no text/wall/embryo. Chosen as label base."},
+    "sem": {"1": "✅ PASS — small dome-shaped colony of a few smooth, plump, rounded cells with visible cell-cell junction grooves (cobblestone look), false-colour cream/peach surface only (correctly no internal structures), fills the frame with no border/vignette; realistic SEM look matching the rod-bacterium/cocci exemplars."},
+    "3d": {"1": "✅ PASS — single round cell, natural believable biological tints (warm translucent cytoplasm, lilac nucleus, warm nucleolus), very high N:C ratio, thin organelle-poor cytoplasm rim with a few small mitochondria/ER/Golgi/ribosomes, soft global illumination and rim light on a clean dark studio background, no text/wall/embryo."},
+    "watercolor": {"1": "✅ PASS — naturalist plate, warm aged paper fills the entire frame edge-to-edge with a soft wash halo behind the cell (no sheet-on-a-surface), correct high N:C ratio with thin cytoplasm rim holding a few mitochondria/Golgi/ER, single nucleolus, no text; matches the cocci/rod-bacterium watercolor house look."}
+  },
+  "reference": "✅ PASS (2026-08-13) — Wikimedia/PLoS Biology (Benvenisty 2005) CC BY 2.5 phase-contrast micrograph of a real hESC colony: tightly packed small cells, sharp colony border, characteristic cobblestone morphology; AI-cleaned to crop out the second (unrelated neuron) panel and the baked-in 'B' caption, keeping the original teal false-colour phase-contrast processing.",
+  "decision": [
+    ["textbook", "✅ teaching-ready (label base)", 1, "best for full labelling; muted refined palette matches house style"],
+    ["sem", "✅ teaching-ready", 1, "small colony correctly shows only surface/cell junctions, no internal structures"],
+    ["3d", "✅ teaching-ready", 1, "natural biological tints, correct organelle-poor high N:C morphology"],
+    ["watercolor", "✅ teaching-ready", 1, "full-bleed aged paper, correct morphology, most attractive plate"],
+    ["reference LM", "✅ verified + cleaned", 2, "Benvenisty 2005 hESC colony phase-contrast, CC BY 2.5, cropped to single panel + caption removed"]
+  ]
+}

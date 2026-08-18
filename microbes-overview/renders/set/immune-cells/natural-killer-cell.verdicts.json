@@ -1,0 +1,18 @@
+{
+  "name": "Natural killer cell (NK)",
+  "short_description": "Innate-immune bouncer: kills cells that have lost their MHC-I 'ID badge' — typical for virus infection or cancer. Revved up by interferons and IL-12. Kills virus-infected and tumour cells without prior priming.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {"1": "fail (gemini-2.5-flash-image; baked-in illegible text labels on the mitochondria, violates no-text rule, superseded)", "2": "pass (gemini-2.5-flash-image; kidney-shaped eccentric nucleus, visible azurophilic granules, Golgi, MTOC pair, mitochondria and surface microvilli all present and separated, no baked-in text; muted soft-fill educational palette matching rod-bacterium/parasite exemplar, thin clean outlines, dark-charcoal background, no border)"},
+    "sem": {"1": "pass (gemini-2.5-flash-image; single round lymphocyte densely covered in short spiky microvilli plus several long radiating filopodia, false-colour lavender/gold surface-only rendering on clean black background, closely matches the real NIAID SEM reference; no text/scale bar/border)"},
+    "3d": {"1": "pass (gemini-2.5-flash-image; natural biological tints — warm pink cytoplasm, violet nucleus, brown mitochondria, orange-red granules polarised toward a green MTOC with visible microtubule fan, yellow Golgi stack, spiky microvilli — clean dark studio background, no border/text, structures individually readable for labelling)"},
+    "watercolor": {"1": "pass (gemini-2.5-flash-image; hand-painted naturalist-plate look, warm aged paper fills the frame edge-to-edge with a soft darker wash halo behind the subject, single centred specimen, kidney nucleus / Golgi / granules / mitochondria / microvilli all rendered and individually labellable, fine ink linework, no text/mat/frame)"}
+  },
+  "reference": "pass (Wikimedia Commons \"Human Natural Killer Cell.jpg\", NIAID/Dave Dorward, CC BY 2.0 — colorized SEM of a single isolated human NK cell showing the characteristic shaggy microvillus surface and radiating filopodia; clean background, no baked text/scale bar; used as-is, no cleaning edit needed)",
+  "decision": [
+    ["textbook", "pass", 2, "use as final; accurate cutaway with all core organelles distinct and correctly coloured, matches house textbook palette"],
+    ["sem", "pass", 1, "use as final; matches the real reference micrograph's shaggy microvillus surface texture almost exactly"],
+    ["3d", "pass", 1, "use as final; natural biological tints, all structures readable and correctly placed"],
+    ["watercolor", "pass", 1, "use as final; full-bleed aged-paper plate with soft wash halo, single centred specimen, all structures present"]
+  ]
+}

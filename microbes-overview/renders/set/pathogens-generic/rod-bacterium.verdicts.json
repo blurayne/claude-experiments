@@ -1,0 +1,19 @@
+{
+  "name": "Rod-shaped bacterium (bacillus)",
+  "short_description": "Textbook Gram-negative motile rod (~1×2–4 µm)",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {"1": "✅ PASS — correct rod, cutaway, 3 envelope layers, diffuse nucleoid, plasmids, ribosome dots, fimbriae + flagella; no text/mesosome. Chosen as label base."},
+    "sem": {"1": "⚠️ had a dark frame around the image.", "2": "✅ PASS — realistic false-colour SEM, rounded poles, surface fimbriae, polar flagella, fills the frame edge-to-edge (no border)."},
+    "3d": {"1": "❌ FAIL — plasmids drawn as spheres OUTSIDE the cell.", "2": "⚠️ PARTIAL — one plasmid inside, two still floating outside.", "3": "✅ PASS (near-monochrome) — single plasmid inside, empty background.", "4": "✅ PASS — recolorized with natural tones: warm gold cell, distinct envelope layers, blue nucleoid, green plasmids inside, ribosome dots. Chosen final."},
+    "watercolor": {"1": "✅ PASS — naturalist plate, cutaway, 3 layers, diffuse nucleoid, plasmids inside, polar flagellum; no text."}
+  },
+  "reference": "✅ PASS (2026-08-13) — single isolated E. coli rod with clearly visible flagella (CDC #9995 TEM, public domain), AI-cleaned to remove the baked-in caption and black borders while keeping the green/red colorization.",
+  "decision": [
+    ["textbook", "✅ teaching-ready (label base)", "1", "best for full labelling"],
+    ["sem", "✅ teaching-ready", "2", "re-rendered without the border"],
+    ["3d", "✅ teaching-ready", "4", "colorized natural tones; plasmids inside"],
+    ["watercolor", "✅ teaching-ready", "1", "most attractive; plasmids correct"],
+    ["reference TEM", "✅ verified + cleaned", "3", "CDC #9995 single rod + flagella, PD"]
+  ]
+}

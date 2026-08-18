@@ -1,0 +1,18 @@
+{
+  "name": "Neutrophil",
+  "short_description": "First responder: arrives first at sites of inflammation, eats bacteria, dumps antimicrobials and even casts sticky DNA nets (NETs).",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {"1": "pass (gemini-2.5-flash-image; round amoeboid cell with a broad rounded pseudopod, nucleus split into 4 rounded lobes joined by thin chromatin strands, two visibly distinct granule populations (larger dusty-violet primary/azurophilic vs. smaller paler secondary), dense actin-fibre meshwork concentrated in the pseudopod, a few small mitochondria and one engulfed rod-shaped bacterium in a phagosome; muted soft-fill educational palette matching the rod-bacterium/parasite exemplar, thin clean outlines, neutral dark-charcoal background, no border/text)"},
+    "sem": {"1": "fail (gemini-2.5-flash-image; otherwise correct round cell + pseudopod + surface ruffles, but a dark circular vignette frames the whole image, violating the no-border/no-vignette rule)", "2": "pass (gemini-2.5-flash-image; single round amoeboid cell with a rounded pseudopod bulge and fine membrane ruffles/microvilli-like surface texture, false-colour coral-pink on a clean uncluttered dark-charcoal background, no internal structures shown (correct for SEM = surface only), no vignette/border/text)"},
+    "3d": {"1": "pass (gemini-2.5-flash-image; natural biological tints — warm peach translucent cell body, lilac/lavender 3-lobed nucleus with visible connecting strands, two distinct granule sizes/colours, fine actin-fibre mesh concentrated in the pseudopod, a few small ochre mitochondria — clean dark studio background, gentle rim light, no border/text, structures individually readable for labelling)"},
+    "watercolor": {"1": "pass (gemini-2.5-flash-image; hand-painted naturalist-plate look, warm aged paper fills the frame edge-to-edge with a soft darker wash halo behind the subject, single centred specimen with a rounded pseudopod, 3-lobed nucleus with thin ink-lined connecting strands, two granule populations by size/tone, delicate radiating ink linework suggesting the actin meshwork in the pseudopod, fine glycogen dots and small ovoid mitochondria; no text/mat/frame)"}
+  },
+  "reference": "pass (Wikimedia Commons \"WBC (neutrophil) at centre, numerous erythrocytes and platelets (dot like bodies) in Wright's stained peripheral blood smear (PBS) microscopy.jpg\", Ajay Kumar Chaurasiya, CC BY-SA 4.0 — genuine Wright-stained light-microscopy photograph of a single neutrophil with a clearly visible 4-5-lobed nucleus surrounded by red blood cells; no baked-in text/scale bar; cleaned/re-centred edit kept as the display copy, original kept for provenance)",
+  "decision": [
+    ["textbook", "pass", 1, "use as final; accurate cutaway with multilobed nucleus, two granule populations, actin mesh and phagosome all distinct and correctly coloured, matches house textbook palette"],
+    ["sem", "pass", 2, "use as final; attempt 1 had a dark vignette border (rejected), attempt 2 fixed it — clean surface-only false-colour render matching the real micrograph's rounded, ruffled morphology"],
+    ["3d", "pass", 1, "use as final; natural biological tints, all structures (nucleus lobes, granules, actin mesh, mitochondria) readable and correctly placed"],
+    ["watercolor", "pass", 1, "use as final; full-bleed aged-paper plate with soft wash halo, single centred specimen, all structures present including a distinctive radiating actin-fibre pseudopod"]
+  ]
+}

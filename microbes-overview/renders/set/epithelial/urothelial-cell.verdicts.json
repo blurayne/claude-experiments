@@ -1,0 +1,23 @@
+{
+  "name": "Urothelial cell (umbrella cell)",
+  "short_description": "Large, dome-shaped surface cell of the bladder's transitional epithelium (urothelium). Its apical membrane is armored with rigid uroplakin plaques and can unfold via a reserve pool of fusiform vesicles as the bladder fills, while tight junctions and a glycosaminoglycan coat seal it against acidic, hypertonic urine.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {"1": "pass (gemini-2.5-flash-image; broad dome-shaped/cuboidal cell (not tall/columnar, not round), apical scalloped cobblestone mosaic of uroplakin plaques with hinge lines instead of a brush border, two violet nuclei, dense cluster of small pale blue-grey fusiform vesicles just under the apical membrane, teal tight-junction band, gold cytokeratin filament bundles, orange-red mitochondria, teal-green Golgi stack, lavender rough ER, muted dusty textbook palette, thin outlines, dark charcoal background, no border, no text)"},
+    "sem": {"1": "pass (gemini-2.5-flash-image; single specimen, warm sandy-tan false colour, true 3D surface texture of raised polygonal plaque facets separated by fine hinge-line grooves - a scalloped/crazy-paving mosaic, not a villous microvilli fringe; no internal organelles as expected for SEM; dark uncluttered background; no border, no text)"},
+    "3d": {"1": "pass (gemini-2.5-flash-image; broad cuboidal-to-dome cell with flattened base (not a simple sphere), apical hexagonal/scalloped plaque mosaic, teal tight-junction band, dense pale grey-white fusiform-vesicle cluster beneath the apical surface, two translucent violet nuclei, coiled pale rough ER, green-teal Golgi, orange-red mitochondria, fine cytokeratin filaments, natural biological tones on a clean dark studio background, no border, no text)"},
+    "watercolor": {
+      "1": "fail (gemini-2.5-flash-image; baked-in handwritten labels ('tight junction' and other illegible words) appear directly in the image - violates the no-text rule)",
+      "2": "fail (gemini-2.5-flash-image; baked-in handwritten label 'tight junction' still appears directly in the image)",
+      "3": "pass (gemini-3-pro-image; broad dome-shaped cell on full-bleed aged paper with soft darker wash halo directly on the paper (matches cocci/rod-bacterium exemplar), scalloped plaque-and-hinge apical mosaic, purple tight-junction ink line at the apicolateral hinge, cluster of pale blue-grey fusiform-vesicle discs just under the apical surface, two violet nuclei with visible nucleoli, green ink-and-wash rough ER with ribosome stippling, gold stacked-cisternae Golgi, orange mitochondria with cristae, fine ink cytokeratin filaments, single specimen, no text/labels/border)",
+      "4": "pass, not used (gemini-3-pro-image; also correct and text-free - broad dome cell, pebbled apical mosaic, fusiform-vesicle cluster, two nuclei, mitochondria, rough ER and Golgi all present and correctly placed; kept as an alternate, attempt 3 chosen as final for its clearer per-organelle separation and colour distinction)"
+    }
+  },
+  "reference": "pass (Wikimedia Commons - 'Benign urothelium with large superficial cells -- high mag.jpg', genuine H&E-stained light micrograph of human bladder urothelium by pathologist-contributor Nephron, CC BY-SA 3.0; shows the large, pale, dome-shaped superficial umbrella cells at the luminal surface sitting above the smaller, more basophilic intermediate/basal epithelial layers with lamina propria beneath; the umbrella-cell layer is clearly readable and correctly distinguished from deeper layers; no baked-in text/scale bar/border)",
+  "decision": [
+    ["textbook", "pass", 1, "use as final; correct broad dome-shaped morphology, scalloped uroplakin-plaque apical mosaic (not a microvillar brush border), binucleate nucleus, fusiform vesicle reserve pool, tight-junction band and full organelle set, matches textbook exemplar palette/line style; annotated with 11 labels"],
+    ["sem", "pass", 1, "use as final; correct false-colour scalloped/crazy-paving plaque surface texture, single specimen, surface-only as expected for SEM; not annotated per pipeline (SEM is not labelled)"],
+    ["3d", "pass", 1, "use as final; correct broad cuboidal-to-dome silhouette (not a plain sphere) with natural biological tones and correct organelle layering including the apical plaque mosaic, tight-junction band and fusiform-vesicle cluster; annotated with 11 labels"],
+    ["watercolor", "pass", 3, "use as final after two re-renders to strip baked-in handwritten labels ('tight junction'); attempt 3 (gemini-3-pro-image) has the clearest, best-separated organelles on a correct full-bleed aged-paper composition with no text; annotated with 11 labels (black-on-paper ink)"]
+  ]
+}

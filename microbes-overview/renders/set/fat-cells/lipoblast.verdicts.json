@@ -1,0 +1,26 @@
+{
+  "name": "Lipoblast",
+  "short_description": "Early precursor from a mesenchymal stem cell. Picks up the first small lipid droplets before maturing into a preadipocyte. Key in embryonic fat development; reappear in liposarcomas.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {
+      "1": "pass (gemini-2.5-flash-image; rounded-to-oval cell mid-transition from spindle to round, ~18 small discrete pale lipid droplets in a clean multilocular pattern (never merged), each with a thin darker perilipin rim, nucleus with a clearly scalloped/lobed indented outline and one visible nucleolus, a wavy rough-ER/Golgi patch beside the nucleus, several small elongated mitochondria dispersed among the droplets, muted dusty palette, thin clean outlines, fills the charcoal square edge-to-edge, no baked text, no border)"
+    },
+    "sem": {
+      "1": "pass (gemini-2.5-flash-image; single continuous rounded cell body with an irregular, multiply-bulging/lobed surface where the underlying small lipid droplets visibly push out against the membrane, two short blunt tapering process remnants at one pole hinting at the recent spindle-shaped precursor stage, no internal organelles drawn (surface-only as SEM should show), warm golden-amber false colour against a clean dark uncluttered background, no appendage/second-organism artifacts, no text, no border)"
+    },
+    "3d": {
+      "1": "pass (gemini-2.5-flash-image; translucent rounded-to-oval cell with soft subsurface scattering, ~20 small separate glossy golden lipid droplets each with a visible perilipin coat, nucleus pressed into a clear scalloped/lobed outline from several sides with one visible nucleolus, a folded rough-ER patch and a small Golgi stack beside the nucleus, a moderate dispersed population of small elongated mitochondria, natural warm biological tones (not neon, not monochrome), fills the dark studio square edge-to-edge, no text, no border)"
+    },
+    "watercolor": {
+      "1": "pass (gemini-2.5-flash-image; full-bleed warm aged paper with a soft ink-wash halo directly behind the cell, no mat/frame/sheet-on-surface, rounded-to-oval cell with ~18 small separate golden-yellow lipid droplets each with a fine ink perilipin outline, nucleus with a clearly scalloped/lobed painted outline and one visible nucleolus, a stippled rough-ER patch and a small crescent Golgi near the nucleus, several small ink-outlined rod-shaped mitochondria among the droplets, fine ink linework with soft watercolour washes, no baked text)"
+    }
+  },
+  "reference": "pass (Wikimedia Commons, Siqueira, Alvarez, Teixeira & Braga Silva 2014, Rev. Bras. Cir. Plast. - CC BY 4.0; genuine H&E light micrograph of a lipoblastoma showing a discrete nest of small, multivacuolated lipoblasts within pink fibrous stroma directly adjacent to larger, single-vacuole mature lipocytes, an ideal single-field comparison of the two differentiation stages; the two baked-in arrow annotations from the original figure were removed and the frame recomposed to foreground the lipoblast cluster with edit_image.py)",
+  "decision": [
+    ["textbook", "pass", 1, "use as final; clean multilocular droplet pattern, correct scalloped nucleus, full organelle set, matches the house look of the sibling adipocyte-stage plates"],
+    ["sem", "pass", 1, "use as final; single continuous multiply-bulged surface correctly reflects the underlying small droplets without drawing them directly, false-colour, no appendages"],
+    ["3d", "pass", 1, "use as final; correct translucent multilocular anatomy and scalloped nucleus, natural tints, clean organelle set"],
+    ["watercolor", "pass", 1, "use as final; full-bleed aged-paper composition with correct multilocular anatomy and scalloped nucleus, no baked text"]
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "name": "Immunoglobulin G (IgG)",
+  "short_description": "The most abundant antibody in human blood (~75% of serum immunoglobulin) - a single Y-shaped monomer of two heavy and two light chains, disulfide-linked, with two identical antigen-binding Fab arms on a flexible hinge and one Fc stem; four subclasses (IgG1-4) differ mainly in hinge length and disulfide count.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {"1": "fail (gemini-2.5-flash-image; correct Y topology, beaded domains, hinge and disulfide cross-links all present, but baked-in 'VH+VL' text on the arm tips - no-text rule violation, superseded)", "2": "pass (gemini-2.5-flash-image; text removed, clean Y topology, light chain confined to the arm's outer half, heavy-chain-only Fc stem, visible hinge band and disulfide notches, muted educational palette matching house style)"},
+    "sem": {"1": "fail (gemini-2.5-flash-image; smooth glassy toy-like Y with only a soft colour gradient at the tips - no visible paired heavy/light chain seam, insufficiently molecular surface texture, superseded)", "2": "pass (gemini-2.5-flash-image; densely bumpy false-colour molecular-surface texture, crisp visible seam between the teal heavy chain and gold light chain along each arm, heavy-chain-only Fc stem below the merge point, correctly labelled in-prompt as a stylised surface rendering rather than a literal SEM)"},
+    "3d": {"1": "fail (gemini-2.5-flash-image; good Y topology and natural tints, but the light-chain gold colour incorrectly continued into the Fc stem and a stray white terminal sphere appeared at the stem base, misleadingly implying a third antigen-binding tip, superseded)", "2": "pass (gemini-2.5-flash-image; Fc stem now heavy-chain-only with a single plain rounded base, visible hinge disulfide cross-links, small Fc glycan patch, natural biological tints, no stray terminal)"},
+    "watercolor": {"1": "fail (gemini-2.5-flash-image; nice full-bleed painterly Y, but gold light-chain wash and a second pale terminal sphere incorrectly reappeared in the Fc stem below the hinge, superseded)", "2": "pass (gemini-2.5-flash-image; Fc stem repainted heavy-chain-only ending in one plain rounded base, hinge shown with fine cross-hatched disulfide marks, full-bleed aged paper with no frame/sheet, matches cocci/rod-bacterium exemplar style)"}
+  },
+  "reference": "pass (Wikimedia Commons 'Antibody IgG1 surface.png', CC BY-SA 4.0, Tokenzero, molecular-surface render from PDB 1IGY coordinates via Mol*; clearly shows the real Y-shaped IgG1 topology - two Fab arms each a heavy+light chain pair converging through a hinge into one Fc stem with visible Fc glycan patches; cleaned via edit_image.py to confirm no text/border, colourisation unchanged)",
+  "decision": [
+    ["textbook", "pass", 2, "use as final; clean Y topology, correct light-chain confinement to the arm, visible hinge + disulfide notches, no baked text"],
+    ["sem", "pass", 2, "use as final; stylised false-colour molecular-surface rendering (explicitly not a literal SEM claim), correct paired-chain seam and heavy-chain-only stem"],
+    ["3d", "pass", 2, "use as final; natural biological tints, correct heavy-chain-only Fc stem after fixing the stray gold/white terminal"],
+    ["watercolor", "pass", 2, "use as final; full-bleed aged-paper plate matching the set's exemplar style, correct heavy-chain-only Fc stem after re-render"]
+  ]
+}

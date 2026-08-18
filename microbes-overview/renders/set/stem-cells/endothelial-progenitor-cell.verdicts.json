@@ -1,0 +1,36 @@
+{
+ "name": "Endothelial progenitor cell (EPC)",
+ "short_description": "Young, bone-marrow-derived endothelial cell mobilised into the bloodstream during wound healing and angiogenesis; migrates to damaged vessel wall and differentiates into a mature vessel-lining endothelial cell. Elongated and motile, with a leading lamellipodium, rich rough ER/Golgi/mitochondria, actin cytoskeleton, and rod-shaped Weibel-Palade bodies as it matures. Responds to VEGF and other vascular growth factors.",
+ "svg_theme": "textbook",
+ "themes": {
+  "textbook": {
+   "1": "FAIL (gemini-2.5-flash-image) — leading edge rendered as a dense uniform comb/fringe of thin radiating hair-like spikes, reading as motile cilia on a ciliate protozoan (Paramecium-like); scientifically misleading for a human cell that moves by actin-driven crawling.",
+   "2": "FAIL (gemini-2.5-flash-image) — near-monochrome/uncoloured line drawing (pale grey-brown outlines only, no distinct per-structure colour fills); house style requires a coloured muted-palette plate.",
+   "3": "FAIL (gemini-2.5-flash-image) — still a washed-out, near-monochrome palette, and the leading edge again shows short radiating spike stubs (residual cilia-fringe look).",
+   "4": "PARTIAL (gemini-2.5-flash-image) — muted colour palette restored and organelle set correct, but the rounded lamellipodium edge still carries a faint ring of small tick-mark spikes that reads as a toned-down cilia fringe; escalated to Nano Banana Pro after 2 hard fails + 1 partial on this style.",
+   "5": "PASS (gemini-3-pro-image) — muted, slightly desaturated educational palette with each structure its own soft colour fill (lavender nucleus + nucleolus, blue rough ER, green Golgi stack, orange mitochondria, dark-red rod-shaped Weibel-Palade granules, fine cortical actin); the leading lamellipodium is a continuous solid sheet with only a few sparse filopodia, no cilia-fringe; thin clean outlines, dark charcoal background, no text."
+  },
+  "sem": {
+   "1": "FAIL (gemini-2.5-flash-image) — dense uniform fringe of fine hair-like filaments covering the whole trailing margin, unmistakably a ciliate-protozoan (Paramecium) look rather than a crawling human cell's ruffled lamellipodium.",
+   "2": "FAIL (gemini-2.5-flash-image) — fringe reduced but still a comb of many regularly-spaced radiating filopodia-like spikes across the leading edge; not the solid ruffled membrane sheet the reference calls for.",
+   "3": "PASS (gemini-3-pro-image) — single false-colour cell, flattened fan/spindle body with a domed nuclear bulge toward the rear, ruffled but continuous membrane sheet at the leading edge, only a handful of short filopodia at the front-right, warm sandy-bronze false colour, surface only (correctly no interior detail), clean dark studio background, no text; escalated to Pro after 2 style fails."
+  },
+  "3d": {
+   "1": "FAIL (gemini-2.5-flash-image) — long, dense radiating hair-like fringe streaming off the trailing pole, reading as motile cilia on a protozoan; scientifically misleading.",
+   "2": "FAIL (gemini-2.5-flash-image) — near-monochrome/pale washed-out rendering (barely distinguishable structure colours) plus a fine web/hair-like fringe still present at the leading edge; fails both the colour-tint and no-cilia checks.",
+   "3": "PASS (gemini-3-pro-image) — natural translucent biological tones (warm peach cytoplasm, lavender-white nucleus with nucleolus, tan rough ER, pale Golgi stack, pink-brown mitochondria, distinct rod-shaped Weibel-Palade granules), soft global illumination and rim light, gently ruffled but solid lamellipodium with only a few short filopodia, no cilia-fringe, dark clean studio background, no text; escalated to Pro after 2 style fails."
+  },
+  "watercolor": {
+   "1": "FAIL (gemini-2.5-flash-image) — a dense radiating fringe of fine ink hair-lines fans off the leading edge, again reading as ciliate-style cilia rather than a lamellipodium; otherwise good full-bleed aged-paper composition.",
+   "2": "PARTIAL (gemini-2.5-flash-image) — fringe softened but the lamellipodium's outer edge is still a scalloped comb of small tick-mark points rather than a smooth continuous sheet; correct interior anatomy and full-bleed paper background.",
+   "3": "PASS (gemini-3-pro-image) — warm aged paper fills the frame edge-to-edge with a soft darker wash halo, fine ink linework, single centred fan-shaped cell with a smooth continuous lamellipodium (no cilia-comb edge), ovoid nucleus + nucleolus, rough ER, Golgi stack, mitochondria and clearly rod-shaped (not round) Weibel-Palade granules; escalated to Pro after 1 fail + 1 partial on this style."
+  }
+ },
+ "reference": "PASS (2026-08-14) — Wikimedia Commons CC BY 4.0 immunofluorescence photomicrograph of cultured (bovine pulmonary artery) endothelial cells: three well-separated, individually readable cells with distinct nucleus (DAPI blue), actin cytoskeleton (phalloidin green), and mitochondria (MitoTracker red) channels; no baked-in text/scale bar/border. Caveat: mature cultured endothelial cells rather than a circulating progenitor specifically (EPCs and mature endothelium are not distinguishable by light/fluorescence morphology, only by surface markers), but the core organelle set shown is the correct yardstick for this cell's drawable structures; no free, single-specimen, human-EPC-specific micrograph exists. Used as downloaded (crop-to-square only).",
+ "decision": [
+  ["textbook", "pass", 5, "muted educational palette, correct organelle set, no cilia-fringe leading edge"],
+  ["sem", "pass", 3, "false-colour surface only, ruffled but solid lamellipodium, correct scale"],
+  ["3d", "pass", 3, "natural biological tints, correct organelle set, clean labels"],
+  ["watercolor", "pass", 3, "full-bleed aged paper, correct anatomy, smooth lamellipodium edge"]
+ ]
+}
