@@ -433,12 +433,16 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 0 0 2px #
 /* Scale the preview to fill as much of the browser window as it can — sized
    purely from the viewport, with no cap at the render's native 1080² (some
    upscaling blur on very large screens is expected and accepted). */
-.lb-inner{position:relative; max-width:98vw; max-height:97vh; display:flex; flex-direction:column; gap:10px}
-/* the stage claims the full available viewport box (not just up to the image's
-   native size) — img/svg below then use object-fit:contain to fill it, so the
-   picture is scaled UP on large screens too (upscaling blur accepted). */
-.lb-stage{position:relative; width:98vw; height:89vh; background:var(--box-bg); border:1px solid var(--border-hi); border-radius:16px; overflow:hidden;
-  box-shadow:var(--shadow); display:flex; align-items:center; justify-content:center}
+.lb-inner{position:relative; max-width:98vw; max-height:97vh; display:flex; flex-direction:column; align-items:center; gap:10px}
+/* The stage shrink-wraps to the actual rendered picture (img/svg below carry
+   the real intrinsic size, scaled up to fill as much of the viewport as
+   possible via max-width/max-height + width/height:auto) so the border sits
+   tight against the image instead of around a fixed, often-letterboxed box.
+   min-width/min-height only give the loading spinner somewhere to sit before
+   the asset's real size is known. */
+.lb-stage{position:relative; max-width:98vw; max-height:89vh; min-width:120px; min-height:120px;
+  background:var(--box-bg); border:1px solid var(--border-hi); border-radius:16px; overflow:hidden;
+  box-shadow:var(--shadow); display:inline-flex; align-items:center; justify-content:center}
 /* label-mode switch and color-mode switch (Real style only) — both toggles
    share the same bottom-center spot over the enlarged image (never shown
    together: color mode only applies to the Real style, which has no
@@ -450,7 +454,7 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 0 0 2px #
 .lb-color{position:absolute; left:50%; bottom:12px; transform:translateX(-50%); z-index:5; display:none}
 .lb-color.on{display:inline-flex}
 .lb-color button{font-family:var(--font-mono); font-size:12px}
-.lb-stage img, .lb-stage svg{width:100%; height:100%; object-fit:contain; display:block}
+.lb-stage img, .lb-stage svg{display:block; max-width:98vw; max-height:89vh; width:auto; height:auto; object-fit:contain}
 /* the reference (B&W) picture style: same asset as reference, grayscale filter */
 .bw{filter:grayscale(1)}
 /* title + visualisation type, centred below the image */
@@ -511,20 +515,25 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 0 0 2px #
      smoothly and the page below doesn't jump. The inner wrapper is the actual
      grid item; only it needs overflow:hidden for the row-track transition to
      read as a height animation instead of an instant clip. */
-  .tb-tools{order:10; flex-basis:100%;
+  .tb-tools{order:10; flex-basis:100%; overflow:hidden;
     display:grid; grid-template-rows:0fr;
     transition:grid-template-rows .32s var(--ease);
   }
   .tb-tools-inner{
     display:flex; flex-wrap:wrap; gap:8px; overflow:hidden; min-height:0;
     padding:0; margin-top:2px; border-top:1px solid transparent;
-    opacity:0;
+    opacity:0; pointer-events:none;
     transition:opacity .2s var(--ease), border-color .2s var(--ease), padding .32s var(--ease);
   }
   /* padding lives only in the open state so the collapsed row truly measures
-     0 (no residual sliver) and grows in step with the grid-rows transition */
+     0 (no residual sliver) and grows in step with the grid-rows transition.
+     pointer-events is the hard guarantee: a grid row sized via 0fr can still
+     let its item paint outside the collapsed track (its content refuses to
+     shrink below intrinsic size), which silently intercepted taps on the
+     ☰ Menu / ⋯ buttons above it — overflow:hidden on the container plus this
+     closes that off regardless of the exact box computed height. */
   .topbar.tools-open .tb-tools{grid-template-rows:1fr}
-  .topbar.tools-open .tb-tools-inner{opacity:1; border-top-color:var(--border); padding:8px 0 12px}
+  .topbar.tools-open .tb-tools-inner{opacity:1; pointer-events:auto; border-top-color:var(--border); padding:8px 0 12px}
   .search-wrap{flex:1 1 100%}
   #search{width:100%}
   .seg .full{display:none}
@@ -776,7 +785,7 @@ function inlineSvg(holder, path){
   getSvg(path).then(txt=>{
     holder.innerHTML = txt;
     const s = holder.querySelector('svg');
-    if(s){ s.removeAttribute('width'); s.removeAttribute('height'); applyLabels(s); }
+    if(s){ sizeSvgFromViewBox(s); applyLabels(s); }
   }).catch(()=>{ holder.innerHTML=''; holder.appendChild(placeholder('unavailable')); });
 }
 // Build the labelled overlay live from compact geometry over the light AVIF
@@ -836,11 +845,23 @@ function decrossTy(items){
   });
   return ty;
 }
+// Inline <svg> has no natural intrinsic size the way <img> does — without an
+// explicit width/height it falls back to a UA default (300×150) instead of
+// its viewBox, which breaks the lightbox's shrink-to-fit sizing. Stamp the
+// viewBox dimensions onto width/height so CSS max-width/max-height:auto
+// scales it down (or up) exactly like an <img>, letting the stage hug it.
+function sizeSvgFromViewBox(svgEl){
+  if(!svgEl) return;
+  const vb=svgEl.viewBox && svgEl.viewBox.baseVal;
+  const w=(vb && vb.width) || parseFloat(svgEl.getAttribute('width')) || 1080;
+  const h=(vb && vb.height) || parseFloat(svgEl.getAttribute('height')) || 1080;
+  svgEl.setAttribute('width', w); svgEl.setAttribute('height', h);
+}
 function overlaySvg(m, style){
   const lab=m.lab[style], src=m.img[style];
   const w=lab.w, h=lab.h, fill=lab.fill||'#fff', stroke=lab.stroke||'#000';
   const items=lab.items, tys=decrossTy(items);
-  let s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+w+' '+h+'">'+
+  let s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+w+' '+h+'" width="'+w+'" height="'+h+'">'+
         '<image href="'+esc(src)+'" x="0" y="0" width="'+w+'" height="'+h+'"/>';
   ['en','la','de'].forEach(lang=>{
     const vis=(state.aud==='sci')?(lang==='la'):(lang===state.lang);
@@ -1083,7 +1104,7 @@ function renderStage(m,opt){
     if(m.coloring){ const load=loadingTile(); lbStage.appendChild(load);
       const holder=document.createElement('div'); lbStage.appendChild(holder);
       getSvg(m.coloring).then(txt=>{ load.remove(); holder.innerHTML=txt;
-        const s=holder.querySelector('svg'); if(s){ s.removeAttribute('width'); s.removeAttribute('height'); injectColoringTitle(s,m); } })
+        const s=holder.querySelector('svg'); if(s){ sizeSvgFromViewBox(s); injectColoringTitle(s,m); } })
         .catch(()=>{ load.remove(); lbStage.appendChild(placeholder('no coloring page')); });
     } else lbStage.appendChild(placeholder('no coloring page'));
     updateLbColor(style);
