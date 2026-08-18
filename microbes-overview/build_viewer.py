@@ -35,8 +35,17 @@ Data facts it relies on (see AGENTS.md):
 from __future__ import annotations
 
 import json
+import re
 import sys
 from pathlib import Path
+
+
+def slugify(name: str) -> str:
+    """Match the microbe-render key convention: drop parentheticals, lowercase,
+    non-alphanumerics -> hyphen. Lets us map a cells_data entry to a render key
+    when meta.name and name_en differ (e.g. 'Urothelial cell (umbrella cell)')."""
+    name = re.sub(r"\([^)]*\)", " ", name)
+    return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
 
 HERE = Path(__file__).resolve().parent
 RENDERS = HERE / "renders" / "set"
@@ -85,15 +94,19 @@ def build():
             print(f"  (skip: no render folder for page {page['id']} -> {folder})")
             continue
 
-        # name_en -> {name_de, short_de} lookup + entry ordering
-        name_lookup = {}
+        # cells_data entry lookup by exact name_en AND by slug(name_en); a render
+        # microbe matches on meta.name first, else on its key (a slug).
+        name_lookup, slug_lookup = {}, {}
         order = {}
         for i, e in enumerate(page.get("entries", [])):
-            name_lookup[e["name_en"]] = {
+            rec = {
                 "name_de": e.get("name_de", ""),
                 # best-effort German one-liner from the poster "function" text
                 "short_de": e.get("func_de", ""),
+                "order": i,
             }
+            name_lookup[e["name_en"]] = rec
+            slug_lookup[slugify(e["name_en"])] = rec
             order[e["name_en"]] = i
 
         microbes = []
@@ -103,9 +116,13 @@ def build():
             name_en = meta.get("name", key)
             short_en = meta.get("short_description", "")
 
-            look = name_lookup.get(name_en, {})
+            look = name_lookup.get(name_en) or slug_lookup.get(key) or {}
             name_de = look.get("name_de") or name_en
             short_de = look.get("short_de") or short_en
+
+            # provenance of the real micrograph (modality + license/attribution)
+            ref = meta.get("reference") or {}
+            ref_src = ref.get("styles", "")
 
             # descriptions (six audience blocks)
             desc = {"kids": {}, "adults": {}, "sci": {}}
@@ -167,8 +184,9 @@ def build():
                     "img": img,
                     "svg": svg,
                     "lab": lab,
+                    "ref": ref_src,
                     "search": blob,
-                    "_order": order.get(name_en, 10_000),
+                    "_order": look.get("order", order.get(name_en, 10_000)),
                 }
             )
 

@@ -7,7 +7,7 @@
 <meta name="description" content="An interactive teaching atlas of AI-rendered, scientifically verified microbes and human cells — switchable by audience, language and picture style.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&family=Fredoka:wght@400;500;600;700&family=Baloo+2:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* ============================================================= THEME TOKENS */
 :root{
@@ -56,6 +56,48 @@ html[data-theme="petri"]{
   --font-mono:"IBM Plex Mono",ui-monospace,monospace;
   --font-display:"Space Grotesk",system-ui,sans-serif;
   --display-spacing:0; --display-weight:700;
+}
+/* kid-friendly themes: rounded fonts, bright candy palettes, gradient titles */
+html[data-theme="candy"]{
+  --accent:#ff5da2; --accent2:#a78bfa; --accent-ink:#42061f;
+  --font-ui:"Fredoka",system-ui,sans-serif; --font-mono:"Fredoka",system-ui,sans-serif;
+  --font-display:"Fredoka",system-ui,sans-serif; --display-spacing:0; --display-weight:600;
+}
+html[data-theme="jungle"]{
+  --accent:#3ec46d; --accent2:#f7b733; --accent-ink:#06280f;
+  --font-ui:"Baloo 2",system-ui,sans-serif; --font-mono:"Baloo 2",system-ui,sans-serif;
+  --font-display:"Baloo 2",system-ui,sans-serif; --display-spacing:0; --display-weight:600;
+}
+html[data-theme="ocean"]{
+  --accent:#22d3ee; --accent2:#fb7185; --accent-ink:#04252e;
+  --font-ui:"Quicksand",system-ui,sans-serif; --font-mono:"Quicksand",system-ui,sans-serif;
+  --font-display:"Quicksand",system-ui,sans-serif; --display-spacing:0; --display-weight:700;
+}
+html[data-theme="candy"][data-mode="dark"]{ --bg:#1a0e1a; --bg2:#231327; }
+html[data-theme="candy"][data-mode="light"]{ --bg:#fff0f7; --bg2:#fff7fb; }
+html[data-theme="jungle"][data-mode="dark"]{ --bg:#0d160f; --bg2:#121d15; }
+html[data-theme="jungle"][data-mode="light"]{ --bg:#eefaef; --bg2:#f6fcf5; }
+html[data-theme="ocean"][data-mode="dark"]{ --bg:#08161d; --bg2:#0c1f28; }
+html[data-theme="ocean"][data-mode="light"]{ --bg:#ecfbff; --bg2:#f4fdff; }
+/* playful bubbly backgrounds */
+html[data-theme="candy"] body::after, html[data-theme="jungle"] body::after, html[data-theme="ocean"] body::after{
+  background-image:
+    radial-gradient(circle at 15% 20%, color-mix(in oklab,var(--accent) 34%,transparent) 0 10px, transparent 11px),
+    radial-gradient(circle at 78% 34%, color-mix(in oklab,var(--accent2) 32%,transparent) 0 14px, transparent 15px),
+    radial-gradient(circle at 40% 78%, color-mix(in oklab,var(--accent) 26%,transparent) 0 8px, transparent 9px),
+    radial-gradient(circle at 90% 82%, color-mix(in oklab,var(--accent2) 28%,transparent) 0 11px, transparent 12px);
+  background-size:340px 340px, 420px 420px, 300px 300px, 480px 480px; opacity:.5;
+}
+/* colour-shaded (gradient) titles for the kid themes */
+html[data-theme="candy"] .hero h1, html[data-theme="jungle"] .hero h1, html[data-theme="ocean"] .hero h1,
+html[data-theme="candy"] .set-head h2, html[data-theme="jungle"] .set-head h2, html[data-theme="ocean"] .set-head h2,
+html[data-theme="candy"] .card-title, html[data-theme="jungle"] .card-title, html[data-theme="ocean"] .card-title,
+html[data-theme="candy"] .brand .label, html[data-theme="jungle"] .brand .label, html[data-theme="ocean"] .brand .label{
+  background:linear-gradient(92deg,var(--accent),var(--accent2) 78%);
+  -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:transparent;
+}
+html[data-theme="candy"] .card-title .key, html[data-theme="jungle"] .card-title .key, html[data-theme="ocean"] .card-title .key{
+  -webkit-text-fill-color:var(--fg-faint); color:var(--fg-faint); background:none;
 }
 /* backgrounds per theme × mode */
 html[data-theme="lab"][data-mode="dark"]{ --bg:#0a0e0d; --bg2:#0f1413; }
@@ -228,6 +270,9 @@ html[data-theme="petri"] body::after{
 .sw-lab{background:linear-gradient(135deg,#0a0e0d 0 50%,#2dd4bf 50% 100%)}
 .sw-blueprint{background:linear-gradient(135deg,#081018 0 50%,#38bdf8 50% 100%)}
 .sw-petri{background:linear-gradient(135deg,#14100e 0 50%,#34d399 50% 100%)}
+.sw-candy{background:linear-gradient(135deg,#ff5da2 0 50%,#a78bfa 50% 100%)}
+.sw-jungle{background:linear-gradient(135deg,#3ec46d 0 50%,#f7b733 50% 100%)}
+.sw-ocean{background:linear-gradient(135deg,#22d3ee 0 50%,#fb7185 50% 100%)}
 
 /* ==================================================================== MAIN */
 main{max-width:var(--maxw); margin:0 auto; padding:clamp(20px,4vw,44px) clamp(14px,3vw,28px) 120px}
@@ -261,11 +306,11 @@ main{max-width:var(--maxw); margin:0 auto; padding:clamp(20px,4vw,44px) clamp(14
 
 .grid{
   display:grid; grid-template-columns:1fr 1fr; gap:clamp(8px,1.4vw,14px);
-  aspect-ratio:1/1; max-width:640px;
+  max-width:640px;
 }
 .box{
   position:relative; overflow:hidden; border-radius:12px; background:var(--box-bg);
-  border:1px solid var(--border); cursor:zoom-in; padding:0; display:block; width:100%; height:100%;
+  border:1px solid var(--border); cursor:zoom-in; padding:0; display:block; width:100%; aspect-ratio:1/1;
   transition:border-color .18s, transform .18s var(--ease);
 }
 .box:hover{border-color:var(--accent); transform:translateY(-2px)}
@@ -289,6 +334,9 @@ svg text{font-family:var(--font-ui)}
   linear-gradient(100deg, transparent 20%, var(--card-hi) 50%, transparent 80%);
   background-size:200% 100%; animation:shimmer 1.3s linear infinite}
 @keyframes shimmer{to{background-position:-200% 0}}
+.ph.loading .spin{width:22px; height:22px; border-radius:50%;
+  border:2.5px solid var(--card-hi); border-top-color:var(--accent); animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 
 .desc{}
 .desc .aud-tag{font-family:var(--font-mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase;
@@ -296,25 +344,49 @@ svg text{font-family:var(--font-ui)}
 .desc .short{font-size:13.5px; color:var(--fg-dim); margin:0 0 12px; font-style:italic; line-height:1.5}
 .desc .prose{font-size:14.5px; line-height:1.68; color:var(--fg); margin:0}
 .desc .prose.sci{font-size:13.5px; line-height:1.6}
-mark{background:var(--mark); color:inherit; border-radius:3px; padding:0 2px}
+.desc .src{font-family:var(--font-mono); font-size:10.5px; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--fg-faint); margin-top:14px; line-height:1.55}
+/* search highlight: bright accent block with inverse ink, adapts to theme+mode */
+mark{background:var(--accent); color:var(--accent-ink); border-radius:3px; padding:0 3px; font-weight:600}
 
 /* ================================================================ LIGHTBOX */
 .lightbox{
   position:fixed; inset:0; z-index:2000; display:none;
-  align-items:center; justify-content:center; padding:clamp(14px,4vw,50px);
+  align-items:center; justify-content:center; padding:clamp(8px,1.6vw,20px);
   background:color-mix(in oklab, #000 68%, transparent); backdrop-filter:blur(8px);
 }
 .lightbox.open{display:flex; animation:fade .2s var(--ease)}
 @keyframes fade{from{opacity:0}to{opacity:1}}
-.lb-inner{position:relative; max-width:min(92vw,900px); max-height:88vh; display:flex; flex-direction:column; gap:12px}
-.lb-stage{background:var(--box-bg); border:1px solid var(--border-hi); border-radius:16px; overflow:hidden;
+/* Scale the preview as large as the space allows, up to the render's native
+   1080² (no upscaling blur): whichever of viewport or image size is smaller. */
+.lb-inner{position:relative; max-width:min(98vw,1080px); max-height:97vh; display:flex; flex-direction:column; gap:10px}
+.lb-stage{position:relative; background:var(--box-bg); border:1px solid var(--border-hi); border-radius:16px; overflow:hidden;
   box-shadow:var(--shadow); display:flex; align-items:center; justify-content:center}
-.lb-stage img, .lb-stage svg{max-width:100%; max-height:78vh; width:auto; height:auto; display:block}
-.lb-bar{display:flex; align-items:center; gap:12px; color:var(--fg)}
+/* label-mode switch, bottom-right over the enlarged image */
+.lb-labels{position:absolute; right:12px; bottom:12px; z-index:5; display:none}
+.lb-labels.on{display:inline-flex}
+.lb-labels button{min-width:34px; font-family:var(--font-mono); font-size:12px}
+.lb-labels button[data-m="none"]{font-size:15px}
+.lb-stage img, .lb-stage svg{max-width:min(98vw,1080px); max-height:min(89vh,1080px); width:auto; height:auto; display:block}
+/* title + visualisation type, centred below the image */
+.lb-bar{display:flex; align-items:center; justify-content:center; gap:12px; color:var(--fg); flex-wrap:wrap}
 .lb-bar .name{font-family:var(--font-display); font-weight:600; font-size:16px}
 .lb-bar .style{font-family:var(--font-mono); font-size:12px; color:var(--fg-dim);
   border:1px solid var(--border); border-radius:6px; padding:2px 8px; text-transform:uppercase}
-.lb-close{margin-left:auto; font-size:16px}
+.lb-bar .count{font-family:var(--font-mono); font-size:11px; color:var(--fg-faint)}
+/* prev / next / close controls, fixed to the viewport edges */
+.lb-nav, .lb-close-x{position:fixed; z-index:2001; display:flex; align-items:center; justify-content:center;
+  background:color-mix(in oklab,var(--panel) 78%, transparent); border:1px solid var(--border-hi); color:var(--fg);
+  cursor:pointer; box-shadow:var(--shadow); backdrop-filter:blur(6px); transition:opacity .15s, background .15s, transform .12s}
+.lb-nav{top:50%; transform:translateY(-50%); width:clamp(42px,6vw,56px); height:clamp(42px,6vw,56px);
+  border-radius:50%; font-size:26px; line-height:1}
+.lb-nav.prev{left:max(10px,1.5vw)} .lb-nav.next{right:max(10px,1.5vw)}
+.lb-nav:hover:not(:disabled){background:var(--accent); color:var(--accent-ink); border-color:var(--accent)}
+.lb-nav:active:not(:disabled){transform:translateY(-50%) scale(.92)}
+.lb-nav:disabled{opacity:.28; cursor:default}
+.lb-close-x{top:max(12px,1.5vw); right:max(12px,1.5vw); width:42px; height:42px; border-radius:50%; font-size:16px}
+.lb-close-x:hover{background:var(--accent); color:var(--accent-ink); border-color:var(--accent)}
+@media(max-width:560px){ .lb-nav{width:40px;height:40px;font-size:22px} }
 
 .empty{display:none; text-align:center; color:var(--fg-dim); padding:60px 20px; font-family:var(--font-mono)}
 .empty.show{display:block}
@@ -380,6 +452,9 @@ mark{background:var(--mark); color:inherit; border-radius:3px; padding:0 2px}
     <button class="theme-opt" data-theme="lab"><span class="swatch sw-lab"></span><span><span class="tt">Dark lab</span><br><span class="ts">Microscope · teal · IBM Plex</span></span></button>
     <button class="theme-opt" data-theme="blueprint"><span class="swatch sw-blueprint"></span><span><span class="tt">Blueprint</span><br><span class="ts">Schematic · cyan grid · mono</span></span></button>
     <button class="theme-opt" data-theme="petri"><span class="swatch sw-petri"></span><span><span class="tt">Petri</span><br><span class="ts">Bio · green+magenta · Grotesk</span></span></button>
+    <button class="theme-opt" data-theme="candy"><span class="swatch sw-candy"></span><span><span class="tt">Candy</span><br><span class="ts">Playful · pink+purple · Fredoka</span></span></button>
+    <button class="theme-opt" data-theme="jungle"><span class="swatch sw-jungle"></span><span><span class="tt">Jungle</span><br><span class="ts">Playful · green+sun · Baloo</span></span></button>
+    <button class="theme-opt" data-theme="ocean"><span class="swatch sw-ocean"></span><span><span class="tt">Ocean</span><br><span class="ts">Playful · aqua+coral · Quicksand</span></span></button>
   </div>
 </header>
 
@@ -394,13 +469,22 @@ mark{background:var(--mark); color:inherit; border-radius:3px; padding:0 2px}
 </main>
 
 <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Enlarged view">
+  <button class="lb-nav prev" id="lbPrev" aria-label="Previous image">‹</button>
   <div class="lb-inner">
+    <div class="lb-stage" id="lbStage"></div>
     <div class="lb-bar">
       <span class="name" id="lbName"></span>
       <span class="style" id="lbStyle"></span>
-      <button class="tb-btn icon lb-close" id="lbClose" aria-label="Close">✕</button>
+      <span class="count" id="lbCount"></span>
     </div>
-    <div class="lb-stage" id="lbStage"></div>
+  </div>
+  <button class="lb-nav next" id="lbNext" aria-label="Next image">›</button>
+  <button class="lb-close-x" id="lbClose" aria-label="Close">✕</button>
+  <div class="lb-labels seg" id="lbLabels" role="group" aria-label="Label language">
+    <button data-m="none" title="No labels" aria-label="No labels">∅</button>
+    <button data-m="en" title="English labels">EN</button>
+    <button data-m="de" title="German labels">DE</button>
+    <button data-m="la" title="Latin (scientific) labels">LA</button>
   </div>
 </div>
 
@@ -416,6 +500,7 @@ const html = document.documentElement;
 // ---- style options -------------------------------------------------------
 const STYLE_LABEL = {reference:'Real', sem:'SEM', '3d':'3D', textbook:'Textbook', watercolor:'Watercolor'};
 const OPTIONS = [
+  ['none','— None —'],
   ['reference','Real (micrograph)'],
   ['sem','SEM'],
   ['3d','3D'],
@@ -425,15 +510,20 @@ const OPTIONS = [
   ['watercolor','Watercolor'],
   ['watercolor-l','Watercolor · labelled'],
 ];
-const DEFAULT_BOXES = ['reference','sem','3d','textbook-l'];
+const NUM_BOXES = 6;
+const DEFAULT_BOXES = ['reference','sem','3d','textbook-l','none','none'];
 function parseOpt(v){ const l=v.endsWith('-l'); return {style:l?v.slice(0,-2):v, labels:l}; }
 
 // ---- persistent state ----------------------------------------------------
 const LS='microbes-viewer-v1';
 const state = Object.assign({
-  aud:'adults', lang:'en', theme:'lab', mode:'dark',
+  aud:'kids', lang:'en', theme:'petri', mode:'dark',
   boxes:DEFAULT_BOXES.slice(), enlargeLabels:true, search:''
 }, load());
+// normalise a persisted (possibly older/shorter) box array to NUM_BOXES slots
+if(!Array.isArray(state.boxes)) state.boxes=DEFAULT_BOXES.slice();
+while(state.boxes.length<NUM_BOXES) state.boxes.push('none');
+state.boxes=state.boxes.slice(0,NUM_BOXES);
 function load(){ try{return JSON.parse(localStorage.getItem(LS))||{}}catch(e){return{}} }
 function save(){ try{localStorage.setItem(LS,JSON.stringify(state))}catch(e){} }
 
@@ -527,6 +617,13 @@ function placeholder(msg){
   const t=document.createElement('span'); t.textContent=msg||'no image'; d.appendChild(t);
   return d;
 }
+// Visible loading placeholder shown until a picture finishes loading.
+function loadingTile(){
+  const d=document.createElement('div'); d.className='ph loading';
+  d.innerHTML='<div class="spin" aria-hidden="true"></div>';
+  const t=document.createElement('span'); t.textContent='loading…'; d.appendChild(t);
+  return d;
+}
 
 // ---- text helpers --------------------------------------------------------
 function esc(s){ return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
@@ -541,19 +638,23 @@ function audText(m){ const a=m.desc[state.aud]||{}; return a[state.lang]||a.en||
 const AUD_LABEL={kids:{en:'For kids',de:'Für Kinder'},adults:{en:'For everyone',de:'Für alle'},sci:{en:'Scientific',de:'Wissenschaftlich'}};
 
 // ---- build one microbe card body ----------------------------------------
+function descHTML(m){
+  let h='<div class="aud-tag">'+esc(L(AUD_LABEL[state.aud]))+'</div>'+
+    '<p class="short">'+highlight(L(m.short))+'</p>'+
+    '<p class="prose'+(state.aud==='sci'?' sci':'')+'">'+highlight(audText(m))+'</p>';
+  // when a real micrograph is on display, credit its source below the text
+  if(state.boxes.includes('reference') && m.ref)
+    h+='<div class="src">Source · '+esc(m.ref)+'</div>';
+  return h;
+}
+function fillGrid(grid,m){ grid.innerHTML='';
+  state.boxes.forEach(opt=>{ if(opt!=='none') grid.appendChild(makeBox(m,opt)); }); }
 function buildCard(card){
   if(card._built) return;
   const m=card._m;
   const body=document.createElement('div'); body.className='card-body';
-  // image grid
-  const grid=document.createElement('div'); grid.className='grid';
-  state.boxes.forEach(opt=>grid.appendChild(makeBox(m,opt)));
-  // description column
-  const desc=document.createElement('div'); desc.className='desc';
-  desc.innerHTML =
-    '<div class="aud-tag">'+esc(L(AUD_LABEL[state.aud]))+'</div>'+
-    '<p class="short">'+highlight(L(m.short))+'</p>'+
-    '<p class="prose'+(state.aud==='sci'?' sci':'')+'">'+highlight(audText(m))+'</p>';
+  const grid=document.createElement('div'); grid.className='grid'; fillGrid(grid,m);
+  const desc=document.createElement('div'); desc.className='desc'; desc.innerHTML=descHTML(m);
   body.appendChild(grid); body.appendChild(desc);
   card.appendChild(body);
   card._built=true; card._body=body;
@@ -575,7 +676,7 @@ function makeBox(m,opt){
     // live overlay: small AVIF + generated label layers (full lang/aud control).
     const svgEl=overlaySvg(m,style); const imgNode=svgEl.querySelector('image');
     const href=imgNode.getAttribute('href'); imgNode.removeAttribute('href');
-    const sk=document.createElement('div'); sk.className='skel';
+    const sk=loadingTile();
     box.appendChild(sk); box.appendChild(svgEl);
     loadRaster(href,box).then(ok=>{ sk.remove();
       if(ok){ imgNode.setAttribute('href',href); }
@@ -595,7 +696,7 @@ function makeBox(m,opt){
 }
 function addImg(box,src,fallback,labels){
   const im=document.createElement('img'); im.decoding='async'; im.alt='';
-  const sk=document.createElement('div'); sk.className='skel'; box.appendChild(sk); box.appendChild(im);
+  const sk=loadingTile(); box.appendChild(sk); box.appendChild(im);
   loadRaster(src,box).then(ok=>{ sk.remove();
     if(ok){ im.src=src; }
     else{ im.remove();
@@ -605,31 +706,131 @@ function addImg(box,src,fallback,labels){
 }
 
 // ---- lightbox ------------------------------------------------------------
-const lb=$('#lightbox'), lbStage=$('#lbStage'), lbName=$('#lbName'), lbStyle=$('#lbStyle');
-function openLightbox(m,opt){
-  const {style,labels}=parseOpt(opt);
-  const canLabel = m.lab && m.lab[style] || (m.svg && m.svg[style]);
-  const wantLabels = canLabel && (labels || state.enlargeLabels);
+const lb=$('#lightbox'), lbStage=$('#lbStage'), lbName=$('#lbName'), lbStyle=$('#lbStyle'),
+      lbCount=$('#lbCount'), lbPrev=$('#lbPrev'), lbNext=$('#lbNext'), lbLabels=$('#lbLabels');
+let navList=[], navIdx=-1, navMicrobe=null, lbLabelMode='none';
+
+function styleSupportsLabels(m,style){ return !!(m.lab && m.lab[style] && m.img && m.img[style]); }
+function boxHasAsset(m,opt){ if(opt==='none') return false; const {style}=parseOpt(opt);
+  return !!((m.img&&m.img[style]) || (m.svg&&m.svg[style])); }
+// Flat, swipe-able sequence of every viewable picture across the currently-visible
+// microbes (respecting search + the chosen layout), in reading order — so "next"
+// walks the grid and rolls into the following microbe.
+function buildNavList(){
+  const list=[];
+  DATA.sets.forEach(set=>{ set.microbes.forEach(m=>{
+    const card=document.getElementById('mc-'+set.id+'-'+m.key);
+    if(card && card.style.display==='none') return;
+    state.boxes.forEach(opt=>{ if(boxHasAsset(m,opt)) list.push({m,opt,setId:set.id}); });
+  }); });
+  return list;
+}
+// bottom-right label switch on the enlarged image: none / EN / DE / LA
+function applyLabelsMode(svg){
+  svg.querySelectorAll('.labellayer').forEach(g=>{
+    const lang=g.id.replace('labels-','');
+    g.style.display=(lbLabelMode!=='none' && lang===lbLabelMode)?'inline':'none';
+  });
+}
+function updateLbLabels(){
+  const svg=lbStage.querySelector('svg'); const has=svg && svg.querySelector('.labellayer');
+  if(has){ lbLabels.classList.add('on'); applyLabelsMode(svg);
+    lbLabels.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.m===lbLabelMode)); }
+  else lbLabels.classList.remove('on');
+}
+function renderStage(m,opt){
+  const {style}=parseOpt(opt);
+  const supports=styleSupportsLabels(m,style);
   lbName.innerHTML=esc(L(m.name));
-  lbStyle.textContent=(STYLE_LABEL[style]||style)+(wantLabels?' · labelled':'');
+  lbStyle.textContent=(STYLE_LABEL[style]||style)+(supports?' · labelled':'');
   lbStage.innerHTML='';
-  if(wantLabels && m.lab && m.lab[style] && m.img && m.img[style]){
-    lbStage.appendChild(overlaySvg(m,style));                 // light overlay
-  } else if(wantLabels && m.svg && m.svg[style]){
-    const holder=document.createElement('div'); lbStage.appendChild(holder); inlineSvg(holder,m.svg[style]); // fallback: embedded svg
+  if(supports){
+    const load=loadingTile(); lbStage.appendChild(load);
+    const svg=overlaySvg(m,style); const imgNode=svg.querySelector('image');
+    const href=imgNode.getAttribute('href'); imgNode.removeAttribute('href');
+    lbStage.appendChild(svg);
+    loadRaster(href).then(ok=>{ load.remove();
+      if(ok) imgNode.setAttribute('href',href);
+      else { svg.remove(); lbStage.appendChild(placeholder('failed to load')); } });
   } else if(m.img && m.img[style]){
-    const im=document.createElement('img'); im.src=m.img[style]; im.alt=L(m.name); lbStage.appendChild(im);
+    const load=loadingTile(); lbStage.appendChild(load);
+    const im=document.createElement('img'); im.alt=L(m.name);
+    loadRaster(m.img[style]).then(ok=>{ load.remove();
+      if(ok){ im.src=m.img[style]; lbStage.appendChild(im); }
+      else lbStage.appendChild(placeholder('failed to load')); });
   } else if(m.svg && m.svg[style]){
     const holder=document.createElement('div'); lbStage.appendChild(holder); inlineSvg(holder,m.svg[style]);
-  } else {
-    lbStage.appendChild(placeholder('no image'));
+  } else { lbStage.appendChild(placeholder('no image')); }
+}
+function showEntry(idx, doScroll){
+  if(!navList.length) return;
+  navIdx=Math.max(0,Math.min(navList.length-1,idx));
+  const e=navList[navIdx];
+  renderStage(e.m,e.opt);
+  updateLbLabels();
+  lbCount.textContent=(navIdx+1)+' / '+navList.length;
+  lbPrev.disabled=navIdx<=0; lbNext.disabled=navIdx>=navList.length-1;
+  // crossing into a different microbe smoothly scrolls its card into view behind
+  // the overlay, so closing lands the user in the right place.
+  if(doScroll && e.m!==navMicrobe){
+    const c=document.getElementById('mc-'+e.setId+'-'+e.m.key);
+    if(c) c.scrollIntoView({behavior:'smooth', block:'center'});
   }
+  navMicrobe=e.m;
+}
+function openLightbox(m,opt){
+  const {style,labels}=parseOpt(opt);
+  // default the label switch: a labelled box or "show labels on enlarge" starts
+  // in the current language (Latin for scientists); otherwise labels start off.
+  lbLabelMode = (labels || state.enlargeLabels) && styleSupportsLabels(m,style)
+    ? (state.aud==='sci'?'la':state.lang) : 'none';
+  navList=buildNavList();
+  navIdx=navList.findIndex(x=>x.m===m && x.opt===opt);
+  if(navIdx<0){ navList=[{m,opt,setId:null}]; navIdx=0; }
+  navMicrobe=m;
+  showEntry(navIdx,false);
   lb.classList.add('open');
 }
-function closeLightbox(){ lb.classList.remove('open'); lbStage.innerHTML=''; }
+function navBy(d){ showEntry(navIdx+d, true); }
+function closeLightbox(){ lb.classList.remove('open'); lbStage.innerHTML=''; navList=[]; navIdx=-1; navMicrobe=null; }
 lb.addEventListener('click',e=>{ if(e.target===lb) closeLightbox(); });
 $('#lbClose').addEventListener('click',closeLightbox);
-document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeLightbox(); closePanels(); }});
+lbPrev.addEventListener('click',()=>navBy(-1));
+lbNext.addEventListener('click',()=>navBy(1));
+lbLabels.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return; lbLabelMode=b.dataset.m; updateLbLabels(); });
+
+// arrow keys: walk the enlarged sequence when the preview is open, otherwise jump
+// between microbe anchor positions in the page.
+function visibleCards(){ return allCards.filter(c=>c.style.display!=='none'); }
+function currentCardIdx(list){
+  const y=(parseInt(getComputedStyle(document.documentElement).getPropertyValue('--bar-h'))||58)+20;
+  let idx=0;
+  for(let i=0;i<list.length;i++){ if(list[i].getBoundingClientRect().top - y <= 1) idx=i; else break; }
+  return idx;
+}
+document.addEventListener('keydown',e=>{
+  if(lb.classList.contains('open')){
+    if(e.key==='Escape') closeLightbox();
+    else if(e.key==='ArrowLeft') navBy(-1);
+    else if(e.key==='ArrowRight') navBy(1);
+    return;
+  }
+  if(e.key==='Escape'){ closePanels(); return; }
+  const ae=document.activeElement, typing = ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName);
+  if(!typing && (e.key==='ArrowLeft' || e.key==='ArrowRight')){
+    const list=visibleCards(); if(!list.length) return;
+    let i=currentCardIdx(list);
+    i = e.key==='ArrowRight' ? Math.min(list.length-1,i+1) : Math.max(0,i-1);
+    list[i].scrollIntoView({behavior:'smooth', block:'start'}); e.preventDefault();
+  }
+});
+// touch: horizontal swipe → prev/next; a clear downward swipe → close
+let tX=null,tY=null;
+lb.addEventListener('touchstart',e=>{ const t=e.changedTouches[0]; tX=t.clientX; tY=t.clientY; },{passive:true});
+lb.addEventListener('touchend',e=>{ if(tX==null)return; const t=e.changedTouches[0], dx=t.clientX-tX, dy=t.clientY-tY;
+  if(Math.abs(dx)>48 && Math.abs(dx)>Math.abs(dy)) navBy(dx<0?1:-1);
+  else if(dy>90 && Math.abs(dy)>Math.abs(dx)) closeLightbox();
+  tX=tY=null; });
 
 // ---- initial render (skeleton cards + nav) -------------------------------
 const setsWrap=$('#sets'), navTree=$('#navTree');
@@ -682,10 +883,7 @@ function refreshBuilt(){
     // titles + nav always reflect language/search
     card.querySelector('.card-title').innerHTML=highlight(L(card._m.name))+'<span class="key">'+esc(card._m.key)+'</span>';
     if(!card._built) return;
-    const m=card._m, d=card._body.querySelector('.desc');
-    d.querySelector('.aud-tag').textContent=L(AUD_LABEL[state.aud]);
-    d.querySelector('.short').innerHTML=highlight(L(m.short));
-    const p=d.querySelector('.prose'); p.className='prose'+(state.aud==='sci'?' sci':''); p.innerHTML=highlight(audText(m));
+    card._body.querySelector('.desc').innerHTML=descHTML(card._m);
     card._body.querySelectorAll('.box svg').forEach(applyLabels);
   });
   // nav labels + set headers follow language
@@ -699,10 +897,11 @@ function refreshBuilt(){
     $$('.nav-links a',det).forEach((a,j)=>{ if(set.microbes[j]) a.textContent=L(set.microbes[j].name); });
   });
 }
-// rebuild boxes only (picture layout changed)
+// picture layout changed: rebuild each grid + refresh the source credit line
 function rebuildBoxes(){
-  allCards.forEach(card=>{ if(!card._built) return; const grid=card._body.querySelector('.grid');
-    grid.innerHTML=''; state.boxes.forEach(opt=>grid.appendChild(makeBox(card._m,opt))); });
+  allCards.forEach(card=>{ if(!card._built) return;
+    fillGrid(card._body.querySelector('.grid'), card._m);
+    card._body.querySelector('.desc').innerHTML=descHTML(card._m); });
 }
 
 // ---- search --------------------------------------------------------------
@@ -747,7 +946,7 @@ let sT; searchEl.addEventListener('input',()=>{ clearTimeout(sT); sT=setTimeout(
 const picsGrid=$('#picsGrid');
 function buildPics(){
   picsGrid.innerHTML='';
-  for(let i=0;i<4;i++){
+  for(let i=0;i<NUM_BOXES;i++){
     const cell=document.createElement('div'); cell.className='pics-cell';
     const opts=OPTIONS.map(([v,l])=>'<option value="'+v+'"'+(state.boxes[i]===v?' selected':'')+'>'+l+'</option>').join('');
     cell.innerHTML='<label for="box'+i+'">Box '+(i+1)+'</label><select id="box'+i+'" data-i="'+i+'" aria-label="Box '+(i+1)+' picture style">'+opts+'</select>';
