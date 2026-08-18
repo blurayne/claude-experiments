@@ -407,8 +407,19 @@ mark{background:var(--accent); color:var(--accent-ink); border-radius:3px; paddi
 .lb-close-x:hover{background:var(--accent); color:var(--accent-ink); border-color:var(--accent)}
 @media(max-width:560px){ .lb-nav{width:40px;height:40px;font-size:22px} }
 
+.lb-bar .lb-print{font-size:12.5px; padding:6px 12px}
 .empty{display:none; text-align:center; color:var(--fg-dim); padding:60px 20px; font-family:var(--font-mono)}
 .empty.show{display:block}
+
+/* ================================================================== PRINT */
+#printArea{display:none}
+@media print{
+  @page{ size:A4; margin:10mm }
+  html,body{background:#fff !important}
+  body>*{display:none !important}
+  #printArea{display:flex !important; position:fixed; inset:0; align-items:center; justify-content:center; padding:0; margin:0}
+  #printArea img, #printArea svg{width:100%; height:auto; max-width:100%; max-height:100%; object-fit:contain}
+}
 
 /* =============================================================== RESPONSIVE */
 @media(max-width:1080px){
@@ -514,6 +525,7 @@ mark{background:var(--accent); color:var(--accent-ink); border-radius:3px; paddi
       <span class="name" id="lbName"></span>
       <span class="style" id="lbStyle"></span>
       <span class="count" id="lbCount"></span>
+      <button class="tb-btn lb-print" id="lbPrint" title="Print this image on A4 paper">⎙ Print</button>
     </div>
   </div>
   <button class="lb-nav next" id="lbNext" aria-label="Next image">›</button>
@@ -525,6 +537,8 @@ mark{background:var(--accent); color:var(--accent-ink); border-radius:3px; paddi
     <button data-m="la" title="Latin (scientific) labels">LA</button>
   </div>
 </div>
+
+<div id="printArea" aria-hidden="true"></div>
 
 <script id="microbe-data" type="application/json">__DATA__</script>
 <script>
@@ -685,8 +699,13 @@ function descHTML(m){
     const bits=[]; if(m.ref.modality) bits.push(esc(m.ref.modality)); if(m.ref.license) bits.push(esc(m.ref.license));
     let s='<div class="src">Source'+(bits.length?' · '+bits.join(' · '):'');
     if(m.ref.attribution) s+='<br>'+esc(m.ref.attribution);
-    if(m.ref.url) s+='<br><a href="'+esc(m.ref.url)+'" target="_blank" rel="noopener">'+esc(m.ref.url)+'</a>';
-    if(m.ref.img) s+=' <a href="#" class="view-orig" data-img="'+esc(m.ref.img)+'" data-name="'+esc(L(m.name))+'">⤢ open original</a>';
+    // the source link opens the original in the preview if it IS an image,
+    // otherwise it opens the source page in a new tab.
+    const shown=esc(m.ref.url||m.ref.img);
+    if(m.ref.img)
+      s+='<br><a href="'+esc(m.ref.img)+'" class="view-orig" data-img="'+esc(m.ref.img)+'" data-name="'+esc(L(m.name))+'">'+shown+'</a>';
+    else if(m.ref.url)
+      s+='<br><a href="'+esc(m.ref.url)+'" target="_blank" rel="noopener">'+shown+'</a>';
     h+=s+'</div>';
   }
   return h;
@@ -858,6 +877,14 @@ lb.addEventListener('click',e=>{ if(e.target===lb) closeLightbox(); });
 $('#lbClose').addEventListener('click',closeLightbox);
 lbPrev.addEventListener('click',()=>navBy(-1));
 lbNext.addEventListener('click',()=>navBy(1));
+// print the exact enlarged image, full-size on A4
+const printArea=$('#printArea');
+$('#lbPrint').addEventListener('click',()=>{
+  const node=lbStage.querySelector('img,svg'); if(!node) return;
+  printArea.innerHTML=''; printArea.appendChild(node.cloneNode(true));
+  window.print();
+});
+window.addEventListener('afterprint',()=>{ printArea.innerHTML=''; });
 lbLabels.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return; lbLabelMode=b.dataset.m; updateLbLabels(); });
 
 // arrow keys: walk the enlarged sequence when the preview is open, otherwise jump
