@@ -550,7 +550,7 @@ const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
 const html = document.documentElement;
 
 // ---- style options -------------------------------------------------------
-const STYLE_LABEL = {reference:'Real', sem:'SEM', '3d':'3D', textbook:'Textbook', watercolor:'Watercolor'};
+const STYLE_LABEL = {reference:'Real', sem:'SEM', '3d':'3D', textbook:'Textbook', watercolor:'Watercolor', coloring:'Coloring'};
 const OPTIONS = [
   ['none','— None —'],
   ['reference','Real (micrograph)'],
@@ -561,6 +561,7 @@ const OPTIONS = [
   ['textbook-l','Textbook · labelled'],
   ['watercolor','Watercolor'],
   ['watercolor-l','Watercolor · labelled'],
+  ['coloring','Coloring · B&W (kids)'],
 ];
 const NUM_BOXES = 6;
 const DEFAULT_BOXES = ['reference','sem','3d','textbook-l','none','none'];
@@ -735,7 +736,16 @@ function makeBox(m,opt){
   tag.textContent=(STYLE_LABEL[style]||style)+(labels?' ·L':'');
   const hasOverlay = labels && m.lab && m.lab[style] && m.img && m.img[style];
   const hasImg = m.img && m.img[style];
-  if(hasOverlay){
+  if(style==='coloring'){
+    if(m.coloring){
+      const sk=loadingTile(); const holder=document.createElement('div');
+      holder.style.width='100%'; holder.style.height='100%';
+      box.appendChild(sk); box.appendChild(holder);
+      getSvg(m.coloring).then(txt=>{ sk.remove(); holder.innerHTML=txt;
+        const s=holder.querySelector('svg'); if(s){ s.removeAttribute('width'); s.removeAttribute('height'); applyLabels(s); } })
+        .catch(()=>{ sk.remove(); box.appendChild(placeholder('no coloring page')); });
+    } else box.appendChild(placeholder('no coloring page'));
+  } else if(hasOverlay){
     // live overlay: small AVIF + generated label layers (full lang/aud control).
     const svgEl=overlaySvg(m,style); const imgNode=svgEl.querySelector('image');
     const href=imgNode.getAttribute('href'); imgNode.removeAttribute('href');
@@ -774,7 +784,8 @@ const lb=$('#lightbox'), lbStage=$('#lbStage'), lbName=$('#lbName'), lbStyle=$('
 let navList=[], navIdx=-1, navMicrobe=null, lbLabelMode='none';
 
 function styleSupportsLabels(m,style){ return !!(m.lab && m.lab[style] && m.img && m.img[style]); }
-function boxHasAsset(m,opt){ if(opt==='none') return false; const {style}=parseOpt(opt);
+function boxHasAsset(m,opt){ if(opt==='none') return false; if(opt==='coloring') return !!m.coloring;
+  const {style}=parseOpt(opt);
   return !!((m.img&&m.img[style]) || (m.svg&&m.svg[style])); }
 // Flat, swipe-able sequence of every viewable picture across the currently-visible
 // microbes (respecting search + the chosen layout), in reading order — so "next"
@@ -807,6 +818,15 @@ function renderStage(m,opt){
   lbName.innerHTML=esc(L(m.name));
   lbStyle.textContent=(STYLE_LABEL[style]||style)+(supports?' · labelled':'');
   lbStage.innerHTML='';
+  if(style==='coloring'){
+    if(m.coloring){ const load=loadingTile(); lbStage.appendChild(load);
+      const holder=document.createElement('div'); lbStage.appendChild(holder);
+      getSvg(m.coloring).then(txt=>{ load.remove(); holder.innerHTML=txt;
+        const s=holder.querySelector('svg'); if(s){ s.removeAttribute('width'); s.removeAttribute('height'); applyLabels(s); } })
+        .catch(()=>{ load.remove(); lbStage.appendChild(placeholder('no coloring page')); });
+    } else lbStage.appendChild(placeholder('no coloring page'));
+    return;
+  }
   if(supports){
     const load=loadingTile(); lbStage.appendChild(load);
     const svg=overlaySvg(m,style); const imgNode=svg.querySelector('image');

@@ -91,6 +91,19 @@ landing page is unchanged). For Pages to serve the images, the referenced
 `renders/set/*/finals/*.avif` and `renders/set/*/theme/*/*.svg` (and `viewer.html` +
 `viewer-data.json`) must be **committed** — PNG masters and HEIC copies stay git-ignored.
 
+### Coloring-book pages (kids)
+
+A separate style: black-and-white **vector** SVG coloring pages (friendly characters
+with faces in a typical scene, bilingual EN/DE speech bubble, no anatomical labels).
+`scripts/coloring.py` renders a B&W line-art raster with an image model, then traces
+it to a crisp scalable SVG (potracer) and injects a vector speech bubble with
+`#labels-en`/`#labels-de` toggle text — so the viewer's language switch flips the
+speech, and the Print button prints it full-size on A4. Output:
+`renders/set/<set>/coloring/<microbe>.coloring.svg` (committed; the raster
+`*.attempts/*.png` stay git-ignored). Currently the immune-cells + red-blood packs
+(12 pages). `build_viewer.py` picks up `coloring/<key>.coloring.svg` into each
+microbe's `coloring` field; "Coloring" is a Pictures-chooser option.
+
 ### Local preview
 
 ```bash

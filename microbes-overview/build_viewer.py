@@ -170,6 +170,10 @@ def build():
                 if p.exists():
                     img[st] = p.relative_to(HERE).as_posix()
 
+            # kids' black-and-white coloring page (self-contained vector SVG)
+            col_path = set_dir / "coloring" / f"{key}.coloring.svg"
+            coloring = col_path.relative_to(HERE).as_posix() if col_path.exists() else ""
+
             # present labelled SVGs (kept as a lightbox fallback) + the compact
             # label geometry, which the viewer renders live as an overlay on the
             # small AVIF final (the committed .svg files embed the full raster and
@@ -211,6 +215,7 @@ def build():
                     "img": img,
                     "svg": svg,
                     "lab": lab,
+                    "coloring": coloring,
                     "ref": ref_info,
                     "search": blob,
                     "_order": look.get("order", order.get(name_en, 10_000)),
