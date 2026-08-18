@@ -171,6 +171,23 @@ html[data-theme="petri"] body::after{
 @keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.82);opacity:.72}}
 .brand small{color:var(--fg-dim); font-weight:400; font-size:12px; font-family:var(--font-mono)}
 .spacer{flex:1 1 auto}
+.tb-tools{display:flex; align-items:center; gap:10px}
+.topbar .tb-more{display:none; margin-left:2px}   /* desktop: hidden; mobile: far-right toggle */
+.tb-more .chev{width:18px; height:18px; transition:transform .28s var(--ease)}
+.topbar.tools-open .tb-more .chev{transform:rotate(180deg)}
+.topbar.tools-open .tb-more{border-color:var(--accent); color:var(--accent)}
+
+/* floating jump-to-microbe buttons (stacked, bottom-right) */
+.jump{position:fixed; right:max(14px,1.8vw); bottom:max(16px,3vh); z-index:900;
+  display:flex; flex-direction:column; gap:10px}
+.jump-btn{width:46px; height:46px; border-radius:50%; padding:0; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; color:var(--fg);
+  background:color-mix(in oklab,var(--panel) 80%, transparent); border:1px solid var(--border-hi);
+  box-shadow:var(--shadow); backdrop-filter:blur(6px); transition:background .15s, color .15s, transform .12s}
+.jump-btn svg{width:22px; height:22px}
+.jump-btn:hover{background:var(--accent); color:var(--accent-ink); border-color:var(--accent)}
+.jump-btn:active{transform:scale(.9)}
+@media(max-width:560px){ .jump-btn{width:42px;height:42px} .jump{bottom:max(12px,2vh)} }
 
 .tb-btn{
   font-family:var(--font-ui); font-size:13.5px; font-weight:600; color:var(--fg);
@@ -345,7 +362,9 @@ svg text{font-family:var(--font-ui)}
 .desc .prose{font-size:14.5px; line-height:1.68; color:var(--fg); margin:0}
 .desc .prose.sci{font-size:13.5px; line-height:1.6}
 .desc .src{font-family:var(--font-mono); font-size:10.5px; letter-spacing:.09em; text-transform:uppercase;
-  color:var(--fg-faint); margin-top:14px; line-height:1.55}
+  color:var(--fg-faint); margin-top:14px; line-height:1.6}
+.desc .src a{color:var(--accent); text-transform:none; letter-spacing:0; word-break:break-all;
+  text-decoration:underline; text-underline-offset:2px}
 /* search highlight: bright accent block with inverse ink, adapts to theme+mode */
 mark{background:var(--accent); color:var(--accent-ink); border-radius:3px; padding:0 3px; font-weight:600}
 
@@ -395,8 +414,15 @@ mark{background:var(--accent); color:var(--accent-ink); border-radius:3px; paddi
 @media(max-width:1080px){
   .brand small{display:none}
 }
+/* mobile: collapse all controls into a second row toggled by the ⋯ button */
 @media(max-width:820px){
-  .search-wrap{display:none}          /* search hidden on mobile per spec */
+  .topbar{flex-wrap:wrap; height:auto; min-height:var(--bar-h); align-items:center}
+  .topbar .tb-more{display:inline-flex}
+  .tb-tools{order:10; flex-basis:100%; display:none; flex-wrap:wrap; gap:8px;
+    padding:8px 0 12px; margin-top:2px; border-top:1px solid var(--border)}
+  .topbar.tools-open .tb-tools{display:flex}
+  .search-wrap{flex:1 1 100%}
+  #search{width:100%}
   .seg .full{display:none}
   .seg .abbr{display:inline}
   #langSeg .full{display:inline}      /* EN/DE already short */
@@ -417,6 +443,8 @@ mark{background:var(--accent); color:var(--accent-ink); border-radius:3px; paddi
   <button class="tb-btn" id="menuBtn" aria-expanded="false" aria-controls="menuPanel">☰ <span class="label">Menu</span></button>
   <span class="brand"><span class="dot"></span><span class="label">Microbes</span> <small>cell &amp; pathogen atlas</small></span>
   <div class="spacer"></div>
+  <button class="tb-btn icon tb-more" id="moreBtn" aria-label="Show controls" aria-expanded="false"><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+  <div class="tb-tools" id="tbTools">
   <div class="search-wrap">
     <span class="mag">⌕</span>
     <input id="search" type="search" placeholder="search microbes…" autocomplete="off" aria-label="Search microbes">
@@ -433,6 +461,7 @@ mark{background:var(--accent); color:var(--accent-ink); border-radius:3px; paddi
   </div>
   <button class="tb-btn icon" id="themeBtn" aria-expanded="false" aria-controls="themePanel" title="Visual theme">◑</button>
   <button class="tb-btn icon" id="modeBtn" title="Light / dark">☾</button>
+  </div>
 
   <!-- dropdowns -->
   <nav class="panel" id="menuPanel" aria-label="Sets and microbes">
@@ -467,6 +496,15 @@ mark{background:var(--accent); color:var(--accent-ink); border-radius:3px; paddi
   <div id="sets"></div>
   <div class="empty" id="emptyMsg">No microbes match your search.</div>
 </main>
+
+<div class="jump" id="jump">
+  <button class="jump-btn" id="jumpUp" aria-label="Previous microbe" title="Previous microbe">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg>
+  </button>
+  <button class="jump-btn" id="jumpDown" aria-label="Next microbe" title="Next microbe">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+  </button>
+</div>
 
 <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Enlarged view">
   <button class="lb-nav prev" id="lbPrev" aria-label="Previous image">‹</button>
@@ -642,9 +680,15 @@ function descHTML(m){
   let h='<div class="aud-tag">'+esc(L(AUD_LABEL[state.aud]))+'</div>'+
     '<p class="short">'+highlight(L(m.short))+'</p>'+
     '<p class="prose'+(state.aud==='sci'?' sci':'')+'">'+highlight(audText(m))+'</p>';
-  // when a real micrograph is on display, credit its source below the text
-  if(state.boxes.includes('reference') && m.ref)
-    h+='<div class="src">Source · '+esc(m.ref)+'</div>';
+  // when a real micrograph is on display, credit its source (with full link)
+  if(state.boxes.includes('reference') && m.ref && (m.ref.url || m.ref.license)){
+    const bits=[]; if(m.ref.modality) bits.push(esc(m.ref.modality)); if(m.ref.license) bits.push(esc(m.ref.license));
+    let s='<div class="src">Source'+(bits.length?' · '+bits.join(' · '):'');
+    if(m.ref.attribution) s+='<br>'+esc(m.ref.attribution);
+    if(m.ref.url) s+='<br><a href="'+esc(m.ref.url)+'" target="_blank" rel="noopener">'+esc(m.ref.url)+'</a>';
+    if(m.ref.img) s+=' <a href="#" class="view-orig" data-img="'+esc(m.ref.img)+'" data-name="'+esc(L(m.name))+'">⤢ open original</a>';
+    h+=s+'</div>';
+  }
   return h;
 }
 function fillGrid(grid,m){ grid.innerHTML='';
@@ -792,6 +836,23 @@ function openLightbox(m,opt){
   lb.classList.add('open');
 }
 function navBy(d){ showEntry(navIdx+d, true); }
+// the real micrograph's ORIGINAL source image, shown standalone (no prev/next,
+// not part of the cycling sequence)
+function openStandalone(url, title){
+  navList=[]; navIdx=-1; navMicrobe=null;
+  lbName.innerHTML=esc(title||'Original source image');
+  lbStyle.textContent='original source'; lbCount.textContent='';
+  lbPrev.disabled=true; lbNext.disabled=true; lbLabels.classList.remove('on');
+  lbStage.innerHTML='';
+  const load=loadingTile(); lbStage.appendChild(load);
+  const im=document.createElement('img'); im.alt=title||''; im.referrerPolicy='no-referrer';
+  im.onload=()=>load.remove();
+  im.onerror=()=>{ load.remove(); lbStage.appendChild(placeholder('could not load original')); };
+  im.src=url; lbStage.appendChild(im);
+  lb.classList.add('open');
+}
+document.addEventListener('click',e=>{ const v=e.target.closest('.view-orig'); if(!v) return;
+  e.preventDefault(); openStandalone(v.dataset.img, v.dataset.name+' — original'); });
 function closeLightbox(){ lb.classList.remove('open'); lbStage.innerHTML=''; navList=[]; navIdx=-1; navMicrobe=null; }
 lb.addEventListener('click',e=>{ if(e.target===lb) closeLightbox(); });
 $('#lbClose').addEventListener('click',closeLightbox);
@@ -802,12 +863,17 @@ lbLabels.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b
 // arrow keys: walk the enlarged sequence when the preview is open, otherwise jump
 // between microbe anchor positions in the page.
 function visibleCards(){ return allCards.filter(c=>c.style.display!=='none'); }
-function currentCardIdx(list){
+// scroll to the previous(-1)/next(+1) microbe anchor relative to the top of view
+function jumpMicrobe(dir){
+  const list=visibleCards(); if(!list.length) return;
   const y=(parseInt(getComputedStyle(document.documentElement).getPropertyValue('--bar-h'))||58)+20;
-  let idx=0;
-  for(let i=0;i<list.length;i++){ if(list[i].getBoundingClientRect().top - y <= 1) idx=i; else break; }
-  return idx;
+  let target=null;
+  if(dir>0){ target=list.find(c=>c.getBoundingClientRect().top > y+2); }
+  else { for(const c of list){ if(c.getBoundingClientRect().top < y-2) target=c; else break; } }
+  if(target) target.scrollIntoView({behavior:'smooth', block:'start'});
 }
+$('#jumpUp').addEventListener('click',()=>jumpMicrobe(-1));
+$('#jumpDown').addEventListener('click',()=>jumpMicrobe(1));
 document.addEventListener('keydown',e=>{
   if(lb.classList.contains('open')){
     if(e.key==='Escape') closeLightbox();
@@ -817,12 +883,7 @@ document.addEventListener('keydown',e=>{
   }
   if(e.key==='Escape'){ closePanels(); return; }
   const ae=document.activeElement, typing = ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName);
-  if(!typing && (e.key==='ArrowLeft' || e.key==='ArrowRight')){
-    const list=visibleCards(); if(!list.length) return;
-    let i=currentCardIdx(list);
-    i = e.key==='ArrowRight' ? Math.min(list.length-1,i+1) : Math.max(0,i-1);
-    list[i].scrollIntoView({behavior:'smooth', block:'start'}); e.preventDefault();
-  }
+  if(!typing && (e.key==='ArrowLeft' || e.key==='ArrowRight')){ jumpMicrobe(e.key==='ArrowRight'?1:-1); e.preventDefault(); }
 });
 // touch: horizontal swipe → prev/next; a clear downward swipe → close
 let tX=null,tY=null;
@@ -962,6 +1023,9 @@ function closePanels(){ $$('.panel').forEach(p=>p.classList.remove('open'));
   $$('[aria-controls]').forEach(b=>b.setAttribute('aria-expanded','false')); }
 function togglePanel(btn,panel){ const open=panel.classList.contains('open'); closePanels();
   if(!open){ panel.classList.add('open'); btn.setAttribute('aria-expanded','true'); } }
+$('#moreBtn').addEventListener('click',e=>{ e.stopPropagation();
+  const open=$('.topbar').classList.toggle('tools-open');
+  $('#moreBtn').setAttribute('aria-expanded', open); });
 $('#menuBtn').addEventListener('click',e=>{e.stopPropagation();togglePanel(e.currentTarget,$('#menuPanel'));});
 $('#picsBtn').addEventListener('click',e=>{e.stopPropagation();togglePanel(e.currentTarget,$('#picsPanel'));});
 $('#themeBtn').addEventListener('click',e=>{e.stopPropagation();togglePanel(e.currentTarget,$('#themePanel'));});

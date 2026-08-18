@@ -120,9 +120,36 @@ def build():
             name_de = look.get("name_de") or name_en
             short_de = look.get("short_de") or short_en
 
-            # provenance of the real micrograph (modality + license/attribution)
-            ref = meta.get("reference") or {}
-            ref_src = ref.get("styles", "")
+            # provenance of the real micrograph: prefer the download sidecar in
+            # reference-microscopy (it carries the actual source page URL); fall
+            # back to the meta summary string. (attempts dirs are git-ignored, but
+            # this runs at build time and the URL is baked into viewer-data.json.)
+            ref_info = None
+            ref_glob = (RENDERS / "reference-microscopy" / "theme").glob(
+                f"*/{key}.attempts/real-*.json"
+            )
+            for sp in sorted(ref_glob):
+                try:
+                    rj = json.loads(sp.read_text())
+                except Exception:
+                    continue
+                url = rj.get("source_page") or rj.get("source_url") or ""
+                if url:
+                    # a direct-image source_url can be opened in the preview itself
+                    raw = rj.get("source_url", "")
+                    is_img = bool(re.search(r"\.(jpe?g|png|gif|webp|avif|tiff?)(\?|$)", raw, re.I))
+                    ref_info = {
+                        "url": url,
+                        "img": raw if is_img else "",
+                        "license": rj.get("license", ""),
+                        "attribution": rj.get("attribution", ""),
+                        "modality": rj.get("modality", ""),
+                    }
+                    break
+            if not ref_info:
+                r = meta.get("reference") or {}
+                ref_info = {"url": "", "license": r.get("styles", ""),
+                            "attribution": "", "modality": ""}
 
             # descriptions (six audience blocks)
             desc = {"kids": {}, "adults": {}, "sci": {}}
@@ -184,7 +211,7 @@ def build():
                     "img": img,
                     "svg": svg,
                     "lab": lab,
-                    "ref": ref_src,
+                    "ref": ref_info,
                     "search": blob,
                     "_order": look.get("order", order.get(name_en, 10_000)),
                 }
