@@ -329,6 +329,24 @@ main{max-width:var(--maxw); margin:0 auto; padding:clamp(20px,4vw,44px) clamp(14
   margin:0 0 14px; display:flex; align-items:center; gap:11px; flex-wrap:wrap}
 .card-title .key{font-family:var(--font-mono); font-size:11px; color:var(--fg-faint);
   border:1px solid var(--border); border-radius:6px; padding:2px 7px; font-weight:400}
+/* size/weight scale meter: bar LENGTH = size (fixed 0-120µm scale, the human
+   egg cell is the largest thing in the dataset), bar COLOR = weight class.
+   Weight spans ~15 orders of magnitude across this dataset (a prion protein
+   to an egg cell) — nowhere near expressible as a second linear bar — so
+   weight is color-coded instead, on a fixed light(blue)->heavy(red) scale
+   that stays the same across every visual theme (a data-scale, not a theme
+   accent, so themes shouldn't recolor it). */
+html{ --wc1:#60a5fa; --wc2:#22d3ee; --wc3:#facc15; --wc4:#fb923c; --wc5:#f87171 }
+.scale-meter{display:flex; align-items:baseline; gap:8px; margin:-6px 0 14px; flex-wrap:wrap}
+.scale-bar{font-family:var(--font-mono); font-size:12px; line-height:1}
+.scale-meter.wc1 .scale-bar{color:var(--wc1)}
+.scale-meter.wc2 .scale-bar{color:var(--wc2)}
+.scale-meter.wc3 .scale-bar{color:var(--wc3)}
+.scale-meter.wc4 .scale-bar{color:var(--wc4)}
+.scale-meter.wc5 .scale-bar{color:var(--wc5)}
+.scale-bar .dim{color:var(--border)}
+.scale-text{font-family:var(--font-mono); font-size:11px; color:var(--fg-faint); white-space:nowrap}
+.scale-text .sep{opacity:.5; margin:0 1px}
 /* kids-mode narration controls. The stop button's slot is always reserved
    (kept in the layout at width 0→auto) so it fades in/out without shifting
    the play button. Two placement contexts:
@@ -440,7 +458,13 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 0 0 2px #
   position:fixed; inset:0; z-index:2000; display:none;
   align-items:center; justify-content:center; padding:clamp(8px,1.6vw,20px);
   background:color-mix(in oklab, #000 68%, transparent); backdrop-filter:blur(8px);
+  --lb-max-h:89vh;
 }
+/* when the label/color toggle is shown, shrink the stage's height budget so
+   the picture leaves clear room below it for that toggle — it must never
+   overlap the image (see #lbLabels/#lbColor "on" state, toggled together
+   with this class from updateLbBottomSpace()). */
+.lightbox.has-bottom-ctl{ --lb-max-h:calc(89vh - 60px); }
 .lightbox.open{display:flex; animation:fade .2s var(--ease)}
 /* no origin box to zoom back into (opened from the "original source" link,
    or currently showing the src/original asset) — fade out in place instead
@@ -458,9 +482,10 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 0 0 2px #
    tight against the image instead of around a fixed, often-letterboxed box.
    min-width/min-height only give the loading spinner somewhere to sit before
    the asset's real size is known. */
-.lb-stage{position:relative; max-width:98vw; max-height:89vh; min-width:120px; min-height:120px;
+.lb-stage{position:relative; max-width:98vw; max-height:var(--lb-max-h); min-width:120px; min-height:120px;
   background:var(--box-bg); border:1px solid var(--border-hi); border-radius:16px; overflow:hidden;
-  box-shadow:var(--shadow); display:inline-flex; align-items:center; justify-content:center}
+  box-shadow:var(--shadow); display:inline-flex; align-items:center; justify-content:center;
+  transition:max-height .2s var(--ease)}
 /* label-mode switch and color-mode switch (Real style only) — both toggles
    share the same bottom-center spot over the enlarged image (never shown
    together: color mode only applies to the Real style, which has no
@@ -472,7 +497,7 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 0 0 2px #
 .lb-color{position:absolute; left:50%; bottom:12px; transform:translateX(-50%); z-index:5; display:none}
 .lb-color.on{display:inline-flex}
 .lb-color button{font-family:var(--font-mono); font-size:12px}
-.lb-stage img, .lb-stage svg{display:block; max-width:98vw; max-height:89vh; width:auto; height:auto; object-fit:contain}
+.lb-stage img, .lb-stage svg{display:block; max-width:98vw; max-height:var(--lb-max-h); width:auto; height:auto; object-fit:contain}
 /* the reference (B&W) picture style: same asset as reference, grayscale filter */
 .bw{filter:grayscale(1)}
 /* title + visualisation type, centred below the image */
@@ -667,7 +692,7 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 0 0 2px #
   <div class="lb-color seg" id="lbColor" role="group" aria-label="Color mode">
     <button data-c="color" title="Color">Color</button>
     <button data-c="bw" title="Black &amp; white">B&amp;W</button>
-    <button data-c="src" title="Original unedited source photo">Src</button>
+    <button data-c="src" title="Original unedited source photo">Source</button>
   </div>
 </div>
 
@@ -972,6 +997,26 @@ function audioCtlHTML(m){
     '<button type="button" class="audio-stop" title="Stop narration" aria-label="Stop narration" tabindex="-1">■</button>'+
   '</span>';
 }
+// size/weight scale meter, right below the card title. Bar length is fixed
+// against a 120µm ceiling (the human egg cell, the largest thing in this
+// dataset); the fill count is clamped to at least 1 segment so even a ~20nm
+// virus still shows a visible sliver rather than nothing at all.
+const SCALE_BAR_SEGMENTS = 16;
+function fmtSize(um){
+  if(um < 1) return Math.round(um*1000)+' nm';
+  return (Number.isInteger(um) ? um : um.toFixed(1))+' µm';
+}
+function fmtWeight(sc){ return (Number.isInteger(sc.weight_val)?sc.weight_val:sc.weight_val)+' '+sc.weight_unit; }
+function scaleHTML(m){
+  const sc=m.scale; if(!sc) return '';
+  const filled=Math.max(1, Math.min(SCALE_BAR_SEGMENTS, Math.round(sc.size_um/120*SCALE_BAR_SEGMENTS)));
+  const bar='▇'.repeat(filled)+'<span class="dim">'+'·'.repeat(SCALE_BAR_SEGMENTS-filled)+'</span>';
+  const sizeTxt=fmtSize(sc.size_um), weightTxt=fmtWeight(sc);
+  return '<div class="scale-meter wc'+sc.weight_class+'" title="Typical size and mass — a rough teaching approximation, not a measurement of this specific render">'+
+    '<span class="scale-bar">'+bar+'</span>'+
+    '<span class="scale-text">'+esc(sizeTxt)+'<span class="sep">·</span>'+esc(weightTxt)+'</span>'+
+  '</div>';
+}
 
 // ---- build one microbe card body ----------------------------------------
 function descHTML(m){
@@ -1144,6 +1189,12 @@ function updateLbLabels(){
   if(has){ lbLabels.classList.add('on'); applyLabelsMode(svg);
     lbLabels.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.m===lbLabelMode)); }
   else lbLabels.classList.remove('on');
+  updateLbBottomSpace();
+}
+// reserves room below the picture for the label/color toggle whenever either
+// is actually shown, so the pill never sits on top of the image itself.
+function updateLbBottomSpace(){
+  lb.classList.toggle('has-bottom-ctl', lbLabels.classList.contains('on') || lbColor.classList.contains('on'));
 }
 // bottom-left color switch: only shown for the 'reference' style (color, B&W,
 // or — when the microbe has an original source photo — the raw unedited
@@ -1151,15 +1202,17 @@ function updateLbLabels(){
 function updateLbColor(m, style){
   const show = style==='reference';
   lbColor.classList.toggle('on', show);
-  if(!show) return;
-  const hasSrc = !!(m && m.ref && m.ref.img);
-  lbColor.querySelectorAll('button').forEach(b=>{
-    const c=b.dataset.c;
-    if(c==='src'){ b.style.display=hasSrc?'':'none'; b.disabled=!hasSrc; }
-    b.setAttribute('aria-pressed', String(
-      c==='src' ? lbSrc : c==='bw' ? (lbBw && !lbSrc) : (!lbBw && !lbSrc)
-    ));
-  });
+  if(show){
+    const hasSrc = !!(m && m.ref && m.ref.img);
+    lbColor.querySelectorAll('button').forEach(b=>{
+      const c=b.dataset.c;
+      if(c==='src'){ b.style.display=hasSrc?'':'none'; b.disabled=!hasSrc; }
+      b.setAttribute('aria-pressed', String(
+        c==='src' ? lbSrc : c==='bw' ? (lbBw && !lbSrc) : (!lbBw && !lbSrc)
+      ));
+    });
+  }
+  updateLbBottomSpace();
 }
 function applyLbBw(){
   const img=lbStage.querySelector('img'); if(img) img.classList.toggle('bw', lbBw && !lbSrc);
@@ -1276,7 +1329,7 @@ function openStandalone(url, title){
   navList=[]; navIdx=-1; navMicrobe=null; lbOriginEl=null;
   lbName.innerHTML=esc(title||'Original source image');
   lbStyle.textContent='original source'; lbCount.textContent='';
-  lbPrev.disabled=true; lbNext.disabled=true; lbLabels.classList.remove('on'); lbColor.classList.remove('on');
+  lbPrev.disabled=true; lbNext.disabled=true; lbLabels.classList.remove('on'); lbColor.classList.remove('on'); updateLbBottomSpace();
   lbStage.innerHTML='';
   const load=loadingTile(); lbStage.appendChild(load);
   const im=document.createElement('img'); im.alt=title||''; im.referrerPolicy='no-referrer';
@@ -1511,7 +1564,7 @@ function render(){
     const cards=document.createElement('div'); cards.className='cards';
     set.microbes.forEach(m=>{
       const card=document.createElement('article'); card.className='card'; card.id='mc-'+set.id+'-'+m.key; card._m=m; card._set=set;
-      card.innerHTML='<h3 class="card-title">'+highlight(L(m.name))+'<span class="key">'+esc(m.key)+'</span></h3>';
+      card.innerHTML='<h3 class="card-title">'+highlight(L(m.name))+'<span class="key">'+esc(m.key)+'</span></h3>'+scaleHTML(m);
       cards.appendChild(card); allCards.push(card);
     });
     sec.appendChild(cards); setsWrap.appendChild(sec);

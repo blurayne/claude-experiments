@@ -18,6 +18,10 @@ Every microbe's `sem` image — labelled SVG where built, else the last render. 
 ![sem](keratinocyte.attempts/gen-01__gemini-2.5-flash-image.avif)
 [full log](../../keratinocyte.render.md)
 
+## Paneth cell (`paneth-cell`)
+![sem](paneth-cell.attempts/gen-01__gemini-2.5-flash-image.avif)
+[full log](../../paneth-cell.render.md)
+
 ## Urothelial cell (umbrella cell) (`urothelial-cell`)
 ![sem](urothelial-cell.attempts/gen-01__gemini-2.5-flash-image.avif)
 [full log](../../urothelial-cell.render.md)

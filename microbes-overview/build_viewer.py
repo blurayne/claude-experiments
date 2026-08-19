@@ -39,6 +39,8 @@ import re
 import sys
 from pathlib import Path
 
+from microbe_scale import SCALE, weight_class, weight_pg
+
 
 def slugify(name: str) -> str:
     """Match the microbe-render key convention: drop parentheticals, lowercase,
@@ -219,6 +221,18 @@ def build():
                 + [desc[a][l] for a in desc for l in ("en", "de")]
             ).lower()
 
+            # size/weight scale meter (see microbe_scale.py) — omitted if the
+            # key has no entry there rather than guessing a placeholder value
+            scale = None
+            if key in SCALE:
+                size_um, w_val, w_unit = SCALE[key]
+                scale = {
+                    "size_um": size_um,
+                    "weight_val": w_val,
+                    "weight_unit": w_unit,
+                    "weight_class": weight_class(weight_pg(w_val, w_unit)),
+                }
+
             microbes.append(
                 {
                     "key": key,
@@ -231,6 +245,7 @@ def build():
                     "coloring": coloring,
                     "audio": audio,
                     "ref": ref_info,
+                    "scale": scale,
                     "search": blob,
                     "_order": look.get("order", order.get(name_en, 10_000)),
                 }

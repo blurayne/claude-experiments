@@ -23,9 +23,9 @@ Full log: [`granulosa-cell.render.md`](granulosa-cell.render.md)
 ## Leydig cell (`leydig-cell`)
 Hormone factory of the testis: makes testosterone on orders from the pituitary. Drives sperm production and male traits.
 
-| reference |
-| --- |
-| ![reference](finals/leydig-cell__reference.avif) |
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/leydig-cell__textbook.avif) | ![sem](finals/leydig-cell__sem.avif) | ![3d](finals/leydig-cell__3d.avif) | ![watercolor](finals/leydig-cell__watercolor.avif) | ![reference](finals/leydig-cell__reference.avif) |
 
 **textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/leydig-cell.textbook.svg) · [HTML](theme/textbook/leydig-cell.textbook.html)
 ![textbook labelled](theme/textbook/leydig-cell.textbook.svg)
@@ -147,4 +147,4 @@ Full log: [`theca-cell.render.md`](theca-cell.render.md)
 
 **Set total: 71,383 tokens · $1.633**
 
-_Updated 2026-08-18 13:59 local._
+_Updated 2026-08-19 12:36 local._

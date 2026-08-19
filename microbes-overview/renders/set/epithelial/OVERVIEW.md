@@ -59,9 +59,9 @@ Full log: [`goblet-cell.render.md`](goblet-cell.render.md)
 ## Keratinocyte (skin cell) (`keratinocyte`)
 Polyhedral epidermal cell joined to its neighbours by desmosomal "spines", packed with keratin tonofilament bundles; differentiates upward from the basal layer, produces keratohyalin and lamellar bodies, and finally cornifies into the anucleate, waterproof outer skin barrier.
 
-| textbook | sem | 3d | watercolor |
-| --- | --- | --- | --- |
-| ![textbook](finals/keratinocyte__textbook.avif) | ![sem](finals/keratinocyte__sem.avif) | ![3d](finals/keratinocyte__3d.avif) | ![watercolor](finals/keratinocyte__watercolor.avif) |
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/keratinocyte__textbook.avif) | ![sem](finals/keratinocyte__sem.avif) | ![3d](finals/keratinocyte__3d.avif) | ![watercolor](finals/keratinocyte__watercolor.avif) | ![reference](finals/keratinocyte__reference.avif) |
 
 **textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/keratinocyte.textbook.svg) · [HTML](theme/textbook/keratinocyte.textbook.html)
 ![textbook labelled](theme/textbook/keratinocyte.textbook.svg)
@@ -77,6 +77,9 @@ Full log: [`keratinocyte.render.md`](keratinocyte.render.md)
 ## Paneth cell (`paneth-cell`)
 Pyramidal secretory epithelial cell at the base of small-intestinal crypts, packed with large apical eosinophilic secretory granules; releases antimicrobial defensins and lysozyme to protect the neighbouring intestinal stem-cell niche.
 
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/paneth-cell__textbook.avif) | ![sem](finals/paneth-cell__sem.avif) | ![3d](finals/paneth-cell__3d.avif) | ![watercolor](finals/paneth-cell__watercolor.avif) | ![reference](finals/paneth-cell__reference.avif) |
 
 **textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/paneth-cell.textbook.svg) · [HTML](theme/textbook/paneth-cell.textbook.html)
 ![textbook labelled](theme/textbook/paneth-cell.textbook.svg)
@@ -144,4 +147,4 @@ Full log: [`urothelial-cell.render.md`](urothelial-cell.render.md)
 
 **Set total: 53,575 tokens · $1.247**
 
-_Updated 2026-08-18 13:59 local._
+_Updated 2026-08-19 12:36 local._

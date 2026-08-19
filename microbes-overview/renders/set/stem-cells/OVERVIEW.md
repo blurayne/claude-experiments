@@ -95,9 +95,9 @@ Full log: [`mesenchymal-stem-cell.render.md`](mesenchymal-stem-cell.render.md)
 ## Neural stem cell (NSC) (`neural-stem-cell`)
 Precursor of all neural cell types (neurons, astrocytes, oligodendrocytes); a radial-glia-like cell with a single apical primary cilium and a long basal process, high nucleus-to-cytoplasm ratio and a nestin/GFAP intermediate-filament cytoskeleton. In the adult brain only active in a few niches (e.g. the hippocampus).
 
-| textbook | sem | 3d | watercolor |
-| --- | --- | --- | --- |
-| ![textbook](finals/neural-stem-cell__textbook.avif) | ![sem](finals/neural-stem-cell__sem.avif) | ![3d](finals/neural-stem-cell__3d.avif) | ![watercolor](finals/neural-stem-cell__watercolor.avif) |
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/neural-stem-cell__textbook.avif) | ![sem](finals/neural-stem-cell__sem.avif) | ![3d](finals/neural-stem-cell__3d.avif) | ![watercolor](finals/neural-stem-cell__watercolor.avif) | ![reference](finals/neural-stem-cell__reference.avif) |
 
 **textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/neural-stem-cell.textbook.svg) · [HTML](theme/textbook/neural-stem-cell.textbook.html)
 ![textbook labelled](theme/textbook/neural-stem-cell.textbook.svg)
@@ -147,4 +147,4 @@ Full log: [`neural-stem-cell.render.md`](neural-stem-cell.render.md)
 
 **Set total: 88,366 tokens · $2.009**
 
-_Updated 2026-08-18 13:59 local._
+_Updated 2026-08-19 12:36 local._

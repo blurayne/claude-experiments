@@ -6,6 +6,10 @@ Every microbe's `sem` image — labelled SVG where built, else the last render. 
 ![sem](granulosa-cell.attempts/gen-01__gemini-2.5-flash-image.avif)
 [full log](../../granulosa-cell.render.md)
 
+## Leydig cell (`leydig-cell`)
+![sem](leydig-cell.attempts/gen-01__gemini-2.5-flash-image.avif)
+[full log](../../leydig-cell.render.md)
+
 ## Oocyte (egg cell) (`oocyte`)
 ![sem](oocyte.attempts/gen-01__gemini-2.5-flash-image.avif)
 [full log](../../oocyte.render.md)

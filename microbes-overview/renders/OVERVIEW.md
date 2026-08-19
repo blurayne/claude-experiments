@@ -266,7 +266,7 @@ Polyhedral epidermal cell joined to its neighbours by desmosomal "spines", packe
 | Textbook | SEM | 3D | Watercolor |
 | --- | --- | --- | --- |
 | ![textbook](set/epithelial/finals/keratinocyte__textbook.avif) | ![sem](set/epithelial/finals/keratinocyte__sem.avif) | ![3d](set/epithelial/finals/keratinocyte__3d.avif) | ![watercolor](set/epithelial/finals/keratinocyte__watercolor.avif) |
-| — | **Textbook · labelled**<br>![textbook labelled](set/epithelial/theme/textbook/keratinocyte.textbook.svg) | **3D · labelled**<br>![3d labelled](set/epithelial/theme/3d/keratinocyte.3d.svg) | **Watercolor · labelled**<br>![watercolor labelled](set/epithelial/theme/watercolor/keratinocyte.watercolor.svg) |
+| **Reference (real)**<br>![reference](set/epithelial/finals/keratinocyte__reference.avif) | **Textbook · labelled**<br>![textbook labelled](set/epithelial/theme/textbook/keratinocyte.textbook.svg) | **3D · labelled**<br>![3d labelled](set/epithelial/theme/3d/keratinocyte.3d.svg) | **Watercolor · labelled**<br>![watercolor labelled](set/epithelial/theme/watercolor/keratinocyte.watercolor.svg) |
 
 | Audience | English | Deutsch |
 | --- | --- | --- |
@@ -280,6 +280,11 @@ Polyhedral epidermal cell joined to its neighbours by desmosomal "spines", packe
 
 ### Paneth cell (`paneth-cell`)
 Pyramidal secretory epithelial cell at the base of small-intestinal crypts, packed with large apical eosinophilic secretory granules; releases antimicrobial defensins and lysozyme to protect the neighbouring intestinal stem-cell niche.
+
+| Textbook | SEM | 3D | Watercolor |
+| --- | --- | --- | --- |
+| ![textbook](set/epithelial/finals/paneth-cell__textbook.avif) | ![sem](set/epithelial/finals/paneth-cell__sem.avif) | ![3d](set/epithelial/finals/paneth-cell__3d.avif) | ![watercolor](set/epithelial/finals/paneth-cell__watercolor.avif) |
+| **Reference (real)**<br>![reference](set/epithelial/finals/paneth-cell__reference.avif) | **Textbook · labelled**<br>![textbook labelled](set/epithelial/theme/textbook/paneth-cell.textbook.svg) | **3D · labelled**<br>![3d labelled](set/epithelial/theme/3d/paneth-cell.3d.svg) | **Watercolor · labelled**<br>![watercolor labelled](set/epithelial/theme/watercolor/paneth-cell.watercolor.svg) |
 
 | Audience | English | Deutsch |
 | --- | --- | --- |
@@ -1120,6 +1125,11 @@ Small cuboidal-to-columnar epithelial cell that forms the wall of the ovarian fo
 ### Leydig cell (`leydig-cell`)
 Hormone factory of the testis: makes testosterone on orders from the pituitary. Drives sperm production and male traits.
 
+| Textbook | SEM | 3D | Watercolor |
+| --- | --- | --- | --- |
+| ![textbook](set/reproductive/finals/leydig-cell__textbook.avif) | ![sem](set/reproductive/finals/leydig-cell__sem.avif) | ![3d](set/reproductive/finals/leydig-cell__3d.avif) | ![watercolor](set/reproductive/finals/leydig-cell__watercolor.avif) |
+| **Reference (real)**<br>![reference](set/reproductive/finals/leydig-cell__reference.avif) | **Textbook · labelled**<br>![textbook labelled](set/reproductive/theme/textbook/leydig-cell.textbook.svg) | **3D · labelled**<br>![3d labelled](set/reproductive/theme/3d/leydig-cell.3d.svg) | **Watercolor · labelled**<br>![watercolor labelled](set/reproductive/theme/watercolor/leydig-cell.watercolor.svg) |
+
 | Audience | English | Deutsch |
 | --- | --- | --- |
 | **Kids** | Meet the Leydig cell — the testis's own hormone factory worker, clocking in every single day! It doesn't move around or chase anything; it just sits quietly in little huddles between the sperm-making tubes, waiting for a radio call from the boss upstairs, the pituitary gland, which sends down the signal LH like a walkie-talkie order: "more testosterone, please!" The moment that message arrives, the Leydig cell's factory floor — a huge tangle of tiny production tubes — lights up, grabs cholesterol off the shelf, and assembles it, step by step, into fresh testosterone. It doesn't even bother storing the finished product in boxes; testosterone just walks straight out the door into the bloodstream the second it's made. From there it travels all over the body, deepening voices, building muscle, growing beards, and cheering on its neighbours the Sertoli cells as they nurse growing sperm cells. A quiet, tireless teammate that never asks for credit. | Das ist die Leydig-Zelle — die eigene Hormonfabrikarbeiterin des Hodens, die jeden einzelnen Tag zur Arbeit erscheint! Sie bewegt sich nicht herum und jagt nichts; sie sitzt einfach ruhig in kleinen Grüppchen zwischen den Spermien-Röhrchen und wartet auf einen Funkspruch vom Chef ganz oben, der Hypophyse, die das Signal LH schickt wie einen Walkie-Talkie-Befehl: "Mehr Testosteron, bitte!" Sobald diese Nachricht ankommt, leuchtet die Fabrikhalle der Leydig-Zelle auf — ein riesiges Gewirr winziger Produktionsröhrchen —, sie schnappt sich Cholesterin aus dem Regal und baut es Schritt für Schritt zu frischem Testosteron zusammen. Sie lagert das fertige Produkt nicht mal in Kisten ein; das Testosteron spaziert direkt aus der Tür in den Blutkreislauf, sobald es fertig ist. Von dort reist es durch den ganzen Körper, lässt Stimmen tiefer werden, Muskeln wachsen, Bärte sprießen und feuert nebenbei ihre Nachbarn, die Sertoli-Zellen, dabei an, wie sie die heranwachsenden Spermienzellen aufziehen. Eine stille, unermüdliche Teamkollegin, die nie nach Anerkennung fragt. |
@@ -1300,7 +1310,7 @@ Precursor of all neural cell types (neurons, astrocytes, oligodendrocytes); a ra
 | Textbook | SEM | 3D | Watercolor |
 | --- | --- | --- | --- |
 | ![textbook](set/stem-cells/finals/neural-stem-cell__textbook.avif) | ![sem](set/stem-cells/finals/neural-stem-cell__sem.avif) | ![3d](set/stem-cells/finals/neural-stem-cell__3d.avif) | ![watercolor](set/stem-cells/finals/neural-stem-cell__watercolor.avif) |
-| — | **Textbook · labelled**<br>![textbook labelled](set/stem-cells/theme/textbook/neural-stem-cell.textbook.svg) | **3D · labelled**<br>![3d labelled](set/stem-cells/theme/3d/neural-stem-cell.3d.svg) | **Watercolor · labelled**<br>![watercolor labelled](set/stem-cells/theme/watercolor/neural-stem-cell.watercolor.svg) |
+| **Reference (real)**<br>![reference](set/stem-cells/finals/neural-stem-cell__reference.avif) | **Textbook · labelled**<br>![textbook labelled](set/stem-cells/theme/textbook/neural-stem-cell.textbook.svg) | **3D · labelled**<br>![3d labelled](set/stem-cells/theme/3d/neural-stem-cell.3d.svg) | **Watercolor · labelled**<br>![watercolor labelled](set/stem-cells/theme/watercolor/neural-stem-cell.watercolor.svg) |
 
 | Audience | English | Deutsch |
 | --- | --- | --- |
