@@ -39,7 +39,7 @@ import re
 import sys
 from pathlib import Path
 
-from microbe_giant import GIANT
+from microbe_giant import GIANT, AI_CLEANED
 from microbe_scale import SCALE, weight_class, weight_pg
 
 
@@ -241,7 +241,8 @@ def build():
                 gp = next(iter((set_dir / "giant").glob(f"{key}.*")), None)
                 if gp:
                     gm_name, gm_url = GIANT[key]
-                    giant = {"img": gp.relative_to(HERE).as_posix(), "name": gm_name, "url": gm_url}
+                    giant = {"img": gp.relative_to(HERE).as_posix(), "name": gm_name,
+                             "url": gm_url, "cleaned": key in AI_CLEANED}
 
             microbes.append(
                 {

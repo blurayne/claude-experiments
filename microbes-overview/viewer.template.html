@@ -512,6 +512,13 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 0 0 2px #
    overlap the image (see #lbLabels/#lbColor "on" state, toggled together
    with this class from updateLbBottomSpace()). */
 .lightbox.has-bottom-ctl{ --lb-max-h:calc(89vh - 60px); }
+/* same idea for the plush provenance note, which sits under the picture */
+.lightbox.has-note{ --lb-max-h:calc(89vh - 34px); }
+.lightbox.has-note.has-bottom-ctl{ --lb-max-h:calc(89vh - 94px); }
+.lb-note{display:none; max-width:min(680px,92vw); text-align:center; font-size:12.5px;
+  line-height:1.45; color:var(--fg-dim); font-family:var(--font-ui)}
+.lightbox.has-note .lb-note{display:block}
+.lb-note b{color:var(--fg); font-weight:600}
 .lightbox.open{display:flex; animation:fade .2s var(--ease)}
 /* no origin box to zoom back into (opened from the "original source" link,
    or currently showing the src/original asset) — fade out in place instead
@@ -724,6 +731,7 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 0 0 2px #
   <button class="lb-nav prev" id="lbPrev" aria-label="Previous image">‹</button>
   <div class="lb-inner">
     <div class="lb-stage" id="lbStage"></div>
+    <div class="lb-note" id="lbNote"></div>
     <div class="lb-bar">
       <span class="name" id="lbName"></span>
       <span class="style" id="lbStyle"></span>
@@ -867,56 +875,31 @@ function applyLabels(svgEl){
 // bubble_svg()), find-or-create so pages without a bubble still get a title.
 // Shared by both the grid-box and lightbox coloring branches.
 const SVGNS='http://www.w3.org/2000/svg';
-// does a text block of width w/height h centred at (cx,y) land on actual ink
-// in the traced artwork path? Sampled with Path2D + isPointInPath — a real
-// hit-test against the vector outline, not a guess.
-function textOverlapsInk(artworkPathEl, cx, y, w, h){
-  if(!artworkPathEl) return false;
-  try{
-    if(!textOverlapsInk._ctx) textOverlapsInk._ctx=document.createElement('canvas').getContext('2d');
-    const ctx=textOverlapsInk._ctx;
-    const p2d=new Path2D(artworkPathEl.getAttribute('d'));
-    const top=y-h*0.78, bottom=y+h*0.28, left=cx-w/2, right=cx+w/2;
-    let hits=0,total=0;
-    for(let yy=top; yy<=bottom; yy+=10) for(let xx=left; xx<=right; xx+=10){
-      total++; if(ctx.isPointInPath(p2d,xx,yy,'evenodd')) hits++;
-    }
-    return total>0 && hits/total>0.025;
-  }catch(e){ return false; }
-}
+// The coloring page is A4 portrait (see coloring.py build_svg): the square
+// artwork is inset from the top, the speech bubble sticks out above it, and
+// the band below the artwork is left empty for this title — big, centred, and
+// shrunk only as far as it takes to fit the page width. Because that band can
+// never contain artwork ink, no collision handling is needed here.
 function injectColoringTitle(svgEl, m){
   if(!svgEl) return;
   let en=svgEl.querySelector('#labels-en'), de=svgEl.querySelector('#labels-de');
   if(!en){ en=document.createElementNS(SVGNS,'g'); en.setAttribute('id','labels-en'); en.setAttribute('class','labellayer'); svgEl.appendChild(en); }
   if(!de){ de=document.createElementNS(SVGNS,'g'); de.setAttribute('id','labels-de'); de.setAttribute('class','labellayer'); svgEl.appendChild(de); }
-  const vb=(svgEl.viewBox && svgEl.viewBox.baseVal && svgEl.viewBox.baseVal.width) || parseFloat(svgEl.getAttribute('width')) || 1080;
-  const cx=vb/2, FS=54;
-  // a speech bubble (if present) already occupies the top strip — sit the
-  // title below it instead of the two competing for the same space.
-  let titleY=60;
-  const bubble=svgEl.querySelector('path[fill="#fff"][stroke="#000"], rect[fill="#fff"][stroke="#000"]');
-  if(bubble){
-    try{ const bb=bubble.getBBox(); if(bb.height) titleY=bb.y+bb.height+50; }catch(e){}
-  }
-  const artwork=svgEl.querySelector('path[fill="#000000"]');
+  if(svgEl.querySelector('.page-title')) return;   // already injected
+  const vb=svgEl.viewBox && svgEl.viewBox.baseVal;
+  const W=(vb&&vb.width)||parseFloat(svgEl.getAttribute('width'))||1080;
+  const H=(vb&&vb.height)||parseFloat(svgEl.getAttribute('height'))||W;
+  const cx=W/2, maxW=W-W*0.11, baseY=H-Math.round(W*0.083);
   function mkTitle(txt){
-    const frag=document.createDocumentFragment();
-    const w=textW(txt,FS);
-    if(textOverlapsInk(artwork,cx,titleY,w,FS)){
-      const pad=16;
-      const bg=document.createElementNS(SVGNS,'rect');
-      bg.setAttribute('x',cx-w/2-pad); bg.setAttribute('y',titleY-FS*0.78-pad/2);
-      bg.setAttribute('width',w+pad*2); bg.setAttribute('height',FS*1.06+pad);
-      bg.setAttribute('rx',10); bg.setAttribute('fill','#fff');
-      frag.appendChild(bg);
-    }
+    let fs=Math.round(W*0.067);
+    while(fs>32 && textW(txt,fs)>maxW) fs-=2;
     const t=document.createElementNS(SVGNS,'text');
-    t.setAttribute('x',cx); t.setAttribute('y',titleY); t.setAttribute('text-anchor','middle');
-    t.setAttribute('font-size',FS); t.setAttribute('font-weight','700'); t.setAttribute('fill','#000');
+    t.setAttribute('class','page-title');
+    t.setAttribute('x',cx); t.setAttribute('y',baseY); t.setAttribute('text-anchor','middle');
+    t.setAttribute('font-size',fs); t.setAttribute('font-weight','700'); t.setAttribute('fill','#000');
     t.setAttribute('font-family','"Baloo 2","Comic Sans MS",system-ui,sans-serif');
     t.textContent=txt;
-    frag.appendChild(t);
-    return frag;
+    return t;
   }
   en.appendChild(mkTitle((m.name&&m.name.en)||''));
   de.appendChild(mkTitle((m.name&&m.name.de)||(m.name&&m.name.en)||''));
@@ -1262,7 +1245,8 @@ function addImg(box,src,fallback,labels,bw,contain){
 
 // ---- lightbox ------------------------------------------------------------
 const lb=$('#lightbox'), lbInner=$('.lb-inner'), lbStage=$('#lbStage'), lbName=$('#lbName'), lbStyle=$('#lbStyle'),
-      lbCount=$('#lbCount'), lbPrev=$('#lbPrev'), lbNext=$('#lbNext'), lbLabels=$('#lbLabels'), lbColor=$('#lbColor');
+      lbCount=$('#lbCount'), lbPrev=$('#lbPrev'), lbNext=$('#lbNext'), lbLabels=$('#lbLabels'), lbColor=$('#lbColor'),
+      lbNote=$('#lbNote');
 let navList=[], navIdx=-1, navMicrobe=null, lbLabelMode='none';
 // the reference (color/B&W/src) toggle's current mode, and whether it applies
 // to the picture currently on the stage (only the 'reference' style supports
@@ -1298,11 +1282,51 @@ function applyLabelsMode(svg){
     g.style.display=(lbLabelMode!=='none' && lang===lbLabelMode)?'inline':'none';
   });
 }
+// Offers exactly the languages the picture on the stage actually carries:
+// labelled diagrams ship en/la/de, a coloring page only en/de. On a coloring
+// page the text (title + speech bubble) is part of the drawing, so "no labels"
+// is not offered there — one of the two languages is always shown.
 function updateLbLabels(){
-  const svg=lbStage.querySelector('svg'); const has=svg && svg.querySelector('.labellayer');
-  if(has){ lbLabels.classList.add('on'); applyLabelsMode(svg);
-    lbLabels.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.m===lbLabelMode)); }
+  const svg=lbStage.querySelector('svg');
+  const langs=svg ? Array.from(svg.querySelectorAll('.labellayer'), g=>g.id.replace('labels-','')) : [];
+  if(langs.length){
+    const isColoring=!!svg.querySelector('.page-title');
+    if((lbLabelMode==='none' && isColoring) || (lbLabelMode!=='none' && !langs.includes(lbLabelMode)))
+      lbLabelMode = langs.includes(state.lang) ? state.lang : langs[0];
+    lbLabels.classList.add('on');
+    lbLabels.querySelectorAll('button').forEach(b=>{
+      const mode=b.dataset.m;
+      b.style.display = (mode==='none' ? !isColoring : langs.includes(mode)) ? '' : 'none';
+      b.setAttribute('aria-pressed', String(mode===lbLabelMode));
+    });
+    applyLabelsMode(svg);
+  }
   else lbLabels.classList.remove('on');
+  updateLbBottomSpace();
+}
+// Provenance note under a GIANTmicrobes plush photo: which product it actually
+// is (our mapping is deliberately strict — see microbe_giant.py — so the name
+// always names this very microbe), the caveat that a plush is a stylised
+// likeness and not a scale model, and the shop link when we have one.
+const GIANT_NOTE={
+  en:'Plush toy by <b>GIANTmicrobes</b> — a stylised likeness made as a gift and teaching toy, not a scale model. Product photo © GIANTmicrobes.',
+  de:'Plüschtier von <b>GIANTmicrobes</b> — eine stilisierte Nachbildung als Geschenk- und Lernspielzeug, kein maßstabsgetreues Modell. Produktfoto © GIANTmicrobes.'
+};
+const GIANT_CLEANED={
+  en:' The vendor printed a logo across this shot, so the lettering was retouched out and the toy’s own shape continued behind it.',
+  de:' Über diesem Foto lag ein Logo des Herstellers — die Schrift wurde wegretuschiert und die Form des Plüschtiers dahinter fortgeführt.'
+};
+function giantNote(m){
+  if(!(m && m.giant)) return '';
+  let h='<b>'+esc(m.giant.name)+'</b><br>'+L(GIANT_NOTE);
+  if(m.giant.cleaned) h+=L(GIANT_CLEANED);
+  if(m.giant.url) h+=' <a href="'+esc(m.giant.url)+'" target="_blank" rel="noopener">'+
+    (state.lang==='de'?'Zur Produktseite ⚓':'Product page ⚓')+'</a>';
+  return h;
+}
+function setLbNote(h){
+  lbNote.innerHTML=h||'';
+  lb.classList.toggle('has-note', !!h);
   updateLbBottomSpace();
 }
 // reserves room below the picture for the label/color toggle whenever either
@@ -1346,10 +1370,13 @@ function renderStage(m,opt){
     if(m.coloring){ const load=loadingTile(); lbStage.appendChild(load);
       const holder=document.createElement('div'); lbStage.appendChild(holder);
       getSvg(m.coloring).then(txt=>{ load.remove(); holder.innerHTML=txt;
-        const s=holder.querySelector('svg'); if(s){ sizeSvgFromViewBox(s); injectColoringTitle(s,m); } })
+        const s=holder.querySelector('svg');
+        if(s){ sizeSvgFromViewBox(s); injectColoringTitle(s,m); updateLbLabels(); } })
         .catch(()=>{ load.remove(); lbStage.appendChild(placeholder('no coloring page')); });
     } else lbStage.appendChild(placeholder('no coloring page'));
     updateLbColor(m, style);
+    updateLbLabels();
+    setLbNote('');
     return;
   }
   if(style==='giant'){
@@ -1358,10 +1385,12 @@ function renderStage(m,opt){
       im.onload=()=>load.remove();
       im.onerror=()=>{ load.remove(); im.remove(); lbStage.appendChild(placeholder('failed to load')); };
       im.src=m.giant.img; lbStage.appendChild(im);
-    } else lbStage.appendChild(placeholder('no plush match'));
+      setLbNote(giantNote(m));
+    } else { lbStage.appendChild(placeholder('no plush match')); setLbNote(''); }
     updateLbColor(m, style);
     return;
   }
+  setLbNote('');
   if(supports){
     const load=loadingTile(); lbStage.appendChild(load);
     const svg=overlaySvg(m,style); const imgNode=svg.querySelector('image');
@@ -1433,10 +1462,14 @@ function openLightbox(m,opt,originEl){
   // default the label switch: a previously-chosen mode (persisted) wins; else a
   // labelled box or "show labels on enlarge" starts in the current language
   // (Latin for scientists); otherwise labels start off.
-  lbLabelMode = state.lbLabelMode!=null && styleSupportsLabels(m,style)
-    ? state.lbLabelMode
-    : (labels || state.enlargeLabels) && styleSupportsLabels(m,style)
-      ? (state.aud==='sci'?'la':state.lang) : 'none';
+  // A coloring page always carries text (title + speech bubble), so it opens in
+  // a language — the persisted choice only if that is already a language.
+  lbLabelMode = style==='coloring'
+    ? ((state.lbLabelMode==='en'||state.lbLabelMode==='de') ? state.lbLabelMode : state.lang)
+    : state.lbLabelMode!=null && styleSupportsLabels(m,style)
+      ? state.lbLabelMode
+      : (labels || state.enlargeLabels) && styleSupportsLabels(m,style)
+        ? (state.aud==='sci'?'la':state.lang) : 'none';
   navList=buildNavList();
   navIdx=navList.findIndex(x=>x.m===m && x.opt===opt);
   if(navIdx<0){ navList=[{m,opt,setId:null}]; navIdx=0; }
@@ -1449,11 +1482,12 @@ function openLightbox(m,opt,originEl){
 function navBy(d){ showEntry(navIdx+d, true); }
 // the real micrograph's ORIGINAL source image, shown standalone (no prev/next,
 // not part of the cycling sequence) — always a plain fade, no zoom origin.
-function openStandalone(url, title, styleLabel){
+function openStandalone(url, title, styleLabel, note){
   navList=[]; navIdx=-1; navMicrobe=null; lbOriginEl=null;
   lbName.innerHTML=esc(title||'Original source image');
   lbStyle.textContent=styleLabel||'original source'; lbCount.textContent='';
-  lbPrev.disabled=true; lbNext.disabled=true; lbLabels.classList.remove('on'); lbColor.classList.remove('on'); updateLbBottomSpace();
+  lbPrev.disabled=true; lbNext.disabled=true; lbLabels.classList.remove('on'); lbColor.classList.remove('on');
+  setLbNote(note||''); updateLbBottomSpace();
   lbStage.innerHTML='';
   const load=loadingTile(); lbStage.appendChild(load);
   const im=document.createElement('img'); im.alt=title||''; im.referrerPolicy='no-referrer';
@@ -1468,7 +1502,8 @@ document.addEventListener('click',e=>{ const v=e.target.closest('.view-orig'); i
 // (the anchor-icon sibling, if present, is a plain external link and needs no
 // JS: target="_blank" opens the product page directly).
 document.addEventListener('click',e=>{ const v=e.target.closest('.cb-giant'); if(!v) return;
-  openStandalone(v.dataset.img, v.dataset.name+' — GIANTmicrobes plush', 'GIANTmicrobes plush'); });
+  const m=v.closest('.card')?._m;
+  openStandalone(v.dataset.img, v.dataset.name+' — GIANTmicrobes plush', 'GIANTmicrobes plush', giantNote(m)); });
 // Kids-mode "coloring page" shortcut buttons (shown when coloring isn't one of
 // the chosen boxes). Eye = open in the normal preview; Print = fetch the SVG
 // straight into #printArea and open the print dialog immediately, no preview.

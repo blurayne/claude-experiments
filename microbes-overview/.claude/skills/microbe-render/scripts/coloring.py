@@ -148,14 +148,34 @@ def _fit_text(txt: str, max_width: float, max_lines: int = 3,
     return _wrap_lines(txt, font_min, max_width), font_min
 
 
+# --- page geometry --------------------------------------------------------
+# The page is A4 portrait, not square. The traced artwork keeps its own 1:1
+# square and is inset from the top; the extra height gives the speech bubble a
+# margin to stick OUT of the picture into, and leaves a clear band at the
+# bottom for the big microbe title (injected per-language by the viewer).
+A4_RATIO = 297 / 210
+ART_TOP_FRAC = 0.176   # square artwork starts this far down (× page width)
+
+
+def page_height(size: int) -> int:
+    return round(size * A4_RATIO)
+
+
+def art_top(size: int) -> int:
+    return round(size * ART_TOP_FRAC)
+
+
 def bubble_svg(en: str, de: str, size: int) -> str:
     """A vector speech bubble (colourable outline) with EN/DE toggle text
     layers. Body + tail are ONE outline path (no seam where they'd otherwise
     overlap), and text auto-wraps/shrinks to fit within the bubble — sized to
-    whichever of EN/DE needs more room, so both languages fit the same box."""
+    whichever of EN/DE needs more room, so both languages fit the same box.
+
+    Sits in the page's top margin so the bubble reads as spoken *out of* the
+    picture, with only its tail dipping down into the artwork."""
     if not (en or de):
         return ""
-    bx, by, bw = size * 0.06, size * 0.05, size * 0.60
+    bx, by, bw = size * 0.065, size * 0.022, size * 0.65
     r = 34
     pad_x, line_gap = 44, 1.18
     text_max_w = bw - pad_x * 2
@@ -171,11 +191,13 @@ def bubble_svg(en: str, de: str, size: int) -> str:
     def block_h(lines, fsize):
         return len(lines) * fsize * line_gap
     content_h = max((block_h(lines, fsize) for lines, fsize in fitted.values()), default=46)
-    bh = max(size * 0.145, content_h + 70)
+    bh = max(size * 0.115, content_h + 60)
 
     # single outline: rounded rect with a triangular tail notched into the
-    # bottom edge — drawn as one continuous path so there's no seam.
-    tx1, tx2, ttx, tty = bx + 120, bx + 190, bx + 120, by + bh + 60
+    # bottom edge — drawn as one continuous path so there's no seam. The tail
+    # reaches past art_top() so it visibly points into the picture below.
+    tail_len = max(70, art_top(size) - (by + bh) + 90)
+    tx1, tx2, ttx, tty = bx + 130, bx + 205, bx + 115, by + bh + tail_len
     d = (
         f"M{bx+r:.0f},{by:.0f} "
         f"L{bx+bw-r:.0f},{by:.0f} "
@@ -210,11 +232,18 @@ def bubble_svg(en: str, de: str, size: int) -> str:
 
 
 def build_svg(d: str, microbe: str, size: int, en: str, de: str) -> str:
+    """Assemble the printable A4-portrait page: white sheet, the square traced
+    artwork inset from the top, then the speech bubble on top of it (drawn last
+    so its white fill masks any artwork ink it overlaps). The bottom band stays
+    empty — the viewer drops the big microbe title in there per language."""
+    ph, top = page_height(size), art_top(size)
     return (
-        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {size} {size}" '
+        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {size} {ph}" '
         f'role="img" aria-label="Coloring page of {esc(microbe)}">'
-        f'<rect x="0" y="0" width="{size}" height="{size}" fill="#ffffff"/>'
+        f'<rect x="0" y="0" width="{size}" height="{ph}" fill="#ffffff"/>'
+        f'<g transform="translate(0,{top})">'
         f'<path d="{d}" fill="#000000" fill-rule="evenodd"/>'
+        f'</g>'
         f'{bubble_svg(en, de, size)}'
         f'</svg>'
     )
