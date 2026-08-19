@@ -7,7 +7,7 @@
 <meta name="description" content="An interactive teaching atlas of AI-rendered, scientifically verified microbes and human cells — switchable by audience, language and picture style.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&family=Fredoka:wght@400;500;600;700&family=Baloo+2:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&family=Fredoka:wght@400;500;600;700&family=Baloo+2:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&family=Bungee&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Bangers&family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
 <style>
 /* ============================================================= THEME TOKENS */
 :root{
@@ -73,14 +73,33 @@ html[data-theme="ocean"]{
   --font-ui:"Quicksand",system-ui,sans-serif; --font-mono:"Quicksand",system-ui,sans-serif;
   --font-display:"Quicksand",system-ui,sans-serif; --display-spacing:0; --display-weight:700;
 }
+/* grim, irradiated-wasteland mood theme: toxic lime + rust warning-orange,
+   a stencilled display face and a glitchy terminal mono */
+html[data-theme="biomutant"]{
+  --accent:#a3e635; --accent2:#f97316; --accent-ink:#141a04;
+  --font-ui:"Rajdhani",system-ui,sans-serif; --font-mono:"Share Tech Mono",ui-monospace,monospace;
+  --font-display:"Bungee",system-ui,sans-serif; --display-spacing:.01em; --display-weight:400;
+}
+/* picture-book theme: shouty comic-book display face + a friendly rounded
+   body font (Comic Neue — the legible, non-cringe cousin of Comic Sans) */
+html[data-theme="kidsbook"]{
+  --accent:#fbbf24; --accent2:#38bdf8; --accent-ink:#241a02;
+  --font-ui:"Comic Neue",system-ui,sans-serif; --font-mono:"IBM Plex Mono",ui-monospace,monospace;
+  --font-display:"Bangers",system-ui,sans-serif; --display-spacing:.02em; --display-weight:400;
+}
 html[data-theme="candy"][data-mode="dark"]{ --bg:#1a0e1a; --bg2:#231327; }
 html[data-theme="candy"][data-mode="light"]{ --bg:#fff0f7; --bg2:#fff7fb; }
 html[data-theme="jungle"][data-mode="dark"]{ --bg:#0d160f; --bg2:#121d15; }
 html[data-theme="jungle"][data-mode="light"]{ --bg:#eefaef; --bg2:#f6fcf5; }
 html[data-theme="ocean"][data-mode="dark"]{ --bg:#08161d; --bg2:#0c1f28; }
+html[data-theme="biomutant"][data-mode="dark"]{ --bg:#120f09; --bg2:#181209; }
+html[data-theme="biomutant"][data-mode="light"]{ --bg:#f2f0e4; --bg2:#f8f6ec; }
+html[data-theme="kidsbook"][data-mode="dark"]{ --bg:#1c1608; --bg2:#241c0b; }
+html[data-theme="kidsbook"][data-mode="light"]{ --bg:#fff9ea; --bg2:#fffdf5; }
 html[data-theme="ocean"][data-mode="light"]{ --bg:#ecfbff; --bg2:#f4fdff; }
 /* playful bubbly backgrounds */
-html[data-theme="candy"] body::after, html[data-theme="jungle"] body::after, html[data-theme="ocean"] body::after{
+html[data-theme="candy"] body::after, html[data-theme="jungle"] body::after, html[data-theme="ocean"] body::after,
+html[data-theme="kidsbook"] body::after{
   background-image:
     radial-gradient(circle at 15% 20%, color-mix(in oklab,var(--accent) 34%,transparent) 0 10px, transparent 11px),
     radial-gradient(circle at 78% 34%, color-mix(in oklab,var(--accent2) 32%,transparent) 0 14px, transparent 15px),
@@ -90,15 +109,34 @@ html[data-theme="candy"] body::after, html[data-theme="jungle"] body::after, htm
 }
 /* colour-shaded (gradient) titles for the kid themes */
 html[data-theme="candy"] .hero h1, html[data-theme="jungle"] .hero h1, html[data-theme="ocean"] .hero h1,
+html[data-theme="kidsbook"] .hero h1,
 html[data-theme="candy"] .set-head h2, html[data-theme="jungle"] .set-head h2, html[data-theme="ocean"] .set-head h2,
+html[data-theme="kidsbook"] .set-head h2,
 html[data-theme="candy"] .card-title, html[data-theme="jungle"] .card-title, html[data-theme="ocean"] .card-title,
-html[data-theme="candy"] .brand .label, html[data-theme="jungle"] .brand .label, html[data-theme="ocean"] .brand .label{
+html[data-theme="kidsbook"] .card-title,
+html[data-theme="candy"] .brand .label, html[data-theme="jungle"] .brand .label, html[data-theme="ocean"] .brand .label,
+html[data-theme="kidsbook"] .brand .label{
   background:linear-gradient(92deg,var(--accent),var(--accent2) 78%);
   -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:transparent;
 }
-html[data-theme="candy"] .card-title .key, html[data-theme="jungle"] .card-title .key, html[data-theme="ocean"] .card-title .key{
+html[data-theme="candy"] .card-title .key, html[data-theme="jungle"] .card-title .key, html[data-theme="ocean"] .card-title .key,
+html[data-theme="kidsbook"] .card-title .key{
   -webkit-text-fill-color:var(--fg-faint); color:var(--fg-faint); background:none;
 }
+/* biomutant: grim rather than playful — hazard-stripe backdrop, solid
+   accent titles with a stencilled double-shadow instead of a gradient */
+html[data-theme="biomutant"] body::after{
+  background-image:repeating-linear-gradient(135deg,
+    color-mix(in oklab,var(--accent) 22%,transparent) 0 14px,
+    transparent 14px 28px,
+    color-mix(in oklab,var(--accent2) 18%,transparent) 28px 42px,
+    transparent 42px 56px);
+  opacity:.12;
+}
+html[data-theme="biomutant"] .hero h1, html[data-theme="biomutant"] .set-head h2, html[data-theme="biomutant"] .card-title{
+  color:var(--accent); text-shadow:2px 2px 0 color-mix(in oklab,var(--accent2) 70%,transparent);
+}
+html[data-theme="biomutant"] .hero h1 .em{ color:var(--accent2) }
 /* backgrounds per theme × mode */
 html[data-theme="lab"][data-mode="dark"]{ --bg:#0a0e0d; --bg2:#0f1413; }
 html[data-theme="lab"][data-mode="light"]{ --bg:#eef3f1; --bg2:#f6faf8; }
@@ -297,6 +335,8 @@ html[data-theme="petri"] body::after{
 .sw-candy{background:linear-gradient(135deg,#ff5da2 0 50%,#a78bfa 50% 100%)}
 .sw-jungle{background:linear-gradient(135deg,#3ec46d 0 50%,#f7b733 50% 100%)}
 .sw-ocean{background:linear-gradient(135deg,#22d3ee 0 50%,#fb7185 50% 100%)}
+.sw-biomutant{background:linear-gradient(135deg,#1a140d 0 50%,#a3e635 50% 100%)}
+.sw-kidsbook{background:linear-gradient(135deg,#fbbf24 0 50%,#38bdf8 50% 100%)}
 
 /* ==================================================================== MAIN */
 main{max-width:var(--maxw); margin:0 auto; padding:clamp(20px,4vw,44px) clamp(14px,3vw,28px) 120px}
@@ -648,6 +688,8 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 0 0 2px #
     <button class="theme-opt" data-theme="candy"><span class="swatch sw-candy"></span><span><span class="tt">Candy</span><br><span class="ts">Playful · pink+purple · Fredoka</span></span></button>
     <button class="theme-opt" data-theme="jungle"><span class="swatch sw-jungle"></span><span><span class="tt">Jungle</span><br><span class="ts">Playful · green+sun · Baloo</span></span></button>
     <button class="theme-opt" data-theme="ocean"><span class="swatch sw-ocean"></span><span><span class="tt">Ocean</span><br><span class="ts">Playful · aqua+coral · Quicksand</span></span></button>
+    <button class="theme-opt" data-theme="biomutant"><span class="swatch sw-biomutant"></span><span><span class="tt">Biomutant</span><br><span class="ts">Post-apocalyptic · toxic+rust · Bungee</span></span></button>
+    <button class="theme-opt" data-theme="kidsbook"><span class="swatch sw-kidsbook"></span><span><span class="tt">Storybook</span><br><span class="ts">Picture book · comic · Bangers</span></span></button>
   </div>
 </header>
 
@@ -951,7 +993,14 @@ function loadingTile(){
 }
 
 // ---- text helpers --------------------------------------------------------
-function esc(s){ return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+// A few scientific descriptions use <sup>...</sup> for notation like CD8⁺ or
+// CO₂ — esc() escapes everything (all our own authored content, never raw
+// user input), then re-opens just that one tag pair so it renders instead of
+// showing up as literal "<sup>" text.
+function esc(s){
+  return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))
+    .replace(/&lt;sup&gt;/g,'<sup>').replace(/&lt;\/sup&gt;/g,'</sup>');
+}
 function terms(){ return state.search.trim().toLowerCase().split(/\s+/).filter(t=>t.length>=2); }
 function highlight(text){
   const ts=terms(); if(!ts.length) return esc(text);
@@ -1516,11 +1565,19 @@ lbColor.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b 
 });
 
 // arrow keys: walk the enlarged sequence when the preview is open, otherwise jump
-// between microbe anchor positions in the page.
-function visibleCards(){ return allCards.filter(c=>c.style.display!=='none'); }
-// scroll to the previous(-1)/next(+1) microbe anchor relative to the top of view
+// between anchor positions in the page — every visible microbe card AND every
+// visible set heading/intro, in document order, so the up/down jump buttons
+// also stop at each set's title on the way through.
+function visibleJumpTargets(){
+  return $$('.set-head, .card').filter(el=>{
+    if(el.classList.contains('card')) return el.style.display!=='none';
+    const sec=el.closest('.set');
+    return sec && sec.style.display!=='none';
+  });
+}
+// scroll to the previous(-1)/next(+1) anchor relative to the top of view
 function jumpMicrobe(dir){
-  const list=visibleCards(); if(!list.length) return;
+  const list=visibleJumpTargets(); if(!list.length) return;
   const y=(parseInt(getComputedStyle(document.documentElement).getPropertyValue('--bar-h'))||58)+20;
   let target=null;
   if(dir>0){ target=list.find(c=>c.getBoundingClientRect().top > y+2); }
