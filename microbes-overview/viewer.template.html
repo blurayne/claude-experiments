@@ -437,6 +437,10 @@ html{ --wc1:#60a5fa; --wc2:#22d3ee; --wc3:#facc15; --wc4:#fb923c; --wc5:#f87171 
 .box:hover{border-color:var(--accent); transform:translateY(-2px)}
 .box img, .box svg{width:100%; height:100%; object-fit:cover; display:block}
 .box svg{object-fit:contain; background:var(--box-bg)}
+/* GIANTmicrobes product photos are padded on their own canvas — contain
+   (not cover) so the toy is never edge-cropped, on a white product-shot
+   backdrop since most of these have a transparent background */
+.box img.contain-fit{object-fit:contain; background:#fff}
 svg text{font-family:var(--font-ui)}
 .box .tag{
   position:absolute; left:8px; bottom:8px; z-index:3;
@@ -756,7 +760,7 @@ const html = document.documentElement;
 // ---- style options -------------------------------------------------------
 // "·gen" marks styles rendered by an AI image model (everything but the real
 // micrograph) so it's clear at a glance which pictures are not photographs.
-const STYLE_LABEL = {reference:'Real', sem:'SEM·gen', '3d':'3D·gen', textbook:'Textbook·gen', watercolor:'Watercolor·gen', coloring:'Coloring·gen'};
+const STYLE_LABEL = {reference:'Real', sem:'SEM·gen', '3d':'3D·gen', textbook:'Textbook·gen', watercolor:'Watercolor·gen', coloring:'Coloring·gen', giant:'GIANTmicrobes'};
 const OPTIONS = [
   ['none','— None —'],
   ['reference','Real (colored)'],
@@ -769,6 +773,7 @@ const OPTIONS = [
   ['watercolor','Watercolor · gen'],
   ['watercolor-l','Watercolor · gen · labelled'],
   ['coloring','Coloring · gen · B&W (kids)'],
+  ['giant','GIANTmicrobes plush'],
 ];
 const NUM_BOXES = 6;
 const DEFAULT_BOXES = ['reference','sem','3d','textbook-l','none','none'];
@@ -1173,6 +1178,12 @@ function loadBoxContent(box){
         const s=holder.querySelector('svg'); if(s){ s.removeAttribute('width'); s.removeAttribute('height'); injectColoringTitle(s,m); } })
         .catch(()=>{ sk.remove(); box.insertBefore(placeholder('no coloring page'), tag); });
     } else box.insertBefore(placeholder('no coloring page'), tag);
+  } else if(style==='giant'){
+    // GIANTmicrobes product photos are padded/centred on their own canvas,
+    // not full-bleed like our renders — contain+white keeps the toy whole
+    // instead of a cover-crop chopping its edges off.
+    if(m.giant) addImg(box, m.giant.img, null, false, false, true);
+    else box.insertBefore(placeholder('no plush match'), tag);
   } else if(hasOverlay){
     // live overlay: small AVIF + generated label layers (full lang/aud control).
     const svgEl=overlaySvg(m,style); const imgNode=svgEl.querySelector('image');
@@ -1201,13 +1212,14 @@ function getImgObs(){
   }),{rootMargin:'100% 0px'});
   return imgObs;
 }
-function addImg(box,src,fallback,labels,bw){
+function addImg(box,src,fallback,labels,bw,contain){
   const im=document.createElement('img'); im.decoding='async'; im.alt=''; if(bw) im.classList.add('bw');
+  if(contain) im.classList.add('contain-fit');
   const sk=loadingTile(); box.appendChild(sk); box.appendChild(im);
   loadRaster(src,box).then(ok=>{ sk.remove();
     if(ok){ im.src=src; }
     else{ im.remove();
-      if(fallback){ addImg(box, fallback, null, labels, bw); }
+      if(fallback){ addImg(box, fallback, null, labels, bw, contain); }
       else{ box.appendChild(placeholder(labels?'no labelled image':'failed to load')); } }
   });
 }
@@ -1228,6 +1240,7 @@ let lbOriginEl=null;
 
 function styleSupportsLabels(m,style){ return !!(m.lab && m.lab[style] && m.img && m.img[style]); }
 function boxHasAsset(m,opt){ if(opt==='none') return false; if(opt==='coloring') return !!m.coloring;
+  if(opt==='giant') return !!m.giant;
   const {style}=parseOpt(opt);
   return !!((m.img&&m.img[style]) || (m.svg&&m.svg[style])); }
 // Flat, swipe-able sequence of every viewable picture across the currently-visible
@@ -1300,6 +1313,16 @@ function renderStage(m,opt){
         const s=holder.querySelector('svg'); if(s){ sizeSvgFromViewBox(s); injectColoringTitle(s,m); } })
         .catch(()=>{ load.remove(); lbStage.appendChild(placeholder('no coloring page')); });
     } else lbStage.appendChild(placeholder('no coloring page'));
+    updateLbColor(m, style);
+    return;
+  }
+  if(style==='giant'){
+    if(m.giant){ const load=loadingTile(); lbStage.appendChild(load);
+      const im=document.createElement('img'); im.alt=L(m.name)+' — GIANTmicrobes plush';
+      im.onload=()=>load.remove();
+      im.onerror=()=>{ load.remove(); im.remove(); lbStage.appendChild(placeholder('failed to load')); };
+      im.src=m.giant.img; lbStage.appendChild(im);
+    } else lbStage.appendChild(placeholder('no plush match'));
     updateLbColor(m, style);
     return;
   }

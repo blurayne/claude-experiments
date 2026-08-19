@@ -5,23 +5,28 @@ img: path to the copied plush photo (renders/set/<set>/giant/<key>.<ext>),
      relative to this file's directory — filled in at build time by
      build_viewer.py, not stored here.
 name: the matched GIANTmicrobes product name, for reference/alt text.
-url: product page (riesenmikroben.de preferred, else giantmicrobes.com) —
-     None when no matching product listing was found.
+url: product page — riesenmikroben.de (DE) whenever that URL string
+     exists at all (even if the listing itself shows retired/out of
+     stock — the store page still resolves), else giantmicrobes.com
+     (US). None when no matching product listing was found.
 
 Several of our cell types map to the same GIANTmicrobes product where the
 brand only makes one generic plush for a whole category (e.g. every stem
 cell subtype shares their single "Stem Cell" plush; every antibody isotype
-shares their single "Antibody" plush). Sourced from
+shares their single "Antibody" plush). The 5 stem-cell entries specifically
+use the Gigantic-size product listing, not the standard one — the standard
+listing's only local photo was a 60x50 fallback thumbnail, while the
+Gigantic version has a proper full-size product photo. Sourced from
 /home/markusg/Private/claude-experiments/giant-microbes/merged_catalog.json.
 """
 
 # key -> (giantmicrobes product name, product url)
 GIANT = {
-    'embryonic-stem-cell': ('Stem Cell - Building Block Plush', 'https://www.riesenmikroben.de/products/stammzelle?locale=de'),
-    'induced-pluripotent-stem-cell': ('Stem Cell - Building Block Plush', 'https://www.riesenmikroben.de/products/stammzelle?locale=de'),
-    'hematopoietic-stem-cell': ('Stem Cell - Building Block Plush', 'https://www.riesenmikroben.de/products/stammzelle?locale=de'),
-    'mesenchymal-stem-cell': ('Stem Cell - Building Block Plush', 'https://www.riesenmikroben.de/products/stammzelle?locale=de'),
-    'neural-stem-cell': ('Stem Cell - Building Block Plush', 'https://www.riesenmikroben.de/products/stammzelle?locale=de'),
+    'embryonic-stem-cell': ('Stem Cell Gigantic 14"', 'https://www.riesenmikroben.de/products/gig_stammzelle?locale=de'),
+    'induced-pluripotent-stem-cell': ('Stem Cell Gigantic 14"', 'https://www.riesenmikroben.de/products/gig_stammzelle?locale=de'),
+    'hematopoietic-stem-cell': ('Stem Cell Gigantic 14"', 'https://www.riesenmikroben.de/products/gig_stammzelle?locale=de'),
+    'mesenchymal-stem-cell': ('Stem Cell Gigantic 14"', 'https://www.riesenmikroben.de/products/gig_stammzelle?locale=de'),
+    'neural-stem-cell': ('Stem Cell Gigantic 14"', 'https://www.riesenmikroben.de/products/gig_stammzelle?locale=de'),
     'keratinocyte': ('Skin Cell (Keratinocyte)', 'https://www.riesenmikroben.de/products/hautzelle?locale=de'),
     'neuron': ('Nerve Cell (Neuron)', 'https://www.riesenmikroben.de/products/nervenzelle?locale=de'),
     'motor-neuron': ('Nerve Cell (Neuron)', 'https://www.riesenmikroben.de/products/nervenzelle?locale=de'),
