@@ -308,6 +308,8 @@ html[data-theme="petri"] body::after{
 .menu-opt{display:flex; align-items:center; gap:10px; margin-top:12px; padding-top:12px;
   border-top:1px solid var(--border); font-size:13px; color:var(--fg); cursor:pointer}
 .menu-opt input{accent-color:var(--accent); width:16px; height:16px; cursor:pointer}
+/* consecutive options share one divider above the group, not one each */
+.menu-opt + .menu-opt{margin-top:8px; padding-top:0; border-top:0}
 
 /* pictures chooser */
 .pics-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px}
@@ -473,12 +475,13 @@ svg text{font-family:var(--font-ui)}
 .desc .src a{color:var(--accent); text-transform:none; letter-spacing:0; word-break:break-all;
   text-decoration:underline; text-underline-offset:2px}
 /* item 5: kids-mode shortcut to a coloring page not currently in the box layout */
-.coloring-actions{display:flex; gap:8px; margin-top:14px}
+.coloring-actions{display:flex; gap:8px; margin-top:14px; flex-wrap:wrap}
+.giant-actions{display:inline-flex; gap:8px}
 .cb-btn{display:inline-flex; align-items:center; gap:7px; font-family:var(--font-ui); font-size:12.5px; font-weight:600;
   color:var(--fg); background:var(--card); border:1px solid var(--border); border-radius:999px; padding:7px 13px; cursor:pointer;
-  transition:border-color .15s, background .15s}
+  transition:border-color .15s, background .15s; text-decoration:none}
 .cb-btn:hover{border-color:var(--accent); background:var(--card-hi)}
-.cb-print{padding:7px 11px; font-size:15px}
+.cb-print, .cb-giant-link{padding:7px 11px; font-size:15px}
 /* search highlight: always plain black/white (never the theme accent) so matches
    stay unmistakably prominent regardless of theme */
 mark{border-radius:3px; padding:0 3px; font-weight:700}
@@ -670,6 +673,7 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 0 0 2px #
     <!-- Item 14/18: pinned footer, outside the scrollable #navTree, always visible -->
     <div class="menu-footer">
       <label class="menu-opt"><input type="checkbox" id="enlargeLabels"> Show labels on enlarge</label>
+      <label class="menu-opt"><input type="checkbox" id="showGiant"> Show GIANTmicrobes plush</label>
       <div class="menu-count" id="menuCount"></div>
     </div>
   </nav>
@@ -790,7 +794,7 @@ function parseOpt(v){
 const LS='microbes-viewer-v1';
 const state = Object.assign({
   aud:'kids', lang:'en', theme:'petri', mode:'dark',
-  boxes:DEFAULT_BOXES.slice(), enlargeLabels:true, search:'',
+  boxes:DEFAULT_BOXES.slice(), enlargeLabels:true, showGiant:true, search:'',
   lbLabelMode:null, lbBw:null, lbSrc:null
 }, load());
 // normalise a persisted (possibly older/shorter) box array to NUM_BOXES slots
@@ -1085,14 +1089,26 @@ function descHTML(m){
       s+='<br><a href="'+esc(m.ref.url)+'" target="_blank" rel="noopener">'+shown+'</a>';
     h+=s+'</div>';
   }
-  // Kids mode: if this microbe HAS a coloring page but it isn't one of the
-  // chosen boxes, offer quick access anyway — an eye button opens it in the
-  // preview, a print button sends it straight to the print dialog.
-  if(state.aud==='kids' && m.coloring && !state.boxes.includes('coloring')){
-    h+='<div class="coloring-actions">'+
-       '<button type="button" class="cb-btn cb-eye" title="Preview coloring page" aria-label="Preview coloring page">👁 Coloring page</button>'+
-       '<button type="button" class="cb-btn cb-print" title="Print coloring page" aria-label="Print coloring page">⎙</button>'+
-       '</div>';
+  // Quick-action row: a GIANTmicrobes plush photo (if we matched one and the
+  // menu toggle has it on) comes first, then — kids mode only — coloring
+  // page shortcuts if this microbe has one that isn't already a chosen box.
+  const showGiant = state.showGiant && m.giant;
+  const showColoring = state.aud==='kids' && m.coloring && !state.boxes.includes('coloring');
+  if(showGiant || showColoring){
+    h+='<div class="coloring-actions">';
+    if(showGiant){
+      h+='<span class="giant-actions">'+
+        '<button type="button" class="cb-btn cb-giant" data-img="'+esc(m.giant.img)+'" data-name="'+esc(L(m.name))+'" '+
+          'title="Preview GIANTmicrobes plush toy" aria-label="Preview GIANTmicrobes plush toy">🧸 Plush toy</button>'+
+        (m.giant.url ? '<a class="cb-btn cb-giant-link" href="'+esc(m.giant.url)+'" target="_blank" rel="noopener" '+
+          'title="Open product page" aria-label="Open product page">⚓</a>' : '')+
+        '</span>';
+    }
+    if(showColoring){
+      h+='<button type="button" class="cb-btn cb-eye" title="Preview coloring page" aria-label="Preview coloring page">👁 Coloring page</button>'+
+         '<button type="button" class="cb-btn cb-print" title="Print coloring page" aria-label="Print coloring page">⎙</button>';
+    }
+    h+='</div>';
   }
   return h;
 }
@@ -1374,10 +1390,10 @@ function openLightbox(m,opt,originEl){
 function navBy(d){ showEntry(navIdx+d, true); }
 // the real micrograph's ORIGINAL source image, shown standalone (no prev/next,
 // not part of the cycling sequence) — always a plain fade, no zoom origin.
-function openStandalone(url, title){
+function openStandalone(url, title, styleLabel){
   navList=[]; navIdx=-1; navMicrobe=null; lbOriginEl=null;
   lbName.innerHTML=esc(title||'Original source image');
-  lbStyle.textContent='original source'; lbCount.textContent='';
+  lbStyle.textContent=styleLabel||'original source'; lbCount.textContent='';
   lbPrev.disabled=true; lbNext.disabled=true; lbLabels.classList.remove('on'); lbColor.classList.remove('on'); updateLbBottomSpace();
   lbStage.innerHTML='';
   const load=loadingTile(); lbStage.appendChild(load);
@@ -1389,6 +1405,11 @@ function openStandalone(url, title){
 }
 document.addEventListener('click',e=>{ const v=e.target.closest('.view-orig'); if(!v) return;
   e.preventDefault(); openStandalone(v.dataset.img, v.dataset.name+' — original'); });
+// GIANTmicrobes plush quick-preview — same standalone flow as "view original"
+// (the anchor-icon sibling, if present, is a plain external link and needs no
+// JS: target="_blank" opens the product page directly).
+document.addEventListener('click',e=>{ const v=e.target.closest('.cb-giant'); if(!v) return;
+  openStandalone(v.dataset.img, v.dataset.name+' — GIANTmicrobes plush', 'GIANTmicrobes plush'); });
 // Kids-mode "coloring page" shortcut buttons (shown when coloring isn't one of
 // the chosen boxes). Eye = open in the normal preview; Print = fetch the SVG
 // straight into #printArea and open the print dialog immediately, no preview.
@@ -1738,6 +1759,7 @@ function syncToggles(){
   $$('#themePanel .theme-opt').forEach(b=>b.setAttribute('aria-pressed', b.dataset.theme===state.theme));
   $('#modeBtn').textContent = state.mode==='dark'?'☾':'☀';
   $('#enlargeLabels').checked = state.enlargeLabels;
+  $('#showGiant').checked = state.showGiant;
   html.dataset.theme=state.theme; html.dataset.mode=state.mode;
 }
 $('#audSeg').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b)return;
@@ -1751,6 +1773,7 @@ $('#langSeg').addEventListener('click',e=>{const b=e.target.closest('button'); i
 $('#modeBtn').addEventListener('click',()=>{ state.mode=state.mode==='dark'?'light':'dark'; save(); syncToggles(); });
 $$('#themePanel .theme-opt').forEach(b=>b.addEventListener('click',()=>{ state.theme=b.dataset.theme; save(); syncToggles(); closePanels(); }));
 $('#enlargeLabels').addEventListener('change',e=>{ state.enlargeLabels=e.target.checked; save(); });
+$('#showGiant').addEventListener('change',e=>{ state.showGiant=e.target.checked; save(); rebuildBoxes(); });
 
 // search — 350ms debounce so results don't flicker while typing; once it fires,
 // growl the match count (only while there's an active query). Clearing the

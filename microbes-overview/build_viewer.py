@@ -39,6 +39,7 @@ import re
 import sys
 from pathlib import Path
 
+from microbe_giant import GIANT
 from microbe_scale import SCALE, weight_class, weight_pg
 
 
@@ -233,6 +234,15 @@ def build():
                     "weight_class": weight_class(weight_pg(w_val, w_unit)),
                 }
 
+            # matching GIANTmicrobes plush photo, if one was copied in under
+            # renders/set/<set>/giant/<key>.* (see microbe_giant.py)
+            giant = None
+            if key in GIANT:
+                gp = next(iter((set_dir / "giant").glob(f"{key}.*")), None)
+                if gp:
+                    gm_name, gm_url = GIANT[key]
+                    giant = {"img": gp.relative_to(HERE).as_posix(), "name": gm_name, "url": gm_url}
+
             microbes.append(
                 {
                     "key": key,
@@ -246,6 +256,7 @@ def build():
                     "audio": audio,
                     "ref": ref_info,
                     "scale": scale,
+                    "giant": giant,
                     "search": blob,
                     "_order": look.get("order", order.get(name_en, 10_000)),
                 }
