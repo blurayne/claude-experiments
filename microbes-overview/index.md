@@ -76,6 +76,7 @@ labelled SVG with switchable Latin/English/German layers, and logs everything.
 - Skill: [`.claude/skills/microbe-render/`](.claude/skills/microbe-render/) (`SKILL.md`, `SPEC.md`, `reference/`, `scripts/`).
 - Per-microbe logs + images: [`renders/`](renders/) (e.g. [`rod-bacterium`](renders/set/pathogens-generic/rod-bacterium.render.md)).
 - Overview table with tokens/costs: [`RENDER-STATUS.md`](RENDER-STATUS.md).
+- GIANTmicrobes plush links — which of their microbes are the proven sellers, which of ours already match one, and which are worth adding next: [`GIANTMICROBES.md`](GIANTMICROBES.md).
 
 PNG masters and HEIC archival copies stay local (git-ignored); committed images are
 the web-safe AVIF plus the SVG/HTML overlays.
