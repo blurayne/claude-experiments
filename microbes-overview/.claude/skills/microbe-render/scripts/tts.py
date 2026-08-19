@@ -149,6 +149,24 @@ def main():
     for s in data["sets"]:
         if a.set_ and s["id"] != a.set_:
             continue
+        # NOTE: the audio folder lives at renders/set/<FOLDER>/audio — folder is
+        # usually == id, EXCEPT page "pathogens" -> folder "pathogens-generic"
+        # (same PAGE_TO_FOLDER remap as build_viewer.py). Using s["id"] here
+        # silently wrote a whole set's audio into a folder build_viewer.py never
+        # reads from — always use s["folder"].
+        folder = s["folder"]
+        # the set's own intro paragraph (--microbe doesn't apply to this job —
+        # it's not a microbe). Leading underscore avoids ever colliding with a
+        # real microbe key.
+        if not a.microbe:
+            for lang in langs:
+                text = (s.get("desc", {}).get("kids", {}) or {}).get(lang, "")
+                if not text.strip():
+                    continue
+                base = HERE / "renders" / "set" / folder / "audio" / f"_set-intro.kids-{lang}"
+                mp3_path = base.parent / (base.name + ".mp3")
+                json_path = base.parent / (base.name + ".json")
+                jobs.append((s["id"], "_set-intro", lang, text, mp3_path, json_path))
         for m in s["microbes"]:
             if a.microbe and m["key"] != a.microbe:
                 continue
@@ -156,7 +174,7 @@ def main():
                 text = (m.get("desc", {}).get("kids", {}) or {}).get(lang, "")
                 if not text.strip():
                     continue
-                base = HERE / "renders" / "set" / s["id"] / "audio" / f"{m['key']}.kids-{lang}"
+                base = HERE / "renders" / "set" / folder / "audio" / f"{m['key']}.kids-{lang}"
                 # NOTE: Path.with_suffix() would treat ".kids-en" as the suffix to
                 # replace (it's text after the last dot) and silently drop it —
                 # append the extension via string concat instead.

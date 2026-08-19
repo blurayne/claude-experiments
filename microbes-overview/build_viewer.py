@@ -240,6 +240,19 @@ def build():
         microbes.sort(key=lambda m: (m.pop("_order"), m["key"]))
         total_microbes += len(microbes)
 
+        # the set's own kids-mode narration (same pipeline as per-microbe audio,
+        # keyed with a leading underscore so it can't collide with a microbe key)
+        set_audio = {}
+        for lang in ("en", "de"):
+            abase = set_dir / "audio" / f"_set-intro.kids-{lang}"
+            amp3, ajson = abase.with_name(abase.name + ".mp3"), abase.with_name(abase.name + ".json")
+            if amp3.exists() and ajson.exists():
+                try:
+                    words = json.loads(ajson.read_text())
+                except Exception:
+                    words = []
+                set_audio[lang] = {"src": amp3.relative_to(HERE).as_posix(), "words": words}
+
         sets_out.append(
             {
                 "id": page["id"],
@@ -249,10 +262,21 @@ def build():
                     "en": page.get("subtitle_en", ""),
                     "de": page.get("subtitle_de", ""),
                 },
-                "description": {
-                    "en": page.get("description_en", ""),
-                    "de": fix_de(page.get("description_de", "")),
+                "desc": {
+                    "kids": {
+                        "en": page.get("description_kids_en", ""),
+                        "de": fix_de(page.get("description_kids_de", "")),
+                    },
+                    "adults": {
+                        "en": page.get("description_adults_en", ""),
+                        "de": fix_de(page.get("description_adults_de", "")),
+                    },
+                    "sci": {
+                        "en": page.get("description_en", ""),
+                        "de": fix_de(page.get("description_de", "")),
+                    },
                 },
+                "audio": set_audio,
                 "microbes": microbes,
             }
         )

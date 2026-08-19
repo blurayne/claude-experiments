@@ -317,7 +317,11 @@ main{max-width:var(--maxw); margin:0 auto; padding:clamp(20px,4vw,44px) clamp(14
   color:var(--accent); margin-bottom:8px}
 .set-head h2{font-family:var(--font-display); font-weight:var(--display-weight); letter-spacing:var(--display-spacing);
   font-size:clamp(22px,3.4vw,32px); margin:0 0 10px}
-.set-head p{color:var(--fg-dim); font-size:14.5px; line-height:1.62; margin:0}
+.set-head .set-desc{color:var(--fg-dim); font-size:14.5px; line-height:1.62; margin:0}
+.set-head .set-desc.sci{font-size:13.5px; line-height:1.6}
+.set-head .set-desc .w{transition:background-color .12s, color .12s; border-radius:3px}
+.set-head .set-desc .w.said{color:var(--fg-dim)}
+.set-head .set-desc .w.active{background:var(--accent); color:var(--accent-ink); padding:0 2px; margin:0 -2px}
 
 .cards{display:flex; flex-direction:column; gap:26px}
 .card{scroll-margin-top:calc(var(--bar-h) + 14px)}
@@ -325,10 +329,18 @@ main{max-width:var(--maxw); margin:0 auto; padding:clamp(20px,4vw,44px) clamp(14
   margin:0 0 14px; display:flex; align-items:center; gap:11px; flex-wrap:wrap}
 .card-title .key{font-family:var(--font-mono); font-size:11px; color:var(--fg-faint);
   border:1px solid var(--border); border-radius:6px; padding:2px 7px; font-weight:400}
-/* kids-mode narration controls, right of the title. The stop button's slot is
-   always reserved (kept in the layout at width 0→auto) so it fades in/out
-   without shifting the play button or wrapping the title. */
-.audio-ctl{display:inline-flex; align-items:center; gap:6px; margin-left:2px}
+/* kids-mode narration controls. The stop button's slot is always reserved
+   (kept in the layout at width 0→auto) so it fades in/out without shifting
+   the play button. Two placement contexts:
+   - a microbe's .desc: on mobile it floats at the right edge of the kids
+     paragraph (text wraps around it); on desktop it sits beside the
+     "For Kids" audience tag instead (that tag only shows in that layout).
+   - a set's .set-head: always sits right next to the set title. */
+.audio-ctl{display:inline-flex; align-items:center; gap:6px}
+.desc .audio-ctl{float:right; margin:1px 0 8px 12px}
+@media(min-width:860px){ .desc .audio-ctl{float:none; vertical-align:middle; margin:0 0 9px 10px} }
+.set-head h2{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+.set-head .audio-ctl{vertical-align:middle}
 .audio-play{display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px;
   border-radius:50%; border:1px solid var(--border); background:var(--card); color:var(--fg);
   cursor:pointer; flex:none; font-size:12px; transition:border-color .15s, background .15s, transform .15s}
@@ -393,8 +405,9 @@ svg text{font-family:var(--font-ui)}
 .desc .aud-tag{font-family:var(--font-mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase;
   color:var(--accent); margin-bottom:9px; display:none}
 /* the audience tag only earns its keep when text sits aside the images, i.e. the
-   2-column desktop layout (matches the .card-body breakpoint above) */
-@media(min-width:860px){ .desc .aud-tag{display:block} }
+   2-column desktop layout (matches the .card-body breakpoint above); inline-flex
+   (not block) so the narration controls can sit right beside it on the same line */
+@media(min-width:860px){ .desc .aud-tag{display:inline-flex; align-items:center} }
 .desc .prose{font-size:14.5px; line-height:1.68; color:var(--fg); margin:0}
 .desc .prose.sci{font-size:13.5px; line-height:1.6}
 .desc .src{font-family:var(--font-mono); font-size:10.5px; letter-spacing:.09em; text-transform:uppercase;
@@ -429,7 +442,12 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 0 0 2px #
   background:color-mix(in oklab, #000 68%, transparent); backdrop-filter:blur(8px);
 }
 .lightbox.open{display:flex; animation:fade .2s var(--ease)}
+/* no origin box to zoom back into (opened from the "original source" link,
+   or currently showing the src/original asset) — fade out in place instead
+   of vanishing instantly on close. */
+.lightbox.closing{display:flex; animation:fadeOut .2s var(--ease) forwards}
 @keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes fadeOut{from{opacity:1}to{opacity:0}}
 /* Scale the preview to fill as much of the browser window as it can — sized
    purely from the viewport, with no cap at the render's native 1080² (some
    upscaling blur on very large screens is expected and accepted). */
@@ -649,6 +667,7 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 0 0 2px #
   <div class="lb-color seg" id="lbColor" role="group" aria-label="Color mode">
     <button data-c="color" title="Color">Color</button>
     <button data-c="bw" title="Black &amp; white">B&amp;W</button>
+    <button data-c="src" title="Original unedited source photo">Src</button>
   </div>
 </div>
 
@@ -682,6 +701,16 @@ const OPTIONS = [
 ];
 const NUM_BOXES = 6;
 const DEFAULT_BOXES = ['reference','sem','3d','textbook-l','none','none'];
+// FEATURE TOGGLE — flip to false to revert to the old behavior (whole card
+// bodies, incl. all their pictures, built/torn down lazily as they scroll
+// in/out of view). When true (default): every card's structure (title, lead,
+// picture-tile shells, description text) is built immediately for the WHOLE
+// page — nothing pops in/out on scroll, so card heights never change and
+// prev/next navigation in the lightbox never jumps. Only the actual picture
+// bytes stay lazy, fetched only once a tile is within one screen height of
+// the viewport (see imgObs below) — each tile already reserves its own
+// square footprint via aspect-ratio:1/1, so loading one in doesn't reflow.
+const FEATURE_EAGER_STRUCTURE = true;
 // reference-bw reuses the reference asset, just rendered with a CSS grayscale
 // filter (the .bw class), so it parses to the same style as 'reference'.
 function parseOpt(v){
@@ -695,7 +724,7 @@ const LS='microbes-viewer-v1';
 const state = Object.assign({
   aud:'kids', lang:'en', theme:'petri', mode:'dark',
   boxes:DEFAULT_BOXES.slice(), enlargeLabels:true, search:'',
-  lbLabelMode:null, lbBw:null
+  lbLabelMode:null, lbBw:null, lbSrc:null
 }, load());
 // normalise a persisted (possibly older/shorter) box array to NUM_BOXES slots
 if(!Array.isArray(state.boxes)) state.boxes=DEFAULT_BOXES.slice();
@@ -930,11 +959,14 @@ function proseHTML(m){
     return a.words.map((w,i)=>'<span class="w" data-i="'+i+'">'+esc(w.w)+'</span>').join(' ');
   return highlight(audText(m));
 }
-// play/pause + stop controls, right of the card title (kids mode, narrated
-// microbes only — see playback engine below for the click handling)
+// play/pause + stop controls (kids mode, narrated entities only — see
+// playback engine below for the click handling). Shared by microbe cards
+// AND set-intro paragraphs: on mobile it sits at the right edge of the prose
+// text (float), on desktop next to the "For Kids" audience tag instead —
+// see the .audio-ctl CSS for the breakpoint switch.
 function audioCtlHTML(m){
   if(!audioFor(m)) return '';
-  return '<span class="audio-ctl" data-key="'+esc(m.key)+'">'+
+  return '<span class="audio-ctl" data-key="'+esc(m.key||m.id)+'">'+
     '<button type="button" class="audio-play" title="Play narration" aria-label="Play narration" aria-pressed="false">'+
       '<span class="ic-play">▶</span><span class="ic-pause">❚❚</span></button>'+
     '<button type="button" class="audio-stop" title="Stop narration" aria-label="Stop narration" tabindex="-1">■</button>'+
@@ -943,7 +975,7 @@ function audioCtlHTML(m){
 
 // ---- build one microbe card body ----------------------------------------
 function descHTML(m){
-  let h='<div class="aud-tag">'+esc(L(AUD_LABEL[state.aud]))+'</div>'+
+  let h='<div class="aud-tag">'+esc(L(AUD_LABEL[state.aud]))+'</div>'+audioCtlHTML(m)+
     '<p class="prose'+(state.aud==='sci'?' sci':'')+'">'+proseHTML(m)+'</p>';
   // when a real micrograph is on display, credit its source (with full link)
   if(state.boxes.includes('reference') && m.ref && (m.ref.url || m.ref.license)){
@@ -983,6 +1015,10 @@ function buildCard(card){
   body.appendChild(grid); body.appendChild(desc);
   card.appendChild(lead); card.appendChild(body);
   card._built=true; card._body=body; card._lead=lead;
+  // the .audio-ctl just got rebuilt fresh — if this microbe's narration is
+  // mid-playback (its <audio> element lives outside the DOM, in audioCache,
+  // so teardown/rebuild never touched it), reflect that on the new markup.
+  syncCtl(card);
 }
 function teardownCard(card){
   if(!card._built) return;
@@ -994,40 +1030,66 @@ function makeBox(m,opt){
   const {style,labels,bw}=parseOpt(opt);
   const box=document.createElement('button'); box.className='box'; box.type='button';
   box.setAttribute('aria-label', L(m.name)+' — '+ (STYLE_LABEL[style]||style) + (bw?' B&W':'') + (labels?' labelled':''));
+  box._m=m; box._opt=opt;
   const tag=document.createElement('span'); tag.className='tag';
   tag.textContent=(STYLE_LABEL[style]||style)+(bw?' B&W':'')+(labels?' ·L':'');
+  box.appendChild(tag);
+  box.addEventListener('click',()=>openLightbox(m,opt,box));
+  if(FEATURE_EAGER_STRUCTURE){
+    // shell only — the tile already reserves its footprint (aspect-ratio:1/1
+    // in CSS), so a loading skeleton is enough until it scrolls near view.
+    box.appendChild(loadingTile());
+    getImgObs().observe(box);
+  } else {
+    loadBoxContent(box);
+  }
+  return box;
+}
+// the actual picture fetch, deferred (behind imgObs) when FEATURE_EAGER_STRUCTURE
+// is on, or run immediately from makeBox otherwise — same logic either way.
+function loadBoxContent(box){
+  const m=box._m, opt=box._opt; if(!m) return;
+  const {style,labels,bw}=parseOpt(opt);
+  box.querySelectorAll('.ph').forEach(p=>p.remove()); // the makeBox skeleton, if any
   const hasOverlay = labels && m.lab && m.lab[style] && m.img && m.img[style];
   const hasImg = m.img && m.img[style];
+  const tag=box.querySelector('.tag');
   if(style==='coloring'){
     if(m.coloring){
       const sk=loadingTile(); const holder=document.createElement('div');
       holder.style.width='100%'; holder.style.height='100%';
-      box.appendChild(sk); box.appendChild(holder);
+      box.insertBefore(holder, tag); box.insertBefore(sk, holder);
       getSvg(m.coloring).then(txt=>{ sk.remove(); holder.innerHTML=txt;
         const s=holder.querySelector('svg'); if(s){ s.removeAttribute('width'); s.removeAttribute('height'); injectColoringTitle(s,m); } })
-        .catch(()=>{ sk.remove(); box.appendChild(placeholder('no coloring page')); });
-    } else box.appendChild(placeholder('no coloring page'));
+        .catch(()=>{ sk.remove(); box.insertBefore(placeholder('no coloring page'), tag); });
+    } else box.insertBefore(placeholder('no coloring page'), tag);
   } else if(hasOverlay){
     // live overlay: small AVIF + generated label layers (full lang/aud control).
     const svgEl=overlaySvg(m,style); const imgNode=svgEl.querySelector('image');
     const href=imgNode.getAttribute('href'); imgNode.removeAttribute('href');
     const sk=loadingTile();
-    box.appendChild(sk); box.appendChild(svgEl);
+    box.insertBefore(svgEl, tag); box.insertBefore(sk, svgEl);
     loadRaster(href,box).then(ok=>{ sk.remove();
       if(ok){ imgNode.setAttribute('href',href); }
-      else if(box.isConnected){ svgEl.remove(); box.insertBefore(placeholder('tap to retry'), box.firstChild); } });
+      else if(box.isConnected){ svgEl.remove(); box.insertBefore(placeholder('tap to retry'), tag); } });
   } else if(hasImg){
     addImg(box, m.img[style], null, labels, bw);
   } else if(labels && m.svg && m.svg[style]){
     // labelled requested, no AVIF final (e.g. paneth-cell) — placeholder in grid;
     // the lightbox falls back to the self-contained committed SVG.
-    box.appendChild(placeholder('enlarge for labels'));
+    box.insertBefore(placeholder('enlarge for labels'), tag);
   } else {
-    box.appendChild(placeholder(labels?'no labelled '+style:'no '+style));
+    box.insertBefore(placeholder(labels?'no labelled '+style:'no '+style), tag);
   }
-  box.appendChild(tag);
-  box.addEventListener('click',()=>openLightbox(m,opt,box));
-  return box;
+}
+// lazily fetches each picture-tile's actual bytes once it's within one screen
+// height of the viewport (up or down) — created once, shared by every box.
+let imgObs;
+function getImgObs(){
+  if(!imgObs) imgObs=new IntersectionObserver(es=>es.forEach(e=>{
+    if(e.isIntersecting){ imgObs.unobserve(e.target); loadBoxContent(e.target); }
+  }),{rootMargin:'100% 0px'});
+  return imgObs;
 }
 function addImg(box,src,fallback,labels,bw){
   const im=document.createElement('img'); im.decoding='async'; im.alt=''; if(bw) im.classList.add('bw');
@@ -1044,9 +1106,11 @@ function addImg(box,src,fallback,labels,bw){
 const lb=$('#lightbox'), lbInner=$('.lb-inner'), lbStage=$('#lbStage'), lbName=$('#lbName'), lbStyle=$('#lbStyle'),
       lbCount=$('#lbCount'), lbPrev=$('#lbPrev'), lbNext=$('#lbNext'), lbLabels=$('#lbLabels'), lbColor=$('#lbColor');
 let navList=[], navIdx=-1, navMicrobe=null, lbLabelMode='none';
-// the reference (color/B&W) toggle's current mode, and whether it applies to
-// the picture currently on the stage (only the 'reference' style supports it)
-let lbBw=false;
+// the reference (color/B&W/src) toggle's current mode, and whether it applies
+// to the picture currently on the stage (only the 'reference' style supports
+// it). lbSrc shows the raw, unedited source photo (m.ref.img) instead of our
+// cleaned/colorized asset — mutually exclusive with lbBw.
+let lbBw=false, lbSrc=false;
 // the box element the lightbox was opened FROM, used to animate open/close as
 // a zoom to/from that box's on-screen position (FLIP-style transform). Null
 // when opened without a click origin (e.g. openStandalone) — then it's a plain fade.
@@ -1081,15 +1145,24 @@ function updateLbLabels(){
     lbLabels.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.m===lbLabelMode)); }
   else lbLabels.classList.remove('on');
 }
-// bottom-left color switch: only shown for the 'reference' style (color or B&W
-// variant); live-toggles the .bw grayscale class on the currently-shown image.
-function updateLbColor(style){
+// bottom-left color switch: only shown for the 'reference' style (color, B&W,
+// or — when the microbe has an original source photo — the raw unedited
+// source); live-toggles which image is on the stage.
+function updateLbColor(m, style){
   const show = style==='reference';
   lbColor.classList.toggle('on', show);
-  if(show) lbColor.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed', String((b.dataset.c==='bw')===lbBw)));
+  if(!show) return;
+  const hasSrc = !!(m && m.ref && m.ref.img);
+  lbColor.querySelectorAll('button').forEach(b=>{
+    const c=b.dataset.c;
+    if(c==='src'){ b.style.display=hasSrc?'':'none'; b.disabled=!hasSrc; }
+    b.setAttribute('aria-pressed', String(
+      c==='src' ? lbSrc : c==='bw' ? (lbBw && !lbSrc) : (!lbBw && !lbSrc)
+    ));
+  });
 }
 function applyLbBw(){
-  const img=lbStage.querySelector('img'); if(img) img.classList.toggle('bw', lbBw);
+  const img=lbStage.querySelector('img'); if(img) img.classList.toggle('bw', lbBw && !lbSrc);
 }
 function renderStage(m,opt){
   const {style,bw}=parseOpt(opt);
@@ -1099,7 +1172,9 @@ function renderStage(m,opt){
   lbStage.innerHTML='';
   // a persisted color-mode preference wins for the Real style; other styles
   // always take their B&W-ness from the chosen box (they have no toggle).
-  lbBw = style==='reference' && state.lbBw!=null ? state.lbBw : bw;
+  const hasSrc = style==='reference' && !!(m.ref && m.ref.img);
+  lbSrc = hasSrc && state.lbSrc===true;
+  lbBw = !lbSrc && (style==='reference' && state.lbBw!=null ? state.lbBw : bw);
   if(style==='coloring'){
     if(m.coloring){ const load=loadingTile(); lbStage.appendChild(load);
       const holder=document.createElement('div'); lbStage.appendChild(holder);
@@ -1107,7 +1182,7 @@ function renderStage(m,opt){
         const s=holder.querySelector('svg'); if(s){ sizeSvgFromViewBox(s); injectColoringTitle(s,m); } })
         .catch(()=>{ load.remove(); lbStage.appendChild(placeholder('no coloring page')); });
     } else lbStage.appendChild(placeholder('no coloring page'));
-    updateLbColor(style);
+    updateLbColor(m, style);
     return;
   }
   if(supports){
@@ -1118,6 +1193,15 @@ function renderStage(m,opt){
     loadRaster(href).then(ok=>{ load.remove();
       if(ok) imgNode.setAttribute('href',href);
       else { svg.remove(); lbStage.appendChild(placeholder('failed to load')); } });
+  } else if(lbSrc){
+    // the raw, unedited source photo — a different asset entirely (not just a
+    // CSS filter on our own cleaned render), loaded the same way the
+    // standalone "view original" preview does.
+    const load=loadingTile(); lbStage.appendChild(load);
+    const im=document.createElement('img'); im.alt=L(m.name)+' — original source'; im.referrerPolicy='no-referrer';
+    im.onload=()=>load.remove();
+    im.onerror=()=>{ load.remove(); im.remove(); lbStage.appendChild(placeholder('failed to load original')); };
+    im.src=m.ref.img; lbStage.appendChild(im);
   } else if(m.img && m.img[style]){
     const load=loadingTile(); lbStage.appendChild(load);
     const im=document.createElement('img'); im.alt=L(m.name); if(style==='reference' && lbBw) im.classList.add('bw');
@@ -1127,7 +1211,7 @@ function renderStage(m,opt){
   } else if(m.svg && m.svg[style]){
     const holder=document.createElement('div'); lbStage.appendChild(holder); inlineSvg(holder,m.svg[style]);
   } else { lbStage.appendChild(placeholder('no image')); }
-  updateLbColor(style);
+  updateLbColor(m, style);
 }
 function showEntry(idx, doScroll){
   if(!navList.length) return;
@@ -1233,7 +1317,9 @@ const audioCache=new Map();
 // flag (stop button shown) which — unlike `playingCtx` — survives a pause,
 // since pausing one player to start another must NOT hide its stop button.
 let playingCtx=null;
-function proseEl(card){ return card._body ? card._body.querySelector('.prose') : null; }
+// works for both a microbe .card (paragraph lives in .prose) and a set
+// section (paragraph lives in .set-desc)
+function proseEl(container){ return container.querySelector('.prose, .set-desc'); }
 function clearWordHighlight(ctx){
   const p=proseEl(ctx.card); if(!p) return;
   p.querySelectorAll('.w.active,.w.said').forEach(s=>s.classList.remove('active','said'));
@@ -1256,7 +1342,7 @@ function onAudioEnded(ctx){
 }
 function getAudioCtx(card,m,lang){
   const a=m.audio && m.audio[lang]; if(!a) return null;
-  const key=m.key+'|'+lang;
+  const key=(m.key||m.id)+'|'+lang;
   let ctx=audioCache.get(key);
   if(!ctx){
     const el=new Audio(a.src); el.preload='none';
@@ -1283,7 +1369,7 @@ function syncCtl(card){
   ctl.classList.toggle('playing', playing);
   const btn=ctl.querySelector('.audio-play'); if(btn) btn.setAttribute('aria-pressed', String(playing));
 }
-function syncAllCtls(){ allCards.forEach(syncCtl); }
+function syncAllCtls(){ allCards.forEach(syncCtl); $$('.set').forEach(syncCtl); }
 // "if stop is pressed this will pause all players" — reset every cached
 // narration, not just the one whose stop button was clicked.
 function stopAllAudio(){
@@ -1298,7 +1384,10 @@ function stopAllAudio(){
 document.addEventListener('click',e=>{
   const playBtn=e.target.closest('.audio-play');
   if(playBtn){
-    const card=playBtn.closest('.card'); const m=card && card._m; if(!m) return;
+    // narrated entities are either a microbe card (data on ._m) or a set
+    // section's intro (data on ._set)
+    const card=playBtn.closest('.card, .set');
+    const m=card && (card._m || card._set); if(!card || !m) return;
     const ctx=getAudioCtx(card,m,state.lang); if(!ctx) return;
     if(playingCtx && playingCtx!==ctx){
       // starting a different narration pauses the previous one (it stays
@@ -1319,7 +1408,19 @@ function finishClose(){
 }
 function closeLightbox(){
   const originEl=lbOriginEl;
-  if(!originEl || !originEl.isConnected || !lb.classList.contains('open')){ finishClose(); return; }
+  if(!originEl || !originEl.isConnected || !lb.classList.contains('open')){
+    // no box to zoom back into (opened via the standalone "original source"
+    // link, or the lightbox otherwise has nothing to return to) — fade out
+    // in place rather than vanishing instantly.
+    if(!lb.classList.contains('open')){ finishClose(); return; }
+    lb.classList.remove('open'); lb.classList.add('closing');
+    let done=false;
+    const onEnd=(e)=>{ if(done || (e && e.target!==lb)) return; done=true;
+      lb.classList.remove('closing'); finishClose(); };
+    lb.addEventListener('animationend', onEnd);
+    setTimeout(onEnd, 260); // safety net in case animationend doesn't fire
+    return;
+  }
   // recompute the origin's rect now (the user may have scrolled since opening)
   const originRect=originEl.getBoundingClientRect();
   const innerRect=lbInner.getBoundingClientRect();
@@ -1352,8 +1453,14 @@ $('#lbPrint').addEventListener('click',()=>{
 window.addEventListener('afterprint',()=>{ printArea.innerHTML=''; });
 lbLabels.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return;
   lbLabelMode=b.dataset.m; state.lbLabelMode=lbLabelMode; save(); updateLbLabels(); });
-lbColor.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return;
-  lbBw = b.dataset.c==='bw'; state.lbBw=lbBw; save(); applyLbBw(); updateLbColor('reference'); });
+lbColor.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b || b.disabled)return;
+  const c=b.dataset.c; const wasSrc=lbSrc;
+  lbBw = c==='bw'; lbSrc = c==='src'; state.lbBw=lbBw; state.lbSrc=lbSrc; save();
+  // switching to/from "src" swaps the actual image asset, not just a CSS
+  // filter, so the stage needs a full re-render rather than an in-place toggle.
+  if(lbSrc || wasSrc){ const e2=navList[navIdx]; if(e2) renderStage(e2.m, e2.opt); }
+  else { applyLbBw(); updateLbColor(navList[navIdx] && navList[navIdx].m, 'reference'); }
+});
 
 // arrow keys: walk the enlarged sequence when the preview is open, otherwise jump
 // between microbe anchor positions in the page.
@@ -1399,11 +1506,12 @@ function render(){
     nSets++; nMic+=set.microbes.length;
     const sec=document.createElement('section'); sec.className='set'; sec.id='set-'+set.id; sec._set=set;
     sec.innerHTML='<div class="set-head"><div class="set-eyebrow">'+esc(set.id)+'</div>'+
-      '<h2>'+esc(L(set.title))+'</h2><p>'+esc(L(set.description))+'</p></div>';
+      '<h2>'+esc(L(set.title))+audioCtlHTML(set)+'</h2>'+
+      '<p class="set-desc'+(state.aud==='sci'?' sci':'')+'">'+proseHTML(set)+'</p></div>';
     const cards=document.createElement('div'); cards.className='cards';
     set.microbes.forEach(m=>{
       const card=document.createElement('article'); card.className='card'; card.id='mc-'+set.id+'-'+m.key; card._m=m; card._set=set;
-      card.innerHTML='<h3 class="card-title">'+highlight(L(m.name))+'<span class="key">'+esc(m.key)+'</span>'+audioCtlHTML(m)+'</h3>';
+      card.innerHTML='<h3 class="card-title">'+highlight(L(m.name))+'<span class="key">'+esc(m.key)+'</span></h3>';
       cards.appendChild(card); allCards.push(card);
     });
     sec.appendChild(cards); setsWrap.appendChild(sec);
@@ -1417,11 +1525,12 @@ function render(){
   });
   $('#statSets').textContent=DATA.sets.filter(s=>s.microbes.length).length;
   $('#statMicrobes').textContent=DATA.sets.reduce((n,s)=>n+s.microbes.length,0);
-  observeCards();
+  if(FEATURE_EAGER_STRUCTURE) allCards.forEach(buildCard); else observeCards();
   applySearch();
 }
 
-// lazy build/teardown with hysteresis
+// lazy build/teardown with hysteresis (FEATURE_EAGER_STRUCTURE off only — see
+// the toggle's comment above makeBox/loadBoxContent for the default path)
 let buildObs, farObs;
 function observeCards(){
   if(buildObs) buildObs.disconnect(); if(farObs) farObs.disconnect();
@@ -1437,16 +1546,18 @@ function observeCards(){
 function refreshBuilt(){
   allCards.forEach(card=>{
     // titles + nav always reflect language/search
-    card.querySelector('.card-title').innerHTML=highlight(L(card._m.name))+'<span class="key">'+esc(card._m.key)+'</span>'+audioCtlHTML(card._m);
+    card.querySelector('.card-title').innerHTML=highlight(L(card._m.name))+'<span class="key">'+esc(card._m.key)+'</span>';
     if(!card._built) return;
     if(card._lead) card._lead.innerHTML=highlight(L(card._m.short));
     card._body.querySelector('.desc').innerHTML=descHTML(card._m);
     card._body.querySelectorAll('.box svg').forEach(applyLabels);
   });
-  // nav labels + set headers follow language
+  // nav labels + set headers follow language/audience
   DATA.sets.forEach(set=>{
-    const sec=$('#set-'+set.id); if(sec){ const h=sec.querySelector('h2'), pp=sec.querySelector('.set-head p');
-      if(h) h.textContent=L(set.title); if(pp) pp.textContent=L(set.description); }
+    const sec=$('#set-'+set.id); if(!sec) return;
+    const h=sec.querySelector('h2'), p=sec.querySelector('.set-desc');
+    if(h) h.innerHTML=esc(L(set.title))+audioCtlHTML(set);
+    if(p){ p.className='set-desc'+(state.aud==='sci'?' sci':''); p.innerHTML=proseHTML(set); }
   });
   $$('#navTree .nav-set').forEach((det,i)=>{
     const set=DATA.sets.filter(s=>s.microbes.length)[i]; if(!set) return;
@@ -1523,13 +1634,25 @@ $$('#themePanel .theme-opt').forEach(b=>b.addEventListener('click',()=>{ state.t
 $('#enlargeLabels').addEventListener('change',e=>{ state.enlargeLabels=e.target.checked; save(); });
 
 // search — 350ms debounce so results don't flicker while typing; once it fires,
-// growl the match count (only while there's an active query).
+// growl the match count (only while there's an active query). Clearing the
+// field (backspace to empty, the native ⓧ clear button, or Escape) resets
+// immediately — no reason to make the user wait out the debounce to see
+// everything again.
 const searchEl=$('#search'); searchEl.value=state.search;
-let sT; searchEl.addEventListener('input',()=>{ clearTimeout(sT); sT=setTimeout(()=>{
+let sT;
+function runSearch(){
   state.search=searchEl.value; save();
   const n=applySearch();
   if(terms().length) toast('Search matched '+n+' microbe'+(n===1?'':'s'));
-},350); });
+}
+searchEl.addEventListener('input',()=>{
+  clearTimeout(sT);
+  if(!searchEl.value.trim()){ runSearch(); return; }
+  sT=setTimeout(runSearch,350);
+});
+// the native clear (ⓧ) button and Enter fire 'search' on type=search inputs,
+// not always reliably 'input' — cover it explicitly so clearing never gets stuck.
+searchEl.addEventListener('search',()=>{ clearTimeout(sT); runSearch(); });
 
 // pictures chooser
 const picsGrid=$('#picsGrid');
