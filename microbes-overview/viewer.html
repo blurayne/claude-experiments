@@ -867,20 +867,56 @@ function applyLabels(svgEl){
 // bubble_svg()), find-or-create so pages without a bubble still get a title.
 // Shared by both the grid-box and lightbox coloring branches.
 const SVGNS='http://www.w3.org/2000/svg';
+// does a text block of width w/height h centred at (cx,y) land on actual ink
+// in the traced artwork path? Sampled with Path2D + isPointInPath — a real
+// hit-test against the vector outline, not a guess.
+function textOverlapsInk(artworkPathEl, cx, y, w, h){
+  if(!artworkPathEl) return false;
+  try{
+    if(!textOverlapsInk._ctx) textOverlapsInk._ctx=document.createElement('canvas').getContext('2d');
+    const ctx=textOverlapsInk._ctx;
+    const p2d=new Path2D(artworkPathEl.getAttribute('d'));
+    const top=y-h*0.78, bottom=y+h*0.28, left=cx-w/2, right=cx+w/2;
+    let hits=0,total=0;
+    for(let yy=top; yy<=bottom; yy+=10) for(let xx=left; xx<=right; xx+=10){
+      total++; if(ctx.isPointInPath(p2d,xx,yy,'evenodd')) hits++;
+    }
+    return total>0 && hits/total>0.025;
+  }catch(e){ return false; }
+}
 function injectColoringTitle(svgEl, m){
   if(!svgEl) return;
   let en=svgEl.querySelector('#labels-en'), de=svgEl.querySelector('#labels-de');
   if(!en){ en=document.createElementNS(SVGNS,'g'); en.setAttribute('id','labels-en'); en.setAttribute('class','labellayer'); svgEl.appendChild(en); }
   if(!de){ de=document.createElementNS(SVGNS,'g'); de.setAttribute('id','labels-de'); de.setAttribute('class','labellayer'); svgEl.appendChild(de); }
   const vb=(svgEl.viewBox && svgEl.viewBox.baseVal && svgEl.viewBox.baseVal.width) || parseFloat(svgEl.getAttribute('width')) || 1080;
-  const cx=vb/2;
+  const cx=vb/2, FS=54;
+  // a speech bubble (if present) already occupies the top strip — sit the
+  // title below it instead of the two competing for the same space.
+  let titleY=60;
+  const bubble=svgEl.querySelector('path[fill="#fff"][stroke="#000"], rect[fill="#fff"][stroke="#000"]');
+  if(bubble){
+    try{ const bb=bubble.getBBox(); if(bb.height) titleY=bb.y+bb.height+50; }catch(e){}
+  }
+  const artwork=svgEl.querySelector('path[fill="#000000"]');
   function mkTitle(txt){
+    const frag=document.createDocumentFragment();
+    const w=textW(txt,FS);
+    if(textOverlapsInk(artwork,cx,titleY,w,FS)){
+      const pad=16;
+      const bg=document.createElementNS(SVGNS,'rect');
+      bg.setAttribute('x',cx-w/2-pad); bg.setAttribute('y',titleY-FS*0.78-pad/2);
+      bg.setAttribute('width',w+pad*2); bg.setAttribute('height',FS*1.06+pad);
+      bg.setAttribute('rx',10); bg.setAttribute('fill','#fff');
+      frag.appendChild(bg);
+    }
     const t=document.createElementNS(SVGNS,'text');
-    t.setAttribute('x',cx); t.setAttribute('y',60); t.setAttribute('text-anchor','middle');
-    t.setAttribute('font-size',54); t.setAttribute('font-weight','700'); t.setAttribute('fill','#000');
+    t.setAttribute('x',cx); t.setAttribute('y',titleY); t.setAttribute('text-anchor','middle');
+    t.setAttribute('font-size',FS); t.setAttribute('font-weight','700'); t.setAttribute('fill','#000');
     t.setAttribute('font-family','"Baloo 2","Comic Sans MS",system-ui,sans-serif');
     t.textContent=txt;
-    return t;
+    frag.appendChild(t);
+    return frag;
   }
   en.appendChild(mkTitle((m.name&&m.name.en)||''));
   de.appendChild(mkTitle((m.name&&m.name.de)||(m.name&&m.name.en)||''));
@@ -896,7 +932,7 @@ function inlineSvg(holder, path){
 // Build the labelled overlay live from compact geometry over the light AVIF
 // final (ports the leader-line + halo-text layout of scripts/build_svg.py).
 const LAB_FS=26, W_WIDE=new Set('mwMW—–@%'), W_NARROW=new Set("ijlItf.,:;'!|()[] ");
-function textW(t){ let s=0; for(const c of t) s+=W_WIDE.has(c)?0.92:(W_NARROW.has(c)?0.34:0.56); return s*LAB_FS; }
+function textW(t,fs){ fs=fs||LAB_FS; let s=0; for(const c of t) s+=W_WIDE.has(c)?0.92:(W_NARROW.has(c)?0.34:0.56); return s*fs; }
 // De-cross same-side leader lines: labels sharing a margin (left, where
 // tx<ax, or right, where tx>=ax) can end up with lines that cross when their
 // vertical text order doesn't match their anchors' vertical order. Walk each

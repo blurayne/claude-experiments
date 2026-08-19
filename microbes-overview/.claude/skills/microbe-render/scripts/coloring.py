@@ -112,27 +112,101 @@ def esc(s: str) -> str:
     return html.escape(s or "", quote=True)
 
 
+# Baloo 2 / Comic Sans is a fairly wide comic font — no real font metrics
+# available at generation time (this runs outside a browser), so wrapping
+# uses a conservative average-advance-width heuristic instead.
+_CHAR_W_RATIO = 0.58
+
+
+def _wrap_lines(txt: str, font_size: float, max_width: float) -> list[str]:
+    words = txt.split()
+    if not words:
+        return []
+    max_chars = max(1, int(max_width / (font_size * _CHAR_W_RATIO)))
+    lines, cur = [], words[0]
+    for w in words[1:]:
+        if len(cur) + 1 + len(w) <= max_chars:
+            cur += " " + w
+        else:
+            lines.append(cur)
+            cur = w
+    lines.append(cur)
+    return lines
+
+
+def _fit_text(txt: str, max_width: float, max_lines: int = 3,
+              font_start: float = 46, font_min: float = 30) -> tuple[list[str], float]:
+    """Shrink font-size until the text wraps into at most `max_lines` lines
+    (and no single word overflows a line on its own)."""
+    font_size = font_start
+    while font_size >= font_min:
+        lines = _wrap_lines(txt, font_size, max_width)
+        longest_word = max((len(w) for w in txt.split()), default=0)
+        if len(lines) <= max_lines and longest_word * font_size * _CHAR_W_RATIO <= max_width:
+            return lines, font_size
+        font_size -= 2
+    return _wrap_lines(txt, font_min, max_width), font_min
+
+
 def bubble_svg(en: str, de: str, size: int) -> str:
-    """A vector speech bubble (colourable outline) with EN/DE toggle text layers."""
+    """A vector speech bubble (colourable outline) with EN/DE toggle text
+    layers. Body + tail are ONE outline path (no seam where they'd otherwise
+    overlap), and text auto-wraps/shrinks to fit within the bubble — sized to
+    whichever of EN/DE needs more room, so both languages fit the same box."""
     if not (en or de):
         return ""
-    bx, by, bw, bh = size * 0.06, size * 0.05, size * 0.60, size * 0.145
+    bx, by, bw = size * 0.06, size * 0.05, size * 0.60
     r = 34
-    tail = f"M{bx+120:.0f},{by+bh:.0f} l0,60 l70,-60 Z"
-    box = (f'<rect x="{bx:.0f}" y="{by:.0f}" width="{bw:.0f}" height="{bh:.0f}" rx="{r}" '
-           f'fill="#fff" stroke="#000" stroke-width="5"/>'
-           f'<path d="{tail}" fill="#fff" stroke="#000" stroke-width="5"/>'
-           f'<path d="{tail}" fill="#fff"/>')  # cover seam
-    tx, ty = bx + bw / 2, by + bh / 2 + 12
-    font = ("font-family=\"Baloo 2, Comic Sans MS, system-ui, sans-serif\" "
-            f"font-size=\"46\" font-weight=\"700\" text-anchor=\"middle\"")
+    pad_x, line_gap = 44, 1.18
+    text_max_w = bw - pad_x * 2
 
-    def layer(lang, txt, vis):
+    fitted = {}
+    for lang, txt in (("en", en), ("de", de)):
         if not txt:
+            continue
+        lines, fsize = _fit_text(txt, text_max_w)
+        fitted[lang] = (lines, fsize)
+
+    # bubble height follows whichever language needs the most vertical room
+    def block_h(lines, fsize):
+        return len(lines) * fsize * line_gap
+    content_h = max((block_h(lines, fsize) for lines, fsize in fitted.values()), default=46)
+    bh = max(size * 0.145, content_h + 70)
+
+    # single outline: rounded rect with a triangular tail notched into the
+    # bottom edge — drawn as one continuous path so there's no seam.
+    tx1, tx2, ttx, tty = bx + 120, bx + 190, bx + 120, by + bh + 60
+    d = (
+        f"M{bx+r:.0f},{by:.0f} "
+        f"L{bx+bw-r:.0f},{by:.0f} "
+        f"A{r},{r} 0 0 1 {bx+bw:.0f},{by+r:.0f} "
+        f"L{bx+bw:.0f},{by+bh-r:.0f} "
+        f"A{r},{r} 0 0 1 {bx+bw-r:.0f},{by+bh:.0f} "
+        f"L{tx2:.0f},{by+bh:.0f} "
+        f"L{ttx:.0f},{tty:.0f} "
+        f"L{tx1:.0f},{by+bh:.0f} "
+        f"L{bx+r:.0f},{by+bh:.0f} "
+        f"A{r},{r} 0 0 1 {bx:.0f},{by+bh-r:.0f} "
+        f"L{bx:.0f},{by+r:.0f} "
+        f"A{r},{r} 0 0 1 {bx+r:.0f},{by:.0f} Z"
+    )
+    box = f'<path d="{d}" fill="#fff" stroke="#000" stroke-width="5" stroke-linejoin="round"/>'
+    cx = bx + bw / 2
+    font = ("font-family=\"Baloo 2, Comic Sans MS, system-ui, sans-serif\" "
+            "font-weight=\"700\" text-anchor=\"middle\"")
+
+    def layer(lang, vis):
+        if lang not in fitted:
             return ""
+        lines, fsize = fitted[lang]
+        block_top = by + bh / 2 - block_h(lines, fsize) / 2
+        spans = "".join(
+            f'<tspan x="{cx:.0f}" y="{block_top + (i + 0.82) * fsize * line_gap:.0f}">{esc(ln)}</tspan>'
+            for i, ln in enumerate(lines)
+        )
         return (f'<g id="labels-{lang}" class="labellayer" style="display:{vis}">'
-                f'<text x="{tx:.0f}" y="{ty:.0f}" {font} fill="#000">{esc(txt)}</text></g>')
-    return box + layer("en", en, "inline") + layer("de", de, "none" if en else "inline")
+                f'<text {font} font-size="{fsize:.0f}" fill="#000">{spans}</text></g>')
+    return box + layer("en", "inline") + layer("de", "none" if en else "inline")
 
 
 def build_svg(d: str, microbe: str, size: int, en: str, de: str) -> str:
