@@ -1581,7 +1581,16 @@ function jumpMicrobe(dir){
   const y=(parseInt(getComputedStyle(document.documentElement).getPropertyValue('--bar-h'))||58)+20;
   let target=null;
   if(dir>0){ target=list.find(c=>c.getBoundingClientRect().top > y+2); }
-  else { for(const c of list){ if(c.getBoundingClientRect().top < y-2) target=c; else break; } }
+  else {
+    let idx=-1;
+    for(let i=0;i<list.length;i++){ if(list[i].getBoundingClientRect().top < y-2) idx=i; else break; }
+    // that scan finds the CURRENT anchor (the one we're already sitting at,
+    // e.g. right after a previous jump landed us there) — if we're still
+    // basically on top of it, step one further back so "up" always makes
+    // real progress instead of re-snapping to the same spot repeatedly.
+    if(idx>0 && list[idx].getBoundingClientRect().top > y-30) idx--;
+    target = idx>=0 ? list[idx] : null;
+  }
   if(target) target.scrollIntoView({behavior:'smooth', block:'start'});
 }
 $('#jumpUp').addEventListener('click',()=>jumpMicrobe(-1));
