@@ -1975,24 +1975,38 @@ function visibleJumpTargets(){
     return sec && sec.style.display!=='none';
   });
 }
-// scroll to the previous(-1)/next(+1) anchor relative to the top of view
+// scroll to the previous(-1)/next(+1) anchor relative to the top of view.
+// jumpIdx/jumpAt let repeat taps chain: see the comment inside jumpMicrobe.
+let jumpIdx=-1, jumpAt=0;
+const JUMP_CHAIN_MS=1400;
 function jumpMicrobe(dir){
   const list=visibleJumpTargets(); if(!list.length) return;
   const y=(parseInt(getComputedStyle(document.documentElement).getPropertyValue('--bar-h'))||58)+20;
-  let target=null;
-  if(dir>0){ target=list.find(c=>c.getBoundingClientRect().top > y+2); }
-  else {
+  const now=performance.now();
+  let next;
+  if(jumpIdx>=0 && now-jumpAt<JUMP_CHAIN_MS){
+    // A smooth scroll from the previous tap is still in flight, so the DOM
+    // still reports the OLD geometry — re-measuring here would resolve to the
+    // same anchor and the tap would appear to do nothing. Chain off the last
+    // target instead, so four quick taps really do advance four microbes and
+    // nobody has to wait for each animation to settle.
+    next=jumpIdx+dir;
+  } else {
+    // idle: find the anchor we are actually sitting at and step from there
     let idx=-1;
-    for(let i=0;i<list.length;i++){ if(list[i].getBoundingClientRect().top < y-2) idx=i; else break; }
-    // that scan finds the CURRENT anchor (the one we're already sitting at,
-    // e.g. right after a previous jump landed us there) — if we're still
-    // basically on top of it, step one further back so "up" always makes
-    // real progress instead of re-snapping to the same spot repeatedly.
-    if(idx>0 && list[idx].getBoundingClientRect().top > y-30) idx--;
-    target = idx>=0 ? list[idx] : null;
+    for(let i=0;i<list.length;i++){ if(list[i].getBoundingClientRect().top < y+2) idx=i; else break; }
+    if(dir>0) next=idx+1;
+    // going up: if we are basically on top of the current anchor, step past it,
+    // otherwise snap back to it rather than skipping a section
+    else next=(idx>=0 && list[idx].getBoundingClientRect().top > y-30) ? idx-1 : idx;
   }
-  if(target) target.scrollIntoView({behavior:'smooth', block:'start'});
+  next=Math.max(0, Math.min(list.length-1, next));
+  jumpIdx=next; jumpAt=now;
+  list[next].scrollIntoView({behavior:'smooth', block:'start'});
 }
+// a scroll the user drives themselves invalidates the chain, so the next tap
+// measures afresh instead of continuing from wherever the taps had got to
+['wheel','touchmove'].forEach(ev=>addEventListener(ev,()=>{ jumpAt=0; },{passive:true}));
 $('#jumpUp').addEventListener('click',()=>jumpMicrobe(-1));
 $('#jumpDown').addEventListener('click',()=>jumpMicrobe(1));
 document.addEventListener('keydown',e=>{

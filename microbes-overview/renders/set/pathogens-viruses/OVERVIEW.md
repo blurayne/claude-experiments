@@ -92,6 +92,24 @@ Enveloped, pleomorphic negative-sense RNA virus of the Paramyxoviridae (genus Mo
 
 Full log: [`measles-virus.render.md`](measles-virus.render.md)
 
+## Norovirus (stomach bug) (`norovirus`)
+Tiny non-enveloped calicivirus (~38-40 nm) whose T=3 icosahedral capsid is built from 180 copies of the single protein VP1 arranged as 90 arch-shaped dimers over a contiguous shell, leaving the 32 cup-shaped surface hollows that give the family its name (Latin calix = cup); it packs one continuous ~7.5 kb positive-sense ssRNA with VPg on its 5' end plus a few copies of VP2, infects small-intestinal enterocytes, needs only ~10-100 particles to infect, and — being naked — shrugs off alcohol hand gel while soap and water still remove it.
+
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/norovirus__textbook.avif) | ![sem](finals/norovirus__sem.avif) | ![3d](finals/norovirus__3d.avif) | ![watercolor](finals/norovirus__watercolor.avif) | ![reference](finals/norovirus__reference.avif) |
+
+**textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/norovirus.textbook.svg) · [HTML](theme/textbook/norovirus.textbook.html)
+![textbook labelled](theme/textbook/norovirus.textbook.svg)
+
+**3d — labelled** (English default, La/De toggle): [SVG](theme/3d/norovirus.3d.svg) · [HTML](theme/3d/norovirus.3d.html)
+![3d labelled](theme/3d/norovirus.3d.svg)
+
+**watercolor — labelled** (English default, La/De toggle): [SVG](theme/watercolor/norovirus.watercolor.svg) · [HTML](theme/watercolor/norovirus.watercolor.html)
+![watercolor labelled](theme/watercolor/norovirus.watercolor.svg)
+
+Full log: [`norovirus.render.md`](norovirus.render.md)
+
 ## Plasmodium (malaria) (`plasmodium`)
 Single-celled apicomplexan parasite that causes malaria, spread by Anopheles mosquitoes. Shown here as the invasive merozoite (~1.5 µm): a small egg-shaped eukaryotic cell with a pointed apical complex (rhoptries, micronemes) for entering red blood cells, one nucleus, a single mitochondrion and a relict apicoplast. Not a worm, not a bacterium.
 
@@ -193,6 +211,11 @@ Full log: [`sars-cov-2.render.md`](sars-cov-2.render.md)
 | Measles virus (Morbillivirus) | 3D medical render | gemini-3-pro-image | 1 | ✅ | built | 18s | 2086 | $0.042 |
 | Measles virus (Morbillivirus) | Watercolor plate | gemini-3-pro-image | 1 | ✅ | built | 23s | 2227 | $0.047 |
 | Measles virus (Morbillivirus) | TEM · Public Domain (PD-USGov-HHS-CDC) | — (edit) | 2 | ✅ | n/a | 12s | 1744 | $0.039 |
+| Norovirus (stomach bug) | Textbook illustration | gemini-3-pro-image | 4 | ✅ | built | 1.0m | 9560 | $0.180 |
+| Norovirus (stomach bug) | SEM micrograph | gemini-3-pro-image | 3 | ✅ | pending (same pipeline) | 32s | 5648 | $0.120 |
+| Norovirus (stomach bug) | 3D medical render | gemini-3-pro-image | 3 | ✅ | built | 31s | 6190 | $0.119 |
+| Norovirus (stomach bug) | Watercolor plate | gemini-3-pro-image | 3 | ✅ | built | 37s | 6527 | $0.125 |
+| Norovirus (stomach bug) | TEM · CC0 1.0 Public Domain Dedication (US federal government work; CDC PHIL states 'This image is in the public domain and thus free of any copyright restrictions') | — (download) | 2 | ✅ | n/a | 0s | 0 | $0.000 |
 | Plasmodium (malaria) | Textbook illustration | gemini-3-pro-image | 3 | ✅ | built | 1.1m | 5585 | $0.123 |
 | Plasmodium (malaria) | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 14s | 1515 | $0.039 |
 | Plasmodium (malaria) | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 14s | 1600 | $0.039 |
@@ -214,6 +237,6 @@ Full log: [`sars-cov-2.render.md`](sars-cov-2.render.md)
 | SARS-CoV-2 (COVID-19) | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 16s | 1492 | $0.039 |
 | SARS-CoV-2 (COVID-19) | TEM · CC BY 2.0 | — (download) | 1 | ✅ | n/a | 25s | 0 | $0.000 |
 
-**Set total: 115,295 tokens · $2.541**
+**Set total: 143,220 tokens · $3.086**
 
-_Updated 2026-08-20 19:24 local._
+_Updated 2026-08-20 19:32 local._

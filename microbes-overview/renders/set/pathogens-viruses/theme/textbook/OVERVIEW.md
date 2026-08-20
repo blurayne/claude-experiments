@@ -22,6 +22,10 @@ Every microbe's `textbook` image — labelled SVG where built, else the last ren
 ![textbook](measles-virus.textbook.svg)
 [full log](../../measles-virus.render.md)
 
+## Norovirus (stomach bug) (`norovirus`)
+![textbook](norovirus.textbook.svg)
+[full log](../../norovirus.render.md)
+
 ## Plasmodium (malaria) (`plasmodium`)
 ![textbook](plasmodium.textbook.svg)
 [full log](../../plasmodium.render.md)

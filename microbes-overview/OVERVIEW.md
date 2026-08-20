@@ -102,7 +102,7 @@
 | pathogens-viruses | Zika virus | — | ❌ not rendered | | | | 45 nm · 0.8 fg | |
 | pathogens-viruses | Measles virus (Morbillivirus) | `measles-virus` | 5/5 | 3/3 | ✅ | ✅ | 200 nm · 8 fg | Measles (Morbillivirus) |
 | pathogens-viruses | Rotavirus | `rotavirus` | 5/5 | 3/3 | ✅ | ✅ | 75 nm · 1.5 fg | Rotavirus (Rotavirus) |
-| pathogens-viruses | Norovirus (stomach bug) | `norovirus` | 0/5 | 3/3 | ✅ | — | 38 nm · 0.5 fg | — |
+| pathogens-viruses | Norovirus (stomach bug) | `norovirus` | 5/5 | 3/3 | ✅ | ✅ | 38 nm · 0.5 fg | — |
 | pathogens-viruses | Varicella-zoster virus (chickenpox) | — | ❌ not rendered | | | | 180 nm · 6 fg | |
 | pathogens-viruses | Giardia lamblia (giardiasis) | — | ❌ not rendered | | | | 12 µm · 1 ng | |
 | helpful-microbes | Baker's yeast (Saccharomyces cerevisiae) | `saccharomyces-cerevisiae` | 5/5 | 3/3 | ✅ | ✅ | 5 µm · 60 pg | Beer & Bread (Saccharomyces cerevisiae) |

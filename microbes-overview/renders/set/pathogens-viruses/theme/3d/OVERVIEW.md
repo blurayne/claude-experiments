@@ -22,6 +22,10 @@ Every microbe's `3d` image — labelled SVG where built, else the last render. [
 ![3d](measles-virus.3d.svg)
 [full log](../../measles-virus.render.md)
 
+## Norovirus (stomach bug) (`norovirus`)
+![3d](norovirus.3d.svg)
+[full log](../../norovirus.render.md)
+
 ## Plasmodium (malaria) (`plasmodium`)
 ![3d](plasmodium.3d.svg)
 [full log](../../plasmodium.render.md)

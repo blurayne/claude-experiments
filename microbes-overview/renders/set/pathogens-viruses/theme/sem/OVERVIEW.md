@@ -22,6 +22,10 @@ Every microbe's `sem` image — labelled SVG where built, else the last render. 
 ![sem](measles-virus.attempts/gen-01__gemini-3-pro-image.avif)
 [full log](../../measles-virus.render.md)
 
+## Norovirus (stomach bug) (`norovirus`)
+![sem](norovirus.attempts/gen-03__gemini-3-pro-image.avif)
+[full log](../../norovirus.render.md)
+
 ## Plasmodium (malaria) (`plasmodium`)
 ![sem](plasmodium.attempts/gen-01__gemini-2.5-flash-image.avif)
 [full log](../../plasmodium.render.md)

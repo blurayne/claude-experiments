@@ -22,6 +22,10 @@ Every microbe's `watercolor` image — labelled SVG where built, else the last r
 ![watercolor](measles-virus.watercolor.svg)
 [full log](../../measles-virus.render.md)
 
+## Norovirus (stomach bug) (`norovirus`)
+![watercolor](norovirus.watercolor.svg)
+[full log](../../norovirus.render.md)
+
 ## Plasmodium (malaria) (`plasmodium`)
 ![watercolor](plasmodium.watercolor.svg)
 [full log](../../plasmodium.render.md)
