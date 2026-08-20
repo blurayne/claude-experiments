@@ -1,0 +1,150 @@
+{
+  "microbe": "dna",
+  "set": "genetics",
+  "name_en": "DNA (deoxyribonucleic acid)",
+  "name_de": "DNA (Desoxyribonukleinsäure)",
+  "name_la": "acidum deoxyribonucleicum",
+  "morphology": {
+    "summary": "A B-form DNA double helix: two long antiparallel polynucleotide strands, each a sugar-phosphate backbone with a base attached to every sugar, wound around a common axis. The two strands are held together by hydrogen bonds between complementary base pairs that stack flat, face-to-face, perpendicular to the helix axis, like rungs on a twisted ladder. Crucially the helix is RIGHT-HANDED, and because the two backbones are not diametrically opposite one another around the axis (they sit closer together on one side than the other), the helix has two grooves of UNEQUAL width running along its length: a wide major groove and a narrow minor groove, alternating as the helix turns. This is the single most commonly botched detail in illustration -- a left-handed helix or two equal grooves looks superficially similar but is structurally wrong.",
+    "kind": "molecule -- a linear (in solution) or, in a bacterial/mitochondrial genome, circular double-stranded polymer of deoxyribonucleotides; not a cell or organism",
+    "handedness": "RIGHT-HANDED (B-DNA, the dominant physiological form). Viewed with the helix axis vertical, each backbone strand winds upward and to the right, the same sense as a standard (right-hand-thread) screw or a spiral staircase that ascends clockwise when viewed from below. This was established by Watson & Crick's 1953 model built from Rosalind Franklin and Raymond Gosling's B-form X-ray diffraction data (Photo 51) and is confirmed by every subsequent crystal structure. A left-handed double helix does exist in nature (Z-DNA), but it is a rare, distinct, zigzag-backbone conformation found only in specific sequences/conditions -- it is NOT what 'DNA' should default to, and must not be drawn here.",
+    "dimensions": "Helix diameter ~2.0 nm (2 nanometres) -- matches the atlas scale entry exactly (0.002 um / 2 nm). One full helical turn = ~3.4 nm rise and ~10.4-10.5 base pairs (~34.3 degrees of twist per base pair; the once-common textbook rounding of '10 bp/turn' is a simplification -- 10.5 is the better figure for B-DNA in solution). Each base pair is separated from its neighbour by ~0.34 nm along the axis. A single human diploid cell's DNA, uncoiled end to end, totals roughly 2 metres -- the checkable, surprising figure used in this atlas's own text -- packed into a nucleus only a few micrometres across.",
+    "grooves": "Major groove: ~2.2 nm wide, ~1.35 nm deep -- wide and shallow relative to the minor groove, and it exposes more of each base pair's chemical 'edge', which is why most sequence-reading DNA-binding proteins (transcription factors etc.) dock in the major groove. Minor groove: ~1.2 nm wide, ~0.75 nm deep -- narrow. The two grooves alternate along the helix as it twists; they must read as visibly, obviously different in width in any illustration -- never equal, never absent (a plain twisted ladder with no groove differentiation is wrong)."
+  },
+  "structures": [
+    {
+      "key": "backbone_strand_1",
+      "la": "catena glycosyl-phosphatica prima (5'->3')",
+      "en": "Sugar-phosphate backbone, strand 1 (5'→3')",
+      "de": "Zucker-Phosphat-Rückgrat, Strang 1 (5'→3')",
+      "note": "Alternating deoxyribose sugar and phosphate groups, covalently linked, running along the OUTSIDE of the helix. Runs 5' to 3' in one direction; its partner strand runs the opposite way (antiparallel). Never draw the backbone as a smooth solid tube with no twist, and never place it on the inside with bases outside -- that is inverted and wrong."
+    },
+    {
+      "key": "backbone_strand_2",
+      "la": "catena glycosyl-phosphatica altera (3'->5')",
+      "en": "Sugar-phosphate backbone, strand 2 (3'→5')",
+      "de": "Zucker-Phosphat-Rückgrat, Strang 2 (3'→5')",
+      "note": "The second backbone, chemically identical in composition to strand 1 but running in the opposite (antiparallel) direction. The two backbones together define the outer 'rails' of the twisted ladder and the walls of the major/minor grooves."
+    },
+    {
+      "key": "at_pair",
+      "la": "par basium adenina-thymina (duobus vinculis hydrogenii)",
+      "en": "Adenine–thymine base pair (2 hydrogen bonds)",
+      "de": "Adenin–Thymin-Basenpaar (2 Wasserstoffbrücken)",
+      "note": "A purine (adenine) paired with a pyrimidine (thymine) via exactly TWO hydrogen bonds -- the weaker of the two pair types. Rungs must show base pairs stacked flat and perpendicular to the axis, not floating loose or parallel to it."
+    },
+    {
+      "key": "gc_pair",
+      "la": "par basium guanina-cytosina (tribus vinculis hydrogenii)",
+      "en": "Guanine–cytosine base pair (3 hydrogen bonds)",
+      "de": "Guanin–Cytosin-Basenpaar (3 Wasserstoffbrücken)",
+      "note": "A purine (guanine) paired with a pyrimidine (cytosine) via exactly THREE hydrogen bonds -- stronger than A-T. The 2-vs-3-bond distinction between the two pair types is a checkable, commonly-flattened detail worth rendering distinctly (e.g. as 2 vs 3 visible rungs/lines within the base-pair rung) where the style allows."
+    },
+    {
+      "key": "major_groove",
+      "la": "sulcus major",
+      "en": "Major groove",
+      "de": "Große Furche (Hauptfurche)",
+      "note": "The WIDE groove (~2.2 nm), where more of each base pair's edge is chemically exposed -- the groove most DNA-binding proteins read sequence from. Must be visibly, obviously wider than the minor groove in every render; label anchor must land on the wide gap between backbone turns, not the narrow one."
+    },
+    {
+      "key": "minor_groove",
+      "la": "sulcus minor",
+      "en": "Minor groove",
+      "de": "Kleine Furche (Nebenfurche)",
+      "note": "The NARROW groove (~1.2 nm), alternating with the major groove along the helix length. Must read as visibly narrower than the major groove -- equal-width grooves is one of the two most common illustration errors (the other being left-handedness)."
+    },
+    {
+      "key": "five_prime_end",
+      "la": "extremitas 5' (phosphas liber)",
+      "en": "5' end (free phosphate)",
+      "de": "5'-Ende (freies Phosphat)",
+      "note": "The end of a strand terminating in a free phosphate group on the sugar's 5-carbon. Paired with the labelling of the 3' end on the same and opposite strands, this is what makes the antiparallel arrangement visually checkable -- the two 5' ends must sit at OPPOSITE ends of the helix, not the same end."
+    },
+    {
+      "key": "three_prime_end",
+      "la": "extremitas 3' (hydroxylum liberum)",
+      "en": "3' end (free hydroxyl)",
+      "de": "3'-Ende (freie Hydroxylgruppe)",
+      "note": "The end of a strand terminating in a free hydroxyl group on the sugar's 3-carbon. The 3' end of strand 1 sits at the opposite end of the molecule from the 3' end of strand 2 -- the antiparallel signature."
+    }
+  ],
+  "do_not_draw": [
+    "Do NOT draw a LEFT-HANDED helix. Viewed with the axis vertical, both backbone strands must wind upward and to the RIGHT (standard right-hand screw thread sense). A mirror-image (left-handed) helix is the single most common published illustration error and must be checked explicitly on every render.",
+    "Do NOT draw the two grooves as EQUAL width. There must be one visibly WIDE major groove and one visibly NARROW minor groove alternating along the helix -- never a symmetric double-helix with identical gaps on both sides.",
+    "Do NOT draw a flat, untwisted 'ladder' -- the two backbones and their rungs must visibly spiral around a central axis, not run as two straight parallel vertical lines with horizontal rungs.",
+    "Do NOT invert the anatomy: the sugar-phosphate backbone must be on the OUTSIDE and the paired bases on the INSIDE, meeting at the axis. Never draw bases on the outside with the backbone in the middle.",
+    "Do NOT draw three or more strands, a triple helix, or any braided/plait structure -- exactly TWO strands.",
+    "Do NOT draw RNA features: no uracil (only A/T/G/C, never U), and it must read as clearly DOUBLE-stranded throughout, not single-stranded with occasional loops or hairpins (that would be RNA secondary structure, a separate subject in this set).",
+    "Do NOT render the helix as literal candy, beads-on-a-string with no visible chemistry, a stylised toy, or a smooth featureless ribbon with no base-pair rungs at all -- the paired-rung structure must be legible.",
+    "Do NOT bake any text, letters (including base-letter glyphs 'A'/'T'/'G'/'C'), numbers, scale bars or watermarks into the image -- labels are added afterwards as an SVG layer.",
+    "Do NOT show the two strands running in the same (parallel) direction -- they must be antiparallel; if 5'/3' polarity is depicted at all, the two 5' ends belong at opposite ends of the molecule.",
+    "Do NOT draw base pairs floating disconnected from the backbone, or backbones with no rungs at all (a bare double coil with no cross-links)."
+  ],
+  "colour_legend": {
+    "backbone_strand_1": "#7FA0B8 (cool slate blue-grey) -- one backbone ribbon/rail",
+    "backbone_strand_2": "#C9A876 (warm tan) -- the other backbone ribbon/rail; deliberately a DIFFERENT tone from strand 1 so the antiparallel pair of rails reads as two distinct strands at a glance, not a mirror-symmetric single rail",
+    "at_pair": "adenine #6FBF73 (green) paired with thymine #D9622B (warm red-orange); rendered as a 2-line/2-bond rung",
+    "gc_pair": "guanine #E8B93E (gold/yellow) paired with cytosine #3E7FB0 (blue); rendered as a 3-line/3-bond rung, visibly different from the A-T rung",
+    "major_groove": "left as open negative space/background tone -- its WIDTH (not a fill colour) is what carries the information",
+    "minor_groove": "same -- open negative space, narrower than the major groove",
+    "note": "A DNA molecule has no colour in life -- helix width (2 nm) is far below the wavelength of visible light. Every colour here is teaching convention, consistent with common textbook/software conventions (CPK-adjacent base-pair colour coding), chosen to make the two antiparallel backbones and the two base-pair chemistries legible. Kept consistent across all styles for this microbe."
+  },
+  "sources": [
+    {
+      "title": "Watson JD, Crick FHC (1953) 'Molecular Structure of Nucleic Acids: A Structure for Deoxyribose Nucleic Acid', Nature 171:737-738",
+      "url": "https://www.nature.com/articles/171737a0",
+      "note": "The original right-handed double-helix model, two antiparallel chains each coiled round the same axis, bases paired specifically (A-T, G-C) on the inside, phosphate backbone outside; built using Franklin & Gosling's B-form X-ray diffraction data."
+    },
+    {
+      "title": "Alberts et al., Molecular Biology of the Cell -- 'The Structure and Function of DNA' (NCBI Bookshelf NBK26821)",
+      "url": "https://www.ncbi.nlm.nih.gov/books/NBK26821/",
+      "note": "Confirms right-handed helix, ~2 nm diameter, ~3.4 nm per 10-bp turn (~0.34 nm rise per bp), A-T two hydrogen bonds vs G-C three hydrogen bonds, antiparallel strand orientation, major and minor grooves of unequal width formed because the glycosidic bonds attaching bases to the backbone are not diametrically opposed."
+    },
+    {
+      "title": "RCSB PDB-101, Molecule of the Month #6 -- 'DNA'",
+      "url": "https://pdb101.rcsb.org/motm/6",
+      "note": "General-audience structural overview: right-handed double helix, major/minor grooves, base pairing rule, backbone composition; cross-check for teaching-level description and common illustration conventions."
+    },
+    {
+      "title": "Wikipedia -- 'Nucleic acid double helix' (helical geometry, groove dimensions)",
+      "url": "https://en.wikipedia.org/wiki/Nucleic_acid_double_helix",
+      "note": "Cross-check for B-DNA helical parameters: ~10.5 bp per turn, major groove ~2.2 nm wide/1.35 nm deep, minor groove ~1.2 nm wide/0.75 nm deep; contrasts with left-handed Z-DNA as a distinct, rare conformation (explicitly what NOT to draw here)."
+    },
+    {
+      "title": "Wikipedia -- 'DNA' (general structure, human genome length/mass figures)",
+      "url": "https://en.wikipedia.org/wiki/DNA",
+      "note": "Cross-check for the ~2 metre total contour length of DNA in a single human diploid cell and the ~6.6 pg per-cell mass figure already used in this atlas's own func/deps text and in microbe_scale.py."
+    },
+    {
+      "title": "National Human Genome Research Institute (NHGRI) -- 'Deoxyribonucleic Acid (DNA)' fact sheet",
+      "url": "https://www.genome.gov/genetics-glossary/Deoxyribonucleic-Acid",
+      "note": "Plain-language cross-check of base pairing (A-T, G-C), double helix shape, and the backbone/base arrangement, useful for calibrating the kids/adults description register."
+    },
+    {
+      "title": "Wikipedia (de) -- 'DNA' / 'Desoxyribonukleinsäure'",
+      "url": "https://de.wikipedia.org/wiki/Desoxyribonukleins%C3%A4ure",
+      "note": "German terminology check: Doppelhelix, rechtsgängig (right-handed), Zucker-Phosphat-Rückgrat, große/kleine Furche, Basenpaarung, gegenläufig/antiparallel, Wasserstoffbrückenbindung."
+    }
+  ],
+  "reference_micrograph_candidates": [
+    {
+      "title": "Photo 51 (Franklin & Gosling, 1952, King's College London) -- B-form DNA X-ray diffraction pattern",
+      "page_url": "https://en.wikipedia.org/wiki/Photo_51",
+      "file_url": null,
+      "license": "UNRESOLVED / not freely licensed",
+      "attribution": "n/a -- not used",
+      "modality": "X-ray diffraction pattern (NOT a picture of a molecule -- an interference pattern from which helical parameters are mathematically derived)",
+      "note": "REJECTED after a licence check. Web search of the Wikimedia Commons category and secondary sources (Embryo Project Encyclopedia; a legal Q&A thread citing the 'Ask A Biologist' site's own disclaimer) confirms the original photograph's copyright status is unresolved/disputed -- King's College London-era rights holder undocumented, not public domain, not under any Commons-hosted free licence. Only a derivative SVG diagram of the experimental *setup* (not the diffraction image itself) is CC BY-SA 2.0 on Commons. Per the brief's explicit instruction to check licence status carefully and use it only if genuinely free, Photo 51 itself was not used."
+    },
+    {
+      "title": "DNA orbit animated.gif -- rotating B-form DNA structural model, ball-and-stick, CPK colouring",
+      "page_url": "https://commons.wikimedia.org/wiki/File:DNA_orbit_animated.gif",
+      "file_url": "https://upload.wikimedia.org/wikipedia/commons/1/16/DNA_orbit_animated.gif",
+      "license": "GNU Free Documentation License 1.2+ AND Creative Commons Attribution-ShareAlike 3.0 Unported (dual-licensed, confirmed via the Commons file page)",
+      "attribution": "Zephyris (Richard Wheeler) at English Wikipedia, via Wikimedia Commons",
+      "modality": "structural model (rendered molecular visualisation of real B-form DNA atomic coordinates, ball-and-stick / thin-stick style, CPK-family atom colouring: carbon green, nitrogen blue, oxygen red, phosphorus orange, hydrogen white) -- explicitly NOT a photograph or micrograph. A DNA helix (2 nm across) is far below the resolution of any light or electron microscope that could photograph its structure directly; the only genuinely informative real-world image at this scale is a structural/atomic-coordinate model, and this render.md says so plainly.",
+      "note": "CHOSEN. A single frame (frame 0 of 120 in the 12-second rotation loop) was extracted, confirmed to be right-handed by construction -- this is a rendering of real B-form crystallographic/structural DNA coordinates (the Commons description explicitly states B-form, and the smooth continuous backbone with alternating wide/narrow gaps matches B-DNA, not the zigzag backbone of left-handed Z-DNA), not an artist's schematic, so it cannot be scientifically left-handed the way an AI-generated or hand-drawn illustration could accidentally be. Native frame size 290x477 (narrower than tall, since the source GIF crops the animation window to the rotating molecule). No baked-in text, scale bar, watermark or letterboxing of any kind was present, so edit_image.py was skipped entirely per instructions; the frame was padded (not cropped) to a 477x477 white square to preserve the full vertical extent of the helix (multiple turns, both grooves visible), then upscaled 2.26x (477->1080) with LANCZOS resampling -- stated explicitly here as the honest compromise: this is a real upscale of a small source frame, done as a plain deterministic pad+resize, not an AI re-illustration."
+    }
+  ]
+}

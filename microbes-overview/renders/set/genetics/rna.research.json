@@ -1,0 +1,152 @@
+{
+  "microbe": "rna",
+  "set": "genetics",
+  "name_en": "RNA (ribonucleic acid)",
+  "name_de": "RNA (Ribonukleinsäure)",
+  "name_la": "acidum ribonucleicum",
+  "morphology": {
+    "summary": "RNA is SINGLE-STRANDED -- one continuous polynucleotide strand, never a double helix of two paired strands running the full molecule's length. That single strand is flexible enough to fold back on itself, so short complementary stretches within the SAME strand pair up locally to form hairpins / stem-loops (a short double-stranded stem capped by an unpaired loop) -- this intramolecular folding is characteristic and worth showing, but it is one strand doing the folding, not two separate strands paired along their length like DNA. The three working forms look and behave differently: messenger RNA (mRNA) reads as a long, mostly extended, readable single strand carrying a linear sequence of codons; transfer RNA (tRNA) is short (~76-90 nucleotides) and folds into an unmistakable CLOVERLEAF secondary structure (four base-paired stem-loop arms radiating from a central junction) that then folds further into a compact L-SHAPED three-dimensional tertiary structure, with the anticodon loop at one end of the L and the amino-acid attachment site (the 3' CCA end) at the other, roughly 70-80 Angstrom apart; ribosomal RNA (rRNA) is much longer and folds extensively into the compact, irregularly knobbly bulk that -- together with ribosomal proteins -- forms the two subunits of the ribosome itself.",
+    "kind": "molecule -- a linear, single-stranded polymer of ribonucleotides; not a cell or organism. Occurs as several distinct functional species (mRNA, tRNA, rRNA, plus smaller regulatory/catalytic RNAs) rather than one uniform shape.",
+    "strandedness": "SINGLE-STRANDED. This is the single most important thing to get right and the most common error to avoid: RNA must never be drawn as a two-stranded double helix running the full length of the molecule. A single strand may loop back and pair with itself over short complementary stretches (hairpins/stem-loops, and in tRNA, the whole cloverleaf/L-shaped fold), producing LOCAL double-stranded-looking segments -- but at every point the backbone is still just one continuous strand, distinguishable from DNA's two independent, fully-paired antiparallel strands. RNA:RNA duplexes between two separate strands do exist in nature (e.g. some viral genomes, siRNA), but they are not what this default RNA plate should show -- the brief here is the working copy: mostly single-stranded, self-folding.",
+    "sugar": "RIBOSE, not deoxyribose. Ribose carries an extra hydroxyl group (-OH) on the 2' carbon of the sugar ring that deoxyribose lacks (deoxyribose has only a hydrogen there) -- that single extra oxygen atom is the entire chemical difference the name 'ribonucleic acid' refers to, and it is also mechanistically why RNA is short-lived: the free 2'-OH makes the backbone far more prone to hydrolysis/cleavage than DNA's backbone, and sterically it is also why RNA cannot form a classic B-DNA-style double helix even where it does pair up -- RNA:RNA duplexes (like a tRNA stem) instead adopt an A-form helix geometry, more compact and more tightly wound than B-DNA.",
+    "bases": "Four bases: adenine (A), guanine (G), cytosine (C), and URACIL (U) in place of DNA's thymine (T). No thymine appears anywhere in RNA. Uracil pairs with adenine wherever local base-pairing occurs (hairpin stems, the tRNA cloverleaf arms, codon-anticodon pairing), chemically much like thymine does in DNA, just lacking thymine's extra methyl group.",
+    "dimensions": "Backbone diameter of a single RNA strand: roughly 1 nanometre -- matches this atlas's own scale entry (0.001 um / 1 nm). A typical human mRNA is on the order of 500 kDa (matching this atlas's scale entry), corresponding to roughly 1,000-2,000 nucleotides in length, though the range across all mRNAs is wide. A tRNA is much smaller: ~76-90 nucleotides, ~25 kDa, and its folded L-shape is only about 7-8 nm along its long axis. Ribosomal RNAs are the largest of the three: from ~120 nucleotides (5S rRNA) up to ~1,900 nucleotides (18S) or ~4,700 nucleotides (28S, in the large eukaryotic subunit) -- rRNA makes up roughly 80% of a cell's total RNA by mass, and folded rRNA plus protein is what builds the ribosome's two unequal subunits (see this atlas's own ribosome entry, a sibling subject)."
+  },
+  "structures": [
+    {
+      "key": "backbone",
+      "la": "catena glycosyl-phosphatica ribosa (singularis)",
+      "en": "Ribose-phosphate backbone (single strand)",
+      "de": "Ribose-Phosphat-Rückgrat (Einzelstrang)",
+      "note": "Alternating ribose sugar and phosphate groups, covalently linked, running along the length of the ONE strand -- never draw a second, independent backbone paired along the whole molecule's length (that would be DNA). The backbone may loop, fold and pass close to itself where the strand pairs with itself (hairpins, tRNA arms), but it is traceable as a single continuous line from one end to the other."
+    },
+    {
+      "key": "bases_augc",
+      "la": "basia (adenina, uracilum, guanina, cytosina)",
+      "en": "The four bases: A, U, G, C",
+      "de": "Die vier Basen: A, U, G, C",
+      "note": "Each base attaches to a sugar in the backbone and projects to the side (unpaired regions, e.g. most of an mRNA strand or a hairpin's loop) or pairs edge-to-edge with a complementary base on the same strand folded back on itself (A with U, G with C) in paired regions (hairpin stems, tRNA arms, codon-anticodon contacts). CRITICAL: uracil (U), never thymine (T) -- no T anywhere in this molecule."
+    },
+    {
+      "key": "hairpin_stem_loop",
+      "la": "ansa geniculata (structura 'furcula capillaris')",
+      "en": "Hairpin / stem-loop",
+      "de": "Haarnadelschleife (Stamm-Schleife-Struktur)",
+      "note": "A short run of the SAME single strand folding back on itself: a paired double-stranded 'stem' where the strand runs antiparallel to itself, capped by an unpaired single-stranded 'loop' where it turns around. This is the defining, checkable signature of RNA secondary structure -- worth showing explicitly on the mRNA strand and/or as the basis of each tRNA cloverleaf arm. Must read as ONE strand folding, not two separate strands joining."
+    },
+    {
+      "key": "mrna_strand",
+      "la": "RNA nuntia (catena singularis longa)",
+      "en": "Messenger RNA (mRNA) strand",
+      "de": "Boten-RNA (mRNA)-Strang",
+      "note": "A long, mostly extended single strand carrying the linear coding sequence, read three bases (one codon) at a time by the ribosome. May show a hairpin or two along its length but is overall an open, readable thread -- not a compact folded blob like tRNA or rRNA."
+    },
+    {
+      "key": "codon",
+      "la": "codon (trinucleotidum in RNA nuntia)",
+      "en": "Codon (three-base sequence on the mRNA)",
+      "de": "Codon (Drei-Basen-Abschnitt der mRNA)",
+      "note": "A specific run of three consecutive bases on the mRNA strand, currently paired with (read by) a tRNA's anticodon at the ribosome. Anchor the label on one specific three-base stretch of the mRNA, ideally the one directly opposite/paired with the anticodon loop if both are shown in the same composition."
+    },
+    {
+      "key": "trna_cloverleaf",
+      "la": "RNA translationis, forma trifolii / forma 'L'",
+      "en": "Transfer RNA (tRNA) -- cloverleaf / L-shape",
+      "de": "Transfer-RNA (tRNA) -- Kleeblatt-/L-Form",
+      "note": "A short single strand folded into the unmistakable four-armed cloverleaf pattern (in 2D) that packs further into a compact L-shaped molecule (in 3D): one arm/end carries the anticodon loop, the opposite end carries the amino-acid attachment site, with two more paired arms (D-arm and T-arm) making the L-shaped elbow between them. This shape is THE single most recognisable, checkable feature to get right for tRNA -- it must read as one folded strand, never as a double helix or an unfolded straight strand."
+    },
+    {
+      "key": "anticodon",
+      "la": "anticodon (in ansa anticodonis tRNA)",
+      "en": "Anticodon (in the tRNA's anticodon loop)",
+      "de": "Anticodon (in der Anticodon-Schleife der tRNA)",
+      "note": "A three-base sequence sitting in the unpaired loop at one end of the tRNA's cloverleaf/L-shape, complementary to and pairing with one codon on the mRNA. Label anchor must land on the actual loop that would face and pair with the mRNA codon, not on a different arm of the cloverleaf (D-arm and T-arm loops must not be mislabelled as the anticodon)."
+    },
+    {
+      "key": "amino_acid_site",
+      "la": "extremitas 3' CCA (situs aminoacidi affixi)",
+      "en": "Amino acid attachment site (3' CCA end)",
+      "de": "Aminosäure-Bindungsstelle (3'-CCA-Ende)",
+      "note": "The opposite end of the tRNA's L-shape from the anticodon loop -- the single-stranded 3' tail (ending in the sequence C-C-A in every tRNA) where the matching amino acid is covalently attached. Show as a small distinct bead/tag at the tip of the acceptor stem, clearly separate from the anticodon end."
+    },
+    {
+      "key": "rrna_ribosome_bulk",
+      "la": "RNA ribosomalis (rRNA), moles ribosomatis",
+      "en": "Ribosomal RNA (rRNA) -- the folded bulk of the ribosome",
+      "de": "Ribosomale RNA (rRNA) -- die gefaltete Masse des Ribosoms",
+      "note": "A much longer single strand, extensively self-folded (many stacked hairpins/stems) into a dense, irregularly knobbly mass that -- together with ribosomal proteins studding its surface -- forms the two unequal subunits of the ribosome (this atlas's sibling organelle entry). Where shown, keep it consistent with that entry: no membrane, knobbly irregular surface, never a smooth geometric shape."
+    },
+    {
+      "key": "nuclear_pore_context",
+      "la": "porus nuclearis (contextus optionalis)",
+      "en": "Nuclear pore (mRNA export, optional wider context)",
+      "de": "Kernpore (mRNA-Export, optionaler Kontext)",
+      "note": "Optional compositional element tying this plate to two sibling atlas subjects: mRNA threading out through a nuclear pore complex on its way from the nucleus to a ribosome. Only include where the style/composition supports it (e.g. a wider textbook or 3d scene); not required on every style."
+    }
+  ],
+  "do_not_draw": [
+    "Do NOT draw a DNA-style DOUBLE HELIX -- i.e. two independent, fully complementary strands paired and twisted together along the WHOLE length of the molecule. This is the single most important, unforgivable error for this subject and must be checked explicitly on every render. Local self-pairing (a hairpin stem, a tRNA arm) is fine and expected; a second, separate backbone running the full length is not.",
+    "Do NOT draw THYMINE or a 'T' base anywhere. RNA's four bases are A, U, G, C only -- if any base letters are visible at all (they should not be baked in as text per the no-text rule), none may read as T.",
+    "Do NOT bake base letters (A/U/G/C or any text) into the image pixels -- the label layer is a separate SVG overlay, added afterwards. This project has specifically lost model-escalation attempts to exactly this mistake before.",
+    "Do NOT draw a membrane, envelope or capsule around the molecule -- RNA is a bare nucleic acid strand (and, where rRNA is shown as part of a ribosome, a bare ribonucleoprotein machine), never enclosed in a lipid bilayer or cell-like outline.",
+    "Do NOT draw the backbone as a smooth featureless tube/ribbon with zero visible base projections or fold structure -- the single-stranded, self-folding character (bases sticking off to the side, hairpins forming) must be visible, not smoothed away into an abstract cord.",
+    "Do NOT draw a tRNA as an unfolded straight strand, nor as a double helix -- it must show the recognisable cloverleaf (four-armed, 2D) or L-shaped (3D) fold, with a clearly separate anticodon-loop end and amino-acid-attachment end.",
+    "Do NOT invent extra strands (three or more) or a braided/plait structure -- exactly ONE continuous strand at all times, however much it folds back on itself.",
+    "Do NOT draw the sugar-phosphate backbone on the inside with bases on the outside meeting at a shared central axis in a paired region -- in any locally double-stranded stem (hairpin, tRNA arm), the two backbone segments still run on the outside of that short paired region with bases meeting in the middle, exactly as in DNA's local pairing geometry, just for a short self-paired stretch of one strand rather than two full independent strands.",
+    "Do NOT show rRNA/ribosome material as a smooth sphere or clean geometric solid -- consistent with this atlas's ribosome entry, it must read as an irregular, knobbly folded mass, not a tidy ball.",
+    "Do NOT add a scale bar, watermark, arrow, caption, or any other baked-in graphic device."
+  ],
+  "colour_legend": {
+    "backbone": "#7FA0B8 (cool slate blue-grey) -- the single ribose-phosphate backbone strand, kept as ONE consistent colour throughout its whole length (unlike DNA's two backbones in two different colours) precisely because it IS one strand, even where it folds back on itself",
+    "adenine": "#6FBF73 (green)",
+    "uracil": "#D9622B (warm red-orange) -- takes thymine's DNA colour slot in this atlas's convention, since uracil is uracil's functional analogue",
+    "guanine": "#E8B93E (gold/yellow)",
+    "cytosine": "#3E7FB0 (blue)",
+    "hairpin_and_paired_regions": "base colours as above, shown paired (A-U, G-C) wherever the strand folds on itself; the paired 'rungs' inside a hairpin stem or tRNA arm use the same four base colours as an unpaired base, just drawn touching its partner",
+    "trna_body": "a warm neutral tan/cream for the folded tRNA ribbon body, with the anticodon loop and amino-acid-attachment tip picked out in a slightly brighter accent so both ends of the L-shape are easy to find",
+    "rrna_ribosome_bulk": "kept consistent with this atlas's own ribosome entry's colour legend (terracotta large subunit / blue small subunit) where a ribosome context is shown",
+    "note": "RNA has no colour in life -- a strand ~1 nm across is far below the wavelength of visible light. Every colour here is teaching convention, chosen to make the single-strand backbone, the four bases, and the tRNA's two functional ends legible at a glance. Kept consistent across all styles for this microbe."
+  },
+  "sources": [
+    {
+      "title": "Alberts et al., Molecular Biology of the Cell -- 'From DNA to RNA' (NCBI Bookshelf NBK26887)",
+      "url": "https://www.ncbi.nlm.nih.gov/books/NBK26887/",
+      "note": "RNA is chemically similar to DNA but single-stranded, uses ribose (with the 2'-OH) instead of deoxyribose, and uracil instead of thymine; describes mRNA, tRNA and rRNA as the three major functional classes and their roles in the flow of genetic information."
+    },
+    {
+      "title": "Holley RW et al. (1965) 'Structure of a Ribonucleic Acid', Science 147:1462-1465",
+      "url": "https://www.science.org/doi/10.1126/science.147.3664.1462",
+      "note": "First complete tRNA (yeast tRNA-Ala) sequence, from which the cloverleaf secondary-structure model was proposed."
+    },
+    {
+      "title": "Kim SH et al. (1974) 'Three-dimensional tertiary structure of yeast phenylalanine transfer RNA', Science 185:435-440",
+      "url": "https://www.science.org/doi/10.1126/science.185.4149.435",
+      "note": "The classic 1974 crystal structure (yeast tRNA-Phe) revealing the L-shaped tertiary fold: the acceptor stem stacks on the T-arm to form one branch of the L, the D-arm stacks on the anticodon arm to form the other, joined at an 'elbow'; anticodon loop and amino-acid-acceptor (3' CCA) end sit at opposite tips of the L, roughly 70-80 Angstrom apart."
+    },
+    {
+      "title": "Robertus JD et al. (1974) 'Structure of yeast phenylalanine tRNA at 3 A resolution', Nature 250:546-551",
+      "url": "https://www.nature.com/articles/250546a0",
+      "note": "Independent, concurrent 1974 tRNA-Phe crystal structure confirming the L-shaped tertiary fold."
+    },
+    {
+      "title": "Cooper GM, The Cell: A Molecular Approach -- 'RNA, Protein Synthesis, and Non-coding RNAs' (NCBI Bookshelf NBK9838 / NBK9849)",
+      "url": "https://www.ncbi.nlm.nih.gov/books/NBK9849/",
+      "note": "Describes ribosomal RNA as the major component (by mass) of ribosomes, folded together with ribosomal proteins into the two ribosomal subunits; describes mRNA nuclear export through nuclear pore complexes to the cytoplasm for translation."
+    },
+    {
+      "title": "Saenger W, Principles of Nucleic Acid Structure (Springer, 1984) -- sugar pucker / 2'-OH and A-form helix geometry",
+      "url": "https://link.springer.com/book/10.1007/978-1-4612-5190-3",
+      "note": "The ribose 2'-hydroxyl group sterically forces RNA duplex regions into A-form helical geometry (distinct from B-form DNA) and is the chemical basis for RNA's greater susceptibility to hydrolysis versus DNA."
+    },
+    {
+      "title": "Wikipedia -- Uracil / Thymine / Ribonucleic acid",
+      "url": "https://en.wikipedia.org/wiki/Uracil",
+      "note": "Uracil pairs with adenine much like thymine does, differing chemically only by lacking thymine's 5-methyl group; general RNA base-composition reference."
+    },
+    {
+      "title": "this atlas -- cells_data.py genetics set (RNA entry) and organelles set (Ribosome entry, sibling subject)",
+      "url": "internal:cells_data.py",
+      "note": "Atlas copy already states: 'usually single-stranded, with ribose in place of deoxyribose and uracil in place of thymine... mRNA carries a gene's transcript to the ribosome, tRNA brings the matching amino acids, rRNA forms the ribosome itself' and that some viruses (influenza, SARS-CoV-2) carry their genome as RNA and mRNA vaccines use this messenger -- this research keeps the plate consistent with that existing copy and with the atlas's own DNA and Ribosome sibling entries."
+    }
+  ]
+}

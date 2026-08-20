@@ -1,0 +1,12 @@
+{
+  "microbe": "dna",
+  "set": "genetics",
+  "model": "gemini-2.5-flash-image",
+  "speech_en": "Two twisted strands, one perfect code!",
+  "speech_de": "Zwei verdrehte Stränge, ein perfekter Code!",
+  "scenario": "A cheerful DNA double-helix character: two twisted ribbon strands with simple rung bars between them, spiraling diagonally from the bottom-left corner of the picture to the top-right corner, both ends cut off by the picture's corners (extreme close-up crop). One big happy smiling face peeks out from between the rungs at the middle of the strand. A scatter of small plain round beads/circles fills the corners so every edge has linework crossing it.",
+  "status": "RENDERED — accepted on the FIRST paid attempt on gemini-2.5-flash-image. No starburst/radiating rays anywhere, no border/frame/panel (the twisting ribbon body runs off all four edges of the square, plus scattered corner beads reinforce edge-bleed on all sides), positive zoomed-in-crop phrasing used throughout the prompt (per the project's documented lesson that this beats repeating negatives), single large character on a diagonal per the established best-performing composition. Verified by viewing both the raw PNG and the traced SVG (with the speech bubble panel rendered above the square artwork, per coloring.py's standard taller-canvas layout): no border anywhere, no starburst, the diagonal helix body plus corner beads touch every edge, the two ribbon strands read as clearly distinguishable via the double-outline convention, and the single face is friendly and centred without any anatomical/scientific labels (correctly kept off the colouring page per project convention). EN speech bubble renders correctly; DE text is present in the toggleable #labels-de layer with proper umlauts (ä).",
+  "command_attempt1": "uv run --script .claude/skills/microbe-render/scripts/coloring.py --microbe dna --set genetics --prompt-file renders/set/genetics/dna.coloring.prompt.v1.txt --speech-en \"Two twisted strands, one perfect code!\" --speech-de \"Zwei verdrehte Stränge, ein perfekter Code!\" --attempt 1",
+  "attempts": 1,
+  "final_svg_source": "gen-01__gemini-2.5-flash-image.png, traced directly by coloring.py's own to_bitmap/trace_paths/build_svg pipeline (no crop/retrace workaround needed)"
+}

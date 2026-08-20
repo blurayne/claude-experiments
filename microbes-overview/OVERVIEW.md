@@ -4,7 +4,7 @@
 
 ## Where we stand
 
-- **17 sets**, **104 microbes** live in the viewer, out of **107 catalogued**.
+- **17 sets**, **106 microbes** live in the viewer, out of **107 catalogued**.
 - Every live microbe carries: 5 picture styles, 3 labelled diagrams, a printable A4 coloring page, kids narration in EN + DE, and size/weight data — the table below is the proof.
 - **44 plush links**, every one an exact species/cell match. 8 of those photos had to be repaired (see the last section).
 
@@ -82,8 +82,8 @@
 | antibodies | Immunoglobulin M (IgM) | `igm` | 5/5 | 3/3 | ✅ | ✅ | 35 nm · 950 kDa | — |
 | antibodies | Immunoglobulin D (IgD) | `igd` | 5/5 | 3/3 | ✅ | ✅ | 10 nm · 180 kDa | — |
 | antibodies | Immunoglobulin E (IgE) | `ige` | 5/5 | 3/3 | ✅ | ✅ | 10 nm · 190 kDa | — |
-| genetics | DNA (deoxyribonucleic acid) | — | ❌ not rendered | | | | 2 nm · 6.6 pg | |
-| genetics | RNA (ribonucleic acid) | — | ❌ not rendered | | | | 1 nm · 500 kDa | |
+| genetics | DNA (deoxyribonucleic acid) | `dna` | 5/5 | 3/3 | ✅ | ✅ | 2 nm · 6.6 pg | — |
+| genetics | RNA (ribonucleic acid) | `rna` | 5/5 | 3/3 | ✅ | ✅ | 1 nm · 500 kDa | — |
 | genetics | Chromosome | — | ❌ not rendered | | | | 5 µm · 0.3 pg | |
 | cancer-cells | Cancer cell (malignant neoplasm) | `cancer-cell` | 5/5 | 3/3 | ✅ | ✅ | 20 µm · 4 ng | Cancer (Malignant neoplasm) |
 | pathogens | Cocci (round bacteria) | `cocci` | 5/5 | 3/3 | ✅ | ✅ | 1 µm · 0.5 pg | — |
@@ -124,17 +124,15 @@
 
 ## Gaps
 
-**Catalogued but not yet rendered — 3.** Text, German translation and scale data already exist for these; only the pictures are missing.
+**Catalogued but not yet rendered — 1.** Text, German translation and scale data already exist for these; only the pictures are missing.
 
-- `genetics` — DNA (deoxyribonucleic acid)
-- `genetics` — RNA (ribonucleic acid)
 - `genetics` — Chromosome
 
 **Rendered but not reaching the viewer — 0.** A render only appears if `meta.name` matches a catalogue `name_en` exactly, or its key matches the slug of one; anything here fell through both.
 
 - none
 
-**Data waiting for a render:** 3 scale entries (`chromosome`, `dna`, `rna`), 0 plush links (none).
+**Data waiting for a render:** 1 scale entry (`chromosome`), 0 plush links (none).
 
 **No recorded micrograph source:** `reticulocyte`.
 
