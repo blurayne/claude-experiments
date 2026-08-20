@@ -388,7 +388,6 @@ main{max-width:var(--maxw); margin:0 auto; padding:clamp(20px,4vw,44px) clamp(14
    weight is color-coded instead, on a fixed light(blue)->heavy(red) scale
    that stays the same across every visual theme (a data-scale, not a theme
    accent, so themes shouldn't recolor it). */
-html{ --wc1:#60a5fa; --wc2:#22d3ee; --wc3:#facc15; --wc4:#fb923c; --wc5:#f87171 }
 
 /* ---- ink weight (Settings → line thickness) ------------------------------
    --ink scales everything that is genuinely stroked. The coloring page's
@@ -405,15 +404,18 @@ svg .bubble{ stroke-width:calc(5px * var(--ink)) }
 svg .lead-under{ stroke-width:calc(2px * var(--ink)) }
 svg .lead{ stroke-width:calc(0.7px * var(--ink)) }
 svg .halo{ stroke-width:calc(4px * var(--ink)) }
-.scale-meter{display:flex; align-items:baseline; gap:8px; margin:-6px 0 14px; flex-wrap:wrap}
-.scale-bar{font-family:var(--font-mono); font-size:12px; line-height:1}
-.scale-meter.wc1 .scale-bar{color:var(--wc1)}
-.scale-meter.wc2 .scale-bar{color:var(--wc2)}
-.scale-meter.wc3 .scale-bar{color:var(--wc3)}
-.scale-meter.wc4 .scale-bar{color:var(--wc4)}
-.scale-meter.wc5 .scale-bar{color:var(--wc5)}
-.scale-bar .dim{color:var(--border)}
-.scale-text{font-family:var(--font-mono); font-size:11px; color:var(--fg-faint); white-space:nowrap}
+.scale-meter{display:flex; align-items:flex-end; gap:9px; margin:-4px 0 14px; flex-wrap:wrap}
+.scale-bar{display:block; overflow:visible}
+/* weight class → how much of the theme accent is mixed in: a near-weightless
+   virus sits close to the muted body text, the egg cell is full accent */
+.scale-bar .on{fill:color-mix(in oklab, var(--accent) var(--wc-mix), var(--fg-faint))}
+.scale-bar .off{fill:var(--border)}
+.scale-meter.wc1{--wc-mix:26%}
+.scale-meter.wc2{--wc-mix:44%}
+.scale-meter.wc3{--wc-mix:62%}
+.scale-meter.wc4{--wc-mix:81%}
+.scale-meter.wc5{--wc-mix:100%}
+.scale-text{font-family:var(--font-mono); font-size:11px; line-height:1.5; color:var(--fg-faint); white-space:nowrap}
 .scale-text .sep{opacity:.5; margin:0 1px}
 /* kids-mode narration controls. The stop button's slot is always reserved
    (kept in the layout at width 0→auto) so it fades in/out without shifting
@@ -434,7 +436,7 @@ svg .halo{ stroke-width:calc(4px * var(--ink)) }
   border-radius:50%; border:1px solid var(--border); background:var(--card); color:var(--accent);
   cursor:pointer; flex:none; font-size:12px; transition:border-color .15s, background .15s, transform .15s}
 .audio-play .ic-play{display:inline-flex}
-.audio-play .ic-play svg{width:17px; height:17px; display:block}
+.audio-play .ic-play svg{width:18px; height:18px; display:block}
 .audio-play:hover{border-color:var(--accent); background:var(--card-hi)}
 .audio-play:active{transform:scale(.92)}
 .audio-play .ic-pause{display:none}
@@ -1131,22 +1133,21 @@ function proseHTML(m){
 // AND set-intro paragraphs: on mobile it sits at the right edge of the prose
 // text (float), on desktop next to the "For Kids" audience tag instead —
 // see the .audio-ctl CSS for the breakpoint switch.
+// A head in profile with sound waves — "someone reads this to you", rather
+// than a play triangle or a loudspeaker, which only say "audio". This is the
+// `speech` glyph from Lucide (lucide.dev), ISC licence, © Lucide Contributors.
+const SPEECH_ICON=
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '+
+       'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+
+    '<path d="M8.8 20v-4.1l1.9.2a2.3 2.3 0 0 0 2.164-2.1V8.3A5.37 5.37 0 0 0 2 8.25c0 2.8.656 3.054 1 4.55a5.77 5.77 0 0 1 .029 2.758L2 20"/>'+
+    '<path d="M19.8 17.8a7.5 7.5 0 0 0 .003-10.603"/>'+
+    '<path d="M17 15a3.5 3.5 0 0 0-.025-4.975"/>'+
+  '</svg>';
 function audioCtlHTML(m){
   if(!audioFor(m)) return '';
   return '<span class="audio-ctl" data-key="'+esc(m.key||m.id)+'">'+
     '<button type="button" class="audio-play" title="Play narration" aria-label="Play narration" aria-pressed="false">'+
-      '<span class="ic-play">'+
-        '<svg viewBox="0 0 24 24" aria-hidden="true">'+
-          '<g fill="currentColor">'+
-            '<circle cx="9.3" cy="8.4" r="5.5"/>'+
-            '<path d="M13.2 7.7l2.4 3.6c.2.3 0 .8-.4.8h-2z"/>'+
-            '<path d="M6.7 12.5h5.2v3.3c0 .6.5 1.1 1.1 1.1h.5V21H6.7z"/>'+
-          '</g>'+
-          '<g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">'+
-            '<path d="M16.8 10.1a3.6 3.6 0 0 1 0 4.7"/>'+
-            '<path d="M19.3 8.3a7 7 0 0 1 0 8.3"/>'+
-          '</g>'+
-        '</svg></span>'+
+      '<span class="ic-play">'+SPEECH_ICON+'</span>'+
       '<span class="ic-pause">❚❚</span></button>'+
     '<button type="button" class="audio-stop" title="Stop narration" aria-label="Stop narration" tabindex="-1">■</button>'+
   '</span>';
@@ -1161,13 +1162,29 @@ function fmtSize(um){
   return (Number.isInteger(um) ? um : um.toFixed(1))+' µm';
 }
 function fmtWeight(sc){ return (Number.isInteger(sc.weight_val)?sc.weight_val:sc.weight_val)+' '+sc.weight_unit; }
+// Two readings in one little chart, drawn as SVG so both can vary smoothly:
+// the bar's LENGTH is size against the fixed 120µm ceiling, while its HEIGHT
+// and colour intensity carry the weight class — heavier microbes stand taller
+// and read stronger. The colour is mixed from the theme accent, so the meter
+// re-tints with the theme instead of using a fixed palette.
+const SEG_W=7, SEG_GAP=2.6, BAR_H=17;
 function scaleHTML(m){
   const sc=m.scale; if(!sc) return '';
-  const filled=Math.max(1, Math.min(SCALE_BAR_SEGMENTS, Math.round(sc.size_um/120*SCALE_BAR_SEGMENTS)));
-  const bar='▇'.repeat(filled)+'<span class="dim">'+'·'.repeat(SCALE_BAR_SEGMENTS-filled)+'</span>';
+  const n=SCALE_BAR_SEGMENTS;
+  const filled=Math.max(1, Math.min(n, Math.round(sc.size_um/120*n)));
+  const wc=Math.max(1, Math.min(5, sc.weight_class||1));
+  const hFill=4 + (wc-1)*(BAR_H-4)/4;         // class 1 → 4px, class 5 → full
+  const hDim=2.5, pitch=SEG_W+SEG_GAP, w=n*pitch-SEG_GAP;
+  let bars='';
+  for(let i=0;i<n;i++){
+    const on=i<filled, h=on?hFill:hDim;
+    bars+='<rect x="'+(i*pitch).toFixed(1)+'" y="'+(BAR_H-h).toFixed(1)+'" width="'+SEG_W+
+          '" height="'+h.toFixed(1)+'" rx="1.5" class="'+(on?'on':'off')+'"/>';
+  }
   const sizeTxt=fmtSize(sc.size_um), weightTxt=fmtWeight(sc);
-  return '<div class="scale-meter wc'+sc.weight_class+'" title="Typical size and mass — a rough teaching approximation, not a measurement of this specific render">'+
-    '<span class="scale-bar">'+bar+'</span>'+
+  return '<div class="scale-meter wc'+wc+'" title="Typical size and mass — a rough teaching approximation, not a measurement of this specific render">'+
+    '<svg class="scale-bar" viewBox="0 0 '+w.toFixed(1)+' '+BAR_H+'" width="'+w.toFixed(1)+'" height="'+BAR_H+
+      '" role="img" aria-label="Size '+esc(sizeTxt)+', mass '+esc(weightTxt)+'">'+bars+'</svg>'+
     '<span class="scale-text">'+esc(sizeTxt)+'<span class="sep">·</span>'+esc(weightTxt)+'</span>'+
   '</div>';
 }
