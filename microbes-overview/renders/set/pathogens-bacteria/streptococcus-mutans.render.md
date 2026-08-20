@@ -136,7 +136,7 @@ Hand-painted naturalist scientific plate of Streptococcus mutans in the style of
 
 ### Real microscopy reference (`reference-microscopy`)
 - `LM` · CC BY-SA 3.0 · Y tambe, Wikimedia Commons (S. mutans ATCC 25175, Gram stain x1000) — pass (Gram-stained light micrograph of S. mutans ATCC 25175 by Y tambe, CC BY-SA 3.0; the raw field shows the characteristic curving chains of small violet cocci - a cleaned, scale-bar-free version with one chain brought forward is used for display)
-  ![reference](theme/lm/streptococcus-mutans.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/lm/streptococcus-mutans.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

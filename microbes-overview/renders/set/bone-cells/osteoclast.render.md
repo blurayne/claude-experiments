@@ -120,7 +120,7 @@ Hand-painted naturalist scientific plate of a SINGLE giant human osteoclast in t
 
 ### Real microscopy reference (`reference-microscopy`)
 - `light` · Public domain · Robert M. Hunt (English Wikipedia) — pass (Wikimedia Commons "Osteoclast.jpg", public domain, Robert M. Hunt; single dominant multinucleated cell with ~10+ clustered dark-staining nuclei in foamy cytoplasm directly against a darker bone matrix band, RBCs above for scale — unambiguous classic osteoclast histology; cleaned/false-colorized version used for display)
-  ![reference](theme/light/osteoclast.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/light/osteoclast.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

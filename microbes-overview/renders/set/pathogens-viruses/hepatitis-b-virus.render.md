@@ -120,7 +120,7 @@ Hand-painted 19th-century naturalist plate of a single small spherical Hepatitis
 
 ### Real microscopy reference (`reference-microscopy`)
 - `TEM` · Public Domain (PD-USGov-HHS-CDC, PHIL #10755) · CDC / Dr. Erskine Palmer — PASS - CDC PHIL #10755 colorized TEM (Dr. Erskine Palmer, public domain) of Hepatitis B Dane particles; four orange-colorized ~42 nm particles with textured/knobby envelope surface clearly visible on a dark navy field. Recomposed to fill the frame edge-to-edge (real-04) after cleanup passes removed light margins left by earlier crops.
-  ![reference](theme/tem/hepatitis-b-virus.attempts/real-04__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/tem/hepatitis-b-virus.attempts/real-04__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

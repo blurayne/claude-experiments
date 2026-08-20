@@ -145,7 +145,7 @@ Hand-painted 19th-century naturalist scientific atlas plate, anatomically modern
 
 ### Real microscopy reference (`reference-microscopy`)
 - `LM (lactophenol cotton blue)` · CC BY-SA 4.0 · Ajay Kumar Chaurasiya, Wikimedia Commons — PASS - Wikimedia Commons light micrograph of a lactophenol-cotton-blue tease mount (Ajay Kumar Chaurasiya, CC BY-SA 4.0) genuinely shows Penicillium: an erect stipe branching at its apex into deep-blue metulae and phialides with long UNBRANCHED chains of round conidia radiating outward, and NO swollen vesicle - so it is Penicillium and not Aspergillus. The original was a wider field with a second partial brush head, out-of-focus debris and scattered loose spore clusters, so it was cleaned with edit_image.py (real-02) to isolate ONE complete conidiophore on a uniform mount, keeping the LPCB colorization and the specimen's shape unchanged. HONEST CAVEAT: the source identifies the specimen to GENUS (Penicillium sp.), not to species - it is not independently confirmed as P. chrysogenum. That limitation is unavoidable here: P. chrysogenum and its sibling P. rubens are indistinguishable by light microscopy and can only be separated by sequencing, so no light micrograph could honestly claim species-level identity. Species-labelled alternatives exist (Bontemps CC BY 4.0, Ninjatacoshell CC BY-SA 3.0) but are visibly weaker - low contrast, heavy field vignette or an out-of-focus conidial mass - and were kept as backups in section 2.
-  ![reference](theme/lm/penicillium-chrysogenum.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/lm/penicillium-chrysogenum.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

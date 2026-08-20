@@ -118,7 +118,7 @@ Hand-painted naturalist scientific plate of a SINGLE human oligodendrocyte in th
 
 ### Real microscopy reference (`reference-microscopy`)
 - `H&E light microscopy` · CC BY-SA 4.0 · Jensflorian, Wikimedia Commons, 2015 — pass (Wikimedia Commons "Oligodendrocyte HE stain high mag.jpg", CC BY-SA 4.0, Jensflorian 2015; H&E light micrograph of human cerebral white matter showing several oligodendrocytes with the classic small dense round nucleus in a clear perinuclear 'fried-egg' halo (a fixation artifact, noted in render.md so it isn't mistaken for a real structure) - features clearly readable, cleaned real-02 edit removes stray scale/text and keeps the natural H&E colourisation, used for display)
-  ![reference](theme/histology/oligodendrocyte.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/histology/oligodendrocyte.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

@@ -119,7 +119,7 @@ Hand-painted 19th-century naturalist plate of a single coronavirus virion, soft 
 
 ### Real microscopy reference (`reference-microscopy`)
 - `TEM` · CC BY 2.0 · NIAID-RML (Rocky Mountain Laboratories) — ✅ PASS — genuine NIAID-RML colorized TEM of SARS-CoV-2 virions with clearly resolved Spike coronae (CC BY 2.0, Public via Flickr); no baked-in text. An AI clean-up that re-illustrated it was discarded to keep the reference authentic.
-  ![reference](theme/tem/coronavirus.attempts/real-01__TEM.avif)
+  ![reference](../reference-microscopy/theme/tem/coronavirus.attempts/real-01__TEM.avif)
 
 ## 6. Teaching-use decision
 

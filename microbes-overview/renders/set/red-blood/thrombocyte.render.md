@@ -122,7 +122,7 @@ Hand-painted naturalist scientific plate of a SINGLE human thrombocyte (platelet
 
 ### Real microscopy reference (`reference-microscopy`)
 - `LM (Wright-stained peripheral blood smear)` · CC BY 2.0 · Ed Uthman (Houston, TX, USA), via Flickr, transferred to Wikimedia Commons by CFCF — pass (Wikimedia Commons "Giant Platelet, Peripheral Blood Smear", Ed Uthman via Flickr, CC BY 2.0: authentic Wright-stained light micrograph showing a single clearly isolated giant/reactive platelet among red blood cells; no baked-in text or scale bar. Used directly without edit_image.py cleaning since it already had natural stain colour and no text/border to strip. Size caveat noted in the render log: this is a giant/reactive platelet, larger than a typical resting 2-4 µm platelet.)
-  ![reference](theme/blood-smear/thrombocyte.attempts/real-01__LM (Wright-stained peripheral blood smear).avif)
+  ![reference](../reference-microscopy/theme/blood-smear/thrombocyte.attempts/real-01__LM%20%28Wright-stained%20peripheral%20blood%20smear%29.avif)
 
 ## 6. Teaching-use decision
 

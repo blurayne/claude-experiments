@@ -4,7 +4,7 @@
 
 ## Where we stand
 
-- **15 sets**, **84 microbes** live in the viewer, out of **93 catalogued**.
+- **15 sets**, **85 microbes** live in the viewer, out of **93 catalogued**.
 - Every live microbe carries: 5 picture styles, 3 labelled diagrams, a printable A4 coloring page, kids narration in EN + DE, and size/weight data — the table below is the proof.
 - **29 plush links**, every one an exact species/cell match. 8 of those photos had to be repaired (see the last section).
 
@@ -89,7 +89,7 @@
 | pathogens-bacteria | Salmonella enterica | `salmonella-enterica` | 5/5 | 3/3 | ✅ | ✅ | 2.5 µm · 1 pg | Salmonella (Salmonella typhimurium) |
 | pathogens-bacteria | Helicobacter pylori | `helicobacter-pylori` | 5/5 | 3/3 | ✅ | ✅ | 3 µm · 0.5 pg | Ulcer (Helicobacter pylori) |
 | pathogens-bacteria | Streptococcus mutans (tooth decay) | `streptococcus-mutans` | 5/5 | 3/3 | ✅ | ✅ | 800 nm · 1 pg | — |
-| pathogens-bacteria | Borrelia burgdorferi (Lyme disease) | — | ❌ not rendered | | | | 20 µm · 0.3 pg | |
+| pathogens-bacteria | Borrelia burgdorferi (Lyme disease) | `borrelia-burgdorferi` | 5/5 | 3/3 | — | — | 20 µm · 0.3 pg | — |
 | pathogens-bacteria | Clostridioides difficile (C. diff) | — | ❌ not rendered | | | | 5 µm · 3 pg | |
 | pathogens-bacteria | Listeria monocytogenes | — | ❌ not rendered | | | | 2 µm · 1 pg | |
 | pathogens-viruses | Influenza virus (flu) | `influenza-virus` | 5/5 | 3/3 | ✅ | ✅ | 100 nm · 1 fg | Flu (Orthomyxovirus) |
@@ -106,15 +106,14 @@
 | pathogens-viruses | Giardia lamblia (giardiasis) | — | ❌ not rendered | | | | 12 µm · 1 ng | |
 | helpful-microbes | Baker's yeast (Saccharomyces cerevisiae) | `saccharomyces-cerevisiae` | 5/5 | 3/3 | ✅ | ✅ | 5 µm · 60 pg | — |
 | helpful-microbes | Penicillin mould (Penicillium chrysogenum) | `penicillium-chrysogenum` | 5/5 | 3/3 | ✅ | ✅ | 3.5 µm · 20 pg | — |
-| helpful-microbes | Bifidobacterium longum | `bifidobacterium-longum` | 5/5 | 3/3 | ✅ | — | 3 µm · 1.5 pg | — |
+| helpful-microbes | Bifidobacterium longum | `bifidobacterium-longum` | 5/5 | 3/3 | ✅ | ✅ | 3 µm · 1.5 pg | — |
 
 ## Gaps
 
-**Catalogued but not yet rendered — 9.** Text, German translation and scale data already exist for these; only the pictures are missing.
+**Catalogued but not yet rendered — 8.** Text, German translation and scale data already exist for these; only the pictures are missing.
 
 - `organelles` — Golgi apparatus
 - `epithelial` — Hepatocyte (liver cell)
-- `pathogens-bacteria` — Borrelia burgdorferi (Lyme disease)
 - `pathogens-bacteria` — Clostridioides difficile (C. diff)
 - `pathogens-bacteria` — Listeria monocytogenes
 - `pathogens-viruses` — Rotavirus
@@ -126,7 +125,7 @@
 
 - none
 
-**Data waiting for a render:** 9 scale entries (`borrelia-burgdorferi`, `clostridioides-difficile`, `giardia-lamblia`, `golgi-apparatus`, `hepatocyte`, `listeria-monocytogenes`, `norovirus`, `rotavirus`, `varicella-zoster-virus`), 1 plush links (`golgi-apparatus`).
+**Data waiting for a render:** 8 scale entries (`clostridioides-difficile`, `giardia-lamblia`, `golgi-apparatus`, `hepatocyte`, `listeria-monocytogenes`, `norovirus`, `rotavirus`, `varicella-zoster-virus`), 1 plush links (`golgi-apparatus`).
 
 **No recorded micrograph source:** `reticulocyte`.
 

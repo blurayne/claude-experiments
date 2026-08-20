@@ -144,7 +144,7 @@ Hand-painted 19th-century naturalist scientific atlas plate, anatomically modern
 
 ### Real microscopy reference (`reference-microscopy`)
 - `structure-render` · Public domain (EBI/PDBe deposited-structure chain image) · Jawahar Swaminathan and MSD staff at EMBL-EBI, from PDB 4J4P (Drinkwater et al. 2014, Nat Struct Mol Biol) — pass (EBI/PDBe public-domain deposited-structure chain image from PDB 4J4P - Drinkwater et al. 2014, Nat Struct Mol Biol 21:397-404, 'Human immunoglobulin E flexes between acutely bent and extended conformations'; cleaned via edit_image.py to strip text/border while preserving the original ribbon colourisation. The image shows real crystallographic Ig-fold beta-sandwich domains from the bent-Fc structural study; full-length IgE including both Fab arms has never been solved as a single static crystal structure because of its inherent conformational flexibility (the point of the cited paper), so this domain-level structural render documents the genuine PDB evidence for the bent-conformation finding rather than a literal whole-monomer photograph, which does not exist at this resolution)
-  ![reference](theme/structure/ige.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/structure/ige.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

@@ -125,7 +125,7 @@ Hand-painted 19th-century naturalist scientific atlas plate, anatomically modern
 
 ### Real microscopy reference (`reference-microscopy`)
 - `LM` · CC0 1.0 (Public Domain) · Mikael Häggström, M.D., Wikimedia Commons — PASS with caveat — genuine CC0 H&E bone-marrow histology (Trilineage hematopoiesis, Mikael Häggström) showing the HSC niche among differentiating myeloid/erythroid/megakaryocytic cells; a dense but individually-readable marrow field, not an isolated identified HSC (none exists publicly — HSCs are only identifiable by CD34/marker flow cytometry, not light-microscope morphology). Cleaned/recomposed with edit_image.py (real-02) for display.
-  ![reference](theme/light/hematopoietic-stem-cell.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/light/hematopoietic-stem-cell.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

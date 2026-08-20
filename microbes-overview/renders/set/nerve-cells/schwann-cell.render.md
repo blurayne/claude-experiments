@@ -131,7 +131,7 @@ Hand-painted naturalist scientific plate of a SINGLE human Schwann cell wrapping
 
 ### Real microscopy reference (`reference-microscopy`)
 - `fluorescence` · CC BY-SA 3.0 · Ucbtbej, Wikimedia Commons (2009) — pass (Wikimedia Commons "Cultured schwann cell.jpg", CC BY-SA 3.0 / GFDL, Ucbtbej 2009; fluorescence micrograph of a real cultured human Schwann cell, phalloidin-actin stain - single isolated cell, clear bipolar/tripolar spindle morphology with tapering branched processes at both ends, matching the described Schwann-cell body shape; cleaned/recomposed version used for display, see render.md §2 for the culture-vs-wrapped-ultrastructure caveat)
-  ![reference](theme/fluorescence/schwann-cell.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/fluorescence/schwann-cell.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

@@ -130,11 +130,8 @@ Hand-painted naturalist scientific plate of a SINGLE human spermatozoon (sperm c
 [interactive SVG](theme/watercolor/spermatozoon.watercolor.svg) · [HTML](theme/watercolor/spermatozoon.watercolor.html)
 
 ### Real microscopy reference (`reference-microscopy`)
-- `LM` · CC BY-SA 4.0 · FinerFocus, Wikimedia Commons — pass (phase-contrast light micrograph, single isolated spermatozoon, oval head + long tapering tail clearly readable, no baked-in text/scale bar, used as-is as the primary display reference)
-  ![reference](../reference-microscopy/theme/light/spermatozoon.attempts/real-01__LM.avif)
-
-A second, secondary reference was also gathered and cleaned: `SEM` · Public domain · Forskerunv, Wikimedia Commons — pass (raw download showed a readable group of 3 sperm with a baked-in scale bar; cleaned with `edit_image.py` to isolate a single false-colored specimen and remove the scale bar, for direct comparison against the `sem` render style).
-  ![sem reference (secondary)](../reference-microscopy/theme/sem/spermatozoon.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+- `LM` · CC BY-SA 4.0 · FinerFocus, Wikimedia Commons — pass (two licensed micrographs used together: LM — Wikimedia Commons "Human sperm 100x.jpg", CC BY-SA 4.0, FinerFocus, single isolated specimen with head+tail clearly readable, used as-is; SEM — Wikimedia Commons "Spermatozoa-human-3140x.jpg", public domain, Forskerunv, raw download showed a readable group of 3 with a baked-in scale bar, cleaned with edit_image.py to isolate a single false-colored specimen and remove the scale bar for display)
+  ![reference](../reference-microscopy/theme/sem/spermatozoon.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

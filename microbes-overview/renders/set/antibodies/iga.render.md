@@ -127,7 +127,7 @@ Hand-painted 19th-century naturalist scientific atlas plate, anatomically modern
 
 ### Real microscopy reference (`reference-microscopy`)
 - `structure` · CC BY 4.0 · Lauryn Brooks, Carolina Colón-Colón, Aayushi Patel, Asya Polat / RCSB PDB-101 Molecule of the Month #272 (Secretory Antibodies), based on PDB 6UE7 + 3CHN — pass (RCSB PDB-101 Molecule of the Month #272 illustration, CC BY 4.0, based on cryo-EM structure PDB 6UE7 + PDB 3CHN; cleaned version with baked-in labels removed shows the same 2-monomer/4-Fab/J-chain/secretory-component topology described in §1)
-  ![reference](theme/structure/iga.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/structure/iga.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

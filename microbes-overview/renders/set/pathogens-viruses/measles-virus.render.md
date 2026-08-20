@@ -127,7 +127,7 @@ Hand-painted naturalist scientific watercolour plate of a SINGLE measles virus p
 
 ### Real microscopy reference (`reference-microscopy`)
 - `TEM` · Public Domain (PD-USGov-HHS-CDC) · CDC Public Health Image Library #8429 / Cynthia S. Goldsmith, content provider CDC/William Bellini, Ph.D. — ✅ PASS — CDC PHIL #8429 (public domain, Cynthia S. Goldsmith): a SINGLE isolated measles virion, exactly the preferred case. The slightly irregular pleomorphic envelope with its fine granular spike fringe and the loosely coiled internal nucleocapsid strands are clearly readable. Cleaned with edit_image.py: cropped to the one complete virion, neighbouring partial particles suppressed, and a natural false-colour applied (warm salmon virion body on a cool teal-grey background); no text, scale bar or border remains.
-  ![reference](theme/tem/measles-virus.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/tem/measles-virus.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

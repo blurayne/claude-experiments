@@ -143,7 +143,7 @@ Hand-painted 19th-century naturalist scientific atlas plate, anatomically modern
 
 ### Real microscopy reference (`reference-microscopy`)
 - `SEM` · CC BY 3.0 · Mogana Das Murtey and Patchamuthu Ramasamy, Wikimedia Commons — PASS - Wikimedia Commons SEM (Mogana Das Murtey & Patchamuthu Ramasamy, CC BY 3.0) genuinely shows Saccharomyces cerevisiae: a field of ovoid yeast cells with small daughter buds at constricted necks and the diagnostic raised circular chitin bud scars. Original carried a white scale bar and was a dense group, so it was cleaned with edit_image.py (real-02) to isolate ONE cell with its bud and bud scars, remove the scale bar and apply a natural amber false-colour - shapes and surface texture unchanged.
-  ![reference](theme/sem/saccharomyces-cerevisiae.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/sem/saccharomyces-cerevisiae.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

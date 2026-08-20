@@ -133,7 +133,6 @@ Full log: [`thrombocyte.render.md`](thrombocyte.render.md)
 | Reticulocyte | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 22s | 1609 | $0.039 |
 | Reticulocyte | 3D medical render | gemini-2.5-flash-image | 3 | ✅ | built | 36s | 5295 | $0.116 |
 | Reticulocyte | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 16s | 1691 | $0.039 |
-| Reticulocyte | LM-supravital · CC BY 3.0 | — (edit) | 2 | ✅ | n/a | 1.8m | 1746 | $0.039 |
 | Sickle cell (deformed erythrocyte) | Textbook illustration | gemini-2.5-flash-image | 1 | ✅ | built | 33s | 1687 | $0.039 |
 | Sickle cell (deformed erythrocyte) | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 13s | 1574 | $0.039 |
 | Sickle cell (deformed erythrocyte) | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 17s | 1637 | $0.039 |
@@ -145,6 +144,6 @@ Full log: [`thrombocyte.render.md`](thrombocyte.render.md)
 | Thrombocyte (platelet) | Watercolor plate | gemini-2.5-flash-image | 2 | ✅ | built | 37s | 3366 | $0.077 |
 | Thrombocyte (platelet) | LM (Wright-stained peripheral blood smear) · CC BY 2.0 | — (download) | 1 | ✅ | n/a | 7s | 0 | $0.000 |
 
-**Set total: 78,331 tokens · $1.787**
+**Set total: 76,585 tokens · $1.748**
 
-_Updated 2026-08-20 13:41 local._
+_Updated 2026-08-20 13:50 local._

@@ -130,7 +130,7 @@ Hand-painted naturalist scientific plate of a SINGLE human beige adipocyte in it
 
 ### Real microscopy reference (`reference-microscopy`)
 - `light micrograph (H&E, subcutaneous WAT, 6C cold exposure - beige/multilocular cells interspersed among unilocular white adipocytes)` · CC BY 3.0 (American Physiological Society) · Rosell et al. 2014, Am J Physiol Endocrinol Metab, "Brown and white adipose tissues: intrinsic differences in gene expression and response to cold exposure in mice" - Figure 3B (cropped to the sWAT/6C/H&E high-magnification panel) — pass (NCBI PMC, Rosell et al. 2014, Am J Physiol Endocrinol Metab, Figure 3B - CC BY 3.0, American Physiological Society; genuine H&E light micrograph of mouse subcutaneous white adipose tissue after 6 degC cold exposure, showing large unilocular white-adipocyte polygons flanking a band of smaller, more numerous, densely-nucleated, eosinophilic multilocular cells - the diagnostic beige-fat 'browning' mosaic tied directly to the cold-exposure trigger described in the research section; cleaned of its baked-in scale bar and panel border with edit_image.py over 4 passes)
-  ![reference](theme/histology/beige-adipocyte.attempts/real-04__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/histology/beige-adipocyte.attempts/real-04__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

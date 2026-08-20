@@ -124,7 +124,7 @@ Hand-painted 19th-century naturalist scientific atlas plate, anatomically modern
 
 ### Real microscopy reference (`reference-microscopy`)
 - `structure-render` · CC BY-SA 4.0 · Tokenzero, Wikimedia Commons, from PDB 1IGY (Harris et al. 1998), rendered in Mol* — pass (Wikimedia Commons 'Antibody IgG1 surface.png', CC BY-SA 4.0, Tokenzero, molecular-surface render from PDB 1IGY coordinates via Mol*; clearly shows the real Y-shaped IgG1 topology - two Fab arms each a heavy+light chain pair converging through a hinge into one Fc stem with visible Fc glycan patches; cleaned via edit_image.py to confirm no text/border, colourisation unchanged)
-  ![reference](theme/structure/igg.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/structure/igg.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

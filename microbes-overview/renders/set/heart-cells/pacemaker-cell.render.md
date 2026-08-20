@@ -134,7 +134,7 @@ Hand-painted naturalist scientific plate of a SINGLE human sinoatrial-node PACEM
 
 ### Real microscopy reference (`reference-microscopy`)
 - `light-he` · CC BY-SA 3.0 · Nephron (Wikimedia Commons) — pass with caveat (Wikimedia Commons "Sinoatrial node high mag.jpg", CC BY-SA 3.0, Nephron; a genuine high-magnification H&E light micrograph of human sinoatrial-node tissue - pale slender wavy nodal myocyte profiles with single dark elongated nuclei, conspicuously lacking the dense cross-striations of working myocardium, embedded in abundant pale-pink collagenous matrix with small vessels and fibroblast nuclei. Caveat recorded honestly: this is a tissue-section view of the node, not an isolated single pacemaker cell, and at H&E resolution the individual spindle/spider cell outline, sparse myofibrils, caveolae and connexin-45 junctions are not resolvable; no freely-licensed micrograph of a single identified isolated SA-node pacemaker cell could be found. No working-myocyte image was substituted. Cleaned and recomposed with edit_image.py - text/scale-bar/border removal, gentle recompose and contrast restoration, no invented structures)
-  ![reference](theme/he/pacemaker-cell.attempts/real-03__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/he/pacemaker-cell.attempts/real-03__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

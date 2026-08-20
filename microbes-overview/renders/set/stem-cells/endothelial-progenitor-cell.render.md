@@ -139,7 +139,7 @@ Hand-painted naturalist scientific plate of a SINGLE human endothelial progenito
 
 ### Real microscopy reference (`reference-microscopy`)
 - `fluorescence` · CC BY 4.0 · Erin Rod, Wikimedia Commons — PASS (2026-08-14) — Wikimedia Commons CC BY 4.0 immunofluorescence photomicrograph of cultured (bovine pulmonary artery) endothelial cells: three well-separated, individually readable cells with distinct nucleus (DAPI blue), actin cytoskeleton (phalloidin green), and mitochondria (MitoTracker red) channels; no baked-in text/scale bar/border. Caveat: mature cultured endothelial cells rather than a circulating progenitor specifically (EPCs and mature endothelium are not distinguishable by light/fluorescence morphology, only by surface markers), but the core organelle set shown is the correct yardstick for this cell's drawable structures; no free, single-specimen, human-EPC-specific micrograph exists. Used as downloaded (crop-to-square only).
-  ![reference](theme/fluorescence/endothelial-progenitor-cell.attempts/real-01__fluorescence.avif)
+  ![reference](../reference-microscopy/theme/fluorescence/endothelial-progenitor-cell.attempts/real-01__fluorescence.avif)
 
 ## 6. Teaching-use decision
 

@@ -130,7 +130,7 @@ Hand-painted naturalist scientific plate of a SINGLE generic rod-shaped Gram-neg
 
 ### Real microscopy reference (`reference-microscopy`)
 - `TEM` · Public Domain (CDC PHIL #9995) · CDC / E. H. White; Peggy S. Hayes (PHIL #9995) — ✅ PASS (2026-08-13) — single isolated E. coli rod with clearly visible flagella (CDC #9995 TEM, public domain), AI-cleaned to remove the baked-in caption and black borders while keeping the green/red colorization.
-  ![reference](theme/tem/rod-bacterium.attempts/real-04__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/tem/rod-bacterium.attempts/real-04__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

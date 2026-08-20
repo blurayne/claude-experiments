@@ -125,7 +125,7 @@ Hand-painted naturalist scientific plate of a SINGLE human preadipocyte in the s
 
 ### Real microscopy reference (`reference-microscopy`)
 - `phase-contrast-LM` · CC BY-SA 4.0 · KristyPet (Wikimedia Commons, own work) — pass (Wikimedia Commons 3T3-L1 preadipocyte culture, phase-contrast LM, CC BY-SA 4.0; well-spread individual stellate/bipolar cells with clearly readable tapering processes, no lipid droplets; mouse cell line used as the closest freely-licensed substitute for human preadipocyte morphology, flagged in the log; cleaned/contrast-enhanced version used for display)
-  ![reference](theme/phase-contrast/preadipocyte.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/phase-contrast/preadipocyte.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

@@ -125,7 +125,7 @@ Hand-painted naturalist scientific plate of Streptococcus pneumoniae in the styl
 
 ### Real microscopy reference (`reference-microscopy`)
 - `SEM` · Public Domain (CDC PHIL #262) · CDC/Janice Carr; content provider CDC/Dr. Richard Facklam (PHIL #262) — pass (CDC PHIL #262 SEM, public domain; cleaned/false-colorized version used for display - clearly shows diplococcus pairs and a short chain)
-  ![reference](theme/sem/streptococcus-pneumoniae.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/sem/streptococcus-pneumoniae.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

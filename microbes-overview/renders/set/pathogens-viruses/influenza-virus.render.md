@@ -121,7 +121,7 @@ Hand-painted naturalist scientific watercolour plate of a SINGLE influenza virus
 
 ### Real microscopy reference (`reference-microscopy`)
 - `TEM` · Public Domain (CDC / Dr. F. A. Murphy) · CDC Public Health Image Library / Dr. F. A. Murphy — ✅ PASS — CDC PHIL negative-stain TEM (public domain, Dr. F. A. Murphy): several roughly spherical influenza virions with the characteristic fuzzy spike-coat fringe clearly visible; a group image but individual virion shape/spikes are readable, acceptable as teaching reference.
-  ![reference](theme/tem/influenza-virus.attempts/real-01__TEM.avif)
+  ![reference](../reference-microscopy/theme/tem/influenza-virus.attempts/real-01__TEM.avif)
 
 ## 6. Teaching-use decision
 

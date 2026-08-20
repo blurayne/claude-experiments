@@ -123,7 +123,7 @@ Hand-painted naturalist scientific plate of a SINGLE human adipogenic progenitor
 
 ### Real microscopy reference (`reference-microscopy`)
 - `phase-contrast light micrograph` · CC BY-SA 4.0 · KristyPet, Wikimedia Commons — pass (Wikimedia Commons '3T3-l1 cells clone.jpg', 3T3-L1 preadipocyte cell line phase-contrast light micrograph, CC BY-SA 4.0, KristyPet; well-separated cells with compact bodies and several thin tapering processes, small phase-bright inclusions consistent with early vesicles/granules, no unilocular lipid-filled cells confirming the pre-induction/uncommitted state; mouse cell line used as the closest freely-licensed substitute for human adipogenic-progenitor morphology, flagged in the log; cleaned/cropped false-colour version used for display)
-  ![reference](theme/light/adipogenic-progenitor.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/light/adipogenic-progenitor.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

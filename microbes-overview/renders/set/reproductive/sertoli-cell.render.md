@@ -122,7 +122,7 @@ Hand-painted naturalist scientific plate of a SINGLE human Sertoli cell (testicu
 
 ### Real microscopy reference (`reference-microscopy`)
 - `LM` · CC BY-SA 3.0 / GFDL · Mikael Häggström, M.D., via Wikimedia Commons — pass (Wikimedia Commons, H&E light micrograph of boar testis seminiferous tubules, CC BY-SA 3.0/GFDL, Mikael Häggström M.D.; raw download carried a baked-in numbered legend (1-8) which was removed and the tissue recomposed with edit_image.py - cleaned version shows multiple full tubule cross-sections with a readable epithelium of germ-cell layers and interstitial tissue; genuine H&E tissue, appropriate since Sertoli cells are not free specimens but an intrinsic part of the tubule wall)
-  ![reference](theme/lm/sertoli-cell.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/lm/sertoli-cell.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

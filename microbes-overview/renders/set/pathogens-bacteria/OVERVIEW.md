@@ -2,6 +2,24 @@
 
 Final image per microbe × style (last attempt), the labelled SVG, and the real-microscopy reference. Status table at the bottom.
 
+## Borrelia burgdorferi (Lyme disease) (`borrelia-burgdorferi`)
+Long, thin, flat-wave spirochaete carried by Ixodes ticks; it swims with 7-11 flagella hidden inside its own periplasm and corkscrews through skin, joints, nerves and heart to cause Lyme disease.
+
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/borrelia-burgdorferi__textbook.avif) | ![sem](finals/borrelia-burgdorferi__sem.avif) | ![3d](finals/borrelia-burgdorferi__3d.avif) | ![watercolor](finals/borrelia-burgdorferi__watercolor.avif) | ![reference](finals/borrelia-burgdorferi__reference.avif) |
+
+**textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/borrelia-burgdorferi.textbook.svg) · [HTML](theme/textbook/borrelia-burgdorferi.textbook.html)
+![textbook labelled](theme/textbook/borrelia-burgdorferi.textbook.svg)
+
+**3d — labelled** (English default, La/De toggle): [SVG](theme/3d/borrelia-burgdorferi.3d.svg) · [HTML](theme/3d/borrelia-burgdorferi.3d.html)
+![3d labelled](theme/3d/borrelia-burgdorferi.3d.svg)
+
+**watercolor — labelled** (English default, La/De toggle): [SVG](theme/watercolor/borrelia-burgdorferi.watercolor.svg) · [HTML](theme/watercolor/borrelia-burgdorferi.watercolor.html)
+![watercolor labelled](theme/watercolor/borrelia-burgdorferi.watercolor.svg)
+
+Full log: [`borrelia-burgdorferi.render.md`](borrelia-burgdorferi.render.md)
+
 ## Escherichia coli (`escherichia-coli`)
 Gram-negative motile rod, a normal gut commensal; some strains (e.g. EHEC) cause severe diarrhoeal disease.
 
@@ -132,6 +150,11 @@ Full log: [`streptococcus-pneumoniae.render.md`](streptococcus-pneumoniae.render
 
 | name | styles | model | render count | pass | svg status | time taken | tokens used | costs |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Borrelia burgdorferi (Lyme disease) | Textbook illustration | gemini-3-pro-image | 3 | ✅ | built | 1.0m | 8132 | $0.148 |
+| Borrelia burgdorferi (Lyme disease) | SEM micrograph | gemini-3-pro-image | 1 | ✅ | pending (same pipeline) | 20s | 1957 | $0.040 |
+| Borrelia burgdorferi (Lyme disease) | 3D medical render | gemini-3-pro-image | 2 | ✅ | built | 41s | 4904 | $0.085 |
+| Borrelia burgdorferi (Lyme disease) | Watercolor plate | gemini-3-pro-image | 5 | ✅ | built | 1.8m | 13566 | $0.237 |
+| Borrelia burgdorferi (Lyme disease) | SEM · Public Domain (PD-USGov-HHS-CDC) | — (edit) | 2 | ✅ | n/a | 13s | 1775 | $0.039 |
 | Escherichia coli | Textbook illustration | gemini-2.5-flash-image | 2 | ✅ | built | 30s | 3332 | $0.077 |
 | Escherichia coli | SEM micrograph | gemini-2.5-flash-image | 2 | ✅ | pending (same pipeline) | 40s | 3106 | $0.077 |
 | Escherichia coli | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 20s | 1588 | $0.039 |
@@ -168,6 +191,6 @@ Full log: [`streptococcus-pneumoniae.render.md`](streptococcus-pneumoniae.render
 | Streptococcus pneumoniae | Watercolor plate | gemini-3-pro-image | 3 | ✅ | built | 1.3m | 5297 | $0.119 |
 | Streptococcus pneumoniae | SEM · Public Domain (CDC PHIL #262) | — (edit) | 2 | ✅ | n/a | 1.0m | 1676 | $0.039 |
 
-**Set total: 100,221 tokens · $2.275**
+**Set total: 130,555 tokens · $2.823**
 
-_Updated 2026-08-20 13:41 local._
+_Updated 2026-08-20 13:50 local._

@@ -114,7 +114,7 @@ Hand-painted naturalist scientific plate of a SINGLE human sickle cell (patholog
 
 ### Real microscopy reference (`reference-microscopy`)
 - `SEM` · Public domain (US federal government work, NIDDK) · Drs. Noguchi, Rodgers & Schechter, NIDDK/NIH — PASS — Wikimedia Commons "Sicklecells.jpg", genuine SEM (public domain, NIDDK/NIH, Drs. Noguchi/Rodgers/Schechter) showing a field of red cells including several unmistakably elongated crescent-shaped cells with pointed tapering ends alongside normal round biconcave cells; each cell individually readable (not a dense clump), giving a clear shape contrast. Raw download is greyscale with no baked-in text/scale bar; a cleaned, false-colorized (crimson-red) version was produced with edit_image.py and is used for display, original kept for provenance.
-  ![reference](theme/sem/sickle-cell.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/sem/sickle-cell.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

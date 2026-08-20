@@ -118,7 +118,7 @@ Hand-painted naturalist scientific plate of a SINGLE human enterocyte (intestina
 
 ### Real microscopy reference (`reference-microscopy`)
 - `TEM` · Public domain · Louisa Howard & Katherine Connolly, Dartmouth EM Facility — pass (Wikimedia Commons - 'Human jejunum microvilli 1 - TEM.jpg', genuine transmission electron micrograph of a human jejunal enterocyte brush border, Public domain, Louisa Howard & Katherine Connolly / Dartmouth EM Facility; cleaned with edit_image.py to crop to a single enterocyte's apical brush border plus underlying mitochondria-rich cytoplasm, natural sepia false-colour kept, no text/scale bar/border in the cleaned version; original real-01 kept for provenance)
-  ![reference](theme/sem/enterocyte.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/sem/enterocyte.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

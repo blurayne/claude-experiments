@@ -119,7 +119,7 @@ Hand-painted naturalist scientific plate of a SINGLE human lipoblast in the styl
 
 ### Real microscopy reference (`reference-microscopy`)
 - `H&E` · CC BY 4.0 · Evandro José Siqueira, Gustavo Steffen Alvarez, Lourenço Frigeri Teixeira, Jefferson Braga Silva (Rev. Bras. Cir. Plást. 2014), Wikimedia Commons — pass (Wikimedia Commons, Siqueira, Alvarez, Teixeira & Braga Silva 2014, Rev. Bras. Cir. Plast. - CC BY 4.0; genuine H&E light micrograph of a lipoblastoma showing a discrete nest of small, multivacuolated lipoblasts within pink fibrous stroma directly adjacent to larger, single-vacuole mature lipocytes, an ideal single-field comparison of the two differentiation stages; the two baked-in arrow annotations from the original figure were removed and the frame recomposed to foreground the lipoblast cluster with edit_image.py)
-  ![reference](theme/he/lipoblast.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/he/lipoblast.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

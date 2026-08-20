@@ -118,7 +118,7 @@ Hand-painted naturalist scientific plate of a SINGLE human osteoblast in the sty
 
 ### Real microscopy reference (`reference-microscopy`)
 - `LM` · CC BY-SA 3.0 / GFDL 1.2+ · Robert M. Hunt — pass (Wikimedia Commons 'Active osteoblasts.jpg', CC BY-SA 3.0/GFDL 1.2+, attribution Robert M. Hunt; classic H&E light micrograph showing a continuous row of cuboidal-to-columnar osteoblasts with basal nuclei lining a pale osteoid seam over denser fibrous bone matrix, with isolated osteocytes visible in the matrix beneath - matches textbook osteoblast/osteoid/osteocyte histology; raw download greyscale with no baked-in scale bar/text; a warm H&E-style false-colour cleaned version was produced with edit_image.py for display)
-  ![reference](theme/light/osteoblast.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/light/osteoblast.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

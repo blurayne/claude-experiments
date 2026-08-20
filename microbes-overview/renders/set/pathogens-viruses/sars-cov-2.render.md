@@ -117,7 +117,7 @@ Hand-painted 19th-century naturalist plate of a single SARS-CoV-2 (COVID-19) cor
 
 ### Real microscopy reference (`reference-microscopy`)
 - `TEM` · CC BY 2.0 · NIAID-RML (Rocky Mountain Laboratories) — PASS — real SARS-CoV-2 TEM/SEM reference per render.md §2.
-  ![reference](theme/tem/sars-cov-2.attempts/real-01__TEM.avif)
+  ![reference](../reference-microscopy/theme/tem/sars-cov-2.attempts/real-01__TEM.avif)
 
 ## 6. Teaching-use decision
 

@@ -117,7 +117,7 @@ Hand-painted naturalist scientific plate of a SINGLE embryonic stem cell (a smal
 
 ### Real microscopy reference (`reference-microscopy`)
 - `LM` · CC BY 2.5 · Nissim Benvenisty (PLoS Biology, 2005), via Wikimedia Commons — ✅ PASS (2026-08-13) — Wikimedia/PLoS Biology (Benvenisty 2005) CC BY 2.5 phase-contrast micrograph of a real hESC colony: tightly packed small cells, sharp colony border, characteristic cobblestone morphology; AI-cleaned to crop out the second (unrelated neuron) panel and the baked-in 'B' caption, keeping the original teal false-colour phase-contrast processing.
-  ![reference](theme/light/embryonic-stem-cell.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/light/embryonic-stem-cell.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

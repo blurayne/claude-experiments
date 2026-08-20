@@ -121,7 +121,7 @@ Hand-painted naturalist scientific plate of a SINGLE human keratinocyte in the s
 
 ### Real microscopy reference (`reference-microscopy`)
 - `light` · CC BY 4.0 · Setijanti H.B., Rusmawati E., Fitria R., Erlina T., Adriany R., Murtiningsih (Alternatives to Animal Testing, Springer 2019) — PASS — Wikimedia Commons "Micrograph of keratinocytes, basal cells and melanocytes in the epidermis.jpg" (CC BY 4.0, Setijanti et al., Alternatives to Animal Testing, Springer 2019). Genuine H&E light photomicrograph of human epidermis with pointer-arrow labels confirming keratinocyte/basal-cell/melanocyte identity; cleaned text-free version (edit_image.py) preserves the original purple/pink H&E colorization and is used for display.
-  ![reference](theme/light/keratinocyte.attempts/real-02__edit-gemini-2.5-flash-image.png)
+  ![reference](../reference-microscopy/theme/light/keratinocyte.attempts/real-02__edit-gemini-2.5-flash-image.png)
 
 ## 6. Teaching-use decision
 

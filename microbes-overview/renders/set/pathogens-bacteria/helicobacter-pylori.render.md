@@ -130,7 +130,7 @@ Hand-painted naturalist watercolour scientific plate of a SINGLE Helicobacter py
 
 ### Real microscopy reference (`reference-microscopy`)
 - `SEM` · Public Domain (CDC PHIL) · CDC / Dr. Patricia Fields, Dr. Collette Fitzgerald; photo credit Janice Carr — accept: CDC PHIL public-domain SEM of a grouping of spiral, flagellated Helicobacter-genus bacteria (real-01); cleaned of any residual artefacts via edit pass (real-02) — clear helical morphology and polar flagella, no baked text/scale bar/border, greyscale converted to false-colour salmon/orange
-  ![reference](theme/sem/helicobacter-pylori.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/sem/helicobacter-pylori.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

@@ -126,7 +126,7 @@ Hand-painted naturalist scientific plate of a SINGLE human fibroblast in the sty
 
 ### Real microscopy reference (`reference-microscopy`)
 - `SEM` · CC BY 4.0 · Reneferretti1 (Wikimedia Commons) — pass (Wikimedia Commons 'Human fibroblast undergoing cytokinesis.jpg', CC BY 4.0, attribution Reneferretti1; genuine SEM of a cultured human fibroblast captured mid-cytokinesis - two daughter cell bodies still joined by a thin intercellular bridge, both clearly showing the flattened, elongated, process-bearing fibroblast morphology with fine surface ruffles/filopodia typical of this cell type in culture; this is one dividing specimen rather than a dense unrelated clump, so individual morphology stays readable; raw download had a baked-in scale bar in the bottom-right corner, cropped out; a false-colourised warm sandy-tan version was produced with edit_image.py for display, recomposed to fill the frame)
-  ![reference](theme/real/fibroblast.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/real/fibroblast.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

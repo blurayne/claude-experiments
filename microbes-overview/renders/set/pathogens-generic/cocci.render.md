@@ -118,7 +118,7 @@ Hand-painted naturalist scientific plate of a generic Gram-positive coccus in a 
 
 ### Real microscopy reference (`reference-microscopy`)
 - `SEM` · Public Domain (CDC) · CDC / M. J. Arduino; Janice Haney Carr — ✅ PASS (2026-08-13) — Staphylococcus aureus SEM (public domain), AI-cleaned to remove the data/scale bar and any borders while keeping the purple/green colorization; cocci fill the frame.
-  ![reference](theme/sem/cocci.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/sem/cocci.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

@@ -117,7 +117,7 @@ Hand-painted naturalist scientific plate of a SINGLE human goblet cell in the st
 
 ### Real microscopy reference (`reference-microscopy`)
 - `light micrograph (H&E, human terminal ileum biopsy)` · CC BY-SA 3.0 / GFDL 1.2+ (dual) · Nephron (Wikimedia Commons) — pass (Wikimedia Commons — H&E light micrograph of human terminal-ileum epithelium, CC BY-SA 3.0/GFDL dual, Nephron; clearly shows goblet cells with pale washed-out apical mucin cup and basally compressed nucleus among columnar epithelium; no text/scale bar/border present, used as downloaded)
-  ![reference](theme/light-micrograph/goblet-cell.attempts/real-01__light micrograph (H&E, human terminal ileum biopsy).avif)
+  ![reference](../reference-microscopy/theme/light-micrograph/goblet-cell.attempts/real-01__light%20micrograph%20%28H%26E%2C%20human%20terminal%20ileum%20biopsy%29.avif)
 
 ## 6. Teaching-use decision
 

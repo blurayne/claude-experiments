@@ -129,7 +129,7 @@ Hand-painted 19th-century naturalist scientific atlas plate, anatomically modern
 
 ### Real microscopy reference (`reference-microscopy`)
 - `structure-render` · CC0 1.0 Universal / Public Domain · RCSB.org, PDB ID 2RCJ, structure by Perkins, Nealis, Sutton & Feinstein (1991) — pass (RCSB.org PDB-assembly render of entry 2RCJ - Perkins, Nealis, Sutton & Feinstein 1991 solution structure of human IgM - CC0/public domain; unambiguously shows five Y-shaped monomer subunits, each a distinct colour, stems converging at a small central hub with all ten Fab arms fanning outward in the flat five-pointed star/wheel shape; cleaned via edit_image.py, no text/border, colourisation kept)
-  ![reference](theme/structure/igm.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/structure/igm.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

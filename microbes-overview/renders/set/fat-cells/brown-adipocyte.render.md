@@ -126,7 +126,7 @@ Hand-painted naturalist scientific plate of a SINGLE human brown adipocyte (brow
 
 ### Real microscopy reference (`reference-microscopy`)
 - `light micrograph (multilocular brown adipose tissue, histological stain)` · Public domain (US federal government work, Title 17 §105) · US Government (via Wikimedia Commons, uploader Lucasmcorso) — pass (Wikimedia Commons "Tecido adiposo multilocular brown adipose tissue.gif", public domain US federal-government work; genuine light micrograph of human brown adipose tissue showing numerous multilocular adipocytes with dense granular mitochondria-rich cytoplasm)
-  ![reference](theme/real/brown-adipocyte.attempts/real-01__light micrograph (multilocular brown adipose tissue, histological stain).avif)
+  ![reference](../reference-microscopy/theme/real/brown-adipocyte.attempts/real-01__light%20micrograph%20%28multilocular%20brown%20adipose%20tissue%2C%20histological%20stain%29.avif)
 
 ## 6. Teaching-use decision
 

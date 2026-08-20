@@ -132,7 +132,7 @@ Hand-painted naturalist scientific plate of a SINGLE human granulosa cell (ovari
 
 ### Real microscopy reference (`reference-microscopy`)
 - `LM (H&E-stained light micrograph)` · CC BY 2.0 · Ed Uthman, M.D. (via Flickr / Wikimedia Commons) — pass (Wikimedia Commons "Graafian follicle of human ovary.jpg", Ed Uthman M.D., CC BY 2.0; genuine H&E light micrograph of a human antral follicle - oocyte with zona pellucida centrally, dense mass of small darkly-nucleated granulosa cells (corona radiata/cumulus + mural granulosa) surrounding it, follicular antrum visible; no baked text/scale bar, no cleaning needed)
-  ![reference](theme/LM/granulosa-cell.attempts/real-01__LM (H&E-stained light micrograph).avif)
+  ![reference](../reference-microscopy/theme/LM/granulosa-cell.attempts/real-01__LM%20%28H%26E-stained%20light%20micrograph%29.avif)
 
 ## 6. Teaching-use decision
 

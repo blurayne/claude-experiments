@@ -123,7 +123,7 @@ Hand-painted naturalist scientific plate of a SINGLE human microglial cell in th
 
 ### Real microscopy reference (`reference-microscopy`)
 - `immunofluorescence` · Public Domain (CC PDM 1.0) · Wai T. Wong, National Eye Institute, NIH (NIH Image Gallery) — pass (Wikimedia Commons "Microglia in a Healthy Adult Mouse Retina (40264110974).jpg", NIH Image Gallery / Wai T. Wong, National Eye Institute, Public Domain (CC PDM 1.0); Iba1/GFP-lineage immunofluorescence confocal micrograph showing several individually well-separated ramified microglia tiling healthy retina, each with a clear compact soma and a dense, finely branching arbour - textbook example of the resting/surveying morphology; no baked-in text, scale bar or border on the downloaded file, used as-is (real-01) with no edit_image.py cleaning pass needed)
-  ![reference](theme/immunofluorescence/microglia.attempts/real-01__immunofluorescence.avif)
+  ![reference](../reference-microscopy/theme/immunofluorescence/microglia.attempts/real-01__immunofluorescence.avif)
 
 ## 6. Teaching-use decision
 

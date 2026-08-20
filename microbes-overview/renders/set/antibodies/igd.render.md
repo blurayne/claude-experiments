@@ -121,7 +121,7 @@ Hand-painted 19th-century naturalist scientific atlas plate, anatomically modern
 
 ### Real microscopy reference (`reference-microscopy`)
 - `structure-render` · CC0 1.0 (RCSB PDB Structure Summary page image) · RCSB PDB Structure Summary page, PDB 1ZVO (Sun, Almogren, Furtado, Chowdhury, Kerr & Perkins 2005, J. Mol. Biol.), auto-rendered ribbon diagram — pass (RCSB PDB Structure Summary page image for PDB 1ZVO, CC0 1.0, auto-rendered ribbon diagram from the deposited solution-scattering coordinates of human myeloma IgD, Sun et al. 2005 J. Mol. Biol.; clearly shows the real semi-extended T/Y-shaped IgD topology - two Fab domains connected via an unusually long, visibly extended hinge/linker to one Fc domain, matching the published structure; cleaned via edit_image.py to strip any residual page chrome while keeping the original colourisation)
-  ![reference](theme/structure/igd.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/structure/igd.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

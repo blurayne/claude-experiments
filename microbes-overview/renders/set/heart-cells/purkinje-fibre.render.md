@@ -153,7 +153,7 @@ Hand-painted naturalist scientific plate of a SINGLE cardiac PURKINJE FIBRE CELL
 
 ### Real microscopy reference (`reference-microscopy`)
 - `light-he` · CC BY-SA 4.0 · Alessandro Scalese (Wikimedia Commons) — pass (Wikimedia Commons "Purkinje fibers 2.jpg", CC BY-SA 4.0, Alessandro Scalese - a real H&E light photomicrograph captioned "Purkinje fibers just beneath the endocardium". The field shows a row of large, rounded, conspicuously pale cells with clear washed-out cytoplasm lying directly beneath a thin endocardial band, alongside and visibly wider than a bank of darker, densely eosinophilic, finely striated working ventricular myocardium. This is cardiac tissue - definitively NOT cerebellum, and no cerebellar Purkinje neurons are present. Caveats: the raw download is a phone-through-the-eyepiece capture carrying a large black circular vignette; at this magnification the peripheral myofibril ring is not resolvable and the pale core reads as general clearing rather than a crisp halo; the species is unspecified and Purkinje pallor is known to be species-dependent. Cropped to the Purkinje row and cleaned with edit_image.py - vignette removed, H&E colorization preserved, no structures invented)
-  ![reference](theme/light-he/purkinje-fibre.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/light-he/purkinje-fibre.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

@@ -139,7 +139,7 @@ Hand-painted naturalist scientific plate of a SINGLE human cytotoxic T cell (CD8
 
 ### Real microscopy reference (`reference-microscopy`)
 - `SEM` · Public Domain (US federal government work / NIAID) · NIAID/NIH — pass (Wikimedia Commons "Healthy Human T Cell.jpg", NIAID/NIH, Public Domain — colorized SEM of a single isolated human T lymphocyte showing the characteristic dense, ruffled microvillus surface; clean dark background, no baked-in text/scale bar/border; used as-is, no cleaning edit needed. Note: CD4 vs CD8 T cells are not visually distinguishable by shape alone under EM/light microscopy — a 'T lymphocyte' micrograph is the standard honest reference for this cell.)
-  ![reference](theme/sem/cytotoxic-t-cell.attempts/real-01__SEM.avif)
+  ![reference](../reference-microscopy/theme/sem/cytotoxic-t-cell.attempts/real-01__SEM.avif)
 
 ## 6. Teaching-use decision
 

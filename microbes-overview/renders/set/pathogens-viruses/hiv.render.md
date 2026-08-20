@@ -116,7 +116,7 @@ Hand-painted naturalist scientific plate of a SINGLE mature HIV virus particle (
 
 ### Real microscopy reference (`reference-microscopy`)
 - `SEM` · Public Domain (CDC PHIL, C. Goldsmith) · CDC/ C. Goldsmith, P. Feorino, E. L. Palmer, W. R. McManus — PASS - CDC PHIL colorized SEM (C. Goldsmith et al., public domain) of HIV-1 virions budding from a cultured lymphocyte; numerous small green virions clearly visible on the pink/red cell surface and blue substrate, no baked caption/border. A single-isolated ~120 nm virion micrograph is essentially unobtainable, so this well-known, clearly countable field is used as the reference.
-  ![reference](theme/sem/hiv.attempts/real-01__SEM.avif)
+  ![reference](../reference-microscopy/theme/sem/hiv.attempts/real-01__SEM.avif)
 
 ## 6. Teaching-use decision
 

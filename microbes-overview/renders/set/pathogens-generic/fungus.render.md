@@ -125,7 +125,7 @@ Hand-painted 19th-century naturalist scientific atlas plate, anatomically modern
 
 ### Real microscopy reference (`reference-microscopy`)
 - `SEM` · CC BY 3.0 · Mogana Das Murtey and Patchamuthu Ramasamy — ✅ PASS — SEM field of budding yeast with clear daughter buds and bud scars (S. cerevisiae, CC BY 3.0); AI-cleaned to remove the scale bar and apply a natural warm false-color.
-  ![reference](theme/sem/fungus.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/sem/fungus.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

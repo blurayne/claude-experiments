@@ -120,7 +120,7 @@ Hand-painted 19th-century naturalist scientific atlas plate, anatomically modern
 
 ### Real microscopy reference (`reference-microscopy`)
 - `TEM` · Public Domain (CDC PHIL #10073) · CDC / E. L. Palmer; M. L. Martin (Cynthia Goldsmith) — ✅ PASS — colorized negative-stain TEM of a single influenza virion (CDC PHIL #10073, Public Domain); spiked envelope clearly visible; no baked-in text.
-  ![reference](theme/tem/virus.attempts/real-01__TEM.avif)
+  ![reference](../reference-microscopy/theme/tem/virus.attempts/real-01__TEM.avif)
 
 ## 6. Teaching-use decision
 

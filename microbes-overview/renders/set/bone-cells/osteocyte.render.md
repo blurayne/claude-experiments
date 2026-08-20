@@ -121,7 +121,7 @@ Hand-painted naturalist scientific plate of a SINGLE human osteocyte in the styl
 
 ### Real microscopy reference (`reference-microscopy`)
 - `SEM` · CC BY-SA 4.0 · Shahfa84, Wikimedia Commons — pass (Wikimedia Commons 'An osteocyte in rat bone exposed by resin cast etching.tif', CC BY-SA 4.0, attribution Shahfa84; genuine resin-cast-etching SEM showing a single, clearly dominant osteocyte cell body with a dense meshwork of branching canaliculi/processes radiating through the surrounding etched bone matrix - the classic stellate osteocyte image; the wider canalicular mesh is an expected feature of this imaging technique (whole-tissue-block etching), not a dense clump of cells, and the cell body plus its immediate processes remain individually readable; raw download had no baked-in text/scale bar found in the crop; a false-colourised version (natural warm sandy/amber cell body and processes against a cooler grey matrix) was produced with edit_image.py for display)
-  ![reference](theme/sem/osteocyte.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/sem/osteocyte.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

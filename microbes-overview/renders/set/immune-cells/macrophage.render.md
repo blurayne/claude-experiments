@@ -117,7 +117,7 @@ Hand-painted naturalist scientific plate of a SINGLE human macrophage in the sty
 
 ### Real microscopy reference (`reference-microscopy`)
 - `SEM` · CC BY 2.0 · NIAID, via Flickr/Wikimedia Commons — pass (Wikimedia Commons 'Macrophage (17195150690).jpg', NIAID via Flickr, CC BY 2.0 colorized SEM; single dominant macrophage body with a smaller second lobe/cell touching it at one edge, characteristic ruffled membrane-bound surface and numerous long thin branching filopodia reaching outward — a textbook depiction of a macrophage patrolling/probing its surroundings; no baked-in text/scale bar, used as-is)
-  ![reference](theme/sem/macrophage.attempts/real-01__SEM.avif)
+  ![reference](../reference-microscopy/theme/sem/macrophage.attempts/real-01__SEM.avif)
 
 ## 6. Teaching-use decision
 

@@ -125,7 +125,7 @@ Hand-painted naturalist scientific plate of a SINGLE human urothelial (umbrella)
 
 ### Real microscopy reference (`reference-microscopy`)
 - `light (H&E)` · CC BY-SA 3.0 · Nephron (Wikimedia Commons) — pass (Wikimedia Commons - 'Benign urothelium with large superficial cells -- high mag.jpg', genuine H&E-stained light micrograph of human bladder urothelium by pathologist-contributor Nephron, CC BY-SA 3.0; shows the large, pale, dome-shaped superficial umbrella cells at the luminal surface sitting above the smaller, more basophilic intermediate/basal epithelial layers with lamina propria beneath; the umbrella-cell layer is clearly readable and correctly distinguished from deeper layers; no baked-in text/scale bar/border)
-  ![reference](theme/light/urothelial-cell.attempts/real-01__light (H&E).avif)
+  ![reference](../reference-microscopy/theme/light/urothelial-cell.attempts/real-01__light%20%28H%26E%29.avif)
 
 ## 6. Teaching-use decision
 

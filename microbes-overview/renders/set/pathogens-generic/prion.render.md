@@ -131,7 +131,7 @@ Hand-painted 19th-century naturalist scientific atlas plate, anatomically modern
 
 ### Real microscopy reference (`reference-microscopy`)
 - `EM` · CC BY 2.0 · NIAID / Roger Moore, Rocky Mountain Laboratories — ✅ PASS — genuine NIAID negative-stain TEM of purified PrP amyloid fibrils (the aggregated misfolded prion protein), CC BY 2.0; colorized (warm amber fibrils on cool blue) for teaching consistency while preserving all fibril detail — no text/border/reinvented structures.
-  ![reference](theme/em/prion.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/em/prion.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

@@ -187,7 +187,7 @@ DO NOT paint: a long unbranched multinucleated skeletal muscle fibre; a peripher
 
 ### Real microscopy reference (`reference-microscopy`)
 - `LM` · CC BY-SA 4.0 · Cheroske (Wikimedia Commons) — pass (Wikimedia Commons "Cardiac muscle histology 400x.jpg", CC BY-SA 4.0, Cheroske - a genuine 400x light micrograph of a longitudinal section of myocardium. Viewed at full resolution it is unmistakably CARDIAC and not skeletal muscle: finely cross-striated fibres that visibly branch and interlock, oval nuclei sitting in the MIDDLE of the fibres rather than in a peripheral row, and dark, slightly zig-zag transverse lines stepping right across several fibres - the intercalated discs. No baked-in text, scale bar, border or watermark in the source. Cleaned for display with edit_image.py (gentle recompose plus a small local-contrast lift, original haematoxylin colouring preserved, nothing invented). Honest caveat: at light-microscope resolution an intercalated disc is only a dark line - its three constituent junctions (fascia adherens, desmosomes, connexin-43 gap junctions) are ultrastructural and are NOT resolvable here, so they appear only in the illustrated styles. Two other candidates were rejected during the search: Commons "Glanzstreifen.jpg" kept a baked-in magnifier inset and leader lines through two cleaning passes, and "Histology of cardiac muscle.jpg" turned out to be a hand-drawn student sketch. No skeletal muscle was passed off as cardiac)
-  ![reference](theme/histology/cardiomyocyte.attempts/real-02__edit-gemini-3-pro-image.avif)
+  ![reference](../reference-microscopy/theme/histology/cardiomyocyte.attempts/real-02__edit-gemini-3-pro-image.avif)
 
 ## 6. Teaching-use decision
 

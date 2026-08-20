@@ -129,7 +129,7 @@ Hand-painted watercolour naturalist plate of Staphylococcus aureus in the style 
 
 ### Real microscopy reference (`reference-microscopy`)
 - `SEM` · Public Domain (USDA ARS) · Photo Eric Erbe, digital colorization Christopher Pooley, USDA ARS Electron & Confocal Microscopy Unit — PASS — real S. aureus micrograph per render.md §2.
-  ![reference](theme/sem/staphylococcus-aureus.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/sem/staphylococcus-aureus.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

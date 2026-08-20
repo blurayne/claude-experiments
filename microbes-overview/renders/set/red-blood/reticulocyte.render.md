@@ -120,8 +120,6 @@ Hand-painted naturalist scientific plate of a SINGLE human reticulocyte (a young
 [interactive SVG](theme/watercolor/reticulocyte.watercolor.svg) · [HTML](theme/watercolor/reticulocyte.watercolor.html)
 
 ### Real microscopy reference (`reference-microscopy`)
-- `LM-supravital` · CC BY 3.0 · Ed Uthman, MD, Wikimedia Commons — PASS — Wikimedia Commons 'Reticulocytes Human Blood Supravital Stain.jpg' (Ed Uthman, MD; CC BY 3.0): authentic light-microscopy supravital (new methylene blue) smear showing several reticulocytes with clearly visible dark-blue filamentous/granular reticulum next to plain mature red cells for contrast; no baked-in text/scale bar. Cleaned/recomposed with edit_image.py (attempt 2) to centre 2-3 clearly reticulated cells plus 2 plain cells on a clean background, same authentic photographic colourization kept, no text added.
-  ![reference](theme/light-microscopy/reticulocyte.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

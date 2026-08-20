@@ -142,7 +142,7 @@ Hand-painted 19th-century naturalist scientific atlas plate, anatomically modern
 
 ### Real microscopy reference (`reference-microscopy`)
 - `Light micrograph (brightfield)` · CC BY-SA 4.0 · SmallRex, Wikimedia Commons (2020) — ✅ PASS — a single living Amoeba proteus in the classic polypodial locomotive form: seven or eight blunt, rounded lobopodia, granular endoplasm with crystals, clear rim at the pseudopod tips, one discoid nucleus and one round contractile vacuole. Naked cell — no wall, no test, no flagella, no cilia. CC BY-SA 4.0, SmallRex / Wikimedia Commons. Padded (not cropped) to square so no pseudopodia are lost; the cleaned real-02 adds a natural warm false-colour to the greyscale DIC original without altering the shape.
-  ![reference](theme/lm/amoeba-proteus.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/lm/amoeba-proteus.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

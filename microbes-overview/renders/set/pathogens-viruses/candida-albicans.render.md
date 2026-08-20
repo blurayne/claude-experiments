@@ -124,7 +124,7 @@ Hand-painted 19th-century naturalist scientific atlas plate, anatomically modern
 
 ### Real microscopy reference (`reference-microscopy`)
 - `LM` · CC BY-SA 3.0 / GFDL · Y tambe, Wikimedia Commons — PASS - Wikimedia (Y tambe, CC BY-SA 3.0) bright-field LM of budding C. albicans, ovoid cells with visible internal droplets/vacuoles and a clear budding neck; AI-cleaned (edit_image.py, real-02) to remove caption/border while keeping the original greyscale photographic character - genuine light micrograph, not re-illustrated.
-  ![reference](theme/lm/candida-albicans.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/lm/candida-albicans.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

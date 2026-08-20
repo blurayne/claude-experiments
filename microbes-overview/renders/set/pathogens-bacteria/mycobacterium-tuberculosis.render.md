@@ -123,7 +123,7 @@ Hand-painted watercolour naturalist scientific plate of a SINGLE Mycobacterium t
 
 ### Real microscopy reference (`reference-microscopy`)
 - `SEM` · Public Domain (PD-USGov-HHS-CDC, PHIL #8438) · CDC / Dr. Ray Butler; Janice Carr (2006) — PASS — CDC PHIL #8438 SEM (public domain), cleaned with edit_image.py to remove the baked caption/scale and apply a natural warm false-colour; shows a loose cluster of slender, ridged, waxy rods lying in a cord — individually readable and scientifically apt (cord factor produces this serpentine clumping), so a group image is acceptable here.
-  ![reference](theme/sem/mycobacterium-tuberculosis.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/sem/mycobacterium-tuberculosis.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

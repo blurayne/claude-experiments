@@ -123,7 +123,7 @@ Hand-painted naturalist scientific plate of a SINGLE human polychromatic erythro
 
 ### Real microscopy reference (`reference-microscopy`)
 - `Light microscopy (blood smear, Wright-Giemsa stain)` · CC BY-SA 3.0 · El*Falaf (Wikimedia Commons) — pass (Wikimedia Commons "Hem1PolychromaticErythroblast.jpg", CC BY-SA 3.0, El*Falaf; light micrograph of Wright/Giemsa-stained blood smear showing a single polychromatic erythroblast with dense irregularly-clumped nucleus and thin blue-grey/lavender cytoplasm rim, surrounded by mature erythrocytes - matches representative teaching stage. Cleaned/recomposed/enlarged version used for display)
-  ![reference](theme/real/erythroblast.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/real/erythroblast.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

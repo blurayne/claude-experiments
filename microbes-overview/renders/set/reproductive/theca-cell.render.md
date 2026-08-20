@@ -122,7 +122,7 @@ Hand-painted naturalist scientific plate of a SINGLE human theca interna cell (s
 
 ### Real microscopy reference (`reference-microscopy`)
 - `LM (H&E-stained light micrograph, human ovary)` · CC BY 2.0 · Ed Uthman, Houston TX (via Flickr / Wikimedia Commons) — pass (Wikimedia Commons 'Graafian Follicle, Human Ovary (3595817584).jpg', CC BY 2.0, Ed Uthman — genuine H&E light-photomicrograph of a human ovarian follicle; the cleaned/recomposed crop (real-03) foregrounds a vascularized band of spindle-to-polygonal stromal cells with elongated nuclei just outside the darkly-nucleated granulosa layer bordering the antral space, with small capillary profiles visible in the band — consistent with theca interna grading into theca externa/stroma; no baked-in text/scale bar/white mat border in the final crop; raw download kept for provenance)
-  ![reference](theme/lm/theca-cell.attempts/real-03__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/lm/theca-cell.attempts/real-03__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

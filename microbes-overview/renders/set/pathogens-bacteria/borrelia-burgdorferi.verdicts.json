@@ -1,0 +1,34 @@
+{
+  "name": "Borrelia burgdorferi (Lyme disease)",
+  "short_description": "Long, thin, flat-wave spirochaete carried by Ixodes ticks; it swims with 7-11 flagella hidden inside its own periplasm and corkscrews through skin, joints, nerves and heart to cause Lyme disease.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {
+      "1": "reject: correct muted palette, thin outlines and dark charcoal ground, but the body plan is wrong — the cell is a fat pointed leaf/spindle only about five times longer than wide with a single lazy curve instead of a hair-thin flat wave, and a long external filament trails from the lower-left pole, which is the one error this microbe must never show",
+      "2": "reject: proportions much better and nothing protrudes any more, but the cut-away turned the middle two-thirds of the cell into a rigid straight capsule with the waveform surviving only in the two end stubs — that reads as a straight rod, an explicit do-NOT-draw item",
+      "3": "accept: hair-thin thread of constant width undulating continuously from tip to tip in a loose, irregular five-crest flat wave; closed silhouette with nothing emerging from either pole; cut-away follows the curve for the full length and shows the coral periplasmic flagellar ribbon sealed inside the sheath, ending at a rust rotary motor near a pole; sage peptidoglycan wall, violet inner membrane, straw periplasm, blue-purple linear chromosome, sage plasmid rods and rings, teal ribosome dots, dusty-rose surface lipoprotein knobs on the sheath; muted educational palette with thin outlines, no text, no border, background full-bleed"
+    },
+    "sem": {
+      "1": "accept: photorealistic false-colour SEM of a single hair-thin salmon filament on a clean mid-blue substrate, lying in the loose, irregular flat wave the reference calls for; surface-only detail with a faint spiral relief where the internal flagellar ribbon presses against the sheath, and — correctly for a spirochaete — a completely smooth, unbroken outline with no external flagella anywhere; no text, scale bar, border or second specimen"
+    },
+    "3d": {
+      "1": "reject: two enormous external whip-like flagella loop straight out of both poles and sweep across the background — the single most misleading error possible for this organism, whose flagella are entirely internal; the body is also a fat banana with barely one undulation",
+      "2": "accept: slim thread in a loose four-to-five crest flat wave, silhouette completely closed with nothing leaving either pole; glassy translucent sheath studded with lipoprotein knobs, cut away along the length to show the coral periplasmic flagellar ribbon sealed inside and running to a deep-rust rotary motor at each pole; natural biological tints (ivory-amber cytoplasm, sage wall, violet inner membrane, blue-purple linear chromosome, sage plasmids, teal ribosomes) with soft global illumination and subsurface scattering; full-bleed dark studio background, no text or border"
+    },
+    "watercolor": {
+      "1": "reject: painted as a separate torn sheet of paper floating on a white background with visible deckled edges — the classic sheet-on-a-surface failure; the body is also far too fat and short",
+      "2": "reject: aged paper now fills the frame correctly, but the cut-away balloons the middle of the cell into a fat spindle/almond while the ends stay thin, so the specimen reads as a seed pod rather than a uniform hair-thin thread",
+      "3": "reject: much better — slim constant-width thread, good loose flat wave, full-bleed paper — but the coral periplasmic flagella are reduced to a faint short smudge over one stretch, so the figure's key structure is barely legible",
+      "4": "reject: flagella now vivid, but the thread thickened into a fat tube and the cut-away shrank to the upper third, leaving two-thirds of the cell as blank sheath",
+      "5": "accept: full-bleed warm aged paper with a soft wash halo painted directly on it (no sheet, mat, border or margin); slim constant-width thread in a five-crest loose flat wave with both tips bare and nothing protruding; cut-away runs tip to tip so the coral periplasmic flagella are legible along the whole cell and terminate at a rust rotary motor near EACH pole; sage wall, violet inner membrane, straw cytoplasm, blue-purple linear chromosome, sage plasmid rods and rings, teal ribosome specks, dusty-rose lipoprotein stippling; fine ink linework, no text or border"
+    }
+  },
+  "reference": "accept: CDC PHIL #13177 (public domain, PD-USGov-HHS-CDC, CDC / Claudia Molins), a digitally colorized SEM of Borrelia burgdorferi from pure culture. The download (real-01) shows three salmon spirochaetes on a blue substrate; the edit_image.py clean-up (real-02) recomposed it to a single isolated specimen with both ends inside the frame, tidied the substrate and kept the original salmon-on-blue false colour. It shows exactly the diagnostic body plan — an extremely long, hair-thin filament in a loose, irregular flat wave with a completely smooth outline and no external flagella. CAVEAT, recorded honestly: the CDC original is only 700x475 px, so the cleaned version is upscaled and carries no fine surface detail; higher-resolution SEMs of this species exist only on commercial stock libraries (Science Photo Library, Alamy, Getty), which fall outside the PD/CC0/CC-BY/CC-BY-SA whitelist, so this is the best properly-licensed source available.",
+  "decision": [
+    ["textbook", "accept", 3, "gen-03__gemini-3-pro-image — the clearest statement of the spirochaete body plan in the set: hair-thin, continuously undulating, internal flagella visible end to end. Used as the base for labels.json and as the RENDER-STATUS svg_theme."],
+    ["sem", "accept", 1, "gen-01__gemini-3-pro-image — first attempt already correct; deliberately left unlabelled, as SEM shows surface only and its teaching value here is the bare silhouette next to the real micrograph."],
+    ["3d", "accept", 2, "gen-02__gemini-3-pro-image — attempt 1 was rejected for external flagella; attempt 2 seals them inside the sheath and reads as a slim flat wave."],
+    ["watercolor", "accept", 5, "gen-05__gemini-3-pro-image — took five passes to get all three constraints at once: full-bleed paper, constant hair-thin width, and flagella legible from pole to pole."]
+  ],
+  "notes": "Shared caveat across the three cut-away styles: all four renders correctly keep every flagellum INSIDE the outer sheath (the cardinal requirement for a spirochaete), but at this level of stylisation the models place the coral flagellar ribbon just inside the peptidoglycan wall rather than strictly in the periplasmic space between the wall and the outer sheath. The teaching point — the motor is internal, nothing whips outside — is faithful; the exact sub-layer ordering is idealised."
+}

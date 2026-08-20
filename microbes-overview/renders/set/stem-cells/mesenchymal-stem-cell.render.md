@@ -119,7 +119,7 @@ Hand-painted naturalist scientific plate of a SINGLE human mesenchymal stem cell
 
 ### Real microscopy reference (`reference-microscopy`)
 - `SEM` · CC BY-SA 4.0 · Ivan A. Novikov, A. M. Subbot, I. V. Vakhrushev (Research Institute of Eye Diseases, Russia) — none (no free micrograph specific to MSC morphology) — per render.md §2.
-  ![reference](theme/sem/mesenchymal-stem-cell.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/sem/mesenchymal-stem-cell.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

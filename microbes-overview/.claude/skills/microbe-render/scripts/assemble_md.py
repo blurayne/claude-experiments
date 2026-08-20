@@ -24,6 +24,7 @@ Usage: assemble_md.py --microbe rod-bacterium --set pathogens-generic
 """
 from __future__ import annotations
 import argparse, json, glob, re
+from urllib.parse import quote
 from pathlib import Path
 
 THEMES = [("textbook", "Textbook illustration"), ("sem", "SEM micrograph"),
@@ -47,8 +48,22 @@ def fix_de(s: str) -> str:
     return s
 
 
-def rel(p: str) -> str:  # sidecar file paths are repo-root relative → md-relative
-    return re.sub(r"^renders/set/[^/]+/", "", p)
+def rel(p: str, set_name: str = "") -> str:
+    """Sidecar paths are repo-root relative; the render.md sits in
+    renders/set/<set_name>/, so rewrite them relative to THAT.
+
+    Stripping the prefix blindly only works while the file belongs to the same
+    set. The real micrograph does not — it lives in reference-microscopy — so
+    the reference image link pointed at a path inside the microbe's own set and
+    resolved nowhere. Hop up one level for anything owned by another set."""
+    m = re.match(r"^renders/set/([^/]+)/(.*)$", p)
+    if not m:
+        return p
+    owner, rest = m.groups()
+    out = rest if owner == set_name else f"../{owner}/{rest}"
+    # some reference filenames carry the modality in parentheses; an unescaped
+    # ")" ends a markdown link early, so percent-encode the whole path
+    return quote(out, safe="/")
 
 
 def main():
@@ -100,7 +115,7 @@ def main():
             att = s.get("attempt", 1)
             out.append(f"- attempt {att} · `{s['model']}` · {s.get('latency_s')}s — "
                        f"{vth.get(th, {}).get(str(att), '—')}")
-            out.append(f"  ![{th} {att}]({rel(s['files'].get('avif', s['files'].get('png')))})")
+            out.append(f"  ![{th} {att}]({rel(s['files'].get('avif', s['files'].get('png')), a.set_)})")
         if built:
             out += ["", f"**Labelled figure ({th}, English default; Latin/German toggle in the SVG/HTML):**",
                     f"![labelled](theme/{th}/{m}.{th}.svg)",
@@ -117,7 +132,7 @@ def main():
         avif = disp["files"].get("avif", disp["files"].get("png"))
         out.append(f"- `{src.get('modality','')}` · {src.get('license','')} · "
                    f"{src.get('attribution','')} — {vref}")
-        out.append(f"  ![reference]({rel(avif)})")
+        out.append(f"  ![reference]({rel(avif, a.set_)})")
         ref_meta = {"theme": f"real ({src.get('modality','')})",
                     "styles": f"{src.get('modality','')} · {src.get('license','')}",
                     "model": "— (edit)" if disp.get("kind") == "reference-edit" else "— (download)",

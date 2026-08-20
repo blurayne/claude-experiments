@@ -120,7 +120,7 @@ Hand-painted naturalist scientific plate of a SINGLE human natural killer (NK) c
 
 ### Real microscopy reference (`reference-microscopy`)
 - `sem` · CC BY 2.0 · NIAID / Dave Dorward (Flickr, NIH) — pass (Wikimedia Commons "Human Natural Killer Cell.jpg", NIAID/Dave Dorward, CC BY 2.0 — colorized SEM of a single isolated human NK cell showing the characteristic shaggy microvillus surface and radiating filopodia; clean background, no baked text/scale bar; used as-is, no cleaning edit needed)
-  ![reference](theme/sem/natural-killer-cell.attempts/real-01__sem.avif)
+  ![reference](../reference-microscopy/theme/sem/natural-killer-cell.attempts/real-01__sem.avif)
 
 ## 6. Teaching-use decision
 

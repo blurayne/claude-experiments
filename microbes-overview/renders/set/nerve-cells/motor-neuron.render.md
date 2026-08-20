@@ -122,7 +122,7 @@ Hand-painted naturalist scientific plate of a SINGLE human motor neuron in the s
 
 ### Real microscopy reference (`reference-microscopy`)
 - `LM` · CC BY-SA 4.0 · Tulemo (Wikimedia Commons) — PASS (2026-08-15) — Wikimedia Commons Nissl/luxol-fast-blue LM section, CC BY-SA 4.0, Tulemo. Two large, clearly readable multipolar motor-neuron cell bodies with pale nucleus, dark nucleolus and coarse purple Nissl-body clumping. Cleaned with edit_image.py to remove baked-in pointer arrows and scale bar and recompose around the single largest cell body.
-  ![reference](theme/lm/motor-neuron.attempts/real-02__edit-gemini-2.5-flash-image.png)
+  ![reference](../reference-microscopy/theme/lm/motor-neuron.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

@@ -124,7 +124,7 @@ Hand-painted naturalist scientific plate of a SINGLE Escherichia coli cell, a Gr
 
 ### Real microscopy reference (`reference-microscopy`)
 - `TEM` · Public Domain (CDC PHIL #9995) · CDC / E. H. White; Peggy S. Hayes (PHIL #9995) — PASS — real E. coli micrograph, public domain/CC source per render.md §2.
-  ![reference](theme/tem/escherichia-coli.attempts/real-01__TEM.avif)
+  ![reference](../reference-microscopy/theme/tem/escherichia-coli.attempts/real-01__TEM.avif)
 
 ## 6. Teaching-use decision
 

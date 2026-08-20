@@ -136,7 +136,7 @@ Hand-painted naturalist scientific plate of a SINGLE mammalian neural stem cell 
 
 ### Real microscopy reference (`reference-microscopy`)
 - `fluorescence` · CC BY-SA 4.0 · Wellcome Collection — PASS (2026-08-14). Genuine fluorescence photomicrograph (not a diagram) of cultured mouse neural stem cells, Wellcome Collection via Wikimedia Commons (CC BY-SA 4.0): numerous small, bipolar/multipolar green-stained cell bodies with fine, elongated processes radiating between blue DAPI-stained nuclei — matches the described in-vitro NSC morphology (thin processes, high nucleus:cytoplasm ratio). The raw download shows a dense field of many overlapping cells rather than one isolated specimen; a cleaned/recomposed edit (edit_image.py) emphasizing two clearly bipolar cells and removing stray artifacts was produced and is used as the display image.
-  ![reference](theme/real/neural-stem-cell.attempts/real-02__edit-gemini-2.5-flash-image.png)
+  ![reference](../reference-microscopy/theme/real/neural-stem-cell.attempts/real-02__edit-gemini-2.5-flash-image.png)
 
 ## 6. Teaching-use decision
 

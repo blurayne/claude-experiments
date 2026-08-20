@@ -132,7 +132,7 @@ Hand-painted naturalist scientific plate of a SINGLE human B lymphocyte (B cell)
 
 ### Real microscopy reference (`reference-microscopy`)
 - `SEM` · CC BY 2.0 · NIAID (National Institute of Allergy and Infectious Diseases), via Flickr — pass (Wikimedia Commons 'Human_B_Lymphocyte_-_NIAID.jpg', NIAID CC BY 2.0 colorized SEM of a single human B lymphocyte; densely ruffled microvillus surface, clean near-black background, no baked-in text/scale bar, used as-is; caveat noted in render.md that light/EM cannot distinguish B from T lymphocytes by shape alone)
-  ![reference](theme/real/b-cell.attempts/real-01__SEM.avif)
+  ![reference](../reference-microscopy/theme/real/b-cell.attempts/real-01__SEM.avif)
 
 ## 6. Teaching-use decision
 

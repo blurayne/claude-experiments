@@ -127,7 +127,7 @@ Hand-painted naturalist scientific plate of a SINGLE human oocyte (egg cell) in 
 
 ### Real microscopy reference (`reference-microscopy`)
 - `light (PlasDIC)` · CC BY-SA 2.0 · ZEISS Microscopy (Germany) — pass (Wikimedia Commons – "Oocyte with Zona pellucida (27771482282).jpg", ZEISS Microscopy (Germany), CC BY-SA 2.0; real light PlasDIC photomicrograph from an IVF/ICSI lab clearly showing a single human oocyte with its zona pellucida; cleaned with edit_image.py to recompose tighter on the single oocyte and remove the neighbouring embryo in the original frame, keeping the greyscale PlasDIC rendering and the real injection pipette as genuine scene content)
-  ![reference](theme/light/oocyte.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/light/oocyte.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

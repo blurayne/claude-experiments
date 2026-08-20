@@ -121,7 +121,7 @@ Hand-painted naturalist scientific plate of a SINGLE human alveolar type II cell
 
 ### Real microscopy reference (`reference-microscopy`)
 - `TEM` · Public Domain · Louisa Howard, Michael Binder — Dartmouth Electron Microscope Facility (remf.dartmouth.edu) — pass (Wikimedia Commons - 'Alveolar sac region of the lung - TEM.jpg', genuine transmission electron micrograph of the alveolar sac region of mouse lung, Public domain, Louisa Howard & Michael Binder / Dartmouth EM Facility; shows an alveolar type II cell with a cluster of dark, densely whorled lamellar bodies beside its nucleus, plus a capillary red blood cell showing the alveolus/capillary relationship; cleaned with edit_image.py into a text-free, warm false-colour crop recomposed around the single AT2 cell and its lamellar bodies; original real-01 kept for provenance)
-  ![reference](theme/tem/alveolar-cell-type-ii.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/tem/alveolar-cell-type-ii.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

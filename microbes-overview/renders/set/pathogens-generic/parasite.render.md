@@ -129,7 +129,7 @@ Hand-painted 19th-century naturalist scientific atlas plate, anatomically modern
 
 ### Real microscopy reference (`reference-microscopy`)
 - `LM` · Public Domain (CDC PHIL #613) · CDC / Dr. Myron G. Schultz — ✅ PASS — Giemsa blood smear with several Trypanosoma trypomastigotes among red blood cells (CDC PHIL #613, Public Domain); classic scale-vs-RBC teaching view; no baked-in text.
-  ![reference](theme/light/parasite.attempts/real-01__LM.avif)
+  ![reference](../reference-microscopy/theme/light/parasite.attempts/real-01__LM.avif)
 
 ## 6. Teaching-use decision
 

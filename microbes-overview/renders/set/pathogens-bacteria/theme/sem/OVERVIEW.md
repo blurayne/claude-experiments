@@ -2,6 +2,10 @@
 
 Every microbe's `sem` image — labelled SVG where built, else the last render. [← set overview](../../OVERVIEW.md)
 
+## Borrelia burgdorferi (Lyme disease) (`borrelia-burgdorferi`)
+![sem](borrelia-burgdorferi.attempts/gen-01__gemini-3-pro-image.avif)
+[full log](../../borrelia-burgdorferi.render.md)
+
 ## Escherichia coli (`escherichia-coli`)
 ![sem](escherichia-coli.attempts/gen-02__gemini-2.5-flash-image.avif)
 [full log](../../escherichia-coli.render.md)

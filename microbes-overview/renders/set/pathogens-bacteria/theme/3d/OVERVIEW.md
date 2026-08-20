@@ -2,6 +2,10 @@
 
 Every microbe's `3d` image — labelled SVG where built, else the last render. [← set overview](../../OVERVIEW.md)
 
+## Borrelia burgdorferi (Lyme disease) (`borrelia-burgdorferi`)
+![3d](borrelia-burgdorferi.3d.svg)
+[full log](../../borrelia-burgdorferi.render.md)
+
 ## Escherichia coli (`escherichia-coli`)
 ![3d](escherichia-coli.3d.svg)
 [full log](../../escherichia-coli.render.md)

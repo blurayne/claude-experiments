@@ -127,7 +127,7 @@ Hand-painted naturalist scientific plate of a SINGLE human erythrocyte (mature r
 
 ### Real microscopy reference (`reference-microscopy`)
 - `SEM` · Public domain (US federal government work) · Bruce Wetzel & Harry Schaefer, National Cancer Institute (visualsonline.cancer.gov) — pass (Wikimedia Commons "SEM blood cells.jpg", NCI/Wetzel & Schaefer, public domain; cropped + cleaned/false-colorized display version clearly shows three biconcave-disc red blood cells with visible central dimples, no text or scale bar)
-  ![reference](theme/sem/erythrocyte.attempts/real-04__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/sem/erythrocyte.attempts/real-04__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

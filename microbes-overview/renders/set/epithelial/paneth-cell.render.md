@@ -118,7 +118,7 @@ Hand-painted naturalist scientific plate of a SINGLE human Paneth cell in the st
 
 ### Real microscopy reference (`reference-microscopy`)
 - `H&E light micrograph` · CC0 1.0 (public domain) · Mikael Häggström, M.D. — PASS — Wikimedia Commons "Histology of paneth cells, original.jpg" (CC0 1.0 public domain, Mikael Häggström, M.D.). Genuine H&E light photomicrograph of small-intestinal crypt sections: columnar epithelial cells with basally located, deeply basophilic (dark purple) nuclei lining elongated crypt profiles, pale foamy goblet-cell apical zones interspersed, and denser pink/red-tinged granular apical cytoplasm at the crypt bases consistent with Paneth-cell granules; already free of scale bars/captions/borders so no cleaning pass was needed, original crop used as-is for display.
-  ![reference](theme/real/paneth-cell.attempts/real-01__H&E light micrograph.png)
+  ![reference](../reference-microscopy/theme/real/paneth-cell.attempts/real-01__H%26E%20light%20micrograph.png)
 
 ## 6. Teaching-use decision
 

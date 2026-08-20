@@ -145,7 +145,7 @@ Hand-painted 19th-century naturalist scientific atlas plate, anatomically modern
 
 ### Real microscopy reference (`reference-microscopy`)
 - `SEM` · CC BY-SA 3.0 · Julie6301, Wikimedia Commons — PASS - Wikimedia Commons electron micrograph 'Bifidobacterium longum en microscopie electronique' (Julie6301, CC BY-SA 3.0) genuinely shows the organism: slender rods forking into clean Y shapes with blunt club-tipped arms, no flagella and no spores. The Commons original is only 400x253 px, so the normalised 1080-square master is a soft upscale, and the uploader declares 'own work' without naming an instrument or laboratory - the licence is clear, the chain of custody is thinner than a journal figure. It was cleaned with edit_image.py (real-02) to isolate one forked specimen, strip the soft edges and apply a warm beige false-colour on charcoal; that cleaned version is a generative-AI recomposition faithful to the source morphology rather than raw instrument data, and the untouched download is kept beside it for provenance. Honest caveat recorded in the log.
-  ![reference](theme/sem/bifidobacterium-longum.attempts/real-02__edit-gemini-3-pro-image.avif)
+  ![reference](../reference-microscopy/theme/sem/bifidobacterium-longum.attempts/real-02__edit-gemini-3-pro-image.avif)
 
 ## 6. Teaching-use decision
 

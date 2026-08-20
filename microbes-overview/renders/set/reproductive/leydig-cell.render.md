@@ -125,7 +125,7 @@ Hand-painted naturalist scientific plate of a SINGLE human Leydig cell (intersti
 
 ### Real microscopy reference (`reference-microscopy`)
 - `light` · CC BY-SA 3.0 · Nephron (Wikimedia Commons) — pass (Wikimedia Commons 'Leydig cells - very high mag.jpg', CC BY-SA 3.0, Nephron — genuine H&E light-photomicrograph of a small nest of Leydig cells with large round nuclei, visible nucleoli and abundant eosinophilic cytoplasm, immediately beside a small interstitial capillary filled with red blood cells; matches Leydig-cell morphology and the natural perivascular small-nest arrangement; cleaned/recomposed version used for display)
-  ![reference](theme/light/leydig-cell.attempts/real-02__edit-gemini-2.5-flash-image.png)
+  ![reference](../reference-microscopy/theme/light/leydig-cell.attempts/real-02__edit-gemini-2.5-flash-image.png)
 
 ## 6. Teaching-use decision
 

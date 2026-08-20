@@ -123,7 +123,7 @@ Hand-painted 19th-century naturalist scientific atlas plate, anatomically modern
 
 ### Real microscopy reference (`reference-microscopy`)
 - `LM` · Public Domain (CDC PHIL #5856) · CDC Public Health Image Library #5856 (Dr. Greene; Steven Glenn) — pass (CDC PHIL #5856 Giemsa thin blood film, public domain; cleaned/contrast-enhanced edit used for display - clearly shows ring-stage trophozoites (chromatin dot + cytoplasm ring) in multiple red blood cells plus one classic banana/crescent-shaped gametocyte; illustration styles intentionally show the later merozoite stage while this reference shows the ring-stage/gametocyte blood-smear view - documented in §1-2, the two stages complement each other as the standard malaria teaching pair)
-  ![reference](theme/light/plasmodium.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/light/plasmodium.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

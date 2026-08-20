@@ -133,7 +133,7 @@ Hand-painted naturalist scientific plate of a SINGLE giant human megakaryocyte i
 
 ### Real microscopy reference (`reference-microscopy`)
 - `Light microscopy (bone marrow aspirate smear, Wright-Giemsa stain)` · CC BY-SA 4.0 · Animalculist (Wikimedia Commons) — pass (Wikimedia Commons "Megakaryocyte_in_bone_marrow.jpg", CC BY-SA 4.0, Animalculist; light micrograph of Wright-Giemsa-stained bone-marrow aspirate smear showing a single, clearly isolated giant megakaryocyte roughly 10x the diameter of the surrounding erythrocytes, with a dense multi-lobed purple-staining nucleus and pale granular cytoplasm - matches the representative teaching description. Cleaned/recomposed version (edit_image.py) used for display, background red cells rendered as crisp evenly pink discs, no text/scale bar)
-  ![reference](theme/blood-smear/megakaryocyte.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/blood-smear/megakaryocyte.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

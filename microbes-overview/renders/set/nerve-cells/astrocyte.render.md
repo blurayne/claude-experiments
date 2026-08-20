@@ -123,7 +123,7 @@ Hand-painted naturalist scientific plate of a SINGLE human astrocyte, a star-sha
 
 ### Real microscopy reference (`reference-microscopy`)
 - `GFAP immunofluorescence (cell culture)` · CC BY-SA 3.0 · GerryShaw, Wikimedia Commons — pass (Wikimedia Commons "Astrocyte5.jpg", CC BY-SA 3.0, GerryShaw; real GFAP (yellow) + DAPI (blue nuclei) double immunofluorescence micrograph of a cultured human astrocyte - single dominant, clearly isolated specimen showing the diagnostic stellate morphology with dozens of fine radiating GFAP-positive processes converging on a central soma with its nucleus, surrounded by smaller unstained/counterstained cells typical of a mixed culture background; no baked-in text or scale bar to remove, single-specimen framing already clean, used as downloaded for display; see render.md §2 - two earlier candidate downloads (a dense GFAP-IHC tissue section with overlay pointer arrows, and AI-edited variants that hallucinated additional astrocyte-like cells not present in the source photo) were rejected and removed in favour of this cleaner single-specimen photograph)
-  ![reference](theme/immunofluorescence/astrocyte.attempts/real-01__immunofluorescence.avif)
+  ![reference](../reference-microscopy/theme/immunofluorescence/astrocyte.attempts/real-01__immunofluorescence.avif)
 
 ## 6. Teaching-use decision
 

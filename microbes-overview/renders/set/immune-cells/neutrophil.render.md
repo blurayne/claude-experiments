@@ -123,7 +123,7 @@ Hand-painted naturalist scientific plate of a SINGLE human neutrophil in the sty
 
 ### Real microscopy reference (`reference-microscopy`)
 - `light (Wright stain)` · CC BY-SA 4.0 · Ajay Kumar Chaurasiya, Wikimedia Commons — pass (Wikimedia Commons "WBC (neutrophil) at centre, numerous erythrocytes and platelets (dot like bodies) in Wright's stained peripheral blood smear (PBS) microscopy.jpg", Ajay Kumar Chaurasiya, CC BY-SA 4.0 — genuine Wright-stained light-microscopy photograph of a single neutrophil with a clearly visible 4-5-lobed nucleus surrounded by red blood cells; no baked-in text/scale bar; cleaned/re-centred edit kept as the display copy, original kept for provenance)
-  ![reference](theme/light/neutrophil.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/light/neutrophil.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

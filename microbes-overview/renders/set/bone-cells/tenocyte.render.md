@@ -117,7 +117,7 @@ Hand-painted naturalist scientific plate of a SINGLE human tenocyte (tendon cell
 
 ### Real microscopy reference (`reference-microscopy`)
 - `light-histology` · CC BY-SA 3.0 · Nephron, Wikimedia Commons — pass (Wikimedia Commons 'Tendon - very high mag.jpg', CC BY-SA 3.0 / GFDL 1.2+, attribution Nephron; genuine H&E light-micrograph of tendon in longitudinal section showing the classic tenocyte 'box-car' appearance - rows of flattened, elongated, deeply basophilic nuclei lined up end-to-end between densely packed wavy eosinophilic collagen bundles, with a small vessel visible alongside one row; raw download already naturally coloured (H&E stain), fills the frame edge-to-edge with no baked-in text/scale bar/border, used as-is for display)
-  ![reference](theme/real/tenocyte.attempts/real-01__light-histology.avif)
+  ![reference](../reference-microscopy/theme/real/tenocyte.attempts/real-01__light-histology.avif)
 
 ## 6. Teaching-use decision
 

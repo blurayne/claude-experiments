@@ -119,7 +119,7 @@ Hand-painted naturalist scientific plate of a SINGLE human chondrocyte (cartilag
 
 ### Real microscopy reference (`reference-microscopy`)
 - `light microscopy (H&E, rabbit rib hyaline cartilage)` · CC BY-SA 4.0 · A.o.dvoretska (Wikimedia Commons) — pass (Wikimedia Commons 'Hyaline cartilage of rabbit ribs.jpg', CC BY-SA 4.0, attribution A.o.dvoretska; H&E light micrograph showing perichondrium transitioning into hyaline cartilage matrix populated by chondrocytes, with isogenous groups of 2-8 cells each in its own lacuna clearly visible deeper in the matrix - matches textbook chondrocyte histology; raw download had a circular microscope field-of-view vignette (black border) and no text/scale bar; a cleaned, edge-to-edge recomposed version centred on a clear isogenous group was produced with edit_image.py for display)
-  ![reference](theme/histology/chondrocyte.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/histology/chondrocyte.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

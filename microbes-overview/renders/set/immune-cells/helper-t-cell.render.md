@@ -125,7 +125,7 @@ Hand-painted naturalist scientific plate of a SINGLE human helper T cell (CD4+ T
 
 ### Real microscopy reference (`reference-microscopy`)
 - `SEM` · CC BY 2.0 · NIAID (National Institute of Allergy and Infectious Diseases), via Flickr — pass (Wikimedia Commons 'T_Lymphocyte.jpg', NIAID CC BY 2.0 colorized SEM of a single human T lymphocyte; densely ruffled microvillus surface, clean background, no baked-in text/scale bar, used as-is; caveat noted in render.md that light/EM cannot distinguish CD4 from CD8 by shape alone)
-  ![reference](theme/sem/helper-t-cell.attempts/real-01__SEM.avif)
+  ![reference](../reference-microscopy/theme/sem/helper-t-cell.attempts/real-01__SEM.avif)
 
 ## 6. Teaching-use decision
 

@@ -136,7 +136,7 @@ Hand-painted naturalist scientific watercolour plate of a SINGLE human rhinoviru
 
 ### Real microscopy reference (`reference-microscopy`)
 - `cryo-EM` · CC0 1.0 / public domain (wwPDB EMDB entry image) · EMDB EMD-12171 'HRV14 native particle' — Hrebik D, Fuzik T, Gondova M, Smerdova L, Adamopoulos A, Sedo O, Zdrahal Z, Plevka P (2021) PNAS 118:e2024251118; cryo-EM reconstruction, radial colouring — ✅ PASS (with a provenance caveat) — no properly-licensed conventional TEM/SEM plate of a rhinovirus virion exists in CDC PHIL, the NIAID Flickr stream or Wikimedia Commons (Commons carries only X-ray-derived renderings), so the reference is the wwPDB EMDB entry image for EMD-12171, a genuine cryo-electron-microscopy reconstruction of a native human rhinovirus 14 particle (Hrebik et al. 2021, PNAS), CC0. It shows exactly what the science section describes: a single naked icosahedral capsid with radially false-coloured relief — yellow star-shaped mesas at the five-fold vertices, blue canyon depressions ringing them and green propeller facets between — and no envelope or spikes. Cleaned with edit_image.py (dark uniform background, sharpened, colorization and shape preserved).
-  ![reference](theme/cryo-em/rhinovirus.attempts/real-02__edit-gemini-3-pro-image.avif)
+  ![reference](../reference-microscopy/theme/cryo-em/rhinovirus.attempts/real-02__edit-gemini-3-pro-image.avif)
 
 ## 6. Teaching-use decision
 

@@ -123,7 +123,7 @@ Hand-painted naturalist scientific plate of a SINGLE human white adipocyte (fat 
 
 ### Real microscopy reference (`reference-microscopy`)
 - `LM` · CC BY-SA 3.0 (also GFDL) · Department of Histology, Jagiellonian University Medical College — light microscopy (H&E-type paraffin section), CC BY-SA 3.0 (also GFDL), Department of Histology, Jagiellonian University Medical College — per render.md §2.
-  ![reference](theme/light-micrograph/white-adipocyte.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/light-micrograph/white-adipocyte.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

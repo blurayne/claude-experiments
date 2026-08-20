@@ -123,7 +123,7 @@ Hand-painted naturalist scientific plate of a SINGLE Salmonella enterica bacteri
 
 ### Real microscopy reference (`reference-microscopy`)
 - `SEM` · Public Domain (NIAID / RML) · NIAID Rocky Mountain Laboratories (RML), National Institutes of Health — pass (NIAID/RML colour SEM, public domain; cleaned via edit_image.py to crop to a single isolated rod with clearly readable peritrichous flagella and rounded poles, all text/borders removed, false colour preserved)
-  ![reference](theme/sem/salmonella-enterica.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/sem/salmonella-enterica.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

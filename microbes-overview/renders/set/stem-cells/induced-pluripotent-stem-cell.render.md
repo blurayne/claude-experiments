@@ -125,7 +125,7 @@ Hand-painted naturalist scientific plate of a SINGLE induced pluripotent stem ce
 
 ### Real microscopy reference (`reference-microscopy`)
 - `LM` · Public Domain Mark 1.0 · National Institutes of Health / National Eye Institute (NIH Image Gallery) — PASS — NIH/National Eye Institute confocal immunofluorescence of a human iPSC colony (OCT4 red, SSEA-4 green, nuclei blue); Public Domain. Cleaned with edit_image.py (real-02): recomposed/centred on a clean background, no borders or scale bars, false-colour kept as-is. Directly shows the defining biology (Yamanaka factor + pluripotency marker + nucleus-dense compact colony).
-  ![reference](theme/light/induced-pluripotent-stem-cell.attempts/real-02__edit-gemini-2.5-flash-image.avif)
+  ![reference](../reference-microscopy/theme/light/induced-pluripotent-stem-cell.attempts/real-02__edit-gemini-2.5-flash-image.avif)
 
 ## 6. Teaching-use decision
 

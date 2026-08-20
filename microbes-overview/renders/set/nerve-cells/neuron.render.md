@@ -139,7 +139,7 @@ Hand-painted naturalist scientific plate of a SINGLE human neuron (nerve cell) i
 
 ### Real microscopy reference (`reference-microscopy`)
 - `light-nissl` · CC BY-SA 4.0 · Tulemo (Wikimedia Commons) — pass (Wikimedia Commons "Nissl bodies in neurons of the spinal cord.jpg", CC BY-SA 4.0, Tulemo; real cresyl-violet Nissl-stained light-photomicrograph of spinal-cord neuron cell bodies - large pale-staining nucleus with dark punctate nucleolus and coarse purple Nissl-body stippling filling the cytoplasm, short dendrite stumps at the margins; raw download carried two overlaid pointer arrows and a scale bar, cleaned/recomposed to a single-neuron crop with edit_image.py for display, see render.md §2)
-  ![reference](theme/real/neuron.attempts/real-02__edit-gemini-2.5-flash-image.png)
+  ![reference](../reference-microscopy/theme/real/neuron.attempts/real-02__edit-gemini-2.5-flash-image.png)
 
 ## 6. Teaching-use decision
 

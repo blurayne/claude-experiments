@@ -2,6 +2,10 @@
 
 Every microbe's `textbook` image — labelled SVG where built, else the last render. [← set overview](../../OVERVIEW.md)
 
+## Borrelia burgdorferi (Lyme disease) (`borrelia-burgdorferi`)
+![textbook](borrelia-burgdorferi.textbook.svg)
+[full log](../../borrelia-burgdorferi.render.md)
+
 ## Escherichia coli (`escherichia-coli`)
 ![textbook](escherichia-coli.textbook.svg)
 [full log](../../escherichia-coli.render.md)
