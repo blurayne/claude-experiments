@@ -268,6 +268,36 @@ html[data-theme="petri"] body::after{
   transition:border-color .18s, width .25s var(--ease);
 }
 #search:focus{border-color:var(--accent); width:min(34vw,280px)}
+.filt-btn{position:absolute; right:6px; width:26px; height:26px; padding:0; flex:none;
+  display:inline-flex; align-items:center; justify-content:center; cursor:pointer;
+  border:1px solid transparent; border-radius:7px; background:transparent; color:var(--fg-faint);
+  transition:color .15s, border-color .15s, background .15s}
+.filt-btn svg{width:14px; height:14px}
+.filt-btn:hover{color:var(--fg); background:var(--card-hi)}
+.filt-btn[aria-expanded="true"], .filt-btn.active{color:var(--accent); border-color:var(--accent)}
+#search{padding-right:36px}
+#filtPanel{width:min(290px,92vw)}
+.filt-label{margin:12px 0 2px; font-family:var(--font-mono); font-size:10.5px; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--fg-faint)}
+.filt-label:first-of-type{margin-top:2px}
+#filtPanel .menu-opt{margin-top:6px; padding-top:0; border-top:0}
+.filt-reset{margin-top:14px; width:100%; justify-content:center}
+/* live match list under the search box, doubling as quick navigation */
+.search-results{position:absolute; top:calc(100% + 6px); left:0; width:min(420px,92vw);
+  z-index:1200; max-height:min(420px,60vh); overflow:auto; padding:8px;
+  /* same opaque backing as the dropdowns — var(--card) is translucent in some
+     themes and the page text was reading straight through the list */
+  background:var(--panel); border:1px solid var(--panel-bd); border-radius:14px;
+  box-shadow:var(--shadow)}
+.search-results[hidden]{display:none}
+.sr-count{font-family:var(--font-mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--fg-faint); padding:2px 6px 8px}
+.sr-item{display:flex; align-items:baseline; gap:8px; width:100%; text-align:left; cursor:pointer;
+  padding:7px 8px; border:0; border-radius:8px; background:transparent; color:var(--fg);
+  font-family:var(--font-ui); font-size:13px}
+.sr-item:hover{background:var(--card-hi); color:var(--accent)}
+.sr-item .sr-set{margin-left:auto; font-family:var(--font-mono); font-size:10px; color:var(--fg-faint)}
+.sr-more{padding:6px 8px 2px; font-size:11.5px; color:var(--fg-faint); font-family:var(--font-ui)}
 .search-wrap .mag{position:absolute; left:12px; font-size:13px; color:var(--fg-faint); pointer-events:none}
 
 /* dropdown panels */
@@ -730,6 +760,12 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 0 0 2px #
   <div class="search-wrap">
     <span class="mag">⌕</span>
     <input id="search" type="search" placeholder="search microbes…" autocomplete="off" aria-label="Search microbes">
+    <button class="filt-btn" id="filtBtn" aria-expanded="false" aria-controls="filtPanel"
+            title="Search options and filters" aria-label="Search options and filters">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M3 5h18M6 12h12M10 19h4"/></svg>
+    </button>
+    <div class="search-results" id="searchResults" hidden></div>
   </div>
   <button class="tb-btn" id="picsBtn" aria-expanded="false" aria-controls="picsPanel">▦ <span class="label">Pictures</span></button>
   <div class="seg" id="audSeg" role="group" aria-label="Audience">
@@ -759,6 +795,17 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 0 0 2px #
       <div class="menu-count" id="menuCount"></div>
     </div>
   </nav>
+
+  <div class="panel" id="filtPanel">
+    <h4>Search &amp; filter</h4>
+    <div class="filt-label">Search in</div>
+    <label class="menu-opt"><input type="checkbox" id="fTitle"> Microbe names</label>
+    <label class="menu-opt"><input type="checkbox" id="fDesc"> Descriptions</label>
+    <div class="filt-label">Show only microbes with</div>
+    <label class="menu-opt"><input type="checkbox" id="fGiant"> a GIANTmicrobes plush</label>
+    <label class="menu-opt"><input type="checkbox" id="fColoring"> a coloring page</label>
+    <button class="tb-btn filt-reset" id="filtReset">Reset filters</button>
+  </div>
 
   <div class="panel" id="setPanel">
     <h4>Settings</h4>
@@ -902,7 +949,8 @@ const LS='microbes-viewer-v1';
 const state = Object.assign({
   aud:'kids', lang:'en', theme:'petri', mode:'dark',
   boxes:DEFAULT_BOXES.slice(), enlargeLabels:true, showGiant:true, search:'',
-  lbLabelMode:null, lbBw:null, lbSrc:null, ink:70, fontScale:100
+  lbLabelMode:null, lbBw:null, lbSrc:null, ink:70, fontScale:100,
+  fTitle:true, fDesc:true, fGiant:false, fColoring:false
 }, load());
 // normalise a persisted (possibly older/shorter) box array to NUM_BOXES slots
 if(!Array.isArray(state.boxes)) state.boxes=DEFAULT_BOXES.slice();
@@ -2015,24 +2063,56 @@ function rebuildBoxes(){
 }
 
 // ---- search --------------------------------------------------------------
+function searchHaystack(m){
+  // both boxes off would make search impossible, so that falls back to everything
+  let hay='';
+  if(state.fTitle) hay+=' '+(m.s_title||'');
+  if(state.fDesc)  hay+=' '+(m.s_desc||'');
+  return hay.trim() || m.search || '';
+}
+function passesFilters(m){
+  if(state.fGiant && !m.giant) return false;
+  if(state.fColoring && !m.coloring) return false;
+  return true;
+}
+function filtersActive(){ return !!(state.fGiant || state.fColoring); }
 function applySearch(){
-  const ts=terms(); let anyVisible=false, total=0;
+  const ts=terms(); let anyVisible=false, total=0; const hits=[];
   DATA.sets.forEach(set=>{
     const sec=$('#set-'+set.id); if(!sec) return; let vis=0;
     set.microbes.forEach(m=>{
       const card=$('#mc-'+set.id+'-'+m.key); if(!card) return;
-      const ok = !ts.length || ts.every(t=>m.search.includes(t));
-      card.style.display = ok?'':'none'; if(ok){vis++; anyVisible=true;}
+      const hay=searchHaystack(m);
+      const ok = passesFilters(m) && (!ts.length || ts.every(t=>hay.includes(t)));
+      card.style.display = ok?'':'none';
+      if(ok){ vis++; anyVisible=true; hits.push({set, m}); }
     });
     sec.style.display = vis?'':'none';
     total+=vis;
   });
   $('#emptyMsg').classList.toggle('show', !anyVisible);
   if(ts.length) refreshBuilt(); // re-highlight
-  updateMenuCount(); // item 18: keep the menu footer's shown/total count live
+  updateMenuCount();
+  renderSearchResults(hits, ts.length>0);
+  $('#filtBtn').classList.toggle('active', filtersActive());
   return total;
 }
-
+// Compact match list under the search box — a count plus the first hits, each
+// jumping straight to its card. Only while a query is active; a bare filter
+// changes the page itself, so a floating list on top of it would be noise.
+function renderSearchResults(hits, querying){
+  const box=$('#searchResults');
+  if(!querying){ box.hidden=true; box.innerHTML=''; return; }
+  const totalAll=DATA.sets.reduce((n,s)=>n+s.microbes.length,0);
+  let h='<div class="sr-count">'+hits.length+' of '+totalAll+' microbes'+
+        (filtersActive()?' (filtered)':'')+'</div>';
+  hits.slice(0,12).forEach(({set,m})=>{
+    h+='<button type="button" class="sr-item" data-go="mc-'+set.id+'-'+m.key+'">'+
+       '<span>'+esc(L(m.name))+'</span><span class="sr-set">'+esc(L(set.title))+'</span></button>';
+  });
+  if(hits.length>12) h+='<div class="sr-more">+ '+(hits.length-12)+' more below</div>';
+  box.innerHTML=h; box.hidden=false;
+}
 // ---- toast / growl notifications ------------------------------------------
 // Small pill fixed to the bottom-center of the viewport. Fully visible for
 // ~800ms then fades out over ~1200ms (CSS transition on .toast/.toast.show).
@@ -2061,6 +2141,10 @@ function syncToggles(){
   $('#modeBtn').textContent = state.mode==='dark'?'☾':'☀';
   $('#enlargeLabels').checked = state.enlargeLabels;
   $('#showGiant').checked = state.showGiant;
+  $('#fTitle').checked = state.fTitle!==false;
+  $('#fDesc').checked = state.fDesc!==false;
+  $('#fGiant').checked = !!state.fGiant;
+  $('#fColoring').checked = !!state.fColoring;
   applyInk(); applyFontScale();
   html.dataset.theme=state.theme; html.dataset.mode=state.mode;
 }
@@ -2143,6 +2227,23 @@ $('#menuBtn').addEventListener('click',e=>{e.stopPropagation();togglePanel(e.cur
 $('#picsBtn').addEventListener('click',e=>{e.stopPropagation();togglePanel(e.currentTarget,$('#picsPanel'));});
 $('#themeBtn').addEventListener('click',e=>{e.stopPropagation();togglePanel(e.currentTarget,$('#themePanel'));});
 $('#setBtn').addEventListener('click',e=>{e.stopPropagation();togglePanel(e.currentTarget,$('#setPanel'));});
+$('#filtBtn').addEventListener('click',e=>{e.stopPropagation();togglePanel(e.currentTarget,$('#filtPanel'));});
+[['fTitle','fTitle'],['fDesc','fDesc'],['fGiant','fGiant'],['fColoring','fColoring']].forEach(([id,key])=>{
+  $('#'+id).addEventListener('change',e=>{ state[key]=e.target.checked; save(); applySearch(); });
+});
+$('#filtReset').addEventListener('click',()=>{
+  state.fTitle=true; state.fDesc=true; state.fGiant=false; state.fColoring=false;
+  syncToggles(); save(); applySearch(); closePanels();
+});
+// jump to a hit from the results list
+$('#searchResults').addEventListener('click',e=>{
+  const b=e.target.closest('.sr-item'); if(!b) return;
+  const el=document.getElementById(b.dataset.go);
+  if(el){ el.scrollIntoView({behavior:'smooth', block:'start'}); $('#searchResults').hidden=true; }
+});
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.search-wrap')) $('#searchResults').hidden=true;
+});
 $('#inkRange').addEventListener('input',e=>{ state.ink=+e.target.value; applyInk(); save(); });
 $('#fontRange').addEventListener('input',e=>{ state.fontScale=+e.target.value; applyFontScale(); save(); });
 // the -/+ buttons drive whichever range they name, then let its own handler run

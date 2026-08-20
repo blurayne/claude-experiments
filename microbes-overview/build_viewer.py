@@ -218,10 +218,13 @@ def build():
                         }
 
             # search blob: name + one-liner + all six descriptions, lowercased
-            blob = " ".join(
-                [name_en, name_de, short_en, short_de]
-                + [desc[a][l] for a in desc for l in ("en", "de")]
+            # Two searchable fields, so the search-scope checkboxes can target
+            # one or the other; `blob` stays as the union both default to.
+            title_blob = " ".join([name_en, name_de, key]).lower()
+            desc_blob = " ".join(
+                [short_en, short_de] + [desc[a][l] for a in desc for l in ("en", "de")]
             ).lower()
+            blob = (title_blob + " " + desc_blob).strip()
 
             # size/weight scale meter (see microbe_scale.py) — omitted if the
             # key has no entry there rather than guessing a placeholder value
@@ -260,6 +263,8 @@ def build():
                     "scale": scale,
                     "giant": giant,
                     "search": blob,
+                    "s_title": title_blob,
+                    "s_desc": desc_blob,
                     "_order": look.get("order", order.get(name_en, 10_000)),
                 }
             )
