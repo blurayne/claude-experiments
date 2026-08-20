@@ -4,7 +4,7 @@
 
 ## Where we stand
 
-- **15 sets**, **93 microbes** live in the viewer, out of **94 catalogued**.
+- **15 sets**, **94 microbes** live in the viewer, out of **94 catalogued**.
 - Every live microbe carries: 5 picture styles, 3 labelled diagrams, a printable A4 coloring page, kids narration in EN + DE, and size/weight data — the table below is the proof.
 - **41 plush links**, every one an exact species/cell match. 8 of those photos had to be repaired (see the last section).
 
@@ -99,7 +99,7 @@
 | pathogens-viruses | Plasmodium (malaria) | `plasmodium` | 5/5 | 3/3 | ✅ | ✅ | 2 µm · 1 pg | Malaria (Plasmodium falciparum) |
 | pathogens-viruses | Candida albicans | `candida-albicans` | 5/5 | 3/3 | ✅ | ✅ | 5 µm · 40 pg | Candida fungus |
 | pathogens-viruses | Rhinovirus (common cold) | `rhinovirus` | 5/5 | 3/3 | ✅ | ✅ | 30 nm · 0.3 fg | Common Cold (Rhinovirus) |
-| pathogens-viruses | Zika virus | — | ❌ not rendered | | | | 45 nm · 0.8 fg | |
+| pathogens-viruses | Zika virus | `zika-virus` | 5/5 | 3/3 | ✅ | ✅ | 45 nm · 0.8 fg | Zika (Zika virus) |
 | pathogens-viruses | Measles virus (Morbillivirus) | `measles-virus` | 5/5 | 3/3 | ✅ | ✅ | 200 nm · 8 fg | Measles (Morbillivirus) |
 | pathogens-viruses | Rotavirus | `rotavirus` | 5/5 | 3/3 | ✅ | ✅ | 75 nm · 1.5 fg | Rotavirus (Rotavirus) |
 | pathogens-viruses | Norovirus (stomach bug) | `norovirus` | 5/5 | 3/3 | ✅ | ✅ | 38 nm · 0.5 fg | — |
@@ -111,15 +111,13 @@
 
 ## Gaps
 
-**Catalogued but not yet rendered — 1.** Text, German translation and scale data already exist for these; only the pictures are missing.
-
-- `pathogens-viruses` — Zika virus
+**Catalogued but not rendered:** none.
 
 **Rendered but not reaching the viewer — 0.** A render only appears if `meta.name` matches a catalogue `name_en` exactly, or its key matches the slug of one; anything here fell through both.
 
 - none
 
-**Data waiting for a render:** 1 scale entry (`zika-virus`), 1 plush link (`zika-virus`).
+**Data waiting for a render:** 0 scale entries (none), 0 plush links (none).
 
 **No recorded micrograph source:** `reticulocyte`.
 

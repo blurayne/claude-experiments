@@ -49,3 +49,7 @@ Every microbe's `watercolor` image — labelled SVG where built, else the last r
 ## Varicella-zoster virus (chickenpox) (`varicella-zoster-virus`)
 ![watercolor](varicella-zoster-virus.watercolor.svg)
 [full log](../../varicella-zoster-virus.render.md)
+
+## Zika virus (`zika-virus`)
+![watercolor](zika-virus.watercolor.svg)
+[full log](../../zika-virus.render.md)

@@ -49,3 +49,7 @@ Every microbe's `3d` image — labelled SVG where built, else the last render. [
 ## Varicella-zoster virus (chickenpox) (`varicella-zoster-virus`)
 ![3d](varicella-zoster-virus.3d.svg)
 [full log](../../varicella-zoster-virus.render.md)
+
+## Zika virus (`zika-virus`)
+![3d](zika-virus.3d.svg)
+[full log](../../zika-virus.render.md)

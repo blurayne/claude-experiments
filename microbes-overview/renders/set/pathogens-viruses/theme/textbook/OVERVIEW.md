@@ -49,3 +49,7 @@ Every microbe's `textbook` image — labelled SVG where built, else the last ren
 ## Varicella-zoster virus (chickenpox) (`varicella-zoster-virus`)
 ![textbook](varicella-zoster-virus.textbook.svg)
 [full log](../../varicella-zoster-virus.render.md)
+
+## Zika virus (`zika-virus`)
+![textbook](zika-virus.textbook.svg)
+[full log](../../zika-virus.render.md)

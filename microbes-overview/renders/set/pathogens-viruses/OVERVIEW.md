@@ -218,6 +218,24 @@ Enveloped herpesvirus (human alphaherpesvirus 3, ~180-200 nm, pleomorphic) with 
 
 Full log: [`varicella-zoster-virus.render.md`](varicella-zoster-virus.render.md)
 
+## Zika virus (`zika-virus`)
+Enveloped flavivirus (genus Orthoflavivirus, ~40-65 nm, roughly 50 nm) with a +ssRNA genome (~10.7 kb) wrapped by a relatively unstructured capsid (C) protein shell, surrounded by a host-derived lipid envelope. The defining feature is the outer surface: 180 copies of the envelope (E) glycoprotein sit as 90 head-to-tail dimers lying FLAT against the membrane in an icosahedral herringbone raft, giving a smooth, tiled, spike-free surface. Spread by day-biting Aedes mosquitoes; usually mild or unnoticed, but crosses the placenta and can disturb fetal brain development.
+
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/zika-virus__textbook.avif) | ![sem](finals/zika-virus__sem.avif) | ![3d](finals/zika-virus__3d.avif) | ![watercolor](finals/zika-virus__watercolor.avif) | ![reference](finals/zika-virus__reference.avif) |
+
+**textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/zika-virus.textbook.svg) · [HTML](theme/textbook/zika-virus.textbook.html)
+![textbook labelled](theme/textbook/zika-virus.textbook.svg)
+
+**3d — labelled** (English default, La/De toggle): [SVG](theme/3d/zika-virus.3d.svg) · [HTML](theme/3d/zika-virus.3d.html)
+![3d labelled](theme/3d/zika-virus.3d.svg)
+
+**watercolor — labelled** (English default, La/De toggle): [SVG](theme/watercolor/zika-virus.watercolor.svg) · [HTML](theme/watercolor/zika-virus.watercolor.html)
+![watercolor labelled](theme/watercolor/zika-virus.watercolor.svg)
+
+Full log: [`zika-virus.render.md`](zika-virus.render.md)
+
 ## Status
 
 | name | styles | model | render count | pass | svg status | time taken | tokens used | costs |
@@ -282,7 +300,12 @@ Full log: [`varicella-zoster-virus.render.md`](varicella-zoster-virus.render.md)
 | Varicella-zoster virus (chickenpox) | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 7s | 1642 | $0.039 |
 | Varicella-zoster virus (chickenpox) | Watercolor plate | gemini-2.5-flash-image | 2 | ✅ | built | 15s | 3267 | $0.077 |
 | Varicella-zoster virus (chickenpox) | TEM · Public domain - CDC PHIL: 'None - This image is in the public domain and thus free of any copyright restrictions.' | — (download) | 1 | ✅ | n/a | 2s | 0 | $0.000 |
+| Zika virus | Textbook illustration | gemini-2.5-flash-image | 2 | ✅ | built | 13s | 3758 | $0.077 |
+| Zika virus | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 7s | 1550 | $0.039 |
+| Zika virus | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 6s | 1634 | $0.039 |
+| Zika virus | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 6s | 1678 | $0.039 |
+| Zika virus | digitally colorized TEM, false-colour · Public domain - CDC PHIL: None - This image is in the public domain and thus free of any copyright restrictions. | — (download) | 1 | ✅ | n/a | 2s | 0 | $0.000 |
 
-**Set total: 171,477 tokens · $3.673**
+**Set total: 180,097 tokens · $3.866**
 
-_Updated 2026-08-20 19:58 local._
+_Updated 2026-08-20 20:23 local._
