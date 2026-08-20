@@ -170,10 +170,14 @@ def build():
 
     orphan_scale = sorted(set(SCALE) - set(live))
     orphan_plush = sorted(set(GIANT) - set(live))
-    A(f"**Data waiting for a render:** {len(orphan_scale)} scale entries "
-      f"({', '.join('`'+k+'`' for k in orphan_scale) if orphan_scale else 'none'}), "
-      f"{len(orphan_plush)} plush links "
-      f"({', '.join('`'+k+'`' for k in orphan_plush) if orphan_plush else 'none'}).\n")
+
+    def tally(items, singular, plural):
+        listing = ", ".join("`" + k + "`" for k in items) if items else "none"
+        return f"{len(items)} {singular if len(items) == 1 else plural} ({listing})"
+
+    A(f"**Data waiting for a render:** "
+      f"{tally(orphan_scale, 'scale entry', 'scale entries')}, "
+      f"{tally(orphan_plush, 'plush link', 'plush links')}.\n")
 
     no_ref = sorted(k for k, (_s, m) in live.items() if not (m.get("ref") or {}).get("url"))
     A(f"**No recorded micrograph source:** "

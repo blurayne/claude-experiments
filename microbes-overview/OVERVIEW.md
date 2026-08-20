@@ -125,7 +125,7 @@
 
 - none
 
-**Data waiting for a render:** 8 scale entries (`clostridioides-difficile`, `giardia-lamblia`, `golgi-apparatus`, `hepatocyte`, `listeria-monocytogenes`, `norovirus`, `rotavirus`, `varicella-zoster-virus`), 1 plush links (`golgi-apparatus`).
+**Data waiting for a render:** 8 scale entries (`clostridioides-difficile`, `giardia-lamblia`, `golgi-apparatus`, `hepatocyte`, `listeria-monocytogenes`, `norovirus`, `rotavirus`, `varicella-zoster-virus`), 1 plush link (`golgi-apparatus`).
 
 **No recorded micrograph source:** `reticulocyte`.
 
