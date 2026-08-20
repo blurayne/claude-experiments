@@ -89,7 +89,7 @@
 | pathogens-bacteria | Salmonella enterica | `salmonella-enterica` | 5/5 | 3/3 | ✅ | ✅ | 2.5 µm · 1 pg | Salmonella (Salmonella typhimurium) |
 | pathogens-bacteria | Helicobacter pylori | `helicobacter-pylori` | 5/5 | 3/3 | ✅ | ✅ | 3 µm · 0.5 pg | Ulcer (Helicobacter pylori) |
 | pathogens-bacteria | Streptococcus mutans (tooth decay) | `streptococcus-mutans` | 5/5 | 3/3 | ✅ | ✅ | 800 nm · 1 pg | — |
-| pathogens-bacteria | Borrelia burgdorferi (Lyme disease) | `borrelia-burgdorferi` | 5/5 | 3/3 | — | — | 20 µm · 0.3 pg | — |
+| pathogens-bacteria | Borrelia burgdorferi (Lyme disease) | `borrelia-burgdorferi` | 5/5 | 3/3 | — | ✅ | 20 µm · 0.3 pg | — |
 | pathogens-bacteria | Clostridioides difficile (C. diff) | — | ❌ not rendered | | | | 5 µm · 3 pg | |
 | pathogens-bacteria | Listeria monocytogenes | — | ❌ not rendered | | | | 2 µm · 1 pg | |
 | pathogens-viruses | Influenza virus (flu) | `influenza-virus` | 5/5 | 3/3 | ✅ | ✅ | 100 nm · 1 fg | Flu (Orthomyxovirus) |
