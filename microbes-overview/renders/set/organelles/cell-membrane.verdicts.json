@@ -1,0 +1,49 @@
+{
+  "name": "Cell membrane (plasma membrane)",
+  "short_description": "The cell's boundary, and at about five nanometres astonishingly thin: a double layer of fat molecules with water-loving heads facing out and water-fearing tails facing in. Embedded proteins act as channels, pumps and receptors, and sugar chains on the outside serve as identification.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {
+      "1": "pass (gemini-2.5-flash-image, accepted on the first attempt; a clean cutaway slab seen edge-on. A top row and a mirrored bottom row of round teal-blue phospholipid heads face outward, with pale warm-gold tails from both rows meeting and crossing in the exact middle - the correct heads-out/tails-in arrangement. One brick-red integral protein spans the full thickness with a clearly visible pore through its centre; a soft-green peripheral protein rests on the outer surface only; small dusty-violet cholesterol rods are wedged among the tails; simple golden sugar-chain strands (glycocalyx) project from the TOP row only, none from the bottom row. Muted educational palette, thin clean outlines, dark-charcoal ground, no text, no border. Single continuous slab)"
+    },
+    "sem": {
+      "1": "pass (gemini-2.5-flash-image, accepted on the first attempt; photorealistic false-colour treatment with genuine photographic grain, specular highlights on the head spheres and the fractured integral-protein surface, and a softly blurred mottled dark background giving true depth of field - reads as a real EM plate, not a flat vector illustration. Same correct bilayer science as the textbook plate: two mirrored rows of heads, tails meeting in the middle, a full-thickness channel protein with a visible pore, a peripheral protein on the outer face only, cholesterol wedged in the tails, and branching golden glycocalyx strands on the TOP/outer row only)"
+    },
+    "3d": {
+      "1": "fail (gemini-2.5-flash-image; individually correct bilayer, channel pore and cholesterol placement, but the soft-green PERIPHERAL PROTEIN is sandwiched INSIDE the tail region between the two leaflets rather than resting on a surface - violates the 'peripheral proteins never penetrate the hydrophobic core' rule - and no clearly branching glycocalyx sugar-chain structures are visible on either face. Also reads as glossy hard plastic/metal beads rather than soft biological material. Fix-prompt: peripheral protein must rest ONLY on the outer surface like a pebble on sand, never embedded in the tails; add explicit, clearly visible branching sugar-chain 'antennae' on the top/outer row only; render material as soft organic subsurface-scattering, not glossy plastic",
+      "2": "fail (gemini-2.5-flash-image; peripheral-protein placement fixed - now correctly resting on the outer surface - and branching golden glycocalyx trees are now clearly visible and legible, but they now appear on BOTH the top AND the bottom row, breaking the core outer-face-only asymmetry rule the whole subject hinges on. Fix-prompt: glycocalyx branches ONLY on the top/outer row; the bottom/inner row must stay completely bare, explicitly stated as an asymmetry, not a symmetric decoration",
+      "3": "partial (gemini-2.5-flash-image; science now fully correct - bilayer, tails meeting centrally, full-thickness channel protein with visible pore, peripheral protein resting on the outer surface only, cholesterol wedged in the tails, and glycocalyx correctly restricted to the top/outer row only with the bottom row left bare - but the background rendered plain WHITE instead of the required dark seamless studio backdrop, a style-consistency fail (this style must read as a scientific-animation still on a dark ground, and a white background also risks the 'sheet of paper on a surface' look the other full-bleed styles are checked against). Fix-prompt: dark near-black seamless studio background, explicitly noting the previous attempt wrongly came out white",
+      "4": "pass (gemini-2.5-flash-image; dark near-black seamless studio background restored while keeping every correct structural fix from the previous attempts: two mirrored rows of translucent teal-blue heads with warm-gold tails meeting centrally, a full-thickness brick-red channel protein with an unmistakable open pore, a soft-green peripheral protein resting only on the outer surface, dusty-violet cholesterol wedged among the tails, and branching golden glycocalyx trees present ONLY on the top/outer row with the bottom/inner row left completely bare. Natural, believable, non-glossy biological tones - not near-monochrome, not neon. Used as final and labelled)"
+    },
+    "watercolor": {
+      "1": "pass (gemini-2.5-flash-image, accepted on the first attempt; warm aged paper fills the entire frame edge-to-edge and corner-to-corner with a soft darker wash halo directly behind the subject - no mat, no border, no frame, no sheet-on-a-surface. Fine ink linework over translucent washes: two mirrored rows of teal-blue phospholipid heads, pale-gold tails meeting in the middle, a brick-red integral protein spanning the full slab with a painted pore through its centre, a soft-green peripheral protein on the outer surface only, small dusty-violet cholesterol flecks among the tails, and branching golden-yellow ink-line glycocalyx chains on the TOP row only, none on the bottom row. No text, no arrows, no scale bar, single continuous slab)"
+    }
+  },
+  "reference": "pass, with an honest caveat (Wikimedia Commons \"Bakers yeast membrane 2.jpg\", CC0 1.0 Universal Public Domain Dedication, Tgru001, freeze-fracture platinum replica of Saccharomyces cerevisiae plasma membrane at -196 C, made 1982, JEOL-era freeze-fracture technique). Viewed directly: a genuine freeze-fracture face of the yeast plasma membrane - the dense, fine, randomly scattered granular stipple filling the whole frame is the textbook freeze-fracture signature of embedded intramembrane particles (transmembrane proteins), exactly the 'freeze-fracture EM showing embedded protein particles across a fractured membrane face' alternative the brief calls a striking, acceptable option. Honest limit, stated plainly: being a face-on fracture view, it does NOT show the classic cross-sectional 'railroad track' two-line bilayer profile - that only resolves in thin-section TEM, and no suitably licensed, sufficiently isolated thin-section candidate could be located within this task's budget. The lighter diagonal streaks crossing the frame are fracture-step/shadowing artifacts of the platinum-replica technique, not biological folds, and are flagged as such. Cleaned with NO image-editing model: a deterministic local crop removed the handwritten '0.1 um' scale-bar text confined to the top ~54 px of the 1899x1869 original (confirmed by a row-brightness scan), then a centred 1814x1814 square crop and a Lanczos DOWNSCALE (not upscale - native resolution is well above 1080) to 1080x1080 produced the final text-free reference. Nothing was invented, re-illustrated or reframed.",
+  "decision": [
+    [
+      "textbook",
+      "pass",
+      1,
+      "use as final and as the primary labelled figure; heads-out/tails-in bilayer, full-thickness channel protein with visible pore, correctly asymmetric glycocalyx (outer face only) all landed correctly on gemini-2.5-flash-image's first attempt"
+    ],
+    [
+      "sem",
+      "pass",
+      1,
+      "use as final; photorealistic false-colour freeze-fracture-style look with correct science landed on the first attempt, no re-render needed. Not labelled (SEM is the surface/cutaway comparison plate, following the same convention as the other organelles in this set)"
+    ],
+    [
+      "3d",
+      "pass",
+      4,
+      "use as final; labelled figure built. Attempt 1 rejected for a peripheral protein wrongly embedded inside the tail region; attempt 2 fixed that but put glycocalyx branches on both faces, breaking the outer-only asymmetry; attempt 3 fixed the asymmetry but rendered a plain white background instead of the required dark studio backdrop; attempt 4 restored the dark background while keeping every prior structural fix, landing all of: bilayer, full-thickness perforated channel protein, outer-only peripheral protein, cholesterol, and outer-only glycocalyx"
+    ],
+    [
+      "watercolor",
+      "pass",
+      1,
+      "use as final and labelled with black-on-paper ink; full-bleed aged paper, correct bilayer with tails meeting centrally, full-thickness channel protein with a painted pore, and glycocalyx correctly restricted to the outer row, all on the first attempt"
+    ]
+  ]
+}

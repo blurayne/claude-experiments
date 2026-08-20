@@ -4,7 +4,7 @@
 
 ## Where we stand
 
-- **16 sets**, **102 microbes** live in the viewer, out of **107 catalogued**.
+- **16 sets**, **103 microbes** live in the viewer, out of **107 catalogued**.
 - Every live microbe carries: 5 picture styles, 3 labelled diagrams, a printable A4 coloring page, kids narration in EN + DE, and size/weight data — the table below is the proof.
 - **44 plush links**, every one an exact species/cell match. 8 of those photos had to be repaired (see the last section).
 
@@ -20,7 +20,7 @@
 | organelles | Ribosome | `ribosome` | 5/5 | 3/3 | ✅ | ✅ | 25 nm · 4200 kDa | — |
 | organelles | Endoplasmic reticulum (ER) | `endoplasmic-reticulum` | 5/5 | 3/3 | ✅ | ✅ | 10 µm · 300 pg | — |
 | organelles | Lysosome | `lysosome` | 5/5 | 3/3 | ✅ | ✅ | 500 nm · 0.06 pg | — |
-| organelles | Cell membrane (plasma membrane) | — | ❌ not rendered | | | | 15 µm · 4 pg | |
+| organelles | Cell membrane (plasma membrane) | `cell-membrane` | 5/5 | 3/3 | ✅ | ✅ | 15 µm · 4 pg | — |
 | organelles | Cytoskeleton | — | ❌ not rendered | | | | 15 µm · 80 pg | |
 | stem-cells | Embryonic stem cell (ESC) | `embryonic-stem-cell` | 5/5 | 3/3 | ✅ | ✅ | 15 µm · 1 ng | — |
 | stem-cells | Induced pluripotent stem cell (iPS) | `induced-pluripotent-stem-cell` | 5/5 | 3/3 | ✅ | ✅ | 15 µm · 1 ng | — |
@@ -124,9 +124,8 @@
 
 ## Gaps
 
-**Catalogued but not yet rendered — 5.** Text, German translation and scale data already exist for these; only the pictures are missing.
+**Catalogued but not yet rendered — 4.** Text, German translation and scale data already exist for these; only the pictures are missing.
 
-- `organelles` — Cell membrane (plasma membrane)
 - `organelles` — Cytoskeleton
 - `genetics` — DNA (deoxyribonucleic acid)
 - `genetics` — RNA (ribonucleic acid)
@@ -136,7 +135,7 @@
 
 - none
 
-**Data waiting for a render:** 5 scale entries (`cell-membrane`, `chromosome`, `cytoskeleton`, `dna`, `rna`), 0 plush links (none).
+**Data waiting for a render:** 4 scale entries (`chromosome`, `cytoskeleton`, `dna`, `rna`), 0 plush links (none).
 
 **No recorded micrograph source:** `reticulocyte`.
 

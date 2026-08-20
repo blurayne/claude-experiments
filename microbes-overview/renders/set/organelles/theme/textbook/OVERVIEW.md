@@ -2,6 +2,10 @@
 
 Every microbe's `textbook` image — labelled SVG where built, else the last render. [← set overview](../../OVERVIEW.md)
 
+## Cell membrane (plasma membrane) (`cell-membrane`)
+![textbook](cell-membrane.textbook.svg)
+[full log](../../cell-membrane.render.md)
+
 ## Endoplasmic reticulum (ER) (`endoplasmic-reticulum`)
 ![textbook](endoplasmic-reticulum.textbook.svg)
 [full log](../../endoplasmic-reticulum.render.md)

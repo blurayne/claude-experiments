@@ -2,6 +2,10 @@
 
 Every microbe's `3d` image — labelled SVG where built, else the last render. [← set overview](../../OVERVIEW.md)
 
+## Cell membrane (plasma membrane) (`cell-membrane`)
+![3d](cell-membrane.3d.svg)
+[full log](../../cell-membrane.render.md)
+
 ## Endoplasmic reticulum (ER) (`endoplasmic-reticulum`)
 ![3d](endoplasmic-reticulum.3d.svg)
 [full log](../../endoplasmic-reticulum.render.md)

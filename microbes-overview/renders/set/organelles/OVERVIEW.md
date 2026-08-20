@@ -2,6 +2,24 @@
 
 Final image per microbe × style (last attempt), the labelled SVG, and the real-microscopy reference. Status table at the bottom.
 
+## Cell membrane (plasma membrane) (`cell-membrane`)
+The cell's boundary, and at about five nanometres astonishingly thin: a double layer of fat molecules with water-loving heads facing out and water-fearing tails facing in. Embedded proteins act as channels, pumps and receptors, and sugar chains on the outside serve as identification.
+
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/cell-membrane__textbook.avif) | ![sem](finals/cell-membrane__sem.avif) | ![3d](finals/cell-membrane__3d.avif) | ![watercolor](finals/cell-membrane__watercolor.avif) | ![reference](finals/cell-membrane__reference.avif) |
+
+**textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/cell-membrane.textbook.svg) · [HTML](theme/textbook/cell-membrane.textbook.html)
+![textbook labelled](theme/textbook/cell-membrane.textbook.svg)
+
+**3d — labelled** (English default, La/De toggle): [SVG](theme/3d/cell-membrane.3d.svg) · [HTML](theme/3d/cell-membrane.3d.html)
+![3d labelled](theme/3d/cell-membrane.3d.svg)
+
+**watercolor — labelled** (English default, La/De toggle): [SVG](theme/watercolor/cell-membrane.watercolor.svg) · [HTML](theme/watercolor/cell-membrane.watercolor.html)
+![watercolor labelled](theme/watercolor/cell-membrane.watercolor.svg)
+
+Full log: [`cell-membrane.render.md`](cell-membrane.render.md)
+
 ## Endoplasmic reticulum (ER) (`endoplasmic-reticulum`)
 A single continuous membrane network beginning right at the nuclear envelope that splits into two connected regions: ribosome-studded ROUGH ER (stacked cisternae) folding and quality-checking newly built proteins, transitioning into ribosome-free SMOOTH ER (branching tubules) that makes lipids and hormones, detoxifies, and stores calcium.
 
@@ -114,6 +132,11 @@ Full log: [`ribosome.render.md`](ribosome.render.md)
 
 | name | styles | model | render count | pass | svg status | time taken | tokens used | costs |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Cell membrane (plasma membrane) | Textbook illustration | gemini-2.5-flash-image | 1 | ✅ | built | 6s | 1907 | $0.039 |
+| Cell membrane (plasma membrane) | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 7s | 1614 | $0.039 |
+| Cell membrane (plasma membrane) | 3D medical render | gemini-2.5-flash-image | 4 | ✅ | built | 26s | 7228 | $0.155 |
+| Cell membrane (plasma membrane) | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 8s | 1734 | $0.039 |
+| Cell membrane (plasma membrane) | freeze-fracture-EM · CC0 1.0 Universal Public Domain Dedication | — (download) | 1 | ✅ | n/a | 2s | 0 | $0.000 |
 | Endoplasmic reticulum (ER) | Textbook illustration | gemini-2.5-flash-image | 2 | ✅ | built | 17s | 4402 | $0.077 |
 | Endoplasmic reticulum (ER) | SEM micrograph | gemini-2.5-flash-image | 2 | ✅ | pending (same pipeline) | 14s | 3670 | $0.077 |
 | Endoplasmic reticulum (ER) | 3D medical render | gemini-2.5-flash-image | 2 | ✅ | built | 15s | 3940 | $0.077 |
@@ -145,6 +168,6 @@ Full log: [`ribosome.render.md`](ribosome.render.md)
 | Ribosome | Watercolor plate | gemini-3-pro-image | 4 | ✅ | built | 46s | 8917 | $0.174 |
 | Ribosome | structural-model · CC BY-SA 3.0 / GFDL 1.2+ | — (edit) | 2 | ✅ | n/a | 0s | 0 | $0.000 |
 
-**Set total: 103,852 tokens · $1.959**
+**Set total: 116,335 tokens · $2.230**
 
-_Updated 2026-08-20 22:30 local._
+_Updated 2026-08-20 22:43 local._

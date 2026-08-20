@@ -2,6 +2,10 @@
 
 Every microbe's `watercolor` image — labelled SVG where built, else the last render. [← set overview](../../OVERVIEW.md)
 
+## Cell membrane (plasma membrane) (`cell-membrane`)
+![watercolor](cell-membrane.watercolor.svg)
+[full log](../../cell-membrane.render.md)
+
 ## Endoplasmic reticulum (ER) (`endoplasmic-reticulum`)
 ![watercolor](endoplasmic-reticulum.watercolor.svg)
 [full log](../../endoplasmic-reticulum.render.md)
