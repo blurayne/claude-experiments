@@ -21,6 +21,11 @@
 }
 /* base ink by light/dark mode */
 html[data-mode="dark"]{
+  /* Native widgets — the popup list a <select> opens, scrollbars, the caret —
+     are painted by the OS, not by this stylesheet, so without color-scheme they
+     stay on the system's light palette. That is why the picture chooser's open
+     list came up grey-on-white and nearly unreadable over a dark theme. */
+  color-scheme:dark;
   --fg:#e9eef1; --fg-dim:#8b96a3; --fg-faint:#5a6472;
   --card:rgba(255,255,255,.045); --card-hi:rgba(255,255,255,.08);
   --border:rgba(255,255,255,.13); --border-hi:rgba(255,255,255,.28);
@@ -29,6 +34,7 @@ html[data-mode="dark"]{
   --box-bg:#0a0c0f;
 }
 html[data-mode="light"]{
+  color-scheme:light;
   --fg:#16202a; --fg-dim:#586573; --fg-faint:#8a95a1;
   --card:rgba(0,0,0,.028); --card-hi:rgba(0,0,0,.05);
   --border:rgba(0,0,0,.13); --border-hi:rgba(0,0,0,.28);
@@ -378,8 +384,15 @@ html[data-theme="petri"] body::after{
   font-family:var(--font-mono); letter-spacing:.08em}
 .pics-cell select{
   width:100%; font-family:var(--font-ui); font-size:13px; font-weight:500; color:var(--fg);
-  background:var(--card); border:1px solid var(--border); border-radius:9px; padding:8px 9px; cursor:pointer;
+  /* --card is translucent, which is right for a control sitting on the panel but
+     wrong as the backdrop the OS inherits for the popup; --panel is the opaque
+     one the dropdowns already use */
+  background:var(--panel); border:1px solid var(--border); border-radius:9px; padding:8px 9px; cursor:pointer;
 }
+/* color-scheme above makes the popup follow dark/light; this carries the actual
+   theme colours into it on the engines that honour styled options */
+.pics-cell select option{background:var(--panel); color:var(--fg)}
+.pics-cell select option:checked{background:var(--card-hi); color:var(--accent)}
 .pics-cell select:focus{outline:none; border-color:var(--accent)}
 .pics-reset{margin-top:12px; width:100%}
 
