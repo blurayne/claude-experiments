@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- touch-action:manipulation kills the double-tap-to-zoom gesture (and its
+     300ms click delay) without disabling pinch zoom, which people who need
+     to magnify still depend on. user-scalable=no would take that away. -->
 <title>Microbes — an interactive cell & pathogen atlas</title>
 <meta name="description" content="An interactive teaching atlas of AI-rendered, scientifically verified microbes and human cells — switchable by audience, language and picture style.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -149,6 +152,7 @@ html[data-theme="petri"][data-mode="light"]{ --bg:#f9f4ef; --bg2:#fdfaf6; }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{
+  touch-action:manipulation;
   font-family:var(--font-ui);
   color:var(--fg); background:var(--bg);
   -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
@@ -291,8 +295,16 @@ html[data-theme="petri"] body::after{
 .set-row > span{display:flex; justify-content:space-between; align-items:baseline;
   font-family:var(--font-ui); font-size:12.5px; font-weight:600; color:var(--fg); margin-bottom:7px}
 .set-row > span b{font-family:var(--font-mono); font-size:12px; color:var(--accent)}
-.set-row input[type=range]{width:100%; accent-color:var(--accent); cursor:pointer}
-.set-hint{margin:0; font-family:var(--font-ui); font-size:11.5px; line-height:1.45; color:var(--fg-faint)}
+.set-row input[type=range]{flex:1; min-width:0; accent-color:var(--accent); cursor:pointer}
+/* tap targets either side of the slider: fiddly to drag a range on a phone */
+.set-stepper{display:flex; align-items:center; gap:9px}
+.step-btn{flex:none; width:28px; height:28px; border-radius:8px; cursor:pointer;
+  border:1px solid var(--border); background:var(--card); color:var(--fg);
+  font-family:var(--font-ui); font-size:16px; line-height:1; display:inline-flex;
+  align-items:center; justify-content:center; transition:border-color .15s, background .15s}
+.step-btn:hover{border-color:var(--accent); background:var(--card-hi)}
+.step-btn:active{transform:scale(.92)}
+.set-hint{margin:0 0 12px; font-family:var(--font-ui); font-size:11.5px; line-height:1.45; color:var(--fg-faint)}
 /* Settings owns these two now, so they need the divider the menu used to give
    them back — .menu-opt itself only draws one for the first in a run. */
 #setPanel .menu-opt:first-of-type{margin-top:14px; padding-top:14px; border-top:1px solid var(--border)}
@@ -378,15 +390,15 @@ main{max-width:var(--maxw); margin:0 auto; padding:clamp(20px,4vw,44px) clamp(14
   color:var(--accent); margin-bottom:8px}
 .set-head h2{font-family:var(--font-display); font-weight:var(--display-weight); letter-spacing:var(--display-spacing);
   font-size:clamp(22px,3.4vw,32px); margin:0 0 10px}
-.set-head .set-desc{color:var(--fg-dim); font-size:14.5px; line-height:1.62; margin:0}
-.set-head .set-desc.sci{font-size:13.5px; line-height:1.6}
+.set-head .set-desc{color:var(--fg-dim); font-size:calc(14.5px * var(--font-scale)); line-height:1.62; margin:0}
+.set-head .set-desc.sci{font-size:calc(13.5px * var(--font-scale)); line-height:1.6}
 .set-head .set-desc .w{transition:background-color .12s, color .12s; border-radius:3px}
 .set-head .set-desc .w.said{color:var(--fg-dim)}
 .set-head .set-desc .w.active{background:var(--accent); color:var(--accent-ink); padding:0 2px; margin:0 -2px}
 
 .cards{display:flex; flex-direction:column; gap:26px}
 .card{scroll-margin-top:calc(var(--bar-h) + 14px)}
-.card-title{font-family:var(--font-display); font-weight:600; font-size:clamp(17px,2.4vw,21px);
+.card-title{font-family:var(--font-display); font-weight:600; font-size:calc(clamp(17px,2.4vw,21px) * var(--font-scale));
   margin:0 0 14px; display:flex; align-items:center; gap:11px; flex-wrap:wrap}
 .card-title .key{font-family:var(--font-mono); font-size:11px; color:var(--fg-faint);
   border:1px solid var(--border); border-radius:6px; padding:2px 7px; font-weight:400}
@@ -404,7 +416,7 @@ main{max-width:var(--maxw); margin:0 auto; padding:clamp(20px,4vw,44px) clamp(14
    painting its own boundary back over itself — white to shave the black
    down, black to fatten it — which is what --ink-stroke/--ink-erode do.
    Set from applyInk(); these are the 80% defaults. */
-html{ --ink:0.8; --ink-stroke:#fff; --ink-erode:1.2;
+html{ --font-scale:1; --ink:0.7; --ink-stroke:#fff; --ink-erode:1.8;
       --font-comic:"Baloo 2","Comic Neue","Comic Sans MS",system-ui,sans-serif }
 /* every piece of text we draw into an SVG is a comic face — on screen and in print */
 svg text, svg tspan{ font-family:var(--font-comic) }
@@ -520,8 +532,8 @@ svg text{font-family:var(--font-comic)}
    2-column desktop layout (matches the .card-body breakpoint above); inline-flex
    (not block) so the narration controls can sit right beside it on the same line */
 @media(min-width:860px){ .desc .aud-tag{display:inline-flex; align-items:center} }
-.desc .prose{font-size:14.5px; line-height:1.68; color:var(--fg); margin:0}
-.desc .prose.sci{font-size:13.5px; line-height:1.6}
+.desc .prose{font-size:calc(14.5px * var(--font-scale)); line-height:1.68; color:var(--fg); margin:0}
+.desc .prose.sci{font-size:calc(13.5px * var(--font-scale)); line-height:1.6}
 .desc .src{font-family:var(--font-mono); font-size:10.5px; letter-spacing:.09em; text-transform:uppercase;
   color:var(--fg-faint); margin-top:14px; line-height:1.6}
 .desc .src a{color:var(--accent); text-transform:none; letter-spacing:0; word-break:break-all;
@@ -743,10 +755,22 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 0 0 2px #
   <div class="panel" id="setPanel">
     <h4>Settings</h4>
     <label class="set-row" for="inkRange">
-      <span>Line thickness <b id="inkVal">80%</b></span>
-      <input type="range" id="inkRange" min="10" max="140" step="5" value="80">
+      <span>Line thickness <b id="inkVal">70%</b></span>
+      <div class="set-stepper">
+        <button type="button" class="step-btn" data-for="inkRange" data-step="-1" aria-label="Thinner lines">&minus;</button>
+        <input type="range" id="inkRange" min="10" max="140" step="5" value="70">
+        <button type="button" class="step-btn" data-for="inkRange" data-step="1" aria-label="Thicker lines">+</button>
+      </div>
     </label>
     <p class="set-hint">Thins the drawn outlines of the coloring pages and the labelled diagrams. Lower means finer lines and less ink on paper.</p>
+    <label class="set-row" for="fontRange">
+      <span>Text size <b id="fontVal">100%</b></span>
+      <div class="set-stepper">
+        <button type="button" class="step-btn" data-for="fontRange" data-step="-1" aria-label="Smaller text">&minus;</button>
+        <input type="range" id="fontRange" min="80" max="170" step="5" value="100">
+        <button type="button" class="step-btn" data-for="fontRange" data-step="1" aria-label="Larger text">+</button>
+      </div>
+    </label>
     <label class="menu-opt"><input type="checkbox" id="enlargeLabels"> Show labels on enlarge</label>
     <label class="menu-opt"><input type="checkbox" id="showGiant"> Show GIANTmicrobes plush</label>
   </div>
@@ -870,7 +894,7 @@ const LS='microbes-viewer-v1';
 const state = Object.assign({
   aud:'kids', lang:'en', theme:'petri', mode:'dark',
   boxes:DEFAULT_BOXES.slice(), enlargeLabels:true, showGiant:true, search:'',
-  lbLabelMode:null, lbBw:null, lbSrc:null, ink:80
+  lbLabelMode:null, lbBw:null, lbSrc:null, ink:70, fontScale:100
 }, load());
 // normalise a persisted (possibly older/shorter) box array to NUM_BOXES slots
 if(!Array.isArray(state.boxes)) state.boxes=DEFAULT_BOXES.slice();
@@ -2029,7 +2053,7 @@ function syncToggles(){
   $('#modeBtn').textContent = state.mode==='dark'?'☾':'☀';
   $('#enlargeLabels').checked = state.enlargeLabels;
   $('#showGiant').checked = state.showGiant;
-  applyInk();
+  applyInk(); applyFontScale();
   html.dataset.theme=state.theme; html.dataset.mode=state.mode;
 }
 $('#audSeg').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b)return;
@@ -2085,8 +2109,14 @@ $('#picsReset').addEventListener('click',()=>{ state.boxes=DEFAULT_BOXES.slice()
 // Settings → line thickness. Below 100% a white outline shaves the traced
 // artwork down; above 100% a black one fattens it. Everything genuinely
 // stroked just scales with --ink.
+function applyFontScale(){
+  const pct=Math.max(80,Math.min(170, +state.fontScale||100));
+  html.style.setProperty('--font-scale', String(pct/100));
+  const r=$('#fontRange'), v=$('#fontVal');
+  if(r) r.value=pct; if(v) v.textContent=pct+'%';
+}
 function applyInk(){
-  const pct=Math.max(10,Math.min(140, +state.ink||80));
+  const pct=Math.max(10,Math.min(140, +state.ink||70));
   const d=Math.abs(100-pct)/100*6;
   html.style.setProperty('--ink', String(pct/100));
   html.style.setProperty('--ink-stroke', pct<=100 ? '#fff' : '#000');
@@ -2106,6 +2136,15 @@ $('#picsBtn').addEventListener('click',e=>{e.stopPropagation();togglePanel(e.cur
 $('#themeBtn').addEventListener('click',e=>{e.stopPropagation();togglePanel(e.currentTarget,$('#themePanel'));});
 $('#setBtn').addEventListener('click',e=>{e.stopPropagation();togglePanel(e.currentTarget,$('#setPanel'));});
 $('#inkRange').addEventListener('input',e=>{ state.ink=+e.target.value; applyInk(); save(); });
+$('#fontRange').addEventListener('input',e=>{ state.fontScale=+e.target.value; applyFontScale(); save(); });
+// the -/+ buttons drive whichever range they name, then let its own handler run
+$('#setPanel').addEventListener('click',e=>{
+  const b=e.target.closest('.step-btn'); if(!b) return;
+  e.preventDefault();
+  const r=$('#'+b.dataset.for); if(!r) return;
+  r.value=+r.value + (+b.dataset.step)*(+r.step||1);
+  r.dispatchEvent(new Event('input',{bubbles:true}));
+});
 document.addEventListener('click',e=>{ if(!e.target.closest('.panel') && !e.target.closest('[aria-controls]')) closePanels(); });
 // Scrolling the page away from a dropdown dismisses it. Scroll events inside
 // the panel's own list don't reach window, so the nav tree still scrolls fine.
