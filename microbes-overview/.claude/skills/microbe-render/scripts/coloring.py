@@ -195,9 +195,12 @@ def bubble_svg(en: str, de: str, size: int) -> str:
 
     # single outline: rounded rect with a triangular tail notched into the
     # bottom edge — drawn as one continuous path so there's no seam. The tail
-    # reaches past art_top() so it visibly points into the picture below.
-    tail_len = max(70, art_top(size) - (by + bh) + 90)
-    tx1, tx2, ttx, tty = bx + 130, bx + 205, bx + 115, by + bh + tail_len
+    # reaches past art_top() so it visibly points into the picture below, and
+    # leans INWARD (tip right of its own base) toward the middle of the page
+    # where the character stands. Leaning it the other way puts the tip back
+    # under the bubble and it reads as a hook pointing at empty paper.
+    tail_len = max(70, art_top(size) - (by + bh) + 78)
+    tx1, tx2, ttx, tty = bx + 130, bx + 205, bx + 246, by + bh + tail_len
     d = (
         f"M{bx+r:.0f},{by:.0f} "
         f"L{bx+bw-r:.0f},{by:.0f} "
