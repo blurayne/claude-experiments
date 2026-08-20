@@ -917,9 +917,30 @@ function loadRaster(src, box, tries){
     return false;
   });
 }
+// Opened over file:// the browser refuses to fetch() a sibling file (opaque
+// origin), which left every coloring page blank. A classic <script src> is not
+// blocked that way, so on the first failure we pull in coloring-data.js — the
+// build emits it with every page keyed by the same path — and serve from there.
+// Over http:// the fetch succeeds and the bundle is never requested.
+let colorBundle=null;
+function loadColorBundle(){
+  if(!colorBundle) colorBundle=new Promise((res,rej)=>{
+    const sc=document.createElement('script');
+    sc.src='coloring-data.js';
+    sc.onload=()=>res(window.COLORING_FALLBACK||{});
+    sc.onerror=()=>rej(new Error('coloring-data.js unavailable'));
+    document.head.appendChild(sc);
+  });
+  return colorBundle;
+}
 function getSvg(path){
   if(!svgCache.has(path)){
-    svgCache.set(path, schedule(()=>fetch(path).then(r=>r.ok?r.text():Promise.reject(r.status))));
+    svgCache.set(path, schedule(()=>
+      fetch(path).then(r=>r.ok?r.text():Promise.reject(r.status))
+        .catch(()=>loadColorBundle().then(b=>{
+          const t=b[path];
+          return t!=null ? t : Promise.reject('not in fallback bundle');
+        }))));
   }
   return svgCache.get(path);
 }
@@ -972,7 +993,7 @@ function inlineSvg(holder, path){
     holder.innerHTML = txt;
     const s = holder.querySelector('svg');
     if(s){ sizeSvgFromViewBox(s); applyLabels(s); }
-  }).catch(()=>{ holder.innerHTML=''; holder.appendChild(placeholder('unavailable')); });
+  }).catch(()=>{ holder.innerHTML=''; holder.appendChild(placeholder(phText('fail','unavailable'))); });
 }
 // Build the labelled overlay live from compact geometry over the light AVIF
 // final (ports the leader-line + halo-text layout of scripts/build_svg.py).
@@ -1089,6 +1110,30 @@ const MICROSCOPE_ICON=
     '<path d="M13.6 59a10.9 10.9 0 0 1 21.8 0z"/>'+
     '<rect x="3" y="59" width="42" height="4" rx="1.4"/>'+
   '</svg>';
+// Empty-tile wording. Kids mode gets a short, friendly line instead of the
+// technical one, and both are bilingual — a child reading the German atlas
+// should not hit an English error string.
+const PH_TEXT={
+  plush:   {en:'no plush match',      de:'kein passendes Plüschtier',
+            ken:'no cuddly toy yet',  kde:'noch kein Kuscheltier'},
+  coloring:{en:'no coloring page',    de:'kein Ausmalbild',
+            ken:'nothing to colour yet', kde:'noch nichts zum Ausmalen'},
+  none:    {en:'no image',            de:'kein Bild',
+            ken:'not drawn yet',      kde:'noch nicht gemalt'},
+  fail:    {en:'failed to load',      de:'konnte nicht laden',
+            ken:'oops — try again',   kde:'hoppla — nochmal'},
+  retry:   {en:'tap to retry',        de:'zum Wiederholen tippen',
+            ken:'tap to try again',   kde:'nochmal antippen'},
+  labels:  {en:'enlarge for labels',  de:'für Beschriftung vergrößern',
+            ken:'make me big for the names', kde:'groß machen für die Namen'}
+};
+function phText(kind, technical){
+  const e=PH_TEXT[kind];
+  if(!e) return technical||'';
+  if(state.aud==='kids') return state.lang==='de'?e.kde:e.ken;
+  // outside kids mode keep the precise wording the caller asked for, if any
+  return technical || (state.lang==='de'?e.de:e.en);
+}
 function placeholder(msg, box){
   if(box) box.classList.add('no-asset');
   const d=document.createElement('div'); d.className='ph';
@@ -1322,14 +1367,14 @@ function loadBoxContent(box){
       getSvg(m.coloring).then(txt=>{ sk.remove(); holder.innerHTML=txt;
         const s=holder.querySelector('svg'); if(s){ s.removeAttribute('width'); s.removeAttribute('height'); injectColoringTitle(s,m); } })
         .catch(()=>{ sk.remove(); coloringFallbackImg(holder, m,
-          ()=>box.insertBefore(placeholder('no coloring page', box), tag)); });
-    } else box.insertBefore(placeholder('no coloring page', box), tag);
+          ()=>box.insertBefore(placeholder(phText('coloring'), box), tag)); });
+    } else box.insertBefore(placeholder(phText('coloring'), box), tag);
   } else if(style==='giant'){
     // GIANTmicrobes product photos are padded/centred on their own canvas,
     // not full-bleed like our renders — contain+white keeps the toy whole
     // instead of a cover-crop chopping its edges off.
     if(m.giant) addImg(box, m.giant.img, null, false, false, true);
-    else box.insertBefore(placeholder('no plush match', box), tag);
+    else box.insertBefore(placeholder(phText('plush'), box), tag);
   } else if(hasOverlay){
     // live overlay: small AVIF + generated label layers (full lang/aud control).
     const svgEl=overlaySvg(m,style); const imgNode=svgEl.querySelector('image');
@@ -1338,15 +1383,15 @@ function loadBoxContent(box){
     box.insertBefore(svgEl, tag); box.insertBefore(sk, svgEl);
     loadRaster(href,box).then(ok=>{ sk.remove();
       if(ok){ imgNode.setAttribute('href',href); }
-      else if(box.isConnected){ svgEl.remove(); box.insertBefore(placeholder('tap to retry'), tag); } });
+      else if(box.isConnected){ svgEl.remove(); box.insertBefore(placeholder(phText('retry')), tag); } });
   } else if(hasImg){
     addImg(box, m.img[style], null, labels, bw);
   } else if(labels && m.svg && m.svg[style]){
     // labelled requested, no AVIF final (e.g. paneth-cell) — placeholder in grid;
     // the lightbox falls back to the self-contained committed SVG.
-    box.insertBefore(placeholder('enlarge for labels'), tag);
+    box.insertBefore(placeholder(phText('labels')), tag);
   } else {
-    box.insertBefore(placeholder(labels?'no labelled '+style:'no '+style, box), tag);
+    box.insertBefore(placeholder(phText('none', labels?'no labelled '+style:'no '+style), box), tag);
   }
 }
 // lazily fetches each picture-tile's actual bytes once it's within one screen
@@ -1366,7 +1411,7 @@ function addImg(box,src,fallback,labels,bw,contain){
     if(ok){ im.src=src; }
     else{ im.remove();
       if(fallback){ addImg(box, fallback, null, labels, bw, contain); }
-      else{ box.appendChild(placeholder(labels?'no labelled image':'failed to load', box)); } }
+      else{ box.appendChild(placeholder(phText('none', labels?'no labelled image':'failed to load'), box)); } }
   });
 }
 
@@ -1500,7 +1545,7 @@ function renderStage(m,opt){
         const s=holder.querySelector('svg');
         if(s){ sizeSvgFromViewBox(s); injectColoringTitle(s,m); updateLbLabels(); } })
         .catch(()=>{ load.remove(); coloringFallbackImg(holder, m,
-          ()=>lbStage.appendChild(placeholder('could not load'))); });
+          ()=>lbStage.appendChild(placeholder(phText('fail','could not load')))); });
     }
     // no page for this microbe: leave the stage empty rather than announcing
     // an absence — the coloring entry is filtered out of the nav anyway.
@@ -1513,10 +1558,10 @@ function renderStage(m,opt){
     if(m.giant){ const load=loadingTile(); lbStage.appendChild(load);
       const im=document.createElement('img'); im.alt=L(m.name)+' — GIANTmicrobes plush';
       im.onload=()=>load.remove();
-      im.onerror=()=>{ load.remove(); im.remove(); lbStage.appendChild(placeholder('failed to load')); };
+      im.onerror=()=>{ load.remove(); im.remove(); lbStage.appendChild(placeholder(phText('fail'))); };
       im.src=m.giant.img; lbStage.appendChild(im);
       setLbNote(giantNote(m));
-    } else { lbStage.appendChild(placeholder('no plush match')); setLbNote(''); }
+    } else { lbStage.appendChild(placeholder(phText('plush'))); setLbNote(''); }
     updateLbColor(m, style);
     return;
   }
@@ -1528,7 +1573,7 @@ function renderStage(m,opt){
     lbStage.appendChild(svg);
     loadRaster(href).then(ok=>{ load.remove();
       if(ok) imgNode.setAttribute('href',href);
-      else { svg.remove(); lbStage.appendChild(placeholder('failed to load')); } });
+      else { svg.remove(); lbStage.appendChild(placeholder(phText('fail'))); } });
   } else if(lbSrc){
     // the raw, unedited source photo — a different asset entirely (not just a
     // CSS filter on our own cleaned render), loaded the same way the
@@ -1536,17 +1581,17 @@ function renderStage(m,opt){
     const load=loadingTile(); lbStage.appendChild(load);
     const im=document.createElement('img'); im.alt=L(m.name)+' — original source'; im.referrerPolicy='no-referrer';
     im.onload=()=>load.remove();
-    im.onerror=()=>{ load.remove(); im.remove(); lbStage.appendChild(placeholder('failed to load original')); };
+    im.onerror=()=>{ load.remove(); im.remove(); lbStage.appendChild(placeholder(phText('fail','failed to load original'))); };
     im.src=m.ref.img; lbStage.appendChild(im);
   } else if(m.img && m.img[style]){
     const load=loadingTile(); lbStage.appendChild(load);
     const im=document.createElement('img'); im.alt=L(m.name); if(style==='reference' && lbBw) im.classList.add('bw');
     loadRaster(m.img[style]).then(ok=>{ load.remove();
       if(ok){ im.src=m.img[style]; lbStage.appendChild(im); }
-      else lbStage.appendChild(placeholder('failed to load')); });
+      else lbStage.appendChild(placeholder(phText('fail'))); });
   } else if(m.svg && m.svg[style]){
     const holder=document.createElement('div'); lbStage.appendChild(holder); inlineSvg(holder,m.svg[style]);
-  } else { lbStage.appendChild(placeholder('no image')); }
+  } else { lbStage.appendChild(placeholder(phText('none'))); }
   updateLbColor(m, style);
 }
 function showEntry(idx, doScroll){
@@ -1622,7 +1667,7 @@ function openStandalone(url, title, styleLabel, note){
   const load=loadingTile(); lbStage.appendChild(load);
   const im=document.createElement('img'); im.alt=title||''; im.referrerPolicy='no-referrer';
   im.onload=()=>load.remove();
-  im.onerror=()=>{ load.remove(); lbStage.appendChild(placeholder('could not load original')); };
+  im.onerror=()=>{ load.remove(); lbStage.appendChild(placeholder(phText('fail','could not load original'))); };
   im.src=url; lbStage.appendChild(im);
   lb.classList.add('open');
 }

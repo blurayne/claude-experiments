@@ -54,6 +54,7 @@ HERE = Path(__file__).resolve().parent
 RENDERS = HERE / "renders" / "set"
 TEMPLATE = HERE / "viewer.template.html"
 DATA_OUT = HERE / "viewer-data.json"
+COLORING_OUT = HERE / "coloring-data.js"
 HTML_OUT = HERE / "viewer.html"
 
 # Non-microbe folders under renders/set to skip when enumerating.
@@ -321,8 +322,28 @@ def build():
     compact = compact.replace("</", "<\\/")
     HTML_OUT.write_text(tpl.replace("__DATA__", compact))
 
+    # Fallback bundle of every coloring page, keyed by the same path the viewer
+    # would fetch. Opened over file:// a browser refuses to fetch() a sibling
+    # file (opaque origin), which used to leave the coloring pages blank; a
+    # classic <script src> is NOT blocked that way, so the viewer lazy-loads
+    # this only after a fetch has actually failed. Over http:// it is never
+    # requested, so the deployed site pays nothing for it.
+    bundle = {}
+    for set_dir in sorted(RENDERS.iterdir()):
+        if not set_dir.is_dir():
+            continue
+        for svg in sorted((set_dir / "coloring").glob("*.coloring.svg")):
+            bundle[svg.relative_to(HERE).as_posix()] = svg.read_text()
+    COLORING_OUT.write_text(
+        "window.COLORING_FALLBACK="
+        + json.dumps(bundle, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+        + ";\n"
+    )
+
     print(f"wrote {DATA_OUT.name}: {len(sets_out)} sets, {total_microbes} microbes")
     print(f"wrote {HTML_OUT.name}")
+    print(f"wrote {COLORING_OUT.name}: {len(bundle)} coloring pages "
+          f"({COLORING_OUT.stat().st_size / 2**20:.1f} MiB, file:// fallback only)")
 
 
 if __name__ == "__main__":
