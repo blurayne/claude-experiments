@@ -6,6 +6,10 @@ Every microbe's `3d` image — labelled SVG where built, else the last render. [
 ![3d](golgi-apparatus.3d.svg)
 [full log](../../golgi-apparatus.render.md)
 
+## Mitochondrion (`mitochondrion`)
+![3d](mitochondrion.3d.svg)
+[full log](../../mitochondrion.render.md)
+
 ## Nucleus (`nucleus`)
 ![3d](nucleus.3d.svg)
 [full log](../../nucleus.render.md)
