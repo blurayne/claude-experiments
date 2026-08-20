@@ -1,7 +1,10 @@
-"""All cell / pathogen entries for the microbes-overview poster.
+"""All cell / pathogen entries for the microbes atlas.
+
+Read by build_viewer.py, which pairs each entry with the rendered images under
+renders/set/ to build viewer.html.
 
 Structure: list of pages, each page has a title (DE/EN), an introductory
-description, and 6 entries. Each entry has a bilingual name, a function
+description, and its entries. Each entry has a bilingual name, a function
 description and a "depends on / targets" description, plus image metadata
 (filename, source URL, credit, license).
 
@@ -10,10 +13,10 @@ Body-cell pages follow the 8 friendly categories from the reference image
 fat / red blood / immune). Pathogen pages (3) are kept from the previous
 revision since pathogens have no counterpart in those 8 categories.
 
-Images come from NIH BioArt (https://bioart.niaid.nih.gov), public domain.
-Entries where the exact BioArt asset URL hasn't been located yet leave
-`image_url` empty; fetch_images.sh logs them as MISSING URL so they can be
-filled in interactively.
+The image_* fields are dormant: they recorded the public-domain NIH BioArt
+(https://bioart.niaid.nih.gov) icon each entry used on the retired print
+poster. Nothing reads them today — the viewer takes its pictures from
+renders/set/ — they are kept only as source provenance.
 """
 from __future__ import annotations
 
@@ -968,6 +971,19 @@ PAGES = [
                 "deps_de": "Vom Immunsystem kaum erkannt; keine Antikörperabwehr.",
                 "deps_en": "Largely invisible to the immune system; no antibody defence.",
             },
+            {
+                "name_de": "Amöbe (Amoeba proteus)",
+                "name_en": "Amoeba (Amoeba proteus)",
+                "tier": "basic",
+                "image_filename": "",
+                "image_url": "",
+                "image_credit": "",
+                "image_license": "",
+                "func_de": "Einzelliger Süßwasser-Eukaryot, der seine Gestalt ständig ändert. Er fließt mit Scheinfüßchen (Pseudopodien) voran und umschließt seine Nahrung, um sie zu verdauen — das Schulbuchbeispiel einer Zelle, die kriecht und frisst.",
+                "func_en": "Single-celled freshwater eukaryote that constantly changes shape. It flows forward on false feet (pseudopodia) and engulfs its food to digest it — the textbook example of a cell that crawls and eats.",
+                "deps_de": "Für den Menschen harmlos und ein Klassiker im Mikroskopierkurs. Unsere Makrophagen bewegen sich und fressen nach genau demselben Prinzip.",
+                "deps_en": "Harmless to humans and a classroom microscopy classic. Our own macrophages move and feed on exactly the same principle.",
+            },
         ],
     },
     # ------------------------------------------------------------------
@@ -1064,6 +1080,58 @@ PAGES = [
                 "deps_de": "Übertragung meist in der Kindheit. Behandlung mit Antibiotika kombiniert mit Säureblockern; Impfstoff in Entwicklung.",
                 "deps_en": "Usually transmitted in childhood. Treated with antibiotics plus acid blockers; vaccine still in development.",
             },
+            {
+                "name_de": "Streptococcus mutans (Karies)",
+                "name_en": "Streptococcus mutans (tooth decay)",
+                "tier": "basic",
+                "image_filename": "",
+                "image_url": "",
+                "image_credit": "",
+                "image_license": "",
+                "func_de": "Kettenbildendes Bakterium im Zahnbelag. Es verwandelt Zucker in Säure, die den Zahnschmelz auflöst, und baut aus Zucker zugleich den klebrigen Biofilm, in dem es sitzt.",
+                "func_en": "Chain-forming bacterium in dental plaque. It turns sugar into acid that dissolves tooth enamel, and uses sugar to build the sticky biofilm it lives in.",
+                "deps_de": "Zähneputzen und Zahnseide tragen den Biofilm ab, Fluorid härtet den Schmelz, und weniger Zucker entzieht dem Bakterium seinen Rohstoff.",
+                "deps_en": "Brushing and flossing strip the biofilm away, fluoride hardens the enamel, and less sugar starves the bacterium of its raw material.",
+            },
+            {
+                "name_de": "Borrelia burgdorferi (Lyme-Borreliose)",
+                "name_en": "Borrelia burgdorferi (Lyme disease)",
+                "tier": "basic",
+                "image_filename": "",
+                "image_url": "",
+                "image_credit": "",
+                "image_license": "",
+                "func_de": "Korkenzieherförmiges Spirochäten-Bakterium, das von Zecken übertragen wird. Es schraubt sich durch das Gewebe und kann nach der typischen Wanderröte Gelenke, Nerven und Herz erreichen.",
+                "func_en": "Corkscrew-shaped spirochaete carried by ticks. It screws its way through tissue and, after the typical spreading rash, can reach joints, nerves and the heart.",
+                "deps_de": "Zecken früh zu entfernen senkt das Risiko deutlich; früh begonnene Antibiotika heilen die Infektion in der Regel vollständig aus.",
+                "deps_en": "Removing a tick early cuts the risk sharply, and antibiotics started early usually clear the infection completely.",
+            },
+            {
+                "name_de": "Clostridioides difficile (C. diff)",
+                "name_en": "Clostridioides difficile (C. diff)",
+                "tier": "basic",
+                "image_filename": "",
+                "image_url": "",
+                "image_credit": "",
+                "image_license": "",
+                "func_de": "Sporenbildendes Darmbakterium. Wenn Antibiotika die normale Darmflora ausdünnen, vermehrt es sich ungebremst und schädigt die Darmwand mit Giftstoffen — der klassische Krankenhauskeim.",
+                "func_en": "Spore-forming gut bacterium. When antibiotics thin out the normal gut flora it multiplies unchecked and damages the bowel lining with toxins — the classic hospital-acquired infection.",
+                "deps_de": "Seine Sporen überstehen Desinfektionsgel, nur Händewaschen mit Seife entfernt sie. Schwere Fälle werden gezielt mit Antibiotika oder einer Stuhltransplantation behandelt.",
+                "deps_en": "Its spores survive alcohol hand gel, so only washing with soap and water removes them. Severe cases are treated with targeted antibiotics or a faecal transplant.",
+            },
+            {
+                "name_de": "Listeria monocytogenes",
+                "name_en": "Listeria monocytogenes",
+                "tier": "basic",
+                "image_filename": "",
+                "image_url": "",
+                "image_credit": "",
+                "image_license": "",
+                "func_de": "Stäbchenbakterium, das sich sogar im Kühlschrank noch vermehrt. Es dringt in Körperzellen ein und schiebt sich mit einem Aktin-Schweif von Zelle zu Zelle; für Schwangere und Immungeschwächte ist es besonders gefährlich.",
+                "func_en": "Rod-shaped bacterium that keeps growing even at fridge temperature. It invades body cells and pushes itself from cell to cell on a tail of actin; it is especially dangerous in pregnancy and for people with weakened immunity.",
+                "deps_de": "Risikolebensmittel sind Rohmilchkäse, Räucherfisch und Aufschnitt — Durcherhitzen tötet das Bakterium zuverlässig ab.",
+                "deps_en": "Raw-milk cheese, smoked fish and cold cuts are the risky foods — heating them through kills the bacterium reliably.",
+            },
         ],
     },
     # ------------------------------------------------------------------
@@ -1159,6 +1227,138 @@ PAGES = [
                 "func_en": "Yeast that lives harmlessly in many people's mouths, gut and genital tract. With a weakened immune system or after antibiotics it can spread and cause serious infections.",
                 "deps_de": "Wird durch Th17-Zellen, Neutrophile und das Mikrobiom der Schleimhäute in Schach gehalten.",
                 "deps_en": "Kept in check by Th17 cells, neutrophils and the mucosal microbiome.",
+            },
+            {
+                "name_de": "Rhinovirus (Erkältung)",
+                "name_en": "Rhinovirus (common cold)",
+                "tier": "basic",
+                "image_filename": "",
+                "image_url": "",
+                "image_credit": "",
+                "image_license": "",
+                "func_de": "Winziges RNA-Virus mit über 150 Varianten und der häufigste Erkältungserreger. Es vermehrt sich am liebsten in der kühleren Nasenschleimhaut, weshalb Schnupfen und nicht Fieber im Vordergrund steht.",
+                "func_en": "Tiny RNA virus with over 150 variants and the commonest cause of the common cold. It prefers the cooler lining of the nose, which is why a runny nose rather than fever dominates.",
+                "deps_de": "Wird über Hände und Tröpfchen weitergegeben, Händewaschen bremst es am wirksamsten. Anders als die Grippe heilt es fast immer von selbst aus.",
+                "deps_en": "Passed on by hands and droplets, so washing hands slows it best. Unlike flu it almost always clears up on its own.",
+            },
+            {
+                "name_de": "Masernvirus (Morbillivirus)",
+                "name_en": "Measles virus (Morbillivirus)",
+                "tier": "basic",
+                "image_filename": "",
+                "image_url": "",
+                "image_credit": "",
+                "image_license": "",
+                "func_de": "Eines der ansteckendsten Viren überhaupt — es bleibt bis zu zwei Stunden in der Luft. Nach Fieber und Ausschlag löscht es einen Teil des immunologischen Gedächtnisses, sodass früher überstandene Infektionen wieder gefährlich werden.",
+                "func_en": "One of the most contagious viruses known — it lingers in the air for up to two hours. After the fever and rash it erases part of the immune system's memory, leaving infections you had already beaten dangerous again.",
+                "deps_de": "Zwei Impfdosen schützen nahezu vollständig und sind der einzige verlässliche Schutz; gegen das Virus selbst gibt es keine Behandlung.",
+                "deps_en": "Two vaccine doses give near-complete protection and are the only reliable defence; there is no treatment for the virus itself.",
+            },
+            {
+                "name_de": "Rotavirus",
+                "name_en": "Rotavirus",
+                "tier": "basic",
+                "image_filename": "",
+                "image_url": "",
+                "image_credit": "",
+                "image_license": "",
+                "func_de": "Radförmiges Virus, das die Zotten des Dünndarms befällt. Vor Einführung der Impfung war es weltweit die häufigste Ursache schwerer Durchfallerkrankungen bei Kleinkindern.",
+                "func_en": "Wheel-shaped virus that attacks the lining of the small intestine. Before the vaccine it was the leading cause of severe diarrhoea in small children worldwide.",
+                "deps_de": "Die Schluckimpfung im ersten Lebensjahr hat schwere Verläufe stark zurückgedrängt; entscheidend bleibt, den Flüssigkeitsverlust auszugleichen.",
+                "deps_en": "The oral vaccine given in the first year of life has cut severe cases dramatically; replacing lost fluid remains the key treatment.",
+            },
+            {
+                "name_de": "Norovirus (Magen-Darm-Grippe)",
+                "name_en": "Norovirus (stomach bug)",
+                "tier": "basic",
+                "image_filename": "",
+                "image_url": "",
+                "image_credit": "",
+                "image_license": "",
+                "func_de": "Extrem ansteckendes Virus — wenige Partikel genügen. Es löst plötzliches Erbrechen und Durchfall aus und verursacht Ausbrüche in Kitas, Schulen, Heimen und auf Kreuzfahrtschiffen.",
+                "func_en": "Extremely infectious virus — a handful of particles is enough. It causes sudden vomiting and diarrhoea and drives outbreaks in nurseries, schools, care homes and on cruise ships.",
+                "deps_de": "Gründliches Händewaschen mit Seife wirkt besser als Desinfektionsgel. Meist ist der Spuk nach zwei Tagen vorbei; wichtig ist, genug zu trinken.",
+                "deps_en": "Thorough hand washing with soap works better than alcohol gel. It is usually over in a couple of days; drinking enough is what matters.",
+            },
+            {
+                "name_de": "Varizella-Zoster-Virus (Windpocken)",
+                "name_en": "Varicella-zoster virus (chickenpox)",
+                "tier": "basic",
+                "image_filename": "",
+                "image_url": "",
+                "image_credit": "",
+                "image_license": "",
+                "func_de": "Herpesvirus, das die juckenden Bläschen der Windpocken auslöst. Danach zieht es sich in Nervenknoten zurück und kann Jahrzehnte später als Gürtelrose zurückkehren.",
+                "func_en": "Herpes virus behind the itchy blisters of chickenpox. Afterwards it retreats into nerve ganglia and can return decades later as shingles.",
+                "deps_de": "Eine Impfung schützt Kinder vor Windpocken, eine zweite schützt Ältere vor der Gürtelrose.",
+                "deps_en": "One vaccine protects children from chickenpox; a separate one protects older adults from shingles.",
+            },
+            {
+                "name_de": "Giardia lamblia (Lambliasis)",
+                "name_en": "Giardia lamblia (giardiasis)",
+                "tier": "basic",
+                "image_filename": "",
+                "image_url": "",
+                "image_credit": "",
+                "image_license": "",
+                "func_de": "Einzelliger Darmparasit mit zwei Zellkernen und einer Haftscheibe, mit der er sich an der Dünndarmwand festsaugt. Er wird über verunreinigtes Wasser aufgenommen und stört die Fettverdauung.",
+                "func_en": "Single-celled gut parasite with two nuclei and a sucker disc that clamps onto the wall of the small intestine. Picked up from contaminated water, it disrupts the digestion of fat.",
+                "deps_de": "Wasser aus Bächen und Seen abkochen oder filtern; die Infektion wird mit gezielten Medikamenten behandelt.",
+                "deps_en": "Boil or filter water from streams and lakes; the infection is cleared with targeted medication.",
+            },
+        ],
+    },
+    {
+        "id": "helpful-microbes",
+        "title_de": "Nützliche Mikroben",
+        "title_en": "Helpful microbes",
+        "subtitle_de": "Mikroben, die für uns arbeiten.",
+        "subtitle_en": "Microbes that work for us.",
+        "description_de": "Die allermeisten Mikroben machen nicht krank. Manche backen unser Brot, andere liefern Medikamente oder besiedeln unseren Darm und halten dort Krankheitserreger in Schach. Diese Seite zeigt drei, ohne die unser Alltag anders aussähe.",
+        "description_en": "The vast majority of microbes do not make anyone ill. Some bake our bread, some hand us medicines, and some settle in our gut and keep pathogens out. This page shows three we would sorely miss.",
+        "description_kids_de": "Nicht alle Mikroben sind Bösewichte — die meisten sind sogar richtig nützlich! Diese hier lassen Brot aufgehen, liefern Medizin gegen Bakterien und wohnen in deinem Bauch, wo sie beim Verdauen helfen und Ärger fernhalten. Ohne sie gäbe es kein Brot, keine Antibiotika und einen viel unruhigeren Bauch.",
+        "description_kids_en": "Not every microbe is a troublemaker — most are genuinely useful! These make bread rise, give us medicine that fights bacteria, and live in your tummy where they help with digesting and keep trouble away. Without them there would be no bread, no antibiotics and a much grumpier tummy.",
+        "description_adults_de": "Mikroben mit Krankheitswert sind die Ausnahme. Hefen und Schimmelpilze sind seit Jahrtausenden Grundlage von Nahrungsmitteln und lieferten das erste Antibiotikum, und die Bakterien des Darmmikrobioms prägen Verdauung, Immunreifung und Infektionsabwehr.",
+        "description_adults_en": "Disease-causing microbes are the exception. Yeasts and moulds have underpinned food production for millennia and gave us the first antibiotic, while the bacteria of the gut microbiome shape digestion, immune maturation and resistance to infection.",
+        "entries": [
+            {
+                "name_de": "Backhefe (Saccharomyces cerevisiae)",
+                "name_en": "Baker's yeast (Saccharomyces cerevisiae)",
+                "tier": "basic",
+                "image_filename": "",
+                "image_url": "",
+                "image_credit": "",
+                "image_license": "",
+                "func_de": "Einzelliger Pilz, der sich durch Knospung vermehrt. Er verwandelt Zucker in Kohlendioxid und Alkohol — die Gasbläschen lassen den Brotteig aufgehen, dieselbe Gärung macht Bier und Wein.",
+                "func_en": "Single-celled fungus that reproduces by budding. It turns sugar into carbon dioxide and alcohol — the gas bubbles make bread dough rise, and the same fermentation makes beer and wine.",
+                "deps_de": "Seit Jahrtausenden zum Backen und Brauen genutzt und heute einer der wichtigsten Modellorganismen der Zellbiologie.",
+                "deps_en": "Used for baking and brewing for thousands of years, and today one of cell biology's most important model organisms.",
+            },
+            {
+                "name_de": "Pinselschimmel (Penicillium chrysogenum)",
+                "name_en": "Penicillin mould (Penicillium chrysogenum)",
+                "tier": "basic",
+                "image_filename": "",
+                "image_url": "",
+                "image_credit": "",
+                "image_license": "",
+                "func_de": "Schimmelpilz, dessen pinselförmige Träger Sporen abschnüren. Er scheidet Penicillin aus, um konkurrierende Bakterien auf Abstand zu halten — 1928 zufällig von Alexander Fleming entdeckt.",
+                "func_en": "Mould whose brush-shaped stalks pinch off spores. It secretes penicillin to keep competing bacteria at bay — spotted by accident by Alexander Fleming in 1928.",
+                "deps_de": "Aus dieser Entdeckung wurde das erste Antibiotikum. Es wirkt gegen Bakterien wie Streptokokken und Staphylokokken, aber nie gegen Viren.",
+                "deps_en": "That discovery became the first antibiotic. It works against bacteria such as streptococci and staphylococci, but never against viruses.",
+            },
+            {
+                "name_de": "Bifidobacterium longum",
+                "name_en": "Bifidobacterium longum",
+                "tier": "basic",
+                "image_filename": "",
+                "image_url": "",
+                "image_credit": "",
+                "image_license": "",
+                "func_de": "Verzweigtes Bakterium und einer der ersten Bewohner des Säuglingsdarms. Es zerlegt Zuckerbausteine der Muttermilch, die das Kind selbst nicht verdauen kann, und säuert den Darm an, was Krankheitserreger fernhält.",
+                "func_en": "Branching bacterium and one of the first settlers in a baby's gut. It breaks down sugars in breast milk that the infant cannot digest alone, and acidifies the gut, which keeps pathogens out.",
+                "deps_de": "Lebt Tür an Tür mit Enterozyten, Becherzellen und Paneth-Zellen; Antibiotika dünnen den Bestand aus, fermentierte Lebensmittel bauen ihn wieder auf.",
+                "deps_en": "Lives next door to enterocytes, goblet cells and Paneth cells; antibiotics thin its numbers out, and fermented foods help rebuild them.",
             },
         ],
     },

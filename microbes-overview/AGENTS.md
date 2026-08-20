@@ -1,12 +1,14 @@
 # microbes-overview — agent notes
 
-This folder has **two** independent pipelines. Don't confuse them:
+This folder builds one thing: a **render library + interactive viewer** — AI-rendered
+teaching images under `renders/set/` (produced by the `microbe-render` skill in
+`.claude/skills/`) and the single-page `viewer.html` that browses them.
 
-1. **Poster builder** (`build.py` + `cells_data.py` → `microbes_{en,de}.html/.pdf`) — the
-   classic BioArt-icon A4 posters. See `index.md`.
-2. **Render library + interactive viewer** — AI-rendered teaching images under
-   `renders/set/` (produced by the `microbe-render` skill in `.claude/skills/`) and the
-   single-page `viewer.html` that browses them. This file is about the viewer.
+`cells_data.py` is the catalogue it reads for names and descriptions. It used to also
+feed a WeasyPrint poster builder (`build.py` → `microbes_{en,de}.html/.pdf`, with BioArt
+icons fetched into `images/`); that pipeline was removed, so the per-entry
+`image_filename` / `image_url` / `image_credit` / `image_license` fields are dormant
+provenance metadata that nothing reads any more.
 
 ## The interactive viewer
 

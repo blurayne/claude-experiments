@@ -7,7 +7,15 @@
 
 Kids' coloring style: a friendly cartoon character (with a face) of the microbe,
 in a scene typical of where it lives, together with other cell/microbe characters —
-bold clean black outlines on white, no shading, colourable. The generated raster is
+bold clean black outlines on white, no shading, colourable.
+
+NO DECORATIVE BURSTS. Every prompt must forbid comic-style starbursts, radiating
+"pow"/impact stars, sparkle bursts and sunbeam rays behind or around the subject.
+They add a big empty shape with nothing to colour in, and because the tracer fuses
+their outline with whatever line art they touch, they cannot be removed afterwards
+without turning the whole burst solid black — the page has to be re-rendered.
+
+The generated raster is
 traced to a crisp **vector SVG** (scales perfectly to A4 for printing). An optional
 bilingual speech bubble is drawn as vector line-art with EN/DE toggle text layers
 (reusing the `#labels-en`/`#labels-de` layer convention). No anatomical labels.
@@ -215,7 +223,7 @@ def bubble_svg(en: str, de: str, size: int) -> str:
         f"L{bx:.0f},{by+r:.0f} "
         f"A{r},{r} 0 0 1 {bx+r:.0f},{by:.0f} Z"
     )
-    box = f'<path d="{d}" fill="#fff" stroke="#000" stroke-width="5" stroke-linejoin="round"/>'
+    box = f'<path class="bubble" d="{d}" fill="#fff" stroke="#000" stroke-width="5" stroke-linejoin="round"/>'
     cx = bx + bw / 2
     font = ("font-family=\"Baloo 2, Comic Sans MS, system-ui, sans-serif\" "
             "font-weight=\"700\" text-anchor=\"middle\"")
@@ -245,7 +253,7 @@ def build_svg(d: str, microbe: str, size: int, en: str, de: str) -> str:
         f'role="img" aria-label="Coloring page of {esc(microbe)}">'
         f'<rect x="0" y="0" width="{size}" height="{ph}" fill="#ffffff"/>'
         f'<g transform="translate(0,{top})">'
-        f'<path d="{d}" fill="#000000" fill-rule="evenodd"/>'
+        f'<path class="artwork" d="{d}" fill="#000000" fill-rule="evenodd"/>'
         f'</g>'
         f'{bubble_svg(en, de, size)}'
         f'</svg>'

@@ -286,6 +286,16 @@ html[data-theme="petri"] body::after{
 .menu-count{margin-top:8px; font-family:var(--font-mono); font-size:11px; color:var(--fg-faint)}
 #picsPanel{right:clamp(10px,2.5vw,22px); width:min(430px,94vw)}
 #themePanel{right:clamp(10px,2.5vw,22px); width:min(300px,92vw)}
+#setPanel{right:clamp(10px,2.5vw,22px); width:min(330px,92vw)}
+.set-row{display:block; margin:0 0 8px}
+.set-row > span{display:flex; justify-content:space-between; align-items:baseline;
+  font-family:var(--font-ui); font-size:12.5px; font-weight:600; color:var(--fg); margin-bottom:7px}
+.set-row > span b{font-family:var(--font-mono); font-size:12px; color:var(--accent)}
+.set-row input[type=range]{width:100%; accent-color:var(--accent); cursor:pointer}
+.set-hint{margin:0; font-family:var(--font-ui); font-size:11.5px; line-height:1.45; color:var(--fg-faint)}
+/* Settings owns these two now, so they need the divider the menu used to give
+   them back — .menu-opt itself only draws one for the first in a run. */
+#setPanel .menu-opt:first-of-type{margin-top:14px; padding-top:14px; border-top:1px solid var(--border)}
 
 /* menu nav tree */
 .nav-set{margin-bottom:6px}
@@ -379,6 +389,22 @@ main{max-width:var(--maxw); margin:0 auto; padding:clamp(20px,4vw,44px) clamp(14
    that stays the same across every visual theme (a data-scale, not a theme
    accent, so themes shouldn't recolor it). */
 html{ --wc1:#60a5fa; --wc2:#22d3ee; --wc3:#facc15; --wc4:#fb923c; --wc5:#f87171 }
+
+/* ---- ink weight (Settings → line thickness) ------------------------------
+   --ink scales everything that is genuinely stroked. The coloring page's
+   artwork is not: it is one filled path, so it can only be thinned by
+   painting its own boundary back over itself — white to shave the black
+   down, black to fatten it — which is what --ink-stroke/--ink-erode do.
+   Set from applyInk(); these are the 80% defaults. */
+html{ --ink:0.8; --ink-stroke:#fff; --ink-erode:1.2;
+      --font-comic:"Baloo 2","Comic Neue","Comic Sans MS",system-ui,sans-serif }
+/* every piece of text we draw into an SVG is a comic face — on screen and in print */
+svg text, svg tspan{ font-family:var(--font-comic) }
+svg .artwork{ stroke:var(--ink-stroke); stroke-width:var(--ink-erode); stroke-linejoin:round }
+svg .bubble{ stroke-width:calc(5px * var(--ink)) }
+svg .lead-under{ stroke-width:calc(2px * var(--ink)) }
+svg .lead{ stroke-width:calc(0.7px * var(--ink)) }
+svg .halo{ stroke-width:calc(4px * var(--ink)) }
 .scale-meter{display:flex; align-items:baseline; gap:8px; margin:-6px 0 14px; flex-wrap:wrap}
 .scale-bar{font-family:var(--font-mono); font-size:12px; line-height:1}
 .scale-meter.wc1 .scale-bar{color:var(--wc1)}
@@ -441,7 +467,10 @@ html{ --wc1:#60a5fa; --wc2:#22d3ee; --wc3:#facc15; --wc4:#fb923c; --wc5:#f87171 
    (not cover) so the toy is never edge-cropped, on a white product-shot
    backdrop since most of these have a transparent background */
 .box img.contain-fit{object-fit:contain; background:#fff}
-svg text{font-family:var(--font-ui)}
+/* text drawn into an SVG is always a comic face — see --font-comic above.
+   (This used to be var(--font-ui); it sits after that rule, so it has to
+   carry the comic face itself rather than quietly winning with the UI one.) */
+svg text{font-family:var(--font-comic)}
 .box .tag{
   position:absolute; left:8px; bottom:8px; z-index:3;
   font-family:var(--font-mono); font-size:10.5px; letter-spacing:.06em; font-weight:600;
@@ -673,6 +702,7 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 0 0 2px #
   </div>
   <!-- Item 2: theme + day/night live outside the collapsible .tb-tools group so
        they stay visible/tappable at every width, right beside the ⋯ toggle. -->
+  <button class="tb-btn icon" id="setBtn" aria-expanded="false" aria-controls="setPanel" title="Settings">⚙</button>
   <button class="tb-btn icon" id="themeBtn" aria-expanded="false" aria-controls="themePanel" title="Visual theme">◑</button>
   <button class="tb-btn icon" id="modeBtn" title="Light / dark">☾</button>
   <button class="tb-btn icon tb-more" id="moreBtn" aria-label="Show controls" aria-expanded="false"><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
@@ -683,11 +713,20 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 0 0 2px #
     <div id="navTree"></div>
     <!-- Item 14/18: pinned footer, outside the scrollable #navTree, always visible -->
     <div class="menu-footer">
-      <label class="menu-opt"><input type="checkbox" id="enlargeLabels"> Show labels on enlarge</label>
-      <label class="menu-opt"><input type="checkbox" id="showGiant"> Show GIANTmicrobes plush</label>
       <div class="menu-count" id="menuCount"></div>
     </div>
   </nav>
+
+  <div class="panel" id="setPanel">
+    <h4>Settings</h4>
+    <label class="set-row" for="inkRange">
+      <span>Line thickness <b id="inkVal">80%</b></span>
+      <input type="range" id="inkRange" min="60" max="140" step="5" value="80">
+    </label>
+    <p class="set-hint">Thins the drawn outlines of the coloring pages and the labelled diagrams. Lower means finer lines and less ink on paper.</p>
+    <label class="menu-opt"><input type="checkbox" id="enlargeLabels"> Show labels on enlarge</label>
+    <label class="menu-opt"><input type="checkbox" id="showGiant"> Show GIANTmicrobes plush</label>
+  </div>
 
   <div class="panel" id="picsPanel">
     <h4>Picture layout (2 × 2)</h4>
@@ -808,7 +847,7 @@ const LS='microbes-viewer-v1';
 const state = Object.assign({
   aud:'kids', lang:'en', theme:'petri', mode:'dark',
   boxes:DEFAULT_BOXES.slice(), enlargeLabels:true, showGiant:true, search:'',
-  lbLabelMode:null, lbBw:null, lbSrc:null
+  lbLabelMode:null, lbBw:null, lbSrc:null, ink:80
 }, load());
 // normalise a persisted (possibly older/shorter) box array to NUM_BOXES slots
 if(!Array.isArray(state.boxes)) state.boxes=DEFAULT_BOXES.slice();
@@ -996,9 +1035,9 @@ function overlaySvg(m, style){
       const half=textW(raw)/2; const cx=Math.round(anchor==='start'?it.tx+half:it.tx-half);
       const ty=tys[i];
       const cy=Math.round(ty-LAB_FS*0.33);
-      s+='<line x1="'+it.ax+'" y1="'+it.ay+'" x2="'+cx+'" y2="'+cy+'" stroke="#f4f4f5" stroke-width="2" opacity="0.9"/>'+
-         '<line x1="'+it.ax+'" y1="'+it.ay+'" x2="'+cx+'" y2="'+cy+'" stroke="#111" stroke-width="0.7"/>'+
-         '<text x="'+it.tx+'" y="'+ty+'" font-size="'+LAB_FS+'" font-weight="700" text-anchor="'+anchor+'" fill="none" stroke="'+stroke+'" stroke-width="4" stroke-linejoin="round">'+txt+'</text>'+
+      s+='<line class="lead-under" x1="'+it.ax+'" y1="'+it.ay+'" x2="'+cx+'" y2="'+cy+'" stroke="#f4f4f5" stroke-width="2" opacity="0.9"/>'+
+         '<line class="lead" x1="'+it.ax+'" y1="'+it.ay+'" x2="'+cx+'" y2="'+cy+'" stroke="#111" stroke-width="0.7"/>'+
+         '<text class="halo" x="'+it.tx+'" y="'+ty+'" font-size="'+LAB_FS+'" font-weight="700" text-anchor="'+anchor+'" fill="none" stroke="'+stroke+'" stroke-width="4" stroke-linejoin="round">'+txt+'</text>'+
          '<text x="'+it.tx+'" y="'+ty+'" font-size="'+LAB_FS+'" font-weight="700" text-anchor="'+anchor+'" fill="'+fill+'">'+txt+'</text>';
     });
     s+='</g>';
@@ -1854,6 +1893,7 @@ function syncToggles(){
   $('#modeBtn').textContent = state.mode==='dark'?'☾':'☀';
   $('#enlargeLabels').checked = state.enlargeLabels;
   $('#showGiant').checked = state.showGiant;
+  applyInk();
   html.dataset.theme=state.theme; html.dataset.mode=state.mode;
 }
 $('#audSeg').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b)return;
@@ -1906,6 +1946,18 @@ function buildPics(){
 $('#picsReset').addEventListener('click',()=>{ state.boxes=DEFAULT_BOXES.slice(); save(); buildPics(); rebuildBoxes(); });
 
 // dropdown panels
+// Settings → line thickness. Below 100% a white outline shaves the traced
+// artwork down; above 100% a black one fattens it. Everything genuinely
+// stroked just scales with --ink.
+function applyInk(){
+  const pct=Math.max(60,Math.min(140, +state.ink||80));
+  const d=Math.abs(100-pct)/100*6;
+  html.style.setProperty('--ink', String(pct/100));
+  html.style.setProperty('--ink-stroke', pct<=100 ? '#fff' : '#000');
+  html.style.setProperty('--ink-erode', d.toFixed(2)+'px');
+  const r=$('#inkRange'), v=$('#inkVal');
+  if(r) r.value=pct; if(v) v.textContent=pct+'%';
+}
 function closePanels(){ $$('.panel').forEach(p=>p.classList.remove('open'));
   $$('[aria-controls]').forEach(b=>b.setAttribute('aria-expanded','false')); }
 function togglePanel(btn,panel){ const open=panel.classList.contains('open'); closePanels();
@@ -1916,6 +1968,8 @@ $('#moreBtn').addEventListener('click',e=>{ e.stopPropagation();
 $('#menuBtn').addEventListener('click',e=>{e.stopPropagation();togglePanel(e.currentTarget,$('#menuPanel'));});
 $('#picsBtn').addEventListener('click',e=>{e.stopPropagation();togglePanel(e.currentTarget,$('#picsPanel'));});
 $('#themeBtn').addEventListener('click',e=>{e.stopPropagation();togglePanel(e.currentTarget,$('#themePanel'));});
+$('#setBtn').addEventListener('click',e=>{e.stopPropagation();togglePanel(e.currentTarget,$('#setPanel'));});
+$('#inkRange').addEventListener('input',e=>{ state.ink=+e.target.value; applyInk(); save(); });
 document.addEventListener('click',e=>{ if(!e.target.closest('.panel') && !e.target.closest('[aria-controls]')) closePanels(); });
 
 function updateHero(){
