@@ -2,6 +2,24 @@
 
 Final image per microbe × style (last attempt), the labelled SVG, and the real-microscopy reference. Status table at the bottom.
 
+## Chromosome (`chromosome`)
+The genome in transport mode: two identical sister chromatids joined at a pinched centromere, capped by telomeres at all four arm tips, built by winding a 2 nm DNA double helix around histone spools into nucleosomes and on up into a ~700 nm metaphase chromatid. The X shape exists ONLY while a cell is dividing — the rest of the time the same DNA lies unwound as chromatin.
+
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/chromosome__textbook.avif) | ![sem](finals/chromosome__sem.avif) | ![3d](finals/chromosome__3d.avif) | ![watercolor](finals/chromosome__watercolor.avif) | ![reference](finals/chromosome__reference.avif) |
+
+**textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/chromosome.textbook.svg) · [HTML](theme/textbook/chromosome.textbook.html)
+![textbook labelled](theme/textbook/chromosome.textbook.svg)
+
+**3d — labelled** (English default, La/De toggle): [SVG](theme/3d/chromosome.3d.svg) · [HTML](theme/3d/chromosome.3d.html)
+![3d labelled](theme/3d/chromosome.3d.svg)
+
+**watercolor — labelled** (English default, La/De toggle): [SVG](theme/watercolor/chromosome.watercolor.svg) · [HTML](theme/watercolor/chromosome.watercolor.html)
+![watercolor labelled](theme/watercolor/chromosome.watercolor.svg)
+
+Full log: [`chromosome.render.md`](chromosome.render.md)
+
 ## DNA (deoxyribonucleic acid) (`dna`)
 The double helix: two antiparallel sugar-phosphate backbones on the OUTSIDE, paired bases (A–T, G–C) stacked on the inside, twisted into a RIGHT-HANDED spiral with a wide major groove and a narrow minor groove alternating along its length — 2 nm across, about two metres long in a single human cell.
 
@@ -42,6 +60,11 @@ Full log: [`rna.render.md`](rna.render.md)
 
 | name | styles | model | render count | pass | svg status | time taken | tokens used | costs |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Chromosome | Textbook illustration | gemini-2.5-flash-image | 4 | ✅ | built | 27s | 9375 | $0.155 |
+| Chromosome | SEM micrograph | gemini-2.5-flash-image | 5 | ✅ | pending (same pipeline) | 34s | 8809 | $0.194 |
+| Chromosome | 3D medical render | gemini-2.5-flash-image | 5 | ✅ | built | 36s | 11735 | $0.194 |
+| Chromosome | Watercolor plate | gemini-2.5-flash-image | 5 | ✅ | built | 36s | 10911 | $0.194 |
+| Chromosome | karyotype-LM (Giemsa-banded light micrograph of a complete human male metaphase spread, 46,XY, cut out and sorted into the standard karyogram) — a real light-microscope image, not a model or illustration · Public domain (work of the U.S. National Institutes of Health / NHGRI) | — (download) | 1 | ✅ | n/a | 1s | 0 | $0.000 |
 | DNA (deoxyribonucleic acid) | Textbook illustration | gemini-3-pro-image | 3 | ✅ | built | 37s | 7319 | $0.135 |
 | DNA (deoxyribonucleic acid) | SEM micrograph | gemini-3-pro-image | 3 | ✅ | pending (same pipeline) | 31s | 6127 | $0.125 |
 | DNA (deoxyribonucleic acid) | 3D medical render | gemini-3-pro-image | 3 | ✅ | built | 37s | 7291 | $0.131 |
@@ -53,6 +76,6 @@ Full log: [`rna.render.md`](rna.render.md)
 | RNA (ribonucleic acid) | Watercolor plate | gemini-2.5-flash-image | 3 | ✅ | built | 24s | 6040 | $0.116 |
 | RNA (ribonucleic acid) | structural-model · CC BY-SA 3.0 / GFDL 1.2+ | — (download) | 1 | ✅ | n/a | 1s | 0 | $0.000 |
 
-**Set total: 57,552 tokens · $1.092**
+**Set total: 98,382 tokens · $1.827**
 
-_Updated 2026-08-20 23:38 local._
+_Updated 2026-08-21 00:45 local._

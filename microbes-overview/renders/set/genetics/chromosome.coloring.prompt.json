@@ -1,0 +1,12 @@
+{
+  "microbe": "chromosome",
+  "set": "genetics",
+  "model": "gemini-2.5-flash-image",
+  "speech_en": "Two twins in an X, ready to split!",
+  "speech_de": "Zwei Zwillinge im X, bereit zum Teilen!",
+  "scenario": "A friendly cartoon coloring-book character: a big, happy X-shaped chromosome with two chunky identical arm-pairs crossing at a pinched waist, a big cheerful smiling face at the waist, and small stubby waving hands. Drawn as an extreme close-up so the character fills nearly the whole frame.",
+  "status": "RENDERED — accepted on the THIRD attempt on gemini-2.5-flash-image. Attempts 1 and 2 both produced a clean, friendly, starburst-free character but with a hard black rectangular BORDER FRAME drawn around the whole square (a hard fail per project rules) despite explicit positive full-bleed phrasing and corner-circle edge-touches; attempt 3 dropped the corner-circle idea, switched to a single-minded 'extreme macro photo crop' framing device (camera standing too close to a toy) and removing any residual cue that might invoke a decorative frame, and the border disappeared entirely. Verified by viewing both the raw PNG and the traced SVG: no border/frame/box/margin band anywhere, no starburst/radiating rays/sparkle behind the subject, a single large character on a diagonal-reading X-cross composition with its left/right arm-tips running to the canvas edges (top/bottom keep a small ~20px margin rather than full bleed, accepted as a minor compromise since the hard failure mode — the border — is solidly gone). EN speech bubble renders correctly at full readability; DE text is present in the toggleable #labels-de layer with proper umlauts (ü in 'Zwei Zwillinge... bereit zum Teilen').",
+  "command_attempt3": "uv run --script .claude/skills/microbe-render/scripts/coloring.py --microbe chromosome --set genetics --prompt-file /tmp/chromosome.coloring.v3.txt --speech-en \"Two twins in an X, ready to split!\" --speech-de \"Zwei Zwillinge im X, bereit zum Teilen!\" --attempt 3",
+  "attempts": 3,
+  "final_svg_source": "gen-03__gemini-2.5-flash-image.png, traced directly by coloring.py's own to_bitmap/trace_paths/build_svg pipeline (no crop/retrace workaround needed)"
+}

@@ -2,6 +2,10 @@
 
 Every microbe's `watercolor` image — labelled SVG where built, else the last render. [← set overview](../../OVERVIEW.md)
 
+## Chromosome (`chromosome`)
+![watercolor](chromosome.watercolor.svg)
+[full log](../../chromosome.render.md)
+
 ## DNA (deoxyribonucleic acid) (`dna`)
 ![watercolor](dna.watercolor.svg)
 [full log](../../dna.render.md)

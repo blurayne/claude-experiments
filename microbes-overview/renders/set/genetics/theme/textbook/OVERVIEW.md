@@ -2,6 +2,10 @@
 
 Every microbe's `textbook` image — labelled SVG where built, else the last render. [← set overview](../../OVERVIEW.md)
 
+## Chromosome (`chromosome`)
+![textbook](chromosome.textbook.svg)
+[full log](../../chromosome.render.md)
+
 ## DNA (deoxyribonucleic acid) (`dna`)
 ![textbook](dna.textbook.svg)
 [full log](../../dna.render.md)

@@ -1,0 +1,197 @@
+{
+  "microbe": "chromosome",
+  "set": "genetics",
+  "name_en": "Chromosome",
+  "name_de": "Chromosom",
+  "name_la": "chromosoma (metaphasicum)",
+  "morphology": {
+    "summary": "A condensed METAPHASE chromosome: the familiar X. After the DNA has been copied in S phase, the two identical copies stay attached to one another as SISTER CHROMATIDS, joined at a pinched waist called the CENTROMERE, and the whole thing winds itself down into a compact rod-pair a few micrometres long. Each individual chromatid is roughly 700 nm (0.7 um) thick; a mid-sized human chromosome runs about 5 um end to end, matching this atlas's scale entry exactly. The centromere divides each chromatid into a short p arm and a long q arm, and all FOUR arm tips are capped by telomeres. THE SINGLE MOST IMPORTANT THING TO GET RIGHT: this X shape is a transport form that exists ONLY while a cell is dividing. For the overwhelming majority of a cell's life the very same DNA lies decondensed as CHROMATIN, a diffuse tangle filling the nucleus, with no X anywhere in sight. Illustrating chromosomes as permanent Xs sitting inside a nucleus is the single most widespread misconception about this subject, and the atlas entry text says so explicitly, so no render may contradict it.",
+    "kind": "not a cell and not an organism -- a single enormously long DNA molecule plus its packaging proteins (histones and non-histone scaffold proteins), in its most compacted, division-ready state. Roughly half its mass is DNA and half is protein.",
+    "dimensions": "A human metaphase chromosome is about 1.3-10 um long depending on which one (chromosome 1 the largest, 21 the smallest); ~5 um is a fair mid-range figure and is the value this atlas uses. Each of the two sister chromatids is about 700 nm (0.7 um) across, so the two-chromatid chromosome reads roughly 1.4 um wide at the arms. DNA content ~0.3 pg per duplicated (two-chromatid) chromosome, consistent with the atlas scale entry: a diploid human cell after replication holds ~13.2 pg of DNA across 46 chromosomes, i.e. ~0.29 pg each. Stretched out, the DNA in one chromosome would run several centimetres; condensed into the metaphase form it is a few micrometres, a compaction of roughly 10,000-fold (versus about 1,000-fold in interphase).",
+    "only_during_division": "The X exists only from prophase through metaphase and into early anaphase. In interphase (G1, S, G2 -- the great majority of the cell cycle) the same material is decondensed chromatin. There is a second, equally important timing rule: the X only exists AFTER replication. An unreplicated chromosome, in G1, is a SINGLE chromatid -- one rod/thread, not an X. The X is a picture of a chromosome that has already been copied and is waiting to be split. And in a human cell at metaphase the nuclear envelope has BROKEN DOWN (open mitosis), so metaphase chromosomes are not enclosed in an intact nucleus at all.",
+    "packing_hierarchy": "The teaching spine of this subject, each level labelable, smallest to largest: (1) NAKED DNA DOUBLE HELIX, 2 nm across, right-handed B-form. (2) NUCLEOSOME: 147 bp of DNA wrapped about 1.65 turns around a histone octamer -- two copies each of H2A, H2B, H3 and H4. Strung together with linker DNA (a few up to ~80 bp) between them, plus one histone H1 per nucleosome at the DNA entry/exit point, these give the 11 nm 'BEADS ON A STRING' fibre. (3) The 11 nm fibre packs into the ~30 nm CHROMATIN FIBRE. (4) The 30 nm fibre is thrown into LOOPED DOMAINS anchored on a non-histone protein SCAFFOLD; condensin drives the mitotic loop-extrusion that compacts it, while cohesin is what glues the two sister chromatids together. (5) The fully condensed METAPHASE CHROMATID, ~700 nm across. Showing this ladder is the honest way to make the 'it is only an X sometimes' point visible, because it shows the X being built out of something that normally is not an X.",
+    "handedness_caveat": "IMPORTANT and easily conflated: the DNA DOUBLE HELIX itself is RIGHT-handed (B-form) and must always be drawn that way. Separately, the way DNA wraps around the histone octamer in a nucleosome is a LEFT-handed superhelical coil. These are two different things at two different scales -- a left-handed superhelical wrap around a bead is correct; a left-handed double helix is not. Do not let the second fact talk anyone into drawing the first one wrong.",
+    "thirty_nm_caveat": "Stated honestly: the ~30 nm fibre is the classic textbook level (Alberts et al.) and is well established for chromatin in vitro and in isolated preparations, but whether a regular 30 nm fibre exists as such inside living interphase nuclei has been genuinely contested in the modern literature, with several studies favouring a more irregular, heterogeneous chromatin arrangement. It is retained here because it is the level every reader will meet in a textbook and it makes the hierarchy legible, but the render log should not present it as beyond dispute."
+  },
+  "structures": [
+    {
+      "key": "sister_chromatid",
+      "la": "chromatis soror",
+      "en": "Sister chromatids (two identical copies)",
+      "de": "Schwesterchromatiden (zwei identische Kopien)",
+      "note": "The two arms-of-the-X pairs. They are IDENTICAL copies produced by DNA replication in S phase, held together along their length -- and especially at the centromere -- by the ring-shaped cohesin complex, until anaphase pulls them apart into the two daughter cells. Draw them as two clearly separate but visually matching bodies lying alongside one another, same shape, same banding, same length: identical twins, not two different chromosomes. Each chromatid must run CONTINUOUSLY through the centromere from its p arm to its q arm -- never four detached rods glued onto a central bead."
+    },
+    {
+      "key": "centromere",
+      "la": "centromerum (constrictio primaria)",
+      "en": "Centromere (primary constriction)",
+      "de": "Zentromer (primäre Einschnürung)",
+      "note": "The pinched waist where the two sister chromatids are joined and where the X gets its crossing point. It is a CONSTRICTION -- visibly narrower than the arms -- not a ball, bead, ring or knot stuck between them. It is not necessarily at the middle: its position along the chromosome is what defines metacentric / submetacentric / acrocentric forms. In humans the underlying DNA is alpha-satellite repeat sequence, but the centromere is specified epigenetically, by nucleosomes carrying the histone H3 variant CENP-A rather than by the sequence alone."
+    },
+    {
+      "key": "kinetochore",
+      "la": "kinetochorum",
+      "en": "Kinetochore (spindle attachment site)",
+      "de": "Kinetochor (Ansatzstelle der Spindelfasern)",
+      "note": "A large multiprotein plate/complex that assembles ON the centromere -- one per chromatid, so a metaphase chromosome carries TWO kinetochores, sitting back-to-back on opposite faces of the waist. That back-to-back geometry is the whole point: it makes each chromatid face a different spindle pole, so the microtubules that attach pull the two copies in opposite directions. If spindle microtubules are shown at all, they should approach the two kinetochores from OPPOSITE sides."
+    },
+    {
+      "key": "p_arm",
+      "la": "brachium breve (p)",
+      "en": "p arm (short arm)",
+      "de": "kurzer Arm (p-Arm)",
+      "note": "The SHORTER of the two arms either side of the centromere, by convention drawn uppermost. 'p' is from French petit, small. Only meaningfully labelable if the chromosome is drawn submetacentric or acrocentric -- on a perfectly symmetric X there is no short arm to point at, which is one reason a submetacentric hero is the better teaching choice."
+    },
+    {
+      "key": "q_arm",
+      "la": "brachium longum (q)",
+      "en": "q arm (long arm)",
+      "de": "langer Arm (q-Arm)",
+      "note": "The LONGER of the two arms, by convention drawn lowermost. The standard account of the name is prosaic: q is simply the letter that follows p in the alphabet. (The often-repeated derivation from French queue, tail, is folklore rather than established etymology -- worth not repeating as fact.)"
+    },
+    {
+      "key": "telomere",
+      "la": "telomerum",
+      "en": "Telomeres (protective end caps)",
+      "de": "Telomere (schützende Endkappen)",
+      "note": "Caps on ALL FOUR arm tips of a two-chromatid chromosome -- a frequent illustration error is capping only two. In humans they are tandem repeats of the sequence TTAGGG, tucked into a protective structure that stops the cell's DNA-repair machinery from mistaking a natural chromosome end for a broken strand and fusing it to another chromosome. Because DNA polymerase cannot fully copy the very end of a linear molecule (the end-replication problem), telomeres shorten a little at every division; telomerase rebuilds them in germline and stem cells, and its reactivation is one of the hallmarks of cancer."
+    },
+    {
+      "key": "dna_double_helix",
+      "la": "helix duplex DNA (forma B)",
+      "en": "DNA double helix (2 nm)",
+      "de": "DNA-Doppelhelix (2 nm)",
+      "note": "The bottom of the packing hierarchy: the naked, RIGHT-HANDED B-form double helix, 2 nm across, the same molecule rendered as its own entry elsewhere in this set. Wherever a helix segment appears in a chromosome render it must obey the same chirality rule as the DNA subject -- see do_not_draw."
+    },
+    {
+      "key": "nucleosome",
+      "la": "nucleosoma (octamerum histonum)",
+      "en": "Nucleosome (DNA on a histone octamer, 11 nm)",
+      "de": "Nukleosom (DNA auf einem Histon-Oktamer, 11 nm)",
+      "note": "The first packing step and the origin of the 'beads on a string' picture: 147 bp of DNA wound about 1.65 turns around a spool of eight histone proteins (two each of H2A, H2B, H3, H4), with short stretches of linker DNA running between consecutive beads and one histone H1 sitting where the DNA enters and leaves. The fibre this makes is ~11 nm across. Draw the beads as discrete spools with the DNA visibly wrapping AROUND their outside, not as blobs threaded onto a wire like a necklace."
+    },
+    {
+      "key": "chromatin_fibre",
+      "la": "fibra chromatinica (30 nm)",
+      "en": "30 nm chromatin fibre",
+      "de": "30-nm-Chromatinfaser",
+      "note": "Nucleosomes packed together into a thicker ~30 nm fibre, the next rung up; this in turn is thrown into looped domains on a protein scaffold to build the chromatid. See morphology.thirty_nm_caveat -- the classic textbook level, but its existence inside living interphase nuclei is genuinely debated, and the log says so."
+    },
+    {
+      "key": "chromatin_decondensed",
+      "la": "chromatinum (forma interphasica)",
+      "en": "Decondensed chromatin (how it looks most of the time)",
+      "de": "Dekondensiertes Chromatin (der Normalzustand)",
+      "note": "The loose, unwound state the same DNA occupies throughout interphase -- the great majority of the cell's life. Including this as a visible, labelable state somewhere in the composition is the most direct way to stop a render from teaching that chromosomes are permanently X-shaped, so it is a preferred element rather than an optional extra."
+    }
+  ],
+  "do_not_draw": [
+    "Do NOT draw 46 X-shaped chromosomes floating inside an intact, membrane-bounded nucleus. At metaphase -- the only time the X exists -- the nuclear envelope has BROKEN DOWN. An intact nucleus full of Xs is doubly wrong: wrong cell-cycle stage for the shape, and wrong structure for the stage.",
+    "Do NOT draw an X-shaped chromosome inside a normal interphase nucleus. During interphase the same DNA is decondensed chromatin, not an X. This is the single most widespread misconception about chromosomes and the atlas entry text explicitly contradicts it.",
+    "Do NOT draw a single, unreplicated chromosome as an X. Before S-phase replication a chromosome is ONE chromatid -- a single rod or thread. The X appears only after the DNA has been copied and the two sister chromatids are held together. An X is always a picture of a duplicated chromosome.",
+    "Do NOT draw three or more chromatids, or an X with mismatched halves. Exactly TWO sister chromatids, and they are IDENTICAL -- same length, same shape, same banding pattern. Two visibly different bodies would be two different chromosomes, not sister chromatids.",
+    "Do NOT draw the centromere as a ball, bead, ring, knot or clasp with four separate loose rods stuck onto it. It is a CONSTRICTION -- a narrowing of continuous material -- and each chromatid runs continuously through it from p arm to q arm.",
+    "Do NOT cap only two of the arm tips with telomeres. A two-chromatid chromosome has FOUR arm ends and all four are capped.",
+    "Do NOT draw a LEFT-HANDED DNA double helix anywhere a helix segment appears (e.g. at the base of the packing hierarchy). With the helix axis vertical, the strand drawn UNBROKEN AND IN FRONT at each crossing must run from LOWER-LEFT to UPPER-RIGHT, like a forward slash '/'. A backslash front-strand means the helix has been mirrored and is wrong. This is a KNOWN, MEASURED failure mode of gemini-2.5-flash-image in this atlas: on the sibling DNA subject, flash rendered a left-handed helix on 3 of its 4 styles and needed explicit correction, so every chromosome prompt that shows a helix must carry this test and every render must be checked against it.",
+    "Do NOT confuse the two chirality facts: the DNA DOUBLE HELIX is right-handed, while the wrap of DNA around a histone octamer is a left-handed SUPERhelical coil. A left-handed wrap around a nucleosome bead is correct; a left-handed double helix never is.",
+    "Do NOT draw DNA as a flat, untwisted ladder with straight parallel rails and horizontal rungs. Wherever the naked helix is shown it must visibly spiral around its axis.",
+    "Do NOT draw nucleosomes as featureless blobs threaded onto a wire like beads on a necklace, with the DNA passing THROUGH them. The DNA wraps AROUND the outside of each histone spool.",
+    "Do NOT show spindle microtubules attaching to the two kinetochores from the SAME side. The two kinetochores sit back-to-back and face opposite spindle poles -- that opposition is what lets the sisters be pulled apart.",
+    "Do NOT bake any text, letters, numbers, chromosome-number labels, karyotype indices, scale bars or watermarks into the image. Labels are added afterwards as SVG layers. (Baked-in text has been the single most persistent failure mode on molecular subjects in this atlas.)",
+    "Do NOT draw any border, frame, vignette, letterbox bar, mat, or the artwork as a sheet of paper lying on a surface. The illustration's own background must reach all four edges.",
+    "Do NOT render the chromosome as a literal cartoon X-letter glyph, a candy/toy shape, or a smooth featureless capsule with no surface texture, constriction or internal structure."
+  ],
+  "colour_legend": {
+    "sister_chromatid_1": "#7FA8CC (cool mid blue) -- one chromatid",
+    "sister_chromatid_2": "#A9C6E0 (the SAME hue, one step lighter) -- the other chromatid. Deliberately same-hue-different-value, not two different colours: they must read as IDENTICAL COPIES that are nonetheless two separate bodies. Two contrasting hues would wrongly imply two different chromosomes.",
+    "centromere": "#C4685A (warm terracotta) -- the constricted waist, contrasting strongly against the blue arms so the pinch point is unmistakable",
+    "kinetochore": "#E0A33E (gold) -- the protein plate sitting on the centromere, one per chromatid, back-to-back",
+    "telomere": "#6FBF8F (fresh green) -- caps on all four arm tips",
+    "nucleosome_histone_core": "#B98FC4 (soft violet) -- the histone octamer spools",
+    "dna_double_helix": "#7FA0B8 (cool slate blue-grey) and #C9A876 (warm tan) for the two backbones -- deliberately REUSING the palette of this set's DNA entry so the two entries read as one continuous story",
+    "chromatin_fibre": "#9C8FBF (muted violet-grey) -- the 30 nm fibre and the decondensed chromatin tangle",
+    "note": "A chromosome has no colour in life. The 'chromo-' in its name comes from the fact that it takes up DYE -- these bodies were named for how brightly they stained, and the familiar banded karyotype is Giemsa stain, not pigment. Every colour here is therefore teaching convention, chosen to make the identical-but-separate chromatids, the constriction, the attachment site and the caps legible at a glance, and kept consistent across all four styles for this subject."
+  },
+  "sources": [
+    {
+      "title": "Alberts et al., Molecular Biology of the Cell (4th ed.) -- 'Chromosomal DNA and Its Packaging in the Chromatin Fiber' (NCBI Bookshelf NBK26834)",
+      "url": "https://www.ncbi.nlm.nih.gov/books/NBK26834/",
+      "note": "VERIFIED by direct fetch. Source for the packing hierarchy figures used here: a nucleosome core particle of ~146-147 bp wound 1.65 turns around an octamer of two molecules each of H2A, H2B, H3 and H4; the 'beads on a string' appearance of partially unfolded chromatin; the ~30 nm fibre; one histone H1 per nucleosome; linker DNA of a few up to ~80 bp; and the compaction figures -- ~10,000-fold in a metaphase chromosome versus ~1,000-fold in interphase. Also the source for the detail that the DNA coils around the octamer in a LEFT-handed superhelix (distinct from the right-handed double helix itself)."
+    },
+    {
+      "title": "Alberts et al., Molecular Biology of the Cell (4th ed.) -- 'The Global Structure of Chromosomes' (NCBI Bookshelf NBK26847)",
+      "url": "https://www.ncbi.nlm.nih.gov/books/NBK26847/",
+      "note": "VERIFIED. Source for centromeres as the sequences that direct each chromosome's movement to the daughter cells at division, embedded in large blocks of heterochromatin that persist through interphase even though centromere-directed movement happens only in mitosis; for telomeres/chromosome ends being packaged so the repair machinery does not read them as broken DNA; and for higher-order folding of the 30 nm fibre into loops and coils (a 30 nm fibre alone would still leave a human chromosome ~0.1 cm long)."
+    },
+    {
+      "title": "National Human Genome Research Institute (NHGRI) -- 'Chromosome' genetics glossary entry",
+      "url": "https://www.genome.gov/genetics-glossary/Chromosome",
+      "note": "VERIFIED. Plain-language cross-check for the headline numbers used in the atlas entry: 22 pairs of numbered chromosomes (autosomes) plus one pair of sex chromosomes (XX or XY), 46 in total; chromosomes as threadlike structures of protein plus a single DNA molecule, with the DNA kept wound around spool-like histone proteins. Useful for calibrating the kids/adults register."
+    },
+    {
+      "title": "Wikipedia -- 'Chromosome'",
+      "url": "https://en.wikipedia.org/wiki/Chromosome",
+      "note": "Cross-check for the metaphase/interphase distinction (the condensed X-form is characteristic of metaphase, while chromatin is the interphase state), sister chromatids joined at the centromere, p/q arm nomenclature, and the etymology of 'chromosome' from the stainability that gave these bodies their name."
+    },
+    {
+      "title": "Wikipedia -- 'Centromere' (centromere position classes; CENP-A)",
+      "url": "https://en.wikipedia.org/wiki/Centromere",
+      "note": "Cross-check for the metacentric / submetacentric / acrocentric / telocentric classification by centromere position, for human acrocentric chromosomes (13, 14, 15, 21, 22), for alpha-satellite DNA, and for epigenetic specification of the centromere by CENP-A nucleosomes rather than by sequence alone."
+    },
+    {
+      "title": "Wikipedia -- 'Telomere' (TTAGGG repeats, end-replication problem, telomerase)",
+      "url": "https://en.wikipedia.org/wiki/Telomere",
+      "note": "Cross-check for the human telomere repeat sequence TTAGGG, the protective role that prevents chromosome ends being processed as double-strand breaks, progressive shortening at each replication (the end-replication problem), and telomerase activity in germline/stem cells and its reactivation in most cancers."
+    },
+    {
+      "title": "Wikipedia -- 'Kinetochore'",
+      "url": "https://en.wikipedia.org/wiki/Kinetochore",
+      "note": "Cross-check for the kinetochore as a multiprotein complex assembling on the centromere, one per sister chromatid, positioned back-to-back so the two sisters attach to microtubules from opposite spindle poles (bi-orientation), and for the spindle-assembly checkpoint that delays anaphase until attachment is correct."
+    },
+    {
+      "title": "Wikipedia (de) -- 'Chromosom'",
+      "url": "https://de.wikipedia.org/wiki/Chromosom",
+      "note": "German terminology check: Chromosom, Schwesterchromatiden, Chromatid, Zentromer (primäre Einschnürung), Kinetochor, Telomer, Chromatin, Nukleosom, Histon-Oktamer, kurzer Arm (p-Arm), langer Arm (q-Arm), Metaphase-Chromosom, metazentrisch/submetazentrisch/akrozentrisch, Karyogramm."
+    },
+    {
+      "title": "Maeshima K. et al. -- on the contested status of the 30 nm chromatin fibre in vivo",
+      "url": "https://en.wikipedia.org/wiki/Chromatin",
+      "note": "Cross-check for the honest caveat recorded in morphology.thirty_nm_caveat: the 30 nm fibre is well characterised in vitro and in isolated chromatin, but whether a regular 30 nm fibre exists inside living interphase nuclei is disputed, with evidence favouring a more irregular, heterogeneous arrangement. Retained in the hierarchy because it is the level every reader meets in a textbook, but not presented as settled."
+    }
+  ],
+  "reference_micrograph_candidates": [
+    {
+      "title": "NHGRI human male karyotype -- Giemsa-banded light micrograph of a complete 46,XY metaphase spread, cut out and sorted into the standard karyogram",
+      "page_url": "https://commons.wikimedia.org/wiki/File:NHGRI_human_male_karyotype.png",
+      "file_url": "https://upload.wikimedia.org/wikipedia/commons/5/53/NHGRI_human_male_karyotype.png",
+      "license": "Public domain (a work of the U.S. National Institutes of Health / National Human Genome Research Institute; U.S. federal government work). VERIFIED on the Commons file page -- not NonCommercial, not merely 'free to use', genuinely public domain.",
+      "attribution": "National Human Genome Research Institute (NHGRI), NIH, via Wikimedia Commons",
+      "modality": "karyotype-LM -- a real LIGHT-MICROSCOPE image of real stained human chromosomes (Giemsa/G-banding), photographed and then digitally cut out and arranged into the conventional sorted karyogram layout. Not a model, not an illustration, not a false-coloured electron micrograph.",
+      "native_size": "3084 x 2417 px",
+      "note": "CHOSEN. Verified by viewing the downloaded plate: 5 pair-clusters in row 1 (chromosomes 1-5, with the standard gap between group A (1-3) and group B (4-5)), 7 in row 2 (group C, 6-12), 6 in row 3 (groups D 13-15 and E 16-18), and 5 clusters in row 4 (19, 20, 21, 22, then one large plus one small chromosome = X and Y) -- 22 autosome pairs plus XY, i.e. 46 chromosomes in 23 pairs, exactly matching the atlas entry text. Individual chromosomes are well separated and readable: sister chromatids and the centromere constriction are visible on the larger ones, and the differing centromere positions between groups are plainly visible, which is the teaching point. It also honestly shows how much LESS X-like real chromosomes are than the textbook glyph -- many read as two narrow parallel chromatids rather than a splayed X. Contains NO baked-in text, numbers, scale bar, watermark or letterboxing anywhere (checked on a magnified crop and with a hard near-white contrast stretch), so edit_image.py was skipped entirely per instructions. Because a centre-crop to square clipped the outer columns (chromosome 1 on the left, the Y on the right), the plate was instead PADDED (not cropped) to 3084x3084 with its own sampled background colour -- pure white (255,255,255), so no visible seam -- and then LANCZOS DOWNSCALED 0.350x to 1080x1080. A downscale of a high-resolution original: no upscaling, no invented pixels, no AI re-illustration."
+    },
+    {
+      "title": "SEM (scanning electron micrograph) of isolated human metaphase chromosomes -- the knobbly real surface",
+      "page_url": "https://commons.wikimedia.org/wiki/Category:Human_chromosomes",
+      "file_url": null,
+      "license": "NOT FOUND under an acceptable licence",
+      "attribution": "n/a -- not used",
+      "modality": "scanning electron micrograph",
+      "note": "REJECTED / unavailable. This was the brief's first-choice option and would have been the more striking image, because a real SEM of a metaphase chromosome shows a rough, knobbly, almost coral-like surface that looks nothing like the smooth textbook X. A search of Wikimedia Commons (Category:Human chromosomes, Category:Metaphase, and the several scanning-electron-microscopy categories) surfaced no freely-licensed SEM of human metaphase chromosomes. The well-known chromosome SEM plates in circulation (the Harrison- and Wanner-style micrographs) are copyrighted and are not available under PD/CC0/CC BY/CC BY-SA. Since the project rule is to prefer public domain / CC0 / CC BY / CC BY-SA and to avoid adding a second NonCommercial outlier to the atlas, no SEM was used rather than using a doubtfully-licensed one."
+    },
+    {
+      "title": "File:Metaphase chromosomes.jpg (Wikimedia Commons)",
+      "page_url": "https://commons.wikimedia.org/wiki/File:Metaphase_chromosomes.jpg",
+      "file_url": null,
+      "license": "not verified",
+      "attribution": "n/a -- not used",
+      "modality": "light micrograph of an unsorted metaphase spread",
+      "note": "CONSIDERED, not used. An unsorted metaphase spread (chromosomes scattered as they fell on the slide) is a genuine and in some ways more honest view than a karyogram, but the chromosomes overlap and clump, so individual sister chromatids, centromeres and arms are much harder to read -- which the project's own verification rubric explicitly rejects ('reject dense clumps where individual cells and their structures are not readable'). The sorted NHGRI karyogram carries the same real-microscopy honesty with far better legibility, so it was preferred."
+    }
+  ],
+  "composition_choice": {
+    "centromere_position": "SUBMETACENTRIC chosen for the illustrated hero chromosome -- centromere clearly off-centre, giving a visibly SHORT p arm above and a visibly LONG q arm below. Rationale: on a perfectly symmetric (metacentric) X there is no short arm to point a label at, so the p/q distinction becomes unlabelable and the render quietly teaches that the two arms are the same. Submetacentric is also the commonest configuration among human chromosomes. A metacentric hero would be defensible -- it is the iconic schoolbook shape and several human chromosomes really are metacentric -- but it is the weaker teaching choice here, and this decision is stated rather than left implicit.",
+    "packing_hierarchy_placement": "The hierarchy is carried as a side/inset progression in the textbook and 3d styles (naked helix -> nucleosome beads -> 30 nm fibre -> condensed chromatid), unwinding out of one arm tip so it reads as 'this X is made of that thread'. The watercolor and sem styles keep a single specimen: watercolor as a naturalist plate of the chromosome with a loose unwound thread trailing from one arm, sem as a surface-only false-colour plate of the real knobbly object with no interior structure (correct for the medium, not a miss).",
+    "decondensed_chromatin": "Included as a visible element (a loose, unwound tangle at one end of the unwinding progression) in the styles that carry the hierarchy, so that every such render carries the 'only during division' point structurally rather than only in the caption."
+  }
+}
