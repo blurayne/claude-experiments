@@ -92,6 +92,7 @@ GIANT = {
     # --- pathogens (generic set) ---
     'parasite': ('Sleeping Sickness (Trypanosoma brucei)', 'https://www.riesenmikroben.de/products/schlafkrankheit?locale=de'),
     'prion': ('Mad Cow (Bovine Spongiform Encephalopathy)', 'https://www.riesenmikroben.de/products/bse?locale=de'),
+    'amoeba-proteus': ('Amoeba (Amoeba proteus)', 'https://www.riesenmikroben.de/products/amoebe_blau?locale=de'),
     'coronavirus': ('Coronavirus COVID-19 (SARS-CoV-2)', 'https://www.riesenmikroben.de/products/covid-19?locale=de'),
     # --- well-known bacteria ---
     'mycobacterium-tuberculosis': ('TB (Tuberculosis)', 'https://www.riesenmikroben.de/products/tuberkulose?locale=de'),
@@ -100,10 +101,16 @@ GIANT = {
     'escherichia-coli': ('E. coli (Escherichia coli)', 'https://www.riesenmikroben.de/products/e_coli?locale=de'),
     'salmonella-enterica': ('Salmonella (Salmonella typhimurium)', 'https://www.riesenmikroben.de/products/salmonelle?locale=de'),
     'helicobacter-pylori': ('Ulcer (Helicobacter pylori)', 'https://www.riesenmikroben.de/products/magengeschwuer?locale=de'),
+    'borrelia-burgdorferi': ('Lyme Disease (Borrelia burgdorferi)', 'https://www.riesenmikroben.de/products/lyme-borreliose?locale=de'),
     # --- well-known viruses & other pathogens ---
     'influenza-virus': ('Flu (Orthomyxovirus)', 'https://www.riesenmikroben.de/products/grippe?locale=de'),
     'sars-cov-2': ('Coronavirus COVID-19 (SARS-CoV-2)', 'https://www.riesenmikroben.de/products/covid-19?locale=de'),
     'hiv': ('HIV (Human Immunodeficiency Virus)', 'https://www.riesenmikroben.de/products/hiv?locale=de'),
     'plasmodium': ('Malaria (Plasmodium falciparum)', 'https://www.riesenmikroben.de/products/malaria?locale=de'),
     'candida-albicans': ('Candida fungus', 'https://www.riesenmikroben.de/products/candida?locale=de'),
+    'measles-virus': ('Measles (Morbillivirus)', 'https://www.riesenmikroben.de/products/masern?locale=de'),
+    # --- helpful microbes ---
+    'penicillium-chrysogenum': ('Penicillin (Penicillium chrysogenum)', 'https://www.riesenmikroben.de/products/penicillin?locale=de'),
+    'saccharomyces-cerevisiae': ('Beer & Bread (Saccharomyces cerevisiae)', 'https://www.riesenmikroben.de/products/bierhefe?locale=de'),
+    'bifidobacterium-longum': ('Bifido (Bifidobacterium longum)', 'https://www.riesenmikroben.de/products/bifido-bakterium?locale=de'),
 }

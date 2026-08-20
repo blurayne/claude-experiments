@@ -6,7 +6,7 @@
 
 - **15 sets**, **85 microbes** live in the viewer, out of **93 catalogued**.
 - Every live microbe carries: 5 picture styles, 3 labelled diagrams, a printable A4 coloring page, kids narration in EN + DE, and size/weight data — the table below is the proof.
-- **29 plush links**, every one an exact species/cell match. 8 of those photos had to be repaired (see the last section).
+- **35 plush links**, every one an exact species/cell match. 8 of those photos had to be repaired (see the last section).
 
 ## Every catalogued entry, and what it has
 
@@ -80,7 +80,7 @@
 | pathogens | Fungus | `fungus` | 5/5 | 3/3 | ✅ | ✅ | 5 µm · 40 pg | — |
 | pathogens | Parasite | `parasite` | 5/5 | 3/3 | ✅ | ✅ | 20 µm · 20 pg | Sleeping Sickness (Trypanosoma brucei) |
 | pathogens | Prion | `prion` | 5/5 | 3/3 | ✅ | ✅ | 5 nm · 35 kDa | Mad Cow (Bovine Spongiform Encephalopathy) |
-| pathogens | Amoeba (Amoeba proteus) | `amoeba-proteus` | 5/5 | 3/3 | ✅ | ✅ | 400 µm · 30000 ng | — |
+| pathogens | Amoeba (Amoeba proteus) | `amoeba-proteus` | 5/5 | 3/3 | ✅ | ✅ | 400 µm · 30000 ng | Amoeba (Amoeba proteus) |
 | pathogens | Coronavirus (SARS-CoV-2) | `coronavirus` | 5/5 | 3/3 | ✅ | ✅ | 120 nm · 1.2 fg | Coronavirus COVID-19 (SARS-CoV-2) |
 | pathogens-bacteria | Mycobacterium tuberculosis (TB) | `mycobacterium-tuberculosis` | 5/5 | 3/3 | ✅ | ✅ | 3 µm · 0.5 pg | TB (Tuberculosis) |
 | pathogens-bacteria | Staphylococcus aureus (MRSA) | `staphylococcus-aureus` | 5/5 | 3/3 | ✅ | ✅ | 1 µm · 0.3 pg | Staph (Staphylococcus aureus) |
@@ -89,7 +89,7 @@
 | pathogens-bacteria | Salmonella enterica | `salmonella-enterica` | 5/5 | 3/3 | ✅ | ✅ | 2.5 µm · 1 pg | Salmonella (Salmonella typhimurium) |
 | pathogens-bacteria | Helicobacter pylori | `helicobacter-pylori` | 5/5 | 3/3 | ✅ | ✅ | 3 µm · 0.5 pg | Ulcer (Helicobacter pylori) |
 | pathogens-bacteria | Streptococcus mutans (tooth decay) | `streptococcus-mutans` | 5/5 | 3/3 | ✅ | ✅ | 800 nm · 1 pg | — |
-| pathogens-bacteria | Borrelia burgdorferi (Lyme disease) | `borrelia-burgdorferi` | 5/5 | 3/3 | — | ✅ | 20 µm · 0.3 pg | — |
+| pathogens-bacteria | Borrelia burgdorferi (Lyme disease) | `borrelia-burgdorferi` | 5/5 | 3/3 | — | ✅ | 20 µm · 0.3 pg | Lyme Disease (Borrelia burgdorferi) |
 | pathogens-bacteria | Clostridioides difficile (C. diff) | — | ❌ not rendered | | | | 5 µm · 3 pg | |
 | pathogens-bacteria | Listeria monocytogenes | — | ❌ not rendered | | | | 2 µm · 1 pg | |
 | pathogens-viruses | Influenza virus (flu) | `influenza-virus` | 5/5 | 3/3 | ✅ | ✅ | 100 nm · 1 fg | Flu (Orthomyxovirus) |
@@ -99,14 +99,14 @@
 | pathogens-viruses | Plasmodium (malaria) | `plasmodium` | 5/5 | 3/3 | ✅ | ✅ | 2 µm · 1 pg | Malaria (Plasmodium falciparum) |
 | pathogens-viruses | Candida albicans | `candida-albicans` | 5/5 | 3/3 | ✅ | ✅ | 5 µm · 40 pg | Candida fungus |
 | pathogens-viruses | Rhinovirus (common cold) | `rhinovirus` | 5/5 | 3/3 | ✅ | ✅ | 30 nm · 0.3 fg | — |
-| pathogens-viruses | Measles virus (Morbillivirus) | `measles-virus` | 5/5 | 3/3 | ✅ | ✅ | 200 nm · 8 fg | — |
+| pathogens-viruses | Measles virus (Morbillivirus) | `measles-virus` | 5/5 | 3/3 | ✅ | ✅ | 200 nm · 8 fg | Measles (Morbillivirus) |
 | pathogens-viruses | Rotavirus | — | ❌ not rendered | | | | 75 nm · 1.5 fg | |
 | pathogens-viruses | Norovirus (stomach bug) | — | ❌ not rendered | | | | 38 nm · 0.5 fg | |
 | pathogens-viruses | Varicella-zoster virus (chickenpox) | — | ❌ not rendered | | | | 180 nm · 6 fg | |
 | pathogens-viruses | Giardia lamblia (giardiasis) | — | ❌ not rendered | | | | 12 µm · 1 ng | |
-| helpful-microbes | Baker's yeast (Saccharomyces cerevisiae) | `saccharomyces-cerevisiae` | 5/5 | 3/3 | ✅ | ✅ | 5 µm · 60 pg | — |
-| helpful-microbes | Penicillin mould (Penicillium chrysogenum) | `penicillium-chrysogenum` | 5/5 | 3/3 | ✅ | ✅ | 3.5 µm · 20 pg | — |
-| helpful-microbes | Bifidobacterium longum | `bifidobacterium-longum` | 5/5 | 3/3 | ✅ | ✅ | 3 µm · 1.5 pg | — |
+| helpful-microbes | Baker's yeast (Saccharomyces cerevisiae) | `saccharomyces-cerevisiae` | 5/5 | 3/3 | ✅ | ✅ | 5 µm · 60 pg | Beer & Bread (Saccharomyces cerevisiae) |
+| helpful-microbes | Penicillin mould (Penicillium chrysogenum) | `penicillium-chrysogenum` | 5/5 | 3/3 | ✅ | ✅ | 3.5 µm · 20 pg | Penicillin (Penicillium chrysogenum) |
+| helpful-microbes | Bifidobacterium longum | `bifidobacterium-longum` | 5/5 | 3/3 | ✅ | ✅ | 3 µm · 1.5 pg | Bifido (Bifidobacterium longum) |
 
 ## Gaps
 
@@ -150,8 +150,8 @@ The catalogue has no sales figures, so prominence is inferred from what the vend
 | 10 | E. coli (Escherichia coli) | *escherichia coli* | 3 | DE | ✅ |
 | 10 | Bookworm (Anobium punctatum) | *anobium punctatum* | 3 | DE | **no** |
 | 10 | Bladder Cancer (Malignant neoplasm) | *malignant neoplasm* | 7 | US | **no** |
-| 10 | Beer & Bread (Saccharomyces cerevisiae) | *saccharomyces cerevisiae* | 3 | DE | **no** |
-| 9 | Amoeba (Amoeba proteus) | *amoeba proteus* | 5 | retired | **no** |
+| 10 | Beer & Bread (Saccharomyces cerevisiae) | *saccharomyces cerevisiae* | 3 | DE | ✅ |
+| 9 | Amoeba (Amoeba proteus) | *amoeba proteus* | 5 | retired | ✅ |
 | 8 | Heart | *cor* | 3 | DE | **no** |
 | 8 | Appendix | *appendix* | 3 | US | **no** |
 | 7 | Zika (Zika virus) | *zika virus* | 2 | DE | **no** |
@@ -159,10 +159,10 @@ The catalogue has no sales figures, so prominence is inferred from what the vend
 | 7 | Ulcer (Helicobacter pylori) | *helicobacter pylori* | 1 | US + DE | ✅ |
 | 7 | Trilobite (Asaphiscus wheeleri) | *asaphiscus wheeleri* | 1 | US + DE | **no** |
 | 7 | Tick (Ixodes scapularis) | *ixodes scapularis* | 2 | DE | **no** |
-| 7 | Penicillin (Penicillium chrysogenum) | *penicillium chrysogenum* | 3 | retired | **no** |
-| 7 | Measles (Morbillivirus) | *morbillivirus* | 1 | US + DE | **no** |
+| 7 | Penicillin (Penicillium chrysogenum) | *penicillium chrysogenum* | 3 | retired | ✅ |
+| 7 | Measles (Morbillivirus) | *morbillivirus* | 1 | US + DE | ✅ |
 | 7 | Mange (Sarcoptes scabiei) | *sarcoptes scabiei* | 1 | US + DE | **no** |
-| 7 | Lyme Disease (Borrelia burgdorferi) | *borrelia burgdorferi* | 2 | US | **no** |
+| 7 | Lyme Disease (Borrelia burgdorferi) | *borrelia burgdorferi* | 2 | US | ✅ |
 | 7 | Lung | *pulmo* | 2 | US | **no** |
 | 7 | Louse (Pediculus capitis) | *pediculus capitis* | 1 | US + DE | **no** |
 
