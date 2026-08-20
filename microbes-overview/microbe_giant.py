@@ -113,6 +113,7 @@ GIANT = {
     'borrelia-burgdorferi': ('Lyme Disease (Borrelia burgdorferi)', 'https://www.riesenmikroben.de/products/lyme-borreliose?locale=de'),
     # species reads `clostridium difficile` — the pre-2016 genus name for the same organism
     'clostridioides-difficile': ('C. Diff (Clostridioides difficile)', 'https://www.riesenmikroben.de/products/cdiff?locale=de'),
+    'listeria-monocytogenes': ('Listeria (Listeria monocytogenes)', 'https://www.riesenmikroben.de/products/listeria?locale=de'),
     # --- well-known viruses & other pathogens ---
     'influenza-virus': ('Flu (Orthomyxovirus)', 'https://www.riesenmikroben.de/products/grippe?locale=de'),
     'sars-cov-2': ('Coronavirus COVID-19 (SARS-CoV-2)', 'https://www.riesenmikroben.de/products/covid-19?locale=de'),
