@@ -4,9 +4,9 @@
 
 ## Where we stand
 
-- **15 sets**, **94 microbes** live in the viewer, out of **94 catalogued**.
+- **16 sets**, **94 microbes** live in the viewer, out of **97 catalogued**.
 - Every live microbe carries: 5 picture styles, 3 labelled diagrams, a printable A4 coloring page, kids narration in EN + DE, and size/weight data — the table below is the proof.
-- **41 plush links**, every one an exact species/cell match. 8 of those photos had to be repaired (see the last section).
+- **44 plush links**, every one an exact species/cell match. 8 of those photos had to be repaired (see the last section).
 
 ## Every catalogued entry, and what it has
 
@@ -69,11 +69,13 @@
 | immune-cells | Natural killer cell (NK) | `natural-killer-cell` | 5/5 | 3/3 | ✅ | ✅ | 12 µm · 350 pg | — |
 | immune-cells | Macrophage | `macrophage` | 5/5 | 3/3 | ✅ | ✅ | 30 µm · 6 ng | Macrophage - Immune System Plush |
 | immune-cells | Neutrophil | `neutrophil` | 5/5 | 3/3 | ✅ | ✅ | 11 µm · 300 pg | — |
+| immune-cells | White blood cell (leukocyte) | — | ❌ not rendered | | | | 12 µm · 500 pg | |
 | antibodies | Immunoglobulin G (IgG) | `igg` | 5/5 | 3/3 | ✅ | ✅ | 10 nm · 150 kDa | Antibody (Immunoglobulin) |
 | antibodies | Immunoglobulin A (IgA) | `iga` | 5/5 | 3/3 | ✅ | ✅ | 20 nm · 385 kDa | — |
 | antibodies | Immunoglobulin M (IgM) | `igm` | 5/5 | 3/3 | ✅ | ✅ | 35 nm · 950 kDa | — |
 | antibodies | Immunoglobulin D (IgD) | `igd` | 5/5 | 3/3 | ✅ | ✅ | 10 nm · 180 kDa | — |
 | antibodies | Immunoglobulin E (IgE) | `ige` | 5/5 | 3/3 | ✅ | ✅ | 10 nm · 190 kDa | — |
+| cancer-cells | Cancer cell (malignant neoplasm) | — | ❌ not rendered | | | | 20 µm · 4 ng | |
 | pathogens | Cocci (round bacteria) | `cocci` | 5/5 | 3/3 | ✅ | ✅ | 1 µm · 0.5 pg | — |
 | pathogens | Rod-shaped bacterium (bacillus) | `rod-bacterium` | 5/5 | 3/3 | ✅ | ✅ | 3 µm · 1 pg | — |
 | pathogens | Virus | `virus` | 5/5 | 3/3 | ✅ | ✅ | 100 nm · 1 fg | — |
@@ -82,6 +84,7 @@
 | pathogens | Prion | `prion` | 5/5 | 3/3 | ✅ | ✅ | 5 nm · 35 kDa | Mad Cow (Bovine Spongiform Encephalopathy) |
 | pathogens | Amoeba (Amoeba proteus) | `amoeba-proteus` | 5/5 | 3/3 | ✅ | ✅ | 400 µm · 30000 ng | Amoeba (Amoeba proteus) |
 | pathogens | Coronavirus (SARS-CoV-2) | `coronavirus` | 5/5 | 3/3 | ✅ | ✅ | 120 nm · 1.2 fg | Coronavirus COVID-19 (SARS-CoV-2) |
+| pathogens | Tick (Ixodes scapularis) | — | ❌ not rendered | | | | 3000 µm · 3 mg | |
 | pathogens-bacteria | Mycobacterium tuberculosis (TB) | `mycobacterium-tuberculosis` | 5/5 | 3/3 | ✅ | ✅ | 3 µm · 0.5 pg | TB (Tuberculosis) |
 | pathogens-bacteria | Staphylococcus aureus (MRSA) | `staphylococcus-aureus` | 5/5 | 3/3 | ✅ | ✅ | 1 µm · 0.3 pg | Staph (Staphylococcus aureus) |
 | pathogens-bacteria | Streptococcus pneumoniae | `streptococcus-pneumoniae` | 5/5 | 3/3 | ✅ | ✅ | 1 µm · 0.3 pg | Pneumonia (Streptococcus pneumonia) |
@@ -111,13 +114,17 @@
 
 ## Gaps
 
-**Catalogued but not rendered:** none.
+**Catalogued but not yet rendered — 3.** Text, German translation and scale data already exist for these; only the pictures are missing.
+
+- `immune-cells` — White blood cell (leukocyte)
+- `cancer-cells` — Cancer cell (malignant neoplasm)
+- `pathogens` — Tick (Ixodes scapularis)
 
 **Rendered but not reaching the viewer — 0.** A render only appears if `meta.name` matches a catalogue `name_en` exactly, or its key matches the slug of one; anything here fell through both.
 
 - none
 
-**Data waiting for a render:** 0 scale entries (none), 0 plush links (none).
+**Data waiting for a render:** 3 scale entries (`cancer-cell`, `tick`, `white-blood-cell`), 3 plush links (`cancer-cell`, `tick`, `white-blood-cell`).
 
 **No recorded micrograph source:** `reticulocyte`.
 
@@ -147,10 +154,10 @@ The catalogue has no sales figures, so prominence is inferred from what the vend
 | 8 | Heart | *cor* | 3 | DE | **no** |
 | 8 | Appendix | *appendix* | 3 | US | **no** |
 | 7 | Zika (Zika virus) | *zika virus* | 2 | DE | ✅ |
-| 7 | White Blood Cell (Leukocyte) | *leukozyt* | 3 | retired | **no** |
+| 7 | White Blood Cell (Leukocyte) | *leukozyt* | 3 | retired | ✅ |
 | 7 | Ulcer (Helicobacter pylori) | *helicobacter pylori* | 1 | US + DE | ✅ |
 | 7 | Trilobite (Asaphiscus wheeleri) | *asaphiscus wheeleri* | 1 | US + DE | **no** |
-| 7 | Tick (Ixodes scapularis) | *ixodes scapularis* | 2 | DE | **no** |
+| 7 | Tick (Ixodes scapularis) | *ixodes scapularis* | 2 | DE | ✅ |
 | 7 | Penicillin (Penicillium chrysogenum) | *penicillium chrysogenum* | 3 | retired | ✅ |
 | 7 | Measles (Morbillivirus) | *morbillivirus* | 1 | US + DE | ✅ |
 | 7 | Mange (Sarcoptes scabiei) | *sarcoptes scabiei* | 1 | US + DE | **no** |

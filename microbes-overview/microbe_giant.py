@@ -96,12 +96,19 @@ GIANT = {
     # --- immune cells ---
     'cytotoxic-t-cell': ('Killer T Cell - Immune Defender Plush', 'https://www.giantmicrobes.com/us/products/killer-t-cell.html'),
     'macrophage': ('Macrophage - Immune System Plush', 'https://www.riesenmikroben.de/products/makrophage?locale=de'),
+    # the generic "White Blood Cell" plush is species `leukozyt`; it was
+    # deliberately withheld from neutrophil for being generic, and now that the
+    # atlas carries a generic leukocyte entry it finally has an exact home
+    'white-blood-cell': ('White Blood Cell (Leukocyte)', 'https://www.riesenmikroben.de/products/weisses_blutkoerperchen?locale=de'),
+    # --- cancer cells ---
+    'cancer-cell': ('Cancer (Malignant neoplasm)', 'https://www.riesenmikroben.de/products/krebszelle?locale=de'),
     # --- antibodies ---
     'igg': ('Antibody (Immunoglobulin)', 'https://www.riesenmikroben.de/products/antikoerper?locale=de'),
     # --- pathogens (generic set) ---
     'parasite': ('Sleeping Sickness (Trypanosoma brucei)', 'https://www.riesenmikroben.de/products/schlafkrankheit?locale=de'),
     'prion': ('Mad Cow (Bovine Spongiform Encephalopathy)', 'https://www.riesenmikroben.de/products/bse?locale=de'),
     'amoeba-proteus': ('Amoeba (Amoeba proteus)', 'https://www.riesenmikroben.de/products/amoebe_blau?locale=de'),
+    'tick': ('Tick (Ixodes scapularis)', 'https://www.riesenmikroben.de/products/zecke?locale=de'),
     'coronavirus': ('Coronavirus COVID-19 (SARS-CoV-2)', 'https://www.riesenmikroben.de/products/covid-19?locale=de'),
     # --- well-known bacteria ---
     'mycobacterium-tuberculosis': ('TB (Tuberculosis)', 'https://www.riesenmikroben.de/products/tuberkulose?locale=de'),

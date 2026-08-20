@@ -1,0 +1,15 @@
+# Secrets. This repository is published to GitHub Pages from `main`, so anything
+# committed here is served publicly. `.env` holds the GOOGLE_API_KEY the render
+# scripts read (they walk up from the experiment folder to find it) and must
+# never be staged — a single `git add -A` would otherwise publish it.
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+
+# OS noise
+.DS_Store
+Thumbs.db

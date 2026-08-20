@@ -134,6 +134,18 @@ SCALE = {
     # --- organelles & added cells -------------------------------------------
     'golgi-apparatus': (2, 2, 'pg'),
     'hepatocyte': (25, 15, 'ng'),
+    # A generic figure: "cancer cell" spans every tissue, so this is a typical
+    # carcinoma cell, larger than the epithelium it came from as the nucleus
+    # swells and the nucleus-to-cytoplasm ratio shifts.
+    'cancer-cell': (20, 4, 'ng'),
+    # The umbrella entry sits between the small lymphocyte (~7 µm) and the
+    # monocyte (~20 µm) it covers.
+    'white-blood-cell': (12, 500, 'pg'),
+    # The atlas's only animal, and by far its largest subject: an unfed adult
+    # Ixodes is a few millimetres, so like amoeba-proteus it pins the bar to
+    # full and the printed figure carries the real size. Engorged females reach
+    # 10 mm and several hundred mg.
+    'tick': (3000, 3, 'mg'),
 }
 
 # grams-per-unit, for converting to a common picogram scale for color-coding
@@ -141,6 +153,8 @@ _UNIT_TO_PG = {
     "fg": 1e-3,
     "pg": 1.0,
     "ng": 1e3,
+    "µg": 1e6,
+    "mg": 1e9,   # the tick is the only subject heavy enough to need this
     "kDa": 1.6605e-9,  # 1 Da = 1.6605e-24 g = 1.6605e-12 pg -> *1000 for kDa
 }
 

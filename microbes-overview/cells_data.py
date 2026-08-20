@@ -913,6 +913,19 @@ PAGES = [
                 "deps_de": "Wird durch Chemokine angelockt. Greift Bakterien und Pilze an, lebt nur Stunden bis wenige Tage.",
                 "deps_en": "Chemokine-guided. Targets bacteria and fungi; lives only hours to a few days.",
             },
+            {
+                "name_de": "Weißes Blutkörperchen (Leukozyt)",
+                "name_en": "White blood cell (leukocyte)",
+                "tier": "basic",
+                "image_filename": "",
+                "image_url": "",
+                "image_credit": "",
+                "image_license": "",
+                "func_de": "Sammelbegriff für alle kernhaltigen Abwehrzellen des Blutes — die vorangegangenen Einträge sind allesamt Leukozyten. Anders als rote Blutkörperchen behalten sie ihren Zellkern und bleiben nicht im Blut: Sie nutzen es nur als Transportweg und wandern durch die Gefäßwand dorthin, wo sie gebraucht werden.",
+                "func_en": "The umbrella term for every nucleated defence cell in the blood — each of the entries above is a leukocyte. Unlike red blood cells they keep their nucleus, and they do not stay in the blood: they use it only as a transport route, squeezing through the vessel wall to wherever they are needed.",
+                "deps_de": "Entsteht aus hämatopoetischen Stammzellen im Knochenmark. Etwa 4.000–10.000 pro Mikroliter Blut; der Anteil der Untergruppen im Differenzialblutbild verrät, ob und womit der Körper gerade kämpft.",
+                "deps_en": "Arises from haematopoietic stem cells in the bone marrow. Roughly 4,000–10,000 per microlitre of blood; the proportions of its subtypes in a differential count reveal whether the body is fighting something, and what.",
+            },
         ],
     },
     # ------------------------------------------------------------------
@@ -999,7 +1012,43 @@ PAGES = [
         ],
     },
     # ------------------------------------------------------------------
-    # Page 10 — Pathogens (overview)
+    # Page 10 — Cancer cells. Deliberately placed last among the body's own
+    # cells and immediately before the pathogens: everything up to here is the
+    # body working as intended, everything after comes from outside. A cancer
+    # cell belongs to neither group, which is exactly the point of the set.
+    # ------------------------------------------------------------------
+    {
+        "id": "cancer-cells",
+        "title_de": "Krebszellen",
+        "title_en": "Cancer cells",
+        "subtitle_de": "Wenn körpereigene Zellen die Regeln vergessen.",
+        "subtitle_en": "When the body's own cells forget the rules.",
+        "description_de": "Krebszellen sind keine Eindringlinge von außen — sie stammen aus dem eigenen Körper. Durch angesammelte Mutationen verlieren sie die Bremsen, die Wachstum, Reparatur und den geordneten Zelltod steuern: Sie teilen sich unbegrenzt, ignorieren Stoppsignale der Nachbarzellen, entziehen sich der Selbstzerstörung und locken sich eigene Blutgefäße heran. Genau diese Herkunft macht sie so schwer bekämpfbar — sie tragen zum großen Teil dieselben Ausweise wie gesunde Zellen.",
+        "description_en": "Cancer cells are not invaders from outside — they come from the body itself. Accumulated mutations strip away the brakes that govern growth, repair and orderly cell death: they divide without limit, ignore their neighbours' stop signals, evade self-destruction and recruit their own blood supply. That origin is precisely what makes them so hard to fight — they still carry most of the same ID badges as healthy cells.",
+        "description_kids_de": "Krebszellen sind keine Eindringlinge von draußen — sie waren einmal ganz normale Zellen deines Körpers. Normalerweise hält sich jede Zelle an Regeln: wachsen, wenn es nötig ist, aufhören, wenn es reicht, und Platz machen, wenn sie alt wird. Bei einer Krebszelle sind diese Regeln kaputtgegangen. Sie teilt sich immer weiter, hört nicht auf die Nachbarn und macht keinen Platz. Deshalb kann daraus ein Knoten wachsen. Ärztinnen und Ärzte haben heute viele Wege, das zu behandeln, und deine Wächterzellen suchen ständig nach Zellen, die aus der Reihe tanzen.",
+        "description_kids_en": "Cancer cells aren't invaders from outside — they were once perfectly ordinary cells in your body. Normally every cell follows rules: grow when you're needed, stop when there's enough, and make way when you get old. In a cancer cell those rules have broken. It keeps on dividing, ignores its neighbours and never makes way, which is how a lump can grow. Doctors have many ways to treat this now, and your patrol cells are constantly on the lookout for cells stepping out of line.",
+        "description_adults_de": "Krebs ist keine einzelne Krankheit, sondern ein Sammelbegriff für über hundert Erkrankungen mit einem gemeinsamen Muster: entartete körpereigene Zellen, die sich der Wachstumskontrolle entziehen. Der Weg dorthin führt über mehrere Mutationsschritte in Genen, die Teilung antreiben (Onkogene) oder bremsen (Tumorsuppressoren). Entscheidend für die Prognose ist weniger der Tumor selbst als seine Fähigkeit, in Nachbargewebe einzuwachsen und Absiedlungen zu bilden.",
+        "description_adults_en": "Cancer is not one disease but an umbrella term for over a hundred conditions sharing a pattern: the body's own cells escaping growth control. Getting there takes several mutational steps in genes that drive division (oncogenes) or restrain it (tumour suppressors). What decides the prognosis is less the tumour itself than its ability to invade neighbouring tissue and seed deposits elsewhere.",
+        "description_sci_de": "Maligne Transformation folgt den Hallmarks of Cancer (Hanahan & Weinberg): autarke Wachstumssignale, Unempfindlichkeit gegenüber wachstumshemmenden Signalen, Apoptose-Resistenz, replikative Unsterblichkeit durch Telomerase-Reaktivierung, anhaltende Angiogenese sowie Invasion und Metastasierung; ergänzt um Reprogrammierung des Energiestoffwechsels (Warburg-Effekt), Immunevasion, Genominstabilität und tumorfördernde Entzündung.",
+        "description_sci_en": "Malignant transformation follows the hallmarks of cancer (Hanahan & Weinberg): self-sufficiency in growth signals, insensitivity to anti-growth signals, evasion of apoptosis, replicative immortality via telomerase reactivation, sustained angiogenesis, and invasion plus metastasis; with the later additions of reprogrammed energy metabolism (the Warburg effect), immune evasion, genome instability and tumour-promoting inflammation.",
+        "entries": [
+            {
+                "name_de": "Krebszelle (maligne Neoplasie)",
+                "name_en": "Cancer cell (malignant neoplasm)",
+                "tier": "basic",
+                "image_filename": "",
+                "image_url": "",
+                "image_credit": "",
+                "image_license": "",
+                "func_de": "Körpereigene Zelle, die durch angehäufte Mutationen die Kontrolle über ihre eigene Teilung verloren hat. Typisch sind ein vergrößerter, unregelmäßiger Zellkern mit auffälligen Nukleolen, ein verschobenes Kern-Plasma-Verhältnis, unregelmäßige Zellform und atypische Mitosefiguren.",
+                "func_en": "A cell of the body that has lost control of its own division through accumulated mutations. The classic signs are an enlarged, irregular nucleus with prominent nucleoli, a shifted nucleus-to-cytoplasm ratio, an irregular cell outline and atypical mitotic figures.",
+                "deps_de": "Wird von natürlichen Killerzellen und zytotoxischen T-Zellen aufgespürt, sofern sie noch als auffällig erkennbar ist — viele Tumoren entkommen genau dieser Kontrolle. Behandelt wird je nach Art mit Operation, Bestrahlung, Medikamenten oder Immuntherapien.",
+                "deps_en": "Hunted by natural killer cells and cytotoxic T cells so long as it still looks abnormal to them — evading exactly that surveillance is what many tumours achieve. Treatment depends on the type: surgery, radiotherapy, drugs or immunotherapy.",
+            },
+        ],
+    },
+    # ------------------------------------------------------------------
+    # Page 11 — Pathogens (overview)
     # ------------------------------------------------------------------
     {
         "id": "pathogens",
@@ -1117,6 +1166,22 @@ PAGES = [
                 "func_en": "Enveloped RNA virus ringed by club-shaped spike proteins — hence the name (Latin corona, crown). The spikes dock onto receptors on airway cells, and the virus then has the cell build copies of it.",
                 "deps_de": "Wird über Tröpfchen und Aerosole übertragen. Händewaschen, Lüften und Impfungen bremsen die Ausbreitung; die meisten Infektionen klingen von selbst ab.",
                 "deps_en": "Spread by droplets and aerosols. Hand washing, fresh air and vaccination slow it down, and most infections clear up on their own.",
+            },
+            {
+                # Not a pathogen but a vector — the only animal in the atlas. It
+                # earns its place here because it is how Borrelia (see the
+                # bacteria page) actually reaches people.
+                "name_de": "Zecke (Ixodes, Holzbock)",
+                "name_en": "Tick (Ixodes scapularis)",
+                "tier": "basic",
+                "image_filename": "",
+                "image_url": "",
+                "image_credit": "",
+                "image_license": "",
+                "func_de": "Kein Erreger, sondern ein Überträger — und als Spinnentier das einzige Tier in diesem Atlas. Die Zecke sticht, saugt tagelang Blut und gibt dabei weiter, was sie selbst in sich trägt: in Nordamerika vor allem Borrelien, in Europa zusätzlich das FSME-Virus. Acht Beine, ein Stechapparat mit Widerhaken, und ein Körper, der sich beim Saugen um ein Vielfaches aufbläht.",
+                "func_en": "Not a pathogen but a vector — and, as an arachnid, the only animal in this atlas. A tick bites, feeds on blood for days, and passes on whatever it happens to carry: chiefly Borrelia in North America, and in Europe the TBE virus as well. Eight legs, a barbed feeding tube, and a body that swells many times over as it fills.",
+                "deps_de": "Nach jedem Aufenthalt in Wiese oder Unterholz absuchen: Je früher eine Zecke entfernt wird, desto unwahrscheinlicher ist eine Übertragung. Mit einer Pinzette dicht an der Haut fassen und gerade herausziehen — nicht drehen, nicht mit Öl oder Klebstoff betupfen.",
+                "deps_en": "Check yourself after any time in long grass or undergrowth: the sooner a tick comes off, the less likely it is to pass anything on. Grip it with tweezers close to the skin and pull straight out — do not twist it, and do not dab it with oil or glue.",
             },
         ],
     },
