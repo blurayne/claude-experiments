@@ -4,7 +4,7 @@
 
 ## Where we stand
 
-- **16 sets**, **96 microbes** live in the viewer, out of **97 catalogued**.
+- **16 sets**, **96 microbes** live in the viewer, out of **107 catalogued**.
 - Every live microbe carries: 5 picture styles, 3 labelled diagrams, a printable A4 coloring page, kids narration in EN + DE, and size/weight data — the table below is the proof.
 - **44 plush links**, every one an exact species/cell match. 8 of those photos had to be repaired (see the last section).
 
@@ -15,6 +15,13 @@
 | Set | Microbe | key | R | D | C | A | S | P |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | organelles | Golgi apparatus | `golgi-apparatus` | 5/5 | 3/3 | ✅ | ✅ | 2 µm · 2 pg | Golgi Apparatus |
+| organelles | Nucleus | — | ❌ not rendered | | | | 6 µm · 300 pg | |
+| organelles | Mitochondrion | — | ❌ not rendered | | | | 2 µm · 0.5 pg | |
+| organelles | Ribosome | — | ❌ not rendered | | | | 25 nm · 4200 kDa | |
+| organelles | Endoplasmic reticulum (ER) | — | ❌ not rendered | | | | 10 µm · 300 pg | |
+| organelles | Lysosome | — | ❌ not rendered | | | | 500 nm · 0.06 pg | |
+| organelles | Cell membrane (plasma membrane) | — | ❌ not rendered | | | | 15 µm · 4 pg | |
+| organelles | Cytoskeleton | — | ❌ not rendered | | | | 15 µm · 80 pg | |
 | stem-cells | Embryonic stem cell (ESC) | `embryonic-stem-cell` | 5/5 | 3/3 | ✅ | ✅ | 15 µm · 1 ng | — |
 | stem-cells | Induced pluripotent stem cell (iPS) | `induced-pluripotent-stem-cell` | 5/5 | 3/3 | ✅ | ✅ | 15 µm · 1 ng | — |
 | stem-cells | Hematopoietic stem cell (HSC) | `hematopoietic-stem-cell` | 5/5 | 3/3 | ✅ | ✅ | 8 µm · 0.3 ng | Stem Cell Gigantic 14" |
@@ -75,6 +82,9 @@
 | antibodies | Immunoglobulin M (IgM) | `igm` | 5/5 | 3/3 | ✅ | ✅ | 35 nm · 950 kDa | — |
 | antibodies | Immunoglobulin D (IgD) | `igd` | 5/5 | 3/3 | ✅ | ✅ | 10 nm · 180 kDa | — |
 | antibodies | Immunoglobulin E (IgE) | `ige` | 5/5 | 3/3 | ✅ | ✅ | 10 nm · 190 kDa | — |
+| genetics | DNA (deoxyribonucleic acid) | — | ❌ not rendered | | | | 2 nm · 6.6 pg | |
+| genetics | RNA (ribonucleic acid) | — | ❌ not rendered | | | | 1 nm · 500 kDa | |
+| genetics | Chromosome | — | ❌ not rendered | | | | 5 µm · 0.3 pg | |
 | cancer-cells | Cancer cell (malignant neoplasm) | `cancer-cell` | 5/5 | 3/3 | ✅ | ✅ | 20 µm · 4 ng | Cancer (Malignant neoplasm) |
 | pathogens | Cocci (round bacteria) | `cocci` | 5/5 | 3/3 | ✅ | ✅ | 1 µm · 0.5 pg | — |
 | pathogens | Rod-shaped bacterium (bacillus) | `rod-bacterium` | 5/5 | 3/3 | ✅ | ✅ | 3 µm · 1 pg | — |
@@ -114,15 +124,25 @@
 
 ## Gaps
 
-**Catalogued but not yet rendered — 1.** Text, German translation and scale data already exist for these; only the pictures are missing.
+**Catalogued but not yet rendered — 11.** Text, German translation and scale data already exist for these; only the pictures are missing.
 
+- `organelles` — Nucleus
+- `organelles` — Mitochondrion
+- `organelles` — Ribosome
+- `organelles` — Endoplasmic reticulum (ER)
+- `organelles` — Lysosome
+- `organelles` — Cell membrane (plasma membrane)
+- `organelles` — Cytoskeleton
+- `genetics` — DNA (deoxyribonucleic acid)
+- `genetics` — RNA (ribonucleic acid)
+- `genetics` — Chromosome
 - `pathogens` — Tick (Ixodes scapularis)
 
 **Rendered but not reaching the viewer — 0.** A render only appears if `meta.name` matches a catalogue `name_en` exactly, or its key matches the slug of one; anything here fell through both.
 
 - none
 
-**Data waiting for a render:** 1 scale entry (`tick`), 1 plush link (`tick`).
+**Data waiting for a render:** 11 scale entries (`cell-membrane`, `chromosome`, `cytoskeleton`, `dna`, `endoplasmic-reticulum`, `lysosome`, `mitochondrion`, `nucleus`, `ribosome`, `rna`, `tick`), 1 plush link (`tick`).
 
 **No recorded micrograph source:** `reticulocyte`.
 

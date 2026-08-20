@@ -146,6 +146,23 @@ SCALE = {
     # full and the printed figure carries the real size. Engorged females reach
     # 10 mm and several hundred mg.
     'tick': (3000, 3, 'mg'),
+    # --- organelles ----------------------------------------------------------
+    # For a structure that is a network rather than a body (ER, cytoskeleton,
+    # plasma membrane) the size figure is the extent it spans inside a typical
+    # cell, not a diameter; the descriptions carry the real thickness.
+    'nucleus': (6, 300, 'pg'),
+    'mitochondrion': (2, 0.5, 'pg'),
+    'ribosome': (0.025, 4200, 'kDa'),      # eukaryotic 80S, ~4.2 MDa
+    'endoplasmic-reticulum': (10, 300, 'pg'),
+    'lysosome': (0.5, 0.06, 'pg'),
+    'cell-membrane': (15, 4, 'pg'),
+    'cytoskeleton': (15, 80, 'pg'),
+    # --- genetic material ----------------------------------------------------
+    # DNA's size figure is the helix width (2 nm); its weight is the checkable
+    # one — a full diploid human genome is ~6.6 pg per cell.
+    'dna': (0.002, 6.6, 'pg'),
+    'rna': (0.001, 500, 'kDa'),            # a typical mRNA
+    'chromosome': (5, 0.3, 'pg'),          # condensed metaphase chromosome
 }
 
 # grams-per-unit, for converting to a common picogram scale for color-coding
