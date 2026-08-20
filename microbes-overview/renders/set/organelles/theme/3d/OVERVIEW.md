@@ -10,6 +10,10 @@ Every microbe's `3d` image — labelled SVG where built, else the last render. [
 ![3d](golgi-apparatus.3d.svg)
 [full log](../../golgi-apparatus.render.md)
 
+## Lysosome (`lysosome`)
+![3d](lysosome.3d.svg)
+[full log](../../lysosome.render.md)
+
 ## Mitochondrion (`mitochondrion`)
 ![3d](mitochondrion.3d.svg)
 [full log](../../mitochondrion.render.md)

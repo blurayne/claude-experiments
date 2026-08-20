@@ -10,6 +10,10 @@ Every microbe's `watercolor` image — labelled SVG where built, else the last r
 ![watercolor](golgi-apparatus.watercolor.svg)
 [full log](../../golgi-apparatus.render.md)
 
+## Lysosome (`lysosome`)
+![watercolor](lysosome.watercolor.svg)
+[full log](../../lysosome.render.md)
+
 ## Mitochondrion (`mitochondrion`)
 ![watercolor](mitochondrion.watercolor.svg)
 [full log](../../mitochondrion.render.md)

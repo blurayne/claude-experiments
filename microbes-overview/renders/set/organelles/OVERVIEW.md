@@ -38,6 +38,24 @@ The cell's packing and dispatch station: a polarised stack of four to eight smoo
 
 Full log: [`golgi-apparatus.render.md`](golgi-apparatus.render.md)
 
+## Lysosome (`lysosome`)
+The recycling plant: a membrane bubble full of digestive enzymes that only work in its acidic interior. It breaks down engulfed particles and the cell's own worn-out parts into building blocks the cell reuses.
+
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/lysosome__textbook.avif) | ![sem](finals/lysosome__sem.avif) | ![3d](finals/lysosome__3d.avif) | ![watercolor](finals/lysosome__watercolor.avif) | ![reference](finals/lysosome__reference.avif) |
+
+**textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/lysosome.textbook.svg) · [HTML](theme/textbook/lysosome.textbook.html)
+![textbook labelled](theme/textbook/lysosome.textbook.svg)
+
+**3d — labelled** (English default, La/De toggle): [SVG](theme/3d/lysosome.3d.svg) · [HTML](theme/3d/lysosome.3d.html)
+![3d labelled](theme/3d/lysosome.3d.svg)
+
+**watercolor — labelled** (English default, La/De toggle): [SVG](theme/watercolor/lysosome.watercolor.svg) · [HTML](theme/watercolor/lysosome.watercolor.html)
+![watercolor labelled](theme/watercolor/lysosome.watercolor.svg)
+
+Full log: [`lysosome.render.md`](lysosome.render.md)
+
 ## Mitochondrion (`mitochondrion`)
 The power plant: a smooth outer membrane and a deeply folded inner one whose folds (cristae) multiply the working surface. There sits the respiratory chain, which turns nutrients and oxygen into ATP, the cell's energy currency.
 
@@ -106,6 +124,11 @@ Full log: [`ribosome.render.md`](ribosome.render.md)
 | Golgi apparatus | 3D medical render | gemini-3-pro-image | 3 | ✅ | built | 41s | 7754 | $0.121 |
 | Golgi apparatus | Watercolor plate | gemini-3-pro-image | 4 | ✅ | built | 1.3m | 11871 | $0.192 |
 | Golgi apparatus | TEM · Public domain | — (edit) | 3 | ✅ | n/a | 9s | 1850 | $0.039 |
+| Lysosome | Textbook illustration | gemini-2.5-flash-image | 1 | ✅ | built | 6s | 1893 | $0.039 |
+| Lysosome | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 6s | 1706 | $0.039 |
+| Lysosome | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 7s | 1777 | $0.039 |
+| Lysosome | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 6s | 1786 | $0.039 |
+| Lysosome | TEM · Public domain | — (download) | 1 | ✅ | n/a | 0s | 0 | $0.000 |
 | Mitochondrion | Textbook illustration | gemini-2.5-flash-image | 1 | ✅ | built | 6s | 1903 | $0.039 |
 | Mitochondrion | SEM micrograph | gemini-2.5-flash-image | 2 | ✅ | pending (same pipeline) | 13s | 3397 | $0.077 |
 | Mitochondrion | 3D medical render | gemini-2.5-flash-image | 2 | ✅ | built | 15s | 3597 | $0.077 |
@@ -122,6 +145,6 @@ Full log: [`ribosome.render.md`](ribosome.render.md)
 | Ribosome | Watercolor plate | gemini-3-pro-image | 4 | ✅ | built | 46s | 8917 | $0.174 |
 | Ribosome | structural-model · CC BY-SA 3.0 / GFDL 1.2+ | — (edit) | 2 | ✅ | n/a | 0s | 0 | $0.000 |
 
-**Set total: 96,690 tokens · $1.804**
+**Set total: 103,852 tokens · $1.959**
 
-_Updated 2026-08-20 22:19 local._
+_Updated 2026-08-20 22:30 local._

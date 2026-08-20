@@ -10,6 +10,10 @@ Every microbe's `textbook` image — labelled SVG where built, else the last ren
 ![textbook](golgi-apparatus.textbook.svg)
 [full log](../../golgi-apparatus.render.md)
 
+## Lysosome (`lysosome`)
+![textbook](lysosome.textbook.svg)
+[full log](../../lysosome.render.md)
+
 ## Mitochondrion (`mitochondrion`)
 ![textbook](mitochondrion.textbook.svg)
 [full log](../../mitochondrion.render.md)
