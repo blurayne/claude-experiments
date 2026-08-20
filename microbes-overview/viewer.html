@@ -26,7 +26,6 @@ html[data-mode="dark"]{
   --border:rgba(255,255,255,.13); --border-hi:rgba(255,255,255,.28);
   --panel:#12151a; --panel-bd:rgba(255,255,255,.14);
   --shadow:0 18px 50px -12px rgba(0,0,0,.7);
-  --mark:rgba(255,220,120,.28);
   --box-bg:#0a0c0f;
 }
 html[data-mode="light"]{
@@ -35,7 +34,6 @@ html[data-mode="light"]{
   --border:rgba(0,0,0,.13); --border-hi:rgba(0,0,0,.28);
   --panel:#ffffff; --panel-bd:rgba(0,0,0,.12);
   --shadow:0 18px 45px -14px rgba(30,40,60,.28);
-  --mark:rgba(255,205,70,.5);
   --box-bg:#eef1f3;
 }
 /* theme accent + fonts */
@@ -580,9 +578,13 @@ svg text{font-family:var(--font-comic)}
 .cb-print, .cb-giant-link{padding:7px 11px; font-size:15px}
 /* search highlight: always plain black/white (never the theme accent) so matches
    stay unmistakably prominent regardless of theme */
-mark{border-radius:3px; padding:0 3px; font-weight:700}
-html[data-mode="dark"] mark{background:#fff; color:#000; box-shadow:0 0 0 2px #000}
-html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 0 0 2px #fff}
+/* No horizontal padding and no horizontal ring: inline padding on a <mark>
+   widens every hit and visibly pushes the surrounding words apart, so the
+   prose reflows the moment you type. The contrast ring is kept, but only
+   above and below, where it costs no layout width. */
+mark{border-radius:3px; padding:.08em 0; font-weight:700}
+html[data-mode="dark"] mark{background:#fff; color:#000; box-shadow:0 -2px 0 #000, 0 2px 0 #000}
+html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 -2px 0 #fff, 0 2px 0 #fff}
 
 /* growl / toast notification, fixed bottom-center */
 .toast{position:fixed; left:50%; bottom:max(22px,3vh); transform:translateX(-50%); z-index:3000;
