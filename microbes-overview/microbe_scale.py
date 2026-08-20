@@ -103,6 +103,33 @@ SCALE = {
     "hepatitis-b-virus": (0.042, 0.3, "fg"),
     "plasmodium": (2, 1, "pg"),
     "candida-albicans": (5, 40, "pg"),
+
+    # --- heart cells -------------------------------------------------------
+    'pacemaker-cell': (25, 1.5, 'ng'),
+    'purkinje-fibre': (80, 15, 'ng'),
+    'cardiomyocyte': (100, 60, 'ng'),
+    'cardiac-macrophage': (25, 5, 'ng'),
+    'intracardiac-neuron': (30, 3, 'ng'),
+    # --- helpful microbes --------------------------------------------------
+    'saccharomyces-cerevisiae': (5, 60, 'pg'),
+    'penicillium-chrysogenum': (3.5, 20, 'pg'),
+    'bifidobacterium-longum': (3, 1.5, 'pg'),
+    # --- added bacteria ----------------------------------------------------
+    'streptococcus-mutans': (0.8, 1, 'pg'),
+    'borrelia-burgdorferi': (20, 0.3, 'pg'),
+    'clostridioides-difficile': (5, 3, 'pg'),
+    'listeria-monocytogenes': (2, 1, 'pg'),
+    # --- added viruses & eukaryotes ----------------------------------------
+    'rhinovirus': (0.03, 0.3, 'fg'),
+    'measles-virus': (0.2, 8, 'fg'),
+    'rotavirus': (0.075, 1.5, 'fg'),
+    'norovirus': (0.038, 0.5, 'fg'),
+    'varicella-zoster-virus': (0.18, 6, 'fg'),
+    'giardia-lamblia': (12, 1, 'ng'),
+    # Amoeba proteus is the one entry that overshoots the 120 µm bar ceiling
+    # (it is visible to the naked eye); the bar pins to full and the printed
+    # figure carries the real size.
+    'amoeba-proteus': (400, 30_000, 'ng'),
 }
 
 # grams-per-unit, for converting to a common picogram scale for color-coding
