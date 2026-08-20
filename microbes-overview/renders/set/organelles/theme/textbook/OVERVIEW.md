@@ -6,6 +6,10 @@ Every microbe's `textbook` image — labelled SVG where built, else the last ren
 ![textbook](cell-membrane.textbook.svg)
 [full log](../../cell-membrane.render.md)
 
+## Cytoskeleton (`cytoskeleton`)
+![textbook](cytoskeleton.textbook.svg)
+[full log](../../cytoskeleton.render.md)
+
 ## Endoplasmic reticulum (ER) (`endoplasmic-reticulum`)
 ![textbook](endoplasmic-reticulum.textbook.svg)
 [full log](../../endoplasmic-reticulum.render.md)

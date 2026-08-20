@@ -6,6 +6,10 @@ Every microbe's `3d` image — labelled SVG where built, else the last render. [
 ![3d](cell-membrane.3d.svg)
 [full log](../../cell-membrane.render.md)
 
+## Cytoskeleton (`cytoskeleton`)
+![3d](cytoskeleton.3d.svg)
+[full log](../../cytoskeleton.render.md)
+
 ## Endoplasmic reticulum (ER) (`endoplasmic-reticulum`)
 ![3d](endoplasmic-reticulum.3d.svg)
 [full log](../../endoplasmic-reticulum.render.md)

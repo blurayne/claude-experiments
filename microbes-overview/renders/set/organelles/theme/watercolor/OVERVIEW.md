@@ -6,6 +6,10 @@ Every microbe's `watercolor` image — labelled SVG where built, else the last r
 ![watercolor](cell-membrane.watercolor.svg)
 [full log](../../cell-membrane.render.md)
 
+## Cytoskeleton (`cytoskeleton`)
+![watercolor](cytoskeleton.watercolor.svg)
+[full log](../../cytoskeleton.render.md)
+
 ## Endoplasmic reticulum (ER) (`endoplasmic-reticulum`)
 ![watercolor](endoplasmic-reticulum.watercolor.svg)
 [full log](../../endoplasmic-reticulum.render.md)

@@ -20,6 +20,24 @@ The cell's boundary, and at about five nanometres astonishingly thin: a double l
 
 Full log: [`cell-membrane.render.md`](cell-membrane.render.md)
 
+## Cytoskeleton (`cytoskeleton`)
+Scaffold, muscle and railway in one, built from three kinds of fibre: thin actin filaments shape the cell surface and let cells crawl, medium intermediate filaments provide tensile strength, and thick microtubules act as transport rails and pull the chromosomes apart during division.
+
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/cytoskeleton__textbook.avif) | ![sem](finals/cytoskeleton__sem.avif) | ![3d](finals/cytoskeleton__3d.avif) | ![watercolor](finals/cytoskeleton__watercolor.avif) | ![reference](finals/cytoskeleton__reference.avif) |
+
+**textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/cytoskeleton.textbook.svg) · [HTML](theme/textbook/cytoskeleton.textbook.html)
+![textbook labelled](theme/textbook/cytoskeleton.textbook.svg)
+
+**3d — labelled** (English default, La/De toggle): [SVG](theme/3d/cytoskeleton.3d.svg) · [HTML](theme/3d/cytoskeleton.3d.html)
+![3d labelled](theme/3d/cytoskeleton.3d.svg)
+
+**watercolor — labelled** (English default, La/De toggle): [SVG](theme/watercolor/cytoskeleton.watercolor.svg) · [HTML](theme/watercolor/cytoskeleton.watercolor.html)
+![watercolor labelled](theme/watercolor/cytoskeleton.watercolor.svg)
+
+Full log: [`cytoskeleton.render.md`](cytoskeleton.render.md)
+
 ## Endoplasmic reticulum (ER) (`endoplasmic-reticulum`)
 A single continuous membrane network beginning right at the nuclear envelope that splits into two connected regions: ribosome-studded ROUGH ER (stacked cisternae) folding and quality-checking newly built proteins, transitioning into ribosome-free SMOOTH ER (branching tubules) that makes lipids and hormones, detoxifies, and stores calcium.
 
@@ -137,6 +155,11 @@ Full log: [`ribosome.render.md`](ribosome.render.md)
 | Cell membrane (plasma membrane) | 3D medical render | gemini-2.5-flash-image | 4 | ✅ | built | 26s | 7228 | $0.155 |
 | Cell membrane (plasma membrane) | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 8s | 1734 | $0.039 |
 | Cell membrane (plasma membrane) | freeze-fracture-EM · CC0 1.0 Universal Public Domain Dedication | — (download) | 1 | ✅ | n/a | 2s | 0 | $0.000 |
+| Cytoskeleton | Textbook illustration | gemini-2.5-flash-image | 2 | ✅ | built | 14s | 3793 | $0.077 |
+| Cytoskeleton | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 6s | 1596 | $0.039 |
+| Cytoskeleton | 3D medical render | gemini-2.5-flash-image | 2 | ✅ | built | 15s | 3330 | $0.077 |
+| Cytoskeleton | Watercolor plate | gemini-2.5-flash-image | 2 | ✅ | built | 13s | 3520 | $0.077 |
+| Cytoskeleton | immunofluorescence · CC BY-NC-SA 3.0 | — (download) | 1 | ✅ | n/a | 5s | 0 | $0.000 |
 | Endoplasmic reticulum (ER) | Textbook illustration | gemini-2.5-flash-image | 2 | ✅ | built | 17s | 4402 | $0.077 |
 | Endoplasmic reticulum (ER) | SEM micrograph | gemini-2.5-flash-image | 2 | ✅ | pending (same pipeline) | 14s | 3670 | $0.077 |
 | Endoplasmic reticulum (ER) | 3D medical render | gemini-2.5-flash-image | 2 | ✅ | built | 15s | 3940 | $0.077 |
@@ -168,6 +191,6 @@ Full log: [`ribosome.render.md`](ribosome.render.md)
 | Ribosome | Watercolor plate | gemini-3-pro-image | 4 | ✅ | built | 46s | 8917 | $0.174 |
 | Ribosome | structural-model · CC BY-SA 3.0 / GFDL 1.2+ | — (edit) | 2 | ✅ | n/a | 0s | 0 | $0.000 |
 
-**Set total: 116,335 tokens · $2.230**
+**Set total: 128,574 tokens · $2.501**
 
-_Updated 2026-08-20 22:43 local._
+_Updated 2026-08-20 23:00 local._

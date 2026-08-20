@@ -6,6 +6,10 @@ Every microbe's `sem` image — labelled SVG where built, else the last render. 
 ![sem](cell-membrane.attempts/gen-01__gemini-2.5-flash-image.avif)
 [full log](../../cell-membrane.render.md)
 
+## Cytoskeleton (`cytoskeleton`)
+![sem](cytoskeleton.attempts/gen-01__gemini-2.5-flash-image.avif)
+[full log](../../cytoskeleton.render.md)
+
 ## Endoplasmic reticulum (ER) (`endoplasmic-reticulum`)
 ![sem](endoplasmic-reticulum.attempts/gen-02__gemini-2.5-flash-image.avif)
 [full log](../../endoplasmic-reticulum.render.md)
