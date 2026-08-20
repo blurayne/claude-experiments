@@ -14,6 +14,10 @@ Every microbe's `textbook` image — labelled SVG where built, else the last ren
 ![textbook](goblet-cell.textbook.svg)
 [full log](../../goblet-cell.render.md)
 
+## Hepatocyte (liver cell) (`hepatocyte`)
+![textbook](hepatocyte.textbook.svg)
+[full log](../../hepatocyte.render.md)
+
 ## Keratinocyte (skin cell) (`keratinocyte`)
 ![textbook](keratinocyte.textbook.svg)
 [full log](../../keratinocyte.render.md)

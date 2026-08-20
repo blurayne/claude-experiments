@@ -30,6 +30,10 @@ Every microbe's `textbook` image — labelled SVG where built, else the last ren
 ![textbook](rhinovirus.textbook.svg)
 [full log](../../rhinovirus.render.md)
 
+## Rotavirus (`rotavirus`)
+![textbook](rotavirus.textbook.svg)
+[full log](../../rotavirus.render.md)
+
 ## SARS-CoV-2 (COVID-19) (`sars-cov-2`)
 ![textbook](sars-cov-2.textbook.svg)
 [full log](../../sars-cov-2.render.md)

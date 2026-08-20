@@ -14,6 +14,10 @@ Every microbe's `watercolor` image — labelled SVG where built, else the last r
 ![watercolor](goblet-cell.watercolor.svg)
 [full log](../../goblet-cell.render.md)
 
+## Hepatocyte (liver cell) (`hepatocyte`)
+![watercolor](hepatocyte.watercolor.svg)
+[full log](../../hepatocyte.render.md)
+
 ## Keratinocyte (skin cell) (`keratinocyte`)
 ![watercolor](keratinocyte.watercolor.svg)
 [full log](../../keratinocyte.render.md)

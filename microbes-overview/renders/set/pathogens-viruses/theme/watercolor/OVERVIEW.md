@@ -30,6 +30,10 @@ Every microbe's `watercolor` image — labelled SVG where built, else the last r
 ![watercolor](rhinovirus.watercolor.svg)
 [full log](../../rhinovirus.render.md)
 
+## Rotavirus (`rotavirus`)
+![watercolor](rotavirus.watercolor.svg)
+[full log](../../rotavirus.render.md)
+
 ## SARS-CoV-2 (COVID-19) (`sars-cov-2`)
 ![watercolor](sars-cov-2.watercolor.svg)
 [full log](../../sars-cov-2.render.md)

@@ -30,6 +30,10 @@ Every microbe's `3d` image — labelled SVG where built, else the last render. [
 ![3d](rhinovirus.3d.svg)
 [full log](../../rhinovirus.render.md)
 
+## Rotavirus (`rotavirus`)
+![3d](rotavirus.3d.svg)
+[full log](../../rotavirus.render.md)
+
 ## SARS-CoV-2 (COVID-19) (`sars-cov-2`)
 ![3d](sars-cov-2.3d.svg)
 [full log](../../sars-cov-2.render.md)

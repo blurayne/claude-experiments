@@ -56,6 +56,24 @@ Goblet-shaped mucus producer in gut and airways. Releases mucin packets that for
 
 Full log: [`goblet-cell.render.md`](goblet-cell.render.md)
 
+## Hepatocyte (liver cell) (`hepatocyte`)
+Polyhedral liver cell, ~25 µm across and often binucleate, packed with smooth and rough ER, mitochondria and peroxisomes. It detoxifies blood, breaks down medicines, makes bile and plasma proteins, and stores sugar as glycogen; one face borders a blood sinusoid, the opposite face forms a tiny bile canal shared with its neighbour.
+
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/hepatocyte__textbook.avif) | ![sem](finals/hepatocyte__sem.avif) | ![3d](finals/hepatocyte__3d.avif) | ![watercolor](finals/hepatocyte__watercolor.avif) | ![reference](finals/hepatocyte__reference.avif) |
+
+**textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/hepatocyte.textbook.svg) · [HTML](theme/textbook/hepatocyte.textbook.html)
+![textbook labelled](theme/textbook/hepatocyte.textbook.svg)
+
+**3d — labelled** (English default, La/De toggle): [SVG](theme/3d/hepatocyte.3d.svg) · [HTML](theme/3d/hepatocyte.3d.html)
+![3d labelled](theme/3d/hepatocyte.3d.svg)
+
+**watercolor — labelled** (English default, La/De toggle): [SVG](theme/watercolor/hepatocyte.watercolor.svg) · [HTML](theme/watercolor/hepatocyte.watercolor.html)
+![watercolor labelled](theme/watercolor/hepatocyte.watercolor.svg)
+
+Full log: [`hepatocyte.render.md`](hepatocyte.render.md)
+
 ## Keratinocyte (skin cell) (`keratinocyte`)
 Polyhedral epidermal cell joined to its neighbours by desmosomal "spines", packed with keratin tonofilament bundles; differentiates upward from the basal layer, produces keratohyalin and lamellar bodies, and finally cornifies into the anucleate, waterproof outer skin barrier.
 
@@ -129,6 +147,11 @@ Full log: [`urothelial-cell.render.md`](urothelial-cell.render.md)
 | Goblet cell | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 16s | 1626 | $0.039 |
 | Goblet cell | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 15s | 1633 | $0.039 |
 | Goblet cell | light micrograph (H&E, human terminal ileum biopsy) · CC BY-SA 3.0 / GFDL 1.2+ (dual) | — (download) | 1 | ✅ | n/a | 12s | 0 | $0.000 |
+| Hepatocyte (liver cell) | Textbook illustration | gemini-3-pro-image | 4 | ✅ | built | 50s | 10500 | $0.172 |
+| Hepatocyte (liver cell) | SEM micrograph | gemini-3-pro-image | 5 | ✅ | pending (same pipeline) | 51s | 9726 | $0.200 |
+| Hepatocyte (liver cell) | 3D medical render | gemini-2.5-flash-image | 2 | ✅ | built | 18s | 4120 | $0.077 |
+| Hepatocyte (liver cell) | Watercolor plate | gemini-2.5-flash-image | 2 | ✅ | built | 17s | 4058 | $0.077 |
+| Hepatocyte (liver cell) | Histology (H&E) · CC BY-SA 4.0 | — (edit) | 2 | ✅ | n/a | 11s | 1740 | $0.039 |
 | Keratinocyte (skin cell) | Textbook illustration | gemini-2.5-flash-image | 1 | ✅ | built | 17s | 1654 | $0.039 |
 | Keratinocyte (skin cell) | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 11s | 1528 | $0.039 |
 | Keratinocyte (skin cell) | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 24s | 1583 | $0.039 |
@@ -145,6 +168,6 @@ Full log: [`urothelial-cell.render.md`](urothelial-cell.render.md)
 | Urothelial cell (umbrella cell) | Watercolor plate | gemini-3-pro-image | 4 | ✅ | built | 1.7m | 7834 | $0.164 |
 | Urothelial cell (umbrella cell) | light (H&E) · CC BY-SA 3.0 | — (download) | 1 | ✅ | n/a | 16s | 0 | $0.000 |
 
-**Set total: 53,575 tokens · $1.247**
+**Set total: 83,719 tokens · $1.812**
 
-_Updated 2026-08-20 14:02 local._
+_Updated 2026-08-20 15:39 local._

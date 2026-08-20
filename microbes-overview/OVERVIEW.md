@@ -4,9 +4,9 @@
 
 ## Where we stand
 
-- **15 sets**, **85 microbes** live in the viewer, out of **93 catalogued**.
+- **15 sets**, **89 microbes** live in the viewer, out of **93 catalogued**.
 - Every live microbe carries: 5 picture styles, 3 labelled diagrams, a printable A4 coloring page, kids narration in EN + DE, and size/weight data — the table below is the proof.
-- **35 plush links**, every one an exact species/cell match. 8 of those photos had to be repaired (see the last section).
+- **38 plush links**, every one an exact species/cell match. 8 of those photos had to be repaired (see the last section).
 
 ## Every catalogued entry, and what it has
 
@@ -14,7 +14,7 @@
 
 | Set | Microbe | key | R | D | C | A | S | P |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| organelles | Golgi apparatus | — | ❌ not rendered | | | | 2 µm · 2 pg | |
+| organelles | Golgi apparatus | `golgi-apparatus` | 5/5 | 3/3 | ✅ | ✅ | 2 µm · 2 pg | Golgi Apparatus |
 | stem-cells | Embryonic stem cell (ESC) | `embryonic-stem-cell` | 5/5 | 3/3 | ✅ | ✅ | 15 µm · 1 ng | — |
 | stem-cells | Induced pluripotent stem cell (iPS) | `induced-pluripotent-stem-cell` | 5/5 | 3/3 | ✅ | ✅ | 15 µm · 1 ng | — |
 | stem-cells | Hematopoietic stem cell (HSC) | `hematopoietic-stem-cell` | 5/5 | 3/3 | ✅ | ✅ | 8 µm · 0.3 ng | Stem Cell Gigantic 14" |
@@ -27,7 +27,7 @@
 | epithelial | Paneth cell | `paneth-cell` | 5/5 | 3/3 | ✅ | ✅ | 15 µm · 2 ng | — |
 | epithelial | Alveolar cell type II | `alveolar-cell-type-ii` | 5/5 | 3/3 | ✅ | ✅ | 10 µm · 1 ng | — |
 | epithelial | Urothelial cell | `urothelial-cell` | 5/5 | 3/3 | ✅ | ✅ | 100 µm · 15 ng | — |
-| epithelial | Hepatocyte (liver cell) | — | ❌ not rendered | | | | 25 µm · 15 ng | |
+| epithelial | Hepatocyte (liver cell) | `hepatocyte` | 5/5 | 3/3 | ✅ | ✅ | 25 µm · 15 ng | Leberzelle (Liver Cell) |
 | nerve-cells | Neuron | `neuron` | 5/5 | 3/3 | ✅ | ✅ | 20 µm · 2 ng | Nerve Cell (Neuron) |
 | nerve-cells | Motor neuron | `motor-neuron` | 5/5 | 3/3 | ✅ | ✅ | 80 µm · 20 ng | — |
 | nerve-cells | Astrocyte | `astrocyte` | 5/5 | 3/3 | ✅ | ✅ | 15 µm · 1.5 ng | — |
@@ -89,8 +89,8 @@
 | pathogens-bacteria | Salmonella enterica | `salmonella-enterica` | 5/5 | 3/3 | ✅ | ✅ | 2.5 µm · 1 pg | Salmonella (Salmonella typhimurium) |
 | pathogens-bacteria | Helicobacter pylori | `helicobacter-pylori` | 5/5 | 3/3 | ✅ | ✅ | 3 µm · 0.5 pg | Ulcer (Helicobacter pylori) |
 | pathogens-bacteria | Streptococcus mutans (tooth decay) | `streptococcus-mutans` | 5/5 | 3/3 | ✅ | ✅ | 800 nm · 1 pg | — |
-| pathogens-bacteria | Borrelia burgdorferi (Lyme disease) | `borrelia-burgdorferi` | 5/5 | 3/3 | — | ✅ | 20 µm · 0.3 pg | Lyme Disease (Borrelia burgdorferi) |
-| pathogens-bacteria | Clostridioides difficile (C. diff) | — | ❌ not rendered | | | | 5 µm · 3 pg | |
+| pathogens-bacteria | Borrelia burgdorferi (Lyme disease) | `borrelia-burgdorferi` | 5/5 | 3/3 | ✅ | ✅ | 20 µm · 0.3 pg | Lyme Disease (Borrelia burgdorferi) |
+| pathogens-bacteria | Clostridioides difficile (C. diff) | `clostridioides-difficile` | 5/5 | 3/3 | ✅ | ✅ | 5 µm · 3 pg | C. Diff (Clostridioides difficile) |
 | pathogens-bacteria | Listeria monocytogenes | — | ❌ not rendered | | | | 2 µm · 1 pg | |
 | pathogens-viruses | Influenza virus (flu) | `influenza-virus` | 5/5 | 3/3 | ✅ | ✅ | 100 nm · 1 fg | Flu (Orthomyxovirus) |
 | pathogens-viruses | SARS-CoV-2 (COVID-19) | `sars-cov-2` | 5/5 | 3/3 | ✅ | ✅ | 120 nm · 1 fg | Coronavirus COVID-19 (SARS-CoV-2) |
@@ -100,7 +100,7 @@
 | pathogens-viruses | Candida albicans | `candida-albicans` | 5/5 | 3/3 | ✅ | ✅ | 5 µm · 40 pg | Candida fungus |
 | pathogens-viruses | Rhinovirus (common cold) | `rhinovirus` | 5/5 | 3/3 | ✅ | ✅ | 30 nm · 0.3 fg | — |
 | pathogens-viruses | Measles virus (Morbillivirus) | `measles-virus` | 5/5 | 3/3 | ✅ | ✅ | 200 nm · 8 fg | Measles (Morbillivirus) |
-| pathogens-viruses | Rotavirus | — | ❌ not rendered | | | | 75 nm · 1.5 fg | |
+| pathogens-viruses | Rotavirus | `rotavirus` | 5/5 | 3/3 | ✅ | ✅ | 75 nm · 1.5 fg | Rotavirus (Rotavirus) |
 | pathogens-viruses | Norovirus (stomach bug) | — | ❌ not rendered | | | | 38 nm · 0.5 fg | |
 | pathogens-viruses | Varicella-zoster virus (chickenpox) | — | ❌ not rendered | | | | 180 nm · 6 fg | |
 | pathogens-viruses | Giardia lamblia (giardiasis) | — | ❌ not rendered | | | | 12 µm · 1 ng | |
@@ -110,13 +110,9 @@
 
 ## Gaps
 
-**Catalogued but not yet rendered — 8.** Text, German translation and scale data already exist for these; only the pictures are missing.
+**Catalogued but not yet rendered — 4.** Text, German translation and scale data already exist for these; only the pictures are missing.
 
-- `organelles` — Golgi apparatus
-- `epithelial` — Hepatocyte (liver cell)
-- `pathogens-bacteria` — Clostridioides difficile (C. diff)
 - `pathogens-bacteria` — Listeria monocytogenes
-- `pathogens-viruses` — Rotavirus
 - `pathogens-viruses` — Norovirus (stomach bug)
 - `pathogens-viruses` — Varicella-zoster virus (chickenpox)
 - `pathogens-viruses` — Giardia lamblia (giardiasis)
@@ -125,7 +121,7 @@
 
 - none
 
-**Data waiting for a render:** 8 scale entries (`clostridioides-difficile`, `giardia-lamblia`, `golgi-apparatus`, `hepatocyte`, `listeria-monocytogenes`, `norovirus`, `rotavirus`, `varicella-zoster-virus`), 1 plush link (`golgi-apparatus`).
+**Data waiting for a render:** 4 scale entries (`giardia-lamblia`, `listeria-monocytogenes`, `norovirus`, `varicella-zoster-virus`), 0 plush links (none).
 
 **No recorded micrograph source:** `reticulocyte`.
 

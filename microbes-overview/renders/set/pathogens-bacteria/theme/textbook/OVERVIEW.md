@@ -6,6 +6,10 @@ Every microbe's `textbook` image — labelled SVG where built, else the last ren
 ![textbook](borrelia-burgdorferi.textbook.svg)
 [full log](../../borrelia-burgdorferi.render.md)
 
+## Clostridioides difficile (C. diff) (`clostridioides-difficile`)
+![textbook](clostridioides-difficile.textbook.svg)
+[full log](../../clostridioides-difficile.render.md)
+
 ## Escherichia coli (`escherichia-coli`)
 ![textbook](escherichia-coli.textbook.svg)
 [full log](../../escherichia-coli.render.md)

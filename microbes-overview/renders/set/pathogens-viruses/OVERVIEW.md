@@ -128,6 +128,24 @@ Tiny non-enveloped icosahedral +ssRNA virus (~30 nm) of the Picornaviridae (genu
 
 Full log: [`rhinovirus.render.md`](rhinovirus.render.md)
 
+## Rotavirus (`rotavirus`)
+Non-enveloped, wheel-shaped triple-layered icosahedral dsRNA virus (~75 nm across the smooth rim, ~100 nm including its spikes) of the Sedoreoviridae; named from Latin rota, "wheel", because in negative-stain EM the short blunt VP4 spikes around a sharp rim make it look like a spoked wheel. It packs 11 double-stranded RNA segments inside a VP2 core wrapped in VP6 and an outer VP7 shell, and is the leading cause of severe dehydrating gastroenteritis in infants worldwide.
+
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/rotavirus__textbook.avif) | ![sem](finals/rotavirus__sem.avif) | ![3d](finals/rotavirus__3d.avif) | ![watercolor](finals/rotavirus__watercolor.avif) | ![reference](finals/rotavirus__reference.avif) |
+
+**textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/rotavirus.textbook.svg) · [HTML](theme/textbook/rotavirus.textbook.html)
+![textbook labelled](theme/textbook/rotavirus.textbook.svg)
+
+**3d — labelled** (English default, La/De toggle): [SVG](theme/3d/rotavirus.3d.svg) · [HTML](theme/3d/rotavirus.3d.html)
+![3d labelled](theme/3d/rotavirus.3d.svg)
+
+**watercolor — labelled** (English default, La/De toggle): [SVG](theme/watercolor/rotavirus.watercolor.svg) · [HTML](theme/watercolor/rotavirus.watercolor.html)
+![watercolor labelled](theme/watercolor/rotavirus.watercolor.svg)
+
+Full log: [`rotavirus.render.md`](rotavirus.render.md)
+
 ## SARS-CoV-2 (COVID-19) (`sars-cov-2`)
 Enveloped +ssRNA betacoronavirus with a crown of Spike (S) glycoprotein trimers; binds ACE2 in the airways; caused the COVID-19 pandemic.
 
@@ -185,12 +203,17 @@ Full log: [`sars-cov-2.render.md`](sars-cov-2.render.md)
 | Rhinovirus (common cold) | 3D medical render | gemini-3-pro-image | 2 | ✅ | built | 40s | 4319 | $0.084 |
 | Rhinovirus (common cold) | Watercolor plate | gemini-3-pro-image | 2 | ✅ | built | 45s | 4433 | $0.088 |
 | Rhinovirus (common cold) | cryo-EM · CC0 1.0 / public domain (wwPDB EMDB entry image) | — (edit) | 2 | ✅ | n/a | 20s | 2109 | $0.039 |
+| Rotavirus | Textbook illustration | gemini-3-pro-image | 2 | ✅ | built | 28s | 4630 | $0.084 |
+| Rotavirus | SEM micrograph | gemini-3-pro-image | 3 | ✅ | pending (same pipeline) | 32s | 5510 | $0.117 |
+| Rotavirus | 3D medical render | gemini-3-pro-image | 4 | ✅ | built | 1.0m | 8816 | $0.161 |
+| Rotavirus | Watercolor plate | gemini-3-pro-image | 2 | ✅ | built | 44s | 4686 | $0.092 |
+| Rotavirus | TEM · Public domain (CDC PHIL - no copyright restrictions, U.S. Government work) | — (download) | 2 | ✅ | n/a | 0s | 0 | $0.000 |
 | SARS-CoV-2 (COVID-19) | Textbook illustration | gemini-2.5-flash-image | 2 | ✅ | built | 46s | 3228 | $0.077 |
 | SARS-CoV-2 (COVID-19) | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 15s | 1477 | $0.039 |
 | SARS-CoV-2 (COVID-19) | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 22s | 1492 | $0.039 |
 | SARS-CoV-2 (COVID-19) | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 16s | 1492 | $0.039 |
 | SARS-CoV-2 (COVID-19) | TEM · CC BY 2.0 | — (download) | 1 | ✅ | n/a | 25s | 0 | $0.000 |
 
-**Set total: 91,653 tokens · $2.086**
+**Set total: 115,295 tokens · $2.541**
 
-_Updated 2026-08-20 14:02 local._
+_Updated 2026-08-20 15:39 local._

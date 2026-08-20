@@ -14,6 +14,10 @@ Every microbe's `sem` image — labelled SVG where built, else the last render. 
 ![sem](goblet-cell.attempts/gen-02__gemini-2.5-flash-image.avif)
 [full log](../../goblet-cell.render.md)
 
+## Hepatocyte (liver cell) (`hepatocyte`)
+![sem](hepatocyte.attempts/gen-05__gemini-3-pro-image.avif)
+[full log](../../hepatocyte.render.md)
+
 ## Keratinocyte (skin cell) (`keratinocyte`)
 ![sem](keratinocyte.attempts/gen-01__gemini-2.5-flash-image.avif)
 [full log](../../keratinocyte.render.md)

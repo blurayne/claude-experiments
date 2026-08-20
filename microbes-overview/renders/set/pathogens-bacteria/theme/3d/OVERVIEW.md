@@ -6,6 +6,10 @@ Every microbe's `3d` image — labelled SVG where built, else the last render. [
 ![3d](borrelia-burgdorferi.3d.svg)
 [full log](../../borrelia-burgdorferi.render.md)
 
+## Clostridioides difficile (C. diff) (`clostridioides-difficile`)
+![3d](clostridioides-difficile.3d.svg)
+[full log](../../clostridioides-difficile.render.md)
+
 ## Escherichia coli (`escherichia-coli`)
 ![3d](escherichia-coli.3d.svg)
 [full log](../../escherichia-coli.render.md)

@@ -6,6 +6,10 @@ Every microbe's `watercolor` image — labelled SVG where built, else the last r
 ![watercolor](borrelia-burgdorferi.watercolor.svg)
 [full log](../../borrelia-burgdorferi.render.md)
 
+## Clostridioides difficile (C. diff) (`clostridioides-difficile`)
+![watercolor](clostridioides-difficile.watercolor.svg)
+[full log](../../clostridioides-difficile.render.md)
+
 ## Escherichia coli (`escherichia-coli`)
 ![watercolor](escherichia-coli.watercolor.svg)
 [full log](../../escherichia-coli.render.md)

@@ -6,6 +6,10 @@ Every microbe's `sem` image — labelled SVG where built, else the last render. 
 ![sem](borrelia-burgdorferi.attempts/gen-01__gemini-3-pro-image.avif)
 [full log](../../borrelia-burgdorferi.render.md)
 
+## Clostridioides difficile (C. diff) (`clostridioides-difficile`)
+![sem](clostridioides-difficile.attempts/gen-03__gemini-3-pro-image.avif)
+[full log](../../clostridioides-difficile.render.md)
+
 ## Escherichia coli (`escherichia-coli`)
 ![sem](escherichia-coli.attempts/gen-02__gemini-2.5-flash-image.avif)
 [full log](../../escherichia-coli.render.md)

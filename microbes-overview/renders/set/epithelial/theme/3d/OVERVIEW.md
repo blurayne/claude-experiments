@@ -14,6 +14,10 @@ Every microbe's `3d` image — labelled SVG where built, else the last render. [
 ![3d](goblet-cell.3d.svg)
 [full log](../../goblet-cell.render.md)
 
+## Hepatocyte (liver cell) (`hepatocyte`)
+![3d](hepatocyte.3d.svg)
+[full log](../../hepatocyte.render.md)
+
 ## Keratinocyte (skin cell) (`keratinocyte`)
 ![3d](keratinocyte.3d.svg)
 [full log](../../keratinocyte.render.md)

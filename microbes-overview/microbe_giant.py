@@ -61,6 +61,14 @@ AI_CLEANED = {
     'cardiomyocyte',             # vendor publishes it only at 200x200; upscaled
 }
 
+# hepatocyte is the third case, alongside candida-albicans and parasite, where the
+# repair was tried and thrown away. riesenmikroben.de publishes the Leberzelle photo
+# only at 200x200 and has no larger original, so it is the same starting point as
+# cardiomyocyte — but the upscale came back with a rounded silhouette where the real
+# toy peaks triangularly, and the eyes had shifted. Framing was preserved, so it was
+# closer than the candida attempt, yet a plush toy's outline IS the product. Kept the
+# vendor's 200x200 original: small and soft, but actually the thing they sell.
+
 # key -> (giantmicrobes product name, product url)
 GIANT = {
     # --- organelles ---
@@ -69,6 +77,7 @@ GIANT = {
     'hematopoietic-stem-cell': ('Stem Cell Gigantic 14"', 'https://www.riesenmikroben.de/products/gig_stammzelle?locale=de'),
     # --- epithelial ---
     'keratinocyte': ('Skin Cell (Keratinocyte)', 'https://www.riesenmikroben.de/products/hautzelle?locale=de'),
+    'hepatocyte': ('Leberzelle (Liver Cell)', 'https://www.riesenmikroben.de/products/leberzelle?locale=de'),
     # --- nerve cells ---
     'neuron': ('Nerve Cell (Neuron)', 'https://www.riesenmikroben.de/products/nervenzelle?locale=de'),
     # --- reproductive ---
@@ -102,6 +111,8 @@ GIANT = {
     'salmonella-enterica': ('Salmonella (Salmonella typhimurium)', 'https://www.riesenmikroben.de/products/salmonelle?locale=de'),
     'helicobacter-pylori': ('Ulcer (Helicobacter pylori)', 'https://www.riesenmikroben.de/products/magengeschwuer?locale=de'),
     'borrelia-burgdorferi': ('Lyme Disease (Borrelia burgdorferi)', 'https://www.riesenmikroben.de/products/lyme-borreliose?locale=de'),
+    # species reads `clostridium difficile` — the pre-2016 genus name for the same organism
+    'clostridioides-difficile': ('C. Diff (Clostridioides difficile)', 'https://www.riesenmikroben.de/products/cdiff?locale=de'),
     # --- well-known viruses & other pathogens ---
     'influenza-virus': ('Flu (Orthomyxovirus)', 'https://www.riesenmikroben.de/products/grippe?locale=de'),
     'sars-cov-2': ('Coronavirus COVID-19 (SARS-CoV-2)', 'https://www.riesenmikroben.de/products/covid-19?locale=de'),
@@ -109,6 +120,7 @@ GIANT = {
     'plasmodium': ('Malaria (Plasmodium falciparum)', 'https://www.riesenmikroben.de/products/malaria?locale=de'),
     'candida-albicans': ('Candida fungus', 'https://www.riesenmikroben.de/products/candida?locale=de'),
     'measles-virus': ('Measles (Morbillivirus)', 'https://www.riesenmikroben.de/products/masern?locale=de'),
+    'rotavirus': ('Rotavirus (Rotavirus)', 'https://www.riesenmikroben.de/products/rotavirus?locale=de'),
     # --- helpful microbes ---
     'penicillium-chrysogenum': ('Penicillin (Penicillium chrysogenum)', 'https://www.riesenmikroben.de/products/penicillin?locale=de'),
     'saccharomyces-cerevisiae': ('Beer & Bread (Saccharomyces cerevisiae)', 'https://www.riesenmikroben.de/products/bierhefe?locale=de'),

@@ -20,6 +20,24 @@ Long, thin, flat-wave spirochaete carried by Ixodes ticks; it swims with 7-11 fl
 
 Full log: [`borrelia-burgdorferi.render.md`](borrelia-burgdorferi.render.md)
 
+## Clostridioides difficile (C. diff) (`clostridioides-difficile`)
+Strictly anaerobic, S-layer-coated Gram-positive gut bacillus that grows as a long slender rod with peritrichous flagella and forms a swelling subterminal endospore, giving the classic club silhouette; when antibiotics thin the gut microbiota it overgrows the colon and its toxins TcdA and TcdB cause antibiotic-associated diarrhoea and pseudomembranous colitis.
+
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/clostridioides-difficile__textbook.avif) | ![sem](finals/clostridioides-difficile__sem.avif) | ![3d](finals/clostridioides-difficile__3d.avif) | ![watercolor](finals/clostridioides-difficile__watercolor.avif) | ![reference](finals/clostridioides-difficile__reference.avif) |
+
+**textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/clostridioides-difficile.textbook.svg) · [HTML](theme/textbook/clostridioides-difficile.textbook.html)
+![textbook labelled](theme/textbook/clostridioides-difficile.textbook.svg)
+
+**3d — labelled** (English default, La/De toggle): [SVG](theme/3d/clostridioides-difficile.3d.svg) · [HTML](theme/3d/clostridioides-difficile.3d.html)
+![3d labelled](theme/3d/clostridioides-difficile.3d.svg)
+
+**watercolor — labelled** (English default, La/De toggle): [SVG](theme/watercolor/clostridioides-difficile.watercolor.svg) · [HTML](theme/watercolor/clostridioides-difficile.watercolor.html)
+![watercolor labelled](theme/watercolor/clostridioides-difficile.watercolor.svg)
+
+Full log: [`clostridioides-difficile.render.md`](clostridioides-difficile.render.md)
+
 ## Escherichia coli (`escherichia-coli`)
 Gram-negative motile rod, a normal gut commensal; some strains (e.g. EHEC) cause severe diarrhoeal disease.
 
@@ -155,6 +173,11 @@ Full log: [`streptococcus-pneumoniae.render.md`](streptococcus-pneumoniae.render
 | Borrelia burgdorferi (Lyme disease) | 3D medical render | gemini-3-pro-image | 2 | ✅ | built | 41s | 4904 | $0.085 |
 | Borrelia burgdorferi (Lyme disease) | Watercolor plate | gemini-3-pro-image | 5 | ✅ | built | 1.8m | 13566 | $0.237 |
 | Borrelia burgdorferi (Lyme disease) | SEM · Public Domain (PD-USGov-HHS-CDC) | — (edit) | 2 | ✅ | n/a | 13s | 1775 | $0.039 |
+| Clostridioides difficile (C. diff) | Textbook illustration | gemini-3-pro-image | 5 | ✅ | built | 1.5m | 15032 | $0.230 |
+| Clostridioides difficile (C. diff) | SEM micrograph | gemini-3-pro-image | 3 | ✅ | pending (same pipeline) | 34s | 6197 | $0.120 |
+| Clostridioides difficile (C. diff) | 3D medical render | gemini-3-pro-image | 5 | ✅ | built | 1.5m | 14628 | $0.214 |
+| Clostridioides difficile (C. diff) | Watercolor plate | gemini-3-pro-image | 3 | ✅ | built | 40s | 7559 | $0.127 |
+| Clostridioides difficile (C. diff) | SEM · Public Domain (PD-USGov-HHS-CDC) | — (edit) | 2 | ✅ | n/a | 20s | 2039 | $0.039 |
 | Escherichia coli | Textbook illustration | gemini-2.5-flash-image | 2 | ✅ | built | 30s | 3332 | $0.077 |
 | Escherichia coli | SEM micrograph | gemini-2.5-flash-image | 2 | ✅ | pending (same pipeline) | 40s | 3106 | $0.077 |
 | Escherichia coli | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 20s | 1588 | $0.039 |
@@ -191,6 +214,6 @@ Full log: [`streptococcus-pneumoniae.render.md`](streptococcus-pneumoniae.render
 | Streptococcus pneumoniae | Watercolor plate | gemini-3-pro-image | 3 | ✅ | built | 1.3m | 5297 | $0.119 |
 | Streptococcus pneumoniae | SEM · Public Domain (CDC PHIL #262) | — (edit) | 2 | ✅ | n/a | 1.0m | 1676 | $0.039 |
 
-**Set total: 130,555 tokens · $2.823**
+**Set total: 176,010 tokens · $3.551**
 
-_Updated 2026-08-20 14:02 local._
+_Updated 2026-08-20 15:39 local._
