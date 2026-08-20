@@ -2,6 +2,10 @@
 
 Every microbe's `watercolor` image — labelled SVG where built, else the last render. [← set overview](../../OVERVIEW.md)
 
+## Bifidobacterium longum (`bifidobacterium-longum`)
+![watercolor](bifidobacterium-longum.watercolor.svg)
+[full log](../../bifidobacterium-longum.render.md)
+
 ## Penicillin mould (Penicillium chrysogenum) (`penicillium-chrysogenum`)
 ![watercolor](penicillium-chrysogenum.watercolor.svg)
 [full log](../../penicillium-chrysogenum.render.md)

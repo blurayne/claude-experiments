@@ -2,6 +2,24 @@
 
 Final image per microbe × style (last attempt), the labelled SVG, and the real-microscopy reference. Status table at the bottom.
 
+## Bifidobacterium longum (`bifidobacterium-longum`)
+Gram-positive, strictly anaerobic, non-motile, non-sporing rod (2-5 um) that is characteristically bifid - forked into a Y, or club-ended and branched, which is exactly what gives the genus its name. One of the first colonisers of a newborn's gut, it ferments the human-milk oligosaccharides the baby cannot digest and releases acetate and lactate that acidify the gut and keep pathogens out.
+
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/bifidobacterium-longum__textbook.avif) | ![sem](finals/bifidobacterium-longum__sem.avif) | ![3d](finals/bifidobacterium-longum__3d.avif) | ![watercolor](finals/bifidobacterium-longum__watercolor.avif) | ![reference](finals/bifidobacterium-longum__reference.avif) |
+
+**textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/bifidobacterium-longum.textbook.svg) · [HTML](theme/textbook/bifidobacterium-longum.textbook.html)
+![textbook labelled](theme/textbook/bifidobacterium-longum.textbook.svg)
+
+**3d — labelled** (English default, La/De toggle): [SVG](theme/3d/bifidobacterium-longum.3d.svg) · [HTML](theme/3d/bifidobacterium-longum.3d.html)
+![3d labelled](theme/3d/bifidobacterium-longum.3d.svg)
+
+**watercolor — labelled** (English default, La/De toggle): [SVG](theme/watercolor/bifidobacterium-longum.watercolor.svg) · [HTML](theme/watercolor/bifidobacterium-longum.watercolor.html)
+![watercolor labelled](theme/watercolor/bifidobacterium-longum.watercolor.svg)
+
+Full log: [`bifidobacterium-longum.render.md`](bifidobacterium-longum.render.md)
+
 ## Penicillin mould (Penicillium chrysogenum) (`penicillium-chrysogenum`)
 Filamentous green mould built from septate hyaline hyphae. Erect conidiophores branch into metulae and flask-shaped phialides that pinch off unbranched chains of green conidia - the little brush (penicillus) that names the genus. It secretes penicillin to keep competing bacteria at a distance, and Alexander Fleming's accidental sighting of that bacteria-free zone in 1928 became the first antibiotic.
 
@@ -42,6 +60,11 @@ Full log: [`saccharomyces-cerevisiae.render.md`](saccharomyces-cerevisiae.render
 
 | name | styles | model | render count | pass | svg status | time taken | tokens used | costs |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Bifidobacterium longum | Textbook illustration | gemini-3-pro-image | 1 | ✅ | built | 22s | 2429 | $0.046 |
+| Bifidobacterium longum | SEM micrograph | gemini-3-pro-image | 1 | ✅ | pending (same pipeline) | 20s | 1973 | $0.041 |
+| Bifidobacterium longum | 3D medical render | gemini-3-pro-image | 1 | ✅ | built | 20s | 2129 | $0.044 |
+| Bifidobacterium longum | Watercolor plate | gemini-3-pro-image | 1 | ✅ | built | 20s | 2225 | $0.042 |
+| Bifidobacterium longum | SEM · CC BY-SA 3.0 | — (edit) | 2 | ✅ | n/a | 27s | 2007 | $0.039 |
 | Penicillin mould (Penicillium chrysogenum) | Textbook illustration | gemini-3-pro-image | 1 | ✅ | built | 24s | 2639 | $0.050 |
 | Penicillin mould (Penicillium chrysogenum) | SEM micrograph | gemini-3-pro-image | 1 | ✅ | pending (same pipeline) | 18s | 2030 | $0.043 |
 | Penicillin mould (Penicillium chrysogenum) | 3D medical render | gemini-3-pro-image | 1 | ✅ | built | 20s | 2105 | $0.042 |
@@ -53,6 +76,6 @@ Full log: [`saccharomyces-cerevisiae.render.md`](saccharomyces-cerevisiae.render
 | Baker's yeast (Saccharomyces cerevisiae) | Watercolor plate | gemini-3-pro-image | 2 | ✅ | built | 40s | 3991 | $0.083 |
 | Baker's yeast (Saccharomyces cerevisiae) | SEM · CC BY 3.0 | — (edit) | 2 | ✅ | n/a | 9s | 1752 | $0.039 |
 
-**Set total: 22,628 tokens · $0.467**
+**Set total: 33,391 tokens · $0.680**
 
-_Updated 2026-08-20 13:35 local._
+_Updated 2026-08-20 13:41 local._

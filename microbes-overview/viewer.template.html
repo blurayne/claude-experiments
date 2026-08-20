@@ -782,6 +782,7 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 0 0 2px #
       <div class="filt-label">Show only microbes with</div>
       <label class="menu-opt"><input type="checkbox" id="fGiant"> a GIANTmicrobes plush</label>
       <label class="menu-opt"><input type="checkbox" id="fColoring"> a coloring page</label>
+      <label class="menu-opt"><input type="checkbox" id="fAudio"> narration in the current language</label>
       <button class="tb-btn filt-reset" id="filtReset">Reset filters</button>
     </div>
   </div>
@@ -963,7 +964,7 @@ const state = Object.assign({
   aud:'kids', lang:'en', theme:'petri', mode:'dark',
   boxes:DEFAULT_BOXES.slice(), enlargeLabels:true, showGiant:true, search:'',
   lbLabelMode:null, lbBw:null, lbSrc:null, ink:70, fontScale:100,
-  fTitle:true, fDesc:false, fGiant:false, fColoring:false
+  fTitle:true, fDesc:false, fGiant:false, fColoring:false, fAudio:false
 }, load());
 // normalise a persisted (possibly older/shorter) box array to NUM_BOXES slots
 if(!Array.isArray(state.boxes)) state.boxes=DEFAULT_BOXES.slice();
@@ -2086,9 +2087,12 @@ function searchHaystack(m){
 function passesFilters(m){
   if(state.fGiant && !m.giant) return false;
   if(state.fColoring && !m.coloring) return false;
+  // narration exists per language, so this filter answers a different question
+  // in EN than in DE — which is why the language toggle re-runs the search.
+  if(state.fAudio && !(m.audio && m.audio[state.lang])) return false;
   return true;
 }
-function filtersActive(){ return !!(state.fGiant || state.fColoring); }
+function filtersActive(){ return !!(state.fGiant || state.fColoring || state.fAudio); }
 function applySearch(){
   const ts=terms(); let anyVisible=false, total=0; const hits=[];
   DATA.sets.forEach(set=>{
@@ -2181,16 +2185,17 @@ function syncToggles(){
   $('#fDesc').checked = !!state.fDesc;
   $('#fGiant').checked = !!state.fGiant;
   $('#fColoring').checked = !!state.fColoring;
+  $('#fAudio').checked = !!state.fAudio;
   applyInk(); applyFontScale();
   html.dataset.theme=state.theme; html.dataset.mode=state.mode;
 }
 $('#audSeg').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b)return;
   stopAllAudio(); // the title/prose DOM is about to be rebuilt below
-  state.aud=b.dataset.aud; save(); syncToggles(); refreshBuilt();
+  state.aud=b.dataset.aud; save(); syncToggles(); refreshBuilt(); applySearch();
   toast(L(AUD_LABEL[state.aud])+' · '+L(LANG_LABEL[state.lang]));});
 $('#langSeg').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b)return;
   stopAllAudio();
-  state.lang=b.dataset.lang; save(); syncToggles(); refreshBuilt(); updateHero();
+  state.lang=b.dataset.lang; save(); syncToggles(); refreshBuilt(); updateHero(); applySearch();
   toast(L(AUD_LABEL[state.aud])+' · '+L(LANG_LABEL[state.lang]));});
 $('#modeBtn').addEventListener('click',()=>{ state.mode=state.mode==='dark'?'light':'dark'; save(); syncToggles(); });
 $$('#themePanel .theme-opt').forEach(b=>b.addEventListener('click',()=>{ state.theme=b.dataset.theme; save(); syncToggles(); closePanels(); }));
@@ -2264,16 +2269,16 @@ $('#picsBtn').addEventListener('click',e=>{e.stopPropagation();togglePanel(e.cur
 $('#themeBtn').addEventListener('click',e=>{e.stopPropagation();togglePanel(e.currentTarget,$('#themePanel'));});
 $('#setBtn').addEventListener('click',e=>{e.stopPropagation();togglePanel(e.currentTarget,$('#setPanel'));});
 $('#filtBtn').addEventListener('click',e=>{e.stopPropagation();togglePanel(e.currentTarget,$('#filtPanel'));});
-[['fTitle','fTitle'],['fDesc','fDesc'],['fGiant','fGiant'],['fColoring','fColoring']].forEach(([id,key])=>{
+[['fTitle','fTitle'],['fDesc','fDesc'],['fGiant','fGiant'],['fColoring','fColoring'],['fAudio','fAudio']].forEach(([id,key])=>{
   $('#'+id).addEventListener('change',e=>{ state[key]=e.target.checked; save(); applySearch(); });
 });
 $('#emptyReset').addEventListener('click',()=>{
   state.search=''; $('#search').value='';
-  state.fGiant=false; state.fColoring=false;
+  state.fGiant=false; state.fColoring=false; state.fAudio=false;
   syncToggles(); save(); applySearch();
 });
 $('#filtReset').addEventListener('click',()=>{
-  state.fTitle=true; state.fDesc=false; state.fGiant=false; state.fColoring=false;
+  state.fTitle=true; state.fDesc=false; state.fGiant=false; state.fColoring=false; state.fAudio=false;
   syncToggles(); save(); applySearch(); closePanels();
 });
 // jump to a hit from the results list

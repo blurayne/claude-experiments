@@ -4,7 +4,7 @@
 
 ## Where we stand
 
-- **15 sets**, **83 microbes** live in the viewer, out of **93 catalogued**.
+- **15 sets**, **84 microbes** live in the viewer, out of **93 catalogued**.
 - Every live microbe carries: 5 picture styles, 3 labelled diagrams, a printable A4 coloring page, kids narration in EN + DE, and size/weight data — the table below is the proof.
 - **29 plush links**, every one an exact species/cell match. 8 of those photos had to be repaired (see the last section).
 
@@ -80,7 +80,7 @@
 | pathogens | Fungus | `fungus` | 5/5 | 3/3 | ✅ | ✅ | 5 µm · 40 pg | — |
 | pathogens | Parasite | `parasite` | 5/5 | 3/3 | ✅ | ✅ | 20 µm · 20 pg | Sleeping Sickness (Trypanosoma brucei) |
 | pathogens | Prion | `prion` | 5/5 | 3/3 | ✅ | ✅ | 5 nm · 35 kDa | Mad Cow (Bovine Spongiform Encephalopathy) |
-| pathogens | Amoeba (Amoeba proteus) | `amoeba-proteus` | 5/5 | 3/3 | — | — | 400 µm · 30000 ng | — |
+| pathogens | Amoeba (Amoeba proteus) | `amoeba-proteus` | 5/5 | 3/3 | ✅ | ✅ | 400 µm · 30000 ng | — |
 | pathogens | Coronavirus (SARS-CoV-2) | `coronavirus` | 5/5 | 3/3 | ✅ | ✅ | 120 nm · 1.2 fg | Coronavirus COVID-19 (SARS-CoV-2) |
 | pathogens-bacteria | Mycobacterium tuberculosis (TB) | `mycobacterium-tuberculosis` | 5/5 | 3/3 | ✅ | ✅ | 3 µm · 0.5 pg | TB (Tuberculosis) |
 | pathogens-bacteria | Staphylococcus aureus (MRSA) | `staphylococcus-aureus` | 5/5 | 3/3 | ✅ | ✅ | 1 µm · 0.3 pg | Staph (Staphylococcus aureus) |
@@ -105,12 +105,12 @@
 | pathogens-viruses | Varicella-zoster virus (chickenpox) | — | ❌ not rendered | | | | 180 nm · 6 fg | |
 | pathogens-viruses | Giardia lamblia (giardiasis) | — | ❌ not rendered | | | | 12 µm · 1 ng | |
 | helpful-microbes | Baker's yeast (Saccharomyces cerevisiae) | `saccharomyces-cerevisiae` | 5/5 | 3/3 | ✅ | ✅ | 5 µm · 60 pg | — |
-| helpful-microbes | Penicillin mould (Penicillium chrysogenum) | `penicillium-chrysogenum` | 5/5 | 3/3 | ✅ | — | 3.5 µm · 20 pg | — |
-| helpful-microbes | Bifidobacterium longum | — | ❌ not rendered | | | | 3 µm · 1.5 pg | |
+| helpful-microbes | Penicillin mould (Penicillium chrysogenum) | `penicillium-chrysogenum` | 5/5 | 3/3 | ✅ | ✅ | 3.5 µm · 20 pg | — |
+| helpful-microbes | Bifidobacterium longum | `bifidobacterium-longum` | 5/5 | 3/3 | ✅ | — | 3 µm · 1.5 pg | — |
 
 ## Gaps
 
-**Catalogued but not yet rendered — 10.** Text, German translation and scale data already exist for these; only the pictures are missing.
+**Catalogued but not yet rendered — 9.** Text, German translation and scale data already exist for these; only the pictures are missing.
 
 - `organelles` — Golgi apparatus
 - `epithelial` — Hepatocyte (liver cell)
@@ -121,13 +121,12 @@
 - `pathogens-viruses` — Norovirus (stomach bug)
 - `pathogens-viruses` — Varicella-zoster virus (chickenpox)
 - `pathogens-viruses` — Giardia lamblia (giardiasis)
-- `helpful-microbes` — Bifidobacterium longum
 
 **Rendered but not reaching the viewer — 0.** A render only appears if `meta.name` matches a catalogue `name_en` exactly, or its key matches the slug of one; anything here fell through both.
 
 - none
 
-**Data waiting for a render:** 10 scale entries (`bifidobacterium-longum`, `borrelia-burgdorferi`, `clostridioides-difficile`, `giardia-lamblia`, `golgi-apparatus`, `hepatocyte`, `listeria-monocytogenes`, `norovirus`, `rotavirus`, `varicella-zoster-virus`), 1 plush links (`golgi-apparatus`).
+**Data waiting for a render:** 9 scale entries (`borrelia-burgdorferi`, `clostridioides-difficile`, `giardia-lamblia`, `golgi-apparatus`, `hepatocyte`, `listeria-monocytogenes`, `norovirus`, `rotavirus`, `varicella-zoster-virus`), 1 plush links (`golgi-apparatus`).
 
 **No recorded micrograph source:** `reticulocyte`.
 
