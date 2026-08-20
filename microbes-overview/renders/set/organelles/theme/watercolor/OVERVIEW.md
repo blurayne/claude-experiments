@@ -13,3 +13,7 @@ Every microbe's `watercolor` image — labelled SVG where built, else the last r
 ## Nucleus (`nucleus`)
 ![watercolor](nucleus.watercolor.svg)
 [full log](../../nucleus.render.md)
+
+## Ribosome (`ribosome`)
+![watercolor](ribosome.watercolor.svg)
+[full log](../../ribosome.render.md)

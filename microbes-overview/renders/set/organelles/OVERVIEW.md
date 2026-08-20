@@ -56,6 +56,24 @@ The cell's archive and control room: a spherical organelle bounded by a DOUBLE m
 
 Full log: [`nucleus.render.md`](nucleus.render.md)
 
+## Ribosome (`ribosome`)
+The protein factory, and at about 25 nanometres one of the smallest objects in this atlas — a naked, membrane-free molecular machine of RNA and protein, built from two UNEQUAL subunits (a bulkier large subunit capping onto a smaller one) that clamp a single-stranded mRNA thread through the groove between them and step tRNAs through three adjacent A/P/E pockets while the growing protein chain threads out through an exit tunnel in the large subunit alone.
+
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/ribosome__textbook.avif) | ![sem](finals/ribosome__sem.avif) | ![3d](finals/ribosome__3d.avif) | ![watercolor](finals/ribosome__watercolor.avif) | ![reference](finals/ribosome__reference.avif) |
+
+**textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/ribosome.textbook.svg) · [HTML](theme/textbook/ribosome.textbook.html)
+![textbook labelled](theme/textbook/ribosome.textbook.svg)
+
+**3d — labelled** (English default, La/De toggle): [SVG](theme/3d/ribosome.3d.svg) · [HTML](theme/3d/ribosome.3d.html)
+![3d labelled](theme/3d/ribosome.3d.svg)
+
+**watercolor — labelled** (English default, La/De toggle): [SVG](theme/watercolor/ribosome.watercolor.svg) · [HTML](theme/watercolor/ribosome.watercolor.html)
+![watercolor labelled](theme/watercolor/ribosome.watercolor.svg)
+
+Full log: [`ribosome.render.md`](ribosome.render.md)
+
 ## Status
 
 | name | styles | model | render count | pass | svg status | time taken | tokens used | costs |
@@ -75,7 +93,12 @@ Full log: [`nucleus.render.md`](nucleus.render.md)
 | Nucleus | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 8s | 1894 | $0.039 |
 | Nucleus | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 7s | 1930 | $0.039 |
 | Nucleus | TEM · Public domain | — (download) | 2 | ✅ | n/a | 0s | 0 | $0.000 |
+| Ribosome | Textbook illustration | gemini-2.5-flash-image | 2 | ✅ | built | 13s | 4062 | $0.077 |
+| Ribosome | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 6s | 1672 | $0.039 |
+| Ribosome | 3D medical render | gemini-3-pro-image | 5 | ✅ | built | 1.1m | 11582 | $0.218 |
+| Ribosome | Watercolor plate | gemini-3-pro-image | 4 | ✅ | built | 46s | 8917 | $0.174 |
+| Ribosome | structural-model · CC BY-SA 3.0 / GFDL 1.2+ | — (edit) | 2 | ✅ | n/a | 0s | 0 | $0.000 |
 
-**Set total: 54,495 tokens · $0.986**
+**Set total: 80,728 tokens · $1.495**
 
-_Updated 2026-08-20 21:43 local._
+_Updated 2026-08-20 22:08 local._

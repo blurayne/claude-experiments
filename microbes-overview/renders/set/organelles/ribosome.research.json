@@ -1,0 +1,162 @@
+{
+  "microbe": "ribosome",
+  "set": "organelles",
+  "name_en": "Ribosome",
+  "name_de": "Ribosom",
+  "name_la": "ribosoma",
+  "morphology": {
+    "summary": "Not a membrane-bound organelle at all but a molecular machine: a naked, roughly egg-shaped complex of ribosomal RNA (rRNA) and protein, built from two UNEQUAL subunits that clamp together like a smaller cap sitting on a larger base. Messenger RNA (mRNA) threads through a groove at the interface between the two subunits; three adjacent pockets in that groove -- the A (aminoacyl), P (peptidyl) and E (exit) sites -- step transfer RNAs (tRNAs) and their amino acids through in sequence, and the large subunit alone houses the exit tunnel through which the growing polypeptide chain is threaded out on the far side from the mRNA. At about 25 nm across it sits below the resolution of conventional light and even most transmission electron microscopy -- one of the smallest and most numerous machines in the atlas (a growing mammalian cell holds on the order of 10 million of them), and one only structural methods (X-ray crystallography, cryo-EM) can actually resolve.",
+    "kind": "ribonucleoprotein molecular machine (not an organelle in the membrane-bound sense); present in all three domains of life -- bacteria, archaea and eukaryotes -- with a conserved two-subunit, RNA-cored architecture throughout",
+    "size": "~25-30 nm (0.025-0.03 micrometres) across for the assembled particle -- matches the atlas scale entry (0.025 um / 25 nm). Mass ~4200 kDa (4.2 MDa) for a eukaryotic (mammalian) 80S ribosome, matching the atlas scale entry; a bacterial 70S ribosome is somewhat smaller, ~2.5 MDa. The polypeptide exit tunnel through the large subunit is roughly 80-100 Angstrom (8-10 nm) long, about 15 Angstrom average bore, with a slight bend partway along.",
+    "shape": "Two irregular, bumpy, roughly globular lobes of unequal size pressed together at a flattish interface -- NOT two matching hemispheres and NOT a smooth sphere. In eukaryotes the larger lobe is the 60S (large) subunit and the smaller is the 40S (small) subunit, together forming the 80S ribosome (numbers are sedimentation coefficients, not literal size ratios, but the large subunit IS visibly the bulkier of the two in every solved structure). The small subunit sits like a cap or bonnet against one face of the larger subunit's base. The whole assembly's surface is knobbly and irregular everywhere -- rRNA helices and protein loops poke out unevenly -- never a tidy geometric solid.",
+    "translation_context": "Elongation proceeds at roughly 2-20 amino acids added per second (slower in eukaryotes, faster in bacteria), matching the atlas's own func_en text. Several ribosomes commonly translate the same mRNA strand at once, spaced out along it like beads on a thread, each towing its own partially-built protein -- this assembly is called a polysome (polyribosome) and is the single most informative composition for showing what a ribosome is actually FOR, not just what it looks like alone."
+  },
+  "structures": [
+    {
+      "key": "large_subunit",
+      "la": "subunitas ribosomalis major (60S)",
+      "en": "Large subunit (60S)",
+      "de": "Große Untereinheit (60S)",
+      "note": "The bulkier of the two lobes; in eukaryotes built from the 28S, 5.8S and 5S rRNAs plus ~45 proteins. Carries the peptidyl transferase centre (where peptide bonds actually form) and the exit tunnel. Must read as visibly larger/bulkier than the small subunit, and must NOT be a mirror-image twin of it."
+    },
+    {
+      "key": "small_subunit",
+      "la": "subunitas ribosomalis minor (40S)",
+      "en": "Small subunit (40S)",
+      "de": "Kleine Untereinheit (40S)",
+      "note": "The smaller lobe, capping one face of the large subunit; in eukaryotes built from the 18S rRNA plus ~30 proteins. Provides the mRNA-binding channel and most of the decoding/fidelity machinery that checks each incoming tRNA anticodon against the mRNA codon."
+    },
+    {
+      "key": "mrna_groove",
+      "la": "acidum ribonucleicum nuntium (mRNA) in canali inter subunitates",
+      "en": "Messenger RNA (mRNA) threading through the groove",
+      "de": "Boten-RNA (mRNA) im Kanal zwischen den Untereinheiten",
+      "note": "A SINGLE-STRANDED RNA thread running through a groove at the interface between the two subunits, mostly hugging the small subunit. Never a double helix -- that would be DNA, which the ribosome never touches directly."
+    },
+    {
+      "key": "a_site",
+      "la": "situs A (aminoacylicus)",
+      "en": "A site (aminoacyl site)",
+      "de": "A-Stelle (Aminoacyl-Stelle)",
+      "note": "Where each new aminoacyl-tRNA first arrives and is checked against the mRNA codon. One of three adjacent tRNA-binding pockets straddling both subunits in the mRNA groove, in the order A-P-E along the direction of tRNA movement."
+    },
+    {
+      "key": "p_site",
+      "la": "situs P (peptidylicus)",
+      "en": "P site (peptidyl site)",
+      "de": "P-Stelle (Peptidyl-Stelle)",
+      "note": "Middle of the three tRNA pockets; holds the tRNA carrying the growing polypeptide chain while the next peptide bond is formed."
+    },
+    {
+      "key": "e_site",
+      "la": "situs E (exitus)",
+      "en": "E site (exit site)",
+      "de": "E-Stelle (Austrittsstelle)",
+      "note": "Third pocket; holds the now-empty tRNA immediately before it is released back into the cytoplasm to be recharged with a fresh amino acid."
+    },
+    {
+      "key": "polypeptide_chain",
+      "la": "catena polypeptidica nascens",
+      "en": "Growing polypeptide chain",
+      "de": "Wachsende Polypeptidkette",
+      "note": "A chain of linked amino-acid beads emerging from the exit tunnel on the large subunit -- on the OPPOSITE side of the particle from where the mRNA runs through the groove. Never shown emerging from the small subunit or from the mRNA groove itself."
+    },
+    {
+      "key": "exit_tunnel",
+      "la": "canalis exitus polypeptidici",
+      "en": "Exit tunnel",
+      "de": "Peptid-Austrittstunnel",
+      "note": "A channel running through the body of the LARGE subunit only, from the peptidyl transferase centre to the particle's far surface; ~8-10 nm long. This is the conduit the growing chain threads through before it appears outside the ribosome."
+    },
+    {
+      "key": "rrna_core",
+      "la": "acidum ribonucleicum ribosomale (rRNA)",
+      "en": "Ribosomal RNA (rRNA) core",
+      "de": "Ribosomale RNA (rRNA)-Kern",
+      "note": "rRNA -- not protein -- forms the compact folded core that gives each subunit its shape and does the actual catalysis; ribosomal proteins stud its surface and fill its crevices. About two-thirds of the particle's mass is RNA, one-third protein. Render as the dominant bulk material, with small protein knobs/loops studding it, not the reverse."
+    },
+    {
+      "key": "polysome_context",
+      "la": "polysoma (catena ribosomatum in eodem mRNA)",
+      "en": "Polysome (several ribosomes on one mRNA strand)",
+      "de": "Polysom (mehrere Ribosomen an einem mRNA-Strang)",
+      "note": "Optional but strongly encouraged compositional context where the style allows: several ribosomes strung along a single mRNA thread like beads, each with its own partially-built polypeptide trailing off it -- shows the ribosome's function, not just its anatomy."
+    }
+  ],
+  "do_not_draw": [
+    "Do NOT draw any membrane, envelope, capsule or outer skin around the ribosome. It is a naked, unenclosed assembly of RNA and protein -- there is no lipid bilayer here at all, unlike every other organelle in this set.",
+    "Do NOT draw the two subunits as equal-sized, mirror-image halves (e.g. two matching domes or two identical circles). The large subunit must read as visibly bulkier than the small subunit, and they must sit asymmetrically -- small subunit capping one face of the large subunit's base -- not as a symmetric clamshell.",
+    "Do NOT draw a DNA double helix threading through the groove. The strand running through the ribosome is single-stranded mRNA, never a paired double helix.",
+    "Do NOT draw a smooth, featureless sphere, egg or other tidy geometric solid. The real surface is knobbly, lumpy and irregular everywhere -- render visible bumps and folds, not a polished ball.",
+    "Do NOT draw a nucleus, mitochondrial cristae, Golgi stacks or any other organelle's hallmark features nearby as if they belonged to the ribosome itself -- this plate is the ribosome alone (optionally with other ribosomes on the same mRNA as a polysome), not a whole-cell diagram.",
+    "Do NOT place the exit tunnel or the emerging polypeptide chain on the small subunit, and do NOT have it emerge from the same side as the mRNA groove -- the exit tunnel runs through the LARGE subunit only, to the opposite face from the mRNA.",
+    "Do NOT draw the mRNA and the polypeptide chain merging into one continuous strand -- they are chemically different molecules (nucleic acid vs. amino-acid chain) that both pass through the particle but never become each other or touch beyond the ribosome's catalytic centre.",
+    "Do NOT add text, letters, numbers, scale bars, arrows-with-labels or watermarks baked into the image."
+  ],
+  "colour_legend": {
+    "large_subunit": "#C24B3E to #E08A5C range (warm terracotta/brick), the bulkier lobe",
+    "small_subunit": "#3E6FA8 to #7FA8D9 range (cool blue), the smaller capping lobe",
+    "mrna_groove": "#E8D24A (bright warm yellow thread) running through the interface groove",
+    "trna_sites": "#7FBF6B (A site, incoming), #4E9E86 (P site, holding), #B3D98C (E site, departing) -- a light green family so the three adjacent pockets read as a related trio",
+    "polypeptide_chain": "#D9622B beads/chain, distinguishing it from the mRNA thread colour",
+    "rrna_core": "folded into the subunit base colours themselves (rRNA is the bulk of both C24B3E/E08A5C and 3E6FA8/7FA8D9 masses); small darker fleck/loop details on the surface stand in for the studding ribosomal proteins",
+    "note": "The ribosome has no colour in life (below the wavelength of visible light) -- every colour here is teaching convention chosen to make the two unequal subunits, the mRNA thread and the three tRNA sites legible at a glance."
+  },
+  "sources": [
+    {
+      "title": "Alberts et al., Molecular Biology of the Cell -- 'From RNA to Protein' (NCBI Bookshelf NBK26829)",
+      "url": "https://www.ncbi.nlm.nih.gov/books/NBK26829/",
+      "note": "Ribosome is ~2/3 RNA and 1/3 protein by mass; rRNA (not protein) forms the compact folded core responsible for overall shape, tRNA positioning and the catalytic peptide-bond-forming activity; eukaryotic subunits assembled in the nucleolus and exported to the cytoplasm."
+    },
+    {
+      "title": "Cooper, The Cell: A Molecular Approach -- 'Translation of mRNA' (NCBI Bookshelf NBK9849)",
+      "url": "https://www.ncbi.nlm.nih.gov/books/NBK9849/",
+      "note": "Subunit composition: bacterial 30S (16S rRNA + 21 proteins) + 50S (23S + 5S rRNA + 34 proteins) = 70S; eukaryotic 40S (18S rRNA + ~30 proteins) + 60S (28S + 5.8S + 5S rRNA + ~45 proteins) = 80S. Describes the three tRNA sites A (aminoacyl), P (peptidyl) and E (exit) and the elongation cycle through them; mRNA threads through a groove near the subunit interface, constrained by helicase-like small-subunit proteins."
+    },
+    {
+      "title": "PMC2907240 -- 'The ribosome structure controls and directs mRNA entry, translocation and exit dynamics'",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC2907240/",
+      "note": "Confirms the mRNA path through the interface groove and its interaction with small-subunit proteins that clamp and orient it."
+    },
+    {
+      "title": "PMC7547690 -- 'Structural insights into assembly of the ribosomal nascent polypeptide exit tunnel'; geometry corroborated by 'The Geometry of the Ribosomal Polypeptide Exit Tunnel' (J Mol Biol) and eLife 10.7554/eLife.36326",
+      "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7547690/",
+      "note": "Exit tunnel runs through the large subunit only, from the peptidyl transferase centre to the particle's exterior, ~80-100 Angstrom long with an average bore of ~15 Angstrom and a bend partway along; walls formed mostly by rRNA domains with protein contributions (L4, L22, L39 in bacteria)."
+    },
+    {
+      "title": "RCSB PDB-101, Molecule of the Month #121 -- 'Ribosome'",
+      "url": "https://pdb101.rcsb.org/motm/121",
+      "note": "General-audience structural overview and the source lineage for the David Goodsell-style small (blue)/large (green) colour convention used across many public ribosome illustrations; confirms the unequal-subunit, RNA-cored architecture."
+    },
+    {
+      "title": "Wikipedia -- Ribosome / Ribosomal RNA / Exit tunnel",
+      "url": "https://en.wikipedia.org/wiki/Ribosome",
+      "note": "Cross-check for elongation rate (roughly 2-20 amino acids/second depending on organism and conditions, matching the atlas's own func_en text), polysome/polyribosome terminology, and the antibiotic-selectivity point (many antibiotics such as macrolides, aminoglycosides and tetracyclines bind bacterial-specific ribosomal sites absent from the human 80S ribosome)."
+    },
+    {
+      "title": "Wikipedia (de) -- Ribosom",
+      "url": "https://de.wikipedia.org/wiki/Ribosom",
+      "note": "German terminology check: Ribosom, große/kleine Untereinheit, Boten-RNA (mRNA), A-/P-/E-Stelle, Polypeptidkette, Austrittstunnel, ribosomale RNA (rRNA), Polysom."
+    }
+  ],
+  "reference_micrograph_candidates": [
+    {
+      "title": "Ribosome shape.png -- surface rendering of the E. coli 70S ribosome",
+      "page_url": "https://en.wikipedia.org/wiki/File:Ribosome_shape.png",
+      "file_url": "https://upload.wikimedia.org/wikipedia/commons/4/42/Ribosome_shape.png",
+      "license": "CC BY-SA 3.0 / GFDL 1.2+",
+      "attribution": "Vossman, via Wikimedia Commons",
+      "modality": "structural-model (cryo-EM/crystallographic density map, PDB 2AVY/2AW4, low-pass filtered to ~30 Angstrom via EMAN1, rendered as an isosurface in UCSF Chimera)",
+      "note": "CHOSEN. Honest difficulty acknowledged: at 25 nm a ribosome is well below the resolution of conventional TEM, so no ordinary micrograph can resolve one -- the genuinely informative real-world image here is a structural density model, not a photograph, and this render.md says so explicitly. This image directly shows the two-lobed, unequal-subunit architecture (red/pink = large 50S subunit, blue = small 30S subunit) with a visibly knobbly, irregular surface -- exactly the morphology this plate needs to get right -- from real experimental density data, not an artist's guess. Two side-by-side views in the source; the left panel was used. Native 2580x1289 (two-panel composite); the left panel alone is ~1328x1289. Baked-in '200 Angstrom' scale bar/text cropped off with a deterministic crop (no re-illustration)."
+    },
+    {
+      "title": "010 small subunit-1FKA.gif -- animated small-subunit-only structure",
+      "page_url": "https://en.wikipedia.org/wiki/File:010_small_subunit-1FKA.gif",
+      "file_url": "https://upload.wikimedia.org/wikipedia/commons/0/0a/010_small_subunit-1FKA.gif",
+      "license": "Public domain / CC (David S. Goodsell / RCSB PDB, PDB 1FKA)",
+      "attribution": "David S. Goodsell, RCSB PDB",
+      "modality": "structural-model (animated ribbon/space-fill model)",
+      "note": "Runner-up, not chosen: shows only the SMALL subunit of the Thermus thermophilus ribosome in isolation, so it cannot show the defining large-vs-small size contrast this plate is built around. Kept on file as a possible small-subunit detail inset if ever needed."
+    }
+  ]
+}

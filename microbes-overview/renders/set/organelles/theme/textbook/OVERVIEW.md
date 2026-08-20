@@ -13,3 +13,7 @@ Every microbe's `textbook` image — labelled SVG where built, else the last ren
 ## Nucleus (`nucleus`)
 ![textbook](nucleus.textbook.svg)
 [full log](../../nucleus.render.md)
+
+## Ribosome (`ribosome`)
+![textbook](ribosome.textbook.svg)
+[full log](../../ribosome.render.md)

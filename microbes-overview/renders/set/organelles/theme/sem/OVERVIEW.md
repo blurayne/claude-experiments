@@ -13,3 +13,7 @@ Every microbe's `sem` image — labelled SVG where built, else the last render. 
 ## Nucleus (`nucleus`)
 ![sem](nucleus.attempts/gen-02__gemini-2.5-flash-image.avif)
 [full log](../../nucleus.render.md)
+
+## Ribosome (`ribosome`)
+![sem](ribosome.attempts/gen-01__gemini-2.5-flash-image.avif)
+[full log](../../ribosome.render.md)

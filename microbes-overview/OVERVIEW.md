@@ -4,7 +4,7 @@
 
 ## Where we stand
 
-- **16 sets**, **99 microbes** live in the viewer, out of **107 catalogued**.
+- **16 sets**, **100 microbes** live in the viewer, out of **107 catalogued**.
 - Every live microbe carries: 5 picture styles, 3 labelled diagrams, a printable A4 coloring page, kids narration in EN + DE, and size/weight data — the table below is the proof.
 - **44 plush links**, every one an exact species/cell match. 8 of those photos had to be repaired (see the last section).
 
@@ -17,7 +17,7 @@
 | organelles | Golgi apparatus | `golgi-apparatus` | 5/5 | 3/3 | ✅ | ✅ | 2 µm · 2 pg | Golgi Apparatus |
 | organelles | Nucleus | `nucleus` | 5/5 | 3/3 | ✅ | ✅ | 6 µm · 300 pg | — |
 | organelles | Mitochondrion | `mitochondrion` | 5/5 | 3/3 | ✅ | ✅ | 2 µm · 0.5 pg | — |
-| organelles | Ribosome | — | ❌ not rendered | | | | 25 nm · 4200 kDa | |
+| organelles | Ribosome | `ribosome` | 5/5 | 3/3 | ✅ | ✅ | 25 nm · 4200 kDa | — |
 | organelles | Endoplasmic reticulum (ER) | — | ❌ not rendered | | | | 10 µm · 300 pg | |
 | organelles | Lysosome | — | ❌ not rendered | | | | 500 nm · 0.06 pg | |
 | organelles | Cell membrane (plasma membrane) | — | ❌ not rendered | | | | 15 µm · 4 pg | |
@@ -124,9 +124,8 @@
 
 ## Gaps
 
-**Catalogued but not yet rendered — 8.** Text, German translation and scale data already exist for these; only the pictures are missing.
+**Catalogued but not yet rendered — 7.** Text, German translation and scale data already exist for these; only the pictures are missing.
 
-- `organelles` — Ribosome
 - `organelles` — Endoplasmic reticulum (ER)
 - `organelles` — Lysosome
 - `organelles` — Cell membrane (plasma membrane)
@@ -139,7 +138,7 @@
 
 - none
 
-**Data waiting for a render:** 8 scale entries (`cell-membrane`, `chromosome`, `cytoskeleton`, `dna`, `endoplasmic-reticulum`, `lysosome`, `ribosome`, `rna`), 0 plush links (none).
+**Data waiting for a render:** 7 scale entries (`cell-membrane`, `chromosome`, `cytoskeleton`, `dna`, `endoplasmic-reticulum`, `lysosome`, `rna`), 0 plush links (none).
 
 **No recorded micrograph source:** `reticulocyte`.
 
