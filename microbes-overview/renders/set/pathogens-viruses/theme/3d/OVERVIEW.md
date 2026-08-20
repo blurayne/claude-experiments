@@ -18,9 +18,17 @@ Every microbe's `3d` image — labelled SVG where built, else the last render. [
 ![3d](influenza-virus.3d.svg)
 [full log](../../influenza-virus.render.md)
 
+## Measles virus (Morbillivirus) (`measles-virus`)
+![3d](measles-virus.3d.svg)
+[full log](../../measles-virus.render.md)
+
 ## Plasmodium (malaria) (`plasmodium`)
 ![3d](plasmodium.3d.svg)
 [full log](../../plasmodium.render.md)
+
+## Rhinovirus (common cold) (`rhinovirus`)
+![3d](rhinovirus.3d.svg)
+[full log](../../rhinovirus.render.md)
 
 ## SARS-CoV-2 (COVID-19) (`sars-cov-2`)
 ![3d](sars-cov-2.3d.svg)

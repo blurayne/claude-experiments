@@ -18,9 +18,17 @@ Every microbe's `sem` image — labelled SVG where built, else the last render. 
 ![sem](influenza-virus.attempts/gen-02__gemini-3-pro-image.avif)
 [full log](../../influenza-virus.render.md)
 
+## Measles virus (Morbillivirus) (`measles-virus`)
+![sem](measles-virus.attempts/gen-01__gemini-3-pro-image.avif)
+[full log](../../measles-virus.render.md)
+
 ## Plasmodium (malaria) (`plasmodium`)
 ![sem](plasmodium.attempts/gen-01__gemini-2.5-flash-image.avif)
 [full log](../../plasmodium.render.md)
+
+## Rhinovirus (common cold) (`rhinovirus`)
+![sem](rhinovirus.attempts/gen-01__gemini-3-pro-image.avif)
+[full log](../../rhinovirus.render.md)
 
 ## SARS-CoV-2 (COVID-19) (`sars-cov-2`)
 ![sem](sars-cov-2.attempts/gen-01__gemini-2.5-flash-image.avif)

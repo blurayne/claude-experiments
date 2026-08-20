@@ -74,6 +74,24 @@ Enveloped, pleomorphic respiratory RNA virus (~80-120 nm) of the Orthomyxovirida
 
 Full log: [`influenza-virus.render.md`](influenza-virus.render.md)
 
+## Measles virus (Morbillivirus) (`measles-virus`)
+Enveloped, pleomorphic negative-sense RNA virus of the Paramyxoviridae (genus Morbillivirus), ~100-300 nm, studded with hemagglutinin (H) and fusion (F) spikes but carrying NO neuraminidase, its single non-segmented genome wound into a herringbone-like helical nucleocapsid; the most contagious human virus, prevented by the MMR vaccine.
+
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/measles-virus__textbook.avif) | ![sem](finals/measles-virus__sem.avif) | ![3d](finals/measles-virus__3d.avif) | ![watercolor](finals/measles-virus__watercolor.avif) | ![reference](finals/measles-virus__reference.avif) |
+
+**textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/measles-virus.textbook.svg) · [HTML](theme/textbook/measles-virus.textbook.html)
+![textbook labelled](theme/textbook/measles-virus.textbook.svg)
+
+**3d — labelled** (English default, La/De toggle): [SVG](theme/3d/measles-virus.3d.svg) · [HTML](theme/3d/measles-virus.3d.html)
+![3d labelled](theme/3d/measles-virus.3d.svg)
+
+**watercolor — labelled** (English default, La/De toggle): [SVG](theme/watercolor/measles-virus.watercolor.svg) · [HTML](theme/watercolor/measles-virus.watercolor.html)
+![watercolor labelled](theme/watercolor/measles-virus.watercolor.svg)
+
+Full log: [`measles-virus.render.md`](measles-virus.render.md)
+
 ## Plasmodium (malaria) (`plasmodium`)
 Single-celled apicomplexan parasite that causes malaria, spread by Anopheles mosquitoes. Shown here as the invasive merozoite (~1.5 µm): a small egg-shaped eukaryotic cell with a pointed apical complex (rhoptries, micronemes) for entering red blood cells, one nucleus, a single mitochondrion and a relict apicoplast. Not a worm, not a bacterium.
 
@@ -91,6 +109,24 @@ Single-celled apicomplexan parasite that causes malaria, spread by Anopheles mos
 ![watercolor labelled](theme/watercolor/plasmodium.watercolor.svg)
 
 Full log: [`plasmodium.render.md`](plasmodium.render.md)
+
+## Rhinovirus (common cold) (`rhinovirus`)
+Tiny non-enveloped icosahedral +ssRNA virus (~30 nm) of the Picornaviridae (genus Enterovirus, species Rhinovirus A/B/C) whose ~170 genotypes cause most common colds; it replicates best at the cool 33-35 °C of the nasal lining and docks onto ICAM-1 through a canyon-shaped groove in its capsid.
+
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/rhinovirus__textbook.avif) | ![sem](finals/rhinovirus__sem.avif) | ![3d](finals/rhinovirus__3d.avif) | ![watercolor](finals/rhinovirus__watercolor.avif) | ![reference](finals/rhinovirus__reference.avif) |
+
+**textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/rhinovirus.textbook.svg) · [HTML](theme/textbook/rhinovirus.textbook.html)
+![textbook labelled](theme/textbook/rhinovirus.textbook.svg)
+
+**3d — labelled** (English default, La/De toggle): [SVG](theme/3d/rhinovirus.3d.svg) · [HTML](theme/3d/rhinovirus.3d.html)
+![3d labelled](theme/3d/rhinovirus.3d.svg)
+
+**watercolor — labelled** (English default, La/De toggle): [SVG](theme/watercolor/rhinovirus.watercolor.svg) · [HTML](theme/watercolor/rhinovirus.watercolor.html)
+![watercolor labelled](theme/watercolor/rhinovirus.watercolor.svg)
+
+Full log: [`rhinovirus.render.md`](rhinovirus.render.md)
 
 ## SARS-CoV-2 (COVID-19) (`sars-cov-2`)
 Enveloped +ssRNA betacoronavirus with a crown of Spike (S) glycoprotein trimers; binds ACE2 in the airways; caused the COVID-19 pandemic.
@@ -134,17 +170,27 @@ Full log: [`sars-cov-2.render.md`](sars-cov-2.render.md)
 | Influenza virus (flu) | 3D medical render | gemini-3-pro-image | 2 | ✅ | built | 57s | 3723 | $0.082 |
 | Influenza virus (flu) | Watercolor plate | gemini-3-pro-image | 2 | ✅ | built | 46s | 3582 | $0.081 |
 | Influenza virus (flu) | TEM · Public Domain (CDC / Dr. F. A. Murphy) | — (download) | 1 | ✅ | n/a | 9s | 0 | $0.000 |
+| Measles virus (Morbillivirus) | Textbook illustration | gemini-3-pro-image | 1 | ✅ | built | 24s | 2525 | $0.048 |
+| Measles virus (Morbillivirus) | SEM micrograph | gemini-3-pro-image | 1 | ✅ | pending (same pipeline) | 18s | 1834 | $0.040 |
+| Measles virus (Morbillivirus) | 3D medical render | gemini-3-pro-image | 1 | ✅ | built | 18s | 2086 | $0.042 |
+| Measles virus (Morbillivirus) | Watercolor plate | gemini-3-pro-image | 1 | ✅ | built | 23s | 2227 | $0.047 |
+| Measles virus (Morbillivirus) | TEM · Public Domain (PD-USGov-HHS-CDC) | — (edit) | 2 | ✅ | n/a | 12s | 1744 | $0.039 |
 | Plasmodium (malaria) | Textbook illustration | gemini-3-pro-image | 3 | ✅ | built | 1.1m | 5585 | $0.123 |
 | Plasmodium (malaria) | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 14s | 1515 | $0.039 |
 | Plasmodium (malaria) | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 14s | 1600 | $0.039 |
 | Plasmodium (malaria) | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 17s | 1679 | $0.039 |
 | Plasmodium (malaria) | LM · Public Domain (CDC PHIL #5856) | — (edit) | 2 | ✅ | n/a | 30s | 1730 | $0.039 |
+| Rhinovirus (common cold) | Textbook illustration | gemini-3-pro-image | 1 | ✅ | built | 21s | 2309 | $0.046 |
+| Rhinovirus (common cold) | SEM micrograph | gemini-3-pro-image | 1 | ✅ | pending (same pipeline) | 20s | 1910 | $0.040 |
+| Rhinovirus (common cold) | 3D medical render | gemini-3-pro-image | 2 | ✅ | built | 40s | 4319 | $0.084 |
+| Rhinovirus (common cold) | Watercolor plate | gemini-3-pro-image | 2 | ✅ | built | 45s | 4433 | $0.088 |
+| Rhinovirus (common cold) | cryo-EM · CC0 1.0 / public domain (wwPDB EMDB entry image) | — (edit) | 2 | ✅ | n/a | 20s | 2109 | $0.039 |
 | SARS-CoV-2 (COVID-19) | Textbook illustration | gemini-2.5-flash-image | 2 | ✅ | built | 46s | 3228 | $0.077 |
 | SARS-CoV-2 (COVID-19) | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 15s | 1477 | $0.039 |
 | SARS-CoV-2 (COVID-19) | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 22s | 1492 | $0.039 |
 | SARS-CoV-2 (COVID-19) | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 16s | 1492 | $0.039 |
 | SARS-CoV-2 (COVID-19) | TEM · CC BY 2.0 | — (download) | 1 | ✅ | n/a | 25s | 0 | $0.000 |
 
-**Set total: 66,157 tokens · $1.574**
+**Set total: 91,653 tokens · $2.086**
 
-_Updated 2026-08-19 12:36 local._
+_Updated 2026-08-20 11:11 local._

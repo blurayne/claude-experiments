@@ -1,0 +1,24 @@
+{
+  "name": "Streptococcus mutans (tooth decay)",
+  "short_description": "Chain-forming Gram-positive coccus of dental plaque that turns sucrose into a sticky glucan biofilm and lactic acid, dissolving tooth enamel.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {"1": "pass (gemini-3-pro-image; muted educational palette with thin clean outlines on dark charcoal, correct chain of ovoid cocci joined end to end, sticky glucan strands webbing the chain instead of a smooth capsule, quarter cut-away showing wall / membrane / cytoplasm / diffuse nucleoid / scattered ribosomes, Gtf knobs and adhesin stubs on the wall, no flagella, no text, no border)"},
+    "sem": {"1": "pass (gemini-3-pro-image; false-colour surface-only micrograph of a single short chain, granular surface texture with septal grooves, glucan glue strands tethering the chain to the substrate, mint-teal on amber, no internal structures, no text, no border)"},
+    "3d": {"1": "pass (gemini-3-pro-image; natural biological tints - ochre wall, teal membrane, cream cytoplasm, blue-violet nucleoid tangle, teal ribosomes - single chain with honey-amber glucan webbing and Gtf knobs, clean dark studio background, no flagella, no text, no border)"},
+    "watercolor": {
+      "1": "fail (gemini-3-pro-image; painted as a separate torn-edged sheet of paper lying on a white surface with a drop shadow - the aged paper must fill the frame edge to edge; also every cell drawn opened instead of one cut-away)",
+      "2": "fail (gemini-3-pro-image; full-bleed paper fixed and composition good, but several long wavy ink filaments radiate from the front cell and read as flagella, which this non-motile bacterium does not have)",
+      "3": "fail (gemini-3-pro-image; subject cropped by all four edges with no margin left for labels, two cells opened, hair-like filaments still present)",
+      "4": "fail (gemini-3-pro-image; margins fixed, but every cell in the chain is drawn transparent with its own nucleoid, so the plate reads as a row of coins rather than a chain with one cut-away)",
+      "5": "pass (gemini-3-pro-image; warm aged paper fills the frame edge to edge with a soft wash halo, one chain of six cocci, exactly one front cell cut away, the others opaque, honey-amber glucan strands webbing the chain, no flagella, no text, no sheet/frame)"
+    }
+  },
+  "reference": "pass (Gram-stained light micrograph of S. mutans ATCC 25175 by Y tambe, CC BY-SA 3.0; the raw field shows the characteristic curving chains of small violet cocci - a cleaned, scale-bar-free version with one chain brought forward is used for display)",
+  "decision": [
+    ["textbook", "pass", 1, "use as final and as the primary labelled figure; all ten reference structures are separable enough for leader lines"],
+    ["sem", "pass", 1, "use as final; correct surface-only false-colour view of a chain with its glucan glue"],
+    ["3d", "pass", 1, "use as final; labelled figure built - natural tints, clear envelope layering"],
+    ["watercolor", "pass", 5, "use as final after four re-renders: attempt 1 was a sheet-on-a-surface, 2 and 3 added flagella-like ink filaments, 4 opened every cell; attempt 5 satisfies the full-bleed paper rule and the single-cut-away composition"]
+  ]
+}

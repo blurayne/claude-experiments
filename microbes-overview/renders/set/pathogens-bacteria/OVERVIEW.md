@@ -92,6 +92,24 @@ Gram-positive coccus in grape-like clusters; often a harmless skin/nasal commens
 
 Full log: [`staphylococcus-aureus.render.md`](staphylococcus-aureus.render.md)
 
+## Streptococcus mutans (tooth decay) (`streptococcus-mutans`)
+Chain-forming Gram-positive coccus of dental plaque that turns sucrose into a sticky glucan biofilm and lactic acid, dissolving tooth enamel.
+
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/streptococcus-mutans__textbook.avif) | ![sem](finals/streptococcus-mutans__sem.avif) | ![3d](finals/streptococcus-mutans__3d.avif) | ![watercolor](finals/streptococcus-mutans__watercolor.avif) | ![reference](finals/streptococcus-mutans__reference.avif) |
+
+**textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/streptococcus-mutans.textbook.svg) · [HTML](theme/textbook/streptococcus-mutans.textbook.html)
+![textbook labelled](theme/textbook/streptococcus-mutans.textbook.svg)
+
+**3d — labelled** (English default, La/De toggle): [SVG](theme/3d/streptococcus-mutans.3d.svg) · [HTML](theme/3d/streptococcus-mutans.3d.html)
+![3d labelled](theme/3d/streptococcus-mutans.3d.svg)
+
+**watercolor — labelled** (English default, La/De toggle): [SVG](theme/watercolor/streptococcus-mutans.watercolor.svg) · [HTML](theme/watercolor/streptococcus-mutans.watercolor.html)
+![watercolor labelled](theme/watercolor/streptococcus-mutans.watercolor.svg)
+
+Full log: [`streptococcus-mutans.render.md`](streptococcus-mutans.render.md)
+
 ## Streptococcus pneumoniae (`streptococcus-pneumoniae`)
 Lancet-shaped Gram-positive coccus in pairs and short chains, wrapped in a thick polysaccharide capsule; leading cause of pneumonia, otitis media and meningitis.
 
@@ -139,12 +157,17 @@ Full log: [`streptococcus-pneumoniae.render.md`](streptococcus-pneumoniae.render
 | Staphylococcus aureus (MRSA) | 3D medical render | gemini-3-pro-image | 3 | ✅ | built | 1.0m | 5411 | $0.121 |
 | Staphylococcus aureus (MRSA) | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 25s | 1610 | $0.039 |
 | Staphylococcus aureus (MRSA) | SEM · Public Domain (USDA ARS) | — (edit) | 2 | ✅ | n/a | 1.4m | 1663 | $0.039 |
+| Streptococcus mutans (tooth decay) | Textbook illustration | gemini-3-pro-image | 1 | ✅ | built | 21s | 2497 | $0.050 |
+| Streptococcus mutans (tooth decay) | SEM micrograph | gemini-3-pro-image | 1 | ✅ | pending (same pipeline) | 19s | 1885 | $0.042 |
+| Streptococcus mutans (tooth decay) | 3D medical render | gemini-3-pro-image | 1 | ✅ | built | 19s | 2175 | $0.046 |
+| Streptococcus mutans (tooth decay) | Watercolor plate | gemini-3-pro-image | 5 | ✅ | built | 1.8m | 11657 | $0.236 |
+| Streptococcus mutans (tooth decay) | LM · CC BY-SA 3.0 | — (edit) | 2 | ✅ | n/a | 10s | 1727 | $0.039 |
 | Streptococcus pneumoniae | Textbook illustration | gemini-3-pro-image | 3 | ✅ | built | 1.3m | 5720 | $0.126 |
 | Streptococcus pneumoniae | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 16s | 1509 | $0.039 |
 | Streptococcus pneumoniae | 3D medical render | gemini-2.5-flash-image | 2 | ✅ | built | 46s | 3157 | $0.077 |
 | Streptococcus pneumoniae | Watercolor plate | gemini-3-pro-image | 3 | ✅ | built | 1.3m | 5297 | $0.119 |
 | Streptococcus pneumoniae | SEM · Public Domain (CDC PHIL #262) | — (edit) | 2 | ✅ | n/a | 1.0m | 1676 | $0.039 |
 
-**Set total: 80,280 tokens · $1.863**
+**Set total: 100,221 tokens · $2.275**
 
-_Updated 2026-08-19 12:36 local._
+_Updated 2026-08-20 11:11 local._

@@ -22,6 +22,10 @@ Every microbe's `sem` image — labelled SVG where built, else the last render. 
 ![sem](staphylococcus-aureus.attempts/gen-01__gemini-2.5-flash-image.avif)
 [full log](../../staphylococcus-aureus.render.md)
 
+## Streptococcus mutans (tooth decay) (`streptococcus-mutans`)
+![sem](streptococcus-mutans.attempts/gen-01__gemini-3-pro-image.avif)
+[full log](../../streptococcus-mutans.render.md)
+
 ## Streptococcus pneumoniae (`streptococcus-pneumoniae`)
 ![sem](streptococcus-pneumoniae.attempts/gen-01__gemini-2.5-flash-image.avif)
 [full log](../../streptococcus-pneumoniae.render.md)

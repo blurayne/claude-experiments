@@ -22,6 +22,10 @@ Every microbe's `watercolor` image — labelled SVG where built, else the last r
 ![watercolor](staphylococcus-aureus.watercolor.svg)
 [full log](../../staphylococcus-aureus.render.md)
 
+## Streptococcus mutans (tooth decay) (`streptococcus-mutans`)
+![watercolor](streptococcus-mutans.watercolor.svg)
+[full log](../../streptococcus-mutans.render.md)
+
 ## Streptococcus pneumoniae (`streptococcus-pneumoniae`)
 ![watercolor](streptococcus-pneumoniae.watercolor.svg)
 [full log](../../streptococcus-pneumoniae.render.md)

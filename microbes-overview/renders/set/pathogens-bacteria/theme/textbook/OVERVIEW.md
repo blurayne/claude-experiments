@@ -22,6 +22,10 @@ Every microbe's `textbook` image — labelled SVG where built, else the last ren
 ![textbook](staphylococcus-aureus.textbook.svg)
 [full log](../../staphylococcus-aureus.render.md)
 
+## Streptococcus mutans (tooth decay) (`streptococcus-mutans`)
+![textbook](streptococcus-mutans.textbook.svg)
+[full log](../../streptococcus-mutans.render.md)
+
 ## Streptococcus pneumoniae (`streptococcus-pneumoniae`)
 ![textbook](streptococcus-pneumoniae.textbook.svg)
 [full log](../../streptococcus-pneumoniae.render.md)

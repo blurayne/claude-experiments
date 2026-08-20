@@ -18,9 +18,17 @@ Every microbe's `watercolor` image — labelled SVG where built, else the last r
 ![watercolor](influenza-virus.watercolor.svg)
 [full log](../../influenza-virus.render.md)
 
+## Measles virus (Morbillivirus) (`measles-virus`)
+![watercolor](measles-virus.watercolor.svg)
+[full log](../../measles-virus.render.md)
+
 ## Plasmodium (malaria) (`plasmodium`)
 ![watercolor](plasmodium.watercolor.svg)
 [full log](../../plasmodium.render.md)
+
+## Rhinovirus (common cold) (`rhinovirus`)
+![watercolor](rhinovirus.watercolor.svg)
+[full log](../../rhinovirus.render.md)
 
 ## SARS-CoV-2 (COVID-19) (`sars-cov-2`)
 ![watercolor](sars-cov-2.watercolor.svg)

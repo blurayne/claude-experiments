@@ -1,0 +1,19 @@
+{
+  "name": "Measles virus (Morbillivirus)",
+  "short_description": "Enveloped, pleomorphic negative-sense RNA virus of the Paramyxoviridae (genus Morbillivirus), ~100-300 nm, studded with hemagglutinin (H) and fusion (F) spikes but carrying NO neuraminidase, its single non-segmented genome wound into a herringbone-like helical nucleocapsid; the most contagious human virus, prevented by the MMR vaccine.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {"1": "✅ PASS (gemini-3-pro-image) — muted dusty educational palette with thin clean outlines on a neutral dark charcoal background, filling the frame edge-to-edge. Clean quarter cut-away shows the coral lipid envelope, the pale sage matrix (M) lining, and ONE continuous coppery cross-ridged nucleocapsid tube loosely coiled like a bundled cord with three plum P·L polymerase beads. Exactly two spike types (slate-blue globular H heads on short stalks, ochre-gold cone-shaped F spikes), no neuraminidase, no icosahedral capsid, no segments, no text/border/face. Chosen as label base."},
+    "sem": {"1": "✅ PASS (gemini-3-pro-image) — photorealistic false-colour SEM of a single, distinctly pleomorphic and lumpy enveloped virion on a textured substrate, densely covered by SHORT bristly spikes (no long coronavirus clubs). Warm salmon-to-amber body on a cool teal-grey background, fills the frame edge-to-edge, surface only, no internal structures, no text/border."},
+    "3d": {"1": "✅ PASS (gemini-3-pro-image) — believable 3D medical-illustration virion with soft global illumination and rim light on a dark studio background. Natural biological tints throughout: translucent coral envelope, sage matrix layer, one continuous coppery helical nucleocapsid coiled inside with plum polymerase beads. Two distinct short spike types (slate-blue H knobs, ochre F cones), no neuraminidase, no segmented genome, no text/border/face."},
+    "watercolor": {"1": "✅ PASS (gemini-3-pro-image) — warm aged cream paper fills the entire frame corner-to-corner with a soft darker wash halo painted directly on it; no sheet, mat, frame or drop shadow. Fine ink linework over translucent washes, single large centred specimen, two distinct spike types, painterly cut-away with the sage matrix band and ONE continuous coiled coppery nucleocapsid with polymerase beads. No text, no border."}
+  },
+  "reference": "✅ PASS — CDC PHIL #8429 (public domain, Cynthia S. Goldsmith): a SINGLE isolated measles virion, exactly the preferred case. The slightly irregular pleomorphic envelope with its fine granular spike fringe and the loosely coiled internal nucleocapsid strands are clearly readable. Cleaned with edit_image.py: cropped to the one complete virion, neighbouring partial particles suppressed, and a natural false-colour applied (warm salmon virion body on a cool teal-grey background); no text, scale bar or border remains.",
+  "decision": [
+    ["textbook", "✅ teaching-ready (label base)", "1", "gemini-3-pro-image; best structural clarity for labelling, all seven structures separable"],
+    ["sem", "✅ teaching-ready", "1", "gemini-3-pro-image; realistic false-colour surface, correct short dense spike fringe"],
+    ["3d", "✅ teaching-ready", "1", "gemini-3-pro-image; natural tints, believable cut-away with a single coiled nucleocapsid"],
+    ["watercolor", "✅ teaching-ready", "1", "gemini-3-pro-image; full-bleed aged paper, correct morphology, black-on-paper labels"],
+    ["reference TEM", "✅ verified (single isolated virion)", "2", "CDC PHIL #8429 public domain, cleaned + false-coloured"]
+  ]
+}

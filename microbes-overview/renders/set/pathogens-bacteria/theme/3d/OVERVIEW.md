@@ -22,6 +22,10 @@ Every microbe's `3d` image — labelled SVG where built, else the last render. [
 ![3d](staphylococcus-aureus.3d.svg)
 [full log](../../staphylococcus-aureus.render.md)
 
+## Streptococcus mutans (tooth decay) (`streptococcus-mutans`)
+![3d](streptococcus-mutans.3d.svg)
+[full log](../../streptococcus-mutans.render.md)
+
 ## Streptococcus pneumoniae (`streptococcus-pneumoniae`)
 ![3d](streptococcus-pneumoniae.3d.svg)
 [full log](../../streptococcus-pneumoniae.render.md)
