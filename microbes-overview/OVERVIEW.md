@@ -4,7 +4,7 @@
 
 ## Where we stand
 
-- **15 sets**, **91 microbes** live in the viewer, out of **94 catalogued**.
+- **15 sets**, **93 microbes** live in the viewer, out of **94 catalogued**.
 - Every live microbe carries: 5 picture styles, 3 labelled diagrams, a printable A4 coloring page, kids narration in EN + DE, and size/weight data — the table below is the proof.
 - **41 plush links**, every one an exact species/cell match. 8 of those photos had to be repaired (see the last section).
 
@@ -103,25 +103,23 @@
 | pathogens-viruses | Measles virus (Morbillivirus) | `measles-virus` | 5/5 | 3/3 | ✅ | ✅ | 200 nm · 8 fg | Measles (Morbillivirus) |
 | pathogens-viruses | Rotavirus | `rotavirus` | 5/5 | 3/3 | ✅ | ✅ | 75 nm · 1.5 fg | Rotavirus (Rotavirus) |
 | pathogens-viruses | Norovirus (stomach bug) | `norovirus` | 5/5 | 3/3 | ✅ | ✅ | 38 nm · 0.5 fg | — |
-| pathogens-viruses | Varicella-zoster virus (chickenpox) | — | ❌ not rendered | | | | 180 nm · 6 fg | |
-| pathogens-viruses | Giardia lamblia (giardiasis) | — | ❌ not rendered | | | | 12 µm · 1 ng | |
+| pathogens-viruses | Varicella-zoster virus (chickenpox) | `varicella-zoster-virus` | 5/5 | 3/3 | ✅ | ✅ | 180 nm · 6 fg | — |
+| pathogens-viruses | Giardia lamblia (giardiasis) | `giardia-lamblia` | 5/5 | 3/3 | ✅ | ✅ | 12 µm · 1 ng | — |
 | helpful-microbes | Baker's yeast (Saccharomyces cerevisiae) | `saccharomyces-cerevisiae` | 5/5 | 3/3 | ✅ | ✅ | 5 µm · 60 pg | Beer & Bread (Saccharomyces cerevisiae) |
 | helpful-microbes | Penicillin mould (Penicillium chrysogenum) | `penicillium-chrysogenum` | 5/5 | 3/3 | ✅ | ✅ | 3.5 µm · 20 pg | Penicillin (Penicillium chrysogenum) |
 | helpful-microbes | Bifidobacterium longum | `bifidobacterium-longum` | 5/5 | 3/3 | ✅ | ✅ | 3 µm · 1.5 pg | Bifido (Bifidobacterium longum) |
 
 ## Gaps
 
-**Catalogued but not yet rendered — 3.** Text, German translation and scale data already exist for these; only the pictures are missing.
+**Catalogued but not yet rendered — 1.** Text, German translation and scale data already exist for these; only the pictures are missing.
 
 - `pathogens-viruses` — Zika virus
-- `pathogens-viruses` — Varicella-zoster virus (chickenpox)
-- `pathogens-viruses` — Giardia lamblia (giardiasis)
 
 **Rendered but not reaching the viewer — 0.** A render only appears if `meta.name` matches a catalogue `name_en` exactly, or its key matches the slug of one; anything here fell through both.
 
 - none
 
-**Data waiting for a render:** 3 scale entries (`giardia-lamblia`, `varicella-zoster-virus`, `zika-virus`), 1 plush link (`zika-virus`).
+**Data waiting for a render:** 1 scale entry (`zika-virus`), 1 plush link (`zika-virus`).
 
 **No recorded micrograph source:** `reticulocyte`.
 

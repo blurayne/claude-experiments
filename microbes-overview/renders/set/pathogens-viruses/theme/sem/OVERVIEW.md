@@ -6,6 +6,10 @@ Every microbe's `sem` image — labelled SVG where built, else the last render. 
 ![sem](candida-albicans.attempts/gen-01__gemini-2.5-flash-image.avif)
 [full log](../../candida-albicans.render.md)
 
+## Giardia lamblia (giardiasis) (`giardia-lamblia`)
+![sem](giardia-lamblia.attempts/gen-01__gemini-2.5-flash-image.avif)
+[full log](../../giardia-lamblia.render.md)
+
 ## Hepatitis B virus (HBV) (`hepatitis-b-virus`)
 ![sem](hepatitis-b-virus.attempts/gen-02__gemini-2.5-flash-image.avif)
 [full log](../../hepatitis-b-virus.render.md)
@@ -41,3 +45,7 @@ Every microbe's `sem` image — labelled SVG where built, else the last render. 
 ## SARS-CoV-2 (COVID-19) (`sars-cov-2`)
 ![sem](sars-cov-2.attempts/gen-01__gemini-2.5-flash-image.avif)
 [full log](../../sars-cov-2.render.md)
+
+## Varicella-zoster virus (chickenpox) (`varicella-zoster-virus`)
+![sem](varicella-zoster-virus.attempts/gen-01__gemini-2.5-flash-image.avif)
+[full log](../../varicella-zoster-virus.render.md)

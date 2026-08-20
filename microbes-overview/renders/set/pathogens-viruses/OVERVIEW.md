@@ -20,6 +20,24 @@ Dimorphic yeast (~3-6 um ovoid) that lives harmlessly in the mouth, gut and geni
 
 Full log: [`candida-albicans.render.md`](candida-albicans.render.md)
 
+## Giardia lamblia (giardiasis) (`giardia-lamblia`)
+Binucleate flagellated protozoan (genus Giardia, also called G. duodenalis / G. intestinalis) whose bilaterally symmetric, teardrop-shaped trophozoite (~12-15 x 5-9 um) carries two symmetric anterior nuclei giving it a famously face-like look, a large concave ventral adhesive disc that clamps onto small-intestinal enterocytes, a median body of microtubules, and eight flagella in four bilateral pairs (anterior, posterolateral, ventral, caudal); it does not invade tissue but coats the mucosa, blunts villi and interferes with fat/vitamin absorption, and encysts into an oval four-nucleated environmentally resistant cyst that is shed in faeces and survives in untreated water, making it the classic 'backpacker's/beaver fever' waterborne diarrhoeal parasite.
+
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/giardia-lamblia__textbook.avif) | ![sem](finals/giardia-lamblia__sem.avif) | ![3d](finals/giardia-lamblia__3d.avif) | ![watercolor](finals/giardia-lamblia__watercolor.avif) | ![reference](finals/giardia-lamblia__reference.avif) |
+
+**textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/giardia-lamblia.textbook.svg) · [HTML](theme/textbook/giardia-lamblia.textbook.html)
+![textbook labelled](theme/textbook/giardia-lamblia.textbook.svg)
+
+**3d — labelled** (English default, La/De toggle): [SVG](theme/3d/giardia-lamblia.3d.svg) · [HTML](theme/3d/giardia-lamblia.3d.html)
+![3d labelled](theme/3d/giardia-lamblia.3d.svg)
+
+**watercolor — labelled** (English default, La/De toggle): [SVG](theme/watercolor/giardia-lamblia.watercolor.svg) · [HTML](theme/watercolor/giardia-lamblia.watercolor.html)
+![watercolor labelled](theme/watercolor/giardia-lamblia.watercolor.svg)
+
+Full log: [`giardia-lamblia.render.md`](giardia-lamblia.render.md)
+
 ## Hepatitis B virus (HBV) (`hepatitis-b-virus`)
 Enveloped, partially double-stranded DNA hepadnavirus (the ~42 nm Dane particle) that infects liver cells and can persist as a chronic infection; a leading cause of cirrhosis and liver cancer. Spread via blood, sexual contact and perinatally; prevented by a highly effective vaccine.
 
@@ -182,6 +200,24 @@ Enveloped +ssRNA betacoronavirus with a crown of Spike (S) glycoprotein trimers;
 
 Full log: [`sars-cov-2.render.md`](sars-cov-2.render.md)
 
+## Varicella-zoster virus (chickenpox) (`varicella-zoster-virus`)
+Enveloped herpesvirus (human alphaherpesvirus 3, ~180-200 nm, pleomorphic) with the classic four-layer herpesvirus architecture: a ~125 kbp linear dsDNA genome packaged under pressure into a T=16 icosahedral capsid of 162 capsomeres (150 hexons + 12 pentons), the capsid cushioned by an asymmetric granular/fibrous protein tegument, the whole thing wrapped in a lipid envelope studded with short glycoprotein spikes. Causes chickenpox on primary infection, then establishes lifelong latency in nerve ganglia and can reactivate decades later as shingles.
+
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/varicella-zoster-virus__textbook.avif) | ![sem](finals/varicella-zoster-virus__sem.avif) | ![3d](finals/varicella-zoster-virus__3d.avif) | ![watercolor](finals/varicella-zoster-virus__watercolor.avif) | ![reference](finals/varicella-zoster-virus__reference.avif) |
+
+**textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/varicella-zoster-virus.textbook.svg) · [HTML](theme/textbook/varicella-zoster-virus.textbook.html)
+![textbook labelled](theme/textbook/varicella-zoster-virus.textbook.svg)
+
+**3d — labelled** (English default, La/De toggle): [SVG](theme/3d/varicella-zoster-virus.3d.svg) · [HTML](theme/3d/varicella-zoster-virus.3d.html)
+![3d labelled](theme/3d/varicella-zoster-virus.3d.svg)
+
+**watercolor — labelled** (English default, La/De toggle): [SVG](theme/watercolor/varicella-zoster-virus.watercolor.svg) · [HTML](theme/watercolor/varicella-zoster-virus.watercolor.html)
+![watercolor labelled](theme/watercolor/varicella-zoster-virus.watercolor.svg)
+
+Full log: [`varicella-zoster-virus.render.md`](varicella-zoster-virus.render.md)
+
 ## Status
 
 | name | styles | model | render count | pass | svg status | time taken | tokens used | costs |
@@ -191,6 +227,11 @@ Full log: [`sars-cov-2.render.md`](sars-cov-2.render.md)
 | Candida albicans | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 18s | 1511 | $0.039 |
 | Candida albicans | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 21s | 1614 | $0.039 |
 | Candida albicans | LM · CC BY-SA 3.0 / GFDL | — (edit) | 2 | ✅ | n/a | 1.0m | 1658 | $0.039 |
+| Giardia lamblia (giardiasis) | Textbook illustration | gemini-2.5-flash-image | 1 | ✅ | built | 6s | 2055 | $0.039 |
+| Giardia lamblia (giardiasis) | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 7s | 1806 | $0.039 |
+| Giardia lamblia (giardiasis) | 3D medical render | gemini-2.5-flash-image | 3 | ✅ | built | 23s | 6093 | $0.116 |
+| Giardia lamblia (giardiasis) | Watercolor plate | gemini-2.5-flash-image | 3 | ✅ | built | 21s | 5859 | $0.116 |
+| Giardia lamblia (giardiasis) | SEM · Public domain - CDC PHIL: 'None - This image is in the public domain and thus free of any copyright restrictions.' | — (download) | 1 | ✅ | n/a | 2s | 0 | $0.000 |
 | Hepatitis B virus (HBV) | Textbook illustration | gemini-2.5-flash-image | 2 | ✅ | built | 37s | 3311 | $0.077 |
 | Hepatitis B virus (HBV) | SEM micrograph | gemini-2.5-flash-image | 2 | ✅ | pending (same pipeline) | 30s | 3032 | $0.077 |
 | Hepatitis B virus (HBV) | 3D medical render | gemini-2.5-flash-image | 2 | ✅ | built | 28s | 3169 | $0.077 |
@@ -236,7 +277,12 @@ Full log: [`sars-cov-2.render.md`](sars-cov-2.render.md)
 | SARS-CoV-2 (COVID-19) | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 22s | 1492 | $0.039 |
 | SARS-CoV-2 (COVID-19) | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 16s | 1492 | $0.039 |
 | SARS-CoV-2 (COVID-19) | TEM · CC BY 2.0 | — (download) | 1 | ✅ | n/a | 25s | 0 | $0.000 |
+| Varicella-zoster virus (chickenpox) | Textbook illustration | gemini-3-pro-image | 3 | ✅ | built | 33s | 5995 | $0.123 |
+| Varicella-zoster virus (chickenpox) | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 6s | 1540 | $0.039 |
+| Varicella-zoster virus (chickenpox) | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 7s | 1642 | $0.039 |
+| Varicella-zoster virus (chickenpox) | Watercolor plate | gemini-2.5-flash-image | 2 | ✅ | built | 15s | 3267 | $0.077 |
+| Varicella-zoster virus (chickenpox) | TEM · Public domain - CDC PHIL: 'None - This image is in the public domain and thus free of any copyright restrictions.' | — (download) | 1 | ✅ | n/a | 2s | 0 | $0.000 |
 
-**Set total: 143,220 tokens · $3.086**
+**Set total: 171,477 tokens · $3.673**
 
-_Updated 2026-08-20 19:32 local._
+_Updated 2026-08-20 19:58 local._

@@ -1,0 +1,30 @@
+{
+  "name": "Varicella-zoster virus (chickenpox)",
+  "short_description": "Enveloped herpesvirus (human alphaherpesvirus 3, ~180-200 nm, pleomorphic) with the classic four-layer herpesvirus architecture: a ~125 kbp linear dsDNA genome packaged under pressure into a T=16 icosahedral capsid of 162 capsomeres (150 hexons + 12 pentons), the capsid cushioned by an asymmetric granular/fibrous protein tegument, the whole thing wrapped in a lipid envelope studded with short glycoprotein spikes. Causes chickenpox on primary infection, then establishes lifelong latency in nerve ganglia and can reactivate decades later as shingles.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {
+      "1": "FAIL - style mismatch, not a science error: rendered as a flat 2D geometric mandala/gem-cut medallion seen head-on (concentric polygons) rather than a believable 3D sphere with a cutaway, unlike the house style (rod-bacterium/parasite/norovirus). Layers were present and correctly ordered but the composition didn't read as a virion. Superseded by attempt 2.",
+      "2": "FAIL - rendering glitch: the requested wedge cutaway produced a broken flat dark-brown fan/wedge shape stuck onto the side of a half-circle, not a believable 3D cutaway ball; reads as an artifact, not a virus. Two bad results on this style -> escalated model to gemini-3-pro-image per the model ladder. Superseded by attempt 3.",
+      "3": "PASS (gemini-3-pro-image) - a believable 3D sphere with a rounded bowl-shaped cutaway (matching the norovirus/rod-bacterium house style): outer lilac envelope with short blunt pink studs around the whole rim, a substantial tan/gold granular tegument band lining the cutaway (correctly BETWEEN capsid and envelope, with real visible volume, not a thin line), a pale blue-grey faceted icosahedral capsid, and a coiled gold dsDNA genome at the centre. Muted educational palette, thin clean outlines, no text/border/vignette, fills the frame on a dark charcoal background. Chosen as label base."
+    },
+    "sem": {
+      "1": "PASS - photorealistic false-colour SEM of a single roughly spherical virion, cool blue-lilac envelope densely covered in short blunt rose studs (never long spikes/rays), crisp 3D surface texture, dark uncluttered background, no internal structures visible (correct for SEM - surface only), no baked text/scale bar/border. Known compromise: outline reads as a fairly regular circle rather than markedly irregular/pleomorphic (a subtler accuracy point than the hard 'do NOT draw' items); accepted as teaching-ready."
+    },
+    "3d": {
+      "1": "PASS - natural biological tints, all four layers clearly distinct and correctly ordered: cool grey-white translucent envelope with short blunt pink/mauve glycoprotein studs (bulbous but blunt, never spiky rays), a substantial warm amber/tan granular tegument ring with real visible texture filling the gap between capsid and envelope, a pale blue-grey faceted icosahedral capsid, and a golden coiled/clustered dsDNA genome at the centre. Soft studio lighting, dark seamless background, no neon/monochrome, no text/border. Chosen without needing a second attempt."
+    },
+    "watercolor": {
+      "1": "FAIL - baked-in text: garbled lettering plus the word 'DNA' rendered directly into the painting near the genome, violating the no-baked-text rule outright despite otherwise-correct four-layer structure and full-bleed aged paper. Superseded by attempt 2.",
+      "2": "PASS - warm aged paper fills the entire frame edge-to-edge with a soft darker wash halo directly on the paper (no mat/sheet-on-surface, matching cocci/rod-bacterium house style); four concentric layers visible: pale lilac envelope with short blunt hand-drawn studs around an irregular rim, a speckled tan/amber tegument ring with real texture between capsid and envelope, a pale blue-grey octagonal capsid with faint facet linework, and a coppery-orange coiled squiggle for the genome at the centre. Fine ink outlines, no baked text after the fix, no border/frame."
+    }
+  },
+  "reference": "PASS - CDC PHIL ID 1878, public-domain negative-stain TEM (Dr. Erskine Palmer, 1982) of a single isolated VZV virion. Directly verified by visual inspection: shows a bright rounded capsid core, a dark granular tegument shell around it, and an irregular scalloped envelope edge - a clean single-specimen illustration of the four-layer architecture, no baked-in text or scale bar. fetch_reference.py center-cropped and upscaled the native 700x846 px source to the standard 1080x1080 canvas (noted explicitly as an upscale); edit_image.py was intentionally skipped since no text/scale bar needed removing, avoiding the re-illustration risk flagged on sibling microbes.",
+  "decision": [
+    ["textbook", "teaching-ready (label base)", 3, "escalated to gemini-3-pro-image after 2 style-mismatch/glitch fails; final render shows a believable 3D cutaway sphere with all four layers correctly ordered, tegument clearly between capsid and envelope with real volume"],
+    ["sem", "teaching-ready", 1, "false-colour surface SEM, single specimen, short blunt studs, no rays, no border; envelope outline is fairly regular rather than markedly irregular - a known minor compromise, not disqualifying"],
+    ["3d", "teaching-ready", 1, "natural biological tints; all four layers distinct with a visibly substantial granular tegument between capsid and envelope; blunt studs not spikes"],
+    ["watercolor", "teaching-ready", 2, "attempt 1 had baked-in garbled text near the genome and was rejected outright; attempt 2 is full-bleed aged-paper naturalist plate with all four layers and no text"],
+    ["reference TEM", "verified", 1, "CDC PHIL 1878 public-domain single-virion TEM; upscaled from native 700x846 to 1080x1080, no baked text/border, no generative cleanup used"]
+  ]
+}

@@ -6,6 +6,10 @@ Every microbe's `watercolor` image — labelled SVG where built, else the last r
 ![watercolor](candida-albicans.watercolor.svg)
 [full log](../../candida-albicans.render.md)
 
+## Giardia lamblia (giardiasis) (`giardia-lamblia`)
+![watercolor](giardia-lamblia.watercolor.svg)
+[full log](../../giardia-lamblia.render.md)
+
 ## Hepatitis B virus (HBV) (`hepatitis-b-virus`)
 ![watercolor](hepatitis-b-virus.watercolor.svg)
 [full log](../../hepatitis-b-virus.render.md)
@@ -41,3 +45,7 @@ Every microbe's `watercolor` image — labelled SVG where built, else the last r
 ## SARS-CoV-2 (COVID-19) (`sars-cov-2`)
 ![watercolor](sars-cov-2.watercolor.svg)
 [full log](../../sars-cov-2.render.md)
+
+## Varicella-zoster virus (chickenpox) (`varicella-zoster-virus`)
+![watercolor](varicella-zoster-virus.watercolor.svg)
+[full log](../../varicella-zoster-virus.render.md)

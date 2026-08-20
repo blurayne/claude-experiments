@@ -6,6 +6,10 @@ Every microbe's `textbook` image — labelled SVG where built, else the last ren
 ![textbook](candida-albicans.textbook.svg)
 [full log](../../candida-albicans.render.md)
 
+## Giardia lamblia (giardiasis) (`giardia-lamblia`)
+![textbook](giardia-lamblia.textbook.svg)
+[full log](../../giardia-lamblia.render.md)
+
 ## Hepatitis B virus (HBV) (`hepatitis-b-virus`)
 ![textbook](hepatitis-b-virus.textbook.svg)
 [full log](../../hepatitis-b-virus.render.md)
@@ -41,3 +45,7 @@ Every microbe's `textbook` image — labelled SVG where built, else the last ren
 ## SARS-CoV-2 (COVID-19) (`sars-cov-2`)
 ![textbook](sars-cov-2.textbook.svg)
 [full log](../../sars-cov-2.render.md)
+
+## Varicella-zoster virus (chickenpox) (`varicella-zoster-virus`)
+![textbook](varicella-zoster-virus.textbook.svg)
+[full log](../../varicella-zoster-virus.render.md)
