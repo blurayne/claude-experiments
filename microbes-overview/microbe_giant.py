@@ -58,6 +58,7 @@ AI_CLEANED = {
     'prion',                     # 2.3 -> 5.6
     'keratinocyte',              # 2.4 -> 6.9
     'influenza-virus',           # 2.9 -> 2.9, denoised only
+    'cardiomyocyte',             # vendor publishes it only at 200x200; upscaled
 }
 
 # key -> (giantmicrobes product name, product url)
@@ -75,6 +76,8 @@ GIANT = {
     'osteocyte': ('Bone Cell (Osteocyte)', 'https://www.riesenmikroben.de/products/knochenzelle?locale=de'),
     # --- fat cells ---
     'white-adipocyte': ('Obesity (Fat Cell)', 'https://www.riesenmikroben.de/products/fettzelle?locale=de'),
+    # --- heart cells ---
+    'cardiomyocyte': ('Heart Cell (Cardiomyocyte)', 'https://www.riesenmikroben.de/products/herzzelle?locale=de'),
     # --- red blood ---
     'erythrocyte': ('Red Blood Cell (Erythrocyte)', 'https://www.riesenmikroben.de/products/rotes_blutkoerperchen?locale=de'),
     'thrombocyte': ('Platelet (Thrombocyte)', 'https://www.riesenmikroben.de/products/blutplaettchen?locale=de'),
