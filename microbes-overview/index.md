@@ -1,14 +1,14 @@
 # Microbes & Cells Overview
 
-A bilingual (DE/EN) teaching atlas of body cells and pathogens: 72 microbes across 12 sets, each rendered in several scientific styles with labelled diagrams, audience-specific descriptions and a printable kids' coloring page.
+A bilingual (DE/EN) teaching atlas of body cells and pathogens — cell types, pathogens, antibodies and the microbes that work for us — each rendered in several scientific styles with labelled diagrams, audience-specific descriptions and a printable kids' coloring page.
 
 ## → [Open the interactive atlas](viewer.html)
 
-**[`viewer.html`](viewer.html)** is a single-page, mobile-and-desktop viewer for the AI-rendered image library: browse all 12 sets, switch the **audience** (Kids / Adult / Scientist), **language** (EN / DE) and **picture layout**, search across names and descriptions, and open any figure fullscreen. The labelled diagrams relabel themselves by language, and show the Latin scientific terms in Scientist mode. Rebuild it with `uv run build_viewer.py` (see [`AGENTS.md`](AGENTS.md)).
+**[`viewer.html`](viewer.html)** is a single-page, mobile-and-desktop viewer for the AI-rendered image library: browse every set, switch the **audience** (Kids / Adult / Scientist), **language** (EN / DE) and **picture layout**, search across names and descriptions, and open any figure fullscreen. The labelled diagrams relabel themselves by language, and show the Latin scientific terms in Scientist mode. Rebuild it with `uv run build_viewer.py` (see [`AGENTS.md`](AGENTS.md)).
 
 ## Page structure
 
-Twelve pages — eight body-cell categories taken from the "Arten von Zellen" reference image, an antibodies page, plus three pathogen pages:
+The sets, in the order they appear (counts grow as new microbes are rendered; `build_viewer.py` reports the current totals):
 
 | # | Deutsch | English |
 | --- | --- | --- |

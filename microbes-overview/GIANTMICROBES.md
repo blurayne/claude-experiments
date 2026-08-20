@@ -18,8 +18,8 @@ Score = variants + 3×(in stock US) + 3×(in stock DE) + 2×(has keychain) + 2×
 |---|---|---|---|---|---|
 | 16 | Staph | *Staphylococcus aureus* | 6 | US + DE | yes |
 | 14 | Coronavirus COVID-19 | *SARS-CoV-2* | 7 | DE | yes |
-| 11 | Common cold | *Rhinovirus* | 4 | DE | **no** |
-| 10 | Beer & Bread yeast | *Saccharomyces cerevisiae* | 3 | DE | **no** |
+| 11 | Common cold | *Rhinovirus* | 4 | DE | yes |
+| 10 | Beer & Bread yeast | *Saccharomyces cerevisiae* | 3 | DE | yes |
 | 10 | E. coli | *Escherichia coli* | 3 | DE | yes |
 | 10 | Flu | *Orthomyxovirus* | 3 | DE | yes |
 | 10 | HIV | *Human immunodeficiency virus* | 3 | DE | yes |
@@ -29,7 +29,7 @@ Score = variants + 3×(in stock US) + 3×(in stock DE) + 2×(has keychain) + 2×
 | 7 | Ulcer | *Helicobacter pylori* | 1 | US + DE | yes |
 | 7 | Penicillin mould | *Penicillium chrysogenum* | 3 | — | **no** |
 | 7 | Mono / kissing disease | *Epstein–Barr virus* | 3 | — | **no** |
-| 7 | Measles | *Morbillivirus* | 1 | US + DE | **no** |
+| 7 | Measles | *Morbillivirus* | 1 | US + DE | yes |
 | 7 | Giardia | *Giardia lamblia* | 1 | US + DE | **no** |
 | 7 | Listeria | *Listeria monocytogenes* | 1 | US + DE | **no** |
 | 7 | Lyme disease | *Borrelia burgdorferi* | 2 | US | **no** |
@@ -43,9 +43,13 @@ Outside the pathogens, their other proven sellers are the human cells and organs
 
 ## Where we stand
 
-Our 72 microbes now carry **27 plush links**, every one an exact match (the mapping was tightened in `microbe_giant.py`: a plush is linked only when it depicts *this* cell or *this* species, checked against the catalogue's `species` field). All 27 photos are at the vendor's maximum published resolution of 1200 px on the long edge — there is no larger source, and no upscaling is warranted since that already exceeds the size the viewer displays.
+Our microbes carry **27 plush links**, every one an exact match (the mapping was tightened in `microbe_giant.py`: a plush is linked only when it depicts *this* cell or *this* species, checked against the catalogue's `species` field). Every photo is at the vendor's maximum published resolution of 1200 px on the long edge — there is no larger source anywhere, since this catalogue was itself scraped from their store.
 
-Our pathogen coverage today is 6 generic shapes (cocci, rods, virus, fungus, parasite, prion), 6 named bacteria and 6 named viruses/eukaryotes.
+Resolution is not the same as quality, though. Measuring edge sharpness (file size is useless here: a background-removed AVIF compresses small however good it is) showed that the vendor publishes several of these shots only as soft, upscaled, artefact-ridden files. Six were denoised and re-sharpened with `scripts/edit_image.py` — the killer T cell went from 1.9 to 17.3, the sickle cell from 2.0 to 9.9. Candida and the trypanosome were left as they are: two attempts each, the second explicitly demanding a pixel-for-pixel result, and both times the model re-framed and cropped the toy instead of merely cleaning it. A soft but truthful product photo beats a sharp but altered one. Every repaired photo is listed in `AI_CLEANED` and disclosed in the viewer.
+
+Our pathogen coverage today is 7 generic shapes (cocci, rods, virus, fungus, parasite, prion, amoeba), 10 named bacteria and 12 named viruses/eukaryotes, plus the new *Helpful microbes* set.
+
+**Progress against the list below.** Landed and live: rhinovirus, measles, *Streptococcus mutans* and baker's yeast (which opened the *Helpful microbes* set). Catalogued with descriptions and scale data but not yet rendered: *Penicillium chrysogenum*, *Bifidobacterium longum*, *Amoeba proteus*, *Borrelia burgdorferi*, rotavirus, norovirus, varicella-zoster, *Giardia lamblia*, *Clostridioides difficile* and *Listeria monocytogenes*.
 
 ## Recommended additions
 
