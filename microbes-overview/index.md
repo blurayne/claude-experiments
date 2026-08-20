@@ -8,28 +8,35 @@ A bilingual (DE/EN) teaching atlas of body cells and pathogens — cell types, p
 
 ## Page structure
 
-The sets, in the order they appear (counts grow as new microbes are rendered; `build_viewer.py` reports the current totals):
+**17 sets, 107 subjects**, every one carrying five picture styles, three labelled diagrams, a printable A4 coloring page, kids' narration in English and German, and size/weight data. `build_viewer.py` prints the current totals on every build, and [`OVERVIEW.md`](OVERVIEW.md) lists each subject with what it has.
 
-| # | Deutsch | English |
-| --- | --- | --- |
-| 1 | Stammzellen | Stem cells |
-| 2 | Epithelzellen | Epithelial cells |
-| 3 | Nervenzellen | Nerve cells |
-| 4 | Fortpflanzungszellen | Reproductive cells |
-| 5 | Knochenzellen | Bone cells |
-| 6 | Fettzellen | Fat cells |
-| 7 | Rote Blutkörperchen | Red blood cells |
-| 8 | Immunzellen | Immune cells |
-| 9 | Antikörper — Immunglobuline | Antibodies — Immunoglobulins |
-| 10 | Pathogene | Pathogens (overview) |
-| 11 | Bekannte Bakterien | Well-known bacteria |
-| 12 | Bekannte Viren & andere Erreger | Well-known viruses & other pathogens |
+The order runs from the parts inside a cell outward to the things that attack it:
 
-Each page has 6 entries (the antibodies page has 5).
+| # | Deutsch | English | n |
+| --- | --- | --- | ---: |
+| 1 | Zellorganellen | Cell organelles | 8 |
+| 2 | Stammzellen | Stem cells | 6 |
+| 3 | Epithelzellen | Epithelial cells | 7 |
+| 4 | Nervenzellen | Nerve cells | 6 |
+| 5 | Herzzellen | Heart cells | 5 |
+| 6 | Fortpflanzungszellen | Reproductive cells | 6 |
+| 7 | Knochenzellen | Bone cells | 6 |
+| 8 | Fettzellen | Fat cells | 6 |
+| 9 | Rote Blutkörperchen | Red blood cells | 6 |
+| 10 | Immunzellen | Immune cells | 7 |
+| 11 | Antikörper — Immunglobuline | Antibodies — Immunoglobulins | 5 |
+| 12 | Erbgut — DNA, RNA, Chromosomen | The genetic material | 3 |
+| 13 | Krebszellen | Cancer cells | 1 |
+| 14 | Pathogene | Pathogens (overview) | 9 |
+| 15 | Bekannte Bakterien | Well-known bacteria | 10 |
+| 16 | Bekannte Viren & andere Erreger | Well-known viruses & other pathogens | 13 |
+| 17 | Nützliche Mikroben | Helpful microbes | 3 |
+
+Two placements are deliberate rather than obvious. **Cancer cells** sit last among the body's own cells and immediately before the pathogens: everything up to that point is the body working as intended, everything after arrives from outside, and a cancer cell belongs to neither. **The genetic material** comes directly before it, because cancer is what happens when that molecule accumulates damage.
 
 ## Sources
 
-- [`cells_data.py`](cells_data.py) — the catalogue: bilingual names, function and "depends on / targets" descriptions, tier.
+- [`cells_data.py`](cells_data.py) — the catalogue: bilingual names, function and "depends on / targets" descriptions, tier. A render only reaches the site if its `meta.name` matches a `name_en` here exactly, so this file is the source of truth for what exists.
 - [`build_viewer.py`](build_viewer.py) — scans `cells_data.py` + `renders/set/**` and emits `viewer-data.json`, then injects it into `viewer.template.html` to produce `viewer.html`.
 - [`microbe_scale.py`](microbe_scale.py) — per-microbe size and weight, drives the scale meter under each title.
 - [`microbe_giant.py`](microbe_giant.py) — exact-match links to GIANTmicrobes plush toys (see [`OVERVIEW.md`](OVERVIEW.md)).

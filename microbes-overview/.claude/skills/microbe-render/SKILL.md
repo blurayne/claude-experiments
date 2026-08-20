@@ -45,6 +45,58 @@ uses the helper **scripts**.
 Distinguish a *transient* failure (DNS/HTTP 5xx → just retry) from a *bad result*
 (escalate). Record the model on every image (filename + sidecar + status column).
 
+## Prompt lessons that cost real money to learn
+Each of these came out of a failure that burned renders. Apply them from the
+first attempt rather than rediscovering them.
+
+- **Describe what a thing IS, never what it must not be.** Repeating a negative
+  reinforces it: "must NOT have a hole" made Giardia's adhesive disc render as a
+  mouth three times running, while "a scallop-shell fan, uniformly lit" fixed it
+  at once — on the cheap model. Same for cristae ("wide wavy ribbons folding
+  inward like a rippled curtain") and nuclear pores ("flat portholes").
+- **Baked-in text is the dominant failure on molecular subjects.** The ribosome
+  lost two model escalations to the model lettering its own A/P/E sites. The
+  cure is not a stronger prohibition but removing the surface that invites it:
+  RNA's bases stopped attracting letters once they became tick-dashes instead of
+  circular beads. Always check magnified crops, not the whole frame.
+- **Coloring page borders: crop, don't re-roll.** If the model still draws a
+  frame after ~3 attempts it will keep drawing one. Measure the border rows/cols
+  exactly, crop them off, and re-trace through `coloring.py`'s own
+  `to_bitmap`/`trace_paths`. No extra API call, no re-illustration. Three agents
+  arrived at this independently. Composing zoomed-in, so the subject runs past
+  every edge, usually prevents the border in the first place; a single large
+  character on a diagonal beats corridor and spiral concepts.
+- **Anything radiating from a hub is one careless word from a starburst**, which
+  is unrecoverable (its outline fuses with the artwork). Compose fibres, flagella
+  and spokes as diagonal cables or trailing ribbons crossing the frame instead.
+- **Helices: verify handedness, don't eyeball it.** Real DNA is right-handed and
+  flash renders came back left-handed on 3 of 4 styles. Test: at a crossing in
+  side view, the strand in front runs lower-left to upper-right. Check a
+  magnified crossing on every accepted render and record how you checked.
+- **`edit_image.py` sometimes re-illustrates instead of cleaning** — stylised
+  shapes replacing micrograph texture, or a subject subtly reshaped. Always diff
+  the result against the original; if it re-drew anything, discard it and use a
+  plain deterministic crop/resize. If the plate has no text or scale bar, skip
+  the step entirely. A truthful soft image beats a sharp invented one.
+- **Licences: prefer PD / CC0 / CC BY / CC BY-SA.** Avoid NonCommercial — one NC
+  image constrains reuse of the whole collection. An unresolved or disputed
+  status (Photo 51) is not a licence.
+- **Say what kind of image a reference is.** A structural model from PDB, an
+  X-ray diffraction pattern and an AFM trace are not photographs; a freeze
+  fracture shows the membrane's interior face, not the railroad-track profile.
+  Record upscales explicitly with the factor.
+
+## Environment gotchas
+- `/tmp` is a 2 GB tmpfs that fills up. Under zsh, `TMPDIR` alone is NOT enough —
+  heredocs resolve through `TMPPREFIX`, and a full `/tmp` silently TRUNCATES them,
+  which once sent two API calls with empty prompts. Export both.
+- `rsvg-convert` is absent and `inkscape` fails under seccomp. Rasterise with
+  `uv run --with cairosvg`.
+- `gemini-3-pro-image` has a 250 requests/day/project quota, shared across
+  concurrent agents. When it returns 429 RESOURCE_EXHAUSTED, flash still works —
+  finish on flash and say plainly that a style was capped by quota rather than
+  by judgement.
+
 ## Pipeline per microbe
 1. **Research subagent** → `renders/set/<SET>/<microbe>.render.md` §1: morphology,
    the parts to label with **la/en/de** terms + sources, and a "do NOT draw" list of
