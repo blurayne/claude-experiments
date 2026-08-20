@@ -2,6 +2,24 @@
 
 Final image per microbe × style (last attempt), the labelled SVG, and the real-microscopy reference. Status table at the bottom.
 
+## Amoeba (Amoeba proteus) (`amoeba-proteus`)
+Large free-living freshwater single cell (~250–750 µm) with no fixed shape: it crawls on blunt lobopodia by cytoplasmic streaming and engulfs its prey. Harmless to humans — the textbook example of a cell that crawls and eats, exactly as our macrophages do. Not Entamoeba histolytica.
+
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/amoeba-proteus__textbook.avif) | ![sem](finals/amoeba-proteus__sem.avif) | ![3d](finals/amoeba-proteus__3d.avif) | ![watercolor](finals/amoeba-proteus__watercolor.avif) | ![reference](finals/amoeba-proteus__reference.avif) |
+
+**textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/amoeba-proteus.textbook.svg) · [HTML](theme/textbook/amoeba-proteus.textbook.html)
+![textbook labelled](theme/textbook/amoeba-proteus.textbook.svg)
+
+**3d — labelled** (English default, La/De toggle): [SVG](theme/3d/amoeba-proteus.3d.svg) · [HTML](theme/3d/amoeba-proteus.3d.html)
+![3d labelled](theme/3d/amoeba-proteus.3d.svg)
+
+**watercolor — labelled** (English default, La/De toggle): [SVG](theme/watercolor/amoeba-proteus.watercolor.svg) · [HTML](theme/watercolor/amoeba-proteus.watercolor.html)
+![watercolor labelled](theme/watercolor/amoeba-proteus.watercolor.svg)
+
+Full log: [`amoeba-proteus.render.md`](amoeba-proteus.render.md)
+
 ## Coccus (spherical bacterium) (`cocci`)
 Textbook Gram-positive coccus (~1 µm)
 
@@ -132,6 +150,11 @@ Full log: [`virus.render.md`](virus.render.md)
 
 | name | styles | model | render count | pass | svg status | time taken | tokens used | costs |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Amoeba (Amoeba proteus) | Textbook illustration | gemini-3-pro-image | 2 | ✅ | built | 43s | 4761 | $0.093 |
+| Amoeba (Amoeba proteus) | SEM micrograph | gemini-3-pro-image | 2 | ✅ | pending (same pipeline) | 37s | 3763 | $0.079 |
+| Amoeba (Amoeba proteus) | 3D medical render | gemini-3-pro-image | 1 | ✅ | built | 20s | 2113 | $0.044 |
+| Amoeba (Amoeba proteus) | Watercolor plate | gemini-3-pro-image | 2 | ✅ | built | 37s | 4310 | $0.086 |
+| Amoeba (Amoeba proteus) | Light micrograph (brightfield) · CC BY-SA 4.0 | — (edit) | 2 | ✅ | n/a | 10s | 1805 | $0.039 |
 | Coccus (spherical bacterium) | Textbook illustration | gemini-2.5-flash-image | 1 | ✅ | built | 8s | 1473 | $0.039 |
 | Coccus (spherical bacterium) | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 10s | 1453 | $0.039 |
 | Coccus (spherical bacterium) | 3D medical render | gemini-2.5-flash-image | 2 | ✅ | built | 18s | 3030 | $0.077 |
@@ -168,6 +191,6 @@ Full log: [`virus.render.md`](virus.render.md)
 | Virus | Watercolor plate | gemini-2.5-flash-image | 2 | ✅ | built | 21s | 3019 | $0.077 |
 | Virus | TEM · Public Domain (CDC PHIL #10073) | — (download) | 1 | ✅ | n/a | 2s | 0 | $0.000 |
 
-**Set total: 77,471 tokens · $1.974**
+**Set total: 94,223 tokens · $2.314**
 
-_Updated 2026-08-20 12:36 local._
+_Updated 2026-08-20 13:35 local._

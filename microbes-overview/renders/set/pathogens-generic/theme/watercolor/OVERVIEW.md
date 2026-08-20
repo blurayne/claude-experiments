@@ -2,6 +2,10 @@
 
 Every microbe's `watercolor` image — labelled SVG where built, else the last render. [← set overview](../../OVERVIEW.md)
 
+## Amoeba (Amoeba proteus) (`amoeba-proteus`)
+![watercolor](amoeba-proteus.watercolor.svg)
+[full log](../../amoeba-proteus.render.md)
+
 ## Coccus (spherical bacterium) (`cocci`)
 ![watercolor](cocci.watercolor.svg)
 [full log](../../cocci.render.md)

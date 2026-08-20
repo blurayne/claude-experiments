@@ -2,6 +2,10 @@
 
 Every microbe's `sem` image — labelled SVG where built, else the last render. [← set overview](../../OVERVIEW.md)
 
+## Amoeba (Amoeba proteus) (`amoeba-proteus`)
+![sem](amoeba-proteus.attempts/gen-02__gemini-3-pro-image.avif)
+[full log](../../amoeba-proteus.render.md)
+
 ## Coccus (spherical bacterium) (`cocci`)
 ![sem](cocci.attempts/gen-01__gemini-2.5-flash-image.avif)
 [full log](../../cocci.render.md)

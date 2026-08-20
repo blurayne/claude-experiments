@@ -276,7 +276,9 @@ html[data-theme="petri"] body::after{
 .filt-btn:hover{color:var(--fg); background:var(--card-hi)}
 .filt-btn[aria-expanded="true"], .filt-btn.active{color:var(--accent); border-color:var(--accent)}
 #search{padding-right:36px}
-#filtPanel{width:min(290px,92vw)}
+/* anchored to the search field itself (its wrapper is the positioned
+   ancestor), so the options open right under the box they belong to */
+#filtPanel{left:0; right:auto; width:min(300px,92vw)}
 .filt-label{margin:12px 0 2px; font-family:var(--font-mono); font-size:10.5px; letter-spacing:.12em;
   text-transform:uppercase; color:var(--fg-faint)}
 .filt-label:first-of-type{margin-top:2px}
@@ -669,8 +671,14 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 0 0 2px #
 @media(max-width:560px){ .lb-nav{width:40px;height:40px;font-size:22px} }
 
 .lb-bar .lb-print{font-size:12.5px; padding:6px 12px}
-.empty{display:none; text-align:center; color:var(--fg-dim); padding:60px 20px; font-family:var(--font-mono)}
-.empty.show{display:block}
+.empty{display:none; text-align:center; color:var(--fg-dim); padding:64px 20px 80px}
+.empty.show{display:flex; flex-direction:column; align-items:center; gap:6px}
+.empty-icon{color:var(--fg-faint); opacity:.5}
+.empty-icon svg{width:46px; height:60px; display:block}
+.empty-head{margin:10px 0 0; font-family:var(--font-display); font-weight:600;
+  font-size:calc(18px * var(--font-scale)); color:var(--fg)}
+.empty-why{margin:0 0 6px; font-family:var(--font-ui); font-size:calc(13.5px * var(--font-scale));
+  max-width:44ch; line-height:1.55}
 
 /* ================================================================== PRINT */
 #printArea{display:none}
@@ -766,6 +774,16 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 0 0 2px #
         <path d="M3 5h18M6 12h12M10 19h4"/></svg>
     </button>
     <div class="search-results" id="searchResults" hidden></div>
+    <div class="panel" id="filtPanel">
+      <h4>Search &amp; filter</h4>
+      <div class="filt-label">Search in</div>
+      <label class="menu-opt"><input type="checkbox" id="fTitle"> Microbe names</label>
+      <label class="menu-opt"><input type="checkbox" id="fDesc"> Descriptions</label>
+      <div class="filt-label">Show only microbes with</div>
+      <label class="menu-opt"><input type="checkbox" id="fGiant"> a GIANTmicrobes plush</label>
+      <label class="menu-opt"><input type="checkbox" id="fColoring"> a coloring page</label>
+      <button class="tb-btn filt-reset" id="filtReset">Reset filters</button>
+    </div>
   </div>
   <button class="tb-btn" id="picsBtn" aria-expanded="false" aria-controls="picsPanel">▦ <span class="label">Pictures</span></button>
   <div class="seg" id="audSeg" role="group" aria-label="Audience">
@@ -796,16 +814,6 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 0 0 2px #
     </div>
   </nav>
 
-  <div class="panel" id="filtPanel">
-    <h4>Search &amp; filter</h4>
-    <div class="filt-label">Search in</div>
-    <label class="menu-opt"><input type="checkbox" id="fTitle"> Microbe names</label>
-    <label class="menu-opt"><input type="checkbox" id="fDesc"> Descriptions</label>
-    <div class="filt-label">Show only microbes with</div>
-    <label class="menu-opt"><input type="checkbox" id="fGiant"> a GIANTmicrobes plush</label>
-    <label class="menu-opt"><input type="checkbox" id="fColoring"> a coloring page</label>
-    <button class="tb-btn filt-reset" id="filtReset">Reset filters</button>
-  </div>
 
   <div class="panel" id="setPanel">
     <h4>Settings</h4>
@@ -856,7 +864,12 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 0 0 2px #
     <div class="stat"><b id="statSets">0</b> <span id="heroStatA">sets ·</span> <b id="statMicrobes">0</b> <span id="heroStatB">subjects ·</span> <b>5</b> <span id="heroStatC">styles + real microscopy</span></div>
   </section>
   <div id="sets"></div>
-  <div class="empty" id="emptyMsg">No microbes match your search.</div>
+  <div class="empty" id="emptyMsg">
+    <div class="empty-icon" id="emptyIcon"></div>
+    <p class="empty-head" id="emptyHead"></p>
+    <p class="empty-why" id="emptyWhy"></p>
+    <button class="tb-btn" id="emptyReset"></button>
+  </div>
 </main>
 
 <div class="jump" id="jump">
@@ -950,7 +963,7 @@ const state = Object.assign({
   aud:'kids', lang:'en', theme:'petri', mode:'dark',
   boxes:DEFAULT_BOXES.slice(), enlargeLabels:true, showGiant:true, search:'',
   lbLabelMode:null, lbBw:null, lbSrc:null, ink:70, fontScale:100,
-  fTitle:true, fDesc:true, fGiant:false, fColoring:false
+  fTitle:true, fDesc:false, fGiant:false, fColoring:false
 }, load());
 // normalise a persisted (possibly older/shorter) box array to NUM_BOXES slots
 if(!Array.isArray(state.boxes)) state.boxes=DEFAULT_BOXES.slice();
@@ -2067,7 +2080,7 @@ function searchHaystack(m){
   // both boxes off would make search impossible, so that falls back to everything
   let hay='';
   if(state.fTitle) hay+=' '+(m.s_title||'');
-  if(state.fDesc)  hay+=' '+(m.s_desc||'');
+  if(state.fDesc)  hay+=' '+(m.s_desc||'');   // off by default
   return hay.trim() || m.search || '';
 }
 function passesFilters(m){
@@ -2090,7 +2103,7 @@ function applySearch(){
     sec.style.display = vis?'':'none';
     total+=vis;
   });
-  $('#emptyMsg').classList.toggle('show', !anyVisible);
+  updateEmptyState(!anyVisible, ts.length>0);
   if(ts.length) refreshBuilt(); // re-highlight
   updateMenuCount();
   renderSearchResults(hits, ts.length>0);
@@ -2100,6 +2113,29 @@ function applySearch(){
 // Compact match list under the search box — a count plus the first hits, each
 // jumping straight to its card. Only while a query is active; a bare filter
 // changes the page itself, so a floating list on top of it would be noise.
+// Nothing on the page is a dead end unless we say what caused it. Distinguish
+// "your words matched nothing" from "your filters hid everything", since the
+// way out differs, and offer that way out right here.
+const EMPTY_TXT={
+  search:{en:'No microbe matches your search.', de:'Keine Mikrobe passt zu deiner Suche.'},
+  filter:{en:'No microbe is left after filtering.', de:'Nach dem Filtern bleibt keine Mikrobe übrig.'},
+  whyNames:{en:'Only microbe names are being searched. Turn on “Descriptions” in the search options to look inside the texts as well.',
+            de:'Es wird nur in den Namen gesucht. Schalte in den Suchoptionen „Descriptions“ dazu, um auch die Texte zu durchsuchen.'},
+  whyFilter:{en:'The active filters — plush toy and/or coloring page — exclude everything that matched.',
+             de:'Die aktiven Filter — Plüschtier und/oder Ausmalbild — schließen alles Gefundene aus.'},
+  reset:{en:'Reset search and filters', de:'Suche und Filter zurücksetzen'}
+};
+function updateEmptyState(show, querying){
+  const box=$('#emptyMsg');
+  box.classList.toggle('show', show);
+  if(!show) return;
+  const filtered=filtersActive();
+  $('#emptyIcon').innerHTML=MICROSCOPE_ICON;
+  $('#emptyHead').textContent=L(filtered?EMPTY_TXT.filter:EMPTY_TXT.search);
+  $('#emptyWhy').textContent=L(filtered ? EMPTY_TXT.whyFilter
+                              : (querying && !state.fDesc ? EMPTY_TXT.whyNames : {en:'',de:''}));
+  $('#emptyReset').textContent=L(EMPTY_TXT.reset);
+}
 function renderSearchResults(hits, querying){
   const box=$('#searchResults');
   if(!querying){ box.hidden=true; box.innerHTML=''; return; }
@@ -2142,7 +2178,7 @@ function syncToggles(){
   $('#enlargeLabels').checked = state.enlargeLabels;
   $('#showGiant').checked = state.showGiant;
   $('#fTitle').checked = state.fTitle!==false;
-  $('#fDesc').checked = state.fDesc!==false;
+  $('#fDesc').checked = !!state.fDesc;
   $('#fGiant').checked = !!state.fGiant;
   $('#fColoring').checked = !!state.fColoring;
   applyInk(); applyFontScale();
@@ -2231,8 +2267,13 @@ $('#filtBtn').addEventListener('click',e=>{e.stopPropagation();togglePanel(e.cur
 [['fTitle','fTitle'],['fDesc','fDesc'],['fGiant','fGiant'],['fColoring','fColoring']].forEach(([id,key])=>{
   $('#'+id).addEventListener('change',e=>{ state[key]=e.target.checked; save(); applySearch(); });
 });
+$('#emptyReset').addEventListener('click',()=>{
+  state.search=''; $('#search').value='';
+  state.fGiant=false; state.fColoring=false;
+  syncToggles(); save(); applySearch();
+});
 $('#filtReset').addEventListener('click',()=>{
-  state.fTitle=true; state.fDesc=true; state.fGiant=false; state.fColoring=false;
+  state.fTitle=true; state.fDesc=false; state.fGiant=false; state.fColoring=false;
   syncToggles(); save(); applySearch(); closePanels();
 });
 // jump to a hit from the results list

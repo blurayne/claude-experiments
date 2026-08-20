@@ -2,6 +2,10 @@
 
 Every microbe's `textbook` image — labelled SVG where built, else the last render. [← set overview](../../OVERVIEW.md)
 
+## Amoeba (Amoeba proteus) (`amoeba-proteus`)
+![textbook](amoeba-proteus.textbook.svg)
+[full log](../../amoeba-proteus.render.md)
+
 ## Coccus (spherical bacterium) (`cocci`)
 ![textbook](cocci.textbook.svg)
 [full log](../../cocci.render.md)

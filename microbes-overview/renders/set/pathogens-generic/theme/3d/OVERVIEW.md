@@ -2,6 +2,10 @@
 
 Every microbe's `3d` image — labelled SVG where built, else the last render. [← set overview](../../OVERVIEW.md)
 
+## Amoeba (Amoeba proteus) (`amoeba-proteus`)
+![3d](amoeba-proteus.3d.svg)
+[full log](../../amoeba-proteus.render.md)
+
 ## Coccus (spherical bacterium) (`cocci`)
 ![3d](cocci.3d.svg)
 [full log](../../cocci.render.md)
