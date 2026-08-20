@@ -128,6 +128,24 @@ Textbook Gram-negative motile rod (~1×2–4 µm)
 
 Full log: [`rod-bacterium.render.md`](rod-bacterium.render.md)
 
+## Tick (Ixodes scapularis) (`tick`)
+The only animal in the atlas: an adult Ixodes scapularis (blacklegged/deer tick), a hard tick with a fused idiosoma, no separate head, EIGHT legs, and barbed mouthparts on a forward capitulum. Vector, not a pathogen.
+
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/tick__textbook.avif) | ![sem](finals/tick__sem.avif) | ![3d](finals/tick__3d.avif) | ![watercolor](finals/tick__watercolor.avif) | ![reference](finals/tick__reference.avif) |
+
+**textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/tick.textbook.svg) · [HTML](theme/textbook/tick.textbook.html)
+![textbook labelled](theme/textbook/tick.textbook.svg)
+
+**3d — labelled** (English default, La/De toggle): [SVG](theme/3d/tick.3d.svg) · [HTML](theme/3d/tick.3d.html)
+![3d labelled](theme/3d/tick.3d.svg)
+
+**watercolor — labelled** (English default, La/De toggle): [SVG](theme/watercolor/tick.watercolor.svg) · [HTML](theme/watercolor/tick.watercolor.html)
+![watercolor labelled](theme/watercolor/tick.watercolor.svg)
+
+Full log: [`tick.render.md`](tick.render.md)
+
 ## Virus (`virus`)
 Idealized enveloped virion (~80–120 nm): envelope + glycoprotein spikes, matrix, capsid and a single nucleic-acid genome.
 
@@ -185,12 +203,17 @@ Full log: [`virus.render.md`](virus.render.md)
 | Rod-shaped bacterium (bacillus) | 3D medical render | gemini-2.5-flash-image | 5 | ✅ | built | 43s | 7950 | $0.194 |
 | Rod-shaped bacterium (bacillus) | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 9s | 1537 | $0.039 |
 | Rod-shaped bacterium (bacillus) | TEM · Public Domain (CDC PHIL #9995) | — (edit) | 4 | ✅ | n/a | 15s | 1673 | $0.039 |
+| Tick (Ixodes scapularis) | Textbook illustration | gemini-2.5-flash-image | 1 | ✅ | built | 7s | 1634 | $0.039 |
+| Tick (Ixodes scapularis) | SEM micrograph | gemini-2.5-flash-image | 2 | ✅ | pending (same pipeline) | 14s | 3256 | $0.077 |
+| Tick (Ixodes scapularis) | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 7s | 1582 | $0.039 |
+| Tick (Ixodes scapularis) | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 7s | 1682 | $0.039 |
+| Tick (Ixodes scapularis) | macro-photo · Public domain (CDC/HHS, U.S. federal government work) | — (download) | 1 | ✅ | n/a | 1s | 0 | $0.000 |
 | Virus | Textbook illustration | gemini-2.5-flash-image | 2 | ✅ | built | 18s | 2980 | $0.077 |
 | Virus | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 11s | 1430 | $0.039 |
 | Virus | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 13s | 1445 | $0.039 |
 | Virus | Watercolor plate | gemini-2.5-flash-image | 2 | ✅ | built | 21s | 3019 | $0.077 |
 | Virus | TEM · Public Domain (CDC PHIL #10073) | — (download) | 1 | ✅ | n/a | 2s | 0 | $0.000 |
 
-**Set total: 94,223 tokens · $2.314**
+**Set total: 102,377 tokens · $2.508**
 
-_Updated 2026-08-20 20:58 local._
+_Updated 2026-08-20 21:21 local._

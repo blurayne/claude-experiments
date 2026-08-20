@@ -30,6 +30,10 @@ Every microbe's `watercolor` image — labelled SVG where built, else the last r
 ![watercolor](rod-bacterium.watercolor.svg)
 [full log](../../rod-bacterium.render.md)
 
+## Tick (Ixodes scapularis) (`tick`)
+![watercolor](tick.watercolor.svg)
+[full log](../../tick.render.md)
+
 ## Virus (`virus`)
 ![watercolor](virus.watercolor.svg)
 [full log](../../virus.render.md)

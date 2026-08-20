@@ -4,7 +4,7 @@
 
 ## Where we stand
 
-- **16 sets**, **96 microbes** live in the viewer, out of **107 catalogued**.
+- **16 sets**, **97 microbes** live in the viewer, out of **107 catalogued**.
 - Every live microbe carries: 5 picture styles, 3 labelled diagrams, a printable A4 coloring page, kids narration in EN + DE, and size/weight data — the table below is the proof.
 - **44 plush links**, every one an exact species/cell match. 8 of those photos had to be repaired (see the last section).
 
@@ -94,7 +94,7 @@
 | pathogens | Prion | `prion` | 5/5 | 3/3 | ✅ | ✅ | 5 nm · 35 kDa | Mad Cow (Bovine Spongiform Encephalopathy) |
 | pathogens | Amoeba (Amoeba proteus) | `amoeba-proteus` | 5/5 | 3/3 | ✅ | ✅ | 400 µm · 30000 ng | Amoeba (Amoeba proteus) |
 | pathogens | Coronavirus (SARS-CoV-2) | `coronavirus` | 5/5 | 3/3 | ✅ | ✅ | 120 nm · 1.2 fg | Coronavirus COVID-19 (SARS-CoV-2) |
-| pathogens | Tick (Ixodes scapularis) | — | ❌ not rendered | | | | 3000 µm · 3 mg | |
+| pathogens | Tick (Ixodes scapularis) | `tick` | 5/5 | 3/3 | ✅ | ✅ | 3000 µm · 3 mg | Tick (Ixodes scapularis) |
 | pathogens-bacteria | Mycobacterium tuberculosis (TB) | `mycobacterium-tuberculosis` | 5/5 | 3/3 | ✅ | ✅ | 3 µm · 0.5 pg | TB (Tuberculosis) |
 | pathogens-bacteria | Staphylococcus aureus (MRSA) | `staphylococcus-aureus` | 5/5 | 3/3 | ✅ | ✅ | 1 µm · 0.3 pg | Staph (Staphylococcus aureus) |
 | pathogens-bacteria | Streptococcus pneumoniae | `streptococcus-pneumoniae` | 5/5 | 3/3 | ✅ | ✅ | 1 µm · 0.3 pg | Pneumonia (Streptococcus pneumonia) |
@@ -124,7 +124,7 @@
 
 ## Gaps
 
-**Catalogued but not yet rendered — 11.** Text, German translation and scale data already exist for these; only the pictures are missing.
+**Catalogued but not yet rendered — 10.** Text, German translation and scale data already exist for these; only the pictures are missing.
 
 - `organelles` — Nucleus
 - `organelles` — Mitochondrion
@@ -136,13 +136,12 @@
 - `genetics` — DNA (deoxyribonucleic acid)
 - `genetics` — RNA (ribonucleic acid)
 - `genetics` — Chromosome
-- `pathogens` — Tick (Ixodes scapularis)
 
 **Rendered but not reaching the viewer — 0.** A render only appears if `meta.name` matches a catalogue `name_en` exactly, or its key matches the slug of one; anything here fell through both.
 
 - none
 
-**Data waiting for a render:** 11 scale entries (`cell-membrane`, `chromosome`, `cytoskeleton`, `dna`, `endoplasmic-reticulum`, `lysosome`, `mitochondrion`, `nucleus`, `ribosome`, `rna`, `tick`), 1 plush link (`tick`).
+**Data waiting for a render:** 10 scale entries (`cell-membrane`, `chromosome`, `cytoskeleton`, `dna`, `endoplasmic-reticulum`, `lysosome`, `mitochondrion`, `nucleus`, `ribosome`, `rna`), 0 plush links (none).
 
 **No recorded micrograph source:** `reticulocyte`.
 

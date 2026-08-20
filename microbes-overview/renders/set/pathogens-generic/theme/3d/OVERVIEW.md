@@ -30,6 +30,10 @@ Every microbe's `3d` image — labelled SVG where built, else the last render. [
 ![3d](rod-bacterium.3d.svg)
 [full log](../../rod-bacterium.render.md)
 
+## Tick (Ixodes scapularis) (`tick`)
+![3d](tick.3d.svg)
+[full log](../../tick.render.md)
+
 ## Virus (`virus`)
 ![3d](virus.3d.svg)
 [full log](../../virus.render.md)

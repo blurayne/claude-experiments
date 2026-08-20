@@ -30,6 +30,10 @@ Every microbe's `textbook` image — labelled SVG where built, else the last ren
 ![textbook](rod-bacterium.textbook.svg)
 [full log](../../rod-bacterium.render.md)
 
+## Tick (Ixodes scapularis) (`tick`)
+![textbook](tick.textbook.svg)
+[full log](../../tick.render.md)
+
 ## Virus (`virus`)
 ![textbook](virus.textbook.svg)
 [full log](../../virus.render.md)

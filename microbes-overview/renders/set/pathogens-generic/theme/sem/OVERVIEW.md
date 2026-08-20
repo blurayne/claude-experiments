@@ -30,6 +30,10 @@ Every microbe's `sem` image — labelled SVG where built, else the last render. 
 ![sem](rod-bacterium.attempts/gen-02__gemini-2.5-flash-image.avif)
 [full log](../../rod-bacterium.render.md)
 
+## Tick (Ixodes scapularis) (`tick`)
+![sem](tick.attempts/gen-02__gemini-2.5-flash-image.avif)
+[full log](../../tick.render.md)
+
 ## Virus (`virus`)
 ![sem](virus.attempts/gen-01__gemini-2.5-flash-image.avif)
 [full log](../../virus.render.md)
