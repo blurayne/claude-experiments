@@ -2,6 +2,24 @@
 
 Final image per microbe × style (last attempt), the labelled SVG, and the real-microscopy reference. Status table at the bottom.
 
+## Endoplasmic reticulum (ER) (`endoplasmic-reticulum`)
+A single continuous membrane network beginning right at the nuclear envelope that splits into two connected regions: ribosome-studded ROUGH ER (stacked cisternae) folding and quality-checking newly built proteins, transitioning into ribosome-free SMOOTH ER (branching tubules) that makes lipids and hormones, detoxifies, and stores calcium.
+
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/endoplasmic-reticulum__textbook.avif) | ![sem](finals/endoplasmic-reticulum__sem.avif) | ![3d](finals/endoplasmic-reticulum__3d.avif) | ![watercolor](finals/endoplasmic-reticulum__watercolor.avif) | ![reference](finals/endoplasmic-reticulum__reference.avif) |
+
+**textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/endoplasmic-reticulum.textbook.svg) · [HTML](theme/textbook/endoplasmic-reticulum.textbook.html)
+![textbook labelled](theme/textbook/endoplasmic-reticulum.textbook.svg)
+
+**3d — labelled** (English default, La/De toggle): [SVG](theme/3d/endoplasmic-reticulum.3d.svg) · [HTML](theme/3d/endoplasmic-reticulum.3d.html)
+![3d labelled](theme/3d/endoplasmic-reticulum.3d.svg)
+
+**watercolor — labelled** (English default, La/De toggle): [SVG](theme/watercolor/endoplasmic-reticulum.watercolor.svg) · [HTML](theme/watercolor/endoplasmic-reticulum.watercolor.html)
+![watercolor labelled](theme/watercolor/endoplasmic-reticulum.watercolor.svg)
+
+Full log: [`endoplasmic-reticulum.render.md`](endoplasmic-reticulum.render.md)
+
 ## Golgi apparatus (`golgi-apparatus`)
 The cell's packing and dispatch station: a polarised stack of four to eight smooth, flattened membrane sacs that takes freshly built proteins in on its convex cis face, tags them with sugar chains, sorts them, and pinches them off the concave trans face in vesicles addressed to the cell surface, to lysosomes or to export.
 
@@ -78,6 +96,11 @@ Full log: [`ribosome.render.md`](ribosome.render.md)
 
 | name | styles | model | render count | pass | svg status | time taken | tokens used | costs |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Endoplasmic reticulum (ER) | Textbook illustration | gemini-2.5-flash-image | 2 | ✅ | built | 17s | 4402 | $0.077 |
+| Endoplasmic reticulum (ER) | SEM micrograph | gemini-2.5-flash-image | 2 | ✅ | pending (same pipeline) | 14s | 3670 | $0.077 |
+| Endoplasmic reticulum (ER) | 3D medical render | gemini-2.5-flash-image | 2 | ✅ | built | 15s | 3940 | $0.077 |
+| Endoplasmic reticulum (ER) | Watercolor plate | gemini-2.5-flash-image | 2 | ✅ | built | 17s | 3950 | $0.077 |
+| Endoplasmic reticulum (ER) | TEM · Public domain | — (download) | 2 | ✅ | n/a | 0s | 0 | $0.000 |
 | Golgi apparatus | Textbook illustration | gemini-3-pro-image | 3 | ✅ | built | 42s | 8705 | $0.131 |
 | Golgi apparatus | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 8s | 1848 | $0.039 |
 | Golgi apparatus | 3D medical render | gemini-3-pro-image | 3 | ✅ | built | 41s | 7754 | $0.121 |
@@ -99,6 +122,6 @@ Full log: [`ribosome.render.md`](ribosome.render.md)
 | Ribosome | Watercolor plate | gemini-3-pro-image | 4 | ✅ | built | 46s | 8917 | $0.174 |
 | Ribosome | structural-model · CC BY-SA 3.0 / GFDL 1.2+ | — (edit) | 2 | ✅ | n/a | 0s | 0 | $0.000 |
 
-**Set total: 80,728 tokens · $1.495**
+**Set total: 96,690 tokens · $1.804**
 
-_Updated 2026-08-20 22:08 local._
+_Updated 2026-08-20 22:19 local._

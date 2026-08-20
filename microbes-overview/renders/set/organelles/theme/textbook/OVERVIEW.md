@@ -2,6 +2,10 @@
 
 Every microbe's `textbook` image — labelled SVG where built, else the last render. [← set overview](../../OVERVIEW.md)
 
+## Endoplasmic reticulum (ER) (`endoplasmic-reticulum`)
+![textbook](endoplasmic-reticulum.textbook.svg)
+[full log](../../endoplasmic-reticulum.render.md)
+
 ## Golgi apparatus (`golgi-apparatus`)
 ![textbook](golgi-apparatus.textbook.svg)
 [full log](../../golgi-apparatus.render.md)

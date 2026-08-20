@@ -2,6 +2,10 @@
 
 Every microbe's `3d` image — labelled SVG where built, else the last render. [← set overview](../../OVERVIEW.md)
 
+## Endoplasmic reticulum (ER) (`endoplasmic-reticulum`)
+![3d](endoplasmic-reticulum.3d.svg)
+[full log](../../endoplasmic-reticulum.render.md)
+
 ## Golgi apparatus (`golgi-apparatus`)
 ![3d](golgi-apparatus.3d.svg)
 [full log](../../golgi-apparatus.render.md)

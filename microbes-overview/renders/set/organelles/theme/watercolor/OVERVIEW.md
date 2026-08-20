@@ -2,6 +2,10 @@
 
 Every microbe's `watercolor` image — labelled SVG where built, else the last render. [← set overview](../../OVERVIEW.md)
 
+## Endoplasmic reticulum (ER) (`endoplasmic-reticulum`)
+![watercolor](endoplasmic-reticulum.watercolor.svg)
+[full log](../../endoplasmic-reticulum.render.md)
+
 ## Golgi apparatus (`golgi-apparatus`)
 ![watercolor](golgi-apparatus.watercolor.svg)
 [full log](../../golgi-apparatus.render.md)
