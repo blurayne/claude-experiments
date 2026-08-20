@@ -1733,8 +1733,12 @@ function openLightbox(m,opt,originEl){
   // (Latin for scientists); otherwise labels start off.
   // A coloring page always carries text (title + speech bubble), so it opens in
   // a language — the persisted choice only if that is already a language.
+  // A coloring page follows the PAGE language. The persisted mode belongs to
+  // the labelled diagrams (which also offer Latin and "none"); letting it win
+  // here meant one click on EN in any diagram pinned every coloring page to
+  // English for good, even with the whole site set to German.
   lbLabelMode = style==='coloring'
-    ? ((state.lbLabelMode==='en'||state.lbLabelMode==='de') ? state.lbLabelMode : state.lang)
+    ? state.lang
     : state.lbLabelMode!=null && styleSupportsLabels(m,style)
       ? state.lbLabelMode
       : (labels || state.enlargeLabels) && styleSupportsLabels(m,style)
@@ -1938,7 +1942,10 @@ $('#lbPrint').addEventListener('click',()=>{
 });
 window.addEventListener('afterprint',()=>{ printArea.innerHTML=''; });
 lbLabels.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return;
-  lbLabelMode=b.dataset.m; state.lbLabelMode=lbLabelMode; save(); updateLbLabels(); });
+  lbLabelMode=b.dataset.m;
+  // only diagrams persist their choice, for the reason above
+  if(!lbStage.querySelector('svg .page-title')){ state.lbLabelMode=lbLabelMode; save(); }
+  updateLbLabels(); });
 lbColor.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b || b.disabled)return;
   const c=b.dataset.c; const wasSrc=lbSrc;
   lbBw = c==='bw'; lbSrc = c==='src'; state.lbBw=lbBw; state.lbSrc=lbSrc; save();
@@ -2196,6 +2203,10 @@ $('#audSeg').addEventListener('click',e=>{const b=e.target.closest('button'); if
 $('#langSeg').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b)return;
   stopAllAudio();
   state.lang=b.dataset.lang; save(); syncToggles(); refreshBuilt(); updateHero(); applySearch();
+  if(lb.classList.contains('open')){
+    if(lbStage.querySelector('svg .page-title')) lbLabelMode=state.lang;
+    updateLbLabels();
+  }
   toast(L(AUD_LABEL[state.aud])+' · '+L(LANG_LABEL[state.lang]));});
 $('#modeBtn').addEventListener('click',()=>{ state.mode=state.mode==='dark'?'light':'dark'; save(); syncToggles(); });
 $$('#themePanel .theme-opt').forEach(b=>b.addEventListener('click',()=>{ state.theme=b.dataset.theme; save(); syncToggles(); closePanels(); }));
