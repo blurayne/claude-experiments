@@ -5,3 +5,7 @@ Every microbe's `watercolor` image — labelled SVG where built, else the last r
 ## Golgi apparatus (`golgi-apparatus`)
 ![watercolor](golgi-apparatus.watercolor.svg)
 [full log](../../golgi-apparatus.render.md)
+
+## Nucleus (`nucleus`)
+![watercolor](nucleus.watercolor.svg)
+[full log](../../nucleus.render.md)

@@ -5,3 +5,7 @@ Every microbe's `textbook` image — labelled SVG where built, else the last ren
 ## Golgi apparatus (`golgi-apparatus`)
 ![textbook](golgi-apparatus.textbook.svg)
 [full log](../../golgi-apparatus.render.md)
+
+## Nucleus (`nucleus`)
+![textbook](nucleus.textbook.svg)
+[full log](../../nucleus.render.md)

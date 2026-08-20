@@ -5,3 +5,7 @@ Every microbe's `sem` image — labelled SVG where built, else the last render. 
 ## Golgi apparatus (`golgi-apparatus`)
 ![sem](golgi-apparatus.attempts/gen-01__gemini-2.5-flash-image.avif)
 [full log](../../golgi-apparatus.render.md)
+
+## Nucleus (`nucleus`)
+![sem](nucleus.attempts/gen-02__gemini-2.5-flash-image.avif)
+[full log](../../nucleus.render.md)
