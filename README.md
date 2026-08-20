@@ -6,7 +6,7 @@ A collection of small, self-contained experiments. Each subfolder is one experim
 
 ## Experiments
 
-- [microbes-overview](microbes-overview/) — Print-ready bilingual (DE/EN) posters of common microbes, generated from a Python data file into HTML and PDF.
+- [microbes-overview](microbes-overview/) — A bilingual (DE/EN) interactive teaching atlas of body cells and pathogens: every microbe AI-rendered in several scientific styles with labelled diagrams, audience-specific descriptions (Kids/Adult/Scientist) and printable A4 coloring pages.
 - [solar-system](solar-system/) — An interactive 3D viewer of the solar system, rendered in the browser.
 - [slothy-hutty](slothy-hutty/) — A procedural 3D "Slothy" character drawn by hand-written WebGL2 and WebGPU engines. Has a face-changer, cel and smooth shading, and exports for 3D printing (STL, 3MF, OBJ).
 - [steampipe-lightning-talk](steampipe-lightning-talk/) — A short reveal.js deck on Steampipe, with Kubernetes, AWS, aggregator and JSON examples and a DuckDB coda.

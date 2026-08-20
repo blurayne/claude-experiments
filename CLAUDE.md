@@ -42,8 +42,7 @@ This repository is used for experiments. Each experiment lives in its own subfol
 
 ## Auto-rebuild workflows
 
-- Some subfolders ship generated artifacts (e.g. `microbes-overview/microbes_*.html` and `microbes_*.pdf`) that should always reflect the committed sources.
-- For these, a dedicated workflow under `.github/workflows/<subfolder>.yml` rebuilds the artifacts on every push to `main` that touches the subfolder's sources, then commits the regenerated files back to `main` as `github-actions[bot]`. Examples:
-  - `.github/workflows/microbes-overview.yml` rebuilds the microbes posters when `microbes-overview/*.py` or its `requirements.txt` change.
+- Some subfolders ship generated artifacts that should always reflect the committed sources.
+- For these, a dedicated workflow under `.github/workflows/<subfolder>.yml` rebuilds the artifacts on every push to `main` that touches the subfolder's sources, then commits the regenerated files back to `main` as `github-actions[bot]`.
 - These workflows must use `permissions: contents: write` and a `paths:` filter that excludes the generated artifacts, so the bot's own commit does not retrigger the workflow.
 - When adding a new experiment that has a `build.py`, add a matching workflow following this pattern instead of expecting contributors to rebuild locally.
