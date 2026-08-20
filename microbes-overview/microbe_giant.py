@@ -121,6 +121,8 @@ GIANT = {
     'candida-albicans': ('Candida fungus', 'https://www.riesenmikroben.de/products/candida?locale=de'),
     'measles-virus': ('Measles (Morbillivirus)', 'https://www.riesenmikroben.de/products/masern?locale=de'),
     'rotavirus': ('Rotavirus (Rotavirus)', 'https://www.riesenmikroben.de/products/rotavirus?locale=de'),
+    'rhinovirus': ('Common Cold (Rhinovirus)', 'https://www.riesenmikroben.de/products/erkaeltung?locale=de'),
+    'zika-virus': ('Zika (Zika virus)', 'https://www.riesenmikroben.de/products/zika?locale=de'),
     # --- helpful microbes ---
     'penicillium-chrysogenum': ('Penicillin (Penicillium chrysogenum)', 'https://www.riesenmikroben.de/products/penicillin?locale=de'),
     'saccharomyces-cerevisiae': ('Beer & Bread (Saccharomyces cerevisiae)', 'https://www.riesenmikroben.de/products/bierhefe?locale=de'),

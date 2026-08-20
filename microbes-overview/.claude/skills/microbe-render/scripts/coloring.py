@@ -268,7 +268,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--microbe", required=True)
     ap.add_argument("--set", dest="set_", required=True)
-    ap.add_argument("--model", default="gemini-3-pro-image")
+    ap.add_argument("--model", default="gemini-2.5-flash-image")
     g = ap.add_mutually_exclusive_group(required=True)
     g.add_argument("--prompt"); g.add_argument("--prompt-file")
     ap.add_argument("--speech-en", default="")

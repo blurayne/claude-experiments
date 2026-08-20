@@ -4,9 +4,9 @@
 
 ## Where we stand
 
-- **15 sets**, **89 microbes** live in the viewer, out of **93 catalogued**.
+- **15 sets**, **90 microbes** live in the viewer, out of **94 catalogued**.
 - Every live microbe carries: 5 picture styles, 3 labelled diagrams, a printable A4 coloring page, kids narration in EN + DE, and size/weight data — the table below is the proof.
-- **38 plush links**, every one an exact species/cell match. 8 of those photos had to be repaired (see the last section).
+- **40 plush links**, every one an exact species/cell match. 8 of those photos had to be repaired (see the last section).
 
 ## Every catalogued entry, and what it has
 
@@ -91,14 +91,15 @@
 | pathogens-bacteria | Streptococcus mutans (tooth decay) | `streptococcus-mutans` | 5/5 | 3/3 | ✅ | ✅ | 800 nm · 1 pg | — |
 | pathogens-bacteria | Borrelia burgdorferi (Lyme disease) | `borrelia-burgdorferi` | 5/5 | 3/3 | ✅ | ✅ | 20 µm · 0.3 pg | Lyme Disease (Borrelia burgdorferi) |
 | pathogens-bacteria | Clostridioides difficile (C. diff) | `clostridioides-difficile` | 5/5 | 3/3 | ✅ | ✅ | 5 µm · 3 pg | C. Diff (Clostridioides difficile) |
-| pathogens-bacteria | Listeria monocytogenes | — | ❌ not rendered | | | | 2 µm · 1 pg | |
+| pathogens-bacteria | Listeria monocytogenes | `listeria-monocytogenes` | 5/5 | 3/3 | ✅ | ✅ | 2 µm · 1 pg | — |
 | pathogens-viruses | Influenza virus (flu) | `influenza-virus` | 5/5 | 3/3 | ✅ | ✅ | 100 nm · 1 fg | Flu (Orthomyxovirus) |
 | pathogens-viruses | SARS-CoV-2 (COVID-19) | `sars-cov-2` | 5/5 | 3/3 | ✅ | ✅ | 120 nm · 1 fg | Coronavirus COVID-19 (SARS-CoV-2) |
 | pathogens-viruses | HIV | `hiv` | 5/5 | 3/3 | ✅ | ✅ | 130 nm · 1.5 fg | HIV (Human Immunodeficiency Virus) |
 | pathogens-viruses | Hepatitis B virus (HBV) | `hepatitis-b-virus` | 5/5 | 3/3 | ✅ | ✅ | 42 nm · 0.3 fg | — |
 | pathogens-viruses | Plasmodium (malaria) | `plasmodium` | 5/5 | 3/3 | ✅ | ✅ | 2 µm · 1 pg | Malaria (Plasmodium falciparum) |
 | pathogens-viruses | Candida albicans | `candida-albicans` | 5/5 | 3/3 | ✅ | ✅ | 5 µm · 40 pg | Candida fungus |
-| pathogens-viruses | Rhinovirus (common cold) | `rhinovirus` | 5/5 | 3/3 | ✅ | ✅ | 30 nm · 0.3 fg | — |
+| pathogens-viruses | Rhinovirus (common cold) | `rhinovirus` | 5/5 | 3/3 | ✅ | ✅ | 30 nm · 0.3 fg | Common Cold (Rhinovirus) |
+| pathogens-viruses | Zika virus | — | ❌ not rendered | | | | 45 nm · 0.8 fg | |
 | pathogens-viruses | Measles virus (Morbillivirus) | `measles-virus` | 5/5 | 3/3 | ✅ | ✅ | 200 nm · 8 fg | Measles (Morbillivirus) |
 | pathogens-viruses | Rotavirus | `rotavirus` | 5/5 | 3/3 | ✅ | ✅ | 75 nm · 1.5 fg | Rotavirus (Rotavirus) |
 | pathogens-viruses | Norovirus (stomach bug) | — | ❌ not rendered | | | | 38 nm · 0.5 fg | |
@@ -112,7 +113,7 @@
 
 **Catalogued but not yet rendered — 4.** Text, German translation and scale data already exist for these; only the pictures are missing.
 
-- `pathogens-bacteria` — Listeria monocytogenes
+- `pathogens-viruses` — Zika virus
 - `pathogens-viruses` — Norovirus (stomach bug)
 - `pathogens-viruses` — Varicella-zoster virus (chickenpox)
 - `pathogens-viruses` — Giardia lamblia (giardiasis)
@@ -121,7 +122,7 @@
 
 - none
 
-**Data waiting for a render:** 4 scale entries (`giardia-lamblia`, `listeria-monocytogenes`, `norovirus`, `varicella-zoster-virus`), 0 plush links (none).
+**Data waiting for a render:** 4 scale entries (`giardia-lamblia`, `norovirus`, `varicella-zoster-virus`, `zika-virus`), 1 plush link (`zika-virus`).
 
 **No recorded micrograph source:** `reticulocyte`.
 
@@ -150,7 +151,7 @@ The catalogue has no sales figures, so prominence is inferred from what the vend
 | 9 | Amoeba (Amoeba proteus) | *amoeba proteus* | 5 | retired | ✅ |
 | 8 | Heart | *cor* | 3 | DE | **no** |
 | 8 | Appendix | *appendix* | 3 | US | **no** |
-| 7 | Zika (Zika virus) | *zika virus* | 2 | DE | **no** |
+| 7 | Zika (Zika virus) | *zika virus* | 2 | DE | ✅ |
 | 7 | White Blood Cell (Leukocyte) | *leukozyt* | 3 | retired | **no** |
 | 7 | Ulcer (Helicobacter pylori) | *helicobacter pylori* | 1 | US + DE | ✅ |
 | 7 | Trilobite (Asaphiscus wheeleri) | *asaphiscus wheeleri* | 1 | US + DE | **no** |

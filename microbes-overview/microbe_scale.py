@@ -121,6 +121,7 @@ SCALE = {
     'listeria-monocytogenes': (2, 1, 'pg'),
     # --- added viruses & eukaryotes ----------------------------------------
     'rhinovirus': (0.03, 0.3, 'fg'),
+    'zika-virus': (0.045, 0.8, 'fg'),
     'measles-virus': (0.2, 8, 'fg'),
     'rotavirus': (0.075, 1.5, 'fg'),
     'norovirus': (0.038, 0.5, 'fg'),

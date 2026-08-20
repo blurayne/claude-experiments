@@ -18,6 +18,10 @@ Every microbe's `textbook` image — labelled SVG where built, else the last ren
 ![textbook](helicobacter-pylori.textbook.svg)
 [full log](../../helicobacter-pylori.render.md)
 
+## Listeria monocytogenes (`listeria-monocytogenes`)
+![textbook](listeria-monocytogenes.textbook.svg)
+[full log](../../listeria-monocytogenes.render.md)
+
 ## Mycobacterium tuberculosis (TB) (`mycobacterium-tuberculosis`)
 ![textbook](mycobacterium-tuberculosis.textbook.svg)
 [full log](../../mycobacterium-tuberculosis.render.md)

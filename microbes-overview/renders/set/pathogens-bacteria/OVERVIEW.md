@@ -74,6 +74,24 @@ Spiral, flagellated Gram-negative bacterium that colonises the stomach mucus lay
 
 Full log: [`helicobacter-pylori.render.md`](helicobacter-pylori.render.md)
 
+## Listeria monocytogenes (`listeria-monocytogenes`)
+Short Gram-positive rod that keeps growing at fridge temperature and lives inside host cells, where it hijacks the host's own actin to build a comet tail at one pole and rockets from cell to cell; the classic foodborne danger of pregnancy, the newborn, the elderly and the immunosuppressed.
+
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/listeria-monocytogenes__textbook.avif) | ![sem](finals/listeria-monocytogenes__sem.avif) | ![3d](finals/listeria-monocytogenes__3d.avif) | ![watercolor](finals/listeria-monocytogenes__watercolor.avif) | ![reference](finals/listeria-monocytogenes__reference.avif) |
+
+**textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/listeria-monocytogenes.textbook.svg) · [HTML](theme/textbook/listeria-monocytogenes.textbook.html)
+![textbook labelled](theme/textbook/listeria-monocytogenes.textbook.svg)
+
+**3d — labelled** (English default, La/De toggle): [SVG](theme/3d/listeria-monocytogenes.3d.svg) · [HTML](theme/3d/listeria-monocytogenes.3d.html)
+![3d labelled](theme/3d/listeria-monocytogenes.3d.svg)
+
+**watercolor — labelled** (English default, La/De toggle): [SVG](theme/watercolor/listeria-monocytogenes.watercolor.svg) · [HTML](theme/watercolor/listeria-monocytogenes.watercolor.html)
+![watercolor labelled](theme/watercolor/listeria-monocytogenes.watercolor.svg)
+
+Full log: [`listeria-monocytogenes.render.md`](listeria-monocytogenes.render.md)
+
 ## Mycobacterium tuberculosis (TB) (`mycobacterium-tuberculosis`)
 Slender, waxy-coated acid-fast rod (~0.2–0.5 × 2–4 µm) that hides inside macrophages and can lurk in the lungs for years; the cause of tuberculosis.
 
@@ -188,6 +206,11 @@ Full log: [`streptococcus-pneumoniae.render.md`](streptococcus-pneumoniae.render
 | Helicobacter pylori | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 16s | 1601 | $0.039 |
 | Helicobacter pylori | Watercolor plate | gemini-3-pro-image | 2 | ✅ | built | 1.5m | 4057 | $0.083 |
 | Helicobacter pylori | SEM · Public Domain (CDC PHIL) | — (edit) | 2 | ✅ | n/a | 1.2m | 1693 | $0.039 |
+| Listeria monocytogenes | Textbook illustration | gemini-2.5-flash-image | 2 | ✅ | built | 14s | 4892 | $0.077 |
+| Listeria monocytogenes | SEM micrograph | gemini-2.5-flash-image | 3 | ✅ | pending (same pipeline) | 23s | 6261 | $0.116 |
+| Listeria monocytogenes | 3D medical render | gemini-3-pro-image | 4 | ✅ | built | 42s | 10036 | $0.164 |
+| Listeria monocytogenes | Watercolor plate | gemini-2.5-flash-image | 2 | ✅ | built | 14s | 4136 | $0.077 |
+| Listeria monocytogenes | TEM · Public Domain (PD-USGov-HHS-CDC) | — (download) | 3 | ✅ | n/a | 0s | 0 | $0.000 |
 | Mycobacterium tuberculosis (TB) | Textbook illustration | gemini-2.5-flash-image | 1 | ✅ | built | 11s | 1651 | $0.039 |
 | Mycobacterium tuberculosis (TB) | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 14s | 1519 | $0.039 |
 | Mycobacterium tuberculosis (TB) | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 17s | 1597 | $0.039 |
@@ -214,6 +237,6 @@ Full log: [`streptococcus-pneumoniae.render.md`](streptococcus-pneumoniae.render
 | Streptococcus pneumoniae | Watercolor plate | gemini-3-pro-image | 3 | ✅ | built | 1.3m | 5297 | $0.119 |
 | Streptococcus pneumoniae | SEM · Public Domain (CDC PHIL #262) | — (edit) | 2 | ✅ | n/a | 1.0m | 1676 | $0.039 |
 
-**Set total: 176,010 tokens · $3.551**
+**Set total: 201,335 tokens · $3.986**
 
-_Updated 2026-08-20 15:39 local._
+_Updated 2026-08-20 19:24 local._

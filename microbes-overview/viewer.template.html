@@ -743,6 +743,13 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 -2px 0 #f
   .topbar.tools-open .tb-tools-inner{opacity:1; pointer-events:auto; border-top-color:var(--border); padding:8px 0 12px}
   .search-wrap{flex:1 1 100%}
   #search{width:100%}
+  /* .tb-tools and .tb-tools-inner have to clip — the 0fr->1fr row animation
+     above depends on overflow:hidden — and that same clip chops off anything
+     absolutely positioned that hangs below the search box. The results list and
+     the filter panel were both being cut at the bar's lower edge. Lift them out
+     of the clipping context entirely; pinPanel() then gives them the search
+     box's own rect, so they still read as belonging to it. */
+  .search-results, #filtPanel{position:fixed; top:auto; left:auto; right:auto}
   .seg .full{display:none}
   .seg .abbr{display:inline}
   #langSeg .full{display:inline}      /* EN/DE already short */
@@ -2149,9 +2156,34 @@ function updateEmptyState(show, querying){
                               : (querying && !state.fDesc ? EMPTY_TXT.whyNames : {en:'',de:''}));
   $('#emptyReset').textContent=L(EMPTY_TXT.reset);
 }
+// On the mobile layout the search box sits inside the collapsible tools row,
+// which must clip its overflow for the open/close animation to work. Anything
+// hanging below the box therefore gets chopped off at the bar's edge, so on that
+// layout .search-results and #filtPanel switch to position:fixed and are pinned
+// here to the rect of the search box they belong to. Desktop keeps the plain
+// absolute positioning and these functions do nothing.
+const PIN_Q=window.matchMedia('(max-width:820px)');
+// only these two live inside the clipped tools row; every other panel is
+// positioned by CSS alone and must not get inline coordinates from here
+const PINNED=['searchResults','filtPanel'];
+function panelShown(el){ return el.id==='filtPanel' ? el.classList.contains('open') : !el.hidden; }
+function pinPanel(el){
+  if(!el || !PINNED.includes(el.id)) return;
+  if(!PIN_Q.matches || !panelShown(el)){ el.style.cssText=''; return; }
+  const r=$('.search-wrap').getBoundingClientRect();
+  el.style.top=(r.bottom+6)+'px';
+  el.style.left=r.left+'px';
+  el.style.width=r.width+'px';
+  // never taller than the gap between the bar and the bottom of the screen
+  el.style.maxHeight=Math.max(140, window.innerHeight-r.bottom-18)+'px';
+  el.style.overflow='auto';
+}
+function pinPanels(){ pinPanel($('#searchResults')); pinPanel($('#filtPanel')); }
+addEventListener('resize',pinPanels);
+addEventListener('orientationchange',pinPanels);
 function renderSearchResults(hits, querying){
   const box=$('#searchResults');
-  if(!querying){ box.hidden=true; box.innerHTML=''; return; }
+  if(!querying){ box.hidden=true; box.innerHTML=''; pinPanel(box); return; }
   const totalAll=DATA.sets.reduce((n,s)=>n+s.microbes.length,0);
   let h='<div class="sr-count">'+hits.length+' of '+totalAll+' microbes'+
         (filtersActive()?' (filtered)':'')+'</div>';
@@ -2160,7 +2192,7 @@ function renderSearchResults(hits, querying){
        '<span>'+esc(L(m.name))+'</span><span class="sr-set">'+esc(L(set.title))+'</span></button>';
   });
   if(hits.length>12) h+='<div class="sr-more">+ '+(hits.length-12)+' more below</div>';
-  box.innerHTML=h; box.hidden=false;
+  box.innerHTML=h; box.hidden=false; pinPanel(box);
 }
 // ---- toast / growl notifications ------------------------------------------
 // Small pill fixed to the bottom-center of the viewport. Fully visible for
@@ -2271,9 +2303,10 @@ function applyInk(){
   if(r) r.value=pct; if(v) v.textContent=pct+'%';
 }
 function closePanels(){ $$('.panel').forEach(p=>p.classList.remove('open'));
-  $$('[aria-controls]').forEach(b=>b.setAttribute('aria-expanded','false')); }
+  $$('[aria-controls]').forEach(b=>b.setAttribute('aria-expanded','false')); pinPanel($('#filtPanel')); }
 function togglePanel(btn,panel){ const open=panel.classList.contains('open'); closePanels();
-  if(!open){ panel.classList.add('open'); btn.setAttribute('aria-expanded','true'); } }
+  if(!open){ panel.classList.add('open'); btn.setAttribute('aria-expanded','true'); }
+  pinPanel(panel); }
 $('#moreBtn').addEventListener('click',e=>{ e.stopPropagation();
   const open=$('.topbar').classList.toggle('tools-open');
   $('#moreBtn').setAttribute('aria-expanded', open); });
@@ -2298,10 +2331,11 @@ $('#filtReset').addEventListener('click',()=>{
 $('#searchResults').addEventListener('click',e=>{
   const b=e.target.closest('.sr-item'); if(!b) return;
   const el=document.getElementById(b.dataset.go);
-  if(el){ el.scrollIntoView({behavior:'smooth', block:'start'}); $('#searchResults').hidden=true; }
+  if(el){ el.scrollIntoView({behavior:'smooth', block:'start'});
+          $('#searchResults').hidden=true; pinPanel($('#searchResults')); }
 });
 document.addEventListener('click',e=>{
-  if(!e.target.closest('.search-wrap')) $('#searchResults').hidden=true;
+  if(!e.target.closest('.search-wrap')){ $('#searchResults').hidden=true; pinPanel($('#searchResults')); }
 });
 $('#inkRange').addEventListener('input',e=>{ state.ink=+e.target.value; applyInk(); save(); });
 $('#fontRange').addEventListener('input',e=>{ state.fontScale=+e.target.value; applyFontScale(); save(); });

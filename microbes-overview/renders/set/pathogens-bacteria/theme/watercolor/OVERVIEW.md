@@ -18,6 +18,10 @@ Every microbe's `watercolor` image — labelled SVG where built, else the last r
 ![watercolor](helicobacter-pylori.watercolor.svg)
 [full log](../../helicobacter-pylori.render.md)
 
+## Listeria monocytogenes (`listeria-monocytogenes`)
+![watercolor](listeria-monocytogenes.watercolor.svg)
+[full log](../../listeria-monocytogenes.render.md)
+
 ## Mycobacterium tuberculosis (TB) (`mycobacterium-tuberculosis`)
 ![watercolor](mycobacterium-tuberculosis.watercolor.svg)
 [full log](../../mycobacterium-tuberculosis.render.md)

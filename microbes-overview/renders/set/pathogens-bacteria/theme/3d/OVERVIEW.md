@@ -18,6 +18,10 @@ Every microbe's `3d` image — labelled SVG where built, else the last render. [
 ![3d](helicobacter-pylori.3d.svg)
 [full log](../../helicobacter-pylori.render.md)
 
+## Listeria monocytogenes (`listeria-monocytogenes`)
+![3d](listeria-monocytogenes.3d.svg)
+[full log](../../listeria-monocytogenes.render.md)
+
 ## Mycobacterium tuberculosis (TB) (`mycobacterium-tuberculosis`)
 ![3d](mycobacterium-tuberculosis.3d.svg)
 [full log](../../mycobacterium-tuberculosis.render.md)
