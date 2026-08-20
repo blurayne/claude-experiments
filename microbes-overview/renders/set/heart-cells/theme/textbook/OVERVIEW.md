@@ -6,6 +6,14 @@ Every microbe's `textbook` image — labelled SVG where built, else the last ren
 ![textbook](cardiac-macrophage.textbook.svg)
 [full log](../../cardiac-macrophage.render.md)
 
+## Contractile cardiomyocyte (`cardiomyocyte`)
+![textbook](cardiomyocyte.textbook.svg)
+[full log](../../cardiomyocyte.render.md)
+
+## Intracardiac neuron (intrinsic nervous system) (`intracardiac-neuron`)
+![textbook](intracardiac-neuron.textbook.svg)
+[full log](../../intracardiac-neuron.render.md)
+
 ## Pacemaker cell (sinoatrial node) (`pacemaker-cell`)
 ![textbook](pacemaker-cell.textbook.svg)
 [full log](../../pacemaker-cell.render.md)
