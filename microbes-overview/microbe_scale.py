@@ -130,6 +130,9 @@ SCALE = {
     # (it is visible to the naked eye); the bar pins to full and the printed
     # figure carries the real size.
     'amoeba-proteus': (400, 30_000, 'ng'),
+    # --- organelles & added cells -------------------------------------------
+    'golgi-apparatus': (2, 2, 'pg'),
+    'hepatocyte': (25, 15, 'ng'),
 }
 
 # grams-per-unit, for converting to a common picogram scale for color-coding

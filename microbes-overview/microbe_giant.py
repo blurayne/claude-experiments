@@ -63,6 +63,8 @@ AI_CLEANED = {
 
 # key -> (giantmicrobes product name, product url)
 GIANT = {
+    # --- organelles ---
+    'golgi-apparatus': ('Golgi Apparatus', 'https://www.riesenmikroben.de/products/golgi_apparat?locale=de'),
     # --- stem cells ---
     'hematopoietic-stem-cell': ('Stem Cell Gigantic 14"', 'https://www.riesenmikroben.de/products/gig_stammzelle?locale=de'),
     # --- epithelial ---
