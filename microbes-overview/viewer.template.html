@@ -309,12 +309,21 @@ html[data-theme="petri"] body::after{
 .nav-set[open] > summary::before{transform:rotate(90deg)}
 .nav-set > summary:hover{background:var(--card-hi)}
 .nav-set .count{margin-left:auto; font-family:var(--font-mono); font-size:11px; color:var(--fg-faint)}
-.nav-links{display:flex; flex-direction:column; padding:2px 0 8px 22px}
+/* One continuous rail down the group with a short tick out to each microbe,
+   instead of giving every row its own rounded border stub — those read as a
+   broken dashed line and lit up one segment at a time on hover. */
+.nav-links{display:flex; flex-direction:column; gap:1px;
+  margin:2px 0 10px 13px; padding:2px 0 2px 15px; border-left:1px solid var(--border)}
 .nav-links a{
-  color:var(--fg-dim); text-decoration:none; font-size:13px; padding:5px 8px; border-radius:7px;
-  border-left:2px solid var(--border); transition:color .15s, border-color .15s, background .15s;
+  position:relative; color:var(--fg-dim); text-decoration:none; font-size:13px;
+  padding:6px 10px; border-radius:8px; transition:color .15s, background .15s;
 }
-.nav-links a:hover{color:var(--accent); border-color:var(--accent); background:var(--card)}
+.nav-links a::before{
+  content:""; position:absolute; left:-15px; top:50%; width:9px; height:1px;
+  background:var(--border); transition:background .15s;
+}
+.nav-links a:hover{color:var(--accent); background:var(--card-hi)}
+.nav-links a:hover::before{background:var(--accent)}
 .menu-opt{display:flex; align-items:center; gap:10px; margin-top:12px; padding-top:12px;
   border-top:1px solid var(--border); font-size:13px; color:var(--fg); cursor:pointer}
 .menu-opt input{accent-color:var(--accent); width:16px; height:16px; cursor:pointer}
@@ -463,11 +472,14 @@ svg .halo{ stroke-width:calc(4px * var(--ink)) }
   max-width:640px;
 }
 .box{
+  /* .empty set by placeholder(): nothing to enlarge, so no zoom affordance */
   position:relative; overflow:hidden; border-radius:12px; background:var(--box-bg);
   border:1px solid var(--border); cursor:zoom-in; padding:0; display:block; width:100%; aspect-ratio:1/1;
   transition:border-color .18s, transform .18s var(--ease);
 }
 .box:hover{border-color:var(--accent); transform:translateY(-2px)}
+.box.no-asset{cursor:default}
+.box.no-asset:hover{border-color:var(--border); transform:none}
 .box img, .box svg{width:100%; height:100%; object-fit:cover; display:block}
 .box svg{object-fit:contain; background:var(--box-bg)}
 /* GIANTmicrobes product photos are padded on their own canvas — contain
@@ -1077,7 +1089,8 @@ const MICROSCOPE_ICON=
     '<path d="M13.6 59a10.9 10.9 0 0 1 21.8 0z"/>'+
     '<rect x="3" y="59" width="42" height="4" rx="1.4"/>'+
   '</svg>';
-function placeholder(msg){
+function placeholder(msg, box){
+  if(box) box.classList.add('no-asset');
   const d=document.createElement('div'); d.className='ph';
   d.innerHTML=MICROSCOPE_ICON;
   const t=document.createElement('span'); t.textContent=msg||'no image'; d.appendChild(t);
@@ -1266,7 +1279,8 @@ function makeBox(m,opt){
   const tag=document.createElement('span'); tag.className='tag';
   tag.textContent=(STYLE_LABEL[style]||style)+(bw?' B&W':'')+(labels?' ·L':'');
   box.appendChild(tag);
-  box.addEventListener('click',()=>openLightbox(m,opt,box));
+  box.addEventListener('click',()=>{ if(box.classList.contains('no-asset')) return;
+    openLightbox(m,opt,box); });
   if(FEATURE_EAGER_STRUCTURE){
     // shell only — the tile already reserves its footprint (aspect-ratio:1/1
     // in CSS), so a loading skeleton is enough until it scrolls near view.
@@ -1279,6 +1293,20 @@ function makeBox(m,opt){
 }
 // the actual picture fetch, deferred (behind imgObs) when FEATURE_EAGER_STRUCTURE
 // is on, or run immediately from makeBox otherwise — same logic either way.
+// A coloring page is fetched and inlined so the title can be injected and the
+// EN/DE layers toggled. Opened straight off disk (file://) the browser refuses
+// that fetch — opaque origin — so fall back to plain <img>, which is not
+// CORS-restricted. The page then shows with its baked-in English layer and no
+// language switch, which beats showing nothing.
+function coloringFallbackImg(container, m, onFail){
+  const im=document.createElement('img');
+  im.alt=L(m.name)+' — coloring page';
+  im.className='contain-fit';
+  im.onerror=()=>{ im.remove(); if(onFail) onFail(); };
+  im.src=m.coloring;
+  container.appendChild(im);
+  return im;
+}
 function loadBoxContent(box){
   const m=box._m, opt=box._opt; if(!m) return;
   const {style,labels,bw}=parseOpt(opt);
@@ -1293,14 +1321,15 @@ function loadBoxContent(box){
       box.insertBefore(holder, tag); box.insertBefore(sk, holder);
       getSvg(m.coloring).then(txt=>{ sk.remove(); holder.innerHTML=txt;
         const s=holder.querySelector('svg'); if(s){ s.removeAttribute('width'); s.removeAttribute('height'); injectColoringTitle(s,m); } })
-        .catch(()=>{ sk.remove(); box.insertBefore(placeholder('no coloring page'), tag); });
-    } else box.insertBefore(placeholder('no coloring page'), tag);
+        .catch(()=>{ sk.remove(); coloringFallbackImg(holder, m,
+          ()=>box.insertBefore(placeholder('no coloring page', box), tag)); });
+    } else box.insertBefore(placeholder('no coloring page', box), tag);
   } else if(style==='giant'){
     // GIANTmicrobes product photos are padded/centred on their own canvas,
     // not full-bleed like our renders — contain+white keeps the toy whole
     // instead of a cover-crop chopping its edges off.
     if(m.giant) addImg(box, m.giant.img, null, false, false, true);
-    else box.insertBefore(placeholder('no plush match'), tag);
+    else box.insertBefore(placeholder('no plush match', box), tag);
   } else if(hasOverlay){
     // live overlay: small AVIF + generated label layers (full lang/aud control).
     const svgEl=overlaySvg(m,style); const imgNode=svgEl.querySelector('image');
@@ -1317,7 +1346,7 @@ function loadBoxContent(box){
     // the lightbox falls back to the self-contained committed SVG.
     box.insertBefore(placeholder('enlarge for labels'), tag);
   } else {
-    box.insertBefore(placeholder(labels?'no labelled '+style:'no '+style), tag);
+    box.insertBefore(placeholder(labels?'no labelled '+style:'no '+style, box), tag);
   }
 }
 // lazily fetches each picture-tile's actual bytes once it's within one screen
@@ -1337,7 +1366,7 @@ function addImg(box,src,fallback,labels,bw,contain){
     if(ok){ im.src=src; }
     else{ im.remove();
       if(fallback){ addImg(box, fallback, null, labels, bw, contain); }
-      else{ box.appendChild(placeholder(labels?'no labelled image':'failed to load')); } }
+      else{ box.appendChild(placeholder(labels?'no labelled image':'failed to load', box)); } }
   });
 }
 
@@ -1470,7 +1499,8 @@ function renderStage(m,opt){
       getSvg(m.coloring).then(txt=>{ load.remove(); holder.innerHTML=txt;
         const s=holder.querySelector('svg');
         if(s){ sizeSvgFromViewBox(s); injectColoringTitle(s,m); updateLbLabels(); } })
-        .catch(()=>{ load.remove(); lbStage.appendChild(placeholder('could not load')); });
+        .catch(()=>{ load.remove(); coloringFallbackImg(holder, m,
+          ()=>lbStage.appendChild(placeholder('could not load'))); });
     }
     // no page for this microbe: leave the stage empty rather than announcing
     // an absence — the coloring entry is filtered out of the nav anyway.

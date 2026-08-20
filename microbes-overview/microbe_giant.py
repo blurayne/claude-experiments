@@ -36,13 +36,28 @@ true counterpart simply gets no plush button. Notably NOT linked, and why:
     plush for these, only named species.
 """
 
-# Photos whose only available source carried a marketing overlay printed across
-# the toy. Cleaned with scripts/edit_image.py (gemini-2.5-flash-image), which
-# removed the lettering and continued the toy's own shape/colour/texture behind
-# it. Surfaced in the viewer so the picture is never passed off as an untouched
+# Photos we had to repair, all with scripts/edit_image.py (gemini-2.5-flash-image).
+# Surfaced in the viewer so such a picture is never passed off as an untouched
 # product shot. Every other plush photo here is the vendor's original.
+#
+# The vendor publishes some of these product shots only as soft, upscaled,
+# heavily-compressed files — measured by edge sharpness, not by file size, since
+# a background-removed AVIF compresses small no matter how good it is. The
+# restore pass denoises and re-sharpens without redrawing.
+#
+# NOT restored, deliberately: candida-albicans and parasite. Two attempts each,
+# the second with an explicit pixel-for-pixel instruction, and both times the
+# model re-framed and cropped the toy instead of merely cleaning it. A soft but
+# truthful product photo beats a sharp but altered one, so those keep the
+# vendor original.
 AI_CLEANED = {
     'hematopoietic-stem-cell',   # "GIGANTIC!microbes" logo covered half the toy
+    'macrophage',                # sharpness 1.6 -> 7.6
+    'cytotoxic-t-cell',          # 1.9 -> 17.3
+    'sickle-cell',               # 2.0 -> 9.9
+    'prion',                     # 2.3 -> 5.6
+    'keratinocyte',              # 2.4 -> 6.9
+    'influenza-virus',           # 2.9 -> 2.9, denoised only
 }
 
 # key -> (giantmicrobes product name, product url)
