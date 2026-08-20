@@ -4,7 +4,7 @@
 
 ## Where we stand
 
-- **16 sets**, **94 microbes** live in the viewer, out of **97 catalogued**.
+- **16 sets**, **96 microbes** live in the viewer, out of **97 catalogued**.
 - Every live microbe carries: 5 picture styles, 3 labelled diagrams, a printable A4 coloring page, kids narration in EN + DE, and size/weight data — the table below is the proof.
 - **44 plush links**, every one an exact species/cell match. 8 of those photos had to be repaired (see the last section).
 
@@ -69,13 +69,13 @@
 | immune-cells | Natural killer cell (NK) | `natural-killer-cell` | 5/5 | 3/3 | ✅ | ✅ | 12 µm · 350 pg | — |
 | immune-cells | Macrophage | `macrophage` | 5/5 | 3/3 | ✅ | ✅ | 30 µm · 6 ng | Macrophage - Immune System Plush |
 | immune-cells | Neutrophil | `neutrophil` | 5/5 | 3/3 | ✅ | ✅ | 11 µm · 300 pg | — |
-| immune-cells | White blood cell (leukocyte) | — | ❌ not rendered | | | | 12 µm · 500 pg | |
+| immune-cells | White blood cell (leukocyte) | `white-blood-cell` | 5/5 | 3/3 | ✅ | ✅ | 12 µm · 500 pg | White Blood Cell (Leukocyte) |
 | antibodies | Immunoglobulin G (IgG) | `igg` | 5/5 | 3/3 | ✅ | ✅ | 10 nm · 150 kDa | Antibody (Immunoglobulin) |
 | antibodies | Immunoglobulin A (IgA) | `iga` | 5/5 | 3/3 | ✅ | ✅ | 20 nm · 385 kDa | — |
 | antibodies | Immunoglobulin M (IgM) | `igm` | 5/5 | 3/3 | ✅ | ✅ | 35 nm · 950 kDa | — |
 | antibodies | Immunoglobulin D (IgD) | `igd` | 5/5 | 3/3 | ✅ | ✅ | 10 nm · 180 kDa | — |
 | antibodies | Immunoglobulin E (IgE) | `ige` | 5/5 | 3/3 | ✅ | ✅ | 10 nm · 190 kDa | — |
-| cancer-cells | Cancer cell (malignant neoplasm) | — | ❌ not rendered | | | | 20 µm · 4 ng | |
+| cancer-cells | Cancer cell (malignant neoplasm) | `cancer-cell` | 5/5 | 3/3 | ✅ | ✅ | 20 µm · 4 ng | Cancer (Malignant neoplasm) |
 | pathogens | Cocci (round bacteria) | `cocci` | 5/5 | 3/3 | ✅ | ✅ | 1 µm · 0.5 pg | — |
 | pathogens | Rod-shaped bacterium (bacillus) | `rod-bacterium` | 5/5 | 3/3 | ✅ | ✅ | 3 µm · 1 pg | — |
 | pathogens | Virus | `virus` | 5/5 | 3/3 | ✅ | ✅ | 100 nm · 1 fg | — |
@@ -114,17 +114,15 @@
 
 ## Gaps
 
-**Catalogued but not yet rendered — 3.** Text, German translation and scale data already exist for these; only the pictures are missing.
+**Catalogued but not yet rendered — 1.** Text, German translation and scale data already exist for these; only the pictures are missing.
 
-- `immune-cells` — White blood cell (leukocyte)
-- `cancer-cells` — Cancer cell (malignant neoplasm)
 - `pathogens` — Tick (Ixodes scapularis)
 
 **Rendered but not reaching the viewer — 0.** A render only appears if `meta.name` matches a catalogue `name_en` exactly, or its key matches the slug of one; anything here fell through both.
 
 - none
 
-**Data waiting for a render:** 3 scale entries (`cancer-cell`, `tick`, `white-blood-cell`), 3 plush links (`cancer-cell`, `tick`, `white-blood-cell`).
+**Data waiting for a render:** 1 scale entry (`tick`), 1 plush link (`tick`).
 
 **No recorded micrograph source:** `reticulocyte`.
 

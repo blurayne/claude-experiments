@@ -25,3 +25,7 @@ Every microbe's `watercolor` image — labelled SVG where built, else the last r
 ## Neutrophil (`neutrophil`)
 ![watercolor](neutrophil.watercolor.svg)
 [full log](../../neutrophil.render.md)
+
+## White blood cell (leukocyte) (`white-blood-cell`)
+![watercolor](white-blood-cell.watercolor.svg)
+[full log](../../white-blood-cell.render.md)

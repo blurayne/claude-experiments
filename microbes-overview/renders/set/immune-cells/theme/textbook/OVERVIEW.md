@@ -25,3 +25,7 @@ Every microbe's `textbook` image — labelled SVG where built, else the last ren
 ## Neutrophil (`neutrophil`)
 ![textbook](neutrophil.textbook.svg)
 [full log](../../neutrophil.render.md)
+
+## White blood cell (leukocyte) (`white-blood-cell`)
+![textbook](white-blood-cell.textbook.svg)
+[full log](../../white-blood-cell.render.md)

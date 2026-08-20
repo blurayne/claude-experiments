@@ -25,3 +25,7 @@ Every microbe's `sem` image — labelled SVG where built, else the last render. 
 ## Neutrophil (`neutrophil`)
 ![sem](neutrophil.attempts/gen-02__gemini-2.5-flash-image.avif)
 [full log](../../neutrophil.render.md)
+
+## White blood cell (leukocyte) (`white-blood-cell`)
+![sem](white-blood-cell.attempts/gen-01__gemini-2.5-flash-image.avif)
+[full log](../../white-blood-cell.render.md)

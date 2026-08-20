@@ -110,6 +110,24 @@ First responder: arrives first at sites of inflammation, eats bacteria, dumps an
 
 Full log: [`neutrophil.render.md`](neutrophil.render.md)
 
+## White blood cell (leukocyte) (`white-blood-cell`)
+The umbrella term for every nucleated defence cell in the blood — a GROUP composition (not one species) showing a lobed-nucleus granulocyte, a round-nucleus lymphocyte and a kidney-bean-nucleus monocyte together among anucleate red blood cells, one squeezing through a vessel wall (diapedesis).
+
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/white-blood-cell__textbook.avif) | ![sem](finals/white-blood-cell__sem.avif) | ![3d](finals/white-blood-cell__3d.avif) | ![watercolor](finals/white-blood-cell__watercolor.avif) | ![reference](finals/white-blood-cell__reference.avif) |
+
+**textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/white-blood-cell.textbook.svg) · [HTML](theme/textbook/white-blood-cell.textbook.html)
+![textbook labelled](theme/textbook/white-blood-cell.textbook.svg)
+
+**3d — labelled** (English default, La/De toggle): [SVG](theme/3d/white-blood-cell.3d.svg) · [HTML](theme/3d/white-blood-cell.3d.html)
+![3d labelled](theme/3d/white-blood-cell.3d.svg)
+
+**watercolor — labelled** (English default, La/De toggle): [SVG](theme/watercolor/white-blood-cell.watercolor.svg) · [HTML](theme/watercolor/white-blood-cell.watercolor.html)
+![watercolor labelled](theme/watercolor/white-blood-cell.watercolor.svg)
+
+Full log: [`white-blood-cell.render.md`](white-blood-cell.render.md)
+
 ## Status
 
 | name | styles | model | render count | pass | svg status | time taken | tokens used | costs |
@@ -144,7 +162,12 @@ Full log: [`neutrophil.render.md`](neutrophil.render.md)
 | Neutrophil | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 17s | 1578 | $0.039 |
 | Neutrophil | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 16s | 1598 | $0.039 |
 | Neutrophil | light (Wright stain) · CC BY-SA 4.0 | — (edit) | 2 | ✅ | n/a | 3.0m | 1740 | $0.039 |
+| White blood cell (leukocyte) | Textbook illustration | gemini-2.5-flash-image | 1 | ✅ | built | 7s | 1711 | $0.039 |
+| White blood cell (leukocyte) | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 7s | 1590 | $0.039 |
+| White blood cell (leukocyte) | 3D medical render | gemini-2.5-flash-image | 3 | ✅ | built | 22s | 5170 | $0.116 |
+| White blood cell (leukocyte) | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 6s | 1692 | $0.039 |
+| White blood cell (leukocyte) | Light microscopy (May-Grünwald-Giemsa stain) · CC BY-SA 2.0 | — (download) | 1 | ✅ | n/a | 2s | 0 | $0.000 |
 
-**Set total: 54,693 tokens · $1.277**
+**Set total: 64,856 tokens · $1.509**
 
-_Updated 2026-08-20 20:23 local._
+_Updated 2026-08-20 20:58 local._

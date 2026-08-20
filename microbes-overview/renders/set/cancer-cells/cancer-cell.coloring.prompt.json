@@ -1,0 +1,14 @@
+{
+  "microbe": "cancer-cell",
+  "set": "cancer-cells",
+  "model": "gemini-2.5-flash-image",
+  "speech_en": "Let's get back in line!",
+  "speech_de": "Auf geht's, zurück in die Reihe!",
+  "scenario": "A big, friendly, round Cancer Cell character (a plump wobbly circle with a few gentle bumps and one oversized round nucleus-face — one eye a little bigger than the other, a happy open smile, sweet and slightly muddled, never sad or sick) holds hands with a smaller, neat, normal Cell character beside it. Behind them a cheerful curved line of more small round normal Cell characters link hands in a friendly parade sweeping up and off the top/right of the frame, welcoming the big wobbly cell to join the line. Gentle round blob 'tissue' scenery fills the rest. No fighting, no weapons, no medical tools, no tears — just a muddled cell being helped back into line.",
+  "attempts": [
+    {"n": 1, "model": "gemini-2.5-flash-image", "result": "rejected — cute and correctly gentle/fear-free, but the whole scene sat small and centred with wide white margins on all sides (no bleed to edges)."},
+    {"n": 2, "model": "gemini-2.5-flash-image", "result": "rejected — improved bleed on top/left, but the right third and a strip along the bottom edge were still empty white."},
+    {"n": 3, "model": "gemini-2.5-flash-image", "result": "ACCEPTED — left and top edges now bleed cleanly (parade chain crosses the top edge, a blob crosses the left edge); right and bottom edges are much closer than attempts 1-2 but still carry a small white margin in places. No starburst/radiating rays, no border/frame box, no sad or sick expressions, no fighting/weapons. Used as final after reaching the 3-attempt cap for this step."}
+  ],
+  "status": "RENDERED — accepted on attempt 3 with gemini-2.5-flash-image. 209 traced paths. Known compromise: bleed to all four edges is not 100% perfect (right/bottom margins are small but present) after 3 attempts against the retry cap; left/top bleed cleanly and no border/box/starburst artifact is present, so it was kept rather than spending a 4th generation."
+}

@@ -25,3 +25,7 @@ Every microbe's `3d` image — labelled SVG where built, else the last render. [
 ## Neutrophil (`neutrophil`)
 ![3d](neutrophil.3d.svg)
 [full log](../../neutrophil.render.md)
+
+## White blood cell (leukocyte) (`white-blood-cell`)
+![3d](white-blood-cell.3d.svg)
+[full log](../../white-blood-cell.render.md)
