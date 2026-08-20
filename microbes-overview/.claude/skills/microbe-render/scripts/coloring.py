@@ -250,6 +250,10 @@ def build_svg(d: str, microbe: str, size: int, en: str, de: str) -> str:
     ph, top = page_height(size), art_top(size)
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {size} {ph}" '
+        # width/height as well as the viewBox: without them the file has no
+        # intrinsic size when a browser loads it into an <img> (or opens it
+        # directly), and it collapses to nothing.
+        f'width="{size}" height="{ph}" '
         f'role="img" aria-label="Coloring page of {esc(microbe)}">'
         f'<rect x="0" y="0" width="{size}" height="{ph}" fill="#ffffff"/>'
         f'<g transform="translate(0,{top})">'
