@@ -172,6 +172,7 @@ html[data-theme="petri"] body::after{
 .brand small{color:var(--fg-dim); font-weight:400; font-size:12px; font-family:var(--font-mono)}
 .spacer{flex:1 1 auto}
 .tb-tools{display:flex; align-items:center; gap:10px}
+.tb-tools-inner{display:contents}   /* desktop: no-op wrapper, children lay out directly in .tb-tools */
 .topbar .tb-more{display:none; margin-left:2px}   /* desktop: hidden; mobile: far-right toggle */
 .tb-more .chev{width:18px; height:18px; transition:transform .28s var(--ease)}
 .topbar.tools-open .tb-more .chev{transform:rotate(180deg)}
@@ -238,7 +239,13 @@ html[data-theme="petri"] body::after{
 .panel.open{opacity:1; transform:none; pointer-events:auto}
 .panel h4{margin:0 0 10px; font-size:11px; letter-spacing:.14em; text-transform:uppercase;
   color:var(--fg-faint); font-weight:600; font-family:var(--font-mono)}
-#menuPanel{left:clamp(10px,2.5vw,22px); max-height:min(74vh,640px); overflow:auto; width:min(340px,92vw)}
+/* menuPanel: fixed-height column; only #navTree scrolls, the footer
+   (labels checkbox + count, item 14/18) always stays pinned & visible */
+#menuPanel{left:clamp(10px,2.5vw,22px); max-height:min(74vh,640px); width:min(340px,92vw);
+  display:flex; flex-direction:column; overflow:hidden}
+#navTree{overflow:auto; min-height:0}
+.menu-footer{flex:none}
+.menu-count{margin-top:8px; font-family:var(--font-mono); font-size:11px; color:var(--fg-faint)}
 #picsPanel{right:clamp(10px,2.5vw,22px); width:min(430px,94vw)}
 #themePanel{right:clamp(10px,2.5vw,22px); width:min(300px,92vw)}
 
@@ -429,9 +436,25 @@ mark{background:var(--accent); color:var(--accent-ink); border-radius:3px; paddi
 @media(max-width:820px){
   .topbar{flex-wrap:wrap; height:auto; min-height:var(--bar-h); align-items:center}
   .topbar .tb-more{display:inline-flex}
-  .tb-tools{order:10; flex-basis:100%; display:none; flex-wrap:wrap; gap:8px;
-    padding:8px 0 12px; margin-top:2px; border-top:1px solid var(--border)}
-  .topbar.tools-open .tb-tools{display:flex}
+  /* Item 1: animate the collapsible row open/close (grid-rows 0fr->1fr) instead
+     of a hard display:none/flex swap, so the sticky topbar's height changes
+     smoothly and the page below doesn't jump. The inner wrapper is the actual
+     grid item; only it needs overflow:hidden for the row-track transition to
+     read as a height animation instead of an instant clip. */
+  .tb-tools{order:10; flex-basis:100%;
+    display:grid; grid-template-rows:0fr;
+    transition:grid-template-rows .32s var(--ease);
+  }
+  .tb-tools-inner{
+    display:flex; flex-wrap:wrap; gap:8px; overflow:hidden; min-height:0;
+    padding:0; margin-top:2px; border-top:1px solid transparent;
+    opacity:0;
+    transition:opacity .2s var(--ease), border-color .2s var(--ease), padding .32s var(--ease);
+  }
+  /* padding lives only in the open state so the collapsed row truly measures
+     0 (no residual sliver) and grows in step with the grid-rows transition */
+  .topbar.tools-open .tb-tools{grid-template-rows:1fr}
+  .topbar.tools-open .tb-tools-inner{opacity:1; border-top-color:var(--border); padding:8px 0 12px}
   .search-wrap{flex:1 1 100%}
   #search{width:100%}
   .seg .full{display:none}
@@ -454,8 +477,8 @@ mark{background:var(--accent); color:var(--accent-ink); border-radius:3px; paddi
   <button class="tb-btn" id="menuBtn" aria-expanded="false" aria-controls="menuPanel">☰ <span class="label">Menu</span></button>
   <span class="brand"><span class="dot"></span><span class="label">Microbes</span> <small>cell &amp; pathogen atlas</small></span>
   <div class="spacer"></div>
-  <button class="tb-btn icon tb-more" id="moreBtn" aria-label="Show controls" aria-expanded="false"><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
   <div class="tb-tools" id="tbTools">
+  <div class="tb-tools-inner">
   <div class="search-wrap">
     <span class="mag">⌕</span>
     <input id="search" type="search" placeholder="search microbes…" autocomplete="off" aria-label="Search microbes">
@@ -470,15 +493,23 @@ mark{background:var(--accent); color:var(--accent-ink); border-radius:3px; paddi
     <button data-lang="en">EN</button>
     <button data-lang="de">DE</button>
   </div>
+  </div>
+  </div>
+  <!-- Item 2: theme + day/night live outside the collapsible .tb-tools group so
+       they stay visible/tappable at every width, right beside the ⋯ toggle. -->
   <button class="tb-btn icon" id="themeBtn" aria-expanded="false" aria-controls="themePanel" title="Visual theme">◑</button>
   <button class="tb-btn icon" id="modeBtn" title="Light / dark">☾</button>
-  </div>
+  <button class="tb-btn icon tb-more" id="moreBtn" aria-label="Show controls" aria-expanded="false"><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
 
   <!-- dropdowns -->
   <nav class="panel" id="menuPanel" aria-label="Sets and microbes">
     <h4>Navigate</h4>
     <div id="navTree"></div>
-    <label class="menu-opt"><input type="checkbox" id="enlargeLabels"> Show labels on enlarge</label>
+    <!-- Item 14/18: pinned footer, outside the scrollable #navTree, always visible -->
+    <div class="menu-footer">
+      <label class="menu-opt"><input type="checkbox" id="enlargeLabels"> Show labels on enlarge</label>
+      <div class="menu-count" id="menuCount"></div>
+    </div>
   </nav>
 
   <div class="panel" id="picsPanel">
@@ -1026,9 +1057,16 @@ function applySearch(){
   });
   $('#emptyMsg').classList.toggle('show', !anyVisible);
   if(ts.length) refreshBuilt(); // re-highlight
+  updateMenuCount(); // item 18: keep the menu footer's shown/total count live
 }
 
 // ---- top-bar wiring ------------------------------------------------------
+// Item 18: "N of M microbes shown" while searching, else just the total "M microbes".
+function updateMenuCount(){
+  const total=DATA.sets.reduce((n,s)=>n+s.microbes.length,0);
+  const shown=allCards.filter(c=>c.style.display!=='none').length;
+  $('#menuCount').textContent = terms().length ? (shown+' of '+total+' microbes shown') : (total+' microbes');
+}
 function syncToggles(){
   $$('#audSeg button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.aud===state.aud));
   $$('#langSeg button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.lang===state.lang));
