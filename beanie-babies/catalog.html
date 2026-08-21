@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ty Beanie Baby Catalog</title>
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#e2231a">
+<meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
 <style>
@@ -62,10 +69,35 @@ header.hero {
 }
 .hero-top h1 {
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
   font-size: 1.5rem;
   text-shadow: 1px 1px 0 rgba(0,0,0,.15);
   white-space: nowrap;
 }
+/* The bear is a real <img> inside a download link, so right-click "Save image
+   as" / "Save link as" -- or just a tap -- hands over the icon file itself. */
+/* A cream chip behind it: the bear is brown and its own shadow was drawn for
+   white paper, so both vanish against the red gradient without one. */
+.hero-icon {
+  display: inline-flex;
+  flex: none;
+  line-height: 0;
+  padding: .15rem;
+  background: #fffdf9;  /* fixed: the hero gradient doesn't change with the theme */
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.25);
+  -webkit-tap-highlight-color: transparent;
+}
+.hero-icon img {
+  width: 2.1rem;
+  height: 2.1rem;
+  display: block;
+  transition: transform .15s ease;
+}
+.hero-icon:hover img, .hero-icon:focus-visible img { transform: scale(1.08) rotate(-4deg); }
+.hero-icon:focus-visible { outline: 2px solid white; outline-offset: 2px; }
 #options-toggle-btn {
   font-family: inherit;
   font-size: .9rem;
@@ -416,6 +448,8 @@ footer { text-align: center; padding: 1.5rem; color: var(--muted); font-size: .8
   .sticky-wrap { position: static; box-shadow: none; }
   header.hero { padding: .5rem 1rem; }
   .hero-top h1 { font-size: 1.2rem; }
+  .hero-icon { box-shadow: none; padding: 0; background: none; }
+  .hero-icon img { width: 1.5rem; height: 1.5rem; }
   body { background: white; }
   [data-theme="dark"] { --bg: white; --panel-bg: white; --ink: black; --card-bg: white; }
   .day-block, .card { break-inside: avoid; }
@@ -439,7 +473,9 @@ footer { text-align: center; padding: 1.5rem; color: var(--muted); font-size: .8
 <div class="sticky-wrap">
 <header class="hero">
   <div class="hero-top">
-    <h1>🧸 Ty Beanie Baby Catalog</h1>
+    <h1><a class="hero-icon" href="icon.png" download="ty-beanie-baby-icon.png"
+           title="Download this icon &mdash; 1024&times;1024 PNG, transparent background"><img
+           src="icon-96.png" width="96" height="96" alt="Ty teddy bear icon"></a>Ty Beanie Baby Catalog</h1>
     <button id="options-toggle-btn" type="button">☰ Options</button>
   </div>
 </header>

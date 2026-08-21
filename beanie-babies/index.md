@@ -1,4 +1,4 @@
-# Ty Beanie Baby Birthday Calendar
+# <a href="icon.png" download="ty-beanie-baby-icon.png" title="Download this icon &mdash; 1024&times;1024 PNG, transparent background"><img src="icon-96.png" width="44" height="44" alt="Ty teddy bear icon" style="vertical-align:-.4em"></a> Ty Beanie Baby Birthday Calendar
 
 A full year of Ty Beanie Baby birthdays, parsed straight from
 [ty.com's own birthday calendar tool](https://www.ty.com/birthdaycalendar.html?lang=en)
@@ -40,6 +40,16 @@ named). Current items link straight to their product page on ty.com.
   number. 18 items had permanently dead image URLs on ty.com's own CDN; 10 of
   those were manually found and verified via web search (see
   `scripts/integrate_found_images.py`), the remaining 8 show a 🧸 placeholder.
+- [**icon.png**](icon.png) — the teddy bear above, 1024×1024 with a transparent
+  background and its drop shadow intact. Click it (or right-click → *Save link
+  as*) anywhere it appears to download it. The derived sizes ride along:
+  `icon-512.png`, `icon-192.png`, `icon-maskable-512.png` and `manifest.json`
+  for Android home-screen installs and Hermit lite apps, `icon-180.png` as the
+  `apple-touch-icon`, and `favicon.ico` / `favicon-32x32.png` /
+  `favicon-16x16.png` for the browser tab. All of it comes out of
+  `scripts/make_icon.py`, which knocks the white paper out of `icon-source.png`
+  by unmultiplying it rather than colour-keying it — that is what keeps the
+  shadow as real, soft alpha instead of a hard cutout.
 - [`scripts/`](scripts/) — the pipeline that built this: `fetch_calendar_data.py`
   (hits the API for all 12 months and classifies each item), `verify_links.py`
   (confirms each current item's product page actually resolves before linking
