@@ -226,6 +226,91 @@ photos on every detail metric. The first run of `upgrade_images.py` duly selecte
 best candidate for five items in a row. Placeholder rejection has to happen before scoring,
 not after.
 
+### The second sweep: renditions, and which widget the crawler scraped from
+
+A later audit found something the `-tmb` fix had not touched: **115 images with a long edge
+under 300px, the smallest 60×50.** Two causes, both invisible in the URL unless you look for
+them.
+
+A Magento URL containing `cache/<hash>/` is not the photo, it is *a* rendition of it, and
+which rendition depends on where on the page the crawler picked it up. The "recently viewed
+products" strip renders at 75×90, and several items were carrying exactly that. Dropping the
+`cache/<hash>/` segment yields the original upload at the same sharded path. Separately, some
+records pointed into a literal `product/thumbnails/` directory holding 60px files; the real
+photo is at `<a>/<b>/<name>.jpg`.
+
+Where neither derivation lands, `upgrade_images.py` now fetches the product's own page and
+scrapes media filenames off it. That page also renders related products, cross-sells and the
+recently-viewed strip, so filenames are matched against the slug (`angry-brain-cell` accepts
+`angry-brain-front.jpg`, rejects `brain-organ-tmb.jpg`) rather than taken wholesale.
+
+**The accept rule has to change direction for these.** `detail_ratio` is per-pixel, so a 60×50
+crop scores *higher* than the 1600×1200 photograph it was cut from — the ordinary
+"is the candidate more detailed" test rejects every rescue. Against a thumbnail-sized
+incumbent the honest comparison is resolution, which is a separate branch with its own
+thresholds.
+
+### The licensee storefronts, which nobody had tried
+
+`giantmicrobes.ca` and `giantmicrobes.com.au` are licensee stores running on **Shopify**, and
+Shopify publishes the entire catalog at `/products.json?limit=250&page=N` — titles, SKUs and
+the *original* image uploads, frequently 2000–4200px where giantmicrobes.com serves a 1200px
+re-render of the same studio shot. No scraping, no key, two requests for 428 products
+(`fetch_licensee_catalogs.py`).
+
+This is the answer to the "large but flat, no better source reachable" images. 74 of them were
+replaced with a sharper copy, up to 6.5× the detail at the same subject size.
+
+Matching is the whole difficulty, and a title match alone is wrong: GIANTmicrobes sells the
+same character in eight formats, and "Blood Cell Mug" is 0.76 similar to "Blood Cells Gift
+Box". `match_licensee_images.py` requires a fuzzy title match **and** an exact format match,
+where the format is derived on both sides from a fixed vocabulary — with the specific formats
+ordered ahead of the generic keychain rule, the same ordering that once filed every petri dish
+as a plush toy.
+
+### Background removal eats pale packaging
+
+rembg/u2net looks for *a subject*. A white gift box on a white studio backdrop is not one, so
+the gift boxes, the Einstein paper puzzle and the Germs Deluxe 10-pack came out erased or
+half-transparent — and so did keyring clips, earring hooks and hang tags, which the model
+treats as background clutter.
+
+The fallback is dumber and better for exactly that case: flood-fill the backdrop inwards from
+the frame edge, which keeps every white pixel *not connected to the border*. `repair_cutouts.py`
+scores each shipped cut-out against a flood-fill of its original (how much of the subject
+survived, how much is semi-transparent) and redid 61 that way. It is only a fallback — on a
+lifestyle shot, a dark table or a textured backdrop there is nothing to flood-fill and rembg
+remains the better tool, which is why the score includes how much of the frame flood-fill
+thinks is subject.
+
+**Two ways this bit:** the score triages, it does not decide — at a 0.90 threshold it flags
+plenty of cut-outs whose only "loss" is a drop shadow, so the list goes onto a contact sheet
+first. And the script re-cuts from whatever source directory it is pointed at: aimed at all 179
+licensee probes rather than the 74 adopted ones, it *replaced* 65 pictures with a different
+photo of the same product instead of repairing them. It now compares perceptual hashes and
+refuses when the source is not the same photograph.
+
+### Nothing is adopted on a metric alone
+
+Every proposed replacement goes onto a contact sheet (`make_contact_sheet.py`, numbered cells,
+checkerboard so transparency is visible) and is looked at next to what it would replace. Of
+104 mechanically-approved upgrades, **21 were wrong**: "GIGANTIC!" logo banners with no product
+in frame, SEM micrographs of the real pathogen where the plush was expected, marketing
+infographics, lifestyle shots, blister packaging instead of the loose figure, and four cases of
+simply the wrong product (a human skull for the woolly mammoth skull keychain). Every one of
+them passed the placeholder filter and the sharpness test. They stay in
+`image_upgrade_report.json` as `rejected-visual` with the reason.
+
+### What image search is and is not good for
+
+For the 119 items with no photo, DuckDuckGo's `i.js` and Bing's async image endpoint both work
+without a key and return usable candidates (`search_image_candidates.py`). For items a reseller
+still lists, this finds real product photos. For the remaining tail — retired petri dishes,
+12-packs, one-off dolls — it confidently returns *something* for every query and that something
+is a generic crocheted brain, a stock photo of a real bacterial culture, or another product's
+gift box. Nothing from that pass was adopted. The Wayback Machine, queried with a domain-wide
+CDX regex rather than per-URL guesses, was worth far more: 66 recoveries against zero.
+
 ## AI upscaling: tried, measured, rejected
 
 For images with no better source anywhere, the fallback was Gemini image editing (Nano Banana)
