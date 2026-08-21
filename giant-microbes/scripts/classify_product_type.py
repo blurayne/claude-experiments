@@ -17,7 +17,22 @@ Writes merged_catalog.json back in place with `product_type` added.
 import json
 import re
 
+# Physical formats that are never *also* a keychain go first, because the
+# Keychain rule below is greedy: it matches the `-kc` slug fragment anywhere.
+# Without these, 47 petri dishes, 11 necklaces, 7 ties and 7 putties fell
+# through to the "Plush" fallback and shipped as plush toys. (A "Vinyl Key
+# Chain" genuinely is a keychain, so Vinyl deliberately stays *after* it.)
 RULES = [
+    ("Petri Dish", re.compile(r"petri", re.I)),
+    ("Putty", re.compile(r"\bputty\b", re.I)),
+    ("Soap", re.compile(r"\bsoap\b", re.I)),
+    ("Tie", re.compile(r"\btie\b|necktie|bow[-_ ]?tie", re.I)),
+    ("Necklace", re.compile(r"necklace|pendant", re.I)),
+    ("Bracelet", re.compile(r"bracelet", re.I)),
+    ("Glassware", re.compile(r"stemmed[-_ ]?glass|water[-_ ]?glass|\bpint\b|\btumbler\b", re.I)),
+    ("Tube", re.compile(r"\btube\b", re.I)),
+    ("Apparel", re.compile(r"t-shirt|tshirt|\bhoodie\b|\bsocks\b|\bscrub\b", re.I)),
+    ("Gift Card", re.compile(r"gift[-_ ]?card", re.I)),
     ("Keychain", re.compile(r"\bkc\b|key[-_ ]?chain", re.I)),
     ("Sticker", re.compile(r"sticker", re.I)),
     ("Ornament", re.compile(r"ornament", re.I)),

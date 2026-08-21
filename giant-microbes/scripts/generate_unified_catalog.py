@@ -80,12 +80,13 @@ header.hero {
 .hero-top { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
 .hero-top h1 { margin: 0; font-size: 1.5rem; text-shadow: 1px 1px 0 rgba(0,0,0,.15); white-space: nowrap; }
 .hero-actions { display: flex; align-items: center; gap: .5rem; }
-#options-toggle-btn, #lang-toggle-btn {
+#options-toggle-btn, #lang-chooser {
   font-family: inherit; font-size: .9rem; font-weight: 700; border-radius: 8px;
   border: 2px solid white; padding: .45rem .8rem; background: rgba(255,255,255,.15);
   color: white; cursor: pointer; flex-shrink: 0;
 }
-#options-toggle-btn:hover, #lang-toggle-btn:hover { background: rgba(255,255,255,.3); }
+#lang-chooser option { color: #222; }
+#options-toggle-btn:hover, #lang-chooser:hover { background: rgba(255,255,255,.3); }
 
 #options-panel { background: var(--panel-bg); max-height: 0; overflow: hidden; transition: max-height .3s ease; }
 #options-panel.open { max-height: 46rem; overflow-y: auto; }
@@ -209,7 +210,7 @@ footer a { color: var(--microbe-teal-dark); }
 }
 
 @media print {
-  #options-panel, #options-toggle-btn, #lang-toggle-btn, footer, #hover-preview, #lightbox { display: none !important; }
+  #options-panel, #options-toggle-btn, #lang-chooser, footer, #hover-preview, #lightbox { display: none !important; }
   .sticky-wrap { position: static; box-shadow: none; }
   header.hero { padding: .5rem 1rem; }
   .hero-top h1 { font-size: 1.2rem; }
@@ -427,12 +428,9 @@ function toggleTheme() {
   saveSettings();
 }
 
-function updateLangBtn() {
-  document.getElementById("lang-toggle-btn").textContent = settings.lang === "de" ? "\\ud83c\\udde9\\ud83c\\uddea Deutsch" : "\\ud83c\\uddfa\\ud83c\\uddf8 English";
-}
-function toggleLang() {
-  settings.lang = settings.lang === "de" ? "us" : "de";
-  updateLangBtn();
+function setLang(lang) {
+  settings.lang = lang;
+  document.getElementById("lang-chooser").value = lang;
   saveSettings();
   render();
 }
@@ -562,8 +560,9 @@ function initControls() {
   document.getElementById("theme-btn").textContent = settings.theme === "dark" ? "\\u2600\\ufe0f Light" : "\\ud83c\\udf19 Dark";
   document.getElementById("theme-btn").addEventListener("click", toggleTheme);
   document.getElementById("print-btn").addEventListener("click", () => window.print());
-  updateLangBtn();
-  document.getElementById("lang-toggle-btn").addEventListener("click", toggleLang);
+  const langChooser = document.getElementById("lang-chooser");
+  langChooser.value = settings.lang;
+  langChooser.addEventListener("change", e => setLang(e.target.value));
 
   const optionsPanel = document.getElementById("options-panel");
   optionsPanel.classList.toggle("open", settings.optionsOpen);
@@ -673,7 +672,10 @@ def main():
   <div class="hero-top">
     <h1>\U0001f9a0 GIANTmicrobes Catalog</h1>
     <div class="hero-actions">
-      <button id="lang-toggle-btn" type="button" title="Switch display language"></button>
+      <select id="lang-chooser" title="Language / Sprache">
+        <option value="us">\U0001f1fa\U0001f1f8 English</option>
+        <option value="de">\U0001f1e9\U0001f1ea Deutsch</option>
+      </select>
       <button id="options-toggle-btn" type="button">☰ Options</button>
     </div>
   </div>

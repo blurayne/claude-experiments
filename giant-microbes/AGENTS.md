@@ -166,6 +166,110 @@ Only one image per item is kept (US preferred over DE when both exist) — both 
 show a full photo gallery per product, and processing 10+ images/item through
 background removal for 818 items wasn't worth it for a catalog viewer.
 
+## The not-found placeholder, and why a swarm reported 100% success on an impossible task
+
+`giantmicrobes.com/us/media/catalog/product/...` **never 404s**. Ask it for a filename that
+does not exist and it returns HTTP 200 with a 483×272 JPEG: a wide group shot of about forty
+assorted plush microbes piled together. Two things follow, and both bit hard.
+
+First, HTTP status is worthless for probing whether a media file exists — the only usable
+"file not found" signal is recognising the placeholder itself.
+
+Second, and worse: **the placeholder looks like a legitimate product photo.** Five agents were
+sent to find photos for 139 retired products whose images were missing. Four came back
+reporting 28/28, 28/28, 27/27 and 28/28 — every single one "verified by viewing the image and
+confirming it depicts the product". They had each downloaded the same group shot 28 times and
+looked at a real photo of real plush microbes. Only one agent (which happened to compare files
+rather than eyeball them) reported the truth: 6 found, 22 placeholder. Of 117 claimed finds,
+**34 were real** — an 71% false-positive rate produced entirely by agents doing exactly what
+they were told, including the visual check.
+
+The fix is that candidate acceptance must be *mechanical*, never a judgement call:
+`gm_imgutil.PlaceholderFilter` learns the placeholder at runtime by requesting a deliberately
+impossible path, then rejects matches by exact digest, by 64-bit perceptual difference hash
+(the shop serves the same image re-encoded at different byte sizes, so an exact hash alone
+misses copies), and by its distinctive geometry. `verify_candidates.py` runs every proposed
+image through it and additionally drops any two slugs that resolved to identical bytes. Only
+what survives is worth a human or vision-model look — and a second, better-briefed vision pass
+over the 34 survivors confirmed 33 and flagged 1 as unidentifiable.
+
+The same placeholder had already contaminated the shipped dataset: **16 catalog items were
+displaying it as their product photo.** They are now cleared and quarantined in
+`images_rejected/`.
+
+## Pixel dimensions are not resolution: the `-tmb` discovery
+
+A quarter of the catalog's photos were soft, and the reason was invisible from file metadata.
+Many recorded `image_url_us` values point at a Magento file whose name ends in `-tmb` — the
+shop's *thumbnail, enlarged back up to gallery size*. Full nominal dimensions, thumbnail
+detail. The un-suffixed sibling file is the real photograph and, for most products, is simply
+sitting there at the adjacent path:
+
+```
+a/d/adhd-tmb.jpg   1200x960    56 KB   Laplacian variance   2.3
+a/d/adhd.jpg       1200x902   138 KB   Laplacian variance  61.6
+```
+
+Same size on screen, 25× the edge energy. Sorting by pixel dimensions would rank these equal
+forever, which is why the first pass never noticed.
+
+`audit_images.py` therefore measures two things beyond dimensions: Laplacian variance (focus)
+and a `detail_ratio` — RMS difference between the image and its own half-scale round trip,
+which is near zero for an upscale and clearly positive for a real photograph, independent of
+resolution. `upgrade_images.py` uses those to re-probe every item's candidate URLs and keep
+the best. Result: **101 images replaced with genuinely sharper originals (median 20.7× the
+Laplacian variance, at the same dimensions) and 36 items that had no photo at all got one.**
+Median Laplacian variance across images ≥1000px went from 21.6 to 38.8.
+
+One trap in the ranking: because the placeholder is a *sharp* graphic, it beats real product
+photos on every detail metric. The first run of `upgrade_images.py` duly selected it as the
+best candidate for five items in a row. Placeholder rejection has to happen before scoring,
+not after.
+
+## AI upscaling: tried, measured, rejected
+
+For images with no better source anywhere, the fallback was Gemini image editing (Nano Banana)
+via `ai_upscale.py`. Every attempt is gated, because a rule from the sibling microbes-overview
+project applies directly: *a plush toy's outline is the product.* An image model asked to
+enhance a plush will restyle ears, round off limbs and restitch faces, and the result is a
+photo of a toy that was never sold. So each output must clear a silhouette IoU against the
+original and actually measure sharper.
+
+**17 attempts across sources from 60px to 500px: zero passed.** Two distinct failure modes,
+often together:
+
+- The outline changes outright (IoU 0.22–0.89). The Anopheles mosquito came back as a
+  confident, well-lit, entirely invented plush with the wrong body plan.
+- Where the outline *did* survive (`earache-petri` IoU 0.987, `amoeba-gigantic` 0.955), the
+  output measured **less** detailed than the input (gain 0.88× and 0.41×) — a smooth
+  re-illustration, not a restoration.
+
+One measurement bug is worth recording because it nearly produced a wrong conclusion: the model
+often returns the subject on a *black* backdrop instead of the white one it was given. The first
+silhouette check thresholded against white, so the whole frame counted as subject and everything
+failed for the wrong reason. The mask now samples the background colour from the image corners,
+which measures shape rather than backdrop. The verdict survived the fix — it just became
+trustworthy.
+
+Conclusion: for this catalog, AI upscaling is not a usable fallback. A soft authentic vendor
+photo beats a sharp invented one. The script and its report are kept so the negative result is
+reproducible rather than re-litigated.
+
+## Two data bugs the verification pass surfaced
+
+**`product_type` silently defaulted 111 records to "Plush".** The rule list in
+`classify_product_type.py` had no pattern for petri dishes, necklaces, ties, putty, soap,
+glassware or tubes, and its generic `Keychain` rule (which matches the `-kc` slug fragment
+anywhere) ran first. So all 47 Petri Dish products, 11 necklaces, 7 putties and 7 ties shipped
+as plush toys. Fixed by adding those formats *ahead* of the keychain rule — deliberately not
+ahead of it for Vinyl, since a "Vinyl Key Chain" genuinely is a keychain. 84 records reclassified.
+
+**One live product was missing entirely:** `zombievirus` (Zombie Virus, *Pithovirus sibericum*),
+present on every shopall and category listing but absent from the dataset. Its own product page
+now sits behind a Cloudflare challenge (HTTP 403), so its details came from an April 2025
+Wayback snapshot while its photo came straight off the media path, which is not challenged.
+Both catalogs are otherwise complete: 471 live US slugs and all 353 DE slugs map to a record.
+
 ## Rate limiting / politeness
 
 Small per-page delays (`time.sleep(0.2)`) during the US category-page crawl; `curl`

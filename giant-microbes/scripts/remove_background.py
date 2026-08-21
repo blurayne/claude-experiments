@@ -47,6 +47,12 @@ def is_already_transparent(path):
 def main():
     sources = [
         f for f in glob.glob(os.path.join(IMAGES_DIR, "*"))
+        # .avif is always this pipeline's final output format -- never a fresh
+        # download -- so it must never be fed back into rembg. (Bug history: an
+        # earlier run globbed everything including already-finished .avif files,
+        # ran them through background removal *again*, silently degrading 548
+        # already-correct images. Redownloaded from source and reprocessed once.)
+        if not f.lower().endswith(".avif")
     ]
     print(f"Removing background from {len(sources)} images...")
 
