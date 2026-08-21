@@ -201,7 +201,7 @@ Enveloped +ssRNA betacoronavirus with a crown of Spike (S) glycoprotein trimers;
 Full log: [`sars-cov-2.render.md`](sars-cov-2.render.md)
 
 ## Varicella-zoster virus (chickenpox) (`varicella-zoster-virus`)
-Enveloped herpesvirus (human alphaherpesvirus 3, ~180-200 nm, pleomorphic) with the classic four-layer herpesvirus architecture: a ~125 kbp linear dsDNA genome packaged under pressure into a T=16 icosahedral capsid of 162 capsomeres (150 hexons + 12 pentons), the capsid cushioned by an asymmetric granular/fibrous protein tegument, the whole thing wrapped in a lipid envelope studded with short glycoprotein spikes. Causes chickenpox on primary infection, then establishes lifelong latency in nerve ganglia and can reactivate decades later as shingles.
+Enveloped herpesvirus (human alphaherpesvirus 3, ~180-200 nm, pleomorphic) with the classic four-layer herpesvirus architecture: a ~125 kbp linear dsDNA genome inside a T=16 icosahedral capsid of 162 capsomeres, the capsid cushioned by the granular tegument, the whole wrapped in a lipid envelope studded with short blunt glycoprotein spikes. Causes chickenpox, then goes latent for life in sensory nerve ganglia and can reactivate decades later as shingles.
 
 | textbook | sem | 3d | watercolor | reference |
 | --- | --- | --- | --- | --- |
@@ -295,17 +295,17 @@ Full log: [`zika-virus.render.md`](zika-virus.render.md)
 | SARS-CoV-2 (COVID-19) | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 22s | 1492 | $0.039 |
 | SARS-CoV-2 (COVID-19) | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 16s | 1492 | $0.039 |
 | SARS-CoV-2 (COVID-19) | TEM · CC BY 2.0 | — (download) | 1 | ✅ | n/a | 25s | 0 | $0.000 |
-| Varicella-zoster virus (chickenpox) | Textbook illustration | gemini-3-pro-image | 3 | ✅ | built | 33s | 5995 | $0.123 |
-| Varicella-zoster virus (chickenpox) | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 6s | 1540 | $0.039 |
-| Varicella-zoster virus (chickenpox) | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 7s | 1642 | $0.039 |
-| Varicella-zoster virus (chickenpox) | Watercolor plate | gemini-2.5-flash-image | 2 | ✅ | built | 15s | 3267 | $0.077 |
-| Varicella-zoster virus (chickenpox) | TEM · Public domain - CDC PHIL: 'None - This image is in the public domain and thus free of any copyright restrictions.' | — (download) | 1 | ✅ | n/a | 2s | 0 | $0.000 |
+| Varicella-zoster virus (chickenpox) | Textbook illustration | gemini-3-pro-image | 3 | ✅ | built | 35s | 8472 | $0.126 |
+| Varicella-zoster virus (chickenpox) | SEM micrograph | gemini-2.5-flash-image | 2 | ✅ | pending (same pipeline) | 13s | 4025 | $0.077 |
+| Varicella-zoster virus (chickenpox) | 3D medical render | gemini-3-pro-image | 3 | ✅ | built | 38s | 8484 | $0.126 |
+| Varicella-zoster virus (chickenpox) | Watercolor plate | gemini-3-pro-image | 3 | ✅ | built | 38s | 8484 | $0.121 |
+| Varicella-zoster virus (chickenpox) | TEM · Public domain - CDC Public Health Image Library: 'None - This image is in the public domain and thus free of any copyright restrictions.' | — (download) | 2 | ✅ | n/a | 0s | 0 | $0.000 |
 | Zika virus | Textbook illustration | gemini-2.5-flash-image | 2 | ✅ | built | 13s | 3758 | $0.077 |
 | Zika virus | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 7s | 1550 | $0.039 |
 | Zika virus | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 6s | 1634 | $0.039 |
 | Zika virus | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 6s | 1678 | $0.039 |
 | Zika virus | digitally colorized TEM, false-colour · Public domain - CDC PHIL: None - This image is in the public domain and thus free of any copyright restrictions. | — (download) | 1 | ✅ | n/a | 2s | 0 | $0.000 |
 
-**Set total: 180,097 tokens · $3.866**
+**Set total: 197,118 tokens · $4.039**
 
-_Updated 2026-08-21 11:14 local._
+_Updated 2026-08-21 12:28 local._

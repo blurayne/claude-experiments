@@ -47,7 +47,7 @@ Every microbe's `sem` image — labelled SVG where built, else the last render. 
 [full log](../../sars-cov-2.render.md)
 
 ## Varicella-zoster virus (chickenpox) (`varicella-zoster-virus`)
-![sem](varicella-zoster-virus.attempts/gen-01__gemini-2.5-flash-image.avif)
+![sem](varicella-zoster-virus.attempts/gen-02__gemini-2.5-flash-image.avif)
 [full log](../../varicella-zoster-virus.render.md)
 
 ## Zika virus (`zika-virus`)

@@ -1597,7 +1597,7 @@ Enveloped +ssRNA betacoronavirus with a crown of Spike (S) glycoprotein trimers;
 ---
 
 ### Varicella-zoster virus (chickenpox) (`varicella-zoster-virus`)
-Enveloped herpesvirus (human alphaherpesvirus 3, ~180-200 nm, pleomorphic) with the classic four-layer herpesvirus architecture: a ~125 kbp linear dsDNA genome packaged under pressure into a T=16 icosahedral capsid of 162 capsomeres (150 hexons + 12 pentons), the capsid cushioned by an asymmetric granular/fibrous protein tegument, the whole thing wrapped in a lipid envelope studded with short glycoprotein spikes. Causes chickenpox on primary infection, then establishes lifelong latency in nerve ganglia and can reactivate decades later as shingles.
+Enveloped herpesvirus (human alphaherpesvirus 3, ~180-200 nm, pleomorphic) with the classic four-layer herpesvirus architecture: a ~125 kbp linear dsDNA genome inside a T=16 icosahedral capsid of 162 capsomeres, the capsid cushioned by the granular tegument, the whole wrapped in a lipid envelope studded with short blunt glycoprotein spikes. Causes chickenpox, then goes latent for life in sensory nerve ganglia and can reactivate decades later as shingles.
 
 | Textbook | SEM | 3D | Watercolor |
 | --- | --- | --- | --- |
