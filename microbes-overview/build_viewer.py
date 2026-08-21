@@ -105,6 +105,11 @@ def build():
         for i, e in enumerate(page.get("entries", [])):
             rec = {
                 "name_de": e.get("name_de", ""),
+                # Optional audience-specific wording. "Cocci (spherical bacteria)"
+                # is right for an adult and wrong for a seven-year-old, who wants
+                # "Round bacteria"; entries without these just reuse the main name.
+                "name_kids_en": e.get("name_kids_en", ""),
+                "name_kids_de": e.get("name_kids_de", ""),
                 # best-effort German one-liner from the poster "function" text
                 "short_de": e.get("func_de", ""),
                 "order": i,
@@ -122,6 +127,8 @@ def build():
 
             look = name_lookup.get(name_en) or slug_lookup.get(key) or {}
             name_de = look.get("name_de") or name_en
+            name_kids_en = look.get("name_kids_en") or ""
+            name_kids_de = look.get("name_kids_de") or ""
             short_de = look.get("short_de") or short_en
 
             # provenance of the real micrograph: prefer the download sidecar in
@@ -220,7 +227,9 @@ def build():
             # search blob: name + one-liner + all six descriptions, lowercased
             # Two searchable fields, so the search-scope checkboxes can target
             # one or the other; `blob` stays as the union both default to.
-            title_blob = " ".join([name_en, name_de, key]).lower()
+            # the kids wording is searchable too, so "round bacteria" finds cocci
+            title_blob = " ".join(
+                [name_en, name_de, key, name_kids_en, name_kids_de]).lower()
             desc_blob = " ".join(
                 [short_en, short_de] + [desc[a][l] for a in desc for l in ("en", "de")]
             ).lower()
@@ -252,6 +261,11 @@ def build():
                 {
                     "key": key,
                     "name": {"en": name_en, "de": name_de},
+                    # only emitted where the catalogue supplies one, so the viewer
+                    # can fall back to `name` for every other subject
+                    **({"nameKids": {"en": name_kids_en or name_en,
+                                     "de": name_kids_de or name_de}}
+                       if (name_kids_en or name_kids_de) else {}),
                     "short": {"en": short_en, "de": short_de},
                     "desc": desc,
                     "img": img,

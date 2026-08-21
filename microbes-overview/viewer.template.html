@@ -2,11 +2,24 @@
 <html lang="en" data-theme="lab" data-mode="dark">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<!-- touch-action:manipulation kills the double-tap-to-zoom gesture (and its
-     300ms click delay) without disabling pinch zoom, which people who need
-     to magnify still depend on. user-scalable=no would take that away. -->
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<!-- Browser zoom is switched off for the page itself, on request: the layout is
+     already responsive and stray pinches on a picture grid were zooming the
+     whole document. The magnifying use case is not lost, it moves — the
+     lightbox has its own wheel/pinch zoom with panning, which is where you
+     actually want to inspect a micrograph. touch-action:manipulation still
+     kills double-tap-to-zoom and its 300ms click delay. -->
 <title>Microbes — an interactive cell & pathogen atlas</title>
+<!-- Icons and the web app manifest. Every path here is RELATIVE on purpose: the
+     site is served from a sub-path (/claude-experiments/microbes-overview/), so a
+     leading-slash href would resolve to the domain root and 404. The PNG sizes are
+     for launchers that composite onto their own background or render SVG poorly
+     (Hermit, older Android); modern browsers take the SVG and stay sharp. -->
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#46617f">
 <meta name="description" content="An interactive teaching atlas of AI-rendered, scientifically verified microbes and human cells — switchable by audience, language and picture style.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -208,13 +221,15 @@ html[data-theme="petri"] body::after{
   letter-spacing:var(--display-spacing); font-size:19px; white-space:nowrap;
   display:flex; align-items:center; gap:9px;
 }
-.brand .dot{
-  width:11px;height:11px;border-radius:50%;
-  background:radial-gradient(circle at 32% 30%, var(--accent2), var(--accent) 70%);
-  box-shadow:0 0 14px var(--accent); flex:none;
-  animation:pulse 3.4s var(--ease) infinite;
-}
-@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.82);opacity:.72}}
+/* the icon doubles as its own download link: a plain click saves the SVG, and
+   long-press / right-click offers it the way any image would */
+.brand-icon{display:inline-flex; flex:none; line-height:0; border-radius:7px;
+  transition:transform .18s var(--ease), background .18s}
+.brand-icon img{width:28px; height:28px; display:block}
+.brand-icon:hover{transform:scale(1.08); background:var(--card-hi)}
+.brand-icon:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+/* the brand's pulsing accent dot and its keyframes are gone — the atlas icon
+   took that slot, and nothing else referenced the animation */
 .brand small{color:var(--fg-dim); font-weight:400; font-size:12px; font-family:var(--font-mono)}
 .spacer{flex:1 1 auto}
 .tb-tools{display:flex; align-items:center; gap:10px}
@@ -663,6 +678,22 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 -2px 0 #f
 .lb-color.on{display:inline-flex}
 .lb-color button{font-family:var(--font-mono); font-size:12px}
 .lb-stage img, .lb-stage svg{display:block; max-width:98vw; max-height:var(--lb-max-h); width:auto; height:auto; object-fit:contain}
+/* Zoom & pan inside the lightbox. Page zoom is off, so this is where magnifying
+   a micrograph happens. touch-action:none hands every pointer event to the JS —
+   without it the browser claims the pinch and the drag first. The transform is
+   set inline by setZoom(); the transition is dropped while a gesture is live so
+   dragging tracks the finger instead of easing behind it. */
+.lb-stage.zoomable{cursor:zoom-in; touch-action:none}
+.lb-stage.zoomable.zoomed{cursor:grab}
+.lb-stage.zoomable.zoomed.dragging{cursor:grabbing}
+.lb-stage.zoomable > img, .lb-stage.zoomable > svg{
+  transform-origin:0 0; transition:transform .18s var(--ease); will-change:transform}
+.lb-stage.gesturing > img, .lb-stage.gesturing > svg{transition:none}
+/* zoom readout, only while magnified */
+.lb-zoom{position:absolute; right:10px; top:10px; z-index:6; display:none;
+  font-family:var(--font-mono); font-size:11px; padding:3px 7px; border-radius:7px;
+  background:var(--panel); border:1px solid var(--panel-bd); color:var(--fg-dim)}
+.lb-stage.zoomed .lb-zoom{display:block}
 /* the reference (B&W) picture style: same asset as reference, grayscale filter */
 .bw{filter:grayscale(1)}
 /* title + visualisation type, centred below the image */
@@ -783,7 +814,9 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 -2px 0 #f
 
 <header class="topbar">
   <button class="tb-btn" id="menuBtn" aria-expanded="false" aria-controls="menuPanel">☰ <span class="label">Menu</span></button>
-  <span class="brand"><span class="dot"></span><span class="label">Microbes</span> <small>cell &amp; pathogen atlas</small></span>
+  <span class="brand"><a class="brand-icon" href="icon.svg" download="microbes-atlas-icon.svg"
+       title="Atlas icon — click or long-press to save"><img src="icon.svg" alt="Microbes atlas icon"
+       width="28" height="28" draggable="true"></a><span class="label">Microbes</span> <small>cell &amp; pathogen atlas</small></span>
   <div class="spacer"></div>
   <div class="tb-tools" id="tbTools">
   <div class="tb-tools-inner">
@@ -1100,8 +1133,13 @@ function injectColoringTitle(svgEl, m){
     t.textContent=txt;
     return t;
   }
-  en.appendChild(mkTitle((m.name&&m.name.en)||''));
-  de.appendChild(mkTitle((m.name&&m.name.de)||(m.name&&m.name.en)||''));
+  // A coloring page is a children's artifact, so it takes the kids wording
+  // whatever audience the rest of the page is in — "Round bacteria", not
+  // "Cocci (spherical bacteria)". Both language layers are built at once here,
+  // so this reads nameKids directly rather than going through N().
+  const nm=(m.nameKids||m.name)||{};
+  en.appendChild(mkTitle(nm.en||''));
+  de.appendChild(mkTitle(nm.de||nm.en||''));
   applyLabels(svgEl);
 }
 function inlineSvg(holder, path){
@@ -1281,6 +1319,12 @@ function highlight(text){
   return esc(text).replace(re,'<mark>$1</mark>');
 }
 function L(o){ return (o && (o[state.lang]||o.en)) || ''; }
+// A subject's display name, which can depend on the audience as well as the
+// language: "Cocci (spherical bacteria)" is right for an adult and wrong for a
+// seven-year-old, who gets "Round bacteria". Only a few entries carry nameKids;
+// everything else falls straight through to name. Card titles, the nav tree, the
+// search results and the lightbox all go through here so they never disagree.
+function N(m){ return L((state.aud==='kids' && m.nameKids) || m.name); }
 function audText(m){ const a=m.desc[state.aud]||{}; return a[state.lang]||a.en||''; }
 const AUD_LABEL={kids:{en:'For kids',de:'Für Kinder'},adults:{en:'For everyone',de:'Für alle'},sci:{en:'Scientific',de:'Wissenschaftlich'}};
 const LANG_LABEL={en:{en:'English',de:'English'},de:{en:'German',de:'Deutsch'}};
@@ -1380,7 +1424,7 @@ function descHTML(m){
     // otherwise it opens the source page in a new tab.
     const shown=esc(m.ref.url||m.ref.img);
     if(m.ref.img)
-      s+='<br><a href="'+esc(m.ref.img)+'" class="view-orig" data-img="'+esc(m.ref.img)+'" data-name="'+esc(L(m.name))+'">'+shown+'</a>';
+      s+='<br><a href="'+esc(m.ref.img)+'" class="view-orig" data-img="'+esc(m.ref.img)+'" data-name="'+esc(N(m))+'">'+shown+'</a>';
     else if(m.ref.url)
       s+='<br><a href="'+esc(m.ref.url)+'" target="_blank" rel="noopener">'+shown+'</a>';
     h+=s+'</div>';
@@ -1394,7 +1438,7 @@ function descHTML(m){
     h+='<div class="coloring-actions">';
     if(showGiant){
       h+='<span class="giant-actions">'+
-        '<button type="button" class="cb-btn cb-giant" data-img="'+esc(m.giant.img)+'" data-name="'+esc(L(m.name))+'" '+
+        '<button type="button" class="cb-btn cb-giant" data-img="'+esc(m.giant.img)+'" data-name="'+esc(N(m))+'" '+
           'title="Preview GIANTmicrobes plush toy" aria-label="Preview GIANTmicrobes plush toy">🧸 Plush toy</button>'+
         (m.giant.url ? '<a class="cb-btn cb-giant-link" href="'+esc(m.giant.url)+'" target="_blank" rel="noopener" '+
           'title="Open product page" aria-label="Open product page">⚓</a>' : '')+
@@ -1435,7 +1479,7 @@ function teardownCard(card){
 function makeBox(m,opt){
   const {style,labels,bw}=parseOpt(opt);
   const box=document.createElement('button'); box.className='box'; box.type='button';
-  box.setAttribute('aria-label', L(m.name)+' — '+ (STYLE_LABEL[style]||style) + (bw?' B&W':'') + (labels?' labelled':''));
+  box.setAttribute('aria-label', N(m)+' — '+ (STYLE_LABEL[style]||style) + (bw?' B&W':'') + (labels?' labelled':''));
   box._m=m; box._opt=opt;
   const tag=document.createElement('span'); tag.className='tag';
   tag.textContent=(STYLE_LABEL[style]||style)+(bw?' B&W':'')+(labels?' ·L':'');
@@ -1461,7 +1505,7 @@ function makeBox(m,opt){
 // language switch, which beats showing nothing.
 function coloringFallbackImg(container, m, onFail){
   const im=document.createElement('img');
-  im.alt=L(m.name)+' — coloring page';
+  im.alt=N(m)+' — coloring page';
   im.className='contain-fit';
   im.onerror=()=>{ im.remove(); if(onFail) onFail(); };
   im.src=m.coloring;
@@ -1545,6 +1589,136 @@ let lbBw=false, lbSrc=false;
 // a zoom to/from that box's on-screen position (FLIP-style transform). Null
 // when opened without a click origin (e.g. openStandalone) — then it's a plain fade.
 let lbOriginEl=null;
+
+// ---- lightbox zoom & pan ---------------------------------------------------
+// Page zoom is disabled, so inspecting a micrograph happens here instead: wheel
+// or pinch to scale, drag to pan. Zoom is anchored at the pointer/pinch centre,
+// so the detail under your finger stays under your finger. Panning is clamped so
+// the picture can never be dragged entirely off the stage.
+const ZOOM_MIN=1, ZOOM_MAX=8;
+let zScale=1, zX=0, zY=0;
+function zTarget(){ return lbStage.querySelector('img, svg'); }
+function zApply(){
+  const el=zTarget(); if(!el) return;
+  lbStage.classList.toggle('zoomed', zScale>1.001);
+  el.style.transform=`translate(${zX}px, ${zY}px) scale(${zScale})`;
+  const r=lbStage.querySelector('.lb-zoom');
+  if(r) r.textContent=Math.round(zScale*100)+'%';
+}
+function zClamp(){
+  const el=zTarget(); if(!el) return;
+  // the element's unscaled box; at scale 1 it exactly fills its natural size
+  const w=el.offsetWidth, h=el.offsetHeight;
+  const sw=w*zScale, sh=h*zScale;
+  const bw=lbStage.clientWidth, bh=lbStage.clientHeight;
+  // when the scaled picture is smaller than the stage, centre it on that axis;
+  // otherwise keep its edges from crossing the stage edges
+  zX = sw<=bw ? (bw-sw)/2 : Math.min(0, Math.max(bw-sw, zX));
+  zY = sh<=bh ? (bh-sh)/2 : Math.min(0, Math.max(bh-sh, zY));
+}
+function zReset(){ zScale=1; zX=0; zY=0;
+  const el=zTarget();
+  if(el){ el.style.transform=''; }
+  lbStage.classList.remove('zoomed','dragging','gesturing');
+}
+// zoom to `next`, holding the point (cx,cy) — in stage coordinates — still
+function zZoomAt(next, cx, cy){
+  const el=zTarget(); if(!el) return;
+  next=Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, next));
+  if(Math.abs(next-zScale)<0.0005) return;
+  const k=next/zScale;
+  zX = cx - (cx - zX)*k;
+  zY = cy - (cy - zY)*k;
+  zScale = next;
+  zClamp(); zApply();
+}
+function zStagePoint(clientX, clientY){
+  const r=lbStage.getBoundingClientRect();
+  return [clientX-r.left, clientY-r.top];
+}
+// mark a stage zoomable once it holds a single picture (not the placeholder or
+// a multi-element layout), and seed the readout
+let zBusy=false;
+function zPrepare(){
+  zBusy=true;
+  zReset();
+  const el=zTarget();
+  const single = !!el && lbStage.querySelectorAll('img, svg').length===1;
+  lbStage.classList.toggle('zoomable', single);
+  let r=lbStage.querySelector('.lb-zoom');
+  if(single && !r){
+    r=document.createElement('div'); r.className='lb-zoom'; r.textContent='100%';
+    lbStage.appendChild(r);
+  } else if(!single && r){ r.remove(); }
+  zBusy=false;
+}
+// renderStage fills the stage through several branches, some of them async
+// (inlineSvg, image onload), and returns early in others. Watching the stage
+// covers every path without threading a call through each one. zBusy guards the
+// re-entry that adding the readout would otherwise cause.
+new MutationObserver(()=>{ if(!zBusy) zPrepare(); })
+  .observe(lbStage, {childList:true});
+
+lbStage.addEventListener('wheel', e=>{
+  if(!lbStage.classList.contains('zoomable')) return;
+  e.preventDefault();
+  const [cx,cy]=zStagePoint(e.clientX, e.clientY);
+  // a trackpad reports small deltas and a mouse wheel large ones; normalising by
+  // sign keeps both feeling the same
+  zZoomAt(zScale * (e.deltaY<0 ? 1.18 : 1/1.18), cx, cy);
+}, {passive:false});
+
+// double-click / double-tap toggles between fit and 2.5x at that point
+lbStage.addEventListener('dblclick', e=>{
+  if(!lbStage.classList.contains('zoomable')) return;
+  e.preventDefault();
+  const [cx,cy]=zStagePoint(e.clientX, e.clientY);
+  if(zScale>1.001) { zReset(); zApply(); } else zZoomAt(2.5, cx, cy);
+});
+
+// pointer events cover mouse drag and touch pinch/pan in one path
+const zPointers=new Map();
+let zPinchDist=0, zPinchScale=1, zDragged=false;
+lbStage.addEventListener('pointerdown', e=>{
+  if(!lbStage.classList.contains('zoomable')) return;
+  zPointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
+  lbStage.setPointerCapture?.(e.pointerId);
+  zDragged=false;
+  if(zPointers.size===2){
+    const [a,b]=[...zPointers.values()];
+    zPinchDist=Math.hypot(a.x-b.x, a.y-b.y) || 1;
+    zPinchScale=zScale;
+  }
+  if(zScale>1.001) lbStage.classList.add('dragging');
+  lbStage.classList.add('gesturing');
+});
+lbStage.addEventListener('pointermove', e=>{
+  if(!zPointers.has(e.pointerId)) return;
+  const prev=zPointers.get(e.pointerId);
+  zPointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
+  if(zPointers.size===2){
+    e.preventDefault();
+    const [a,b]=[...zPointers.values()];
+    const d=Math.hypot(a.x-b.x, a.y-b.y) || 1;
+    const [cx,cy]=zStagePoint((a.x+b.x)/2, (a.y+b.y)/2);
+    zZoomAt(zPinchScale * (d/zPinchDist), cx, cy);
+    zDragged=true;
+  } else if(zScale>1.001){
+    e.preventDefault();
+    zX += e.clientX-prev.x; zY += e.clientY-prev.y;
+    if(Math.abs(e.clientX-prev.x)+Math.abs(e.clientY-prev.y) > 2) zDragged=true;
+    zClamp(); zApply();
+  }
+}, {passive:false});
+function zEnd(e){
+  zPointers.delete(e.pointerId);
+  if(zPointers.size<2) zPinchDist=0;
+  if(!zPointers.size){ lbStage.classList.remove('dragging','gesturing'); zClamp(); zApply(); }
+}
+lbStage.addEventListener('pointerup', zEnd);
+lbStage.addEventListener('pointercancel', zEnd);
+// a drag that moved must not also count as a swipe to the next picture
+lbStage.addEventListener('click', e=>{ if(zDragged){ e.stopPropagation(); e.preventDefault(); } }, true);
 
 function styleSupportsLabels(m,style){ return !!(m.lab && m.lab[style] && m.img && m.img[style]); }
 function boxHasAsset(m,opt){ if(opt==='none') return false; if(opt==='coloring') return !!m.coloring;
@@ -1646,7 +1820,7 @@ function applyLbBw(){
 function renderStage(m,opt){
   const {style,bw}=parseOpt(opt);
   const supports=styleSupportsLabels(m,style);
-  lbName.innerHTML=esc(L(m.name));
+  lbName.innerHTML=esc(N(m));
   lbStyle.textContent=(STYLE_LABEL[style]||style)+(bw?' · B&W':'')+(supports?' · labelled':'');
   lbStage.innerHTML='';
   // a persisted color-mode preference wins for the Real style; other styles
@@ -1672,7 +1846,7 @@ function renderStage(m,opt){
   }
   if(style==='giant'){
     if(m.giant){ const load=loadingTile(); lbStage.appendChild(load);
-      const im=document.createElement('img'); im.alt=L(m.name)+' — GIANTmicrobes plush';
+      const im=document.createElement('img'); im.alt=N(m)+' — GIANTmicrobes plush';
       im.onload=()=>load.remove();
       im.onerror=()=>{ load.remove(); im.remove(); lbStage.appendChild(placeholder(phText('fail'))); };
       im.src=m.giant.img; lbStage.appendChild(im);
@@ -1695,13 +1869,13 @@ function renderStage(m,opt){
     // CSS filter on our own cleaned render), loaded the same way the
     // standalone "view original" preview does.
     const load=loadingTile(); lbStage.appendChild(load);
-    const im=document.createElement('img'); im.alt=L(m.name)+' — original source'; im.referrerPolicy='no-referrer';
+    const im=document.createElement('img'); im.alt=N(m)+' — original source'; im.referrerPolicy='no-referrer';
     im.onload=()=>load.remove();
     im.onerror=()=>{ load.remove(); im.remove(); lbStage.appendChild(placeholder(phText('fail','failed to load original'))); };
     im.src=m.ref.img; lbStage.appendChild(im);
   } else if(m.img && m.img[style]){
     const load=loadingTile(); lbStage.appendChild(load);
-    const im=document.createElement('img'); im.alt=L(m.name); if(style==='reference' && lbBw) im.classList.add('bw');
+    const im=document.createElement('img'); im.alt=N(m); if(style==='reference' && lbBw) im.classList.add('bw');
     loadRaster(m.img[style]).then(ok=>{ load.remove();
       if(ok){ im.src=m.img[style]; lbStage.appendChild(im); }
       else lbStage.appendChild(placeholder(phText('fail'))); });
@@ -2057,7 +2231,7 @@ function render(){
     const cards=document.createElement('div'); cards.className='cards';
     set.microbes.forEach(m=>{
       const card=document.createElement('article'); card.className='card'; card.id='mc-'+set.id+'-'+m.key; card._m=m; card._set=set;
-      card.innerHTML='<h3 class="card-title">'+highlight(L(m.name))+'<span class="key">'+esc(m.key)+'</span></h3>'+scaleHTML(m);
+      card.innerHTML='<h3 class="card-title">'+highlight(N(m))+'<span class="key">'+esc(m.key)+'</span></h3>'+scaleHTML(m);
       cards.appendChild(card); allCards.push(card);
     });
     sec.appendChild(cards); setsWrap.appendChild(sec);
@@ -2066,7 +2240,7 @@ function render(){
     det.innerHTML='<summary>'+esc(L(set.title))+'<span class="count">'+set.microbes.length+'</span></summary>';
     const links=document.createElement('div'); links.className='nav-links';
     set.microbes.forEach(m=>{ const a=document.createElement('a'); a.href='#mc-'+set.id+'-'+m.key;
-      a.textContent=L(m.name); a.addEventListener('click',()=>closePanels()); links.appendChild(a); });
+      a.textContent=N(m); a.addEventListener('click',()=>closePanels()); links.appendChild(a); });
     det.appendChild(links); navTree.appendChild(det);
   });
   $('#statSets').textContent=DATA.sets.filter(s=>s.microbes.length).length;
@@ -2092,7 +2266,7 @@ function observeCards(){
 function refreshBuilt(){
   allCards.forEach(card=>{
     // titles + nav always reflect language/search
-    card.querySelector('.card-title').innerHTML=highlight(L(card._m.name))+'<span class="key">'+esc(card._m.key)+'</span>';
+    card.querySelector('.card-title').innerHTML=highlight(N(card._m))+'<span class="key">'+esc(card._m.key)+'</span>';
     if(!card._built) return;
     if(card._lead) card._lead.innerHTML=highlight(L(card._m.short));
     card._body.querySelector('.desc').innerHTML=descHTML(card._m);
@@ -2108,8 +2282,12 @@ function refreshBuilt(){
   $$('#navTree .nav-set').forEach((det,i)=>{
     const set=DATA.sets.filter(s=>s.microbes.length)[i]; if(!set) return;
     det.querySelector('summary').childNodes[0].nodeValue=L(set.title);
-    $$('.nav-links a',det).forEach((a,j)=>{ if(set.microbes[j]) a.textContent=L(set.microbes[j].name); });
+    // N(), not L(): the nav has to follow the audience too, or it keeps saying
+    // "Cocci (spherical bacteria)" while the card beside it says "Round bacteria"
+    $$('.nav-links a',det).forEach((a,j)=>{ if(set.microbes[j]) a.textContent=N(set.microbes[j]); });
   });
+  // an open results list would otherwise keep the previous audience's wording
+  if(!$('#searchResults').hidden) applySearch();
   syncAllCtls();
 }
 // picture layout changed: rebuild each grid + refresh the source credit line
@@ -2216,7 +2394,7 @@ function renderSearchResults(hits, querying){
         (filtersActive()?' (filtered)':'')+'</div>';
   hits.slice(0,12).forEach(({set,m})=>{
     h+='<button type="button" class="sr-item" data-go="mc-'+set.id+'-'+m.key+'">'+
-       '<span>'+esc(L(m.name))+'</span><span class="sr-set">'+esc(L(set.title))+'</span></button>';
+       '<span>'+esc(N(m))+'</span><span class="sr-set">'+esc(L(set.title))+'</span></button>';
   });
   if(hits.length>12) h+='<div class="sr-more">+ '+(hits.length-12)+' more below</div>';
   box.innerHTML=h; box.hidden=false; pinPanel(box);

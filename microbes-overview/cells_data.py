@@ -323,8 +323,8 @@ PAGES = [
                 "deps_en": "Lives among the thin type-I cells that handle gas exchange.",
             },
             {
-                "name_de": "Urothelzelle",
-                "name_en": "Urothelial cell",
+                "name_de": "Urothelzelle (Deckzelle)",
+                "name_en": "Urothelial cell (umbrella cell)",
                 "tier": "basic",
                 "image_filename": "epithelial__urothelial.png",
                 "image_url": "",
@@ -639,7 +639,7 @@ PAGES = [
         "description_adults_en": "Bone is a living, constantly remodelled tissue. Osteoblasts lay down new matrix, osteoclasts resorb old bone, and osteocytes — the most numerous bone cells — sense mechanical load and keep the whole process in balance. Cartilage, tendons and connective tissue complete the musculoskeletal system.",
         "entries": [
             {
-                "name_de": "Osteoblast",
+                "name_de": "Osteoblast (Knochenbauer)",
                 "name_en": "Osteoblast (bone builder)",
                 "tier": "basic",
                 "image_filename": "bone-cells__osteoblast.png",
@@ -1218,7 +1218,9 @@ PAGES = [
         "entries": [
             {
                 "name_de": "Kokken (Kugelbakterien)",
-                "name_en": "Cocci (round bacteria)",
+                "name_en": "Cocci (spherical bacteria)",
+                "name_kids_de": "Runde Bakterien",
+                "name_kids_en": "Round bacteria",
                 "tier": "basic",
                 "image_filename": "pathogens__cocci.png",
                 "image_url": "",
@@ -1256,8 +1258,8 @@ PAGES = [
                 "deps_en": "Hunted by CD8 T cells and NK cells; antibodies bind free virus particles.",
             },
             {
-                "name_de": "Pilz",
-                "name_en": "Fungus",
+                "name_de": "Pilz (Sprosspilz)",
+                "name_en": "Fungus (budding yeast)",
                 "tier": "basic",
                 "image_filename": "pathogens__fungus.png",
                 "image_url": "",
@@ -1269,8 +1271,8 @@ PAGES = [
                 "deps_en": "Controlled by neutrophils, macrophages and Th17 cells.",
             },
             {
-                "name_de": "Parasit",
-                "name_en": "Parasite",
+                "name_de": "Parasit (Trypanosoma)",
+                "name_en": "Parasite (Trypanosoma)",
                 "tier": "basic",
                 "image_filename": "pathogens__parasite.png",
                 "image_url": "",
@@ -1529,8 +1531,10 @@ PAGES = [
                 "deps_en": "Spreads via aerosols. mRNA and vector vaccines train antibodies and T cells against the spike protein.",
             },
             {
-                "name_de": "HIV",
-                "name_en": "HIV",
+                "name_de": "HIV (Humanes Immundefizienz-Virus)",
+                "name_en": "HIV (Human Immunodeficiency Virus)",
+                "name_kids_de": "HIV",
+                "name_kids_en": "HIV",
                 "tier": "basic",
                 "image_filename": "pathogens-viruses__hiv.png",
                 "image_url": "",
