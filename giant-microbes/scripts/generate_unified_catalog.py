@@ -242,6 +242,9 @@ const DEFAULT_SETTINGS = {
   columns: 6,
   textScale: 1,
   search: "",
+  // 51 retired items have no photo anywhere reachable and render as a bare
+  // placeholder tile, so they are filtered out unless asked for.
+  onlyWithImage: true,
   showSpecies: true,
   showDescription: false,
   fullDescription: false,
@@ -358,6 +361,7 @@ function applyFilters() {
   const query = settings.search.trim().toLowerCase();
   const variants = query ? queryVariants(query) : [];
   return ALL_ITEMS.filter(i => {
+    if (settings.onlyWithImage && !i.image_file) return false;
     if (!typeFilters.has(i.product_type)) return false;
     if (!usStatusFilters.has(i.status_us) || !deStatusFilters.has(i.status_de)) return false;
     const cats = [...(i.categories_us || []), ...(i.categories_de || [])];
@@ -605,6 +609,10 @@ function initControls() {
   setupCheckboxGroup("input[data-us-status]", "usStatus", usStatusFilters);
   setupCheckboxGroup("input[data-de-status]", "deStatus", deStatusFilters);
 
+  const optOnlyImg = document.getElementById("opt-only-with-image");
+  optOnlyImg.checked = settings.onlyWithImage;
+  optOnlyImg.addEventListener("change", () => { settings.onlyWithImage = optOnlyImg.checked; saveSettings(); render(); });
+
   const optSpecies = document.getElementById("opt-species");
   const optDesc = document.getElementById("opt-desc");
   const optFullDesc = document.getElementById("opt-full-desc");
@@ -724,6 +732,12 @@ def main():
       <span class="group-label">Search</span>
       <div class="options">
         <input type="search" id="search-box" placeholder="e.g. e.coli, brain, keychain&hellip;">
+      </div>
+    </div>
+    <div class="filter-group">
+      <span class="group-label">Photo</span>
+      <div class="options">
+        <label><input type="checkbox" id="opt-only-with-image" checked> Only items with a photo</label>
       </div>
     </div>
     <div class="filter-group">
