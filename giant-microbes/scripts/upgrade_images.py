@@ -20,6 +20,22 @@ and for most products it is simply sitting there at the sibling path. Nothing
 about this is visible from pixel dimensions alone, which is why the first pass
 did not notice.
 
+Two more ways the crawl ended up holding something that is not the product photo,
+both found by a later audit (115 images with a long edge under 300px, some as
+small as 60x50):
+
+  * Magento renditions. A recorded URL like `.../product/cache/<hash>/a/n/x.jpg`
+    is a *resize* of the original, and which resize depends on the widget the
+    crawler happened to scrape it from -- the "recently viewed" strip renders at
+    75x90. Dropping the `cache/<hash>/` segment yields the original upload.
+  * `product/thumbnails/<name>-tmb.jpg`, a literal thumbnail directory holding
+    60px files. The real photo lives at the sharded path `<a>/<b>/<name>.jpg`.
+
+And when neither derivation lands, the product's own page is scraped for media
+filenames that look like they belong to this product (the page also carries
+related/cross-sell products, so filenames are matched against the slug rather
+than taken wholesale).
+
 What it does
 ------------
 For every catalog item, derive candidate URLs from the recorded one (drop
@@ -42,6 +58,7 @@ import sys
 import tempfile
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from difflib import SequenceMatcher
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gm_imgutil import (MEDIA_ROOT, PlaceholderFilter,   # noqa: E402
@@ -59,11 +76,40 @@ MIN_DETAIL_GAIN = 1.35      # candidate detail_ratio / current, must exceed this
 MIN_ABS_DETAIL = 1.2        # ... and the candidate must clear this on its own
 MAX_SHRINK = 0.85           # never accept a candidate much smaller than current
 
+# Separate rule for incumbents that are thumbnails rather than photos.
+RESCUE_BELOW = 800          # a current image this small is not a product photo
+RESCUE_MIN_GROWTH = 2.0     # and its replacement has to be at least this bigger
+RESCUE_MIN_DETAIL = 0.5     # a soft 1200px photo still beats a 60px thumbnail
+
 PLACEHOLDER_MAX_BYTES = 3000
 REQUEST_SLEEP = 0.25
 
 
 # --- candidate URLs ---------------------------------------------------------
+
+CACHE_SEG = re.compile(r"/cache/[0-9a-f]{16,}/", re.I)
+THUMB_DIR = re.compile(r"/product/thumbnails/", re.I)
+# Suffixes the shop hangs off a product's base filename.
+STEM_SUFFIXES = re.compile(r"(-tmb|-front|-doll|-main|-new|-side|-angle|_\d+|-\d+)+$", re.I)
+
+
+def sharded(filename):
+    """Magento shards media on the first two characters of the filename."""
+    if len(filename) < 2:
+        return None
+    return f"{MEDIA_ROOT}/{filename[0].lower()}/{filename[1].lower()}/{filename}"
+
+
+def normalise_media_url(url):
+    """Rewrite a rendition URL to the original upload it was resized from."""
+    if CACHE_SEG.search(url):
+        url = CACHE_SEG.sub("/", url)
+        # cache/<hash>/a/n/x.jpg collapses to /a/n/x.jpg, which is already the
+        # sharded original path -- nothing more to do.
+    if THUMB_DIR.search(url):
+        return sharded(os.path.basename(url))
+    return url
+
 
 def candidates_for(item):
     """Ordered, de-duplicated candidate URLs, best guess first."""
@@ -75,15 +121,19 @@ def candidates_for(item):
 
     url = item.get("image_url_us") or ""
     if url:
-        base, ext = os.path.splitext(url)
-        # The whole point: the un-thumbnailed sibling.
+        # Renditions and the thumbnails/ directory first: same file, real pixels.
+        original = normalise_media_url(url)
+        base, ext = os.path.splitext(original)
         if base.endswith("-tmb"):
             add(base[:-4] + ext)
-        # Some listings use `-front-tmb`, whose real file may be either
-        # `-front` or the bare name.
         m = re.match(r"^(.*?)(?:-front)?-tmb$", base)
         if m:
             add(m.group(1) + ext)
+        add(original)
+        # The bare stem, with every suffix stripped, is often the hero shot.
+        stem = STEM_SUFFIXES.sub("", os.path.splitext(os.path.basename(original))[0])
+        for suffix in ("", "-front", "-main", "-doll"):
+            add(sharded(f"{stem}{suffix}{ext or '.jpg'}"))
         add(url)
 
     # Derive straight from the slug when no URL was ever recorded, or as extra
@@ -96,6 +146,66 @@ def candidates_for(item):
                 if len(fn) >= 2:
                     add(f"{MEDIA_ROOT}/{fn[0]}/{fn[1]}/{fn}")
     return out
+
+
+# --- the product's own page -------------------------------------------------
+
+MEDIA_FILE = re.compile(
+    r"media/catalog/product/(?:cache/[0-9a-f]{16,}/)?(?:[a-z0-9]/[a-z0-9]/)?"
+    r"([a-z0-9][a-z0-9._-]*\.(?:jpg|jpeg|png))", re.I)
+
+
+def _core(text):
+    return re.sub(r"[^a-z0-9]", "", (text or "").lower())
+
+
+def belongs_to(filename, item):
+    """Does this media filename plausibly belong to *this* product?
+
+    A GIANTmicrobes product page also renders related products, cross-sells and
+    a "recently viewed" strip, so most media filenames on the page belong to
+    something else. Compare the filename's stem against the slug and the product
+    name: `angry-brain-cell` accepts `angry-brain-front.jpg` and rejects
+    `brain-organ-tmb.jpg`.
+    """
+    stem = _core(STEM_SUFFIXES.sub("", os.path.splitext(filename)[0]))
+    if len(stem) < 4:
+        return False
+    for ref in (item.get("slug_us") or "", item.get("name") or ""):
+        ref = _core(ref)
+        if len(ref) < 4:
+            continue
+        if stem in ref or ref in stem:
+            return True
+        if SequenceMatcher(None, stem, ref).ratio() >= 0.78:
+            return True
+    return False
+
+
+def page_candidates(item, cache={}):
+    """Media filenames scraped off the live product page, sharded to originals."""
+    url = item.get("product_url_us") or ""
+    if not url:
+        return []
+    if url not in cache:
+        with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as tmp:
+            path = tmp.name
+        try:
+            status = http_fetch(url, path, timeout=25)
+            html = ""
+            if status == "200":
+                with open(path, encoding="utf-8", errors="replace") as fh:
+                    html = fh.read()
+        finally:
+            os.unlink(path)
+        cache[url] = html
+        time.sleep(REQUEST_SLEEP)
+    names = []
+    for m in MEDIA_FILE.finditer(cache[url]):
+        name = m.group(1)
+        if name not in names:
+            names.append(name)
+    return [sharded(n) for n in names if belongs_to(n, item)]
 
 
 def fetch(url, dest):
@@ -116,7 +226,14 @@ def fetch(url, dest):
 
 def best_candidate(item, tmpdir):
     results = []
-    for n, url in enumerate(candidates_for(item)[:8]):
+    urls = candidates_for(item)[:8]
+    # Scraping costs a page fetch, so only when the derivations look thin or the
+    # incumbent is a thumbnail we need to replace outright.
+    if NEEDS_PAGE.get(item.get("slug_us")):
+        for u in page_candidates(item):
+            if u not in urls:
+                urls.append(u)
+    for n, url in enumerate(urls[:12]):
         dest = os.path.join(tmpdir, f"cand{n}{os.path.splitext(url)[1] or '.jpg'}")
         if fetch(url, dest) != "ok":
             continue
@@ -153,11 +270,20 @@ def process(item, current):
             rec["action"] = "adopt-new"
         else:
             gain = best["detail_ratio"] / max(current["detail_ratio"], 0.01)
-            shrink = max(best["w"], best["h"]) / max(max(current["w"], current["h"]), 1)
+            grow = max(best["w"], best["h"]) / max(max(current["w"], current["h"]), 1)
             rec["gain"] = round(gain, 2)
-            rec["size_ratio"] = round(shrink, 2)
-            if (gain > MIN_DETAIL_GAIN and best["detail_ratio"] >= MIN_ABS_DETAIL
-                    and shrink >= MAX_SHRINK):
+            rec["size_ratio"] = round(grow, 2)
+            cur_edge = max(current["w"], current["h"])
+            if (cur_edge < RESCUE_BELOW and grow >= RESCUE_MIN_GROWTH
+                    and max(best["w"], best["h"]) >= RESCUE_BELOW
+                    and best["detail_ratio"] >= RESCUE_MIN_DETAIL):
+                # detail_ratio is per-pixel, so a 60x50 crop can score *higher*
+                # than the real photo it was cut from. Against a thumbnail-sized
+                # incumbent the honest comparison is resolution, not detail.
+                rec["action"] = "upgrade"
+                rec["reason"] = "rescue-thumbnail"
+            elif (gain > MIN_DETAIL_GAIN and best["detail_ratio"] >= MIN_ABS_DETAIL
+                    and grow >= MAX_SHRINK):
                 rec["action"] = "upgrade"
             else:
                 rec["action"] = "keep-current"
@@ -172,6 +298,8 @@ def process(item, current):
 
 
 PLACEHOLDER = None
+# slug -> True for items worth spending a product-page fetch on.
+NEEDS_PAGE = {}
 
 
 def main():
@@ -210,6 +338,14 @@ def main():
                     "detail_ratio": round(m["detail_ratio"], 3)}
             except Exception:                          # noqa: BLE001
                 pass
+
+    # Scrape the product page for anything holding a thumbnail or nothing at all.
+    for i in items:
+        slug = i.get("slug_us")
+        cur = current_by_slug.get(slug)
+        NEEDS_PAGE[slug] = (not cur) or max(cur["w"], cur["h"]) < RESCUE_BELOW
+    print(f"{sum(NEEDS_PAGE.values())} items will also have their product page scraped",
+          file=sys.stderr)
 
     print(f"probing {len(items)} items with {args.workers} workers...", file=sys.stderr)
     report = []

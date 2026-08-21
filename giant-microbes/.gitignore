@@ -9,3 +9,13 @@ images_rejected/
 
 # Staging area used by upgrade_images.py between download and processing.
 images_upgrade/
+
+# Image-search candidates staged by download_candidates.py for the visual
+# review pass. Most get rejected; the ones that don't end up in images/.
+# What was proposed and where it came from stays in
+# image_search_candidates.json / image_candidate_downloads.json, which ARE
+# committed.
+images_candidates/
+
+# Contact sheets built by make_contact_sheet.py for reviewing the above.
+contact_sheets/
