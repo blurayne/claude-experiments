@@ -431,13 +431,17 @@ html[data-theme="petri"] body::after{
 
 /* ==================================================================== MAIN */
 main{max-width:var(--maxw); margin:0 auto; padding:clamp(20px,4vw,44px) clamp(14px,3vw,28px) 120px}
-.hero{margin:6px 0 40px}
+.hero{margin:6px 0 40px; display:flex; align-items:center; gap:clamp(18px,4vw,52px)}
+.hero-text{flex:1 1 auto; min-width:0}
+/* Sized off the viewport rather than the text column so the microscope keeps
+   its optical weight next to a headline that itself scales with vw. */
+.hero-art{flex:0 0 auto; width:clamp(120px,17vw,230px); height:auto; user-select:none}
 .hero h1{
   font-family:var(--font-display); font-weight:var(--display-weight); letter-spacing:var(--display-spacing);
   font-size:clamp(30px,6vw,54px); line-height:1.02; margin:0 0 14px;
 }
 .hero h1 .em{color:var(--accent)}
-.hero p{max-width:64ch; color:var(--fg-dim); font-size:clamp(14px,1.7vw,17px); line-height:1.6; margin:0}
+.hero p{color:var(--fg-dim); font-size:clamp(14px,1.7vw,17px); line-height:1.6; margin:0}
 .hero .stat{display:inline-flex; gap:6px; align-items:baseline; margin-top:18px;
   font-family:var(--font-mono); font-size:12.5px; color:var(--fg-faint)}
 .hero .stat b{color:var(--accent); font-size:15px}
@@ -815,6 +819,9 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 -2px 0 #f
   .topbar{gap:7px; padding-left:10px; padding-right:10px}
   .brand .label{display:none}
   .tb-btn{padding:8px 11px}
+  /* Below this the headline needs the full width more than the art does. */
+  .hero{display:block}
+  .hero-art{display:none}
 }
 </style>
 </head>
@@ -923,9 +930,12 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 -2px 0 #f
 
 <main id="main">
   <section class="hero">
-    <h1 id="heroTitle">An interactive <span class="em">microbe</span> atlas.</h1>
-    <p id="heroSub">Scientifically verified, AI-rendered teaching images of the cells, pathogens and antibodies of the human body — in five styles, with switchable labels. Choose your audience, language and picture layout.</p>
-    <div class="stat"><b id="statSets">0</b> <span id="heroStatA">sets ·</span> <b id="statMicrobes">0</b> <span id="heroStatB">subjects ·</span> <b>5</b> <span id="heroStatC">styles + real microscopy</span></div>
+    <div class="hero-text">
+      <h1 id="heroTitle">An interactive <span class="em">microbe</span> atlas.</h1>
+      <p id="heroSub">Scientifically verified, AI-rendered teaching images of the cells, pathogens and antibodies of the human body — in five styles, with switchable labels. Choose your audience, language and picture layout.</p>
+      <div class="stat"><b id="statSets">0</b> <span id="heroStatA">sets ·</span> <b id="statMicrobes">0</b> <span id="heroStatB">subjects ·</span> <b>5</b> <span id="heroStatC">styles + real microscopy</span></div>
+    </div>
+    <img class="hero-art" src="hero-microscope.png" alt="" width="452" height="720" loading="eager">
   </section>
   <div id="sets"></div>
   <div class="empty" id="emptyMsg">
