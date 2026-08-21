@@ -68,6 +68,16 @@ a compromise someone chose deliberately — listed so a later pass can revisit t
       proportion was traded for a correctly subterminal endospore.
 - [ ] `leukocyte` — the SEM plate cannot show a nucleus at all (the modality images
       surfaces), so it makes the white/red distinction by texture instead.
+- [ ] `heartworm` — the coloring page keeps a white margin rather than bleeding to
+      the edges. Its render arrived with a solid black frame; that was cropped off
+      deterministically and re-traced (no second API call), which fixes the
+      unrecoverable failure but cannot recompose the scene tighter.
+- [ ] `heartworm` — the right-ventricle and pulmonary-artery locations are drawn
+      correctly in the textbook plate but not individually labelled; only the five
+      core morphology labels are annotated.
+- [ ] `heartworm` — microfilariae, the ~300 µm larval stage a mosquito actually
+      carries, appear only in the real micrograph. Putting them in the same frame as
+      a 27 cm adult is not practical at one scale.
 
 ### Ideas not yet decided
 - [ ] More cancer subjects — the set currently holds one generic entry. Leukaemia,

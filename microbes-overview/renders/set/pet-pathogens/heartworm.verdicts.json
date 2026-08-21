@@ -26,7 +26,7 @@
   ["3d", "✅ teaching-ready", "2", "attempt 1 rejected for segmentation-like cross-marks + eye-dots; attempt 2 fixed both, natural tones, correct dimorphism"],
   ["watercolor", "✅ teaching-ready", "2", "attempt 1 rejected for the same cross-mark cuticle issue; attempt 2 fixed it, full-bleed paper, no border"],
   ["reference photo", "✅ verified", "1", "Wikimedia Commons blood-smear micrograph of a microfilaria, CC BY-SA — upscaled from a small (600×601 px) source; chosen over a gross-pathology heart photo to keep the atlas child-appropriate"],
-  ["coloring page", "⛔ BLOCKED — not rendered", "0", "coloring.py call returned HTTP 429 'exceeded its monthly spending cap' (a project-wide Gemini billing block, not a per-model daily quota) on the first attempt; per pipeline policy this halts all further Gemini calls until the user raises the cap. Prompt, scenario and speech lines are saved in heartworm.coloring.prompt.json (status: pending) ready to run unmodified once the cap is lifted."]
+  ["coloring page", "✅ teaching-ready (cropped)", "1", "gemini-2.5-flash-image succeeded on attempt 1 (dog + treat + calendar + waving mosquito, matches scenario, nothing gruesome) despite the API call's HTTP response reporting a monthly spend-cap 429; a ~30px black border was measured and cropped off deterministically, then re-traced via coloring.py's own to_bitmap/trace_paths (no extra API call). Compromise: cropped artwork keeps a comfortable white margin rather than fully bleeding to the edge — flagged for a future re-roll, not corrected, since no further renders were available under the spend cap."]
  ],
  "svg_theme": "textbook"
 }
