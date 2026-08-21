@@ -6,6 +6,27 @@ this file tracks the *work*, including things no script can detect.
 
 ## Open
 
+### Blocked on the Gemini monthly spending cap
+The project hit `RESOURCE_EXHAUSTED — "Your project has exceeded its monthly
+spending cap"`, verified directly against the API. This is the *monthly cap*, not a
+per-model daily quota, so it blocks flash and pro alike. Raise it at
+<https://ai.studio/spend>, then resume — the agents are resume-aware and will skip
+every step already on disk, so nothing already paid for gets re-spent.
+
+- [ ] **`rabies-virus`** — research, six descriptions, four style prompts and the
+      real reference (CDC PHIL 1876, Dr. Fred Murphy 1975, public domain) are all
+      written. Zero renders: the cap hit on attempt 1 of every style. Resume at
+      step 5 (render the four styles from the prompts on disk), then verify,
+      annotate, coloring page, verdicts, assemble.
+      *Flagged by its agent: the reference is a field of many virions inside a
+      Negri body rather than a single isolated specimen. Accepted under the
+      documented fallback, and stated in the log rather than hidden.*
+- [ ] **`heartworm`** — research, descriptions and prompts written; some renders
+      landed before the cap. Resume and finish.
+- [ ] **`feline-immunodeficiency-virus`**, **`feline-leukaemia-virus`**,
+      **`chlamydia-felis`** — catalogued with text, scale data and cross-links;
+      not started.
+
 ### Review
 - [ ] **Systematic visual review of all 107 subjects.** Every render, labelled
       diagram and coloring page has been checked by the agent that made it, and
