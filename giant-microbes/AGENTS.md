@@ -264,6 +264,18 @@ anywhere) ran first. So all 47 Petri Dish products, 11 necklaces, 7 putties and 
 as plush toys. Fixed by adding those formats *ahead* of the keychain rule — deliberately not
 ahead of it for Vinyl, since a "Vinyl Key Chain" genuinely is a keychain. 84 records reclassified.
 
+**`status_us` said "never sold in the US" for 246 products that have US product pages.**
+Every one of them carried `match_method: "llm"` — the merge pass that folds a matched US/DE
+pair into a single record had failed to carry the US status across, and the field defaulted to
+`not_offered`. It was invisible because `not_offered` is a plausible-looking value; it only
+surfaced when a completeness check sampled 25 records and found 6 supposedly-not-offered items
+in stock, and the count of the contradiction (246) then matched the count of the bug exactly.
+`refresh_us_availability.py` re-derives the field from the live storefront instead of trusting
+it: 171 in stock, 45 out of stock, 30 genuinely retired. Notably the *rest* of the availability
+data was fine — the same full re-check moved only 4 other records — so this was one bug, not
+general rot. Records now carry `status_us_checked` and `status_us_source` so the next reader
+can see how old the answer is and which signal produced it.
+
 **One live product was missing entirely:** `zombievirus` (Zombie Virus, *Pithovirus sibericum*),
 present on every shopall and category listing but absent from the dataset. Its own product page
 now sits behind a Cloudflare challenge (HTTP 403), so its details came from an April 2025
