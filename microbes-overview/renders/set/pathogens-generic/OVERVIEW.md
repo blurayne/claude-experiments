@@ -20,7 +20,7 @@ Large free-living freshwater single cell (~250–750 µm) with no fixed shape: i
 
 Full log: [`amoeba-proteus.render.md`](amoeba-proteus.render.md)
 
-## Coccus (spherical bacterium) (`cocci`)
+## Cocci (spherical bacteria) (`cocci`)
 Textbook Gram-positive coccus (~1 µm)
 
 | textbook | sem | 3d | watercolor | reference |
@@ -173,11 +173,11 @@ Full log: [`virus.render.md`](virus.render.md)
 | Amoeba (Amoeba proteus) | 3D medical render | gemini-3-pro-image | 1 | ✅ | built | 20s | 2113 | $0.044 |
 | Amoeba (Amoeba proteus) | Watercolor plate | gemini-3-pro-image | 2 | ✅ | built | 37s | 4310 | $0.086 |
 | Amoeba (Amoeba proteus) | Light micrograph (brightfield) · CC BY-SA 4.0 | — (edit) | 2 | ✅ | n/a | 10s | 1805 | $0.039 |
-| Coccus (spherical bacterium) | Textbook illustration | gemini-2.5-flash-image | 1 | ✅ | built | 8s | 1473 | $0.039 |
-| Coccus (spherical bacterium) | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 10s | 1453 | $0.039 |
-| Coccus (spherical bacterium) | 3D medical render | gemini-2.5-flash-image | 2 | ✅ | built | 18s | 3030 | $0.077 |
-| Coccus (spherical bacterium) | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 10s | 1480 | $0.039 |
-| Coccus (spherical bacterium) | SEM · Public Domain (CDC) | — (edit) | 2 | ✅ | n/a | 24s | 1650 | $0.039 |
+| Cocci (spherical bacteria) | Textbook illustration | gemini-2.5-flash-image | 1 | ✅ | built | 8s | 1473 | $0.039 |
+| Cocci (spherical bacteria) | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 10s | 1453 | $0.039 |
+| Cocci (spherical bacteria) | 3D medical render | gemini-2.5-flash-image | 2 | ✅ | built | 18s | 3030 | $0.077 |
+| Cocci (spherical bacteria) | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 10s | 1480 | $0.039 |
+| Cocci (spherical bacteria) | SEM · Public Domain (CDC) | — (edit) | 2 | ✅ | n/a | 24s | 1650 | $0.039 |
 | Coronavirus (SARS-CoV-2) | Textbook illustration | gemini-2.5-flash-image | 2 | ✅ | built | 21s | 3080 | $0.077 |
 | Coronavirus (SARS-CoV-2) | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 11s | 1441 | $0.039 |
 | Coronavirus (SARS-CoV-2) | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 11s | 1471 | $0.039 |
@@ -216,4 +216,4 @@ Full log: [`virus.render.md`](virus.render.md)
 
 **Set total: 102,377 tokens · $2.508**
 
-_Updated 2026-08-21 00:45 local._
+_Updated 2026-08-21 11:14 local._

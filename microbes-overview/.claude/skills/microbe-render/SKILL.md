@@ -355,6 +355,18 @@ RENDER-STATUS.md
   `renders/OVERVIEW.md` (sets → alphabetical microbes; per microbe a latest-render row,
   a real-micrograph + labelled-figures row, and an all-language descriptions table).
 
+## Record what you did NOT fix
+`PLAN.md` in the project root is the running checklist, with an "Open" section for
+work still to do and a "Known imperfections" section listing every compromise that
+was chosen rather than corrected — the stubby *C. difficile* rod, the DNA grooves
+that stayed too subtle, the coloring page whose bleed is imperfect on two edges.
+
+Each of those is also in its subject's `verdicts.json`, but a per-subject file is
+invisible to someone deciding what to work on next. When you accept a compromise,
+add a line to `PLAN.md` saying what it is and why, and — if it was blocked rather
+than judged — what would unblock it. An imperfection nobody wrote down becomes an
+imperfection nobody revisits.
+
 ## After the renders: what else a new subject needs
 Rendering is not the whole job. When a subject is added, check these too:
 

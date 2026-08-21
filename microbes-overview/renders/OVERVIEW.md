@@ -132,7 +132,7 @@ Connective-tissue all-rounder: makes collagen and other fibres, keeps skin and o
 
 ---
 
-### Osteoblast (`osteoblast`)
+### Osteoblast (bone builder) (`osteoblast`)
 Cuboidal-to-columnar, matrix-bound bone-forming cell that lines the surface of growing/remodeling bone in a single epithelioid layer; intensely basophilic cytoplasm packed with rough ER and a prominent Golgi zone, secreting type I collagen and other osteoid proteins that it then mineralises with calcium. Once it walls itself inside its own matrix it becomes an osteocyte.
 
 | Textbook | SEM | 3D | Watercolor |
@@ -832,7 +832,7 @@ Brain-resident macrophage with a small soma and many thin, highly branched proce
 
 ---
 
-### Motor neuron (Motoneuron) (`motor-neuron`)
+### Motor neuron (`motor-neuron`)
 Large multipolar nerve cell of the brainstem/spinal-cord anterior horn, with a star-shaped soma full of Nissl bodies, many branching dendrites and a single long myelinated axon that can reach a meter in length, ending at the motor end plate on a skeletal-muscle fibre.
 
 | Textbook | SEM | 3D | Watercolor |
@@ -1252,7 +1252,7 @@ Large free-living freshwater single cell (~250–750 µm) with no fixed shape: i
 
 ---
 
-### Coccus (spherical bacterium) (`cocci`)
+### Cocci (spherical bacteria) (`cocci`)
 Textbook Gram-positive coccus (~1 µm)
 
 | Textbook | SEM | 3D | Watercolor |

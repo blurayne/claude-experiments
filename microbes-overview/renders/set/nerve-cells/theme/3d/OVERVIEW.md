@@ -10,7 +10,7 @@ Every microbe's `3d` image — labelled SVG where built, else the last render. [
 ![3d](microglia.3d.svg)
 [full log](../../microglia.render.md)
 
-## Motor neuron (Motoneuron) (`motor-neuron`)
+## Motor neuron (`motor-neuron`)
 ![3d](motor-neuron.3d.svg)
 [full log](../../motor-neuron.render.md)
 

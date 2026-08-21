@@ -10,7 +10,7 @@ Every microbe's `watercolor` image — labelled SVG where built, else the last r
 ![watercolor](fibroblast.watercolor.svg)
 [full log](../../fibroblast.render.md)
 
-## Osteoblast (`osteoblast`)
+## Osteoblast (bone builder) (`osteoblast`)
 ![watercolor](osteoblast.watercolor.svg)
 [full log](../../osteoblast.render.md)
 

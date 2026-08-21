@@ -10,7 +10,7 @@ Every microbe's `textbook` image — labelled SVG where built, else the last ren
 ![textbook](fibroblast.textbook.svg)
 [full log](../../fibroblast.render.md)
 
-## Osteoblast (`osteoblast`)
+## Osteoblast (bone builder) (`osteoblast`)
 ![textbook](osteoblast.textbook.svg)
 [full log](../../osteoblast.render.md)
 

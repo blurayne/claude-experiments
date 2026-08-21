@@ -10,7 +10,7 @@ Every microbe's `watercolor` image — labelled SVG where built, else the last r
 ![watercolor](microglia.watercolor.svg)
 [full log](../../microglia.render.md)
 
-## Motor neuron (Motoneuron) (`motor-neuron`)
+## Motor neuron (`motor-neuron`)
 ![watercolor](motor-neuron.watercolor.svg)
 [full log](../../motor-neuron.render.md)
 

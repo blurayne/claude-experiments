@@ -33,7 +33,7 @@
 | epithelial | Goblet cell | `goblet-cell` | 5/5 | 3/3 | ✅ | ✅ | 20 µm · 3 ng | — |
 | epithelial | Paneth cell | `paneth-cell` | 5/5 | 3/3 | ✅ | ✅ | 15 µm · 2 ng | — |
 | epithelial | Alveolar cell type II | `alveolar-cell-type-ii` | 5/5 | 3/3 | ✅ | ✅ | 10 µm · 1 ng | — |
-| epithelial | Urothelial cell | `urothelial-cell` | 5/5 | 3/3 | ✅ | ✅ | 100 µm · 15 ng | — |
+| epithelial | Urothelial cell (umbrella cell) | `urothelial-cell` | 5/5 | 3/3 | ✅ | ✅ | 100 µm · 15 ng | — |
 | epithelial | Hepatocyte (liver cell) | `hepatocyte` | 5/5 | 3/3 | ✅ | ✅ | 25 µm · 15 ng | Leberzelle (Liver Cell) |
 | nerve-cells | Neuron | `neuron` | 5/5 | 3/3 | ✅ | ✅ | 20 µm · 2 ng | Nerve Cell (Neuron) |
 | nerve-cells | Motor neuron | `motor-neuron` | 5/5 | 3/3 | ✅ | ✅ | 80 µm · 20 ng | — |
@@ -86,11 +86,11 @@
 | genetics | RNA (ribonucleic acid) | `rna` | 5/5 | 3/3 | ✅ | ✅ | 1 nm · 500 kDa | — |
 | genetics | Chromosome | `chromosome` | 5/5 | 3/3 | ✅ | ✅ | 5 µm · 0.3 pg | — |
 | cancer-cells | Cancer cell (malignant neoplasm) | `cancer-cell` | 5/5 | 3/3 | ✅ | ✅ | 20 µm · 4 ng | Cancer (Malignant neoplasm) |
-| pathogens | Cocci (round bacteria) | `cocci` | 5/5 | 3/3 | ✅ | ✅ | 1 µm · 0.5 pg | — |
+| pathogens | Cocci (spherical bacteria) | `cocci` | 5/5 | 3/3 | ✅ | ✅ | 1 µm · 0.5 pg | — |
 | pathogens | Rod-shaped bacterium (bacillus) | `rod-bacterium` | 5/5 | 3/3 | ✅ | ✅ | 3 µm · 1 pg | — |
 | pathogens | Virus | `virus` | 5/5 | 3/3 | ✅ | ✅ | 100 nm · 1 fg | — |
-| pathogens | Fungus | `fungus` | 5/5 | 3/3 | ✅ | ✅ | 5 µm · 40 pg | — |
-| pathogens | Parasite | `parasite` | 5/5 | 3/3 | ✅ | ✅ | 20 µm · 20 pg | Sleeping Sickness (Trypanosoma brucei) |
+| pathogens | Fungus (budding yeast) | `fungus` | 5/5 | 3/3 | ✅ | ✅ | 5 µm · 40 pg | — |
+| pathogens | Parasite (Trypanosoma) | `parasite` | 5/5 | 3/3 | ✅ | ✅ | 20 µm · 20 pg | Sleeping Sickness (Trypanosoma brucei) |
 | pathogens | Prion | `prion` | 5/5 | 3/3 | ✅ | ✅ | 5 nm · 35 kDa | Mad Cow (Bovine Spongiform Encephalopathy) |
 | pathogens | Amoeba (Amoeba proteus) | `amoeba-proteus` | 5/5 | 3/3 | ✅ | ✅ | 400 µm · 30000 ng | Amoeba (Amoeba proteus) |
 | pathogens | Coronavirus (SARS-CoV-2) | `coronavirus` | 5/5 | 3/3 | ✅ | ✅ | 120 nm · 1.2 fg | Coronavirus COVID-19 (SARS-CoV-2) |
@@ -107,7 +107,7 @@
 | pathogens-bacteria | Listeria monocytogenes | `listeria-monocytogenes` | 5/5 | 3/3 | ✅ | ✅ | 2 µm · 1 pg | Listeria (Listeria monocytogenes) |
 | pathogens-viruses | Influenza virus (flu) | `influenza-virus` | 5/5 | 3/3 | ✅ | ✅ | 100 nm · 1 fg | Flu (Orthomyxovirus) |
 | pathogens-viruses | SARS-CoV-2 (COVID-19) | `sars-cov-2` | 5/5 | 3/3 | ✅ | ✅ | 120 nm · 1 fg | Coronavirus COVID-19 (SARS-CoV-2) |
-| pathogens-viruses | HIV | `hiv` | 5/5 | 3/3 | ✅ | ✅ | 130 nm · 1.5 fg | HIV (Human Immunodeficiency Virus) |
+| pathogens-viruses | HIV (Human Immunodeficiency Virus) | `hiv` | 5/5 | 3/3 | ✅ | ✅ | 130 nm · 1.5 fg | HIV (Human Immunodeficiency Virus) |
 | pathogens-viruses | Hepatitis B virus (HBV) | `hepatitis-b-virus` | 5/5 | 3/3 | ✅ | ✅ | 42 nm · 0.3 fg | — |
 | pathogens-viruses | Plasmodium (malaria) | `plasmodium` | 5/5 | 3/3 | ✅ | ✅ | 2 µm · 1 pg | Malaria (Plasmodium falciparum) |
 | pathogens-viruses | Candida albicans | `candida-albicans` | 5/5 | 3/3 | ✅ | ✅ | 5 µm · 40 pg | Candida fungus |
@@ -132,7 +132,7 @@
 
 **Data waiting for a render:** 0 scale entries (none), 0 plush links (none).
 
-**No recorded micrograph source:** `reticulocyte`.
+**No recorded micrograph source:** none.
 
 ## GIANTmicrobes — what they sell that we do not have
 
@@ -140,36 +140,36 @@ The catalogue has no sales figures, so prominence is inferred from what the vend
 
 | Score | Product | Species | Variants | Stocked | Linked from our atlas |
 | ---: | --- | --- | ---: | --- | --- |
-| 16 | Nerve Cell (Neuron) | *neuron* | 9 | DE | ✅ |
+| 19 | Nerve Cell (Neuron) | *neuron* | 9 | US + DE | ✅ |
+| 17 | Coronavirus COVID-19 (SARS-CoV-2) | *sars cov 2* | 7 | US + DE | ✅ |
 | 16 | GIGANTISCHEmikrobe Staphylokokke | *staphylococcus aureus* | 6 | US + DE | **no** |
-| 14 | Coronavirus COVID-19 (SARS-CoV-2) | *sars cov 2* | 7 | DE | ✅ |
+| 14 | Common Cold (Rhinovirus) | *rhinovirus* | 4 | US + DE | ✅ |
+| 14 | Beer & Bread (Saccharomyces cerevisiae) | *saccharomyces cerevisiae* | 4 | US + DE | ✅ |
+| 13 | Waterbear (Tardigrade) | *hypsibius dujardini* | 3 | US + DE | **no** |
+| 13 | Sperm Cell (Spermatozoon) | *spermatozoon* | 3 | US + DE | ✅ |
+| 13 | Salmonella (Salmonella typhimurium) | *salmonella typhimurium* | 3 | US + DE | ✅ |
+| 13 | Red Blood Cell (Erythrocyte) | *erythrozyt* | 3 | US + DE | ✅ |
+| 13 | Pox - Syphilis (Treponema pallidum) | *treponema pallidum* | 3 | US + DE | **no** |
+| 13 | HIV (Human Immunodeficiency Virus) | *humanes immundefizienz virus* | 3 | US + DE | ✅ |
+| 13 | Flu (Orthomyxovirus) | *orthomyxoviridus* | 3 | US + DE | ✅ |
+| 13 | E. coli (Escherichia coli) | *escherichia coli* | 3 | US + DE | ✅ |
+| 13 | Bookworm (Anobium punctatum) | *anobium punctatum* | 3 | US + DE | **no** |
 | 12 | Uterus | *uterus* | 5 | US | **no** |
-| 11 | Seifenspender Erkältung | *rhinovirus* | 4 | DE | **no** |
-| 10 | Waterbear (Tardigrade) | *hypsibius dujardini* | 3 | DE | **no** |
-| 10 | Sperm Cell (Spermatozoon) | *spermatozoon* | 3 | DE | ✅ |
-| 10 | Salmonella (Salmonella typhimurium) | *salmonella typhimurium* | 3 | DE | ✅ |
-| 10 | Red Blood Cell (Erythrocyte) | *erythrozyt* | 3 | DE | ✅ |
-| 10 | Pox - Syphilis (Treponema pallidum) | *treponema pallidum* | 3 | DE | **no** |
-| 10 | HIV (Human Immunodeficiency Virus) | *humanes immundefizienz virus* | 3 | DE | ✅ |
-| 10 | Flu (Orthomyxovirus) | *orthomyxoviridus* | 3 | DE | ✅ |
-| 10 | E. coli (Escherichia coli) | *escherichia coli* | 3 | DE | ✅ |
-| 10 | Bookworm (Anobium punctatum) | *anobium punctatum* | 3 | DE | **no** |
-| 10 | Bladder Cancer (Malignant neoplasm) | *malignant neoplasm* | 7 | US | **no** |
-| 10 | Beer & Bread (Saccharomyces cerevisiae) | *saccharomyces cerevisiae* | 3 | DE | ✅ |
-| 9 | Amoeba (Amoeba proteus) | *amoeba proteus* | 5 | retired | ✅ |
-| 8 | Heart | *cor* | 3 | DE | **no** |
-| 8 | Appendix | *appendix* | 3 | US | **no** |
-| 7 | Zika (Zika virus) | *zika virus* | 2 | DE | ✅ |
-| 7 | White Blood Cell (Leukocyte) | *leukozyt* | 3 | retired | ✅ |
-| 7 | Ulcer (Helicobacter pylori) | *helicobacter pylori* | 1 | US + DE | ✅ |
-| 7 | Trilobite (Asaphiscus wheeleri) | *asaphiscus wheeleri* | 1 | US + DE | **no** |
-| 7 | Tick (Ixodes scapularis) | *ixodes scapularis* | 2 | DE | ✅ |
-| 7 | Penicillin (Penicillium chrysogenum) | *penicillium chrysogenum* | 3 | retired | ✅ |
-| 7 | Measles (Morbillivirus) | *morbillivirus* | 1 | US + DE | ✅ |
-| 7 | Mange (Sarcoptes scabiei) | *sarcoptes scabiei* | 1 | US + DE | **no** |
-| 7 | Lyme Disease (Borrelia burgdorferi) | *borrelia burgdorferi* | 2 | US | ✅ |
-| 7 | Lung | *pulmo* | 2 | US | **no** |
-| 7 | Louse (Pediculus capitis) | *pediculus capitis* | 1 | US + DE | **no** |
+| 12 | Amoeba (Amoeba proteus) | *amoeba proteus* | 5 | US | ✅ |
+| 11 | Lyme Disease (Borrelia burgdorferi) | *borrelia burgdorferi* | 4 | US | ✅ |
+| 11 | Listeria (Listeria monocytogenes) | *listeria monocytogenes* | 3 | US + DE | ✅ |
+| 11 | Heart | *cor* | 3 | US + DE | **no** |
+| 10 | Zika (Zika virus) | *zika virus* | 2 | US + DE | ✅ |
+| 10 | White Blood Cell (Leukocyte) | *leukozyt* | 3 | US | ✅ |
+| 10 | Tick (Ixodes scapularis) | *ixodes scapularis* | 2 | US + DE | ✅ |
+| 10 | Penicillin (Penicillium chrysogenum) | *penicillium chrysogenum* | 3 | US | ✅ |
+| 10 | Liver | *iecur* | 2 | US + DE | **no** |
+| 10 | Kissing Disease (Mono) | *epstein barr virus* | 3 | US | **no** |
+| 10 | Herpes (Herpes Simplex Virus 2) | *herpes simplex virus 2* | 2 | US + DE | **no** |
+| 10 | Egg Cell (Human ovum) | *ovum* | 3 | US | ✅ |
+| 10 | DNA (Deoxyribonucleic acid) | *desoxyribonukleinsaure* | 2 | US + DE | **no** |
+| 10 | Clap - Gonorrhea (Neisseria Gonorrhoeae) | *neisseria gonorrhoeae* | 2 | US + DE | **no** |
+| 10 | Chlamydia (Chlamydia trachomatis) | *chlamydia trachomatis* | 2 | US + DE | **no** |
 
 ## Plush links we deliberately do not make
 

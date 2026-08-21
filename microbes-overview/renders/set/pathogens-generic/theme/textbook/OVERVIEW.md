@@ -6,7 +6,7 @@ Every microbe's `textbook` image — labelled SVG where built, else the last ren
 ![textbook](amoeba-proteus.textbook.svg)
 [full log](../../amoeba-proteus.render.md)
 
-## Coccus (spherical bacterium) (`cocci`)
+## Cocci (spherical bacteria) (`cocci`)
 ![textbook](cocci.textbook.svg)
 [full log](../../cocci.render.md)
 

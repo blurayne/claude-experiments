@@ -59,9 +59,9 @@ Full log: [`megakaryocyte.render.md`](megakaryocyte.render.md)
 ## Reticulocyte (`reticulocyte`)
 Young red blood cell, just released from bone marrow, still carrying residual RNA. Matures into a full erythrocyte in one to two days; its blood share (~1%) is a key clinical marker of marrow output.
 
-| textbook | sem | 3d | watercolor |
-| --- | --- | --- | --- |
-| ![textbook](finals/reticulocyte__textbook.avif) | ![sem](finals/reticulocyte__sem.avif) | ![3d](finals/reticulocyte__3d.avif) | ![watercolor](finals/reticulocyte__watercolor.avif) |
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/reticulocyte__textbook.avif) | ![sem](finals/reticulocyte__sem.avif) | ![3d](finals/reticulocyte__3d.avif) | ![watercolor](finals/reticulocyte__watercolor.avif) | ![reference](finals/reticulocyte__reference.avif) |
 
 **textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/reticulocyte.textbook.svg) · [HTML](theme/textbook/reticulocyte.textbook.html)
 ![textbook labelled](theme/textbook/reticulocyte.textbook.svg)
@@ -146,4 +146,4 @@ Full log: [`thrombocyte.render.md`](thrombocyte.render.md)
 
 **Set total: 76,585 tokens · $1.748**
 
-_Updated 2026-08-21 00:45 local._
+_Updated 2026-08-21 11:14 local._

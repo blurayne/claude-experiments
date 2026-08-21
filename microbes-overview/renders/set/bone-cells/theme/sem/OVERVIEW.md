@@ -10,7 +10,7 @@ Every microbe's `sem` image — labelled SVG where built, else the last render. 
 ![sem](fibroblast.attempts/gen-01__gemini-2.5-flash-image.avif)
 [full log](../../fibroblast.render.md)
 
-## Osteoblast (`osteoblast`)
+## Osteoblast (bone builder) (`osteoblast`)
 ![sem](osteoblast.attempts/gen-01__gemini-2.5-flash-image.avif)
 [full log](../../osteoblast.render.md)
 

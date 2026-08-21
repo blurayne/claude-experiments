@@ -38,7 +38,7 @@ Brain-resident macrophage with a small soma and many thin, highly branched proce
 
 Full log: [`microglia.render.md`](microglia.render.md)
 
-## Motor neuron (Motoneuron) (`motor-neuron`)
+## Motor neuron (`motor-neuron`)
 Large multipolar nerve cell of the brainstem/spinal-cord anterior horn, with a star-shaped soma full of Nissl bodies, many branching dendrites and a single long myelinated axon that can reach a meter in length, ending at the motor end plate on a skeletal-muscle fibre.
 
 | textbook | sem | 3d | watercolor | reference |
@@ -124,11 +124,11 @@ Full log: [`schwann-cell.render.md`](schwann-cell.render.md)
 | Microglia | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 15s | 1621 | $0.039 |
 | Microglia | Watercolor plate | gemini-2.5-flash-image | 2 | ✅ | built | 34s | 3277 | $0.077 |
 | Microglia | immunofluorescence · Public Domain (CC PDM 1.0) | — (download) | 1 | ✅ | n/a | 20s | 0 | $0.000 |
-| Motor neuron (Motoneuron) | Textbook illustration | gemini-2.5-flash-image | 1 | ✅ | built | 21s | 1684 | $0.039 |
-| Motor neuron (Motoneuron) | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 31s | 1524 | $0.039 |
-| Motor neuron (Motoneuron) | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 24s | 1609 | $0.039 |
-| Motor neuron (Motoneuron) | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 13s | 1626 | $0.039 |
-| Motor neuron (Motoneuron) | LM · CC BY-SA 4.0 | — (edit) | 2 | ✅ | n/a | 5.2m | 1650 | $0.039 |
+| Motor neuron | Textbook illustration | gemini-2.5-flash-image | 1 | ✅ | built | 21s | 1684 | $0.039 |
+| Motor neuron | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 31s | 1524 | $0.039 |
+| Motor neuron | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 24s | 1609 | $0.039 |
+| Motor neuron | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 13s | 1626 | $0.039 |
+| Motor neuron | LM · CC BY-SA 4.0 | — (edit) | 2 | ✅ | n/a | 5.2m | 1650 | $0.039 |
 | Neuron | Textbook illustration | gemini-3-pro-image | 4 | ✅ | built | 1.4m | 7868 | $0.160 |
 | Neuron | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 16s | 1546 | $0.039 |
 | Neuron | 3D medical render | gemini-2.5-flash-image | 3 | ✅ | built | 47s | 5168 | $0.116 |
@@ -147,4 +147,4 @@ Full log: [`schwann-cell.render.md`](schwann-cell.render.md)
 
 **Set total: 72,443 tokens · $1.636**
 
-_Updated 2026-08-21 00:45 local._
+_Updated 2026-08-21 11:14 local._

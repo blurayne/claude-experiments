@@ -10,7 +10,7 @@ Every microbe's `sem` image — labelled SVG where built, else the last render. 
 ![sem](microglia.attempts/gen-01__gemini-2.5-flash-image.avif)
 [full log](../../microglia.render.md)
 
-## Motor neuron (Motoneuron) (`motor-neuron`)
+## Motor neuron (`motor-neuron`)
 ![sem](motor-neuron.attempts/gen-01__gemini-2.5-flash-image.avif)
 [full log](../../motor-neuron.render.md)
 

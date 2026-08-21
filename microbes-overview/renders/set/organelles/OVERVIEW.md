@@ -159,7 +159,7 @@ Full log: [`ribosome.render.md`](ribosome.render.md)
 | Cytoskeleton | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 6s | 1596 | $0.039 |
 | Cytoskeleton | 3D medical render | gemini-2.5-flash-image | 2 | ✅ | built | 15s | 3330 | $0.077 |
 | Cytoskeleton | Watercolor plate | gemini-2.5-flash-image | 2 | ✅ | built | 13s | 3520 | $0.077 |
-| Cytoskeleton | immunofluorescence · CC BY-NC-SA 3.0 | — (download) | 1 | ✅ | n/a | 5s | 0 | $0.000 |
+| Cytoskeleton | immunofluorescence · Public domain (work of a US Federal Government officer or employee; ImageJ sample image) | — (download) | 1 | ✅ | n/a | 2s | 0 | $0.000 |
 | Endoplasmic reticulum (ER) | Textbook illustration | gemini-2.5-flash-image | 2 | ✅ | built | 17s | 4402 | $0.077 |
 | Endoplasmic reticulum (ER) | SEM micrograph | gemini-2.5-flash-image | 2 | ✅ | pending (same pipeline) | 14s | 3670 | $0.077 |
 | Endoplasmic reticulum (ER) | 3D medical render | gemini-2.5-flash-image | 2 | ✅ | built | 15s | 3940 | $0.077 |
@@ -193,4 +193,4 @@ Full log: [`ribosome.render.md`](ribosome.render.md)
 
 **Set total: 128,574 tokens · $2.501**
 
-_Updated 2026-08-21 00:45 local._
+_Updated 2026-08-21 11:14 local._

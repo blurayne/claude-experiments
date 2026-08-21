@@ -6,7 +6,7 @@ Every microbe's `watercolor` image — labelled SVG where built, else the last r
 ![watercolor](amoeba-proteus.watercolor.svg)
 [full log](../../amoeba-proteus.render.md)
 
-## Coccus (spherical bacterium) (`cocci`)
+## Cocci (spherical bacteria) (`cocci`)
 ![watercolor](cocci.watercolor.svg)
 [full log](../../cocci.render.md)
 

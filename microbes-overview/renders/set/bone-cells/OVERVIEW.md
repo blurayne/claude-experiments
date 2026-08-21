@@ -38,7 +38,7 @@ Connective-tissue all-rounder: makes collagen and other fibres, keeps skin and o
 
 Full log: [`fibroblast.render.md`](fibroblast.render.md)
 
-## Osteoblast (`osteoblast`)
+## Osteoblast (bone builder) (`osteoblast`)
 Cuboidal-to-columnar, matrix-bound bone-forming cell that lines the surface of growing/remodeling bone in a single epithelioid layer; intensely basophilic cytoplasm packed with rough ER and a prominent Golgi zone, secreting type I collagen and other osteoid proteins that it then mineralises with calcium. Once it walls itself inside its own matrix it becomes an osteocyte.
 
 | textbook | sem | 3d | watercolor | reference |
@@ -124,11 +124,11 @@ Full log: [`tenocyte.render.md`](tenocyte.render.md)
 | Fibroblast | 3D medical render | gemini-3-pro-image | 3 | ✅ | built | 51s | 5362 | $0.118 |
 | Fibroblast | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 21s | 1601 | $0.039 |
 | Fibroblast | SEM · CC BY 4.0 | — (edit) | 2 | ✅ | n/a | 3.8m | 1665 | $0.039 |
-| Osteoblast | Textbook illustration | gemini-2.5-flash-image | 1 | ✅ | built | 15s | 1702 | $0.039 |
-| Osteoblast | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 11s | 1518 | $0.039 |
-| Osteoblast | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 15s | 1598 | $0.039 |
-| Osteoblast | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 20s | 1597 | $0.039 |
-| Osteoblast | LM · CC BY-SA 3.0 / GFDL 1.2+ | — (edit) | 2 | ✅ | n/a | 10s | 1649 | $0.039 |
+| Osteoblast (bone builder) | Textbook illustration | gemini-2.5-flash-image | 1 | ✅ | built | 15s | 1702 | $0.039 |
+| Osteoblast (bone builder) | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 11s | 1518 | $0.039 |
+| Osteoblast (bone builder) | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 15s | 1598 | $0.039 |
+| Osteoblast (bone builder) | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 20s | 1597 | $0.039 |
+| Osteoblast (bone builder) | LM · CC BY-SA 3.0 / GFDL 1.2+ | — (edit) | 2 | ✅ | n/a | 10s | 1649 | $0.039 |
 | Osteoclast | Textbook illustration | gemini-2.5-flash-image | 1 | ✅ | built | 18s | 1710 | $0.039 |
 | Osteoclast | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 17s | 1581 | $0.039 |
 | Osteoclast | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 12s | 1653 | $0.039 |
@@ -147,4 +147,4 @@ Full log: [`tenocyte.render.md`](tenocyte.render.md)
 
 **Set total: 52,959 tokens · $1.240**
 
-_Updated 2026-08-21 00:45 local._
+_Updated 2026-08-21 11:14 local._

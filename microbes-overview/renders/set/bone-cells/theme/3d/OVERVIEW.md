@@ -10,7 +10,7 @@ Every microbe's `3d` image — labelled SVG where built, else the last render. [
 ![3d](fibroblast.3d.svg)
 [full log](../../fibroblast.render.md)
 
-## Osteoblast (`osteoblast`)
+## Osteoblast (bone builder) (`osteoblast`)
 ![3d](osteoblast.3d.svg)
 [full log](../../osteoblast.render.md)
 

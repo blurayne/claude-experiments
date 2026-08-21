@@ -10,7 +10,7 @@ Every microbe's `textbook` image — labelled SVG where built, else the last ren
 ![textbook](microglia.textbook.svg)
 [full log](../../microglia.render.md)
 
-## Motor neuron (Motoneuron) (`motor-neuron`)
+## Motor neuron (`motor-neuron`)
 ![textbook](motor-neuron.textbook.svg)
 [full log](../../motor-neuron.render.md)
 
