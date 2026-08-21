@@ -245,10 +245,10 @@ Full log: [`zika-virus.render.md`](zika-virus.render.md)
 | Candida albicans | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 18s | 1511 | $0.039 |
 | Candida albicans | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 21s | 1614 | $0.039 |
 | Candida albicans | LM · CC BY-SA 3.0 / GFDL | — (edit) | 2 | ✅ | n/a | 1.0m | 1658 | $0.039 |
-| Giardia lamblia (giardiasis) | Textbook illustration | gemini-2.5-flash-image | 1 | ✅ | built | 6s | 2055 | $0.039 |
-| Giardia lamblia (giardiasis) | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 7s | 1806 | $0.039 |
-| Giardia lamblia (giardiasis) | 3D medical render | gemini-2.5-flash-image | 3 | ✅ | built | 23s | 6093 | $0.116 |
-| Giardia lamblia (giardiasis) | Watercolor plate | gemini-2.5-flash-image | 3 | ✅ | built | 21s | 5859 | $0.116 |
+| Giardia lamblia (giardiasis) | Textbook illustration | gemini-3-pro-image | 3 | ✅ | built | 50s | 7984 | $0.135 |
+| Giardia lamblia (giardiasis) | SEM micrograph | gemini-3-pro-image | 2 | ✅ | pending (same pipeline) | 28s | 4141 | $0.079 |
+| Giardia lamblia (giardiasis) | 3D medical render | gemini-3-pro-image | 6 | ✅ | built | 1.6m | 14697 | $0.254 |
+| Giardia lamblia (giardiasis) | Watercolor plate | gemini-3-pro-image | 5 | ✅ | built | 1.1m | 11157 | $0.207 |
 | Giardia lamblia (giardiasis) | SEM · Public domain - CDC PHIL: 'None - This image is in the public domain and thus free of any copyright restrictions.' | — (download) | 1 | ✅ | n/a | 2s | 0 | $0.000 |
 | Hepatitis B virus (HBV) | Textbook illustration | gemini-2.5-flash-image | 2 | ✅ | built | 37s | 3311 | $0.077 |
 | Hepatitis B virus (HBV) | SEM micrograph | gemini-2.5-flash-image | 2 | ✅ | pending (same pipeline) | 30s | 3032 | $0.077 |
@@ -306,6 +306,6 @@ Full log: [`zika-virus.render.md`](zika-virus.render.md)
 | Zika virus | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 6s | 1678 | $0.039 |
 | Zika virus | digitally colorized TEM, false-colour · Public domain - CDC PHIL: None - This image is in the public domain and thus free of any copyright restrictions. | — (download) | 1 | ✅ | n/a | 2s | 0 | $0.000 |
 
-**Set total: 197,118 tokens · $4.039**
+**Set total: 219,284 tokens · $4.405**
 
-_Updated 2026-08-21 13:23 local._
+_Updated 2026-08-21 15:21 local._

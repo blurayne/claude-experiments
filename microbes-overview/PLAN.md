@@ -36,8 +36,19 @@ a compromise someone chose deliberately — listed so a later pass can revisit t
       grass-blade character). Not re-rolled because the leg count was finally right.
 - [ ] `rotavirus` — no render shows countable eleven dsRNA segments; the label says
       eleven and the images approximate.
-- [ ] `giardia` — the eight flagella overlap in every render, so the count cannot be
-      confirmed pixel by pixel. The real reference micrograph has the same limit.
+- [x] `giardia` — **corrected.** This previously read "the eight flagella overlap in
+      every render, so the count cannot be confirmed pixel by pixel", which was wrong
+      and came from a verdict file that claimed "~eight flagella" for renders that
+      actually had 10–16. A re-check counted them and re-rendered all four styles on
+      the pro model: textbook, SEM and watercolor now show exactly eight, in four
+      recognisable pairs, on a bilaterally symmetric body. Only the 3D render still
+      falls short (see next line). The reference micrograph genuinely does have
+      overlapping flagella — that part was true, and it is what made the false claim
+      about the renders plausible.
+- [ ] `giardia` — the 3D render shows six free flagella; the ventral pair is drawn as
+      internal axonemes. Two pro retries failed to fix it, so the ventral-flagella
+      callout was omitted from the 3D labels rather than pointing a leader at
+      something not visibly drawn.
 - [ ] `varicella-zoster-virus` — envelope drawn as a fairly regular circle in sem and
       3d where real virions are noticeably pleomorphic.
 - [ ] `golgi-apparatus` — cisternae drawn far plumper than their real 10–20 nm lumen

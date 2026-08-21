@@ -120,6 +120,12 @@ caught real errors, and each is cheap:
   asymmetry → measure the envelope-width period.
 - **Check the count you claim.** If the label says eleven RNA segments or eight
   flagella, either the picture shows that many or the log says it does not.
+- **A `verdicts.json` is self-reported, not evidence.** Giardia's verdict said
+  "~eight flagella" about renders that had 10–16; the claim survived into the
+  committed atlas and into PLAN.md, where it was rewritten as "they overlap, so the
+  count cannot be confirmed" — a plausible-sounding excuse for a plain error. When
+  you inherit a finished subject, re-check its checkable facts before trusting the
+  verdict, especially the one the brief called out as most likely to go wrong.
 
 ## Adapting to non-microbe subjects
 The pipeline works unchanged for anything in `cells_data.py`, but §1 has to be
