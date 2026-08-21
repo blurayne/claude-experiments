@@ -79,6 +79,7 @@ header.hero {
 }
 .hero-top { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
 .hero-top h1 { margin: 0; font-size: 1.5rem; text-shadow: 1px 1px 0 rgba(0,0,0,.15); white-space: nowrap; }
+.hero-icon { height: 1.9em; width: auto; vertical-align: -.55em; margin-right: .1em; filter: drop-shadow(0 1px 2px rgba(0,0,0,.25)); }
 .hero-actions { display: flex; align-items: center; gap: .5rem; }
 #options-toggle-btn, #lang-chooser {
   font-family: inherit; font-size: .9rem; font-weight: 700; border-radius: 8px;
@@ -662,6 +663,13 @@ def main():
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GIANTmicrobes Catalog</title>
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0e9594">
+<meta name="apple-mobile-web-app-title" content="Microbes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700;800&display=swap" rel="stylesheet">
 <style>{CSS}</style>
@@ -670,7 +678,7 @@ def main():
 <div class="sticky-wrap">
 <header class="hero">
   <div class="hero-top">
-    <h1>\U0001f9a0 GIANTmicrobes Catalog</h1>
+    <h1><img class="hero-icon" src="icon.png" alt="" width="512" height="512"> GIANTmicrobes Catalog</h1>
     <div class="hero-actions">
       <select id="lang-chooser" title="Language / Sprache">
         <option value="us">\U0001f1fa\U0001f1f8 English</option>
