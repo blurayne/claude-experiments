@@ -45,6 +45,7 @@ PAGES = [
             {
                 "name_de": "Golgi-Apparat",
                 "name_en": "Golgi apparatus",
+                "related": ["endoplasmic-reticulum", "goblet-cell"],
                 "tier": "basic",
                 "image_filename": "",
                 "image_url": "",
@@ -58,6 +59,7 @@ PAGES = [
             {
                 "name_de": "Zellkern (Nukleus)",
                 "name_en": "Nucleus",
+                "related": ["chromosome", "endoplasmic-reticulum"],
                 "tier": "basic",
                 "image_filename": "",
                 "image_url": "",
@@ -71,6 +73,7 @@ PAGES = [
             {
                 "name_de": "Mitochondrium",
                 "name_en": "Mitochondrion",
+                "related": ["contractile-cardiomyocyte", "hepatocyte"],
                 "tier": "basic",
                 "image_filename": "",
                 "image_url": "",
@@ -84,6 +87,7 @@ PAGES = [
             {
                 "name_de": "Ribosom",
                 "name_en": "Ribosome",
+                "related": ["endoplasmic-reticulum", "rna"],
                 "tier": "basic",
                 "image_filename": "",
                 "image_url": "",
@@ -97,6 +101,7 @@ PAGES = [
             {
                 "name_de": "Endoplasmatisches Retikulum (ER)",
                 "name_en": "Endoplasmic reticulum (ER)",
+                "related": ["golgi-apparatus", "nucleus", "ribosome"],
                 "tier": "basic",
                 "image_filename": "",
                 "image_url": "",
@@ -110,6 +115,7 @@ PAGES = [
             {
                 "name_de": "Lysosom",
                 "name_en": "Lysosome",
+                "related": ["macrophage", "neutrophil"],
                 "tier": "basic",
                 "image_filename": "",
                 "image_url": "",
@@ -123,6 +129,7 @@ PAGES = [
             {
                 "name_de": "Zellmembran (Plasmamembran)",
                 "name_en": "Cell membrane (plasma membrane)",
+                "related": ["natural-killer-cell", "sars-cov-2"],
                 "tier": "basic",
                 "image_filename": "",
                 "image_url": "",
@@ -136,6 +143,7 @@ PAGES = [
             {
                 "name_de": "Zytoskelett",
                 "name_en": "Cytoskeleton",
+                "related": ["listeria-monocytogenes"],
                 "tier": "basic",
                 "image_filename": "",
                 "image_url": "",
@@ -190,6 +198,7 @@ PAGES = [
             {
                 "name_de": "Hämatopoetische Stammzelle (HSC)",
                 "name_en": "Hematopoietic stem cell (HSC)",
+                "related": ["white-blood-cell"],
                 "tier": "basic",
                 "image_filename": "stem-cells__hsc.png",
                 "image_url": "",
@@ -286,6 +295,7 @@ PAGES = [
             {
                 "name_de": "Becherzelle",
                 "name_en": "Goblet cell",
+                "related": ["golgi-apparatus"],
                 "tier": "basic",
                 "image_filename": "epithelial__goblet.png",
                 "image_url": "",
@@ -338,6 +348,7 @@ PAGES = [
             {
                 "name_de": "Leberzelle (Hepatozyt)",
                 "name_en": "Hepatocyte (liver cell)",
+                "related": ["mitochondrion"],
                 "tier": "basic",
                 "image_filename": "",
                 "image_url": "",
@@ -491,6 +502,7 @@ PAGES = [
             {
                 "name_de": "Kontraktile Kardiomyozyte",
                 "name_en": "Contractile cardiomyocyte",
+                "related": ["heartworm", "mitochondrion"],
                 "tier": "basic",
                 "image_filename": "",
                 "image_url": "",
@@ -833,6 +845,7 @@ PAGES = [
             {
                 "name_de": "Erythrozyt (rotes Blutkörperchen)",
                 "name_en": "Erythrocyte (red blood cell)",
+                "related": ["reticulocyte"],
                 "tier": "basic",
                 "image_filename": "red-blood__erythrocyte.png",
                 "image_url": "",
@@ -846,6 +859,7 @@ PAGES = [
             {
                 "name_de": "Retikulozyt",
                 "name_en": "Reticulocyte",
+                "related": ["erythrocyte"],
                 "tier": "basic",
                 "image_filename": "red-blood__reticulocyte.png",
                 "image_url": "",
@@ -968,6 +982,7 @@ PAGES = [
             {
                 "name_de": "Natürliche Killerzelle (NK)",
                 "name_en": "Natural killer cell (NK)",
+                "related": ["cancer-cell", "cell-membrane"],
                 "tier": "basic",
                 "image_filename": "immune-cells__nk-cell.png",
                 "image_url": "",
@@ -981,6 +996,7 @@ PAGES = [
             {
                 "name_de": "Makrophage",
                 "name_en": "Macrophage",
+                "related": ["lysosome"],
                 "tier": "basic",
                 "image_filename": "immune-cells__macrophage.png",
                 "image_url": "",
@@ -994,6 +1010,7 @@ PAGES = [
             {
                 "name_de": "Neutrophil",
                 "name_en": "Neutrophil",
+                "related": ["lysosome"],
                 "tier": "basic",
                 "image_filename": "immune-cells__neutrophil.png",
                 "image_url": "",
@@ -1007,6 +1024,7 @@ PAGES = [
             {
                 "name_de": "Weißes Blutkörperchen (Leukozyt)",
                 "name_en": "White blood cell (leukocyte)",
+                "related": ["hematopoietic-stem-cell"],
                 "tier": "basic",
                 "image_filename": "",
                 "image_url": "",
@@ -1126,6 +1144,7 @@ PAGES = [
             {
                 "name_de": "DNA (Desoxyribonukleinsäure)",
                 "name_en": "DNA (deoxyribonucleic acid)",
+                "related": ["cancer-cell", "chromosome", "rna"],
                 "tier": "basic",
                 "image_filename": "",
                 "image_url": "",
@@ -1139,6 +1158,7 @@ PAGES = [
             {
                 "name_de": "RNA (Ribonukleinsäure)",
                 "name_en": "RNA (ribonucleic acid)",
+                "related": ["dna", "ribosome"],
                 "tier": "basic",
                 "image_filename": "",
                 "image_url": "",
@@ -1152,6 +1172,7 @@ PAGES = [
             {
                 "name_de": "Chromosom",
                 "name_en": "Chromosome",
+                "related": ["dna", "nucleus"],
                 "tier": "basic",
                 "image_filename": "",
                 "image_url": "",
@@ -1188,6 +1209,7 @@ PAGES = [
             {
                 "name_de": "Krebszelle (maligne Neoplasie)",
                 "name_en": "Cancer cell (malignant neoplasm)",
+                "related": ["dna", "natural-killer-cell"],
                 "tier": "basic",
                 "image_filename": "",
                 "image_url": "",
@@ -1328,6 +1350,7 @@ PAGES = [
                 # bacteria page) actually reaches people.
                 "name_de": "Zecke (Ixodes, Holzbock)",
                 "name_en": "Tick (Ixodes scapularis)",
+                "related": ["borrelia-burgdorferi"],
                 "tier": "basic",
                 "image_filename": "",
                 "image_url": "",
@@ -1450,6 +1473,7 @@ PAGES = [
             {
                 "name_de": "Borrelia burgdorferi (Lyme-Borreliose)",
                 "name_en": "Borrelia burgdorferi (Lyme disease)",
+                "related": ["tick"],
                 "tier": "basic",
                 "image_filename": "",
                 "image_url": "",
@@ -1476,6 +1500,7 @@ PAGES = [
             {
                 "name_de": "Listeria monocytogenes",
                 "name_en": "Listeria monocytogenes",
+                "related": ["cytoskeleton"],
                 "tier": "basic",
                 "image_filename": "",
                 "image_url": "",
@@ -1520,6 +1545,7 @@ PAGES = [
             {
                 "name_de": "SARS-CoV-2 (COVID-19)",
                 "name_en": "SARS-CoV-2 (COVID-19)",
+                "related": ["cell-membrane"],
                 "tier": "basic",
                 "image_filename": "pathogens-viruses__sars-cov-2.png",
                 "image_url": "",
@@ -1533,6 +1559,7 @@ PAGES = [
             {
                 "name_de": "HIV (Humanes Immundefizienz-Virus)",
                 "name_en": "HIV (Human Immunodeficiency Virus)",
+                "related": ["feline-immunodeficiency-virus"],
                 "name_kids_de": "HIV",
                 "name_kids_en": "HIV",
                 "tier": "basic",
@@ -1626,6 +1653,7 @@ PAGES = [
             {
                 "name_de": "Rotavirus",
                 "name_en": "Rotavirus",
+                "related": ["norovirus"],
                 "tier": "basic",
                 "image_filename": "",
                 "image_url": "",
@@ -1639,6 +1667,7 @@ PAGES = [
             {
                 "name_de": "Norovirus (Magen-Darm-Grippe)",
                 "name_en": "Norovirus (stomach bug)",
+                "related": ["rotavirus"],
                 "tier": "basic",
                 "image_filename": "",
                 "image_url": "",
@@ -1652,6 +1681,7 @@ PAGES = [
             {
                 "name_de": "Varizella-Zoster-Virus (Windpocken)",
                 "name_en": "Varicella-zoster virus (chickenpox)",
+                "related": ["rabies-virus"],
                 "tier": "basic",
                 "image_filename": "",
                 "image_url": "",
@@ -1728,6 +1758,105 @@ PAGES = [
                 "func_en": "Branching bacterium and one of the first settlers in a baby's gut. It breaks down sugars in breast milk that the infant cannot digest alone, and acidifies the gut, which keeps pathogens out.",
                 "deps_de": "Lebt Tür an Tür mit Enterozyten, Becherzellen und Paneth-Zellen; Antibiotika dünnen den Bestand aus, fermentierte Lebensmittel bauen ihn wieder auf.",
                 "deps_en": "Lives next door to enterocytes, goblet cells and Paneth cells; antibiotics thin its numbers out, and fermented foods help rebuild them.",
+            },
+        ],
+    },
+    # ------------------------------------------------------------------
+    # Page 18 — Pathogens of cats and dogs. The one set in this atlas that is
+    # not about the human body. Rabies is the bridge: it belongs to both.
+    # ------------------------------------------------------------------
+    {
+        "id": "pet-pathogens",
+        "title_de": "Erreger bei Hund und Katze",
+        "title_en": "Pathogens of cats and dogs",
+        "subtitle_de": "Was den Tieren zu Hause gefährlich wird.",
+        "subtitle_en": "What threatens the animals at home.",
+        "description_de": "Der übrige Atlas handelt vom menschlichen Körper — dieses Kapitel nicht. Hunde und Katzen haben eigene Erreger, gegen die eigene Impfungen und Vorsorgemittel entwickelt wurden, und wer mit Tieren lebt, begegnet ihnen im Tierarztgespräch. Zwei davon gehen auch den Menschen an: Tollwut ist auf Säugetiere aller Art übertragbar und weltweit weiterhin tödlich, und der Herzwurm wird von denselben Mücken übertragen, die auch uns stechen.",
+        "description_en": "The rest of this atlas is about the human body — this chapter is not. Dogs and cats have pathogens of their own, with vaccines and preventatives developed specifically for them, and anyone living with an animal meets these names at the vet. Two of them concern people as well: rabies crosses into any mammal and remains lethal worldwide, and heartworm is carried by the same mosquitoes that bite us.",
+        "description_kids_de": "Auch Hunde und Katzen können krank werden — und zwar von Erregern, die es meist nur bei ihnen gibt. Deshalb bekommen sie eigene Impfungen beim Tierarzt, genau wie du deine bekommst. Manche dieser winzigen Störenfriede werden von Mücken übertragen, andere von einem Biss oder Kratzer eines anderen Tieres. Gegen die meisten davon gibt es heute gute Mittel, wenn man rechtzeitig hingeht.",
+        "description_kids_en": "Dogs and cats get ill too — mostly from germs that only bother them. That is why they get their own vaccinations at the vet, just as you get yours. Some of these tiny troublemakers are carried by mosquitoes, others by a bite or scratch from another animal. There is a good treatment or a vaccine for most of them nowadays, as long as somebody goes in time.",
+        "description_adults_de": "Die Tiermedizin kennt eigene Erregerprofile: Retroviren wie FIV und FeLV, die das Immunsystem der Katze dauerhaft schwächen, den durch Mücken übertragenen Herzwurm, der als Fadenwurm im rechten Herzen und in den Lungenarterien sitzt, sowie bakterielle Bindehautentzündungen durch Chlamydia felis. Tollwut nimmt eine Sonderstellung ein: Sie ist eine Zoonose mit nahezu hundertprozentiger Letalität nach Symptombeginn und zugleich durch Impfung sehr gut vermeidbar.",
+        "description_adults_en": "Veterinary medicine has its own roster: retroviruses such as FIV and FeLV that permanently weaken a cat's immune system, the mosquito-borne heartworm that lodges as a nematode in the right heart and pulmonary arteries, and bacterial conjunctivitis from Chlamydia felis. Rabies stands apart: a zoonosis that is very nearly always fatal once symptoms begin, and at the same time one of the most reliably preventable diseases there is.",
+        "description_sci_de": "Die Gruppe ist ätiologisch heterogen: zwei Retroviren (FIV, Lentivirus; FeLV, Gammaretrovirus), ein Rhabdovirus (Lyssavirus, Tollwut), ein obligat intrazelluläres Bakterium mit biphasischem Entwicklungszyklus (Chlamydia felis) und ein Nematode (Dirofilaria immitis) mit Mücken als Zwischenwirt und Wolbachia-Endosymbionten, deren Abtötung Teil der Therapie ist.",
+        "description_sci_en": "The group is aetiologically heterogeneous: two retroviruses (FIV, a lentivirus; FeLV, a gammaretrovirus), a rhabdovirus (Lyssavirus, rabies), an obligate intracellular bacterium with a biphasic developmental cycle (Chlamydia felis), and a nematode (Dirofilaria immitis) that uses mosquitoes as an intermediate host and carries Wolbachia endosymbionts whose elimination forms part of treatment.",
+        "entries": [
+            {
+                "name_de": "Herzwurm (Dirofilaria immitis)",
+                "name_en": "Heartworm (Dirofilaria immitis)",
+                "related": ["contractile-cardiomyocyte"],
+                "name_kids_de": "Herzwurm",
+                "name_kids_en": "Heartworm",
+                "tier": "basic",
+                "image_filename": "",
+                "image_url": "",
+                "image_credit": "",
+                "image_license": "",
+                "func_de": "Fadenwurm, der als ausgewachsenes Tier 25 bis 30 Zentimeter lang wird und sich in der rechten Herzkammer und den Lungenarterien seines Wirts einnistet. Übertragen wird er nicht direkt, sondern von Stechmücken: Sie nehmen mit dem Blut winzige Larven auf und geben sie beim nächsten Stich weiter.",
+                "func_en": "A nematode that reaches twenty-five to thirty centimetres as an adult and settles in the right heart and pulmonary arteries of its host. It does not pass from animal to animal directly but through mosquitoes, which take up tiny larvae with a blood meal and deliver them at the next bite.",
+                "deps_de": "Betrifft vor allem Hunde; Katzen erkranken seltener, dafür oft schwerer. Vorbeugung ist einfach und wirksam — monatliche Präparate töten die Larven —, die Behandlung eines etablierten Befalls dagegen langwierig und riskant. In Deutschland vor allem ein Reise-Mitbringsel aus dem Mittelmeerraum.",
+                "deps_en": "Chiefly a dog disease; cats are infected less often but tend to fare worse. Prevention is simple and effective — monthly preparations kill the larvae — while treating an established infestation is slow and risky. In cooler regions it arrives mainly with animals brought back from warmer ones.",
+            },
+            {
+                "name_de": "Felines Immundefizienz-Virus (FIV)",
+                "name_en": "Feline immunodeficiency virus (FIV)",
+                "related": ["hiv"],
+                "name_kids_de": "Katzen-Immunschwäche-Virus",
+                "name_kids_en": "Cat immune-weakness virus",
+                "tier": "basic",
+                "image_filename": "",
+                "image_url": "",
+                "image_credit": "",
+                "image_license": "",
+                "func_de": "Behülltes Lentivirus und das Katzen-Gegenstück zu HIV — nah verwandt, aber für Menschen nicht ansteckend. Es befällt T-Helferzellen, baut sein Erbgut fest in deren Genom ein und schwächt die Abwehr über Jahre, bis harmlose Keime gefährlich werden.",
+                "func_en": "An enveloped lentivirus and the cat's counterpart to HIV — a close relative, but not infectious to people. It targets helper T cells, writes its genome permanently into theirs, and wears the defences down over years until ordinarily harmless germs become dangerous.",
+                "deps_de": "Wird fast ausschließlich durch tiefe Bissverletzungen bei Revierkämpfen übertragen, weshalb unkastrierte Freigänger-Kater das höchste Risiko tragen. Infizierte Katzen können bei guter Pflege viele Jahre normal leben; heilbar ist die Infektion nicht.",
+                "deps_en": "Passed almost entirely through deep bite wounds in territorial fights, so unneutered roaming toms carry by far the highest risk. Infected cats can live many normal years with good care, but the infection itself cannot be cured.",
+            },
+            {
+                "name_de": "Felines Leukämievirus (FeLV)",
+                "name_en": "Feline leukaemia virus (FeLV)",
+                "name_kids_de": "Katzen-Leukämie-Virus",
+                "name_kids_en": "Cat leukaemia virus",
+                "tier": "basic",
+                "image_filename": "",
+                "image_url": "",
+                "image_credit": "",
+                "image_license": "",
+                "func_de": "Behülltes Gammaretrovirus, das im Knochenmark die blutbildenden Zellen befällt. Anders als FIV wird es schon durch gegenseitiges Putzen, gemeinsame Näpfe und Speichel weitergegeben. Es kann Blutarmut, Immunschwäche und Tumoren auslösen — daher der Name.",
+                "func_en": "An enveloped gammaretrovirus that infects the blood-forming cells of the bone marrow. Unlike FIV it spreads through mutual grooming, shared bowls and saliva. It can cause anaemia, immune failure and tumours — hence the name.",
+                "deps_de": "Ein erheblicher Teil der angesteckten Katzen wird das Virus selbst wieder los; bleibt es, ist die Prognose ernst. Es gibt eine wirksame Impfung, die vor allem für Freigänger empfohlen wird, sowie einen schnellen Bluttest beim Tierarzt.",
+                "deps_en": "A substantial share of exposed cats clear the virus on their own; in those that do not, the outlook is serious. An effective vaccine exists and is recommended above all for cats that go outdoors, alongside a quick blood test at the vet.",
+            },
+            {
+                "name_de": "Chlamydia felis (Katzenschnupfen)",
+                "name_en": "Chlamydia felis (feline conjunctivitis)",
+                "name_kids_de": "Katzenschnupfen-Bakterium",
+                "name_kids_en": "Cat-flu bacterium",
+                "tier": "basic",
+                "image_filename": "",
+                "image_url": "",
+                "image_credit": "",
+                "image_license": "",
+                "func_de": "Bakterium, das nur innerhalb fremder Zellen leben kann und in zwei Gestalten auftritt: als winziger, widerstandsfähiger Elementarkörper, der überträgt, und als größerer Retikularkörper, der sich in der Wirtszelle vermehrt. Es befällt vor allem die Bindehaut und verursacht tränende, verklebte Augen.",
+                "func_en": "A bacterium that can only live inside other cells, and appears in two forms: a tiny, tough elementary body that does the transmitting, and a larger reticulate body that multiplies inside the host cell. It attacks the conjunctiva above all, causing weeping, gummed-up eyes.",
+                "deps_de": "Verbreitet sich in Katzengruppen über Augen- und Nasensekret, also besonders leicht in Tierheimen und Zuchten. Mit Antibiotika gut behandelbar; eine Impfung mildert den Verlauf. Eine Übertragung auf den Menschen ist möglich, aber sehr selten und mild.",
+                "deps_en": "Spreads through eye and nose secretions wherever cats live in groups, so shelters and catteries see it most. It responds well to antibiotics, and a vaccine softens the course. Transmission to people is possible but very rare and mild.",
+            },
+            {
+                "name_de": "Tollwutvirus (Rabies)",
+                "name_en": "Rabies virus",
+                "related": ["varicella-zoster-virus"],
+                "name_kids_de": "Tollwut-Virus",
+                "name_kids_en": "Rabies virus",
+                "tier": "basic",
+                "image_filename": "",
+                "image_url": "",
+                "image_credit": "",
+                "image_license": "",
+                "func_de": "Geschossförmiges Rhabdovirus — an einem Ende gerundet, am anderen flach — mit einer Hülle voller keulenförmiger Glykoprotein-Spikes. Nach einem Biss wandert es die Nervenbahnen entlang zum Gehirn, wo es die Verhaltensänderungen auslöst, die seine Weitergabe sichern.",
+                "func_en": "A bullet-shaped rhabdovirus — rounded at one end, flat at the other — with an envelope studded with club-shaped glycoprotein spikes. After a bite it travels up the nerves to the brain, where it produces the behavioural changes that ensure it gets passed on.",
+                "deps_de": "Betrifft alle Säugetiere, auch den Menschen. Sind Symptome erst da, verläuft sie praktisch immer tödlich — dafür ist sie durch Impfung außergewöhnlich zuverlässig zu verhindern, und selbst nach einem Biss schützt eine sofortige Impfserie noch. Deutschland gilt seit 2008 als frei von klassischer Tollwut.",
+                "deps_en": "Affects every mammal, humans included. Once symptoms appear it is very nearly always fatal — and yet it is one of the most reliably preventable diseases there is, with vaccination beforehand and a course of shots that still works after a bite. Many countries have eliminated the classic terrestrial form entirely.",
             },
         ],
     },

@@ -34,6 +34,10 @@ true counterpart simply gets no plush button. Notably NOT linked, and why:
   - hepatitis B virus — their "Hepatitis" plush is species `hepatitis C virus`.
   - cocci, generic fungus, generic virus — GIANTmicrobes has no generic-shape
     plush for these, only named species.
+  - Chlamydia felis — their "Chlamydia" plush is species `chlamydia trachomatis`,
+    a different species in the same genus. Same genus is not the same organism,
+    and the cat one causes conjunctivitis while the human one is an STI.
+  - FIV and FeLV — no feline retrovirus plush exists.
 """
 
 # Photos we had to repair, all with scripts/edit_image.py (gemini-2.5-flash-image).
@@ -133,6 +137,13 @@ GIANT = {
     'zika-virus': ('Zika (Zika virus)', 'https://www.riesenmikroben.de/products/zika?locale=de'),
     # --- helpful microbes ---
     'penicillium-chrysogenum': ('Penicillin (Penicillium chrysogenum)', 'https://www.riesenmikroben.de/products/penicillin?locale=de'),
+    # --- pathogens of cats and dogs ---
+    'heartworm': ('Heartworm (Dirofilaria immitis)', 'https://www.riesenmikroben.de/products/herzwurm?locale=de'),
+    # the vendor publishes this one only at 200x200; kept at that size rather than
+    # upscaled, for the same reason as the Leberzelle (see the note above AI_CLEANED).
+    # Its white studio backdrop was made transparent by a plain flood fill — a
+    # mechanical edit that leaves the toy itself untouched.
+    'rabies-virus': ('Rabies - Deadly Virus Plush', 'https://www.riesenmikroben.de/products/tollwut?locale=de'),
     'saccharomyces-cerevisiae': ('Beer & Bread (Saccharomyces cerevisiae)', 'https://www.riesenmikroben.de/products/bierhefe?locale=de'),
     'bifidobacterium-longum': ('Bifido (Bifidobacterium longum)', 'https://www.riesenmikroben.de/products/bifido-bakterium?locale=de'),
 }

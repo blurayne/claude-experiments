@@ -110,6 +110,11 @@ def build():
                 # "Round bacteria"; entries without these just reuse the main name.
                 "name_kids_en": e.get("name_kids_en", ""),
                 "name_kids_de": e.get("name_kids_de", ""),
+                # keys of other subjects worth jumping to. The descriptions name
+                # these connections in prose already — the tick is how Borrelia
+                # reaches people, Listeria hijacks the cytoskeleton — but prose
+                # cannot be clicked.
+                "related": list(e.get("related") or []),
                 # best-effort German one-liner from the poster "function" text
                 "short_de": e.get("func_de", ""),
                 "order": i,
@@ -129,6 +134,7 @@ def build():
             name_de = look.get("name_de") or name_en
             name_kids_en = look.get("name_kids_en") or ""
             name_kids_de = look.get("name_kids_de") or ""
+            related = look.get("related") or []
             short_de = look.get("short_de") or short_en
 
             # provenance of the real micrograph: prefer the download sidecar in
@@ -266,6 +272,7 @@ def build():
                     **({"nameKids": {"en": name_kids_en or name_en,
                                      "de": name_kids_de or name_de}}
                        if (name_kids_en or name_kids_de) else {}),
+                    **({"related": related} if related else {}),
                     "short": {"en": short_en, "de": short_de},
                     "desc": desc,
                     "img": img,

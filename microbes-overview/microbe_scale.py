@@ -163,6 +163,16 @@ SCALE = {
     'dna': (0.002, 6.6, 'pg'),
     'rna': (0.001, 500, 'kDa'),            # a typical mRNA
     'chromosome': (5, 0.3, 'pg'),          # condensed metaphase chromosome
+    # --- pathogens of cats and dogs -----------------------------------------
+    # The heartworm is by a wide margin the largest subject in the atlas: an adult
+    # female is 25-30 cm, so like the tick and Amoeba proteus it pins the bar to
+    # full and the printed figure carries the truth. Its microfilariae, the stage
+    # a mosquito actually carries, are only ~300 µm.
+    'heartworm': (270_000, 200, 'mg'),
+    'feline-immunodeficiency-virus': (0.11, 1, 'fg'),
+    'feline-leukaemia-virus': (0.1, 1, 'fg'),
+    'chlamydia-felis': (0.3, 0.1, 'pg'),   # elementary body; reticulate bodies reach ~1 µm
+    'rabies-virus': (0.18, 6, 'fg'),       # 180 nm long, 75 nm across — bullet-shaped
 }
 
 # grams-per-unit, for converting to a common picogram scale for color-coding
