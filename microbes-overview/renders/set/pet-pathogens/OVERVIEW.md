@@ -2,6 +2,24 @@
 
 Final image per microbe × style (last attempt), the labelled SVG, and the real-microscopy reference. Status table at the bottom.
 
+## Chlamydia felis (feline conjunctivitis) (`chlamydia-felis`)
+An obligate intracellular bacterium with no free-living form at all: it exists only as a tiny, tough, infectious elementary body (EB, ~0.2-0.3 µm) or as a larger, fragile, dividing reticulate body (RB, ~0.5-1 µm) growing inside a host-cell inclusion. The two-form cycle IS the subject — no other microbe in this atlas has this shape. Infects the conjunctiva of cats above all, causing weeping, gummed-up eyes; NOT the same species as C. trachomatis (human STI/trachoma agent) even though it shares the same genus-level biology.
+
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/chlamydia-felis__textbook.avif) | ![sem](finals/chlamydia-felis__sem.avif) | ![3d](finals/chlamydia-felis__3d.avif) | ![watercolor](finals/chlamydia-felis__watercolor.avif) | ![reference](finals/chlamydia-felis__reference.avif) |
+
+**textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/chlamydia-felis.textbook.svg) · [HTML](theme/textbook/chlamydia-felis.textbook.html)
+![textbook labelled](theme/textbook/chlamydia-felis.textbook.svg)
+
+**3d — labelled** (English default, La/De toggle): [SVG](theme/3d/chlamydia-felis.3d.svg) · [HTML](theme/3d/chlamydia-felis.3d.html)
+![3d labelled](theme/3d/chlamydia-felis.3d.svg)
+
+**watercolor — labelled** (English default, La/De toggle): [SVG](theme/watercolor/chlamydia-felis.watercolor.svg) · [HTML](theme/watercolor/chlamydia-felis.watercolor.html)
+![watercolor labelled](theme/watercolor/chlamydia-felis.watercolor.svg)
+
+Full log: [`chlamydia-felis.render.md`](chlamydia-felis.render.md)
+
 ## Feline immunodeficiency virus (FIV) (`feline-immunodeficiency-virus`)
 An enveloped lentivirus (~100-125 nm) and the cat's own counterpart to HIV — closely related in architecture (envelope, matrix, conical capsid, two RNA copies, reverse transcriptase, integrase) but not infectious to people. Its Env spikes are notably SHORTER and sparser than HIV's, and its Gag proteins carry FIV-specific names (MA p15, CA p24, NC p13) rather than HIV's (p17/p24/p7) — related, not identical.
 
@@ -78,6 +96,11 @@ Full log: [`rabies-virus.render.md`](rabies-virus.render.md)
 
 | name | styles | model | render count | pass | svg status | time taken | tokens used | costs |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Chlamydia felis (feline conjunctivitis) | Textbook illustration | gemini-2.5-flash-image | 3 | ✅ | built | 25s | 5931 | $0.116 |
+| Chlamydia felis (feline conjunctivitis) | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 7s | 1672 | $0.039 |
+| Chlamydia felis (feline conjunctivitis) | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 8s | 1773 | $0.039 |
+| Chlamydia felis (feline conjunctivitis) | Watercolor plate | gemini-3-pro-image | 3 | ✅ | built | 34s | 6322 | $0.121 |
+| Chlamydia felis (feline conjunctivitis) | TEM of an infected HeLa cell, Chlamydia trachomatis inclusion (NOT C. felis -- see species_shown) · CC BY 4.0 | — (download) | 1 | ✅ | n/a | 0s | 0 | $0.000 |
 | Feline immunodeficiency virus (FIV) | Textbook illustration | gemini-2.5-flash-image | 1 | ✅ | built | 8s | 1697 | $0.039 |
 | Feline immunodeficiency virus (FIV) | SEM micrograph | gemini-2.5-flash-image | 3 | ✅ | pending (same pipeline) | 20s | 4754 | $0.116 |
 | Feline immunodeficiency virus (FIV) | 3D medical render | gemini-2.5-flash-image | 2 | ✅ | built | 17s | 3437 | $0.077 |
@@ -98,6 +121,6 @@ Full log: [`rabies-virus.render.md`](rabies-virus.render.md)
 | Rabies virus | Watercolor plate | gemini-2.5-flash-image | 3 | ✅ | built | 23s | 5611 | $0.116 |
 | Rabies virus | TEM · Public domain - CDC Public Health Image Library states 'None - This image is in the public domain and thus free of any copyright restrictions.' | — (download) | 1 | ✅ | n/a | 2s | 0 | $0.000 |
 
-**Set total: 56,153 tokens · $1.242**
+**Set total: 71,851 tokens · $1.557**
 
-_Updated 2026-08-21 13:12 local._
+_Updated 2026-08-21 13:23 local._

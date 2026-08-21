@@ -2,6 +2,10 @@
 
 Every microbe's `sem` image — labelled SVG where built, else the last render. [← set overview](../../OVERVIEW.md)
 
+## Chlamydia felis (feline conjunctivitis) (`chlamydia-felis`)
+![sem](chlamydia-felis.attempts/gen-01__gemini-2.5-flash-image.avif)
+[full log](../../chlamydia-felis.render.md)
+
 ## Feline immunodeficiency virus (FIV) (`feline-immunodeficiency-virus`)
 ![sem](feline-immunodeficiency-virus.attempts/gen-03__gemini-2.5-flash-image.avif)
 [full log](../../feline-immunodeficiency-virus.render.md)

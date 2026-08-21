@@ -2,6 +2,10 @@
 
 Every microbe's `textbook` image — labelled SVG where built, else the last render. [← set overview](../../OVERVIEW.md)
 
+## Chlamydia felis (feline conjunctivitis) (`chlamydia-felis`)
+![textbook](chlamydia-felis.textbook.svg)
+[full log](../../chlamydia-felis.render.md)
+
 ## Feline immunodeficiency virus (FIV) (`feline-immunodeficiency-virus`)
 ![textbook](feline-immunodeficiency-virus.textbook.svg)
 [full log](../../feline-immunodeficiency-virus.render.md)

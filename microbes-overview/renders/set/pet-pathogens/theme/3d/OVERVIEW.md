@@ -2,6 +2,10 @@
 
 Every microbe's `3d` image — labelled SVG where built, else the last render. [← set overview](../../OVERVIEW.md)
 
+## Chlamydia felis (feline conjunctivitis) (`chlamydia-felis`)
+![3d](chlamydia-felis.3d.svg)
+[full log](../../chlamydia-felis.render.md)
+
 ## Feline immunodeficiency virus (FIV) (`feline-immunodeficiency-virus`)
 ![3d](feline-immunodeficiency-virus.3d.svg)
 [full log](../../feline-immunodeficiency-virus.render.md)

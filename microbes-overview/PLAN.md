@@ -6,32 +6,11 @@ this file tracks the *work*, including things no script can detect.
 
 ## Open
 
-### Blocked on the Gemini monthly spending cap
-The project hit `RESOURCE_EXHAUSTED — "Your project has exceeded its monthly
-spending cap"`, verified directly against the API. This is the *monthly cap*, not a
-per-model daily quota, so it blocks flash and pro alike. Raise it at
-<https://ai.studio/spend>, then resume — the agents are resume-aware and will skip
-every step already on disk, so nothing already paid for gets re-spent.
-
-- [ ] **`rabies-virus`** — research, six descriptions, four style prompts and the
-      real reference (CDC PHIL 1876, Dr. Fred Murphy 1975, public domain) are all
-      written. Zero renders: the cap hit on attempt 1 of every style. Resume at
-      step 5 (render the four styles from the prompts on disk), then verify,
-      annotate, coloring page, verdicts, assemble.
-      *Flagged by its agent: the reference is a field of many virions inside a
-      Negri body rather than a single isolated specimen. Accepted under the
-      documented fallback, and stated in the log rather than hidden.*
-- [ ] **`heartworm`** — research, descriptions and prompts written; some renders
-      landed before the cap. Resume and finish.
-- [ ] **`feline-immunodeficiency-virus`**, **`feline-leukaemia-virus`**,
-      **`chlamydia-felis`** — catalogued with text, scale data and cross-links;
-      not started.
-
 ### Review
-- [ ] **Systematic visual review of all 107 subjects.** Every render, labelled
+- [ ] **Systematic visual review of all 112 subjects.** Every render, labelled
       diagram and coloring page has been checked by the agent that made it, and
       spot-checked by the orchestrator where something was flagged. Nobody has sat
-      down and looked at all 107 in a row. Expect to find: labels that overlap art
+      down and looked at all 112 in a row. Expect to find: labels that overlap art
       at some viewport sizes, coloring pages whose bleed is imperfect at the last
       edge, and the odd style that reads oddly next to its siblings.
       *Owner: user. Note findings below as sub-items.*
@@ -103,6 +82,11 @@ a compromise someone chose deliberately — listed so a later pass can revisit t
 - [ ] `feline-leukaemia-virus` — its reference is a dense multi-particle negative-stain
       plate rather than the single isolated virion this atlas prefers. Accepted because
       individual round C-type particles are clearly resolvable in it.
+- [ ] `chlamydia-felis` — its reference micrograph shows **Chlamydia trachomatis**,
+      not C. felis: no freely-licensed micrograph of the cat species exists. The
+      developmental forms are identical in both, so it illustrates the EB/RB cycle
+      truthfully, and the species swap is disclosed in the caption the viewer shows —
+      not only in the log. Recorded so nobody later assumes it is C. felis.
 
 ### Worth knowing for future renders
 - The house SEM style is **a single specimen on a substrate**, not a budding vignette.
@@ -120,10 +104,10 @@ a compromise someone chose deliberately — listed so a later pass can revisit t
 
 ## Done
 
-- [x] **All 107 catalogued subjects rendered**, 17 sets. Every one carries 5 picture
+- [x] **All 112 catalogued subjects rendered**, 18 sets. Every one carries 5 picture
       styles, 3 labelled diagrams, an A4 coloring page, EN+DE narration and
       size/weight data. `OVERVIEW.md` reports 0 unrendered.
-- [x] **No subject depends on the slug fallback.** All 107 render `meta.name` values
+- [x] **No subject depends on the slug fallback.** All 112 render `meta.name` values
       match their catalogue `name_en` byte-exactly, so nothing can vanish silently.
 - [x] **Audience-aware names.** Optional `name_kids_en/de`; one `N()` helper feeds
       card titles, nav tree, search results, lightbox and alt text so they cannot
@@ -131,10 +115,15 @@ a compromise someone chose deliberately — listed so a later pass can revisit t
 - [x] **Every reference has a recorded source.** The reticulocyte's sidecar pointed
       at a superseded first pick while its log named the image actually used; re-
       fetched so data and log agree.
+- [x] **The cat-and-dog pathogen set**, the one chapter not about the human body:
+      heartworm, FIV, FeLV, Chlamydia felis and rabies. Two of them bridge back —
+      rabies crosses into any mammal, heartworm rides the mosquitoes that bite us.
+- [x] **Clickable cross-references.** 48 "See also" links across 34 subjects,
+      declared once per pair and written both ways so none can be one-directional.
 - [x] **No NonCommercial licences.** The cytoskeleton's CC BY-NC-SA plate was the
       only one among 100+; replaced with a public-domain equivalent showing the same
       three channels, at the cost of resolution (512 px upscaled ~2.1×, stated).
-- [x] **44 plush links**, each an exact species/cell match; the deliberate non-links
+- [x] **46 plush links**, each an exact species/cell match; the deliberate non-links
       are documented in `microbe_giant.py`.
 - [x] `.env` ignored at the repo root — it was untracked but unignored, and `main` is
       served publicly.

@@ -2,6 +2,10 @@
 
 Every microbe's `watercolor` image — labelled SVG where built, else the last render. [← set overview](../../OVERVIEW.md)
 
+## Chlamydia felis (feline conjunctivitis) (`chlamydia-felis`)
+![watercolor](chlamydia-felis.watercolor.svg)
+[full log](../../chlamydia-felis.render.md)
+
 ## Feline immunodeficiency virus (FIV) (`feline-immunodeficiency-virus`)
 ![watercolor](feline-immunodeficiency-virus.watercolor.svg)
 [full log](../../feline-immunodeficiency-virus.render.md)
