@@ -221,16 +221,9 @@ html[data-theme="petri"] body::after{
   letter-spacing:var(--display-spacing); font-size:19px; white-space:nowrap;
   display:flex; align-items:center; gap:9px;
 }
-/* the icon doubles as its own download link: a plain click saves the SVG, and
-   long-press / right-click offers it the way any image would */
-.brand-icon{display:inline-flex; flex:none; line-height:0; border-radius:7px;
-  transition:transform .18s var(--ease), background .18s}
-.brand-icon img{width:28px; height:28px; display:block}
-.brand-icon:hover{transform:scale(1.08); background:var(--card-hi)}
-.brand-icon:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
-/* the brand's pulsing accent dot and its keyframes are gone — the atlas icon
-   took that slot, and nothing else referenced the animation */
-.brand small{color:var(--fg-dim); font-weight:400; font-size:12px; font-family:var(--font-mono)}
+/* The brand is now just the wordmark: the atlas icon and the tagline both moved
+   out of the bar (the icon is downloadable from Settings instead), so the title
+   is the only thing left here and must stay visible at every width. */
 .spacer{flex:1 1 auto}
 .tb-tools{display:flex; align-items:center; gap:10px}
 .tb-tools-inner{display:contents}   /* desktop: no-op wrapper, children lay out directly in .tb-tools */
@@ -337,8 +330,11 @@ html[data-theme="petri"] body::after{
 #menuPanel{left:clamp(10px,2.5vw,22px); max-height:min(74vh,640px); width:min(340px,92vw);
   display:flex; flex-direction:column; overflow:hidden}
 #navTree{overflow:auto; min-height:0}
-.menu-footer{flex:none}
+.menu-footer{flex:none; display:flex; align-items:center; justify-content:space-between; gap:10px}
 .menu-count{margin-top:8px; font-family:var(--font-mono); font-size:11px; color:var(--fg-faint)}
+.menu-settings{margin-top:8px; flex:none}
+/* the icon download sits at the very bottom of the Settings panel */
+.set-download{display:block; margin-top:12px; text-align:center; text-decoration:none}
 #picsPanel{right:clamp(10px,2.5vw,22px); width:min(430px,94vw)}
 #themePanel{right:clamp(10px,2.5vw,22px); width:min(300px,92vw)}
 #setPanel{right:clamp(10px,2.5vw,22px); width:min(330px,92vw)}
@@ -483,10 +479,13 @@ html{ --font-scale:1; --ink:0.7; --ink-stroke:#fff; --ink-erode:1.8;
 /* every piece of text we draw into an SVG is a comic face — on screen and in print */
 svg text, svg tspan{ font-family:var(--font-comic) }
 svg .artwork{ stroke:var(--ink-stroke); stroke-width:var(--ink-erode); stroke-linejoin:round }
-svg .bubble{ stroke-width:calc(5px * var(--ink)) }
-svg .lead-under{ stroke-width:calc(2px * var(--ink)) }
-svg .lead{ stroke-width:calc(0.7px * var(--ink)) }
-svg .halo{ stroke-width:calc(4px * var(--ink)) }
+/* Minimum hairline: at low ink these would otherwise compute to a fraction of a
+   user unit (0.7 × 0.1 = 0.07) and disappear on screen and in print. max() holds
+   every genuinely-stroked element at >= 1 unit of the 1080 canvas. */
+svg .bubble{ stroke-width:max(1px, calc(5px * var(--ink))) }
+svg .lead-under{ stroke-width:max(1px, calc(2px * var(--ink))) }
+svg .lead{ stroke-width:max(1px, calc(0.7px * var(--ink))) }
+svg .halo{ stroke-width:max(1px, calc(4px * var(--ink))) }
 .scale-meter{display:flex; align-items:flex-end; gap:9px; margin:-4px 0 14px; flex-wrap:wrap}
 .scale-bar{display:block; overflow:visible}
 /* weight class → how much of the theme accent is mixed in: a near-weightless
@@ -760,9 +759,7 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 -2px 0 #f
 }
 
 /* =============================================================== RESPONSIVE */
-@media(max-width:1080px){
-  .brand small{display:none}
-}
+/* (the brand tagline that used to be hidden here no longer exists) */
 /* mobile: collapse all controls into a second row toggled by the ⋯ button */
 @media(max-width:820px){
   /* Wrapping turns the fixed 58px bar into an auto-height one, and with no
@@ -817,7 +814,11 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 -2px 0 #f
   /* keep the vertical padding set by the 820px rule — a `padding` shorthand
      here would silently wipe it and put the bar flush against the top */
   .topbar{gap:7px; padding-left:10px; padding-right:10px}
-  .brand .label{display:none}
+  /* The wordmark is the only brand element left, so it stays on at every width;
+     it just gets smaller and is allowed to ellipsize instead of pushing the
+     controls off the bar. */
+  .brand{font-size:15px; min-width:0}
+  .brand .label{overflow:hidden; text-overflow:ellipsis}
   .tb-btn{padding:8px 11px}
   /* Below this the headline needs the full width more than the art does. */
   .hero{display:block}
@@ -828,10 +829,8 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 -2px 0 #f
 <body>
 
 <header class="topbar">
-  <button class="tb-btn" id="menuBtn" aria-expanded="false" aria-controls="menuPanel">☰ <span class="label">Menu</span></button>
-  <span class="brand"><a class="brand-icon" href="icon.svg" download="microbes-atlas-icon.svg"
-       title="Atlas icon — click or long-press to save"><img src="icon.svg" alt="Microbes atlas icon"
-       width="28" height="28" draggable="true"></a><span class="label">Microbes</span> <small>cell &amp; pathogen atlas</small></span>
+  <button class="tb-btn" id="menuBtn" aria-expanded="false" aria-controls="menuPanel" aria-label="Menu" title="Menu">☰</button>
+  <span class="brand"><span class="label">Microbes Atlas</span></span>
   <div class="spacer"></div>
   <div class="tb-tools" id="tbTools">
   <div class="tb-tools-inner">
@@ -882,6 +881,7 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 -2px 0 #f
     <!-- Item 14/18: pinned footer, outside the scrollable #navTree, always visible -->
     <div class="menu-footer">
       <div class="menu-count" id="menuCount"></div>
+      <button class="tb-btn menu-settings" id="menuSettings">⚙ Settings</button>
     </div>
   </nav>
 
@@ -892,7 +892,7 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 -2px 0 #f
       <span>Line thickness <b id="inkVal">70%</b></span>
       <div class="set-stepper">
         <button type="button" class="step-btn" data-for="inkRange" data-step="-1" aria-label="Thinner lines">&minus;</button>
-        <input type="range" id="inkRange" min="10" max="140" step="5" value="70">
+        <input type="range" id="inkRange" min="0" max="140" step="5" value="70">
         <button type="button" class="step-btn" data-for="inkRange" data-step="1" aria-label="Thicker lines">+</button>
       </div>
     </label>
@@ -907,6 +907,11 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 -2px 0 #f
     </label>
     <label class="menu-opt"><input type="checkbox" id="enlargeLabels"> Show labels on enlarge</label>
     <label class="menu-opt"><input type="checkbox" id="showGiant"> Show GIANTmicrobes plush</label>
+    <!-- The atlas icon used to live in the top bar and double as its own
+         download link. The bar is now wordmark-only, so the download moved
+         here, where it is findable but out of the way. -->
+    <a class="tb-btn set-download" id="iconDownload" href="icon.svg"
+       download="microbes-atlas-icon.svg">⤓ Download Application Icon</a>
   </div>
 
   <div class="panel" id="picsPanel">
@@ -1186,6 +1191,44 @@ function segsCross(a1,a2,b1,b2){
   const d1=d(b1,b2,a1), d2=d(b1,b2,a2), d3=d(a1,a2,b1), d4=d(a1,a2,b2);
   return ((d1>0&&d2<0)||(d1<0&&d2>0)) && ((d3>0&&d4<0)||(d3<0&&d4>0));
 }
+// Push apart any two labels whose drawn boxes actually collide.
+//
+// decrossTy below spaces labels vertically within each side, which is enough while
+// they are short: two labels at the same height on opposite sides never met. German
+// and Latin are systematically longer than English, and the hepatocyte's
+// "Mikrovilli · Disse-Raum" grew far enough right to run into "Kernkörperchen
+// (Nukleolus)" — a collision no purely vertical rule can see, because it depends on
+// how wide the text is in the language being displayed.
+//
+// So this works on real boxes for one specific language, and is run per language.
+function separateBoxes(items, ty, lang){
+  const box = i => {
+    const it = items[i], raw = it[lang] || it.en || '';
+    const w = textW(raw);
+    const x0 = it.tx < it.ax ? it.tx : it.tx - w;   // anchor start vs end
+    // Measured, not guessed: getBBox on one of these labels reports 1.117em above
+    // the baseline and 0.479em below, halo stroke included. An earlier 0.80/0.25
+    // model under-estimated the box by ~0.5em and left a 12-unit overlap behind.
+    return {x0, x1: x0 + w, y0: ty[i] - LAB_FS * 1.12, y1: ty[i] + LAB_FS * 0.48};
+  };
+  // repeat: one nudge can create the next collision, but each pass only ever moves
+  // labels downward, so it terminates
+  for(let pass = 0; pass < 12; pass++){
+    let moved = false;
+    const order = items.map((_,i)=>i).sort((a,b)=>ty[a]-ty[b]);
+    for(let k = 1; k < order.length; k++){
+      for(let p = 0; p < k; p++){
+        const i = order[p], j = order[k];
+        const a = box(i), b = box(j);
+        const ox = Math.min(a.x1,b.x1) - Math.max(a.x0,b.x0);
+        const oy = Math.min(a.y1,b.y1) - Math.max(a.y0,b.y0);
+        if(ox > 2 && oy > 2){ ty[j] += oy + 2; moved = true; }
+      }
+    }
+    if(!moved) break;
+  }
+  return ty;
+}
 function decrossTy(items){
   const ty = items.map(it=>it.ty);
   ['left','right'].forEach(side=>{
@@ -1239,11 +1282,14 @@ function sizeSvgFromViewBox(svgEl){
 function overlaySvg(m, style){
   const lab=m.lab[style], src=m.img[style];
   const w=lab.w, h=lab.h, fill=lab.fill||'#fff', stroke=lab.stroke||'#000';
-  const items=lab.items, tys=decrossTy(items);
+  const items=lab.items, baseTys=decrossTy(items);
   let s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+w+' '+h+'" width="'+w+'" height="'+h+'">'+
         '<image href="'+esc(src)+'" x="0" y="0" width="'+w+'" height="'+h+'"/>';
   ['en','la','de'].forEach(lang=>{
     const vis=(state.aud==='sci')?(lang==='la'):(lang===state.lang);
+    // Each language gets its own final pass: the vertical spacing above is shared,
+    // but only this language's actual text widths can say whether two labels touch.
+    const tys=separateBoxes(items, baseTys.slice(), lang);
     s+='<g class="labellayer" id="labels-'+lang+'" style="display:'+(vis?'inline':'none')+'">';
     items.forEach((it,i)=>{
       const raw=it[lang]||it.en||''; const txt=esc(raw);
@@ -2532,8 +2578,25 @@ function applyFontScale(){
   if(r) r.value=pct; if(v) v.textContent=pct+'%';
 }
 function applyInk(){
-  const pct=Math.max(10,Math.min(140, +state.ink||70));
-  const d=Math.abs(100-pct)/100*6;
+  // 0 is a legal setting, so it cannot go through `|| 70` — zero is falsy and
+  // would silently snap the slider back to the default the moment it hit the
+  // bottom of its travel.
+  const raw = Number.isFinite(+state.ink) ? +state.ink : 70;
+  const pct=Math.max(0,Math.min(140, raw));
+  let d=Math.abs(100-pct)/100*6;
+  // The coloring artwork is ONE filled path, so it can only be thinned by
+  // painting white back over its own boundary — which shaves d/2 off each side
+  // of every black feature. Measured across the traced pages a line is about
+  // 4-7 units wide on the 1080 canvas, so the raw 6.0 at 0% erased the drawing
+  // outright. Ease the erosion onto a 3-unit ceiling with tanh instead of
+  // clamping: a hard Math.min() made everything below ~50% collapse to the same
+  // value and killed half the slider's travel, whereas this stays strictly
+  // monotonic (0%→2.89, 40%→2.50, 70%→1.61) and still leaves a median line
+  // ~1 unit of hairline. Fattening (pct>100) tops out at 2.4 and is left alone.
+  // The stroked elements keep their own floor in CSS via max(1px, …), so 0%
+  // means "as fine as it goes", never "gone".
+  const CEIL=3;
+  if(pct<100) d=CEIL*Math.tanh(d/CEIL);
   html.style.setProperty('--ink', String(pct/100));
   html.style.setProperty('--ink-stroke', pct<=100 ? '#fff' : '#000');
   html.style.setProperty('--ink-erode', d.toFixed(2)+'px');
@@ -2552,6 +2615,20 @@ $('#menuBtn').addEventListener('click',e=>{e.stopPropagation();togglePanel(e.cur
 $('#picsBtn').addEventListener('click',e=>{e.stopPropagation();togglePanel(e.currentTarget,$('#picsPanel'));});
 $('#themeBtn').addEventListener('click',e=>{e.stopPropagation();togglePanel(e.currentTarget,$('#themePanel'));});
 $('#setBtn').addEventListener('click',e=>{e.stopPropagation();togglePanel(e.currentTarget,$('#setPanel'));});
+// Menu footer → jump straight into the Settings dialog. This is a hand-off, not
+// a toggle: togglePanel() would CLOSE Settings on the one path where it is
+// already open, so open it explicitly instead.
+$('#menuSettings').addEventListener('click',e=>{
+  e.stopPropagation();
+  closePanels();
+  const p=$('#setPanel');
+  p.classList.add('open');
+  $('#setBtn').setAttribute('aria-expanded','true');
+  pinPanel(p);
+});
+// The download is a real <a download>; just don't let it bubble up and close
+// the panel out from under the click.
+$('#iconDownload').addEventListener('click',e=>{e.stopPropagation();});
 $('#filtBtn').addEventListener('click',e=>{e.stopPropagation();togglePanel(e.currentTarget,$('#filtPanel'));});
 [['fTitle','fTitle'],['fDesc','fDesc'],['fGiant','fGiant'],['fColoring','fColoring'],['fAudio','fAudio']].forEach(([id,key])=>{
   $('#'+id).addEventListener('change',e=>{ state[key]=e.target.checked; save(); applySearch(); });
