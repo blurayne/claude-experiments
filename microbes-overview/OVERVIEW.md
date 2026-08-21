@@ -4,7 +4,7 @@
 
 ## Where we stand
 
-- **18 sets**, **107 microbes** live in the viewer, out of **112 catalogued**.
+- **18 sets**, **108 microbes** live in the viewer, out of **112 catalogued**.
 - Every live microbe carries: 5 picture styles, 3 labelled diagrams, a printable A4 coloring page, kids narration in EN + DE, and size/weight data — the table below is the proof.
 - **46 plush links**, every one an exact species/cell match. 8 of those photos had to be repaired (see the last section).
 
@@ -121,7 +121,7 @@
 | helpful-microbes | Baker's yeast (Saccharomyces cerevisiae) | `saccharomyces-cerevisiae` | 5/5 | 3/3 | ✅ | ✅ | 5 µm · 60 pg | Beer & Bread (Saccharomyces cerevisiae) |
 | helpful-microbes | Penicillin mould (Penicillium chrysogenum) | `penicillium-chrysogenum` | 5/5 | 3/3 | ✅ | ✅ | 3.5 µm · 20 pg | Penicillin (Penicillium chrysogenum) |
 | helpful-microbes | Bifidobacterium longum | `bifidobacterium-longum` | 5/5 | 3/3 | ✅ | ✅ | 3 µm · 1.5 pg | Bifido (Bifidobacterium longum) |
-| pet-pathogens | Heartworm (Dirofilaria immitis) | — | ❌ not rendered | | | | 270000 µm · 200 mg | |
+| pet-pathogens | Heartworm (Dirofilaria immitis) | `heartworm` | 5/5 | 3/3 | ✅ | ✅ | 270000 µm · 200 mg | Heartworm (Dirofilaria immitis) |
 | pet-pathogens | Feline immunodeficiency virus (FIV) | — | ❌ not rendered | | | | 110 nm · 1 fg | |
 | pet-pathogens | Feline leukaemia virus (FeLV) | — | ❌ not rendered | | | | 100 nm · 1 fg | |
 | pet-pathogens | Chlamydia felis (feline conjunctivitis) | — | ❌ not rendered | | | | 300 nm · 0.1 pg | |
@@ -129,9 +129,8 @@
 
 ## Gaps
 
-**Catalogued but not yet rendered — 5.** Text, German translation and scale data already exist for these; only the pictures are missing.
+**Catalogued but not yet rendered — 4.** Text, German translation and scale data already exist for these; only the pictures are missing.
 
-- `pet-pathogens` — Heartworm (Dirofilaria immitis)
 - `pet-pathogens` — Feline immunodeficiency virus (FIV)
 - `pet-pathogens` — Feline leukaemia virus (FeLV)
 - `pet-pathogens` — Chlamydia felis (feline conjunctivitis)
@@ -141,7 +140,7 @@
 
 - none
 
-**Data waiting for a render:** 5 scale entries (`chlamydia-felis`, `feline-immunodeficiency-virus`, `feline-leukaemia-virus`, `heartworm`, `rabies-virus`), 2 plush links (`heartworm`, `rabies-virus`).
+**Data waiting for a render:** 4 scale entries (`chlamydia-felis`, `feline-immunodeficiency-virus`, `feline-leukaemia-virus`, `rabies-virus`), 1 plush link (`rabies-virus`).
 
 **No recorded micrograph source:** none.
 

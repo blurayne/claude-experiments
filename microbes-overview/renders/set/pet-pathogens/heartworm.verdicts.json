@@ -1,0 +1,32 @@
+{
+ "name": "Heartworm (Dirofilaria immitis)",
+ "short_description": "The largest subject in the atlas: an adult female Dirofilaria immitis nematode reaches 25-30 cm, lives coiled in the right ventricle and pulmonary arteries of dogs (and less often cats), and is transmitted only via mosquitoes carrying its ~300 µm first-stage larvae (microfilariae). NOT segmented like an earthworm; NOT a tapeworm/fluke (no suckers, hooks or scolex).",
+ "themes": {
+  "textbook": {
+   "1": "❌ FAIL — worms show a visible perpendicular ladder/tick-mark texture crossing the body at regular intervals, reading as external segmentation like an earthworm; two worm heads also carry a small dark eye-dot not supported by nematode anatomy.",
+   "2": "⚠️ PARTIAL — much improved (single lengthwise hairline replaces most cross-marks, no eyes on most heads) but a faint residual cross-tick texture and one eye-dot persisted under magnified-crop inspection; escalated to gemini-3-pro-image per the 2-bad-results rule.",
+   "3": "✅ PASS (gemini-3-pro-image) — cuticle rendered as a perfectly smooth glossy gradient with only a single lengthwise hairline per worm (verified by magnified crop at three head locations, zero cross-marks, zero eye-dots); classic heart-cutaway composition with THREE worms (two females, one plain and one gravid with a visible coiled peach-pink reproductive tract in cutaway, one male with an unmistakable tight spiral tail); worms confined to the right-side chamber/vessel, none in the left heart."
+  },
+  "sem": {
+   "1": "✅ PASS — extreme close-up on the tapered anterior third: surface striations run LENGTHWISE (parallel to the body axis, confirmed by magnified crop), correctly matching real longitudinal cuticle striae rather than crosswise rings; a single small unarmed mouth opening at the tip, no jaws/teeth; false-colour warm cream-tan palette with a deeper amber highlight tracing one lateral cord; no border, no baked-in text."
+  },
+  "3d": {
+   "1": "❌ FAIL — same perpendicular tick-mark cuticle texture as textbook attempt 1, confirmed by magnified crop (short cross-dashes at regular intervals along both worms' bodies), plus a small eye-dot near each anterior tip.",
+   "2": "✅ PASS — cuticle re-rendered as a perfectly smooth glassy gradient (verified by magnified crop of both anterior tips and mid-body: zero cross-marks, a single lengthwise hairline only); blank featureless rounded anterior tips (no eyes); clear sexual dimorphism — longer female with visible peach-pink coiled reproductive tract mid-body vs. shorter male with an unmistakable tight spiral tail; natural pearly cream-white biological tones, clean seamless studio background, no border."
+  },
+  "watercolor": {
+   "1": "❌ FAIL — same perpendicular tick-mark cuticle texture confirmed by magnified crop (regular cross-dashes along the body), inconsistent with the smooth-cuticle requirement.",
+   "2": "✅ PASS — cuticle re-rendered smooth (verified by magnified crop: a single fine ink outline plus one lengthwise centre line only, no cross-marks); blank rounded anterior tip on the female, unmistakable tight spiral male tail; warm aged paper fills the frame edge-to-edge with a soft wash halo, no mat/border/frame/sheet-on-surface look, matching the cocci/rod-bacterium house style."
+  }
+ },
+ "reference": "✅ PASS — phase-contrast blood-smear micrograph (400x), Wikimedia Commons, CC BY-SA; confirmed by direct visual inspection to show a single coiled, translucent Dirofilaria immitis microfilaria amid red blood cells, consistent with the source page's own description; clean single specimen, no baked-in text or scale bar; the dark circular vignette is the authentic microscope field stop (not a border) and was left uncleaned since edit_image.py had nothing artificial to remove. Native size 600×601 px is small — the 1080×1080 master is UPSCALED ~1.8x by fetch_reference.py's normaliser, not native high-resolution; noted explicitly as a known limitation.",
+ "decision": [
+  ["textbook", "✅ teaching-ready (label base)", "3", "escalated to gemini-3-pro-image after 2 imperfect flash attempts (residual cross-tick cuticle texture); attempt 3 fully smooth, classic heart-cutaway view with correct male/female dimorphism and gravid-female cutaway"],
+  ["sem", "✅ teaching-ready", "1", "correct longitudinal (not crosswise) cuticle striations on first attempt; passed without escalation"],
+  ["3d", "✅ teaching-ready", "2", "attempt 1 rejected for segmentation-like cross-marks + eye-dots; attempt 2 fixed both, natural tones, correct dimorphism"],
+  ["watercolor", "✅ teaching-ready", "2", "attempt 1 rejected for the same cross-mark cuticle issue; attempt 2 fixed it, full-bleed paper, no border"],
+  ["reference photo", "✅ verified", "1", "Wikimedia Commons blood-smear micrograph of a microfilaria, CC BY-SA — upscaled from a small (600×601 px) source; chosen over a gross-pathology heart photo to keep the atlas child-appropriate"],
+  ["coloring page", "⛔ BLOCKED — not rendered", "0", "coloring.py call returned HTTP 429 'exceeded its monthly spending cap' (a project-wide Gemini billing block, not a per-model daily quota) on the first attempt; per pipeline policy this halts all further Gemini calls until the user raises the cap. Prompt, scenario and speech lines are saved in heartworm.coloring.prompt.json (status: pending) ready to run unmodified once the cap is lifted."]
+ ],
+ "svg_theme": "textbook"
+}
