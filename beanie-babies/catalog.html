@@ -78,22 +78,23 @@ header.hero {
 }
 /* The bear is a real <img> inside a download link, so right-click "Save image
    as" / "Save link as" -- or just a tap -- hands over the icon file itself. */
-/* A cream chip behind it: the bear is brown and its own shadow was drawn for
-   white paper, so both vanish against the red gradient without one. */
 .hero-icon {
   display: inline-flex;
   flex: none;
   line-height: 0;
-  padding: .15rem;
-  background: #fffdf9;  /* fixed: the hero gradient doesn't change with the theme */
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,.25);
+  border-radius: 10px;
   -webkit-tap-highlight-color: transparent;
 }
+/* No chip behind it -- the icon keeps its own transparency. Brown on the red
+   gradient needs help though, so: a hairline light rim to separate it from the
+   background, then a cast shadow for depth. */
 .hero-icon img {
-  width: 2.1rem;
-  height: 2.1rem;
+  width: 2.3rem;
+  height: 2.3rem;
   display: block;
+  filter:
+    drop-shadow(0 0 1px rgba(255,255,255,.9))
+    drop-shadow(0 2px 3px rgba(120,20,10,.5));
   transition: transform .15s ease;
 }
 .hero-icon:hover img, .hero-icon:focus-visible img { transform: scale(1.08) rotate(-4deg); }
@@ -448,8 +449,7 @@ footer { text-align: center; padding: 1.5rem; color: var(--muted); font-size: .8
   .sticky-wrap { position: static; box-shadow: none; }
   header.hero { padding: .5rem 1rem; }
   .hero-top h1 { font-size: 1.2rem; }
-  .hero-icon { box-shadow: none; padding: 0; background: none; }
-  .hero-icon img { width: 1.5rem; height: 1.5rem; }
+  .hero-icon img { width: 1.5rem; height: 1.5rem; filter: none; }
   body { background: white; }
   [data-theme="dark"] { --bg: white; --panel-bg: white; --ink: black; --card-bg: white; }
   .day-block, .card { break-inside: avoid; }

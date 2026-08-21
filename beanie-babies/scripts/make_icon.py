@@ -56,7 +56,10 @@ OUTPUTS = [
     ("icon.png", 1024, None),  # the master, linked for download
     ("icon-512.png", 512, None),
     ("icon-192.png", 192, None),
-    ("icon-180.png", 180, (255, 255, 255)),  # apple-touch-icon: iOS flattens to black
+    # apple-touch-icon. Transparent like the rest, which costs us on iOS -- it
+    # composites these onto black -- but iOS isn't the target and a white square
+    # here would be the one icon that isn't actually transparent.
+    ("icon-180.png", 180, None),
     ("icon-96.png", 96, None),  # the one the page header actually loads
     ("favicon-32x32.png", 32, None),
     ("favicon-16x16.png", 16, None),
