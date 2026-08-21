@@ -78,6 +78,28 @@ a compromise someone chose deliberately — listed so a later pass can revisit t
 - [ ] `heartworm` — microfilariae, the ~300 µm larval stage a mosquito actually
       carries, appear only in the real micrograph. Putting them in the same frame as
       a 27 cm adult is not practical at one scale.
+- [x] `feline-immunodeficiency-virus` — **no real micrograph, and none exists.**
+      Wikimedia's FIV category holds only diagrams, a test-kit photo and a photo of a
+      sick cat; CDC PHIL has no FIV entry (its lentivirus plates are all HIV-1); the
+      one paper with genuine FIV TEM figures is ASM copyright. The agent reported the
+      gap rather than passing off an HIV plate, which is the right call and the reason
+      this subject shows 4/5 pictures instead of 5/5. Not a defect to fix — recorded
+      so nobody "corrects" it later by substituting a relative's photograph.
+- [ ] `feline-immunodeficiency-virus` — in the 3d style the matrix (p15) label points
+      at the envelope/capsid transition rather than a visually distinct band, because
+      that render does not separate the layer the way textbook does.
+- [ ] `feline-immunodeficiency-virus` — the textbook background reads medium grey
+      rather than the house deep charcoal.
+- [ ] `rabies-virus` — its reference (CDC PHIL 1876) shows virions massed in a Negri
+      body, not an isolated particle. At full frame the bullet silhouette is not
+      resolvable; it becomes readable at ~1.6× zoom. Verified by the orchestrator
+      after the render agent flagged that it had inherited the plate without
+      re-checking it, and the resolution limit is now stated in the log.
+- [ ] `rabies-virus` — the watercolor's flat end reads pale cream rather than the
+      lilac-grey envelope tone that textbook and 3d match exactly.
+- [ ] `rabies-virus` — the coloring page reaches full bleed on three edges and comes
+      within 6px on the bottom, via the crop-and-retrace hatch rather than a natively
+      edge-bleeding render.
 
 ### Ideas not yet decided
 - [ ] More cancer subjects — the set currently holds one generic entry. Leukaemia,

@@ -2,6 +2,14 @@
 
 Every microbe's `watercolor` image — labelled SVG where built, else the last render. [← set overview](../../OVERVIEW.md)
 
+## Feline immunodeficiency virus (FIV) (`feline-immunodeficiency-virus`)
+![watercolor](feline-immunodeficiency-virus.watercolor.svg)
+[full log](../../feline-immunodeficiency-virus.render.md)
+
 ## Heartworm (Dirofilaria immitis) (`heartworm`)
 ![watercolor](heartworm.watercolor.svg)
 [full log](../../heartworm.render.md)
+
+## Rabies virus (`rabies-virus`)
+![watercolor](rabies-virus.watercolor.svg)
+[full log](../../rabies-virus.render.md)

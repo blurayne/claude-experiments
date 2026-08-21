@@ -1,0 +1,65 @@
+{
+  "name": "Rabies virus",
+  "short_description": "A bullet-shaped rhabdovirus (Rabies lyssavirus, family Rhabdoviridae): ~180 nm long by ~75 nm wide (~2.4:1), hemispherically rounded at one end and flat/slightly concave at the other. G-glycoprotein spikes stud the rounded end and curved sides but are absent from the flat base; a matrix (M) protein layer lines the envelope; a helical, cross-striated ribonucleoprotein (negative-sense ssRNA + N/L/P proteins) fills the interior.",
+  "themes": {
+    "sem": {
+      "1": "❌ FAIL — measured bullet aspect ratio only ~1.4:1 (PCA-based long/short axis measurement), too stubby vs. the ~2.4:1 target; more importantly, the hemispherically rounded end was rendered completely bare of glycoprotein studs (all studs sat on the cylindrical mid-body only) while the flat end was correctly bare — spikes were on the wrong region.",
+      "2": "✅ PASS (gemini-2.5-flash-image) — corrected prompt explicitly required stud coverage running continuously from the flat base's rim, over the full curved side wall, up and over the apex of the rounded dome. Verified by 2x-zoomed crop of both ends: rounded end (top-right of frame) densely and evenly studded to the apex; flat end (bottom-left) a clean bare grey disc with a visible rim, zero studs. Silhouette check: one hemispherical dome + one flat/slightly-concave disc, clearly asymmetric — not a sphere, not a capsule. No baked-in text, no border."
+    },
+    "textbook": {
+      "1": "❌ FAIL — silhouette reads as a stadium/pill/capsule shape: both ends rounded domes (confirmed via 2x-zoomed crop of the right end — a clean hemispherical bulge, no flat cut at all). Hard fail per spec (both-ends-rounded is explicitly listed as unacceptable).",
+      "2": "❌ FAIL — added an explicit 'rifle-cartridge-base, not a pill-capsule' correction; shape still came back with a rounded right end (same capsule silhouette), though slightly more elongated overall.",
+      "3": "⚠️ PARTIAL — added a much more forceful correction ('AA battery flat end / cut cucumber' analogy, explicit 'if you can see any bulge, redraw it flat'). Shape corrected: left end a rounded studded dome, right end now a genuine flat disc with a crisp circular rim (verified by zoomed crop). However the flat disc rendered in the AMBER/TAN interior-matrix colour rather than the grey-lilac envelope colour used on the visible dome — a labelling-relevant colour inconsistency (the flat base is intact outer envelope, not an interior cross-section).",
+      "4": "✅ PASS (gemini-2.5-flash-image) — added a colour-only correction telling the model the flat base disc must match the dome's grey-lilac envelope colour, not the amber matrix colour. Verified by zoomed crop: flat disc is grey-lilac, bare of studs, crisp rim, matching the dome's envelope colour exactly. Silhouette confirmed: rounded studded dome one end, flat bare grey disc the other end, ~2.4:1-reading elongated body. No baked-in text, no border."
+    },
+    "3d": {
+      "1": "❌ FAIL — same capsule/pill silhouette as textbook attempt 1: both ends read as rounded domes when the right end was cropped and zoomed (a smooth rounded bulge, no flat cut).",
+      "2": "✅ PASS (gemini-2.5-flash-image) — with the rifle-cartridge-base correction applied. Verified by 2x-zoomed crop of the right end: a genuine flat elliptical disc, light blue-grey (matching envelope colour), crisp rim, completely bare of studs. Left end (also crop-verified): rounded dome, densely studded to the apex, natural biological colour tones (blue-grey envelope, coppery-gold coiled core, amber matrix band) — not monochrome, not neon. No border, no baked-in text."
+    },
+    "watercolor": {
+      "1": "❌ FAIL (two issues) — capsule/pill silhouette, right end a rounded dome not a flat cut (zoomed-crop confirmed); separately, the ink-hatched studs on the dome were drawn as small hooked/comma-shaped marks that read as scattered handwritten glyphs (visually similar to lowercase b/g/q/6/9 at different rotations) rather than plain circular bumps — a baked-in-text-adjacent failure caught by a magnified crop, per the pipeline's documented lesson about molecular-subject lettering.",
+      "2": "⚠️ PARTIAL — flat-end correction applied; right end now a clean flat oval disc (pass). Stud shape improved (closed circles with a small highlight dash, no more open hooked/comma glyphs) but not re-verified as final pick because the shape fix alone made this the natural next base to refine.",
+      "3": "✅ PASS (gemini-2.5-flash-image) — combined flat-end + stud-shape correction ('plain closed circle or filled oval blob only, no comma-tail/hook/loop that could read as a letter'). Verified by 2x-zoomed crops of both ends: left, a rounded dome with plain closed-circle studs and generic short texture dashes (no letter-like glyphs); right, a clean bare cream/off-white flat disc with a crisp rim. Full-bleed aged paper, soft wash halo, no mat/frame/sheet-on-surface look. Colour note: the flat disc reads pale cream rather than a visibly lilac-grey tone (unlike textbook/3d) — a minor, accepted stylistic softness of the watercolour medium, not a shape or spike-placement error."
+    }
+  },
+  "reference": "Not re-verified this session (pre-existing, produced by the interrupted prior agent) — CDC PHIL 1876 (Dr. Fred Murphy, 1975), public domain TEM. Sidecar's 'verified' field is null; inspected visually as intact and correctly filed under reference-microscopy/theme/tem/rabies-virus.attempts/ with png/avif/heic + json sidecar. Flagged rather than silently accepted since this session did not run its own AI visual-check subagent on it. ORCHESTRATOR VERIFICATION (added after the render agent flagged this as not re-done): the plate was viewed directly, at full frame and again at ~1.6x on a dense particle field. At full 1080x1080 the virions read only as small dark rods and dots and the diagnostic bullet silhouette is NOT resolvable — so the plate corroborates 'many virions massed inside a Negri body', which is what its CDC caption claims, rather than 'bullet-shaped'. Zoomed, individual particles do show the rhabdovirus profile: elongated dark bodies with one rounded and one flatter end, alongside circular transverse sections where virions were cut across. Consistent with rabies-infected tissue and with PHIL 1876's own description. PASS, with the resolution limitation stated rather than implied.",
+  "decision": [
+    [
+      "sem",
+      "✅ teaching-ready",
+      "2",
+      "attempt 1 rejected for bare rounded end + stubby ratio; attempt 2 fixed stud coverage on the dome, flat end correctly bare, verified by zoomed crop of both ends"
+    ],
+    [
+      "textbook",
+      "✅ teaching-ready",
+      "4",
+      "attempts 1-2 rejected for capsule/pill (both-ends-rounded) silhouette; attempt 3 fixed the shape but flat cap was wrong colour (amber matrix instead of grey envelope); attempt 4 fixed the colour, verified by zoomed crop"
+    ],
+    [
+      "3d",
+      "✅ teaching-ready",
+      "2",
+      "attempt 1 rejected for capsule/pill silhouette; attempt 2 fixed it — flat disc + studded dome verified by zoomed crop, natural biological tones"
+    ],
+    [
+      "watercolor",
+      "✅ teaching-ready",
+      "3",
+      "attempt 1 rejected for capsule silhouette AND letter-like glyph studs; attempt 2 fixed the silhouette; attempt 3 fixed the stud shape too, verified by zoomed crop of both ends"
+    ],
+    [
+      "reference photo",
+      "⚠️ carried over, not re-verified",
+      "1",
+      "CDC PHIL 1876 public-domain TEM, produced by the prior interrupted agent; visually inspected as intact this session but not re-run through an AI verify subagent"
+    ],
+    [
+      "coloring page",
+      "✅ teaching-ready (cropped)",
+      "3",
+      "attempt 1 had a forbidden black border frame; attempt 2 dropped the border but left a soft 30-90px margin (touched only the left edge); attempt 3 was only marginally tighter. Per the pipeline's crop-don't-reroll rule, attempt 3's raw PNG was measured and cropped (content bbox rows 58-959 / cols 0-984, 5px buffer) and re-traced via coloring.py's own to_bitmap/trace_paths/build_svg — no extra API call. Pixel-verified post-crop: artwork bleeds off top/left/right edges, bottom within 6px. Dog + vaccination tag + cheering shield character + a bat waving hello from a safe distance; no needle, no blood, no distressed animal."
+    ]
+  ],
+  "svg_theme": "textbook"
+}
