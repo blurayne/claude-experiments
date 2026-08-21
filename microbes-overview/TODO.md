@@ -1,4 +1,4 @@
-- [ ] Link with GIANTmicrobes catalog (later)
+- [ ] for missing microbes check again if there is 1:1 matching pciture in /home/markusg/Private/claude-experiments/microbes-overview/ - if yes take photo and try to link to public product page on giantmicrobes.com or riesenmikroben.de (if nmo product page just take domain as link)
 - [x] Top Bar Changes 
   - Menu Button (☰) without Label 
   - Title "Microbes Atlas"
@@ -28,7 +28,10 @@
 	  - [ ] Entry: Type II Fibers (White Muscle Fibers / "Fast-Twitch")
 	  - [ ] Type IIa Fibers:
 	  - [ ] Type IIx Fibers (formerly often Type IIb):
-- [ ] PDF-Book for Children (later)
+- [ ] For AGENTS.md when adding a new entry translate to de/en and de for kids do an audition for de/en. try to add GIANT micro and ensure its the right mathc
+- [ ] Add entry for chicken pox
+- [ ] PDF-Book for Children
+  - [ ] link in initial intro section of the page to download or view in browser
   - [ ] Develop a Script to generate
      - Use HTML and print to from chromeless browser to PDF (playwright; python script with uv-shebang)
      - Short Section Title +  Intro go to Normal Entry Pages

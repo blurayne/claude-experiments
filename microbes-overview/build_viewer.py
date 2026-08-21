@@ -39,7 +39,7 @@ import re
 import sys
 from pathlib import Path
 
-from microbe_giant import GIANT, AI_CLEANED
+from microbe_giant import GIANT, AI_CLEANED, KEYCHAIN
 from microbe_scale import SCALE, weight_class, weight_pg
 
 
@@ -93,8 +93,14 @@ def build():
 
     for page in pages:
         folder = PAGE_TO_FOLDER.get(page["id"], page["id"])
+        chapter = page.get("kind") == "chapter"
         set_dir = RENDERS / folder
-        if not set_dir.is_dir():
+        # A chapter is prose only and has no renders, so a missing folder is
+        # expected there. For a real set it means the renders are not on disk
+        # yet, and the page is dropped rather than shipped empty. (`Path.glob`
+        # on a non-existent directory yields nothing, so the scan below is safe
+        # either way; only the narration folder is ever created, by tts.py.)
+        if not set_dir.is_dir() and not chapter:
             print(f"  (skip: no render folder for page {page['id']} -> {folder})")
             continue
 
@@ -261,7 +267,10 @@ def build():
                 if gp:
                     gm_name, gm_url = GIANT[key]
                     giant = {"img": gp.relative_to(HERE).as_posix(), "name": gm_name,
-                             "url": gm_url, "cleaned": key in AI_CLEANED}
+                             "url": gm_url, "cleaned": key in AI_CLEANED,
+                             # a plush keychain, not a full-size plush toy —
+                             # the card has to say which one it is
+                             "keychain": key in KEYCHAIN}
 
             microbes.append(
                 {
@@ -307,35 +316,71 @@ def build():
                     words = []
                 set_audio[lang] = {"src": amp3.relative_to(HERE).as_posix(), "words": words}
 
+        # The Scientist register falls back to the generic description, which is
+        # what every page but three actually has. `description_sci_*` used to be
+        # written and never read, so genetics/cancer-cells/pet-pathogens carried
+        # a scientific set intro that no reader ever saw.
+        desc = {
+            "kids": {
+                "en": page.get("description_kids_en", ""),
+                "de": fix_de(page.get("description_kids_de", "")),
+            },
+            "adults": {
+                "en": page.get("description_adults_en", ""),
+                "de": fix_de(page.get("description_adults_de", "")),
+            },
+            "sci": {
+                "en": page.get("description_sci_en") or page.get("description_en", ""),
+                "de": fix_de(page.get("description_sci_de") or page.get("description_de", "")),
+            },
+        }
+
         sets_out.append(
             {
                 "id": page["id"],
                 "folder": folder,
+                # "set" (microbes in a grid) or "chapter" (prose only). The
+                # front-end needs this stated rather than inferred from an empty
+                # microbe list, so that a *set* whose renders are missing still
+                # reads as the data error it is instead of as a chapter.
+                "kind": "chapter" if chapter else "set",
                 "title": {"en": page["title_en"], "de": page["title_de"]},
                 "subtitle": {
                     "en": page.get("subtitle_en", ""),
                     "de": page.get("subtitle_de", ""),
                 },
-                "desc": {
-                    "kids": {
-                        "en": page.get("description_kids_en", ""),
-                        "de": fix_de(page.get("description_kids_de", "")),
-                    },
-                    "adults": {
-                        "en": page.get("description_adults_en", ""),
-                        "de": fix_de(page.get("description_adults_de", "")),
-                    },
-                    "sci": {
-                        "en": page.get("description_en", ""),
-                        "de": fix_de(page.get("description_de", "")),
-                    },
-                },
+                "desc": desc,
+                # a chapter has no cards to search, so it answers a query on its
+                # own prose — every register, both languages, in one blob
+                "search": " ".join(
+                    [page["title_en"], page["title_de"], page["id"]]
+                    + [v for a in desc.values() for v in a.values()]
+                ).lower()
+                if chapter
+                else "",
                 "audio": set_audio,
                 "microbes": microbes,
             }
         )
 
     data = {"sets": sets_out}
+
+    # "See also" integrity. The front-end drops a link whose target it cannot
+    # find (`relatedHTML`: `if(!hit) return ''`), so a typo'd or stale key just
+    # makes a cross-reference quietly not exist — which is how `mitochondrion`
+    # and `heartworm` spent a while pointing at `contractile-cardiomyocyte`, a
+    # catalogue name rather than the live render key `cardiomyocyte`. These are
+    # declared per pair and written both ways by hand, so both halves are worth
+    # checking here rather than discovering the gap by staring at the page.
+    live = {m["key"] for s in sets_out for m in s["microbes"]}
+    rel = {m["key"]: set(m.get("related") or []) for s in sets_out for m in s["microbes"]}
+    dangling = sorted({(k, t) for k, ts in rel.items() for t in ts if t not in live})
+    one_way = sorted({(k, t) for k, ts in rel.items() for t in ts if t in rel and k not in rel[t]})
+    for k, t in dangling:
+        print(f"  WARNING: {k}: 'related' target {t!r} is not a live subject — the link will not render")
+    for k, t in one_way:
+        print(f"  WARNING: {k} -> {t} is one-directional; add {k!r} to {t}'s 'related'")
+
     DATA_OUT.write_text(json.dumps(data, ensure_ascii=False, indent=1))
 
     # inline the data into the template

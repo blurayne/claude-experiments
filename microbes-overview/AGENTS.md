@@ -106,6 +106,58 @@ speech, and the Print button prints it full-size on A4. Output:
 (12 pages). `build_viewer.py` picks up `coloring/<key>.coloring.svg` into each
 microbe's `coloring` field; "Coloring" is a Pictures-chooser option.
 
+## Audience registers are not decoration
+
+Every piece of prose in this atlas exists three times — **Kids**, **Adults**, **Scientist** —
+in **both** languages, and the viewer's audience switch is the whole point of the data model.
+So *always write for a named audience*, never write one text and lightly reword it twice:
+
+- **Kids** — playful, GiantMicrobes-flavoured. Assumes basic body/microbe knowledge, not
+  none. Says what the thing *does for you*, friend or foe. For a pathogen, say how it is
+  dealt with, and **vary it** (hygiene, rest, water, a medicine from the doctor, the body
+  clearing it) — "your immune system eats the invaders" is fine occasionally, never as a
+  formula. No fear imagery, no war metaphors, no blood.
+- **Adults** — popular science, health-focused. Mechanism in plain words, no moralising
+  about good and bad microbes.
+- **Scientist** — precise mechanism, correct terminology, the numbers that matter, and the
+  caveat where the textbook simplification breaks down.
+
+The German is a **register-matched rewrite**, not a translation of the English. Real umlauts
+(ä ö ü ß), real em dashes (—), never `--`. The same rule applies to set/chapter descriptions
+(`description_kids_*`, `description_adults_*` in `cells_data.py`), not only to microbes.
+
+## Adding a new entry — the checklist that keeps getting missed
+
+Rendering is the visible part and the smallest part. A subject is **not** done until all of
+this is true; each line here is something that was silently skipped at least once.
+
+1. **`cells_data.py`** — the entry, with `name_en`/`name_de` (+ optional `name_kids_*`),
+   `func_*`, `deps_*`, `related`. `name_en` is load-bearing: `build_viewer.py` matches the
+   render to the catalogue on `meta.name == name_en` **byte-exactly**, and the render key is
+   `name_en` with parentheticals dropped, lowercased, non-alphanumerics hyphenated. Get it
+   wrong and the subject vanishes from the site with no error.
+2. **Renders** — the five pictures, three labelled diagrams, coloring page, per the
+   `microbe-render` skill.
+3. **Both languages, all three audiences** — six description blocks EN+DE. Not five.
+4. **Kids narration, EN and DE** — `tts.py --microbe <key>`, and it only works *after*
+   `build_viewer.py` has seen the subject (it reads `viewer-data.json`; a subject that has
+   not been through the barrier reports "0 clips" and silently does nothing). Verify the
+   entry ends up with `audio [de, en]`, not one of them.
+5. **`microbe_scale.py`** — size and weight, or the scale meter is simply absent.
+6. **`microbe_giant.py`** — look for a matching GIANTmicrobes plush and **prove the match**.
+   Judge against the `species` field of `../giant-microbes/merged_catalog.json`, view the
+   product photo, and confirm the URL resolves. Same genus is not the same organism; a
+   generic plush does not belong to one named member. Prefer the `riesenmikroben.de` URL
+   whenever the string exists at all. If there is no exact match, record *why not* in the
+   docstring's non-link list — an unrecorded non-link gets re-litigated every audit.
+   Re-run the audit over the **whole** catalogue after each batch, not just the new subject:
+   the audit only walks live subjects, so a plush for something rendered later is never
+   found unless you sweep again.
+7. **Barrier, in order** — `status.py` → `overview.py` → `build_viewer.py` → `tts.py` →
+   `build_viewer.py` → `build_overview.py`.
+8. **`index.md` and the set counts** — they go stale silently.
+9. **`PLAN.md`** — record every compromise you accepted rather than fixed.
+
 ### Local preview
 
 ```bash

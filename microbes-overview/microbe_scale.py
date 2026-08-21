@@ -13,8 +13,12 @@ dataset, from a prion protein to a human egg cell, so a linear/second bar
 would be useless — see viewer.template.html's scale meter for how the class
 maps to a color).
 
-size_um max reference: human oocyte (egg cell) ~120 µm is the largest human
-cell here and doubles as the fixed scale-bar ceiling in the viewer.
+size_um max reference: human oocyte (egg cell) ~120 µm is the fixed scale-bar
+ceiling in the viewer. It is the largest *compact* human cell, not the largest
+outright — a skeletal muscle fibre is centimetres long and some sixty times
+heavier — so anything above the ceiling simply pins the bar to full and lets
+the printed figure carry the truth (amoeba-proteus, the tick, the muscle
+fibres).
 """
 
 # key -> (size_um, weight_val, weight_unit)
@@ -110,6 +114,20 @@ SCALE = {
     'cardiomyocyte': (100, 60, 'ng'),
     'cardiac-macrophage': (25, 5, 'ng'),
     'intracardiac-neuron': (30, 3, 'ng'),
+    # --- muscle cells ------------------------------------------------------
+    # A skeletal muscle fibre is a *body*, not a network, but an absurdly
+    # elongated one: 40-80 µm across and centimetres long, many running the
+    # whole length of their muscle. The diameter is the figure that separates
+    # the fibre types (I smallest, IIx largest in human limb muscle) but it
+    # would rank the largest human cell below the egg cell, so the length is
+    # what is recorded — it pins the bar to full, as amoeba-proteus and the
+    # tick already do, and the diameters live in the descriptions. Masses are
+    # computed from those diameters over a 3 cm length (pi*r^2*L, ~1.06 g/cm3),
+    # which is why they differ while the size does not.
+    'type-i-fibre': (30_000, 60, 'µg'),
+    'type-ii-fibre': (30_000, 100, 'µg'),
+    'type-iia-fibre': (30_000, 90, 'µg'),
+    'type-iix-fibre': (30_000, 120, 'µg'),
     # --- helpful microbes --------------------------------------------------
     'saccharomyces-cerevisiae': (5, 60, 'pg'),
     'penicillium-chrysogenum': (3.5, 20, 'pg'),

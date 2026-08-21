@@ -383,6 +383,15 @@ html[data-theme="petri"] body::after{
 }
 .nav-links a:hover{color:var(--accent); background:var(--card-hi)}
 .nav-links a:hover::before{background:var(--accent)}
+/* A chapter is prose only, so its nav row is a flat link that matches a
+   .nav-set summary's weight — same rhythm in the list, no disclosure triangle
+   pretending there is something to unfold, and a "¶" instead so it reads as a
+   different kind of thing rather than as a set that failed to open. */
+.nav-chapter{display:flex; align-items:center; gap:8px; margin-bottom:6px;
+  padding:8px 10px; border-radius:9px; text-decoration:none;
+  font-family:var(--font-display); font-weight:600; font-size:14px; color:var(--fg-dim)}
+.nav-chapter::before{content:"¶"; color:var(--accent); font-size:11px}
+.nav-chapter:hover{background:var(--card-hi); color:var(--accent)}
 .menu-opt{display:flex; align-items:center; gap:10px; margin-top:12px; padding-top:12px;
   border-top:1px solid var(--border); font-size:13px; color:var(--fg); cursor:pointer}
 .menu-opt input{accent-color:var(--accent); width:16px; height:16px; cursor:pointer}
@@ -441,6 +450,12 @@ main{max-width:var(--maxw); margin:0 auto; padding:clamp(20px,4vw,44px) clamp(14
 .hero .stat{display:inline-flex; gap:6px; align-items:baseline; margin-top:18px;
   font-family:var(--font-mono); font-size:12.5px; color:var(--fg-faint)}
 .hero .stat b{color:var(--accent); font-size:15px}
+.hero-book{display:flex; gap:8px; margin-top:14px; flex-wrap:wrap}
+.hero-book-btn{display:inline-flex; align-items:center; gap:7px; text-decoration:none;
+  padding:8px 14px; border-radius:10px; font-size:13.5px; font-weight:600;
+  background:var(--accent); color:var(--accent-ink); border:1px solid var(--accent)}
+.hero-book-btn.ghost{background:transparent; color:var(--accent)}
+.hero-book-btn:hover{filter:brightness(1.08)}
 
 .set{margin:0 0 54px; scroll-margin-top:calc(var(--bar-h) + 14px)}
 .set-head{border-top:1px solid var(--border); padding-top:22px; margin-bottom:22px}
@@ -453,6 +468,15 @@ main{max-width:var(--maxw); margin:0 auto; padding:clamp(20px,4vw,44px) clamp(14
 .set-head .set-desc .w{transition:background-color .12s, color .12s; border-radius:3px}
 .set-head .set-desc .w.said{color:var(--fg-dim)}
 .set-head .set-desc .w.active{background:var(--accent); color:var(--accent-ink); padding:0 2px; margin:0 -2px}
+/* A chapter carries no cards, so its prose IS the section: give it the reading
+   width and body size of a card description rather than the terse grey lead-in
+   of a set header, and an accent rail so the eye reads it as an interlude
+   between sets rather than as a set whose pictures failed to load. */
+.set.chapter{margin-bottom:44px}
+.set.chapter .set-head{margin-bottom:0; padding-left:18px; border-left:2px solid var(--accent)}
+.set.chapter .set-head .set-desc{color:var(--fg); font-size:calc(15.5px * var(--font-scale));
+  line-height:1.72; max-width:74ch}
+.set.chapter .set-head .set-desc.sci{font-size:calc(14.5px * var(--font-scale))}
 
 .cards{display:flex; flex-direction:column; gap:26px}
 .card{scroll-margin-top:calc(var(--bar-h) + 14px)}
@@ -939,6 +963,13 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 -2px 0 #f
       <h1 id="heroTitle">An interactive <span class="em">microbe</span> atlas.</h1>
       <p id="heroSub">Scientifically verified, AI-rendered teaching images of the cells, pathogens and antibodies of the human body — in five styles, with switchable labels. Choose your audience, language and picture layout.</p>
       <div class="stat"><b id="statSets">0</b> <span id="heroStatA">sets ·</span> <b id="statMicrobes">0</b> <span id="heroStatB">subjects ·</span> <b>5</b> <span id="heroStatC">styles + real microscopy</span></div>
+      <!-- The children's picture book (build_pdfbook.py). Its own element rather
+           than part of #heroSub, because updateHero() writes that with
+           textContent and would escape any markup put inside it. -->
+      <div class="hero-book">
+        <a id="bookView" class="hero-book-btn" href="microbes-book-en.pdf" target="_blank" rel="noopener">📖 <span>Read the picture book</span></a>
+        <a id="bookDl" class="hero-book-btn ghost" href="microbes-book-en.pdf" download>⤓ <span>PDF</span></a>
+      </div>
     </div>
     <img class="hero-art" src="hero-microscope.png" alt="" width="452" height="720" loading="eager">
   </section>
@@ -1396,10 +1427,12 @@ const LANG_LABEL={en:{en:'English',de:'English'},de:{en:'German',de:'Deutsch'}};
 const HERO={
   en:{h1:'An interactive <span class="em">microbe</span> atlas.',
       sub:'Scientifically verified, AI-rendered teaching images of the cells, pathogens and antibodies of the human body — in five styles, with switchable labels. Choose your audience, language and picture layout. Styles tagged “·gen” are AI-generated from a verified reference; only the plain “Real” style is an actual photomicrograph.',
-      a:'sets ·', b:'subjects ·', c:'styles + real microscopy'},
+      a:'sets ·', b:'subjects ·', c:'styles + real microscopy',
+      book:'Read the picture book', bookDl:'PDF', bookTip:'A4 picture book for children — every subject over two pages, with its coloring page'},
   de:{h1:'Ein interaktiver <span class="em">Mikroben</span>-Atlas.',
       sub:'Wissenschaftlich geprüfte, KI-gerenderte Lehrbilder der Zellen, Erreger und Antikörper des menschlichen Körpers — in fünf Stilen, mit umschaltbaren Beschriftungen. Wähle Zielgruppe, Sprache und Bildlayout. Mit „·gen“ markierte Stile sind KI-generiert aus einer geprüften Referenz; nur der reine „Real“-Stil ist eine echte mikroskopische Aufnahme.',
-      a:'Sets ·', b:'Themen ·', c:'Stile + echte Mikroskopie'},
+      a:'Sets ·', b:'Themen ·', c:'Stile + echte Mikroskopie',
+      book:'Das Bilderbuch lesen', bookDl:'PDF', bookTip:'A4-Bilderbuch für Kinder — jedes Thema auf zwei Seiten, mit seinem Ausmalbild'},
 };
 
 // narration for the CURRENT language, kids mode only (that's the only
@@ -1445,6 +1478,9 @@ function audioCtlHTML(m){
 const SCALE_BAR_SEGMENTS = 16;
 function fmtSize(um){
   if(um < 1) return Math.round(um*1000)+' nm';
+  // Past a millimetre µm stops being readable — a muscle fibre is "30 mm",
+  // not "30000 µm", and the tick reads better as "3 mm" too.
+  if(um >= 1000){ const mm=um/1000; return (Number.isInteger(mm)?mm:mm.toFixed(1))+' mm'; }
   return (Number.isInteger(um) ? um : um.toFixed(1))+' µm';
 }
 function fmtWeight(sc){ return (Number.isInteger(sc.weight_val)?sc.weight_val:sc.weight_val)+' '+sc.weight_unit; }
@@ -1516,9 +1552,11 @@ function descHTML(m){
   if(showGiant || showColoring){
     h+='<div class="coloring-actions">';
     if(showGiant){
+      const gKey=m.giant.keychain;
+      const gTip=gKey?'Preview GIANTmicrobes plush keychain':'Preview GIANTmicrobes plush toy';
       h+='<span class="giant-actions">'+
         '<button type="button" class="cb-btn cb-giant" data-img="'+esc(m.giant.img)+'" data-name="'+esc(N(m))+'" '+
-          'title="Preview GIANTmicrobes plush toy" aria-label="Preview GIANTmicrobes plush toy">🧸 Plush toy</button>'+
+          'title="'+gTip+'" aria-label="'+gTip+'">'+(gKey?'🔑 Keychain':'🧸 Plush toy')+'</button>'+
         (m.giant.url ? '<a class="cb-btn cb-giant-link" href="'+esc(m.giant.url)+'" target="_blank" rel="noopener" '+
           'title="Open product page" aria-label="Open product page">⚓</a>' : '')+
         '</span>';
@@ -1853,13 +1891,25 @@ const GIANT_NOTE={
   en:'Plush toy by <b>GIANTmicrobes</b> — a stylised likeness made as a gift and teaching toy, not a scale model. Product photo © GIANTmicrobes.',
   de:'Plüschtier von <b>GIANTmicrobes</b> — eine stilisierte Nachbildung als Geschenk- und Lernspielzeug, kein maßstabsgetreues Modell. Produktfoto © GIANTmicrobes.'
 };
+// One linked product (the nucleus) is sold only as a plush keychain, never as a
+// full-size toy — see microbe_giant.py's KEYCHAIN set. Saying "plush toy" about
+// it would be a small untruth, so it gets its own wording everywhere it shows.
+const GIANT_KEYCHAIN_NOTE={
+  en:'Plush <b>keychain</b> by <b>GIANTmicrobes</b> — the only form this one is sold in, a stylised likeness made as a gift and teaching toy, not a scale model. Product photo © GIANTmicrobes.',
+  de:'Plüsch-<b>Schlüsselanhänger</b> von <b>GIANTmicrobes</b> — die einzige Form, in der es diesen gibt: eine stilisierte Nachbildung als Geschenk- und Lernspielzeug, kein maßstabsgetreues Modell. Produktfoto © GIANTmicrobes.'
+};
+const GIANT_KIND={
+  plush:{en:'GIANTmicrobes plush', de:'GIANTmicrobes Plüschtier'},
+  keychain:{en:'GIANTmicrobes keychain', de:'GIANTmicrobes Schlüsselanhänger'}
+};
+function giantKind(m){ return (m && m.giant && m.giant.keychain) ? 'keychain' : 'plush'; }
 const GIANT_CLEANED={
   en:' The vendor printed a logo across this shot, so the lettering was retouched out and the toy’s own shape continued behind it.',
   de:' Über diesem Foto lag ein Logo des Herstellers — die Schrift wurde wegretuschiert und die Form des Plüschtiers dahinter fortgeführt.'
 };
 function giantNote(m){
   if(!(m && m.giant)) return '';
-  let h='<b>'+esc(m.giant.name)+'</b><br>'+L(GIANT_NOTE);
+  let h='<b>'+esc(m.giant.name)+'</b><br>'+L(m.giant.keychain?GIANT_KEYCHAIN_NOTE:GIANT_NOTE);
   if(m.giant.cleaned) h+=L(GIANT_CLEANED);
   if(m.giant.url) h+=' <a href="'+esc(m.giant.url)+'" target="_blank" rel="noopener">'+
     (state.lang==='de'?'Zur Produktseite ⚓':'Product page ⚓')+'</a>';
@@ -1925,7 +1975,7 @@ function renderStage(m,opt){
   }
   if(style==='giant'){
     if(m.giant){ const load=loadingTile(); lbStage.appendChild(load);
-      const im=document.createElement('img'); im.alt=N(m)+' — GIANTmicrobes plush';
+      const im=document.createElement('img'); im.alt=N(m)+' — '+L(GIANT_KIND[giantKind(m)]);
       im.onload=()=>load.remove();
       im.onerror=()=>{ load.remove(); im.remove(); lbStage.appendChild(placeholder(phText('fail'))); };
       im.src=m.giant.img; lbStage.appendChild(im);
@@ -2051,7 +2101,8 @@ document.addEventListener('click',e=>{ const v=e.target.closest('.view-orig'); i
 // JS: target="_blank" opens the product page directly).
 document.addEventListener('click',e=>{ const v=e.target.closest('.cb-giant'); if(!v) return;
   const m=v.closest('.card')?._m;
-  openStandalone(v.dataset.img, v.dataset.name+' — GIANTmicrobes plush', 'GIANTmicrobes plush', giantNote(m)); });
+  const gk=L(GIANT_KIND[giantKind(m)]);
+  openStandalone(v.dataset.img, v.dataset.name+' — '+gk, gk, giantNote(m)); });
 // Kids-mode "coloring page" shortcut buttons (shown when coloring isn't one of
 // the chosen boxes). Eye = open in the normal preview; Print = fetch the SVG
 // straight into #printArea and open the print dialog immediately, no preview.
@@ -2301,28 +2352,46 @@ function render(){
   setsWrap.innerHTML=''; navTree.innerHTML=''; allCards=[];
   let nSets=0, nMic=0;
   DATA.sets.forEach(set=>{
-    if(!set.microbes.length) return;
-    nSets++; nMic+=set.microbes.length;
-    const sec=document.createElement('section'); sec.className='set'; sec.id='set-'+set.id; sec._set=set;
+    // A chapter is a prose-only section — an explainer with no microbes, by
+    // design. A *set* with no microbes is a data error (its renders never
+    // reached the build) and stays hidden; hence the explicit flag rather than
+    // inferring "prose only" from an empty list, which would show both.
+    const chapter = set.kind==='chapter';
+    if(!chapter && !set.microbes.length) return;
+    if(!chapter){ nSets++; nMic+=set.microbes.length; }
+    const sec=document.createElement('section'); sec.className='set'+(chapter?' chapter':''); sec.id='set-'+set.id; sec._set=set;
     sec.innerHTML='<div class="set-head"><div class="set-eyebrow">'+esc(set.id)+'</div>'+
       '<h2>'+esc(L(set.title))+audioCtlHTML(set)+'</h2>'+
       '<p class="set-desc'+(state.aud==='sci'?' sci':'')+'">'+proseHTML(set)+'</p></div>';
-    const cards=document.createElement('div'); cards.className='cards';
-    set.microbes.forEach(m=>{
-      const card=document.createElement('article'); card.className='card'; card.id='mc-'+set.id+'-'+m.key; card._m=m; card._set=set;
-      card.innerHTML='<h3 class="card-title">'+highlight(N(m))+'<span class="key">'+esc(m.key)+'</span></h3>'+scaleHTML(m);
-      cards.appendChild(card); allCards.push(card);
-    });
-    sec.appendChild(cards); setsWrap.appendChild(sec);
-    // nav
-    const det=document.createElement('details'); det.className='nav-set';
-    det.innerHTML='<summary>'+esc(L(set.title))+'<span class="count">'+set.microbes.length+'</span></summary>';
-    const links=document.createElement('div'); links.className='nav-links';
-    set.microbes.forEach(m=>{ const a=document.createElement('a'); a.href='#mc-'+set.id+'-'+m.key;
-      a.textContent=N(m); a.addEventListener('click',()=>closePanels()); links.appendChild(a); });
-    det.appendChild(links); navTree.appendChild(det);
+    if(!chapter){
+      const cards=document.createElement('div'); cards.className='cards';
+      set.microbes.forEach(m=>{
+        const card=document.createElement('article'); card.className='card'; card.id='mc-'+set.id+'-'+m.key; card._m=m; card._set=set;
+        card.innerHTML='<h3 class="card-title">'+highlight(N(m))+'<span class="key">'+esc(m.key)+'</span></h3>'+scaleHTML(m);
+        cards.appendChild(card); allCards.push(card);
+      });
+      sec.appendChild(cards);
+    }
+    setsWrap.appendChild(sec);
+    // nav: a chapter has nothing to expand, so it is a flat link, not a
+    // <details> whose count would read 0
+    let navEl;
+    if(chapter){
+      navEl=document.createElement('a'); navEl.className='nav-chapter'; navEl.href='#set-'+set.id;
+      navEl.textContent=L(set.title); navEl.addEventListener('click',()=>closePanels());
+    }else{
+      navEl=document.createElement('details'); navEl.className='nav-set';
+      navEl.innerHTML='<summary>'+esc(L(set.title))+'<span class="count">'+set.microbes.length+'</span></summary>';
+      const links=document.createElement('div'); links.className='nav-links';
+      set.microbes.forEach(m=>{ const a=document.createElement('a'); a.href='#mc-'+set.id+'-'+m.key;
+        a.textContent=N(m); a.addEventListener('click',()=>closePanels()); links.appendChild(a); });
+      navEl.appendChild(links);
+    }
+    // carried on the element, so refreshBuilt() never has to re-derive which
+    // data set a nav row belongs to by counting positions
+    navEl._set=set; navTree.appendChild(navEl);
   });
-  $('#statSets').textContent=DATA.sets.filter(s=>s.microbes.length).length;
+  $('#statSets').textContent=DATA.sets.filter(s=>s.kind!=='chapter'&&s.microbes.length).length;
   $('#statMicrobes').textContent=DATA.sets.reduce((n,s)=>n+s.microbes.length,0);
   if(FEATURE_EAGER_STRUCTURE) allCards.forEach(buildCard); else observeCards();
   applySearch();
@@ -2358,15 +2427,27 @@ function refreshBuilt(){
     if(h) h.innerHTML=esc(L(set.title))+audioCtlHTML(set);
     if(p){ p.className='set-desc'+(state.aud==='sci'?' sci':''); p.innerHTML=proseHTML(set); }
   });
-  $$('#navTree .nav-set').forEach((det,i)=>{
-    const set=DATA.sets.filter(s=>s.microbes.length)[i]; if(!set) return;
-    det.querySelector('summary').childNodes[0].nodeValue=L(set.title);
+  // Read the set off the element (render() tags it). This used to index into
+  // DATA.sets.filter(...) by nav position, which silently mislabels every row
+  // after any section the filter and the nav disagree about — chapters, for one.
+  $$('#navTree .nav-set, #navTree .nav-chapter').forEach(el=>{
+    const set=el._set; if(!set) return;
+    if(el.classList.contains('nav-chapter')){ el.textContent=L(set.title); return; }
+    el.querySelector('summary').childNodes[0].nodeValue=L(set.title);
     // N(), not L(): the nav has to follow the audience too, or it keeps saying
     // "Cocci (spherical bacteria)" while the card beside it says "Round bacteria"
-    $$('.nav-links a',det).forEach((a,j)=>{ if(set.microbes[j]) a.textContent=N(set.microbes[j]); });
+    $$('.nav-links a',el).forEach((a,j)=>{ if(set.microbes[j]) a.textContent=N(set.microbes[j]); });
   });
-  // an open results list would otherwise keep the previous audience's wording
-  if(!$('#searchResults').hidden) applySearch();
+  // An open results list would otherwise keep the previous audience's wording,
+  // so a language/audience switch re-runs the search — the hit set really can
+  // change with it (the narration filter asks a different question per language).
+  // But applySearch() calls *us* to re-apply the <mark> highlighting, so the two
+  // form a cycle: once the list is open, applySearch -> refreshBuilt ->
+  // applySearch never returns and the tab locks up. It took three keystrokes to
+  // surface, because terms() ignores anything shorter than two characters and
+  // the list is still closed on the first real query. `reHighlighting` marks the
+  // arm we arrived through, so each direction still happens exactly once.
+  if(!reHighlighting && !$('#searchResults').hidden) applySearch();
   syncAllCtls();
 }
 // picture layout changed: rebuild each grid + refresh the source credit line
@@ -2393,10 +2474,23 @@ function passesFilters(m){
   return true;
 }
 function filtersActive(){ return !!(state.fGiant || state.fColoring || state.fAudio); }
+// Set only while applySearch() is inside its re-highlight call to refreshBuilt(),
+// so refreshBuilt() knows not to bounce straight back. See the comment there.
+let reHighlighting=false;
 function applySearch(){
   const ts=terms(); let anyVisible=false, total=0; const hits=[];
   DATA.sets.forEach(set=>{
     const sec=$('#set-'+set.id); if(!sec) return; let vis=0;
+    // A chapter has no cards, so it answers the query on its own prose. It
+    // hides while any *filter* is active: every filter asks a question about a
+    // microbe (plush toy, coloring page, narration) that a chapter cannot
+    // answer, so leaving it standing would look like a match.
+    if(set.kind==='chapter'){
+      const ok = !filtersActive() && (!ts.length || ts.every(t=>(set.search||'').includes(t)));
+      sec.style.display = ok?'':'none';
+      if(ok && ts.length){ anyVisible=true; hits.push({set, m:null}); }
+      return;
+    }
     set.microbes.forEach(m=>{
       const card=$('#mc-'+set.id+'-'+m.key); if(!card) return;
       const hay=searchHaystack(m);
@@ -2408,7 +2502,9 @@ function applySearch(){
     total+=vis;
   });
   updateEmptyState(!anyVisible, ts.length>0);
-  if(ts.length) refreshBuilt(); // re-highlight
+  // re-highlight; `finally` so a throw in here can never strand the flag set and
+  // leave the results list permanently stale
+  if(ts.length){ reHighlighting=true; try{ refreshBuilt(); } finally { reHighlighting=false; } }
   updateMenuCount();
   renderSearchResults(hits, ts.length>0);
   $('#filtBtn').classList.toggle('active', filtersActive());
@@ -2420,6 +2516,9 @@ function applySearch(){
 // Nothing on the page is a dead end unless we say what caused it. Distinguish
 // "your words matched nothing" from "your filters hid everything", since the
 // way out differs, and offer that way out right here.
+// a chapter hit in the results list is not a microbe, so it says what it is
+const CHAPTER_TAG={en:'chapter', de:'Kapitel'};
+const CHAPTER_TAG_PL={en:'chapters', de:'Kapitel'};
 const EMPTY_TXT={
   search:{en:'No microbe matches your search.', de:'Keine Mikrobe passt zu deiner Suche.'},
   filter:{en:'No microbe is left after filtering.', de:'Nach dem Filtern bleibt keine Mikrobe übrig.'},
@@ -2469,9 +2568,18 @@ function renderSearchResults(hits, querying){
   const box=$('#searchResults');
   if(!querying){ box.hidden=true; box.innerHTML=''; pinPanel(box); return; }
   const totalAll=DATA.sets.reduce((n,s)=>n+s.microbes.length,0);
-  let h='<div class="sr-count">'+hits.length+' of '+totalAll+' microbes'+
+  // a chapter hit is not a microbe, so it is counted separately rather than
+  // making the "N of M microbes" line claim more microbes than exist
+  const nChapters=hits.filter(x=>!x.m).length, nMicrobes=hits.length-nChapters;
+  let h='<div class="sr-count">'+nMicrobes+' of '+totalAll+' microbes'+
+        (nChapters?' · '+nChapters+' '+L(nChapters===1?CHAPTER_TAG:CHAPTER_TAG_PL):'')+
         (filtersActive()?' (filtered)':'')+'</div>';
   hits.slice(0,12).forEach(({set,m})=>{
+    if(!m){
+      h+='<button type="button" class="sr-item" data-go="set-'+set.id+'">'+
+         '<span>'+esc(L(set.title))+'</span><span class="sr-set">'+esc(L(CHAPTER_TAG))+'</span></button>';
+      return;
+    }
     h+='<button type="button" class="sr-item" data-go="mc-'+set.id+'-'+m.key+'">'+
        '<span>'+esc(N(m))+'</span><span class="sr-set">'+esc(L(set.title))+'</span></button>';
   });
@@ -2676,6 +2784,12 @@ function updateHero(){
   $('#heroTitle').innerHTML=h.h1;
   $('#heroSub').textContent=h.sub;
   $('#heroStatA').textContent=h.a; $('#heroStatB').textContent=h.b; $('#heroStatC').textContent=h.c;
+  // one book per language, built by build_pdfbook.py --lang
+  const pdf='microbes-book-'+state.lang+'.pdf';
+  const view=$('#bookView'), dl=$('#bookDl');
+  view.href=pdf; view.title=h.bookTip; view.querySelector('span').textContent=h.book;
+  dl.href=pdf; dl.setAttribute('download',pdf); dl.title=h.bookTip;
+  dl.querySelector('span').textContent=h.bookDl;
 }
 
 // ---- go ------------------------------------------------------------------

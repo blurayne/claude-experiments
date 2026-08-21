@@ -27,6 +27,27 @@ BIOART_LICENSE = "Public domain (NIH BioArt)"
 
 PAGES = [
     # ------------------------------------------------------------------
+    # Page — How the cell works (chapter)
+    # ------------------------------------------------------------------
+    {
+        "id": "cell-basics",
+        "title_de": "Wie eine Zelle funktioniert",
+        "title_en": "How the cell works",
+        "subtitle_de": "Ein funktionierendes System, kein Sack voller Teile.",
+        "subtitle_en": "A working system, not a bag of parts.",
+        "description_de": "Eine Zelle ist die kleinste Einheit, die wirklich lebt: Sie nimmt Nährstoffe auf, baut ihre eigenen Bausteine, repariert Schäden und kann sich selbst kopieren. Das passiert nicht zufällig — eine Zelle ist kein Klumpen herumschwappender Chemikalien, sondern ein System mit Arbeitsteilung, in dem jede Aufgabe eine feste Zuständigkeit hat. Ein Bauplan speichert die Anleitung für alles, was die Zelle herstellen kann. Werkstätten lesen diesen Bauplan und bauen daraus Proteine, verpacken sie und adressieren sie zur Auslieferung. Kraftwerke wandeln Nährstoffe und Sauerstoff in nutzbare Energie um. Ein Entsorgungsdienst zerlegt und recycelt, was verbraucht oder überflüssig ist. Transportwege bringen Material genau dorthin, wo es gebraucht wird, ein Skelett gibt der Zelle ihre Form und lässt sie sich bewegen oder teilen, und eine Grenze — die äußere Membran — entscheidet ganz genau, was hinein- und hinausdarf. Das folgende Kapitel über Zellorganellen ist die Führung durch genau diese Teile: die Werkstätten, Kraftwerke und Grenzposten hinter dieser Arbeitsteilung.",
+        "description_en": "A cell is the smallest unit that is fully alive: it takes in fuel, builds its own materials, repairs damage and can make a copy of itself. None of that happens by accident — a cell is not a blob of chemicals sloshing around but a system with a division of labour, where each job is handled by a dedicated part. A blueprint stores the instructions for everything the cell can build. Workshops read that blueprint and construct proteins, then package and address them for delivery. Power stations turn nutrients and oxygen into usable energy. A disposal service breaks down and recycles what is worn out or unwanted. Transport routes move materials to wherever they are needed, a skeleton gives the cell its shape and lets it move or divide, and a border — the outer membrane — decides exactly what is allowed in and out. The next chapter, on cell organelles, is the guided tour of those parts: the physical workshops, power stations and border posts that make up this division of labour.",
+        "description_kids_de": "Stell dir vor, dein Körper besteht aus Billionen winzigen, lebendigen Legosteinen, und jeder davon ist eine eigene, geschäftige kleine Fabrik. Das ist eine Zelle! Drinnen kümmert sich jede Abteilung um eine Aufgabe: Ein Teil bewahrt die Bauanleitung für alles auf, wie ein Rezeptbuch. Werkstätten bauen daraus Dinge und verpacken sie zum Verschicken. Ein Kraftwerk verwandelt dein Essen in Energie. Ein Aufräumtrupp zerlegt alte Teile und bringt den Müll raus. Lieferstraßen transportieren alles nach innen, ein Skelett hält die Form, und eine dehnbare Wand außen entscheidet, was rein- und rausdarf. Als Nächstes lernst du all diese kleinen Abteilungen aus der Nähe kennen!",
+        "description_kids_en": "Imagine your body is made of trillions of tiny living Lego bricks, and each one is its own busy little factory. That's a cell! Inside, different departments each do one job: one part holds the instructions for everything, like a recipe book. Workshops build stuff from that recipe and wrap it up to send out. A power plant turns your food into energy. A cleanup crew breaks down old parts and takes out the trash. Delivery roads move things around inside, a skeleton holds everything in shape, and a stretchy wall around the outside decides what's allowed in or out. Next up: meet all those tiny departments up close!",
+        "description_adults_de": "Jede Zelle in deinem Körper — Haut, Leber, Muskel, Nervenzelle — läuft im Grunde nach demselben Betriebssystem, nur auf unterschiedliche Aufgaben eingestellt. Die DNA im Zellkern ist der Masterbauplan, der nur bei Bedarf abgeschrieben wird und das Archiv nie verlässt. Ribosomen und das endoplasmatische Retikulum bauen daraus Proteine, der Golgi-Apparat verpackt und adressiert sie für ihr Ziel. Mitochondrien wandeln Nährstoffe und Sauerstoff in ATP um, die Energiewährung, die alles andere antreibt. Lysosomen zerlegen und recyceln verbrauchte Bestandteile und alles, was die Zelle aufgenommen hat. Das Zytoskelett gibt der Zelle ihre Form, lässt sie sich bewegen und zieht bei der Teilung die Chromosomen auseinander, während Motorproteine daran entlang Fracht transportieren wie auf einem Schienennetz. Die Plasmamembran ist die Grenzkontrolle: Ihre eingelagerten Proteine entscheiden, was passieren darf, ihre Oberflächenmarker weisen die Zelle gegenüber Nachbarn und dem Immunsystem aus. Das folgende Organellen-Kapitel geht jeden dieser Teile einzeln durch.",
+        "description_adults_en": "Every cell in your body — skin, liver, muscle, neuron — runs the same underlying operation, just tuned to different jobs. DNA in the nucleus acts as the master blueprint, copied out only as needed rather than ever leaving the archive. Ribosomes and the endoplasmic reticulum build proteins from that copy; the Golgi apparatus packages and addresses them for their destination. Mitochondria convert nutrients and oxygen into ATP, the energy currency that powers everything else. Lysosomes break down and recycle worn-out components and anything the cell has taken in. The cytoskeleton gives the cell its shape, lets it move, and pulls chromosomes apart at division, while motor proteins haul cargo along it like a rail network. The plasma membrane is the border control, its embedded proteins deciding what passes and its surface markers identifying the cell to its neighbours and to the immune system. The organelle chapter that follows walks through each of these parts individually.",
+        # prose-only chapter: an explainer between the sets, with no
+        # entries and no renders. build_viewer.py emits kind="chapter"
+        # and the viewer renders it as a section without a card grid.
+        "kind": "chapter",
+        "entries": [],
+    },
+    # ------------------------------------------------------------------
     # Page 1 — Stem cells
     # ------------------------------------------------------------------
     {
@@ -73,7 +94,7 @@ PAGES = [
             {
                 "name_de": "Mitochondrium",
                 "name_en": "Mitochondrion",
-                "related": ["contractile-cardiomyocyte", "hepatocyte"],
+                "related": ["cardiomyocyte", "hepatocyte", "type-i-fibre", "type-iia-fibre"],
                 "tier": "basic",
                 "image_filename": "",
                 "image_url": "",
@@ -155,6 +176,27 @@ PAGES = [
                 "deps_en": "Constantly built up and taken down again rather than fixed in place. Motor proteins walk along the microtubules hauling cargo. Listeria hijacks exactly this system, building itself a tail out of host actin to shove its way from cell to cell.",
             },
         ],
+    },
+    # ------------------------------------------------------------------
+    # Page — Cell types of the human body (chapter)
+    # ------------------------------------------------------------------
+    {
+        "id": "cell-types",
+        "title_de": "Zelltypen des menschlichen Körpers",
+        "title_en": "Cell types of the human body",
+        "subtitle_de": "Gleiches Genom, fünf Familien von Spezialisten.",
+        "subtitle_en": "Same genome, five families of specialists.",
+        "description_de": "Jede Zelle im Körper trägt dasselbe Genom, schaltet aber nur die Gene ein, die ihre jeweilige Aufgabe braucht — so entstehen aus einem einzigen Bauplan Hunderte spezialisierte Zelltypen. Die meisten lassen sich fünf großen Familien zuordnen. Epithelzellen bilden schützende Schichten auf jeder Innen- und Außenfläche des Körpers — Haut, Blutgefäße, die Auskleidung von Organen — und regeln, was aufgenommen oder abgegeben wird; siehe das Kapitel Epithelzellen. Muskelzellen sind auf Kontraktion spezialisiert: Skelettmuskulatur bewegt willkürlich das Skelett, der Herzmuskel treibt den Herzschlag an, und die glatte Muskulatur arbeitet unwillkürlich in den Wänden innerer Organe; siehe die Kapitel Muskelzellen, Wie Muskeln arbeiten und Herzzellen. Nervenzellen, die Neuronen, erzeugen, übertragen und verarbeiten die elektrischen und chemischen Signale, mit denen der Körper seine Umgebung wahrnimmt und reagiert; siehe das Kapitel Nervenzellen. Bindegewebszellen — Fibroblasten, Knorpelzellen und Knochenzellen (Osteozyten) — geben Geweben Struktur und Stabilität und halten den Austausch von Nährstoffen und Abfallstoffen aufrecht; mehrere davon finden sich im Kapitel Knochenzellen. Blut- und Immunzellen patrouillieren im Blutkreislauf: rote Blutkörperchen (Erythrozyten) transportieren Sauerstoff, während weiße Blutkörperchen und Lymphozyten Krankheitserreger bekämpfen; siehe die Kapitel Rote Blutkörperchen und Immunzellen.",
+        "description_en": "Every cell in the body carries the same genome but switches on only the genes its particular job needs — which is how one blueprint produces hundreds of specialised cell types. Most of them fall into five broad families. Epithelial cells form protective sheets on every inner and outer surface of the body — skin, blood vessels, the lining of organs — controlling what gets absorbed or secreted; see the Epithelial cells chapter. Muscle cells are built to contract: skeletal muscle moves the skeleton under voluntary control, cardiac muscle drives the heartbeat, and smooth muscle works the walls of internal organs involuntarily; see the Muscle cells, How muscle works and Heart cells chapters. Nerve cells, or neurons, generate, transmit and process the electrical and chemical signals that let the body sense its surroundings and react; see the Nerve cells chapter. Connective tissue cells — fibroblasts, cartilage cells and bone cells (osteocytes) — give tissues their structure and stability and keep up the exchange of nutrients and waste; several appear in the Bone cells chapter. Blood and immune cells patrol the bloodstream: red blood cells (erythrocytes) transport oxygen, while white blood cells and lymphocytes fight off pathogens; see the Red blood cells and Immune cells chapters.",
+        "description_kids_de": "Dein Körper besteht aus Billionen Zellen, und sie haben verschiedene „Jobs“, genau wie Menschen. Epithelzellen sind die Haut und Tapete deines Körpers, innen wie außen. Muskelzellen ziehen und drücken, damit du dich bewegen kannst — manche steuerst du selbst, wie deine Arme, andere arbeiten ganz von allein, wie dein Herz. Nervenzellen schicken blitzschnelle Nachrichten, damit du fühlen, denken und dich bewegen kannst. Bindegewebszellen bauen dein Skelett und halten alles zusammen wie Klebstoff und Gerüst. Und Blutzellen sausen durch deine Adern, manche tragen Sauerstoff, andere bekämpfen Keime. Entdecke jedes Team in seinem eigenen Kapitel!",
+        "description_kids_en": "Your body is made of trillions of cells, and they come in different 'jobs' just like people do. Epithelial cells are your body's skin and wallpaper, covering you inside and out. Muscle cells squeeze and pull to move you around — some you control, like your arms, and some work all by themselves, like your heart. Nerve cells send zippy messages so you can feel, think and move. Connective tissue cells build your skeleton and hold everything together like glue and scaffolding. And blood cells zoom through your veins, some carrying oxygen, others fighting off germs. Explore each team in its own chapter!",
+        "description_adults_de": "Die Zellen des Körpers lassen sich in wenige funktionelle Familien einteilen, und wer sie kennt, findet sich im restlichen Atlas leichter zurecht. Epithelzellen bilden die schützenden, selektiv durchlässigen Schichten, die den Körper bedecken und auskleiden — Haut, Gefäße, drüsige und schleimhautbedeckte Oberflächen (Epithelzellen). Muskelzellen sind in drei Varianten auf Kontraktion spezialisiert: Skelettmuskulatur unter willkürlicher Nervenkontrolle, Herzmuskulatur mit eigenem intrinsischem Schrittmacher, und glatte Muskulatur, die unwillkürlich in den Wänden von Hohlorganen und Gefäßen arbeitet (Muskelzellen, Wie Muskeln arbeiten, Herzzellen). Nervenzellen erzeugen und leiten die elektrischen und chemischen Signale weiter, die Wahrnehmung, Bewegung und Denken zugrunde liegen (Nervenzellen). Bindegewebszellen — darunter Fibroblasten, Chondrozyten und Osteozyten — sorgen für strukturelle Stabilität und vermitteln den Austausch von Nährstoffen und Abfallstoffen zwischen Geweben (Knochenzellen). Blut- und Immunzellen vervollständigen das Bild: Erythrozyten transportieren Sauerstoff, während Leukozyten und Lymphozyten Krankheitserreger erkennen und beseitigen (Rote Blutkörperchen, Immunzellen).",
+        "description_adults_en": "The body's cells sort into a small number of functional families, and recognising them makes the rest of the atlas easier to navigate. Epithelial cells form the protective, selectively permeable sheets covering and lining the body — skin, vasculature, glandular and mucosal surfaces (Epithelial cells). Muscle cells specialise for contraction in three variants: skeletal muscle under voluntary nervous control, cardiac muscle with its own intrinsic pacemaker, and smooth muscle working involuntarily in the walls of hollow organs and vessels (Muscle cells, How muscle works, Heart cells). Nerve cells generate and relay the electrical and chemical signals underlying sensation, movement and cognition (Nerve cells). Connective tissue cells — fibroblasts, chondrocytes and osteocytes among them — provide structural support and mediate the exchange of nutrients and waste between tissues (Bone cells). Blood and immune cells complete the set: erythrocytes carry oxygen, while leukocytes and lymphocytes detect and clear pathogens (Red blood cells, Immune cells).",
+        # prose-only chapter: an explainer between the sets, with no
+        # entries and no renders. build_viewer.py emits kind="chapter"
+        # and the viewer renders it as a section without a card grid.
+        "kind": "chapter",
+        "entries": [],
     },
     {
         "id": "stem-cells",
@@ -393,6 +435,7 @@ PAGES = [
             {
                 "name_de": "Motoneuron",
                 "name_en": "Motor neuron",
+                "related": ["type-i-fibre", "type-ii-fibre"],
                 "tier": "basic",
                 "image_filename": "nerve-cells__motor-neuron.png",
                 "image_url": "",
@@ -502,7 +545,7 @@ PAGES = [
             {
                 "name_de": "Kontraktile Kardiomyozyte",
                 "name_en": "Contractile cardiomyocyte",
-                "related": ["heartworm", "mitochondrion"],
+                "related": ["heartworm", "mitochondrion", "type-i-fibre"],
                 "tier": "basic",
                 "image_filename": "",
                 "image_url": "",
@@ -538,6 +581,101 @@ PAGES = [
                 "func_en": "Part of a small, highly specialised nerve network sitting inside the heart wall itself — the “heart's own brain”. It processes information on the spot and corrects the heartbeat in real time, before the brain proper can even react.",
                 "deps_de": "Misst Dehnung und Chemie im Herzgewebe und stellt Takt und Kraft nach; das Gehirn liefert nur die übergeordnete Vorgabe.",
                 "deps_en": "Senses stretch and chemistry in the heart tissue and trims rate and force accordingly; the brain only supplies the overall instruction.",
+            },
+        ],
+    },
+    # ------------------------------------------------------------------
+    # Page — How muscle works (chapter)
+    # ------------------------------------------------------------------
+    {
+        "id": "muscle-tissue",
+        "title_de": "Wie Muskeln arbeiten",
+        "title_en": "How muscle works",
+        "subtitle_de": "Drei Gewebe, eine Aufgabe: ziehen.",
+        "subtitle_en": "Three tissues, one job: pulling.",
+        "description_de": "Muskelgewebe ist das einzige Körpergewebe, das eigens dafür gebaut ist, durch Verkürzung Kraft zu erzeugen, und es gibt es in drei verschiedenen Bauformen. Skelettmuskulatur ist quergestreift — ihre Aktin- und Myosinfilamente reihen sich zu sichtbaren Banden auf — und steht unter willkürlicher Kontrolle: somatische Motoneuronen feuern an der motorischen Endplatte und lösen die Kontraktion aus, und ihre langen, vielkernigen Fasern können schnell zucken, ermüden dabei aber. Herzmuskulatur ist ebenfalls quergestreift, arbeitet aber unwillkürlich: Sie braucht kein äußeres Signal zum Schlagen, weil Schrittmacherzellen den Rhythmus selbst erzeugen, und ihre verzweigten, meist einkernigen Zellen sind über Glanzstreifen Kante an Kante verbunden, sodass das ganze Herz als eine Einheit schlägt (Details dazu im Kapitel Herzzellen). Glatte Muskulatur hat gar keine Querstreifung — ihre Filamente liegen locker statt in geordneten Sarkomeren — und zieht sich langsam und unwillkürlich zusammen, gesteuert vom vegetativen Nervensystem, Hormonen und lokaler Dehnung; sie treibt die Wände von Darm, Blutgefäßen, Atemwegen und Blase an. Anders als die beiden anderen behalten ihre spindelförmigen Zellen die Fähigkeit, sich zu teilen, und können ersetzt werden.",
+        "description_en": "Muscle is the body's only tissue built to generate force by shortening, and it comes in three distinct forms. Skeletal muscle is striated — its actin and myosin filaments line up into visible bands — and sits under voluntary control: somatic motor neurons fire at the neuromuscular junction to trigger contraction, and its long, multinucleated fibres can contract quickly but tire. Cardiac muscle is also striated but works involuntarily: it needs no outside signal to start beating because pacemaker cells generate the rhythm themselves, and its branched, single-nucleated cells are linked edge to edge by intercalated discs so the whole heart beats as one unit (see the Heart cells chapter for that system in detail). Smooth muscle has no striations at all — its filaments are arranged loosely rather than in regular sarcomeres — and it contracts slowly and involuntarily under control of the autonomic nervous system, hormones and local stretch, powering the walls of the gut, blood vessels, airways and bladder. Unlike the other two, its spindle-shaped cells retain the ability to divide and can still be replaced.",
+        "description_kids_de": "Muskeln sind der einzige Körperteil, der nur zum Ziehen und Zusammendrücken gebaut ist. Es gibt drei Sorten. Skelettmuskulatur ist die, die du herumkommandierst — „beweg meinen Arm!“ — und hat unter der Lupe Streifen, dazu jede Menge Zellkerne in jeder langen Faser. Herzmuskulatur hat auch Streifen, aber niemand muss ihr sagen, dass sie schlagen soll — sie gibt sich ihren Takt selbst vor, und alle ihre Zellen sind so verdrahtet, dass sie perfekt im Gleichtakt zusammenziehen (wie das geht, steht im Kapitel Herzzellen). Glatte Muskulatur hat gar keine Streifen, läuft komplett auf Autopilot und zieht sich langsam und gleichmäßig zusammen — sie schiebt dein Essen durch den Darm und drückt deine Blutgefäße zusammen, ganz ohne dass du etwas davon merkst.",
+        "description_kids_en": "Muscles are the only body part built just to pull and squeeze. There are three kinds. Skeletal muscle is the one you boss around — think 'move my arm!' — and it has stripes when you look closely, plus lots of nuclei packed into each long fibre. Heart muscle also has stripes, but nobody has to tell it to beat — it sets its own rhythm and all its cells are wired together so they squeeze in perfect sync (see the Heart cells chapter for how). Smooth muscle has no stripes at all, works completely on autopilot, and squeezes slowly and steadily — it's what pushes food through your gut and squeezes your blood vessels, all without you noticing a thing.",
+        "description_adults_de": "Alle drei Muskelarten kontrahieren mit derselben molekularen Maschinerie — Aktin- und Myosinfilamente, die aneinander vorbeigleiten —, unterscheiden sich aber deutlich in Steuerung und Aufbau. Skelettmuskulatur ist quergestreift, vielkernig und willkürlich: Ein somatisches Motoneuron löst jede Kontraktion aus, die Fasern können schnell und kräftig Kraft entwickeln, ermüden dabei aber relativ schnell, und ausgereifte Fasern teilen sich kaum noch — für Reparatur sind Satellitenzellen zuständig. Herzmuskulatur ist ebenfalls quergestreift, aber unwillkürlich und selbstauslösend: Schrittmacherzellen geben den Rhythmus intrinsisch vor, das vegetative Nervensystem stellt nur Frequenz und Kraft nach, die Zellen sind meist ein- oder zweikernig und über Glanzstreifen elektrisch gekoppelt, und sie ist praktisch ermüdungsfrei, kann sich nach einer Verletzung aber kaum regenerieren (das Kapitel Herzzellen behandelt dieses System ausführlich). Glatte Muskulatur besitzt nicht die regelmäßige Sarkomeranordnung, die eine Querstreifung erzeugt, kontrahiert langsam unter vegetativer, hormoneller und lokaler Kontrolle, ist über lange Phasen ermüdungsresistent, und — ungewöhnlich für Muskelgewebe — ihre Zellen behalten die Fähigkeit zur Teilung, was etwa beim Umbau von Blutgefäßen klinisch eine Rolle spielt.",
+        "description_adults_en": "All three kinds of muscle contract using the same molecular machinery — actin and myosin filaments sliding past each other — but differ sharply in control and structure. Skeletal muscle is striated, multinucleated, and voluntary: a somatic motor neuron triggers each contraction, fibres can generate fast, powerful force but fatigue relatively quickly, and mature fibres barely divide, relying instead on satellite cells for repair. Cardiac muscle is also striated but is involuntary and self-triggering: pacemaker cells set the rhythm intrinsically, the autonomic nervous system only adjusts rate and force, cells are typically mono- or binucleated and electrically coupled through intercalated discs, and it is essentially fatigue-proof but has very little capacity to regenerate after injury (the Heart cells chapter covers this system in full). Smooth muscle lacks the regular sarcomere arrangement that produces striation, contracts slowly under autonomic, hormonal and local control, resists fatigue over sustained periods, and — unusually for muscle — its cells retain the ability to proliferate, which matters clinically in vascular remodelling.",
+        # prose-only chapter: an explainer between the sets, with no
+        # entries and no renders. build_viewer.py emits kind="chapter"
+        # and the viewer renders it as a section without a card grid.
+        "kind": "chapter",
+        "entries": [],
+    },
+    # ------------------------------------------------------------------
+    # Page — Muscle cells
+    # ------------------------------------------------------------------
+    {
+        "id": "muscle-cells",
+        "title_de": "Muskelzellen",
+        "title_en": "Muscle cells",
+        "subtitle_de": "Langsame, schnelle und die Fasern dazwischen.",
+        "subtitle_en": "Slow-twitch, fast-twitch, and the fibres in between.",
+        "description_de": "Skelettmuskulatur wirkt von außen einheitlich, doch jeder Muskel ist ein Flickenteppich aus Fasern, die auf unterschiedliche Aufgaben getrimmt sind. Typ-I-Fasern sind auf Ausdauer gebaut und bleiben stundenlang aktiv, ohne zu ermüden; Typ-II-Fasern tauschen diese Ausdauer gegen Tempo und Kraft ein und teilen sich weiter in zwei Varianten mit unterschiedlicher Balance aus beidem. Jede Faser in einem Muskel gehört zur motorischen Einheit eines einzigen Motoneurons, und die Mischung der Fasertypen entscheidet, ob ein Muskel eher für einen Marathon oder einen Sprint gebaut ist.",
+        "description_en": "Skeletal muscle looks uniform from the outside, but every muscle is a patchwork of fibres tuned for different jobs. Type I fibres are built for endurance, staying active for hours without tiring; Type II fibres trade that stamina for speed and power, and split further into two variants with different balances of both. Every fibre in a muscle belongs to the motor unit of a single motor neuron, and the mix of types is what makes a muscle built for a marathon or a sprint.",
+        "description_kids_de": "Nicht der ganze Muskel ist die gleiche Sorte Muskel! Manche Fasern sind wie Marathonläufer — Typ I, langsam, aber sie werden nie müde. Andere sind wie Sprinter — Typ II, superschnell und kraftvoll, aber schnell erschöpft. In den meisten deiner Muskeln steckt eine Mischung aus beidem, und wovon du mehr hast, ist teils angeboren und teils durch Training veränderbar.",
+        "description_kids_en": "Not all your muscle is the same kind of muscle! Some fibres are like marathon runners — Type I, slow but they never get tired. Others are like sprinters — Type II, super fast and powerful, but they run out of steam quickly. Most of your muscles mix both kinds together, and which kind you have more of is partly something you're born with and partly something training can shift.",
+        "description_adults_de": "Skelettmuskelfasern kommen in physiologisch unterschiedlichen Typen vor, und jeder Muskel ist eine Mischung statt eines einheitlichen Gewebes. Typ-I-Fasern (langsam zuckend, oxidativ) sind auf Ausdauer ausgelegt — reich an Mitochondrien und Myoglobin, ermüdungsresistent, aber langsam in der Kraftentwicklung. Typ-II-Fasern (schnell zuckend, glykolytisch) tauschen diese Ausdauer gegen Tempo und Kraft und teilen sich in die intermediäre Typ-IIa- und die stärker glykolytische Typ-IIx-Faser. Das Verhältnis zwischen ihnen variiert je nach Muskel und Person — Haltemuskeln neigen zu langsam, auf plötzliche Kraftentfaltung ausgelegte Muskeln zu schnell —, und während die Genetik die Ausgangslage vorgibt, kann Ausdauer- und Krafttraining die Balance innerhalb der schnellen Fasern verschieben.",
+        "description_adults_en": "Skeletal muscle fibres come in physiologically distinct types, and every muscle is a mix rather than one uniform tissue. Type I (slow-twitch, oxidative) fibres favour endurance — dense in mitochondria and myoglobin, they resist fatigue but generate force slowly. Type II (fast-twitch, glycolytic) fibres trade that endurance for speed and power, and split into the intermediate Type IIa and the more purely glycolytic Type IIx. The ratio between them varies by muscle and by person — postural muscles lean slow, muscles built for sudden effort lean fast — and while genetics sets the baseline, endurance and resistance training can shift the balance within the fast-fibre population.",
+        "entries": [
+            {
+                "name_de": "Typ-I-Faser (langsam zuckend)",
+                "name_en": "Type I fibre (slow-twitch)",
+                "related": ["type-ii-fibre", "mitochondrion", "motor-neuron", "cardiomyocyte"],
+                "tier": "basic",
+                "image_filename": "",
+                "image_url": "",
+                "image_credit": "",
+                "image_license": "",
+                "func_de": "Eine langsam zuckende, oxidative Faser, gebaut für Ausdauer statt Tempo. Vollgepackt mit Mitochondrien und Myoglobin — dem Pigment, das ihr die tiefrote Farbe verleiht — verbrennt sie Fett und Glukose mit Sauerstoff für einen langsamen, aber praktisch unerschöpflichen ATP-Nachschub. Ihre motorischen Einheiten sind klein und werden bei fast jeder Bewegung zuerst aktiviert, vom aufrechten Stehen bis zum lockeren Joggen.",
+                "func_en": "A slow-twitch, oxidative fibre built for endurance rather than speed. Dense with mitochondria and myoglobin — the pigment that gives it a deep red colour — it burns fat and glucose with oxygen for a slow but essentially inexhaustible supply of ATP. Its motor units are small and recruited first for almost any movement, from standing upright to a gentle jog.",
+                "deps_de": "Braucht ein dichtes Kapillarnetz für den hohen Sauerstoffbedarf und ein kleines, leicht erregbares Motoneuron, das nur Fasern seines eigenen Typs versorgt. Überwiegt in Haltemuskeln wie dem Soleus; ihr Anteil ist teils erblich, teils durch Ausdauertraining verschiebbar.",
+                "deps_en": "Needs a dense capillary bed to match its oxygen appetite, and is served by a small, easily excited motor neuron dedicated to fibres of its own type. Dominates postural muscles such as the soleus; its share is partly inherited and partly shiftable through endurance training.",
+            },
+            {
+                "name_de": "Typ-II-Faser (schnell zuckend)",
+                "name_en": "Type II fibre (fast-twitch)",
+                "related": ["type-i-fibre", "type-iia-fibre", "type-iix-fibre", "motor-neuron"],
+                "tier": "basic",
+                "image_filename": "",
+                "image_url": "",
+                "image_credit": "",
+                "image_license": "",
+                "func_de": "Die schnell zuckende Familie der Skelettmuskelfasern, gebaut für schnelle, kräftige Kontraktionen statt für Ausdauer. Wo Typ-I-Fasern mit Sauerstoff arbeiten, setzen Typ-II-Fasern auf Glykolyse — den Abbau von Glukose ohne Sauerstoffbedarf — für einen schnellen, aber kurzlebigen ATP-Schub. Die Familie besteht nicht aus einer Faser, sondern aus zwei verwandten Typen, Typ IIa und Typ IIx, die auf unterschiedlichen Punkten desselben schnellen, glykolytischen Bauplans liegen; die Unterschiede stehen in ihren eigenen Einträgen.",
+                "func_en": "The fast-twitch family of skeletal muscle fibres, built to contract quickly and forcefully rather than to last. Where Type I fibres run on oxygen, Type II fibres lean on glycolysis — breaking down glucose without needing oxygen — for a rapid but short-lived burst of ATP. The family is not one fibre but two related types, Type IIa and Type IIx, which sit at different points along the same fast, glycolytic design; see their own entries for how they differ.",
+                "deps_de": "Wird erst zugeschaltet, wenn der Bedarf übersteigt, was Typ-I-Fasern liefern können — nach dem Größenprinzip aktiviert ein großes, schnelles Motoneuron diese Fasern für einen Sprint oder ein schweres Gewicht, nicht fürs Stillstehen. Ermüdet innerhalb von Sekunden bis wenigen Minuten, weil der glykolytische Brennstoffvorrat begrenzt ist im Vergleich zu einer oxidativen Faser.",
+                "deps_en": "Recruited only once demand exceeds what Type I fibres can supply — the size principle means a large, fast motor neuron switches these fibres on for a sprint or a heavy lift, not for standing still. Fatigues within seconds to a couple of minutes because its glycolytic fuel supply is limited compared with an oxidative fibre's.",
+            },
+            {
+                "name_de": "Typ-IIa-Faser (schnell, oxidativ-glykolytisch)",
+                "name_en": "Type IIa fibre (fast oxidative-glycolytic)",
+                "related": ["type-ii-fibre", "type-iix-fibre", "mitochondrion"],
+                "tier": "basic",
+                "image_filename": "",
+                "image_url": "",
+                "image_credit": "",
+                "image_license": "",
+                "func_de": "Der Mittelweg der schnell zuckenden Familie: schnell wie die anderen Typ-II-Fasern, aber mit genug Mitochondrien und Myoglobin, um Brennstoff auch oxidativ zu verbrennen — das macht sie deutlich ermüdungsresistenter als ihre rein glykolytische Schwester, die Typ-IIx-Faser. Blasser rosa als eine Typ-I-Faser, aber alles andere als weiß.",
+                "func_en": "The middle ground of the fast-twitch family: fast like other Type II fibres, but with enough mitochondria and myoglobin to also burn fuel oxidatively, giving it noticeably better fatigue resistance than its purely glycolytic sibling, Type IIx. Paler pink than a Type I fibre, but far from white.",
+                "deps_de": "Sitzt auf denselben schnellen motorischen Einheiten wie Typ-IIx-Fasern, verträgt anhaltende Belastung aber besser — genau das Profil, in das Ausdauertraining Fasern tendenziell verschiebt: Manche Typ-IIx-Fasern wandeln sich bei dauerhaftem Training in IIa um, bei Inaktivität passiert eher das Umgekehrte.",
+                "deps_en": "Sits on the same fast motor units as Type IIx fibres but tolerates sustained effort better, which is exactly the profile endurance training tends to shift fibres towards — some Type IIx fibres convert into IIa with sustained training, and disuse tends to push the balance back the other way.",
+            },
+            {
+                "name_de": "Typ-IIx-Faser (schnell, glykolytisch)",
+                "name_en": "Type IIx fibre (fast glycolytic)",
+                "related": ["type-ii-fibre", "type-iia-fibre"],
+                "tier": "basic",
+                "image_filename": "",
+                "image_url": "",
+                "image_credit": "",
+                "image_license": "",
+                "func_de": "Die schnellste, am stärksten glykolytische Faser der menschlichen Skelettmuskulatur: arm an Mitochondrien und Myoglobin, blass in der Farbe und gebaut für einen kurzen, kraftvollen Ausbruch statt für Ausdauer. Sie entwickelt von den drei Typen die meiste Kraft pro Faser und die schnellste Kontraktionsgeschwindigkeit — auf Kosten dessen, dass sie unter anhaltender Belastung schon nach Sekunden ermüdet.",
+                "func_en": "The fastest, most purely glycolytic fibre in human skeletal muscle: low in mitochondria and myoglobin, pale in colour, and built for a short, powerful burst rather than any endurance. It generates the most force per fibre and the fastest contraction speed of the three types, at the cost of tiring within seconds under sustained load.",
+                "deps_de": "Wird von den größten, schnellsten Motoneuronen angesteuert, die zuletzt und nur bei maximaler Anstrengung zugeschaltet werden — schweres Heben, Springen, Sprinten. In den meisten menschlichen Extremitätenmuskeln vergleichsweise selten und verschiebt sich bei regelmäßigem Ausdauertraining leicht in Richtung der oxidativeren Typ-IIa-Faser, oder nimmt bei rein auf Spitzenkraft ausgelegtem Krafttraining zu.",
+                "deps_en": "Driven by the largest, fastest motor neurons, recruited last and only for maximal effort — heavy lifting, jumping, sprinting. Relatively rare in most human limb muscle, and shifts somewhat towards the more oxidative Type IIa with regular endurance training, or expands with strength training aimed purely at peak power.",
             },
         ],
     },
@@ -1783,7 +1921,7 @@ PAGES = [
             {
                 "name_de": "Herzwurm (Dirofilaria immitis)",
                 "name_en": "Heartworm (Dirofilaria immitis)",
-                "related": ["contractile-cardiomyocyte"],
+                "related": ["cardiomyocyte"],
                 "name_kids_de": "Herzwurm",
                 "name_kids_en": "Heartworm",
                 "tier": "basic",

@@ -81,6 +81,17 @@ first attempt rather than rediscovering them.
 - **Anything radiating from a hub is one careless word from a starburst**, which
   is unrecoverable (its outline fuses with the artwork). Compose fibres, flagella
   and spokes as diagonal cables or trailing ribbons crossing the frame instead.
+- **A repeating pattern has a direction, and the model will pick the wrong one.**
+  Asked for a striated muscle fibre, flash drew lengthwise myofibril stripes in
+  all four styles and no transverse A/I banding at all — and the verify pass
+  accepted them, because parallel stripes on a cylinder *look* striated at a
+  glance. Cross-striation runs **across** the axis; myofibrils run **along** it,
+  and both are real, which is what makes the wrong one so convincing. Name the
+  direction positively ("narrow dark and light bands running across the fibre,
+  like rungs on a ladder, with the myofibrils lengthwise underneath") and test it
+  by measuring periodicity along the axis *and* perpendicular to it. Whenever a
+  subject's defining feature is a repeat — banding, grooves, segments, coils —
+  the axis is the thing to check, not the presence of stripes.
 - **Helices: verify handedness, don't eyeball it.** Real DNA is right-handed and
   flash renders came back left-handed on 3 of 4 styles. Test: at a crossing in
   side view, the strand in front runs lower-left to upper-right. Check a
@@ -120,6 +131,12 @@ caught real errors, and each is cheap:
   asymmetry → measure the envelope-width period.
 - **Check the count you claim.** If the label says eleven RNA segments or eight
   flagella, either the picture shows that many or the log says it does not.
+- **Spot-check the swarm, not just the flagged ones.** The orchestrator built a
+  four-up contact sheet of a finished subject's accepted finals and magnified one
+  centre crop — two cheap steps — and found the defining feature missing from all
+  four styles of a subject whose agent had reported it verified, plus a framing
+  failure that agent believed it had fixed. An agent's report is a claim about
+  its own work; one contact sheet per subject is the whole cost of checking it.
 - **A `verdicts.json` is self-reported, not evidence.** Giardia's verdict said
   "~eight flagella" about renders that had 10–16; the claim survived into the
   committed atlas and into PLAN.md, where it was rewritten as "they overlap, so the

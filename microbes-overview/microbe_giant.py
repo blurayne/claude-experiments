@@ -38,6 +38,23 @@ true counterpart simply gets no plush button. Notably NOT linked, and why:
     a different species in the same genus. Same genus is not the same organism,
     and the cat one causes conjunctivitis while the human one is an STI.
   - FIV and FeLV — no feline retrovirus plush exists.
+  - enterocyte — their "Celiac Disease" plush is species `enterozyt`, but the
+    photo depicts finger-like villi and a zipped-shut mouth (the disease
+    concept, gut lining zipped closed by gluten intolerance), not a single
+    gut cell. A disease/tissue-level toy is not a cell portrait, so it stays
+    unlinked even though the species field matches.
+A few 2026-08 additions are worth a word:
+  - nucleus — GIANTmicrobes sells no full-size nucleus plush, only a "Nucleus
+    Key Chain". It is linked anyway, because the little toy does depict this
+    very structure (nucleolus and chromatin are both modelled), but it is
+    listed in KEYCHAIN below so the viewer calls it a keychain rather than
+    quietly passing it off as a plush. That distinction is the reason the
+    exception is safe to make.
+  - dna, rna, chromosome, mitochondrion — the vendor listing carries no
+    `species` string for these (it's blank), so the match is on the product
+    name itself, which *is* the subject's exact name/common noun (DNA, RNA,
+    Chromosome, Mitochondria) — verified against the product photo, not text
+    alone, per the "exact match" rule above.
 """
 
 # Photos we had to repair, all with scripts/edit_image.py (gemini-2.5-flash-image).
@@ -65,6 +82,14 @@ AI_CLEANED = {
     'cardiomyocyte',             # vendor publishes it only at 200x200; upscaled
 }
 
+# Products that are a plush KEYCHAIN rather than a full-size plush toy. Every
+# other entry in GIANT is a full plush, so the viewer would otherwise label a
+# keychain "Plush toy" — a small untruth this atlas has no reason to tell.
+# Listed here, `build_viewer.py` flags it and the card says "Keychain".
+KEYCHAIN = {
+    'nucleus',                   # no full-size nucleus plush is sold at all
+}
+
 # hepatocyte is the third case, alongside candida-albicans and parasite, where the
 # repair was tried and thrown away. riesenmikroben.de publishes the Leberzelle photo
 # only at 200x200 and has no larger original, so it is the same starting point as
@@ -77,6 +102,10 @@ AI_CLEANED = {
 GIANT = {
     # --- organelles ---
     'golgi-apparatus': ('Golgi Apparatus', 'https://www.riesenmikroben.de/products/golgi_apparat?locale=de'),
+    'mitochondrion': ('Mitochondria', 'https://www.riesenmikroben.de/products/mitochondrien?locale=de'),
+    # the one keychain in this table (see KEYCHAIN above); riesenmikroben.de
+    # does not carry it, so this is the only US-only link among the organelles
+    'nucleus': ('Nucleus Key Chain - Cell Science Gift', 'https://www.giantmicrobes.com/us/products/nucleus-key-chain.html'),
     # --- stem cells ---
     'hematopoietic-stem-cell': ('Stem Cell Gigantic 14"', 'https://www.riesenmikroben.de/products/gig_stammzelle?locale=de'),
     # --- epithelial ---
@@ -125,6 +154,7 @@ GIANT = {
     # species reads `clostridium difficile` — the pre-2016 genus name for the same organism
     'clostridioides-difficile': ('C. Diff (Clostridioides difficile)', 'https://www.riesenmikroben.de/products/cdiff?locale=de'),
     'listeria-monocytogenes': ('Listeria (Listeria monocytogenes)', 'https://www.riesenmikroben.de/products/listeria?locale=de'),
+    'streptococcus-mutans': ('Cavity (Streptococcus mutans)', 'https://www.riesenmikroben.de/products/karies?locale=de'),
     # --- well-known viruses & other pathogens ---
     'influenza-virus': ('Flu (Orthomyxovirus)', 'https://www.riesenmikroben.de/products/grippe?locale=de'),
     'sars-cov-2': ('Coronavirus COVID-19 (SARS-CoV-2)', 'https://www.riesenmikroben.de/products/covid-19?locale=de'),
@@ -135,6 +165,11 @@ GIANT = {
     'rotavirus': ('Rotavirus (Rotavirus)', 'https://www.riesenmikroben.de/products/rotavirus?locale=de'),
     'rhinovirus': ('Common Cold (Rhinovirus)', 'https://www.riesenmikroben.de/products/erkaeltung?locale=de'),
     'zika-virus': ('Zika (Zika virus)', 'https://www.riesenmikroben.de/products/zika?locale=de'),
+    'norovirus': ('Norovirus - Stomach Bug Plush', 'https://www.riesenmikroben.de/products/norovirus?locale=de'),
+    # riesenmikroben.de has no /products/chickenpox?locale=de listing under that
+    # slug, but /windpocken (its actual DE slug) resolves and is the same product
+    'varicella-zoster-virus': ('Chickenpox (Varicella-Zoster virus)', 'https://www.riesenmikroben.de/products/windpocken?locale=de'),
+    'giardia-lamblia': ('Giardia (Giardia lamblia)', 'https://www.riesenmikroben.de/products/giardia?locale=de'),
     # --- helpful microbes ---
     'penicillium-chrysogenum': ('Penicillin (Penicillium chrysogenum)', 'https://www.riesenmikroben.de/products/penicillin?locale=de'),
     # --- pathogens of cats and dogs ---
@@ -146,4 +181,11 @@ GIANT = {
     'rabies-virus': ('Rabies - Deadly Virus Plush', 'https://www.riesenmikroben.de/products/tollwut?locale=de'),
     'saccharomyces-cerevisiae': ('Beer & Bread (Saccharomyces cerevisiae)', 'https://www.riesenmikroben.de/products/bierhefe?locale=de'),
     'bifidobacterium-longum': ('Bifido (Bifidobacterium longum)', 'https://www.riesenmikroben.de/products/bifido-bakterium?locale=de'),
+    # --- genetics ---
+    # no `species` field on these three (it's blank); matched on the product
+    # name itself, which is the exact subject name, and confirmed against the
+    # photo (double helix / single strand with base pairs / X-shaped pair)
+    'dna': ('DNA (Deoxyribonucleic acid)', 'https://www.riesenmikroben.de/products/dns?locale=de'),
+    'rna': ('RNA - Genetic Messenger Plush', 'https://www.riesenmikroben.de/products/rns?locale=de'),
+    'chromosome': ('Chromosome - Genetic Blueprint Plush', 'https://www.riesenmikroben.de/products/chromosom?locale=de'),
 }
