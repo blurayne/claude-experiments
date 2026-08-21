@@ -27,6 +27,12 @@ original download:
                   1.0 = intact, 0.18 = the puzzle box was erased.
   ghost           share of pixels left semi-transparent. High = the washed-out
                   half-there look.
+  same_photo      dHash distance between the shipped image and the source. A
+                  source directory can hold a *different* photo of the same
+                  product -- a licensee store's version that was probed and not
+                  adopted, say -- and re-cutting from that would silently swap
+                  the picture rather than repair it. Guard, not a metric: 65
+                  images were replaced that way before it existed.
 
 Usage:
   uv run scripts/repair_cutouts.py --sources handoff/upgrades handoff/found-images
@@ -51,6 +57,7 @@ CATALOG = os.path.join(HERE, "merged_catalog.json")
 KEPT_MIN = 0.90         # below this the cut-out lost part of the product
 GHOST_MAX = 0.10        # above this it is half-transparent
 SUBJECT_MAX = 0.90      # above this the backdrop is not plain; leave it alone
+SAME_PHOTO_MAX_DISTANCE = 16   # dHash bits; above this the source is another photo
 FLOOD_THRESH = 40
 
 
@@ -89,6 +96,18 @@ def cut_with_flood(img):
     return out
 
 
+def perceptual(img, size=8):
+    """dHash, so the source can be checked against what we actually shipped."""
+    gray = img.convert("RGBA")
+    a = np.asarray(gray, dtype=np.float64)
+    alpha = a[:, :, 3:4] / 255.0
+    rgb = a[:, :, :3] * alpha + 255.0 * (1.0 - alpha)
+    lum = rgb @ np.array([0.299, 0.587, 0.114])
+    small = np.asarray(Image.fromarray(lum.astype("uint8")).resize(
+        (size + 1, size), Image.LANCZOS), dtype=np.int16)
+    return (small[:, 1:] > small[:, :-1]).flatten()
+
+
 def score(current, source):
     mask = flood_mask(source)
     alpha = np.asarray(current.getchannel("A"), dtype=np.float64) / 255.0
@@ -96,10 +115,17 @@ def score(current, source):
         resized = Image.fromarray((mask * 255).astype("uint8")).resize(
             (alpha.shape[1], alpha.shape[0]))
         mask = np.asarray(resized) > 127
+    # The source directory may hold a *different* photo of the same product --
+    # a licensee store's version, say, that was probed but never adopted.
+    # Re-cutting from that source would silently swap the picture instead of
+    # repairing it, so the two have to be the same photograph to begin with.
+    distance = int((perceptual(current) != perceptual(source)).sum())
     return {
         "subject_share": float(mask.mean()),
         "kept": float(alpha[mask].mean()) if mask.any() else 0.0,
         "ghost": float(((alpha > 0.05) & (alpha < 0.9)).mean()),
+        "dhash_distance": distance,
+        "same_photo": distance <= SAME_PHOTO_MAX_DISTANCE,
     }
 
 
@@ -144,8 +170,10 @@ def main():
             damaged = slug in only
         else:
             damaged = (s["subject_share"] < SUBJECT_MAX
-                       and (s["kept"] < KEPT_MIN or s["ghost"] > GHOST_MAX))
-        rec = {"slug": slug, **{k: round(v, 3) for k, v in s.items()},
+                       and (s["kept"] < KEPT_MIN or s["ghost"] > GHOST_MAX)
+                       and s["same_photo"])
+        rec = {"slug": slug,
+               **{k: (round(v, 3) if isinstance(v, float) else v) for k, v in s.items()},
                "action": "repair" if damaged else "keep"}
         if damaged and not args.dry_run:
             fixed = cut_with_flood(source)

@@ -100,7 +100,10 @@ def main():
 
     skip = {s.strip() for s in args.skip.split(",") if s.strip()}
     catalog = json.load(open(CATALOG))
-    by_slug = {i.get("slug_us"): i for i in catalog}
+    # 37 records are DE-only and carry no `slug_us`. Keyed naively they all
+    # collapse onto one None entry, and an adoption meant for one of them lands
+    # on whichever came last -- writing `images/None.avif` in the process.
+    by_slug = {i["slug_us"]: i for i in catalog if i.get("slug_us")}
     placeholder = PlaceholderFilter()
 
     jobs = []
@@ -177,7 +180,13 @@ def main():
                     item["image_source_page"] = job["source_page"]
                 if job["kind"] == "found":
                     item["image_recovered_via"] = job["via"]
-                    item["image_is_researched"] = True
+                    # A licensee storefront is still the vendor's own photography,
+                    # just not the storefront this catalog was crawled from, so it
+                    # is recorded as a different source rather than as research.
+                    if (job["via"] or "").startswith("licensee:"):
+                        item["image_source_store"] = job["via"].split(":", 1)[1]
+                    else:
+                        item["image_is_researched"] = True
             adopted.append({"slug": slug, "kind": job["kind"], "w": m["w"], "h": m["h"],
                             "detail_ratio": m["detail_ratio"], "url": source_url})
             stats["adopted"] += 1
