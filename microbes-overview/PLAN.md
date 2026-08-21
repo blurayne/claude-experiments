@@ -100,6 +100,15 @@ a compromise someone chose deliberately — listed so a later pass can revisit t
 - [ ] `rabies-virus` — the coloring page reaches full bleed on three edges and comes
       within 6px on the bottom, via the crop-and-retrace hatch rather than a natively
       edge-bleeding render.
+- [ ] `feline-leukaemia-virus` — its reference is a dense multi-particle negative-stain
+      plate rather than the single isolated virion this atlas prefers. Accepted because
+      individual round C-type particles are clearly resolvable in it.
+
+### Worth knowing for future renders
+- The house SEM style is **a single specimen on a substrate**, not a budding vignette.
+  A FeLV SEM attempt composed as budding-from-a-membrane read as skin blisters and
+  cost a re-render. Gammaretroviruses do bud characteristically, so the temptation is
+  real — put the budding figure in textbook or 3d instead.
 
 ### Ideas not yet decided
 - [ ] More cancer subjects — the set currently holds one generic entry. Leukaemia,

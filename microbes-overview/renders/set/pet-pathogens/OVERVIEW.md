@@ -20,6 +20,24 @@ An enveloped lentivirus (~100-125 nm) and the cat's own counterpart to HIV — c
 
 Full log: [`feline-immunodeficiency-virus.render.md`](feline-immunodeficiency-virus.render.md)
 
+## Feline leukaemia virus (FeLV) (`feline-leukaemia-virus`)
+An enveloped gammaretrovirus (~80-100 nm) that infects the blood-forming cells of the bone marrow and spreads through mutual grooming, shared bowls and saliva. Unlike its sibling FIV (a lentivirus with a CONE-shaped core), FeLV is a classic 'C-type' particle: barely-visible short Env spikes over the envelope, and a roughly SPHERICAL, centrally-placed condensed core (capsid p27) that assembles at the plasma membrane at the same moment it buds off.
+
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/feline-leukaemia-virus__textbook.avif) | ![sem](finals/feline-leukaemia-virus__sem.avif) | ![3d](finals/feline-leukaemia-virus__3d.avif) | ![watercolor](finals/feline-leukaemia-virus__watercolor.avif) | ![reference](finals/feline-leukaemia-virus__reference.avif) |
+
+**textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/feline-leukaemia-virus.textbook.svg) · [HTML](theme/textbook/feline-leukaemia-virus.textbook.html)
+![textbook labelled](theme/textbook/feline-leukaemia-virus.textbook.svg)
+
+**3d — labelled** (English default, La/De toggle): [SVG](theme/3d/feline-leukaemia-virus.3d.svg) · [HTML](theme/3d/feline-leukaemia-virus.3d.html)
+![3d labelled](theme/3d/feline-leukaemia-virus.3d.svg)
+
+**watercolor — labelled** (English default, La/De toggle): [SVG](theme/watercolor/feline-leukaemia-virus.watercolor.svg) · [HTML](theme/watercolor/feline-leukaemia-virus.watercolor.html)
+![watercolor labelled](theme/watercolor/feline-leukaemia-virus.watercolor.svg)
+
+Full log: [`feline-leukaemia-virus.render.md`](feline-leukaemia-virus.render.md)
+
 ## Heartworm (Dirofilaria immitis) (`heartworm`)
 The largest subject in the atlas: an adult female Dirofilaria immitis nematode reaches 25-30 cm, lives coiled in the right ventricle and pulmonary arteries of dogs (and less often cats), and is transmitted only via mosquitoes carrying its ~300 µm first-stage larvae (microfilariae). NOT segmented like an earthworm; NOT a tapeworm/fluke (no suckers, hooks or scolex).
 
@@ -64,6 +82,11 @@ Full log: [`rabies-virus.render.md`](rabies-virus.render.md)
 | Feline immunodeficiency virus (FIV) | SEM micrograph | gemini-2.5-flash-image | 3 | ✅ | pending (same pipeline) | 20s | 4754 | $0.116 |
 | Feline immunodeficiency virus (FIV) | 3D medical render | gemini-2.5-flash-image | 2 | ✅ | built | 17s | 3437 | $0.077 |
 | Feline immunodeficiency virus (FIV) | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 8s | 1656 | $0.039 |
+| Feline leukaemia virus (FeLV) | Textbook illustration | gemini-2.5-flash-image | 2 | ✅ | built | 14s | 3493 | $0.077 |
+| Feline leukaemia virus (FeLV) | SEM micrograph | gemini-2.5-flash-image | 2 | ✅ | pending (same pipeline) | 15s | 3170 | $0.077 |
+| Feline leukaemia virus (FeLV) | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 9s | 1658 | $0.039 |
+| Feline leukaemia virus (FeLV) | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 8s | 1653 | $0.039 |
+| Feline leukaemia virus (FeLV) | TEM · Public domain (U.S. federal government work, CDC PHIL #5610) | — (download) | 1 | ✅ | n/a | 7s | 0 | $0.000 |
 | Heartworm (Dirofilaria immitis) | Textbook illustration | gemini-3-pro-image | 3 | ✅ | built | 36s | 5757 | $0.120 |
 | Heartworm (Dirofilaria immitis) | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 8s | 1581 | $0.039 |
 | Heartworm (Dirofilaria immitis) | 3D medical render | gemini-2.5-flash-image | 2 | ✅ | built | 13s | 3320 | $0.077 |
@@ -75,6 +98,6 @@ Full log: [`rabies-virus.render.md`](rabies-virus.render.md)
 | Rabies virus | Watercolor plate | gemini-2.5-flash-image | 3 | ✅ | built | 23s | 5611 | $0.116 |
 | Rabies virus | TEM · Public domain - CDC Public Health Image Library states 'None - This image is in the public domain and thus free of any copyright restrictions.' | — (download) | 1 | ✅ | n/a | 2s | 0 | $0.000 |
 
-**Set total: 46,179 tokens · $1.010**
+**Set total: 56,153 tokens · $1.242**
 
-_Updated 2026-08-21 12:38 local._
+_Updated 2026-08-21 13:12 local._

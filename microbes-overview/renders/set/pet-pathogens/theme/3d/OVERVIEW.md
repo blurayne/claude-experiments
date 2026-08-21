@@ -6,6 +6,10 @@ Every microbe's `3d` image — labelled SVG where built, else the last render. [
 ![3d](feline-immunodeficiency-virus.3d.svg)
 [full log](../../feline-immunodeficiency-virus.render.md)
 
+## Feline leukaemia virus (FeLV) (`feline-leukaemia-virus`)
+![3d](feline-leukaemia-virus.3d.svg)
+[full log](../../feline-leukaemia-virus.render.md)
+
 ## Heartworm (Dirofilaria immitis) (`heartworm`)
 ![3d](heartworm.3d.svg)
 [full log](../../heartworm.render.md)

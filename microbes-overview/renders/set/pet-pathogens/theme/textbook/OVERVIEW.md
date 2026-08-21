@@ -6,6 +6,10 @@ Every microbe's `textbook` image — labelled SVG where built, else the last ren
 ![textbook](feline-immunodeficiency-virus.textbook.svg)
 [full log](../../feline-immunodeficiency-virus.render.md)
 
+## Feline leukaemia virus (FeLV) (`feline-leukaemia-virus`)
+![textbook](feline-leukaemia-virus.textbook.svg)
+[full log](../../feline-leukaemia-virus.render.md)
+
 ## Heartworm (Dirofilaria immitis) (`heartworm`)
 ![textbook](heartworm.textbook.svg)
 [full log](../../heartworm.render.md)
