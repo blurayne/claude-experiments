@@ -6,6 +6,10 @@ Every microbe's `sem` image — labelled SVG where built, else the last render. 
 ![sem](type-i-fibre.attempts/gen-05__gemini-3-pro-image.avif)
 [full log](../../type-i-fibre.render.md)
 
+## Type II fibre (fast-twitch) (`type-ii-fibre`)
+![sem](type-ii-fibre.attempts/gen-01__gemini-3-pro-image.avif)
+[full log](../../type-ii-fibre.render.md)
+
 ## Type IIa fibre (fast oxidative-glycolytic) (`type-iia-fibre`)
 ![sem](type-iia-fibre.attempts/gen-03__gemini-3-pro-image.avif)
 [full log](../../type-iia-fibre.render.md)

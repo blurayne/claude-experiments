@@ -1,0 +1,41 @@
+{
+ "key": "type-ii-fibre",
+ "name_en": "Type II fibre (fast-twitch)",
+ "name_de": "Typ-II-Faser (schnell zuckend)",
+ "set": "muscle-cells",
+ "umbrella": true,
+ "umbrella_members": ["type-iia-fibre", "type-iix-fibre"],
+ "short_description": "The fast-twitch family of human skeletal muscle fibre, built to contract quickly and forcefully via anaerobic glycolysis rather than to last. The family is not one fibre but two related types, Type IIa and Type IIx, which sit at different points on the same fast design -- so this entry is rendered as a small bundle of two adjacent fibres, one styled IIa (moderate mitochondria, pale rose, richer capillary bed) and one styled IIx (sparse mitochondria, near-white cream, thin capillary), sharing the same cross-striated, peripherally-nucleated architecture but visibly differing in colour, mitochondrial density and capillary supply.",
+ "composition_decision": "GROUP composition: two adjacent long fibres in oblique/longitudinal view, bundled side by side with a thin connective-tissue (endomysium) gap between them, both running diagonally off the frame at both ends. A pure end-on TRANSVERSE cross-section (the classic histology fibre-typing checkerboard) was considered and is a legitimate alternative -- it is in fact how real fibre-typing stains actually show this variety -- but was rejected as the render composition (though used for the real-microscopy reference) because a true transverse cut cannot show A/I cross-banding at all: that pattern is only visible in a longitudinal or oblique cut. This set's costliest, most-repeated defect is exactly striation-axis confusion, and the two siblings' already-verified fix (transverse ladder-rung banding stated positively, longitudinal myofibrils visible underneath, both at once) is a known-good, checkable target only in a longitudinal/oblique composition. Preserving checkability against the set's worst failure mode outweighed matching the reference's own cross-sectional framing.",
+ "labels": [
+  {"key": "sarcolemma", "la": "sarcolemma", "en": "Sarcolemma", "de": "Sarkolemm"},
+  {"key": "peripheral_nucleus", "la": "nucleus peripheralis", "en": "Nucleus (many, peripheral)", "de": "Zellkern (viele, randständig)"},
+  {"key": "myofibril", "la": "myofibrilla", "en": "Myofibril", "de": "Myofibrille"},
+  {"key": "a_band", "la": "stria A (discus anisotropus)", "en": "A band (myosin)", "de": "A-Bande (Myosin)"},
+  {"key": "z_disc", "la": "linea Z (telophragma)", "en": "Z-disc", "de": "Z-Scheibe"},
+  {"key": "iia_fibre", "la": "fibra typi IIa", "en": "Type IIa fibre (fast oxidative-glycolytic)", "de": "Typ-IIa-Faser (schnell, oxidativ-glykolytisch)"},
+  {"key": "iia_mitochondria", "la": "mitochondria (moderata)", "en": "Mitochondria (moderate, in IIa)", "de": "Mitochondrien (mäßig, in IIa)"},
+  {"key": "iia_capillary", "la": "capillare (densius)", "en": "Capillary (richer supply, IIa)", "de": "Kapillare (dichter, IIa)"},
+  {"key": "iix_fibre", "la": "fibra typi IIx", "en": "Type IIx fibre (fast glycolytic)", "de": "Typ-IIx-Faser (schnell, glykolytisch)"},
+  {"key": "iix_mitochondria", "la": "mitochondria (sparsa)", "en": "Mitochondria (sparse, in IIx)", "de": "Mitochondrien (spärlich, in IIx)"},
+  {"key": "endomysium", "la": "endomysium", "en": "Endomysium (connective tissue between fibres)", "de": "Endomysium (Bindegewebe zwischen den Fasern)"}
+ ],
+ "reference": {
+  "url": "https://doi.org/10.1371/journal.pone.0035273.g001 (panel A, cropped)",
+  "page": "https://doi.org/10.1371/journal.pone.0035273",
+  "license": "CC BY 4.0 (PLOS ONE)",
+  "attribution": "Bloemberg D, Quadrilatero J (2012) PLoS ONE 7(4): e35273, Fig 1A (cropped to panel A)",
+  "modality": "IF (triple immunofluorescence, MHC isoform antibody cocktail, rat tibialis anterior cross-section)"
+ },
+ "reference_candidates_rejected": [
+  {"file": "ATPase_targetoid_fibers_neurogenic_muscle_atrophy.jpg / Fasertypendysproportion.jpg (Wikimedia, human, single-pH ATPase, already rejected by type-i/type-iix siblings)", "why_rejected": "a single-pH ATPase reaction only separates Type I from Type II as a GROUP; it cannot show the IIa/IIx variation that is this umbrella entry's whole point, and both candidate plates are pathological specimens"},
+  {"file": "same paper's panel B (dual IF), C/D (serial-section ATPase pH 4.3/4.6)", "why_rejected": "panel A alone already shows all four fibre identities (I, IIA, IIX-by-exclusion, IIB) most legibly in one frame; adding the other panels would need a wider non-square crop that loses resolution on the labelled fibres"}
+ ],
+ "sources": [
+  "https://pubmed.ncbi.nlm.nih.gov/7545970/",
+  "https://pmc.ncbi.nlm.nih.gov/articles/PMC8262285/",
+  "https://open.oregonstate.education/anatomy2e/chapter/types-muscle-fibers/",
+  "https://pubmed.ncbi.nlm.nih.gov/10998639/",
+  "https://doi.org/10.1371/journal.pone.0035273"
+ ]
+}

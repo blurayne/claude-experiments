@@ -6,6 +6,10 @@ Every microbe's `3d` image — labelled SVG where built, else the last render. [
 ![3d](type-i-fibre.3d.svg)
 [full log](../../type-i-fibre.render.md)
 
+## Type II fibre (fast-twitch) (`type-ii-fibre`)
+![3d](type-ii-fibre.3d.svg)
+[full log](../../type-ii-fibre.render.md)
+
 ## Type IIa fibre (fast oxidative-glycolytic) (`type-iia-fibre`)
 ![3d](type-iia-fibre.3d.svg)
 [full log](../../type-iia-fibre.render.md)

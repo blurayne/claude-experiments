@@ -459,7 +459,6 @@ main{max-width:var(--maxw); margin:0 auto; padding:clamp(20px,4vw,44px) clamp(14
 .hero-build .hb-sep{opacity:.5; margin:0 7px}
 .hero-build a{color:inherit; text-decoration:none; border-bottom:1px dotted currentColor}
 .hero-build a:hover{color:var(--accent)}
-.hero-build .hb-dirty{color:#d08a2a}
 .hero-book{display:flex; gap:8px; margin-top:14px; flex-wrap:wrap}
 .hero-book-btn{display:inline-flex; align-items:center; gap:7px; text-decoration:none;
   padding:8px 14px; border-radius:10px; font-size:13.5px; font-weight:600;
@@ -978,7 +977,7 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 -2px 0 #f
   <section class="hero">
     <div class="hero-text">
       <h1 id="heroTitle">An interactive <span class="em">microbe</span> atlas.</h1>
-      <p id="heroSub">Scientifically verified, AI-rendered teaching images of the cells, pathogens and antibodies of the human body — in five styles, with switchable labels. Choose your audience, language and picture layout.</p>
+      <p id="heroSub">An atlas of the very small — the cells you are built from and the parts inside them, the genetic material they carry, the microbes that help and harm us and our pets, and a few things people have engineered. Every subject is drawn five ways: a real micrograph wherever a freely licensed one exists, plus four generated from a researched reference and checked back against it. Switch the wording between kids, adults and scientists, switch language, and choose which pictures sit side by side. Styles marked “·gen” are generated; where a “Real” picture is a structural model rather than a photograph, or shows a close relative because no image of the species is free to use, its caption says so.</p>
       <!-- Build stamp: version, commit and build time. Filled by updateHero()
            from DATA.build (see microbe_version.py) — it is deliberately not
            hardcoded, so it can never claim a version that was not shipped. -->
@@ -990,6 +989,12 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 -2px 0 #f
       <div class="hero-book">
         <a id="bookView" class="hero-book-btn" href="microbes-book-en.pdf" target="_blank" rel="noopener">📖 <span>Read the picture book</span></a>
         <a id="bookDl" class="hero-book-btn ghost" href="microbes-book-en.pdf" download>⤓ <span>PDF</span></a>
+        <!-- The plush catalogue is a sibling experiment in the same Pages site.
+             Relative, not absolute: the same href then resolves correctly from a
+             local checkout, a file:// open and the deployed site, instead of
+             hard-wiring one origin that is wrong in the other two. -->
+        <a id="plushCat" class="hero-book-btn ghost" href="../giant-microbes/catalog.html"
+           target="_blank" rel="noopener">🧸 <span>Plush catalogue</span></a>
       </div>
     </div>
     <img class="hero-art" src="hero-microscope.png" alt="" width="452" height="720" loading="eager">
@@ -1447,13 +1452,15 @@ const LANG_LABEL={en:{en:'English',de:'English'},de:{en:'German',de:'Deutsch'}};
 // hero copy, switched by updateHero() on language change (see item 9)
 const HERO={
   en:{h1:'An interactive <span class="em">microbe</span> atlas.',
-      sub:'Scientifically verified, AI-rendered teaching images of the cells, pathogens and antibodies of the human body — in five styles, with switchable labels. Choose your audience, language and picture layout. Styles tagged “·gen” are AI-generated from a verified reference; only the plain “Real” style is an actual photomicrograph.',
+      sub:'An atlas of the very small — the cells you are built from and the parts inside them, the genetic material they carry, the microbes that help and harm us and our pets, and a few things people have engineered. Every subject is drawn five ways: a real micrograph wherever a freely licensed one exists, plus four generated from a researched reference and checked back against it. Switch the wording between kids, adults and scientists, switch language, and choose which pictures sit side by side. Styles marked “·gen” are generated; where a “Real” picture is a structural model rather than a photograph, or shows a close relative because no image of the species is free to use, its caption says so.',
       a:'sets ·', b:'subjects ·', c:'styles + real microscopy',
-      book:'Read the picture book', bookDl:'PDF', bookTip:'A4 picture book for children — every subject over two pages, with its coloring page'},
+      book:'Read the picture book', bookDl:'PDF', bookTip:'A4 picture book for children — every subject over two pages, with its coloring page',
+      plush:'Plush catalogue', plushTip:'Every GIANTmicrobes plush toy, in a browsable catalogue — the toys this atlas links from its subjects'},
   de:{h1:'Ein interaktiver <span class="em">Mikroben</span>-Atlas.',
-      sub:'Wissenschaftlich geprüfte, KI-gerenderte Lehrbilder der Zellen, Erreger und Antikörper des menschlichen Körpers — in fünf Stilen, mit umschaltbaren Beschriftungen. Wähle Zielgruppe, Sprache und Bildlayout. Mit „·gen“ markierte Stile sind KI-generiert aus einer geprüften Referenz; nur der reine „Real“-Stil ist eine echte mikroskopische Aufnahme.',
+      sub:'Ein Atlas des sehr Kleinen — der Zellen, aus denen du bestehst, und ihrer Bestandteile, des Erbguts darin, der Mikroben, die uns und unseren Haustieren helfen und schaden, und einiger Dinge, die Menschen gebaut haben. Jedes Thema ist fünffach abgebildet: eine echte mikroskopische Aufnahme, sofern es eine frei lizenzierte gibt, dazu vier nach einer recherchierten Vorlage generierte, die daran geprüft wurden. Wechsle zwischen Kinder-, Erwachsenen- und Fachsprache, wechsle die Sprache und wähle, welche Bilder nebeneinander stehen. Mit „·gen“ markierte Stile sind generiert; wo „Real“ ein Strukturmodell statt einer Fotografie zeigt oder eine nahe verwandte Art, weil es von der Art selbst kein frei nutzbares Bild gibt, steht das in der Bildunterschrift.',
       a:'Sets ·', b:'Themen ·', c:'Stile + echte Mikroskopie',
-      book:'Das Bilderbuch lesen', bookDl:'PDF', bookTip:'A4-Bilderbuch für Kinder — jedes Thema auf zwei Seiten, mit seinem Ausmalbild'},
+      book:'Das Bilderbuch lesen', bookDl:'PDF', bookTip:'A4-Bilderbuch für Kinder — jedes Thema auf zwei Seiten, mit seinem Ausmalbild',
+      plush:'Plüsch-Katalog', plushTip:'Alle GIANTmicrobes-Plüschtiere in einem durchsuchbaren Katalog — die Tiere, die dieser Atlas bei den Themen verlinkt'},
 };
 
 // narration for the CURRENT language, kids mode only (that's the only
@@ -2541,7 +2548,7 @@ function applySearch(){
 const BUILD_TXT={
   version:{en:'version', de:'Version'},
   built:{en:'built', de:'erstellt'},
-  dirty:{en:'uncommitted changes', de:'nicht committete \u00c4nderungen'},
+  shaTip:{en:'built from commit', de:'erstellt aus Commit'},
 };
 const CHAPTER_TAG={en:'chapter', de:'Kapitel'};
 const CHAPTER_TAG_PL={en:'chapters', de:'Kapitel'};
@@ -2848,6 +2855,8 @@ function updateHero(){
   view.href=pdf; view.title=h.bookTip; view.querySelector('span').textContent=h.book;
   dl.href=pdf; dl.setAttribute('download',pdf); dl.title=h.bookTip;
   dl.querySelector('span').textContent=h.bookDl;
+  const pc=$('#plushCat');
+  if(pc){ pc.title=h.plushTip; pc.querySelector('span').textContent=h.plush; }
   renderBuild();
 }
 // Version / commit / build time. The sha links to the commit on GitHub so a bug
@@ -2860,11 +2869,15 @@ function renderBuild(){
   let h='<span class="hb-v">'+esc(L(BUILD_TXT.version))+' '+esc(b.version)+'</span>';
   if(b.sha_short){
     h+='<span class="hb-sep">\u00b7</span>'+
-       '<a href="'+repo+esc(b.sha)+'" target="_blank" rel="noopener" title="'+esc(b.sha)+'">'+esc(b.sha_short)+'</a>';
+       '<a href="'+repo+esc(b.sha)+'" target="_blank" rel="noopener" title="'+esc(L(BUILD_TXT.shaTip))+' '+esc(b.sha)+'">'+esc(b.sha_short)+'</a>';
   }
   if(b.built) h+='<span class="hb-sep">\u00b7</span>'+esc(L(BUILD_TXT.built))+' '+esc(b.built);
-  // a build made from an edited tree is not the tagged release; say so
-  if(b.dirty) h+='<span class="hb-sep">\u00b7</span><span class="hb-dirty">+'+esc(L(BUILD_TXT.dirty))+'</span>';
+  // NOTE: `b.dirty` is deliberately NOT rendered. The stamp is baked when
+  // build_viewer.py runs, and the artifact it stamps is committed *afterwards* —
+  // so the tree is dirty at every build by construction, and the shipped page
+  // ended up telling every visitor it had "uncommitted changes" forever. The
+  // flag is still computed and is useful from `python3 microbe_version.py` while
+  // working locally; it just cannot mean anything once it is frozen into a file.
   el.innerHTML=h;
 }
 

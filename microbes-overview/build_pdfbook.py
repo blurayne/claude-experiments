@@ -53,8 +53,8 @@ Layout (from TODO.md's "PDF-Book for Children" item):
   with an empty `microbes` array (e.g. one still being populated by other tooling) is
   simply skipped; no subject or page count is ever hard-coded, the script re-reads
   whatever viewer-data.json currently contains.
-- A giant-plush photo whose `giant.keychain` is true (only `nucleus` today) gets the
-  "keychain" caption instead of "cuddly version" — see microbe_giant.py's KEYCHAIN.
+- A giant-plush photo whose `giant.keychain` is true (only `nucleus` today) is captioned
+  as a keychain rather than a plush — see microbe_giant.py's KEYCHAIN.
 - The TEXTBOOK grid cell is a *live* label overlay built the same way
   viewer.template.html's overlaySvg() builds it in the browser: the AVIF final plus a
   leader-line/halo-text layer computed from `lab.textbook` geometry (decrossTy +
@@ -225,15 +225,19 @@ GRID_SAFETY_MM = 6.0         # slop for estimation error / borders / rounding
 PAGE_CONTENT_H_MM = 267.0    # 297mm page - 2*15mm vertical padding
 GRID_MIN_H_MM = 95.0   # floor: keeps the labelled-diagram cell legible even for the
                         # longest description in the data
-GRID_MAX_H_MM = 155.0  # ceiling: since the TEXTBOOK cell is a *square* SVG shown at
-                        # min(wide_w, grid_h) and centered in its (wide_w x grid_h) box
-                        # (flex align/justify-center), letting grid_h run far past
-                        # wide_w (~131mm near this ceiling) just adds a growing blank
-                        # band above+below the diagram -- the opposite letterbox
-                        # problem this whole layout redo exists to fix. 155mm keeps
-                        # that band modest (TEXTBOOK aspect stays inside ~1.2:1) even
-                        # for the shortest descriptions in the data, at the cost of a
-                        # little unfilled space at the very bottom of those few pages.
+# Ceiling, DERIVED not chosen: the three stacked images must span exactly the
+# height of the big one beside them. The TEXTBOOK art is square, so it renders at
+# min(wide_w, grid_h) and is centred in its (wide_w x grid_h) box. The moment
+# grid_h passes wide_w the diagram stops growing while the left stack keeps going,
+# so the big picture ends visibly short of the stack — at the old 155mm ceiling it
+# was letterboxed by 23.7mm, i.e. ~12mm of blank above and below. Solving
+# wide_w >= grid_h for the break-even point:
+#     wide_w  = DESC_WIDTH_MM - GRID_GAP_MM - row_h,   row_h = (H - 2*GRID_GAP_MM)/3
+#     =>  H   = (3*(DESC_WIDTH_MM - GRID_GAP_MM) + 2*GRID_GAP_MM) / 4
+# At or below that height the diagram fills its cell exactly and the two columns
+# align top and bottom. Kept as an expression so it stays correct if the page
+# width or gap ever changes.
+GRID_MAX_H_MM = (3 * (DESC_WIDTH_MM - GRID_GAP_MM) + 2 * GRID_GAP_MM) / 4  # 137.25mm
 
 
 def estimate_text_lines(text: str, width_mm: float, fs_pt: float) -> int:
@@ -460,12 +464,12 @@ UI = {
     "en": {
         "real": "Real photo", "sem": "Electron microscope", "3d": "3D model",
         "textbook": "Labelled diagram", "no_pic": "no picture yet",
-        "plush": "The cuddly version!", "keychain": "The keychain version!",
+        "plush": "GIANTmicrobe", "keychain": "GIANTmicrobe keychain",
     },
     "de": {
         "real": "Echtes Foto", "sem": "Elektronenmikroskop", "3d": "3D-Modell",
         "textbook": "Beschriftetes Bild", "no_pic": "noch kein Bild",
-        "plush": "Die Kuschelversion!", "keychain": "Die Schlüsselanhänger-Version!",
+        "plush": "RIESENmikrobe", "keychain": "RIESENmikrobe Schlüsselanhänger",
     },
 }
 
@@ -581,8 +585,12 @@ body {
 .plush {
   float: right; width: 32mm; margin: 0 0 3mm 4mm; text-align: center;
 }
-.plush img { width: 100%; height: auto; border: 0.4mm solid #cfd9d5; border-radius: 2mm; }
-.plush .cap { font-size: 6.8pt; color: #4b5f58; margin-top: 1mm; font-style: italic; }
+/* No frame: the plush sits on the page like the grid images do. The caption is
+   the vendor's brand rather than a joke about the toy — it says what the picture
+   is, which is the same job the corner labels do on the grid. */
+.plush img { width: 100%; height: auto; }
+.plush .cap { font-size: 6.6pt; color: #4b5f58; margin-top: 1mm;
+  letter-spacing: .03em; text-transform: uppercase; }
 
 /* ---- coloring page (full-bleed, no padding/margin) ---- */
 .coloring-page { width: 210mm; height: 297mm; }

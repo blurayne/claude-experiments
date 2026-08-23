@@ -89,9 +89,31 @@ killed the first batch mid-flight and the state is not obvious from the files al
       point), so verification used a small perpendicular offset plus a direct check
       against the un-annotated base image. One anchor (3d/myofibril) was relocated
       after the composite showed a neighbouring label's text string overlapping it.
-- [ ] `type-ii-fibre` — not started. It is the **umbrella** entry over IIa and IIx,
-      so per SKILL.md it must be rendered as a group showing the variety rather
-      than as a fifth near-duplicate sibling.
+- [x] `type-ii-fibre` — **complete.** The umbrella entry over IIa and IIx, rendered
+      as a two-fibre bundle (not a fifth near-duplicate single fibre) on the pro
+      tier: an IIa fibre (moderate mitochondria, paler rose, denser capillary) and
+      an IIx fibre (sparse mitochondria, near-white cream, wider, thinner
+      capillary) side by side, sharing the same transverse-A/I-banding-plus-
+      lengthwise-myofibril anatomy but visibly differing in colour and
+      mitochondrial density. Chose a longitudinal/oblique bundle over a true
+      end-on cross-section (which the real reference itself is) specifically
+      because a transverse cut cannot show A/I banding at all, and this set's
+      costliest defect is exactly striation-axis confusion — see the
+      `composition_decision` field in `type-ii-fibre.research.json`. textbook, sem
+      and 3d all passed on the first pro-tier attempt; watercolor's first attempt
+      repeated the "closed end-cap inside the frame" framing failure (caught by
+      zooming the exit corners, not by the corner-pixel test, which it passed
+      despite the defect) and was fixed on the second attempt by forcing a
+      larger/closer composition. Real reference: Bloemberg & Quadrilatero (2012)
+      PLoS ONE Fig 1A, a triple-immunofluorescence rat cross-section showing I/IIA/
+      IIB/IIX(-by-exclusion) simultaneously — species and stain-limitation caveats
+      recorded in full. All 10 SVG anchors on all three illustrated styles were
+      pixel-sampled against the raw base renders; several (textbook's sarcolemma,
+      a_band, z_disc, iix_fibre; 3d's z_disc/sarcolemma) were initially off-target
+      and relocated using colour-channel scans before the final build. Coloring
+      page needed the same border-crop-not-reroll fix as other subjects in this
+      set (measured ring + rounded-corner extent, cropped, re-traced with no
+      second API call).
 - [ ] Narration for the four fibres and the four new set/chapter intros
       (~11.9k ElevenLabs characters). Credits were topped up; run `tts.py` in the
       barrier step **after** `build_viewer.py` has seen the subjects.
@@ -109,6 +131,13 @@ killed the first batch mid-flight and the state is not obvious from the files al
 These are all flagged in the per-subject `verdicts.json` too. None is wrong, each is
 a compromise someone chose deliberately — listed so a later pass can revisit them.
 
+- [ ] `type-ii-fibre` — the textbook and watercolor styles render a single shared
+      capillary in the endomysium gap between the IIa and IIx fibres rather than
+      two visibly different-thickness vessels (one denser for IIa, one thinner for
+      IIx, as the prompt asked). The 3d style did get two distinguishably-different
+      capillaries. Not re-rolled because the primary differentiator between the two
+      fibres — colour and mitochondrial density — reads clearly in all three
+      styles regardless.
 - [ ] `chromosome` — the centromere reads as an insert of roughly equal width in
       textbook/3d/watercolor rather than a true narrower constriction. Four prompt
       rounds did not fix it on flash and the pro tier was quota-exhausted. Only the
