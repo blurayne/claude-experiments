@@ -1454,12 +1454,16 @@ const HERO={
   en:{h1:'An interactive <span class="em">microbe</span> atlas.',
       sub:'An atlas of the very small — the cells you are built from and the parts inside them, the genetic material they carry, the microbes that help and harm us and our pets, and a few things people have engineered. Every subject is drawn five ways: a real micrograph wherever a freely licensed one exists, plus four generated from a researched reference and checked back against it. Switch the wording between kids, adults and scientists, switch language, and choose which pictures sit side by side. Styles marked “·gen” are generated; where a “Real” picture is a structural model rather than a photograph, or shows a close relative because no image of the species is free to use, its caption says so.',
       a:'sets ·', b:'subjects ·', c:'styles + real microscopy',
-      book:'Read the picture book', bookDl:'PDF', bookTip:'A4 picture book for children — every subject over two pages, with its coloring page',
+      book:'Read the picture book', bookDl:'PDF',
+      bookTip:'Opens in your browser — an A4 picture book for children, every subject over two pages with its coloring page',
+      bookDlTip:'Download the PDF instead of opening it',
       plush:'Plush catalogue', plushTip:'Every GIANTmicrobes plush toy, in a browsable catalogue — the toys this atlas links from its subjects'},
   de:{h1:'Ein interaktiver <span class="em">Mikroben</span>-Atlas.',
       sub:'Ein Atlas des sehr Kleinen — der Zellen, aus denen du bestehst, und ihrer Bestandteile, des Erbguts darin, der Mikroben, die uns und unseren Haustieren helfen und schaden, und einiger Dinge, die Menschen gebaut haben. Jedes Thema ist fünffach abgebildet: eine echte mikroskopische Aufnahme, sofern es eine frei lizenzierte gibt, dazu vier nach einer recherchierten Vorlage generierte, die daran geprüft wurden. Wechsle zwischen Kinder-, Erwachsenen- und Fachsprache, wechsle die Sprache und wähle, welche Bilder nebeneinander stehen. Mit „·gen“ markierte Stile sind generiert; wo „Real“ ein Strukturmodell statt einer Fotografie zeigt oder eine nahe verwandte Art, weil es von der Art selbst kein frei nutzbares Bild gibt, steht das in der Bildunterschrift.',
       a:'Sets ·', b:'Themen ·', c:'Stile + echte Mikroskopie',
-      book:'Das Bilderbuch lesen', bookDl:'PDF', bookTip:'A4-Bilderbuch für Kinder — jedes Thema auf zwei Seiten, mit seinem Ausmalbild',
+      book:'Das Bilderbuch lesen', bookDl:'PDF',
+      bookTip:'Öffnet im Browser — ein A4-Bilderbuch für Kinder, jedes Thema auf zwei Seiten mit seinem Ausmalbild',
+      bookDlTip:'Die PDF herunterladen, statt sie zu öffnen',
       plush:'Plüsch-Katalog', plushTip:'Alle GIANTmicrobes-Plüschtiere in einem durchsuchbaren Katalog — die Tiere, die dieser Atlas bei den Themen verlinkt'},
 };
 
@@ -2852,8 +2856,12 @@ function updateHero(){
   // one book per language, built by build_pdfbook.py --lang
   const pdf='microbes-book-'+state.lang+'.pdf';
   const view=$('#bookView'), dl=$('#bookDl');
+  // Two deliberately different actions on the same file: the primary opens the PDF
+  // in the browser (target=_blank, and crucially NO download attribute — that
+  // attribute forces a save even on a link that would otherwise render inline),
+  // the ghost one beside it saves it.
   view.href=pdf; view.title=h.bookTip; view.querySelector('span').textContent=h.book;
-  dl.href=pdf; dl.setAttribute('download',pdf); dl.title=h.bookTip;
+  dl.href=pdf; dl.setAttribute('download',pdf); dl.title=h.bookDlTip;
   dl.querySelector('span').textContent=h.bookDl;
   const pc=$('#plushCat');
   if(pc){ pc.title=h.plushTip; pc.querySelector('span').textContent=h.plush; }

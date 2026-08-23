@@ -2,6 +2,24 @@
 
 Final image per microbe × style (last attempt), the labelled SVG, and the real-microscopy reference. Status table at the bottom.
 
+## PhiX174 (ΦX174 bacteriophage) (`phix174`)
+The smallest known DNA phage, and tailless: a simple icosahedral shell built from four different capsid proteins, with short spikes at its twelve vertices instead of a docking apparatus. Its genome is a single-stranded, circular loop of DNA only about 5,400 bases long.
+
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/phix174__textbook.avif) | ![sem](finals/phix174__sem.avif) | ![3d](finals/phix174__3d.avif) | ![watercolor](finals/phix174__watercolor.avif) | ![reference](finals/phix174__reference.avif) |
+
+**textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/phix174.textbook.svg) · [HTML](theme/textbook/phix174.textbook.html)
+![textbook labelled](theme/textbook/phix174.textbook.svg)
+
+**3d — labelled** (English default, La/De toggle): [SVG](theme/3d/phix174.3d.svg) · [HTML](theme/3d/phix174.3d.html)
+![3d labelled](theme/3d/phix174.3d.svg)
+
+**watercolor — labelled** (English default, La/De toggle): [SVG](theme/watercolor/phix174.watercolor.svg) · [HTML](theme/watercolor/phix174.watercolor.html)
+![watercolor labelled](theme/watercolor/phix174.watercolor.svg)
+
+Full log: [`phix174.render.md`](phix174.render.md)
+
 ## T4 bacteriophage (`t4-bacteriophage`)
 The classic docking-apparatus phage: a prolate icosahedral head (~120x86 nm) packed with DNA sits on a neck attached to a contractile tail with a hexagonal baseplate, six kinked long tail fibres gripping Escherichia coli like landing legs, and six short fibres folded up beneath. Naked protein, no envelope.
 
@@ -42,6 +60,11 @@ Full log: [`t7-bacteriophage.render.md`](t7-bacteriophage.render.md)
 
 | name | styles | model | render count | pass | svg status | time taken | tokens used | costs |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| PhiX174 (ΦX174 bacteriophage) | Textbook illustration | gemini-3-pro-image | 2 | ✅ | built | 41s | 5234 | $0.096 |
+| PhiX174 (ΦX174 bacteriophage) | SEM micrograph | gemini-3-pro-image | 1 | ✅ | pending (same pipeline) | 18s | 2077 | $0.040 |
+| PhiX174 (ΦX174 bacteriophage) | 3D medical render | gemini-3-pro-image | 2 | ✅ | built | 41s | 4952 | $0.090 |
+| PhiX174 (ΦX174 bacteriophage) | Watercolor plate | gemini-3-pro-image | 1 | ✅ | built | 20s | 2409 | $0.048 |
+| PhiX174 (ΦX174 bacteriophage) | structural model (PDB 2BPA) · CC BY-SA 3.0 (GFDL 1.2+ also offered) | — (download) | 1 | ✅ | n/a | 1s | 0 | $0.000 |
 | T4 bacteriophage | Textbook illustration | gemini-3-pro-image | 2 | ✅ | built | 40s | 4673 | $0.091 |
 | T4 bacteriophage | SEM micrograph | gemini-3-pro-image | 2 | ✅ | pending (same pipeline) | 35s | 4081 | $0.084 |
 | T4 bacteriophage | 3D medical render | gemini-3-pro-image | 2 | ✅ | built | 42s | 4389 | $0.090 |
@@ -53,6 +76,6 @@ Full log: [`t7-bacteriophage.render.md`](t7-bacteriophage.render.md)
 | T7 bacteriophage | Watercolor plate | gemini-3-pro-image | 1 | ✅ | built | 20s | 2400 | $0.050 |
 | T7 bacteriophage | negative-stain TEM (single virion) · CC BY-SA 4.0 | — (download) | 1 | ✅ | n/a | 1s | 0 | $0.000 |
 
-**Set total: 26,479 tokens · $0.535**
+**Set total: 41,151 tokens · $0.808**
 
-_Updated 2026-08-23 20:59 local._
+_Updated 2026-08-23 21:35 local._
