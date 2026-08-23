@@ -20,9 +20,21 @@ whichever language they do have.
 import base64
 import gzip
 import json
+import os
 
 with open("merged_catalog.json") as f:
     _items = json.load(f)
+
+# image_audit.json is a separate, regeneratable report (scripts/audit_images.py)
+# rather than something written back onto the catalog record, so quality flags
+# are joined on at build time instead of being persisted in merged_catalog.json.
+if os.path.exists("image_audit.json"):
+    with open("image_audit.json") as f:
+        _audit_by_file = {r["file"]: r["flags"] for r in json.load(f)}
+    for _item in _items:
+        _f = _item.get("image_file")
+        if _f:
+            _item["image_quality_flags"] = _audit_by_file.get(os.path.basename(_f), [])
 
 with gzip.open("catalog_data.json.gz", "wt") as f:
     json.dump(_items, f)
@@ -245,6 +257,11 @@ const DEFAULT_SETTINGS = {
   // 51 retired items have no photo anywhere reachable and render as a bare
   // placeholder tile, so they are filtered out unless asked for.
   onlyWithImage: true,
+  // Opt-in, not on by default: image_quality_flags (audit_images.py) marks
+  // over half the catalog "small-subject" or "small", which is too broad a
+  // net to hide by default -- this only reacts to the flags that mean a photo
+  // actually looks bad on screen (see LOW_QUALITY_FLAGS below).
+  hideLowQuality: false,
   showSpecies: true,
   showDescription: false,
   fullDescription: false,
@@ -357,11 +374,22 @@ function queryVariants(query) {
   return variants;
 }
 
+// audit_images.py's own thresholds for "genuinely looks bad on screen" --
+// thumbnail-grade resolution, no real detail beyond a half-scale upscale, or
+// visibly soft focus. Deliberately excludes "small"/"small-subject", which
+// flag over half the catalog on canvas/content size alone and would make the
+// filter hide more than it shows.
+const LOW_QUALITY_FLAGS = new Set(["tiny", "soft", "upscaled"]);
+function isLowQuality(item) {
+  return (item.image_quality_flags || []).some(f => LOW_QUALITY_FLAGS.has(f));
+}
+
 function applyFilters() {
   const query = settings.search.trim().toLowerCase();
   const variants = query ? queryVariants(query) : [];
   return ALL_ITEMS.filter(i => {
     if (settings.onlyWithImage && !i.image_file) return false;
+    if (settings.hideLowQuality && isLowQuality(i)) return false;
     if (!typeFilters.has(i.product_type)) return false;
     if (!usStatusFilters.has(i.status_us) || !deStatusFilters.has(i.status_de)) return false;
     const cats = [...(i.categories_us || []), ...(i.categories_de || [])];
@@ -631,6 +659,10 @@ function initControls() {
   optOnlyImg.checked = settings.onlyWithImage;
   optOnlyImg.addEventListener("change", () => { settings.onlyWithImage = optOnlyImg.checked; saveSettings(); render(); });
 
+  const optLowQ = document.getElementById("opt-hide-low-quality");
+  optLowQ.checked = settings.hideLowQuality;
+  optLowQ.addEventListener("change", () => { settings.hideLowQuality = optLowQ.checked; saveSettings(); render(); });
+
   const optSpecies = document.getElementById("opt-species");
   const optDesc = document.getElementById("opt-desc");
   const optFullDesc = document.getElementById("opt-full-desc");
@@ -757,6 +789,7 @@ def main():
       <span class="group-label">Photo</span>
       <div class="options">
         <label><input type="checkbox" id="opt-only-with-image" checked> Only items with a photo</label>
+        <label><input type="checkbox" id="opt-hide-low-quality"> Hide low-quality photos</label>
       </div>
     </div>
     <div class="filter-group">
