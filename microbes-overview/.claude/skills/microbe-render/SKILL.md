@@ -346,6 +346,17 @@ empty **on purpose** — the viewer injects the subject's title there at runtime
 blank band in the raw SVG is correct, not a bug. The speech bubble sits above the
 artwork and deliberately overlaps it, with its tail leaning inward.
 
+**"Bleeds off all four edges" is not a reachable target — stop asking for it.** All
+119 coloring pages in the atlas were measured (cairosvg at 500px, ink fraction in the
+outermost rows/cols of the top 72%): **every single one has exactly 0.0000 ink on the
+top edge**, and not one reaches four edges. That is the template, not a failure — the
+speech bubble occupies the top of the frame with white space above it, so the top edge
+cannot bleed by construction. Chasing it wasted re-renders on several subjects and
+produced at least two verdicts that claimed it falsely, because the instruction itself
+was impossible. **Measure the composed `.coloring.svg`, never the raw traced bitmap.** This is the trap that keeps producing the false claim: `coloring.py` traces a square raster and then *places* it into the A4 template below the speech-bubble band, so a bitmap that genuinely runs off all four of its own edges still sits inset from the top of the finished page. Two agents in one day reported four-edge bleed measured on the raster and were both wrong about the page. Rasterise the final SVG with cairosvg and measure that. **Aim for three edges (bottom, left, right) and measure them.** A good
+page runs ~0.02–0.27 ink on those three; a centered composition with a white margin all
+round is the real failure and is obvious in the same measurement.
+
 - Two speech lines per page, EN + DE, carried as SVG `<text>` layers. The viewer
   shows the one matching the page language; coloring pages never offer "no labels".
 - Use a real em dash, not `--`. Two pages shipped with ASCII double hyphens before

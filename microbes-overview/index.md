@@ -8,31 +8,39 @@ A bilingual (DE/EN) teaching atlas of body cells and pathogens — cell types, p
 
 ## Page structure
 
-**17 sets, 107 subjects**, every one carrying five picture styles, three labelled diagrams, a printable A4 coloring page, kids' narration in English and German, and size/weight data. `build_viewer.py` prints the current totals on every build, and [`OVERVIEW.md`](OVERVIEW.md) lists each subject with what it has.
+**21 sets and 4 prose chapters, 118 subjects live** (123 catalogued — the difference is subjects written up but not yet rendered, which stay hidden). Every live subject carries five picture styles, three labelled diagrams, a printable A4 coloring page, kids' narration in English and German, and size/weight data. `build_viewer.py` prints the current totals on every build, and [`OVERVIEW.md`](OVERVIEW.md) lists each subject with what it has.
 
-The order runs from the parts inside a cell outward to the things that attack it:
+The order runs from the parts inside a cell outward to the things that attack it, and finally to the things people have built. Italicised rows are **prose chapters** — explainers with no subjects of their own, which sit between the sets they introduce:
 
-| # | Deutsch | English | n |
+| # | Deutsch | English | live |
 | --- | --- | --- | ---: |
+| — | *Wie eine Zelle funktioniert* | *How the cell works* | chapter |
 | 1 | Zellorganellen | Cell organelles | 8 |
+| — | *Zelltypen des menschlichen Körpers* | *Cell types of the human body* | chapter |
 | 2 | Stammzellen | Stem cells | 6 |
 | 3 | Epithelzellen | Epithelial cells | 7 |
 | 4 | Nervenzellen | Nerve cells | 6 |
 | 5 | Herzzellen | Heart cells | 5 |
-| 6 | Fortpflanzungszellen | Reproductive cells | 6 |
-| 7 | Knochenzellen | Bone cells | 6 |
-| 8 | Fettzellen | Fat cells | 6 |
-| 9 | Rote Blutkörperchen | Red blood cells | 6 |
-| 10 | Immunzellen | Immune cells | 7 |
-| 11 | Antikörper — Immunglobuline | Antibodies — Immunoglobulins | 5 |
-| 12 | Erbgut — DNA, RNA, Chromosomen | The genetic material | 3 |
-| 13 | Krebszellen | Cancer cells | 1 |
-| 14 | Pathogene | Pathogens (overview) | 9 |
-| 15 | Bekannte Bakterien | Well-known bacteria | 10 |
-| 16 | Bekannte Viren & andere Erreger | Well-known viruses & other pathogens | 13 |
-| 17 | Nützliche Mikroben | Helpful microbes | 3 |
+| — | *Wie Muskeln arbeiten* | *How muscle works* | chapter |
+| 6 | Muskelzellen | Muscle cells | 4 |
+| 7 | Fortpflanzungszellen | Reproductive cells | 6 |
+| 8 | Knochenzellen | Bone cells | 6 |
+| 9 | Fettzellen | Fat cells | 6 |
+| 10 | Rote Blutkörperchen | Red blood cells | 6 |
+| 11 | Immunzellen | Immune cells | 7 |
+| 12 | Antikörper — Immunglobuline | Antibodies — Immunoglobulins | 5 |
+| 13 | Erbgut — DNS, RNS, Chromosomen | The genetic material — DNA, RNA, chromosomes | 3 |
+| 14 | Krebszellen | Cancer cells | 1 |
+| 15 | Erreger — Pathogene | Pathogens | 9 |
+| 16 | Bekannte Bakterien | Well-known bacteria | 10 |
+| 17 | Bekannte Viren & andere Erreger | Well-known viruses & other pathogens | 13 |
+| 18 | Nützliche Mikroben | Helpful microbes | 3 |
+| 19 | Bakteriophagen | Bacteriophages | 1 of 3 |
+| 20 | Erreger bei Hund und Katze | Pathogens of cats and dogs | 5 |
+| — | *Wie der Mensch Leben umbaut* | *How humans engineer life* | chapter |
+| 21 | Umgebautes Leben | Engineered life | 1 of 4 |
 
-Two placements are deliberate rather than obvious. **Cancer cells** sit last among the body's own cells and immediately before the pathogens: everything up to that point is the body working as intended, everything after arrives from outside, and a cancer cell belongs to neither. **The genetic material** comes directly before it, because cancer is what happens when that molecule accumulates damage.
+Four placements are deliberate rather than obvious. **Cancer cells** sit last among the body's own cells and immediately before the pathogens: everything up to that point is the body working as intended, everything after arrives from outside, and a cancer cell belongs to neither. **The genetic material** comes directly before it, because cancer is what happens when that molecule accumulates damage. **Engineered life** closes the atlas, after everything natural: it is the one chapter about things that do not occur anywhere on their own. **Bacteriophages** follow the helpful microbes rather than the viruses, because the story they belong to is the one about bacteria — they are viruses that attack them, not us.
 
 ## Sources
 

@@ -155,20 +155,14 @@ a compromise someone chose deliberately — listed so a later pass can revisit t
       grass-blade character). Not re-rolled because the leg count was finally right.
 - [ ] `rotavirus` — no render shows countable eleven dsRNA segments; the label says
       eleven and the images approximate.
-- [ ] `t4-bacteriophage` — **coloring page not produced: blocked by the account's
-      MONTHLY SPENDING CAP, not by judgement.** Confirmed directly on both
-      `gemini-3-pro-image` and `gemini-2.5-flash-image` (HTTP 429 "Your project has
-      exceeded its monthly spending cap") — this is the project-wide monthly cap
-      SKILL.md warns about, not a per-model daily quota, so it blocks every Gemini
-      image model until a human raises it at https://ai.studio/spend. **Owner: the
-      user.** Zero image calls were spent on the coloring page; the full scenario,
-      prompt, speech lines and exact resume command are saved in
-      `renders/set/bacteriophages/t4-bacteriophage.coloring.prompt.json` so the step
-      can run unchanged once the cap is lifted. Separately, the `sem` style is
-      accepted with a recorded compromise: only 4 of 6 long tail fibres are clearly
-      resolvable as distinct kinked legs (2 read as foreshortened stubs); a
-      fix-attempt with explicit clock-position phrasing was queued but hit the same
-      spend cap before it could run. **Retry both when the cap is raised.**
+- [ ] `t4-bacteriophage` — the `sem` style is accepted with a recorded compromise:
+      only 4 of 6 long tail fibres are clearly resolvable as distinct kinked legs (2
+      read as foreshortened stubs); a fix-attempt with explicit clock-position
+      phrasing was queued but hit the account's monthly spend cap before it could
+      run, and was not retried after the cap was raised. **Retry when convenient.**
+      (The coloring page, previously blocked by the same cap, is now produced — see
+      `t4-bacteriophage.verdicts.json`'s coloring-page row for the measured
+      edge-bleed numbers.)
 - [ ] `type-iia-fibre` — the coloring page does not bleed off any of the four
       edges; the character sits centered with a generous white margin on all
       sides. Two attempts (the second with much stronger "crop the body at two
@@ -289,6 +283,18 @@ a compromise someone chose deliberately — listed so a later pass can revisit t
   A FeLV SEM attempt composed as budding-from-a-membrane read as skin blisters and
   cost a re-render. Gammaretroviruses do bud characteristically, so the temptation is
   real — put the budding figure in textbook or 3d instead.
+- **Coloring-page leg/limb counts drift even when the starburst is avoided.**
+  `t7-bacteriophage`'s coloring page took 6 attempts on the pro tier to land exactly
+  six short leg-stubs: curled/hooked leg shapes kept either fusing into a continuous
+  scalloped ruffle (uncountable) or tangling into a cluster with only 2-3 clearly
+  separate feet, and once switched to straight rounded-capsule legs the model still
+  defaulted to seven, evenly filling the available width. What worked: describing
+  the legs as **straight capsules, not hooks/curls**, and specifying an explicit
+  **N-and-N split with a stated gap** ("three legs, then a gap with no leg, then
+  three more legs") rather than just "six, evenly spaced" — the model reliably
+  respects a described gap in a way it does not reliably respect a bare count.
+  Verify by grid-overlay cropping the raw PNG and tracing each foot to a gap, the
+  same technique the fibre-count checks use, not a full-frame glance.
 
 ### Ideas not yet decided
 - [ ] More cancer subjects — the set currently holds one generic entry. Leukaemia,
