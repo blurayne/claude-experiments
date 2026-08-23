@@ -254,14 +254,15 @@ const DEFAULT_SETTINGS = {
   columns: 6,
   textScale: 1,
   search: "",
-  // 51 retired items have no photo anywhere reachable and render as a bare
-  // placeholder tile, so they are filtered out unless asked for.
-  onlyWithImage: true,
-  // Opt-in, not on by default: image_quality_flags (audit_images.py) marks
-  // over half the catalog "small-subject" or "small", which is too broad a
-  // net to hide by default -- this only reacts to the flags that mean a photo
-  // actually looks bad on screen (see LOW_QUALITY_FLAGS below).
-  hideLowQuality: false,
+  // "with" | "without" | "any". 51 retired items have no photo anywhere
+  // reachable and render as a bare placeholder tile, so "with" is the
+  // default -- but "without" is exactly the triage view for going after them.
+  photoFilter: "with",
+  // "any" | "hide" | "only". image_quality_flags (audit_images.py) marks over
+  // half the catalog "small-subject" or "small", too broad a net to act on by
+  // default -- this only reacts to flags that mean a photo actually looks bad
+  // on screen (see LOW_QUALITY_FLAGS below), and defaults to not filtering.
+  qualityFilter: "any",
   showSpecies: true,
   showDescription: false,
   fullDescription: false,
@@ -388,8 +389,12 @@ function applyFilters() {
   const query = settings.search.trim().toLowerCase();
   const variants = query ? queryVariants(query) : [];
   return ALL_ITEMS.filter(i => {
-    if (settings.onlyWithImage && !i.image_file) return false;
-    if (settings.hideLowQuality && isLowQuality(i)) return false;
+    if (settings.photoFilter === "with" && !i.image_file) return false;
+    if (settings.photoFilter === "without" && i.image_file) return false;
+    if (settings.qualityFilter === "hide" && isLowQuality(i)) return false;
+    // "only" only makes sense against items that have a photo to judge --
+    // one with none isn't "high quality", it just has nothing to flag.
+    if (settings.qualityFilter === "only" && (!i.image_file || !isLowQuality(i))) return false;
     if (!typeFilters.has(i.product_type)) return false;
     if (!usStatusFilters.has(i.status_us) || !deStatusFilters.has(i.status_de)) return false;
     const cats = [...(i.categories_us || []), ...(i.categories_de || [])];
@@ -655,13 +660,13 @@ function initControls() {
   setupCheckboxGroup("input[data-us-status]", "usStatus", usStatusFilters);
   setupCheckboxGroup("input[data-de-status]", "deStatus", deStatusFilters);
 
-  const optOnlyImg = document.getElementById("opt-only-with-image");
-  optOnlyImg.checked = settings.onlyWithImage;
-  optOnlyImg.addEventListener("change", () => { settings.onlyWithImage = optOnlyImg.checked; saveSettings(); render(); });
+  const optPhoto = document.getElementById("opt-photo-filter");
+  optPhoto.value = settings.photoFilter;
+  optPhoto.addEventListener("change", () => { settings.photoFilter = optPhoto.value; saveSettings(); render(); });
 
-  const optLowQ = document.getElementById("opt-hide-low-quality");
-  optLowQ.checked = settings.hideLowQuality;
-  optLowQ.addEventListener("change", () => { settings.hideLowQuality = optLowQ.checked; saveSettings(); render(); });
+  const optQuality = document.getElementById("opt-quality-filter");
+  optQuality.value = settings.qualityFilter;
+  optQuality.addEventListener("change", () => { settings.qualityFilter = optQuality.value; saveSettings(); render(); });
 
   const optSpecies = document.getElementById("opt-species");
   const optDesc = document.getElementById("opt-desc");
@@ -788,8 +793,16 @@ def main():
     <div class="filter-group">
       <span class="group-label">Photo</span>
       <div class="options">
-        <label><input type="checkbox" id="opt-only-with-image" checked> Only items with a photo</label>
-        <label><input type="checkbox" id="opt-hide-low-quality"> Hide low-quality photos</label>
+        <select id="opt-photo-filter" title="Photo presence">
+          <option value="with">Only items with a photo</option>
+          <option value="without">Only items without a photo</option>
+          <option value="any">Any</option>
+        </select>
+        <select id="opt-quality-filter" title="Photo quality">
+          <option value="any">Any quality</option>
+          <option value="hide">Hide low-quality photos</option>
+          <option value="only">Only low-quality photos</option>
+        </select>
       </div>
     </div>
     <div class="filter-group">
