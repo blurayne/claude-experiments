@@ -8,7 +8,7 @@ offenen Angeboten für Kinder, umschaltbar zwischen zwei Standorten:
 ## Worum geht's
 
 Statt einer langen Linkliste bündelt die Seite über 200 konkrete Angebote
-(191 in München, 14 in Lam) aus mehreren Anbietern in einzelnen Karten und
+(195 in München, 14 in Lam) aus mehreren Anbietern in einzelnen Karten und
 lässt sie nach den Kriterien filtern, die bei der Ferienplanung wirklich
 zählen:
 
