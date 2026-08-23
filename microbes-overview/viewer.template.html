@@ -220,7 +220,13 @@ html[data-theme="petri"] body::after{
   font-family:var(--font-display); font-weight:var(--display-weight);
   letter-spacing:var(--display-spacing); font-size:19px; white-space:nowrap;
   display:flex; align-items:center; gap:9px;
+  /* a real <button> so it is keyboard-reachable and announced as an action;
+     everything below just removes the user-agent button chrome */
+  background:none; border:0; padding:0; margin:0; color:inherit; cursor:pointer;
+  font-weight:var(--display-weight);
 }
+.brand:hover .label{color:var(--accent)}
+.brand:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:6px}
 /* The brand is now just the wordmark: the atlas icon and the tagline both moved
    out of the bar (the icon is downloadable from Settings instead), so the title
    is the only thing left here and must stay visible at every width. */
@@ -311,6 +317,12 @@ html[data-theme="petri"] body::after{
   font-family:var(--font-ui); font-size:13px}
 .sr-item:hover{background:var(--card-hi); color:var(--accent)}
 .sr-item .sr-set{margin-left:auto; font-family:var(--font-mono); font-size:10px; color:var(--fg-faint)}
+/* In the results list the matched run is just bold + accent, not the inverted
+   block the global <mark> uses. That block exists so a highlight stays legible
+   inside a paragraph of body prose without shifting the reflow; in a compact
+   one-line row it reads as a redaction bar instead. Same <mark> element, so the
+   markup and the escaping stay identical. */
+
 .sr-more{padding:6px 8px 2px; font-size:11.5px; color:var(--fg-faint); font-family:var(--font-ui)}
 .search-wrap .mag{position:absolute; left:12px; font-size:13px; color:var(--fg-faint); pointer-events:none}
 
@@ -456,6 +468,8 @@ main{max-width:var(--maxw); margin:0 auto; padding:clamp(20px,4vw,44px) clamp(14
 .hero-build{margin-top:10px; font-family:var(--font-mono); font-size:11.5px;
   color:var(--fg-faint); letter-spacing:.02em}
 .hero-build .hb-v{color:var(--accent); font-weight:600}
+a.hb-v{text-decoration:none; border-bottom:1px dotted currentColor}
+a.hb-v:hover{border-bottom-style:solid}
 .hero-build .hb-sep{opacity:.5; margin:0 7px}
 .hero-build a{color:inherit; text-decoration:none; border-bottom:1px dotted currentColor}
 .hero-build a:hover{color:var(--accent)}
@@ -649,6 +663,14 @@ svg text{font-family:var(--font-comic)}
 mark{border-radius:3px; padding:.08em 0; font-weight:700}
 html[data-mode="dark"] mark{background:#fff; color:#000; box-shadow:0 -2px 0 #000, 0 2px 0 #000}
 html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 -2px 0 #fff, 0 2px 0 #fff}
+/* In the results list the matched run is bold accent text, not the inverted block
+   above. That block keeps a highlight legible inside a paragraph of body prose
+   without shifting reflow; in a compact one-line row it reads as a redaction bar.
+   These must come AFTER the html[data-mode] rules and carry equal specificity,
+   or source order hands the win back to them. */
+html[data-mode] .sr-item mark{background:none; color:var(--accent); box-shadow:none;
+  font-weight:800; padding:0; border-radius:0}
+html[data-mode] .sr-item:hover mark{color:inherit}
 
 /* growl / toast notification, fixed bottom-center */
 .toast{position:fixed; left:50%; bottom:max(22px,3vh); transform:translateX(-50%); z-index:3000;
@@ -863,7 +885,7 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 -2px 0 #f
 
 <header class="topbar">
   <button class="tb-btn" id="menuBtn" aria-expanded="false" aria-controls="menuPanel" aria-label="Menu" title="Menu">☰</button>
-  <span class="brand"><span class="label">Microbes Atlas</span></span>
+  <button type="button" class="brand" id="brandTop" title="Back to top" aria-label="Back to top"><span class="label">Microbes Atlas</span></button>
   <div class="spacer"></div>
   <div class="tb-tools" id="tbTools">
   <div class="tb-tools-inner">
@@ -2553,6 +2575,9 @@ const BUILD_TXT={
   version:{en:'version', de:'Version'},
   built:{en:'built', de:'erstellt'},
   shaTip:{en:'built from commit', de:'erstellt aus Commit'},
+  changelog:{en:'changelog', de:'Changelog'},
+  clTip:{en:'What changed in this version — opens the changelog',
+         de:'Was sich in dieser Version geändert hat — öffnet das Changelog'},
 };
 const CHAPTER_TAG={en:'chapter', de:'Kapitel'};
 const CHAPTER_TAG_PL={en:'chapters', de:'Kapitel'};
@@ -2614,11 +2639,14 @@ function renderSearchResults(hits, querying){
   hits.slice(0,12).forEach(({set,m})=>{
     if(!m){
       h+='<button type="button" class="sr-item" data-go="set-'+set.id+'">'+
-         '<span>'+esc(L(set.title))+'</span><span class="sr-set">'+esc(L(CHAPTER_TAG))+'</span></button>';
+         '<span>'+highlight(L(set.title))+'</span><span class="sr-set">'+esc(L(CHAPTER_TAG))+'</span></button>';
       return;
     }
+    // highlight() wraps the matched run in <mark>, exactly as the card titles do,
+    // so the same query reads the same way in both places. It escapes internally,
+    // so this is not an injection hole despite dropping esc().
     h+='<button type="button" class="sr-item" data-go="mc-'+set.id+'-'+m.key+'">'+
-       '<span>'+esc(N(m))+'</span><span class="sr-set">'+esc(L(set.title))+'</span></button>';
+       '<span>'+highlight(N(m))+'</span><span class="sr-set">'+esc(L(set.title))+'</span></button>';
   });
   if(hits.length>12) h+='<div class="sr-more">+ '+(hits.length-12)+' more below</div>';
   box.innerHTML=h; box.hidden=false; pinPanel(box);
@@ -2818,6 +2846,15 @@ $('#filtReset').addEventListener('click',()=>{
   state.fTitle=true; state.fDesc=false; state.fGiant=false; state.fColoring=false; state.fAudio=false;
   syncToggles(); save(); applySearch(); closePanels();
 });
+// The wordmark doubles as "back to top". Honour prefers-reduced-motion: a smooth
+// scroll across a page this long is a lot of movement for anyone who asked not to
+// have it.
+$('#brandTop').addEventListener('click',()=>{
+  closePanels();
+  const smooth=!window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  window.scrollTo({top:0, behavior: smooth?'smooth':'auto'});
+});
+
 // jump to a hit from the results list
 $('#searchResults').addEventListener('click',e=>{
   const b=e.target.closest('.sr-item'); if(!b) return;
@@ -2874,10 +2911,23 @@ function renderBuild(){
   if(!el) return;
   if(!b || !b.version){ el.textContent=''; return; }
   const repo='https://github.com/blurayne/claude-experiments/commit/';
-  let h='<span class="hb-v">'+esc(L(BUILD_TXT.version))+' '+esc(b.version)+'</span>';
+  // The version links to the CHANGELOG entry that describes it; the sha links to
+  // the commit. Two different questions a reader might have about the same build.
+  const vTxt=esc(L(BUILD_TXT.version))+' '+esc(b.version);
+  let h = b.changelog
+    ? '<a class="hb-v" href="'+esc(b.changelog)+'" target="_blank" rel="noopener" title="'+
+      esc(L(BUILD_TXT.clTip))+'">'+vTxt+'</a>'
+    : '<span class="hb-v">'+vTxt+'</span>';
   if(b.sha_short){
     h+='<span class="hb-sep">\u00b7</span>'+
        '<a href="'+repo+esc(b.sha)+'" target="_blank" rel="noopener" title="'+esc(L(BUILD_TXT.shaTip))+' '+esc(b.sha)+'">'+esc(b.sha_short)+'</a>';
+  }
+  // an explicitly-named changelog link after the sha: the version itself is also a
+  // link, but nothing about a bare number says where it goes
+  if(b.changelog){
+    h+='<span class="hb-sep">\u00b7</span>'+
+       '<a href="'+esc(b.changelog)+'" target="_blank" rel="noopener" title="'+
+       esc(L(BUILD_TXT.clTip))+'">'+esc(L(BUILD_TXT.changelog))+'</a>';
   }
   if(b.built) h+='<span class="hb-sep">\u00b7</span>'+esc(L(BUILD_TXT.built))+' '+esc(b.built);
   // NOTE: `b.dirty` is deliberately NOT rendered. The stamp is baked when

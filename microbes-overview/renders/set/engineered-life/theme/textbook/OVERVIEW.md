@@ -9,3 +9,7 @@ Every microbe's `textbook` image — labelled SVG where built, else the last ren
 ## Lentiviral vector (HIV-1-derived) (`lentiviral-vector`)
 ![textbook](lentiviral-vector.textbook.svg)
 [full log](../../lentiviral-vector.render.md)
+
+## Spider-silk cell (`spider-silk-cell`)
+![textbook](spider-silk-cell.textbook.svg)
+[full log](../../spider-silk-cell.render.md)

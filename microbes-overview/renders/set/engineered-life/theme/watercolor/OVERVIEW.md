@@ -9,3 +9,7 @@ Every microbe's `watercolor` image — labelled SVG where built, else the last r
 ## Lentiviral vector (HIV-1-derived) (`lentiviral-vector`)
 ![watercolor](lentiviral-vector.watercolor.svg)
 [full log](../../lentiviral-vector.render.md)
+
+## Spider-silk cell (`spider-silk-cell`)
+![watercolor](spider-silk-cell.watercolor.svg)
+[full log](../../spider-silk-cell.render.md)

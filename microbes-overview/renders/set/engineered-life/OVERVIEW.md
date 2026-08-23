@@ -38,6 +38,24 @@ HIV-1 rebuilt as a gene-delivery shuttle — almost the entire viral genome remo
 
 Full log: [`lentiviral-vector.render.md`](lentiviral-vector.render.md)
 
+## Spider-silk cell (`spider-silk-cell`)
+A cell — a goat mammary cell, a bacterium or a silkworm cell, depending on the route taken — carrying one or more spider genes so that it manufactures spidroin, the fibre-forming protein spiders spin their thread from. The best-known version is a goat that secretes the protein into its milk; engineered bacteria and silkworms that replace or supplement their usual silk protein with spidroin are the other two routes in active use.
+
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/spider-silk-cell__textbook.avif) | ![sem](finals/spider-silk-cell__sem.avif) | ![3d](finals/spider-silk-cell__3d.avif) | ![watercolor](finals/spider-silk-cell__watercolor.avif) | ![reference](finals/spider-silk-cell__reference.avif) |
+
+**textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/spider-silk-cell.textbook.svg) · [HTML](theme/textbook/spider-silk-cell.textbook.html)
+![textbook labelled](theme/textbook/spider-silk-cell.textbook.svg)
+
+**3d — labelled** (English default, La/De toggle): [SVG](theme/3d/spider-silk-cell.3d.svg) · [HTML](theme/3d/spider-silk-cell.3d.html)
+![3d labelled](theme/3d/spider-silk-cell.3d.svg)
+
+**watercolor — labelled** (English default, La/De toggle): [SVG](theme/watercolor/spider-silk-cell.watercolor.svg) · [HTML](theme/watercolor/spider-silk-cell.watercolor.html)
+![watercolor labelled](theme/watercolor/spider-silk-cell.watercolor.svg)
+
+Full log: [`spider-silk-cell.render.md`](spider-silk-cell.render.md)
+
 ## Status
 
 | name | styles | model | render count | pass | svg status | time taken | tokens used | costs |
@@ -52,7 +70,12 @@ Full log: [`lentiviral-vector.render.md`](lentiviral-vector.render.md)
 | Lentiviral vector (HIV-1-derived) | 3D medical render | gemini-3-pro-image | 1 | ✅ | built | 19s | 1948 | $0.041 |
 | Lentiviral vector (HIV-1-derived) | Watercolor plate | gemini-3-pro-image | 3 | ✅ | built | 1.0m | 6419 | $0.134 |
 | Lentiviral vector (HIV-1-derived) | TEM · Public Domain (CDC PHIL #10860) | — (download) | 1 | ✅ | n/a | 1s | 0 | $0.000 |
+| Spider-silk cell | Textbook illustration | gemini-3-pro-image | 1 | ✅ | built | 19s | 2697 | $0.048 |
+| Spider-silk cell | SEM micrograph | gemini-3-pro-image | 1 | ✅ | pending (same pipeline) | 19s | 2102 | $0.043 |
+| Spider-silk cell | 3D medical render | gemini-3-pro-image | 2 | ✅ | built | 36s | 4693 | $0.086 |
+| Spider-silk cell | Watercolor plate | gemini-3-pro-image | 1 | ✅ | built | 20s | 2436 | $0.047 |
+| Spider-silk cell | TEM · Public domain | — (download) | 2 | ✅ | n/a | 0s | 0 | $0.000 |
 
-**Set total: 30,083 tokens · $0.589**
+**Set total: 42,011 tokens · $0.814**
 
-_Updated 2026-08-23 21:35 local._
+_Updated 2026-08-23 22:39 local._

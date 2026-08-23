@@ -33,6 +33,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 TAG_GLOB = "microbes-overview/v*"
+REPO_URL = "https://github.com/blurayne/claude-experiments"
 
 
 def _git(*args: str) -> str | None:
@@ -46,6 +47,31 @@ def _git(*args: str) -> str | None:
         return None
     out = p.stdout.strip()
     return out if p.returncode == 0 and out else None
+
+
+def changelog_link(version: str) -> str:
+    """URL of this version's CHANGELOG entry, anchored when the heading is found.
+
+    GitHub builds a heading anchor by lowercasing, dropping everything that is not
+    alphanumeric/space/hyphen, then turning spaces into hyphens — so
+    "[1.2.0] - 2026-08-23" becomes "120--2026-08-23". Computing it from the heading
+    we actually matched keeps the two in step; falling back to the bare file link is
+    always correct, just less precise.
+    """
+    base = f"{REPO_URL}/blob/main/microbes-overview/CHANGELOG.md"
+    cl = HERE / "CHANGELOG.md"
+    if not cl.is_file() or "+" in version:
+        return base
+    minor = ".".join(version.split(".")[:2])
+    for line in cl.read_text(encoding="utf-8").splitlines():
+        if not line.startswith("## "):
+            continue
+        head = line[3:].strip()
+        if not head.startswith(f"[{minor}."):
+            continue
+        slug = "".join(c for c in head.lower() if c.isalnum() or c in " -")
+        return f"{base}#{slug.replace(' ', '-')}"
+    return base
 
 
 def describe() -> dict:
@@ -74,6 +100,12 @@ def describe() -> dict:
 
     return {
         "version": version,
+        # Deep link from the version in the viewer to the entry that describes it.
+        # CHANGELOG headings are per MINOR release ("## [1.2.0] - date") while the
+        # displayed version carries the running PATCH, so match on MAJOR.MINOR and
+        # derive GitHub's own heading anchor from the real heading text rather than
+        # hardcoding a date that would silently rot on the next release.
+        "changelog": changelog_link(version),
         "sha": sha or "",
         "sha_short": (sha or "")[:8],
         # Build time, not commit time: this is when the artifact was produced.

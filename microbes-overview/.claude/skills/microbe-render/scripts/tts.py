@@ -33,9 +33,20 @@ import argparse, base64, json, os, re, sys, time, urllib.request, urllib.error
 from pathlib import Path
 
 API = "https://api.elevenlabs.io/v1"
-VOICE_ID = "RILOU7YmBhvwJGDGjNmP"   # multilingual voice, reads EN + DE
-MODEL = "eleven_multilingual_v2"
-OUTPUT_FORMAT = "mp3_44100_32"      # spoken narration only — keep the repo lean
+VOICE_ID = "RILOU7YmBhvwJGDGjNmP"   # "Jane - Professional Audiobook Reader", reads EN + DE
+MODEL = "eleven_v3"                 # v3: same price per character as multilingual_v2
+                                    # (cost multiplier 1.0, checked against /v1/models)
+                                    # and it still returns word-level timestamps at every
+                                    # bitrate, which the viewer's karaoke highlighting
+                                    # depends on — that was the thing worth checking
+                                    # before switching, not the audio.
+OUTPUT_FORMAT = "mp3_44100_128"     # 128 kbps, not 192: bitrate costs no credits (billing
+                                    # is per character) but these files are committed, and
+                                    # measured on a real German clip 128 gives ~1.0 MiB per
+                                    # clip against 1.4 MiB at 192 — for speech 128 is
+                                    # already transparent, so 192 would add ~65 MB across
+                                    # the atlas for no audible gain. Raise it here if a
+                                    # future voice needs it.
 MIN_BYTES = 2000                    # smaller than this == not a real render
 
 HERE = Path(__file__).resolve().parents[4]   # scripts/microbe-render/skills/.claude -> microbes-overview

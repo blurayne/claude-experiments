@@ -1,0 +1,41 @@
+{
+  "key": "synthetic-minimal-cell",
+  "name_en": "Synthetic minimal cell (JCVI-syn3A)",
+  "name_de": "Synthetische Minimalzelle (JCVI-syn3A)",
+  "short_description": "A bacterium whose entire genome was designed on a computer, chemically synthesised, and pared down to the essentials: JCVI-syn3.0 (2016) got by on just 473 genes, roughly half of what its nearest natural relative, Mycoplasma mycoides, carries. The later, division-stable version, JCVI-syn3A (2021), adds a handful back. It was not built from scratch, and roughly a third of its genes still have no known function.",
+  "labels": [
+    {"key": "plasma_membrane", "la": "membrana plasmatica (sine pariete cellulari)", "en": "Plasma membrane (no cell wall)", "de": "Zellmembran (keine Zellwand)"},
+    {"key": "chromosome", "la": "chromosoma circulare syntheticum", "en": "Synthetic circular chromosome", "de": "Synthetisches ringförmiges Chromosom"},
+    {"key": "ribosome", "la": "ribosomata", "en": "Ribosomes", "de": "Ribosomen"},
+    {"key": "cytoplasm", "la": "cytoplasma", "en": "Cytoplasm", "de": "Zytoplasma"},
+    {"key": "unknown_gene_products", "la": "producta genica ignotae functionis (~1/3)", "en": "Unknown-function gene products (~1/3 of genes)", "de": "Genprodukte unbekannter Funktion (~1/3 der Gene)"},
+    {"key": "daughter_cell", "la": "cellula filia (aequalis, rotunda)", "en": "Daughter cell (regular, round)", "de": "Tochterzelle (regelmäßig, rund)"}
+  ],
+  "morphology_summary": "Wall-less Mollicute derivative: bounded only by a single plasma membrane (no peptidoglycan wall, no outer membrane), roughly spherical/pleomorphic, ~400 nm diameter (near/below the diffraction limit of light). Interior: one circular synthetic chromosome (no nuclear envelope), ribosomes, unstructured cytoplasm; no organelles, no flagella/pili/capsule. JCVI-syn3.0 (473 genes) divides into irregular blobs; JCVI-syn3A (493 genes) divides into regular round daughter cells -- the corrected behaviour the catalogue names.",
+  "honesty_points": [
+    "Not built from scratch: only the genome (a DNA molecule) was chemically synthesised; it was transplanted into an already-living, emptied recipient cell of a related Mycoplasma species (M. capricolum in the actual JCVI lineage), which then ran on the new instructions. Never depict assembly from non-living parts.",
+    "Roughly a third (~149 of 473 in syn3.0) of the genes have no known function despite being essential -- textual/label fact, not directly picturable; carried into labels.unknown_gene_products and every descriptions.json block."
+  ],
+  "do_not_draw": [
+    "cell wall / peptidoglycan / outer membrane (single plasma membrane only)",
+    "flagella, pili, fimbriae, capsule",
+    "nucleus, nuclear envelope, mitochondria, ER, Golgi, chloroplasts, vacuoles",
+    "chromosome as a tidy clean ring floating apart from cytoplasm, or membrane-bound",
+    "cell assembled from non-living parts / from scratch",
+    "irregular blob-shaped division (that is syn3.0, not syn3A)",
+    "rod/elongated shape",
+    "baked-in text, gene-count digits, scale bars",
+    "syringe / lab-coat scientist / computer / robot imagery"
+  ],
+  "reference": {
+    "status": "gap reported, no real-microscopy row shipped (same precedent as feline-immunodeficiency-virus)",
+    "checked": [
+      {"source": "Hutchison et al. 2016 Science EM plates (Deerinck/Ellisman, NCMIR UCSD)", "result": "courtesy-credited only in press/journal reuse, no stated open licence found"},
+      {"source": "Pelletier et al. 2021 Cell cryo-ET", "result": "Cell Press/Elsevier copyright, not openly licensed"},
+      {"source": "Wikimedia Commons Category:Mycoplasma + search", "result": "no usable EM plate of any Mycoplasma species; only file found (Mycoplasma_genitalium.gif, PD/US DOE) is a genome-map diagram, not a micrograph"},
+      {"source": "PDB-101 Goodsell Gallery JCVI-syn3A illustration", "result": "real and well-sourced but a painted structural illustration, not a photograph -- corroborates morphology, unusable as 'real microscopy'"},
+      {"source": "Rosenau et al. 2013 PLOS ONE 10.1371/journal.pone.0068373 Fig 4B (M. mycoides TEM, CC BY)", "result": "checked visually and rejected: ultra-high-mag close-up of membrane texture within a dense packed cell mass, baked-in scale bar and CM arrow labels, no individual whole-cell shape/pole visible -- fails the isolated/readable-features bar, not just the isolation preference"},
+      {"source": "M. pneumoniae open-access whole-cell SEM (J. Bacteriol. 2014 review)", "result": "rejected deliberately: M. pneumoniae has a polar attachment-organelle (gliding motility tip) absent from the M. mycoides/M. capricolum lineage this cell derives from -- using it risks implying a structure this subject does not have"}
+    ]
+  }
+}

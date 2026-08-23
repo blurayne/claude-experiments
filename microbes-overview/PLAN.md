@@ -131,6 +131,19 @@ killed the first batch mid-flight and the state is not obvious from the files al
 These are all flagged in the per-subject `verdicts.json` too. None is wrong, each is
 a compromise someone chose deliberately — listed so a later pass can revisit them.
 
+- [ ] `spider-silk-cell` — ships 4/5: textbook, sem, 3d and watercolor all rendered
+      and passed verification (including a caught-and-fixed attempt-1 3d FAIL where
+      secretory vesicles were connected by a thin strand, misreadable as thread
+      already forming inside the cell — the subject's core trap, read backwards).
+      **No coloring page**: the first `coloring.py` call hit the project's monthly
+      Gemini spending cap (HTTP 429 "exceeded its monthly spending cap") right after
+      all four teaching-style renders had already completed. The full scenario/prompt
+      is saved at `spider-silk-cell.coloring.prompt.json`, ready to render in one call
+      once the cap is raised. **Retry when the spend cap resets.** Also worth a
+      revisit: the `3d` style's `transport_vesicles` label anchor is honestly weak —
+      in that particular render the small vesicles read as ribosome-stipple dots on
+      the rough ER rather than a separately-coloured object (unlike the `textbook`
+      style, where they're a clearly distinct pale-blue dot).
 - [ ] `type-ii-fibre` — the textbook and watercolor styles render a single shared
       capillary in the endomysium gap between the IIa and IIx fibres rather than
       two visibly different-thickness vessels (one denser for IIa, one thinner for

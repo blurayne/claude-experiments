@@ -1,0 +1,68 @@
+{
+  "key": "spider-silk-cell",
+  "name_en": "Spider-silk cell",
+  "name_de": "Spinnenseiden-Zelle",
+  "short_description": "A cell — a goat mammary cell, a bacterium or a silkworm cell, depending on the route taken — carrying one or more spider genes so that it manufactures spidroin, the fibre-forming protein spiders spin their thread from. The best-known version is a goat that secretes the protein into its milk; engineered bacteria and silkworms that replace or supplement their usual silk protein with spidroin are the other two routes in active use.",
+  "labels": [
+    {"key": "nucleus", "la": "nucleus", "en": "Nucleus", "de": "Zellkern", "desc": "Holds the genome, including the inserted spider silk (spidroin) gene — not visually distinguishable as a single locus."},
+    {"key": "rough_er", "la": "reticulum endoplasmicum granulosum", "en": "Rough endoplasmic reticulum (ribosome-studded)", "de": "Raues endoplasmatisches Retikulum (mit Ribosomen besetzt)", "desc": "Ribosomes on its surface synthesize the spidroin chain directly into the ER lumen for folding and initial processing."},
+    {"key": "transport_vesicles", "la": "vesiculae transportatoriae", "en": "Transport vesicles (ER → Golgi)", "de": "Transportvesikel (ER → Golgi)", "desc": "Shuttle newly made spidroin from the rough ER to the Golgi apparatus."},
+    {"key": "golgi", "la": "apparatus Golgiensis", "en": "Golgi apparatus", "de": "Golgi-Apparat", "desc": "Further processes and sorts the spidroin protein, packaging it into secretory vesicles."},
+    {"key": "secretory_vesicles", "la": "vesiculae secretoriae (spidroinum ferentes)", "en": "Secretory vesicles carrying spidroin", "de": "Sekretorische Vesikel (mit Spidroin)", "desc": "Store the finished, concentrated spidroin protein and carry it to the apical membrane."},
+    {"key": "apical_membrane", "la": "membrana plasmatica pars apicalis", "en": "Apical plasma membrane (site of exocytosis/secretion)", "de": "Apikale Zellmembran (Sekretionsstelle)", "desc": "Where secretory vesicles fuse and release spidroin protein out of the cell, into the gland lumen."},
+    {"key": "mitochondrion", "la": "mitochondrion", "en": "Mitochondrion", "de": "Mitochondrium", "desc": "Supplies the ATP needed for the heavy biosynthetic and secretory workload."},
+    {"key": "cytoplasm", "la": "cytoplasma", "en": "Cytoplasm", "de": "Zytoplasma", "desc": "Fills the cell around the nucleus and organelles, housing the secretory-pathway machinery."}
+  ],
+  "do_not_draw": [
+    "No spider — no legs, arachnid body, spinnerets, or eyes; this is a mammalian (or, for the alternative routes, bacterial/insect) cell, not an animal.",
+    "No web, and no finished/spun thread or fibre inside or around the cell — the cell only makes raw soluble protein; spinning it into thread is a separate downstream process, not something the cell itself does.",
+    "No visible 'gene' drawn as a discrete glowing/marked object inside the nucleus — DNA in a nucleus is not visually distinguishable locus-by-locus; do not fabricate a highlighted spot, ribbon, or double-helix icon labelled as 'the spider gene'.",
+    "No udder or goat anatomy — this is a single cell, not an animal; no fur, hooves, or whole-organ silhouette.",
+    "No bacterial cell wall, nucleoid, plasmid ring, or flagellum, unless a render is explicitly and separately built to depict the bacterial-route variant (not the primary depiction for this entry).",
+    "No spider spinning-duct anatomy (ampullate gland structures, valve, taper, draw-down zone) borrowed to decorate the cell — that belongs to the spider's own spinning apparatus, a different subject.",
+    "No milk fat globules or casein micelles unless a specific render simply and clearly justifies including them as background context — they are not part of the spidroin secretory story.",
+    "No baked-in text, letters, numbers, scale bars, or watermarks; no black border/frame/vignette/letterbox."
+  ],
+  "reference_candidates": [
+    {
+      "rank": 1,
+      "modality": "TEM",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/1/1f/Pancreatic_acinar_cells_-_TEM.jpg",
+      "source_page": "https://commons.wikimedia.org/wiki/File:Pancreatic_acinar_cells_-_TEM.jpg",
+      "license": "Public domain",
+      "attribution": "Louisa Howard, Dartmouth Electron Microscope Facility (JEOL 100CX TEM)",
+      "shows": "TEM of a mammalian pancreatic acinar cell: nucleus, mitochondria, rough endoplasmic reticulum, and zymogen (secretory) granules. Not mammary tissue and not a transgenic cell — used as the best available free-licensed structural analog of the same category of cell (a polarized, protein-secreting exocrine glandular epithelial cell using the RER → Golgi → secretory-granule → apical-exocytosis pathway a spider-silk-producing mammary cell also uses). Must be captioned explicitly as an analog, not verified mammary or transgenic tissue.",
+      "confidence_url_is_real": "high — fetched and confirmed directly (file exists, license and attribution as stated)"
+    },
+    {
+      "rank": 2,
+      "modality": "TEM",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/7/76/Mammalian_pancreatic_tissue%2C_nuclear_pores_and_rough_endoplasmic_reticulum.jpg",
+      "source_page": "https://commons.wikimedia.org/wiki/File:Mammalian_pancreatic_tissue,_nuclear_pores_and_rough_endoplasmic_reticulum.jpg",
+      "license": "Public domain",
+      "attribution": "Louisa Howard, Dartmouth Electron Microscope Facility (JEOL 100CX TEM)",
+      "shows": "Second TEM plate from the same series/author, framed tighter on the nucleus (visible nuclear pores) and rough ER stacks. Same pancreatic-acinar-cell analog caveat as rank 1 applies.",
+      "confidence_url_is_real": "high — fetched and confirmed directly"
+    },
+    {
+      "rank": 3,
+      "modality": "TEM",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/0/02/0313_Endoplasmic_Reticulum.jpg",
+      "source_page": "https://commons.wikimedia.org/wiki/File:0313_Endoplasmic_Reticulum.jpg",
+      "license": "CC BY 4.0",
+      "attribution": "OpenStax Anatomy and Physiology; micrograph © Regents of the University of Michigan Medical School (2012)",
+      "shows": "Mouse-tissue TEM showing both rough and smooth endoplasmic reticulum. Generic ER reference, no secretory granules/vesicles visible, cell type/tissue of origin not specified beyond 'mouse tissue' — lower priority than ranks 1-2 but a confirmed, more permissively licensed fallback.",
+      "confidence_url_is_real": "high — fetched and confirmed directly"
+    },
+    {
+      "rank": 4,
+      "modality": "none found (search-guidance only)",
+      "url": null,
+      "source_page": null,
+      "license": null,
+      "attribution": null,
+      "shows": "Option (b) fallback (spider silk gland/duct anatomy) was searched but no freely-licensed photographic micrograph was found — only vector schematic diagrams exist on Wikimedia Commons (e.g. File:Spider silk duct.svg, Category:Spider silk), which are diagrams, not real microscopy, so they do not satisfy the 'real microscopy' requirement. A genuine mammary-specific secretory-cell TEM was found in the literature (Honvo-Houéto et al. 2016, Molecular Biology of the Cell 27(19):2946-2964, showing ER and casein-containing secretory vesicles near the apical membrane) but is licensed CC BY-NC-SA 3.0 (NonCommercial) and is therefore excluded. Suggested further queries for a later fetch step: 'site:commons.wikimedia.org mammary gland electron micrograph', 'NCBI Bookshelf mammary alveolar cell TEM public domain', 'PMC open access mammary epithelial cell TEM rough endoplasmic reticulum CC BY' (filter out CC BY-NC/CC BY-NC-SA results), and NIAID/NIH Flickr (flickr.com/photos/niaid) for any public-domain mammary-tissue EM plates.",
+      "confidence_url_is_real": "n/a — no URL proposed, none found"
+    }
+  ]
+}
