@@ -311,6 +311,47 @@ is a generic crocheted brain, a stock photo of a real bacterial culture, or anot
 gift box. Nothing from that pass was adopted. The Wayback Machine, queried with a domain-wide
 CDX regex rather than per-URL guesses, was worth far more: 66 recoveries against zero.
 
+### Running the domain-wide Wayback search directly (`wayback_domain_search.py`)
+
+The technique above was proven by a parallel session's agents but not, until this pass, wired
+into a script of its own. It has two stages.
+
+**Stage 1** queries CDX for the whole `giantmicrobes.com` domain (`matchType=domain`), filtered
+by `urlkey:.*<stem>.*` on the item's slug, and sorts hits by `length` to try the largest capture
+first. One request surfaces every storefront locale and every Magento rendition instead of
+guessing exact paths.
+
+**Stage 2** exists because stage 1 has a hole: it can only find images whose *filename* shares
+text with the slug. Bundle and gift-set SKUs routinely don't — `covid-ornaments-pack.html`'s own
+gallery images are `covid-gold-tree_2.jpg` and `vaccine-tree_2.jpg`, named after what's inside the
+box, not the box's own slug — so the regex finds nothing for exactly the products most likely to
+lack a photo elsewhere too. When stage 1 comes back empty, stage 2 fetches the best-preserved
+archived copy of the product's own page and reads *its* `og:image`, JSON-LD `image` field, and
+`<img id="image-N">` gallery tags — the page's own account of which files are its photos, which
+sidesteps the naming mismatch entirely. Across the 51 items with no photo at the start of this
+pass, stage 1 alone found 11; adding stage 2 found 13 more.
+
+Two bugs surfaced building this, both fixed and worth knowing about before extending it further:
+
+- **Destination-filename collisions silently deleted already-accepted candidates.** Distinct
+  source URLs sharing one Wayback crawl often share a timestamp too — three cache renditions
+  captured in the same pass — so naming staged files `slug__timestamp.ext` let a later,
+  *rejected* candidate `os.unlink()` the file an earlier, *accepted* one was still pointing to,
+  because both wrote to the same path. Caught by cross-checking every recorded `path` against
+  what was actually still on disk (several were simply gone) rather than trusting the metadata.
+  Fixed by tagging the filename with a hash of the source URL, so distinct URLs never collide.
+- **The not-found placeholder is not always caught by a single check.** `try_original()` in
+  `adopt_images.py` opportunistically re-fetches a decached version of a recorded URL, checks it
+  against the placeholder filter once, and swaps it in if it passes and is bigger. Two items this
+  pass passed that single check, got processed through the full pipeline, and only turned out to
+  *be* the placeholder when a later, unrelated re-fetch of the same URL returned it — the same URL
+  returned a genuine photo once and the placeholder minutes later. One clean check is not proof;
+  `try_original()` now fetches twice, a second apart, and requires both responses to pass the
+  placeholder filter *and* agree with each other (dHash distance ≤ 6) before trusting either.
+  After fixing it, every image touched by this session (211 records) was re-verified directly
+  against the placeholder filter as a final gate — zero found, including the two that had slipped
+  through initially and were repaired by hand.
+
 ## AI upscaling: tried, measured, rejected
 
 For images with no better source anywhere, the fallback was Gemini image editing (Nano Banana)

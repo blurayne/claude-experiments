@@ -42,9 +42,10 @@ import re
 import shutil
 import sys
 import tempfile
+import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from gm_imgutil import PlaceholderFilter, fetch, measure    # noqa: E402
+from gm_imgutil import PlaceholderFilter, dhash, fetch, hamming, measure   # noqa: E402
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CATALOG = os.path.join(HERE, "merged_catalog.json")
@@ -64,12 +65,8 @@ def decached(url):
     return original if original != url else None
 
 
-def try_original(record, tmpdir, placeholder):
-    """Fetch the un-cached original; return its path when it beats what we have."""
-    url = decached(record.get("source_url") or "")
-    if not url:
-        return None
-    dest = os.path.join(tmpdir, "orig" + os.path.splitext(url)[1].split("?")[0])
+def _fetch_checked(url, dest, placeholder):
+    """One fetch-and-verify pass; returns None on anything short of a clean hit."""
     if fetch(url, dest, timeout=25) != "200" or not os.path.exists(dest):
         return None
     if os.path.getsize(dest) < 3000:
@@ -78,12 +75,38 @@ def try_original(record, tmpdir, placeholder):
     if bad:
         return None
     try:
-        m = measure(dest)
+        return measure(dest)
     except Exception:                                   # noqa: BLE001
         return None
-    if max(m["w"], m["h"]) <= max(record.get("width", 0), record.get("height", 0)):
+
+
+def try_original(record, tmpdir, placeholder):
+    """Fetch the un-cached original; return its path when it beats what we have.
+
+    giantmicrobes.com's media path is not reliable at the byte level: the same
+    URL fetched minutes apart returned a genuine photo once and the not-found
+    placeholder the next time (caught only because the delivered .avif was
+    re-checked against the placeholder filter after the fact -- two items
+    shipped the group-shot for a day before that catch). One clean placeholder
+    check is not enough evidence; this fetches twice and requires both
+    responses to be non-placeholder *and* perceptually the same image before
+    trusting either of them.
+    """
+    url = decached(record.get("source_url") or "")
+    if not url:
         return None
-    return {"path": dest, "url": url, **m}
+    dest1 = os.path.join(tmpdir, "orig1" + os.path.splitext(url)[1].split("?")[0])
+    m1 = _fetch_checked(url, dest1, placeholder)
+    if not m1:
+        return None
+    time.sleep(1.0)
+    dest2 = os.path.join(tmpdir, "orig2" + os.path.splitext(url)[1].split("?")[0])
+    m2 = _fetch_checked(url, dest2, placeholder)
+    if not m2 or hamming(dhash(dest1), dhash(dest2)) > 6:
+        return None
+    if max(m1["w"], m1["h"]) <= max(record.get("width", 0), record.get("height", 0)):
+        return None
+    return {"path": dest1, "url": url, **m1}
 
 
 def main():
