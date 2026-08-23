@@ -433,6 +433,16 @@ function toggleTheme() {
   saveSettings();
 }
 
+function toggleFullscreen() {
+  if (document.fullscreenElement) document.exitFullscreen();
+  else document.documentElement.requestFullscreen().catch(() => {});
+}
+
+function updateFullscreenBtn() {
+  const btn = document.getElementById("fullscreen-btn");
+  btn.textContent = document.fullscreenElement ? "\\u2715 Exit Fullscreen" : "\\u26f6 Fullscreen";
+}
+
 function setLang(lang) {
   settings.lang = lang;
   document.getElementById("lang-chooser").value = lang;
@@ -565,6 +575,14 @@ function initControls() {
   document.getElementById("theme-btn").textContent = settings.theme === "dark" ? "\\u2600\\ufe0f Light" : "\\ud83c\\udf19 Dark";
   document.getElementById("theme-btn").addEventListener("click", toggleTheme);
   document.getElementById("print-btn").addEventListener("click", () => window.print());
+  const fsBtn = document.getElementById("fullscreen-btn");
+  if (document.fullscreenEnabled === false) {
+    fsBtn.style.display = "none";
+  } else {
+    fsBtn.addEventListener("click", toggleFullscreen);
+    document.addEventListener("fullscreenchange", updateFullscreenBtn);
+    updateFullscreenBtn();
+  }
   const langChooser = document.getElementById("lang-chooser");
   langChooser.value = settings.lang;
   langChooser.addEventListener("change", e => setLang(e.target.value));
@@ -722,6 +740,7 @@ def main():
       </div>
     </div>
     <button id="theme-btn" type="button">\U0001f319 Dark</button>
+    <button id="fullscreen-btn" type="button">⛶ Fullscreen</button>
     <button id="print-btn" type="button">\U0001f5a8️ Print / Save as PDF</button>
     <span class="stat-pill" id="stat-total">Loading&hellip;</span>
     <span class="stat-pill" id="stat-shown"></span>
