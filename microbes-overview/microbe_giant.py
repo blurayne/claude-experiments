@@ -43,6 +43,7 @@ true counterpart simply gets no plush button. Notably NOT linked, and why:
     concept, gut lining zipped closed by gluten intolerance), not a single
     gut cell. A disease/tissue-level toy is not a cell portrait, so it stays
     unlinked even though the species field matches.
+
 A few 2026-08 additions are worth a word:
   - nucleus — GIANTmicrobes sells no full-size nucleus plush, only a "Nucleus
     Key Chain". It is linked anyway, because the little toy does depict this
@@ -170,6 +171,10 @@ GIANT = {
     # slug, but /windpocken (its actual DE slug) resolves and is the same product
     'varicella-zoster-virus': ('Chickenpox (Varicella-Zoster virus)', 'https://www.riesenmikroben.de/products/windpocken?locale=de'),
     'giardia-lamblia': ('Giardia (Giardia lamblia)', 'https://www.riesenmikroben.de/products/giardia?locale=de'),
+    # --- bacteriophages ---
+    # species `t4 phage`; the photo is unmistakably a tailed phage (icosahedral
+    # head, contractile tail, tail fibres), so name, species and picture all agree
+    't4-bacteriophage': ('T4 (T4-Bacteriophage)', 'https://www.riesenmikroben.de/products/t4?locale=de'),
     # --- helpful microbes ---
     'penicillium-chrysogenum': ('Penicillin (Penicillium chrysogenum)', 'https://www.riesenmikroben.de/products/penicillin?locale=de'),
     # --- pathogens of cats and dogs ---

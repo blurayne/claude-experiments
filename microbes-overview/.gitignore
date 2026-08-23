@@ -33,7 +33,23 @@ renders/OVERVIEW (copy).md
 # never requests it — not worth a fresh blob in every commit.
 coloring-data.js
 
-# build_pdfbook.py: the generated children's PDF book(s) and its scratch/debug HTML.
-microbes-book-*.pdf
+# build_pdfbook.py: the scratch/debug HTML only. The PDFs themselves ARE committed
+# -- GitHub Pages serves this folder verbatim, so the viewer's "Read the picture
+# book" link 404s unless the file is in the repo, the same reason the render AVIFs
+# are committed. They are ~21 MB each; regenerate with build_pdfbook.py and expect
+# the pair to land in every commit that changes book content.
 microbes-book-*.html
 .tmp_build/
+
+# Scratch dirs that render/verify agents create while checking their own work
+# (zoom crops, anchor-check composites, edge-scan dumps). They are working notes,
+# not artifacts — several hundred PNGs accumulated across one session.
+.tmp_*/
+.svgcheck_tmp/
+.prompt_tmp/
+
+# Working files from a content/refactor pass: cells_data.py backups taken before a
+# scripted edit, and the JSON an authoring agent hands to the orchestrator before it
+# is merged into cells_data.py. Both are transient by construction.
+.cells_data.py.bak*
+.new_content*.json

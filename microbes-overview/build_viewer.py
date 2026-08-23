@@ -40,6 +40,7 @@ import sys
 from pathlib import Path
 
 from microbe_giant import GIANT, AI_CLEANED, KEYCHAIN
+from microbe_version import describe as version_describe
 from microbe_scale import SCALE, weight_class, weight_pg
 
 
@@ -363,7 +364,8 @@ def build():
             }
         )
 
-    data = {"sets": sets_out}
+    # build stamp: version / commit / build time, shown under the hero blurb
+    data = {"build": version_describe(), "sets": sets_out}
 
     # "See also" integrity. The front-end drops a link whose target it cannot
     # find (`relatedHTML`: `if(!hit) return ''`), so a typo'd or stale key just

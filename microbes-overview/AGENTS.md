@@ -126,6 +126,50 @@ The German is a **register-matched rewrite**, not a translation of the English. 
 (ä ö ü ß), real em dashes (—), never `--`. The same rule applies to set/chapter descriptions
 (`description_kids_*`, `description_adults_*` in `cells_data.py`), not only to microbes.
 
+**German uses DNS and RNS, not DNA and RNA** — the traditional German terms, matching the
+German store's own wording. `mRNA` / `tRNA` / `rRNA` keep the RNA spelling even in German,
+so only the *standalone* word (and compounds like `DNS-Polymerase`) changes. This applies to
+prose, entry names, set titles **and the `de` layer of every `labels.json`**. English text is
+untouched. Note the render keys are derived from `name_en`, so they stay `dna` / `rna` — do
+not "fix" those to match the German.
+
+## Versioning, the changelog, and the build stamp
+
+The viewer prints **version · commit sha · build time** under the hero blurb. All
+three come from `microbe_version.py`, which derives them from **git** — there is no
+`VERSION` file, deliberately, because a stored number drifts from what shipped.
+
+```
+MAJOR.MINOR   the newest `microbes-overview/vX.Y.Z` tag reachable from HEAD
+PATCH         commits touching `microbes-overview/` since that tag
+```
+
+So:
+
+- **PATCH advances by itself, one per commit.** Fixes, copy edits, tooling, layout —
+  nothing to do, it just moves. A commit elsewhere in the monorepo does *not* bump
+  the atlas (the count is path-filtered to this folder).
+- **MINOR is bumped when new microbes go live** — the only manual step. After the
+  barrier run, when `build_viewer.py` reports more subjects than before:
+  ```bash
+  git tag -a microbes-overview/v1.2.0 -m "1.2.0 — the muscle-cells set, 4 fibres live"
+  git push origin microbes-overview/v1.2.0
+  ```
+  "Live" means rendered and reaching the viewer, not merely catalogued in
+  `cells_data.py`. A subject added to the catalogue but not yet rendered is a PATCH.
+- **MAJOR is a deliberate statement** about the atlas as a whole. `1.0.0` is the
+  commit where every catalogued subject was finally live ("Chlamydia felis completes
+  the set — 112 of 112, 18 sets"). Don't bump it casually.
+- **A dirty tree is labelled as such** in the stamp (`+uncommitted changes`), so a
+  local build can't pass itself off as the tagged release.
+
+**`CHANGELOG.md` is maintained by hand from now on.** Everything below `1.1.0` was
+reconstructed on 2026-08-23 by walking the 94 commits that touched this folder and
+counting `*.render.meta.json` at each, and the tags were created retroactively to
+match — that reconstruction is a one-off and is marked as such in the file. Going
+forward, add your entry in the same commit as the work. Under the current version
+heading list the change with its commit; when you tag a MINOR, start a new heading.
+
 ## Adding a new entry — the checklist that keeps getting missed
 
 Rendering is the visible part and the smallest part. A subject is **not** done until all of
@@ -157,6 +201,8 @@ this is true; each line here is something that was silently skipped at least onc
    `build_viewer.py` → `build_overview.py`.
 8. **`index.md` and the set counts** — they go stale silently.
 9. **`PLAN.md`** — record every compromise you accepted rather than fixed.
+10. **`CHANGELOG.md` + the version tag** — a new live subject is a MINOR bump; see
+    the versioning section above.
 
 ### Local preview
 

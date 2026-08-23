@@ -1,4 +1,4 @@
-- [ ] for missing microbes check again if there is 1:1 matching pciture in /home/markusg/Private/claude-experiments/microbes-overview/ - if yes take photo and try to link to public product page on giantmicrobes.com or riesenmikroben.de (if nmo product page just take domain as link)
+- [x] for missing microbes check again if there is 1:1 matching pciture in /home/markusg/Private/claude-experiments/microbes-overview/ - if yes take photo and try to link to public product page on giantmicrobes.com or riesenmikroben.de (if nmo product page just take domain as link)
 - [x] Top Bar Changes 
   - Menu Button (☰) without Label 
   - Title "Microbes Atlas"
@@ -12,27 +12,27 @@
 - [x] Even if thickness slider is down to 10% ensure we always do have a minumum thickness of 1 point (1px on screen, hairline on print)
 - [x] Allow line thickness to go down to 0% — minimums still apply
 - [ ] Restructure Menu / New Sections (later)
-- [ ] Page Sections
-  - [ ] For "Cell Organelles" add a new intro section with "How the cell works"
-  - [ ] After "Cell Organelles" add a new section with "Cell types of the Human body" which explains the major categories of cells:
+- [x] Page Sections
+  - [x] For "Cell Organelles" add a new intro section with "How the cell works"
+  - [x] After "Cell Organelles" add a new section with "Cell types of the Human body" which explains the major categories of cells:
         Primary Tissues & Cell Types
         - Epithelial Cells: Forms protective barriers on inner and outer body surfaces (skin, blood vessels, organs), regulating secretion and absorption.
         - Muscle Cells: Specialized for contraction; divided into skeletal muscles (voluntary), cardiac muscle, and smooth muscles (involuntary in organs).
         - Nerve Cells / Neurons: Responsible for generating, transmitting, and processing electrical and chemical signals throughout the nervous system.
         - Connective Tissue Cells: Includes fibroblasts, cartilage, and bone cells (osteocytes), providing stability, structure, and metabolic exchange.
         - Blood and Immune Cells: Red blood cells (erythrocytes) transport oxygen, while white blood cells (leukocytes) and lymphocytes fight pathogens as part of the immune system.
-  - [ ] Always differentiate between audiences and write text accordingly: Kid, Adults, Scientists (put to AGENTS.md)
-- [ ] New Section: Function, Control, Characteristics of Skeletal Muscle (Striated Muscle), Cardiac Muscle (Myocardium), Smooth Muscle
+  - [x] Always differentiate between audiences and write text accordingly: Kid, Adults, Scientists (put to AGENTS.md)
+- [x] New Section: Function, Control, Characteristics of Skeletal Muscle (Striated Muscle), Cardiac Muscle (Myocardium), Smooth Muscle
 - [ ] New Set: Muscle Cells 
 	  - [ ] Entry: Type I Fibers (Red Muscle Fibers / "Slow-Twitch") 
 	  - [ ] Entry: Type II Fibers (White Muscle Fibers / "Fast-Twitch")
 	  - [ ] Type IIa Fibers:
 	  - [ ] Type IIx Fibers (formerly often Type IIb):
-- [ ] For AGENTS.md when adding a new entry translate to de/en and de for kids do an audition for de/en. try to add GIANT micro and ensure its the right mathc
-- [ ] Add entry for chicken pox
-- [ ] PDF-Book for Children
-  - [ ] link in initial intro section of the page to download or view in browser
-  - [ ] Develop a Script to generate
+- [x] For AGENTS.md when adding a new entry translate to de/en and de for kids do an audition for de/en. try to add GIANT micro and ensure its the right mathc
+- [x] Add entry for chicken pox — already in the atlas as `varicella-zoster-virus`; it only lacked a plush link, which it now has
+- [x] PDF-Book for Children
+  - [x] link in initial intro section of the page to download or view in browser
+  - [x] Develop a Script to generate — `build_pdfbook.py`
      - Use HTML and print to from chromeless browser to PDF (playwright; python script with uv-shebang)
      - Short Section Title +  Intro go to Normal Entry Pages
      - Longet  Section Title + Intro go + Additional Text Section reserve a new pges
@@ -40,6 +40,20 @@
        - Page A
            Title of Entry
 
+           SHIPPED LAYOUT (approved 2026-08-23) — differs from the 2x2 sketch below.
+           At A4 the labelled diagram's leader text was unreadable in a half-width
+           cell, so TEXTBOOK now spans the full height of the wide column and the
+           other three stack down the narrow one, each staying square:
+
+           +------+---------------------+
+           | REAL |                     |
+           +------+                     |
+           | SEM  | TEXTBOOK /w Labels  |
+           +------+                     |
+           | 3D   |                     |
+           +------+---------------------+
+
+           original sketch, superseded:
            +------+---------------------+
            | REAL | SEM                 |
            +------+---------------------+

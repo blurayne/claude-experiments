@@ -539,27 +539,43 @@ body {
 .cell.cell-sem      { grid-area: sem; }
 .cell.cell-3d       { grid-area: threed; }
 .cell.cell-textbook { grid-area: text; }
+/* No frame, no tinted panel: the pictures sit directly on the page and each one
+   carries its own corner label instead. Boxing them made four bordered panels
+   compete with the artwork, and the caption band ate vertical space the image
+   could use. */
 .cell {
-  border: 0.4mm solid #cfd9d5; border-radius: 2mm;
-  background: #f5f8f7; overflow: hidden; display: flex; flex-direction: column;
+  overflow: hidden; display: flex; flex-direction: column;
   min-width: 0; min-height: 0;  /* grid items default to min-width:auto, which
     would let a large intrinsic image/SVG size push the cell past its track and
     off the page instead of shrinking to fit it */
   break-inside: avoid;
 }
-/* the caption is a normal-flow header, NOT an absolute overlay: some labelled
-   diagrams anchor a label right at the top edge (e.g. Giardia's "Trophozoit"
-   leader), and an overlay band there clipped/obscured it */
-.cell .cap {
-  flex: 0 0 auto; font-size: 6.6pt; letter-spacing: .02em; text-transform: uppercase;
-  color: #4b5f58; background: #eef2f0; border-bottom: 0.3mm solid #dde5e2;
-  padding: 0.8mm 1.6mm;
-}
 .cell .imgwrap {
   flex: 1 1 auto; min-width: 0; min-height: 0; display: flex;
   align-items: center; justify-content: center; overflow: hidden;
 }
-.cell img, .cell svg { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; }
+/* Shrink-wraps the picture so the label can anchor to the IMAGE's own corner
+   rather than the grid cell's — a square render inside a tall cell would
+   otherwise leave the label stranded in blank space below it. */
+.cell .imgfit {
+  position: relative; display: inline-flex;
+  max-width: 100%; max-height: 100%; min-width: 0; min-height: 0;
+}
+.cell .imgfit img, .cell .imgfit svg {
+  display: block; max-width: 100%; max-height: 100%; width: auto; height: auto;
+  object-fit: contain;
+}
+/* Bottom-RIGHT by request, and it is also the safe corner: the caption used to
+   be a top band because several labelled diagrams anchor a leader at the very
+   top edge (Giardia's "Trophozoit"), which an overlay there clipped. Watch this
+   corner for the same collision on diagrams whose labels reach it. */
+.cell .cap {
+  position: absolute; right: 0; bottom: 0;
+  font-size: 6.4pt; letter-spacing: .02em; text-transform: uppercase;
+  color: #000; background: #fff;
+  padding: 0.9mm 1.8mm;
+  border-top-left-radius: 1.2mm;
+}
 .cell .ph { font-size: 8pt; color: #8a9a94; text-align: center; padding: 2mm; }
 .desc p { margin: 0; text-align: justify; hyphens: auto; }
 .plush {
@@ -585,7 +601,13 @@ def grid_cell(kind: str, cap: str, img_rel: str | None, lab: dict | None, lang: 
         inner = f'<img src="{html.escape(img_rel, quote=True)}" loading="eager">'
     else:
         inner = f'<div class="ph">{esc(no_pic)}</div>'
-    return f'<div class="cell cell-{kind}"><span class="cap">{esc(cap)}</span><div class="imgwrap">{inner}</div></div>'
+    # The label lives inside .imgfit so it anchors to the picture's own corner.
+    # A missing picture gets no label — there is nothing to caption.
+    if img_rel:
+        body = f'<div class="imgfit">{inner}<span class="cap">{esc(cap)}</span></div>'
+    else:
+        body = inner
+    return f'<div class="cell cell-{kind}"><div class="imgwrap">{body}</div></div>'
 
 
 def render_entry_page(set_: dict, m: dict, lang: str, banner_html: str, missing: list[str]) -> str:

@@ -88,10 +88,18 @@ first attempt rather than rediscovering them.
   glance. Cross-striation runs **across** the axis; myofibrils run **along** it,
   and both are real, which is what makes the wrong one so convincing. Name the
   direction positively ("narrow dark and light bands running across the fibre,
-  like rungs on a ladder, with the myofibrils lengthwise underneath") and test it
-  by measuring periodicity along the axis *and* perpendicular to it. Whenever a
-  subject's defining feature is a repeat — banding, grooves, segments, coils —
-  the axis is the thing to check, not the presence of stripes.
+  like rungs on a ladder, with the myofibrils lengthwise underneath") — that
+  phrasing fixed it on the pro tier in one pass. Whenever a subject's defining
+  feature is a repeat — banding, grooves, segments, coils — the axis is the thing
+  to check, not the presence of stripes.
+  **Check it by zooming, not by FFT.** An obvious-looking test (sample intensity
+  along the axis vs across it, compare spectral peaks) was tried and does *not*
+  discriminate: the known-bad render scored the single highest "transverse" value
+  of the whole set, because fine longitudinal myofibril texture is stronger and
+  higher-frequency than the broad A/I banding and swamps any line-sample. A
+  correct fibre carries *both* patterns at once — transverse bands plus lengthwise
+  myofibrils — so "which direction wins" is the wrong question. A magnified crop
+  answers it in seconds and is the only check that held up here.
 - **Helices: verify handedness, don't eyeball it.** Real DNA is right-handed and
   flash renders came back left-handed on 3 of 4 styles. Test: at a crossing in
   side view, the strand in front runs lower-left to upper-right. Check a
@@ -116,9 +124,16 @@ caught real errors, and each is cheap:
 - **Overlay a grid and count.** The tick's eight legs were confirmed with a 100px
   grid overlay on every accepted render — which caught a six-legged coloring page
   that had already passed a glance.
-- **Sample the pixel at the anchor.** After `build_svg.py`, rasterise with cairosvg
-  and read the RGB at each leader-line anchor. That caught a trans-Golgi label
-  sitting on a budding vesicle's neck rather than on the network.
+- **Sample the pixel at the anchor — against the RAW render, not the rasterised
+  SVG.** Read the RGB at each leader-line anchor. That caught a trans-Golgi label
+  sitting on a budding vesicle's neck rather than on the network. Sample the *base
+  image*, though: the label's own dot marker and leader stroke land on the exact
+  anchor pixel, so sampling the rasterised SVG reads the marker's colour and passes
+  everything. Two agents worked this out independently after the method kept
+  clearing anchors that were visibly wrong. Done properly on one already-"finished"
+  diagram it found **6 of 10 anchors misplaced** — one sitting in the black
+  background, one on a nucleus while labelled "capillary". Also check that no label
+  runs off the canvas when its anchor sits near x=0.
 - **Zoom before accepting.** Baked-in text, inverted capsid layers and a spore on
   the wrong pole are all invisible at full-frame scale. Inspect magnified crops.
 - **Build a known-good reference and test your test.** For DNA handedness the agent
@@ -137,6 +152,14 @@ caught real errors, and each is cheap:
   four styles of a subject whose agent had reported it verified, plus a framing
   failure that agent believed it had fixed. An agent's report is a claim about
   its own work; one contact sheet per subject is the whole cost of checking it.
+- **The claims that go wrong are the ones echoed from the brief.** Three times in one
+  set a verdict asserted exactly the phrase the brief asked for — "~eight flagella",
+  "continuous transverse cross-striation", "runs off all 4 edges" — about a picture
+  that showed none of them. The generic wording is the tell: it reads as a checked
+  result but is really the instruction repeated back. When a verdict uses the brief's
+  own words for a countable or measurable property, that is the line to re-check
+  first, and the check is nearly always cheap (count it, crop it, or scan the edge
+  rows). Write what you measured, not what was asked for.
 - **A `verdicts.json` is self-reported, not evidence.** Giardia's verdict said
   "~eight flagella" about renders that had 10–16; the claim survived into the
   committed atlas and into PLAN.md, where it was rewritten as "they overlap, so the

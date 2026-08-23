@@ -6,6 +6,96 @@ this file tracks the *work*, including things no script can detect.
 
 ## Open
 
+### In flight — the muscle-cells set (2026-08)
+The atlas's 19th set and its first new chapter prose. Four fibre subjects, of which
+two are finished and two are still moving. Recorded here because a session limit
+killed the first batch mid-flight and the state is not obvious from the files alone.
+
+- [x] `type-i-fibre` — **complete.** All four styles rendered on the pro tier and
+      visually verified by the orchestrator: transverse A/I banding with Z-lines
+      *and* lengthwise myofibrils underneath (both at once is the correct anatomy),
+      fibre running out of frame at both ends, deep red with a dense mitochondria
+      and capillary bed. Flash never got the framing right (capped "stubby capsule"
+      every time); the pro tier fixed it. Anchor-checking the three labelled SVGs
+      against the raw renders found **6 of 10 anchors wrong on 3d** (myofibril in
+      the black background, "capillary" pointing at a nucleus, a_band on a
+      neighbouring satellite cell) and 2 of 10 on watercolor — all relocated and
+      re-verified. The nucleus-vs-satellite-cell question was resolved on the
+      evidence rather than conveniently: the teal outline is the edge of the
+      *cutaway window*, not the sarcolemma, so the blue-grey myonuclei are correctly
+      peripheral, and the separate pale teardrop cells at the true outer edge are
+      genuine satellite cells — both were already labelled distinctly.
+- [x] `type-iix-fibre` — **corrected.** All four styles had shipped with
+      longitudinal myofibril stripes only and no transverse cross-striation, while
+      `verdicts.json` asserted "continuous transverse cross-striation" — the same
+      class of error as the Giardia flagella count, a self-reported verdict
+      asserting a checkable fact the picture did not show. A second, smaller defect:
+      the verdict recorded "one end still shows a closed disc" as an accepted
+      compromise, but a corner-by-corner crop check found BOTH ends closed inside
+      the frame on textbook/3d/watercolor, not one. Caught by the orchestrator
+      building a four-up contact sheet and magnifying one crop; confirmed here by
+      cropping and magnifying all four corners of every current render before
+      touching anything. Fixed by re-rendering all four styles on `gemini-3-pro-image`
+      with corrected positive-direction phrasing for the striation ("bands running
+      across the fibre, perpendicular to its length, like rungs on a ladder, with
+      the myofibrils lengthwise underneath") and a stronger corner-fill framing
+      check borrowed from the `type-i-fibre` exemplar — every style passed on the
+      **first** pro-tier attempt (textbook gen-04, 3d gen-04, watercolor gen-04, sem
+      gen-03). Verified per style with a magnified centre crop (not FFT/line-sample,
+      per SKILL.md) showing both transverse banding and lengthwise myofibril grain
+      at once, and by cropping both opposite corners to confirm the fibre body now
+      fills each corner edge-to-edge with no end-cap. Labelled SVGs for
+      textbook/3d/watercolor were rebuilt from scratch against the new base images;
+      all 10 anchors per style (30 total) were pixel-sampled directly against the
+      raw render (not the rasterised SVG, whose leader-line strokes can occlude the
+      exact anchor pixel) and confirmed on-feature. `verdicts.json` was rewritten to
+      mark the old "pass" entries DISPROVEN rather than delete them, and
+      `assemble_md.py` was re-run. Its research, naming discussion, descriptions,
+      reference and coloring page were sound and were kept untouched.
+- [x] **Coloring-page bleed claims were wrong on two subjects — corrected.** The
+      `type-iia-fibre` agent noticed that its own honestly-recorded non-bleed matched
+      what the *finished* `type-i-fibre` and `type-iix-fibre` pages actually look
+      like, while both of their verdicts claimed "runs off all 4 edges". It flagged
+      this rather than copying the convenient wording. Measured (cairosvg at 800px,
+      ink fraction in the outermost 6px of the top 72%, since the bottom band is
+      deliberately blank): `type-i-fibre` reaches **three** edges (bottom 0.272,
+      right 0.191, left 0.035, top 0.000) and `type-iix-fibre` reaches **one**
+      (bottom 0.100). Both verdicts now carry a dated CORRECTED note instead of the
+      false claim — kept, not deleted, so the audit trail shows what was believed and
+      why it was wrong. All three pages remain usable: no starburst and no border are
+      the genuinely unrecoverable failures, and both are absent everywhere.
+      *Third instance in this set of a verdict asserting something the picture did
+      not show (after the Giardia flagella count and the IIx striations). The
+      pattern is now unmistakable: the claims that go wrong are the ones where a
+      generic phrase from the brief gets echoed back as if it had been checked.*
+- [x] `type-iia-fibre` — **complete.** 3d and watercolor were already correct on
+      disk from the earlier session (pro tier, both patterns present, both ends
+      cropped) and verified by magnified-crop checks before reuse. textbook (flash
+      gen-03) failed a different way than the classic defect: transverse banding was
+      confined to a small cutaway window while the outer fibre body — most of the
+      visible surface, including both tips — showed longitudinal-only striping; a
+      pro-tier re-roll of the same prompt fixed it in one pass. sem failed the
+      classic longitudinal-only way on *both* flash (gen-01) and an unmodified
+      pro-tier re-roll (gen-02) — escalating tier alone did not fix it here, unlike
+      every sibling. What fixed it was rewriting the surface-relief instruction
+      around a closed-loop analogy ("earthworm segments / bellows rings that return
+      to their own starting point without ever moving toward either end of the
+      tube") in place of the more ambiguous "transverse ridges...printed rings on a
+      drinking straw" phrasing; the new wording passed on the first attempt with it
+      (gen-03). All three illustrated styles' labelled SVGs were built fresh and
+      every anchor was pixel-sampled against the raw base render; sampling the
+      rasterised SVG composite directly at (ax,ay) turned out to read the leader
+      line's own colour almost every time (the line starts exactly at the anchor
+      point), so verification used a small perpendicular offset plus a direct check
+      against the un-annotated base image. One anchor (3d/myofibril) was relocated
+      after the composite showed a neighbouring label's text string overlapping it.
+- [ ] `type-ii-fibre` — not started. It is the **umbrella** entry over IIa and IIx,
+      so per SKILL.md it must be rendered as a group showing the variety rather
+      than as a fifth near-duplicate sibling.
+- [ ] Narration for the four fibres and the four new set/chapter intros
+      (~11.9k ElevenLabs characters). Credits were topped up; run `tts.py` in the
+      barrier step **after** `build_viewer.py` has seen the subjects.
+
 ### Review
 - [ ] **Systematic visual review of all 112 subjects.** Every render, labelled
       diagram and coloring page has been checked by the agent that made it, and
@@ -36,6 +126,17 @@ a compromise someone chose deliberately — listed so a later pass can revisit t
       grass-blade character). Not re-rolled because the leg count was finally right.
 - [ ] `rotavirus` — no render shows countable eleven dsRNA segments; the label says
       eleven and the images approximate.
+- [ ] `type-iia-fibre` — the coloring page does not bleed off any of the four
+      edges; the character sits centered with a generous white margin on all
+      sides. Two attempts (the second with much stronger "crop the body at two
+      edges" framing language) both came back the same way on the flash tier. Kept
+      because the two unrecoverable failures (starburst, border/frame) are both
+      genuinely absent — confirmed by scanning all four edge rows/columns for dark
+      pixels, zero found. Note: this set's `type-i-fibre` and `type-iix-fibre`
+      coloring pages show the same centered, margined composition in their actual
+      PNGs despite their own `verdicts.json` entries claiming "runs off all 4
+      edges" — that claim does not hold up against the archived images and should
+      not be trusted or copied forward.
 - [x] `giardia` — **corrected.** This previously read "the eight flagella overlap in
       every render, so the count cannot be confirmed pixel by pixel", which was wrong
       and came from a verdict file that claimed "~eight flagella" for renders that
@@ -98,6 +199,25 @@ a compromise someone chose deliberately — listed so a later pass can revisit t
       developmental forms are identical in both, so it illustrates the EB/RB cycle
       truthfully, and the species swap is disclosed in the caption the viewer shows —
       not only in the log. Recorded so nobody later assumes it is C. felis.
+
+### Fixed in this pass, recorded because they were invisible
+- [x] **The search box locked the browser tab.** `applySearch()` calls
+      `refreshBuilt()` to re-apply `<mark>` highlighting, and `refreshBuilt()`
+      calls `applySearch()` so an open results list follows a language switch.
+      Both directions are wanted; together they were an unbounded cycle. It only
+      bit on the *third* keystroke, because `terms()` ignores anything shorter
+      than two characters, so the first real query still ran with the list closed
+      — which is why it survived so long. A `reHighlighting` flag (set in a
+      `try/finally`) now marks the arm you arrived through. Pre-existing on `main`.
+- [x] **Two "See also" links pointed at nothing.** `mitochondrion` and `heartworm`
+      referenced `contractile-cardiomyocyte` — the catalogue *name* — where the
+      live render key is `cardiomyocyte`. The viewer drops a link whose target it
+      cannot find, so both simply never rendered. `build_viewer.py` now warns on
+      dangling and one-directional cross-references instead of swallowing them.
+- [x] **`description_sci_*` was written and never read.** Three sets (`genetics`,
+      `cancer-cells`, `pet-pathogens`) carried a scientific set intro that no
+      reader ever saw, because the Scientist register was aliased to the generic
+      description. It is now used, with the generic text as fallback.
 
 ### Worth knowing for future renders
 - The house SEM style is **a single specimen on a substrate**, not a budding vignette.

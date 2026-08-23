@@ -450,6 +450,16 @@ main{max-width:var(--maxw); margin:0 auto; padding:clamp(20px,4vw,44px) clamp(14
 .hero .stat{display:inline-flex; gap:6px; align-items:baseline; margin-top:18px;
   font-family:var(--font-mono); font-size:12.5px; color:var(--fg-faint)}
 .hero .stat b{color:var(--accent); font-size:15px}
+/* Build stamp under the blurb: present but quiet — a reader should be able to
+   quote an exact version when reporting something, without it competing with
+   the headline. Monospace so a sha stays scannable. */
+.hero-build{margin-top:10px; font-family:var(--font-mono); font-size:11.5px;
+  color:var(--fg-faint); letter-spacing:.02em}
+.hero-build .hb-v{color:var(--accent); font-weight:600}
+.hero-build .hb-sep{opacity:.5; margin:0 7px}
+.hero-build a{color:inherit; text-decoration:none; border-bottom:1px dotted currentColor}
+.hero-build a:hover{color:var(--accent)}
+.hero-build .hb-dirty{color:#d08a2a}
 .hero-book{display:flex; gap:8px; margin-top:14px; flex-wrap:wrap}
 .hero-book-btn{display:inline-flex; align-items:center; gap:7px; text-decoration:none;
   padding:8px 14px; border-radius:10px; font-size:13.5px; font-weight:600;
@@ -475,7 +485,7 @@ main{max-width:var(--maxw); margin:0 auto; padding:clamp(20px,4vw,44px) clamp(14
 .set.chapter{margin-bottom:44px}
 .set.chapter .set-head{margin-bottom:0; padding-left:18px; border-left:2px solid var(--accent)}
 .set.chapter .set-head .set-desc{color:var(--fg); font-size:calc(15.5px * var(--font-scale));
-  line-height:1.72; max-width:74ch}
+  line-height:1.72}
 .set.chapter .set-head .set-desc.sci{font-size:calc(14.5px * var(--font-scale))}
 
 .cards{display:flex; flex-direction:column; gap:26px}
@@ -931,6 +941,13 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 -2px 0 #f
     </label>
     <label class="menu-opt"><input type="checkbox" id="enlargeLabels"> Show labels on enlarge</label>
     <label class="menu-opt"><input type="checkbox" id="showGiant"> Show GIANTmicrobes plush</label>
+    <!-- Fullscreen is deliberately NOT part of the saved state: the Fullscreen API
+         only grants the request inside a user gesture, so a page that restored it
+         on load would be denied anyway. The checkbox mirrors the browser's actual
+         state via the fullscreenchange event instead, which also keeps it honest
+         when the user leaves fullscreen with Esc or F11. Hidden entirely where the
+         API is absent (notably iPhone Safari, which allows it only on <video>). -->
+    <label class="menu-opt" id="fsRow" hidden><input type="checkbox" id="fullscreen"> Fullscreen</label>
     <!-- The atlas icon used to live in the top bar and double as its own
          download link. The bar is now wordmark-only, so the download moved
          here, where it is findable but out of the way. -->
@@ -962,6 +979,10 @@ html[data-mode="light"] mark{background:#000; color:#fff; box-shadow:0 -2px 0 #f
     <div class="hero-text">
       <h1 id="heroTitle">An interactive <span class="em">microbe</span> atlas.</h1>
       <p id="heroSub">Scientifically verified, AI-rendered teaching images of the cells, pathogens and antibodies of the human body — in five styles, with switchable labels. Choose your audience, language and picture layout.</p>
+      <!-- Build stamp: version, commit and build time. Filled by updateHero()
+           from DATA.build (see microbe_version.py) — it is deliberately not
+           hardcoded, so it can never claim a version that was not shipped. -->
+      <div class="hero-build" id="heroBuild"></div>
       <div class="stat"><b id="statSets">0</b> <span id="heroStatA">sets ·</span> <b id="statMicrobes">0</b> <span id="heroStatB">subjects ·</span> <b>5</b> <span id="heroStatC">styles + real microscopy</span></div>
       <!-- The children's picture book (build_pdfbook.py). Its own element rather
            than part of #heroSub, because updateHero() writes that with
@@ -2517,6 +2538,11 @@ function applySearch(){
 // "your words matched nothing" from "your filters hid everything", since the
 // way out differs, and offer that way out right here.
 // a chapter hit in the results list is not a microbe, so it says what it is
+const BUILD_TXT={
+  version:{en:'version', de:'Version'},
+  built:{en:'built', de:'erstellt'},
+  dirty:{en:'uncommitted changes', de:'nicht committete \u00c4nderungen'},
+};
 const CHAPTER_TAG={en:'chapter', de:'Kapitel'};
 const CHAPTER_TAG_PL={en:'chapters', de:'Kapitel'};
 const EMPTY_TXT={
@@ -2614,6 +2640,7 @@ function syncToggles(){
   $('#modeBtn').textContent = state.mode==='dark'?'☾':'☀';
   $('#enlargeLabels').checked = state.enlargeLabels;
   $('#showGiant').checked = state.showGiant;
+  syncFs();
   $('#fTitle').checked = state.fTitle!==false;
   $('#fDesc').checked = !!state.fDesc;
   $('#fGiant').checked = !!state.fGiant;
@@ -2638,6 +2665,36 @@ $('#modeBtn').addEventListener('click',()=>{ state.mode=state.mode==='dark'?'lig
 $$('#themePanel .theme-opt').forEach(b=>b.addEventListener('click',()=>{ state.theme=b.dataset.theme; save(); syncToggles(); closePanels(); }));
 $('#enlargeLabels').addEventListener('change',e=>{ state.enlargeLabels=e.target.checked; save(); });
 $('#showGiant').addEventListener('change',e=>{ state.showGiant=e.target.checked; save(); rebuildBoxes(); });
+
+// ---- fullscreen -----------------------------------------------------------
+// Not persisted (see the markup comment): the API only honours a request made
+// inside a user gesture, so restoring it on load is impossible by design.
+const FS_OK = !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen);
+function fsElement(){ return document.fullscreenElement || document.webkitFullscreenElement || null; }
+function syncFs(){ const c=$('#fullscreen'); if(c) c.checked = !!fsElement(); }
+if(FS_OK){
+  $('#fsRow').hidden = false;
+  $('#fullscreen').addEventListener('change', async e=>{
+    // Never leave the box asserting something the browser did not do: a denied
+    // or unsupported request (iframe without allowfullscreen, user dismissal)
+    // rejects, and syncFs() puts the checkbox back where reality is.
+    try{
+      if(e.target.checked){
+        const el=document.documentElement;
+        await (el.requestFullscreen ? el.requestFullscreen({navigationUI:'hide'}) : el.webkitRequestFullscreen());
+      }else{
+        await (document.exitFullscreen ? document.exitFullscreen() : document.webkitExitFullscreen());
+      }
+    }catch(err){
+      toast(L({en:'Fullscreen was blocked by the browser.', de:'Vollbild wurde vom Browser blockiert.'}));
+    }
+    syncFs();
+  });
+  // Esc and F11 change fullscreen without touching our checkbox, so follow the
+  // browser rather than trusting our own last write.
+  document.addEventListener('fullscreenchange', syncFs);
+  document.addEventListener('webkitfullscreenchange', syncFs);
+}
 
 // search — 350ms debounce so results don't flicker while typing; once it fires,
 // growl the match count (only while there's an active query). Clearing the
@@ -2771,12 +2828,13 @@ $('#setPanel').addEventListener('click',e=>{
   r.dispatchEvent(new Event('input',{bubbles:true}));
 });
 document.addEventListener('click',e=>{ if(!e.target.closest('.panel') && !e.target.closest('[aria-controls]')) closePanels(); });
-// Scrolling the page away from a dropdown dismisses it. Scroll events inside
-// the panel's own list don't reach window, so the nav tree still scrolls fine.
-let lastScrollY=window.scrollY;
-window.addEventListener('scroll',()=>{
-  if(Math.abs(window.scrollY-lastScrollY)>12 && document.querySelector('.panel.open')) closePanels();
-  lastScrollY=window.scrollY;
+// A panel closes when you click or tap outside it (the listener above), and NOT
+// when the page merely scrolls. Scrolling used to dismiss it, which fought the
+// user on touch: flicking through the nav tree or reading behind an open panel
+// tore it away mid-gesture, and momentum scrolling kept re-triggering it. Losing
+// a panel should always be something you did on purpose.
+document.addEventListener('touchend',e=>{
+  if(!e.target.closest('.panel') && !e.target.closest('[aria-controls]')) closePanels();
 }, {passive:true});
 
 function updateHero(){
@@ -2790,6 +2848,24 @@ function updateHero(){
   view.href=pdf; view.title=h.bookTip; view.querySelector('span').textContent=h.book;
   dl.href=pdf; dl.setAttribute('download',pdf); dl.title=h.bookTip;
   dl.querySelector('span').textContent=h.bookDl;
+  renderBuild();
+}
+// Version / commit / build time. The sha links to the commit on GitHub so a bug
+// report can point at exactly the code that produced the page.
+function renderBuild(){
+  const el=$('#heroBuild'), b=DATA.build;
+  if(!el) return;
+  if(!b || !b.version){ el.textContent=''; return; }
+  const repo='https://github.com/blurayne/claude-experiments/commit/';
+  let h='<span class="hb-v">'+esc(L(BUILD_TXT.version))+' '+esc(b.version)+'</span>';
+  if(b.sha_short){
+    h+='<span class="hb-sep">\u00b7</span>'+
+       '<a href="'+repo+esc(b.sha)+'" target="_blank" rel="noopener" title="'+esc(b.sha)+'">'+esc(b.sha_short)+'</a>';
+  }
+  if(b.built) h+='<span class="hb-sep">\u00b7</span>'+esc(L(BUILD_TXT.built))+' '+esc(b.built);
+  // a build made from an edited tree is not the tagged release; say so
+  if(b.dirty) h+='<span class="hb-sep">\u00b7</span><span class="hb-dirty">+'+esc(L(BUILD_TXT.dirty))+'</span>';
+  el.innerHTML=h;
 }
 
 // ---- go ------------------------------------------------------------------
