@@ -155,6 +155,20 @@ a compromise someone chose deliberately — listed so a later pass can revisit t
       grass-blade character). Not re-rolled because the leg count was finally right.
 - [ ] `rotavirus` — no render shows countable eleven dsRNA segments; the label says
       eleven and the images approximate.
+- [ ] `t4-bacteriophage` — **coloring page not produced: blocked by the account's
+      MONTHLY SPENDING CAP, not by judgement.** Confirmed directly on both
+      `gemini-3-pro-image` and `gemini-2.5-flash-image` (HTTP 429 "Your project has
+      exceeded its monthly spending cap") — this is the project-wide monthly cap
+      SKILL.md warns about, not a per-model daily quota, so it blocks every Gemini
+      image model until a human raises it at https://ai.studio/spend. **Owner: the
+      user.** Zero image calls were spent on the coloring page; the full scenario,
+      prompt, speech lines and exact resume command are saved in
+      `renders/set/bacteriophages/t4-bacteriophage.coloring.prompt.json` so the step
+      can run unchanged once the cap is lifted. Separately, the `sem` style is
+      accepted with a recorded compromise: only 4 of 6 long tail fibres are clearly
+      resolvable as distinct kinked legs (2 read as foreshortened stubs); a
+      fix-attempt with explicit clock-position phrasing was queued but hit the same
+      spend cap before it could run. **Retry both when the cap is raised.**
 - [ ] `type-iia-fibre` — the coloring page does not bleed off any of the four
       edges; the character sits centered with a generous white margin on all
       sides. Two attempts (the second with much stronger "crop the body at two
@@ -228,6 +242,28 @@ a compromise someone chose deliberately — listed so a later pass can revisit t
       developmental forms are identical in both, so it illustrates the EB/RB cycle
       truthfully, and the species swap is disclosed in the caption the viewer shows —
       not only in the log. Recorded so nobody later assumes it is C. felis.
+- [x] `lentiviral-vector` — **no vector-specific micrograph exists.** Searched
+      Wikimedia Commons, CDC PHIL, NIAID/NIH Flickr and general web search; the only
+      vector-specific TEM figure found (in *Molecular Therapy*) is CC BY-NC-ND and
+      was excluded on licence grounds. Reference is CDC PHIL #10860, a public-domain
+      TEM of free (non-budding) mature **HIV-1** virions — disclosed explicitly in
+      the caption and log, same precedent as `chlamydia-felis`. A vector particle is
+      structurally indistinguishable from HIV-1 at TEM resolution, which is the
+      whole point of the pseudotype, so this is an honest substitution rather than a
+      gap to fix later.
+- [ ] `lentiviral-vector` — coloring page **not rendered**: the project hit its
+      Google API **monthly spending cap** (HTTP 429, confirmed by a direct curl
+      test against `gemini-3-pro-image`) right after the four style renders
+      finished. This blocks every Gemini model project-wide, not a per-model daily
+      quota, so no amount of retrying or escalating helps. The full scenario and
+      prompt are saved in `lentiviral-vector.coloring.prompt.json` for resumption
+      once a human raises the cap at https://ai.studio/spend. **Owner: user.**
+- [ ] `lentiviral-vector` — the 3d style's VSV-G spike coat is visibly less dense
+      than the sem/textbook/watercolor renders of the same subject (~30-40 spikes
+      on the visible hemisphere vs. a near-continuous coat elsewhere). Not
+      re-rolled because the do-NOT-draw risks that matter (icosahedral capsid,
+      double-stranded RNA, sparse HIV-style spikes) were all avoided and the
+      cross-style inconsistency is cosmetic, not a factual error.
 
 ### Fixed in this pass, recorded because they were invisible
 - [x] **The search box locked the browser tab.** `applySearch()` calls

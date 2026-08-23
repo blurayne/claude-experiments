@@ -188,6 +188,31 @@ SCALE = {
     # a mosquito actually carries, are only ~300 µm.
     'heartworm': (270_000, 200, 'mg'),
     'feline-immunodeficiency-virus': (0.11, 1, 'fg'),
+
+    # --- bacteriophages -----------------------------------------------------
+    # Tailed phages are recorded by TOTAL particle height (head + tail), which is
+    # what the renders show, not head diameter alone: T4's head is ~120 nm but the
+    # whole lander silhouette is ~200 nm, and the tail is the memorable half.
+    # Masses from published particle weights (~194 MDa for T4) converted at
+    # 1 Da = 1.66e-24 g.
+    't4-bacteriophage': (0.2, 0.32, 'fg'),
+    't7-bacteriophage': (0.06, 0.085, 'fg'),
+    # PhiX174 is tailless and tiny — among the smallest objects in the atlas,
+    # smaller than every virus here except hepatitis B.
+    'phix174': (0.027, 0.011, 'fg'),
+
+    # --- engineered life ----------------------------------------------------
+    # The vector is built on an HIV-1 particle, so it sits right beside `hiv`
+    # (0.13 um / 1.5 fg) by construction — a deliberate near-match, not a copy.
+    'lentiviral-vector': (0.12, 1.4, 'fg'),
+    # A T cell, so it belongs with the other lymphocytes rather than with viruses.
+    'car-t-cell': (10, 0.2, 'ng'),
+    # Route-dependent (goat mammary cell, silkworm cell or bacterium); the
+    # mammalian route is the best known, so a typical mammalian secretory cell.
+    'spider-silk-cell': (20, 3, 'ng'),
+    # JCVI-syn3A is a Mycoplasma derivative: no cell wall, ~400 nm, one of the
+    # smallest self-replicating cells known.
+    'synthetic-minimal-cell': (0.4, 0.02, 'pg'),
     'feline-leukaemia-virus': (0.1, 1, 'fg'),
     'chlamydia-felis': (0.3, 0.1, 'pg'),   # elementary body; reticulate bodies reach ~1 µm
     'rabies-virus': (0.18, 6, 'fg'),       # 180 nm long, 75 nm across — bullet-shaped
