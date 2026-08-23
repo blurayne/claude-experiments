@@ -28,6 +28,33 @@ together with the commit sha and the build time.
 
 ---
 
+## [1.2.0] — 2026-08-23
+
+**116 subjects live** · 123 catalogued · the muscle-cells set completes
+
+- **+** `1.2.0` — **Muscle cells**: Type I (slow-twitch), Type II (the fast-twitch
+  umbrella, drawn as a IIa+IIx bundle rather than a fourth near-duplicate), Type IIa
+  and Type IIx. Plus three new prose chapters — How the cell works, Cell types of the
+  human body, How muscle works — and a fourth, How humans engineer life.
+- Three verdicts in this set claimed things the pictures did not show and were
+  corrected in place rather than deleted: Type IIx's "continuous transverse
+  cross-striation" (all four styles had longitudinal stripes only, re-rendered), and
+  two coloring pages claiming to "run off all 4 edges" (measured: three edges and one).
+  All three were the brief's own wording echoed back as though verified — now the first
+  thing `SKILL.md` says to re-check.
+- Search froze the browser tab on the third keystroke: `applySearch()` and
+  `refreshBuilt()` called each other without a guard.
+- Sets now carry `kind: "set" | "chapter"` explicitly, so a prose chapter renders while
+  a set whose renders are missing stays hidden instead of showing broken tiles.
+- German uses **DNS/RNS**; `mRNA`/`tRNA`/`rRNA` and the `dna`/`rna` render keys unchanged.
+- 11 new plush links (56 total), each checked against the product photo; the nucleus is
+  labelled a keychain because that is what it is.
+- Two "See also" links pointed at a catalogue name rather than a live key and silently
+  rendered nothing; `build_viewer.py` now warns on dangling and one-directional links.
+- Picture book: unboxed images with corner labels, the three small images aligned to the
+  big one, plush captioned RIESENmikrobe / GIANTmicrobe.
+- The build stamp no longer claims "+uncommitted changes" on the deployed page.
+
 ## [1.1.0] — 2026-08-21
 
 **113 subjects live** · 116 catalogued · [`b26c6dde`](https://github.com/blurayne/claude-experiments/commit/b26c6dde2d16a36f4d04e4a765e11f6980e6b519)
