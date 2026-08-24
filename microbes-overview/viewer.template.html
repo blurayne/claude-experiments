@@ -962,6 +962,11 @@ html[data-mode] .sr-item:hover mark{color:inherit}
     </label>
     <label class="menu-opt"><input type="checkbox" id="enlargeLabels"> Show labels on enlarge</label>
     <label class="menu-opt"><input type="checkbox" id="showGiant"> Show GIANTmicrobes plush</label>
+    <!-- Off by default: in the enlargement view a swipe or an arrow key is far
+         more often an attempt to pan a zoomed micrograph than a request for the
+         next picture, and silently jumping to another subject loses the thing the
+         reader was looking at. Opt in if you want to page through. -->
+    <label class="menu-opt"><input type="checkbox" id="lbNav"> Swipe and arrow keys change picture</label>
     <!-- Fullscreen is deliberately NOT part of the saved state: the Fullscreen API
          only grants the request inside a user gesture, so a page that restored it
          on load would be denied anyway. The checkbox mirrors the browser's actual
@@ -1119,7 +1124,7 @@ function parseOpt(v){
 const LS='microbes-viewer-v1';
 const state = Object.assign({
   aud:'kids', lang:'en', theme:'petri', mode:'dark',
-  boxes:DEFAULT_BOXES.slice(), enlargeLabels:true, showGiant:true, search:'',
+  boxes:DEFAULT_BOXES.slice(), enlargeLabels:true, showGiant:true, lbNav:false, search:'',
   lbLabelMode:null, lbBw:null, lbSrc:null, ink:70, fontScale:100,
   fTitle:true, fDesc:false, fGiant:false, fColoring:false, fAudio:false
 }, load());
@@ -2074,7 +2079,7 @@ function showEntry(idx, doScroll){
   renderStage(e.m,e.opt);
   updateLbLabels();
   lbCount.textContent=(navIdx+1)+' / '+navList.length;
-  lbPrev.disabled=navIdx<=0; lbNext.disabled=navIdx>=navList.length-1;
+  syncLbNav();
   // crossing into a different microbe smoothly scrolls its card into view behind
   // the overlay, so closing lands the user in the right place.
   if(doScroll && e.m!==navMicrobe){
@@ -2131,7 +2136,21 @@ function openLightbox(m,opt,originEl){
   lb.classList.add('open');
   animateOpenFrom(lbOriginEl);
 }
-function navBy(d){ showEntry(navIdx+d, true); }
+// Paging between pictures is opt-in (Settings -> "Swipe and arrow keys change
+// picture"). Gate it inside navBy() rather than at each call site: there are four
+// ways in — the two arrow buttons, ArrowLeft/Right, and the touch swipe — and
+// guarding them separately is how one of them quietly stays enabled later.
+function navAllowed(){ return !!state.lbNav; }
+function navBy(d){ if(!navAllowed()) return; showEntry(navIdx+d, true); }
+// hide the arrows and the "3 / 7" counter when paging is off, so the UI does not
+// advertise an action that does nothing
+function syncLbNav(){
+  const on=navAllowed();
+  lbPrev.hidden=!on; lbNext.hidden=!on;
+  if(!on){ lbPrev.disabled=true; lbNext.disabled=true; }
+  else { lbPrev.disabled=navIdx<=0; lbNext.disabled=navIdx>=navList.length-1; }
+  lbCount.style.visibility = on ? '' : 'hidden';
+}
 // the real micrograph's ORIGINAL source image, shown standalone (no prev/next,
 // not part of the cycling sequence) — always a plain fade, no zoom origin.
 function openStandalone(url, title, styleLabel, note){
@@ -2679,6 +2698,7 @@ function syncToggles(){
   $('#modeBtn').textContent = state.mode==='dark'?'☾':'☀';
   $('#enlargeLabels').checked = state.enlargeLabels;
   $('#showGiant').checked = state.showGiant;
+  $('#lbNav').checked = !!state.lbNav;
   syncFs();
   $('#fTitle').checked = state.fTitle!==false;
   $('#fDesc').checked = !!state.fDesc;
@@ -2704,6 +2724,9 @@ $('#modeBtn').addEventListener('click',()=>{ state.mode=state.mode==='dark'?'lig
 $$('#themePanel .theme-opt').forEach(b=>b.addEventListener('click',()=>{ state.theme=b.dataset.theme; save(); syncToggles(); closePanels(); }));
 $('#enlargeLabels').addEventListener('change',e=>{ state.enlargeLabels=e.target.checked; save(); });
 $('#showGiant').addEventListener('change',e=>{ state.showGiant=e.target.checked; save(); rebuildBoxes(); });
+// re-run the enable/disable pass so the arrows appear/disappear immediately if the
+// lightbox happens to be open while the setting is flipped
+$('#lbNav').addEventListener('change',e=>{ state.lbNav=e.target.checked; save(); syncLbNav(); });
 
 // ---- fullscreen -----------------------------------------------------------
 // Not persisted (see the markup comment): the API only honours a request made

@@ -105,6 +105,66 @@ ROOT = Path(__file__).resolve().parent
 DATA_PATH = ROOT / "viewer-data.json"
 TMP_DIR = ROOT / ".tmp_build"          # local scratch, never /tmp (small tmpfs here)
 IMG_CACHE_DIR = TMP_DIR / "imgcache"
+FONT_CACHE_DIR = TMP_DIR / "fonts"
+
+# The book is for children, so it gets the viewer's "kidsbook" theme rather than
+# the neutral lab palette: Bangers for headings, Comic Neue for body, warm cream
+# paper and an amber accent. Fonts are fetched once and then INLINED as base64,
+# not linked: the page is rendered from a file:// URL, and a webfont that silently
+# fails to load would fall back to a system sans and change the whole book's feel
+# without erroring. Cached, so this is one fetch ever and the build stays offline
+# afterwards.
+KIDS_FONTS = {"Bangers": "Bangers", "Comic Neue": "Comic+Neue:wght@400;700"}
+
+
+def ensure_kids_fonts() -> str:
+    """Return @font-face CSS with the fonts inlined, or "" if they are unavailable.
+
+    Missing fonts are not fatal: the CSS below lists system fallbacks, so a build
+    with no network on first run still produces a correct book, just in a plainer
+    face. That is a better failure than aborting a 250-page render.
+    """
+    import base64, re as _re, urllib.request, hashlib
+    FONT_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    ua = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120 Safari/537.36"}
+    faces = []
+    for family, spec in KIDS_FONTS.items():
+        slug = family.replace(" ", "-")
+        cached = sorted(FONT_CACHE_DIR.glob(f"{slug}-*.woff2"))
+        blocks = []
+        if not cached:
+            try:
+                css = urllib.request.urlopen(urllib.request.Request(
+                    f"https://fonts.googleapis.com/css2?family={spec}&display=swap",
+                    headers=ua), timeout=30).read().decode()
+            except Exception:
+                continue
+            for m in _re.finditer(r"@font-face\s*{[^}]*}", css):
+                blk = m.group(0)
+                # keep only the latin subset; Google ships ~5 unicode-range variants
+                # per weight and we do not need Cyrillic or Vietnamese in this book
+                if "U+0000-00FF" not in blk:
+                    continue
+                u = _re.search(r"url\((https://[^)]+\.woff2)\)", blk)
+                w = _re.search(r"font-weight:\s*(\d+)", blk)
+                if not u:
+                    continue
+                try:
+                    data = urllib.request.urlopen(urllib.request.Request(u.group(1), headers=ua), timeout=30).read()
+                except Exception:
+                    continue
+                weight = w.group(1) if w else "400"
+                f = FONT_CACHE_DIR / f"{slug}-{weight}.woff2"
+                f.write_bytes(data)
+        for f in sorted(FONT_CACHE_DIR.glob(f"{slug}-*.woff2")):
+            weight = f.stem.rsplit("-", 1)[-1]
+            weight = weight if weight.isdigit() else "400"
+            b64 = base64.b64encode(f.read_bytes()).decode()
+            blocks.append(
+                f"@font-face{{font-family:'{family}';font-style:normal;font-weight:{weight};"
+                f"font-display:block;src:url(data:font/woff2;base64,{b64}) format('woff2');}}")
+        faces.extend(blocks)
+    return "\n".join(faces)
 
 # Target longest-edge pixel widths for the print-sized JPEG cache, chosen per grid
 # slot at roughly 200 dpi for the mm box that slot occupies on the A4 page (see the
@@ -154,7 +214,8 @@ ET.register_namespace("", SVGNS)
 # is ever needed here (the PDF is single-language), unlike the JS which builds
 # all three (en/la/de) and toggles visibility.
 # ---------------------------------------------------------------------------
-LAB_FS = 36  # bumped from the on-screen 26: the SVG's user units track the source
+LAB_FS = 25  # 30% down from 36, on request. Still above the on-screen 26 because
+# the SVG's user units track the source
 # image's native pixel size (1080x1080), not print mm, so a font-size tuned to look
 # right on a browser screen renders as unreadable specks once printed into even a
 # fairly large cell (a 26-unit label in a 1080-unit-wide image is only ~2.4% of the
@@ -260,11 +321,20 @@ def estimate_text_lines(text: str, width_mm: float, fs_pt: float) -> int:
     return lines
 
 
+# The description now sits on a translucent card, whose padding and margin are real
+# vertical space the grid can no longer have. Leaving this out overflowed 2 entries
+# in EN and 4 in DE onto an extra page each — the card's own 5mm top + 5mm bottom
+# padding plus its margin, and the card also narrows the usable text width by its
+# horizontal padding, costing a line on the longest descriptions.
+DESC_CARD_V_MM = 12.0        # 5mm top + 5mm bottom padding + 1mm margin + rounding
+DESC_CARD_H_MM = 12.0        # 6mm each side
+
+
 def estimate_desc_height_mm(text: str, has_plush: bool) -> float:
-    width = DESC_WIDTH_MM - (DESC_PLUSH_NARROWING_MM if has_plush else 0.0)
+    width = DESC_WIDTH_MM - DESC_CARD_H_MM - (DESC_PLUSH_NARROWING_MM if has_plush else 0.0)
     width *= DESC_WIDTH_FUDGE
     lines = estimate_text_lines(text, width, DESC_FONT_PT)
-    return lines * DESC_LINE_H_MM
+    return lines * DESC_LINE_H_MM + DESC_CARD_V_MM
 
 
 def compute_grid_geometry(desc_text: str, has_plush: bool, has_banner: bool) -> dict:
@@ -462,13 +532,15 @@ def build_coloring_page_svg(svg_path: Path, lang: str, kids_name: dict) -> str:
 # ---------------------------------------------------------------------------
 UI = {
     "en": {
-        "real": "Real photo", "sem": "Electron microscope", "3d": "3D model",
-        "textbook": "Labelled diagram", "no_pic": "no picture yet",
+        "real": "Real photo", "sem": "SEM", "watercolor": "Watercolor",
+        # the labelled diagram carries its own labels — a corner caption on top of
+        # them is one more thing to read on the busiest cell of the page
+        "threed": "", "no_pic": "no picture yet",
         "plush": "GIANTmicrobe", "keychain": "GIANTmicrobe keychain",
     },
     "de": {
-        "real": "Echtes Foto", "sem": "Elektronenmikroskop", "3d": "3D-Modell",
-        "textbook": "Beschriftetes Bild", "no_pic": "noch kein Bild",
+        "real": "Echtes Foto", "sem": "SEM", "watercolor": "Watercolor",
+        "threed": "", "no_pic": "noch kein Bild",
         "plush": "RIESENmikrobe", "keychain": "RIESENmikrobe Schlüsselanhänger",
     },
 }
@@ -486,36 +558,91 @@ CSS = """
 @page { size: A4; margin: 0; }
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
+/* Kids theme, mirroring the viewer's "kidsbook": Bangers for headings, Comic Neue
+   for body, warm cream paper, amber accent. Bumped a little in size and leading
+   from the lab-neutral original — Comic Neue runs small, and this is a book meant
+   to be read by (or to) a child. */
 body {
-  font-family: "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
-  color: #1c2321; font-size: 9.6pt; line-height: 1.42;
+  font-family: "Comic Neue", "Comic Sans MS", "Segoe UI", system-ui, sans-serif;
+  color: #2b2213; font-size: 10.4pt; line-height: 1.5;
+  background: #fffdf5;
 }
-.title-font { font-family: "Baloo 2", "Comic Sans MS", system-ui, sans-serif; }
+.title-font { font-family: "Bangers", "Comic Sans MS", system-ui, sans-serif; }
+h1, h2, .section-page h1, .section-banner h2, .entry-page h1 {
+  font-family: "Bangers", "Comic Sans MS", system-ui, sans-serif;
+  font-weight: 400; letter-spacing: .02em;
+}
 .page {
   width: 210mm; break-after: page; page-break-after: always;
 }
 .page:last-child { break-after: auto; page-break-after: auto; }
+/* Cover: full-bleed A4, artwork at full page width, microbe pattern behind the
+   bands it leaves above and below. padding:0 overrides the text pages' margin —
+   a cover with a white gutter is not a cover. */
+.title-page {
+  height: 297mm; padding: 0; margin: 0; overflow: hidden;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background-color: #0d0f14; background-size: 46mm 46mm; background-repeat: repeat;
+}
+.title-page .cover { width: 210mm; height: auto; display: block; }
+/* near-A4 artwork: fill the page and let the few percent of overflow crop */
+.title-page.bleed { padding: 0; background: none; }
+.title-page.bleed .cover {
+  width: 210mm; height: 297mm; object-fit: cover; object-position: center;
+}
+.title-page .title-strip {
+  width: 210mm; text-align: center; padding: 5mm 12mm 7mm;
+  background: rgba(255,253,245,.93);
+}
+.title-page .t-sub {
+  font-family: "Bangers","Comic Sans MS",system-ui,sans-serif;
+  font-size: 19pt; color: #b4770a; margin: 0 0 1.5mm; letter-spacing: .02em;
+}
+.title-page .t-note { font-size: 9.5pt; color: #6b5a33; margin: 0; font-style: italic; }
+/* An opening illustration for a set, under its intro paragraph. */
+.set-illo { margin: 8mm 0 0; break-inside: avoid; }
+.set-illo img { width: 100%; height: auto; display: block; border-radius: 2mm; }
+.set-illo figcaption {
+  font-size: 8.5pt; color: #6b5a33; font-style: italic; margin-top: 2mm; text-align: center;
+}
+/* Every text page gets the organic paper background. NOT the coloring pages —
+   those are printed and coloured in, so anything behind the line art fights the
+   crayon and wastes ink — and not the cover, which is its own artwork. */
 .page:not(.coloring-page) { padding: 15mm 13mm; min-height: 297mm; }
+.page:not(.coloring-page):not(.title-page) {
+  background-image: var(--page-bg);
+  background-size: cover; background-position: center; background-repeat: no-repeat;
+}
+/* The description sits on a translucent white card so the prose stays readable
+   over the busier corners of that background, without hiding it. */
+.desc {
+  background: rgba(255,255,255,.78);
+  border-radius: 3mm; padding: 5mm 6mm; margin-top: 1mm;
+}
 
 /* ---- section pages ---- */
 .section-page {
-  border: 2.5mm solid #1f8a70; border-radius: 6mm; padding: 16mm; margin-top: 30mm;
+  border: 2.5mm solid #f0b429; border-radius: 6mm; padding: 14mm; margin-top: 24mm;
+  background: #fffdf5;
 }
-.section-page h1 { font-size: 30pt; margin: 0 0 4mm; color: #146a56; }
-.section-page .subtitle { font-size: 13pt; font-style: italic; color: #3a5148; margin: 0 0 8mm; }
+/* A set that carries an opening illustration needs the room, so it starts higher
+   up the page and drops the deep top margin a text-only section can afford. */
+.section-page.has-illo { margin-top: 10mm; padding: 12mm; }
+.section-page h1 { font-size: 34pt; margin: 0 0 4mm; color: #b4770a; }
+.section-page .subtitle { font-size: 13pt; font-style: italic; color: #6b5a33; margin: 0 0 8mm; }
 .section-page p { font-size: 12pt; line-height: 1.55; margin: 0; }
 
 /* ---- inline section banner (prepended to first entry of a short section) ---- */
 .section-banner {
-  background: #eaf6f1; border: 1mm solid #1f8a70; border-radius: 3mm;
+  background: #fff6dd; border: 1mm solid #f0b429; border-radius: 3mm;
   padding: 4mm 5mm; margin-bottom: 5mm;
 }
-.section-banner h2 { font-size: 15pt; margin: 0 0 1mm; color: #146a56; }
-.section-banner .subtitle { font-size: 9.5pt; font-style: italic; color: #3a5148; margin: 0 0 2mm; }
+.section-banner h2 { font-size: 18pt; margin: 0 0 1mm; color: #b4770a; }
+.section-banner .subtitle { font-size: 9.5pt; font-style: italic; color: #6b5a33; margin: 0 0 2mm; }
 .section-banner p { font-size: 8.6pt; margin: 0; line-height: 1.35; }
 
 /* ---- entry page ---- */
-.entry-page h1 { font-size: 20pt; margin: 0 0 4mm; color: #146a56; }
+.entry-page h1 { font-size: 24pt; margin: 0 0 4mm; color: #b4770a; }
 .grid {
   display: grid;
   /* Left column: REAL/SEM/3D stacked 3-high, square cells. Right column: TEXTBOOK
@@ -534,7 +661,7 @@ body {
      substituted in is no longer a single fixed magic constant. break-inside:avoid
      keeps the whole grid from ever being split across a page boundary (the other
      scenario that can corrupt a fragmented CSS Grid in print). */
-  grid-template-areas: "real text" "sem text" "threed text";
+  grid-template-areas: "real text" "sem text" "threed text";  /* 3rd row now holds watercolor */
   gap: 3mm;
   margin-bottom: 5mm;
   break-inside: avoid;
@@ -542,7 +669,8 @@ body {
 .cell.cell-real     { grid-area: real; }
 .cell.cell-sem      { grid-area: sem; }
 .cell.cell-3d       { grid-area: threed; }
-.cell.cell-textbook { grid-area: text; }
+.cell.cell-threed { grid-area: text; }
+.cell.cell-watercolor { grid-area: threed; }
 /* No frame, no tinted panel: the pictures sit directly on the page and each one
    carries its own corner label instead. Boxing them made four bordered panels
    compete with the artwork, and the caption band ate vertical space the image
@@ -580,7 +708,7 @@ body {
   padding: 0.9mm 1.8mm;
   border-top-left-radius: 1.2mm;
 }
-.cell .ph { font-size: 8pt; color: #8a9a94; text-align: center; padding: 2mm; }
+.cell .ph { font-size: 8pt; color: #a89a78; text-align: center; padding: 2mm; }
 .desc p { margin: 0; text-align: justify; hyphens: auto; }
 .plush {
   float: right; width: 32mm; margin: 0 0 3mm 4mm; text-align: center;
@@ -589,7 +717,7 @@ body {
    the vendor's brand rather than a joke about the toy — it says what the picture
    is, which is the same job the corner labels do on the grid. */
 .plush img { width: 100%; height: auto; }
-.plush .cap { font-size: 6.6pt; color: #4b5f58; margin-top: 1mm;
+.plush .cap { font-size: 6.6pt; color: #6b5a33; margin-top: 1mm;
   letter-spacing: .03em; text-transform: uppercase; }
 
 /* ---- coloring page (full-bleed, no padding/margin) ---- */
@@ -603,7 +731,7 @@ def esc(s: str) -> str:
 
 
 def grid_cell(kind: str, cap: str, img_rel: str | None, lab: dict | None, lang: str, no_pic: str) -> str:
-    if kind == "textbook" and img_rel and lab:
+    if kind == "threed" and img_rel and lab:
         inner = overlay_svg_markup(lab, img_rel, lang)
     elif img_rel:
         inner = f'<img src="{html.escape(img_rel, quote=True)}" loading="eager">'
@@ -611,8 +739,11 @@ def grid_cell(kind: str, cap: str, img_rel: str | None, lab: dict | None, lang: 
         inner = f'<div class="ph">{esc(no_pic)}</div>'
     # The label lives inside .imgfit so it anchors to the picture's own corner.
     # A missing picture gets no label — there is nothing to caption.
-    if img_rel:
+    if img_rel and cap:
         body = f'<div class="imgfit">{inner}<span class="cap">{esc(cap)}</span></div>'
+    elif img_rel:
+        # cap deliberately blank (the labelled diagram) — no chip, not an empty one
+        body = f'<div class="imgfit">{inner}</div>'
     else:
         body = inner
     return f'<div class="cell cell-{kind}"><div class="imgwrap">{body}</div></div>'
@@ -634,9 +765,14 @@ def render_entry_page(set_: dict, m: dict, lang: str, banner_html: str, missing:
     cells = (
         grid_cell("real", u["real"], shrink_image(img.get("reference"), IMG_W_NARROW), None, lang, u["no_pic"])
         + grid_cell("sem", u["sem"], shrink_image(img.get("sem"), IMG_W_NARROW), None, lang, u["no_pic"])
-        + grid_cell("3d", u["3d"], shrink_image(img.get("3d"), IMG_W_NARROW), None, lang, u["no_pic"])
-        + grid_cell("textbook", u["textbook"], shrink_image(img.get("textbook"), IMG_W_TEXTBOOK),
-                    lab.get("textbook"), lang, u["no_pic"])
+        + grid_cell("watercolor", u["watercolor"], shrink_image(img.get("watercolor"), IMG_W_NARROW),
+                    None, lang, u["no_pic"])
+        # The wide cell carries the 3d render with its label overlay. All 122
+        # subjects have `lab["3d"]`, so this is not a partial swap — checked before
+        # changing it, since a missing geometry would silently drop the labels and
+        # leave a big unlabelled picture that still looks plausible.
+        + grid_cell("threed", u["threed"], shrink_image(img.get("3d"), IMG_W_TEXTBOOK),
+                    lab.get("3d"), lang, u["no_pic"])
     )
 
     plush = ""
@@ -684,15 +820,135 @@ def render_coloring_page(set_: dict, m: dict, lang: str, missing: list[str]) -> 
     return f'<div class="page coloring-page">{svg_markup}</div>'
 
 
+BOOK_ASSETS = ROOT / "book-assets"
+
+# A set may open with a full-width illustration above its intro. Keyed by set id so
+# adding one later is a single line and never touches the layout code.
+SET_ILLUSTRATION = {
+    "organelles": ("organelles-diagram.png", {
+        "en": "Everything inside one cell, with all its parts named.",
+        "de": "Alles, was in einer Zelle steckt — mit allen Teilen benannt.",
+    }),
+}
+
+TITLE_TXT = {
+    "en": {"sub": "A picture book of the very small",
+           "note": "Every subject over two pages, with its own colouring page."},
+    "de": {"sub": "Ein Bilderbuch vom sehr Kleinen",
+           "note": "Jedes Thema auf zwei Seiten, mit eigenem Ausmalbild."},
+}
+
+
+A4_ASPECT = 210 / 297           # 0.707
+COVER_BLEED_TOLERANCE = 0.12    # within 12% of A4 -> crop to full bleed
+
+
+def _image_size(path: Path) -> tuple[int, int]:
+    """(width, height) for a cover, whatever format it arrived in.
+
+    Covers get handed over as PNG or JPEG depending on where they were made, so
+    this reads the PNG IHDR directly (cheap, no dependency) and otherwise asks
+    ffprobe, which is already required by shrink_image(). Guessing the format from
+    the extension would break the first time a .png is actually a JPEG.
+    """
+    import struct
+    with open(path, "rb") as f:
+        head = f.read(26)
+    if head[:8] == b"\x89PNG\r\n\x1a\n":
+        return struct.unpack(">II", head[16:24])
+    out = subprocess.run(
+        ["ffprobe", "-v", "error", "-select_streams", "v:0",
+         "-show_entries", "stream=width,height", "-of", "csv=p=0:s=x", str(path)],
+        capture_output=True, text=True, timeout=20)
+    w, h = out.stdout.strip().split("x")[:2]
+    return int(w), int(h)
+
+
+def page_bg_style() -> str:
+    """`--page-bg` for the body, or empty when the asset is absent.
+
+    Declared once on <body> and inherited, rather than per page: Chromium embeds a
+    referenced image once and reuses the object, but repeating the url() in 250
+    rules is 250 chances for it to decide otherwise, and the file is already 23 MB.
+    An empty value makes background-image resolve to nothing, so a missing asset
+    degrades to plain paper instead of erroring.
+    """
+    src = shrink_image("book-assets/page-background.jpg", 1100)
+    # SINGLE quotes inside url(): this lands in a double-quoted style="..." HTML
+    # attribute, so a double quote here closes the attribute early and the whole
+    # declaration is silently dropped — the page renders plain and nothing errors.
+    return f"--page-bg:url('{html.escape(src, quote=True)}')" if src else ""
+
+
+def render_title_page(lang: str) -> str:
+    """A4 cover, fitted to whatever aspect the artwork happens to have.
+
+    Covers are hand-made per language and do not arrive at A4. Rather than pick one
+    behaviour and let the other language look wrong, measure it:
+
+    * close to A4 (within COVER_BLEED_TOLERANCE) -> full bleed, cropping the few
+      percent that overflows. The German cover is 0.746 against A4's 0.707, so it
+      loses ~5% of its height and nothing that matters.
+    * anything squarer -> full page *width*, with the microbe pattern filling the
+      bands above and below. Forcing the square English cover to bleed would crop
+      ~27% of its width, straight through "THE" and "TOWN" in the title.
+
+    Falls back to the shared cover when a language has none of its own.
+    """
+    src = None
+    candidates = [f"book-assets/cover-title-{lang}{e}" for e in (".jpg", ".jpeg", ".png")]
+    candidates += [f"book-assets/cover-title{e}" for e in (".jpg", ".jpeg", ".png")]
+    for cand in candidates:
+        if (ROOT / cand).is_file():
+            src = cand
+            break
+    if not src:
+        return ""
+    try:
+        w, h = _image_size(ROOT / src)
+        aspect = w / h
+    except Exception:
+        aspect = A4_ASPECT
+    full_bleed = abs(aspect - A4_ASPECT) / A4_ASPECT <= COVER_BLEED_TOLERANCE
+    cover = shrink_image(src, 1400)
+    pattern = shrink_image("book-assets/pattern-microbes.png", 900)
+    if not cover:
+        return ""
+    if full_bleed:
+        return (
+            f'<div class="page title-page bleed">'
+            f'<img class="cover" src="{html.escape(cover, quote=True)}">'
+            f'</div>'
+        )
+    tx = TITLE_TXT.get(lang, TITLE_TXT["en"])
+    pat = f'background-image:url("{html.escape(pattern, quote=True)}");' if pattern else ""
+    return (
+        f'<div class="page title-page" style=\'{pat}\'>'
+        f'<img class="cover" src="{html.escape(cover, quote=True)}">'
+        f'<div class="title-strip"><p class="t-sub">{esc(tx["sub"])}</p>'
+        f'<p class="t-note">{esc(tx["note"])}</p></div>'
+        f'</div>'
+    )
+
+
 def render_section_page(set_: dict, lang: str) -> str:
     title = set_["title"].get(lang, "")
     subtitle = set_["subtitle"].get(lang, "")
     intro = set_["desc"]["kids"].get(lang, "")
+    illo = ""
+    spec = SET_ILLUSTRATION.get(set_["id"])
+    if spec:
+        fn, caps = spec
+        src = shrink_image(f"book-assets/{fn}", 1500)
+        if src:
+            illo = (f'<figure class="set-illo"><img src="{html.escape(src, quote=True)}">'
+                    f'<figcaption>{esc(caps.get(lang, caps.get("en","")))}</figcaption></figure>')
     return (
-        f'<div class="page"><div class="section-page">'
+        f'<div class="page"><div class="section-page{" has-illo" if illo else ""}">'
         f'<h1 class="title-font">{esc(title)}</h1>'
         f'<p class="subtitle">{esc(subtitle)}</p>'
         f'<p>{esc(intro)}</p>'
+        f'{illo}'
         f'</div></div>'
     )
 
@@ -711,6 +967,11 @@ def render_section_banner(set_: dict, lang: str) -> str:
 
 
 def section_needs_own_page(set_: dict, lang: str) -> bool:
+    # An illustration always earns its own page: the inline banner is a few
+    # centimetres tall and sits above an entry's own title and image grid, so a
+    # full-width diagram cannot fit there without pushing that entry off the page.
+    if set_["id"] in SET_ILLUSTRATION:
+        return True
     subtitle = set_["subtitle"].get(lang, "")
     intro = set_["desc"]["kids"].get(lang, "")
     return len(subtitle) + len(intro) > SECTION_PAGE_THRESHOLD_CHARS
@@ -722,6 +983,15 @@ def build_book(sets: list[dict], lang: str) -> tuple[str, int, list[str], list[s
     missing: list[str] = []
     subjects: list[str] = []
     expected = 0
+
+    # cover first; it counts toward the expected page total or the overflow check
+    # would report every book as one page long
+    cover = render_title_page(lang)
+    if cover:
+        pages.append(cover)
+        expected += 1
+    else:
+        missing.append("title page: book-assets/cover-title.png not found")
 
     for set_ in sets:
         if set_.get("kind") == "chapter":
@@ -757,7 +1027,8 @@ def build_book(sets: list[dict], lang: str) -> tuple[str, int, list[str], list[s
         f'<html lang="{lang}"><head><meta charset="utf-8">'
         f'<base href="file://{ROOT}/">'
         f"<title>Microbes picture book ({lang})</title>"
-        f"<style>{CSS}</style></head><body>{body}</body></html>"
+        f"<style>{ensure_kids_fonts()}\n{CSS}</style></head>"
+        f'<body style="{page_bg_style()}">{body}</body></html>'
     )
     return doc, expected, subjects, missing
 

@@ -97,13 +97,52 @@ def balance(key=None) -> dict:
             "remaining": s["character_limit"] - s["character_count"]}
 
 
+def performance_text(base: Path, plain: str) -> tuple[str, bool]:
+    """Prefer a hand-written `<base>.tagged.txt` over the catalogue prose.
+
+    v3 responds to inline performance directions ([excited], [whispers], [sighs],
+    [curious]). Those belong to the *narration*, not to the catalogue: the same
+    description is read on screen by people who never press play, and by the other
+    language and the other two audience registers. Keeping them in a sidecar next
+    to the mp3 means the page text stays clean, the tags are diffable on their own,
+    and re-running without the sidecar reverts to plain narration. The tags are
+    stripped back out of the word timings by chars_to_words().
+    """
+    f = base.parent / (base.name + ".tagged.txt")
+    if f.is_file():
+        s = f.read_text(encoding="utf-8").strip()
+        if s:
+            return s, True
+    return plain, False
+
+
 def chars_to_words(text: str, chars: list[str], starts: list[float], ends: list[float]) -> list[dict]:
     """Collapse ElevenLabs' per-CHARACTER alignment into per-WORD spans. A word
     is a maximal run of non-whitespace characters; its start/end is the
-    start of its first char / end of its last char."""
+    start of its first char / end of its last char.
+
+    v3 audio tags -- [excited], [whispers], [sighs] -- are performance directions,
+    not speech, but they ARE part of the text we send, so the alignment contains
+    them like any other characters. They must not survive into the word list: the
+    viewer builds the *displayed* prose from these words whenever narration exists
+    (see proseHTML in viewer.template.html), so a leaked tag is not a silent
+    cosmetic issue, it prints "[excited]" in the middle of the paragraph. Bracketed
+    spans are therefore skipped here, which also keeps the surrounding words'
+    timings honest -- the tag's own duration simply belongs to no word.
+    """
     words = []
     cur_chars, cur_start = [], None
+    in_tag = False
     for ch, s, e in zip(chars, starts, ends):
+        if ch == "[":
+            in_tag = True
+        if in_tag:
+            if ch == "]":
+                in_tag = False
+                if cur_chars:   # flush anything pending before the tag
+                    words.append({"w": "".join(cur_chars), "s": round(cur_start, 3), "e": round(prev_end, 3)})
+                    cur_chars, cur_start = [], None
+            continue
         if ch.strip() == "":
             if cur_chars:
                 words.append({"w": "".join(cur_chars), "s": round(cur_start, 3), "e": round(prev_end, 3)})
@@ -177,6 +216,7 @@ def main():
                 base = HERE / "renders" / "set" / folder / "audio" / f"_set-intro.kids-{lang}"
                 mp3_path = base.parent / (base.name + ".mp3")
                 json_path = base.parent / (base.name + ".json")
+                text, tagged = performance_text(base, text)
                 jobs.append((s["id"], "_set-intro", lang, text, mp3_path, json_path))
         for m in s["microbes"]:
             if a.microbe and m["key"] != a.microbe:
@@ -191,6 +231,7 @@ def main():
                 # append the extension via string concat instead.
                 mp3_path = base.parent / (base.name + ".mp3")
                 json_path = base.parent / (base.name + ".json")
+                text, tagged = performance_text(base, text)
                 jobs.append((s["id"], m["key"], lang, text, mp3_path, json_path))
 
     total_chars = sum(len(j[3]) for j in jobs)
