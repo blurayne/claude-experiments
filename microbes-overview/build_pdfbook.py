@@ -532,14 +532,17 @@ def build_coloring_page_svg(svg_path: Path, lang: str, kids_name: dict) -> str:
 # ---------------------------------------------------------------------------
 UI = {
     "en": {
-        "real": "Real photo", "sem": "SEM", "watercolor": "Watercolor",
+        # No corner captions on the pictures at all: the styles read for themselves
+        # in a children's book, and four chips competed with the artwork. An empty
+        # string emits no chip (see grid_cell), not an empty white box.
+        "real": "", "sem": "", "watercolor": "",
         # the labelled diagram carries its own labels — a corner caption on top of
         # them is one more thing to read on the busiest cell of the page
         "threed": "", "no_pic": "no picture yet",
         "plush": "GIANTmicrobe", "keychain": "GIANTmicrobe keychain",
     },
     "de": {
-        "real": "Echtes Foto", "sem": "SEM", "watercolor": "Watercolor",
+        "real": "", "sem": "", "watercolor": "",
         "threed": "", "no_pic": "noch kein Bild",
         "plush": "RIESENmikrobe", "keychain": "RIESENmikrobe Schlüsselanhänger",
     },
