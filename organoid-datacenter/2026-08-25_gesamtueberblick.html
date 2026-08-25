@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rechnen auf lebendem Hirngewebe: der Gesamtüberblick</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080b11; --bg-2:#0d1219; --bg-3:#121a24; --panel:#0f151e;
+  --line:#1e2a38; --line-2:#2a3a4d;
+  --fg:#dce6f0; --fg-2:#93a4b8; --fg-3:#5f7186;
+  --teal:#3fd8c4; --teal-dim:#1b6f66; --amber:#f0a63c; --amber-dim:#7a5219;
+  --magenta:#d95d9a; --violet:#8b7ff0; --red:#e05c62; --green:#4fc98a;
+  --grid:rgba(63,216,196,.055); --shadow:rgba(0,0,0,.5);
+}
+[data-theme="light"]{
+  --bg:#f4f6f8; --bg-2:#eaeef2; --bg-3:#e0e6ec; --panel:#ffffff;
+  --line:#d3dce4; --line-2:#b9c6d2;
+  --fg:#141c26; --fg-2:#42566b; --fg-3:#6d8298;
+  --teal:#0d8478; --teal-dim:#8fd6cd; --amber:#a86a10; --amber-dim:#e8cfa4;
+  --magenta:#a8306a; --violet:#5647c4; --red:#b3383e; --green:#207d54;
+  --grid:rgba(13,132,120,.06); --shadow:rgba(20,40,60,.12);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--bg); color:var(--fg);
+  font-family:'Space Grotesk',ui-sans-serif,system-ui,sans-serif;
+  font-size:17px; line-height:1.65;
+  background-image:
+    linear-gradient(var(--grid) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:44px 44px;
+  transition:background-color .25s,color .25s;
+}
+.wrap{max-width:960px;margin:0 auto;padding:0 24px 120px}
+code,.mono,td.num{font-family:'IBM Plex Mono',ui-monospace,monospace}
+
+/* ---------- header ---------- */
+header{padding:72px 0 40px;position:relative}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--teal);margin-bottom:18px}
+h1{font-size:clamp(30px,5.2vw,50px);line-height:1.08;margin:0 0 18px;font-weight:700;letter-spacing:-.02em}
+.dek{font-size:19px;color:var(--fg-2);max-width:62ch;margin:0 0 26px}
+.meta{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--fg-3);
+  display:flex;flex-wrap:wrap;gap:8px 20px;padding-top:18px;border-top:1px solid var(--line)}
+.meta a{color:var(--fg-2)}
+
+#themeToggle{
+  position:fixed;top:18px;right:18px;z-index:50;
+  background:var(--panel);color:var(--fg-2);border:1px solid var(--line-2);
+  border-radius:999px;padding:8px 15px;cursor:pointer;
+  font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.09em;
+  text-transform:uppercase;box-shadow:0 3px 14px var(--shadow);transition:.2s;
+}
+#themeToggle:hover{color:var(--teal);border-color:var(--teal-dim)}
+
+/* ---------- structure ---------- */
+h2{font-size:27px;margin:64px 0 6px;letter-spacing:-.015em;line-height:1.2}
+h2 .num{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--teal);
+  display:block;letter-spacing:.14em;margin-bottom:8px;font-weight:500}
+h3{font-size:19.5px;margin:38px 0 10px;color:var(--fg)}
+h4{font-size:15px;margin:26px 0 6px;font-family:'IBM Plex Mono',monospace;
+  letter-spacing:.05em;color:var(--fg-2);text-transform:uppercase}
+p{margin:0 0 17px}
+a{color:var(--teal);text-decoration:none;border-bottom:1px solid var(--teal-dim)}
+a:hover{border-bottom-color:var(--teal)}
+strong{font-weight:600;color:var(--fg)}
+hr{border:0;border-top:1px solid var(--line);margin:56px 0}
+.lede{font-size:19px;color:var(--fg-2)}
+
+/* ---------- chips ---------- */
+.chip{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:11px;
+  font-weight:600;letter-spacing:.07em;padding:2px 7px;border-radius:4px;
+  vertical-align:.08em;white-space:nowrap;border:1px solid}
+.g-A{color:var(--teal);border-color:var(--teal-dim);background:color-mix(in srgb,var(--teal) 11%,transparent)}
+.g-B{color:var(--violet);border-color:var(--violet);background:color-mix(in srgb,var(--violet) 11%,transparent)}
+.g-C{color:var(--amber);border-color:var(--amber-dim);background:color-mix(in srgb,var(--amber) 11%,transparent)}
+.g-D{color:var(--magenta);border-color:var(--magenta);background:color-mix(in srgb,var(--magenta) 11%,transparent)}
+.v-ok{color:var(--green);border-color:var(--green);background:color-mix(in srgb,var(--green) 12%,transparent)}
+.v-part{color:var(--amber);border-color:var(--amber-dim);background:color-mix(in srgb,var(--amber) 12%,transparent)}
+.v-no{color:var(--red);border-color:var(--red);background:color-mix(in srgb,var(--red) 12%,transparent)}
+.v-na{color:var(--fg-3);border-color:var(--line-2);background:transparent}
+
+.legend{display:flex;flex-wrap:wrap;gap:14px;padding:16px 18px;background:var(--panel);
+  border:1px solid var(--line);border-radius:10px;margin:22px 0 0;font-size:14px;color:var(--fg-2)}
+.legend div{display:flex;align-items:center;gap:8px}
+
+/* ---------- verdict cards ---------- */
+.verdicts{display:grid;gap:12px;margin:30px 0 0}
+.vc{background:var(--panel);border:1px solid var(--line);border-radius:11px;
+  padding:17px 20px;display:grid;grid-template-columns:52px 1fr auto;gap:6px 16px;align-items:start}
+.vc:hover{border-color:var(--line-2)}
+.vc .h{font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600;color:var(--teal)}
+.vc .t{font-weight:500;font-size:16.5px}
+.vc .c{grid-column:2/-1;color:var(--fg-2);font-size:14.5px;line-height:1.55}
+@media(max-width:640px){.vc{grid-template-columns:44px 1fr}.vc>span.vchip{grid-column:2}}
+
+/* ---------- duel panel ---------- */
+.duel{display:grid;grid-template-columns:1fr 1fr;gap:0;margin:26px 0;
+  border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel)}
+.duel>div{padding:20px 22px}
+.duel>div:first-child{border-right:1px solid var(--line)}
+.duel h5{margin:0 0 4px;font-size:15.5px}
+.duel .who{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--fg-3);
+  letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px}
+.duel blockquote{margin:0 0 13px;padding-left:13px;border-left:2px solid var(--line-2);
+  font-size:14.5px;color:var(--fg-2);line-height:1.55;font-style:normal}
+.pruef{margin-top:14px;padding-top:13px;border-top:1px dashed var(--line-2);
+  font-size:13.5px;color:var(--fg-2)}
+.pruef b{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--teal);display:block;margin-bottom:4px}
+@media(max-width:720px){.duel{grid-template-columns:1fr}
+  .duel>div:first-child{border-right:0;border-bottom:1px solid var(--line)}}
+
+/* ---------- callout ---------- */
+.callout{background:var(--bg-2);border:1px solid var(--line);border-left:3px solid var(--amber);
+  border-radius:0 10px 10px 0;padding:18px 22px;margin:26px 0;font-size:15.5px;color:var(--fg-2)}
+.callout.teal{border-left-color:var(--teal)}
+.callout b{color:var(--fg)}
+
+/* ---------- figures ---------- */
+figure{margin:32px 0;background:var(--panel);border:1px solid var(--line);
+  border-radius:12px;padding:22px}
+figure svg{display:block;width:100%;height:auto;overflow:visible}
+figcaption{font-size:13.5px;color:var(--fg-3);margin-top:16px;padding-top:13px;
+  border-top:1px solid var(--line);line-height:1.55}
+.svg-lbl{font-family:'IBM Plex Mono',monospace;font-size:11px;fill:var(--fg-2)}
+.svg-lbl-s{font-family:'IBM Plex Mono',monospace;font-size:9.5px;fill:var(--fg-3)}
+.svg-ttl{font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;fill:var(--fg)}
+.axis{stroke:var(--line-2);stroke-width:1}
+.gridline{stroke:var(--line);stroke-width:1;stroke-dasharray:2 4}
+
+/* ---------- model ---------- */
+.model{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  padding:24px;margin:30px 0}
+.model .hd{display:flex;justify-content:space-between;align-items:baseline;
+  flex-wrap:wrap;gap:10px;margin-bottom:6px}
+.model h3{margin:0;font-size:18px}
+.disclaimer{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--amber);border:1px solid var(--amber-dim);
+  padding:3px 8px;border-radius:4px}
+.sliders{display:grid;gap:19px;margin:22px 0 6px}
+.sl label{display:flex;justify-content:space-between;align-items:baseline;
+  font-size:14.5px;gap:12px;margin-bottom:7px}
+.sl .val{font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--teal);font-weight:600}
+.sl .src{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--fg-3);
+  display:block;margin-top:5px;letter-spacing:.03em}
+.sl .src.set{color:var(--amber)}
+input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:4px;
+  background:var(--bg-3);border-radius:3px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:17px;height:17px;
+  border-radius:50%;background:var(--teal);cursor:pointer;border:2px solid var(--bg)}
+input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;
+  background:var(--teal);cursor:pointer;border:2px solid var(--bg)}
+.readout{margin-top:24px;padding-top:20px;border-top:1px solid var(--line);
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:18px}
+.ro .k{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--fg-3);margin-bottom:5px}
+.ro .v{font-family:'IBM Plex Mono',monospace;font-size:21px;font-weight:600;color:var(--fg)}
+.ro .v.bad{color:var(--red)} .ro .v.good{color:var(--green)}
+#verdictLine{margin-top:20px;padding:14px 16px;background:var(--bg-2);
+  border-radius:8px;font-size:15px;color:var(--fg-2);border:1px solid var(--line)}
+
+/* ---------- tables ---------- */
+.tw{overflow-x:auto;margin:26px 0;border:1px solid var(--line);border-radius:11px;background:var(--panel)}
+table{width:100%;border-collapse:collapse;font-size:14.5px}
+th{text-align:left;padding:13px 15px;background:var(--bg-2);color:var(--fg-2);
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;font-weight:600;border-bottom:1px solid var(--line-2);white-space:nowrap}
+td{padding:12px 15px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.5}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--bg-2)}
+
+/* ---------- lists ---------- */
+ul.rest{list-style:none;padding:0;margin:24px 0}
+ul.rest li{padding:14px 0 14px 26px;border-bottom:1px solid var(--line);position:relative;
+  color:var(--fg-2);font-size:15.5px}
+ul.rest li:before{content:"○";position:absolute;left:2px;top:14px;color:var(--amber);font-size:13px}
+ul.rest li b{color:var(--fg)}
+ul.plain{padding-left:22px;color:var(--fg-2)}
+ul.plain li{margin-bottom:9px}
+
+.srcgrp{margin:28px 0}
+.srcgrp ol{padding-left:22px;font-size:14.5px;color:var(--fg-2)}
+.srcgrp li{margin-bottom:12px;line-height:1.55}
+footer{margin-top:72px;padding-top:26px;border-top:1px solid var(--line);
+  font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--fg-3)}
+</style>
+</head>
+<body>
+
+<button id="themeToggle">Hell</button>
+<div class="wrap">
+<header>
+<div class="eyebrow">Lesefassung / Organoid-Dossier</div>
+<h1>Rechnen auf lebendem Hirngewebe: der Gesamtüberblick</h1>
+<p class="dek">Das ganze Thema in einem Text, ohne Prüfapparat. Infrastruktur angekommen, Anwendungsgrund nicht, und das Bewusstseinsthema am weitesten entfernt.</p>
+<div class="meta">
+<span>25. August 2026</span>
+<span><a href="2026-08-18_organoid-datacenter.html">Hauptdossier</a></span>
+<span><a href="2026-08-23_bewusstsein-fuenf-episoden.html">Vertiefung Bewusstsein</a></span>
+<span><a href="2026-08-25_thesenbloecke.html">Thesenblöcke</a></span>
+</div>
+</header>
+<p>Die Lesefassung über alle drei Reports hinweg, ohne Prüfapparat. Wer Verdikte, Evidenzgrade und Belegtabellen sucht, findet sie im <a href="2026-08-18_organoid-datacenter.html">Hauptdossier</a>, in der <a href="2026-08-23_bewusstsein-fuenf-episoden.html">Bewusstseins-Vertiefung</a> und in der <a href="2026-08-25_thesenbloecke.html">Thesenblock-Synthese</a>. Stand: 25. August 2026.</p>
+<h2><span class="num">01</span>Worum es geht</h2>
+<p>Seit etwa 2013 lassen sich aus menschlichen Stammzellen dreidimensionale Zellaggregate züchten, die sich selbst zu hirnähnlichem Gewebe organisieren. Unter dem Schlagwort „Hirnorganoid" laufen dabei drei verschiedene Dinge, und fast alle Verwirrung im Feld beginnt damit, dass sie zusammengeworfen werden. Es gibt Monolayer-Kulturen, also kortikale Neuronen in einer flachen Schicht auf einem Elektrodenarray. Es gibt Neuronen auf planaren Chips wie im CL1 von Cortical Labs, 800.000 Zellen, reprogrammiert aus Haut- oder Blutproben erwachsener Spender. Und es gibt echte 3D-Organoide von etwa einem halben Millimeter Durchmesser, wie FinalSpark sie betreibt. Die berühmteste Lernstudie lief auf Monolayern, die Entwicklungsbiologie-Literatur betrifft Organoide. Wer Befunde vom einen aufs andere überträgt, erzählt bereits eine andere Geschichte als die Papers.</p>
+<h2><span class="num">02</span>Was man heute kaufen kann</h2>
+<p>Die Infrastruktur ist real und hat Preisschilder. Der CL1 kam im März 2025 heraus, kostet 35.000 Dollar (20.000 im 30er-Rack) und lässt sich per Python-SDK ansprechen. Cortical Labs betreibt dazu die „Cortical Cloud" mit Standorten in Singapur und Melbourne, Fernzugriff für 300 Dollar pro Woche. FinalSpark in Vevey vermietet seit Mai 2024 den Zugriff auf 16 Organoide für 500 Dollar im Monat und hat nach eigenen Angaben über 1.000 Organoide in drei Jahren verbraucht. Von 34 Universitäten, die Zugang wollten, bekamen ihn acht.</p>
+<p>Das Bemerkenswerte daran ist die Schieflage zwischen Angebot und Anwendung. Man kann die Geräte kaufen und mieten, aber was auf ihnen gerechnet wird, sind bisher ausschließlich selbstdefinierte Demonstrationen. Eine Aufgabe, die jemand außerhalb der Herstellerlabore mit diesem Substrat gelöst hätte, gibt es nicht.</p>
+<h2><span class="num">03</span>Was das Gewebe wirklich tut</h2>
+<p>Der empirische Kern des ganzen Feldes ist das DishBrain-Experiment von Kagan und Kollegen (<em>Neuron</em>, 2022). Kortikale Zellkulturen bekamen über Elektroden die Ballposition eines vereinfachten Pong eingespielt und steuerten das Paddle. Trafen sie, folgte vorhersagbare Stimulation, verfehlten sie, folgte unstrukturiertes Rauschen. Über 399 Sitzungen mit vier Kontrollarmen verbesserten sich die Kulturen messbar innerhalb von etwa zwanzig Minuten.</p>
+<p>Die Studie ist besser kontrolliert als ihr Ruf. Ihre wichtigste Grenze benennen die Autoren selbst: Lernen über Sitzungsgrenzen hinweg trat nicht robust auf. Die Kulturen fingen jeden Tag von vorn an. Es gibt also kurzfristige Anpassung, aber kein Gedächtnis über Tage, und damit kein Subjekt, dem über die Zeit etwas widerfahren könnte. Eine unabhängige Replikation durch eine Gruppe ohne kommerzielles Interesse steht bis heute aus, was bei einem Feld dieser Sichtbarkeit für sich spricht.</p>
+<p>Die Folgearbeit der Gruppe (arXiv:2405.16946) zeigt, dass die Kulturen unter Echtzeitbedingungen stichprobeneffizienter lernen als die Vergleichsalgorithmen DQN, A2C und PPO, also aus weniger Beispielen. Das ist der wahre Kern hinter allen „schlägt KI"-Schlagzeilen, und er ist eng: eine Aufgabe, eine Metrik, dieselben Autoren.</p>
+<h2><span class="num">04</span>Von Pong zu Doom</h2>
+<p>Das Doom-Motiv, das durch die Berichterstattung geistert, hat zwei reale Wurzeln, und sie könnten unterschiedlicher kaum sein.</p>
+<p>Die eine ist ein Bastlerprojekt. Der YouTube-Kanal The Thought Emporium züchtet seit 2023 kortikale Rattenneuronen auf einem Array mit 46 Elektroden und versucht, ihnen ein stark vereinfachtes Doom beizubringen. Das Spiel ist dafür auf eine Handvoll Ja-Nein-Entscheidungen heruntergebrochen, vorwärts, drehen, schießen, und die Rückmeldung läuft über Klänge, ein angenehmes Signal für den Abschuss, ein unangenehmes für den Sturz in den Giftsee (<a href="https://www.pcgamer.com/mad-scientist-youtuber-grows-a-rat-brain-that-is-learning-to-play-doom/">PC Gamer</a>, <a href="https://www.destructoid.com/scientists-are-trying-to-grow-neurons-that-can-play-doom/">Destructoid</a>). Es ist ein dokumentiertes, laufendes Experiment, kein publiziertes Ergebnis.</p>
+<p>Die andere Wurzel ist eine Demonstration von Cortical Labs auf dem CL1. Bei einem Hackathon mit Stanford koppelte der Forscher Sean Cole rund 200.000 menschliche Neuronen mit einem klassischen Lernalgorithmus, und die so gesteuerte Spielfigur lief durch die Gänge, feuerte auf Gegner und starb oft. Besser als Zufall, schneller trainiert als ein reines Silizium-System, sagt die Firma, aber weit von kompetentem Spiel entfernt (<a href="https://www.aol.com/articles/human-neurons-chip-learned-play-110000888.html">AOL/Tech-Bericht</a>).</p>
+<p>Der Fall ist lehrreich, weil er das Verdichtungsmuster des Feldes in einem Satz zeigt. Aus „Neuronen plus Lernalgorithmus steuern in einer Firmendemo eine Doom-Figur" wird in der Weitererzählung „Organoide spielen Doom". Im untersuchten Kanal steht die Kurzform genau so, ohne Quelle und ohne den Algorithmus zu erwähnen. Der wahre Kern existiert, die Pointe entsteht durch das Weglassen des Hybrid-Charakters.</p>
+<h2><span class="num">05</span>Die Energieerzählung</h2>
+<p>Die bekannteste Zahl des Feldes lautet, Bioprozessoren verbrauchten eine Million Mal weniger Strom als Chips. Sie stammt aus keiner Messung. Im FinalSpark-Paper steht sie nicht; dort werden nur die 20 Watt des menschlichen Gehirns (nach Clark und Sokoloff 1999) und die rund 10 GWh des GPT-3-Trainings (nach de Vries 2023) zitiert, und Mitgründer Fred Jordan hat den Faktor öffentlich aus dem Vergleich mit einer hypothetischen Silizium-Simulation hergeleitet.</p>
+<p>Gemessen zieht ein CL1-Rack 850 bis 1.000 Watt, so viel wie ein GPU-Server. Der Strom fließt nicht in die Neuronen, sondern in die Maschine, die den fehlenden Körper ersetzt, also Inkubation, Temperaturregelung, Perfusion und Verstärker. Rechnet man mit den belegten Werten nach, liegt die Energie pro Operation heute um Größenordnungen über der eines Beschleunigers. Der physikalische Reiz der Idee bleibt bestehen, nur zeigt die Messung am realen Gerät derzeit in die Gegenrichtung.</p>
+<h2><span class="num">06</span>Wie nah am Gehirn?</h2>
+<p>Organoide entwickeln die groben Zellklassen echten Kortexgewebes, aber Bhaduri und Kollegen (<em>Nature</em>, 2020) zeigten, dass Zellstress in der Kultur die Ausdifferenzierung der Subtypen stört. Transplantiert man das Gewebe in einen Mauskortex, geht der Stress zurück und die Identitäten verbessern sich. Das Defizit liegt in der Schale, nicht im Gewebe.</p>
+<p>Manche vermeintlichen Grundgrenzen sind inzwischen gefallen. Mikroglia entstehen von selbst (Ormel 2018), Vaskularisierung gelingt (Mansour 2018, Shi 2020 mit über 200 Tagen), und Gabriel und Kollegen (2021) fanden bilaterale optische Vesikel mit lichtempfindlichem Gewebe, den wahren Kern der „Organoide entwickeln Augen"-Meldungen.</p>
+<p>Was bleibt, ist die Entwicklungsstufe. Die Reifung endet vor der Geburt, kortikale Schichtung und Gyrifizierung bleiben unvollständig, die Aktivität wird von Delta-Wellen dominiert, wie man sie bei Frühgeborenen und im Tiefschlaf sieht. Bei der Lebensdauer reicht die Spanne von wenigen Stunden in den Anfängen über „bis 100 Tage" bei FinalSpark und „bis sechs Monate" beim CL1 bis zu mehrjährigen Laborrekorden, und genau zwischen typischem Wert und Rekord wird in der öffentlichen Erzählung selten unterschieden.</p>
+<h2><span class="num">07</span>Bewusstsein, Schmerz, Moral</h2>
+<p>Hier klaffen öffentliche Aufmerksamkeit und Datenlage am weitesten auseinander. Der Sentienz-Streit entzündete sich daran, dass Kagan und Kollegen „sentience" im Titel führten, es aber als „responsive to sensory impressions" definierten, ein technischer Begriff nach Friston, der nichts über Erleben sagt. 29 Neurowissenschaftler, darunter Sabatini, Svoboda und Mainen, widersprachen in derselben Zeitschrift; die Antwort der Autoren hieß bezeichnenderweise „Scientific communication and the semantics of sentience". Es war ein Streit über Wörter, nicht über Messwerte.</p>
+<p>In der Sache fehlen einem kortikalen Organoid Peripherie, Rückenmark und Thalamus, also die gesamte Bahn, über die Schmerzsignale entstehen und laufen. Die US-Akademien halten Bewusstsein oder Schmerzempfinden auf absehbare Zeit für äußerst unwahrscheinlich und ergänzen zugleich, dass die etablierten Messverfahren auf Organoide gar nicht anwendbar sind. Selbst Andrea Lavazza, die stärkste Stimme für Vorsorge, sieht die heutige Technik nicht über das Äquivalent eines pränatalen Gehirns hinauskommen.</p>
+<p>Juristisch haben Kataoka, Lee und Sawai die Frage sauber sortiert. Rechtspersönlichkeit ist eine Zuschreibung, die auch Schiffen und Flüssen zukommen kann, und hängt nicht an der Empfindungsfrage. Ein eigenes Organoid-Recht existiert nicht, ein Vakuum aber auch nicht, weil Gewebe-, Biobank- und Einwilligungsrecht greifen.</p>
+<h2><span class="num">08</span>Die Ränder des Themas</h2>
+<p>Um den Kern herum wächst ein Kranz von Strängen, die die nächste Ausbaustufe andeuten. Organoide werden mit Rückenmarks-Organoiden zu Assembloiden gekoppelt und in Mäuse implantiert, wo sie sich funktional mit dem visuellen Kortex verbinden. Es gibt Roboterkörper mit organoider Steuerung, Muskel- und Hautgewebe für Maschinen, Experimente mit Hühnerembryonen zur Vaskularisierung und humanisierte Tiere. Seit Sommer 2026 kommt postmortales Gewebe dazu, also Hirnschnitte, die Stunden bis Tage nach dem Tod wieder Aktivität zeigen und in Demonstrationen Geräte steuern.</p>
+<p>Medizinisch laufen parallel die eigentlich handfesten Anwendungen, Krankheitsmodelle für Parkinson und Entwicklungsstörungen, Transplantationsansätze nach Schlaganfall, dazu die Mahnung aus der Neurotechnik-Geschichte, dass bionische Implantate ihre Träger im Stich lassen, wenn der Anbieter insolvent geht. Am Rand stehen DARPA-Interesse an Organ-on-Chip seit 2012 und die australische Militärfinanzierung im Umfeld von DishBrain.</p>
+<h2><span class="num">09</span>Die Erzählmaschine</h2>
+<p>Begleitet wird das alles von einer Berichterstattung, die einem festen Muster folgt, exemplarisch untersucht am Kanal Gabriel Torch mit 68.200 Abonnenten und 618 extrahierten Behauptungen. Am Anfang steht fast immer ein echter Befund. Dann wird verdichtet: aus taktiler Kodierung wird Fühlen, aus einem Stichprobenvorteil Überlegenheit, aus „building blocks necessary for learning" ein „demonstrated learning", aus einem Laborrekord die normale Lebensdauer, aus einer Hybrid-Demo mit Lernalgorithmus ein „they did play Doom". Danach folgt jahrelange Wiederholung, in der die Superlative driften, ohne dass eine frühere Zahl je korrigiert wird.</p>
+<p>Explizit falsch ist dabei erstaunlich wenig, und Bewusstsein wird nie direkt behauptet, im Gegenteil mehrfach verneint. Die Wirkung entsteht über die Reihenfolge der Sätze, über Titel, die stärker sind als ihr Text, und über Absicherungen, die zwar vorhanden sind, aber an anderer Stelle stehen als die starke Aussage. Nur 12 Prozent der Behauptungen nennen überhaupt eine Quelle.</p>
+<h2><span class="num">10</span>Wo das Thema steht</h2>
+<p>In einem Satz: Die Infrastruktur ist angekommen, der Anwendungsgrund noch nicht, und das Bewusstseinsthema, das die Schlagzeilen dominiert, ist von allen Teilfragen die am weitesten entfernte.</p>
+<p>Die eigentlichen Weichen der nächsten Jahre sind unspektakulärer. Ob jemand außerhalb der Herstellergruppe den Lerneffekt repliziert. Ob ein Assembloid Gedächtnis über Tage zeigt, denn damit würde aus der Bewusstseinsdebatte über eine künftige Konfiguration eine über eine gegenwärtige. Und ob je eine Energiemessung pro Operation am realen Gerät die Effizienzerzählung einholt, die dem Feld seinen Namen als grüne KI-Alternative gegeben hat.</p>
+<h2><span class="num">11</span>Material</h2>
+<p>Die drei Reports mit vollständigem Prüfapparat, Belegtabellen und Quellenverzeichnissen: <a href="2026-08-18_organoid-datacenter.html">Hauptdossier vom 18. August</a>, <a href="2026-08-23_bewusstsein-fuenf-episoden.html">Bewusstsein in fünf Episoden vom 23. August</a>, <a href="2026-08-25_thesenbloecke.html">Thesenblöcke im Gesamtbild vom 25. August</a>. Rohmaterial unter <code>sources/</code>, Claim-Bestand in <code>research/claims.md</code>.</p>
+</div>
+
+<script>
+(function(){
+  var root=document.documentElement, btn=document.getElementById('themeToggle');
+  var stored=null;
+  try{stored=localStorage.getItem('oi-theme');}catch(e){}
+  if(stored){root.setAttribute('data-theme',stored);}
+  function sync(){btn.textContent=root.getAttribute('data-theme')==='dark'?'Hell':'Dunkel';}
+  sync();
+  btn.addEventListener('click',function(){
+    var next=root.getAttribute('data-theme')==='dark'?'light':'dark';
+    root.setAttribute('data-theme',next);
+    try{localStorage.setItem('oi-theme',next);}catch(e){}
+    sync();
+  });
+})();
+
+(function(){
+  var els={
+    n:document.getElementById('sNeurons'), r:document.getElementById('sRate'),
+    o:document.getElementById('sOps'), w:document.getElementById('sWatt'),
+    g:document.getElementById('sGpu')
+  };
+  var out={
+    n:document.getElementById('vNeurons'), r:document.getElementById('vRate'),
+    o:document.getElementById('vOps'), w:document.getElementById('vWatt'),
+    g:document.getElementById('vGpu'),
+    bio:document.getElementById('oBio'), si:document.getElementById('oSi'),
+    ratio:document.getElementById('oRatio'), line:document.getElementById('verdictLine')
+  };
+  var GPU_W=700;
+
+  function sci(x){
+    if(!isFinite(x)||x===0) return '0';
+    var e=Math.floor(Math.log10(Math.abs(x)));
+    var m=x/Math.pow(10,e);
+    var sup='⁰¹²³⁴⁵⁶⁷⁸⁹';
+    var es=String(Math.abs(e)).split('').map(function(d){return sup[+d];}).join('');
+    return m.toFixed(1).replace('.',',')+' × 10'+(e<0?'⁻':'')+es;
+  }
+  function human(x){
+    if(x>=1e9) return (x/1e9).toFixed(1).replace('.',',')+' Mrd.';
+    if(x>=1e6) return (x/1e6).toFixed(0)+' Mio.';
+    if(x>=1e3) return (x/1e3).toFixed(0)+' Tsd.';
+    return x.toFixed(0);
+  }
+  function pow10(sl){return Math.pow(10,parseFloat(sl.value));}
+
+  function update(){
+    var neurons=pow10(els.n), rate=pow10(els.r), ops=pow10(els.o);
+    var watt=parseFloat(els.w.value), gpuOps=pow10(els.g);
+
+    out.n.textContent=human(neurons);
+    out.r.textContent=rate<10?rate.toFixed(2).replace('.',',')+' Hz':rate.toFixed(0)+' Hz';
+    out.o.textContent=ops<10?ops.toFixed(1).replace('.',','):human(ops);
+    out.w.textContent=Math.round(watt)+' W';
+    out.g.textContent=sci(gpuOps);
+
+    var bioOps=neurons*rate*ops;
+    var bioJ=watt/bioOps;
+    var siJ=GPU_W/gpuOps;
+    var ratio=bioJ/siJ;
+
+    out.bio.textContent=sci(bioJ)+' J';
+    out.si.textContent=sci(siJ)+' J';
+
+    if(ratio>1){
+      out.ratio.textContent=sci(ratio)+' × schlechter';
+      out.ratio.className='v bad';
+      out.line.innerHTML='Bei diesen Werten braucht das biologische Substrat <b>'+sci(ratio)+
+        ' mal mehr</b> Energie pro Operation als der Vergleichsbeschleuniger. Um gleichzuziehen, müsste das Produkt aus Neuronenzahl, Spikerate und Operationen pro Spike auf <b>'+
+        sci(watt/siJ)+' Operationen pro Sekunde</b> steigen.';
+    } else {
+      out.ratio.textContent=sci(1/ratio)+' × besser';
+      out.ratio.className='v good';
+      out.line.innerHTML='Bei diesen Werten wäre das biologische Substrat <b>'+sci(1/ratio)+
+        ' mal günstiger</b> pro Operation. Diese Konfiguration ist mit heutiger Hardware nicht erreicht; sie zeigt, was gelten müsste.';
+    }
+  }
+  Object.keys(els).forEach(function(k){els[k].addEventListener('input',update);});
+  update();
+})();
+</script>
+</body>
+</html>

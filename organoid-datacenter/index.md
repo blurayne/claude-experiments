@@ -2,6 +2,11 @@
 
 Ein adversariales Dossier zu Organoid-Compute: Rechnen auf lebendem menschlichem Hirngewebe. Geprüft wird, was daran gemessen ist, wie es sich zu LLMs verhält, und ab wann Bewusstseins-, Moral- und Rechtsfragen empirisch relevant werden statt bloß rhetorisch.
 
+## Zum Einstieg
+
+- **[2026-08-25_gesamtueberblick.html](2026-08-25_gesamtueberblick.html)** — die Lesefassung über alle Reports hinweg, ohne Prüfapparat. Von der Petrischale über Pong und die Doom-Demos bis zu Energie, Bewusstsein und Recht.
+- **[2026-08-25_gesamtueberblick.md](2026-08-25_gesamtueberblick.md)** — Markdown-Fassung.
+
 Ausgangspunkt war ein YouTube-Kanal, der das Thema seit Jahren begleitet. Er wird hier nicht als Beleg behandelt, sondern als Prüfgegenstand: 618 seiner Behauptungen wurden extrahiert und gegen Primärliteratur gehalten.
 
 ## Das Dossier
