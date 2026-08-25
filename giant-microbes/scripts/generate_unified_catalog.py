@@ -172,6 +172,7 @@ main.full-desc .card .cdesc { -webkit-line-clamp: unset; overflow: visible; curs
 .badge-pill { font-size: calc(.58rem * var(--text-scale, 1)); font-weight: 800; padding: .1rem .45rem; border-radius: 999px; color: white; white-space: nowrap; }
 a.badge-pill { text-decoration: none; display: inline-block; }
 a.badge-pill.badge-link:hover { filter: brightness(1.15); text-decoration: underline; }
+.badge-link-icon { margin-left: .3em; opacity: .75; font-weight: 400; text-decoration: none; display: inline-block; }
 .badge-pill.type { background: var(--microbe-teal-dark); }
 .badge-pill.category { background: var(--membrane-blue); }
 .badge-pill.in_stock { background: #2e9e5b; }
@@ -342,7 +343,7 @@ function statusBadge(status, locale, label, url) {
   const text = `${locale}: ${STATUS_LABELS[status]}`;
   const title = `${locale === "US" ? "US" : "DE"} availability` + (url ? ` — opens ${label}` : "");
   if (!url) return `<span class="badge-pill ${status}" title="${title}">${text}</span>`;
-  return `<a class="badge-pill ${status} badge-link" href="${url}" target="_blank" rel="noopener" title="${title}">${text}</a>`;
+  return `<a class="badge-pill ${status} badge-link" href="${url}" target="_blank" rel="noopener" title="${title}">${text}<span class="badge-link-icon" aria-hidden="true">↗</span></a>`;
 }
 function statusBadges(item) {
   const badges = [];
