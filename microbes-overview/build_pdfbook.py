@@ -593,9 +593,15 @@ h1, h2, .section-page h1, .section-banner h2, .entry-page h1 {
 }
 .title-page .cover { width: 210mm; height: auto; display: block; }
 /* near-A4 artwork: fill the page and let the few percent of overflow crop */
-.title-page.bleed { padding: 0; background: none; }
+.title-page.bleed {
+  padding: 0; margin: 0; background: none;
+  width: 210mm; height: 297mm; min-height: 297mm; overflow: hidden;
+}
 .title-page.bleed .cover {
-  width: 210mm; height: 297mm; object-fit: fill;
+  /* stretched, not cropped: both covers are within 1% of A4 so the distortion is
+     invisible, and a crop would clip the speech bubbles that reach the corners */
+  display: block; width: 210mm; height: 297mm; object-fit: fill;
+  margin: 0; border: 0;
 }
 .title-page .title-strip {
   width: 210mm; text-align: center; padding: 5mm 12mm 7mm;
@@ -615,7 +621,11 @@ h1, h2, .section-page h1, .section-banner h2, .entry-page h1 {
 /* Every text page gets the organic paper background. NOT the coloring pages —
    those are printed and coloured in, so anything behind the line art fights the
    crayon and wastes ink — and not the cover, which is its own artwork. */
-.page:not(.coloring-page) { padding: 15mm 13mm; min-height: 297mm; }
+/* Covers are excluded from the text-page padding as well as the background.
+   Both rules are :not() chains of equal specificity to .title-page.bleed and both
+   sit AFTER it, so leaving .title-page in here let source order win and put a 15mm
+   white border around a full-bleed cover. */
+.page:not(.coloring-page):not(.title-page) { padding: 15mm 13mm; min-height: 297mm; }
 .page:not(.coloring-page):not(.title-page) {
   background-image: var(--page-bg);
   background-size: cover; background-position: center; background-repeat: no-repeat;
