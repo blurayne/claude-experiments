@@ -1015,7 +1015,11 @@ html[data-mode] .sr-item:hover mark{color:inherit}
            textContent and would escape any markup put inside it. -->
       <div class="hero-book">
         <a id="bookView" class="hero-book-btn" href="microbes-book-en.pdf" target="_blank" rel="noopener">📖 <span>Read the picture book</span></a>
-        <a id="bookDl" class="hero-book-btn ghost" href="microbes-book-en.pdf" download>⤓ <span>PDF</span></a>
+        <!-- Both languages are always reachable. The primary button follows the
+             UI language, but a reader who wants the other one should not have to
+             switch the whole interface to find it. -->
+        <a id="bookDlDe" class="hero-book-btn ghost" href="microbes-book-de.pdf" download="microbes-book-de.pdf">⤓ <span>PDF Deutsch</span></a>
+        <a id="bookDlEn" class="hero-book-btn ghost" href="microbes-book-en.pdf" download="microbes-book-en.pdf">⤓ <span>PDF English</span></a>
         <!-- The plush catalogue is a sibling experiment in the same Pages site.
              Relative, not absolute: the same href then resolves correctly from a
              local checkout, a file:// open and the deployed site, instead of
@@ -1481,16 +1485,20 @@ const HERO={
   en:{h1:'An interactive <span class="em">microbe</span> atlas.',
       sub:'An atlas of the very small — the cells you are built from and the parts inside them, the genetic material they carry, the microbes that help and harm us and our pets, and a few things people have engineered. Every subject is drawn five ways: a real micrograph wherever a freely licensed one exists, plus four generated from a researched reference and checked back against it. Switch the wording between kids, adults and scientists, switch language, and choose which pictures sit side by side. Styles marked “·gen” are generated; where a “Real” picture is a structural model rather than a photograph, or shows a close relative because no image of the species is free to use, its caption says so.',
       a:'sets ·', b:'subjects ·', c:'styles + real microscopy',
-      book:'Read the picture book', bookDl:'PDF',
+      book:'Read the picture book',
       bookTip:'Opens in your browser — an A4 picture book for children, every subject over two pages with its coloring page',
-      bookDlTip:'Download the PDF instead of opening it',
+      bookDlDe:'PDF Deutsch', bookDlEn:'PDF English',
+      bookDlTipDe:'Download the German picture book (PDF, ~24 MB)',
+      bookDlTipEn:'Download the English picture book (PDF, ~24 MB)',
       plush:'Plush catalogue', plushTip:'Every GIANTmicrobes plush toy, in a browsable catalogue — the toys this atlas links from its subjects'},
   de:{h1:'Ein interaktiver <span class="em">Mikroben</span>-Atlas.',
       sub:'Ein Atlas des sehr Kleinen — der Zellen, aus denen du bestehst, und ihrer Bestandteile, des Erbguts darin, der Mikroben, die uns und unseren Haustieren helfen und schaden, und einiger Dinge, die Menschen gebaut haben. Jedes Thema ist fünffach abgebildet: eine echte mikroskopische Aufnahme, sofern es eine frei lizenzierte gibt, dazu vier nach einer recherchierten Vorlage generierte, die daran geprüft wurden. Wechsle zwischen Kinder-, Erwachsenen- und Fachsprache, wechsle die Sprache und wähle, welche Bilder nebeneinander stehen. Mit „·gen“ markierte Stile sind generiert; wo „Real“ ein Strukturmodell statt einer Fotografie zeigt oder eine nahe verwandte Art, weil es von der Art selbst kein frei nutzbares Bild gibt, steht das in der Bildunterschrift.',
       a:'Sets ·', b:'Themen ·', c:'Stile + echte Mikroskopie',
-      book:'Das Bilderbuch lesen', bookDl:'PDF',
+      book:'Das Bilderbuch lesen',
       bookTip:'Öffnet im Browser — ein A4-Bilderbuch für Kinder, jedes Thema auf zwei Seiten mit seinem Ausmalbild',
-      bookDlTip:'Die PDF herunterladen, statt sie zu öffnen',
+      bookDlDe:'PDF Deutsch', bookDlEn:'PDF English',
+      bookDlTipDe:'Das deutsche Bilderbuch herunterladen (PDF, ca. 24 MB)',
+      bookDlTipEn:'Das englische Bilderbuch herunterladen (PDF, ca. 24 MB)',
       plush:'Plüsch-Katalog', plushTip:'Alle GIANTmicrobes-Plüschtiere in einem durchsuchbaren Katalog — die Tiere, die dieser Atlas bei den Themen verlinkt'},
 };
 
@@ -2935,14 +2943,15 @@ function updateHero(){
   $('#heroStatA').textContent=h.a; $('#heroStatB').textContent=h.b; $('#heroStatC').textContent=h.c;
   // one book per language, built by build_pdfbook.py --lang
   const pdf='microbes-book-'+state.lang+'.pdf';
-  const view=$('#bookView'), dl=$('#bookDl');
-  // Two deliberately different actions on the same file: the primary opens the PDF
-  // in the browser (target=_blank, and crucially NO download attribute — that
-  // attribute forces a save even on a link that would otherwise render inline),
-  // the ghost one beside it saves it.
+  const view=$('#bookView');
+  // The primary opens the current language's PDF in the browser: target=_blank and
+  // crucially NO download attribute, which would force a save even on a file the
+  // browser would happily render inline. The two ghost links beside it save either
+  // language, so neither is reachable only by switching the whole UI.
   view.href=pdf; view.title=h.bookTip; view.querySelector('span').textContent=h.book;
-  dl.href=pdf; dl.setAttribute('download',pdf); dl.title=h.bookDlTip;
-  dl.querySelector('span').textContent=h.bookDl;
+  const de=$('#bookDlDe'), en=$('#bookDlEn');
+  if(de){ de.title=h.bookDlTipDe; de.querySelector('span').textContent=h.bookDlDe; }
+  if(en){ en.title=h.bookDlTipEn; en.querySelector('span').textContent=h.bookDlEn; }
   const pc=$('#plushCat');
   if(pc){ pc.title=h.plushTip; pc.querySelector('span').textContent=h.plush; }
   renderBuild();
