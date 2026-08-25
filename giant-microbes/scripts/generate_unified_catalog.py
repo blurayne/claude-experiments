@@ -170,6 +170,8 @@ main.full-desc .card .cdesc { -webkit-line-clamp: unset; overflow: visible; curs
 .card a.cname-link:hover { text-decoration: underline; }
 .card-badges { display: flex; flex-wrap: wrap; gap: .2rem; justify-content: center; margin-top: .2rem; }
 .badge-pill { font-size: calc(.58rem * var(--text-scale, 1)); font-weight: 800; padding: .1rem .45rem; border-radius: 999px; color: white; white-space: nowrap; }
+a.badge-pill { text-decoration: none; display: inline-block; }
+a.badge-pill.badge-link:hover { filter: brightness(1.15); text-decoration: underline; }
 .badge-pill.type { background: var(--microbe-teal-dark); }
 .badge-pill.category { background: var(--membrane-blue); }
 .badge-pill.in_stock { background: #2e9e5b; }
@@ -336,10 +338,16 @@ function displayPrice(item) {
 
 function trackItem(item) { LIGHTBOX_ITEMS.push(item); return LIGHTBOX_ITEMS.length - 1; }
 
+function statusBadge(status, locale, label, url) {
+  const text = `${locale}: ${STATUS_LABELS[status]}`;
+  const title = `${locale === "US" ? "US" : "DE"} availability` + (url ? ` — opens ${label}` : "");
+  if (!url) return `<span class="badge-pill ${status}" title="${title}">${text}</span>`;
+  return `<a class="badge-pill ${status} badge-link" href="${url}" target="_blank" rel="noopener" title="${title}">${text}</a>`;
+}
 function statusBadges(item) {
   const badges = [];
-  if (item.status_us) badges.push(`<span class="badge-pill ${item.status_us}" title="US availability">US: ${STATUS_LABELS[item.status_us]}</span>`);
-  if (item.status_de) badges.push(`<span class="badge-pill ${item.status_de}" title="DE availability">DE: ${STATUS_LABELS[item.status_de]}</span>`);
+  if (item.status_us) badges.push(statusBadge(item.status_us, "US", "giantmicrobes.com", item.product_url_us));
+  if (item.status_de) badges.push(statusBadge(item.status_de, "DE", "riesenmikroben.de", item.product_url_de));
   return badges.join("");
 }
 function categoryBadges(item) {
