@@ -17,6 +17,13 @@ Ausgangspunkt war ein YouTube-Kanal, der das Thema seit Jahren begleitet. Er wir
 
 Der Kanal behauptet nicht, dass Organoide bewusst sind, und verneint es mehrfach ausdrücklich. Die Wirkung entsteht in der Reihenfolge der Sätze und in Titeln, die stärker sind als ihr Text. Gegen die Erwartung fällt B4 auf unbelegt: Die Menge der Bewusstseinsrede hat sich seit 2023 verdreifacht, die Absicherungsquote direkt an der Behauptung ist unverändert geblieben.
 
+## Thesenblöcke im Gesamtbild
+
+- **[2026-08-25_thesenbloecke.html](2026-08-25_thesenbloecke.html)** — alle neun Thesenblöcke der 618 Behauptungen in je einem Prüfabsatz: KI-Vergleich, Lernen, Markt, Energie und Bewusstsein mit ihren Verdikten, dazu die vier ungeprüften Blöcke Lebensdauer, Chimären, Medizin und Militär sowie der neue Strang postmortales Gewebe.
+- **[2026-08-25_thesenbloecke.md](2026-08-25_thesenbloecke.md)** — Markdown-Fassung.
+
+Bewusstsein ist mit 28 von 618 Behauptungen der kleinste Cluster. Über alle Blöcke wiederholt sich dieselbe Mechanik: echter Befund, Verdichtung in Alltagssprache, jahrelange Wiederholung mit driftenden Superlativen. Beim Energiefaktor schrumpft die Behauptung von sechs auf drei auf null benannte Größenordnungen, bei der Lebensdauer wächst der Spitzenwert von fünf Monaten auf fünf Jahre, ohne dass je eine frühere Angabe korrigiert wird.
+
 ## Ergebnis in einem Satz
 
 Angekommen ist die Infrastruktur. Man kann ein Gerät mit 800.000 menschlichen Neuronen für 35.000 Dollar kaufen und Rechenzeit in einem Rechenzentrum in Singapur mieten. Nicht angekommen ist der Grund, warum man das tun sollte, und am weitesten entfernt ist das, was die Schlagzeilen ins Zentrum stellen.

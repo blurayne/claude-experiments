@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Was der Kanal sonst noch behauptet: neun Thesenblöcke im Gesamtbild</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080b11; --bg-2:#0d1219; --bg-3:#121a24; --panel:#0f151e;
+  --line:#1e2a38; --line-2:#2a3a4d;
+  --fg:#dce6f0; --fg-2:#93a4b8; --fg-3:#5f7186;
+  --teal:#3fd8c4; --teal-dim:#1b6f66; --amber:#f0a63c; --amber-dim:#7a5219;
+  --magenta:#d95d9a; --violet:#8b7ff0; --red:#e05c62; --green:#4fc98a;
+  --grid:rgba(63,216,196,.055); --shadow:rgba(0,0,0,.5);
+}
+[data-theme="light"]{
+  --bg:#f4f6f8; --bg-2:#eaeef2; --bg-3:#e0e6ec; --panel:#ffffff;
+  --line:#d3dce4; --line-2:#b9c6d2;
+  --fg:#141c26; --fg-2:#42566b; --fg-3:#6d8298;
+  --teal:#0d8478; --teal-dim:#8fd6cd; --amber:#a86a10; --amber-dim:#e8cfa4;
+  --magenta:#a8306a; --violet:#5647c4; --red:#b3383e; --green:#207d54;
+  --grid:rgba(13,132,120,.06); --shadow:rgba(20,40,60,.12);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--bg); color:var(--fg);
+  font-family:'Space Grotesk',ui-sans-serif,system-ui,sans-serif;
+  font-size:17px; line-height:1.65;
+  background-image:
+    linear-gradient(var(--grid) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:44px 44px;
+  transition:background-color .25s,color .25s;
+}
+.wrap{max-width:960px;margin:0 auto;padding:0 24px 120px}
+code,.mono,td.num{font-family:'IBM Plex Mono',ui-monospace,monospace}
+
+/* ---------- header ---------- */
+header{padding:72px 0 40px;position:relative}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--teal);margin-bottom:18px}
+h1{font-size:clamp(30px,5.2vw,50px);line-height:1.08;margin:0 0 18px;font-weight:700;letter-spacing:-.02em}
+.dek{font-size:19px;color:var(--fg-2);max-width:62ch;margin:0 0 26px}
+.meta{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--fg-3);
+  display:flex;flex-wrap:wrap;gap:8px 20px;padding-top:18px;border-top:1px solid var(--line)}
+.meta a{color:var(--fg-2)}
+
+#themeToggle{
+  position:fixed;top:18px;right:18px;z-index:50;
+  background:var(--panel);color:var(--fg-2);border:1px solid var(--line-2);
+  border-radius:999px;padding:8px 15px;cursor:pointer;
+  font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.09em;
+  text-transform:uppercase;box-shadow:0 3px 14px var(--shadow);transition:.2s;
+}
+#themeToggle:hover{color:var(--teal);border-color:var(--teal-dim)}
+
+/* ---------- structure ---------- */
+h2{font-size:27px;margin:64px 0 6px;letter-spacing:-.015em;line-height:1.2}
+h2 .num{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--teal);
+  display:block;letter-spacing:.14em;margin-bottom:8px;font-weight:500}
+h3{font-size:19.5px;margin:38px 0 10px;color:var(--fg)}
+h4{font-size:15px;margin:26px 0 6px;font-family:'IBM Plex Mono',monospace;
+  letter-spacing:.05em;color:var(--fg-2);text-transform:uppercase}
+p{margin:0 0 17px}
+a{color:var(--teal);text-decoration:none;border-bottom:1px solid var(--teal-dim)}
+a:hover{border-bottom-color:var(--teal)}
+strong{font-weight:600;color:var(--fg)}
+hr{border:0;border-top:1px solid var(--line);margin:56px 0}
+.lede{font-size:19px;color:var(--fg-2)}
+
+/* ---------- chips ---------- */
+.chip{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:11px;
+  font-weight:600;letter-spacing:.07em;padding:2px 7px;border-radius:4px;
+  vertical-align:.08em;white-space:nowrap;border:1px solid}
+.g-A{color:var(--teal);border-color:var(--teal-dim);background:color-mix(in srgb,var(--teal) 11%,transparent)}
+.g-B{color:var(--violet);border-color:var(--violet);background:color-mix(in srgb,var(--violet) 11%,transparent)}
+.g-C{color:var(--amber);border-color:var(--amber-dim);background:color-mix(in srgb,var(--amber) 11%,transparent)}
+.g-D{color:var(--magenta);border-color:var(--magenta);background:color-mix(in srgb,var(--magenta) 11%,transparent)}
+.v-ok{color:var(--green);border-color:var(--green);background:color-mix(in srgb,var(--green) 12%,transparent)}
+.v-part{color:var(--amber);border-color:var(--amber-dim);background:color-mix(in srgb,var(--amber) 12%,transparent)}
+.v-no{color:var(--red);border-color:var(--red);background:color-mix(in srgb,var(--red) 12%,transparent)}
+.v-na{color:var(--fg-3);border-color:var(--line-2);background:transparent}
+
+.legend{display:flex;flex-wrap:wrap;gap:14px;padding:16px 18px;background:var(--panel);
+  border:1px solid var(--line);border-radius:10px;margin:22px 0 0;font-size:14px;color:var(--fg-2)}
+.legend div{display:flex;align-items:center;gap:8px}
+
+/* ---------- verdict cards ---------- */
+.verdicts{display:grid;gap:12px;margin:30px 0 0}
+.vc{background:var(--panel);border:1px solid var(--line);border-radius:11px;
+  padding:17px 20px;display:grid;grid-template-columns:52px 1fr auto;gap:6px 16px;align-items:start}
+.vc:hover{border-color:var(--line-2)}
+.vc .h{font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600;color:var(--teal)}
+.vc .t{font-weight:500;font-size:16.5px}
+.vc .c{grid-column:2/-1;color:var(--fg-2);font-size:14.5px;line-height:1.55}
+@media(max-width:640px){.vc{grid-template-columns:44px 1fr}.vc>span.vchip{grid-column:2}}
+
+/* ---------- duel panel ---------- */
+.duel{display:grid;grid-template-columns:1fr 1fr;gap:0;margin:26px 0;
+  border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel)}
+.duel>div{padding:20px 22px}
+.duel>div:first-child{border-right:1px solid var(--line)}
+.duel h5{margin:0 0 4px;font-size:15.5px}
+.duel .who{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--fg-3);
+  letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px}
+.duel blockquote{margin:0 0 13px;padding-left:13px;border-left:2px solid var(--line-2);
+  font-size:14.5px;color:var(--fg-2);line-height:1.55;font-style:normal}
+.pruef{margin-top:14px;padding-top:13px;border-top:1px dashed var(--line-2);
+  font-size:13.5px;color:var(--fg-2)}
+.pruef b{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--teal);display:block;margin-bottom:4px}
+@media(max-width:720px){.duel{grid-template-columns:1fr}
+  .duel>div:first-child{border-right:0;border-bottom:1px solid var(--line)}}
+
+/* ---------- callout ---------- */
+.callout{background:var(--bg-2);border:1px solid var(--line);border-left:3px solid var(--amber);
+  border-radius:0 10px 10px 0;padding:18px 22px;margin:26px 0;font-size:15.5px;color:var(--fg-2)}
+.callout.teal{border-left-color:var(--teal)}
+.callout b{color:var(--fg)}
+
+/* ---------- figures ---------- */
+figure{margin:32px 0;background:var(--panel);border:1px solid var(--line);
+  border-radius:12px;padding:22px}
+figure svg{display:block;width:100%;height:auto;overflow:visible}
+figcaption{font-size:13.5px;color:var(--fg-3);margin-top:16px;padding-top:13px;
+  border-top:1px solid var(--line);line-height:1.55}
+.svg-lbl{font-family:'IBM Plex Mono',monospace;font-size:11px;fill:var(--fg-2)}
+.svg-lbl-s{font-family:'IBM Plex Mono',monospace;font-size:9.5px;fill:var(--fg-3)}
+.svg-ttl{font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;fill:var(--fg)}
+.axis{stroke:var(--line-2);stroke-width:1}
+.gridline{stroke:var(--line);stroke-width:1;stroke-dasharray:2 4}
+
+/* ---------- model ---------- */
+.model{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  padding:24px;margin:30px 0}
+.model .hd{display:flex;justify-content:space-between;align-items:baseline;
+  flex-wrap:wrap;gap:10px;margin-bottom:6px}
+.model h3{margin:0;font-size:18px}
+.disclaimer{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--amber);border:1px solid var(--amber-dim);
+  padding:3px 8px;border-radius:4px}
+.sliders{display:grid;gap:19px;margin:22px 0 6px}
+.sl label{display:flex;justify-content:space-between;align-items:baseline;
+  font-size:14.5px;gap:12px;margin-bottom:7px}
+.sl .val{font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--teal);font-weight:600}
+.sl .src{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--fg-3);
+  display:block;margin-top:5px;letter-spacing:.03em}
+.sl .src.set{color:var(--amber)}
+input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:4px;
+  background:var(--bg-3);border-radius:3px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:17px;height:17px;
+  border-radius:50%;background:var(--teal);cursor:pointer;border:2px solid var(--bg)}
+input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;
+  background:var(--teal);cursor:pointer;border:2px solid var(--bg)}
+.readout{margin-top:24px;padding-top:20px;border-top:1px solid var(--line);
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:18px}
+.ro .k{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--fg-3);margin-bottom:5px}
+.ro .v{font-family:'IBM Plex Mono',monospace;font-size:21px;font-weight:600;color:var(--fg)}
+.ro .v.bad{color:var(--red)} .ro .v.good{color:var(--green)}
+#verdictLine{margin-top:20px;padding:14px 16px;background:var(--bg-2);
+  border-radius:8px;font-size:15px;color:var(--fg-2);border:1px solid var(--line)}
+
+/* ---------- tables ---------- */
+.tw{overflow-x:auto;margin:26px 0;border:1px solid var(--line);border-radius:11px;background:var(--panel)}
+table{width:100%;border-collapse:collapse;font-size:14.5px}
+th{text-align:left;padding:13px 15px;background:var(--bg-2);color:var(--fg-2);
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;font-weight:600;border-bottom:1px solid var(--line-2);white-space:nowrap}
+td{padding:12px 15px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.5}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--bg-2)}
+
+/* ---------- lists ---------- */
+ul.rest{list-style:none;padding:0;margin:24px 0}
+ul.rest li{padding:14px 0 14px 26px;border-bottom:1px solid var(--line);position:relative;
+  color:var(--fg-2);font-size:15.5px}
+ul.rest li:before{content:"○";position:absolute;left:2px;top:14px;color:var(--amber);font-size:13px}
+ul.rest li b{color:var(--fg)}
+ul.plain{padding-left:22px;color:var(--fg-2)}
+ul.plain li{margin-bottom:9px}
+
+.srcgrp{margin:28px 0}
+.srcgrp ol{padding-left:22px;font-size:14.5px;color:var(--fg-2)}
+.srcgrp li{margin-bottom:12px;line-height:1.55}
+footer{margin-top:72px;padding-top:26px;border-top:1px solid var(--line);
+  font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--fg-3)}
+</style>
+</head>
+<body>
+
+<button id="themeToggle">Hell</button>
+<div class="wrap">
+<header>
+<div class="eyebrow">Zusammenf&uuml;hrung / Organoid-Dossier</div>
+<h1>Was der Kanal sonst noch behauptet: neun Thesenblöcke im Gesamtbild</h1>
+<p class="dek">618 Behauptungen, neun Blöcke, vier Verdikte. Teilbelegt ist der Normalzustand dieses Kanals: Er erfindet keine Studien, er verdichtet sie.</p>
+<div class="meta">
+<span>25. August 2026</span><span>91 Videos, 618 Behauptungen</span>
+<span>12 Prozent mit benannter Quelle</span>
+<span><a href="2026-08-18_organoid-datacenter.html">Hauptdossier</a></span>
+<span><a href="2026-08-23_bewusstsein-fuenf-episoden.html">Vertiefung Bewusstsein</a></span>
+</div>
+</header>
+<p>Zusammenführung vom 25. August 2026. Grundlage sind die 618 extrahierten Behauptungen aus 91 Videos (<code>research/claims.md</code>), die Verdikte des Hauptdossiers vom 18. August und die Episodenprüfung vom 23. August. Bewusstsein, das Thema mit der größten öffentlichen Aufmerksamkeit, ist mit 28 Behauptungen der kleinste Cluster im Korpus. Die übrigen 590 verteilen sich auf acht Blöcke, von denen vier bereits adversarial geprüft sind und vier noch nicht.</p>
+<p>Eine Zahl vorweg, weil sie für jeden Block gilt: Nur 12 Prozent der 618 Behauptungen nennen überhaupt eine Quelle. In den fünf zuletzt geprüften Episoden fällt im gesprochenen Text kein einziger Studien- oder Personenname. Prüfbarkeit hängt fast vollständig an den Links der Videobeschreibungen, die keiner konkreten Aussage zugeordnet sind.</p>
+<h2><span class="num">01</span>Die geprüften Blöcke</h2>
+<h3>KI-Vergleich</h3>
+<p>55 Behauptungen in 35 Videos, von September 2023 bis August 2026 ohne Unterbrechung. Die Stammthese lautet, Organoide schlügen KI beim Pong-Lernen, zuletzt in der Form „outperformed AI models at Pong for six years of testing". Ab März 2025 kommt eine engere Fassung dazu, wonach LLMs für Raum, Körper und Navigation nichts taugen, Organoide dagegen schon, und im Juni 2025 die Zuspitzung, menschliche Gehirne könnten nichtlinear denken, KI nicht. Eine einzige Gegenaussage findet sich im März 2025, Organoide könnten keine großen Datensätze abrufen wie KI. Es ist die einzige Stelle im Korpus, an der der Kanal gegen die eigene Erzählung argumentiert. Der adversariale Vergleich stellt dem gegenüber, was publiziert ist: ein Stichproben-Effizienzvorteil in einem eng gefassten Pong-Setting (Kagan et al. 2022, *Neuron*), gemessen von derselben Gruppe, die das kommerzielle Interesse hält, ohne unabhängige Replikation, und ohne Übertragung auf irgendeine andere Aufgabe. Die „six years of testing" machen aus einem Einzelbefund von 2022 einen Dauertest, den es nicht gibt. Die Roadmap-Papiere zur „organoid intelligence" aus Johns Hopkins (Morales Pantoja et al. 2023; Smirnova, Morales Pantoja und Hartung 2023) formulieren die Überlegenheitsthese selbst als Programm, nicht als Befund. Verdikt H6: <span class="chip v-part">teilbelegt</span>.</p>
+<h3>Lernen und Training</h3>
+<p>67 Behauptungen in 39 Videos. Der meistwiederholte Mechanismus ist Dopamin als Belohnung und ungeordnete Signale als Strafe. Darauf bauen immer neue Fähigkeiten auf: Spracherkennung und die Unterscheidung einzelner Sprecherstimmen (März und November 2025), Braille (September und November 2025), ältere Organoide, die jüngere trainieren (September 2025, August 2026), synthetische Neuronen mit Pawlow'schem Lernen, die nach dem Training physisch verändert bleiben (März 2026), und seit Juli 2026 postmortales Hirngewebe, das über eine Roboterhand Klavier lernt. Geprüft ist davon der Kern. DishBrain hat Kontrollbedingungen, und die Effekte sind statistisch deutlich. Lernen über Sitzungsgrenzen hinweg fehlt, was die Autoren selbst einräumen, und eine unabhängige Replikation durch eine Gruppe ohne kommerzielles Interesse liegt bis heute nicht vor, was bei einem Feld dieser Sichtbarkeit auffällt. Die Ableger, also Braille, Sprache und Klavier, hängen sämtlich an unbenannten Quellen. Verdikt H2: <span class="chip v-part">teilbelegt</span>, wobei das Verdikt den Pong-Kern betrifft und nicht die Ableger.</p>
+<h3>Markt und Kommerzialisierung</h3>
+<p>63 Behauptungen in 38 Videos, der am besten prüfbare Block, weil er harte Zahlen nennt und diese über die Zeit stabil bleiben. Der CL1 von Cortical Labs kostet rund 30.000 Dollar, Final Spark verlangt 500 Dollar im Monat für den Fernzugriff auf 16 Organoide pro Chip, hält nach eigenen Angaben 3.000 Organoide in der Anlage, und von 34 Universitäten, die Zugang angefragt haben, bekamen ihn acht. Seit März 2026 kommt die These dazu, Cortical Labs baue zwei Rechenzentren mit menschlichem Hirngewebe. Der adversariale Befund bestätigt die Infrastruktur und verneint den Nutzen. Dass die Geräte käuflich sind und in Rechenzentren laufen, ist sehr wahrscheinlich richtig. Dass sie irgendeine Rechenaufgabe außerhalb selbstdefinierter Benchmarks lösen, ist unbelegt. Verdikt H1: <span class="chip v-part">teilbelegt</span>. Angekommen ist die Kaufmöglichkeit, nicht der Grund zu kaufen.</p>
+<h3>Energie</h3>
+<p>18 Behauptungen in 14 Videos, und der Block, in dem die Zahlen am deutlichsten driften. Im Mai 2024 heißt es „million times less power hungry", im August 2024 „approximately 1000 times less energy", danach bleibt der Vorteil überwiegend unquantifiziert. Der Faktor fällt also um drei Größenordnungen, ohne dass der Kanal das je benennt. Dazu kommen das menschliche Gehirn mit 10 bis 20 Watt und der Vergleich eines geplanten OpenAI-Rechenzentrums mit dem Verbrauch Indiens. Die Prüfung am Gerät dreht das Bild um. Der Faktor „eine Million" steht in keiner Primärquelle. Ein CL1-Rack zieht gemessen 850 bis 1.000 Watt, und mit den belegten Werten, 24 Millionen Neuronen pro Rack bei 925 Watt, einem Spike pro Neuron und Sekunde und einer nutzbaren Operation pro Spike, kostet die biologische Operation 3,9 × 10⁻⁵ Joule gegen 7,0 × 10⁻¹³ Joule beim GPU-Beschleuniger. Das ist ein Faktor von etwa 5,5 × 10⁷ zuungunsten der Biologie. Verdikt H3: <span class="chip v-no">unbelegt</span> in der verbreiteten Form. Plausibel bleibt ein Effizienzargument auf der Ebene der reinen Signalverarbeitung, aber heutige Geräte messen in die Gegenrichtung.</p>
+<h3>Bewusstsein</h3>
+<p>28 Behauptungen, der kleinste und zugleich am tiefsten geprüfte Block. Das Hauptdossier setzt H5, Evidenz für Nozizeption oder Schmerz, auf <span class="chip v-no">unbelegt</span>, weil keine Primärstudie Nozizeption zeigt und die US-Akademien Schmerzempfinden auf absehbare Zeit für äußerst unwahrscheinlich halten. Das Verdikt stützt sich auf ein Strukturargument, das Fehlen von Peripherie, Rückenmark und Thalamus, nicht auf eine negative Messung. H7, die Entscheidungsreife von Moralstatus und Recht, steht ebenfalls auf <span class="chip v-no">unbelegt</span>, weil die juristische Analyse zwar präzise ist, ihre empirische Voraussetzung aber nicht erfüllt. Die Vertiefung vom 23. August ergänzt den rhetorischen Befund: Der Kanal behauptet Bewusstsein an keiner Stelle explizit und verneint es mehrfach, die Wirkung entsteht über Wortwahl und Satzreihenfolge, und die Dichte der Bewusstseinsvokabeln hat sich seit 2023 verdreifacht, während die Absicherungsquote direkt an der Behauptung konstant blieb.</p>
+<h2><span class="num">02</span>Die ungeprüften Blöcke</h2>
+<h3>Lebensdauer und Vaskularisierung</h3>
+<p>63 Behauptungen in 37 Videos, und kein Verdikt, aber der auffälligste Widerspruch im Korpus. Genannt werden 60 bis 90 Tage, rund 100 Tage, fünf Monate, sechs Monate, zehn Monate, 10 bis 14 Monate, 300 Tage, „ein Jahr oder mehr" und fünf Jahre. Der Maximalwert wächst von fünf Monaten im Oktober 2023 auf fünf Jahre ab November 2025, und der Kanal korrigiert keine der früheren Angaben je. Vermutlich vermischen sich hier typische Lebensdauer, Laborrekord und Firmenangabe, aber genau diese Unterscheidung trifft der Kanal nie, womit der Block der Musterfall für die Zahlen-Regel des Protokolls ist: keine Definition, kein Nenner, kein Zeitraum. Im Juli 2026 kommt die prüfwürdigste Einzelbehauptung dazu, ein fünf Jahre altes Organoid zeige Protein- und Genexpression wie ein fünfjähriges Kind.</p>
+<h3>Chimären und humanisierte Tiere</h3>
+<p>65 Behauptungen, damit nominell der zweitgrößte Block überhaupt, und komplett unverdiktet. Menschliche Organoide in Mäusen und Ratten, Vaskularisierung über Hühnerembryonen, chimäre Gehirne aus Zellen verschiedener Organismen, und humanisierte Mäuse, die „smarter" seien. Zur letzten Aussage gibt die Episodenprüfung vom 23. August eine Vorwarnung mit: Die mutmaßliche Quelle (Han et al. 2013) betrifft Gliazellen statt Neuronen und eine aufgabenspezifische Gedächtnisverbesserung statt allgemeiner Intelligenz. Wenn dieses Muster den Block trägt, wiederholt sich hier die Verdichtungslogik der anderen Blöcke an ethisch schwererem Material.</p>
+<h3>Medizin und Therapie</h3>
+<p>49 Behauptungen, ungeprüft. Parkinson-Ansätze, Schlaganfallerholung nach 180 Tagen im Mausmodell, Hirnimplantate am Menschen, und bionische Augen samt dem Hinweis, dass frühe Empfänger nach der Insolvenz des Anbieters ihr Sehvermögen verloren. Der Insolvenzfall sticht heraus, weil er die seltene Kanalaussage mit einem konkreten, datierbaren Ereignis dahinter ist und sich deshalb schnell verifizieren ließe. Der Block hat außerdem eine andere Fehlerrichtung als der Rest des Korpus: Hier würde eine Verdichtung nicht Bewusstsein suggerieren, sondern Therapiehoffnung.</p>
+<h3>Militär und Staat</h3>
+<p>Vier Behauptungen in drei Videos, alle vom September 2024. DARPA forsche seit 2012 an Organoiden auf Chips, und das australische Militär habe die Arbeit von Cortical Labs finanziert. Der kleinste Block, aber inhaltlich schwer, denn eine Militärfinanzierung der Firma, deren Sentienz-Kommunikation das Hauptdossier als Interessenzitat einstuft, wäre für die Interessenlage-Analyse direkt relevant. Nichts davon ist bisher an Primärquellen gehalten worden.</p>
+<h3>Postmortales Gewebe</h3>
+<p>Der jüngste Themenstrang, erst seit Juli 2026 im Korpus und im bestehenden Dossier gar nicht vorhanden. Ein postmortaler menschlicher Kortex-Schnitt, der über eine Schnittstelle Klavier lernt, ein 24 Stunden am Leben gehaltenes postmortales Gehirn, Hirngewebe, das wochenlang außerhalb des Körpers überlebt. Die Behauptungen laufen quer zu den bestehenden Hypothesen H1 bis H7 und bringen eine eigene Begriffsverschiebung mit, nämlich die vom toten zum lernenden Gewebe, die die Episodenprüfung bereits als nicht prüfbar markiert hat, weil keine der Klavier-Fassungen eine auffindbare Quelle nennt.</p>
+<h2><span class="num">03</span>Gesamtbild</h2>
+<p>Über alle Blöcke hinweg wiederholt sich dieselbe Mechanik in drei Schritten. Am Anfang steht ein echter Befund mit Evidenzgrad A oder B, etwa DishBrain, die optischen Vesikel bei Gabriel et al. 2021 oder die 800.000 Neuronen des CL1. Dann folgt die Verdichtung in Alltagssprache, aus taktiler Kodierung wird Fühlen, aus einem Stichprobenvorteil wird Überlegenheit, aus einem Laborrekord die normale Lebensdauer. Am Ende steht die Wiederholung über Jahre, in der die Superlative driften, ohne dass eine frühere Angabe je zurückgenommen wird. Beim Energiefaktor sind es sechs, dann drei, dann null benannte Größenordnungen, bei der Lebensdauer wächst der Spitzenwert von fünf Monaten auf fünf Jahre.</p>
+<p>Bemerkenswert ist, was dabei nicht passiert. Von den vier verdikteten Blöcken landet keiner auf belegt, aber auch keiner auf frei erfunden. Teilbelegt ist der Normalzustand dieses Kanals. Er erfindet keine Studien, er verdichtet sie, und er verlässt sich darauf, dass die Absicherung irgendwo im Video steht, während die Dramaturgie in eine andere Richtung zeigt. Für die Prüfpraxis heißt das, was schon die Bewusstseins-Vertiefung festgehalten hat: Die Zitate stimmen einzeln, prüfen muss man die Reihenfolge, und bei den Zahlen die Nenner.</p>
+<p>Für die nächste Runde stehen damit fünf Kandidaten an, geordnet nach erwartbarem Ertrag. Die Lebensdauer zuerst, weil sich die widersprüchlichen Angaben direkt am Primärmaterial nachrechnen lassen. Danach Chimären und humanisierte Tiere wegen des Umfangs, Medizin und Therapie wegen des schnell verifizierbaren Insolvenzfalls, Militär und Staat wegen der Interessenlage von Cortical Labs, und das postmortale Gewebe, weil es der einzige Strang ist, den das Dossier noch überhaupt nicht kennt.</p>
+<h2><span class="num">04</span>Quellen und Material</h2>
+<p>Verdikte und Messwerte aus dem Hauptdossier: <a href="2026-08-18_organoid-datacenter.md">2026-08-18_organoid-datacenter.md</a>, dort auch Kagan et al. 2022, Morales Pantoja et al. 2023, Smirnova, Morales Pantoja und Hartung 2023, Gabriel et al. 2021 sowie die CL1-Leistungsmessung. Rhetorik-Befunde aus der Vertiefung: <a href="2026-08-23_bewusstsein-fuenf-episoden.md">2026-08-23_bewusstsein-fuenf-episoden.md</a>. Claim-Basis: <code>research/claims.md</code>, 618 Behauptungen, Extraktion mechanisch, Evidenzgrad der Quelle durchgehend D.</p>
+</div>
+
+<script>
+(function(){
+  var root=document.documentElement, btn=document.getElementById('themeToggle');
+  var stored=null;
+  try{stored=localStorage.getItem('oi-theme');}catch(e){}
+  if(stored){root.setAttribute('data-theme',stored);}
+  function sync(){btn.textContent=root.getAttribute('data-theme')==='dark'?'Hell':'Dunkel';}
+  sync();
+  btn.addEventListener('click',function(){
+    var next=root.getAttribute('data-theme')==='dark'?'light':'dark';
+    root.setAttribute('data-theme',next);
+    try{localStorage.setItem('oi-theme',next);}catch(e){}
+    sync();
+  });
+})();
+
+(function(){
+  var els={
+    n:document.getElementById('sNeurons'), r:document.getElementById('sRate'),
+    o:document.getElementById('sOps'), w:document.getElementById('sWatt'),
+    g:document.getElementById('sGpu')
+  };
+  var out={
+    n:document.getElementById('vNeurons'), r:document.getElementById('vRate'),
+    o:document.getElementById('vOps'), w:document.getElementById('vWatt'),
+    g:document.getElementById('vGpu'),
+    bio:document.getElementById('oBio'), si:document.getElementById('oSi'),
+    ratio:document.getElementById('oRatio'), line:document.getElementById('verdictLine')
+  };
+  var GPU_W=700;
+
+  function sci(x){
+    if(!isFinite(x)||x===0) return '0';
+    var e=Math.floor(Math.log10(Math.abs(x)));
+    var m=x/Math.pow(10,e);
+    var sup='⁰¹²³⁴⁵⁶⁷⁸⁹';
+    var es=String(Math.abs(e)).split('').map(function(d){return sup[+d];}).join('');
+    return m.toFixed(1).replace('.',',')+' × 10'+(e<0?'⁻':'')+es;
+  }
+  function human(x){
+    if(x>=1e9) return (x/1e9).toFixed(1).replace('.',',')+' Mrd.';
+    if(x>=1e6) return (x/1e6).toFixed(0)+' Mio.';
+    if(x>=1e3) return (x/1e3).toFixed(0)+' Tsd.';
+    return x.toFixed(0);
+  }
+  function pow10(sl){return Math.pow(10,parseFloat(sl.value));}
+
+  function update(){
+    var neurons=pow10(els.n), rate=pow10(els.r), ops=pow10(els.o);
+    var watt=parseFloat(els.w.value), gpuOps=pow10(els.g);
+
+    out.n.textContent=human(neurons);
+    out.r.textContent=rate<10?rate.toFixed(2).replace('.',',')+' Hz':rate.toFixed(0)+' Hz';
+    out.o.textContent=ops<10?ops.toFixed(1).replace('.',','):human(ops);
+    out.w.textContent=Math.round(watt)+' W';
+    out.g.textContent=sci(gpuOps);
+
+    var bioOps=neurons*rate*ops;
+    var bioJ=watt/bioOps;
+    var siJ=GPU_W/gpuOps;
+    var ratio=bioJ/siJ;
+
+    out.bio.textContent=sci(bioJ)+' J';
+    out.si.textContent=sci(siJ)+' J';
+
+    if(ratio>1){
+      out.ratio.textContent=sci(ratio)+' × schlechter';
+      out.ratio.className='v bad';
+      out.line.innerHTML='Bei diesen Werten braucht das biologische Substrat <b>'+sci(ratio)+
+        ' mal mehr</b> Energie pro Operation als der Vergleichsbeschleuniger. Um gleichzuziehen, müsste das Produkt aus Neuronenzahl, Spikerate und Operationen pro Spike auf <b>'+
+        sci(watt/siJ)+' Operationen pro Sekunde</b> steigen.';
+    } else {
+      out.ratio.textContent=sci(1/ratio)+' × besser';
+      out.ratio.className='v good';
+      out.line.innerHTML='Bei diesen Werten wäre das biologische Substrat <b>'+sci(1/ratio)+
+        ' mal günstiger</b> pro Operation. Diese Konfiguration ist mit heutiger Hardware nicht erreicht; sie zeigt, was gelten müsste.';
+    }
+  }
+  Object.keys(els).forEach(function(k){els[k].addEventListener('input',update);});
+  update();
+})();
+</script>
+</body>
+</html>
