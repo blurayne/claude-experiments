@@ -576,6 +576,13 @@ h1, h2, .section-page h1, .section-banner h2, .entry-page h1 {
   width: 210mm; break-after: page; page-break-after: always;
 }
 .page:last-child { break-after: auto; page-break-after: auto; }
+/* Folio, bottom centre. The .page box is 297mm tall with 15mm padding, so an
+   absolutely-positioned element sits inside that padding rather than fighting it. */
+.page { position: relative; }
+.pageno {
+  position: absolute; left: 0; right: 0; bottom: 6mm;
+  text-align: center; font-size: 9pt; color: #8a7a55;
+}
 /* Cover: full-bleed A4, artwork at full page width, microbe pattern behind the
    bands it leaves above and below. padding:0 overrides the text pages' margin —
    a cover with a white gutter is not a cover. */
@@ -588,7 +595,7 @@ h1, h2, .section-page h1, .section-banner h2, .entry-page h1 {
 /* near-A4 artwork: fill the page and let the few percent of overflow crop */
 .title-page.bleed { padding: 0; background: none; }
 .title-page.bleed .cover {
-  width: 210mm; height: 297mm; object-fit: cover; object-position: center;
+  width: 210mm; height: 297mm; object-fit: fill;
 }
 .title-page .title-strip {
   width: 210mm; text-align: center; padding: 5mm 12mm 7mm;
@@ -915,6 +922,10 @@ def render_title_page(lang: str) -> str:
     if not cover:
         return ""
     if full_bleed:
+        # Stretched to exactly A4 (object-fit:fill), not cropped: both covers sit
+        # within 1% of A4, so the distortion is imperceptible, and stretching keeps
+        # every edge element — the speech bubbles reach into the corners and a crop
+        # clips them.
         return (
             f'<div class="page title-page bleed">'
             f'<img class="cover" src="{html.escape(cover, quote=True)}">'
@@ -929,6 +940,46 @@ def render_title_page(lang: str) -> str:
         f'<p class="t-note">{esc(tx["note"])}</p></div>'
         f'</div>'
     )
+
+
+def number_pages(pages: list[str]) -> list[str]:
+    """Stamp a folio on every page except the covers and the coloring pages.
+
+    Numbered *after* the page list is final and by physical position, so the folio
+    always equals the PDF page you would type into a viewer's "go to page" box.
+    Deriving it from a running counter during assembly would drift the moment a
+    page is added, skipped, or reordered — and a book whose printed numbers do not
+    match its pages is worse than one with no numbers.
+
+    Coloring pages are skipped because they are printed and coloured in: the folio
+    would sit in the artwork. The covers are skipped for the obvious reason.
+    """
+    out = []
+    for i, page in enumerate(pages, start=1):
+        head = page[:120]
+        if "coloring-page" in head or "title-page" in head:
+            out.append(page)
+            continue
+        cut = page.index(">") + 1     # just inside the opening <div class="page ...">
+        out.append(f'{page[:cut]}<div class="pageno">{i}</div>{page[cut:]}')
+    return out
+
+
+def render_back_cover(lang: str) -> str:
+    """Closing page. Same fitting rule as the front cover, same reasoning."""
+    src = None
+    for cand in [f"book-assets/backcover-{lang}{e}" for e in (".jpg", ".jpeg", ".png")] + \
+                [f"book-assets/backcover{e}" for e in (".jpg", ".jpeg", ".png")]:
+        if (ROOT / cand).is_file():
+            src = cand
+            break
+    if not src:
+        return ""
+    img = shrink_image(src, 1400)
+    if not img:
+        return ""
+    return (f'<div class="page title-page bleed back-cover">'
+            f'<img class="cover" src="{html.escape(img, quote=True)}"></div>')
 
 
 def render_section_page(set_: dict, lang: str) -> str:
@@ -1020,6 +1071,15 @@ def build_book(sets: list[dict], lang: str) -> tuple[str, int, list[str], list[s
             if colpage:
                 pages.append(colpage)
                 expected += 1
+
+    back = render_back_cover(lang)
+    if back:
+        pages.append(back)
+        expected += 1
+    else:
+        missing.append("back cover: book-assets/backcover.* not found")
+
+    pages = number_pages(pages)
 
     body = "\n".join(pages)
     doc = (

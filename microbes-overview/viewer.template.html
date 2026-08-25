@@ -2733,7 +2733,13 @@ $('#lbNav').addEventListener('change',e=>{ state.lbNav=e.target.checked; save();
 // inside a user gesture, so restoring it on load is impossible by design.
 const FS_OK = !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen);
 function fsElement(){ return document.fullscreenElement || document.webkitFullscreenElement || null; }
-function syncFs(){ const c=$('#fullscreen'); if(c) c.checked = !!fsElement(); }
+function syncFs(){
+  const c=$('#fullscreen'); if(c) c.checked = !!fsElement();
+  // Esc and F11 exit without going through our handler; drop the lock there too
+  if(!fsElement()){
+    try{ screen.orientation && screen.orientation.unlock && screen.orientation.unlock(); }catch(_){}
+  }
+}
 if(FS_OK){
   $('#fsRow').hidden = false;
   $('#fullscreen').addEventListener('change', async e=>{
@@ -2744,7 +2750,21 @@ if(FS_OK){
       if(e.target.checked){
         const el=document.documentElement;
         await (el.requestFullscreen ? el.requestFullscreen({navigationUI:'hide'}) : el.webkitRequestFullscreen());
+        // Android hands a fullscreen page to the device's rotation preference and
+        // can flip a phone to landscape on the way in, which is jarring for a page
+        // that reads as a column. Pin whichever orientation the reader was already
+        // holding — not a hardcoded 'portrait', which would be wrong on a tablet
+        // used in landscape. lock() only works inside fullscreen, rejects on
+        // desktop Firefox and is absent on iOS Safari, so failure is expected and
+        // ignored: the worst case is the behaviour we have today.
+        try{
+          const cur=(screen.orientation&&screen.orientation.type)||'';
+          if(cur && screen.orientation.lock) await screen.orientation.lock(cur);
+        }catch(_){}
       }else{
+        // release before leaving, or the lock outlives the fullscreen session and
+        // the device stops rotating for a page that is no longer fullscreen
+        try{ screen.orientation && screen.orientation.unlock && screen.orientation.unlock(); }catch(_){}
         await (document.exitFullscreen ? document.exitFullscreen() : document.webkitExitFullscreen());
       }
     }catch(err){
