@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bewusstsein im Kanal: fünf Episoden, geprüft</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080b11; --bg-2:#0d1219; --bg-3:#121a24; --panel:#0f151e;
+  --line:#1e2a38; --line-2:#2a3a4d;
+  --fg:#dce6f0; --fg-2:#93a4b8; --fg-3:#5f7186;
+  --teal:#3fd8c4; --teal-dim:#1b6f66; --amber:#f0a63c; --amber-dim:#7a5219;
+  --magenta:#d95d9a; --violet:#8b7ff0; --red:#e05c62; --green:#4fc98a;
+  --grid:rgba(63,216,196,.055); --shadow:rgba(0,0,0,.5);
+}
+[data-theme="light"]{
+  --bg:#f4f6f8; --bg-2:#eaeef2; --bg-3:#e0e6ec; --panel:#ffffff;
+  --line:#d3dce4; --line-2:#b9c6d2;
+  --fg:#141c26; --fg-2:#42566b; --fg-3:#6d8298;
+  --teal:#0d8478; --teal-dim:#8fd6cd; --amber:#a86a10; --amber-dim:#e8cfa4;
+  --magenta:#a8306a; --violet:#5647c4; --red:#b3383e; --green:#207d54;
+  --grid:rgba(13,132,120,.06); --shadow:rgba(20,40,60,.12);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--bg); color:var(--fg);
+  font-family:'Space Grotesk',ui-sans-serif,system-ui,sans-serif;
+  font-size:17px; line-height:1.65;
+  background-image:
+    linear-gradient(var(--grid) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:44px 44px;
+  transition:background-color .25s,color .25s;
+}
+.wrap{max-width:960px;margin:0 auto;padding:0 24px 120px}
+code,.mono,td.num{font-family:'IBM Plex Mono',ui-monospace,monospace}
+
+/* ---------- header ---------- */
+header{padding:72px 0 40px;position:relative}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--teal);margin-bottom:18px}
+h1{font-size:clamp(30px,5.2vw,50px);line-height:1.08;margin:0 0 18px;font-weight:700;letter-spacing:-.02em}
+.dek{font-size:19px;color:var(--fg-2);max-width:62ch;margin:0 0 26px}
+.meta{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--fg-3);
+  display:flex;flex-wrap:wrap;gap:8px 20px;padding-top:18px;border-top:1px solid var(--line)}
+.meta a{color:var(--fg-2)}
+
+#themeToggle{
+  position:fixed;top:18px;right:18px;z-index:50;
+  background:var(--panel);color:var(--fg-2);border:1px solid var(--line-2);
+  border-radius:999px;padding:8px 15px;cursor:pointer;
+  font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.09em;
+  text-transform:uppercase;box-shadow:0 3px 14px var(--shadow);transition:.2s;
+}
+#themeToggle:hover{color:var(--teal);border-color:var(--teal-dim)}
+
+/* ---------- structure ---------- */
+h2{font-size:27px;margin:64px 0 6px;letter-spacing:-.015em;line-height:1.2}
+h2 .num{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--teal);
+  display:block;letter-spacing:.14em;margin-bottom:8px;font-weight:500}
+h3{font-size:19.5px;margin:38px 0 10px;color:var(--fg)}
+h4{font-size:15px;margin:26px 0 6px;font-family:'IBM Plex Mono',monospace;
+  letter-spacing:.05em;color:var(--fg-2);text-transform:uppercase}
+p{margin:0 0 17px}
+a{color:var(--teal);text-decoration:none;border-bottom:1px solid var(--teal-dim)}
+a:hover{border-bottom-color:var(--teal)}
+strong{font-weight:600;color:var(--fg)}
+hr{border:0;border-top:1px solid var(--line);margin:56px 0}
+.lede{font-size:19px;color:var(--fg-2)}
+
+/* ---------- chips ---------- */
+.chip{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:11px;
+  font-weight:600;letter-spacing:.07em;padding:2px 7px;border-radius:4px;
+  vertical-align:.08em;white-space:nowrap;border:1px solid}
+.g-A{color:var(--teal);border-color:var(--teal-dim);background:color-mix(in srgb,var(--teal) 11%,transparent)}
+.g-B{color:var(--violet);border-color:var(--violet);background:color-mix(in srgb,var(--violet) 11%,transparent)}
+.g-C{color:var(--amber);border-color:var(--amber-dim);background:color-mix(in srgb,var(--amber) 11%,transparent)}
+.g-D{color:var(--magenta);border-color:var(--magenta);background:color-mix(in srgb,var(--magenta) 11%,transparent)}
+.v-ok{color:var(--green);border-color:var(--green);background:color-mix(in srgb,var(--green) 12%,transparent)}
+.v-part{color:var(--amber);border-color:var(--amber-dim);background:color-mix(in srgb,var(--amber) 12%,transparent)}
+.v-no{color:var(--red);border-color:var(--red);background:color-mix(in srgb,var(--red) 12%,transparent)}
+.v-na{color:var(--fg-3);border-color:var(--line-2);background:transparent}
+
+.legend{display:flex;flex-wrap:wrap;gap:14px;padding:16px 18px;background:var(--panel);
+  border:1px solid var(--line);border-radius:10px;margin:22px 0 0;font-size:14px;color:var(--fg-2)}
+.legend div{display:flex;align-items:center;gap:8px}
+
+/* ---------- verdict cards ---------- */
+.verdicts{display:grid;gap:12px;margin:30px 0 0}
+.vc{background:var(--panel);border:1px solid var(--line);border-radius:11px;
+  padding:17px 20px;display:grid;grid-template-columns:52px 1fr auto;gap:6px 16px;align-items:start}
+.vc:hover{border-color:var(--line-2)}
+.vc .h{font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600;color:var(--teal)}
+.vc .t{font-weight:500;font-size:16.5px}
+.vc .c{grid-column:2/-1;color:var(--fg-2);font-size:14.5px;line-height:1.55}
+@media(max-width:640px){.vc{grid-template-columns:44px 1fr}.vc>span.vchip{grid-column:2}}
+
+/* ---------- duel panel ---------- */
+.duel{display:grid;grid-template-columns:1fr 1fr;gap:0;margin:26px 0;
+  border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel)}
+.duel>div{padding:20px 22px}
+.duel>div:first-child{border-right:1px solid var(--line)}
+.duel h5{margin:0 0 4px;font-size:15.5px}
+.duel .who{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--fg-3);
+  letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px}
+.duel blockquote{margin:0 0 13px;padding-left:13px;border-left:2px solid var(--line-2);
+  font-size:14.5px;color:var(--fg-2);line-height:1.55;font-style:normal}
+.pruef{margin-top:14px;padding-top:13px;border-top:1px dashed var(--line-2);
+  font-size:13.5px;color:var(--fg-2)}
+.pruef b{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--teal);display:block;margin-bottom:4px}
+@media(max-width:720px){.duel{grid-template-columns:1fr}
+  .duel>div:first-child{border-right:0;border-bottom:1px solid var(--line)}}
+
+/* ---------- callout ---------- */
+.callout{background:var(--bg-2);border:1px solid var(--line);border-left:3px solid var(--amber);
+  border-radius:0 10px 10px 0;padding:18px 22px;margin:26px 0;font-size:15.5px;color:var(--fg-2)}
+.callout.teal{border-left-color:var(--teal)}
+.callout b{color:var(--fg)}
+
+/* ---------- figures ---------- */
+figure{margin:32px 0;background:var(--panel);border:1px solid var(--line);
+  border-radius:12px;padding:22px}
+figure svg{display:block;width:100%;height:auto;overflow:visible}
+figcaption{font-size:13.5px;color:var(--fg-3);margin-top:16px;padding-top:13px;
+  border-top:1px solid var(--line);line-height:1.55}
+.svg-lbl{font-family:'IBM Plex Mono',monospace;font-size:11px;fill:var(--fg-2)}
+.svg-lbl-s{font-family:'IBM Plex Mono',monospace;font-size:9.5px;fill:var(--fg-3)}
+.svg-ttl{font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;fill:var(--fg)}
+.axis{stroke:var(--line-2);stroke-width:1}
+.gridline{stroke:var(--line);stroke-width:1;stroke-dasharray:2 4}
+
+/* ---------- model ---------- */
+.model{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  padding:24px;margin:30px 0}
+.model .hd{display:flex;justify-content:space-between;align-items:baseline;
+  flex-wrap:wrap;gap:10px;margin-bottom:6px}
+.model h3{margin:0;font-size:18px}
+.disclaimer{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--amber);border:1px solid var(--amber-dim);
+  padding:3px 8px;border-radius:4px}
+.sliders{display:grid;gap:19px;margin:22px 0 6px}
+.sl label{display:flex;justify-content:space-between;align-items:baseline;
+  font-size:14.5px;gap:12px;margin-bottom:7px}
+.sl .val{font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--teal);font-weight:600}
+.sl .src{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--fg-3);
+  display:block;margin-top:5px;letter-spacing:.03em}
+.sl .src.set{color:var(--amber)}
+input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:4px;
+  background:var(--bg-3);border-radius:3px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:17px;height:17px;
+  border-radius:50%;background:var(--teal);cursor:pointer;border:2px solid var(--bg)}
+input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;
+  background:var(--teal);cursor:pointer;border:2px solid var(--bg)}
+.readout{margin-top:24px;padding-top:20px;border-top:1px solid var(--line);
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:18px}
+.ro .k{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--fg-3);margin-bottom:5px}
+.ro .v{font-family:'IBM Plex Mono',monospace;font-size:21px;font-weight:600;color:var(--fg)}
+.ro .v.bad{color:var(--red)} .ro .v.good{color:var(--green)}
+#verdictLine{margin-top:20px;padding:14px 16px;background:var(--bg-2);
+  border-radius:8px;font-size:15px;color:var(--fg-2);border:1px solid var(--line)}
+
+/* ---------- tables ---------- */
+.tw{overflow-x:auto;margin:26px 0;border:1px solid var(--line);border-radius:11px;background:var(--panel)}
+table{width:100%;border-collapse:collapse;font-size:14.5px}
+th{text-align:left;padding:13px 15px;background:var(--bg-2);color:var(--fg-2);
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;font-weight:600;border-bottom:1px solid var(--line-2);white-space:nowrap}
+td{padding:12px 15px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.5}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--bg-2)}
+
+/* ---------- lists ---------- */
+ul.rest{list-style:none;padding:0;margin:24px 0}
+ul.rest li{padding:14px 0 14px 26px;border-bottom:1px solid var(--line);position:relative;
+  color:var(--fg-2);font-size:15.5px}
+ul.rest li:before{content:"○";position:absolute;left:2px;top:14px;color:var(--amber);font-size:13px}
+ul.rest li b{color:var(--fg)}
+ul.plain{padding-left:22px;color:var(--fg-2)}
+ul.plain li{margin-bottom:9px}
+
+.srcgrp{margin:28px 0}
+.srcgrp ol{padding-left:22px;font-size:14.5px;color:var(--fg-2)}
+.srcgrp li{margin-bottom:12px;line-height:1.55}
+footer{margin-top:72px;padding-top:26px;border-top:1px solid var(--line);
+  font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--fg-3)}
+</style>
+</head>
+<body>
+
+<button id="themeToggle">Hell</button>
+<div class="wrap">
+<header>
+<div class="eyebrow">Vertiefung / Organoid-Dossier</div>
+<h1>Bewusstsein im Kanal: fünf Episoden, geprüft</h1>
+<p class="dek">Der Kanal behauptet nicht, dass Organoide bewusst sind. Er verneint es ausdrücklich. Die Wirkung entsteht trotzdem, und zwar unterhalb der Behauptungsebene.</p>
+<div class="meta">
+<span>23. August 2026</span><span>Gabriel Torch, 68.200 Abonnenten</span>
+<span>5 Episoden, 113 Einzelaussagen</span><span>Korpuslauf über 96 Transkripte</span>
+<span><a href="2026-08-18_organoid-datacenter.html">Hauptdossier</a></span>
+</div>
+</header>
+
+<h2><span class="num">01</span>Kurzbefund</h2>
+<p class="lede">Vier Befunde tragen die Auswertung.</p>
+<p><strong>Der Kanal nennt keine Quellen im gesprochenen Text.</strong> In keinem der fünf Videos fällt ein Studien- oder Personenname. Zuschreibungen laufen über „some researchers“, „researchers out of MIT“, „psychologists“. Die Belege stehen als elf bis zwanzig Links in der Videobeschreibung, ohne Zuordnung zu einer konkreten Aussage.</p>
+<p><strong>Die Absicherung zerfällt innerhalb einzelner Videos.</strong> In „Cognition May Be Analog Computation“ steht das „may“ des Titels bei Sekunde null, wird bei Sekunde sechs durch ein „actually“ aufgeweicht, ist bei 1:06 zum Indikativ geworden und bei 2:13 abgeschlossene Tatsache. Haltbarkeit etwa eine Minute.</p>
+<p><strong>Reaktion wird zu Empfindung.</strong> Taktile Kodierung in einer Roboterhand wird zu „capable of feeling through it“. Aversives Bakterienverhalten wird zu „an object that hurts them“. Nozizeptive Reizleitung in einem Assembloid wird zu „testing pain“.</p>
+<p><strong>Der Kanal wird nicht unvorsichtiger.</strong> Die Dichte der Bewusstseinsvokabeln hat sich seit 2023 verdreifacht, die Rate der Absicherung direkt an der Behauptung ist über drei Jahre unverändert.</p>
+
+<h2><span class="num">02</span>Fünf Hypothesen, dreistufig verdiktet</h2>
+<div class="verdicts"><div class="vc"><div class="h">B1</div><div class="t">Der Kanal behauptet, Organoide seien bewusst oder empfindungsfähig.</div><span class="vchip chip v-no">unbelegt</span><div class="c">Das Gegenteil steht im Material. „This is not to say that brain organoids are definitely conscious“ (16.08., 00:53). „We have no measure for sentience or consciousness at all“ (16.08., 01:16). Zur Zombie-Deutung: „pretty reasonable“ (22.08., 02:24). Konfidenz hoch.</div></div><div class="vc"><div class="h">B2</div><div class="t">Die Verschärfung läuft über explizite Falschaussagen.</div><span class="vchip chip v-no">unbelegt</span><div class="c">Sie läuft über Wortwahl und Anordnung. Der Kanal referiert die Sentienz-Kontroverse um Kagan und Kollegen korrekt als Kontroverse und gibt zwei Sätze später den Inhalt in genau der alltagspsychologischen Sprache wieder, um die gestritten wurde. Konfidenz hoch.</div></div><div class="vc"><div class="h">B3</div><div class="t">Die Bewusstseinsrhetorik hat über die Jahre zugenommen.</div><span class="vchip chip v-ok">belegt</span><div class="c">Die Dichte steigt von 2,39 auf 7,45 Aussagen je 1000 Wörter. Beschränkt auf das dichteste Drittel jeder Periode bleibt ein Anstieg von 7,04 auf 14,43. Die Zunahme überlebt die Kontrolle auf Themenwahl. Konfidenz mittel bis hoch.</div></div><div class="vc"><div class="h">B4</div><div class="t">Mit der Menge sinkt die Sorgfalt.</div><span class="vchip chip v-no">unbelegt</span><div class="c">Diese Erwartung hält der Messung nicht stand. Dokumentweit gezählt fällt das Verhältnis von 2,54 auf 0,92 je Behauptung. Im Umkreis von 25 Wörtern gezählt liegt der Anteil unabgesicherter Aussagen über sieben Halbjahre bei 38, 40, 33, 38, 50, 37 und 33 Prozent. Kein Trend. Das dokumentweite Maß fällt im Nenner. Konfidenz mittel.</div></div><div class="vc"><div class="h">B5</div><div class="t">Die genannten Bewusstseinstests stützen die Titelthese.</div><span class="vchip chip v-no">unbelegt</span><div class="c">Der Marshmallow-Test misst Bedürfnisaufschub und war nie ein Bewusstseinstest. Das Argument der verschobenen Torpfosten setzt eine Prämisse voraus, die vom Kanal selbst stammt. Perturbational Complexity Index, Integrierte Informationstheorie und Global Workspace Theory kommen nicht vor. Konfidenz hoch.</div></div></div>
+<div class="legend">
+<div><span class="chip g-A">A</span> Messdaten</div><div><span class="chip g-B">B</span> Modellrechnung</div>
+<div><span class="chip g-C">C</span> Experteneinschätzung</div><div><span class="chip g-D">D</span> Interessenzitat</div>
+<div><span class="chip v-ok">belegt</span></div><div><span class="chip v-part">teilbelegt</span></div><div><span class="chip v-no">unbelegt</span></div>
+</div>
+
+<h2><span class="num">03</span>Menge steigt, Sorgfalt bleibt</h2>
+<p>Über 96 Transkripte und 78.123 Wörter steigt die Dichte von Aussagen über Innenperspektive deutlich. Der Anteil dieser Aussagen ohne Absicherung im Umkreis von 25 Wörtern bewegt sich seit 2023 zwischen 33 und 50 Prozent, ohne Richtung.</p>
+<svg viewBox="0 0 860 300" width="100%" role="img" aria-label="Dichte und Absicherung über sieben Halbjahre">
+<line x1="52" y1="248.0" x2="808" y2="248.0" stroke="var(--line)" stroke-width="1"/><text x="43" y="252.0" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--fg-3)">0</text><line x1="52" y1="192.5" x2="808" y2="192.5" stroke="var(--line)" stroke-width="1"/><text x="43" y="196.5" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--fg-3)">2</text><line x1="52" y1="137.0" x2="808" y2="137.0" stroke="var(--line)" stroke-width="1"/><text x="43" y="141.0" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--fg-3)">4</text><line x1="52" y1="81.5" x2="808" y2="81.5" stroke="var(--line)" stroke-width="1"/><text x="43" y="85.5" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--fg-3)">6</text><line x1="52" y1="26.0" x2="808" y2="26.0" stroke="var(--line)" stroke-width="1"/><text x="43" y="30.0" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--fg-3)">8</text><text x="817" y="252.0" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--amber)">0%</text><text x="817" y="196.5" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--amber)">25%</text><text x="817" y="141.0" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--amber)">50%</text><text x="817" y="85.5" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--amber)">75%</text><text x="817" y="30.0" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--amber)">100%</text><rect x="30.6" y="181.7" width="42.8" height="66.3" rx="2.5" fill="var(--teal)" opacity=".72"><title>2023 H2: 2.39 je 1000 Wörter</title></rect><text x="52.0" y="174.7" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--teal)">2.39</text><rect x="156.6" y="124.8" width="42.8" height="123.2" rx="2.5" fill="var(--teal)" opacity=".72"><title>2024 H1: 4.44 je 1000 Wörter</title></rect><text x="178.0" y="117.8" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--teal)">4.44</text><rect x="282.6" y="173.9" width="42.8" height="74.1" rx="2.5" fill="var(--teal)" opacity=".72"><title>2024 H2: 2.67 je 1000 Wörter</title></rect><text x="304.0" y="166.9" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--teal)">2.67</text><rect x="408.6" y="151.7" width="42.8" height="96.3" rx="2.5" fill="var(--teal)" opacity=".72"><title>2025 H1: 3.47 je 1000 Wörter</title></rect><text x="430.0" y="144.7" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--teal)">3.47</text><rect x="534.6" y="136.4" width="42.8" height="111.6" rx="2.5" fill="var(--teal)" opacity=".72"><title>2025 H2: 4.02 je 1000 Wörter</title></rect><text x="556.0" y="129.4" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--teal)">4.02</text><rect x="660.6" y="137.8" width="42.8" height="110.2" rx="2.5" fill="var(--teal)" opacity=".72"><title>2026 H1: 3.97 je 1000 Wörter</title></rect><text x="682.0" y="130.8" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--teal)">3.97</text><rect x="786.6" y="41.3" width="42.8" height="206.7" rx="2.5" fill="var(--teal)" opacity=".72"><title>2026 H2: 7.45 je 1000 Wörter</title></rect><text x="808.0" y="34.3" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--teal)">7.45</text>
+<polyline points="52.0,163.6 178.0,159.2 304.0,174.7 430.0,163.6 556.0,137.0 682.0,165.9 808.0,174.7" fill="none" stroke="var(--amber)" stroke-width="2.2" stroke-dasharray="6 4"/><circle cx="52.0" cy="163.6" r="4" fill="var(--bg)" stroke="var(--amber)" stroke-width="2"><title>2023 H2: 38% ohne Absicherung</title></circle><circle cx="178.0" cy="159.2" r="4" fill="var(--bg)" stroke="var(--amber)" stroke-width="2"><title>2024 H1: 40% ohne Absicherung</title></circle><circle cx="304.0" cy="174.7" r="4" fill="var(--bg)" stroke="var(--amber)" stroke-width="2"><title>2024 H2: 33% ohne Absicherung</title></circle><circle cx="430.0" cy="163.6" r="4" fill="var(--bg)" stroke="var(--amber)" stroke-width="2"><title>2025 H1: 38% ohne Absicherung</title></circle><circle cx="556.0" cy="137.0" r="4" fill="var(--bg)" stroke="var(--amber)" stroke-width="2"><title>2025 H2: 50% ohne Absicherung</title></circle><circle cx="682.0" cy="165.9" r="4" fill="var(--bg)" stroke="var(--amber)" stroke-width="2"><title>2026 H1: 37% ohne Absicherung</title></circle><circle cx="808.0" cy="174.7" r="4" fill="var(--bg)" stroke="var(--amber)" stroke-width="2"><title>2026 H2: 33% ohne Absicherung</title></circle><text x="52.0" y="270" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--fg-3)">2023 H2</text><text x="178.0" y="270" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--fg-3)">2024 H1</text><text x="304.0" y="270" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--fg-3)">2024 H2</text><text x="430.0" y="270" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--fg-3)">2025 H1</text><text x="556.0" y="270" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--fg-3)">2025 H2</text><text x="682.0" y="270" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--fg-3)">2026 H1</text><text x="808.0" y="270" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--fg-3)">2026 H2</text>
+<text x="52" y="292" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--teal)">Balken: Aussagen je 1000 Wörter</text>
+<text x="808" y="292" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--amber)">Linie: Anteil ohne Absicherung</text>
+</svg>
+<div class="callout">
+<p><strong>Methodische Warnung.</strong> Zählt man Absicherungen über das ganze Dokument statt an der Behauptung, fällt das Verhältnis in diesem Korpus von 2,54 auf 0,92 und legt einen Sorgfaltsverlust nahe, den die Proximitätsmessung nicht bestätigt. Der Abfall entsteht im Nenner, weil die Zahl der Behauptungen wächst. Für spätere Läufe gilt: Absicherungen an der Behauptung zählen, nicht im Dokument.</p>
+</div>
+
+<h2><span class="num">04</span>Das Muster: Suggestion durch Reihenfolge</h2>
+<p>Die Kritikalitäts-Episode vom 16. August zeigt die Konstruktion am klarsten. Drei Schritte, jeder einzeln vertretbar. Der erste meldet einen Befund, Forscher hätten Kritikalität in Hirnorganoiden gefunden (00:00). Der zweite ordnet ihn ein, Kritikalität sei „thought to be necessary for consciousness“ (00:38). Der dritte zieht die Verbindung, „they share qualities that we have in our own brains“ (00:57).</p>
+<p>Danach folgt die Verneinung, nicht dass Organoide sicher bewusst wären. Sie räumt den expliziten Schluss ab, nicht die Rahmung. Bei 05:09 kehrt diese als Prämisse zurück, und fünfundzwanzig Sekunden später steht der Appell, man müsse sich über „undue suffering“ Sorgen machen. Ohne den Satz bei 00:38 wäre das ein Bericht über Netzwerkdynamik.</p>
+
+<div class="duel">
+<div><h5>Was der Kanal sagt</h5><div class="who">16.08.2026, 00:38</div>
+<blockquote>Kritikalität sei „thought to be necessary for consciousness“, per anonymem Passiv als Lehrbuchwissen gerahmt.</blockquote>
+<div class="pruef"><b>Prüfvermerk</b>Eine Minderheitsposition. Als notwendige Bedingung behauptet sie in der Primärliteratur kaum jemand ohne Einschränkung.</div></div>
+<div><h5>Was die Literatur hergibt</h5><div class="who">Kritikalitätsdebatte</div>
+<blockquote>Unterabtastung kann Potenzgesetze in Lognormalverteilungen verwandeln und umgekehrt. Schwellwertsetzen allein kann scheinbare Skalenfreiheit erzeugen.</blockquote>
+<div class="pruef"><b>Prüfvermerk</b>In einer Untersuchung an zehn organotypischen Kulturen zeigten zwei klare kritische Lawinen. Das Video nennt weder Exponenten noch Elektrodenzahl noch eine Alternativerklärung.</div></div>
+</div>
+
+<h2><span class="num">05</span>Titel gegen Text</h2>
+<p>In vier von fünf Fällen behauptet der Titel mehr als der Text hergibt. „When Does A Meat Machine Become Someone?“ stellt eine Wann-Frage und unterstellt damit, dass der Übergang kommt. Die Antwort des Videos lautet sinngemäß, die Frage sei unentscheidbar. „Nothing Can Pass the Consciousness Test“ wird vom eigenen Video widerlegt, das mehrere Wesen vorführt, die Tests bestehen. „Criticality Found Emerging“ übernimmt ein Reifungsnarrativ aus einem Preprint-Titel, ohne zu sagen, ob eine Entwicklung über die Zeit gemessen wurde. „Cognition May Be Analog Computation“ ist der einzige Titel, der schwächer ist als sein Text.</p>
+
+<h2><span class="num">06</span>Was die Primärquellen hergeben</h2>
+<h3>Kagan und Kollegen 2022</h3>
+<p>Der Titel enthält das Wort „sentience“ tatsächlich. Die Autoren definieren es eng als Reagieren auf sensorische Eindrücke im Sinne von Friston und Kollegen, nicht als subjektives Erleben. Die Arbeit löste eine formelle Erwiderung in derselben Zeitschrift aus und eine Antwort der Autoren zur Semantik von Sentienz. Der Kanal gibt die Kontroverse korrekt wieder und übersetzt die Behauptung anschließend in „like things and dislike other things“, also in die Lesart, gegen die sich die Kritik richtete.</p>
+<h3>Gagliano und Kollegen 2016</h3>
+<p>Markel veröffentlichte 2020 in eLife eine verblindete Replikation mit größerer Stichprobe, die das Assoziationslernen in Erbsen nicht reproduzierte. Es folgten eine Erwiderung und eine Antwort. Weder Video noch Beschreibung erwähnen das.</p>
+<h3>Nebenbefund</h3>
+<p>Im Video vom 19. August deutet der Kanal bei 04:55 den p-Wert als Wahrscheinlichkeit, dass ein Ergebnis kein Zufall sei. Das ist die klassische Fehldeutung, und sie steht in einem Video über die Grenzen wissenschaftlicher Nachweisbarkeit. Dem steht gegenüber, dass derselbe Kanal Quantenmodelle des Bewusstseins als evidenzlos einstuft und bei den Hirnwellen der Organoide mitnennt, dass Delta dominiert und damit gerade kein Wachbewusstseinssignal vorliegt.</p>
+
+<h2><span class="num">07</span>Belegtabelle</h2>
+<p>Auszug mit den Aussagen größter Tragweite. Vollständig in <code>research/2026-08-23_bewusstsein-claims.md</code>.</p>
+<table>
+<thead><tr><th>Datum</th><th>Zeit</th><th>Aussage</th><th>Typ</th><th>Grad</th><th>Prüfstatus</th></tr></thead>
+<tbody><tr><td class="num">22.08.</td><td class="num">03:01</td><td>organoids „capable of feeling through“ eine Roboterhand</td><td>empirisch</td><td><span class="chip g-D">D</span></td><td><span class="chip v-na">nicht prüfbar</span></td></tr><tr><td class="num">22.08.</td><td class="num">01:27</td><td>„they like things and dislike other things“</td><td>empirisch</td><td><span class="chip g-D">D</span></td><td><span class="chip v-no">entkräftet</span></td></tr><tr><td class="num">22.08.</td><td class="num">00:57</td><td>KI vermehre sich „spontaneously without ever being asked to“</td><td>empirisch</td><td><span class="chip g-D">D</span></td><td><span class="chip v-part">teilentkräftet</span></td></tr><tr><td class="num">22.08.</td><td class="num">05:32</td><td>kein Verfahren, Leiden nachzuweisen</td><td>negativ</td><td><span class="chip g-D">D</span></td><td><span class="chip v-ok">bestätigt</span></td></tr><tr><td class="num">21.08.</td><td class="num">01:06</td><td>Hirnwelle „has a field for which it can influence the neurons“</td><td>empirisch</td><td><span class="chip g-D">D</span></td><td><span class="chip v-part">teilbestätigt</span></td></tr><tr><td class="num">21.08.</td><td class="num">05:12</td><td>Schleimpilze und Pilze seien „capable of cognition“</td><td>empirisch</td><td><span class="chip g-D">D</span></td><td><span class="chip v-part">teilentkräftet</span></td></tr><tr><td class="num">19.08.</td><td class="num">01:37</td><td>Marshmallow-Test in der Reihe der Bewusstseinstests</td><td>begrifflich</td><td><span class="chip g-D">D</span></td><td><span class="chip v-no">entkräftet</span></td></tr><tr><td class="num">19.08.</td><td class="num">02:21</td><td>Pflanzen sähen andere Pflanzen „by sight“</td><td>empirisch</td><td><span class="chip g-D">D</span></td><td><span class="chip v-no">entkräftet</span></td></tr><tr><td class="num">19.08.</td><td class="num">03:06</td><td>Bakterien meiden ein Objekt, „that hurts them“</td><td>empirisch</td><td><span class="chip g-D">D</span></td><td><span class="chip v-no">entkräftet</span></td></tr><tr><td class="num">19.08.</td><td class="num">04:55</td><td>p-Wert als 95-prozentige Wahrscheinlichkeit gedeutet</td><td>methodisch</td><td><span class="chip g-D">D</span></td><td><span class="chip v-no">entkräftet</span></td></tr><tr><td class="num">17.08.</td><td class="num">04:39</td><td>„they were testing pain on it“</td><td>empirisch</td><td><span class="chip g-D">D</span></td><td><span class="chip v-no">entkräftet</span></td></tr><tr><td class="num">17.08.</td><td class="num">05:56</td><td>humanisierte Mäuse seien „smarter“</td><td>empirisch</td><td><span class="chip g-D">D</span></td><td><span class="chip v-part">teilentkräftet</span></td></tr><tr><td class="num">16.08.</td><td class="num">00:38</td><td>Kritikalität „thought to be necessary for consciousness“</td><td>begrifflich</td><td><span class="chip g-D">D</span></td><td><span class="chip v-no">entkräftet</span></td></tr><tr><td class="num">16.08.</td><td class="num">01:05</td><td>Lern- und Gedächtnisfähigkeit „demonstrated“</td><td>empirisch</td><td><span class="chip g-D">D</span></td><td><span class="chip v-no">entkräftet</span></td></tr><tr><td class="num">16.08.</td><td class="num">01:57</td><td>Hirnwellen „match the same patterns“ wie Frühgeborene</td><td>empirisch</td><td><span class="chip g-D">D</span></td><td><span class="chip v-part">teilentkräftet</span></td></tr></tbody>
+</table>
+
+<h2><span class="num">08</span>Restliste</h2>
+<p>Der Kritikalitäts-Preprint selbst. Ohne ihn bleiben Exponenten, Verzweigungsparameter, Elektrodenzahl und Kulturalter unbekannt, und damit die Kernbehauptung des Videos vom 16. August unprüfbar.</p>
+<p>Die Volltexte zur Roboterhand und zum Assembloid. Erst der Wortlautabgleich macht die Verschärfungsdiagnose bei „feeling“ und „testing pain“ belastbar statt plausibel.</p>
+<p>Der Picower-Artikel zur analogen Berechnung. Sein Titel enthält den Bewusstseins-Schluss, den das Video selbst vermeidet.</p>
+<p>Die Hopkins-Angabe von 80 Prozent der Zellen, ohne Nenner nicht bewertbar. Drei Behauptungen ohne auffindbare Quelle: Organoide, die Doom spielen, ein postmortales Gehirn am Klavier, eine Studie zu zielgerichtetem Lernen. Ob Markels Replikation präregistriert war, ließ sich nicht bestätigen; Verblindung und größere Stichprobe sind belegt.</p>
+
+<h2><span class="num">09</span>Was sich gegenüber dem 18. August ändert</h2>
+<p>H5 zur Nozizeption und H7 zum Moralstatus bleiben unbelegt. Die fünf neuen Episoden liefern kein Material, das daran rüttelt.</p>
+<p>Neu ist die Messung des rhetorischen Verhaltens über die Zeit, und sie fällt anders aus als erwartet. Der Kanal ist kein Fall von zunehmender Übertreibung, sondern einer von wachsender Themenlast bei konstanter Absicherungsquote. Daraus folgt eine Prüfregel: Ein Kanal, der jede starke Aussage irgendwo im Video absichert, lässt sich nicht über Zitatsammlungen widerlegen. Die Zitate stimmen einzeln. Prüfen muss man die Reihenfolge.</p>
+
+<h2><span class="num">10</span>Quellen</h2>
+<ul>
+<li>Kagan, B. J. et al. (2022): In vitro neurons learn and exhibit sentience when embodied in a simulated game-world. Neuron 110(23). <a href="https://www.cell.com/neuron/fulltext/S0896-6273(22)00806-6">cell.com</a></li>
+<li>Erwiderung: A response to claims of emergent intelligence and sentience in a dish. Neuron. <a href="https://www.cell.com/neuron/fulltext/S0896-6273(23)00113-7">cell.com</a></li>
+<li>Markel, K. (2020): Lack of evidence for associative learning in pea plants. eLife 9:e57614. <a href="https://elifesciences.org/articles/57614">elifesciences.org</a></li>
+<li>Kommentar und Antwort dazu: <a href="https://elifesciences.org/articles/61141">61141</a>, <a href="https://elifesciences.org/articles/61689">61689</a></li>
+<li>Brain criticality beyond avalanches. <a href="https://iopscience.iop.org/article/10.1088/2632-072X/ac2071">iopscience.iop.org</a></li>
+<li>Undersampled Critical Branching Processes. <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3994033/">ncbi.nlm.nih.gov</a></li>
+<li>Rohmaterial: <code>sources/youtube/transcripts/</code>, <code>research/consciousness_corpus_scan.json</code></li>
+</ul>
+</div>
+
+<script>
+(function(){
+  var root=document.documentElement, btn=document.getElementById('themeToggle');
+  var stored=null;
+  try{stored=localStorage.getItem('oi-theme');}catch(e){}
+  if(stored){root.setAttribute('data-theme',stored);}
+  function sync(){btn.textContent=root.getAttribute('data-theme')==='dark'?'Hell':'Dunkel';}
+  sync();
+  btn.addEventListener('click',function(){
+    var next=root.getAttribute('data-theme')==='dark'?'light':'dark';
+    root.setAttribute('data-theme',next);
+    try{localStorage.setItem('oi-theme',next);}catch(e){}
+    sync();
+  });
+})();
+
+(function(){
+  var els={
+    n:document.getElementById('sNeurons'), r:document.getElementById('sRate'),
+    o:document.getElementById('sOps'), w:document.getElementById('sWatt'),
+    g:document.getElementById('sGpu')
+  };
+  var out={
+    n:document.getElementById('vNeurons'), r:document.getElementById('vRate'),
+    o:document.getElementById('vOps'), w:document.getElementById('vWatt'),
+    g:document.getElementById('vGpu'),
+    bio:document.getElementById('oBio'), si:document.getElementById('oSi'),
+    ratio:document.getElementById('oRatio'), line:document.getElementById('verdictLine')
+  };
+  var GPU_W=700;
+
+  function sci(x){
+    if(!isFinite(x)||x===0) return '0';
+    var e=Math.floor(Math.log10(Math.abs(x)));
+    var m=x/Math.pow(10,e);
+    var sup='⁰¹²³⁴⁵⁶⁷⁸⁹';
+    var es=String(Math.abs(e)).split('').map(function(d){return sup[+d];}).join('');
+    return m.toFixed(1).replace('.',',')+' × 10'+(e<0?'⁻':'')+es;
+  }
+  function human(x){
+    if(x>=1e9) return (x/1e9).toFixed(1).replace('.',',')+' Mrd.';
+    if(x>=1e6) return (x/1e6).toFixed(0)+' Mio.';
+    if(x>=1e3) return (x/1e3).toFixed(0)+' Tsd.';
+    return x.toFixed(0);
+  }
+  function pow10(sl){return Math.pow(10,parseFloat(sl.value));}
+
+  function update(){
+    var neurons=pow10(els.n), rate=pow10(els.r), ops=pow10(els.o);
+    var watt=parseFloat(els.w.value), gpuOps=pow10(els.g);
+
+    out.n.textContent=human(neurons);
+    out.r.textContent=rate<10?rate.toFixed(2).replace('.',',')+' Hz':rate.toFixed(0)+' Hz';
+    out.o.textContent=ops<10?ops.toFixed(1).replace('.',','):human(ops);
+    out.w.textContent=Math.round(watt)+' W';
+    out.g.textContent=sci(gpuOps);
+
+    var bioOps=neurons*rate*ops;
+    var bioJ=watt/bioOps;
+    var siJ=GPU_W/gpuOps;
+    var ratio=bioJ/siJ;
+
+    out.bio.textContent=sci(bioJ)+' J';
+    out.si.textContent=sci(siJ)+' J';
+
+    if(ratio>1){
+      out.ratio.textContent=sci(ratio)+' × schlechter';
+      out.ratio.className='v bad';
+      out.line.innerHTML='Bei diesen Werten braucht das biologische Substrat <b>'+sci(ratio)+
+        ' mal mehr</b> Energie pro Operation als der Vergleichsbeschleuniger. Um gleichzuziehen, müsste das Produkt aus Neuronenzahl, Spikerate und Operationen pro Spike auf <b>'+
+        sci(watt/siJ)+' Operationen pro Sekunde</b> steigen.';
+    } else {
+      out.ratio.textContent=sci(1/ratio)+' × besser';
+      out.ratio.className='v good';
+      out.line.innerHTML='Bei diesen Werten wäre das biologische Substrat <b>'+sci(1/ratio)+
+        ' mal günstiger</b> pro Operation. Diese Konfiguration ist mit heutiger Hardware nicht erreicht; sie zeigt, was gelten müsste.';
+    }
+  }
+  Object.keys(els).forEach(function(k){els[k].addEventListener('input',update);});
+  update();
+})();
+</script>
+</body>
+</html>

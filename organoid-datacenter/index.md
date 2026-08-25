@@ -9,6 +9,14 @@ Ausgangspunkt war ein YouTube-Kanal, der das Thema seit Jahren begleitet. Er wir
 - **[2026-08-18_organoid-datacenter.html](2026-08-18_organoid-datacenter.html)** — die Lesefassung. Dunkles Theme mit Hell-Umschalter, Evidenzgrad-Chips A bis D, Quellen-Duell zum Sentienz-Streit, und ein interaktives Rechenmodell zur Energiefrage.
 - **[2026-08-18_organoid-datacenter.md](2026-08-18_organoid-datacenter.md)** — inhaltsgleiche Markdown-Fassung, damit der Text diffbar bleibt.
 
+## Vertiefung Bewusstsein
+
+- **[2026-08-23_bewusstsein-fuenf-episoden.html](2026-08-23_bewusstsein-fuenf-episoden.html)** — die fünf zuletzt veröffentlichten Episoden vom 16. bis 22. August, 113 Einzelaussagen, dazu ein Korpuslauf über alle 96 Transkripte. Fünf Hypothesen B1 bis B5.
+- **[2026-08-23_bewusstsein-fuenf-episoden.md](2026-08-23_bewusstsein-fuenf-episoden.md)** — Markdown-Fassung.
+- **[research/2026-08-23_bewusstsein-claims.md](research/2026-08-23_bewusstsein-claims.md)** — die 113 Einzelaussagen je Episode im Rohzustand.
+
+Der Kanal behauptet nicht, dass Organoide bewusst sind, und verneint es mehrfach ausdrücklich. Die Wirkung entsteht in der Reihenfolge der Sätze und in Titeln, die stärker sind als ihr Text. Gegen die Erwartung fällt B4 auf unbelegt: Die Menge der Bewusstseinsrede hat sich seit 2023 verdreifacht, die Absicherungsquote direkt an der Behauptung ist unverändert geblieben.
+
 ## Ergebnis in einem Satz
 
 Angekommen ist die Infrastruktur. Man kann ein Gerät mit 800.000 menschlichen Neuronen für 35.000 Dollar kaufen und Rechenzeit in einem Rechenzentrum in Singapur mieten. Nicht angekommen ist der Grund, warum man das tun sollte, und am weitesten entfernt ist das, was die Schlagzeilen ins Zentrum stellen.
@@ -28,8 +36,9 @@ Alles unter [sources/](sources/) ist unredigiert.
 
 - `sources/youtube/channel_videos.txt` — alle 802 Videos des Kanals
 - `sources/youtube/selection.tsv` — die 217 ausgewählten Videos, nach `core` und `wide` getrennt
-- `sources/youtube/transcripts/` — 91 entdoppelte, zeitgestempelte Transkripte
-- `sources/youtube/metadata.jsonl` — Metadaten und Beschreibungen aller 217 ausgewählten Videos. Destillat der vollen yt-dlp-Info-JSONs, die zu 99 Prozent aus Format-Listen bestehen und deshalb nicht mitcommittet sind.
+- `sources/youtube/transcripts/` — 96 entdoppelte, zeitgestempelte Transkripte, Stand 23. August 2026
+- `sources/youtube/metadata.jsonl` — Metadaten und Beschreibungen von 220 Videos, nach Datum sortiert. Destillat der vollen yt-dlp-Info-JSONs, die zu 99 Prozent aus Format-Listen bestehen und deshalb nicht mitcommittet sind.
+- `research/consciousness_corpus_scan.json` — Korpuslauf über alle Transkripte: Dichte und Absicherung je Video
 - `sources/youtube/core/*.vtt` — die rohen Untertitelspuren
 - `sources/papers/` — heruntergeladene Primärdokumente
 
