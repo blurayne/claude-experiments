@@ -526,11 +526,23 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.3.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.3.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
+// The stamp is written in UTC; show it in whatever zone the browser is in, and always
+// name the offset — "+00:00" is information too, not an absence of it.
+function localBuildStamp(){
+  const d = new Date(BUILD.date + 'T' + BUILD.time + 'Z');
+  if(isNaN(d.getTime())) return BUILD.date + ' ' + BUILD.time + ' +00:00';
+  const pad = n => String(n).padStart(2, '0');
+  const off = -d.getTimezoneOffset();                       // minutes east of UTC
+  const sign = off < 0 ? '−' : '+';
+  const oo = pad(Math.floor(Math.abs(off)/60)) + ':' + pad(Math.abs(off)%60);
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ` +
+         `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} ${sign}${oo}`;
+}
 const BUILD_LINE = BUILD.date.indexOf('__') === 0
   ? VERSION + ' · dev build'
-  : VERSION + ' · ' + BUILD.date + ' ' + BUILD.time + ' UTC · ' + BUILD.sha;
+  : VERSION + ' · ' + localBuildStamp() + ' · ' + BUILD.sha;
 // ---------- tiny mat4 ----------
 function perspective(fov, asp, n, f){
   const t = 1/Math.tan(fov/2), m = new Float32Array(16);
@@ -1755,6 +1767,8 @@ const $=id=>document.getElementById(id);
 $('verHud').textContent = VERSION;
 $('verInfo').textContent = VERSION;
 $('buildInfo').textContent = BUILD_LINE;
+// the original UTC stamp stays available on hover
+if(BUILD.date.indexOf('__') !== 0) $('buildInfo').title = 'built ' + BUILD.date + ' ' + BUILD.time + ' UTC';
 // Hard refresh: drop every cache and the service worker, then reload on a fresh URL so
 // nothing between here and the server can hand back the old build.
 // Settings persist, so a control left at zero stays that way across reloads with no
