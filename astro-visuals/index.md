@@ -39,7 +39,8 @@ in the browser with no build step and no external CDN.
   and the first life to the collision and after. A panel tracks Earth's
   **galactic environment** — cosmic-ray flux and the contested ice-age link that
   follows from it, with the whole interface frosting over during a glacial
-  epoch. Calendar eras run from the
+  epoch, turning amber when Earth is endangered and red once nothing can live
+  there. The merger scatters the Sun outward, from 8 kpc to about 30. Calendar eras run from the
   present back through the first land life, first plants, first cell,
   prebiotic amino acids, the Theia impact and Earth's formation.
   **Effects** (five recorded supernova blasts

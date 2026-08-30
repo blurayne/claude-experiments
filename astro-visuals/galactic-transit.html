@@ -83,6 +83,21 @@
     border-color:rgba(196,232,255,.34);
     box-shadow:0 0 36px rgba(166,230,255,.16), inset 0 0 44px rgba(214,240,255,.07)}
   body.ice .tg.on{border-color:rgba(166,230,255,.6)}
+  /* life support: amber when Earth is endangered, red when nothing can live there */
+  body.warn{--accent:#ffcf5c;--glow:rgba(255,207,92,.5);--line:rgba(255,214,120,.30)}
+  body.dead{--accent:#ff7b7b;--glow:rgba(255,123,123,.5);--line:rgba(255,150,150,.32)}
+  body.warn .hud, body.warn .env, body.warn .gamebar, body.warn .note, body.warn .info-card{
+    background:linear-gradient(158deg, rgba(255,214,120,.11), rgba(26,16,4,.84));
+    border-color:rgba(255,214,120,.34);
+    box-shadow:0 0 36px rgba(255,207,92,.15), inset 0 0 44px rgba(255,224,150,.05)}
+  body.dead .hud, body.dead .env, body.dead .gamebar, body.dead .note, body.dead .info-card{
+    background:linear-gradient(158deg, rgba(255,140,140,.12), rgba(30,6,6,.86));
+    border-color:rgba(255,150,150,.36);
+    box-shadow:0 0 40px rgba(255,107,107,.17), inset 0 0 46px rgba(255,170,170,.06)}
+  body.warn .tg.on{border-color:rgba(255,207,92,.6)}
+  body.dead .tg.on{border-color:rgba(255,123,123,.6)}
+  #eLife{text-transform:uppercase;letter-spacing:.1em}
+  body.warn #eLife{color:#ffcf5c} body.dead #eLife{color:#ff7b7b}
   @media (max-width:900px), (orientation:portrait){ .env{display:none} }
   #infoModal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;
     background:rgba(2,4,8,.65);z-index:20;padding:18px}
@@ -180,6 +195,7 @@
       <button class="tg on" id="tOort">oort</button>
       <button class="tg on" id="tLife">life cycle</button>
       <button class="tg on" id="tVar">variables</button>
+      <button class="tg on" id="tLifeSup">life support</button>
       <button class="tg" id="tSound">effects</button>
       <button class="tg on" id="tMusic">music</button>
       <button class="tg" id="tNext">⏭ next</button>
@@ -327,6 +343,23 @@
     a leading-order sketch — the tidal pull grows with radius, so the outer disk is drawn into a bridge toward
     the companion while the core barely moves. A real merger is an N-body problem, and the real one will take
     a couple of billion years to settle.</p>
+    <h3>Does the merger touch the solar system?</h3>
+    <p>Barely, and not where you would expect. Comparing Andromeda's <b>tidal pull</b> — the difference in
+    its gravity across the solar system — against the Sun's own hold, with its centre 30&nbsp;kpc away:
+    at Earth's orbit the ratio is <b>1.3&times;10<sup>&minus;17</sup></b>, at Neptune's
+    3&times;10<sup>&minus;13</sup>. Even for a close passage at 1&nbsp;kpc it is 3&times;10<sup>&minus;13</sup>
+    at Earth. <b>The planets do not notice.</b> Two galaxies pass through each other and the orbits stay
+    exactly as they are, because stars are so tiny against the distances between them that direct collisions
+    are essentially impossible.</p>
+    <p>The <b>Oort cloud</b> is another matter, as it is the one structure the Galaxy already governs. The
+    Sun loses the tug-of-war beyond ~6.8&nbsp;ly with Andromeda at 30&nbsp;kpc — safely outside the cloud's
+    1.6&nbsp;ly edge — but at a 1&nbsp;kpc passage that boundary closes to <b>0.23 ly</b>, and most of the
+    cloud is stripped away into intergalactic space. The comets go first.</p>
+    <p>What does change is <b>where the Sun ends up</b>. Its ordered 230&nbsp;km/s circular orbit is scattered
+    into a random one in the merged elliptical. N-body work on this encounter finds a median final distance
+    near <b>30&nbsp;kpc against today's 8</b>, with roughly a 12% chance of being flung into the tidal tails
+    and 3% of ending up bound to Andromeda instead. The Sun here follows that median, drifting outward after
+    the collision — watch the galactic-year counter slow as its orbit widens.</p>
     <h3>What's real, what's modeled</h3>
     <ul>
       <li>Planets are <b>not dragged behind the Sun</b> — the viral "vortex" video is wrong. With the 60° tilt
@@ -373,6 +406,7 @@
   <div class="er"><span>min / max</span><b id="eRange">−89 / 57 °C</b></div>
   <div class="er"><span>cosmic rays</span><b id="eCR">1.00× today</b></div>
   <div class="er"><span>starlight</span><b id="eSL">1.0×</b></div>
+  <div class="er" id="eLifeRow"><span>life support</span><b id="eLife">habitable</b></div>
   <div class="ice-badge" id="eIce">❄ glacial epoch</div>
 </div>
 
@@ -549,6 +583,17 @@ const U = {
 const R_GAL = 900;            // scene units: Sun's distance from galactic core
 const V_GAL = 30;             // scene units per (Earth) year along the galactic orbit
 const GAL_PERIOD = 2*Math.PI*R_GAL/V_GAL; // sim "galactic year" in Earth-years (display only)
+const YR_PER_SIM = (225/GAL_PERIOD)*1e6;  // real years in one simulated year (~1.19e6)
+const AGE0 = 4.568;                       // Gyr: age of the solar system at simT = 0
+const AND_AGE = 9.07;                     // Gyr: the Andromeda collision, ~4.5 Gyr from now
+// The merger scatters the Sun outward. N-body work on this encounter (Cox & Loeb 2008)
+// finds a median final distance near 30 kpc against today's 8 — roughly 3.75x out — with
+// about a 12% chance of the tidal tails beyond that and 3% of ending up bound to
+// Andromeda instead. This follows the median outcome.
+function sunR(ts){
+  const d = AGE0 + ts*YR_PER_SIM/1e9 - AND_AGE;
+  return d <= 0 ? R_GAL : R_GAL*(1 + 2.75*(1 - Math.exp(-d/0.6)));
+}
 // ecliptic tilted 60.2° to the galactic plane; orientation is inertially fixed
 const TILT = 60.2*Math.PI/180;
 const E1 = [1,0,0];
@@ -602,7 +647,8 @@ const WOB_A = 24, WOB_T = 75; // scene units, sim-years (75 sim-yr ≈ 90 Myr at
 const tmp = new Float64Array(3);
 function bodyPos(i, t, out){
   const phi = t*V_GAL/R_GAL;                     // galactic anomaly
-  const sx = R_GAL*Math.sin(phi), sz = R_GAL*Math.cos(phi);
+  const R = sunR(t);                             // constant until the merger flings it out
+  const sx = R*Math.sin(phi), sz = R*Math.cos(phi);
   const sy = (realMode?8.3:WOB_A)*Math.sin(2*Math.PI*t/WOB_T + 2.1);
   if(i===0){ out[0]=sx; out[1]=sy; out[2]=sz; return out; }
   const b = BODIES[i];
@@ -1116,9 +1162,6 @@ function pushTrail(i, ts){
 // 6 Gyr. Ahead lies the Andromeda encounter, which shock-compresses the remaining gas
 // into a starburst and then quenches it — the merged, gas-poor remnant forms almost
 // nothing. Normalised so the present day is exactly 1.
-const YR_PER_SIM = (225/GAL_PERIOD)*1e6;   // real years in one simulated year (~1.19e6)
-const AGE0 = 4.568;                        // Gyr: age of the solar system at simT = 0
-const AND_AGE = 9.07;                      // Gyr: the Andromeda collision, ~4.5 Gyr from now
 const ageGyr = ()=> AGE0 + simT*YR_PER_SIM/1e9;
 function sfrFactor(a){
   let f = Math.exp(-(a-AGE0)/6);                              // gas runs down
@@ -1160,13 +1203,31 @@ function environment(){
   return { cr, mean, min: mean-104, max: mean+42, star: 1+2.0*r.armProx, ice: mean < 11.2 };
 }
 
+// ---------- life support ----------
+// What actually ends life on Earth is the Sun, not the Galaxy. Solar luminosity climbs
+// about 10% per Gyr; a moist greenhouse takes the oceans roughly a billion years from
+// now, long before Andromeda arrives. Galactic position contributes a second hazard: a
+// supernova within ~30 ly would strip the ozone layer, and that risk tracks the star
+// formation rate and the cosmic-ray background.
+let lifeOn = true;
+function lifeState(){
+  const a = ageGyr(), e = environment();
+  let h = 0, why = 'stable';
+  if(a < 0.65){ h = 1; why = 'magma ocean'; }                       // the Hadean
+  const solar = Math.min(1, Math.max(0, (a - 5.35)/0.95));
+  if(solar > h){ h = solar; why = a > 6.0 ? 'oceans boiled off' : 'the Sun is brightening'; }
+  const rad = Math.min(1, Math.max(0, (sfrFactor(a)*e.cr - 1.8)/3.6));
+  if(rad > h){ h = rad; why = 'supernovae & cosmic rays'; }
+  return { h, why, label: h > 0.75 ? 'uninhabitable' : h > 0.33 ? 'endangered' : 'habitable' };
+}
+
 // ---------- stellar life cycle: birth, death, supernovae ----------
 // Rates are anchored to current measurements (see the info panel): the Milky Way forms
 // ~2 solar masses of stars a year and hosts ~2 supernovae per century. On the compressed
 // galactic clock (1 sim-yr ~ 1.19 Myr) births are drawn at the real rate scaled to the
 // point sampling (~2.2 per sim-yr per density unit); featured supernovae are a sampled
 // fraction of the true ~24,000 per sim-yr, which would be a continuous glitter.
-let lifeOn = true, varOn = true; let shimT = 0; // variability clock (wall time, runs even when paused)
+let varOn = true; let shimT = 0; // variability clock (wall time, runs even when paused)
 
 // ---------- sound: everything synthesized live via Web Audio — no samples, still one file ----------
 let soundOn = false, sfxVol = 0.7, audio = null;
@@ -1469,6 +1530,12 @@ toggle($('tBelt'), on=> showBelt=on);
 toggle($('tKuiper'), on=> showKuiper=on);
 toggle($('tLife'), on=>{ lifeOn=on; if(!on){ events.length=0; puffs.length=0; } });
 toggle($('tVar'), on=> varOn=on);
+let lifeSupOn = true;
+toggle($('tLifeSup'), on=>{
+  lifeSupOn = on;
+  $('eLifeRow').style.display = on ? '' : 'none';
+  if(!on) document.body.classList.remove('warn','dead');
+});
 function applySfxGain(){
   if(!audio) return;
   const at=audio.ctx.currentTime;
@@ -2003,7 +2070,13 @@ function frame(now){
     $('eRange').textContent = e.min.toFixed(0)+' / '+e.max.toFixed(0)+' °C';
     $('eCR').textContent    = e.cr.toFixed(2)+'× today';
     $('eSL').textContent    = e.star.toFixed(2)+'×';
-    document.body.classList.toggle('ice', e.ice); }
+    const ls = lifeSupOn ? lifeState() : null;
+    if(ls) $('eLife').textContent = ls.label;
+    // the gravest state wins the interface: dead over endangered over glacial
+    const dead = !!ls && ls.h > 0.75, warn = !!ls && !dead && ls.h > 0.33;
+    document.body.classList.toggle('dead', dead);
+    document.body.classList.toggle('warn', warn);
+    document.body.classList.toggle('ice', e.ice && !dead && !warn); }
 
   // stats
   $('yrs').textContent = simT.toFixed(1);
