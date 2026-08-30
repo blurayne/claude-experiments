@@ -30,7 +30,9 @@ in the browser with no build step and no external CDN.
   wind up. Installable as a **PWA** (manifest, service worker, offline shell) that opens
   fullscreen in whatever rotation the screen is already in, with fullscreen and
   screen-rotation buttons in the HUD. The status bar tallies supernovae and
-  newly born stars at the measured real rates. Calendar eras run from the
+  newly born stars at the measured real rates, or — with **live count** — the
+  stars igniting and dying right now, stepping up and down as events begin and
+  end. Calendar eras run from the
   present back through the first land life, first plants, first cell,
   prebiotic amino acids, the Theia impact and Earth's formation.
   **Effects** (five recorded supernova blasts
