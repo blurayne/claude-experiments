@@ -176,8 +176,18 @@
     letter-spacing:.04em;margin-top:3px;font-variant-numeric:tabular-nums}
   .gamebar .cnt.death b{color:#e26ad0;text-shadow:0 0 10px rgba(226,106,208,.45)}
   .gamebar .cnt.birth b{color:#3fd9b0;text-shadow:0 0 10px rgba(63,217,176,.45)}
-  /* they only earn their place when the bar has room — landscape, wide enough */
-  @media (max-width:900px), (orientation:portrait){ .gamebar .cnt{display:none} }
+  /* Both counters now have their own switches, so nothing hides them by screen size.
+     The bar instead tightens up and, on the narrowest screens, wraps rather than
+     running off both edges. */
+  @media (max-width:820px){
+    .gamebar{gap:15px;padding:8px 13px}
+    .gamebar .stat, .gamebar .cnt{font-size:8px;letter-spacing:.12em}
+    .gamebar .stat b, .gamebar .cnt b{font-size:12px}
+  }
+  @media (max-width:620px){
+    .gamebar{flex-wrap:wrap;justify-content:center;white-space:normal;row-gap:6px;
+      max-width:calc(100vw - 24px)}
+  }
   .gamebar .stat b{display:block;font-family:'Orbitron',ui-monospace,monospace;font-size:14px;letter-spacing:.06em;color:var(--accent);font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums;text-shadow:0 0 10px var(--glow)}
   #reopen{position:fixed;top:14px;right:14px;z-index:6;display:none;width:36px;height:36px;border-radius:2px;
     background:var(--panel);border:1px solid var(--line);color:var(--accent);cursor:pointer;font-size:15px;
@@ -258,6 +268,8 @@
       <button class="tg on" id="tStatCal">hum yr</button>
       <button class="tg on" id="tStatAge">age</button>
       <button class="tg on" id="tStatGyr">gal yr</button>
+      <button class="tg on" id="tStatSn">supernovae</button>
+      <button class="tg on" id="tStatBirth">stars born</button>
       <button class="tg" id="tSci">10^x</button>
       <button class="tg" id="tLive">live count</button>
       <button class="tg" id="tView">galaxy view</button>
@@ -503,11 +515,11 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '1.30.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '1.31.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 const BUILD_LINE = BUILD.date.indexOf('__') === 0
   ? VERSION + ' · dev build'
-  : VERSION + ' · ' + BUILD.date + ' ' + BUILD.time + ' · ' + BUILD.sha;
+  : VERSION + ' · ' + BUILD.date + ' ' + BUILD.time + ' UTC · ' + BUILD.sha;
 // ---------- tiny mat4 ----------
 function perspective(fov, asp, n, f){
   const t = 1/Math.tan(fov/2), m = new Float32Array(16);
@@ -1848,7 +1860,7 @@ loadTrack(0);
 // pause, the dive, the epoch jump, the current track position — is deliberately left out.
 const SKEY = 'galactic-transit.settings.v1';
 const S_TOG = ['tTrails','tLabels','tDwarfs','tBelt','tKuiper','tOort','tLife','tVar','tLifeSup','tEnv',
-               'tStatCal','tStatAge','tStatGyr','tSci','tLive','tView','tReal','tGaia','tFps',
+               'tStatCal','tStatAge','tStatGyr','tStatSn','tStatBirth','tSci','tLive','tView','tReal','tGaia','tFps',
                'tSound','tMusic'];
 const S_SLD = ['speed','trailA','trailL','musicVol','sfxVol','minB'];
 const S_CHK = ['fxBirth','fxSn','fxPn','fxDrone'];
@@ -1895,7 +1907,7 @@ function restoreSettings(){
 }
 toggle($('tOort'), on=> showOort=on);
 function updateBar(){
-  showStats = ['sCal','sAge','sGyr'].some(id => $(id).style.display !== 'none');
+  showStats = ['sCal','sAge','sGyr','cDeath','cBirth'].some(id => $(id).style.display !== 'none');
   $('gamebar').style.display = showStats ? 'flex' : 'none';
   fitPanels();
 }
@@ -1903,6 +1915,8 @@ function statToggle(btn, statId){ toggle(btn, on=>{ $(statId).style.display = on
 statToggle($('tStatCal'), 'sCal');
 statToggle($('tStatAge'), 'sAge');
 statToggle($('tStatGyr'), 'sGyr');
+statToggle($('tStatSn'), 'cDeath');
+statToggle($('tStatBirth'), 'cBirth');
 toggle($('tSci'), on=> sciMode=on);
 let liveCount = false;
 toggle($('tLive'), on=>{
