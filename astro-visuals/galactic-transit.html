@@ -451,7 +451,10 @@
       colour indices and their sizes from apparent magnitude, so the solar neighbourhood — Alpha Centauri
       at 1.32&nbsp;pc, Sirius at 2.64 — really is where it is. It covers the local sky only: Gaia sees the
       Galaxy from inside and the far side of the disk hides behind dust, which is why everything beyond it
-      stays modelled.</li>
+      stays modelled. They are stored at the galaxy's own scale, so in the compressed view they only
+      appear once the magnified solar system is small enough for the proportion to read — zoomed in there,
+      the magnification would put every real star inside the planets. Real scale keeps them at every zoom,
+      since nothing is magnified there.</li>
       <li>The <b>quality</b> row raises the drawn star count five-fold (~460,000 points) and scatters
       discrete <b>dark molecular clouds</b> (Dunkelwolken) through the disk on top of the arm-edge dust lanes —
       closer to the Milky Way's real texture, at the cost of GPU load. The row runs on to
@@ -496,7 +499,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '1.26.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '1.27.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 const BUILD_LINE = BUILD.date.indexOf('__') === 0
   ? VERSION + ' · dev build'
@@ -564,6 +567,7 @@ uniform float uTide;    // 0 far apart .. 1 at contact
 uniform float uWarpAmp; // how strongly this draw takes the disk warp
 uniform float uMinB;    // brightness floor: lift the faintest stars to at least this
 uniform float uMinSz;   // sprite floor in pixels: how small a star is allowed to get
+uniform float uFadeOut; // 0 draws normally, 1 hides: used where a layer stops being true
 uniform vec3 uOrg;    // rendering origin (the Sun) — keeps deep real-scale zooms float-precise
 out vec3 vColor;
 void main(){
@@ -630,7 +634,7 @@ void main(){
     float lum = max(max(col.r, col.g), col.b);
     if(lum > 0.0002 && lum < uMinB) col *= uMinB/lum;
   }
-  vColor = col * fade;
+  vColor = col * fade * (1.0 - uFadeOut);
 }`;
 const PT_FS = `#version 300 es
 precision mediump float;
@@ -670,7 +674,7 @@ const U = {
   ptTime: gl.getUniformLocation(pPt,'uTime'), ptVM: gl.getUniformLocation(pPt,'uVarMode'),
   ptAnd: gl.getUniformLocation(pPt,'uAnd'), ptTide: gl.getUniformLocation(pPt,'uTide'),
   ptWarpAmp: gl.getUniformLocation(pPt,'uWarpAmp'), ptMinB: gl.getUniformLocation(pPt,'uMinB'),
-  ptMinSz: gl.getUniformLocation(pPt,'uMinSz'),
+  ptMinSz: gl.getUniformLocation(pPt,'uMinSz'), ptFade: gl.getUniformLocation(pPt,'uFadeOut'),
   trProj: gl.getUniformLocation(pTr,'uProj'), trView: gl.getUniformLocation(pTr,'uView'),
   trLen: gl.getUniformLocation(pTr,'uLen'), trCol: gl.getUniformLocation(pTr,'uColor'), trA: gl.getUniformLocation(pTr,'uAlpha')
 };
@@ -2269,10 +2273,21 @@ function frame(now){
   gl.uniform3f(U.ptOrg, org[0],org[1],org[2]);
   gl.uniform1f(U.ptSpin, 0.0);
   gl.bindVertexArray(vaoStars); gl.drawArrays(gl.POINTS,0,N_STAR);
-  if(gaiaOn && vaoGaia){          // real stars, carried along with the Sun
+  // Real stars, carried along with the Sun. They are stored at the galaxy's scale — a
+  // 108-unit bubble against a 900-unit galactic radius, which is the true proportion —
+  // but the compressed view magnifies the solar system some ten million fold on top of
+  // that, so zoomed in there every real star falls inside the planets: Alpha Centauri
+  // lands at 0.14 units against Mercury's drawn orbit of 6. There is no scale that suits
+  // both at once, so they fade out as the magnified solar system takes over the view and
+  // return once it is small enough for the proportion to read. Real scale keeps them
+  // throughout, where nothing is magnified and they are simply correct.
+  const gaiaFade = realMode ? 0 : 1 - Math.min(1, Math.max(0, (cam.dist - 210)/280));
+  if(gaiaOn && vaoGaia && gaiaFade < 0.999){
+    gl.uniform1f(U.ptFade, gaiaFade);
     gl.uniform3f(U.ptOrg, 0,0,0);
     gl.bindVertexArray(vaoGaia); gl.drawArrays(gl.POINTS,0,N_GAIA);
     gl.uniform3f(U.ptOrg, org[0],org[1],org[2]);
+    gl.uniform1f(U.ptFade, 0.0);
   }
   const spin = simT*V_GAL; // every disk star travels at the same flat-curve speed as the Sun
   const warp = -2*Math.PI*simT/545; // warp precession: retrograde, ~650 Myr per turn (compressed)
