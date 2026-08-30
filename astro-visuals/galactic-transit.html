@@ -417,6 +417,12 @@
       they cool and reheat); the HII nebulae breathe and drift in hue, as real nebular illumination genuinely
       does (Hubble's Variable Nebula changes within weeks). Their real day-to-year cycles are far below this
       clock's resolution — like the supernova flashes, the shimmer you see is a stretched sample.</li>
+      <li><b>Trails</b> are drawn only as far back as the sampling can resolve — roughly two hundred
+      orbits per body. The old builds showed the planets weaving helices along the Sun's galactic track,
+      but that was a product of running galactic time about 1.2 million times faster than the planets:
+      by the time the Sun has moved even one Earth-orbit radius, the Earth has gone round some 440,000
+      times, and no buffer can draw that. On one honest clock the trails show orbits at low speed and
+      the Sun's arc at high speed, and each fades out where it would otherwise alias.</li>
       <li>The <b>dive</b> holds the camera on the line from the Sun to the galactic centre, so the core
       stays behind the planets rather than swinging out of frame as the Sun carries on around its orbit.
       Dragging still turns the view; it just turns relative to that line now.</li>
@@ -533,7 +539,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.4.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.4.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -541,11 +547,23 @@ function localBuildStamp(){
   const d = new Date(BUILD.date + 'T' + BUILD.time + 'Z');
   if(isNaN(d.getTime())) return BUILD.date + ' ' + BUILD.time + ' +00:00';
   const pad = n => String(n).padStart(2, '0');
-  const off = -d.getTimezoneOffset();                       // minutes east of UTC
-  const sign = off < 0 ? '−' : '+';
-  const oo = pad(Math.floor(Math.abs(off)/60)) + ':' + pad(Math.abs(off)%60);
+  // Prefer the zone's own abbreviation (CEST, PDT, IST...). Some locales only offer a
+  // "GMT+2" style name; those fall through to a numeric UTC offset — and a zone at zero
+  // says UTC±0 outright, because a zero offset is a fact, not a blank.
+  let zone = '';
+  try{
+    const part = new Intl.DateTimeFormat(undefined, {timeZoneName:'short'})
+      .formatToParts(d).find(q => q.type === 'timeZoneName');
+    if(part && !/^(GMT|UTC)([+-−]|$)/.test(part.value)) zone = part.value;
+  }catch(err){}
+  if(!zone){
+    const off = -d.getTimezoneOffset();
+    zone = off === 0 ? 'UTC±0'
+         : 'UTC' + (off < 0 ? '−' : '+') +
+           pad(Math.floor(Math.abs(off)/60)) + ':' + pad(Math.abs(off)%60);
+  }
   return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ` +
-         `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} ${sign}${oo}`;
+         `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} ${zone}`;
 }
 const BUILD_LINE = BUILD.date.indexOf('__') === 0
   ? VERSION + ' · dev build'
@@ -2514,8 +2532,19 @@ function frame(now){
       gl.uniform3f(U.trCol,c[0],c[1],c[2]);
       // lift them with the star gain, or a brightened field washes the thin lines out
       gl.uniform1f(U.trA, (i===0?0.9:0.55)*trailAlpha*(rel?1:trailFade)*(1+starGain*0.9));
+      // A planet only gets as much trail as the sampling can resolve: about 200 orbits
+      // at a dozen samples each. Past that the line stops being a path and becomes
+      // aliasing, which piles up into a scribble — at a million years a second the Earth
+      // goes round three million times across the window. The Sun keeps the full buffer,
+      // since its one slow arc is exactly what a long window is for.
+      let n = TRAIL_N;
+      if(i > 0){
+        const spo = BODIES[i][1]/DT_SAMPLE;      // samples per orbit at this window
+        if(spo < 12) continue;                   // too coarse to be a path at all
+        n = Math.min(TRAIL_N, Math.round(200*spo));
+      }
       gl.bindVertexArray(trailVaos[i]);
-      gl.drawArrays(gl.LINE_STRIP,0,TRAIL_N);
+      gl.drawArrays(gl.LINE_STRIP, TRAIL_N-n, n);
     }
   }
 
