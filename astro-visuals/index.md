@@ -27,10 +27,10 @@ in the browser with no build step and no external CDN.
   supergiants collapsing into supernovae with expanding remnants, red giants
   puffing planetary nebulae — while the bar, arms and spur ride a rigid
   density-wave pattern that the disk stars stream through, so the arms never
-  wind up. **Effects** (a deep space drone plus
-  synthesized sounds for star births, planetary nebulae and supernova blasts,
-  generated live via Web Audio — no samples) are off by default; background
-  **music** is on. Each has its own toggle and volume slider, and a *next*
+  wind up. **Effects** (five recorded supernova
+  blasts picked at random, plus a deep space drone, star-birth chimes and
+  planetary-nebula exhales synthesized live via Web Audio) are off by default;
+  background **music** is on. Each has its own toggle and volume slider, and a *next*
   button cycles the tracks. A **variables** toggle makes a few percent of the
   star points pulse Cepheid/Mira-style — dimmer and redder at minimum light —
   and lets the HII nebulae breathe and drift in hue. Styled as a sci-fi observatory HUD
@@ -40,6 +40,8 @@ in the browser with no build step and no external CDN.
 
 ## Files
 
+- [`sfx/`](sfx/) — five recorded supernova blasts, played at random (with a
+  slight per-blast detune) so repeats don't sound looped.
 - [`music/`](music/) — the two background tracks, *Galactic Year* I & II by
   barbedgreenroom3. They are kept as separate files rather than embedded in the
   page: 10 MB of base64 would bloat the HTML past any sane single-file limit,
