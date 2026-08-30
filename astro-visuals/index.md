@@ -13,9 +13,15 @@ in the browser with no build step and no external CDN.
   plane. Has trails, labels, dwarf planets, the Kuiper belt and the Oort cloud, a
   galaxy view, several calendar eras and deep-time speed settings — plus a
   **real scale** toggle that collapses the whole planetary system into the Sun's
-  single pixel to show the true proportions. An info panel explains where the
-  drawing is compressed and why the Oort cloud's outer edge is set by the
-  galactic tide rather than by the Sun.
+  single pixel to show the true proportions, and from there a **☉ dive**: a
+  continuous ~9-order-of-magnitude zoom from the galaxy down through the Oort
+  shell (true ~1.6 ly edge) and Kuiper belt to the planets at their real
+  diameters, with a live view-width readout. A **hi-fi galaxy** mode raises the
+  star count five-fold (~460,000 points) and scatters discrete dark molecular
+  clouds (Dunkelwolken) through the disk. Styled as a sci-fi observatory HUD
+  with Orbitron/Exo 2, embedded in the file so it stays offline-capable. An
+  info panel explains where the drawing is compressed and why the Oort cloud's
+  outer edge is set by the galactic tide rather than by the Sun.
 
 ## Files
 
