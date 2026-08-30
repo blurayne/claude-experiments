@@ -221,7 +221,7 @@
     </div>
     <div class="row"><label for="jump">jump to</label><select id="jump">
       <option value="">— present day —</option>
-      <option value="4.56925" data-speed="0">Gliese 710 grazes the Oort cloud (+1.29 Myr)</option>
+      <option value="4.56928" data-speed="0.591" data-mult="1000">Gliese 710 grazes the Oort cloud (+1.29 Myr)</option>
       <option value="0.058">Theia impact — the Moon forms</option>
       <option value="0.768">Young Earth — first life (3.8 Gyr ago)</option>
       <option value="2.068">Great Oxidation (2.5 Gyr ago)</option>
@@ -239,13 +239,13 @@
       <option value="amino">First amino acids — prebiotic (~4.4 Gyr)</option>
       <option value="theia">Theia impact — the Moon forms (~4.51 Gyr)</option>
       <option value="earth">Age of the planet — Earth forms (~4.54 Gyr)</option>
-      <option value="ad" selected>A.D. / B.C.</option>
-      <option value="ah">A.H. — Islamic (Hijri)</option>
-      <option value="vs">V.S. — Vikram Samvat</option>
-      <option value="saka">Śaka — Indian national</option>
-      <option value="am">A.M. — Hebrew</option>
-      <option value="al">A.L. — Anno Lucis</option>
-      <option value="he">H.E. — Holocene / Human Era</option>
+      <option value="ad" selected>Anno Domini — Christian</option>
+      <option value="ah">Anno Hegirae — Islamic (lunar)</option>
+      <option value="vs">Vikram Samvat — Hindu</option>
+      <option value="saka">Śaka — Indian national, secular</option>
+      <option value="am">Anno Mundi — Jewish</option>
+      <option value="al">Anno Lucis — Freemasonry</option>
+      <option value="he">Holocene Era — secular</option>
     </select></div>
     <div class="toggles">
       <button class="tg on" id="tPause">⏸ pause</button>
@@ -303,13 +303,17 @@
     <p>Orbital periods use real ratios and the ~60° tilt of the ecliptic to the galactic plane is real, but scale is
     wildly compressed: the Sun's galactic orbit is ~14&nbsp;billion× wider than Neptune's, and one lap really takes
     ~225&nbsp;million years — compressed ~1.2&nbsp;million-fold here. The planetary system is drawn ~10-million-fold
-    magnified, which is why a clearance bubble fades out nearby stars. Each date readout runs on the clock it
-    actually measures. A year is one orbit of the Earth, and the Earth here orbits once per simulated
-    second at the default speed, so the <b>civil calendars</b> — A.D., A.H., V.S., Śaka, A.M., A.L.,
-    H.E. — advance a year a second. The <b>deep-time eras</b> count elapsed galactic time instead, on the
-    same clock as the age and galactic-year stats. The two diverge by the compression factor of about 1.2
-    million, which is the subject of the piece rather than a mistake in it — but it does mean that after
-    jumping to a galactic epoch, the civil year is the one reading to ignore.</p>
+    magnified, which is why a clearance bubble fades out nearby stars. There is one clock, and everything on
+    screen reads from it: the civil year, the deep-time eras, the age of the solar system and the galactic
+    year all count the same elapsed Earth years. Earlier versions ran the galaxy about 1.2 million times
+    faster than the planets so both could be watched at once, which meant the civil year and the age of the
+    solar system advanced at wildly different rates from the same moment — they no longer do.</p>
+    <p>The <b>speed</b> control carries that range instead. At the default of one year a second you watch
+    Earth orbit and the galaxy stands still, because in one year it very nearly does. The
+    <b>&times;10<sup>3</sup> to &times;10<sup>12</sup></b> buttons open it up: at &times;10<sup>6</sup> a
+    full galactic lap takes 225 seconds and the planets become smooth rings, at &times;10<sup>9</sup> the
+    Sun's whole life passes in a few seconds. Nothing is compressed behind your back — you choose the
+    scale, and every readout stays true to it.</p>
     <p>The <b>Oort cloud</b> is the most symbolic object here, squeezed from both directions: really spanning
     ~3,300 Neptune-orbits (its ring is drawn ~700× too small versus the planets), yet at galaxy scale it would be
     under a pixel (drawn ~3,300× too big versus the galaxy). Its true outer edge lies ~1.6 light-years out —
@@ -518,7 +522,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '1.33.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.0.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 const BUILD_LINE = BUILD.date.indexOf('__') === 0
   ? VERSION + ' · dev build'
@@ -700,7 +704,7 @@ const U = {
 
 // ---------- the physics (compressed but honest) ----------
 const R_GAL = 900;            // scene units: Sun's distance from galactic core
-const V_GAL = 30;             // scene units per (Earth) year along the galactic orbit
+const V_GAL = 2*Math.PI*900/225e6;  // scene units per Earth year: one lap in 225 Myr, exactly
 const GAL_PERIOD = 2*Math.PI*R_GAL/V_GAL; // sim "galactic year" in Earth-years (display only)
 const YR_PER_SIM = (225/GAL_PERIOD)*1e6;  // real years in one simulated year (~1.19e6)
 const AGE0 = 4.568;                       // Gyr: age of the solar system at simT = 0
@@ -761,7 +765,7 @@ BODIES.forEach((b,i)=>{
 
 // Sun's vertical bob through the disk plane: real period ~90 Myr, amplitude ~±250 ly.
 // Amplitude shown ~3× exaggerated so it reads at this zoom.
-const WOB_A = 24, WOB_T = 75; // scene units, sim-years (75 sim-yr ≈ 90 Myr at this compression)
+const WOB_A = 24, WOB_T = 90e6; // scene units, and the real ~90 Myr vertical period
 
 const tmp = new Float64Array(3), tmpSun = new Float64Array(3);
 function bodyPos(i, t, out){
@@ -1399,9 +1403,9 @@ loadGaiaStars();
 // 13,944 AU, well inside the Oort cloud, and the closest stellar encounter known either
 // side of the present. It is expected to shake comets loose for a few million years
 // afterwards, a modest shower rather than a bombardment.
-const G710_AT   = 1.29e6/YR_PER_SIM;   // simulated years from now (~1.081)
+const G710_AT   = 1.29e6;              // years from now
 const G710_PERI = 0.2204;              // light years at perihelion
-const G710_V    = 57.3;                // light years per simulated year
+const G710_V    = 4.804e-5;            // light years per year, from 14.4 km/s
 const G710_DIR  = (()=>{ const v=[0.62,-0.34,0.71], n=Math.hypot(...v); return v.map(c=>c/n); })();
 const G710_OFF  = (()=>{                // perihelion offset, perpendicular to the track
   const a=[0,1,0], d=G710_DIR;
@@ -1626,12 +1630,14 @@ let accB=0, accSN=0, accPN=0;
 //              5 cooling neutron star, 6 fading white dwarf
 function lifeStep(dt, dtSim){
   const sfr = sfrFactor(ageGyr());
-  accB  += dtSim*2.2*curD*sfr;
-  accSN += dtSim*Math.max(0.011*curD, 0.15)*sfr;
-  accPN += dtSim*1.5*curD*Math.sqrt(sfr);  // low-mass deaths lag their formation by Gyr
+  // Per year now, not per compressed step. These are drawn events, a sampled fraction of
+  // the real rates — the true figures are in the status bar and the info panel.
+  accB  += dtSim*1.84e-6*curD*sfr;
+  accSN += dtSim*Math.max(9.2e-9*curD, 1.26e-7)*sfr;
+  accPN += dtSim*1.26e-6*curD*Math.sqrt(sfr);
   const CAP = 40;
   for(let n=0; accB>=1 && n<CAP; n++){ accB--; if(events.length<EV_CAP){ const s=armSite();
-    events.push({k:1,x:s[0],y:s[1],z:s[2],wv:1,st:0,t:0,L:3+Math.random()*6,sn:Math.random()<0.12});
+    events.push({k:1,x:s[0],y:s[1],z:s[2],wv:1,st:0,t:0,L:(3+Math.random()*6)*1e6,sn:Math.random()<0.12});
     if(Math.random()<0.5) sfx('birth'); } } // only half of them sound, or it never stops
   if(accB>1) accB = 0;
   for(let n=0; accSN>=1 && n<CAP; n++){ accSN--; if(events.length<EV_CAP){ const s=armSite();
@@ -1644,11 +1650,11 @@ function lifeStep(dt, dtSim){
     const e=events[i]; e.st+=dtSim; e.t+=dt;
     if(e.k===1 && e.st>e.L){
       if(e.sn){ e.k=2; e.st=0; }                    // a massive member goes supergiant
-      else if(e.st>e.L+0.8) events.splice(i,1);     // cluster disperses into the disk
+      else if(e.st>e.L+0.8e6) events.splice(i,1);  // cluster disperses into the disk
     }
-    else if(e.k===2 && e.st>1.0){ e.k=3; e.t=0; sfx('sn'); }   // ~1 Myr as a red supergiant, then collapse
+    else if(e.k===2 && e.st>1.0e6){ e.k=3; e.t=0; sfx('sn'); } // ~1 Myr as a red supergiant, then collapse
     else if(e.k===3 && e.t>1.6){ addPuff(e,12,2.8,[0.55,0.35,0.22]); e.k=5; e.t=0; }
-    else if(e.k===4 && e.st>1.2){ addPuff(e,1.8,2.2,[0.10,0.50,0.42]); e.k=6; e.t=0; sfx('pn'); }
+    else if(e.k===4 && e.st>1.2e6){ addPuff(e,1.8,2.2,[0.10,0.50,0.42]); e.k=6; e.t=0; sfx('pn'); }
     else if((e.k===5||e.k===6) && e.t>2.5) events.splice(i,1);
   }
   for(let i=puffs.length-1;i>=0;i--){ const q=puffs[i]; q.t+=dt; if(q.t>q.dur) puffs.splice(i,1); }
@@ -1657,11 +1663,11 @@ function fillEvents(){
   for(let i=0;i<events.length;i++){
     const e=events[i]; let s=0,cr=0,cg=0,cb=0;
     if(e.k===1){ // embedded reddish protocluster brightening into a blue OB cluster
-      const u=Math.min(1,e.st/0.8), f=e.st>e.L?Math.max(0,1-(e.st-e.L)/0.8):1;
+      const u=Math.min(1,e.st/0.8e6), f=e.st>e.L?Math.max(0,1-(e.st-e.L)/0.8e6):1;
       s=(0.6+2.8*u)*f;
       cr=(0.55+0.07*u)*f; cg=(0.16+0.56*u)*f; cb=(0.10+0.95*u)*f;
     } else if(e.k===2){ // red supergiant: swelling, reddening
-      const u=Math.min(1,e.st);
+      const u=Math.min(1,e.st/1e6);
       s=3.2+2.6*u; cr=0.62+0.5*u; cg=0.72-0.34*u; cb=1.05-0.87*u;
     } else if(e.k===3){ // the flash: weeks of real time, stretched so it can be seen
       const a=e.t<0.15 ? e.t/0.15 : Math.exp(-(e.t-0.15)/0.45);
@@ -1669,7 +1675,7 @@ function fillEvents(){
     } else if(e.k===5){ // what remains: a cooling neutron star
       const f=Math.max(0,1-e.t/2.5); s=1.4; cr=0.35*f; cg=0.5*f; cb=0.9*f;
     } else if(e.k===4){ // a low-mass star swells into a red giant
-      const u=Math.min(1,e.st/1.2); s=1.2+2.4*u; cr=0.9; cg=0.42-0.12*u; cb=0.16;
+      const u=Math.min(1,e.st/1.2e6); s=1.2+2.4*u; cr=0.9; cg=0.42-0.12*u; cb=0.16;
     } else { // white dwarf, slowly fading
       const f=Math.max(0,1-e.t/2.5); s=1.1; cr=0.8*f; cg=0.85*f; cb=1.0*f;
     }
@@ -1793,9 +1799,11 @@ $('minB').addEventListener('input', e=>{
 let trailAlpha = 1;
 $('trailA').addEventListener('input', e=>{ trailAlpha=+e.target.value; $('trailAv').textContent=Math.round(trailAlpha*100)+'%'; });
 $('trailL').addEventListener('input', e=>{ // 2.4-240 yr window, log-scaled; respace and rebuild the buffers
-  const w = 2.4*Math.pow(100, +e.target.value);
+  const w = 2.4*Math.pow(1e8, +e.target.value);   // 2.4 years out to 240 Myr
   DT_SAMPLE = w/TRAIL_N;
-  $('trailLv').textContent = (w<10 ? w.toFixed(1) : String(Math.round(w)))+' yr';
+  $('trailLv').textContent = w<1e3 ? (w<10 ? w.toFixed(1) : String(Math.round(w)))+' yr'
+                          : w<1e6 ? (w/1e3).toFixed(w<1e4?1:0)+' kyr'
+                          : (w/1e6).toFixed(w<1e7?1:0)+' Myr';
   refillTrails(); nextSample = simT + DT_SAMPLE;
 });
 
@@ -1940,8 +1948,10 @@ function jumpToEpoch(){
   const sel = $('jump');
   const a = sel.value === '' ? AGE0 : +sel.value;
   // some epochs are over in a blink on the galactic clock; land at a speed that shows them
-  const sp = sel.selectedOptions[0] && sel.selectedOptions[0].dataset.speed;
+  const opt = sel.selectedOptions[0];
+  const sp = opt && opt.dataset.speed, mu = opt && opt.dataset.mult;
   if(sp !== undefined && sp !== null){ $('speed').value = sp; $('speed').dispatchEvent(new Event('input')); }
+  if(mu){ const i = MULT_VALUES.indexOf(+mu); if(i >= 0) $('mults').children[i].click(); }
   simT = (a - AGE0)*1e9/YR_PER_SIM;
   nextSample = simT + DT_SAMPLE;
   events.length = 0; puffs.length = 0;
@@ -2320,7 +2330,7 @@ function frame(now){
     gl.uniform1f(U.ptFade, 0.0);
   }
   const spin = simT*V_GAL; // every disk star travels at the same flat-curve speed as the Sun
-  const warp = -2*Math.PI*simT/545; // warp precession: retrograde, ~650 Myr per turn (compressed)
+  const warp = -2*Math.PI*simT/650e6; // warp precession: retrograde, ~650 Myr per turn
   const sunX=org[0], sunY=org[1], sunZ=org[2];
   const bubY = realMode ? sunY+1e8 : sunY; // real scale: nothing is magnified, so no clearance bubble
   gl.uniform1f(U.ptSpin, spin);
@@ -2599,7 +2609,7 @@ function frame(now){
     setStateColour(ls ? ls.h : 0, e.mean); }
 
   // stats
-  $('yrs').textContent = simT.toFixed(1);
+  $('yrs').textContent = fmtYears(Math.abs(simT));
   $('pct').textContent = (simT/GAL_PERIOD*100).toFixed(3);
   if(showFps){
     if(now - fpsSince >= 500){
