@@ -14,7 +14,9 @@ whatever app the folder contains.
 
 from __future__ import annotations
 
+import os
 import shutil
+from datetime import datetime, timezone
 from pathlib import Path
 
 import markdown
@@ -22,6 +24,24 @@ import markdown
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "_site"
 SKIP_DIRS = {".git", ".github", "_site", "node_modules"}
+
+# Build stamp. A subfolder that wants to show which build it is writes `__BUILD_DATE__`
+# and `__BUILD_SHA__` into its own files; they are substituted on the copy under _site/,
+# so the working copy keeps the placeholders and reports itself as a dev build.
+BUILD_SHA = (os.environ.get("GITHUB_SHA") or "")[:7] or "local"
+BUILD_DATE = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+
+def stamp_build(dest: Path) -> None:
+    for pattern in ("*.html", "*.js"):
+        for f in dest.rglob(pattern):
+            text = f.read_text(encoding="utf-8")
+            if "__BUILD_" not in text:
+                continue
+            f.write_text(
+                text.replace("__BUILD_DATE__", BUILD_DATE).replace("__BUILD_SHA__", BUILD_SHA),
+                encoding="utf-8",
+            )
 
 PAGE_TEMPLATE = """<!doctype html>
 <html lang="en">
@@ -90,6 +110,7 @@ def build() -> None:
         dest = OUT / sub.name
         shutil.copytree(sub, dest)
         (dest / "index.md").unlink(missing_ok=True)
+        stamp_build(dest)
 
         # Only render index.md when the subfolder doesn't ship its own index.html.
         if idx_md.exists() and not idx_html.exists():

@@ -52,6 +52,13 @@
   select{flex:1;background:rgba(9,16,30,.92);color:var(--ink);border:1px solid var(--line);border-radius:2px;
     font-family:inherit;font-size:10px;letter-spacing:.06em;padding:4px 6px;outline:none}
   .toggles{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .hudfoot{display:flex;align-items:center;justify-content:space-between;gap:8px;flex:none;
+    margin-top:9px;padding-top:8px;border-top:1px solid var(--line);
+    font-family:'Orbitron',ui-monospace,monospace;font-size:8px;letter-spacing:.09em;color:var(--dim)}
+  .hudfoot button{font-family:inherit;font-size:8px;letter-spacing:.11em;text-transform:uppercase;
+    padding:4px 8px;border:1px solid var(--line);border-radius:2px;color:var(--dim);cursor:pointer;
+    background:transparent;transition:color .15s,border-color .15s;white-space:nowrap}
+  .hudfoot button:hover{color:var(--accent);border-color:rgba(95,216,255,.55)}
   .mults{display:flex;flex:1;gap:5px}
   .mults button{flex:1;font-family:'Orbitron',ui-monospace,monospace;font-size:9px;letter-spacing:.04em;
     padding:4px 2px;border:1px solid var(--line);border-radius:2px;color:var(--dim);cursor:pointer;
@@ -104,7 +111,13 @@
   body.dead .tg.on{border-color:rgba(255,123,123,.6)}
   #eLife{text-transform:uppercase;letter-spacing:.1em}
   body.warn #eLife{color:#ffcf5c} body.dead #eLife{color:#ff7b7b}
-  @media (max-width:900px), (orientation:portrait){ .env{display:none} }
+  @media (max-width:640px){
+    .env{width:min(178px, calc(50vw - 20px));padding:8px 9px}
+    .env h2{font-size:7.5px;letter-spacing:.12em;margin-bottom:5px}
+    .env .er{font-size:8px;letter-spacing:.03em;gap:5px}
+    .env .er b{font-size:9px}
+    .ice-badge{font-size:7.5px;letter-spacing:.1em}
+  }
   #infoModal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;
     background:rgba(2,4,8,.65);z-index:20;padding:18px}
   .info-card{position:relative;width:min(560px, 100%);max-height:82vh;overflow-y:auto;background:var(--panel);
@@ -203,6 +216,7 @@
       <button class="tg on" id="tLife">life cycle</button>
       <button class="tg on" id="tVar">variables</button>
       <button class="tg on" id="tLifeSup">life support</button>
+      <button class="tg on" id="tEnv">environment</button>
       <button class="tg" id="tSound">effects</button>
       <button class="tg on" id="tMusic">music</button>
       <button class="tg" id="tNext">⏭ next</button>
@@ -223,6 +237,10 @@
       <button class="tg" id="tInfo">ⓘ info &amp; stats</button>
       <span id="trackName" style="font-size:9px;letter-spacing:.1em;color:var(--dim);align-self:center">—</span>
     </div>
+  </div>
+  <div class="hudfoot">
+    <span id="buildInfo">—</span>
+    <button id="tReload" title="reload, bypassing every cache">⟲ refresh</button>
   </div>
 </div>
 
@@ -421,7 +439,14 @@
 
 <script>
 "use strict";
-const VERSION = 'v30 · 2026-08-30';   // shown in the panel and used as the cache name
+// Semantic version: minor for a feature set, patch for fixes. The date and commit are
+// stamped in at build time by .github/scripts/build_site.py; opened straight from the
+// working copy the placeholders survive and it reports itself as a dev build.
+const BUILD = { version: '1.16.0', date: '__BUILD_DATE__', sha: '__BUILD_SHA__' };
+const VERSION = 'v' + BUILD.version;
+const BUILD_LINE = BUILD.date.indexOf('__') === 0
+  ? VERSION + ' · dev build'
+  : VERSION + ' · ' + BUILD.date + ' · ' + BUILD.sha;
 // ---------- tiny mat4 ----------
 function perspective(fov, asp, n, f){
   const t = 1/Math.tan(fov/2), m = new Float32Array(16);
@@ -1519,6 +1544,22 @@ canvas.addEventListener('touchmove', e=>{
 const $=id=>document.getElementById(id);
 $('verHud').textContent = VERSION;
 $('verInfo').textContent = VERSION;
+$('buildInfo').textContent = BUILD_LINE;
+// Hard refresh: drop every cache and the service worker, then reload on a fresh URL so
+// nothing between here and the server can hand back the old build.
+$('tReload').addEventListener('click', async ()=>{
+  $('tReload').textContent = '⟲ …';
+  try{
+    if(window.caches) await Promise.all((await caches.keys()).map(k => caches.delete(k)));
+    if(navigator.serviceWorker){
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
+    }
+  }catch(e){}
+  const u = new URL(location.href);
+  u.searchParams.set('_', Date.now());
+  location.replace(u.toString());
+});
 let paused=false, showTrails=true, showLabels=true, showStats=true;
 let showDwarfs=true, showBelt=true, showKuiper=true, showOort=true;
 let speed = 1.5; // years per second
@@ -1565,6 +1606,7 @@ toggle($('tBelt'), on=> showBelt=on);
 toggle($('tKuiper'), on=> showKuiper=on);
 toggle($('tLife'), on=>{ lifeOn=on; if(!on){ events.length=0; puffs.length=0; } });
 toggle($('tVar'), on=> varOn=on);
+toggle($('tEnv'), on=>{ $('env').style.display = on ? '' : 'none'; });
 let lifeSupOn = true;
 toggle($('tLifeSup'), on=>{
   lifeSupOn = on;
@@ -1620,7 +1662,7 @@ loadTrack(0);
 // so restoring a setting does exactly what clicking it would. Anything momentary — the
 // pause, the dive, the epoch jump, the current track position — is deliberately left out.
 const SKEY = 'galactic-transit.settings.v1';
-const S_TOG = ['tTrails','tLabels','tDwarfs','tBelt','tKuiper','tOort','tLife','tVar','tLifeSup',
+const S_TOG = ['tTrails','tLabels','tDwarfs','tBelt','tKuiper','tOort','tLife','tVar','tLifeSup','tEnv',
                'tStatCal','tStatAge','tStatGyr','tSci','tLive','tView','tReal','tHifi','tUltra',
                'tSound','tMusic'];
 const S_SLD = ['speed','trailA','trailL','musicVol','sfxVol'];
