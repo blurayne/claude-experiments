@@ -21,7 +21,9 @@ in the browser with no build step and no external CDN.
   raise the star count five- and twenty-fold (~460,000 / ~1.9 million points),
   scatter discrete dark molecular clouds (Dunkelwolken) through the disk, and
   the disk itself follows Gaia-era structure: an exponential thin disk plus a
-  thicker, older second disk. Trail opacity and length (2.4–240 yr) are adjustable. A **life cycle**
+  thicker, older second disk. Trail opacity and length (2.4–240 yr) are adjustable, speed runs from the
+  slider up through ×10³ to ×10¹² decade steps, and every setting is remembered
+  in `localStorage`. A **life cycle**
   mode animates stellar birth and death at measured rates — OB clusters igniting
   along the arms (their 3–30 Myr lives play out in a few simulated years), red
   supergiants collapsing into supernovae with expanding remnants, red giants

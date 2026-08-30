@@ -42,6 +42,7 @@
   .hud .body::-webkit-scrollbar-thumb{background:rgba(95,216,255,.4);border-radius:3px}
   .hud .body::-webkit-scrollbar-track{background:transparent}
   .hud h1{font-family:'Orbitron',ui-monospace,monospace;font-size:13px;font-weight:700;letter-spacing:.26em;text-transform:uppercase;color:var(--accent);text-shadow:0 0 14px var(--glow)}
+  .ver{font-size:8px;font-weight:500;letter-spacing:.12em;color:var(--dim);text-shadow:none;margin-left:6px;vertical-align:2px}
   .hud .sub{font-size:10px;color:var(--dim);letter-spacing:.08em;margin-top:3px;line-height:1.5}
   .row{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:11px}
   .row label{color:var(--dim);letter-spacing:.06em;min-width:52px}
@@ -149,7 +150,7 @@
 
 <div class="hud" id="hud">
   <button id="collapse" aria-label="collapse panel">–</button>
-  <h1>Galactic Transit</h1>
+  <h1>Galactic Transit <span class="ver" id="verHud"></span></h1>
   <div class="sub">The Sun orbits the Milky Way's core at ~230 km/s. The planets, on an ecliptic tilted ~60° to the galactic plane, weave helical paths around its track.</div>
   <div class="body">
     <div class="row"><label for="speed">speed</label><input type="range" id="speed" min="0" max="1" step="0.001" value="0.55"><span id="speedv" style="min-width:64px;text-align:right;color:var(--ink)"></span></div>
@@ -229,7 +230,7 @@
   <div class="info-card">
     <button id="infoFull" aria-label="toggle fullscreen">⛶</button>
     <button id="infoClose" aria-label="close">×</button>
-    <h2>Info &amp; Stats</h2>
+    <h2>Info &amp; Stats <span class="ver" id="verInfo"></span></h2>
     <div class="stats" style="margin-top:0;padding-top:0;border-top:0">
       elapsed <b id="yrs">0.0</b> yr &nbsp;·&nbsp; galactic lap <b id="pct">0.000</b>%<br>
       drag to orbit &nbsp;·&nbsp; scroll / pinch to zoom
@@ -420,6 +421,7 @@
 
 <script>
 "use strict";
+const VERSION = 'v30 · 2026-08-30';   // shown in the panel and used as the cache name
 // ---------- tiny mat4 ----------
 function perspective(fov, asp, n, f){
   const t = 1/Math.tan(fov/2), m = new Float32Array(16);
@@ -1515,6 +1517,8 @@ canvas.addEventListener('touchmove', e=>{
 
 // ---------- UI ----------
 const $=id=>document.getElementById(id);
+$('verHud').textContent = VERSION;
+$('verInfo').textContent = VERSION;
 let paused=false, showTrails=true, showLabels=true, showStats=true;
 let showDwarfs=true, showBelt=true, showKuiper=true, showOort=true;
 let speed = 1.5; // years per second
@@ -1610,6 +1614,56 @@ $('sfxVol').addEventListener('input', e=>{
 // music is on by default; effects wait to be switched on (their graph is built then).
 // Autoplay is refused before a gesture, so queue the start behind the first one.
 loadTrack(0);
+
+// ---------- remembering the settings ----------
+// Saved state is replayed through the existing handlers rather than assigned directly,
+// so restoring a setting does exactly what clicking it would. Anything momentary — the
+// pause, the dive, the epoch jump, the current track position — is deliberately left out.
+const SKEY = 'galactic-transit.settings.v1';
+const S_TOG = ['tTrails','tLabels','tDwarfs','tBelt','tKuiper','tOort','tLife','tVar','tLifeSup',
+               'tStatCal','tStatAge','tStatGyr','tSci','tLive','tView','tReal','tHifi','tUltra',
+               'tSound','tMusic'];
+const S_SLD = ['speed','trailA','trailL','musicVol','sfxVol'];
+const S_CHK = ['fxBirth','fxSn','fxPn','fxDrone'];
+const MULT_VALUES = [1,1e3,1e6,1e9,1e12];
+function saveSettingsNow(){
+  try{
+    const s = { t:{}, s:{}, c:{}, cal:$('cal').value, mult:speedMult,
+                hud:$('hud').style.display !== 'none' };
+    S_TOG.forEach(id => s.t[id] = $(id).classList.contains('on'));
+    S_SLD.forEach(id => s.s[id] = $(id).value);
+    S_CHK.forEach(id => s.c[id] = $(id).checked);
+    localStorage.setItem(SKEY, JSON.stringify(s));
+  }catch(e){}   // private browsing, or storage disabled: just don't remember
+}
+let saveTimer = 0;
+const saveSettings = ()=>{ clearTimeout(saveTimer); saveTimer = setTimeout(saveSettingsNow, 250); };
+// Deferred: replaying a saved toggle runs its handler, and some of those reach for
+// state declared further down the file (the label elements, the simulation clock).
+// This is called at the very end of the script, once every binding exists.
+function restoreSettings(){
+  let s = null;
+  try{ s = JSON.parse(localStorage.getItem(SKEY) || 'null'); }catch(e){}
+  if(s){
+    if(s.s) S_SLD.forEach(id=>{ const v=s.s[id];
+      if(v != null && $(id).value !== v){ $(id).value = v; $(id).dispatchEvent(new Event('input')); } });
+    if(s.c) S_CHK.forEach(id=>{ const v=s.c[id];
+      if(v != null && $(id).checked !== v){ $(id).checked = v; $(id).dispatchEvent(new Event('change')); } });
+    if(s.t) S_TOG.forEach(id=>{ const v=s.t[id];
+      if(v != null && $(id).classList.contains('on') !== v) $(id).click(); });
+    if(s.cal && s.cal !== $('cal').value){ $('cal').value = s.cal; $('cal').dispatchEvent(new Event('change')); }
+    if(s.mult){ const i = MULT_VALUES.indexOf(s.mult); if(i >= 0 && s.mult !== speedMult) $('mults').children[i].click(); }
+    if(s.hud === false) $('collapse').click();
+  }
+  // from here on, anything the user touches is remembered
+  S_TOG.forEach(id => $(id).addEventListener('click', saveSettings));
+  S_SLD.forEach(id => $(id).addEventListener('input', saveSettings));
+  S_CHK.forEach(id => $(id).addEventListener('change', saveSettings));
+  $('cal').addEventListener('change', saveSettings);
+  $('collapse').addEventListener('click', saveSettings);
+  $('reopen').addEventListener('click', saveSettings);
+  [...$('mults').children].forEach(b => b.addEventListener('click', saveSettings));
+}
 toggle($('tOort'), on=> showOort=on);
 function updateBar(){
   showStats = ['sCal','sAge','sGyr'].some(id => $(id).style.display !== 'none');
@@ -2127,6 +2181,7 @@ function frame(now){
 
   requestAnimationFrame(frame);
 }
+restoreSettings();
 requestAnimationFrame(frame);
 </script>
 </body>
