@@ -27,10 +27,11 @@ in the browser with no build step and no external CDN.
   supergiants collapsing into supernovae with expanding remnants, red giants
   puffing planetary nebulae — while the bar, arms and spur ride a rigid
   density-wave pattern that the disk stars stream through, so the arms never
-  wind up. Optional **sound** (a deep space drone plus synthesized effects for
-  star births, planetary nebulae and supernova blasts) and generative ambient
-  **music** (slowly drifting chord pads with sparse echoing tones — no samples,
-  everything synthesized live via Web Audio, never repeating exactly). A **variables** toggle makes a few percent of the
+  wind up. **Effects** (a deep space drone plus
+  synthesized sounds for star births, planetary nebulae and supernova blasts,
+  generated live via Web Audio — no samples) and background **music** are both
+  on by default, each with its own volume slider, and a *next* button cycles
+  the tracks. A **variables** toggle makes a few percent of the
   star points pulse Cepheid/Mira-style — dimmer and redder at minimum light —
   and lets the HII nebulae breathe and drift in hue. Styled as a sci-fi observatory HUD
   with Orbitron/Exo 2, embedded in the file so it stays offline-capable. An
@@ -39,6 +40,10 @@ in the browser with no build step and no external CDN.
 
 ## Files
 
+- [`music/`](music/) — the two background tracks, *Galactic Year* I & II by
+  barbedgreenroom3. They are kept as separate files rather than embedded in the
+  page: 10 MB of base64 would bloat the HTML past any sane single-file limit,
+  and this way nothing is fetched until the music is switched on.
 - [`vendor/`](vendor/) — pinned third-party libraries (React 18.3.1,
   ReactDOM 18.3.1, Three.js r160) used by `solar-system.html`, vendored into the
   repo so the page has **no external CDN dependencies**.

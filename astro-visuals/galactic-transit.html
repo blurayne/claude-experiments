@@ -81,6 +81,8 @@
     <div class="row"><label for="speed">speed</label><input type="range" id="speed" min="0" max="1" step="0.001" value="0.55"><span id="speedv" style="min-width:64px;text-align:right;color:var(--ink)"></span></div>
     <div class="row"><label for="trailA">trails</label><input type="range" id="trailA" min="0" max="1" step="0.01" value="1"><span id="trailAv" style="min-width:64px;text-align:right;color:var(--ink)">100%</span></div>
     <div class="row"><label for="trailL">length</label><input type="range" id="trailL" min="0" max="1" step="0.001" value="0.5"><span id="trailLv" style="min-width:64px;text-align:right;color:var(--ink)">24 yr</span></div>
+    <div class="row"><label for="musicVol">music</label><input type="range" id="musicVol" min="0" max="1" step="0.01" value="0.55"><span id="musicVolv" style="min-width:64px;text-align:right;color:var(--ink)">55%</span></div>
+    <div class="row"><label for="sfxVol">effects</label><input type="range" id="sfxVol" min="0" max="1" step="0.01" value="0.7"><span id="sfxVolv" style="min-width:64px;text-align:right;color:var(--ink)">70%</span></div>
     <div class="row"><label for="cal">calendar</label><select id="cal">
       <option value="hs" selected>Human existence (300,000 yrs)</option>
       <option value="her">Homo erectus (~2 Myr)</option>
@@ -104,8 +106,9 @@
       <button class="tg on" id="tOort">oort</button>
       <button class="tg on" id="tLife">life cycle</button>
       <button class="tg on" id="tVar">variables</button>
-      <button class="tg" id="tSound">sound</button>
-      <button class="tg" id="tMusic">music</button>
+      <button class="tg on" id="tSound">effects</button>
+      <button class="tg on" id="tMusic">music</button>
+      <button class="tg" id="tNext">⏭ next</button>
       <button class="tg on" id="tStatCal">hum yr</button>
       <button class="tg on" id="tStatAge">age</button>
       <button class="tg on" id="tStatGyr">gal yr</button>
@@ -118,6 +121,7 @@
     </div>
     <div class="toggles" style="margin-top:10px">
       <button class="tg" id="tInfo">ⓘ info &amp; stats</button>
+      <span id="trackName" style="font-size:9px;letter-spacing:.1em;color:var(--dim);align-self:center">—</span>
     </div>
   </div>
 </div>
@@ -227,6 +231,8 @@
       <li>Bar (half-length ~15,000 ly, 28° to the Sun–center line), arms sprouting from the bar tips
       (Scutum–Centaurus, Perseus + Sagittarius, Norma), and the Sun's <b>Local Spur</b> follow Milky Way measurements.</li>
       <li>The <b>warped outer disk</b> and its slow retrograde precession follow Gaia's findings.</li>
+      <li>Music: <b>&ldquo;Galactic Year&rdquo; I &amp; II</b> by barbedgreenroom3, shipped alongside this page.
+      The sound effects and the drone under them are synthesized live in the browser, not sampled.</li>
       <li>The <b>asteroid belt</b> (~1,500 points at 2.1&ndash;3.3&nbsp;AU) carves out the Kirkwood gaps at
       Jupiter's 3:1, 5:2 and 7:3 resonances, and its orbital periods are true Kepler in both scale modes.</li>
       <li>The <b>hi-fi galaxy</b> toggle raises the drawn star count five-fold (~460,000 points) and scatters
@@ -917,12 +923,12 @@ function pushTrail(i, ts){
 let lifeOn = true, varOn = true; let shimT = 0; // variability clock (wall time, runs even when paused)
 
 // ---------- sound: everything synthesized live via Web Audio — no samples, still one file ----------
-let soundOn = false, audio = null;
+let soundOn = true, sfxVol = 0.7, audio = null;
 const sfxLast = {};
 function initAudio(){
   const ctx = new (window.AudioContext||window.webkitAudioContext)();
   const comp = ctx.createDynamicsCompressor(); comp.connect(ctx.destination);
-  const master = ctx.createGain(); master.gain.value = 0; master.connect(comp);
+  const master = ctx.createGain(); master.gain.value = soundOn?sfxVol:0; master.connect(comp);
   // ambient drone: three detuned deep sines + slow rumbling noise, breathing on a very slow LFO
   const padG = ctx.createGain(); padG.gain.value = 0.055; padG.connect(master);
   for(const [f,g0] of [[55,0.5],[55.6,0.5],[110.4,0.16]]){
@@ -942,51 +948,44 @@ function initAudio(){
   lfo.connect(lg); lg.connect(padG.gain); lfo.start();
   return {ctx, master, comp};
 }
-// generative ambient music: slow crossfading chord pads + sparse echoing tones. All
-// synthesized, nothing looped from a file — it never repeats exactly.
-let musicOn = false, music = null;
-const CHORDS = [               // an unhurried Am9 - Fmaj7 - Cmaj9 - Gadd9 drift
-  [110.00,164.81,261.63,246.94],
-  [ 87.31,130.81,220.00,329.63],
-  [130.81,196.00,293.66,329.63],
-  [ 98.00,146.83,220.00,246.94],
+// background music: two ambient tracks shipped alongside this page (music/*.mp3).
+// Kept as separate files rather than embedded: 10 MB of base64 would bloat the HTML
+// past any sane single-file limit, and this way nothing is fetched until music is on.
+const TRACKS = [
+  {src:'music/galactic-year-1.mp3', name:'Galactic Year I'},
+  {src:'music/galactic-year-2.mp3', name:'Galactic Year II'},
 ];
-const PENTA = [220,261.63,293.66,329.63,392,440,523.25,659.25];
-function initMusic(){
-  const {ctx, comp} = audio;
-  const bus = ctx.createGain(); bus.gain.value = 0; bus.connect(comp);
-  const echoIn = ctx.createGain();                    // a long space echo for the sparse notes
-  const dl = ctx.createDelay(2.0); dl.delayTime.value = 0.55;
-  const fb = ctx.createGain(); fb.gain.value = 0.42;
-  const fl = ctx.createBiquadFilter(); fl.type='lowpass'; fl.frequency.value = 1600;
-  echoIn.connect(dl); dl.connect(fl); fl.connect(fb); fb.connect(dl); fl.connect(bus); echoIn.connect(bus);
-  return {bus, echoIn, ci:0, timers:[]};
-}
-function playChord(){
+let musicOn = true, musicVol = 0.55, trackIx = 0;
+const player = new Audio();
+player.preload = 'none';
+player.volume = musicVol;
+player.addEventListener('ended', ()=> nextTrack());
+player.addEventListener('error', ()=>{ $('trackName').textContent = 'track unavailable'; });
+function showTrack(){ $('trackName').textContent = (trackIx+1)+'/'+TRACKS.length+' · '+TRACKS[trackIx].name; }
+function playTrack(){
   if(!musicOn) return;
-  const {ctx} = audio, t = ctx.currentTime, dur = 16 + Math.random()*6;
-  for(const f of CHORDS[music.ci % CHORDS.length]){
-    for(const det of [-4.5, 4.5]){
-      const o = ctx.createOscillator(); o.type='sine'; o.frequency.value = f; o.detune.value = det;
-      const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t);
-      g.gain.linearRampToValueAtTime(0.035, t + dur*0.4);
-      g.gain.linearRampToValueAtTime(0.0001, t + dur + 4);
-      o.connect(g); g.connect(music.bus); o.start(t); o.stop(t + dur + 4.2);
-    }
-  }
-  music.ci++;
-  music.timers.push(setTimeout(playChord, (dur - 3)*1000));
+  const q = player.play();
+  if(q && q.catch) q.catch(()=> armUnlock()); // autoplay blocked until the first gesture
 }
-function playNote(){
-  if(!musicOn) return;
-  const {ctx} = audio, t = ctx.currentTime;
-  const f = PENTA[(Math.random()*PENTA.length)|0] * (Math.random()<0.2 ? 2 : 1);
-  const o = ctx.createOscillator(); o.type='sine'; o.frequency.value = f;
-  const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t);
-  g.gain.exponentialRampToValueAtTime(0.05, t + 0.4);
-  g.gain.exponentialRampToValueAtTime(0.0001, t + 3.5);
-  o.connect(g); g.connect(music.echoIn); o.start(t); o.stop(t + 3.6);
-  music.timers.push(setTimeout(playNote, 4000 + Math.random()*8000));
+function loadTrack(i){
+  trackIx = (i + TRACKS.length) % TRACKS.length;
+  player.src = TRACKS[trackIx].src;
+  showTrack();
+  playTrack();
+}
+function nextTrack(){ loadTrack(trackIx + 1); }
+// Browsers refuse audio before a user gesture, so anything on by default waits for one.
+let unlockArmed = false;
+function armUnlock(){
+  if(unlockArmed) return;
+  unlockArmed = true;
+  const go = ()=>{
+    removeEventListener('pointerdown', go); removeEventListener('keydown', go);
+    unlockArmed = false;
+    if(audio) audio.ctx.resume();
+    if(musicOn){ if(!player.src) loadTrack(trackIx); else player.play().catch(()=>{}); }
+  };
+  addEventListener('pointerdown', go); addEventListener('keydown', go);
 }
 function sfx(kind){
   if(!soundOn || !audio) return;
@@ -1179,33 +1178,40 @@ toggle($('tBelt'), on=> showBelt=on);
 toggle($('tKuiper'), on=> showKuiper=on);
 toggle($('tLife'), on=>{ lifeOn=on; if(!on){ events.length=0; puffs.length=0; } });
 toggle($('tVar'), on=> varOn=on);
+function applySfxGain(){
+  if(!audio) return;
+  const at=audio.ctx.currentTime;
+  audio.master.gain.cancelScheduledValues(at);
+  audio.master.gain.setTargetAtTime(soundOn?sfxVol:0.0, at, 0.3); // fade, never a click
+}
 toggle($('tSound'), on=>{
   soundOn=on;
   if(on && !audio) audio=initAudio();
-  if(audio){
-    if(on) audio.ctx.resume();
-    const at=audio.ctx.currentTime;
-    audio.master.gain.cancelScheduledValues(at);
-    audio.master.gain.setTargetAtTime(on?0.9:0.0, at, 0.4); // fade in/out
-  }
+  if(on && audio) audio.ctx.resume().catch(()=>armUnlock());
+  applySfxGain();
 });
 toggle($('tMusic'), on=>{
   musicOn=on;
-  if(on){
-    if(!audio) audio=initAudio();
-    audio.ctx.resume();
-    if(!music) music=initMusic();
-    const at=audio.ctx.currentTime;
-    music.bus.gain.cancelScheduledValues(at);
-    music.bus.gain.setTargetAtTime(0.9, at, 1.0);
-    playChord(); playNote();
-  } else if(music){
-    const at=audio.ctx.currentTime;
-    music.bus.gain.cancelScheduledValues(at);
-    music.bus.gain.setTargetAtTime(0.0, at, 0.8);
-    music.timers.forEach(clearTimeout); music.timers.length=0;
-  }
+  if(on){ if(!player.src) loadTrack(trackIx); else playTrack(); }
+  else player.pause();
 });
+$('tNext').addEventListener('click', ()=>{
+  nextTrack();
+  if(!musicOn) $('tMusic').click(); // asking for the next track means you want music
+});
+$('musicVol').addEventListener('input', e=>{
+  musicVol=+e.target.value; player.volume=musicVol;
+  $('musicVolv').textContent=Math.round(musicVol*100)+'%';
+});
+$('sfxVol').addEventListener('input', e=>{
+  sfxVol=+e.target.value; applySfxGain();
+  $('sfxVolv').textContent=Math.round(sfxVol*100)+'%';
+});
+// both on by default: start what we can, and queue the rest behind the first gesture
+audio = initAudio();
+audio.ctx.resume().catch(()=>{});
+if(audio.ctx.state !== 'running') armUnlock();
+loadTrack(0);
 toggle($('tOort'), on=> showOort=on);
 function updateBar(){
   showStats = ['sCal','sAge','sGyr'].some(id => $(id).style.display !== 'none');
