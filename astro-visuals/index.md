@@ -27,7 +27,13 @@ in the browser with no build step and no external CDN.
   supergiants collapsing into supernovae with expanding remnants, red giants
   puffing planetary nebulae — while the bar, arms and spur ride a rigid
   density-wave pattern that the disk stars stream through, so the arms never
-  wind up. **Effects** (five recorded supernova
+  wind up. Installable as a **PWA** (manifest, service worker, offline shell) that opens
+  fullscreen in whatever rotation the screen is already in, with fullscreen and
+  screen-rotation buttons in the HUD. The status bar tallies supernovae and
+  newly born stars at the measured real rates. Calendar eras run from the
+  present back through the first land life, first plants, first cell,
+  prebiotic amino acids, the Theia impact and Earth's formation.
+  **Effects** (five recorded supernova
   blasts picked at random, plus a deep space drone, star-birth chimes and
   planetary-nebula exhales synthesized live via Web Audio) are off by default;
   background **music** is on. Each has its own toggle and volume slider, and a *next*
@@ -40,6 +46,11 @@ in the browser with no build step and no external CDN.
 
 ## Files
 
+- [`icon.svg`](icon.svg) — the *Galactic Year* emblem, hand-authored as vector
+  (with Orbitron embedded so the lettering renders identically everywhere) and
+  rasterised to the PNG sizes the manifest needs.
+- [`manifest.json`](manifest.json), [`sw.js`](sw.js) — the PWA manifest and its
+  offline service worker.
 - [`sfx/`](sfx/) — five recorded supernova blasts, played at random (with a
   slight per-blast detune) so repeats don't sound looped.
 - [`music/`](music/) — the two background tracks, *Galactic Year* I & II by
