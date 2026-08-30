@@ -27,7 +27,10 @@ in the browser with no build step and no external CDN.
   supergiants collapsing into supernovae with expanding remnants, red giants
   puffing planetary nebulae — while the bar, arms and spur ride a rigid
   density-wave pattern that the disk stars stream through, so the arms never
-  wind up. Styled as a sci-fi observatory HUD
+  wind up. Optional **sound** (a deep space drone plus synthesized effects for
+  star births, planetary nebulae and supernova blasts) and generative ambient
+  **music** (slowly drifting chord pads with sparse echoing tones — no samples,
+  everything synthesized live via Web Audio, never repeating exactly). Styled as a sci-fi observatory HUD
   with Orbitron/Exo 2, embedded in the file so it stays offline-capable. An
   info panel explains where the drawing is compressed and why the Oort cloud's
   outer edge is set by the galactic tide rather than by the Sun.

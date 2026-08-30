@@ -103,6 +103,8 @@
       <button class="tg on" id="tKuiper">kuiper</button>
       <button class="tg on" id="tOort">oort</button>
       <button class="tg on" id="tLife">life cycle</button>
+      <button class="tg" id="tSound">sound</button>
+      <button class="tg" id="tMusic">music</button>
       <button class="tg on" id="tStatCal">hum yr</button>
       <button class="tg on" id="tStatAge">age</button>
       <button class="tg on" id="tStatGyr">gal yr</button>
@@ -881,6 +883,120 @@ function pushTrail(i, ts){
 // point sampling (~2.2 per sim-yr per density unit); featured supernovae are a sampled
 // fraction of the true ~24,000 per sim-yr, which would be a continuous glitter.
 let lifeOn = true;
+
+// ---------- sound: everything synthesized live via Web Audio — no samples, still one file ----------
+let soundOn = false, audio = null;
+const sfxLast = {};
+function initAudio(){
+  const ctx = new (window.AudioContext||window.webkitAudioContext)();
+  const comp = ctx.createDynamicsCompressor(); comp.connect(ctx.destination);
+  const master = ctx.createGain(); master.gain.value = 0; master.connect(comp);
+  // ambient drone: three detuned deep sines + slow rumbling noise, breathing on a very slow LFO
+  const padG = ctx.createGain(); padG.gain.value = 0.055; padG.connect(master);
+  for(const [f,g0] of [[55,0.5],[55.6,0.5],[110.4,0.16]]){
+    const o = ctx.createOscillator(); o.type='sine'; o.frequency.value = f;
+    const g = ctx.createGain(); g.gain.value = g0;
+    o.connect(g); g.connect(padG); o.start();
+  }
+  const nbuf = ctx.createBuffer(1, ctx.sampleRate*4, ctx.sampleRate);
+  const nd = nbuf.getChannelData(0); let v = 0;
+  for(let i=0;i<nd.length;i++){ v = v*0.98 + (Math.random()*2-1)*0.04; nd[i] = v*6; }
+  const ns = ctx.createBufferSource(); ns.buffer = nbuf; ns.loop = true;
+  const nf = ctx.createBiquadFilter(); nf.type='lowpass'; nf.frequency.value = 140;
+  const ng = ctx.createGain(); ng.gain.value = 0.5;
+  ns.connect(nf); nf.connect(ng); ng.connect(padG); ns.start();
+  const lfo = ctx.createOscillator(); lfo.frequency.value = 0.05;
+  const lg = ctx.createGain(); lg.gain.value = 0.02;
+  lfo.connect(lg); lg.connect(padG.gain); lfo.start();
+  return {ctx, master, comp};
+}
+// generative ambient music: slow crossfading chord pads + sparse echoing tones. All
+// synthesized, nothing looped from a file — it never repeats exactly.
+let musicOn = false, music = null;
+const CHORDS = [               // an unhurried Am9 - Fmaj7 - Cmaj9 - Gadd9 drift
+  [110.00,164.81,261.63,246.94],
+  [ 87.31,130.81,220.00,329.63],
+  [130.81,196.00,293.66,329.63],
+  [ 98.00,146.83,220.00,246.94],
+];
+const PENTA = [220,261.63,293.66,329.63,392,440,523.25,659.25];
+function initMusic(){
+  const {ctx, comp} = audio;
+  const bus = ctx.createGain(); bus.gain.value = 0; bus.connect(comp);
+  const echoIn = ctx.createGain();                    // a long space echo for the sparse notes
+  const dl = ctx.createDelay(2.0); dl.delayTime.value = 0.55;
+  const fb = ctx.createGain(); fb.gain.value = 0.42;
+  const fl = ctx.createBiquadFilter(); fl.type='lowpass'; fl.frequency.value = 1600;
+  echoIn.connect(dl); dl.connect(fl); fl.connect(fb); fb.connect(dl); fl.connect(bus); echoIn.connect(bus);
+  return {bus, echoIn, ci:0, timers:[]};
+}
+function playChord(){
+  if(!musicOn) return;
+  const {ctx} = audio, t = ctx.currentTime, dur = 16 + Math.random()*6;
+  for(const f of CHORDS[music.ci % CHORDS.length]){
+    for(const det of [-4.5, 4.5]){
+      const o = ctx.createOscillator(); o.type='sine'; o.frequency.value = f; o.detune.value = det;
+      const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(0.035, t + dur*0.4);
+      g.gain.linearRampToValueAtTime(0.0001, t + dur + 4);
+      o.connect(g); g.connect(music.bus); o.start(t); o.stop(t + dur + 4.2);
+    }
+  }
+  music.ci++;
+  music.timers.push(setTimeout(playChord, (dur - 3)*1000));
+}
+function playNote(){
+  if(!musicOn) return;
+  const {ctx} = audio, t = ctx.currentTime;
+  const f = PENTA[(Math.random()*PENTA.length)|0] * (Math.random()<0.2 ? 2 : 1);
+  const o = ctx.createOscillator(); o.type='sine'; o.frequency.value = f;
+  const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(0.05, t + 0.4);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 3.5);
+  o.connect(g); g.connect(music.echoIn); o.start(t); o.stop(t + 3.6);
+  music.timers.push(setTimeout(playNote, 4000 + Math.random()*8000));
+}
+function sfx(kind){
+  if(!soundOn || !audio) return;
+  const {ctx, master} = audio, t = ctx.currentTime;
+  const gap = {sn:0.35, birth:0.15, pn:0.25}[kind];
+  if(sfxLast[kind] && t - sfxLast[kind] < gap) return;
+  sfxLast[kind] = t;
+  if(kind==='sn'){ // the immense one: sub-bass drop plus a noise blast through a closing filter
+    const o = ctx.createOscillator(); o.type='sine';
+    o.frequency.setValueAtTime(90,t); o.frequency.exponentialRampToValueAtTime(28,t+1.6);
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.0001,t);
+    g.gain.exponentialRampToValueAtTime(0.5,t+0.08); g.gain.exponentialRampToValueAtTime(0.0001,t+2.6);
+    o.connect(g); g.connect(master); o.start(t); o.stop(t+2.7);
+    const nb = ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate), nd2 = nb.getChannelData(0);
+    for(let i=0;i<nd2.length;i++) nd2[i] = Math.random()*2-1;
+    const s2 = ctx.createBufferSource(); s2.buffer = nb;
+    const f = ctx.createBiquadFilter(); f.type='lowpass';
+    f.frequency.setValueAtTime(2400,t); f.frequency.exponentialRampToValueAtTime(60,t+2.0);
+    const g2 = ctx.createGain(); g2.gain.setValueAtTime(0.0001,t);
+    g2.gain.exponentialRampToValueAtTime(0.35,t+0.05); g2.gain.exponentialRampToValueAtTime(0.0001,t+2.2);
+    s2.connect(f); f.connect(g2); g2.connect(master); s2.start(t); s2.stop(t+2.2);
+  } else if(kind==='birth'){ // a faint two-partial chime; only some births ring
+    if(Math.random() > 0.4) return;
+    const f0 = 520 + Math.random()*700;
+    for(const [m,d0] of [[1,0],[1.5,0.06]]){
+      const o = ctx.createOscillator(); o.type='sine'; o.frequency.value = f0*m;
+      const g = ctx.createGain(); g.gain.setValueAtTime(0.0001,t+d0);
+      g.gain.exponentialRampToValueAtTime(0.045,t+d0+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+d0+0.9);
+      o.connect(g); g.connect(master); o.start(t+d0); o.stop(t+d0+1.0);
+    }
+  } else if(kind==='pn'){ // planetary nebula: an airy exhale
+    const nb = ctx.createBuffer(1,ctx.sampleRate*1.4,ctx.sampleRate), nd2 = nb.getChannelData(0);
+    for(let i=0;i<nd2.length;i++) nd2[i] = Math.random()*2-1;
+    const s2 = ctx.createBufferSource(); s2.buffer = nb;
+    const f = ctx.createBiquadFilter(); f.type='bandpass'; f.Q.value = 1.6;
+    f.frequency.setValueAtTime(700,t); f.frequency.exponentialRampToValueAtTime(240,t+1.2);
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.0001,t);
+    g.gain.exponentialRampToValueAtTime(0.06,t+0.35); g.gain.exponentialRampToValueAtTime(0.0001,t+1.3);
+    s2.connect(f); f.connect(g); g.connect(master); s2.start(t); s2.stop(t+1.4);
+  }
+}
 const EV_CAP = 1024, PUFF_CAP = 512;
 const evPos=new Float32Array(EV_CAP*3), evSize=new Float32Array(EV_CAP), evCol=new Float32Array(EV_CAP*3), evWave=new Float32Array(EV_CAP);
 const pfPos=new Float32Array(PUFF_CAP*3), pfSize=new Float32Array(PUFF_CAP), pfCol=new Float32Array(PUFF_CAP*3), pfWave=new Float32Array(PUFF_CAP);
@@ -924,7 +1040,7 @@ function lifeStep(dt, dtSim){
   accSN += dtSim*Math.max(0.011*curD, 0.15);
   accPN += dtSim*1.5*curD;
   while(accB>=1){ accB--; if(events.length<EV_CAP){ const s=armSite();
-    events.push({k:1,x:s[0],y:s[1],z:s[2],wv:1,st:0,t:0,L:3+Math.random()*6,sn:Math.random()<0.12}); } }
+    events.push({k:1,x:s[0],y:s[1],z:s[2],wv:1,st:0,t:0,L:3+Math.random()*6,sn:Math.random()<0.12}); sfx('birth'); } }
   while(accSN>=1){ accSN--; if(events.length<EV_CAP){ const s=armSite();
     events.push({k:2,x:s[0],y:s[1],z:s[2],wv:1,st:0,t:0}); } }
   while(accPN>=1){ accPN--; if(events.length<EV_CAP){ const s=diskSite();
@@ -935,9 +1051,9 @@ function lifeStep(dt, dtSim){
       if(e.sn){ e.k=2; e.st=0; }                    // a massive member goes supergiant
       else if(e.st>e.L+0.8) events.splice(i,1);     // cluster disperses into the disk
     }
-    else if(e.k===2 && e.st>1.0){ e.k=3; e.t=0; }   // ~1 Myr as a red supergiant, then collapse
+    else if(e.k===2 && e.st>1.0){ e.k=3; e.t=0; sfx('sn'); }   // ~1 Myr as a red supergiant, then collapse
     else if(e.k===3 && e.t>1.6){ addPuff(e,12,2.8,[0.55,0.35,0.22]); e.k=5; e.t=0; }
-    else if(e.k===4 && e.st>1.2){ addPuff(e,1.8,2.2,[0.10,0.50,0.42]); e.k=6; e.t=0; }
+    else if(e.k===4 && e.st>1.2){ addPuff(e,1.8,2.2,[0.10,0.50,0.42]); e.k=6; e.t=0; sfx('pn'); }
     else if((e.k===5||e.k===6) && e.t>2.5) events.splice(i,1);
   }
   for(let i=puffs.length-1;i>=0;i--){ const q=puffs[i]; q.t+=dt; if(q.t>q.dur) puffs.splice(i,1); }
@@ -1030,6 +1146,33 @@ toggle($('tDwarfs'), on=>{ showDwarfs=on; if(!on) labelEls.forEach((l,i)=>{ if(i
 toggle($('tBelt'), on=> showBelt=on);
 toggle($('tKuiper'), on=> showKuiper=on);
 toggle($('tLife'), on=>{ lifeOn=on; if(!on){ events.length=0; puffs.length=0; } });
+toggle($('tSound'), on=>{
+  soundOn=on;
+  if(on && !audio) audio=initAudio();
+  if(audio){
+    if(on) audio.ctx.resume();
+    const at=audio.ctx.currentTime;
+    audio.master.gain.cancelScheduledValues(at);
+    audio.master.gain.setTargetAtTime(on?0.9:0.0, at, 0.4); // fade in/out
+  }
+});
+toggle($('tMusic'), on=>{
+  musicOn=on;
+  if(on){
+    if(!audio) audio=initAudio();
+    audio.ctx.resume();
+    if(!music) music=initMusic();
+    const at=audio.ctx.currentTime;
+    music.bus.gain.cancelScheduledValues(at);
+    music.bus.gain.setTargetAtTime(0.9, at, 1.0);
+    playChord(); playNote();
+  } else if(music){
+    const at=audio.ctx.currentTime;
+    music.bus.gain.cancelScheduledValues(at);
+    music.bus.gain.setTargetAtTime(0.0, at, 0.8);
+    music.timers.forEach(clearTimeout); music.timers.length=0;
+  }
+});
 toggle($('tOort'), on=> showOort=on);
 function updateBar(){
   showStats = ['sCal','sAge','sGyr'].some(id => $(id).style.display !== 'none');
