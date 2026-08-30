@@ -216,8 +216,11 @@
     <p>Orbital periods use real ratios and the ~60° tilt of the ecliptic to the galactic plane is real, but scale is
     wildly compressed: the Sun's galactic orbit is ~14&nbsp;billion× wider than Neptune's, and one lap really takes
     ~225&nbsp;million years — compressed ~1.2&nbsp;million-fold here. The planetary system is drawn ~10-million-fold
-    magnified, which is why a clearance bubble fades out nearby stars. The "human year" counts Earth orbits, while
-    the age and galactic-year stats run on the compressed galactic clock — both faces of the same compression.</p>
+    magnified, which is why a clearance bubble fades out nearby stars. Every date readout — the A.D. year and all the
+    deep-time eras — runs on that same galactic clock, so they agree with the age and galactic-year stats:
+    jump to the Andromeda collision and the calendar reads billions of years out, not a few thousand. The
+    planets' visible orbits are compressed separately, which is the point of the piece; they are not a second
+    timeline for dates.</p>
     <p>The <b>Oort cloud</b> is the most symbolic object here, squeezed from both directions: really spanning
     ~3,300 Neptune-orbits (its ring is drawn ~700× too small versus the planets), yet at galaxy scale it would be
     under a pixel (drawn ~3,300× too big versus the galaxy). Its true outer edge lies ~1.6 light-years out —
@@ -1528,6 +1531,9 @@ $('jump').addEventListener('change', e=>{
 });
 const sup = e => String(e).split('').map(d=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[+d]).join('');
 function fmtYears(y){ // a duration in years → astronomer units, or ×10^x notation
+  // Jumping to an epoch before an era began gives a negative span: show how far short
+  // it falls rather than a raw minus sign glued to a locale string.
+  if(y < 0) return '−'+fmtYears(-y);
   if(sciMode){
     const e=Math.floor(Math.log10(Math.max(1,y)));
     return (y/Math.pow(10,e)).toFixed(4)+'×10'+sup(e)+' yr';
@@ -1545,7 +1551,11 @@ function fmtCount(n){
   return String(Math.floor(n));
 }
 function humanYear(){
-  const g = 2026 + simT; // one Earth orbit in the sim = one human year
+  // Real years elapsed, on the same galactic clock as the age and galactic-year stats,
+  // so every date on screen agrees. The planets' visible orbits are compressed
+  // separately — that is the point of the piece, not a second timeline for dates.
+  const el = simT*YR_PER_SIM;
+  const g = 2026 + el;
   const fmt = n => Math.floor(n).toLocaleString('en-US');
   switch(calMode){
     case 'ah':   return fmt((g-621.57)*1.03069)+' A.H.'; // lunar years run ~3% faster
@@ -1554,16 +1564,16 @@ function humanYear(){
     case 'am':   return fmt(g+3760)+' A.M.';
     case 'al':   return fmt(g+4000)+' A.L.';
     case 'he':   return fmt(g+10000)+' H.E.';          // Holocene calendar: +10,000 yr
-    case 'her':  return fmtYears(2000000+simT);        // since Homo erectus emerged (~2 Myr ago)
-    case 'hom':  return fmtYears(7000000+simT);        // since the chimp–human lineage split (~7 Myr ago)
-    case 'mam':  return fmtYears(200000000+simT);      // since the first true mammals (~200 Myr ago, Late Triassic)
-    case 'hs':   return fmtYears(300000+simT);         // since Homo sapiens emerged (~300 kyr ago)
-    case 'land':  return fmtYears(4.70e8+simT);        // plants and fungi colonise land (~470 Myr ago)
-    case 'plant': return fmtYears(1.00e9+simT);        // first green algae (~1 Gyr ago)
-    case 'cell':  return fmtYears(3.80e9+simT);        // earliest cellular life (oldest solid evidence)
-    case 'amino': return fmtYears(4.40e9+simT);        // prebiotic amino acids, Hadean Earth
-    case 'theia': return fmtYears(4.51e9+simT);        // the Moon-forming giant impact
-    case 'earth': return fmtYears(4.54e9+simT);        // Earth's formation — the age of the planet
+    case 'her':  return fmtYears(2000000+el);        // since Homo erectus emerged (~2 Myr ago)
+    case 'hom':  return fmtYears(7000000+el);        // since the chimp–human lineage split (~7 Myr ago)
+    case 'mam':  return fmtYears(200000000+el);      // since the first true mammals (~200 Myr ago, Late Triassic)
+    case 'hs':   return fmtYears(300000+el);         // since Homo sapiens emerged (~300 kyr ago)
+    case 'land':  return fmtYears(4.70e8+el);        // plants and fungi colonise land (~470 Myr ago)
+    case 'plant': return fmtYears(1.00e9+el);        // first green algae (~1 Gyr ago)
+    case 'cell':  return fmtYears(3.80e9+el);        // earliest cellular life (oldest solid evidence)
+    case 'amino': return fmtYears(4.40e9+el);        // prebiotic amino acids, Hadean Earth
+    case 'theia': return fmtYears(4.51e9+el);        // the Moon-forming giant impact
+    case 'earth': return fmtYears(4.54e9+el);        // Earth's formation — the age of the planet
     default:     return g>=1 ? 'A.D. '+fmt(g) : fmt(1-g)+' B.C.';
   }
 }
