@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.4.1 — 2026-08-30
+
+- Trails stop aliasing at speed, and the build stamp names its zone (`93075c5`)
+
 ### 2.4.0 — 2026-08-30
 
 - A changelog, generated from the history and linked from the panel (`3b0c4fc`)
