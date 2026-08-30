@@ -21,7 +21,13 @@ in the browser with no build step and no external CDN.
   raise the star count five- and twenty-fold (~460,000 / ~1.9 million points),
   scatter discrete dark molecular clouds (Dunkelwolken) through the disk, and
   the disk itself follows Gaia-era structure: an exponential thin disk plus a
-  thicker, older second disk. Trail opacity and length (2.4–240 yr) are adjustable. Styled as a sci-fi observatory HUD
+  thicker, older second disk. Trail opacity and length (2.4–240 yr) are adjustable. A **life cycle**
+  mode animates stellar birth and death at measured rates — OB clusters igniting
+  along the arms (their 3–30 Myr lives play out in a few simulated years), red
+  supergiants collapsing into supernovae with expanding remnants, red giants
+  puffing planetary nebulae — while the bar, arms and spur ride a rigid
+  density-wave pattern that the disk stars stream through, so the arms never
+  wind up. Styled as a sci-fi observatory HUD
   with Orbitron/Exo 2, embedded in the file so it stays offline-capable. An
   info panel explains where the drawing is compressed and why the Oort cloud's
   outer edge is set by the galactic tide rather than by the Sun.
