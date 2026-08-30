@@ -204,7 +204,7 @@
   <h1>Galactic Transit <span class="ver" id="verHud"></span></h1>
   <div class="sub">The Sun orbits the Milky Way's core at ~230 km/s. The planets, on an ecliptic tilted ~60° to the galactic plane, weave helical paths around its track.</div>
   <div class="body">
-    <div class="row"><label for="speed">speed</label><input type="range" id="speed" min="0" max="1" step="0.001" value="0.55"><span id="speedv" style="min-width:64px;text-align:right;color:var(--ink)"></span></div>
+    <div class="row"><label for="speed">speed</label><input type="range" id="speed" min="0" max="1" step="0.001" value="0.591"><span id="speedv" style="min-width:64px;text-align:right;color:var(--ink)"></span></div>
     <div class="row"><label>× speed</label><div class="mults" id="mults"></div></div>
     <div class="row"><label>quality</label><div class="mults" id="quals"></div></div>
     <div class="row"><label for="minB">star gain</label><input type="range" id="minB" min="0" max="1" step="0.01" value="0"><span id="minBv" style="min-width:64px;text-align:right;color:var(--ink)">off</span></div>
@@ -228,7 +228,7 @@
       <option value="10.1">After the merger (+5.5 Gyr)</option>
     </select><button class="rowbtn" id="jumpGo" title="set the selected event's date again">set</button><button class="rowbtn" id="jumpNow" title="back to the present day">now</button></div>
     <div class="row"><label for="cal">calendar</label><select id="cal">
-      <option value="hs" selected>Human existence (300,000 yrs)</option>
+      <option value="hs">Human existence (300,000 yrs)</option>
       <option value="her">Homo erectus (~2 Myr)</option>
       <option value="hom">Hominins (chimp–human split, ~7 Myr)</option>
       <option value="mam">Mammals (~200 Myr)</option>
@@ -238,7 +238,7 @@
       <option value="amino">First amino acids — prebiotic (~4.4 Gyr)</option>
       <option value="theia">Theia impact — the Moon forms (~4.51 Gyr)</option>
       <option value="earth">Age of the planet — Earth forms (~4.54 Gyr)</option>
-      <option value="ad">A.D. / B.C.</option>
+      <option value="ad" selected>A.D. / B.C.</option>
       <option value="ah">A.H. — Islamic (Hijri)</option>
       <option value="vs">V.S. — Vikram Samvat</option>
       <option value="saka">Śaka — Indian national</option>
@@ -302,11 +302,13 @@
     <p>Orbital periods use real ratios and the ~60° tilt of the ecliptic to the galactic plane is real, but scale is
     wildly compressed: the Sun's galactic orbit is ~14&nbsp;billion× wider than Neptune's, and one lap really takes
     ~225&nbsp;million years — compressed ~1.2&nbsp;million-fold here. The planetary system is drawn ~10-million-fold
-    magnified, which is why a clearance bubble fades out nearby stars. Every date readout — the A.D. year and all the
-    deep-time eras — runs on that same galactic clock, so they agree with the age and galactic-year stats:
-    jump to the Andromeda collision and the calendar reads billions of years out, not a few thousand. The
-    planets' visible orbits are compressed separately, which is the point of the piece; they are not a second
-    timeline for dates.</p>
+    magnified, which is why a clearance bubble fades out nearby stars. Each date readout runs on the clock it
+    actually measures. A year is one orbit of the Earth, and the Earth here orbits once per simulated
+    second at the default speed, so the <b>civil calendars</b> — A.D., A.H., V.S., Śaka, A.M., A.L.,
+    H.E. — advance a year a second. The <b>deep-time eras</b> count elapsed galactic time instead, on the
+    same clock as the age and galactic-year stats. The two diverge by the compression factor of about 1.2
+    million, which is the subject of the piece rather than a mistake in it — but it does mean that after
+    jumping to a galactic epoch, the civil year is the one reading to ignore.</p>
     <p>The <b>Oort cloud</b> is the most symbolic object here, squeezed from both directions: really spanning
     ~3,300 Neptune-orbits (its ring is drawn ~700× too small versus the planets), yet at galaxy scale it would be
     under a pixel (drawn ~3,300× too big versus the galaxy). Its true outer edge lies ~1.6 light-years out —
@@ -498,7 +500,7 @@
 <button id="reopen" aria-label="show control panel">+</button>
 <div class="note" id="scaleNote">view <em id="sScale">—</em> across<span id="fpsNote" style="display:none"> &nbsp;·&nbsp; <em id="fpsVal">—</em> fps</span></div>
 <div class="env" id="env">
-  <h2>Earth · galactic environment</h2>
+  <h2>Earth</h2>
   <div class="er"><span>mean surface</span><b id="eMean">15.0 °C</b></div>
   <div class="er"><span>min / max</span><b id="eRange">−89 / 57 °C</b></div>
   <div class="er"><span>cosmic rays</span><b id="eCR">1.00× today</b></div>
@@ -515,7 +517,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '1.31.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '1.32.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 const BUILD_LINE = BUILD.date.indexOf('__') === 0
   ? VERSION + ' · dev build'
@@ -1772,7 +1774,7 @@ function fmtSpeed(){
   });
 }
 $('speed').addEventListener('input', e=>{ speed = speedFromSlider(+e.target.value); fmtSpeed(); });
-speed = speedFromSlider(0.55); fmtSpeed();
+speed = speedFromSlider(0.591); fmtSpeed();   // 1.00 Earth year per second
 // One slider, two effects, because they are the same intent: make the faint stars
 // carry. It lifts a floor under their colour and widens the smallest sprites, which is
 // where most of the lost light actually goes.
@@ -1924,7 +1926,7 @@ toggle($('tLive'), on=>{
   $('lDeath').textContent = on ? 'dying now'   : 'supernovae';
   $('lBirth').textContent = on ? 'forming now' : 'stars born';
 });
-let calMode='hs', sciMode=false;
+let calMode='ad', sciMode=false;
 $('cal').addEventListener('change', e=> calMode=e.target.value);
 // Replaying matters here: an event like the Gliese 710 pass is over in a second or two,
 // and re-picking the same entry fires no change event, so there would be no way back to
@@ -1967,11 +1969,15 @@ function fmtCount(n){
   return String(Math.floor(n));
 }
 function humanYear(){
-  // Real years elapsed, on the same galactic clock as the age and galactic-year stats,
-  // so every date on screen agrees. The planets' visible orbits are compressed
-  // separately — that is the point of the piece, not a second timeline for dates.
-  const el = simT*YR_PER_SIM;
-  const g = 2026 + el;
+  // Two clocks, and each reading takes the one it actually measures. A year IS one
+  // orbit of the Earth, and the Earth is drawn orbiting once per simulated year, so the
+  // civil calendars advance one year per simulated year — exactly, not approximately.
+  // The deep-time eras below measure elapsed galactic time instead, on the same clock
+  // as the age and galactic-year stats, since that is what they are counting. The two
+  // diverge by the compression factor, which is the whole subject of the piece; jump to
+  // a galactic epoch and the civil year is the reading that stops meaning anything.
+  const el = simT*YR_PER_SIM;      // galactic clock: real years elapsed
+  const g = 2026 + simT;           // planetary clock: Earth orbits counted
   const fmt = n => Math.floor(n).toLocaleString('en-US');
   switch(calMode){
     case 'ah':   return fmt((g-621.57)*1.03069)+' A.H.'; // lunar years run ~3% faster
