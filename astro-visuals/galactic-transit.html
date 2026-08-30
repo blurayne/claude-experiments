@@ -62,6 +62,10 @@
     padding:4px 8px;border:1px solid var(--line);border-radius:2px;color:var(--dim);cursor:pointer;
     background:transparent;transition:color .15s,border-color .15s;white-space:nowrap}
   .hudfoot button:hover{color:var(--accent);border-color:rgba(95,216,255,.55)}
+  .rowbtn{font-family:'Orbitron',ui-monospace,monospace;font-size:11px;line-height:1;padding:5px 8px;
+    border:1px solid var(--line);border-radius:2px;color:var(--dim);cursor:pointer;background:transparent;
+    transition:color .15s,border-color .15s;flex:none}
+  .rowbtn:hover{color:var(--accent);border-color:rgba(var(--stateRGB), .55)}
   .mults{display:flex;flex:1;gap:5px}
   .mults button{flex:1;font-family:'Orbitron',ui-monospace,monospace;font-size:9px;letter-spacing:.04em;
     padding:4px 2px;border:1px solid var(--line);border-radius:2px;color:var(--dim);cursor:pointer;
@@ -190,7 +194,7 @@
       <option value="2.068">Great Oxidation (2.5 Gyr ago)</option>
       <option value="9.07">Andromeda collision (+4.5 Gyr)</option>
       <option value="10.1">After the merger (+5.5 Gyr)</option>
-    </select></div>
+    </select><button class="rowbtn" id="jumpGo" title="go there again">⟳</button><button class="rowbtn" id="jumpNow" title="back to the present day">⌂</button></div>
     <div class="row"><label for="cal">calendar</label><select id="cal">
       <option value="hs" selected>Human existence (300,000 yrs)</option>
       <option value="her">Homo erectus (~2 Myr)</option>
@@ -474,7 +478,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '1.22.0', date: '__BUILD_DATE__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '1.23.0', date: '__BUILD_DATE__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 const BUILD_LINE = BUILD.date.indexOf('__') === 0
   ? VERSION + ' · dev build'
@@ -1881,17 +1885,24 @@ toggle($('tLive'), on=>{
 });
 let calMode='hs', sciMode=false;
 $('cal').addEventListener('change', e=> calMode=e.target.value);
-$('jump').addEventListener('change', e=>{
-  const a = e.target.value === '' ? AGE0 : +e.target.value;
+// Replaying matters here: an event like the Gliese 710 pass is over in a second or two,
+// and re-picking the same entry fires no change event, so there would be no way back to
+// it short of reloading.
+function jumpToEpoch(){
+  const sel = $('jump');
+  const a = sel.value === '' ? AGE0 : +sel.value;
   // some epochs are over in a blink on the galactic clock; land at a speed that shows them
-  const sp = e.target.selectedOptions[0].dataset.speed;
-  if(sp !== undefined){ $('speed').value = sp; $('speed').dispatchEvent(new Event('input')); }
+  const sp = sel.selectedOptions[0] && sel.selectedOptions[0].dataset.speed;
+  if(sp !== undefined && sp !== null){ $('speed').value = sp; $('speed').dispatchEvent(new Event('input')); }
   simT = (a - AGE0)*1e9/YR_PER_SIM;
   nextSample = simT + DT_SAMPLE;
   events.length = 0; puffs.length = 0;
   accB = accSN = accPN = 0;
   refillTrails();
-});
+}
+$('jump').addEventListener('change', jumpToEpoch);
+$('jumpGo').addEventListener('click', jumpToEpoch);
+$('jumpNow').addEventListener('click', ()=>{ $('jump').value = ''; jumpToEpoch(); });
 const sup = e => String(e).split('').map(d=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[+d]).join('');
 function fmtYears(y){ // a duration in years → astronomer units, or ×10^x notation
   // Jumping to an epoch before an era began gives a negative span: show how far short
