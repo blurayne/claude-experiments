@@ -17,8 +17,9 @@ in the browser with no build step and no external CDN.
   single pixel to show the true proportions, and from there a **☉ dive**: a
   continuous ~9-order-of-magnitude zoom from the galaxy down through the Oort
   shell (true ~1.6 ly edge) and Kuiper belt to the planets at their real
-  diameters, with a live view-width readout. **Hi-fi** and **ultra** galaxy modes
-  raise the star count five- and twenty-fold (~460,000 / ~1.9 million points),
+  diameters, with a live view-width readout. **Hi-fi**, **ultra** and **ultra ×2** galaxy modes
+  raise the star count five-, twenty- and forty-fold (up to ~3.7 million points,
+  with a *min light* slider that lifts a floor under the faintest of them),
   scatter discrete dark molecular clouds (Dunkelwolken) through the disk, and
   the disk itself follows Gaia-era structure: an exponential thin disk plus a
   thicker, older second disk. Trail opacity and length (2.4–240 yr) are adjustable, speed runs from the

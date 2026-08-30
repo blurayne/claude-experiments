@@ -169,6 +169,7 @@
   <div class="body">
     <div class="row"><label for="speed">speed</label><input type="range" id="speed" min="0" max="1" step="0.001" value="0.55"><span id="speedv" style="min-width:64px;text-align:right;color:var(--ink)"></span></div>
     <div class="row"><label>× speed</label><div class="mults" id="mults"></div></div>
+    <div class="row"><label for="minB">min light</label><input type="range" id="minB" min="0" max="0.30" step="0.005" value="0"><span id="minBv" style="min-width:64px;text-align:right;color:var(--ink)">off</span></div>
     <div class="row"><label for="trailA">trails</label><input type="range" id="trailA" min="0" max="1" step="0.01" value="1"><span id="trailAv" style="min-width:64px;text-align:right;color:var(--ink)">100%</span></div>
     <div class="row"><label for="trailL">length</label><input type="range" id="trailL" min="0" max="1" step="0.001" value="0.5"><span id="trailLv" style="min-width:64px;text-align:right;color:var(--ink)">24 yr</span></div>
     <div class="row"><label for="musicVol">music</label><input type="range" id="musicVol" min="0" max="1" step="0.01" value="0.55"><span id="musicVolv" style="min-width:64px;text-align:right;color:var(--ink)">55%</span></div>
@@ -234,6 +235,7 @@
       <button class="tg" id="tDive">☉ dive</button>
       <button class="tg" id="tHifi">hi-fi galaxy</button>
       <button class="tg" id="tUltra">ultra</button>
+      <button class="tg" id="tUltra2">ultra ×2</button>
     </div>
     <div class="toggles" style="margin-top:10px">
       <button class="tg" id="tInfo">ⓘ info &amp; stats</button>
@@ -421,8 +423,11 @@
       <li>The <b>hi-fi galaxy</b> toggle raises the drawn star count five-fold (~460,000 points) and scatters
       discrete <b>dark molecular clouds</b> (Dunkelwolken) through the disk on top of the arm-edge dust lanes —
       closer to the Milky Way's real texture, at the cost of GPU load. <b>Ultra</b> pushes it to
-      twenty-fold (~2.1 million sprites): expect a pause of a second or two the first time it generates,
-      and frame rates nearer 30&nbsp;fps on midrange GPUs.</li>
+      twenty-fold (~2.1 million sprites) and <b>ultra&nbsp;&times;2</b> to forty (~4.3 million): expect a
+      pause of a few seconds the first time each generates, and on ultra&nbsp;&times;2 a few hundred
+      megabytes of vertex data, so only one heavy density is held at a time. The <b>min light</b> slider
+      raises a floor under the faintest stars, leaving anything already brighter untouched — useful at
+      these densities, where each star is drawn dimmer so the galaxy as a whole keeps its brightness.</li>
       <li>The inter-arm disk follows an <b>exponential profile</b> with the measured ~8,500&nbsp;ly scale
       length, plus a thicker, older, yellower second disk at ~3&times; the scale height — the thin/thick
       disk structure Gaia confirmed.</li>
@@ -457,7 +462,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '1.17.0', date: '__BUILD_DATE__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '1.18.0', date: '__BUILD_DATE__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 const BUILD_LINE = BUILD.date.indexOf('__') === 0
   ? VERSION + ' · dev build'
@@ -523,6 +528,7 @@ uniform float uVarMode; // 0 off | 1 stars (a few % pulse, reddening at minimum)
 uniform vec3 uAnd;      // Andromeda's centre, galactic coordinates
 uniform float uTide;    // 0 far apart .. 1 at contact
 uniform float uWarpAmp; // how strongly this draw takes the disk warp
+uniform float uMinB;    // brightness floor: lift the faintest stars to at least this
 uniform vec3 uOrg;    // rendering origin (the Sun) — keeps deep real-scale zooms float-precise
 out vec3 vColor;
 void main(){
@@ -583,6 +589,12 @@ void main(){
       col.b *= 1.0 - 0.08*s2;
     }
   }
+  // A floor rather than a gain: anything already brighter than it is left alone, so
+  // raising it reveals the faint disk without blowing out the arms and the core.
+  if(uMinB > 0.0){
+    float lum = max(max(col.r, col.g), col.b);
+    if(lum > 0.0002 && lum < uMinB) col *= uMinB/lum;
+  }
   vColor = col * fade;
 }`;
 const PT_FS = `#version 300 es
@@ -622,7 +634,7 @@ const U = {
   ptCap: gl.getUniformLocation(pPt,'uCap'), ptWA: gl.getUniformLocation(pPt,'uWaveAll'),
   ptTime: gl.getUniformLocation(pPt,'uTime'), ptVM: gl.getUniformLocation(pPt,'uVarMode'),
   ptAnd: gl.getUniformLocation(pPt,'uAnd'), ptTide: gl.getUniformLocation(pPt,'uTide'),
-  ptWarpAmp: gl.getUniformLocation(pPt,'uWarpAmp'),
+  ptWarpAmp: gl.getUniformLocation(pPt,'uWarpAmp'), ptMinB: gl.getUniformLocation(pPt,'uMinB'),
   trProj: gl.getUniformLocation(pTr,'uProj'), trView: gl.getUniformLocation(pTr,'uView'),
   trLen: gl.getUniformLocation(pTr,'uLen'), trCol: gl.getUniformLocation(pTr,'uColor'), trA: gl.getUniformLocation(pTr,'uAlpha')
 };
@@ -904,17 +916,24 @@ function genGalaxy(D){ // D = density multiplier (hi-fi galaxy mode)
   }
 }
 
+// Buffers are tracked alongside their VAO so a density can be released again: deleting
+// a vertex array does not free what it references, and the big densities are hundreds
+// of megabytes apiece.
+const vaoBufs = new WeakMap();
+function deleteVAO(vao){
+  const bufs = vaoBufs.get(vao);
+  if(bufs) bufs.forEach(b => gl.deleteBuffer(b));
+  gl.deleteVertexArray(vao);
+}
 function pointVAO(pos, size, col, wave){
   const vao=gl.createVertexArray(); gl.bindVertexArray(vao);
-  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,pos,gl.STATIC_DRAW);
-  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
-  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,size,gl.STATIC_DRAW);
-  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,1,gl.FLOAT,false,0,0);
-  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,col,gl.STATIC_DRAW);
-  gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2,3,gl.FLOAT,false,0,0);
-  if(wave){ gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,wave,gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(3); gl.vertexAttribPointer(3,1,gl.FLOAT,false,0,0); }
-  gl.bindVertexArray(null); return vao;
+  const bufs=[];
+  const attach=(data,loc,comps)=>{ const b=gl.createBuffer(); bufs.push(b);
+    gl.bindBuffer(gl.ARRAY_BUFFER,b); gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,comps,gl.FLOAT,false,0,0); };
+  attach(pos,0,3); attach(size,1,1); attach(col,2,3);
+  if(wave) attach(wave,3,1);
+  gl.bindVertexArray(null); vaoBufs.set(vao,bufs); return vao;
 }
 const vaoStars = pointVAO(starPos, starSize, starCol);
 let vaoGxy, vaoNeb, vaoDust;
@@ -925,6 +944,15 @@ function setGalaxy(D){
     gxyCache[D] = { n:[N_GXY,NEB_N,DUST_N],
       g:pointVAO(gxyPos,gxySize,gxyCol,gxyWave), nb:pointVAO(nebPos,nebSize,nebCol), d:pointVAO(dustPos,dustSize,dustStr) };
     gxyPos=gxySize=gxyCol=gxyWave=nebPos=nebSize=nebCol=dustPos=dustSize=dustStr=null; // uploaded; free the JS copies
+  }
+  // the cheap densities stay cached; only one heavy one is kept at a time
+  for(const k of Object.keys(gxyCache)){
+    const kd = +k;
+    if(kd >= 12 && kd !== D){
+      const old = gxyCache[k];
+      deleteVAO(old.g); deleteVAO(old.nb); deleteVAO(old.d);
+      delete gxyCache[k];
+    }
   }
   const c=gxyCache[D]; N_GXY=c.n[0]; NEB_N=c.n[1]; DUST_N=c.n[2]; vaoGxy=c.g; vaoNeb=c.nb; vaoDust=c.d; curD=D;
 }
@@ -1626,6 +1654,11 @@ function fmtSpeed(){
 }
 $('speed').addEventListener('input', e=>{ speed = speedFromSlider(+e.target.value); fmtSpeed(); });
 speed = speedFromSlider(0.55); fmtSpeed();
+let minBright = 0;
+$('minB').addEventListener('input', e=>{
+  minBright = +e.target.value;
+  $('minBv').textContent = minBright ? '+'+Math.round(minBright*100)/1 + '%' : 'off';
+});
 let trailAlpha = 1;
 $('trailA').addEventListener('input', e=>{ trailAlpha=+e.target.value; $('trailAv').textContent=Math.round(trailAlpha*100)+'%'; });
 $('trailL').addEventListener('input', e=>{ // 2.4-240 yr window, log-scaled; respace and rebuild the buffers
@@ -1701,9 +1734,9 @@ loadTrack(0);
 // pause, the dive, the epoch jump, the current track position — is deliberately left out.
 const SKEY = 'galactic-transit.settings.v1';
 const S_TOG = ['tTrails','tLabels','tDwarfs','tBelt','tKuiper','tOort','tLife','tVar','tLifeSup','tEnv',
-               'tStatCal','tStatAge','tStatGyr','tSci','tLive','tView','tReal','tHifi','tUltra',
+               'tStatCal','tStatAge','tStatGyr','tSci','tLive','tView','tReal','tHifi','tUltra','tUltra2',
                'tSound','tMusic'];
-const S_SLD = ['speed','trailA','trailL','musicVol','sfxVol'];
+const S_SLD = ['speed','trailA','trailL','musicVol','sfxVol','minB'];
 const S_CHK = ['fxBirth','fxSn','fxPn','fxDrone'];
 const MULT_VALUES = [1,1e3,1e6,1e9,1e12];
 function saveSettingsNow(){
@@ -1845,9 +1878,12 @@ toggle($('tDive'), on=>{
     cam.distGoal=3.5e-5; // ~75 AU across: the whole planetary system, Kuiper belt included
   } else cam.distGoal=150;
 });
-const density = ()=> $('tUltra').classList.contains('on') ? 20 : ($('tHifi').classList.contains('on') ? 5 : 1);
-toggle($('tHifi'),  ()=> setGalaxy(density()));
-toggle($('tUltra'), ()=> setGalaxy(density())); // ultra overrides hi-fi while on
+const density = ()=> $('tUltra2').classList.contains('on') ? 40
+                   : $('tUltra').classList.contains('on') ? 20
+                   : $('tHifi').classList.contains('on') ? 5 : 1;
+toggle($('tHifi'),   ()=> setGalaxy(density()));
+toggle($('tUltra'),  ()=> setGalaxy(density())); // ultra overrides hi-fi while on
+toggle($('tUltra2'), ()=> setGalaxy(density())); // and this one overrides ultra
 // ---------- fullscreen & screen orientation ----------
 const isFs = ()=> !!(document.fullscreenElement || document.webkitFullscreenElement);
 function reqFs(){
@@ -2049,6 +2085,7 @@ function frame(now){
   gl.uniform1f(U.ptVM, varOn?1.0:0.0);
   gl.uniform1f(U.ptCap, deep?26.0:110.0);
   gl.uniform1f(U.ptWarpAmp, 1.0);
+  gl.uniform1f(U.ptMinB, minBright);
   gl.uniform3f(U.ptOrg, org[0],org[1],org[2]);
   gl.uniform1f(U.ptSpin, 0.0);
   gl.bindVertexArray(vaoStars); gl.drawArrays(gl.POINTS,0,N_STAR);
@@ -2088,12 +2125,14 @@ function frame(now){
     fillEvents();
     gl.uniform1f(U.ptVM, 0.0); // events animate themselves
     gl.uniform1f(U.ptTide, 0.0);
+    gl.uniform1f(U.ptMinB, 0.0);
     gl.uniform1f(U.ptCap, deep?60.0:560.0); // a supernova is allowed to bloom
     gl.bindBuffer(gl.ARRAY_BUFFER,evGL.p); gl.bufferSubData(gl.ARRAY_BUFFER,0,evPos.subarray(0,events.length*3));
     gl.bindBuffer(gl.ARRAY_BUFFER,evGL.s); gl.bufferSubData(gl.ARRAY_BUFFER,0,evSize.subarray(0,events.length));
     gl.bindBuffer(gl.ARRAY_BUFFER,evGL.c); gl.bufferSubData(gl.ARRAY_BUFFER,0,evCol.subarray(0,events.length*3));
     gl.bindBuffer(gl.ARRAY_BUFFER,evGL.w); gl.bufferSubData(gl.ARRAY_BUFFER,0,evWave.subarray(0,events.length));
     gl.bindVertexArray(evGL.vao); gl.drawArrays(gl.POINTS,0,events.length);
+    gl.uniform1f(U.ptMinB, minBright);
     gl.uniform1f(U.ptTide, and.tide);
     gl.uniform1f(U.ptVM, varOn?1.0:0.0);
     gl.uniform1f(U.ptCap, deep?26.0:110.0);
@@ -2228,6 +2267,7 @@ function frame(now){
   gl.useProgram(pPt);
   gl.uniform1f(U.ptSpin, 0.0); // body positions already include their motion
   gl.uniform1f(U.ptVM, 0.0);
+  gl.uniform1f(U.ptMinB, 0.0);   // the planets are not part of the star field
   gl.uniform1f(U.ptCap, 110.0);
   gl.uniform3f(U.ptOrg, 0,0,0); // bodies are uploaded Sun-relative already
   gl.bindVertexArray(vaoBodies); gl.drawArrays(gl.POINTS,0, showDwarfs?NB:N_PLANETS);
