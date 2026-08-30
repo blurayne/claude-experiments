@@ -33,7 +33,14 @@
 
   .hud{position:fixed;top:14px;right:14px;width:min(430px, calc(100vw - 28px));background:var(--panel);
     border:1px solid var(--line);border-top:1px solid rgba(95,216,255,.55);border-radius:3px;padding:14px 16px;backdrop-filter:blur(8px);
-    -webkit-backdrop-filter:blur(8px);z-index:5;box-shadow:0 0 34px rgba(95,216,255,.08), inset 0 0 26px rgba(95,216,255,.03)}
+    -webkit-backdrop-filter:blur(8px);z-index:5;box-shadow:0 0 34px rgba(95,216,255,.08), inset 0 0 26px rgba(95,216,255,.03);
+    max-height:calc(100vh - 28px);display:flex;flex-direction:column}
+  /* the header stays put; only the controls scroll when there is not enough height */
+  .hud .body{overflow-y:auto;overflow-x:hidden;min-height:0;flex:1;
+    scrollbar-width:thin;scrollbar-color:rgba(95,216,255,.45) transparent}
+  .hud .body::-webkit-scrollbar{width:6px}
+  .hud .body::-webkit-scrollbar-thumb{background:rgba(95,216,255,.4);border-radius:3px}
+  .hud .body::-webkit-scrollbar-track{background:transparent}
   .hud h1{font-family:'Orbitron',ui-monospace,monospace;font-size:13px;font-weight:700;letter-spacing:.26em;text-transform:uppercase;color:var(--accent);text-shadow:0 0 14px var(--glow)}
   .hud .sub{font-size:10px;color:var(--dim);letter-spacing:.08em;margin-top:3px;line-height:1.5}
   .row{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:11px}
@@ -55,6 +62,28 @@
   .note em{font-family:'Orbitron',ui-monospace,monospace;font-size:.92em;color:var(--accent);font-style:normal;font-weight:600;text-shadow:0 0 8px var(--glow)}
   .lbl{position:fixed;transform:translate(-50%,-140%);font-family:'Orbitron',ui-monospace,monospace;font-size:8px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;
     color:rgba(190,224,250,.8);pointer-events:none;z-index:3;text-shadow:0 0 6px #000;white-space:nowrap}
+  .env{position:fixed;top:14px;left:14px;z-index:5;width:216px;background:var(--panel);
+    border:1px solid var(--line);border-top:1px solid rgba(95,216,255,.55);border-radius:3px;
+    padding:10px 12px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+    box-shadow:0 0 30px rgba(95,216,255,.08)}
+  .env h2{font-family:'Orbitron',ui-monospace,monospace;font-size:8.5px;font-weight:700;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--accent);margin-bottom:7px;text-shadow:0 0 10px var(--glow)}
+  .env .er{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:9.5px;
+    letter-spacing:.06em;color:var(--dim);margin-top:3px;text-transform:uppercase}
+  .env .er b{font-family:'Orbitron',ui-monospace,monospace;font-size:10.5px;color:var(--ink);
+    font-variant-numeric:tabular-nums;font-weight:600}
+  .ice-badge{display:none;margin-top:8px;padding:4px 6px;border-radius:2px;text-align:center;
+    font-family:'Orbitron',ui-monospace,monospace;font-size:8.5px;letter-spacing:.16em;
+    color:#0a1b26;background:linear-gradient(180deg,#cfefff,#8fd4f0);font-weight:700}
+  body.ice .ice-badge{display:block}
+  /* a glacial epoch frosts the whole interface over */
+  body.ice{--accent:#a6e6ff;--glow:rgba(166,230,255,.5);--line:rgba(190,232,255,.30);--ink:#e8f5ff}
+  body.ice .hud, body.ice .env, body.ice .gamebar, body.ice .note, body.ice .info-card{
+    background:linear-gradient(158deg, rgba(196,232,255,.13), rgba(6,18,32,.82));
+    border-color:rgba(196,232,255,.34);
+    box-shadow:0 0 36px rgba(166,230,255,.16), inset 0 0 44px rgba(214,240,255,.07)}
+  body.ice .tg.on{border-color:rgba(166,230,255,.6)}
+  @media (max-width:900px), (orientation:portrait){ .env{display:none} }
   #infoModal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;
     background:rgba(2,4,8,.65);z-index:20;padding:18px}
   .info-card{position:relative;width:min(560px, 100%);max-height:82vh;overflow-y:auto;background:var(--panel);
@@ -67,6 +96,9 @@
   .info-card li{margin-bottom:7px}
   #infoClose{position:absolute;top:10px;right:12px;background:none;border:0;color:var(--dim);cursor:pointer;
     font-size:16px;font-family:inherit}
+  #infoFull{position:absolute;top:10px;right:36px;background:none;border:0;color:var(--dim);cursor:pointer;
+    font-size:15px;font-family:inherit}
+  #infoFull:hover,#infoClose:hover{color:var(--accent)}
   #collapse{position:absolute;top:10px;right:10px;background:none;border:0;color:var(--dim);cursor:pointer;font-size:13px;font-family:inherit}
   .gamebar{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);display:flex;gap:28px;
     background:var(--panel);border:1px solid var(--line);border-top:1px solid rgba(95,216,255,.55);border-radius:3px;padding:9px 20px;box-shadow:0 0 30px rgba(95,216,255,.08);
@@ -111,6 +143,14 @@
       <label class="chk"><input type="checkbox" id="fxPn" checked> nebula</label>
       <label class="chk"><input type="checkbox" id="fxDrone" checked> drone</label>
     </div>
+    <div class="row"><label for="jump">jump to</label><select id="jump">
+      <option value="">— present day —</option>
+      <option value="0.058">Theia impact — the Moon forms</option>
+      <option value="0.768">Young Earth — first life (3.8 Gyr ago)</option>
+      <option value="2.068">Great Oxidation (2.5 Gyr ago)</option>
+      <option value="9.07">Andromeda collision (+4.5 Gyr)</option>
+      <option value="10.1">After the merger (+5.5 Gyr)</option>
+    </select></div>
     <div class="row"><label for="cal">calendar</label><select id="cal">
       <option value="hs" selected>Human existence (300,000 yrs)</option>
       <option value="her">Homo erectus (~2 Myr)</option>
@@ -165,6 +205,7 @@
 
 <div id="infoModal">
   <div class="info-card">
+    <button id="infoFull" aria-label="toggle fullscreen">⛶</button>
     <button id="infoClose" aria-label="close">×</button>
     <h2>Info &amp; Stats</h2>
     <div class="stats" style="margin-top:0;padding-top:0;border-top:0">
@@ -264,6 +305,25 @@
       The last naked-eye supernova in our galaxy was <b>Kepler's, in 1604</b>; statistically we are overdue,
       and Betelgeuse (~550&nbsp;ly away, already a red supergiant) is a leading candidate.</li>
     </ul>
+    <h3>Star formation, ice ages, and Andromeda</h3>
+    <p>The Galaxy's star formation is <b>winding down</b>: the cold gas is being used up faster than it is
+    replaced, so the rate here decays with a ~6&nbsp;Gyr e-folding time — roughly twice today's rate early on,
+    about half by an age of 8&nbsp;Gyr. Then comes <b>Andromeda</b>, ~4.5&nbsp;Gyr from now: the encounter
+    shock-compresses the remaining gas into a starburst of several times the present rate, and afterwards the
+    gas-poor merged remnant forms almost nothing. Watch the arms light up and then go quiet.</p>
+    <p>The <b>galactic environment</b> panel is the honest edge of this: Earth's temperature is set by the Sun,
+    not by where the Sun sits in the Galaxy — interstellar starlight at Earth is around a ten-millionth of
+    sunlight. What galactic position plausibly <i>does</i> change is the <b>cosmic-ray flux</b>: crossing a
+    spiral arm means more nearby supernovae, and the Sun's bob through the dense mid-plane adds more again.
+    Shaviv and Svensmark proposed that this modulates low cloud cover and so the climate, which would match the
+    ~140&nbsp;Myr spacing of the great glaciations — and the arm crossings here fall at about that interval.
+    <b>The link is contested</b>; the temperatures shown follow that hypothesis, not a settled result, and the
+    interface frosts over when the model dips into a glacial epoch.</p>
+    <p><b>Andromeda's</b> approach is compressed: at 2.5 million light years it would sit 83,000 units away,
+    far outside the drawn sky. Its bulge, inclined disk and ring-like arms are schematic, and the encounter is
+    a leading-order sketch — the tidal pull grows with radius, so the outer disk is drawn into a bridge toward
+    the companion while the core barely moves. A real merger is an N-body problem, and the real one will take
+    a couple of billion years to settle.</p>
     <h3>What's real, what's modeled</h3>
     <ul>
       <li>Planets are <b>not dragged behind the Sun</b> — the viral "vortex" video is wrong. With the 60° tilt
@@ -304,6 +364,14 @@
 </div>
 <button id="reopen" aria-label="show control panel">+</button>
 <div class="note" id="scaleNote">view <em id="sScale">—</em> across</div>
+<div class="env" id="env">
+  <h2>Earth · galactic environment</h2>
+  <div class="er"><span>mean surface</span><b id="eMean">15.0 °C</b></div>
+  <div class="er"><span>min / max</span><b id="eRange">−89 / 57 °C</b></div>
+  <div class="er"><span>cosmic rays</span><b id="eCR">1.00× today</b></div>
+  <div class="er"><span>starlight</span><b id="eSL">1.0×</b></div>
+  <div class="ice-badge" id="eIce">❄ glacial epoch</div>
+</div>
 
 <div id="labels"></div>
 
@@ -367,6 +435,8 @@ uniform float uCap;   // sprite size ceiling (smaller at deep zoom: near stars s
 uniform float uWaveAll; // 1: treat every point in this draw as wave-riding (nebulae, dust)
 uniform float uTime;    // wall-clock seconds for the variability animation
 uniform float uVarMode; // 0 off | 1 stars (a few % pulse, reddening at minimum) | 2 nebulae (all breathe)
+uniform vec3 uAnd;      // Andromeda's centre, galactic coordinates
+uniform float uTide;    // 0 far apart .. 1 at contact
 uniform vec3 uOrg;    // rendering origin (the Sun) — keeps deep real-scale zooms float-precise
 out vec3 vColor;
 void main(){
@@ -387,6 +457,14 @@ void main(){
     float wr = max(0.0, r - 950.0);
     p.y += wr*0.13*sin(atan(p.x,p.z) - uWarp)  // integral-sign warp, growing outward
          + 4.0*sin(r*0.021);                    // faint corrugation ripples in the disk
+    // Tidal pull toward Andromeda. A real encounter is an N-body problem; this is the
+    // leading effect only — the differential pull grows with radius, so the outer disk
+    // is drawn out into a bridge toward the companion while the core barely moves.
+    if(uTide > 0.001){
+      vec3 dv = uAnd - p;
+      float dd = max(120.0, length(dv));
+      p += normalize(dv) * uTide * (r/900.0) * (340000.0/(dd*dd)) * 190.0;
+    }
     // the planetary system is drawn ~10-million-fold magnified; clear its space
     fade = smoothstep(80.0, 240.0, distance(p, uSunPos));
   }
@@ -454,6 +532,7 @@ const U = {
   ptOrg: gl.getUniformLocation(pPt,'uOrg'), trOrg: gl.getUniformLocation(pTr,'uOrg'),
   ptCap: gl.getUniformLocation(pPt,'uCap'), ptWA: gl.getUniformLocation(pPt,'uWaveAll'),
   ptTime: gl.getUniformLocation(pPt,'uTime'), ptVM: gl.getUniformLocation(pPt,'uVarMode'),
+  ptAnd: gl.getUniformLocation(pPt,'uAnd'), ptTide: gl.getUniformLocation(pPt,'uTide'),
   trProj: gl.getUniformLocation(pTr,'uProj'), trView: gl.getUniformLocation(pTr,'uView'),
   trLen: gl.getUniformLocation(pTr,'uLen'), trCol: gl.getUniformLocation(pTr,'uColor'), trA: gl.getUniformLocation(pTr,'uAlpha')
 };
@@ -761,6 +840,7 @@ void main(){
 }`;
 const pNeb = prog(PT_VS, NEB_FS);
 const UN = {
+  and: gl.getUniformLocation(pNeb,'uAnd'), tide: gl.getUniformLocation(pNeb,'uTide'),
   time: gl.getUniformLocation(pNeb,'uTime'), vm: gl.getUniformLocation(pNeb,'uVarMode'),
   wa:   gl.getUniformLocation(pNeb,'uWaveAll'),
   cap:  gl.getUniformLocation(pNeb,'uCap'),
@@ -785,6 +865,7 @@ void main(){
 }`;
 const pDust = prog(PT_VS, DUST_FS);
 const UD = {
+  and: gl.getUniformLocation(pDust,'uAnd'), tide: gl.getUniformLocation(pDust,'uTide'),
   wa:   gl.getUniformLocation(pDust,'uWaveAll'),
   cap:  gl.getUniformLocation(pDust,'uCap'),
   org:  gl.getUniformLocation(pDust,'uOrg'),
@@ -796,6 +877,59 @@ const UD = {
   sun:  gl.getUniformLocation(pDust,'uSunPos')
 };
 setGalaxy(1);
+
+// ---------- Andromeda ----------
+// M31 is really ~2.5 million light years away and closing at ~110 km/s; at this scale
+// that is 83,000 units, far outside the drawn sky, so its approach is compressed into
+// the same frame as everything else. Its own structure is schematic: a bulge and two
+// arms, roughly M31's size relative to ours. The encounter itself is a leading-order
+// sketch, not an N-body solution.
+const N_AND = 30000;
+const vaoAnd = (()=>{
+  const pos=new Float32Array(N_AND*3), size=new Float32Array(N_AND), col=new Float32Array(N_AND*3);
+  const PITCH_A = Math.tan(14*Math.PI/180), R_A = 1950;
+  const ti = 0.62, ci = Math.cos(ti), si = Math.sin(ti);   // inclined to our disk
+  for(let i=0;i<N_AND;i++){
+    let x,y,z,b,s;
+    if(i<5200){                                   // M31's large classical bulge
+      const r=Math.abs(gauss())*110, th=Math.random()*6.28318;
+      x=r*Math.sin(th); z=r*Math.cos(th); y=gauss()*80;
+      b=.30+Math.random()*.34; s=2.6+Math.random()*2.2;
+      col[i*3]=b*1.2; col[i*3+1]=b*.92; col[i*3+2]=b*.6;
+    } else if(i<11000){                           // its smooth inner disk
+      const r=expR(220,R_A,300), th=Math.random()*6.28318;
+      x=r*Math.sin(th); z=r*Math.cos(th); y=gauss()*13;
+      b=.05+Math.random()*.07; s=1.5+Math.random()*1.4;
+      col[i*3]=b*.9; col[i*3+1]=b*.93; col[i*3+2]=b*1.08;
+    } else {                                      // the famous ring-like arms
+      const arm = (i%2)*Math.PI;
+      const r = 430+Math.pow(Math.random(),0.85)*(R_A-430);
+      const th = arm - Math.log(r/430)/PITCH_A + gauss()*0.075;
+      x=r*Math.sin(th); z=r*Math.cos(th); y=gauss()*9;
+      const roll=Math.random();
+      if(roll<0.05){ col[i*3]=.9; col[i*3+1]=.5; col[i*3+2]=.6; s=2.8+Math.random()*2.0; }
+      else if(roll<0.16){ col[i*3]=.55; col[i*3+1]=.68; col[i*3+2]=.98; s=2.5+Math.random()*2.0; }
+      else { b=.11+Math.random()*.14; col[i*3]=b*.85; col[i*3+1]=b*.95; col[i*3+2]=b*1.15; s=1.5+Math.random()*1.6; }
+    }
+    pos[i*3]=x; pos[i*3+1]=y*ci - z*si; pos[i*3+2]=y*si + z*ci;  // apply the inclination
+    size[i]=s;
+  }
+  return pointVAO(pos, size, col);
+})();
+const andAt = a => {                       // separation in scene units at a given age
+  if(a <= AND_AGE){
+    const u = Math.min(1, Math.max(0, (AND_AGE-a)/(AND_AGE-AGE0)));
+    return 9000*Math.pow(u, 0.85);
+  }
+  const d = a - AND_AGE;                   // passages, then coalescence
+  return 1500*Math.exp(-d/0.5)*Math.abs(Math.sin(Math.PI*d/0.7));
+};
+const andPos = new Float32Array(3);
+function updateAnd(){
+  const sep = andAt(ageGyr());
+  andPos[0]=sep*0.94; andPos[1]=sep*0.28; andPos[2]=sep*0.18;
+  return { sep, tide: Math.min(1, Math.max(0, 1 - sep/3000)) };
+}
 
 // ---------- Kuiper belt & Oort cloud (follow the Sun) ----------
 // main asteroid belt: real 2.1-3.3 AU radii with Kirkwood gaps; a second, remapped
@@ -962,6 +1096,56 @@ function pushTrail(i, ts){
   a.copyWithin(0,3);
   bodyPos(i, ts, tmp);
   a[(TRAIL_N-1)*3]=tmp[0]; a[(TRAIL_N-1)*3+1]=tmp[1]; a[(TRAIL_N-1)*3+2]=tmp[2];
+}
+
+// ---------- star-formation history ----------
+// The Galaxy's star formation is winding down: the gas reservoir is being consumed
+// faster than it is replenished, so the rate decays with an e-folding time of order
+// 6 Gyr. Ahead lies the Andromeda encounter, which shock-compresses the remaining gas
+// into a starburst and then quenches it — the merged, gas-poor remnant forms almost
+// nothing. Normalised so the present day is exactly 1.
+const YR_PER_SIM = (225/GAL_PERIOD)*1e6;   // real years in one simulated year (~1.19e6)
+const AGE0 = 4.568;                        // Gyr: age of the solar system at simT = 0
+const AND_AGE = 9.07;                      // Gyr: the Andromeda collision, ~4.5 Gyr from now
+const ageGyr = ()=> AGE0 + simT*YR_PER_SIM/1e9;
+function sfrFactor(a){
+  let f = Math.exp(-(a-AGE0)/6);                              // gas runs down
+  f += 8*Math.exp(-Math.pow((a-AND_AGE)/0.35,2));             // the merger starburst
+  const q = 1/(1+Math.exp((a-(AND_AGE+0.55))/0.35));          // then quenched for good
+  return Math.max(0.02, f*(0.05+0.95*q));
+}
+function ratesIntegral(a){ // factor-weighted years between simT=0 and the shown epoch
+  const N=360, h=(a-AGE0)/N; let s=0;
+  for(let i=0;i<N;i++) s += sfrFactor(AGE0+h*(i+0.5))*h;
+  return Math.abs(s)*1e9;
+}
+
+// ---------- Earth's galactic environment ----------
+// Earth's temperature is set by the Sun, not by where the Sun sits in the Galaxy. What
+// galactic position plausibly does change is the cosmic-ray flux: crossing a spiral arm
+// means more nearby supernovae, and passing through the dense mid-plane adds more again.
+// Shaviv and Svensmark proposed that this modulates low cloud cover and so the climate,
+// matching the ~140 Myr spacing of the great ice ages. It remains contested, and it is
+// drawn here as a hypothesis, not a result.
+function rawCR(ts){
+  const rel = ts*V_GAL*(1/R_GAL - 1/640);        // Sun's angle within the spiral pattern
+  let best = 9;
+  for(const a of ARMS){
+    let d = rel - armAngle(R_GAL, a[0]);
+    d = Math.atan2(Math.sin(d), Math.cos(d));
+    best = Math.min(best, Math.abs(d));
+  }
+  const armProx = Math.exp(-Math.pow(best/0.45,2));
+  const planeProx = 1 - Math.abs(Math.sin(2*Math.PI*ts/WOB_T + 2.1));
+  return { cr: 1 + 2.2*armProx + 0.5*planeProx, armProx };
+}
+const CR0 = rawCR(0).cr;                          // normalise: today is 1.00x
+function environment(){
+  const r = rawCR(simT);
+  const cr = r.cr/CR0;
+  const dT = -5.5*(cr-1)/1.5;                     // the contested cloud coupling
+  const mean = 15 + dT;
+  return { cr, mean, min: mean-104, max: mean+42, star: 1+2.0*r.armProx, ice: mean < 11.2 };
 }
 
 // ---------- stellar life cycle: birth, death, supernovae ----------
@@ -1155,9 +1339,10 @@ let accB=0, accSN=0, accPN=0;
 // event kinds: 1 OB cluster, 2 red supergiant, 3 supernova flash, 4 red giant,
 //              5 cooling neutron star, 6 fading white dwarf
 function lifeStep(dt, dtSim){
-  accB  += dtSim*2.2*curD;
-  accSN += dtSim*Math.max(0.011*curD, 0.15);
-  accPN += dtSim*1.5*curD;
+  const sfr = sfrFactor(ageGyr());
+  accB  += dtSim*2.2*curD*sfr;
+  accSN += dtSim*Math.max(0.011*curD, 0.15)*sfr;
+  accPN += dtSim*1.5*curD*Math.sqrt(sfr);  // low-mass deaths lag their formation by Gyr
   while(accB>=1){ accB--; if(events.length<EV_CAP){ const s=armSite();
     events.push({k:1,x:s[0],y:s[1],z:s[2],wv:1,st:0,t:0,L:3+Math.random()*6,sn:Math.random()<0.12});
     if(Math.random()<0.5) sfx('birth'); } } // only half of them sound, or it never stops
@@ -1333,6 +1518,14 @@ toggle($('tLive'), on=>{
 });
 let calMode='hs', sciMode=false;
 $('cal').addEventListener('change', e=> calMode=e.target.value);
+$('jump').addEventListener('change', e=>{
+  const a = e.target.value === '' ? AGE0 : +e.target.value;
+  simT = (a - AGE0)*1e9/YR_PER_SIM;
+  nextSample = simT + DT_SAMPLE;
+  events.length = 0; puffs.length = 0;
+  accB = accSN = accPN = 0;
+  refillTrails();
+});
 const sup = e => String(e).split('').map(d=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[+d]).join('');
 function fmtYears(y){ // a duration in years → astronomer units, or ×10^x notation
   if(sciMode){
@@ -1407,8 +1600,30 @@ function reqFs(){
   return f ? Promise.resolve(f.call(el)).catch(()=>{}) : Promise.reject();
 }
 function exitFs(){ const f = document.exitFullscreen || document.webkitExitFullscreen; if(f) f.call(document); }
-$('tFull').addEventListener('click', ()=> isFs() ? exitFs() : reqFs());
+const toggleFs = ()=> isFs() ? exitFs() : reqFs();
+$('tFull').addEventListener('click', toggleFs);
+$('infoFull').addEventListener('click', toggleFs);
 document.addEventListener('fullscreenchange', ()=> $('tFull').classList.toggle('on', isFs()));
+// Turning the device to landscape asks for fullscreen. Browsers only grant it while a
+// gesture is still being handled, so this is armed on rotation and fires on the next
+// touch rather than fighting the permission model — and it never forces you back in
+// after you deliberately left fullscreen in landscape.
+let autoFsArmed = false, leftFsInLandscape = false;
+const landscape = ()=> matchMedia('(orientation: landscape)').matches;
+document.addEventListener('fullscreenchange', ()=>{ if(!isFs() && landscape()) leftFsInLandscape = true; });
+function armAutoFs(){
+  if(!landscape() || isFs() || autoFsArmed) return;
+  autoFsArmed = true;
+  const go = ()=>{
+    removeEventListener('pointerup', go); removeEventListener('touchend', go);
+    autoFsArmed = false;
+    if(landscape() && !isFs() && !leftFsInLandscape) reqFs();
+  };
+  addEventListener('pointerup', go, {once:false}); addEventListener('touchend', go, {once:false});
+}
+matchMedia('(orientation: landscape)').addEventListener('change', e=>{
+  if(e.matches){ leftFsInLandscape = false; reqFs().catch(()=>armAutoFs()); armAutoFs(); }
+});
 // Rotation cycles auto -> landscape -> portrait. Locking requires fullscreen and is
 // mobile-only; where the API refuses, the button falls back to auto rather than lying.
 const ROT = ['auto','landscape','portrait'];
@@ -1534,10 +1749,13 @@ function frame(now){
   gl.useProgram(pPt);
   gl.uniformMatrix4fv(U.ptProj,false,projMat);
   gl.uniformMatrix4fv(U.ptView,false,viewMat);
+  const and = updateAnd();
   const deep = realMode && cam.dist<1.0; // inside ~30 ly: keep the backdrop point-like
   gl.uniform1f(U.ptPx,pxScale);
   gl.uniform1f(U.ptWA, 0.0);
   gl.uniform1f(U.ptTime, shimT);
+  gl.uniform3f(U.ptAnd, andPos[0], andPos[1], andPos[2]);
+  gl.uniform1f(U.ptTide, and.tide);
   gl.uniform1f(U.ptVM, varOn?1.0:0.0);
   gl.uniform1f(U.ptCap, deep?26.0:110.0);
   gl.uniform3f(U.ptOrg, org[0],org[1],org[2]);
@@ -1552,16 +1770,31 @@ function frame(now){
   gl.uniform3f(U.ptSun, sunX, bubY, sunZ);
   gl.bindVertexArray(vaoGxy);   gl.drawArrays(gl.POINTS,0,N_GXY);
 
+  // Andromeda, drawn rigid: shifting the render origin puts it at its own centre.
+  if(and.sep < 8600){
+    gl.uniform1f(U.ptSpin, 0.0);
+    gl.uniform1f(U.ptTide, 0.0);
+    gl.uniform1f(U.ptVM, 0.0);
+    gl.uniform3f(U.ptOrg, org[0]-andPos[0], org[1]-andPos[1], org[2]-andPos[2]);
+    gl.bindVertexArray(vaoAnd); gl.drawArrays(gl.POINTS,0,N_AND);
+    gl.uniform3f(U.ptOrg, org[0], org[1], org[2]);
+    gl.uniform1f(U.ptSpin, spin);
+    gl.uniform1f(U.ptTide, and.tide);
+    gl.uniform1f(U.ptVM, varOn?1.0:0.0);
+  }
+
   // life-cycle events (OB clusters, supergiants, supernova flashes, remnant cores)
   if(lifeOn && events.length){
     fillEvents();
     gl.uniform1f(U.ptVM, 0.0); // events animate themselves
+    gl.uniform1f(U.ptTide, 0.0);
     gl.uniform1f(U.ptCap, deep?60.0:560.0); // a supernova is allowed to bloom
     gl.bindBuffer(gl.ARRAY_BUFFER,evGL.p); gl.bufferSubData(gl.ARRAY_BUFFER,0,evPos.subarray(0,events.length*3));
     gl.bindBuffer(gl.ARRAY_BUFFER,evGL.s); gl.bufferSubData(gl.ARRAY_BUFFER,0,evSize.subarray(0,events.length));
     gl.bindBuffer(gl.ARRAY_BUFFER,evGL.c); gl.bufferSubData(gl.ARRAY_BUFFER,0,evCol.subarray(0,events.length*3));
     gl.bindBuffer(gl.ARRAY_BUFFER,evGL.w); gl.bufferSubData(gl.ARRAY_BUFFER,0,evWave.subarray(0,events.length));
     gl.bindVertexArray(evGL.vao); gl.drawArrays(gl.POINTS,0,events.length);
+    gl.uniform1f(U.ptTide, and.tide);
     gl.uniform1f(U.ptVM, varOn?1.0:0.0);
     gl.uniform1f(U.ptCap, deep?26.0:110.0);
   }
@@ -1574,6 +1807,7 @@ function frame(now){
   gl.uniform1f(UD.px,pxScale);
   gl.uniform1f(UD.wa, 1.0); // dust lanes trace the wave
   gl.uniform1f(UD.cap, deep?40.0:560.0);
+  gl.uniform3f(UD.and, andPos[0], andPos[1], andPos[2]); gl.uniform1f(UD.tide, and.tide);
   gl.uniform3f(UD.org, org[0],org[1],org[2]);
   gl.uniform1f(UD.spin, spin);
   gl.uniform1f(UD.warp, warp);
@@ -1590,6 +1824,7 @@ function frame(now){
   gl.uniform1f(UN.vm, varOn?2.0:0.0);
   gl.uniform1f(UN.wa, 1.0); // HII regions trace the wave
   gl.uniform1f(UN.cap, deep?60.0:560.0);
+  gl.uniform3f(UN.and, andPos[0], andPos[1], andPos[2]); gl.uniform1f(UN.tide, and.tide);
   gl.uniform3f(UN.org, org[0],org[1],org[2]);
   gl.uniform1f(UN.spin, spin);
   gl.uniform1f(UN.warp, warp);
@@ -1727,10 +1962,17 @@ function frame(now){
   } else {
     // Running totals at the real rates: ~2 supernovae per century, and a ~2 solar-mass
     // per year formation rate which at a ~0.5 solar-mass mean is roughly 4 stars a year.
-    const realYears = simT*(225/GAL_PERIOD)*1e6;
-    $('nDeath').textContent = '−'+fmtCount(realYears*0.02);
-    $('nBirth').textContent = '+'+fmtCount(realYears*4);
+    const w = ratesIntegral(ageGyr());   // integrates the declining rate, not a flat one
+    $('nDeath').textContent = '−'+fmtCount(w*0.02);
+    $('nBirth').textContent = '+'+fmtCount(w*4);
   }
+
+  { const e = environment();
+    $('eMean').textContent  = e.mean.toFixed(1)+' °C';
+    $('eRange').textContent = e.min.toFixed(0)+' / '+e.max.toFixed(0)+' °C';
+    $('eCR').textContent    = e.cr.toFixed(2)+'× today';
+    $('eSL').textContent    = e.star.toFixed(2)+'×';
+    document.body.classList.toggle('ice', e.ice); }
 
   // stats
   $('yrs').textContent = simT.toFixed(1);

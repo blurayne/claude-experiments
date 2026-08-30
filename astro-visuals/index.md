@@ -32,7 +32,14 @@ in the browser with no build step and no external CDN.
   screen-rotation buttons in the HUD. The status bar tallies supernovae and
   newly born stars at the measured real rates, or — with **live count** — the
   stars igniting and dying right now, stepping up and down as events begin and
-  end. Calendar eras run from the
+  end. Star formation follows the Galaxy's real history — declining as the gas
+  runs down, bursting when **Andromeda** arrives (~4.5 Gyr from now, drawn as an
+  approaching companion whose tidal pull draws the outer disk into a bridge),
+  then quenched. A **jump to** menu leaps between epochs, from the Theia impact
+  and the first life to the collision and after. A panel tracks Earth's
+  **galactic environment** — cosmic-ray flux and the contested ice-age link that
+  follows from it, with the whole interface frosting over during a glacial
+  epoch. Calendar eras run from the
   present back through the first land life, first plants, first cell,
   prebiotic amino acids, the Theia impact and Earth's formation.
   **Effects** (five recorded supernova blasts
