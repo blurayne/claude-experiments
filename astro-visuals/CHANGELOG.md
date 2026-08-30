@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.4.2 — 2026-08-30
+
+- Supernovae flare rather than flood the view (`6fc7dcb`)
+
 ### 2.4.1 — 2026-08-30
 
 - Trails stop aliasing at speed, and the build stamp names its zone (`93075c5`)
