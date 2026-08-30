@@ -50,6 +50,10 @@ def main() -> None:
     for line in raw.split("\n"):
         sha, date, subject = line.split(UNIT, 2)
         files = git("show", "--name-only", "--format=", sha).split()
+        # A commit that only regenerates this file is housekeeping, not a change to
+        # either viewer, and listing it would make the log grow by talking about itself.
+        if all(f == f"{SUB}/CHANGELOG.md" for f in files if f.startswith(SUB)):
+            continue
         commits.append((sha, date, subject, files))
 
     out = ["# Changelog", "",
@@ -75,7 +79,6 @@ def main() -> None:
 
     dst = ROOT / SUB / "CHANGELOG.md"
     dst.write_text("\n".join(out).rstrip() + "\n", encoding="utf-8")
-    versions = sum(1 for t, p in SECTIONS for _ in [0])
     print(f"wrote {dst.relative_to(ROOT)}: {len(commits)} commits")
 
 

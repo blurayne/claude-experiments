@@ -78,6 +78,11 @@ version it actually shipped in. **Regenerate it whenever the version is bumped:*
 python3 .github/scripts/build_changelog.py
 ```
 
+Run it **after** committing the change, as its own commit: entries cite commit hashes,
+so a log generated before the commit exists — or amended into it — would point at a
+hash that never reaches `main`. Commits that only regenerate the log are skipped, so it
+does not grow by talking about itself.
+
 The build renders it to `changelog.html`, which the panel footer links to.
 
 ## Files
