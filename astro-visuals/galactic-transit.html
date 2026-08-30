@@ -169,6 +169,7 @@
   <div class="body">
     <div class="row"><label for="speed">speed</label><input type="range" id="speed" min="0" max="1" step="0.001" value="0.55"><span id="speedv" style="min-width:64px;text-align:right;color:var(--ink)"></span></div>
     <div class="row"><label>× speed</label><div class="mults" id="mults"></div></div>
+    <div class="row"><label>quality</label><div class="mults" id="quals"></div></div>
     <div class="row"><label for="minB">min light</label><input type="range" id="minB" min="0" max="0.30" step="0.005" value="0"><span id="minBv" style="min-width:64px;text-align:right;color:var(--ink)">off</span></div>
     <div class="row"><label for="trailA">trails</label><input type="range" id="trailA" min="0" max="1" step="0.01" value="1"><span id="trailAv" style="min-width:64px;text-align:right;color:var(--ink)">100%</span></div>
     <div class="row"><label for="trailL">length</label><input type="range" id="trailL" min="0" max="1" step="0.001" value="0.5"><span id="trailLv" style="min-width:64px;text-align:right;color:var(--ink)">24 yr</span></div>
@@ -220,6 +221,8 @@
       <button class="tg on" id="tVar">variables</button>
       <button class="tg on" id="tLifeSup">life support</button>
       <button class="tg on" id="tEnv">environment</button>
+      <button class="tg on" id="tGaia">gaia sky</button>
+      <button class="tg" id="tFps">fps</button>
       <button class="tg" id="tSound">effects</button>
       <button class="tg on" id="tMusic">music</button>
       <button class="tg" id="tNext">⏭ next</button>
@@ -233,9 +236,7 @@
       <button class="tg" id="tView">galaxy view</button>
       <button class="tg" id="tReal">real scale</button>
       <button class="tg" id="tDive">☉ dive</button>
-      <button class="tg" id="tHifi">hi-fi galaxy</button>
-      <button class="tg" id="tUltra">ultra</button>
-      <button class="tg" id="tUltra2">ultra ×2</button>
+
     </div>
     <div class="toggles" style="margin-top:10px">
       <button class="tg" id="tInfo">ⓘ info &amp; stats</button>
@@ -420,12 +421,19 @@
       sound, or at these rates they would never stop. Each effect has its own switch.</li>
       <li>The <b>asteroid belt</b> (~1,500 points at 2.1&ndash;3.3&nbsp;AU) carves out the Kirkwood gaps at
       Jupiter's 3:1, 5:2 and 7:3 resonances, and its orbital periods are true Kepler in both scale modes.</li>
-      <li>The <b>hi-fi galaxy</b> toggle raises the drawn star count five-fold (~460,000 points) and scatters
+      <li>The <b>gaia sky</b> layer is not modelled at all: it is 20,000 real stars from HYG 4.1,
+      which carries <b>Gaia DR3</b> astrometry, at their true parallax distances out to ~990&nbsp;pc,
+      rotated into galactic coordinates and placed relative to the Sun. Their colours come from measured
+      colour indices and their sizes from apparent magnitude, so the solar neighbourhood — Alpha Centauri
+      at 1.32&nbsp;pc, Sirius at 2.64 — really is where it is. It covers the local sky only: Gaia sees the
+      Galaxy from inside and the far side of the disk hides behind dust, which is why everything beyond it
+      stays modelled.</li>
+      <li>The <b>quality</b> row raises the drawn star count five-fold (~460,000 points) and scatters
       discrete <b>dark molecular clouds</b> (Dunkelwolken) through the disk on top of the arm-edge dust lanes —
-      closer to the Milky Way's real texture, at the cost of GPU load. <b>Ultra</b> pushes it to
-      twenty-fold (~2.1 million sprites) and <b>ultra&nbsp;&times;2</b> to forty (~4.3 million): expect a
-      pause of a few seconds the first time each generates, and on ultra&nbsp;&times;2 a few hundred
-      megabytes of vertex data, so only one heavy density is held at a time. The <b>min light</b> slider
+      closer to the Milky Way's real texture, at the cost of GPU load. The row runs on to
+      <b>&times;8</b> at a hundred and sixty-fold — some seventeen million sprites — which will not fit on
+      most machines; a failed allocation drops back to the last setting that worked. Only one heavy density
+      is held at a time. The <b>min light</b> slider
       raises a floor under the faintest stars, leaving anything already brighter untouched — useful at
       these densities, where each star is drawn dimmer so the galaxy as a whole keeps its brightness.</li>
       <li>The inter-arm disk follows an <b>exponential profile</b> with the measured ~8,500&nbsp;ly scale
@@ -443,7 +451,7 @@
   <div class="cnt birth" id="cBirth"><span id="lBirth">stars born</span><b id="nBirth">+0</b></div>
 </div>
 <button id="reopen" aria-label="show control panel">+</button>
-<div class="note" id="scaleNote">view <em id="sScale">—</em> across</div>
+<div class="note" id="scaleNote">view <em id="sScale">—</em> across<span id="fpsNote" style="display:none"> &nbsp;·&nbsp; <em id="fpsVal">—</em> fps</span></div>
 <div class="env" id="env">
   <h2>Earth · galactic environment</h2>
   <div class="er"><span>mean surface</span><b id="eMean">15.0 °C</b></div>
@@ -462,7 +470,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '1.18.0', date: '__BUILD_DATE__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '1.19.0', date: '__BUILD_DATE__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 const BUILD_LINE = BUILD.date.indexOf('__') === 0
   ? VERSION + ' · dev build'
@@ -1279,6 +1287,43 @@ function environment(){
   return { cr, mean, min: mean-104, max: mean+42, star: 1+2.0*r.armProx, ice: mean < 11.2 };
 }
 
+// ---------- the real sky ----------
+// 20,000 actual stars from HYG 4.1, which carries Gaia DR3 astrometry (with Hipparcos
+// for the bright ones Gaia saturates on): true parallax distances out to ~990 pc,
+// rotated from equatorial into galactic coordinates and placed relative to the Sun, so
+// the solar neighbourhood is genuinely where it is rather than scattered at random.
+// Colours come from each star's measured colour index, sizes from its apparent
+// magnitude. This is the local sky only — Gaia sees the Galaxy from inside, and the far
+// side of the disk is hidden behind dust, so the large-scale structure stays modelled.
+let vaoGaia = null, N_GAIA = 0, gaiaOn = true;
+function loadGaiaStars(){
+  fetch('stars-gaia.bin').then(r => r.ok ? r.arrayBuffer() : Promise.reject())
+    .then(buf => {
+      const n = Math.floor(buf.byteLength/16);
+      const dv = new DataView(buf);
+      const pos = new Float32Array(n*3), size = new Float32Array(n), col = new Float32Array(n*3);
+      for(let i=0;i<n;i++){
+        const o = i*16;
+        pos[i*3]   = dv.getFloat32(o,   true);
+        pos[i*3+1] = dv.getFloat32(o+4, true);
+        pos[i*3+2] = dv.getFloat32(o+8, true);
+        // the file stores hue and apparent magnitude; brightness and sprite size come
+        // from the magnitude here, scaled to sit alongside the modelled star field
+        const mag  = -2 + dv.getUint8(o+15)/255*14;
+        const flux = Math.pow(2.512, (2 - mag)/2.5);
+        const b    = Math.min(0.55, 0.042*flux);
+        col[i*3]   = dv.getUint8(o+12)/255*b;
+        col[i*3+1] = dv.getUint8(o+13)/255*b;
+        col[i*3+2] = dv.getUint8(o+14)/255*b;
+        size[i]    = Math.min(3.4, 0.72 + 0.9*Math.log10(1 + flux*4));
+      }
+      vaoGaia = pointVAO(pos, size, col);
+      N_GAIA = n;
+    })
+    .catch(()=>{});   // opened from disk, where fetch is blocked: the modelled sky stands in
+}
+loadGaiaStars();
+
 // ---------- Gliese 710 ----------
 // A K7 dwarf, presently ~62 light years off and closing at 14.4 km/s. Gaia's astrometry
 // (Bailer-Jones et al. 2018) puts its closest approach 1.29 Myr from now at 0.0676 pc —
@@ -1678,6 +1723,8 @@ toggle($('tKuiper'), on=> showKuiper=on);
 toggle($('tLife'), on=>{ lifeOn=on; if(!on){ events.length=0; puffs.length=0; } });
 toggle($('tVar'), on=> varOn=on);
 toggle($('tEnv'), on=>{ $('env').style.display = on ? '' : 'none'; });
+toggle($('tGaia'), on=> gaiaOn=on);
+toggle($('tFps'), on=>{ showFps=on; $('fpsNote').style.display = on ? '' : 'none'; });
 let lifeSupOn = true;
 toggle($('tLifeSup'), on=>{
   lifeSupOn = on;
@@ -1734,14 +1781,14 @@ loadTrack(0);
 // pause, the dive, the epoch jump, the current track position — is deliberately left out.
 const SKEY = 'galactic-transit.settings.v1';
 const S_TOG = ['tTrails','tLabels','tDwarfs','tBelt','tKuiper','tOort','tLife','tVar','tLifeSup','tEnv',
-               'tStatCal','tStatAge','tStatGyr','tSci','tLive','tView','tReal','tHifi','tUltra','tUltra2',
+               'tStatCal','tStatAge','tStatGyr','tSci','tLive','tView','tReal','tGaia','tFps',
                'tSound','tMusic'];
 const S_SLD = ['speed','trailA','trailL','musicVol','sfxVol','minB'];
 const S_CHK = ['fxBirth','fxSn','fxPn','fxDrone'];
 const MULT_VALUES = [1,1e3,1e6,1e9,1e12];
 function saveSettingsNow(){
   try{
-    const s = { t:{}, s:{}, c:{}, cal:$('cal').value, mult:speedMult,
+    const s = { t:{}, s:{}, c:{}, cal:$('cal').value, mult:speedMult, dens:curD,
                 hud:$('hud').style.display !== 'none' };
     S_TOG.forEach(id => s.t[id] = $(id).classList.contains('on'));
     S_SLD.forEach(id => s.s[id] = $(id).value);
@@ -1766,6 +1813,7 @@ function restoreSettings(){
       if(v != null && $(id).classList.contains('on') !== v) $(id).click(); });
     if(s.cal && s.cal !== $('cal').value){ $('cal').value = s.cal; $('cal').dispatchEvent(new Event('change')); }
     if(s.mult){ const i = MULT_VALUES.indexOf(s.mult); if(i >= 0 && s.mult !== speedMult) $('mults').children[i].click(); }
+    if(s.dens){ const i = QUALS.findIndex(q => q[0] === s.dens); if(i >= 0 && s.dens !== curD) $('quals').children[i].click(); }
     if(s.hud === false) $('collapse').click();
   }
   // from here on, anything the user touches is remembered
@@ -1776,6 +1824,7 @@ function restoreSettings(){
   $('collapse').addEventListener('click', saveSettings);
   $('reopen').addEventListener('click', saveSettings);
   [...$('mults').children].forEach(b => b.addEventListener('click', saveSettings));
+  [...$('quals').children].forEach(b => b.addEventListener('click', saveSettings));
 }
 toggle($('tOort'), on=> showOort=on);
 function updateBar(){
@@ -1878,12 +1927,23 @@ toggle($('tDive'), on=>{
     cam.distGoal=3.5e-5; // ~75 AU across: the whole planetary system, Kuiper belt included
   } else cam.distGoal=150;
 });
-const density = ()=> $('tUltra2').classList.contains('on') ? 40
-                   : $('tUltra').classList.contains('on') ? 20
-                   : $('tHifi').classList.contains('on') ? 5 : 1;
-toggle($('tHifi'),   ()=> setGalaxy(density()));
-toggle($('tUltra'),  ()=> setGalaxy(density())); // ultra overrides hi-fi while on
-toggle($('tUltra2'), ()=> setGalaxy(density())); // and this one overrides ultra
+// Star density as one row of choices rather than stacked overrides. The top settings
+// are enormous — x8 is some seventeen million sprites — so a failed allocation falls
+// back to what was working instead of leaving a half-built galaxy.
+const QUALS = [[1,'base'],[5,'hi-fi'],[20,'ultra'],[40,'×2'],[80,'×4'],[160,'×8']];
+{ const host = $('quals');
+  QUALS.forEach(([d,label],i)=>{
+    const b = document.createElement('button');
+    b.textContent = label; if(i===0) b.classList.add('on');
+    b.addEventListener('click', ()=>{
+      const prev = curD;
+      try{ setGalaxy(d); }
+      catch(err){ try{ setGalaxy(prev); }catch(e2){} return; }
+      [...host.children].forEach(c=> c.classList.toggle('on', c===b));
+    });
+    host.appendChild(b);
+  });
+}
 // ---------- fullscreen & screen orientation ----------
 const isFs = ()=> !!(document.fullscreenElement || document.webkitFullscreenElement);
 function reqFs(){
@@ -2010,6 +2070,7 @@ gl.blendFunc(gl.ONE, gl.ONE);
 gl.clearColor(0.010,0.015,0.040,1);
 
 let simT=0, nextSample=DT_SAMPLE, last=performance.now();
+let showFps=false, fpsFrames=0, fpsSince=performance.now();
 const smoothTarget=[0,0,0]; let firstFrame=true;
 const org=new Float64Array(3); // rendering origin: the Sun, in double precision
 const sunSizeTmp=new Float32Array(1);
@@ -2089,6 +2150,11 @@ function frame(now){
   gl.uniform3f(U.ptOrg, org[0],org[1],org[2]);
   gl.uniform1f(U.ptSpin, 0.0);
   gl.bindVertexArray(vaoStars); gl.drawArrays(gl.POINTS,0,N_STAR);
+  if(gaiaOn && vaoGaia){          // real stars, carried along with the Sun
+    gl.uniform3f(U.ptOrg, 0,0,0);
+    gl.bindVertexArray(vaoGaia); gl.drawArrays(gl.POINTS,0,N_GAIA);
+    gl.uniform3f(U.ptOrg, org[0],org[1],org[2]);
+  }
   const spin = simT*V_GAL; // every disk star travels at the same flat-curve speed as the Sun
   const warp = -2*Math.PI*simT/545; // warp precession: retrograde, ~650 Myr per turn (compressed)
   const sunX=org[0], sunY=org[1], sunZ=org[2];
@@ -2356,6 +2422,13 @@ function frame(now){
   // stats
   $('yrs').textContent = simT.toFixed(1);
   $('pct').textContent = (simT/GAL_PERIOD*100).toFixed(3);
+  if(showFps){
+    fpsFrames++;
+    if(now - fpsSince >= 500){
+      $('fpsVal').textContent = (fpsFrames*1000/(now - fpsSince)).toFixed(0);
+      fpsFrames = 0; fpsSince = now;
+    }
+  }
   { const wLy = 1.155*cam.dist*30, wAU = wLy*63241; // view height in ly / AU (60° fov)
     $('sScale').textContent = wLy>=1000 ? (wLy/1000).toFixed(1)+' kly'
       : wLy>=0.05 ? wLy.toFixed(wLy<10?2:0)+' ly'

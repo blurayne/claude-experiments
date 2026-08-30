@@ -17,9 +17,10 @@ in the browser with no build step and no external CDN.
   single pixel to show the true proportions, and from there a **☉ dive**: a
   continuous ~9-order-of-magnitude zoom from the galaxy down through the Oort
   shell (true ~1.6 ly edge) and Kuiper belt to the planets at their real
-  diameters, with a live view-width readout. **Hi-fi**, **ultra** and **ultra ×2** galaxy modes
-  raise the star count five-, twenty- and forty-fold (up to ~3.7 million points,
-  with a *min light* slider that lifts a floor under the faintest of them),
+  diameters, with a live view-width readout. A **quality** row raises the modelled star
+  count from base through hi-fi and ultra up to ×8 (a *min light* slider lifts a
+  floor under the faintest), and a **gaia sky** layer draws 20,000 real stars
+  from Gaia DR3 astrometry at their true distances around the Sun,
   scatter discrete dark molecular clouds (Dunkelwolken) through the disk, and
   the disk itself follows Gaia-era structure: an exponential thin disk plus a
   thicker, older second disk. Trail opacity and length (2.4–240 yr) are adjustable, speed runs from the
@@ -68,6 +69,8 @@ in the browser with no build step and no external CDN.
   rasterised to the PNG sizes the manifest needs.
 - [`manifest.json`](manifest.json), [`sw.js`](sw.js) — the PWA manifest and its
   offline service worker.
+- [`stars-gaia.bin`](stars-gaia.bin) — 20,000 real stars from HYG 4.1 (Gaia DR3
+  astrometry), as packed position, hue and magnitude.
 - [`sfx/`](sfx/) — five recorded supernova blasts and four soft star ignitions,
   played at random (with a slight per-shot detune) so repeats don't sound looped.
 - [`music/`](music/) — the two background tracks, *Galactic Year* I & II by
