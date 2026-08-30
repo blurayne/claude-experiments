@@ -29,9 +29,9 @@ in the browser with no build step and no external CDN.
   density-wave pattern that the disk stars stream through, so the arms never
   wind up. **Effects** (a deep space drone plus
   synthesized sounds for star births, planetary nebulae and supernova blasts,
-  generated live via Web Audio — no samples) and background **music** are both
-  on by default, each with its own volume slider, and a *next* button cycles
-  the tracks. A **variables** toggle makes a few percent of the
+  generated live via Web Audio — no samples) are off by default; background
+  **music** is on. Each has its own toggle and volume slider, and a *next*
+  button cycles the tracks. A **variables** toggle makes a few percent of the
   star points pulse Cepheid/Mira-style — dimmer and redder at minimum light —
   and lets the HII nebulae breathe and drift in hue. Styled as a sci-fi observatory HUD
   with Orbitron/Exo 2, embedded in the file so it stays offline-capable. An

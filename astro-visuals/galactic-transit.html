@@ -106,7 +106,7 @@
       <button class="tg on" id="tOort">oort</button>
       <button class="tg on" id="tLife">life cycle</button>
       <button class="tg on" id="tVar">variables</button>
-      <button class="tg on" id="tSound">effects</button>
+      <button class="tg" id="tSound">effects</button>
       <button class="tg on" id="tMusic">music</button>
       <button class="tg" id="tNext">⏭ next</button>
       <button class="tg on" id="tStatCal">hum yr</button>
@@ -923,7 +923,7 @@ function pushTrail(i, ts){
 let lifeOn = true, varOn = true; let shimT = 0; // variability clock (wall time, runs even when paused)
 
 // ---------- sound: everything synthesized live via Web Audio — no samples, still one file ----------
-let soundOn = true, sfxVol = 0.7, audio = null;
+let soundOn = false, sfxVol = 0.7, audio = null;
 const sfxLast = {};
 function initAudio(){
   const ctx = new (window.AudioContext||window.webkitAudioContext)();
@@ -1207,10 +1207,8 @@ $('sfxVol').addEventListener('input', e=>{
   sfxVol=+e.target.value; applySfxGain();
   $('sfxVolv').textContent=Math.round(sfxVol*100)+'%';
 });
-// both on by default: start what we can, and queue the rest behind the first gesture
-audio = initAudio();
-audio.ctx.resume().catch(()=>{});
-if(audio.ctx.state !== 'running') armUnlock();
+// music is on by default; effects wait to be switched on (their graph is built then).
+// Autoplay is refused before a gesture, so queue the start behind the first one.
 loadTrack(0);
 toggle($('tOort'), on=> showOort=on);
 function updateBar(){
