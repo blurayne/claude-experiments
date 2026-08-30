@@ -25,6 +25,7 @@
     --ink:#dce8f5; --dim:#8492ac; --line:rgba(120,190,255,.20);
     --panel:rgba(4,9,19,.74); --accent2:#a78bfa;
     --stateRGB:95,216,255; --stateA:0;         /* set each frame from the life-support model */
+    --iceA:0;                                  /* how deep into a glacial epoch, eased */
     --lifeRGB:74,214,126;                      /* the life-support word: green when habitable */
     --accent:rgb(var(--stateRGB)); --glow:rgba(var(--stateRGB), .45);
   }
@@ -108,11 +109,27 @@
      instead of snapping between states. Listed after the panel rules so it overrides
      their own background, border and shadow. */
   .hud, .env, .gamebar, .note, .info-card{
-    background:linear-gradient(158deg, rgba(var(--stateRGB), calc(var(--stateA) * .14)), var(--panel));
+    /* the cold layers sit over the panel's own wash: a pale tint, then a darkening that
+       takes the transparency away, so a frozen interface reads as solid rime */
+    background:
+      linear-gradient(180deg, rgba(196,232,255, calc(var(--iceA) * .11)), rgba(196,232,255, calc(var(--iceA) * .11))),
+      linear-gradient(180deg, rgba(5,15,28, calc(var(--iceA) * .60)), rgba(5,15,28, calc(var(--iceA) * .60))),
+      linear-gradient(158deg, rgba(var(--stateRGB), calc(var(--stateA) * .14)), var(--panel));
     border-color:rgba(var(--stateRGB), calc(.20 + var(--stateA) * .15));
     border-top-color:rgba(var(--stateRGB), calc(.50 + var(--stateA) * .22));
     box-shadow:0 0 36px rgba(var(--stateRGB), calc(.07 + var(--stateA) * .10)),
                inset 0 0 44px rgba(var(--stateRGB), calc(var(--stateA) * .06))}
+  /* frost itself: tiled fractal rime plus a bloom in the corners, screened over the
+     panel and faded by the same eased value, so it creeps in rather than appearing */
+  .hud::before, .env::before, .gamebar::before, .note::before, .info-card::before{
+    content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;
+    opacity:calc(var(--iceA) * .62);mix-blend-mode:screen;
+    background-image:
+      radial-gradient(120% 90% at 0% 0%, rgba(214,240,255,.34), transparent 58%),
+      radial-gradient(110% 80% at 100% 100%, rgba(190,228,255,.28), transparent 54%),
+      url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJmIiB4PSItMTAlIiB5PSItMTAlIiB3aWR0aD0iMTIwJSIgaGVpZ2h0PSIxMjAlIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC4wMjIiIG51bU9jdGF2ZXM9IjMiIHNlZWQ9IjQiIHN0aXRjaFRpbGVzPSJzdGl0Y2giLz48ZmVHYXVzc2lhbkJsdXIgc3RkRGV2aWF0aW9uPSIxLjYiLz48ZmVDb2xvck1hdHJpeCB0eXBlPSJtYXRyaXgiIHZhbHVlcz0iMCAwIDAgMCAwLjg4ICAwIDAgMCAwIDAuOTYgIDAgMCAwIDAgMSAgMCAwIDAgMC43NSAtMC4zNiIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiBmaWx0ZXI9InVybCgjZikiLz48L3N2Zz4=);
+    background-size:auto, auto, 300px 300px;
+    background-repeat:no-repeat, no-repeat, repeat}
   .tg.on{border-color:rgba(var(--stateRGB), calc(.55 + var(--stateA) * .10))}
   .mults button.on{border-color:rgba(var(--stateRGB), calc(.55 + var(--stateA) * .10))}
   #eLife{text-transform:uppercase;letter-spacing:.1em;color:rgb(var(--lifeRGB));
@@ -478,7 +495,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '1.24.0', date: '__BUILD_DATE__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '1.25.0', date: '__BUILD_DATE__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 const BUILD_LINE = BUILD.date.indexOf('__') === 0
   ? VERSION + ' · dev build'
@@ -2079,18 +2096,28 @@ const g710Lbl = (()=>{ const d=document.createElement('div'); d.className='lbl';
 const C_SAFE = [95,216,255], C_WARN = [255,207,92], C_DEAD = [255,110,110], C_ICE = [176,232,255];
 const C_LIFE = [74,214,126];   // habitable reads green, not the interface's cyan
 const mix3 = (a,b,u)=> [a[0]+(b[0]-a[0])*u, a[1]+(b[1]-a[1])*u, a[2]+(b[2]-a[2])*u];
-let lastRGB = '', lastA = -1;
+let lastRGB = '', lastA = -1, lastIce = -1, iceShown = 0, iceLast = performance.now();
 function setStateColour(h, meanC){
   h = Math.min(1, Math.max(0, h));
   let rgb = h < 0.5 ? mix3(C_SAFE, C_WARN, h/0.5) : mix3(C_WARN, C_DEAD, (h-0.5)/0.5);
   // how cold the climate model runs, eased in over the couple of degrees around the
   // glacial threshold so the frost arrives gradually too
-  const cold = Math.min(1, Math.max(0, (11.9 - meanC)/2.4));
+  const coldNow = Math.min(1, Math.max(0, (11.9 - meanC)/2.4));
+  { // ease toward it over about a second, independent of frame rate
+    const now = performance.now(), dt = Math.min(0.1, (now - iceLast)/1000); iceLast = now;
+    iceShown += (coldNow - iceShown) * Math.min(1, dt*1.6);
+  }
+  const cold = iceShown;
   if(cold > 0) rgb = mix3(rgb, C_ICE, cold*(1-h)*0.85);
   const amt = Math.min(1, Math.max(h, cold*0.75));
   const life = h < 0.5 ? mix3(C_LIFE, C_WARN, h/0.5) : mix3(C_WARN, C_DEAD, (h-0.5)/0.5);
   const s = rgb.map(v=>Math.round(v)).join(',');
   const a = Math.round(amt*100)/100;
+  const ia = Math.round(cold*100)/100;
+  if(ia !== lastIce){
+    lastIce = ia;
+    document.documentElement.style.setProperty('--iceA', String(ia));
+  }
   if(s === lastRGB && a === lastA) return;   // only touch styles when it actually moves
   lastRGB = s; lastA = a;
   // On the root element, not the body: --accent and --glow are declared on :root and
