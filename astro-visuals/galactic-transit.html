@@ -1593,7 +1593,11 @@ function frame(now){
   }
 
   // trails
-  if(showTrails && cam.dist>1.0){ // below ~30 ly the float32 trail buffers would jitter
+  // Trail buffers hold absolute positions, and at the Sun's radius a float32 step is
+  // 6.1e-5 scene units — a quarter pixel around cam.dist 0.17. Fade across that
+  // boundary rather than cutting, so leaving real scale doesn't drop them abruptly.
+  const trailFade = Math.min(1, Math.max(0, Math.log(cam.dist/0.17)/Math.log(0.7/0.17)));
+  if(showTrails && trailFade>0.02){
     gl.useProgram(pTr);
     gl.uniformMatrix4fv(U.trProj,false,projMat);
     gl.uniformMatrix4fv(U.trView,false,viewMat);
@@ -1602,7 +1606,7 @@ function frame(now){
     for(let i=(realMode?1:(showDwarfs?NB:N_PLANETS))-1;i>=0;i--){
       const c=BODIES[i][4];
       gl.uniform3f(U.trCol,c[0],c[1],c[2]);
-      gl.uniform1f(U.trA, (i===0?0.9:0.55)*trailAlpha);
+      gl.uniform1f(U.trA, (i===0?0.9:0.55)*trailAlpha*trailFade);
       gl.bindVertexArray(trailVaos[i]);
       gl.drawArrays(gl.LINE_STRIP,0,TRAIL_N);
     }
