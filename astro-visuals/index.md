@@ -17,9 +17,11 @@ in the browser with no build step and no external CDN.
   single pixel to show the true proportions, and from there a **☉ dive**: a
   continuous ~9-order-of-magnitude zoom from the galaxy down through the Oort
   shell (true ~1.6 ly edge) and Kuiper belt to the planets at their real
-  diameters, with a live view-width readout. A **hi-fi galaxy** mode raises the
-  star count five-fold (~460,000 points) and scatters discrete dark molecular
-  clouds (Dunkelwolken) through the disk. Styled as a sci-fi observatory HUD
+  diameters, with a live view-width readout. **Hi-fi** and **ultra** galaxy modes
+  raise the star count five- and twenty-fold (~460,000 / ~1.9 million points),
+  scatter discrete dark molecular clouds (Dunkelwolken) through the disk, and
+  the disk itself follows Gaia-era structure: an exponential thin disk plus a
+  thicker, older second disk. Trail opacity is adjustable. Styled as a sci-fi observatory HUD
   with Orbitron/Exo 2, embedded in the file so it stays offline-capable. An
   info panel explains where the drawing is compressed and why the Oort cloud's
   outer edge is set by the galactic tide rather than by the Sun.
