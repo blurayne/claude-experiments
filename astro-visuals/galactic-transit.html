@@ -440,6 +440,7 @@ uniform float uTime;    // wall-clock seconds for the variability animation
 uniform float uVarMode; // 0 off | 1 stars (a few % pulse, reddening at minimum) | 2 nebulae (all breathe)
 uniform vec3 uAnd;      // Andromeda's centre, galactic coordinates
 uniform float uTide;    // 0 far apart .. 1 at contact
+uniform float uWarpAmp; // how strongly this draw takes the disk warp
 uniform vec3 uOrg;    // rendering origin (the Sun) — keeps deep real-scale zooms float-precise
 out vec3 vColor;
 void main(){
@@ -458,15 +459,18 @@ void main(){
     // Gaia-style warp: outer disk bends up on one side, down on the other,
     // and the whole pattern precesses retrograde (uWarp) like a wobbling top
     float wr = max(0.0, r - 950.0);
-    p.y += wr*0.13*sin(atan(p.x,p.z) - uWarp)  // integral-sign warp, growing outward
-         + 4.0*sin(r*0.021);                    // faint corrugation ripples in the disk
+    p.y += uWarpAmp*(wr*0.13*sin(atan(p.x,p.z) - uWarp)  // integral-sign warp, growing outward
+         + 4.0*sin(r*0.021));                            // faint corrugation ripples in the disk
     // Tidal pull toward Andromeda. A real encounter is an N-body problem; this is the
     // leading effect only — the differential pull grows with radius, so the outer disk
     // is drawn out into a bridge toward the companion while the core barely moves.
     if(uTide > 0.001){
       vec3 dv = uAnd - p;
-      float dd = max(120.0, length(dv));
-      p += normalize(dv) * uTide * (r/900.0) * (340000.0/(dd*dd)) * 190.0;
+      float dd = length(dv);
+      // Softened, capped falloff: a bare inverse square blows up for stars that pass
+      // close to the companion and tears the disk into a streak.
+      float pull = uTide * (r/900.0) * 260.0 / (1.0 + (dd*dd)/(700.0*700.0));
+      p += normalize(dv) * min(pull, 430.0);
     }
     // the planetary system is drawn ~10-million-fold magnified; clear its space
     fade = smoothstep(80.0, 240.0, distance(p, uSunPos));
@@ -536,6 +540,7 @@ const U = {
   ptCap: gl.getUniformLocation(pPt,'uCap'), ptWA: gl.getUniformLocation(pPt,'uWaveAll'),
   ptTime: gl.getUniformLocation(pPt,'uTime'), ptVM: gl.getUniformLocation(pPt,'uVarMode'),
   ptAnd: gl.getUniformLocation(pPt,'uAnd'), ptTide: gl.getUniformLocation(pPt,'uTide'),
+  ptWarpAmp: gl.getUniformLocation(pPt,'uWarpAmp'),
   trProj: gl.getUniformLocation(pTr,'uProj'), trView: gl.getUniformLocation(pTr,'uView'),
   trLen: gl.getUniformLocation(pTr,'uLen'), trCol: gl.getUniformLocation(pTr,'uColor'), trA: gl.getUniformLocation(pTr,'uAlpha')
 };
@@ -844,6 +849,7 @@ void main(){
 const pNeb = prog(PT_VS, NEB_FS);
 const UN = {
   and: gl.getUniformLocation(pNeb,'uAnd'), tide: gl.getUniformLocation(pNeb,'uTide'),
+  warpAmp: gl.getUniformLocation(pNeb,'uWarpAmp'),
   time: gl.getUniformLocation(pNeb,'uTime'), vm: gl.getUniformLocation(pNeb,'uVarMode'),
   wa:   gl.getUniformLocation(pNeb,'uWaveAll'),
   cap:  gl.getUniformLocation(pNeb,'uCap'),
@@ -869,6 +875,7 @@ void main(){
 const pDust = prog(PT_VS, DUST_FS);
 const UD = {
   and: gl.getUniformLocation(pDust,'uAnd'), tide: gl.getUniformLocation(pDust,'uTide'),
+  warpAmp: gl.getUniformLocation(pDust,'uWarpAmp'),
   wa:   gl.getUniformLocation(pDust,'uWaveAll'),
   cap:  gl.getUniformLocation(pDust,'uCap'),
   org:  gl.getUniformLocation(pDust,'uOrg'),
@@ -921,8 +928,10 @@ const vaoAnd = (()=>{
 })();
 const andAt = a => {                       // separation in scene units at a given age
   if(a <= AND_AGE){
+    // Radial free fall: separation goes as the two-thirds power of the time left, so the
+    // pair drifts for aeons and then plunges — which is what the last Gyr actually looks like.
     const u = Math.min(1, Math.max(0, (AND_AGE-a)/(AND_AGE-AGE0)));
-    return 9000*Math.pow(u, 0.85);
+    return 9000*Math.pow(u, 2/3);
   }
   const d = a - AND_AGE;                   // passages, then coalescence
   return 1500*Math.exp(-d/0.5)*Math.abs(Math.sin(Math.PI*d/0.7));
@@ -1768,6 +1777,7 @@ function frame(now){
   gl.uniform1f(U.ptTide, and.tide);
   gl.uniform1f(U.ptVM, varOn?1.0:0.0);
   gl.uniform1f(U.ptCap, deep?26.0:110.0);
+  gl.uniform1f(U.ptWarpAmp, 1.0);
   gl.uniform3f(U.ptOrg, org[0],org[1],org[2]);
   gl.uniform1f(U.ptSpin, 0.0);
   gl.bindVertexArray(vaoStars); gl.drawArrays(gl.POINTS,0,N_STAR);
@@ -1780,14 +1790,23 @@ function frame(now){
   gl.uniform3f(U.ptSun, sunX, bubY, sunZ);
   gl.bindVertexArray(vaoGxy);   gl.drawArrays(gl.POINTS,0,N_GXY);
 
-  // Andromeda, drawn rigid: shifting the render origin puts it at its own centre.
+  // Andromeda: shifting the render origin puts it at its own centre, so the shader's
+  // spin turns it about its own axis. It runs retrograde to ours and a little slower,
+  // takes only a light warp of its own, and its tide pulls toward the Milky Way — the
+  // bridge is mutual, both disks reaching for each other.
   if(and.sep < 8600){
-    gl.uniform1f(U.ptSpin, 0.0);
-    gl.uniform1f(U.ptTide, 0.0);
+    gl.uniform1f(U.ptSpin, -spin*0.86);
+    gl.uniform1f(U.ptWarpAmp, 0.45);
+    gl.uniform3f(U.ptSun, sunX, sunY+1e8, sunZ);   // no clearance bubble in its frame
+    gl.uniform3f(U.ptAnd, -andPos[0], -andPos[1], -andPos[2]);
+    gl.uniform1f(U.ptTide, and.tide);
     gl.uniform1f(U.ptVM, 0.0);
     gl.uniform3f(U.ptOrg, org[0]-andPos[0], org[1]-andPos[1], org[2]-andPos[2]);
     gl.bindVertexArray(vaoAnd); gl.drawArrays(gl.POINTS,0,N_AND);
     gl.uniform3f(U.ptOrg, org[0], org[1], org[2]);
+    gl.uniform3f(U.ptSun, sunX, bubY, sunZ);
+    gl.uniform3f(U.ptAnd, andPos[0], andPos[1], andPos[2]);
+    gl.uniform1f(U.ptWarpAmp, 1.0);
     gl.uniform1f(U.ptSpin, spin);
     gl.uniform1f(U.ptTide, and.tide);
     gl.uniform1f(U.ptVM, varOn?1.0:0.0);
@@ -1818,6 +1837,7 @@ function frame(now){
   gl.uniform1f(UD.wa, 1.0); // dust lanes trace the wave
   gl.uniform1f(UD.cap, deep?40.0:560.0);
   gl.uniform3f(UD.and, andPos[0], andPos[1], andPos[2]); gl.uniform1f(UD.tide, and.tide);
+  gl.uniform1f(UD.warpAmp, 1.0);
   gl.uniform3f(UD.org, org[0],org[1],org[2]);
   gl.uniform1f(UD.spin, spin);
   gl.uniform1f(UD.warp, warp);
@@ -1835,6 +1855,7 @@ function frame(now){
   gl.uniform1f(UN.wa, 1.0); // HII regions trace the wave
   gl.uniform1f(UN.cap, deep?60.0:560.0);
   gl.uniform3f(UN.and, andPos[0], andPos[1], andPos[2]); gl.uniform1f(UN.tide, and.tide);
+  gl.uniform1f(UN.warpAmp, 1.0);
   gl.uniform3f(UN.org, org[0],org[1],org[2]);
   gl.uniform1f(UN.spin, spin);
   gl.uniform1f(UN.warp, warp);
