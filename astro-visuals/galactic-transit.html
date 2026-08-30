@@ -207,6 +207,7 @@
     <div class="row"><label for="speed">speed</label><input type="range" id="speed" min="0" max="1" step="0.001" value="0.591"><span id="speedv" style="min-width:64px;text-align:right;color:var(--ink)"></span></div>
     <div class="row"><label>× speed</label><div class="mults" id="mults"></div></div>
     <div class="row"><label>quality</label><div class="mults" id="quals"></div></div>
+    <div class="row"><label for="hudHz">hud rate</label><input type="range" id="hudHz" min="1" max="16" step="1" value="8"><span id="hudHzv" style="min-width:64px;text-align:right;color:var(--ink)">8×/s</span></div>
     <div class="row"><label for="minB">star gain</label><input type="range" id="minB" min="0" max="1" step="0.01" value="0"><span id="minBv" style="min-width:64px;text-align:right;color:var(--ink)">off</span></div>
     <div class="row"><label for="trailA">trails</label><input type="range" id="trailA" min="0" max="1" step="0.01" value="1"><span id="trailAv" style="min-width:64px;text-align:right;color:var(--ink)">100%</span></div>
     <div class="row"><label for="trailL">length</label><input type="range" id="trailL" min="0" max="1" step="0.001" value="0.5"><span id="trailLv" style="min-width:64px;text-align:right;color:var(--ink)">24 yr</span></div>
@@ -517,7 +518,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '1.32.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '1.33.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 const BUILD_LINE = BUILD.date.indexOf('__') === 0
   ? VERSION + ' · dev build'
@@ -1778,6 +1779,10 @@ speed = speedFromSlider(0.591); fmtSpeed();   // 1.00 Earth year per second
 // One slider, two effects, because they are the same intent: make the faint stars
 // carry. It lifts a floor under their colour and widens the smallest sprites, which is
 // where most of the lost light actually goes.
+$('hudHz').addEventListener('input', e=>{
+  hudHz = +e.target.value;
+  $('hudHzv').textContent = hudHz + '×/s';
+});
 let minBright = 0, minSprite = 1.3, starGain = 0;
 $('minB').addEventListener('input', e=>{
   const v = starGain = +e.target.value;
@@ -1864,7 +1869,7 @@ const SKEY = 'galactic-transit.settings.v1';
 const S_TOG = ['tTrails','tLabels','tDwarfs','tBelt','tKuiper','tOort','tLife','tVar','tLifeSup','tEnv',
                'tStatCal','tStatAge','tStatGyr','tStatSn','tStatBirth','tSci','tLive','tView','tReal','tGaia','tFps',
                'tSound','tMusic'];
-const S_SLD = ['speed','trailA','trailL','musicVol','sfxVol','minB'];
+const S_SLD = ['speed','trailA','trailL','musicVol','sfxVol','minB','hudHz'];
 const S_CHK = ['fxBirth','fxSn','fxPn','fxDrone'];
 const MULT_VALUES = [1,1e3,1e6,1e9,1e12];
 function saveSettingsNow(){
@@ -2217,6 +2222,7 @@ gl.clearColor(0.010,0.015,0.040,1);
 
 let simT=0, nextSample=DT_SAMPLE, last=performance.now();
 let showFps=false, fpsFrames=0, fpsSince=performance.now();
+let hudHz=8, lastHud=0;
 const smoothTarget=[0,0,0]; let firstFrame=true;
 const org=new Float64Array(3); // rendering origin: the Sun, in double precision
 const sunSizeTmp=new Float32Array(1);
@@ -2557,6 +2563,9 @@ function frame(now){
   } else g710Lbl.style.display='none';
   
 
+  if(showFps) fpsFrames++;      // counted every frame; only the display is paced
+  if(now - lastHud >= 1000/hudHz){
+  lastHud = now;
   if(liveCount){
     // What is happening in this moment: the drawn events actually in progress, so the
     // numbers step up as stars ignite or begin dying and back down as each one ends.
@@ -2593,7 +2602,6 @@ function frame(now){
   $('yrs').textContent = simT.toFixed(1);
   $('pct').textContent = (simT/GAL_PERIOD*100).toFixed(3);
   if(showFps){
-    fpsFrames++;
     if(now - fpsSince >= 500){
       $('fpsVal').textContent = (fpsFrames*1000/(now - fpsSince)).toFixed(0);
       fpsFrames = 0; fpsSince = now;
@@ -2609,6 +2617,7 @@ function frame(now){
     const myr = simT*(225/GAL_PERIOD);                       // real megayears elapsed
     $('gAge').textContent = fmtYears(4.568e9 + myr*1e6);
     $('gGyr').textContent = (4568/225 + simT/GAL_PERIOD).toFixed(3);
+  }
   }
 
   requestAnimationFrame(frame);
