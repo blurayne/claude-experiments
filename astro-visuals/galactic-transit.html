@@ -59,6 +59,10 @@
   .hudfoot{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex:none;
     margin-top:9px;padding-top:8px;border-top:1px solid var(--line);
     font-family:'Orbitron',ui-monospace,monospace;font-size:8px;letter-spacing:.09em;color:var(--dim)}
+  .hudlink{font-family:inherit;font-size:8px;letter-spacing:.11em;text-transform:uppercase;
+    color:var(--dim);text-decoration:none;border-bottom:1px solid rgba(var(--stateRGB), .35);
+    transition:color .15s,border-color .15s}
+  .hudlink:hover{color:var(--accent);border-color:rgba(var(--stateRGB), .7)}
   .hudfoot button{font-family:inherit;font-size:8px;letter-spacing:.11em;text-transform:uppercase;
     padding:4px 8px;border:1px solid var(--line);border-radius:2px;color:var(--dim);cursor:pointer;
     background:transparent;transition:color .15s,border-color .15s;white-space:nowrap}
@@ -285,7 +289,10 @@
     </div>
   </div>
   <div class="hudfoot">
-    <span id="buildInfo" style="margin-right:auto">—</span>
+    <span id="buildInfo">—</span>
+    <a class="hudlink" id="changelogLink" href="changelog.html" target="_blank" rel="noopener"
+       title="what changed, version by version">changelog</a>
+    <span style="margin-right:auto"></span>
     <button id="tReset" title="forget saved settings and reload with the defaults">⤺ reset</button>
     <button id="tReload" title="reload, bypassing every cache">⟲ refresh</button>
   </div>
@@ -526,7 +533,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.3.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.4.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.

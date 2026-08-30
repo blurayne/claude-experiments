@@ -116,6 +116,14 @@ def build() -> None:
         (dest / "index.md").unlink(missing_ok=True)
         stamp_build(dest)
 
+        # A subfolder's CHANGELOG.md is rendered too, so it can be linked as a page
+        # rather than offered as a raw download. The markdown copy rides along as well.
+        changelog = dest / "CHANGELOG.md"
+        if changelog.exists():
+            (dest / "changelog.html").write_text(
+                render(changelog.read_text(), f"{sub.name} — changelog", head_extra_for(sub))
+            )
+
         # Only render index.md when the subfolder doesn't ship its own index.html.
         if idx_md.exists() and not idx_html.exists():
             (dest / "index.html").write_text(

@@ -66,6 +66,20 @@ in the browser with no build step and no external CDN.
   info panel explains where the drawing is compressed and why the Oort cloud's
   outer edge is set by the galactic tide rather than by the Sun.
 
+## Changelog
+
+[`CHANGELOG.md`](CHANGELOG.md) records every released version of both viewers, with
+sections for Galactic Transit and Solar System 3D. It is generated from the git history
+by [`.github/scripts/build_changelog.py`](../.github/scripts/build_changelog.py), which
+reads the version out of the page at each revision, so an entry always sits under the
+version it actually shipped in. **Regenerate it whenever the version is bumped:**
+
+```bash
+python3 .github/scripts/build_changelog.py
+```
+
+The build renders it to `changelog.html`, which the panel footer links to.
+
 ## Files
 
 - [`icon.svg`](icon.svg) — the *Galactic Year* emblem, hand-authored as vector
