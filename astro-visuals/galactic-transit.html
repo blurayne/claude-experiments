@@ -474,7 +474,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '1.21.0', date: '__BUILD_DATE__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '1.22.0', date: '__BUILD_DATE__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 const BUILD_LINE = BUILD.date.indexOf('__') === 0
   ? VERSION + ' · dev build'
@@ -778,6 +778,7 @@ const ARMS = [
 ];
 const sA=Math.sin(BAR_A), cA=Math.cos(BAR_A);
 let N_GXY, NEB_N, DUST_N;
+let N_AND = 0, vaoAnd = null;   // declared here: setGalaxy builds Andromeda too, and runs earlier
 let gxyPos,gxySize,gxyCol,gxyWave, nebPos,nebSize,nebCol, dustPos,dustSize,dustStr;
 function genGalaxy(D){ // D = density multiplier (hi-fi galaxy mode)
   N_GXY = Math.round(92000*D);
@@ -955,8 +956,10 @@ const gxyCache = {}; // both densities kept once generated, so toggling back is 
 function setGalaxy(D){
   if(!gxyCache[D]){
     genGalaxy(D);
-    gxyCache[D] = { n:[N_GXY,NEB_N,DUST_N],
-      g:pointVAO(gxyPos,gxySize,gxyCol,gxyWave), nb:pointVAO(nebPos,nebSize,nebCol), d:pointVAO(dustPos,dustSize,dustStr) };
+    const gv = pointVAO(gxyPos,gxySize,gxyCol,gxyWave);
+    const nv = pointVAO(nebPos,nebSize,nebCol), dv = pointVAO(dustPos,dustSize,dustStr);
+    const av = genAndromeda(D);
+    gxyCache[D] = { n:[N_GXY,NEB_N,DUST_N,N_AND], g:gv, nb:nv, d:dv, a:av };
     gxyPos=gxySize=gxyCol=gxyWave=nebPos=nebSize=nebCol=dustPos=dustSize=dustStr=null; // uploaded; free the JS copies
   }
   // the cheap densities stay cached; only one heavy one is kept at a time
@@ -964,11 +967,13 @@ function setGalaxy(D){
     const kd = +k;
     if(kd >= 12 && kd !== D){
       const old = gxyCache[k];
-      deleteVAO(old.g); deleteVAO(old.nb); deleteVAO(old.d);
+      deleteVAO(old.g); deleteVAO(old.nb); deleteVAO(old.d); deleteVAO(old.a);
       delete gxyCache[k];
     }
   }
-  const c=gxyCache[D]; N_GXY=c.n[0]; NEB_N=c.n[1]; DUST_N=c.n[2]; vaoGxy=c.g; vaoNeb=c.nb; vaoDust=c.d; curD=D;
+  const c=gxyCache[D];
+  N_GXY=c.n[0]; NEB_N=c.n[1]; DUST_N=c.n[2]; N_AND=c.n[3];
+  vaoGxy=c.g; vaoNeb=c.nb; vaoDust=c.d; vaoAnd=c.a; curD=D;
 }
 
 // nebulae: same vertex logic but a much larger sprite cap, and a coreless glow falloff
@@ -1032,22 +1037,23 @@ setGalaxy(1);
 // the same frame as everything else. Its own structure is schematic: a bulge and two
 // arms, roughly M31's size relative to ours. The encounter itself is a leading-order
 // sketch, not an N-body solution.
-const N_AND = 30000;
-const vaoAnd = (()=>{
+function genAndromeda(D){
+  N_AND = Math.round(52000*D);
+  const BS = 1/Math.sqrt(D);   // the same per-star compensation the Milky Way gets
   const pos=new Float32Array(N_AND*3), size=new Float32Array(N_AND), col=new Float32Array(N_AND*3);
   const PITCH_A = Math.tan(14*Math.PI/180), R_A = 1950;
   const ti = 0.62, ci = Math.cos(ti), si = Math.sin(ti);   // inclined to our disk
   for(let i=0;i<N_AND;i++){
     let x,y,z,b,s;
-    if(i<5200){                                   // M31's large classical bulge
+    if(i<0.155*N_AND){                            // M31's large classical bulge
       const r=Math.abs(gauss())*110, th=Math.random()*6.28318;
       x=r*Math.sin(th); z=r*Math.cos(th); y=gauss()*80;
       b=.30+Math.random()*.34; s=2.6+Math.random()*2.2;
       col[i*3]=b*1.2; col[i*3+1]=b*.92; col[i*3+2]=b*.6;
-    } else if(i<11000){                           // its smooth inner disk
+    } else if(i<0.367*N_AND){                     // its smooth inner disk
       const r=expR(220,R_A,300), th=Math.random()*6.28318;
       x=r*Math.sin(th); z=r*Math.cos(th); y=gauss()*13;
-      b=.05+Math.random()*.07; s=1.5+Math.random()*1.4;
+      b=.07+Math.random()*.09; s=1.5+Math.random()*1.4;
       col[i*3]=b*.9; col[i*3+1]=b*.93; col[i*3+2]=b*1.08;
     } else {                                      // the famous ring-like arms
       const arm = (i%2)*Math.PI;
@@ -1057,13 +1063,14 @@ const vaoAnd = (()=>{
       const roll=Math.random();
       if(roll<0.05){ col[i*3]=.9; col[i*3+1]=.5; col[i*3+2]=.6; s=2.8+Math.random()*2.0; }
       else if(roll<0.16){ col[i*3]=.55; col[i*3+1]=.68; col[i*3+2]=.98; s=2.5+Math.random()*2.0; }
-      else { b=.11+Math.random()*.14; col[i*3]=b*.85; col[i*3+1]=b*.95; col[i*3+2]=b*1.15; s=1.5+Math.random()*1.6; }
+      else { b=.16+Math.random()*.19; col[i*3]=b*.85; col[i*3+1]=b*.95; col[i*3+2]=b*1.15; s=1.6+Math.random()*1.7; }
     }
+    col[i*3]*=BS; col[i*3+1]*=BS; col[i*3+2]*=BS;
     pos[i*3]=x; pos[i*3+1]=y*ci - z*si; pos[i*3+2]=y*si + z*ci;  // apply the inclination
-    size[i]=s;
+    size[i]=s*Math.pow(D,-0.12);
   }
   return pointVAO(pos, size, col);
-})();
+}
 const andAt = a => {                       // separation in scene units at a given age
   if(a <= AND_AGE){
     // Radial free fall: separation goes as the two-thirds power of the time left, so the
@@ -2210,7 +2217,7 @@ function frame(now){
   // spin turns it about its own axis. It runs retrograde to ours and a little slower,
   // takes only a light warp of its own, and its tide pulls toward the Milky Way — the
   // bridge is mutual, both disks reaching for each other.
-  if(and.sep < 8600){
+  if(and.sep < 8600 && vaoAnd){
     gl.uniform1f(U.ptSpin, -spin*0.86);
     gl.uniform1f(U.ptWarpAmp, 0.45);
     gl.uniform3f(U.ptSun, sunX, sunY+1e8, sunZ);   // no clearance bubble in its frame
