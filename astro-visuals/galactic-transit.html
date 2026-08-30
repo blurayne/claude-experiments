@@ -539,7 +539,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.4.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.4.2', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -1694,7 +1694,7 @@ function lifeStep(dt, dtSim){
       else if(e.st>e.L+0.8e6) events.splice(i,1);  // cluster disperses into the disk
     }
     else if(e.k===2 && e.st>1.0e6){ e.k=3; e.t=0; sfx('sn'); } // ~1 Myr as a red supergiant, then collapse
-    else if(e.k===3 && e.t>1.6){ addPuff(e,12,2.8,[0.55,0.35,0.22]); e.k=5; e.t=0; }
+    else if(e.k===3 && e.t>1.6){ addPuff(e,7,2.8,[0.55,0.35,0.22]); e.k=5; e.t=0; }
     else if(e.k===4 && e.st>1.2e6){ addPuff(e,1.8,2.2,[0.10,0.50,0.42]); e.k=6; e.t=0; sfx('pn'); }
     else if((e.k===5||e.k===6) && e.t>2.5) events.splice(i,1);
   }
@@ -1712,7 +1712,7 @@ function fillEvents(){
       s=3.2+2.6*u; cr=0.62+0.5*u; cg=0.72-0.34*u; cb=1.05-0.87*u;
     } else if(e.k===3){ // the flash: weeks of real time, stretched so it can be seen
       const a=e.t<0.15 ? e.t/0.15 : Math.exp(-(e.t-0.15)/0.45);
-      s=40+300*a; cr=2.4*a; cg=2.3*a; cb=2.1*a;
+      s=8+70*a; cr=2.4*a; cg=2.3*a; cb=2.1*a;
     } else if(e.k===5){ // what remains: a cooling neutron star
       const f=Math.max(0,1-e.t/2.5); s=1.4; cr=0.35*f; cg=0.5*f; cb=0.9*f;
     } else if(e.k===4){ // a low-mass star swells into a red giant
@@ -2450,7 +2450,7 @@ function frame(now){
     gl.uniform1f(U.ptTide, 0.0);
     gl.uniform1f(U.ptMinB, 0.0);
     gl.uniform1f(U.ptMinSz, 1.3);   // events keep their own scale
-    gl.uniform1f(U.ptCap, deep?60.0:560.0); // a supernova is allowed to bloom
+    gl.uniform1f(U.ptCap, deep?36.0:110.0); // a supernova blooms, within reason
     gl.bindBuffer(gl.ARRAY_BUFFER,evGL.p); gl.bufferSubData(gl.ARRAY_BUFFER,0,evPos.subarray(0,events.length*3));
     gl.bindBuffer(gl.ARRAY_BUFFER,evGL.s); gl.bufferSubData(gl.ARRAY_BUFFER,0,evSize.subarray(0,events.length));
     gl.bindBuffer(gl.ARRAY_BUFFER,evGL.c); gl.bufferSubData(gl.ARRAY_BUFFER,0,evCol.subarray(0,events.length*3));
