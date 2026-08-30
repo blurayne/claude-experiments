@@ -92,7 +92,7 @@
     letter-spacing:.06em;color:var(--dim);margin-top:3px;text-transform:uppercase}
   .env .er b{font-family:'Orbitron',ui-monospace,monospace;font-size:10.5px;color:var(--ink);
     font-variant-numeric:tabular-nums;font-weight:600}
-  .env.crowded{display:none}
+  .crowded{display:none !important}
   .ice-badge{display:none;margin-top:8px;padding:4px 6px;border-radius:2px;text-align:center;
     font-family:'Orbitron',ui-monospace,monospace;font-size:8.5px;letter-spacing:.16em;
     color:#0a1b26;background:linear-gradient(180deg,#cfefff,#8fd4f0);font-weight:700}
@@ -478,7 +478,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '1.23.0', date: '__BUILD_DATE__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '1.24.0', date: '__BUILD_DATE__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 const BUILD_LINE = BUILD.date.indexOf('__') === 0
   ? VERSION + ' · dev build'
@@ -1871,6 +1871,7 @@ toggle($('tOort'), on=> showOort=on);
 function updateBar(){
   showStats = ['sCal','sAge','sGyr'].some(id => $(id).style.display !== 'none');
   $('gamebar').style.display = showStats ? 'flex' : 'none';
+  fitPanels();
 }
 function statToggle(btn, statId){ toggle(btn, on=>{ $(statId).style.display = on?'':'none'; updateBar(); }); }
 statToggle($('tStatCal'), 'sCal');
@@ -2102,16 +2103,25 @@ function setStateColour(h, meanC){
 
 // ---------- resize ----------
 let W=0,H=0,DPR=1, projMat;
-// The environment panel sits top left and the settings panel top right; on a narrow
-// window they meet in the middle. Measure rather than guess a breakpoint, since the
-// settings panel can be collapsed and the environment panel has its own switch.
+// The settings panel gets the room it needs. On a small screen it reaches across the
+// environment readout beside it, and down over the status bar and the view scale below.
+// Whatever it actually overlaps steps aside until it is collapsed again — measured, not
+// guessed from a breakpoint, since the panel's own height depends on how much is in it.
+const CROWDABLE = ['env','scaleNote','gamebar'];
 function fitPanels(){
-  const env = $('env'), hud = $('hud');
-  if(env.style.display === 'none') return;             // switched off by hand
-  env.classList.remove('crowded');
-  if(hud.style.display === 'none') return;             // panel collapsed: all the room
-  const e = env.getBoundingClientRect(), h = hud.getBoundingClientRect();
-  if(h.left < e.right + 12) env.classList.add('crowded');
+  const hud = $('hud');
+  const items = CROWDABLE.map(id => $(id));
+  items.forEach(el => el.classList.remove('crowded'));
+  if(hud.style.display === 'none') return;              // collapsed: everything fits
+  const h = hud.getBoundingClientRect(), pad = 8;
+  for(const el of items){
+    if(el.style.display === 'none') continue;           // switched off by hand
+    const r = el.getBoundingClientRect();
+    if(!r.width && !r.height) continue;
+    const clear = r.right < h.left - pad || r.left > h.right + pad
+               || r.bottom < h.top - pad || r.top > h.bottom + pad;
+    if(!clear) el.classList.add('crowded');
+  }
 }
 function resize(){
   DPR=Math.min(2, devicePixelRatio||1);
