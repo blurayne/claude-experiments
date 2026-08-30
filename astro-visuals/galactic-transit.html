@@ -179,9 +179,15 @@
     .gamebar .stat, .gamebar .cnt{font-size:8px;letter-spacing:.12em}
     .gamebar .stat b, .gamebar .cnt b{font-size:12px}
   }
+  .gamebar .brk{display:none}
   @media (max-width:620px){
     .gamebar{flex-wrap:wrap;justify-content:center;white-space:normal;row-gap:6px;
       max-width:calc(100vw - 24px)}
+    /* too narrow to flank the other readings, so the pair takes the top line together —
+       a zero-height break after them forces everything else below */
+    #cDeath{order:0} #cBirth{order:1}
+    .gamebar .brk{display:block;order:2;flex-basis:100%;height:0;margin:0}
+    #sCal{order:3} #sAge{order:4} #sGyr{order:5}
   }
   .gamebar .stat b{display:block;font-family:'Orbitron',ui-monospace,monospace;font-size:14px;letter-spacing:.06em;color:var(--accent);font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums;text-shadow:0 0 10px var(--glow)}
   #reopen{position:fixed;top:14px;right:14px;z-index:6;display:none;width:36px;height:36px;border-radius:2px;
@@ -205,7 +211,7 @@
     <div class="row"><label for="hudHz">hud rate</label><input type="range" id="hudHz" min="1" max="16" step="1" value="8"><span id="hudHzv" style="min-width:64px;text-align:right;color:var(--ink)">8×/s</span></div>
     <div class="row"><label for="minB">star gain</label><input type="range" id="minB" min="0" max="1" step="0.01" value="0"><span id="minBv" style="min-width:64px;text-align:right;color:var(--ink)">off</span></div>
     <div class="row"><label for="trailA">trails</label><input type="range" id="trailA" min="0" max="1" step="0.01" value="1"><span id="trailAv" style="min-width:64px;text-align:right;color:var(--ink)">100%</span></div>
-    <div class="row"><label for="trailL">length</label><input type="range" id="trailL" min="0" max="1" step="0.001" value="0.5"><span id="trailLv" style="min-width:64px;text-align:right;color:var(--ink)">24 yr</span></div>
+    <div class="row"><label for="trailL">length</label><input type="range" id="trailL" min="0" max="1000" step="10" value="300"><span id="trailLv" style="min-width:64px;text-align:right;color:var(--ink)">300%</span></div>
     <div class="row"><label for="musicVol">music</label><input type="range" id="musicVol" min="0" max="1" step="0.01" value="0.55"><span id="musicVolv" style="min-width:64px;text-align:right;color:var(--ink)">55%</span></div>
     <div class="row"><label for="sfxVol">effects</label><input type="range" id="sfxVol" min="0" max="1" step="0.01" value="0.7"><span id="sfxVolv" style="min-width:64px;text-align:right;color:var(--ink)">70%</span></div>
     <div class="chks">
@@ -499,6 +505,7 @@
   <div class="stat" id="sAge">age of the solar system<b id="gAge">4.5680 Gyr</b></div>
   <div class="stat" id="sGyr">galactic years<b id="gGyr">20.302</b></div>
   <div class="cnt birth" id="cBirth"><span id="lBirth">stars born</span><b id="nBirth">+0</b></div>
+  <i class="brk"></i>
 </div>
 <button id="reopen" aria-label="show control panel">+</button>
 <div class="note" id="scaleNote">view <em id="sScale">—</em> across<span id="fpsNote" style="display:none"> &nbsp;·&nbsp; <em id="fpsVal">—</em> fps</span></div>
@@ -519,7 +526,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.2.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.3.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 const BUILD_LINE = BUILD.date.indexOf('__') === 0
   ? VERSION + ' · dev build'
@@ -1697,15 +1704,34 @@ let dragging=false, px=0, py=0;
 // While a pointer or finger is down the clock holds, so the galaxy does not keep
 // turning under the hand that is trying to orbit it. Released, it carries straight on.
 let holding=false;
-canvas.addEventListener('pointerdown', e=>{ dragging=true; holding=true; px=e.clientX; py=e.clientY; canvas.classList.add('dragging'); canvas.setPointerCapture(e.pointerId); });
+const touches = new Map();     // every pointer currently down on the canvas
+canvas.addEventListener('pointerdown', e=>{
+  touches.set(e.pointerId, e);
+  holding = true;
+  canvas.classList.add('dragging');
+  if(touches.size === 1){ dragging = true; px = e.clientX; py = e.clientY;
+    // capture can be refused; a throw here would abandon the handler mid-way
+    try{ canvas.setPointerCapture(e.pointerId); }catch(err){} }
+  else dragging = false;      // a second finger means a pinch, not a turn
+});
 canvas.addEventListener('pointermove', e=>{
-  if(!dragging) return;
+  if(touches.has(e.pointerId)) touches.set(e.pointerId, e);
+  if(!dragging || touches.size > 1) return;
   cam.yaw   -= (e.clientX-px)*0.005;
   cam.pitch  = Math.max(-1.45, Math.min(1.45, cam.pitch + (e.clientY-py)*0.005));
   px=e.clientX; py=e.clientY;
 });
-addEventListener('pointerup', ()=>{ dragging=false; holding=false; canvas.classList.remove('dragging'); });
-addEventListener('pointercancel', ()=>{ dragging=false; holding=false; canvas.classList.remove('dragging'); });
+function endPointer(e){
+  touches.delete(e.pointerId);
+  if(touches.size === 0){ dragging = false; holding = false; canvas.classList.remove('dragging'); }
+  else if(touches.size === 1){
+    // one finger left: pick the drag up from where it actually is, or the view jumps
+    const q = touches.values().next().value;
+    px = q.clientX; py = q.clientY; dragging = true;
+  }
+}
+addEventListener('pointerup', endPointer);
+addEventListener('pointercancel', endPointer);
 const minDist = ()=> realMode ? 8e-8 : 25; // real scale opens the floor: down to ~0.15 AU across
 canvas.addEventListener('wheel', e=>{
   e.preventDefault();
@@ -1720,7 +1746,7 @@ canvas.addEventListener('touchmove', e=>{
   if(e.touches.length===2){
     const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
     if(pinchD>0) cam.distGoal=Math.max(minDist(),Math.min(7500,cam.distGoal*pinchD/d));
-    pinchD=d; dragging=false;
+    pinchD=d; dragging=false;   // belt and braces alongside the pointer bookkeeping
   }
 },{passive:true});
 
@@ -1776,12 +1802,12 @@ function fmtSpeed(){
     b.addEventListener('click', ()=>{
       speedMult = m;
       [...host.children].forEach(c=> c.classList.toggle('on', c===b));
-      fmtSpeed();
+      fmtSpeed(); applyTrailWindow();
     });
     host.appendChild(b);
   });
 }
-$('speed').addEventListener('input', e=>{ speed = speedFromSlider(+e.target.value); fmtSpeed(); });
+$('speed').addEventListener('input', e=>{ speed = speedFromSlider(+e.target.value); fmtSpeed(); applyTrailWindow(); });
 speed = speedFromSlider(1); fmtSpeed();   // one Earth year per second
 // One slider, two effects, because they are the same intent: make the faint stars
 // carry. It lifts a floor under their colour and widens the smallest sprites, which is
@@ -1799,14 +1825,20 @@ $('minB').addEventListener('input', e=>{
 });
 let trailAlpha = 1;
 $('trailA').addEventListener('input', e=>{ trailAlpha=+e.target.value; $('trailAv').textContent=Math.round(trailAlpha*100)+'%'; });
-$('trailL').addEventListener('input', e=>{ // 2.4-240 yr window, log-scaled; respace and rebuild the buffers
-  const w = 2.4*Math.pow(1e8, +e.target.value);   // 2.4 years out to 240 Myr
-  DT_SAMPLE = w/TRAIL_N;
-  $('trailLv').textContent = w<1e3 ? (w<10 ? w.toFixed(1) : String(Math.round(w)))+' yr'
-                          : w<1e6 ? (w/1e3).toFixed(w<1e4?1:0)+' kyr'
-                          : (w/1e6).toFixed(w<1e7?1:0)+' Myr';
-  refillTrails(); nextSample = simT + DT_SAMPLE;
-});
+let trailPct = 300, trailRefill = 0;
+function applyTrailWindow(){
+  const w = (trailPct/100) * speed * speedMult;      // years covered by the whole trail
+  DT_SAMPLE = Math.max(1e-9, w/TRAIL_N);
+  const span = w < 1e3 ? (w<10 ? w.toFixed(w<1?2:1) : String(Math.round(w)))+' yr'
+             : w < 1e6 ? (w/1e3).toFixed(w<1e4?1:0)+' kyr'
+             : w < 1e9 ? (w/1e6).toFixed(w<1e7?1:0)+' Myr'
+             : (w/1e9).toFixed(2)+' Gyr';
+  $('trailLv').textContent = trailPct + '% · ' + span;
+  // rebuilding is 34,000 samples, so coalesce the bursts a slider drag produces
+  clearTimeout(trailRefill);
+  trailRefill = setTimeout(()=>{ refillTrails(); nextSample = simT + DT_SAMPLE; }, 90);
+}
+$('trailL').addEventListener('input', e=>{ trailPct = +e.target.value; applyTrailWindow(); });
 
 function toggle(btn, fn){ btn.addEventListener('click', ()=>{ btn.classList.toggle('on'); fn(btn.classList.contains('on')); }); }
 toggle($('tPause'), on=>{ paused=!on; $('tPause').textContent = on?'⏸ pause':'▶ play'; });
@@ -2445,7 +2477,7 @@ function frame(now){
   // 6.1e-5 scene units — a quarter pixel around cam.dist 0.17. Fade across that
   // boundary rather than cutting, so leaving real scale doesn't drop them abruptly.
   const trailFade = Math.min(1, Math.max(0, Math.log(cam.dist/0.17)/Math.log(0.7/0.17)));
-  if(showTrails && (trailFade>0.02 || realMode)){
+  if(showTrails && trailPct > 0 && (trailFade>0.02 || realMode)){
     gl.useProgram(pTr);
     gl.uniformMatrix4fv(U.trProj,false,projMat);
     gl.uniformMatrix4fv(U.trView,false,viewMat);
@@ -2646,6 +2678,7 @@ function frame(now){
   requestAnimationFrame(frame);
 }
 restoreSettings();
+applyTrailWindow();
 fitPanels();
 requestAnimationFrame(frame);
 </script>

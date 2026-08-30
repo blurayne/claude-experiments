@@ -26,7 +26,8 @@ in the browser with no build step and no external CDN.
   from Gaia DR3 astrometry at their true distances around the Sun,
   scatter discrete dark molecular clouds (Dunkelwolken) through the disk, and
   the disk itself follows Gaia-era structure: an exponential thin disk plus a
-  thicker, older second disk. Trail opacity and length (2.4–240 yr) are adjustable, speed runs from the
+  thicker, older second disk. Trail opacity is adjustable and trail length runs from 0% to 1000% of what one
+  second of viewing covers, so a trail keeps its length on screen at any speed, speed runs from the
   slider up through ×10³ to ×10¹² decade steps, and every setting is remembered
   in `localStorage`. The panel footer carries the semantic version, build date
   and commit, with a refresh button that clears every cache and the service
