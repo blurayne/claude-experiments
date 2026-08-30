@@ -51,6 +51,11 @@
   select{flex:1;background:rgba(9,16,30,.92);color:var(--ink);border:1px solid var(--line);border-radius:2px;
     font-family:inherit;font-size:10px;letter-spacing:.06em;padding:4px 6px;outline:none}
   .toggles{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .mults{display:flex;flex:1;gap:5px}
+  .mults button{flex:1;font-family:'Orbitron',ui-monospace,monospace;font-size:9px;letter-spacing:.04em;
+    padding:4px 2px;border:1px solid var(--line);border-radius:2px;color:var(--dim);cursor:pointer;
+    background:transparent;transition:color .15s,border-color .15s}
+  .mults button.on{color:var(--accent);border-color:rgba(95,216,255,.55);text-shadow:0 0 9px var(--glow)}
   .tg{font-family:'Orbitron',ui-monospace,monospace;font-size:8.5px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;padding:5px 8px;border:1px solid var(--line);border-radius:2px;
     color:var(--dim);cursor:pointer;user-select:none;background:transparent;transition:color .15s,border-color .15s,box-shadow .15s}
   .tg.on{color:var(--accent);border-color:rgba(95,216,255,.55);text-shadow:0 0 9px var(--glow);box-shadow:inset 0 0 10px rgba(95,216,255,.08)}
@@ -148,6 +153,7 @@
   <div class="sub">The Sun orbits the Milky Way's core at ~230 km/s. The planets, on an ecliptic tilted ~60° to the galactic plane, weave helical paths around its track.</div>
   <div class="body">
     <div class="row"><label for="speed">speed</label><input type="range" id="speed" min="0" max="1" step="0.001" value="0.55"><span id="speedv" style="min-width:64px;text-align:right;color:var(--ink)"></span></div>
+    <div class="row"><label>× speed</label><div class="mults" id="mults"></div></div>
     <div class="row"><label for="trailA">trails</label><input type="range" id="trailA" min="0" max="1" step="0.01" value="1"><span id="trailAv" style="min-width:64px;text-align:right;color:var(--ink)">100%</span></div>
     <div class="row"><label for="trailL">length</label><input type="range" id="trailL" min="0" max="1" step="0.001" value="0.5"><span id="trailLv" style="min-width:64px;text-align:right;color:var(--ink)">24 yr</span></div>
     <div class="row"><label for="musicVol">music</label><input type="range" id="musicVol" min="0" max="1" step="0.01" value="0.55"><span id="musicVolv" style="min-width:64px;text-align:right;color:var(--ink)">55%</span></div>
@@ -1416,13 +1422,17 @@ function lifeStep(dt, dtSim){
   accB  += dtSim*2.2*curD*sfr;
   accSN += dtSim*Math.max(0.011*curD, 0.15)*sfr;
   accPN += dtSim*1.5*curD*Math.sqrt(sfr);  // low-mass deaths lag their formation by Gyr
-  while(accB>=1){ accB--; if(events.length<EV_CAP){ const s=armSite();
+  const CAP = 40;
+  for(let n=0; accB>=1 && n<CAP; n++){ accB--; if(events.length<EV_CAP){ const s=armSite();
     events.push({k:1,x:s[0],y:s[1],z:s[2],wv:1,st:0,t:0,L:3+Math.random()*6,sn:Math.random()<0.12});
     if(Math.random()<0.5) sfx('birth'); } } // only half of them sound, or it never stops
-  while(accSN>=1){ accSN--; if(events.length<EV_CAP){ const s=armSite();
+  if(accB>1) accB = 0;
+  for(let n=0; accSN>=1 && n<CAP; n++){ accSN--; if(events.length<EV_CAP){ const s=armSite();
     events.push({k:2,x:s[0],y:s[1],z:s[2],wv:1,st:0,t:0}); } }
-  while(accPN>=1){ accPN--; if(events.length<EV_CAP){ const s=diskSite();
+  if(accSN>1) accSN = 0;
+  for(let n=0; accPN>=1 && n<CAP; n++){ accPN--; if(events.length<EV_CAP){ const s=diskSite();
     events.push({k:4,x:s[0],y:s[1],z:s[2],wv:0,st:0,t:0}); } }
+  if(accPN>1) accPN = 0;
   for(let i=events.length-1;i>=0;i--){
     const e=events[i]; e.st+=dtSim; e.t+=dt;
     if(e.k===1 && e.st>e.L){
@@ -1509,7 +1519,28 @@ let paused=false, showTrails=true, showLabels=true, showStats=true;
 let showDwarfs=true, showBelt=true, showKuiper=true, showOort=true;
 let speed = 1.5; // years per second
 const speedFromSlider = v => 0.02*Math.pow(750, v); // 0.02 → 15 yr/s
-function fmtSpeed(){ $('speedv').textContent = speed.toFixed(speed<1?2:1)+' yr/s'; }
+function supStr(e){ return String(e).split('').map(d=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[+d]).join(''); }
+let speedMult = 1;
+function fmtSpeed(){
+  const eff = speed*speedMult;
+  if(eff < 1000){ $('speedv').textContent = eff.toFixed(eff<1?2:1)+' yr/s'; return; }
+  const e = Math.floor(Math.log10(eff));
+  $('speedv').textContent = (eff/Math.pow(10,e)).toFixed(2)+'×10'+supStr(e)+' yr/s';
+}
+// Whole decades on top of the slider, for crossing deep time without waiting on it.
+{ const MULTS = [[1,'×1'],[1e3,'×10³'],[1e6,'×10⁶'],[1e9,'×10⁹'],[1e12,'×10¹²']];
+  const host = $('mults');
+  MULTS.forEach(([m,label],i)=>{
+    const b = document.createElement('button');
+    b.textContent = label; if(i===0) b.classList.add('on');
+    b.addEventListener('click', ()=>{
+      speedMult = m;
+      [...host.children].forEach(c=> c.classList.toggle('on', c===b));
+      fmtSpeed();
+    });
+    host.appendChild(b);
+  });
+}
 $('speed').addEventListener('input', e=>{ speed = speedFromSlider(+e.target.value); fmtSpeed(); });
 speed = speedFromSlider(0.55); fmtSpeed();
 let trailAlpha = 1;
@@ -1620,6 +1651,7 @@ function fmtYears(y){ // a duration in years → astronomer units, or ×10^x not
   return Math.floor(y).toLocaleString('en-US')+' yr';
 }
 function fmtCount(n){
+  if(n>=1e15){ const e=Math.floor(Math.log10(n)); return (n/Math.pow(10,e)).toFixed(2)+'×10'+supStr(e); }
   if(n>=1e12) return (n/1e12).toFixed(2)+'T';
   if(n>=1e9)  return (n/1e9).toFixed(2)+'B';
   if(n>=1e6)  return (n/1e6).toFixed(2)+'M';
@@ -1779,7 +1811,7 @@ function frame(now){
   const dt = Math.min(0.05,(now-last)/1000); last=now;
   shimT += dt; // variables keep twinkling even while the simulation is paused
   if(!paused && !holding){
-    simT += dt*speed;
+    simT += dt*speed*speedMult;
     let n=0;
     while(nextSample<=simT && n<400){
       for(let i=0;i<NB;i++) pushTrail(i,nextSample);
@@ -1792,7 +1824,7 @@ function frame(now){
         gl.bufferSubData(gl.ARRAY_BUFFER,0,trails[i]);
       }
     }
-    if(lifeOn) lifeStep(dt, dt*speed);
+    if(lifeOn) lifeStep(dt, dt*speed*speedMult);
   }
 
   // body positions, stored relative to the Sun (the rendering origin) — exact in doubles,
