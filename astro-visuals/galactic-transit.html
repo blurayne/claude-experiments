@@ -92,6 +92,10 @@
     font-family:'Orbitron',ui-monospace,monospace;font-size:8.5px;letter-spacing:.16em;
     color:#0a1b26;background:linear-gradient(180deg,#cfefff,#8fd4f0);font-weight:700}
   body.ice .ice-badge{display:block}
+  .g710-badge{display:none;margin-top:6px;padding:4px 6px;border-radius:2px;text-align:center;
+    font-family:'Orbitron',ui-monospace,monospace;font-size:8.5px;letter-spacing:.14em;font-weight:700;
+    color:#2a1405;background:linear-gradient(180deg,#ffd9a8,#ffab5c)}
+  body.g710 .g710-badge{display:block}
   /* One continuous state colour, mixed at runtime and carried by these two variables:
      cyan while Earth is comfortable, through amber as it is endangered, to red once it
      is not habitable, with a glacial tint blended in when the model runs cold. Because
@@ -177,6 +181,7 @@
     </div>
     <div class="row"><label for="jump">jump to</label><select id="jump">
       <option value="">— present day —</option>
+      <option value="4.56925" data-speed="0">Gliese 710 grazes the Oort cloud (+1.29 Myr)</option>
       <option value="0.058">Theia impact — the Moon forms</option>
       <option value="0.768">Young Earth — first life (3.8 Gyr ago)</option>
       <option value="2.068">Great Oxidation (2.5 Gyr ago)</option>
@@ -273,6 +278,18 @@
     drawn at its real diameter but clamped to a pixel so it stays findable. The view-width readout (bottom left)
     tracks the descent. At planetary zoom the background stars race past — that is the compressed galactic clock
     (~1.2 million real years per simulated year) made visible at true scale.</p>
+    <h3>Gliese 710</h3>
+    <p>The closest stellar encounter known, in either direction. <b>Gliese 710</b> is a K7 dwarf about
+    62 light years away, closing at 14.4&nbsp;km/s; Gaia's astrometry puts its closest approach
+    <b>1.29 million years from now at 0.0676&nbsp;pc</b> — 0.22 light years, or <b>13,944&nbsp;AU</b>.
+    That is well inside the Oort cloud, which reaches out to about 1.6 light years, so the star passes
+    <i>through</i> the comet reservoir rather than by it. Expect it to shake comets loose for a few
+    million years afterwards: a modest shower, not a bombardment, and no threat to the planets, which sit
+    four thousand times closer to the Sun than the point it grazes.</p>
+    <p>On this clock it happens almost at once — 1.29&nbsp;Myr is barely one simulated year — so the jump
+    menu drops the speed to its slowest when it takes you there. The cloud brightens as the star crosses
+    it. In real scale the star passes at its true separation; in the compressed view it follows the same
+    symbolic scale as the Oort shell around it.</p>
     <h3>The Oort cloud &amp; the galactic tide</h3>
     <ul>
       <li>Everything in the solar system falls around the galactic center <b>together</b>, so the center's pull is
@@ -430,6 +447,7 @@
   <div class="er"><span>starlight</span><b id="eSL">1.0×</b></div>
   <div class="er" id="eLifeRow"><span>life support</span><b id="eLife">habitable</b></div>
   <div class="ice-badge" id="eIce">❄ glacial epoch</div>
+  <div class="g710-badge" id="eG710">☄ Gliese 710 · <span id="eG710d">—</span></div>
 </div>
 
 <div id="labels"></div>
@@ -439,7 +457,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '1.16.0', date: '__BUILD_DATE__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '1.17.0', date: '__BUILD_DATE__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 const BUILD_LINE = BUILD.date.indexOf('__') === 0
   ? VERSION + ' · dev build'
@@ -1233,6 +1251,29 @@ function environment(){
   return { cr, mean, min: mean-104, max: mean+42, star: 1+2.0*r.armProx, ice: mean < 11.2 };
 }
 
+// ---------- Gliese 710 ----------
+// A K7 dwarf, presently ~62 light years off and closing at 14.4 km/s. Gaia's astrometry
+// (Bailer-Jones et al. 2018) puts its closest approach 1.29 Myr from now at 0.0676 pc —
+// 13,944 AU, well inside the Oort cloud, and the closest stellar encounter known either
+// side of the present. It is expected to shake comets loose for a few million years
+// afterwards, a modest shower rather than a bombardment.
+const G710_AT   = 1.29e6/YR_PER_SIM;   // simulated years from now (~1.081)
+const G710_PERI = 0.2204;              // light years at perihelion
+const G710_V    = 57.3;                // light years per simulated year
+const G710_DIR  = (()=>{ const v=[0.62,-0.34,0.71], n=Math.hypot(...v); return v.map(c=>c/n); })();
+const G710_OFF  = (()=>{                // perihelion offset, perpendicular to the track
+  const a=[0,1,0], d=G710_DIR;
+  const dot=a[0]*d[0]+a[1]*d[1]+a[2]*d[2];
+  const v=[a[0]-dot*d[0], a[1]-dot*d[1], a[2]-dot*d[2]], n=Math.hypot(...v);
+  return v.map(c=>c/n);
+})();
+function g710(){                        // position relative to the Sun, in light years
+  const s = (simT - G710_AT)*G710_V;
+  const x = G710_OFF[0]*G710_PERI + G710_DIR[0]*s;
+  const y = G710_OFF[1]*G710_PERI + G710_DIR[1]*s;
+  const z = G710_OFF[2]*G710_PERI + G710_DIR[2]*s;
+  return { x, y, z, d: Math.hypot(x,y,z) };
+}
 // ---------- life support ----------
 // What actually ends life on Earth is the Sun, not the Galaxy. Solar luminosity climbs
 // about 10% per Gyr; a moist greenhouse takes the oceans roughly a billion years from
@@ -1723,6 +1764,9 @@ let calMode='hs', sciMode=false;
 $('cal').addEventListener('change', e=> calMode=e.target.value);
 $('jump').addEventListener('change', e=>{
   const a = e.target.value === '' ? AGE0 : +e.target.value;
+  // some epochs are over in a blink on the galactic clock; land at a speed that shows them
+  const sp = e.target.selectedOptions[0].dataset.speed;
+  if(sp !== undefined){ $('speed').value = sp; $('speed').dispatchEvent(new Event('input')); }
   simT = (a - AGE0)*1e9/YR_PER_SIM;
   nextSample = simT + DT_SAMPLE;
   events.length = 0; puffs.length = 0;
@@ -1877,6 +1921,11 @@ const labelEls = BODIES.map(b=>{
   const d=document.createElement('div'); d.className='lbl'; d.textContent=b[0];
   labelWrap.appendChild(d); return d;
 });
+// Gliese 710's own buffer and label, here because dynVAO and the label host exist by now
+const g710GL = dynVAO(1);
+const g710Pos = new Float32Array(3), g710Size = new Float32Array(1), g710Col = new Float32Array(3);
+const g710Lbl = (()=>{ const d=document.createElement('div'); d.className='lbl'; d.textContent='Gliese 710';
+  d.style.color='rgba(255,190,140,.9)'; labelWrap.appendChild(d); return d; })();
 
 // ---------- the interface colour follows the hazard ----------
 // Blended rather than stepped, because the hazard itself varies continuously with where
@@ -1990,6 +2039,7 @@ function frame(now){
   gl.uniformMatrix4fv(U.ptProj,false,projMat);
   gl.uniformMatrix4fv(U.ptView,false,viewMat);
   const and = updateAnd();
+  const gl710 = g710();   // read by the Oort brightening before the star is drawn
   const deep = realMode && cam.dist<1.0; // inside ~30 ly: keep the backdrop point-like
   gl.uniform1f(U.ptPx,pxScale);
   gl.uniform1f(U.ptWA, 0.0);
@@ -2155,7 +2205,10 @@ function frame(now){
     gl.uniform1f(UO.uPx,pxScale);
     gl.uniform1f(UO.uS, realMode?OO_REAL:1.0);
     gl.uniform3f(UO.uSun,0,0,0);
-    gl.uniform3f(UO.uColor,0.11,0.12,0.15); gl.uniform1f(UO.uAlpha,ooA);
+    // a passing star stirs the cloud: brighten it while Gliese 710 is inside
+    const stir = Math.min(1, Math.max(0, (1.9-gl710.d)/1.9));
+    gl.uniform3f(UO.uColor, 0.11+0.30*stir, 0.12+0.20*stir, 0.15+0.10*stir);
+    gl.uniform1f(UO.uAlpha,ooA);
     gl.bindVertexArray(vaoOO); gl.drawArrays(gl.POINTS,0,OO_N);
     // boundary: wireframe-sphere hint of the shell
     gl.useProgram(pRing);
@@ -2179,6 +2232,22 @@ function frame(now){
   gl.uniform3f(U.ptOrg, 0,0,0); // bodies are uploaded Sun-relative already
   gl.bindVertexArray(vaoBodies); gl.drawArrays(gl.POINTS,0, showDwarfs?NB:N_PLANETS);
 
+  // Gliese 710, on the same symbolic scale as the Oort cloud in the compressed view and
+  // at its true separation in real scale, so it passes where the cloud actually is.
+  if(gl710.d < 60){
+    const k = realMode ? 1/30 : 178/1.6;      // scene units per light year
+    g710Pos[0]=gl710.x*k; g710Pos[1]=gl710.y*k; g710Pos[2]=gl710.z*k;
+    g710Size[0] = realMode ? Math.max(0.9, cam.dist*0.006) : 2.6;
+    const near = Math.min(1, Math.max(0, (6-gl710.d)/6));
+    g710Col[0]=0.55+0.75*near; g710Col[1]=0.34+0.34*near; g710Col[2]=0.20+0.18*near;
+    gl.uniform1f(U.ptSpin, 0.0); gl.uniform1f(U.ptVM, 0.0); gl.uniform1f(U.ptTide, 0.0);
+    gl.uniform3f(U.ptOrg, 0,0,0);
+    gl.bindBuffer(gl.ARRAY_BUFFER,g710GL.p); gl.bufferSubData(gl.ARRAY_BUFFER,0,g710Pos);
+    gl.bindBuffer(gl.ARRAY_BUFFER,g710GL.s); gl.bufferSubData(gl.ARRAY_BUFFER,0,g710Size);
+    gl.bindBuffer(gl.ARRAY_BUFFER,g710GL.c); gl.bufferSubData(gl.ARRAY_BUFFER,0,g710Col);
+    gl.bindVertexArray(g710GL.vao); gl.drawArrays(gl.POINTS,0,1);
+  }
+
   // labels
   if(showLabels){
     const pv = mul(projMat, viewMat);
@@ -2199,7 +2268,18 @@ function frame(now){
       l.style.top =lsy+'px';
       l.style.opacity = i===0?0.9:0.65;
     }
-  } 
+    if(gl710.d < 40){
+      const k = realMode ? 1/30 : 178/1.6;
+      const x=gl710.x*k, y=gl710.y*k, z=gl710.z*k;
+      const cw = pv[3]*x+pv[7]*y+pv[11]*z+pv[15];
+      if(cw > Math.max(1e-9,cam.dist*0.01) && cam.dist <= 900){
+        g710Lbl.style.display='block';
+        g710Lbl.style.left=(((pv[0]*x+pv[4]*y+pv[8]*z+pv[12])/cw*0.5+0.5)*W)+'px';
+        g710Lbl.style.top =((-(pv[1]*x+pv[5]*y+pv[9]*z+pv[13])/cw*0.5+0.5)*H)+'px';
+      } else g710Lbl.style.display='none';
+    } else g710Lbl.style.display='none';
+  } else g710Lbl.style.display='none';
+  
 
   if(liveCount){
     // What is happening in this moment: the drawn events actually in progress, so the
@@ -2227,6 +2307,10 @@ function frame(now){
     const ls = lifeSupOn ? lifeState() : null;
     if(ls) $('eLife').textContent = ls.label;
     document.body.classList.toggle('ice', e.ice);
+    const gd = g710().d;
+    document.body.classList.toggle('g710', gd < 1.9);
+    if(gd < 1.9) $('eG710d').textContent = gd < 0.995
+      ? Math.round(gd*63241).toLocaleString('en-US')+' AU' : gd.toFixed(2)+' ly';
     setStateColour(ls ? ls.h : 0, e.mean); }
 
   // stats

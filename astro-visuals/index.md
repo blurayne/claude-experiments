@@ -40,7 +40,9 @@ in the browser with no build step and no external CDN.
   runs down, bursting when **Andromeda** arrives (~4.5 Gyr from now, drawn as an
   approaching companion whose tidal pull draws the outer disk into a bridge),
   then quenched. A **jump to** menu leaps between epochs, from the Theia impact
-  and the first life to the collision and after. A panel tracks Earth's
+  and the first life to the collision and after — including **Gliese 710**, the
+  closest stellar encounter known, grazing the Oort cloud at 13,944 AU in
+  1.29 Myr. A panel tracks Earth's
   **galactic environment** — cosmic-ray flux and the contested ice-age link that
   follows from it, with the whole interface frosting over during a glacial
   epoch, turning amber when Earth is endangered and red once nothing can live
