@@ -30,7 +30,9 @@ in the browser with no build step and no external CDN.
   wind up. Optional **sound** (a deep space drone plus synthesized effects for
   star births, planetary nebulae and supernova blasts) and generative ambient
   **music** (slowly drifting chord pads with sparse echoing tones — no samples,
-  everything synthesized live via Web Audio, never repeating exactly). Styled as a sci-fi observatory HUD
+  everything synthesized live via Web Audio, never repeating exactly). A **variables** toggle makes a few percent of the
+  star points pulse Cepheid/Mira-style — dimmer and redder at minimum light —
+  and lets the HII nebulae breathe and drift in hue. Styled as a sci-fi observatory HUD
   with Orbitron/Exo 2, embedded in the file so it stays offline-capable. An
   info panel explains where the drawing is compressed and why the Oort cloud's
   outer edge is set by the galactic tide rather than by the Sun.

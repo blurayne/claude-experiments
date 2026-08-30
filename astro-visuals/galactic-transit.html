@@ -103,6 +103,7 @@
       <button class="tg on" id="tKuiper">kuiper</button>
       <button class="tg on" id="tOort">oort</button>
       <button class="tg on" id="tLife">life cycle</button>
+      <button class="tg on" id="tVar">variables</button>
       <button class="tg" id="tSound">sound</button>
       <button class="tg" id="tMusic">music</button>
       <button class="tg on" id="tStatCal">hum yr</button>
@@ -204,6 +205,11 @@
       (~50,000 years, ~10,000&nbsp;km/s) both last far less than a pixel of simulated time, so they are
       stretched here to be seeable at all, and remnants are drawn several times too large — the real Crab
       Nebula is 11&nbsp;ly across, well under one scene unit.</li>
+      <li><b>Variables</b>: a few percent of the drawn star points pulse and <b>redden at minimum light</b>,
+      standing in for the Cepheids, RR Lyrae and Mira-type pulsators (Miras swing by up to ~8 magnitudes as
+      they cool and reheat); the HII nebulae breathe and drift in hue, as real nebular illumination genuinely
+      does (Hubble's Variable Nebula changes within weeks). Their real day-to-year cycles are far below this
+      clock's resolution — like the supernova flashes, the shimmer you see is a stretched sample.</li>
       <li>What remains is a <b>neutron star</b> (drawn as a fading blue point) or a black hole (nothing).
       The last naked-eye supernova in our galaxy was <b>Kepler's, in 1604</b>; statistically we are overdue,
       and Betelgeuse (~550&nbsp;ly away, already a red supergiant) is a leading candidate.</li>
@@ -303,6 +309,8 @@ uniform float uWarp; // precession phase of the disk warp
 uniform vec3 uSunPos; // center of the clearance bubble around the magnified solar system
 uniform float uCap;   // sprite size ceiling (smaller at deep zoom: near stars stay point-like)
 uniform float uWaveAll; // 1: treat every point in this draw as wave-riding (nebulae, dust)
+uniform float uTime;    // wall-clock seconds for the variability animation
+uniform float uVarMode; // 0 off | 1 stars (a few % pulse, reddening at minimum) | 2 nebulae (all breathe)
 uniform vec3 uOrg;    // rendering origin (the Sun) — keeps deep real-scale zooms float-precise
 out vec3 vColor;
 void main(){
@@ -330,7 +338,29 @@ void main(){
   gl_Position = uProj * mv;
   float dd = max(1e-9, -mv.z); // no floor of 1: real-scale zooms get much closer than that
   gl_PointSize = clamp(aSize * uPx / dd, 1.3, uCap);
-  vColor = aColor * fade;
+  vec3 col = aColor;
+  if(uVarMode > 0.5){
+    float h = fract(sin(dot(aPos.xz, vec2(12.9898,78.233)))*43758.5453);
+    if(uVarMode < 1.5){
+      // variable stars: ~4-5% of points pulse Mira/Cepheid-style — dimmer AND redder
+      // at minimum light, because the star is coolest there
+      if(h > 0.955){
+        float w = 2.0 + 10.0*fract(h*97.0);
+        float dim = 0.5 + 0.5*sin(uTime*w + h*6283.0);
+        col *= 0.45 + 0.75*dim;
+        col.g *= 0.85 + 0.15*dim;
+        col.b *= 0.70 + 0.30*dim;
+      }
+    } else {
+      // nebulae: every puff breathes gently and drifts in hue (ionization flicker)
+      float ph = h*6283.0;
+      float s1 = sin(uTime*0.5 + ph), s2 = sin(uTime*0.23 + ph*1.7);
+      col *= 0.82 + 0.18*s1;
+      col.r *= 1.0 + 0.10*s2;
+      col.b *= 1.0 - 0.08*s2;
+    }
+  }
+  vColor = col * fade;
 }`;
 const PT_FS = `#version 300 es
 precision mediump float;
@@ -367,6 +397,7 @@ const U = {
   ptSpin: gl.getUniformLocation(pPt,'uSpin'), ptWarp: gl.getUniformLocation(pPt,'uWarp'), ptSun: gl.getUniformLocation(pPt,'uSunPos'),
   ptOrg: gl.getUniformLocation(pPt,'uOrg'), trOrg: gl.getUniformLocation(pTr,'uOrg'),
   ptCap: gl.getUniformLocation(pPt,'uCap'), ptWA: gl.getUniformLocation(pPt,'uWaveAll'),
+  ptTime: gl.getUniformLocation(pPt,'uTime'), ptVM: gl.getUniformLocation(pPt,'uVarMode'),
   trProj: gl.getUniformLocation(pTr,'uProj'), trView: gl.getUniformLocation(pTr,'uView'),
   trLen: gl.getUniformLocation(pTr,'uLen'), trCol: gl.getUniformLocation(pTr,'uColor'), trA: gl.getUniformLocation(pTr,'uAlpha')
 };
@@ -674,6 +705,7 @@ void main(){
 }`;
 const pNeb = prog(PT_VS, NEB_FS);
 const UN = {
+  time: gl.getUniformLocation(pNeb,'uTime'), vm: gl.getUniformLocation(pNeb,'uVarMode'),
   wa:   gl.getUniformLocation(pNeb,'uWaveAll'),
   cap:  gl.getUniformLocation(pNeb,'uCap'),
   org:  gl.getUniformLocation(pNeb,'uOrg'),
@@ -882,7 +914,7 @@ function pushTrail(i, ts){
 // galactic clock (1 sim-yr ~ 1.19 Myr) births are drawn at the real rate scaled to the
 // point sampling (~2.2 per sim-yr per density unit); featured supernovae are a sampled
 // fraction of the true ~24,000 per sim-yr, which would be a continuous glitter.
-let lifeOn = true;
+let lifeOn = true, varOn = true; let shimT = 0; // variability clock (wall time, runs even when paused)
 
 // ---------- sound: everything synthesized live via Web Audio — no samples, still one file ----------
 let soundOn = false, audio = null;
@@ -1146,6 +1178,7 @@ toggle($('tDwarfs'), on=>{ showDwarfs=on; if(!on) labelEls.forEach((l,i)=>{ if(i
 toggle($('tBelt'), on=> showBelt=on);
 toggle($('tKuiper'), on=> showKuiper=on);
 toggle($('tLife'), on=>{ lifeOn=on; if(!on){ events.length=0; puffs.length=0; } });
+toggle($('tVar'), on=> varOn=on);
 toggle($('tSound'), on=>{
   soundOn=on;
   if(on && !audio) audio=initAudio();
@@ -1281,6 +1314,7 @@ const sunSizeTmp=new Float32Array(1);
 
 function frame(now){
   const dt = Math.min(0.05,(now-last)/1000); last=now;
+  shimT += dt; // variables keep twinkling even while the simulation is paused
   if(!paused){
     simT += dt*speed;
     let n=0;
@@ -1341,6 +1375,8 @@ function frame(now){
   const deep = realMode && cam.dist<1.0; // inside ~30 ly: keep the backdrop point-like
   gl.uniform1f(U.ptPx,pxScale);
   gl.uniform1f(U.ptWA, 0.0);
+  gl.uniform1f(U.ptTime, shimT);
+  gl.uniform1f(U.ptVM, varOn?1.0:0.0);
   gl.uniform1f(U.ptCap, deep?26.0:110.0);
   gl.uniform3f(U.ptOrg, org[0],org[1],org[2]);
   gl.uniform1f(U.ptSpin, 0.0);
@@ -1357,12 +1393,14 @@ function frame(now){
   // life-cycle events (OB clusters, supergiants, supernova flashes, remnant cores)
   if(lifeOn && events.length){
     fillEvents();
+    gl.uniform1f(U.ptVM, 0.0); // events animate themselves
     gl.uniform1f(U.ptCap, deep?60.0:560.0); // a supernova is allowed to bloom
     gl.bindBuffer(gl.ARRAY_BUFFER,evGL.p); gl.bufferSubData(gl.ARRAY_BUFFER,0,evPos.subarray(0,events.length*3));
     gl.bindBuffer(gl.ARRAY_BUFFER,evGL.s); gl.bufferSubData(gl.ARRAY_BUFFER,0,evSize.subarray(0,events.length));
     gl.bindBuffer(gl.ARRAY_BUFFER,evGL.c); gl.bufferSubData(gl.ARRAY_BUFFER,0,evCol.subarray(0,events.length*3));
     gl.bindBuffer(gl.ARRAY_BUFFER,evGL.w); gl.bufferSubData(gl.ARRAY_BUFFER,0,evWave.subarray(0,events.length));
     gl.bindVertexArray(evGL.vao); gl.drawArrays(gl.POINTS,0,events.length);
+    gl.uniform1f(U.ptVM, varOn?1.0:0.0);
     gl.uniform1f(U.ptCap, deep?26.0:110.0);
   }
 
@@ -1386,6 +1424,8 @@ function frame(now){
   gl.uniformMatrix4fv(UN.proj,false,projMat);
   gl.uniformMatrix4fv(UN.view,false,viewMat);
   gl.uniform1f(UN.px,pxScale);
+  gl.uniform1f(UN.time, shimT);
+  gl.uniform1f(UN.vm, varOn?2.0:0.0);
   gl.uniform1f(UN.wa, 1.0); // HII regions trace the wave
   gl.uniform1f(UN.cap, deep?60.0:560.0);
   gl.uniform3f(UN.org, org[0],org[1],org[2]);
@@ -1397,6 +1437,7 @@ function frame(now){
   // expanding shells: supernova remnants and planetary nebulae (sizes exaggerated — see info)
   if(lifeOn && puffs.length){
     fillPuffs();
+    gl.uniform1f(UN.vm, 0.0); // remnant/PN shells animate themselves
     gl.uniform1f(UN.wa, 0.0); // each puff carries its own frame flag
     gl.bindBuffer(gl.ARRAY_BUFFER,pfGL.p); gl.bufferSubData(gl.ARRAY_BUFFER,0,pfPos.subarray(0,puffs.length*3));
     gl.bindBuffer(gl.ARRAY_BUFFER,pfGL.s); gl.bufferSubData(gl.ARRAY_BUFFER,0,pfSize.subarray(0,puffs.length));
@@ -1480,6 +1521,7 @@ function frame(now){
 
   gl.useProgram(pPt);
   gl.uniform1f(U.ptSpin, 0.0); // body positions already include their motion
+  gl.uniform1f(U.ptVM, 0.0);
   gl.uniform1f(U.ptCap, 110.0);
   gl.uniform3f(U.ptOrg, 0,0,0); // bodies are uploaded Sun-relative already
   gl.bindVertexArray(vaoBodies); gl.drawArrays(gl.POINTS,0, showDwarfs?NB:N_PLANETS);
