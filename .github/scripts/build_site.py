@@ -29,7 +29,9 @@ SKIP_DIRS = {".git", ".github", "_site", "node_modules"}
 # and `__BUILD_SHA__` into its own files; they are substituted on the copy under _site/,
 # so the working copy keeps the placeholders and reports itself as a dev build.
 BUILD_SHA = (os.environ.get("GITHUB_SHA") or "")[:7] or "local"
-BUILD_DATE = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+_BUILD_AT = datetime.now(timezone.utc)
+BUILD_DATE = _BUILD_AT.strftime("%Y-%m-%d")
+BUILD_TIME = _BUILD_AT.strftime("%H:%M:%S")
 
 
 def stamp_build(dest: Path) -> None:
@@ -39,7 +41,9 @@ def stamp_build(dest: Path) -> None:
             if "__BUILD_" not in text:
                 continue
             f.write_text(
-                text.replace("__BUILD_DATE__", BUILD_DATE).replace("__BUILD_SHA__", BUILD_SHA),
+                text.replace("__BUILD_DATE__", BUILD_DATE)
+                    .replace("__BUILD_TIME__", BUILD_TIME)
+                    .replace("__BUILD_SHA__", BUILD_SHA),
                 encoding="utf-8",
             )
 
