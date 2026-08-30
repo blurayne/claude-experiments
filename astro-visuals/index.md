@@ -33,10 +33,10 @@ in the browser with no build step and no external CDN.
   newly born stars at the measured real rates. Calendar eras run from the
   present back through the first land life, first plants, first cell,
   prebiotic amino acids, the Theia impact and Earth's formation.
-  **Effects** (five recorded supernova
-  blasts picked at random, plus a deep space drone, star-birth chimes and
-  planetary-nebula exhales synthesized live via Web Audio) are off by default;
-  background **music** is on. Each has its own toggle and volume slider, and a *next*
+  **Effects** (five recorded supernova blasts
+  and four soft star ignitions, picked at random, plus a deep space drone and
+  planetary-nebula exhales synthesized live via Web Audio) are off by default,
+  each switchable on its own; background **music** is on. Each has its own toggle and volume slider, and a *next*
   button cycles the tracks. A **variables** toggle makes a few percent of the
   star points pulse Cepheid/Mira-style — dimmer and redder at minimum light —
   and lets the HII nebulae breathe and drift in hue. Styled as a sci-fi observatory HUD
@@ -51,8 +51,8 @@ in the browser with no build step and no external CDN.
   rasterised to the PNG sizes the manifest needs.
 - [`manifest.json`](manifest.json), [`sw.js`](sw.js) — the PWA manifest and its
   offline service worker.
-- [`sfx/`](sfx/) — five recorded supernova blasts, played at random (with a
-  slight per-blast detune) so repeats don't sound looped.
+- [`sfx/`](sfx/) — five recorded supernova blasts and four soft star ignitions,
+  played at random (with a slight per-shot detune) so repeats don't sound looped.
 - [`music/`](music/) — the two background tracks, *Galactic Year* I & II by
   barbedgreenroom3. They are kept as separate files rather than embedded in the
   page: 10 MB of base64 would bloat the HTML past any sane single-file limit,

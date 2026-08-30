@@ -72,6 +72,11 @@
     background:var(--panel);border:1px solid var(--line);border-top:1px solid rgba(95,216,255,.55);border-radius:3px;padding:9px 20px;box-shadow:0 0 30px rgba(95,216,255,.08);
     backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:5;white-space:nowrap}
   .gamebar .stat{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);text-align:center}
+  .chks{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:9px;padding-left:2px}
+  .chk{display:flex;align-items:center;gap:5px;font-size:9.5px;letter-spacing:.08em;color:var(--dim);
+    cursor:pointer;user-select:none;text-transform:uppercase;font-family:'Orbitron',ui-monospace,monospace}
+  .chk input{accent-color:var(--accent);width:12px;height:12px;margin:0;cursor:pointer}
+  .chk:has(input:checked){color:var(--accent)}
   .gamebar .cnt{font-size:9px;letter-spacing:.18em;text-transform:uppercase;text-align:center;color:var(--dim)}
   .gamebar .cnt b{display:block;font-family:'Orbitron',ui-monospace,monospace;font-size:14px;font-weight:700;
     letter-spacing:.04em;margin-top:3px;font-variant-numeric:tabular-nums}
@@ -100,6 +105,12 @@
     <div class="row"><label for="trailL">length</label><input type="range" id="trailL" min="0" max="1" step="0.001" value="0.5"><span id="trailLv" style="min-width:64px;text-align:right;color:var(--ink)">24 yr</span></div>
     <div class="row"><label for="musicVol">music</label><input type="range" id="musicVol" min="0" max="1" step="0.01" value="0.55"><span id="musicVolv" style="min-width:64px;text-align:right;color:var(--ink)">55%</span></div>
     <div class="row"><label for="sfxVol">effects</label><input type="range" id="sfxVol" min="0" max="1" step="0.01" value="0.7"><span id="sfxVolv" style="min-width:64px;text-align:right;color:var(--ink)">70%</span></div>
+    <div class="chks">
+      <label class="chk"><input type="checkbox" id="fxBirth" checked> star birth</label>
+      <label class="chk"><input type="checkbox" id="fxSn" checked> supernova</label>
+      <label class="chk"><input type="checkbox" id="fxPn" checked> nebula</label>
+      <label class="chk"><input type="checkbox" id="fxDrone" checked> drone</label>
+    </div>
     <div class="row"><label for="cal">calendar</label><select id="cal">
       <option value="hs" selected>Human existence (300,000 yrs)</option>
       <option value="her">Homo erectus (~2 Myr)</option>
@@ -262,9 +273,9 @@
       (Scutum–Centaurus, Perseus + Sagittarius, Norma), and the Sun's <b>Local Spur</b> follow Milky Way measurements.</li>
       <li>The <b>warped outer disk</b> and its slow retrograde precession follow Gaia's findings.</li>
       <li>Music: <b>&ldquo;Galactic Year&rdquo; I &amp; II</b> by barbedgreenroom3, shipped alongside this page.
-      Supernovae play one of five recorded blasts at random; the drone and the nebula exhales are
-      synthesized live in the browser. Star births are deliberately silent — at these rates they would
-      never stop chiming.</li>
+      Supernovae play one of five recorded blasts and star births one of four soft ignitions, picked at
+      random; the drone and the nebula exhales are synthesized live in the browser. Only half of all births
+      sound, or at these rates they would never stop. Each effect has its own switch.</li>
       <li>The <b>asteroid belt</b> (~1,500 points at 2.1&ndash;3.3&nbsp;AU) carves out the Kirkwood gaps at
       Jupiter's 3:1, 5:2 and 7:3 resonances, and its orbital periods are true Kepler in both scale modes.</li>
       <li>The <b>hi-fi galaxy</b> toggle raises the drawn star count five-fold (~460,000 points) and scatters
@@ -965,7 +976,8 @@ function initAudio(){
   const master = ctx.createGain(); master.gain.value = soundOn?sfxVol:0; master.connect(comp);
   // Ambient drone. It needs energy above ~150 Hz or laptop and phone speakers reproduce
   // nothing at all, so the deep sines carry a set of quieter mid partials with them.
-  const padG = ctx.createGain(); padG.gain.value = 0.20; padG.connect(master);
+  const droneG = ctx.createGain(); droneG.gain.value = 1; droneG.connect(master);
+  const padG = ctx.createGain(); padG.gain.value = 0.20; padG.connect(droneG);
   for(const [f,g0] of [[55,0.34],[55.6,0.34],[110.4,0.26],[165.3,0.15],[220.6,0.10],[330.9,0.05]]){
     const o = ctx.createOscillator(); o.type='sine'; o.frequency.value = f;
     const g = ctx.createGain(); g.gain.value = g0;
@@ -981,7 +993,7 @@ function initAudio(){
   const lfo = ctx.createOscillator(); lfo.frequency.value = 0.05;
   const lg = ctx.createGain(); lg.gain.value = 0.06;
   lfo.connect(lg); lg.connect(padG.gain); lfo.start();
-  return {ctx, master, comp};
+  return {ctx, master, comp, droneG};
 }
 // background music: two ambient tracks shipped alongside this page (music/*.mp3).
 // Kept as separate files rather than embedded: 10 MB of base64 would bloat the HTML
@@ -1022,46 +1034,59 @@ function armUnlock(){
   };
   addEventListener('pointerdown', go); addEventListener('keydown', go);
 }
-// Supernovae use five recorded takes (sfx/*.mp3) instead of the synth, picked at
-// random so repeats don't sound looped. Decoded through the audio graph where fetch
-// is allowed, so the effects volume and compressor still apply; opened straight from
-// disk (file://) fetch is blocked, so plain media elements stand in.
-const SN_SRC = [1,2,3,4,5].map(i=>'sfx/supernova-'+i+'.mp3');
-let snBufs = null, snEls = null, snTried = false, snVoices = 0;
-function loadSN(){
-  if(snTried || !audio) return;
-  snTried = true;
-  Promise.all(SN_SRC.map(s => fetch(s).then(r=>r.arrayBuffer()).then(b=>audio.ctx.decodeAudioData(b))))
-    .then(bs => { snBufs = bs; })
-    .catch(() => { snEls = SN_SRC.map(s=>{ const a=new Audio(s); a.preload='auto'; return a; }); });
+// Recorded sample banks: five supernova blasts and four soft star ignitions, each
+// picked at random with a slight detune so repeats never sound looped. Decoded through
+// the audio graph where fetch is allowed, so the effects volume and compressor still
+// apply; opened straight from disk (file://) fetch is blocked and plain media elements
+// stand in.
+const BANKS = {
+  sn:    { src:[1,2,3,4,5].map(i=>'sfx/supernova-'+i+'.mp3'), gain:0.80, max:3, bufs:null, els:null, voices:0 },
+  birth: { src:[1,2,3,4].map(i=>'sfx/ignition-'+i+'.mp3'),    gain:0.62, max:5, bufs:null, els:null, voices:0 },
+};
+let banksTried = false;
+function loadBanks(){
+  if(banksTried || !audio) return;
+  banksTried = true;
+  for(const b of Object.values(BANKS)){
+    Promise.all(b.src.map(s => fetch(s).then(r=>r.arrayBuffer()).then(a=>audio.ctx.decodeAudioData(a))))
+      .then(bs => { b.bufs = bs; })
+      .catch(() => { b.els = b.src.map(s=>{ const a=new Audio(s); a.preload='auto'; return a; }); });
+  }
 }
-function playSN(){
-  const {ctx, master} = audio, t = ctx.currentTime;
-  if(snBufs){
-    if(snVoices >= 3) return true; // already a wall of sound; skip rather than stack
+function playBank(k){
+  const b = BANKS[k];
+  if(!b) return false;
+  const {ctx, master} = audio;
+  if(b.bufs){
+    if(b.voices >= b.max) return true; // already thick; skip rather than stack
     const src = ctx.createBufferSource();
-    src.buffer = snBufs[(Math.random()*snBufs.length)|0];
-    src.playbackRate.value = 0.92 + Math.random()*0.16; // slight detune per blast
-    const g = ctx.createGain(); g.gain.value = 0.8;
-    src.connect(g); g.connect(master); src.start(t);
-    snVoices++; src.onended = ()=>{ snVoices--; };
+    src.buffer = b.bufs[(Math.random()*b.bufs.length)|0];
+    src.playbackRate.value = 0.93 + Math.random()*0.14;
+    const g = ctx.createGain(); g.gain.value = b.gain;
+    src.connect(g); g.connect(master); src.start(ctx.currentTime);
+    b.voices++; src.onended = ()=>{ b.voices--; };
     return true;
   }
-  if(snEls){
-    const a = snEls[(Math.random()*snEls.length)|0].cloneNode();
-    a.volume = sfxVol; a.play().catch(()=>{});
+  if(b.els){
+    const a = b.els[(Math.random()*b.els.length)|0].cloneNode();
+    a.volume = Math.min(1, sfxVol*b.gain*1.4); a.play().catch(()=>{});
     return true;
   }
-  return false; // samples not ready yet — fall back to the synthesized blast
+  return false; // not loaded yet
 }
+const fxOn = {birth:true, sn:true, pn:true, drone:true};
 function sfx(kind){
-  if(!soundOn || !audio) return;
+  if(!soundOn || !audio || !fxOn[kind]) return;
   const {ctx, master} = audio, t = ctx.currentTime;
-  const gap = {sn:1.4, pn:0.25}[kind]; // samples run 7.7 s: don't let blasts pile up
+  const gap = {sn:1.4, birth:0.45, pn:0.25}[kind]; // blasts run 7.7 s: don't let them pile up
   if(sfxLast[kind] && t - sfxLast[kind] < gap) return;
   sfxLast[kind] = t;
+  if(kind==='birth'){ // a soft ignition; silent until the samples are decoded
+    playBank('birth');
+    return;
+  }
   if(kind==='sn'){ // the immense one: a recorded blast, or the synth until they load
-    if(playSN()) return;
+    if(playBank('sn')) return;
     const o = ctx.createOscillator(); o.type='sine';
     o.frequency.setValueAtTime(90,t); o.frequency.exponentialRampToValueAtTime(28,t+1.6);
     const g = ctx.createGain(); g.gain.setValueAtTime(0.0001,t);
@@ -1082,7 +1107,7 @@ function sfx(kind){
     const f = ctx.createBiquadFilter(); f.type='bandpass'; f.Q.value = 1.6;
     f.frequency.setValueAtTime(700,t); f.frequency.exponentialRampToValueAtTime(240,t+1.2);
     const g = ctx.createGain(); g.gain.setValueAtTime(0.0001,t);
-    g.gain.exponentialRampToValueAtTime(0.22,t+0.35); g.gain.exponentialRampToValueAtTime(0.0001,t+1.3);
+    g.gain.exponentialRampToValueAtTime(1.10,t+0.35); g.gain.exponentialRampToValueAtTime(0.0001,t+1.3);
     s2.connect(f); f.connect(g); g.connect(master); s2.start(t); s2.stop(t+1.4);
   }
 }
@@ -1129,7 +1154,8 @@ function lifeStep(dt, dtSim){
   accSN += dtSim*Math.max(0.011*curD, 0.15);
   accPN += dtSim*1.5*curD;
   while(accB>=1){ accB--; if(events.length<EV_CAP){ const s=armSite();
-    events.push({k:1,x:s[0],y:s[1],z:s[2],wv:1,st:0,t:0,L:3+Math.random()*6,sn:Math.random()<0.12}); } }
+    events.push({k:1,x:s[0],y:s[1],z:s[2],wv:1,st:0,t:0,L:3+Math.random()*6,sn:Math.random()<0.12});
+    if(Math.random()<0.5) sfx('birth'); } } // only half of them sound, or it never stops
   while(accSN>=1){ accSN--; if(events.length<EV_CAP){ const s=armSite();
     events.push({k:2,x:s[0],y:s[1],z:s[2],wv:1,st:0,t:0}); } }
   while(accPN>=1){ accPN--; if(events.length<EV_CAP){ const s=diskSite();
@@ -1246,7 +1272,7 @@ toggle($('tSound'), on=>{
   soundOn=on;
   if(on && !audio) audio=initAudio();
   if(on && audio) audio.ctx.resume().catch(()=>armUnlock());
-  if(on) loadSN();
+  if(on) loadBanks();
   applySfxGain();
 });
 toggle($('tMusic'), on=>{
@@ -1262,6 +1288,16 @@ $('musicVol').addEventListener('input', e=>{
   musicVol=+e.target.value; player.volume=musicVol;
   $('musicVolv').textContent=Math.round(musicVol*100)+'%';
 });
+for(const [id,key] of [['fxBirth','birth'],['fxSn','sn'],['fxPn','pn'],['fxDrone','drone']]){
+  $(id).addEventListener('change', e=>{
+    fxOn[key] = e.target.checked;
+    if(key==='drone' && audio){
+      const at = audio.ctx.currentTime;
+      audio.droneG.gain.cancelScheduledValues(at);
+      audio.droneG.gain.setTargetAtTime(e.target.checked?1:0, at, 0.4);
+    }
+  });
+}
 $('sfxVol').addEventListener('input', e=>{
   sfxVol=+e.target.value; applySfxGain();
   $('sfxVolv').textContent=Math.round(sfxVol*100)+'%';
