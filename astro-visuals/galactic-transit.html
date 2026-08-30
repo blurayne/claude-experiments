@@ -55,7 +55,7 @@
   select{flex:1;background:rgba(9,16,30,.92);color:var(--ink);border:1px solid var(--line);border-radius:2px;
     font-family:inherit;font-size:10px;letter-spacing:.06em;padding:4px 6px;outline:none}
   .toggles{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-  .hudfoot{display:flex;align-items:center;justify-content:space-between;gap:8px;flex:none;
+  .hudfoot{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex:none;
     margin-top:9px;padding-top:8px;border-top:1px solid var(--line);
     font-family:'Orbitron',ui-monospace,monospace;font-size:8px;letter-spacing:.09em;color:var(--dim)}
   .hudfoot button{font-family:inherit;font-size:8px;letter-spacing:.11em;text-transform:uppercase;
@@ -88,6 +88,7 @@
     letter-spacing:.06em;color:var(--dim);margin-top:3px;text-transform:uppercase}
   .env .er b{font-family:'Orbitron',ui-monospace,monospace;font-size:10.5px;color:var(--ink);
     font-variant-numeric:tabular-nums;font-weight:600}
+  .env.crowded{display:none}
   .ice-badge{display:none;margin-top:8px;padding:4px 6px;border-radius:2px;text-align:center;
     font-family:'Orbitron',ui-monospace,monospace;font-size:8.5px;letter-spacing:.16em;
     color:#0a1b26;background:linear-gradient(180deg,#cfefff,#8fd4f0);font-weight:700}
@@ -244,7 +245,8 @@
     </div>
   </div>
   <div class="hudfoot">
-    <span id="buildInfo">—</span>
+    <span id="buildInfo" style="margin-right:auto">—</span>
+    <button id="tReset" title="forget saved settings and reload with the defaults">⤺ reset</button>
     <button id="tReload" title="reload, bypassing every cache">⟲ refresh</button>
   </div>
 </div>
@@ -472,7 +474,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '1.20.0', date: '__BUILD_DATE__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '1.21.0', date: '__BUILD_DATE__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 const BUILD_LINE = BUILD.date.indexOf('__') === 0
   ? VERSION + ' · dev build'
@@ -716,7 +718,7 @@ BODIES.forEach((b,i)=>{
 // Amplitude shown ~3× exaggerated so it reads at this zoom.
 const WOB_A = 24, WOB_T = 75; // scene units, sim-years (75 sim-yr ≈ 90 Myr at this compression)
 
-const tmp = new Float64Array(3);
+const tmp = new Float64Array(3), tmpSun = new Float64Array(3);
 function bodyPos(i, t, out){
   const phi = t*V_GAL/R_GAL;                     // galactic anomaly
   const R = sunR(t);                             // constant until the merger flings it out
@@ -1239,10 +1241,19 @@ for(let i=0;i<NB;i++){
   gl.bindVertexArray(null);
   trailBufs.push(b); trailVaos.push(vao);
 }
+// In real scale everything but the Sun is stored as an offset from it.
+function trailPos(i, ts, out){
+  bodyPos(i, ts, out);
+  if(realMode && i > 0){
+    bodyPos(0, ts, tmpSun);
+    out[0]-=tmpSun[0]; out[1]-=tmpSun[1]; out[2]-=tmpSun[2];
+  }
+  return out;
+}
 function pushTrail(i, ts){
   const a=trails[i];
   a.copyWithin(0,3);
-  bodyPos(i, ts, tmp);
+  trailPos(i, ts, tmp);
   a[(TRAIL_N-1)*3]=tmp[0]; a[(TRAIL_N-1)*3+1]=tmp[1]; a[(TRAIL_N-1)*3+2]=tmp[2];
 }
 
@@ -1664,6 +1675,14 @@ $('verInfo').textContent = VERSION;
 $('buildInfo').textContent = BUILD_LINE;
 // Hard refresh: drop every cache and the service worker, then reload on a fresh URL so
 // nothing between here and the server can hand back the old build.
+// Settings persist, so a control left at zero stays that way across reloads with no
+// obvious cause. This forgets them and comes back on the defaults.
+$('tReset').addEventListener('click', ()=>{
+  try{ localStorage.removeItem(SKEY); }catch(e){}
+  const u = new URL(location.href);
+  u.searchParams.set('_', Date.now());
+  location.replace(u.toString());
+});
 $('tReload').addEventListener('click', async ()=>{
   $('tReload').textContent = '⟲ …';
   try{
@@ -1708,9 +1727,9 @@ speed = speedFromSlider(0.55); fmtSpeed();
 // One slider, two effects, because they are the same intent: make the faint stars
 // carry. It lifts a floor under their colour and widens the smallest sprites, which is
 // where most of the lost light actually goes.
-let minBright = 0, minSprite = 1.3;
+let minBright = 0, minSprite = 1.3, starGain = 0;
 $('minB').addEventListener('input', e=>{
-  const v = +e.target.value;
+  const v = starGain = +e.target.value;
   minBright = v*0.38;
   minSprite = 1.3 + v*2.1;
   $('minBv').textContent = v ? '+'+Math.round(v*100) + '%' : 'off';
@@ -1733,7 +1752,7 @@ toggle($('tBelt'), on=> showBelt=on);
 toggle($('tKuiper'), on=> showKuiper=on);
 toggle($('tLife'), on=>{ lifeOn=on; if(!on){ events.length=0; puffs.length=0; } });
 toggle($('tVar'), on=> varOn=on);
-toggle($('tEnv'), on=>{ $('env').style.display = on ? '' : 'none'; });
+toggle($('tEnv'), on=>{ $('env').style.display = on ? '' : 'none'; fitPanels(); });
 toggle($('tGaia'), on=> gaiaOn=on);
 toggle($('tFps'), on=>{ showFps=on; $('fpsNote').style.display = on ? '' : 'none'; });
 let lifeSupOn = true;
@@ -1920,7 +1939,7 @@ function refillTrails(){
   for(let i=0;i<NB;i++){
     const a=trails[i];
     for(let k=0;k<TRAIL_N;k++){
-      bodyPos(i, simT+(k-(TRAIL_N-1))*DT_SAMPLE, tmp);
+      trailPos(i, simT+(k-(TRAIL_N-1))*DT_SAMPLE, tmp);
       a[k*3]=tmp[0]; a[k*3+1]=tmp[1]; a[k*3+2]=tmp[2];
     }
     gl.bindBuffer(gl.ARRAY_BUFFER,trailBufs[i]);
@@ -2012,10 +2031,10 @@ if(location.protocol.startsWith('http') && 'serviceWorker' in navigator){
   addEventListener('load', ()=> navigator.serviceWorker.register('sw.js').catch(()=>{}));
 }
 $('collapse').addEventListener('click', ()=>{
-  $('hud').style.display='none'; $('reopen').style.display='block';
+  $('hud').style.display='none'; $('reopen').style.display='block'; fitPanels();
 });
 $('reopen').addEventListener('click', ()=>{
-  $('hud').style.display=''; $('reopen').style.display='none';
+  $('hud').style.display=''; $('reopen').style.display='none'; fitPanels();
 });
 $('tInfo').addEventListener('click', ()=>{ $('infoModal').style.display='flex'; });
 $('infoClose').addEventListener('click', ()=>{ $('infoModal').style.display='none'; });
@@ -2065,6 +2084,17 @@ function setStateColour(h, meanC){
 
 // ---------- resize ----------
 let W=0,H=0,DPR=1, projMat;
+// The environment panel sits top left and the settings panel top right; on a narrow
+// window they meet in the middle. Measure rather than guess a breakpoint, since the
+// settings panel can be collapsed and the environment panel has its own switch.
+function fitPanels(){
+  const env = $('env'), hud = $('hud');
+  if(env.style.display === 'none') return;             // switched off by hand
+  env.classList.remove('crowded');
+  if(hud.style.display === 'none') return;             // panel collapsed: all the room
+  const e = env.getBoundingClientRect(), h = hud.getBoundingClientRect();
+  if(h.left < e.right + 12) env.classList.add('crowded');
+}
 function resize(){
   DPR=Math.min(2, devicePixelRatio||1);
   W=innerWidth; H=innerHeight;
@@ -2072,7 +2102,7 @@ function resize(){
   gl.viewport(0,0,canvas.width,canvas.height);
   projMat = perspective(Math.PI/3, W/H, 0.5, 20000);
 }
-addEventListener('resize', resize); resize();
+addEventListener('resize', ()=>{ resize(); fitPanels(); }); resize();
 
 // ---------- main loop ----------
 gl.disable(gl.DEPTH_TEST);
@@ -2271,16 +2301,22 @@ function frame(now){
   // 6.1e-5 scene units — a quarter pixel around cam.dist 0.17. Fade across that
   // boundary rather than cutting, so leaving real scale doesn't drop them abruptly.
   const trailFade = Math.min(1, Math.max(0, Math.log(cam.dist/0.17)/Math.log(0.7/0.17)));
-  if(showTrails && trailFade>0.02){
+  if(showTrails && (trailFade>0.02 || realMode)){
     gl.useProgram(pTr);
     gl.uniformMatrix4fv(U.trProj,false,projMat);
     gl.uniformMatrix4fv(U.trView,false,viewMat);
-    gl.uniform3f(U.trOrg, org[0],org[1],org[2]);
     gl.uniform1f(U.trLen,TRAIL_N);
-    for(let i=(realMode?1:(showDwarfs?NB:N_PLANETS))-1;i>=0;i--){
+    const last = (showDwarfs?NB:N_PLANETS)-1;
+    for(let i=last;i>=0;i--){
+      // real scale: the planets' tracks are Sun-relative and stay exact at any zoom,
+      // while the Sun's own remains absolute and still fades out near the precision floor
+      const rel = realMode && i>0;
+      if(!rel && trailFade<=0.02) continue;
       const c=BODIES[i][4];
+      gl.uniform3f(U.trOrg, rel?0:org[0], rel?0:org[1], rel?0:org[2]);
       gl.uniform3f(U.trCol,c[0],c[1],c[2]);
-      gl.uniform1f(U.trA, (i===0?0.9:0.55)*trailAlpha*trailFade);
+      // lift them with the star gain, or a brightened field washes the thin lines out
+      gl.uniform1f(U.trA, (i===0?0.9:0.55)*trailAlpha*(rel?1:trailFade)*(1+starGain*0.9));
       gl.bindVertexArray(trailVaos[i]);
       gl.drawArrays(gl.LINE_STRIP,0,TRAIL_N);
     }
@@ -2462,6 +2498,7 @@ function frame(now){
   requestAnimationFrame(frame);
 }
 restoreSettings();
+fitPanels();
 requestAnimationFrame(frame);
 </script>
 </body>
