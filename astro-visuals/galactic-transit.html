@@ -519,7 +519,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.2.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.2.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 const BUILD_LINE = BUILD.date.indexOf('__') === 0
   ? VERSION + ' · dev build'
@@ -1768,7 +1768,7 @@ function fmtSpeed(){
   $('speedv').textContent = (eff/Math.pow(10,e)).toFixed(2)+'×10'+supStr(e)+' yr/s';
 }
 // Whole decades on top of the slider, for crossing deep time without waiting on it.
-{ const MULTS = [[1,'×1'],[1e3,'×10³'],[1e6,'×10⁶'],[1e9,'×10⁹'],[1e12,'×10¹²']];
+{ const MULTS = [[1,'1'],[1e3,'1e3'],[1e6,'1e6'],[1e9,'1e9'],[1e12,'1e12']];
   const host = $('mults');
   MULTS.forEach(([m,label],i)=>{
     const b = document.createElement('button');
