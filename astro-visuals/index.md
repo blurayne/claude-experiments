@@ -92,6 +92,10 @@ The build renders it to `changelog.html`, which the panel footer links to.
   rasterised to the PNG sizes the manifest needs.
 - [`manifest.json`](manifest.json), [`sw.js`](sw.js) — the PWA manifest and its
   offline service worker.
+- [`galaxy-map.webp`](galaxy-map.webp) — the face-on Milky Way illustration used
+  as a density map: stars sampled where it is bright, dust where its lanes are
+  dark, HII nebulae where it is pink; mirrored and rotated so the arms trail and
+  the bar sits at the scene's 28°.
 - [`stars-gaia.bin`](stars-gaia.bin) — 20,000 real stars from HYG 4.1 (Gaia DR3
   astrometry), as packed position, hue and magnitude.
 - [`sfx/`](sfx/) — five recorded supernova blasts and four soft star ignitions,

@@ -485,6 +485,12 @@
       sound, or at these rates they would never stop. Each effect has its own switch.</li>
       <li>The <b>asteroid belt</b> (~1,500 points at 2.1&ndash;3.3&nbsp;AU) carves out the Kirkwood gaps at
       Jupiter's 3:1, 5:2 and 7:3 resonances, and its orbital periods are true Kepler in both scale modes.</li>
+      <li>The galaxy's face-on layout follows the well-known <b>face-on Milky Way illustration</b>, used
+      as a density map: stars are placed where it is bright and coloured from its pixels, dust lanes where
+      it is dark, HII regions where it is pink. The copy shipped here is mirrored so the arms trail the
+      rotation and rotated so its bar sits at the scene's measured 28&deg; — an illustration too, of
+      course: no one has photographed our galaxy from outside. Opened offline, the procedural layout
+      stands in.</li>
       <li>The <b>gaia sky</b> layer is not modelled at all: it is 20,000 real stars from HYG 4.1,
       which carries <b>Gaia DR3</b> astrometry, at their true parallax distances out to ~990&nbsp;pc,
       rotated into galactic coordinates and placed relative to the Sun. Their colours come from measured
@@ -539,7 +545,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.4.2', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.5.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -1043,25 +1049,167 @@ function pointVAO(pos, size, col, wave){
 const vaoStars = pointVAO(starPos, starSize, starCol);
 let vaoGxy, vaoNeb, vaoDust;
 const gxyCache = {}; // both densities kept once generated, so toggling back is instant
+// ---------- the photographic density map ----------
+// The classic face-on Milky Way illustration is used as a probability map: stars are
+// placed where the picture is bright, with colours taken from its pixels; dust where its
+// lanes are dark; HII nebulae where it is pink. The shipped copy is mirrored so the arms
+// trail the pattern's rotation, and rotated so its bar sits at the scene's 28 degrees —
+// both measured, not guessed. The procedural generator remains the fallback offline.
+let galaxyMap = null;
+const MAP_SCALE = 2100/188.6;   // scene units per map pixel: the disk edge lands at 2100
+function loadGalaxyMap(){
+  fetch('galaxy-map.webp').then(r => r.ok ? r.blob() : Promise.reject())
+    .then(b => createImageBitmap(b))
+    .then(bm => {
+      const n = 448, cv = document.createElement('canvas');
+      cv.width = cv.height = n;
+      const cx2 = cv.getContext('2d');
+      cx2.drawImage(bm, 0, 0, n, n);
+      const px = cx2.getImageData(0, 0, n, n).data;
+      const lum = new Float32Array(n*n);
+      for(let i=0;i<n*n;i++) lum[i] = (px[i*4]+px[i*4+1]+px[i*4+2])/765;
+      // small separable blur: the smooth background, for lane-darkness and structuredness
+      const blur = new Float32Array(lum), tb = new Float32Array(n*n);
+      for(let pass=0; pass<3; pass++){
+        for(let y=0;y<n;y++) for(let x=0;x<n;x++){
+          let s=0,c=0; for(let k=-2;k<=2;k++){ const q=x+k; if(q>=0&&q<n){ s+=blur[y*n+q]; c++; } }
+          tb[y*n+x]=s/c;
+        }
+        for(let x=0;x<n;x++) for(let y=0;y<n;y++){
+          let s=0,c=0; for(let k=-2;k<=2;k++){ const q=y+k; if(q>=0&&q<n){ s+=tb[q*n+x]; c++; } }
+          blur[y*n+x]=s/c;
+        }
+      }
+      const c0 = (n-1)/2, R = 188.6;
+      const star = new Float32Array(n*n), neb = new Float32Array(n*n), dust = new Float32Array(n*n);
+      for(let i=0;i<n*n;i++){
+        const x=i%n, y=(i/n)|0, r=Math.hypot(x-c0, y-c0);
+        if(r > R*1.06) continue;
+        const l = lum[i];
+        star[i] = Math.pow(Math.max(0, l-0.012), 1.55);
+        const pink = Math.max(0, px[i*4]/255 - (px[i*4+1]+px[i*4+2])/510);
+        neb[i]  = pink*l;
+        dust[i] = r>40 ? Math.max(0, blur[i]-l)*Math.min(1, l*4+0.2) : 0;
+      }
+      const cum = a => { const c=new Float32Array(a.length); let s=0;
+        for(let i=0;i<a.length;i++){ s+=a[i]; c[i]=s; } return c; };
+      galaxyMap = { n, px, lum, blur, starC:cum(star), nebC:cum(neb), dustC:cum(dust) };
+      // whatever is cached was built procedurally: rebuild the active density from the map
+      for(const k of Object.keys(gxyCache)){ const o = gxyCache[k];
+        deleteVAO(o.g); deleteVAO(o.nb); deleteVAO(o.d); deleteVAO(o.a); delete gxyCache[k]; }
+      setGalaxy(curD);
+    })
+    .catch(()=>{});   // opened from disk: the procedural galaxy stands in
+}
+function mapPick(cdf){
+  const total = cdf[cdf.length-1], t = Math.random()*total;
+  let lo=0, hi=cdf.length-1;
+  while(lo<hi){ const mid=(lo+hi)>>1; if(cdf[mid]<t) lo=mid+1; else hi=mid; }
+  return lo;
+}
+function mapXZ(i, spread){
+  const n=galaxyMap.n, c0=(n-1)/2;
+  const u=(i%n)+Math.random()-0.5+gauss()*spread, v=((i/n)|0)+Math.random()-0.5+gauss()*spread;
+  return [ (u-c0)*MAP_SCALE, -(v-c0)*MAP_SCALE ];
+}
+function genGalaxyMap(D){
+  N_GXY = Math.round(92000*D);
+  const BS = 1/Math.sqrt(D), SS = Math.pow(D,-0.12);
+  const NBS = Math.max(Math.pow(D,-0.7), 0.25), DS = 1/D;
+  gxyPos=new Float32Array(N_GXY*3); gxySize=new Float32Array(N_GXY);
+  gxyCol=new Float32Array(N_GXY*3); gxyWave=new Float32Array(N_GXY);
+  const m = galaxyMap, pxd = m.px;
+  const HALO = Math.round(N_GXY*0.045);   // the picture is flat; the 3D halo stays procedural
+  for(let i=0;i<N_GXY;i++){
+    let X,Y,Z,cr,cg,cb,s,wv=0;
+    if(i<HALO){
+      const rr=150+Math.abs(gauss())*1000, th=Math.random()*6.28318, ph=Math.acos(2*Math.random()-1);
+      X=rr*Math.sin(ph)*Math.cos(th); Z=rr*Math.sin(ph)*Math.sin(th); Y=rr*Math.cos(ph)*0.72;
+      const b=.05+Math.random()*.06; cr=b*1.05; cg=b*.95; cb=b*.85; s=1.6+Math.random()*1.4;
+    } else {
+      const pI = mapPick(m.starC);
+      const w = mapXZ(pI, 0.35); X=w[0]; Z=w[1];
+      const l = m.lum[pI], rw = Math.hypot(X,Z);
+      const bulge = l*Math.exp(-(rw*rw)/(230*230));      // the yellow centre puffs into 3D
+      Y = gauss()*(9 + Math.max(0,rw-1100)*0.012 + 90*bulge);
+      const gain = (0.16 + 0.95*Math.pow(l, 1.1)) * (Math.random()<0.03 ? 2.2 : 1);
+      cr = pxd[pI*4]/255*gain*0.97; cg = pxd[pI*4+1]/255*gain; cb = pxd[pI*4+2]/255*gain*1.10;
+      s = 1.4 + Math.random()*1.8 + (l>0.72 ? Math.random()*1.2 : 0);
+      // bright structure and the bar ride the density wave; the smooth background shears
+      wv = (l > m.blur[pI]*1.10 || rw < 560) ? 1 : 0;
+    }
+    gxyPos[i*3]=X; gxyPos[i*3+1]=Y; gxyPos[i*3+2]=Z; gxyWave[i]=wv;
+    gxySize[i]=s*SS; gxyCol[i*3]=cr*BS; gxyCol[i*3+1]=cg*BS; gxyCol[i*3+2]=cb*BS;
+  }
+  const Dg = Math.min(D, 8);
+  const PINK_N = Math.round(2600*D), GLOW_N = Math.round(3800*Dg), CORE_N = Math.round(900*Dg);
+  NEB_N = PINK_N + GLOW_N + CORE_N;
+  nebPos=new Float32Array(NEB_N*3); nebSize=new Float32Array(NEB_N); nebCol=new Float32Array(NEB_N*3);
+  for(let q=0;q<PINK_N;q++){
+    const pI = mapPick(m.nebC);
+    const w = mapXZ(pI, 0.8);
+    nebPos[q*3]=w[0]; nebPos[q*3+1]=gauss()*5; nebPos[q*3+2]=w[1];
+    nebSize[q]=16+Math.random()*40;
+    const j=(0.7+Math.random()*0.6)*NBS;
+    nebCol[q*3]=.16*j; nebCol[q*3+1]=.055*j; nebCol[q*3+2]=.09*j;
+  }
+  // The haze has to be haze-sized: at galaxy view a 60-unit sprite is a dozen pixels,
+  // so these run to 190 units and overlap heavily, which is what unresolved light is.
+  const gGain = 0.19/Dg;  // per-puff share of a constant total, whatever the density
+  for(let q=PINK_N;q<PINK_N+GLOW_N;q++){
+    const pI = mapPick(m.starC);
+    const w = mapXZ(pI, 1.1);
+    const l = m.lum[pI], rw = Math.hypot(w[0], w[1]);
+    nebPos[q*3]=w[0];
+    nebPos[q*3+1]=gauss()*(6 + 40*l*Math.exp(-(rw*rw)/(230*230)));
+    nebPos[q*3+2]=w[1];
+    nebSize[q]=60+Math.random()*130;
+    const j=(0.7+Math.random()*0.6)*gGain*(0.4+l);
+    // a touch bluer than the pixels: additive stacking over the warm core greys the arms
+    nebCol[q*3]=m.px[pI*4]/255*j*0.97; nebCol[q*3+1]=m.px[pI*4+1]/255*j; nebCol[q*3+2]=m.px[pI*4+2]/255*j*1.12;
+  }
+  // and the golden centre, which the picture renders far brighter than any arm
+  { // elongated along the bar at 28 degrees, like the picture's, not a round flare
+    const sA=Math.sin(28*Math.PI/180), cA=Math.cos(28*Math.PI/180);
+    for(let q=PINK_N+GLOW_N;q<NEB_N;q++){
+      const u=gauss()*165, v=gauss()*80;
+      nebPos[q*3]=u*sA+v*cA; nebPos[q*3+1]=gauss()*Math.max(10,42-Math.abs(u)*0.16); nebPos[q*3+2]=u*cA-v*sA;
+      nebSize[q]=40+Math.random()*95;
+      const j=(0.7+Math.random()*0.6)*0.30/Dg;
+      nebCol[q*3]=1.00*j; nebCol[q*3+1]=0.80*j; nebCol[q*3+2]=0.50*j;
+    }
+  }
+  const XD = D>1 ? Math.round(9000*D) : 0;
+  DUST_N = Math.round(3400*D)+XD;
+  dustPos=new Float32Array(DUST_N*3); dustSize=new Float32Array(DUST_N); dustStr=new Float32Array(DUST_N*3);
+  for(let q=0;q<DUST_N;q++){
+    const pI = mapPick(m.dustC);
+    const w = mapXZ(pI, 0.5);
+    dustPos[q*3]=w[0]; dustPos[q*3+1]=gauss()*5; dustPos[q*3+2]=w[1];
+    dustSize[q]=13+Math.random()*24;
+    const dk = Math.max(0, m.blur[pI]-m.lum[pI]);
+    dustStr[q*3]=(0.25+3.2*dk)*DS*(0.7+Math.random()*0.6);
+  }
+}
 function setGalaxy(D){
-  if(!gxyCache[D]){
-    genGalaxy(D);
+  const key = (galaxyMap ? 'm' : 'p') + D;
+  if(!gxyCache[key]){
+    (galaxyMap ? genGalaxyMap : genGalaxy)(D);
     const gv = pointVAO(gxyPos,gxySize,gxyCol,gxyWave);
     const nv = pointVAO(nebPos,nebSize,nebCol), dv = pointVAO(dustPos,dustSize,dustStr);
     const av = genAndromeda(D);
-    gxyCache[D] = { n:[N_GXY,NEB_N,DUST_N,N_AND], g:gv, nb:nv, d:dv, a:av };
+    gxyCache[key] = { D, n:[N_GXY,NEB_N,DUST_N,N_AND], g:gv, nb:nv, d:dv, a:av };
     gxyPos=gxySize=gxyCol=gxyWave=nebPos=nebSize=nebCol=dustPos=dustSize=dustStr=null; // uploaded; free the JS copies
   }
   // the cheap densities stay cached; only one heavy one is kept at a time
   for(const k of Object.keys(gxyCache)){
-    const kd = +k;
-    if(kd >= 12 && kd !== D){
+    if(gxyCache[k].D >= 12 && k !== key){
       const old = gxyCache[k];
       deleteVAO(old.g); deleteVAO(old.nb); deleteVAO(old.d); deleteVAO(old.a);
       delete gxyCache[k];
     }
   }
-  const c=gxyCache[D];
+  const c=gxyCache[key];
   N_GXY=c.n[0]; NEB_N=c.n[1]; DUST_N=c.n[2]; N_AND=c.n[3];
   vaoGxy=c.g; vaoNeb=c.nb; vaoDust=c.d; vaoAnd=c.a; curD=D;
 }
@@ -1437,6 +1585,7 @@ function loadGaiaStars(){
     .catch(()=>{});   // opened from disk, where fetch is blocked: the modelled sky stands in
 }
 loadGaiaStars();
+loadGalaxyMap();
 
 // ---------- Gliese 710 ----------
 // A K7 dwarf, presently ~62 light years off and closing at 14.4 km/s. Gaia's astrometry
