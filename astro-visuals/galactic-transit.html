@@ -404,6 +404,9 @@
       they cool and reheat); the HII nebulae breathe and drift in hue, as real nebular illumination genuinely
       does (Hubble's Variable Nebula changes within weeks). Their real day-to-year cycles are far below this
       clock's resolution — like the supernova flashes, the shimmer you see is a stretched sample.</li>
+      <li>The <b>dive</b> holds the camera on the line from the Sun to the galactic centre, so the core
+      stays behind the planets rather than swinging out of frame as the Sun carries on around its orbit.
+      Dragging still turns the view; it just turns relative to that line now.</li>
       <li>What remains is a <b>neutron star</b> (drawn as a fading blue point) or a black hole (nothing).
       The last naked-eye supernova in our galaxy was <b>Kepler's, in 1604</b>; statistically we are overdue,
       and Betelgeuse (~550&nbsp;ly away, already a red supergiant) is a leading candidate.</li>
@@ -516,7 +519,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.1.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.2.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 const BUILD_LINE = BUILD.date.indexOf('__') === 0
   ? VERSION + ' · dev build'
@@ -1689,6 +1692,7 @@ function fillPuffs(){
 
 // ---------- camera & interaction ----------
 const cam = { yaw: 0.9, pitch: 0.32, dist: 150, distGoal: 150, target:[0,0,0], follow:true };
+let coreLock = false;   // dive: hold the camera on the Sun-to-core line
 let dragging=false, px=0, py=0;
 // While a pointer or finger is down the clock holds, so the galaxy does not keep
 // turning under the hand that is trying to orbit it. Released, it carries straight on.
@@ -2025,14 +2029,15 @@ function refillTrails(){
 }
 function setBodySizes(){ gl.bindBuffer(gl.ARRAY_BUFFER,bufBodySize); gl.bufferData(gl.ARRAY_BUFFER, realMode?realSizes:dispSizes, gl.STATIC_DRAW); }
 toggle($('tReal'), on=>{ realMode=on; refillTrails(); setBodySizes();
-  if(!on){ cam.distGoal=Math.max(cam.distGoal,150); $('tDive').classList.remove('on'); } });
+  if(!on){ cam.distGoal=Math.max(cam.distGoal,150); coreLock=false; $('tDive').classList.remove('on'); } });
 toggle($('tDive'), on=>{
   if(on){
     if(!$('tReal').classList.contains('on')) $('tReal').click(); // diving implies real scale
     if($('tView').classList.contains('on')) $('tView').click();  // and following the Sun
     cam.follow=true;
+    coreLock=true; cam.yaw=0; cam.pitch=0;   // start looking straight down the line to the core
     cam.distGoal=3.5e-5; // ~75 AU across: the whole planetary system, Kuiper belt included
-  } else cam.distGoal=150;
+  } else { coreLock=false; cam.distGoal=150; }
 });
 // Star density as one row of choices rather than stacked overrides. The top settings
 // are enormous — x8 is some seventeen million sprites — so a failed allocation falls
@@ -2280,9 +2285,19 @@ function frame(now){
   // log-space zoom smoothing: uniform speed per decade across 11 orders of magnitude
   cam.dist = Math.exp(Math.log(cam.dist)+(Math.log(cam.distGoal)-Math.log(cam.dist))*Math.min(1,dt*4));
   firstFrame=false;
-  const cp=Math.cos(cam.pitch), sp=Math.sin(cam.pitch);
+  let baseYaw = 0, basePitch = 0;
+  if(coreLock){
+    // the direction from the core out to the Sun: put the eye further along it, so the
+    // line of sight runs eye -> Sun -> galactic centre
+    const r = Math.hypot(org[0], org[1], org[2]) || 1;
+    baseYaw = Math.atan2(org[0], org[2]);
+    basePitch = Math.asin(Math.max(-1, Math.min(1, org[1]/r)));
+  }
+  const yawE = cam.yaw + baseYaw;
+  const pitchE = Math.max(-1.45, Math.min(1.45, cam.pitch + basePitch));
+  const cp=Math.cos(pitchE), sp=Math.sin(pitchE);
   const tgx=smoothTarget[0]-org[0], tgy=smoothTarget[1]-org[1], tgz=smoothTarget[2]-org[2];
-  const eye=[ tgx+cam.dist*cp*Math.sin(cam.yaw), tgy+cam.dist*sp, tgz+cam.dist*cp*Math.cos(cam.yaw) ];
+  const eye=[ tgx+cam.dist*cp*Math.sin(yawE), tgy+cam.dist*sp, tgz+cam.dist*cp*Math.cos(yawE) ];
   const viewMat = lookAt(eye, [tgx,tgy,tgz], [0,1,0]);
   // near plane tracks the zoom so sub-AU views don't clip
   projMat = perspective(Math.PI/3, W/H, Math.min(0.5, Math.max(1e-9, cam.dist*0.04)), 25000);
