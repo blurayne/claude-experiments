@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Galactic Transit — the Solar System's real motion through the Milky Way</title>
+<style>
+  :root{
+    --ink:#dfe6ef; --dim:#8b93a3; --line:rgba(160,180,210,.18);
+    --panel:rgba(8,11,18,.72); --accent:#ffd27a;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;overflow:hidden;background:#04060b;color:var(--ink);
+    font-family:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,monospace;}
+  canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  canvas#gl.dragging{cursor:grabbing}
+
+  .hud{position:fixed;top:14px;right:14px;width:min(360px, calc(100vw - 28px));background:var(--panel);
+    border:1px solid var(--line);border-radius:10px;padding:14px 16px;backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);z-index:5}
+  .hud h1{font-size:13px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--accent)}
+  .hud .sub{font-size:10px;color:var(--dim);letter-spacing:.08em;margin-top:3px;line-height:1.5}
+  .row{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:11px}
+  .row label{color:var(--dim);letter-spacing:.06em;min-width:52px}
+  input[type=range]{flex:1;appearance:none;-webkit-appearance:none;height:2px;background:var(--line);border-radius:2px;outline:none}
+  input[type=range]::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:var(--accent);cursor:pointer}
+  input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--accent);border:0;cursor:pointer}
+  select{flex:1;background:rgba(20,26,38,.9);color:var(--ink);border:1px solid var(--line);border-radius:6px;
+    font-family:inherit;font-size:10px;letter-spacing:.06em;padding:4px 6px;outline:none}
+  .toggles{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .tg{font-size:10px;letter-spacing:.08em;padding:5px 9px;border:1px solid var(--line);border-radius:6px;
+    color:var(--dim);cursor:pointer;user-select:none;background:transparent;transition:color .15s,border-color .15s}
+  .tg.on{color:var(--accent);border-color:rgba(255,210,122,.45)}
+  .tg:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .stats{margin-top:12px;padding-top:10px;border-top:1px solid var(--line);font-size:10px;color:var(--dim);line-height:1.7;letter-spacing:.05em}
+  .stats b{color:var(--ink);font-weight:600}
+  .note{position:fixed;left:14px;bottom:12px;max-width:340px;font-size:10px;line-height:1.55;color:var(--dim);
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;z-index:5;letter-spacing:.03em}
+  .note em{color:var(--ink);font-style:normal}
+  .lbl{position:fixed;transform:translate(-50%,-140%);font-size:9px;letter-spacing:.14em;text-transform:uppercase;
+    color:rgba(210,222,240,.75);pointer-events:none;z-index:3;text-shadow:0 0 6px #000;white-space:nowrap}
+  #infoModal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+    background:rgba(2,4,8,.65);z-index:20;padding:18px}
+  .info-card{position:relative;width:min(560px, 100%);max-height:82vh;overflow-y:auto;background:var(--panel);
+    border:1px solid var(--line);border-radius:12px;padding:20px 22px;backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);font-size:11px;line-height:1.65;color:var(--dim);letter-spacing:.03em}
+  .info-card h2{font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+  .info-card h3{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink);margin:16px 0 6px}
+  .info-card b{color:var(--ink)}
+  .info-card ul{margin:0;padding-left:16px}
+  .info-card li{margin-bottom:7px}
+  #infoClose{position:absolute;top:10px;right:12px;background:none;border:0;color:var(--dim);cursor:pointer;
+    font-size:16px;font-family:inherit}
+  #collapse{position:absolute;top:10px;right:10px;background:none;border:0;color:var(--dim);cursor:pointer;font-size:13px;font-family:inherit}
+  .gamebar{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);display:flex;gap:28px;
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 20px;
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:5;white-space:nowrap}
+  .gamebar .stat{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);text-align:center}
+  .gamebar .stat b{display:block;font-size:16px;letter-spacing:.06em;color:var(--accent);font-weight:600;margin-top:2px;font-variant-numeric:tabular-nums}
+  #reopen{position:fixed;top:14px;right:14px;z-index:6;display:none;width:36px;height:36px;border-radius:9px;
+    background:var(--panel);border:1px solid var(--line);color:var(--accent);cursor:pointer;font-size:15px;
+    font-family:inherit;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+  @media (max-width:600px){ .note{display:none} .hud{width:min(300px, calc(100vw - 28px))} .gamebar{gap:16px;padding:8px 14px} .gamebar .stat b{font-size:14px} }
+  @media (prefers-reduced-motion: reduce){ /* start paused for reduced-motion users (handled in JS) */ }
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+
+<div class="hud" id="hud">
+  <button id="collapse" aria-label="collapse panel">–</button>
+  <h1>Galactic Transit</h1>
+  <div class="sub">The Sun orbits the Milky Way's core at ~230 km/s. The planets, on an ecliptic tilted ~60° to the galactic plane, weave helical paths around its track.</div>
+  <div class="body">
+    <div class="row"><label for="speed">speed</label><input type="range" id="speed" min="0" max="1" step="0.001" value="0.55"><span id="speedv" style="min-width:64px;text-align:right;color:var(--ink)"></span></div>
+    <div class="row"><label for="cal">calendar</label><select id="cal">
+      <option value="hs" selected>Human existence (300,000 yrs)</option>
+      <option value="her">Homo erectus (~2 Myr)</option>
+      <option value="hom">Hominins (chimp–human split, ~7 Myr)</option>
+      <option value="mam">Mammals (~200 Myr)</option>
+      <option value="ad">A.D. / B.C.</option>
+      <option value="ah">A.H. — Islamic (Hijri)</option>
+      <option value="vs">V.S. — Vikram Samvat</option>
+      <option value="saka">Śaka — Indian national</option>
+      <option value="am">A.M. — Hebrew</option>
+      <option value="al">A.L. — Anno Lucis</option>
+      <option value="he">H.E. — Holocene / Human Era</option>
+    </select></div>
+    <div class="toggles">
+      <button class="tg on" id="tPause">⏸ pause</button>
+      <button class="tg on" id="tTrails">trails</button>
+      <button class="tg on" id="tLabels">labels</button>
+      <button class="tg on" id="tDwarfs">dwarfs</button>
+      <button class="tg on" id="tKuiper">kuiper</button>
+      <button class="tg on" id="tOort">oort</button>
+      <button class="tg on" id="tStatCal">hum yr</button>
+      <button class="tg on" id="tStatAge">age</button>
+      <button class="tg on" id="tStatGyr">gal yr</button>
+      <button class="tg" id="tSci">10^x</button>
+      <button class="tg" id="tView">galaxy view</button>
+      <button class="tg" id="tReal">real scale</button>
+    </div>
+    <div class="toggles" style="margin-top:10px">
+      <button class="tg" id="tInfo">ⓘ info &amp; stats</button>
+    </div>
+  </div>
+</div>
+
+<div id="infoModal">
+  <div class="info-card">
+    <button id="infoClose" aria-label="close">×</button>
+    <h2>Info &amp; Stats</h2>
+    <div class="stats" style="margin-top:0;padding-top:0;border-top:0">
+      elapsed <b id="yrs">0.0</b> yr &nbsp;·&nbsp; galactic lap <b id="pct">0.000</b>%<br>
+      drag to orbit &nbsp;·&nbsp; scroll / pinch to zoom
+    </div>
+    <h3>Scale, honestly</h3>
+    <p>Orbital periods use real ratios and the ~60° tilt of the ecliptic to the galactic plane is real, but scale is
+    wildly compressed: the Sun's galactic orbit is ~14&nbsp;billion× wider than Neptune's, and one lap really takes
+    ~225&nbsp;million years — compressed ~1.2&nbsp;million-fold here. The planetary system is drawn ~10-million-fold
+    magnified, which is why a clearance bubble fades out nearby stars. The "human year" counts Earth orbits, while
+    the age and galactic-year stats run on the compressed galactic clock — both faces of the same compression.</p>
+    <p>The <b>Oort cloud</b> is the most symbolic object here, squeezed from both directions: really spanning
+    ~3,300 Neptune-orbits (its ring is drawn ~700× too small versus the planets), yet at galaxy scale it would be
+    under a pixel (drawn ~3,300× too big versus the galaxy). Its true outer edge lies ~1.6 light-years out —
+    <b>a third of the way to Alpha Centauri</b> — because that is where the Sun's gravity loses the tug-of-war
+    against galactic tides. It is the one solar-system structure whose size is set by the galaxy itself, and
+    passing stars and the galactic tide are what nudge its comets sunward.</p>
+    <p>The <b>real scale</b> toggle shows true proportions: the planets, Kuiper belt, and Oort cloud all collapse
+    inside the Sun's single pixel (computed from real semi-major axes, not merely hidden) — <b>the Kuiper belt and
+    Oort cloud disappear inside that same pixel</b> — the clearance bubble
+    vanishes, and the Sun's vertical bob drops to its true ±250-light-year amplitude. Everything still visible
+    is then genuinely to scale.</p>
+    <h3>The Oort cloud &amp; the galactic tide</h3>
+    <ul>
+      <li>Everything in the solar system falls around the galactic center <b>together</b>, so the center's pull is
+      not felt directly — what matters is the <b>difference</b> in pull across the system: the galactic tide.</li>
+      <li>At 1–2 light-years out that difference rivals the Sun's own weakening grip. The tide <b>sculpts the
+      cloud</b> — slightly stretched toward the galactic center, squashed along the direction of motion — and sets
+      its outer edge exactly where the tug-of-war is lost.</li>
+      <li>Objects nudged past that boundary are stripped and become independent orbiters of the galaxy. Interstellar
+      visitors like <b>'Oumuamua and Borisov</b> are presumably escapees from other stars' Oort clouds.</li>
+      <li>The traffic runs both ways: the tide (plus passing stars) is the main mechanism that torques Oort comets
+      <b>inward</b>, delivering the long-period comets we see.</li>
+      <li>As a mass, the cloud is insignificant — trillions of objects totalling only a few Earth masses,
+      ~0.001% of the Sun. It is a swarm of passive test particles marking the frontier where the Sun's gravity
+      ends and the galaxy's begins.</li>
+    </ul>
+    <h3>Deep-time perspective</h3>
+    <ul>
+      <li>Even the full 7-million-year hominin story is only <b>0.031 galactic laps</b> — every human-like creature
+      that ever lived did so within the last 3% of the Sun's current orbit.</li>
+      <li>All <b>300,000 years of Homo sapiens</b> amount to 0.0013 galactic years: the current lap was 99.9%
+      complete when the first modern humans appeared.</li>
+      <li><b>Mammals (~200 Myr)</b> span almost exactly one galactic year — when the first mammals appeared,
+      the Sun stood roughly where it stands again today.</li>
+      <li>The solar system is <b>~20.3 galactic years old</b>. Complex life on land arrived about two laps ago;
+      the dinosaurs died out barely a quarter-lap ago.</li>
+      <li>The Sun <b>bobs through the disk plane</b> every ~45 Myr (shown ~3× exaggerated). Whether these plane
+      crossings correlate with extinction events is speculated but unproven.</li>
+    </ul>
+    <h3>What's real, what's modeled</h3>
+    <ul>
+      <li>Planets are <b>not dragged behind the Sun</b> — the viral "vortex" video is wrong. With the 60° tilt
+      they run ahead of the Sun for half of every orbit, exactly as shown.</li>
+      <li>The disk rotates with a <b>flat rotation curve</b> (~230 km/s at almost every radius), so these material
+      arms slowly wind up — the real "winding problem" that led astronomers to density-wave theory. Real arms
+      persist because they are waves, not fixed groups of stars.</li>
+      <li>Bar (half-length ~15,000 ly, 28° to the Sun–center line), arms sprouting from the bar tips
+      (Scutum–Centaurus, Perseus + Sagittarius, Norma), and the Sun's <b>Local Spur</b> follow Milky Way measurements.</li>
+      <li>The <b>warped outer disk</b> and its slow retrograde precession follow Gaia's findings.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="gamebar" id="gamebar">
+  <div class="stat" id="sCal">human year<b id="gCal">300,000 yr</b></div>
+  <div class="stat" id="sAge">age of the solar system<b id="gAge">4.5680 Gyr</b></div>
+  <div class="stat" id="sGyr">galactic years<b id="gGyr">20.302</b></div>
+</div>
+<button id="reopen" aria-label="show control panel">☰</button>
+
+<div id="labels"></div>
+
+<script>
+"use strict";
+// ---------- tiny mat4 ----------
+function perspective(fov, asp, n, f){
+  const t = 1/Math.tan(fov/2), m = new Float32Array(16);
+  m[0]=t/asp; m[5]=t; m[10]=(f+n)/(n-f); m[11]=-1; m[14]=2*f*n/(n-f);
+  return m;
+}
+function lookAt(eye, at, up){
+  const zx=eye[0]-at[0], zy=eye[1]-at[1], zz=eye[2]-at[2];
+  let zl=Math.hypot(zx,zy,zz)||1; const Z=[zx/zl,zy/zl,zz/zl];
+  const X=[up[1]*Z[2]-up[2]*Z[1], up[2]*Z[0]-up[0]*Z[2], up[0]*Z[1]-up[1]*Z[0]];
+  let xl=Math.hypot(...X)||1; X[0]/=xl;X[1]/=xl;X[2]/=xl;
+  const Y=[Z[1]*X[2]-Z[2]*X[1], Z[2]*X[0]-Z[0]*X[2], Z[0]*X[1]-Z[1]*X[0]];
+  return new Float32Array([
+    X[0],Y[0],Z[0],0, X[1],Y[1],Z[1],0, X[2],Y[2],Z[2],0,
+    -(X[0]*eye[0]+X[1]*eye[1]+X[2]*eye[2]),
+    -(Y[0]*eye[0]+Y[1]*eye[1]+Y[2]*eye[2]),
+    -(Z[0]*eye[0]+Z[1]*eye[1]+Z[2]*eye[2]),1]);
+}
+function mul(a,b){ // a*b, column-major
+  const o=new Float32Array(16);
+  for(let c=0;c<4;c++)for(let r=0;r<4;r++){
+    o[c*4+r]=a[r]*b[c*4]+a[4+r]*b[c*4+1]+a[8+r]*b[c*4+2]+a[12+r]*b[c*4+3];
+  } return o;
+}
+
+// ---------- GL setup ----------
+const canvas = document.getElementById('gl');
+const gl = canvas.getContext('webgl2', {antialias:true, alpha:false});
+if(!gl){ document.body.innerHTML = '<p style="padding:2em">WebGL2 is not available in this browser.</p>'; throw new Error('no webgl2'); }
+
+function sh(type, src){
+  const s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s);
+  if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+  return s;
+}
+function prog(vs,fs){
+  const p=gl.createProgram();
+  gl.attachShader(p,sh(gl.VERTEX_SHADER,vs)); gl.attachShader(p,sh(gl.FRAGMENT_SHADER,fs));
+  gl.linkProgram(p);
+  if(!gl.getProgramParameter(p,gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+  return p;
+}
+
+// glowing point sprites (stars, galaxy, bodies)
+const PT_VS = `#version 300 es
+layout(location=0) in vec3 aPos;
+layout(location=1) in float aSize;
+layout(location=2) in vec3 aColor;
+uniform mat4 uProj, uView;
+uniform float uPx;
+uniform float uSpin; // distance travelled at the flat-curve speed; 0 = no rotation
+uniform float uWarp; // precession phase of the disk warp
+uniform vec3 uSunPos; // center of the clearance bubble around the magnified solar system
+out vec3 vColor;
+void main(){
+  vec3 p = aPos;
+  float fade = 1.0;
+  if(uSpin != 0.0){
+    float r = length(p.xz);
+    float d = uSpin / max(r, 520.0); // flat rotation curve outside the bar, rigid inside
+    float c = cos(d), s = sin(d);
+    p = vec3(p.x*c + p.z*s, p.y, p.z*c - p.x*s);
+    // Gaia-style warp: outer disk bends up on one side, down on the other,
+    // and the whole pattern precesses retrograde (uWarp) like a wobbling top
+    float wr = max(0.0, r - 950.0);
+    p.y += wr*0.13*sin(atan(p.x,p.z) - uWarp)  // integral-sign warp, growing outward
+         + 4.0*sin(r*0.021);                    // faint corrugation ripples in the disk
+    // the planetary system is drawn ~10-million-fold magnified; clear its space
+    fade = smoothstep(80.0, 240.0, distance(p, uSunPos));
+  }
+  vec4 mv = uView * vec4(p,1.0);
+  gl_Position = uProj * mv;
+  float dd = max(1.0, -mv.z);
+  gl_PointSize = clamp(aSize * uPx / dd, 1.3, 110.0);
+  vColor = aColor * fade;
+}`;
+const PT_FS = `#version 300 es
+precision mediump float;
+in vec3 vColor; out vec4 o;
+void main(){
+  vec2 q = gl_PointCoord*2.0-1.0;
+  float r = length(q);
+  if(r>1.0) discard;
+  float core = smoothstep(0.42,0.0,r);
+  float glow = pow(1.0-r,2.4)*0.5;
+  float a = core+glow;
+  o = vec4(vColor*a, a);
+}`;
+
+// trails, faded by vertex index
+const TR_VS = `#version 300 es
+layout(location=0) in vec3 aPos;
+uniform mat4 uProj,uView;
+uniform float uLen;
+out float vF;
+void main(){
+  gl_Position = uProj*uView*vec4(aPos,1.0);
+  vF = float(gl_VertexID)/uLen;
+}`;
+const TR_FS = `#version 300 es
+precision mediump float;
+in float vF; uniform vec3 uColor; uniform float uAlpha; out vec4 o;
+void main(){ float f = pow(vF,1.7)*uAlpha; o = vec4(uColor*f, f); }`;
+
+const pPt = prog(PT_VS,PT_FS), pTr = prog(TR_VS,TR_FS);
+const U = {
+  ptProj: gl.getUniformLocation(pPt,'uProj'), ptView: gl.getUniformLocation(pPt,'uView'), ptPx: gl.getUniformLocation(pPt,'uPx'),
+  ptSpin: gl.getUniformLocation(pPt,'uSpin'), ptWarp: gl.getUniformLocation(pPt,'uWarp'), ptSun: gl.getUniformLocation(pPt,'uSunPos'),
+  trProj: gl.getUniformLocation(pTr,'uProj'), trView: gl.getUniformLocation(pTr,'uView'),
+  trLen: gl.getUniformLocation(pTr,'uLen'), trCol: gl.getUniformLocation(pTr,'uColor'), trA: gl.getUniformLocation(pTr,'uAlpha')
+};
+
+// ---------- the physics (compressed but honest) ----------
+const R_GAL = 900;            // scene units: Sun's distance from galactic core
+const V_GAL = 30;             // scene units per (Earth) year along the galactic orbit
+const GAL_PERIOD = 2*Math.PI*R_GAL/V_GAL; // sim "galactic year" in Earth-years (display only)
+// ecliptic tilted 60.2° to the galactic plane; orientation is inertially fixed
+const TILT = 60.2*Math.PI/180;
+const E1 = [1,0,0];
+const E2 = [0, Math.sin(TILT), -Math.cos(TILT)];
+
+// name, real period (yr), display orbit radius, sprite size, color
+const BODIES = [ // name, period yr, display radius, sprite size, color, real semi-major axis (AU)
+  ['Sun',     0,      0,   5.2, [1.0,0.86,0.55], 0],
+  ['Mercury', 0.241,  6.0, 0.85,[0.66,0.64,0.62], 0.387],
+  ['Venus',   0.615,  8.5, 1.15,[0.93,0.82,0.58], 0.723],
+  ['Earth',   1.000, 11.0, 1.2, [0.35,0.58,1.0],  1.000],
+  ['Mars',    1.881, 14.0, 1.0, [0.92,0.44,0.26], 1.524],
+  ['Jupiter',11.862, 20.0, 2.6, [0.85,0.66,0.42], 5.203],
+  ['Saturn', 29.457, 26.0, 2.3, [0.90,0.79,0.53], 9.537],
+  ['Uranus', 84.02,  32.5, 1.7, [0.52,0.83,0.86], 19.19],
+  ['Neptune',164.8,  38.5, 1.7, [0.30,0.42,0.90], 30.07],
+  // IAU dwarf planets (drawn smaller; note their strongly inclined orbits)
+  ['Ceres',    4.60, 16.0, 0.55,[0.62,0.60,0.56], 2.766],
+  ['Pluto',  248.0,  43.0, 0.60,[0.80,0.69,0.58], 39.48],
+  ['Haumea', 285.0,  44.5, 0.50,[0.82,0.82,0.85], 43.1],
+  ['Makemake',306.0, 46.0, 0.50,[0.76,0.56,0.43], 45.4],
+  ['Eris',   558.0,  52.5, 0.55,[0.83,0.83,0.90], 67.7],
+];
+// real scale: 1 unit ~ 30 ly, 1 ly = 63,241 AU -> units per AU
+const AU2U = 1/(63241*30);
+let realMode = false;
+const NB = BODIES.length;
+const N_PLANETS = 9; // Sun + 8 planets; dwarfs follow
+const PHASE = BODIES.map((_,i)=> i*2.399963); // golden-angle spread
+
+// per-body orbital plane: planets share the ecliptic; dwarfs are tilted [inclination°, node°]
+const EN = [0, Math.cos(TILT), Math.sin(TILT)]; // ecliptic normal
+const DTILT = { Ceres:[10.6,80], Pluto:[17.2,110], Haumea:[28.2,122], Makemake:[29.0,79], Eris:[44.0,36] };
+const BU=[], BV=[];
+BODIES.forEach((b,i)=>{
+  if(i<N_PLANETS){ BU.push(E1); BV.push(E2); return; }
+  const [inc,node]=DTILT[b[0]];
+  const ci=Math.cos(inc*Math.PI/180), si=Math.sin(inc*Math.PI/180);
+  const cn=Math.cos(node*Math.PI/180), sn=Math.sin(node*Math.PI/180);
+  const u=[cn*E1[0]+sn*E2[0], cn*E1[1]+sn*E2[1], cn*E1[2]+sn*E2[2]];
+  const w=[-sn*E1[0]+cn*E2[0], -sn*E1[1]+cn*E2[1], -sn*E1[2]+cn*E2[2]];
+  BU.push(u); BV.push([w[0]*ci+EN[0]*si, w[1]*ci+EN[1]*si, w[2]*ci+EN[2]*si]);
+});
+
+// Sun's vertical bob through the disk plane: real period ~90 Myr, amplitude ~±250 ly.
+// Amplitude shown ~3× exaggerated so it reads at this zoom.
+const WOB_A = 24, WOB_T = 75; // scene units, sim-years (75 sim-yr ≈ 90 Myr at this compression)
+
+const tmp = new Float32Array(3);
+function bodyPos(i, t, out){
+  const phi = t*V_GAL/R_GAL;                     // galactic anomaly
+  const sx = R_GAL*Math.sin(phi), sz = R_GAL*Math.cos(phi);
+  const sy = (realMode?8.3:WOB_A)*Math.sin(2*Math.PI*t/WOB_T + 2.1);
+  if(i===0){ out[0]=sx; out[1]=sy; out[2]=sz; return out; }
+  const b = BODIES[i];
+  const th = 2*Math.PI*t/b[1] + PHASE[i];
+  const rr = realMode ? b[5]*AU2U : b[2]; // true proportions: the whole system is sub-pixel
+  const c = Math.cos(th)*rr, s = Math.sin(th)*rr;
+  const u=BU[i], v=BV[i];
+  out[0] = sx + c*u[0] + s*v[0];
+  out[1] = sy + c*u[1] + s*v[1];
+  out[2] = sz + c*u[2] + s*v[2];
+  return out;
+}
+
+// ---------- static geometry: starfield + galaxy ----------
+function makeBuf(data, loc, comps){
+  const b = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER,b);
+  gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);
+  return b;
+}
+function gauss(){ let u=0,v=0; while(!u)u=Math.random(); while(!v)v=Math.random();
+  return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+
+// distant stars
+const N_STAR = 3200;
+{ var starPos=new Float32Array(N_STAR*3), starSize=new Float32Array(N_STAR), starCol=new Float32Array(N_STAR*3);
+  for(let i=0;i<N_STAR;i++){
+    const th=Math.random()*2*Math.PI, ph=Math.acos(2*Math.random()-1), r=7500;
+    starPos[i*3]=r*Math.sin(ph)*Math.cos(th); starPos[i*3+1]=r*Math.cos(ph); starPos[i*3+2]=r*Math.sin(ph)*Math.sin(th);
+    starSize[i]= 6 + Math.random()*9;
+    const w = .35+Math.random()*.5, warm=Math.random()*.15;
+    starCol[i*3]=w+warm; starCol[i*3+1]=w+warm*.5; starCol[i*3+2]=w+Math.random()*.2;
+  }
+}
+// Milky Way, roughly to scale: 1 unit ≈ 30 ly, Sun at 900 ≈ 26,700 ly from the core.
+// Barred core (half-length ~500 ≈ 15,000 ly, tilted 28° to the Sun–center line),
+// two major arms (Scutum–Centaurus, Perseus) springing from the bar tips,
+// two fainter arms (Sagittarius, Norma/Outer), and the Local (Orion) Spur at the Sun.
+const N_GXY = 92000;
+{ var gxyPos=new Float32Array(N_GXY*3), gxySize=new Float32Array(N_GXY), gxyCol=new Float32Array(N_GXY*3);
+  const PITCH = Math.tan(12.5*Math.PI/180);   // Milky Way arm pitch angle ≈ 12–13°
+  const BAR_L = 500;                          // bar half-length
+  const BAR_A = 28*Math.PI/180;               // bar angle to the Sun–center line (+z)
+  // trailing log-spirals: going outward, arms sweep backward against the rotation
+  const armAngle = (r,off) => off - Math.log(r/BAR_L)/PITCH;
+  const ARMS = [
+    [BAR_A,             1.00],  // Scutum–Centaurus (near bar tip)
+    [BAR_A+Math.PI,     1.00],  // Perseus (far bar tip)
+    [BAR_A+Math.PI/2,   0.50],  // Sagittarius
+    [BAR_A+3*Math.PI/2, 0.50],  // Norma / Outer
+  ];
+  const sA=Math.sin(BAR_A), cA=Math.cos(BAR_A);
+  for(let i=0;i<N_GXY;i++){
+    let x,y,z,cr,cg,cb,s;
+    if(i<3200){ // nuclear bulge — old, dense, warm
+      const r=Math.abs(gauss())*80, th=Math.random()*2*Math.PI;
+      x=r*Math.sin(th); z=r*Math.cos(th); y=gauss()*60;
+      const b=.34+Math.random()*.36;
+      cr=b*1.2; cg=b*.9; cb=b*.58; s=2.8+Math.random()*2.4;
+    } else if(i<12000){ // the bar: boxy/peanut, vertical flare toward the tips
+      const u=(Math.random()+Math.random()+Math.random()-1.5)/1.5*BAR_L;
+      const v=gauss()*95*(1-0.45*Math.abs(u)/BAR_L);
+      y=gauss()*(50+42*Math.abs(u)/BAR_L);
+      x=u*sA+v*cA; z=u*cA-v*sA;
+      const b=.28+Math.random()*.30;
+      cr=b*1.18; cg=b*.87; cb=b*.54; s=2.5+Math.random()*2.2;  // old, yellow-red stars
+    } else if(i<22000){ // faint inter-arm disk
+      const r=360+Math.pow(Math.random(),0.7)*1420, th=Math.random()*2*Math.PI;
+      x=r*Math.sin(th); z=r*Math.cos(th); y=gauss()*(9-r*0.003);
+      const b=.055+Math.random()*.075;
+      cr=b*.85; cg=b*.9; cb=b*1.1; s=1.5+Math.random()*1.5;
+    } else if(i<24600){ // Local (Orion) Spur — the short arm segment the Sun lives in
+      const r=900+(Math.random()*2-1)*170+gauss()*26;
+      const th=-(r-900)/(900*PITCH)+0.02+gauss()*0.05;
+      x=r*Math.sin(th); z=r*Math.cos(th); y=gauss()*7;
+      const roll=Math.random();
+      if(roll<0.05){ cr=.8; cg=.46; cb=.55; s=3.2+Math.random()*2.2; }
+      else if(roll<0.16){ cr=.5; cg=.62; cb=.9; s=2.8+Math.random()*2.4; }
+      else { const b=.11+Math.random()*.13; cr=b*.85; cg=b*.95; cb=b*1.15; s=1.6+Math.random()*1.7; }
+    } else if(i<28600){ // sparse old stellar halo enveloping the disk
+      const rr=150+Math.abs(gauss())*1000, th=Math.random()*2*Math.PI, ph=Math.acos(2*Math.random()-1);
+      x=rr*Math.sin(ph)*Math.cos(th); z=rr*Math.sin(ph)*Math.sin(th); y=rr*Math.cos(ph)*0.72;
+      const b=.05+Math.random()*.06;
+      cr=b*1.05; cg=b*.95; cb=b*.85; s=1.6+Math.random()*1.4;
+    } else if(i<28680){ // globular clusters scattered through the halo
+      const rr=250+Math.abs(gauss())*1000, th=Math.random()*2*Math.PI, ph=Math.acos(2*Math.random()-1);
+      x=rr*Math.sin(ph)*Math.cos(th); z=rr*Math.sin(ph)*Math.sin(th); y=rr*Math.cos(ph)*0.8;
+      const b=.35+Math.random()*.25;
+      cr=b*1.1; cg=b*1.0; cb=b*.85; s=3.4+Math.random()*2.0;
+    } else if(i<42000){ // faint extended outer disk (measured to ~2× the classic radius), flaring outward
+      const r=1700+Math.pow(Math.random(),1.6)*1250, th=Math.random()*2*Math.PI;
+      x=r*Math.sin(th); z=r*Math.cos(th); y=gauss()*(6+(r-1700)*0.012);
+      const b=.035+Math.random()*.055;
+      cr=b*.9; cg=b*.92; cb=b*1.05; s=1.5+Math.random()*1.5;
+    } else { // the four arms, growing out of the bar tips
+      const arm = Math.random()<0.68 ? ARMS[i%2] : ARMS[2+(i%2)];
+      const r=BAR_L+Math.pow(Math.random(),1.1)*1600;
+      const spread=0.055+r*0.00006;
+      const th=armAngle(r,arm[0])+gauss()*spread;
+      x=r*Math.sin(th); z=r*Math.cos(th); y=gauss()*(8-r*0.003);
+      const w=arm[1]*(1-0.45*(r-BAR_L)/1600), roll=Math.random();
+      if(roll<0.045){ cr=.95*w; cg=.55*w; cb=.65*w; s=3.0+Math.random()*2.2; }      // pink HII star-forming knots
+      else if(roll<0.14){ cr=.65*w; cg=.78*w; cb=1.05*w; s=2.6+Math.random()*2.2; } // young blue clusters
+      else { const b=(.13+Math.random()*.17)*w; cr=b*.85; cg=b*.95; cb=b*1.15; s=1.5+Math.random()*1.7; }
+    }
+    gxyPos[i*3]=x; gxyPos[i*3+1]=y; gxyPos[i*3+2]=z;
+    gxySize[i]=s; gxyCol[i*3]=cr; gxyCol[i*3+1]=cg; gxyCol[i*3+2]=cb;
+  }
+
+  // ~420 emission nebulae: along the arms, at the bar tips, and in the Local Spur
+  var NEB_N = 2600;
+  var nebPos=new Float32Array(NEB_N*3), nebSize=new Float32Array(NEB_N), nebCol=new Float32Array(NEB_N*3);
+  {
+    const TYPES=[[.058,.018,.030],[.016,.044,.050],[.030,.020,.060],[.052,.033,.014]]; // Hα pink, OIII teal, violet dust-glow, amber
+    const TW=[.38,.28,.22,.12];
+    let p=0;
+    while(p<NEB_N){
+      let r, th, str=1, core=false;
+      const kind=Math.random();
+      if(kind<0.05){ // soft warm glow enveloping the nucleus
+        r=Math.abs(gauss())*70; th=Math.random()*2*Math.PI; str=1.6; core=true;
+      } else if(kind<0.14){ // starburst knots at the bar tips — a real feature of barred galaxies
+        th=(Math.random()<0.5?BAR_A:BAR_A+Math.PI)+gauss()*0.06;
+        r=BAR_L*(0.95+Math.random()*0.15);
+      } else if(kind<0.27){ // Local Spur, around the Sun
+        r=900+(Math.random()*2-1)*150;
+        th=-(r-900)/(900*PITCH)+0.02+gauss()*0.04; str=0.8;
+      } else { // spiral arms
+        const arm = Math.random()<0.72 ? ARMS[(Math.random()*2)|0] : ARMS[2+((Math.random()*2)|0)];
+        r=BAR_L+40+Math.pow(Math.random(),0.95)*1150;
+        th=armAngle(r,arm[0])+gauss()*0.045; str=arm[1];
+      }
+      const ax=r*Math.sin(th), az=r*Math.cos(th), ay=gauss()*5;
+      let roll=Math.random(), ti=0, acc=0;
+      for(let k=0;k<4;k++){ acc+=TW[k]; if(roll<acc){ ti=k; break; } }
+      if(core) ti=3; // nucleus glows amber
+      const col=TYPES[ti], scale=(22+Math.random()*46)*str;
+      const puffs=Math.min(NEB_N-p, 5+((Math.random()*4)|0));
+      for(let q=0;q<puffs;q++,p++){
+        nebPos[p*3]  =ax+gauss()*scale*0.45;
+        nebPos[p*3+1]=ay+gauss()*scale*0.18;
+        nebPos[p*3+2]=az+gauss()*scale*0.45;
+        nebSize[p]=scale*(0.6+Math.random()*0.8);
+        const j=0.7+Math.random()*0.6;
+        nebCol[p*3]=col[0]*j; nebCol[p*3+1]=col[1]*j; nebCol[p*3+2]=col[2]*j;
+      }
+    }
+  }
+
+  // dark dust lanes — the light-blocking clouds that define real spiral photos:
+  // streaks along the inner (concave) edge of each arm, plus the bar's twin lanes
+  var DUST_N = 3400;
+  var dustPos=new Float32Array(DUST_N*3), dustSize=new Float32Array(DUST_N), dustStr=new Float32Array(DUST_N*3);
+  {
+    let p=0;
+    while(p<420){ // the bar's point-symmetric leading-edge lanes
+      const u=(Math.random()*2-1)*BAR_L*0.92, v=(u>0?1:-1)*(34+gauss()*10);
+      dustPos[p*3]=u*sA+v*cA; dustPos[p*3+1]=gauss()*8; dustPos[p*3+2]=u*cA-v*sA;
+      dustSize[p]=16+Math.random()*22; dustStr[p*3]=.30+Math.random()*.25; p++;
+    }
+    while(p<DUST_N){ // streaks following each arm's inner edge
+      const arm = Math.random()<0.7 ? ARMS[(Math.random()*2)|0] : ARMS[2+((Math.random()*2)|0)];
+      const r0=BAR_L+30+Math.pow(Math.random(),0.9)*1150;
+      const seg=Math.min(DUST_N-p, 4+((Math.random()*4)|0));
+      for(let q=0;q<seg;q++,p++){
+        const r=r0+q*16+gauss()*6-26;
+        const th=armAngle(r,arm[0])+0.030+gauss()*0.016;
+        dustPos[p*3]=r*Math.sin(th); dustPos[p*3+1]=gauss()*5; dustPos[p*3+2]=r*Math.cos(th);
+        dustSize[p]=18+Math.random()*26;
+        dustStr[p*3]=(.22+Math.random()*.28)*arm[1];
+      }
+    }
+  }
+}
+
+function pointVAO(pos, size, col){
+  const vao=gl.createVertexArray(); gl.bindVertexArray(vao);
+  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,pos,gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,size,gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,1,gl.FLOAT,false,0,0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,col,gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2,3,gl.FLOAT,false,0,0);
+  gl.bindVertexArray(null); return vao;
+}
+const vaoStars = pointVAO(starPos, starSize, starCol);
+const vaoGxy   = pointVAO(gxyPos, gxySize, gxyCol);
+
+// nebulae: same vertex logic but a much larger sprite cap, and a coreless glow falloff
+const NEB_FS = `#version 300 es
+precision mediump float;
+in vec3 vColor; out vec4 o;
+void main(){
+  vec2 q = gl_PointCoord*2.0-1.0;
+  float r = length(q);
+  if(r>1.0) discard;
+  float a = pow(1.0-r, 2.1);
+  o = vec4(vColor*a, a);
+}`;
+const pNeb = prog(PT_VS.replace('110.0','560.0'), NEB_FS);
+const UN = {
+  proj: gl.getUniformLocation(pNeb,'uProj'),
+  view: gl.getUniformLocation(pNeb,'uView'),
+  px:   gl.getUniformLocation(pNeb,'uPx'),
+  spin: gl.getUniformLocation(pNeb,'uSpin'),
+  warp: gl.getUniformLocation(pNeb,'uWarp'),
+  sun:  gl.getUniformLocation(pNeb,'uSunPos')
+};
+const vaoNeb = pointVAO(nebPos, nebSize, nebCol);
+
+// dust: soft sprites that darken instead of glow (drawn with a multiplying blend)
+const DUST_FS = `#version 300 es
+precision mediump float;
+in vec3 vColor; out vec4 o;
+void main(){
+  vec2 q = gl_PointCoord*2.0-1.0;
+  float r = length(q);
+  if(r>1.0) discard;
+  o = vec4(0.0, 0.0, 0.0, pow(1.0-r, 1.8)*vColor.r);
+}`;
+const pDust = prog(PT_VS.replace('110.0','560.0'), DUST_FS);
+const UD = {
+  proj: gl.getUniformLocation(pDust,'uProj'),
+  view: gl.getUniformLocation(pDust,'uView'),
+  px:   gl.getUniformLocation(pDust,'uPx'),
+  spin: gl.getUniformLocation(pDust,'uSpin'),
+  warp: gl.getUniformLocation(pDust,'uWarp'),
+  sun:  gl.getUniformLocation(pDust,'uSunPos')
+};
+const vaoDust = pointVAO(dustPos, dustSize, dustStr);
+
+// ---------- Kuiper belt & Oort cloud (follow the Sun) ----------
+const KB_N = 1600;
+var kbRT=new Float32Array(KB_N*2), kbH=new Float32Array(KB_N), kbSz=new Float32Array(KB_N);
+for(let i=0;i<KB_N;i++){
+  let r,h;
+  if(Math.random()<0.7){ r=42+Math.random()*8;  h=gauss()*r*0.07; }  // classical belt (30–50 AU)
+  else { r=44+Math.pow(Math.random(),0.7)*22;   h=gauss()*r*0.17; }  // scattered disk
+  kbRT[i*2]=r; kbRT[i*2+1]=Math.random()*6.28318; kbH[i]=h; kbSz[i]=0.32+Math.random()*0.38;
+}
+const OO_N = 2400; // Oort cloud: symbolically close — really 2,000–100,000+ AU out
+var ooOff=new Float32Array(OO_N*3), ooSz=new Float32Array(OO_N);
+for(let i=0;i<OO_N;i++){
+  const r=90+Math.pow(Math.random(),0.6)*85;
+  const th=Math.random()*6.28318, ph=Math.acos(2*Math.random()-1);
+  ooOff[i*3]=r*Math.sin(ph)*Math.cos(th); ooOff[i*3+1]=r*Math.cos(ph); ooOff[i*3+2]=r*Math.sin(ph)*Math.sin(th);
+  ooSz[i]=0.6+Math.random()*0.6;
+}
+const KB_VS = `#version 300 es
+layout(location=0) in vec2 aRT;  // orbit radius, initial angle
+layout(location=1) in float aH;  // offset along the ecliptic normal
+layout(location=2) in float aSz;
+uniform mat4 uProj,uView; uniform float uPx,uT;
+uniform vec3 uSun,uE1,uE2,uEN;
+void main(){
+  float a = aRT.y + uT*6.28318/(165.0*pow(aRT.x/38.5,1.5)); // Kepler-scaled periods vs Neptune
+  vec3 p = uSun + (cos(a)*aRT.x)*uE1 + (sin(a)*aRT.x)*uE2 + aH*uEN;
+  vec4 mv=uView*vec4(p,1.0); gl_Position=uProj*mv;
+  gl_PointSize=clamp(aSz*uPx/max(1.0,-mv.z),1.0,9.0);
+}`;
+const OO_VS = `#version 300 es
+layout(location=0) in vec3 aOff;
+layout(location=1) in float aSz;
+uniform mat4 uProj,uView; uniform float uPx; uniform vec3 uSun;
+void main(){
+  vec4 mv=uView*vec4(uSun+aOff,1.0); gl_Position=uProj*mv;
+  gl_PointSize=clamp(aSz*uPx/max(1.0,-mv.z),1.0,6.0);
+}`;
+const BELT_FS = `#version 300 es
+precision mediump float; uniform vec3 uColor; out vec4 o;
+void main(){ vec2 q=gl_PointCoord*2.0-1.0; float r=length(q); if(r>1.0) discard;
+  float a=smoothstep(1.0,0.0,r); o=vec4(uColor*a,a); }`;
+const pKB = prog(KB_VS, BELT_FS), pOO = prog(OO_VS, BELT_FS);
+const UK = {}; for(const k of ['uProj','uView','uPx','uT','uSun','uE1','uE2','uEN','uColor']) UK[k]=gl.getUniformLocation(pKB,k);
+const UO = {}; for(const k of ['uProj','uView','uPx','uSun','uColor']) UO[k]=gl.getUniformLocation(pOO,k);
+const vaoKB = gl.createVertexArray(); gl.bindVertexArray(vaoKB);
+gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,kbRT,gl.STATIC_DRAW);
+gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
+gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,kbH,gl.STATIC_DRAW);
+gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,1,gl.FLOAT,false,0,0);
+gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,kbSz,gl.STATIC_DRAW);
+gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2,1,gl.FLOAT,false,0,0);
+gl.bindVertexArray(null);
+const vaoOO = gl.createVertexArray(); gl.bindVertexArray(vaoOO);
+gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,ooOff,gl.STATIC_DRAW);
+gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
+gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,ooSz,gl.STATIC_DRAW);
+gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,1,gl.FLOAT,false,0,0);
+gl.bindVertexArray(null);
+
+// Oort boundary: three great circles suggesting the spherical shell
+const RING_SEGS=160;
+var ringCS=new Float32Array(RING_SEGS*2);
+for(let i=0;i<RING_SEGS;i++){ const a=i/RING_SEGS*6.28318530718; ringCS[i*2]=Math.cos(a); ringCS[i*2+1]=Math.sin(a); }
+const RING_VS = `#version 300 es
+layout(location=0) in vec2 aCS;
+uniform mat4 uProj,uView; uniform vec3 uSun,uA,uB; uniform float uR;
+void main(){ gl_Position = uProj*uView*vec4(uSun + uR*(aCS.x*uA + aCS.y*uB), 1.0); }`;
+const RING_FS = `#version 300 es
+precision mediump float; uniform vec3 uColor; out vec4 o;
+void main(){ o=vec4(uColor,1.0); }`;
+const pRing = prog(RING_VS, RING_FS);
+const UR = {}; for(const k of ['uProj','uView','uSun','uA','uB','uR','uColor']) UR[k]=gl.getUniformLocation(pRing,k);
+const vaoRing = gl.createVertexArray(); gl.bindVertexArray(vaoRing);
+gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,ringCS,gl.STATIC_DRAW);
+gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
+gl.bindVertexArray(null);
+
+// bodies: dynamic positions, static size/color
+const bodyPosArr = new Float32Array(NB*3);
+const bodySize = new Float32Array(BODIES.map(b=>b[3]));
+const bodyCol = new Float32Array(NB*3);
+BODIES.forEach((b,i)=>{ bodyCol[i*3]=b[4][0]; bodyCol[i*3+1]=b[4][1]; bodyCol[i*3+2]=b[4][2]; });
+const vaoBodies = gl.createVertexArray(); gl.bindVertexArray(vaoBodies);
+const bufBodyPos = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER,bufBodyPos); gl.bufferData(gl.ARRAY_BUFFER,bodyPosArr,gl.DYNAMIC_DRAW);
+gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
+gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,bodySize,gl.STATIC_DRAW);
+gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,1,gl.FLOAT,false,0,0);
+gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,bodyCol,gl.STATIC_DRAW);
+gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2,3,gl.FLOAT,false,0,0);
+gl.bindVertexArray(null);
+
+// ---------- trails ----------
+const TRAIL_N = 2400, DT_SAMPLE = 0.01;  // 24-year sliding window
+const trails = [], trailBufs = [], trailVaos = [];
+for(let i=0;i<NB;i++){
+  const a = new Float32Array(TRAIL_N*3);
+  for(let k=0;k<TRAIL_N;k++){
+    bodyPos(i, (k-(TRAIL_N-1))*DT_SAMPLE, tmp);
+    a[k*3]=tmp[0]; a[k*3+1]=tmp[1]; a[k*3+2]=tmp[2];
+  }
+  trails.push(a);
+  const vao=gl.createVertexArray(); gl.bindVertexArray(vao);
+  const b=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,b);
+  gl.bufferData(gl.ARRAY_BUFFER,a,gl.DYNAMIC_DRAW);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
+  gl.bindVertexArray(null);
+  trailBufs.push(b); trailVaos.push(vao);
+}
+function pushTrail(i, ts){
+  const a=trails[i];
+  a.copyWithin(0,3);
+  bodyPos(i, ts, tmp);
+  a[(TRAIL_N-1)*3]=tmp[0]; a[(TRAIL_N-1)*3+1]=tmp[1]; a[(TRAIL_N-1)*3+2]=tmp[2];
+}
+
+// ---------- camera & interaction ----------
+const cam = { yaw: 0.9, pitch: 0.32, dist: 150, distGoal: 150, target:[0,0,0], follow:true };
+let dragging=false, px=0, py=0;
+canvas.addEventListener('pointerdown', e=>{ dragging=true; px=e.clientX; py=e.clientY; canvas.classList.add('dragging'); canvas.setPointerCapture(e.pointerId); });
+canvas.addEventListener('pointermove', e=>{
+  if(!dragging) return;
+  cam.yaw   -= (e.clientX-px)*0.005;
+  cam.pitch  = Math.max(-1.45, Math.min(1.45, cam.pitch + (e.clientY-py)*0.005));
+  px=e.clientX; py=e.clientY;
+});
+addEventListener('pointerup', ()=>{ dragging=false; canvas.classList.remove('dragging'); });
+canvas.addEventListener('wheel', e=>{
+  e.preventDefault();
+  cam.distGoal = Math.max(25, Math.min(7500, cam.distGoal*Math.exp(e.deltaY*0.0011)));
+},{passive:false});
+// pinch zoom
+let pinchD=0;
+canvas.addEventListener('touchstart', e=>{ if(e.touches.length===2){ pinchD=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY); } },{passive:true});
+canvas.addEventListener('touchmove', e=>{
+  if(e.touches.length===2){
+    const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+    if(pinchD>0) cam.distGoal=Math.max(25,Math.min(7500,cam.distGoal*pinchD/d));
+    pinchD=d; dragging=false;
+  }
+},{passive:true});
+
+// ---------- UI ----------
+const $=id=>document.getElementById(id);
+let paused=false, showTrails=true, showLabels=true, showStats=true;
+let showDwarfs=true, showKuiper=true, showOort=true;
+let speed = 1.5; // years per second
+const speedFromSlider = v => 0.02*Math.pow(750, v); // 0.02 → 15 yr/s
+function fmtSpeed(){ $('speedv').textContent = speed.toFixed(speed<1?2:1)+' yr/s'; }
+$('speed').addEventListener('input', e=>{ speed = speedFromSlider(+e.target.value); fmtSpeed(); });
+speed = speedFromSlider(0.55); fmtSpeed();
+
+function toggle(btn, fn){ btn.addEventListener('click', ()=>{ btn.classList.toggle('on'); fn(btn.classList.contains('on')); }); }
+toggle($('tPause'), on=>{ paused=!on; $('tPause').textContent = on?'⏸ pause':'▶ play'; });
+toggle($('tTrails'), on=> showTrails=on);
+toggle($('tLabels'), on=>{ showLabels=on; if(!on) labelEls.forEach(l=>l.style.display='none'); });
+toggle($('tDwarfs'), on=>{ showDwarfs=on; if(!on) labelEls.forEach((l,i)=>{ if(i>=N_PLANETS) l.style.display='none'; }); });
+toggle($('tKuiper'), on=> showKuiper=on);
+toggle($('tOort'), on=> showOort=on);
+function updateBar(){
+  showStats = ['sCal','sAge','sGyr'].some(id => $(id).style.display !== 'none');
+  $('gamebar').style.display = showStats ? 'flex' : 'none';
+}
+function statToggle(btn, statId){ toggle(btn, on=>{ $(statId).style.display = on?'':'none'; updateBar(); }); }
+statToggle($('tStatCal'), 'sCal');
+statToggle($('tStatAge'), 'sAge');
+statToggle($('tStatGyr'), 'sGyr');
+toggle($('tSci'), on=> sciMode=on);
+let calMode='hs', sciMode=false;
+$('cal').addEventListener('change', e=> calMode=e.target.value);
+const sup = e => String(e).split('').map(d=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[+d]).join('');
+function fmtYears(y){ // a duration in years → astronomer units, or ×10^x notation
+  if(sciMode){
+    const e=Math.floor(Math.log10(Math.max(1,y)));
+    return (y/Math.pow(10,e)).toFixed(4)+'×10'+sup(e)+' yr';
+  }
+  if(y>=1e9) return (y/1e9).toFixed(4)+' Gyr';
+  if(y>=1e6) return (y/1e6).toFixed(4)+' Myr';
+  if(y>=1e3) return (y/1e3).toFixed(3)+' kyr';
+  return Math.floor(y).toLocaleString('en-US')+' yr';
+}
+function humanYear(){
+  const g = 2026 + simT; // one Earth orbit in the sim = one human year
+  const fmt = n => Math.floor(n).toLocaleString('en-US');
+  switch(calMode){
+    case 'ah':   return fmt((g-621.57)*1.03069)+' A.H.'; // lunar years run ~3% faster
+    case 'vs':   return fmt(g+57)+' V.S.';
+    case 'saka': return fmt(g-78)+' Śaka';
+    case 'am':   return fmt(g+3760)+' A.M.';
+    case 'al':   return fmt(g+4000)+' A.L.';
+    case 'he':   return fmt(g+10000)+' H.E.';          // Holocene calendar: +10,000 yr
+    case 'her':  return fmtYears(2000000+simT);        // since Homo erectus emerged (~2 Myr ago)
+    case 'hom':  return fmtYears(7000000+simT);        // since the chimp–human lineage split (~7 Myr ago)
+    case 'mam':  return fmtYears(200000000+simT);      // since the first true mammals (~200 Myr ago, Late Triassic)
+    case 'hs':   return fmtYears(300000+simT);         // since Homo sapiens emerged (~300 kyr ago)
+    default:     return g>=1 ? 'A.D. '+fmt(g) : fmt(1-g)+' B.C.';
+  }
+}
+toggle($('tView'), on=>{ cam.follow=!on; cam.distGoal = on? 4300 : 150; });
+function refillTrails(){
+  for(let i=0;i<NB;i++){
+    const a=trails[i];
+    for(let k=0;k<TRAIL_N;k++){
+      bodyPos(i, simT+(k-(TRAIL_N-1))*DT_SAMPLE, tmp);
+      a[k*3]=tmp[0]; a[k*3+1]=tmp[1]; a[k*3+2]=tmp[2];
+    }
+    gl.bindBuffer(gl.ARRAY_BUFFER,trailBufs[i]);
+    gl.bufferSubData(gl.ARRAY_BUFFER,0,a);
+  }
+}
+toggle($('tReal'), on=>{ realMode=on; refillTrails(); });
+$('collapse').addEventListener('click', ()=>{
+  $('hud').style.display='none'; $('reopen').style.display='block';
+});
+$('reopen').addEventListener('click', ()=>{
+  $('hud').style.display=''; $('reopen').style.display='none';
+});
+$('tInfo').addEventListener('click', ()=>{ $('infoModal').style.display='flex'; });
+$('infoClose').addEventListener('click', ()=>{ $('infoModal').style.display='none'; });
+$('infoModal').addEventListener('click', e=>{ if(e.target.id==='infoModal') $('infoModal').style.display='none'; });
+if(matchMedia('(prefers-reduced-motion: reduce)').matches){ $('tPause').click(); }
+
+// labels
+const labelWrap=$('labels');
+const labelEls = BODIES.map(b=>{
+  const d=document.createElement('div'); d.className='lbl'; d.textContent=b[0];
+  labelWrap.appendChild(d); return d;
+});
+
+// ---------- resize ----------
+let W=0,H=0,DPR=1, projMat;
+function resize(){
+  DPR=Math.min(2, devicePixelRatio||1);
+  W=innerWidth; H=innerHeight;
+  canvas.width=W*DPR; canvas.height=H*DPR;
+  gl.viewport(0,0,canvas.width,canvas.height);
+  projMat = perspective(Math.PI/3, W/H, 0.5, 20000);
+}
+addEventListener('resize', resize); resize();
+
+// ---------- main loop ----------
+gl.disable(gl.DEPTH_TEST);
+gl.enable(gl.BLEND);
+gl.blendFunc(gl.ONE, gl.ONE);
+gl.clearColor(0.012,0.018,0.035,1);
+
+let simT=0, nextSample=DT_SAMPLE, last=performance.now();
+const smoothTarget=[0,0,0]; let firstFrame=true;
+
+function frame(now){
+  const dt = Math.min(0.05,(now-last)/1000); last=now;
+  if(!paused){
+    simT += dt*speed;
+    let n=0;
+    while(nextSample<=simT && n<400){
+      for(let i=0;i<NB;i++) pushTrail(i,nextSample);
+      nextSample+=DT_SAMPLE; n++;
+    }
+    if(nextSample<=simT) nextSample=simT+DT_SAMPLE; // skip backlog at extreme speeds
+    if(n>0){
+      for(let i=0;i<NB;i++){
+        gl.bindBuffer(gl.ARRAY_BUFFER,trailBufs[i]);
+        gl.bufferSubData(gl.ARRAY_BUFFER,0,trails[i]);
+      }
+    }
+  }
+
+  // body positions
+  for(let i=0;i<NB;i++){
+    bodyPos(i,simT,tmp);
+    bodyPosArr[i*3]=tmp[0]; bodyPosArr[i*3+1]=tmp[1]; bodyPosArr[i*3+2]=tmp[2];
+  }
+  gl.bindBuffer(gl.ARRAY_BUFFER,bufBodyPos);
+  gl.bufferSubData(gl.ARRAY_BUFFER,0,bodyPosArr);
+
+  // camera
+  const goal = cam.follow ? [bodyPosArr[0],bodyPosArr[1],bodyPosArr[2]] : [0,0,0];
+  const k = firstFrame?1:Math.min(1,dt*4);
+  for(let i=0;i<3;i++) smoothTarget[i]+= (goal[i]-smoothTarget[i])*k;
+  cam.dist += (cam.distGoal-cam.dist)*Math.min(1,dt*4);
+  firstFrame=false;
+  const cp=Math.cos(cam.pitch), sp=Math.sin(cam.pitch);
+  const eye=[ smoothTarget[0]+cam.dist*cp*Math.sin(cam.yaw),
+              smoothTarget[1]+cam.dist*sp,
+              smoothTarget[2]+cam.dist*cp*Math.cos(cam.yaw) ];
+  const viewMat = lookAt(eye, smoothTarget, [0,1,0]);
+  const pxScale = (H*DPR)/(2*Math.tan(Math.PI/6));
+
+  gl.clear(gl.COLOR_BUFFER_BIT);
+
+  // points: stars, galaxy, bodies
+  gl.useProgram(pPt);
+  gl.uniformMatrix4fv(U.ptProj,false,projMat);
+  gl.uniformMatrix4fv(U.ptView,false,viewMat);
+  gl.uniform1f(U.ptPx,pxScale);
+  gl.uniform1f(U.ptSpin, 0.0);
+  gl.bindVertexArray(vaoStars); gl.drawArrays(gl.POINTS,0,N_STAR);
+  const spin = simT*V_GAL; // every disk star travels at the same flat-curve speed as the Sun
+  const warp = -2*Math.PI*simT/545; // warp precession: retrograde, ~650 Myr per turn (compressed)
+  const sunX=bodyPosArr[0], sunY=bodyPosArr[1], sunZ=bodyPosArr[2];
+  const bubY = realMode ? sunY+1e8 : sunY; // real scale: nothing is magnified, so no clearance bubble
+  gl.uniform1f(U.ptSpin, spin);
+  gl.uniform1f(U.ptWarp, warp);
+  gl.uniform3f(U.ptSun, sunX, bubY, sunZ);
+  gl.bindVertexArray(vaoGxy);   gl.drawArrays(gl.POINTS,0,N_GXY);
+
+  // dust lanes: multiply what's behind them down toward black
+  gl.blendFunc(gl.ZERO, gl.ONE_MINUS_SRC_ALPHA);
+  gl.useProgram(pDust);
+  gl.uniformMatrix4fv(UD.proj,false,projMat);
+  gl.uniformMatrix4fv(UD.view,false,viewMat);
+  gl.uniform1f(UD.px,pxScale);
+  gl.uniform1f(UD.spin, spin);
+  gl.uniform1f(UD.warp, warp);
+  gl.uniform3f(UD.sun, sunX, bubY, sunZ);
+  gl.bindVertexArray(vaoDust); gl.drawArrays(gl.POINTS,0,DUST_N);
+  gl.blendFunc(gl.ONE, gl.ONE);
+
+  // nebulae
+  gl.useProgram(pNeb);
+  gl.uniformMatrix4fv(UN.proj,false,projMat);
+  gl.uniformMatrix4fv(UN.view,false,viewMat);
+  gl.uniform1f(UN.px,pxScale);
+  gl.uniform1f(UN.spin, spin);
+  gl.uniform1f(UN.warp, warp);
+  gl.uniform3f(UN.sun, sunX, bubY, sunZ);
+  gl.bindVertexArray(vaoNeb); gl.drawArrays(gl.POINTS,0,NEB_N);
+
+  // trails
+  if(showTrails){
+    gl.useProgram(pTr);
+    gl.uniformMatrix4fv(U.trProj,false,projMat);
+    gl.uniformMatrix4fv(U.trView,false,viewMat);
+    gl.uniform1f(U.trLen,TRAIL_N);
+    for(let i=(realMode?1:(showDwarfs?NB:N_PLANETS))-1;i>=0;i--){
+      const c=BODIES[i][4];
+      gl.uniform3f(U.trCol,c[0],c[1],c[2]);
+      gl.uniform1f(U.trA, i===0?0.9:0.55);
+      gl.bindVertexArray(trailVaos[i]);
+      gl.drawArrays(gl.LINE_STRIP,0,TRAIL_N);
+    }
+  }
+
+  // Kuiper belt & Oort cloud, riding along with the Sun
+  if(showKuiper && !realMode){
+    gl.useProgram(pKB);
+    gl.uniformMatrix4fv(UK.uProj,false,projMat);
+    gl.uniformMatrix4fv(UK.uView,false,viewMat);
+    gl.uniform1f(UK.uPx,pxScale); gl.uniform1f(UK.uT,simT);
+    gl.uniform3f(UK.uSun,sunX,sunY,sunZ);
+    gl.uniform3f(UK.uE1,E1[0],E1[1],E1[2]);
+    gl.uniform3f(UK.uE2,E2[0],E2[1],E2[2]);
+    gl.uniform3f(UK.uEN,EN[0],EN[1],EN[2]);
+    gl.uniform3f(UK.uColor,0.10,0.11,0.14);
+    gl.bindVertexArray(vaoKB); gl.drawArrays(gl.POINTS,0,KB_N);
+  }
+  if(showOort && !realMode){
+    gl.useProgram(pOO);
+    gl.uniformMatrix4fv(UO.uProj,false,projMat);
+    gl.uniformMatrix4fv(UO.uView,false,viewMat);
+    gl.uniform1f(UO.uPx,pxScale);
+    gl.uniform3f(UO.uSun,sunX,sunY,sunZ);
+    gl.uniform3f(UO.uColor,0.11,0.12,0.15);
+    gl.bindVertexArray(vaoOO); gl.drawArrays(gl.POINTS,0,OO_N);
+    // boundary: wireframe-sphere hint of the shell
+    gl.useProgram(pRing);
+    gl.uniformMatrix4fv(UR.uProj,false,projMat);
+    gl.uniformMatrix4fv(UR.uView,false,viewMat);
+    gl.uniform3f(UR.uSun,sunX,sunY,sunZ);
+    gl.uniform1f(UR.uR,178.0);
+    gl.uniform3f(UR.uColor,0.10,0.13,0.19);
+    gl.bindVertexArray(vaoRing);
+    for(const [A,B] of [[E1,E2],[E1,EN],[E2,EN]]){
+      gl.uniform3f(UR.uA,A[0],A[1],A[2]);
+      gl.uniform3f(UR.uB,B[0],B[1],B[2]);
+      gl.drawArrays(gl.LINE_LOOP,0,RING_SEGS);
+    }
+  }
+
+  gl.useProgram(pPt);
+  gl.uniform1f(U.ptSpin, 0.0); // body positions already include their motion
+  gl.bindVertexArray(vaoBodies); gl.drawArrays(gl.POINTS,0, realMode?1:(showDwarfs?NB:N_PLANETS));
+
+  // labels
+  if(showLabels){
+    const pv = mul(projMat, viewMat);
+    for(let i=0;i<NB;i++){
+      if((realMode && i>0) || (i>=N_PLANETS && !showDwarfs)){ labelEls[i].style.display='none'; continue; }
+      const x=bodyPosArr[i*3],y=bodyPosArr[i*3+1],z=bodyPosArr[i*3+2];
+      const cw = pv[3]*x+pv[7]*y+pv[11]*z+pv[15];
+      if(cw<=0.5 || cam.dist>900){ labelEls[i].style.display='none'; continue; }
+      const cx=(pv[0]*x+pv[4]*y+pv[8]*z+pv[12])/cw;
+      const cy=(pv[1]*x+pv[5]*y+pv[9]*z+pv[13])/cw;
+      const l=labelEls[i];
+      l.style.display='block';
+      l.style.left=((cx*0.5+0.5)*W)+'px';
+      l.style.top =((-cy*0.5+0.5)*H)+'px';
+      l.style.opacity = i===0?0.9:0.65;
+    }
+  } 
+
+  // stats
+  $('yrs').textContent = simT.toFixed(1);
+  $('pct').textContent = (simT/GAL_PERIOD*100).toFixed(3);
+  if(showStats){
+    $('gCal').textContent = humanYear();
+    // real elapsed time: one sim lap ≡ one real galactic year of 225 Myr
+    const myr = simT*(225/GAL_PERIOD);                       // real megayears elapsed
+    $('gAge').textContent = fmtYears(4.568e9 + myr*1e6);
+    $('gGyr').textContent = (4568/225 + simT/GAL_PERIOD).toFixed(3);
+  }
+
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
