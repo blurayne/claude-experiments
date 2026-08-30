@@ -18,8 +18,9 @@ in the browser with no build step and no external CDN.
   continuous ~9-order-of-magnitude zoom from the galaxy down through the Oort
   shell (true ~1.6 ly edge) and Kuiper belt to the planets at their real
   diameters, with a live view-width readout. A **quality** row raises the modelled star
-  count from base through hi-fi and ultra up to ×8 (a *min light* slider lifts a
-  floor under the faintest), and a **gaia sky** layer draws 20,000 real stars
+  count from base through hi-fi and ultra up to ×8 (a *star gain* slider lifts a
+  floor under the faintest and widens the smallest sprites, roughly doubling
+  the galaxy's brightness at maximum), and a **gaia sky** layer draws 20,000 real stars
   from Gaia DR3 astrometry at their true distances around the Sun,
   scatter discrete dark molecular clouds (Dunkelwolken) through the disk, and
   the disk itself follows Gaia-era structure: an exponential thin disk plus a
