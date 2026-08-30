@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.5.0 — 2026-08-30
+
+- The galaxy is drawn from the face-on Milky Way picture (`f96f36f`)
+
 ### 2.4.2 — 2026-08-30
 
 - Supernovae flare rather than flood the view (`6fc7dcb`)
