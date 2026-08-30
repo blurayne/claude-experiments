@@ -95,10 +95,6 @@
   .env .er b{font-family:'Orbitron',ui-monospace,monospace;font-size:10.5px;color:var(--ink);
     font-variant-numeric:tabular-nums;font-weight:600}
   .crowded{display:none !important}
-  .ice-badge{display:none;margin-top:8px;padding:4px 6px;border-radius:2px;text-align:center;
-    font-family:'Orbitron',ui-monospace,monospace;font-size:8.5px;letter-spacing:.16em;
-    color:#0a1b26;background:linear-gradient(180deg,#cfefff,#8fd4f0);font-weight:700}
-  body.ice .ice-badge{display:block}
   .g710-badge{display:none;margin-top:6px;padding:4px 6px;border-radius:2px;text-align:center;
     font-family:'Orbitron',ui-monospace,monospace;font-size:8.5px;letter-spacing:.14em;font-weight:700;
     color:#2a1405;background:linear-gradient(180deg,#ffd9a8,#ffab5c)}
@@ -144,7 +140,6 @@
     .env h2{font-size:7.5px;letter-spacing:.12em;margin-bottom:5px}
     .env .er{font-size:8px;letter-spacing:.03em;gap:5px}
     .env .er b{font-size:9px}
-    .ice-badge{font-size:7.5px;letter-spacing:.1em}
   }
   #infoModal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;
     background:rgba(2,4,8,.65);z-index:20;padding:18px}
@@ -204,7 +199,7 @@
   <h1>Galactic Transit <span class="ver" id="verHud"></span></h1>
   <div class="sub">The Sun orbits the Milky Way's core at ~230 km/s. The planets, on an ecliptic tilted ~60° to the galactic plane, weave helical paths around its track.</div>
   <div class="body">
-    <div class="row"><label for="speed">speed</label><input type="range" id="speed" min="0" max="1" step="0.001" value="0.591"><span id="speedv" style="min-width:64px;text-align:right;color:var(--ink)"></span></div>
+    <div class="row"><label for="speed">speed</label><input type="range" id="speed" min="0" max="1" step="0.001" value="1"><span id="speedv" style="min-width:64px;text-align:right;color:var(--ink)"></span></div>
     <div class="row"><label>× speed</label><div class="mults" id="mults"></div></div>
     <div class="row"><label>quality</label><div class="mults" id="quals"></div></div>
     <div class="row"><label for="hudHz">hud rate</label><input type="range" id="hudHz" min="1" max="16" step="1" value="8"><span id="hudHzv" style="min-width:64px;text-align:right;color:var(--ink)">8×/s</span></div>
@@ -511,7 +506,6 @@
   <div class="er"><span>cosmic rays</span><b id="eCR">1.00× today</b></div>
   <div class="er"><span>starlight</span><b id="eSL">1.0×</b></div>
   <div class="er" id="eLifeRow"><span>life support</span><b id="eLife">habitable</b></div>
-  <div class="ice-badge" id="eIce">❄ glacial epoch</div>
   <div class="g710-badge" id="eG710">☄ Gliese 710 · <span id="eG710d">—</span></div>
 </div>
 
@@ -522,7 +516,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.0.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.1.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 const BUILD_LINE = BUILD.date.indexOf('__') === 0
   ? VERSION + ' · dev build'
@@ -1757,11 +1751,14 @@ $('tReload').addEventListener('click', async ()=>{
 let paused=false, showTrails=true, showLabels=true, showStats=true;
 let showDwarfs=true, showBelt=true, showKuiper=true, showOort=true;
 let speed = 1.5; // years per second
-const speedFromSlider = v => 0.02*Math.pow(750, v); // 0.02 → 15 yr/s
+const WEEK_YR = 7/365.2425;                          // one week, in years
+const speedFromSlider = v => Math.pow(WEEK_YR, 1-v);  // a week per second → a year per second
 function supStr(e){ return String(e).split('').map(d=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[+d]).join(''); }
 let speedMult = 1;
 function fmtSpeed(){
   const eff = speed*speedMult;
+  // below a season a year is the wrong unit to read it in
+  if(eff < 0.25){ $('speedv').textContent = (eff/WEEK_YR).toFixed(1)+' wk/s'; return; }
   if(eff < 1000){ $('speedv').textContent = eff.toFixed(eff<1?2:1)+' yr/s'; return; }
   const e = Math.floor(Math.log10(eff));
   $('speedv').textContent = (eff/Math.pow(10,e)).toFixed(2)+'×10'+supStr(e)+' yr/s';
@@ -1781,7 +1778,7 @@ function fmtSpeed(){
   });
 }
 $('speed').addEventListener('input', e=>{ speed = speedFromSlider(+e.target.value); fmtSpeed(); });
-speed = speedFromSlider(0.591); fmtSpeed();   // 1.00 Earth year per second
+speed = speedFromSlider(1); fmtSpeed();   // one Earth year per second
 // One slider, two effects, because they are the same intent: make the faint stars
 // carry. It lifts a floor under their colour and widens the smallest sprites, which is
 // where most of the lost light actually goes.
@@ -2595,7 +2592,8 @@ function frame(now){
   }
 
   { const e = environment();
-    $('eMean').textContent  = e.mean.toFixed(1)+' °C';
+    // a glacial epoch is marked on the reading itself rather than in a banner below it
+    $('eMean').textContent  = (e.ice ? '❄ ' : '') + e.mean.toFixed(1)+' °C';
     $('eRange').textContent = e.min.toFixed(0)+' / '+e.max.toFixed(0)+' °C';
     $('eCR').textContent    = e.cr.toFixed(2)+'× today';
     $('eSL').textContent    = e.star.toFixed(2)+'×';
