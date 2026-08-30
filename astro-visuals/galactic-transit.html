@@ -97,6 +97,7 @@
       <button class="tg on" id="tTrails">trails</button>
       <button class="tg on" id="tLabels">labels</button>
       <button class="tg on" id="tDwarfs">dwarfs</button>
+      <button class="tg on" id="tBelt">asteroids</button>
       <button class="tg on" id="tKuiper">kuiper</button>
       <button class="tg on" id="tOort">oort</button>
       <button class="tg on" id="tStatCal">hum yr</button>
@@ -180,6 +181,8 @@
       <li>Bar (half-length ~15,000 ly, 28° to the Sun–center line), arms sprouting from the bar tips
       (Scutum–Centaurus, Perseus + Sagittarius, Norma), and the Sun's <b>Local Spur</b> follow Milky Way measurements.</li>
       <li>The <b>warped outer disk</b> and its slow retrograde precession follow Gaia's findings.</li>
+      <li>The <b>asteroid belt</b> (~1,500 points at 2.1&ndash;3.3&nbsp;AU) carves out the Kirkwood gaps at
+      Jupiter's 3:1, 5:2 and 7:3 resonances, and its orbital periods are true Kepler in both scale modes.</li>
       <li>The <b>hi-fi galaxy</b> toggle raises the drawn star count five-fold (~460,000 points) and scatters
       discrete <b>dark molecular clouds</b> (Dunkelwolken) through the disk on top of the arm-edge dust lanes —
       closer to the Milky Way's real texture, at the cost of GPU load.</li>
@@ -640,6 +643,28 @@ const UD = {
 setGalaxy(1);
 
 // ---------- Kuiper belt & Oort cloud (follow the Sun) ----------
+// main asteroid belt: real 2.1-3.3 AU radii with Kirkwood gaps; a second, remapped
+// radius set places it between Mars and Jupiter in the compressed display layout
+const AB_N = 1500;
+var abRT=new Float32Array(AB_N*2), abRTd=new Float32Array(AB_N*2);
+var abH=new Float32Array(AB_N), abHd=new Float32Array(AB_N);
+var abSz=new Float32Array(AB_N), abP=new Float32Array(AB_N);
+{
+  const GAPS=[2.502,2.825,2.958]; // Kirkwood gaps: Jupiter's 3:1, 5:2, 7:3 resonances
+  for(let i=0;i<AB_N;i++){
+    let r;
+    for(;;){ r=2.08+Math.pow(Math.random(),0.9)*1.19;
+      let ok=true;
+      for(const g of GAPS){ const d=Math.abs(r-g); if(d<0.045 && Math.random()>d/0.045){ ok=false; break; } }
+      if(ok) break; }
+    const th=Math.random()*6.28318;
+    abRT[i*2]=r; abRT[i*2+1]=th;
+    abRTd[i*2]=14+(r-1.524)/(5.203-1.524)*6; abRTd[i*2+1]=th; // Mars(14)..Jupiter(20); Ceres lands on its display 16
+    abH[i]=gauss()*r*0.09; abHd[i]=gauss()*abRTd[i*2]*0.045;
+    abSz[i]=0.22+Math.random()*0.34;
+    abP[i]=Math.pow(r,1.5); // true Kepler period in years, used in both scale modes
+  }
+}
 const KB_N = 1600;
 var kbRT=new Float32Array(KB_N*2), kbH=new Float32Array(KB_N), kbSz=new Float32Array(KB_N);
 for(let i=0;i<KB_N;i++){
@@ -666,7 +691,20 @@ void main(){
   float a = aRT.y + uT*6.28318/(165.0*pow(aRT.x/38.5,1.5)); // Kepler-scaled periods vs Neptune
   vec3 p = uSun + (cos(a)*aRT.x*uS)*uE1 + (sin(a)*aRT.x*uS)*uE2 + aH*uS*uEN;
   vec4 mv=uView*vec4(p,1.0); gl_Position=uProj*mv;
-  gl_PointSize=clamp(aSz*uPx/max(1.0,-mv.z),1.0,9.0);
+  gl_PointSize=clamp(aSz*uS*uPx/max(1e-9,-mv.z),1.0,9.0);
+}`;
+const AB_VS = `#version 300 es
+layout(location=0) in vec2 aRT;  // orbit radius, initial angle
+layout(location=1) in float aH;  // offset along the ecliptic normal
+layout(location=2) in float aSz;
+layout(location=3) in float aP;  // real orbital period, years
+uniform mat4 uProj,uView; uniform float uPx,uT,uS;
+uniform vec3 uSun,uE1,uE2,uEN;
+void main(){
+  float a = aRT.y + uT*6.28318/aP;
+  vec3 p = uSun + (cos(a)*aRT.x*uS)*uE1 + (sin(a)*aRT.x*uS)*uE2 + aH*uS*uEN;
+  vec4 mv=uView*vec4(p,1.0); gl_Position=uProj*mv;
+  gl_PointSize=clamp(aSz*uS*uPx/max(1e-9,-mv.z),1.0,6.0);
 }`;
 const OO_VS = `#version 300 es
 layout(location=0) in vec3 aOff;
@@ -674,15 +712,16 @@ layout(location=1) in float aSz;
 uniform mat4 uProj,uView; uniform float uPx,uS; uniform vec3 uSun;
 void main(){
   vec4 mv=uView*vec4(uSun+aOff*uS,1.0); gl_Position=uProj*mv;
-  gl_PointSize=clamp(aSz*uPx/max(1.0,-mv.z),1.0,6.0);
+  gl_PointSize=clamp(aSz*uS*uPx/max(1e-9,-mv.z),1.0,6.0);
 }`;
 const BELT_FS = `#version 300 es
-precision mediump float; uniform vec3 uColor; out vec4 o;
+precision mediump float; uniform vec3 uColor; uniform float uAlpha; out vec4 o;
 void main(){ vec2 q=gl_PointCoord*2.0-1.0; float r=length(q); if(r>1.0) discard;
-  float a=smoothstep(1.0,0.0,r); o=vec4(uColor*a,a); }`;
-const pKB = prog(KB_VS, BELT_FS), pOO = prog(OO_VS, BELT_FS);
-const UK = {}; for(const k of ['uProj','uView','uPx','uT','uS','uSun','uE1','uE2','uEN','uColor']) UK[k]=gl.getUniformLocation(pKB,k);
-const UO = {}; for(const k of ['uProj','uView','uPx','uS','uSun','uColor']) UO[k]=gl.getUniformLocation(pOO,k);
+  float a=smoothstep(1.0,0.0,r)*uAlpha; o=vec4(uColor*a,a); }`;
+const pKB = prog(KB_VS, BELT_FS), pOO = prog(OO_VS, BELT_FS), pAB = prog(AB_VS, BELT_FS);
+const UA = {}; for(const k of ['uProj','uView','uPx','uT','uS','uSun','uE1','uE2','uEN','uColor','uAlpha']) UA[k]=gl.getUniformLocation(pAB,k);
+const UK = {}; for(const k of ['uProj','uView','uPx','uT','uS','uSun','uE1','uE2','uEN','uColor','uAlpha']) UK[k]=gl.getUniformLocation(pKB,k);
+const UO = {}; for(const k of ['uProj','uView','uPx','uS','uSun','uColor','uAlpha']) UO[k]=gl.getUniformLocation(pOO,k);
 const vaoKB = gl.createVertexArray(); gl.bindVertexArray(vaoKB);
 gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,kbRT,gl.STATIC_DRAW);
 gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
@@ -691,6 +730,19 @@ gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,1,gl.FLOAT,false,0,0);
 gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,kbSz,gl.STATIC_DRAW);
 gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2,1,gl.FLOAT,false,0,0);
 gl.bindVertexArray(null);
+const bufAbSz=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,bufAbSz); gl.bufferData(gl.ARRAY_BUFFER,abSz,gl.STATIC_DRAW);
+const bufAbP =gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,bufAbP);  gl.bufferData(gl.ARRAY_BUFFER,abP,gl.STATIC_DRAW);
+function beltVAO(rt,h){
+  const vao=gl.createVertexArray(); gl.bindVertexArray(vao);
+  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,rt,gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,h,gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,1,gl.FLOAT,false,0,0);
+  gl.bindBuffer(gl.ARRAY_BUFFER,bufAbSz); gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2,1,gl.FLOAT,false,0,0);
+  gl.bindBuffer(gl.ARRAY_BUFFER,bufAbP);  gl.enableVertexAttribArray(3); gl.vertexAttribPointer(3,1,gl.FLOAT,false,0,0);
+  gl.bindVertexArray(null); return vao;
+}
+const vaoABr = beltVAO(abRT, abH), vaoABd = beltVAO(abRTd, abHd);
 const vaoOO = gl.createVertexArray(); gl.bindVertexArray(vaoOO);
 gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,ooOff,gl.STATIC_DRAW);
 gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
@@ -788,7 +840,7 @@ canvas.addEventListener('touchmove', e=>{
 // ---------- UI ----------
 const $=id=>document.getElementById(id);
 let paused=false, showTrails=true, showLabels=true, showStats=true;
-let showDwarfs=true, showKuiper=true, showOort=true;
+let showDwarfs=true, showBelt=true, showKuiper=true, showOort=true;
 let speed = 1.5; // years per second
 const speedFromSlider = v => 0.02*Math.pow(750, v); // 0.02 → 15 yr/s
 function fmtSpeed(){ $('speedv').textContent = speed.toFixed(speed<1?2:1)+' yr/s'; }
@@ -800,6 +852,7 @@ toggle($('tPause'), on=>{ paused=!on; $('tPause').textContent = on?'⏸ pause':'
 toggle($('tTrails'), on=> showTrails=on);
 toggle($('tLabels'), on=>{ showLabels=on; if(!on) labelEls.forEach(l=>l.style.display='none'); });
 toggle($('tDwarfs'), on=>{ showDwarfs=on; if(!on) labelEls.forEach((l,i)=>{ if(i>=N_PLANETS) l.style.display='none'; }); });
+toggle($('tBelt'), on=> showBelt=on);
 toggle($('tKuiper'), on=> showKuiper=on);
 toggle($('tOort'), on=> showOort=on);
 function updateBar(){
@@ -1020,8 +1073,27 @@ function frame(now){
     }
   }
 
-  // Kuiper belt & Oort cloud, riding along with the Sun
-  if(showKuiper){
+  // asteroid belt, Kuiper belt & Oort cloud, riding along with the Sun.
+  // Each fades out while its ring is too small on screen to resolve — otherwise its
+  // points would pile up additively into a false bright blob on the Sun's pixel.
+  const beltFade = rw => Math.max(0, Math.min(1, (rw/cam.dist*pxScale - 24)/50));
+  const abA = beltFade(realMode ? 2.7*AU2U : 16.6);
+  const kbA = beltFade(realMode ? 45*AU2U : 45);
+  const ooA = beltFade(realMode ? 130*OO_REAL : 130);
+  if(showBelt && abA>0){
+    gl.useProgram(pAB);
+    gl.uniformMatrix4fv(UA.uProj,false,projMat);
+    gl.uniformMatrix4fv(UA.uView,false,viewMat);
+    gl.uniform1f(UA.uPx,pxScale); gl.uniform1f(UA.uT,simT);
+    gl.uniform1f(UA.uS, realMode?AU2U:1.0);
+    gl.uniform3f(UA.uSun,0,0,0);
+    gl.uniform3f(UA.uE1,E1[0],E1[1],E1[2]);
+    gl.uniform3f(UA.uE2,E2[0],E2[1],E2[2]);
+    gl.uniform3f(UA.uEN,EN[0],EN[1],EN[2]);
+    gl.uniform3f(UA.uColor,0.15,0.13,0.11); gl.uniform1f(UA.uAlpha,abA);
+    gl.bindVertexArray(realMode?vaoABr:vaoABd); gl.drawArrays(gl.POINTS,0,AB_N);
+  }
+  if(showKuiper && kbA>0){
     gl.useProgram(pKB);
     gl.uniformMatrix4fv(UK.uProj,false,projMat);
     gl.uniformMatrix4fv(UK.uView,false,viewMat);
@@ -1031,17 +1103,17 @@ function frame(now){
     gl.uniform3f(UK.uE1,E1[0],E1[1],E1[2]);
     gl.uniform3f(UK.uE2,E2[0],E2[1],E2[2]);
     gl.uniform3f(UK.uEN,EN[0],EN[1],EN[2]);
-    gl.uniform3f(UK.uColor,0.10,0.11,0.14);
+    gl.uniform3f(UK.uColor,0.10,0.11,0.14); gl.uniform1f(UK.uAlpha,kbA);
     gl.bindVertexArray(vaoKB); gl.drawArrays(gl.POINTS,0,KB_N);
   }
-  if(showOort){
+  if(showOort){ // rings always (they locate the shell); points fade via ooA
     gl.useProgram(pOO);
     gl.uniformMatrix4fv(UO.uProj,false,projMat);
     gl.uniformMatrix4fv(UO.uView,false,viewMat);
     gl.uniform1f(UO.uPx,pxScale);
     gl.uniform1f(UO.uS, realMode?OO_REAL:1.0);
     gl.uniform3f(UO.uSun,0,0,0);
-    gl.uniform3f(UO.uColor,0.11,0.12,0.15);
+    gl.uniform3f(UO.uColor,0.11,0.12,0.15); gl.uniform1f(UO.uAlpha,ooA);
     gl.bindVertexArray(vaoOO); gl.drawArrays(gl.POINTS,0,OO_N);
     // boundary: wireframe-sphere hint of the shell
     gl.useProgram(pRing);

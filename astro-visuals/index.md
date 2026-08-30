@@ -10,7 +10,8 @@ in the browser with no build step and no external CDN.
 - [`galactic-transit.html`](galactic-transit.html) — **Galactic Transit.** The
   Sun's real motion through the Milky Way at ~230 km/s, with the planets weaving
   helical paths around its track on an ecliptic tilted ~60° to the galactic
-  plane. Has trails, labels, dwarf planets, the Kuiper belt and the Oort cloud, a
+  plane. Has trails, labels, dwarf planets, the asteroid belt (with Kirkwood
+  gaps), the Kuiper belt and the Oort cloud, a
   galaxy view, several calendar eras and deep-time speed settings — plus a
   **real scale** toggle that collapses the whole planetary system into the Sun's
   single pixel to show the true proportions, and from there a **☉ dive**: a
