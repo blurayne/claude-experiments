@@ -86,6 +86,9 @@
   .note{position:fixed;left:14px;bottom:12px;max-width:340px;font-size:10px;line-height:1.55;color:var(--dim);
     background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:10px 12px;z-index:5;letter-spacing:.03em}
   .note em{font-family:'Orbitron',ui-monospace,monospace;font-size:.92em;color:var(--accent);font-style:normal;font-weight:600;text-shadow:0 0 8px var(--glow)}
+  .armlbl{position:fixed;transform:translate(-50%,-50%);font-family:'Orbitron',ui-monospace,monospace;
+    font-size:8.5px;letter-spacing:.26em;text-transform:uppercase;color:rgba(168,206,255,.52);
+    text-shadow:0 0 8px rgba(0,0,0,.9);pointer-events:none;white-space:nowrap}
   .lbl{position:fixed;transform:translate(-50%,-140%);font-family:'Orbitron',ui-monospace,monospace;font-size:8px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;
     color:rgba(190,224,250,.8);pointer-events:none;z-index:3;text-shadow:0 0 6px #000;white-space:nowrap}
   .env{position:fixed;top:14px;left:14px;z-index:5;width:216px;background:var(--panel);
@@ -226,6 +229,9 @@
     <div class="row"><label for="hudHz">hud rate</label><input type="range" id="hudHz" min="1" max="16" step="1" value="8"><span id="hudHzv" style="min-width:64px;text-align:right;color:var(--ink)">8×/s</span></div>
     <div class="row"><label for="minB">star gain</label><input type="range" id="minB" min="0" max="1" step="0.01" value="0"><span id="minBv" style="min-width:64px;text-align:right;color:var(--ink)">off</span></div>
     <div class="row"><label for="trailA">trails</label><input type="range" id="trailA" min="0" max="1" step="0.01" value="1"><span id="trailAv" style="min-width:64px;text-align:right;color:var(--ink)">100%</span></div>
+    <div class="row"><label for="tHelix" style="cursor:pointer">helix</label><button class="tg on" id="tHelix">stylized</button>
+      <input type="range" id="helixN" min="10" max="160" step="5" value="60" style="flex:1">
+      <span id="helixNv" style="min-width:44px;text-align:right;color:var(--ink)">60</span></div>
     <div class="row"><label for="trailL">length</label><input type="range" id="trailL" min="0" max="1000" step="10" value="300"><span id="trailLv" style="min-width:64px;text-align:right;color:var(--ink)">300%</span></div>
     <div class="row"><label for="musicVol">music</label><input type="range" id="musicVol" min="0" max="1" step="0.01" value="0.55"><span id="musicVolv" style="min-width:64px;text-align:right;color:var(--ink)">55%</span></div>
     <div class="row"><label for="sfxVol">effects</label><input type="range" id="sfxVol" min="0" max="1" step="0.01" value="0.7"><span id="sfxVolv" style="min-width:64px;text-align:right;color:var(--ink)">70%</span></div>
@@ -267,10 +273,12 @@
       <button class="tg on" id="tPause">⏸ pause</button>
       <button class="tg on" id="tTrails">trails</button>
       <button class="tg on" id="tLabels">labels</button>
+      <button class="tg on" id="tArms">arm names</button>
       <button class="tg on" id="tDwarfs">dwarfs</button>
       <button class="tg on" id="tBelt">asteroids</button>
       <button class="tg on" id="tKuiper">kuiper</button>
       <button class="tg on" id="tOort">oort</button>
+      <button class="tg on" id="tDust">dark clouds</button>
       <button class="tg on" id="tLife">life cycle</button>
       <button class="tg on" id="tVar">variables</button>
       <button class="tg on" id="tLifeSup">life support</button>
@@ -425,11 +433,12 @@
       does (Hubble's Variable Nebula changes within weeks). Their real day-to-year cycles are far below this
       clock's resolution — like the supernova flashes, the shimmer you see is a stretched sample.</li>
       <li><b>Trails</b> are drawn only as far back as the sampling can resolve — roughly two hundred
-      orbits per body. The old builds showed the planets weaving helices along the Sun's galactic track,
-      but that was a product of running galactic time about 1.2 million times faster than the planets:
-      by the time the Sun has moved even one Earth-orbit radius, the Earth has gone round some 440,000
-      times, and no buffer can draw that. On one honest clock the trails show orbits at low speed and
-      the Sun's arc at high speed, and each fades out where it would otherwise alias.</li>
+      orbits per body. A true helix along the Sun's galactic track is undrawable: by the time the Sun has
+      moved one Earth-orbit radius, the Earth has gone round some 440,000 times. At high speed the
+      <b>helix trails</b> therefore switch to an honest emblem of that motion — the coil count is set by
+      the slider, not by physics, and the coil radius is symbolic — while at low speed, where the true
+      orbits are resolvable, the real paths are drawn. Turn "stylized" off to keep only what is
+      measurable.</li>
       <li>The <b>dive</b> holds the camera on the line from the Sun to the galactic centre, so the core
       stays behind the planets rather than swinging out of frame as the Sun carries on around its orbit.
       Dragging still turns the view; it just turns relative to that line now.</li>
@@ -563,7 +572,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.9.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.10.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -1233,9 +1242,9 @@ function genGalaxyMap(D){
     const pI = mapPick(m.dustC);
     const w = mapXZ(pI, 0.5);
     dustPos[q*3]=w[0]; dustPos[q*3+1]=gauss()*5; dustPos[q*3+2]=w[1];
-    dustSize[q]=13+Math.random()*24;
+    dustSize[q]=16+Math.random()*28;
     const dk = Math.max(0, m.blur[pI]-m.lum[pI]);
-    dustStr[q*3]=(0.25+3.2*dk)*DS*(0.7+Math.random()*0.6);
+    dustStr[q*3]=(0.35+4.5*dk)*DS*(0.7+Math.random()*0.6);
   }
 }
 function setGalaxy(D){
@@ -1537,7 +1546,28 @@ for(let i=0;i<NB;i++){
   trailBufs.push(b); trailVaos.push(vao);
 }
 // In real scale everything but the Sun is stored as an offset from it.
+let helixOn = true, helixCoils = 60;
+// Is this body's true orbit resolvable at the current sampling, or does the stylized
+// helix stand in? Fewer than a dozen samples per orbit is aliasing, not a path.
+const helixFor = i => helixOn && i > 0 && BODIES[i][1]/DT_SAMPLE < 12;
 function trailPos(i, ts, out){
+  if(helixFor(i)){
+    // The corkscrew the eye expects — and the one physics refuses to draw: by the time
+    // the Sun moves one orbit-radius the Earth has gone round 440,000 times. So this is
+    // an emblem, not a measurement: the coil count is chosen for legibility, the coil
+    // radius borrows the old display-mode orbit radii, and the info panel says so.
+    bodyPos(0, ts, out);                       // the Sun's true track carries the winding
+    const w = DT_SAMPLE*TRAIL_N;
+    const coils = Math.min(160, helixCoils*Math.min(2.2, Math.pow(1/BODIES[i][1], 0.25)));
+    const th = 6.28318*ts*coils/w + i*2.4;
+    const R = BODIES[i][2]*0.10;
+    const phi = ts*V_GAL/900;                  // coil in the radial-vertical plane,
+    const rx = Math.sin(phi), rz = Math.cos(phi);  // perpendicular to the Sun's motion
+    out[0] += R*Math.cos(th)*rx;
+    out[1] += R*Math.sin(th);
+    out[2] += R*Math.cos(th)*rz;
+    return out;
+  }
   bodyPos(i, ts, out);
   if(realMode && i > 0){
     bodyPos(0, ts, tmpSun);
@@ -2094,16 +2124,27 @@ function applyTrailWindow(){
   trailRefill = setTimeout(()=>{ refillTrails(); nextSample = simT + DT_SAMPLE; }, 90);
 }
 $('trailL').addEventListener('input', e=>{ trailPct = +e.target.value; applyTrailWindow(); });
+toggle($('tHelix'), on=>{ helixOn = on;
+  clearTimeout(trailRefill);
+  trailRefill = setTimeout(()=>{ refillTrails(); nextSample = simT + DT_SAMPLE; }, 60); });
+$('helixN').addEventListener('input', e=>{
+  helixCoils = +e.target.value;
+  $('helixNv').textContent = String(helixCoils);
+  clearTimeout(trailRefill);
+  trailRefill = setTimeout(()=>{ refillTrails(); nextSample = simT + DT_SAMPLE; }, 90); });
 
 function toggle(btn, fn){ btn.addEventListener('click', ()=>{ btn.classList.toggle('on'); fn(btn.classList.contains('on')); }); }
 toggle($('tPause'), on=>{ paused=!on; $('tPause').textContent = on?'⏸ pause':'▶ play'; });
 toggle($('tTrails'), on=> showTrails=on);
 toggle($('tLabels'), on=>{ showLabels=on; if(!on) labelEls.forEach(l=>l.style.display='none'); });
+toggle($('tArms'), on=>{ armsOn=on; if(!on) armEls.forEach(l=>l.style.display='none'); });
 toggle($('tDwarfs'), on=>{ showDwarfs=on; if(!on) labelEls.forEach((l,i)=>{ if(i>=N_PLANETS) l.style.display='none'; }); });
 toggle($('tBelt'), on=> showBelt=on);
 toggle($('tKuiper'), on=> showKuiper=on);
 toggle($('tLife'), on=>{ lifeOn=on; if(!on){ events.length=0; puffs.length=0; } });
 toggle($('tVar'), on=> varOn=on);
+let dustOn = true;
+toggle($('tDust'), on=>{ dustOn = on; });
 toggle($('tEnv'), on=>{
   // the settings switch overrides the panel's own minimise state entirely
   $('env').style.display = on ? '' : 'none';
@@ -2197,10 +2238,10 @@ loadTrack(0);
 // so restoring a setting does exactly what clicking it would. Anything momentary — the
 // pause, the dive, the epoch jump, the current track position — is deliberately left out.
 const SKEY = 'galactic-transit.settings.v1';
-const S_TOG = ['tTrails','tLabels','tDwarfs','tBelt','tKuiper','tOort','tLife','tVar','tLifeSup','tEnv',
+const S_TOG = ['tTrails','tLabels','tDwarfs','tBelt','tKuiper','tOort','tDust','tHelix','tArms','tLife','tVar','tLifeSup','tEnv',
                'tStatCal','tStatAge','tStatGyr','tStatSn','tStatBirth','tSci','tLive','tView','tGaia','tFps',
                'tSound','tMusic'];
-const S_SLD = ['speed','trailA','trailL','musicVol','sfxVol','minB','hudHz'];
+const S_SLD = ['speed','trailA','trailL','helixN','musicVol','sfxVol','minB','hudHz'];
 const S_CHK = ['fxBirth','fxSn','fxPn','fxDrone'];
 const MULT_VALUES = [1,1e3,1e6,1e9,1e12];
 function saveSettingsNow(){
@@ -2452,6 +2493,22 @@ const labelWrap=$('labels');
 const labelEls = BODIES.map(b=>{
   const d=document.createElement('div'); d.className='lbl'; d.textContent=b[0];
   labelWrap.appendChild(d); return d;
+});
+// Spiral-arm names, placed on this map's measured bright ridges and named by their
+// radial order from the Sun, after the canonical face-on annotation. They ride the
+// density-wave rotation, exactly as the arm pattern itself does in the shader.
+let armsOn = true;
+const ARM_LBLS = [
+  ['Orion Spur',          150,  830],
+  ['Sagittarius–Carina',  110,  580],
+  ['Perseus',              70, 1010],
+  ['Scutum–Centaurus',   -170, -560],
+  ['Outer Arm',          -260, 1340],
+  ['Galactic bar',         30,   40],
+];
+const armEls = ARM_LBLS.map(a=>{
+  const d=document.createElement('div'); d.className='armlbl'; d.textContent=a[0];
+  d.style.display='none'; labelWrap.appendChild(d); return d;
 });
 // Gliese 710's own buffer and label, here because dynVAO and the label host exist by now
 const g710GL = dynVAO(1);
@@ -2731,23 +2788,6 @@ function frame(now){
     gl.uniform1f(U.ptCap, deep?26.0:110.0);
   }
 
-  // dust lanes: multiply what's behind them down toward black
-  gl.blendFunc(gl.ZERO, gl.ONE_MINUS_SRC_ALPHA);
-  gl.useProgram(pDust);
-  gl.uniformMatrix4fv(UD.proj,false,projMat);
-  gl.uniformMatrix4fv(UD.view,false,viewMat);
-  gl.uniform1f(UD.px,pxScale);
-  gl.uniform1f(UD.wa, 1.0); // dust lanes trace the wave
-  gl.uniform1f(UD.cap, deep?40.0:560.0);
-  gl.uniform1f(UD.minSz, 1.3);
-  gl.uniform3f(UD.and, andPos[0], andPos[1], andPos[2]); gl.uniform1f(UD.tide, and.tide);
-  gl.uniform1f(UD.warpAmp, 1.0);
-  gl.uniform3f(UD.org, org[0],org[1],org[2]);
-  gl.uniform1f(UD.spin, spin);
-  gl.uniform1f(UD.warp, warp);
-  gl.uniform3f(UD.sun, sunX, bubY, sunZ);
-  gl.bindVertexArray(vaoDust); gl.drawArrays(gl.POINTS,0,DUST_N);
-  gl.blendFunc(gl.ONE, gl.ONE);
 
   // nebulae
   gl.useProgram(pNeb);
@@ -2771,6 +2811,27 @@ function frame(now){
   // expanding shells: supernova remnants and planetary nebulae (sizes exaggerated — see info)
   if(lifeOn && puffs.length){
     fillPuffs();
+  // Dark clouds must come after the glow: sampled on the picture's dark lanes, they
+  // have nothing to darken unless the haze has already been laid down beneath them.
+  if(dustOn){
+    // dust lanes: multiply what's behind them down toward black
+    gl.blendFunc(gl.ZERO, gl.ONE_MINUS_SRC_ALPHA);
+    gl.useProgram(pDust);
+    gl.uniformMatrix4fv(UD.proj,false,projMat);
+    gl.uniformMatrix4fv(UD.view,false,viewMat);
+    gl.uniform1f(UD.px,pxScale);
+    gl.uniform1f(UD.wa, 1.0); // dust lanes trace the wave
+    gl.uniform1f(UD.cap, deep?40.0:560.0);
+    gl.uniform1f(UD.minSz, 1.3);
+    gl.uniform3f(UD.and, andPos[0], andPos[1], andPos[2]); gl.uniform1f(UD.tide, and.tide);
+    gl.uniform1f(UD.warpAmp, 1.0);
+    gl.uniform3f(UD.org, org[0],org[1],org[2]);
+    gl.uniform1f(UD.spin, spin);
+    gl.uniform1f(UD.warp, warp);
+    gl.uniform3f(UD.sun, sunX, bubY, sunZ);
+    gl.bindVertexArray(vaoDust); gl.drawArrays(gl.POINTS,0,DUST_N);
+    gl.blendFunc(gl.ONE, gl.ONE);
+  }
     gl.uniform1f(UN.gf, 1.0); // a supernova next door must not fade with the backdrop
     gl.uniform1f(UN.vm, 0.0); // remnant/PN shells animate themselves
     gl.uniform1f(UN.wa, 0.0); // each puff carries its own frame flag
@@ -2794,8 +2855,10 @@ function frame(now){
     const last = (showDwarfs?NB:N_PLANETS)-1;
     for(let i=last;i>=0;i--){
       // real scale: the planets' tracks are Sun-relative and stay exact at any zoom,
-      // while the Sun's own remains absolute and still fades out near the precision floor
-      const rel = realMode && i>0;
+      // while the Sun's own remains absolute and still fades out near the precision
+      // floor. A helix trail is absolute like the Sun's, since it winds around its arc.
+      const hx = helixFor(i);
+      const rel = realMode && i>0 && !hx;
       if(!rel && trailFade<=0.02) continue;
       const c=BODIES[i][4];
       gl.uniform3f(U.trOrg, rel?0:org[0], rel?0:org[1], rel?0:org[2]);
@@ -2808,7 +2871,7 @@ function frame(now){
       // goes round three million times across the window. The Sun keeps the full buffer,
       // since its one slow arc is exactly what a long window is for.
       let n = TRAIL_N;
-      if(i > 0){
+      if(i > 0 && !hx){
         const spo = BODIES[i][1]/DT_SAMPLE;      // samples per orbit at this window
         if(spo < 12) continue;                   // too coarse to be a path at all
         n = Math.min(TRAIL_N, Math.round(200*spo));
@@ -2924,6 +2987,19 @@ function frame(now){
       l.style.top =lsy+'px';
       l.style.opacity = i===0?0.9:0.65;
     }
+    // arm names: world coordinates rotated with the wave, then projected like the rest
+    if(armsOn && cam.dist > 600){
+      const d = spin/640, cD = Math.cos(d), sD = Math.sin(d);
+      for(let a=0;a<ARM_LBLS.length;a++){
+        const wx = ARM_LBLS[a][1]*cD + ARM_LBLS[a][2]*sD, wz = ARM_LBLS[a][2]*cD - ARM_LBLS[a][1]*sD;
+        const x = wx-org[0], y = -org[1], z = wz-org[2];
+        const cw = pv[3]*x+pv[7]*y+pv[11]*z+pv[15];
+        if(cw <= 1){ armEls[a].style.display='none'; continue; }
+        armEls[a].style.display='block';
+        armEls[a].style.left=(((pv[0]*x+pv[4]*y+pv[8]*z+pv[12])/cw*0.5+0.5)*W)+'px';
+        armEls[a].style.top =((-(pv[1]*x+pv[5]*y+pv[9]*z+pv[13])/cw*0.5+0.5)*H)+'px';
+      }
+    } else armEls.forEach(l=>l.style.display='none');
     if(gl710.d < 40){
       const k = realMode ? 1/30 : 178/1.6;
       const x=gl710.x*k, y=gl710.y*k, z=gl710.z*k;
