@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.25.1 — 2026-08-31
+
+- The focus panel says GO, and yields when crowded (`4ef1c1f`)
+
 ### 2.25.0 — 2026-08-31
 
 - The settings dialog relaid out, and the belt healed (`f31a07d`)
