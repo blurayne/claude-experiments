@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.30.0 — 2026-08-31
+
+- The settings dialog folds into four sections (`571230a`)
+
 ### 2.29.0 — 2026-08-31
 
 - The Andromeda scenario is staged from the owner's export (`54ad033`)
