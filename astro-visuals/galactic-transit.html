@@ -284,19 +284,19 @@
       <label class="chk"><input type="checkbox" id="fxDrone" checked> drone</label>
     </div>
     </div>
-    <div class="sect" data-sec="gfx">Graphics<span class="arw">▾</span></div>
+    <div class="sect" data-sec="gfx">Visuals<span class="arw">▾</span></div>
     <div class="sbody" id="secGfx">
     <div class="row"><label for="detail">detail</label><input type="range" id="detail" min="0" max="5" step="1" value="0"><span id="detailv" style="min-width:56px;text-align:right;color:var(--ink)">lowest</span><button class="stepb" data-step="detail:-1">−</button><button class="stepb" data-step="detail:1">+</button></div>
     <div class="row"><label for="orbitA" title="the closed orbit around the Sun">orbit</label><input type="range" id="orbitA" min="0" max="1" step="0.01" value="1"><span id="orbitAv" style="min-width:36px;text-align:right;color:var(--ink)">100%</span><button class="stepb" data-step="orbitA:-0.05">−</button><button class="stepb" data-step="orbitA:0.05">+</button></div>
     <div class="row"><label for="trailA" title="the true swept path through space">helix</label><input type="range" id="trailA" min="0" max="1" step="0.01" value="1"><span id="trailAv" style="min-width:36px;text-align:right;color:var(--ink)">100%</span><button class="stepb" data-step="trailA:-0.05">−</button><button class="stepb" data-step="trailA:0.05">+</button></div>
     <div class="row"><label for="trailL">length</label><input type="range" id="trailL" min="0" max="1000" step="10" value="300"><span id="trailLv" style="min-width:64px;text-align:right;color:var(--ink)">300%</span><button class="stepb" data-step="trailL:-50">−</button><button class="stepb" data-step="trailL:50">+</button></div>
     <div class="row"><label>labels</label>
-      <button class="tg on" id="tArms">galaxy arms</button>
-      <button class="tg on" id="tLabels">solar system</button></div>
+      <label class="chk"><input type="checkbox" id="tArms" checked> galaxy arms</label>
+      <label class="chk"><input type="checkbox" id="tLabels" checked> solar system</label></div>
     <div class="row"><label>events</label>
-      <button class="tg" id="tEvSN">supernovae</button>
-      <button class="tg" id="tEvBirth">star birth</button></div>
-    <div class="chks">
+      <label class="chk"><input type="checkbox" id="tEvSN"> supernovae</label>
+      <label class="chk"><input type="checkbox" id="tEvBirth"> star birth</label></div>
+    <div class="chks indent">
       <label class="chk"><input type="checkbox" id="tDust" checked> dark clouds</label>
       <label class="chk"><input type="checkbox" id="tBelt" checked> asteroids</label>
       <label class="chk"><input type="checkbox" id="tKuiper" checked> kuiper</label>
@@ -673,7 +673,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.31.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.32.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
