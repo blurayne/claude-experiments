@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.25.2 — 2026-08-31
+
+- The Earth panel and its life-support reading are fixtures (`a740cce`)
+
 ### 2.25.1 — 2026-08-31
 
 - The focus panel says GO, and yields when crowded (`4ef1c1f`)
