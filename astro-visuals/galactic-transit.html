@@ -263,7 +263,7 @@
     </div>
     <div class="row"><label for="jump">scenario</label><select id="jump">
       <option value="">— present day —</option>
-      <option value="4.56928" data-speed="1" data-mult="1000">Gliese 710 grazes the Oort cloud (+1.29 Myr)</option>
+      <option value="4.5692567" data-speed="0.58" data-mult="10000">Gliese 710 grazes the Oort cloud (+1.29 Myr)</option>
       <option value="helix" data-speed="1" data-mult="1">The helix — planets winding through space</option>
       <option value="0.058">Theia impact — the Moon forms</option>
       <option value="0.768">Young Earth — first life (3.8 Gyr ago)</option>
@@ -625,7 +625,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.20.2', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.21.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2445,6 +2445,16 @@ function jumpToEpoch(){
     return;
   }
   simT = (a - AGE0)*1e9/YR_PER_SIM;
+  if(sel.value === '4.5692567'){
+    // stage the pass: the camera frames the Oort cloud with the star already in view.
+    // It lands at the shell's outer edge, 1.6 ly out; at 1,900 years a second the
+    // crossing — 3.2 ly at 14.4 km/s — takes almost exactly 35 seconds.
+    if($('tView').classList.contains('on')) $('tView').click();
+    if($('tDive').classList.contains('on')) $('tDive').click();
+    cam.follow = true; coreLock = false;
+    cam.distGoal = 0.144;                     // ~5 ly across: the whole Oort shell
+    cam.yaw = 0.72; cam.pitch = -0.31;        // faces the star's approach track
+  }
   nextSample = simT + DT_SAMPLE;
   events.length = 0; puffs.length = 0;
   accB = accSN = accPN = 0;
