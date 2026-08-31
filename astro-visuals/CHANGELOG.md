@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.31.0 — 2026-08-31
+
+- An Other section, and one section open at a time (`fe11d10`)
+
 ### 2.30.0 — 2026-08-31
 
 - The settings dialog folds into four sections (`571230a`)
