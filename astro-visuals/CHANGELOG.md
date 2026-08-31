@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.9.0 — 2026-08-31
+
+- True proportions always, and panels that get out of the way (`7af3e03`)
+
 ### 2.8.0 — 2026-08-31
 
 - The 2.8.0 version stamp, info text and licence credit that the previous commit claimed (`caa0b15`)
