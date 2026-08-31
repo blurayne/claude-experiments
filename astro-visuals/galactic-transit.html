@@ -602,7 +602,7 @@
   <h2>Focus</h2>
   <div style="display:flex;gap:8px;margin-top:7px;align-items:center">
     <select id="focusSel" style="flex:1"><option value="sun">Sun</option><option value="mw">Milky Way</option></select>
-    <button class="rowbtn" id="focusGo">focus</button>
+    <button class="rowbtn" id="focusGo">GO</button>
   </div>
 </div>
 <button id="focusPlus" aria-label="show the focus panel" style="display:none">◎</button>
@@ -646,7 +646,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.25.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.25.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2806,7 +2806,7 @@ let W=0,H=0,DPR=1, projMat;
 // environment readout beside it, and down over the status bar and the view scale below.
 // Whatever it actually overlaps steps aside until it is collapsed again — measured, not
 // guessed from a breakpoint, since the panel's own height depends on how much is in it.
-const CROWDABLE = ['env','scaleNote','gamebar'];
+const CROWDABLE = ['focusPanel','focusPlus','env','envPlus','scaleNote','gamebar'];
 function fitPanels(){
   const hud = $('hud');
   const items = CROWDABLE.map(id => $(id));
@@ -3398,12 +3398,11 @@ function frame(now){
       let y = 14;
       const place = (el, on)=>{ if(!on) return; el.style.top = y+'px'; el.style.left = '14px';
         y += el.getBoundingClientRect().height + 8; };
-      const fpOn = $('focusPanel').style.display !== 'none';
-      place($('focusPanel'), fpOn);
-      place($('focusPlus'), !fpOn && getComputedStyle($('focusPlus')).display !== 'none');
-      const envOn = $('env').style.display !== 'none' && getComputedStyle($('env')).display !== 'none';
-      place($('env'), envOn);
-      place($('envPlus'), !envOn && getComputedStyle($('envPlus')).display !== 'none');
+      const vis = id => getComputedStyle($(id)).display !== 'none';
+      place($('focusPanel'), vis('focusPanel'));
+      place($('focusPlus'), vis('focusPlus'));
+      place($('env'), vis('env'));
+      place($('envPlus'), vis('envPlus'));
     }
     { // the alert boxes ride on top of the status bar, matching its width; with the
       // bar slid away or hidden they anchor to the bottom edge instead

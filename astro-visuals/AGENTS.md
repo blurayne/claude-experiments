@@ -62,7 +62,9 @@ built it.
   multiplier `× exp` with the real multiplication sign. Galaxy density is the
   **detail** slider (lowest…ultra). The scenario button says **GO** and closes the
   panel. Camera focus lives in the **Focus panel** (top left, above the Earth panel):
-  Sun dives to the system, Milky Way pulls out — there are no view toggle buttons.
+  Sun dives to the system, Milky Way pulls out (its button says **GO** too) — there
+  are no view toggle buttons. It yields to the settings panel when they would
+  collide, exactly as the Earth panel does.
   Trails are governed by the **orbit** and **helix** switches with their own
   transparency sliders; there is no master trails toggle. Events are split into
   **supernovae** and **star birth** switches (planetary nebulae ride with the
