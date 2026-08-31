@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.11.1 — 2026-08-31
+
+- The remix opens the playlist, at 40% volume (`b3fd79d`)
+
 ### 2.11.0 — 2026-08-31
 
 - "The helix" joins the events menu as a staged view (`7bbcbed`)
