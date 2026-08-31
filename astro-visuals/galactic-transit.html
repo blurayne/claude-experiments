@@ -232,12 +232,12 @@
   <div class="sub">The Sun orbits the Milky Way's core at ~230 km/s. The planets, on an ecliptic tilted ~60° to the galactic plane, weave helical paths around its track.</div>
   <div class="body">
     <div class="row"><label for="speed">speed</label><input type="range" id="speed" min="0" max="1" step="0.001" value="1"><span id="speedv" style="min-width:64px;text-align:right;color:var(--ink)"></span></div>
-    <div class="row"><label for="multExp">× speed</label>
+    <div class="row"><label for="multExp">× exp</label>
       <input type="range" id="multExp" min="0" max="10" step="1" value="0">
       <span id="multExpv" style="min-width:52px;text-align:right;color:var(--ink)">×1</span></div>
     <div class="row"><label>quality</label><div class="mults" id="quals"></div></div>
-    <div class="row"><label for="hudHz">hud rate</label><input type="range" id="hudHz" min="1" max="16" step="1" value="8"><span id="hudHzv" style="min-width:64px;text-align:right;color:var(--ink)">8×/s</span></div>
-    <div class="row"><label for="minB">star gain</label><input type="range" id="minB" min="0" max="1" step="0.01" value="0"><span id="minBv" style="min-width:64px;text-align:right;color:var(--ink)">off</span></div>
+    <div class="row" id="rowHudHz" style="display:none"><label for="hudHz">hud rate</label><input type="range" id="hudHz" min="1" max="16" step="1" value="8"><span id="hudHzv" style="min-width:64px;text-align:right;color:var(--ink)">8×/s</span></div>
+    <div class="row" id="rowGain" style="display:none"><label for="minB">Gaia brght</label><input type="range" id="minB" min="0" max="1" step="0.01" value="0.05"><span id="minBv" style="min-width:64px;text-align:right;color:var(--ink)">+5%</span></div>
     <div class="row"><label for="trailA">trails</label><input type="range" id="trailA" min="0" max="1" step="0.01" value="1"><span id="trailAv" style="min-width:64px;text-align:right;color:var(--ink)">100%</span></div>
     <div class="row"><label>planet trails</label>
       <button class="tg on" id="psHelix" title="the true helical path through space">helix</button>
@@ -615,7 +615,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.18.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.18.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2124,7 +2124,7 @@ async function doRefresh(){
     if(n >= 10){
       // toggle the debug door, and remember the choice across reloads
       const on = getComputedStyle($('dbgBtn')).display === 'none';
-      $('dbgBtn').style.display = on ? '' : 'none';
+      setDebugUI(on);
       try{ localStorage.setItem(DBGKEY, on ? '1' : '0'); }catch(err){}
     }
     else if(n >= 3){ try{ localStorage.removeItem(SKEY); }catch(err){} bustAndGo(); }
@@ -2170,7 +2170,7 @@ $('hudHz').addEventListener('input', e=>{
   hudHz = +e.target.value;
   $('hudHzv').textContent = hudHz + '×/s';
 });
-let minBright = 0, minSprite = 1.3, starGain = 0;
+let minBright = 0.05*0.38, minSprite = 1.3 + 0.05*2.1, starGain = 0.05;
 $('minB').addEventListener('input', e=>{
   const v = starGain = +e.target.value;
   minBright = v*0.38;
@@ -3216,7 +3216,12 @@ const DEBUG = (()=>{ try{
   }
   return localStorage.getItem(DBGKEY) === '1';
 }catch(e){ return false; } })();
-if(DEBUG) $('dbgBtn').style.display = '';
+function setDebugUI(on){
+  $('dbgBtn').style.display = on ? '' : 'none';
+  $('rowHudHz').style.display = on ? '' : 'none';
+  $('rowGain').style.display = on ? '' : 'none';
+}
+if(DEBUG) setDebugUI(true);
 function exportState(){
   saveSettingsNow();
   let settings = null; try{ settings = JSON.parse(localStorage.getItem(SKEY)||'null'); }catch(e){}
