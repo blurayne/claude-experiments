@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.19.0 — 2026-08-31
+
+- Threshold flashes, a hand-picked opening angle, split alphas, steppers (`2aac999`)
+
 ### 2.18.2 — 2026-08-31
 
 - The other half of the sky (`406643f`)
