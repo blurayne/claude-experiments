@@ -249,7 +249,7 @@
       <label class="chk"><input type="checkbox" id="fxPn" checked> nebula</label>
       <label class="chk"><input type="checkbox" id="fxDrone" checked> drone</label>
     </div>
-    <div class="row"><label for="jump">jump to</label><select id="jump">
+    <div class="row"><label for="jump">scenario</label><select id="jump">
       <option value="">— present day —</option>
       <option value="4.56928" data-speed="1" data-mult="1000">Gliese 710 grazes the Oort cloud (+1.29 Myr)</option>
       <option value="helix" data-speed="1" data-mult="1000000">The helix — planets winding through the Galaxy</option>
@@ -603,7 +603,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.12.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.13.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2379,7 +2379,8 @@ function jumpToEpoch(){
     if(trailPct < 100){ $('trailL').value = 300; $('trailL').dispatchEvent(new Event('input')); }
     cam.follow = true;
     cam.distGoal = 34; cam.pitch = 0.35; cam.yaw = 2.0;
-    if(paused) $('tPause').click();
+    // never unpause someone who asked for reduced motion
+    if(paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
     return;
   }
   simT = (a - AGE0)*1e9/YR_PER_SIM;
@@ -3155,6 +3156,10 @@ function frame(now){
 }
 restoreSettings();
 applyTrailWindow();
+// The piece opens on its signature view: the helix scenario, staged exactly as the
+// menu entry stages it. Anything the user changes afterwards is remembered as usual.
+$('jump').value = 'helix';
+$('jump').dispatchEvent(new Event('change'));
 // ---------- the debug door: only present when the URL asks for it ----------
 const DEBUG = (()=>{ try{
   const v = new URLSearchParams(location.search).get('debug');
