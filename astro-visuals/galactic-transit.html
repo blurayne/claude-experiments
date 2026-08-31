@@ -75,7 +75,15 @@
   .sect:hover{color:var(--accent);border-color:rgba(95,216,255,.45)}
   .sect .arw{letter-spacing:0;font-size:10px;transition:transform .18s ease;transform-origin:50% 45%}
   .sect.closed .arw{transform:rotate(-90deg)}
-  .sbody.closed{display:none}
+  .sbody{overflow:hidden;max-height:1600px;opacity:1;
+    transition:max-height .26s ease, opacity .18s ease}
+  .sbody.closed{max-height:0;opacity:0;pointer-events:none}
+  @keyframes panelIn{ from{opacity:0;transform:translateY(-7px)} to{opacity:1;transform:none} }
+  .hud, .env, .alertbox, #dbgCard{ animation:panelIn .22s ease both }
+  @media (prefers-reduced-motion: reduce){
+    .sbody{transition:none}
+    .hud, .env, .alertbox, #dbgCard{ animation:none }
+  }
   .actsep{border:0;border-top:1px solid var(--line);margin:12px 0 10px}
   .seg{display:flex;flex:none;border:1px solid var(--line);border-radius:2px;overflow:hidden}
   .seg button{font-family:'Orbitron',ui-monospace,monospace;font-size:8.5px;letter-spacing:.08em;
@@ -293,7 +301,7 @@
     <div class="row"><label>labels</label>
       <label class="chk"><input type="checkbox" id="tArms" checked> galaxy arms</label>
       <label class="chk"><input type="checkbox" id="tLabels" checked> solar system</label></div>
-    <div class="row"><label>events</label>
+    <div class="row"><label>features</label>
       <label class="chk"><input type="checkbox" id="tEvSN"> supernovae</label>
       <label class="chk"><input type="checkbox" id="tEvBirth"> star birth</label></div>
     <div class="chks indent">
@@ -660,7 +668,7 @@
   <button id="envMin" aria-label="minimise the Earth panel">–</button>
   <h2>Earth</h2>
   <div class="er"><span>mean surface</span><b id="eMean">15.0 °C</b></div>
-  <div class="er"><span>min / max</span><b id="eRange">−89 / 57 °C</b></div>
+  <div class="er"><span>min / max</span><b><span id="eMin">−89</span> / <span id="eMax">57</span> °C</b></div>
   <div class="er"><span>cosmic rays</span><b id="eCR">1.00× today</b></div>
   <div class="er"><span>starlight</span><b id="eSL">1.0×</b></div>
   <div class="er" id="eLifeRow"><span>life support</span><b id="eLife">habitable</b></div>
@@ -673,7 +681,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.32.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.33.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2828,6 +2836,26 @@ const g710Lbl = (()=>{ const d=document.createElement('div'); d.className='lbl';
 // Blended rather than stepped, because the hazard itself varies continuously with where
 // the Sun sits: cosmic rays climb as it enters a spiral arm and fall again on the way
 // out, so the panels warm and cool with the crossing instead of flipping at a threshold.
+// Temperature as colour, on the scale the user set: −20 is ice, +50 is extreme heat,
+// +60 and beyond is the violet of a world past saving. The stops in between are chosen
+// so that Earth's own comfortable range reads green rather than alarming.
+const T_STOPS = [
+  [-60, [120,170,255]], [-20, [ 74,168,255]], [  0, [102,216,232]],
+  [ 15, [ 95,211,154]], [ 30, [255,209,102]], [ 50, [255, 90, 74]],
+  [ 60, [196,107,255]], [ 90, [214,140,255]],
+];
+function tempColour(c){
+  const s = T_STOPS;
+  if(c <= s[0][0]) return 'rgb('+s[0][1].join(',')+')';
+  for(let i=1;i<s.length;i++){
+    if(c <= s[i][0]){
+      const u = (c - s[i-1][0])/(s[i][0] - s[i-1][0]);
+      const a = s[i-1][1], b = s[i][1];
+      return 'rgb('+a.map((v,k)=> Math.round(v + (b[k]-v)*u)).join(',')+')';
+    }
+  }
+  return 'rgb('+s[s.length-1][1].join(',')+')';
+}
 const C_SAFE = [95,216,255], C_WARN = [255,207,92], C_DEAD = [255,110,110], C_ICE = [176,232,255];
 const C_LIFE = [74,214,126];   // habitable reads green, not the interface's cyan
 const mix3 = (a,b,u)=> [a[0]+(b[0]-a[0])*u, a[1]+(b[1]-a[1])*u, a[2]+(b[2]-a[2])*u];
@@ -3469,7 +3497,13 @@ function frame(now){
   { const e = environment();
     // a glacial epoch is marked on the reading itself rather than in a banner below it
     $('eMean').textContent  = (e.ice ? '❄ ' : '') + e.mean.toFixed(1)+' °C';
-    $('eRange').textContent = e.min.toFixed(0)+' / '+e.max.toFixed(0)+' °C';
+    $('eMin').textContent   = e.min.toFixed(0);
+    $('eMax').textContent   = e.max.toFixed(0);
+    // an ice age is a statement about the world, not about the thermometer: the mean
+    // reads glacial blue then, whatever number the average happens to land on
+    $('eMean').style.color = e.ice ? 'rgb(168,224,255)' : tempColour(e.mean);
+    $('eMin').style.color  = tempColour(e.min);
+    $('eMax').style.color  = tempColour(e.max);
     $('eCR').textContent    = e.cr.toFixed(2)+'× today';
     $('eSL').textContent    = e.star.toFixed(2)+'×';
     const ls = lifeSupOn ? lifeState() : null;
