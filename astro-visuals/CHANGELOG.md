@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.18.1 — 2026-08-31
+
+- The panel keeps its tuning knobs behind the debug door (`02c5b58`)
+
 ### 2.18.0 — 2026-08-31
 
 - Helix and orbit combine, and the multiplier becomes a slider (`3181d82`)
