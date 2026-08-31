@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.25.0 — 2026-08-31
+
+- The settings dialog relaid out, and the belt healed (`f31a07d`)
+
 ### 2.24.0 — 2026-08-31
 
 - The alert boxes ride the status bar (`7a25971`)
