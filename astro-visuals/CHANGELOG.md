@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.20.0 — 2026-08-31
+
+- A quieter start, and a reset that means it (`81e9341`)
+
 ### 2.19.3 — 2026-08-31
 
 - The helix scenario adopts the owner's second exported preset (`7924cfd`)
