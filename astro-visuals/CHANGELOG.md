@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.13.0 — 2026-08-31
+
+- The piece opens on the helix, and epochs become scenarios (`f8a856e`)
+
 ### 2.12.0 — 2026-08-31
 
 - A rate calendar, AD/BC as suffixes, and a debug door (`1510312`)
