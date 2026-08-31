@@ -66,6 +66,21 @@ in the browser with no build step and no external CDN.
   info panel explains where the drawing is compressed and why the Oort cloud's
   outer edge is set by the galactic tide rather than by the Sun.
 
+## Data sources & licences
+
+| Source | Used for | Licence / credit |
+|---|---|---|
+| [Gaia DR3](https://www.cosmos.esa.int/web/gaia/dr3) (ESA/Gaia/DPAC) | astrometry, distances and 3D space velocities behind the real-sky layers | Gaia data: free use with credit "ESA/Gaia/DPAC"; ESA Gaia imagery: CC BY-SA 3.0 IGO |
+| [AT-HYG 3.2](https://github.com/astronexus/ATHYG-Database) (David Nash, astronexus.com) | `stars-gaia.bin` and `stars-gaia-deep.bin` — 500,000 stars, Tycho-2 merged with Gaia DR3 | CC BY-SA 4.0 |
+| Face-on Milky Way illustration (NASA/JPL-Caltech, R. Hurt, SSC/Caltech) | `galaxy-map.webp` — the density map the galaxy is drawn from | NASA imagery, credit required: "NASA/JPL-Caltech/R. Hurt (SSC/Caltech)" |
+| [StarHorse](https://data.aip.de/projects/starhorse2019.html) (Anders et al. 2019, A&A 628, A94) | pending — `tools/build_starhorse_density.py` awaits a catalog sample | credit the paper and AIP; check the release page for the data licence |
+| Nuclear disc & cluster | modelled after AIP's ["How central galactic structures grow together"](https://www.aip.de/en/news/galactic-structures-grow-together/) | scientific reference, no data used |
+| [ejtaal/gaia-web](https://github.com/ejtaal/gaia-web) | inspected as a data source; its `gaia-web-data` sets (175–290 MB) are beyond a Pages site's budget | BSD-3 (code); data derived from Gaia DR3 (ESA/Gaia/DPAC) |
+| [Gaia Sky datasets](https://gaiasky.space/resources/datasets/) (ZAH/ARI Heidelberg) | noted as a resource; host unreachable from the build sandbox | per-dataset, see their page |
+| [HYG 4.1](https://github.com/astronexus/HYG-Database) | the previous real-sky layer (superseded by AT-HYG) | CC BY-SA 4.0 |
+| Orbitron & Exo 2 fonts | all UI text | SIL Open Font License 1.1 |
+| Music & sound effects | uploaded by the project owner | provided by the project owner |
+
 ## Changelog
 
 [`CHANGELOG.md`](CHANGELOG.md) records every released version of both viewers, with

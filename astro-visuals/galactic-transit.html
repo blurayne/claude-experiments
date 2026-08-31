@@ -497,8 +497,14 @@
       relative to the Sun. Their colours come from measured colour indices and their sizes from apparent
       magnitude, so the solar neighbourhood — Alpha Centauri at 1.32&nbsp;pc, Sirius at 2.64 — really is
       where it is. Earlier builds mirrored this sky left-for-right; the frame is now checked against the
-      Sun's own orbital direction. It covers the local sky only: Gaia sees the Galaxy from inside and the
-      far side of the disk hides behind dust, which is why everything beyond it stays modelled. They are stored at the galaxy's own scale, so in the compressed view they only
+      Sun's own orbital direction. At hi-fi quality and above a second tier loads: 400,000 more stars,
+      complete to magnitude 11.2. Each star also carries its measured <b>Gaia DR3 space velocity</b> and
+      drifts along it as time runs — watch the nearby stars stream at &times;10&sup3; — with the linear
+      extrapolation honestly stopped at &plusmn;20&nbsp;Myr. It covers the local sky only: Gaia sees the
+      Galaxy from inside and the far side of the disk hides behind dust, which is why everything beyond it
+      stays modelled. Below the picture's resolution the innermost parsecs add the <b>nuclear stellar
+      disc</b> (~200&nbsp;pc) and the <b>nuclear star cluster</b> around Sgr&nbsp;A* — linked structures
+      that grow together, fed by gas the bar drives inward. They are stored at the galaxy's own scale, so in the compressed view they only
       appear once the magnified solar system is small enough for the proportion to read — zoomed in there,
       the magnification would put every real star inside the planets. Real scale keeps them at every zoom,
       since nothing is magnified there.</li>
@@ -546,7 +552,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.6.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.7.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -624,6 +630,8 @@ layout(location=0) in vec3 aPos;
 layout(location=1) in float aSize;
 layout(location=2) in vec3 aColor;
 layout(location=3) in float aWave; // 1: point rides the spiral density-wave pattern
+layout(location=4) in vec3 aVel;   // heliocentric space velocity, km/s (real stars only)
+uniform float uVelT;               // km/s -> scene displacement for the elapsed years
 uniform mat4 uProj, uView;
 uniform float uPx;
 uniform float uSpin; // distance travelled at the flat-curve speed; 0 = no rotation
@@ -642,7 +650,7 @@ uniform float uFadeOut; // 0 draws normally, 1 hides: used where a layer stops b
 uniform vec3 uOrg;    // rendering origin (the Sun) — keeps deep real-scale zooms float-precise
 out vec3 vColor;
 void main(){
-  vec3 p = aPos;
+  vec3 p = aPos + aVel*uVelT;
   float fade = 1.0;
   if(uSpin != 0.0){
     float r = length(p.xz);
@@ -741,6 +749,7 @@ const U = {
   ptProj: gl.getUniformLocation(pPt,'uProj'), ptView: gl.getUniformLocation(pPt,'uView'), ptPx: gl.getUniformLocation(pPt,'uPx'),
   ptSpin: gl.getUniformLocation(pPt,'uSpin'), ptWarp: gl.getUniformLocation(pPt,'uWarp'), ptSun: gl.getUniformLocation(pPt,'uSunPos'),
   ptOrg: gl.getUniformLocation(pPt,'uOrg'), trOrg: gl.getUniformLocation(pTr,'uOrg'),
+  velT: gl.getUniformLocation(pPt,'uVelT'),
   ptCap: gl.getUniformLocation(pPt,'uCap'), ptWA: gl.getUniformLocation(pPt,'uWaveAll'),
   ptTime: gl.getUniformLocation(pPt,'uTime'), ptVM: gl.getUniformLocation(pPt,'uVarMode'),
   ptAnd: gl.getUniformLocation(pPt,'uAnd'), ptTide: gl.getUniformLocation(pPt,'uTide'),
@@ -1037,7 +1046,7 @@ function deleteVAO(vao){
   if(bufs) bufs.forEach(b => gl.deleteBuffer(b));
   gl.deleteVertexArray(vao);
 }
-function pointVAO(pos, size, col, wave){
+function pointVAO(pos, size, col, wave, vel){
   const vao=gl.createVertexArray(); gl.bindVertexArray(vao);
   const bufs=[];
   const attach=(data,loc,comps)=>{ const b=gl.createBuffer(); bufs.push(b);
@@ -1045,6 +1054,7 @@ function pointVAO(pos, size, col, wave){
     gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,comps,gl.FLOAT,false,0,0); };
   attach(pos,0,3); attach(size,1,1); attach(col,2,3);
   if(wave) attach(wave,3,1);
+  if(vel) attach(vel,4,3);   // populations without one read a constant zero
   gl.bindVertexArray(null); vaoBufs.set(vao,bufs); return vao;
 }
 const vaoStars = pointVAO(starPos, starSize, starCol);
@@ -1121,12 +1131,26 @@ function genGalaxyMap(D){
   gxyCol=new Float32Array(N_GXY*3); gxyWave=new Float32Array(N_GXY);
   const m = galaxyMap, pxd = m.px;
   const HALO = Math.round(N_GXY*0.045);   // the picture is flat; the 3D halo stays procedural
+  // The innermost parsecs, below the picture's resolution: a nuclear stellar disc of
+  // ~200 pc and, inside it, the compact nuclear star cluster around Sgr A* — linked
+  // structures that grow together, fed by gas the bar drives inward (Sormani et al.,
+  // A&A 2025; AIP: "How central galactic structures grow together").
+  const NSD = Math.round(N_GXY*0.022), NSC = Math.round(N_GXY*0.004);
   for(let i=0;i<N_GXY;i++){
     let X,Y,Z,cr,cg,cb,s,wv=0;
     if(i<HALO){
       const rr=150+Math.abs(gauss())*1000, th=Math.random()*6.28318, ph=Math.acos(2*Math.random()-1);
       X=rr*Math.sin(ph)*Math.cos(th); Z=rr*Math.sin(ph)*Math.sin(th); Y=rr*Math.cos(ph)*0.72;
       const b=.05+Math.random()*.06; cr=b*1.05; cg=b*.95; cb=b*.85; s=1.6+Math.random()*1.4;
+    } else if(i < HALO+NSD){
+      const rr=Math.abs(gauss())*9.5, th=Math.random()*6.28318;   // ~200 pc disc
+      X=rr*Math.sin(th); Z=rr*Math.cos(th); Y=gauss()*1.7;
+      const b=.10+Math.random()*.14; cr=b*1.12; cg=b*.88; cb=b*.58; s=1.5+Math.random()*1.1; wv=1;
+    } else if(i < HALO+NSD+NSC){
+      const rr=Math.abs(gauss())*0.42, th=Math.random()*6.28318,  // ~4 pc cluster
+            ph=Math.acos(2*Math.random()-1);
+      X=rr*Math.sin(ph)*Math.cos(th); Z=rr*Math.sin(ph)*Math.sin(th); Y=rr*Math.cos(ph);
+      const b=.30+Math.random()*.45; cr=b*1.05; cg=b*.92; cb=b*.72; s=1.8+Math.random()*1.4; wv=1;
     } else {
       const pI = mapPick(m.starC);
       const w = mapXZ(pI, 0.35); X=w[0]; Z=w[1];
@@ -1213,6 +1237,7 @@ function setGalaxy(D){
   const c=gxyCache[key];
   N_GXY=c.n[0]; NEB_N=c.n[1]; DUST_N=c.n[2]; N_AND=c.n[3];
   vaoGxy=c.g; vaoNeb=c.nb; vaoDust=c.d; vaoAnd=c.a; curD=D;
+  if(D >= 5) loadGaiaDeep();
 }
 
 // nebulae: same vertex logic but a much larger sprite cap, and a coreless glow falloff
@@ -1561,31 +1586,48 @@ function environment(){
 // magnitude. This is the local sky only: Gaia sees the Galaxy from inside, and the far
 // side of the disk is hidden behind dust, so the large-scale structure stays modelled.
 let vaoGaia = null, N_GAIA = 0, gaiaOn = true;
+function parseStarBin(buf){
+  // 'GSK2': 20-byte records with a velocity; the old 16-byte layout still parses
+  const v2 = buf.byteLength >= 4 && new DataView(buf).getUint32(0) === 0x47534B32;
+  const off = v2 ? 4 : 0, rec = v2 ? 20 : 16;
+  const n = Math.floor((buf.byteLength - off)/rec);
+  const dv = new DataView(buf);
+  const pos = new Float32Array(n*3), size = new Float32Array(n), col = new Float32Array(n*3);
+  const vel = v2 ? new Float32Array(n*3) : null;
+  for(let i=0;i<n;i++){
+    const o = off + i*rec;
+    pos[i*3]   = dv.getFloat32(o,   true);
+    pos[i*3+1] = dv.getFloat32(o+4, true);
+    pos[i*3+2] = dv.getFloat32(o+8, true);
+    // the file stores hue and apparent magnitude; brightness and sprite size come
+    // from the magnitude here, scaled to sit alongside the modelled star field
+    const mag  = -2 + dv.getUint8(o+15)/255*14;
+    const flux = Math.pow(2.512, (2 - mag)/2.5);
+    const b    = Math.min(0.55, 0.042*flux);
+    col[i*3]   = dv.getUint8(o+12)/255*b;
+    col[i*3+1] = dv.getUint8(o+13)/255*b;
+    col[i*3+2] = dv.getUint8(o+14)/255*b;
+    size[i]    = Math.min(3.4, 0.72 + 0.9*Math.log10(1 + flux*4));
+    if(vel){
+      vel[i*3]   = dv.getInt8(o+16);
+      vel[i*3+1] = dv.getInt8(o+17);
+      vel[i*3+2] = dv.getInt8(o+18);
+    }
+  }
+  return { n, vao: pointVAO(pos, size, col, null, vel) };
+}
 function loadGaiaStars(){
   fetch('stars-gaia.bin').then(r => r.ok ? r.arrayBuffer() : Promise.reject())
-    .then(buf => {
-      const n = Math.floor(buf.byteLength/16);
-      const dv = new DataView(buf);
-      const pos = new Float32Array(n*3), size = new Float32Array(n), col = new Float32Array(n*3);
-      for(let i=0;i<n;i++){
-        const o = i*16;
-        pos[i*3]   = dv.getFloat32(o,   true);
-        pos[i*3+1] = dv.getFloat32(o+4, true);
-        pos[i*3+2] = dv.getFloat32(o+8, true);
-        // the file stores hue and apparent magnitude; brightness and sprite size come
-        // from the magnitude here, scaled to sit alongside the modelled star field
-        const mag  = -2 + dv.getUint8(o+15)/255*14;
-        const flux = Math.pow(2.512, (2 - mag)/2.5);
-        const b    = Math.min(0.55, 0.042*flux);
-        col[i*3]   = dv.getUint8(o+12)/255*b;
-        col[i*3+1] = dv.getUint8(o+13)/255*b;
-        col[i*3+2] = dv.getUint8(o+14)/255*b;
-        size[i]    = Math.min(3.4, 0.72 + 0.9*Math.log10(1 + flux*4));
-      }
-      vaoGaia = pointVAO(pos, size, col);
-      N_GAIA = n;
-    })
+    .then(buf => { const s = parseStarBin(buf); vaoGaia = s.vao; N_GAIA = s.n; })
     .catch(()=>{});   // opened from disk, where fetch is blocked: the modelled sky stands in
+}
+let vaoGaiaDeep = null, N_GAIA_DEEP = 0, deepAsked = false;
+function loadGaiaDeep(){
+  // the next 400,000 stars, 8 MB — fetched once, the first time a heavy quality is chosen
+  if(deepAsked) return; deepAsked = true;
+  fetch('stars-gaia-deep.bin').then(r => r.ok ? r.arrayBuffer() : Promise.reject())
+    .then(buf => { const s = parseStarBin(buf); vaoGaiaDeep = s.vao; N_GAIA_DEEP = s.n; })
+    .catch(()=>{ deepAsked = false; });
 }
 loadGaiaStars();
 loadGalaxyMap();
@@ -2547,6 +2589,7 @@ function frame(now){
   gl.uniform1f(U.ptMinSz, minSprite);
   gl.uniform3f(U.ptOrg, org[0],org[1],org[2]);
   gl.uniform1f(U.ptSpin, 0.0);
+  gl.uniform1f(U.velT, 0.0);
   gl.bindVertexArray(vaoStars); gl.drawArrays(gl.POINTS,0,N_STAR);
   // Real stars, carried along with the Sun. They are stored at the galaxy's scale — a
   // 108-unit bubble against a 900-unit galactic radius, which is the true proportion —
@@ -2560,7 +2603,13 @@ function frame(now){
   if(gaiaOn && vaoGaia && gaiaFade < 0.999){
     gl.uniform1f(U.ptFade, gaiaFade);
     gl.uniform3f(U.ptOrg, 0,0,0);
+    // Real Gaia DR3 space velocities: each star drifts along its measured track. A
+    // straight line is only honest for so long, so the extrapolation stops at +-20 Myr —
+    // beyond that the local sky simply holds its furthest computed shape.
+    gl.uniform1f(U.velT, Math.max(-2e7, Math.min(2e7, simT)) * 1.1119e-7);
     gl.bindVertexArray(vaoGaia); gl.drawArrays(gl.POINTS,0,N_GAIA);
+    if(vaoGaiaDeep && curD >= 5){ gl.bindVertexArray(vaoGaiaDeep); gl.drawArrays(gl.POINTS,0,N_GAIA_DEEP); }
+    gl.uniform1f(U.velT, 0.0);
     gl.uniform3f(U.ptOrg, org[0],org[1],org[2]);
     gl.uniform1f(U.ptFade, 0.0);
   }
