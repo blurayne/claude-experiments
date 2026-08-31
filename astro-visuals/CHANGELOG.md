@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.10.0 — 2026-08-31
+
+- Dark clouds back and switchable, helix trails, arm names (`6fd4d7d`)
+
 ### 2.9.0 — 2026-08-31
 
 - True proportions always, and panels that get out of the way (`7af3e03`)
