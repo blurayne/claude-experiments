@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.24.0 — 2026-08-31
+
+- The alert boxes ride the status bar (`7a25971`)
+
 ### 2.23.1 — 2026-08-31
 
 - The photosphere is opaque (`068b72c`)
