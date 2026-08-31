@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.17.0 — 2026-08-31
+
+- Taps instead of holds on the reload button (`9e0e057`)
+
 ### 2.16.0 — 2026-08-31
 
 - The true helix replaces the emblem (`69ae7dd`)
