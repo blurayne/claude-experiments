@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.12.0 — 2026-08-31
+
+- A rate calendar, AD/BC as suffixes, and a debug door (`1510312`)
+
 ### 2.11.1 — 2026-08-31
 
 - The remix opens the playlist, at 40% volume (`b3fd79d`)
