@@ -322,7 +322,7 @@
        title="what changed, version by version">changelog</a></span>
     <button id="dbgBtn" style="display:none" title="export or import the full app state">debug</button>
     <span style="margin-right:auto"></span>
-    <button id="tReload" title="reload · hold 3s to reset settings · hold 10s for debug mode">⟲ refresh</button>
+    <button id="tReload" title="reload · tap 3× to reset settings · tap 10× for debug mode">⟲ refresh</button>
   </div>
 </div>
 
@@ -613,7 +613,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.16.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.17.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2093,9 +2093,9 @@ $('buildInfo').title = VERSION + (BUILD.date.indexOf('__') !== 0
   ? ' · built ' + BUILD.date + ' ' + BUILD.time + ' UTC' : '');
 // Hard refresh: drop every cache and the service worker, then reload on a fresh URL so
 // nothing between here and the server can hand back the old build.
-// One button, three depths: a tap reloads past every cache; held three seconds it also
-// forgets the saved settings; held ten it comes back in debug mode. The label announces
-// each threshold while the finger is still down, so nothing fires unseen.
+// One button, three depths, counted in taps: one tap reloads past every cache, three
+// taps also forget the saved settings, ten taps toggle debug mode. The counter shows on
+// the button while tapping, and the action fires only once the tapping stops.
 function bustAndGo(mutate){
   const u = new URL(location.href);
   u.searchParams.set('_', Date.now());
@@ -2115,29 +2115,25 @@ async function doRefresh(){
 }
 {
   const b = $('tReload');
-  let t0 = null, tick = null;
-  const label = ()=>{
-    const s = (performance.now()-t0)/1000;
-    b.textContent = s >= 10 ? '⚙ release: debug' : s >= 3 ? '⤺ release: reset' : '⟲ refresh';
-  };
-  b.addEventListener('pointerdown', e=>{
-    t0 = performance.now();
-    tick = setInterval(label, 200);
-    try{ b.setPointerCapture(e.pointerId); }catch(err){}
-  });
-  const finish = e=>{
-    if(t0 === null) return;
-    const s = (performance.now()-t0)/1000;
-    clearInterval(tick); t0 = null;
+  let taps = 0, tapTimer = null;
+  const act = ()=>{
+    const n = taps; taps = 0;
     b.textContent = '⟲ refresh';
-    if(e.type !== 'pointerup') return;                    // the hold was cancelled
-    if(s >= 10) bustAndGo(u => u.searchParams.set('debug','1'));
-    else if(s >= 3){ try{ localStorage.removeItem(SKEY); }catch(err){} bustAndGo(); }
+    if(n >= 10){
+      // toggle the debug door, and remember the choice across reloads
+      const on = getComputedStyle($('dbgBtn')).display === 'none';
+      $('dbgBtn').style.display = on ? '' : 'none';
+      try{ localStorage.setItem(DBGKEY, on ? '1' : '0'); }catch(err){}
+    }
+    else if(n >= 3){ try{ localStorage.removeItem(SKEY); }catch(err){} bustAndGo(); }
     else doRefresh();
   };
-  b.addEventListener('pointerup', finish);
-  b.addEventListener('pointercancel', finish);
-  b.addEventListener('click', e => e.preventDefault());   // pointerup already decided
+  b.addEventListener('click', ()=>{
+    taps++;
+    b.textContent = '⟲ ' + taps + '×';
+    clearTimeout(tapTimer);
+    tapTimer = setTimeout(act, 450);   // the run of taps ends when the tapping stops
+  });
 }
 let paused=false, showTrails=true, showLabels=true, showStats=true;
 let showDwarfs=true, showBelt=true, showKuiper=true, showOort=true;
@@ -3219,10 +3215,16 @@ applyTrailWindow();
 // menu entry stages it. Anything the user changes afterwards is remembered as usual.
 $('jump').value = 'helix';
 $('jump').dispatchEvent(new Event('change'));
-// ---------- the debug door: only present when the URL asks for it ----------
+// ---------- the debug door: opened by ?debug in the URL or ten taps on refresh ----------
+const DBGKEY = 'galactic-transit.debug';
 const DEBUG = (()=>{ try{
   const v = new URLSearchParams(location.search).get('debug');
-  return v !== null && !['0','false','off'].includes(v.toLowerCase());
+  if(v !== null){
+    const on = !['0','false','off'].includes(v.toLowerCase());
+    try{ localStorage.setItem(DBGKEY, on ? '1' : '0'); }catch(e){}
+    return on;
+  }
+  return localStorage.getItem(DBGKEY) === '1';
 }catch(e){ return false; } })();
 if(DEBUG) $('dbgBtn').style.display = '';
 function exportState(){
