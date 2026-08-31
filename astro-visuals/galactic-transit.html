@@ -173,7 +173,9 @@
   .gamebar.slid{transform:translate(-50%, calc(100% + 15px))}
   #barGrip{position:absolute;top:-15px;left:50%;transform:translateX(-50%);width:74px;height:15px;
     background:var(--panel);border:1px solid var(--line);border-bottom:none;border-radius:3px 3px 0 0;
-    cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:none}
+    cursor:pointer;display:none;align-items:center;justify-content:center;touch-action:none}
+  .gamebar.slid #barGrip{display:flex}
+  .gamebar{touch-action:none}
   #barGrip span{width:26px;height:3px;border-radius:2px;background:var(--dim);pointer-events:none}
   .gamebar{
     background:var(--panel);border:1px solid var(--line);border-top:1px solid rgba(95,216,255,.55);border-radius:3px;padding:9px 20px;box-shadow:0 0 30px rgba(95,216,255,.08);
@@ -572,7 +574,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.10.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.10.2', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2159,6 +2161,16 @@ $('envPlus').addEventListener('click', ()=>{
 {
   const bar = $('gamebar'), grip = $('barGrip');
   let y0 = null, moved = false;
+  // hiding is done on the bar itself — slide it down; the grip appears only then,
+  // as the handle to bring it back
+  let by0 = null;
+  bar.addEventListener('pointerdown', e => { if(e.target !== grip) by0 = e.clientY; });
+  bar.addEventListener('pointermove', e => {
+    if(by0 === null) return;
+    if(e.clientY - by0 > 26){ setSlid(true); by0 = null; }
+  });
+  bar.addEventListener('pointerup',   () => { by0 = null; });
+  bar.addEventListener('pointercancel', () => { by0 = null; });
   const setSlid = s => {
     bar.classList.toggle('slid', s);
     // the transform is set inline as well as by the class: an inline style wins over
@@ -2801,7 +2813,10 @@ function frame(now){
   gl.uniformMatrix4fv(UN.proj,false,projMat);
   gl.uniformMatrix4fv(UN.view,false,viewMat);
   gl.uniform1f(UN.px,pxScale);
-  gl.uniform1f(UN.gf, realMode ? 1.0 : Math.min(1, Math.max(0, (cam.dist-140)/260)));
+  // The haze must dim as the camera closes in, whatever the mode: nearby sprites
+  // project enormous and stack into a whiteout. From inside the system the Milky Way
+  // stays visible as a band — a quarter strength — rather than vanishing outright.
+  gl.uniform1f(UN.gf, Math.min(1, Math.max(0.25, cam.dist/45)));
   gl.uniform1f(UN.time, shimT);
   gl.uniform1f(UN.vm, varOn?2.0:0.0);
   gl.uniform1f(UN.wa, 1.0); // HII regions trace the wave
@@ -2865,6 +2880,10 @@ function frame(now){
       // while the Sun's own remains absolute and still fades out near the precision
       // floor. A helix trail is absolute like the Sun's, since it winds around its arc.
       const hx = helixFor(i);
+      // the coil radius is symbolic — a few scene units, thousands of AU — so inside
+      // the planetary system it would draw giant rings across the sky. It belongs to
+      // the galaxy view and fades away below ~45 units of camera distance.
+      if(hx && cam.dist < 45) continue;
       const rel = realMode && i>0 && !hx;
       if(!rel && trailFade<=0.02) continue;
       const c=BODIES[i][4];
