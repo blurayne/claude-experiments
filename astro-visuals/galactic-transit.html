@@ -449,9 +449,16 @@
       the slider, not by physics, and the coil radius is symbolic — while at low speed, where the true
       orbits are resolvable, the real paths are drawn. Turn "stylized" off to keep only what is
       measurable.</li>
-      <li>The <b>dive</b> holds the camera on the line from the Sun to the galactic centre, so the core
-      stays behind the planets rather than swinging out of frame as the Sun carries on around its orbit.
-      Dragging still turns the view; it just turns relative to that line now.</li>
+      <li>The <b>☉ dive</b> is a camera move, not a mode change: it descends nine orders of magnitude to
+      a view about 75 AU across — the whole planetary system, Kuiper belt included, at its true scale,
+      which is why the galaxy shrinks to a band of sky and the Sun to a nearby star. The camera follows
+      the Sun exactly and holds the line from the Sun to the galactic centre, so the core stays behind
+      the planets rather than sweeping past as the Sun orbits; dragging turns the view relative to that
+      line. Time keeps running: at one year a second you can watch the planets orbit, and the background
+      genuinely streams past, because 230 km/s of real solar motion crosses most of a 75 AU view every
+      year. At higher speeds the orbits blur beyond drawing, so each planet's trail gives way to its
+      <b>orbit ring</b> — the closed path itself, which does not change over those windows. Zooming out
+      again is the same journey in reverse; nothing else is altered.</li>
       <li>What remains is a <b>neutron star</b> (drawn as a fading blue point) or a black hole (nothing).
       The last naked-eye supernova in our galaxy was <b>Kepler's, in 1604</b>; statistically we are overdue,
       and Betelgeuse (~550&nbsp;ly away, already a red supergiant) is a leading candidate.</li>
@@ -602,7 +609,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.14.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.15.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -802,8 +809,8 @@ void main(){
 }`;
 const TR_FS = `#version 300 es
 precision mediump float;
-in float vF; uniform vec3 uColor; uniform float uAlpha; out vec4 o;
-void main(){ float f = pow(vF,1.7)*uAlpha; o = vec4(uColor*f, f); }`;
+in float vF; uniform vec3 uColor; uniform float uAlpha; uniform float uFlat; out vec4 o;
+void main(){ float f = mix(pow(vF,1.7), 1.0, uFlat)*uAlpha; o = vec4(uColor*f, f); }`;
 
 const pPt = prog(PT_VS,PT_FS), pTr = prog(TR_VS,TR_FS);
 const U = {
@@ -817,7 +824,8 @@ const U = {
   ptWarpAmp: gl.getUniformLocation(pPt,'uWarpAmp'), ptMinB: gl.getUniformLocation(pPt,'uMinB'),
   ptMinSz: gl.getUniformLocation(pPt,'uMinSz'), ptFade: gl.getUniformLocation(pPt,'uFadeOut'),
   trProj: gl.getUniformLocation(pTr,'uProj'), trView: gl.getUniformLocation(pTr,'uView'),
-  trLen: gl.getUniformLocation(pTr,'uLen'), trCol: gl.getUniformLocation(pTr,'uColor'), trA: gl.getUniformLocation(pTr,'uAlpha')
+  trLen: gl.getUniformLocation(pTr,'uLen'), trCol: gl.getUniformLocation(pTr,'uColor'), trA: gl.getUniformLocation(pTr,'uAlpha'),
+  trFlat: gl.getUniformLocation(pTr,'uFlat')
 };
 
 // ---------- the physics (compressed but honest) ----------
@@ -1574,6 +1582,31 @@ for(let i=0;i<NB;i++){
   gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
   gl.bindVertexArray(null);
   trailBufs.push(b); trailVaos.push(vao);
+}
+// Each planet's orbit as a closed heliocentric ring, sampled once: in this model the
+// orbits neither precess nor decay, so the ring is the same at any epoch. It stands in
+// for the swept trail wherever sweeping is impossible — inside the dive at high speed,
+// a million orbits pass per second and no line can trace them, but the path they all
+// follow is exactly this ring.
+const RING_N = 96;
+const ringVaos = [];
+{
+  const q = new Float64Array(3), s0 = new Float64Array(3);
+  for(let i=0;i<NB;i++){
+    if(i === 0){ ringVaos.push(null); continue; }
+    const a = new Float32Array(RING_N*3);
+    const P = BODIES[i][1];
+    for(let k=0;k<RING_N;k++){
+      const ts = k/RING_N*P;
+      bodyPos(i, ts, q); bodyPos(0, ts, s0);
+      a[k*3]=q[0]-s0[0]; a[k*3+1]=q[1]-s0[1]; a[k*3+2]=q[2]-s0[2];
+    }
+    const vao=gl.createVertexArray(); gl.bindVertexArray(vao);
+    const b=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,b);
+    gl.bufferData(gl.ARRAY_BUFFER,a,gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
+    gl.bindVertexArray(null); vaoBufs.set(vao,[b]); ringVaos.push(vao);
+  }
 }
 // In real scale everything but the Sun is stored as an offset from it.
 let helixOn = true, helixCoils = 60;
@@ -2960,13 +2993,27 @@ function frame(now){
       // while the Sun's own remains absolute and still fades out near the precision
       // floor. A helix trail is absolute like the Sun's, since it winds around its arc.
       const hx = helixFor(i);
+      const c=BODIES[i][4];
+      const spoI = i>0 ? BODIES[i][1]/DT_SAMPLE : 1e9;
+      // Up close, a swept trail may be impossible — the helix is excluded there (its
+      // symbolic coils would span the sky) and an unresolvable orbit cannot be traced.
+      // The orbit ring stands in: the closed path itself, drawn flat and steady.
+      if(cam.dist < 12 && i > 0 && (hx || spoI < 12)){
+        gl.uniform3f(U.trOrg, 0,0,0);
+        gl.uniform3f(U.trCol, c[0],c[1],c[2]);
+        gl.uniform1f(U.trA, 0.4*trailAlpha*(1+starGain*0.9));
+        gl.uniform1f(U.trFlat, 1.0);
+        gl.bindVertexArray(ringVaos[i]);
+        gl.drawArrays(gl.LINE_LOOP, 0, RING_N);
+        gl.uniform1f(U.trFlat, 0.0);
+        continue;
+      }
       // the coil radius is symbolic — a few scene units, thousands of AU — so inside
       // the planetary system it would draw giant rings across the sky. Twelve units is
       // three times the widest coil: past that the camera is inside the emblem.
       if(hx && cam.dist < 12) continue;
       const rel = realMode && i>0 && !hx;
       if(!rel && trailFade<=0.02) continue;
-      const c=BODIES[i][4];
       gl.uniform3f(U.trOrg, rel?0:org[0], rel?0:org[1], rel?0:org[2]);
       gl.uniform3f(U.trCol,c[0],c[1],c[2]);
       // lift them with the star gain, or a brightened field washes the thin lines out
