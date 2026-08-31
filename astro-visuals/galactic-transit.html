@@ -630,7 +630,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.22.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.22.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -3249,13 +3249,17 @@ function frame(now){
     document.body.classList.toggle('ice', e.ice);
     const gd = g710().d;
     document.body.classList.toggle('g710', gd < 1.9);
-    { // the alert boxes sit below the Earth panel, or at the top when it is minimised
-      const er = $('env');
-      let top = (er.style.display !== 'none' && getComputedStyle(er).display !== 'none')
-        ? er.getBoundingClientRect().bottom + 8 : 14;
+    { // the alert boxes sit below the Earth panel; with the panel minimised they move
+      // to the right of its + button instead, so the corner stays one tidy row
+      const envShown = $('env').style.display !== 'none' && getComputedStyle($('env')).display !== 'none';
+      const plusShown = getComputedStyle($('envPlus')).display !== 'none';
+      let left = 14, top = 14;
+      if(envShown) top = $('env').getBoundingClientRect().bottom + 8;
+      else if(plusShown) left = $('envPlus').getBoundingClientRect().right + 8;
       for(const id of ['iceBox','g710Box']){
         const b = $(id);
         if(getComputedStyle(b).display !== 'none'){
+          b.style.left = left + 'px';
           b.style.top = top + 'px';
           top += b.getBoundingClientRect().height + 8;
         }
