@@ -57,9 +57,17 @@ built it.
   row when the bar wraps on mobile.
 - Calendars: era as suffix (`2,026 AD`, `475 BC`); every calendar option names its
   tradition.
-- Prefer sliders with − / + steppers over button rows (speed, × exp); label the
-  multiplier `× exp` with the real multiplication sign; e-notation over superscript
-  powers in compact labels.
+- Prefer sliders with − / + steppers (on the right) over button rows; segmented
+  buttons (`[on|off]`, `[Gy|10ⁿ|eⁿ]`) where exactly one option is ever lit; label the
+  multiplier `× exp` with the real multiplication sign. Galaxy density is the
+  **detail** slider (lowest…ultra). The scenario button says **GO** and closes the
+  panel. Camera focus lives in the **Focus panel** (top left, above the Earth panel):
+  Sun dives to the system, Milky Way pulls out — there are no view toggle buttons.
+  Trails are governed by the **orbit** and **helix** switches with their own
+  transparency sliders; there is no master trails toggle. Events are split into
+  **supernovae** and **star birth** switches (planetary nebulae ride with the
+  deaths); a new star opens with a brief white pling. Pause uses the monochrome
+  text-presentation glyphs (⏸︎/▶︎), never emoji.
 - Defaults: music on at 40% with the remix first; sound effects off; supernova and
   star-birth events **off** (the user switches the life cycle on); the supernova and
   star-birth counters **off**; the settings dialog **hidden** (a saved open state

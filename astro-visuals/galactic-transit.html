@@ -68,6 +68,13 @@
   .stepb{flex:none;width:20px;height:20px;padding:0;font-family:inherit;font-size:12px;line-height:1;
     background:rgba(95,216,255,.06);border:1px solid var(--line);border-radius:2px;color:var(--dim);cursor:pointer}
   .stepb:hover{color:var(--accent);border-color:rgba(95,216,255,.55)}
+  .sect{margin:12px 0 4px;font-family:'Orbitron',ui-monospace,monospace;font-size:8.5px;letter-spacing:.3em;
+    text-transform:uppercase;color:var(--dim);border-bottom:1px solid var(--line);padding-bottom:3px}
+  .seg{display:flex;flex:none;border:1px solid var(--line);border-radius:2px;overflow:hidden}
+  .seg button{font-family:'Orbitron',ui-monospace,monospace;font-size:8.5px;letter-spacing:.08em;
+    text-transform:uppercase;background:none;border:0;color:var(--dim);cursor:pointer;padding:4px 8px}
+  .seg button + button{border-left:1px solid var(--line)}
+  .seg button.on{color:var(--accent);background:rgba(95,216,255,.10);text-shadow:0 0 8px var(--glow)}
   .hud.flash3{animation:hudflash3 .4s ease}
   .hud.flash10{animation:hudflash10 .4s ease}
   #dbgBtn{font-family:inherit;font-size:8px;letter-spacing:.11em;text-transform:uppercase;
@@ -182,7 +189,7 @@
   #infoFull:hover,#infoClose:hover{color:var(--accent)}
   #collapse{position:absolute;top:10px;right:10px;background:none;border:0;color:var(--dim);cursor:pointer;font-size:13px;font-family:inherit}
   #envMin{position:absolute;top:6px;right:8px;background:none;border:0;color:var(--dim);cursor:pointer;font-size:13px;font-family:inherit}
-  #envPlus{position:fixed;top:14px;left:14px;z-index:6;display:none;width:36px;height:36px;border-radius:2px;
+  #envPlus, #focusPlus{position:fixed;top:14px;left:14px;z-index:6;display:none;width:36px;height:36px;border-radius:2px;
     background:var(--panel);border:1px solid var(--line);color:var(--accent);cursor:pointer;font-size:15px;
     font-family:inherit;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
   .gamebar{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);display:flex;gap:28px;
@@ -242,23 +249,11 @@
   <h1>Galactic Transit <span class="ver" id="verHud"></span></h1>
   <div class="sub">The Sun orbits the Milky Way's core at ~230 km/s. The planets, on an ecliptic tilted ~60° to the galactic plane, weave helical paths around its track.</div>
   <div class="body">
-    <div class="row"><label for="speed">speed</label><button class="stepb" data-step="speed:-0.05">−</button><input type="range" id="speed" min="0" max="1" step="0.001" value="1"><button class="stepb" data-step="speed:0.05">+</button><span id="speedv" style="min-width:64px;text-align:right;color:var(--ink)"></span></div>
-    <div class="row"><label for="multExp">× exp</label>
-      <button class="stepb" data-step="multExp:-1">−</button>
-      <input type="range" id="multExp" min="0" max="10" step="1" value="0">
-      <button class="stepb" data-step="multExp:1">+</button>
-      <span id="multExpv" style="min-width:52px;text-align:right;color:var(--ink)">×1</span></div>
-    <div class="row"><label>quality</label><div class="mults" id="quals"></div></div>
-    <div class="row" id="rowHudHz" style="display:none"><label for="hudHz">hud rate</label><input type="range" id="hudHz" min="1" max="16" step="1" value="8"><span id="hudHzv" style="min-width:64px;text-align:right;color:var(--ink)">8×/s</span></div>
-    <div class="row" id="rowGain" style="display:none"><label for="minB">Gaia brght</label><input type="range" id="minB" min="0" max="1" step="0.01" value="0.05"><span id="minBv" style="min-width:64px;text-align:right;color:var(--ink)">+5%</span></div>
-    <div class="row"><label for="trailA">trails</label><input type="range" id="trailA" min="0" max="1" step="0.01" value="1"><span id="trailAv" style="min-width:64px;text-align:right;color:var(--ink)">100%</span></div>
-    <div class="row"><label for="orbitA">orbits</label><input type="range" id="orbitA" min="0" max="1" step="0.01" value="1"><span id="orbitAv" style="min-width:64px;text-align:right;color:var(--ink)">100%</span></div>
-    <div class="row"><label>planet trails</label>
-      <button class="tg on" id="psHelix" title="the true helical path through space">helix</button>
-      <button class="tg on" id="psOrbit" title="the closed orbit around the Sun">orbit</button></div>
-    <div class="row"><label for="trailL">length</label><input type="range" id="trailL" min="0" max="1000" step="10" value="300"><span id="trailLv" style="min-width:64px;text-align:right;color:var(--ink)">300%</span></div>
-    <div class="row"><label for="musicVol">music</label><input type="range" id="musicVol" min="0" max="1" step="0.01" value="0.40"><span id="musicVolv" style="min-width:64px;text-align:right;color:var(--ink)">40%</span></div>
-    <div class="row"><label for="sfxVol">effects</label><input type="range" id="sfxVol" min="0" max="1" step="0.01" value="0.7"><span id="sfxVolv" style="min-width:64px;text-align:right;color:var(--ink)">70%</span></div>
+    <div class="row"><label for="speed">speed</label><input type="range" id="speed" min="0" max="1" step="0.001" value="1"><span id="speedv" style="min-width:64px;text-align:right;color:var(--ink)"></span><button class="stepb" data-step="speed:-0.05">−</button><button class="stepb" data-step="speed:0.05">+</button></div>
+    <div class="row"><label for="multExp">× exp</label><input type="range" id="multExp" min="0" max="10" step="1" value="0"><span id="multExpv" style="min-width:44px;text-align:right;color:var(--ink)">×1</span><button class="stepb" data-step="multExp:-1">−</button><button class="stepb" data-step="multExp:1">+</button></div>
+    <div class="row"><label>music</label><div class="seg" id="segMusic"><button data-v="on">on</button><button data-v="off">off</button></div><input type="range" id="musicVol" min="0" max="1" step="0.01" value="0.40"><span id="musicVolv" style="min-width:36px;text-align:right;color:var(--ink)">40%</span><button class="stepb" data-step="musicVol:-0.05">−</button><button class="stepb" data-step="musicVol:0.05">+</button></div>
+    <div class="row" style="justify-content:flex-end;gap:10px"><span id="trackName" style="font-size:9px;letter-spacing:.1em;color:var(--dim)">—</span><button class="rowbtn" id="tNext">⏭ next</button></div>
+    <div class="row"><label>effects</label><div class="seg" id="segSfx"><button data-v="on">on</button><button data-v="off">off</button></div><input type="range" id="sfxVol" min="0" max="1" step="0.01" value="0.7"><span id="sfxVolv" style="min-width:36px;text-align:right;color:var(--ink)">70%</span><button class="stepb" data-step="sfxVol:-0.05">−</button><button class="stepb" data-step="sfxVol:0.05">+</button></div>
     <div class="chks">
       <label class="chk"><input type="checkbox" id="fxBirth" checked> star birth</label>
       <label class="chk"><input type="checkbox" id="fxSn" checked> supernova</label>
@@ -274,8 +269,29 @@
       <option value="2.068">Great Oxidation (2.5 Gyr ago)</option>
       <option value="9.07">Andromeda collision (+4.5 Gyr)</option>
       <option value="10.1">After the merger (+5.5 Gyr)</option>
-    </select><button class="rowbtn" id="jumpGo" title="apply the selected scenario and close the panel">set</button></div>
-    <div class="row"><label for="cal">calendar</label><select id="cal">
+    </select><button class="rowbtn" id="jumpGo" title="apply the selected scenario and close the panel">GO</button></div>
+    <div class="sect">Graphics</div>
+    <div class="row"><label for="detail">detail</label><input type="range" id="detail" min="0" max="5" step="1" value="0"><span id="detailv" style="min-width:56px;text-align:right;color:var(--ink)">lowest</span><button class="stepb" data-step="detail:-1">−</button><button class="stepb" data-step="detail:1">+</button></div>
+    <div class="row"><button class="tg on" id="psOrbit" title="the closed orbit around the Sun">orbit</button><input type="range" id="orbitA" min="0" max="1" step="0.01" value="1"><span id="orbitAv" style="min-width:36px;text-align:right;color:var(--ink)">100%</span><button class="stepb" data-step="orbitA:-0.05">−</button><button class="stepb" data-step="orbitA:0.05">+</button></div>
+    <div class="row"><button class="tg on" id="psHelix" title="the true swept path through space">helix</button><input type="range" id="trailA" min="0" max="1" step="0.01" value="1"><span id="trailAv" style="min-width:36px;text-align:right;color:var(--ink)">100%</span><button class="stepb" data-step="trailA:-0.05">−</button><button class="stepb" data-step="trailA:0.05">+</button></div>
+    <div class="row"><label for="trailL">length</label><input type="range" id="trailL" min="0" max="1000" step="10" value="300"><span id="trailLv" style="min-width:64px;text-align:right;color:var(--ink)">300%</span><button class="stepb" data-step="trailL:-50">−</button><button class="stepb" data-step="trailL:50">+</button></div>
+    <div class="row"><label>labels</label>
+      <button class="tg on" id="tArms">galaxy arms</button>
+      <button class="tg on" id="tLabels">solar system</button></div>
+    <div class="row"><label>events</label>
+      <button class="tg" id="tEvSN">supernovae</button>
+      <button class="tg" id="tEvBirth">star birth</button></div>
+    <div class="toggles">
+      <button class="tg on" id="tDust">dark clouds</button>
+      <button class="tg on" id="tBelt">asteroids</button>
+      <button class="tg on" id="tKuiper">kuiper</button>
+      <button class="tg on" id="tOort">oort</button>
+      <button class="tg on" id="tDwarfs">dwarfs</button>
+      <button class="tg on" id="tGaia">gaia sky</button>
+      <button class="tg on" id="tVar">variables</button>
+    </div>
+    <div class="sect">Hud</div>
+    <div class="row"><button class="tg on" id="tStatCal">calendar</button><select id="cal" style="flex:1">
       <option value="hs">Human existence (300,000 yrs)</option>
       <option value="her">Homo erectus (~2 Myr)</option>
       <option value="hom">Hominins (chimp–human split, ~7 Myr)</option>
@@ -295,42 +311,27 @@
       <option value="al">Anno Lucis — Freemasonry</option>
       <option value="he">Holocene Era — secular</option>
     </select></div>
+    <div class="row"><label>units</label><div class="seg" id="segUnits"><button data-v="words">Gy</button><button data-v="sup">10ⁿ</button><button data-v="e">eⁿ</button></div></div>
     <div class="toggles">
-      <button class="tg on" id="tPause">⏸ pause</button>
-      <button class="tg on" id="tTrails">trails</button>
-      <button class="tg on" id="tLabels">labels</button>
-      <button class="tg on" id="tArms">arm names</button>
-      <button class="tg on" id="tDwarfs">dwarfs</button>
-      <button class="tg on" id="tBelt">asteroids</button>
-      <button class="tg on" id="tKuiper">kuiper</button>
-      <button class="tg on" id="tOort">oort</button>
-      <button class="tg on" id="tDust">dark clouds</button>
-      <button class="tg" id="tLife">life cycle</button>
-      <button class="tg on" id="tVar">variables</button>
+      <button class="tg on" id="tStatAge">solar system age</button>
+      <button class="tg on" id="tStatGyr">galaxy years</button>
+      <button class="tg" id="tStatSn">sn count</button>
+      <button class="tg" id="tStatBirth">births count</button>
       <button class="tg on" id="tLifeSup">life support</button>
       <button class="tg on" id="tEnv">environment</button>
-      <button class="tg on" id="tGaia">gaia sky</button>
       <button class="tg" id="tFps">fps</button>
-      <button class="tg" id="tSound">effects</button>
-      <button class="tg on" id="tMusic">music</button>
-      <button class="tg" id="tNext">⏭ next</button>
+    </div>
+    <div class="row" id="rowHudHz" style="display:none"><label for="hudHz">hud rate</label><input type="range" id="hudHz" min="1" max="16" step="1" value="8"><span id="hudHzv" style="min-width:64px;text-align:right;color:var(--ink)">8×/s</span></div>
+    <div class="row" id="rowGain" style="display:none"><label for="minB">Gaia brght</label><input type="range" id="minB" min="0" max="1" step="0.01" value="0.05"><span id="minBv" style="min-width:64px;text-align:right;color:var(--ink)">+5%</span></div>
+    <div class="toggles" style="margin-top:10px">
       <button class="tg" id="tFull">⛶ full</button>
       <button class="tg" id="tRotate">⟳ auto</button>
-      <button class="tg on" id="tStatCal">hum yr</button>
-      <button class="tg on" id="tStatAge">age</button>
-      <button class="tg on" id="tStatGyr">gal yr</button>
-      <button class="tg" id="tStatSn">supernovae</button>
-      <button class="tg" id="tStatBirth">stars born</button>
-      <button class="tg" id="tSci">10^x</button>
-      <button class="tg" id="tLive">live count</button>
-      <button class="tg" id="tView">galaxy view</button>
-      <button class="tg" id="tDive">☉ dive</button>
-
-    </div>
-    <div class="toggles" style="margin-top:10px">
+      <span style="flex:1"></span>
+      <button class="tg on" id="tPause">⏸︎ pause</button>
       <button class="tg" id="tInfo">ⓘ info &amp; stats</button>
-      <span id="trackName" style="font-size:9px;letter-spacing:.1em;color:var(--dim);align-self:center">—</span>
     </div>
+    <button id="tView" style="display:none"></button>
+    <button id="tDive" style="display:none"></button>
   </div>
   <div class="hudfoot">
     <span id="buildInfo"><span id="buildStamp">—</span> · <a class="hudlink" id="changelogLink"
@@ -459,7 +460,7 @@
       does (Hubble's Variable Nebula changes within weeks). Their real day-to-year cycles are far below this
       clock's resolution — like the supernova flashes, the shimmer you see is a stretched sample.</li>
       <li><b>Trails</b> are measurements, nothing else, and they follow the zoom. Close in, where the
-      planets stand apart from the Sun, the <b>planet trails</b> split button chooses what they show:
+      planets stand apart from the Sun, the <b>orbit</b> and <b>helix</b> switches choose what they show, separately or together:
       <b>helix</b> draws each planet's true swept path through space — at one year a second the Sun covers
       48&nbsp;AU while the Earth loops once around it, so Mercury winds tightly, Earth coils visibly and
       the giants barely wave, exactly as reality has it — and <b>orbit</b> draws the closed path around
@@ -474,7 +475,7 @@
       and falling on a slow magnetic-storm cycle, a streaked corona. The surface detail is drawn with
       shader noise and is illustrative; the disc's size is not — it is the Sun's true diameter at the
       true distance.</li>
-      <li>The <b>☉ dive</b> is a camera move, not a mode change: it descends nine orders of magnitude to
+      <li>Focusing the <b>Sun</b> (the Focus panel, top left) is a camera move, not a mode change: it descends nine orders of magnitude to
       a view about 75 AU across — the whole planetary system, Kuiper belt included, at its true scale,
       which is why the galaxy shrinks to a band of sky and the Sun to a nearby star. The camera follows
       the Sun exactly and holds the line from the Sun to the galactic centre, so the core stays behind
@@ -595,6 +596,16 @@
 </div>
 <button id="reopen" aria-label="show control panel">+</button>
 <button id="envPlus" aria-label="show the Earth panel">+</button>
+<div class="env" id="focusPanel">
+  <button id="focusMin" aria-label="close" style="position:absolute;top:6px;right:8px;background:none;
+      border:0;color:var(--dim);cursor:pointer;font-size:13px;font-family:inherit">×</button>
+  <h2>Focus</h2>
+  <div style="display:flex;gap:8px;margin-top:7px;align-items:center">
+    <select id="focusSel" style="flex:1"><option value="sun">Sun</option><option value="mw">Milky Way</option></select>
+    <button class="rowbtn" id="focusGo">focus</button>
+  </div>
+</div>
+<button id="focusPlus" aria-label="show the focus panel" style="display:none">◎</button>
 <div class="alertbox" id="iceBox">❄ GLACIAL EPOCH</div>
 <div class="alertbox" id="g710Box">☄ GLIESE 710 · <span id="eG710d">—</span></div>
 <div id="dbgCard" style="display:none;position:fixed;inset:0;z-index:40;background:rgba(2,6,14,.72);
@@ -635,7 +646,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.24.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.25.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -1991,12 +2002,14 @@ function lifeStep(dt, dtSim){
   const sfr = sfrFactor(ageGyr());
   // Per year now, not per compressed step. These are drawn events, a sampled fraction of
   // the real rates — the true figures are in the status bar and the info panel.
-  accB  += dtSim*1.84e-6*curD*sfr;
-  accSN += dtSim*Math.max(9.2e-9*curD, 1.26e-7)*sfr;
-  accPN += dtSim*1.26e-6*curD*Math.sqrt(sfr);
+  if(evBirth) accB += dtSim*1.84e-6*curD*sfr; else accB = 0;
+  if(evSN){
+    accSN += dtSim*Math.max(9.2e-9*curD, 1.26e-7)*sfr;
+    accPN += dtSim*1.26e-6*curD*Math.sqrt(sfr);   // low-mass deaths ride with the deaths switch
+  } else accSN = accPN = 0;
   const CAP = 40;
   for(let n=0; accB>=1 && n<CAP; n++){ accB--; if(events.length<EV_CAP){ const s=armSite();
-    events.push({k:1,x:s[0],y:s[1],z:s[2],wv:1,st:0,t:0,L:(3+Math.random()*6)*1e6,sn:Math.random()<0.12});
+    events.push({k:1,x:s[0],y:s[1],z:s[2],wv:1,st:0,t:0,L:(3+Math.random()*6)*1e6,sn:evSN && Math.random()<0.12});
     if(Math.random()<0.5) sfx('birth'); } } // only half of them sound, or it never stops
   if(accB>1) accB = 0;
   for(let n=0; accSN>=1 && n<CAP; n++){ accSN--; if(events.length<EV_CAP){ const s=armSite();
@@ -2025,6 +2038,10 @@ function fillEvents(){
       const u=Math.min(1,e.st/0.8e6), f=e.st>e.L?Math.max(0,1-(e.st-e.L)/0.8e6):1;
       s=(0.6+2.8*u)*f;
       cr=(0.55+0.07*u)*f; cg=(0.16+0.56*u)*f; cb=(0.10+0.95*u)*f;
+      if(e.st < 0.25e6){ // the pling: a brief white twinkle, the opposite of a blast
+        const w = (1 - e.st/0.25e6)*(0.55+0.45*Math.sin(shimT*9.0 + e.x*3.1));
+        s += 3.2*w; cr += 1.05*w; cg += 1.05*w; cb += 1.15*w;
+      }
     } else if(e.k===2){ // red supergiant: swelling, reddening
       const u=Math.min(1,e.st/1e6);
       s=3.2+2.6*u; cr=0.62+0.5*u; cg=0.72-0.34*u; cb=1.05-0.87*u;
@@ -2232,14 +2249,25 @@ toggle($('psHelix'), on=>{ psH = on; });
 toggle($('psOrbit'), on=>{ psO = on; });
 
 function toggle(btn, fn){ btn.addEventListener('click', ()=>{ btn.classList.toggle('on'); fn(btn.classList.contains('on')); }); }
-toggle($('tPause'), on=>{ paused=!on; $('tPause').textContent = on?'⏸ pause':'▶ play'; });
-toggle($('tTrails'), on=> showTrails=on);
+toggle($('tPause'), on=>{ paused=!on; $('tPause').textContent = on?'⏸︎ pause':'▶︎ play'; });
 toggle($('tLabels'), on=>{ showLabels=on; if(!on) labelEls.forEach(l=>l.style.display='none'); });
 toggle($('tArms'), on=>{ armsOn=on; if(!on) armEls.forEach(l=>l.style.display='none'); });
 toggle($('tDwarfs'), on=>{ showDwarfs=on; if(!on) labelEls.forEach((l,i)=>{ if(i>=N_PLANETS) l.style.display='none'; }); });
 toggle($('tBelt'), on=> showBelt=on);
 toggle($('tKuiper'), on=> showKuiper=on);
-toggle($('tLife'), on=>{ lifeOn=on; if(!on){ events.length=0; puffs.length=0; } });
+let evSN = false, evBirth = false;
+function syncLife(){
+  lifeOn = evSN || evBirth;
+  if(!evSN){ // drop everything supernova-or-death shaped, keep living clusters
+    for(let i=events.length-1;i>=0;i--){ const k=events[i].k;
+      if(k!==1) events.splice(i,1); else events[i].sn=false; }
+    if(!lifeOn) puffs.length = 0;
+  }
+  if(!evBirth) for(let i=events.length-1;i>=0;i--) if(events[i].k===1) events.splice(i,1);
+  if(!lifeOn){ events.length=0; puffs.length=0; }
+}
+toggle($('tEvSN'), on=>{ evSN=on; syncLife(); });
+toggle($('tEvBirth'), on=>{ evBirth=on; syncLife(); });
 toggle($('tVar'), on=> varOn=on);
 let dustOn = true;
 toggle($('tDust'), on=>{ dustOn = on; });
@@ -2248,6 +2276,22 @@ toggle($('tEnv'), on=>{
   $('env').style.display = on ? '' : 'none';
   $('envPlus').style.display = 'none';
   fitPanels();
+});
+$('focusMin').addEventListener('click', ()=>{
+  $('focusPanel').style.display='none'; $('focusPlus').style.display='block'; saveSettings(); });
+$('focusPlus').addEventListener('click', ()=>{
+  $('focusPanel').style.display=''; $('focusPlus').style.display='none'; saveSettings(); });
+$('focusGo').addEventListener('click', ()=>{
+  if($('focusSel').value === 'sun'){
+    if($('tView').classList.contains('on')) $('tView').click();
+    if(!$('tDive').classList.contains('on')) $('tDive').click();
+    else { cam.follow = true; coreLock = true; cam.distGoal = 3.5e-5; reseedFollow = true; }
+  } else {
+    if($('tDive').classList.contains('on')) $('tDive').click();
+    if(!$('tView').classList.contains('on')) $('tView').click();
+    else { cam.follow = false; cam.distGoal = 4300; reseedFollow = true; }
+  }
+  saveSettings();
 });
 $('envMin').addEventListener('click', ()=>{
   $('env').style.display='none'; $('envPlus').style.display='block'; fitPanels(); saveSettings(); });
@@ -2303,21 +2347,32 @@ function applySfxGain(){
   audio.master.gain.cancelScheduledValues(at);
   audio.master.gain.setTargetAtTime(soundOn?sfxVol:0.0, at, 0.3); // fade, never a click
 }
-toggle($('tSound'), on=>{
-  soundOn=on;
-  if(on && !audio) audio=initAudio();
-  if(on && audio) audio.ctx.resume().catch(()=>armUnlock());
-  if(on) loadBanks();
+// one control, several faces: a segmented button where exactly one segment is lit
+function seg(id, initial, fn){
+  const bs = [...$(id).children];
+  const set = (v, apply)=>{ bs.forEach(b => b.classList.toggle('on', b.dataset.v === v));
+    if(apply !== false) fn(v); };
+  bs.forEach(b => b.addEventListener('click', ()=>{ set(b.dataset.v); saveSettings(); }));
+  // only the lit segment is set at build time: the state variables carry the same
+  // defaults, and calling fn this early would touch bindings not yet initialised
+  set(initial, false);
+  return set;
+}
+const setSegSfx = seg('segSfx', 'off', v => {
+  soundOn = v === 'on';
+  if(soundOn && !audio) audio = initAudio();
+  if(soundOn && audio) audio.ctx.resume().catch(()=>armUnlock());
+  if(soundOn) loadBanks();
   applySfxGain();
 });
-toggle($('tMusic'), on=>{
-  musicOn=on;
-  if(on){ if(!player.src) loadTrack(trackIx); else playTrack(); }
+const setSegMusic = seg('segMusic', 'on', v => {
+  musicOn = v === 'on';
+  if(musicOn){ if(!player.src) loadTrack(trackIx); else playTrack(); }
   else player.pause();
 });
 $('tNext').addEventListener('click', ()=>{
   nextTrack();
-  if(!musicOn) $('tMusic').click(); // asking for the next track means you want music
+  if(!musicOn) setSegMusic('on'); // asking for the next track means you want music
 });
 $('musicVol').addEventListener('input', e=>{
   musicVol=+e.target.value; player.volume=musicVol;
@@ -2346,14 +2401,16 @@ loadTrack(0);
 // so restoring a setting does exactly what clicking it would. Anything momentary — the
 // pause, the dive, the epoch jump, the current track position — is deliberately left out.
 const SKEY = 'galactic-transit.settings.v1';
-const S_TOG = ['tTrails','tLabels','tDwarfs','tBelt','tKuiper','tOort','tDust','tArms','psHelix','psOrbit','tLife','tVar','tLifeSup','tEnv',
-               'tStatCal','tStatAge','tStatGyr','tStatSn','tStatBirth','tSci','tLive','tView','tGaia','tFps',
-               'tSound','tMusic'];
+const S_TOG = ['tLabels','tArms','tDwarfs','tBelt','tKuiper','tOort','tDust','psHelix','psOrbit',
+               'tEvSN','tEvBirth','tVar','tLifeSup','tEnv',
+               'tStatCal','tStatAge','tStatGyr','tStatSn','tStatBirth','tGaia','tFps'];
 const S_SLD = ['speed','trailA','orbitA','trailL','musicVol','sfxVol','minB','hudHz'];
 const S_CHK = ['fxBirth','fxSn','fxPn','fxDrone'];
 function saveSettingsNow(){
   try{
     const s = { t:{}, s:{}, c:{}, cal:$('cal').value, mult:speedMult, dens:curD,
+                units:unitMode, mus:musicOn, fx:soundOn,
+                foc:$('focusPanel').style.display !== 'none', fsel:$('focusSel').value,
                 hud:$('hud').style.display !== 'none',
                 bar:$('gamebar').classList.contains('slid'),
                 envMin:$('envPlus').style.display === 'block' };
@@ -2380,7 +2437,13 @@ function restoreSettings(register){
       if(v != null && $(id).classList.contains('on') !== v) $(id).click(); });
     if(s.cal && s.cal !== $('cal').value){ $('cal').value = s.cal; $('cal').dispatchEvent(new Event('change')); }
     if(s.mult > 0 && s.mult !== speedMult) setMultExp(Math.log10(s.mult));
-    if(s.dens){ const i = QUALS.findIndex(q => q[0] === s.dens); if(i >= 0 && s.dens !== curD) $('quals').children[i].click(); }
+    if(s.dens){ const i = DETAIL_D.indexOf(s.dens);
+      if(i >= 0 && s.dens !== curD){ $('detail').value = i; $('detail').dispatchEvent(new Event('input')); } }
+    if(s.units === 'words' || s.units === 'sup' || s.units === 'e') setSegUnits(s.units);
+    if(typeof s.mus === 'boolean' && s.mus !== musicOn) setSegMusic(s.mus ? 'on' : 'off');
+    if(typeof s.fx === 'boolean' && s.fx !== soundOn) setSegSfx(s.fx ? 'on' : 'off');
+    if(s.foc === false && $('focusPanel').style.display !== 'none') $('focusMin').click();
+    if(s.fsel === 'sun' || s.fsel === 'mw') $('focusSel').value = s.fsel;
     if(s.bar) $('gamebar').classList.add('slid');
     if(s.envMin && $('tEnv').classList.contains('on')) $('envMin').click();
   }
@@ -2402,7 +2465,8 @@ function restoreSettings(register){
   $('collapse').addEventListener('click', saveSettings);
   $('reopen').addEventListener('click', saveSettings);
   $('multExp').addEventListener('input', saveSettings);
-  [...$('quals').children].forEach(b => b.addEventListener('click', saveSettings));
+  $('detail').addEventListener('input', saveSettings);
+  $('focusSel').addEventListener('change', saveSettings);
 }
 toggle($('tOort'), on=> showOort=on);
 function updateBar(){
@@ -2416,14 +2480,9 @@ statToggle($('tStatAge'), 'sAge');
 statToggle($('tStatGyr'), 'sGyr');
 statToggle($('tStatSn'), 'cDeath');
 statToggle($('tStatBirth'), 'cBirth');
-toggle($('tSci'), on=> sciMode=on);
-let liveCount = false;
-toggle($('tLive'), on=>{
-  liveCount = on;
-  $('lDeath').textContent = on ? 'dying now'   : 'supernovae';
-  $('lBirth').textContent = on ? 'forming now' : 'stars born';
-});
-let calMode='ad', sciMode=false;
+const setSegUnits = seg('segUnits', 'words', v => { unitMode = v; });
+let liveCount = false;   // retired control; the rate view lives in the calendar options
+let calMode='ad', unitMode='words';
 $('cal').addEventListener('change', e=> calMode=e.target.value);
 // Replaying matters here: an event like the Gliese 710 pass is over in a second or two,
 // and re-picking the same entry fires no change event, so there would be no way back to
@@ -2440,7 +2499,6 @@ function jumpToEpoch(){
     // not an epoch: a staging entry for the true helix. At one year a second the Sun
     // covers 48 AU while Earth loops once around it — visible, and actually accurate.
     if($('tView').classList.contains('on')) $('tView').click();
-    if(!$('tTrails').classList.contains('on')) $('tTrails').click();
     if(!$('psHelix').classList.contains('on')) $('psHelix').click();
     if(!$('psOrbit').classList.contains('on')) $('psOrbit').click();  // coils and rings together
     // the owner's exported look: full trails over half-strength rings
@@ -2481,9 +2539,13 @@ function fmtYears(y){ // a duration in years → astronomer units, or ×10^x not
   // Jumping to an epoch before an era began gives a negative span: show how far short
   // it falls rather than a raw minus sign glued to a locale string.
   if(y < 0) return '−'+fmtYears(-y);
-  if(sciMode){
+  if(unitMode==='sup'){
     const e=Math.floor(Math.log10(Math.max(1,y)));
     return (y/Math.pow(10,e)).toFixed(4)+'×10'+sup(e)+' yr';
+  }
+  if(unitMode==='e'){
+    const e=Math.floor(Math.log10(Math.max(1,y)));
+    return (y/Math.pow(10,e)).toFixed(4)+'e'+e+' yr';
   }
   if(y>=1e9) return (y/1e9).toFixed(4)+' Gyr';
   if(y>=1e6) return (y/1e6).toFixed(4)+' Myr';
@@ -2561,20 +2623,16 @@ toggle($('tDive'), on=>{
 // Star density as one row of choices rather than stacked overrides. The top settings
 // are enormous — x8 is some seventeen million sprites — so a failed allocation falls
 // back to what was working instead of leaving a half-built galaxy.
-const QUALS = [[1,'base'],[5,'hi-fi'],[20,'ultra'],[40,'×2'],[80,'×4'],[160,'×8']];
-{ const host = $('quals');
-  QUALS.forEach(([d,label],i)=>{
-    const b = document.createElement('button');
-    b.textContent = label; if(i===0) b.classList.add('on');
-    b.addEventListener('click', ()=>{
-      const prev = curD;
-      try{ setGalaxy(d); }
-      catch(err){ try{ setGalaxy(prev); }catch(e2){} return; }
-      [...host.children].forEach(c=> c.classList.toggle('on', c===b));
-    });
-    host.appendChild(b);
-  });
-}
+const DETAIL_D = [1,5,20,40,80,160];
+const DETAIL_NAMES = ['lowest','low','medium','high','max','ultra'];
+$('detail').addEventListener('input', e=>{
+  const i = Math.max(0, Math.min(5, Math.round(+e.target.value)));
+  const prev = curD;
+  try{ setGalaxy(DETAIL_D[i]); }
+  catch(err){ try{ setGalaxy(prev); }catch(e2){}
+    const j = DETAIL_D.indexOf(curD); if(j>=0) e.target.value = j; }
+  $('detailv').textContent = DETAIL_NAMES[DETAIL_D.indexOf(curD)] || DETAIL_NAMES[0];
+});
 // ---------- fullscreen & screen orientation ----------
 const isFs = ()=> !!(document.fullscreenElement || document.webkitFullscreenElement);
 function reqFs(){
@@ -3131,6 +3189,7 @@ function frame(now){
         gl.drawArrays(gl.LINE_STRIP, TRAIL_N-Math.min(TRAIL_N, Math.round(200*spo)), Math.min(TRAIL_N, Math.round(200*spo)));
         continue;
       }
+      if(!psH) continue;   // the Sun's arc is a swept trail: it follows the helix switch
       gl.uniform3f(U.trCol,c[0],c[1],c[2]);
       // lift with the star gain, or a brightened field washes the thin line out
       gl.uniform1f(U.trA, 0.9*trailAlpha*(1+starGain*0.9));
@@ -3150,7 +3209,10 @@ function frame(now){
     gl.useProgram(pAB);
     gl.uniformMatrix4fv(UA.uProj,false,projMat);
     gl.uniformMatrix4fv(UA.uView,false,viewMat);
-    gl.uniform1f(UA.uPx,pxScale); gl.uniform1f(UA.uT,simT);
+    // simT in float32 quantises the phase after ~1e5 years and the ring collapses
+    // into spokes; wrapped time (exact in f64, small in f32) keeps every phase clean.
+    // Anonymous specks reshuffling once per 65,536 years is invisible in a uniform ring.
+    gl.uniform1f(UA.uPx,pxScale); gl.uniform1f(UA.uT, simT % 65536);
     gl.uniform1f(UA.uS, realMode?AU2U:1.0);
     gl.uniform3f(UA.uSun,0,0,0);
     gl.uniform3f(UA.uE1,E1[0],E1[1],E1[2]);
@@ -3163,7 +3225,7 @@ function frame(now){
     gl.useProgram(pKB);
     gl.uniformMatrix4fv(UK.uProj,false,projMat);
     gl.uniformMatrix4fv(UK.uView,false,viewMat);
-    gl.uniform1f(UK.uPx,pxScale); gl.uniform1f(UK.uT,simT);
+    gl.uniform1f(UK.uPx,pxScale); gl.uniform1f(UK.uT, simT % 65536);
     gl.uniform1f(UK.uS, realMode?AU2U:1.0); // real mode: the belt radii are AU
     gl.uniform3f(UK.uSun,0,0,0);
     gl.uniform3f(UK.uE1,E1[0],E1[1],E1[2]);
@@ -3331,6 +3393,18 @@ function frame(now){
     document.body.classList.toggle('ice', e.ice);
     const gd = g710().d;
     document.body.classList.toggle('g710', gd < 1.9);
+    { // the left column: the focus panel first, the Earth panel beneath whichever of
+      // panel or reopen button is showing, each element told exactly where to sit
+      let y = 14;
+      const place = (el, on)=>{ if(!on) return; el.style.top = y+'px'; el.style.left = '14px';
+        y += el.getBoundingClientRect().height + 8; };
+      const fpOn = $('focusPanel').style.display !== 'none';
+      place($('focusPanel'), fpOn);
+      place($('focusPlus'), !fpOn && getComputedStyle($('focusPlus')).display !== 'none');
+      const envOn = $('env').style.display !== 'none' && getComputedStyle($('env')).display !== 'none';
+      place($('env'), envOn);
+      place($('envPlus'), !envOn && getComputedStyle($('envPlus')).display !== 'none');
+    }
     { // the alert boxes ride on top of the status bar, matching its width; with the
       // bar slid away or hidden they anchor to the bottom edge instead
       const bar = $('gamebar');
