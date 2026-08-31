@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.19.2 — 2026-08-31
+
+- The debug dialog opens on the current state (`7eb70d1`)
+
 ### 2.19.1 — 2026-08-31
 
 - AGENTS.md carries the owner's standing instructions; the life cycle is opt-in (`de84809`)
