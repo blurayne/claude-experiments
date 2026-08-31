@@ -235,7 +235,7 @@
       <input type="range" id="helixN" min="10" max="160" step="5" value="60" style="flex:1">
       <span id="helixNv" style="min-width:44px;text-align:right;color:var(--ink)">60</span></div>
     <div class="row"><label for="trailL">length</label><input type="range" id="trailL" min="0" max="1000" step="10" value="300"><span id="trailLv" style="min-width:64px;text-align:right;color:var(--ink)">300%</span></div>
-    <div class="row"><label for="musicVol">music</label><input type="range" id="musicVol" min="0" max="1" step="0.01" value="0.55"><span id="musicVolv" style="min-width:64px;text-align:right;color:var(--ink)">55%</span></div>
+    <div class="row"><label for="musicVol">music</label><input type="range" id="musicVol" min="0" max="1" step="0.01" value="0.40"><span id="musicVolv" style="min-width:64px;text-align:right;color:var(--ink)">40%</span></div>
     <div class="row"><label for="sfxVol">effects</label><input type="range" id="sfxVol" min="0" max="1" step="0.01" value="0.7"><span id="sfxVolv" style="min-width:64px;text-align:right;color:var(--ink)">70%</span></div>
     <div class="chks">
       <label class="chk"><input type="checkbox" id="fxBirth" checked> star birth</label>
@@ -575,7 +575,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.11.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.11.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -1772,10 +1772,11 @@ function initAudio(){
 // Kept as separate files rather than embedded: 10 MB of base64 would bloat the HTML
 // past any sane single-file limit, and this way nothing is fetched until music is on.
 const TRACKS = [
+  {src:'music/galactic-year-remix-1.mp3', name:'Galactic Year — Remix I'},
   {src:'music/galactic-year-1.mp3', name:'Galactic Year I'},
   {src:'music/galactic-year-2.mp3', name:'Galactic Year II'},
 ];
-let musicOn = true, musicVol = 0.55, trackIx = 0;
+let musicOn = true, musicVol = 0.40, trackIx = 0;
 const player = new Audio();
 player.preload = 'none';
 player.volume = musicVol;
