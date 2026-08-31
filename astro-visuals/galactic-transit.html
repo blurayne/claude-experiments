@@ -625,7 +625,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.19.2', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.19.3', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2427,11 +2427,14 @@ function jumpToEpoch(){
     if($('tView').classList.contains('on')) $('tView').click();
     if(!$('tTrails').classList.contains('on')) $('tTrails').click();
     if(!$('psHelix').classList.contains('on')) $('psHelix').click();
-    if($('psOrbit').classList.contains('on')) $('psOrbit').click();   // the helix alone
+    if(!$('psOrbit').classList.contains('on')) $('psOrbit').click();  // coils and rings together
+    // the owner's exported look: full trails over half-strength rings
+    $('trailA').value = 1;   $('trailA').dispatchEvent(new Event('input'));
+    $('orbitA').value = 0.5; $('orbitA').dispatchEvent(new Event('input'));
     if(trailPct < 250){ $('trailL').value = 300; $('trailL').dispatchEvent(new Event('input')); }
     if(!$('tDive').classList.contains('on')) $('tDive').click();
-    cam.distGoal = 3.0e-5;                     // ~65 AU across: the coils at readable size
-    cam.yaw = 0.0443; cam.pitch = 0.16;        // the exported angle chosen by hand
+    cam.distGoal = 2.531e-5;                   // ~55 AU across
+    cam.yaw = 0.9800; cam.pitch = -0.5643;     // the exported angle chosen by hand
     // never unpause someone who asked for reduced motion
     if(paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
     return;

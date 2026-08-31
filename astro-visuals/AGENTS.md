@@ -41,9 +41,10 @@ built it.
 
 - Every control persists in localStorage and is replayed on boot; new controls join
   `S_TOG` / `S_SLD` / `S_CHK` or the settings object explicitly.
-- The piece boots on the **"The helix"** scenario: dive, 1 yr/s, helix trails only
-  (orbits off), yaw 0.0443 / pitch 0.16. Never unpause a visitor whose system asks
-  for reduced motion.
+- The piece boots on the **"The helix"** scenario: dive at ~55 AU, 1 yr/s, helix and
+  orbit trails together (trails 100%, orbits 50%), yaw 0.9800 / pitch −0.5643 — the
+  owner's exported preset. Never unpause a visitor whose system asks for reduced
+  motion.
 - Settings footer: build stamp in the viewer's own time zone (named, `UTC±0` when
   zero) + short sha + changelog link on one line; version only in the tooltip; no
   reset button. The reload button: 1 tap refreshes past caches, 3 taps also resets
