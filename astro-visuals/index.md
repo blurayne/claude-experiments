@@ -77,6 +77,7 @@ in the browser with no build step and no external CDN.
 | Nuclear disc & cluster | modelled after AIP's ["How central galactic structures grow together"](https://www.aip.de/en/news/galactic-structures-grow-together/) | scientific reference, no data used |
 | [ejtaal/gaia-web](https://github.com/ejtaal/gaia-web) | inspected as a data source; its `gaia-web-data` sets (175–290 MB) are beyond a Pages site's budget | BSD-3 (code); data derived from Gaia DR3 (ESA/Gaia/DPAC) |
 | [Gaia Sky datasets](https://gaiasky.space/resources/datasets/) (ZAH/ARI Heidelberg) | noted as a resource; host unreachable from the build sandbox | per-dataset, see their page |
+| [Gaia Sky](https://codeberg.org/gaiasky/gaiasky) (ZAH/ARI Heidelberg) | star-sprite shading technique (corona + white-saturating core, flux-conserving sub-pixel stars), reimplemented from its shader library | MPL-2.0; technique credit, no code copied |
 | [HYG 4.1](https://github.com/astronexus/HYG-Database) | the previous real-sky layer (superseded by AT-HYG) | CC BY-SA 4.0 |
 | Orbitron & Exo 2 fonts | all UI text | SIL Open Font License 1.1 |
 | Music & sound effects | uploaded by the project owner | provided by the project owner |

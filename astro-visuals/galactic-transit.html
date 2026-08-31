@@ -504,7 +504,10 @@
       Galaxy from inside and the far side of the disk hides behind dust, which is why everything beyond it
       stays modelled. Below the picture's resolution the innermost parsecs add the <b>nuclear stellar
       disc</b> (~200&nbsp;pc) and the <b>nuclear star cluster</b> around Sgr&nbsp;A* — linked structures
-      that grow together, fed by gas the bar drives inward. They are stored at the galaxy's own scale, so in the compressed view they only
+      that grow together, fed by gas the bar drives inward. The bubble of real stars rides the Sun's
+      orbital frame — the side facing the galactic centre keeps facing it as the Sun goes round — and
+      star sprites use Gaia Sky's two-part profile: a wide corona around a hot core that saturates to
+      white, with sub-pixel stars keeping their flux rather than their size. They are stored at the galaxy's own scale, so in the compressed view they only
       appear once the magnified solar system is small enough for the proportion to read — zoomed in there,
       the magnification would put every real star inside the planets. Real scale keeps them at every zoom,
       since nothing is magnified there.</li>
@@ -552,7 +555,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.7.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.8.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
