@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.26.0 — 2026-08-31
+
+- Checkbox grids, and volume as its own switch (`1125f0b`)
+
 ### 2.25.2 — 2026-08-31
 
 - The Earth panel and its life-support reading are fixtures (`a740cce`)
