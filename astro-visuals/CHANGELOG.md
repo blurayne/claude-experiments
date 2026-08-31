@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.19.3 — 2026-08-31
+
+- The helix scenario adopts the owner's second exported preset (`7924cfd`)
+
 ### 2.19.2 — 2026-08-31
 
 - The debug dialog opens on the current state (`7eb70d1`)
