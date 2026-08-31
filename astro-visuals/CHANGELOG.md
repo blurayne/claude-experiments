@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.7.0 — 2026-08-31
+
+- Half a million DR3 stars that actually move (`d74e9e1`)
+
 ### 2.6.0 — 2026-08-31
 
 - The real sky is Gaia DR3 now — 100,000 stars from AT-HYG 3.2 (`e3ecfa8`)
