@@ -684,7 +684,13 @@ void main(){
   vec4 mv = uView * vec4(p - uOrg,1.0);
   gl_Position = uProj * mv;
   float dd = max(1e-9, -mv.z); // no floor of 1: real-scale zooms get much closer than that
-  gl_PointSize = clamp(aSize * uPx / dd, max(uMinSz, 0.7), uCap);
+  float s0 = aSize * uPx / dd;
+  gl_PointSize = clamp(s0, max(uMinSz, 0.7), uCap);
+  // a star smaller than a pixel keeps its flux, not its size: clamped points dim by
+  // the area they were denied, so the far field stops shimmering at full brightness.
+  // Referenced against the fixed floor, so the min-size slider still brightens.
+  float sub = clamp(s0/0.7, 0.0, 1.0);
+  float fluxKeep = mix(1.0, sub*sub, 0.62);
   vec3 col = aColor;
   if(uVarMode > 0.5){
     float h = fract(sin(dot(aPos.xz, vec2(12.9898,78.233)))*43758.5453);
@@ -713,8 +719,11 @@ void main(){
     float lum = max(max(col.r, col.g), col.b);
     if(lum > 0.0002 && lum < uMinB) col *= uMinB/lum;
   }
-  vColor = col * fade * (1.0 - uFadeOut);
+  vColor = col * fade * fluxKeep * (1.0 - uFadeOut);
 }`;
+// Star profile after Gaia Sky (MPL-2.0, assets/shader/lib/star.glsl): a wide soft
+// corona with a tight hot core, and the core lifts the colour toward white — a bright
+// star reads as luminous rather than as a tinted disc. Reimplemented, not copied.
 const PT_FS = `#version 300 es
 precision mediump float;
 in vec3 vColor; out vec4 o;
@@ -722,10 +731,12 @@ void main(){
   vec2 q = gl_PointCoord*2.0-1.0;
   float r = length(q);
   if(r>1.0) discard;
-  float core = smoothstep(0.42,0.0,r);
-  float glow = pow(1.0-r,2.4)*0.5;
-  float a = core+glow;
-  o = vec4(vColor*a, a);
+  float d = 1.0-r;
+  float corona = pow(d, 6.0);
+  float core   = pow(d, 20.0);
+  float a = corona*0.85 + core*1.35;
+  vec3 col = vColor*a + vColor.g*core*0.9;   // the white-core lift, scaled by luminance
+  o = vec4(col, a);
 }`;
 
 // trails, faded by vertex index
@@ -2607,9 +2618,17 @@ function frame(now){
     // straight line is only honest for so long, so the extrapolation stops at +-20 Myr —
     // beyond that the local sky simply holds its furthest computed shape.
     gl.uniform1f(U.velT, Math.max(-2e7, Math.min(2e7, simT)) * 1.1119e-7);
+    // The bubble rides the Sun's orbital frame. Its coordinates are Sun-relative, so the
+    // wave-rotation path — a rigid turn about the origin — turns it about the Sun by the
+    // Sun's own orbital angle: the side that faces the galactic centre keeps facing it
+    // (over 20 Myr the Sun turns through 32 degrees, which is anything but negligible).
+    gl.uniform1f(U.ptWA, 1.0);
+    gl.uniform1f(U.ptSpin, (simT*V_GAL/900) * 640);
     gl.bindVertexArray(vaoGaia); gl.drawArrays(gl.POINTS,0,N_GAIA);
     if(vaoGaiaDeep && curD >= 5){ gl.bindVertexArray(vaoGaiaDeep); gl.drawArrays(gl.POINTS,0,N_GAIA_DEEP); }
     gl.uniform1f(U.velT, 0.0);
+    gl.uniform1f(U.ptWA, 0.0);
+    gl.uniform1f(U.ptSpin, 0.0);
     gl.uniform3f(U.ptOrg, org[0],org[1],org[2]);
     gl.uniform1f(U.ptFade, 0.0);
   }
