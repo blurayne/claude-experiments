@@ -69,8 +69,13 @@
     background:rgba(95,216,255,.06);border:1px solid var(--line);border-radius:2px;color:var(--dim);cursor:pointer}
   .stepb:hover{color:var(--accent);border-color:rgba(95,216,255,.55)}
   .ico{width:8px;height:8px;fill:currentColor;margin-right:5px;vertical-align:-1px}
-  .sect{margin:12px 0 4px;font-family:'Orbitron',ui-monospace,monospace;font-size:8.5px;letter-spacing:.3em;
+  .sect{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;
+    margin:12px 0 4px;font-family:'Orbitron',ui-monospace,monospace;font-size:8.5px;letter-spacing:.3em;
     text-transform:uppercase;color:var(--dim);border-bottom:1px solid var(--line);padding-bottom:3px}
+  .sect:hover{color:var(--accent);border-color:rgba(95,216,255,.45)}
+  .sect .arw{letter-spacing:0;font-size:10px;transition:transform .18s ease;transform-origin:50% 45%}
+  .sect.closed .arw{transform:rotate(-90deg)}
+  .sbody.closed{display:none}
   .seg{display:flex;flex:none;border:1px solid var(--line);border-radius:2px;overflow:hidden}
   .seg button{font-family:'Orbitron',ui-monospace,monospace;font-size:8.5px;letter-spacing:.08em;
     text-transform:uppercase;background:none;border:0;color:var(--dim);cursor:pointer;padding:4px 8px}
@@ -251,17 +256,10 @@
   <h1>Galactic Transit <span class="ver" id="verHud"></span></h1>
   <div class="sub">The Sun orbits the Milky Way's core at ~230 km/s. The planets, on an ecliptic tilted ~60° to the galactic plane, weave helical paths around its track.</div>
   <div class="body">
+    <div class="sect" data-sec="sim">Simulation<span class="arw">▾</span></div>
+    <div class="sbody" id="secSim">
     <div class="row"><label for="speed">speed</label><input type="range" id="speed" min="0" max="1" step="0.001" value="1"><span id="speedv" style="min-width:64px;text-align:right;color:var(--ink)"></span><button class="stepb" data-step="speed:-0.05">−</button><button class="stepb" data-step="speed:0.05">+</button></div>
     <div class="row"><label for="multExp">× exp</label><input type="range" id="multExp" min="0" max="10" step="1" value="0"><span id="multExpv" style="min-width:44px;text-align:right;color:var(--ink)">×1</span><button class="stepb" data-step="multExp:-1">−</button><button class="stepb" data-step="multExp:1">+</button></div>
-    <div class="row"><label>music</label><input type="range" id="musicVol" min="0" max="1" step="0.01" value="0.40"><span id="musicVolv" style="min-width:36px;text-align:right;color:var(--ink)">40%</span><button class="stepb" data-step="musicVol:-0.05">−</button><button class="stepb" data-step="musicVol:0.05">+</button></div>
-    <div class="row" style="justify-content:flex-end;gap:10px"><span id="trackName" style="font-size:9px;letter-spacing:.1em;color:var(--dim)">—</span><button class="rowbtn" id="tNext">⏭ next</button></div>
-    <div class="row"><label>effects</label><input type="range" id="sfxVol" min="0" max="1" step="0.01" value="0"><span id="sfxVolv" style="min-width:36px;text-align:right;color:var(--ink)">off</span><button class="stepb" data-step="sfxVol:-0.05">−</button><button class="stepb" data-step="sfxVol:0.05">+</button></div>
-    <div class="chks indent">
-      <label class="chk"><input type="checkbox" id="fxBirth" checked> star birth</label>
-      <label class="chk"><input type="checkbox" id="fxSn" checked> supernova</label>
-      <label class="chk"><input type="checkbox" id="fxPn" checked> nebula</label>
-      <label class="chk"><input type="checkbox" id="fxDrone" checked> drone</label>
-    </div>
     <div class="row"><label for="jump">scenario</label><select id="jump">
       <option value="">— present day —</option>
       <option value="4.5692567" data-speed="0.58" data-mult="10000">Gliese 710 grazes the Oort cloud (+1.29 Myr)</option>
@@ -272,7 +270,21 @@
       <option value="8.36149" data-speed="1" data-mult="100000000">Andromeda collision (+4.5 Gyr)</option>
       <option value="10.1">After the merger (+5.5 Gyr)</option>
     </select><button class="rowbtn" id="jumpGo" title="apply the selected scenario and close the panel">GO</button></div>
-    <div class="sect">Graphics</div>
+    </div>
+    <div class="sect" data-sec="audio">Audio<span class="arw">▾</span></div>
+    <div class="sbody" id="secAudio">
+    <div class="row"><label>music</label><input type="range" id="musicVol" min="0" max="1" step="0.01" value="0.40"><span id="musicVolv" style="min-width:36px;text-align:right;color:var(--ink)">40%</span><button class="stepb" data-step="musicVol:-0.05">−</button><button class="stepb" data-step="musicVol:0.05">+</button></div>
+    <div class="row" style="justify-content:flex-end;gap:10px"><span id="trackName" style="font-size:9px;letter-spacing:.1em;color:var(--dim)">—</span><button class="rowbtn" id="tNext">⏭ next</button></div>
+    <div class="row"><label>effects</label><input type="range" id="sfxVol" min="0" max="1" step="0.01" value="0"><span id="sfxVolv" style="min-width:36px;text-align:right;color:var(--ink)">off</span><button class="stepb" data-step="sfxVol:-0.05">−</button><button class="stepb" data-step="sfxVol:0.05">+</button></div>
+    <div class="chks indent">
+      <label class="chk"><input type="checkbox" id="fxBirth" checked> star birth</label>
+      <label class="chk"><input type="checkbox" id="fxSn" checked> supernova</label>
+      <label class="chk"><input type="checkbox" id="fxPn" checked> nebula</label>
+      <label class="chk"><input type="checkbox" id="fxDrone" checked> drone</label>
+    </div>
+    </div>
+    <div class="sect" data-sec="gfx">Graphics<span class="arw">▾</span></div>
+    <div class="sbody" id="secGfx">
     <div class="row"><label for="detail">detail</label><input type="range" id="detail" min="0" max="5" step="1" value="0"><span id="detailv" style="min-width:56px;text-align:right;color:var(--ink)">lowest</span><button class="stepb" data-step="detail:-1">−</button><button class="stepb" data-step="detail:1">+</button></div>
     <div class="row"><label for="orbitA" title="the closed orbit around the Sun">orbit</label><input type="range" id="orbitA" min="0" max="1" step="0.01" value="1"><span id="orbitAv" style="min-width:36px;text-align:right;color:var(--ink)">100%</span><button class="stepb" data-step="orbitA:-0.05">−</button><button class="stepb" data-step="orbitA:0.05">+</button></div>
     <div class="row"><label for="trailA" title="the true swept path through space">helix</label><input type="range" id="trailA" min="0" max="1" step="0.01" value="1"><span id="trailAv" style="min-width:36px;text-align:right;color:var(--ink)">100%</span><button class="stepb" data-step="trailA:-0.05">−</button><button class="stepb" data-step="trailA:0.05">+</button></div>
@@ -292,7 +304,9 @@
       <label class="chk"><input type="checkbox" id="tGaia" checked> gaia sky</label>
       <label class="chk"><input type="checkbox" id="tVar" checked> variables</label>
     </div>
-    <div class="sect">Hud</div>
+    </div>
+    <div class="sect" data-sec="hud">Hud<span class="arw">▾</span></div>
+    <div class="sbody" id="secHud">
     <div class="row"><label for="cal">calendar</label><select id="cal" style="flex:1">
       <option value="none">— none —</option>
       <option value="hs">Human existence (300,000 yrs)</option>
@@ -324,6 +338,7 @@
     </div>
     <div class="row" id="rowHudHz" style="display:none"><label for="hudHz">hud rate</label><input type="range" id="hudHz" min="1" max="16" step="1" value="8"><span id="hudHzv" style="min-width:64px;text-align:right;color:var(--ink)">8×/s</span></div>
     <div class="row" id="rowGain" style="display:none"><label for="minB">Gaia brght</label><input type="range" id="minB" min="0" max="1" step="0.01" value="0.05"><span id="minBv" style="min-width:64px;text-align:right;color:var(--ink)">+5%</span></div>
+    </div>
     <div class="toggles" style="margin-top:10px">
       <button class="tg" id="tFull">⛶ full</button>
       <button class="tg" id="tRotate">⟳ auto</button>
@@ -650,7 +665,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.29.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.30.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2352,6 +2367,26 @@ function applySfxGain(){
   audio.master.gain.cancelScheduledValues(at);
   audio.master.gain.setTargetAtTime(soundOn?sfxVol:0.0, at, 0.3); // fade, never a click
 }
+// ---------- collapsible sections ----------
+// Each heading owns a body; the arrow turns to show which way it goes. Simulation
+// starts closed: its two sliders and the scenario list are the controls a visitor is
+// least likely to want on arrival, and the piece opens on a staged scenario anyway.
+const SECS = ['sim','audio','gfx','hud'];
+const SEC_BODY = { sim:'secSim', audio:'secAudio', gfx:'secGfx', hud:'secHud' };
+const secOpen = { sim:false, audio:true, gfx:true, hud:true };
+function applySecs(){
+  for(const k of SECS){
+    $(SEC_BODY[k]).classList.toggle('closed', !secOpen[k]);
+    document.querySelector('.sect[data-sec="'+k+'"]').classList.toggle('closed', !secOpen[k]);
+  }
+  fitPanels();
+}
+document.querySelectorAll('.sect[data-sec]').forEach(h =>
+  h.addEventListener('click', ()=>{
+    secOpen[h.dataset.sec] = !secOpen[h.dataset.sec];
+    applySecs(); saveSettings();
+  }));
+
 // one control, several faces: a segmented button where exactly one segment is lit
 function seg(id, initial, fn){
   const bs = [...$(id).children];
@@ -2420,7 +2455,7 @@ function saveSettingsNow(){
   try{
     const s = { t:{}, s:{}, c:{}, cal:$('cal').value, mult:speedMult, dens:curD,
                 units:unitMode,
-                foc:$('focusPanel').style.display !== 'none', fsel:$('focusSel').value,
+                foc:$('focusPanel').style.display !== 'none', fsel:$('focusSel').value, sec:secOpen,
                 hud:$('hud').style.display !== 'none',
                 bar:$('gamebar').classList.contains('slid'),
                 envMin:$('envPlus').style.display === 'block' };
@@ -2452,6 +2487,7 @@ function restoreSettings(register){
     if(s.units === 'words' || s.units === 'sup' || s.units === 'e') setSegUnits(s.units);
     if(s.foc === false && $('focusPanel').style.display !== 'none') $('focusMin').click();
     if(s.fsel === 'sun' || s.fsel === 'mw') $('focusSel').value = s.fsel;
+    if(s.sec) for(const k of SECS) if(typeof s.sec[k] === 'boolean') secOpen[k] = s.sec[k];
     if(s.bar) $('gamebar').classList.add('slid');
     if(s.envMin) $('envMin').click();
   }
@@ -2462,6 +2498,7 @@ function restoreSettings(register){
     else if(!wantHud && haveHud) $('collapse').click();
 
   }
+  applySecs();
   if(register === false) return;
   // from here on, anything the user touches is remembered
   S_TOG.forEach(id => $(id).addEventListener('click', saveSettings));

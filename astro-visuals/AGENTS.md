@@ -39,6 +39,9 @@ built it.
 
 ## UI conventions
 
+- The dialog is four collapsible sections — Simulation (speed, multiplier, scenario),
+  Audio, Graphics, Hud — each folding from its heading's arrow, with the open state
+  persisted; Simulation starts closed.
 - Every control persists in localStorage and is replayed on boot; new controls join
   `S_TOG` / `S_SLD` / `S_CHK` or the settings object explicitly.
 - A returning visitor's saved settings outrank the opening scenario: at boot it
