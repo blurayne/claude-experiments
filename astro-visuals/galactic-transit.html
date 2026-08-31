@@ -63,6 +63,12 @@
     color:var(--dim);text-decoration:none;border-bottom:1px solid rgba(var(--stateRGB), .35);
     transition:color .15s,border-color .15s}
   .hudlink:hover{color:var(--accent);border-color:rgba(var(--stateRGB), .7)}
+  #dbgBtn{font-family:inherit;font-size:8px;letter-spacing:.11em;text-transform:uppercase;
+    background:none;border:1px solid var(--line);border-radius:2px;color:#ffb066;cursor:pointer;padding:2px 7px}
+  .dbg-b{font-family:'Orbitron',ui-monospace,monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;
+    background:rgba(95,216,255,.07);border:1px solid var(--line);border-radius:2px;color:var(--ink);
+    cursor:pointer;padding:6px 12px}
+  .dbg-b:hover{border-color:var(--accent);color:var(--accent)}
   .hudfoot button{font-family:inherit;font-size:8px;letter-spacing:.11em;text-transform:uppercase;
     padding:4px 8px;border:1px solid var(--line);border-radius:2px;color:var(--dim);cursor:pointer;
     background:transparent;transition:color .15s,border-color .15s;white-space:nowrap}
@@ -265,6 +271,7 @@
       <option value="theia">Theia impact — the Moon forms (~4.51 Gyr)</option>
       <option value="earth">Age of the planet — Earth forms (~4.54 Gyr)</option>
       <option value="ad" selected>Anno Domini — Christian</option>
+      <option value="rate">Years per second — the rate</option>
       <option value="ah">Anno Hegirae — Islamic (lunar)</option>
       <option value="vs">Vikram Samvat — Hindu</option>
       <option value="saka">Śaka — Indian national, secular</option>
@@ -313,6 +320,7 @@
     <span id="buildInfo">—</span>
     <a class="hudlink" id="changelogLink" href="changelog.html" target="_blank" rel="noopener"
        title="what changed, version by version">changelog</a>
+    <button id="dbgBtn" style="display:none" title="export or import the full app state">debug</button>
     <span style="margin-right:auto"></span>
     <button id="tReset" title="forget saved settings and reload with the defaults">⤺ reset</button>
     <button id="tReload" title="reload, bypassing every cache">⟲ refresh</button>
@@ -548,7 +556,7 @@
 <div class="gamebar" id="gamebar">
   <div id="barGrip" aria-label="hide or show the status bar" title="slide the status bar away"><span></span></div>
   <div class="cnt death" id="cDeath"><span id="lDeath">supernovae</span><b id="nDeath">−0</b></div>
-  <div class="stat" id="sCal">human year<b id="gCal">300,000 yr</b></div>
+  <div class="stat" id="sCal"><span id="lCal">human year</span><b id="gCal">300,000 yr</b></div>
   <div class="stat" id="sAge">age of the solar system<b id="gAge">4.5680 Gyr</b></div>
   <div class="stat" id="sGyr">galactic years<b id="gGyr">20.302</b></div>
   <div class="cnt birth" id="cBirth"><span id="lBirth">stars born</span><b id="nBirth">+0</b></div>
@@ -556,6 +564,26 @@
 </div>
 <button id="reopen" aria-label="show control panel">+</button>
 <button id="envPlus" aria-label="show the Earth panel">+</button>
+<div id="dbgCard" style="display:none;position:fixed;inset:0;z-index:40;background:rgba(2,6,14,.72);
+    backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)">
+  <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(560px,calc(100vw - 32px));
+      background:var(--panel);border:1px solid var(--line);border-top:1px solid rgba(95,216,255,.55);
+      border-radius:3px;padding:14px 16px;box-shadow:0 0 40px rgba(0,0,0,.6)">
+    <h2 style="margin:0 0 8px;font-size:11px;letter-spacing:.2em;color:var(--accent);text-transform:uppercase">Debug — app state</h2>
+    <textarea id="dbgText" spellcheck="false" style="width:100%;height:min(300px,42vh);resize:vertical;
+        background:rgba(0,0,0,.45);border:1px solid var(--line);border-radius:2px;color:var(--ink);
+        font:11px/1.45 ui-monospace,Menlo,monospace;padding:8px;box-sizing:border-box"></textarea>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+      <button class="dbg-b" id="dbgExport" title="write the current state into the box">export</button>
+      <button class="dbg-b" id="dbgImport" title="apply the state in the box">import</button>
+      <button class="dbg-b" id="dbgCopy" title="copy the box to the clipboard">copy</button>
+      <button class="dbg-b" id="dbgPaste" title="paste the clipboard into the box">paste</button>
+      <span style="flex:1"></span>
+      <button class="dbg-b" id="dbgClose">close</button>
+    </div>
+    <div id="dbgMsg" style="margin-top:6px;font-size:9.5px;letter-spacing:.1em;color:var(--dim);min-height:14px"></div>
+  </div>
+</div>
 <div class="note" id="scaleNote">view <em id="sScale">—</em> across<span id="fpsNote" style="display:none"> &nbsp;·&nbsp; <em id="fpsVal">—</em> fps</span></div>
 <div class="env" id="env">
   <button id="envMin" aria-label="minimise the Earth panel">–</button>
@@ -575,7 +603,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.11.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.12.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2279,7 +2307,7 @@ const saveSettings = ()=>{ clearTimeout(saveTimer); saveTimer = setTimeout(saveS
 // Deferred: replaying a saved toggle runs its handler, and some of those reach for
 // state declared further down the file (the label elements, the simulation clock).
 // This is called at the very end of the script, once every binding exists.
-function restoreSettings(){
+function restoreSettings(register){
   let s = null;
   try{ s = JSON.parse(localStorage.getItem(SKEY) || 'null'); }catch(e){}
   if(s){
@@ -2296,11 +2324,14 @@ function restoreSettings(){
     if(s.bar) $('gamebar').classList.add('slid');
     if(s.envMin && $('tEnv').classList.contains('on')) $('envMin').click();
   }
+  if(register === false) return;
   // from here on, anything the user touches is remembered
   S_TOG.forEach(id => $(id).addEventListener('click', saveSettings));
   S_SLD.forEach(id => $(id).addEventListener('input', saveSettings));
   S_CHK.forEach(id => $(id).addEventListener('change', saveSettings));
   $('cal').addEventListener('change', saveSettings);
+  $('cal').addEventListener('change', ()=>{
+    $('lCal').textContent = $('cal').value === 'rate' ? 'years per second' : 'human year'; });
   $('collapse').addEventListener('click', saveSettings);
   $('reopen').addEventListener('click', saveSettings);
   [...$('mults').children].forEach(b => b.addEventListener('click', saveSettings));
@@ -2410,7 +2441,11 @@ function humanYear(){
     case 'amino': return fmtYears(4.40e9+el);        // prebiotic amino acids, Hadean Earth
     case 'theia': return fmtYears(4.51e9+el);        // the Moon-forming giant impact
     case 'earth': return fmtYears(4.54e9+el);        // Earth's formation — the age of the planet
-    default:     return g>=1 ? 'A.D. '+fmt(g) : fmt(1-g)+' B.C.';
+    case 'rate': { // not a date at all: how much time passes per second of watching
+      const eff = speed*speedMult;
+      return eff < 1000 ? eff.toFixed(eff<1?2:1)+' yr/s' : fmtYears(eff)+'/s';
+    }
+    default:     return g>=1 ? fmt(g)+' AD' : fmt(1-g)+' BC';
   }
 }
 toggle($('tView'), on=>{ cam.follow=!on; cam.distGoal = on? 4300 : 150; reseedFollow=true; });
@@ -3120,6 +3155,55 @@ function frame(now){
 }
 restoreSettings();
 applyTrailWindow();
+// ---------- the debug door: only present when the URL asks for it ----------
+const DEBUG = (()=>{ try{
+  const v = new URLSearchParams(location.search).get('debug');
+  return v !== null && !['0','false','off'].includes(v.toLowerCase());
+}catch(e){ return false; } })();
+if(DEBUG) $('dbgBtn').style.display = '';
+function exportState(){
+  saveSettingsNow();
+  let settings = null; try{ settings = JSON.parse(localStorage.getItem(SKEY)||'null'); }catch(e){}
+  return {
+    app: 'galactic-transit', version: BUILD.version, exported: new Date().toISOString(),
+    time: { simT, paused },
+    camera: { yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, distGoal:cam.distGoal,
+              follow:cam.follow, coreLock, dive:$('tDive').classList.contains('on') },
+    viewport: { w:innerWidth, h:innerHeight, dpr:devicePixelRatio },
+    settings,
+  };
+}
+function applyState(o){
+  if(!o || o.app !== 'galactic-transit') throw new Error('not a galactic-transit state');
+  if(o.settings){ localStorage.setItem(SKEY, JSON.stringify(o.settings)); restoreSettings(false); }
+  if(o.time && typeof o.time.simT === 'number'){
+    simT = o.time.simT; nextSample = simT + DT_SAMPLE;
+    events.length = 0; puffs.length = 0; refillTrails();
+    if(typeof o.time.paused === 'boolean' && paused !== o.time.paused) $('tPause').click();
+  }
+  if(o.camera){ const c = o.camera;
+    for(const k of ['yaw','pitch','dist','distGoal']) if(typeof c[k] === 'number') cam[k] = c[k];
+    if(typeof c.follow === 'boolean') cam.follow = c.follow;
+    coreLock = !!c.coreLock;
+    $('tDive').classList.toggle('on', !!c.dive);
+    reseedFollow = true;
+  }
+}
+const dbgSay = m => { $('dbgMsg').textContent = m; };
+$('dbgBtn').addEventListener('click', ()=>{ $('dbgCard').style.display=''; $('dbgText').value=''; dbgSay(''); });
+$('dbgClose').addEventListener('click', ()=>{ $('dbgCard').style.display='none'; });
+$('dbgExport').addEventListener('click', ()=>{
+  $('dbgText').value = JSON.stringify(exportState(), null, 2); dbgSay('state exported'); });
+$('dbgImport').addEventListener('click', ()=>{
+  try{ applyState(JSON.parse($('dbgText').value)); dbgSay('state imported'); }
+  catch(e){ dbgSay('import failed: '+e.message); } });
+$('dbgCopy').addEventListener('click', ()=>{
+  navigator.clipboard.writeText($('dbgText').value)
+    .then(()=>dbgSay('copied'), ()=>dbgSay('clipboard refused — select and copy by hand')); });
+$('dbgPaste').addEventListener('click', ()=>{
+  navigator.clipboard.readText()
+    .then(v=>{ $('dbgText').value=v; dbgSay('pasted'); },
+          ()=>dbgSay('clipboard refused — paste into the box by hand')); });
 fitPanels();
 requestAnimationFrame(frame);
 </script>
