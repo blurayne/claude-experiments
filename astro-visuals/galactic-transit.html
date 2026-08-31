@@ -322,8 +322,7 @@
        title="what changed, version by version">changelog</a>
     <button id="dbgBtn" style="display:none" title="export or import the full app state">debug</button>
     <span style="margin-right:auto"></span>
-    <button id="tReset" title="forget saved settings and reload with the defaults">⤺ reset</button>
-    <button id="tReload" title="reload, bypassing every cache">⟲ refresh</button>
+    <button id="tReload" title="reload · hold 3s to reset settings · hold 10s for debug mode">⟲ refresh</button>
   </div>
 </div>
 
@@ -603,7 +602,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.13.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.14.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -630,8 +629,8 @@ function localBuildStamp(){
          `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} ${zone}`;
 }
 const BUILD_LINE = BUILD.date.indexOf('__') === 0
-  ? VERSION + ' · dev build'
-  : VERSION + ' · ' + localBuildStamp() + ' · ' + BUILD.sha;
+  ? 'dev build'
+  : localBuildStamp() + ' · ' + BUILD.sha;
 // ---------- tiny mat4 ----------
 function perspective(fov, asp, n, f){
   const t = 1/Math.tan(fov/2), m = new Float32Array(16);
@@ -2075,18 +2074,20 @@ $('verHud').textContent = VERSION;
 $('verInfo').textContent = VERSION;
 $('buildInfo').textContent = BUILD_LINE;
 // the original UTC stamp stays available on hover
-if(BUILD.date.indexOf('__') !== 0) $('buildInfo').title = 'built ' + BUILD.date + ' ' + BUILD.time + ' UTC';
+$('buildInfo').title = VERSION + (BUILD.date.indexOf('__') !== 0
+  ? ' · built ' + BUILD.date + ' ' + BUILD.time + ' UTC' : '');
 // Hard refresh: drop every cache and the service worker, then reload on a fresh URL so
 // nothing between here and the server can hand back the old build.
-// Settings persist, so a control left at zero stays that way across reloads with no
-// obvious cause. This forgets them and comes back on the defaults.
-$('tReset').addEventListener('click', ()=>{
-  try{ localStorage.removeItem(SKEY); }catch(e){}
+// One button, three depths: a tap reloads past every cache; held three seconds it also
+// forgets the saved settings; held ten it comes back in debug mode. The label announces
+// each threshold while the finger is still down, so nothing fires unseen.
+function bustAndGo(mutate){
   const u = new URL(location.href);
   u.searchParams.set('_', Date.now());
+  if(mutate) mutate(u);
   location.replace(u.toString());
-});
-$('tReload').addEventListener('click', async ()=>{
+}
+async function doRefresh(){
   $('tReload').textContent = '⟲ …';
   try{
     if(window.caches) await Promise.all((await caches.keys()).map(k => caches.delete(k)));
@@ -2095,10 +2096,34 @@ $('tReload').addEventListener('click', async ()=>{
       await Promise.all(regs.map(r => r.unregister()));
     }
   }catch(e){}
-  const u = new URL(location.href);
-  u.searchParams.set('_', Date.now());
-  location.replace(u.toString());
-});
+  bustAndGo();
+}
+{
+  const b = $('tReload');
+  let t0 = null, tick = null;
+  const label = ()=>{
+    const s = (performance.now()-t0)/1000;
+    b.textContent = s >= 10 ? '⚙ release: debug' : s >= 3 ? '⤺ release: reset' : '⟲ refresh';
+  };
+  b.addEventListener('pointerdown', e=>{
+    t0 = performance.now();
+    tick = setInterval(label, 200);
+    try{ b.setPointerCapture(e.pointerId); }catch(err){}
+  });
+  const finish = e=>{
+    if(t0 === null) return;
+    const s = (performance.now()-t0)/1000;
+    clearInterval(tick); t0 = null;
+    b.textContent = '⟲ refresh';
+    if(e.type !== 'pointerup') return;                    // the hold was cancelled
+    if(s >= 10) bustAndGo(u => u.searchParams.set('debug','1'));
+    else if(s >= 3){ try{ localStorage.removeItem(SKEY); }catch(err){} bustAndGo(); }
+    else doRefresh();
+  };
+  b.addEventListener('pointerup', finish);
+  b.addEventListener('pointercancel', finish);
+  b.addEventListener('click', e => e.preventDefault());   // pointerup already decided
+}
 let paused=false, showTrails=true, showLabels=true, showStats=true;
 let showDwarfs=true, showBelt=true, showKuiper=true, showOort=true;
 let speed = 1.5; // years per second
