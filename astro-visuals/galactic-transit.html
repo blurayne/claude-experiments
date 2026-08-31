@@ -625,7 +625,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.19.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.19.2', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -3277,7 +3277,12 @@ function applyState(o){
   }
 }
 const dbgSay = m => { $('dbgMsg').textContent = m; };
-$('dbgBtn').addEventListener('click', ()=>{ $('dbgCard').style.display=''; $('dbgText').value=''; dbgSay(''); });
+$('dbgBtn').addEventListener('click', ()=>{
+  $('dbgCard').style.display='';
+  // open on the current state, ready to copy — export is one keypress saved
+  $('dbgText').value = JSON.stringify(exportState(), null, 2);
+  dbgSay('current state');
+});
 $('dbgClose').addEventListener('click', ()=>{ $('dbgCard').style.display='none'; });
 $('dbgExport').addEventListener('click', ()=>{
   $('dbgText').value = JSON.stringify(exportState(), null, 2); dbgSay('state exported'); });
