@@ -245,7 +245,8 @@
     </div>
     <div class="row"><label for="jump">jump to</label><select id="jump">
       <option value="">— present day —</option>
-      <option value="4.56928" data-speed="0.591" data-mult="1000">Gliese 710 grazes the Oort cloud (+1.29 Myr)</option>
+      <option value="4.56928" data-speed="1" data-mult="1000">Gliese 710 grazes the Oort cloud (+1.29 Myr)</option>
+      <option value="helix" data-speed="1" data-mult="1000000">The helix — planets winding through the Galaxy</option>
       <option value="0.058">Theia impact — the Moon forms</option>
       <option value="0.768">Young Earth — first life (3.8 Gyr ago)</option>
       <option value="2.068">Great Oxidation (2.5 Gyr ago)</option>
@@ -574,7 +575,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.10.3', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.11.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2336,6 +2337,19 @@ function jumpToEpoch(){
   const sp = opt && opt.dataset.speed, mu = opt && opt.dataset.mult;
   if(sp !== undefined && sp !== null){ $('speed').value = sp; $('speed').dispatchEvent(new Event('input')); }
   if(mu){ const i = MULT_VALUES.indexOf(+mu); if(i >= 0) $('mults').children[i].click(); }
+  if(sel.value === 'helix'){
+    // not an epoch: a staging entry. Time stays where it is; everything the corkscrew
+    // needs is switched on and the camera is set where it reads best.
+    if($('tView').classList.contains('on')) $('tView').click();
+    if($('tDive').classList.contains('on')) $('tDive').click();
+    if(!$('tTrails').classList.contains('on')) $('tTrails').click();
+    if(!$('tHelix').classList.contains('on')) $('tHelix').click();
+    if(trailPct < 100){ $('trailL').value = 300; $('trailL').dispatchEvent(new Event('input')); }
+    cam.follow = true;
+    cam.distGoal = 34; cam.pitch = 0.35; cam.yaw = 2.0;
+    if(paused) $('tPause').click();
+    return;
+  }
   simT = (a - AGE0)*1e9/YR_PER_SIM;
   nextSample = simT + DT_SAMPLE;
   events.length = 0; puffs.length = 0;
@@ -2885,9 +2899,9 @@ function frame(now){
       // floor. A helix trail is absolute like the Sun's, since it winds around its arc.
       const hx = helixFor(i);
       // the coil radius is symbolic — a few scene units, thousands of AU — so inside
-      // the planetary system it would draw giant rings across the sky. It belongs to
-      // the galaxy view and fades away below ~45 units of camera distance.
-      if(hx && cam.dist < 45) continue;
+      // the planetary system it would draw giant rings across the sky. Twelve units is
+      // three times the widest coil: past that the camera is inside the emblem.
+      if(hx && cam.dist < 12) continue;
       const rel = realMode && i>0 && !hx;
       if(!rel && trailFade<=0.02) continue;
       const c=BODIES[i][4];
