@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.29.0 — 2026-08-31
+
+- The Andromeda scenario is staged from the owner's export (`54ad033`)
+
 ### 2.28.0 — 2026-08-31
 
 - The frame rate gets its own panel (`5210fee`)
