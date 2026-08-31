@@ -269,7 +269,7 @@
       <option value="0.058">Theia impact — the Moon forms</option>
       <option value="0.768">Young Earth — first life (3.8 Gyr ago)</option>
       <option value="2.068">Great Oxidation (2.5 Gyr ago)</option>
-      <option value="9.07">Andromeda collision (+4.5 Gyr)</option>
+      <option value="8.36149" data-speed="1" data-mult="100000000">Andromeda collision (+4.5 Gyr)</option>
       <option value="10.1">After the merger (+5.5 Gyr)</option>
     </select><button class="rowbtn" id="jumpGo" title="apply the selected scenario and close the panel">GO</button></div>
     <div class="sect">Graphics</div>
@@ -650,7 +650,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.28.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.29.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2527,6 +2527,20 @@ function jumpToEpoch(){
     return;
   }
   simT = (a - AGE0)*1e9/YR_PER_SIM;
+  if(sel.value === '8.36149'){
+    // the owner's exported framing: both galaxies in one 248,000-light-year view, the
+    // camera on the Sun and held to the core line. It lands 0.7 Gyr short of closest
+    // approach and, at a hundred million years a second, arrives in about seven.
+    if($('tView').classList.contains('on')) $('tView').click();
+    if(!$('tDive').classList.contains('on')) $('tDive').click();
+    cam.follow = true; coreLock = true;
+    // set outright, not eased: the climb from dive scale spans eleven decades and would
+    // spend the whole approach travelling instead of watching it
+    cam.dist = cam.distGoal = 7156.2;
+    cam.yaw = 5.9257; cam.pitch = 0.5771;
+    reseedFollow = true;
+    if(paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
+  }
   if(sel.value === '4.5692567'){
     // stage the pass: the camera frames the Oort cloud with the star already in view.
     // It lands at the shell's outer edge, 1.6 ly out; at 1,900 years a second the
