@@ -67,6 +67,8 @@ in the browser with no build step and no external CDN.
   info panel explains where the drawing is compressed and why the Oort cloud's
   outer edge is set by the galactic tide rather than by the Sun.
 
+[`AGENTS.md`](AGENTS.md) collects the project owner's standing instructions for whoever works on this page next.
+
 ## Data sources & licences
 
 | Source | Used for | Licence / credit |

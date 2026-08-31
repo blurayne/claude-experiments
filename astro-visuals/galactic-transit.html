@@ -301,7 +301,7 @@
       <button class="tg on" id="tKuiper">kuiper</button>
       <button class="tg on" id="tOort">oort</button>
       <button class="tg on" id="tDust">dark clouds</button>
-      <button class="tg on" id="tLife">life cycle</button>
+      <button class="tg" id="tLife">life cycle</button>
       <button class="tg on" id="tVar">variables</button>
       <button class="tg on" id="tLifeSup">life support</button>
       <button class="tg on" id="tEnv">environment</button>
@@ -625,7 +625,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.19.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.19.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -1774,7 +1774,7 @@ function g710(){                        // position relative to the Sun, in ligh
 // now, long before Andromeda arrives. Galactic position contributes a second hazard: a
 // supernova within ~30 ly would strip the ozone layer, and that risk tracks the star
 // formation rate and the cosmic-ray background.
-let lifeOn = true;
+let lifeOn = false;   // supernovae and births are opt-in
 function lifeState(){
   const a = ageGyr(), e = environment();
   let h = 0, why = 'stable';
