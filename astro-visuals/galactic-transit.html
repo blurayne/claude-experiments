@@ -568,6 +568,8 @@
   <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(560px,calc(100vw - 32px));
       background:var(--panel);border:1px solid var(--line);border-top:1px solid rgba(95,216,255,.55);
       border-radius:3px;padding:14px 16px;box-shadow:0 0 40px rgba(0,0,0,.6)">
+    <button id="dbgClose" aria-label="close" style="position:absolute;top:8px;right:10px;background:none;
+        border:0;color:var(--dim);cursor:pointer;font-size:15px;font-family:inherit;line-height:1">×</button>
     <h2 style="margin:0 0 8px;font-size:11px;letter-spacing:.2em;color:var(--accent);text-transform:uppercase">Debug — app state</h2>
     <textarea id="dbgText" spellcheck="false" style="width:100%;height:min(300px,42vh);resize:vertical;
         background:rgba(0,0,0,.45);border:1px solid var(--line);border-radius:2px;color:var(--ink);
@@ -577,8 +579,6 @@
       <button class="dbg-b" id="dbgImport" title="apply the state in the box">import</button>
       <button class="dbg-b" id="dbgCopy" title="copy the box to the clipboard">copy</button>
       <button class="dbg-b" id="dbgPaste" title="paste the clipboard into the box">paste</button>
-      <span style="flex:1"></span>
-      <button class="dbg-b" id="dbgClose">close</button>
     </div>
     <div id="dbgMsg" style="margin-top:6px;font-size:9.5px;letter-spacing:.1em;color:var(--dim);min-height:14px"></div>
   </div>
@@ -602,7 +602,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.14.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.14.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
