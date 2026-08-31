@@ -232,14 +232,16 @@
   <div class="sub">The Sun orbits the Milky Way's core at ~230 km/s. The planets, on an ecliptic tilted ~60° to the galactic plane, weave helical paths around its track.</div>
   <div class="body">
     <div class="row"><label for="speed">speed</label><input type="range" id="speed" min="0" max="1" step="0.001" value="1"><span id="speedv" style="min-width:64px;text-align:right;color:var(--ink)"></span></div>
-    <div class="row"><label>× speed</label><div class="mults" id="mults"></div></div>
+    <div class="row"><label for="multExp">× speed</label>
+      <input type="range" id="multExp" min="0" max="10" step="1" value="0">
+      <span id="multExpv" style="min-width:52px;text-align:right;color:var(--ink)">×1</span></div>
     <div class="row"><label>quality</label><div class="mults" id="quals"></div></div>
     <div class="row"><label for="hudHz">hud rate</label><input type="range" id="hudHz" min="1" max="16" step="1" value="8"><span id="hudHzv" style="min-width:64px;text-align:right;color:var(--ink)">8×/s</span></div>
     <div class="row"><label for="minB">star gain</label><input type="range" id="minB" min="0" max="1" step="0.01" value="0"><span id="minBv" style="min-width:64px;text-align:right;color:var(--ink)">off</span></div>
     <div class="row"><label for="trailA">trails</label><input type="range" id="trailA" min="0" max="1" step="0.01" value="1"><span id="trailAv" style="min-width:64px;text-align:right;color:var(--ink)">100%</span></div>
     <div class="row"><label>planet trails</label>
       <button class="tg on" id="psHelix" title="the true helical path through space">helix</button>
-      <button class="tg" id="psOrbit" title="the closed orbit around the Sun">orbit</button></div>
+      <button class="tg on" id="psOrbit" title="the closed orbit around the Sun">orbit</button></div>
     <div class="row"><label for="trailL">length</label><input type="range" id="trailL" min="0" max="1000" step="10" value="300"><span id="trailLv" style="min-width:64px;text-align:right;color:var(--ink)">300%</span></div>
     <div class="row"><label for="musicVol">music</label><input type="range" id="musicVol" min="0" max="1" step="0.01" value="0.40"><span id="musicVolv" style="min-width:64px;text-align:right;color:var(--ink)">40%</span></div>
     <div class="row"><label for="sfxVol">effects</label><input type="range" id="sfxVol" min="0" max="1" step="0.01" value="0.7"><span id="sfxVolv" style="min-width:64px;text-align:right;color:var(--ink)">70%</span></div>
@@ -613,7 +615,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.17.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.18.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -1613,7 +1615,7 @@ const ringVaos = [];
   }
 }
 // In real scale everything but the Sun is stored as an offset from it.
-let pStyle = 'helix';   // what a planet's trail shows up close: its true helix, or its orbit
+let psH = true, psO = true;   // up close a planet can show its helix, its orbit, or both
 // Trails are stored as absolute positions minus a local anchor. Float32 alone cannot
 // hold a position of magnitude ~900 to sub-AU precision — the error is about 7 AU,
 // which at dive zoom is the whole frame — so the anchor keeps the stored numbers small
@@ -2151,19 +2153,14 @@ function fmtSpeed(){
   $('speedv').textContent = (eff/Math.pow(10,e)).toFixed(2)+'×10'+supStr(e)+' yr/s';
 }
 // Whole decades on top of the slider, for crossing deep time without waiting on it.
-{ const MULTS = [[1,'1'],[1e3,'1e3'],[1e6,'1e6'],[1e9,'1e9'],[1e12,'1e12']];
-  const host = $('mults');
-  MULTS.forEach(([m,label],i)=>{
-    const b = document.createElement('button');
-    b.textContent = label; if(i===0) b.classList.add('on');
-    b.addEventListener('click', ()=>{
-      speedMult = m;
-      [...host.children].forEach(c=> c.classList.toggle('on', c===b));
-      fmtSpeed(); applyTrailWindow();
-    });
-    host.appendChild(b);
-  });
+function setMultExp(x){
+  x = Math.max(0, Math.min(10, Math.round(x)));
+  speedMult = Math.pow(10, x);
+  $('multExp').value = x;
+  $('multExpv').textContent = x === 0 ? '×1' : '×1e' + x;
+  fmtSpeed(); applyTrailWindow();
 }
+$('multExp').addEventListener('input', e => setMultExp(+e.target.value));
 $('speed').addEventListener('input', e=>{ speed = speedFromSlider(+e.target.value); fmtSpeed(); applyTrailWindow(); });
 speed = speedFromSlider(1); fmtSpeed();   // one Earth year per second
 // One slider, two effects, because they are the same intent: make the faint stars
@@ -2197,15 +2194,8 @@ function applyTrailWindow(){
 }
 let lastAnchor = 0;
 $('trailL').addEventListener('input', e=>{ trailPct = +e.target.value; applyTrailWindow(); });
-// a split button: exactly one side is ever lit
-function setPStyle(v){
-  pStyle = v;
-  $('psHelix').classList.toggle('on', v === 'helix');
-  $('psOrbit').classList.toggle('on', v === 'orbit');
-  saveSettings();
-}
-$('psHelix').addEventListener('click', ()=> setPStyle('helix'));
-$('psOrbit').addEventListener('click', ()=> setPStyle('orbit'));
+toggle($('psHelix'), on=>{ psH = on; });
+toggle($('psOrbit'), on=>{ psO = on; });
 
 function toggle(btn, fn){ btn.addEventListener('click', ()=>{ btn.classList.toggle('on'); fn(btn.classList.contains('on')); }); }
 toggle($('tPause'), on=>{ paused=!on; $('tPause').textContent = on?'⏸ pause':'▶ play'; });
@@ -2322,18 +2312,17 @@ loadTrack(0);
 // so restoring a setting does exactly what clicking it would. Anything momentary — the
 // pause, the dive, the epoch jump, the current track position — is deliberately left out.
 const SKEY = 'galactic-transit.settings.v1';
-const S_TOG = ['tTrails','tLabels','tDwarfs','tBelt','tKuiper','tOort','tDust','tArms','tLife','tVar','tLifeSup','tEnv',
+const S_TOG = ['tTrails','tLabels','tDwarfs','tBelt','tKuiper','tOort','tDust','tArms','psHelix','psOrbit','tLife','tVar','tLifeSup','tEnv',
                'tStatCal','tStatAge','tStatGyr','tStatSn','tStatBirth','tSci','tLive','tView','tGaia','tFps',
                'tSound','tMusic'];
 const S_SLD = ['speed','trailA','trailL','musicVol','sfxVol','minB','hudHz'];
 const S_CHK = ['fxBirth','fxSn','fxPn','fxDrone'];
-const MULT_VALUES = [1,1e3,1e6,1e9,1e12];
 function saveSettingsNow(){
   try{
     const s = { t:{}, s:{}, c:{}, cal:$('cal').value, mult:speedMult, dens:curD,
                 hud:$('hud').style.display !== 'none',
                 bar:$('gamebar').classList.contains('slid'),
-                envMin:$('envPlus').style.display === 'block', ps: pStyle };
+                envMin:$('envPlus').style.display === 'block' };
     S_TOG.forEach(id => s.t[id] = $(id).classList.contains('on'));
     S_SLD.forEach(id => s.s[id] = $(id).value);
     S_CHK.forEach(id => s.c[id] = $(id).checked);
@@ -2356,12 +2345,12 @@ function restoreSettings(register){
     if(s.t) S_TOG.forEach(id=>{ const v=s.t[id];
       if(v != null && $(id).classList.contains('on') !== v) $(id).click(); });
     if(s.cal && s.cal !== $('cal').value){ $('cal').value = s.cal; $('cal').dispatchEvent(new Event('change')); }
-    if(s.mult){ const i = MULT_VALUES.indexOf(s.mult); if(i >= 0 && s.mult !== speedMult) $('mults').children[i].click(); }
+    if(s.mult > 0 && s.mult !== speedMult) setMultExp(Math.log10(s.mult));
     if(s.dens){ const i = QUALS.findIndex(q => q[0] === s.dens); if(i >= 0 && s.dens !== curD) $('quals').children[i].click(); }
     if(s.hud === false) $('collapse').click();
     if(s.bar) $('gamebar').classList.add('slid');
     if(s.envMin && $('tEnv').classList.contains('on')) $('envMin').click();
-    if(s.ps === 'orbit' || s.ps === 'helix') setPStyle(s.ps);
+
   }
   if(register === false) return;
   // from here on, anything the user touches is remembered
@@ -2373,7 +2362,7 @@ function restoreSettings(register){
     $('lCal').textContent = $('cal').value === 'rate' ? 'years per second' : 'human year'; });
   $('collapse').addEventListener('click', saveSettings);
   $('reopen').addEventListener('click', saveSettings);
-  [...$('mults').children].forEach(b => b.addEventListener('click', saveSettings));
+  $('multExp').addEventListener('input', saveSettings);
   [...$('quals').children].forEach(b => b.addEventListener('click', saveSettings));
 }
 toggle($('tOort'), on=> showOort=on);
@@ -2407,13 +2396,13 @@ function jumpToEpoch(){
   const opt = sel.selectedOptions[0];
   const sp = opt && opt.dataset.speed, mu = opt && opt.dataset.mult;
   if(sp !== undefined && sp !== null){ $('speed').value = sp; $('speed').dispatchEvent(new Event('input')); }
-  if(mu){ const i = MULT_VALUES.indexOf(+mu); if(i >= 0) $('mults').children[i].click(); }
+  if(mu) setMultExp(Math.log10(+mu));
   if(sel.value === 'helix'){
     // not an epoch: a staging entry for the true helix. At one year a second the Sun
     // covers 48 AU while Earth loops once around it — visible, and actually accurate.
     if($('tView').classList.contains('on')) $('tView').click();
     if(!$('tTrails').classList.contains('on')) $('tTrails').click();
-    setPStyle('helix');
+    if(!$('psHelix').classList.contains('on')) $('psHelix').click();
     if(trailPct < 250){ $('trailL').value = 300; $('trailL').dispatchEvent(new Event('input')); }
     if(!$('tDive').classList.contains('on')) $('tDive').click();
     cam.distGoal = 3.0e-5;                     // ~65 AU across: the coils at readable size
@@ -2988,7 +2977,8 @@ function frame(now){
       if(i > 0){
         if(!solarClose) continue;                    // collapsed into the Sun's point
         const spo = BODIES[i][1]/DT_SAMPLE;
-        if(pStyle === 'orbit' || spo < 12){
+        // the ring draws when asked for, or as the fallback for an unresolvable helix
+        if(psO || (psH && spo < 12)){
           // the closed path itself — also the honest fallback when the sampling
           // cannot resolve the orbit and no accurate helix is drawable
           gl.uniform3f(U.trOrg, 0,0,0);
@@ -2999,8 +2989,8 @@ function frame(now){
           gl.drawArrays(gl.LINE_LOOP, 0, RING_N);
           gl.uniform1f(U.trFlat, 0.0);
           gl.uniform3f(U.trOrg, aox, aoy, aoz);
-          continue;
         }
+        if(!psH || spo < 12) continue;
         // the accurate helix: the swept absolute path, no styling — Mercury winds
         // tightly, the giants barely wave, because that is how it actually is
         gl.uniform3f(U.trCol, c[0],c[1],c[2]);
