@@ -63,6 +63,13 @@
     color:var(--dim);text-decoration:none;border-bottom:1px solid rgba(var(--stateRGB), .35);
     transition:color .15s,border-color .15s}
   .hudlink:hover{color:var(--accent);border-color:rgba(var(--stateRGB), .7)}
+  @keyframes hudflash3{ 50%{box-shadow:0 0 34px rgba(95,216,255,.7);border-color:rgba(95,216,255,.9)} }
+  @keyframes hudflash10{ 50%{box-shadow:0 0 34px rgba(255,176,102,.8);border-color:rgba(255,176,102,.95)} }
+  .stepb{flex:none;width:20px;height:20px;padding:0;font-family:inherit;font-size:12px;line-height:1;
+    background:rgba(95,216,255,.06);border:1px solid var(--line);border-radius:2px;color:var(--dim);cursor:pointer}
+  .stepb:hover{color:var(--accent);border-color:rgba(95,216,255,.55)}
+  .hud.flash3{animation:hudflash3 .4s ease}
+  .hud.flash10{animation:hudflash10 .4s ease}
   #dbgBtn{font-family:inherit;font-size:8px;letter-spacing:.11em;text-transform:uppercase;
     background:none;border:1px solid var(--line);border-radius:2px;color:#ffb066;cursor:pointer;padding:2px 7px}
   .dbg-b{font-family:'Orbitron',ui-monospace,monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;
@@ -231,14 +238,17 @@
   <h1>Galactic Transit <span class="ver" id="verHud"></span></h1>
   <div class="sub">The Sun orbits the Milky Way's core at ~230 km/s. The planets, on an ecliptic tilted ~60° to the galactic plane, weave helical paths around its track.</div>
   <div class="body">
-    <div class="row"><label for="speed">speed</label><input type="range" id="speed" min="0" max="1" step="0.001" value="1"><span id="speedv" style="min-width:64px;text-align:right;color:var(--ink)"></span></div>
+    <div class="row"><label for="speed">speed</label><button class="stepb" data-step="speed:-0.05">−</button><input type="range" id="speed" min="0" max="1" step="0.001" value="1"><button class="stepb" data-step="speed:0.05">+</button><span id="speedv" style="min-width:64px;text-align:right;color:var(--ink)"></span></div>
     <div class="row"><label for="multExp">× exp</label>
+      <button class="stepb" data-step="multExp:-1">−</button>
       <input type="range" id="multExp" min="0" max="10" step="1" value="0">
+      <button class="stepb" data-step="multExp:1">+</button>
       <span id="multExpv" style="min-width:52px;text-align:right;color:var(--ink)">×1</span></div>
     <div class="row"><label>quality</label><div class="mults" id="quals"></div></div>
     <div class="row" id="rowHudHz" style="display:none"><label for="hudHz">hud rate</label><input type="range" id="hudHz" min="1" max="16" step="1" value="8"><span id="hudHzv" style="min-width:64px;text-align:right;color:var(--ink)">8×/s</span></div>
     <div class="row" id="rowGain" style="display:none"><label for="minB">Gaia brght</label><input type="range" id="minB" min="0" max="1" step="0.01" value="0.05"><span id="minBv" style="min-width:64px;text-align:right;color:var(--ink)">+5%</span></div>
     <div class="row"><label for="trailA">trails</label><input type="range" id="trailA" min="0" max="1" step="0.01" value="1"><span id="trailAv" style="min-width:64px;text-align:right;color:var(--ink)">100%</span></div>
+    <div class="row"><label for="orbitA">orbits</label><input type="range" id="orbitA" min="0" max="1" step="0.01" value="1"><span id="orbitAv" style="min-width:64px;text-align:right;color:var(--ink)">100%</span></div>
     <div class="row"><label>planet trails</label>
       <button class="tg on" id="psHelix" title="the true helical path through space">helix</button>
       <button class="tg on" id="psOrbit" title="the closed orbit around the Sun">orbit</button></div>
@@ -615,7 +625,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.18.2', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.19.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2120,7 +2130,6 @@ async function doRefresh(){
   let taps = 0, tapTimer = null;
   const act = ()=>{
     const n = taps; taps = 0;
-    b.textContent = '⟲ refresh';
     if(n >= 10){
       // toggle the debug door, and remember the choice across reloads
       const on = getComputedStyle($('dbgBtn')).display === 'none';
@@ -2130,9 +2139,17 @@ async function doRefresh(){
     else if(n >= 3){ try{ localStorage.removeItem(SKEY); }catch(err){} bustAndGo(); }
     else doRefresh();
   };
+  const flash = cls => {
+    const h = $('hud');
+    h.classList.remove('flash3','flash10');   // restart the animation cleanly
+    void h.offsetWidth;
+    h.classList.add(cls);
+    setTimeout(()=> h.classList.remove(cls), 450);
+  };
   b.addEventListener('click', ()=>{
     taps++;
-    b.textContent = '⟲ ' + taps + '×';
+    if(taps === 3) flash('flash3');
+    if(taps === 10) flash('flash10');
     clearTimeout(tapTimer);
     tapTimer = setTimeout(act, 450);   // the run of taps ends when the tapping stops
   });
@@ -2161,6 +2178,12 @@ function setMultExp(x){
   fmtSpeed(); applyTrailWindow();
 }
 $('multExp').addEventListener('input', e => setMultExp(+e.target.value));
+document.querySelectorAll('.stepb').forEach(b => b.addEventListener('click', ()=>{
+  const [id, d] = b.dataset.step.split(':');
+  const el = $(id);
+  el.value = Math.max(+el.min, Math.min(+el.max, +el.value + +d));
+  el.dispatchEvent(new Event('input'));
+}));
 $('speed').addEventListener('input', e=>{ speed = speedFromSlider(+e.target.value); fmtSpeed(); applyTrailWindow(); });
 speed = speedFromSlider(1); fmtSpeed();   // one Earth year per second
 // One slider, two effects, because they are the same intent: make the faint stars
@@ -2177,8 +2200,9 @@ $('minB').addEventListener('input', e=>{
   minSprite = 1.3 + v*2.1;
   $('minBv').textContent = v ? '+'+Math.round(v*100) + '%' : 'off';
 });
-let trailAlpha = 1;
+let trailAlpha = 1, orbitAlpha = 1;
 $('trailA').addEventListener('input', e=>{ trailAlpha=+e.target.value; $('trailAv').textContent=Math.round(trailAlpha*100)+'%'; });
+$('orbitA').addEventListener('input', e=>{ orbitAlpha=+e.target.value; $('orbitAv').textContent=Math.round(orbitAlpha*100)+'%'; });
 let trailPct = 300, trailRefill = 0;
 function applyTrailWindow(){
   const w = (trailPct/100) * speed * speedMult;      // years covered by the whole trail
@@ -2315,7 +2339,7 @@ const SKEY = 'galactic-transit.settings.v1';
 const S_TOG = ['tTrails','tLabels','tDwarfs','tBelt','tKuiper','tOort','tDust','tArms','psHelix','psOrbit','tLife','tVar','tLifeSup','tEnv',
                'tStatCal','tStatAge','tStatGyr','tStatSn','tStatBirth','tSci','tLive','tView','tGaia','tFps',
                'tSound','tMusic'];
-const S_SLD = ['speed','trailA','trailL','musicVol','sfxVol','minB','hudHz'];
+const S_SLD = ['speed','trailA','orbitA','trailL','musicVol','sfxVol','minB','hudHz'];
 const S_CHK = ['fxBirth','fxSn','fxPn','fxDrone'];
 function saveSettingsNow(){
   try{
@@ -2403,9 +2427,11 @@ function jumpToEpoch(){
     if($('tView').classList.contains('on')) $('tView').click();
     if(!$('tTrails').classList.contains('on')) $('tTrails').click();
     if(!$('psHelix').classList.contains('on')) $('psHelix').click();
+    if($('psOrbit').classList.contains('on')) $('psOrbit').click();   // the helix alone
     if(trailPct < 250){ $('trailL').value = 300; $('trailL').dispatchEvent(new Event('input')); }
     if(!$('tDive').classList.contains('on')) $('tDive').click();
     cam.distGoal = 3.0e-5;                     // ~65 AU across: the coils at readable size
+    cam.yaw = 0.0443; cam.pitch = 0.16;        // the exported angle chosen by hand
     // never unpause someone who asked for reduced motion
     if(paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
     return;
@@ -2983,7 +3009,7 @@ function frame(now){
           // cannot resolve the orbit and no accurate helix is drawable
           gl.uniform3f(U.trOrg, 0,0,0);
           gl.uniform3f(U.trCol, c[0],c[1],c[2]);
-          gl.uniform1f(U.trA, 0.4*trailAlpha*(1+starGain*0.9));
+          gl.uniform1f(U.trA, 0.4*orbitAlpha*(1+starGain*0.9));
           gl.uniform1f(U.trFlat, 1.0);
           gl.bindVertexArray(ringVaos[i]);
           gl.drawArrays(gl.LINE_LOOP, 0, RING_N);
