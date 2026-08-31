@@ -61,7 +61,9 @@ built it.
   multiplier `× exp` with the real multiplication sign; e-notation over superscript
   powers in compact labels.
 - Defaults: music on at 40% with the remix first; sound effects off; supernova and
-  star-birth events **off** (the user switches the life cycle on).
+  star-birth events **off** (the user switches the life cycle on); the supernova and
+  star-birth counters **off**; the settings dialog **hidden** (a saved open state
+  reopens it). A 3-tap reset clears **all** of localStorage, debug flag included.
 
 ## Language notes
 
