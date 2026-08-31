@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.15.0 — 2026-08-31
+
+- Orbit rings where trails cannot go, and the dive explained (`7782fc2`)
+
 ### 2.14.1 — 2026-08-31
 
 - The debug dialog closes from a corner ×, not a row button (`84569d9`)
