@@ -574,7 +574,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.10.2', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.10.3', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -1551,7 +1551,11 @@ for(let i=0;i<NB;i++){
 let helixOn = true, helixCoils = 60;
 // Is this body's true orbit resolvable at the current sampling, or does the stylized
 // helix stand in? Fewer than a dozen samples per orbit is aliasing, not a path.
-const helixFor = i => helixOn && i > 0 && BODIES[i][1]/DT_SAMPLE < 12;
+// A corkscrew needs an axle: the Sun's travel across the window must outrun the coil
+// radius, or the winding collapses into concentric rings around a standing point. So a
+// body coils only when its true orbit is unresolvable AND the arc is long enough.
+const helixFor = i => helixOn && i > 0 && BODIES[i][1]/DT_SAMPLE < 12
+  && DT_SAMPLE*TRAIL_N*V_GAL > 3.5*BODIES[i][2]*0.10;
 function trailPos(i, ts, out){
   if(helixFor(i)){
     // The corkscrew the eye expects — and the one physics refuses to draw: by the time
