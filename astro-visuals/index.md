@@ -12,7 +12,8 @@ in the browser with no build step and no external CDN.
   helical paths around its track on an ecliptic tilted ~60° to the galactic
   plane. Has trails, labels, dwarf planets, the asteroid belt (with Kirkwood
   gaps), the Kuiper belt and the Oort cloud, a
-  galaxy view, several calendar eras, and one honest clock throughout — the civil year, the
+  galaxy view, several calendar eras, true proportions always (the magnified
+  display mode is gone), and one honest clock throughout — the civil year, the
   deep-time eras, the age of the solar system and the galactic year all count the
   same elapsed Earth years, with ×10³–×10¹² speed steps supplying the range — plus a
   **real scale** toggle that collapses the whole planetary system into the Sun's

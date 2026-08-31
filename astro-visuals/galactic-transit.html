@@ -161,7 +161,18 @@
     font-size:15px;font-family:inherit}
   #infoFull:hover,#infoClose:hover{color:var(--accent)}
   #collapse{position:absolute;top:10px;right:10px;background:none;border:0;color:var(--dim);cursor:pointer;font-size:13px;font-family:inherit}
+  #envMin{position:absolute;top:6px;right:8px;background:none;border:0;color:var(--dim);cursor:pointer;font-size:13px;font-family:inherit}
+  #envPlus{position:fixed;top:14px;left:14px;z-index:6;display:none;width:36px;height:36px;border-radius:2px;
+    background:var(--panel);border:1px solid var(--line);color:var(--accent);cursor:pointer;font-size:15px;
+    font-family:inherit;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
   .gamebar{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);display:flex;gap:28px;
+    transition:transform .28s ease;}
+  .gamebar.slid{transform:translate(-50%, calc(100% + 15px))}
+  #barGrip{position:absolute;top:-15px;left:50%;transform:translateX(-50%);width:74px;height:15px;
+    background:var(--panel);border:1px solid var(--line);border-bottom:none;border-radius:3px 3px 0 0;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:none}
+  #barGrip span{width:26px;height:3px;border-radius:2px;background:var(--dim);pointer-events:none}
+  .gamebar{
     background:var(--panel);border:1px solid var(--line);border-top:1px solid rgba(95,216,255,.55);border-radius:3px;padding:9px 20px;box-shadow:0 0 30px rgba(95,216,255,.08);
     backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:5;white-space:nowrap}
   .gamebar .stat{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);text-align:center}
@@ -279,7 +290,6 @@
       <button class="tg" id="tSci">10^x</button>
       <button class="tg" id="tLive">live count</button>
       <button class="tg" id="tView">galaxy view</button>
-      <button class="tg" id="tReal">real scale</button>
       <button class="tg" id="tDive">☉ dive</button>
 
     </div>
@@ -308,10 +318,10 @@
       drag to orbit &nbsp;·&nbsp; scroll / pinch to zoom
     </div>
     <h3>Scale, honestly</h3>
-    <p>Orbital periods use real ratios and the ~60° tilt of the ecliptic to the galactic plane is real, but scale is
-    wildly compressed: the Sun's galactic orbit is ~14&nbsp;billion× wider than Neptune's, and one lap really takes
-    ~225&nbsp;million years — compressed ~1.2&nbsp;million-fold here. The planetary system is drawn ~10-million-fold
-    magnified, which is why a clearance bubble fades out nearby stars. There is one clock, and everything on
+    <p>Everything is drawn at true proportions, always: real semi-major axes, real diameters, the ~60° tilt
+    of the ecliptic to the galactic plane, and a galactic orbit ~14&nbsp;billion× wider than Neptune's. Seen
+    from the galaxy the whole planetary system therefore collapses inside the Sun's single pixel — that is
+    the true proportion, and the <b>☉ dive</b> is how you cross it. There is one clock, and everything on
     screen reads from it: the civil year, the deep-time eras, the age of the solar system and the galactic
     year all count the same elapsed Earth years. Earlier versions ran the galaxy about 1.2 million times
     faster than the planets so both could be watched at once, which meant the civil year and the age of the
@@ -328,10 +338,8 @@
     <b>a third of the way to Alpha Centauri</b> — because that is where the Sun's gravity loses the tug-of-war
     against galactic tides. It is the one solar-system structure whose size is set by the galaxy itself, and
     passing stars and the galactic tide are what nudge its comets sunward.</p>
-    <p>The <b>real scale</b> toggle shows true proportions: seen from the galaxy, the planets, Kuiper belt and
-    Oort cloud all collapse inside the Sun's single pixel (computed from real semi-major axes and diameters, not
-    merely hidden), the clearance bubble vanishes, and the Sun's vertical bob drops to its true ±250-light-year
-    amplitude. It also unlocks the zoom: scroll in (or hit <b>☉ dive</b>) and descend ~9 orders of magnitude —
+    <p>Since the piece always renders true proportions there is no scale toggle to find: the zoom is simply
+    open. Scroll in (or hit <b>☉ dive</b>) and descend ~9 orders of magnitude —
     past the Oort shell at its true ~1.6-light-year edge and through the Kuiper belt down to the planets, each
     drawn at its real diameter but clamped to a pixel so it stays findable. The view-width readout (bottom left)
     tracks the descent. At planetary zoom the background stars race past — that is the compressed galactic clock
@@ -344,10 +352,9 @@
     <i>through</i> the comet reservoir rather than by it. Expect it to shake comets loose for a few
     million years afterwards: a modest shower, not a bombardment, and no threat to the planets, which sit
     four thousand times closer to the Sun than the point it grazes.</p>
-    <p>On this clock it happens almost at once — 1.29&nbsp;Myr is barely one simulated year — so the jump
-    menu drops the speed to its slowest when it takes you there. The cloud brightens as the star crosses
-    it. In real scale the star passes at its true separation; in the compressed view it follows the same
-    symbolic scale as the Oort shell around it.</p>
+    <p>The jump menu lands ten thousand years before the closest approach and sets a speed of a thousand
+    years a second, so the pass unfolds over a few tens of seconds. The cloud brightens as the star crosses
+    it, at its true separation.</p>
     <h3>The Oort cloud &amp; the galactic tide</h3>
     <ul>
       <li>Everything in the solar system falls around the galactic center <b>together</b>, so the center's pull is
@@ -507,10 +514,8 @@
       that grow together, fed by gas the bar drives inward. The bubble of real stars rides the Sun's
       orbital frame — the side facing the galactic centre keeps facing it as the Sun goes round — and
       star sprites use Gaia Sky's two-part profile: a wide corona around a hot core that saturates to
-      white, with sub-pixel stars keeping their flux rather than their size. They are stored at the galaxy's own scale, so in the compressed view they only
-      appear once the magnified solar system is small enough for the proportion to read — zoomed in there,
-      the magnification would put every real star inside the planets. Real scale keeps them at every zoom,
-      since nothing is magnified there.</li>
+      white, with sub-pixel stars keeping their flux rather than their size. Nothing on screen is magnified,
+      so they hold their true places at every zoom.</li>
       <li>The <b>quality</b> row raises the drawn star count five-fold (~460,000 points) and scatters
       discrete <b>dark molecular clouds</b> (Dunkelwolken) through the disk on top of the arm-edge dust lanes —
       closer to the Milky Way's real texture, at the cost of GPU load. The row runs on to
@@ -529,6 +534,7 @@
 </div>
 
 <div class="gamebar" id="gamebar">
+  <div id="barGrip" aria-label="hide or show the status bar" title="slide the status bar away"><span></span></div>
   <div class="cnt death" id="cDeath"><span id="lDeath">supernovae</span><b id="nDeath">−0</b></div>
   <div class="stat" id="sCal">human year<b id="gCal">300,000 yr</b></div>
   <div class="stat" id="sAge">age of the solar system<b id="gAge">4.5680 Gyr</b></div>
@@ -537,8 +543,10 @@
   <i class="brk"></i>
 </div>
 <button id="reopen" aria-label="show control panel">+</button>
+<button id="envPlus" aria-label="show the Earth panel">+</button>
 <div class="note" id="scaleNote">view <em id="sScale">—</em> across<span id="fpsNote" style="display:none"> &nbsp;·&nbsp; <em id="fpsVal">—</em> fps</span></div>
 <div class="env" id="env">
+  <button id="envMin" aria-label="minimise the Earth panel">–</button>
   <h2>Earth</h2>
   <div class="er"><span>mean surface</span><b id="eMean">15.0 °C</b></div>
   <div class="er"><span>min / max</span><b id="eRange">−89 / 57 °C</b></div>
@@ -555,7 +563,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.8.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.9.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -814,7 +822,7 @@ const BODIES = [ // name, period yr, display radius, sprite size, color, real se
 // real scale: 1 unit ~ 30 ly, 1 ly = 63,241 AU -> units per AU
 const AU2U = 1/(63241*30);
 const OO_REAL = 3.0e-4; // real mode: maps the symbolic Oort shell onto its true ~1.6 ly outer edge
-let realMode = false;
+let realMode = true;   // true proportions, always — the magnified display mode is gone
 let curD = 1; // active galaxy density (set by setGalaxy, read by the life-cycle rates)
 const NB = BODIES.length;
 const N_PLANETS = 9; // Sun + 8 planets; dwarfs follow
@@ -2096,7 +2104,42 @@ toggle($('tBelt'), on=> showBelt=on);
 toggle($('tKuiper'), on=> showKuiper=on);
 toggle($('tLife'), on=>{ lifeOn=on; if(!on){ events.length=0; puffs.length=0; } });
 toggle($('tVar'), on=> varOn=on);
-toggle($('tEnv'), on=>{ $('env').style.display = on ? '' : 'none'; fitPanels(); });
+toggle($('tEnv'), on=>{
+  // the settings switch overrides the panel's own minimise state entirely
+  $('env').style.display = on ? '' : 'none';
+  $('envPlus').style.display = 'none';
+  fitPanels();
+});
+$('envMin').addEventListener('click', ()=>{
+  $('env').style.display='none'; $('envPlus').style.display='block'; fitPanels(); saveSettings(); });
+$('envPlus').addEventListener('click', ()=>{
+  $('env').style.display=''; $('envPlus').style.display='none'; fitPanels(); saveSettings(); });
+// the status bar slides down to a grip and back up — by click or by an actual slide
+{
+  const bar = $('gamebar'), grip = $('barGrip');
+  let y0 = null, moved = false;
+  const setSlid = s => {
+    bar.classList.toggle('slid', s);
+    // the transform is set inline as well as by the class: an inline style wins over
+    // whatever else the cascade is doing, and this must work on every browser
+    bar.style.transform = s ? 'translate(-50%, calc(100% + 15px))' : '';
+    saveSettings();
+  };
+  grip.addEventListener('pointerdown', e => { y0 = e.clientY; moved = false;
+    try{ grip.setPointerCapture(e.pointerId); }catch(err){} });
+  grip.addEventListener('pointermove', e => {
+    if(y0 === null) return;
+    const dy = e.clientY - y0;
+    if(dy > 22){ setSlid(true);  moved = true; y0 = null; }
+    else if(dy < -22){ setSlid(false); moved = true; y0 = null; }
+  });
+  grip.addEventListener('pointerup', () => { y0 = null; });
+  grip.addEventListener('click', () => {
+    if(moved){ moved = false; return; }     // a slide already did the work
+    setSlid(!bar.classList.contains('slid'));
+  });
+  if(bar.classList.contains('slid')) setSlid(true);   // restored state applies the style too
+}
 toggle($('tGaia'), on=> gaiaOn=on);
 toggle($('tFps'), on=>{ showFps=on; $('fpsNote').style.display = on ? '' : 'none'; });
 let lifeSupOn = true;
@@ -2155,7 +2198,7 @@ loadTrack(0);
 // pause, the dive, the epoch jump, the current track position — is deliberately left out.
 const SKEY = 'galactic-transit.settings.v1';
 const S_TOG = ['tTrails','tLabels','tDwarfs','tBelt','tKuiper','tOort','tLife','tVar','tLifeSup','tEnv',
-               'tStatCal','tStatAge','tStatGyr','tStatSn','tStatBirth','tSci','tLive','tView','tReal','tGaia','tFps',
+               'tStatCal','tStatAge','tStatGyr','tStatSn','tStatBirth','tSci','tLive','tView','tGaia','tFps',
                'tSound','tMusic'];
 const S_SLD = ['speed','trailA','trailL','musicVol','sfxVol','minB','hudHz'];
 const S_CHK = ['fxBirth','fxSn','fxPn','fxDrone'];
@@ -2163,7 +2206,9 @@ const MULT_VALUES = [1,1e3,1e6,1e9,1e12];
 function saveSettingsNow(){
   try{
     const s = { t:{}, s:{}, c:{}, cal:$('cal').value, mult:speedMult, dens:curD,
-                hud:$('hud').style.display !== 'none' };
+                hud:$('hud').style.display !== 'none',
+                bar:$('gamebar').classList.contains('slid'),
+                envMin:$('envPlus').style.display === 'block' };
     S_TOG.forEach(id => s.t[id] = $(id).classList.contains('on'));
     S_SLD.forEach(id => s.s[id] = $(id).value);
     S_CHK.forEach(id => s.c[id] = $(id).checked);
@@ -2189,6 +2234,8 @@ function restoreSettings(){
     if(s.mult){ const i = MULT_VALUES.indexOf(s.mult); if(i >= 0 && s.mult !== speedMult) $('mults').children[i].click(); }
     if(s.dens){ const i = QUALS.findIndex(q => q[0] === s.dens); if(i >= 0 && s.dens !== curD) $('quals').children[i].click(); }
     if(s.hud === false) $('collapse').click();
+    if(s.bar) $('gamebar').classList.add('slid');
+    if(s.envMin && $('tEnv').classList.contains('on')) $('envMin').click();
   }
   // from here on, anything the user touches is remembered
   S_TOG.forEach(id => $(id).addEventListener('click', saveSettings));
@@ -2307,12 +2354,10 @@ function refillTrails(){
   }
 }
 function setBodySizes(){ gl.bindBuffer(gl.ARRAY_BUFFER,bufBodySize); gl.bufferData(gl.ARRAY_BUFFER, realMode?realSizes:dispSizes, gl.STATIC_DRAW); }
-toggle($('tReal'), on=>{ realMode=on; refillTrails(); setBodySizes();
-  if(!on){ cam.distGoal=Math.max(cam.distGoal,150); coreLock=false; $('tDive').classList.remove('on'); } });
+setBodySizes();   // real proportions from the first frame
 toggle($('tDive'), on=>{
   if(on){
-    if(!$('tReal').classList.contains('on')) $('tReal').click(); // diving implies real scale
-    if($('tView').classList.contains('on')) $('tView').click();  // and following the Sun
+    if($('tView').classList.contains('on')) $('tView').click();  // diving follows the Sun
     cam.follow=true;
     coreLock=true; cam.yaw=0; cam.pitch=0;   // start looking straight down the line to the core
     cam.distGoal=3.5e-5; // ~75 AU across: the whole planetary system, Kuiper belt included
