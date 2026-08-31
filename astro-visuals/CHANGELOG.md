@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.18.0 — 2026-08-31
+
+- Helix and orbit combine, and the multiplier becomes a slider (`3181d82`)
+
 ### 2.17.0 — 2026-08-31
 
 - Taps instead of holds on the reload button (`9e0e057`)
