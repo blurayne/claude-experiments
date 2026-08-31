@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.20.2 — 2026-08-31
+
+- The icon loses its button plate (`683e6ff`)
+
 ### 2.20.1 — 2026-08-31
 
 - The trail scene adopts the owner's third exported camera (`90f93ae`)
