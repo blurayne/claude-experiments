@@ -635,7 +635,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.23.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.23.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2835,7 +2835,9 @@ void main(){
     col += vec3(1.0,0.80,0.50)*cor;
     lum = max(lum, max(arcs, cor));
   }
-  o = vec4(col*lum, lum*0.9);
+  float aDisc = smoothstep(R, R-0.015, r);
+  float a = max(aDisc, min(0.95, lum*0.85));
+  o = vec4(col*max(lum, aDisc), a);
 }`;
 const pSunP = prog(SUN_VS, SUN_FS);
 const USn = {
@@ -2947,17 +2949,6 @@ function frame(now){
   gl.uniform1f(U.ptSpin, 0.0);
   gl.uniform1f(U.velT, 0.0);
   gl.bindVertexArray(vaoStars); gl.drawArrays(gl.POINTS,0,N_STAR);
-  if(plasmaSunPx > 7){
-    gl.useProgram(pSunP);
-    gl.uniformMatrix4fv(USn.proj,false,projMat);
-    gl.uniformMatrix4fv(USn.view,false,viewMat);
-    gl.uniform1f(USn.time, shimT);
-    const sz = Math.min(1000, plasmaSunPx*2.7);
-    gl.uniform1f(USn.sz, sz);
-    gl.uniform1f(USn.disc, plasmaSunPx/sz);
-    gl.bindVertexArray(vaoSunPt); gl.drawArrays(gl.POINTS,0,1);
-    gl.useProgram(pPt);
-  }
   // Real stars, carried along with the Sun. They are stored at the galaxy's scale — a
   // 108-unit bubble against a 900-unit galactic radius, which is the true proportion —
   // but the compressed view magnifies the solar system some ten million fold on top of
@@ -3232,6 +3223,20 @@ function frame(now){
     gl.bindBuffer(gl.ARRAY_BUFFER,g710GL.s); gl.bufferSubData(gl.ARRAY_BUFFER,0,g710Size);
     gl.bindBuffer(gl.ARRAY_BUFFER,g710GL.c); gl.bufferSubData(gl.ARRAY_BUFFER,0,g710Col);
     gl.bindVertexArray(g710GL.vao); gl.drawArrays(gl.POINTS,0,1);
+  }
+  if(plasmaSunPx > 7){
+    // Drawn last, and not additively: the photosphere is opaque, so the disc must
+    // occlude the sky behind it, with only the corona and arcs blending over it.
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    gl.useProgram(pSunP);
+    gl.uniformMatrix4fv(USn.proj,false,projMat);
+    gl.uniformMatrix4fv(USn.view,false,viewMat);
+    gl.uniform1f(USn.time, shimT);
+    const sz = Math.min(1000, plasmaSunPx*2.7);
+    gl.uniform1f(USn.sz, sz);
+    gl.uniform1f(USn.disc, plasmaSunPx/sz);
+    gl.bindVertexArray(vaoSunPt); gl.drawArrays(gl.POINTS,0,1);
+    gl.blendFunc(gl.ONE, gl.ONE);
   }
 
   // labels
