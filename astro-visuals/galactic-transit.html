@@ -205,7 +205,8 @@
     background:var(--panel);border:1px solid var(--line);border-top:1px solid rgba(95,216,255,.55);border-radius:3px;padding:9px 20px;box-shadow:0 0 30px rgba(95,216,255,.08);
     backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:5;white-space:nowrap}
   .gamebar .stat{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);text-align:center}
-  .chks{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:9px;padding-left:60px}
+  .chks{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:9px;padding-left:2px}
+  .chks.indent{padding-left:60px}
   .chk{display:flex;align-items:center;gap:5px;font-size:9.5px;letter-spacing:.08em;color:var(--dim);
     cursor:pointer;user-select:none;text-transform:uppercase;font-family:'Orbitron',ui-monospace,monospace}
   .chk input{accent-color:var(--accent);width:12px;height:12px;margin:0;cursor:pointer}
@@ -251,10 +252,10 @@
   <div class="body">
     <div class="row"><label for="speed">speed</label><input type="range" id="speed" min="0" max="1" step="0.001" value="1"><span id="speedv" style="min-width:64px;text-align:right;color:var(--ink)"></span><button class="stepb" data-step="speed:-0.05">−</button><button class="stepb" data-step="speed:0.05">+</button></div>
     <div class="row"><label for="multExp">× exp</label><input type="range" id="multExp" min="0" max="10" step="1" value="0"><span id="multExpv" style="min-width:44px;text-align:right;color:var(--ink)">×1</span><button class="stepb" data-step="multExp:-1">−</button><button class="stepb" data-step="multExp:1">+</button></div>
-    <div class="row"><label>music</label><div class="seg" id="segMusic"><button data-v="on">on</button><button data-v="off">off</button></div><input type="range" id="musicVol" min="0" max="1" step="0.01" value="0.40"><span id="musicVolv" style="min-width:36px;text-align:right;color:var(--ink)">40%</span><button class="stepb" data-step="musicVol:-0.05">−</button><button class="stepb" data-step="musicVol:0.05">+</button></div>
+    <div class="row"><label>music</label><input type="range" id="musicVol" min="0" max="1" step="0.01" value="0.40"><span id="musicVolv" style="min-width:36px;text-align:right;color:var(--ink)">40%</span><button class="stepb" data-step="musicVol:-0.05">−</button><button class="stepb" data-step="musicVol:0.05">+</button></div>
     <div class="row" style="justify-content:flex-end;gap:10px"><span id="trackName" style="font-size:9px;letter-spacing:.1em;color:var(--dim)">—</span><button class="rowbtn" id="tNext">⏭ next</button></div>
-    <div class="row"><label>effects</label><div class="seg" id="segSfx"><button data-v="on">on</button><button data-v="off">off</button></div><input type="range" id="sfxVol" min="0" max="1" step="0.01" value="0.7"><span id="sfxVolv" style="min-width:36px;text-align:right;color:var(--ink)">70%</span><button class="stepb" data-step="sfxVol:-0.05">−</button><button class="stepb" data-step="sfxVol:0.05">+</button></div>
-    <div class="chks">
+    <div class="row"><label>effects</label><input type="range" id="sfxVol" min="0" max="1" step="0.01" value="0"><span id="sfxVolv" style="min-width:36px;text-align:right;color:var(--ink)">off</span><button class="stepb" data-step="sfxVol:-0.05">−</button><button class="stepb" data-step="sfxVol:0.05">+</button></div>
+    <div class="chks indent">
       <label class="chk"><input type="checkbox" id="fxBirth" checked> star birth</label>
       <label class="chk"><input type="checkbox" id="fxSn" checked> supernova</label>
       <label class="chk"><input type="checkbox" id="fxPn" checked> nebula</label>
@@ -281,14 +282,14 @@
     <div class="row"><label>events</label>
       <button class="tg" id="tEvSN">supernovae</button>
       <button class="tg" id="tEvBirth">star birth</button></div>
-    <div class="toggles">
-      <button class="tg on" id="tDust">dark clouds</button>
-      <button class="tg on" id="tBelt">asteroids</button>
-      <button class="tg on" id="tKuiper">kuiper</button>
-      <button class="tg on" id="tOort">oort</button>
-      <button class="tg on" id="tDwarfs">dwarfs</button>
-      <button class="tg on" id="tGaia">gaia sky</button>
-      <button class="tg on" id="tVar">variables</button>
+    <div class="chks">
+      <label class="chk"><input type="checkbox" id="tDust" checked> dark clouds</label>
+      <label class="chk"><input type="checkbox" id="tBelt" checked> asteroids</label>
+      <label class="chk"><input type="checkbox" id="tKuiper" checked> kuiper</label>
+      <label class="chk"><input type="checkbox" id="tOort" checked> oort</label>
+      <label class="chk"><input type="checkbox" id="tDwarfs" checked> dwarfs</label>
+      <label class="chk"><input type="checkbox" id="tGaia" checked> gaia sky</label>
+      <label class="chk"><input type="checkbox" id="tVar" checked> variables</label>
     </div>
     <div class="sect">Hud</div>
     <div class="row"><button class="tg on" id="tStatCal">calendar</button><select id="cal" style="flex:1">
@@ -312,12 +313,12 @@
       <option value="he">Holocene Era — secular</option>
     </select></div>
     <div class="row"><label>units</label><div class="seg" id="segUnits"><button data-v="words">Gy</button><button data-v="sup">10ⁿ</button><button data-v="e">eⁿ</button></div></div>
-    <div class="toggles">
-      <button class="tg on" id="tStatAge">solar system age</button>
-      <button class="tg on" id="tStatGyr">galaxy years</button>
-      <button class="tg" id="tStatSn">sn count</button>
-      <button class="tg" id="tStatBirth">births count</button>
-      <button class="tg" id="tFps">fps</button>
+    <div class="chks">
+      <label class="chk"><input type="checkbox" id="tStatAge" checked> solar system age</label>
+      <label class="chk"><input type="checkbox" id="tStatGyr" checked> galaxy years</label>
+      <label class="chk"><input type="checkbox" id="tStatSn"> sn count</label>
+      <label class="chk"><input type="checkbox" id="tStatBirth"> births count</label>
+      <label class="chk"><input type="checkbox" id="tFps"> fps</label>
     </div>
     <div class="row" id="rowHudHz" style="display:none"><label for="hudHz">hud rate</label><input type="range" id="hudHz" min="1" max="16" step="1" value="8"><span id="hudHzv" style="min-width:64px;text-align:right;color:var(--ink)">8×/s</span></div>
     <div class="row" id="rowGain" style="display:none"><label for="minB">Gaia brght</label><input type="range" id="minB" min="0" max="1" step="0.01" value="0.05"><span id="minBv" style="min-width:64px;text-align:right;color:var(--ink)">+5%</span></div>
@@ -644,7 +645,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.25.2', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.26.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -1814,7 +1815,7 @@ function lifeState(){
 let varOn = true; let shimT = 0; // variability clock (wall time, runs even when paused)
 
 // ---------- sound: everything synthesized live via Web Audio — no samples, still one file ----------
-let soundOn = false, sfxVol = 0.7, audio = null;
+let soundOn = false, sfxVol = 0, audio = null;   // silence is the off position
 const sfxLast = {};
 function initAudio(){
   const ctx = new (window.AudioContext||window.webkitAudioContext)();
@@ -2246,7 +2247,13 @@ $('trailL').addEventListener('input', e=>{ trailPct = +e.target.value; applyTrai
 toggle($('psHelix'), on=>{ psH = on; });
 toggle($('psOrbit'), on=>{ psO = on; });
 
-function toggle(btn, fn){ btn.addEventListener('click', ()=>{ btn.classList.toggle('on'); fn(btn.classList.contains('on')); }); }
+// A switch, however it is drawn: lit buttons carry their state in a class, checkboxes
+// in .checked. Both report through the same callback, so every call site is identical.
+const isOn = el => el.type === 'checkbox' ? el.checked : el.classList.contains('on');
+function toggle(btn, fn){
+  if(btn.type === 'checkbox') btn.addEventListener('change', ()=> fn(btn.checked));
+  else btn.addEventListener('click', ()=>{ btn.classList.toggle('on'); fn(isOn(btn)); });
+}
 toggle($('tPause'), on=>{ paused=!on; $('tPause').textContent = on?'⏸︎ pause':'▶︎ play'; });
 toggle($('tLabels'), on=>{ showLabels=on; if(!on) labelEls.forEach(l=>l.style.display='none'); });
 toggle($('tArms'), on=>{ armsOn=on; if(!on) armEls.forEach(l=>l.style.display='none'); });
@@ -2345,25 +2352,22 @@ function seg(id, initial, fn){
   set(initial, false);
   return set;
 }
-const setSegSfx = seg('segSfx', 'off', v => {
-  soundOn = v === 'on';
-  if(soundOn && !audio) audio = initAudio();
-  if(soundOn && audio) audio.ctx.resume().catch(()=>armUnlock());
-  if(soundOn) loadBanks();
-  applySfxGain();
-});
-const setSegMusic = seg('segMusic', 'on', v => {
-  musicOn = v === 'on';
-  if(musicOn){ if(!player.src) loadTrack(trackIx); else playTrack(); }
+// The volume slider is the switch: silence is off, and the audio graph is built the
+// first time it is raised, so a visitor who never asks for sound never pays for it.
+function setMusicVol(v){
+  musicVol = v; player.volume = v;
+  $('musicVolv').textContent = v > 0 ? Math.round(v*100)+'%' : 'off';
+  const want = v > 0;
+  if(want === musicOn) return;
+  musicOn = want;
+  if(want){ if(!player.src) loadTrack(trackIx); else playTrack(); }
   else player.pause();
-});
+}
+$('musicVol').addEventListener('input', e => setMusicVol(+e.target.value));
 $('tNext').addEventListener('click', ()=>{
   nextTrack();
-  if(!musicOn) setSegMusic('on'); // asking for the next track means you want music
-});
-$('musicVol').addEventListener('input', e=>{
-  musicVol=+e.target.value; player.volume=musicVol;
-  $('musicVolv').textContent=Math.round(musicVol*100)+'%';
+  // asking for the next track means you want music: give it back its default level
+  if(!musicOn){ $('musicVol').value = 0.4; setMusicVol(0.4); saveSettings(); }
 });
 for(const [id,key] of [['fxBirth','birth'],['fxSn','sn'],['fxPn','pn'],['fxDrone','drone']]){
   $(id).addEventListener('change', e=>{
@@ -2375,10 +2379,18 @@ for(const [id,key] of [['fxBirth','birth'],['fxSn','sn'],['fxPn','pn'],['fxDrone
     }
   });
 }
-$('sfxVol').addEventListener('input', e=>{
-  sfxVol=+e.target.value; applySfxGain();
-  $('sfxVolv').textContent=Math.round(sfxVol*100)+'%';
-});
+function setSfxVol(v){
+  sfxVol = v;
+  $('sfxVolv').textContent = v > 0 ? Math.round(v*100)+'%' : 'off';
+  if(v > 0 && !soundOn){
+    soundOn = true;
+    if(!audio) audio = initAudio();
+    if(audio) audio.ctx.resume().catch(()=>armUnlock());
+    loadBanks();
+  } else if(v === 0) soundOn = false;
+  applySfxGain();
+}
+$('sfxVol').addEventListener('input', e => setSfxVol(+e.target.value));
 // music is on by default; effects wait to be switched on (their graph is built then).
 // Autoplay is refused before a gesture, so queue the start behind the first one.
 loadTrack(0);
@@ -2396,12 +2408,12 @@ const S_CHK = ['fxBirth','fxSn','fxPn','fxDrone'];
 function saveSettingsNow(){
   try{
     const s = { t:{}, s:{}, c:{}, cal:$('cal').value, mult:speedMult, dens:curD,
-                units:unitMode, mus:musicOn, fx:soundOn,
+                units:unitMode,
                 foc:$('focusPanel').style.display !== 'none', fsel:$('focusSel').value,
                 hud:$('hud').style.display !== 'none',
                 bar:$('gamebar').classList.contains('slid'),
                 envMin:$('envPlus').style.display === 'block' };
-    S_TOG.forEach(id => s.t[id] = $(id).classList.contains('on'));
+    S_TOG.forEach(id => s.t[id] = isOn($(id)));
     S_SLD.forEach(id => s.s[id] = $(id).value);
     S_CHK.forEach(id => s.c[id] = $(id).checked);
     localStorage.setItem(SKEY, JSON.stringify(s));
@@ -2421,14 +2433,12 @@ function restoreSettings(register){
     if(s.c) S_CHK.forEach(id=>{ const v=s.c[id];
       if(v != null && $(id).checked !== v){ $(id).checked = v; $(id).dispatchEvent(new Event('change')); } });
     if(s.t) S_TOG.forEach(id=>{ const v=s.t[id];
-      if(v != null && $(id).classList.contains('on') !== v) $(id).click(); });
+      if(v != null && isOn($(id)) !== v) $(id).click(); });   // a checkbox click fires change
     if(s.cal && s.cal !== $('cal').value){ $('cal').value = s.cal; $('cal').dispatchEvent(new Event('change')); }
     if(s.mult > 0 && s.mult !== speedMult) setMultExp(Math.log10(s.mult));
     if(s.dens){ const i = DETAIL_D.indexOf(s.dens);
       if(i >= 0 && s.dens !== curD){ $('detail').value = i; $('detail').dispatchEvent(new Event('input')); } }
     if(s.units === 'words' || s.units === 'sup' || s.units === 'e') setSegUnits(s.units);
-    if(typeof s.mus === 'boolean' && s.mus !== musicOn) setSegMusic(s.mus ? 'on' : 'off');
-    if(typeof s.fx === 'boolean' && s.fx !== soundOn) setSegSfx(s.fx ? 'on' : 'off');
     if(s.foc === false && $('focusPanel').style.display !== 'none') $('focusMin').click();
     if(s.fsel === 'sun' || s.fsel === 'mw') $('focusSel').value = s.fsel;
     if(s.bar) $('gamebar').classList.add('slid');

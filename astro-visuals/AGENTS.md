@@ -70,7 +70,11 @@ built it.
   **supernovae** and **star birth** switches (planetary nebulae ride with the
   deaths); a new star opens with a brief white pling. Pause uses the monochrome
   text-presentation glyphs (⏸︎/▶︎), never emoji.
-- Defaults: music on at 40% with the remix first; sound effects off; supernova and
+- Object and stat switches are checkboxes; the lit-button style is for actions and
+  paired choices (labels, events, orbit/helix, pause). `toggle()` handles both kinds,
+  so call sites never care which. Volume sliders are their own on/off: 0% reads "off"
+  and stops the audio, and raising one from zero builds the graph.
+- Defaults: music on at 40% with the remix first; sound effects at 0% (off); supernova and
   star-birth events **off** (the user switches the life cycle on); the supernova and
   star-birth counters **off**; the settings dialog **hidden** (a saved open state
   reopens it). A 3-tap reset clears **all** of localStorage, debug flag included.
