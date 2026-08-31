@@ -54,6 +54,9 @@ built it.
   never a visible counter.
 - Debug mode (via `?debug` or ten taps, persisted) reveals the debug dialog button
   and the tuning rows (`hud rate`, `Gaia brght`); everything else stays user-facing.
+- The left column stacks Focus, Earth and the frames-per-second box in that order,
+  each closing up when one above is hidden, and all yielding to the settings panel
+  when they would collide.
 - Panels get out of the way: the Earth panel minimises to a corner `+`, the status
   bar slides down to a grip (grip visible only while hidden), counters pair on one
   row when the bar wraps on mobile.

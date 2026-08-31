@@ -607,6 +607,9 @@
   </div>
 </div>
 <button id="focusPlus" aria-label="show the focus panel" style="display:none">◎</button>
+<div class="env" id="fpsBox" style="display:none">
+  <div class="er"><span>frames per second</span><b id="fpsVal">—</b></div>
+</div>
 <div class="alertbox" id="iceBox">❄ GLACIAL EPOCH</div>
 <div class="alertbox" id="g710Box">☄ GLIESE 710 · <span id="eG710d">—</span></div>
 <div id="dbgCard" style="display:none;position:fixed;inset:0;z-index:40;background:rgba(2,6,14,.72);
@@ -629,7 +632,7 @@
     <div id="dbgMsg" style="margin-top:6px;font-size:9.5px;letter-spacing:.1em;color:var(--dim);min-height:14px"></div>
   </div>
 </div>
-<div class="note" id="scaleNote">view <em id="sScale">—</em> across<span id="fpsNote" style="display:none"> &nbsp;·&nbsp; <em id="fpsVal">—</em> fps</span></div>
+<div class="note" id="scaleNote">view <em id="sScale">—</em> across</div>
 <div class="env" id="env">
   <button id="envMin" aria-label="minimise the Earth panel">–</button>
   <h2>Earth</h2>
@@ -647,7 +650,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.27.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.28.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2341,7 +2344,7 @@ $('envPlus').addEventListener('click', ()=>{
   if(bar.classList.contains('slid')) setSlid(true);   // restored state applies the style too
 }
 toggle($('tGaia'), on=> gaiaOn=on);
-toggle($('tFps'), on=>{ showFps=on; $('fpsNote').style.display = on ? '' : 'none'; });
+toggle($('tFps'), on=>{ showFps=on; $('fpsBox').style.display = on ? '' : 'none'; fitPanels(); });
 const lifeSupOn = true;   // the reading is a fixture of the Earth panel now
 function applySfxGain(){
   if(!audio) return;
@@ -2817,7 +2820,7 @@ let W=0,H=0,DPR=1, projMat;
 // environment readout beside it, and down over the status bar and the view scale below.
 // Whatever it actually overlaps steps aside until it is collapsed again — measured, not
 // guessed from a breakpoint, since the panel's own height depends on how much is in it.
-const CROWDABLE = ['focusPanel','focusPlus','env','envPlus','scaleNote','gamebar'];
+const CROWDABLE = ['focusPanel','focusPlus','env','envPlus','fpsBox','scaleNote','gamebar'];
 function fitPanels(){
   const hud = $('hud');
   const items = CROWDABLE.map(id => $(id));
@@ -3414,6 +3417,7 @@ function frame(now){
       place($('focusPlus'), vis('focusPlus'));
       place($('env'), vis('env'));
       place($('envPlus'), vis('envPlus'));
+      place($('fpsBox'), vis('fpsBox'));
     }
     { // the alert boxes ride on top of the status bar, matching its width; with the
       // bar slid away or hidden they anchor to the bottom edge instead
