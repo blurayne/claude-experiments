@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.27.0 — 2026-08-31
+
+- A drawn pause glyph, and two more controls that stop being buttons (`9c7d85a`)
+
 ### 2.26.0 — 2026-08-31
 
 - Checkbox grids, and volume as its own switch (`1125f0b`)
