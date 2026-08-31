@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.23.0 — 2026-08-31
+
+- The Sun becomes a living star up close (`b7e5a65`)
+
 ### 2.22.1 — 2026-08-31
 
 - Minimised, the alert boxes step aside to the + button's right (`c5a098f`)
