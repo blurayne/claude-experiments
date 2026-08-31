@@ -92,11 +92,31 @@ The build renders it to `changelog.html`, which the panel footer links to.
   rasterised to the PNG sizes the manifest needs.
 - [`manifest.json`](manifest.json), [`sw.js`](sw.js) — the PWA manifest and its
   offline service worker.
+### Feeding in StarHorse (Gaia DR3) — awaiting data
+
+The measured 3D density of the inner Galaxy — the bar StarHorse revealed
+([Anders et al. 2019](https://data.aip.de/projects/starhorse2019.html)) — cannot be
+fetched from this environment (gaia.aip.de and data.aip.de are unreachable from the
+sandbox). The converter is ready at
+[`tools/build_starhorse_density.py`](tools/build_starhorse_density.py); it turns any
+StarHorse CSV sample into a 1 MB density cube and a preview image, and was verified
+end-to-end on synthetic data. To light it up:
+
+1. At <https://gaia.aip.de/query> run something like
+   `SELECT glon, glat, dist50 FROM <starhorse table> WHERE dist50 > 0` with a random
+   subsample of a few million rows (the schema browser lists the exact table name for
+   the 2019/2021 releases), export as CSV; or download a few of the partitioned catalog
+   files from <https://data.aip.de/projects/starhorse2019.html> directly.
+2. Hand the file(s) to the session (an upload, or any reachable URL).
+3. `python3 tools/build_starhorse_density.py <files>` writes `starhorse-density.bin`;
+   the page loader for it gets wired the moment real data exists.
+
 - [`galaxy-map.webp`](galaxy-map.webp) — the face-on Milky Way illustration used
   as a density map: stars sampled where it is bright, dust where its lanes are
   dark, HII nebulae where it is pink; mirrored and rotated so the arms trail and
   the bar sits at the scene's 28°.
-- [`stars-gaia.bin`](stars-gaia.bin) — 20,000 real stars from HYG 4.1 (Gaia DR3
+- [`stars-gaia.bin`](stars-gaia.bin) — the 100,000 brightest stars from AT-HYG 3.2
+  (Tycho-2 merged with Gaia DR3; 98.7% carry DR3 parallax distances) — 20,000 real stars from HYG 4.1 (Gaia DR3
   astrometry), as packed position, hue and magnitude.
 - [`sfx/`](sfx/) — five recorded supernova blasts and four soft star ignitions,
   played at random (with a slight per-shot detune) so repeats don't sound looped.

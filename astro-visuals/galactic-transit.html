@@ -491,13 +491,14 @@
       rotation and rotated so its bar sits at the scene's measured 28&deg; — an illustration too, of
       course: no one has photographed our galaxy from outside. Opened offline, the procedural layout
       stands in.</li>
-      <li>The <b>gaia sky</b> layer is not modelled at all: it is 20,000 real stars from HYG 4.1,
-      which carries <b>Gaia DR3</b> astrometry, at their true parallax distances out to ~990&nbsp;pc,
-      rotated into galactic coordinates and placed relative to the Sun. Their colours come from measured
-      colour indices and their sizes from apparent magnitude, so the solar neighbourhood — Alpha Centauri
-      at 1.32&nbsp;pc, Sirius at 2.64 — really is where it is. It covers the local sky only: Gaia sees the
-      Galaxy from inside and the far side of the disk hides behind dust, which is why everything beyond it
-      stays modelled. They are stored at the galaxy's own scale, so in the compressed view they only
+      <li>The <b>gaia sky</b> layer is not modelled at all: it is the 100,000 brightest stars from
+      AT-HYG 3.2, of which 98.7% carry <b>Gaia DR3</b> parallax distances (Hipparcos covers the very
+      bright ones Gaia saturates on), out to ~1,760&nbsp;pc, rotated into galactic coordinates and placed
+      relative to the Sun. Their colours come from measured colour indices and their sizes from apparent
+      magnitude, so the solar neighbourhood — Alpha Centauri at 1.32&nbsp;pc, Sirius at 2.64 — really is
+      where it is. Earlier builds mirrored this sky left-for-right; the frame is now checked against the
+      Sun's own orbital direction. It covers the local sky only: Gaia sees the Galaxy from inside and the
+      far side of the disk hides behind dust, which is why everything beyond it stays modelled. They are stored at the galaxy's own scale, so in the compressed view they only
       appear once the magnified solar system is small enough for the proportion to read — zoomed in there,
       the magnification would put every real star inside the planets. Real scale keeps them at every zoom,
       since nothing is magnified there.</li>
@@ -545,7 +546,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.5.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.6.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -1217,12 +1218,13 @@ function setGalaxy(D){
 // nebulae: same vertex logic but a much larger sprite cap, and a coreless glow falloff
 const NEB_FS = `#version 300 es
 precision mediump float;
+uniform float uGFade;  // galaxy-haze pass only: dies away when the camera is in close
 in vec3 vColor; out vec4 o;
 void main(){
   vec2 q = gl_PointCoord*2.0-1.0;
   float r = length(q);
   if(r>1.0) discard;
-  float a = pow(1.0-r, 2.1);
+  float a = pow(1.0-r, 2.1)*uGFade;
   o = vec4(vColor*a, a);
 }`;
 const pNeb = prog(PT_VS, NEB_FS);
@@ -1239,7 +1241,8 @@ const UN = {
   px:   gl.getUniformLocation(pNeb,'uPx'),
   spin: gl.getUniformLocation(pNeb,'uSpin'),
   warp: gl.getUniformLocation(pNeb,'uWarp'),
-  sun:  gl.getUniformLocation(pNeb,'uSunPos')
+  sun:  gl.getUniformLocation(pNeb,'uSunPos'),
+  gf:   gl.getUniformLocation(pNeb,'uGFade')
 };
 
 // dust: soft sprites that darken instead of glow (drawn with a multiplying blend)
@@ -1550,12 +1553,12 @@ function environment(){
 }
 
 // ---------- the real sky ----------
-// 20,000 actual stars from HYG 4.1, which carries Gaia DR3 astrometry (with Hipparcos
-// for the bright ones Gaia saturates on): true parallax distances out to ~990 pc,
-// rotated from equatorial into galactic coordinates and placed relative to the Sun, so
-// the solar neighbourhood is genuinely where it is rather than scattered at random.
-// Colours come from each star's measured colour index, sizes from its apparent
-// magnitude. This is the local sky only — Gaia sees the Galaxy from inside, and the far
+// The 100,000 brightest stars from AT-HYG 3.2 (Tycho-2 merged with Gaia DR3): 98.7%
+// carry Gaia DR3 parallax distances, Hipparcos covers the bright ones Gaia saturates
+// on. Rotated from equatorial into galactic coordinates and placed relative to the Sun,
+// with galactic l=90 on +x — the direction the Sun orbits — which an earlier build had
+// mirrored. Colours come from each star's measured colour index, sizes from apparent
+// magnitude. This is the local sky only: Gaia sees the Galaxy from inside, and the far
 // side of the disk is hidden behind dust, so the large-scale structure stays modelled.
 let vaoGaia = null, N_GAIA = 0, gaiaOn = true;
 function loadGaiaStars(){
@@ -2635,6 +2638,7 @@ function frame(now){
   gl.uniformMatrix4fv(UN.proj,false,projMat);
   gl.uniformMatrix4fv(UN.view,false,viewMat);
   gl.uniform1f(UN.px,pxScale);
+  gl.uniform1f(UN.gf, realMode ? 1.0 : Math.min(1, Math.max(0, (cam.dist-140)/260)));
   gl.uniform1f(UN.time, shimT);
   gl.uniform1f(UN.vm, varOn?2.0:0.0);
   gl.uniform1f(UN.wa, 1.0); // HII regions trace the wave
@@ -2651,6 +2655,7 @@ function frame(now){
   // expanding shells: supernova remnants and planetary nebulae (sizes exaggerated — see info)
   if(lifeOn && puffs.length){
     fillPuffs();
+    gl.uniform1f(UN.gf, 1.0); // a supernova next door must not fade with the backdrop
     gl.uniform1f(UN.vm, 0.0); // remnant/PN shells animate themselves
     gl.uniform1f(UN.wa, 0.0); // each puff carries its own frame flag
     gl.bindBuffer(gl.ARRAY_BUFFER,pfGL.p); gl.bufferSubData(gl.ARRAY_BUFFER,0,pfPos.subarray(0,puffs.length*3));
