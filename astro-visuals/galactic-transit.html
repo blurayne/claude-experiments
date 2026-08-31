@@ -205,7 +205,7 @@
     background:var(--panel);border:1px solid var(--line);border-top:1px solid rgba(95,216,255,.55);border-radius:3px;padding:9px 20px;box-shadow:0 0 30px rgba(95,216,255,.08);
     backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:5;white-space:nowrap}
   .gamebar .stat{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);text-align:center}
-  .chks{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:9px;padding-left:2px}
+  .chks{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:9px;padding-left:60px}
   .chk{display:flex;align-items:center;gap:5px;font-size:9.5px;letter-spacing:.08em;color:var(--dim);
     cursor:pointer;user-select:none;text-transform:uppercase;font-family:'Orbitron',ui-monospace,monospace}
   .chk input{accent-color:var(--accent);width:12px;height:12px;margin:0;cursor:pointer}
@@ -317,8 +317,6 @@
       <button class="tg on" id="tStatGyr">galaxy years</button>
       <button class="tg" id="tStatSn">sn count</button>
       <button class="tg" id="tStatBirth">births count</button>
-      <button class="tg on" id="tLifeSup">life support</button>
-      <button class="tg on" id="tEnv">environment</button>
       <button class="tg" id="tFps">fps</button>
     </div>
     <div class="row" id="rowHudHz" style="display:none"><label for="hudHz">hud rate</label><input type="range" id="hudHz" min="1" max="16" step="1" value="8"><span id="hudHzv" style="min-width:64px;text-align:right;color:var(--ink)">8×/s</span></div>
@@ -646,7 +644,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.25.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.25.2', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2271,12 +2269,6 @@ toggle($('tEvBirth'), on=>{ evBirth=on; syncLife(); });
 toggle($('tVar'), on=> varOn=on);
 let dustOn = true;
 toggle($('tDust'), on=>{ dustOn = on; });
-toggle($('tEnv'), on=>{
-  // the settings switch overrides the panel's own minimise state entirely
-  $('env').style.display = on ? '' : 'none';
-  $('envPlus').style.display = 'none';
-  fitPanels();
-});
 $('focusMin').addEventListener('click', ()=>{
   $('focusPanel').style.display='none'; $('focusPlus').style.display='block'; saveSettings(); });
 $('focusPlus').addEventListener('click', ()=>{
@@ -2335,12 +2327,7 @@ $('envPlus').addEventListener('click', ()=>{
 }
 toggle($('tGaia'), on=> gaiaOn=on);
 toggle($('tFps'), on=>{ showFps=on; $('fpsNote').style.display = on ? '' : 'none'; });
-let lifeSupOn = true;
-toggle($('tLifeSup'), on=>{
-  lifeSupOn = on;
-  $('eLifeRow').style.display = on ? '' : 'none';
-  if(!on) document.body.classList.remove('warn','dead');
-});
+const lifeSupOn = true;   // the reading is a fixture of the Earth panel now
 function applySfxGain(){
   if(!audio) return;
   const at=audio.ctx.currentTime;
@@ -2402,7 +2389,7 @@ loadTrack(0);
 // pause, the dive, the epoch jump, the current track position — is deliberately left out.
 const SKEY = 'galactic-transit.settings.v1';
 const S_TOG = ['tLabels','tArms','tDwarfs','tBelt','tKuiper','tOort','tDust','psHelix','psOrbit',
-               'tEvSN','tEvBirth','tVar','tLifeSup','tEnv',
+               'tEvSN','tEvBirth','tVar',
                'tStatCal','tStatAge','tStatGyr','tStatSn','tStatBirth','tGaia','tFps'];
 const S_SLD = ['speed','trailA','orbitA','trailL','musicVol','sfxVol','minB','hudHz'];
 const S_CHK = ['fxBirth','fxSn','fxPn','fxDrone'];
@@ -2445,7 +2432,7 @@ function restoreSettings(register){
     if(s.foc === false && $('focusPanel').style.display !== 'none') $('focusMin').click();
     if(s.fsel === 'sun' || s.fsel === 'mw') $('focusSel').value = s.fsel;
     if(s.bar) $('gamebar').classList.add('slid');
-    if(s.envMin && $('tEnv').classList.contains('on')) $('envMin').click();
+    if(s.envMin) $('envMin').click();
   }
   { // hidden is the default; only an explicitly saved open panel reopens
     const wantHud = !!(s && s.hud === true);
