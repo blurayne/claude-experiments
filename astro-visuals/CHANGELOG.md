@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.16.0 — 2026-08-31
+
+- The true helix replaces the emblem (`69ae7dd`)
+
 ### 2.15.0 — 2026-08-31
 
 - Orbit rings where trails cannot go, and the dive explained (`7782fc2`)
