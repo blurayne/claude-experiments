@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.22.1 — 2026-08-31
+
+- Minimised, the alert boxes step aside to the + button's right (`c5a098f`)
+
 ### 2.22.0 — 2026-08-31
 
 - Alert boxes, a set that closes, and the structures named (`266189f`)
