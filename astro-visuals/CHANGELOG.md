@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.32.0 — 2026-08-31
+
+- Visuals, and the last button rows become checkboxes (`e33968c`)
+
 ### 2.31.1 — 2026-08-31
 
 - Simulation opens, and pause leads the action row (`1f863bb`)
