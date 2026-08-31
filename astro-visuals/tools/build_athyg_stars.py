@@ -53,12 +53,29 @@ def to_scene(x0, y0, z0):
     return Yg, Zg, -Xg
 
 
+FIELDS = ['id','tyc','gaia','hyg','hip','hd','hr','gl','bayer','flam','con','proper',
+          'ra','dec','pos_src','dist','x0','y0','z0','dist_src','mag','absmag','ci',
+          'mag_src','rv','rv_src','pm_ra','pm_dec','pm_src','vx','vy','vz','spect','spect_src']
+
+
 def main(paths):
     stars = []
     n_vel = 0
     for path in paths:
+        rows_before = len(stars)
         with gzip.open(path, 'rt') if str(path).endswith('.gz') else open(path) as f:
-            for row in csv.DictReader(f):
+            # Only the first AT-HYG part carries a header; the continuation files start
+            # straight at the data. Feeding a headerless file to DictReader turns its
+            # first star into the header and silently drops every row after it — which
+            # is exactly how half the sky once went missing.
+            first = f.readline()
+            if first.startswith('id,tyc,'):
+                rdr = csv.DictReader(f, fieldnames=first.strip().split(','))
+            else:
+                rdr = csv.DictReader(f, fieldnames=FIELDS)
+                f.seek(0)
+                rdr = csv.DictReader(f, fieldnames=FIELDS)
+            for row in rdr:
                 try:
                     mag = float(row['mag']); d = float(row['dist'])
                 except (ValueError, KeyError):
@@ -72,6 +89,10 @@ def main(paths):
                     vel = None
                 stars.append((mag, float(row['x0']), float(row['y0']), float(row['z0']),
                               row['ci'], vel))
+        got = len(stars) - rows_before
+        print(f"{path}: {got:,} usable rows")
+        if got == 0:
+            sys.exit(f"{path}: zero usable rows — schema mismatch, refusing to continue")
     stars.sort(key=lambda s: s[0])
     print(f"{len(stars):,} usable rows, {n_vel:,} with 3D velocities")
 

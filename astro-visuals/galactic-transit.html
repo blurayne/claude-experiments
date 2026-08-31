@@ -531,13 +531,13 @@
       course: no one has photographed our galaxy from outside. Opened offline, the procedural layout
       stands in.</li>
       <li>The <b>gaia sky</b> layer is not modelled at all: it is the 100,000 brightest stars from
-      AT-HYG 3.2, of which 98.7% carry <b>Gaia DR3</b> parallax distances (Hipparcos covers the very
+      AT-HYG 3.2, of which 99.9% carry <b>Gaia DR3</b> parallax distances (Hipparcos covers the very
       bright ones Gaia saturates on), out to ~1,760&nbsp;pc, rotated into galactic coordinates and placed
       relative to the Sun. Their colours come from measured colour indices and their sizes from apparent
       magnitude, so the solar neighbourhood — Alpha Centauri at 1.32&nbsp;pc, Sirius at 2.64 — really is
       where it is. Earlier builds mirrored this sky left-for-right; the frame is now checked against the
       Sun's own orbital direction. At hi-fi quality and above a second tier loads: 400,000 more stars,
-      complete to magnitude 11.2. Each star also carries its measured <b>Gaia DR3 space velocity</b> and
+      complete to magnitude 10.4. Each star also carries its measured <b>Gaia DR3 space velocity</b> and
       drifts along it as time runs — watch the nearby stars stream at &times;10&sup3; — with the linear
       extrapolation honestly stopped at &plusmn;20&nbsp;Myr. It covers the local sky only: Gaia sees the
       Galaxy from inside and the far side of the disk hides behind dust, which is why everything beyond it
@@ -615,7 +615,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.18.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.18.2', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
