@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.10.2 — 2026-08-31
+
+- The grip appears only when needed, the helix stays out of the dive (`50d1082`)
+
 ### 2.10.1 — 2026-08-31
 
 - The Sun no longer jumps when rotating in the dive (`d23480a`)
