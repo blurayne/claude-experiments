@@ -7,6 +7,7 @@ each entry is filed under the version the page carried once it landed.
 
 ### 2.7.0 — 2026-08-31
 
+- The Sun verified in its place, and stars shaded the Gaia Sky way (`f0ca00c`)
 - Half a million DR3 stars that actually move (`d74e9e1`)
 
 ### 2.6.0 — 2026-08-31
