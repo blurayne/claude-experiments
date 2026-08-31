@@ -625,7 +625,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.20.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.20.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2438,8 +2438,8 @@ function jumpToEpoch(){
     $('orbitA').value = 0.5; $('orbitA').dispatchEvent(new Event('input'));
     if(trailPct < 250){ $('trailL').value = 300; $('trailL').dispatchEvent(new Event('input')); }
     if(!$('tDive').classList.contains('on')) $('tDive').click();
-    cam.distGoal = 2.531e-5;                   // ~55 AU across
-    cam.yaw = 0.9800; cam.pitch = -0.5643;     // the exported angle chosen by hand
+    cam.distGoal = 1.449e-5;                   // ~31 AU across
+    cam.yaw = 0.7014; cam.pitch = 0.2757;      // the exported angle chosen by hand
     // never unpause someone who asked for reduced motion
     if(paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
     return;
