@@ -115,10 +115,14 @@
   .env .er b{font-family:'Orbitron',ui-monospace,monospace;font-size:10.5px;color:var(--ink);
     font-variant-numeric:tabular-nums;font-weight:600}
   .crowded{display:none !important}
-  .g710-badge{display:none;margin-top:6px;padding:4px 6px;border-radius:2px;text-align:center;
-    font-family:'Orbitron',ui-monospace,monospace;font-size:8.5px;letter-spacing:.14em;font-weight:700;
-    color:#2a1405;background:linear-gradient(180deg,#ffd9a8,#ffab5c)}
-  body.g710 .g710-badge{display:block}
+  .alertbox{position:fixed;left:14px;z-index:5;display:none;width:216px;box-sizing:border-box;
+    padding:6px 10px;border-radius:3px;text-align:center;background:rgba(10,16,28,.28);
+    backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    font-family:'Orbitron',ui-monospace,monospace;font-size:9px;letter-spacing:.16em;font-weight:700}
+  #iceBox{border:1px solid rgba(176,232,255,.85);color:#cfeeff;text-shadow:0 0 9px rgba(176,232,255,.5)}
+  #g710Box{border:1px solid rgba(255,171,92,.9);color:#ffd9a8;text-shadow:0 0 9px rgba(255,171,92,.5)}
+  body.ice #iceBox{display:block}
+  body.g710 #g710Box{display:block}
   /* One continuous state colour, mixed at runtime and carried by these two variables:
      cyan while Earth is comfortable, through amber as it is endangered, to red once it
      is not habitable, with a glacial tint blended in when the model runs cold. Because
@@ -270,7 +274,7 @@
       <option value="2.068">Great Oxidation (2.5 Gyr ago)</option>
       <option value="9.07">Andromeda collision (+4.5 Gyr)</option>
       <option value="10.1">After the merger (+5.5 Gyr)</option>
-    </select><button class="rowbtn" id="jumpGo" title="set the selected event's date again">set</button><button class="rowbtn" id="jumpNow" title="back to the present day">now</button></div>
+    </select><button class="rowbtn" id="jumpGo" title="apply the selected scenario and close the panel">set</button></div>
     <div class="row"><label for="cal">calendar</label><select id="cal">
       <option value="hs">Human existence (300,000 yrs)</option>
       <option value="her">Homo erectus (~2 Myr)</option>
@@ -586,6 +590,8 @@
 </div>
 <button id="reopen" aria-label="show control panel">+</button>
 <button id="envPlus" aria-label="show the Earth panel">+</button>
+<div class="alertbox" id="iceBox">❄ GLACIAL EPOCH</div>
+<div class="alertbox" id="g710Box">☄ GLIESE 710 · <span id="eG710d">—</span></div>
 <div id="dbgCard" style="display:none;position:fixed;inset:0;z-index:40;background:rgba(2,6,14,.72);
     backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)">
   <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(560px,calc(100vw - 32px));
@@ -615,7 +621,6 @@
   <div class="er"><span>cosmic rays</span><b id="eCR">1.00× today</b></div>
   <div class="er"><span>starlight</span><b id="eSL">1.0×</b></div>
   <div class="er" id="eLifeRow"><span>life support</span><b id="eLife">habitable</b></div>
-  <div class="g710-badge" id="eG710">☄ Gliese 710 · <span id="eG710d">—</span></div>
 </div>
 
 <div id="labels"></div>
@@ -625,7 +630,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.21.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.22.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2461,8 +2466,11 @@ function jumpToEpoch(){
   refillTrails();
 }
 $('jump').addEventListener('change', e=>{ reseedFollow=true; jumpToEpoch(e); });
-$('jumpGo').addEventListener('click', jumpToEpoch);
-$('jumpNow').addEventListener('click', ()=>{ $('jump').value = ''; jumpToEpoch(); });
+$('jumpGo').addEventListener('click', ()=>{
+  jumpToEpoch();
+  // the point of "set" is to watch the scenario, so the panel steps aside
+  if($('hud').style.display !== 'none') $('collapse').click();
+});
 const sup = e => String(e).split('').map(d=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[+d]).join('');
 function fmtYears(y){ // a duration in years → astronomer units, or ×10^x notation
   // Jumping to an epoch before an era began gives a negative span: show how far short
@@ -2634,6 +2642,18 @@ const labelWrap=$('labels');
 const labelEls = BODIES.map(b=>{
   const d=document.createElement('div'); d.className='lbl'; d.textContent=b[0];
   labelWrap.appendChild(d); return d;
+});
+// The solar system's own structures, labelled at their real radii. Each label sits on
+// its ring at the Sun's side, appears only while its structure is switched on and its
+// ring is actually resolvable on screen, and hides again when it would be a dot.
+const STRUCTS = [            // name, ring radius in AU, visibility switch
+  ['asteroid belt', 2.7,     () => showBelt],
+  ['Kuiper belt',   44,      () => showKuiper],
+  ['Oort cloud',    63241,   () => showOort],       // one light year, mid-shell
+];
+const structEls = STRUCTS.map(s=>{
+  const d=document.createElement('div'); d.className='lbl'; d.textContent=s[0];
+  d.style.display='none'; d.style.opacity='0.55'; labelWrap.appendChild(d); return d;
 });
 // Spiral-arm names, placed on this map's measured bright ridges and named by their
 // radial order from the Sun, after the canonical face-on annotation. They ride the
@@ -3157,6 +3177,20 @@ function frame(now){
       l.style.top =lsy+'px';
       l.style.opacity = i===0?0.9:0.65;
     }
+    // structure labels: a point on each ring, Sun-relative like the rings themselves
+    for(let s=0;s<STRUCTS.length;s++){
+      const el = structEls[s];
+      if(!STRUCTS[s][2]()){ el.style.display='none'; continue; }
+      const rU = STRUCTS[s][1]*AU2U;
+      const rpx = rU*pxScale/cam.dist;
+      if(rpx < 46 || rpx > 2600){ el.style.display='none'; continue; }
+      const x = rU*0.71, y = 0, z = rU*0.71;    // 45 degrees round the ring
+      const cw = pv[3]*x+pv[7]*y+pv[11]*z+pv[15];
+      if(cw <= 1e-9){ el.style.display='none'; continue; }
+      el.style.display='block';
+      el.style.left=(((pv[0]*x+pv[4]*y+pv[8]*z+pv[12])/cw*0.5+0.5)*W)+'px';
+      el.style.top =((-(pv[1]*x+pv[5]*y+pv[9]*z+pv[13])/cw*0.5+0.5)*H)+'px';
+    }
     // arm names: world coordinates rotated with the wave, then projected like the rest
     if(armsOn && cam.dist > 600){
       const d = spin/640, cD = Math.cos(d), sD = Math.sin(d);
@@ -3215,6 +3249,18 @@ function frame(now){
     document.body.classList.toggle('ice', e.ice);
     const gd = g710().d;
     document.body.classList.toggle('g710', gd < 1.9);
+    { // the alert boxes sit below the Earth panel, or at the top when it is minimised
+      const er = $('env');
+      let top = (er.style.display !== 'none' && getComputedStyle(er).display !== 'none')
+        ? er.getBoundingClientRect().bottom + 8 : 14;
+      for(const id of ['iceBox','g710Box']){
+        const b = $(id);
+        if(getComputedStyle(b).display !== 'none'){
+          b.style.top = top + 'px';
+          top += b.getBoundingClientRect().height + 8;
+        }
+      }
+    }
     if(gd < 1.9) $('eG710d').textContent = gd < 0.995
       ? Math.round(gd*63241).toLocaleString('en-US')+' AU' : gd.toFixed(2)+' ly';
     setStateColour(ls ? ls.h : 0, e.mean); }
