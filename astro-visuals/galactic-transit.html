@@ -572,7 +572,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.10.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.10.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2326,7 +2326,7 @@ function jumpToEpoch(){
   accB = accSN = accPN = 0;
   refillTrails();
 }
-$('jump').addEventListener('change', jumpToEpoch);
+$('jump').addEventListener('change', e=>{ reseedFollow=true; jumpToEpoch(e); });
 $('jumpGo').addEventListener('click', jumpToEpoch);
 $('jumpNow').addEventListener('click', ()=>{ $('jump').value = ''; jumpToEpoch(); });
 const sup = e => String(e).split('').map(d=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[+d]).join('');
@@ -2382,7 +2382,7 @@ function humanYear(){
     default:     return g>=1 ? 'A.D. '+fmt(g) : fmt(1-g)+' B.C.';
   }
 }
-toggle($('tView'), on=>{ cam.follow=!on; cam.distGoal = on? 4300 : 150; });
+toggle($('tView'), on=>{ cam.follow=!on; cam.distGoal = on? 4300 : 150; reseedFollow=true; });
 function refillTrails(){
   for(let i=0;i<NB;i++){
     const a=trails[i];
@@ -2397,6 +2397,7 @@ function refillTrails(){
 function setBodySizes(){ gl.bindBuffer(gl.ARRAY_BUFFER,bufBodySize); gl.bufferData(gl.ARRAY_BUFFER, realMode?realSizes:dispSizes, gl.STATIC_DRAW); }
 setBodySizes();   // real proportions from the first frame
 toggle($('tDive'), on=>{
+  reseedFollow = true;
   if(on){
     if($('tView').classList.contains('on')) $('tView').click();  // diving follows the Sun
     cam.follow=true;
@@ -2617,6 +2618,11 @@ let simT=0, nextSample=DT_SAMPLE, last=performance.now();
 let showFps=false, fpsFrames=0, fpsSince=performance.now();
 let hudHz=8, lastHud=0;
 const smoothTarget=[0,0,0]; let firstFrame=true;
+// Following is exact; only transitions ease. The offset decays toward zero and never
+// re-grows from the target's own motion — easing the position itself made the camera
+// trail a moving Sun by up to 20% of the view, so at dive zoom the Sun slid across the
+// frame every time a touch held the clock and the lag collapsed.
+const smoothOfs=[0,0,0]; let reseedFollow=false;
 const org=new Float64Array(3); // rendering origin: the Sun, in double precision
 const sunSizeTmp=new Float32Array(1);
 
@@ -2656,13 +2662,14 @@ function frame(now){
 
   // camera — the view matrix is built Sun-relative for the same precision reason
   const goal = cam.follow ? [org[0],org[1],org[2]] : [0,0,0];
+  if(reseedFollow){ for(let i=0;i<3;i++) smoothOfs[i] = smoothTarget[i]-goal[i]; reseedFollow=false; }
   const k = firstFrame?1:Math.min(1,dt*4);
-  for(let i=0;i<3;i++) smoothTarget[i]+= (goal[i]-smoothTarget[i])*k;
-  { // cap the follow lag at 20% of the view distance, or deep zooms lose the Sun off-screen
-    const lx=goal[0]-smoothTarget[0], ly=goal[1]-smoothTarget[1], lz=goal[2]-smoothTarget[2];
-    const lag=Math.hypot(lx,ly,lz), maxLag=cam.dist*0.2;
-    if(lag>maxLag){ const f=1-maxLag/lag; smoothTarget[0]+=lx*f; smoothTarget[1]+=ly*f; smoothTarget[2]+=lz*f; }
+  for(let i=0;i<3;i++) smoothOfs[i] *= 1-k;
+  { // cap the transition offset at 20% of the view distance, so deep zooms never lose the Sun
+    const lag=Math.hypot(smoothOfs[0],smoothOfs[1],smoothOfs[2]), maxLag=cam.dist*0.2;
+    if(lag>maxLag){ const f=maxLag/lag; smoothOfs[0]*=f; smoothOfs[1]*=f; smoothOfs[2]*=f; }
   }
+  for(let i=0;i<3;i++) smoothTarget[i] = goal[i]+smoothOfs[i];
   // log-space zoom smoothing: uniform speed per decade across 11 orders of magnitude
   cam.dist = Math.exp(Math.log(cam.dist)+(Math.log(cam.distGoal)-Math.log(cam.dist))*Math.min(1,dt*4));
   firstFrame=false;
