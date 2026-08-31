@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.21.0 — 2026-08-31
+
+- The Gliese 710 scenario frames the Oort cloud for a 35-second pass (`4690433`)
+
 ### 2.20.2 — 2026-08-31
 
 - The icon loses its button plate (`683e6ff`)
