@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.10.3 — 2026-08-31
+
+- A corkscrew needs an axle (`7f8cd95`)
+
 ### 2.10.2 — 2026-08-31
 
 - The grip appears only when needed, the helix stays out of the dive (`50d1082`)
