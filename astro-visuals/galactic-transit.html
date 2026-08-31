@@ -115,7 +115,7 @@
   .env .er b{font-family:'Orbitron',ui-monospace,monospace;font-size:10.5px;color:var(--ink);
     font-variant-numeric:tabular-nums;font-weight:600}
   .crowded{display:none !important}
-  .alertbox{position:fixed;left:14px;z-index:5;display:none;width:216px;box-sizing:border-box;
+  .alertbox{position:fixed;left:14px;z-index:6;display:none;box-sizing:border-box;
     padding:6px 10px;border-radius:3px;text-align:center;background:rgba(10,16,28,.28);
     backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
     font-family:'Orbitron',ui-monospace,monospace;font-size:9px;letter-spacing:.16em;font-weight:700}
@@ -635,7 +635,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.23.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.24.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -3331,19 +3331,26 @@ function frame(now){
     document.body.classList.toggle('ice', e.ice);
     const gd = g710().d;
     document.body.classList.toggle('g710', gd < 1.9);
-    { // the alert boxes sit below the Earth panel; with the panel minimised they move
-      // to the right of its + button instead, so the corner stays one tidy row
-      const envShown = $('env').style.display !== 'none' && getComputedStyle($('env')).display !== 'none';
-      const plusShown = getComputedStyle($('envPlus')).display !== 'none';
-      let left = 14, top = 14;
-      if(envShown) top = $('env').getBoundingClientRect().bottom + 8;
-      else if(plusShown) left = $('envPlus').getBoundingClientRect().right + 8;
+    { // the alert boxes ride on top of the status bar, matching its width; with the
+      // bar slid away or hidden they anchor to the bottom edge instead
+      const bar = $('gamebar');
+      const barUp = getComputedStyle(bar).display !== 'none' && !bar.classList.contains('slid');
+      let left, width, bottom;
+      if(barUp){
+        const r = bar.getBoundingClientRect();
+        left = r.left; width = r.width; bottom = r.top - 8;
+      } else {
+        width = Math.min(innerWidth - 28, 560);
+        left = (innerWidth - width)/2; bottom = innerHeight - 14;
+      }
       for(const id of ['iceBox','g710Box']){
         const b = $(id);
         if(getComputedStyle(b).display !== 'none'){
           b.style.left = left + 'px';
-          b.style.top = top + 'px';
-          top += b.getBoundingClientRect().height + 8;
+          b.style.width = width + 'px';
+          const h = b.getBoundingClientRect().height;
+          b.style.top = (bottom - h) + 'px';
+          bottom -= h + 8;
         }
       }
     }
