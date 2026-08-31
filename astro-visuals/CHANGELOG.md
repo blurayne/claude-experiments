@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.14.1 — 2026-08-31
+
+- The debug dialog closes from a corner ×, not a row button (`84569d9`)
+
 ### 2.14.0 — 2026-08-31
 
 - One reload button, three depths (`36be4ec`)
