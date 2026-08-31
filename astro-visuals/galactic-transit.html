@@ -68,6 +68,7 @@
   .stepb{flex:none;width:20px;height:20px;padding:0;font-family:inherit;font-size:12px;line-height:1;
     background:rgba(95,216,255,.06);border:1px solid var(--line);border-radius:2px;color:var(--dim);cursor:pointer}
   .stepb:hover{color:var(--accent);border-color:rgba(95,216,255,.55)}
+  .ico{width:8px;height:8px;fill:currentColor;margin-right:5px;vertical-align:-1px}
   .sect{margin:12px 0 4px;font-family:'Orbitron',ui-monospace,monospace;font-size:8.5px;letter-spacing:.3em;
     text-transform:uppercase;color:var(--dim);border-bottom:1px solid var(--line);padding-bottom:3px}
   .seg{display:flex;flex:none;border:1px solid var(--line);border-radius:2px;overflow:hidden}
@@ -273,8 +274,8 @@
     </select><button class="rowbtn" id="jumpGo" title="apply the selected scenario and close the panel">GO</button></div>
     <div class="sect">Graphics</div>
     <div class="row"><label for="detail">detail</label><input type="range" id="detail" min="0" max="5" step="1" value="0"><span id="detailv" style="min-width:56px;text-align:right;color:var(--ink)">lowest</span><button class="stepb" data-step="detail:-1">−</button><button class="stepb" data-step="detail:1">+</button></div>
-    <div class="row"><button class="tg on" id="psOrbit" title="the closed orbit around the Sun">orbit</button><input type="range" id="orbitA" min="0" max="1" step="0.01" value="1"><span id="orbitAv" style="min-width:36px;text-align:right;color:var(--ink)">100%</span><button class="stepb" data-step="orbitA:-0.05">−</button><button class="stepb" data-step="orbitA:0.05">+</button></div>
-    <div class="row"><button class="tg on" id="psHelix" title="the true swept path through space">helix</button><input type="range" id="trailA" min="0" max="1" step="0.01" value="1"><span id="trailAv" style="min-width:36px;text-align:right;color:var(--ink)">100%</span><button class="stepb" data-step="trailA:-0.05">−</button><button class="stepb" data-step="trailA:0.05">+</button></div>
+    <div class="row"><label for="orbitA" title="the closed orbit around the Sun">orbit</label><input type="range" id="orbitA" min="0" max="1" step="0.01" value="1"><span id="orbitAv" style="min-width:36px;text-align:right;color:var(--ink)">100%</span><button class="stepb" data-step="orbitA:-0.05">−</button><button class="stepb" data-step="orbitA:0.05">+</button></div>
+    <div class="row"><label for="trailA" title="the true swept path through space">helix</label><input type="range" id="trailA" min="0" max="1" step="0.01" value="1"><span id="trailAv" style="min-width:36px;text-align:right;color:var(--ink)">100%</span><button class="stepb" data-step="trailA:-0.05">−</button><button class="stepb" data-step="trailA:0.05">+</button></div>
     <div class="row"><label for="trailL">length</label><input type="range" id="trailL" min="0" max="1000" step="10" value="300"><span id="trailLv" style="min-width:64px;text-align:right;color:var(--ink)">300%</span><button class="stepb" data-step="trailL:-50">−</button><button class="stepb" data-step="trailL:50">+</button></div>
     <div class="row"><label>labels</label>
       <button class="tg on" id="tArms">galaxy arms</button>
@@ -292,7 +293,8 @@
       <label class="chk"><input type="checkbox" id="tVar" checked> variables</label>
     </div>
     <div class="sect">Hud</div>
-    <div class="row"><button class="tg on" id="tStatCal">calendar</button><select id="cal" style="flex:1">
+    <div class="row"><label for="cal">calendar</label><select id="cal" style="flex:1">
+      <option value="none">— none —</option>
       <option value="hs">Human existence (300,000 yrs)</option>
       <option value="her">Homo erectus (~2 Myr)</option>
       <option value="hom">Hominins (chimp–human split, ~7 Myr)</option>
@@ -326,7 +328,7 @@
       <button class="tg" id="tFull">⛶ full</button>
       <button class="tg" id="tRotate">⟳ auto</button>
       <span style="flex:1"></span>
-      <button class="tg on" id="tPause">⏸︎ pause</button>
+      <button class="tg on" id="tPause"><svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><rect x="1.4" y="1" width="2.7" height="8"/><rect x="5.9" y="1" width="2.7" height="8"/></svg>pause</button>
       <button class="tg" id="tInfo">ⓘ info &amp; stats</button>
     </div>
     <button id="tView" style="display:none"></button>
@@ -645,7 +647,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.26.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.27.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -1645,7 +1647,7 @@ const ringVaos = [];
   }
 }
 // In real scale everything but the Sun is stored as an offset from it.
-let psH = true, psO = true;   // up close a planet can show its helix, its orbit, or both
+let psH = true, psO = true;   // derived from the two transparency sliders: 0% is off
 // Trails are stored as absolute positions minus a local anchor. Float32 alone cannot
 // hold a position of magnitude ~900 to sub-AU precision — the error is about 7 AU,
 // which at dive zoom is the whole frame — so the anchor keeps the stored numbers small
@@ -2227,8 +2229,13 @@ $('minB').addEventListener('input', e=>{
   $('minBv').textContent = v ? '+'+Math.round(v*100) + '%' : 'off';
 });
 let trailAlpha = 1, orbitAlpha = 1;
-$('trailA').addEventListener('input', e=>{ trailAlpha=+e.target.value; $('trailAv').textContent=Math.round(trailAlpha*100)+'%'; });
-$('orbitA').addEventListener('input', e=>{ orbitAlpha=+e.target.value; $('orbitAv').textContent=Math.round(orbitAlpha*100)+'%'; });
+// each slider is its own switch: silence for sound, invisibility for lines
+$('trailA').addEventListener('input', e=>{
+  trailAlpha = +e.target.value; psH = trailAlpha > 0;
+  $('trailAv').textContent = psH ? Math.round(trailAlpha*100)+'%' : 'off'; });
+$('orbitA').addEventListener('input', e=>{
+  orbitAlpha = +e.target.value; psO = orbitAlpha > 0;
+  $('orbitAv').textContent = psO ? Math.round(orbitAlpha*100)+'%' : 'off'; });
 let trailPct = 300, trailRefill = 0;
 function applyTrailWindow(){
   const w = (trailPct/100) * speed * speedMult;      // years covered by the whole trail
@@ -2244,8 +2251,6 @@ function applyTrailWindow(){
 }
 let lastAnchor = 0;
 $('trailL').addEventListener('input', e=>{ trailPct = +e.target.value; applyTrailWindow(); });
-toggle($('psHelix'), on=>{ psH = on; });
-toggle($('psOrbit'), on=>{ psO = on; });
 
 // A switch, however it is drawn: lit buttons carry their state in a class, checkboxes
 // in .checked. Both report through the same callback, so every call site is identical.
@@ -2254,7 +2259,10 @@ function toggle(btn, fn){
   if(btn.type === 'checkbox') btn.addEventListener('change', ()=> fn(btn.checked));
   else btn.addEventListener('click', ()=>{ btn.classList.toggle('on'); fn(isOn(btn)); });
 }
-toggle($('tPause'), on=>{ paused=!on; $('tPause').textContent = on?'⏸︎ pause':'▶︎ play'; });
+const ICO_PAUSE = '<svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><rect x="1.4" y="1" width="2.7" height="8"/><rect x="5.9" y="1" width="2.7" height="8"/></svg>';
+const ICO_PLAY  = '<svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 1 L9 5 L2 9 Z"/></svg>';
+// drawn, not typed: a glyph would be recoloured as emoji on some platforms
+toggle($('tPause'), on=>{ paused=!on; $('tPause').innerHTML = (on?ICO_PAUSE:ICO_PLAY) + (on?'pause':'play'); });
 toggle($('tLabels'), on=>{ showLabels=on; if(!on) labelEls.forEach(l=>l.style.display='none'); });
 toggle($('tArms'), on=>{ armsOn=on; if(!on) armEls.forEach(l=>l.style.display='none'); });
 toggle($('tDwarfs'), on=>{ showDwarfs=on; if(!on) labelEls.forEach((l,i)=>{ if(i>=N_PLANETS) l.style.display='none'; }); });
@@ -2400,9 +2408,9 @@ loadTrack(0);
 // so restoring a setting does exactly what clicking it would. Anything momentary — the
 // pause, the dive, the epoch jump, the current track position — is deliberately left out.
 const SKEY = 'galactic-transit.settings.v1';
-const S_TOG = ['tLabels','tArms','tDwarfs','tBelt','tKuiper','tOort','tDust','psHelix','psOrbit',
+const S_TOG = ['tLabels','tArms','tDwarfs','tBelt','tKuiper','tOort','tDust',
                'tEvSN','tEvBirth','tVar',
-               'tStatCal','tStatAge','tStatGyr','tStatSn','tStatBirth','tGaia','tFps'];
+               'tStatAge','tStatGyr','tStatSn','tStatBirth','tGaia','tFps'];
 const S_SLD = ['speed','trailA','orbitA','trailL','musicVol','sfxVol','minB','hudHz'];
 const S_CHK = ['fxBirth','fxSn','fxPn','fxDrone'];
 function saveSettingsNow(){
@@ -2457,8 +2465,6 @@ function restoreSettings(register){
   S_SLD.forEach(id => $(id).addEventListener('input', saveSettings));
   S_CHK.forEach(id => $(id).addEventListener('change', saveSettings));
   $('cal').addEventListener('change', saveSettings);
-  $('cal').addEventListener('change', ()=>{
-    $('lCal').textContent = $('cal').value === 'rate' ? 'years per second' : 'human year'; });
   $('collapse').addEventListener('click', saveSettings);
   $('reopen').addEventListener('click', saveSettings);
   $('multExp').addEventListener('input', saveSettings);
@@ -2472,7 +2478,6 @@ function updateBar(){
   fitPanels();
 }
 function statToggle(btn, statId){ toggle(btn, on=>{ $(statId).style.display = on?'':'none'; updateBar(); }); }
-statToggle($('tStatCal'), 'sCal');
 statToggle($('tStatAge'), 'sAge');
 statToggle($('tStatGyr'), 'sGyr');
 statToggle($('tStatSn'), 'cDeath');
@@ -2480,28 +2485,37 @@ statToggle($('tStatBirth'), 'cBirth');
 const setSegUnits = seg('segUnits', 'words', v => { unitMode = v; });
 let liveCount = false;   // retired control; the rate view lives in the calendar options
 let calMode='ad', unitMode='words';
-$('cal').addEventListener('change', e=> calMode=e.target.value);
+function syncCal(){
+  calMode = $('cal').value;
+  // "none" is the off position: the cell leaves the bar entirely
+  $('sCal').style.display = calMode === 'none' ? 'none' : '';
+  updateBar();
+  $('lCal').textContent = calMode === 'rate' ? 'years per second' : 'human year';
+}
+$('cal').addEventListener('change', syncCal);
 // Replaying matters here: an event like the Gliese 710 pass is over in a second or two,
 // and re-picking the same entry fires no change event, so there would be no way back to
 // it short of reloading.
+let keepSaved = false;   // set only while the opening scenario stages itself
 function jumpToEpoch(){
   const sel = $('jump');
   const a = sel.value === '' ? AGE0 : +sel.value;
   // some epochs are over in a blink on the galactic clock; land at a speed that shows them
   const opt = sel.selectedOptions[0];
   const sp = opt && opt.dataset.speed, mu = opt && opt.dataset.mult;
-  if(sp !== undefined && sp !== null){ $('speed').value = sp; $('speed').dispatchEvent(new Event('input')); }
-  if(mu) setMultExp(Math.log10(+mu));
+  if(!keepSaved){
+    if(sp !== undefined && sp !== null){ $('speed').value = sp; $('speed').dispatchEvent(new Event('input')); }
+    if(mu) setMultExp(Math.log10(+mu));
+  }
   if(sel.value === 'helix'){
     // not an epoch: a staging entry for the true helix. At one year a second the Sun
     // covers 48 AU while Earth loops once around it — visible, and actually accurate.
     if($('tView').classList.contains('on')) $('tView').click();
-    if(!$('psHelix').classList.contains('on')) $('psHelix').click();
-    if(!$('psOrbit').classList.contains('on')) $('psOrbit').click();  // coils and rings together
-    // the owner's exported look: full trails over half-strength rings
-    $('trailA').value = 1;   $('trailA').dispatchEvent(new Event('input'));
-    $('orbitA').value = 0.5; $('orbitA').dispatchEvent(new Event('input'));
-    if(trailPct < 250){ $('trailL').value = 300; $('trailL').dispatchEvent(new Event('input')); }
+    if(!keepSaved){   // the owner's exported look: full trails over half-strength rings
+      $('trailA').value = 1;   $('trailA').dispatchEvent(new Event('input'));
+      $('orbitA').value = 0.5; $('orbitA').dispatchEvent(new Event('input'));
+      if(trailPct < 250){ $('trailL').value = 300; $('trailL').dispatchEvent(new Event('input')); }
+    }
     if(!$('tDive').classList.contains('on')) $('tDive').click();
     cam.distGoal = 1.449e-5;                   // ~31 AU across
     cam.yaw = 0.7014; cam.pitch = 0.2757;      // the exported angle chosen by hand
@@ -3453,12 +3467,18 @@ function frame(now){
 
   requestAnimationFrame(frame);
 }
+// Whether this visitor has been here before decides how much the opening scenario may
+// touch: the camera always, their saved sliders never.
+const hadSaved = (()=>{ try{ return !!localStorage.getItem(SKEY); }catch(e){ return false; } })();
 restoreSettings();
 applyTrailWindow();
-// The piece opens on its signature view: the helix scenario, staged exactly as the
-// menu entry stages it. Anything the user changes afterwards is remembered as usual.
+// The piece opens on its signature view. A first-time visitor gets the whole staging;
+// a returning one gets the camera and keeps every setting they chose, because a
+// remembered setting is a decision and the opening is only a default.
+keepSaved = hadSaved;
 $('jump').value = 'helix';
 $('jump').dispatchEvent(new Event('change'));
+keepSaved = false;
 // ---------- the debug door: opened by ?debug in the URL or ten taps on refresh ----------
 const DBGKEY = 'galactic-transit.debug';
 const DEBUG = (()=>{ try{

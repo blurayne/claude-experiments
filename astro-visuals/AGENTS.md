@@ -41,6 +41,8 @@ built it.
 
 - Every control persists in localStorage and is replayed on boot; new controls join
   `S_TOG` / `S_SLD` / `S_CHK` or the settings object explicitly.
+- A returning visitor's saved settings outrank the opening scenario: at boot it
+  stages the camera always, the sliders only when nothing was saved.
 - The piece boots on the **"The helix"** scenario: dive at ~31 AU, 1 yr/s, helix and
   orbit trails together (trails 100%, orbits 50%), yaw 0.7014 / pitch 0.2757 — the
   owner's exported preset. Never unpause a visitor whose system asks for reduced
@@ -65,8 +67,11 @@ built it.
   Sun dives to the system, Milky Way pulls out (its button says **GO** too) — there
   are no view toggle buttons. It yields to the settings panel when they would
   collide, exactly as the Earth panel does.
-  Trails are governed by the **orbit** and **helix** switches with their own
-  transparency sliders; there is no master trails toggle. Events are split into
+  Trails are governed by the **orbit** and **helix** transparency sliders, which are
+  their own switches (0% reads "off"); there is no master trails toggle and no
+  separate on/off buttons. Same rule for music and effects volume. The calendar is a
+  plain label whose selector carries a `— none —` entry as its off position. Pause
+  draws its glyph as inline SVG, since a character can be recoloured as emoji. Events are split into
   **supernovae** and **star birth** switches (planetary nebulae ride with the
   deaths); a new star opens with a brief white pling. Pause uses the monochrome
   text-presentation glyphs (⏸︎/▶︎), never emoji.
