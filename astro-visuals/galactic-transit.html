@@ -237,9 +237,9 @@
     <div class="row"><label for="hudHz">hud rate</label><input type="range" id="hudHz" min="1" max="16" step="1" value="8"><span id="hudHzv" style="min-width:64px;text-align:right;color:var(--ink)">8×/s</span></div>
     <div class="row"><label for="minB">star gain</label><input type="range" id="minB" min="0" max="1" step="0.01" value="0"><span id="minBv" style="min-width:64px;text-align:right;color:var(--ink)">off</span></div>
     <div class="row"><label for="trailA">trails</label><input type="range" id="trailA" min="0" max="1" step="0.01" value="1"><span id="trailAv" style="min-width:64px;text-align:right;color:var(--ink)">100%</span></div>
-    <div class="row"><label for="tHelix" style="cursor:pointer">helix</label><button class="tg on" id="tHelix">stylized</button>
-      <input type="range" id="helixN" min="10" max="160" step="5" value="60" style="flex:1">
-      <span id="helixNv" style="min-width:44px;text-align:right;color:var(--ink)">60</span></div>
+    <div class="row"><label>planet trails</label>
+      <button class="tg on" id="psHelix" title="the true helical path through space">helix</button>
+      <button class="tg" id="psOrbit" title="the closed orbit around the Sun">orbit</button></div>
     <div class="row"><label for="trailL">length</label><input type="range" id="trailL" min="0" max="1000" step="10" value="300"><span id="trailLv" style="min-width:64px;text-align:right;color:var(--ink)">300%</span></div>
     <div class="row"><label for="musicVol">music</label><input type="range" id="musicVol" min="0" max="1" step="0.01" value="0.40"><span id="musicVolv" style="min-width:64px;text-align:right;color:var(--ink)">40%</span></div>
     <div class="row"><label for="sfxVol">effects</label><input type="range" id="sfxVol" min="0" max="1" step="0.01" value="0.7"><span id="sfxVolv" style="min-width:64px;text-align:right;color:var(--ink)">70%</span></div>
@@ -252,7 +252,7 @@
     <div class="row"><label for="jump">scenario</label><select id="jump">
       <option value="">— present day —</option>
       <option value="4.56928" data-speed="1" data-mult="1000">Gliese 710 grazes the Oort cloud (+1.29 Myr)</option>
-      <option value="helix" data-speed="1" data-mult="1000000">The helix — planets winding through the Galaxy</option>
+      <option value="helix" data-speed="1" data-mult="1">The helix — planets winding through space</option>
       <option value="0.058">Theia impact — the Moon forms</option>
       <option value="0.768">Young Earth — first life (3.8 Gyr ago)</option>
       <option value="2.068">Great Oxidation (2.5 Gyr ago)</option>
@@ -317,9 +317,9 @@
     </div>
   </div>
   <div class="hudfoot">
-    <span id="buildInfo">—</span>
-    <a class="hudlink" id="changelogLink" href="changelog.html" target="_blank" rel="noopener"
-       title="what changed, version by version">changelog</a>
+    <span id="buildInfo"><span id="buildStamp">—</span> · <a class="hudlink" id="changelogLink"
+       href="changelog.html" target="_blank" rel="noopener"
+       title="what changed, version by version">changelog</a></span>
     <button id="dbgBtn" style="display:none" title="export or import the full app state">debug</button>
     <span style="margin-right:auto"></span>
     <button id="tReload" title="reload · hold 3s to reset settings · hold 10s for debug mode">⟲ refresh</button>
@@ -442,13 +442,17 @@
       they cool and reheat); the HII nebulae breathe and drift in hue, as real nebular illumination genuinely
       does (Hubble's Variable Nebula changes within weeks). Their real day-to-year cycles are far below this
       clock's resolution — like the supernova flashes, the shimmer you see is a stretched sample.</li>
-      <li><b>Trails</b> are drawn only as far back as the sampling can resolve — roughly two hundred
-      orbits per body. A true helix along the Sun's galactic track is undrawable: by the time the Sun has
-      moved one Earth-orbit radius, the Earth has gone round some 440,000 times. At high speed the
-      <b>helix trails</b> therefore switch to an honest emblem of that motion — the coil count is set by
-      the slider, not by physics, and the coil radius is symbolic — while at low speed, where the true
-      orbits are resolvable, the real paths are drawn. Turn "stylized" off to keep only what is
-      measurable.</li>
+      <li><b>Trails</b> are measurements, nothing else, and they follow the zoom. Close in, where the
+      planets stand apart from the Sun, the <b>planet trails</b> split button chooses what they show:
+      <b>helix</b> draws each planet's true swept path through space — at one year a second the Sun covers
+      48&nbsp;AU while the Earth loops once around it, so Mercury winds tightly, Earth coils visibly and
+      the giants barely wave, exactly as reality has it — and <b>orbit</b> draws the closed path around
+      the Sun instead. Where the sampling cannot resolve an orbit, the orbit ring stands in for the helix,
+      since an inaccurate helix is not worth drawing. Zoomed out, the whole system collapses into the
+      Sun's single point and only the Sun's own trail remains; a stylized planetary corkscrew used to be
+      drawn there, and was retired for the reason above: by the time the Sun moves one Earth-orbit radius
+      at galactic scale, the Earth has gone round 440,000 times, and no drawn coil could be anything but
+      an invention.</li>
       <li>The <b>☉ dive</b> is a camera move, not a mode change: it descends nine orders of magnitude to
       a view about 75 AU across — the whole planetary system, Kuiper belt included, at its true scale,
       which is why the galaxy shrinks to a band of sky and the Sun to a nearby star. The camera follows
@@ -609,7 +613,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.15.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.16.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -1609,37 +1613,15 @@ const ringVaos = [];
   }
 }
 // In real scale everything but the Sun is stored as an offset from it.
-let helixOn = true, helixCoils = 60;
-// Is this body's true orbit resolvable at the current sampling, or does the stylized
-// helix stand in? Fewer than a dozen samples per orbit is aliasing, not a path.
-// A corkscrew needs an axle: the Sun's travel across the window must outrun the coil
-// radius, or the winding collapses into concentric rings around a standing point. So a
-// body coils only when its true orbit is unresolvable AND the arc is long enough.
-const helixFor = i => helixOn && i > 0 && BODIES[i][1]/DT_SAMPLE < 12
-  && DT_SAMPLE*TRAIL_N*V_GAL > 3.5*BODIES[i][2]*0.10;
+let pStyle = 'helix';   // what a planet's trail shows up close: its true helix, or its orbit
+// Trails are stored as absolute positions minus a local anchor. Float32 alone cannot
+// hold a position of magnitude ~900 to sub-AU precision — the error is about 7 AU,
+// which at dive zoom is the whole frame — so the anchor keeps the stored numbers small
+// and the draw passes (org - anchor), subtracted in double precision, as the origin.
+const trailAnchor = new Float64Array(3);
 function trailPos(i, ts, out){
-  if(helixFor(i)){
-    // The corkscrew the eye expects — and the one physics refuses to draw: by the time
-    // the Sun moves one orbit-radius the Earth has gone round 440,000 times. So this is
-    // an emblem, not a measurement: the coil count is chosen for legibility, the coil
-    // radius borrows the old display-mode orbit radii, and the info panel says so.
-    bodyPos(0, ts, out);                       // the Sun's true track carries the winding
-    const w = DT_SAMPLE*TRAIL_N;
-    const coils = Math.min(160, helixCoils*Math.min(2.2, Math.pow(1/BODIES[i][1], 0.25)));
-    const th = 6.28318*ts*coils/w + i*2.4;
-    const R = BODIES[i][2]*0.10;
-    const phi = ts*V_GAL/900;                  // coil in the radial-vertical plane,
-    const rx = Math.sin(phi), rz = Math.cos(phi);  // perpendicular to the Sun's motion
-    out[0] += R*Math.cos(th)*rx;
-    out[1] += R*Math.sin(th);
-    out[2] += R*Math.cos(th)*rz;
-    return out;
-  }
   bodyPos(i, ts, out);
-  if(realMode && i > 0){
-    bodyPos(0, ts, tmpSun);
-    out[0]-=tmpSun[0]; out[1]-=tmpSun[1]; out[2]-=tmpSun[2];
-  }
+  out[0]-=trailAnchor[0]; out[1]-=trailAnchor[1]; out[2]-=trailAnchor[2];
   return out;
 }
 function pushTrail(i, ts){
@@ -2105,7 +2087,7 @@ canvas.addEventListener('touchmove', e=>{
 const $=id=>document.getElementById(id);
 $('verHud').textContent = VERSION;
 $('verInfo').textContent = VERSION;
-$('buildInfo').textContent = BUILD_LINE;
+$('buildStamp').textContent = BUILD_LINE;
 // the original UTC stamp stays available on hover
 $('buildInfo').title = VERSION + (BUILD.date.indexOf('__') !== 0
   ? ' · built ' + BUILD.date + ' ' + BUILD.time + ' UTC' : '');
@@ -2217,15 +2199,17 @@ function applyTrailWindow(){
   clearTimeout(trailRefill);
   trailRefill = setTimeout(()=>{ refillTrails(); nextSample = simT + DT_SAMPLE; }, 90);
 }
+let lastAnchor = 0;
 $('trailL').addEventListener('input', e=>{ trailPct = +e.target.value; applyTrailWindow(); });
-toggle($('tHelix'), on=>{ helixOn = on;
-  clearTimeout(trailRefill);
-  trailRefill = setTimeout(()=>{ refillTrails(); nextSample = simT + DT_SAMPLE; }, 60); });
-$('helixN').addEventListener('input', e=>{
-  helixCoils = +e.target.value;
-  $('helixNv').textContent = String(helixCoils);
-  clearTimeout(trailRefill);
-  trailRefill = setTimeout(()=>{ refillTrails(); nextSample = simT + DT_SAMPLE; }, 90); });
+// a split button: exactly one side is ever lit
+function setPStyle(v){
+  pStyle = v;
+  $('psHelix').classList.toggle('on', v === 'helix');
+  $('psOrbit').classList.toggle('on', v === 'orbit');
+  saveSettings();
+}
+$('psHelix').addEventListener('click', ()=> setPStyle('helix'));
+$('psOrbit').addEventListener('click', ()=> setPStyle('orbit'));
 
 function toggle(btn, fn){ btn.addEventListener('click', ()=>{ btn.classList.toggle('on'); fn(btn.classList.contains('on')); }); }
 toggle($('tPause'), on=>{ paused=!on; $('tPause').textContent = on?'⏸ pause':'▶ play'; });
@@ -2342,10 +2326,10 @@ loadTrack(0);
 // so restoring a setting does exactly what clicking it would. Anything momentary — the
 // pause, the dive, the epoch jump, the current track position — is deliberately left out.
 const SKEY = 'galactic-transit.settings.v1';
-const S_TOG = ['tTrails','tLabels','tDwarfs','tBelt','tKuiper','tOort','tDust','tHelix','tArms','tLife','tVar','tLifeSup','tEnv',
+const S_TOG = ['tTrails','tLabels','tDwarfs','tBelt','tKuiper','tOort','tDust','tArms','tLife','tVar','tLifeSup','tEnv',
                'tStatCal','tStatAge','tStatGyr','tStatSn','tStatBirth','tSci','tLive','tView','tGaia','tFps',
                'tSound','tMusic'];
-const S_SLD = ['speed','trailA','trailL','helixN','musicVol','sfxVol','minB','hudHz'];
+const S_SLD = ['speed','trailA','trailL','musicVol','sfxVol','minB','hudHz'];
 const S_CHK = ['fxBirth','fxSn','fxPn','fxDrone'];
 const MULT_VALUES = [1,1e3,1e6,1e9,1e12];
 function saveSettingsNow(){
@@ -2353,7 +2337,7 @@ function saveSettingsNow(){
     const s = { t:{}, s:{}, c:{}, cal:$('cal').value, mult:speedMult, dens:curD,
                 hud:$('hud').style.display !== 'none',
                 bar:$('gamebar').classList.contains('slid'),
-                envMin:$('envPlus').style.display === 'block' };
+                envMin:$('envPlus').style.display === 'block', ps: pStyle };
     S_TOG.forEach(id => s.t[id] = $(id).classList.contains('on'));
     S_SLD.forEach(id => s.s[id] = $(id).value);
     S_CHK.forEach(id => s.c[id] = $(id).checked);
@@ -2381,6 +2365,7 @@ function restoreSettings(register){
     if(s.hud === false) $('collapse').click();
     if(s.bar) $('gamebar').classList.add('slid');
     if(s.envMin && $('tEnv').classList.contains('on')) $('envMin').click();
+    if(s.ps === 'orbit' || s.ps === 'helix') setPStyle(s.ps);
   }
   if(register === false) return;
   // from here on, anything the user touches is remembered
@@ -2428,15 +2413,14 @@ function jumpToEpoch(){
   if(sp !== undefined && sp !== null){ $('speed').value = sp; $('speed').dispatchEvent(new Event('input')); }
   if(mu){ const i = MULT_VALUES.indexOf(+mu); if(i >= 0) $('mults').children[i].click(); }
   if(sel.value === 'helix'){
-    // not an epoch: a staging entry. Time stays where it is; everything the corkscrew
-    // needs is switched on and the camera is set where it reads best.
+    // not an epoch: a staging entry for the true helix. At one year a second the Sun
+    // covers 48 AU while Earth loops once around it — visible, and actually accurate.
     if($('tView').classList.contains('on')) $('tView').click();
-    if($('tDive').classList.contains('on')) $('tDive').click();
     if(!$('tTrails').classList.contains('on')) $('tTrails').click();
-    if(!$('tHelix').classList.contains('on')) $('tHelix').click();
-    if(trailPct < 100){ $('trailL').value = 300; $('trailL').dispatchEvent(new Event('input')); }
-    cam.follow = true;
-    cam.distGoal = 34; cam.pitch = 0.35; cam.yaw = 2.0;
+    setPStyle('helix');
+    if(trailPct < 250){ $('trailL').value = 300; $('trailL').dispatchEvent(new Event('input')); }
+    if(!$('tDive').classList.contains('on')) $('tDive').click();
+    cam.distGoal = 3.0e-5;                     // ~65 AU across: the coils at readable size
     // never unpause someone who asked for reduced motion
     if(paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
     return;
@@ -2509,6 +2493,8 @@ function humanYear(){
 }
 toggle($('tView'), on=>{ cam.follow=!on; cam.distGoal = on? 4300 : 150; reseedFollow=true; });
 function refillTrails(){
+  bodyPos(0, simT, tmpSun);
+  trailAnchor[0]=tmpSun[0]; trailAnchor[1]=tmpSun[1]; trailAnchor[2]=tmpSun[2];
   for(let i=0;i<NB;i++){
     const a=trails[i];
     for(let k=0;k<TRAIL_N;k++){
@@ -2762,6 +2748,13 @@ function frame(now){
       nextSample+=DT_SAMPLE; n++;
     }
     if(nextSample<=simT) nextSample=simT+DT_SAMPLE; // skip backlog at extreme speeds
+    // While zoomed into the system, drift between the Sun and the trail anchor eats the
+    // float precision that the anchor exists to protect. Re-anchor once it passes a
+    // third of a unit, at most once a second — a rebuild is a few milliseconds.
+    if(cam.dist < 0.13 && now - lastAnchor > 1000){
+      const dx=org[0]-trailAnchor[0], dy=org[1]-trailAnchor[1], dz=org[2]-trailAnchor[2];
+      if(dx*dx+dy*dy+dz*dz > 0.09){ lastAnchor = now; refillTrails(); nextSample = simT + DT_SAMPLE; }
+    }
     if(n>0){
       for(let i=0;i<NB;i++){
         gl.bindBuffer(gl.ARRAY_BUFFER,trailBufs[i]);
@@ -2981,56 +2974,50 @@ function frame(now){
   // Trail buffers hold absolute positions, and at the Sun's radius a float32 step is
   // 6.1e-5 scene units — a quarter pixel around cam.dist 0.17. Fade across that
   // boundary rather than cutting, so leaving real scale doesn't drop them abruptly.
-  const trailFade = Math.min(1, Math.max(0, Math.log(cam.dist/0.17)/Math.log(0.7/0.17)));
-  if(showTrails && trailPct > 0 && (trailFade>0.02 || realMode)){
+  // Planets are drawable only while their points stand apart from the Sun's: Neptune's
+  // orbit spans about six pixels at 0.13 units of camera distance, and beyond that the
+  // whole system is inside one point — only the Sun's own trail means anything there.
+  const solarClose = cam.dist < 0.13;
+  if(showTrails && trailPct > 0){
     gl.useProgram(pTr);
     gl.uniformMatrix4fv(U.trProj,false,projMat);
     gl.uniformMatrix4fv(U.trView,false,viewMat);
     gl.uniform1f(U.trLen,TRAIL_N);
     const last = (showDwarfs?NB:N_PLANETS)-1;
+    // the origin for anchored buffers, subtracted in double precision
+    const aox = org[0]-trailAnchor[0], aoy = org[1]-trailAnchor[1], aoz = org[2]-trailAnchor[2];
+    gl.uniform3f(U.trOrg, aox, aoy, aoz);
     for(let i=last;i>=0;i--){
-      // real scale: the planets' tracks are Sun-relative and stay exact at any zoom,
-      // while the Sun's own remains absolute and still fades out near the precision
-      // floor. A helix trail is absolute like the Sun's, since it winds around its arc.
-      const hx = helixFor(i);
       const c=BODIES[i][4];
-      const spoI = i>0 ? BODIES[i][1]/DT_SAMPLE : 1e9;
-      // Up close, a swept trail may be impossible — the helix is excluded there (its
-      // symbolic coils would span the sky) and an unresolvable orbit cannot be traced.
-      // The orbit ring stands in: the closed path itself, drawn flat and steady.
-      if(cam.dist < 12 && i > 0 && (hx || spoI < 12)){
-        gl.uniform3f(U.trOrg, 0,0,0);
+      if(i > 0){
+        if(!solarClose) continue;                    // collapsed into the Sun's point
+        const spo = BODIES[i][1]/DT_SAMPLE;
+        if(pStyle === 'orbit' || spo < 12){
+          // the closed path itself — also the honest fallback when the sampling
+          // cannot resolve the orbit and no accurate helix is drawable
+          gl.uniform3f(U.trOrg, 0,0,0);
+          gl.uniform3f(U.trCol, c[0],c[1],c[2]);
+          gl.uniform1f(U.trA, 0.4*trailAlpha*(1+starGain*0.9));
+          gl.uniform1f(U.trFlat, 1.0);
+          gl.bindVertexArray(ringVaos[i]);
+          gl.drawArrays(gl.LINE_LOOP, 0, RING_N);
+          gl.uniform1f(U.trFlat, 0.0);
+          gl.uniform3f(U.trOrg, aox, aoy, aoz);
+          continue;
+        }
+        // the accurate helix: the swept absolute path, no styling — Mercury winds
+        // tightly, the giants barely wave, because that is how it actually is
         gl.uniform3f(U.trCol, c[0],c[1],c[2]);
-        gl.uniform1f(U.trA, 0.4*trailAlpha*(1+starGain*0.9));
-        gl.uniform1f(U.trFlat, 1.0);
-        gl.bindVertexArray(ringVaos[i]);
-        gl.drawArrays(gl.LINE_LOOP, 0, RING_N);
-        gl.uniform1f(U.trFlat, 0.0);
+        gl.uniform1f(U.trA, 0.55*trailAlpha*(1+starGain*0.9));
+        gl.bindVertexArray(trailVaos[i]);
+        gl.drawArrays(gl.LINE_STRIP, TRAIL_N-Math.min(TRAIL_N, Math.round(200*spo)), Math.min(TRAIL_N, Math.round(200*spo)));
         continue;
       }
-      // the coil radius is symbolic — a few scene units, thousands of AU — so inside
-      // the planetary system it would draw giant rings across the sky. Twelve units is
-      // three times the widest coil: past that the camera is inside the emblem.
-      if(hx && cam.dist < 12) continue;
-      const rel = realMode && i>0 && !hx;
-      if(!rel && trailFade<=0.02) continue;
-      gl.uniform3f(U.trOrg, rel?0:org[0], rel?0:org[1], rel?0:org[2]);
       gl.uniform3f(U.trCol,c[0],c[1],c[2]);
-      // lift them with the star gain, or a brightened field washes the thin lines out
-      gl.uniform1f(U.trA, (i===0?0.9:0.55)*trailAlpha*(rel?1:trailFade)*(1+starGain*0.9));
-      // A planet only gets as much trail as the sampling can resolve: about 200 orbits
-      // at a dozen samples each. Past that the line stops being a path and becomes
-      // aliasing, which piles up into a scribble — at a million years a second the Earth
-      // goes round three million times across the window. The Sun keeps the full buffer,
-      // since its one slow arc is exactly what a long window is for.
-      let n = TRAIL_N;
-      if(i > 0 && !hx){
-        const spo = BODIES[i][1]/DT_SAMPLE;      // samples per orbit at this window
-        if(spo < 12) continue;                   // too coarse to be a path at all
-        n = Math.min(TRAIL_N, Math.round(200*spo));
-      }
+      // lift with the star gain, or a brightened field washes the thin line out
+      gl.uniform1f(U.trA, 0.9*trailAlpha*(1+starGain*0.9));
       gl.bindVertexArray(trailVaos[i]);
-      gl.drawArrays(gl.LINE_STRIP, TRAIL_N-n, n);
+      gl.drawArrays(gl.LINE_STRIP, 0, TRAIL_N);
     }
   }
 
