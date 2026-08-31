@@ -334,10 +334,16 @@
       <label class="chk"><input type="checkbox" id="tStatGyr" checked> galaxy years</label>
       <label class="chk"><input type="checkbox" id="tStatSn"> sn count</label>
       <label class="chk"><input type="checkbox" id="tStatBirth"> births count</label>
-      <label class="chk"><input type="checkbox" id="tFps"> fps</label>
     </div>
     <div class="row" id="rowHudHz" style="display:none"><label for="hudHz">hud rate</label><input type="range" id="hudHz" min="1" max="16" step="1" value="8"><span id="hudHzv" style="min-width:64px;text-align:right;color:var(--ink)">8×/s</span></div>
     <div class="row" id="rowGain" style="display:none"><label for="minB">Gaia brght</label><input type="range" id="minB" min="0" max="1" step="0.01" value="0.05"><span id="minBv" style="min-width:64px;text-align:right;color:var(--ink)">+5%</span></div>
+    </div>
+    <div class="sect" data-sec="other">Other<span class="arw">▾</span></div>
+    <div class="sbody" id="secOther">
+    <div class="chks">
+      <label class="chk"><input type="checkbox" id="secSolo" checked> one section at a time</label>
+      <label class="chk"><input type="checkbox" id="tFps"> fps</label>
+    </div>
     </div>
     <div class="toggles" style="margin-top:10px">
       <button class="tg" id="tFull">⛶ full</button>
@@ -665,7 +671,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.30.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.31.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2371,9 +2377,11 @@ function applySfxGain(){
 // Each heading owns a body; the arrow turns to show which way it goes. Simulation
 // starts closed: its two sliders and the scenario list are the controls a visitor is
 // least likely to want on arrival, and the piece opens on a staged scenario anyway.
-const SECS = ['sim','audio','gfx','hud'];
-const SEC_BODY = { sim:'secSim', audio:'secAudio', gfx:'secGfx', hud:'secHud' };
-const secOpen = { sim:false, audio:true, gfx:true, hud:true };
+const SECS = ['sim','audio','gfx','hud','other'];
+const SEC_BODY = { sim:'secSim', audio:'secAudio', gfx:'secGfx', hud:'secHud', other:'secOther' };
+// one at a time by default, so the panel stays a screenful; Graphics is the one that
+// earns the opening slot, holding the controls a visitor reaches for most
+const secOpen = { sim:false, audio:false, gfx:true, hud:false, other:false };
 function applySecs(){
   for(const k of SECS){
     $(SEC_BODY[k]).classList.toggle('closed', !secOpen[k]);
@@ -2383,9 +2391,18 @@ function applySecs(){
 }
 document.querySelectorAll('.sect[data-sec]').forEach(h =>
   h.addEventListener('click', ()=>{
-    secOpen[h.dataset.sec] = !secOpen[h.dataset.sec];
+    const k = h.dataset.sec, opening = !secOpen[k];
+    if(opening && $('secSolo').checked) for(const s of SECS) secOpen[s] = false;
+    secOpen[k] = opening;
     applySecs(); saveSettings();
   }));
+$('secSolo').addEventListener('change', ()=>{
+  if($('secSolo').checked){   // keep the topmost open one, fold the rest away
+    let kept = false;
+    for(const s of SECS){ if(secOpen[s] && !kept) kept = true; else secOpen[s] = false; }
+  }
+  applySecs(); saveSettings();
+});
 
 // one control, several faces: a segmented button where exactly one segment is lit
 function seg(id, initial, fn){
@@ -2450,7 +2467,7 @@ const S_TOG = ['tLabels','tArms','tDwarfs','tBelt','tKuiper','tOort','tDust',
                'tEvSN','tEvBirth','tVar',
                'tStatAge','tStatGyr','tStatSn','tStatBirth','tGaia','tFps'];
 const S_SLD = ['speed','trailA','orbitA','trailL','musicVol','sfxVol','minB','hudHz'];
-const S_CHK = ['fxBirth','fxSn','fxPn','fxDrone'];
+const S_CHK = ['fxBirth','fxSn','fxPn','fxDrone','secSolo'];
 function saveSettingsNow(){
   try{
     const s = { t:{}, s:{}, c:{}, cal:$('cal').value, mult:speedMult, dens:curD,
