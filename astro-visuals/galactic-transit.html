@@ -76,6 +76,7 @@
   .sect .arw{letter-spacing:0;font-size:10px;transition:transform .18s ease;transform-origin:50% 45%}
   .sect.closed .arw{transform:rotate(-90deg)}
   .sbody.closed{display:none}
+  .actsep{border:0;border-top:1px solid var(--line);margin:12px 0 10px}
   .seg{display:flex;flex:none;border:1px solid var(--line);border-radius:2px;overflow:hidden}
   .seg button{font-family:'Orbitron',ui-monospace,monospace;font-size:8.5px;letter-spacing:.08em;
     text-transform:uppercase;background:none;border:0;color:var(--dim);cursor:pointer;padding:4px 8px}
@@ -345,11 +346,12 @@
       <label class="chk"><input type="checkbox" id="tFps"> fps</label>
     </div>
     </div>
-    <div class="toggles" style="margin-top:10px">
+    <hr class="actsep">
+    <div class="toggles">
+      <button class="tg on" id="tPause"><svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><rect x="1.4" y="1" width="2.7" height="8"/><rect x="5.9" y="1" width="2.7" height="8"/></svg>pause</button>
       <button class="tg" id="tFull">⛶ full</button>
       <button class="tg" id="tRotate">⟳ auto</button>
       <span style="flex:1"></span>
-      <button class="tg on" id="tPause"><svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><rect x="1.4" y="1" width="2.7" height="8"/><rect x="5.9" y="1" width="2.7" height="8"/></svg>pause</button>
       <button class="tg" id="tInfo">ⓘ info &amp; stats</button>
     </div>
     <button id="tView" style="display:none"></button>
@@ -671,7 +673,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.31.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.31.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2381,7 +2383,7 @@ const SECS = ['sim','audio','gfx','hud','other'];
 const SEC_BODY = { sim:'secSim', audio:'secAudio', gfx:'secGfx', hud:'secHud', other:'secOther' };
 // one at a time by default, so the panel stays a screenful; Graphics is the one that
 // earns the opening slot, holding the controls a visitor reaches for most
-const secOpen = { sim:false, audio:false, gfx:true, hud:false, other:false };
+const secOpen = { sim:true, audio:false, gfx:false, hud:false, other:false };
 function applySecs(){
   for(const k of SECS){
     $(SEC_BODY[k]).classList.toggle('closed', !secOpen[k]);
