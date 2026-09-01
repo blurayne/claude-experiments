@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.35.0 — 2026-09-01
+
+- Panels you can move, and Simulation in one of its own (`e564588`)
+
 ### 2.34.0 — 2026-09-01
 
 - The frame rate is a numeral, and the sections tidy up (`4fd6ef5`)
