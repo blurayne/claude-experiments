@@ -366,7 +366,7 @@
     </div>
     <div class="sect" data-sec="gfx">Visuals<span class="arw">▾</span></div>
     <div class="sbody" id="secGfx">
-    <div class="row"><label for="detail">detail</label><input type="range" id="detail" min="0" max="5" step="1" value="0"><span id="detailv" style="min-width:56px;text-align:right;color:var(--ink)">lowest</span><button class="stepb" data-step="detail:-1">−</button><button class="stepb" data-step="detail:1">+</button></div>
+    <div class="row"><label for="detail">detail</label><input type="range" id="detail" min="0" max="5" step="1" value="1"><span id="detailv" style="min-width:56px;text-align:right;color:var(--ink)">low</span><button class="stepb" data-step="detail:-1">−</button><button class="stepb" data-step="detail:1">+</button></div>
     <div class="row" id="rowGain" style="display:none"><label for="minB">Gaia brght</label><input type="range" id="minB" min="0" max="1" step="0.01" value="0.05"><span id="minBv" style="min-width:52px;text-align:right;color:var(--ink)">+5%</span><button class="stepb" data-step="minB:-0.05">−</button><button class="stepb" data-step="minB:0.05">+</button></div>
     <div class="row"><label for="coreB" title="how hard galaxy cores are allowed to blow out to white">core glare</label><input type="range" id="coreB" min="0.3" max="1" step="0.01" value="0.72"><span id="coreBv" style="min-width:52px;text-align:right;color:var(--ink)">72%</span><button class="stepb" data-step="coreB:-0.04">−</button><button class="stepb" data-step="coreB:0.04">+</button></div>
     <div class="row"><label for="orbitA" title="the closed orbit around the Sun">orbit</label><input type="range" id="orbitA" min="0" max="1" step="0.01" value="1"><span id="orbitAv" style="min-width:36px;text-align:right;color:var(--ink)">100%</span><button class="stepb" data-step="orbitA:-0.05">−</button><button class="stepb" data-step="orbitA:0.05">+</button></div>
@@ -959,8 +959,7 @@
   <div class="envsep"></div>
   <div class="er"><span>view</span>
     <span style="display:flex;gap:6px;align-items:center">
-      <select id="focusSel"><option value="sun">Sun</option><option value="mw">Milky Way</option></select>
-      <button class="rowbtn" id="focusGo">GO</button>
+      <select id="focusSel"><option value="sun">Sun</option><option value="mw">Milky Way</option><option value="and">Andromeda</option></select>
     </span></div>
 </div>
 
@@ -971,7 +970,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.46.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.47.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -1979,7 +1978,7 @@ const MAT3_ID = new Float32Array([1,0,0, 0,1,0, 0,0,1]);
 for(const [pr, gr] of [[pPt,U.ptGRot],[pNeb,UN.grot],[pDust,UD.grot]]){
   gl.useProgram(pr); gl.uniformMatrix3fv(gr, false, MAT3_ID);
 }
-setGalaxy(1);
+setGalaxy(1);   // real default ("low") applied after full init, below — see hadSaved
 // The orbit follows the Gaia-era picture (van der Marel et al.; Sawala et al., Nature
 // Astronomy 2025): a first passage ~4.5 Gyr from now at ~95 kpc — the disks never touch,
 // they trade bridges — then dynamical friction bites, the passages shrink, and the pair
@@ -2729,6 +2728,9 @@ function fillPuffs(){
 // ---------- camera & interaction ----------
 const cam = { yaw: 0.9, pitch: 0.32, dist: 150, distGoal: 150, target:[0,0,0], follow:true };
 let coreLock = false;   // dive: hold the camera on the Sun-to-core line
+// which absolute-frame position cam.follow tracks when true — the Sun everywhere
+// except the one Andromeda view, which needs its own moving target the same way
+let followTarget = 'sun';
 let dragging=false, px=0, py=0;
 // While a pointer or finger is down the clock holds, so the galaxy does not keep
 // turning under the hand that is trying to orbit it. Released, it carries straight on.
@@ -2960,12 +2962,25 @@ toggle($('tEvBirth'), on=>{ evBirth=on; syncLife(); });
 toggle($('tVar'), on=> varOn=on);
 let dustOn = true;
 toggle($('tDust'), on=>{ dustOn = on; });
-$('focusGo').addEventListener('click', ()=>{
-  if($('focusSel').value === 'sun'){
+$('focusSel').addEventListener('change', ()=>{
+  const v = $('focusSel').value;
+  if(v === 'sun'){
+    followTarget = 'sun';
     if($('tView').classList.contains('on')) $('tView').click();
     if(!$('tDive').classList.contains('on')) $('tDive').click();
     else { cam.follow = true; coreLock = true; cam.distGoal = 3.5e-5; reseedFollow = true; }
+  } else if(v === 'and'){
+    // framed wide enough for the whole disk plus its extended halo and stream
+    // (R_A=2245, halo out to ~4200, the Giant Southern Stream past 5700), at any
+    // point in the encounter; continuously tracked, so the view holds through a
+    // running merger scenario too. Set after the toggle clicks below: tView's own
+    // handler resets followTarget to 'sun' as a side effect of turning itself on.
+    if($('tDive').classList.contains('on')) $('tDive').click();
+    if(!$('tView').classList.contains('on')) $('tView').click();
+    followTarget = 'and';
+    cam.follow = true; coreLock = false; cam.distGoal = 9500; reseedFollow = true;
   } else {
+    followTarget = 'sun';
     if($('tDive').classList.contains('on')) $('tDive').click();
     if(!$('tView').classList.contains('on')) $('tView').click();
     else { cam.follow = false; cam.distGoal = 4300; reseedFollow = true; }
@@ -3288,7 +3303,7 @@ function restoreSettings(register){
     if(s.dens){ const i = DETAIL_D.indexOf(s.dens);
       if(i >= 0 && s.dens !== curD){ $('detail').value = i; $('detail').dispatchEvent(new Event('input')); } }
     if(s.units === 'words' || s.units === 'sup' || s.units === 'e') setSegUnits(s.units);
-    if(s.fsel === 'sun' || s.fsel === 'mw') $('focusSel').value = s.fsel;
+    if(s.fsel === 'sun' || s.fsel === 'mw' || s.fsel === 'and') $('focusSel').value = s.fsel;
     if(s.pan) for(const q of PANELS){
       const v = s.pan[q.id]; if(!v) continue;
       if(v.s === 'l' || v.s === 'r') pState[q.id].s = v.s;
@@ -3342,6 +3357,7 @@ $('cal').addEventListener('change', syncCal);
 // it short of reloading.
 let keepSaved = false;   // set only while the opening scenario stages itself
 function jumpToEpoch(){
+  followTarget = 'sun';
   const sel = $('jump');
   const a = sel.value === '' ? AGE0 : +sel.value;
   // some epochs are over in a blink on the galactic clock; land at a speed that shows them
@@ -3492,7 +3508,7 @@ function humanYear(){
     default:     return g>=1 ? fmt(g)+' AD' : fmt(1-g)+' BC';
   }
 }
-toggle($('tView'), on=>{ cam.follow=!on; cam.distGoal = on? 4300 : 150; reseedFollow=true; });
+toggle($('tView'), on=>{ followTarget='sun'; cam.follow=!on; cam.distGoal = on? 4300 : 150; reseedFollow=true; });
 function refillTrails(){
   bodyPos(0, simT, tmpSun);
   trailAnchor[0]=tmpSun[0]; trailAnchor[1]=tmpSun[1]; trailAnchor[2]=tmpSun[2];
@@ -3512,7 +3528,7 @@ toggle($('tDive'), on=>{
   reseedFollow = true;
   if(on){
     if($('tView').classList.contains('on')) $('tView').click();  // diving follows the Sun
-    cam.follow=true;
+    followTarget='sun'; cam.follow=true;
     coreLock=true; cam.yaw=0; cam.pitch=0;   // start looking straight down the line to the core
     cam.distGoal=3.5e-5; // ~75 AU across: the whole planetary system, Kuiper belt included
   } else { coreLock=false; cam.distGoal=150; }
@@ -4073,7 +4089,8 @@ function frame(now){
   gl.bufferSubData(gl.ARRAY_BUFFER,0,bodyPosArr);
 
   // camera — the view matrix is built Sun-relative for the same precision reason
-  const goal = cam.follow ? [org[0],org[1],org[2]] : [0,0,0];
+  const followPos = followTarget === 'and' ? andPos : org;
+  const goal = cam.follow ? [followPos[0],followPos[1],followPos[2]] : [0,0,0];
   if(reseedFollow){ for(let i=0;i<3;i++) smoothOfs[i] = smoothTarget[i]-goal[i]; reseedFollow=false; }
   const k = firstFrame?1:Math.min(1,dt*4);
   for(let i=0;i<3;i++) smoothOfs[i] *= 1-k;
@@ -4687,6 +4704,11 @@ function frame(now){
 // touch: the camera always, their saved sliders never.
 const hadSaved = (()=>{ try{ return !!localStorage.getItem(SKEY); }catch(e){ return false; } })();
 restoreSettings();
+// the initial synchronous build above is deliberately "lowest" (D=1) to dodge a
+// load-order trap: setGalaxy(D>=5) reaches for loadGaiaDeep(), which touches a `let`
+// declared later in the file — safe here because the whole script has finished
+// evaluating, exactly like restoreSettings()'s own dens correction above.
+if(!hadSaved){ $('detail').value = 1; $('detail').dispatchEvent(new Event('input')); }
 applyTrailWindow();
 // The piece opens on its signature view. A first-time visitor gets the whole staging;
 // a returning one gets the camera and keeps every setting they chose, because a

@@ -226,3 +226,28 @@ squeezed into a ~300px-wide phone screen. It carries a fixed intrinsic width (68
 in `.evo-chart-wrap` (overflow-x:auto), the exact pattern already established for the wide
 table — never let an information-dense inline SVG's `width` go to `100%` without checking
 what that does to its own internal font-size at real mobile widths.
+
+## Andromeda in the view select, and a load-order trap in the default detail (v2.47.0)
+
+`focusSel` ("Sun"/"Milky Way"/"Andromeda") now jumps on `change`, no GO button — its former
+click handler moved there verbatim, split into three branches. `followTarget` ('sun'|'and')
+says which absolute-frame position `cam.follow` tracks; the Andromeda branch must set it
+*after* the `tDive`/`tView` `.click()` calls, not before — `tView`'s own toggle handler
+unconditionally resets `followTarget = 'sun'` as a side effect of turning itself on, so
+setting it first gets silently clobbered. `updateAnd()`'s `andPos` treats Earth's sky
+direction to M31 as if it were seen from the galactic core, not the Sun — a few percent of
+parallax error given M31 sits 765 kpc out against the disk's ~30 kpc width, small enough to
+use directly as an absolute-frame camera target the same way `org` and `[0,0,0]` already are.
+Framing is 9500 (M31's disk alone is R_A=2245, but its halo reaches ~4200 and the Giant
+Southern Stream past 5700 — found by looking at a screenshot that showed close-up haze
+instead of the whole galaxy, not by reasoning about the radius alone).
+
+Default detail moved from "lowest" (D=1) to "low" (D=5) — but the *initial* synchronous
+`setGalaxy()` call at the top of the script still passes 1, not 5. `setGalaxy(D>=5)` reaches
+for `loadGaiaDeep()`, which touches `deepAsked`, a `let` declared later in the file; calling
+it during top-level script evaluation throws a TDZ ReferenceError that aborts the entire
+script before `$` even exists. The real "low" default is applied by the same mechanism
+`restoreSettings()` already uses for a returning visitor's saved density — set the slider's
+`.value` and dispatch `input` — but gated on `!hadSaved`, run only after the full script (and
+`restoreSettings()` itself) has finished evaluating. Never call `setGalaxy()` synchronously
+at parse time with anything beyond the deep-Gaia threshold.
