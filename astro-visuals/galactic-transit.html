@@ -804,7 +804,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.41.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.42.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -3196,7 +3196,7 @@ function jumpToEpoch(){
     cam.follow = true; coreLock = true;
     // set outright, not eased: the climb from dive scale spans eleven decades and would
     // spend the whole approach travelling instead of watching it
-    cam.dist = cam.distGoal = 13600;
+    cam.dist = cam.distGoal = 15500;
     cam.yaw = 5.9257; cam.pitch = 0.5771;
     reseedFollow = true;
     if(paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();

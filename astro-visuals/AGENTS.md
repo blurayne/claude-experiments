@@ -132,3 +132,30 @@ exact at L = 1), and the Earth panel. Engulfment is latched against `SUN_EAT_AGE
 current radius — the Sun contracts after the red-giant tip but the Earth does not come back. Once
 `eaten || gone` the panel retitles itself to "The Sun" and hides the Earth rows, because readings for
 a planet that no longer exists are not readings.
+
+## Andromeda (v2.42.0)
+
+M31 is drawn by the same probability-map machinery as the Milky Way. `m31-map.webp` is the
+Hubble PHAT+PHAST panorama (heic2501a, CC BY 4.0 — credit in the info panel) deprojected to
+face-on by `tools/build_m31_map.py`; the `astro-visuals` workflow rebuilds it on GitHub's
+runners because the session's egress proxy blocks the astronomy hosts, and commits both the
+map and the downloaded source (`tools/m31-src.jpg`) so it can be rebuilt offline. The builder
+reads the bulge from the unstretched major axis and rebuilds it round (a raw 1/cos(77°)
+stretch cigars it, and no radius-blended remap is monotonic at that inclination), fills what
+the footprint misses azimuthally, blots saturated foreground stars, and flips the result so
+the arms trail — calibrated against galaxy-map.webp's known-good winding.
+
+`genAndromedaMap()` samples it in M31's own flat disk frame (stars from luminance, dust from
+dark lanes, HII from blue excess, drawn Hα pink) plus modelled halo, Giant Southern Stream,
+M32 and M110. The shader places whole galaxies via `uGal/uGRot/uGOff`: positions stay in the
+local frame, the measured orientation (spin pole galactic 242°,−30°) and the orbit are applied
+per draw — never bake an inclination into generated positions. The encounter follows Gaia-era
+control points in `M31_ORBIT` (first pass +4.5 Gyr at ~95 kpc, coalescence +8.8 Gyr), true
+scale inside ~83 kpc, log-compressed beyond; `uMerge` relaxes both disks into one spheroid,
+and spins are damped by (1−merge) but never to exactly 0.0 — that is the shader's "not a
+galaxy" gate. Sawala et al. 2025's ~even odds of no merger within 10 Gyr is disclosed; what
+is drawn is the median merging branch.
+
+The two map loaders race: cache flushes must go through `flushGxyCache()` (never throw
+mid-flush — the loser would leave the scene pointing at deleted VAOs, which draw as a single
+collapsed dot at the galaxy's centre).
