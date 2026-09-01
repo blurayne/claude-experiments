@@ -265,3 +265,16 @@ existing `toggle()` registrations — never touch what those already do. Because
 click cascades by setting `.checked` and dispatching a synthetic `change` (not a real `click`),
 it does not fire the checkboxes' `click`-bound save listener, so the cascade calls `saveSettings()`
 explicitly — forget that and a choice made through the master silently fails to survive a reload.
+
+## The merged remnant isn't "Andromeda" (v2.51.1)
+
+The spiral-arm names and the Andromeda-side names (`ARM_LBLS`, `M31_LBLS`) were gated on two
+different `and.merge` thresholds — arms hidden past 0.35, Andromeda's own name past 0.6 — on the
+theory that the small companions deserve to linger a bit longer. But by 0.35 the two disks already
+render as one blob (that's the same threshold `environment()`'s spiral-arm term and the glacial
+banner use to mean "no more distinct galaxy"), so for that whole gap the single merged
+remnant — which by then holds the Sun too — was captioned only "Andromeda (M31)". A user reading
+that sees their own home galaxy labeled as the other one. Both label sets now share the 0.35 cutoff;
+past it, the remnant goes nameless, same as the HUD's own "distance from centre" swap in
+`sunPhase()`'s section above. Reproduce anything like this by setting `simT` directly
+(`simT = (targetAge - AGE0) * 1e9 / YR_PER_SIM`) rather than fast-forwarding through real time.

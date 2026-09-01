@@ -969,7 +969,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.51.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.51.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -4567,7 +4567,9 @@ function frame(now){
         armEls[a].style.top =((-(pv[1]*x+pv[5]*y+pv[9]*z+pv[13])/cw*0.5+0.5)*H)+'px';
       }
     } else armEls.forEach(l=>l.style.display='none');
-    if(armsOn && cam.dist > 600 && and.merge < 0.6){
+    // named together, retired together: past this point the two disks already render as
+    // one blob, so naming only "Andromeda" there would mislabel the Milky Way's own remnant
+    if(armsOn && cam.dist > 600 && and.merge < 0.35){
       for(let a=0;a<M31_LBLS.length;a++){
         // the satellites and the stream exist only in the map-built Andromeda
         if(a > 0 && !m31Map){ m31Els[a].style.display='none'; continue; }
