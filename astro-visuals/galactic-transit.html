@@ -584,7 +584,11 @@
       billions, approaching the output of its entire galaxy. Its flash (weeks) and expanding remnant
       (~50,000 years, ~10,000&nbsp;km/s) both last far less than a pixel of simulated time, so they are
       stretched here to be seeable at all, and remnants are drawn several times too large — the real Crab
-      Nebula is 11&nbsp;ly across, well under one scene unit.</li>
+      Nebula is 11&nbsp;ly across, well under one scene unit. What the blast is <i>made of</i> is honest as far
+      as it goes: it expands while it dims, and it cools from blue-white through amber to a red ember, which is
+      the real colour history. The <b>radiating spikes are not</b>. A star has none — they are what a telescope
+      or an eye adds to any point too bright for it, and they are drawn here for the same reason the flash is
+      stretched: without them a collapse and a bright star look identical.</li>
       <li><b>Variables</b>: a few percent of the drawn star points pulse and <b>redden at minimum light</b>,
       standing in for the Cepheids, RR Lyrae and Mira-type pulsators (Miras swing by up to ~8 magnitudes as
       they cool and reheat); the HII nebulae breathe and drift in hue, as real nebular illumination genuinely
@@ -906,16 +910,18 @@
   <div class="row"><label for="speed">speed</label><input type="range" id="speed" min="0" max="1" step="0.001" value="1"><span id="speedv" style="min-width:64px;text-align:right;color:var(--ink)"></span><button class="stepb" data-step="speed:-0.05">−</button><button class="stepb" data-step="speed:0.05">+</button></div>
   <div class="row"><label for="multExp">× exp</label><input type="range" id="multExp" min="0" max="10" step="1" value="0"><span id="multExpv" style="min-width:44px;text-align:right;color:var(--ink)">×1</span><button class="stepb" data-step="multExp:-1">−</button><button class="stepb" data-step="multExp:1">+</button></div>
   <div class="row"><label for="jump">scenario</label><select id="jump">
+      <!-- the two entries that are not epochs lead; everything else runs in the order it
+           happens, each landing a little before its event so the visitor watches it arrive -->
       <option value="">— present day —</option>
-      <option value="4.5692567" data-speed="0.58" data-mult="10000">Gliese 710 grazes the Oort cloud (+1.29 Myr)</option>
       <option value="helix" data-speed="1" data-mult="1">The helix — planets winding through space</option>
-      <option value="0.058">Theia impact — the Moon forms</option>
+      <option value="0.058">Theia impact — the Moon forms (4.51 Gyr ago)</option>
       <option value="0.768">Young Earth — first life (3.8 Gyr ago)</option>
       <option value="2.068">Great Oxidation (2.5 Gyr ago)</option>
+      <option value="4.5692567" data-speed="0.58" data-mult="10000">Gliese 710 grazes the Oort cloud (+1.29 Myr)</option>
       <option value="8.36149" data-speed="1" data-mult="100000000">Andromeda first pass (+4.5 Gyr)</option>
       <option value="11.25" data-speed="1" data-mult="100000000">Galaxies collide &amp; merge (+6.9 Gyr)</option>
-      <option value="11.3586" data-speed="0.6166" data-mult="100000000">The Sun swallows the Earth (+6.8 Gyr)</option>
-      <option value="10.1">After the merger (+5.5 Gyr)</option>
+      <option value="11.3586" data-speed="0.6166" data-mult="100000000">The Sun swallows the Earth (+7.6 Gyr)</option>
+      <option value="13.5">After the merger (+8.9 Gyr)</option>
     </select><button class="rowbtn" id="jumpGo" title="apply the selected scenario and close the panel">GO</button></div>
 </div>
 <button class="pdot" id="simPlus" data-open="simPanel" title="simulation"><svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><path fill-rule="evenodd" d="M5,0.6 C7.43,0.6 9.4,2.57 9.4,5 C9.4,7.43 7.43,9.4 5,9.4 C2.57,9.4 0.6,7.43 0.6,5 C0.6,2.57 2.57,0.6 5,0.6 Z M5,1.9 C3.29,1.9 1.9,3.29 1.9,5 C1.9,6.71 3.29,8.1 5,8.1 C6.71,8.1 8.1,6.71 8.1,5 C8.1,3.29 6.71,1.9 5,1.9 Z"/><rect x="4.6" y="2.6" width="0.8" height="2.7"/><rect x="4.7" y="4.6" width="2.3" height="0.8"/></svg></button>
@@ -969,7 +975,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.51.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.52.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -1209,6 +1215,97 @@ const U = {
   trProj: gl.getUniformLocation(pTr,'uProj'), trView: gl.getUniformLocation(pTr,'uView'),
   trLen: gl.getUniformLocation(pTr,'uLen'), trCol: gl.getUniformLocation(pTr,'uColor'), trA: gl.getUniformLocation(pTr,'uAlpha'),
   trFlat: gl.getUniformLocation(pTr,'uFlat')
+};
+
+// ---------- the supernova blast ----------
+// A collapse is not a big round star, and drawing it with the star sprite made it one:
+// a white disc that only grew. This is its own pass. The transform is the wave-riding
+// branch of PT_VS, copied rather than shared so the flash sits exactly where its
+// progenitor stood — every supernova here descends from a red supergiant on an arm,
+// so aWave is always 1 and uGal always 0, and the rest of that shader's work
+// (velocities, variability, tides, the merge scramble) has nothing to do here.
+const SN_VS = `#version 300 es
+layout(location=0) in vec3 aPos;
+layout(location=1) in float aSize;
+layout(location=2) in vec3 aColor;
+layout(location=3) in float aPhase;  // 0 at collapse .. 1 at the end of the drawn flash
+uniform mat4 uProj, uView;
+uniform float uPx, uSpin, uWarp, uCap;
+uniform vec3 uSunPos, uOrg;
+out vec3 vColor; out float vPhase; out float vSeed;
+void main(){
+  vec3 p = aPos;
+  float fade = 1.0;
+  if(uSpin != 0.0){
+    float r = length(p.xz);
+    float d = uSpin/640.0;                       // the arms' pattern speed: these are arm stars
+    float c = cos(d), s = sin(d);
+    p = vec3(p.x*c + p.z*s, p.y, p.z*c - p.x*s);
+    float wr = max(0.0, r - 950.0);
+    p.y += wr*0.13*sin(atan(p.x,p.z) - uWarp) + 4.0*sin(r*0.021);
+    fade = smoothstep(80.0, 240.0, distance(p, uSunPos));
+  }
+  vec4 mv = uView * vec4(p - uOrg, 1.0);
+  gl_Position = uProj * mv;
+  gl_PointSize = clamp(aSize * uPx / max(1e-9, -mv.z), 1.0, uCap);
+  vColor = aColor * fade;
+  vPhase = aPhase;
+  vSeed  = fract(sin(dot(aPos.xz, vec2(41.7, 289.3)))*43758.5453);
+}`;
+// Four things stacked, all keyed to how far the blast has run: the photosphere, the
+// light thrown off it, the shock front leaving it, and the spikes any bright point
+// grows in an optical system. The colour follows the real thing — blue-white at peak,
+// reddening as the ejecta expand and cool — so the flash reads as an event with a
+// direction in time rather than a lamp being turned up and down.
+const SN_FS = `#version 300 es
+precision mediump float;
+in vec3 vColor; in float vPhase; in float vSeed; out vec4 o;
+void main(){
+  vec2 q = gl_PointCoord*2.0-1.0;
+  float r = length(q);
+  if(r > 1.0) discard;
+  float ang = atan(q.y, q.x) + vSeed*6.2831;
+  float d = 1.0 - r;
+
+  // the photosphere: a hard white core, at its tightest right at the collapse
+  float core = pow(d, mix(26.0, 9.0, vPhase));
+  // the light around it, spreading and softening as the blast runs
+  float glow = pow(d, mix(7.0, 3.2, vPhase));
+
+  // Radiating spikes. Two sets at different counts and angles, each a narrow lobe in
+  // angle and a slow falloff in radius, so they reach well past the glow. They lead the
+  // flash and are gone before it is: the blast is brightest first and blurs outward.
+  float lead = exp(-vPhase*2.6);
+  float s1 = pow(abs(cos(ang*3.0)), 34.0);
+  float s2 = pow(abs(cos(ang*2.0 + 0.9)), 22.0);
+  float spikes = (s1*0.85 + s2*0.5) * pow(d, 1.7) * lead;
+
+  // The shock front: a shell overtaking the glow and thinning as it goes. Nothing
+  // explodes into a perfect circle, so the radius is bent a little with angle — enough
+  // that the front reads as ejecta rather than as a drawn ring.
+  // Ejecta are not evenly bright around the rim. Modulating brightness rather than
+  // radius is what keeps this: bending the radius with angle only turns the circle into
+  // a polygon, while an uneven rim on a round front reads as clumps.
+  float sh = clamp(vPhase*1.35, 0.0, 1.0);
+  float clumps = 0.68 + 0.32*sin(ang*5.0 + vSeed*17.0)*sin(ang*2.0 - vSeed*9.0);
+  float ring = exp(-pow((r - sh)/mix(0.07, 0.19, vPhase), 2.0)) * (1.0 - vPhase)*0.85 * clumps;
+
+  // cooling: blue-white through the peak, then into the ejecta's red
+  vec3 hot  = vec3(0.86, 0.92, 1.0);
+  vec3 cool = vec3(1.0, 0.52, 0.26);
+  vec3 tint = mix(hot, cool, smoothstep(0.15, 1.0, vPhase));
+
+  float a = core*1.5 + glow*0.9 + spikes*0.8 + ring*0.7;
+  vec3 col = vColor * tint * (glow*0.9 + spikes*0.8 + ring*0.7)
+           + vColor * core * 1.5;              // the core stays white, whatever the tint
+  o = vec4(col, a);
+}`;
+const pSN = prog(SN_VS, SN_FS);
+const USN = {
+  proj: gl.getUniformLocation(pSN,'uProj'), view: gl.getUniformLocation(pSN,'uView'),
+  px: gl.getUniformLocation(pSN,'uPx'), spin: gl.getUniformLocation(pSN,'uSpin'),
+  warp: gl.getUniformLocation(pSN,'uWarp'), cap: gl.getUniformLocation(pSN,'uCap'),
+  sun: gl.getUniformLocation(pSN,'uSunPos'), org: gl.getUniformLocation(pSN,'uOrg')
 };
 
 // ---------- the physics (compressed but honest) ----------
@@ -2632,6 +2729,14 @@ function dynVAO(cap){
   gl.bindVertexArray(null); return o;
 }
 const evGL = dynVAO(EV_CAP), pfGL = dynVAO(PUFF_CAP);
+// Blasts are drawn by their own program, so they travel in their own buffers. There are
+// never many at once — a flash lasts 1.6 s — and the fourth channel carries how far the
+// blast has run instead of the wave flag, which every one of them has set anyway.
+const SN_CAP = 96;
+const snPos=new Float32Array(SN_CAP*3), snSize=new Float32Array(SN_CAP),
+      snCol=new Float32Array(SN_CAP*3), snPh=new Float32Array(SN_CAP);
+const snGL = dynVAO(SN_CAP);
+let evN = 0, snN = 0;   // how many of each the last fillEvents() actually wrote
 const events=[], puffs=[];
 function armSite(){ // where massive stars are born: an arm's inner edge, the spur, or a bar tip
   const roll=Math.random();
@@ -2687,8 +2792,24 @@ function lifeStep(dt, dtSim){
   for(let i=puffs.length-1;i>=0;i--){ const q=puffs[i]; q.t+=dt; if(q.t>q.dur) puffs.splice(i,1); }
 }
 function fillEvents(){
+  evN = 0; snN = 0;
   for(let i=0;i<events.length;i++){
     const e=events[i]; let s=0,cr=0,cg=0,cb=0;
+    if(e.k===3){
+      // The blast leaves this pass entirely: its own program draws it. The sprite grows
+      // through the whole flash — a fireball only expands — while the brightness peaks
+      // in the first fifth of a second and falls away, so it dims as it spreads.
+      if(snN < SN_CAP){
+        const u = Math.min(1, e.t/1.6);
+        const a = e.t<0.15 ? e.t/0.15 : Math.exp(-(e.t-0.15)/0.45);
+        const j = snN++;
+        snPos[j*3]=e.x; snPos[j*3+1]=e.y; snPos[j*3+2]=e.z;
+        snSize[j] = 14 + 92*Math.min(1, 0.3 + u);
+        snCol[j*3]=2.4*a; snCol[j*3+1]=2.3*a; snCol[j*3+2]=2.1*a;
+        snPh[j] = u;
+      }
+      continue;
+    }
     if(e.k===1){ // embedded reddish protocluster brightening into a blue OB cluster
       const u=Math.min(1,e.st/0.8e6), f=e.st>e.L?Math.max(0,1-(e.st-e.L)/0.8e6):1;
       s=(0.6+2.8*u)*f;
@@ -2700,9 +2821,6 @@ function fillEvents(){
     } else if(e.k===2){ // red supergiant: swelling, reddening
       const u=Math.min(1,e.st/1e6);
       s=3.2+2.6*u; cr=0.62+0.5*u; cg=0.72-0.34*u; cb=1.05-0.87*u;
-    } else if(e.k===3){ // the flash: weeks of real time, stretched so it can be seen
-      const a=e.t<0.15 ? e.t/0.15 : Math.exp(-(e.t-0.15)/0.45);
-      s=8+70*a; cr=2.4*a; cg=2.3*a; cb=2.1*a;
     } else if(e.k===5){ // what remains: a cooling neutron star
       const f=Math.max(0,1-e.t/2.5); s=1.4; cr=0.35*f; cg=0.5*f; cb=0.9*f;
     } else if(e.k===4){ // a low-mass star swells into a red giant
@@ -2710,8 +2828,9 @@ function fillEvents(){
     } else { // white dwarf, slowly fading
       const f=Math.max(0,1-e.t/2.5); s=1.1; cr=0.8*f; cg=0.85*f; cb=1.0*f;
     }
-    evPos[i*3]=e.x; evPos[i*3+1]=e.y; evPos[i*3+2]=e.z;
-    evSize[i]=s; evCol[i*3]=cr; evCol[i*3+1]=cg; evCol[i*3+2]=cb; evWave[i]=e.wv;
+    const j = evN++;   // compacted: the blasts that left this pass leave no gaps behind
+    evPos[j*3]=e.x; evPos[j*3+1]=e.y; evPos[j*3+2]=e.z;
+    evSize[j]=s; evCol[j*3]=cr; evCol[j*3+1]=cg; evCol[j*3+2]=cb; evWave[j]=e.wv;
   }
 }
 function fillPuffs(){
@@ -4239,11 +4358,31 @@ function frame(now){
     gl.uniform1f(U.ptMinB, 0.0);
     gl.uniform1f(U.ptMinSz, 1.3);   // events keep their own scale
     gl.uniform1f(U.ptCap, deep?36.0:110.0); // a supernova blooms, within reason
-    gl.bindBuffer(gl.ARRAY_BUFFER,evGL.p); gl.bufferSubData(gl.ARRAY_BUFFER,0,evPos.subarray(0,events.length*3));
-    gl.bindBuffer(gl.ARRAY_BUFFER,evGL.s); gl.bufferSubData(gl.ARRAY_BUFFER,0,evSize.subarray(0,events.length));
-    gl.bindBuffer(gl.ARRAY_BUFFER,evGL.c); gl.bufferSubData(gl.ARRAY_BUFFER,0,evCol.subarray(0,events.length*3));
-    gl.bindBuffer(gl.ARRAY_BUFFER,evGL.w); gl.bufferSubData(gl.ARRAY_BUFFER,0,evWave.subarray(0,events.length));
-    gl.bindVertexArray(evGL.vao); gl.drawArrays(gl.POINTS,0,events.length);
+    if(evN){
+      gl.bindBuffer(gl.ARRAY_BUFFER,evGL.p); gl.bufferSubData(gl.ARRAY_BUFFER,0,evPos.subarray(0,evN*3));
+      gl.bindBuffer(gl.ARRAY_BUFFER,evGL.s); gl.bufferSubData(gl.ARRAY_BUFFER,0,evSize.subarray(0,evN));
+      gl.bindBuffer(gl.ARRAY_BUFFER,evGL.c); gl.bufferSubData(gl.ARRAY_BUFFER,0,evCol.subarray(0,evN*3));
+      gl.bindBuffer(gl.ARRAY_BUFFER,evGL.w); gl.bufferSubData(gl.ARRAY_BUFFER,0,evWave.subarray(0,evN));
+      gl.bindVertexArray(evGL.vao); gl.drawArrays(gl.POINTS,0,evN);
+    }
+    // the blasts, in their own pass, on top of everything the flash lights up
+    if(snN){
+      gl.useProgram(pSN);
+      gl.uniformMatrix4fv(USN.proj,false,projMat);
+      gl.uniformMatrix4fv(USN.view,false,viewMat);
+      gl.uniform1f(USN.px, pxScale);
+      gl.uniform1f(USN.spin, spinMW);
+      gl.uniform1f(USN.warp, warp);
+      gl.uniform1f(USN.cap, deep?36.0:110.0);
+      gl.uniform3f(USN.sun, sunX, bubY, sunZ);
+      gl.uniform3f(USN.org, org[0], org[1], org[2]);
+      gl.bindBuffer(gl.ARRAY_BUFFER,snGL.p); gl.bufferSubData(gl.ARRAY_BUFFER,0,snPos.subarray(0,snN*3));
+      gl.bindBuffer(gl.ARRAY_BUFFER,snGL.s); gl.bufferSubData(gl.ARRAY_BUFFER,0,snSize.subarray(0,snN));
+      gl.bindBuffer(gl.ARRAY_BUFFER,snGL.c); gl.bufferSubData(gl.ARRAY_BUFFER,0,snCol.subarray(0,snN*3));
+      gl.bindBuffer(gl.ARRAY_BUFFER,snGL.w); gl.bufferSubData(gl.ARRAY_BUFFER,0,snPh.subarray(0,snN));
+      gl.bindVertexArray(snGL.vao); gl.drawArrays(gl.POINTS,0,snN);
+      gl.useProgram(pPt);   // the restores below belong to the point program
+    }
     gl.uniform1f(U.ptMinB, minBright);
     gl.uniform1f(U.ptMinSz, minSprite);
     gl.uniform1f(U.ptTide, and.tide);

@@ -266,6 +266,28 @@ click cascades by setting `.checked` and dispatching a synthetic `change` (not a
 it does not fire the checkboxes' `click`-bound save listener, so the cascade calls `saveSettings()`
 explicitly — forget that and a choice made through the master silently fails to survive a reload.
 
+## The blast has its own program (v2.52.0)
+
+A supernova was drawn with the same sprite as a star, so it could only ever be a bigger, whiter
+star. `pSN` (`SN_VS`/`SN_FS`) draws kind-3 events instead: photosphere, glow, an expanding
+shock front and the spikes any bright point grows in an optical system, all keyed to a per-point
+phase carried in the fourth attribute channel — the one the generic pass uses for the wave flag,
+which every blast has set anyway. `SN_VS` is the wave-riding branch of `PT_VS` copied, not
+shared: the flash must land exactly where its progenitor supergiant stood, so if you ever change
+the spin or warp maths in `PT_VS`, change it here too. The rest of `PT_VS` (velocities,
+variability, tides, the merge scramble) is deliberately absent — no supernova here is ever
+outside the Milky Way's disk.
+
+`fillEvents()` now writes two compacted lists and sets `evN` / `snN`; drawing anything with
+`events.length` again would read stale slots left by the blasts that moved to the other list.
+`evN + snN === events.length` is the invariant to test against. Two traps met on the way:
+`patch` is a reserved word in GLSL ES (the compile error takes the whole script down with it,
+surfacing later as `$ is not defined`), and bending a front's *radius* with harmonics in angle
+turns a circle into a polygon — modulate its brightness instead, which reads as clumps.
+
+The spikes are the one thing drawn here that a supernova does not have; the info panel says so
+outright, next to the disclosure that the flash is stretched in time.
+
 ## The merged remnant isn't "Andromeda" (v2.51.1)
 
 The spiral-arm names and the Andromeda-side names (`ARM_LBLS`, `M31_LBLS`) were gated on two
