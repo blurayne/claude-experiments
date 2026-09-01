@@ -194,6 +194,23 @@
   }
   #infoModal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;
     background:rgba(2,4,8,.65);z-index:20;padding:18px}
+  #tour{position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+    background:rgba(2,6,14,.62);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:30;padding:18px}
+  #tourSvg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  #tourCard{position:relative;width:min(430px,100%);background:var(--panel);border:1px solid var(--line);
+    border-top:1px solid rgba(95,216,255,.55);border-radius:3px;padding:18px 20px;
+    box-shadow:0 0 44px rgba(95,216,255,.12);font-size:11.5px;line-height:1.6;color:var(--dim);letter-spacing:.03em}
+  #tourCard h2{font-family:'Orbitron',ui-monospace,monospace;font-size:12px;letter-spacing:.24em;
+    text-transform:uppercase;color:var(--accent);margin-bottom:9px;text-shadow:0 0 12px var(--glow)}
+  #tourCard ul{list-style:none;margin:12px 0 0;padding:0}
+  #tourCard li{position:relative;padding-left:16px;margin-bottom:9px}
+  #tourCard li::before{content:'';position:absolute;left:2px;top:7px;width:5px;height:5px;border-radius:50%;
+    background:var(--accent);box-shadow:0 0 8px var(--glow)}
+  #tourGo{margin-top:14px;width:100%;font-family:'Orbitron',ui-monospace,monospace;font-size:10px;
+    letter-spacing:.18em;text-transform:uppercase;background:rgba(95,216,255,.10);border:1px solid rgba(95,216,255,.5);
+    border-radius:2px;color:var(--accent);cursor:pointer;padding:9px}
+  #tourGo:hover{background:rgba(95,216,255,.18)}
+  .intro{margin:0 0 4px;color:var(--dim)}
   .info-card{position:relative;width:min(560px, 100%);max-height:82vh;overflow-y:auto;background:var(--panel);
     border:1px solid var(--line);border-top:1px solid rgba(95,216,255,.55);border-radius:3px;padding:20px 22px;backdrop-filter:blur(10px);
     -webkit-backdrop-filter:blur(10px);box-shadow:0 0 44px rgba(95,216,255,.10);font-size:11.5px;line-height:1.65;color:var(--dim);letter-spacing:.03em}
@@ -212,6 +229,9 @@
   #envPlus, #focusPlus, .pdot{position:fixed;top:14px;left:14px;z-index:6;display:none;width:36px;height:36px;border-radius:2px;
     background:var(--panel);border:1px solid var(--line);color:var(--accent);cursor:pointer;font-size:15px;
     font-family:inherit;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+  .pdot.act{display:block}
+  .pdot.act .ico{width:11px;height:11px;margin:0;vertical-align:-1px}
+  .pdot.act.on{color:var(--accent)}
   .pclose{position:absolute;top:6px;right:8px;background:none;border:0;color:var(--dim);
     cursor:pointer;font-size:13px;font-family:inherit;line-height:1}
   /* a panel being dragged follows the finger and stops animating under it */
@@ -278,7 +298,6 @@
 <div class="hud" id="hud">
   <button id="collapse" aria-label="collapse panel">–</button>
   <h1>Galactic Transit <span class="ver" id="verHud"></span></h1>
-  <div class="sub">The Sun orbits the Milky Way's core at ~230 km/s. The planets, on an ecliptic tilted ~60° to the galactic plane, weave helical paths around its track.</div>
   <div class="body">
     <div class="sect" data-sec="audio">Audio<span class="arw">▾</span></div>
     <div class="sbody" id="secAudio">
@@ -358,11 +377,8 @@
     </div>
     <hr class="actsep">
     <div class="toggles">
-      <button class="tg on" id="tPause"><svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><rect x="1.4" y="1" width="2.7" height="8"/><rect x="5.9" y="1" width="2.7" height="8"/></svg>pause</button>
       <button class="tg" id="tFull">⛶ full</button>
       <button class="tg" id="tRotate">⟳ auto</button>
-      <span style="flex:1"></span>
-      <button class="tg" id="tInfo">ⓘ info &amp; stats</button>
     </div>
     <button id="tView" style="display:none"></button>
     <button id="tDive" style="display:none"></button>
@@ -377,11 +393,28 @@
   </div>
 </div>
 
+<div id="tour">
+  <svg id="tourSvg"></svg>
+  <div id="tourCard">
+    <h2>Galactic Transit</h2>
+    <p class="intro">The Sun orbits the Milky Way's core at ~230 km/s. The planets, on an ecliptic tilted ~60° to the galactic plane, weave helical paths around its track.</p>
+    <ul>
+      <li data-t="focusPanel">Choose what the view is centred on — the Sun, or the Galaxy.</li>
+      <li data-t="simPanel">Set the pace, or send the piece to a scenario.</li>
+      <li data-t="reopen">Everything else lives behind this: what is drawn, the audio, the readouts.</li>
+      <li data-t="tInfo">This text again, with the notes on what is measured and what is modelled.</li>
+      <li data-t="gamebar">Drag a panel to the other side, or off its own edge to close it. The bar at the foot slides away downward.</li>
+    </ul>
+    <button id="tourGo">Start watching</button>
+  </div>
+</div>
 <div id="infoModal">
   <div class="info-card">
     <button id="infoFull" aria-label="toggle fullscreen">⛶</button>
     <button id="infoClose" aria-label="close">×</button>
-    <h2>Info &amp; Stats <span class="ver" id="verInfo"></span></h2>
+    <h2>About &amp; Stats <span class="ver" id="verInfo"></span></h2>
+    <p class="intro">The Sun orbits the Milky Way's core at ~230 km/s. The planets, on an ecliptic tilted ~60° to the galactic plane, weave helical paths around its track.</p>
+    <button class="rowbtn" id="tourAgain" style="margin-bottom:12px">show the tour again</button>
     <div class="stats" style="margin-top:0;padding-top:0;border-top:0">
       elapsed <b id="yrs">0.0</b> yr &nbsp;·&nbsp; galactic lap <b id="pct">0.000</b>%<br>
       drag to orbit &nbsp;·&nbsp; scroll / pinch to zoom
@@ -629,6 +662,8 @@
   <i class="brk"></i>
 </div>
 <button class="pdot" id="reopen" data-open="hud" aria-label="show control panel">+</button>
+<button class="pdot act on" id="tPause" aria-label="pause"><svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><rect x="1.4" y="1" width="2.7" height="8"/><rect x="5.9" y="1" width="2.7" height="8"/></svg></button>
+<button class="pdot act" id="tInfo" aria-label="about">?</button>
 <button class="pdot" id="envPlus" data-open="env" aria-label="show the Earth panel">◍</button>
 <div class="env pnl simPanelWide" id="simPanel">
   <button class="pclose" data-close="simPanel" aria-label="close">×</button>
@@ -698,7 +733,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.35.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.36.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2313,7 +2348,9 @@ function toggle(btn, fn){
 const ICO_PAUSE = '<svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><rect x="1.4" y="1" width="2.7" height="8"/><rect x="5.9" y="1" width="2.7" height="8"/></svg>';
 const ICO_PLAY  = '<svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 1 L9 5 L2 9 Z"/></svg>';
 // drawn, not typed: a glyph would be recoloured as emoji on some platforms
-toggle($('tPause'), on=>{ paused=!on; $('tPause').innerHTML = (on?ICO_PAUSE:ICO_PLAY) + (on?'pause':'play'); });
+toggle($('tPause'), on=>{ paused=!on;
+  $('tPause').innerHTML = on ? ICO_PAUSE : ICO_PLAY;
+  $('tPause').setAttribute('aria-label', on ? 'pause' : 'play'); });
 toggle($('tLabels'), on=>{ showLabels=on; if(!on) labelEls.forEach(l=>l.style.display='none'); });
 toggle($('tArms'), on=>{ armsOn=on; if(!on) armEls.forEach(l=>l.style.display='none'); });
 toggle($('tDwarfs'), on=>{ showDwarfs=on; if(!on) labelEls.forEach((l,i)=>{ if(i>=N_PLANETS) l.style.display='none'; }); });
@@ -2434,8 +2471,9 @@ function layoutPanels(){
       put(el, pad);
       y += el.getBoundingClientRect().height + gap;
     }
-    for(const p of mine){                      // then the dots for the closed ones
-      const el = $(p.dot);
+    const dock = mine.map(p => $(p.dot));
+    if(side === 'r') dock.push($('tPause'), $('tInfo'));   // the two standing actions last
+    for(const el of dock){
       if(getComputedStyle(el).display === 'none') continue;
       put(el, pad + dotX);
       const w = el.getBoundingClientRect().width + gap;
@@ -2485,7 +2523,9 @@ for(const p of PANELS){
 }
 document.querySelectorAll('.pclose').forEach(b =>
   b.addEventListener('click', () => setPanelOpen(b.dataset.close, false)));
-document.querySelectorAll('.pdot').forEach(b =>
+// only the dots that stand for a panel reopen one; pause and help share the dock's
+// look but carry their own actions
+document.querySelectorAll('.pdot[data-open]').forEach(b =>
   b.addEventListener('click', () => setPanelOpen(b.dataset.open, true)));
 
 // ---------- collapsible sections ----------
@@ -2895,6 +2935,48 @@ if(location.protocol.startsWith('http') && 'serviceWorker' in navigator){
   addEventListener('load', ()=> navigator.serviceWorker.register('sw.js').catch(()=>{}));
 }
 $('collapse').addEventListener('click', ()=> setPanelOpen('hud', false));
+// ---------- the first run ----------
+// A guided look at what is on screen, drawn with a line from each line of text to the
+// thing it names. It is shown once, and only to a visitor who has no saved settings —
+// somebody returning has already met the interface.
+const TOURKEY = 'galactic-transit.tour';
+function drawTourLines(){
+  const svg = $('tourSvg'), card = $('tourCard').getBoundingClientRect();
+  svg.innerHTML = '';
+  const ns = 'http://www.w3.org/2000/svg';
+  for(const li of $('tourCard').querySelectorAll('li[data-t]')){
+    const tgt = $(li.dataset.t);
+    if(!tgt || getComputedStyle(tgt).display === 'none') continue;
+    const r = tgt.getBoundingClientRect(), b = li.getBoundingClientRect();
+    if(!r.width && !r.height) continue;
+    // leave the card from whichever flank faces the target, land on its near edge
+    const toRight = r.left + r.width/2 > card.left + card.width/2;
+    const x1 = toRight ? card.right + 2 : card.left - 2, y1 = b.top + b.height/2;
+    const x2 = toRight ? r.left : r.right, y2 = r.top + Math.min(r.height/2, 22);
+    const mid = (x1 + x2)/2;
+    const path = document.createElementNS(ns,'path');
+    path.setAttribute('d', `M ${x1} ${y1} C ${mid} ${y1} ${mid} ${y2} ${x2} ${y2}`);
+    path.setAttribute('fill','none');
+    path.setAttribute('stroke','rgba(95,216,255,.55)');
+    path.setAttribute('stroke-width','1.2');
+    svg.appendChild(path);
+    const dot = document.createElementNS(ns,'circle');
+    dot.setAttribute('cx', x2); dot.setAttribute('cy', y2); dot.setAttribute('r','3.5');
+    dot.setAttribute('fill','rgb(95,216,255)');
+    svg.appendChild(dot);
+  }
+}
+function showTour(){
+  $('tour').style.display = 'flex';
+  requestAnimationFrame(()=> requestAnimationFrame(drawTourLines));
+}
+$('tourGo').addEventListener('click', ()=>{
+  $('tour').style.display = 'none';
+  try{ localStorage.setItem(TOURKEY, '1'); }catch(e){}
+});
+$('tourAgain').addEventListener('click', ()=>{ $('infoModal').style.display='none'; showTour(); });
+addEventListener('resize', ()=>{ if($('tour').style.display === 'flex') drawTourLines(); });
+
 $('tInfo').addEventListener('click', ()=>{ $('infoModal').style.display='flex'; });
 $('infoClose').addEventListener('click', ()=>{ $('infoModal').style.display='none'; });
 $('infoModal').addEventListener('click', e=>{ if(e.target.id==='infoModal') $('infoModal').style.display='none'; });
@@ -3684,6 +3766,7 @@ keepSaved = hadSaved;
 $('jump').value = 'helix';
 $('jump').dispatchEvent(new Event('change'));
 keepSaved = false;
+try{ if(!hadSaved && !localStorage.getItem(TOURKEY)) setTimeout(showTour, 400); }catch(e){}
 // ---------- the debug door: opened by ?debug in the URL or ten taps on refresh ----------
 const DBGKEY = 'galactic-transit.debug';
 const DEBUG = (()=>{ try{

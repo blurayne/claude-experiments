@@ -67,6 +67,11 @@ built it.
   alike. Each column stacks its open panels first, then the dots that reopen the
   closed ones: down the screen in portrait, across it in landscape. Sides and open
   states persist. Add a new panel to PANELS/pState, never to a bespoke layout block.
+  Pause and help (?) stand at the end of the right column's dock, icon only.
+- A first visit is met by a guided overlay that draws a line from each line of text to
+  the thing it names, closable only by its button and shown once (the About dialog can
+  replay it). The "Sun orbits…" intro lives in the overlay and the About dialog; the
+  settings dialog carries only its title and version.
 - The left column stacks Focus, Earth and the frames-per-second box in that order,
   each closing up when one above is hidden, and all yielding to the settings panel
   when they would collide.
