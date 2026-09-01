@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.46.0 — 2026-09-01
+
+- A deep-time temperature chart, converted from the owner's reference image (v2.46.0) (`ff1297c`)
+
 ### 2.45.0 — 2026-09-01
 
 - Background handling, an "excellent" life-support tier, and a deep-time reference table (v2.45.0) (`36e52a5`)
