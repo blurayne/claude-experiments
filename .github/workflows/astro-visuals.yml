@@ -35,7 +35,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
-          git add astro-visuals/m31-map.webp astro-visuals/m31-map.json
+          git add astro-visuals/m31-map.webp astro-visuals/m31-map.json astro-visuals/tools/m31-src.jpg
           if git diff --cached --quiet; then
             echo 'map unchanged; nothing to commit'
           else

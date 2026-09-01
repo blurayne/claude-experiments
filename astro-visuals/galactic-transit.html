@@ -595,9 +595,10 @@
     <h3>Star formation, ice ages, and Andromeda</h3>
     <p>The Galaxy's star formation is <b>winding down</b>: the cold gas is being used up faster than it is
     replaced, so the rate here decays with a ~6&nbsp;Gyr e-folding time — roughly twice today's rate early on,
-    about half by an age of 8&nbsp;Gyr. Then comes <b>Andromeda</b>, ~4.5&nbsp;Gyr from now: the encounter
-    shock-compresses the remaining gas into a starburst of several times the present rate, and afterwards the
-    gas-poor merged remnant forms almost nothing. Watch the arms light up and then go quiet.</p>
+    about half by an age of 8&nbsp;Gyr. Then comes <b>Andromeda</b>: a first passage ~4.5&nbsp;Gyr from
+    now at ~95&nbsp;kpc that the disks barely feel, then — dynamical friction shrinking each swing — close
+    passages at ~30 and ~13&nbsp;kpc whose shocks drive starbursts, and coalescence ~8.8&nbsp;Gyr out,
+    after which the gas-poor remnant forms almost nothing. Watch the arms light up late, then go quiet.</p>
     <p>The <b>galactic environment</b> panel is the honest edge of this: Earth's temperature is set by the Sun,
     not by where the Sun sits in the Galaxy — interstellar starlight at Earth is around a ten-millionth of
     sunlight. What galactic position plausibly <i>does</i> change is the <b>cosmic-ray flux</b>: crossing a
@@ -606,11 +607,24 @@
     ~140&nbsp;Myr spacing of the great glaciations — and the arm crossings here fall at about that interval.
     <b>The link is contested</b>; the temperatures shown follow that hypothesis, not a settled result, and the
     interface frosts over when the model dips into a glacial epoch.</p>
-    <p><b>Andromeda's</b> approach is compressed: at 2.5 million light years it would sit 83,000 units away,
-    far outside the drawn sky. Its bulge, inclined disk and ring-like arms are schematic, and the encounter is
-    a leading-order sketch — the tidal pull grows with radius, so the outer disk is drawn into a bridge toward
-    the companion while the core barely moves. A real merger is an N-body problem, and the real one will take
-    a couple of billion years to settle.</p>
+    <p><b>Andromeda itself</b> is drawn the way the Milky Way is: from a photographic probability map —
+    the <b>Hubble PHAT+PHAST panorama</b> (heic2501a, ~200 million resolved stars; credit NASA, ESA,
+    B.&nbsp;F.&nbsp;Williams, Z.&nbsp;Chen, L.&nbsp;C.&nbsp;Johnson and the PHAT/PHAST teams, CC&nbsp;BY&nbsp;4.0),
+    deprojected from its 77&deg; inclination to face-on. Stars are sampled from its luminance, dust from its
+    dark lanes, HII regions from its blue excess and drawn in H&alpha; pink. Only sky-plane positions are
+    measured; depths, thickness, bulge and halo are modelled, as are the placements along the line of sight
+    of <b>M32</b>, <b>M110</b> and the <b>Giant Southern Stream</b>. The disk stands at its measured
+    orientation — spin pole at galactic (242&deg;,&nbsp;&minus;30&deg;), 120&deg; from ours — turning its
+    real way, ~7% faster than we do.</p>
+    <p><b>The encounter follows the Gaia-era orbit</b>: today's 765&nbsp;kpc and &minus;110&nbsp;km/s, a first
+    passage ~4.5&nbsp;Gyr out near 95&nbsp;kpc, a 290&nbsp;kpc rebound, then friction-shrunk passages at ~30
+    and ~13&nbsp;kpc and one relaxed elliptical ~8.8&nbsp;Gyr from now. Separations inside ~83&nbsp;kpc are
+    drawn <b>to scale</b> — every passage honestly spaced — and log-compressed beyond, which is why today's
+    Andromeda looms at the edge of the sky instead of 25 disk-diameters offstage. Two honest caveats: the
+    tides and the final relaxation are parametrised leading-order effects, not an N-body solution; and the
+    2025 ensemble reruns (Sawala et al., Nature Astronomy) give only <b>about even odds</b> that the merger
+    happens within 10&nbsp;Gyr at all once the Large Magellanic Cloud's pull and the measurement errors are
+    included. What is drawn is the median of the merging half of those futures.</p>
     <h3>Does the merger touch the solar system?</h3>
     <p>Barely, and not where you would expect. Comparing Andromeda's <b>tidal pull</b> — the difference in
     its gravity across the solar system — against the Sun's own hold, with its centre 30&nbsp;kpc away:
@@ -653,6 +667,11 @@
       rotation and rotated so its bar sits at the scene's measured 28&deg; — an illustration too, of
       course: no one has photographed our galaxy from outside. Opened offline, the procedural layout
       stands in.</li>
+      <li><b>Andromeda's map</b> is photographic, not an illustration: the Hubble <b>PHAT+PHAST</b>
+      panorama, the largest photomosaic Hubble has produced, deprojected to face-on by the build tooling
+      and reduced to a 448-pixel probability map. Its rings, its offset inner ring, its dust lanes and its
+      big warm bulge are where the mosaic puts them; the vertical structure is modelled. Opened offline,
+      a schematic Andromeda stands in.</li>
       <li>The <b>gaia sky</b> layer is not modelled at all: it is the 100,000 brightest stars from
       AT-HYG 3.2, of which 99.9% carry <b>Gaia DR3</b> parallax distances (Hipparcos covers the very
       bright ones Gaia saturates on), out to ~1,760&nbsp;pc, rotated into galactic coordinates and placed
@@ -728,7 +747,8 @@
       <option value="0.058">Theia impact — the Moon forms</option>
       <option value="0.768">Young Earth — first life (3.8 Gyr ago)</option>
       <option value="2.068">Great Oxidation (2.5 Gyr ago)</option>
-      <option value="8.36149" data-speed="1" data-mult="100000000">Andromeda collision (+4.5 Gyr)</option>
+      <option value="8.36149" data-speed="1" data-mult="100000000">Andromeda first pass (+4.5 Gyr)</option>
+      <option value="11.25" data-speed="1" data-mult="100000000">Galaxies collide &amp; merge (+6.9 Gyr)</option>
       <option value="11.3586" data-speed="0.6166" data-mult="100000000">The Sun swallows the Earth (+6.8 Gyr)</option>
       <option value="10.1">After the merger (+5.5 Gyr)</option>
     </select><button class="rowbtn" id="jumpGo" title="apply the selected scenario and close the panel">GO</button></div>
@@ -880,6 +900,10 @@ uniform float uMinB;    // brightness floor: lift the faintest stars to at least
 uniform float uMinSz;   // sprite floor in pixels: how small a star is allowed to get
 uniform float uFadeOut; // 0 draws normally, 1 hides: used where a layer stops being true
 uniform vec3 uOrg;    // rendering origin (the Sun) — keeps deep real-scale zooms float-precise
+uniform float uGal;   // 1: this draw is a whole galaxy, placed by uGRot/uGOff
+uniform mat3 uGRot;   // the galaxy's disk frame in scene coordinates (identity for ours)
+uniform vec3 uGOff;   // the galaxy's centre (zero for ours)
+uniform float uMerge; // 0 two galaxies .. 1 one relaxed remnant
 out vec3 vColor;
 void main(){
   vec3 p = aPos + aVel*uVelT;
@@ -899,19 +923,36 @@ void main(){
     float wr = max(0.0, r - 950.0);
     p.y += uWarpAmp*(wr*0.13*sin(atan(p.x,p.z) - uWarp)  // integral-sign warp, growing outward
          + 4.0*sin(r*0.021));                            // faint corrugation ripples in the disk
-    // Tidal pull toward Andromeda. A real encounter is an N-body problem; this is the
-    // leading effect only — the differential pull grows with radius, so the outer disk
-    // is drawn out into a bridge toward the companion while the core barely moves.
+    // the planetary system is drawn ~10-million-fold magnified; clear its space
+    fade = smoothstep(80.0, 240.0, distance(p, uSunPos));
+  }
+  // Whole-galaxy draws: place the cloud in the world — identity for the Milky Way,
+  // Andromeda's measured orientation and moving centre for its own — then the mutual
+  // tide, then, while the remnant relaxes, the slide into a single spheroid.
+  if(uGal > 0.5){
+    float rL = length(aPos.xz);      // radius in the galaxy's own disk, pre-transform
+    p = uGRot*p + uGOff;
+    // Tidal pull toward the companion. A real encounter is an N-body problem; this is
+    // the leading effect only — the differential pull grows with disk radius, so the
+    // outer disk reaches into a bridge while the core barely moves. Softened and
+    // capped: a bare inverse square tears passing stars into a streak.
     if(uTide > 0.001){
       vec3 dv = uAnd - p;
       float dd = length(dv);
-      // Softened, capped falloff: a bare inverse square blows up for stars that pass
-      // close to the companion and tears the disk into a streak.
-      float pull = uTide * (r/900.0) * 260.0 / (1.0 + (dd*dd)/(700.0*700.0));
-      p += normalize(dv) * min(pull, 430.0);
+      float pull = uTide * (rL/900.0) * 480.0 / (1.0 + (dd*dd)/(2600.0*2600.0));
+      p += normalize(dv) * min(pull, 560.0);
     }
-    // the planetary system is drawn ~10-million-fold magnified; clear its space
-    fade = smoothstep(80.0, 240.0, distance(p, uSunPos));
+    // Coalescence: violent relaxation scrambles both disks into one elliptical.
+    // Each star slides to a stable pseudo-random spot on a de-Vaucouleurs-ish
+    // spheroid, mildly flattened, its radius loosely keeping the star's rank.
+    if(uMerge > 0.001){
+      float h1 = fract(sin(dot(aPos.xy, vec2(127.1,311.7)))*43758.5453);
+      float h2 = fract(sin(dot(aPos.yz, vec2(269.5,183.3)))*43758.5453);
+      float cz = h2*2.0-1.0, sz = sqrt(max(0.0, 1.0-cz*cz)), ph = 6.28318*h1;
+      vec3 tgt = vec3(sz*cos(ph), cz*0.72, sz*sin(ph))
+               * (90.0 + 200.0*pow(0.5*(h1+h2), 1.6)*3.0 + length(aPos)*0.34);
+      p = mix(p, tgt, uMerge*uMerge);
+    }
   }
   vec4 mv = uView * vec4(p - uOrg,1.0);
   gl_Position = uProj * mv;
@@ -998,6 +1039,8 @@ const U = {
   ptAnd: gl.getUniformLocation(pPt,'uAnd'), ptTide: gl.getUniformLocation(pPt,'uTide'),
   ptWarpAmp: gl.getUniformLocation(pPt,'uWarpAmp'), ptMinB: gl.getUniformLocation(pPt,'uMinB'),
   ptMinSz: gl.getUniformLocation(pPt,'uMinSz'), ptFade: gl.getUniformLocation(pPt,'uFadeOut'),
+  ptGal: gl.getUniformLocation(pPt,'uGal'), ptGRot: gl.getUniformLocation(pPt,'uGRot'),
+  ptGOff: gl.getUniformLocation(pPt,'uGOff'), ptMerge: gl.getUniformLocation(pPt,'uMerge'),
   trProj: gl.getUniformLocation(pTr,'uProj'), trView: gl.getUniformLocation(pTr,'uView'),
   trLen: gl.getUniformLocation(pTr,'uLen'), trCol: gl.getUniformLocation(pTr,'uColor'), trA: gl.getUniformLocation(pTr,'uAlpha'),
   trFlat: gl.getUniformLocation(pTr,'uFlat')
@@ -1009,14 +1052,15 @@ const V_GAL = 2*Math.PI*900/225e6;  // scene units per Earth year: one lap in 22
 const GAL_PERIOD = 2*Math.PI*R_GAL/V_GAL; // sim "galactic year" in Earth-years (display only)
 const YR_PER_SIM = (225/GAL_PERIOD)*1e6;  // real years in one simulated year (~1.19e6)
 const AGE0 = 4.568;                       // Gyr: age of the solar system at simT = 0
-const AND_AGE = 9.07;                     // Gyr: the Andromeda collision, ~4.5 Gyr from now
+const AND_AGE = 9.07;                     // Gyr: Andromeda's first passage, ~4.5 Gyr from now
 // The merger scatters the Sun outward. N-body work on this encounter (Cox & Loeb 2008)
 // finds a median final distance near 30 kpc against today's 8 — roughly 3.75x out — with
 // about a 12% chance of the tidal tails beyond that and 3% of ending up bound to
 // Andromeda instead. This follows the median outcome.
 function sunR(ts){
-  const d = AGE0 + ts*YR_PER_SIM/1e9 - AND_AGE;
-  return d <= 0 ? R_GAL : R_GAL*(1 + 2.75*(1 - Math.exp(-d/0.6)));
+  // the scatter builds through the later passages, not the distant first one
+  const d = AGE0 + ts*YR_PER_SIM/1e9 - 11.45;
+  return d <= 0 ? R_GAL : R_GAL*(1 + 2.75*(1 - Math.exp(-d/0.9)));
 }
 // ecliptic tilted 60.2° to the galactic plane; orientation is inertially fixed
 const TILT = 60.2*Math.PI/180;
@@ -1136,6 +1180,7 @@ const ARMS = [
 const sA=Math.sin(BAR_A), cA=Math.cos(BAR_A);
 let N_GXY, NEB_N, DUST_N;
 let N_AND = 0, vaoAnd = null;   // declared here: setGalaxy builds Andromeda too, and runs earlier
+let N_ANDN = 0, N_ANDD = 0, vaoAndNeb = null, vaoAndDust = null, m31Map = null;
 let gxyPos,gxySize,gxyCol,gxyWave, nebPos,nebSize,nebCol, dustPos,dustSize,dustStr;
 function genGalaxy(D){ // D = density multiplier (hi-fi galaxy mode)
   N_GXY = Math.round(92000*D);
@@ -1292,6 +1337,15 @@ function genGalaxy(D){ // D = density multiplier (hi-fi galaxy mode)
 // a vertex array does not free what it references, and the big densities are hundreds
 // of megabytes apiece.
 const vaoBufs = new WeakMap();
+// Drop every cached galaxy build. The Andromeda entry is an { a, an, ad } bundle, and
+// both map loaders race each other here — this must never throw mid-flush, or the
+// loser leaves the scene pointing at deleted vertex arrays.
+function flushGxyCache(){
+  for(const k of Object.keys(gxyCache)){ const o = gxyCache[k];
+    deleteVAO(o.g); deleteVAO(o.nb); deleteVAO(o.d);
+    deleteVAO(o.a.a); if(o.a.an) deleteVAO(o.a.an); if(o.a.ad) deleteVAO(o.a.ad);
+    delete gxyCache[k]; }
+}
 function deleteVAO(vao){
   const bufs = vaoBufs.get(vao);
   if(bufs) bufs.forEach(b => gl.deleteBuffer(b));
@@ -1357,8 +1411,7 @@ function loadGalaxyMap(){
         for(let i=0;i<a.length;i++){ s+=a[i]; c[i]=s; } return c; };
       galaxyMap = { n, px, lum, blur, starC:cum(star), nebC:cum(neb), dustC:cum(dust) };
       // whatever is cached was built procedurally: rebuild the active density from the map
-      for(const k of Object.keys(gxyCache)){ const o = gxyCache[k];
-        deleteVAO(o.g); deleteVAO(o.nb); deleteVAO(o.d); deleteVAO(o.a); delete gxyCache[k]; }
+      flushGxyCache();
       setGalaxy(curD);
     })
     .catch(()=>{});   // opened from disk: the procedural galaxy stands in
@@ -1468,26 +1521,29 @@ function genGalaxyMap(D){
   }
 }
 function setGalaxy(D){
-  const key = (galaxyMap ? 'm' : 'p') + D;
+  const key = (galaxyMap ? 'm' : 'p') + (m31Map ? 'M' : 'q') + D;
   if(!gxyCache[key]){
     (galaxyMap ? genGalaxyMap : genGalaxy)(D);
     const gv = pointVAO(gxyPos,gxySize,gxyCol,gxyWave);
     const nv = pointVAO(nebPos,nebSize,nebCol), dv = pointVAO(dustPos,dustSize,dustStr);
-    const av = genAndromeda(D);
-    gxyCache[key] = { D, n:[N_GXY,NEB_N,DUST_N,N_AND], g:gv, nb:nv, d:dv, a:av };
+    const av = (m31Map ? genAndromedaMap : genAndromeda)(D);
+    gxyCache[key] = { D, n:[N_GXY,NEB_N,DUST_N], g:gv, nb:nv, d:dv, a:av };
     gxyPos=gxySize=gxyCol=gxyWave=nebPos=nebSize=nebCol=dustPos=dustSize=dustStr=null; // uploaded; free the JS copies
   }
   // the cheap densities stay cached; only one heavy one is kept at a time
   for(const k of Object.keys(gxyCache)){
     if(gxyCache[k].D >= 12 && k !== key){
       const old = gxyCache[k];
-      deleteVAO(old.g); deleteVAO(old.nb); deleteVAO(old.d); deleteVAO(old.a);
+      deleteVAO(old.g); deleteVAO(old.nb); deleteVAO(old.d);
+      deleteVAO(old.a.a); if(old.a.an) deleteVAO(old.a.an); if(old.a.ad) deleteVAO(old.a.ad);
       delete gxyCache[k];
     }
   }
   const c=gxyCache[key];
-  N_GXY=c.n[0]; NEB_N=c.n[1]; DUST_N=c.n[2]; N_AND=c.n[3];
-  vaoGxy=c.g; vaoNeb=c.nb; vaoDust=c.d; vaoAnd=c.a; curD=D;
+  N_GXY=c.n[0]; NEB_N=c.n[1]; DUST_N=c.n[2];
+  N_AND=c.a.n[0]; N_ANDN=c.a.n[1]; N_ANDD=c.a.n[2];
+  vaoGxy=c.g; vaoNeb=c.nb; vaoDust=c.d; curD=D;
+  vaoAnd=c.a.a; vaoAndNeb=c.a.an; vaoAndDust=c.a.ad;
   if(D >= 5) loadGaiaDeep();
 }
 
@@ -1506,6 +1562,8 @@ void main(){
 const pNeb = prog(PT_VS, NEB_FS);
 const UN = {
   minSz: gl.getUniformLocation(pNeb,'uMinSz'),
+  gal: gl.getUniformLocation(pNeb,'uGal'), grot: gl.getUniformLocation(pNeb,'uGRot'),
+  goff: gl.getUniformLocation(pNeb,'uGOff'), merge: gl.getUniformLocation(pNeb,'uMerge'),
   and: gl.getUniformLocation(pNeb,'uAnd'), tide: gl.getUniformLocation(pNeb,'uTide'),
   warpAmp: gl.getUniformLocation(pNeb,'uWarpAmp'),
   time: gl.getUniformLocation(pNeb,'uTime'), vm: gl.getUniformLocation(pNeb,'uVarMode'),
@@ -1534,6 +1592,8 @@ void main(){
 const pDust = prog(PT_VS, DUST_FS);
 const UD = {
   minSz: gl.getUniformLocation(pDust,'uMinSz'),
+  gal: gl.getUniformLocation(pDust,'uGal'), grot: gl.getUniformLocation(pDust,'uGRot'),
+  goff: gl.getUniformLocation(pDust,'uGOff'), merge: gl.getUniformLocation(pDust,'uMerge'),
   and: gl.getUniformLocation(pDust,'uAnd'), tide: gl.getUniformLocation(pDust,'uTide'),
   warpAmp: gl.getUniformLocation(pDust,'uWarpAmp'),
   wa:   gl.getUniformLocation(pDust,'uWaveAll'),
@@ -1546,36 +1606,50 @@ const UD = {
   warp: gl.getUniformLocation(pDust,'uWarp'),
   sun:  gl.getUniformLocation(pDust,'uSunPos')
 };
-setGalaxy(1);
+// setGalaxy(1) is called after the Andromeda section below: its constants
+// (R_A, the satellite offsets) are const bindings the generator needs live.
 
 // ---------- Andromeda ----------
-// M31 is really ~2.5 million light years away and closing at ~110 km/s; at this scale
-// that is 83,000 units, far outside the drawn sky, so its approach is compressed into
-// the same frame as everything else. Its own structure is schematic: a bulge and two
-// arms, roughly M31's size relative to ours. The encounter itself is a leading-order
-// sketch, not an N-body solution.
-function genAndromeda(D){
-  N_AND = Math.round(52000*D);
-  const BS = 1/Math.sqrt(D);   // the same per-star compensation the Milky Way gets
+// M31 drawn the way the Milky Way is: from a photographic probability map. m31-map.webp
+// is the Hubble PHAT+PHAST panorama (heic2501a, ~200 million resolved stars) deprojected
+// to face-on by tools/build_m31_map.py — stars sampled from its luminance, dust from its
+// dark lanes, HII regions from its blue excess (the mosaic's filter palette codes them
+// blue-white; they are drawn in Hα pink like our own). Only sky-plane positions are
+// measured: the third dimension — disk thickness, bulge, halo — is modelled, and the
+// info panel says so. Positions are generated in M31's own flat disk frame; its real
+// orientation (uGRot) and moving centre (uGOff) are applied in the shader.
+const R_A = 2245;                        // M31's R25, 20.6 kpc, at true scale
+const M31_MAP_SCALE = R_A/188.6;         // scene units per map pixel
+function mapXZ31(i, spread){
+  const n=m31Map.n, c0=(n-1)/2;
+  const u=(i%n)+Math.random()-0.5+gauss()*spread, v=((i/n)|0)+Math.random()-0.5+gauss()*spread;
+  return [ (u-c0)*M31_MAP_SCALE, -(v-c0)*M31_MAP_SCALE ];
+}
+// satellites and debris, at their measured sky offsets; depths are modelled
+const M32_C  = [-150, -80, 530];         // compact elliptical, ~5 kpc off the nucleus
+const M110_C = [760, 240, -420];         // NGC 205, ~8.5 kpc the other side
+const GSS_DIR = [0.355, -0.457, -0.833]; // the Giant Southern Stream's plume
+function genAndromeda(D){                // fallback when the map has not loaded
+  N_AND = Math.round(52000*D); N_ANDN = 0; N_ANDD = 0;
+  const BS = 1/Math.sqrt(D);
   const pos=new Float32Array(N_AND*3), size=new Float32Array(N_AND), col=new Float32Array(N_AND*3);
-  const PITCH_A = Math.tan(14*Math.PI/180), R_A = 1950;
-  const ti = 0.62, ci = Math.cos(ti), si = Math.sin(ti);   // inclined to our disk
+  const PITCH_A = Math.tan(14*Math.PI/180);
   for(let i=0;i<N_AND;i++){
     let x,y,z,b,s;
     if(i<0.155*N_AND){                            // M31's large classical bulge
-      const r=Math.abs(gauss())*110, th=Math.random()*6.28318;
-      x=r*Math.sin(th); z=r*Math.cos(th); y=gauss()*80;
+      const r=Math.abs(gauss())*120, th=Math.random()*6.28318;
+      x=r*Math.sin(th); z=r*Math.cos(th); y=gauss()*85;
       b=.30+Math.random()*.34; s=2.6+Math.random()*2.2;
       col[i*3]=b*1.2; col[i*3+1]=b*.92; col[i*3+2]=b*.6;
     } else if(i<0.367*N_AND){                     // its smooth inner disk
-      const r=expR(220,R_A,300), th=Math.random()*6.28318;
+      const r=expR(220,R_A,340), th=Math.random()*6.28318;
       x=r*Math.sin(th); z=r*Math.cos(th); y=gauss()*13;
       b=.07+Math.random()*.09; s=1.5+Math.random()*1.4;
       col[i*3]=b*.9; col[i*3+1]=b*.93; col[i*3+2]=b*1.08;
     } else {                                      // the famous ring-like arms
       const arm = (i%2)*Math.PI;
-      const r = 430+Math.pow(Math.random(),0.85)*(R_A-430);
-      const th = arm - Math.log(r/430)/PITCH_A + gauss()*0.075;
+      const r = 480+Math.pow(Math.random(),0.85)*(R_A-480);
+      const th = arm - Math.log(r/480)/PITCH_A + gauss()*0.075;
       x=r*Math.sin(th); z=r*Math.cos(th); y=gauss()*9;
       const roll=Math.random();
       if(roll<0.05){ col[i*3]=.9; col[i*3+1]=.5; col[i*3+2]=.6; s=2.8+Math.random()*2.0; }
@@ -1583,26 +1657,218 @@ function genAndromeda(D){
       else { b=.16+Math.random()*.19; col[i*3]=b*.85; col[i*3+1]=b*.95; col[i*3+2]=b*1.15; s=1.6+Math.random()*1.7; }
     }
     col[i*3]*=BS; col[i*3+1]*=BS; col[i*3+2]*=BS;
-    pos[i*3]=x; pos[i*3+1]=y*ci - z*si; pos[i*3+2]=y*si + z*ci;  // apply the inclination
+    pos[i*3]=x; pos[i*3+1]=y; pos[i*3+2]=z;       // flat: uGRot orients the disk
     size[i]=s*Math.pow(D,-0.12);
   }
-  return pointVAO(pos, size, col);
+  return { a: pointVAO(pos, size, col), an: null, ad: null, n: [N_AND, 0, 0] };
 }
-const andAt = a => {                       // separation in scene units at a given age
-  if(a <= AND_AGE){
-    // Radial free fall: separation goes as the two-thirds power of the time left, so the
-    // pair drifts for aeons and then plunges — which is what the last Gyr actually looks like.
-    const u = Math.min(1, Math.max(0, (AND_AGE-a)/(AND_AGE-AGE0)));
-    return 9000*Math.pow(u, 2/3);
+function genAndromedaMap(D){
+  N_AND = Math.round(58000*D);
+  const BS = 1/Math.sqrt(D), SS = Math.pow(D,-0.12);
+  const NBS = Math.max(Math.pow(D,-0.7), 0.25), DS = 1/D, Dg = Math.min(D, 8);
+  const m = m31Map, pxd = m.px;
+  const pos=new Float32Array(N_AND*3), size=new Float32Array(N_AND);
+  const col=new Float32Array(N_AND*3), wav=new Float32Array(N_AND);
+  const HALO = Math.round(N_AND*0.05);     // M31's halo is bigger than ours
+  const GSS  = Math.round(N_AND*0.015);    // the Giant Southern Stream
+  const M32N = Math.round(N_AND*0.008), M110N = Math.round(N_AND*0.011);
+  for(let i=0;i<N_AND;i++){
+    let X,Y,Z,cr,cg,cb,s,wv=0;
+    if(i<HALO){
+      const rr=160+Math.abs(gauss())*1350, th=Math.random()*6.28318, ph=Math.acos(2*Math.random()-1);
+      X=rr*Math.sin(ph)*Math.cos(th); Z=rr*Math.sin(ph)*Math.sin(th); Y=rr*Math.cos(ph)*0.8;
+      const b=.05+Math.random()*.06; cr=b*1.05; cg=b*.95; cb=b*.85; s=1.6+Math.random()*1.4;
+    } else if(i<HALO+GSS){
+      // metal-rich debris of a shredded satellite, arcing far past the disk edge
+      const u=Math.pow(Math.random(),0.7), d=500+5200*u, w=(230+260*u);
+      X=GSS_DIR[0]*d+gauss()*w; Y=GSS_DIR[1]*d+gauss()*w*0.6; Z=GSS_DIR[2]*d+gauss()*w;
+      const b=.05+Math.random()*.05; cr=b*1.06; cg=b*.9; cb=b*.72; s=1.5+Math.random()*1.2;
+    } else if(i<HALO+GSS+M32N){
+      const r=Math.pow(Math.abs(gauss()),1.6)*15;
+      const th=Math.random()*6.28318, ph=Math.acos(2*Math.random()-1);
+      X=M32_C[0]+r*Math.sin(ph)*Math.cos(th); Y=M32_C[1]+r*Math.cos(ph); Z=M32_C[2]+r*Math.sin(ph)*Math.sin(th);
+      const b=.22+Math.random()*.34; cr=b*1.1; cg=b*.95; cb=b*.72; s=1.7+Math.random()*1.5;
+    } else if(i<HALO+GSS+M32N+M110N){
+      X=M110_C[0]+gauss()*115; Y=M110_C[1]+gauss()*62; Z=M110_C[2]+gauss()*115;
+      const b=.06+Math.random()*.08; cr=b*1.0; cg=b*.95; cb=b*.88; s=1.5+Math.random()*1.2;
+    } else {
+      const pI = mapPick(m.starC);
+      const w = mapXZ31(pI, 0.35); X=w[0]; Z=w[1];
+      const l = m.lum[pI], rw = Math.hypot(X,Z);
+      const bulge = l*Math.exp(-(rw*rw)/(300*300));    // its big classical bulge, puffed to 3D
+      Y = gauss()*(11 + Math.max(0,rw-1350)*0.014 + 95*bulge);
+      const gain = (0.15 + 0.9*Math.pow(l, 1.1)) * (Math.random()<0.03 ? 2.2 : 1);
+      cr = pxd[pI*4]/255*gain*0.99; cg = pxd[pI*4+1]/255*gain; cb = pxd[pI*4+2]/255*gain*1.06;
+      s = 1.4 + Math.random()*1.8 + (l>0.72 ? Math.random()*1.2 : 0);
+      wv = (l > m.blur[pI]*1.10 || rw < 500) ? 1 : 0;
+    }
+    pos[i*3]=X; pos[i*3+1]=Y; pos[i*3+2]=Z; wav[i]=wv;
+    size[i]=s*SS; col[i*3]=cr*BS; col[i*3+1]=cg*BS; col[i*3+2]=cb*BS;
   }
-  const d = a - AND_AGE;                   // passages, then coalescence
-  return 1500*Math.exp(-d/0.5)*Math.abs(Math.sin(Math.PI*d/0.7));
-};
+  const av = pointVAO(pos, size, col, wav);
+  // HII in Hα pink, the star-forming ring first; then the unresolved haze; then the core
+  const PINK_N = Math.round(2200*D), GLOW_N = Math.round(3200*Dg), CORE_N = Math.round(800*Dg);
+  N_ANDN = PINK_N + GLOW_N + CORE_N;
+  const nPos=new Float32Array(N_ANDN*3), nSize=new Float32Array(N_ANDN), nCol=new Float32Array(N_ANDN*3);
+  for(let q=0;q<PINK_N;q++){
+    const pI = mapPick(m.nebC);
+    const w = mapXZ31(pI, 0.8);
+    nPos[q*3]=w[0]; nPos[q*3+1]=gauss()*5; nPos[q*3+2]=w[1];
+    nSize[q]=16+Math.random()*40;
+    const j=(0.7+Math.random()*0.6)*NBS;
+    nCol[q*3]=.16*j; nCol[q*3+1]=.055*j; nCol[q*3+2]=.09*j;
+  }
+  const gGain = 0.19/Dg;
+  for(let q=PINK_N;q<PINK_N+GLOW_N;q++){
+    const pI = mapPick(m.starC);
+    const w = mapXZ31(pI, 1.1);
+    const l = m.lum[pI], rw = Math.hypot(w[0], w[1]);
+    nPos[q*3]=w[0];
+    nPos[q*3+1]=gauss()*(6 + 44*l*Math.exp(-(rw*rw)/(300*300)));
+    nPos[q*3+2]=w[1];
+    nSize[q]=60+Math.random()*130;
+    const j=(0.7+Math.random()*0.6)*gGain*(0.4+l);
+    nCol[q*3]=m.px[pI*4]/255*j*0.99; nCol[q*3+1]=m.px[pI*4+1]/255*j; nCol[q*3+2]=m.px[pI*4+2]/255*j*1.06;
+  }
+  for(let q=PINK_N+GLOW_N;q<N_ANDN;q++){
+    const u=gauss()*180, v=gauss()*140;    // rounder than our barred centre
+    nPos[q*3]=u; nPos[q*3+1]=gauss()*Math.max(12,46-Math.hypot(u,v)*0.14); nPos[q*3+2]=v;
+    nSize[q]=40+Math.random()*95;
+    const j=(0.7+Math.random()*0.6)*0.30/Dg;
+    nCol[q*3]=1.00*j; nCol[q*3+1]=0.80*j; nCol[q*3+2]=0.52*j;
+  }
+  const anv = pointVAO(nPos, nSize, nCol);
+  N_ANDD = Math.round(3000*D);
+  const dPos=new Float32Array(N_ANDD*3), dSize=new Float32Array(N_ANDD), dStr=new Float32Array(N_ANDD*3);
+  for(let q=0;q<N_ANDD;q++){
+    const pI = mapPick(m.dustC);
+    const w = mapXZ31(pI, 0.5);
+    dPos[q*3]=w[0]; dPos[q*3+1]=gauss()*5; dPos[q*3+2]=w[1];
+    dSize[q]=16+Math.random()*28;
+    const dk = Math.max(0, m.blur[pI]-m.lum[pI]);
+    dStr[q*3]=(0.35+4.5*dk)*DS*(0.7+Math.random()*0.6);
+  }
+  const adv = pointVAO(dPos, dSize, dStr);
+  return { a: av, an: anv, ad: adv, n: [N_AND, N_ANDN, N_ANDD] };
+}
+function loadM31Map(){
+  fetch('m31-map.webp').then(r => r.ok ? r.blob() : Promise.reject())
+    .then(b => createImageBitmap(b))
+    .then(bm => {
+      const n = 448, cv = document.createElement('canvas');
+      cv.width = cv.height = n;
+      const cx2 = cv.getContext('2d');
+      cx2.drawImage(bm, 0, 0, n, n);
+      const px = cx2.getImageData(0, 0, n, n).data;
+      const lum = new Float32Array(n*n);
+      for(let i=0;i<n*n;i++) lum[i] = (px[i*4]+px[i*4+1]+px[i*4+2])/765;
+      const blur = new Float32Array(lum), tb = new Float32Array(n*n);
+      for(let pass=0; pass<3; pass++){
+        for(let y=0;y<n;y++) for(let x=0;x<n;x++){
+          let s=0,c=0; for(let k=-2;k<=2;k++){ const q=x+k; if(q>=0&&q<n){ s+=blur[y*n+q]; c++; } }
+          tb[y*n+x]=s/c;
+        }
+        for(let x=0;x<n;x++) for(let y=0;y<n;y++){
+          let s=0,c=0; for(let k=-2;k<=2;k++){ const q=y+k; if(q>=0&&q<n){ s+=tb[q*n+x]; c++; } }
+          blur[y*n+x]=s/c;
+        }
+      }
+      const c0 = (n-1)/2, R = 188.6;
+      const star = new Float32Array(n*n), neb = new Float32Array(n*n), dust = new Float32Array(n*n);
+      for(let i=0;i<n*n;i++){
+        const x=i%n, y=(i/n)|0, r=Math.hypot(x-c0, y-c0);
+        if(r > R*1.06) continue;
+        const l = lum[i];
+        star[i] = Math.pow(Math.max(0, l-0.012), 1.5);
+        // the Hubble palette codes HII and young stars blue-white: read the blue excess
+        const be = Math.max(0, px[i*4+2]/255 - (px[i*4]+px[i*4+1])/510 - 0.02);
+        neb[i]  = be*l;
+        dust[i] = r>28 ? Math.max(0, blur[i]-l)*Math.min(1, l*4+0.2) : 0;
+      }
+      const cum = a => { const c=new Float32Array(a.length); let s=0;
+        for(let i=0;i<a.length;i++){ s+=a[i]; c[i]=s; } return c; };
+      m31Map = { n, px, lum, blur, starC:cum(star), nebC:cum(neb), dustC:cum(dust) };
+      flushGxyCache();
+      setGalaxy(curD);
+    })
+    .catch(()=>{});   // opened from disk: the schematic Andromeda stands in
+}
+const MAT3_ID = new Float32Array([1,0,0, 0,1,0, 0,0,1]);
+for(const [pr, gr] of [[pPt,U.ptGRot],[pNeb,UN.grot],[pDust,UD.grot]]){
+  gl.useProgram(pr); gl.uniformMatrix3fv(gr, false, MAT3_ID);
+}
+setGalaxy(1);
+// The orbit follows the Gaia-era picture (van der Marel et al.; Sawala et al., Nature
+// Astronomy 2025): a first passage ~4.5 Gyr from now at ~95 kpc — the disks never touch,
+// they trade bridges — then dynamical friction bites, the passages shrink, and the pair
+// coalesces about 8.8 Gyr from now. The 2025 ensemble gives only ~50% odds of merging
+// within 10 Gyr at all; what is drawn is the median of the merging half, and the info
+// panel says so. Andromeda approaches from its true direction (l=121.2°, b=−21.6°).
+const M31_DIR = [0.7957, -0.3677, 0.4814];   // toward M31 today, scene coordinates
+const M31_E2  = [0.3037, -0.4454, -0.8422];  // second axis of the orbital plane
+// M31's disk frame in scene coordinates, from its measured PA 38°, inclination 77°,
+// near side NW, SW side approaching — the spin pole lands at galactic (242°, −30°),
+// matching published values. Local y is minus the spin axis so a positive shader spin
+// turns it its real way, the same convention the Milky Way is drawn with.
+const M31_ROT = new Float32Array([
+  -0.0926, 0.7115, 0.6965,     // local x: the major axis
+   0.7623, 0.5007,-0.4102,     // local y
+  -0.6406, 0.4930,-0.5887]);   // local z
+const KPC2U = 1000*3.2616/30;  // scene units per kpc (true scale)
+// (age Gyr, u kpc, v kpc) in the orbital plane; Hermite-interpolated below
+const M31_ORBIT = [
+  [ 3.0,   942,  -14],
+  [ 4.568, 765,    0],   // today: 765 kpc, closing ~110 km/s, small tangential drift
+  [ 6.6,   555,   18],
+  [ 8.1,   305,   48],
+  [ 8.85,  128,   78],
+  [ 9.07,   18,   93],   // first passage, ~95 kpc
+  [ 9.55, -172,   62],
+  [10.35, -290,  -18],   // out to first apocentre
+  [11.0,  -168,  -82],
+  [11.45,   -8,  -40],   // second passage, ~41 kpc: bridges and tails
+  [11.8,    68,   30],
+  [12.0,    77,    8],   // second rebound, already shrunk by friction
+  [12.3,     4,  -13],   // third passage: the disks interpenetrate
+  [12.55,  -20,   -4],
+  [12.8,    -7,    4],
+  [13.05,    3,    1],
+  [13.35,    0,    0],   // one remnant
+  [20.0,     0,    0]];
+function orbitUV(a){
+  const O = M31_ORBIT, n = O.length;
+  let i = 0;
+  while(i < n-2 && a > O[i+1][0]) i++;
+  const a0 = O[i][0], a1 = O[i+1][0], h = a1 - a0;
+  const s = Math.min(1, Math.max(0, (a - a0)/h)), s2 = s*s, s3 = s2*s;
+  const P0 = O[i], P1 = O[i+1], Pm = O[Math.max(0,i-1)], Pp = O[Math.min(n-1,i+2)];
+  const out = [0,0];
+  for(let k=1;k<=2;k++){
+    const m0 = (P1[k]-Pm[k])/(a1-Pm[0])*h, m1 = (Pp[k]-P0[k])/(Pp[0]-a0)*h;
+    out[k-1] = (2*s3-3*s2+1)*P0[k] + (s3-2*s2+s)*m0 + (-2*s3+3*s2)*P1[k] + (s3-s2)*m1;
+  }
+  return out;
+}
+// Separations are drawn at true scale out to ~83 kpc — every passage, honestly spaced —
+// and log-compressed beyond, so today's 765 kpc looms at the edge of the drawn sky
+// instead of 25 disk-diameters offstage. The info panel discloses the compression.
+function sepScene(kpc){
+  return kpc <= 82.8 ? kpc*KPC2U
+       : 9000 + 4000*Math.log(kpc/82.8)/Math.log(765/82.8);
+}
 const andPos = new Float32Array(3);
 function updateAnd(){
-  const sep = andAt(ageGyr());
-  andPos[0]=sep*0.94; andPos[1]=sep*0.28; andPos[2]=sep*0.18;
-  return { sep, tide: Math.min(1, Math.max(0, 1 - sep/3000)) };
+  const a = ageGyr();
+  const [u,v] = orbitUV(a);
+  const kpc = Math.hypot(u, v);
+  const sep = sepScene(Math.max(kpc, 1e-4));
+  const s = sep/Math.max(kpc, 1e-6)/KPC2U;         // plane kpc -> scene, compression included
+  for(let k=0;k<3;k++) andPos[k] = (u*M31_DIR[k] + v*M31_E2[k])*KPC2U*s;
+  const tide = Math.min(1, Math.max(0, 1 - kpc/260));
+  // violent relaxation builds through the close passages rather than switching on:
+  // by the third pass the rings are already coming apart, as they would be
+  const merge = Math.min(1, Math.max(0, (a - 11.7)/1.7));
+  return { sep, kpc, tide, merge };
 }
 
 // ---------- Kuiper belt & Oort cloud (follow the Sun) ----------
@@ -1818,8 +2084,9 @@ function pushTrail(i, ts){
 const ageGyr = ()=> AGE0 + simT*YR_PER_SIM/1e9;
 function sfrFactor(a){
   let f = Math.exp(-(a-AGE0)/6);                              // gas runs down
-  f += 8*Math.exp(-Math.pow((a-AND_AGE)/0.35,2));             // the merger starburst
-  const q = 1/(1+Math.exp((a-(AND_AGE+0.55))/0.35));          // then quenched for good
+  f += 2.5*Math.exp(-Math.pow((a-11.45)/0.30,2));             // starburst at the second passage
+  f += 8*Math.exp(-Math.pow((a-12.35)/0.40,2));               // and the big one at coalescence
+  const q = 1/(1+Math.exp((a-12.95)/0.35));                   // then quenched for good
   return Math.max(0.02, f*(0.05+0.95*q));
 }
 function ratesIntegral(a){ // factor-weighted years between simT=0 and the shown epoch
@@ -1919,6 +2186,7 @@ function loadGaiaDeep(){
 }
 loadGaiaStars();
 loadGalaxyMap();
+loadM31Map();
 
 // ---------- Gliese 710 ----------
 // A K7 dwarf, presently ~62 light years off and closing at 14.4 km/s. Gaia's astrometry
@@ -2920,16 +3188,28 @@ function jumpToEpoch(){
     if(paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
   }
   if(sel.value === '8.36149'){
-    // the owner's exported framing: both galaxies in one 248,000-light-year view, the
-    // camera on the Sun and held to the core line. It lands 0.7 Gyr short of closest
-    // approach and, at a hundred million years a second, arrives in about seven.
+    // Lands 0.7 Gyr short of the first passage — ~95,000 parsecs, drawn to scale, so
+    // the disks never touch; watch the far outer disks reach for each other instead.
+    // At a hundred million years a second the pass arrives in about seven.
     if($('tView').classList.contains('on')) $('tView').click();
     if(!$('tDive').classList.contains('on')) $('tDive').click();
     cam.follow = true; coreLock = true;
     // set outright, not eased: the climb from dive scale spans eleven decades and would
     // spend the whole approach travelling instead of watching it
-    cam.dist = cam.distGoal = 7156.2;
+    cam.dist = cam.distGoal = 13600;
     cam.yaw = 5.9257; cam.pitch = 0.5771;
+    reseedFollow = true;
+    if(paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
+  }
+  if(sel.value === '11.25'){
+    // The main event: the second passage at ~30 kpc, the third at ~13, and the slide
+    // into one elliptical — 2.3 Gyr in about 23 seconds. The camera stands far enough
+    // back to hold both galaxies as they close.
+    if($('tView').classList.contains('on')) $('tView').click();
+    if(!$('tDive').classList.contains('on')) $('tDive').click();
+    cam.follow = true; coreLock = true;
+    cam.dist = cam.distGoal = 9200;
+    cam.yaw = 5.6; cam.pitch = 0.62;
     reseedFollow = true;
     if(paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
   }
@@ -3270,6 +3550,17 @@ const armEls = ARM_LBLS.map(a=>{
   const d=document.createElement('div'); d.className='armlbl'; d.textContent=a[0];
   d.style.display='none'; labelWrap.appendChild(d); return d;
 });
+// Andromeda and company, positioned in its own disk frame and carried on its orbit
+const M31_LBLS = [
+  ['Andromeda (M31)', 0, 60, 0],
+  ['M32', -150, -80, 530],
+  ['M110', 760, 240, -420],
+  ['Giant Southern Stream', 1030, -1330, -2420],
+];
+const m31Els = M31_LBLS.map(a=>{
+  const d=document.createElement('div'); d.className='armlbl'; d.textContent=a[0];
+  d.style.display='none'; labelWrap.appendChild(d); return d;
+});
 // Gliese 710's own buffer and label, here because dynVAO and the label host exist by now
 const g710GL = dynVAO(1);
 const g710Pos = new Float32Array(3), g710Size = new Float32Array(1), g710Col = new Float32Array(3);
@@ -3600,34 +3891,41 @@ function frame(now){
   }
   const spin = simT*V_GAL; // every disk star travels at the same flat-curve speed as the Sun
   const warp = -2*Math.PI*simT/650e6; // warp precession: retrograde, ~650 Myr per turn
+  // an elliptical does not rotate coherently: spins die away as the remnant relaxes
+  // (never exactly zero — uSpin==0.0 is the shader's "not a galaxy" gate)
+  const spinMW  = spin*Math.max(1-and.merge, 1e-4);
+  const spinM31 = spin*1.07*Math.max(1-and.merge, 1e-4);  // M31's flat curve runs ~7% faster
   const sunX=org[0], sunY=org[1], sunZ=org[2];
   const bubY = realMode ? sunY+1e8 : sunY; // real scale: nothing is magnified, so no clearance bubble
-  gl.uniform1f(U.ptSpin, spin);
+  gl.uniform1f(U.ptSpin, spinMW);
   gl.uniform1f(U.ptWarp, warp);
   gl.uniform3f(U.ptSun, sunX, bubY, sunZ);
+  gl.uniform1f(U.ptGal, 1.0);
+  gl.uniform1f(U.ptMerge, and.merge);
   gl.bindVertexArray(vaoGxy);   gl.drawArrays(gl.POINTS,0,N_GXY);
 
-  // Andromeda: shifting the render origin puts it at its own centre, so the shader's
-  // spin turns it about its own axis. It runs retrograde to ours and a little slower,
-  // takes only a light warp of its own, and its tide pulls toward the Milky Way — the
-  // bridge is mutual, both disks reaching for each other.
-  if(and.sep < 8600 && vaoAnd){
-    gl.uniform1f(U.ptSpin, -spin*0.86);
-    gl.uniform1f(U.ptWarpAmp, 0.45);
+  // Andromeda: generated flat in its own disk frame; uGRot turns it to its measured
+  // orientation — the two disks stand 120° apart, nowhere near parallel — and uGOff
+  // carries it along its orbit. It spins its real way, ~7% faster than we do, and its
+  // tide pulls toward the Milky Way: the bridge is mutual, both disks reaching.
+  if(vaoAnd){
+    gl.uniformMatrix3fv(U.ptGRot, false, M31_ROT);
+    gl.uniform3f(U.ptGOff, andPos[0], andPos[1], andPos[2]);
+    gl.uniform1f(U.ptSpin, spinM31);
+    gl.uniform1f(U.ptWarpAmp, 0.35);
     gl.uniform3f(U.ptSun, sunX, sunY+1e8, sunZ);   // no clearance bubble in its frame
-    gl.uniform3f(U.ptAnd, -andPos[0], -andPos[1], -andPos[2]);
-    gl.uniform1f(U.ptTide, and.tide);
+    gl.uniform3f(U.ptAnd, 0, 0, 0);
     gl.uniform1f(U.ptVM, 0.0);
-    gl.uniform3f(U.ptOrg, org[0]-andPos[0], org[1]-andPos[1], org[2]-andPos[2]);
     gl.bindVertexArray(vaoAnd); gl.drawArrays(gl.POINTS,0,N_AND);
-    gl.uniform3f(U.ptOrg, org[0], org[1], org[2]);
+    gl.uniformMatrix3fv(U.ptGRot, false, MAT3_ID);
+    gl.uniform3f(U.ptGOff, 0, 0, 0);
     gl.uniform3f(U.ptSun, sunX, bubY, sunZ);
     gl.uniform3f(U.ptAnd, andPos[0], andPos[1], andPos[2]);
     gl.uniform1f(U.ptWarpAmp, 1.0);
-    gl.uniform1f(U.ptSpin, spin);
-    gl.uniform1f(U.ptTide, and.tide);
+    gl.uniform1f(U.ptSpin, spinMW);
     gl.uniform1f(U.ptVM, varOn?1.0:0.0);
   }
+  gl.uniform1f(U.ptGal, 0.0);
 
   // life-cycle events (OB clusters, supergiants, supernova flashes, remnant cores)
   if(lifeOn && events.length){
@@ -3667,10 +3965,28 @@ function frame(now){
   gl.uniform3f(UN.and, andPos[0], andPos[1], andPos[2]); gl.uniform1f(UN.tide, and.tide);
   gl.uniform1f(UN.warpAmp, 1.0);
   gl.uniform3f(UN.org, org[0],org[1],org[2]);
-  gl.uniform1f(UN.spin, spin);
+  gl.uniform1f(UN.spin, spinMW);
   gl.uniform1f(UN.warp, warp);
   gl.uniform3f(UN.sun, sunX, bubY, sunZ);
+  gl.uniform1f(UN.gal, 1.0);
+  gl.uniform1f(UN.merge, and.merge);
   gl.bindVertexArray(vaoNeb); gl.drawArrays(gl.POINTS,0,NEB_N);
+  if(vaoAndNeb){
+    gl.uniformMatrix3fv(UN.grot, false, M31_ROT);
+    gl.uniform3f(UN.goff, andPos[0], andPos[1], andPos[2]);
+    gl.uniform1f(UN.spin, spinM31);
+    gl.uniform1f(UN.warpAmp, 0.35);
+    gl.uniform3f(UN.and, 0, 0, 0);
+    gl.uniform3f(UN.sun, sunX, sunY+1e8, sunZ);
+    gl.bindVertexArray(vaoAndNeb); gl.drawArrays(gl.POINTS,0,N_ANDN);
+    gl.uniformMatrix3fv(UN.grot, false, MAT3_ID);
+    gl.uniform3f(UN.goff, 0, 0, 0);
+    gl.uniform1f(UN.spin, spinMW);
+    gl.uniform1f(UN.warpAmp, 1.0);
+    gl.uniform3f(UN.and, andPos[0], andPos[1], andPos[2]);
+    gl.uniform3f(UN.sun, sunX, bubY, sunZ);
+  }
+  gl.uniform1f(UN.gal, 0.0);
 
   // expanding shells: supernova remnants and planetary nebulae (sizes exaggerated — see info)
   if(lifeOn && puffs.length){
@@ -3690,10 +4006,28 @@ function frame(now){
     gl.uniform3f(UD.and, andPos[0], andPos[1], andPos[2]); gl.uniform1f(UD.tide, and.tide);
     gl.uniform1f(UD.warpAmp, 1.0);
     gl.uniform3f(UD.org, org[0],org[1],org[2]);
-    gl.uniform1f(UD.spin, spin);
+    gl.uniform1f(UD.spin, spinMW);
     gl.uniform1f(UD.warp, warp);
     gl.uniform3f(UD.sun, sunX, bubY, sunZ);
+    gl.uniform1f(UD.gal, 1.0);
+    gl.uniform1f(UD.merge, and.merge);
     gl.bindVertexArray(vaoDust); gl.drawArrays(gl.POINTS,0,DUST_N);
+    if(vaoAndDust){
+      gl.uniformMatrix3fv(UD.grot, false, M31_ROT);
+      gl.uniform3f(UD.goff, andPos[0], andPos[1], andPos[2]);
+      gl.uniform1f(UD.spin, spinM31);
+      gl.uniform1f(UD.warpAmp, 0.35);
+      gl.uniform3f(UD.and, 0, 0, 0);
+      gl.uniform3f(UD.sun, sunX, sunY+1e8, sunZ);
+      gl.bindVertexArray(vaoAndDust); gl.drawArrays(gl.POINTS,0,N_ANDD);
+      gl.uniformMatrix3fv(UD.grot, false, MAT3_ID);
+      gl.uniform3f(UD.goff, 0, 0, 0);
+      gl.uniform1f(UD.spin, spinMW);
+      gl.uniform1f(UD.warpAmp, 1.0);
+      gl.uniform3f(UD.and, andPos[0], andPos[1], andPos[2]);
+      gl.uniform3f(UD.sun, sunX, bubY, sunZ);
+    }
+    gl.uniform1f(UD.gal, 0.0);
     gl.blendFunc(gl.ONE, gl.ONE);
   }
     gl.uniform1f(UN.gf, 1.0); // a supernova next door must not fade with the backdrop
@@ -3901,7 +4235,8 @@ function frame(now){
       el.style.top =((-(pv[1]*x+pv[5]*y+pv[9]*z+pv[13])/cw*0.5+0.5)*H)+'px';
     }
     // arm names: world coordinates rotated with the wave, then projected like the rest
-    if(armsOn && cam.dist > 600){
+    // (once the remnant starts to relax there are no arms left to name)
+    if(armsOn && cam.dist > 600 && and.merge < 0.35){
       const d = spin/640, cD = Math.cos(d), sD = Math.sin(d);
       for(let a=0;a<ARM_LBLS.length;a++){
         const wx = ARM_LBLS[a][1]*cD + ARM_LBLS[a][2]*sD, wz = ARM_LBLS[a][2]*cD - ARM_LBLS[a][1]*sD;
@@ -3913,6 +4248,23 @@ function frame(now){
         armEls[a].style.top =((-(pv[1]*x+pv[5]*y+pv[9]*z+pv[13])/cw*0.5+0.5)*H)+'px';
       }
     } else armEls.forEach(l=>l.style.display='none');
+    if(armsOn && cam.dist > 600 && and.merge < 0.6){
+      for(let a=0;a<M31_LBLS.length;a++){
+        // the satellites and the stream exist only in the map-built Andromeda
+        if(a > 0 && !m31Map){ m31Els[a].style.display='none'; continue; }
+        const L = M31_LBLS[a];
+        const wx = M31_ROT[0]*L[1]+M31_ROT[3]*L[2]+M31_ROT[6]*L[3]+andPos[0];
+        const wy = M31_ROT[1]*L[1]+M31_ROT[4]*L[2]+M31_ROT[7]*L[3]+andPos[1];
+        const wz = M31_ROT[2]*L[1]+M31_ROT[5]*L[2]+M31_ROT[8]*L[3]+andPos[2];
+        const x = wx-org[0], y = wy-org[1], z = wz-org[2];
+        const cw = pv[3]*x+pv[7]*y+pv[11]*z+pv[15];
+        // the small companions only earn a name once Andromeda fills some of the view
+        if(cw <= 1 || (a > 0 && and.sep > 0.9*cam.dist + 4000)){ m31Els[a].style.display='none'; continue; }
+        m31Els[a].style.display='block';
+        m31Els[a].style.left=(((pv[0]*x+pv[4]*y+pv[8]*z+pv[12])/cw*0.5+0.5)*W)+'px';
+        m31Els[a].style.top =((-(pv[1]*x+pv[5]*y+pv[9]*z+pv[13])/cw*0.5+0.5)*H)+'px';
+      }
+    } else m31Els.forEach(l=>l.style.display='none');
     if(gl710.d < 40){
       const k = realMode ? 1/30 : 178/1.6;
       const x=gl710.x*k, y=gl710.y*k, z=gl710.z*k;
