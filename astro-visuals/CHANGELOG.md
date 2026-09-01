@@ -5,9 +5,13 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.44.0 — 2026-09-01
+
+- Half-float rendering and a core-glare control (v2.44.0) (`3d27fa8`)
+
 ### 2.43.0 — 2026-09-01
 
-- The post-merger readouts stop counting laps (v2.43.0) (`35ee594`)
+- The post-merger readouts stop counting laps (v2.43.0) (`07529b5`)
 
 ### 2.42.0 — 2026-09-01
 
