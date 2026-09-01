@@ -969,7 +969,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.50.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.51.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -3633,6 +3633,7 @@ const TOUR_HINTS = [
   { t:'env',      k:'Earth',      s:"Conditions on Earth as the Galaxy carries it, and what the view is centred on." },
   { t:'simPanel', k:'Simulation', s:"The pace of the clock, and the scenarios worth watching." },
   { t:'hud',      k:'Settings',   s:"Everything else: what is drawn, the audio, the readouts." },
+  { t:'tLabelsAll', k:'Labels',   s:"Every on-screen label at once — planets, galaxy arms, Andromeda and its companions." },
   { t:'tInfo',    k:'About',      s:"This text again, with the notes on what is measured and what is modelled." },
   { t:'gamebar',  k:'Readouts',   s:"Drag a panel to the other side, or off its edge to close it. This bar slides away downward." },
 ];
