@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.45.0 — 2026-09-01
+
+- Background handling, an "excellent" life-support tier, and a deep-time reference table (v2.45.0) (`36e52a5`)
+
 ### 2.44.0 — 2026-09-01
 
 - Half-float rendering and a core-glare control (v2.44.0) (`3d27fa8`)
