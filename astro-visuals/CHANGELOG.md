@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.50.0 — 2026-09-01
+
+- Drop the About dialog's fullscreen button, real icons for L/S (v2.50.0) (`39632d9`)
+
 ### 2.49.0 — 2026-09-01
 
 - Core glare off by default (v2.49.0) (`6685a2f`)
