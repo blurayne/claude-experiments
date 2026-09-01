@@ -122,3 +122,13 @@ built it.
   English.
 - Landing pages (`index.md`) stay short, per the root `AGENTS.md`; the info panel
   inside the page is where explanations live.
+
+## The Sun's own life (v2.41.0)
+
+`sunState(ageGyr())` is the single source for the Sun's luminosity, radius and phase, and three
+things read it: the drawn disc (so a red giant is rendered at the size the model gives it, not as a
+fixed dot), the climate in `environment()` (absolute temperature scaled by L^0.25, which keeps today
+exact at L = 1), and the Earth panel. Engulfment is latched against `SUN_EAT_AGE`, never against the
+current radius — the Sun contracts after the red-giant tip but the Earth does not come back. Once
+`eaten || gone` the panel retitles itself to "The Sun" and hides the Earth rows, because readings for
+a planet that no longer exists are not readings.

@@ -218,6 +218,11 @@
   #tourBuild{margin-top:9px;text-align:center;font-size:8.5px;letter-spacing:.1em;
     color:var(--dim);opacity:.75}
   .intro{margin:0 0 4px;color:var(--dim)}
+  #tourCard .short{display:none}
+  @media (max-width:760px), (max-height:820px){
+    #tourCard .long{display:none}
+    #tourCard .short{display:block}
+  }
   @media (max-width:620px){
     .hint{width:150px;font-size:9.5px;padding:6px 8px}
     #tourCard{font-size:10.5px;padding:14px 15px}
@@ -348,6 +353,7 @@
       <label class="chk"><input type="checkbox" id="tKuiper" checked> kuiper</label>
       <label class="chk"><input type="checkbox" id="tOort" checked> oort</label>
       <label class="chk"><input type="checkbox" id="tDwarfs" checked> dwarfs</label>
+      <label class="chk"><input type="checkbox" id="tP9" checked> planet 9</label>
       <label class="chk"><input type="checkbox" id="tGaia" checked> gaia sky</label>
       <label class="chk"><input type="checkbox" id="tVar" checked> variables</label>
     </div>
@@ -416,13 +422,16 @@
   <div id="tourHints"></div>
   <div id="tourCard">
     <h2>Galactic Transit</h2>
-    <p class="intro">This is where the solar system actually goes. Not a diagram of the planets, but the path
-      they take through the Milky Way: the Sun on its 225-million-year orbit, the planets winding around that
-      track, half a million real stars from <b>Gaia DR3</b> around them, and the Galaxy's own shape behind.
-      It was built to make that motion visible, and to be as accurate as a browser allows — where a model
-      stands in for a measurement, the piece says so rather than hoping you will not ask.</p>
-    <p class="intro">The Sun orbits the Milky Way's core at ~230 km/s. The planets, on an ecliptic tilted ~60°
-      to the galactic plane, weave helical paths around its track.</p>
+    <p class="intro short">Where the solar system actually goes: the Sun's 225-million-year orbit of the
+      Milky Way, the planets winding around that track, and half a million real <b>Gaia DR3</b> stars
+      about them — drawn at true scale.</p>
+    <p class="intro long">This is where the solar system actually goes. Not a diagram of the planets, but the
+      path they take through the Milky Way: the Sun on its 225-million-year orbit, the planets winding around
+      that track, half a million real stars from <b>Gaia DR3</b> around them, and the Galaxy's own shape
+      behind. It was built to make that motion visible, and to be as accurate as a browser allows — where a
+      model stands in for a measurement, the piece says so rather than hoping you will not ask.</p>
+    <p class="intro long">The Sun orbits the Milky Way's core at ~230 km/s. The planets, on an ecliptic tilted
+      ~60° to the galactic plane, weave helical paths around its track.</p>
     <p style="margin:10px 0 0">The clock is stopped while you read. It starts when you do.</p>
     <button id="tourGo">Start watching</button>
     <div id="tourBuild">—</div>
@@ -662,6 +671,20 @@
       star sprites use Gaia Sky's two-part profile: a wide corona around a hot core that saturates to
       white, with sub-pixel stars keeping their flux rather than their size. Nothing on screen is magnified,
       so they hold their true places at every zoom.</li>
+      <li><b>Surface temperature</b> is today's mean scaled by the fourth root of the Sun's output, with
+      the disputed cosmic-ray/cloud term on top. That is an equilibrium argument, not a climate model: it
+      has no runaway greenhouse, no atmospheric loss and no ocean, so treat the far-future numbers as the
+      right order of magnitude rather than a forecast.</li>
+      <li>The <b>Sun's own life</b> runs on the standard track: the faint-young-Sun relation on the main
+      sequence, which it leaves at ~10.9&nbsp;Gyr, a climb up the red giant branch to ~256 solar radii at
+      ~12.17&nbsp;Gyr — past Earth's orbit, which is where the scenario takes you — then the helium flash, a
+      second climb, and a white dwarf by ~12.4&nbsp;Gyr. <b>Sun strength</b> reads its luminosity against
+      today's. Once the Earth is inside that surface the panel stops reporting on it, because there is
+      nothing left to report.</li>
+      <li><b>Planet 9?</b> is the one body here that may not exist: a ~6 Earth-mass planet on a ~400 AU
+      orbit, proposed to explain the clustered orbits of the far Kuiper belt. Its orbit is drawn from those
+      estimates and its question mark is part of its name. Switch it off in Visuals if you would rather
+      keep to what has been seen.</li>
       <li>The <b>quality</b> row raises the drawn star count five-fold (~460,000 points) and scatters
       discrete <b>dark molecular clouds</b> (Dunkelwolken) through the disk on top of the arm-edge dust lanes —
       closer to the Milky Way's real texture, at the cost of GPU load. The row runs on to
@@ -692,7 +715,7 @@
 <button class="pdot" id="reopen" data-open="hud" aria-label="show control panel"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.4a3.6 3.6 0 100 7.2 3.6 3.6 0 000-7.2zm9 3.6c0-.5 0-1-.1-1.5l2-1.5-2-3.4-2.3.9a7.8 7.8 0 00-2.6-1.5L15.6 2h-3.9l-.4 2.5c-.9.3-1.8.8-2.6 1.5L6.4 5.1l-2 3.4 2 1.5a9 9 0 000 3l-2 1.5 2 3.4 2.3-.9c.8.7 1.7 1.2 2.6 1.5l.4 2.5h3.9l.4-2.5c.9-.3 1.8-.8 2.6-1.5l2.3.9 2-3.4-2-1.5c.1-.5.1-1 .1-1.5z"/></svg></button>
 <button class="pdot act on" id="tPause" aria-label="pause"><svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><rect x="1.4" y="1" width="2.7" height="8"/><rect x="5.9" y="1" width="2.7" height="8"/></svg></button>
 <button class="pdot act" id="tInfo" aria-label="about">?</button>
-<button class="pdot" id="envPlus" data-open="env" aria-label="show the Earth panel">−</button>
+<button class="pdot" id="envPlus" data-open="env" aria-label="show the Earth panel">ℹ</button>
 <div class="env pnl simPanelWide" id="simPanel">
   <button class="pclose" data-close="simPanel" aria-label="close">−</button>
   <h2>Simulation</h2>
@@ -706,10 +729,11 @@
       <option value="0.768">Young Earth — first life (3.8 Gyr ago)</option>
       <option value="2.068">Great Oxidation (2.5 Gyr ago)</option>
       <option value="8.36149" data-speed="1" data-mult="100000000">Andromeda collision (+4.5 Gyr)</option>
+      <option value="11.3586" data-speed="0.6166" data-mult="100000000">The Sun swallows the Earth (+6.8 Gyr)</option>
       <option value="10.1">After the merger (+5.5 Gyr)</option>
     </select><button class="rowbtn" id="jumpGo" title="apply the selected scenario and close the panel">GO</button></div>
 </div>
-<button class="pdot" id="simPlus" data-open="simPanel" title="simulation">−</button>
+<button class="pdot" id="simPlus" data-open="simPanel" title="simulation">S</button>
 <div id="fpsBox" style="display:none"><span id="fpsVal">—</span></div>
 <div class="alertbox" id="iceBox">❄ GLACIAL EPOCH</div>
 <div class="alertbox" id="g710Box">☄ GLIESE 710 · <span id="eG710d">—</span></div>
@@ -737,10 +761,13 @@
 <div class="env" id="env">
   <button class="pclose" id="envMin" data-close="env" aria-label="minimise the Earth panel">−</button>
   <h2>Earth</h2>
-  <div class="er"><span>mean surface</span><b id="eMean">15.0 °C</b></div>
-  <div class="er"><span>min / max</span><b><span id="eMin">−89</span> / <span id="eMax">57</span> °C</b></div>
-  <div class="er"><span>cosmic rays</span><b id="eCR">1.00× today</b></div>
-  <div class="er"><span>starlight</span><b id="eSL">1.0×</b></div>
+  <div class="er" id="eSunPhaseRow" style="display:none"><span>phase</span><b id="eSunPhase">—</b></div>
+  <div class="er" id="eSunSizeRow" style="display:none"><span>radius</span><b id="eSunSize">1.0 R☉</b></div>
+  <div class="er" id="eMeanRow"><span>mean surface</span><b id="eMean">15.0 °C</b></div>
+  <div class="er" id="eRangeRow"><span>min / max</span><b><span id="eMin">−89</span> / <span id="eMax">57</span> °C</b></div>
+  <div class="er" id="eCRRow"><span>cosmic rays</span><b id="eCR">1.00× today</b></div>
+  <div class="er" id="eSLRow"><span>starlight</span><b id="eSL">1.0×</b></div>
+  <div class="er" id="eSunRow"><span>sun strength</span><b id="eSun">100%</b></div>
   <div class="er" id="eLifeRow"><span>life support</span><b id="eLife">habitable</b></div>
   <div class="envsep"></div>
   <div class="er"><span>view</span>
@@ -757,7 +784,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.40.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.41.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -1013,6 +1040,9 @@ const BODIES = [ // name, period yr, display radius, sprite size, color, real se
   ['Haumea', 285.0,  44.5, 0.50,[0.82,0.82,0.85], 43.1, 816],
   ['Makemake',306.0, 46.0, 0.50,[0.76,0.56,0.43], 45.4, 715],
   ['Eris',   558.0,  52.5, 0.55,[0.83,0.83,0.90], 67.7, 1163],
+  // Hypothetical, and drawn as such: the orbit that would explain the clustering of
+  // the far Kuiper objects. ~400 AU and ~6 Earth masses, after Brown & Batygin.
+  ['Planet 9?', 8000.0, 78.0, 0.62,[0.36,0.66,0.77], 400.0, 19100],
 ];
 // real scale: 1 unit ~ 30 ly, 1 ly = 63,241 AU -> units per AU
 const AU2U = 1/(63241*30);
@@ -1020,12 +1050,16 @@ const OO_REAL = 3.0e-4; // real mode: maps the symbolic Oort shell onto its true
 let realMode = true;   // true proportions, always — the magnified display mode is gone
 let curD = 1; // active galaxy density (set by setGalaxy, read by the life-cycle rates)
 const NB = BODIES.length;
-const N_PLANETS = 9; // Sun + 8 planets; dwarfs follow
+const N_PLANETS = 9;         // Sun + 8 planets; dwarfs follow
+const I_P9 = NB - 1;         // the hypothetical one, last in the table
+let showP9 = true;
 const PHASE = BODIES.map((_,i)=> i*2.399963); // golden-angle spread
 
 // per-body orbital plane: planets share the ecliptic; dwarfs are tilted [inclination°, node°]
 const EN = [0, Math.cos(TILT), Math.sin(TILT)]; // ecliptic normal
-const DTILT = { Ceres:[10.6,80], Pluto:[17.2,110], Haumea:[28.2,122], Makemake:[29.0,79], Eris:[44.0,36] };
+const DTILT = { Ceres:[10.6,80], Pluto:[17.2,110], Haumea:[28.2,122], Makemake:[29.0,79], Eris:[44.0,36],
+  // the candidate's orbit is tilted too, by about 16 degrees in the current estimates
+  'Planet 9?':[16.0,95] };
 const BU=[], BV=[];
 BODIES.forEach((b,i)=>{
   if(i<N_PLANETS){ BU.push(E1); BV.push(E2); return; }
@@ -1818,8 +1852,17 @@ function environment(){
   const r = rawCR(simT);
   const cr = r.cr/CR0;
   const dT = -5.5*(cr-1)/1.5;                     // the contested cloud coupling
-  const mean = 15 + dT;
-  return { cr, mean, min: mean-104, max: mean+42, star: 1+2.0*r.armProx, ice: mean < 11.2 };
+  // What the Sun is doing dominates everything else once you look far enough ahead: the
+  // equilibrium temperature goes as the fourth root of its output, so the cloud term above
+  // only decides the climate while that output is near today's. Scaling the absolute
+  // temperature keeps today exact (L = 1) and still reports a molten surface under a red
+  // giant instead of a pleasant 10 degrees. The spread narrows the same way — a world with
+  // no oceans and no ice cap has far less to separate its poles from its deserts.
+  const L4 = Math.pow(sunState(ageGyr()).L, 0.25);
+  const mean = (288.15 + dT)*L4 - 273.15;
+  const spread = 1/Math.max(1, L4);
+  return { cr, mean, min: mean - 104*spread, max: mean + 42*spread,
+           star: 1+2.0*r.armProx, ice: mean < 11.2 };
 }
 
 // ---------- the real sky ----------
@@ -1907,6 +1950,52 @@ function g710(){                        // position relative to the Sun, in ligh
 // supernova within ~30 ly would strip the ozone layer, and that risk tracks the star
 // formation rate and the cosmic-ray background.
 let lifeOn = false;   // supernovae and births are opt-in
+// The Sun's own life, on the standard track. On the main sequence luminosity follows
+// the classic faint-young-Sun relation (Gough 1981): 70% of today's at formation,
+// rising as the core contracts. It leaves the main sequence at ~10.9 Gyr, swells up
+// the red giant branch to ~256 solar radii — past Earth's orbit — at ~12.17 Gyr, and
+// after the helium flash and a second climb ends as a white dwarf at ~12.4 Gyr
+// (Schröder & Smith 2008). Percentages are of the Sun as it is now.
+const SUN_MS_END = 10.9, SUN_RGB_TIP = 12.17, SUN_HB = 12.30, SUN_AGB = 12.37, SUN_WD = 12.44;
+const EARTH_ORBIT_RSUN = 215.0;    // 1 AU in solar radii
+// The age at which the swelling surface first reaches Earth's orbit. Engulfment is a
+// thing that happens once: the Sun contracts again after the tip, but the Earth does
+// not come back, so the test is against this age rather than against today's radius.
+const SUN_EAT_AGE = SUN_MS_END + (Math.log(EARTH_ORBIT_RSUN/1.6)/Math.log(256/1.6))*(SUN_RGB_TIP - SUN_MS_END);
+function sunState(a){
+  let L, R, phase;
+  if(a < SUN_MS_END){
+    L = 1/(1 + 0.4*(1 - a/4.57));
+    R = 0.87 + 0.13*(a/4.57) + 0.6*Math.pow(Math.max(0,a-8)/2.9, 3);
+    phase = a < 9.5 ? 'main sequence' : 'leaving the main sequence';
+  } else if(a < SUN_RGB_TIP){
+    const u = (a - SUN_MS_END)/(SUN_RGB_TIP - SUN_MS_END);
+    R = 1.6*Math.exp(u*Math.log(256/1.6));
+    L = 2.2*Math.exp(u*Math.log(2730/2.2));
+    phase = 'red giant';
+  } else if(a < SUN_HB){
+    const u = (a - SUN_RGB_TIP)/(SUN_HB - SUN_RGB_TIP);
+    R = 256*Math.exp(u*Math.log(10/256));
+    L = 2730*Math.exp(u*Math.log(50/2730));
+    phase = 'helium flash';
+  } else if(a < SUN_AGB){
+    const u = (a - SUN_HB)/(SUN_AGB - SUN_HB);
+    R = 10*Math.exp(u*Math.log(180/10));
+    L = 50*Math.exp(u*Math.log(3000/50));
+    phase = 'asymptotic giant';
+  } else if(a < SUN_WD){
+    const u = (a - SUN_AGB)/(SUN_WD - SUN_AGB);
+    R = 180*Math.exp(u*Math.log(0.0092/180));
+    L = 3000*Math.exp(u*Math.log(0.5/3000));
+    phase = 'planetary nebula';
+  } else {
+    R = 0.0092;
+    // a fresh white dwarf is a tenth of today's Sun and fades from there
+    L = Math.max(1e-6, 0.1*Math.exp(-(a - SUN_WD)/1.5));
+    phase = 'white dwarf';
+  }
+  return { L, R, phase, eaten: a >= SUN_EAT_AGE, gone: a >= SUN_AGB };
+}
 function lifeState(){
   const a = ageGyr(), e = environment();
   let h = 0, why = 'stable';
@@ -2387,6 +2476,7 @@ toggle($('tPause'), on=>{ paused=!on;
   $('tPause').setAttribute('aria-label', on ? 'pause' : 'play'); });
 toggle($('tLabels'), on=>{ showLabels=on; if(!on) labelEls.forEach(l=>l.style.display='none'); });
 toggle($('tArms'), on=>{ armsOn=on; if(!on) armEls.forEach(l=>l.style.display='none'); });
+toggle($('tP9'), on=>{ showP9=on; if(!on) labelEls[I_P9].style.display='none'; });
 toggle($('tDwarfs'), on=>{ showDwarfs=on; if(!on) labelEls.forEach((l,i)=>{ if(i>=N_PLANETS) l.style.display='none'; }); });
 toggle($('tBelt'), on=> showBelt=on);
 toggle($('tKuiper'), on=> showKuiper=on);
@@ -2525,7 +2615,7 @@ function placePanels(){
       y += r.height + gap;
     }
     const dock = mine.map(p => $(p.dot));
-    if(side === 'r') dock.push($('tPause'), $('tInfo'));   // the two standing actions last
+    if(side === 'r') dock.push($('tInfo'), $('tPause'));   // the two standing actions last
     for(const el of dock){
       if(getComputedStyle(el).display === 'none') continue;
       put(el, pad + dotX);
@@ -2695,7 +2785,7 @@ loadTrack(0);
 // so restoring a setting does exactly what clicking it would. Anything momentary — the
 // pause, the dive, the epoch jump, the current track position — is deliberately left out.
 const SKEY = 'galactic-transit.settings.v1';
-const S_TOG = ['tLabels','tArms','tDwarfs','tBelt','tKuiper','tOort','tDust',
+const S_TOG = ['tLabels','tArms','tDwarfs','tP9','tBelt','tKuiper','tOort','tDust',
                'tEvSN','tEvBirth','tVar',
                'tStatAge','tStatGyr','tStatSn','tStatBirth','tGaia','tFps'];
 const S_SLD = ['speed','trailA','orbitA','trailL','musicVol','sfxVol','minB','hudHz'];
@@ -2816,6 +2906,19 @@ function jumpToEpoch(){
     return;
   }
   simT = (a - AGE0)*1e9/YR_PER_SIM;
+  if(sel.value === '11.3586'){
+    // Lands where the Sun has swollen to ten times its size and runs to the moment its
+    // surface passes Earth's orbit: 768 Myr of red giant, played out in about 35
+    // seconds. The frame is two and a half AU, so the disc grows from a small circle
+    // to something that fills it and takes the inner planets on the way.
+    if($('tView').classList.contains('on')) $('tView').click();
+    if($('tDive').classList.contains('on')) $('tDive').click();
+    cam.follow = true; coreLock = false;
+    cam.dist = cam.distGoal = 1.14e-6;
+    cam.yaw = 0.6; cam.pitch = 0.34;
+    reseedFollow = true;
+    if(paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
+  }
   if(sel.value === '8.36149'){
     // the owner's exported framing: both galaxies in one 248,000-light-year view, the
     // camera on the Sun and held to the core line. It lands 0.7 Gyr short of closest
@@ -3400,9 +3503,12 @@ function frame(now){
     bodyPosArr[i*3]=tmp[0]-org[0]; bodyPosArr[i*3+1]=tmp[1]-org[1]; bodyPosArr[i*3+2]=tmp[2]-org[2];
   }
   if(realMode){ // the Sun's sprite: true diameter once close enough, else a small findable dot
-    plasmaSunPx = realSizes[0]*((H*DPR)/(2*Math.tan(Math.PI/6)))/cam.dist;
+    // realSizes[0] is the Sun's diameter today; the model scales it, so a red giant is
+    // drawn at the size the model says it has rather than at a fixed dot
+    const sunDia = realSizes[0]*sunState(ageGyr()).R;
+    plasmaSunPx = sunDia*((H*DPR)/(2*Math.tan(Math.PI/6)))/cam.dist;
     // the findable dot stands down once the true disc takes over
-    sunSizeTmp[0] = plasmaSunPx > 7 ? 0.0 : Math.max(realSizes[0], cam.dist*0.0075);
+    sunSizeTmp[0] = plasmaSunPx > 7 ? 0.0 : Math.max(sunDia, cam.dist*0.0075);
     gl.bindBuffer(gl.ARRAY_BUFFER,bufBodySize); gl.bufferSubData(gl.ARRAY_BUFFER,0,sunSizeTmp);
   }
   gl.bindBuffer(gl.ARRAY_BUFFER,bufBodyPos);
@@ -3613,12 +3719,14 @@ function frame(now){
     gl.uniformMatrix4fv(U.trProj,false,projMat);
     gl.uniformMatrix4fv(U.trView,false,viewMat);
     gl.uniform1f(U.trLen,TRAIL_N);
-    const last = (showDwarfs?NB:N_PLANETS)-1;
+    const last = (showP9 ? NB : I_P9)-1;
     // the origin for anchored buffers, subtracted in double precision
     const aox = org[0]-trailAnchor[0], aoy = org[1]-trailAnchor[1], aoz = org[2]-trailAnchor[2];
     gl.uniform3f(U.trOrg, aox, aoy, aoz);
     for(let i=last;i>=0;i--){
       const c=BODIES[i][4];
+      if(i === I_P9 && !showP9) continue;
+      if(i >= N_PLANETS && i < I_P9 && !showDwarfs) continue;
       if(i > 0){
         if(!solarClose) continue;                    // collapsed into the Sun's point
         const spo = BODIES[i][1]/DT_SAMPLE;
@@ -3723,7 +3831,9 @@ function frame(now){
   gl.uniform1f(U.ptMinSz, 1.3);
   gl.uniform1f(U.ptCap, 110.0);
   gl.uniform3f(U.ptOrg, 0,0,0); // bodies are uploaded Sun-relative already
-  gl.bindVertexArray(vaoBodies); gl.drawArrays(gl.POINTS,0, showDwarfs?NB:N_PLANETS);
+  gl.bindVertexArray(vaoBodies);
+  gl.drawArrays(gl.POINTS, 0, showDwarfs ? I_P9 : N_PLANETS);
+  if(showP9) gl.drawArrays(gl.POINTS, I_P9, 1);
 
   // Gliese 710, on the same symbolic scale as the Oort cloud in the compressed view and
   // at its true separation in real scale, so it passes where the cloud actually is.
@@ -3761,7 +3871,7 @@ function frame(now){
     const pv = mul(projMat, viewMat);
     let sunSX=0, sunSY=0;
     for(let i=0;i<NB;i++){
-      if(i>=N_PLANETS && !showDwarfs){ labelEls[i].style.display='none'; continue; }
+      if(i === I_P9 ? !showP9 : (i >= N_PLANETS && !showDwarfs)){ labelEls[i].style.display='none'; continue; }
       const x=bodyPosArr[i*3],y=bodyPosArr[i*3+1],z=bodyPosArr[i*3+2];
       const cw = pv[3]*x+pv[7]*y+pv[11]*z+pv[15];
       if(cw<=Math.max(1e-9,cam.dist*0.01) || cam.dist>900){ labelEls[i].style.display='none'; continue; }
@@ -3839,6 +3949,24 @@ function frame(now){
 
   { const e = environment();
     // a glacial epoch is marked on the reading itself rather than in a banner below it
+    { // Earth's readings mean nothing once there is no Earth: the panel turns to the Sun
+      const ss = sunState(ageGyr());
+      const lost = ss.eaten || ss.gone;
+      for(const id of ['eSunPhaseRow','eSunSizeRow']) $(id).style.display = lost ? '' : 'none';
+      for(const id of ['eRangeRow','eCRRow','eSLRow','eLifeRow']) $(id).style.display = lost ? 'none' : '';
+      $('env').querySelector('h2').textContent = lost ? 'The Sun' : 'Earth';
+      const pc = ss.L*100;
+      $('eSun').textContent = pc >= 1e4 ? Math.round(pc).toLocaleString('en-US')+'%'
+                            : pc >= 10  ? pc.toFixed(0)+'%' : pc.toFixed(1)+'%';
+      $('eSun').style.color = tempColour(-20 + Math.min(1, Math.log10(Math.max(pc,1))/3.2)*80);
+      if(lost){
+        $('eSunPhase').textContent = ss.R >= EARTH_ORBIT_RSUN ? 'engulfing the Earth'
+                                   : ss.eaten && !ss.gone ? ss.phase + ' · Earth gone' : ss.phase;
+        $('eSunSize').textContent = ss.R >= 1 ? ss.R.toFixed(ss.R<10?2:0)+' R☉'
+                                              : (ss.R*109.2).toFixed(2)+' R⊕';
+        $('eMeanRow').style.display = 'none';
+      } else $('eMeanRow').style.display = '';
+    }
     $('eMean').textContent  = (e.ice ? '❄ ' : '') + e.mean.toFixed(1)+' °C';
     $('eMin').textContent   = e.min.toFixed(0);
     $('eMax').textContent   = e.max.toFixed(0);
