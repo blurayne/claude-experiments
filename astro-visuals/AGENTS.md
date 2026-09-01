@@ -202,3 +202,27 @@ deliberately not wired into `environment()`: the live model is a simplified cont
 function of solar luminosity and cosmic-ray proximity, and reconciling it against 23
 discrete points would mean fabricating an interpolation neither source actually supports.
 The intro paragraph says so, so the two are never presented as the same claim.
+
+## The deep-time SVG chart (v2.46.0)
+
+`.evo-chart` in the About dialog is a hand-generated inline SVG (built by a one-off Python
+script, not checked in as a build tool since it never needs to run again) plotting the exact
+same 23-row dataset as the "Earth across deep time" table right above it — chart and table
+must never show two different numbers for the same milestone. Curves are centripetal
+Catmull-Rom splines (uniform-parameterization Catmull-Rom loops/overshoots badly given how
+non-uniformly spaced these points are, from 0.35 Gyr gaps in the deep past to 0.001 Gyr gaps
+near "today") converted to cubic Beziers.
+
+Today's row uses actual recorded planetary extremes (-89/57, Antarctica/Death Valley) while
+every other row is a modelled global-mean range — spliced into the same spline that produces
+a 146-degree single-point spike, which reads as a chart bug. It is drawn as a separate
+whisker instead; only the average, a comparable quantity either way, stays in the spline.
+Points whose value exceeds the chart's temperature domain are left unclamped in the path data
+and cut cleanly by an SVG clipPath on the plot rect, rather than manually clamped — simpler
+and exactly the visual "runs off the top" convention this kind of chart typically uses.
+
+The SVG's font-size is in user units, so on its own it shrinks to illegible sub-4px text once
+squeezed into a ~300px-wide phone screen. It carries a fixed intrinsic width (680px) and rides
+in `.evo-chart-wrap` (overflow-x:auto), the exact pattern already established for the wide
+table — never let an information-dense inline SVG's `width` go to `100%` without checking
+what that does to its own internal font-size at real mobile widths.

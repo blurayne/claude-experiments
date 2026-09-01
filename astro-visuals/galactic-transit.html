@@ -251,6 +251,26 @@
   .evo-table tr:last-child td{border-bottom:0}
   .evo-table tr:nth-child(even) td{background:rgba(255,255,255,.02)}
   .evo-age{color:var(--dim);font-size:9px}
+  .evo-chart-wrap{overflow-x:auto;margin:4px 0 2px;-webkit-overflow-scrolling:touch}
+  .evo-chart{width:680px;max-width:none;height:auto;display:block;background:rgba(4,9,19,.4);
+    border:1px solid var(--line);border-radius:3px}
+  @media (min-width:760px){ .evo-chart{width:100%} }
+  .evo-title{font:700 12px/1 'Orbitron',ui-monospace,monospace;fill:var(--ink);letter-spacing:.02em}
+  .evo-grid{stroke:var(--line);stroke-width:1}
+  .evo-frame{fill:none;stroke:var(--line);stroke-width:1}
+  .evo-axis{font-size:9.5px;fill:var(--dim)}
+  .evo-max{stroke:#ff6e6e;stroke-width:2}
+  .evo-min{stroke:#5fd8ff;stroke-width:2}
+  .evo-avg{stroke:var(--accent2);stroke-width:2.4}
+  .evo-today{stroke:var(--ink);stroke-width:1;stroke-dasharray:3 3;opacity:.55}
+  .evo-today-lbl{font-size:9.5px;font-weight:700;fill:var(--ink);letter-spacing:.12em}
+  .evo-whisker{stroke:var(--dim);stroke-width:1.1}
+  .evo-whisker-lbl{font-size:8.5px;fill:var(--dim)}
+  .evo-lead{stroke:rgba(220,232,245,.35);stroke-width:1}
+  .evo-mk{fill:var(--accent2);stroke:#030610;stroke-width:1}
+  .evo-lbl{font-size:9.5px;fill:var(--ink)}
+  .evo-legend rect{fill:rgba(4,9,19,.85);stroke:var(--line)}
+  .evo-legend text{font-size:9px;fill:var(--dim)}
   #infoClose{position:absolute;top:10px;right:12px;background:none;border:0;color:var(--dim);cursor:pointer;
     font-size:16px;font-family:inherit}
   #infoFull{position:absolute;top:10px;right:36px;background:none;border:0;color:var(--dim);cursor:pointer;
@@ -695,6 +715,94 @@
       <tr><td>Future: +2 Gyr<br><span class="evo-age">greenhouse hell</span></td><td>200&nbsp;/&nbsp;450&nbsp;°C<br>(avg ~300&nbsp;°C)</td><td>~120%</td><td>Extreme UV and hard solar radiation.</td><td>~3&ndash;5 bar</td><td>A dense atmosphere of water vapour, CO₂ and nitrogen.</td><td>Complete sterility: a parched, scorched world — the oceans are long gone.</td></tr>
       </tbody>
     </table></div>
+    <p>The same data as a curve: minimum, maximum and average temperature across the same 23 milestones,
+    on a linear scale from four billion years ago to two billion years from now. <b>Today's</b> minimum and
+    maximum use actual recorded planetary extremes (Antarctica's coldest, Death Valley's hottest) rather
+    than the modelled global-mean range every other row uses, so it is drawn as a separate whisker instead of
+    joining the band &mdash; splicing it into the curve would tear a 146-degree spike through an otherwise
+    smooth line for a difference of definition, not of climate. Two points run hotter than the chart's own
+    frame and are marked <b>off scale</b> rather than compressed to fit; their true values are in the table above.</p>
+<div class="evo-chart-wrap"><svg class="evo-chart" viewBox="0 0 900 430" role="img" aria-label="Earth's estimated surface temperature range across deep time, from the first amino acids to a runaway greenhouse two billion years from now">
+  <defs>
+    <linearGradient id="evoBand" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ff6e6e" stop-opacity=".16"/>
+      <stop offset="100%" stop-color="#5fd8ff" stop-opacity=".16"/>
+    </linearGradient>
+    <clipPath id="evoClip"><rect x="56" y="66" width="806" height="214"/></clipPath>
+  </defs>
+  <text class="evo-title" x="450.0" y="16" text-anchor="middle">Earth's surface temperature across deep time</text>
+  <line class="evo-grid" x1="56" y1="280.0" x2="862" y2="280.0"/>
+      <text class="evo-axis" x="48" y="283.0" text-anchor="end">-100°C</text>
+      <line class="evo-grid" x1="56" y1="233.5" x2="862" y2="233.5"/>
+      <text class="evo-axis" x="48" y="236.5" text-anchor="end">-50°C</text>
+      <line class="evo-grid" x1="56" y1="187.0" x2="862" y2="187.0"/>
+      <text class="evo-axis" x="48" y="190.0" text-anchor="end">0°C</text>
+      <line class="evo-grid" x1="56" y1="140.4" x2="862" y2="140.4"/>
+      <text class="evo-axis" x="48" y="143.4" text-anchor="end">+50°C</text>
+      <line class="evo-grid" x1="56" y1="93.9" x2="862" y2="93.9"/>
+      <text class="evo-axis" x="48" y="96.9" text-anchor="end">+100°C</text>
+      <line class="evo-grid" x1="56.0" y1="66" x2="56.0" y2="280"/>
+      <text class="evo-axis" x="56.0" y="294" text-anchor="middle">4 Gyr ago</text>
+      <line class="evo-grid" x1="190.3" y1="66" x2="190.3" y2="280"/>
+      <text class="evo-axis" x="190.3" y="294" text-anchor="middle">3 Gyr ago</text>
+      <line class="evo-grid" x1="324.7" y1="66" x2="324.7" y2="280"/>
+      <text class="evo-axis" x="324.7" y="294" text-anchor="middle">2 Gyr ago</text>
+      <line class="evo-grid" x1="459.0" y1="66" x2="459.0" y2="280"/>
+      <text class="evo-axis" x="459.0" y="294" text-anchor="middle">1 Gyr ago</text>
+      <line class="evo-grid" x1="727.7" y1="66" x2="727.7" y2="280"/>
+      <text class="evo-axis" x="727.7" y="294" text-anchor="middle">+1 Gyr</text>
+      <line class="evo-grid" x1="862.0" y1="66" x2="862.0" y2="280"/>
+      <text class="evo-axis" x="862.0" y="294" text-anchor="middle">+2 Gyr</text>
+  <rect class="evo-frame" x="56" y="66" width="806" height="214"/>
+  <g clip-path="url(#evoClip)">
+    <path class="evo-band" d="M56.00,168.35 C56.00,168.35 82.02,160.06 103.02,159.04 C165.71,156.01 172.40,173.82 291.08,177.65 C430.66,182.31 427.06,163.04 524.15,170.21 C549.20,175.30 505.93,169.48 530.20,173.00 C534.00,173.50 528.71,173.19 535.57,172.07 C543.13,170.83 550.19,165.16 559.48,168.35 C567.46,171.57 555.94,174.09 565.12,175.79 C570.29,176.90 566.84,173.36 575.40,170.21 C581.89,167.85 579.51,172.62 584.60,168.35 C587.36,165.74 584.28,162.74 585.81,163.70 C587.08,163.72 585.54,170.97 588.77,177.65 C591.54,183.08 590.22,174.48 592.98,182.30 C595.16,187.74 593.17,196.64 593.33,196.26 C593.51,196.26 592.51,185.56 593.47,175.79 C594.06,171.68 592.35,177.49 594.00,173.93 C594.43,173.05 593.91,173.97 594.68,173.00 C595.17,172.38 593.77,172.68 595.48,172.07 C600.42,169.64 634.59,174.31 660.50,168.35 C704.59,158.23 671.97,170.96 727.67,140.43 C772.52,115.94 742.42,146.01 794.83,93.91 C840.26,49.37 843.11,27.04 862.00,0.87 L862.00,-231.74 C862.00,-231.74 819.61,-100.16 794.83,-45.65 C749.34,54.43 805.82,-21.39 727.67,75.30 C681.70,130.76 732.81,81.31 660.50,131.13 C616.36,161.41 624.31,148.88 595.48,167.42 C590.61,171.38 598.63,163.36 594.68,168.35 C594.19,168.97 594.56,168.41 594.00,169.28 C593.60,169.90 593.77,170.35 593.47,170.21 C593.20,170.15 593.51,168.36 593.33,168.35 C593.17,168.34 594.16,169.76 592.98,170.21 C591.90,170.78 590.81,171.28 588.77,168.35 C585.55,164.25 587.26,152.27 585.81,151.60 C584.55,151.61 590.09,155.51 584.60,159.04 C581.40,161.26 583.16,159.02 575.40,157.18 C568.92,155.65 572.45,158.09 565.12,154.39 C560.02,151.75 567.60,150.00 559.48,149.74 C551.71,148.75 546.14,159.64 535.57,160.90 C528.01,161.30 538.55,163.64 530.20,159.04 C526.38,156.99 534.00,156.76 524.15,154.39 C498.96,146.10 384.81,169.42 291.08,159.04 C151.49,143.45 235.79,153.04 103.02,112.52 C40.31,92.46 86.68,106.05 56.00,93.91 Z" fill="url(#evoBand)"/>
+    <path class="evo-max" d="M56.00,93.91 C56.00,93.91 81.81,105.74 103.02,112.52 C165.72,132.59 170.69,145.84 291.08,159.04 C430.67,174.64 427.16,140.97 524.15,154.39 C549.34,162.68 506.86,146.15 530.20,159.04 C534.01,161.10 528.60,161.74 535.57,160.90 C543.13,160.51 549.83,149.28 559.48,149.74 C567.25,150.73 555.19,149.41 565.12,154.39 C570.23,157.03 567.45,155.30 575.40,157.18 C581.88,158.72 579.76,162.18 584.60,159.04 C587.80,156.83 584.38,150.80 585.81,151.60 C587.07,151.59 584.45,161.79 588.77,168.35 C591.98,172.45 589.60,171.22 592.98,170.21 C594.07,169.64 593.03,168.34 593.33,168.35 C593.49,168.36 593.07,170.01 593.47,170.21 C593.74,170.27 593.37,170.26 594.00,169.28 C594.41,168.66 594.05,169.14 594.68,168.35 C595.17,167.73 593.90,168.58 595.48,167.42 C600.36,163.45 635.19,148.50 660.50,131.13 C704.64,100.85 677.46,137.09 727.67,75.30 C773.63,19.85 747.93,58.37 794.83,-45.65 C840.33,-145.74 843.28,-179.87 862.00,-231.74" fill="none"/>
+    <path class="evo-min" d="M56.00,168.35 C56.00,168.35 82.02,160.06 103.02,159.04 C165.71,156.01 172.40,173.82 291.08,177.65 C430.66,182.31 427.06,163.04 524.15,170.21 C549.20,175.30 505.93,169.48 530.20,173.00 C534.00,173.50 528.71,173.19 535.57,172.07 C543.13,170.83 550.19,165.16 559.48,168.35 C567.46,171.57 555.94,174.09 565.12,175.79 C570.29,176.90 566.84,173.36 575.40,170.21 C581.89,167.85 579.51,172.62 584.60,168.35 C587.36,165.74 584.28,162.74 585.81,163.70 C587.08,163.72 585.54,170.97 588.77,177.65 C591.54,183.08 590.22,174.48 592.98,182.30 C595.16,187.74 593.17,196.64 593.33,196.26 C593.51,196.26 592.51,185.56 593.47,175.79 C594.06,171.68 592.35,177.49 594.00,173.93 C594.43,173.05 593.91,173.97 594.68,173.00 C595.17,172.38 593.77,172.68 595.48,172.07 C600.42,169.64 634.59,174.31 660.50,168.35 C704.59,158.23 671.97,170.96 727.67,140.43 C772.52,115.94 742.42,146.01 794.83,93.91 C840.26,49.37 843.11,27.04 862.00,0.87" fill="none"/>
+    <path class="evo-avg" d="M56.00,131.13 C56.00,131.13 82.20,132.83 103.02,135.78 C165.71,144.68 172.69,161.53 291.08,170.67 C430.66,181.69 426.14,160.01 524.15,164.63 C549.18,168.06 505.95,158.57 530.20,166.49 C534.00,167.73 528.90,168.51 535.57,168.35 C543.13,168.53 549.97,159.41 559.48,161.37 C567.34,163.53 555.43,164.66 565.12,167.42 C570.28,169.01 567.09,166.24 575.40,165.09 C581.88,164.20 579.67,168.13 584.60,164.63 C587.38,162.37 584.29,159.03 585.81,159.97 C587.08,160.00 585.38,167.67 588.77,173.93 C591.62,178.83 590.02,173.48 592.98,177.65 C593.92,179.20 593.05,179.67 593.33,179.05 C593.57,179.02 592.93,174.17 593.33,173.00 C593.63,172.70 592.80,173.62 593.47,173.00 C593.66,172.89 593.66,172.45 594.00,172.07 C594.42,171.62 593.98,172.04 594.68,171.60 C595.17,171.29 594.11,171.71 595.48,171.14 C600.31,168.98 635.31,160.76 660.50,149.74 C704.59,130.47 675.17,157.47 727.67,112.52 C773.07,74.25 744.83,103.61 794.83,28.78 C839.97,-38.42 842.28,-56.66 862.00,-92.17" fill="none"/>
+  </g>
+  <line class="evo-today" x1="593.3" y1="66" x2="593.3" y2="280"/>
+  <text class="evo-today-lbl" x="593.3" y="54" text-anchor="middle">TODAY</text>
+  <line class="evo-whisker" x1="584.3" y1="269.8" x2="584.3" y2="133.9"/>
+  <line class="evo-whisker" x1="580.3" y1="269.8" x2="588.3" y2="269.8"/>
+  <line class="evo-whisker" x1="580.3" y1="133.9" x2="588.3" y2="133.9"/>
+  <text class="evo-whisker-lbl" x="576.3" y="204.8" text-anchor="end">record: &minus;89&deg;/57&deg;C</text>
+  <line class="evo-lead" x1="56.0" y1="131.1" x2="60.0" y2="55.0"/>
+      <circle class="evo-mk" cx="56.0" cy="131.1" r="3.4"/>
+      <text class="evo-lbl" x="60.0" y="50.0" text-anchor="start">First amino acids</text>
+      <line class="evo-lead" x1="103.0" y1="135.8" x2="100.0" y2="351.0"/>
+      <circle class="evo-mk" cx="103.0" cy="135.8" r="3.4"/>
+      <text class="evo-lbl" x="100.0" y="356.0" text-anchor="start">First cells</text>
+      <line class="evo-lead" x1="291.1" y1="170.7" x2="210.0" y2="55.0"/>
+      <circle class="evo-mk" cx="291.1" cy="170.7" r="3.4"/>
+      <text class="evo-lbl" x="210.0" y="50.0" text-anchor="start">Great Oxidation Event</text>
+      <line class="evo-lead" x1="524.2" y1="164.6" x2="400.0" y2="55.0"/>
+      <circle class="evo-mk" cx="524.2" cy="164.6" r="3.4"/>
+      <text class="evo-lbl" x="400.0" y="50.0" text-anchor="start">First fish (Cambrian)</text>
+      <line class="evo-lead" x1="559.5" y1="161.4" x2="420.0" y2="351.0"/>
+      <circle class="evo-mk" cx="559.5" cy="161.4" r="3.4"/>
+      <text class="evo-lbl" x="420.0" y="356.0" text-anchor="start">Mass extinction (Permian)</text>
+      <line class="evo-lead" x1="575.4" y1="165.1" x2="500.0" y2="35.0"/>
+      <circle class="evo-mk" cx="575.4" cy="165.1" r="3.4"/>
+      <text class="evo-lbl" x="500.0" y="30.0" text-anchor="start">Dinosaurs</text>
+      <line class="evo-lead" x1="660.5" y1="149.7" x2="660.0" y2="55.0"/>
+      <circle class="evo-mk" cx="660.5" cy="149.7" r="3.4"/>
+      <text class="evo-lbl" x="660.0" y="50.0" text-anchor="start">Biosphere collapses</text>
+      <line class="evo-lead" x1="727.7" y1="112.5" x2="660.0" y2="351.0"/>
+      <circle class="evo-mk" cx="727.7" cy="112.5" r="3.4"/>
+      <text class="evo-lbl" x="660.0" y="356.0" text-anchor="start">Oceans evaporate</text>
+      <line class="evo-lead" x1="794.8" y1="68.0" x2="700.0" y2="35.0"/>
+      <circle class="evo-mk" cx="794.8" cy="68.0" r="3.4"/>
+      <text class="evo-lbl" x="700.0" y="30.0" text-anchor="start">Plate tectonics stalls (off scale)</text>
+      <line class="evo-lead" x1="862.0" y1="68.0" x2="858.0" y2="371.0"/>
+      <circle class="evo-mk" cx="862.0" cy="68.0" r="3.4"/>
+      <text class="evo-lbl" x="858.0" y="376.0" text-anchor="end">Runaway greenhouse (off scale)</text>
+  <g class="evo-legend" transform="translate(300,190)">
+    <rect x="-8" y="-14" width="152" height="62" rx="3"/>
+    <line x1="0" y1="0" x2="20" y2="0" class="evo-max"/><text x="26" y="3">max (modelled/recorded)</text>
+    <line x1="0" y1="16" x2="20" y2="16" class="evo-avg"/><text x="26" y="19">average</text>
+    <line x1="0" y1="32" x2="20" y2="32" class="evo-min"/><text x="26" y="35">min (modelled/recorded)</text>
+  </g>
+</svg></div>
     <h3>What's real, what's modeled</h3>
     <ul>
       <li>Planets are <b>not dragged behind the Sun</b> — the viral "vortex" video is wrong. With the 60° tilt
@@ -863,7 +971,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.45.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.46.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
