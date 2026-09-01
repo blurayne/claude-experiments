@@ -273,9 +273,7 @@
   .evo-legend text{font-size:9px;fill:var(--dim)}
   #infoClose{position:absolute;top:10px;right:12px;background:none;border:0;color:var(--dim);cursor:pointer;
     font-size:16px;font-family:inherit}
-  #infoFull{position:absolute;top:10px;right:36px;background:none;border:0;color:var(--dim);cursor:pointer;
-    font-size:15px;font-family:inherit}
-  #infoFull:hover,#infoClose:hover{color:var(--accent)}
+  #infoClose:hover{color:var(--accent)}
   #collapse{position:absolute;top:10px;right:10px;background:none;border:0;color:var(--dim);cursor:pointer;font-size:13px;font-family:inherit}
   #envMin{position:absolute;top:6px;right:8px;background:none;border:0;color:var(--dim);cursor:pointer;font-size:13px;font-family:inherit}
   #envPlus, .pdot{position:fixed;top:14px;left:14px;z-index:6;display:none;width:36px;height:36px;border-radius:2px;
@@ -470,7 +468,6 @@
 </div>
 <div id="infoModal">
   <div class="info-card">
-    <button id="infoFull" aria-label="toggle fullscreen">⛶</button>
     <button id="infoClose" aria-label="close">×</button>
     <h2>About &amp; Stats <span class="ver" id="verInfo"></span></h2>
     <div class="info-body">
@@ -902,7 +899,7 @@
 <button class="pdot act on" id="tPause" aria-label="pause"><svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><rect x="1.4" y="1" width="2.7" height="8"/><rect x="5.9" y="1" width="2.7" height="8"/></svg></button>
 <button class="pdot act" id="tInfo" aria-label="about">?</button>
 <button class="pdot" id="envPlus" data-open="env" aria-label="show the Earth panel">ℹ</button>
-<button class="pdot act on" id="tLabelsAll" aria-label="toggle all labels" title="toggle all labels">L</button>
+<button class="pdot act on" id="tLabelsAll" aria-label="toggle all labels" title="toggle all labels"><svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.2,1.8 L6,1.8 L8.8,5 L6,8.2 L1.2,8.2 Z"/></svg></button>
 <div class="env pnl simPanelWide" id="simPanel">
   <button class="pclose" data-close="simPanel" aria-label="close">−</button>
   <h2>Simulation</h2>
@@ -921,7 +918,7 @@
       <option value="10.1">After the merger (+5.5 Gyr)</option>
     </select><button class="rowbtn" id="jumpGo" title="apply the selected scenario and close the panel">GO</button></div>
 </div>
-<button class="pdot" id="simPlus" data-open="simPanel" title="simulation">S</button>
+<button class="pdot" id="simPlus" data-open="simPanel" title="simulation"><svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><path fill-rule="evenodd" d="M5,0.6 C7.43,0.6 9.4,2.57 9.4,5 C9.4,7.43 7.43,9.4 5,9.4 C2.57,9.4 0.6,7.43 0.6,5 C0.6,2.57 2.57,0.6 5,0.6 Z M5,1.9 C3.29,1.9 1.9,3.29 1.9,5 C1.9,6.71 3.29,8.1 5,8.1 C6.71,8.1 8.1,6.71 8.1,5 C8.1,3.29 6.71,1.9 5,1.9 Z"/><rect x="4.6" y="2.6" width="0.8" height="2.7"/><rect x="4.7" y="4.6" width="2.3" height="0.8"/></svg></button>
 <div id="fpsBox" style="display:none"><span id="fpsVal">—</span></div>
 <div class="alertbox" id="iceBox">❄ GLACIAL EPOCH</div>
 <div class="alertbox" id="g710Box">☄ GLIESE 710 · <span id="eG710d">—</span></div>
@@ -972,7 +969,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.49.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.50.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -3575,7 +3572,6 @@ function reqFs(){
 function exitFs(){ const f = document.exitFullscreen || document.webkitExitFullscreen; if(f) f.call(document); }
 const toggleFs = ()=> isFs() ? exitFs() : reqFs();
 $('tFull').addEventListener('click', toggleFs);
-$('infoFull').addEventListener('click', toggleFs);
 document.addEventListener('fullscreenchange', ()=> $('tFull').classList.toggle('on', isFs()));
 // Turning the device to landscape asks for fullscreen. Browsers only grant it while a
 // gesture is still being handled, so this is armed on rotation and fires on the next
