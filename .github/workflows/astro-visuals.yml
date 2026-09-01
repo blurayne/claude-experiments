@@ -39,10 +39,7 @@ jobs:
           if git diff --cached --quiet; then
             echo 'map unchanged; nothing to commit'
           else
-            git commit -m 'astro-visuals: regenerate m31-map.webp from heic2501a
-
-Face-on probability map of Andromeda, deprojected from the Hubble
-PHAT+PHAST panorama. Credit: NASA, ESA, B. F. Williams, Z. Chen,
-L. C. Johnson, the PHAT and PHAST teams (CC BY 4.0).'
+            git commit -m 'astro-visuals: regenerate m31-map.webp from heic2501a' \
+              -m 'Face-on probability map of Andromeda, deprojected from the Hubble PHAT+PHAST panorama. Credit: NASA, ESA, B. F. Williams, Z. Chen, L. C. Johnson, the PHAT and PHAST teams (CC BY 4.0).'
             git push origin main
           fi
