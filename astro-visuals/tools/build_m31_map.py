@@ -210,39 +210,14 @@ def photographic_map(data):
     r_edge = (edge_bin + 0.5) / 200 * cc
     print(f'disk edge at {r_edge:.0f} px along the major axis')
 
-    # Deproject by sampling the sky image directly onto the 448 output grid.
-    # The bulge is a spheroid: it must not be stretched with the thin disk (a raw
-    # 1/cos(i) turns it into a vertical cigar, and a radius-blended stretch is
-    # non-monotonic and smears the bright rows into curtains). So decompose:
-    # subtract a round bulge model in the sky plane, deproject only the disk
-    # light with the uniform stretch, and add the bulge back, round.
+    # Deproject with the uniform 1/cos(i) stretch. That is correct for the thin
+    # disk and wrong for the spheroidal bulge (it becomes a vertical cigar), and
+    # at 77 degrees no smooth radius-dependent remap can fix that monotonically.
+    # So: deproject uniformly, declare the cigar zone unmeasured, let the
+    # azimuthal fill paint the disk through it, and add a round synthetic bulge
+    # coloured from the photo on top. The simulation already discloses that the
+    # bulge's structure is modelled.
     ci = math.cos(math.radians(INCL_DEG))
-    rb = 0.15 * r_edge
-    # azimuthal median profile of the inner region -> the round bulge model
-    win = int(2.6 * rb)
-    ys0, xs0 = np.mgrid[-win:win + 1, -win:win + 1]
-    rr = np.hypot(xs0, ys0 * 1.12)          # the sky bulge is mildly flattened
-    patch = rot[int(cc) - win:int(cc) + win + 1, int(cc) - win:int(cc) + win + 1]
-    nbin = 60
-    rbin0 = np.clip((rr / (2.5 * rb) * nbin).astype(int), 0, nbin)
-    prof = np.zeros((nbin + 1, 3), np.float32)
-    for ch in range(3):
-        v = patch[:, :, ch].ravel()
-        order = rbin0.ravel()
-        for k in range(nbin):
-            sel = v[order == k]
-            prof[k, ch] = np.median(sel) if sel.size else 0
-    prof *= np.clip(1 - np.linspace(0, 1, nbin + 1) ** 3, 0, 1)[:, None]  # taper to zero
-    def bulge_at(rr_arr):
-        idx = np.clip((rr_arr / (2.5 * rb) * nbin), 0, nbin - 1)
-        i0 = idx.astype(int); f = (idx - i0)[..., None]
-        return prof[i0] * (1 - f) + prof[i0 + 1] * f
-    # disk light = sky image minus the bulge model (only meaningful near centre)
-    disk = rot.copy()
-    rsky = np.hypot(xs0, ys0 * 1.12)
-    disk[int(cc) - win:int(cc) + win + 1, int(cc) - win:int(cc) + win + 1] = np.clip(
-        patch - bulge_at(rsky), 0, None)
-
     c0 = (N - 1) / 2
     jj, ii = np.mgrid[0:N, 0:N].astype(np.float32)
     X = (ii - c0) / R_EDGE_PX * r_edge          # disk-plane coords in source px
@@ -253,16 +228,18 @@ def photographic_map(data):
     fx = xs - x0; fy = ys - y0
     sq = np.empty((N, N, 3), np.float32)
     for ch in range(3):
-        v = disk[:, :, ch]
+        v = rot[:, :, ch]
         sq[:, :, ch] = (v[y0, x0] * (1 - fx) * (1 - fy) + v[y0, x0 + 1] * fx * (1 - fy)
                       + v[y0 + 1, x0] * (1 - fx) * fy + v[y0 + 1, x0 + 1] * fx * fy)
-    sq += bulge_at(np.hypot(X, Y))              # the bulge returns, face-on and round
     sqm = mrot[np.round(ys).astype(int), np.round(xs).astype(int)]
 
-    # clip compact glare (M32's core, saturated foreground stars) against the local
-    # background; the resolved-star texture sits well below this cap
-    base = np.stack([box_blur(sq[:, :, ch], 3, 2) for ch in range(3)], -1)
-    sq = np.minimum(sq, base * 4.0 + 0.02)
+    # the photo's bulge colour and brightness, taken where it is unsmeared
+    Xo = ii - c0; Yo = jj - c0                  # output px
+    centre = np.hypot(Xo, Yo) < 7
+    c_bulge = sq[centre].mean(axis=0)
+    rb = 9.5                                    # ~1 kpc effective radius, output px
+    cigar = (np.abs(Xo) < 3.4 * rb) & (np.abs(Yo) < 3.4 * rb / ci)
+    sqm = sqm & ~cigar                          # unmeasured: filled azimuthally below
 
     # fill what the mosaic footprint does not cover from azimuthal averages
     r = np.hypot(ii - c0, jj - c0)
@@ -282,6 +259,10 @@ def photographic_map(data):
     for ch in range(3):
         b = box_blur(filled[:, :, ch], 2, 1)
         filled[:, :, ch] = np.where(seam, b, filled[:, :, ch])
+    # the round bulge, Sersic-ish, carrying the photo's own central colour
+    rb_r = np.hypot(Xo, Yo * 1.08)
+    bulge = np.exp(-np.power(np.maximum(rb_r, 0.3) / rb, 0.55) + 1.0)
+    filled += np.clip(bulge, 0, 1.35)[:, :, None] * c_bulge[None, None, :]
     fade = np.clip(1 - (r - N / 2 * 0.94) / (N * 0.05), 0, 1)
     filled *= fade[:, :, None]
     return np.clip(filled, 0, 1), None
