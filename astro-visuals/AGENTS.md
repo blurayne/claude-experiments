@@ -159,3 +159,14 @@ is drawn is the median merging branch.
 The two map loaders race: cache flushes must go through `flushGxyCache()` (never throw
 mid-flush — the loser would leave the scene pointing at deleted VAOs, which draw as a single
 collapsed dot at the galaxy's centre).
+
+## After the merger, readouts stop pretending (v2.43.0)
+
+Anything that assumes "the Sun laps a spiral galaxy every 225 Myr" has to end when the disks do.
+`sunPhase(ts)` is the Sun's galactic anomaly and the single source for both its drawn position and the
+galactic-year counter: the curve is flat, so the angular rate is v/R and the closed-form integral of it
+makes the laps lengthen to 3.75x as `sunR` widens. Never advance the anomaly at a fixed rate while the
+radius grows — that carried the Sun at 860 km/s, above escape speed at 31 kpc. Past `mergeAt(a) > 0.9`
+the HUD stat swaps label and value to the Sun's distance from the centre; the spiral-arm term in
+`environment()` fades with `1 - mergeAt(a)`; and the glacial banner follows the Earth panel's rule —
+no frost once there is no Earth. `mergeAt(a)` is the shared pure function for all of it.

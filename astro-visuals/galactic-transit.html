@@ -606,7 +606,9 @@
     Shaviv and Svensmark proposed that this modulates low cloud cover and so the climate, which would match the
     ~140&nbsp;Myr spacing of the great glaciations — and the arm crossings here fall at about that interval.
     <b>The link is contested</b>; the temperatures shown follow that hypothesis, not a settled result, and the
-    interface frosts over when the model dips into a glacial epoch.</p>
+    interface frosts over when the model dips into a glacial epoch. That whole argument has an <b>expiry
+    date</b>: it rests on crossing spiral arms, and the merged remnant is an elliptical with none, so the arm
+    term fades out with the merger rather than ticking on over a galaxy that no longer has arms.</p>
     <p><b>Andromeda itself</b> is drawn the way the Milky Way is: from a photographic probability map —
     the <b>Hubble PHAT+PHAST panorama</b> (heic2501a, ~200 million resolved stars; credit NASA, ESA,
     B.&nbsp;F.&nbsp;Williams, Z.&nbsp;Chen, L.&nbsp;C.&nbsp;Johnson and the PHAT/PHAST teams, CC&nbsp;BY&nbsp;4.0),
@@ -641,7 +643,11 @@
     into a random one in the merged elliptical. N-body work on this encounter finds a median final distance
     near <b>30&nbsp;kpc against today's 8</b>, with roughly a 12% chance of being flung into the tidal tails
     and 3% of ending up bound to Andromeda instead. The Sun here follows that median, drifting outward after
-    the collision — watch the galactic-year counter slow as its orbit widens.</p>
+    the collision. The rotation curve is flat, so its speed stays near 230&nbsp;km/s and the <b>laps
+    lengthen</b> instead — out to 3.75&times; today's 225&nbsp;Myr — which is why the galactic-year counter
+    visibly slows as the orbit widens. Once the remnant has relaxed there are no laps left to count at all:
+    an ordered circular orbit has become a random one, so the counter gives way to the reading that still
+    means something, the Sun's distance from the centre.</p>
     <h3>What's real, what's modeled</h3>
     <ul>
       <li>Planets are <b>not dragged behind the Sun</b> — the viral "vortex" video is wrong. With the 60° tilt
@@ -727,7 +733,7 @@
   <div class="cnt death" id="cDeath" style="display:none"><span id="lDeath">supernovae</span><b id="nDeath">−0</b></div>
   <div class="stat" id="sCal"><span id="lCal">human year</span><b id="gCal">300,000 yr</b></div>
   <div class="stat" id="sAge">age of the solar system<b id="gAge">4.5680 Gyr</b></div>
-  <div class="stat" id="sGyr">galactic years<b id="gGyr">20.302</b></div>
+  <div class="stat" id="sGyr"><span id="lGyr">galactic years</span><b id="gGyr">20.302</b></div>
   <div class="cnt birth" id="cBirth" style="display:none"><span id="lBirth">stars born</span><b id="nBirth">+0</b></div>
   <i class="brk"></i>
 </div>
@@ -804,7 +810,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.42.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.43.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -1057,10 +1063,25 @@ const AND_AGE = 9.07;                     // Gyr: Andromeda's first passage, ~4.
 // finds a median final distance near 30 kpc against today's 8 — roughly 3.75x out — with
 // about a 12% chance of the tidal tails beyond that and 3% of ending up bound to
 // Andromeda instead. This follows the median outcome.
+const SCATTER_AGE = 11.45;   // Gyr: the second passage, where the scatter begins
+const SR_A = 3.75, SR_B = 2.75, SR_K = 1/0.9;   // sunR/R_GAL = SR_A - SR_B·e^(-SR_K·u)
 function sunR(ts){
   // the scatter builds through the later passages, not the distant first one
-  const d = AGE0 + ts*YR_PER_SIM/1e9 - 11.45;
-  return d <= 0 ? R_GAL : R_GAL*(1 + 2.75*(1 - Math.exp(-d/0.9)));
+  const d = AGE0 + ts*YR_PER_SIM/1e9 - SCATTER_AGE;
+  return d <= 0 ? R_GAL : R_GAL*(SR_A - SR_B*Math.exp(-SR_K*d));
+}
+// How far round the galaxy the Sun has travelled. The rotation curve is flat, so the
+// orbital *speed* stays near 230 km/s and the angular rate is v/R: as the merger widens
+// the orbit the laps lengthen, out to 3.75× today's period. Turning the widening radius
+// alone while holding the angular rate fixed — which is what an earlier build drew —
+// would have carried the Sun round at 860 km/s, well above escape speed out there.
+// This is the exact integral of that rate, so the galactic-year counter genuinely slows.
+function sunPhase(ts){
+  const u = AGE0 + ts*YR_PER_SIM/1e9 - SCATTER_AGE;
+  if(u <= 0) return ts*V_GAL/R_GAL;
+  const tPre = (SCATTER_AGE - AGE0)*1e9/YR_PER_SIM;
+  const dU = Math.log(SR_A*Math.exp(SR_K*u) - SR_B)/(SR_K*SR_A);   // in Gyr
+  return (tPre + dU*1e9/YR_PER_SIM)*V_GAL/R_GAL;
 }
 // ecliptic tilted 60.2° to the galactic plane; orientation is inertially fixed
 const TILT = 60.2*Math.PI/180;
@@ -1121,7 +1142,7 @@ const WOB_A = 24, WOB_T = 90e6; // scene units, and the real ~90 Myr vertical pe
 
 const tmp = new Float64Array(3), tmpSun = new Float64Array(3);
 function bodyPos(i, t, out){
-  const phi = t*V_GAL/R_GAL;                     // galactic anomaly
+  const phi = sunPhase(t);                       // galactic anomaly, slowing as R grows
   const R = sunR(t);                             // constant until the merger flings it out
   const sx = R*Math.sin(phi), sz = R*Math.cos(phi);
   const sy = (realMode?8.3:WOB_A)*Math.sin(2*Math.PI*t/WOB_T + 2.1);
@@ -1856,6 +1877,10 @@ function sepScene(kpc){
   return kpc <= 82.8 ? kpc*KPC2U
        : 9000 + 4000*Math.log(kpc/82.8)/Math.log(765/82.8);
 }
+// Violent relaxation builds through the close passages rather than switching on: by the
+// third pass the rings are already coming apart, as they would be. Everything that stops
+// being true when the disks stop being disks reads this.
+const mergeAt = a => Math.min(1, Math.max(0, (a - 11.7)/1.7));
 const andPos = new Float32Array(3);
 function updateAnd(){
   const a = ageGyr();
@@ -1865,10 +1890,7 @@ function updateAnd(){
   const s = sep/Math.max(kpc, 1e-6)/KPC2U;         // plane kpc -> scene, compression included
   for(let k=0;k<3;k++) andPos[k] = (u*M31_DIR[k] + v*M31_E2[k])*KPC2U*s;
   const tide = Math.min(1, Math.max(0, 1 - kpc/260));
-  // violent relaxation builds through the close passages rather than switching on:
-  // by the third pass the rings are already coming apart, as they would be
-  const merge = Math.min(1, Math.max(0, (a - 11.7)/1.7));
-  return { sep, kpc, tide, merge };
+  return { sep, kpc, tide, merge: mergeAt(a) };
 }
 
 // ---------- Kuiper belt & Oort cloud (follow the Sun) ----------
@@ -2117,7 +2139,12 @@ function rawCR(ts){
 const CR0 = rawCR(0).cr;                          // normalise: today is 1.00x
 function environment(){
   const r = rawCR(simT);
-  const cr = r.cr/CR0;
+  // An elliptical has no spiral arms to cross. The arm term — and with it the ~140 Myr
+  // glaciation spacing that the whole cosmic-ray/cloud argument rests on — fades out as
+  // the remnant relaxes, rather than ticking on forever over a galaxy that no longer has
+  // arms. What is left is a quenched galaxy's quieter cosmic-ray background.
+  const spiral = 1 - mergeAt(ageGyr());
+  const cr = (1 + (r.cr - 1)*spiral)/CR0;
   const dT = -5.5*(cr-1)/1.5;                     // the contested cloud coupling
   // What the Sun is doing dominates everything else once you look far enough ahead: the
   // equilibrium temperature goes as the fourth root of its output, so the cloud term above
@@ -2129,7 +2156,7 @@ function environment(){
   const mean = (288.15 + dT)*L4 - 273.15;
   const spread = 1/Math.max(1, L4);
   return { cr, mean, min: mean - 104*spread, max: mean + 42*spread,
-           star: 1+2.0*r.armProx, ice: mean < 11.2 };
+           star: 1 + 2.0*r.armProx*spiral, ice: mean < 11.2 };
 }
 
 // ---------- the real sky ----------
@@ -4301,9 +4328,10 @@ function frame(now){
 
   { const e = environment();
     // a glacial epoch is marked on the reading itself rather than in a banner below it
+    let lost = false;
     { // Earth's readings mean nothing once there is no Earth: the panel turns to the Sun
       const ss = sunState(ageGyr());
-      const lost = ss.eaten || ss.gone;
+      lost = ss.eaten || ss.gone;
       for(const id of ['eSunPhaseRow','eSunSizeRow']) $(id).style.display = lost ? '' : 'none';
       for(const id of ['eRangeRow','eCRRow','eSLRow','eLifeRow']) $(id).style.display = lost ? 'none' : '';
       $('env').querySelector('h2').textContent = lost ? 'The Sun' : 'Earth';
@@ -4331,7 +4359,8 @@ function frame(now){
     $('eSL').textContent    = e.star.toFixed(2)+'×';
     const ls = lifeSupOn ? lifeState() : null;
     if(ls) $('eLife').textContent = ls.label;
-    document.body.classList.toggle('ice', e.ice);
+    // and neither does an ice age: the frost stays off once there is no Earth to freeze
+    document.body.classList.toggle('ice', e.ice && !lost);
     const gd = g710().d;
     document.body.classList.toggle('g710', gd < 1.9);
     layoutPanels();
@@ -4381,7 +4410,16 @@ function frame(now){
     // real elapsed time: one sim lap ≡ one real galactic year of 225 Myr
     const myr = simT*(225/GAL_PERIOD);                       // real megayears elapsed
     $('gAge').textContent = fmtYears(4.568e9 + myr*1e6);
-    $('gGyr').textContent = (4568/225 + simT/GAL_PERIOD).toFixed(3);
+    // Once the remnant has relaxed there are no laps left to count: the Sun's ordered
+    // circular orbit has been scattered into a random one inside an elliptical, so the
+    // readout turns to the thing that still means something — how far out it now sits.
+    if(mergeAt(AGE0 + myr/1e3) > 0.9){
+      $('lGyr').textContent = 'distance from centre';
+      $('gGyr').textContent = (sunR(simT)*30/3261.6).toFixed(1)+' kpc';
+    } else {
+      $('lGyr').textContent = 'galactic years';
+      $('gGyr').textContent = (4568/225 + sunPhase(simT)/(2*Math.PI)).toFixed(3);
+    }
   }
   }
 
