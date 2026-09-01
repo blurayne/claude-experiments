@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.36.0 — 2026-09-01
+
+- A guided first run, and two standing buttons in the dock (`76a1545`)
+
 ### 2.35.0 — 2026-09-01
 
 - Panels you can move, and Simulation in one of its own (`e564588`)
