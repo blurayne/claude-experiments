@@ -74,7 +74,9 @@ built it.
   Pause and help (?) stand at the end of the right column's dock, icon only.
 - Panels close with a "−" and leave a "−" button behind; only Settings is marked, by a
   gear. The piece opens with Earth showing and Simulation and Settings folded to their
-  buttons.
+  buttons. The tour card carries the version, build stamp and hash.
+- A 3-tap reset clears the saved settings but keeps the debug flag: debug is a mode you
+  are in, not a setting you tuned.
 - A first visit is met by a guided overlay: a card in the middle and a hint box pinned
   beside each thing it names, joined by a short line, over an unblurred sky. It holds
   the clock while it is up and starts it on the way out, closable only by its button and shown once (the About dialog can
@@ -111,7 +113,7 @@ built it.
 - Defaults: music on at 40% with the remix first; sound effects at 0% (off); supernova and
   star-birth events **off** (the user switches the life cycle on); the supernova and
   star-birth counters **off**; the settings dialog **hidden** (a saved open state
-  reopens it). A 3-tap reset clears **all** of localStorage, debug flag included.
+  reopens it). A 3-tap reset clears the saved settings, keeping the debug flag.
 
 ## Language notes
 
