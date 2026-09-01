@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.43.0 — 2026-09-01
+
+- The post-merger readouts stop counting laps (v2.43.0) (`35ee594`)
+
 ### 2.42.0 — 2026-09-01
 
 - Andromeda from the Hubble panorama, and the real encounter (v2.42.0) (`02190c8`)
