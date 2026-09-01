@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.49.0 — 2026-09-01
+
+- Core glare off by default (v2.49.0) (`6685a2f`)
+
 ### 2.48.0 — 2026-09-01
 
 - View GO button back, a master label toggle in the dock (v2.48.0) (`90e5330`)
