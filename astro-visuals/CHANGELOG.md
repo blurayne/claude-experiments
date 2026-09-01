@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.37.0 — 2026-09-01
+
+- One Earth panel, and panels that make room for each other (`e859c14`)
+
 ### 2.36.0 — 2026-09-01
 
 - A guided first run, and two standing buttons in the dock (`76a1545`)
