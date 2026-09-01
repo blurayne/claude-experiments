@@ -197,17 +197,19 @@
   #infoModal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;
     background:rgba(2,4,8,.65);z-index:20;padding:18px}
   #tour{position:fixed;inset:0;display:none;align-items:center;justify-content:center;
-    background:rgba(2,6,14,.62);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:30;padding:18px}
+    background:rgba(2,6,14,.55);z-index:30;padding:18px}
+  #tourHints{position:absolute;inset:0;pointer-events:none}
+  .hint{position:absolute;width:186px;background:var(--panel);border:1px solid rgba(95,216,255,.55);
+    border-radius:3px;padding:8px 10px;font-size:10.5px;line-height:1.5;color:var(--ink);
+    letter-spacing:.03em;box-shadow:0 0 22px rgba(95,216,255,.14)}
+  .hint b{display:block;font-family:'Orbitron',ui-monospace,monospace;font-size:8.5px;
+    letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-bottom:3px}
   #tourSvg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
   #tourCard{position:relative;width:min(430px,100%);background:var(--panel);border:1px solid var(--line);
     border-top:1px solid rgba(95,216,255,.55);border-radius:3px;padding:18px 20px;
     box-shadow:0 0 44px rgba(95,216,255,.12);font-size:11.5px;line-height:1.6;color:var(--dim);letter-spacing:.03em}
   #tourCard h2{font-family:'Orbitron',ui-monospace,monospace;font-size:12px;letter-spacing:.24em;
     text-transform:uppercase;color:var(--accent);margin-bottom:9px;text-shadow:0 0 12px var(--glow)}
-  #tourCard ul{list-style:none;margin:12px 0 0;padding:0}
-  #tourCard li{position:relative;padding-left:16px;margin-bottom:9px}
-  #tourCard li::before{content:'';position:absolute;left:2px;top:7px;width:5px;height:5px;border-radius:50%;
-    background:var(--accent);box-shadow:0 0 8px var(--glow)}
   #tourGo{margin-top:14px;width:100%;font-family:'Orbitron',ui-monospace,monospace;font-size:10px;
     letter-spacing:.18em;text-transform:uppercase;background:rgba(95,216,255,.10);border:1px solid rgba(95,216,255,.5);
     border-radius:2px;color:var(--accent);cursor:pointer;padding:9px}
@@ -232,6 +234,7 @@
     background:var(--panel);border:1px solid var(--line);color:var(--accent);cursor:pointer;font-size:15px;
     font-family:inherit;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
   .pdot.act{display:block}
+  .pdot .ico{width:14px;height:14px;margin:0;vertical-align:-2px}
   .pdot.act .ico{width:11px;height:11px;margin:0;vertical-align:-1px}
   .pdot.act.on{color:var(--accent)}
   .pclose{position:absolute;top:6px;right:8px;background:none;border:0;color:var(--dim);
@@ -298,7 +301,7 @@
 <canvas id="gl"></canvas>
 
 <div class="hud" id="hud">
-  <button id="collapse" aria-label="collapse panel">–</button>
+  <button class="pclose" id="collapse" aria-label="collapse panel">−</button>
   <h1>Galactic Transit <span class="ver" id="verHud"></span></h1>
   <div class="body">
     <div class="sect" data-sec="audio">Audio<span class="arw">▾</span></div>
@@ -397,16 +400,11 @@
 
 <div id="tour">
   <svg id="tourSvg"></svg>
+  <div id="tourHints"></div>
   <div id="tourCard">
     <h2>Galactic Transit</h2>
     <p class="intro">The Sun orbits the Milky Way's core at ~230 km/s. The planets, on an ecliptic tilted ~60° to the galactic plane, weave helical paths around its track.</p>
-    <ul>
-      <li data-t="env">Earth's conditions as the Galaxy moves — and what the view is centred on.</li>
-      <li data-t="simPanel">Set the pace, or send the piece to a scenario.</li>
-      <li data-t="reopen">Everything else lives behind this: what is drawn, the audio, the readouts.</li>
-      <li data-t="tInfo">This text again, with the notes on what is measured and what is modelled.</li>
-      <li data-t="gamebar">Drag a panel to the other side, or off its own edge to close it. The bar at the foot slides away downward.</li>
-    </ul>
+    <p style="margin:10px 0 0">The clock is stopped while you read. It starts when you do.</p>
     <button id="tourGo">Start watching</button>
   </div>
 </div>
@@ -663,12 +661,12 @@
   <div class="cnt birth" id="cBirth" style="display:none"><span id="lBirth">stars born</span><b id="nBirth">+0</b></div>
   <i class="brk"></i>
 </div>
-<button class="pdot" id="reopen" data-open="hud" aria-label="show control panel">+</button>
+<button class="pdot" id="reopen" data-open="hud" aria-label="show control panel"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.4a3.6 3.6 0 100 7.2 3.6 3.6 0 000-7.2zm9 3.6c0-.5 0-1-.1-1.5l2-1.5-2-3.4-2.3.9a7.8 7.8 0 00-2.6-1.5L15.6 2h-3.9l-.4 2.5c-.9.3-1.8.8-2.6 1.5L6.4 5.1l-2 3.4 2 1.5a9 9 0 000 3l-2 1.5 2 3.4 2.3-.9c.8.7 1.7 1.2 2.6 1.5l.4 2.5h3.9l.4-2.5c.9-.3 1.8-.8 2.6-1.5l2.3.9 2-3.4-2-1.5c.1-.5.1-1 .1-1.5z"/></svg></button>
 <button class="pdot act on" id="tPause" aria-label="pause"><svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><rect x="1.4" y="1" width="2.7" height="8"/><rect x="5.9" y="1" width="2.7" height="8"/></svg></button>
 <button class="pdot act" id="tInfo" aria-label="about">?</button>
-<button class="pdot" id="envPlus" data-open="env" aria-label="show the Earth panel">◍</button>
+<button class="pdot" id="envPlus" data-open="env" aria-label="show the Earth panel">−</button>
 <div class="env pnl simPanelWide" id="simPanel">
-  <button class="pclose" data-close="simPanel" aria-label="close">×</button>
+  <button class="pclose" data-close="simPanel" aria-label="close">−</button>
   <h2>Simulation</h2>
   <div class="row"><label for="speed">speed</label><input type="range" id="speed" min="0" max="1" step="0.001" value="1"><span id="speedv" style="min-width:64px;text-align:right;color:var(--ink)"></span><button class="stepb" data-step="speed:-0.05">−</button><button class="stepb" data-step="speed:0.05">+</button></div>
   <div class="row"><label for="multExp">× exp</label><input type="range" id="multExp" min="0" max="10" step="1" value="0"><span id="multExpv" style="min-width:44px;text-align:right;color:var(--ink)">×1</span><button class="stepb" data-step="multExp:-1">−</button><button class="stepb" data-step="multExp:1">+</button></div>
@@ -683,7 +681,7 @@
       <option value="10.1">After the merger (+5.5 Gyr)</option>
     </select><button class="rowbtn" id="jumpGo" title="apply the selected scenario and close the panel">GO</button></div>
 </div>
-<button class="pdot" id="simPlus" data-open="simPanel" title="simulation">◷</button>
+<button class="pdot" id="simPlus" data-open="simPanel" title="simulation">−</button>
 <div id="fpsBox" style="display:none"><span id="fpsVal">—</span></div>
 <div class="alertbox" id="iceBox">❄ GLACIAL EPOCH</div>
 <div class="alertbox" id="g710Box">☄ GLIESE 710 · <span id="eG710d">—</span></div>
@@ -709,7 +707,7 @@
 </div>
 <div class="note" id="scaleNote">view <em id="sScale">—</em> across</div>
 <div class="env" id="env">
-  <button id="envMin" aria-label="minimise the Earth panel">–</button>
+  <button class="pclose" id="envMin" data-close="env" aria-label="minimise the Earth panel">−</button>
   <h2>Earth</h2>
   <div class="er"><span>mean surface</span><b id="eMean">15.0 °C</b></div>
   <div class="er"><span>min / max</span><b><span id="eMin">−89</span> / <span id="eMax">57</span> °C</b></div>
@@ -731,7 +729,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.37.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.38.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2382,7 +2380,6 @@ $('focusGo').addEventListener('click', ()=>{
   }
   saveSettings();
 });
-$('envMin').addEventListener('click', ()=> setPanelOpen('env', false));
 // the status bar slides down to a grip and back up — by click or by an actual slide
 {
   const bar = $('gamebar'), grip = $('barGrip');
@@ -2447,8 +2444,8 @@ const PANELS = [
 // panel wins an overlap and sits on top.
 let openSeq = 0;
 const pState = {
-  simPanel:{ s:'r', o:true,  auto:false, seq:++openSeq },
   env:     { s:'l', o:true,  auto:false, seq:++openSeq },
+  simPanel:{ s:'r', o:false, auto:false, seq:0 },
   hud:     { s:'r', o:false, auto:false, seq:0 },
 };
 const panelShown = id => pState[id].o && !pState[id].auto;
@@ -2565,8 +2562,6 @@ for(const p of PANELS){
   el.addEventListener('pointercancel', finish);
   el.addEventListener('pointerleave', finish);
 }
-document.querySelectorAll('.pclose').forEach(b =>
-  b.addEventListener('click', () => setPanelOpen(b.dataset.close, false)));
 // only the dots that stand for a panel reopen one; pause and help share the dock's
 // look but carry their own actions
 document.querySelectorAll('.pdot[data-open]').forEach(b =>
@@ -2975,43 +2970,93 @@ if(location.protocol.startsWith('http') && 'serviceWorker' in navigator){
   addEventListener('load', ()=> navigator.serviceWorker.register('sw.js').catch(()=>{}));
 }
 $('collapse').addEventListener('click', ()=> setPanelOpen('hud', false));
+document.querySelectorAll('.pclose[data-close]').forEach(b =>
+  b.addEventListener('click', () => setPanelOpen(b.dataset.close, false)));
 // ---------- the first run ----------
 // A guided look at what is on screen, drawn with a line from each line of text to the
 // thing it names. It is shown once, and only to a visitor who has no saved settings —
 // somebody returning has already met the interface.
 const TOURKEY = 'galactic-transit.tour';
+// Each hint is a small box of its own, set beside the thing it names with a short
+// line between the two — the way a wizard points at an interface rather than
+// describing it from a distance.
+const TOUR_HINTS = [
+  { t:'env',      k:'Earth',      s:"Conditions on Earth as the Galaxy carries it, and what the view is centred on." },
+  { t:'simPanel', k:'Simulation', s:"The pace of the clock, and the scenarios worth watching." },
+  { t:'hud',      k:'Settings',   s:"Everything else: what is drawn, the audio, the readouts." },
+  { t:'tInfo',    k:'About',      s:"This text again, with the notes on what is measured and what is modelled." },
+  { t:'gamebar',  k:'Readouts',   s:"Drag a panel to the other side, or off its edge to close it. This bar slides away downward." },
+];
+// a closed panel is represented by its dot, which is what the visitor can actually see
+function tourTarget(id){
+  const el = $(id);
+  if(el && getComputedStyle(el).display !== 'none' && el.style.visibility !== 'hidden') return el;
+  const pan = PANELS.find(q => q.id === id);
+  const dot = pan && $(pan.dot);
+  return (dot && getComputedStyle(dot).display !== 'none') ? dot : null;
+}
 function drawTourLines(){
-  const svg = $('tourSvg'), card = $('tourCard').getBoundingClientRect();
-  svg.innerHTML = '';
-  const ns = 'http://www.w3.org/2000/svg';
-  for(const li of $('tourCard').querySelectorAll('li[data-t]')){
-    const tgt = $(li.dataset.t);
-    if(!tgt || getComputedStyle(tgt).display === 'none') continue;
-    const r = tgt.getBoundingClientRect(), b = li.getBoundingClientRect();
+  const svg = $('tourSvg'), host = $('tourHints');
+  const card = $('tourCard').getBoundingClientRect();
+  svg.innerHTML = ''; host.innerHTML = '';
+  const ns = 'http://www.w3.org/2000/svg', W = innerWidth, H = innerHeight, GAP = 18;
+  const placed = [card];
+  const clash = r => placed.some(q => r.left < q.right+8 && q.left < r.right+8 &&
+                                      r.top < q.bottom+8 && q.top < r.bottom+8);
+  for(const h of TOUR_HINTS){
+    const tgt = tourTarget(h.t);
+    if(!tgt) continue;
+    const r = tgt.getBoundingClientRect();
     if(!r.width && !r.height) continue;
-    // leave the card from whichever flank faces the target, land on its near edge
-    const toRight = r.left + r.width/2 > card.left + card.width/2;
-    const x1 = toRight ? card.right + 2 : card.left - 2, y1 = b.top + b.height/2;
-    const x2 = toRight ? r.left : r.right, y2 = r.top + Math.min(r.height/2, 22);
+    const box = document.createElement('div');
+    box.className = 'hint';
+    box.innerHTML = '<b>' + h.k + '</b>' + h.s;
+    host.appendChild(box);
+    const bw = box.offsetWidth, bh = box.offsetHeight;
+    // beside the target, on the side with room; below it when it spans the width
+    const wide = r.width > W*0.6;
+    let x = wide ? Math.min(Math.max(r.left, 14), W-bw-14)
+                 : (r.left + r.width/2 < W/2 ? r.right + GAP : r.left - GAP - bw);
+    let y = wide ? (r.top > H/2 ? r.top - GAP - bh : r.bottom + GAP)
+                 : r.top + Math.min(r.height/2, 24) - bh/2;
+    x = Math.min(Math.max(x, 14), W - bw - 14);
+    y = Math.min(Math.max(y, 14), H - bh - 14);
+    let cand = { left:x, top:y, right:x+bw, bottom:y+bh };
+    for(let n = 0; n < 8 && clash(cand); n++){       // nudge clear of what is already down
+      y += bh + 10;
+      if(y + bh > H - 14) y = 14;
+      cand = { left:x, top:y, right:x+bw, bottom:y+bh };
+    }
+    box.style.left = cand.left + 'px'; box.style.top = cand.top + 'px';
+    placed.push(cand);
+    // the connector runs from the hint's near flank to the target's
+    const fromRight = cand.left > r.left;
+    const x1 = fromRight ? cand.left : cand.right, y1 = cand.top + bh/2;
+    const x2 = fromRight ? Math.min(r.right, x1) : Math.max(r.left, x1);
+    const y2 = r.top + Math.min(r.height/2, 24);
     const mid = (x1 + x2)/2;
     const path = document.createElementNS(ns,'path');
     path.setAttribute('d', `M ${x1} ${y1} C ${mid} ${y1} ${mid} ${y2} ${x2} ${y2}`);
     path.setAttribute('fill','none');
-    path.setAttribute('stroke','rgba(95,216,255,.55)');
+    path.setAttribute('stroke','rgba(95,216,255,.6)');
     path.setAttribute('stroke-width','1.2');
     svg.appendChild(path);
-    const dot = document.createElementNS(ns,'circle');
-    dot.setAttribute('cx', x2); dot.setAttribute('cy', y2); dot.setAttribute('r','3.5');
-    dot.setAttribute('fill','rgb(95,216,255)');
-    svg.appendChild(dot);
+    const d = document.createElementNS(ns,'circle');
+    d.setAttribute('cx', x2); d.setAttribute('cy', y2); d.setAttribute('r','3.5');
+    d.setAttribute('fill','rgb(95,216,255)');
+    svg.appendChild(d);
   }
 }
+let tourHeldClock = false;
 function showTour(){
   $('tour').style.display = 'flex';
+  if(!paused){ tourHeldClock = true; $('tPause').click(); }   // nothing moves while you read
   requestAnimationFrame(()=> requestAnimationFrame(drawTourLines));
 }
 $('tourGo').addEventListener('click', ()=>{
   $('tour').style.display = 'none';
+  if(tourHeldClock && paused) $('tPause').click();            // and starts when you do
+  tourHeldClock = false;
   try{ localStorage.setItem(TOURKEY, '1'); }catch(e){}
 });
 $('tourAgain').addEventListener('click', ()=>{ $('infoModal').style.display='none'; showTour(); });

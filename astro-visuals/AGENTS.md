@@ -72,8 +72,12 @@ built it.
   newest opened wins — z-index follows open order — and the oldest yields, coming back
   by itself once the crowding lifts. A panel the visitor closed stays closed.
   Pause and help (?) stand at the end of the right column's dock, icon only.
-- A first visit is met by a guided overlay that draws a line from each line of text to
-  the thing it names, closable only by its button and shown once (the About dialog can
+- Panels close with a "−" and leave a "−" button behind; only Settings is marked, by a
+  gear. The piece opens with Earth showing and Simulation and Settings folded to their
+  buttons.
+- A first visit is met by a guided overlay: a card in the middle and a hint box pinned
+  beside each thing it names, joined by a short line, over an unblurred sky. It holds
+  the clock while it is up and starts it on the way out, closable only by its button and shown once (the About dialog can
   replay it). The "Sun orbits…" intro lives in the overlay and the About dialog; the
   settings dialog carries only its title and version.
 - The left column stacks Focus, Earth and the frames-per-second box in that order,
