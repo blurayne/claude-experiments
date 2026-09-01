@@ -77,6 +77,7 @@ built it.
   buttons. The tour card carries the version, build stamp and hash.
 - A 3-tap reset clears the saved settings but keeps the debug flag: debug is a mode you
   are in, not a setting you tuned.
+- Dialogs keep their title and close control fixed while their body scrolls.
 - A first visit is met by a guided overlay: a card in the middle and a hint box pinned
   beside each thing it names, joined by a short line, over an unblurred sky. It holds
   the clock while it is up and starts it on the way out, closable only by its button and shown once (the About dialog can

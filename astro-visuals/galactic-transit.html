@@ -205,7 +205,8 @@
   .hint b{display:block;font-family:'Orbitron',ui-monospace,monospace;font-size:8.5px;
     letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-bottom:3px}
   #tourSvg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-  #tourCard{position:relative;width:min(430px,100%);background:var(--panel);border:1px solid var(--line);
+  #tourCard{position:relative;width:min(430px,100%);max-height:88vh;overflow-y:auto;
+    background:var(--panel);border:1px solid var(--line);
     border-top:1px solid rgba(95,216,255,.55);border-radius:3px;padding:18px 20px;
     box-shadow:0 0 44px rgba(95,216,255,.12);font-size:11.5px;line-height:1.6;color:var(--dim);letter-spacing:.03em}
   #tourCard h2{font-family:'Orbitron',ui-monospace,monospace;font-size:12px;letter-spacing:.24em;
@@ -217,10 +218,20 @@
   #tourBuild{margin-top:9px;text-align:center;font-size:8.5px;letter-spacing:.1em;
     color:var(--dim);opacity:.75}
   .intro{margin:0 0 4px;color:var(--dim)}
-  .info-card{position:relative;width:min(560px, 100%);max-height:82vh;overflow-y:auto;background:var(--panel);
+  @media (max-width:620px){
+    .hint{width:150px;font-size:9.5px;padding:6px 8px}
+    #tourCard{font-size:10.5px;padding:14px 15px}
+    #tourCard .intro{font-size:10px}
+  }
+  /* a short screen cannot hold the whole card and five hints at once: the card gives
+     up the height and scrolls, since it is the one thing the visitor can scroll */
+  @media (max-height:790px){ #tourCard{max-height:44vh} }
+  .info-card{position:relative;width:min(560px, 100%);max-height:82vh;overflow:hidden;
+    display:flex;flex-direction:column;background:var(--panel);
     border:1px solid var(--line);border-top:1px solid rgba(95,216,255,.55);border-radius:3px;padding:20px 22px;backdrop-filter:blur(10px);
     -webkit-backdrop-filter:blur(10px);box-shadow:0 0 44px rgba(95,216,255,.10);font-size:11.5px;line-height:1.65;color:var(--dim);letter-spacing:.03em}
-  .info-card h2{font-family:'Orbitron',ui-monospace,monospace;font-size:12px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;text-shadow:0 0 12px var(--glow)}
+  .info-body{overflow-y:auto;min-height:0;flex:1}
+  .info-card h2{flex:none;font-family:'Orbitron',ui-monospace,monospace;font-size:12px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;text-shadow:0 0 12px var(--glow)}
   .info-card h3{font-family:'Orbitron',ui-monospace,monospace;font-size:9px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--accent2);margin:16px 0 6px}
   .info-card b{color:var(--ink)}
   .info-card ul{margin:0;padding-left:16px}
@@ -405,7 +416,13 @@
   <div id="tourHints"></div>
   <div id="tourCard">
     <h2>Galactic Transit</h2>
-    <p class="intro">The Sun orbits the Milky Way's core at ~230 km/s. The planets, on an ecliptic tilted ~60° to the galactic plane, weave helical paths around its track.</p>
+    <p class="intro">This is where the solar system actually goes. Not a diagram of the planets, but the path
+      they take through the Milky Way: the Sun on its 225-million-year orbit, the planets winding around that
+      track, half a million real stars from <b>Gaia DR3</b> around them, and the Galaxy's own shape behind.
+      It was built to make that motion visible, and to be as accurate as a browser allows — where a model
+      stands in for a measurement, the piece says so rather than hoping you will not ask.</p>
+    <p class="intro">The Sun orbits the Milky Way's core at ~230 km/s. The planets, on an ecliptic tilted ~60°
+      to the galactic plane, weave helical paths around its track.</p>
     <p style="margin:10px 0 0">The clock is stopped while you read. It starts when you do.</p>
     <button id="tourGo">Start watching</button>
     <div id="tourBuild">—</div>
@@ -416,7 +433,14 @@
     <button id="infoFull" aria-label="toggle fullscreen">⛶</button>
     <button id="infoClose" aria-label="close">×</button>
     <h2>About &amp; Stats <span class="ver" id="verInfo"></span></h2>
-    <p class="intro">The Sun orbits the Milky Way's core at ~230 km/s. The planets, on an ecliptic tilted ~60° to the galactic plane, weave helical paths around its track.</p>
+    <div class="info-body">
+    <p class="intro">This is where the solar system actually goes. Not a diagram of the planets, but the path
+      they take through the Milky Way: the Sun on its 225-million-year orbit, the planets winding around that
+      track, half a million real stars from <b>Gaia DR3</b> around them, and the Galaxy's own shape behind.
+      It was built to make that motion visible, and to be as accurate as a browser allows — where a model
+      stands in for a measurement, the piece says so rather than hoping you will not ask.</p>
+    <p class="intro">The Sun orbits the Milky Way's core at ~230 km/s. The planets, on an ecliptic tilted ~60°
+      to the galactic plane, weave helical paths around its track.</p>
     <button class="rowbtn" id="tourAgain" style="margin-bottom:12px">show the tour again</button>
     <div class="stats" style="margin-top:0;padding-top:0;border-top:0">
       elapsed <b id="yrs">0.0</b> yr &nbsp;·&nbsp; galactic lap <b id="pct">0.000</b>%<br>
@@ -652,6 +676,7 @@
       length, plus a thicker, older, yellower second disk at ~3&times; the scale height — the thin/thick
       disk structure Gaia confirmed.</li>
     </ul>
+    </div>
   </div>
 </div>
 
@@ -732,7 +757,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.39.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.40.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -3028,17 +3053,41 @@ function drawTourLines(){
     const bw = box.offsetWidth, bh = box.offsetHeight;
     // beside the target, on the side with room; below it when it spans the width
     const wide = r.width > W*0.6;
-    let x = wide ? Math.min(Math.max(r.left, 14), W-bw-14)
-                 : (r.left + r.width/2 < W/2 ? r.right + GAP : r.left - GAP - bw);
+    const onLeft = r.left + r.width/2 < W/2;
+    // On a narrow screen a hint set beside its target leaves the two columns
+    // overlapping, and then no two hints may share a row. Pinned to the edges they
+    // clear each other, and the connector still says which is which.
+    const tight = W < 620;
+    let x = tight ? (onLeft ? 14 : W - bw - 14)
+          : wide  ? Math.min(Math.max(r.left, 14), W-bw-14)
+                  : (onLeft ? r.right + GAP : r.left - GAP - bw);
     let y = wide ? (r.top > H/2 ? r.top - GAP - bh : r.bottom + GAP)
                  : r.top + Math.min(r.height/2, 24) - bh/2;
     x = Math.min(Math.max(x, 14), W - bw - 14);
     y = Math.min(Math.max(y, 14), H - bh - 14);
+    // Look over the whole column rather than stepping downward and giving up: on a
+    // narrow screen the free room is in the bands above and below the card, which a
+    // one-directional walk never reaches. Candidates are tried nearest-first, so a
+    // hint stays beside its target when it can and travels only as far as it must.
     let cand = { left:x, top:y, right:x+bw, bottom:y+bh };
-    for(let n = 0; n < 8 && clash(cand); n++){       // nudge clear of what is already down
-      y += bh + 10;
-      if(y + bh > H - 14) y = 14;
-      cand = { left:x, top:y, right:x+bw, bottom:y+bh };
+    if(clash(cand)){
+      // the other flank as well as the other height: with two columns of hints on a
+      // narrow screen, a free row often exists only on the side the hint did not want
+      const xAlt = tight ? (onLeft ? W - bw - 14 : 14)
+        : Math.min(Math.max(wide ? W - bw - 14
+                    : (x > r.left ? r.left - GAP - bw : r.right + GAP), 14), W - bw - 14);
+      const lo = 14, hi = Math.max(lo, H - bh - 14), slots = [];
+      for(let yy = lo; yy <= hi; yy += 8) slots.push(yy);
+      slots.sort((a,b)=> Math.abs(a-y) - Math.abs(b-y));
+      let found = null;
+      for(const xx of (xAlt === x ? [x] : [x, xAlt])){
+        for(const yy of slots){
+          const c2 = { left:xx, top:yy, right:xx+bw, bottom:yy+bh };
+          if(!clash(c2)){ found = c2; break; }
+        }
+        if(found) break;
+      }
+      if(found) cand = found;
     }
     box.style.left = cand.left + 'px'; box.style.top = cand.top + 'px';
     placed.push(cand);
@@ -3063,11 +3112,15 @@ function drawTourLines(){
 let tourHeldClock = false;
 function showTour(){
   $('tour').style.display = 'flex';
+  // on a narrow screen the panel and the hints cannot both have the corner: the panel
+  // steps aside for the tour, and the tour hands it back on the way out
+  if(innerWidth < 760 || innerHeight > innerWidth) setPanelOpen('env', false);
   if(!paused){ tourHeldClock = true; $('tPause').click(); }   // nothing moves while you read
   requestAnimationFrame(()=> requestAnimationFrame(drawTourLines));
 }
 $('tourGo').addEventListener('click', ()=>{
   $('tour').style.display = 'none';
+  setPanelOpen('env', true);                                 // the readings are the default view
   if(tourHeldClock && paused) $('tPause').click();            // and starts when you do
   tourHeldClock = false;
   try{ localStorage.setItem(TOURKEY, '1'); }catch(e){}
