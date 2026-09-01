@@ -241,6 +241,16 @@
   .info-card b{color:var(--ink)}
   .info-card ul{margin:0;padding-left:16px}
   .info-card li{margin-bottom:7px}
+  .evo-wrap{overflow-x:auto;margin:4px 0 2px;border:1px solid var(--line);border-radius:3px;-webkit-overflow-scrolling:touch}
+  .evo-table{border-collapse:collapse;width:100%;min-width:820px;font-size:10px;line-height:1.5}
+  .evo-table th,.evo-table td{padding:6px 8px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);white-space:normal}
+  .evo-table th{position:sticky;top:0;background:var(--panel);color:var(--accent2);font-family:'Orbitron',ui-monospace,monospace;
+    font-size:8.5px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap}
+  .evo-table td:first-child{color:var(--ink);min-width:150px}
+  .evo-table td:last-child{min-width:190px}
+  .evo-table tr:last-child td{border-bottom:0}
+  .evo-table tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+  .evo-age{color:var(--dim);font-size:9px}
   #infoClose{position:absolute;top:10px;right:12px;background:none;border:0;color:var(--dim);cursor:pointer;
     font-size:16px;font-family:inherit}
   #infoFull{position:absolute;top:10px;right:36px;background:none;border:0;color:var(--dim);cursor:pointer;
@@ -649,6 +659,42 @@
     visibly slows as the orbit widens. Once the remnant has relaxed there are no laps left to count at all:
     an ordered circular orbit has become a random one, so the counter gives way to the reading that still
     means something, the Sun's distance from the centre.</p>
+    <h3>Earth across deep time</h3>
+    <p>A fuller picture than the live <b>Earth panel</b> attempts: named milestones from the first amino acids
+    to the oceans boiling away, with the atmosphere, pressure and UV/radiation environment estimated for each.
+    The panel's own temperature is a simplified continuous model &mdash; explicitly not a climate model, right
+    order of magnitude rather than a forecast &mdash; while this table gives specific, independently sourced
+    estimates at each point. The two will not always agree to the degree; both are honest about being
+    estimates, not measurements.</p>
+    <div class="evo-wrap"><table class="evo-table">
+      <thead><tr><th>Milestone</th><th>Temp min/max (avg)</th><th>Sun strength</th>
+        <th>Radiation &amp; UV</th><th>Pressure</th><th>Atmosphere</th><th>Note</th></tr></thead>
+      <tbody>
+      <tr><td>Formation of amino acids<br><span class="evo-age">~4.0 Gyr ago</span></td><td>20&nbsp;/&nbsp;100&nbsp;°C<br>(avg ~60&nbsp;°C)</td><td>~70&ndash;75%</td><td>Extremely high UV (no ozone layer); strong young solar wind; high cosmic radiation.</td><td>1&ndash;3 bar</td><td>CO₂, H₂O vapour, N₂, traces of CO, CH₄, NH₃; no free O₂.</td><td>Prebiotic chemistry; formation of organic building blocks.</td></tr>
+      <tr><td>First cells (prokaryotes)<br><span class="evo-age">~3.5&ndash;3.8 Gyr ago</span></td><td>30&nbsp;/&nbsp;80&nbsp;°C<br>(avg ~55&nbsp;°C)</td><td>~75&ndash;78%</td><td>Very high UV; intense cosmic-ray background; almost no protection.</td><td>1&ndash;2 bar</td><td>Mostly CO₂ and N₂, traces of CH₄; O₂ &lt;0.001%.</td><td>Life begins in sheltered niches (e.g. hydrothermal vents).</td></tr>
+      <tr><td>Great Oxidation Event<br><span class="evo-age">~2.4&ndash;2.1 Gyr ago</span></td><td>10&nbsp;/&nbsp;30&nbsp;°C<br>(avg ~15&ndash;20&nbsp;°C)</td><td>~80&ndash;85%</td><td>Early UV protection from the first ozone; initially extreme global cooling.</td><td>~1&ndash;1.5 bar</td><td>Free O₂ rising sharply (1&ndash;2%), CO₂ and methane declining, N₂ dominant.</td><td>The methane greenhouse collapses; first global "Snowball Earth" phases.</td></tr>
+      <tr><td>First fish in the water<br><span class="evo-age">~500&ndash;530 Myr ago · Cambrian</span></td><td>18&nbsp;/&nbsp;35&nbsp;°C<br>(avg ~24&nbsp;°C)</td><td>~95%</td><td>High UV on land; damped in water by depth and the early ozone layer.</td><td>~1 bar</td><td>N₂ ~80%, O₂ ~10&ndash;15%, CO₂ ~0.3&ndash;0.6%.</td><td>Cambrian explosion of species diversity in the oceans.</td></tr>
+      <tr><td>First plants (land plants)<br><span class="evo-age">~470 Myr ago · Ordovician</span></td><td>15&nbsp;/&nbsp;30&nbsp;°C<br>(avg ~22&nbsp;°C)</td><td>~95&ndash;96%</td><td>UV markedly declining as the ozone layer builds; normal cosmic radiation.</td><td>~1 bar</td><td>N₂ ~75&ndash;80%, O₂ ~15&ndash;20%, CO₂ ~0.2&ndash;0.5%.</td><td>Mosses and ferns are first to take the land.</td></tr>
+      <tr><td>First land animals (arthropods)<br><span class="evo-age">~430 Myr ago · Silurian</span></td><td>16&nbsp;/&nbsp;28&nbsp;°C<br>(avg ~20&nbsp;°C)</td><td>~96%</td><td>Moderate UV; a working ozone layer makes land life possible.</td><td>~1 bar</td><td>N₂ ~78%, O₂ ~15&ndash;20%, CO₂ ~0.1&ndash;0.3%.</td><td>First arthropods (millipedes, scorpions) colonise land.</td></tr>
+      <tr><td>The great mass extinction<br><span class="evo-age">end-Permian, ~252 Myr ago</span></td><td>20&nbsp;/&nbsp;40&nbsp;°C<br>(avg ~25&ndash;30&nbsp;°C)</td><td>~97&ndash;98%</td><td>High UV (ozone collapse from volcanic gases — the Siberian Traps).</td><td>~0.8&ndash;1 bar</td><td>Massive CO₂ spike, drastic ocean-oxygen loss, large methane release.</td><td>Earth's largest mass extinction — ~90% of species wiped out.</td></tr>
+      <tr><td>First mammals<br><span class="evo-age">~210 Myr ago · late Triassic</span></td><td>12&nbsp;/&nbsp;35&nbsp;°C<br>(avg ~21&nbsp;°C)</td><td>~98%</td><td>Cosmic-ray background near today's; stable UV protection.</td><td>~0.9&ndash;1.1 bar</td><td>N₂ ~70&ndash;75%, O₂ ~15&ndash;20%, CO₂ ~0.1&ndash;0.2% (1000&ndash;2000 ppm).</td><td>First small, often nocturnal mammals appear in the dinosaurs' shadow.</td></tr>
+      <tr><td>Jurassic &amp; Cretaceous<br><span class="evo-age">~201&ndash;66 Myr ago</span></td><td>18&nbsp;/&nbsp;32&nbsp;°C<br>(avg ~22&ndash;25&nbsp;°C)</td><td>~98&ndash;99%</td><td>Stable planetary UV protection; very stable cosmic-ray background.</td><td>~1 bar</td><td>N₂ ~70&ndash;75%, O₂ ~20&ndash;25%, CO₂ strongly elevated (~1000&ndash;2000+ ppm).</td><td>Warm greenhouse climate; the dinosaurs' heyday and the rise of flowering plants.</td></tr>
+      <tr><td>1 Myr after the dinosaurs died out<br><span class="evo-age">early Paleocene, ~65 Myr ago</span></td><td>20&nbsp;/&nbsp;30&nbsp;°C<br>(avg ~24&nbsp;°C)</td><td>~99%</td><td>UV protection recovered; rapid biological regeneration as ozone recovers.</td><td>~1 bar</td><td>N₂ ~78%, O₂ ~20&ndash;21%, CO₂ spiking from the impact and volcanism.</td><td>Rapid adaptive radiation and the rise of mammals after the extinction.</td></tr>
+      <tr><td>Paleocene&ndash;Eocene Thermal Maximum<br><span class="evo-age">~56 Myr ago</span></td><td>25&nbsp;/&nbsp;38&nbsp;°C<br>(avg ~28&ndash;30&nbsp;°C)</td><td>~99%</td><td>Normal planetary UV protection.</td><td>~1 bar</td><td>CO₂ and methane strongly elevated; O₂ stable (~20&ndash;21%).</td><td>The Cenozoic's hottest climate; severe ocean acidification.</td></tr>
+      <tr><td>Antarctic glaciation<br><span class="evo-age">Eocene&ndash;Oligocene transition, ~34 Myr ago</span></td><td>10&nbsp;/&nbsp;20&nbsp;°C<br>(avg ~14&nbsp;°C)</td><td>~99%</td><td>Normal planetary UV protection.</td><td>~1 bar</td><td>CO₂ falling (~500&ndash;700 ppm), O₂ ~21%.</td><td>Earth turns from "greenhouse" to "icehouse"; the Antarctic ice cap forms.</td></tr>
+      <tr><td>Start of the Quaternary ice age<br><span class="evo-age">~2.6 Myr ago</span></td><td>5&nbsp;/&nbsp;18&nbsp;°C<br>(avg ~10&nbsp;°C)</td><td>~99.8%</td><td>Normal planetary UV protection.</td><td>~1 bar</td><td>Low CO₂ (~200&ndash;300 ppm), O₂ ~21%.</td><td>The glacial/interglacial cycle begins; Northern-Hemisphere ice sheets form.</td></tr>
+      <tr><td>Last cold period<br><span class="evo-age">Last Glacial Maximum, ~20,000 yr ago</span></td><td>&minus;10&nbsp;/&nbsp;20&nbsp;°C<br>(avg ~8&ndash;9&nbsp;°C)</td><td>~100%</td><td>Normal planetary UV protection.</td><td>~1 bar</td><td>Very low CO₂ (~180&ndash;200 ppm), O₂ ~21%.</td><td>Peak of the recent ice age; vast ice sheets, sea level ~120&nbsp;m lower.</td></tr>
+      <tr><td>Today<br><span class="evo-age">present</span></td><td>&minus;89&nbsp;/&nbsp;57&nbsp;°C<br>(avg ~15&nbsp;°C)</td><td>100%</td><td>Standard protection from an intact ozone layer; normal cosmic-ray background.</td><td>1 bar (1013 hPa)</td><td>N₂ 78.08%, O₂ 20.95%, Ar 0.93%, CO₂ ~425 ppm, water vapour variable.</td><td>Anthropocene: rapid global change driven by human activity.</td></tr>
+      <tr><td>Future: +1 Myr<br><span class="evo-age">near future</span></td><td>12&nbsp;/&nbsp;18&nbsp;°C<br>(avg ~15&nbsp;°C)</td><td>100.01%</td><td>Stable planetary UV protection from the ozone layer.</td><td>~1 bar</td><td>N₂ ~78%, O₂ ~21%, CO₂ settling back down after human influence.</td><td>Anthropocene aftermath; new evolutionary speciation begins.</td></tr>
+      <tr><td>Future: +5 Myr<br><span class="evo-age">mid future</span></td><td>14&nbsp;/&nbsp;19&nbsp;°C<br>(avg ~16&nbsp;°C)</td><td>100.05%</td><td>Stable UV protection.</td><td>~1 bar</td><td>N₂ ~78%, O₂ ~21%, CO₂ on its natural long-term trend.</td><td>First effects of continental drift and reshaped ocean basins become noticeable.</td></tr>
+      <tr><td>Future: +10 Myr<br><span class="evo-age">late future</span></td><td>15&nbsp;/&nbsp;20&nbsp;°C<br>(avg ~16.5&nbsp;°C)</td><td>100.10%</td><td>Standard protection.</td><td>~1 bar</td><td>N₂ ~78%, O₂ ~20&ndash;21%, CO₂ stable.</td><td>Mammal and bird lineages diversify into new ecological niches.</td></tr>
+      <tr><td>Future: +16 Myr<br><span class="evo-age">end of the near horizon</span></td><td>16&nbsp;/&nbsp;21&nbsp;°C<br>(avg ~17&nbsp;°C)</td><td>100.16%</td><td>Standard protection.</td><td>~1 bar</td><td>N₂ ~78%, O₂ ~20&ndash;21%, CO₂ on its slow long-term trend.</td><td>A 0.16%-brighter Sun lifts temperatures slightly; polar ice shrinks each summer.</td></tr>
+      <tr><td>Future: +500 Myr<br><span class="evo-age">collapse of the biosphere</span></td><td>20&nbsp;/&nbsp;60&nbsp;°C<br>(avg ~40&nbsp;°C)</td><td>~105%</td><td>Rising UV exposure; a markedly aging Sun.</td><td>~1 bar</td><td>CO₂ collapses (&lt;10 ppm), O₂ falls sharply, N₂ dominates.</td><td>Photosynthesis fails as CO₂ runs out: the end of higher land plants and animals.</td></tr>
+      <tr><td>Future: +1 Gyr<br><span class="evo-age">oceans evaporate</span></td><td>50&nbsp;/&nbsp;120&nbsp;°C<br>(avg ~80&nbsp;°C)</td><td>~110%</td><td>High solar radiation; a moist greenhouse effect.</td><td>~1.5&ndash;2 bar</td><td>Water vapour and CO₂ rising sharply, almost no free O₂ left, N₂.</td><td>End of multicellular life: the oceans begin to boil; only deep extremophile microbes remain.</td></tr>
+      <tr><td>Future: +1.5 Gyr<br><span class="evo-age">tectonics stall</span></td><td>100&nbsp;/&nbsp;250&nbsp;°C<br>(avg ~170&nbsp;°C)</td><td>~115%</td><td>Extreme solar radiation; the ozone layer long gone.</td><td>~2&ndash;3 bar</td><td>Dominated by water vapour and CO₂.</td><td>No liquid water left to drive the water cycle or plate tectonics: they stop.</td></tr>
+      <tr><td>Future: +2 Gyr<br><span class="evo-age">greenhouse hell</span></td><td>200&nbsp;/&nbsp;450&nbsp;°C<br>(avg ~300&nbsp;°C)</td><td>~120%</td><td>Extreme UV and hard solar radiation.</td><td>~3&ndash;5 bar</td><td>A dense atmosphere of water vapour, CO₂ and nitrogen.</td><td>Complete sterility: a parched, scorched world — the oceans are long gone.</td></tr>
+      </tbody>
+    </table></div>
     <h3>What's real, what's modeled</h3>
     <ul>
       <li>Planets are <b>not dragged behind the Sun</b> — the viral "vortex" video is wrong. With the 60° tilt
@@ -817,7 +863,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.44.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.45.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2306,7 +2352,8 @@ function lifeState(){
   if(solar > h){ h = solar; why = a > 6.0 ? 'oceans boiled off' : 'the Sun is brightening'; }
   const rad = Math.min(1, Math.max(0, (sfrFactor(a)*e.cr - 1.8)/3.6));
   if(rad > h){ h = rad; why = 'supernovae & cosmic rays'; }
-  return { h, why, label: h > 0.75 ? 'uninhabitable' : h > 0.33 ? 'endangered' : 'habitable' };
+  return { h, why, label: h > 0.75 ? 'uninhabitable' : h > 0.33 ? 'endangered'
+                        : h > 0.05 ? 'habitable' : 'excellent' };
 }
 
 // ---------- stellar life cycle: birth, death, supernovae ----------
@@ -3772,6 +3819,25 @@ function resize(){
   makeHDR();
 }
 addEventListener('resize', ()=>{ resize(); fitPanels(); }); resize();
+
+// Android in particular keeps a backgrounded tab's timers running, silently burning
+// battery and data. The Page Visibility API is the one signal every platform reports
+// reliably for this — unlike blur/focus, which also fire for things like opening a
+// <select> or a devtools panel, so those are deliberately not used here.
+let hiddenPausedSim = false, hiddenPausedMusic = false, hiddenSuspendedAudio = false;
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden){
+    if(!paused){ $('tPause').click(); hiddenPausedSim = true; }
+    if(musicOn && !player.paused){ player.pause(); hiddenPausedMusic = true; }
+    if(audio && audio.ctx.state === 'running'){ audio.ctx.suspend().catch(()=>{}); hiddenSuspendedAudio = true; }
+  } else {
+    // only undo what this handler itself did — a visitor who paused by hand before
+    // switching away must come back to a paused scene, not a resumed one
+    if(hiddenPausedSim){ $('tPause').click(); hiddenPausedSim = false; }
+    if(hiddenPausedMusic){ player.play().catch(()=>armUnlock()); hiddenPausedMusic = false; }
+    if(hiddenSuspendedAudio){ audio.ctx.resume().catch(()=>{}); hiddenSuspendedAudio = false; }
+  }
+});
 
 // ---------- main loop ----------
 gl.disable(gl.DEPTH_TEST);

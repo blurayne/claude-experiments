@@ -181,3 +181,24 @@ default 0.72) is the knee; at 1.0 it reads "off" and the direct-to-screen path i
 is also the fallback when `EXT_color_buffer_float` is missing. `makeHDR()` must be called from
 `resize()` — the target has to track the drawing buffer. Any new draw call belongs before the resolve;
 anything added after it lands on the tone-mapped image instead of inside it.
+
+## Background handling and the deep-time table (v2.45.0)
+
+`document.addEventListener('visibilitychange', ...)` is the only backgrounding signal used —
+never blur/focus, which also fire for a `<select>` or devtools losing focus and would
+false-pause constantly. It only undoes what it itself did: `hiddenPausedSim` /
+`hiddenPausedMusic` / `hiddenSuspendedAudio` track that, so a visitor who paused by hand
+before switching away comes back to a paused scene, not a resumed one. This matters most on
+Android, which otherwise keeps a backgrounded tab's rAF and Web Audio graph running.
+
+`lifeState()` gained a fourth tier, 'excellent', for hazard below 0.05 — below where
+'habitable' already started. The colour ramp in `setStateColour` is continuous in `h` and
+needed no change; only the label boundary moved.
+
+The "Earth across deep time" table in the About dialog (`.evo-table`, wrapped in `.evo-wrap`
+for horizontal scroll on narrow screens) is a discrete, independently sourced reference —
+23 named milestones with their own temperature/pressure/atmosphere estimates. It is
+deliberately not wired into `environment()`: the live model is a simplified continuous
+function of solar luminosity and cosmic-ray proximity, and reconciling it against 23
+discrete points would mean fabricating an interpolation neither source actually supports.
+The intro paragraph says so, so the two are never presented as the same claim.
