@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.33.1 — 2026-09-01
+
+- A scenario sets its own pace, even at boot (`212fd9b`)
+
 ### 2.33.0 — 2026-08-31
 
 - Temperatures carry their own colour, and the panels move (`128bcb9`)
