@@ -79,10 +79,11 @@
     transition:max-height .26s ease, opacity .18s ease}
   .sbody.closed{max-height:0;opacity:0;pointer-events:none}
   @keyframes panelIn{ from{opacity:0;transform:translateY(-7px)} to{opacity:1;transform:none} }
-  .hud, .env, .alertbox, #dbgCard{ animation:panelIn .22s ease both }
+  .alertbox, #dbgCard{ animation:panelIn .22s ease both }
+  .pop{ animation:panelIn .22s ease }
   @media (prefers-reduced-motion: reduce){
     .sbody{transition:none}
-    .hud, .env, .alertbox, #dbgCard{ animation:none }
+    .alertbox, #dbgCard, .pop{ animation:none }
   }
   .actsep{border:0;border-top:1px solid var(--line);margin:12px 0 10px}
   /* a reading you glance at, not a panel you read: no frame, no caption */
@@ -208,9 +209,19 @@
   #infoFull:hover,#infoClose:hover{color:var(--accent)}
   #collapse{position:absolute;top:10px;right:10px;background:none;border:0;color:var(--dim);cursor:pointer;font-size:13px;font-family:inherit}
   #envMin{position:absolute;top:6px;right:8px;background:none;border:0;color:var(--dim);cursor:pointer;font-size:13px;font-family:inherit}
-  #envPlus, #focusPlus{position:fixed;top:14px;left:14px;z-index:6;display:none;width:36px;height:36px;border-radius:2px;
+  #envPlus, #focusPlus, .pdot{position:fixed;top:14px;left:14px;z-index:6;display:none;width:36px;height:36px;border-radius:2px;
     background:var(--panel);border:1px solid var(--line);color:var(--accent);cursor:pointer;font-size:15px;
     font-family:inherit;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+  .pclose{position:absolute;top:6px;right:8px;background:none;border:0;color:var(--dim);
+    cursor:pointer;font-size:13px;font-family:inherit;line-height:1}
+  /* a panel being dragged follows the finger and stops animating under it */
+  .pnl.drag, .hud.drag{transition:none;animation:none}
+  .simPanelWide{width:min(330px, calc(100vw - 28px))}
+  /* the panel is narrower than the dialog it came from: its rows give the readout less
+     room and let the slider take the slack, so the steppers still fit the width */
+  #simPanel .row > span{min-width:44px !important;font-size:10px}
+  #simPanel .row > label{min-width:44px}
+  #simPanel select{min-width:0}
   .gamebar{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);display:flex;gap:28px;
     transition:transform .28s ease;}
   .gamebar.slid{transform:translate(-50%, calc(100% + 15px))}
@@ -269,21 +280,6 @@
   <h1>Galactic Transit <span class="ver" id="verHud"></span></h1>
   <div class="sub">The Sun orbits the Milky Way's core at ~230 km/s. The planets, on an ecliptic tilted ~60° to the galactic plane, weave helical paths around its track.</div>
   <div class="body">
-    <div class="sect" data-sec="sim">Simulation<span class="arw">▾</span></div>
-    <div class="sbody" id="secSim">
-    <div class="row"><label for="speed">speed</label><input type="range" id="speed" min="0" max="1" step="0.001" value="1"><span id="speedv" style="min-width:64px;text-align:right;color:var(--ink)"></span><button class="stepb" data-step="speed:-0.05">−</button><button class="stepb" data-step="speed:0.05">+</button></div>
-    <div class="row"><label for="multExp">× exp</label><input type="range" id="multExp" min="0" max="10" step="1" value="0"><span id="multExpv" style="min-width:44px;text-align:right;color:var(--ink)">×1</span><button class="stepb" data-step="multExp:-1">−</button><button class="stepb" data-step="multExp:1">+</button></div>
-    <div class="row"><label for="jump">scenario</label><select id="jump">
-      <option value="">— present day —</option>
-      <option value="4.5692567" data-speed="0.58" data-mult="10000">Gliese 710 grazes the Oort cloud (+1.29 Myr)</option>
-      <option value="helix" data-speed="1" data-mult="1">The helix — planets winding through space</option>
-      <option value="0.058">Theia impact — the Moon forms</option>
-      <option value="0.768">Young Earth — first life (3.8 Gyr ago)</option>
-      <option value="2.068">Great Oxidation (2.5 Gyr ago)</option>
-      <option value="8.36149" data-speed="1" data-mult="100000000">Andromeda collision (+4.5 Gyr)</option>
-      <option value="10.1">After the merger (+5.5 Gyr)</option>
-    </select><button class="rowbtn" id="jumpGo" title="apply the selected scenario and close the panel">GO</button></div>
-    </div>
     <div class="sect" data-sec="audio">Audio<span class="arw">▾</span></div>
     <div class="sbody" id="secAudio">
     <div class="row"><label>music</label><input type="range" id="musicVol" min="0" max="1" step="0.01" value="0.40"><span id="musicVolv" style="min-width:36px;text-align:right;color:var(--ink)">40%</span><button class="stepb" data-step="musicVol:-0.05">−</button><button class="stepb" data-step="musicVol:0.05">+</button></div>
@@ -357,6 +353,7 @@
     <div class="sbody" id="secOther">
     <div class="chks">
       <label class="chk"><input type="checkbox" id="secSolo" checked> one section at a time</label>
+      <label class="chk"><input type="checkbox" id="closeOnGo" checked> close panel on GO</label>
     </div>
     </div>
     <hr class="actsep">
@@ -631,8 +628,25 @@
   <div class="cnt birth" id="cBirth" style="display:none"><span id="lBirth">stars born</span><b id="nBirth">+0</b></div>
   <i class="brk"></i>
 </div>
-<button id="reopen" aria-label="show control panel">+</button>
-<button id="envPlus" aria-label="show the Earth panel">+</button>
+<button class="pdot" id="reopen" data-open="hud" aria-label="show control panel">+</button>
+<button class="pdot" id="envPlus" data-open="env" aria-label="show the Earth panel">◍</button>
+<div class="env pnl simPanelWide" id="simPanel">
+  <button class="pclose" data-close="simPanel" aria-label="close">×</button>
+  <h2>Simulation</h2>
+  <div class="row"><label for="speed">speed</label><input type="range" id="speed" min="0" max="1" step="0.001" value="1"><span id="speedv" style="min-width:64px;text-align:right;color:var(--ink)"></span><button class="stepb" data-step="speed:-0.05">−</button><button class="stepb" data-step="speed:0.05">+</button></div>
+  <div class="row"><label for="multExp">× exp</label><input type="range" id="multExp" min="0" max="10" step="1" value="0"><span id="multExpv" style="min-width:44px;text-align:right;color:var(--ink)">×1</span><button class="stepb" data-step="multExp:-1">−</button><button class="stepb" data-step="multExp:1">+</button></div>
+  <div class="row"><label for="jump">scenario</label><select id="jump">
+      <option value="">— present day —</option>
+      <option value="4.5692567" data-speed="0.58" data-mult="10000">Gliese 710 grazes the Oort cloud (+1.29 Myr)</option>
+      <option value="helix" data-speed="1" data-mult="1">The helix — planets winding through space</option>
+      <option value="0.058">Theia impact — the Moon forms</option>
+      <option value="0.768">Young Earth — first life (3.8 Gyr ago)</option>
+      <option value="2.068">Great Oxidation (2.5 Gyr ago)</option>
+      <option value="8.36149" data-speed="1" data-mult="100000000">Andromeda collision (+4.5 Gyr)</option>
+      <option value="10.1">After the merger (+5.5 Gyr)</option>
+    </select><button class="rowbtn" id="jumpGo" title="apply the selected scenario and close the panel">GO</button></div>
+</div>
+<button class="pdot" id="simPlus" data-open="simPanel" title="simulation">◷</button>
 <div class="env" id="focusPanel">
   <button id="focusMin" aria-label="close" style="position:absolute;top:6px;right:8px;background:none;
       border:0;color:var(--dim);cursor:pointer;font-size:13px;font-family:inherit">×</button>
@@ -642,7 +656,7 @@
     <button class="rowbtn" id="focusGo">GO</button>
   </div>
 </div>
-<button id="focusPlus" aria-label="show the focus panel" style="display:none">◎</button>
+<button class="pdot" id="focusPlus" data-open="focusPanel" aria-label="show the focus panel" style="display:none">◎</button>
 <div id="fpsBox" style="display:none"><span id="fpsVal">—</span></div>
 <div class="alertbox" id="iceBox">❄ GLACIAL EPOCH</div>
 <div class="alertbox" id="g710Box">☄ GLIESE 710 · <span id="eG710d">—</span></div>
@@ -684,7 +698,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.34.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.35.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2321,10 +2335,7 @@ toggle($('tEvBirth'), on=>{ evBirth=on; syncLife(); });
 toggle($('tVar'), on=> varOn=on);
 let dustOn = true;
 toggle($('tDust'), on=>{ dustOn = on; });
-$('focusMin').addEventListener('click', ()=>{
-  $('focusPanel').style.display='none'; $('focusPlus').style.display='block'; saveSettings(); });
-$('focusPlus').addEventListener('click', ()=>{
-  $('focusPanel').style.display=''; $('focusPlus').style.display='none'; saveSettings(); });
+$('focusMin').addEventListener('click', ()=> setPanelOpen('focusPanel', false));
 $('focusGo').addEventListener('click', ()=>{
   if($('focusSel').value === 'sun'){
     if($('tView').classList.contains('on')) $('tView').click();
@@ -2337,10 +2348,7 @@ $('focusGo').addEventListener('click', ()=>{
   }
   saveSettings();
 });
-$('envMin').addEventListener('click', ()=>{
-  $('env').style.display='none'; $('envPlus').style.display='block'; fitPanels(); saveSettings(); });
-$('envPlus').addEventListener('click', ()=>{
-  $('env').style.display=''; $('envPlus').style.display='none'; fitPanels(); saveSettings(); });
+$('envMin').addEventListener('click', ()=> setPanelOpen('env', false));
 // the status bar slides down to a grip and back up — by click or by an actual slide
 {
   const bar = $('gamebar'), grip = $('barGrip');
@@ -2386,15 +2394,109 @@ function applySfxGain(){
   audio.master.gain.cancelScheduledValues(at);
   audio.master.gain.setTargetAtTime(soundOn?sfxVol:0.0, at, 0.3); // fade, never a click
 }
+// ---------- movable panels ----------
+// Four panels share two columns. Each carries a side and an open flag; the layout
+// stacks the open ones first, then the dots that reopen the closed ones — down the
+// screen in portrait, across it in landscape, where vertical room is the scarce thing.
+// Dragging a panel inward moves it to the other column; dragging it toward its own
+// edge closes it. Both gestures read the same pointer stream, so a mouse and a finger
+// behave identically.
+const PANELS = [
+  { id:'simPanel',   dot:'simPlus'   },
+  { id:'focusPanel', dot:'focusPlus' },
+  { id:'env',        dot:'envPlus'   },
+  { id:'hud',        dot:'reopen'    },
+];
+const pState = { simPanel:{s:'r',o:true}, focusPanel:{s:'l',o:true},
+                 env:{s:'l',o:true},      hud:{s:'r',o:false} };
+function setPanelOpen(id, open){
+  pState[id].o = open;
+  $(id).style.display = open ? '' : 'none';
+  if(open){ const el = $(id); el.classList.remove('pop'); void el.offsetWidth;
+            el.classList.add('pop'); setTimeout(()=> el.classList.remove('pop'), 260); }
+  $(PANELS.find(p=>p.id===id).dot).style.display = open ? 'none' : 'block';
+  fitPanels(); saveSettings();
+}
+function layoutPanels(){
+  const land = innerWidth > innerHeight, pad = 14, gap = 8;
+  for(const side of ['l','r']){
+    const mine = PANELS.filter(p => pState[p.id].s === side);
+    let y = pad, dotX = 0;
+    const put = (el, x) => {
+      el.style.top = y + 'px';
+      if(side === 'l'){ el.style.left = x + 'px'; el.style.right = 'auto'; }
+      else { el.style.right = x + 'px'; el.style.left = 'auto'; }
+    };
+    for(const p of mine){                      // open panels first, one under the next
+      const el = $(p.id);
+      if(getComputedStyle(el).display === 'none') continue;
+      if(p.id === 'hud') el.style.maxHeight = 'calc(100vh - ' + (y + pad) + 'px)';
+      put(el, pad);
+      y += el.getBoundingClientRect().height + gap;
+    }
+    for(const p of mine){                      // then the dots for the closed ones
+      const el = $(p.dot);
+      if(getComputedStyle(el).display === 'none') continue;
+      put(el, pad + dotX);
+      const w = el.getBoundingClientRect().width + gap;
+      if(land) dotX += w; else y += el.getBoundingClientRect().height + gap;
+    }
+    if(land && dotX) y += 36 + gap;
+    if(side === 'l'){                          // the bare frame rate rides below them
+      const f = $('fpsBox');
+      if(getComputedStyle(f).display !== 'none'){ f.style.top = y+'px'; f.style.left = pad+'px'; }
+    }
+  }
+}
+// dragging: inward switches columns, outward closes
+for(const p of PANELS){
+  const el = $(p.id);
+  let x0 = 0, active = false, moved = 0;
+  el.addEventListener('pointerdown', e => {
+    // never steal a gesture that belongs to a control inside the panel
+    if(e.target.closest('input, button, select, textarea, a, .seg, .chk')) return;
+    x0 = e.clientX; active = true; moved = 0;
+  });
+  el.addEventListener('pointermove', e => {
+    if(!active) return;
+    moved = e.clientX - x0;
+    if(Math.abs(moved) < 6) return;
+    el.classList.add('drag');
+    el.style.transform = 'translateX(' + moved + 'px)';
+  });
+  const finish = () => {
+    if(!active) return;
+    active = false;
+    el.classList.remove('drag');
+    el.style.transform = '';
+    const side = pState[p.id].s, TH = 60;
+    const outward = side === 'l' ? -TH : TH;      // toward this panel's own edge
+    const inward  = side === 'l' ?  TH : -TH;
+    if(Math.sign(moved) === Math.sign(outward) && Math.abs(moved) >= TH) setPanelOpen(p.id, false);
+    else if(Math.sign(moved) === Math.sign(inward) && Math.abs(moved) >= TH){
+      pState[p.id].s = side === 'l' ? 'r' : 'l';
+      fitPanels(); saveSettings();
+    }
+    moved = 0;
+  };
+  el.addEventListener('pointerup', finish);
+  el.addEventListener('pointercancel', finish);
+  el.addEventListener('pointerleave', finish);
+}
+document.querySelectorAll('.pclose').forEach(b =>
+  b.addEventListener('click', () => setPanelOpen(b.dataset.close, false)));
+document.querySelectorAll('.pdot').forEach(b =>
+  b.addEventListener('click', () => setPanelOpen(b.dataset.open, true)));
+
 // ---------- collapsible sections ----------
 // Each heading owns a body; the arrow turns to show which way it goes. Simulation
 // starts closed: its two sliders and the scenario list are the controls a visitor is
 // least likely to want on arrival, and the piece opens on a staged scenario anyway.
-const SECS = ['sim','audio','gfx','hud','other'];
-const SEC_BODY = { sim:'secSim', audio:'secAudio', gfx:'secGfx', hud:'secHud', other:'secOther' };
+const SECS = ['audio','gfx','hud','other'];
+const SEC_BODY = { audio:'secAudio', gfx:'secGfx', hud:'secHud', other:'secOther' };
 // one at a time by default, so the panel stays a screenful; Graphics is the one that
 // earns the opening slot, holding the controls a visitor reaches for most
-const secOpen = { sim:true, audio:false, gfx:false, hud:false, other:false };
+const secOpen = { audio:false, gfx:true, hud:false, other:false };
 function applySecs(){
   for(const k of SECS){
     $(SEC_BODY[k]).classList.toggle('closed', !secOpen[k]);
@@ -2480,15 +2582,16 @@ const S_TOG = ['tLabels','tArms','tDwarfs','tBelt','tKuiper','tOort','tDust',
                'tEvSN','tEvBirth','tVar',
                'tStatAge','tStatGyr','tStatSn','tStatBirth','tGaia','tFps'];
 const S_SLD = ['speed','trailA','orbitA','trailL','musicVol','sfxVol','minB','hudHz'];
-const S_CHK = ['fxBirth','fxSn','fxPn','fxDrone','secSolo'];
+const S_CHK = ['fxBirth','fxSn','fxPn','fxDrone','secSolo','closeOnGo'];
 function saveSettingsNow(){
   try{
     const s = { t:{}, s:{}, c:{}, cal:$('cal').value, mult:speedMult, dens:curD,
                 units:unitMode,
-                foc:$('focusPanel').style.display !== 'none', fsel:$('focusSel').value, sec:secOpen,
-                hud:$('hud').style.display !== 'none',
+                fsel:$('focusSel').value, sec:secOpen,
+                pan:{ simPanel:{...pState.simPanel}, focusPanel:{...pState.focusPanel},
+                      env:{...pState.env}, hud:{...pState.hud} },
                 bar:$('gamebar').classList.contains('slid'),
-                envMin:$('envPlus').style.display === 'block' };
+ };
     S_TOG.forEach(id => s.t[id] = isOn($(id)));
     S_SLD.forEach(id => s.s[id] = $(id).value);
     S_CHK.forEach(id => s.c[id] = $(id).checked);
@@ -2515,17 +2618,21 @@ function restoreSettings(register){
     if(s.dens){ const i = DETAIL_D.indexOf(s.dens);
       if(i >= 0 && s.dens !== curD){ $('detail').value = i; $('detail').dispatchEvent(new Event('input')); } }
     if(s.units === 'words' || s.units === 'sup' || s.units === 'e') setSegUnits(s.units);
-    if(s.foc === false && $('focusPanel').style.display !== 'none') $('focusMin').click();
     if(s.fsel === 'sun' || s.fsel === 'mw') $('focusSel').value = s.fsel;
+    if(s.pan) for(const q of PANELS){
+      const v = s.pan[q.id]; if(!v) continue;
+      if(v.s === 'l' || v.s === 'r') pState[q.id].s = v.s;
+      if(typeof v.o === 'boolean'){
+        pState[q.id].o = v.o;
+        $(q.id).style.display = v.o ? '' : 'none';
+        $(q.dot).style.display = v.o ? 'none' : 'block';
+      }
+    }
     if(s.sec) for(const k of SECS) if(typeof s.sec[k] === 'boolean') secOpen[k] = s.sec[k];
     if(s.bar) $('gamebar').classList.add('slid');
-    if(s.envMin) $('envMin').click();
   }
-  { // hidden is the default; only an explicitly saved open panel reopens
-    const wantHud = !!(s && s.hud === true);
-    const haveHud = $('hud').style.display !== 'none';
-    if(wantHud && !haveHud) $('reopen').click();
-    else if(!wantHud && haveHud) $('collapse').click();
+  { // the settings dialog stays shut unless a saved record says otherwise
+    if(!(s && s.pan && s.pan.hud && s.pan.hud.o === true)) setPanelOpen('hud', false);
 
   }
   applySecs();
@@ -2628,8 +2735,9 @@ function jumpToEpoch(){
 $('jump').addEventListener('change', e=>{ reseedFollow=true; jumpToEpoch(e); });
 $('jumpGo').addEventListener('click', ()=>{
   jumpToEpoch();
-  // the point of "set" is to watch the scenario, so the panel steps aside
-  if($('hud').style.display !== 'none') $('collapse').click();
+  // the point of GO is to watch the scenario, so the panel steps aside — unless the
+  // visitor would rather keep it open and try one scenario after another
+  if($('closeOnGo').checked && pState.simPanel.o) setPanelOpen('simPanel', false);
 });
 const sup = e => String(e).split('').map(d=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[+d]).join('');
 function fmtYears(y){ // a duration in years → astronomer units, or ×10^x notation
@@ -2786,12 +2894,7 @@ if(matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode
 if(location.protocol.startsWith('http') && 'serviceWorker' in navigator){
   addEventListener('load', ()=> navigator.serviceWorker.register('sw.js').catch(()=>{}));
 }
-$('collapse').addEventListener('click', ()=>{
-  $('hud').style.display='none'; $('reopen').style.display='block'; fitPanels();
-});
-$('reopen').addEventListener('click', ()=>{
-  $('hud').style.display=''; $('reopen').style.display='none'; fitPanels();
-});
+$('collapse').addEventListener('click', ()=> setPanelOpen('hud', false));
 $('tInfo').addEventListener('click', ()=>{ $('infoModal').style.display='flex'; });
 $('infoClose').addEventListener('click', ()=>{ $('infoModal').style.display='none'; });
 $('infoModal').addEventListener('click', e=>{ if(e.target.id==='infoModal') $('infoModal').style.display='none'; });
@@ -2923,7 +3026,7 @@ let W=0,H=0,DPR=1, projMat;
 // environment readout beside it, and down over the status bar and the view scale below.
 // Whatever it actually overlaps steps aside until it is collapsed again — measured, not
 // guessed from a breakpoint, since the panel's own height depends on how much is in it.
-const CROWDABLE = ['focusPanel','focusPlus','env','envPlus','fpsBox','scaleNote','gamebar'];
+const CROWDABLE = ['simPanel','simPlus','focusPanel','focusPlus','env','envPlus','fpsBox','scaleNote','gamebar'];
 function fitPanels(){
   const hud = $('hud');
   const items = CROWDABLE.map(id => $(id));
@@ -3516,18 +3619,7 @@ function frame(now){
     document.body.classList.toggle('ice', e.ice);
     const gd = g710().d;
     document.body.classList.toggle('g710', gd < 1.9);
-    { // the left column: the focus panel first, the Earth panel beneath whichever of
-      // panel or reopen button is showing, each element told exactly where to sit
-      let y = 14;
-      const place = (el, on)=>{ if(!on) return; el.style.top = y+'px'; el.style.left = '14px';
-        y += el.getBoundingClientRect().height + 8; };
-      const vis = id => getComputedStyle($(id)).display !== 'none';
-      place($('focusPanel'), vis('focusPanel'));
-      place($('focusPlus'), vis('focusPlus'));
-      place($('env'), vis('env'));
-      place($('envPlus'), vis('envPlus'));
-      place($('fpsBox'), vis('fpsBox'));
-    }
+    layoutPanels();
     { // the alert boxes ride on top of the status bar, matching its width; with the
       // bar slid away or hidden they anchor to the bottom edge instead
       const bar = $('gamebar');
