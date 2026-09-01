@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.41.0 — 2026-09-01
+
+- The Sun's life, Planet 9, and dock/intro polish (v2.41.0) (`61861af`)
+
 ### 2.40.0 — 2026-09-01
 
 - The intro says what the piece is, and dialogs keep their heads (`ea59e34`)
