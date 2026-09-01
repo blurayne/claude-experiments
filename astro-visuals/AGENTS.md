@@ -46,8 +46,10 @@ built it.
   sections from the action row, which pause leads.
 - Every control persists in localStorage and is replayed on boot; new controls join
   `S_TOG` / `S_SLD` / `S_CHK` or the settings object explicitly.
-- A returning visitor's saved settings outrank the opening scenario: at boot it
-  stages the camera always, the sliders only when nothing was saved.
+- A returning visitor's saved settings outrank the opening scenario, with one
+  exception: at boot it stages the camera and the clock always (a scenario's pace is
+  part of its view — the helix is illegible at anything but a year a second), and the
+  look sliders only when nothing was saved.
 - The piece boots on the **"The helix"** scenario: dive at ~31 AU, 1 yr/s, helix and
   orbit trails together (trails 100%, orbits 50%), yaw 0.7014 / pitch 0.2757 — the
   owner's exported preset. Never unpause a visitor whose system asks for reduced

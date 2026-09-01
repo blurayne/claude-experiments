@@ -681,7 +681,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.33.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.33.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2569,11 +2569,13 @@ function jumpToEpoch(){
   const a = sel.value === '' ? AGE0 : +sel.value;
   // some epochs are over in a blink on the galactic clock; land at a speed that shows them
   const opt = sel.selectedOptions[0];
+  // The clock is part of the staged view, not a preference: the helix is only legible
+  // at a year a second, the Gliese pass at a thousand, the Andromeda approach at a
+  // hundred million. A scenario therefore sets its own pace even at boot, where a
+  // returning visitor's other settings are left alone.
   const sp = opt && opt.dataset.speed, mu = opt && opt.dataset.mult;
-  if(!keepSaved){
-    if(sp !== undefined && sp !== null){ $('speed').value = sp; $('speed').dispatchEvent(new Event('input')); }
-    if(mu) setMultExp(Math.log10(+mu));
-  }
+  if(sp !== undefined && sp !== null){ $('speed').value = sp; $('speed').dispatchEvent(new Event('input')); }
+  if(mu) setMultExp(Math.log10(+mu));
   if(sel.value === 'helix'){
     // not an epoch: a staging entry for the true helix. At one year a second the Sun
     // covers 48 AU while Earth loops once around it — visible, and actually accurate.
