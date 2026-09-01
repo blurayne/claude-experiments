@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.39.0 — 2026-09-01
+
+- The tour names its build, and a reset keeps debug mode (`d80d59f`)
+
 ### 2.38.0 — 2026-09-01
 
 - The tour points at things, and the panels agree on a glyph (`9056a40`)
