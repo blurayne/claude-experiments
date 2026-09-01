@@ -251,3 +251,17 @@ script before `$` even exists. The real "low" default is applied by the same mec
 `.value` and dispatch `input` — but gated on `!hadSaved`, run only after the full script (and
 `restoreSettings()` itself) has finished evaluating. Never call `setGalaxy()` synchronously
 at parse time with anything beyond the deep-Gaia threshold.
+
+## The view GO button, and a master labels toggle (v2.48.0)
+
+`applyFocusView()` is the view select's jump logic, factored out of the `change` listener so
+`focusGo`'s click can call the same function — re-applying the current selection (useful after
+the camera has drifted off it) rather than doing nothing new.
+
+`#tLabelsAll` (dock icon "L") does not own any saved state of its own — it is a pure mirror of
+the two existing checkboxes (`tLabels`, `tArms`), on whenever either is checked, off only when
+both are. `syncLabelsMaster()` is a second, independent `change` listener added alongside their
+existing `toggle()` registrations — never touch what those already do. Because the master's own
+click cascades by setting `.checked` and dispatching a synthetic `change` (not a real `click`),
+it does not fire the checkboxes' `click`-bound save listener, so the cascade calls `saveSettings()`
+explicitly — forget that and a choice made through the master silently fails to survive a reload.

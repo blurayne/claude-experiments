@@ -902,6 +902,7 @@
 <button class="pdot act on" id="tPause" aria-label="pause"><svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><rect x="1.4" y="1" width="2.7" height="8"/><rect x="5.9" y="1" width="2.7" height="8"/></svg></button>
 <button class="pdot act" id="tInfo" aria-label="about">?</button>
 <button class="pdot" id="envPlus" data-open="env" aria-label="show the Earth panel">ℹ</button>
+<button class="pdot act on" id="tLabelsAll" aria-label="toggle all labels" title="toggle all labels">L</button>
 <div class="env pnl simPanelWide" id="simPanel">
   <button class="pclose" data-close="simPanel" aria-label="close">−</button>
   <h2>Simulation</h2>
@@ -960,6 +961,7 @@
   <div class="er"><span>view</span>
     <span style="display:flex;gap:6px;align-items:center">
       <select id="focusSel"><option value="sun">Sun</option><option value="mw">Milky Way</option><option value="and">Andromeda</option></select>
+      <button class="rowbtn" id="focusGo">GO</button>
     </span></div>
 </div>
 
@@ -970,7 +972,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.47.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.48.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2942,6 +2944,20 @@ toggle($('tPause'), on=>{ paused=!on;
   $('tPause').setAttribute('aria-label', on ? 'pause' : 'play'); });
 toggle($('tLabels'), on=>{ showLabels=on; if(!on) labelEls.forEach(l=>l.style.display='none'); });
 toggle($('tArms'), on=>{ armsOn=on; if(!on) armEls.forEach(l=>l.style.display='none'); });
+// The dock's master switch mirrors these two rather than owning its own saved state:
+// on whenever either is showing, off only when both are hidden. Individual settings
+// checkboxes are untouched — this only adds a second listener alongside their own.
+function syncLabelsMaster(){ $('tLabelsAll').classList.toggle('on', $('tLabels').checked || $('tArms').checked); }
+$('tLabels').addEventListener('change', syncLabelsMaster);
+$('tArms').addEventListener('change', syncLabelsMaster);
+syncLabelsMaster();
+toggle($('tLabelsAll'), on=>{
+  if($('tLabels').checked !== on){ $('tLabels').checked = on; $('tLabels').dispatchEvent(new Event('change')); }
+  if($('tArms').checked !== on){ $('tArms').checked = on; $('tArms').dispatchEvent(new Event('change')); }
+  // the cascade only fires 'change', not the 'click' the checkboxes' own save binding
+  // listens for — without this, a choice made through the master would not survive reload
+  saveSettings();
+});
 toggle($('tP9'), on=>{ showP9=on; if(!on) labelEls[I_P9].style.display='none'; });
 toggle($('tDwarfs'), on=>{ showDwarfs=on; if(!on) labelEls.forEach((l,i)=>{ if(i>=N_PLANETS) l.style.display='none'; }); });
 toggle($('tBelt'), on=> showBelt=on);
@@ -2962,7 +2978,7 @@ toggle($('tEvBirth'), on=>{ evBirth=on; syncLife(); });
 toggle($('tVar'), on=> varOn=on);
 let dustOn = true;
 toggle($('tDust'), on=>{ dustOn = on; });
-$('focusSel').addEventListener('change', ()=>{
+function applyFocusView(){
   const v = $('focusSel').value;
   if(v === 'sun'){
     followTarget = 'sun';
@@ -2986,7 +3002,9 @@ $('focusSel').addEventListener('change', ()=>{
     else { cam.follow = false; cam.distGoal = 4300; reseedFollow = true; }
   }
   saveSettings();
-});
+}
+$('focusSel').addEventListener('change', applyFocusView);
+$('focusGo').addEventListener('click', applyFocusView);   // re-apply the current pick, e.g. after drifting off it
 // the status bar slides down to a grip and back up — by click or by an actual slide
 {
   const bar = $('gamebar'), grip = $('barGrip');
@@ -3094,7 +3112,7 @@ function placePanels(){
       y += r.height + gap;
     }
     const dock = mine.map(p => $(p.dot));
-    if(side === 'r') dock.push($('tInfo'), $('tPause'));   // the two standing actions last
+    if(side === 'r') dock.push($('tLabelsAll'), $('tInfo'), $('tPause'));   // standing actions, pause last
     for(const el of dock){
       if(getComputedStyle(el).display === 'none') continue;
       put(el, pad + dotX);
