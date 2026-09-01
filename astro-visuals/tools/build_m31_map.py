@@ -180,8 +180,26 @@ def photographic_map(data):
                               lum[-40:, :40].ravel(), lum[-40:, -40:].ravel()])
     sky = float(np.median(corners))
     print(f'source {img.width}x{img.height}, sky level {sky:.4f}')
-    covered = lum > sky + 0.008
+    # the footprint, not the brightness: close over interior dark patches so only
+    # genuinely unimaged sky counts as uncovered
+    covered = box_blur((lum > sky + 0.006).astype(np.float32), 8, 2) > 0.30
     lum = np.clip(lum - sky, 0, None)
+    # Saturated foreground stars — Milky Way stars sitting in front of M31 —
+    # would smear into bright columns under the deprojection stretch, and they do
+    # not belong in M31's map in the first place. Blot the brightest compact
+    # off-nucleus sources while they are still compact; the fill takes over.
+    # (M32 itself falls outside the mosaic strip; the simulation models it.)
+    cxn, cyn = find_nucleus(lum)
+    unsharp = lum - box_blur(lum, 9, 2)
+    yy0, xx0 = np.mgrid[0:lum.shape[0], 0:lum.shape[1]]
+    far = np.hypot(xx0 - cxn, yy0 - cyn) > 0.1 * lum.shape[1]
+    us = np.where(far & covered, unsharp, 0)
+    for _ in range(8):
+        iy, ix = np.unravel_index(np.argmax(us), us.shape)
+        if us[iy, ix] < 0.055: break
+        covered &= np.hypot(xx0 - ix, yy0 - iy) > 0.012 * lum.shape[1]
+        us[max(0, iy - 60):iy + 61, max(0, ix - 60):ix + 61] = 0
+        print(f'blotted compact source at ({ix},{iy})')
 
     cx, cy = find_nucleus(lum)
     ang = major_axis_angle(lum, cx, cy)
@@ -231,15 +249,40 @@ def photographic_map(data):
         v = rot[:, :, ch]
         sq[:, :, ch] = (v[y0, x0] * (1 - fx) * (1 - fy) + v[y0, x0 + 1] * fx * (1 - fy)
                       + v[y0 + 1, x0] * (1 - fx) * fy + v[y0 + 1, x0 + 1] * fx * fy)
-    sqm = mrot[np.round(ys).astype(int), np.round(xs).astype(int)]
+    # covered only if the sky rows a few pixels above and below are covered too:
+    # a vertical erosion in sky terms, which is what the stretch magnifies
+    xi = np.round(xs).astype(int)
+    def _cov(dy): return mrot[np.clip(np.round(ys + dy).astype(int), 0, big - 1), xi]
+    sqm = _cov(-8) & _cov(0) & _cov(8)
 
-    # the photo's bulge colour and brightness, taken where it is unsmeared
+    # The bulge, read where the photo does not smear it: along the major axis the
+    # sky is unstretched, so the horizontal slice through the nucleus carries the
+    # real profile and the real colours. Rebuilt round below, disk level removed.
     Xo = ii - c0; Yo = jj - c0                  # output px
-    centre = np.hypot(Xo, Yo) < 7
-    c_bulge = sq[centre].mean(axis=0)
     rb = 9.5                                    # ~1 kpc effective radius, output px
-    cigar = (np.abs(Xo) < 3.4 * rb) & (np.abs(Yo) < 3.4 * rb / ci)
+    BW = int(3.6 * rb)
+    slice_rows = sq[int(c0) - 3:int(c0) + 4]
+    bprof = np.zeros((BW + 1, 3), np.float32)
+    for k in range(BW + 1):
+        cols = []
+        for s in (-1, 1):
+            j = int(round(c0 + s * k))
+            if 0 <= j < N: cols.append(slice_rows[:, j])
+        bprof[k] = np.concatenate(cols).mean(axis=0)
+    bprof = np.maximum(bprof - bprof[BW], 0)    # the disk level at the rim comes off
+    for k in range(BW - 1, -1, -1):             # enforce a monotonic profile
+        bprof[k] = np.maximum(bprof[k], bprof[k + 1])
+    # clip compact glare (M32's core, saturated foreground stars) against the
+    # local background; the resolved-star texture sits well below this cap
+    base = np.stack([box_blur(sq[:, :, ch], 3, 2) for ch in range(3)], -1)
+    sq = np.minimum(sq, base * 3.0 + 0.02)
+    cigar = (np.abs(Xo) < 4.5 * rb) & (np.abs(Yo) < 3.9 * rb / ci)
     sqm = sqm & ~cigar                          # unmeasured: filled azimuthally below
+    # The mosaic footprint's sawtooth edge leaves protruding tiles that the
+    # stretch smears into long bright bands, and compact companions (M32) smear
+    # the same way. Eroding the coverage mask drops thin protrusions and edge
+    # slivers into the azimuthal fill along with everything else unmeasured.
+    sqm = box_blur(sqm.astype(np.float32), 4, 2) > 0.85
 
     # fill what the mosaic footprint does not cover from azimuthal averages
     r = np.hypot(ii - c0, jj - c0)
@@ -250,19 +293,21 @@ def photographic_map(data):
     for ch in range(3):
         v = sq[:, :, ch]
         s = np.bincount(rbin[good], v[good], minlength=120)
-        cnt = np.maximum(1, np.bincount(rbin[good], minlength=120))
-        prof = s / cnt
-        fill = prof[rbin] * (0.86 + 0.28 * rng.random((N, N)))
+        raw = np.bincount(rbin[good], minlength=120)
+        prof = s / np.maximum(1, raw)
+        for k in range(118, -1, -1):            # rings the cigar swallowed whole
+            if raw[k] < 8: prof[k] = prof[k + 1]
+        fill = prof[rbin] * (0.70 + 0.60 * rng.random((N, N)))
         filled[:, :, ch] = np.where(sqm, v, fill)
-    soft = box_blur(sqm.astype(np.float32), 2, 2)
+    soft = box_blur(sqm.astype(np.float32), 4, 3)
     seam = (soft > 0.02) & (soft < 0.98)
     for ch in range(3):
         b = box_blur(filled[:, :, ch], 2, 1)
         filled[:, :, ch] = np.where(seam, b, filled[:, :, ch])
-    # the round bulge, Sersic-ish, carrying the photo's own central colour
-    rb_r = np.hypot(Xo, Yo * 1.08)
-    bulge = np.exp(-np.power(np.maximum(rb_r, 0.3) / rb, 0.55) + 1.0)
-    filled += np.clip(bulge, 0, 1.35)[:, :, None] * c_bulge[None, None, :]
+    # the round bulge: the photo's own major-axis profile, interpolated radially
+    rb_r = np.clip(np.hypot(Xo, Yo * 1.08), 0, BW - 1e-3)
+    i0 = rb_r.astype(int); fb = (rb_r - i0)[..., None]
+    filled += bprof[i0] * (1 - fb) + bprof[i0 + 1] * fb
     fade = np.clip(1 - (r - N / 2 * 0.94) / (N * 0.05), 0, 1)
     filled *= fade[:, :, None]
     return np.clip(filled, 0, 1), None
