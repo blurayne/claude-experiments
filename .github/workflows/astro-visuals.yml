@@ -1,0 +1,48 @@
+# Rebuilds astro-visuals' generated data artifacts on the runner, which has open
+# internet access (the interactive session's egress proxy blocks the astronomy
+# hosts). Currently: m31-map.webp, the face-on Andromeda probability map derived
+# from the Hubble PHAT+PHAST panorama (heic2501a, CC BY 4.0).
+#
+# Per the repository convention the paths filter names only the sources, never
+# the generated files, so the bot's own commit does not retrigger the build.
+name: astro-visuals data
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - astro-visuals/tools/build_m31_map.py
+      - .github/workflows/astro-visuals.yml
+permissions:
+  contents: write
+concurrency:
+  group: astro-visuals-data
+  cancel-in-progress: false
+jobs:
+  m31-map:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install --quiet numpy pillow
+      - name: Build the M31 map from the PHAT+PHAST panorama
+        run: python astro-visuals/tools/build_m31_map.py
+      - name: Commit the regenerated map
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add astro-visuals/m31-map.webp astro-visuals/m31-map.json
+          if git diff --cached --quiet; then
+            echo 'map unchanged; nothing to commit'
+          else
+            git commit -m 'astro-visuals: regenerate m31-map.webp from heic2501a
+
+Face-on probability map of Andromeda, deprojected from the Hubble
+PHAT+PHAST panorama. Credit: NASA, ESA, B. F. Williams, Z. Chen,
+L. C. Johnson, the PHAT and PHAST teams (CC BY 4.0).'
+            git push origin main
+          fi
