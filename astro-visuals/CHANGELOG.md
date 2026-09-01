@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.52.0 — 2026-09-01
+
+- A shader of its own for the supernova blast (v2.52.0) (`4252b3b`)
+
 ### 2.51.1 — 2026-09-01
 
 - Stop naming the merged remnant "Andromeda" (v2.51.1) (`ef0b91e`)
