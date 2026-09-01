@@ -211,26 +211,52 @@ def photographic_map(data):
     print(f'disk edge at {r_edge:.0f} px along the major axis')
 
     # Deproject by sampling the sky image directly onto the 448 output grid.
-    # The stretch is radius-dependent: the bulge is a spheroid, so it projects
-    # round and must NOT be stretched, or it becomes a vertical cigar; the thin
-    # disk needs the full 1/cos(i). Blend over ~2.5 bulge radii.
+    # The bulge is a spheroid: it must not be stretched with the thin disk (a raw
+    # 1/cos(i) turns it into a vertical cigar, and a radius-blended stretch is
+    # non-monotonic and smears the bright rows into curtains). So decompose:
+    # subtract a round bulge model in the sky plane, deproject only the disk
+    # light with the uniform stretch, and add the bulge back, round.
     ci = math.cos(math.radians(INCL_DEG))
-    rb = 0.14 * r_edge
+    rb = 0.15 * r_edge
+    # azimuthal median profile of the inner region -> the round bulge model
+    win = int(2.6 * rb)
+    ys0, xs0 = np.mgrid[-win:win + 1, -win:win + 1]
+    rr = np.hypot(xs0, ys0 * 1.12)          # the sky bulge is mildly flattened
+    patch = rot[int(cc) - win:int(cc) + win + 1, int(cc) - win:int(cc) + win + 1]
+    nbin = 60
+    rbin0 = np.clip((rr / (2.5 * rb) * nbin).astype(int), 0, nbin)
+    prof = np.zeros((nbin + 1, 3), np.float32)
+    for ch in range(3):
+        v = patch[:, :, ch].ravel()
+        order = rbin0.ravel()
+        for k in range(nbin):
+            sel = v[order == k]
+            prof[k, ch] = np.median(sel) if sel.size else 0
+    prof *= np.clip(1 - np.linspace(0, 1, nbin + 1) ** 3, 0, 1)[:, None]  # taper to zero
+    def bulge_at(rr_arr):
+        idx = np.clip((rr_arr / (2.5 * rb) * nbin), 0, nbin - 1)
+        i0 = idx.astype(int); f = (idx - i0)[..., None]
+        return prof[i0] * (1 - f) + prof[i0 + 1] * f
+    # disk light = sky image minus the bulge model (only meaningful near centre)
+    disk = rot.copy()
+    rsky = np.hypot(xs0, ys0 * 1.12)
+    disk[int(cc) - win:int(cc) + win + 1, int(cc) - win:int(cc) + win + 1] = np.clip(
+        patch - bulge_at(rsky), 0, None)
+
     c0 = (N - 1) / 2
     jj, ii = np.mgrid[0:N, 0:N].astype(np.float32)
     X = (ii - c0) / R_EDGE_PX * r_edge          # disk-plane coords in source px
     Y = (jj - c0) / R_EDGE_PX * r_edge
-    d = np.hypot(X, Y)
-    ci_eff = ci + (1 - ci) * np.exp(-(d / (2.5 * rb)) ** 2)
     xs = np.clip(X + cc, 0, big - 2)
-    ys = np.clip(Y * ci_eff + cc, 0, big - 2)
+    ys = np.clip(Y * ci + cc, 0, big - 2)
     x0 = xs.astype(int); y0 = ys.astype(int)
     fx = xs - x0; fy = ys - y0
     sq = np.empty((N, N, 3), np.float32)
     for ch in range(3):
-        v = rot[:, :, ch]
+        v = disk[:, :, ch]
         sq[:, :, ch] = (v[y0, x0] * (1 - fx) * (1 - fy) + v[y0, x0 + 1] * fx * (1 - fy)
                       + v[y0 + 1, x0] * (1 - fx) * fy + v[y0 + 1, x0 + 1] * fx * fy)
+    sq += bulge_at(np.hypot(X, Y))              # the bulge returns, face-on and round
     sqm = mrot[np.round(ys).astype(int), np.round(xs).astype(int)]
 
     # clip compact glare (M32's core, saturated foreground stars) against the local
