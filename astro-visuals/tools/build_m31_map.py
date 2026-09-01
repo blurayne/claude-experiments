@@ -176,19 +176,17 @@ def photographic_map(data):
         img = img.resize((6000, round(img.height * 6000 / img.width)), Image.LANCZOS)
     a = np.asarray(img, np.float32) / 255
     lum = a.mean(axis=2)
-    # sky level from the frame corners, clipped off
     corners = np.concatenate([lum[:40, :40].ravel(), lum[:40, -40:].ravel(),
                               lum[-40:, :40].ravel(), lum[-40:, -40:].ravel()])
     sky = float(np.median(corners))
     print(f'source {img.width}x{img.height}, sky level {sky:.4f}')
-    covered = lum > sky + 0.008          # the mosaic footprint (black outside)
+    covered = lum > sky + 0.008
     lum = np.clip(lum - sky, 0, None)
 
     cx, cy = find_nucleus(lum)
     ang = major_axis_angle(lum, cx, cy)
     print(f'nucleus at ({cx:.0f},{cy:.0f}), major axis {math.degrees(ang):+.2f} deg from horizontal')
 
-    # centre the nucleus, then rotate the major axis onto the horizontal
     big = max(img.width, img.height) * 2
     canvas = Image.new('RGB', (big, big))
     canvas.paste(Image.fromarray((a * 255).astype(np.uint8)),
@@ -196,67 +194,70 @@ def photographic_map(data):
     mcanvas = Image.new('L', (big, big))
     mcanvas.paste(Image.fromarray((covered * 255).astype(np.uint8)),
                   (round(big / 2 - cx), round(big / 2 - cy)))
-    rot = canvas.rotate(math.degrees(ang), Image.BILINEAR, center=(big / 2, big / 2))
-    mrot = mcanvas.rotate(math.degrees(ang), Image.NEAREST, center=(big / 2, big / 2))
+    rot = np.asarray(canvas.rotate(math.degrees(ang), Image.BILINEAR,
+                                   center=(big / 2, big / 2)), np.float32) / 255
+    mrot = np.asarray(mcanvas.rotate(math.degrees(ang), Image.NEAREST,
+                                     center=(big / 2, big / 2))) > 127
+    cc = big / 2
 
-    # deproject: stretch the minor axis by 1/cos(i)
-    stretch = 1 / math.cos(math.radians(INCL_DEG))
-    w, h = rot.size
-    dep = rot.resize((w, round(h * stretch)), Image.BILINEAR)
-    mdep = mrot.resize((w, round(h * stretch)), Image.NEAREST)
-    da = np.asarray(dep, np.float32) / 255
-    dm = np.asarray(mdep, np.float32) > 0.5
-    ccx, ccy = w / 2, dep.height / 2
-
-    # disk extent along the major axis: where the profile falls to ~2% of the
-    # inner disk (nucleus spike excluded) - that is R25 for our purposes
-    dl = da.mean(axis=2)
-    prof_x = np.abs(np.arange(w) - ccx)
-    xb = np.clip((prof_x / (w / 2) * 100).astype(int), 0, 99)
-    row = dl[int(ccy) - 6:int(ccy) + 7].mean(axis=0)
-    pm = np.bincount(xb, row, 100) / np.maximum(1, np.bincount(xb, None, 100))
-    inner = pm[3:25].max()
-    edge_bin = next((i for i in range(25, 100) if pm[i] < inner * 0.02), 92)
-    r_edge = (edge_bin + 0.5) / 100 * (w / 2)
+    # disk extent along the (now horizontal) major axis, on the sky image
+    row = rot[int(cc) - 6:int(cc) + 7].mean(axis=(0, 2))
+    prof_x = np.abs(np.arange(big) - cc)
+    xb = np.clip((prof_x / cc * 200).astype(int), 0, 199)
+    pm = np.bincount(xb, row, 200) / np.maximum(1, np.bincount(xb, None, 200))
+    inner = pm[2:20].max()
+    edge_bin = next((i for i in range(20, 200) if pm[i] < inner * 0.02), 180)
+    r_edge = (edge_bin + 0.5) / 200 * cc
     print(f'disk edge at {r_edge:.0f} px along the major axis')
 
-    # square crop about the nucleus and scale to the output grid
-    half = r_edge * (N / 2) / R_EDGE_PX
-    y0, y1 = int(ccy - half), int(ccy + half)
-    x0, x1 = int(ccx - half), int(ccx + half)
-    def crop(arr, fill=0.0):
-        out = np.full((y1 - y0, x1 - x0) + arr.shape[2:], fill, arr.dtype)
-        sy0, sy1 = max(0, y0), min(arr.shape[0], y1)
-        sx0, sx1 = max(0, x0), min(arr.shape[1], x1)
-        out[sy0 - y0:sy1 - y0, sx0 - x0:sx1 - x0] = arr[sy0:sy1, sx0:sx1]
-        return out
-    sq = crop(da); sqm = crop(dm.astype(np.float32)) > 0.5
-    sq = np.asarray(Image.fromarray((sq * 255).astype(np.uint8)).resize((N, N), Image.LANCZOS), np.float32) / 255
-    sqm = np.asarray(Image.fromarray((sqm * 255).astype(np.uint8)).resize((N, N), Image.NEAREST)) > 127
+    # Deproject by sampling the sky image directly onto the 448 output grid.
+    # The stretch is radius-dependent: the bulge is a spheroid, so it projects
+    # round and must NOT be stretched, or it becomes a vertical cigar; the thin
+    # disk needs the full 1/cos(i). Blend over ~2.5 bulge radii.
+    ci = math.cos(math.radians(INCL_DEG))
+    rb = 0.14 * r_edge
+    c0 = (N - 1) / 2
+    jj, ii = np.mgrid[0:N, 0:N].astype(np.float32)
+    X = (ii - c0) / R_EDGE_PX * r_edge          # disk-plane coords in source px
+    Y = (jj - c0) / R_EDGE_PX * r_edge
+    d = np.hypot(X, Y)
+    ci_eff = ci + (1 - ci) * np.exp(-(d / (2.5 * rb)) ** 2)
+    xs = np.clip(X + cc, 0, big - 2)
+    ys = np.clip(Y * ci_eff + cc, 0, big - 2)
+    x0 = xs.astype(int); y0 = ys.astype(int)
+    fx = xs - x0; fy = ys - y0
+    sq = np.empty((N, N, 3), np.float32)
+    for ch in range(3):
+        v = rot[:, :, ch]
+        sq[:, :, ch] = (v[y0, x0] * (1 - fx) * (1 - fy) + v[y0, x0 + 1] * fx * (1 - fy)
+                      + v[y0 + 1, x0] * (1 - fx) * fy + v[y0 + 1, x0 + 1] * fx * fy)
+    sqm = mrot[np.round(ys).astype(int), np.round(xs).astype(int)]
 
-    # fill the footprint wedges from azimuthal averages, with a little noise so
-    # the seams do not read as painted; it is disclosed as modelled fill anyway
-    c = (N - 1) / 2
-    yy, xx = np.mgrid[0:N, 0:N]
-    r = np.hypot(xx - c, yy - c)
-    rb = np.clip((r / (N / 2) * 120).astype(int), 0, 119)
+    # clip compact glare (M32's core, saturated foreground stars) against the local
+    # background; the resolved-star texture sits well below this cap
+    base = np.stack([box_blur(sq[:, :, ch], 3, 2) for ch in range(3)], -1)
+    sq = np.minimum(sq, base * 4.0 + 0.02)
+
+    # fill what the mosaic footprint does not cover from azimuthal averages
+    r = np.hypot(ii - c0, jj - c0)
+    rbin = np.clip((r / (N / 2) * 120).astype(int), 0, 119)
     rng = np.random.default_rng(205)
     filled = sq.copy()
+    good = sqm & (r < N / 2)
     for ch in range(3):
         v = sq[:, :, ch]
-        good = sqm & (r < N / 2)
-        s = np.bincount(rb[good], v[good], 120)
-        cnt = np.maximum(1, np.bincount(rb[good], None, 120))
+        s = np.bincount(rbin[good], v[good], minlength=120)
+        cnt = np.maximum(1, np.bincount(rbin[good], minlength=120))
         prof = s / cnt
-        fill = prof[rb] * (0.86 + 0.28 * rng.random((N, N)))
+        fill = prof[rbin] * (0.86 + 0.28 * rng.random((N, N)))
         filled[:, :, ch] = np.where(sqm, v, fill)
-    # feather the seam
     soft = box_blur(sqm.astype(np.float32), 2, 2)
     seam = (soft > 0.02) & (soft < 0.98)
     for ch in range(3):
         b = box_blur(filled[:, :, ch], 2, 1)
         filled[:, :, ch] = np.where(seam, b, filled[:, :, ch])
-    filled[r > N / 2 * 1.0] *= np.maximum(0, 1 - (r[r > N / 2] - N / 2) / 14)[:, None]
+    fade = np.clip(1 - (r - N / 2 * 0.94) / (N * 0.05), 0, 1)
+    filled *= fade[:, :, None]
     return np.clip(filled, 0, 1), None
 
 
