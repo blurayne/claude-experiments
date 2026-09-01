@@ -368,7 +368,7 @@
     <div class="sbody" id="secGfx">
     <div class="row"><label for="detail">detail</label><input type="range" id="detail" min="0" max="5" step="1" value="1"><span id="detailv" style="min-width:56px;text-align:right;color:var(--ink)">low</span><button class="stepb" data-step="detail:-1">−</button><button class="stepb" data-step="detail:1">+</button></div>
     <div class="row" id="rowGain" style="display:none"><label for="minB">Gaia brght</label><input type="range" id="minB" min="0" max="1" step="0.01" value="0.05"><span id="minBv" style="min-width:52px;text-align:right;color:var(--ink)">+5%</span><button class="stepb" data-step="minB:-0.05">−</button><button class="stepb" data-step="minB:0.05">+</button></div>
-    <div class="row"><label for="coreB" title="how hard galaxy cores are allowed to blow out to white">core glare</label><input type="range" id="coreB" min="0.3" max="1" step="0.01" value="0.72"><span id="coreBv" style="min-width:52px;text-align:right;color:var(--ink)">72%</span><button class="stepb" data-step="coreB:-0.04">−</button><button class="stepb" data-step="coreB:0.04">+</button></div>
+    <div class="row"><label for="coreB" title="how hard galaxy cores are allowed to blow out to white">core glare</label><input type="range" id="coreB" min="0.3" max="1" step="0.01" value="1"><span id="coreBv" style="min-width:52px;text-align:right;color:var(--ink)">off</span><button class="stepb" data-step="coreB:-0.04">−</button><button class="stepb" data-step="coreB:0.04">+</button></div>
     <div class="row"><label for="orbitA" title="the closed orbit around the Sun">orbit</label><input type="range" id="orbitA" min="0" max="1" step="0.01" value="1"><span id="orbitAv" style="min-width:36px;text-align:right;color:var(--ink)">100%</span><button class="stepb" data-step="orbitA:-0.05">−</button><button class="stepb" data-step="orbitA:0.05">+</button></div>
     <div class="row"><label for="trailA" title="the true swept path through space">helix</label><input type="range" id="trailA" min="0" max="1" step="0.01" value="1"><span id="trailAv" style="min-width:36px;text-align:right;color:var(--ink)">100%</span><button class="stepb" data-step="trailA:-0.05">−</button><button class="stepb" data-step="trailA:0.05">+</button></div>
     <div class="row"><label for="trailL">length</label><input type="range" id="trailL" min="0" max="1000" step="10" value="300"><span id="trailLv" style="min-width:64px;text-align:right;color:var(--ink)">300%</span><button class="stepb" data-step="trailL:-50">−</button><button class="stepb" data-step="trailL:50">+</button></div>
@@ -972,7 +972,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.48.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.49.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2898,9 +2898,11 @@ $('minB').addEventListener('input', e=>{
   minSprite = 1.3 + v*2.1;
   $('minBv').textContent = v ? '+'+Math.round(v*100) + '%' : 'off';
 });
-// How much headroom the bright cores get before they saturate. 100% is the old
-// behaviour: no compression, and a merging pair of cores that reads as one white blob.
-let coreKnee = 0.72;
+// How much headroom the bright cores get before they saturate. 100% ("off", the
+// default) is the old behaviour: no compression, and a merging pair of cores reads
+// as one white blob — left off by default since it's a corrective for that one
+// situation, not something every scene needs paying the extra render pass for.
+let coreKnee = 1;
 $('coreB').addEventListener('input', e=>{
   coreKnee = +e.target.value;
   $('coreBv').textContent = coreKnee >= 0.999 ? 'off' : Math.round(coreKnee*100)+'%';
