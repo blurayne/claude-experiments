@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.40.0 — 2026-09-01
+
+- The intro says what the piece is, and dialogs keep their heads (`ea59e34`)
+
 ### 2.39.0 — 2026-09-01
 
 - The tour names its build, and a reset keeps debug mode (`d80d59f`)
