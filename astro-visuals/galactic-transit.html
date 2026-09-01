@@ -135,6 +135,8 @@
     border:1px solid var(--line);border-top:1px solid rgba(95,216,255,.55);border-radius:3px;
     padding:10px 12px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
     box-shadow:0 0 30px rgba(95,216,255,.08)}
+  .envsep{border-top:1px solid var(--line);margin:9px 0 7px}
+  #env select{font-size:9px;padding:2px 4px;max-width:104px}
   .env h2{font-family:'Orbitron',ui-monospace,monospace;font-size:8.5px;font-weight:700;letter-spacing:.18em;
     text-transform:uppercase;color:var(--accent);margin-bottom:7px;text-shadow:0 0 10px var(--glow)}
   .env .er{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:9.5px;
@@ -226,7 +228,7 @@
   #infoFull:hover,#infoClose:hover{color:var(--accent)}
   #collapse{position:absolute;top:10px;right:10px;background:none;border:0;color:var(--dim);cursor:pointer;font-size:13px;font-family:inherit}
   #envMin{position:absolute;top:6px;right:8px;background:none;border:0;color:var(--dim);cursor:pointer;font-size:13px;font-family:inherit}
-  #envPlus, #focusPlus, .pdot{position:fixed;top:14px;left:14px;z-index:6;display:none;width:36px;height:36px;border-radius:2px;
+  #envPlus, .pdot{position:fixed;top:14px;left:14px;z-index:6;display:none;width:36px;height:36px;border-radius:2px;
     background:var(--panel);border:1px solid var(--line);color:var(--accent);cursor:pointer;font-size:15px;
     font-family:inherit;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
   .pdot.act{display:block}
@@ -399,7 +401,7 @@
     <h2>Galactic Transit</h2>
     <p class="intro">The Sun orbits the Milky Way's core at ~230 km/s. The planets, on an ecliptic tilted ~60° to the galactic plane, weave helical paths around its track.</p>
     <ul>
-      <li data-t="focusPanel">Choose what the view is centred on — the Sun, or the Galaxy.</li>
+      <li data-t="env">Earth's conditions as the Galaxy moves — and what the view is centred on.</li>
       <li data-t="simPanel">Set the pace, or send the piece to a scenario.</li>
       <li data-t="reopen">Everything else lives behind this: what is drawn, the audio, the readouts.</li>
       <li data-t="tInfo">This text again, with the notes on what is measured and what is modelled.</li>
@@ -682,16 +684,6 @@
     </select><button class="rowbtn" id="jumpGo" title="apply the selected scenario and close the panel">GO</button></div>
 </div>
 <button class="pdot" id="simPlus" data-open="simPanel" title="simulation">◷</button>
-<div class="env" id="focusPanel">
-  <button id="focusMin" aria-label="close" style="position:absolute;top:6px;right:8px;background:none;
-      border:0;color:var(--dim);cursor:pointer;font-size:13px;font-family:inherit">×</button>
-  <h2>Focus</h2>
-  <div style="display:flex;gap:8px;margin-top:7px;align-items:center">
-    <select id="focusSel" style="flex:1"><option value="sun">Sun</option><option value="mw">Milky Way</option></select>
-    <button class="rowbtn" id="focusGo">GO</button>
-  </div>
-</div>
-<button class="pdot" id="focusPlus" data-open="focusPanel" aria-label="show the focus panel" style="display:none">◎</button>
 <div id="fpsBox" style="display:none"><span id="fpsVal">—</span></div>
 <div class="alertbox" id="iceBox">❄ GLACIAL EPOCH</div>
 <div class="alertbox" id="g710Box">☄ GLIESE 710 · <span id="eG710d">—</span></div>
@@ -724,6 +716,12 @@
   <div class="er"><span>cosmic rays</span><b id="eCR">1.00× today</b></div>
   <div class="er"><span>starlight</span><b id="eSL">1.0×</b></div>
   <div class="er" id="eLifeRow"><span>life support</span><b id="eLife">habitable</b></div>
+  <div class="envsep"></div>
+  <div class="er"><span>view</span>
+    <span style="display:flex;gap:6px;align-items:center">
+      <select id="focusSel"><option value="sun">Sun</option><option value="mw">Milky Way</option></select>
+      <button class="rowbtn" id="focusGo">GO</button>
+    </span></div>
 </div>
 
 <div id="labels"></div>
@@ -733,7 +731,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.36.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.37.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2372,7 +2370,6 @@ toggle($('tEvBirth'), on=>{ evBirth=on; syncLife(); });
 toggle($('tVar'), on=> varOn=on);
 let dustOn = true;
 toggle($('tDust'), on=>{ dustOn = on; });
-$('focusMin').addEventListener('click', ()=> setPanelOpen('focusPanel', false));
 $('focusGo').addEventListener('click', ()=>{
   if($('focusSel').value === 'sun'){
     if($('tView').classList.contains('on')) $('tView').click();
@@ -2439,23 +2436,41 @@ function applySfxGain(){
 // edge closes it. Both gestures read the same pointer stream, so a mouse and a finger
 // behave identically.
 const PANELS = [
-  { id:'simPanel',   dot:'simPlus'   },
-  { id:'focusPanel', dot:'focusPlus' },
-  { id:'env',        dot:'envPlus'   },
-  { id:'hud',        dot:'reopen'    },
+  { id:'simPanel', dot:'simPlus' },
+  { id:'env',      dot:'envPlus' },
+  { id:'hud',      dot:'reopen'  },
 ];
-const pState = { simPanel:{s:'r',o:true}, focusPanel:{s:'l',o:true},
-                 env:{s:'l',o:true},      hud:{s:'r',o:false} };
+// Two states, kept apart on purpose. `o` is what the visitor asked for; `auto` is what
+// the layout had to do about it. Only `o` is saved, so a panel hidden to make room for
+// a newer one comes back the moment that one closes — the automatic state is never
+// mistaken for a decision. `seq` records the order things were opened in: the newest
+// panel wins an overlap and sits on top.
+let openSeq = 0;
+const pState = {
+  simPanel:{ s:'r', o:true,  auto:false, seq:++openSeq },
+  env:     { s:'l', o:true,  auto:false, seq:++openSeq },
+  hud:     { s:'r', o:false, auto:false, seq:0 },
+};
+const panelShown = id => pState[id].o && !pState[id].auto;
 function setPanelOpen(id, open){
   pState[id].o = open;
-  $(id).style.display = open ? '' : 'none';
-  if(open){ const el = $(id); el.classList.remove('pop'); void el.offsetWidth;
+  if(open){ pState[id].seq = ++openSeq;
+            const el = $(id); el.classList.remove('pop'); void el.offsetWidth;
             el.classList.add('pop'); setTimeout(()=> el.classList.remove('pop'), 260); }
-  $(PANELS.find(p=>p.id===id).dot).style.display = open ? 'none' : 'block';
+  layoutPanels();
   fitPanels(); saveSettings();
 }
-function layoutPanels(){
+// One pass of the layout: put every shown panel and dot where it belongs and report
+// the rectangles, so the caller can judge whether the result actually fits.
+function placePanels(){
   const land = innerWidth > innerHeight, pad = 14, gap = 8;
+  const boxes = [];
+  for(const p of PANELS){
+    const shown = panelShown(p.id);
+    $(p.id).style.display = shown ? '' : 'none';
+    $(p.dot).style.display = (!pState[p.id].o || pState[p.id].auto) ? 'block' : 'none';
+    $(p.id).style.zIndex = 5 + pState[p.id].seq;   // the newest opened sits on top
+  }
   for(const side of ['l','r']){
     const mine = PANELS.filter(p => pState[p.id].s === side);
     let y = pad, dotX = 0;
@@ -2465,25 +2480,53 @@ function layoutPanels(){
       else { el.style.right = x + 'px'; el.style.left = 'auto'; }
     };
     for(const p of mine){                      // open panels first, one under the next
+      if(!panelShown(p.id)) continue;
       const el = $(p.id);
-      if(getComputedStyle(el).display === 'none') continue;
       if(p.id === 'hud') el.style.maxHeight = 'calc(100vh - ' + (y + pad) + 'px)';
       put(el, pad);
-      y += el.getBoundingClientRect().height + gap;
+      const r = el.getBoundingClientRect();
+      boxes.push({ id:p.id, seq:pState[p.id].seq, top:y, bottom:y + r.height,
+                   left:r.left, right:r.right });
+      y += r.height + gap;
     }
     const dock = mine.map(p => $(p.dot));
     if(side === 'r') dock.push($('tPause'), $('tInfo'));   // the two standing actions last
     for(const el of dock){
       if(getComputedStyle(el).display === 'none') continue;
       put(el, pad + dotX);
-      const w = el.getBoundingClientRect().width + gap;
-      if(land) dotX += w; else y += el.getBoundingClientRect().height + gap;
+      const r = el.getBoundingClientRect();
+      // out of room even for the buttons: this one steps off rather than overlap
+      el.style.visibility = (y + r.height > innerHeight || pad + dotX + r.width > innerWidth)
+        ? 'hidden' : 'visible';
+      if(land) dotX += r.width + gap; else y += r.height + gap;
     }
     if(land && dotX) y += 36 + gap;
     if(side === 'l'){                          // the bare frame rate rides below them
       const f = $('fpsBox');
       if(getComputedStyle(f).display !== 'none'){ f.style.top = y+'px'; f.style.left = pad+'px'; }
     }
+  }
+  return boxes;
+}
+// The oldest panel that either runs off the bottom or overlaps a newer one. Rectangles
+// are compared rather than columns, so a panel dragged across still yields correctly.
+function findCrowded(boxes){
+  let worst = null;
+  const note = b => { if(!worst || b.seq < worst.seq) worst = b; };
+  for(const b of boxes) if(b.bottom > innerHeight - 4) note(b);
+  for(let i=0;i<boxes.length;i++) for(let j=i+1;j<boxes.length;j++){
+    const a = boxes[i], c = boxes[j];
+    if(a.left < c.right && c.left < a.right && a.top < c.bottom && c.top < a.bottom)
+      note(a.seq < c.seq ? a : c);
+  }
+  return worst && worst.id;
+}
+function layoutPanels(){
+  for(const p of PANELS) pState[p.id].auto = false;
+  for(let pass = 0; pass <= PANELS.length; pass++){
+    const crowded = findCrowded(placePanels());
+    if(!crowded) break;
+    pState[crowded].auto = true;      // recomputed from scratch every time, so it can return
   }
 }
 // dragging: inward switches columns, outward closes
@@ -2513,7 +2556,8 @@ for(const p of PANELS){
     if(Math.sign(moved) === Math.sign(outward) && Math.abs(moved) >= TH) setPanelOpen(p.id, false);
     else if(Math.sign(moved) === Math.sign(inward) && Math.abs(moved) >= TH){
       pState[p.id].s = side === 'l' ? 'r' : 'l';
-      fitPanels(); saveSettings();
+      pState[p.id].seq = ++openSeq;   // moving a panel is asking to see it
+      layoutPanels(); fitPanels(); saveSettings();
     }
     moved = 0;
   };
@@ -2628,8 +2672,7 @@ function saveSettingsNow(){
     const s = { t:{}, s:{}, c:{}, cal:$('cal').value, mult:speedMult, dens:curD,
                 units:unitMode,
                 fsel:$('focusSel').value, sec:secOpen,
-                pan:{ simPanel:{...pState.simPanel}, focusPanel:{...pState.focusPanel},
-                      env:{...pState.env}, hud:{...pState.hud} },
+                pan:Object.fromEntries(PANELS.map(q => [q.id, { s:pState[q.id].s, o:pState[q.id].o }])),
                 bar:$('gamebar').classList.contains('slid'),
  };
     S_TOG.forEach(id => s.t[id] = isOn($(id)));
@@ -2662,17 +2705,14 @@ function restoreSettings(register){
     if(s.pan) for(const q of PANELS){
       const v = s.pan[q.id]; if(!v) continue;
       if(v.s === 'l' || v.s === 'r') pState[q.id].s = v.s;
-      if(typeof v.o === 'boolean'){
-        pState[q.id].o = v.o;
-        $(q.id).style.display = v.o ? '' : 'none';
-        $(q.dot).style.display = v.o ? 'none' : 'block';
-      }
+      if(typeof v.o === 'boolean'){ pState[q.id].o = v.o; if(v.o) pState[q.id].seq = ++openSeq; }
     }
     if(s.sec) for(const k of SECS) if(typeof s.sec[k] === 'boolean') secOpen[k] = s.sec[k];
     if(s.bar) $('gamebar').classList.add('slid');
   }
   { // the settings dialog stays shut unless a saved record says otherwise
-    if(!(s && s.pan && s.pan.hud && s.pan.hud.o === true)) setPanelOpen('hud', false);
+    if(!(s && s.pan && s.pan.hud && s.pan.hud.o === true)) pState.hud.o = false;
+    layoutPanels();
 
   }
   applySecs();
@@ -3108,7 +3148,9 @@ let W=0,H=0,DPR=1, projMat;
 // environment readout beside it, and down over the status bar and the view scale below.
 // Whatever it actually overlaps steps aside until it is collapsed again — measured, not
 // guessed from a breakpoint, since the panel's own height depends on how much is in it.
-const CROWDABLE = ['simPanel','simPlus','focusPanel','focusPlus','env','envPlus','fpsBox','scaleNote','gamebar'];
+// the panels police their own overlaps now; these are the pieces that only ever
+// have to yield to them
+const CROWDABLE = ['fpsBox','scaleNote','gamebar'];
 function fitPanels(){
   const hud = $('hud');
   const items = CROWDABLE.map(id => $(id));

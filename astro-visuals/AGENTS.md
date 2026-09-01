@@ -61,12 +61,16 @@ built it.
   never a visible counter.
 - Debug mode (via `?debug` or ten taps, persisted) reveals the debug dialog button
   and the tuning rows (`hud rate`, `Gaia brght`); everything else stays user-facing.
-- Four panels — Simulation, Focus, Earth, Settings — live in two columns and are
-  movable: dragging one inward switches its column, dragging it toward its own screen
+- Three panels — Simulation, Earth (which carries the view control), Settings — live
+  in two columns and are movable: dragging one inward switches its column, dragging it toward its own screen
   edge closes it, and both gestures read one pointer stream so mouse and finger behave
   alike. Each column stacks its open panels first, then the dots that reopen the
   closed ones: down the screen in portrait, across it in landscape. Sides and open
   states persist. Add a new panel to PANELS/pState, never to a bespoke layout block.
+  Panels keep two states: `o` is the visitor's choice and is saved; `auto` is the
+  layout hiding one to make room and is never saved. When they cannot all fit, the
+  newest opened wins — z-index follows open order — and the oldest yields, coming back
+  by itself once the crowding lifts. A panel the visitor closed stays closed.
   Pause and help (?) stand at the end of the right column's dock, icon only.
 - A first visit is met by a guided overlay that draws a line from each line of text to
   the thing it names, closable only by its button and shown once (the About dialog can
