@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.38.0 — 2026-09-01
+
+- The tour points at things, and the panels agree on a glyph (`9056a40`)
+
 ### 2.37.0 — 2026-09-01
 
 - One Earth panel, and panels that make room for each other (`e859c14`)
