@@ -338,6 +338,7 @@
     <div class="sbody" id="secGfx">
     <div class="row"><label for="detail">detail</label><input type="range" id="detail" min="0" max="5" step="1" value="0"><span id="detailv" style="min-width:56px;text-align:right;color:var(--ink)">lowest</span><button class="stepb" data-step="detail:-1">−</button><button class="stepb" data-step="detail:1">+</button></div>
     <div class="row" id="rowGain" style="display:none"><label for="minB">Gaia brght</label><input type="range" id="minB" min="0" max="1" step="0.01" value="0.05"><span id="minBv" style="min-width:52px;text-align:right;color:var(--ink)">+5%</span><button class="stepb" data-step="minB:-0.05">−</button><button class="stepb" data-step="minB:0.05">+</button></div>
+    <div class="row"><label for="coreB" title="how hard galaxy cores are allowed to blow out to white">core glare</label><input type="range" id="coreB" min="0.3" max="1" step="0.01" value="0.72"><span id="coreBv" style="min-width:52px;text-align:right;color:var(--ink)">72%</span><button class="stepb" data-step="coreB:-0.04">−</button><button class="stepb" data-step="coreB:0.04">+</button></div>
     <div class="row"><label for="orbitA" title="the closed orbit around the Sun">orbit</label><input type="range" id="orbitA" min="0" max="1" step="0.01" value="1"><span id="orbitAv" style="min-width:36px;text-align:right;color:var(--ink)">100%</span><button class="stepb" data-step="orbitA:-0.05">−</button><button class="stepb" data-step="orbitA:0.05">+</button></div>
     <div class="row"><label for="trailA" title="the true swept path through space">helix</label><input type="range" id="trailA" min="0" max="1" step="0.01" value="1"><span id="trailAv" style="min-width:36px;text-align:right;color:var(--ink)">100%</span><button class="stepb" data-step="trailA:-0.05">−</button><button class="stepb" data-step="trailA:0.05">+</button></div>
     <div class="row"><label for="trailL">length</label><input type="range" id="trailL" min="0" max="1000" step="10" value="300"><span id="trailLv" style="min-width:64px;text-align:right;color:var(--ink)">300%</span><button class="stepb" data-step="trailL:-50">−</button><button class="stepb" data-step="trailL:50">+</button></div>
@@ -678,6 +679,12 @@
       and reduced to a 448-pixel probability map. Its rings, its offset inner ring, its dust lanes and its
       big warm bulge are where the mosaic puts them; the vertical structure is modelled. Opened offline,
       a schematic Andromeda stands in.</li>
+      <li>Stars are drawn <b>additively</b>, which is what starlight does — but a screen stops at white,
+      so a galaxy core, where thousands of sprites land on one pixel, used to clip into a featureless
+      white hole, worst of all during the merger. The scene is rendered into a half-float buffer that
+      holds those sums, and <b>core glare</b> under Visuals sets how much headroom they get on the way
+      back down: the curve is exact below the knee and rolls off above it, so cores keep their gradient
+      and colour. At 100% there is no compression and the old clipping returns.</li>
       <li>The <b>gaia sky</b> layer is not modelled at all: it is the 100,000 brightest stars from
       AT-HYG 3.2, of which 99.9% carry <b>Gaia DR3</b> parallax distances (Hipparcos covers the very
       bright ones Gaia saturates on), out to ~1,760&nbsp;pc, rotated into galactic coordinates and placed
@@ -810,7 +817,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.43.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.44.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2732,6 +2739,13 @@ $('minB').addEventListener('input', e=>{
   minSprite = 1.3 + v*2.1;
   $('minBv').textContent = v ? '+'+Math.round(v*100) + '%' : 'off';
 });
+// How much headroom the bright cores get before they saturate. 100% is the old
+// behaviour: no compression, and a merging pair of cores that reads as one white blob.
+let coreKnee = 0.72;
+$('coreB').addEventListener('input', e=>{
+  coreKnee = +e.target.value;
+  $('coreBv').textContent = coreKnee >= 0.999 ? 'off' : Math.round(coreKnee*100)+'%';
+});
 let trailAlpha = 1, orbitAlpha = 1;
 // each slider is its own switch: silence for sound, invisibility for lines
 $('trailA').addEventListener('input', e=>{
@@ -3083,7 +3097,7 @@ const SKEY = 'galactic-transit.settings.v1';
 const S_TOG = ['tLabels','tArms','tDwarfs','tP9','tBelt','tKuiper','tOort','tDust',
                'tEvSN','tEvBirth','tVar',
                'tStatAge','tStatGyr','tStatSn','tStatBirth','tGaia','tFps'];
-const S_SLD = ['speed','trailA','orbitA','trailL','musicVol','sfxVol','minB','hudHz'];
+const S_SLD = ['speed','trailA','orbitA','trailL','musicVol','sfxVol','minB','hudHz','coreB'];
 const S_CHK = ['fxBirth','fxSn','fxPn','fxDrone','secSolo','closeOnGo'];
 function saveSettingsNow(){
   try{
@@ -3698,12 +3712,64 @@ function fitPanels(){
     if(!clear) el.classList.add('crowded');
   }
 }
+// ---------- highlight rolloff ----------
+// Everything is drawn with additive blending, so a galaxy core — thousands of sprites
+// stacked on one pixel — sums far past 1.0 and the screen simply clips it to flat white.
+// That is fine for one core and useless during the merger, where the whole remnant piles
+// into a single blown-out disc. The scene is drawn into a half-float buffer instead,
+// which holds those sums, and this pass maps them back into range: identity below the
+// knee, then asymptotic, so a core keeps its gradient and its colour instead of becoming
+// a white hole. The ratio is applied to all three channels together, so hues survive.
+const TONE_VS = `#version 300 es
+out vec2 vUV;
+void main(){
+  vec2 p = vec2(float((gl_VertexID<<1)&2), float(gl_VertexID&2));
+  vUV = p;
+  gl_Position = vec4(p*2.0-1.0, 0.0, 1.0);
+}`;
+const TONE_FS = `#version 300 es
+precision highp float;
+uniform sampler2D uTex;
+uniform float uKnee;
+in vec2 vUV; out vec4 o;
+void main(){
+  vec3 c = texture(uTex, vUV).rgb;
+  float m = max(max(c.r, c.g), c.b);
+  if(m > uKnee && m > 1e-6){
+    float h = max(1.0 - uKnee, 1e-4);
+    c *= (uKnee + h*(1.0 - exp(-(m - uKnee)/h)))/m;
+  }
+  o = vec4(c, 1.0);
+}`;
+const pTone = prog(TONE_VS, TONE_FS);
+const UT = { tex: gl.getUniformLocation(pTone,'uTex'), knee: gl.getUniformLocation(pTone,'uKnee') };
+const emptyVAO = gl.createVertexArray();
+const hdrExt = gl.getExtension('EXT_color_buffer_float') || gl.getExtension('EXT_color_buffer_half_float');
+let hdrFB = null, hdrTex = null, hdrOK = false;
+function makeHDR(){
+  if(!hdrExt) return;
+  if(hdrTex) gl.deleteTexture(hdrTex);
+  if(hdrFB) gl.deleteFramebuffer(hdrFB);
+  hdrTex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, hdrTex);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, canvas.width, canvas.height, 0, gl.RGBA, gl.HALF_FLOAT, null);
+  for(const [k,v] of [[gl.TEXTURE_MIN_FILTER,gl.NEAREST],[gl.TEXTURE_MAG_FILTER,gl.NEAREST],
+                      [gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE],[gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE]])
+    gl.texParameteri(gl.TEXTURE_2D, k, v);
+  hdrFB = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, hdrFB);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, hdrTex, 0);
+  hdrOK = gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE;
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.bindTexture(gl.TEXTURE_2D, null);
+}
 function resize(){
   DPR=Math.min(2, devicePixelRatio||1);
   W=innerWidth; H=innerHeight;
   canvas.width=W*DPR; canvas.height=H*DPR;
   gl.viewport(0,0,canvas.width,canvas.height);
   projMat = perspective(Math.PI/3, W/H, 0.5, 20000);
+  makeHDR();
 }
 addEventListener('resize', ()=>{ resize(); fitPanels(); }); resize();
 
@@ -3863,6 +3929,9 @@ function frame(now){
   projMat = perspective(Math.PI/3, W/H, Math.min(0.5, Math.max(1e-9, cam.dist*0.04)), 25000);
   const pxScale = (H*DPR)/(2*Math.tan(Math.PI/6));
 
+  // at 100% nothing is compressed, so the old direct path is kept exactly
+  const toneOn = hdrOK && coreKnee < 0.999;
+  if(toneOn) gl.bindFramebuffer(gl.FRAMEBUFFER, hdrFB);
   gl.clear(gl.COLOR_BUFFER_BIT);
 
   // points: stars, galaxy, bodies
@@ -4224,6 +4293,21 @@ function frame(now){
     gl.uniform1f(USn.sz, sz);
     gl.uniform1f(USn.disc, plasmaSunPx/sz);
     gl.bindVertexArray(vaoSunPt); gl.drawArrays(gl.POINTS,0,1);
+    gl.blendFunc(gl.ONE, gl.ONE);
+  }
+
+  if(toneOn){   // resolve the half-float scene to the screen through the rolloff curve
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.disable(gl.BLEND);
+    gl.useProgram(pTone);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, hdrTex);
+    gl.uniform1i(UT.tex, 0);
+    gl.uniform1f(UT.knee, coreKnee);
+    gl.bindVertexArray(emptyVAO);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    gl.bindVertexArray(null);
+    gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE);
   }
 

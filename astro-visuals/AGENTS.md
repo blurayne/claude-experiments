@@ -170,3 +170,14 @@ radius grows — that carried the Sun at 860 km/s, above escape speed at 31 kpc.
 the HUD stat swaps label and value to the Sun's distance from the centre; the spiral-arm term in
 `environment()` fades with `1 - mergeAt(a)`; and the glacial banner follows the Earth panel's rule —
 no frost once there is no Earth. `mergeAt(a)` is the shared pure function for all of it.
+
+## Highlight rolloff (v2.44.0)
+
+The scene renders into an RGBA16F framebuffer and resolves through `pTone`, a fullscreen pass with a
+soft-knee curve: identity below `coreKnee`, asymptotic above, the ratio applied to all three channels
+so hues survive. Without it, additive stacking clips galaxy cores to flat white — 0.59% of the frame
+was pure white at the merger, and that is where all the structure went. The `coreB` slider (Visuals,
+default 0.72) is the knee; at 1.0 it reads "off" and the direct-to-screen path is used unchanged, which
+is also the fallback when `EXT_color_buffer_float` is missing. `makeHDR()` must be called from
+`resize()` — the target has to track the drawing buffer. Any new draw call belongs before the resolve;
+anything added after it lands on the tone-mapped image instead of inside it.
