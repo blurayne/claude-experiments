@@ -85,6 +85,10 @@
     .hud, .env, .alertbox, #dbgCard{ animation:none }
   }
   .actsep{border:0;border-top:1px solid var(--line);margin:12px 0 10px}
+  /* a reading you glance at, not a panel you read: no frame, no caption */
+  #fpsBox{position:fixed;left:14px;z-index:5;font-family:'Orbitron',ui-monospace,monospace;
+    font-size:21px;font-weight:600;letter-spacing:.04em;color:var(--accent);
+    text-shadow:0 0 12px var(--glow);font-variant-numeric:tabular-nums;pointer-events:none}
   .seg{display:flex;flex:none;border:1px solid var(--line);border-radius:2px;overflow:hidden}
   .seg button{font-family:'Orbitron',ui-monospace,monospace;font-size:8.5px;letter-spacing:.08em;
     text-transform:uppercase;background:none;border:0;color:var(--dim);cursor:pointer;padding:4px 8px}
@@ -295,6 +299,7 @@
     <div class="sect" data-sec="gfx">Visuals<span class="arw">▾</span></div>
     <div class="sbody" id="secGfx">
     <div class="row"><label for="detail">detail</label><input type="range" id="detail" min="0" max="5" step="1" value="0"><span id="detailv" style="min-width:56px;text-align:right;color:var(--ink)">lowest</span><button class="stepb" data-step="detail:-1">−</button><button class="stepb" data-step="detail:1">+</button></div>
+    <div class="row" id="rowGain" style="display:none"><label for="minB">Gaia brght</label><input type="range" id="minB" min="0" max="1" step="0.01" value="0.05"><span id="minBv" style="min-width:52px;text-align:right;color:var(--ink)">+5%</span><button class="stepb" data-step="minB:-0.05">−</button><button class="stepb" data-step="minB:0.05">+</button></div>
     <div class="row"><label for="orbitA" title="the closed orbit around the Sun">orbit</label><input type="range" id="orbitA" min="0" max="1" step="0.01" value="1"><span id="orbitAv" style="min-width:36px;text-align:right;color:var(--ink)">100%</span><button class="stepb" data-step="orbitA:-0.05">−</button><button class="stepb" data-step="orbitA:0.05">+</button></div>
     <div class="row"><label for="trailA" title="the true swept path through space">helix</label><input type="range" id="trailA" min="0" max="1" step="0.01" value="1"><span id="trailAv" style="min-width:36px;text-align:right;color:var(--ink)">100%</span><button class="stepb" data-step="trailA:-0.05">−</button><button class="stepb" data-step="trailA:0.05">+</button></div>
     <div class="row"><label for="trailL">length</label><input type="range" id="trailL" min="0" max="1000" step="10" value="300"><span id="trailLv" style="min-width:64px;text-align:right;color:var(--ink)">300%</span><button class="stepb" data-step="trailL:-50">−</button><button class="stepb" data-step="trailL:50">+</button></div>
@@ -338,20 +343,20 @@
       <option value="he">Holocene Era — secular</option>
     </select></div>
     <div class="row"><label>units</label><div class="seg" id="segUnits"><button data-v="words">Gy</button><button data-v="sup">10ⁿ</button><button data-v="e">eⁿ</button></div></div>
-    <div class="chks">
+    <div class="row"><label>features</label>
       <label class="chk"><input type="checkbox" id="tStatAge" checked> solar system age</label>
-      <label class="chk"><input type="checkbox" id="tStatGyr" checked> galaxy years</label>
+      <label class="chk"><input type="checkbox" id="tStatGyr" checked> galaxy years</label></div>
+    <div class="chks indent">
       <label class="chk"><input type="checkbox" id="tStatSn"> sn count</label>
       <label class="chk"><input type="checkbox" id="tStatBirth"> births count</label>
+      <label class="chk"><input type="checkbox" id="tFps"> fps</label>
     </div>
-    <div class="row" id="rowHudHz" style="display:none"><label for="hudHz">hud rate</label><input type="range" id="hudHz" min="1" max="16" step="1" value="8"><span id="hudHzv" style="min-width:64px;text-align:right;color:var(--ink)">8×/s</span></div>
-    <div class="row" id="rowGain" style="display:none"><label for="minB">Gaia brght</label><input type="range" id="minB" min="0" max="1" step="0.01" value="0.05"><span id="minBv" style="min-width:64px;text-align:right;color:var(--ink)">+5%</span></div>
+    <div class="row" id="rowHudHz" style="display:none"><label for="hudHz">hud rate</label><input type="range" id="hudHz" min="1" max="16" step="1" value="8"><span id="hudHzv" style="min-width:52px;text-align:right;color:var(--ink)">8×/s</span><button class="stepb" data-step="hudHz:-1">−</button><button class="stepb" data-step="hudHz:1">+</button></div>
     </div>
     <div class="sect" data-sec="other">Other<span class="arw">▾</span></div>
     <div class="sbody" id="secOther">
     <div class="chks">
       <label class="chk"><input type="checkbox" id="secSolo" checked> one section at a time</label>
-      <label class="chk"><input type="checkbox" id="tFps"> fps</label>
     </div>
     </div>
     <hr class="actsep">
@@ -638,9 +643,7 @@
   </div>
 </div>
 <button id="focusPlus" aria-label="show the focus panel" style="display:none">◎</button>
-<div class="env" id="fpsBox" style="display:none">
-  <div class="er"><span>frames per second</span><b id="fpsVal">—</b></div>
-</div>
+<div id="fpsBox" style="display:none"><span id="fpsVal">—</span></div>
 <div class="alertbox" id="iceBox">❄ GLACIAL EPOCH</div>
 <div class="alertbox" id="g710Box">☄ GLIESE 710 · <span id="eG710d">—</span></div>
 <div id="dbgCard" style="display:none;position:fixed;inset:0;z-index:40;background:rgba(2,6,14,.72);
@@ -681,7 +684,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.33.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.34.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.

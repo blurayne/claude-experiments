@@ -42,7 +42,7 @@ built it.
 - The dialog is five collapsible sections — Simulation (speed, multiplier, scenario),
   Audio, Visuals, Hud, Other — each folding from its heading's arrow, with the open
   state persisted. "One section at a time" in Other is on by default and Simulation is
-  the section that opens; Other also holds the fps switch. A rule separates the
+  the section that opens. Each section gathers its switches under a "features" row. A rule separates the
   sections from the action row, which pause leads.
 - Every control persists in localStorage and is replayed on boot; new controls join
   `S_TOG` / `S_SLD` / `S_CHK` or the settings object explicitly.
