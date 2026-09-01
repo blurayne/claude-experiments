@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.47.0 — 2026-09-01
+
+- Andromeda in the view select, low as the default detail (v2.47.0) (`ce678ce`)
+
 ### 2.46.0 — 2026-09-01
 
 - A deep-time temperature chart, converted from the owner's reference image (v2.46.0) (`ff1297c`)
