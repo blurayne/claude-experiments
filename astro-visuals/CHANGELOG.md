@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.60.4 — 2026-09-02
+
+- Revert the core hiding; the spot at the centre was the nuclear stars (v2.60.4) (`b596904`)
+
 ### 2.60.3 — 2026-09-02
 
 - The Galactic Centre is hidden from inside the disk; settings title bare (v2.60.3) (`efe1120`)
