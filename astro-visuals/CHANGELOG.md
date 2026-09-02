@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.58.0 — 2026-09-02
+
+- Andromeda's map, completed by human and AI (v2.58.0) (`7865813`)
+
 ### 2.57.2 — 2026-09-02
 
 - Drop the clock line from the tour; one const V in sw.js (v2.57.2) (`7353feb`)
