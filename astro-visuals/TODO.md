@@ -161,6 +161,9 @@ before the work starts. An item is ticked when it ships, with the version that c
       with it (its comment said the wrong side approaches; the numbers were right). Verified
       old against new: Rigel left of Betelgeuse, clockwise from north, drag unchanged —
       v2.61.0.
+- [ ] A third slider in the Simulation panel, −100% … 0 … +100%, default 0, with a reset
+      button instead of +/−. +50% runs time at half the set speed; −50% at half the set
+      speed backwards.
 
 ### Shipped earlier, for the record
 
