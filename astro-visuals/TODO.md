@@ -99,11 +99,15 @@ before the work starts. An item is ticked when it ships, with the version that c
       unlock now waits for the music to actually play and listens for more gesture types;
       the banks retry and fall back on a timeout. Note the effects slider ships at 0
       (effects are opt-in by design) — v2.59.2.
-- [ ] Settings dialog: title reads "settings", small like the other dialogs' titles.
-- [ ] Settings dialog: move the full/auto buttons to the bottom left, on the same line as
-      the refresh button.
-- [ ] Move the build stamp, date and changelog link out of the settings footer and into
-      the information dialog, as its second line.
+- [x] Settings dialog: title reads "settings", small like the other dialogs' titles. At
+      8.5px (7.5px on a phone), the size its sibling panels Simulation and Earth use — it
+      sits in the same columns as them, so that is the "other" it should match — v2.60.0.
+- [x] Settings dialog: move the full/auto buttons to the bottom left, on the same line as
+      the refresh button. They live in `.hudfoot` now; the empty toggles row and its rule
+      above it are gone — v2.60.0.
+- [x] Move the build stamp, date and changelog link out of the settings footer and into
+      the information dialog, as its second line (`.info-sub`, directly under the title;
+      the `buildInfo` id moved with it, since the UTC tooltip hangs off it) — v2.60.0.
 
 ### Shipped earlier, for the record
 

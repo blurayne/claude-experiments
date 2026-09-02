@@ -46,7 +46,9 @@
   .hud .body::-webkit-scrollbar{width:6px}
   .hud .body::-webkit-scrollbar-thumb{background:rgba(95,216,255,.4);border-radius:3px}
   .hud .body::-webkit-scrollbar-track{background:transparent}
-  .hud h1{font-family:'Orbitron',ui-monospace,monospace;font-size:13px;font-weight:700;letter-spacing:.26em;text-transform:uppercase;color:var(--accent);text-shadow:0 0 14px var(--glow)}
+  /* the settings panel's title sits at its siblings' size (.env h2), not at a
+     dialog's: Simulation, Earth and Settings are three panels in the same columns */
+  .hud h1{font-family:'Orbitron',ui-monospace,monospace;font-size:8.5px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);text-shadow:0 0 10px var(--glow)}
   .ver{font-size:8px;font-weight:500;letter-spacing:.12em;color:var(--dim);text-shadow:none;margin-left:6px;vertical-align:2px}
   .hud .sub{font-size:10px;color:var(--dim);letter-spacing:.08em;margin-top:3px;line-height:1.5}
   .row{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:11px}
@@ -57,7 +59,7 @@
   select{flex:1;min-width:0;background:rgba(9,16,30,.92);color:var(--ink);border:1px solid var(--line);border-radius:2px;
     font-family:inherit;font-size:10px;letter-spacing:.06em;padding:4px 6px;outline:none}
   .toggles{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-  .hudfoot{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex:none;
+  .hudfoot{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex:none;flex-wrap:wrap;
     margin-top:9px;padding-top:8px;border-top:1px solid var(--line);
     font-family:'Orbitron',ui-monospace,monospace;font-size:8px;letter-spacing:.09em;color:var(--dim)}
   .hudlink{font-family:inherit;font-size:8px;letter-spacing:.11em;text-transform:uppercase;
@@ -192,7 +194,7 @@
     text-shadow:0 0 9px rgba(var(--lifeRGB), .4)}
   @media (max-width:640px){
     .env{width:min(178px, calc(50vw - 20px));padding:8px 9px}
-    .env h2{font-size:7.5px;letter-spacing:.12em;margin-bottom:5px}
+    .env h2, .hud h1{font-size:7.5px;letter-spacing:.12em;margin-bottom:5px}
     .env .er{font-size:8px;letter-spacing:.03em;gap:5px}
     .env .er b{font-size:9px}
   }
@@ -244,6 +246,9 @@
     border:1px solid var(--line);border-top:1px solid rgba(95,216,255,.55);border-radius:3px;padding:20px 22px;backdrop-filter:blur(10px);
     -webkit-backdrop-filter:blur(10px);box-shadow:0 0 44px rgba(95,216,255,.10);font-size:11.5px;line-height:1.65;color:var(--dim);letter-spacing:.03em}
   .info-body{overflow-y:auto;min-height:0;flex:1}
+  /* second line of the info dialog: which build you are looking at, and what changed */
+  .info-sub{flex:none;font-family:'Orbitron',ui-monospace,monospace;font-size:8px;letter-spacing:.09em;
+    color:var(--dim);margin:-4px 0 10px}
   .info-card h2{flex:none;font-family:'Orbitron',ui-monospace,monospace;font-size:12px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;text-shadow:0 0 12px var(--glow)}
   .info-card h3{font-family:'Orbitron',ui-monospace,monospace;font-size:9px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--accent2);margin:16px 0 6px}
   .info-card b{color:var(--ink)}
@@ -356,7 +361,7 @@
 
 <div class="hud" id="hud">
   <button class="pclose" id="collapse" aria-label="collapse panel">−</button>
-  <h1>Galactic Transit <span class="ver" id="verHud"></span></h1>
+  <h1>Settings <span class="ver" id="verHud"></span></h1>
   <div class="body">
     <div class="sect" data-sec="audio">Audio<span class="arw">▾</span></div>
     <div class="sbody" id="secAudio">
@@ -437,20 +442,14 @@
       <label class="chk" title="labels ease into place, hold still through a jump, and step aside while a body whirls faster than a label can follow"><input type="checkbox" id="tLabelSteady" checked> steady labels</label>
     </div>
     </div>
-    <hr class="actsep">
-    <div class="toggles">
-      <button class="tg" id="tFull">⛶ full</button>
-      <button class="tg" id="tRotate">⟳ auto</button>
-    </div>
     <button id="tView" style="display:none"></button>
     <button id="tDive" style="display:none"></button>
   </div>
   <div class="hudfoot">
-    <span id="buildInfo"><span id="buildStamp">—</span> · <a class="hudlink" id="changelogLink"
-       href="changelog.html" target="_blank" rel="noopener"
-       title="what changed, version by version">changelog</a></span>
-    <button id="dbgBtn" style="display:none" title="export or import the full app state">debug</button>
+    <button class="tg" id="tFull">⛶ full</button>
+    <button class="tg" id="tRotate">⟳ auto</button>
     <span style="margin-right:auto"></span>
+    <button id="dbgBtn" style="display:none" title="export or import the full app state">debug</button>
     <button id="tReload" title="reload · tap 3× to reset settings · tap 10× for debug mode">⟲ refresh</button>
   </div>
 </div>
@@ -479,6 +478,9 @@
   <div class="info-card">
     <button id="infoClose" aria-label="close">×</button>
     <h2>About &amp; Stats <span class="ver" id="verInfo"></span></h2>
+    <div class="info-sub" id="buildInfo"><span id="buildStamp">—</span> · <a class="hudlink" id="changelogLink"
+       href="changelog.html" target="_blank" rel="noopener"
+       title="what changed, version by version">changelog</a></div>
     <div class="info-body">
     <p class="intro">This is where the solar system actually goes. Not a diagram of the planets, but the path
       they take through the Milky Way: the Sun on its 225-million-year orbit, the planets winding around that
@@ -1008,7 +1010,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.59.2', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.60.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.

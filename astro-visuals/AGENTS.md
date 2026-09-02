@@ -83,7 +83,15 @@ built it.
   orbit trails together (trails 100%, orbits 50%), yaw 0.7014 / pitch 0.2757 — the
   owner's exported preset. Never unpause a visitor whose system asks for reduced
   motion.
-- Settings footer: build stamp in the viewer's own time zone (named, `UTC±0` when
+- Settings is a panel, not a dialog: its title is "Settings" at `.env h2`'s size (8.5px,
+  7.5px on a phone), matching Simulation and Earth, which share its columns. Its footer
+  carries the full/auto toggles on the left and refresh on the right, one line. The build
+  stamp and changelog link live in the **info dialog's** second line (`.info-sub`) — and
+  that div keeps the id `buildInfo`, because the UTC-stamp tooltip is set on it. Moving
+  markup that JS addresses by id is how v2.60.0 briefly died at boot with "Cannot set
+  properties of null": the page parses fine, and the failure is only visible at runtime.
+  Load the page and read `pageerror` after any markup move, never just the parse check.
+- Formerly the settings footer: build stamp in the viewer's own time zone (named, `UTC±0` when
   zero) + short sha + changelog link on one line; version only in the tooltip; no
   reset button. The reload button: 1 tap refreshes past caches, 3 taps also resets
   settings, 10 taps toggles debug mode; feedback is a panel flash at each threshold,
