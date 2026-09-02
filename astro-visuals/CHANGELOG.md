@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.60.3 — 2026-09-02
+
+- The Galactic Centre is hidden from inside the disk; settings title bare (v2.60.3) (`efe1120`)
+
 ### 2.60.2 — 2026-09-02
 
 - The glacial frost texture 20% more transparent (v2.60.2) (`d945351`)
