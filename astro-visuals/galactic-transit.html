@@ -987,7 +987,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.53.3', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.53.4', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -5045,7 +5045,11 @@ function frame(now){
       // ss.gone is the same age latch (a >= SUN_AGB) the panel above already uses, so the
       // dropdown and the panel turn at the same moment, and scrubbing the clock backward
       // (a scenario, a jump) correctly turns it back rather than leaving a stale name.
-      focusSunOpt.textContent = ss.gone ? 'Anthropic Nebula' : 'Solar System';
+      // Written only on an actual change: a <select>'s open popup watches its <option>
+      // nodes, and rewriting one every rendered frame — even to the same string — made
+      // the dropdown flicker and refuse to register a pick at all.
+      const sunOptWant = ss.gone ? 'Anthropic Nebula' : 'Solar System';
+      if(focusSunOpt.textContent !== sunOptWant) focusSunOpt.textContent = sunOptWant;
       for(const id of ['eSunPhaseRow','eSunSizeRow']) $(id).style.display = lost ? '' : 'none';
       for(const id of ['eRangeRow','eCRRow','eSLRow','eLifeRow']) $(id).style.display = lost ? 'none' : '';
       $('env').querySelector('h2').textContent = lost ? 'The Sun' : 'Earth';

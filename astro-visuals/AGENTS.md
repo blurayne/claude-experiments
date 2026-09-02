@@ -269,6 +269,22 @@ click cascades by setting `.checked` and dispatching a synthetic `change` (not a
 it does not fire the checkboxes' `click`-bound save listener, so the cascade calls `saveSettings()`
 explicitly — forget that and a choice made through the master silently fails to survive a reload.
 
+## Never write a `<select>`'s options unconditionally per frame (v2.53.4)
+
+v2.53.3's `focusSunOpt.textContent = ...` ran every rendered frame, unguarded — same string
+or not, it replaced the `<option>`'s child text node ~60 times a second. A native `<select>`'s
+open popup tracks its `<option>` nodes, and that constant churn made the dropdown flicker and
+refuse to register a pick at all — reported as "flashing screen, can't select a view," and it
+reproduced with or without the Sun ever having died, because the write happened regardless of
+whether the string actually changed. Fixed with the obvious guard: compute the wanted string,
+compare against the current `textContent`, write only on an actual difference. Confirmed with
+a `MutationObserver` on the option node — zero writes across 1.5 s of idle frames, exactly one
+at the real transition — and with `page.locator(...).selectOption()` picking each of the three
+views in sequence. The lesson generalizes: anything written every frame that lives inside an
+interactive native control (`<select>`, `<input>`, `<details>`) needs a change guard, not just
+things that are visibly expensive — the DOM write itself is what a browser's native widget
+reacts to, whether or not the value moved.
+
 ## The view option renames itself, permanently, once the Sun is gone (v2.53.3)
 
 `focusSunOpt` is `$('focusSel').options[0]` (value `'sun'`, never renamed — only its
