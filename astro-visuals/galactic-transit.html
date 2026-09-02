@@ -36,6 +36,7 @@
   canvas#gl.dragging{cursor:grabbing}
 
   .hud{position:fixed;top:14px;right:14px;width:min(478px, calc(100vw - 28px));background:var(--panel);
+    touch-action:pan-y;
     border:1px solid var(--line);border-top:1px solid rgba(95,216,255,.55);border-radius:3px;padding:14px 16px;backdrop-filter:blur(8px);
     -webkit-backdrop-filter:blur(8px);z-index:5;box-shadow:0 0 34px rgba(95,216,255,.08), inset 0 0 26px rgba(95,216,255,.03);
     max-height:calc(100vh - 28px);display:flex;flex-direction:column}
@@ -132,6 +133,7 @@
   .lbl{position:fixed;transform:translate(-50%,-140%);font-family:'Orbitron',ui-monospace,monospace;font-size:8px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;
     color:rgba(190,224,250,.8);pointer-events:none;z-index:3;text-shadow:0 0 6px #000;white-space:nowrap}
   .env{position:fixed;top:14px;left:14px;z-index:5;width:216px;background:var(--panel);
+    touch-action:pan-y;
     border:1px solid var(--line);border-top:1px solid rgba(95,216,255,.55);border-radius:3px;
     padding:10px 12px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
     box-shadow:0 0 30px rgba(95,216,255,.08)}
@@ -1006,7 +1008,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.59.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.59.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -3450,11 +3452,16 @@ function layoutPanels(){
 // dragging: inward switches columns, outward closes
 for(const p of PANELS){
   const el = $(p.id);
-  let x0 = 0, active = false, moved = 0;
+  let x0 = 0, active = false, moved = 0, pid = -1;
   el.addEventListener('pointerdown', e => {
     // never steal a gesture that belongs to a control inside the panel
     if(e.target.closest('input, button, select, textarea, a, .seg, .chk')) return;
-    x0 = e.clientX; active = true; moved = 0;
+    x0 = e.clientX; active = true; moved = 0; pid = e.pointerId;
+    // Capture the pointer, or the swipe dies the moment the finger leaves the panel —
+    // and on a phone the panel is ~178 px wide, so a 60 px swipe started anywhere near
+    // its middle crosses its own edge before it ever reaches the threshold. That is why
+    // this worked under a mouse on a 216 px panel and not under a thumb.
+    try{ el.setPointerCapture(e.pointerId); }catch(err){}
   });
   el.addEventListener('pointermove', e => {
     if(!active) return;
@@ -3466,6 +3473,8 @@ for(const p of PANELS){
   const finish = () => {
     if(!active) return;
     active = false;
+    try{ if(pid >= 0) el.releasePointerCapture(pid); }catch(err){}
+    pid = -1;
     el.classList.remove('drag');
     el.style.transform = '';
     const side = pState[p.id].s, TH = 60;
@@ -3481,7 +3490,8 @@ for(const p of PANELS){
   };
   el.addEventListener('pointerup', finish);
   el.addEventListener('pointercancel', finish);
-  el.addEventListener('pointerleave', finish);
+  // deliberately not pointerleave: with the pointer captured it cannot fire until
+  // release anyway, and without capture it was what killed the swipe at the edge
 }
 // only the dots that stand for a panel reopen one; pause and help share the dock's
 // look but carry their own actions
@@ -4304,18 +4314,27 @@ addEventListener('resize', ()=>{ resize(); fitPanels(); }); resize();
 // battery and data. The Page Visibility API is the one signal every platform reports
 // reliably for this — unlike blur/focus, which also fire for things like opening a
 // <select> or a devtools panel, so those are deliberately not used here.
-let hiddenPausedSim = false, hiddenPausedMusic = false, hiddenSuspendedAudio = false;
+// What is recorded is the INTENT, never what the element happened to be doing: a
+// backgrounded tab has its <audio> paused and its AudioContext suspended by the browser
+// itself, often before this handler runs, so `!player.paused` read false and the music
+// was never given back. `musicOn` and `paused` are the piece's own state and say what
+// the visitor asked for. Only what was running is restored — someone who paused by hand
+// before switching away comes back to a paused scene.
+let hiddenState = null;
 document.addEventListener('visibilitychange', ()=>{
   if(document.hidden){
-    if(!paused){ $('tPause').click(); hiddenPausedSim = true; }
-    if(musicOn && !player.paused){ player.pause(); hiddenPausedMusic = true; }
-    if(audio && audio.ctx.state === 'running'){ audio.ctx.suspend().catch(()=>{}); hiddenSuspendedAudio = true; }
+    if(hiddenState) return;             // some browsers fire it more than once
+    hiddenState = { sim: !paused, music: musicOn && !!player.src, audio: !!audio };
+    if(hiddenState.sim) $('tPause').click();
+    player.pause();                     // harmless if the browser got there first
+    if(audio && audio.ctx.state === 'running') audio.ctx.suspend().catch(()=>{});
   } else {
-    // only undo what this handler itself did — a visitor who paused by hand before
-    // switching away must come back to a paused scene, not a resumed one
-    if(hiddenPausedSim){ $('tPause').click(); hiddenPausedSim = false; }
-    if(hiddenPausedMusic){ player.play().catch(()=>armUnlock()); hiddenPausedMusic = false; }
-    if(hiddenSuspendedAudio){ audio.ctx.resume().catch(()=>{}); hiddenSuspendedAudio = false; }
+    const was = hiddenState; hiddenState = null;
+    if(!was) return;
+    if(was.sim && paused) $('tPause').click();
+    if(was.audio && audio && audio.ctx.state === 'suspended') audio.ctx.resume().catch(()=>{});
+    // play() can be refused after a long background; armUnlock retries on the next touch
+    if(was.music && musicOn && player.paused) player.play().catch(()=>armUnlock());
   }
 });
 

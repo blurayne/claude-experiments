@@ -81,10 +81,16 @@ before the work starts. An item is ticked when it ships, with the version that c
 - [x] After the Andromeda–Milky Way merger, show one label only: "Milkomeda" (the name
       Cox & Loeb gave the remnant; the request said "Milkomedia") — from the same merge
       threshold at which the other galaxy names step down — v2.59.0.
-- [ ] Losing focus must remember the play state of the animation and the music, and
-      restore exactly that on regaining focus (the v2.45.0 handler is not doing it).
-- [ ] Swiping a panel toward its own screen edge to close it still does not work. It
-      works with a mouse; the gesture is being lost on touch.
+- [x] Losing focus must remember the play state of the animation and the music, and
+      restore exactly that on regaining focus (the v2.45.0 handler is not doing it). It
+      recorded what the media element was doing, and a backgrounded tab has that paused by
+      the browser already — so it recorded "nothing playing". It now records the intent and
+      restores it, and survives the doubled visibilitychange some browsers fire — v2.59.1.
+- [x] Swiping a panel toward its own screen edge to close it still does not work. It
+      works with a mouse; the gesture is being lost on touch. Not touch as such: the panel
+      is 178 px wide on a phone, so the swipe crossed its own edge and `pointerleave`
+      aborted it. The pointer is captured now, `pointerleave` is gone, and the panels carry
+      `touch-action:pan-y`. Verified with real touch events at phone size — v2.59.1.
 
 ### Shipped earlier, for the record
 

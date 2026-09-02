@@ -299,6 +299,30 @@ click cascades by setting `.checked` and dispatching a synthetic `change` (not a
 it does not fire the checkboxes' `click`-bound save listener, so the cascade calls `saveSettings()`
 explicitly — forget that and a choice made through the master silently fails to survive a reload.
 
+## Backgrounding, and why a swipe died at the panel's edge (v2.59.1)
+
+**Record the intent, never the element's state.** The v2.45.0 visibility handler asked
+`!player.paused` and `audio.ctx.state === 'running'` at hide time — but a backgrounded tab has
+its `<audio>` paused and its `AudioContext` suspended *by the browser*, often before the handler
+runs, so it recorded "nothing was playing" and gave nothing back. `hiddenState` now stores what
+the visitor asked for (`!paused`, `musicOn && player.src`, `!!audio`) and restores exactly that;
+it also guards against the repeated `visibilitychange` some browsers fire while hidden. Verified
+across five paths, the important one being "the browser paused the media first". Note the clock
+and the music are independent: pausing the simulation by hand does not stop the music, so a
+hand-paused visitor comes back to a paused clock *and* playing music, and that is correct.
+Still deliberately not blur/focus, which fire for a `<select>` or a devtools panel.
+
+**A pointer drag needs `setPointerCapture`.** Swipe-to-close worked under a mouse and not under a
+thumb, and the reason was geometry, not touch: the panel is 216 px wide on a desktop and
+`min(178px, 50vw - 20px)` on a phone, so a 60 px swipe started near its middle crosses the
+panel's own edge — `pointerleave` fired and `finish()` ran with `moved` under the threshold. My
+desktop test started at 108 px and moved 80, staying just inside, which is why it passed. The
+pointer is now captured on `pointerdown` and `pointerleave` is gone as a finisher; `.env` and
+`.hud` also carry `touch-action:pan-y`, so the browser cannot claim the horizontal gesture for a
+pan while vertical scrolling inside `.hud .body` still works. Test swipes with real touch
+(`Input.dispatchTouchEvent` over CDP) at a phone viewport, never with `page.mouse` on a desktop
+one — the desktop test is what hid this for three releases.
+
 ## Steady labels, and one name for the merged galaxy (v2.59.0)
 
 Every on-screen label now goes through `placeLabel(el, x, y, show)`; nothing sets a label's
