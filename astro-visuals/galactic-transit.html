@@ -1011,7 +1011,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.62.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.62.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -4419,6 +4419,23 @@ gl.clearColor(0.010,0.015,0.040,1);
 let simT=0, nextSample=DT_SAMPLE, last=performance.now();
 let showFps=false, fpsFrames=0, fpsSince=performance.now();
 let hudHz=8, lastHud=0;
+// The status bar is sized by its numbers, and they change length — "2,026 AD" one moment,
+// "12,345,678 AD" the next — so it used to twitch in width. Growing applies at once (a
+// floor never blocks widening); shrinking waits: the bar keeps its wider width until it
+// has been narrower for a full second. Measured with the floor lifted, which forces one
+// layout at the HUD rate and paints nothing in between.
+let barHeld = 0, barNarrowSince = 0;
+function holdBarWidth(now){
+  const bar = $('gamebar');
+  bar.style.minWidth = '';
+  const w = bar.getBoundingClientRect().width;
+  if(w >= barHeld){ barHeld = w; barNarrowSince = 0; }
+  else {
+    if(!barNarrowSince) barNarrowSince = now;
+    if(now - barNarrowSince >= 1000){ barHeld = w; barNarrowSince = 0; }
+  }
+  bar.style.minWidth = barHeld + 'px';
+}
 const smoothTarget=[0,0,0]; let firstFrame=true;
 // Following is exact; only transitions ease. The offset decays toward zero and never
 // re-grows from the target's own motion — easing the position itself made the camera
@@ -5215,6 +5232,7 @@ function frame(now){
   if(showFps) fpsFrames++;      // counted every frame; only the display is paced
   if(now - lastHud >= 1000/hudHz){
   lastHud = now;
+  holdBarWidth(now);
   if(liveCount){
     // What is happening in this moment: the drawn events actually in progress, so the
     // numbers step up as stars ignite or begin dying and back down as each one ends.

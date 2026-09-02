@@ -168,8 +168,11 @@ before the work starts. An item is ticked when it ships, with the version that c
       or backward, paused or not; reset returns 0. Not persisted. Backwards, the trails are
       recomputed from the clock at ~10 Hz so the swept path retracts. Measured ±100 → ±1×,
       ±50 → ±0.5×, and −100 while paused → −1× — v2.62.0.
-- [ ] HUD: debounce its maximum width for 1 s — growing wider applies at once, shrinking
-      waits, so a wider bar stays before a shorter one replaces it.
+- [x] HUD: debounce its maximum width for 1 s — growing wider applies at once, shrinking
+      waits, so a wider bar stays before a shorter one replaces it. A min-width floor on the
+      status bar, measured with the floor lifted at the HUD's own tick; lowered only after a
+      full second of narrower content. Measured: 420 → 497 px at the first sample after the
+      number lengthened, held through 1.4 s after it shortened, released by 2.7 s — v2.62.1.
 
 ### Shipped earlier, for the record
 

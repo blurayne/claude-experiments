@@ -325,6 +325,16 @@ Also here: a request for "a setting to turn off dark clouds" — the switch alre
 adding it; a duplicate switch is worse than none. And the settings title is "Settings" alone now,
 the version living in the info dialog and the tour card.
 
+## The status bar's width is held, never chased (v2.62.1)
+
+`.gamebar` is flex-sized by its numbers, so as "2,026 AD" becomes "1,200,002,026 AD" and back
+the bar twitched. `holdBarWidth(now)` runs on the HUD tick: lift the `min-width`, measure,
+raise the floor at once if wider, lower it only after a full second of narrower content, then
+set the floor. A floor never blocks widening, so growth needs no code. Measured with
+`getBoundingClientRect()` after clearing the style — one forced layout per tick at 8 Hz, and
+no paint between the clear and the set. The idea generalises: for anything content-sized that
+must not jitter, hold the max and release on a timer; never animate the width.
+
 ## The shuttle: a hand on the clock, in either direction (v2.62.0)
 
 Third slider in the Simulation panel, −100…+100, default 0, reset in place of the steppers.
