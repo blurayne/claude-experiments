@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.60.0 — 2026-09-02
+
+- Settings reads as a panel; the build stamp moves to the info dialog (v2.60.0) (`59ec350`)
+
 ### 2.59.2 — 2026-09-02
 
 - The audio may never give up permanently (v2.59.2) (`14dde2d`)
