@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.56.1 — 2026-09-02
+
+- Dark clouds within the star field, not on top of it (v2.56.1) (`1ba964a`)
+
 ### 2.56.0 — 2026-09-02
 
 - Andromeda's map from four pictures, one per channel (v2.56.0) (`84b8172`)
