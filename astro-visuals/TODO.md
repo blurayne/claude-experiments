@@ -40,6 +40,9 @@ before the work starts. An item is ticked when it ships, with the version that c
       deprojected from 77° to face-on and registered to the PHAT map, so every channel comes
       from the instrument that measures it and the gaps are filled with real data, not
       extrapolation. Deliver as a script that also runs locally with Claude CLI on Linux.
+- [ ] Dark clouds render as black discs sitting on top of the stars and the core glow.
+      They should sit within the star field: darken only the diffuse haze, and be drawn
+      beneath the stars, the HII regions and the core.
 
 ### Shipped earlier, for the record
 
