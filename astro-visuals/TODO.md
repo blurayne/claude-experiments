@@ -53,7 +53,6 @@ before the work starts. An item is ticked when it ships, with the version that c
       PNGs regenerated from the SVG by the new `tools/render_icons.js`, manifest and the
       iOS home-screen title renamed. The *galactic year* counter and the music track
       titles keep their name — v2.57.0.
-- [ ] Andromeda's dark clouds render over the Milky Way (and vice versa): a galaxy that is
 - [x] Andromeda's dark clouds render over the Milky Way (and vice versa): a galaxy that is
       behind the other from the camera's viewpoint darkens the one in front, because
       multiply blending knows nothing of depth. Draw the farther galaxy's haze and dust
@@ -65,8 +64,14 @@ before the work starts. An item is ticked when it ships, with the version that c
       worker cannot install at all. Collapsed to one, keeping the `galactic-transit-`
       prefix the second line had reverted — v2.57.2.
 - [ ] Use the owner's face-on Andromeda picture — the v2.56 composite completed by human
+- [x] Use the owner's face-on Andromeda picture — the v2.56 composite completed by human
       and AI — as `m31-map.webp`, at the highest quality; say in the changelog that it was
-      completed by human and AI; then reprocess the Andromeda model from it.
+      completed by human and AI; then reprocess the Andromeda model from it. Installed
+      lossless at the sampler's 448² (the 2048² original kept as `tools/m31-map-hand.jpg`),
+      mirrored left-right so the arms trail under the simulation's spin as supplied they
+      led; the builder now refuses to overwrite a hand-finished map without `--force`, so
+      the data workflow cannot put the seam back. The model regenerates from the map at
+      load, verified in the renderer — v2.58.0.
 
 ### Shipped earlier, for the record
 

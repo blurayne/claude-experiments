@@ -662,8 +662,10 @@
     M32's position and the ring's lopsided brightness settle which end of the axis is which. Stars are then
     sampled from luminance, dust from local darkness, HII from blue excess and drawn in H&alpha; pink. Only
     sky-plane positions are measured; depths, thickness and halo are modelled, and so is the <b>bulge</b>,
-    which a 77&deg; deprojection cannot recover (it stretches into a column): that zone is filled and the bulge
-    drawn round from the major-axis profile. So are the line-of-sight placements of <b>M32</b>, <b>M110</b> and
+    which a 77&deg; deprojection cannot recover (it stretches into a column). That composite was then
+    <b>completed by hand and by AI</b> (v2.58): the bulge zone and the seams the pipeline could not close were
+    finished face-on over the measured picture, so what you see there is a completion, not a measurement.
+    So are the line-of-sight placements of <b>M32</b>, <b>M110</b> and
     the <b>Giant Southern Stream</b>. The disk stands at its measured orientation — spin pole at galactic
     (242&deg;,&nbsp;&minus;30&deg;), 120&deg; from ours — turning its real way, ~7% faster than we do.</p>
     <p><b>The encounter follows the Gaia-era orbit</b>: today's 765&nbsp;kpc and &minus;110&nbsp;km/s, a first
@@ -1001,7 +1003,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.57.2', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.58.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.

@@ -292,6 +292,21 @@ click cascades by setting `.checked` and dispatching a synthetic `change` (not a
 it does not fire the checkboxes' `click`-bound save listener, so the cascade calls `saveSettings()`
 explicitly — forget that and a choice made through the master silently fails to survive a reload.
 
+## The Andromeda map is hand-finished (v2.58.0)
+
+`m31-map.webp` is no longer what `tools/build_m31_map.py` writes. The owner took the v2.56
+composite, completed it face-on by hand and with AI (the bulge column and the seams the pipeline
+could not close), and supplied it at 2048² — `tools/m31-map-hand.jpg`. The map is that picture
+resized to the contract (448², R25 at 188.6 px — the frame is the composite's, so a plain resize
+keeps the scale and the orientation) and saved **lossless**, 207 KB, at the size the sampler reads.
+`m31-map.json` says `source: hand-finished…`, and `main()` in the builder returns early on that
+unless `--force` is passed — the data workflow runs the builder on every push that touches it and
+would otherwise put the seam straight back. To rebuild from the pictures on purpose, `--force`,
+and expect the seam. The info panel says the bulge zone is a completion, not a measurement; the
+sources table credits the completion and, through it, the four instruments beneath it. Winding
+(arms trailing under positive spin) was checked against `galaxy-map.webp` before shipping — a
+mirrored or rotated finish would have put M32 and the trailing sense on the wrong side.
+
 ## Dark clouds sit within the star field (v2.56.1)
 
 The dust sprites multiply what is already drawn (`ZERO, ONE_MINUS_SRC_ALPHA`), so *when* they are

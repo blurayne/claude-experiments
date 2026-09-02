@@ -1,35 +1,12 @@
 {
+  "source": "hand-finished: the v2.56 composite (PHAT + wide optical + Herschel/Planck far-IR + GALEX UV) completed by human and AI, face-on, 2048 square",
+  "file": "tools/m31-map-hand.jpg",
+  "credit": "project owner (human) and AI completion, over the composite; the composite's sources are credited in index.md",
+  "license": "as the composite: CC BY 4.0 / CC BY 2.0 / CC BY-SA 3.0 IGO / public domain, credits in index.md",
   "inclination_deg": 77.0,
   "r_edge_px": 188.6,
   "r25_kpc": 20.6,
-  "source": "composite",
-  "panorama": {
-    "source": "cache",
-    "credit": "NASA, ESA, B. F. Williams (Univ. of Washington), Z. Chen (Univ. of Washington), L. C. Johnson (Northwestern Univ.), the PHAT and PHAST teams",
-    "license": "CC BY 4.0 (ESA/Hubble)"
-  },
-  "wide_field": {
-    "optical": {
-      "file": "m31-wide-optical.jpg",
-      "credit": "Adam Evans",
-      "license": "CC BY 2.0",
-      "what": "wide-field optical: luminance and colour",
-      "registered": true
-    },
-    "ir": {
-      "file": "m31-wide-ir.jpg",
-      "credit": "ESA/NASA/JPL-Caltech (Herschel, Planck)",
-      "license": "CC BY-SA 3.0 IGO",
-      "what": "far-infrared dust emission: the lanes",
-      "registered": true
-    },
-    "uv": {
-      "file": "m31-wide-uv.jpg",
-      "credit": "NASA/JPL-Caltech (GALEX)",
-      "license": "public domain",
-      "what": "ultraviolet: young stars and HII, the blue excess",
-      "registered": true
-    }
-  },
-  "built_utc": "2026-09-02T08:47:47Z"
+  "note": "build_m31_map.py will not overwrite a hand-finished map without --force",
+  "built_utc": "2026-09-02T09:32:04Z",
+  "transform": "mirrored left-right, then resized 2048 -> 448 (LANCZOS): as supplied, the arms wound against the simulation's spin (leading, not trailing); the mirror restores the trailing sense the Milky Way map has"
 }

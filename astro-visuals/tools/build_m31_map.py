@@ -765,6 +765,19 @@ def wide_field_map(phat, phat_mask, extra_optical=None, debug_dir=None):
 
 # ---------------------------------------------------------------- main
 def main(argv):
+    # A map finished by hand outranks anything this script can compose: the v2.56
+    # composite was completed face-on by the owner and an AI (tools/m31-map-hand.jpg),
+    # and m31-map.json says so. The data workflow runs this script on every push that
+    # touches it, so without this guard it would quietly put the seam back.
+    if OUT_META.exists() and '--force' not in argv:
+        try:
+            src = json.loads(OUT_META.read_text()).get('source', '')
+        except Exception:
+            src = ''
+        if str(src).startswith('hand-finished'):
+            print(f'{OUT_MAP.name} is hand-finished ({OUT_META.name}: source = "{src[:40]}..."); '
+                  'leaving it alone. Pass --force to rebuild it from the pictures anyway.')
+            return 0
     analytic = '--analytic' in argv
     phat_only = '--phat-only' in argv
     no_phat = '--no-phat' in argv
