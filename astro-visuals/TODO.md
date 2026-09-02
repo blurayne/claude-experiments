@@ -122,6 +122,8 @@ before the work starts. An item is ticked when it ships, with the version that c
       texture is what sits over the readings — v2.60.2.
 - [ ] Add a setting under Visuals to turn the dark clouds off.
 - [ ] Remove the version number from the settings dialog.
+- [ ] With the dark clouds on, the centre of the galaxy can still be seen from inside the
+      disk. Not accurate: from Earth the Galactic Centre is hidden behind the dust.
 
 ### Shipped earlier, for the record
 
