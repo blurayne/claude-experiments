@@ -141,6 +141,9 @@ before the work starts. An item is ticked when it ships, with the version that c
       skipped; the bulge's star cloud and the core glow draw as before, the lane through
       them. Verified: the point vanishes, the frame is otherwise unchanged, and from outside
       the flag changes nothing — v2.60.4.
+- [ ] At ×10⁷ the Sun looks almost stuck while the galaxy rotates past it and many stars
+      move faster than it. Is the galaxy spinning faster than the Sun travels, or are the
+      stars' speeds wrong? Check the rates against each other and fix if they disagree.
 
 ### Shipped earlier, for the record
 
