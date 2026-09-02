@@ -1010,7 +1010,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.60.4', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.61.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2215,7 +2215,7 @@ setGalaxy(1);   // real default ("low") applied after full init, below — see h
 const M31_DIR = [0.7957, -0.3677, 0.4814];   // toward M31 today, scene coordinates
 const M31_E2  = [0.3037, -0.4454, -0.8422];  // second axis of the orbital plane
 // M31's disk frame in scene coordinates, from its measured PA 38°, inclination 77°,
-// near side NW, SW side approaching — the spin pole lands at galactic (242°, −30°),
+// near side NW, NE side approaching — the spin pole lands at galactic (242°, −30°),
 // matching published values. Local y is minus the spin axis so a positive shader spin
 // turns it its real way, the same convention the Milky Way is drawn with.
 const M31_ROT = new Float32Array([
@@ -3087,7 +3087,7 @@ canvas.addEventListener('pointerdown', e=>{
 canvas.addEventListener('pointermove', e=>{
   if(touches.has(e.pointerId)) touches.set(e.pointerId, e);
   if(!dragging || touches.size > 1) return;
-  cam.yaw   -= (e.clientX-px)*0.005;
+  cam.yaw   -= (e.clientX-px)*0.005*SKY_MIRROR;
   cam.pitch  = Math.max(-1.45, Math.min(1.45, cam.pitch + (e.clientY-py)*0.005));
   px=e.clientX; py=e.clientY;
 });
@@ -4345,12 +4345,25 @@ function makeHDR(){
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gl.bindTexture(gl.TEXTURE_2D, null);
 }
+// The scene frame is LEFT-handed: the star builders put the direction the Sun orbits
+// (l=90°) on +x, galactic north on +y and the Galactic Centre on −z, and that triple has
+// determinant −1 — every data set (the AT-HYG sky, the StarHorse cube, the galaxy and M31
+// maps, M31's direction and spin) shares it, consistently, so the drawn universe was the
+// mirror image of the real one: seen from galactic north it turned counter-clockwise
+// where the Galaxy turns clockwise, and the constellations were flipped. Rather than
+// rebuild every file, the projection reflects x once, here; everything drawn through it —
+// points, trails, labels — comes out right-handed, and trailing arms stay trailing (a
+// reflection flips the spin and the winding together). Only the drag control needs the
+// same sign, so a drag still moves the world the way the hand moves.
+const SKY_MIRROR = -1;
+// the one way a projection is built: frame() rebuilds it every frame for its near plane
+function skyProjection(near, far){ const m = perspective(Math.PI/3, W/H, near, far); m[0] *= SKY_MIRROR; return m; }
 function resize(){
   DPR=Math.min(2, devicePixelRatio||1);
   W=innerWidth; H=innerHeight;
   canvas.width=W*DPR; canvas.height=H*DPR;
   gl.viewport(0,0,canvas.width,canvas.height);
-  projMat = perspective(Math.PI/3, W/H, 0.5, 20000);
+  projMat = skyProjection(0.5, 20000);
   makeHDR();
 }
 addEventListener('resize', ()=>{ resize(); fitPanels(); }); resize();
@@ -4605,7 +4618,7 @@ function frame(now){
   const eye=[ tgx+cam.dist*cp*Math.sin(yawE), tgy+cam.dist*sp, tgz+cam.dist*cp*Math.cos(yawE) ];
   const viewMat = lookAt(eye, [tgx,tgy,tgz], [0,1,0]);
   // near plane tracks the zoom so sub-AU views don't clip
-  projMat = perspective(Math.PI/3, W/H, Math.min(0.5, Math.max(1e-9, cam.dist*0.04)), 25000);
+  projMat = skyProjection(Math.min(0.5, Math.max(1e-9, cam.dist*0.04)), 25000);
   const pxScale = (H*DPR)/(2*Math.tan(Math.PI/6));
 
   // at 100% nothing is compressed, so the old direct path is kept exactly

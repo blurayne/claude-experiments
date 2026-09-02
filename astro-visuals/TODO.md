@@ -141,11 +141,26 @@ before the work starts. An item is ticked when it ships, with the version that c
       skipped; the bulge's star cloud and the core glow draw as before, the lane through
       them. Verified: the point vanishes, the frame is otherwise unchanged, and from outside
       the flag changes nothing — v2.60.4.
-- [ ] At ×10⁷ the Sun looks almost stuck while the galaxy rotates past it and many stars
+- [x] At ×10⁷ the Sun looks almost stuck while the galaxy rotates past it and many stars
       move faster than it. Is the galaxy spinning faster than the Sun travels, or are the
-      stars' speeds wrong? Check the rates against each other and fix if they disagree.
-- [ ] Does our galaxy rotate in the right direction? If not the Andromeda merger needs
-      another fix too. Check Andromeda's rotation direction as well.
+      stars' speeds wrong? Measured, not a bug: the Sun turns 160° per 100 Myr, exactly the
+      flat-curve rate at its radius, so it co-moves with its neighbours; stars inside its
+      orbit have higher angular speed (same 230 km/s, smaller circle) and do lap it; and
+      the arm pattern turns 225° per 100 Myr — 41% faster — by design: corotation is drawn
+      at 19 kly so the Sun crosses an arm every ~140 Myr, the cadence the ice-age hypothesis
+      needs, and only an arm crossing cools Earth below the 11.2 °C ice threshold. Gaia-era
+      measurements put spiral corotation near the Sun instead, which would end the ice ages
+      — the owner's call; left as is — assessed under v2.61.0.
+- [x] Does our galaxy rotate in the right direction? If not the Andromeda merger needs
+      another fix too. Check Andromeda's rotation direction as well. It did not: the scene
+      frame the star builders use (l=90° on +x, north on +y, centre on −z) is left-handed,
+      so the whole drawn universe was a mirror image — counter-clockwise from galactic
+      north where the Galaxy turns clockwise, constellations flipped. Every data set shares
+      the frame consistently, so the fix is one reflection in the projection; the drag keeps
+      its feel. Andromeda's direction and spin were built in the same frame and come right
+      with it (its comment said the wrong side approaches; the numbers were right). Verified
+      old against new: Rigel left of Betelgeuse, clockwise from north, drag unchanged —
+      v2.61.0.
 
 ### Shipped earlier, for the record
 

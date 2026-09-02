@@ -325,6 +325,34 @@ Also here: a request for "a setting to turn off dark clouds" — the switch alre
 adding it; a duplicate switch is worse than none. And the settings title is "Settings" alone now,
 the version living in the info dialog and the tour card.
 
+## The scene frame is left-handed; the projection reflects it (v2.61.0)
+
+`tools/build_athyg_stars.py` and `build_starhorse_density.py` place the sky with l=90° on +x,
+galactic north on +y and the Galactic Centre on −z. That triple has determinant −1: it is the
+mirror image of the real, right-handed galactic frame. Every data set shares it — the AT-HYG
+sky, the StarHorse cube, the galaxy and M31 maps (their winding was chosen to trail *in this
+frame*), `M31_DIR`, `M31_ROT` — so the piece was self-consistent and wrong the same way
+everywhere: seen from galactic north it turned counter-clockwise, and the constellations were
+flipped. The fix is `SKY_MIRROR` in `skyProjection()`, the only place a projection is built
+(`frame()` rebuilds it every frame for its near plane — a mirror applied in `resize()` alone
+was overwritten and did nothing). A reflection flips spin and winding together, so trailing
+arms stay trailing; the drag multiplies by the same sign so the world still follows the hand.
+The opening helix view is now the mirror image of the owner's exported composition — same
+content, correct handedness.
+
+Verify handedness against the sky, not against intuition: from the Sun with galactic north
+up, Rigel (l=209°) must be LEFT of Betelgeuse (l=200°), because longitude grows to the left
+on the sky; from +y looking down, a point at +z must move toward +x CLOCKWISE. Both are in
+the scratch test `test_mirror.js`'s method — recompute the stars from (l, b, d) with the
+builders' mapping and project them with the page's own matrices, old build against new.
+
+On the rates, for the record (measured in-page over 100 Myr): the Sun turns 160°, the
+flat-curve rate at R_GAL = 900; the wave pattern 225° (corotation r = 640, 19 kly). The 41%
+is deliberate: it is the ~140 Myr arm-crossing cadence, and `environment()` only crosses the
+11.2 °C ice threshold on an arm crossing (`dT = −5.5·(cr−1)/1.5`, arm term 2.2 vs plane
+0.5). Move corotation to the measured ~8.5 kpc and the glacial epochs end; that is the
+owner's decision, not a bug fix.
+
 ## The spot at the Galactic Centre was stars, not glow (v2.60.4, reverting v2.60.3)
 
 The owner marked a hard bright point sitting in the dark lane at the centre, from inside the
