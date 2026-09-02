@@ -168,6 +168,8 @@ before the work starts. An item is ticked when it ships, with the version that c
       or backward, paused or not; reset returns 0. Not persisted. Backwards, the trails are
       recomputed from the clock at ~10 Hz so the swept path retracts. Measured ±100 → ±1×,
       ±50 → ±0.5×, and −100 while paused → −1× — v2.62.0.
+- [ ] HUD: debounce its maximum width for 1 s — growing wider applies at once, shrinking
+      waits, so a wider bar stays before a shorter one replaces it.
 
 ### Shipped earlier, for the record
 
