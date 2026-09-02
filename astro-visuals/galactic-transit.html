@@ -944,6 +944,7 @@
   <h2>Simulation</h2>
   <div class="row"><label for="speed">speed</label><input type="range" id="speed" min="0" max="1" step="0.001" value="1"><span id="speedv" style="min-width:64px;text-align:right;color:var(--ink)"></span><button class="stepb" data-step="speed:-0.05">−</button><button class="stepb" data-step="speed:0.05">+</button></div>
   <div class="row"><label for="multExp">× exp</label><input type="range" id="multExp" min="0" max="10" step="1" value="0"><span id="multExpv" style="min-width:44px;text-align:right;color:var(--ink)">×1</span><button class="stepb" data-step="multExp:-1">−</button><button class="stepb" data-step="multExp:1">+</button></div>
+  <div class="row"><label for="shuttle" title="drive the clock by hand: +100% is the set speed forward, −100% the same speed backwards, 0 hands the clock back to play/pause">shuttle</label><input type="range" id="shuttle" min="-100" max="100" step="1" value="0"><span id="shuttlev" style="min-width:44px;text-align:right;color:var(--ink)">0%</span><button class="stepb" id="shuttleReset" title="back to 0">↺</button></div>
   <div class="row"><label for="jump">scenario</label><select id="jump">
       <!-- the two entries that are not epochs lead; everything else runs in the order it
            happens, each landing a little before its event so the visitor watches it arrive -->
@@ -1010,7 +1011,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.61.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.62.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -3212,7 +3213,20 @@ function setMultExp(x){
   fmtSpeed(); applyTrailWindow();
 }
 $('multExp').addEventListener('input', e => setMultExp(+e.target.value));
+// The shuttle: a signed fraction of the set speed, driven by hand. At 0 it is not engaged
+// and the clock belongs to play/pause as before; off 0 it takes the clock over — forward
+// or backward, paused or not — and the reset hands it back. Deliberately not persisted:
+// a shuttle rests at 0 when you pick the piece up.
+let shuttle = 0, shuttleLastSign = 0, trailRefillAt = 0;
+function setShuttle(v){
+  shuttle = Math.max(-100, Math.min(100, Math.round(v)));
+  $('shuttle').value = shuttle;
+  $('shuttlev').textContent = shuttle > 0 ? '+'+shuttle+'%' : shuttle+'%';
+}
+$('shuttle').addEventListener('input', e => setShuttle(+e.target.value));
+$('shuttleReset').addEventListener('click', ()=> setShuttle(0));
 document.querySelectorAll('.stepb').forEach(b => b.addEventListener('click', ()=>{
+  if(!b.dataset.step) return;             // the shuttle's reset shares the look, not the job
   const [id, d] = b.dataset.step.split(':');
   const el = $(id);
   el.value = Math.max(+el.min, Math.min(+el.max, +el.value + +d));
@@ -4525,14 +4539,27 @@ let plasmaSunPx = 0;
 function frame(now){
   const dt = Math.min(0.05,(now-last)/1000); last=now;
   shimT += dt; // variables keep twinkling even while the simulation is paused
-  if(!paused && !holding){
-    simT += dt*speed*speedMult;
-    let n=0;
+  const drive = shuttle !== 0 ? shuttle/100 : (paused ? 0 : 1);   // the shuttle outranks pause
+  const sign = Math.sign(drive);
+  if(sign !== shuttleLastSign){           // a change of direction: the swept path is recomputed
+    shuttleLastSign = sign;               // for this moment, not extended from a stale end
+    if(sign !== 0){ refillTrails(); nextSample = simT + DT_SAMPLE; }
+  }
+  let n=0;                                // trail samples taken this frame; read below
+  if(drive !== 0 && !holding){
+    simT += dt*speed*speedMult*drive;
+    if(drive < 0){
+      // backwards: the trail is the path swept up to now, so it retracts — recomputed
+      // from the clock at ~10 Hz rather than every frame (2400 samples a body)
+      if(now - trailRefillAt > 100){ trailRefillAt = now; refillTrails(); }
+      nextSample = simT + DT_SAMPLE;
+    } else {
     while(nextSample<=simT && n<400){
       for(let i=0;i<NB;i++) pushTrail(i,nextSample);
       nextSample+=DT_SAMPLE; n++;
     }
     if(nextSample<=simT) nextSample=simT+DT_SAMPLE; // skip backlog at extreme speeds
+    }
     // While zoomed into the system, drift between the Sun and the trail anchor eats the
     // float precision that the anchor exists to protect. Re-anchor once it passes a
     // third of a unit, at most once a second — a rebuild is a few milliseconds.
