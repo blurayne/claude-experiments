@@ -325,6 +325,19 @@ Also here: a request for "a setting to turn off dark clouds" — the switch alre
 adding it; a duplicate switch is worse than none. And the settings title is "Settings" alone now,
 the version living in the info dialog and the tour card.
 
+## Two-finger pan lives in screen space (v2.63.0)
+
+`panF` is a fraction of the view's height along the camera's right and up vectors, applied to
+the target at `tgx/tgy/tgz` after `yawE/pitchE` are known; screen-right is world-right times
+`SKY_MIRROR`, and dragging the scene right moves the target left, hence the signs. Screen
+space, not world units, on purpose: a pan is a composition, and it must survive a zoom (kept)
+and never strand the Sun (a world offset made at galaxy scale would sit a thousand units off
+after a dive). Clamped to ±2 view heights. Cleared at every `reseedFollow = true` and on the
+dive toggle. The pointer bookkeeping (`touches`) drives it from the two-pointer centroid; the
+pinch keeps reading the spread from the touch events, so the two gestures do not bleed into
+each other — verified with real CDP touch: parallel fingers pan without zoom, a spread zooms
+without pan. Test gestures with `Input.dispatchTouchEvent`, never with `page.mouse`.
+
 ## The status bar's width is held, never chased (v2.62.1)
 
 `.gamebar` is flex-sized by its numbers, so as "2,026 AD" becomes "1,200,002,026 AD" and back

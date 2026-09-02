@@ -173,10 +173,14 @@ before the work starts. An item is ticked when it ships, with the version that c
       status bar, measured with the floor lifted at the HUD's own tick; lowered only after a
       full second of narrower content. Measured: 420 → 497 px at the first sample after the
       number lengthened, held through 1.4 s after it shortened, released by 2.7 s — v2.62.1.
-- [ ] The shuttle reads "off" at 0 instead of "0%".
-- [ ] Allow panning with two fingers.
-- [ ] "If galactic age": the background texture 20% more transparent — read as the glacial
-      frost again, on top of v2.60.2's 20%.
+- [x] The shuttle reads "off" at 0 instead of "0%" — v2.63.0.
+- [x] Allow panning with two fingers. The two pointers' midpoint carries the scene; kept
+      as a fraction of the view's height along the camera's right and up (so zoom keeps the
+      composition and a galaxy-scale pan cannot lose the Sun after a dive), cleared at every
+      re-seed of the view. Verified with real touch: +80,+80 px of fingers moved the Sun
+      label +80,+80 px, a pinch zoomed with zero pan drift, GO cleared it — v2.63.0.
+- [x] "If galactic age": the background texture 20% more transparent — read as the glacial
+      frost again, on top of v2.60.2's 20%: .336 → .269, 64% of the original — v2.63.0.
 
 ### Shipped earlier, for the record
 

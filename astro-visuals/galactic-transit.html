@@ -181,7 +181,7 @@
      only the crystals light it. Rides the same eased value as the rest of the freeze. */
   .hud::before, .env::before, .gamebar::before, .note::before, .info-card::before{
     content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;
-    opacity:calc(var(--iceA) * .336);mix-blend-mode:screen;   /* .42 less 20%: the crystals sat heavily over the readings */
+    opacity:calc(var(--iceA) * .269);mix-blend-mode:screen;   /* .42, then 20% off twice at the owner's asking: the crystals sat heavily over the readings */
     background-image:
       radial-gradient(120% 90% at 0% 0%, rgba(150,196,232,.16), transparent 62%),
       radial-gradient(110% 80% at 100% 100%, rgba(130,180,224,.13), transparent 58%),
@@ -492,7 +492,7 @@
     <button class="rowbtn" id="tourAgain" style="margin-bottom:12px">show the tour again</button>
     <div class="stats" style="margin-top:0;padding-top:0;border-top:0">
       elapsed <b id="yrs">0.0</b> yr &nbsp;·&nbsp; galactic lap <b id="pct">0.000</b>%<br>
-      drag to orbit &nbsp;·&nbsp; scroll / pinch to zoom
+      drag to orbit &nbsp;·&nbsp; scroll / pinch to zoom &nbsp;·&nbsp; two fingers to pan
     </div>
     <h3>Scale, honestly</h3>
     <p>Everything is drawn at true proportions, always: real semi-major axes, real diameters, the ~60° tilt
@@ -944,7 +944,7 @@
   <h2>Simulation</h2>
   <div class="row"><label for="speed">speed</label><input type="range" id="speed" min="0" max="1" step="0.001" value="1"><span id="speedv" style="min-width:64px;text-align:right;color:var(--ink)"></span><button class="stepb" data-step="speed:-0.05">−</button><button class="stepb" data-step="speed:0.05">+</button></div>
   <div class="row"><label for="multExp">× exp</label><input type="range" id="multExp" min="0" max="10" step="1" value="0"><span id="multExpv" style="min-width:44px;text-align:right;color:var(--ink)">×1</span><button class="stepb" data-step="multExp:-1">−</button><button class="stepb" data-step="multExp:1">+</button></div>
-  <div class="row"><label for="shuttle" title="drive the clock by hand: +100% is the set speed forward, −100% the same speed backwards, 0 hands the clock back to play/pause">shuttle</label><input type="range" id="shuttle" min="-100" max="100" step="1" value="0"><span id="shuttlev" style="min-width:44px;text-align:right;color:var(--ink)">0%</span><button class="stepb" id="shuttleReset" title="back to 0">↺</button></div>
+  <div class="row"><label for="shuttle" title="drive the clock by hand: +100% is the set speed forward, −100% the same speed backwards, 0 hands the clock back to play/pause">shuttle</label><input type="range" id="shuttle" min="-100" max="100" step="1" value="0"><span id="shuttlev" style="min-width:44px;text-align:right;color:var(--ink)">off</span><button class="stepb" id="shuttleReset" title="back to 0">↺</button></div>
   <div class="row"><label for="jump">scenario</label><select id="jump">
       <!-- the two entries that are not epochs lead; everything else runs in the order it
            happens, each landing a little before its event so the visitor watches it arrive -->
@@ -1011,7 +1011,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.62.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.63.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -3076,6 +3076,13 @@ let dragging=false, px=0, py=0;
 // turning under the hand that is trying to orbit it. Released, it carries straight on.
 let holding=false;
 const touches = new Map();     // every pointer currently down on the canvas
+// Two-finger pan. Kept as a fraction of the view's height along the camera's own right
+// and up, not as a world offset: zooming then keeps the composition, and a pan made at
+// galaxy scale cannot leave the Sun a thousand units off-screen once you dive. Cleared
+// wherever the view is re-seeded (a scenario, a focus, the dive), like the transition.
+const panF = [0, 0];
+let panCX = 0, panCY = 0;      // the last two-pointer centroid
+function panCentroid(){ let x=0,y=0; for(const q of touches.values()){ x+=q.clientX; y+=q.clientY; } return [x/touches.size, y/touches.size]; }
 canvas.addEventListener('pointerdown', e=>{
   touches.set(e.pointerId, e);
   holding = true;
@@ -3083,10 +3090,18 @@ canvas.addEventListener('pointerdown', e=>{
   if(touches.size === 1){ dragging = true; px = e.clientX; py = e.clientY;
     // capture can be refused; a throw here would abandon the handler mid-way
     try{ canvas.setPointerCapture(e.pointerId); }catch(err){} }
-  else dragging = false;      // a second finger means a pinch, not a turn
+  else { dragging = false; [panCX, panCY] = panCentroid(); }   // two fingers: pinch and pan, not a turn
 });
 canvas.addEventListener('pointermove', e=>{
   if(touches.has(e.pointerId)) touches.set(e.pointerId, e);
+  if(touches.size === 2){
+    // the fingers' midpoint carries the scene with it; the pinch (below) reads the spread
+    const [cx, cy] = panCentroid();
+    panF[0] = Math.max(-2, Math.min(2, panF[0] + (cx - panCX)/H));
+    panF[1] = Math.max(-2, Math.min(2, panF[1] + (cy - panCY)/H));
+    panCX = cx; panCY = cy;
+    return;
+  }
   if(!dragging || touches.size > 1) return;
   cam.yaw   -= (e.clientX-px)*0.005*SKY_MIRROR;
   cam.pitch  = Math.max(-1.45, Math.min(1.45, cam.pitch + (e.clientY-py)*0.005));
@@ -3099,7 +3114,7 @@ function endPointer(e){
     // one finger left: pick the drag up from where it actually is, or the view jumps
     const q = touches.values().next().value;
     px = q.clientX; py = q.clientY; dragging = true;
-  }
+  } else if(touches.size === 2) [panCX, panCY] = panCentroid();   // three down to two: restart from here
 }
 addEventListener('pointerup', endPointer);
 addEventListener('pointercancel', endPointer);
@@ -3221,7 +3236,7 @@ let shuttle = 0, shuttleLastSign = 0, trailRefillAt = 0;
 function setShuttle(v){
   shuttle = Math.max(-100, Math.min(100, Math.round(v)));
   $('shuttle').value = shuttle;
-  $('shuttlev').textContent = shuttle > 0 ? '+'+shuttle+'%' : shuttle+'%';
+  $('shuttlev').textContent = shuttle === 0 ? 'off' : shuttle > 0 ? '+'+shuttle+'%' : shuttle+'%';
 }
 $('shuttle').addEventListener('input', e => setShuttle(+e.target.value));
 $('shuttleReset').addEventListener('click', ()=> setShuttle(0));
@@ -3341,7 +3356,7 @@ function applyFocusView(){
     followTarget = 'sun';
     if($('tView').classList.contains('on')) $('tView').click();
     if(!$('tDive').classList.contains('on')) $('tDive').click();
-    else { cam.follow = true; coreLock = true; cam.distGoal = 3.5e-5; reseedFollow = true; }
+    else { cam.follow = true; coreLock = true; cam.distGoal = 3.5e-5; reseedFollow = true; panF[0]=panF[1]=0; }
   } else if(v === 'and'){
     // framed wide enough for the whole disk plus its extended halo and stream
     // (R_A=2245, halo out to ~4200, the Giant Southern Stream past 5700), at any
@@ -3351,12 +3366,12 @@ function applyFocusView(){
     if($('tDive').classList.contains('on')) $('tDive').click();
     if(!$('tView').classList.contains('on')) $('tView').click();
     followTarget = 'and';
-    cam.follow = true; coreLock = false; cam.distGoal = 9500; reseedFollow = true;
+    cam.follow = true; coreLock = false; cam.distGoal = 9500; reseedFollow = true; panF[0]=panF[1]=0;
   } else {
     followTarget = 'sun';
     if($('tDive').classList.contains('on')) $('tDive').click();
     if(!$('tView').classList.contains('on')) $('tView').click();
-    else { cam.follow = false; cam.distGoal = 4300; reseedFollow = true; }
+    else { cam.follow = false; cam.distGoal = 4300; reseedFollow = true; panF[0]=panF[1]=0; }
   }
   saveSettings();
 }
@@ -3779,7 +3794,7 @@ function jumpToEpoch(){
     cam.follow = true; coreLock = false;
     cam.dist = cam.distGoal = 1.14e-6;
     cam.yaw = 0.6; cam.pitch = 0.34;
-    reseedFollow = true;
+    reseedFollow = true; panF[0]=panF[1]=0;
     if(paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
   }
   if(sel.value === '8.36149'){
@@ -3793,7 +3808,7 @@ function jumpToEpoch(){
     // spend the whole approach travelling instead of watching it
     cam.dist = cam.distGoal = 15500;
     cam.yaw = 5.9257; cam.pitch = 0.5771;
-    reseedFollow = true;
+    reseedFollow = true; panF[0]=panF[1]=0;
     if(paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
   }
   if(sel.value === '11.25'){
@@ -3805,7 +3820,7 @@ function jumpToEpoch(){
     cam.follow = true; coreLock = true;
     cam.dist = cam.distGoal = 9200;
     cam.yaw = 5.6; cam.pitch = 0.62;
-    reseedFollow = true;
+    reseedFollow = true; panF[0]=panF[1]=0;
     if(paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
   }
   if(sel.value === '4.5692567'){
@@ -3823,7 +3838,7 @@ function jumpToEpoch(){
   accB = accSN = accPN = 0;
   refillTrails();
 }
-$('jump').addEventListener('change', e=>{ reseedFollow=true; jumpToEpoch(e); });
+$('jump').addEventListener('change', e=>{ reseedFollow=true; panF[0]=panF[1]=0; jumpToEpoch(e); });
 $('jumpGo').addEventListener('click', ()=>{
   jumpToEpoch();
   // the point of GO is to watch the scenario, so the panel steps aside — unless the
@@ -3891,7 +3906,7 @@ function humanYear(){
     default:     return g>=1 ? fmt(g)+' AD' : fmt(1-g)+' BC';
   }
 }
-toggle($('tView'), on=>{ followTarget='sun'; cam.follow=!on; cam.distGoal = on? 4300 : 150; reseedFollow=true; });
+toggle($('tView'), on=>{ followTarget='sun'; cam.follow=!on; cam.distGoal = on? 4300 : 150; reseedFollow=true; panF[0]=panF[1]=0; });
 function refillTrails(){
   bodyPos(0, simT, tmpSun);
   trailAnchor[0]=tmpSun[0]; trailAnchor[1]=tmpSun[1]; trailAnchor[2]=tmpSun[2];
@@ -3907,8 +3922,8 @@ function refillTrails(){
 }
 function setBodySizes(){ gl.bindBuffer(gl.ARRAY_BUFFER,bufBodySize); gl.bufferData(gl.ARRAY_BUFFER, realMode?realSizes:dispSizes, gl.STATIC_DRAW); }
 setBodySizes();   // real proportions from the first frame
-toggle($('tDive'), on=>{
-  reseedFollow = true;
+toggle($('tDive'), on=>{ panF[0]=panF[1]=0;
+  reseedFollow = true; panF[0]=panF[1]=0;
   if(on){
     if($('tView').classList.contains('on')) $('tView').click();  // diving follows the Sun
     followTarget='sun'; cam.follow=true;
@@ -4658,7 +4673,15 @@ function frame(now){
   const yawE = cam.yaw + baseYaw;
   const pitchE = Math.max(-1.45, Math.min(1.45, cam.pitch + basePitch));
   const cp=Math.cos(pitchE), sp=Math.sin(pitchE);
-  const tgx=smoothTarget[0]-org[0], tgy=smoothTarget[1]-org[1], tgz=smoothTarget[2]-org[2];
+  // the pan: a screen-space offset, so it rides the camera's right and up at this distance.
+  // Screen right is world right mirrored (SKY_MIRROR), and dragging the scene right means
+  // the target goes left, hence the signs. tan(30°)·2 = the view's height over its distance.
+  const rx = Math.cos(yawE), rz = -Math.sin(yawE);                       // right, in the plane
+  const ux = -sp*Math.sin(yawE), uy = cp, uz = -sp*Math.cos(yawE);      // up, tilted with the pitch
+  const pv = 1.1547*cam.dist, pdx = -panF[0]*pv*SKY_MIRROR, pdy = panF[1]*pv;
+  const tgx=smoothTarget[0]-org[0] + rx*pdx + ux*pdy,
+        tgy=smoothTarget[1]-org[1] + uy*pdy,
+        tgz=smoothTarget[2]-org[2] + rz*pdx + uz*pdy;
   const eye=[ tgx+cam.dist*cp*Math.sin(yawE), tgy+cam.dist*sp, tgz+cam.dist*cp*Math.cos(yawE) ];
   const viewMat = lookAt(eye, [tgx,tgy,tgz], [0,1,0]);
   // near plane tracks the zoom so sub-AU views don't clip
@@ -5424,7 +5447,7 @@ function applyState(o){
     if(typeof c.follow === 'boolean') cam.follow = c.follow;
     coreLock = !!c.coreLock;
     $('tDive').classList.toggle('on', !!c.dive);
-    reseedFollow = true;
+    reseedFollow = true; panF[0]=panF[1]=0;
   }
 }
 const dbgSay = m => { $('dbgMsg').textContent = m; };
