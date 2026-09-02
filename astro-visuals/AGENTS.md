@@ -77,7 +77,9 @@ built it.
   Pause and help (?) stand at the end of the right column's dock, icon only.
 - Panels close with a "−" and leave a "−" button behind; only Settings is marked, by a
   gear. The piece opens with Earth showing and Simulation and Settings folded to their
-  buttons. The tour card carries the version, build stamp and hash.
+  buttons. The tour card carries the version, build stamp and hash, and the app's own
+  `icon.svg` floated to its right — referenced, never inlined, so there is one logo file,
+  and left on its translucent disc so the card shows through it.
 - A 3-tap reset clears the saved settings but keeps the debug flag: debug is a mode you
   are in, not a setting you tuned.
 - Dialogs keep their title and close control fixed while their body scrolls.

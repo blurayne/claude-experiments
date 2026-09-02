@@ -211,7 +211,11 @@
     box-shadow:0 0 44px rgba(95,216,255,.12);font-size:11.5px;line-height:1.6;color:var(--dim);letter-spacing:.03em}
   #tourCard h2{font-family:'Orbitron',ui-monospace,monospace;font-size:12px;letter-spacing:.24em;
     text-transform:uppercase;color:var(--accent);margin-bottom:9px;text-shadow:0 0 12px var(--glow)}
-  #tourGo{margin-top:14px;width:100%;font-family:'Orbitron',ui-monospace,monospace;font-size:10px;
+  /* the app's own icon, floated so the card's text wraps around it. icon.svg is drawn
+     on a translucent disc with no background plate, so the sky stays visible through it */
+  #tourLogo{float:right;width:104px;height:104px;margin:0 0 8px 14px;
+    filter:drop-shadow(0 0 16px rgba(95,216,255,.16));pointer-events:none;-webkit-user-drag:none}
+  #tourGo{clear:both;margin-top:14px;width:100%;font-family:'Orbitron',ui-monospace,monospace;font-size:10px;
     letter-spacing:.18em;text-transform:uppercase;background:rgba(95,216,255,.10);border:1px solid rgba(95,216,255,.5);
     border-radius:2px;color:var(--accent);cursor:pointer;padding:9px}
   #tourGo:hover{background:rgba(95,216,255,.18)}
@@ -227,10 +231,11 @@
     .hint{width:150px;font-size:9.5px;padding:6px 8px}
     #tourCard{font-size:10.5px;padding:14px 15px}
     #tourCard .intro{font-size:10px}
+    #tourLogo{width:70px;height:70px;margin:0 0 6px 10px}
   }
   /* a short screen cannot hold the whole card and five hints at once: the card gives
      up the height and scrolls, since it is the one thing the visitor can scroll */
-  @media (max-height:790px){ #tourCard{max-height:44vh} }
+  @media (max-height:790px){ #tourCard{max-height:44vh} #tourLogo{width:76px;height:76px} }
   .info-card{position:relative;width:min(560px, 100%);max-height:82vh;overflow:hidden;
     display:flex;flex-direction:column;background:var(--panel);
     border:1px solid var(--line);border-top:1px solid rgba(95,216,255,.55);border-radius:3px;padding:20px 22px;backdrop-filter:blur(10px);
@@ -450,6 +455,7 @@
   <svg id="tourSvg"></svg>
   <div id="tourHints"></div>
   <div id="tourCard">
+    <img id="tourLogo" src="icon.svg" width="104" height="104" alt="Galactic Year">
     <h2>Galactic Transit</h2>
     <p class="intro short">Where the solar system actually goes: the Sun's 225-million-year orbit of the
       Milky Way, the planets winding around that track, and half a million real <b>Gaia DR3</b> stars
@@ -987,7 +993,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.53.4', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.54.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
