@@ -7,6 +7,9 @@ built it.
 
 ## Release discipline
 
+- **`TODO.md` first.** Every request from the owner goes into `TODO.md` as a checkbox
+  *before* any work on it starts, and that edit is committed on its own. Tick the box when
+  the item ships, naming the version that carried it. No request is worked on unrecorded.
 - Semver, bumped per feature set or fix. Every release updates `BUILD.version` in the
   page **and** the cache name in `sw.js`.
 - Regenerate `CHANGELOG.md` with `python3 ../.github/scripts/build_changelog.py`
