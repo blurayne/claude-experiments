@@ -20,8 +20,10 @@ before the work starts. An item is ticked when it ships, with the version that c
       nebula on screen — fix the mismatch. The panel now reads "planetary nebula" for as
       long as the shell physically exists (`pnState`, 0.3 Gyr past `sunState`'s own
       cutoff), not the moment the clock crosses into white-dwarf age — v2.53.2.
-- [ ] The view select still reads "Solar System" once the Sun has turned into a nebula —
-      call it "Anthropic Nebula" from that point onward.
+- [x] The view select still reads "Solar System" once the Sun has turned into a nebula —
+      call it "Anthropic Nebula" from that point onward. Turns at the same age (12.37 Gyr)
+      the panel and the 3D label already do, and correctly reverts if the clock scrubs
+      back before it happened — v2.53.3.
 
 ### Shipped earlier, for the record
 

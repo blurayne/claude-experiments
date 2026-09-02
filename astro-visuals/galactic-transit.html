@@ -987,7 +987,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.53.2', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.53.3', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -3239,6 +3239,7 @@ toggle($('tEvBirth'), on=>{ evBirth=on; syncLife(); });
 toggle($('tVar'), on=> varOn=on);
 let dustOn = true;
 toggle($('tDust'), on=>{ dustOn = on; });
+const focusSunOpt = $('focusSel').options[0];   // its name changes once the Sun is gone
 function applyFocusView(){
   const v = $('focusSel').value;
   if(v === 'sun'){
@@ -5040,6 +5041,11 @@ function frame(now){
     { // Earth's readings mean nothing once there is no Earth: the panel turns to the Sun
       const ss = sunState(ageGyr());
       lost = ss.eaten || ss.gone;
+      // "Solar System" stops being the right name once there is no Sun left to orbit —
+      // ss.gone is the same age latch (a >= SUN_AGB) the panel above already uses, so the
+      // dropdown and the panel turn at the same moment, and scrubbing the clock backward
+      // (a scenario, a jump) correctly turns it back rather than leaving a stale name.
+      focusSunOpt.textContent = ss.gone ? 'Anthropic Nebula' : 'Solar System';
       for(const id of ['eSunPhaseRow','eSunSizeRow']) $(id).style.display = lost ? '' : 'none';
       for(const id of ['eRangeRow','eCRRow','eSLRow','eLifeRow']) $(id).style.display = lost ? 'none' : '';
       $('env').querySelector('h2').textContent = lost ? 'The Sun' : 'Earth';

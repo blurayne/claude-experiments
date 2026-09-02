@@ -269,6 +269,22 @@ click cascades by setting `.checked` and dispatching a synthetic `change` (not a
 it does not fire the checkboxes' `click`-bound save listener, so the cascade calls `saveSettings()`
 explicitly — forget that and a choice made through the master silently fails to survive a reload.
 
+## The view option renames itself, permanently, once the Sun is gone (v2.53.3)
+
+`focusSunOpt` is `$('focusSel').options[0]` (value `'sun'`, never renamed — only its
+`textContent` changes), captured once near `applyFocusView()`. Every frame, the same env-panel
+block that already computes `sunState(ageGyr())` for the Earth-panel text sets
+`focusSunOpt.textContent = ss.gone ? 'Anthropic Nebula' : 'Solar System'` — `ss.gone` is
+`a >= SUN_AGB`, the same age both `pnState()` and the "planetary nebula" phase turn on at, so
+the dropdown, the 3D label and the Earth panel all agree.
+
+This one is a pure function of age, not a one-way latch: scrub the clock backward (an earlier
+scenario, a jump) and it correctly reverts to "Solar System", because nothing about it is
+sticky state. "Onward" here means "for every later age," not "once set, forever" — those read
+the same going forward through time, but only the age check gets backward scrubbing right.
+Don't reach for a `let renamed = false` flag for anything like this; check whether the
+condition is already a pure function of the simulated age before adding one.
+
 ## The phase label follows the nebula, not the clock (v2.53.2)
 
 `sunState()` flips its `phase` string to `'white dwarf'` the instant `a >= SUN_WD`, but the
