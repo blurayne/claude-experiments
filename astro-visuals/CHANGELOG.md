@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.53.4 — 2026-09-02
+
+- Fix the view selector flashing/lockup (v2.53.4) (`ae6e6b5`)
+
 ### 2.53.3 — 2026-09-02
 
 - Rename the view option once the Sun is a nebula (v2.53.3) (`891b7ce`)
