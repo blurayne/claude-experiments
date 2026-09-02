@@ -72,6 +72,8 @@ before the work starts. An item is ticked when it ships, with the version that c
       led; the builder now refuses to overwrite a hand-finished map without `--force`, so
       the data workflow cannot put the seam back. The model regenerates from the map at
       load, verified in the renderer — v2.58.0.
+- [x] Hot-fix: v2.58.0's `sw.js` carried two `const V` lines (rebase keep-both) — one
+      line again, and the ship chain now stops on a failed parse — v2.58.1.
 
 ### Shipped earlier, for the record
 

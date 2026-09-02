@@ -17,6 +17,13 @@ built it.
   and a hash amended into its own commit never reaches `main`.
 - Work on the pinned branch, fast-forward `main`, wait for the Pages run, and report
   the deploy status and live URL.
+- **Parse `sw.js` and the page before every push, and let the chain stop on it.** Two
+  releases (v2.57.1, v2.58.0) shipped a service worker with two `const V` lines — a
+  rebase's keep-both resolution of the version line, which the page's own parse check
+  never sees because the worker is a separate file. A syntax error there fails the
+  install silently: the page runs, offline and caching do not. `node -e "new
+  Function(fs.readFileSync('astro-visuals/sw.js','utf8'))"` is the check; run the ship
+  chain under `set -e` so a failed check is a stopped chain, not a line in a log.
 - Test headlessly before shipping (playwright-core + the system Chromium with
   SwiftShader flags). Report honest, measured numbers; SwiftShader runs ~6 fps and
   stretches CSS transitions, so slow measurements there are artefacts, not bugs.
