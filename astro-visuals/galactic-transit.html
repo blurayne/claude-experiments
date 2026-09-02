@@ -650,15 +650,23 @@
     interface frosts over when the model dips into a glacial epoch. That whole argument has an <b>expiry
     date</b>: it rests on crossing spiral arms, and the merged remnant is an elliptical with none, so the arm
     term fades out with the merger rather than ticking on over a galaxy that no longer has arms.</p>
-    <p><b>Andromeda itself</b> is drawn the way the Milky Way is: from a photographic probability map —
-    the <b>Hubble PHAT+PHAST panorama</b> (heic2501a, ~200 million resolved stars; credit NASA, ESA,
-    B.&nbsp;F.&nbsp;Williams, Z.&nbsp;Chen, L.&nbsp;C.&nbsp;Johnson and the PHAT/PHAST teams, CC&nbsp;BY&nbsp;4.0),
-    deprojected from its 77&deg; inclination to face-on. Stars are sampled from its luminance, dust from its
-    dark lanes, HII regions from its blue excess and drawn in H&alpha; pink. Only sky-plane positions are
-    measured; depths, thickness, bulge and halo are modelled, as are the placements along the line of sight
-    of <b>M32</b>, <b>M110</b> and the <b>Giant Southern Stream</b>. The disk stands at its measured
-    orientation — spin pole at galactic (242&deg;,&nbsp;&minus;30&deg;), 120&deg; from ours — turning its
-    real way, ~7% faster than we do.</p>
+    <p><b>Andromeda itself</b> is drawn the way the Milky Way is: from a photographic probability map,
+    deprojected from its 77&deg; inclination to face-on — and, since v2.56, one instrument per channel.
+    The <b>Hubble PHAT+PHAST panorama</b> (heic2501a, ~200 million resolved stars; NASA, ESA,
+    B.&nbsp;F.&nbsp;Williams, Z.&nbsp;Chen, L.&nbsp;C.&nbsp;Johnson and the PHAT/PHAST teams, CC&nbsp;BY&nbsp;4.0)
+    is a strip along the major axis, so it is kept exactly where it has coverage and nowhere else. Luminance
+    and colour across the rest of the disk come from a <b>wide-field optical</b> image (Adam Evans,
+    CC&nbsp;BY&nbsp;2.0); the dust lanes from <b>Herschel/Planck far-infrared</b> emission (ESA/NASA/JPL-Caltech),
+    which is bright exactly where cold dust is, turned into darkening; the star-forming rings from
+    <b>GALEX ultraviolet</b> (NASA/JPL-Caltech), turned into the blue excess the HII sampler reads. Each
+    picture is deprojected on its own and registered to the panorama by its 10-kpc ring and by cross-correlation;
+    M32's position and the ring's lopsided brightness settle which end of the axis is which. Stars are then
+    sampled from luminance, dust from local darkness, HII from blue excess and drawn in H&alpha; pink. Only
+    sky-plane positions are measured; depths, thickness and halo are modelled, and so is the <b>bulge</b>,
+    which a 77&deg; deprojection cannot recover (it stretches into a column): that zone is filled and the bulge
+    drawn round from the major-axis profile. So are the line-of-sight placements of <b>M32</b>, <b>M110</b> and
+    the <b>Giant Southern Stream</b>. The disk stands at its measured orientation — spin pole at galactic
+    (242&deg;,&nbsp;&minus;30&deg;), 120&deg; from ours — turning its real way, ~7% faster than we do.</p>
     <p><b>The encounter follows the Gaia-era orbit</b>: today's 765&nbsp;kpc and &minus;110&nbsp;km/s, a first
     passage ~4.5&nbsp;Gyr out near 95&nbsp;kpc, a 290&nbsp;kpc rebound, then friction-shrunk passages at ~30
     and ~13&nbsp;kpc and one relaxed elliptical ~8.8&nbsp;Gyr from now. Separations inside ~83&nbsp;kpc are
@@ -994,7 +1002,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.55.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.56.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.

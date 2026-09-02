@@ -273,6 +273,49 @@ click cascades by setting `.checked` and dispatching a synthetic `change` (not a
 it does not fire the checkboxes' `click`-bound save listener, so the cascade calls `saveSettings()`
 explicitly — forget that and a choice made through the master silently fails to survive a reload.
 
+## The Andromeda map, one instrument per channel (v2.56.0)
+
+`tools/build_m31_map.py` composes `m31-map.webp` from four pictures, all committed under
+`tools/`: the PHAT panorama (a strip — kept only where it has coverage, `photographic_map()` now
+returns its mask), a wide-field optical (luminance and colour everywhere else), Herschel far-IR
+(dust *emission*, turned into darkening for the lane sampler) and GALEX UV (turned into blue excess
+for the HII sampler). Everything outside the strip used to be an azimuthal average with noise on it —
+the "blurry parts". The map contract is unchanged: 448², R25 at 188.6 px, luminance → stars, blue
+excess → HII, darkness against a 5-px blur → dust, RGB → point colours.
+
+What was learned, the hard way, about registering pictures of an inclined galaxy:
+- **Scale from the 10-kpc ring**, never from correlation: every band has it, and a scale search
+  by NCC wanders. The reference ring lives in 0.40–0.75 R; a layer at its own provisional scale
+  can have it anywhere, so its window is 0.20–0.85 R.
+- **Rotation is only near 0 or 180**: every layer already has its major axis horizontal from the
+  moments fit. The fine angle comes from NCC within ±12°; the END is not something texture can tell
+  on a nearly symmetric ring system. Anchors that work: **M32's sky position** (the sim draws it at
+  `M32_C`, above-left in map rows, and the panorama frame was laid out to match — that fixes the
+  optical), and **the ring's azimuthal brightness fingerprint** (`ring_azimuth`: M31's ring is far
+  brighter on one side, the same in every band — that fixes the UV). The IR's fingerprint vote came
+  out flat; its UV correlation has been consistent (~170°) across clean runs, so it decides alone.
+- **No mirrors.** Photographs of the same sky are not mirror images of each other. Allowing a mirror
+  in the search only gave the noise a second way to win.
+- **The blotter must not eat the galaxy.** A threshold over the whole frame took 70% of the optical.
+  Only the brightest compact peaks, one at a time; M32 by name (compactness in an annulus round the
+  centroid — the bulge's wing on the major axis is brighter but smooth); blobs only in the optical
+  (in the far-IR the pass ate the nucleus, and the stretch turned the hole into grey ovals).
+- **The far-IR picture is full of Milky Way cirrus**: the moments fit needs a threshold of 0.20, not
+  0.06, or the position angle leans on the foreground.
+- **The bulge cannot be deprojected.** A 1/cos(77°) stretch draws a spheroid as a column the height
+  of the disk. Sky-plane subtraction with elliptical annuli over-subtracts the minor axis (annuli mix
+  radii that differ 4× after deprojection — a dark column); an unconstrained bulge/disk fit degenerates
+  into two exponentials. What ships: a constrained Sérsic+exponential fit on the major axis (n ≥ 1.5,
+  r_e 2–9% of R) subtracted on the sky and added back round, then the panorama's cigar treatment
+  (rb 11 px) with the fill's level taken from a band just *outside* the column, not the whole ring
+  (whole-ring means include the arm crossings and stand the column out bright). A texture seam
+  remains in that zone; the info panel says the bulge is modelled.
+- **Dust darkening is tapered inside 0.28 R**: the stretched inner dust is not to be trusted, and it
+  darkened the bulge's outskirts into a box.
+- `--debug DIR` writes a tile panel of every registered layer; look at it before trusting any number.
+  `--extra PATH` uses a local optical picture in place of the committed one (for one whose licence
+  keeps it out of a public repo); `--phat-only` is the old behaviour.
+
 ## Never write a `<select>`'s options unconditionally per frame (v2.53.4)
 
 v2.53.3's `focusSunOpt.textContent = ...` ran every rendered frame, unguarded — same string

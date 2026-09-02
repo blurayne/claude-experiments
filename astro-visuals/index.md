@@ -76,6 +76,10 @@ in the browser with no build step and no external CDN.
 | [Gaia DR3](https://www.cosmos.esa.int/web/gaia/dr3) (ESA/Gaia/DPAC) | astrometry, distances and 3D space velocities behind the real-sky layers | Gaia data: free use with credit "ESA/Gaia/DPAC"; ESA Gaia imagery: CC BY-SA 3.0 IGO |
 | [AT-HYG 3.2](https://github.com/astronexus/ATHYG-Database) (David Nash, astronexus.com) | `stars-gaia.bin` and `stars-gaia-deep.bin` — 500,000 stars, Tycho-2 merged with Gaia DR3 | CC BY-SA 4.0 |
 | Face-on Milky Way illustration (NASA/JPL-Caltech, R. Hurt, SSC/Caltech) | `galaxy-map.webp` — the density map the galaxy is drawn from | NASA imagery, credit required: "NASA/JPL-Caltech/R. Hurt (SSC/Caltech)" |
+| [Hubble PHAT+PHAST panorama of M31](https://esahubble.org/images/heic2501a/) (heic2501a) | `m31-map.webp` — the resolved-star strip along Andromeda's major axis, kept where it has coverage; `tools/m31-src.jpg` | CC BY 4.0; credit "NASA, ESA, B. F. Williams, Z. Chen, L. C. Johnson, the PHAT and PHAST teams" |
+| [Andromeda Galaxy, wide-field optical](https://commons.wikimedia.org/wiki/File:Andromeda_Galaxy_(with_h-alpha).jpg) (Adam Evans) | `m31-map.webp` — luminance and colour of the whole disk; `tools/m31-wide-optical.jpg` | CC BY 2.0 |
+| [Herschel/Planck far-infrared view of M31](https://www.esa.int/ESA_Multimedia/Images/2013/01/Andromeda_s_dust) (ESA/NASA/JPL-Caltech) | `m31-map.webp` — cold-dust emission turned into the dust lanes; `tools/m31-wide-ir.jpg` | CC BY-SA 3.0 IGO (ESA) |
+| [GALEX ultraviolet image of M31](https://www.nasa.gov/image-article/galex-andromeda/) (NASA/JPL-Caltech) | `m31-map.webp` — young stars and star-forming rings turned into the HII blue excess; `tools/m31-wide-uv.jpg` | NASA imagery, public domain, credit required |
 | [StarHorse](https://data.aip.de/projects/starhorse2019.html) (Anders et al. 2019, A&A 628, A94) | pending — `tools/build_starhorse_density.py` awaits a catalog sample | credit the paper and AIP; check the release page for the data licence |
 | Nuclear disc & cluster | modelled after AIP's ["How central galactic structures grow together"](https://www.aip.de/en/news/galactic-structures-grow-together/) | scientific reference, no data used |
 | [ejtaal/gaia-web](https://github.com/ejtaal/gaia-web) | inspected as a data source; its `gaia-web-data` sets (175–290 MB) are beyond a Pages site's budget | BSD-3 (code); data derived from Gaia DR3 (ESA/Gaia/DPAC) |
@@ -167,3 +171,14 @@ This folder was previously published as `/solar-system/`, where the viewer was
 served as the folder's `index.html`. It now hosts more than one visualisation, so
 each viewer has its own filename and this `index.md` is rendered as the landing
 page.
+
+## Rebuilding the Andromeda map locally
+
+`m31-map.webp` is generated, not drawn: `python3 tools/build_m31_map.py` (needs only `numpy` and
+`pillow`) deprojects the four committed pictures under `tools/` and composes them. Pass
+`--debug some/dir` to get a tile panel of every registered layer, and `--extra path/to/picture.jpg`
+to use a wide-field optical picture of your own in place of the committed one — say, one whose licence
+keeps it out of a public repository. On a Linux machine with Claude Code, "run
+`tools/build_m31_map.py --extra ~/m31.jpg --debug /tmp/m31`, look at the panel, and commit the map
+if the layers line up" is the whole job; the GitHub Actions workflow does the same on every push that
+touches the script or its sources.
