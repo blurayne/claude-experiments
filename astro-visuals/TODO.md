@@ -28,6 +28,8 @@ before the work starts. An item is ticked when it ships, with the version that c
       another view — happens even without the Sun having been swallowed. Regression from
       v2.53.3: the rename was writing the option's text every frame, unconditionally.
       Guarded to write only on an actual change — v2.53.4.
+- [ ] Show the Galactic Year logo on the tutorial start screen too, as a right-aligned
+      SVG, keeping its background transparent.
 
 ### Shipped earlier, for the record
 
