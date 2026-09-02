@@ -58,10 +58,12 @@ before the work starts. An item is ticked when it ships, with the version that c
       behind the other from the camera's viewpoint darkens the one in front, because
       multiply blending knows nothing of depth. Draw the farther galaxy's haze and dust
       first, each frame, so clouds only ever thin their own galaxy's light — v2.57.1.
-- [ ] Drop the "The clock is stopped while you read. It starts when you do." paragraph
-      from the tutorial card.
-- [ ] `sw.js` carries two `const V` lines after v2.57.1 — a SyntaxError, so the service
-      worker cannot install at all. Collapse them back to one.
+- [x] Drop the "The clock is stopped while you read. It starts when you do." paragraph
+      from the tutorial card. The behaviour is unchanged — the tour still holds the clock
+      and hands it back on the way out, it just no longer says so — v2.57.2.
+- [x] `sw.js` carries two `const V` lines after v2.57.1 — a SyntaxError, so the service
+      worker cannot install at all. Collapsed to one, keeping the `galactic-transit-`
+      prefix the second line had reverted — v2.57.2.
 
 ### Shipped earlier, for the record
 
