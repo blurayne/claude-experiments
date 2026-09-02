@@ -144,6 +144,8 @@ before the work starts. An item is ticked when it ships, with the version that c
 - [ ] At ×10⁷ the Sun looks almost stuck while the galaxy rotates past it and many stars
       move faster than it. Is the galaxy spinning faster than the Sun travels, or are the
       stars' speeds wrong? Check the rates against each other and fix if they disagree.
+- [ ] Does our galaxy rotate in the right direction? If not the Andromeda merger needs
+      another fix too. Check Andromeda's rotation direction as well.
 
 ### Shipped earlier, for the record
 
