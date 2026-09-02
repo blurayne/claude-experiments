@@ -916,7 +916,7 @@
       things at once, because they are the same intent: it raises a floor under the faintest stars'
       colour, and it widens the smallest sprites. The second matters more than it sounds — a star clamped
       to a single pixel loses most of its light to the grid, so widening the floor recovers far more
-      brightness than lifting colour alone. Both leave anything already bright untouched. From inside the disk — the dive and the Solar System views — the band's light all lies behind the local clouds, so haze, HII regions and core are drawn first and the dust over them: that is the Great Rift you see splitting the band and hiding the centre, as it does from Earth. From outside, the arms' HII knots sit on the lanes and are drawn on top of them. The centre itself is not drawn from inside the dust layer at all — from Earth it is behind some thirty magnitudes of extinction and no soft cloud could darken a glow that bright — and fades back in as the eye rises out of the plane; the bulge's stars still draw, as the Sagittarius star clouds do.</li>
+      brightness than lifting colour alone. Both leave anything already bright untouched. From inside the disk — the dive and the Solar System views — the band's light all lies behind the local clouds, so haze, HII regions and core are drawn first and the dust over them: that is the Great Rift you see splitting the band and hiding the centre, as it does from Earth. From outside, the arms' HII knots sit on the lanes and are drawn on top of them. One exception among the stars: the nuclear disc and the star cluster around Sgr&nbsp;A* — a few hundred sprites that from 8 kpc land on a single pixel — are not drawn from inside the disk, since from Earth they sit behind some thirty magnitudes of extinction; the bulge's star cloud around them draws as ever.</li>
       <li>The inter-arm disk follows an <b>exponential profile</b> with the measured ~8,500&nbsp;ly scale
       length, plus a thicker, older, yellower second disk at ~3&times; the scale height — the thin/thick
       disk structure Gaia confirmed.</li>
@@ -1010,7 +1010,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.60.3', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.60.4', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -1568,9 +1568,16 @@ let N_ANDN = 0, N_ANDD = 0, vaoAndNeb = null, vaoAndDust = null, m31Map = null;
 // the dark clouds darken it, then the stars, the HII and the core go over both, so a
 // cloud sits within the star field instead of on top of it. These are the run lengths.
 let NEB_PINK = 0, NEB_GLOW = 0, AND_PINK = 0, AND_GLOW = 0;
+// The galaxy star buffer's nuclear run — the ~200 pc nuclear disc and the 4 pc cluster
+// around Sgr A* — as an index range [NUC0, NUC1). From inside the disk those stars are
+// not drawn: at 8 kpc they collapse onto one pixel, add up to a hard spot, and are drawn
+// after the dust that, from Earth, hides them behind ~30 magnitudes. Only these; the
+// bulge proper still draws, as the Sagittarius star clouds do. 0,0 when there is none.
+let NUC0 = 0, NUC1 = 0, hideNucleus = true;
 let gxyPos,gxySize,gxyCol,gxyWave, nebPos,nebSize,nebCol, dustPos,dustSize,dustStr;
 function genGalaxy(D){ // D = density multiplier (hi-fi galaxy mode)
   N_GXY = Math.round(92000*D);
+  NUC0 = NUC1 = 0;
   const BS = 1/Math.sqrt(D);      // per-star brightness comp: more stars, finer grain
   const SS = Math.pow(D,-0.12);   // slightly smaller sprites when dense
   const NBS = Math.max(Math.pow(D,-0.7), 0.25), DS = 1/D; // floor: nebulae must survive ultra
@@ -1828,6 +1835,7 @@ function genGalaxyMap(D){
   // structures that grow together, fed by gas the bar drives inward (Sormani et al.,
   // A&A 2025; AIP: "How central galactic structures grow together").
   const NSD = Math.round(N_GXY*0.022), NSC = Math.round(N_GXY*0.004);
+  NUC0 = HALO; NUC1 = HALO + NSD + NSC;
   for(let i=0;i<N_GXY;i++){
     let X,Y,Z,cr,cg,cb,s,wv=0;
     if(i<HALO){
@@ -1916,7 +1924,7 @@ function setGalaxy(D){
     const gv = pointVAO(gxyPos,gxySize,gxyCol,gxyWave);
     const nv = pointVAO(nebPos,nebSize,nebCol), dv = pointVAO(dustPos,dustSize,dustStr);
     const av = (m31Map ? genAndromedaMap : genAndromeda)(D);
-    gxyCache[key] = { D, n:[N_GXY,NEB_N,DUST_N], seg:[NEB_PINK,NEB_GLOW,AND_PINK,AND_GLOW], g:gv, nb:nv, d:dv, a:av };
+    gxyCache[key] = { D, n:[N_GXY,NEB_N,DUST_N], seg:[NEB_PINK,NEB_GLOW,AND_PINK,AND_GLOW], nuc:[NUC0,NUC1], g:gv, nb:nv, d:dv, a:av };
     gxyPos=gxySize=gxyCol=gxyWave=nebPos=nebSize=nebCol=dustPos=dustSize=dustStr=null; // uploaded; free the JS copies
   }
   // the cheap densities stay cached; only one heavy one is kept at a time
@@ -1931,6 +1939,7 @@ function setGalaxy(D){
   const c=gxyCache[key];
   N_GXY=c.n[0]; NEB_N=c.n[1]; DUST_N=c.n[2];
   [NEB_PINK, NEB_GLOW, AND_PINK, AND_GLOW] = c.seg;
+  [NUC0, NUC1] = c.nuc || [0, 0];
   N_AND=c.a.n[0]; N_ANDN=c.a.n[1]; N_ANDD=c.a.n[2];
   vaoGxy=c.g; vaoNeb=c.nb; vaoDust=c.d; curD=D;
   vaoAnd=c.a.a; vaoAndNeb=c.a.an; vaoAndDust=c.a.ad;
@@ -4616,13 +4625,6 @@ function frame(now){
   // down first and the dust over it; from outside the arms' HII knots sit on top of
   // the lanes and are drawn after (v2.56.1). Same zone as the haze fade's.
   const insideDisk = cam.dist < 45;
-  // The Galactic Centre is not visible in light from anywhere inside the dust layer:
-  // ~30 magnitudes of extinction from the Sun, and no multiply blend of soft sprites can
-  // take a core that bright to nothing. So the Milky Way's core glow is simply not drawn
-  // while the eye sits in the dust, and returns as it rises out of it — most of the dust
-  // is within ~100 pc of the plane, so it clears over the first kiloparsec or so. The
-  // bulge's own stars still draw (foreground star clouds do exist there); it is the glow
-  // that punched through the lane.
   // every disk star travels at the same flat-curve speed as the Sun, and an elliptical
   // does not rotate coherently: the rate dies away as the remnant relaxes. diskSpin()
   // is that rate's integral, so the angle only ever grows (never zero either — uSpin==0.0
@@ -4660,8 +4662,7 @@ function frame(now){
   // The haze must dim as the camera closes in, whatever the mode: nearby sprites
   // project enormous and stack into a whiteout. From inside the system the Milky Way
   // stays visible as a band — a quarter strength — rather than vanishing outright.
-  const gfBase = Math.min(1, Math.max(0.25, cam.dist/45));
-  gl.uniform1f(UN.gf, gfBase);
+  gl.uniform1f(UN.gf, Math.min(1, Math.max(0.25, cam.dist/45)));
   gl.uniform1f(UN.time, shimT);
   gl.uniform1f(UN.vm, varOn?2.0:0.0);
   gl.uniform1f(UN.wa, 1.0); // HII regions trace the wave
@@ -4675,16 +4676,12 @@ function frame(now){
   gl.uniform3f(UN.sun, sunX, bubY, sunZ);
   gl.uniform1f(UN.gal, 1.0);
   gl.uniform1f(UN.merge, and.merge);
-    const seg = (pink, glow, n, coreK = 1) => {
+    const seg = (pink, glow, n) => {
       if(haze){ if(glow) gl.drawArrays(gl.POINTS, pink, glow); }
       else { if(pink) gl.drawArrays(gl.POINTS, 0, pink);
-             if(n - pink - glow > 0 && coreK > 0){
-               if(coreK < 1) gl.uniform1f(UN.gf, gfBase * coreK);
-               gl.drawArrays(gl.POINTS, pink + glow, n - pink - glow);
-               if(coreK < 1) gl.uniform1f(UN.gf, gfBase);
-             } }
+             if(n - pink - glow > 0) gl.drawArrays(gl.POINTS, pink + glow, n - pink - glow); }
     };
-    if(which !== 'and'){ gl.bindVertexArray(vaoNeb); seg(NEB_PINK, NEB_GLOW, NEB_N, coreVis); }
+    if(which !== 'and'){ gl.bindVertexArray(vaoNeb); seg(NEB_PINK, NEB_GLOW, NEB_N); }
     if(vaoAndNeb && which !== 'mw'){
     gl.uniformMatrix3fv(UN.grot, false, M31_ROT);
     gl.uniform3f(UN.goff, andPos[0], andPos[1], andPos[2]);
@@ -4754,11 +4751,6 @@ function frame(now){
   // eye is Sun-relative here, like everything drawn.
   const dMW  = Math.hypot(eye[0] + org[0], eye[1] + org[1], eye[2] + org[2]);
   const dAnd = Math.hypot(eye[0] - (andPos[0] - org[0]), eye[1] - (andPos[1] - org[1]), eye[2] - (andPos[2] - org[2]));
-  // ...and only from INSIDE the disk: seen edge-on from outside, a galaxy keeps its bulge
-  // glow standing above and below the lane, and the dust pass draws that lane itself.
-  const eyeH = Math.abs(eye[1] + org[1]);                 // height over the plane, ~9.2 pc a unit
-  const coreVis = Math.max(Math.min(1, Math.max(0, (eyeH - 25) / 100)),        // rising out of the dust
-                           Math.min(1, Math.max(0, (dMW - 1200) / 400)));      // or beyond the disk's edge
   for(const g of (dAnd > dMW ? ['and', 'mw'] : ['mw', 'and'])){ nebulaPass(true, g); if(insideDisk) nebulaPass(false, g); dustPass(g); }
   gl.useProgram(pPt);   // back to the points; their uniforms persist on the program
   gl.bindVertexArray(vaoStars); gl.drawArrays(gl.POINTS,0,N_STAR);
@@ -4797,7 +4789,11 @@ function frame(now){
   gl.uniform3f(U.ptSun, sunX, bubY, sunZ);
   gl.uniform1f(U.ptGal, 1.0);
   gl.uniform1f(U.ptMerge, and.merge);
-  gl.bindVertexArray(vaoGxy);   gl.drawArrays(gl.POINTS,0,N_GXY);
+  gl.bindVertexArray(vaoGxy);
+  if(insideDisk && hideNucleus && NUC1 > NUC0){   // the centre's own stars stay behind the dust
+    if(NUC0 > 0) gl.drawArrays(gl.POINTS, 0, NUC0);
+    if(N_GXY > NUC1) gl.drawArrays(gl.POINTS, NUC1, N_GXY - NUC1);
+  } else gl.drawArrays(gl.POINTS,0,N_GXY);
 
   // Andromeda: generated flat in its own disk frame; uGRot turns it to its measured
   // orientation — the two disks stand 120° apart, nowhere near parallel — and uGOff

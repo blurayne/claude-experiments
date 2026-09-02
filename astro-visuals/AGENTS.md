@@ -325,6 +325,24 @@ Also here: a request for "a setting to turn off dark clouds" — the switch alre
 adding it; a duplicate switch is worse than none. And the settings title is "Settings" alone now,
 the version living in the info dialog and the tour card.
 
+## The spot at the Galactic Centre was stars, not glow (v2.60.4, reverting v2.60.3)
+
+The owner marked a hard bright point sitting in the dark lane at the centre, from inside the
+disk. v2.60.3 answered by hiding the whole core *glow* run inside the dust layer — and the
+point stayed, because it was never the glow: `genGalaxyMap` places a nuclear stellar disc
+(~200 pc, 2.2% of the stars) and the nuclear star cluster around Sgr A* (4 pc, 0.4%) in the
+**star** buffer, drawn after the dust and never darkened, and from 8 kpc they all land on one
+pixel and add up. The owner asked for v2.60.3 reverted and only the marked thing fixed:
+reverted in full, and the star buffer's nuclear range `[NUC0, NUC1)` is now skipped while
+`insideDisk` (cached per density in `gxyCache.nuc`; the schematic galaxy has none). The core
+glow and the bulge's star cloud draw as before, the lane through them.
+
+Lessons: when a report comes with a mark, reproduce *that pixel* before theorising — aim the
+camera at it (`coreLock = true; cam.yaw = 0`) and compare the frame with the suspect drawn
+and hidden; and a "fix" that changes more than the mark is not what was asked for even when
+it is physically defensible. Reverting a bundled release: keep the part the owner asked for
+separately (the bare title) and say so.
+
 ## The frozen interface has two layers; the textured one is the frost (v2.60.2)
 
 A glacial epoch dresses the panels twice, and they are easy to confuse. The `background`
