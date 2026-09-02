@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.57.2 — 2026-09-02
+
+- Drop the clock line from the tour; one const V in sw.js (v2.57.2) (`7353feb`)
+
 ### 2.57.1 — 2026-09-02
 
 - One galaxy's clouds no longer darken the other (v2.57.1) (`607728f`)
