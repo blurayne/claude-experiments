@@ -24,6 +24,9 @@ before the work starts. An item is ticked when it ships, with the version that c
       call it "Anthropic Nebula" from that point onward. Turns at the same age (12.37 Gyr)
       the panel and the 3D label already do, and correctly reverts if the clock scrubs
       back before it happened — v2.53.3.
+- [ ] Clicking the view selector causes a flashing screen and it can't be used to pick
+      another view — happens even without the Sun having been swallowed. Regression from
+      v2.53.3: the rename was writing the option's text every frame, unconditionally.
 
 ### Shipped earlier, for the record
 
