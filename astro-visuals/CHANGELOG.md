@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.54.0 — 2026-09-02
+
+- Logo on the tutorial start screen (v2.54.0) (`32aa0b6`)
+
 ### 2.53.4 — 2026-09-02
 
 - Fix the view selector flashing/lockup (v2.53.4) (`ae6e6b5`)
