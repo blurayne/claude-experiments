@@ -181,7 +181,7 @@
      only the crystals light it. Rides the same eased value as the rest of the freeze. */
   .hud::before, .env::before, .gamebar::before, .note::before, .info-card::before{
     content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;
-    opacity:calc(var(--iceA) * .42);mix-blend-mode:screen;
+    opacity:calc(var(--iceA) * .336);mix-blend-mode:screen;   /* .42 less 20%: the crystals sat heavily over the readings */
     background-image:
       radial-gradient(120% 90% at 0% 0%, rgba(150,196,232,.16), transparent 62%),
       radial-gradient(110% 80% at 100% 100%, rgba(130,180,224,.13), transparent 58%),
@@ -1010,7 +1010,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.60.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.60.2', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.

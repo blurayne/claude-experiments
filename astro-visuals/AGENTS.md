@@ -307,6 +307,19 @@ click cascades by setting `.checked` and dispatching a synthetic `change` (not a
 it does not fire the checkboxes' `click`-bound save listener, so the cascade calls `saveSettings()`
 explicitly — forget that and a choice made through the master silently fails to survive a reload.
 
+## The frozen interface has two layers; the textured one is the frost (v2.60.2)
+
+A glacial epoch dresses the panels twice, and they are easy to confuse. The `background`
+on `.hud/.env/.gamebar/.note/.info-card` is a pale tint over a near-black wash — that is
+the layer whose job is to *take transparency away*. The `::before` on the same selectors
+is the **textured** one: two rime photographs, screen-blended, at `--iceA × .336`. When a
+change is asked for on "the textured background", it is the `::before`.
+
+Measure before choosing between them, and measure over the right backdrop. Reducing the
+wash .72 → .576 moved a frozen panel's interior by 0.5/255, because that wash is nearly
+black and the panel sat over empty sky; the frost alone lifts the same interior from 21 to
+55. I picked the wash first on the comment's wording and the numbers refuted it.
+
 ## The Great Rift: the dust's place in the order depends on where the eye is (v2.60.1)
 
 v2.56.1 settled the outside order — haze → dust → stars → HII and core — so the arms' HII

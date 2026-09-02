@@ -115,7 +115,11 @@ before the work starts. An item is ticked when it ships, with the version that c
       and the dust over it — the Great Rift splits the band and hides the centre — with
       the deep ceiling scaled by canvas width so a phone is not blackened. Measured: 40 px
       carves a lane, 120 and 220 crush the band — v2.60.1.
-- [ ] During a glacial age, make the textured background 20% more transparent.
+- [x] During a glacial age, make the textured background 20% more transparent. The frost
+      crystal texture on the panels (`.hud/.env/.gamebar/.note/.info-card::before`), whose
+      opacity rides `--iceA`: .42 × 0.8 = .336. Not the glacial wash under it — measured,
+      that is nearly black over an already-dark scene and moves the panel by 0.5/255 — the
+      texture is what sits over the readings — v2.60.2.
 
 ### Shipped earlier, for the record
 
