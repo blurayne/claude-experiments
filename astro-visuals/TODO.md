@@ -120,10 +120,18 @@ before the work starts. An item is ticked when it ships, with the version that c
       opacity rides `--iceA`: .42 × 0.8 = .336. Not the glacial wash under it — measured,
       that is nearly black over an already-dark scene and moves the panel by 0.5/255 — the
       texture is what sits over the readings — v2.60.2.
-- [ ] Add a setting under Visuals to turn the dark clouds off.
-- [ ] Remove the version number from the settings dialog.
-- [ ] With the dark clouds on, the centre of the galaxy can still be seen from inside the
-      disk. Not accurate: from Earth the Galactic Centre is hidden behind the dust.
+- [x] Add a setting under Visuals to turn the dark clouds off. Already there: Visuals →
+      features → "dark clouds" (`tDust`), persisted in `S_TOG`. Verified end to end —
+      unticked, the band brightens 80 → 102 and it stays off across a reload — so no second
+      switch was added — v2.60.3.
+- [x] Remove the version number from the settings dialog. The `verHud` span and the line
+      that filled it both went (an orphaned id is how v2.60.0 died at boot) — v2.60.3.
+- [x] With the dark clouds on, the centre of the galaxy can still be seen from inside the
+      disk. Not accurate: from Earth the Galactic Centre is hidden behind the dust. The core
+      glow is now not drawn while the eye is in the dust layer (within ~25 units of the
+      plane and inside the disk's edge), fading in as it rises out or leaves the disk; the
+      multiply could never take a glow that bright to nothing. Edge-on from outside the
+      bulge still glows with the lane through it — v2.60.3.
 
 ### Shipped earlier, for the record
 

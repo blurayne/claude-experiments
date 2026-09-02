@@ -307,6 +307,24 @@ click cascades by setting `.checked` and dispatching a synthetic `change` (not a
 it does not fire the checkboxes' `click`-bound save listener, so the cascade calls `saveSettings()`
 explicitly — forget that and a choice made through the master silently fails to survive a reload.
 
+## The Galactic Centre is invisible from inside the disk (v2.60.3)
+
+v2.60.1 put the core glow beneath the dust from inside the disk and called it done; the owner's
+screenshot showed the core punching through the Rift. Of course it did: the dust multiplies by
+(1 − α) per soft sprite, and a handful of overlaps cannot take a core glow to nothing. From Earth
+the centre is behind ~30 magnitudes of extinction — it is simply not there in light. So the
+Milky Way's core run now rides `coreVis`: zero while the eye is within ~25 units of the plane
+AND inside the disk's edge (`dMW < 1200`), ramping in over the next 100 units of height or 400 of
+radius. Both terms matter: a height rule alone erased the bulge from the edge-on outside view,
+where a real galaxy keeps its bulge glowing above and below the lane (NGC 891). Andromeda's core
+is untouched — it sits at b = −21°, above our dust. The bulge's stars still draw; the Sagittarius
+star clouds are real. Disclosed in the info panel.
+
+Also here: a request for "a setting to turn off dark clouds" — the switch already existed
+(Visuals → features → dark clouds, persisted). Verify that an asked-for control is absent before
+adding it; a duplicate switch is worse than none. And the settings title is "Settings" alone now,
+the version living in the info dialog and the tour card.
+
 ## The frozen interface has two layers; the textured one is the frost (v2.60.2)
 
 A glacial epoch dresses the panels twice, and they are easy to confuse. The `background`
