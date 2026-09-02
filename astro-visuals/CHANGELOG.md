@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.53.0 — 2026-09-02
+
+- The Sun's death, drawn (v2.53.0) (`85fa081`)
+
 ### 2.52.0 — 2026-09-01
 
 - A shader of its own for the supernova blast (v2.52.0) (`4252b3b`)
