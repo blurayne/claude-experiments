@@ -99,6 +99,11 @@ before the work starts. An item is ticked when it ships, with the version that c
       unlock now waits for the music to actually play and listens for more gesture types;
       the banks retry and fall back on a timeout. Note the effects slider ships at 0
       (effects are opt-in by design) — v2.59.2.
+- [ ] Settings dialog: title reads "settings", small like the other dialogs' titles.
+- [ ] Settings dialog: move the full/auto buttons to the bottom left, on the same line as
+      the refresh button.
+- [ ] Move the build stamp, date and changelog link out of the settings footer and into
+      the information dialog, as its second line.
 
 ### Shipped earlier, for the record
 
