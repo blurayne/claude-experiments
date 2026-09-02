@@ -63,7 +63,6 @@ before the work starts. An item is ticked when it ships, with the version that c
 - [x] `sw.js` carries two `const V` lines after v2.57.1 — a SyntaxError, so the service
       worker cannot install at all. Collapsed to one, keeping the `galactic-transit-`
       prefix the second line had reverted — v2.57.2.
-- [ ] Use the owner's face-on Andromeda picture — the v2.56 composite completed by human
 - [x] Use the owner's face-on Andromeda picture — the v2.56 composite completed by human
       and AI — as `m31-map.webp`, at the highest quality; say in the changelog that it was
       completed by human and AI; then reprocess the Andromeda model from it. Installed
@@ -84,6 +83,8 @@ before the work starts. An item is ticked when it ships, with the version that c
       threshold at which the other galaxy names step down — v2.59.0.
 - [ ] Losing focus must remember the play state of the animation and the music, and
       restore exactly that on regaining focus (the v2.45.0 handler is not doing it).
+- [ ] Swiping a panel toward its own screen edge to close it still does not work. It
+      works with a mouse; the gesture is being lost on touch.
 
 ### Shipped earlier, for the record
 
