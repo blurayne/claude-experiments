@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.56.0 — 2026-09-02
+
+- Andromeda's map from four pictures, one per channel (v2.56.0) (`84b8172`)
+
 ### 2.55.0 — 2026-09-02
 
 - A wordless, unframed emblem on the tutorial card (v2.55.0) (`00f5856`)
