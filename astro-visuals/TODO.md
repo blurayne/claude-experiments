@@ -5,12 +5,14 @@ before the work starts. An item is ticked when it ships, with the version that c
 
 ## 2026-09-01
 
-- [ ] Keep this file: every request becomes a checkbox here, committed before the work;
-      the rule lives in `AGENTS.md`.
-- [ ] The Milky Way's rotation seems to change suddenly around galactic year 51.7, during
-      the Andromeda merger — check whether that is real, and fix it if not.
-- [ ] Rename the "Sun nebula" label to "Anthropic Nebula".
-- [ ] Rename "Sun" in the view select to "Solar System".
+- [x] Keep this file: every request becomes a checkbox here, committed before the work;
+      the rule lives in `AGENTS.md` — commit 6181f0d.
+- [x] The Milky Way's rotation seems to change suddenly around galactic year 51.7, during
+      the Andromeda merger — check whether that is real, and fix it if not. Not real: the
+      disk's spin was the accumulated angle scaled by (1 − merge), which ran it backwards
+      at four times its speed from 11.7 Gyr; now the integral of a fading rate — v2.53.1.
+- [x] Rename the "Sun nebula" label to "Anthropic Nebula" — v2.53.1.
+- [x] Rename "Sun" in the view select to "Solar System" — v2.53.1.
 
 ### Shipped earlier today, for the record
 

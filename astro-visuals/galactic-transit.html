@@ -612,7 +612,7 @@
       and falling on a slow magnetic-storm cycle, a streaked corona. The surface detail is drawn with
       shader noise and is illustrative; the disc's size is not — it is the Sun's true diameter at the
       true distance.</li>
-      <li>Focusing the <b>Sun</b> (the Focus panel, top left) is a camera move, not a mode change: it descends nine orders of magnitude to
+      <li>Choosing the <b>Solar System</b> view (top left) is a camera move, not a mode change: it descends nine orders of magnitude to
       a view about 75 AU across — the whole planetary system, Kuiper belt included, at its true scale,
       which is why the galaxy shrinks to a band of sky and the Sun to a nearby star. The camera follows
       the Sun exactly and holds the line from the Sun to the galactic centre, so the core stays behind
@@ -879,7 +879,7 @@
       light-year across by the end, so the view from the planets is from inside it, where a shell shows
       nothing — in the colours the real ones have, [O&nbsp;III] teal within an H&alpha; rim; it is stretched
       in time like every death here, a third of a gigayear for something that really lasts twenty thousand
-      years. The Sun's label reads <i>Sun nebula</i> while it is on screen.</li>
+      years. The Sun's label reads <i>Anthropic Nebula</i> while it is on screen.</li>
       <li><b>Planet 9?</b> is the one body here that may not exist: a ~6 Earth-mass planet on a ~400 AU
       orbit, proposed to explain the clustered orbits of the far Kuiper belt. Its orbit is drawn from those
       estimates and its question mark is part of its name. Switch it off in Visuals if you would rather
@@ -975,7 +975,7 @@
   <div class="envsep"></div>
   <div class="er"><span>view</span>
     <span style="display:flex;gap:6px;align-items:center">
-      <select id="focusSel"><option value="sun">Sun</option><option value="mw">Milky Way</option><option value="and">Andromeda</option></select>
+      <select id="focusSel"><option value="sun">Solar System</option><option value="mw">Milky Way</option><option value="and">Andromeda</option></select>
       <button class="rowbtn" id="focusGo">GO</button>
     </span></div>
 </div>
@@ -987,7 +987,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.53.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.53.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2218,7 +2218,20 @@ function sepScene(kpc){
 // Violent relaxation builds through the close passages rather than switching on: by the
 // third pass the rings are already coming apart, as they would be. Everything that stops
 // being true when the disks stop being disks reads this.
-const mergeAt = a => Math.min(1, Math.max(0, (a - 11.7)/1.7));
+const MERGE_A0 = 11.7, MERGE_A1 = 13.4;   // Gyr: relaxation begins, remnant settled
+const mergeAt = a => Math.min(1, Math.max(0, (a - MERGE_A0)/(MERGE_A1 - MERGE_A0)));
+// The disk's accumulated rotation. The rate is the flat-curve speed, dying away as the
+// merger scrambles the ordered disk into a spheroid — so this is the integral of
+// V_GAL·(1 − mergeAt), linear before the merger, a parabola through it, constant after.
+// An earlier build scaled the accumulated *angle* by (1 − merge) instead, which is not
+// the same thing at all: with thirty laps already on the clock, that ran the whole disk
+// backwards at four times its speed the moment relaxation began (galactic year ~51.7).
+const MERGE_T0 = (MERGE_A0 - AGE0)*1e9/YR_PER_SIM, MERGE_T1 = (MERGE_A1 - AGE0)*1e9/YR_PER_SIM;
+function diskSpin(ts){
+  if(ts <= MERGE_T0) return ts*V_GAL;
+  const w = MERGE_T1 - MERGE_T0, x = Math.min(ts, MERGE_T1) - MERGE_T0;
+  return (MERGE_T0 + x - x*x/(2*w))*V_GAL;
+}
 const andPos = new Float32Array(3);
 function updateAnd(){
   const a = ageGyr();
@@ -4510,12 +4523,14 @@ function frame(now){
     gl.uniform3f(U.ptOrg, org[0],org[1],org[2]);
     gl.uniform1f(U.ptFade, 0.0);
   }
-  const spin = simT*V_GAL; // every disk star travels at the same flat-curve speed as the Sun
+  // every disk star travels at the same flat-curve speed as the Sun, and an elliptical
+  // does not rotate coherently: the rate dies away as the remnant relaxes. diskSpin()
+  // is that rate's integral, so the angle only ever grows (never zero either — uSpin==0.0
+  // is the shader's "not a galaxy" gate).
+  const spin = diskSpin(simT);
   const warp = -2*Math.PI*simT/650e6; // warp precession: retrograde, ~650 Myr per turn
-  // an elliptical does not rotate coherently: spins die away as the remnant relaxes
-  // (never exactly zero — uSpin==0.0 is the shader's "not a galaxy" gate)
-  const spinMW  = spin*Math.max(1-and.merge, 1e-4);
-  const spinM31 = spin*1.07*Math.max(1-and.merge, 1e-4);  // M31's flat curve runs ~7% faster
+  const spinMW  = spin;
+  const spinM31 = spin*1.07;   // M31's flat curve runs ~7% faster
   const sunX=org[0], sunY=org[1], sunZ=org[2];
   const bubY = realMode ? sunY+1e8 : sunY; // real scale: nothing is magnified, so no clearance bubble
   gl.uniform1f(U.ptSpin, spinMW);
@@ -4923,7 +4938,7 @@ function frame(now){
     for(let i=0;i<NB;i++){
       if(i === I_P9 ? !showP9 : (i >= N_PLANETS && !showDwarfs)){ labelEls[i].style.display='none'; continue; }
       if(i > 0 && i <= 3 && wasEaten[i]){ labelEls[i].style.display='none'; continue; }   // swallowed
-      if(i === 0) labelEls[0].textContent = pnShown ? 'Sun nebula' : 'Sun';
+      if(i === 0) labelEls[0].textContent = pnShown ? 'Anthropic Nebula' : 'Sun';
       const x=bodyPosArr[i*3],y=bodyPosArr[i*3+1],z=bodyPosArr[i*3+2];
       const cw = pv[3]*x+pv[7]*y+pv[11]*z+pv[15];
       if(cw<=Math.max(1e-9,cam.dist*0.01) || cam.dist>900){ labelEls[i].style.display='none'; continue; }
@@ -4955,7 +4970,7 @@ function frame(now){
     // arm names: world coordinates rotated with the wave, then projected like the rest
     // (once the remnant starts to relax there are no arms left to name)
     if(armsOn && cam.dist > 600 && and.merge < 0.35){
-      const d = spin/640, cD = Math.cos(d), sD = Math.sin(d);
+      const d = spinMW/640, cD = Math.cos(d), sD = Math.sin(d);
       for(let a=0;a<ARM_LBLS.length;a++){
         const wx = ARM_LBLS[a][1]*cD + ARM_LBLS[a][2]*sD, wz = ARM_LBLS[a][2]*cD - ARM_LBLS[a][1]*sD;
         const x = wx-org[0], y = -org[1], z = wz-org[2];

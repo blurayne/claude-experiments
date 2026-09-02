@@ -269,6 +269,19 @@ click cascades by setting `.checked` and dispatching a synthetic `change` (not a
 it does not fire the checkboxes' `click`-bound save listener, so the cascade calls `saveSettings()`
 explicitly — forget that and a choice made through the master silently fails to survive a reload.
 
+## The disk does not run backwards (v2.53.1)
+
+`spinMW` used to be `simT*V_GAL * (1 − and.merge)`: the *accumulated* rotation scaled by the
+merge fraction. With ~32 laps on the clock when relaxation begins at 11.7 Gyr, the scaling term
+shrinks the total angle faster than the clock grows it, so the entire disk (and Andromeda's,
+same formula) spun backwards at about four times its speed until it froze — 31.7 laps at 11.7,
+18.7 by 12.5. That is the "sudden change of rotation at galactic year 51.7" the owner saw.
+`diskSpin(ts)` is the integral of `V_GAL·(1 − mergeAt(a))` instead: linear before `MERGE_A0`,
+a parabola through to `MERGE_A1`, constant after. Monotonic by construction; the rate never
+exceeds the flat-curve rate and reaches zero smoothly. `mergeAt` now reads those two constants
+too. Rule of thumb for anything like it: scale a *rate* and integrate, never scale an
+accumulated angle — the arm labels (`spinMW/640`) and both galaxies read the same integral.
+
 ## The Sun's death, drawn (v2.53.0)
 
 `sunState()` now returns `T`, derived rather than tabulated: L = 4πR²σT⁴, so T/T☉ = L^¼/√R.
@@ -288,7 +301,8 @@ path. `bufBodyCol` is a named, dynamic buffer now; it used to be an anonymous st
 The planetary nebula is `pPN` on the disc's one-point vertex shader, drawn additively *under*
 the star, only from outside (`cam.dist/r > 1.15`; a billboard cannot be a shell you stand in) and
 only while `pnState(a)` is non-null: it grows through the phase and fades out by 0.3 Gyr into the
-white-dwarf era. `pnShown` is what the label reads to say "Sun nebula". True size, stretched
+white-dwarf era. `pnShown` is what the label reads to say "Anthropic Nebula" (the owner's name for it; it was
+"Sun nebula" for one release). True size, stretched
 time, both disclosed in the panel.
 
 Remnants (`puffs`) have their own program, `pRem`, a limb-brightened filamentary shell. The
