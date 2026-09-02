@@ -74,9 +74,14 @@ before the work starts. An item is ticked when it ships, with the version that c
       load, verified in the renderer — v2.58.0.
 - [x] Hot-fix: v2.58.0's `sw.js` carried two `const V` lines (rebase keep-both) — one
       line again, and the ship chain now stops on a failed parse — v2.58.1.
-- [ ] Labels that just spin around: debounce them, but without labels jumping. A new
-      feature flag under Other options, on by default for now.
-- [ ] After the Andromeda–Milky Way merger, show one label only: "Milkomeda".
+- [x] Labels that just spin around: debounce them, but without labels jumping. A new
+      feature flag under Other options, on by default for now. "Steady labels": every
+      label eases into place (60 ms), lands rather than flies on a single leap, steps aside
+      while its target leaps frame after frame and returns once calm, and hiding is
+      debounced — v2.59.0.
+- [x] After the Andromeda–Milky Way merger, show one label only: "Milkomeda" (the name
+      Cox & Loeb gave the remnant; the request said "Milkomedia") — from the same merge
+      threshold at which the other galaxy names step down — v2.59.0.
 
 ### Shipped earlier, for the record
 

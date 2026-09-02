@@ -432,6 +432,7 @@
     <div class="chks">
       <label class="chk"><input type="checkbox" id="secSolo" checked> one section at a time</label>
       <label class="chk"><input type="checkbox" id="closeOnGo" checked> close panel on GO</label>
+      <label class="chk" title="labels ease into place, hold still through a jump, and step aside while a body whirls faster than a label can follow"><input type="checkbox" id="tLabelSteady" checked> steady labels</label>
     </div>
     </div>
     <hr class="actsep">
@@ -638,7 +639,9 @@
     about half by an age of 8&nbsp;Gyr. Then comes <b>Andromeda</b>: a first passage ~4.5&nbsp;Gyr from
     now at ~95&nbsp;kpc that the disks barely feel, then — dynamical friction shrinking each swing — close
     passages at ~30 and ~13&nbsp;kpc whose shocks drive starbursts, and coalescence ~8.8&nbsp;Gyr out,
-    after which the gas-poor remnant forms almost nothing. Watch the arms light up late, then go quiet.</p>
+    after which the gas-poor remnant forms almost nothing. Watch the arms light up late, then go quiet.
+    Once the two disks are one blob the arm names and Andromeda's own name step down and a single label
+    takes over: <b>Milkomeda</b>, the name Cox &amp; Loeb gave the remnant in 2008.</p>
     <p>The <b>galactic environment</b> panel is the honest edge of this: Earth's temperature is set by the Sun,
     not by where the Sun sits in the Galaxy — interstellar starlight at Earth is around a ten-millionth of
     sunlight. What galactic position plausibly <i>does</i> change is the <b>cosmic-ray flux</b>: crossing a
@@ -1003,7 +1006,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.58.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.59.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -3232,6 +3235,10 @@ toggle($('tPause'), on=>{ paused=!on;
   $('tPause').setAttribute('aria-label', on ? 'pause' : 'play'); });
 toggle($('tLabels'), on=>{ showLabels=on; if(!on) labelEls.forEach(l=>l.style.display='none'); });
 toggle($('tArms'), on=>{ armsOn=on; if(!on) armEls.forEach(l=>l.style.display='none'); });
+// steady labels: eased into place, held through a single leap, stepped aside while a
+// body whirls faster than a label can follow (see placeLabel). On by default for now.
+let labelSteady = true;
+toggle($('tLabelSteady'), on=>{ labelSteady = on; });
 // The dock's master switch mirrors these two rather than owning its own saved state:
 // on whenever either is showing, off only when both are hidden. Individual settings
 // checkboxes are untouched — this only adds a second listener alongside their own.
@@ -3571,7 +3578,7 @@ loadTrack(0);
 // so restoring a setting does exactly what clicking it would. Anything momentary — the
 // pause, the dive, the epoch jump, the current track position — is deliberately left out.
 const SKEY = 'galactic-transit.settings.v1';
-const S_TOG = ['tLabels','tArms','tDwarfs','tP9','tBelt','tKuiper','tOort','tDust',
+const S_TOG = ['tLabels','tArms','tLabelSteady','tDwarfs','tP9','tBelt','tKuiper','tOort','tDust',
                'tEvSN','tEvBirth','tVar',
                'tStatAge','tStatGyr','tStatSn','tStatBirth','tGaia','tFps'];
 const S_SLD = ['speed','trailA','orbitA','trailL','musicVol','sfxVol','minB','hudHz','coreB'];
@@ -4080,6 +4087,48 @@ const m31Els = M31_LBLS.map(a=>{
   const d=document.createElement('div'); d.className='armlbl'; d.textContent=a[0];
   d.style.display='none'; labelWrap.appendChild(d); return d;
 });
+// One galaxy, one name: once the two disks have become a single blob the remnant is
+// Milkomeda (Cox & Loeb 2008), and every other galaxy name has already stepped down.
+const mergedEl = (()=>{ const d=document.createElement('div'); d.className='armlbl'; d.textContent='Milkomeda';
+  d.style.display='none'; labelWrap.appendChild(d); return d; })();
+// Steady labels. A label follows its target by easing (a short time constant, so it
+// never visibly lags), holds still through a single leap (a scenario jump, a
+// reappearance — a label should land, not fly across the screen), and steps aside
+// while its target leaps frame after frame: a planet sweeping round its orbit several
+// times a second is motion no label can follow, and one that tries just spins. It
+// comes back once the motion has been calm for a dozen frames. Hiding is debounced
+// too, so a target flickering across a visibility threshold does not blink its name.
+// Off, it is the old direct placement. State rides on the element itself.
+let frameDt = 1/60;
+function placeLabel(el, x, y, show){
+  if(!labelSteady){
+    if(show){ el.style.display='block'; el.style.left=x+'px'; el.style.top=y+'px'; }
+    else el.style.display='none';
+    return;
+  }
+  const s = el._lb || (el._lb = { x, y, on:false, hid:0, leaps:0, calm:99, spin:false });
+  if(!show){
+    s.hid += frameDt; s.x = x; s.y = y;
+    if(s.on && s.hid > 0.18){ el.style.display='none'; s.on=false; }
+    return;
+  }
+  s.hid = 0;
+  const leap = Math.hypot(x - s.x, y - s.y) > 90;
+  if(leap){ s.leaps = Math.min(6, s.leaps + 2); s.calm = 0; } else { s.leaps = Math.max(0, s.leaps - 1); s.calm++; }
+  if(s.spin){                                  // stepped aside: wait for calm
+    s.x = x; s.y = y;
+    if(s.calm < 12) return;
+    s.spin = false;
+  } else if(s.leaps >= 4){                     // leaping every frame: whirling
+    s.spin = true; s.x = x; s.y = y;
+    if(s.on){ el.style.display='none'; s.on=false; }
+    return;
+  }
+  if(!s.on || leap){ s.x = x; s.y = y; }        // land; never fly
+  else { const k = 1 - Math.exp(-frameDt/0.06); s.x += (x - s.x)*k; s.y += (y - s.y)*k; }
+  s.on = true;
+  el.style.display='block'; el.style.left=s.x+'px'; el.style.top=s.y+'px';
+}
 // Gliese 710's own buffer and label, here because dynVAO and the label host exist by now
 const g710GL = dynVAO(1);
 const g710Pos = new Float32Array(3), g710Size = new Float32Array(1), g710Col = new Float32Array(3);
@@ -4979,85 +5028,69 @@ function frame(now){
   }
 
   // labels
+  frameDt = dt;
   if(showLabels){
     const pv = mul(projMat, viewMat);
+    const proj = (x, y, z) => { const cw = pv[3]*x+pv[7]*y+pv[11]*z+pv[15];
+      return [cw, ((pv[0]*x+pv[4]*y+pv[8]*z+pv[12])/cw*0.5+0.5)*W, (-(pv[1]*x+pv[5]*y+pv[9]*z+pv[13])/cw*0.5+0.5)*H]; };
     let sunSX=0, sunSY=0;
     for(let i=0;i<NB;i++){
-      if(i === I_P9 ? !showP9 : (i >= N_PLANETS && !showDwarfs)){ labelEls[i].style.display='none'; continue; }
-      if(i > 0 && i <= 3 && wasEaten[i]){ labelEls[i].style.display='none'; continue; }   // swallowed
-      if(i === 0) labelEls[0].textContent = pnShown ? 'Anthropic Nebula' : 'Sun';
-      const x=bodyPosArr[i*3],y=bodyPosArr[i*3+1],z=bodyPosArr[i*3+2];
-      const cw = pv[3]*x+pv[7]*y+pv[11]*z+pv[15];
-      if(cw<=Math.max(1e-9,cam.dist*0.01) || cam.dist>900){ labelEls[i].style.display='none'; continue; }
-      const cx=(pv[0]*x+pv[4]*y+pv[8]*z+pv[12])/cw;
-      const cy=(pv[1]*x+pv[5]*y+pv[9]*z+pv[13])/cw;
-      const lsx=(cx*0.5+0.5)*W, lsy=(-cy*0.5+0.5)*H;
-      if(i===0){ sunSX=lsx; sunSY=lsy; }
-      else if(realMode && Math.hypot(lsx-sunSX,lsy-sunSY)<14){ labelEls[i].style.display='none'; continue; }
       const l=labelEls[i];
-      l.style.display='block';
-      l.style.left=lsx+'px';
-      l.style.top =lsy+'px';
+      if(i === I_P9 ? !showP9 : (i >= N_PLANETS && !showDwarfs)){ placeLabel(l, 0, 0, false); continue; }
+      if(i > 0 && i <= 3 && wasEaten[i]){ placeLabel(l, 0, 0, false); continue; }   // swallowed
+      if(i === 0) l.textContent = pnShown ? 'Anthropic Nebula' : 'Sun';
+      const [cw, lsx, lsy] = proj(bodyPosArr[i*3], bodyPosArr[i*3+1], bodyPosArr[i*3+2]);
+      if(cw<=Math.max(1e-9,cam.dist*0.01) || cam.dist>900){ placeLabel(l, 0, 0, false); continue; }
+      if(i===0){ sunSX=lsx; sunSY=lsy; }
+      else if(realMode && Math.hypot(lsx-sunSX,lsy-sunSY)<14){ placeLabel(l, 0, 0, false); continue; }
+      placeLabel(l, lsx, lsy, true);
       l.style.opacity = i===0?0.9:0.65;
     }
     // structure labels: a point on each ring, Sun-relative like the rings themselves
     for(let s=0;s<STRUCTS.length;s++){
       const el = structEls[s];
-      if(!STRUCTS[s][2]()){ el.style.display='none'; continue; }
+      if(!STRUCTS[s][2]()){ placeLabel(el, 0, 0, false); continue; }
       const rU = STRUCTS[s][1]*AU2U;
       const rpx = rU*pxScale/cam.dist;
-      if(rpx < 46 || rpx > 2600){ el.style.display='none'; continue; }
-      const x = rU*0.71, y = 0, z = rU*0.71;    // 45 degrees round the ring
-      const cw = pv[3]*x+pv[7]*y+pv[11]*z+pv[15];
-      if(cw <= 1e-9){ el.style.display='none'; continue; }
-      el.style.display='block';
-      el.style.left=(((pv[0]*x+pv[4]*y+pv[8]*z+pv[12])/cw*0.5+0.5)*W)+'px';
-      el.style.top =((-(pv[1]*x+pv[5]*y+pv[9]*z+pv[13])/cw*0.5+0.5)*H)+'px';
+      if(rpx < 46 || rpx > 2600){ placeLabel(el, 0, 0, false); continue; }
+      const [cw, sx, sy] = proj(rU*0.71, 0, rU*0.71);    // 45 degrees round the ring
+      placeLabel(el, sx, sy, cw > 1e-9);
     }
+    const galaxyNames = armsOn && cam.dist > 600;
     // arm names: world coordinates rotated with the wave, then projected like the rest
     // (once the remnant starts to relax there are no arms left to name)
-    if(armsOn && cam.dist > 600 && and.merge < 0.35){
+    if(galaxyNames && and.merge < 0.35){
       const d = spinMW/640, cD = Math.cos(d), sD = Math.sin(d);
       for(let a=0;a<ARM_LBLS.length;a++){
         const wx = ARM_LBLS[a][1]*cD + ARM_LBLS[a][2]*sD, wz = ARM_LBLS[a][2]*cD - ARM_LBLS[a][1]*sD;
-        const x = wx-org[0], y = -org[1], z = wz-org[2];
-        const cw = pv[3]*x+pv[7]*y+pv[11]*z+pv[15];
-        if(cw <= 1){ armEls[a].style.display='none'; continue; }
-        armEls[a].style.display='block';
-        armEls[a].style.left=(((pv[0]*x+pv[4]*y+pv[8]*z+pv[12])/cw*0.5+0.5)*W)+'px';
-        armEls[a].style.top =((-(pv[1]*x+pv[5]*y+pv[9]*z+pv[13])/cw*0.5+0.5)*H)+'px';
+        const [cw, sx, sy] = proj(wx-org[0], -org[1], wz-org[2]);
+        placeLabel(armEls[a], sx, sy, cw > 1);
       }
-    } else armEls.forEach(l=>l.style.display='none');
+    } else armEls.forEach(l=>placeLabel(l, 0, 0, false));
     // named together, retired together: past this point the two disks already render as
     // one blob, so naming only "Andromeda" there would mislabel the Milky Way's own remnant
-    if(armsOn && cam.dist > 600 && and.merge < 0.35){
+    if(galaxyNames && and.merge < 0.35){
       for(let a=0;a<M31_LBLS.length;a++){
         // the satellites and the stream exist only in the map-built Andromeda
-        if(a > 0 && !m31Map){ m31Els[a].style.display='none'; continue; }
+        if(a > 0 && !m31Map){ placeLabel(m31Els[a], 0, 0, false); continue; }
         const L = M31_LBLS[a];
         const wx = M31_ROT[0]*L[1]+M31_ROT[3]*L[2]+M31_ROT[6]*L[3]+andPos[0];
         const wy = M31_ROT[1]*L[1]+M31_ROT[4]*L[2]+M31_ROT[7]*L[3]+andPos[1];
         const wz = M31_ROT[2]*L[1]+M31_ROT[5]*L[2]+M31_ROT[8]*L[3]+andPos[2];
-        const x = wx-org[0], y = wy-org[1], z = wz-org[2];
-        const cw = pv[3]*x+pv[7]*y+pv[11]*z+pv[15];
+        const [cw, sx, sy] = proj(wx-org[0], wy-org[1], wz-org[2]);
         // the small companions only earn a name once Andromeda fills some of the view
-        if(cw <= 1 || (a > 0 && and.sep > 0.9*cam.dist + 4000)){ m31Els[a].style.display='none'; continue; }
-        m31Els[a].style.display='block';
-        m31Els[a].style.left=(((pv[0]*x+pv[4]*y+pv[8]*z+pv[12])/cw*0.5+0.5)*W)+'px';
-        m31Els[a].style.top =((-(pv[1]*x+pv[5]*y+pv[9]*z+pv[13])/cw*0.5+0.5)*H)+'px';
+        placeLabel(m31Els[a], sx, sy, !(cw <= 1 || (a > 0 && and.sep > 0.9*cam.dist + 4000)));
       }
-    } else m31Els.forEach(l=>l.style.display='none');
+    } else m31Els.forEach(l=>placeLabel(l, 0, 0, false));
+    // one galaxy, one name: from the moment the disks are one blob, the remnant's centre
+    { const [cw, sx, sy] = proj(-org[0], -org[1], -org[2]);
+      placeLabel(mergedEl, sx, sy, galaxyNames && and.merge >= 0.35 && cw > 1); }
     if(gl710.d < 40){
       const k = realMode ? 1/30 : 178/1.6;
-      const x=gl710.x*k, y=gl710.y*k, z=gl710.z*k;
-      const cw = pv[3]*x+pv[7]*y+pv[11]*z+pv[15];
-      if(cw > Math.max(1e-9,cam.dist*0.01) && cam.dist <= 900){
-        g710Lbl.style.display='block';
-        g710Lbl.style.left=(((pv[0]*x+pv[4]*y+pv[8]*z+pv[12])/cw*0.5+0.5)*W)+'px';
-        g710Lbl.style.top =((-(pv[1]*x+pv[5]*y+pv[9]*z+pv[13])/cw*0.5+0.5)*H)+'px';
-      } else g710Lbl.style.display='none';
-    } else g710Lbl.style.display='none';
-  } else g710Lbl.style.display='none';
+      const [cw, sx, sy] = proj(gl710.x*k, gl710.y*k, gl710.z*k);
+      placeLabel(g710Lbl, sx, sy, cw > Math.max(1e-9,cam.dist*0.01) && cam.dist <= 900);
+    } else placeLabel(g710Lbl, 0, 0, false);
+  } else placeLabel(g710Lbl, 0, 0, false);
   
 
   if(showFps) fpsFrames++;      // counted every frame; only the display is paced

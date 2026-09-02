@@ -299,6 +299,26 @@ click cascades by setting `.checked` and dispatching a synthetic `change` (not a
 it does not fire the checkboxes' `click`-bound save listener, so the cascade calls `saveSettings()`
 explicitly — forget that and a choice made through the master silently fails to survive a reload.
 
+## Steady labels, and one name for the merged galaxy (v2.59.0)
+
+Every on-screen label now goes through `placeLabel(el, x, y, show)`; nothing sets a label's
+`left`/`top`/`display` directly any more. With **steady labels** (Other options, `tLabelSteady`,
+in `S_TOG`, on by default) the label eases toward its target with a 60 ms time constant (never a
+visible lag), **lands** rather than flies when the target leaps once (a scenario jump, a
+reappearance — any move over 90 px in one frame), and **steps aside** when the target leaps frame
+after frame: a planet sweeping round its orbit several times a second is motion no label can
+follow, and one that tries just spins. It comes back after a dozen calm frames. Hiding is
+debounced (0.18 s), so a target flickering across a visibility threshold does not blink its name.
+State lives on the element (`el._lb`); `frameDt` is set from the frame's `dt` at the top of the
+label block. Off, `placeLabel` is the old direct placement. Two testing notes: `dt` is clamped to
+0.05 s, so at ×10⁴ the step is exactly 500 years — 16.97 Saturn orbits — and Saturn's label glides
+11° a frame (stroboscopic, not a bug); test whirling at ×10⁵. And the engine is unit-testable in
+the page: call `placeLabel` on a scratch element with `frameDt` fixed.
+
+`mergedEl` is the single label "Milkomeda" (Cox & Loeb 2008) at the world origin, shown from
+`and.merge >= 0.35` on — the same threshold at which the arm names and Andromeda's names step
+down — gated by the arm-labels switch like every other galaxy name.
+
 ## The Andromeda map is hand-finished (v2.58.0)
 
 `m31-map.webp` is no longer what `tools/build_m31_map.py` writes. The owner took the v2.56
