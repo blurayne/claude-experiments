@@ -307,6 +307,15 @@ generators, cached in `gxyCache[key].seg`); `nebulaPass(haze)` draws one half or
 above the first star draw because the passes need them. The sprite's alpha is also capped at 0.72
 with a softer profile: a cloud thins the haze behind it; it does not punch a hole in it.
 
+**Across galaxies (v2.57.1):** the same blend has no depth, so Andromeda's clouds darkened the
+Milky Way's haze whenever Andromeda sat behind it on screen — the owner's phone screenshot, a
+speckle band across the core with "Andromeda (M31)" labelled on it. `nebulaPass(haze, which)` and
+`dustPass(which)` take `'mw' | 'and' | 'both'`, and the frame draws the *farther* galaxy whole
+(haze, then its dust) before the nearer one, ordered each frame by the eye's distance to each
+centre (`dMW`, `dAnd`, Sun-relative like everything drawn). A galaxy's clouds can only thin its
+own light. The second half (HII and cores) is additive and stays `'both'`. Two galaxies sort;
+if a third ever joins, sort the list.
+
 ## The Andromeda map, one instrument per channel (v2.56.0)
 
 `tools/build_m31_map.py` composes `m31-map.webp` from four pictures, all committed under

@@ -54,9 +54,10 @@ before the work starts. An item is ticked when it ships, with the version that c
       iOS home-screen title renamed. The *galactic year* counter and the music track
       titles keep their name — v2.57.0.
 - [ ] Andromeda's dark clouds render over the Milky Way (and vice versa): a galaxy that is
+- [x] Andromeda's dark clouds render over the Milky Way (and vice versa): a galaxy that is
       behind the other from the camera's viewpoint darkens the one in front, because
       multiply blending knows nothing of depth. Draw the farther galaxy's haze and dust
-      first, each frame, so clouds only ever thin their own galaxy's light.
+      first, each frame, so clouds only ever thin their own galaxy's light — v2.57.1.
 
 ### Shipped earlier, for the record
 

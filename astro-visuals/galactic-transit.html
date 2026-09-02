@@ -1002,7 +1002,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.57.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.57.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -4534,7 +4534,7 @@ function frame(now){
   // haze — and then the stars, the HII and the core are drawn over both, so a cloud
   // sits within the star field. Drawn after everything, as they used to be, the clouds
   // multiplied the stars and the core down to black discs on top of the picture.
-  const nebulaPass = haze => {
+  const nebulaPass = (haze, which = 'both') => {   // which: 'mw' | 'and' | 'both'
     gl.useProgram(pNeb);
   gl.useProgram(pNeb);
   gl.uniformMatrix4fv(UN.proj,false,projMat);
@@ -4562,8 +4562,8 @@ function frame(now){
       else { if(pink) gl.drawArrays(gl.POINTS, 0, pink);
              if(n - pink - glow > 0) gl.drawArrays(gl.POINTS, pink + glow, n - pink - glow); }
     };
-    gl.bindVertexArray(vaoNeb); seg(NEB_PINK, NEB_GLOW, NEB_N);
-    if(vaoAndNeb){
+    if(which !== 'and'){ gl.bindVertexArray(vaoNeb); seg(NEB_PINK, NEB_GLOW, NEB_N); }
+    if(vaoAndNeb && which !== 'mw'){
     gl.uniformMatrix3fv(UN.grot, false, M31_ROT);
     gl.uniform3f(UN.goff, andPos[0], andPos[1], andPos[2]);
     gl.uniform1f(UN.spin, spinM31);
@@ -4580,7 +4580,7 @@ function frame(now){
     }
     gl.uniform1f(UN.gal, 0.0);
   };
-  const dustPass = () => {
+  const dustPass = (which = 'both') => {
   // multiply what is behind them — by now only the haze — down toward black
   if(dustOn){
     // dust lanes: multiply what's behind them down toward black
@@ -4600,8 +4600,8 @@ function frame(now){
     gl.uniform3f(UD.sun, sunX, bubY, sunZ);
     gl.uniform1f(UD.gal, 1.0);
     gl.uniform1f(UD.merge, and.merge);
-    gl.bindVertexArray(vaoDust); gl.drawArrays(gl.POINTS,0,DUST_N);
-    if(vaoAndDust){
+    if(which !== 'and'){ gl.bindVertexArray(vaoDust); gl.drawArrays(gl.POINTS,0,DUST_N); }
+    if(vaoAndDust && which !== 'mw'){
       gl.uniformMatrix3fv(UD.grot, false, M31_ROT);
       gl.uniform3f(UD.goff, andPos[0], andPos[1], andPos[2]);
       gl.uniform1f(UD.spin, spinM31);
@@ -4620,8 +4620,13 @@ function frame(now){
     gl.blendFunc(gl.ONE, gl.ONE);
   }
   };
-  nebulaPass(true);
-  dustPass();
+  // Multiply blending knows nothing of depth: a cloud of the galaxy BEHIND would darken
+  // the one in front. So the farther galaxy goes down whole — haze, then its dust — and
+  // the nearer one over it; a galaxy's clouds can only ever thin its own light. The
+  // eye is Sun-relative here, like everything drawn.
+  const dMW  = Math.hypot(eye[0] + org[0], eye[1] + org[1], eye[2] + org[2]);
+  const dAnd = Math.hypot(eye[0] - (andPos[0] - org[0]), eye[1] - (andPos[1] - org[1]), eye[2] - (andPos[2] - org[2]));
+  for(const g of (dAnd > dMW ? ['and', 'mw'] : ['mw', 'and'])){ nebulaPass(true, g); dustPass(g); }
   gl.useProgram(pPt);   // back to the points; their uniforms persist on the program
   gl.bindVertexArray(vaoStars); gl.drawArrays(gl.POINTS,0,N_STAR);
   // Real stars, carried along with the Sun. They are stored at the galaxy's scale — a
