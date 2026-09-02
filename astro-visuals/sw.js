@@ -1,9 +1,9 @@
 // Offline shell for the Galactic Year PWA. The page itself is one self-contained
 // file; only the icons, manifest and the audio under music/ and sfx/ ride along.
-const V = 'galactic-year-2.54.0';  // the app version: a new name retires the old cache
+const V = 'galactic-year-2.55.0';  // the app version: a new name retires the old cache
 const CORE = [
   'galactic-transit.html', 'manifest.json',
-  'icon.svg', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png',
+  'icon.svg', 'logo-mark.svg', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png',
 ];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(V).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));

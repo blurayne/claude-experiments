@@ -31,8 +31,9 @@ before the work starts. An item is ticked when it ships, with the version that c
 - [x] Show the Galactic Year logo on the tutorial start screen too, as a right-aligned
       SVG, keeping its background transparent. `icon.svg` referenced (not inlined) and
       floated right in the tour card, on its own translucent disc — v2.54.0.
-- [ ] On the tutorial the logo should drop the "Galactic Year" lettering and the outer
-      circle, and be a bit bigger.
+- [x] On the tutorial the logo should drop the "Galactic Year" lettering and the outer
+      circle, and be a bit bigger. `logo-mark.svg` — the emblem without the wordmark and
+      without the frame's three circles — at 132px (96 short, 88 phone) — v2.55.0.
 
 ### Shipped earlier, for the record
 

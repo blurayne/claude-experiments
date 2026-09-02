@@ -109,6 +109,9 @@ The build renders it to `changelog.html`, which the panel footer links to.
 - [`icon.svg`](icon.svg) — the *Galactic Year* emblem, hand-authored as vector
   (with Orbitron embedded so the lettering renders identically everywhere) and
   rasterised to the PNG sizes the manifest needs.
+- [`logo-mark.svg`](logo-mark.svg) — the same emblem with the wordmark and the
+  circular frame taken off, for the tutorial card, which is a framed panel already.
+  Derived from `icon.svg`; change the artwork there first and re-derive.
 - [`manifest.json`](manifest.json), [`sw.js`](sw.js) — the PWA manifest and its
   offline service worker.
 ### Feeding in StarHorse (Gaia DR3) — awaiting data
