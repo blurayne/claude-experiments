@@ -14,7 +14,12 @@ before the work starts. An item is ticked when it ships, with the version that c
 - [x] Rename the "Sun nebula" label to "Anthropic Nebula" — v2.53.1.
 - [x] Rename "Sun" in the view select to "Solar System" — v2.53.1.
 
-### Shipped earlier today, for the record
+## 2026-09-02
+
+- [ ] The info panel calls the Sun's phase "white dwarf" while it is still shown as a
+      nebula on screen — fix the mismatch.
+
+### Shipped earlier, for the record
 
 - [x] Panels close by swiping toward their own edge (already in place; verified).
 - [x] The merged remnant is no longer captioned "Andromeda (M31)" — v2.51.1.
