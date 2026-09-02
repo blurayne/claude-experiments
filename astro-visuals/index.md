@@ -110,12 +110,15 @@ The build renders it to `changelog.html`, which the panel footer links to.
 
 ## Files
 
-- [`icon.svg`](icon.svg) — the *Galactic Year* emblem, hand-authored as vector
+- [`icon.svg`](icon.svg) — the *Galactic Transit* emblem, hand-authored as vector
   (with Orbitron embedded so the lettering renders identically everywhere) and
-  rasterised to the PNG sizes the manifest needs.
+  rasterised to the PNG sizes the manifest needs (favicons, the Apple touch icon,
+  and the 192/512 and maskable app icons).
 - [`logo-mark.svg`](logo-mark.svg) — the same emblem with the wordmark and the
   circular frame taken off, for the tutorial card, which is a framed panel already.
   Derived from `icon.svg`; change the artwork there first and re-derive.
+- [`tools/render_icons.js`](tools/render_icons.js) — rasterises `icon.svg` to those
+  PNGs through Chromium. The PNGs are derived files: change the SVG, re-run this.
 - [`manifest.json`](manifest.json), [`sw.js`](sw.js) — the PWA manifest and its
   offline service worker.
 ### Feeding in StarHorse (Gaia DR3) — awaiting data

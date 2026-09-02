@@ -21,6 +21,25 @@ built it.
   SwiftShader flags). Report honest, measured numbers; SwiftShader runs ~6 fps and
   stretches CSS transitions, so slow measurements there are artefacts, not bugs.
 
+## The emblem and the icons
+
+- The emblem is **Galactic Transit** — the wordmark on `icon.svg`'s arc, the manifest's
+  `name`/`short_name`, and the iOS home-screen title all say so. The *galactic year* is
+  the unit the piece counts, never the name of the piece; the counter, the deep-time
+  copy and barbedgreenroom3's track titles keep it and must not be renamed along with
+  the branding.
+- Every PNG icon (`favicon-16x16`, `favicon-32x32`, `icon-180`, `icon-192`, `icon-512`,
+  `icon-maskable-512`) is **derived from `icon.svg`** by `tools/render_icons.js` — never
+  edit one by hand. Change the SVG, run the script, commit both. It renders through
+  Chromium so the embedded Orbitron face lands exactly as the browser draws it; the five
+  plain sizes keep the SVG's own alpha, and the maskable one is drawn at 388 of 512 on an
+  opaque `#1c273b` plate so Android's mask cannot crop the emblem.
+- The wordmark rides a fixed 597-unit semicircle (`#titleArc`). A longer name has to be
+  refitted, not just retyped: measure with `getComputedTextLength()` and keep the arc
+  coverage (~88%) and the letter-spacing-to-size ratio (~0.058) the old one had —
+  "GALACTIC TRANSIT" at 43/2.5 matches "GALACTIC YEAR" at 52/3. Text that overruns the
+  path is silently clipped.
+
 ## Scientific honesty (the project's core rule)
 
 - Be accurate to current science; disclose every compression, sampling and model
@@ -78,7 +97,7 @@ built it.
 - Panels close with a "−" and leave a "−" button behind; only Settings is marked, by a
   gear. The piece opens with Earth showing and Simulation and Settings folded to their
   buttons. The tour card carries the version, build stamp and hash, and the emblem floated
-  to its right — `logo-mark.svg`, which is `icon.svg` with the "Galactic Year" wordmark and
+  to its right — `logo-mark.svg`, which is `icon.svg` with the "Galactic Transit" wordmark and
   the three circles of the frame (the r=246 plate, the r=225 ring, the r=244.5 rim) taken
   off, because the card is a framed panel already. Both are referenced, never inlined. The
   artwork lives in `icon.svg`; edit it there and re-derive the mark, never diverge them.

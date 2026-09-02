@@ -49,8 +49,11 @@ before the work starts. An item is ticked when it ships, with the version that c
       beneath the stars, the HII regions and the core. Draw order is now haze → dust →
       stars → HII and core, and the sprite never goes fully opaque — v2.56.1.
       beneath the stars, the HII regions and the core.
-- [ ] Rename "Galactic Year" to "Galactic Transit" on the favicon and in the app icon
-      manifest.
+- [x] Rename "Galactic Year" to "Galactic Transit" on the favicon and in the app icon
+      manifest. Wordmark refitted to the arc (43/2.5, same coverage as before), all six
+      PNGs regenerated from the SVG by the new `tools/render_icons.js`, manifest and the
+      iOS home-screen title renamed. The *galactic year* counter and the music track
+      titles keep their name — v2.57.0.
 
 ### Shipped earlier, for the record
 
