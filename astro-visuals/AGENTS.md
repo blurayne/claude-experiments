@@ -325,6 +325,32 @@ Also here: a request for "a setting to turn off dark clouds" — the switch alre
 adding it; a duplicate switch is worse than none. And the settings title is "Settings" alone now,
 the version living in the info dialog and the tour card.
 
+## The shuttle: a hand on the clock, in either direction (v2.62.0)
+
+Third slider in the Simulation panel, −100…+100, default 0, reset in place of the steppers.
+The one design decision: **0 means "not engaged"**, not "stopped" — the literal spec (+50 is
+half speed, so 0 would be zero speed) would have opened the piece frozen, since the default is
+0. So at 0 the clock belongs to play/pause exactly as before; off 0, `drive = shuttle/100`
+replaces the play state (it outranks pause, so a paused scene can be nudged), and reset hands
+the clock back. Not in `S_SLD`: a shuttle rests at 0 when you pick the piece up. This was the
+first time the clock ran backwards: the trail is not a history buffer but recomputed from any
+time by `refillTrails()`, so reverse refills it at ~10 Hz (2,400 samples a body) and every
+change of sign refills once, so a path is never extended from a stale end.
+
+Two boot-killers caught by the page test, both invisible to the parse check: `let n` moved
+inside an `else` while `if(n>0)` still read it below — a ReferenceError every frame, and the
+clock simply never advanced; and a reset button with class `stepb` but no `data-step` threw in
+the shared stepper handler. Any `.stepb` without `data-step` is now skipped.
+
+**`set -e` does not stop a chain at this harness's top level.** The v2.62.0 release shipped
+with its docs step failed: the script's first assertion threw, and the version bump, commit,
+changelog and push all ran anyway — the commit message even claims a panel sentence that was
+not there. In a fresh `bash -c` errexit works, so the harness must wrap the script in a
+construct that suppresses it (an `&&`/`||` list or an `if`, where POSIX ignores errexit).
+Never rely on `set -e` here: end every step that must not fail with an explicit
+`|| { echo FAILED; exit 1; }`, and chain the release commands with `&&`. The Release
+discipline bullet above that says "let the chain stop on it" is wrong on the mechanism.
+
 ## The scene frame is left-handed; the projection reflects it (v2.61.0)
 
 `tools/build_athyg_stars.py` and `build_starhorse_density.py` place the sky with l=90° on +x,

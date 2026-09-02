@@ -161,9 +161,13 @@ before the work starts. An item is ticked when it ships, with the version that c
       with it (its comment said the wrong side approaches; the numbers were right). Verified
       old against new: Rigel left of Betelgeuse, clockwise from north, drag unchanged —
       v2.61.0.
-- [ ] A third slider in the Simulation panel, −100% … 0 … +100%, default 0, with a reset
+- [x] A third slider in the Simulation panel, −100% … 0 … +100%, default 0, with a reset
       button instead of +/−. +50% runs time at half the set speed; −50% at half the set
-      speed backwards.
+      speed backwards. "Shuttle": at 0 it is not engaged and the clock belongs to play/pause
+      as before (so the piece still opens running); off 0 it takes the clock over, forward
+      or backward, paused or not; reset returns 0. Not persisted. Backwards, the trails are
+      recomputed from the clock at ~10 Hz so the swept path retracts. Measured ±100 → ±1×,
+      ±50 → ±0.5×, and −100 while paused → −1× — v2.62.0.
 
 ### Shipped earlier, for the record
 
