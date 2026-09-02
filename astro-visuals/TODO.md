@@ -91,7 +91,14 @@ before the work starts. An item is ticked when it ships, with the version that c
       is 178 px wide on a phone, so the swipe crossed its own edge and `pointerleave`
       aborted it. The pointer is captured now, `pointerleave` is gone, and the panels carry
       `touch-action:pan-y`. Verified with real touch events at phone size — v2.59.1.
-- [ ] Music does not play any more, especially after a reset; check the sound effects too.
+- [x] Music does not play any more, especially after a reset; check the sound effects too.
+      Two latches that could never be retried: the audio unlock stood down on the first
+      gesture even when the `play()` it tried was refused, and the sample-bank loader
+      marked itself tried before the work, with its fallback only on a rejection — so a
+      `decodeAudioData` that never settles left the effects silent for the visit. The
+      unlock now waits for the music to actually play and listens for more gesture types;
+      the banks retry and fall back on a timeout. Note the effects slider ships at 0
+      (effects are opt-in by design) — v2.59.2.
 
 ### Shipped earlier, for the record
 

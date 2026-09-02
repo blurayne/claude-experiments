@@ -1008,7 +1008,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.59.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.59.2', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2784,29 +2784,44 @@ player.addEventListener('ended', ()=> nextTrack());
 player.addEventListener('error', ()=>{ $('trackName').textContent = 'track unavailable'; });
 function showTrack(){ $('trackName').textContent = (trackIx+1)+'/'+TRACKS.length+' · '+TRACKS[trackIx].name; }
 function playTrack(){
-  if(!musicOn) return;
+  if(!musicOn) return null;
   const q = player.play();
   if(q && q.catch) q.catch(()=> armUnlock()); // autoplay blocked until the first gesture
+  return q;                                   // handed back so the unlock can wait on it
 }
 function loadTrack(i){
   trackIx = (i + TRACKS.length) % TRACKS.length;
   player.src = TRACKS[trackIx].src;
   showTrack();
-  playTrack();
+  return playTrack();
 }
 function nextTrack(){ loadTrack(trackIx + 1); }
 // Browsers refuse audio before a user gesture, so anything on by default waits for one.
+// It waits for ANY of these — a phone that reports only touchend, a keyboard, a click on
+// a control that swallowed the pointerdown — and it keeps waiting until the audio is
+// genuinely playing. The old version stood down on the first gesture whether or not the
+// play succeeded, so one refused attempt (and a refusal is ordinary: a gesture the
+// browser judges too old, a media element still loading) left the music dead for the
+// rest of the visit with nothing left listening to try again.
+const UNLOCK_EVENTS = ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown'];
 let unlockArmed = false;
 function armUnlock(){
   if(unlockArmed) return;
   unlockArmed = true;
-  const go = ()=>{
-    removeEventListener('pointerdown', go); removeEventListener('keydown', go);
+  const disarm = ()=>{
+    if(!unlockArmed) return;
     unlockArmed = false;
-    if(audio) audio.ctx.resume();
-    if(musicOn){ if(!player.src) loadTrack(trackIx); else player.play().catch(()=>{}); }
+    for(const t of UNLOCK_EVENTS) removeEventListener(t, go);
   };
-  addEventListener('pointerdown', go); addEventListener('keydown', go);
+  const go = ()=>{
+    if(audio) audio.ctx.resume().catch(()=>{});
+    loadBanks();                       // the samples may have been waiting on the context too
+    if(!musicOn){ disarm(); return; }
+    const q = player.src ? playTrack() : loadTrack(trackIx);
+    if(q && q.then) q.then(disarm, ()=>{});   // still armed if it was refused: try the next gesture
+    else disarm();
+  };
+  for(const t of UNLOCK_EVENTS) addEventListener(t, go);
 }
 // Recorded sample banks: five supernova blasts and four soft star ignitions, each
 // picked at random with a slight detune so repeats never sound looped. Decoded through
@@ -2817,15 +2832,28 @@ const BANKS = {
   sn:    { src:[1,2,3,4,5].map(i=>'sfx/supernova-'+i+'.mp3'), gain:0.80, max:3, bufs:null, els:null, voices:0 },
   birth: { src:[1,2,3,4].map(i=>'sfx/ignition-'+i+'.mp3'),    gain:0.62, max:5, bufs:null, els:null, voices:0 },
 };
-let banksTried = false;
+// `banksTried` used to latch before the work, so a single failed or — worse — never
+// settling decode killed the samples for the whole visit: the catch that installs the
+// <audio> fallback only runs on a rejection, and decodeAudioData on a context the
+// browser has interrupted can simply never settle either way. Now the latch is only
+// held while an attempt is in flight, a timer installs the fallback if nothing has
+// arrived, and every sfx() is free to ask again.
+let banksLoading = false;
+const banksDone = b => !!(b.bufs || b.els);
+function elFallback(b){ if(!banksDone(b)) b.els = b.src.map(s=>{ const a=new Audio(s); a.preload='auto'; return a; }); }
 function loadBanks(){
-  if(banksTried || !audio) return;
-  banksTried = true;
-  for(const b of Object.values(BANKS)){
+  if(banksLoading || !audio) return;
+  const todo = Object.values(BANKS).filter(b => !banksDone(b));
+  if(!todo.length) return;
+  banksLoading = true;
+  let left = todo.length;
+  const done = ()=>{ if(--left === 0) banksLoading = false; };
+  for(const b of todo){
     Promise.all(b.src.map(s => fetch(s).then(r=>r.arrayBuffer()).then(a=>audio.ctx.decodeAudioData(a))))
-      .then(bs => { b.bufs = bs; })
-      .catch(() => { b.els = b.src.map(s=>{ const a=new Audio(s); a.preload='auto'; return a; }); });
+      .then(bs => { b.bufs = bs; }, () => elFallback(b))
+      .then(done, done);
   }
+  setTimeout(()=>{ banksLoading = false; todo.forEach(elFallback); }, 6000);
 }
 function playBank(k){
   const b = BANKS[k];
@@ -2851,6 +2879,7 @@ function playBank(k){
 const fxOn = {birth:true, sn:true, pn:true, drone:true};
 function sfx(kind){
   if(!soundOn || !audio || !fxOn[kind]) return;
+  if(BANKS[kind] && !banksDone(BANKS[kind])) loadBanks();   // never gave up on them
   const {ctx, master} = audio, t = ctx.currentTime;
   const gap = {sn:1.4, birth:0.45, pn:0.25}[kind]; // blasts run 7.7 s: don't let them pile up
   if(sfxLast[kind] && t - sfxLast[kind] < gap) return;
@@ -4326,7 +4355,7 @@ document.addEventListener('visibilitychange', ()=>{
     if(hiddenState) return;             // some browsers fire it more than once
     hiddenState = { sim: !paused, music: musicOn && !!player.src, audio: !!audio };
     if(hiddenState.sim) $('tPause').click();
-    player.pause();                     // harmless if the browser got there first
+    if(hiddenState.music) player.pause();   // harmless if the browser got there first
     if(audio && audio.ctx.state === 'running') audio.ctx.suspend().catch(()=>{});
   } else {
     const was = hiddenState; hiddenState = null;

@@ -299,6 +299,33 @@ click cascades by setting `.checked` and dispatching a synthetic `change` (not a
 it does not fire the checkboxes' `click`-bound save listener, so the cascade calls `saveSettings()`
 explicitly — forget that and a choice made through the master silently fails to survive a reload.
 
+## Audio must never give up permanently (v2.59.2)
+
+Two places latched "we tried" and then had nothing left that could try again — both fatal for a
+whole visit, and both worst on a fresh state, which is why a reset showed it.
+
+- **`armUnlock`** removed its listeners and cleared `unlockArmed` on the *first gesture*, whether
+  or not the `play()` it attempted succeeded. A refusal is ordinary (a gesture the browser judges
+  stale, an element still loading), and after one the music was gone with nothing listening. It
+  now stands down only when the play promise resolves, and listens on `pointerdown`, `pointerup`,
+  `touchend`, `click` and `keydown` — a phone may report only some of those, and a control that
+  swallows `pointerdown` used to eat the one chance. `playTrack`/`loadTrack` return the promise so
+  the unlock can wait on it.
+- **`loadBanks`** set `banksTried = true` *before* the work, and its `<audio>` fallback lived only
+  in a `.catch`. `decodeAudioData` on a context the browser has interrupted can never settle
+  either way — neither branch runs, both `bufs` and `els` stay null, and `playBank` returns false
+  for ever (supernovae fall back to the synth, ignitions are simply silent). The latch is now held
+  only while an attempt is in flight, a 6 s timer installs the fallback if nothing arrived, and
+  every `sfx()` may ask again.
+
+Honest note on testing this one: the local harness could not reproduce the user's report, and
+gave contradictory answers — a Playwright `page.route()` anywhere on the page stalls unrelated
+response bodies, and a SwiftShader render loop starves body delivery, so `arrayBuffer()` hung in
+some runs and not others with no code difference. A first A/B "proving" the service worker
+innocent was itself invalid: blocking `sw.js` does not remove an already-registered worker, and
+both arms ran controlled. Check `navigator.serviceWorker.controller` in the run, not the intent.
+The fixes here are the two provable defects in the code, not a reproduction.
+
 ## Backgrounding, and why a swipe died at the panel's edge (v2.59.1)
 
 **Record the intent, never the element's state.** The v2.45.0 visibility handler asked
