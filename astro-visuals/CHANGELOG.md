@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.63.1 — 2026-09-02
+
+- Andromeda's arms drawn from the map's ridges (v2.63.1) (`9490a85`)
+
 ### 2.63.0 — 2026-09-02
 
 - Two-finger pan; the shuttle says "off"; the frost lighter again (v2.63.0) (`924d5b6`)
