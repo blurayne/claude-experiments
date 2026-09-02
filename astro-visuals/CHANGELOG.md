@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.61.0 — 2026-09-02
+
+- The drawn universe was a mirror image; the projection now reflects it (v2.61.0) (`96e6b4c`)
+
 ### 2.60.4 — 2026-09-02
 
 - Revert the core hiding; the spot at the centre was the nuclear stars (v2.60.4) (`b596904`)
