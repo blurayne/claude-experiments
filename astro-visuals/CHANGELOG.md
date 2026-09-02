@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.55.0 — 2026-09-02
+
+- A wordless, unframed emblem on the tutorial card (v2.55.0) (`00f5856`)
+
 ### 2.54.0 — 2026-09-02
 
 - Logo on the tutorial start screen (v2.54.0) (`32aa0b6`)
