@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.57.0 — 2026-09-02
+
+- The emblem and the app are Galactic Transit (v2.57.0) (`45049fc`)
+
 ### 2.56.1 — 2026-09-02
 
 - Dark clouds within the star field, not on top of it (v2.56.1) (`1ba964a`)
