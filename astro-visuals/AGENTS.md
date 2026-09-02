@@ -266,6 +266,35 @@ click cascades by setting `.checked` and dispatching a synthetic `change` (not a
 it does not fire the checkboxes' `click`-bound save listener, so the cascade calls `saveSettings()`
 explicitly — forget that and a choice made through the master silently fails to survive a reload.
 
+## The Sun's death, drawn (v2.53.0)
+
+`sunState()` now returns `T`, derived rather than tabulated: L = 4πR²σT⁴, so T/T☉ = L^¼/√R.
+Every colour in the death follows from that one line — `sunTint(T)` interpolates the disc's dark
+and bright tones and the far dot's colour in log T between anchors, and the 5772 K anchor *is*
+today's fixed palette, so the present look is unchanged to the bit. Prominences and corona keep
+the same offsets from the surface they always had, now as multipliers on the tinted tones.
+
+Engulfment is per planet: `EAT_AGES[1..3]` (Mercury, Venus, Earth) from `eatAge(r)`, the rule
+`SUN_EAT_AGE` was, opened up. Mars survives at 327 R☉. Latched on age, like before. A planet the
+clock runs across gets a 1.6 s white flare (`eatFlash`, `eatGL`), drawn *after* the opaque disc
+on purpose — at that instant it is at the surface, and the disc would otherwise hide it. A jump
+that lands past the moment (`|Δage| > 0.05 Gyr`) finds it already gone, no flare. Once eaten the
+sprite size is zero, and the trail loop and label loop skip it — a planet that is gone has no
+path. `bufBodyCol` is a named, dynamic buffer now; it used to be an anonymous static one.
+
+The planetary nebula is `pPN` on the disc's one-point vertex shader, drawn additively *under*
+the star, only from outside (`cam.dist/r > 1.15`; a billboard cannot be a shell you stand in) and
+only while `pnState(a)` is non-null: it grows through the phase and fades out by 0.3 Gyr into the
+white-dwarf era. `pnShown` is what the label reads to say "Sun nebula". True size, stretched
+time, both disclosed in the panel.
+
+Remnants (`puffs`) have their own program, `pRem`, a limb-brightened filamentary shell. The
+fourth attribute packs `wave*2 + phase` (phase capped at 0.999) and `REM_VS` unpacks it with
+`floor(x*0.5 + 0.25)`. Two things to know: the dust pass used to be nested *inside* the puff
+pass, so the dust switch only worked while a remnant was alive, and the puffs then drew under
+`pDust` with `pNeb`'s uniform locations — both fixed by un-nesting; and `deep?60:560` is the
+puff cap that `pNeb` used, kept.
+
 ## The blast has its own program (v2.52.0)
 
 A supernova was drawn with the same sprite as a star, so it could only ever be a bigger, whiter

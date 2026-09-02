@@ -584,7 +584,9 @@
       billions, approaching the output of its entire galaxy. Its flash (weeks) and expanding remnant
       (~50,000 years, ~10,000&nbsp;km/s) both last far less than a pixel of simulated time, so they are
       stretched here to be seeable at all, and remnants are drawn several times too large — the real Crab
-      Nebula is 11&nbsp;ly across, well under one scene unit. What the blast is <i>made of</i> is honest as far
+      Nebula is 11&nbsp;ly across, well under one scene unit. A remnant is drawn as what it is, a hollow
+      shell: brightest at its rim, where the line of sight runs longest through it, knotted with filaments,
+      thin and sharp while young and thick and frayed when old. What the blast is <i>made of</i> is honest as far
       as it goes: it expands while it dims, and it cools from blue-white through amber to a red ember, which is
       the real colour history. The <b>radiating spikes are not</b>. A star has none — they are what a telescope
       or an eye adds to any point too bright for it, and they are drawn here for the same reason the flash is
@@ -867,7 +869,17 @@
       ~12.17&nbsp;Gyr — past Earth's orbit, which is where the scenario takes you — then the helium flash, a
       second climb, and a white dwarf by ~12.4&nbsp;Gyr. <b>Sun strength</b> reads its luminosity against
       today's. Once the Earth is inside that surface the panel stops reporting on it, because there is
-      nothing left to report.</li>
+      nothing left to report. The disc's <b>colour</b> is not painted on: its temperature follows from the
+      model's own luminosity and radius as a blackbody, which is why the giant is red, the horizontal-branch
+      Sun orange, and the nebula's central star blue-white. As the surface reaches each inner planet —
+      Mercury first, then Venus, then the Earth; Mars, at 1.5&nbsp;AU, is outside the 256 solar radii the giant
+      reaches and survives — the planet <b>flares white for a moment</b> and is gone for good, its path with it.
+      The flare is a marker, not a prediction: a planet entering the envelope spirals in over centuries with
+      no flash anyone could see. The <b>planetary nebula</b> that follows is drawn at its true size — about a
+      light-year across by the end, so the view from the planets is from inside it, where a shell shows
+      nothing — in the colours the real ones have, [O&nbsp;III] teal within an H&alpha; rim; it is stretched
+      in time like every death here, a third of a gigayear for something that really lasts twenty thousand
+      years. The Sun's label reads <i>Sun nebula</i> while it is on screen.</li>
       <li><b>Planet 9?</b> is the one body here that may not exist: a ~6 Earth-mass planet on a ~400 AU
       orbit, proposed to explain the clustered orbits of the far Kuiper belt. Its orbit is drawn from those
       estimates and its question mark is part of its name. Switch it off in Visuals if you would rather
@@ -975,7 +987,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.52.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.53.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -1306,6 +1318,76 @@ const USN = {
   px: gl.getUniformLocation(pSN,'uPx'), spin: gl.getUniformLocation(pSN,'uSpin'),
   warp: gl.getUniformLocation(pSN,'uWarp'), cap: gl.getUniformLocation(pSN,'uCap'),
   sun: gl.getUniformLocation(pSN,'uSunPos'), org: gl.getUniformLocation(pSN,'uOrg')
+};
+
+// ---------- what a death leaves behind ----------
+// Supernova remnants and planetary nebulae were soft blobs. A remnant is a hollow
+// shell, and a hollow shell is brightest at its rim, where the line of sight runs
+// longest through it — the Veil, the Crab's edges, Cas A all read that way — and it is
+// ragged, because the ejecta are. Same transform as the point pass, both branches:
+// remnants sit in the arms (wave-riding) and planetaries anywhere in the disk (material).
+// The fourth attribute packs the frame flag and the phase: wave in the twos, phase in
+// the fraction, so the shell can thicken and fray as it runs without a fifth buffer.
+const REM_VS = `#version 300 es
+layout(location=0) in vec3 aPos;
+layout(location=1) in float aSize;
+layout(location=2) in vec3 aColor;
+layout(location=3) in float aPack;   // wave*2 + phase
+uniform mat4 uProj, uView;
+uniform float uPx, uSpin, uWarp, uCap;
+uniform vec3 uSunPos, uOrg;
+out vec3 vColor; out float vPhase; out float vSeed;
+void main(){
+  float w = floor(aPack*0.5 + 0.25), ph = aPack - 2.0*w;
+  vec3 p = aPos;
+  float fade = 1.0;
+  if(uSpin != 0.0){
+    float r = length(p.xz);
+    float d = mix(uSpin / max(r, 520.0), uSpin/640.0, w);
+    float c = cos(d), s = sin(d);
+    p = vec3(p.x*c + p.z*s, p.y, p.z*c - p.x*s);
+    float wr = max(0.0, r - 950.0);
+    p.y += wr*0.13*sin(atan(p.x,p.z) - uWarp) + 4.0*sin(r*0.021);
+    fade = smoothstep(80.0, 240.0, distance(p, uSunPos));
+  }
+  vec4 mv = uView * vec4(p - uOrg, 1.0);
+  gl_Position = uProj * mv;
+  gl_PointSize = clamp(aSize * uPx / max(1e-9, -mv.z), 1.0, uCap);
+  vColor = aColor * fade;
+  vPhase = ph;
+  vSeed  = fract(sin(dot(aPos.xz, vec2(73.1, 157.9)))*43758.5453);
+}`;
+const REM_FS = `#version 300 es
+precision highp float;
+in vec3 vColor; in float vPhase; in float vSeed; out vec4 o;
+float h21(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }
+float vnoise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);
+  return mix(mix(h21(i),h21(i+vec2(1,0)),f.x), mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x), f.y); }
+void main(){
+  vec2 q = gl_PointCoord*2.0-1.0;
+  float r = length(q);
+  if(r > 1.0) discard;
+  // the shell: thin and sharp while young, thick and frayed when old
+  float R = mix(0.58, 0.80, vPhase);
+  float w = mix(0.09, 0.22, vPhase);
+  // Filaments from value noise over the sprite, not from harmonics in angle: harmonics
+  // bead the rim into a string of pearls, and noise is seamless and never repeats.
+  // The seed places each remnant somewhere else in the noise, so no two match.
+  vec2 s = vec2(vSeed*37.0, vSeed*91.0);
+  float n1 = vnoise(q*4.5 + s), n2 = vnoise(q*10.0 - s*1.7), n3 = vnoise(q*21.0 + s*0.6);
+  float fil = 0.35 + 0.65*n1 + 0.40*(n2-0.5) + 0.22*(n3-0.5)*(1.0 - vPhase);
+  float shell = exp(-pow((r - R)/w, 2.0)) * max(fil, 0.0);
+  float fill  = smoothstep(R, 0.0, r) * 0.18;      // the thin glow of the interior
+  // the rim runs warmer than the body, as shocked gas does
+  vec3 col = vColor * (shell * mix(1.0, 1.35, smoothstep(R-0.05, R+0.12, r)) + fill);
+  o = vec4(col, shell + fill);
+}`;
+const pRem = prog(REM_VS, REM_FS);
+const UREM = {
+  proj: gl.getUniformLocation(pRem,'uProj'), view: gl.getUniformLocation(pRem,'uView'),
+  px: gl.getUniformLocation(pRem,'uPx'), spin: gl.getUniformLocation(pRem,'uSpin'),
+  warp: gl.getUniformLocation(pRem,'uWarp'), cap: gl.getUniformLocation(pRem,'uCap'),
+  sun: gl.getUniformLocation(pRem,'uSunPos'), org: gl.getUniformLocation(pRem,'uOrg')
 };
 
 // ---------- the physics (compressed but honest) ----------
@@ -2288,7 +2370,10 @@ gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
 const bufBodySize = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, bufBodySize); gl.bufferData(gl.ARRAY_BUFFER,dispSizes,gl.STATIC_DRAW);
 gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,1,gl.FLOAT,false,0,0);
-gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,bodyCol,gl.STATIC_DRAW);
+// colours are dynamic too: the Sun's follows its temperature, and a planet being
+// swallowed flares white for a moment
+const bufBodyCol = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, bufBodyCol); gl.bufferData(gl.ARRAY_BUFFER,bodyCol,gl.DYNAMIC_DRAW);
 gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2,3,gl.FLOAT,false,0,0);
 gl.bindVertexArray(null);
 
@@ -2545,7 +2630,50 @@ function sunState(a){
     L = Math.max(1e-6, 0.1*Math.exp(-(a - SUN_WD)/1.5));
     phase = 'white dwarf';
   }
-  return { L, R, phase, eaten: a >= SUN_EAT_AGE, gone: a >= SUN_AGB };
+  // Effective temperature from the two numbers the model already has: L = 4πR²σT⁴, so
+  // T/T☉ = L^¼/√R. Nothing is tabulated for colour — the red of the giant, the orange of
+  // the horizontal branch and the blue-white of the nebula's central star all fall out.
+  const T = 5772*Math.pow(L, 0.25)/Math.sqrt(R);
+  return { L, R, T, phase, eaten: a >= SUN_EAT_AGE, gone: a >= SUN_AGB };
+}
+// The age at which the swelling surface reaches a given radius on the first climb —
+// the rule SUN_EAT_AGE follows, opened up so each inner planet gets its own moment.
+const eatAge = rSun => SUN_MS_END + (Math.log(rSun/1.6)/Math.log(256/1.6))*(SUN_RGB_TIP - SUN_MS_END);
+// Mercury, Venus, Earth (body indices 1-3), by orbit in solar radii. Mars at 327 R☉ is
+// outside the 256 the giant reaches, and survives — as it does in the literature.
+const EAT_AGES = [0, eatAge(0.387*EARTH_ORBIT_RSUN), eatAge(0.723*EARTH_ORBIT_RSUN), eatAge(EARTH_ORBIT_RSUN)];
+const wasEaten = [false,false,false,false], eatFlash = [-1,-1,-1,-1];   // -1: no flare running
+// The photosphere's palette by temperature: dark and bright tones for the disc shader
+// and the far dot's colour, interpolated in log T between anchors. The 5772 K anchor is
+// today's Sun exactly, so nothing about the present look changes.
+const SUN_ANCHORS = [
+  [ 2400, [0.62,0.05,0.01], [1.00,0.28,0.08], [1.00,0.36,0.14]],
+  [ 3300, [0.85,0.14,0.02], [1.00,0.46,0.16], [1.00,0.52,0.24]],
+  [ 4700, [1.00,0.33,0.06], [1.00,0.74,0.40], [1.00,0.70,0.38]],
+  [ 5772, [1.00,0.45,0.10], [1.00,0.93,0.62], [1.00,0.86,0.55]],
+  [ 8000, [0.92,0.66,0.42], [1.00,0.97,0.88], [1.00,0.96,0.86]],
+  [15000, [0.62,0.72,1.00], [0.88,0.94,1.00], [0.80,0.88,1.00]],
+  [60000, [0.55,0.65,1.00], [0.85,0.92,1.00], [0.72,0.82,1.00]],
+];
+function sunTint(T){
+  const A = SUN_ANCHORS, lt = Math.log(Math.min(60000, Math.max(2400, T)));
+  let i = 0; while(i < A.length-2 && lt > Math.log(A[i+1][0])) i++;
+  const f = (lt - Math.log(A[i][0]))/(Math.log(A[i+1][0]) - Math.log(A[i][0]));
+  const mix = k => A[i][k].map((v,c) => v + (A[i+1][k][c]-v)*f);
+  return { d: mix(1), b: mix(2), dot: mix(3) };
+}
+// The planetary nebula: the shed envelope, drawn at its true size and stretched in time
+// like every other death here. It grows through the phase from the giant's own radius
+// to about half a light-year, then keeps spreading and fading into the white-dwarf era.
+// A real one is gone in twenty thousand years; this lasts a third of a gigayear.
+function pnState(a){
+  if(a < SUN_AGB) return null;
+  const u = Math.min(1, (a - SUN_AGB)/(SUN_WD - SUN_AGB));          // 0..1 through the phase
+  const after = Math.max(0, a - SUN_WD);
+  const rAU = 1 + 30000*u + 60000*Math.min(1, after/0.3);          // AU: ~0.5 ly, then ~1.4 ly
+  const alpha = Math.min(1, u*3) * Math.max(0, 1 - after/0.3);
+  if(alpha <= 0) return null;
+  return { rAU, alpha, age: Math.min(1, 0.6*u + 0.4*Math.min(1, after/0.3)) };
 }
 function lifeState(){
   const a = ageGyr(), e = environment();
@@ -2839,7 +2967,9 @@ function fillPuffs(){
     pfPos[i*3]=q.x; pfPos[i*3+1]=q.y; pfPos[i*3+2]=q.z;
     pfSize[i]=Math.max(0.8, rad*2);
     pfCol[i*3]=q.col[0]*a; pfCol[i*3+1]=q.col[1]*a; pfCol[i*3+2]=q.col[2]*a;
-    pfWave[i]=q.wv;
+    // the fourth channel carries both the frame flag and how far the shell has run:
+    // wave in the twos, phase in the fraction — the remnant shader unpacks it
+    pfWave[i]=q.wv*2 + Math.min(0.999, u);
   }
 }
 
@@ -4115,7 +4245,9 @@ const smoothTarget=[0,0,0]; let firstFrame=true;
 // frame every time a touch held the clock and the lag collapsed.
 const smoothOfs=[0,0,0]; let reseedFollow=false;
 const org=new Float64Array(3); // rendering origin: the Sun, in double precision
-const sunSizeTmp=new Float32Array(1);
+const sunSizeTmp=new Float32Array(1), eatSizeTmp=new Float32Array(1);
+let lastAgeSeen = AGE0;   // to tell the clock running across an engulfment from a jump past it
+let pnShown = false;      // the nebula is on screen this frame: the label follows it
 // Once the Sun's true disc spans more than a few pixels, the point sprite hands over to
 // a procedural star: limb-darkened granulation that churns, prominence arcs that rise
 // and fall with a slow magnetic-storm cycle, and a streaked corona. All of it is noise
@@ -4127,6 +4259,7 @@ void main(){ gl_Position=uProj*uView*vec4(0.,0.,0.,1.); gl_PointSize=uSz; }`;
 const SUN_FS = `#version 300 es
 precision highp float;
 uniform float uTime, uDisc;
+uniform vec3 uColD, uColB;   // the photosphere's dark and bright tones, set by its temperature
 out vec4 o;
 float h21(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }
 float vnoise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);
@@ -4146,8 +4279,8 @@ void main(){
     float g  = fbm(q/R*7.0  + vec2(t*0.030,-t*0.021));
     float g2 = fbm(q/R*17.0 - vec2(t*0.050, t*0.033));
     float b = 0.55 + 0.50*limb + 0.35*(g-0.5) + 0.22*(g2-0.5);
-    col = mix(vec3(1.0,0.45,0.10), vec3(1.0,0.93,0.62), clamp(b,0.,1.));
-    col += vec3(1.0,0.85,0.50)*pow(limb,3.0)*0.35;
+    col = mix(uColD, uColB, clamp(b,0.,1.));
+    col += mix(uColD, uColB, 0.8)*pow(limb,3.0)*0.35;
     lum = 1.0;
   }
   float storm = 0.55 + 0.45*sin(t*0.23 + 2.0*sin(t*0.11));   // the slow magnetic cycle
@@ -4155,10 +4288,12 @@ void main(){
   if(rim > -0.05){
     float p1 = fbm(vec2(ang*2.2 + t*0.07, rim*5.0 - t*0.16));
     float arcs = smoothstep(0.60, 0.95, p1) * exp(-max(rim,0.0)*3.2) * (0.45+storm);
-    col += vec3(1.0,0.35,0.12)*arcs*1.6;
+    // prominences run a shade redder than the surface, the corona a shade brighter —
+    // the same offsets today's fixed colours had, now riding the temperature
+    col += uColD*vec3(1.0,0.78,1.2)*arcs*1.6;
     float st = 0.75 + 0.25*fbm(vec2(ang*3.5, t*0.05));
     float cor = exp(-max(rim,0.0)*2.6)*0.35*st;
-    col += vec3(1.0,0.80,0.50)*cor;
+    col += uColB*vec3(1.0,0.86,0.81)*cor;
     lum = max(lum, max(arcs, cor));
   }
   float aDisc = smoothstep(R, R-0.015, r);
@@ -4170,7 +4305,49 @@ const USn = {
   proj: gl.getUniformLocation(pSunP,'uProj'), view: gl.getUniformLocation(pSunP,'uView'),
   time: gl.getUniformLocation(pSunP,'uTime'), sz: gl.getUniformLocation(pSunP,'uSz'),
   disc: gl.getUniformLocation(pSunP,'uDisc'),
+  colD: gl.getUniformLocation(pSunP,'uColD'), colB: gl.getUniformLocation(pSunP,'uColB'),
 };
+// ---------- what is left of the Sun ----------
+// The shed envelope, on the same one-point vertex shader as the disc: a limb-brightened
+// shell — a hollow sphere is brightest where the line of sight runs longest through it,
+// which is the rim — in the colours every planetary nebula actually shows, [O III] teal
+// inside and Hα red at the edge, with filaments and a mild two-lobed tilt, since a round
+// one is the exception. Additive, drawn under the central star.
+const PN_FS = `#version 300 es
+precision highp float;
+uniform float uTime, uAge, uAlpha;   // uAge 0..1 through the nebula's life
+out vec4 o;
+float h21(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }
+float vnoise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);
+  return mix(mix(h21(i),h21(i+vec2(1,0)),f.x), mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x), f.y); }
+float fbm(vec2 p){ float a=.5,s=0.; for(int i=0;i<4;i++){ s+=a*vnoise(p); p*=2.13; a*=.5; } return s; }
+void main(){
+  vec2 q = gl_PointCoord*2.0-1.0;
+  float r = length(q);
+  if(r>1.0) discard;
+  float ang = atan(q.y,q.x);
+  float R = 0.74;
+  float w = 0.06 + 0.10*uAge;                                  // the shell thickens as it disperses
+  float f1 = fbm(vec2(ang*2.4 + 3.0, r*9.0 - uAge*2.0));
+  float f2 = fbm(vec2(ang*5.0 - 1.0 + uTime*0.01, r*14.0));
+  float fil = 0.45 + 0.75*f1 + 0.35*(f2-0.5);
+  float shell = exp(-pow((r-R)/w, 2.0)) * fil * (0.75 + 0.25*cos(2.0*ang + 0.8));
+  float inner = smoothstep(R, R*0.15, r) * (0.10 + 0.14*fbm(q*3.5 + 7.0));
+  vec3 oiii = vec3(0.32, 0.92, 0.78);
+  vec3 ha   = vec3(1.00, 0.34, 0.26);
+  vec3 col = shell * mix(oiii, ha, smoothstep(R-0.03, R+0.10, r)) * 0.9 + inner * oiii;
+  col += vec3(0.45,0.75,0.85) * exp(-pow(r/(R*0.55),2.0)) * 0.06;
+  o = vec4(col*uAlpha, 0.0);
+}`;
+const pPN = prog(SUN_VS, PN_FS);
+const UPN = {
+  proj: gl.getUniformLocation(pPN,'uProj'), view: gl.getUniformLocation(pPN,'uView'),
+  sz: gl.getUniformLocation(pPN,'uSz'), time: gl.getUniformLocation(pPN,'uTime'),
+  age: gl.getUniformLocation(pPN,'uAge'), alpha: gl.getUniformLocation(pPN,'uAlpha'),
+};
+// the engulfment flares: up to three points, drawn over the disc
+const eatGL = dynVAO(4);
+const eatPos = new Float32Array(12), eatSize = new Float32Array(4), eatCol = new Float32Array(12), eatW = new Float32Array(4);
 const vaoSunPt = (()=>{ const v=gl.createVertexArray(); gl.bindVertexArray(v);
   const b=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,b);
   gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(3),gl.STATIC_DRAW);
@@ -4221,6 +4398,27 @@ function frame(now){
     sunSizeTmp[0] = plasmaSunPx > 7 ? 0.0 : Math.max(sunDia, cam.dist*0.0075);
     gl.bindBuffer(gl.ARRAY_BUFFER,bufBodySize); gl.bufferSubData(gl.ARRAY_BUFFER,0,sunSizeTmp);
   }
+  // The Sun's colour, and the inner planets' fate. Both read the same model.
+  const ssNow = sunState(ageGyr()), tint = sunTint(ssNow.T);
+  bodyCol[0]=tint.dot[0]; bodyCol[1]=tint.dot[1]; bodyCol[2]=tint.dot[2];
+  {
+    // Engulfment latches on age, never on the current radius (the Sun shrinks again
+    // after the tip; the planet does not come back). A flare starts only when the clock
+    // runs across the moment — a jump that lands past it finds the planet already gone.
+    const a = ageGyr(), jumped = Math.abs(a - lastAgeSeen) > 0.05;
+    for(let i=1;i<=3;i++){
+      const now = a >= EAT_AGES[i];
+      if(now && !wasEaten[i] && !jumped) eatFlash[i] = 0;
+      if(!now) eatFlash[i] = -1;
+      wasEaten[i] = now;
+      if(eatFlash[i] >= 0){ eatFlash[i] += dt; if(eatFlash[i] > 1.6) eatFlash[i] = -1; }
+      // hidden for good once inside; the flare is its own pass over the disc
+      eatSizeTmp[0] = now ? 0 : realSizes[i];
+      gl.bindBuffer(gl.ARRAY_BUFFER,bufBodySize); gl.bufferSubData(gl.ARRAY_BUFFER,i*4,eatSizeTmp);
+    }
+    lastAgeSeen = a;
+  }
+  gl.bindBuffer(gl.ARRAY_BUFFER,bufBodyCol); gl.bufferSubData(gl.ARRAY_BUFFER,0,bodyCol,0,3);
   gl.bindBuffer(gl.ARRAY_BUFFER,bufBodyPos);
   gl.bufferSubData(gl.ARRAY_BUFFER,0,bodyPosArr);
 
@@ -4431,11 +4629,10 @@ function frame(now){
   }
   gl.uniform1f(UN.gal, 0.0);
 
-  // expanding shells: supernova remnants and planetary nebulae (sizes exaggerated — see info)
-  if(lifeOn && puffs.length){
-    fillPuffs();
   // Dark clouds must come after the glow: sampled on the picture's dark lanes, they
   // have nothing to darken unless the haze has already been laid down beneath them.
+  // (This block used to sit inside the remnant pass below, so the dust switch only did
+  // anything while a supernova shell happened to be alive. It stands on its own now.)
   if(dustOn){
     // dust lanes: multiply what's behind them down toward black
     gl.blendFunc(gl.ZERO, gl.ONE_MINUS_SRC_ALPHA);
@@ -4473,9 +4670,20 @@ function frame(now){
     gl.uniform1f(UD.gal, 0.0);
     gl.blendFunc(gl.ONE, gl.ONE);
   }
-    gl.uniform1f(UN.gf, 1.0); // a supernova next door must not fade with the backdrop
-    gl.uniform1f(UN.vm, 0.0); // remnant/PN shells animate themselves
-    gl.uniform1f(UN.wa, 0.0); // each puff carries its own frame flag
+  // expanding shells: supernova remnants and planetary nebulae, on their own program
+  // (sizes exaggerated — see info). After the dust on purpose: a remnant next door is
+  // not something the backdrop's lanes should darken.
+  if(lifeOn && puffs.length){
+    fillPuffs();
+    gl.useProgram(pRem);
+    gl.uniformMatrix4fv(UREM.proj,false,projMat);
+    gl.uniformMatrix4fv(UREM.view,false,viewMat);
+    gl.uniform1f(UREM.px, pxScale);
+    gl.uniform1f(UREM.spin, spinMW);
+    gl.uniform1f(UREM.warp, warp);
+    gl.uniform1f(UREM.cap, deep?60.0:560.0);
+    gl.uniform3f(UREM.sun, sunX, bubY, sunZ);
+    gl.uniform3f(UREM.org, org[0], org[1], org[2]);
     gl.bindBuffer(gl.ARRAY_BUFFER,pfGL.p); gl.bufferSubData(gl.ARRAY_BUFFER,0,pfPos.subarray(0,puffs.length*3));
     gl.bindBuffer(gl.ARRAY_BUFFER,pfGL.s); gl.bufferSubData(gl.ARRAY_BUFFER,0,pfSize.subarray(0,puffs.length));
     gl.bindBuffer(gl.ARRAY_BUFFER,pfGL.c); gl.bufferSubData(gl.ARRAY_BUFFER,0,pfCol.subarray(0,puffs.length*3));
@@ -4504,6 +4712,7 @@ function frame(now){
       const c=BODIES[i][4];
       if(i === I_P9 && !showP9) continue;
       if(i >= N_PLANETS && i < I_P9 && !showDwarfs) continue;
+      if(i <= 3 && i > 0 && wasEaten[i]) continue;   // no path for a planet that is gone
       if(i > 0){
         if(!solarClose) continue;                    // collapsed into the Sun's point
         const spo = BODIES[i][1]/DT_SAMPLE;
@@ -4628,6 +4837,27 @@ function frame(now){
     gl.bindBuffer(gl.ARRAY_BUFFER,g710GL.c); gl.bufferSubData(gl.ARRAY_BUFFER,0,g710Col);
     gl.bindVertexArray(g710GL.vao); gl.drawArrays(gl.POINTS,0,1);
   }
+  // What the Sun sheds: under the star, additive, only from outside it — a billboard
+  // cannot show a hollow shell from within, and from inside a real one there is
+  // nothing to see but a faint sky glow anyway.
+  const pn = pnState(ageGyr());
+  pnShown = false;
+  if(pn){
+    const rScene = pn.rAU*AU2U, px = (2*rScene/0.74)*pxScale/cam.dist;
+    const outside = Math.min(1, Math.max(0, (cam.dist/rScene - 1.15)/0.6));
+    const alpha = pn.alpha*outside;
+    if(alpha > 0.004 && px > 3){
+      pnShown = true;
+      gl.useProgram(pPN);
+      gl.uniformMatrix4fv(UPN.proj,false,projMat);
+      gl.uniformMatrix4fv(UPN.view,false,viewMat);
+      gl.uniform1f(UPN.time, shimT);
+      gl.uniform1f(UPN.age, pn.age);
+      gl.uniform1f(UPN.alpha, alpha);
+      gl.uniform1f(UPN.sz, Math.min(1800, px));
+      gl.bindVertexArray(vaoSunPt); gl.drawArrays(gl.POINTS,0,1);
+    }
+  }
   if(plasmaSunPx > 7){
     // Drawn last, and not additively: the photosphere is opaque, so the disc must
     // occlude the sky behind it, with only the corona and arcs blending over it.
@@ -4636,11 +4866,39 @@ function frame(now){
     gl.uniformMatrix4fv(USn.proj,false,projMat);
     gl.uniformMatrix4fv(USn.view,false,viewMat);
     gl.uniform1f(USn.time, shimT);
+    gl.uniform3f(USn.colD, tint.d[0], tint.d[1], tint.d[2]);
+    gl.uniform3f(USn.colB, tint.b[0], tint.b[1], tint.b[2]);
     const sz = Math.min(1000, plasmaSunPx*2.7);
     gl.uniform1f(USn.sz, sz);
     gl.uniform1f(USn.disc, plasmaSunPx/sz);
     gl.bindVertexArray(vaoSunPt); gl.drawArrays(gl.POINTS,0,1);
     gl.blendFunc(gl.ONE, gl.ONE);
+  }
+  // The flares: a planet the surface has just reached, a white point over the limb for
+  // a moment. Over the disc on purpose — at that instant the planet is at the surface,
+  // and a disc drawn opaque would otherwise hide the one thing worth seeing.
+  {
+    let n = 0;
+    for(let i=1;i<=3;i++){
+      const t = eatFlash[i];
+      if(t < 0 || cam.dist >= 0.13) continue;
+      const env = t < 0.12 ? t/0.12 : Math.exp(-(t-0.12)/0.5);
+      eatPos[n*3]=bodyPosArr[i*3]; eatPos[n*3+1]=bodyPosArr[i*3+1]; eatPos[n*3+2]=bodyPosArr[i*3+2];
+      eatSize[n] = cam.dist*0.032*(0.6+0.4*env);
+      eatCol[n*3]=2.4*env; eatCol[n*3+1]=2.4*env; eatCol[n*3+2]=2.6*env;
+      eatW[n] = 0; n++;
+    }
+    if(n){
+      gl.useProgram(pPt);
+      gl.uniform1f(U.ptSpin, 0.0); gl.uniform1f(U.ptVM, 0.0); gl.uniform1f(U.ptTide, 0.0);
+      gl.uniform1f(U.ptMinB, 0.0); gl.uniform1f(U.ptMinSz, 1.3); gl.uniform1f(U.ptCap, 110.0);
+      gl.uniform3f(U.ptOrg, 0,0,0);
+      gl.bindBuffer(gl.ARRAY_BUFFER,eatGL.p); gl.bufferSubData(gl.ARRAY_BUFFER,0,eatPos.subarray(0,n*3));
+      gl.bindBuffer(gl.ARRAY_BUFFER,eatGL.s); gl.bufferSubData(gl.ARRAY_BUFFER,0,eatSize.subarray(0,n));
+      gl.bindBuffer(gl.ARRAY_BUFFER,eatGL.c); gl.bufferSubData(gl.ARRAY_BUFFER,0,eatCol.subarray(0,n*3));
+      gl.bindBuffer(gl.ARRAY_BUFFER,eatGL.w); gl.bufferSubData(gl.ARRAY_BUFFER,0,eatW.subarray(0,n));
+      gl.bindVertexArray(eatGL.vao); gl.drawArrays(gl.POINTS,0,n);
+    }
   }
 
   if(toneOn){   // resolve the half-float scene to the screen through the rolloff curve
@@ -4664,6 +4922,8 @@ function frame(now){
     let sunSX=0, sunSY=0;
     for(let i=0;i<NB;i++){
       if(i === I_P9 ? !showP9 : (i >= N_PLANETS && !showDwarfs)){ labelEls[i].style.display='none'; continue; }
+      if(i > 0 && i <= 3 && wasEaten[i]){ labelEls[i].style.display='none'; continue; }   // swallowed
+      if(i === 0) labelEls[0].textContent = pnShown ? 'Sun nebula' : 'Sun';
       const x=bodyPosArr[i*3],y=bodyPosArr[i*3+1],z=bodyPosArr[i*3+2];
       const cw = pv[3]*x+pv[7]*y+pv[11]*z+pv[15];
       if(cw<=Math.max(1e-9,cam.dist*0.01) || cam.dist>900){ labelEls[i].style.display='none'; continue; }
