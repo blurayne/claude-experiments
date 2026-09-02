@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.53.3 — 2026-09-02
+
+- Rename the view option once the Sun is a nebula (v2.53.3) (`891b7ce`)
+
 ### 2.53.2 — 2026-09-02
 
 - The phase label follows the nebula, not the clock (v2.53.2) (`c1a3a25`)
