@@ -64,6 +64,9 @@ before the work starts. An item is ticked when it ships, with the version that c
 - [x] `sw.js` carries two `const V` lines after v2.57.1 — a SyntaxError, so the service
       worker cannot install at all. Collapsed to one, keeping the `galactic-transit-`
       prefix the second line had reverted — v2.57.2.
+- [ ] Use the owner's face-on Andromeda picture — the v2.56 composite completed by human
+      and AI — as `m31-map.webp`, at the highest quality; say in the changelog that it was
+      completed by human and AI; then reprocess the Andromeda model from it.
 
 ### Shipped earlier, for the record
 
