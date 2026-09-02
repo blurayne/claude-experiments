@@ -1002,7 +1002,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.56.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.56.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -1555,6 +1555,11 @@ const sA=Math.sin(BAR_A), cA=Math.cos(BAR_A);
 let N_GXY, NEB_N, DUST_N;
 let N_AND = 0, vaoAnd = null;   // declared here: setGalaxy builds Andromeda too, and runs earlier
 let N_ANDN = 0, N_ANDD = 0, vaoAndNeb = null, vaoAndDust = null, m31Map = null;
+// The nebula buffers hold three runs in order — HII pink, the diffuse haze, the core —
+// and the frame draws them in two halves around the dust: the haze goes down first and
+// the dark clouds darken it, then the stars, the HII and the core go over both, so a
+// cloud sits within the star field instead of on top of it. These are the run lengths.
+let NEB_PINK = 0, NEB_GLOW = 0, AND_PINK = 0, AND_GLOW = 0;
 let gxyPos,gxySize,gxyCol,gxyWave, nebPos,nebSize,nebCol, dustPos,dustSize,dustStr;
 function genGalaxy(D){ // D = density multiplier (hi-fi galaxy mode)
   N_GXY = Math.round(92000*D);
@@ -1627,6 +1632,7 @@ function genGalaxy(D){ // D = density multiplier (hi-fi galaxy mode)
 
   // ~420 emission nebulae: along the arms, at the bar tips, and in the Local Spur
   NEB_N = Math.round(2600*D);
+  NEB_PINK = 0; NEB_GLOW = NEB_N;   // no runs in the schematic galaxy: all of it is haze
   nebPos=new Float32Array(NEB_N*3); nebSize=new Float32Array(NEB_N); nebCol=new Float32Array(NEB_N*3);
   {
     const TYPES=[[.058,.018,.030],[.016,.044,.050],[.030,.020,.060],[.052,.033,.014]]; // Hα pink, OIII teal, violet dust-glow, amber
@@ -1847,6 +1853,7 @@ function genGalaxyMap(D){
   const Dg = Math.min(D, 8);
   const PINK_N = Math.round(2600*D), GLOW_N = Math.round(3800*Dg), CORE_N = Math.round(900*Dg);
   NEB_N = PINK_N + GLOW_N + CORE_N;
+  NEB_PINK = PINK_N; NEB_GLOW = GLOW_N;
   nebPos=new Float32Array(NEB_N*3); nebSize=new Float32Array(NEB_N); nebCol=new Float32Array(NEB_N*3);
   for(let q=0;q<PINK_N;q++){
     const pI = mapPick(m.nebC);
@@ -1901,7 +1908,7 @@ function setGalaxy(D){
     const gv = pointVAO(gxyPos,gxySize,gxyCol,gxyWave);
     const nv = pointVAO(nebPos,nebSize,nebCol), dv = pointVAO(dustPos,dustSize,dustStr);
     const av = (m31Map ? genAndromedaMap : genAndromeda)(D);
-    gxyCache[key] = { D, n:[N_GXY,NEB_N,DUST_N], g:gv, nb:nv, d:dv, a:av };
+    gxyCache[key] = { D, n:[N_GXY,NEB_N,DUST_N], seg:[NEB_PINK,NEB_GLOW,AND_PINK,AND_GLOW], g:gv, nb:nv, d:dv, a:av };
     gxyPos=gxySize=gxyCol=gxyWave=nebPos=nebSize=nebCol=dustPos=dustSize=dustStr=null; // uploaded; free the JS copies
   }
   // the cheap densities stay cached; only one heavy one is kept at a time
@@ -1915,6 +1922,7 @@ function setGalaxy(D){
   }
   const c=gxyCache[key];
   N_GXY=c.n[0]; NEB_N=c.n[1]; DUST_N=c.n[2];
+  [NEB_PINK, NEB_GLOW, AND_PINK, AND_GLOW] = c.seg;
   N_AND=c.a.n[0]; N_ANDN=c.a.n[1]; N_ANDD=c.a.n[2];
   vaoGxy=c.g; vaoNeb=c.nb; vaoDust=c.d; curD=D;
   vaoAnd=c.a.a; vaoAndNeb=c.a.an; vaoAndDust=c.a.ad;
@@ -1961,7 +1969,9 @@ void main(){
   vec2 q = gl_PointCoord*2.0-1.0;
   float r = length(q);
   if(r>1.0) discard;
-  o = vec4(0.0, 0.0, 0.0, pow(1.0-r, 1.8)*vColor.r);
+  // never opaque at the centre: a cloud thins the haze behind it, it does not punch
+  // a black hole in it (that is what the old profile did, reaching alpha 1 and past)
+  o = vec4(0.0, 0.0, 0.0, min(0.72, pow(1.0-r, 2.4)*vColor.r));
 }`;
 const pDust = prog(PT_VS, DUST_FS);
 const UD = {
@@ -2004,7 +2014,7 @@ const M32_C  = [-150, -80, 530];         // compact elliptical, ~5 kpc off the n
 const M110_C = [760, 240, -420];         // NGC 205, ~8.5 kpc the other side
 const GSS_DIR = [0.355, -0.457, -0.833]; // the Giant Southern Stream's plume
 function genAndromeda(D){                // fallback when the map has not loaded
-  N_AND = Math.round(52000*D); N_ANDN = 0; N_ANDD = 0;
+  N_AND = Math.round(52000*D); N_ANDN = 0; N_ANDD = 0; AND_PINK = 0; AND_GLOW = 0;
   const BS = 1/Math.sqrt(D);
   const pos=new Float32Array(N_AND*3), size=new Float32Array(N_AND), col=new Float32Array(N_AND*3);
   const PITCH_A = Math.tan(14*Math.PI/180);
@@ -2083,6 +2093,7 @@ function genAndromedaMap(D){
   // HII in Hα pink, the star-forming ring first; then the unresolved haze; then the core
   const PINK_N = Math.round(2200*D), GLOW_N = Math.round(3200*Dg), CORE_N = Math.round(800*Dg);
   N_ANDN = PINK_N + GLOW_N + CORE_N;
+  AND_PINK = PINK_N; AND_GLOW = GLOW_N;
   const nPos=new Float32Array(N_ANDN*3), nSize=new Float32Array(N_ANDN), nCol=new Float32Array(N_ANDN*3);
   for(let q=0;q<PINK_N;q++){
     const pI = mapPick(m.nebC);
@@ -4495,6 +4506,16 @@ function frame(now){
   const and = updateAnd();
   const gl710 = g710();   // read by the Oort brightening before the star is drawn
   const deep = realMode && cam.dist<1.0; // inside ~30 ly: keep the backdrop point-like
+  // every disk star travels at the same flat-curve speed as the Sun, and an elliptical
+  // does not rotate coherently: the rate dies away as the remnant relaxes. diskSpin()
+  // is that rate's integral, so the angle only ever grows (never zero either — uSpin==0.0
+  // is the shader's "not a galaxy" gate).
+  const spin = diskSpin(simT);
+  const warp = -2*Math.PI*simT/650e6; // warp precession: retrograde, ~650 Myr per turn
+  const spinMW  = spin;
+  const spinM31 = spin*1.07;   // M31's flat curve runs ~7% faster
+  const sunX=org[0], sunY=org[1], sunZ=org[2];
+  const bubY = realMode ? sunY+1e8 : sunY; // real scale: nothing is magnified, so no clearance bubble
   gl.uniform1f(U.ptPx,pxScale);
   gl.uniform1f(U.ptWA, 0.0);
   gl.uniform1f(U.ptTime, shimT);
@@ -4508,6 +4529,100 @@ function frame(now){
   gl.uniform3f(U.ptOrg, org[0],org[1],org[2]);
   gl.uniform1f(U.ptSpin, 0.0);
   gl.uniform1f(U.velT, 0.0);
+  // The nebula buffers run HII pink, then the diffuse haze, then the core. The haze is
+  // laid down first and the dark clouds darken it — that is all a dust lane is, less
+  // haze — and then the stars, the HII and the core are drawn over both, so a cloud
+  // sits within the star field. Drawn after everything, as they used to be, the clouds
+  // multiplied the stars and the core down to black discs on top of the picture.
+  const nebulaPass = haze => {
+    gl.useProgram(pNeb);
+  gl.useProgram(pNeb);
+  gl.uniformMatrix4fv(UN.proj,false,projMat);
+  gl.uniformMatrix4fv(UN.view,false,viewMat);
+  gl.uniform1f(UN.px,pxScale);
+  // The haze must dim as the camera closes in, whatever the mode: nearby sprites
+  // project enormous and stack into a whiteout. From inside the system the Milky Way
+  // stays visible as a band — a quarter strength — rather than vanishing outright.
+  gl.uniform1f(UN.gf, Math.min(1, Math.max(0.25, cam.dist/45)));
+  gl.uniform1f(UN.time, shimT);
+  gl.uniform1f(UN.vm, varOn?2.0:0.0);
+  gl.uniform1f(UN.wa, 1.0); // HII regions trace the wave
+  gl.uniform1f(UN.cap, deep?60.0:560.0);
+  gl.uniform1f(UN.minSz, 1.3);
+  gl.uniform3f(UN.and, andPos[0], andPos[1], andPos[2]); gl.uniform1f(UN.tide, and.tide);
+  gl.uniform1f(UN.warpAmp, 1.0);
+  gl.uniform3f(UN.org, org[0],org[1],org[2]);
+  gl.uniform1f(UN.spin, spinMW);
+  gl.uniform1f(UN.warp, warp);
+  gl.uniform3f(UN.sun, sunX, bubY, sunZ);
+  gl.uniform1f(UN.gal, 1.0);
+  gl.uniform1f(UN.merge, and.merge);
+    const seg = (pink, glow, n) => {
+      if(haze){ if(glow) gl.drawArrays(gl.POINTS, pink, glow); }
+      else { if(pink) gl.drawArrays(gl.POINTS, 0, pink);
+             if(n - pink - glow > 0) gl.drawArrays(gl.POINTS, pink + glow, n - pink - glow); }
+    };
+    gl.bindVertexArray(vaoNeb); seg(NEB_PINK, NEB_GLOW, NEB_N);
+    if(vaoAndNeb){
+    gl.uniformMatrix3fv(UN.grot, false, M31_ROT);
+    gl.uniform3f(UN.goff, andPos[0], andPos[1], andPos[2]);
+    gl.uniform1f(UN.spin, spinM31);
+    gl.uniform1f(UN.warpAmp, 0.35);
+    gl.uniform3f(UN.and, 0, 0, 0);
+    gl.uniform3f(UN.sun, sunX, sunY+1e8, sunZ);
+      gl.bindVertexArray(vaoAndNeb); seg(AND_PINK, AND_GLOW, N_ANDN);
+    gl.uniformMatrix3fv(UN.grot, false, MAT3_ID);
+    gl.uniform3f(UN.goff, 0, 0, 0);
+    gl.uniform1f(UN.spin, spinMW);
+    gl.uniform1f(UN.warpAmp, 1.0);
+    gl.uniform3f(UN.and, andPos[0], andPos[1], andPos[2]);
+    gl.uniform3f(UN.sun, sunX, bubY, sunZ);
+    }
+    gl.uniform1f(UN.gal, 0.0);
+  };
+  const dustPass = () => {
+  // multiply what is behind them — by now only the haze — down toward black
+  if(dustOn){
+    // dust lanes: multiply what's behind them down toward black
+    gl.blendFunc(gl.ZERO, gl.ONE_MINUS_SRC_ALPHA);
+    gl.useProgram(pDust);
+    gl.uniformMatrix4fv(UD.proj,false,projMat);
+    gl.uniformMatrix4fv(UD.view,false,viewMat);
+    gl.uniform1f(UD.px,pxScale);
+    gl.uniform1f(UD.wa, 1.0); // dust lanes trace the wave
+    gl.uniform1f(UD.cap, deep?40.0:560.0);
+    gl.uniform1f(UD.minSz, 1.3);
+    gl.uniform3f(UD.and, andPos[0], andPos[1], andPos[2]); gl.uniform1f(UD.tide, and.tide);
+    gl.uniform1f(UD.warpAmp, 1.0);
+    gl.uniform3f(UD.org, org[0],org[1],org[2]);
+    gl.uniform1f(UD.spin, spinMW);
+    gl.uniform1f(UD.warp, warp);
+    gl.uniform3f(UD.sun, sunX, bubY, sunZ);
+    gl.uniform1f(UD.gal, 1.0);
+    gl.uniform1f(UD.merge, and.merge);
+    gl.bindVertexArray(vaoDust); gl.drawArrays(gl.POINTS,0,DUST_N);
+    if(vaoAndDust){
+      gl.uniformMatrix3fv(UD.grot, false, M31_ROT);
+      gl.uniform3f(UD.goff, andPos[0], andPos[1], andPos[2]);
+      gl.uniform1f(UD.spin, spinM31);
+      gl.uniform1f(UD.warpAmp, 0.35);
+      gl.uniform3f(UD.and, 0, 0, 0);
+      gl.uniform3f(UD.sun, sunX, sunY+1e8, sunZ);
+      gl.bindVertexArray(vaoAndDust); gl.drawArrays(gl.POINTS,0,N_ANDD);
+      gl.uniformMatrix3fv(UD.grot, false, MAT3_ID);
+      gl.uniform3f(UD.goff, 0, 0, 0);
+      gl.uniform1f(UD.spin, spinMW);
+      gl.uniform1f(UD.warpAmp, 1.0);
+      gl.uniform3f(UD.and, andPos[0], andPos[1], andPos[2]);
+      gl.uniform3f(UD.sun, sunX, bubY, sunZ);
+    }
+    gl.uniform1f(UD.gal, 0.0);
+    gl.blendFunc(gl.ONE, gl.ONE);
+  }
+  };
+  nebulaPass(true);
+  dustPass();
+  gl.useProgram(pPt);   // back to the points; their uniforms persist on the program
   gl.bindVertexArray(vaoStars); gl.drawArrays(gl.POINTS,0,N_STAR);
   // Real stars, carried along with the Sun. They are stored at the galaxy's scale — a
   // 108-unit bubble against a 900-unit galactic radius, which is the true proportion —
@@ -4539,16 +4654,6 @@ function frame(now){
     gl.uniform3f(U.ptOrg, org[0],org[1],org[2]);
     gl.uniform1f(U.ptFade, 0.0);
   }
-  // every disk star travels at the same flat-curve speed as the Sun, and an elliptical
-  // does not rotate coherently: the rate dies away as the remnant relaxes. diskSpin()
-  // is that rate's integral, so the angle only ever grows (never zero either — uSpin==0.0
-  // is the shader's "not a galaxy" gate).
-  const spin = diskSpin(simT);
-  const warp = -2*Math.PI*simT/650e6; // warp precession: retrograde, ~650 Myr per turn
-  const spinMW  = spin;
-  const spinM31 = spin*1.07;   // M31's flat curve runs ~7% faster
-  const sunX=org[0], sunY=org[1], sunZ=org[2];
-  const bubY = realMode ? sunY+1e8 : sunY; // real scale: nothing is magnified, so no clearance bubble
   gl.uniform1f(U.ptSpin, spinMW);
   gl.uniform1f(U.ptWarp, warp);
   gl.uniform3f(U.ptSun, sunX, bubY, sunZ);
@@ -4620,87 +4725,7 @@ function frame(now){
   }
 
 
-  // nebulae
-  gl.useProgram(pNeb);
-  gl.uniformMatrix4fv(UN.proj,false,projMat);
-  gl.uniformMatrix4fv(UN.view,false,viewMat);
-  gl.uniform1f(UN.px,pxScale);
-  // The haze must dim as the camera closes in, whatever the mode: nearby sprites
-  // project enormous and stack into a whiteout. From inside the system the Milky Way
-  // stays visible as a band — a quarter strength — rather than vanishing outright.
-  gl.uniform1f(UN.gf, Math.min(1, Math.max(0.25, cam.dist/45)));
-  gl.uniform1f(UN.time, shimT);
-  gl.uniform1f(UN.vm, varOn?2.0:0.0);
-  gl.uniform1f(UN.wa, 1.0); // HII regions trace the wave
-  gl.uniform1f(UN.cap, deep?60.0:560.0);
-  gl.uniform1f(UN.minSz, 1.3);
-  gl.uniform3f(UN.and, andPos[0], andPos[1], andPos[2]); gl.uniform1f(UN.tide, and.tide);
-  gl.uniform1f(UN.warpAmp, 1.0);
-  gl.uniform3f(UN.org, org[0],org[1],org[2]);
-  gl.uniform1f(UN.spin, spinMW);
-  gl.uniform1f(UN.warp, warp);
-  gl.uniform3f(UN.sun, sunX, bubY, sunZ);
-  gl.uniform1f(UN.gal, 1.0);
-  gl.uniform1f(UN.merge, and.merge);
-  gl.bindVertexArray(vaoNeb); gl.drawArrays(gl.POINTS,0,NEB_N);
-  if(vaoAndNeb){
-    gl.uniformMatrix3fv(UN.grot, false, M31_ROT);
-    gl.uniform3f(UN.goff, andPos[0], andPos[1], andPos[2]);
-    gl.uniform1f(UN.spin, spinM31);
-    gl.uniform1f(UN.warpAmp, 0.35);
-    gl.uniform3f(UN.and, 0, 0, 0);
-    gl.uniform3f(UN.sun, sunX, sunY+1e8, sunZ);
-    gl.bindVertexArray(vaoAndNeb); gl.drawArrays(gl.POINTS,0,N_ANDN);
-    gl.uniformMatrix3fv(UN.grot, false, MAT3_ID);
-    gl.uniform3f(UN.goff, 0, 0, 0);
-    gl.uniform1f(UN.spin, spinMW);
-    gl.uniform1f(UN.warpAmp, 1.0);
-    gl.uniform3f(UN.and, andPos[0], andPos[1], andPos[2]);
-    gl.uniform3f(UN.sun, sunX, bubY, sunZ);
-  }
-  gl.uniform1f(UN.gal, 0.0);
-
-  // Dark clouds must come after the glow: sampled on the picture's dark lanes, they
-  // have nothing to darken unless the haze has already been laid down beneath them.
-  // (This block used to sit inside the remnant pass below, so the dust switch only did
-  // anything while a supernova shell happened to be alive. It stands on its own now.)
-  if(dustOn){
-    // dust lanes: multiply what's behind them down toward black
-    gl.blendFunc(gl.ZERO, gl.ONE_MINUS_SRC_ALPHA);
-    gl.useProgram(pDust);
-    gl.uniformMatrix4fv(UD.proj,false,projMat);
-    gl.uniformMatrix4fv(UD.view,false,viewMat);
-    gl.uniform1f(UD.px,pxScale);
-    gl.uniform1f(UD.wa, 1.0); // dust lanes trace the wave
-    gl.uniform1f(UD.cap, deep?40.0:560.0);
-    gl.uniform1f(UD.minSz, 1.3);
-    gl.uniform3f(UD.and, andPos[0], andPos[1], andPos[2]); gl.uniform1f(UD.tide, and.tide);
-    gl.uniform1f(UD.warpAmp, 1.0);
-    gl.uniform3f(UD.org, org[0],org[1],org[2]);
-    gl.uniform1f(UD.spin, spinMW);
-    gl.uniform1f(UD.warp, warp);
-    gl.uniform3f(UD.sun, sunX, bubY, sunZ);
-    gl.uniform1f(UD.gal, 1.0);
-    gl.uniform1f(UD.merge, and.merge);
-    gl.bindVertexArray(vaoDust); gl.drawArrays(gl.POINTS,0,DUST_N);
-    if(vaoAndDust){
-      gl.uniformMatrix3fv(UD.grot, false, M31_ROT);
-      gl.uniform3f(UD.goff, andPos[0], andPos[1], andPos[2]);
-      gl.uniform1f(UD.spin, spinM31);
-      gl.uniform1f(UD.warpAmp, 0.35);
-      gl.uniform3f(UD.and, 0, 0, 0);
-      gl.uniform3f(UD.sun, sunX, sunY+1e8, sunZ);
-      gl.bindVertexArray(vaoAndDust); gl.drawArrays(gl.POINTS,0,N_ANDD);
-      gl.uniformMatrix3fv(UD.grot, false, MAT3_ID);
-      gl.uniform3f(UD.goff, 0, 0, 0);
-      gl.uniform1f(UD.spin, spinMW);
-      gl.uniform1f(UD.warpAmp, 1.0);
-      gl.uniform3f(UD.and, andPos[0], andPos[1], andPos[2]);
-      gl.uniform3f(UD.sun, sunX, bubY, sunZ);
-    }
-    gl.uniform1f(UD.gal, 0.0);
-    gl.blendFunc(gl.ONE, gl.ONE);
-  }
+  nebulaPass(false);   // the HII regions and the core, over the stars
   // expanding shells: supernova remnants and planetary nebulae, on their own program
   // (sizes exaggerated — see info). After the dust on purpose: a remnant next door is
   // not something the backdrop's lanes should darken.

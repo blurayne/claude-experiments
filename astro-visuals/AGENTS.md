@@ -273,6 +273,21 @@ click cascades by setting `.checked` and dispatching a synthetic `change` (not a
 it does not fire the checkboxes' `click`-bound save listener, so the cascade calls `saveSettings()`
 explicitly — forget that and a choice made through the master silently fails to survive a reload.
 
+## Dark clouds sit within the star field (v2.56.1)
+
+The dust sprites multiply what is already drawn (`ZERO, ONE_MINUS_SRC_ALPHA`), so *when* they are
+drawn is what they darken. They used to come after the stars and all three nebula runs, so they
+multiplied the stars and the core glow down to black discs on top of the picture — invisible for a
+long time only because the pass was nested inside the remnant pass (v2.53.0 un-nested it). The
+frame now draws: the nebula buffers' **haze run** → **dust** → the star passes → the **HII and core
+runs**. A dust lane is less haze, and that is now all the sprite does; the stars already carry
+the lanes (they are sampled from the map's luminance, which is low there), so darkening them again
+was double-counting. `NEB_PINK/NEB_GLOW` and `AND_PINK/AND_GLOW` are the run lengths (set by the
+generators, cached in `gxyCache[key].seg`); `nebulaPass(haze)` draws one half or the other with
+`drawArrays` offsets, `dustPass()` is the old block, and the spin/warp/sun constants were hoisted
+above the first star draw because the passes need them. The sprite's alpha is also capped at 0.72
+with a softer profile: a cloud thins the haze behind it; it does not punch a hole in it.
+
 ## The Andromeda map, one instrument per channel (v2.56.0)
 
 `tools/build_m31_map.py` composes `m31-map.webp` from four pictures, all committed under

@@ -45,9 +45,10 @@ before the work starts. An item is ticked when it ships, with the version that c
       picture); the three CC/public-domain pictures are committed, the fourth (the portrait
       mosaic, Robert Gendler's, not freely licensed) is not — use it locally via `--extra`.
       The bulge zone remains modelled, as disclosed — v2.54.0.
-- [ ] Dark clouds render as black discs sitting on top of the stars and the core glow.
+- [x] Dark clouds render as black discs sitting on top of the stars and the core glow.
       They should sit within the star field: darken only the diffuse haze, and be drawn
-      beneath the stars, the HII regions and the core.
+      beneath the stars, the HII regions and the core. Draw order is now haze → dust →
+      stars → HII and core, and the sprite never goes fully opaque — v2.56.1.
 
 ### Shipped earlier, for the record
 
