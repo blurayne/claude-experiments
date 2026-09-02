@@ -7,6 +7,7 @@ each entry is filed under the version the page carried once it landed.
 
 ### 2.62.0 — 2026-09-02
 
+- The docs v2.62.0 shipped without — panel sentence, TODO, notes (`1053420`)
 - The shuttle — drive the clock by hand, forward or backward (v2.62.0) (`cedb01c`)
 
 ### 2.61.0 — 2026-09-02
