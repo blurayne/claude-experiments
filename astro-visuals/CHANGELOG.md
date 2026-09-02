@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.60.1 — 2026-09-02
+
+- The Great Rift — dust over the band from inside the disk (v2.60.1) (`1c0e3b4`)
+
 ### 2.60.0 — 2026-09-02
 
 - Settings reads as a panel; the build stamp moves to the info dialog (v2.60.0) (`59ec350`)
