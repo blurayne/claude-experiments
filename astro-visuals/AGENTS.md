@@ -307,6 +307,31 @@ click cascades by setting `.checked` and dispatching a synthetic `change` (not a
 it does not fire the checkboxes' `click`-bound save listener, so the cascade calls `saveSettings()`
 explicitly — forget that and a choice made through the master silently fails to survive a reload.
 
+## The Great Rift: the dust's place in the order depends on where the eye is (v2.60.1)
+
+v2.56.1 settled the outside order — haze → dust → stars → HII and core — so the arms' HII
+knots sit on the lanes and the clouds never read as black discs. From INSIDE the disk that
+order is wrong: the band's light (haze, HII, the core) all lies behind the local clouds, and
+drawing the pink after the dust left the helix view a smooth band with no Rift at all.
+`insideDisk` (`cam.dist < 45`, the haze fade's own zone) now draws the whole backdrop first
+and the dust over it; outside, the v2.56.1 order stands. Two measured facts to keep:
+
+- **The deep dust ceiling is 40 px, and it must stay small.** With the backdrop beneath it,
+  40 carves a dark lane along the band and across the core and leaves the glow standing above.
+  120 and 220 were rendered and crush the band to a scatter of stars: the multiply compounds
+  wherever discs overlap. The intuition "a cloud 300 pc off spans tens of degrees, so let it"
+  is wrong here — coverage, not size, is what shows.
+- **The ceiling is in device pixels, so scale it by canvas width** (`canvas.width/900`, the
+  width it was judged at, clamped 0.45–1.5). At 40 on a 400 px canvas the band went black;
+  the app caps DPR at 2, so a phone lands near 800 device px. Judge dust on a phone at DPR ≥ 2,
+  never at DPR 1.
+
+Judge the clouds by eye from a dust-on/dust-off pair; the pixel statistics mislead — a
+uniform blackening and a carved lane give similar means, and a *falling* spread within the
+band is the sign of the former. And a disclosure sentence belongs at the end of its own
+`<li>`: searching for the next `</p>` from inside a list put one into the "no WebGL2" fallback
+string and broke the script on an apostrophe. The parse check caught it; keep running it.
+
 ## Audio must never give up permanently (v2.59.2)
 
 Two places latched "we tried" and then had nothing left that could try again — both fatal for a
