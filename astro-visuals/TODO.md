@@ -58,6 +58,10 @@ before the work starts. An item is ticked when it ships, with the version that c
       behind the other from the camera's viewpoint darkens the one in front, because
       multiply blending knows nothing of depth. Draw the farther galaxy's haze and dust
       first, each frame, so clouds only ever thin their own galaxy's light — v2.57.1.
+- [ ] Drop the "The clock is stopped while you read. It starts when you do." paragraph
+      from the tutorial card.
+- [ ] `sw.js` carries two `const V` lines after v2.57.1 — a SyntaxError, so the service
+      worker cannot install at all. Collapse them back to one.
 
 ### Shipped earlier, for the record
 
