@@ -115,6 +115,7 @@ before the work starts. An item is ticked when it ships, with the version that c
       and the dust over it — the Great Rift splits the band and hides the centre — with
       the deep ceiling scaled by canvas width so a phone is not blackened. Measured: 40 px
       carves a lane, 120 and 220 crush the band — v2.60.1.
+- [ ] During a glacial age, make the textured background 20% more transparent.
 
 ### Shipped earlier, for the record
 
