@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.63.0 — 2026-09-02
+
+- Two-finger pan; the shuttle says "off"; the frost lighter again (v2.63.0) (`924d5b6`)
+
 ### 2.62.1 — 2026-09-02
 
 - The status bar holds its width for a second before shrinking (v2.62.1) (`83359b4`)
