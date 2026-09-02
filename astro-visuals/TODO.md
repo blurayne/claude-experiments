@@ -108,6 +108,7 @@ before the work starts. An item is ticked when it ships, with the version that c
 - [x] Move the build stamp, date and changelog link out of the settings footer and into
       the information dialog, as its second line (`.info-sub`, directly under the title;
       the `buildInfo` id moved with it, since the UTC tooltip hangs off it) — v2.60.0.
+- [ ] The dark clouds cannot be seen on the galaxy in the helix view.
 
 ### Shipped earlier, for the record
 
