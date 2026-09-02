@@ -48,12 +48,15 @@ before the work starts. An item is ticked when it ships, with the version that c
       They should sit within the star field: darken only the diffuse haze, and be drawn
       beneath the stars, the HII regions and the core. Draw order is now haze → dust →
       stars → HII and core, and the sprite never goes fully opaque — v2.56.1.
-      beneath the stars, the HII regions and the core.
 - [x] Rename "Galactic Year" to "Galactic Transit" on the favicon and in the app icon
       manifest. Wordmark refitted to the arc (43/2.5, same coverage as before), all six
       PNGs regenerated from the SVG by the new `tools/render_icons.js`, manifest and the
       iOS home-screen title renamed. The *galactic year* counter and the music track
       titles keep their name — v2.57.0.
+- [ ] Andromeda's dark clouds render over the Milky Way (and vice versa): a galaxy that is
+      behind the other from the camera's viewpoint darkens the one in front, because
+      multiply blending knows nothing of depth. Draw the farther galaxy's haze and dust
+      first, each frame, so clouds only ever thin their own galaxy's light.
 
 ### Shipped earlier, for the record
 
