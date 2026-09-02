@@ -120,6 +120,8 @@ before the work starts. An item is ticked when it ships, with the version that c
       opacity rides `--iceA`: .42 × 0.8 = .336. Not the glacial wash under it — measured,
       that is nearly black over an already-dark scene and moves the panel by 0.5/255 — the
       texture is what sits over the readings — v2.60.2.
+- [ ] Add a setting under Visuals to turn the dark clouds off.
+- [ ] Remove the version number from the settings dialog.
 
 ### Shipped earlier, for the record
 
