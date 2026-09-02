@@ -269,6 +269,18 @@ click cascades by setting `.checked` and dispatching a synthetic `change` (not a
 it does not fire the checkboxes' `click`-bound save listener, so the cascade calls `saveSettings()`
 explicitly — forget that and a choice made through the master silently fails to survive a reload.
 
+## The phase label follows the nebula, not the clock (v2.53.2)
+
+`sunState()` flips its `phase` string to `'white dwarf'` the instant `a >= SUN_WD`, but the
+drawn nebula (`pnState`) keeps fading for another 0.3 Gyr after that — so the Earth panel
+called the star a white dwarf while the shell was still on screen. The panel's phase text now
+reads `pn ? 'planetary nebula' : ss.phase`, reusing the same `pn` the draw pass already
+computed this frame (`pnState(ageGyr())`, called once near the top of `frame()`) rather than
+calling it again or reading `pnShown` — `pnShown` is view-dependent (camera framing, `alpha`,
+`px`), so it would make the panel's phase readout flicker with the camera. Physical state and
+drawn state are two different questions; always read `pn`/`pnState()` for "does it still
+exist," `pnShown` only for "is it on screen right now."
+
 ## The disk does not run backwards (v2.53.1)
 
 `spinMW` used to be `simT*V_GAL * (1 − and.merge)`: the *accumulated* rotation scaled by the

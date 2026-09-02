@@ -987,7 +987,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.53.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.53.2', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -5048,8 +5048,13 @@ function frame(now){
                             : pc >= 10  ? pc.toFixed(0)+'%' : pc.toFixed(1)+'%';
       $('eSun').style.color = tempColour(-20 + Math.min(1, Math.log10(Math.max(pc,1))/3.2)*80);
       if(lost){
+        // The drawn nebula outlasts sunState()'s own 'planetary nebula' phase — it keeps
+        // fading for 0.3 Gyr after the star is technically a white dwarf inside it — so
+        // the reading follows the nebula (pn, non-null exactly that long), not the phase
+        // name alone, or it would call it a white dwarf while the shell is still on screen.
+        const phaseNow = pn ? 'planetary nebula' : ss.phase;
         $('eSunPhase').textContent = ss.R >= EARTH_ORBIT_RSUN ? 'engulfing the Earth'
-                                   : ss.eaten && !ss.gone ? ss.phase + ' · Earth gone' : ss.phase;
+                                   : ss.eaten && !ss.gone ? phaseNow + ' · Earth gone' : phaseNow;
         $('eSunSize').textContent = ss.R >= 1 ? ss.R.toFixed(ss.R<10?2:0)+' R☉'
                                               : (ss.R*109.2).toFixed(2)+' R⊕';
         $('eMeanRow').style.display = 'none';

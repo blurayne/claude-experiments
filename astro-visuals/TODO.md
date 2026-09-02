@@ -16,8 +16,10 @@ before the work starts. An item is ticked when it ships, with the version that c
 
 ## 2026-09-02
 
-- [ ] The info panel calls the Sun's phase "white dwarf" while it is still shown as a
-      nebula on screen — fix the mismatch.
+- [x] The info panel calls the Sun's phase "white dwarf" while it is still shown as a
+      nebula on screen — fix the mismatch. The panel now reads "planetary nebula" for as
+      long as the shell physically exists (`pnState`, 0.3 Gyr past `sunState`'s own
+      cutoff), not the moment the clock crosses into white-dwarf age — v2.53.2.
 
 ### Shipped earlier, for the record
 
