@@ -175,6 +175,8 @@ before the work starts. An item is ticked when it ships, with the version that c
       number lengthened, held through 1.4 s after it shortened, released by 2.7 s — v2.62.1.
 - [ ] The shuttle reads "off" at 0 instead of "0%".
 - [ ] Allow panning with two fingers.
+- [ ] "If galactic age": the background texture 20% more transparent — read as the glacial
+      frost again, on top of v2.60.2's 20%.
 
 ### Shipped earlier, for the record
 
