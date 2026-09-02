@@ -325,6 +325,23 @@ Also here: a request for "a setting to turn off dark clouds" — the switch alre
 adding it; a duplicate switch is worse than none. And the settings title is "Settings" alone now,
 the version living in the info dialog and the tour card.
 
+## Andromeda's arms: favour the map's ridges, and measure at screen scale (v2.63.1)
+
+`loadM31Map` builds a `ridge` map — a pixel's excess over a wide (box 9 × 4, ~20 px) blur,
+relative, clamped at 0.3 — and weights the star, HII and haze draws by (1 + K·ridge), K = 24
+(`M31_ARM_K`), the haze at 60% of it; `genAndromedaMap` draws a ridge star brighter by a
+quarter of that. The 5-px `blur` is untouched: the dust lanes and the wave flag read it.
+
+Three things learned the slow way. (1) The map's ridges are small — mean 0.08 — so K must be
+large; 3 was invisible, 12 barely measurable. (2) A per-pixel contrast sweep on the map
+flattered every setting: at the screen's scale (a 6-px blur ≈ 4 map px) the base weight's
+ring contrast is ~1.5, and K = 24 lifts it to ~2 — the picture holds no more, and a valley
+cut buys nothing. Sweep the *blurred* weight. (3) The haze is ~40% of the disk's light on
+the rings; keeping it smooth "to preserve the disk" was exactly what buried the arms. When
+isolating layers in-page, mind the run lengths: the haze draw reads `AND_GLOW`, the core
+`N_ANDN − AND_PINK − AND_GLOW` — zeroing `N_ANDN` alone removes only the core, which no ring
+crosses, and the diagnostic reads "no change".
+
 ## Two-finger pan lives in screen space (v2.63.0)
 
 `panF` is a fraction of the view's height along the camera's right and up vectors, applied to

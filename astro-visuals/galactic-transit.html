@@ -674,7 +674,7 @@
     finished face-on over the measured picture, so what you see there is a completion, not a measurement.
     So are the line-of-sight placements of <b>M32</b>, <b>M110</b> and
     the <b>Giant Southern Stream</b>. The disk stands at its measured orientation — spin pole at galactic
-    (242&deg;,&nbsp;&minus;30&deg;), 120&deg; from ours — turning its real way, ~7% faster than we do.</p>
+    (242&deg;,&nbsp;&minus;30&deg;), 120&deg; from ours — turning its real way, ~7% faster than we do. The picture's arm-to-interarm contrast is modest, so when its stars, HII knots and haze are drawn they are weighted toward its <b>ridges</b> — pixels brighter than their own surroundings at arm scale — and an arm's stars are drawn brighter: the arms you see are the map's, favoured, not invented.</p>
     <p><b>The encounter follows the Gaia-era orbit</b>: today's 765&nbsp;kpc and &minus;110&nbsp;km/s, a first
     passage ~4.5&nbsp;Gyr out near 95&nbsp;kpc, a 290&nbsp;kpc rebound, then friction-shrunk passages at ~30
     and ~13&nbsp;kpc and one relaxed elliptical ~8.8&nbsp;Gyr from now. Separations inside ~83&nbsp;kpc are
@@ -1011,7 +1011,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.63.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.63.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2105,7 +2105,8 @@ function genAndromedaMap(D){
       const l = m.lum[pI], rw = Math.hypot(X,Z);
       const bulge = l*Math.exp(-(rw*rw)/(300*300));    // its big classical bulge, puffed to 3D
       Y = gauss()*(11 + Math.max(0,rw-1350)*0.014 + 95*bulge);
-      const gain = (0.15 + 0.9*Math.pow(l, 1.1)) * (Math.random()<0.03 ? 2.2 : 1);
+      const gain = (0.15 + 0.9*Math.pow(l, 1.1)) * (Math.random()<0.03 ? 2.2 : 1)
+                 * (1 + 0.25*M31_ARM_K*m.ridge[pI]);     // an arm's stars are the bright young ones
       cr = pxd[pI*4]/255*gain*0.99; cg = pxd[pI*4+1]/255*gain; cb = pxd[pI*4+2]/255*gain*1.06;
       s = 1.4 + Math.random()*1.8 + (l>0.72 ? Math.random()*1.2 : 0);
       wv = (l > m.blur[pI]*1.10 || rw < 500) ? 1 : 0;
@@ -2129,7 +2130,7 @@ function genAndromedaMap(D){
   }
   const gGain = 0.19/Dg;
   for(let q=PINK_N;q<PINK_N+GLOW_N;q++){
-    const pI = mapPick(m.starC);
+    const pI = mapPick(m.hazeC || m.starC);
     const w = mapXZ31(pI, 1.1);
     const l = m.lum[pI], rw = Math.hypot(w[0], w[1]);
     nPos[q*3]=w[0];
@@ -2160,6 +2161,13 @@ function genAndromedaMap(D){
   const adv = pointVAO(dPos, dSize, dStr);
   return { a: av, an: anv, ad: adv, n: [N_AND, N_ANDN, N_ANDD] };
 }
+// How much the arms are favoured when Andromeda is drawn from its map: the star and HII
+// density on a ridge is (1 + M31_ARM_K × ridge), the haze 60% of that, each star's light
+// (1 + a quarter of that). The map's ridges are only ~0.08 high on average (clamped at
+// 0.3), so 3 did nothing measurable and 12 little; at the screen's own scale 24 lifts the
+// star layer's arm-to-interarm contrast from ~1.5 to ~2 — the picture holds no more
+// (sweep in the working notes).
+const M31_ARM_K = 24.0;
 function loadM31Map(){
   fetch('m31-map.webp').then(r => r.ok ? r.blob() : Promise.reject())
     .then(b => createImageBitmap(b))
@@ -2182,21 +2190,47 @@ function loadM31Map(){
           blur[y*n+x]=s/c;
         }
       }
+      // A second, wider blur for the arms only (box 9, four passes, ~20 px): the arms are
+      // 15–25 px wide in this map, and a ridge is only as tall as the blur it is measured
+      // against. The 5-px blur above stays as it is — the dust lanes and the wave flag read it.
+      const wide = new Float32Array(lum);
+      for(let pass=0; pass<4; pass++){
+        for(let y=0;y<n;y++) for(let x=0;x<n;x++){
+          let s=0,c=0; for(let k=-4;k<=4;k++){ const q=x+k; if(q>=0&&q<n){ s+=wide[y*n+q]; c++; } }
+          tb[y*n+x]=s/c;
+        }
+        for(let x=0;x<n;x++) for(let y=0;y<n;y++){
+          let s=0,c=0; for(let k=-4;k<=4;k++){ const q=y+k; if(q>=0&&q<n){ s+=tb[q*n+x]; c++; } }
+          wide[y*n+x]=s/c;
+        }
+      }
       const c0 = (n-1)/2, R = 188.6;
       const star = new Float32Array(n*n), neb = new Float32Array(n*n), dust = new Float32Array(n*n);
+      const haze = new Float32Array(n*n), ridge = new Float32Array(n*n);
       for(let i=0;i<n*n;i++){
         const x=i%n, y=(i/n)|0, r=Math.hypot(x-c0, y-c0);
         if(r > R*1.06) continue;
         const l = lum[i];
-        star[i] = Math.pow(Math.max(0, l-0.012), 1.5);
+        // The arms are ridges: brighter than their own neighbourhood, by a fraction that the
+        // picture carries at only 10–20% over most of the disk. Raising the luminance to a
+        // power favours the bulge, not the arms; so the stars are weighted by how far a
+        // pixel rises above its blur — zero on the smooth disk and in the bulge's centre,
+        // where nothing rises above anything — and the haze keeps the unboosted weight, so
+        // the unresolved light between the arms stays the smooth thing it is.
+        // clamped: a handful of pixels rise 2× above their surroundings (single clumps),
+        // and without the clamp they alone would carry a tenth of the disk's stars
+        ridge[i] = Math.min(0.3, Math.max(0, l - wide[i]) / (wide[i] + 0.04));
+        const base = Math.pow(Math.max(0, l-0.012), 1.5);
+        star[i] = base * (1 + M31_ARM_K*ridge[i]);
+        haze[i] = base * (1 + 0.6*M31_ARM_K*ridge[i]);   // the unresolved light follows the arms too
         // the Hubble palette codes HII and young stars blue-white: read the blue excess
         const be = Math.max(0, px[i*4+2]/255 - (px[i*4]+px[i*4+1])/510 - 0.02);
-        neb[i]  = be*l;
+        neb[i]  = be*l*(1 + M31_ARM_K*ridge[i]);   // the HII knots are what trace an arm in any photograph
         dust[i] = r>28 ? Math.max(0, blur[i]-l)*Math.min(1, l*4+0.2) : 0;
       }
       const cum = a => { const c=new Float32Array(a.length); let s=0;
         for(let i=0;i<a.length;i++){ s+=a[i]; c[i]=s; } return c; };
-      m31Map = { n, px, lum, blur, starC:cum(star), nebC:cum(neb), dustC:cum(dust) };
+      m31Map = { n, px, lum, blur, ridge, starC:cum(star), hazeC:cum(haze), nebC:cum(neb), dustC:cum(dust) };
       flushGxyCache();
       setGalaxy(curD);
     })

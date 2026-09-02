@@ -181,7 +181,12 @@ before the work starts. An item is ticked when it ships, with the version that c
       label +80,+80 px, a pinch zoomed with zero pan drift, GO cleared it — v2.63.0.
 - [x] "If galactic age": the background texture 20% more transparent — read as the glacial
       frost again, on top of v2.60.2's 20%: .336 → .269, 64% of the original — v2.63.0.
-- [ ] Improve the visibility of Andromeda's spiral arms a bit.
+- [x] Improve the visibility of Andromeda's spiral arms a bit. Stars, HII knots and the
+      haze are now weighted by the map's ridges (a pixel's excess over a 20-px blur, clamped
+      at 0.3, K = 24; haze 60% of that; an arm's stars 25% of that brighter). Measured at
+      screen scale the star layer's arm contrast goes ~1.5 → ~2, and face-on the arms read
+      as arms where they were a mottle. K = 3 did nothing and K = 12 little: the map's
+      ridges average 0.08 — v2.63.1.
 
 ### Shipped earlier, for the record
 
