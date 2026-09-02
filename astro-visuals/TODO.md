@@ -82,6 +82,8 @@ before the work starts. An item is ticked when it ships, with the version that c
 - [x] After the Andromeda–Milky Way merger, show one label only: "Milkomeda" (the name
       Cox & Loeb gave the remnant; the request said "Milkomedia") — from the same merge
       threshold at which the other galaxy names step down — v2.59.0.
+- [ ] Losing focus must remember the play state of the animation and the music, and
+      restore exactly that on regaining focus (the v2.45.0 handler is not doing it).
 
 ### Shipped earlier, for the record
 
