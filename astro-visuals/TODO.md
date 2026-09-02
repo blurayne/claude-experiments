@@ -34,7 +34,6 @@ before the work starts. An item is ticked when it ships, with the version that c
 - [x] On the tutorial the logo should drop the "Galactic Year" lettering and the outer
       circle, and be a bit bigger. `logo-mark.svg` — the emblem without the wordmark and
       without the frame's three circles — at 132px (96 short, 88 phone) — v2.55.0.
-- [ ] `m31-map.webp` has blurry parts visible in the simulation (the azimuthal fill where
 - [x] `m31-map.webp` has blurry parts visible in the simulation (the azimuthal fill where
       the PHAT panorama has no coverage). Rebuild it from the wide-field pictures the owner
       supplied — Herschel/Planck far-IR (dust), GALEX UV (young stars), wide optical — each
@@ -49,6 +48,9 @@ before the work starts. An item is ticked when it ships, with the version that c
       They should sit within the star field: darken only the diffuse haze, and be drawn
       beneath the stars, the HII regions and the core. Draw order is now haze → dust →
       stars → HII and core, and the sprite never goes fully opaque — v2.56.1.
+      beneath the stars, the HII regions and the core.
+- [ ] Rename "Galactic Year" to "Galactic Transit" on the favicon and in the app icon
+      manifest.
 
 ### Shipped earlier, for the record
 
