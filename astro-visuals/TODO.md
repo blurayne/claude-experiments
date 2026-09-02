@@ -173,6 +173,8 @@ before the work starts. An item is ticked when it ships, with the version that c
       status bar, measured with the floor lifted at the HUD's own tick; lowered only after a
       full second of narrower content. Measured: 420 → 497 px at the first sample after the
       number lengthened, held through 1.4 s after it shortened, released by 2.7 s — v2.62.1.
+- [ ] The shuttle reads "off" at 0 instead of "0%".
+- [ ] Allow panning with two fingers.
 
 ### Shipped earlier, for the record
 
