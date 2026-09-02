@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.59.2 — 2026-09-02
+
+- The audio may never give up permanently (v2.59.2) (`14dde2d`)
+
 ### 2.59.1 — 2026-09-02
 
 - Give the play state back, and let a swipe finish (v2.59.1) (`e8bca2d`)
