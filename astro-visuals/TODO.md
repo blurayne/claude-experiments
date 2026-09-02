@@ -20,6 +20,8 @@ before the work starts. An item is ticked when it ships, with the version that c
       nebula on screen — fix the mismatch. The panel now reads "planetary nebula" for as
       long as the shell physically exists (`pnState`, 0.3 Gyr past `sunState`'s own
       cutoff), not the moment the clock crosses into white-dwarf age — v2.53.2.
+- [ ] The view select still reads "Solar System" once the Sun has turned into a nebula —
+      call it "Anthropic Nebula" from that point onward.
 
 ### Shipped earlier, for the record
 
