@@ -91,6 +91,7 @@ before the work starts. An item is ticked when it ships, with the version that c
       is 178 px wide on a phone, so the swipe crossed its own edge and `pointerleave`
       aborted it. The pointer is captured now, `pointerleave` is gone, and the panels carry
       `touch-action:pan-y`. Verified with real touch events at phone size — v2.59.1.
+- [ ] Music does not play any more, especially after a reset; check the sound effects too.
 
 ### Shipped earlier, for the record
 
