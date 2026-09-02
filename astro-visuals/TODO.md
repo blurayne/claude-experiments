@@ -132,6 +132,8 @@ before the work starts. An item is ticked when it ships, with the version that c
       plane and inside the disk's edge), fading in as it rises out or leaves the disk; the
       multiply could never take a glow that bright to nothing. Edge-on from outside the
       bulge still glows with the lane through it — v2.60.3.
+- [ ] Revert v2.60.3's hiding of the core, and fix only the marked spot: the compact
+      bright blob sitting in the dark lane, right of centre, in the Solar System view.
 
 ### Shipped earlier, for the record
 
