@@ -181,6 +181,7 @@ before the work starts. An item is ticked when it ships, with the version that c
       label +80,+80 px, a pinch zoomed with zero pan drift, GO cleared it — v2.63.0.
 - [x] "If galactic age": the background texture 20% more transparent — read as the glacial
       frost again, on top of v2.60.2's 20%: .336 → .269, 64% of the original — v2.63.0.
+- [ ] Improve the visibility of Andromeda's spiral arms a bit.
 
 ### Shipped earlier, for the record
 
