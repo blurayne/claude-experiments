@@ -74,6 +74,9 @@ before the work starts. An item is ticked when it ships, with the version that c
       load, verified in the renderer — v2.58.0.
 - [x] Hot-fix: v2.58.0's `sw.js` carried two `const V` lines (rebase keep-both) — one
       line again, and the ship chain now stops on a failed parse — v2.58.1.
+- [ ] Labels that just spin around: debounce them, but without labels jumping. A new
+      feature flag under Other options, on by default for now.
+- [ ] After the Andromeda–Milky Way merger, show one label only: "Milkomeda".
 
 ### Shipped earlier, for the record
 
