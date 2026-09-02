@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.58.1 — 2026-09-02
+
+- One const V in sw.js again; the ship chain stops on a bad parse (v2.58.1) (`4269272`)
+
 ### 2.58.0 — 2026-09-02
 
 - Andromeda's map, completed by human and AI (v2.58.0) (`7865813`)
