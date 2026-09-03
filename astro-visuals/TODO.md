@@ -5,6 +5,7 @@ before the work starts. An item is ticked when it ships, with the version that c
 
 ## 2026-09-01
 
+- [ ] The Moon in the view list, followed like Earth.
 - [x] Debug: collect console errors (on phones and tablets only, where there is no console)
       and show them in the settings dialog behind tabs — the error log tab first, settings
       beside it — v2.77.0.
