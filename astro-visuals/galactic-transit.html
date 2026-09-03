@@ -323,15 +323,21 @@
   .chks.indent{padding-left:60px}
   .chk{display:flex;align-items:center;gap:5px;font-size:9.5px;letter-spacing:.08em;color:var(--dim);
     cursor:pointer;user-select:none;text-transform:uppercase;font-family:'Orbitron',ui-monospace,monospace}
-  .chk input{accent-color:var(--accent);width:12px;height:12px;margin:0;cursor:pointer}
+  /* the checkbox drawn by the page: a transparent box with a dim frame, the accent tick when checked */
+  .chk input{appearance:none;-webkit-appearance:none;width:12px;height:12px;margin:0;cursor:pointer;flex:none;
+    border:1px solid var(--dim);border-radius:2px;background:transparent;display:inline-grid;place-content:center}
+  .chk input::before{content:'';width:8px;height:8px;background:var(--accent);transform:scale(0);transition:transform .12s;
+    clip-path:polygon(14% 44%,0 65%,50% 100%,100% 16%,80% 0,43% 62%)}
+  .chk input:checked{border-color:var(--accent)}
+  .chk input:checked::before{transform:scale(1)}
   .chk:has(input:checked){color:var(--accent)}
   #hud .chk{font-family:inherit;text-transform:none;letter-spacing:.02em;font-size:11px}   /* the settings dialog reads in the text face */
   .chk.plain{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;text-transform:none;letter-spacing:.02em;font-size:10.5px}
   /* (i): a touch shows one short tooltip; the next touch, anywhere, hides it */
-  .info{display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:2px;border:1px solid var(--dim);
+  .info{display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:2px;border:1px solid color-mix(in srgb, var(--dim) 50%, transparent);
     color:var(--dim);background:none;padding:0;margin-left:5px;flex:none;cursor:pointer;vertical-align:middle;
     font:600 8.5px/1 ui-sans-serif,system-ui,sans-serif;letter-spacing:0;text-transform:none}
-  .info:hover,.info.on{color:var(--accent);border-color:var(--accent)}
+  .info:hover,.info.on{color:var(--accent);border-color:color-mix(in srgb, var(--accent) 60%, transparent)}
   #tip{position:fixed;z-index:1200;display:none;max-width:250px;padding:7px 9px;border-radius:6px;pointer-events:none;
     background:rgba(6,10,20,.96);border:1px solid var(--accent);color:var(--ink);box-shadow:0 4px 18px rgba(0,0,0,.5);
     font:11px/1.4 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;letter-spacing:.02em;text-transform:none}
@@ -1063,7 +1069,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.74.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.74.2', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
