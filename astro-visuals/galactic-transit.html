@@ -966,7 +966,7 @@
       model: each pole is the great circle from a plate's seat today to its seat in Pangaea, the angles set so
       the continents land where the maps put them, and the future runs the same arcs back: Pangaea at 250
       Myr ago, the Atlantic opening, India and Australia running north, and ahead the Atlantic closing again into
-      Pangaea Proxima around +250 Myr. Before the map has meaning the surface is noise. The plates creep a degree in ten million years, so the <b>Plate tectonics</b> scenario runs the clock at ten million years a second, and <b>Pangaea</b>, <b>Pangaea Proxima</b> and <b>the oceans boiling away</b> are events of their own in the list — the first two still portraits at a year a second over the supercontinent, the third the same face at ten million years a second while the seas withdraw; at anything past a few weeks a second a frame spans whole days and the day/night line would land somewhere new each time, so the globe is then lit by the <b>daily mean</b> for its latitude instead. Tick <b>spin lock</b> under the view row (or in the settings' visuals) and the camera turns
+      Pangaea Proxima around +250 Myr. Before the map has meaning the surface is noise. The plates creep a degree in ten million years, so the <b>Plate tectonics</b> scenario runs the clock at ten million years a second, and <b>Pangaea</b>, <b>Pangaea Proxima</b> and <b>the oceans boiling away</b> are events of their own in the list — the first two still portraits at a year a second over the supercontinent, the third the same face at ten million years a second while the seas withdraw; at anything past a few weeks a second a frame spans whole days and the day/night line would land somewhere new each time, so the globe is then lit by the <b>daily mean</b> for its latitude instead. The <b>view</b> row also flies to the <b>Moon</b> herself, followed the same way and lit the same way, her orbit drawn behind her. Tick <b>spin lock</b> under the view row (or in the settings' visuals) and the camera turns
       with the planet, so the same face stays in view while the clock runs — the way to watch the plates drift. Where the map has no
       depths, the oceans retreat toward the regions farthest from any coast as they go. Through the clock it shows the Hadean's molten crust, the methane-hazed orange Archean
       until the Great Oxidation, the Huronian and Cryogenian snowballs, ice caps from the <b>rock record</b> up to today — the
@@ -1082,7 +1082,7 @@
   <div class="er" style="align-items:flex-start"><span>view</span>
     <span style="display:flex;flex-direction:column;gap:5px;align-items:flex-start">
     <span style="display:flex;gap:6px;align-items:center">
-      <select id="focusSel"><option value="sun">Solar System</option><option value="earth">Earth</option><option value="pn">Anthropic Nebula</option><option value="mw">Milky Way</option><option value="and">Andromeda</option></select>
+      <select id="focusSel"><option value="sun">Solar System</option><option value="earth">Earth</option><option value="moon">Moon</option><option value="pn">Anthropic Nebula</option><option value="mw">Milky Way</option><option value="and">Andromeda</option></select>
       <button class="rowbtn" id="focusGo">GO</button>
     </span>
     <label class="chk plain"><input type="checkbox" id="tSpinLock"> spin lock<button type="button" class="info" data-tip="The camera turns with the planet, so the same face stays in view while the clock runs. Tick it to watch the plates drift." aria-label="about spin lock">i</button></label>
@@ -1130,7 +1130,7 @@ if(TOUCH_DEV){
     };
   }
 }
-const BUILD = { version: '2.77.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.78.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2766,6 +2766,7 @@ const vaoGlobe = (()=>{ const v=gl.createVertexArray(); gl.bindVertexArray(v); g
 const MOON_D0 = 384400/1.496e8*AU2U, MOON_INC = 5.145*Math.PI/180, MOON_P0 = 27.3217/365.25;
 const MOON_M1 = E1, MOON_M2 = [E2[0]*Math.cos(MOON_INC)+EN[0]*Math.sin(MOON_INC), E2[1]*Math.cos(MOON_INC)+EN[1]*Math.sin(MOON_INC), E2[2]*Math.cos(MOON_INC)+EN[2]*Math.sin(MOON_INC)];
 const MOON_BORN = 0.06;                                  // Gyr: the Theia impact, as the scenario has it
+const MOON_DIA = 2*(1737/1.496e8)*AU2U;                  // scene units, her true diameter
 function moonDist(a){ return MOON_D0*Math.pow(Math.max(0.02, Math.min(3, (a - 0.05)/4.518)), 0.45); }
 const moonW = new Float64Array(3), moonRel = new Float32Array(3);
 function moonPos(t, out){                                // world position, doubles
@@ -3549,7 +3550,10 @@ function endPointer(e){
 }
 addEventListener('pointerup', endPointer);
 addEventListener('pointercancel', endPointer);
-const minDist = ()=> followTarget === 'earth' ? 2e-11 : (realMode ? 2e-8 : 25); // the floor: ~0.04 AU across, eight solar radii; at Earth, a planet filling the view
+// the floor: ~0.04 AU across, eight solar radii; at Earth and at the Moon, a body filling
+// the view. The Moon's view before she forms is Earth's view, so it keeps Earth's floor.
+const minDist = ()=> followTarget === 'moon' ? (ageGyr() > MOON_BORN ? 5.5e-12 : 2e-11)
+                   : followTarget === 'earth' ? 2e-11 : (realMode ? 2e-8 : 25);
 // The zoom buttons step along a ladder of the objects themselves — the Sun, the planets'
 // orbits, the belts, the Oort shell, the nearest stars, the arm, the Galaxy, the Local
 // Group — with one rung between each pair, so two presses take you from one object to
@@ -3843,9 +3847,11 @@ const focusSunOpt = $('focusSel').options[0];   // its name changes once the Sun
 // The Earth view fills the viewport: the globe's diameter at 80% of the shorter side,
 // whatever the screen. The projection's field is vertical (see pxScale in the draw),
 // so the distance is the planet's true diameter over that many pixels.
-function earthViewDist(){
-  const w = innerWidth, h = innerHeight, px = 0.8*Math.min(w, h);
-  return Math.max(minDist(), realSizes[3]*(h/(2*Math.tan(Math.PI/6)))/px);
+function earthViewDist(){ return bodyViewDist(realSizes[3]); }
+function moonViewDist(){ return bodyViewDist(MOON_DIA); }
+function bodyViewDist(dia){        // the distance at which a body of this diameter fills 80% of the shorter side
+  const h = innerHeight, px = 0.8*Math.min(innerWidth, h);
+  return Math.max(minDist(), dia*(h/(2*Math.tan(Math.PI/6)))/px);
 }
 function applyFocusView(){
   const v = $('focusSel').value;
@@ -3861,6 +3867,16 @@ function applyFocusView(){
     if(!$('tDive').classList.contains('on')) $('tDive').click();
     followTarget = 'earth';
     cam.follow = true; coreLock = false; cam.distGoal = earthViewDist(); reseedFollow = true; panF[0]=panF[1]=0;
+  } else if(v === 'moon'){
+    // the Moon herself, filling the view. Followed like Earth: the same handlers, and the
+    // same order — the toggles reset the target to the Sun as they turn themselves on.
+    if($('tView').classList.contains('on')) $('tView').click();
+    if(!$('tDive').classList.contains('on')) $('tDive').click();
+    followTarget = 'moon';
+    // before the Theia impact there is no Moon: the view holds on the world she comes
+    // from, at Earth's own distance, and takes her up when she forms
+    cam.follow = true; coreLock = false; reseedFollow = true; panF[0]=panF[1]=0;
+    cam.distGoal = ageGyr() > MOON_BORN ? moonViewDist() : earthViewDist();
   } else if(v === 'pn'){
     // the shell's full reach, ~3.5 ly across, following what is left of the Sun; before
     // the shell exists this is simply the Sun's neighbourhood at that scale
@@ -5312,7 +5328,11 @@ function frame(now){
   // camera — the view matrix is built Sun-relative for the same precision reason
   // Earth's world position in doubles: the follow target when the view is hers
   bodyPos(3, simT, earthW);
-  const followPos = followTarget === 'and' ? andPos : (followTarget === 'earth' && !wasEaten[3]) ? earthW : org;
+  const moonHere = followTarget === 'moon' && !wasEaten[3] && ageGyr() > MOON_BORN;
+  if(moonHere) moonPos(simT, moonW);                                  // the camera needs her before the draw does
+  const followPos = followTarget === 'and' ? andPos
+                  : moonHere ? moonW
+                  : ((followTarget === 'earth' || followTarget === 'moon') && !wasEaten[3]) ? earthW : org;
   const goal = cam.follow ? [followPos[0],followPos[1],followPos[2]] : [0,0,0];
   if(reseedFollow){ for(let i=0;i<3;i++) smoothOfs[i] = smoothTarget[i]-goal[i]; reseedFollow=false; }
   const k = firstFrame?1:Math.min(1,dt*4);
@@ -5772,7 +5792,8 @@ function frame(now){
   // Earth as a globe, and the Moon, once they are more than a dot. Opaque discs, so the
   // same blend as the Sun's disc; the atmosphere adds over what is behind it.
   moonPx = 0;
-  if(globePx > 4 && !wasEaten[3]){
+  // the pass opens on Earth's size, or on the Moon's when she is the one being followed
+  if((globePx > 4 || followTarget === 'moon') && !wasEaten[3]){
     const a = ageGyr(), era = earthEra(a, environment().mean);
     const ex = bodyPosArr[9], ey = bodyPosArr[10], ez = bodyPosArr[11];
     const sunV = norm3(vecV(viewMat, [-ex, -ey, -ez]));
@@ -5798,7 +5819,7 @@ function frame(now){
     if(a > MOON_BORN){
       moonPos(simT, moonW);
       moonRel[0] = moonW[0]-org[0]; moonRel[1] = moonW[1]-org[1]; moonRel[2] = moonW[2]-org[2];
-      moonPx = (2*1737/1.496e8*AU2U)*((H*DPR)/(2*Math.tan(Math.PI/6)))/cam.dist;
+      moonPx = MOON_DIA*((H*DPR)/(2*Math.tan(Math.PI/6)))/cam.dist;
       if(moonPx > 1.5){
         const msunV = norm3(vecV(viewMat, [-moonRel[0], -moonRel[1], -moonRel[2]]));
         gl.uniform3f(UG.uSunV, msunV[0],msunV[1],msunV[2]);

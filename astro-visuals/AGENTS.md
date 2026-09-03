@@ -325,6 +325,27 @@ Also here: a request for "a setting to turn off dark clouds" — the switch alre
 adding it; a duplicate switch is worse than none. And the settings title is "Settings" alone now,
 the version living in the info dialog and the tour card.
 
+## The Moon as a view (v2.78.0)
+
+- **A follow target is four things.** `followTarget = 'moon'` needs: the option, a branch
+  in `applyFocusView` (same order as Earth's — the view and dive toggles reset the target
+  to the Sun as a side effect of turning themselves on, so set it after them), the
+  position in the frame's `followPos`, and its own floor in `minDist`. Miss the floor and
+  the camera stops light-seconds short of a body 3,474 km across.
+- **`moonPos` must run before the camera, not with the draw.** The Moon's world position
+  was computed inside the globe pass, well after the view matrix is built; following her
+  needs it first. It is now called at the top of the camera block when she is the target.
+- **The globe pass is gated on Earth's size**, so following the Moon has to open it too,
+  or she is never drawn at all. The `a` in that condition does not exist yet — `const a =
+  ageGyr()` is the block's own first line — so gate on `followTarget` alone.
+- **Before the Theia impact there is no Moon.** The view then holds on Earth, at Earth's
+  distance and Earth's floor, and takes the Moon up when she forms. The first attempt fell
+  through to the Sun and parked the camera inside it; the second kept the Moon's own floor
+  and left Earth two pixels wide. Both were caught by testing the age *before* choosing
+  the view, which is the order a visitor uses.
+- `MOON_DIA` now names the diameter both the view distance and `moonPx` were computing
+  inline.
+
 ## An error log for the device that has no console (v2.77.0)
 
 - **Collected only where it is needed.** `TOUCH_DEV` is `(pointer: coarse)` or more than
