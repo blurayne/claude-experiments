@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.64.1 — 2026-09-03
+
+- Zoom buttons under play, and following their switch at boot (v2.64.1) (`8e3f303`)
+
 ### 2.64.0 — 2026-09-03
 
 - Zoom + and − under help, stepping object to object (v2.64.0) (`b8dd6ad`)
