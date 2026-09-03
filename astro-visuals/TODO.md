@@ -194,6 +194,7 @@ before the work starts. An item is ticked when it ships, with the version that c
       rung and the existing log-space easing carries the distance there. Verified: help
       146 px → + 190 → − 234 → pause; Oort shell − − → nearest stars and + + back; the
       switch hides them, closes the gap and persists — v2.64.0.
+- [ ] Put the zoom buttons under the play button, and have them active by default.
 
 ### Shipped earlier, for the record
 
