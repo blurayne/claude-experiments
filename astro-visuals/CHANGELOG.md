@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.66.0 — 2026-09-03
+
+- The QR overlay sits bottom right, remembers where it is put, and a double tap dismisses it (v2.66.0) (`ef77f3a`)
+
 ### 2.65.1 — 2026-09-03
 
 - The QR overlay defaults to 1x (v2.65.1) (`ca1d951`)
