@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.75.0 — 2026-09-03
+
+- Feat(astro-visuals): v2.75.0 — Pangaea, Pangaea Proxima and the oceans' end as events; ice from the rock record (`a67b2af`)
+
 ### 2.74.4 — 2026-09-03
 
 - Style(astro-visuals): v2.74.4 — the (i) border is a circle again (`ea740fe`)
