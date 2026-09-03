@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.77.0 — 2026-09-03
+
+- Feat(astro-visuals): v2.77.0 — an error log in debug mode, collected on touch devices (`b369b0a`)
+
 ### 2.76.0 — 2026-09-03
 
 - Feat(astro-visuals): v2.76.0 — the dust reddens by the extinction law; HII toward Hα (`a9ec71f`)
