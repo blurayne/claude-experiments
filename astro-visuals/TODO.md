@@ -5,7 +5,7 @@ before the work starts. An item is ticked when it ships, with the version that c
 
 ## 2026-09-01
 
-- [ ] The (i) icon square, not round.
+- [x] The (i) icon square, not round — v2.74.1.
 - [x] Spin lock left-aligned on its own line under the view option box, its label in normal
       text — v2.74.0.
 - [x] An (i) icon next to settings whose meaning is not obvious ("HUD rate" among them); a
