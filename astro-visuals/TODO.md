@@ -218,8 +218,16 @@ before the work starts. An item is ticked when it ships, with the version that c
       out (teal inside, warm dust beyond), the fast wind hollowing the cavity, the
       filamentary [OIII]/Hα shell with cometary knots and the old wind's halo, then
       dissolution. Rendered through its life and closely at the onset — v2.67.0.
-- [ ] Add Earth to the view select; a proper 3D Earth with shaders for the planet's phases
-      as it goes through time; a Moon, with its orbit shown at Earth scale.
+- [x] Add Earth to the view select; a proper 3D Earth with shaders for the planet's phases
+      as it goes through time; a Moon, with its orbit shown at Earth scale. "Earth" view
+      (follows the planet, the Moon's orbit in frame; two zoom presses to the globe); a
+      sphere shaded in the fragment (`GLOBE_FS`) with an era model from the clock and the
+      climate — molten Hadean, hazed Archean, snowballs, caps, greening, drying, melting
+      again — clouds with shadows, Rayleigh limb, soft red terminator, glint, city lights
+      in the human era; the Moon at its true, receding distance with maria, its orbit ring
+      and label; the Sun and nebula sized by the camera's distance to the Sun (from Earth
+      it had filled the sky); the readout down to km. Verified across eras, over the pole
+      in June, at the terminator, and all other views unchanged — v2.68.0.
 - [x] The "helix" scenario starts at the current date and time: simT counts Earth's
       orbits from 2026.0, so it is set to the real elapsed fraction of years since
       2026-01-01 UTC, and the human-year readout follows — v2.65.0.

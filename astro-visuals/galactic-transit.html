@@ -916,6 +916,20 @@
       slower wind; then it thins and dissolves. It is stretched
       in time like every death here, a third of a gigayear for something that really lasts twenty thousand
       years. The Sun's label reads <i>Anthropic Nebula</i> while it is on screen.</li>
+      <li><b>Earth as a globe, and the Moon.</b> Close in — the <i>Earth</i> view, or two presses of the zoom
+      from it — Earth is drawn as a sphere shaded in the fragment: the Sun's light, a terminator softened and
+      reddened by the air, clouds with their shadows, Rayleigh blue thickening toward the limb, a glint on open
+      water, and on the night side the cities, in the twenty thousand years around now that have them. Its
+      surface is a <b>model of an era, not a map</b>: the coastlines are noise, drifting slowly with the age, and
+      the fraction of land follows the geology — a few islands in the Archean, today's 29%, all land once the
+      oceans have gone. Through the clock it shows the Hadean's molten crust, the methane-hazed orange Archean
+      until the Great Oxidation, the Huronian and Cryogenian snowballs, ice caps that follow the piece's own
+      climate model through the Phanerozoic (and the rock record before it — the model reads the faint young
+      Sun without the greenhouse that kept the early oceans liquid), land greening from the Devonian, the moist
+      greenhouse drying the oceans a billion years ahead, and the crust melting again under the red giant. The
+      <b>Moon</b> orbits it at its true distance, receding as it always has — 3.8 cm a year now, far faster when
+      young — on a power law fitted to formation at the Theia impact rather than a dynamical model, its period from
+      Kepler's law; its orbit is drawn once it spans more than a few pixels.</li>
       <li><b>Planet 9?</b> is the one body here that may not exist: a ~6 Earth-mass planet on a ~400 AU
       orbit, proposed to explain the clustered orbits of the far Kuiper belt. Its orbit is drawn from those
       estimates and its question mark is part of its name. Switch it off in Visuals if you would rather
@@ -1015,7 +1029,7 @@
   <div class="envsep"></div>
   <div class="er"><span>view</span>
     <span style="display:flex;gap:6px;align-items:center">
-      <select id="focusSel"><option value="sun">Solar System</option><option value="pn">Anthropic Nebula</option><option value="mw">Milky Way</option><option value="and">Andromeda</option></select>
+      <select id="focusSel"><option value="sun">Solar System</option><option value="earth">Earth</option><option value="pn">Anthropic Nebula</option><option value="mw">Milky Way</option><option value="and">Andromeda</option></select>
       <button class="rowbtn" id="focusGo">GO</button>
     </span></div>
 </div>
@@ -1028,7 +1042,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.67.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.68.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -1519,7 +1533,7 @@ BODIES.forEach((b,i)=>{
 // Amplitude shown ~3× exaggerated so it reads at this zoom.
 const WOB_A = 24, WOB_T = 90e6; // scene units, and the real ~90 Myr vertical period
 
-const tmp = new Float64Array(3), tmpSun = new Float64Array(3);
+const tmp = new Float64Array(3), tmpSun = new Float64Array(3), earthW = new Float64Array(3);
 function bodyPos(i, t, out){
   const phi = sunPhase(t);                       // galactic anomaly, slowing as R grows
   const R = sunR(t);                             // constant until the merger flings it out
@@ -2465,6 +2479,178 @@ const RING_FS = `#version 300 es
 precision mediump float; uniform vec3 uColor; out vec4 o;
 void main(){ o=vec4(uColor,1.0); }`;
 const pRing = prog(RING_VS, RING_FS);
+
+// ---------- Earth and the Moon: spheres shaded in the fragment, as everything here ----------
+// A point sprite whose fragment builds the sphere: the normal from the sprite coordinate,
+// the lighting from the Sun's direction in view space, the surface from 3-D noise on the
+// unit vector in the planet's own frame (spin axis, prime meridian), so the planet turns
+// under its map and the map holds still. The Earth's surface is a MODEL of an era, not a
+// map of the real continents: coastlines are noise, drifting slowly with the age.
+const GLOBE_VS = `#version 300 es
+uniform mat4 uProj,uView; uniform vec3 uPos; uniform float uSz;
+void main(){ gl_Position = uProj*uView*vec4(uPos,1.0); gl_PointSize = uSz; }`;
+const GLOBE_FS = `#version 300 es
+precision highp float;
+uniform vec3 uSunV, uAxisV, uPrimeV;     // view space: toward the Sun; the spin axis; the prime meridian on the equator
+uniform float uMirror, uDisc, uTime, uMoon;
+uniform float uMolten, uOcean, uSea, uHaze, uVeg, uIceLat, uCloud, uLights, uDrift;
+out vec4 o;
+float h31(vec3 p){ p=fract(p*0.3183099+vec3(0.71,0.113,0.419)); p*=17.0; return fract(p.x*p.y*p.z*(p.x+p.y+p.z)); }
+float vn3(vec3 p){ vec3 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);
+  return mix(mix(mix(h31(i),h31(i+vec3(1,0,0)),f.x), mix(h31(i+vec3(0,1,0)),h31(i+vec3(1,1,0)),f.x),f.y),
+             mix(mix(h31(i+vec3(0,0,1)),h31(i+vec3(1,0,1)),f.x), mix(h31(i+vec3(0,1,1)),h31(i+vec3(1,1,1)),f.x),f.y),f.z); }
+float fbm3(vec3 p){ float a=0.5,s=0.0; for(int i=0;i<4;i++){ s+=a*vn3(p); p=p*2.07+vec3(1.3,2.1,0.7); a*=0.5; } return s; }
+void main(){
+  vec2 q = gl_PointCoord*2.0-1.0; q.y = -q.y; q.x *= uMirror;   // sprite space -> view space
+  float rr = length(q)/uDisc;
+  if(rr > 1.09) discard;
+  if(rr > 1.0){                                                 // the atmosphere, beyond the limb
+    if(uMoon > 0.5 || uMolten > 0.99) discard;
+    float t = (rr-1.0)/0.09, glow = exp(-t*2.6)*(1.0-t);
+    vec3 atm = mix(vec3(0.38,0.62,1.0), vec3(1.0,0.58,0.28), uHaze);
+    vec2 d = q/max(length(q),1e-4);
+    float side = smoothstep(-0.45, 0.45, dot(vec3(d,0.0), uSunV) + 0.35*uSunV.z);
+    o = vec4(atm*glow*0.6*side*(0.35+0.65*uOcean), 0.0); return;   // additive
+  }
+  vec3 n = vec3(q/uDisc, sqrt(max(0.0, 1.0-rr*rr)));
+  float lit = dot(n, uSunV);
+  float day = smoothstep(-0.10, 0.18, lit), dif = max(lit, 0.0);
+  vec3 Q = cross(uAxisV, uPrimeV);
+  vec3 p = vec3(dot(n,uPrimeV), dot(n,Q), dot(n,uAxisV));       // the planet's own frame; p.z = sin(latitude)
+  float lat = abs(asin(clamp(p.z,-1.0,1.0)))*57.2958;
+  vec3 col;
+  if(uMoon > 0.5){
+    // grey regolith, dark maria in the lowest of the low-frequency noise, and a pass of
+    // fine crater texture; no atmosphere, so the terminator is hard
+    float m = fbm3(p*2.4+vec3(4.0)), c = fbm3(p*13.0);
+    float maria = smoothstep(0.66, 0.74, m);
+    col = mix(vec3(0.56,0.55,0.53), vec3(0.28,0.28,0.30), maria) * (0.82+0.36*(c-0.5));
+    col *= 0.04 + 0.96*pow(dif, 0.85);
+    o = vec4(col, 1.0); return;
+  }
+  vec3 dr = vec3(uDrift, uDrift*0.7, -uDrift*0.4);
+  float h = fbm3(p*2.6 + dr) + 0.35*fbm3(p*7.0 + 1.7*dr) - 0.17;
+  float land = smoothstep(uSea-0.025, uSea+0.025, h);
+  float shallow = smoothstep(uSea-0.10, uSea, h);
+  // the land: bare rock, greened by vegetation where it is not desert, whitened by ice
+  float dry = exp(-pow((lat-24.0)/11.0, 2.0));
+  float detail = fbm3(p*5.0+dr*2.0);                              // one texture, shared below
+  vec3 rock = mix(vec3(0.42,0.32,0.22), vec3(0.62,0.52,0.36), detail);
+  vec3 green = mix(vec3(0.15,0.30,0.09), vec3(0.28,0.42,0.14), fract(detail*1.7+0.3));
+  vec3 landCol = mix(rock, green, uVeg*(1.0-dry*0.85));
+  vec3 sea = mix(vec3(0.02,0.10,0.32), vec3(0.05,0.28,0.42), shallow*0.6);
+  sea = mix(sea, vec3(0.06,0.14,0.18), uHaze*0.6);                // a dimmer, greener sea under the haze
+  col = mix(sea, landCol, land);
+  col = mix(col, vec3(0.42,0.34,0.24), (1.0-uOcean)*(1.0-land));  // a sea floor bared as the oceans go
+  float ice = smoothstep(uIceLat-6.0, uIceLat+6.0, lat + 4.0*(detail-0.5)) * (1.0-uMolten);
+  col = mix(col, vec3(1.0,1.0,1.0), ice);
+  // clouds, drifting, and their shadows a little sunward of them on the ground
+  vec3 cq = p*4.2 + vec3(uTime*0.012, 0.0, -uTime*0.007) + dr*0.3;
+  float cl = fbm3(cq);
+  float cloud = smoothstep(0.50 + 0.22*(1.0-uCloud), 0.74, cl) * min(1.0, uCloud*1.4);
+  vec3 sunP = vec3(dot(uSunV,uPrimeV), dot(uSunV,Q), dot(uSunV,uAxisV));   // the Sun in the planet frame
+  float clS = fbm3(cq + sunP*0.09);
+  float shadow = smoothstep(0.50 + 0.22*(1.0-uCloud), 0.74, clS) * min(1.0, uCloud*1.4);
+  col *= 1.0 - 0.35*shadow*(1.0-cloud);
+  col = mix(col, vec3(0.96,0.97,0.99), cloud*0.92);
+  // the haze: an orange cast, thicker toward the limb
+  col = mix(col, col*vec3(1.05,0.72,0.42)+vec3(0.10,0.05,0.0), uHaze*(0.45+0.45*(1.0-n.z)));
+  // sunlight: snow and cloud scatter forward, so they hold their brightness under a low
+  // sun; the terminator is softened by the air, and reddened in it
+  float difS = mix(dif, pow(dif, 0.6), max(ice, cloud));
+  float dusk = exp(-pow(lit/0.16, 2.0)) * uOcean;                               // the band around the terminator
+  vec3 R = reflect(-uSunV, n);
+  float spec = pow(max(R.z,0.0), 180.0) * (1.0-land) * (1.0-cloud) * uOcean * (1.0-uHaze*0.7);
+  col = col*(0.012 + 0.988*difS) + vec3(0.9,0.9,0.8)*spec*0.35;
+  col += vec3(0.9,0.45,0.18) * dusk * 0.10 * (1.0-uHaze);
+  // the air itself: Rayleigh blue over the day side, strongest where the view grazes it
+  float fres = pow(1.0 - n.z, 2.2);
+  vec3 air = mix(vec3(0.30,0.55,1.0), vec3(1.0,0.6,0.3), uHaze);
+  col += air * fres * (0.10 + 0.45*day) * (0.4 + 0.6*uOcean) * (1.0-uMolten);
+  // molten: the crust dark, cracked with lava, glowing on its own — only when it is
+  if(uMolten > 0.001){
+    float cracks = smoothstep(0.55, 0.78, fbm3(p*9.0+vec3(uTime*0.02)));
+    vec3 lava = vec3(0.05,0.03,0.03)*(0.3+0.7*dif) + vec3(1.0,0.32,0.04)*(0.25+cracks*1.2);
+    col = mix(col, lava, uMolten);
+  }
+  // the night side: cities, in the one era that has them, crossfading out through the dusk
+  if(uLights > 0.001){
+    float city = smoothstep(0.72, 0.9, vn3(p*70.0)) * land * (1.0-ice) * (1.0-dry*0.5);
+    col += vec3(1.0,0.80,0.45) * city * uLights * smoothstep(0.12, -0.20, lit) * (1.0-cloud*0.7) * 0.9;
+  }
+  o = vec4(col, 1.0);
+}`;
+const pGlobe = prog(GLOBE_VS, GLOBE_FS);
+const UG = {}; for(const k of ['uProj','uView','uPos','uSz','uSunV','uAxisV','uPrimeV','uMirror','uDisc','uTime','uMoon',
+  'uMolten','uOcean','uSea','uHaze','uVeg','uIceLat','uCloud','uLights','uDrift']) UG[k]=gl.getUniformLocation(pGlobe,k);
+const vaoGlobe = (()=>{ const v=gl.createVertexArray(); gl.bindVertexArray(v); gl.bindVertexArray(null); return v; })();
+// The Moon's orbit: its distance today, receding as it always has (3.8 cm/yr now, far faster
+// when it was young) — a power law fitted to formation ~4.5 Gyr ago at a few Earth radii,
+// not a dynamical model; Kepler's third law sets the period from the distance.
+const MOON_D0 = 384400/1.496e8*AU2U, MOON_INC = 5.145*Math.PI/180, MOON_P0 = 27.3217/365.25;
+const MOON_M1 = E1, MOON_M2 = [E2[0]*Math.cos(MOON_INC)+EN[0]*Math.sin(MOON_INC), E2[1]*Math.cos(MOON_INC)+EN[1]*Math.sin(MOON_INC), E2[2]*Math.cos(MOON_INC)+EN[2]*Math.sin(MOON_INC)];
+const MOON_BORN = 0.06;                                  // Gyr: the Theia impact, as the scenario has it
+function moonDist(a){ return MOON_D0*Math.pow(Math.max(0.02, Math.min(3, (a - 0.05)/4.518)), 0.45); }
+const moonW = new Float64Array(3), moonRel = new Float32Array(3);
+function moonPos(t, out){                                // world position, doubles
+  const a = AGE0 + t*YR_PER_SIM/1e9, d = moonDist(a), P = MOON_P0*Math.pow(d/MOON_D0, 1.5);
+  const th = 2*Math.PI*t/P + 1.3;
+  bodyPos(3, t, out);
+  for(let k=0;k<3;k++) out[k] += d*(Math.cos(th)*MOON_M1[k] + Math.sin(th)*MOON_M2[k]);
+  return out;
+}
+// Earth's spin axis: 23.44° from the ecliptic normal, tilted toward the direction that
+// makes northern summer fall on the calendar's June — the piece's year phase is Jan 1.
+const OBLIQ = 23.44*Math.PI/180;
+const EARTH_AXIS = (()=>{ const psi = PHASE[3] + 2*Math.PI*0.471 + Math.PI, c=Math.cos(psi), s=Math.sin(psi);
+  const e=[c*E1[0]+s*E2[0], c*E1[1]+s*E2[1], c*E1[2]+s*E2[2]];
+  return [Math.cos(OBLIQ)*EN[0]+Math.sin(OBLIQ)*e[0], Math.cos(OBLIQ)*EN[1]+Math.sin(OBLIQ)*e[1], Math.cos(OBLIQ)*EN[2]+Math.sin(OBLIQ)*e[2]]; })();
+const EARTH_P0 = (()=>{ const A=EARTH_AXIS, d=E1[0]*A[0]+E1[1]*A[1]+E1[2]*A[2]; const v=[E1[0]-d*A[0],E1[1]-d*A[1],E1[2]-d*A[2]];
+  const l=Math.hypot(...v); return [v[0]/l,v[1]/l,v[2]/l]; })();
+const SIDEREAL = 366.2422;                                 // rotations per year
+let earthPhi0 = null;                                     // set once: Greenwich noon on 2026-01-01
+function earthPrime(t, out){                              // the prime meridian's direction on the equator at t
+  const A = EARTH_AXIS, P0 = EARTH_P0, Q0 = [A[1]*P0[2]-A[2]*P0[1], A[2]*P0[0]-A[0]*P0[2], A[0]*P0[1]-A[1]*P0[0]];
+  if(earthPhi0 === null){
+    // solve the spin phase so that the Sun stands over the prime meridian at that noon
+    const tn = 0.5/365.25, e = new Float64Array(3); bodyPos(3, tn, e);
+    const sx=-e[0]+org[0], sy=-e[1]+org[1], sz=-e[2]+org[2];   // toward the Sun, from Earth (org is the Sun now)
+    const lam = Math.atan2(sx*Q0[0]+sy*Q0[1]+sz*Q0[2], sx*P0[0]+sy*P0[1]+sz*P0[2]);
+    earthPhi0 = lam - 2*Math.PI*SIDEREAL*tn;
+  }
+  const w = 2*Math.PI*SIDEREAL*t + earthPhi0, c=Math.cos(w), sn=Math.sin(w);
+  for(let k=0;k<3;k++) out[k] = c*P0[k] + sn*Q0[k];
+  return out;
+}
+// The era: what the planet looks like at a given age, from the piece's own timeline and
+// its climate model. Every number here is a model choice, disclosed in the info panel.
+const clamp01 = x => Math.max(0, Math.min(1, x));
+function earthEra(a, meanC){
+  const molten = Math.max(clamp01((0.16 - a)/0.09), clamp01((a - 11.15)/0.12));          // Hadean, and under the giant
+  const ocean  = clamp01((a - 0.15)/0.10) * clamp01((6.6 - a)/1.0);                       // late Hadean to the moist greenhouse
+  const haze   = clamp01((2.55 - a)/0.45);                                                // methane haze until the Great Oxidation
+  const veg    = clamp01((a - 4.12)/0.13) * clamp01((5.45 - a)/0.25);                     // land plants: Devonian on, starved ~0.9 Gyr ahead
+  const landF  = ocean > 0 ? 0.06 + 0.23*clamp01((a - 0.3)/2.2) : 1;                      // continents grow through the Archean
+  // the noise threshold that gives that land fraction: the fbm in the shader averages 0.48
+  // with a spread of ~0.11, so 29% land sits 0.55σ above the mean and 6% at 1.55σ
+  const sea    = ocean > 0 ? 0.485 + 0.113*(1.55 - 1.0*Math.min(1, landF/0.29)) : -1;   // ported and measured: 0.547 -> 29%, 0.660 -> 6%
+  const snow   = Math.max(clamp01(1 - Math.abs(a - 2.20)/0.15), clamp01(1 - Math.abs(a - 3.885)/0.05));   // Huronian, Cryogenian
+  // Ice from the climate model only in the Phanerozoic, where its greenhouse is roughly
+  // right; earlier it reads the faint young Sun without the greenhouse that kept the
+  // early oceans liquid, so before that the caps follow the rock record instead: none,
+  // except the snowballs above and the Pongola (2.9 Ga) and Karoo (300 Ma) ice ages.
+  let iceLat = a > 3.95 ? Math.max(18, Math.min(88, 90 - (18 - meanC)*5.5))                 // 15 °C -> ~74°; 11 -> ~52°; 5 -> ~18°
+             : 95 - 40*clamp01(1 - Math.abs(a - 1.67)/0.06);                                // Pongola: caps to ~55° for a moment
+  if(a > 4.22 && a < 4.31) iceLat = Math.min(iceLat, 50);                                  // Karoo
+  iceLat = (1 - snow)*iceLat + snow*0;
+  if(ocean <= 0 || molten > 0) iceLat = 95;
+  const cloud  = ocean*(0.55 + 0.35*clamp01((a - 5.3)/0.8))*(1 - molten);
+  const lights = Math.abs(a - AGE0) < 2e-5 ? 1 : 0;                                       // twenty thousand years around now
+  return { molten, ocean, sea: sea < 0 ? -2 : sea, haze, veg, iceLat, cloud, lights, drift: a*2.5 };
+}
+const vecV = (m, v) => [m[0]*v[0]+m[4]*v[1]+m[8]*v[2], m[1]*v[0]+m[5]*v[1]+m[9]*v[2], m[2]*v[0]+m[6]*v[1]+m[10]*v[2]];
+const norm3 = v => { const l = Math.hypot(v[0],v[1],v[2]) || 1; return [v[0]/l, v[1]/l, v[2]/l]; };
+let globePx = 0, moonPx = 0, earthDbg = null, camSunDist = 150;
 const UR = {}; for(const k of ['uProj','uView','uSun','uA','uB','uR','uColor']) UR[k]=gl.getUniformLocation(pRing,k);
 const vaoRing = gl.createVertexArray(); gl.bindVertexArray(vaoRing);
 gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,ringCS,gl.STATIC_DRAW);
@@ -3169,14 +3355,14 @@ function endPointer(e){
 }
 addEventListener('pointerup', endPointer);
 addEventListener('pointercancel', endPointer);
-const minDist = ()=> realMode ? 2e-8 : 25; // the floor: ~0.04 AU across, eight solar radii
+const minDist = ()=> followTarget === 'earth' ? 2e-11 : (realMode ? 2e-8 : 25); // the floor: ~0.04 AU across, eight solar radii; at Earth, a planet filling the view
 // The zoom buttons step along a ladder of the objects themselves — the Sun, the planets'
 // orbits, the belts, the Oort shell, the nearest stars, the arm, the Galaxy, the Local
 // Group — with one rung between each pair, so two presses take you from one object to
 // the next, and every press eases in log space like any other zoom. Clamped to the same
 // floor and ceiling as the wheel. Distances in camera units: 1 AU across the view is
 // 4.67e-7, 1 ly is 0.0288.
-const ZOOM_OBJ = [2e-8, 1e-7, 3.7e-7, 9.3e-7, 1.45e-6, 4.9e-6, 8.9e-6, 2.8e-5, 4.7e-5, 9.3e-4, 0.144, 0.72, 17, 150, 4300, 9500];
+const ZOOM_OBJ = [1.2e-10, 3.2e-9, 2e-8, 1e-7, 3.7e-7, 9.3e-7, 1.45e-6, 4.9e-6, 8.9e-6, 2.8e-5, 4.7e-5, 9.3e-4, 0.144, 0.72, 17, 150, 4300, 9500];
 const ZOOM_RUNGS = ZOOM_OBJ.flatMap((d, i) => i ? [Math.sqrt(ZOOM_OBJ[i-1]*d), d] : [d]);
 function zoomStep(dir){
   const cur = cam.distGoal, lo = Math.log(cur);
@@ -3433,6 +3619,13 @@ function applyFocusView(){
     if($('tView').classList.contains('on')) $('tView').click();
     if(!$('tDive').classList.contains('on')) $('tDive').click();
     else { cam.follow = true; coreLock = true; cam.distGoal = 3.5e-5; reseedFollow = true; panF[0]=panF[1]=0; }
+  } else if(v === 'earth'){
+    // the planet itself with the Moon's whole orbit in frame, following Earth. Set after
+    // the toggle clicks: both handlers reset the follow target to the Sun as a side effect.
+    if($('tView').classList.contains('on')) $('tView').click();
+    if(!$('tDive').classList.contains('on')) $('tDive').click();
+    followTarget = 'earth';
+    cam.follow = true; coreLock = false; cam.distGoal = 3.2e-9; reseedFollow = true; panF[0]=panF[1]=0;
   } else if(v === 'pn'){
     // the shell's full reach, ~3.5 ly across, following what is left of the Sun; before
     // the shell exists this is simply the Sun's neighbourhood at that scale
@@ -4243,6 +4436,7 @@ const labelEls = BODIES.map(b=>{
   const d=document.createElement('div'); d.className='lbl'; d.textContent=b[0];
   labelWrap.appendChild(d); return d;
 });
+const moonEl = (()=>{ const d=document.createElement('div'); d.className='lbl'; d.textContent='Moon'; d.style.display='none'; d.style.opacity='0.65'; labelWrap.appendChild(d); return d; })();
 // The solar system's own structures, labelled at their real radii. Each label sits on
 // its ring at the Sun's side, appears only while its structure is switched on and its
 // ring is actually resolvable on screen, and hides again when it would be a dot.
@@ -4759,9 +4953,10 @@ function frame(now){
     // realSizes[0] is the Sun's diameter today; the model scales it, so a red giant is
     // drawn at the size the model says it has rather than at a fixed dot
     const sunDia = realSizes[0]*sunState(ageGyr()).R;
-    plasmaSunPx = sunDia*((H*DPR)/(2*Math.tan(Math.PI/6)))/cam.dist;
+    plasmaSunPx = sunDia*((H*DPR)/(2*Math.tan(Math.PI/6)))/camSunDist;   // the camera's distance to the SUN: from Earth it is an AU
+    globePx = realSizes[3]*((H*DPR)/(2*Math.tan(Math.PI/6)))/cam.dist;
     // the findable dot stands down once the true disc takes over
-    sunSizeTmp[0] = plasmaSunPx > 7 ? 0.0 : Math.max(sunDia, cam.dist*0.0075);
+    sunSizeTmp[0] = plasmaSunPx > 7 ? 0.0 : Math.max(sunDia, camSunDist*0.0075);
     gl.bindBuffer(gl.ARRAY_BUFFER,bufBodySize); gl.bufferSubData(gl.ARRAY_BUFFER,0,sunSizeTmp);
   }
   // The Sun's colour, and the inner planets' fate. Both read the same model.
@@ -4778,8 +4973,9 @@ function frame(now){
       if(!now) eatFlash[i] = -1;
       wasEaten[i] = now;
       if(eatFlash[i] >= 0){ eatFlash[i] += dt; if(eatFlash[i] > 1.6) eatFlash[i] = -1; }
-      // hidden for good once inside; the flare is its own pass over the disc
-      eatSizeTmp[0] = now ? 0 : realSizes[i];
+      // hidden for good once inside; the flare is its own pass over the disc — and Earth's
+      // dot stands down while the globe is drawn in its place
+      eatSizeTmp[0] = now ? 0 : (i === 3 && globePx > 4) ? 0 : realSizes[i];
       gl.bindBuffer(gl.ARRAY_BUFFER,bufBodySize); gl.bufferSubData(gl.ARRAY_BUFFER,i*4,eatSizeTmp);
     }
     lastAgeSeen = a;
@@ -4789,7 +4985,9 @@ function frame(now){
   gl.bufferSubData(gl.ARRAY_BUFFER,0,bodyPosArr);
 
   // camera — the view matrix is built Sun-relative for the same precision reason
-  const followPos = followTarget === 'and' ? andPos : org;
+  // Earth's world position in doubles: the follow target when the view is hers
+  bodyPos(3, simT, earthW);
+  const followPos = followTarget === 'and' ? andPos : (followTarget === 'earth' && !wasEaten[3]) ? earthW : org;
   const goal = cam.follow ? [followPos[0],followPos[1],followPos[2]] : [0,0,0];
   if(reseedFollow){ for(let i=0;i<3;i++) smoothOfs[i] = smoothTarget[i]-goal[i]; reseedFollow=false; }
   const k = firstFrame?1:Math.min(1,dt*4);
@@ -4823,9 +5021,10 @@ function frame(now){
         tgy=smoothTarget[1]-org[1] + uy*pdy,
         tgz=smoothTarget[2]-org[2] + rz*pdx + uz*pdy;
   const eye=[ tgx+cam.dist*cp*Math.sin(yawE), tgy+cam.dist*sp, tgz+cam.dist*cp*Math.cos(yawE) ];
+  camSunDist = Math.hypot(eye[0], eye[1], eye[2]) || cam.dist;   // Sun-relative eye: how far the Sun is
   const viewMat = lookAt(eye, [tgx,tgy,tgz], [0,1,0]);
   // near plane tracks the zoom so sub-AU views don't clip
-  projMat = skyProjection(Math.min(0.5, Math.max(1e-9, cam.dist*0.04)), 25000);
+  projMat = skyProjection(Math.min(0.5, Math.max(1e-13, cam.dist*0.04)), 25000);   // no depth buffer: a tiny near plane costs nothing, and Earth needs it
   const pxScale = (H*DPR)/(2*Math.tan(Math.PI/6));
 
   // at 100% nothing is compressed, so the old direct path is kept exactly
@@ -5123,6 +5322,7 @@ function frame(now){
       if(i === I_P9 && !showP9) continue;
       if(i >= N_PLANETS && i < I_P9 && !showDwarfs) continue;
       if(i <= 3 && i > 0 && wasEaten[i]) continue;   // no path for a planet that is gone
+      if(globePx > 40) continue;   // zoomed onto the globe, every orbit and helix is a line across the sky
       if(i > 0){
         if(!solarClose) continue;                    // collapsed into the Sun's point
         const spo = BODIES[i][1]/DT_SAMPLE;
@@ -5213,7 +5413,7 @@ function frame(now){
     gl.uniform1f(UR.uR, realMode?178.0*OO_REAL:178.0);
     gl.uniform3f(UR.uColor,0.10,0.13,0.19);
     gl.bindVertexArray(vaoRing);
-    for(const [A,B] of [[E1,E2],[E1,EN],[E2,EN]]){
+    if(globePx <= 40) for(const [A,B] of [[E1,E2],[E1,EN],[E2,EN]]){   // from a globe's zoom the shell is lines across the sky
       gl.uniform3f(UR.uA,A[0],A[1],A[2]);
       gl.uniform3f(UR.uB,B[0],B[1],B[2]);
       gl.drawArrays(gl.LINE_LOOP,0,RING_SEGS);
@@ -5230,6 +5430,52 @@ function frame(now){
   gl.bindVertexArray(vaoBodies);
   gl.drawArrays(gl.POINTS, 0, showDwarfs ? I_P9 : N_PLANETS);
   if(showP9) gl.drawArrays(gl.POINTS, I_P9, 1);
+
+  // Earth as a globe, and the Moon, once they are more than a dot. Opaque discs, so the
+  // same blend as the Sun's disc; the atmosphere adds over what is behind it.
+  moonPx = 0;
+  if(globePx > 4 && !wasEaten[3]){
+    const a = ageGyr(), era = earthEra(a, environment().mean);
+    const ex = bodyPosArr[9], ey = bodyPosArr[10], ez = bodyPosArr[11];
+    const sunV = norm3(vecV(viewMat, [-ex, -ey, -ez]));
+    const axV = norm3(vecV(viewMat, EARTH_AXIS));
+    const prime = earthPrime(simT, tmp); const prV = norm3(vecV(viewMat, [prime[0],prime[1],prime[2]]));
+    earthDbg = { sunV, axV, prV, era };   // read by the debug tooling
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    gl.useProgram(pGlobe);
+    gl.uniformMatrix4fv(UG.uProj,false,projMat); gl.uniformMatrix4fv(UG.uView,false,viewMat);
+    gl.uniform1f(UG.uMirror, SKY_MIRROR); gl.uniform1f(UG.uTime, shimT);
+    gl.uniform3f(UG.uSunV, sunV[0],sunV[1],sunV[2]); gl.uniform3f(UG.uAxisV, axV[0],axV[1],axV[2]); gl.uniform3f(UG.uPrimeV, prV[0],prV[1],prV[2]);
+    gl.uniform1f(UG.uMolten, era.molten); gl.uniform1f(UG.uOcean, era.ocean); gl.uniform1f(UG.uSea, era.sea); gl.uniform1f(UG.uHaze, era.haze);
+    gl.uniform1f(UG.uVeg, era.veg); gl.uniform1f(UG.uIceLat, era.iceLat); gl.uniform1f(UG.uCloud, era.cloud); gl.uniform1f(UG.uLights, era.lights); gl.uniform1f(UG.uDrift, era.drift);
+    const disc = 1/1.09, sz = Math.min(2400, globePx/disc);
+    gl.uniform1f(UG.uMoon, 0.0); gl.uniform1f(UG.uDisc, disc); gl.uniform1f(UG.uSz, sz);
+    gl.uniform3f(UG.uPos, ex, ey, ez);
+    gl.bindVertexArray(vaoGlobe); gl.drawArrays(gl.POINTS, 0, 1);
+    if(a > MOON_BORN){
+      moonPos(simT, moonW);
+      moonRel[0] = moonW[0]-org[0]; moonRel[1] = moonW[1]-org[1]; moonRel[2] = moonW[2]-org[2];
+      moonPx = (2*1737/1.496e8*AU2U)*((H*DPR)/(2*Math.tan(Math.PI/6)))/cam.dist;
+      if(moonPx > 1.5){
+        const msunV = norm3(vecV(viewMat, [-moonRel[0], -moonRel[1], -moonRel[2]]));
+        gl.uniform3f(UG.uSunV, msunV[0],msunV[1],msunV[2]);
+        gl.uniform1f(UG.uMoon, 1.0); gl.uniform1f(UG.uDisc, 1.0); gl.uniform1f(UG.uSz, Math.min(2400, moonPx));
+        gl.uniform3f(UG.uPos, moonRel[0], moonRel[1], moonRel[2]);
+        gl.drawArrays(gl.POINTS, 0, 1);
+      }
+    }
+    gl.blendFunc(gl.ONE, gl.ONE);
+    // the Moon's orbit, once it spans more than a few pixels
+    const d = moonDist(a), ringPx = 2*d*((H*DPR)/(2*Math.tan(Math.PI/6)))/cam.dist;
+    if(a > MOON_BORN && ringPx > 14 && ringPx < 3*H*DPR){   // and not once it dwarfs the view
+      gl.useProgram(pRing);
+      gl.uniformMatrix4fv(UR.uProj,false,projMat); gl.uniformMatrix4fv(UR.uView,false,viewMat);
+      gl.uniform3f(UR.uSun, ex, ey, ez); gl.uniform1f(UR.uR, d);
+      gl.uniform3f(UR.uColor, 0.16, 0.20, 0.30);
+      gl.uniform3f(UR.uA, MOON_M1[0],MOON_M1[1],MOON_M1[2]); gl.uniform3f(UR.uB, MOON_M2[0],MOON_M2[1],MOON_M2[2]);
+      gl.bindVertexArray(vaoRing); gl.drawArrays(gl.LINE_LOOP, 0, RING_SEGS);
+    }
+  }
 
   // Gliese 710, on the same symbolic scale as the Oort cloud in the compressed view and
   // at its true separation in real scale, so it passes where the cloud actually is.
@@ -5253,8 +5499,8 @@ function frame(now){
   const pn = pnState(ageGyr());
   pnShown = false;
   if(pn){
-    const rScene = pn.rAU*AU2U, px = (2*rScene/0.74)*pxScale/cam.dist;
-    const outside = Math.min(1, Math.max(0, (cam.dist/rScene - 1.15)/0.6));
+    const rScene = pn.rAU*AU2U, px = (2*rScene/0.74)*pxScale/camSunDist;
+    const outside = Math.min(1, Math.max(0, (camSunDist/rScene - 1.15)/0.6));
     const alpha = pn.alpha*outside;
     if(alpha > 0.004 && px > 3){
       pnShown = true;
@@ -5339,6 +5585,7 @@ function frame(now){
       const l=labelEls[i];
       if(i === I_P9 ? !showP9 : (i >= N_PLANETS && !showDwarfs)){ placeLabel(l, 0, 0, false); continue; }
       if(i > 0 && i <= 3 && wasEaten[i]){ placeLabel(l, 0, 0, false); continue; }   // swallowed
+      if(globePx > 40 && i > 0){ placeLabel(l, 0, 0, false); continue; }          // zoomed onto Earth: only the Sun's place in the sky
       if(i === 0) l.textContent = pnShown ? 'Anthropic Nebula' : 'Sun';
       const [cw, lsx, lsy] = proj(bodyPosArr[i*3], bodyPosArr[i*3+1], bodyPosArr[i*3+2]);
       if(cw<=Math.max(1e-9,cam.dist*0.01) || cam.dist>900){ placeLabel(l, 0, 0, false); continue; }
@@ -5347,13 +5594,19 @@ function frame(now){
       placeLabel(l, lsx, lsy, true);
       l.style.opacity = i===0?0.9:0.65;
     }
+    // the Moon: labelled while it is drawn as a disc and stands clear of Earth's label
+    if(moonPx > 1.5){
+      const [cw, mx, my] = proj(moonRel[0], moonRel[1], moonRel[2]);
+      const [ , ex, ey] = proj(bodyPosArr[9], bodyPosArr[10], bodyPosArr[11]);
+      placeLabel(moonEl, mx, my, cw > 0 && Math.hypot(mx-ex, my-ey) > 16);
+    } else placeLabel(moonEl, 0, 0, false);
     // structure labels: a point on each ring, Sun-relative like the rings themselves
     for(let s=0;s<STRUCTS.length;s++){
       const el = structEls[s];
       if(!STRUCTS[s][2]()){ placeLabel(el, 0, 0, false); continue; }
       const rU = STRUCTS[s][1]*AU2U;
       const rpx = rU*pxScale/cam.dist;
-      if(rpx < 46 || rpx > 2600){ placeLabel(el, 0, 0, false); continue; }
+      if(rpx < 46 || rpx > 2600 || globePx > 40){ placeLabel(el, 0, 0, false); continue; }
       const [cw, sx, sy] = proj(rU*0.71, 0, rU*0.71);    // 45 degrees round the ring
       placeLabel(el, sx, sy, cw > 1e-9);
     }
@@ -5508,6 +5761,8 @@ function frame(now){
     $('sScale').textContent = wLy>=1000 ? (wLy/1000).toFixed(1)+' kly'
       : wLy>=0.05 ? wLy.toFixed(wLy<10?2:0)+' ly'
       : wAU >= 0.5 ? wAU.toFixed(wAU<10?1:0)+' AU'
+      : wAU*1.496e8 >= 1e6 ? (wAU*1.496e8/1e6).toFixed(2)+' Mkm'
+      : wAU*1.496e8 >= 1 ? Math.round(wAU*1.496e8).toLocaleString('en-US')+' km'
       : (wAU*215).toFixed(1)+' R☉'; }   // below half an AU, solar radii say it better
   if(showStats){
     $('gCal').textContent = humanYear();

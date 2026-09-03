@@ -325,6 +325,39 @@ Also here: a request for "a setting to turn off dark clouds" — the switch alre
 adding it; a duplicate switch is worse than none. And the settings title is "Settings" alone now,
 the version living in the info dialog and the tour card.
 
+## Earth as a globe, and what it took (v2.68.0)
+
+Earth and the Moon are point sprites whose fragment builds a sphere: the normal from the
+sprite coordinate (`q.y` flipped, `q.x` times `SKY_MIRROR` — the projection is mirrored,
+the sprite is not), lighting from the Sun's direction in view space, the surface from 3-D
+value noise on the unit vector in the planet's own frame (`uAxisV`, `uPrimeV`), so the
+planet turns under its map. `earthEra(age, meanC)` turns the clock and the climate into the
+uniforms; `earthPrime` solves the spin phase once so the Sun stands over Greenwich at noon
+on 2026-01-01. Decisions and lessons:
+
+- **The origin stays at the Sun.** Earth is 1 AU out; float32 rounds positions there to
+  ~9 km, under a pixel on a 6,371-km globe at any zoom the view uses, so no origin refactor.
+  The near plane's floor went from 1e-9 to 1e-13 (no depth buffer, it costs nothing), the
+  Earth-view floor is 2e-11, and the ladder has rungs at 1.2e-10 (the globe) and 3.2e-9
+  (the Moon's orbit).
+- **Everything sized around the Sun must use `camSunDist`**, the camera's distance to the
+  Sun, not `cam.dist` (the distance to the followed body): the Sun's disc, its dot, the
+  nebula. From Earth the Sun filled the sky until this was fixed.
+- **Calibrate noise thresholds by porting the noise**, not by guessing its statistics: the
+  shader's fbm averages 0.485 with spread 0.113, not 0.7; 29% land is at 0.547, 6% at
+  0.660 (`qr`-style offline port in the scratch tests). The first guess gave 1% land.
+- **The climate model's early Earth is wrong on purpose** (faint young Sun, no greenhouse):
+  −12 °C at 0.05 Gyr. The globe's ice follows the rock record before the Phanerozoic.
+- **From the globe's zoom every swept path, ring and structure label is a line across the
+  sky.** Gated on `globePx > 40`; the Sun's and the Moon's labels stay, being sky positions.
+- The globe shader is the heaviest fragment in the piece; SwiftShader manages ~1 fps on it,
+  which also means **timing-based checks (label debounces) cannot be judged there**. It runs
+  four noise octaves, shares one detail texture across rock, vegetation and ice, and skips
+  the lava and city terms when their weights are zero.
+- The blauwfilms "realistic Earth" article the owner pointed at is blocked by the egress
+  proxy; what was adopted is the standard recipe — soft reddened terminator with a lights
+  crossfade, cloud shadows, atmospheric Fresnel, restrained glint, forward-scattering snow.
+
 ## The planetary nebula is an event, staged over its age (v2.67.0)
 
 `PN_FS` is driven by `uAge` (0..1, from `pnState`) and `uBurst` (a Gaussian in age around
