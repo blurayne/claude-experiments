@@ -210,10 +210,14 @@ before the work starts. An item is ticked when it ships, with the version that c
       penalty), verified module for module against Python's `qrcode` at every size; the
       exported state (~1 KB, timestamp left out so the code holds still) is v23; the drawn
       overlay decodes back exactly with zxing — v2.65.0.
-- [ ] The Sun's shell casting should look better — something of an explosion at its
+- [x] The Sun's shell casting should look better — something of an explosion at its
       onset, while staying scientifically correct (clarified: the planetary nebula, not a
-      supernova). Draw it as the event it is: the envelope thrown off, then ionised and
-      sculpted into a filamentary shell around the exposed core, then fading.
+      supernova). `PN_FS` rewritten on the interacting-winds picture, staged over the
+      nebula's age: warm dusty envelope in a burst of scattered starlight (a reflection
+      halo up to 3.5× the shell via `uBurst`, not a shock), the ionisation front sweeping
+      out (teal inside, warm dust beyond), the fast wind hollowing the cavity, the
+      filamentary [OIII]/Hα shell with cometary knots and the old wind's halo, then
+      dissolution. Rendered through its life and closely at the onset — v2.67.0.
 - [x] The "helix" scenario starts at the current date and time: simT counts Earth's
       orbits from 2026.0, so it is set to the real elapsed fraction of years since
       2026-01-01 UTC, and the human-year readout follows — v2.65.0.

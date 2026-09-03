@@ -325,6 +325,20 @@ Also here: a request for "a setting to turn off dark clouds" — the switch alre
 adding it; a duplicate switch is worse than none. And the settings title is "Settings" alone now,
 the version living in the info dialog and the tour card.
 
+## The planetary nebula is an event, staged over its age (v2.67.0)
+
+`PN_FS` is driven by `uAge` (0..1, from `pnState`) and `uBurst` (a Gaussian in age around
+0.07, set in the draw call). Stages: `eject` (envelope off, warm dust), `ion` (the front at
+`rIon = mix(0, 1.08, ion)`; teal [OIII] inside, warm outside; the fast wind's `cavity`), `old`
+(thinning). The onset needed its own trick: the flash fires while the shell is a few pixels
+wide at any sane framing, so during the burst the sprite is drawn up to 3.5× the shell —
+`gl_PointSize × (1 + 2.5·burst)` — and the shader measures everything that belongs to the
+shell in `r = rg·grow` while the scattered-light halo and the star's glare use the raw `rg`.
+It is a reflection halo, physically, not a shock: the owner asked for "something of an
+explosion" and "scientifically correct", and that is where the two meet. Judge a staged
+shader by a strip of ages (`test_pnseq.js`: set `simT` from the target age through
+`pnState`'s mapping, one screenshot each), never by one frame.
+
 ## The state as a QR code, and how an encoder gets trusted (v2.65.0)
 
 `qrEncode(text, forceMask)` is in the page: byte mode, EC level L, versions 1–40 chosen by
