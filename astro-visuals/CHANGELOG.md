@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.65.0 — 2026-09-03
+
+- The Anthropic Nebula as scenario and view; the state as a QR; the helix at the real date (v2.65.0) (`8e26d74`)
+
 ### 2.64.1 — 2026-09-03
 
 - Zoom buttons under play, and following their switch at boot (v2.64.1) (`8e3f303`)
