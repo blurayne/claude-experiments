@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.74.0 — 2026-09-03
+
+- Feat(astro-visuals): v2.74.0 — (i) tooltips on the unclear settings; spin lock under the view box in plain text (`9143040`)
+
 ### 2.73.0 — 2026-09-03
 
 - Feat(astro-visuals): v2.73.0 — a first-launch performance probe sets the quality (`dab1862`)
