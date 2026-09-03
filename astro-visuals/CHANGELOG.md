@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.74.4 — 2026-09-03
+
+- Style(astro-visuals): v2.74.4 — the (i) border is a circle again (`ea740fe`)
+
 ### 2.74.3 — 2026-09-03
 
 - Style(astro-visuals): v2.74.3 — smaller (i) icon, tighter to its label (`1ffaaf7`)
