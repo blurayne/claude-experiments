@@ -339,6 +339,18 @@
     font:600 7.5px/1 ui-sans-serif,system-ui,sans-serif;letter-spacing:0;text-transform:none}
   .info:hover,.info.on{color:var(--accent);border-color:color-mix(in srgb, var(--accent) 60%, transparent)}
   .chk .info{margin-left:-3px}          /* the label's own 5px flex gap already separates it */
+  /* the settings / log tabs, shown only in debug mode */
+  .tabs{display:flex;gap:6px;margin:0 0 8px;flex:none}
+  .tabs .tab{font-family:'Orbitron',ui-monospace,monospace;font-size:8px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--dim);background:none;border:1px solid var(--line);border-radius:4px;padding:4px 9px;cursor:pointer}
+  .tabs .tab.on{color:var(--accent);border-color:color-mix(in srgb, var(--accent) 55%, transparent);background:rgba(95,216,255,.07)}
+  .tabs .tab b{font-family:inherit;color:var(--ink)}
+  #logList{display:flex;flex-direction:column;gap:6px}
+  .logrow{border-left:2px solid var(--dim);padding:3px 0 3px 7px;font:10.5px/1.35 ui-monospace,SFMono-Regular,Menlo,monospace;
+    color:var(--ink);word-break:break-word}
+  .logrow.error{border-left-color:#ff6b6b} .logrow.warn{border-left-color:#ffc46b} .logrow.load{border-left-color:#c78bfa}
+  .logrow .meta{color:var(--dim);font-size:9px;letter-spacing:.04em}
+  .logempty{color:var(--dim);font:11px/1.45 ui-sans-serif,system-ui,sans-serif}
   #tip{position:fixed;z-index:1200;display:none;max-width:250px;padding:7px 9px;border-radius:6px;pointer-events:none;
     background:rgba(6,10,20,.96);border:1px solid var(--accent);color:var(--ink);box-shadow:0 4px 18px rgba(0,0,0,.5);
     font:11px/1.4 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;letter-spacing:.02em;text-transform:none}
@@ -379,7 +391,11 @@
 <div class="hud" id="hud">
   <button class="pclose" id="collapse" aria-label="collapse panel">−</button>
   <h1>Settings</h1>
-  <div class="body">
+  <div class="tabs" id="hudTabs" style="display:none">
+    <button class="tab" data-tab="log">log<b id="logCount"></b></button>
+    <button class="tab on" data-tab="set">settings</button>
+  </div>
+  <div class="body" id="hudBody">
     <div class="sect" data-sec="audio">Audio<span class="arw">▾</span></div>
     <div class="sbody" id="secAudio">
     <div class="row"><label>music</label><input type="range" id="musicVol" min="0" max="1" step="0.01" value="0.40"><span id="musicVolv" style="min-width:36px;text-align:right;color:var(--ink)">40%</span><button class="stepb" data-step="musicVol:-0.05">−</button><button class="stepb" data-step="musicVol:0.05">+</button></div>
@@ -470,6 +486,13 @@
     </div>
     <button id="tView" style="display:none"></button>
     <button id="tDive" style="display:none"></button>
+  </div>
+  <div class="body" id="logBody" style="display:none">
+    <div class="row" style="margin-top:0;justify-content:flex-end;gap:8px">
+      <span id="logNote" style="margin-right:auto;font-size:9px;letter-spacing:.06em;color:var(--dim)"></span>
+      <button class="rowbtn" id="logCopy">copy</button><button class="rowbtn" id="logClear">clear</button>
+    </div>
+    <div id="logList"></div>
   </div>
   <div class="hudfoot">
     <button class="tg" id="tFull">⛶ full</button>
@@ -1074,7 +1097,40 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.76.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+// ---------- the error log ----------
+// A phone has no console to open, so on a touch device every error the page can see is
+// kept and shown in the settings dialog's log tab. On a desktop nothing is collected:
+// the browser's own console is better than anything this could render.
+const TOUCH_DEV = (matchMedia('(pointer: coarse)').matches || (navigator.maxTouchPoints|0) > 1)
+                  && !matchMedia('(pointer: fine)').matches;
+const errLog = [], ERR_MAX = 120;
+function logErr(kind, msg, where){
+  if(!TOUCH_DEV || !msg) return;
+  const top = errLog[0];
+  if(top && top.kind === kind && top.msg === msg && top.where === where){ top.n++; top.t = Date.now(); }
+  else { errLog.unshift({ kind, msg: String(msg).slice(0, 400), where: where || '', t: Date.now(), n: 1 });
+         if(errLog.length > ERR_MAX) errLog.pop(); }
+  if(typeof renderLog === 'function') try{ renderLog(); }catch(e){}
+}
+if(TOUCH_DEV){
+  addEventListener('error', e => {
+    const t = e.target;
+    if(t && t !== window && (t.src || t.href)) logErr('load', 'failed to load ' + String(t.src || t.href).split('/').pop(), t.tagName.toLowerCase());
+    else logErr('error', e.message || String(e.error || 'error'), (e.filename||'').split('/').pop() + (e.lineno ? ':' + e.lineno : ''));
+  }, true);   // capture: a failed <img> or <script> does not bubble
+  addEventListener('unhandledrejection', e => {
+    const r = e.reason; logErr('promise', (r && (r.message || r)) || 'promise rejected', '');
+  });
+  for(const k of ['error','warn']){
+    const orig = console[k].bind(console);
+    console[k] = (...a) => {
+      try{ logErr(k, a.map(x => x instanceof Error ? (x.message || String(x))
+                                : (x && typeof x === 'object') ? JSON.stringify(x).slice(0,200) : String(x)).join(' '), ''); }catch(e){}
+      orig(...a);
+    };
+  }
+}
+const BUILD = { version: '2.77.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -6256,12 +6312,43 @@ const DEBUG = (()=>{ try{
   return localStorage.getItem(DBGKEY) === '1';
 }catch(e){ return false; } })();
 let debugMode = false;
+// ---------- the settings / log tabs ----------
+const esc = t => String(t).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const clock = t => new Date(t).toTimeString().slice(0,8);
+function renderLog(){
+  const total = errLog.reduce((n,e)=>n+e.n, 0);
+  $('logCount').textContent = total ? ' ' + total : '';
+  if($('logBody').style.display === 'none') return;      // counted always, drawn only when open
+  $('logNote').textContent = TOUCH_DEV ? BUILD.version + ' · since load' : 'desktop: use the browser console';
+  $('logList').innerHTML = errLog.length
+    ? errLog.map(e => '<div class="logrow ' + e.kind + '"><div class="meta">' + clock(e.t) + ' · ' + e.kind
+        + (e.n > 1 ? ' ×' + e.n : '') + (e.where ? ' · ' + esc(e.where) : '') + '</div>' + esc(e.msg) + '</div>').join('')
+    : '<div class="logempty">' + (TOUCH_DEV ? 'Nothing has gone wrong since this page loaded.'
+        : 'Errors are collected on phones and tablets only, where there is no console to open. This device has one — use it.') + '</div>';
+}
+function setHudTab(t){
+  $('hudBody').style.display = t === 'log' ? 'none' : '';
+  $('logBody').style.display = t === 'log' ? '' : 'none';
+  for(const b of document.querySelectorAll('#hudTabs .tab')) b.classList.toggle('on', b.dataset.tab === t);
+  renderLog(); fitPanels();
+}
+for(const b of document.querySelectorAll('#hudTabs .tab')) b.addEventListener('click', ()=> setHudTab(b.dataset.tab));
+$('logClear').addEventListener('click', ()=>{ errLog.length = 0; renderLog(); });
+$('logCopy').addEventListener('click', ()=>{
+  const txt = 'galactic-transit ' + BUILD.version + ' · ' + navigator.userAgent + '\n'
+    + errLog.map(e => clock(e.t) + ' ' + e.kind + (e.n>1 ? ' x'+e.n : '') + (e.where ? ' (' + e.where + ')' : '') + ': ' + e.msg).join('\n');
+  try{ navigator.clipboard.writeText(txt); $('logCopy').textContent = 'copied'; setTimeout(()=> $('logCopy').textContent = 'copy', 1200); }catch(e){}
+});
 function setDebugUI(on, entering){
   debugMode = on;
   $('dbgBtn').style.display = on ? '' : 'none';
   $('rowHudHz').style.display = on ? '' : 'none';
   $('rowGain').style.display = on ? '' : 'none';
   $('secDebugHead').style.display = on ? '' : 'none';
+  $('hudTabs').style.display = on ? '' : 'none';
+  // the log is what debug mode is entered for, so it opens on it; leaving takes the
+  // settings back, since without the strip there is no way back to them
+  setHudTab(on && entering ? 'log' : 'set');
   if(!on){ secOpen.debug = false; applySecs(); }       // folded away with its heading; opens as any section
   // entering debug mode switches the QR on; a plain boot in debug mode leaves the choice alone
   if(on && entering && !$('qrOn').checked){ $('qrOn').checked = true; $('qrOn').dispatchEvent(new Event('change')); }

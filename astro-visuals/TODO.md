@@ -5,9 +5,9 @@ before the work starts. An item is ticked when it ships, with the version that c
 
 ## 2026-09-01
 
-- [ ] Debug: collect console errors (on phones and tablets only, where there is no console)
+- [x] Debug: collect console errors (on phones and tablets only, where there is no console)
       and show them in the settings dialog behind tabs — the error log tab first, settings
-      beside it.
+      beside it — v2.77.0.
 - [x] More realistic colouring for the galaxy render on full screen, if it can be had; else leave it — v2.76.0: the dust reddens by the extinction law instead of greying; HII toward Hα.
 - [x] Pangaea is not seen: fix the Plate tectonics scenario's aim, and add Pangaea, Pangaea
       Proxima and the vaporisation of the oceans as events of their own — v2.75.0 (the aim was

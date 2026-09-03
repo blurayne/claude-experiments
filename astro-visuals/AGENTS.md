@@ -325,6 +325,30 @@ Also here: a request for "a setting to turn off dark clouds" — the switch alre
 adding it; a duplicate switch is worse than none. And the settings title is "Settings" alone now,
 the version living in the info dialog and the tour card.
 
+## An error log for the device that has no console (v2.77.0)
+
+- **Collected only where it is needed.** `TOUCH_DEV` is `(pointer: coarse)` or more than
+  one touch point, *and not* `(pointer: fine)` — a laptop with a touchscreen keeps its
+  console and collects nothing. On a desktop the log tab says so rather than pretending
+  to be empty.
+- **Installed before anything else can throw.** The collector sits immediately above
+  `BUILD`, at the top of the script, so a boot failure is caught. It hooks `error`
+  (in the capture phase, since a failed `<script>` or `<img>` does not bubble),
+  `unhandledrejection`, and wraps `console.error`/`console.warn` while still calling
+  through. `logErr` folds an identical repeat into a count (`×2`) instead of filling the
+  list, and keeps the newest 120.
+- **`renderLog` is called from `logErr` through a `typeof` guard**: errors can arrive
+  before the function exists, and a collector that throws while reporting a throw is
+  worse than no collector.
+- **The tabs** live between the dialog's title and its body, shown only in debug mode.
+  The log is first and is selected when debug mode is *entered*; turning debug off puts
+  the settings back, because without the strip there is no way back to them. The count
+  on the tab updates whether or not the pane is open; the pane only re-renders when
+  visible.
+- **Test on both viewports**: a touch context (`hasTouch`, `isMobile`) and a desktop one,
+  and provoke all three kinds — `console.error`, a rejected promise, a throw from a
+  timer — plus a repeat, then switch tabs and clear.
+
 ## "More realistic colouring" — the one change that is physics (v2.76.0)
 
 - **Asked for realism, look for the physics first.** The Milky Way's base colours come
