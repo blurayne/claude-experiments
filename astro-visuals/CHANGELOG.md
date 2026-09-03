@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.78.0 — 2026-09-03
+
+- Feat(astro-visuals): v2.78.0 — the Moon joins the views (`fd0f980`)
+
 ### 2.77.0 — 2026-09-03
 
 - Feat(astro-visuals): v2.77.0 — an error log in debug mode, collected on touch devices (`b369b0a`)
