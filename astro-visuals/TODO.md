@@ -228,6 +228,11 @@ before the work starts. An item is ticked when it ships, with the version that c
       and label; the Sun and nebula sized by the camera's distance to the Sun (from Earth
       it had filled the sky); the readout down to km. Verified across eras, over the pole
       in June, at the terminator, and all other views unchanged — v2.68.0.
+- [ ] Speed slider reaches down to hours: 1, 2, 3, 4, 6, 8, 10, 12, 16, 20, 24, 32 hours,
+      1–4 weeks, 1, 2, 4, 6, 8 months, then years as n × 10^k with n = 1…9 per decade.
+- [ ] An option that locks the viewport to a planet's spin (the camera co-rotates with the
+      body, so the same face stays in view and the plates can be watched drifting) — a
+      short name for it, "Spin lock" or better.
 - [x] Earth from real textures (SVG-like coastlines) rather than noise: today's map, the
       plates moving from Pangaea to now and on to Pangaea Proxima, the oceans evaporating
       and the biosphere collapsing; ice ages and dry periods incorporated — v2.69.0.
