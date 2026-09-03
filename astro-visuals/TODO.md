@@ -203,6 +203,12 @@ before the work starts. An item is ticked when it ships, with the version that c
       topmost overlay, at 1×, 2× or 4× pixels per module, switchable on/off in settings;
       entering debug mode switches it on. A "Debug" section in settings, shown only in
       debug mode.
+- [ ] For the "supernova explosion of the Sun" use a different shader, one that resembles
+      the supernova. (The Sun's end is a planetary nebula, not a supernova — to clarify.)
+- [ ] The "helix" scenario starts at the current date and time.
+- [ ] Planet trails: are they drawn in the right direction? They should fade out at the
+      end, not at the start.
+- [ ] The QR overlay is movable by touch.
 
 ### Shipped earlier, for the record
 
