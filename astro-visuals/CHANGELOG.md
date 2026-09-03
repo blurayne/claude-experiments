@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.68.0 — 2026-09-03
+
+- Earth as a globe through its eras, the Moon and its orbit, an Earth view (v2.68.0) (`8bb9ac8`)
+
 ### 2.67.0 — 2026-09-03
 
 - The Sun's shell casting drawn as the event it is (v2.67.0) (`4a57091`)
