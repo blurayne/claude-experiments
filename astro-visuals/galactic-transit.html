@@ -943,13 +943,13 @@
       model: each pole is the great circle from a plate's seat today to its seat in Pangaea, the angles set so
       the continents land where the maps put them, and the future runs the same arcs back: Pangaea at 250
       Myr ago, the Atlantic opening, India and Australia running north, and ahead the Atlantic closing again into
-      Pangaea Proxima around +250 Myr. Before the map has meaning the surface is noise. The plates creep a degree in ten million years, so the <b>Plate tectonics</b> scenario runs the clock at ten million years a second; at anything past a few weeks a second a frame spans whole days and the day/night line would land somewhere new each time, so the globe is then lit by the <b>daily mean</b> for its latitude instead. Tick <b>spin lock</b> under the view row (or in the settings' visuals) and the camera turns
+      Pangaea Proxima around +250 Myr. Before the map has meaning the surface is noise. The plates creep a degree in ten million years, so the <b>Plate tectonics</b> scenario runs the clock at ten million years a second, and <b>Pangaea</b>, <b>Pangaea Proxima</b> and <b>the oceans boiling away</b> are events of their own in the list — the first two still portraits at a year a second over the supercontinent, the third the same face at ten million years a second while the seas withdraw; at anything past a few weeks a second a frame spans whole days and the day/night line would land somewhere new each time, so the globe is then lit by the <b>daily mean</b> for its latitude instead. Tick <b>spin lock</b> under the view row (or in the settings' visuals) and the camera turns
       with the planet, so the same face stays in view while the clock runs — the way to watch the plates drift. Where the map has no
       depths, the oceans retreat toward the regions farthest from any coast as they go. Through the clock it shows the Hadean's molten crust, the methane-hazed orange Archean
-      until the Great Oxidation, the Huronian and Cryogenian snowballs, ice caps that follow the piece's own
-      climate model through the Phanerozoic (and the rock record before it — the model reads the faint young
-      Sun without the greenhouse that kept the early oceans liquid), the Ordovician and Karoo ice ages and the
-      Cretaceous without caps, the dry interiors of Pangaea and of Proxima, land greening from the Devonian, the
+      until the Great Oxidation, the Huronian and Cryogenian snowballs, ice caps from the <b>rock record</b> up to today — the
+      Ordovician, the Karoo and the Cenozoic ice ages, hothouse between them, Pangaea's world without a cap — and
+      from the piece's own climate model beyond today (the HUD's glacial badge is that model's word about arm
+      crossings, not the globe's), the dry interiors of Pangaea and of Proxima, land greening from the Devonian, the
       moist greenhouse drying the oceans a billion years ahead, and the crust melting again under the red giant. The
       <b>Moon</b> orbits it at its true distance, receding as it always has — 3.8 cm a year now, far faster when
       young — on a power law fitted to formation at the Theia impact rather than a dynamical model, its period from
@@ -1006,8 +1006,11 @@
       <option value="0.058">Theia impact — the Moon forms (4.51 Gyr ago)</option>
       <option value="0.768">Young Earth — first life (3.8 Gyr ago)</option>
       <option value="2.068">Great Oxidation (2.5 Gyr ago)</option>
+      <option value="4.318p" data-rate="1" data-mult="1">Pangaea — one continent, one ocean (250 Myr ago)</option>
       <option value="4.318" data-rate="1" data-mult="10000000">Plate tectonics — Pangaea to Pangaea Proxima (250 Myr ago → +250 Myr)</option>
       <option value="4.5692567" data-rate="0.19" data-mult="10000">Gliese 710 grazes the Oort cloud (+1.29 Myr)</option>
+      <option value="4.818x" data-rate="1" data-mult="1">Pangaea Proxima — the next supercontinent (+250 Myr)</option>
+      <option value="5.6v" data-rate="1" data-mult="10000000">The oceans boil away (+1.0 Gyr → +2.0 Gyr)</option>
       <option value="8.36149" data-rate="1" data-mult="100000000">Andromeda first pass (+4.5 Gyr)</option>
       <option value="11.25" data-rate="1" data-mult="100000000">Galaxies collide &amp; merge (+6.9 Gyr)</option>
       <option value="11.3586" data-rate="0.2195" data-mult="100000000">The Sun swallows the Earth (+7.6 Gyr)</option>
@@ -1070,7 +1073,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.74.4', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.75.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2754,6 +2757,16 @@ function earthEra(a, meanC){
   // except the snowballs above and the Pongola (2.9 Ga) and Karoo (300 Ma) ice ages.
   let iceLat = a > 3.95 ? Math.max(18, Math.min(88, 90 - (18 - meanC)*5.5))                 // 15 °C -> ~74°; 11 -> ~52°; 5 -> ~18°
              : 95 - 40*clamp01(1 - Math.abs(a - 1.67)/0.06);                                // Pongola: caps to ~55° for a moment
+  if(a > 4.03 && a <= AGE0 + 1e-6){
+    // where there is a rock record it outranks the model: the Phanerozoic's three ice
+    // ages, and no caps at all between them — the Permian–Triassic world of Pangaea and
+    // the Cretaceous were hothouses. The HUD's glacial badge stays the model's own word.
+    let rec = 88;
+    rec = Math.min(rec, 95 - 50*clamp01(1 - Math.abs(a - 4.130)/0.010));                     // Ordovician–Silurian, 445–430 Ma
+    if(a > 4.208 && a < 4.313) rec = Math.min(rec, 50 + 8*clamp01(Math.abs(a - 4.26)/0.05));  // Karoo, 360–255 Ma
+    if(a >= 4.534) rec = Math.min(rec, a >= 4.565 ? 64 : 70);                                  // Antarctic ice from 34 Ma; both poles in the Pleistocene
+    iceLat = rec;
+  }
   if(a > 4.22 && a < 4.31) iceLat = Math.min(iceLat, 50);                                  // Karoo
   iceLat = Math.min(iceLat, 95 - 50*clamp01(1 - Math.abs(a - 4.123)/0.008));              // Ordovician (445 Ma)
   if(a > 4.44 && a < 4.51) iceLat = Math.max(iceLat, 89);                                  // the Cretaceous hothouse: no caps
@@ -4204,7 +4217,7 @@ let keepSaved = false;   // set only while the opening scenario stages itself
 function jumpToEpoch(){
   followTarget = 'sun';
   const sel = $('jump');
-  const a = sel.value === '' ? AGE0 : +sel.value;
+  const a = sel.value === '' ? AGE0 : parseFloat(sel.value);   // a letter after the age marks a staged event at that age
   // some epochs are over in a blink on the galactic clock; land at a speed that shows them
   const opt = sel.selectedOptions[0];
   // The clock is part of the staged view, not a preference: the helix is only legible
@@ -4295,14 +4308,20 @@ function jumpToEpoch(){
     cam.distGoal = 0.144;                     // ~5 ly across: the whole Oort shell
     cam.yaw = 0.72; cam.pitch = -0.31;        // faces the star's approach track
   }
-  if(sel.value === '0.058' || sel.value === '0.768' || sel.value === '2.068' || sel.value === '4.318'){
-    // Earth's own events are watched from Earth: the globe filling the view, followed
+  // Earth's own events are watched from Earth: the globe filling the view, followed. The
+  // continental ones lock the camera to the spin and put the eye over the face that
+  // matters, given as yaw = atan2(cos lat cos lon, −cos lat sin lon), pitch = lat:
+  //   plates    20° N 30° W  the Atlantic, so it opens and closes in view
+  //   Pangaea   15° N  0°    the supercontinent's heart, Africa still where it is
+  //   Proxima   10° N 20° W  the closed Atlantic again
+  //   oceans    10° N 20° W  the same face, drying
+  const EARTH_AIM = { '4.318':[1.047, 0.35], '4.318p':[1.571, 0.26], '4.818x':[1.222, 0.17], '5.6v':[1.222, 0.17] };
+  if(sel.value === '0.058' || sel.value === '0.768' || sel.value === '2.068' || EARTH_AIM[sel.value]){
     $('focusSel').value = 'earth'; applyFocusView();
-    if(sel.value === '4.318'){
-      // the plates: 500 Myr in fifty seconds under a camera that turns with the planet,
-      // the eye over the Atlantic (20° N, 30° W in the planet's frame) so it opens in view
+    const aim = EARTH_AIM[sel.value];
+    if(aim){
       if(!$('tSpinLock').checked){ $('tSpinLock').checked = true; $('tSpinLock').dispatchEvent(new Event('change')); }
-      cam.yaw = 1.047; cam.pitch = 0.35;
+      cam.yaw = aim[0]; cam.pitch = aim[1];
     }
     if(paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
   }

@@ -325,6 +325,31 @@ Also here: a request for "a setting to turn off dark clouds" — the switch alre
 adding it; a duplicate switch is worse than none. And the settings title is "Settings" alone now,
 the version living in the info dialog and the tour card.
 
+## "I don't see Pangaea" — the record outranks the model (v2.75.0)
+
+- **The report was right for a reason other than the one it named.** The Plate
+  tectonics scenario aimed correctly (verified in the real flow, camera flying in on
+  its own: Pangaea from four seconds in). What hid the continent was the ice: the
+  arm-crossing climate model calls 250 Myr ago a glacial epoch and the globe wore a cap
+  down to 47°, over a Permian–Triassic world that was in truth a hothouse. When a viewer
+  cannot see the thing, check what is drawn on top of it before checking the camera.
+- **Ice from the rock record up to today.** Inside `earthEra`, for 4.03 < a ≤ now, the
+  caps come from the record — Ordovician–Silurian (445–430 Ma), Karoo (360–255 Ma),
+  Cenozoic from 34 Ma, hothouse (`iceLat` 88) between — and the model only beyond today,
+  where there is no record. The HUD's glacial badge stays the model's own statement
+  about arm crossings; the info panel says so. Two honest sources may disagree on
+  screen as long as each is labelled.
+- **Events as staged views.** `Pangaea` (4.318p), `Pangaea Proxima` (4.818x) and `The
+  oceans boil away` (5.6v) are options whose value is the age plus a letter: the letter
+  makes the value unique for the scenario switch while `parseFloat` still reads the age
+  (the handler used `+sel.value`, which would have made NaN of them). `EARTH_AIM` maps
+  each to a planet-frame yaw/pitch, from lon/lat as `atan2(cos lat cos lon, −cos lat sin
+  lon)`, `lat`. The portraits run at a year a second, which is past the averaged-light
+  threshold, so the face is lit; the oceans event runs at ten million.
+- **Test each event in the real flow**, not with the camera placed by hand: pick the
+  option, wait six seconds, then read age, rate, lock, yaw/pitch, `earthDbg.era` and the
+  frame.
+
 ## (i) tooltips, and the spin lock under the view box (v2.74.0)
 
 - **One tooltip element, tap to show, tap to hide.** `<button type="button"
