@@ -325,6 +325,31 @@ Also here: a request for "a setting to turn off dark clouds" — the switch alre
 adding it; a duplicate switch is worse than none. And the settings title is "Settings" alone now,
 the version living in the info dialog and the tour card.
 
+## "I don't see the plates move" (v2.72.0)
+
+- **A feature nobody can reach is a bug report.** The plates were moving from v2.69.0 —
+  a degree in ten million years — which at the hour-to-year rungs is nothing, and at
+  a million years a second is a minute for a fingernail's width. The owner's "can you
+  fix" was right: the fix is a staged way in. The **Plate tectonics** scenario lands at
+  250 Myr ago, sets ten million years a second, focuses Earth with the spin lock on and
+  the eye over the Atlantic (`cam.yaw = 1.047, cam.pitch = 0.35` in the planet frame),
+  so 500 Myr play out in fifty seconds under a still camera. Add the scenario for any
+  slow phenomenon; do not wait for the visitor to find the rate.
+- **Past a few weeks a second the globe has no days.** A frame then spans days, the
+  terminator lands somewhere new each time, and the globe strobes. `avgLight` (eased,
+  from the clock's years per second: 0 at 2.5 weeks/s, 1 at half a year/s) feeds `uAvg`,
+  and the shader blends the Sun term toward the daily mean by latitude, drops the glint
+  and the cloud-shadow offset. Disclosed in the info panel. The Moon shares the shader,
+  so it is covered too.
+- **Land wins over a moved plate's ocean.** Each plate polygon carries ocean as well as
+  land, and the first-match lookup let a moved polygon's water punch a straight-edged
+  hole into another plate's land (a rectangle of deep sea inside Pangaea). The lookup
+  now asks all seven plates and takes land over water, and the highest continentality
+  among water claims. Seven texture reads per fragment, on one sprite: nothing.
+- **Screenshots in the harness: dismiss the tour first.** A fresh profile shows the
+  first-visit tour over everything; `$('tourGo').click()` before the shot, or the
+  strip is four copies of the welcome card.
+
 ## One state, two boxes; a view sized from the screen (v2.71.0)
 
 - **A toggle shown in two places has one owner.** The spin lock now sits on its own dock
