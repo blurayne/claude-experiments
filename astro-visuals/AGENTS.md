@@ -325,6 +325,34 @@ Also here: a request for "a setting to turn off dark clouds" — the switch alre
 adding it; a duplicate switch is worse than none. And the settings title is "Settings" alone now,
 the version living in the info dialog and the tour card.
 
+## The first launch measures the machine (v2.73.0)
+
+- **Off-screen, two frames in, thirty milliseconds.** `perfProbe()` draws the galaxy's
+  star pass (`pPt` + `vaoGxy`, uniforms as the last frame left them) into a hidden
+  framebuffer of the canvas's size, repeating until 30 ms have passed; `gl.finish()`
+  and a one-pixel `readPixels` after every pass make the GPU account for the work,
+  otherwise the draws only queue and the clock measures JavaScript. It runs on frame
+  three (`probeFrames`), when the programs are compiled and the opening camera is set,
+  and only when there are no saved settings (`hadSaved`).
+- **Normalise before you judge.** The first-launch default is the "low" tier, so the
+  probe draws 460,000 points, not the 95,000 the budget was written for; `msLow`
+  rescales the pass to the lowest tier's point count before `pickDetail`. The model:
+  a pass at density D costs about msLow·D/2 (denser tiers draw smaller sprites), plus
+  three milliseconds for the rest of the frame, inside an eleven-millisecond budget.
+  Never picks above medium — medium is already two million points and the heavy tiers
+  fetch and build for seconds; those are a choice, not a default. Past 8 ms per pass the
+  pixel ratio is capped at 1 (`dprCap`, used by `resize()`), and both the tier (`dens`)
+  and the cap (`dprc`) are saved, so the probe never runs twice.
+- **The result is on the info dialog's build line** ("probe 1.2 ms/pass → medium"),
+  so a report of "it's slow" or "it looks sparse" can be read against what the machine
+  measured.
+- **Found on the way:** a saved tier equal to the boot tier left the quality slider
+  and its label at the markup default ("low" shown while lowest drew). The restore now
+  sets slider and label whenever a tier is saved and dispatches the rebuild only when
+  the tier differs.
+- SwiftShader measures ~100 ms a pass and picks lowest at 1× — which is the right
+  answer for SwiftShader.
+
 ## "I don't see the plates move" (v2.72.0)
 
 - **A feature nobody can reach is a bug report.** The plates were moving from v2.69.0 —

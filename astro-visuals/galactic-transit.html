@@ -942,7 +942,7 @@
       orbit, proposed to explain the clustered orbits of the far Kuiper belt. Its orbit is drawn from those
       estimates and its question mark is part of its name. Switch it off in Visuals if you would rather
       keep to what has been seen.</li>
-      <li>The <b>quality</b> row raises the drawn star count five-fold (~460,000 points) and scatters
+      <li>On a first visit a thirty-millisecond <b>off-screen probe</b> draws the star field into a hidden buffer a few times, two frames in, and sets the quality row from the time one pass takes: lowest, low or medium, never more, and the pixel ratio drops to 1× when even that is slow. The choice is saved; change it here any time. The <b>quality</b> row raises the drawn star count five-fold (~460,000 points) and scatters
       discrete <b>dark molecular clouds</b> (Dunkelwolken) through the disk on top of the arm-edge dust lanes —
       closer to the Milky Way's real texture, at the cost of GPU load. The row runs on to
       <b>&times;8</b> at a hundred and sixty-fold — some seventeen million sprites — which will not fit on
@@ -1053,7 +1053,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.72.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.73.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -4095,7 +4095,7 @@ const S_CHK = ['fxBirth','fxSn','fxPn','fxDrone','secSolo','closeOnGo','qrOn'];
 let qrPos = { x: 1, y: 1 }, qrHeld = false;
 function saveSettingsNow(){
   try{
-    const s = { t:{}, s:{}, c:{}, cal:$('cal').value, mult:speedMult, dens:curD,
+    const s = { t:{}, s:{}, c:{}, cal:$('cal').value, mult:speedMult, dens:curD, dprc:dprCap,
                 units:unitMode,
                 fsel:$('focusSel').value, sec:secOpen,
                 pan:Object.fromEntries(PANELS.map(q => [q.id, { s:pState[q.id].s, o:pState[q.id].o }])),
@@ -4125,8 +4125,10 @@ function restoreSettings(register){
       if(v != null && isOn($(id)) !== v) $(id).click(); });   // a checkbox click fires change
     if(s.cal && s.cal !== $('cal').value){ $('cal').value = s.cal; $('cal').dispatchEvent(new Event('change')); }
     if(s.mult > 0 && s.mult !== speedMult) setMultExp(Math.log10(s.mult));
+    if(s.dprc === 1 || s.dprc === 2){ if(s.dprc !== dprCap){ dprCap = s.dprc; resize(); } }   // the probe's pixel cap, kept
     if(s.dens){ const i = DETAIL_D.indexOf(s.dens);
-      if(i >= 0 && s.dens !== curD){ $('detail').value = i; $('detail').dispatchEvent(new Event('input')); } }
+      if(i >= 0){ $('detail').value = i; $('detailv').textContent = DETAIL_NAMES[i];   // the slider shows the tier even when it is the boot tier
+        if(s.dens !== curD) $('detail').dispatchEvent(new Event('input')); } }
     if(s.units === 'words' || s.units === 'sup' || s.units === 'e') setSegUnits(s.units);
     if(s.fsel === 'sun' || s.fsel === 'mw' || s.fsel === 'and') $('focusSel').value = s.fsel;
     if(s.pan) for(const q of PANELS){
@@ -4761,7 +4763,7 @@ function setStateColour(h, meanC){
 }
 
 // ---------- resize ----------
-let W=0,H=0,DPR=1, projMat;
+let W=0,H=0,DPR=1, projMat, dprCap=2;   // dprCap: the first-launch probe lowers it on a slow device
 // The settings panel gets the room it needs. On a small screen it reaches across the
 // environment readout beside it, and down over the status bar and the view scale below.
 // Whatever it actually overlaps steps aside until it is collapsed again — measured, not
@@ -4849,7 +4851,7 @@ const SKY_MIRROR = -1;
 // the one way a projection is built: frame() rebuilds it every frame for its near plane
 function skyProjection(near, far){ const m = perspective(Math.PI/3, W/H, near, far); m[0] *= SKY_MIRROR; return m; }
 function resize(){
-  DPR=Math.min(2, devicePixelRatio||1);
+  DPR=Math.min(dprCap, devicePixelRatio||1);
   W=innerWidth; H=innerHeight;
   canvas.width=W*DPR; canvas.height=H*DPR;
   gl.viewport(0,0,canvas.width,canvas.height);
@@ -5057,6 +5059,54 @@ const vaoSunPt = (()=>{ const v=gl.createVertexArray(); gl.bindVertexArray(v);
   gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
   gl.bindVertexArray(null); return v; })();
 let plasmaSunPx = 0;
+
+// ---------- the first-launch performance probe ----------
+// A first visit has no saved quality. Two frames in — the programs compiled, the first
+// scenario's camera set — the galaxy's own star pass is drawn into a hidden framebuffer
+// of the canvas's size, over and over for about thirty milliseconds, and gl.finish()
+// plus a one-pixel read make the GPU account for all of it. The time one pass takes,
+// on the lowest tier's ~95,000 points, sets the quality row (lowest, low or medium —
+// never more: medium is already two million points and the heavier tiers are a
+// choice, not a default) and caps the pixel ratio at 1 when even that pass is slow.
+let probeFrames = 0, probeInfo = null;
+function perfProbe(){
+  const fb = gl.createFramebuffer(), tex = gl.createTexture(), pw = canvas.width, ph = canvas.height;
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, pw, ph, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+  const px = new Uint8Array(4), sync = ()=>{ gl.finish(); gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); };
+  let ms = -1, passes = 0;
+  try{
+    if(gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) throw new Error('fbo');
+    gl.viewport(0, 0, pw, ph); gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE);
+    gl.useProgram(pPt); gl.bindVertexArray(vaoGxy);        // the uniforms as the last frame left them
+    gl.drawArrays(gl.POINTS, 0, N_GXY); sync();             // warm-up: not timed
+    const t0 = performance.now();
+    do{ gl.drawArrays(gl.POINTS, 0, N_GXY); passes++; sync(); }
+    while(performance.now() - t0 < 30 && passes < 40);
+    ms = (performance.now() - t0)/passes;
+  }catch(e){ ms = -1; }
+  gl.bindVertexArray(null); gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.deleteFramebuffer(fb); gl.deleteTexture(tex);
+  gl.viewport(0, 0, canvas.width, canvas.height);
+  return { ms, passes, points: N_GXY, px: pw + '×' + ph };
+}
+// one pass at density D costs about ms·D/2 (denser tiers draw smaller points); with the
+// rest of the frame the budget is eleven milliseconds, which keeps sixty frames a second
+const pickDetail = ms => ms < 0 ? 1 : ms*20*0.5 + 3 <= 11 ? 2 : ms*5*0.5 + 3 <= 11 ? 1 : 0;
+function runFirstLaunchProbe(){
+  const r = perfProbe();
+  r.msLow = r.ms < 0 ? -1 : r.ms * 95000 / Math.max(1, r.points);   // per pass of the lowest tier's points, whatever tier was drawn
+  const d = pickDetail(r.msLow);
+  if(r.msLow > 8){ dprCap = 1; resize(); }                  // a slow fill: fewer pixels first
+  r.detail = DETAIL_NAMES[d]; r.dpr = DPR; probeInfo = r;
+  $('detail').value = d; $('detail').dispatchEvent(new Event('input'));
+  saveSettingsNow();                                         // at once: a tab closed inside the debounce would probe again
+  try{ $('buildStamp').textContent += ' · probe ' + (r.ms < 0 ? 'failed' : r.msLow.toFixed(1) + ' ms/pass') + ' → ' + r.detail + (dprCap < 2 ? ', 1× pixels' : ''); }catch(e){}
+}
 
 function frame(now){
   const dt = Math.min(0.05,(now-last)/1000); last=now;
@@ -5960,6 +6010,7 @@ function frame(now){
   }
   }
 
+  if(probeFrames >= 0 && ++probeFrames === 3){ probeFrames = -1; if(!hadSaved) runFirstLaunchProbe(); }
   requestAnimationFrame(frame);
 }
 // Whether this visitor has been here before decides how much the opening scenario may
