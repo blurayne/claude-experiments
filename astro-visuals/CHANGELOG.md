@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.74.2 — 2026-09-03
+
+- Style(astro-visuals): v2.74.2 — half-transparent (i) frame; transparent checkboxes (`8ade8fa`)
+
 ### 2.74.1 — 2026-09-03
 
 - Fix(astro-visuals): v2.74.1 — the (i) icon is a square, not a circle (`dd22048`)
