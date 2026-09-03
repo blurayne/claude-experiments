@@ -5,7 +5,7 @@ before the work starts. An item is ticked when it ships, with the version that c
 
 ## 2026-09-01
 
-- [ ] The (i) icon smaller, with less gap to the label text it follows.
+- [x] The (i) icon smaller, with less gap to the label text it follows — v2.74.3.
 - [x] The square around the (i) half transparent; the unchecked checkbox transparent (or black) — v2.74.2.
 - [x] The (i) icon square, not round — v2.74.1.
 - [x] Spin lock left-aligned on its own line under the view option box, its label in normal
