@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.67.0 — 2026-09-03
+
+- The Sun's shell casting drawn as the event it is (v2.67.0) (`4a57091`)
+
 ### 2.66.0 — 2026-09-03
 
 - The QR overlay sits bottom right, remembers where it is put, and a double tap dismisses it (v2.66.0) (`ef77f3a`)
