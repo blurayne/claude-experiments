@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.73.0 — 2026-09-03
+
+- Feat(astro-visuals): v2.73.0 — a first-launch performance probe sets the quality (`dab1862`)
+
 ### 2.72.0 — 2026-09-03
 
 - Feat(astro-visuals): v2.72.0 — Plate tectonics scenario, daily-mean light at high rates, land wins over a moved plate's ocean (`17d9753`)
