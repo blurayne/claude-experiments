@@ -332,8 +332,8 @@ the version living in the info dialog and the tour card.
 `ZOOM_RUNGS` adds the geometric midpoint between each pair, so two presses go object to
 object. `zoomStep(dir)` moves `cam.distGoal` to the next rung more than 3% away in log space
 and lets the frame's log-space easing do the motion; nothing else changes, so it composes with
-the wheel, the pinch, the pan and the focus buttons. The dots ride the right dock between help
-and pause (`dock.push` order); `tZoomBtns` in Visuals toggles their `act` class and re-lays the
+the wheel, the pinch, the pan and the focus buttons. The dots ride the right dock under play
+(`dock.push` order: labels, help, pause, +, −; v2.64.1 moved them from under help); `tZoomBtns` in Visuals toggles their `act` class and re-lays the
 dock, and is in `S_TOG`. Two traps: any `$('…')` listener placed above the `const $` line is a
 TDZ error that kills the page (register listeners with the toggles, not next to the helper);
 and `realMode` is not the dive flag — the 25-unit floor belongs to the schematic mode, so an

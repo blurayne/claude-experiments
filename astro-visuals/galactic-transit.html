@@ -938,9 +938,9 @@
 <button class="pdot" id="reopen" data-open="hud" aria-label="show control panel"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.4a3.6 3.6 0 100 7.2 3.6 3.6 0 000-7.2zm9 3.6c0-.5 0-1-.1-1.5l2-1.5-2-3.4-2.3.9a7.8 7.8 0 00-2.6-1.5L15.6 2h-3.9l-.4 2.5c-.9.3-1.8.8-2.6 1.5L6.4 5.1l-2 3.4 2 1.5a9 9 0 000 3l-2 1.5 2 3.4 2.3-.9c.8.7 1.7 1.2 2.6 1.5l.4 2.5h3.9l.4-2.5c.9-.3 1.8-.8 2.6-1.5l2.3.9 2-3.4-2-1.5c.1-.5.1-1 .1-1.5z"/></svg></button>
 <button class="pdot act on" id="tPause" aria-label="pause"><svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><rect x="1.4" y="1" width="2.7" height="8"/><rect x="5.9" y="1" width="2.7" height="8"/></svg></button>
 <button class="pdot act" id="tInfo" aria-label="about">?</button>
+<button class="pdot" id="envPlus" data-open="env" aria-label="show the Earth panel">ℹ</button>
 <button class="pdot act" id="zoomIn" aria-label="zoom in" title="zoom in — toward the next smaller object">+</button>
 <button class="pdot act" id="zoomOut" aria-label="zoom out" title="zoom out — toward the next bigger object">−</button>
-<button class="pdot" id="envPlus" data-open="env" aria-label="show the Earth panel">ℹ</button>
 <button class="pdot act on" id="tLabelsAll" aria-label="toggle all labels" title="toggle all labels"><svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.2,1.8 L6,1.8 L8.8,5 L6,8.2 L1.2,8.2 Z"/></svg></button>
 <div class="env pnl simPanelWide" id="simPanel">
   <button class="pclose" data-close="simPanel" aria-label="close">−</button>
@@ -1014,7 +1014,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.64.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.64.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -3402,7 +3402,9 @@ toggle($('tEvBirth'), on=>{ evBirth=on; syncLife(); });
 toggle($('tVar'), on=> varOn=on);
 let dustOn = true;
 toggle($('tDust'), on=>{ dustOn = on; });
-toggle($('tZoomBtns'), on=>{ for(const id of ['zoomIn','zoomOut']) $(id).classList.toggle('act', on); layoutPanels(); fitPanels(); });
+const syncZoomBtns = on => { for(const id of ['zoomIn','zoomOut']) $(id).classList.toggle('act', on); };
+toggle($('tZoomBtns'), on=>{ syncZoomBtns(on); layoutPanels(); fitPanels(); });
+syncZoomBtns($('tZoomBtns').checked);   // on by default: the markup says checked, and the dots follow it
 $('zoomIn').addEventListener('click', ()=> zoomStep(-1));     // here, after $ exists: zoomStep is
 $('zoomOut').addEventListener('click', ()=> zoomStep(+1));    // hoisted, the listeners are not
 const focusSunOpt = $('focusSel').options[0];   // its name changes once the Sun is gone
@@ -3540,7 +3542,7 @@ function placePanels(){
       y += r.height + gap;
     }
     const dock = mine.map(p => $(p.dot));
-    if(side === 'r') dock.push($('tLabelsAll'), $('tInfo'), $('zoomIn'), $('zoomOut'), $('tPause'));   // standing actions, pause last
+    if(side === 'r') dock.push($('tLabelsAll'), $('tInfo'), $('tPause'), $('zoomIn'), $('zoomOut'));   // standing actions; zoom under play
     for(const el of dock){
       if(getComputedStyle(el).display === 'none') continue;
       put(el, pad + dotX);
