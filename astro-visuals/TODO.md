@@ -5,6 +5,8 @@ before the work starts. An item is ticked when it ships, with the version that c
 
 ## 2026-09-01
 
+- [ ] Pangaea is not seen: fix the Plate tectonics scenario's aim, and add Pangaea, Pangaea
+      Proxima and the vaporisation of the oceans as events of their own.
 - [x] The (i) border a circle again, not a rectangle — v2.74.4.
 - [x] The (i) icon smaller, with less gap to the label text it follows — v2.74.3.
 - [x] The square around the (i) half transparent; the unchecked checkbox transparent (or black) — v2.74.2.
