@@ -1016,14 +1016,14 @@
 </div>
 
 <div id="labels"></div>
-<canvas id="qrOverlay" style="position:fixed;left:8px;top:8px;z-index:1000;display:none;touch-action:none;cursor:move;image-rendering:pixelated;image-rendering:crisp-edges" aria-hidden="true"></canvas>
+<canvas id="qrOverlay" style="position:fixed;left:0;top:0;z-index:1000;display:none;touch-action:none;cursor:move;image-rendering:pixelated;image-rendering:crisp-edges" aria-hidden="true"></canvas>
 
 <script>
 "use strict";
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.65.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.66.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -3745,13 +3745,18 @@ const S_TOG = ['tLabels','tArms','tLabelSteady','tZoomBtns','tDwarfs','tP9','tBe
                'tStatAge','tStatGyr','tStatSn','tStatBirth','tGaia','tFps'];
 const S_SLD = ['speed','trailA','orbitA','trailL','musicVol','sfxVol','minB','hudHz','coreB','qrScale'];
 const S_CHK = ['fxBirth','fxSn','fxPn','fxDrone','secSolo','closeOnGo','qrOn'];
+// Where the QR overlay sits, as fractions of the free space rather than pixels: (1,1) is
+// the bottom right corner at any screen size or module scale, so a place chosen by hand
+// survives a rotation, a change of scale and a reload. Declared here, above the settings
+// writer that reads it — inside the overlay's own block it was a TDZ error at boot.
+let qrPos = { x: 1, y: 1 }, qrHeld = false;
 function saveSettingsNow(){
   try{
     const s = { t:{}, s:{}, c:{}, cal:$('cal').value, mult:speedMult, dens:curD,
                 units:unitMode,
                 fsel:$('focusSel').value, sec:secOpen,
                 pan:Object.fromEntries(PANELS.map(q => [q.id, { s:pState[q.id].s, o:pState[q.id].o }])),
-                bar:$('gamebar').classList.contains('slid'),
+                bar:$('gamebar').classList.contains('slid'), qrPos,
  };
     S_TOG.forEach(id => s.t[id] = isOn($(id)));
     S_SLD.forEach(id => s.s[id] = $(id).value);
@@ -3787,6 +3792,7 @@ function restoreSettings(register){
     }
     if(s.sec) for(const k of SECS) if(typeof s.sec[k] === 'boolean') secOpen[k] = s.sec[k];
     if(s.bar) $('gamebar').classList.add('slid');
+    if(s.qrPos && typeof s.qrPos.x === 'number' && typeof s.qrPos.y === 'number') qrPos = s.qrPos;
   }
   { // the settings dialog stays shut unless a saved record says otherwise
     if(!(s && s.pan && s.pan.hud && s.pan.hud.o === true)) pState.hud.o = false;
@@ -5605,6 +5611,12 @@ function qrEncode(text, forceMask){
 // it differs, at 1, 2 or 4 device pixels a module with a four-module quiet zone. Debug
 // only; nothing below reaches it when debug mode is off.
 const QR_SCALES = [1, 2, 4]; let qrLast = '';
+function qrPlace(){
+  const cv = $('qrOverlay'), w = cv.offsetWidth, h = cv.offsetHeight;
+  const gap = 8, fx = Math.max(0, innerWidth - w - gap), fy = Math.max(0, innerHeight - h - gap);
+  cv.style.left = (gap/2 + fx*Math.min(1, Math.max(0, qrPos.x))) + 'px';
+  cv.style.top  = (gap/2 + fy*Math.min(1, Math.max(0, qrPos.y))) + 'px';
+}
 function qrRedraw(force){
   const cv = $('qrOverlay');
   if(!debugMode || !$('qrOn').checked){ cv.style.display = 'none'; qrLast = ''; return; }
@@ -5620,17 +5632,37 @@ function qrRedraw(force){
   g.fillStyle = '#fff'; g.fillRect(0, 0, size, size); g.fillStyle = '#000';
   for(let y=0;y<q.n;y++) for(let x=0;x<q.n;x++) if(q.m[y*q.n+x]) g.fillRect((x+quiet)*sc, (y+quiet)*sc, sc, sc);
   cv.style.display = 'block';
+  if(!qrHeld) qrPlace();   // the canvas has just changed size: keep its corner
 }
 $('qrOn').addEventListener('change', ()=> qrRedraw(true));
-// movable: a drag by finger or mouse carries it, and the canvas below never sees the touch
-{ const cv = $('qrOverlay'); let dx = 0, dy = 0, held = false;
-  cv.addEventListener('pointerdown', e=>{ held = true; const r = cv.getBoundingClientRect(); dx = e.clientX - r.left; dy = e.clientY - r.top;
+// Movable by finger or mouse, and the canvas below never sees the gesture. A drag ends by
+// recording the corner it was dropped nearest, in the same free-space fractions; a double
+// tap that did not drag switches the overlay off.
+{ const cv = $('qrOverlay'); let dx = 0, dy = 0, sx = 0, sy = 0, held = false, moved = false, lastTap = 0;
+  const record = ()=>{
+    const gap = 8, w = cv.offsetWidth, h = cv.offsetHeight;
+    const fx = Math.max(1, innerWidth - w - gap), fy = Math.max(1, innerHeight - h - gap);
+    qrPos = { x: Math.min(1, Math.max(0, (parseFloat(cv.style.left) - gap/2)/fx)),
+              y: Math.min(1, Math.max(0, (parseFloat(cv.style.top)  - gap/2)/fy)) };
+    saveSettings();
+  };
+  cv.addEventListener('pointerdown', e=>{ held = qrHeld = true; moved = false; sx = e.clientX; sy = e.clientY;
+    const r = cv.getBoundingClientRect(); dx = e.clientX - r.left; dy = e.clientY - r.top;
     try{ cv.setPointerCapture(e.pointerId); }catch(err){} e.stopPropagation(); e.preventDefault(); });
   cv.addEventListener('pointermove', e=>{ if(!held) return;
+    if(Math.hypot(e.clientX - sx, e.clientY - sy) > 6) moved = true;
     cv.style.left = Math.max(0, Math.min(innerWidth - cv.offsetWidth, e.clientX - dx)) + 'px';
     cv.style.top  = Math.max(0, Math.min(innerHeight - cv.offsetHeight, e.clientY - dy)) + 'px'; e.stopPropagation(); });
-  const drop = e=>{ held = false; e.stopPropagation(); };
-  cv.addEventListener('pointerup', drop); cv.addEventListener('pointercancel', drop); }
+  const drop = e=>{
+    if(!held) return;
+    held = qrHeld = false; e.stopPropagation();
+    if(moved){ record(); lastTap = 0; return; }
+    const now = performance.now();
+    if(now - lastTap < 400){ lastTap = 0; $('qrOn').checked = false; $('qrOn').dispatchEvent(new Event('change')); saveSettings(); }
+    else lastTap = now;
+  };
+  cv.addEventListener('pointerup', drop); cv.addEventListener('pointercancel', drop);
+  addEventListener('resize', ()=>{ if(cv.style.display !== 'none') qrPlace(); }); }
 $('qrScale').addEventListener('input', e=>{ $('qrScalev').textContent = QR_SCALES[+e.target.value] + '×'; qrRedraw(true); });
 setInterval(()=> qrRedraw(false), 1000);
 const DBGKEY = 'galactic-transit.debug';

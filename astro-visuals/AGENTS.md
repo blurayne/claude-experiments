@@ -343,6 +343,19 @@ error. The proof is a decode: OpenCV's `QRCodeDetector` failed on the page's v23
 reading a reference one — `zxing-cpp` reads the drawn overlay back to the exact payload. Use
 zxing to judge, not OpenCV.
 
+The overlay's position is stored as fractions of the FREE space (`qrPos`, `qrPlace()`), not
+pixels: (1,1) is the bottom right corner whatever the screen size or module scale, so it holds
+its corner when the scale changes and after a rotation. `qrPos` is declared beside
+`saveSettingsNow`, above the code that reads it — inside the overlay's own block it was a TDZ
+error at boot — and `qrHeld` stops the one-second redraw snapping a code back mid-drag.
+
+**Timing-based gestures cannot be tested through this harness.** A double tap asked for at
+150 ms took 2551 ms to arrive: the SwiftShader render loop starves both CDP round trips and
+in-page `setTimeout`. Measure the gap that actually elapsed before believing a timing failure,
+then test the branches deterministically — two taps dispatched back to back (gap 0) prove the
+"within the window" path, a deliberately slow pair proves the other, and a pair with movement
+proves a drag is never a tap.
+
 The Debug section is a real section: `SECS`, `SEC_BODY`, `secOpen` all carry `debug`; its
 heading is hidden outside debug mode and the body folded through `applySecs()`, never by an
 inline `display` (which beats the fold's class). Entering debug — ten taps or `?debug` in the

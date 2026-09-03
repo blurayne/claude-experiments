@@ -228,8 +228,12 @@ before the work starts. An item is ticked when it ships, with the version that c
 - [x] The QR overlay defaults to 1x pixels per module (slider 0). Verified on a fresh
       profile at a phone's DPR: 117 px canvas, decodes back to the exact state, and a
       full-resolution screenshot of the page decodes too — v2.65.1.
-- [ ] The QR overlay sits bottom right by default, remembers where it is moved to, and a
-      double tap on it switches it off.
+- [x] The QR overlay sits bottom right by default, remembers where it is moved to, and a
+      double tap on it switches it off. Its place is fractions of the free space, so (1,1)
+      is the corner at any size or scale; a drag records it and saves it. Verified: bottom
+      right on a fresh profile, still cornered after switching to 4×, dragged to the top
+      left and back there after a reload, a single tap leaves it alone, a drag is never a
+      tap, and two taps in quick succession switch it off — v2.66.0.
 
 ### Shipped earlier, for the record
 
