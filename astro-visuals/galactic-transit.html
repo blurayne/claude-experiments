@@ -398,6 +398,7 @@
       <label class="chk"><input type="checkbox" id="tP9" checked> planet 9</label>
       <label class="chk"><input type="checkbox" id="tGaia" checked> gaia sky</label>
       <label class="chk"><input type="checkbox" id="tVar" checked> variables</label>
+      <label class="chk" title="the + and − buttons under help"><input type="checkbox" id="tZoomBtns" checked> zoom buttons</label>
     </div>
     </div>
     <div class="sect" data-sec="hud">Hud<span class="arw">▾</span></div>
@@ -492,7 +493,7 @@
     <button class="rowbtn" id="tourAgain" style="margin-bottom:12px">show the tour again</button>
     <div class="stats" style="margin-top:0;padding-top:0;border-top:0">
       elapsed <b id="yrs">0.0</b> yr &nbsp;·&nbsp; galactic lap <b id="pct">0.000</b>%<br>
-      drag to orbit &nbsp;·&nbsp; scroll / pinch to zoom &nbsp;·&nbsp; two fingers to pan
+      drag to orbit &nbsp;·&nbsp; scroll / pinch to zoom &nbsp;·&nbsp; two fingers to pan &nbsp;·&nbsp; + / − step object to object
     </div>
     <h3>Scale, honestly</h3>
     <p>Everything is drawn at true proportions, always: real semi-major axes, real diameters, the ~60° tilt
@@ -937,6 +938,8 @@
 <button class="pdot" id="reopen" data-open="hud" aria-label="show control panel"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.4a3.6 3.6 0 100 7.2 3.6 3.6 0 000-7.2zm9 3.6c0-.5 0-1-.1-1.5l2-1.5-2-3.4-2.3.9a7.8 7.8 0 00-2.6-1.5L15.6 2h-3.9l-.4 2.5c-.9.3-1.8.8-2.6 1.5L6.4 5.1l-2 3.4 2 1.5a9 9 0 000 3l-2 1.5 2 3.4 2.3-.9c.8.7 1.7 1.2 2.6 1.5l.4 2.5h3.9l.4-2.5c.9-.3 1.8-.8 2.6-1.5l2.3.9 2-3.4-2-1.5c.1-.5.1-1 .1-1.5z"/></svg></button>
 <button class="pdot act on" id="tPause" aria-label="pause"><svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><rect x="1.4" y="1" width="2.7" height="8"/><rect x="5.9" y="1" width="2.7" height="8"/></svg></button>
 <button class="pdot act" id="tInfo" aria-label="about">?</button>
+<button class="pdot act" id="zoomIn" aria-label="zoom in" title="zoom in — toward the next smaller object">+</button>
+<button class="pdot act" id="zoomOut" aria-label="zoom out" title="zoom out — toward the next bigger object">−</button>
 <button class="pdot" id="envPlus" data-open="env" aria-label="show the Earth panel">ℹ</button>
 <button class="pdot act on" id="tLabelsAll" aria-label="toggle all labels" title="toggle all labels"><svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.2,1.8 L6,1.8 L8.8,5 L6,8.2 L1.2,8.2 Z"/></svg></button>
 <div class="env pnl simPanelWide" id="simPanel">
@@ -1011,7 +1014,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.63.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.64.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -3153,6 +3156,22 @@ function endPointer(e){
 addEventListener('pointerup', endPointer);
 addEventListener('pointercancel', endPointer);
 const minDist = ()=> realMode ? 2e-8 : 25; // the floor: ~0.04 AU across, eight solar radii
+// The zoom buttons step along a ladder of the objects themselves — the Sun, the planets'
+// orbits, the belts, the Oort shell, the nearest stars, the arm, the Galaxy, the Local
+// Group — with one rung between each pair, so two presses take you from one object to
+// the next, and every press eases in log space like any other zoom. Clamped to the same
+// floor and ceiling as the wheel. Distances in camera units: 1 AU across the view is
+// 4.67e-7, 1 ly is 0.0288.
+const ZOOM_OBJ = [2e-8, 1e-7, 3.7e-7, 9.3e-7, 1.45e-6, 4.9e-6, 8.9e-6, 2.8e-5, 4.7e-5, 9.3e-4, 0.144, 0.72, 17, 150, 4300, 9500];
+const ZOOM_RUNGS = ZOOM_OBJ.flatMap((d, i) => i ? [Math.sqrt(ZOOM_OBJ[i-1]*d), d] : [d]);
+function zoomStep(dir){
+  const cur = cam.distGoal, lo = Math.log(cur);
+  let next = null;
+  if(dir < 0){ for(const r of ZOOM_RUNGS) if(Math.log(r) < lo - 0.03) next = r; }        // the largest rung below
+  else       { for(const r of ZOOM_RUNGS) if(Math.log(r) > lo + 0.03){ next = r; break; } } // the smallest above
+  if(next === null) return;
+  cam.distGoal = Math.max(minDist(), Math.min(9500, next));
+}
 canvas.addEventListener('wheel', e=>{
   e.preventDefault();
   const rate = realMode ? 0.0018 : 0.0011; // faster travel across real scale's ~11 decades
@@ -3383,6 +3402,9 @@ toggle($('tEvBirth'), on=>{ evBirth=on; syncLife(); });
 toggle($('tVar'), on=> varOn=on);
 let dustOn = true;
 toggle($('tDust'), on=>{ dustOn = on; });
+toggle($('tZoomBtns'), on=>{ for(const id of ['zoomIn','zoomOut']) $(id).classList.toggle('act', on); layoutPanels(); fitPanels(); });
+$('zoomIn').addEventListener('click', ()=> zoomStep(-1));     // here, after $ exists: zoomStep is
+$('zoomOut').addEventListener('click', ()=> zoomStep(+1));    // hoisted, the listeners are not
 const focusSunOpt = $('focusSel').options[0];   // its name changes once the Sun is gone
 function applyFocusView(){
   const v = $('focusSel').value;
@@ -3518,7 +3540,7 @@ function placePanels(){
       y += r.height + gap;
     }
     const dock = mine.map(p => $(p.dot));
-    if(side === 'r') dock.push($('tLabelsAll'), $('tInfo'), $('tPause'));   // standing actions, pause last
+    if(side === 'r') dock.push($('tLabelsAll'), $('tInfo'), $('zoomIn'), $('zoomOut'), $('tPause'));   // standing actions, pause last
     for(const el of dock){
       if(getComputedStyle(el).display === 'none') continue;
       put(el, pad + dotX);
@@ -3696,7 +3718,7 @@ loadTrack(0);
 // so restoring a setting does exactly what clicking it would. Anything momentary — the
 // pause, the dive, the epoch jump, the current track position — is deliberately left out.
 const SKEY = 'galactic-transit.settings.v1';
-const S_TOG = ['tLabels','tArms','tLabelSteady','tDwarfs','tP9','tBelt','tKuiper','tOort','tDust',
+const S_TOG = ['tLabels','tArms','tLabelSteady','tZoomBtns','tDwarfs','tP9','tBelt','tKuiper','tOort','tDust',
                'tEvSN','tEvBirth','tVar',
                'tStatAge','tStatGyr','tStatSn','tStatBirth','tGaia','tFps'];
 const S_SLD = ['speed','trailA','orbitA','trailL','musicVol','sfxVol','minB','hudHz','coreB'];
@@ -4050,6 +4072,7 @@ const TOUR_HINTS = [
   { t:'hud',      k:'Settings',   s:"Everything else: what is drawn, the audio, the readouts." },
   { t:'tLabelsAll', k:'Labels',   s:"Every on-screen label at once — planets, galaxy arms, Andromeda and its companions." },
   { t:'tInfo',    k:'About',      s:"This text again, with the notes on what is measured and what is modelled." },
+  { t:'zoomIn',   k:'Zoom',       s:"In or out, object to object: two presses take the view from one scale to the next." },
   { t:'gamebar',  k:'Readouts',   s:"Drag a panel to the other side, or off its edge to close it. This bar slides away downward." },
 ];
 // a closed panel is represented by its dot, which is what the visitor can actually see

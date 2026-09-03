@@ -325,6 +325,20 @@ Also here: a request for "a setting to turn off dark clouds" — the switch alre
 adding it; a duplicate switch is worse than none. And the settings title is "Settings" alone now,
 the version living in the info dialog and the tour card.
 
+## Zoom buttons step a ladder of objects (v2.64.0)
+
+`ZOOM_OBJ` is the ladder — camera distances at which each object fills the view (1 AU across
+= 4.67e-7, 1 ly = 0.0288 in `cam.dist` units), from the Sun's disc to the Local Group;
+`ZOOM_RUNGS` adds the geometric midpoint between each pair, so two presses go object to
+object. `zoomStep(dir)` moves `cam.distGoal` to the next rung more than 3% away in log space
+and lets the frame's log-space easing do the motion; nothing else changes, so it composes with
+the wheel, the pinch, the pan and the focus buttons. The dots ride the right dock between help
+and pause (`dock.push` order); `tZoomBtns` in Visuals toggles their `act` class and re-lays the
+dock, and is in `S_TOG`. Two traps: any `$('…')` listener placed above the `const $` line is a
+TDZ error that kills the page (register listeners with the toggles, not next to the helper);
+and `realMode` is not the dive flag — the 25-unit floor belongs to the schematic mode, so an
+"enter the dive at the floor" branch was dead code and is gone.
+
 ## Andromeda's arms: favour the map's ridges, and measure at screen scale (v2.63.1)
 
 `loadM31Map` builds a `ridge` map — a pixel's excess over a wide (box 9 × 4, ~20 px) blur,

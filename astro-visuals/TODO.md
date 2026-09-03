@@ -187,9 +187,13 @@ before the work starts. An item is ticked when it ships, with the version that c
       screen scale the star layer's arm contrast goes ~1.5 → ~2, and face-on the arms read
       as arms where they were a mottle. K = 3 did nothing and K = 12 little: the map's
       ridges average 0.08 — v2.63.1.
-- [ ] Zoom + / − buttons under the help button, switchable on/off in Visuals. Each press
+- [x] Zoom + / − buttons under the help button, switchable on/off in Visuals. Each press
       zooms smoothly, and the steps respect the objects: always toward the next bigger or
-      smaller object, in two steps per object.
+      smaller object, in two steps per object. A ladder of sixteen object scales (Sun to
+      Local Group) with a geometric rung between each pair; a press moves the goal one
+      rung and the existing log-space easing carries the distance there. Verified: help
+      146 px → + 190 → − 234 → pause; Oort shell − − → nearest stars and + + back; the
+      switch hides them, closes the gap and persists — v2.64.0.
 
 ### Shipped earlier, for the record
 
