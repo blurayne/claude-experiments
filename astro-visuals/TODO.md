@@ -5,6 +5,9 @@ before the work starts. An item is ticked when it ships, with the version that c
 
 ## 2026-09-01
 
+- [ ] Plate motion is not visible: a "Plate tectonics" scenario that runs from Pangaea at
+      ten million years a second with the spin lock on and Earth in view, and lighting that
+      averages out day and night at such rates instead of strobing.
 - [x] Spin lock on its own line in the dock, and also in the settings dialog — v2.71.0.
 - [x] Earth view sized to the viewport: the globe fills the view whatever the screen; and
       every Earth event/scenario focuses Earth — v2.71.0.
