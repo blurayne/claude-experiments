@@ -325,6 +325,7 @@
     cursor:pointer;user-select:none;text-transform:uppercase;font-family:'Orbitron',ui-monospace,monospace}
   .chk input{accent-color:var(--accent);width:12px;height:12px;margin:0;cursor:pointer}
   .chk:has(input:checked){color:var(--accent)}
+  #hud .chk{font-family:inherit;text-transform:none;letter-spacing:.02em;font-size:11px}   /* the settings dialog reads in the text face */
   .gamebar .cnt{font-size:9px;letter-spacing:.18em;text-transform:uppercase;text-align:center;color:var(--dim)}
   .gamebar .cnt b{display:block;font-family:'Orbitron',ui-monospace,monospace;font-size:14px;font-weight:700;
     letter-spacing:.04em;margin-top:3px;font-variant-numeric:tabular-nums}
@@ -399,6 +400,7 @@
       <label class="chk"><input type="checkbox" id="tGaia" checked> gaia sky</label>
       <label class="chk"><input type="checkbox" id="tVar" checked> variables</label>
       <label class="chk" title="the + and − buttons under help"><input type="checkbox" id="tZoomBtns" checked> zoom buttons</label>
+      <label class="chk" title="the camera turns with the planet: the same face stays in view while the clock runs"><input type="checkbox" id="tSpinLock2"> spin lock</label>
     </div>
     </div>
     <div class="sect" data-sec="hud">Hud<span class="arw">▾</span></div>
@@ -925,7 +927,7 @@
       model: each pole is the great circle from a plate's seat today to its seat in Pangaea, the angles set so
       the continents land where the maps put them, and the future runs the same arcs back: Pangaea at 250
       Myr ago, the Atlantic opening, India and Australia running north, and ahead the Atlantic closing again into
-      Pangaea Proxima around +250 Myr. Before the map has meaning the surface is noise. Tick <b>spin lock</b> in the view row and the camera turns
+      Pangaea Proxima around +250 Myr. Before the map has meaning the surface is noise. Tick <b>spin lock</b> under the view row (or in the settings' visuals) and the camera turns
       with the planet, so the same face stays in view while the clock runs — the way to watch the plates drift. Where the map has no
       depths, the oceans retreat toward the regions farthest from any coast as they go. Through the clock it shows the Hadean's molten crust, the methane-hazed orange Archean
       until the Great Oxidation, the Huronian and Cryogenian snowballs, ice caps that follow the piece's own
@@ -1037,8 +1039,9 @@
     <span style="display:flex;gap:6px;align-items:center">
       <select id="focusSel"><option value="sun">Solar System</option><option value="earth">Earth</option><option value="pn">Anthropic Nebula</option><option value="mw">Milky Way</option><option value="and">Andromeda</option></select>
       <button class="rowbtn" id="focusGo">GO</button>
-      <label class="chk" title="the camera turns with the planet: the same face stays in view while the clock runs"><input type="checkbox" id="tSpinLock"> spin lock</label>
     </span></div>
+  <div class="er"><span></span>
+    <label class="chk" title="the camera turns with the planet: the same face stays in view while the clock runs"><input type="checkbox" id="tSpinLock"> spin lock</label></div>
 </div>
 
 <div id="labels"></div>
@@ -1049,7 +1052,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.70.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.71.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -3728,11 +3731,22 @@ toggle($('tSpinLock'), on=>{
   else { cam.yaw = Math.atan2(d[0], d[2]); cam.pitch = Math.asin(Math.max(-1, Math.min(1, d[1]))); }
   if(coreLock){ coreLock = false; }   // the lock's own base yaw would double up
   spinLock = on; panF[0]=panF[1]=0;
+  $('tSpinLock2').checked = on;        // the settings dialog's twin follows
+});
+$('tSpinLock2').addEventListener('change', ()=>{   // and drives the dock's box, which owns the state
+  if($('tSpinLock').checked !== $('tSpinLock2').checked){ $('tSpinLock').checked = $('tSpinLock2').checked; $('tSpinLock').dispatchEvent(new Event('change')); }
 });
 syncZoomBtns($('tZoomBtns').checked);   // on by default: the markup says checked, and the dots follow it
 $('zoomIn').addEventListener('click', ()=> zoomStep(-1));     // here, after $ exists: zoomStep is
 $('zoomOut').addEventListener('click', ()=> zoomStep(+1));    // hoisted, the listeners are not
 const focusSunOpt = $('focusSel').options[0];   // its name changes once the Sun is gone
+// The Earth view fills the viewport: the globe's diameter at 80% of the shorter side,
+// whatever the screen. The projection's field is vertical (see pxScale in the draw),
+// so the distance is the planet's true diameter over that many pixels.
+function earthViewDist(){
+  const w = innerWidth, h = innerHeight, px = 0.8*Math.min(w, h);
+  return Math.max(minDist(), realSizes[3]*(h/(2*Math.tan(Math.PI/6)))/px);
+}
 function applyFocusView(){
   const v = $('focusSel').value;
   if(v === 'sun'){
@@ -3746,7 +3760,7 @@ function applyFocusView(){
     if($('tView').classList.contains('on')) $('tView').click();
     if(!$('tDive').classList.contains('on')) $('tDive').click();
     followTarget = 'earth';
-    cam.follow = true; coreLock = false; cam.distGoal = 3.2e-9; reseedFollow = true; panF[0]=panF[1]=0;
+    cam.follow = true; coreLock = false; cam.distGoal = earthViewDist(); reseedFollow = true; panF[0]=panF[1]=0;
   } else if(v === 'pn'){
     // the shell's full reach, ~3.5 ly across, following what is left of the Sun; before
     // the shell exists this is simply the Sun's neighbourhood at that scale
@@ -4251,6 +4265,11 @@ function jumpToEpoch(){
     cam.follow = true; coreLock = false;
     cam.distGoal = 0.144;                     // ~5 ly across: the whole Oort shell
     cam.yaw = 0.72; cam.pitch = -0.31;        // faces the star's approach track
+  }
+  if(sel.value === '0.058' || sel.value === '0.768' || sel.value === '2.068'){
+    // Earth's own events are watched from Earth: the globe filling the view, followed
+    $('focusSel').value = 'earth'; applyFocusView();
+    if(paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
   }
   nextSample = simT + DT_SAMPLE;
   events.length = 0; puffs.length = 0;

@@ -5,10 +5,10 @@ before the work starts. An item is ticked when it ships, with the version that c
 
 ## 2026-09-01
 
-- [ ] Spin lock on its own line in the dock, and also in the settings dialog.
-- [ ] Earth view sized to the viewport: the globe fills the view whatever the screen; and
-      every Earth event/scenario focuses Earth.
-- [ ] Checkbox labels in the settings dialog in the plain text face, not the display font.
+- [x] Spin lock on its own line in the dock, and also in the settings dialog — v2.71.0.
+- [x] Earth view sized to the viewport: the globe fills the view whatever the screen; and
+      every Earth event/scenario focuses Earth — v2.71.0.
+- [x] Checkbox labels in the settings dialog in the plain text face, not the display font — v2.71.0.
 - [x] Keep this file: every request becomes a checkbox here, committed before the work;
       the rule lives in `AGENTS.md` — commit 6181f0d.
 - [x] The Milky Way's rotation seems to change suddenly around galactic year 51.7, during

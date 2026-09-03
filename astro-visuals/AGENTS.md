@@ -325,6 +325,26 @@ Also here: a request for "a setting to turn off dark clouds" — the switch alre
 adding it; a duplicate switch is worse than none. And the settings title is "Settings" alone now,
 the version living in the info dialog and the tour card.
 
+## One state, two boxes; a view sized from the screen (v2.71.0)
+
+- **A toggle shown in two places has one owner.** The spin lock now sits on its own dock
+  row and again in the settings' visuals. The dock's checkbox owns the state (it is the
+  one in `S_TOG`, so it is what settings restore clicks); the settings twin only forwards
+  its change to the dock box and is set from the dock's handler. Never give the twin its
+  own listener on the state — two owners drift apart on restore.
+- **The Earth view is computed, not a constant.** `earthViewDist()` puts the globe's
+  diameter at 80% of the shorter viewport side from the planet's true diameter and the
+  vertical field, so a phone and a wide monitor both get a full globe. It reads
+  `innerWidth`/`innerHeight` directly rather than the draw's `W`/`H`, which are declared
+  later in the file — a view function that runs at boot must not depend on `let`s below it.
+- **Earth's epochs are watched from Earth.** The Theia impact, first life and the Great
+  Oxidation scenarios set the view selector to Earth and apply it, after the epoch is set
+  and before the trails refill. The Sun-swallows-Earth scenario keeps its own Sun-scale
+  frame: that one is about the Sun's disc.
+- **The settings dialog reads in the text face.** `.chk` is the display font everywhere it
+  appears in the dock; a `#hud .chk` rule gives the dialog's checkbox labels the body
+  font, no caps, normal tracking — the dialog is read, the dock is glanced at.
+
 ## A speed ladder and a spin-locked camera (v2.70.0)
 
 - **The speed slider is a ladder now, not a curve.** `SPEED_RUNGS` holds the rates in
