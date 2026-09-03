@@ -225,6 +225,7 @@ before the work starts. An item is ticked when it ships, with the version that c
       Verified: sample 0 is the past forward and the future in reverse — v2.65.0.
 - [x] The QR overlay is movable by touch (or mouse): pointer-captured drag, clamped to
       the screen, and the canvas below never sees it — v2.65.0.
+- [ ] The QR overlay defaults to 1x pixels per module.
 
 ### Shipped earlier, for the record
 
