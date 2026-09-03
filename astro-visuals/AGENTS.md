@@ -325,6 +325,23 @@ Also here: a request for "a setting to turn off dark clouds" — the switch alre
 adding it; a duplicate switch is worse than none. And the settings title is "Settings" alone now,
 the version living in the info dialog and the tour card.
 
+## "More realistic colouring" — the one change that is physics (v2.76.0)
+
+- **Asked for realism, look for the physics first.** The Milky Way's base colours come
+  from the NASA/JPL illustration the map is built from, so there was no palette to
+  "correct". What was wrong was the dust: `DUST_FS` darkened neutrally (`ZERO,
+  ONE_MINUS_SRC_ALPHA`), and a neutral darkening over pink haze reads grey-violet.
+  Interstellar dust reddens — A_R : A_V : A_B ≈ 0.82 : 1 : 1.32 for R_V = 3.1 — so the
+  pass now blends `ZERO, ONE_MINUS_SRC_COLOR` with `rgb = a·(0.62, 0.76, 1.0)`. Lanes
+  brown, the Rift red-brown, nothing else touched but the HII knots (toward Hα red).
+  Andromeda's dust goes through the same pass and gets the same law.
+- **What was not done, and why:** the white-blown core is additive stacking, and a real
+  fix is a tone-mapping pass over a framebuffer — a rendering-architecture change, not
+  a colour tweak; the `core glare` slider is the owner's knob for it. A palette change
+  to the stars would have been taste against an illustration already used as data.
+- **Judge before/after on two views:** the face-on Milky Way from outside (dist 4300)
+  and the opening view from inside the disk, where the same pass carves the band.
+
 ## "I don't see Pangaea" — the record outranks the model (v2.75.0)
 
 - **The report was right for a reason other than the one it named.** The Plate

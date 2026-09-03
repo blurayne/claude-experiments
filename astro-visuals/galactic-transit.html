@@ -958,6 +958,7 @@
       orbit, proposed to explain the clustered orbits of the far Kuiper belt. Its orbit is drawn from those
       estimates and its question mark is part of its name. Switch it off in Visuals if you would rather
       keep to what has been seen.</li>
+      <li>The <b>dark clouds</b> multiply what lies behind them down, and since v2.76.0 they do it the way interstellar dust does — blue absorbed most, red least, in the 0.82 : 1 : 1.32 proportion of the standard R<sub>V</sub> = 3.1 extinction law — so the lanes read brown against the disk and the Great Rift red-brown across the band, instead of the grey-violet a neutral darkening left over the pink haze. The HII knots lean toward Hα red rather than magenta.</li>
       <li>On a first visit a thirty-millisecond <b>off-screen probe</b> draws the star field into a hidden buffer a few times, two frames in, and sets the quality row from the time one pass takes: lowest, low or medium, never more, and the pixel ratio drops to 1× when even that is slow. The choice is saved; change it here any time. The <b>quality</b> row raises the drawn star count five-fold (~460,000 points) and scatters
       discrete <b>dark molecular clouds</b> (Dunkelwolken) through the disk on top of the arm-edge dust lanes —
       closer to the Milky Way's real texture, at the cost of GPU load. The row runs on to
@@ -1073,7 +1074,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.75.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.76.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -1940,7 +1941,7 @@ function genGalaxyMap(D){
     nebPos[q*3]=w[0]; nebPos[q*3+1]=gauss()*5; nebPos[q*3+2]=w[1];
     nebSize[q]=16+Math.random()*40;
     const j=(0.7+Math.random()*0.6)*NBS;
-    nebCol[q*3]=.16*j; nebCol[q*3+1]=.055*j; nebCol[q*3+2]=.09*j;
+    nebCol[q*3]=.16*j; nebCol[q*3+1]=.05*j; nebCol[q*3+2]=.065*j;   // Hα: red-pink, not magenta
   }
   // The haze has to be haze-sized: at galaxy view a 60-unit sprite is a dozen pixels,
   // so these run to 190 units and overlap heavily, which is what unresolved light is.
@@ -2051,7 +2052,10 @@ void main(){
   if(r>1.0) discard;
   // never opaque at the centre: a cloud thins the haze behind it, it does not punch
   // a black hole in it (that is what the old profile did, reaching alpha 1 and past)
-  o = vec4(0.0, 0.0, 0.0, min(0.72, pow(1.0-r, 2.4)*vColor.r));
+  // interstellar dust reddens: the blend multiplies what is behind by 1 − rgb, and the
+  // extinction runs A_R : A_V : A_B ≈ 0.82 : 1 : 1.32 (R_V = 3.1), so blue goes first
+  float a = min(0.72, pow(1.0-r, 2.4)*vColor.r);
+  o = vec4(a*vec3(0.62, 0.76, 1.0), a);
 }`;
 const pDust = prog(PT_VS, DUST_FS);
 // Sprite ceiling for the dust when the camera is in close. Measured, not reasoned: with
@@ -5399,8 +5403,8 @@ function frame(now){
   const dustPass = (which = 'both') => {
   // multiply what is behind them — by now only the haze — down toward black
   if(dustOn){
-    // dust lanes: multiply what's behind them down toward black
-    gl.blendFunc(gl.ZERO, gl.ONE_MINUS_SRC_ALPHA);
+    // dust lanes: multiply what's behind them down, blue first (see DUST_FS)
+    gl.blendFunc(gl.ZERO, gl.ONE_MINUS_SRC_COLOR);
     gl.useProgram(pDust);
     gl.uniformMatrix4fv(UD.proj,false,projMat);
     gl.uniformMatrix4fv(UD.view,false,viewMat);
