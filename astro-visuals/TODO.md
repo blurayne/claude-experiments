@@ -198,17 +198,33 @@ before the work starts. An item is ticked when it ships, with the version that c
       order is now help → play → + → −; they were on by default already and now also take
       their state from the Visuals switch at boot. Verified fresh, with an old settings
       set, and in landscape — v2.64.1.
-- [ ] An event (scenario) and a viewport (view) on screen for the "Anthropic Nebula".
-- [ ] Debug only: an option to encode the current settings into a QR code, drawn as the
+- [x] An event (scenario) and a viewport (view) on screen for the "Anthropic Nebula".
+      Scenario "The Anthropic Nebula — the Sun casts its shell (+7.8 Gyr)": lands 20 Myr
+      before it, ×10⁷, framed at ~3.5 ly; view "Anthropic Nebula" frames the same,
+      following the Sun's remains. The old option renamed once the Sun is gone now reads
+      "Anthropic Nebula core" so the plain name is the view's — v2.65.0.
+- [x] Debug only: an option to encode the current settings into a QR code, drawn as the
       topmost overlay, at 1×, 2× or 4× pixels per module, switchable on/off in settings;
       entering debug mode switches it on. A "Debug" section in settings, shown only in
-      debug mode.
+      debug mode. The encoder lives in the page (byte mode, level L, v1–40, masks by
+      penalty), verified module for module against Python's `qrcode` at every size; the
+      exported state (~1 KB, timestamp left out so the code holds still) is v23; the drawn
+      overlay decodes back exactly with zxing — v2.65.0.
 - [ ] For the "supernova explosion of the Sun" use a different shader, one that resembles
-      the supernova. (The Sun's end is a planetary nebula, not a supernova — to clarify.)
-- [ ] The "helix" scenario starts at the current date and time.
-- [ ] Planet trails: are they drawn in the right direction? They should fade out at the
-      end, not at the start.
-- [ ] The QR overlay is movable by touch.
+      the supernova. Awaiting the owner's word: the Sun never goes supernova — it casts a
+      planetary nebula, drawn by its own `PN_FS` — while the galaxy's supernovae use the
+      blast shader `pSN` and the remnant shells. Which of the two is meant?
+- [x] The "helix" scenario starts at the current date and time: simT counts Earth's
+      orbits from 2026.0, so it is set to the real elapsed fraction of years since
+      2026-01-01 UTC, and the human-year readout follows — v2.65.0.
+- [x] Planet trails: are they drawn in the right direction? They should fade out at the
+      end, not at the start. Forward, yes: sample N−1 is now and the brightest, the fade
+      runs into the past (`vF = id/N`, pow 1.7). In reverse (the shuttle) they pointed into
+      the sim-past, which then lies AHEAD of the body — the sweep now follows the viewing
+      direction, recomputed on every change of the shuttle's sign, paused or not.
+      Verified: sample 0 is the past forward and the future in reverse — v2.65.0.
+- [x] The QR overlay is movable by touch (or mouse): pointer-captured drag, clamped to
+      the screen, and the canvas below never sees it — v2.65.0.
 
 ### Shipped earlier, for the record
 

@@ -325,6 +325,33 @@ Also here: a request for "a setting to turn off dark clouds" — the switch alre
 adding it; a duplicate switch is worse than none. And the settings title is "Settings" alone now,
 the version living in the info dialog and the tour card.
 
+## The state as a QR code, and how an encoder gets trusted (v2.65.0)
+
+`qrEncode(text, forceMask)` is in the page: byte mode, EC level L, versions 1–40 chosen by
+capacity, alignment and version tables inline, Reed–Solomon over GF(256), masks scored by the
+four penalty rules. It was verified against Python's `qrcode` module for module — every size
+from v1 to v33, fixed masks and auto-chosen ones — after two real bugs: alignment patterns
+that sit on the timing lines were being skipped (the spec omits only the three that overlap
+finders; that first bites at v7), and the copy inlined into the page had lost its bit cursor
+(`let bi`) to a cleanup, which a `try/catch` around the call turned into a silent blank
+canvas. Two rules from that: verify the *inlined* copy, not the standalone; and never let a
+debug feature swallow its own exception. The overlay (`qrRedraw`) encodes `exportState()`
+minus the timestamp, so the code holds still while nothing changes; it is drawn at 1, 2 or 4
+DEVICE pixels a module (`cv.style.width = size/DPR`), redrawn once a second on change, and
+its block must precede the debug initialiser that calls it, or the page dies at boot on a TDZ
+error. The proof is a decode: OpenCV's `QRCodeDetector` failed on the page's v23 drawing while
+reading a reference one — `zxing-cpp` reads the drawn overlay back to the exact payload. Use
+zxing to judge, not OpenCV.
+
+The Debug section is a real section: `SECS`, `SEC_BODY`, `secOpen` all carry `debug`; its
+heading is hidden outside debug mode and the body folded through `applySecs()`, never by an
+inline `display` (which beats the fold's class). Entering debug — ten taps or `?debug` in the
+URL, not a plain boot with the flag set — switches the QR on.
+
+Trails in reverse: `refillTrails()` samples `simT − dirT·(N−1−k)·DT` with `dirT` the shuttle's
+sign, so the sweep is what the viewer watched; it is re-run on every change of the shuttle's
+sign in `setShuttle` (the drive-sign refill in `frame()` does not fire while paused).
+
 ## Zoom buttons step a ladder of objects (v2.64.0)
 
 `ZOOM_OBJ` is the ladder — camera distances at which each object fills the view (1 AU across

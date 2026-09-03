@@ -443,6 +443,13 @@
       <label class="chk" title="labels ease into place, hold still through a jump, and step aside while a body whirls faster than a label can follow"><input type="checkbox" id="tLabelSteady" checked> steady labels</label>
     </div>
     </div>
+    <div class="sect" data-sec="debug" id="secDebugHead" style="display:none">Debug<span class="arw">▾</span></div>
+    <div class="sbody closed" id="secDebug">
+    <div class="chks">
+      <label class="chk" title="the whole exported state as a QR code, drawn over everything"><input type="checkbox" id="qrOn"> settings as QR overlay</label>
+    </div>
+    <div class="row"><label for="qrScale">qr pixels</label><input type="range" id="qrScale" min="0" max="2" step="1" value="1"><span id="qrScalev" style="min-width:44px;text-align:right;color:var(--ink)">2×</span></div>
+    </div>
     <button id="tView" style="display:none"></button>
     <button id="tDive" style="display:none"></button>
   </div>
@@ -960,6 +967,7 @@
       <option value="8.36149" data-speed="1" data-mult="100000000">Andromeda first pass (+4.5 Gyr)</option>
       <option value="11.25" data-speed="1" data-mult="100000000">Galaxies collide &amp; merge (+6.9 Gyr)</option>
       <option value="11.3586" data-speed="0.6166" data-mult="100000000">The Sun swallows the Earth (+7.6 Gyr)</option>
+      <option value="12.35" data-speed="1" data-mult="10000000">The Anthropic Nebula — the Sun casts its shell (+7.8 Gyr)</option>
       <option value="13.5">After the merger (+8.9 Gyr)</option>
     </select><button class="rowbtn" id="jumpGo" title="apply the selected scenario and close the panel">GO</button></div>
 </div>
@@ -1002,19 +1010,20 @@
   <div class="envsep"></div>
   <div class="er"><span>view</span>
     <span style="display:flex;gap:6px;align-items:center">
-      <select id="focusSel"><option value="sun">Solar System</option><option value="mw">Milky Way</option><option value="and">Andromeda</option></select>
+      <select id="focusSel"><option value="sun">Solar System</option><option value="pn">Anthropic Nebula</option><option value="mw">Milky Way</option><option value="and">Andromeda</option></select>
       <button class="rowbtn" id="focusGo">GO</button>
     </span></div>
 </div>
 
 <div id="labels"></div>
+<canvas id="qrOverlay" style="position:fixed;left:8px;top:8px;z-index:1000;display:none;touch-action:none;cursor:move;image-rendering:pixelated;image-rendering:crisp-edges" aria-hidden="true"></canvas>
 
 <script>
 "use strict";
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.64.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.65.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -3227,7 +3236,7 @@ async function doRefresh(){
     if(n >= 10){
       // toggle the debug door, and remember the choice across reloads
       const on = getComputedStyle($('dbgBtn')).display === 'none';
-      setDebugUI(on);
+      setDebugUI(on, true);
       try{ localStorage.setItem(DBGKEY, on ? '1' : '0'); }catch(err){}
     }
     else if(n >= 3){
@@ -3287,7 +3296,11 @@ $('multExp').addEventListener('input', e => setMultExp(+e.target.value));
 // a shuttle rests at 0 when you pick the piece up.
 let shuttle = 0, shuttleLastSign = 0, trailRefillAt = 0;
 function setShuttle(v){
+  const before = Math.sign(shuttle);
   shuttle = Math.max(-100, Math.min(100, Math.round(v)));
+  // a change of the shuttle's own sign re-sweeps the trails at once — the clock's drive
+  // sign does that too, but not while paused, and a paused reverse left them leading
+  if(Math.sign(shuttle) !== before){ refillTrails(); nextSample = simT + DT_SAMPLE; }
   $('shuttle').value = shuttle;
   $('shuttlev').textContent = shuttle === 0 ? 'off' : shuttle > 0 ? '+'+shuttle+'%' : shuttle+'%';
 }
@@ -3415,6 +3428,13 @@ function applyFocusView(){
     if($('tView').classList.contains('on')) $('tView').click();
     if(!$('tDive').classList.contains('on')) $('tDive').click();
     else { cam.follow = true; coreLock = true; cam.distGoal = 3.5e-5; reseedFollow = true; panF[0]=panF[1]=0; }
+  } else if(v === 'pn'){
+    // the shell's full reach, ~3.5 ly across, following what is left of the Sun; before
+    // the shell exists this is simply the Sun's neighbourhood at that scale
+    followTarget = 'sun';
+    if($('tView').classList.contains('on')) $('tView').click();
+    if(!$('tDive').classList.contains('on')) $('tDive').click();
+    cam.follow = true; coreLock = false; cam.distGoal = 0.1; reseedFollow = true; panF[0]=panF[1]=0;
   } else if(v === 'and'){
     // framed wide enough for the whole disk plus its extended halo and stream
     // (R_A=2245, halo out to ~4200, the Giant Southern Stream past 5700), at any
@@ -3634,11 +3654,11 @@ document.querySelectorAll('.pdot[data-open]').forEach(b =>
 // Each heading owns a body; the arrow turns to show which way it goes. Simulation
 // starts closed: its two sliders and the scenario list are the controls a visitor is
 // least likely to want on arrival, and the piece opens on a staged scenario anyway.
-const SECS = ['audio','gfx','hud','other'];
-const SEC_BODY = { audio:'secAudio', gfx:'secGfx', hud:'secHud', other:'secOther' };
+const SECS = ['audio','gfx','hud','other','debug'];
+const SEC_BODY = { audio:'secAudio', gfx:'secGfx', hud:'secHud', other:'secOther', debug:'secDebug' };
 // one at a time by default, so the panel stays a screenful; Graphics is the one that
 // earns the opening slot, holding the controls a visitor reaches for most
-const secOpen = { audio:false, gfx:true, hud:false, other:false };
+const secOpen = { audio:false, gfx:true, hud:false, other:false, debug:false };
 function applySecs(){
   for(const k of SECS){
     $(SEC_BODY[k]).classList.toggle('closed', !secOpen[k]);
@@ -3723,8 +3743,8 @@ const SKEY = 'galactic-transit.settings.v1';
 const S_TOG = ['tLabels','tArms','tLabelSteady','tZoomBtns','tDwarfs','tP9','tBelt','tKuiper','tOort','tDust',
                'tEvSN','tEvBirth','tVar',
                'tStatAge','tStatGyr','tStatSn','tStatBirth','tGaia','tFps'];
-const S_SLD = ['speed','trailA','orbitA','trailL','musicVol','sfxVol','minB','hudHz','coreB'];
-const S_CHK = ['fxBirth','fxSn','fxPn','fxDrone','secSolo','closeOnGo'];
+const S_SLD = ['speed','trailA','orbitA','trailL','musicVol','sfxVol','minB','hudHz','coreB','qrScale'];
+const S_CHK = ['fxBirth','fxSn','fxPn','fxDrone','secSolo','closeOnGo','qrOn'];
 function saveSettingsNow(){
   try{
     const s = { t:{}, s:{}, c:{}, cal:$('cal').value, mult:speedMult, dens:curD,
@@ -3837,6 +3857,9 @@ function jumpToEpoch(){
     if(!$('tDive').classList.contains('on')) $('tDive').click();
     cam.distGoal = 1.449e-5;                   // ~31 AU across
     cam.yaw = 0.7014; cam.pitch = 0.2757;      // the exported angle chosen by hand
+    // the clock reads the real date and time: simT counts Earth's orbits from 2026.0
+    simT = (Date.now() - Date.UTC(2026, 0, 1)) / (365.2425*86400e3);
+    nextSample = simT + DT_SAMPLE; refillTrails();
     // never unpause someone who asked for reduced motion
     if(paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
     return;
@@ -3852,6 +3875,18 @@ function jumpToEpoch(){
     cam.follow = true; coreLock = false;
     cam.dist = cam.distGoal = 1.14e-6;
     cam.yaw = 0.6; cam.pitch = 0.34;
+    reseedFollow = true; panF[0]=panF[1]=0;
+    if(paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
+  }
+  if(sel.value === '12.35'){
+    // Lands 20 Myr short of the shell: at ten million years a second it is cast in seven
+    // seconds and fades over the next thirty. The frame is ~3.5 ly, the shell's full
+    // reach, the eye following what is left of the Sun.
+    if($('tView').classList.contains('on')) $('tView').click();
+    if(!$('tDive').classList.contains('on')) $('tDive').click();
+    cam.follow = true; coreLock = false;
+    cam.dist = cam.distGoal = 0.1;
+    cam.yaw = 0.9; cam.pitch = 0.28;
     reseedFollow = true; panF[0]=panF[1]=0;
     if(paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
   }
@@ -3968,10 +4003,16 @@ toggle($('tView'), on=>{ followTarget='sun'; cam.follow=!on; cam.distGoal = on? 
 function refillTrails(){
   bodyPos(0, simT, tmpSun);
   trailAnchor[0]=tmpSun[0]; trailAnchor[1]=tmpSun[1]; trailAnchor[2]=tmpSun[2];
+  // The trail is the path the viewer has watched being swept: sample TRAIL_N−1 is now and
+  // the brightest, sample 0 the earliest seen and the dimmest. With the clock running
+  // backwards "earliest seen" is the LATER sim time, so the samples run the other way —
+  // otherwise the trail pointed into the sim-past, which in reverse lies ahead of the
+  // body, and it led instead of trailed.
+  const dirT = shuttle < 0 ? -1 : 1;
   for(let i=0;i<NB;i++){
     const a=trails[i];
     for(let k=0;k<TRAIL_N;k++){
-      trailPos(i, simT+(k-(TRAIL_N-1))*DT_SAMPLE, tmp);
+      trailPos(i, simT - dirT*((TRAIL_N-1)-k)*DT_SAMPLE, tmp);
       a[k*3]=tmp[0]; a[k*3+1]=tmp[1]; a[k*3+2]=tmp[2];
     }
     gl.bindBuffer(gl.ARRAY_BUFFER,trailBufs[i]);
@@ -5346,7 +5387,7 @@ function frame(now){
       // Written only on an actual change: a <select>'s open popup watches its <option>
       // nodes, and rewriting one every rendered frame — even to the same string — made
       // the dropdown flicker and refuse to register a pick at all.
-      const sunOptWant = ss.gone ? 'Anthropic Nebula' : 'Solar System';
+      const sunOptWant = ss.gone ? 'Anthropic Nebula core' : 'Solar System';
       if(focusSunOpt.textContent !== sunOptWant) focusSunOpt.textContent = sunOptWant;
       for(const id of ['eSunPhaseRow','eSunSizeRow']) $(id).style.display = lost ? '' : 'none';
       for(const id of ['eRangeRow','eCRRow','eSLRow','eLifeRow']) $(id).style.display = lost ? 'none' : '';
@@ -5465,6 +5506,133 @@ $('jump').dispatchEvent(new Event('change'));
 keepSaved = false;
 try{ if(!hadSaved && !localStorage.getItem(TOURKEY)) setTimeout(showTour, 400); }catch(e){}
 // ---------- the debug door: opened by ?debug in the URL or ten taps on refresh ----------
+// QR encoder: byte mode, EC level L, versions 1–40, standard masking by penalty. Returns
+// {n, m} with m a Uint8Array of n*n modules (1 = dark). Self-contained; no tables beyond
+// the version capacity/EC block list, which is the spec's Table 9 for level L.
+function qrEncode(text, forceMask){
+  const bytes = new TextEncoder().encode(text);
+  // [total codewords, ec codewords per block, blocks group1, data cw group1, blocks group2, data cw group2] for level L
+  const T = [null,
+    [26,7,1,19,0,0],[44,10,1,34,0,0],[70,15,1,55,0,0],[100,20,1,80,0,0],[134,26,1,108,0,0],[172,18,2,68,0,0],[196,20,2,78,0,0],[242,24,2,97,0,0],[292,30,2,116,0,0],[346,18,2,68,2,69],
+    [404,20,4,81,0,0],[466,24,2,92,2,93],[532,26,4,107,0,0],[581,30,3,115,1,116],[655,22,5,87,1,88],[733,24,5,98,1,99],[815,28,1,107,5,108],[901,30,5,120,1,121],[991,28,3,113,4,114],[1085,28,3,107,5,108],
+    [1156,28,4,116,4,117],[1258,28,2,111,7,112],[1364,30,4,121,5,122],[1474,30,6,117,4,118],[1588,26,8,106,4,107],[1706,28,10,114,2,115],[1828,30,8,122,4,123],[1921,30,3,117,10,118],[2051,30,7,116,7,117],[2185,30,5,115,10,116],
+    [2323,30,13,115,3,116],[2465,30,17,115,0,0],[2611,30,17,115,1,116],[2761,30,13,115,6,116],[2876,30,12,121,7,122],[3034,30,6,121,14,122],[3196,30,17,122,4,123],[3362,30,4,122,18,123],[3532,30,20,117,4,118],[3706,30,19,118,6,119]];
+  const ALIGN = [null,[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],
+    [6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110],[6,30,58,86,114],[6,34,62,90,118],[6,26,50,74,98,122],[6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],[6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],[6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170]];
+  // version: the first whose data capacity holds mode(4) + count(8|16) + bytes
+  let v = 1;
+  for(; v <= 40; v++){ const t = T[v], dataCW = t[2]*t[3] + t[4]*t[5]; const cnt = v <= 9 ? 8 : 16;
+    if(4 + cnt + bytes.length*8 <= dataCW*8) break; }
+  if(v > 40) throw new Error('too long for a QR code');
+  const t = T[v], dataCW = t[2]*t[3] + t[4]*t[5], cnt = v <= 9 ? 8 : 16;
+  // data bit stream
+  const bits = []; const put = (val, n) => { for(let i=n-1;i>=0;i--) bits.push((val>>i)&1); };
+  put(4,4); put(bytes.length, cnt); for(const b of bytes) put(b,8);
+  const cap = dataCW*8; for(let i=0;i<4 && bits.length<cap;i++) bits.push(0);
+  while(bits.length%8) bits.push(0);
+  const data = []; for(let i=0;i<bits.length;i+=8){ let x=0; for(let j=0;j<8;j++) x=(x<<1)|bits[i+j]; data.push(x); }
+  for(let k=0; data.length<dataCW; k++) data.push(k%2 ? 0x11 : 0xEC);
+  // GF(256) Reed–Solomon
+  const EXP = new Uint8Array(512), LOG = new Uint8Array(256);
+  for(let i=0,x=1;i<255;i++){ EXP[i]=x; LOG[x]=i; x<<=1; if(x&256) x^=0x11d; }
+  for(let i=255;i<512;i++) EXP[i]=EXP[i-255];
+  const mul = (a,b) => (a&&b) ? EXP[LOG[a]+LOG[b]] : 0;
+  const ecN = t[1]; let gen = [1];
+  for(let i=0;i<ecN;i++){ const ng = new Array(gen.length+1).fill(0);
+    for(let j=0;j<gen.length;j++){ ng[j] ^= gen[j]; ng[j+1] ^= mul(gen[j], EXP[i]); } gen = ng; }
+  const ecOf = blk => { const r = blk.slice().concat(new Array(ecN).fill(0));
+    for(let i=0;i<blk.length;i++){ const c = r[i]; if(!c) continue; for(let j=1;j<gen.length;j++) r[i+j] ^= mul(gen[j], c); }
+    return r.slice(blk.length); };
+  const blocks = [], ecs = []; let p = 0;
+  for(let g=0; g<2; g++){ const nb = t[2+2*g], len = t[3+2*g]; for(let b=0;b<nb;b++){ const blk = data.slice(p, p+len); p += len; blocks.push(blk); ecs.push(ecOf(blk)); } }
+  const out = []; const maxLen = Math.max(...blocks.map(b=>b.length));
+  for(let i=0;i<maxLen;i++) for(const b of blocks) if(i<b.length) out.push(b[i]);
+  for(let i=0;i<ecN;i++) for(const e of ecs) out.push(e[i]);
+  // the matrix
+  const n = 17 + 4*v, m = new Uint8Array(n*n), fixed = new Uint8Array(n*n);
+  const set = (x,y,val) => { m[y*n+x] = val; fixed[y*n+x] = 1; };
+  const finder = (x0,y0) => { for(let dy=-1;dy<=7;dy++) for(let dx=-1;dx<=7;dx++){ const x=x0+dx, y=y0+dy; if(x<0||y<0||x>=n||y>=n) continue;
+    const on = (dx>=0&&dx<=6&&dy>=0&&dy<=6) && (dx===0||dx===6||dy===0||dy===6||(dx>=2&&dx<=4&&dy>=2&&dy<=4)); set(x,y,on?1:0); } };
+  finder(0,0); finder(n-7,0); finder(0,n-7);
+  for(let i=8;i<n-8;i++){ set(i,6,i%2===0?1:0); set(6,i,i%2===0?1:0); }
+  const al = ALIGN[v];
+  // omitted only where one would overlap a finder — the ones on the timing lines are drawn
+  for(const cy of al) for(const cx of al){ if((cx<9&&cy<9)||(cx>n-10&&cy<9)||(cx<9&&cy>n-10)) continue;
+    for(let dy=-2;dy<=2;dy++) for(let dx=-2;dx<=2;dx++) set(cx+dx, cy+dy, (Math.max(Math.abs(dx),Math.abs(dy))!==1)?1:0); }
+  set(8, n-8, 1);   // the dark module
+  // reserve format (and version) areas
+  for(let i=0;i<9;i++){ if(i!==6){ fixed[8*n+i]=1; fixed[i*n+8]=1; } }
+  for(let i=0;i<8;i++){ fixed[8*n+(n-1-i)]=1; fixed[(n-1-i)*n+8]=1; }
+  if(v>=7){ for(let i=0;i<6;i++) for(let j=0;j<3;j++){ fixed[i*n+(n-11+j)]=1; fixed[(n-11+j)*n+i]=1; } }
+  let bi = 0; const total = out.length*8; const bitAt = k => (out[k>>3] >> (7-(k&7))) & 1;
+  // codewords into the matrix: column pairs from the right, direction alternating, starting upward
+  { let up = true;
+    for(let x=n-1; x>0; x-=2){ if(x===6) x--;
+      for(let k=0;k<n;k++){ const y = up ? n-1-k : k;
+        for(let dx=0; dx<2; dx++){ const xx = x-dx; if(fixed[y*n+xx]) continue;
+          m[y*n+xx] = bi < total ? bitAt(bi) : 0; bi++; } }
+      up = !up; } }
+  // masks
+  const MASK = [ (x,y)=>(x+y)%2===0, (x,y)=>y%2===0, (x,y)=>x%3===0, (x,y)=>(x+y)%3===0,
+    (x,y)=>((y>>1)+Math.floor(x/3))%2===0, (x,y)=>(x*y)%2+(x*y)%3===0, (x,y)=>((x*y)%2+(x*y)%3)%2===0, (x,y)=>((x+y)%2+(x*y)%3)%2===0 ];
+  const applyMask = (mk, src) => { const r = new Uint8Array(src); for(let y=0;y<n;y++) for(let x=0;x<n;x++) if(!fixed[y*n+x] && MASK[mk](x,y)) r[y*n+x]^=1; return r; };
+  const formatBits = mk => { const d = (1<<3)|mk;   // level L = 01 -> value 1 in the two EC bits... (L=01)
+    let f = d<<10; const G = 0x537; for(let i=14;i>=10;i--) if((f>>i)&1) f ^= G<<(i-10); return ((d<<10)|f) ^ 0x5412; };
+  const writeFormat = (mat, mk) => { const f = formatBits(mk); const b = i => (f>>i)&1;
+    const pos1 = [[0,8],[1,8],[2,8],[3,8],[4,8],[5,8],[7,8],[8,8],[8,7],[8,5],[8,4],[8,3],[8,2],[8,1],[8,0]];   // (x,y) for bits 14..0
+    for(let i=0;i<15;i++){ const [x,y] = pos1[i]; mat[y*n+x] = b(14-i); }
+    for(let i=0;i<8;i++) mat[8*n+(n-1-i)] = b(i);                 // bits 0..7 along the top-right row? spec: right of row 8
+    for(let i=0;i<7;i++) mat[(n-1-i)*n+8] = b(14-i);              // bits 14..8 down the bottom-left column
+  };
+  const writeVersion = mat => { if(v<7) return; let f = v<<12; const G = 0x1f25; for(let i=17;i>=12;i--) if((f>>i)&1) f ^= G<<(i-12); const val = (v<<12)|f;
+    for(let i=0;i<18;i++){ const bit = (val>>i)&1; const a = Math.floor(i/3), b = i%3; mat[(n-11+b)*n + a] = bit; mat[a*n + (n-11+b)] = bit; } };
+  const penalty = mat => { let s=0;
+    for(let y=0;y<n;y++){ let run=1; for(let x=1;x<n;x++){ if(mat[y*n+x]===mat[y*n+x-1]){ run++; if(run===5) s+=3; else if(run>5) s++; } else run=1; } }
+    for(let x=0;x<n;x++){ let run=1; for(let y=1;y<n;y++){ if(mat[y*n+x]===mat[(y-1)*n+x]){ run++; if(run===5) s+=3; else if(run>5) s++; } else run=1; } }
+    for(let y=0;y<n-1;y++) for(let x=0;x<n-1;x++){ const a=mat[y*n+x]; if(a===mat[y*n+x+1]&&a===mat[(y+1)*n+x]&&a===mat[(y+1)*n+x+1]) s+=3; }
+    const P = [1,0,1,1,1,0,1,0,0,0,0], Q = [0,0,0,0,1,0,1,1,1,0,1];
+    const chk = (get) => { for(let i=0;i<=n-11;i++){ let okP=true, okQ=true; for(let k=0;k<11;k++){ const val=get(i+k); if(val!==P[k]) okP=false; if(val!==Q[k]) okQ=false; } if(okP) s+=40; if(okQ) s+=40; } };
+    for(let y=0;y<n;y++) chk(i=>mat[y*n+i]); for(let x=0;x<n;x++) chk(i=>mat[i*n+x]);
+    let dark=0; for(let i=0;i<n*n;i++) dark+=mat[i]; const pct = dark*100/(n*n); s += Math.floor(Math.abs(pct-50)/5)*10; return s; };
+  let best=null, bestS=Infinity, bestMk=0;
+  const tryMasks = forceMask===undefined ? [0,1,2,3,4,5,6,7] : [forceMask];
+  for(const mk of tryMasks){ const mat = applyMask(mk, m); writeFormat(mat, mk); writeVersion(mat); const sc = penalty(mat); if(sc<bestS){ bestS=sc; best=mat; bestMk=mk; } }
+  return { n, m: best, version: v, mask: bestMk };
+}
+
+// The overlay: the exported state (settings, clock, camera — the timestamp left out, so
+// the code holds still while nothing changes) as a QR code, redrawn once a second when
+// it differs, at 1, 2 or 4 device pixels a module with a four-module quiet zone. Debug
+// only; nothing below reaches it when debug mode is off.
+const QR_SCALES = [1, 2, 4]; let qrLast = '';
+function qrRedraw(force){
+  const cv = $('qrOverlay');
+  if(!debugMode || !$('qrOn').checked){ cv.style.display = 'none'; qrLast = ''; return; }
+  const st = exportState(); delete st.exported;
+  const payload = JSON.stringify(st);
+  if(!force && payload === qrLast) return;
+  qrLast = payload;
+  let q; try{ q = qrEncode(payload); }catch(e){ cv.style.display = 'none'; return; }
+  const sc = QR_SCALES[+$('qrScale').value] || 2, quiet = 4, size = (q.n + 2*quiet)*sc;
+  cv.width = size; cv.height = size;
+  cv.style.width = (size/DPR) + 'px'; cv.style.height = (size/DPR) + 'px';   // sc DEVICE pixels a module
+  const g = cv.getContext('2d');
+  g.fillStyle = '#fff'; g.fillRect(0, 0, size, size); g.fillStyle = '#000';
+  for(let y=0;y<q.n;y++) for(let x=0;x<q.n;x++) if(q.m[y*q.n+x]) g.fillRect((x+quiet)*sc, (y+quiet)*sc, sc, sc);
+  cv.style.display = 'block';
+}
+$('qrOn').addEventListener('change', ()=> qrRedraw(true));
+// movable: a drag by finger or mouse carries it, and the canvas below never sees the touch
+{ const cv = $('qrOverlay'); let dx = 0, dy = 0, held = false;
+  cv.addEventListener('pointerdown', e=>{ held = true; const r = cv.getBoundingClientRect(); dx = e.clientX - r.left; dy = e.clientY - r.top;
+    try{ cv.setPointerCapture(e.pointerId); }catch(err){} e.stopPropagation(); e.preventDefault(); });
+  cv.addEventListener('pointermove', e=>{ if(!held) return;
+    cv.style.left = Math.max(0, Math.min(innerWidth - cv.offsetWidth, e.clientX - dx)) + 'px';
+    cv.style.top  = Math.max(0, Math.min(innerHeight - cv.offsetHeight, e.clientY - dy)) + 'px'; e.stopPropagation(); });
+  const drop = e=>{ held = false; e.stopPropagation(); };
+  cv.addEventListener('pointerup', drop); cv.addEventListener('pointercancel', drop); }
+$('qrScale').addEventListener('input', e=>{ $('qrScalev').textContent = QR_SCALES[+e.target.value] + '×'; qrRedraw(true); });
+setInterval(()=> qrRedraw(false), 1000);
 const DBGKEY = 'galactic-transit.debug';
 const DEBUG = (()=>{ try{
   const v = new URLSearchParams(location.search).get('debug');
@@ -5475,12 +5643,19 @@ const DEBUG = (()=>{ try{
   }
   return localStorage.getItem(DBGKEY) === '1';
 }catch(e){ return false; } })();
-function setDebugUI(on){
+let debugMode = false;
+function setDebugUI(on, entering){
+  debugMode = on;
   $('dbgBtn').style.display = on ? '' : 'none';
   $('rowHudHz').style.display = on ? '' : 'none';
   $('rowGain').style.display = on ? '' : 'none';
+  $('secDebugHead').style.display = on ? '' : 'none';
+  if(!on){ secOpen.debug = false; applySecs(); }       // folded away with its heading; opens as any section
+  // entering debug mode switches the QR on; a plain boot in debug mode leaves the choice alone
+  if(on && entering && !$('qrOn').checked){ $('qrOn').checked = true; $('qrOn').dispatchEvent(new Event('change')); }
+  qrRedraw(true);
 }
-if(DEBUG) setDebugUI(true);
+if(DEBUG) setDebugUI(true, new URLSearchParams(location.search).get('debug') !== null);
 function exportState(){
   saveSettingsNow();
   let settings = null; try{ settings = JSON.parse(localStorage.getItem(SKEY)||'null'); }catch(e){}
