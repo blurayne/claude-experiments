@@ -448,7 +448,7 @@
     <div class="chks">
       <label class="chk" title="the whole exported state as a QR code, drawn over everything"><input type="checkbox" id="qrOn"> settings as QR overlay</label>
     </div>
-    <div class="row"><label for="qrScale">qr pixels</label><input type="range" id="qrScale" min="0" max="2" step="1" value="1"><span id="qrScalev" style="min-width:44px;text-align:right;color:var(--ink)">2×</span></div>
+    <div class="row"><label for="qrScale">qr pixels</label><input type="range" id="qrScale" min="0" max="2" step="1" value="0"><span id="qrScalev" style="min-width:44px;text-align:right;color:var(--ink)">1×</span></div>
     </div>
     <button id="tView" style="display:none"></button>
     <button id="tDive" style="display:none"></button>
@@ -1023,7 +1023,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.65.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.65.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
