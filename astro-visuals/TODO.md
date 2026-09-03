@@ -5,6 +5,8 @@ before the work starts. An item is ticked when it ships, with the version that c
 
 ## 2026-09-01
 
+- [ ] On first launch, a very quick (off-screen) performance probe, and the quality set
+      from its result.
 - [x] Plate motion is not visible: a "Plate tectonics" scenario that runs from Pangaea at
       ten million years a second with the spin lock on and Earth in view, and lighting that
       averages out day and night at such rates instead of strobing — v2.72.0.
