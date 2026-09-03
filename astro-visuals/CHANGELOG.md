@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.64.0 — 2026-09-03
+
+- Zoom + and − under help, stepping object to object (v2.64.0) (`b8dd6ad`)
+
 ### 2.63.1 — 2026-09-02
 
 - Andromeda's arms drawn from the map's ridges (v2.63.1) (`9490a85`)
