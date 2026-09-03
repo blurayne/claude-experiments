@@ -5,10 +5,10 @@ before the work starts. An item is ticked when it ships, with the version that c
 
 ## 2026-09-01
 
-- [ ] Spin lock left-aligned on its own line under the view option box, its label in normal
-      text.
-- [ ] An (i) icon next to settings whose meaning is not obvious ("HUD rate" among them); a
-      touch shows a one-or-two-sentence tooltip, tl;dr.
+- [x] Spin lock left-aligned on its own line under the view option box, its label in normal
+      text — v2.74.0.
+- [x] An (i) icon next to settings whose meaning is not obvious ("HUD rate" among them); a
+      touch shows a one-or-two-sentence tooltip, tl;dr — v2.74.0.
 - [x] On first launch, a very quick (off-screen) performance probe, and the quality set
       from its result — v2.73.0.
 - [x] Plate motion is not visible: a "Plate tectonics" scenario that runs from Pangaea at

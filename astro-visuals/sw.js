@@ -1,6 +1,6 @@
 // Offline shell for the Galactic Transit PWA. The page itself is one self-contained
 // file; only the icons, manifest and the audio under music/ and sfx/ ride along.
-const V = 'galactic-transit-2.73.0';  // the app version: a new name retires the old cache
+const V = 'galactic-transit-2.74.0';  // the app version: a new name retires the old cache
 const CORE = [
   'galactic-transit.html', 'manifest.json',
   'icon.svg', 'logo-mark.svg', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png',

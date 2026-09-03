@@ -326,6 +326,15 @@
   .chk input{accent-color:var(--accent);width:12px;height:12px;margin:0;cursor:pointer}
   .chk:has(input:checked){color:var(--accent)}
   #hud .chk{font-family:inherit;text-transform:none;letter-spacing:.02em;font-size:11px}   /* the settings dialog reads in the text face */
+  .chk.plain{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;text-transform:none;letter-spacing:.02em;font-size:10.5px}
+  /* (i): a touch shows one short tooltip; the next touch, anywhere, hides it */
+  .info{display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;border:1px solid var(--dim);
+    color:var(--dim);background:none;padding:0;margin-left:5px;flex:none;cursor:pointer;vertical-align:middle;
+    font:600 8.5px/1 ui-sans-serif,system-ui,sans-serif;letter-spacing:0;text-transform:none}
+  .info:hover,.info.on{color:var(--accent);border-color:var(--accent)}
+  #tip{position:fixed;z-index:1200;display:none;max-width:250px;padding:7px 9px;border-radius:6px;pointer-events:none;
+    background:rgba(6,10,20,.96);border:1px solid var(--accent);color:var(--ink);box-shadow:0 4px 18px rgba(0,0,0,.5);
+    font:11px/1.4 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;letter-spacing:.02em;text-transform:none}
   .gamebar .cnt{font-size:9px;letter-spacing:.18em;text-transform:uppercase;text-align:center;color:var(--dim)}
   .gamebar .cnt b{display:block;font-family:'Orbitron',ui-monospace,monospace;font-size:14px;font-weight:700;
     letter-spacing:.04em;margin-top:3px;font-variant-numeric:tabular-nums}
@@ -378,12 +387,12 @@
     </div>
     <div class="sect" data-sec="gfx">Visuals<span class="arw">▾</span></div>
     <div class="sbody" id="secGfx">
-    <div class="row"><label for="detail">detail</label><input type="range" id="detail" min="0" max="5" step="1" value="1"><span id="detailv" style="min-width:56px;text-align:right;color:var(--ink)">low</span><button class="stepb" data-step="detail:-1">−</button><button class="stepb" data-step="detail:1">+</button></div>
-    <div class="row" id="rowGain" style="display:none"><label for="minB">Gaia brght</label><input type="range" id="minB" min="0" max="1" step="0.01" value="0.05"><span id="minBv" style="min-width:52px;text-align:right;color:var(--ink)">+5%</span><button class="stepb" data-step="minB:-0.05">−</button><button class="stepb" data-step="minB:0.05">+</button></div>
-    <div class="row"><label for="coreB" title="how hard galaxy cores are allowed to blow out to white">core glare</label><input type="range" id="coreB" min="0.3" max="1" step="0.01" value="1"><span id="coreBv" style="min-width:52px;text-align:right;color:var(--ink)">off</span><button class="stepb" data-step="coreB:-0.04">−</button><button class="stepb" data-step="coreB:0.04">+</button></div>
-    <div class="row"><label for="orbitA" title="the closed orbit around the Sun">orbit</label><input type="range" id="orbitA" min="0" max="1" step="0.01" value="1"><span id="orbitAv" style="min-width:36px;text-align:right;color:var(--ink)">100%</span><button class="stepb" data-step="orbitA:-0.05">−</button><button class="stepb" data-step="orbitA:0.05">+</button></div>
-    <div class="row"><label for="trailA" title="the true swept path through space">helix</label><input type="range" id="trailA" min="0" max="1" step="0.01" value="1"><span id="trailAv" style="min-width:36px;text-align:right;color:var(--ink)">100%</span><button class="stepb" data-step="trailA:-0.05">−</button><button class="stepb" data-step="trailA:0.05">+</button></div>
-    <div class="row"><label for="trailL">length</label><input type="range" id="trailL" min="0" max="1000" step="10" value="300"><span id="trailLv" style="min-width:64px;text-align:right;color:var(--ink)">300%</span><button class="stepb" data-step="trailL:-50">−</button><button class="stepb" data-step="trailL:50">+</button></div>
+    <div class="row"><label for="detail">detail<button type="button" class="info" data-tip="How many star points are drawn: lowest is ~95,000, medium two million. The first launch measures the machine and picks one." aria-label="about this setting">i</button></label><input type="range" id="detail" min="0" max="5" step="1" value="1"><span id="detailv" style="min-width:56px;text-align:right;color:var(--ink)">low</span><button class="stepb" data-step="detail:-1">−</button><button class="stepb" data-step="detail:1">+</button></div>
+    <div class="row" id="rowGain" style="display:none"><label for="minB">Gaia brght<button type="button" class="info" data-tip="A floor under the real Gaia stars, so the faint ones keep a little colour and size." aria-label="about this setting">i</button></label><input type="range" id="minB" min="0" max="1" step="0.01" value="0.05"><span id="minBv" style="min-width:52px;text-align:right;color:var(--ink)">+5%</span><button class="stepb" data-step="minB:-0.05">−</button><button class="stepb" data-step="minB:0.05">+</button></div>
+    <div class="row"><label for="coreB" title="how hard galaxy cores are allowed to blow out to white">core glare<button type="button" class="info" data-tip="How hard the galaxy cores may blow out to white." aria-label="about this setting">i</button></label><input type="range" id="coreB" min="0.3" max="1" step="0.01" value="1"><span id="coreBv" style="min-width:52px;text-align:right;color:var(--ink)">off</span><button class="stepb" data-step="coreB:-0.04">−</button><button class="stepb" data-step="coreB:0.04">+</button></div>
+    <div class="row"><label for="orbitA" title="the closed orbit around the Sun">orbit<button type="button" class="info" data-tip="Opacity of the closed orbits drawn around the Sun." aria-label="about this setting">i</button></label><input type="range" id="orbitA" min="0" max="1" step="0.01" value="1"><span id="orbitAv" style="min-width:36px;text-align:right;color:var(--ink)">100%</span><button class="stepb" data-step="orbitA:-0.05">−</button><button class="stepb" data-step="orbitA:0.05">+</button></div>
+    <div class="row"><label for="trailA" title="the true swept path through space">helix<button type="button" class="info" data-tip="Opacity of the true swept paths through space, the helix each body leaves behind." aria-label="about this setting">i</button></label><input type="range" id="trailA" min="0" max="1" step="0.01" value="1"><span id="trailAv" style="min-width:36px;text-align:right;color:var(--ink)">100%</span><button class="stepb" data-step="trailA:-0.05">−</button><button class="stepb" data-step="trailA:0.05">+</button></div>
+    <div class="row"><label for="trailL">length<button type="button" class="info" data-tip="How far back the swept path reaches: 100% is one second of the clock at the set speed." aria-label="about this setting">i</button></label><input type="range" id="trailL" min="0" max="1000" step="10" value="300"><span id="trailLv" style="min-width:64px;text-align:right;color:var(--ink)">300%</span><button class="stepb" data-step="trailL:-50">−</button><button class="stepb" data-step="trailL:50">+</button></div>
     <div class="row"><label>labels</label>
       <label class="chk"><input type="checkbox" id="tArms" checked> galaxy arms</label>
       <label class="chk"><input type="checkbox" id="tLabels" checked> solar system</label></div>
@@ -397,15 +406,15 @@
       <label class="chk"><input type="checkbox" id="tOort" checked> oort</label>
       <label class="chk"><input type="checkbox" id="tDwarfs" checked> dwarfs</label>
       <label class="chk"><input type="checkbox" id="tP9" checked> planet 9</label>
-      <label class="chk"><input type="checkbox" id="tGaia" checked> gaia sky</label>
-      <label class="chk"><input type="checkbox" id="tVar" checked> variables</label>
-      <label class="chk" title="the + and − buttons under help"><input type="checkbox" id="tZoomBtns" checked> zoom buttons</label>
-      <label class="chk" title="the camera turns with the planet: the same face stays in view while the clock runs"><input type="checkbox" id="tSpinLock2"> spin lock</label>
+      <label class="chk"><input type="checkbox" id="tGaia" checked> gaia sky<button type="button" class="info" data-tip="The 100,000 nearest real stars from Gaia DR3, each where it is." aria-label="about this setting">i</button></label>
+      <label class="chk"><input type="checkbox" id="tVar" checked> variables<button type="button" class="info" data-tip="Variable stars pulse at their own measured periods." aria-label="about this setting">i</button></label>
+      <label class="chk" title="the + and − buttons under help"><input type="checkbox" id="tZoomBtns" checked> zoom buttons<button type="button" class="info" data-tip="The + and − buttons under the play button, stepping through the objects from planet to galaxy." aria-label="about this setting">i</button></label>
+      <label class="chk" title="the camera turns with the planet: the same face stays in view while the clock runs"><input type="checkbox" id="tSpinLock2"> spin lock<button type="button" class="info" data-tip="The camera turns with the planet, so the same face stays in view while the clock runs." aria-label="about this setting">i</button></label>
     </div>
     </div>
     <div class="sect" data-sec="hud">Hud<span class="arw">▾</span></div>
     <div class="sbody" id="secHud">
-    <div class="row"><label for="cal">calendar</label><select id="cal" style="flex:1">
+    <div class="row"><label for="cal">calendar<button type="button" class="info" data-tip="Which count the HUD year is written in." aria-label="about this setting">i</button></label><select id="cal" style="flex:1">
       <option value="none">— none —</option>
       <option value="hs">Human existence (300,000 yrs)</option>
       <option value="her">Homo erectus (~2 Myr)</option>
@@ -426,31 +435,31 @@
       <option value="al">Anno Lucis — Freemasonry</option>
       <option value="he">Holocene Era — secular</option>
     </select></div>
-    <div class="row"><label>units</label><div class="seg" id="segUnits"><button data-v="words">Gy</button><button data-v="sup">10ⁿ</button><button data-v="e">eⁿ</button></div></div>
+    <div class="row"><label>units<button type="button" class="info" data-tip="How ages are written: in words, as powers of ten, or in e-notation." aria-label="about this setting">i</button></label><div class="seg" id="segUnits"><button data-v="words">Gy</button><button data-v="sup">10ⁿ</button><button data-v="e">eⁿ</button></div></div>
     <div class="row"><label>features</label>
       <label class="chk"><input type="checkbox" id="tStatAge" checked> solar system age</label>
-      <label class="chk"><input type="checkbox" id="tStatGyr" checked> galaxy years</label></div>
+      <label class="chk"><input type="checkbox" id="tStatGyr" checked> galaxy years<button type="button" class="info" data-tip="Laps of the Sun around the galaxy, about 225 million years each." aria-label="about this setting">i</button></label></div>
     <div class="chks indent">
       <label class="chk"><input type="checkbox" id="tStatSn"> sn count</label>
       <label class="chk"><input type="checkbox" id="tStatBirth"> births count</label>
       <label class="chk"><input type="checkbox" id="tFps"> fps</label>
     </div>
-    <div class="row" id="rowHudHz" style="display:none"><label for="hudHz">hud rate</label><input type="range" id="hudHz" min="1" max="16" step="1" value="8"><span id="hudHzv" style="min-width:52px;text-align:right;color:var(--ink)">8×/s</span><button class="stepb" data-step="hudHz:-1">−</button><button class="stepb" data-step="hudHz:1">+</button></div>
+    <div class="row" id="rowHudHz" style="display:none"><label for="hudHz">hud rate<button type="button" class="info" data-tip="How many times a second the HUD numbers are redrawn. Lower saves battery; the simulation itself keeps its full frame rate." aria-label="about this setting">i</button></label><input type="range" id="hudHz" min="1" max="16" step="1" value="8"><span id="hudHzv" style="min-width:52px;text-align:right;color:var(--ink)">8×/s</span><button class="stepb" data-step="hudHz:-1">−</button><button class="stepb" data-step="hudHz:1">+</button></div>
     </div>
     <div class="sect" data-sec="other">Other<span class="arw">▾</span></div>
     <div class="sbody" id="secOther">
     <div class="chks">
       <label class="chk"><input type="checkbox" id="secSolo" checked> one section at a time</label>
       <label class="chk"><input type="checkbox" id="closeOnGo" checked> close panel on GO</label>
-      <label class="chk" title="labels ease into place, hold still through a jump, and step aside while a body whirls faster than a label can follow"><input type="checkbox" id="tLabelSteady" checked> steady labels</label>
+      <label class="chk" title="labels ease into place, hold still through a jump, and step aside while a body whirls faster than a label can follow"><input type="checkbox" id="tLabelSteady" checked> steady labels<button type="button" class="info" data-tip="Labels ease into place and hold still through a jump instead of jittering with every frame." aria-label="about this setting">i</button></label>
     </div>
     </div>
     <div class="sect" data-sec="debug" id="secDebugHead" style="display:none">Debug<span class="arw">▾</span></div>
     <div class="sbody closed" id="secDebug">
     <div class="chks">
-      <label class="chk" title="the whole exported state as a QR code, drawn over everything"><input type="checkbox" id="qrOn"> settings as QR overlay</label>
+      <label class="chk" title="the whole exported state as a QR code, drawn over everything"><input type="checkbox" id="qrOn"> settings as QR overlay<button type="button" class="info" data-tip="The whole exported state as a QR code drawn over everything; drag to move it, double-tap to dismiss." aria-label="about this setting">i</button></label>
     </div>
-    <div class="row"><label for="qrScale">qr pixels</label><input type="range" id="qrScale" min="0" max="2" step="1" value="0"><span id="qrScalev" style="min-width:44px;text-align:right;color:var(--ink)">1×</span></div>
+    <div class="row"><label for="qrScale">qr pixels<button type="button" class="info" data-tip="How many device pixels one QR module gets: 1×, 2× or 4×." aria-label="about this setting">i</button></label><input type="range" id="qrScale" min="0" max="2" step="1" value="0"><span id="qrScalev" style="min-width:44px;text-align:right;color:var(--ink)">1×</span></div>
     </div>
     <button id="tView" style="display:none"></button>
     <button id="tDive" style="display:none"></button>
@@ -979,9 +988,9 @@
 <div class="env pnl simPanelWide" id="simPanel">
   <button class="pclose" data-close="simPanel" aria-label="close">−</button>
   <h2>Simulation</h2>
-  <div class="row"><label for="speed">speed</label><input type="range" id="speed" min="0" max="30" step="1" value="21"><span id="speedv" style="min-width:64px;text-align:right;color:var(--ink)"></span><button class="stepb" data-step="speed:-1">−</button><button class="stepb" data-step="speed:1">+</button></div>
-  <div class="row"><label for="multExp">× exp</label><input type="range" id="multExp" min="0" max="10" step="1" value="0"><span id="multExpv" style="min-width:44px;text-align:right;color:var(--ink)">×1</span><button class="stepb" data-step="multExp:-1">−</button><button class="stepb" data-step="multExp:1">+</button></div>
-  <div class="row"><label for="shuttle" title="drive the clock by hand: +100% is the set speed forward, −100% the same speed backwards, 0 hands the clock back to play/pause">shuttle</label><input type="range" id="shuttle" min="-100" max="100" step="1" value="0"><span id="shuttlev" style="min-width:44px;text-align:right;color:var(--ink)">off</span><button class="stepb" id="shuttleReset" title="back to 0">↺</button></div>
+  <div class="row"><label for="speed">speed<button type="button" class="info" data-tip="Years of simulation per real second, on fixed rungs from one hour up to ten years." aria-label="about this setting">i</button></label><input type="range" id="speed" min="0" max="30" step="1" value="21"><span id="speedv" style="min-width:64px;text-align:right;color:var(--ink)"></span><button class="stepb" data-step="speed:-1">−</button><button class="stepb" data-step="speed:1">+</button></div>
+  <div class="row"><label for="multExp">× exp<button type="button" class="info" data-tip="Multiplies the speed by a power of ten: ×1e6 turns ten years a second into ten million." aria-label="about this setting">i</button></label><input type="range" id="multExp" min="0" max="10" step="1" value="0"><span id="multExpv" style="min-width:44px;text-align:right;color:var(--ink)">×1</span><button class="stepb" data-step="multExp:-1">−</button><button class="stepb" data-step="multExp:1">+</button></div>
+  <div class="row"><label for="shuttle" title="drive the clock by hand: +100% is the set speed forward, −100% the same speed backwards, 0 hands the clock back to play/pause">shuttle<button type="button" class="info" data-tip="Drive the clock by hand: +100% is the set speed forward, −100% the same backwards, 0 hands the clock back to the play button." aria-label="about this setting">i</button></label><input type="range" id="shuttle" min="-100" max="100" step="1" value="0"><span id="shuttlev" style="min-width:44px;text-align:right;color:var(--ink)">off</span><button class="stepb" id="shuttleReset" title="back to 0">↺</button></div>
   <div class="row"><label for="jump">scenario</label><select id="jump">
       <!-- the two entries that are not epochs lead; everything else runs in the order it
            happens, each landing a little before its event so the visitor watches it arrive -->
@@ -1036,13 +1045,14 @@
   <div class="er" id="eSunRow"><span>sun strength</span><b id="eSun">100%</b></div>
   <div class="er" id="eLifeRow"><span>life support</span><b id="eLife">habitable</b></div>
   <div class="envsep"></div>
-  <div class="er"><span>view</span>
+  <div class="er" style="align-items:flex-start"><span>view</span>
+    <span style="display:flex;flex-direction:column;gap:5px;align-items:flex-start">
     <span style="display:flex;gap:6px;align-items:center">
       <select id="focusSel"><option value="sun">Solar System</option><option value="earth">Earth</option><option value="pn">Anthropic Nebula</option><option value="mw">Milky Way</option><option value="and">Andromeda</option></select>
       <button class="rowbtn" id="focusGo">GO</button>
+    </span>
+    <label class="chk plain"><input type="checkbox" id="tSpinLock"> spin lock<button type="button" class="info" data-tip="The camera turns with the planet, so the same face stays in view while the clock runs. Tick it to watch the plates drift." aria-label="about spin lock">i</button></label>
     </span></div>
-  <div class="er"><span></span>
-    <label class="chk" title="the camera turns with the planet: the same face stays in view while the clock runs"><input type="checkbox" id="tSpinLock"> spin lock</label></div>
 </div>
 
 <div id="labels"></div>
@@ -1053,7 +1063,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.73.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.74.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -4405,6 +4415,26 @@ $('detail').addEventListener('input', e=>{
     const j = DETAIL_D.indexOf(curD); if(j>=0) e.target.value = j; }
   $('detailv').textContent = DETAIL_NAMES[DETAIL_D.indexOf(curD)] || DETAIL_NAMES[0];
 });
+// ---------- (i) tooltips: one floating box, shown by a tap, gone on the next ----------
+const tipEl = document.createElement('div'); tipEl.id = 'tip'; document.body.appendChild(tipEl);
+let tipFor = null, tipTimer = 0;
+function hideTip(){ tipEl.style.display = 'none'; if(tipFor) tipFor.classList.remove('on'); tipFor = null; clearTimeout(tipTimer); }
+function showTip(btn){
+  if(tipFor === btn){ hideTip(); return; }
+  hideTip(); tipFor = btn; btn.classList.add('on');
+  tipEl.textContent = btn.dataset.tip; tipEl.style.display = 'block';
+  const r = btn.getBoundingClientRect(), tw = tipEl.offsetWidth, th = tipEl.offsetHeight;
+  const x = Math.min(innerWidth - tw - 6, Math.max(6, r.left + r.width/2 - tw/2));
+  const y = r.bottom + th + 6 > innerHeight - 6 ? r.top - th - 6 : r.bottom + 6;
+  tipEl.style.left = x + 'px'; tipEl.style.top = y + 'px';
+  tipTimer = setTimeout(hideTip, 8000);
+}
+document.addEventListener('click', e=>{
+  const b = e.target.closest('.info');
+  if(b){ e.preventDefault(); e.stopPropagation(); showTip(b); } else if(tipFor) hideTip();
+}, true);
+addEventListener('scroll', ()=>{ if(tipFor) hideTip(); }, true);
+addEventListener('resize', ()=>{ if(tipFor) hideTip(); });
 // ---------- fullscreen & screen orientation ----------
 const isFs = ()=> !!(document.fullscreenElement || document.webkitFullscreenElement);
 function reqFs(){

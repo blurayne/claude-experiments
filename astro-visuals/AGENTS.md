@@ -325,6 +325,31 @@ Also here: a request for "a setting to turn off dark clouds" — the switch alre
 adding it; a duplicate switch is worse than none. And the settings title is "Settings" alone now,
 the version living in the info dialog and the tour card.
 
+## (i) tooltips, and the spin lock under the view box (v2.74.0)
+
+- **One tooltip element, tap to show, tap to hide.** `<button type="button"
+  class="info" data-tip="…">i</button>` after a label; a capture-phase click handler
+  shows the single `#tip` box under (or above, near the bottom) the icon, clamped to
+  the viewport, and hides it on the next click anywhere, on scroll, on resize, or after
+  eight seconds. `type="button"` matters inside a `<label>`: an interactive child does
+  not forward the click to the input, so the checkbox is not toggled by asking about it.
+  `title` attributes stay for mouse users; the icon is the touch path.
+- **Keep the tips tl;dr.** One or two sentences, what it does and what it is for, no
+  numbers unless they are the point ("100% is one second of the clock at the set
+  speed"). Twenty-one icons: the sliders whose units are not obvious (detail, Gaia
+  brightness, core glare, orbit, helix, length, hud rate, qr pixels, speed, × exp,
+  shuttle, calendar, units) and the toggles that name a feature rather than a thing
+  (gaia sky, variables, zoom buttons, spin lock, galaxy years, steady labels, QR
+  overlay). Do not put one on "asteroids".
+- **The env panel's spin lock** lives in the view row's right-hand column, a flex
+  column under the select and the GO button, so it is left-aligned to the box it
+  belongs to; `.chk.plain` sets the system text face for it. The settings twin
+  (`tSpinLock2`) is unchanged.
+- **Headless check:** on a 420×800 touch viewport open both panels, click every
+  `.info` that has an `offsetParent`, assert the tip is displayed with the icon's own
+  text and lies inside the viewport, then click the body and assert it is gone. Icons
+  in hidden rows (hud rate without fps on) have no layout and are skipped, not failed.
+
 ## The first launch measures the machine (v2.73.0)
 
 - **Off-screen, two frames in, thirty milliseconds.** `perfProbe()` draws the galaxy's
