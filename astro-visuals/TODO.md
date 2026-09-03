@@ -210,10 +210,10 @@ before the work starts. An item is ticked when it ships, with the version that c
       penalty), verified module for module against Python's `qrcode` at every size; the
       exported state (~1 KB, timestamp left out so the code holds still) is v23; the drawn
       overlay decodes back exactly with zxing — v2.65.0.
-- [ ] For the "supernova explosion of the Sun" use a different shader, one that resembles
-      the supernova. Awaiting the owner's word: the Sun never goes supernova — it casts a
-      planetary nebula, drawn by its own `PN_FS` — while the galaxy's supernovae use the
-      blast shader `pSN` and the remnant shells. Which of the two is meant?
+- [ ] The Sun's shell casting should look better — something of an explosion at its
+      onset, while staying scientifically correct (clarified: the planetary nebula, not a
+      supernova). Draw it as the event it is: the envelope thrown off, then ionised and
+      sculpted into a filamentary shell around the exposed core, then fading.
 - [x] The "helix" scenario starts at the current date and time: simT counts Earth's
       orbits from 2026.0, so it is set to the real elapsed fraction of years since
       2026-01-01 UTC, and the human-year readout follows — v2.65.0.
