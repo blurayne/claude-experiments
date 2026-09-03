@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.71.0 — 2026-09-03
+
+- Feat(astro-visuals): v2.71.0 — spin lock row and setting, Earth view sized to the viewport, Earth epochs focus Earth (`a2e746b`)
+
 ### 2.70.0 — 2026-09-03
 
 - Feat(astro-visuals): v2.70.0 — speed ladder down to hours, spin-locked camera (`489ddf6`)
