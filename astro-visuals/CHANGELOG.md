@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.74.3 — 2026-09-03
+
+- Style(astro-visuals): v2.74.3 — smaller (i) icon, tighter to its label (`1ffaaf7`)
+
 ### 2.74.2 — 2026-09-03
 
 - Style(astro-visuals): v2.74.2 — half-transparent (i) frame; transparent checkboxes (`8ade8fa`)
