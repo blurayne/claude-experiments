@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.74.1 — 2026-09-03
+
+- Fix(astro-visuals): v2.74.1 — the (i) icon is a square, not a circle (`dd22048`)
+
 ### 2.74.0 — 2026-09-03
 
 - Feat(astro-visuals): v2.74.0 — (i) tooltips on the unclear settings; spin lock under the view box in plain text (`9143040`)
