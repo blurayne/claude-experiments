@@ -198,6 +198,11 @@ before the work starts. An item is ticked when it ships, with the version that c
       order is now help → play → + → −; they were on by default already and now also take
       their state from the Visuals switch at boot. Verified fresh, with an old settings
       set, and in landscape — v2.64.1.
+- [ ] An event (scenario) and a viewport (view) on screen for the "Anthropic Nebula".
+- [ ] Debug only: an option to encode the current settings into a QR code, drawn as the
+      topmost overlay, at 1×, 2× or 4× pixels per module, switchable on/off in settings;
+      entering debug mode switches it on. A "Debug" section in settings, shown only in
+      debug mode.
 
 ### Shipped earlier, for the record
 
