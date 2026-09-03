@@ -228,6 +228,8 @@ before the work starts. An item is ticked when it ships, with the version that c
 - [x] The QR overlay defaults to 1x pixels per module (slider 0). Verified on a fresh
       profile at a phone's DPR: 117 px canvas, decodes back to the exact state, and a
       full-resolution screenshot of the page decodes too — v2.65.1.
+- [ ] The QR overlay sits bottom right by default, remembers where it is moved to, and a
+      double tap on it switches it off.
 
 ### Shipped earlier, for the record
 
