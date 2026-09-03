@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 2.70.0 — 2026-09-03
+
+- Feat(astro-visuals): v2.70.0 — speed ladder down to hours, spin-locked camera (`489ddf6`)
+
 ### 2.69.0 — 2026-09-03
 
 - Feat(astro-visuals): v2.69.0 — Earth from the real map, plates from Pangaea to Proxima (`5f95c54`)
