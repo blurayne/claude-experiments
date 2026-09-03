@@ -325,6 +325,28 @@ Also here: a request for "a setting to turn off dark clouds" — the switch alre
 adding it; a duplicate switch is worse than none. And the settings title is "Settings" alone now,
 the version living in the info dialog and the tour card.
 
+## A speed ladder and a spin-locked camera (v2.70.0)
+
+- **The speed slider is a ladder now, not a curve.** `SPEED_RUNGS` holds the rates in
+  years per second — 1…32 hours, 1…4 weeks, 1…8 months, then 1…10 years — and the
+  slider's value is the rung index (`SPEED_YEAR` = 21 is one year per second, the
+  default). The ×10^k slider still multiplies, so the readout is one digit and an
+  exponent: n × 10^k. `speedLabel()` picks the unit (h, wk, mo, yr) from the
+  effective rate and is the one source for the settings readout and the HUD's rate line.
+- **Saved settings carry a schema mark.** The old slider was continuous 0…1 (a week to
+  a year); a saved `speed` of "1" meant a year per second and would now mean two hours.
+  `saveSettings` writes `sv: 2`; `restoreSettings` converts a save without it through the
+  old curve to the nearest rung in log space. Any future change to a persisted slider's
+  meaning needs the same: bump the mark, convert on load.
+- **Spin lock = the camera in the planet's frame.** With `tSpinLock` on and Earth
+  followed, the eye direction, right and up are built from (P, A, −Q) — prime meridian,
+  axis, and −(A×P), which keeps the world's handedness — instead of (x, y, z), and the
+  view's up is the axis. Yaw is then longitude and pitch latitude, and because P turns
+  with `earthPrime(simT)` the same face stays in view at any clock rate; nothing has to
+  be a multiple of a day. Switching the lock re-expresses the current line of sight
+  (`camDirW`, written every frame) in the other frame so the view does not jump. It
+  clears `coreLock`, whose base yaw would otherwise add on top.
+
 ## The Earth's map is real, its plates a disclosed schematic (v2.69.0)
 
 - **Coastlines from data, motion from keyframes.** `earth-map.webp` (2048×1024, built by

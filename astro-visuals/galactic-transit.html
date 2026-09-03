@@ -925,7 +925,8 @@
       model: each pole is the great circle from a plate's seat today to its seat in Pangaea, the angles set so
       the continents land where the maps put them, and the future runs the same arcs back: Pangaea at 250
       Myr ago, the Atlantic opening, India and Australia running north, and ahead the Atlantic closing again into
-      Pangaea Proxima around +250 Myr. Before the map has meaning the surface is noise. Where the map has no
+      Pangaea Proxima around +250 Myr. Before the map has meaning the surface is noise. Tick <b>spin lock</b> in the view row and the camera turns
+      with the planet, so the same face stays in view while the clock runs — the way to watch the plates drift. Where the map has no
       depths, the oceans retreat toward the regions farthest from any coast as they go. Through the clock it shows the Hadean's molten crust, the methane-hazed orange Archean
       until the Great Oxidation, the Huronian and Cryogenian snowballs, ice caps that follow the piece's own
       climate model through the Phanerozoic (and the rock record before it — the model reads the faint young
@@ -976,22 +977,22 @@
 <div class="env pnl simPanelWide" id="simPanel">
   <button class="pclose" data-close="simPanel" aria-label="close">−</button>
   <h2>Simulation</h2>
-  <div class="row"><label for="speed">speed</label><input type="range" id="speed" min="0" max="1" step="0.001" value="1"><span id="speedv" style="min-width:64px;text-align:right;color:var(--ink)"></span><button class="stepb" data-step="speed:-0.05">−</button><button class="stepb" data-step="speed:0.05">+</button></div>
+  <div class="row"><label for="speed">speed</label><input type="range" id="speed" min="0" max="30" step="1" value="21"><span id="speedv" style="min-width:64px;text-align:right;color:var(--ink)"></span><button class="stepb" data-step="speed:-1">−</button><button class="stepb" data-step="speed:1">+</button></div>
   <div class="row"><label for="multExp">× exp</label><input type="range" id="multExp" min="0" max="10" step="1" value="0"><span id="multExpv" style="min-width:44px;text-align:right;color:var(--ink)">×1</span><button class="stepb" data-step="multExp:-1">−</button><button class="stepb" data-step="multExp:1">+</button></div>
   <div class="row"><label for="shuttle" title="drive the clock by hand: +100% is the set speed forward, −100% the same speed backwards, 0 hands the clock back to play/pause">shuttle</label><input type="range" id="shuttle" min="-100" max="100" step="1" value="0"><span id="shuttlev" style="min-width:44px;text-align:right;color:var(--ink)">off</span><button class="stepb" id="shuttleReset" title="back to 0">↺</button></div>
   <div class="row"><label for="jump">scenario</label><select id="jump">
       <!-- the two entries that are not epochs lead; everything else runs in the order it
            happens, each landing a little before its event so the visitor watches it arrive -->
       <option value="">— present day —</option>
-      <option value="helix" data-speed="1" data-mult="1">The helix — planets winding through space</option>
+      <option value="helix" data-rate="1" data-mult="1">The helix — planets winding through space</option>
       <option value="0.058">Theia impact — the Moon forms (4.51 Gyr ago)</option>
       <option value="0.768">Young Earth — first life (3.8 Gyr ago)</option>
       <option value="2.068">Great Oxidation (2.5 Gyr ago)</option>
-      <option value="4.5692567" data-speed="0.58" data-mult="10000">Gliese 710 grazes the Oort cloud (+1.29 Myr)</option>
-      <option value="8.36149" data-speed="1" data-mult="100000000">Andromeda first pass (+4.5 Gyr)</option>
-      <option value="11.25" data-speed="1" data-mult="100000000">Galaxies collide &amp; merge (+6.9 Gyr)</option>
-      <option value="11.3586" data-speed="0.6166" data-mult="100000000">The Sun swallows the Earth (+7.6 Gyr)</option>
-      <option value="12.35" data-speed="1" data-mult="10000000">The Anthropic Nebula — the Sun casts its shell (+7.8 Gyr)</option>
+      <option value="4.5692567" data-rate="0.19" data-mult="10000">Gliese 710 grazes the Oort cloud (+1.29 Myr)</option>
+      <option value="8.36149" data-rate="1" data-mult="100000000">Andromeda first pass (+4.5 Gyr)</option>
+      <option value="11.25" data-rate="1" data-mult="100000000">Galaxies collide &amp; merge (+6.9 Gyr)</option>
+      <option value="11.3586" data-rate="0.2195" data-mult="100000000">The Sun swallows the Earth (+7.6 Gyr)</option>
+      <option value="12.35" data-rate="1" data-mult="10000000">The Anthropic Nebula — the Sun casts its shell (+7.8 Gyr)</option>
       <option value="13.5">After the merger (+8.9 Gyr)</option>
     </select><button class="rowbtn" id="jumpGo" title="apply the selected scenario and close the panel">GO</button></div>
 </div>
@@ -1036,6 +1037,7 @@
     <span style="display:flex;gap:6px;align-items:center">
       <select id="focusSel"><option value="sun">Solar System</option><option value="earth">Earth</option><option value="pn">Anthropic Nebula</option><option value="mw">Milky Way</option><option value="and">Andromeda</option></select>
       <button class="rowbtn" id="focusGo">GO</button>
+      <label class="chk" title="the camera turns with the planet: the same face stays in view while the clock runs"><input type="checkbox" id="tSpinLock"> spin lock</label>
     </span></div>
 </div>
 
@@ -1047,7 +1049,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.69.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.70.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -3550,17 +3552,33 @@ let paused=false, showTrails=true, showLabels=true, showStats=true;
 let showDwarfs=true, showBelt=true, showKuiper=true, showOort=true;
 let speed = 1.5; // years per second
 const WEEK_YR = 7/365.2425;                          // one week, in years
-const speedFromSlider = v => Math.pow(WEEK_YR, 1-v);  // a week per second → a year per second
+// The ladder the slider climbs, in years per second: hours, weeks, months, then whole
+// years 1…10; the ×10^k slider on top carries each rung through the decades, so
+// 3 yr/s × 10³ reads 3×10³ yr/s — n × 10^k, one digit and an exponent.
+const HOUR_YR = 1/(24*365.2425);
+const SPEED_RUNGS = [
+  ...[1,2,3,4,6,8,10,12,16,20,24,32].map(h => h*HOUR_YR),
+  ...[1,2,3,4].map(w => w*WEEK_YR),
+  ...[1,2,4,6,8].map(m => m/12),
+  ...[1,2,3,4,5,6,7,8,9,10]
+];
+const SPEED_YEAR = 21;                                     // the rung of one year per second
+const speedFromSlider = v => SPEED_RUNGS[Math.max(0, Math.min(SPEED_RUNGS.length-1, Math.round(+v)))];
+// the rung nearest a rate, in log space — for settings saved by the old continuous slider
+function speedRungOf(yrs){ let b=0, e=1e9; SPEED_RUNGS.forEach((r,i)=>{ const d=Math.abs(Math.log(r/yrs)); if(d<e){ e=d; b=i; } }); return b; }
 function supStr(e){ return String(e).split('').map(d=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[+d]).join(''); }
 let speedMult = 1;
-function fmtSpeed(){
-  const eff = speed*speedMult;
-  // below a season a year is the wrong unit to read it in
-  if(eff < 0.25){ $('speedv').textContent = (eff/WEEK_YR).toFixed(1)+' wk/s'; return; }
-  if(eff < 1000){ $('speedv').textContent = eff.toFixed(eff<1?2:1)+' yr/s'; return; }
-  const e = Math.floor(Math.log10(eff));
-  $('speedv').textContent = (eff/Math.pow(10,e)).toFixed(2)+'×10'+supStr(e)+' yr/s';
+// the rate in the unit it is easiest to read: hours, weeks and months below a year
+function speedLabel(){
+  const eff = speed*speedMult, n = x => (Math.abs(x-Math.round(x)) < 0.05 ? Math.round(x) : +x.toFixed(1));
+  if(eff < WEEK_YR*0.999) return n(eff/HOUR_YR)+' h/s';
+  if(eff < 0.999/12)      return n(eff/WEEK_YR)+' wk/s';
+  if(eff < 0.999)         return n(eff*12)+' mo/s';
+  if(eff < 1000)          return n(eff)+' yr/s';
+  const e = Math.floor(Math.log10(eff)), mant = eff/Math.pow(10,e);
+  return (Math.abs(mant-Math.round(mant)) < 0.005 ? Math.round(mant) : mant.toFixed(2))+'×10'+supStr(e)+' yr/s';
 }
+function fmtSpeed(){ $('speedv').textContent = speedLabel(); }
 // Whole decades on top of the slider, for crossing deep time without waiting on it.
 function setMultExp(x){
   x = Math.max(0, Math.min(10, Math.round(x)));
@@ -3594,7 +3612,7 @@ document.querySelectorAll('.stepb').forEach(b => b.addEventListener('click', ()=
   el.dispatchEvent(new Event('input'));
 }));
 $('speed').addEventListener('input', e=>{ speed = speedFromSlider(+e.target.value); fmtSpeed(); applyTrailWindow(); });
-speed = speedFromSlider(1); fmtSpeed();   // one Earth year per second
+speed = speedFromSlider(SPEED_YEAR); fmtSpeed();   // one Earth year per second
 // One slider, two effects, because they are the same intent: make the faint stars
 // carry. It lifts a floor under their colour and widens the smallest sprites, which is
 // where most of the lost light actually goes.
@@ -3697,6 +3715,20 @@ let dustOn = true;
 toggle($('tDust'), on=>{ dustOn = on; });
 const syncZoomBtns = on => { for(const id of ['zoomIn','zoomOut']) $(id).classList.toggle('act', on); };
 toggle($('tZoomBtns'), on=>{ syncZoomBtns(on); layoutPanels(); fitPanels(); });
+// The spin lock: the camera's yaw and pitch are read in the planet's own frame (longitude
+// about its axis, latitude), so the eye rides round with the spin and the same face stays
+// in view however fast the clock runs — the plates drift under a still camera. Switching
+// it re-expresses the current line of sight in the other frame, so the view does not jump.
+let spinLock = false; const camDirW = [0,0,1], spinP = new Float64Array(3);
+function spinFrame(){ const A = EARTH_AXIS, P = earthPrime(simT, spinP); return [P, A, [A[1]*P[2]-A[2]*P[1], A[2]*P[0]-A[0]*P[2], A[0]*P[1]-A[1]*P[0]]]; }
+toggle($('tSpinLock'), on=>{
+  const d = camDirW;
+  if(on){ const [P, A, Q] = spinFrame(); const dP = d[0]*P[0]+d[1]*P[1]+d[2]*P[2], dA = d[0]*A[0]+d[1]*A[1]+d[2]*A[2], dQ = d[0]*Q[0]+d[1]*Q[1]+d[2]*Q[2];
+    cam.yaw = Math.atan2(dP, -dQ); cam.pitch = Math.asin(Math.max(-1, Math.min(1, dA))); }
+  else { cam.yaw = Math.atan2(d[0], d[2]); cam.pitch = Math.asin(Math.max(-1, Math.min(1, d[1]))); }
+  if(coreLock){ coreLock = false; }   // the lock's own base yaw would double up
+  spinLock = on; panF[0]=panF[1]=0;
+});
 syncZoomBtns($('tZoomBtns').checked);   // on by default: the markup says checked, and the dots follow it
 $('zoomIn').addEventListener('click', ()=> zoomStep(-1));     // here, after $ exists: zoomStep is
 $('zoomOut').addEventListener('click', ()=> zoomStep(+1));    // hoisted, the listeners are not
@@ -4027,7 +4059,7 @@ loadTrack(0);
 // so restoring a setting does exactly what clicking it would. Anything momentary — the
 // pause, the dive, the epoch jump, the current track position — is deliberately left out.
 const SKEY = 'galactic-transit.settings.v1';
-const S_TOG = ['tLabels','tArms','tLabelSteady','tZoomBtns','tDwarfs','tP9','tBelt','tKuiper','tOort','tDust',
+const S_TOG = ['tLabels','tArms','tLabelSteady','tZoomBtns','tSpinLock','tDwarfs','tP9','tBelt','tKuiper','tOort','tDust',
                'tEvSN','tEvBirth','tVar',
                'tStatAge','tStatGyr','tStatSn','tStatBirth','tGaia','tFps'];
 const S_SLD = ['speed','trailA','orbitA','trailL','musicVol','sfxVol','minB','hudHz','coreB','qrScale'];
@@ -4046,7 +4078,7 @@ function saveSettingsNow(){
                 bar:$('gamebar').classList.contains('slid'), qrPos,
  };
     S_TOG.forEach(id => s.t[id] = isOn($(id)));
-    S_SLD.forEach(id => s.s[id] = $(id).value);
+    S_SLD.forEach(id => s.s[id] = $(id).value); s.sv = 2;   // sv 2: the speed slider is a rung index
     S_CHK.forEach(id => s.c[id] = $(id).checked);
     localStorage.setItem(SKEY, JSON.stringify(s));
   }catch(e){}   // private browsing, or storage disabled: just don't remember
@@ -4060,6 +4092,7 @@ function restoreSettings(register){
   let s = null;
   try{ s = JSON.parse(localStorage.getItem(SKEY) || 'null'); }catch(e){}
   if(s){
+    if(s.s && !(s.sv >= 2) && s.s.speed != null) s.s.speed = String(speedRungOf(Math.pow(WEEK_YR, 1-(+s.s.speed))));   // the old continuous slider
     if(s.s) S_SLD.forEach(id=>{ const v=s.s[id];
       if(v != null && $(id).value !== v){ $(id).value = v; $(id).dispatchEvent(new Event('input')); } });
     if(s.c) S_CHK.forEach(id=>{ const v=s.c[id];
@@ -4135,8 +4168,8 @@ function jumpToEpoch(){
   // at a year a second, the Gliese pass at a thousand, the Andromeda approach at a
   // hundred million. A scenario therefore sets its own pace even at boot, where a
   // returning visitor's other settings are left alone.
-  const sp = opt && opt.dataset.speed, mu = opt && opt.dataset.mult;
-  if(sp !== undefined && sp !== null){ $('speed').value = sp; $('speed').dispatchEvent(new Event('input')); }
+  const sp = opt && opt.dataset.rate, mu = opt && opt.dataset.mult;   // the rate in years per second → its rung
+  if(sp !== undefined && sp !== null){ $('speed').value = speedRungOf(+sp); $('speed').dispatchEvent(new Event('input')); }
   if(mu) setMultExp(Math.log10(+mu));
   if(sel.value === 'helix'){
     // not an epoch: a staging entry for the true helix. At one year a second the Sun
@@ -4286,8 +4319,7 @@ function humanYear(){
     case 'theia': return fmtYears(4.51e9+el);        // the Moon-forming giant impact
     case 'earth': return fmtYears(4.54e9+el);        // Earth's formation — the age of the planet
     case 'rate': { // not a date at all: how much time passes per second of watching
-      const eff = speed*speedMult;
-      return eff < 1000 ? eff.toFixed(eff<1?2:1)+' yr/s' : fmtYears(eff)+'/s';
+      return speedLabel();
     }
     default:     return g>=1 ? fmt(g)+' AD' : fmt(1-g)+' BC';
   }
@@ -5103,15 +5135,28 @@ function frame(now){
   // the pan: a screen-space offset, so it rides the camera's right and up at this distance.
   // Screen right is world right mirrored (SKY_MIRROR), and dragging the scene right means
   // the target goes left, hence the signs. tan(30°)·2 = the view's height over its distance.
-  const rx = Math.cos(yawE), rz = -Math.sin(yawE);                       // right, in the plane
-  const ux = -sp*Math.sin(yawE), uy = cp, uz = -sp*Math.cos(yawE);      // up, tilted with the pitch
+  const sy = Math.sin(yawE), cy = Math.cos(yawE);
+  let rx = cy, ry = 0, rz = -sy;                                        // right, in the plane
+  let ux = -sp*sy, uy = cp, uz = -sp*cy;                                // up, tilted with the pitch
+  let dx = cp*sy, dy = sp, dz = cp*cy, upV = [0,1,0];                   // the eye's direction from the target
+  const spinOn = spinLock && cam.follow && followTarget === 'earth' && !wasEaten[3];
+  if(spinOn){
+    // the same three vectors, but in the planet's frame: x → prime meridian P, y → axis A,
+    // z → −Q (so the frame keeps the world's handedness); the frame turns with the spin
+    const [P, A, Q] = spinFrame();
+    rx = cy*P[0]+sy*Q[0]; ry = cy*P[1]+sy*Q[1]; rz = cy*P[2]+sy*Q[2];
+    ux = -sp*sy*P[0]+cp*A[0]+sp*cy*Q[0]; uy = -sp*sy*P[1]+cp*A[1]+sp*cy*Q[1]; uz = -sp*sy*P[2]+cp*A[2]+sp*cy*Q[2];
+    dx = cp*sy*P[0]+sp*A[0]-cp*cy*Q[0]; dy = cp*sy*P[1]+sp*A[1]-cp*cy*Q[1]; dz = cp*sy*P[2]+sp*A[2]-cp*cy*Q[2];
+    upV = A;
+  }
+  camDirW[0] = dx; camDirW[1] = dy; camDirW[2] = dz;                     // read by the spin lock's switch
   const pv = 1.1547*cam.dist, pdx = -panF[0]*pv*SKY_MIRROR, pdy = panF[1]*pv;
   const tgx=smoothTarget[0]-org[0] + rx*pdx + ux*pdy,
-        tgy=smoothTarget[1]-org[1] + uy*pdy,
+        tgy=smoothTarget[1]-org[1] + ry*pdx + uy*pdy,
         tgz=smoothTarget[2]-org[2] + rz*pdx + uz*pdy;
-  const eye=[ tgx+cam.dist*cp*Math.sin(yawE), tgy+cam.dist*sp, tgz+cam.dist*cp*Math.cos(yawE) ];
+  const eye=[ tgx+cam.dist*dx, tgy+cam.dist*dy, tgz+cam.dist*dz ];
   camSunDist = Math.hypot(eye[0], eye[1], eye[2]) || cam.dist;   // Sun-relative eye: how far the Sun is
-  const viewMat = lookAt(eye, [tgx,tgy,tgz], [0,1,0]);
+  const viewMat = lookAt(eye, [tgx,tgy,tgz], upV);
   // near plane tracks the zoom so sub-AU views don't clip
   projMat = skyProjection(Math.min(0.5, Math.max(1e-13, cam.dist*0.04)), 25000);   // no depth buffer: a tiny near plane costs nothing, and Earth needs it
   const pxScale = (H*DPR)/(2*Math.tan(Math.PI/6));
