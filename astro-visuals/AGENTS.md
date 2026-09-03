@@ -325,6 +325,37 @@ Also here: a request for "a setting to turn off dark clouds" — the switch alre
 adding it; a duplicate switch is worse than none. And the settings title is "Settings" alone now,
 the version living in the info dialog and the tour card.
 
+## The Earth's map is real, its plates a disclosed schematic (v2.69.0)
+
+- **Coastlines from data, motion from keyframes.** `earth-map.webp` (2048×1024, built by
+  `tools/build_earth_map.py` from the GSHHG shorelines bundled with `basemap`) carries
+  today's land in R, a plate id in G (seven hand-drawn polygons: Antarctica, India,
+  Australia, the two Americas, Africa, Eurasia) and a blurred "continentality" in B. The
+  globe shader looks each fragment up through the inverse rotation of every plate and
+  takes the first plate whose id the map returns there, so a plate carries its own
+  land and nothing else. Without the texture the shader falls back to the old noise.
+- **Poles are derived, not guessed.** Each plate's pole is the great circle from its
+  seat today to its seat in Pangaea (Africa held still); the keyframes are fractions of
+  that one angle, and Pangaea Proxima runs the same arcs back. The first hand-picked
+  poles swung the Americas north-west and Australia away from Antarctica; the fix was
+  to render the model *offline* (a 30-line NumPy port of the shader lookup) as flat maps
+  at eight epochs and read them, rather than hunt for the mistake on the globe, where the
+  lit face hides half the planet. Keep that habit: check any plate change on the flat
+  strip first.
+- **The info panel says what this is.** A schematic of the published reconstructions,
+  not a plate model — the words are in the panel because a viewer with a geology
+  textbook would otherwise be right to call it wrong.
+- **Sea level and dryness ride the map.** `uSeaLevel` retreats the oceans toward the
+  regions farthest from any coast (the continentality channel) as they evaporate;
+  `uDry` widens the desert belts. `earthEra` now carries the Ordovician and Karoo ice
+  caps, the Cretaceous hothouse, the Permian and Proxima interiors as dry periods.
+- **Headless renders of the globe must aim at the sub-solar point.** The test camera's
+  first pass pointed at a fixed longitude and photographed the night side at every
+  other epoch. Take the Sun direction from the same body array the draw call uses.
+- **Structure labels hide at once on the globe.** The debounced hide needed two frames
+  and left a "Kuiper belt" over the Earth in every headless shot; they now drop the
+  moment the globe is bigger than 40 px.
+
 ## Earth as a globe, and what it took (v2.68.0)
 
 Earth and the Moon are point sprites whose fragment builds a sphere: the normal from the

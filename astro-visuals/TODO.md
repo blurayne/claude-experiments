@@ -228,9 +228,9 @@ before the work starts. An item is ticked when it ships, with the version that c
       and label; the Sun and nebula sized by the camera's distance to the Sun (from Earth
       it had filled the sky); the readout down to km. Verified across eras, over the pole
       in June, at the terminator, and all other views unchanged — v2.68.0.
-- [ ] Earth from real textures (SVG-like coastlines) rather than noise: today's map, the
+- [x] Earth from real textures (SVG-like coastlines) rather than noise: today's map, the
       plates moving from Pangaea to now and on to Pangaea Proxima, the oceans evaporating
-      and the biosphere collapsing; ice ages and dry periods incorporated.
+      and the biosphere collapsing; ice ages and dry periods incorporated — v2.69.0.
 - [x] The "helix" scenario starts at the current date and time: simT counts Earth's
       orbits from 2026.0, so it is set to the real elapsed fraction of years since
       2026-01-01 UTC, and the human-year readout follows — v2.65.0.

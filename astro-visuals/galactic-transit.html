@@ -920,13 +920,18 @@
       from it — Earth is drawn as a sphere shaded in the fragment: the Sun's light, a terminator softened and
       reddened by the air, clouds with their shadows, Rayleigh blue thickening toward the limb, a glint on open
       water, and on the night side the cities, in the twenty thousand years around now that have them. Its
-      surface is a <b>model of an era, not a map</b>: the coastlines are noise, drifting slowly with the age, and
-      the fraction of land follows the geology — a few islands in the Archean, today's 29%, all land once the
-      oceans have gone. Through the clock it shows the Hadean's molten crust, the methane-hazed orange Archean
+      coastlines are <b>today's real ones</b> (the GSHHG shoreline data), cut into seven plates that each ride a
+      rotation about a fixed pole through time — a <b>schematic</b> of the published reconstructions, not a plate
+      model: each pole is the great circle from a plate's seat today to its seat in Pangaea, the angles set so
+      the continents land where the maps put them, and the future runs the same arcs back: Pangaea at 250
+      Myr ago, the Atlantic opening, India and Australia running north, and ahead the Atlantic closing again into
+      Pangaea Proxima around +250 Myr. Before the map has meaning the surface is noise. Where the map has no
+      depths, the oceans retreat toward the regions farthest from any coast as they go. Through the clock it shows the Hadean's molten crust, the methane-hazed orange Archean
       until the Great Oxidation, the Huronian and Cryogenian snowballs, ice caps that follow the piece's own
       climate model through the Phanerozoic (and the rock record before it — the model reads the faint young
-      Sun without the greenhouse that kept the early oceans liquid), land greening from the Devonian, the moist
-      greenhouse drying the oceans a billion years ahead, and the crust melting again under the red giant. The
+      Sun without the greenhouse that kept the early oceans liquid), the Ordovician and Karoo ice ages and the
+      Cretaceous without caps, the dry interiors of Pangaea and of Proxima, land greening from the Devonian, the
+      moist greenhouse drying the oceans a billion years ahead, and the crust melting again under the red giant. The
       <b>Moon</b> orbits it at its true distance, receding as it always has — 3.8 cm a year now, far faster when
       young — on a power law fitted to formation at the Theia impact rather than a dynamical model, its period from
       Kepler's law; its orbit is drawn once it spans more than a few pixels.</li>
@@ -1042,7 +1047,7 @@
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-const BUILD = { version: '2.68.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '2.69.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2494,7 +2499,11 @@ precision highp float;
 uniform vec3 uSunV, uAxisV, uPrimeV;     // view space: toward the Sun; the spin axis; the prime meridian on the equator
 uniform float uMirror, uDisc, uTime, uMoon;
 uniform float uMolten, uOcean, uSea, uHaze, uVeg, uIceLat, uCloud, uLights, uDrift;
+uniform sampler2D uMap; uniform float uHasMap, uDry, uSeaLevel; uniform mat3 uPlate[7];
 out vec4 o;
+// today's real land and its plate, looked up for a planet-frame direction
+vec3 mapAt(vec3 v){ float lat = asin(clamp(v.z,-1.0,1.0)), lon = atan(v.y, v.x);
+  return texture(uMap, vec2(lon/6.2831853+0.5, 0.5-lat/3.14159265)).rgb; }
 float h31(vec3 p){ p=fract(p*0.3183099+vec3(0.71,0.113,0.419)); p*=17.0; return fract(p.x*p.y*p.z*(p.x+p.y+p.z)); }
 float vn3(vec3 p){ vec3 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);
   return mix(mix(mix(h31(i),h31(i+vec3(1,0,0)),f.x), mix(h31(i+vec3(0,1,0)),h31(i+vec3(1,1,0)),f.x),f.y),
@@ -2529,11 +2538,31 @@ void main(){
     o = vec4(col, 1.0); return;
   }
   vec3 dr = vec3(uDrift, uDrift*0.7, -uDrift*0.4);
-  float h = fbm3(p*2.6 + dr) + 0.35*fbm3(p*7.0 + 1.7*dr) - 0.17;
-  float land = smoothstep(uSea-0.025, uSea+0.025, h);
-  float shallow = smoothstep(uSea-0.10, uSea, h);
-  // the land: bare rock, greened by vegetation where it is not desert, whitened by ice
-  float dry = exp(-pow((lat-24.0)/11.0, 2.0));
+  float land, shallow, cont = 0.0;
+  if(uHasMap > 0.5){
+    // the real map: each plate carried by its own rotation, first plate whose domain
+    // holds this point wins; between the plates, where none does, there is sea
+    land = 0.0; shallow = 0.0;
+    for(int k=0;k<7;k++){
+      vec3 q = uPlate[k]*p; vec3 m = mapAt(q);
+      if(int(floor(m.g*255.0/32.0+0.5)) == k){ land = m.r; cont = m.b; break; }
+    }
+    // the oceans retreat to their deepest basins as they go — the map has no depths, so
+    // the continentality field stands in, inverted
+    float water = (1.0-land) * smoothstep(uSeaLevel+0.04, uSeaLevel-0.04, cont);
+    land = 1.0 - water;
+    shallow = (1.0-land) * smoothstep(0.0, 0.35, cont);
+  } else {
+    float h = fbm3(p*2.6 + dr) + 0.35*fbm3(p*7.0 + 1.7*dr) - 0.17;
+    land = smoothstep(uSea-0.025, uSea+0.025, h);
+    shallow = smoothstep(uSea-0.10, uSea, h);
+    cont = land*0.5;
+  }
+  // the land: bare rock, greened by vegetation where it is not desert, whitened by ice.
+  // Deserts: the subtropical belts, and the interiors far from any coast — the more so
+  // in the dry periods, a supercontinent's heart most of all
+  float dry = max(exp(-pow((lat-24.0)/11.0, 2.0)), pow(cont, 1.4)*(0.55 + 0.7*uDry));
+  dry = min(1.0, dry*(0.8 + 0.5*uDry));
   float detail = fbm3(p*5.0+dr*2.0);                              // one texture, shared below
   vec3 rock = mix(vec3(0.42,0.32,0.22), vec3(0.62,0.52,0.36), detail);
   vec3 green = mix(vec3(0.15,0.30,0.09), vec3(0.28,0.42,0.14), fract(detail*1.7+0.3));
@@ -2582,7 +2611,59 @@ void main(){
 }`;
 const pGlobe = prog(GLOBE_VS, GLOBE_FS);
 const UG = {}; for(const k of ['uProj','uView','uPos','uSz','uSunV','uAxisV','uPrimeV','uMirror','uDisc','uTime','uMoon',
-  'uMolten','uOcean','uSea','uHaze','uVeg','uIceLat','uCloud','uLights','uDrift']) UG[k]=gl.getUniformLocation(pGlobe,k);
+  'uMolten','uOcean','uSea','uHaze','uVeg','uIceLat','uCloud','uLights','uDrift','uMap','uHasMap','uDry','uSeaLevel']) UG[k]=gl.getUniformLocation(pGlobe,k);
+UG.uPlate = gl.getUniformLocation(pGlobe,'uPlate[0]');
+// The real map: today's land from GSHHG (tools/build_earth_map.py), R land, G plate id,
+// B continentality. Loaded like the galaxy maps; without it the globe falls back to noise.
+let earthTex = null;
+function loadEarthMap(){
+  fetch('earth-map.webp').then(r => r.ok ? r.blob() : Promise.reject())
+    .then(b => createImageBitmap(b, { premultiplyAlpha: 'none', colorSpaceConversion: 'none' }))
+    .then(bm => {
+      const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, bm);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.bindTexture(gl.TEXTURE_2D, null); earthTex = t;
+    }).catch(()=>{});
+}
+loadEarthMap();
+// The plates: each carried by a rotation about a fixed pole, its angle keyed by time in
+// Myr from today (negative past), interpolated between keys. A SCHEMATIC of the published
+// reconstructions — the Atlantic opening from Pangaea, India's run north, Australia's,
+// then the Atlantic closing and the continents gathering again into Pangaea Proxima —
+// with the poles and angles chosen by hand to land the continents where the maps put
+// them, not a plate model. Africa is the near-fixed reference. Order matches the map's ids.
+const PLATE_MODEL = [
+  { name:'Antarctica', pole:[5.0,-5.8], keys:[[-250,10.4], [-100,5.2], [0,0.0], [250,-22.9]] },
+  { name:'India', pole:[-17.7,160.6], keys:[[-250,54.8], [-130,50.4], [-60,21.9], [-40,6.6], [0,0.0], [250,-5.5]] },
+  { name:'Australia', pole:[-11.4,-129.6], keys:[[-250,36.5], [-60,32.9], [0,0.0], [250,-23.7]] },
+  { name:'S. America', pole:[70.0,-17.4], keys:[[-250,43.1], [-130,43.1], [0,0.0], [100,-6.5], [250,32.3]] },
+  { name:'N. America', pole:[45.0,80.5], keys:[[-250,40.0], [-180,40.0], [0,0.0], [100,-6.0], [250,32.0]] },
+  { name:'Africa', pole:[0,110], keys:[[0,0], [250,-8]] },
+  { name:'Eurasia', pole:[30,90], keys:[[-250,10], [0,0], [250,-4]] }
+];
+const plateMats = new Float32Array(63);
+function plateAngle(keys, tMyr){
+  if(tMyr <= keys[0][0]) return keys[0][1];
+  for(let i=1;i<keys.length;i++) if(tMyr <= keys[i][0]){ const [t0,a0]=keys[i-1], [t1,a1]=keys[i]; return a0 + (a1-a0)*(tMyr-t0)/(t1-t0); }
+  return keys[keys.length-1][1];
+}
+function fillPlateMats(tMyr){
+  for(let k=0;k<7;k++){
+    const m = PLATE_MODEL[k], la = m.pole[0]*Math.PI/180, lo = m.pole[1]*Math.PI/180;
+    const ax = Math.cos(la)*Math.cos(lo), ay = Math.cos(la)*Math.sin(lo), az = Math.sin(la);
+    const th = -plateAngle(m.keys, tMyr)*Math.PI/180;          // the inverse: from now back to then
+    const c = Math.cos(th), sn = Math.sin(th), C = 1-c;
+    const M = [ c+ax*ax*C, ax*ay*C-az*sn, ax*az*C+ay*sn,
+                ay*ax*C+az*sn, c+ay*ay*C, ay*az*C-ax*sn,
+                az*ax*C-ay*sn, az*ay*C+ax*sn, c+az*az*C ];       // rows
+    const o = k*9;                                              // column-major for GLSL
+    plateMats[o]=M[0]; plateMats[o+1]=M[3]; plateMats[o+2]=M[6];
+    plateMats[o+3]=M[1]; plateMats[o+4]=M[4]; plateMats[o+5]=M[7];
+    plateMats[o+6]=M[2]; plateMats[o+7]=M[5]; plateMats[o+8]=M[8];
+  }
+}
 const vaoGlobe = (()=>{ const v=gl.createVertexArray(); gl.bindVertexArray(v); gl.bindVertexArray(null); return v; })();
 // The Moon's orbit: its distance today, receding as it always has (3.8 cm/yr now, far faster
 // when it was young) — a power law fitted to formation ~4.5 Gyr ago at a few Earth radii,
@@ -2642,11 +2723,19 @@ function earthEra(a, meanC){
   let iceLat = a > 3.95 ? Math.max(18, Math.min(88, 90 - (18 - meanC)*5.5))                 // 15 °C -> ~74°; 11 -> ~52°; 5 -> ~18°
              : 95 - 40*clamp01(1 - Math.abs(a - 1.67)/0.06);                                // Pongola: caps to ~55° for a moment
   if(a > 4.22 && a < 4.31) iceLat = Math.min(iceLat, 50);                                  // Karoo
+  iceLat = Math.min(iceLat, 95 - 50*clamp01(1 - Math.abs(a - 4.123)/0.008));              // Ordovician (445 Ma)
+  if(a > 4.44 && a < 4.51) iceLat = Math.max(iceLat, 89);                                  // the Cretaceous hothouse: no caps
+  if(a > 4.75 && a < 4.85) iceLat = Math.min(iceLat, 62);                                  // Proxima: a supercontinent's caps
   iceLat = (1 - snow)*iceLat + snow*0;
+  // dry periods: Pangaea's interior (Permian–Triassic), the Old Red Sandstone deserts of
+  // the Devonian, and Proxima's; then the drying that ends the oceans
+  const dry = Math.max(clamp01(1 - Math.abs(a - 4.32)/0.06), 0.6*clamp01(1 - Math.abs(a - 4.175)/0.03),
+                       0.8*clamp01(1 - Math.abs(a - 4.80)/0.06), clamp01((a - 5.4)/0.8));
+  const seaLevel = ocean >= 0.999 ? 1 : Math.pow(ocean, 0.5);
   if(ocean <= 0 || molten > 0) iceLat = 95;
   const cloud  = ocean*(0.55 + 0.35*clamp01((a - 5.3)/0.8))*(1 - molten);
   const lights = Math.abs(a - AGE0) < 2e-5 ? 1 : 0;                                       // twenty thousand years around now
-  return { molten, ocean, sea: sea < 0 ? -2 : sea, haze, veg, iceLat, cloud, lights, drift: a*2.5 };
+  return { molten, ocean, sea: sea < 0 ? -2 : sea, haze, veg, iceLat, cloud, lights, drift: a*2.5, dry, seaLevel };
 }
 const vecV = (m, v) => [m[0]*v[0]+m[4]*v[1]+m[8]*v[2], m[1]*v[0]+m[5]*v[1]+m[9]*v[2], m[2]*v[0]+m[6]*v[1]+m[10]*v[2]];
 const norm3 = v => { const l = Math.hypot(v[0],v[1],v[2]) || 1; return [v[0]/l, v[1]/l, v[2]/l]; };
@@ -5448,6 +5537,10 @@ function frame(now){
     gl.uniform3f(UG.uSunV, sunV[0],sunV[1],sunV[2]); gl.uniform3f(UG.uAxisV, axV[0],axV[1],axV[2]); gl.uniform3f(UG.uPrimeV, prV[0],prV[1],prV[2]);
     gl.uniform1f(UG.uMolten, era.molten); gl.uniform1f(UG.uOcean, era.ocean); gl.uniform1f(UG.uSea, era.sea); gl.uniform1f(UG.uHaze, era.haze);
     gl.uniform1f(UG.uVeg, era.veg); gl.uniform1f(UG.uIceLat, era.iceLat); gl.uniform1f(UG.uCloud, era.cloud); gl.uniform1f(UG.uLights, era.lights); gl.uniform1f(UG.uDrift, era.drift);
+    gl.uniform1f(UG.uDry, era.dry); gl.uniform1f(UG.uSeaLevel, era.seaLevel);
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, earthTex); gl.uniform1i(UG.uMap, 0);
+    gl.uniform1f(UG.uHasMap, earthTex ? 1.0 : 0.0);
+    fillPlateMats((a - AGE0)*1000); gl.uniformMatrix3fv(UG.uPlate, false, plateMats);
     const disc = 1/1.09, sz = Math.min(2400, globePx/disc);
     gl.uniform1f(UG.uMoon, 0.0); gl.uniform1f(UG.uDisc, disc); gl.uniform1f(UG.uSz, sz);
     gl.uniform3f(UG.uPos, ex, ey, ez);
@@ -5606,7 +5699,8 @@ function frame(now){
       if(!STRUCTS[s][2]()){ placeLabel(el, 0, 0, false); continue; }
       const rU = STRUCTS[s][1]*AU2U;
       const rpx = rU*pxScale/cam.dist;
-      if(rpx < 46 || rpx > 2600 || globePx > 40){ placeLabel(el, 0, 0, false); continue; }
+      if(globePx > 40){ el.style.display = 'none'; if(el._lb) el._lb.on = false; continue; }   // at once, not debounced
+      if(rpx < 46 || rpx > 2600){ placeLabel(el, 0, 0, false); continue; }
       const [cw, sx, sy] = proj(rU*0.71, 0, rU*0.71);    // 45 degrees round the ring
       placeLabel(el, sx, sy, cw > 1e-9);
     }
