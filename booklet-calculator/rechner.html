@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Booklet-Reihenfolge-Rechner</title>
+<style>
+  :root{
+    --bg: #14181a;
+    --panel: #1c2226;
+    --panel-2: #222a2e;
+    --line: #2e373c;
+    --ink: #e8ece9;
+    --ink-dim: #93a09a;
+    --accent: #5fb894;
+    --accent-dim: #3d7d64;
+    --warn: #d9a25f;
+    --mono: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+    --serif: "Iowan Old Style", "Georgia", serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:var(--serif); line-height:1.5;
+    padding:2rem 1.25rem 4rem;
+  }
+  .wrap{max-width:760px; margin:0 auto;}
+  h1{
+    font-size:1.5rem; font-weight:600; letter-spacing:.01em;
+    margin:0 0 .25rem;
+  }
+  .sub{color:var(--ink-dim); font-size:.95rem; margin:0 0 2rem; max-width:52ch;}
+  .card{
+    background:var(--panel); border:1px solid var(--line);
+    border-radius:10px; padding:1.25rem 1.5rem; margin-bottom:1.25rem;
+  }
+  label{
+    display:block; font-family:var(--mono); font-size:.72rem;
+    text-transform:uppercase; letter-spacing:.08em; color:var(--ink-dim);
+    margin-bottom:.35rem;
+  }
+  .row{display:flex; gap:1rem; flex-wrap:wrap;}
+  .field{flex:1; min-width:120px;}
+  input[type=number]{
+    width:100%; background:var(--panel-2); border:1px solid var(--line);
+    color:var(--ink); font-family:var(--mono); font-size:1rem;
+    padding:.55rem .65rem; border-radius:6px;
+  }
+  input[type=number]:focus{outline:2px solid var(--accent-dim); border-color:var(--accent);}
+  .hint{font-size:.82rem; color:var(--ink-dim); margin-top:.6rem;}
+  .summary{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+    gap:.75rem; margin-top:1rem;
+  }
+  .stat{
+    background:var(--panel-2); border:1px solid var(--line); border-radius:8px;
+    padding:.6rem .75rem;
+  }
+  .stat .n{font-family:var(--mono); font-size:1.3rem; color:var(--accent);}
+  .stat .l{font-size:.75rem; color:var(--ink-dim); text-transform:uppercase; letter-spacing:.06em;}
+  .warn{
+    background:#2a2419; border:1px solid #4a3d24; color:var(--warn);
+    border-radius:8px; padding:.65rem .85rem; font-size:.88rem; margin-top:1rem;
+    display:none;
+  }
+  .warn.show{display:block;}
+  table{width:100%; border-collapse:collapse; font-family:var(--mono); font-size:.85rem;}
+  th,td{padding:.45rem .5rem; text-align:center; border-bottom:1px solid var(--line);}
+  th{color:var(--ink-dim); font-weight:500; font-size:.72rem; text-transform:uppercase; letter-spacing:.05em;}
+  td.blank{color:var(--ink-dim); font-style:italic;}
+  tr:hover td{background:var(--panel-2);}
+  .sheet-num{color:var(--accent); font-weight:600;}
+  h2{font-size:.95rem; font-weight:600; margin:0 0 .75rem; letter-spacing:.01em;}
+  .order-box{
+    font-family:var(--mono); font-size:.88rem; background:var(--panel-2);
+    border:1px solid var(--line); border-radius:8px; padding:.85rem 1rem;
+    word-break:break-all; color:var(--ink); user-select:all;
+  }
+  button{
+    margin-top:.75rem; background:var(--accent-dim); color:#eafff5;
+    border:none; padding:.5rem .9rem; border-radius:6px; font-family:var(--mono);
+    font-size:.8rem; cursor:pointer;
+  }
+  button:hover{background:var(--accent);}
+  button:active{transform:translateY(1px);}
+  .copied{color:var(--accent); font-size:.8rem; margin-left:.6rem; opacity:0; transition:opacity .2s;}
+  .copied.show{opacity:1;}
+  .divider-note{font-size:.78rem; color:var(--ink-dim); margin-top:.4rem;}
+  .edge-switch{
+    display:inline-flex; background:var(--panel-2); border:1px solid var(--line);
+    border-radius:8px; padding:3px; margin-top:.9rem;
+  }
+  .edge-opt{
+    font-family:var(--mono); font-size:.8rem; color:var(--ink-dim);
+    background:transparent; border:none; padding:.4rem .85rem; border-radius:6px;
+    cursor:pointer; margin:0;
+  }
+  .edge-opt.active{background:var(--accent-dim); color:#eafff5;}
+  .edge-opt:hover:not(.active){color:var(--ink);}
+  .edge-hint{font-size:.8rem; color:var(--ink-dim); margin:.5rem 0 0; max-width:56ch;}
+  .example{
+    font-size:.88rem; color:var(--ink-dim); margin:0 0 2rem; max-width:56ch;
+    border-left:2px solid var(--accent-dim); padding-left:.85rem;
+  }
+  .example a{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-dim);}
+  .example a:hover{border-bottom-color:var(--accent);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Booklet-Reihenfolge-Rechner</h1>
+  <p class="sub">Gib den Seitenbereich des Booklet-Inhalts an (ohne Umschlag). Der Rechner ergänzt Leerseiten bis zum nächsten Vielfachen von 4 und liefert die Blattreihenfolge für 2-seitigen Duplexdruck mit „2 Seiten pro Blatt“.</p>
+
+  <p class="example">Beispiel-PDF zum Ausprobieren:
+    <a href="https://das-immunsystem.de/fuer-jedermann/immunologie-buch/download/" target="_blank" rel="noopener noreferrer">Immunologie-Buch von das-immunsystem.de ↗</a>
+    — herunterladen, die Seitenzahlen des Inhalts hier eintragen und die Blattreihenfolge übernehmen.
+  </p>
+
+  <div class="card">
+    <div class="row">
+      <div class="field">
+        <label for="start">Von Seite (Dokument)</label>
+        <input type="number" id="start" value="2" min="1">
+      </div>
+      <div class="field">
+        <label for="end">Bis Seite (Dokument)</label>
+        <input type="number" id="end" value="123" min="1">
+      </div>
+    </div>
+    <div class="hint" id="hint"></div>
+
+    <div class="edge-switch" role="radiogroup" aria-label="Duplex-Wendekante">
+      <button type="button" class="edge-opt active" id="edgeLong" data-edge="long">Lange Kante</button>
+      <button type="button" class="edge-opt" id="edgeShort" data-edge="short">Kurze Kante</button>
+    </div>
+    <p class="edge-hint" id="edgeHint"></p>
+
+    <div class="summary" id="summary"></div>
+    <div class="warn" id="warn"></div>
+  </div>
+
+  <div class="card">
+    <h2>Blattreihenfolge (für Layout &amp; Kontrolle)</h2>
+    <table>
+      <thead>
+        <tr><th>Blatt</th><th>Vorderseite links</th><th>Vorderseite rechts</th><th>Rückseite links</th><th>Rückseite rechts</th></tr>
+      </thead>
+      <tbody id="sheetBody"></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Druckreihenfolge (in Drucker-Dialog eintragen)</h2>
+    <p class="hint">Diese Liste ist die Seitenreihenfolge, wenn du im Druckdialog „2 Seiten pro Blatt“ + Duplex einstellst und die Seiten in dieser Reihenfolge zuführst bzw. als benutzerdefinierten Seitenbereich einträgst.</p>
+    <div class="order-box" id="orderBox"></div>
+    <button id="copyBtn">In Zwischenablage kopieren</button>
+    <span class="copied" id="copiedMsg">kopiert ✓</span>
+    <div class="divider-note" id="blankNote"></div>
+  </div>
+</div>
+
+<script>
+let edgeMode = 'long';
+
+function setEdge(mode){
+  edgeMode = mode;
+  document.getElementById('edgeLong').classList.toggle('active', mode === 'long');
+  document.getElementById('edgeShort').classList.toggle('active', mode === 'short');
+  const edgeHint = document.getElementById('edgeHint');
+  edgeHint.textContent = mode === 'long'
+    ? 'Standard für Hochformat-Booklets: Der Drucker wendet das Blatt an der langen Seite. Vorder- und Rückseite sind gleich ausgerichtet.'
+    : 'Bei Wendung an der kurzen Kante steht die Rückseite auf dem Kopf, wenn sie nicht gegengedreht wird — links/rechts werden daher auf der Rückseite getauscht.';
+  calc();
+}
+
+document.getElementById('edgeLong').addEventListener('click', () => setEdge('long'));
+document.getElementById('edgeShort').addEventListener('click', () => setEdge('short'));
+
+function calc(){
+  const start = parseInt(document.getElementById('start').value, 10);
+  const end = parseInt(document.getElementById('end').value, 10);
+  const summaryEl = document.getElementById('summary');
+  const warnEl = document.getElementById('warn');
+  const hintEl = document.getElementById('hint');
+  const sheetBody = document.getElementById('sheetBody');
+  const orderBox = document.getElementById('orderBox');
+  const blankNote = document.getElementById('blankNote');
+
+  if(!Number.isFinite(start) || !Number.isFinite(end) || end < start){
+    hintEl.textContent = 'Bitte gültigen Bereich eingeben (Ende ≥ Anfang).';
+    summaryEl.innerHTML = ''; warnEl.classList.remove('show');
+    sheetBody.innerHTML = ''; orderBox.textContent = ''; blankNote.textContent='';
+    return;
+  }
+  hintEl.textContent = '';
+
+  const n = end - start + 1;
+  const padded = Math.ceil(n / 4) * 4;
+  const blanks = padded - n;
+  const sheets = padded / 4;
+
+  summaryEl.innerHTML = `
+    <div class="stat"><div class="n">${n}</div><div class="l">Booklet-Seiten</div></div>
+    <div class="stat"><div class="n">${blanks}</div><div class="l">Leerseiten nötig</div></div>
+    <div class="stat"><div class="n">${sheets}</div><div class="l">Blatt gesamt</div></div>
+  `;
+
+  if(blanks > 0){
+    warnEl.classList.add('show');
+    warnEl.textContent = `${n} ist kein Vielfaches von 4. Es werden ${blanks} leere Seite(n) am Ende des Booklet-Inhalts ergänzt (nach Dokumentseite ${end}), damit die Bogen aufgehen.`;
+  } else {
+    warnEl.classList.remove('show');
+  }
+
+  function mapPage(localIdx){
+    if(localIdx <= n){
+      return { label: String(start + localIdx - 1), blank:false };
+    }
+    return { label: 'leer', blank:true };
+  }
+
+  let rows = '';
+  let flatOrder = [];
+
+  for(let i = 0; i < sheets; i++){
+    const frontLeftIdx  = padded - 2*i;
+    const frontRightIdx = 2*i + 1;
+    let backLeftIdx   = 2*i + 2;
+    let backRightIdx  = padded - 2*i - 1;
+
+    if(edgeMode === 'short'){
+      // Short-edge duplex flips the sheet the other way, so the back side
+      // is mirrored: left/right swap compared to long-edge binding.
+      [backLeftIdx, backRightIdx] = [backRightIdx, backLeftIdx];
+    }
+
+    const fl = mapPage(frontLeftIdx);
+    const fr = mapPage(frontRightIdx);
+    const bl = mapPage(backLeftIdx);
+    const br = mapPage(backRightIdx);
+
+    rows += `<tr>
+      <td class="sheet-num">${i+1}</td>
+      <td class="${fl.blank?'blank':''}">${fl.label}</td>
+      <td class="${fr.blank?'blank':''}">${fr.label}</td>
+      <td class="${bl.blank?'blank':''}">${bl.label}</td>
+      <td class="${br.blank?'blank':''}">${br.label}</td>
+    </tr>`;
+
+    flatOrder.push(fl.label, fr.label, bl.label, br.label);
+  }
+
+  sheetBody.innerHTML = rows;
+  orderBox.textContent = flatOrder.join(', ');
+
+  if(blanks > 0){
+    blankNote.textContent = `Hinweis: „leer“ steht für die ${blanks} ergänzte(n) Leerseite(n) — diese musst du beim Druck manuell als weiße Seite einfügen bzw. im PDF vorher anhängen, da sie im Originaldokument nicht existieren.`;
+  } else {
+    blankNote.textContent = '';
+  }
+}
+
+document.getElementById('start').addEventListener('input', calc);
+document.getElementById('end').addEventListener('input', calc);
+
+document.getElementById('copyBtn').addEventListener('click', () => {
+  const text = document.getElementById('orderBox').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const msg = document.getElementById('copiedMsg');
+    msg.classList.add('show');
+    setTimeout(() => msg.classList.remove('show'), 1500);
+  });
+});
+
+setEdge('long');
+</script>
+</body>
+</html>
