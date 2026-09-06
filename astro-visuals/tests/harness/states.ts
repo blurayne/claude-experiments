@@ -105,7 +105,10 @@ export const STATES: readonly ParityState[] = [
   // R25, R30. #tip is created by JS, styled by hud.css, and positioned from offsetWidth read
   // immediately after display:block. If the stylesheet is applied late the tooltip lands in
   // the wrong place — and nothing else in the suite opens one.
-  { id: 'tooltip-open', scenario: 'helix', after: ['#simPlus', '.sect[data-sec="gfx"]', '#secGfx .info'],
+  // The Settings panel is hidden by default, so its (i) icons have no layout and cannot be
+  // clicked. The Earth panel is open from boot and carries the spin-lock tip, which goes
+  // through the identical path: one #tip element, created by JS, positioned from offsetWidth.
+  { id: 'tooltip-open', scenario: 'helix', after: ['#env .info'],
     covers: 'the (i) tooltip: created at runtime, measured against a stylesheet that must already apply' },
 ]
 

@@ -93,8 +93,18 @@ test.describe('boot', () => {
     )
     expect(sliders, 'sliders did not take the saved values').toMatchObject(fixture.s)
 
+    // S_TOG is not one kind of control. Some entries are <button> toggles carrying an `on`
+    // class, others are real checkboxes — the page reads both through one `isOn()` helper,
+    // and `toggle()` exists precisely so call sites never have to care which. A test that
+    // assumed the class form reported every checkbox as off.
     const toggles = await page.evaluate(
-      (ids) => Object.fromEntries(ids.map((id) => [id, !!document.getElementById(id)?.classList.contains('on')])),
+      (ids) =>
+        Object.fromEntries(
+          ids.map((id) => {
+            const el = document.getElementById(id)
+            return [id, el instanceof HTMLInputElement ? el.checked : !!el?.classList.contains('on')]
+          }),
+        ),
       Object.keys(fixture.t),
     )
     expect(toggles, 'toggles did not take the saved values').toMatchObject(fixture.t)

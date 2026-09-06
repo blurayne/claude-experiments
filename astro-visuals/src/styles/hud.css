@@ -1,0 +1,69 @@
+/* The heads-up layer: the frames-per-second box, the 3-D labels, the alert boxes, the status
+   bar, and the tooltip.
+   
+   The tail of this file is load-bearing. `.gamebar .stat b` is unconditional and comes after
+   the max-width:820px media query, so it beats it; sorting the media queries to the bottom —
+   the tidy-looking thing to do — shrinks the numerals on a narrow screen. #tip is styled
+   here and created by JS, and it is measured with offsetWidth the instant it is shown, so
+   this file has to be applied before any script runs.
+
+   Extracted verbatim from galactic-transit.html; see docs/refactor/inventory/10-css.md. */
+  /* a reading you glance at, not a panel you read: no frame, no caption */
+  #fpsBox{position:fixed;left:14px;z-index:5;font-family:'Orbitron',ui-monospace,monospace;
+    font-size:21px;font-weight:600;letter-spacing:.04em;color:var(--accent);
+    text-shadow:0 0 12px var(--glow);font-variant-numeric:tabular-nums;pointer-events:none}
+  .armlbl{position:fixed;transform:translate(-50%,-50%);font-family:'Orbitron',ui-monospace,monospace;
+    font-size:8.5px;letter-spacing:.26em;text-transform:uppercase;color:rgba(168,206,255,.52);
+    text-shadow:0 0 8px rgba(0,0,0,.9);pointer-events:none;white-space:nowrap}
+  .lbl{position:fixed;transform:translate(-50%,-140%);font-family:'Orbitron',ui-monospace,monospace;font-size:8px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;
+    color:rgba(190,224,250,.8);pointer-events:none;z-index:3;text-shadow:0 0 6px #000;white-space:nowrap}
+  .alertbox{position:fixed;left:14px;z-index:6;display:none;box-sizing:border-box;
+    padding:6px 10px;border-radius:3px;text-align:center;background:rgba(10,16,28,.28);
+    backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    font-family:'Orbitron',ui-monospace,monospace;font-size:9px;letter-spacing:.16em;font-weight:700}
+  #iceBox{border:1px solid rgba(176,232,255,.85);color:#cfeeff;text-shadow:0 0 9px rgba(176,232,255,.5)}
+  #g710Box{border:1px solid rgba(255,171,92,.9);color:#ffd9a8;text-shadow:0 0 9px rgba(255,171,92,.5)}
+  body.ice #iceBox{display:block}
+  body.g710 #g710Box{display:block}
+  .gamebar{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);display:flex;gap:28px;
+    transition:transform .28s ease;}
+  .gamebar.slid{transform:translate(-50%, calc(100% + 15px))}
+  #barGrip{position:absolute;top:-15px;left:50%;transform:translateX(-50%);width:74px;height:15px;
+    background:var(--panel);border:1px solid var(--line);border-bottom:none;border-radius:3px 3px 0 0;
+    cursor:pointer;display:none;align-items:center;justify-content:center;touch-action:none}
+  .gamebar.slid #barGrip{display:flex}
+  .gamebar{touch-action:none}
+  #barGrip span{width:26px;height:3px;border-radius:2px;background:var(--dim);pointer-events:none}
+  .gamebar{
+    background:var(--panel);border:1px solid var(--line);border-top:1px solid rgba(95,216,255,.55);border-radius:3px;padding:9px 20px;box-shadow:0 0 30px rgba(95,216,255,.08);
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:5;white-space:nowrap}
+  .gamebar .stat{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);text-align:center}
+  #tip{position:fixed;z-index:1200;display:none;max-width:250px;padding:7px 9px;border-radius:6px;pointer-events:none;
+    background:rgba(6,10,20,.96);border:1px solid var(--accent);color:var(--ink);box-shadow:0 4px 18px rgba(0,0,0,.5);
+    font:11px/1.4 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;letter-spacing:.02em;text-transform:none}
+  .gamebar .cnt{font-size:9px;letter-spacing:.18em;text-transform:uppercase;text-align:center;color:var(--dim)}
+  .gamebar .cnt b{display:block;font-family:'Orbitron',ui-monospace,monospace;font-size:14px;font-weight:700;
+    letter-spacing:.04em;margin-top:3px;font-variant-numeric:tabular-nums}
+  .gamebar .cnt.death b{color:#e26ad0;text-shadow:0 0 10px rgba(226,106,208,.45)}
+  .gamebar .cnt.birth b{color:#3fd9b0;text-shadow:0 0 10px rgba(63,217,176,.45)}
+  /* Both counters now have their own switches, so nothing hides them by screen size.
+     The bar instead tightens up and, on the narrowest screens, wraps rather than
+     running off both edges. */
+  @media (max-width:820px){
+    .gamebar{gap:15px;padding:8px 13px}
+    .gamebar .stat, .gamebar .cnt{font-size:8px;letter-spacing:.12em}
+    .gamebar .stat b, .gamebar .cnt b{font-size:12px}
+  }
+  .gamebar .brk{display:none}
+  @media (max-width:620px){
+    .gamebar{flex-wrap:wrap;justify-content:center;white-space:normal;row-gap:6px;
+      max-width:calc(100vw - 24px)}
+    /* too narrow to flank the other readings, so the pair takes the top line together —
+       a zero-height break after them forces everything else below */
+    #cDeath{order:0} #cBirth{order:1}
+    .gamebar .brk{display:block;order:2;flex-basis:100%;height:0;margin:0}
+    #sCal{order:3} #sAge{order:4} #sGyr{order:5}
+  }
+  .gamebar .stat b{display:block;font-family:'Orbitron',ui-monospace,monospace;font-size:14px;letter-spacing:.06em;color:var(--accent);font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums;text-shadow:0 0 10px var(--glow)}
+  @media (max-width:600px){ .note{display:none} .hud{width:min(366px, calc(100vw - 28px))} .gamebar{gap:16px;padding:8px 14px} .gamebar .stat b{font-size:14px} }
+  @media (prefers-reduced-motion: reduce){ /* start paused for reduced-motion users (handled in JS) */ }

@@ -1,4 +1,4 @@
-import type { Browser, Page } from '@playwright/test'
+import { chromium } from '@playwright/test'
 import { readFileSync } from 'node:fs'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -27,6 +27,9 @@ export const STEP_MS = 50
  * easings actually need.
  */
 export const SETTLE_FRAMES = 60
+
+/** Frames after the `after` clicks — enough to lay out and draw, not enough to time anything out. */
+export const POST_ACTION_FRAMES = 3
 
 /**
  * The data files the page fetches. Serialised in this order for every run, because
@@ -109,22 +112,55 @@ function pinEverything({ seed, now, settings, key, step }: InitArgs): void {
   // stabilisation waits on rAF too, and the canvas has no preserveDrawingBuffer, so
   // intercepting the loop deadlocks the shot and empties the drawing buffer.
   //
-  // The page sees a clock ticking exactly one step per frame that stops dead at a cap.
-  // __arm(k) restarts the count at zero, so the clock jumps backwards once — deliberately.
-  // The simulation clock is paused, so that single negative dt lands only on the wall-time
-  // accumulators (shimT above all), and it lands on them exactly hard enough to cancel what
-  // they picked up during boot. After k more steps shimT is k*step ms in every run.
+  // The page sees a clock that ticks exactly one step per frame and then stops dead at a cap.
+  // Two details make it actually deterministic, and both were learned by watching the gate
+  // fail on a different state each run:
+  //
+  //  - The tick counts REAL ANIMATION FRAMES, not requestAnimationFrame calls. The page
+  //    registers rAF from three places, one of them a nested pair in drawTourLines
+  //    (main.ts:3624), and Playwright's own stabilisation registers more. Counting calls made
+  //    the clock run at a rate that depended on how much the tour had redrawn, which showed
+  //    up as the entire Milky Way twinkling out of phase while the solar system in front of
+  //    it stayed pixel-identical. De-duplicating on the underlying timestamp gives every
+  //    callback in one frame the same virtual time, and advances it once.
+  //
+  //  - The clock starts STOPPED (cap 0), not free-running. Whatever happens between page load
+  //    and the first __arm — network, worker scheduling, the tour's own timers — must not
+  //    advance anything, or the wall-time accumulators start from a value that depends on how
+  //    busy the machine was.
+  //
+  // __arm(k) then restarts the count at zero, so the clock jumps backwards once. That is
+  // deliberate: the simulation clock is paused, so the single negative dt lands only on the
+  // wall-time accumulators and lands on them exactly hard enough to cancel what they picked
+  // up earlier. After k more steps shimT is k*step ms in every run, on any machine.
   let n = 0
-  let cap = Infinity
+  let cap = 0
+  let lastRealFrame = -1
   const realRaf = globalThis.requestAnimationFrame.bind(globalThis)
   globalThis.requestAnimationFrame = (cb: FrameRequestCallback) =>
-    realRaf(() => cb(Math.min(n++, cap) * step))
+    realRaf((t) => {
+      if (t !== lastRealFrame) {
+        lastRealFrame = t
+        n++
+      }
+      cb(Math.min(n, cap) * step)
+    })
   performance.now = () => Math.min(n, cap) * step
-  ;(globalThis as Record<string, unknown>).__arm = (k: number) => {
+  globalThis.__arm = (k: number) => {
     n = 0
     cap = k
   }
-  ;(globalThis as Record<string, unknown>).__frames = () => ({ n, cap, done: n > cap })
+  globalThis.__frames = () => ({ n, cap, done: n > cap })
+
+  // The (i) tooltip hides itself eight seconds after it opens — on a real timer, not the
+  // frame clock, so it is the one thing the virtual clock cannot hold still. Under a software
+  // rasteriser the settle and the screenshot together can outrun it, which would make the
+  // tooltip state pass or fail on how busy the machine was. `setTimeout(hideTip, 8000)` at
+  // main.ts:3450 is the only 8000 ms timer in the page, so it can be suppressed by its delay
+  // alone, identically for both builds. Nothing else in the page uses that delay.
+  const realSetTimeout = globalThis.setTimeout.bind(globalThis)
+  globalThis.setTimeout = ((fn: TimerHandler, ms?: number, ...rest: unknown[]) =>
+    ms === 8000 ? 0 : realSetTimeout(fn, ms, ...rest)) as typeof globalThis.setTimeout
 }
 
 export interface CaptureResult {
@@ -143,13 +179,23 @@ export interface CaptureResult {
 /**
  * Boot the page, drive it to one state, and photograph it reproducibly.
  *
+ * Each capture gets a browser process of its own rather than sharing Playwright's
+ * worker-scoped one. That is not tidiness: the same state photographed as one test of
+ * twenty-four came out 16% of pixels different from the same state photographed alone, with
+ * the same numbers every time in each mode — reproducible within a mode, different between
+ * them. A software rasteriser accumulating state across two dozen WebGL contexts in one
+ * process is exactly the sort of thing that does that, and a gate whose answer depends on how
+ * many tests preceded it is not a gate. A process per capture costs about a second against a
+ * minute of rendering.
+ *
  * Everything here is ordered, and the order is the point:
  *   fetches land before any frame runs, so the PRNG is in the same place;
  *   the tour is dismissed before the clock is stopped, because dismissing it starts the clock;
  *   the camera is landed exactly on its goal rather than however close the easing got;
  *   only then is the frame budget armed, so the wall-time accumulators start from zero.
  */
-export async function capture(browser: Browser, url: string, state: ParityState): Promise<CaptureResult> {
+export async function capture(url: string, state: ParityState): Promise<CaptureResult> {
+  const browser = await chromium.launch({ args: CHROMIUM_ARGS })
   const page = await browser.newPage({
     viewport: state.viewport ?? { width: 960, height: 600 },
     deviceScaleFactor: 1,
@@ -188,9 +234,9 @@ export async function capture(browser: Browser, url: string, state: ParityState)
   await page.waitForLoadState('networkidle')
 
   const runFrames = async (k: number): Promise<void> => {
-    await page.evaluate((v) => (globalThis as Record<string, (n: number) => void>).__arm!(v), k)
+    await page.evaluate((v) => globalThis.__arm(v), k)
     await page.waitForFunction(
-      () => (globalThis as Record<string, () => { done: boolean }>).__frames!().done,
+      () => globalThis.__frames().done,
       undefined,
       { timeout: 600_000, polling: 100 },
     )
@@ -214,8 +260,6 @@ export async function capture(browser: Browser, url: string, state: ParityState)
     await stopClock()
   }
 
-  for (const selector of state.after ?? []) await page.locator(selector).first().click()
-
   // Land the camera exactly on its goal, so its last digits are a constant rather than
   // wherever an asymptotic ease happened to stop.
   await page.evaluate(() => {
@@ -229,18 +273,34 @@ export async function capture(browser: Browser, url: string, state: ParityState)
 
   await runFrames(SETTLE_FRAMES)
 
-  const png = await page.screenshot({ type: 'png', animations: 'disabled' })
+  // Anything that has to be *open* in the photograph is clicked here, not before the settle:
+  // the tooltip hides itself eight real seconds after it opens, and settling takes longer
+  // than that on a software rasteriser. Guarded so that states without `after` run exactly
+  // the frame sequence they always have, and their baselines stay valid.
+  if (state.after?.length) {
+    for (const selector of state.after) await page.locator(selector).first().click()
+    await runFrames(POST_ACTION_FRAMES)
+  }
 
-  await page.evaluate(() => document.getElementById('dbgExport')!.click())
-  const reported = JSON.parse(await page.inputValue('#dbgText'))
+  const png = await page.screenshot({ type: 'png', animations: 'disabled' })
 
   const flags = await page.evaluate(() => ({
     ice: document.body.classList.contains('ice') ||
          getComputedStyle(document.body).getPropertyValue('--iceA').trim() > '0',
-    tip: (document.getElementById('tip')?.offsetParent ?? null) !== null,
-    panels: document.querySelectorAll('.panel:not([style*="display: none"])').length,
+    // offsetParent is null for position:fixed, which the panels and the tip all are, so it
+    // reports every one of them hidden. checkVisibility() asks the layout engine instead.
+    tip: document.getElementById('tip')?.checkVisibility() ?? false,
+    panels: ['hud', 'env', 'simPanel'].filter((id) =>
+      document.getElementById(id)?.checkVisibility() ?? false,
+    ).length,
   }))
 
-  await page.close()
+  // Read the state out only now. Exporting means clicking #dbgExport, and the tooltip hides
+  // on the next click anywhere — so asking the page what it looks like has to come first, or
+  // the answer is about a page the click has already changed.
+  await page.evaluate(() => document.getElementById('dbgExport')!.click())
+  const reported = JSON.parse(await page.inputValue('#dbgText'))
+
+  await browser.close()
   return { png, errors, simT: reported.time?.simT, camera: reported.camera, flags }
 }

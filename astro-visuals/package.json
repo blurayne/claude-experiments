@@ -3,17 +3,16 @@
   "private": true,
   "version": "3.0.0",
   "type": "module",
-  "description": "Galactic Transit — the sources the single-file galactic-transit.html is built from.",
+  "description": "Galactic Transit \u2014 the sources the single-file galactic-transit.html is built from.",
   "scripts": {
     "dev": "vite",
     "build": "vite build && node scripts/check-build.mjs",
     "check": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "baseline": "npm run pin && playwright test --project=baseline",
+    "baseline": "playwright test --project=baseline",
     "e2e": "playwright test --project=boot --project=parity",
-    "verify": "npm run check && npm run test && npm run build && npm run e2e",
-    "pin": "node scripts/pin.mjs"
+    "verify": "npm run check && npm run test && npm run build && npm run e2e"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.0",

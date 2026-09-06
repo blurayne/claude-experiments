@@ -4,7 +4,7 @@ import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { capture } from '../harness/session'
 import { STATES } from '../harness/states'
-import { BASELINE_PAGE } from '../../scripts/pin.mjs'
+import { BASELINE_PAGE } from '../harness/pin'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const OUT = resolve(HERE, '../baselines')
@@ -18,8 +18,8 @@ test.describe('baseline', () => {
   test.beforeAll(() => mkdirSync(OUT, { recursive: true }))
 
   for (const state of STATES) {
-    test(state.id, async ({ browser }, testInfo) => {
-      const shot = await capture(browser, `/${BASELINE_PAGE}`, state)
+    test(state.id, async ({}, testInfo) => {
+      const shot = await capture(`/${BASELINE_PAGE}`, state)
 
       writeFileSync(resolve(OUT, `${state.id}.png`), shot.png)
       writeFileSync(

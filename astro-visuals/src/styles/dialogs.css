@@ -1,0 +1,100 @@
+/* The modal surfaces: the debug card, the first-run tour, the info dialog and the deep-time
+   table and chart inside it.
+   
+   The tour block and its three media queries must stay in this order: #tourLogo is 96px
+   rather than 88px on most phones purely because one rule follows another.
+
+   Extracted verbatim from galactic-transit.html; see docs/refactor/inventory/10-css.md. */
+  .dbg-b{font-family:'Orbitron',ui-monospace,monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;
+    background:rgba(95,216,255,.07);border:1px solid var(--line);border-radius:2px;color:var(--ink);
+    cursor:pointer;padding:6px 12px}
+  .dbg-b:hover{border-color:var(--accent);color:var(--accent)}
+  #infoModal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+    background:rgba(2,4,8,.65);z-index:20;padding:18px}
+  #tour{position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+    background:rgba(2,6,14,.55);z-index:30;padding:18px}
+  #tourHints{position:absolute;inset:0;pointer-events:none}
+  .hint{position:absolute;width:186px;background:var(--panel);border:1px solid rgba(95,216,255,.55);
+    border-radius:3px;padding:8px 10px;font-size:10.5px;line-height:1.5;color:var(--ink);
+    letter-spacing:.03em;box-shadow:0 0 22px rgba(95,216,255,.14)}
+  .hint b{display:block;font-family:'Orbitron',ui-monospace,monospace;font-size:8.5px;
+    letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-bottom:3px}
+  #tourSvg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  #tourCard{position:relative;width:min(430px,100%);max-height:88vh;overflow-y:auto;
+    background:var(--panel);border:1px solid var(--line);
+    border-top:1px solid rgba(95,216,255,.55);border-radius:3px;padding:18px 20px;
+    box-shadow:0 0 44px rgba(95,216,255,.12);font-size:11.5px;line-height:1.6;color:var(--dim);letter-spacing:.03em}
+  #tourCard h2{font-family:'Orbitron',ui-monospace,monospace;font-size:12px;letter-spacing:.24em;
+    text-transform:uppercase;color:var(--accent);margin-bottom:9px;text-shadow:0 0 12px var(--glow)}
+  /* the app's own emblem, floated so the card's text wraps around it. logo-mark.svg is
+     icon.svg without the wordmark or the circular frame — the card is already a panel, so
+     the mark needs no plate of its own and nothing behind it is boxed out */
+  #tourLogo{float:right;width:132px;height:132px;margin:-4px -6px 4px 10px;
+    filter:drop-shadow(0 0 16px rgba(95,216,255,.14));pointer-events:none;-webkit-user-drag:none}
+  #tourGo{clear:both;margin-top:14px;width:100%;font-family:'Orbitron',ui-monospace,monospace;font-size:10px;
+    letter-spacing:.18em;text-transform:uppercase;background:rgba(95,216,255,.10);border:1px solid rgba(95,216,255,.5);
+    border-radius:2px;color:var(--accent);cursor:pointer;padding:9px}
+  #tourGo:hover{background:rgba(95,216,255,.18)}
+  #tourBuild{margin-top:9px;text-align:center;font-size:8.5px;letter-spacing:.1em;
+    color:var(--dim);opacity:.75}
+  .intro{margin:0 0 4px;color:var(--dim)}
+  #tourCard .short{display:none}
+  @media (max-width:760px), (max-height:820px){
+    #tourCard .long{display:none}
+    #tourCard .short{display:block}
+  }
+  @media (max-width:620px){
+    .hint{width:150px;font-size:9.5px;padding:6px 8px}
+    #tourCard{font-size:10.5px;padding:14px 15px}
+    #tourCard .intro{font-size:10px}
+    #tourLogo{width:88px;height:88px;margin:-4px -5px 2px 6px}
+  }
+  /* a short screen cannot hold the whole card and five hints at once: the card gives
+     up the height and scrolls, since it is the one thing the visitor can scroll */
+  @media (max-height:790px){ #tourCard{max-height:44vh} #tourLogo{width:96px;height:96px} }
+  .info-card{position:relative;width:min(560px, 100%);max-height:82vh;overflow:hidden;
+    display:flex;flex-direction:column;background:var(--panel);
+    border:1px solid var(--line);border-top:1px solid rgba(95,216,255,.55);border-radius:3px;padding:20px 22px;backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);box-shadow:0 0 44px rgba(95,216,255,.10);font-size:11.5px;line-height:1.65;color:var(--dim);letter-spacing:.03em}
+  .info-body{overflow-y:auto;min-height:0;flex:1}
+  /* second line of the info dialog: which build you are looking at, and what changed */
+  .info-sub{flex:none;font-family:'Orbitron',ui-monospace,monospace;font-size:8px;letter-spacing:.09em;
+    color:var(--dim);margin:-4px 0 10px}
+  .info-card h2{flex:none;font-family:'Orbitron',ui-monospace,monospace;font-size:12px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;text-shadow:0 0 12px var(--glow)}
+  .info-card h3{font-family:'Orbitron',ui-monospace,monospace;font-size:9px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--accent2);margin:16px 0 6px}
+  .info-card b{color:var(--ink)}
+  .info-card ul{margin:0;padding-left:16px}
+  .info-card li{margin-bottom:7px}
+  .evo-wrap{overflow-x:auto;margin:4px 0 2px;border:1px solid var(--line);border-radius:3px;-webkit-overflow-scrolling:touch}
+  .evo-table{border-collapse:collapse;width:100%;min-width:820px;font-size:10px;line-height:1.5}
+  .evo-table th,.evo-table td{padding:6px 8px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);white-space:normal}
+  .evo-table th{position:sticky;top:0;background:var(--panel);color:var(--accent2);font-family:'Orbitron',ui-monospace,monospace;
+    font-size:8.5px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap}
+  .evo-table td:first-child{color:var(--ink);min-width:150px}
+  .evo-table td:last-child{min-width:190px}
+  .evo-table tr:last-child td{border-bottom:0}
+  .evo-table tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+  .evo-age{color:var(--dim);font-size:9px}
+  .evo-chart-wrap{overflow-x:auto;margin:4px 0 2px;-webkit-overflow-scrolling:touch}
+  .evo-chart{width:680px;max-width:none;height:auto;display:block;background:rgba(4,9,19,.4);
+    border:1px solid var(--line);border-radius:3px}
+  @media (min-width:760px){ .evo-chart{width:100%} }
+  .evo-title{font:700 12px/1 'Orbitron',ui-monospace,monospace;fill:var(--ink);letter-spacing:.02em}
+  .evo-grid{stroke:var(--line);stroke-width:1}
+  .evo-frame{fill:none;stroke:var(--line);stroke-width:1}
+  .evo-axis{font-size:9.5px;fill:var(--dim)}
+  .evo-max{stroke:#ff6e6e;stroke-width:2}
+  .evo-min{stroke:#5fd8ff;stroke-width:2}
+  .evo-avg{stroke:var(--accent2);stroke-width:2.4}
+  .evo-today{stroke:var(--ink);stroke-width:1;stroke-dasharray:3 3;opacity:.55}
+  .evo-today-lbl{font-size:9.5px;font-weight:700;fill:var(--ink);letter-spacing:.12em}
+  .evo-whisker{stroke:var(--dim);stroke-width:1.1}
+  .evo-whisker-lbl{font-size:8.5px;fill:var(--dim)}
+  .evo-lead{stroke:rgba(220,232,245,.35);stroke-width:1}
+  .evo-mk{fill:var(--accent2);stroke:#030610;stroke-width:1}
+  .evo-lbl{font-size:9.5px;fill:var(--ink)}
+  .evo-legend rect{fill:rgba(4,9,19,.85);stroke:var(--line)}
+  .evo-legend text{font-size:9px;fill:var(--dim)}
+  #infoClose{position:absolute;top:10px;right:12px;background:none;border:0;color:var(--dim);cursor:pointer;
+    font-size:16px;font-family:inherit}
+  #infoClose:hover{color:var(--accent)}
