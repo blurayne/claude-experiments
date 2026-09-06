@@ -6,6 +6,10 @@ Every microbe's `watercolor` image — labelled SVG where built, else the last r
 ![watercolor](candida-albicans.watercolor.svg)
 [full log](../../candida-albicans.render.md)
 
+## Ebola virus (`ebola-virus`)
+![watercolor](ebola-virus.watercolor.svg)
+[full log](../../ebola-virus.render.md)
+
 ## Giardia lamblia (giardiasis) (`giardia-lamblia`)
 ![watercolor](giardia-lamblia.watercolor.svg)
 [full log](../../giardia-lamblia.render.md)

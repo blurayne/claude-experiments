@@ -8,7 +8,7 @@ A bilingual (DE/EN) teaching atlas of body cells and pathogens — cell types, p
 
 ## Page structure
 
-**21 sets and 5 prose chapters, 128 subjects live** (129 catalogued — the difference is subjects written up but not yet rendered, which stay hidden). Every live subject carries five picture styles, three labelled diagrams, a printable A4 coloring page, kids' narration in English and German, and size/weight data. `build_viewer.py` prints the current totals on every build, and [`OVERVIEW.md`](OVERVIEW.md) lists each subject with what it has.
+**21 sets and 5 prose chapters, 130 subjects live** (131 catalogued — the difference is subjects written up but not yet rendered, which stay hidden). Every live subject carries five picture styles, three labelled diagrams, a printable A4 coloring page, kids' narration in English and German, and size/weight data. `build_viewer.py` prints the current totals on every build, and [`OVERVIEW.md`](OVERVIEW.md) lists each subject with what it has.
 
 The order runs from the parts inside a cell outward to the things that attack it, and finally to the things people have built. Italicised rows are **prose chapters** — explainers with no subjects of their own, which sit between the sets they introduce:
 
@@ -33,10 +33,10 @@ The order runs from the parts inside a cell outward to the things that attack it
 | 14 | Krebszellen | Cancer cells | 1 |
 | 15 | Erreger — Pathogene | Pathogens | 9 |
 | 16 | Bekannte Bakterien | Well-known bacteria | 10 |
-| 17 | Bekannte Viren & andere Erreger | Well-known viruses & other pathogens | 13 |
+| 17 | Bekannte Viren & andere Erreger | Well-known viruses & other pathogens | 14 |
 | 18 | Nützliche Mikroben | Helpful microbes | 3 |
 | 19 | Bakteriophagen | Bacteriophages | 3 |
-| 20 | Erreger bei Hund und Katze | Pathogens of cats and dogs | 5 |
+| 20 | Erreger bei Hund und Katze | Pathogens of cats and dogs | 6 |
 | — | *Wie der Mensch Leben umbaut* | *How humans engineer life* | chapter |
 | — | *Wie CRISPR funktioniert* | *How CRISPR works* | chapter |
 | 21 | Umgebautes Leben | Engineered life | 3 of 4 |

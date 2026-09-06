@@ -28,6 +28,26 @@ together with the commit sha and the build time.
 
 ---
 
+## [1.4.0] — 2026-09-06
+
+**130 subjects live** · 131 catalogued · the tapeworm and Ebola
+
+- **+** `1.4.0` — **Tapeworm** (*Taenia ovis*, joining the cats-and-dogs set) and the
+  **Ebola virus** (joining the well-known viruses), both from the GIANTmicrobes gap
+  list and both with an exact plush match (64 links total). The tapeworm displaces
+  the heartworm as the atlas's largest subject at about a metre.
+- The **animal cell** now answers the obvious question it used to leave hanging —
+  how an animal cell differs from a human one. It doesn't, materially: humans are
+  animals, the term marks the kingdom rather than a species, and what separates your
+  cells from a mouse's is the genome and its regulation, not the architecture. Added
+  to all three registers in both languages; kids narration re-voiced.
+- Two honest reference substitutions are recorded rather than smoothed over: the
+  tapeworm's micrograph is *Taenia solium* (no free *T. ovis* scolex exists), and
+  Ebola's CDC plate is artistically colourised. Both say so on the page.
+- A science correction landed against our own brief: the taeniid rostellum is
+  non-retractable, and hook counts overlap across the canine *Taenia* species, so no
+  species-exact count is claimed.
+
 ## [1.3.0] — 2026-09-06
 
 **128 subjects live** · 129 catalogued · six subjects from the GIANTmicrobes gap list

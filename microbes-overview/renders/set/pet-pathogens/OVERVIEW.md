@@ -92,6 +92,24 @@ A bullet-shaped rhabdovirus (Rabies lyssavirus, family Rhabdoviridae): ~180 nm l
 
 Full log: [`rabies-virus.render.md`](rabies-virus.render.md)
 
+## Tapeworm (Taenia ovis) (`tapeworm`)
+An adult Taenia ovis cestode (flatworm) living in a dog's small intestine: ribbon-flat, up to about a metre long, anchored by a scolex bearing four cup-shaped suckers and a rostellum crowned with a double ring of hooks, followed by a short unsegmented neck and a strobila of proglottids growing larger and more mature toward the rear. NO mouth, NO gut — feeds across the tegument. Dogs get it from raw sheep meat; humans are not a host.
+
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/tapeworm__textbook.avif) | ![sem](finals/tapeworm__sem.avif) | ![3d](finals/tapeworm__3d.avif) | ![watercolor](finals/tapeworm__watercolor.avif) | ![reference](finals/tapeworm__reference.avif) |
+
+**textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/tapeworm.textbook.svg) · [HTML](theme/textbook/tapeworm.textbook.html)
+![textbook labelled](theme/textbook/tapeworm.textbook.svg)
+
+**3d — labelled** (English default, La/De toggle): [SVG](theme/3d/tapeworm.3d.svg) · [HTML](theme/3d/tapeworm.3d.html)
+![3d labelled](theme/3d/tapeworm.3d.svg)
+
+**watercolor — labelled** (English default, La/De toggle): [SVG](theme/watercolor/tapeworm.watercolor.svg) · [HTML](theme/watercolor/tapeworm.watercolor.html)
+![watercolor labelled](theme/watercolor/tapeworm.watercolor.svg)
+
+Full log: [`tapeworm.render.md`](tapeworm.render.md)
+
 ## Status
 
 | name | styles | model | render count | pass | svg status | time taken | tokens used | costs |
@@ -120,7 +138,12 @@ Full log: [`rabies-virus.render.md`](rabies-virus.render.md)
 | Rabies virus | 3D medical render | gemini-2.5-flash-image | 2 | ✅ | built | 14s | 3558 | $0.077 |
 | Rabies virus | Watercolor plate | gemini-2.5-flash-image | 3 | ✅ | built | 23s | 5611 | $0.116 |
 | Rabies virus | TEM · Public domain - CDC Public Health Image Library states 'None - This image is in the public domain and thus free of any copyright restrictions.' | — (download) | 1 | ✅ | n/a | 2s | 0 | $0.000 |
+| Tapeworm (Taenia ovis) | Textbook illustration | gemini-3-pro-image | 3 | ✅ | built | 35s | 6672 | $0.130 |
+| Tapeworm (Taenia ovis) | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 6s | 1668 | $0.039 |
+| Tapeworm (Taenia ovis) | 3D medical render | gemini-3-pro-image | 5 | ✅ | built | 1.3m | 10997 | $0.219 |
+| Tapeworm (Taenia ovis) | Watercolor plate | gemini-3-pro-image | 3 | ✅ | built | 37s | 5890 | $0.127 |
+| Tapeworm (Taenia ovis) | whole-mount-light-micrograph · Public domain (CDC PHIL #5262, US federal government work) | — (download) | 1 | ✅ | n/a | 1s | 0 | $0.000 |
 
-**Set total: 71,851 tokens · $1.557**
+**Set total: 97,078 tokens · $2.072**
 
-_Updated 2026-09-06 09:23 local._
+_Updated 2026-09-06 10:08 local._

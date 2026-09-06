@@ -21,3 +21,7 @@ Every microbe's `sem` image — labelled SVG where built, else the last render. 
 ## Rabies virus (`rabies-virus`)
 ![sem](rabies-virus.attempts/gen-02__gemini-2.5-flash-image.avif)
 [full log](../../rabies-virus.render.md)
+
+## Tapeworm (Taenia ovis) (`tapeworm`)
+![sem](tapeworm.attempts/gen-01__gemini-2.5-flash-image.avif)
+[full log](../../tapeworm.render.md)

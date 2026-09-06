@@ -1,0 +1,69 @@
+{
+  "name": "Ebola virus",
+  "short_description": "Filovirus whose defining feature is its SHAPE: a uniformly ~80 nm wide, up to 1000+ nm long thread with an extreme aspect ratio, its end typically curled into a shepherd's-crook hook (U-, 6- and open-loop forms are equally authentic). A host-derived lipid envelope studded with short club-shaped glycoprotein (GP) spikes ~10 nm apart wraps a matrix layer and a ~50 nm helical nucleocapsid whose regular cross-striations run ACROSS the filament; inside it lies one 19 kb negative-sense RNA strand with just seven genes. It enters macrophages, monocytes and dendritic cells first and endothelium later, lives between outbreaks in fruit bats, spreads only by direct contact with body fluids and never through the air, and has had a licensed vaccine since 2019.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {
+      "1": "✅ PASS (gemini-2.5-flash-image) — CHOSEN as the label base. Composition measured, not assumed: coral ink occupies 3.2% of the three outermost pixel columns on the right, so the thread genuinely leaves the picture there, while the crook sits free in the upper left. A 2.6× crop of the cutaway shows the amber core carrying fine bands that run straight across the tube, perpendicular to its long axis, with one indigo RNA line lengthwise down the middle — the transverse direction is the one drawn, not longitudinal stripes. Colour legend intact and each layer separable for a leader line (coral envelope, sage VP40 band, banded amber core, indigo RNA, slate-blue club spikes). 2× crops of all four corners carry no lettering. ACCEPTED COMPROMISE: the width is not constant. Perpendicular scanlines give 28, 28, 31 and 34 px on the descending shaft but 12, 15 and 19 px in the innermost curl of the hook — the last stretch of the crook thins to roughly half, where the real virion keeps its 80 nm diameter to the end.",
+      "2": "❌ FAIL (gemini-2.5-flash-image) — the blunt-tip instruction fixed the taper but cost more than it bought: the spike fringe collapsed onto the outer side of the curve only, the thread became noticeably thinner overall, and it no longer leaves the frame — coral ink measures 0.0% on all four outermost 3-px strips, i.e. both ends finish inside the picture.",
+      "3": "❌ FAIL (gemini-2.5-flash-image) — asking for the fringe to continue 'around the end' produced a large detached lavender-grey blob sitting at the hook tip, reading as a separate particle, and three background ghost filaments each grew their own blue tip blob.",
+      "4": "⚠️ PARTIAL (gemini-2.5-flash-image) — no tip blob, fringe on both sides, reaches the right edge (8.1% ink on the outermost columns), and the layers are large and easy to anchor. Rejected because the thread broadens along its length in the opposite direction to attempt 1 and by more: three perpendicular measurements on the hook crown give 35, 36 and 38 px, against a perpendicular span of 89–111 px across the cutaway shaft, about 2.5×.",
+      "5": "❌ FAIL (gemini-3-pro-image) — the escalation did deliver a genuinely constant-width thread and the finest cross-striation of the five, but it broke two other things: the envelope is painted the same lavender-periwinkle as the GP spikes, so envelope and spike are no longer distinguishable and the set's colour legend collapses, and both ends finish inside the picture (0.0% ink on all four outermost 3-px strips)."
+    },
+    "sem": {
+      "1": "❌ FAIL (gemini-2.5-flash-image) — reads as a nematode rather than a filovirus: the body tapers to a point at both ends instead of holding one diameter, the surface knobs are large widely-spaced beads, and the whole specimen sits inside the frame (0.0% ink on all four outermost 3-px strips) instead of running out of it.",
+      "2": "✅ PASS (gemini-2.5-flash-image) — CHOSEN. Constant-diameter thread with a blunt, flat-capped hook tip, and the knobby GP layer covers every part of the surface including the inside of the curl, at even spacing. Measured framing: warm ink occupies 6.0% of the three outermost right-hand columns and 1.8% of the bottom rows, so the thread leaves the picture at the lower right while the crook stays fully in view. Surface only, with no interior showing — correct for SEM. False colour is warm orange on cool teal-grey; one faint companion filament sits blurred behind. 2× corner crops carry no lettering."
+    },
+    "3d": {
+      "1": "⚠️ PARTIAL (gemini-2.5-flash-image) — correct composition, correct colour legend and a good transverse-banded core, but the hook narrows to a point at its free tip, and three background ghost filaments are drawn sharply enough to compete with the subject.",
+      "2": "✅ PASS (gemini-2.5-flash-image) — CHOSEN. Blunt hook tip at full thickness, club spikes on both sides along the whole tube, and a long cutaway that separates the coral envelope, two sage VP40 strips and a coppery core. At 2.3× the core's bands are unambiguously transverse — short ridges crossing the core's narrow width with a slight helical lean, like a stack of coins seen edge-on — with a single violet RNA line running lengthwise between them. Measured framing: coral ink on 11.1% of the outermost right columns and 1.9% of the bottom rows. Natural biological tints on a dark navy studio background, not neon and not monochrome. 2× corner crops carry no lettering. Caveat recorded: this is a perspective render, so the tube reads thicker in the foreground than at the receding hook; that is depth, not a change of diameter, but it does soften the 'uniform width' message."
+    },
+    "watercolor": {
+      "1": "❌ FAIL (gemini-2.5-flash-image) — a spindle, not a filament: fat in the middle and drawn to a point at both ends, and nothing reaches the picture edge (0.0% coral ink on all four outermost 3-px strips), so the thread reads as a finite leaf-shaped body rather than something longer than the frame.",
+      "2": "⚠️ PARTIAL (gemini-2.5-flash-image) — width now constant, fringe on both sides, and the thread crosses the lower-right edge, but the requested blunt end materialised as a detached lavender-grey oval at the hook tip that reads as a second object stuck to the virus.",
+      "3": "⚠️ PARTIAL (gemini-2.5-flash-image) — the most painterly of the flash attempts and free of the tip blob, but the hook became a tight inward spiral that tapers away to nothing, and along much of the shaft the spike fringe is drawn on one side only.",
+      "4": "❌ FAIL (gemini-2.5-flash-image) — the thread is drawn very thin, the fringe is one-sided over long stretches, the cutaway swells into a fat lens in the middle of an otherwise thin thread, and the lower end stops just short of the picture edge.",
+      "5": "✅ PASS (gemini-3-pro-image) — CHOSEN. An open shepherd's crook with a blunt rounded tip that keeps the shaft's thickness, a fine even spike fringe along both sides and right around the outside of the curl, and a cutaway showing the coral envelope, sage VP40 layer and a coppery core. At 2.3× the core's bands are transverse, packed like a stack of coins seen edge-on, with a violet RNA line threading between them. Warm aged paper reaches all four corners with a soft wash halo painted directly on it — no sheet, mat, frame, panel or drop shadow. Framing measured on the subject's own ink (coral + blue, excluding the paper): it crosses the right edge at rows 939–1000, and 0.0% on the top and bottom strips is correct here because the thread exits through the right-hand side. Escalated to the pro tier only after four flash attempts each failed on width, fringe or framing."
+    }
+  },
+  "reference": "✅ PASS — CDC Public Health Image Library #10816 (public domain, Cynthia Goldsmith): a digitally colorized transmission electron micrograph, blue virions on a red-stained field. Viewed at full resolution and confirmed to show what §1 describes — long threads of constant width, one of them curled back into a closed loop and a hook. The constancy was measured rather than eyeballed: vertical scanlines through the two near-horizontal filaments at x = 700, 800, 900 and 1000 give blue runs of 31–39 px (the 47 and 89 px runs at x=700 are oblique crossings of the looped filament), a diameter constant within about ±10%. The displayed image (real-02) is a DETERMINISTIC CROP ONLY: a 1692 × 1692 px square taken from the LEFT edge of the native 3679 × 1692 px Wikimedia Commons JPEG at (0,0) and Lanczos-resampled to 1080², a 0.64× DOWNSCALE — nothing upscaled, no pixels invented, the CDC's own colorization untouched. The left square was chosen over fetch_reference.py's centred crop because the plate is 2.17:1 wide and its centre square cuts the hooked end away. edit_image.py was deliberately NOT used: the plate carries no text, scale bar or border, and the skill's prompt lessons record it re-illustrating rather than cleaning micrographs. Colour caveat: the blue-on-red palette is the CDC's artistic colorization, not the virus.",
+  "coloring": "✅ PASS (gemini-2.5-flash-image, attempt 1, deterministically re-cropped) — a friendly noodle-shaped Ebola character whose curled shepherd's-crook end carries the face, with a smiling fruit bat, a doctor holding a vaccine bottle and a blank clipboard, bushes and ground. Tone check: nobody is ill, there is no blood, no wound, no rash, no mask, no hazmat and no biohazard sign; the page shows how outbreaks are stopped (the reservoir animal, the vaccine, the contact list) rather than what the disease does. No baked-in text — the bottle label and the clipboard boxes are blank. Attempt 2 came back inside a hard rectangular frame, the known unrecoverable failure, so instead of re-rolling, attempt 1's raw bitmap was cropped 50 px off each side and 100 px off the top and re-traced through coloring.py's own to_bitmap/trace_paths — no extra API call. Edges measured on the COMPOSED .coloring.svg rasterised with cairosvg at 500 px wide, ink fraction in the outermost rows/cols of the top 72%: top 0.0000, bottom 0.0600, left 0.0452, right 0.0314. Three-edge bleed as intended; the top is 0 by construction because the speech bubble band sits above the artwork.",
+  "decision": [
+    [
+      "textbook",
+      "✅ teaching-ready (label base)",
+      "5",
+      "gemini-2.5-flash-image attempt 1; best colour separation and finest cross-striation. Compromise: the last stretch of the hook thins to ~half the shaft width (12–19 px vs 28–34 px measured)"
+    ],
+    [
+      "sem",
+      "✅ teaching-ready",
+      "2",
+      "gemini-2.5-flash-image attempt 2; constant-diameter thread, blunt capped tip, dense even GP knobs, exits the frame at the lower right"
+    ],
+    [
+      "3d",
+      "✅ teaching-ready",
+      "2",
+      "gemini-2.5-flash-image attempt 2; natural tints, transverse-banded core confirmed at 2.3×. Caveat: perspective makes the foreground read thicker than the receding hook"
+    ],
+    [
+      "watercolor",
+      "✅ teaching-ready",
+      "5",
+      "gemini-3-pro-image attempt 5, escalated after four flash failures on width/fringe/framing; full-bleed aged paper, black-on-paper labels"
+    ],
+    [
+      "reference TEM",
+      "✅ verified (colorized CDC plate, native-resolution crop)",
+      "2",
+      "CDC PHIL #10816, public domain, Goldsmith; deterministic left-hand square crop only, no generative editing"
+    ],
+    [
+      "coloring page",
+      "✅ teaching-ready",
+      "2",
+      "gemini-2.5-flash-image; attempt 2 framed, so attempt 1 was cropped and re-traced locally. Composed-page bleed bottom 0.060 / left 0.045 / right 0.031"
+    ]
+  ]
+}

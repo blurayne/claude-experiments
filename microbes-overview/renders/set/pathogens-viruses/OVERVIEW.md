@@ -20,6 +20,24 @@ Dimorphic yeast (~3-6 um ovoid) that lives harmlessly in the mouth, gut and geni
 
 Full log: [`candida-albicans.render.md`](candida-albicans.render.md)
 
+## Ebola virus (`ebola-virus`)
+Filovirus whose defining feature is its SHAPE: a uniformly ~80 nm wide, up to 1000+ nm long thread with an extreme aspect ratio, its end typically curled into a shepherd's-crook hook (U-, 6- and open-loop forms are equally authentic). A host-derived lipid envelope studded with short club-shaped glycoprotein (GP) spikes ~10 nm apart wraps a matrix layer and a ~50 nm helical nucleocapsid whose regular cross-striations run ACROSS the filament; inside it lies one 19 kb negative-sense RNA strand with just seven genes. It enters macrophages, monocytes and dendritic cells first and endothelium later, lives between outbreaks in fruit bats, spreads only by direct contact with body fluids and never through the air, and has had a licensed vaccine since 2019.
+
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/ebola-virus__textbook.avif) | ![sem](finals/ebola-virus__sem.avif) | ![3d](finals/ebola-virus__3d.avif) | ![watercolor](finals/ebola-virus__watercolor.avif) | ![reference](finals/ebola-virus__reference.avif) |
+
+**textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/ebola-virus.textbook.svg) · [HTML](theme/textbook/ebola-virus.textbook.html)
+![textbook labelled](theme/textbook/ebola-virus.textbook.svg)
+
+**3d — labelled** (English default, La/De toggle): [SVG](theme/3d/ebola-virus.3d.svg) · [HTML](theme/3d/ebola-virus.3d.html)
+![3d labelled](theme/3d/ebola-virus.3d.svg)
+
+**watercolor — labelled** (English default, La/De toggle): [SVG](theme/watercolor/ebola-virus.watercolor.svg) · [HTML](theme/watercolor/ebola-virus.watercolor.html)
+![watercolor labelled](theme/watercolor/ebola-virus.watercolor.svg)
+
+Full log: [`ebola-virus.render.md`](ebola-virus.render.md)
+
 ## Giardia lamblia (giardiasis) (`giardia-lamblia`)
 Binucleate flagellated protozoan (genus Giardia, also called G. duodenalis / G. intestinalis) whose bilaterally symmetric, teardrop-shaped trophozoite (~12-15 x 5-9 um) carries two symmetric anterior nuclei giving it a famously face-like look, a large concave ventral adhesive disc that clamps onto small-intestinal enterocytes, a median body of microtubules, and eight flagella in four bilateral pairs (anterior, posterolateral, ventral, caudal); it does not invade tissue but coats the mucosa, blunts villi and interferes with fat/vitamin absorption, and encysts into an oval four-nucleated environmentally resistant cyst that is shed in faeces and survives in untreated water, making it the classic 'backpacker's/beaver fever' waterborne diarrhoeal parasite.
 
@@ -245,6 +263,11 @@ Full log: [`zika-virus.render.md`](zika-virus.render.md)
 | Candida albicans | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 18s | 1511 | $0.039 |
 | Candida albicans | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 21s | 1614 | $0.039 |
 | Candida albicans | LM · CC BY-SA 3.0 / GFDL | — (edit) | 2 | ✅ | n/a | 1.0m | 1658 | $0.039 |
+| Ebola virus | Textbook illustration | gemini-3-pro-image | 5 | ✅ | built | 52s | 10865 | $0.208 |
+| Ebola virus | SEM micrograph | gemini-2.5-flash-image | 2 | ✅ | pending (same pipeline) | 13s | 3523 | $0.077 |
+| Ebola virus | 3D medical render | gemini-2.5-flash-image | 2 | ✅ | built | 13s | 3750 | $0.077 |
+| Ebola virus | Watercolor plate | gemini-3-pro-image | 5 | ✅ | built | 47s | 10140 | $0.200 |
+| Ebola virus | TEM · Public domain (work of the U.S. federal government; CDC Public Health Image Library states its images are free of copyright restrictions) | — (download) | 2 | ✅ | n/a | 0s | 0 | $0.000 |
 | Giardia lamblia (giardiasis) | Textbook illustration | gemini-3-pro-image | 3 | ✅ | built | 50s | 7984 | $0.135 |
 | Giardia lamblia (giardiasis) | SEM micrograph | gemini-3-pro-image | 2 | ✅ | pending (same pipeline) | 28s | 4141 | $0.079 |
 | Giardia lamblia (giardiasis) | 3D medical render | gemini-3-pro-image | 6 | ✅ | built | 1.6m | 14697 | $0.254 |
@@ -306,6 +329,6 @@ Full log: [`zika-virus.render.md`](zika-virus.render.md)
 | Zika virus | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 6s | 1678 | $0.039 |
 | Zika virus | digitally colorized TEM, false-colour · Public domain - CDC PHIL: None - This image is in the public domain and thus free of any copyright restrictions. | — (download) | 1 | ✅ | n/a | 2s | 0 | $0.000 |
 
-**Set total: 219,284 tokens · $4.405**
+**Set total: 247,562 tokens · $4.968**
 
-_Updated 2026-09-06 09:23 local._
+_Updated 2026-09-06 10:08 local._

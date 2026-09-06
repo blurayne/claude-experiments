@@ -6,6 +6,10 @@ Every microbe's `3d` image — labelled SVG where built, else the last render. [
 ![3d](candida-albicans.3d.svg)
 [full log](../../candida-albicans.render.md)
 
+## Ebola virus (`ebola-virus`)
+![3d](ebola-virus.3d.svg)
+[full log](../../ebola-virus.render.md)
+
 ## Giardia lamblia (giardiasis) (`giardia-lamblia`)
 ![3d](giardia-lamblia.3d.svg)
 [full log](../../giardia-lamblia.render.md)

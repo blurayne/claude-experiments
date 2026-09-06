@@ -1,0 +1,64 @@
+{
+  "key": "tapeworm",
+  "name_en": "Tapeworm (Taenia ovis)",
+  "name_de": "Bandwurm (Taenia ovis)",
+  "short_description": "An adult Taenia ovis cestode (flatworm) living in a dog's small intestine: ribbon-flat, up to about a metre long, anchored by a scolex bearing four cup-shaped suckers and a rostellum crowned with a double ring of hooks, followed by a short unsegmented neck and a long strobila of proglottids that grow larger and more mature toward the rear. It has NO mouth and NO digestive tract at all — nutrients are absorbed across the tegument. Dogs get it from raw sheep meat; humans are not a host.",
+  "labels": [
+    {"key": "scolex", "la": "scolex", "en": "Scolex (holdfast head)", "de": "Scolex (Haftkopf)", "function": "anchors the worm to the gut wall", "where": "anterior tip", "core": true},
+    {"key": "sucker", "la": "acetabulum", "en": "Sucker", "de": "Saugnapf", "function": "one of four cup-shaped muscular attachment organs", "where": "arranged radially around the scolex", "core": true},
+    {"key": "hook_crown", "la": "rostellum", "en": "Hook crown", "de": "Hakenkranz", "function": "double ring of small hooks on the rostellum, grips the intestinal lining", "where": "dome at the very tip of the scolex", "core": true},
+    {"key": "neck", "la": "collum", "en": "Neck (growth zone)", "de": "Hals (Wachstumszone)", "function": "short, narrow, unsegmented proliferative zone that buds new segments", "where": "just behind the scolex", "core": true},
+    {"key": "segment", "la": "proglottis", "en": "Segment (proglottid)", "de": "Proglottide (Glied)", "function": "self-contained hermaphroditic reproductive unit", "where": "the strobila, growing larger toward the rear", "core": true},
+    {"key": "gravid_segment", "la": "proglottis gravida", "en": "Gravid segment (packed with eggs)", "de": "Trächtige Proglottide (voller Eier)", "function": "ripe rear segment filled with eggs, shed and passed", "where": "posterior end of the strobila", "core": true},
+    {"key": "tegument", "la": "tegumentum", "en": "Tegument (absorptive skin)", "de": "Tegument (Nährhaut)", "function": "the body surface, covered in absorptive microtriches — the worm's only way to feed (no mouth, no gut)", "where": "entire body surface", "core": true},
+    {"key": "gut_wall", "la": "paries intestini", "en": "Gut wall (dog's small intestine)", "de": "Darmwand (Dünndarm des Hundes)", "function": "where the scolex anchors; the worm bathes in pre-digested food", "where": "background/context, only in styles that show the habitat", "core": false}
+  ],
+  "morphology_notes": [
+    "Adult T. ovis lives in the small intestine of dogs and other canids; length commonly 45-110 cm — 'up to about a metre' (WCVM: 'up to 100 cm or more' for dog taeniids).",
+    "Ribbon-flat (dorsoventrally flattened) — a tape, not a cylinder. Cream-white to ivory, opalescent; the red/carmine of many micrographs is stain, not the animal's colour.",
+    "Scolex: knob-like holdfast head ~1 mm across bearing FOUR cup-shaped muscular suckers (acetabula) arranged radially at roughly 90° spacing, plus an apical rostellum armed with a DOUBLE ring of small hooks (Taenia hook counts overlap between the dog species; the double-row arrangement is the constant, so the render targets 'a double circlet of small hooks', not a specific count). Note: WCVM describes the taeniid rostellum as NON-retractable; the brief's 'retractable' was corrected to follow the source.",
+    "Neck: short, narrow, UNSEGMENTED zone directly behind the scolex — the proliferative zone where new proglottids bud; segments are youngest at the front.",
+    "Strobila: the long chain of proglottids, each a self-contained hermaphroditic reproductive unit; maturation gradient runs front→rear: immature (wider than long) → mature (roughly square) → gravid (longer than wide, packed with eggs). Gravid terminal segments detach and are passed.",
+    "Segment boundaries run TRANSVERSELY — crisp creases ACROSS the width of the ribbon, like rectangles joined end to end. (Repeating-pattern axis trap: the model must not draw lengthwise stripes instead.)",
+    "NO mouth, NO digestive tract at any life stage — nutrition is absorbed across the tegument, whose surface is covered in microtriches (microvillus-like projections) that hugely increase absorptive area.",
+    "Life cycle: two hosts. Dog = definitive host (adult worm); sheep/goat = intermediate host (Cysticercus ovis, 'sheep measles', cysts in heart/diaphragm/skeletal muscle). Dogs are infected by eating raw, cyst-bearing sheep meat. HUMANS ARE NOT A HOST for T. ovis (unlike T. saginata / T. solium).",
+    "Dealt with: a dewormer from the vet (praziquantel) removes the adult worm reliably; not feeding raw sheep carcass meat or offal breaks the cycle.",
+    "Whole-worm framing is impossible at 1080²: compose the scolex prominently (~⅓ of frame) with the segmented strobila trailing diagonally out of frame — honest, and shows both diagnostic features."
+  ],
+  "do_not_draw": [
+    "Suckers or hooks drawn as rays/spokes radiating from a hub (the starburst trap) — describe the suckers positively as four separate cup-shaped depressions like suction cups on a plunger head, seen at a three-quarter angle so they read as individual cups.",
+    "A mouth, jaws, teeth, eyes, or any face on the scolex — the hooks and suckers are attachment organs, not feeding parts; the worm has no mouth at all.",
+    "A digestive tract inside the worm (no gut tube in any cutaway).",
+    "A cylindrical, round-bodied worm (that is a nematode like the heartworm) — the body is a flat ribbon/tape.",
+    "Lengthwise stripes instead of transverse segment boundaries — segment creases run ACROSS the ribbon.",
+    "An earthworm-style clitellum or annelid rings on a round body.",
+    "Blood, wounds, gore, or a sick/distressed dog — pet-pathogen subject in a children's atlas; show how it is dealt with, not the harm.",
+    "Humans as a host — T. ovis does not infect people."
+  ],
+  "colour_legend": {
+    "body": "cream-ivory, gently opalescent (real colour of the living worm)",
+    "scolex_suckers": "slightly warmer buff-tan, each cup's rim catching light with a soft shadowed hollow",
+    "hooks": "tiny amber-brown thorns",
+    "neck": "same cream, narrower and smoother",
+    "gravid_segments": "faintly darker warm grey-rose from the packed egg mass showing through",
+    "gut_wall_context": "muted dusty pink-salmon intestinal lining (textbook/3d only)"
+  },
+  "sources": [
+    {"title": "WCVM Learn About Parasites — Taenia species", "url": "https://wcvm.usask.ca/learnaboutparasites/parasites/taenia-species.php", "used_for": "dog taeniid adults up to 100 cm or more; scolex with four suckers and a NON-retractable rostellum armed with two rows of hooks; life cycle"},
+    {"title": "Australian Society for Parasitology, Para-Site — Taenia", "url": "https://parasite.org.au/para-site/text/taenia-text.html", "used_for": "cyclophyllidean body plan: scolex/strobila/proglottids, four muscular suckers, no gut, hermaphroditic segments, immature→mature→gravid gradient, double circle of rostellar hooks"},
+    {"title": "CDC DPDx — Taeniasis", "url": "https://www.cdc.gov/dpdx/taeniasis/index.html", "used_for": "genus-level scolex morphology (armed rostellum with double row of hooks in armed Taenia)"},
+    {"title": "Verster 1969 / Journal of Helminthology (Allan et al.)", "url": "https://pubmed.ncbi.nlm.nih.gov/7229326/", "used_for": "hook-length overlap between dog Taenia species — why the render targets the double-row arrangement rather than an exact hook count"},
+    {"title": "cells_data.py catalogue entry (func/deps EN+DE)", "url": "", "used_for": "register calibration and the fixed facts of the entry: ~1 m adult in dog small intestine, sheep intermediate host, humans not a host, dewormer from the vet"}
+  ],
+  "reference": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/3/36/Taenia_solium_tapeworm_scolex_with_its_four_suckers_and_two_rows_of_hooks_5262_lores.jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:Taenia_solium_tapeworm_scolex_with_its_four_suckers_and_two_rows_of_hooks_5262_lores.jpg",
+    "phil_page": "https://phil.cdc.gov/Details.aspx?pid=5262",
+    "license": "Public domain (CDC PHIL #5262, US federal government work)",
+    "attribution": "CDC Public Health Image Library, PHIL ID #5262",
+    "modality": "stained whole-mount light micrograph of a tapeworm scolex",
+    "species_substitution": "The plate shows Taenia SOLIUM, not T. ovis — a congeneric relative chosen because no usable freely-licensed T. ovis scolex micrograph exists on Commons; the armed-scolex morphology (four suckers, double hook row) is shared and the substitution is stated plainly in the render log.",
+    "native_size": "688x464 px (CDC serves only the 'lores' file; hires 404s). Small — padded to square and upscaled ~1.6x to 1080x1080; upscale noted as a known limitation.",
+    "what_it_shows": "A single stained scolex, apex up: the rostellum with its double crown of dark recurved hooks clearly resolved and countable, and four circular suckers (all four visible in the whole-mount plane) on the widening head below."
+  }
+}

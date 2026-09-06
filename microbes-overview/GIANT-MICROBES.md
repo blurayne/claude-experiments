@@ -123,7 +123,7 @@ GIANTmicrobes sells only the one antibody shape; our IgA/IgD/IgE/IgM entries hav
 | Bird Flu | H5N1 | — not catalogued |
 | Cold Sore | Herpes Simplex Virus 1 | — not catalogued |
 | Dengue Fever | Dengue virus | — not catalogued |
-| Ebola | Ebolavirus | — not catalogued |
+| Ebola | Ebolavirus | ✅ `ebola-virus` |
 | Hepatitis | Hepatitis **C** virus | — our atlas covers hepatitis **B**; different virus, deliberately not linked |
 | Herpes | Herpes Simplex Virus 2 | — not catalogued |
 | HPV | Human papillomavirus | — not catalogued |
@@ -195,7 +195,7 @@ Ticks, mites, lice and worms GIANTmicrobes sells that overlap with our "pathogen
 | Flea | *Ctenocephalides felis* | — not catalogued |
 | Head Louse | *Pediculus capitis* | — not catalogued |
 | Mange Mite | *Sarcoptes scabiei* | — not catalogued |
-| Tapeworm | *Taenia ovis* | — not catalogued |
+| Tapeworm | *Taenia ovis* | ✅ `tapeworm` |
 
 ## Not compared — out of scope
 
@@ -213,6 +213,6 @@ These GIANTmicrobes products aren't "have / don't have" candidates at all, becau
 
 ## Summary
 
-- **62 exact matches** between the two catalogues (the full count in `microbe_giant.py`'s `GIANT` dict; grew from 52 in 2026-09 when podocyte, parietal cell, beta cell, animal cell, plant cell and blood plasma were added to the atlas).
-- **71 additional named pathogens/cells** GIANTmicrobes sells that this atlas doesn't catalogue (or catalogues but can't link) at all — 26 bacteria, 19 viruses, 3 fungi, 5 protozoa, 7 arthropods/worms, 2 human cells (the generic Glial Cell and generic Muscle Cell, both deliberately unlinked from our specific entries) and 9 site-specific cancer variants — concentrated in bacteria and viruses, which is expected since GIANTmicrobes' whole catalogue is bigger than any one chapter of a teaching atlas.
+- **64 exact matches** between the two catalogues (the full count in `microbe_giant.py`'s `GIANT` dict; grew from 52 in 2026-09 as podocyte, parietal cell, beta cell, animal cell, plant cell, blood plasma, tapeworm and Ebola were added to the atlas).
+- **69 additional named pathogens/cells** GIANTmicrobes sells that this atlas doesn't catalogue (or catalogues but can't link) at all — 26 bacteria, 18 viruses, 3 fungi, 5 protozoa, 6 arthropods/worms, 2 human cells (the generic Glial Cell and generic Muscle Cell, both deliberately unlinked from our specific entries) and 9 site-specific cancer variants — concentrated in bacteria and viruses, which is expected since GIANTmicrobes' whole catalogue is bigger than any one chapter of a teaching atlas.
 - The reverse gaps (things we catalogue that GIANTmicrobes has no exact plush for) are already tracked in `microbe_giant.py`'s own exclusion notes, not repeated here.

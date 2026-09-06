@@ -131,6 +131,30 @@ killed the first batch mid-flight and the state is not obvious from the files al
 These are all flagged in the per-subject `verdicts.json` too. None is wrong, each is
 a compromise someone chose deliberately — listed so a later pass can revisit them.
 
+- [ ] **`tapeworm` and `ebola-virus` (2026-09)** — both live at 5/5, 3/3, coloring
+      and EN+DE narration. Compromises the agents flagged:
+      - `tapeworm` — the real reference is *Taenia **solium*** (CDC PHIL #5262, PD)
+        standing in for *T. ovis*: no usable freely-licensed *T. ovis* scolex exists
+        on Commons, and the closer *T. pisiformis* candidate carried a baked-in
+        camera date stamp with unresolved suckers. Stated plainly in the render log
+        and the sidecar. CDC serves only a 688×464 file, deterministically padded
+        square and upscaled ~1.57×. SEM's anterior reads cylindrical rather than
+        markedly flattened (ribbon-flatness carried by the other three styles);
+        coloring right-edge ink 0.0092, under the 0.02 band. **Science correction
+        to our own brief:** the taeniid rostellum is *non*-retractable, and no
+        species-exact hook count is claimed anywhere, because hook counts overlap
+        among the canine *Taenia* species.
+      - `ebola-virus` — the textbook label base thins to roughly half diameter in
+        the innermost hook curl (measured 12–19 px vs 28–34 px on the shaft) where
+        the real virion holds 80 nm throughout; kept because every alternative
+        render broke something worse (two finished inside the frame, one grew a
+        detached blob, one collapsed the colour legend). The shepherd's crook is
+        drawn on all four styles although a particle census scores it as the
+        signature but *not* majority form (~30 % straight, 37 % 6-shaped, 33 %
+        looped) — said so in §1 and in both scientist blocks. Nucleocapsid helical
+        pitch differs by method (11.2 nm single-particle cryo-EM vs 7.5 nm cryo-ET
+        of intact virions); both are quoted rather than one picked. The reference
+        plate's blue-on-red is the CDC's artistic colourisation, not the virus.
 - [ ] **The 2026-09 batch (podocyte, parietal-cell, beta-cell, animal-cell,
       plant-cell, blood-plasma)** — all six live at 5/5 img, 3/3 svg, coloring and
       EN+DE narration; the accepted compromises, per subject:

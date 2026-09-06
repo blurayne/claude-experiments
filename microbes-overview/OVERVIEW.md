@@ -4,9 +4,9 @@
 
 ## Where we stand
 
-- **26 sets**, **128 microbes** live in the viewer, out of **129 catalogued**.
+- **26 sets**, **130 microbes** live in the viewer, out of **131 catalogued**.
 - Every live microbe carries: 5 picture styles, 3 labelled diagrams, a printable A4 coloring page, kids narration in EN + DE, and size/weight data — the table below is the proof.
-- **62 plush links**, every one an exact species/cell match. 8 of those photos had to be repaired (see the last section).
+- **64 plush links**, every one an exact species/cell match. 8 of those photos had to be repaired (see the last section).
 
 ## Every catalogued entry, and what it has
 
@@ -128,6 +128,7 @@
 | pathogens-viruses | Norovirus (stomach bug) | `norovirus` | 5/5 | 3/3 | ✅ | ✅ | 38 nm · 0.5 fg | Norovirus - Stomach Bug Plush |
 | pathogens-viruses | Varicella-zoster virus (chickenpox) | `varicella-zoster-virus` | 5/5 | 3/3 | ✅ | ✅ | 180 nm · 6 fg | Chickenpox (Varicella-Zoster virus) |
 | pathogens-viruses | Giardia lamblia (giardiasis) | `giardia-lamblia` | 5/5 | 3/3 | ✅ | ✅ | 12 µm · 1 ng | Giardia (Giardia lamblia) |
+| pathogens-viruses | Ebola virus | `ebola-virus` | 5/5 | 3/3 | ✅ | ✅ | 1 µm · 4 fg | Ebola (Ebola Virus) |
 | helpful-microbes | Baker's yeast (Saccharomyces cerevisiae) | `saccharomyces-cerevisiae` | 5/5 | 3/3 | ✅ | ✅ | 5 µm · 60 pg | Beer & Bread (Saccharomyces cerevisiae) |
 | helpful-microbes | Penicillin mould (Penicillium chrysogenum) | `penicillium-chrysogenum` | 5/5 | 3/3 | ✅ | ✅ | 3.5 µm · 20 pg | Penicillin (Penicillium chrysogenum) |
 | helpful-microbes | Bifidobacterium longum | `bifidobacterium-longum` | 5/5 | 3/3 | ✅ | ✅ | 3 µm · 1.5 pg | Bifido (Bifidobacterium longum) |
@@ -135,6 +136,7 @@
 | bacteriophages | T7 bacteriophage | `t7-bacteriophage` | 5/5 | 3/3 | ✅ | ✅ | 60 nm · 0.085 fg | — |
 | bacteriophages | PhiX174 (ΦX174 bacteriophage) | `phix174` | 5/5 | 3/3 | ✅ | ✅ | 27 nm · 0.011 fg | — |
 | pet-pathogens | Heartworm (Dirofilaria immitis) | `heartworm` | 5/5 | 3/3 | ✅ | ✅ | 270000 µm · 200 mg | Heartworm (Dirofilaria immitis) |
+| pet-pathogens | Tapeworm (Taenia ovis) | `tapeworm` | 5/5 | 3/3 | ✅ | ✅ | 1e+06 µm · 5000 mg | Tapeworm (Taenia ovis) |
 | pet-pathogens | Feline immunodeficiency virus (FIV) | `feline-immunodeficiency-virus` | 4/5 | 3/3 | ✅ | ✅ | 110 nm · 1 fg | — |
 | pet-pathogens | Feline leukaemia virus (FeLV) | `feline-leukaemia-virus` | 5/5 | 3/3 | ✅ | ✅ | 100 nm · 1 fg | — |
 | pet-pathogens | Chlamydia felis (feline conjunctivitis) | `chlamydia-felis` | 5/5 | 3/3 | ✅ | ✅ | 300 nm · 0.1 pg | — |

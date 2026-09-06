@@ -21,3 +21,7 @@ Every microbe's `textbook` image — labelled SVG where built, else the last ren
 ## Rabies virus (`rabies-virus`)
 ![textbook](rabies-virus.textbook.svg)
 [full log](../../rabies-virus.render.md)
+
+## Tapeworm (Taenia ovis) (`tapeworm`)
+![textbook](tapeworm.textbook.svg)
+[full log](../../tapeworm.render.md)

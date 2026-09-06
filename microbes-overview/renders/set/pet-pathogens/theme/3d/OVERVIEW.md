@@ -21,3 +21,7 @@ Every microbe's `3d` image — labelled SVG where built, else the last render. [
 ## Rabies virus (`rabies-virus`)
 ![3d](rabies-virus.3d.svg)
 [full log](../../rabies-virus.render.md)
+
+## Tapeworm (Taenia ovis) (`tapeworm`)
+![3d](tapeworm.3d.svg)
+[full log](../../tapeworm.render.md)

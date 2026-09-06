@@ -6,6 +6,10 @@ Every microbe's `sem` image — labelled SVG where built, else the last render. 
 ![sem](candida-albicans.attempts/gen-01__gemini-2.5-flash-image.avif)
 [full log](../../candida-albicans.render.md)
 
+## Ebola virus (`ebola-virus`)
+![sem](ebola-virus.attempts/gen-02__gemini-2.5-flash-image.avif)
+[full log](../../ebola-virus.render.md)
+
 ## Giardia lamblia (giardiasis) (`giardia-lamblia`)
 ![sem](giardia-lamblia.attempts/gen-02__gemini-3-pro-image.avif)
 [full log](../../giardia-lamblia.render.md)

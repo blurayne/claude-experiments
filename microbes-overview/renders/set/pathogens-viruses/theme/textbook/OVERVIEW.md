@@ -6,6 +6,10 @@ Every microbe's `textbook` image — labelled SVG where built, else the last ren
 ![textbook](candida-albicans.textbook.svg)
 [full log](../../candida-albicans.render.md)
 
+## Ebola virus (`ebola-virus`)
+![textbook](ebola-virus.textbook.svg)
+[full log](../../ebola-virus.render.md)
+
 ## Giardia lamblia (giardiasis) (`giardia-lamblia`)
 ![textbook](giardia-lamblia.textbook.svg)
 [full log](../../giardia-lamblia.render.md)

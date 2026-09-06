@@ -1,0 +1,67 @@
+{
+ "name": "Tapeworm (Taenia ovis)",
+ "short_description": "An adult Taenia ovis cestode (flatworm) living in a dog's small intestine: ribbon-flat, up to about a metre long, anchored by a scolex bearing four cup-shaped suckers and a rostellum crowned with a double ring of hooks, followed by a short unsegmented neck and a strobila of proglottids growing larger and more mature toward the rear. NO mouth, NO gut — feeds across the tegument. Dogs get it from raw sheep meat; humans are not a host.",
+ "themes": {
+  "textbook": {
+   "1": "❌ FAIL — counted only TWO sucker cups on the head (upper-right and lower-left); the rostellum was drawn as an oversized flat disc nearly the width of the head, ringed by a single scalloped band that reads as petals rather than hooks; the strobila reads as a rounded tube rather than a flat tape.",
+   "2": "❌ FAIL — still only TWO sucker cups visible; the rostellum became a flower-like rosette (central disc + one ring of petal shapes); tape flatness and the egg-filled cutaway segment improved. Second genuine quality failure → escalated to gemini-3-pro-image.",
+   "3": "✅ PASS (gemini-3-pro-image) — counted FOUR sucker cups on the head: two full-face on the front plus one foreshortened oval bulging from each side edge; the magnified crown crop shows TWO concentric rings of individually drawn recurved hooks (inner ring ~12 larger, outer ring ~20 smaller — counted on the crop); narrow unsegmented neck visibly thinner than the head; strobila is a flat tape with its thin edge visible, boundaries running ACROSS the ribbon, segments enlarging rearward, and a gravid segment in cutaway with a branched egg mass; pink gut wall with villi arcs across the top; edge-strip crops + edge-luminance scan (103–124 = the charcoal background itself, uniform): no border, no letterbox, no baked-in text anywhere."
+  },
+  "sem": {
+   "1": "✅ PASS — counted FOUR sucker cups on the full frame (full-face lower-front crater, large right crater, left foreshortened oval, partial top-right cup near the crown); the magnified crown crop shows TWO rows of hooks (a ring of larger recurved hooks around the dome rim plus a lower ring of smaller thorns); the tail crop confirms segment creases run ACROSS the body axis, not lengthwise; velvet microtriches nap on the tegument; false-colour cream-tan on a dusty-rose intestinal substrate; bottom-edge strip + numeric edge scan (137–148 luminance, no continuous dark line): no border, no text. Honest caveat: the neck/first strobila reads fairly cylindrical rather than markedly flattened — consistent with real SEMs of the taeniid anterior, and the flattening is visible in the widening rear tape, but the ribbon-flatness is better taught by the other three styles."
+  },
+  "3d": {
+   "1": "❌ FAIL — body rendered as a round S-curved tube with ring-like creases (reads as an earthworm, the exact confusion §1 forbids); counted THREE sucker cups; hook crown a single untidy tangle of curled wires.",
+   "2": "❌ FAIL — counted THREE sucker cups (two front trumpets + one left-edge partial); hook crown still a single sloppy circlet; ribbon flatness much improved (twist showing the thin edge). Second genuine failure → escalated to gemini-3-pro-image.",
+   "3": "⚠️ PARTIAL (gemini-3-pro-image) — anatomy otherwise right (double hook circlet, flat twisted ribbon, rose-grey gravid glow) but counted only THREE visible sucker cups (front centre + both side bulges; the fourth hidden behind the head).",
+   "4": "❌ FAIL (gemini-3-pro-image) — counted FIVE sucker cups (top-left, top-centre, front-centre, right-edge, lower-front) and the hook crown slid to the apex as a swirled spiral; the flat twisted ribbon itself was the best of the set.",
+   "5": "✅ PASS (gemini-3-pro-image) — counted EXACTLY FOUR sucker cups: a matched front pair plus one foreshortened oval bulging from each side edge; magnified crown crop shows TWO concentric rows of amber recurved hooks; narrow smooth neck; flat tape with one half-twist showing its knife-thin edge; transverse segment boundaries; rearmost segments with a warm rose-grey interior glow; natural cream/buff/amber/rose tints on a seamless pale studio background; edge scan (220–228 luminance uniform): no border, no text."
+  },
+  "watercolor": {
+   "1": "❌ FAIL — counted TWO sucker cups (goggle-like front pair only); single ring of hooks; body tube-ish; an odd detached pod-like segment hangs below the tape. Paper does fill the frame.",
+   "2": "❌ FAIL — still TWO sucker cups; rostellum painted as a rosette of comma-curls; tape flatter and paper full-bleed. Second genuine failure → escalated to gemini-3-pro-image.",
+   "3": "✅ PASS (gemini-3-pro-image) — counted FOUR sucker cups (front pair + one bulging oval per side edge); magnified crown crop shows TWO rows of individually inked thorn-shaped hooks; flat tape with thin edge visible and fine ink creases running ACROSS its width; rearmost segments washed rose-grey; warm aged paper with mottled staining reaches all four edges and corners (edge strips show paper texture at every margin; luminance scan 200–220, no dark line, no mat/frame/sheet-on-surface); no text painted anywhere."
+  }
+ },
+ "reference": "✅ PASS — CDC PHIL #5262 stained whole-mount light micrograph (Public domain, US federal work), fetched via Wikimedia Commons: a single Taenia scolex, apex up, with the double crown of dark recurved hooks resolved hook-by-hook and FOUR circular suckers individually counted (far-left, centre-left, centre-right, far-right); no baked-in text or scale bar, so edit_image.py was skipped. TWO flagged compromises: (1) SPECIES SUBSTITUTION — the plate shows Taenia SOLIUM, a congeneric relative, because no usable freely-licensed T. ovis scolex micrograph exists on Commons (the T. pisiformis candidate had a baked-in date stamp and unresolved suckers); the shared taeniid armed-scolex morphology is exactly what the atlas teaches. (2) The CDC serves only a 688×464 'lores' file (hires 404s): the plate was deterministically padded to square with edge-row-coloured bands (no AI edit) and LANCZOS-upscaled ~1.57× to 1080².",
+ "decision": [
+  [
+   "textbook",
+   "✅ teaching-ready (label base)",
+   "3",
+   "escalated to gemini-3-pro-image after 2 flash failures (2 suckers instead of 4, petal-rosette rostellum); attempt 3 counted clean: 4 suckers, double hook crown, flat tape, gravid cutaway, gut-wall context"
+  ],
+  [
+   "sem",
+   "✅ teaching-ready",
+   "1",
+   "passed on the first flash attempt — 4 suckers and a double hook row counted on magnified crops, transverse creases confirmed; caveat noted that the anterior body reads cylindrical, as in real taeniid SEMs"
+  ],
+  [
+   "3d",
+   "✅ teaching-ready",
+   "5",
+   "2 flash failures (round tube body, 3 suckers), then pro attempts: 3 of 4 suckers (PARTIAL), then FIVE suckers (FAIL), then exactly four on attempt 5 with the best flat twisted ribbon of the set"
+  ],
+  [
+   "watercolor",
+   "✅ teaching-ready",
+   "3",
+   "escalated to gemini-3-pro-image after 2 flash failures (2 suckers, curl-rosette); attempt 3 counted 4 suckers + double hook rows, full-bleed aged paper on all four edges"
+  ],
+  [
+   "reference photo",
+   "✅ verified",
+   "1",
+   "CDC PHIL #5262, public domain — T. SOLIUM stands in for T. ovis (stated plainly); padded + upscaled ~1.57x from the only available 688x464 file"
+  ],
+  [
+   "coloring page",
+   "✅ teaching-ready",
+   "1",
+   "accepted on attempt 1 (flash): friendly departing-tapeworm scene (suitcase + goodbye kerchief, dog waving, smiling tablet from a vet's hand), four suction cups counted, no frame, no starburst; composed-SVG ink measured with cairosvg — bottom 0.183, left 0.034, right 0.009 (thin but real), top 0.000 by template; right-edge bleed flagged as thinner than the 0.02-0.27 comfort band"
+  ]
+ ],
+ "svg_theme": "textbook",
+ "anchor_verification": "Every labels.json anchor was verified by sampling the RAW render's pixel colour at (ax,ay) before building the SVG: textbook — hook (385,140)=(113,70,36) amber, sucker (265,435)=(204,175,141) tan bowl, scolex (430,520)=(218,201,185) cream tissue, neck (450,630)=(241,234,213) cream, segment (950,470)=(243,235,214) tape, gravid (740,940)=(159,117,74) egg mass, tegument (900,780)=(241,233,212) tape surface, gut wall (650,60)=(245,193,179) pink; 3d — hook (190,165)=(153,83,18) amber, sucker (255,420)=(136,100,84) shadowed bowl, scolex (330,250)=(204,181,150), neck (370,640)=(180,153,127), tegument (450,740)=(194,172,149), segment (720,470)=(248,234,218), gravid (870,730)=(175,159,144) rose-grey; watercolor — hook (416,198)=(178,120,62) amber, sucker (245,385)=(168,136,98), scolex (330,470)=(236,220,186), neck (350,600)=(249,237,212), segment (560,810)=(244,225,192), tegument (700,650)=(252,240,211), gravid (870,930)=(200,167,148) rose wash. Rasterised SVGs (cairosvg) were then viewed: one collision found (textbook gravid/tegument labels overlapping at the bottom) and fixed by moving the gravid label to the left margin; no label runs off-canvas."
+}

@@ -21,3 +21,7 @@ Every microbe's `watercolor` image — labelled SVG where built, else the last r
 ## Rabies virus (`rabies-virus`)
 ![watercolor](rabies-virus.watercolor.svg)
 [full log](../../rabies-virus.render.md)
+
+## Tapeworm (Taenia ovis) (`tapeworm`)
+![watercolor](tapeworm.watercolor.svg)
+[full log](../../tapeworm.render.md)

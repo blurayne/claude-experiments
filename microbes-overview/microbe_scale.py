@@ -202,7 +202,13 @@ SCALE = {
     # full and the printed figure carries the truth. Its microfilariae, the stage
     # a mosquito actually carries, are only ~300 µm.
     'heartworm': (270_000, 200, 'mg'),
+    # The adult Taenia ovis in a dog's gut reaches ~1 m — it displaces the
+    # heartworm as the atlas's largest subject and, like it, pins the bar.
+    'tapeworm': (1_000_000, 5_000, 'mg'),
     'feline-immunodeficiency-virus': (0.11, 1, 'fg'),
+    # Filovirus: ~80 nm across but around a micrometre LONG — recorded by
+    # length like the tailed phages, since the filament is the whole point.
+    'ebola-virus': (1, 4, 'fg'),
 
     # --- bacteriophages -----------------------------------------------------
     # Tailed phages are recorded by TOTAL particle height (head + tail), which is

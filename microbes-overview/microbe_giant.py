@@ -201,6 +201,9 @@ GIANT = {
     # slug, but /windpocken (its actual DE slug) resolves and is the same product
     'varicella-zoster-virus': ('Chickenpox (Varicella-Zoster virus)', 'https://www.riesenmikroben.de/products/windpocken?locale=de'),
     'giardia-lamblia': ('Giardia (Giardia lamblia)', 'https://www.riesenmikroben.de/products/giardia?locale=de'),
+    # species `ebolavirus`; the plush is the filament curled into the
+    # shepherd's-crook loop — the virus's signature silhouette
+    'ebola-virus': ('Ebola (Ebola Virus)', 'https://www.riesenmikroben.de/products/ebola?locale=de'),
     # --- bacteriophages ---
     # species `t4 phage`; the photo is unmistakably a tailed phage (icosahedral
     # head, contractile tail, tail fibres), so name, species and picture all agree
@@ -209,6 +212,9 @@ GIANT = {
     'penicillium-chrysogenum': ('Penicillin (Penicillium chrysogenum)', 'https://www.riesenmikroben.de/products/penicillin?locale=de'),
     # --- pathogens of cats and dogs ---
     'heartworm': ('Heartworm (Dirofilaria immitis)', 'https://www.riesenmikroben.de/products/herzwurm?locale=de'),
+    # species `taenia ovis`; the photo shows the scolex (suckers + hook crown)
+    # and the segmented ribbon — unmistakably this worm
+    'tapeworm': ('Tapeworm (Taenia ovis)', 'https://www.riesenmikroben.de/products/bandwurm?locale=de'),
     # the vendor publishes this one only at 200x200; kept at that size rather than
     # upscaled, for the same reason as the Leberzelle (see the note above AI_CLEANED).
     # Its white studio backdrop was made transparent by a plain flood fill — a
