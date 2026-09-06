@@ -13,3 +13,7 @@ Every microbe's `textbook` image — labelled SVG where built, else the last ren
 ## Spider-silk cell (`spider-silk-cell`)
 ![textbook](spider-silk-cell.textbook.svg)
 [full log](../../spider-silk-cell.render.md)
+
+## Synthetic minimal cell (JCVI-syn3A) (`synthetic-minimal-cell`)
+![textbook](synthetic-minimal-cell.textbook.svg)
+[full log](../../synthetic-minimal-cell.render.md)

@@ -173,6 +173,14 @@ GIANTmicrobes sells only the one antibody shape; our IgA/IgD/IgE/IgM entries hav
 | --- | --- | --- |
 | Mad Cow (BSE) | prion | ✅ `prion` |
 
+## Not alive at all
+
+| GIANTmicrobes product | Subject | In our atlas? |
+| --- | --- | --- |
+| Leben vom Mars ("Life on Mars?") | *ALH 84001* — the claimed Martian nanofossil | ✅ `alh-84001` (closes the atlas as its own set) |
+
+The plush depicts the segmented shape from the 1996 SEM images. Our entry links it because both are about the same object, while being explicit that every one of the four claimed biosignatures now has a non-biological explanation — the meteorite is genuine Martian rock, the evidence of life in it is not.
+
 ## Bacteriophages
 
 | GIANTmicrobes product | Subject | In our atlas? |
@@ -209,7 +217,7 @@ These GIANTmicrobes products aren't "have / don't have" candidates at all, becau
 - **Historical-figure dolls & puppets** — Charles Darwin, Charles Darwin Candle, Curie, Da Vinci, Leeuwenhoek Glass.
 - **Board games, kits & novelty prints** — Geekopoly, Healthopoly, Cytosis Biology Game, DoughLab Kit, Glo Germ Kit, Brain Dictionary Print, Face Art Print, History of Life Card/Poster, Journey Into the Body.
 - **Gift bundles, seasonal ornaments & mascot novelties with no single organism** — the various Geschenkbox/gift-box sets, Vaccine Packs, Broken Heart, Feeling Good Medal, Sick Day, Wellness Medal, Football Fever, Blind Date, and similar.
-- **Non-microbial wildlife & pest novelties** — Black Ant, Bookworm, C. elegans, Cockroach, Copepod, Euglena, Fruit Fly, House Fly, House Mouse, Krill, Lab Mice, Leech, Minnow, Norway Rat, Paramecium, Plankton, Termite, Trilobite, Waterbear (Tardigrade), various algae (Anabaena, Alexandrium tamarense, Noctiluca scintillans), and "Leben vom Mars" (the ALH 84001 Mars meteorite). Real organisms, but outside a human-body-and-its-pathogens atlas.
+- **Non-microbial wildlife & pest novelties** — Black Ant, Bookworm, C. elegans, Cockroach, Copepod, Euglena, Fruit Fly, House Fly, House Mouse, Krill, Lab Mice, Leech, Minnow, Norway Rat, Paramecium, Plankton, Termite, Trilobite, Waterbear (Tardigrade) and various algae (Anabaena, Alexandrium tamarense, Noctiluca scintillans). Real organisms, but outside a human-body-and-its-pathogens atlas.
 
 ## Summary
 

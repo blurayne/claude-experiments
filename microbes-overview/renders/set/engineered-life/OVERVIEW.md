@@ -56,6 +56,24 @@ A cell — a goat mammary cell, a bacterium or a silkworm cell, depending on the
 
 Full log: [`spider-silk-cell.render.md`](spider-silk-cell.render.md)
 
+## Synthetic minimal cell (JCVI-syn3A) (`synthetic-minimal-cell`)
+A bacterium whose entire genome was designed on a computer, chemically synthesised, and pared down to the essentials: JCVI-syn3.0 (2016) got by on just 473 genes, roughly half of what its nearest natural relative, Mycoplasma mycoides, carries. The later, division-stable version, JCVI-syn3A (2021), adds a handful back. It was not built from scratch, and roughly a third of its genes still have no known function.
+
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/synthetic-minimal-cell__textbook.avif) | ![sem](finals/synthetic-minimal-cell__sem.avif) | ![3d](finals/synthetic-minimal-cell__3d.avif) | ![watercolor](finals/synthetic-minimal-cell__watercolor.avif) | ![reference](finals/synthetic-minimal-cell__reference.avif) |
+
+**textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/synthetic-minimal-cell.textbook.svg) · [HTML](theme/textbook/synthetic-minimal-cell.textbook.html)
+![textbook labelled](theme/textbook/synthetic-minimal-cell.textbook.svg)
+
+**3d — labelled** (English default, La/De toggle): [SVG](theme/3d/synthetic-minimal-cell.3d.svg) · [HTML](theme/3d/synthetic-minimal-cell.3d.html)
+![3d labelled](theme/3d/synthetic-minimal-cell.3d.svg)
+
+**watercolor — labelled** (English default, La/De toggle): [SVG](theme/watercolor/synthetic-minimal-cell.watercolor.svg) · [HTML](theme/watercolor/synthetic-minimal-cell.watercolor.html)
+![watercolor labelled](theme/watercolor/synthetic-minimal-cell.watercolor.svg)
+
+Full log: [`synthetic-minimal-cell.render.md`](synthetic-minimal-cell.render.md)
+
 ## Status
 
 | name | styles | model | render count | pass | svg status | time taken | tokens used | costs |
@@ -75,7 +93,12 @@ Full log: [`spider-silk-cell.render.md`](spider-silk-cell.render.md)
 | Spider-silk cell | 3D medical render | gemini-3-pro-image | 2 | ✅ | built | 36s | 4693 | $0.086 |
 | Spider-silk cell | Watercolor plate | gemini-3-pro-image | 1 | ✅ | built | 20s | 2436 | $0.047 |
 | Spider-silk cell | TEM · Public domain | — (download) | 2 | ✅ | n/a | 0s | 0 | $0.000 |
+| Synthetic minimal cell (JCVI-syn3A) | Textbook illustration | gemini-3-pro-image | 6 | ✅ | built | 1.7m | 13040 | $0.259 |
+| Synthetic minimal cell (JCVI-syn3A) | SEM micrograph | gemini-3-pro-image | 1 | ✅ | pending (same pipeline) | 20s | 1894 | $0.039 |
+| Synthetic minimal cell (JCVI-syn3A) | 3D medical render | gemini-3-pro-image | 3 | ✅ | built | 43s | 5377 | $0.119 |
+| Synthetic minimal cell (JCVI-syn3A) | Watercolor plate | gemini-3-pro-image | 6 | ✅ | built | 1.7m | 12072 | $0.245 |
+| Synthetic minimal cell (JCVI-syn3A) | TEM (thin-section transmission electron micrograph) · CC BY 4.0 | — (download) | 1 | ✅ | n/a | 2s | 0 | $0.000 |
 
-**Set total: 42,011 tokens · $0.814**
+**Set total: 74,394 tokens · $1.475**
 
-_Updated 2026-09-06 10:08 local._
+_Updated 2026-09-06 11:17 local._

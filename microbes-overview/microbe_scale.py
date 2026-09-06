@@ -237,6 +237,13 @@ SCALE = {
     'feline-leukaemia-virus': (0.1, 1, 'fg'),
     'chlamydia-felis': (0.3, 0.1, 'pg'),   # elementary body; reticulate bodies reach ~1 µm
     'rabies-virus': (0.18, 6, 'fg'),       # 180 nm long, 75 nm across — bullet-shaped
+    # The atlas's one non-organism, and its heaviest object by a wide margin:
+    # the actual meteorite, 1.93 kg and roughly 15 cm across, so it pins the
+    # bar to full like the tick and the tapeworm. Deliberately NOT scaled to
+    # the claimed 20-100 nm "nanofossils" — giving those a size and a mass
+    # would quietly grant them the status the evidence does not support. Their
+    # dimensions belong in the text, where the argument about them lives.
+    'alh-84001': (150_000, 1_930_000, 'mg'),
 }
 
 # grams-per-unit, for converting to a common picogram scale for color-coding

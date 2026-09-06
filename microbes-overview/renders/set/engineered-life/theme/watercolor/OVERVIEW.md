@@ -13,3 +13,7 @@ Every microbe's `watercolor` image — labelled SVG where built, else the last r
 ## Spider-silk cell (`spider-silk-cell`)
 ![watercolor](spider-silk-cell.watercolor.svg)
 [full log](../../spider-silk-cell.render.md)
+
+## Synthetic minimal cell (JCVI-syn3A) (`synthetic-minimal-cell`)
+![watercolor](synthetic-minimal-cell.watercolor.svg)
+[full log](../../synthetic-minimal-cell.render.md)

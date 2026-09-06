@@ -222,6 +222,12 @@ GIANT = {
     'rabies-virus': ('Rabies - Deadly Virus Plush', 'https://www.riesenmikroben.de/products/tollwut?locale=de'),
     'saccharomyces-cerevisiae': ('Beer & Bread (Saccharomyces cerevisiae)', 'https://www.riesenmikroben.de/products/bierhefe?locale=de'),
     'bifidobacterium-longum': ('Bifido (Bifidobacterium longum)', 'https://www.riesenmikroben.de/products/bifido-bakterium?locale=de'),
+    # --- life on mars? ---
+    # species `alh 84001`. The plush is a red segmented worm — i.e. it depicts
+    # the *claimed* nanofossil from the 1996 SEM images, which is exactly what
+    # our entry is about. Linked because the toy and the entry are about the
+    # same object; the entry itself is clear that the claim did not survive.
+    'alh-84001': ('Leben vom Mars (Life on Mars?)', 'https://www.riesenmikroben.de/products/leben_vom_mars?locale=de'),
     # --- genetics ---
     # no `species` field on these three (it's blank); matched on the product
     # name itself, which is the exact subject name, and confirmed against the

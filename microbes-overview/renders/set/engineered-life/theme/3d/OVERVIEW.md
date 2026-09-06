@@ -13,3 +13,7 @@ Every microbe's `3d` image — labelled SVG where built, else the last render. [
 ## Spider-silk cell (`spider-silk-cell`)
 ![3d](spider-silk-cell.3d.svg)
 [full log](../../spider-silk-cell.render.md)
+
+## Synthetic minimal cell (JCVI-syn3A) (`synthetic-minimal-cell`)
+![3d](synthetic-minimal-cell.3d.svg)
+[full log](../../synthetic-minimal-cell.render.md)

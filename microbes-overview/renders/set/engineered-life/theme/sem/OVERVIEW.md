@@ -13,3 +13,7 @@ Every microbe's `sem` image — labelled SVG where built, else the last render. 
 ## Spider-silk cell (`spider-silk-cell`)
 ![sem](spider-silk-cell.attempts/gen-01__gemini-3-pro-image.avif)
 [full log](../../spider-silk-cell.render.md)
+
+## Synthetic minimal cell (JCVI-syn3A) (`synthetic-minimal-cell`)
+![sem](synthetic-minimal-cell.attempts/gen-01__gemini-3-pro-image.avif)
+[full log](../../synthetic-minimal-cell.render.md)

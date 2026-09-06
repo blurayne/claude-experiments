@@ -1,0 +1,64 @@
+{
+  "name": "Synthetic minimal cell (JCVI-syn3A)",
+  "short_description": "A bacterium whose entire genome was designed on a computer, chemically synthesised, and pared down to the essentials: JCVI-syn3.0 (2016) got by on just 473 genes, roughly half of what its nearest natural relative, Mycoplasma mycoides, carries. The later, division-stable version, JCVI-syn3A (2021), adds a handful back. It was not built from scratch, and roughly a third of its genes still have no known function.",
+  "svg_theme": "textbook",
+  "themes": {
+    "textbook": {
+      "1": "FAIL (2026-08-23, gemini-3-pro-image). Boundary drawn as a filled tan/beige band, not a contour.",
+      "2": "FAIL. Same band; flat-vector-icon phrasing did not move it.",
+      "3": "FAIL. Measured on the raw PNG: ~15 px of filled tan between a dark outer line and a bright inner highlight line — two edges, so it reads as an envelope rather than a membrane.",
+      "4": "FAIL, best-of-first-four. Band narrowed but still bounded on both sides; the chromosome also reads as a tidy closed coil rather than a loose nucleoid.",
+      "5": "FAIL (2026-09-06, gemini-2.5-flash-image, first v2 prompt). Real progress — the filled tan colour is gone, the fill between the contours measures (222,203,167) against a cytoplasm of (218,196,156), i.e. the same cream — but a scan at y=700 still finds TWO dark contours (x=125-127 and x=140-142, 12 px apart). Also only ~30 ribosome dots, several of them oversized, and one continuous chromosome thread running through both lobes instead of one per lobe.",
+      "6": "PASS, chosen (2026-09-06, gemini-3-pro-image, v3 prompt). Measured on the raw PNG: scanning inward at y=700 (left) and y=300 (right) each gives charcoal → ONE tan band of 8 px → cream, with no second contour and the same 8 px width on both sides (so it is a boundary, not a lighting gradient). On an ~800 px cell that band is 1.0% of the diameter, i.e. thinner than a to-scale 8 nm bilayer on a 400 nm cell would be (~2%); it matches the single tan rim the atlas already uses for a plasma membrane on car-t-cell__textbook, a cell that has no wall either. Counted: 120 teal ribosome dots (blob analysis, median 154 px), uniform in size, spread to the rim. Two separate open lavender tangles, one per lobe. Two lobes of equal size joined by a pinched neck — syn3A's even division, not syn3.0's blobs. Charcoal reaches all four edges (edge-row RGB 55/55/55, std <1.5): no border or letterbox. Magnified centre crop checked: no baked-in text."
+    },
+    "sem": {
+      "1": "PASS, chosen (2026-08-23, gemini-3-pro-image). One roughly spherical cell, surface softly creased and slack — the look of a bare membrane with nothing rigid under it. No spikes, hairs, pili, flagella or attached particles anywhere on the silhouette; no second cell. Correctly shows NO interior: a blob count for teal ribosome-coloured pixels returns 0, which is right for a surface modality. False-colour amber-to-violet on a dark textured substrate; all four edge bands are substrate (mean RGB ~35/37/55), no frame or vignette bar. No baked-in text."
+    },
+    "3d": {
+      "1": "FAIL on re-check (2026-08-23 render, re-examined 2026-09-06). The August log passed this as 'one continuous layer, verified by pixel/zoom'; the scan does not support that. At y=540 the profile is background → bright rim (239,226,229) at x=150 → dark trough (168,154,153) at x=170 → a SECOND bright rim (225,208,204) at x=200 → cytoplasm. Two rims with a gap is a double envelope. The chromosome is also a tidy ball rather than an unravelled coil.",
+      "2": "FAIL (2026-09-06, gemini-2.5-flash-image, v2 prompt). The 'quarter wedge lifted away' was read as a cracked eggshell: an opaque hemispherical lid floating above a thick-walled bowl. The shell has obvious thickness and opacity — the exact rigid-casing reading this subject must avoid — and the cytoplasm is not translucent.",
+      "3": "PASS, chosen (2026-09-06, gemini-3-pro-image, v3 prompt). Measured at y=540 scanning inward: background → bright film peaking at (244,252,255) x=128 → a single monotonic ramp down through (180,186,192) and (101,84,78) → amber cytoplasm (198,176,162) at x=170. One peak, one ramp, no trough and no second rim — a single boundary, unlike attempt 1. The film is rendered with visible volume, which is the atlas house convention for a plasma membrane (car-t-cell__3d, also wall-less, looks the same). Counted 35 teal-cyan granules, uniform size (median 289 px). One violet-indigo thread in wide open loops, not a ball. Natural amber/violet/teal tints, not neon. Background reaches all four edges (mean RGB ~14/17/24). Magnified crop: no baked-in text."
+    },
+    "watercolor": {
+      "1": "FAIL (2026-08-23, gemini-3-pro-image). Filled gold ring between two ink outlines.",
+      "2": "FAIL. Gap narrowed; second line still present.",
+      "3": "FAIL. Pixel-sampled: ~12 px of gold wash between two dark ink lines before reaching the cytoplasm cream. The atmospheric wash also formed a neat halo concentric with the cell instead of an off-centre stain.",
+      "4": "FAIL (2026-09-06, gemini-2.5-flash-image, v2 prompt). Worse: the cell came back as a ROD/capsule rather than a sphere, fringed all round with fine hairs that read as pili, and pushed small into the top-right corner. The 'wavering ink stroke' wording was being read as hatching.",
+      "5": "FAIL (2026-09-06, gemini-3-pro-image, v3 prompt). Shape, size, placement and the off-centre sepia stain are all fixed, but the boundary is still layered: scanning in at y=540 gives paper (245,233,217) → ink line (131,109,85) at x=275 → 8 px of tan (210,181,146) → a SECOND, darker ink line (84,48,16) at x=286 → cream cytoplasm. Two ink lines with a band between them is the failure, not the band itself.",
+      "6": "PASS, chosen (2026-09-06, gemini-3-pro-image, v4 prompt). The fix was to stop asking for an outline at all and ask for a wash that dries with its own lip. Scanning in at y=520: paper (241,219,180) → a single dark lip bottoming out at (173,141,92) around x=228-234 → a smooth monotonic lightening through (213,183,133) and (222,194,148) into cream (244,230,203). One transition, no second line anywhere on the circumference. Round cell (as wide as tall), large and centred; sepia stain runs diagonally from the lower left past the specimen rather than ringing it. Counted 69 teal stipple dots. One unravelled grey-violet thread in open loops. Paper fills the square to all four edges (edge-band means 237-243 R): no mat, sheet or frame. Magnified centre crop: no baked-in text."
+    }
+  },
+  "reference": "PASS as the subject itself, not a substitute (2026-09-06, downloaded and viewed). Transmission electron micrograph of JCVI-Syn3A grown on the standard FBS lipid diet: Justice, Kiesel, Safronova, von Appen & Saenz (2024), Nature Communications 15:9679, Fig. 4c (row 'Normal', column 'JCVI-Syn3A FBS'), CC BY 4.0. No species substitution was needed — the August session had concluded no free image of syn3A existed, which was wrong: it had searched for SEM plates and for the 2016 Science/2021 Cell papers (both indeed closed), and missed this open-access 2024 paper. Cleaned by a deterministic Pillow crop+LANCZOS resize only; edit_image.py was deliberately not run, because the crop already excludes the burnt-in '1 um' scale bar and the panel lettering and there is nothing else to remove. Flagged honestly: the crop is 200x200 native pixels UPSCALED 5.4x to 1080 (the 1869x2130 Springer 'full' composite is the largest version published; the PDF's embedded copy is smaller still), so the plate is soft. Measured against the figure's own scale bar (1 um = 181 px): the cell is ~0.48 um on its long axis and ~0.39 um across, consistent with the ~400 nm in the reference. Readable in the image: one isolated ovoid cell, a single thin boundary with no second track outside it, a uniformly granular ribosome-dense interior, no internal compartment, no surface appendages. NOT readable and therefore not claimed: the chromosome as a distinct nucleoid, and individual ribosomes as countable particles.",
+  "decision": [
+    [
+      "textbook",
+      "teaching-ready",
+      6,
+      "The primary labelled figure. Chosen for the division view: two equal round lobes on a pinched neck, which is precisely the defect syn3A exists to fix. Boundary measured as one 8 px tan band (1.0% of cell diameter) with no second contour on either side. 120 uniform ribosome dots counted; one open chromosome tangle per lobe. All 6 label anchors sampled on the RAW PNG, not the rasterised SVG."
+    ],
+    [
+      "sem",
+      "teaching-ready",
+      1,
+      "Surface modality, so it carries the shape argument alone: a slack, softly creased sphere with a bare silhouette — no pili, flagella, hairs or particles. Shows no interior at all, which is correct and is stated rather than treated as a gap. Not labelled (nothing on the surface to point at)."
+    ],
+    [
+      "3d",
+      "teaching-ready",
+      3,
+      "Accepted after overturning the August PASS on attempt 1, which pixel-scanning showed to have two bright rims and a trough between them. Attempt 3's scan is a single monotonic ramp. Compromise recorded: the membrane is still drawn with visible volume rather than as a hairline — that is the atlas's own 3d convention for a plasma membrane (car-t-cell__3d is identical and also wall-less), but on this particular subject a reader could read thickness as a wall, so the label says 'Plasma membrane (no cell wall)' explicitly."
+    ],
+    [
+      "watercolor",
+      "teaching-ready",
+      6,
+      "Six attempts, five of them lost to the same two-ink-line boundary. Fixed by removing the pen from the cell's edge entirely and asking for a wash that dries with its own darker lip; the boundary is now a single monotonic transition. Compromise recorded: the plate therefore has no ink contour on the cell at all, which is a mild departure from the atlas's watercolour siblings, and the dried lip is broad (~15 px of lip fading over a further ~90 px) rather than crisp."
+    ]
+  ],
+  "coloring": "Composed page measured with cairosvg at 500 px, ink fraction in the outermost rows/cols of the top 72% of the A4 page (NOT the raw traced bitmap): top 0.0000, bottom 0.1180, left 0.0413, right 0.0334. Three edges bleed, all inside the ~0.02-0.27 target band; the top is 0.0000 by construction, as it is on all ~120 pages, because the speech bubble occupies the top of the frame. Three flash attempts: gen-01 left the character inset (left 0.0000, right 0.0098), gen-03 shrank it further (bottom 0.0180). gen-02 was the best composition, and rather than spend a fourth API call it was rescued the documented way — a deterministic 1.22x zoom-crop about (0.50, 0.52) re-traced through coloring.py's own to_bitmap/trace_paths (saved as gen-04__zoomcrop-of-gen-02.png), which lifted left from 0.0118 to 0.0413 and bottom from 0.1180. No frame appeared at any attempt, so no border crop was needed. Compromise recorded: the small twin cell at the top right traced as a slightly scruffy speckled blob rather than a clean second face — legible as 'another one just like me', but it is the weakest shape on the page. Speech lines carry real em dashes and a real 'ä' in 'Rätsel'.",
+  "notes": [
+    "Ribosome and granule counts in the verdicts above are measured by connected-component analysis on the raw PNGs (teal mask, 15-3000 px blobs), not estimated by eye.",
+    "The '~1/3 of genes have no known function' figure used in the labels and descriptions is the 2016 published annotation: 149 of syn3.0's 473 genes (Hutchison et al., Science). Later reannotation has reduced the count of completely uncharacterised genes; the atlas text stays with the sourced 2016 number and calls it 'roughly a third'.",
+    "No Imagen tier was used. gemini-3-pro-image never returned 429 during this session, so no style was quota-capped: every verdict above is a judgement, not a budget outcome."
+  ]
+}
