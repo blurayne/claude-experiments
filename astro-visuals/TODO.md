@@ -3,6 +3,26 @@
 Everything the owner asks for lands here first, as a checkbox, and is committed on its own
 before the work starts. An item is ticked when it ships, with the version that carried it.
 
+## 2026-09-06
+
+- [ ] Break the page into modules and move it to TypeScript, so there is somewhere to put
+      the next thing. Vite bundles `src/` back into the same single self-contained
+      `galactic-transit.html`; `sw.js`, the PWA and the build stamp are untouched. The
+      astronomy and the generators become pure functions with no DOM and no GL — which is
+      also what a WASM port would need later, though none is built here. Tests: unit tests
+      on the maths, headless screenshot parity against today's build under a seeded RNG,
+      and a boot test that catches what a parse check cannot. Refactor only — nothing may
+      move a pixel.
+- [ ] Then: the Milky Way's and Andromeda's rotation, checked against the measurements
+      rather than against the piece's own convenience — the flat curve, the pattern speed
+      and the corotation radius, rebuilding the point sets if that is what it takes.
+- [ ] Then: redo the merger against the current simulations — the Gaia-era proper motions,
+      what M33 and the LMC do to the orbit, and the real spread of outcomes rather than one
+      median track.
+- [ ] Then: what becomes of the Earth and the Sun once the Sun has expanded. Check the
+      planetary nebula against the science; if it is right, leave it alone or make it
+      prettier.
+
 ## 2026-09-01
 
 - [x] The Moon in the view list, followed like Earth — v2.78.0.
