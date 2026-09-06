@@ -1737,12 +1737,17 @@ PAGES = [
                 "name_de": "Listeria monocytogenes",
                 "name_en": "Listeria monocytogenes",
                 "related": ["cytoskeleton"],
+                # the everyday German plural is what a German reader actually
+                # types into the search box; without it the entry is unfindable
+                # under its own common name
+                "name_kids_de": "Listerien",
+                "name_kids_en": "Listeria",
                 "tier": "basic",
                 "image_filename": "",
                 "image_url": "",
                 "image_credit": "",
                 "image_license": "",
-                "func_de": "Stäbchenbakterium, das sich sogar im Kühlschrank noch vermehrt. Es dringt in Körperzellen ein und schiebt sich mit einem Aktin-Schweif von Zelle zu Zelle; für Schwangere und Immungeschwächte ist es besonders gefährlich.",
+                "func_de": "Stäbchenbakterium — im Alltag meist Listerien genannt —, das sich sogar im Kühlschrank noch vermehrt. Es dringt in Körperzellen ein und schiebt sich mit einem Aktin-Schweif von Zelle zu Zelle; für Schwangere und Immungeschwächte ist es besonders gefährlich. Die Erkrankung heißt Listeriose.",
                 "func_en": "Rod-shaped bacterium that keeps growing even at fridge temperature. It invades body cells and pushes itself from cell to cell on a tail of actin; it is especially dangerous in pregnancy and for people with weakened immunity.",
                 "deps_de": "Risikolebensmittel sind Rohmilchkäse, Räucherfisch und Aufschnitt — Durcherhitzen tötet das Bakterium zuverlässig ab.",
                 "deps_en": "Raw-milk cheese, smoked fish and cold cuts are the risky foods — heating them through kills the bacterium reliably.",
@@ -1931,12 +1936,16 @@ PAGES = [
             {
                 "name_de": "Giardia lamblia (Lambliasis)",
                 "name_en": "Giardia lamblia (giardiasis)",
+                # "Giardien" (and the older "Lamblien") are the words a German
+                # reader searches for — see the Listeria note above
+                "name_kids_de": "Giardien",
+                "name_kids_en": "Giardia",
                 "tier": "basic",
                 "image_filename": "",
                 "image_url": "",
                 "image_credit": "",
                 "image_license": "",
-                "func_de": "Einzelliger Darmparasit mit zwei Zellkernen und einer Haftscheibe, mit der er sich an der Dünndarmwand festsaugt. Er wird über verunreinigtes Wasser aufgenommen und stört die Fettverdauung.",
+                "func_de": "Einzelliger Darmparasit — auf Deutsch meist Giardien, früher auch Lamblien genannt — mit zwei Zellkernen und einer Haftscheibe, mit der er sich an der Dünndarmwand festsaugt. Er wird über verunreinigtes Wasser aufgenommen und stört die Fettverdauung.",
                 "func_en": "Single-celled gut parasite with two nuclei and a sucker disc that clamps onto the wall of the small intestine. Picked up from contaminated water, it disrupts the digestion of fat.",
                 "deps_de": "Wasser aus Bächen und Seen abkochen oder filtern; die Infektion wird mit gezielten Medikamenten behandelt.",
                 "deps_en": "Boil or filter water from streams and lakes; the infection is cleared with targeted medication.",
