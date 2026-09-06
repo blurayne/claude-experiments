@@ -6,6 +6,10 @@ Every microbe's `sem` image — labelled SVG where built, else the last render. 
 ![sem](alveolar-cell-type-ii.attempts/gen-01__gemini-2.5-flash-image.avif)
 [full log](../../alveolar-cell-type-ii.render.md)
 
+## Beta cell (insulin factory) (`beta-cell`)
+![sem](beta-cell.attempts/gen-01__gemini-2.5-flash-image.avif)
+[full log](../../beta-cell.render.md)
+
 ## Enterocyte (gut cell) (`enterocyte`)
 ![sem](enterocyte.attempts/gen-01__gemini-2.5-flash-image.avif)
 [full log](../../enterocyte.render.md)
@@ -25,6 +29,14 @@ Every microbe's `sem` image — labelled SVG where built, else the last render. 
 ## Paneth cell (`paneth-cell`)
 ![sem](paneth-cell.attempts/gen-01__gemini-2.5-flash-image.avif)
 [full log](../../paneth-cell.render.md)
+
+## Parietal cell (stomach acid cell) (`parietal-cell`)
+![sem](parietal-cell.attempts/gen-02__gemini-2.5-flash-image.avif)
+[full log](../../parietal-cell.render.md)
+
+## Podocyte (kidney filter cell) (`podocyte`)
+![sem](podocyte.attempts/gen-03__gemini-2.5-flash-image.avif)
+[full log](../../podocyte.render.md)
 
 ## Urothelial cell (umbrella cell) (`urothelial-cell`)
 ![sem](urothelial-cell.attempts/gen-01__gemini-2.5-flash-image.avif)

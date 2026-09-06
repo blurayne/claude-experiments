@@ -38,6 +38,14 @@ true counterpart simply gets no plush button. Notably NOT linked, and why:
     a different species in the same genus. Same genus is not the same organism,
     and the cat one causes conjunctivitis while the human one is an STI.
   - FIV and FeLV — no feline retrovirus plush exists.
+  - type I / II / IIa / IIx muscle fibres — "Muscle Cell (Myocyte)" is species
+    `myocytus striatus`, the *generic* striated myocyte; it depicts no
+    particular fibre type, so none of the four specific fibres gets it (same
+    reasoning as the generic leukocyte before `white-blood-cell` existed).
+  - cardiac macrophage, intracardiac neuron — the "Macrophage" and "Nerve
+    Cell (Neuron)" plushes are the generic cells (already linked to
+    `macrophage` and `neuron`); these heart-resident populations are specific
+    variants no plush depicts.
   - enterocyte — their "Celiac Disease" plush is species `enterozyt`, but the
     photo depicts finger-like villi and a zipped-shut mouth (the disease
     concept, gut lining zipped closed by gluten intolerance), not a single
@@ -56,6 +64,18 @@ A few 2026-08 additions are worth a word:
     name itself, which *is* the subject's exact name/common noun (DNA, RNA,
     Chromosome, Mitochondria) — verified against the product photo, not text
     alone, per the "exact match" rule above.
+
+And the 2026-09 batch:
+  - podocyte / parietal-cell / beta-cell — clean species matches (`podozyt`,
+    `parietalzelle`, `betazelle`); the Kidney Cell photo unmistakably shows the
+    interdigitating foot processes, the Magenzelle the flask shape, the Beta
+    Cell its blue insulin-granule ball. The Magenzelle photo is another
+    200x200-only vendor original (see the Leberzelle note above) — kept small
+    and soft rather than upscaled.
+  - animal-cell, plant-cell — blank `species` like DNA/RNA above, so matched on
+    the product name being the subject's exact name, confirmed against the
+    photos (round cutaway with printed organelles / rectangular green box with
+    wall, vacuole and chloroplasts).
 """
 
 # Photos we had to repair, all with scripts/edit_image.py (gemini-2.5-flash-image).
@@ -107,11 +127,18 @@ GIANT = {
     # the one keychain in this table (see KEYCHAIN above); riesenmikroben.de
     # does not carry it, so this is the only US-only link among the organelles
     'nucleus': ('Nucleus Key Chain - Cell Science Gift', 'https://www.giantmicrobes.com/us/products/nucleus-key-chain.html'),
+    # --- whole cells (closing the organelles set) ---
+    'animal-cell': ('Animal Cell', 'https://www.riesenmikroben.de/products/tierzelle?locale=de'),
+    'plant-cell': ('Plant Cell', 'https://www.riesenmikroben.de/products/pflanzenzelle?locale=de'),
     # --- stem cells ---
     'hematopoietic-stem-cell': ('Stem Cell Gigantic 14"', 'https://www.riesenmikroben.de/products/gig_stammzelle?locale=de'),
     # --- epithelial ---
     'keratinocyte': ('Skin Cell (Keratinocyte)', 'https://www.riesenmikroben.de/products/hautzelle?locale=de'),
     'hepatocyte': ('Leberzelle (Liver Cell)', 'https://www.riesenmikroben.de/products/leberzelle?locale=de'),
+    'podocyte': ('Kidney Cell (Podocyte)', 'https://www.riesenmikroben.de/products/nierenzelle?locale=de'),
+    # vendor photo exists only at 200x200 — same story as the Leberzelle
+    'parietal-cell': ('Magenzelle (Stomach Cell)', 'https://www.riesenmikroben.de/products/magenzelle?locale=de'),
+    'beta-cell': ('Diabetes Beta Cell with Insulin', 'https://www.riesenmikroben.de/products/betazelle?locale=de'),
     # --- nerve cells ---
     'neuron': ('Nerve Cell (Neuron)', 'https://www.riesenmikroben.de/products/nervenzelle?locale=de'),
     # --- reproductive ---
@@ -127,6 +154,9 @@ GIANT = {
     'erythrocyte': ('Red Blood Cell (Erythrocyte)', 'https://www.riesenmikroben.de/products/rotes_blutkoerperchen?locale=de'),
     'thrombocyte': ('Platelet (Thrombocyte)', 'https://www.riesenmikroben.de/products/blutplaettchen?locale=de'),
     'sickle-cell': ('Sickle Cell - Blood Health Plush', 'https://www.riesenmikroben.de/products/sichelzellkrankheit?locale=de'),
+    # species `blutplasma`; the plush is the straw-yellow liquid itself, a
+    # puddle with a rising drop — a fluid, not a cell, exactly like our entry
+    'blood-plasma': ('Plasma (Blood plasma)', 'https://www.riesenmikroben.de/products/blutplasma?locale=de'),
     # --- immune cells ---
     'cytotoxic-t-cell': ('Killer T Cell - Immune Defender Plush', 'https://www.giantmicrobes.com/us/products/killer-t-cell.html'),
     'macrophage': ('Macrophage - Immune System Plush', 'https://www.riesenmikroben.de/products/makrophage?locale=de'),

@@ -20,6 +20,24 @@ Small cuboidal lung cell packed with lamellar bodies that store and secrete pulm
 
 Full log: [`alveolar-cell-type-ii.render.md`](alveolar-cell-type-ii.render.md)
 
+## Beta cell (insulin factory) (`beta-cell`)
+Insulin-secreting endocrine cell of the pancreatic islets of Langerhans: a rounded polygonal cell whose TEM signature is its thousands of insulin secretory granules — each a membrane-bound vesicle holding a dense, often angular crystalline zinc-insulin core inside a clear pale halo. It senses blood glucose through its own metabolism and releases the granules by exocytosis toward an adjacent fenestrated capillary, in pulses.
+
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/beta-cell__textbook.avif) | ![sem](finals/beta-cell__sem.avif) | ![3d](finals/beta-cell__3d.avif) | ![watercolor](finals/beta-cell__watercolor.avif) | ![reference](finals/beta-cell__reference.avif) |
+
+**textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/beta-cell.textbook.svg) · [HTML](theme/textbook/beta-cell.textbook.html)
+![textbook labelled](theme/textbook/beta-cell.textbook.svg)
+
+**3d — labelled** (English default, La/De toggle): [SVG](theme/3d/beta-cell.3d.svg) · [HTML](theme/3d/beta-cell.3d.html)
+![3d labelled](theme/3d/beta-cell.3d.svg)
+
+**watercolor — labelled** (English default, La/De toggle): [SVG](theme/watercolor/beta-cell.watercolor.svg) · [HTML](theme/watercolor/beta-cell.watercolor.html)
+![watercolor labelled](theme/watercolor/beta-cell.watercolor.svg)
+
+Full log: [`beta-cell.render.md`](beta-cell.render.md)
+
 ## Enterocyte (gut cell) (`enterocyte`)
 Tall column-shaped absorptive cell with a dense apical brush border (microvilli). Absorbs nutrients from the gut lumen and passes them into the body; replaced every few days by intestinal stem cells and forms a barrier against gut microbes.
 
@@ -110,6 +128,42 @@ Pyramidal secretory epithelial cell at the base of small-intestinal crypts, pack
 
 Full log: [`paneth-cell.render.md`](paneth-cell.render.md)
 
+## Parietal cell (stomach acid cell) (`parietal-cell`)
+Large plump pyramidal acid-secreting cell of the gastric glands: deeply invaginated intracellular secretory canaliculi lined with microvilli, an extreme density of mitochondria (about a third of cell volume) powering H+/K+-ATPase proton pumps that acidify the stomach to pH 1; also the source of intrinsic factor for vitamin B12 uptake.
+
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/parietal-cell__textbook.avif) | ![sem](finals/parietal-cell__sem.avif) | ![3d](finals/parietal-cell__3d.avif) | ![watercolor](finals/parietal-cell__watercolor.avif) | ![reference](finals/parietal-cell__reference.avif) |
+
+**textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/parietal-cell.textbook.svg) · [HTML](theme/textbook/parietal-cell.textbook.html)
+![textbook labelled](theme/textbook/parietal-cell.textbook.svg)
+
+**3d — labelled** (English default, La/De toggle): [SVG](theme/3d/parietal-cell.3d.svg) · [HTML](theme/3d/parietal-cell.3d.html)
+![3d labelled](theme/3d/parietal-cell.3d.svg)
+
+**watercolor — labelled** (English default, La/De toggle): [SVG](theme/watercolor/parietal-cell.watercolor.svg) · [HTML](theme/watercolor/parietal-cell.watercolor.html)
+![watercolor labelled](theme/watercolor/parietal-cell.watercolor.svg)
+
+Full log: [`parietal-cell.render.md`](parietal-cell.render.md)
+
+## Podocyte (kidney filter cell) (`podocyte`)
+Octopus-shaped epithelial cell that wraps its arms around the kidney's glomerular capillaries. A few thick major processes branch into thousands of interdigitating foot processes (pedicels), and the ~30–40 nm filtration slits between them — bridged by the nephrin slit diaphragm — form the finest layer of the blood filter. Post-mitotic: lost podocytes are never replaced.
+
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/podocyte__textbook.avif) | ![sem](finals/podocyte__sem.avif) | ![3d](finals/podocyte__3d.avif) | ![watercolor](finals/podocyte__watercolor.avif) | ![reference](finals/podocyte__reference.avif) |
+
+**textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/podocyte.textbook.svg) · [HTML](theme/textbook/podocyte.textbook.html)
+![textbook labelled](theme/textbook/podocyte.textbook.svg)
+
+**3d — labelled** (English default, La/De toggle): [SVG](theme/3d/podocyte.3d.svg) · [HTML](theme/3d/podocyte.3d.html)
+![3d labelled](theme/3d/podocyte.3d.svg)
+
+**watercolor — labelled** (English default, La/De toggle): [SVG](theme/watercolor/podocyte.watercolor.svg) · [HTML](theme/watercolor/podocyte.watercolor.html)
+![watercolor labelled](theme/watercolor/podocyte.watercolor.svg)
+
+Full log: [`podocyte.render.md`](podocyte.render.md)
+
 ## Urothelial cell (umbrella cell) (`urothelial-cell`)
 Large, dome-shaped surface cell of the bladder's transitional epithelium (urothelium). Its apical membrane is armored with rigid uroplakin plaques and can unfold via a reserve pool of fusiform vesicles as the bladder fills, while tight junctions and a glycosaminoglycan coat seal it against acidic, hypertonic urine.
 
@@ -137,6 +191,11 @@ Full log: [`urothelial-cell.render.md`](urothelial-cell.render.md)
 | Alveolar cell type II | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 19s | 1597 | $0.039 |
 | Alveolar cell type II | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 21s | 1616 | $0.039 |
 | Alveolar cell type II | TEM · Public Domain | — (edit) | 2 | ✅ | n/a | 3.6m | 1752 | $0.039 |
+| Beta cell (insulin factory) | Textbook illustration | gemini-2.5-flash-image | 1 | ✅ | built | 6s | 1859 | $0.039 |
+| Beta cell (insulin factory) | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 6s | 1666 | $0.039 |
+| Beta cell (insulin factory) | 3D medical render | gemini-3-pro-image | 3 | ✅ | built | 37s | 6005 | $0.131 |
+| Beta cell (insulin factory) | Watercolor plate | gemini-2.5-flash-image | 4 | ✅ | built | 28s | 7088 | $0.155 |
+| Beta cell (insulin factory) | TEM · Public domain (NASA) | — (download) | 2 | ✅ | n/a | 0s | 0 | $0.000 |
 | Enterocyte (gut cell) | Textbook illustration | gemini-2.5-flash-image | 1 | ✅ | built | 14s | 1738 | $0.039 |
 | Enterocyte (gut cell) | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 12s | 1565 | $0.039 |
 | Enterocyte (gut cell) | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 12s | 1668 | $0.039 |
@@ -162,12 +221,22 @@ Full log: [`urothelial-cell.render.md`](urothelial-cell.render.md)
 | Paneth cell | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 20s | 1615 | $0.039 |
 | Paneth cell | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 18s | 1610 | $0.039 |
 | Paneth cell | H&E light micrograph · CC0 1.0 (public domain) | — (download) | 1 | ✅ | n/a | 8s | 0 | $0.000 |
+| Parietal cell (stomach acid cell) | Textbook illustration | gemini-3-pro-image | 3 | ✅ | built | 35s | 5898 | $0.127 |
+| Parietal cell (stomach acid cell) | SEM micrograph | gemini-2.5-flash-image | 2 | ✅ | pending (same pipeline) | 12s | 3232 | $0.077 |
+| Parietal cell (stomach acid cell) | 3D medical render | gemini-2.5-flash-image | 2 | ✅ | built | 13s | 3242 | $0.077 |
+| Parietal cell (stomach acid cell) | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 6s | 1650 | $0.039 |
+| Parietal cell (stomach acid cell) | H&E light micrograph · Public domain | — (download) | 2 | ✅ | n/a | 0s | 0 | $0.000 |
+| Podocyte (kidney filter cell) | Textbook illustration | gemini-2.5-flash-image | 3 | ✅ | built | 20s | 6493 | $0.116 |
+| Podocyte (kidney filter cell) | SEM micrograph | gemini-2.5-flash-image | 3 | ✅ | pending (same pipeline) | 20s | 5834 | $0.116 |
+| Podocyte (kidney filter cell) | 3D medical render | gemini-2.5-flash-image | 3 | ✅ | built | 21s | 6034 | $0.116 |
+| Podocyte (kidney filter cell) | Watercolor plate | gemini-3-pro-image | 5 | ✅ | built | 49s | 11219 | $0.204 |
+| Podocyte (kidney filter cell) | SEM · CC BY-SA 3.0 | — (download) | 2 | ✅ | n/a | 0s | 0 | $0.000 |
 | Urothelial cell (umbrella cell) | Textbook illustration | gemini-2.5-flash-image | 1 | ✅ | built | 27s | 1710 | $0.039 |
 | Urothelial cell (umbrella cell) | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 21s | 1529 | $0.039 |
 | Urothelial cell (umbrella cell) | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 21s | 1640 | $0.039 |
 | Urothelial cell (umbrella cell) | Watercolor plate | gemini-3-pro-image | 4 | ✅ | built | 1.7m | 7834 | $0.164 |
 | Urothelial cell (umbrella cell) | light (H&E) · CC BY-SA 3.0 | — (download) | 1 | ✅ | n/a | 16s | 0 | $0.000 |
 
-**Set total: 83,719 tokens · $1.812**
+**Set total: 143,939 tokens · $3.049**
 
-_Updated 2026-08-23 22:39 local._
+_Updated 2026-09-06 08:51 local._

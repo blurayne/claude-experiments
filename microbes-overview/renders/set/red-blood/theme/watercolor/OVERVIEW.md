@@ -2,6 +2,10 @@
 
 Every microbe's `watercolor` image — labelled SVG where built, else the last render. [← set overview](../../OVERVIEW.md)
 
+## Blood plasma (`blood-plasma`)
+![watercolor](blood-plasma.watercolor.svg)
+[full log](../../blood-plasma.render.md)
+
 ## Erythroblast (`erythroblast`)
 ![watercolor](erythroblast.watercolor.svg)
 [full log](../../erythroblast.render.md)

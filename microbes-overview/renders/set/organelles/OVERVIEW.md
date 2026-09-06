@@ -2,6 +2,24 @@
 
 Final image per microbe × style (last attempt), the labelled SVG, and the real-microscopy reference. Status table at the bottom.
 
+## Animal cell (`animal-cell`)
+The umbrella subject closing the organelles set: the generic textbook animal cell — an irregularly rounded bag of cytoplasm bounded only by its plasma membrane, shown in cutaway with the set's parts assembled in place: nucleus with nucleolus and pores, rough ER continuous with the nuclear envelope, smooth ER, a separate Golgi stack with budding vesicles, several cristae-filled mitochondria, lysosomes, free ribosomes, a centriole pair and cytoskeleton filaments.
+
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/animal-cell__textbook.avif) | ![sem](finals/animal-cell__sem.avif) | ![3d](finals/animal-cell__3d.avif) | ![watercolor](finals/animal-cell__watercolor.avif) | ![reference](finals/animal-cell__reference.avif) |
+
+**textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/animal-cell.textbook.svg) · [HTML](theme/textbook/animal-cell.textbook.html)
+![textbook labelled](theme/textbook/animal-cell.textbook.svg)
+
+**3d — labelled** (English default, La/De toggle): [SVG](theme/3d/animal-cell.3d.svg) · [HTML](theme/3d/animal-cell.3d.html)
+![3d labelled](theme/3d/animal-cell.3d.svg)
+
+**watercolor — labelled** (English default, La/De toggle): [SVG](theme/watercolor/animal-cell.watercolor.svg) · [HTML](theme/watercolor/animal-cell.watercolor.html)
+![watercolor labelled](theme/watercolor/animal-cell.watercolor.svg)
+
+Full log: [`animal-cell.render.md`](animal-cell.render.md)
+
 ## Cell membrane (plasma membrane) (`cell-membrane`)
 The cell's boundary, and at about five nanometres astonishingly thin: a double layer of fat molecules with water-loving heads facing out and water-fearing tails facing in. Embedded proteins act as channels, pumps and receptors, and sugar chains on the outside serve as identification.
 
@@ -128,6 +146,24 @@ The cell's archive and control room: a spherical organelle bounded by a DOUBLE m
 
 Full log: [`nucleus.render.md`](nucleus.render.md)
 
+## Plant cell (`plant-cell`)
+The companion umbrella subject to the animal cell: the generic textbook plant cell, rendered for contrast — a boxy cell shaped by its rigid cellulose wall, with the plasma membrane just inside, ONE huge watery central vacuole (tonoplast-bounded) pressing everything to the edges, green lens-shaped chloroplasts with coin-stack grana, a peripheral nucleus, smaller cristae-filled mitochondria, rough ER, a Golgi stack and plasmodesmata channels through the wall.
+
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/plant-cell__textbook.avif) | ![sem](finals/plant-cell__sem.avif) | ![3d](finals/plant-cell__3d.avif) | ![watercolor](finals/plant-cell__watercolor.avif) | ![reference](finals/plant-cell__reference.avif) |
+
+**textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/plant-cell.textbook.svg) · [HTML](theme/textbook/plant-cell.textbook.html)
+![textbook labelled](theme/textbook/plant-cell.textbook.svg)
+
+**3d — labelled** (English default, La/De toggle): [SVG](theme/3d/plant-cell.3d.svg) · [HTML](theme/3d/plant-cell.3d.html)
+![3d labelled](theme/3d/plant-cell.3d.svg)
+
+**watercolor — labelled** (English default, La/De toggle): [SVG](theme/watercolor/plant-cell.watercolor.svg) · [HTML](theme/watercolor/plant-cell.watercolor.html)
+![watercolor labelled](theme/watercolor/plant-cell.watercolor.svg)
+
+Full log: [`plant-cell.render.md`](plant-cell.render.md)
+
 ## Ribosome (`ribosome`)
 The protein factory, and at about 25 nanometres one of the smallest objects in this atlas — a naked, membrane-free molecular machine of RNA and protein, built from two UNEQUAL subunits (a bulkier large subunit capping onto a smaller one) that clamp a single-stranded mRNA thread through the groove between them and step tRNAs through three adjacent A/P/E pockets while the growing protein chain threads out through an exit tunnel in the large subunit alone.
 
@@ -150,6 +186,11 @@ Full log: [`ribosome.render.md`](ribosome.render.md)
 
 | name | styles | model | render count | pass | svg status | time taken | tokens used | costs |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Animal cell | Textbook illustration | gemini-3-pro-image | 5 | ✅ | built | 50s | 11089 | $0.202 |
+| Animal cell | SEM micrograph | gemini-3-pro-image | 3 | ✅ | pending (same pipeline) | 36s | 5797 | $0.120 |
+| Animal cell | 3D medical render | gemini-3-pro-image | 3 | ✅ | built | 40s | 6675 | $0.133 |
+| Animal cell | Watercolor plate | gemini-3-pro-image | 5 | ✅ | built | 54s | 10542 | $0.210 |
+| Animal cell | TEM · Public domain | — (edit) | 2 | ✅ | n/a | 0s | 0 | $0.000 |
 | Cell membrane (plasma membrane) | Textbook illustration | gemini-2.5-flash-image | 1 | ✅ | built | 6s | 1907 | $0.039 |
 | Cell membrane (plasma membrane) | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 7s | 1614 | $0.039 |
 | Cell membrane (plasma membrane) | 3D medical render | gemini-2.5-flash-image | 4 | ✅ | built | 26s | 7228 | $0.155 |
@@ -185,12 +226,17 @@ Full log: [`ribosome.render.md`](ribosome.render.md)
 | Nucleus | 3D medical render | gemini-2.5-flash-image | 1 | ✅ | built | 8s | 1894 | $0.039 |
 | Nucleus | Watercolor plate | gemini-2.5-flash-image | 1 | ✅ | built | 7s | 1930 | $0.039 |
 | Nucleus | TEM · Public domain | — (download) | 2 | ✅ | n/a | 0s | 0 | $0.000 |
+| Plant cell | Textbook illustration | gemini-3-pro-image | 4 | ✅ | built | 48s | 10283 | $0.179 |
+| Plant cell | SEM micrograph | gemini-2.5-flash-image | 2 | ✅ | pending (same pipeline) | 13s | 3713 | $0.077 |
+| Plant cell | 3D medical render | gemini-2.5-flash-image | 2 | ✅ | built | 15s | 3888 | $0.077 |
+| Plant cell | Watercolor plate | gemini-3-pro-image | 4 | ✅ | built | 46s | 9165 | $0.171 |
+| Plant cell | light micrograph (brightfield) · CC BY-SA 3.0 | — (download) | 1 | ✅ | n/a | 1s | 0 | $0.000 |
 | Ribosome | Textbook illustration | gemini-2.5-flash-image | 2 | ✅ | built | 13s | 4062 | $0.077 |
 | Ribosome | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 6s | 1672 | $0.039 |
 | Ribosome | 3D medical render | gemini-3-pro-image | 5 | ✅ | built | 1.1m | 11582 | $0.218 |
 | Ribosome | Watercolor plate | gemini-3-pro-image | 4 | ✅ | built | 46s | 8917 | $0.174 |
 | Ribosome | structural-model · CC BY-SA 3.0 / GFDL 1.2+ | — (edit) | 2 | ✅ | n/a | 0s | 0 | $0.000 |
 
-**Set total: 128,574 tokens · $2.501**
+**Set total: 189,726 tokens · $3.671**
 
-_Updated 2026-08-23 22:39 local._
+_Updated 2026-09-06 08:51 local._

@@ -2,6 +2,24 @@
 
 Final image per microbe × style (last attempt), the labelled SVG, and the real-microscopy reference. Status table at the bottom.
 
+## Blood plasma (`blood-plasma`)
+Not a cell — the straw-yellow liquid fraction of blood (~55 % of its volume, ~92 % water) in which every blood cell travels: dissolved albumin, Y-shaped antibodies, rod-like fibrinogen and a thousand other proteins, plus salts, glucose, hormones and dissolved gases.
+
+| textbook | sem | 3d | watercolor | reference |
+| --- | --- | --- | --- | --- |
+| ![textbook](finals/blood-plasma__textbook.avif) | ![sem](finals/blood-plasma__sem.avif) | ![3d](finals/blood-plasma__3d.avif) | ![watercolor](finals/blood-plasma__watercolor.avif) | ![reference](finals/blood-plasma__reference.avif) |
+
+**textbook — labelled** (English default, La/De toggle): [SVG](theme/textbook/blood-plasma.textbook.svg) · [HTML](theme/textbook/blood-plasma.textbook.html)
+![textbook labelled](theme/textbook/blood-plasma.textbook.svg)
+
+**3d — labelled** (English default, La/De toggle): [SVG](theme/3d/blood-plasma.3d.svg) · [HTML](theme/3d/blood-plasma.3d.html)
+![3d labelled](theme/3d/blood-plasma.3d.svg)
+
+**watercolor — labelled** (English default, La/De toggle): [SVG](theme/watercolor/blood-plasma.watercolor.svg) · [HTML](theme/watercolor/blood-plasma.watercolor.html)
+![watercolor labelled](theme/watercolor/blood-plasma.watercolor.svg)
+
+Full log: [`blood-plasma.render.md`](blood-plasma.render.md)
+
 ## Erythroblast (`erythroblast`)
 Nucleated red-blood-cell precursor in bone marrow; a round cell with an eccentric, densely condensed "clock-face" nucleus, actively synthesising haemoglobin.
 
@@ -114,6 +132,11 @@ Full log: [`thrombocyte.render.md`](thrombocyte.render.md)
 
 | name | styles | model | render count | pass | svg status | time taken | tokens used | costs |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Blood plasma | Textbook illustration | gemini-3-pro-image | 3 | ✅ | built | 30s | 5268 | $0.121 |
+| Blood plasma | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 5s | 1599 | $0.039 |
+| Blood plasma | 3D medical render | gemini-2.5-flash-image | 2 | ✅ | built | 12s | 3238 | $0.077 |
+| Blood plasma | Watercolor plate | gemini-3-pro-image | 3 | ✅ | built | 32s | 5425 | $0.123 |
+| Blood plasma | macroscopic photograph (settled blood, plasma layer on top) · CC0 1.0 | — (edit) | 2 | ✅ | n/a | 8s | 1655 | $0.039 |
 | Erythroblast | Textbook illustration | gemini-2.5-flash-image | 2 | ✅ | built | 36s | 3381 | $0.077 |
 | Erythroblast | SEM micrograph | gemini-2.5-flash-image | 1 | ✅ | pending (same pipeline) | 13s | 1563 | $0.039 |
 | Erythroblast | 3D medical render | gemini-2.5-flash-image | 2 | ✅ | built | 37s | 3390 | $0.077 |
@@ -144,6 +167,6 @@ Full log: [`thrombocyte.render.md`](thrombocyte.render.md)
 | Thrombocyte (platelet) | Watercolor plate | gemini-2.5-flash-image | 2 | ✅ | built | 37s | 3366 | $0.077 |
 | Thrombocyte (platelet) | LM (Wright-stained peripheral blood smear) · CC BY 2.0 | — (download) | 1 | ✅ | n/a | 7s | 0 | $0.000 |
 
-**Set total: 76,585 tokens · $1.748**
+**Set total: 93,770 tokens · $2.147**
 
-_Updated 2026-08-23 22:39 local._
+_Updated 2026-09-06 08:51 local._

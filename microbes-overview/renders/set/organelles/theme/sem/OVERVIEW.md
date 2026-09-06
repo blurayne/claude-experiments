@@ -2,6 +2,10 @@
 
 Every microbe's `sem` image — labelled SVG where built, else the last render. [← set overview](../../OVERVIEW.md)
 
+## Animal cell (`animal-cell`)
+![sem](animal-cell.attempts/gen-03__gemini-3-pro-image.avif)
+[full log](../../animal-cell.render.md)
+
 ## Cell membrane (plasma membrane) (`cell-membrane`)
 ![sem](cell-membrane.attempts/gen-01__gemini-2.5-flash-image.avif)
 [full log](../../cell-membrane.render.md)
@@ -29,6 +33,10 @@ Every microbe's `sem` image — labelled SVG where built, else the last render. 
 ## Nucleus (`nucleus`)
 ![sem](nucleus.attempts/gen-02__gemini-2.5-flash-image.avif)
 [full log](../../nucleus.render.md)
+
+## Plant cell (`plant-cell`)
+![sem](plant-cell.attempts/gen-02__gemini-2.5-flash-image.avif)
+[full log](../../plant-cell.render.md)
 
 ## Ribosome (`ribosome`)
 ![sem](ribosome.attempts/gen-01__gemini-2.5-flash-image.avif)

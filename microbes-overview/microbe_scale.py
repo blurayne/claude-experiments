@@ -37,6 +37,11 @@ SCALE = {
     "paneth-cell": (15, 2, "ng"),
     "alveolar-cell-type-ii": (10, 1, "ng"),
     "urothelial-cell": (100, 15, "ng"),
+    # podocyte: the ~25 µm figure is the reach of the cell body plus its major
+    # processes; the body alone is nearer 15 µm.
+    "podocyte": (25, 2, "ng"),
+    "parietal-cell": (22, 3, "ng"),
+    "beta-cell": (13, 1.2, "ng"),
     # -- nerve-cells ---------------------------------------------------
     "neuron": (20, 2, "ng"),
     "motor-neuron": (80, 20, "ng"),
@@ -71,6 +76,10 @@ SCALE = {
     "erythroblast": (14, 35, "pg"),
     "megakaryocyte": (80, 15, "ng"),
     "thrombocyte": (2.5, 7, "pg"),
+    # Blood plasma is a liquid, so like DNA it gets the checkable molecular
+    # figure instead of a body size: albumin, its dominant protein — ~7 nm
+    # across, ~66.5 kDa. The litres-per-body figure lives in the descriptions.
+    "blood-plasma": (0.007, 66.5, "kDa"),
     "sickle-cell": (8, 25, "pg"),
     # -- immune-cells ------------------------------------------------------
     "helper-t-cell": (8, 200, "pg"),
@@ -175,6 +184,12 @@ SCALE = {
     'lysosome': (0.5, 0.06, 'pg'),
     'cell-membrane': (15, 4, 'pg'),
     'cytoskeleton': (15, 80, 'pg'),
+    # The two whole-cell entries closing the organelles set. "Animal cell" is
+    # the generic textbook cell (10–30 µm); the plant cell is genuinely bigger
+    # (10–100 µm) because its water-filled central vacuole is cheap volume —
+    # the mass figure is mostly that water.
+    'animal-cell': (20, 3, 'ng'),
+    'plant-cell': (60, 200, 'ng'),
     # --- genetic material ----------------------------------------------------
     # DNA's size figure is the helix width (2 nm); its weight is the checkable
     # one — a full diploid human genome is ~6.6 pg per cell.

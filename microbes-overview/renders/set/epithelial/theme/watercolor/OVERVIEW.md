@@ -6,6 +6,10 @@ Every microbe's `watercolor` image — labelled SVG where built, else the last r
 ![watercolor](alveolar-cell-type-ii.watercolor.svg)
 [full log](../../alveolar-cell-type-ii.render.md)
 
+## Beta cell (insulin factory) (`beta-cell`)
+![watercolor](beta-cell.watercolor.svg)
+[full log](../../beta-cell.render.md)
+
 ## Enterocyte (gut cell) (`enterocyte`)
 ![watercolor](enterocyte.watercolor.svg)
 [full log](../../enterocyte.render.md)
@@ -25,6 +29,14 @@ Every microbe's `watercolor` image — labelled SVG where built, else the last r
 ## Paneth cell (`paneth-cell`)
 ![watercolor](paneth-cell.watercolor.svg)
 [full log](../../paneth-cell.render.md)
+
+## Parietal cell (stomach acid cell) (`parietal-cell`)
+![watercolor](parietal-cell.watercolor.svg)
+[full log](../../parietal-cell.render.md)
+
+## Podocyte (kidney filter cell) (`podocyte`)
+![watercolor](podocyte.watercolor.svg)
+[full log](../../podocyte.render.md)
 
 ## Urothelial cell (umbrella cell) (`urothelial-cell`)
 ![watercolor](urothelial-cell.watercolor.svg)

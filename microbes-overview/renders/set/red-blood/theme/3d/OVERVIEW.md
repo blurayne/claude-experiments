@@ -2,6 +2,10 @@
 
 Every microbe's `3d` image — labelled SVG where built, else the last render. [← set overview](../../OVERVIEW.md)
 
+## Blood plasma (`blood-plasma`)
+![3d](blood-plasma.3d.svg)
+[full log](../../blood-plasma.render.md)
+
 ## Erythroblast (`erythroblast`)
 ![3d](erythroblast.3d.svg)
 [full log](../../erythroblast.render.md)
