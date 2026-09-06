@@ -32,6 +32,10 @@ together with the commit sha and the build time.
 
 **128 subjects live** · 129 catalogued · six subjects from the GIANTmicrobes gap list
 
+> The working tag for this release is **`microbes-overview/v1.3.1`**: the v1.3.0 tag
+> was pushed pointing at a pre-rebase commit that never reached `main`, and was left
+> in place rather than force-moved. The version stamp reads 1.3 either way.
+
 - **+** `1.3.0` — six new subjects, all with an exact GIANTmicrobes plush match, picked
   from `GIANT-MICROBES.md`'s "they sell it, we don't have it" list: **Podocyte**,
   **Parietal cell** and **Beta cell** join the epithelial set; **Animal cell** and
