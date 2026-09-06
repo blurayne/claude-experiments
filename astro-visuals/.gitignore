@@ -1,0 +1,12 @@
+# The build toolchain's own droppings. `galactic-transit.html` is generated from `src/`
+# and IS committed — it is what GitHub Pages serves — but nothing else here is.
+node_modules/
+.vite/
+
+# Playwright's output, and the screenshot baselines. The baselines are deliberately not
+# committed: they are regenerated from a pinned pre-refactor commit by `npm run baseline`,
+# so they can never drift out of step with the build they are supposed to represent, and
+# several megabytes of PNG never reach a repository that is served publicly.
+tests/baselines/
+test-results/
+playwright-report/
