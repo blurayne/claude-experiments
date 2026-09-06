@@ -2,6 +2,10 @@
 
 Every microbe's `watercolor` image — labelled SVG where built, else the last render. [← set overview](../../OVERVIEW.md)
 
+## Animal cell (`animal-cell`)
+![watercolor](animal-cell.watercolor.svg)
+[full log](../../animal-cell.render.md)
+
 ## Cell membrane (plasma membrane) (`cell-membrane`)
 ![watercolor](cell-membrane.watercolor.svg)
 [full log](../../cell-membrane.render.md)
@@ -29,6 +33,10 @@ Every microbe's `watercolor` image — labelled SVG where built, else the last r
 ## Nucleus (`nucleus`)
 ![watercolor](nucleus.watercolor.svg)
 [full log](../../nucleus.render.md)
+
+## Plant cell (`plant-cell`)
+![watercolor](plant-cell.watercolor.svg)
+[full log](../../plant-cell.render.md)
 
 ## Ribosome (`ribosome`)
 ![watercolor](ribosome.watercolor.svg)

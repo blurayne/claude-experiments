@@ -8,17 +8,17 @@ A bilingual (DE/EN) teaching atlas of body cells and pathogens — cell types, p
 
 ## Page structure
 
-**21 sets and 4 prose chapters, 118 subjects live** (123 catalogued — the difference is subjects written up but not yet rendered, which stay hidden). Every live subject carries five picture styles, three labelled diagrams, a printable A4 coloring page, kids' narration in English and German, and size/weight data. `build_viewer.py` prints the current totals on every build, and [`OVERVIEW.md`](OVERVIEW.md) lists each subject with what it has.
+**21 sets and 5 prose chapters, 128 subjects live** (129 catalogued — the difference is subjects written up but not yet rendered, which stay hidden). Every live subject carries five picture styles, three labelled diagrams, a printable A4 coloring page, kids' narration in English and German, and size/weight data. `build_viewer.py` prints the current totals on every build, and [`OVERVIEW.md`](OVERVIEW.md) lists each subject with what it has.
 
 The order runs from the parts inside a cell outward to the things that attack it, and finally to the things people have built. Italicised rows are **prose chapters** — explainers with no subjects of their own, which sit between the sets they introduce:
 
 | # | Deutsch | English | live |
 | --- | --- | --- | ---: |
 | — | *Wie eine Zelle funktioniert* | *How the cell works* | chapter |
-| 1 | Zellorganellen | Cell organelles | 8 |
+| 1 | Zellorganellen | Cell organelles | 10 |
 | — | *Zelltypen des menschlichen Körpers* | *Cell types of the human body* | chapter |
 | 2 | Stammzellen | Stem cells | 6 |
-| 3 | Epithelzellen | Epithelial cells | 7 |
+| 3 | Epithelzellen | Epithelial cells | 10 |
 | 4 | Nervenzellen | Nerve cells | 6 |
 | 5 | Herzzellen | Heart cells | 5 |
 | — | *Wie Muskeln arbeiten* | *How muscle works* | chapter |
@@ -26,7 +26,7 @@ The order runs from the parts inside a cell outward to the things that attack it
 | 7 | Fortpflanzungszellen | Reproductive cells | 6 |
 | 8 | Knochenzellen | Bone cells | 6 |
 | 9 | Fettzellen | Fat cells | 6 |
-| 10 | Rote Blutkörperchen | Red blood cells | 6 |
+| 10 | Rote Blutkörperchen | Red blood cells | 7 |
 | 11 | Immunzellen | Immune cells | 7 |
 | 12 | Antikörper — Immunglobuline | Antibodies — Immunoglobulins | 5 |
 | 13 | Erbgut — DNS, RNS, Chromosomen | The genetic material — DNA, RNA, chromosomes | 3 |
@@ -35,10 +35,11 @@ The order runs from the parts inside a cell outward to the things that attack it
 | 16 | Bekannte Bakterien | Well-known bacteria | 10 |
 | 17 | Bekannte Viren & andere Erreger | Well-known viruses & other pathogens | 13 |
 | 18 | Nützliche Mikroben | Helpful microbes | 3 |
-| 19 | Bakteriophagen | Bacteriophages | 1 of 3 |
+| 19 | Bakteriophagen | Bacteriophages | 3 |
 | 20 | Erreger bei Hund und Katze | Pathogens of cats and dogs | 5 |
 | — | *Wie der Mensch Leben umbaut* | *How humans engineer life* | chapter |
-| 21 | Umgebautes Leben | Engineered life | 1 of 4 |
+| — | *Wie CRISPR funktioniert* | *How CRISPR works* | chapter |
+| 21 | Umgebautes Leben | Engineered life | 3 of 4 |
 
 Four placements are deliberate rather than obvious. **Cancer cells** sit last among the body's own cells and immediately before the pathogens: everything up to that point is the body working as intended, everything after arrives from outside, and a cancer cell belongs to neither. **The genetic material** comes directly before it, because cancer is what happens when that molecule accumulates damage. **Engineered life** closes the atlas, after everything natural: it is the one chapter about things that do not occur anywhere on their own. **Bacteriophages** follow the helpful microbes rather than the viruses, because the story they belong to is the one about bacteria — they are viruses that attack them, not us.
 
@@ -48,6 +49,7 @@ Four placements are deliberate rather than obvious. **Cancer cells** sit last am
 - [`build_viewer.py`](build_viewer.py) — scans `cells_data.py` + `renders/set/**` and emits `viewer-data.json`, then injects it into `viewer.template.html` to produce `viewer.html`.
 - [`microbe_scale.py`](microbe_scale.py) — per-microbe size and weight, drives the scale meter under each title.
 - [`microbe_giant.py`](microbe_giant.py) — exact-match links to GIANTmicrobes plush toys (see [`OVERVIEW.md`](OVERVIEW.md)).
+- [`GIANT-MICROBES.md`](GIANT-MICROBES.md) — every GIANTmicrobes plush against this atlas, grouped by biological type, with what we already link and what we don't.
 
 ## Rebuilding
 

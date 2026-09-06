@@ -2,6 +2,10 @@
 
 Every microbe's `sem` image — labelled SVG where built, else the last render. [← set overview](../../OVERVIEW.md)
 
+## Blood plasma (`blood-plasma`)
+![sem](blood-plasma.attempts/gen-01__gemini-2.5-flash-image.avif)
+[full log](../../blood-plasma.render.md)
+
 ## Erythroblast (`erythroblast`)
 ![sem](erythroblast.attempts/gen-01__gemini-2.5-flash-image.avif)
 [full log](../../erythroblast.render.md)

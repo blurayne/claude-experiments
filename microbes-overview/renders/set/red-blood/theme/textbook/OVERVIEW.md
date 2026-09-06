@@ -2,6 +2,10 @@
 
 Every microbe's `textbook` image — labelled SVG where built, else the last render. [← set overview](../../OVERVIEW.md)
 
+## Blood plasma (`blood-plasma`)
+![textbook](blood-plasma.textbook.svg)
+[full log](../../blood-plasma.render.md)
+
 ## Erythroblast (`erythroblast`)
 ![textbook](erythroblast.textbook.svg)
 [full log](../../erythroblast.render.md)

@@ -2,6 +2,10 @@
 
 Every microbe's `textbook` image — labelled SVG where built, else the last render. [← set overview](../../OVERVIEW.md)
 
+## Animal cell (`animal-cell`)
+![textbook](animal-cell.textbook.svg)
+[full log](../../animal-cell.render.md)
+
 ## Cell membrane (plasma membrane) (`cell-membrane`)
 ![textbook](cell-membrane.textbook.svg)
 [full log](../../cell-membrane.render.md)
@@ -29,6 +33,10 @@ Every microbe's `textbook` image — labelled SVG where built, else the last ren
 ## Nucleus (`nucleus`)
 ![textbook](nucleus.textbook.svg)
 [full log](../../nucleus.render.md)
+
+## Plant cell (`plant-cell`)
+![textbook](plant-cell.textbook.svg)
+[full log](../../plant-cell.render.md)
 
 ## Ribosome (`ribosome`)
 ![textbook](ribosome.textbook.svg)

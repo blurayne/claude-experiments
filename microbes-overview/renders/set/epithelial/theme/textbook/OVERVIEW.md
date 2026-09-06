@@ -6,6 +6,10 @@ Every microbe's `textbook` image — labelled SVG where built, else the last ren
 ![textbook](alveolar-cell-type-ii.textbook.svg)
 [full log](../../alveolar-cell-type-ii.render.md)
 
+## Beta cell (insulin factory) (`beta-cell`)
+![textbook](beta-cell.textbook.svg)
+[full log](../../beta-cell.render.md)
+
 ## Enterocyte (gut cell) (`enterocyte`)
 ![textbook](enterocyte.textbook.svg)
 [full log](../../enterocyte.render.md)
@@ -25,6 +29,14 @@ Every microbe's `textbook` image — labelled SVG where built, else the last ren
 ## Paneth cell (`paneth-cell`)
 ![textbook](paneth-cell.textbook.svg)
 [full log](../../paneth-cell.render.md)
+
+## Parietal cell (stomach acid cell) (`parietal-cell`)
+![textbook](parietal-cell.textbook.svg)
+[full log](../../parietal-cell.render.md)
+
+## Podocyte (kidney filter cell) (`podocyte`)
+![textbook](podocyte.textbook.svg)
+[full log](../../podocyte.render.md)
 
 ## Urothelial cell (umbrella cell) (`urothelial-cell`)
 ![textbook](urothelial-cell.textbook.svg)

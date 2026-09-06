@@ -4,9 +4,9 @@
 
 ## Where we stand
 
-- **18 sets**, **112 microbes** live in the viewer, out of **112 catalogued**.
+- **26 sets**, **128 microbes** live in the viewer, out of **129 catalogued**.
 - Every live microbe carries: 5 picture styles, 3 labelled diagrams, a printable A4 coloring page, kids narration in EN + DE, and size/weight data — the table below is the proof.
-- **46 plush links**, every one an exact species/cell match. 8 of those photos had to be repaired (see the last section).
+- **62 plush links**, every one an exact species/cell match. 8 of those photos had to be repaired (see the last section).
 
 ## Every catalogued entry, and what it has
 
@@ -15,13 +15,15 @@
 | Set | Microbe | key | R | D | C | A | S | P |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | organelles | Golgi apparatus | `golgi-apparatus` | 5/5 | 3/3 | ✅ | ✅ | 2 µm · 2 pg | Golgi Apparatus |
-| organelles | Nucleus | `nucleus` | 5/5 | 3/3 | ✅ | ✅ | 6 µm · 300 pg | — |
-| organelles | Mitochondrion | `mitochondrion` | 5/5 | 3/3 | ✅ | ✅ | 2 µm · 0.5 pg | — |
+| organelles | Nucleus | `nucleus` | 5/5 | 3/3 | ✅ | ✅ | 6 µm · 300 pg | Nucleus Key Chain - Cell Science Gift |
+| organelles | Mitochondrion | `mitochondrion` | 5/5 | 3/3 | ✅ | ✅ | 2 µm · 0.5 pg | Mitochondria |
 | organelles | Ribosome | `ribosome` | 5/5 | 3/3 | ✅ | ✅ | 25 nm · 4200 kDa | — |
 | organelles | Endoplasmic reticulum (ER) | `endoplasmic-reticulum` | 5/5 | 3/3 | ✅ | ✅ | 10 µm · 300 pg | — |
 | organelles | Lysosome | `lysosome` | 5/5 | 3/3 | ✅ | ✅ | 500 nm · 0.06 pg | — |
 | organelles | Cell membrane (plasma membrane) | `cell-membrane` | 5/5 | 3/3 | ✅ | ✅ | 15 µm · 4 pg | — |
 | organelles | Cytoskeleton | `cytoskeleton` | 5/5 | 3/3 | ✅ | ✅ | 15 µm · 80 pg | — |
+| organelles | Animal cell | `animal-cell` | 5/5 | 3/3 | ✅ | ✅ | 20 µm · 3 ng | Animal Cell |
+| organelles | Plant cell | `plant-cell` | 5/5 | 3/3 | ✅ | ✅ | 60 µm · 200 ng | Plant Cell |
 | stem-cells | Embryonic stem cell (ESC) | `embryonic-stem-cell` | 5/5 | 3/3 | ✅ | ✅ | 15 µm · 1 ng | — |
 | stem-cells | Induced pluripotent stem cell (iPS) | `induced-pluripotent-stem-cell` | 5/5 | 3/3 | ✅ | ✅ | 15 µm · 1 ng | — |
 | stem-cells | Hematopoietic stem cell (HSC) | `hematopoietic-stem-cell` | 5/5 | 3/3 | ✅ | ✅ | 8 µm · 0.3 ng | Stem Cell Gigantic 14" |
@@ -35,6 +37,9 @@
 | epithelial | Alveolar cell type II | `alveolar-cell-type-ii` | 5/5 | 3/3 | ✅ | ✅ | 10 µm · 1 ng | — |
 | epithelial | Urothelial cell (umbrella cell) | `urothelial-cell` | 5/5 | 3/3 | ✅ | ✅ | 100 µm · 15 ng | — |
 | epithelial | Hepatocyte (liver cell) | `hepatocyte` | 5/5 | 3/3 | ✅ | ✅ | 25 µm · 15 ng | Leberzelle (Liver Cell) |
+| epithelial | Podocyte (kidney filter cell) | `podocyte` | 5/5 | 3/3 | ✅ | ✅ | 25 µm · 2 ng | Kidney Cell (Podocyte) |
+| epithelial | Parietal cell (stomach acid cell) | `parietal-cell` | 5/5 | 3/3 | ✅ | ✅ | 22 µm · 3 ng | Magenzelle (Stomach Cell) |
+| epithelial | Beta cell (insulin factory) | `beta-cell` | 5/5 | 3/3 | ✅ | ✅ | 13 µm · 1.2 ng | Diabetes Beta Cell with Insulin |
 | nerve-cells | Neuron | `neuron` | 5/5 | 3/3 | ✅ | ✅ | 20 µm · 2 ng | Nerve Cell (Neuron) |
 | nerve-cells | Motor neuron | `motor-neuron` | 5/5 | 3/3 | ✅ | ✅ | 80 µm · 20 ng | — |
 | nerve-cells | Astrocyte | `astrocyte` | 5/5 | 3/3 | ✅ | ✅ | 15 µm · 1.5 ng | — |
@@ -46,6 +51,10 @@
 | heart-cells | Contractile cardiomyocyte | `cardiomyocyte` | 5/5 | 3/3 | ✅ | ✅ | 100 µm · 60 ng | Heart Cell (Cardiomyocyte) |
 | heart-cells | Cardiac macrophage | `cardiac-macrophage` | 5/5 | 3/3 | ✅ | ✅ | 25 µm · 5 ng | — |
 | heart-cells | Intracardiac neuron (intrinsic nervous system) | `intracardiac-neuron` | 5/5 | 3/3 | ✅ | ✅ | 30 µm · 3 ng | — |
+| muscle-cells | Type I fibre (slow-twitch) | `type-i-fibre` | 5/5 | 3/3 | ✅ | ✅ | 30000 µm · 60 µg | — |
+| muscle-cells | Type II fibre (fast-twitch) | `type-ii-fibre` | 5/5 | 3/3 | ✅ | ✅ | 30000 µm · 100 µg | — |
+| muscle-cells | Type IIa fibre (fast oxidative-glycolytic) | `type-iia-fibre` | 5/5 | 3/3 | ✅ | ✅ | 30000 µm · 90 µg | — |
+| muscle-cells | Type IIx fibre (fast glycolytic) | `type-iix-fibre` | 5/5 | 3/3 | ✅ | ✅ | 30000 µm · 120 µg | — |
 | reproductive | Spermatozoon (sperm) | `spermatozoon` | 5/5 | 3/3 | ✅ | ✅ | 5 µm · 5 pg | Sperm Cell (Spermatozoon) |
 | reproductive | Oocyte (egg cell) | `oocyte` | 5/5 | 3/3 | ✅ | ✅ | 120 µm · 900 ng | Egg Cell (Human ovum) |
 | reproductive | Sertoli cell | `sertoli-cell` | 5/5 | 3/3 | ✅ | ✅ | 50 µm · 10 ng | — |
@@ -69,6 +78,7 @@
 | red-blood | Erythroblast | `erythroblast` | 5/5 | 3/3 | ✅ | ✅ | 14 µm · 35 pg | — |
 | red-blood | Megakaryocyte | `megakaryocyte` | 5/5 | 3/3 | ✅ | ✅ | 80 µm · 15 ng | — |
 | red-blood | Thrombocyte (platelet) | `thrombocyte` | 5/5 | 3/3 | ✅ | ✅ | 2.5 µm · 7 pg | Platelet (Thrombocyte) |
+| red-blood | Blood plasma | `blood-plasma` | 5/5 | 3/3 | ✅ | ✅ | 7 nm · 66.5 kDa | Plasma (Blood plasma) |
 | red-blood | Sickle cell (deformed erythrocyte) | `sickle-cell` | 5/5 | 3/3 | ✅ | ✅ | 8 µm · 25 pg | Sickle Cell - Blood Health Plush |
 | immune-cells | Helper T cell (CD4) | `helper-t-cell` | 5/5 | 3/3 | ✅ | ✅ | 8 µm · 200 pg | — |
 | immune-cells | Cytotoxic T cell (CD8) | `cytotoxic-t-cell` | 5/5 | 3/3 | ✅ | ✅ | 8 µm · 200 pg | Killer T Cell - Immune Defender Plush |
@@ -82,9 +92,9 @@
 | antibodies | Immunoglobulin M (IgM) | `igm` | 5/5 | 3/3 | ✅ | ✅ | 35 nm · 950 kDa | — |
 | antibodies | Immunoglobulin D (IgD) | `igd` | 5/5 | 3/3 | ✅ | ✅ | 10 nm · 180 kDa | — |
 | antibodies | Immunoglobulin E (IgE) | `ige` | 5/5 | 3/3 | ✅ | ✅ | 10 nm · 190 kDa | — |
-| genetics | DNA (deoxyribonucleic acid) | `dna` | 5/5 | 3/3 | ✅ | ✅ | 2 nm · 6.6 pg | — |
-| genetics | RNA (ribonucleic acid) | `rna` | 5/5 | 3/3 | ✅ | ✅ | 1 nm · 500 kDa | — |
-| genetics | Chromosome | `chromosome` | 5/5 | 3/3 | ✅ | ✅ | 5 µm · 0.3 pg | — |
+| genetics | DNA (deoxyribonucleic acid) | `dna` | 5/5 | 3/3 | ✅ | ✅ | 2 nm · 6.6 pg | DNA (Deoxyribonucleic acid) |
+| genetics | RNA (ribonucleic acid) | `rna` | 5/5 | 3/3 | ✅ | ✅ | 1 nm · 500 kDa | RNA - Genetic Messenger Plush |
+| genetics | Chromosome | `chromosome` | 5/5 | 3/3 | ✅ | ✅ | 5 µm · 0.3 pg | Chromosome - Genetic Blueprint Plush |
 | cancer-cells | Cancer cell (malignant neoplasm) | `cancer-cell` | 5/5 | 3/3 | ✅ | ✅ | 20 µm · 4 ng | Cancer (Malignant neoplasm) |
 | pathogens | Cocci (spherical bacteria) | `cocci` | 5/5 | 3/3 | ✅ | ✅ | 1 µm · 0.5 pg | — |
 | pathogens | Rod-shaped bacterium (bacillus) | `rod-bacterium` | 5/5 | 3/3 | ✅ | ✅ | 3 µm · 1 pg | — |
@@ -101,7 +111,7 @@
 | pathogens-bacteria | Escherichia coli | `escherichia-coli` | 5/5 | 3/3 | ✅ | ✅ | 2 µm · 1 pg | E. coli (Escherichia coli) |
 | pathogens-bacteria | Salmonella enterica | `salmonella-enterica` | 5/5 | 3/3 | ✅ | ✅ | 2.5 µm · 1 pg | Salmonella (Salmonella typhimurium) |
 | pathogens-bacteria | Helicobacter pylori | `helicobacter-pylori` | 5/5 | 3/3 | ✅ | ✅ | 3 µm · 0.5 pg | Ulcer (Helicobacter pylori) |
-| pathogens-bacteria | Streptococcus mutans (tooth decay) | `streptococcus-mutans` | 5/5 | 3/3 | ✅ | ✅ | 800 nm · 1 pg | — |
+| pathogens-bacteria | Streptococcus mutans (tooth decay) | `streptococcus-mutans` | 5/5 | 3/3 | ✅ | ✅ | 800 nm · 1 pg | Cavity (Streptococcus mutans) |
 | pathogens-bacteria | Borrelia burgdorferi (Lyme disease) | `borrelia-burgdorferi` | 5/5 | 3/3 | ✅ | ✅ | 20 µm · 0.3 pg | Lyme Disease (Borrelia burgdorferi) |
 | pathogens-bacteria | Clostridioides difficile (C. diff) | `clostridioides-difficile` | 5/5 | 3/3 | ✅ | ✅ | 5 µm · 3 pg | C. Diff (Clostridioides difficile) |
 | pathogens-bacteria | Listeria monocytogenes | `listeria-monocytogenes` | 5/5 | 3/3 | ✅ | ✅ | 2 µm · 1 pg | Listeria (Listeria monocytogenes) |
@@ -115,27 +125,36 @@
 | pathogens-viruses | Zika virus | `zika-virus` | 5/5 | 3/3 | ✅ | ✅ | 45 nm · 0.8 fg | Zika (Zika virus) |
 | pathogens-viruses | Measles virus (Morbillivirus) | `measles-virus` | 5/5 | 3/3 | ✅ | ✅ | 200 nm · 8 fg | Measles (Morbillivirus) |
 | pathogens-viruses | Rotavirus | `rotavirus` | 5/5 | 3/3 | ✅ | ✅ | 75 nm · 1.5 fg | Rotavirus (Rotavirus) |
-| pathogens-viruses | Norovirus (stomach bug) | `norovirus` | 5/5 | 3/3 | ✅ | ✅ | 38 nm · 0.5 fg | — |
-| pathogens-viruses | Varicella-zoster virus (chickenpox) | `varicella-zoster-virus` | 5/5 | 3/3 | ✅ | ✅ | 180 nm · 6 fg | — |
-| pathogens-viruses | Giardia lamblia (giardiasis) | `giardia-lamblia` | 5/5 | 3/3 | ✅ | ✅ | 12 µm · 1 ng | — |
+| pathogens-viruses | Norovirus (stomach bug) | `norovirus` | 5/5 | 3/3 | ✅ | ✅ | 38 nm · 0.5 fg | Norovirus - Stomach Bug Plush |
+| pathogens-viruses | Varicella-zoster virus (chickenpox) | `varicella-zoster-virus` | 5/5 | 3/3 | ✅ | ✅ | 180 nm · 6 fg | Chickenpox (Varicella-Zoster virus) |
+| pathogens-viruses | Giardia lamblia (giardiasis) | `giardia-lamblia` | 5/5 | 3/3 | ✅ | ✅ | 12 µm · 1 ng | Giardia (Giardia lamblia) |
 | helpful-microbes | Baker's yeast (Saccharomyces cerevisiae) | `saccharomyces-cerevisiae` | 5/5 | 3/3 | ✅ | ✅ | 5 µm · 60 pg | Beer & Bread (Saccharomyces cerevisiae) |
 | helpful-microbes | Penicillin mould (Penicillium chrysogenum) | `penicillium-chrysogenum` | 5/5 | 3/3 | ✅ | ✅ | 3.5 µm · 20 pg | Penicillin (Penicillium chrysogenum) |
 | helpful-microbes | Bifidobacterium longum | `bifidobacterium-longum` | 5/5 | 3/3 | ✅ | ✅ | 3 µm · 1.5 pg | Bifido (Bifidobacterium longum) |
+| bacteriophages | T4 bacteriophage | `t4-bacteriophage` | 5/5 | 3/3 | ✅ | ✅ | 200 nm · 0.32 fg | T4 (T4-Bacteriophage) |
+| bacteriophages | T7 bacteriophage | `t7-bacteriophage` | 5/5 | 3/3 | ✅ | ✅ | 60 nm · 0.085 fg | — |
+| bacteriophages | PhiX174 (ΦX174 bacteriophage) | `phix174` | 5/5 | 3/3 | ✅ | ✅ | 27 nm · 0.011 fg | — |
 | pet-pathogens | Heartworm (Dirofilaria immitis) | `heartworm` | 5/5 | 3/3 | ✅ | ✅ | 270000 µm · 200 mg | Heartworm (Dirofilaria immitis) |
 | pet-pathogens | Feline immunodeficiency virus (FIV) | `feline-immunodeficiency-virus` | 4/5 | 3/3 | ✅ | ✅ | 110 nm · 1 fg | — |
 | pet-pathogens | Feline leukaemia virus (FeLV) | `feline-leukaemia-virus` | 5/5 | 3/3 | ✅ | ✅ | 100 nm · 1 fg | — |
 | pet-pathogens | Chlamydia felis (feline conjunctivitis) | `chlamydia-felis` | 5/5 | 3/3 | ✅ | ✅ | 300 nm · 0.1 pg | — |
 | pet-pathogens | Rabies virus | `rabies-virus` | 5/5 | 3/3 | ✅ | ✅ | 180 nm · 6 fg | Rabies - Deadly Virus Plush |
+| engineered-life | Lentiviral vector (HIV-1-derived) | `lentiviral-vector` | 5/5 | 3/3 | ✅ | ✅ | 120 nm · 1.4 fg | — |
+| engineered-life | CAR-T cell | `car-t-cell` | 5/5 | 3/3 | ✅ | ✅ | 10 µm · 0.2 ng | — |
+| engineered-life | Spider-silk cell | `spider-silk-cell` | 5/5 | 3/3 | — | ✅ | 20 µm · 3 ng | — |
+| engineered-life | Synthetic minimal cell (JCVI-syn3A) | — | ❌ not rendered | | | | 400 nm · 0.02 pg | |
 
 ## Gaps
 
-**Catalogued but not rendered:** none.
+**Catalogued but not yet rendered — 1.** Text, German translation and scale data already exist for these; only the pictures are missing.
+
+- `engineered-life` — Synthetic minimal cell (JCVI-syn3A)
 
 **Rendered but not reaching the viewer — 0.** A render only appears if `meta.name` matches a catalogue `name_en` exactly, or its key matches the slug of one; anything here fell through both.
 
 - none
 
-**Data waiting for a render:** 0 scale entries (none), 0 plush links (none).
+**Data waiting for a render:** 1 scale entry (`synthetic-minimal-cell`), 0 plush links (none).
 
 **No recorded micrograph source:** `feline-immunodeficiency-virus`.
 
@@ -172,7 +191,7 @@ The catalogue has no sales figures, so prominence is inferred from what the vend
 | 10 | Kissing Disease (Mono) | *epstein barr virus* | 3 | US | **no** |
 | 10 | Herpes (Herpes Simplex Virus 2) | *herpes simplex virus 2* | 2 | US + DE | **no** |
 | 10 | Egg Cell (Human ovum) | *ovum* | 3 | US | ✅ |
-| 10 | DNA (Deoxyribonucleic acid) | *desoxyribonukleinsaure* | 2 | US + DE | **no** |
+| 10 | DNA (Deoxyribonucleic acid) | *desoxyribonukleinsaure* | 2 | US + DE | ✅ |
 | 10 | Clap - Gonorrhea (Neisseria Gonorrhoeae) | *neisseria gonorrhoeae* | 2 | US + DE | **no** |
 | 10 | Chlamydia (Chlamydia trachomatis) | *chlamydia trachomatis* | 2 | US + DE | **no** |
 

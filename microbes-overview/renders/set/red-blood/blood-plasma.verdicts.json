@@ -1,0 +1,32 @@
+{
+  "name": "Blood plasma",
+  "short_description": "Not a cell — the straw-yellow liquid fraction of blood (~55 % of its volume, ~92 % water) in which every blood cell travels: dissolved albumin, Y-shaped antibodies, rod-like fibrinogen and a thousand other proteins, plus salts, glucose, hormones and dissolved gases.",
+  "svg_theme": "textbook",
+  "composition_honesty": "A liquid cannot be micrographed, so no style is a literal micrograph: textbook = the macroscopic separated-blood column (the classic figure); 3d + watercolor + sem = molecular-scale zooms into the amber fluid (albumin, Y-antibodies, trinodular fibrinogen; red cells only as passenger context). The 'sem' slot is a false-colour molecular-surface visualization in SEM styling, not a real SEM modality — a real SEM of a liquid does not exist. The real reference is a macroscopic photograph, not microscopy.",
+  "themes": {
+    "textbook": {
+      "1": "fail (gemini-2.5-flash-image; layer proportions inverted — plasma band measured 257 px vs red column 335 px, i.e. plasma ~43 % of the liquid instead of ~55 % — and no visible buffy coat; superseded)",
+      "2": "fail (gemini-2.5-flash-image; buffy coat band now present but proportions still inverted — plasma 257 px vs red 335 px measured down the centre column; superseded)",
+      "3": "pass (gemini-3-pro-image; measured down the centre column: plasma 428 px / buffy coat 23 px / red 281 px = plasma ~58 % of the liquid column (target ~55 %, slightly plasma-heavy but correct ordering), crisp thin cream buffy band, clean unmarked glass confirmed in a 2x magnified crop — no letters, numbers or graduation marks — edge rows uniform charcoal ~76-80 grey so no border/frame)"
+    },
+    "sem": {
+      "1": "pass (gemini-2.5-flash-image; golden false-colour molecular scene on dark ground: 3 in-focus fibrinogen rods each verified in magnified crops to carry exactly 3 nodes (larger ends, smaller centre), ~6 antibodies all 3-armed Ys, no baked text found in 4 magnified crops. Compromises: albumin rendered as 3-4-lobed clusters — trilobed is defensible as albumin's three homologous domains, but the central cluster is 4-lobed and disproportionately large, reading almost staphylococcus-like; two far-background rods are too blurred to count nodes; and the whole image is a molecular visualization in SEM styling, since a real SEM of a liquid is impossible)"
+    },
+    "3d": {
+      "1": "fail (gemini-2.5-flash-image; antibodies rendered as 4-armed X shapes — counted 4 arms on both large molecules — and fibrinogen as 5 beads threaded on a skewer with stick ends protruding; superseded)",
+      "2": "pass (gemini-2.5-flash-image; counted 5 antibodies, every one a 3-armed Y; both fibrinogen rods verified in a 2x magnified crop to have exactly 3 beads (larger ends, smaller centre) with no protruding stick; amber fluid dominates the full-bleed frame with 2 heavily blurred crimson discs as background passengers; no text in crops. Compromise: the fluid reads warm orange-amber rather than pale straw-yellow)"
+    },
+    "watercolor": {
+      "1": "fail (gemini-2.5-flash-image; one antibody a 4-armed X, and the fibrinogen rods carry 5 nodes (2 end beads + 3 central beads); superseded)",
+      "2": "fail (gemini-2.5-flash-image; antibodies now 3-armed but both fibrinogen rods lost the central node — plain 2-bead dumbbells counted in the full frame; superseded)",
+      "3": "pass (gemini-3-pro-image; 4 fibrinogen rods each verified at 2x magnification to carry exactly 3 nodes; 6 antibodies all classic 3-armed IgG Ys with double-stroke heavy/light-chain linework; aged paper reaches all four corners (no sheet-on-surface); amber wash dominates; 2 pale crimson biconcave discs bottom-right as small peripheral passengers; no text found in magnified crops)"
+    }
+  },
+  "reference": "pass (Wikimedia Commons 'Cells and plasma (44258664600).jpg', John Campbell, CC0 1.0 — a MACROSCOPIC PHOTOGRAPH, not microscopy (none exists for a liquid): settled anticoagulated blood in a syringe with the straw-yellow plasma layer clearly on top of the dark-red cell column, verified by viewing. Original carries printed Cyrillic 'гепарин' lettering + ml graduations, so a cleaned real-02 was produced with edit_image.py; diff vs original: global mean abs pixel diff 6.08, concentrated in the text zone (8.9) with plasma/red/wall regions at 2.6-4.4 — text removed, layers and colours preserved, no re-illustration)",
+  "decision": [
+    ["textbook", "pass", 3, "use as final; correct 55/45-ish layer ordering (measured plasma ~58 % of liquid column) with visible buffy coat only after escalation to gemini-3-pro-image; 2 flash attempts had inverted proportions"],
+    ["sem", "pass", 1, "use as final with flagged compromises: honest molecular visualization in SEM styling (a liquid has no SEM), albumin as 3-4-lobed domain clusters with one oversized 4-lobed cluster"],
+    ["3d", "pass", 2, "use as final; attempt 1 had X-shaped antibodies and 5-bead fibrinogen, fixed by naming the Y geometry and the 3-bead rod positively; fluid warmer-orange than straw-yellow, accepted"],
+    ["watercolor", "pass", 3, "use as final; flash twice miscounted fibrinogen nodes (5 then 2), correct trinodular rods and IgG Ys after escalation to gemini-3-pro-image"]
+  ]
+}

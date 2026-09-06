@@ -28,6 +28,33 @@ together with the commit sha and the build time.
 
 ---
 
+## [1.3.0] — 2026-09-06
+
+**128 subjects live** · 129 catalogued · six subjects from the GIANTmicrobes gap list
+
+- **+** `1.3.0` — six new subjects, all with an exact GIANTmicrobes plush match, picked
+  from `GIANT-MICROBES.md`'s "they sell it, we don't have it" list: **Podocyte**,
+  **Parietal cell** and **Beta cell** join the epithelial set; **Animal cell** and
+  **Plant cell** close the organelles set as the two whole-cell entries after the
+  parts tour; **Blood plasma** — a fluid, not a cell — joins the red-blood set.
+  Rendered by a 2-concurrent agent swarm (the skill's session-limit ceiling); two
+  runs died at the limit and resumed idempotently from their on-disk state.
+- The five chapter/set intros that had silently shipped without kids narration
+  (cell-types, muscle-tissue, genetics, cancer-cells, pet-pathogens) got their EN+DE
+  clips (`eleven_v3`).
+- 10 new plush links (62 total): the six subjects above plus a whole-catalogue
+  re-audit that found **no** forgotten links and documented three deliberate
+  non-links (muscle fibres vs the generic Myocyte plush; cardiac macrophage and
+  intracardiac neuron vs the generic macrophage/neuron plushes).
+- `GIANT-MICROBES.md` — a hand-built by-type comparison of the full GIANTmicrobes
+  catalogue against the atlas (what we link, what we deliberately don't, what's out
+  of scope), now updated for the six additions.
+- Six entries that had no `related` field at all (enterocyte, urothelial, white
+  adipocyte, IgG, thrombocyte, H. pylori) gained one via the new subjects'
+  backlinks; the CRISPR chapter row was missing from `index.md`'s table and the
+  bacteriophages/engineered-life counts there were stale.
+- Both PDF picture books rebuilt with the new subjects (24 → 26 MB each).
+
 ## [1.2.0] — 2026-08-23
 
 **116 subjects live** · 123 catalogued · the muscle-cells set completes

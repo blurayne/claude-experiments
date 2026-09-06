@@ -131,6 +131,35 @@ killed the first batch mid-flight and the state is not obvious from the files al
 These are all flagged in the per-subject `verdicts.json` too. None is wrong, each is
 a compromise someone chose deliberately — listed so a later pass can revisit them.
 
+- [ ] **The 2026-09 batch (podocyte, parietal-cell, beta-cell, animal-cell,
+      plant-cell, blood-plasma)** — all six live at 5/5 img, 3/3 svg, coloring and
+      EN+DE narration; the accepted compromises, per subject:
+      - `podocyte` — the interdigitating comb band covers the vessel's near face
+        rather than carpeting the whole circumference (bare vessel stays visible in
+        textbook/3d/sem); the reference is a *mouse* kidney SEM (CC BY-SA 3.0,
+        stated in the render log), cleaned by a deterministic 1.26× crop, no AI
+        edit; coloring bottom-edge ink 0.0127, just under the 0.02 house band.
+      - `parietal-cell` — sem's gland-lumen opening only subtly visible; 3d
+        tubulovesicle clusters could be glanced as bacterial microcolonies;
+        watercolor canaliculi very pale; reference is a group H&E photomicrograph
+        (PD) at web resolution; coloring left/right bleed real but thin
+        (0.006/0.008).
+      - `beta-cell` — textbook shows a dozen insulin specks continuing past the
+        capillary wall (magnified-crop finding); coloring tummy porthole shows two
+        parcels, not three; reference is a *rat* beta cell TEM.
+      - `animal-cell` — see its verdicts for the accepted organelle-count
+        simplifications of a whole-cell cutaway at 1080².
+      - `plant-cell` — central vacuole renders at ~40–55 % of the section across
+        all styles instead of the >¾ a mature cell really has; grana not resolved
+        into separate coin-stacks (one lamellae array per chloroplast);
+        plasmodesmata deliberately omitted after they kept inducing baked
+        lettering; coloring right-edge ink 0.0177, a hair under 0.02.
+      - `blood-plasma` — a liquid subject: composition compromises per style are
+        recorded in its verdicts (the tube-column textbook view and the
+        molecular-zoom views are honest but stylised; the reference is a
+        macroscopic photograph, labelled as such, because no micrograph of a
+        liquid exists).
+
 - [ ] `spider-silk-cell` — ships 4/5: textbook, sem, 3d and watercolor all rendered
       and passed verification (including a caught-and-fixed attempt-1 3d FAIL where
       secretory vesicles were connected by a thin strand, misreadable as thread

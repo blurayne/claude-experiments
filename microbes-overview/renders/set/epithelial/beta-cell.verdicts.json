@@ -1,0 +1,52 @@
+{
+ "name": "Beta cell (insulin factory)",
+ "short_description": "Insulin-secreting endocrine cell of the pancreatic islets of Langerhans: a rounded polygonal cell whose TEM signature is its thousands of insulin secretory granules — each a membrane-bound vesicle holding a dense, often angular crystalline zinc-insulin core inside a clear pale halo. It senses blood glucose through its own metabolism and releases the granules by exocytosis toward an adjacent fenestrated capillary, in pulses.",
+ "svg_theme": "textbook",
+ "themes": {
+  "textbook": {
+   "1": "PASS (gemini-2.5-flash-image) — charcoal background reaches all four edges (edge-row means 70/70/70/72, corner pixels 69-72: uniform charcoal, no border). One closed rounded-polygonal silhouette; central lavender nucleus; sage-green rough ER ribbons with ribosome dots; apricot Golgi stack; 7 orange-red mitochondria; I count ~40 insulin granules, each with a teal membrane ring, pale-ivory halo (sampled 226,206,183 vs cytoplasm 191,145,111) and an angular indigo faceted core (74,64,105); rose fenestrated capillary spans the full frame width along the bottom with pore openings in the upper wall; one granule fused at the bottom membrane with an indigo speck drift passing through the wall pores. Magnified exocytosis and granule-cluster crops: no letters, no text. Accepted compromise: roughly a dozen of the release specks continue past the capillary's LOWER wall onto the charcoal background, as if insulin left the far side of the vessel — small at full-frame scale but visible in the crop."
+  },
+  "sem": {
+   "1": "PASS (gemini-2.5-flash-image) — false-colour cryo-fracture look: rounded polygonal cell filling the frame, fractured cytoplasm crowded with well over a hundred granule spheres, many fractured open as ivory cups each holding an angular deep-indigo crystal core, others closed as smooth domes (magnified top crop: cores are faceted lumps, no lettering); large lavender nucleus dome with fine micro-texture; green ER/Golgi ledges beside it; rose capillary channel with a clearly visible row of round pores runs along the lower-left edge pressed against the cell (magnified bottom-left crop); neighbouring islet cells softly out of focus at the corners; dark background to all four edges (corner values 133/141 are the blurred neighbour cells, not a border). No text anywhere. Accepted compromise: the nucleus dome reads slightly glossy/idealised for a fracture face, and only a handful of mitochondria are distinguishable between the granules."
+  },
+  "3d": {
+   "1": "FAIL (gemini-2.5-flash-image) — baked-in text: the word 'EXOCYTSOIS' (misspelled) rendered beside the fusing granule; cell drawn as a hard-edged octagon; capillary band overlaps/crosses in front of the cell instead of running beneath it; granules ring the periphery only. Fix-prompt: purely pictorial wording for the release event, softly rounded silhouette, vessel entirely below the cell, granules filling the cytoplasm evenly.",
+   "2": "FAIL (gemini-2.5-flash-image) — text gone and granules well distributed, but the fusing granule sits embedded in the capillary's upper wall, detached from the cell membrane (magnified crop shows a clear gap to the cell's underside), and most of the indigo release drift passes through the vessel and out below its lower wall. Fix-prompt: the fusing granule is a half-open cup in the cell's OWN bottom membrane, rim continuous with the plasma membrane; the speck drift is short and ends inside the vessel at mid-depth. Escalated to gemini-3-pro-image after two genuine quality failures.",
+   "3": "PASS (gemini-3-pro-image) — softly rounded cushion cell with cut-away on a dark seamless background to all edges; ~80 glossy granules (teal skin, ivory interior, faceted indigo crystal) filling the cytoplasm evenly; lavender nucleus, sage ER folds with ribosome dots, apricot Golgi fan, 4 mitochondria with cristae; rose fenestrated capillary spans the full width below the cell with pores in the wall; the fusing granule sits in a membrane bulge of the cell itself, rim continuous with the membrane, and the magnified crop shows the whole speck drift passing a wall pore and ending inside the vessel lumen. Magnified mid-zone crop: no letters, no text."
+  },
+  "watercolor": {
+   "1": "FAIL (gemini-2.5-flash-image) — full-bleed aged paper and good granule crowd, but the lavender nucleus contains a faceted indigo crystal drawn identically to the granule cores (reads as an insulin granule inside the nucleus — misleading), and the rough ER reads as detached green sausages. Fix-prompt: nucleus as one even lavender wash with soft mottling only; ER as stacked parallel ribbon folds.",
+   "2": "FAIL/PARTIAL (gemini-2.5-flash-image) — nucleus fixed (clean mottled wash), but the granule crowd thinned to a single peripheral ring (~24) and the release drift overshoots: about half the indigo dots sit below the vessel's lower wall on the paper. Fix-prompt: ~forty granules filling inner cytoplasm as richly as the periphery; a three-dot release trail that ends inside the vessel.",
+   "3": "PARTIAL (gemini-2.5-flash-image) — granules well distributed again (~35) and nucleus clean, but 2 of the 4 release dots still fall below the vessel's lower wall (magnified crop). Fix-prompt: trail of exactly three dots ending at the vertical middle of the vessel band; lower half of the vessel plain rose wash, paper below plain cream.",
+   "4": "PASS (gemini-2.5-flash-image) — warm aged paper fills the frame edge-to-edge (edge-row means 233/235/226/225, corners paper); rounded-polygonal cell with ~30 granules spread through the whole cytoplasm, each an ink circle with pale cream halo (sampled 228,202,162) and angular deep-indigo core; nucleus one even lavender wash with soft speckle mottling and a dotted nuclear rim (magnified crop: mottling only, no crystal); green ER ribbons with ink ribosome dots; apricot Golgi; rose capillary drawn as a wide wash band with a porous upper wall, bleeding off both sides and the bottom of the frame; the release cup sits in the cell's own bottom membrane and all THREE indigo trail dots float inside the vessel wash (counted on the magnified crop). Accepted compromises: the vessel's lower wall is out of frame (the rose wash runs to the bottom edge), and two small unexplained rose-red dots (~10 px) sit in the cytoplasm — they read as small vesicles and carry no label. Post-assembly anchor audit (raw-pixel sampling): the 'halo' label anchor (395,300) sat on the cell's outer membrane rim, not on a granule halo — moved to (420,342) on the pale halo ring of a granule (sampled RGB 212,188,161) and the labelled SVG rebuilt; all other 23 anchors across textbook/3d/watercolor sampled their expected structure colours."
+  }
+ },
+ "coloring": "PASS after crop-and-retrace — attempt 1 had baked text 'blood river' (prompt had named the channel; renamed descriptively), attempts 2 and 3 drew a full rectangular page frame; per the skill's escape hatch the attempt-3 frame (rows/cols 28-30 / 992-995 of 1024, dark-fraction scan) was cropped off deterministically (box 37,37,986,987) and re-traced through coloring.py's own to_bitmap/trace_paths, no extra API call, 157 paths. Composed .coloring.svg measured with cairosvg at 500 px: top edge 0.0000 ink (template, by construction), left column 0.0079, right column 0.0177, artwork bottom rows 0.028-0.032 — three-edge bleed. Compromises: tummy porthole shows two stored parcels instead of three; left-edge contact thin.",
+ "reference": "PASS — Wikimedia Commons 'Beta cell processed.jpg' (Public domain, NASA; Tim McClanahan, NASA Goddard): genuine greyscale TEM of one complete isolated rat beta cell — hundreds of secretory granules with the diagnostic dense core + pale halo, large round nucleus, membranous ER/Golgi whorls. The source is the processed NASA research figure and carried thin coloured annotation outlines (4.2% of pixels; no text, no scale bar). Removed DETERMINISTICALLY, not by AI edit: RGB-spread>24 mask (micrograph itself is greyscale), dilated 1 px (7.4% total), filled by iterative 3x3 neighbourhood averaging (4 iterations). Diff vs original: 0 unmasked pixels changed (max diff 0), 0 coloured pixels remain; magnified crop confirms cores and halos read cleanly, with a faint soft seam where an outline crossed a halo edge — accepted. real-01 = original for provenance, real-02 = cleaned display copy. Caveats: rat (not human) beta cell — morphologically equivalent for every labelled structure — and no capillary in this single-cell frame, so the capillary is labelled only on the illustrated styles.",
+ "decision": [
+  [
+   "textbook",
+   "pass",
+   1,
+   "use attempt 1 (flash); full anatomy with dense-core+halo granules, capillary release story; accepted compromise: part of the release speck drift continues below the vessel's lower wall"
+  ],
+  [
+   "sem",
+   "pass",
+   1,
+   "use attempt 1 (flash); fracture face crowded with granule cups holding angular crystal cores, porous capillary channel visible; nucleus dome slightly glossy — accepted"
+  ],
+  [
+   "3d",
+   "pass",
+   3,
+   "use attempt 3 (gemini-3-pro-image, escalated after 2 flash fails: baked 'EXOCYTSOIS' text, then a vessel-embedded release granule); release now at the cell's own membrane with the drift ending inside the vessel"
+  ],
+  [
+   "watercolor",
+   "pass",
+   4,
+   "use attempt 4 (flash); clean mottled nucleus, even granule crowd, release trail fully inside the vessel; accepted: vessel's lower wall out of frame, two small unlabelled rose dots in the cytoplasm"
+  ]
+ ]
+}
