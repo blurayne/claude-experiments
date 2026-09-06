@@ -40,7 +40,28 @@ export default defineConfig({
     minify: false,
   },
 
+  // esbuild's TypeScript loader discards every comment, minified or not. On this page that
+  // is not a cosmetic loss: the comments are where the reasoning lives — why the corotation
+  // radius is what it is, why a trail is refilled rather than buffered, why the core glow is
+  // gated from inside the disk — and a visitor who opens the page is meant to be able to
+  // read them. Stripping ~1,000 lines of that is a change to the artifact, and this refactor
+  // is not allowed to make changes to the artifact. So types are erased instead of
+  // transpiled: ts-blank-space overwrites type syntax with spaces and touches nothing else,
+  // which keeps every comment, every line number and every column exactly where it was.
+  esbuild: false,
+
   plugins: [
+    {
+      name: 'ts-blank-space',
+      enforce: 'pre',
+      async transform(code, id) {
+        if (!/\.ts$/.test(id.split('?')[0]!)) return null
+        const { default: blank } = await import('ts-blank-space')
+        // Identity source map: the output is the input with type syntax blanked in place.
+        return { code: blank(code), map: null }
+      },
+    },
+
     viteSingleFile({ removeViteModuleLoader: true }),
 
     /**
