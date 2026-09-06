@@ -28,6 +28,37 @@ together with the commit sha and the build time.
 
 ---
 
+## [1.5.0] — 2026-09-06
+
+**132 subjects live** · 132 catalogued · **0 unrendered** · the atlas is complete again
+
+- **+** `1.5.0` — **ALH 84001 (Mars meteorite)** in a closing set of its own,
+  *Life on Mars? / Leben vom Mars?* — the atlas's one entry that is not alive and
+  never was. It is here for the method: the 1996 claim of relic biogenic activity,
+  and the non-biological explanation now standing behind each of its four lines of
+  evidence. The text is explicit that what is refuted is the claim about *this
+  rock*, not the possibility of past life on Mars.
+- **The last two render gaps are closed**, both blocked since August by the Gemini
+  monthly spend cap: `spider-silk-cell` finally has its coloring page (one API
+  call), and `synthetic-minimal-cell` is rendered. Every live subject now carries
+  the complete set — 132 subjects, 132 coloring pages, no exceptions.
+- **Three factual corrections to text written days earlier**, found by the render
+  agent fact-checking its own brief: ALH 84001's Martian origin was established by
+  oxygen isotopes and mineralogy after an initial misclassification as a diogenite,
+  *not* by the Viking atmospheric-gas match (that tied the SNC clan generally); the
+  ejection age is ~15 Ma, not the ~17 Ma in wide circulation; and the NRC 1999
+  minimum-cell-size floor is 250 ± 50 nm, not "roughly 200 nm". The sputter-coating
+  artefact was demoted from stated fact to contested sub-point, with the robust
+  claim — lamellar crystal growth steps — put first.
+- `synthetic-minimal-cell` also gained a genuinely free reference: the August run
+  had concluded none existed, having searched only for SEM plates and the closed
+  2016/2021 papers, and missed an open-access 2024 *Nature Communications* TEM of
+  JCVI-Syn3A itself (CC BY 4.0). No species substitution was needed after all.
+- **Listerien and Giardien** are findable at last: both subjects were already in
+  the atlas but returned nothing for the words a German reader actually types.
+  `name_kids_de` now carries the everyday plural (feeding both search and Kids
+  mode), and "Lamblien" and "Listeriose" resolve too.
+
 ## [1.4.0] — 2026-09-06
 
 **130 subjects live** · 131 catalogued · the tapeworm and Ebola

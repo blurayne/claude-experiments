@@ -4,7 +4,7 @@
 
 ## Where we stand
 
-- **27 sets**, **131 microbes** live in the viewer, out of **132 catalogued**.
+- **27 sets**, **132 microbes** live in the viewer, out of **132 catalogued**.
 - Every live microbe carries: 5 picture styles, 3 labelled diagrams, a printable A4 coloring page, kids narration in EN + DE, and size/weight data — the table below is the proof.
 - **65 plush links**, every one an exact species/cell match. 8 of those photos had to be repaired (see the last section).
 
@@ -145,19 +145,17 @@
 | engineered-life | CAR-T cell | `car-t-cell` | 5/5 | 3/3 | ✅ | ✅ | 10 µm · 0.2 ng | — |
 | engineered-life | Spider-silk cell | `spider-silk-cell` | 5/5 | 3/3 | ✅ | ✅ | 20 µm · 3 ng | — |
 | engineered-life | Synthetic minimal cell (JCVI-syn3A) | `synthetic-minimal-cell` | 5/5 | 3/3 | ✅ | ✅ | 400 nm · 0.02 pg | — |
-| mars-meteorite | ALH 84001 (Mars meteorite) | — | ❌ not rendered | | | | 150000 µm · 1.93e+06 mg | |
+| mars-meteorite | ALH 84001 (Mars meteorite) | `alh-84001` | 5/5 | 3/3 | ✅ | ✅ | 150000 µm · 1.93e+06 mg | Leben vom Mars (Life on Mars?) |
 
 ## Gaps
 
-**Catalogued but not yet rendered — 1.** Text, German translation and scale data already exist for these; only the pictures are missing.
-
-- `mars-meteorite` — ALH 84001 (Mars meteorite)
+**Catalogued but not rendered:** none.
 
 **Rendered but not reaching the viewer — 0.** A render only appears if `meta.name` matches a catalogue `name_en` exactly, or its key matches the slug of one; anything here fell through both.
 
 - none
 
-**Data waiting for a render:** 1 scale entry (`alh-84001`), 1 plush link (`alh-84001`).
+**Data waiting for a render:** 0 scale entries (none), 0 plush links (none).
 
 **No recorded micrograph source:** `feline-immunodeficiency-virus`.
 

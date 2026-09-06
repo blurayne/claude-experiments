@@ -131,6 +131,42 @@ killed the first batch mid-flight and the state is not obvious from the files al
 These are all flagged in the per-subject `verdicts.json` too. None is wrong, each is
 a compromise someone chose deliberately — listed so a later pass can revisit them.
 
+- [ ] **`alh-84001` — the Mars meteorite (2026-09)**, the atlas's one entry that is
+      not alive. The agent fact-checked the brief *and the catalogue text*, and
+      three corrections landed in `cells_data.py`: ALH 84001's Martian origin was
+      **not** established by the Viking atmospheric-gas match (that tied the SNC
+      clan generally, via EETA 79001) — it was first misclassified as a diogenite
+      and reassigned on oxygen isotopes plus mineralogy; the ejection age is
+      **~15 Ma** (Nyquist et al. 2001 average of all exposure ages), not the ~17 Ma
+      that Wikipedia carries; and the NRC 1999 minimum-cell-size floor is
+      **250 ± 50 nm**, not "roughly 200 nm" — quoting 200 was the most generous
+      possible reading of that panel. The sputter-coating artefact was demoted from
+      fact to contested sub-point: the robust claim (Bradley et al. 1997) is that
+      the shapes are lamellar growth steps and cleavage surfaces on pyroxene and
+      carbonate, while the coating-decoration idea was later tested and not borne
+      out. Compromises accepted in the pictures:
+      - none of the four styles conveys that the shapes are 20–100 nm — there is
+        nothing in frame to calibrate against, so the scale lives only in the
+        labels and the text;
+      - the textbook/watercolour carbonate globules show five clean concentric
+        bands where real rosettes are oscillatory and messy (the idealised
+        textbook version), and the magnesite rim's crystal faces are drawn on
+        about a third of the circumference rather than all round, deliberately, to
+        avoid the unrecoverable starburst failure;
+      - the textbook globule sits slightly proud of the fracture face with a faint
+        drop shadow; the attempt to cut it flush produced a facet ring that read as
+        legs (a beetle on a rock), so the earlier render was kept after checking
+        that carbonate "thin pancakes attached to broken surfaces" is a documented
+        habit (McKay et al. 1996; Scott et al. 1998);
+      - the PAHs and the 2022 serpentinisation result appear in no render — they
+        are chemistry, not morphology, and are carried entirely by the text;
+      - the `sem` style is deliberately left unlabelled: pointing a leader at the
+        ridge is the textbook figure's job, where the word CLAIMED can sit beside
+        the matrix and globule that give it context.
+      Worth knowing about the reference: NASA frame 96-12609, the "Mars worm", is
+      **not** a figure from the *Science* paper — NASA released it a week before
+      publication and its own caption says the structure was not part of the
+      published research. It is the image that carried the story to the public.
 - [ ] **`tapeworm` and `ebola-virus` (2026-09)** — both live at 5/5, 3/3, coloring
       and EN+DE narration. Compromises the agents flagged:
       - `tapeworm` — the real reference is *Taenia **solium*** (CDC PHIL #5262, PD)

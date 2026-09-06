@@ -8,7 +8,7 @@ A bilingual (DE/EN) teaching atlas of body cells and pathogens — cell types, p
 
 ## Page structure
 
-**21 sets and 5 prose chapters, 130 subjects live** (131 catalogued — the difference is subjects written up but not yet rendered, which stay hidden). Every live subject carries five picture styles, three labelled diagrams, a printable A4 coloring page, kids' narration in English and German, and size/weight data. `build_viewer.py` prints the current totals on every build, and [`OVERVIEW.md`](OVERVIEW.md) lists each subject with what it has.
+**22 sets and 5 prose chapters, 132 subjects live** — every catalogued subject is rendered and live, with nothing held back. Every live subject carries five picture styles, three labelled diagrams, a printable A4 coloring page, kids' narration in English and German, and size/weight data. `build_viewer.py` prints the current totals on every build, and [`OVERVIEW.md`](OVERVIEW.md) lists each subject with what it has.
 
 The order runs from the parts inside a cell outward to the things that attack it, and finally to the things people have built. Italicised rows are **prose chapters** — explainers with no subjects of their own, which sit between the sets they introduce:
 
@@ -39,9 +39,10 @@ The order runs from the parts inside a cell outward to the things that attack it
 | 20 | Erreger bei Hund und Katze | Pathogens of cats and dogs | 6 |
 | — | *Wie der Mensch Leben umbaut* | *How humans engineer life* | chapter |
 | — | *Wie CRISPR funktioniert* | *How CRISPR works* | chapter |
-| 21 | Umgebautes Leben | Engineered life | 3 of 4 |
+| 21 | Umgebautes Leben | Engineered life | 4 |
+| 22 | Leben vom Mars? | Life on Mars? | 1 |
 
-Four placements are deliberate rather than obvious. **Cancer cells** sit last among the body's own cells and immediately before the pathogens: everything up to that point is the body working as intended, everything after arrives from outside, and a cancer cell belongs to neither. **The genetic material** comes directly before it, because cancer is what happens when that molecule accumulates damage. **Engineered life** closes the atlas, after everything natural: it is the one chapter about things that do not occur anywhere on their own. **Bacteriophages** follow the helpful microbes rather than the viruses, because the story they belong to is the one about bacteria — they are viruses that attack them, not us.
+Five placements are deliberate rather than obvious. **Cancer cells** sit last among the body's own cells and immediately before the pathogens: everything up to that point is the body working as intended, everything after arrives from outside, and a cancer cell belongs to neither. **The genetic material** comes directly before it, because cancer is what happens when that molecule accumulates damage. **Engineered life** comes after everything natural: it is the chapter about things that do not occur anywhere on their own. **Bacteriophages** follow the helpful microbes rather than the viruses, because the story they belong to is the one about bacteria — they are viruses that attack them, not us. And **Life on Mars?** closes the atlas with its only entry that is not alive and never was: the 1996 claim of fossil life in the Martian meteorite ALH 84001, and the two decades of scrutiny that explained away all four of its lines of evidence. It earns the last page because the lesson is the *method* — how an extraordinary claim gets tested — and because it is honest about the limit of the result: what is refuted is the claim about that rock, not the possibility of life on Mars.
 
 ## Sources
 
