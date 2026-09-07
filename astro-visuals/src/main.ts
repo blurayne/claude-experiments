@@ -50,7 +50,7 @@ import {
   MOON_D0, MOON_M1, MOON_M2, moonDist, moonW, moonRel,
   EARTH_AXIS, EARTH_P0, SIDEREAL, earthPrime as earthPrimeAt, earthEra,
 } from './astro/earth'
-import { simClock, cam, gfx } from './render/state'
+import { simClock, cam, gfx, view, readout, lifeAcc } from './render/state'
 
 // earthPrime calibrates itself against the rendering origin on its first call, and `org` is
 // the renderer's — so it is handed in here rather than reached for from inside astro/.
@@ -960,7 +960,7 @@ loadEarthMap();
 const vaoGlobe = (()=>{ const v=gl.createVertexArray(); gl.bindVertexArray(v); gl.bindVertexArray(null); return v; })();
 const vecV = (m, v) => [m[0]*v[0]+m[4]*v[1]+m[8]*v[2], m[1]*v[0]+m[5]*v[1]+m[9]*v[2], m[2]*v[0]+m[6]*v[1]+m[10]*v[2]];
 const norm3 = v => { const l = Math.hypot(v[0],v[1],v[2]) || 1; return [v[0]/l, v[1]/l, v[2]/l]; };
-let globePx = 0, moonPx = 0, earthDbg = null, camSunDist = 150, avgLight = 0;
+
 const UR = {}; for(const k of ['uProj','uView','uSun','uA','uB','uR','uColor']) UR[k]=gl.getUniformLocation(pRing,k);
 const vaoRing = gl.createVertexArray(); gl.bindVertexArray(vaoRing);
 gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,ringCS,gl.STATIC_DRAW);
@@ -1343,7 +1343,7 @@ const SN_CAP = 96;
 const snPos=new Float32Array(SN_CAP*3), snSize=new Float32Array(SN_CAP),
       snCol=new Float32Array(SN_CAP*3), snPh=new Float32Array(SN_CAP);
 const snGL = dynVAO(SN_CAP);
-let evN = 0, snN = 0;   // how many of each the last fillEvents() actually wrote
+   // how many of each the last fillEvents() actually wrote
 const events=[], puffs=[];
 function armSite(){ // where massive stars are born: an arm's inner edge, the spur, or a bar tip
   const roll=Math.random();
@@ -1362,29 +1362,29 @@ function addPuff(e, r1, dur, col){
   if(puffs.length>=PUFF_CAP) return;
   puffs.push({x:e.x,y:e.y,z:e.z,wv:e.wv,t:0,r1,dur,col});
 }
-let accB=0, accSN=0, accPN=0;
+
 // event kinds: 1 OB cluster, 2 red supergiant, 3 supernova flash, 4 red giant,
 //              5 cooling neutron star, 6 fading white dwarf
 function lifeStep(dt, dtSim){
   const sfr = sfrFactor(ageGyr());
   // Per year now, not per compressed step. These are drawn events, a sampled fraction of
   // the real rates — the true figures are in the status bar and the info panel.
-  if(evBirth) accB += dtSim*1.84e-6*gfx.curD*sfr; else accB = 0;
+  if(evBirth) lifeAcc.accB += dtSim*1.84e-6*gfx.curD*sfr; else lifeAcc.accB = 0;
   if(evSN){
-    accSN += dtSim*Math.max(9.2e-9*gfx.curD, 1.26e-7)*sfr;
-    accPN += dtSim*1.26e-6*gfx.curD*Math.sqrt(sfr);   // low-mass deaths ride with the deaths switch
-  } else accSN = accPN = 0;
+    lifeAcc.accSN += dtSim*Math.max(9.2e-9*gfx.curD, 1.26e-7)*sfr;
+    lifeAcc.accPN += dtSim*1.26e-6*gfx.curD*Math.sqrt(sfr);   // low-mass deaths ride with the deaths switch
+  } else lifeAcc.accSN = lifeAcc.accPN = 0;
   const CAP = 40;
-  for(let n=0; accB>=1 && n<CAP; n++){ accB--; if(events.length<EV_CAP){ const s=armSite();
+  for(let n=0; lifeAcc.accB>=1 && n<CAP; n++){ lifeAcc.accB--; if(events.length<EV_CAP){ const s=armSite();
     events.push({k:1,x:s[0],y:s[1],z:s[2],wv:1,st:0,t:0,L:(3+Math.random()*6)*1e6,sn:evSN && Math.random()<0.12});
     if(Math.random()<0.5) sfx('birth'); } } // only half of them sound, or it never stops
-  if(accB>1) accB = 0;
-  for(let n=0; accSN>=1 && n<CAP; n++){ accSN--; if(events.length<EV_CAP){ const s=armSite();
+  if(lifeAcc.accB>1) lifeAcc.accB = 0;
+  for(let n=0; lifeAcc.accSN>=1 && n<CAP; n++){ lifeAcc.accSN--; if(events.length<EV_CAP){ const s=armSite();
     events.push({k:2,x:s[0],y:s[1],z:s[2],wv:1,st:0,t:0}); } }
-  if(accSN>1) accSN = 0;
-  for(let n=0; accPN>=1 && n<CAP; n++){ accPN--; if(events.length<EV_CAP){ const s=diskSite();
+  if(lifeAcc.accSN>1) lifeAcc.accSN = 0;
+  for(let n=0; lifeAcc.accPN>=1 && n<CAP; n++){ lifeAcc.accPN--; if(events.length<EV_CAP){ const s=diskSite();
     events.push({k:4,x:s[0],y:s[1],z:s[2],wv:0,st:0,t:0}); } }
-  if(accPN>1) accPN = 0;
+  if(lifeAcc.accPN>1) lifeAcc.accPN = 0;
   for(let i=events.length-1;i>=0;i--){
     const e=events[i]; e.st+=dtSim; e.t+=dt;
     if(e.k===1 && e.st>e.L){
@@ -1399,17 +1399,17 @@ function lifeStep(dt, dtSim){
   for(let i=puffs.length-1;i>=0;i--){ const q=puffs[i]; q.t+=dt; if(q.t>q.dur) puffs.splice(i,1); }
 }
 function fillEvents(){
-  evN = 0; snN = 0;
+  readout.evN = 0; readout.snN = 0;
   for(let i=0;i<events.length;i++){
     const e=events[i]; let s=0,cr=0,cg=0,cb=0;
     if(e.k===3){
       // The blast leaves this pass entirely: its own program draws it. The sprite grows
       // through the whole flash — a fireball only expands — while the brightness peaks
       // in the first fifth of a second and falls away, so it dims as it spreads.
-      if(snN < SN_CAP){
+      if(readout.snN < SN_CAP){
         const u = Math.min(1, e.t/1.6);
         const a = e.t<0.15 ? e.t/0.15 : Math.exp(-(e.t-0.15)/0.45);
-        const j = snN++;
+        const j = readout.snN++;
         snPos[j*3]=e.x; snPos[j*3+1]=e.y; snPos[j*3+2]=e.z;
         snSize[j] = 14 + 92*Math.min(1, 0.3 + u);
         snCol[j*3]=2.4*a; snCol[j*3+1]=2.3*a; snCol[j*3+2]=2.1*a;
@@ -1435,7 +1435,7 @@ function fillEvents(){
     } else { // white dwarf, slowly fading
       const f=Math.max(0,1-e.t/2.5); s=1.1; cr=0.8*f; cg=0.85*f; cb=1.0*f;
     }
-    const j = evN++;   // compacted: the blasts that left this pass leave no gaps behind
+    const j = readout.evN++;   // compacted: the blasts that left this pass leave no gaps behind
     evPos[j*3]=e.x; evPos[j*3+1]=e.y; evPos[j*3+2]=e.z;
     evSize[j]=s; evCol[j*3]=cr; evCol[j*3+1]=cg; evCol[j*3+2]=cb; evWave[j]=e.wv;
   }
@@ -1484,8 +1484,8 @@ canvas.addEventListener('pointermove', e=>{
   if(touches.size === 2){
     // the fingers' midpoint carries the scene with it; the pinch (below) reads the spread
     const [cx, cy] = panCentroid();
-    cam.panF[0] = Math.max(-2, Math.min(2, cam.panF[0] + (cx - panCX)/H));
-    cam.panF[1] = Math.max(-2, Math.min(2, cam.panF[1] + (cy - panCY)/H));
+    cam.panF[0] = Math.max(-2, Math.min(2, cam.panF[0] + (cx - panCX)/view.H));
+    cam.panF[1] = Math.max(-2, Math.min(2, cam.panF[1] + (cy - panCY)/view.H));
     panCX = cx; panCY = cy;
     return;
   }
@@ -2155,7 +2155,7 @@ const S_CHK = ['fxBirth','fxSn','fxPn','fxDrone','secSolo','closeOnGo','qrOn'];
 let qrPos = { x: 1, y: 1 }, qrHeld = false;
 function saveSettingsNow(){
   try{
-    const s = { t:{}, s:{}, c:{}, cal:$('cal').value, mult:simClock.speedMult, dens:gfx.curD, dprc:dprCap,
+    const s = { t:{}, s:{}, c:{}, cal:$('cal').value, mult:simClock.speedMult, dens:gfx.curD, dprc:view.dprCap,
                 units:unitMode,
                 fsel:$('focusSel').value, sec:secOpen,
                 pan:Object.fromEntries(PANELS.map(q => [q.id, { s:pState[q.id].s, o:pState[q.id].o }])),
@@ -2185,7 +2185,7 @@ function restoreSettings(register){
       if(v != null && isOn($(id)) !== v) $(id).click(); });   // a checkbox click fires change
     if(s.cal && s.cal !== $('cal').value){ $('cal').value = s.cal; $('cal').dispatchEvent(new Event('change')); }
     if(s.mult > 0 && s.mult !== simClock.speedMult) setMultExp(Math.log10(s.mult));
-    if(s.dprc === 1 || s.dprc === 2){ if(s.dprc !== dprCap){ dprCap = s.dprc; resize(); } }   // the probe's pixel cap, kept
+    if(s.dprc === 1 || s.dprc === 2){ if(s.dprc !== view.dprCap){ view.dprCap = s.dprc; resize(); } }   // the probe's pixel cap, kept
     if(s.dens){ const i = DETAIL_D.indexOf(s.dens);
       if(i >= 0){ $('detail').value = i; $('detailv').textContent = DETAIL_NAMES[i];   // the slider shows the tier even when it is the boot tier
         if(s.dens !== gfx.curD) $('detail').dispatchEvent(new Event('input')); } }
@@ -2357,7 +2357,7 @@ function jumpToEpoch(){
   }
   simClock.nextSample = simClock.simT + simClock.dtSample;
   events.length = 0; puffs.length = 0;
-  accB = accSN = accPN = 0;
+  lifeAcc.accB = lifeAcc.accSN = lifeAcc.accPN = 0;
   refillTrails();
 }
 $('jump').addEventListener('change', e=>{ cam.reseedFollow=true; cam.panF[0]=cam.panF[1]=0; jumpToEpoch(e); });
@@ -2410,7 +2410,7 @@ function humanYear(){
     case 'saka': return fmt(g-78)+' Śaka';
     case 'am':   return fmt(g+3760)+' A.M.';
     case 'al':   return fmt(g+4000)+' A.L.';
-    case 'he':   return fmt(g+10000)+' H.E.';          // Holocene calendar: +10,000 yr
+    case 'he':   return fmt(g+10000)+' view.H.E.';          // Holocene calendar: +10,000 yr
     case 'her':  return fmtYears(2000000+el);        // since Homo erectus emerged (~2 Myr ago)
     case 'hom':  return fmtYears(7000000+el);        // since the chimp–human lineage split (~7 Myr ago)
     case 'mam':  return fmtYears(200000000+el);      // since the first true mammals (~200 Myr ago, Late Triassic)
@@ -2593,19 +2593,19 @@ function drawTourLines(){
     host.appendChild(box);
     const bw = box.offsetWidth, bh = box.offsetHeight;
     // beside the target, on the side with room; below it when it spans the width
-    const wide = r.width > W*0.6;
-    const onLeft = r.left + r.width/2 < W/2;
+    const wide = r.width > view.W*0.6;
+    const onLeft = r.left + r.width/2 < view.W/2;
     // On a narrow screen a hint set beside its target leaves the two columns
     // overlapping, and then no two hints may share a row. Pinned to the edges they
     // clear each other, and the connector still says which is which.
-    const tight = W < 620;
-    let x = tight ? (onLeft ? 14 : W - bw - 14)
-          : wide  ? Math.min(Math.max(r.left, 14), W-bw-14)
+    const tight = view.W < 620;
+    let x = tight ? (onLeft ? 14 : view.W - bw - 14)
+          : wide  ? Math.min(Math.max(r.left, 14), view.W-bw-14)
                   : (onLeft ? r.right + GAP : r.left - GAP - bw);
-    let y = wide ? (r.top > H/2 ? r.top - GAP - bh : r.bottom + GAP)
+    let y = wide ? (r.top > view.H/2 ? r.top - GAP - bh : r.bottom + GAP)
                  : r.top + Math.min(r.height/2, 24) - bh/2;
-    x = Math.min(Math.max(x, 14), W - bw - 14);
-    y = Math.min(Math.max(y, 14), H - bh - 14);
+    x = Math.min(Math.max(x, 14), view.W - bw - 14);
+    y = Math.min(Math.max(y, 14), view.H - bh - 14);
     // Look over the whole column rather than stepping downward and giving up: on a
     // narrow screen the free room is in the bands above and below the card, which a
     // one-directional walk never reaches. Candidates are tried nearest-first, so a
@@ -2614,10 +2614,10 @@ function drawTourLines(){
     if(clash(cand)){
       // the other flank as well as the other height: with two columns of hints on a
       // narrow screen, a free row often exists only on the side the hint did not want
-      const xAlt = tight ? (onLeft ? W - bw - 14 : 14)
-        : Math.min(Math.max(wide ? W - bw - 14
-                    : (x > r.left ? r.left - GAP - bw : r.right + GAP), 14), W - bw - 14);
-      const lo = 14, hi = Math.max(lo, H - bh - 14), slots = [];
+      const xAlt = tight ? (onLeft ? view.W - bw - 14 : 14)
+        : Math.min(Math.max(wide ? view.W - bw - 14
+                    : (x > r.left ? r.left - GAP - bw : r.right + GAP), 14), view.W - bw - 14);
+      const lo = 14, hi = Math.max(lo, view.H - bh - 14), slots = [];
       for(let yy = lo; yy <= hi; yy += 8) slots.push(yy);
       slots.sort((a,b)=> Math.abs(a-y) - Math.abs(b-y));
       let found = null;
@@ -2732,7 +2732,7 @@ const mergedEl = (()=>{ const d=document.createElement('div'); d.className='arml
 // comes back once the motion has been calm for a dozen frames. Hiding is debounced
 // too, so a target flickering across a visibility threshold does not blink its name.
 // Off, it is the old direct placement. State rides on the element itself.
-let frameDt = 1/60;
+
 function placeLabel(el, x, y, show){
   if(!labelSteady){
     if(show){ el.style.display='block'; el.style.left=x+'px'; el.style.top=y+'px'; }
@@ -2741,7 +2741,7 @@ function placeLabel(el, x, y, show){
   }
   const s = el._lb || (el._lb = { x, y, on:false, hid:0, leaps:0, calm:99, spin:false });
   if(!show){
-    s.hid += frameDt; s.x = x; s.y = y;
+    s.hid += readout.frameDt; s.x = x; s.y = y;
     if(s.on && s.hid > 0.18){ el.style.display='none'; s.on=false; }
     return;
   }
@@ -2758,7 +2758,7 @@ function placeLabel(el, x, y, show){
     return;
   }
   if(!s.on || leap){ s.x = x; s.y = y; }        // land; never fly
-  else { const k = 1 - Math.exp(-frameDt/0.06); s.x += (x - s.x)*k; s.y += (y - s.y)*k; }
+  else { const k = 1 - Math.exp(-readout.frameDt/0.06); s.x += (x - s.x)*k; s.y += (y - s.y)*k; }
   s.on = true;
   el.style.display='block'; el.style.left=s.x+'px'; el.style.top=s.y+'px';
 }
@@ -2849,7 +2849,7 @@ function setStateColour(h, meanC){
 }
 
 // ---------- resize ----------
-let W=0,H=0,DPR=1, projMat, dprCap=2;   // dprCap: the first-launch probe lowers it on a slow device
+   // dprCap: the first-launch probe lowers it on a slow device
 // The settings panel gets the room it needs. On a small screen it reaches across the
 // environment readout beside it, and down over the status bar and the view scale below.
 // Whatever it actually overlaps steps aside until it is collapsed again — measured, not
@@ -2886,21 +2886,21 @@ const pTone = prog(TONE_VS, TONE_FS);
 const UT = { tex: gl.getUniformLocation(pTone,'uTex'), knee: gl.getUniformLocation(pTone,'uKnee') };
 const emptyVAO = gl.createVertexArray();
 const hdrExt = gl.getExtension('EXT_color_buffer_float') || gl.getExtension('EXT_color_buffer_half_float');
-let hdrFB = null, hdrTex = null, hdrOK = false;
+
 function makeHDR(){
   if(!hdrExt) return;
-  if(hdrTex) gl.deleteTexture(hdrTex);
-  if(hdrFB) gl.deleteFramebuffer(hdrFB);
-  hdrTex = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, hdrTex);
+  if(view.hdrTex) gl.deleteTexture(view.hdrTex);
+  if(view.hdrFB) gl.deleteFramebuffer(view.hdrFB);
+  view.hdrTex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, view.hdrTex);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, canvas.width, canvas.height, 0, gl.RGBA, gl.HALF_FLOAT, null);
   for(const [k,v] of [[gl.TEXTURE_MIN_FILTER,gl.NEAREST],[gl.TEXTURE_MAG_FILTER,gl.NEAREST],
                       [gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE],[gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE]])
     gl.texParameteri(gl.TEXTURE_2D, k, v);
-  hdrFB = gl.createFramebuffer();
-  gl.bindFramebuffer(gl.FRAMEBUFFER, hdrFB);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, hdrTex, 0);
-  hdrOK = gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE;
+  view.hdrFB = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, view.hdrFB);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, view.hdrTex, 0);
+  view.hdrOK = gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE;
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gl.bindTexture(gl.TEXTURE_2D, null);
 }
@@ -2916,13 +2916,13 @@ function makeHDR(){
 // same sign, so a drag still moves the world the way the hand moves.
 const SKY_MIRROR = -1;
 // the one way a projection is built: frame() rebuilds it every frame for its near plane
-function skyProjection(near, far){ const m = perspective(Math.PI/3, W/H, near, far); m[0] *= SKY_MIRROR; return m; }
+function skyProjection(near, far){ const m = perspective(Math.PI/3, view.W/view.H, near, far); m[0] *= SKY_MIRROR; return m; }
 function resize(){
-  DPR=Math.min(dprCap, devicePixelRatio||1);
-  W=innerWidth; H=innerHeight;
-  canvas.width=W*DPR; canvas.height=H*DPR;
+  view.DPR=Math.min(view.dprCap, devicePixelRatio||1);
+  view.W=innerWidth; view.H=innerHeight;
+  canvas.width=view.W*view.DPR; canvas.height=view.H*view.DPR;
   gl.viewport(0,0,canvas.width,canvas.height);
-  projMat = skyProjection(0.5, 20000);
+  view.projMat = skyProjection(0.5, 20000);
   makeHDR();
 }
 addEventListener('resize', ()=>{ resize(); fitPanels(); }); resize();
@@ -2990,7 +2990,7 @@ function holdBarWidth(now){
 const org=new Float64Array(3); // rendering origin: the Sun, in double precision
 const sunSizeTmp=new Float32Array(1), eatSizeTmp=new Float32Array(1);
    // to tell the clock running across an engulfment from a jump past it
-let pnShown = false;      // the nebula is on screen this frame: the label follows it
+      // the nebula is on screen this frame: the label follows it
 // Once the Sun's true disc spans more than a few pixels, the point sprite hands over to
 // a procedural star: limb-darkened granulation that churns, prominence arcs that rise
 // and fall with a slow magnetic-storm cycle, and a streaked corona. All of it is noise
@@ -3026,7 +3026,7 @@ const vaoSunPt = (()=>{ const v=gl.createVertexArray(); gl.bindVertexArray(v);
   gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(3),gl.STATIC_DRAW);
   gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
   gl.bindVertexArray(null); return v; })();
-let plasmaSunPx = 0;
+
 
 // ---------- the first-launch performance probe ----------
 // A first visit has no saved quality. Two frames in — the programs compiled, the first
@@ -3036,7 +3036,7 @@ let plasmaSunPx = 0;
 // on the lowest tier's ~95,000 points, sets the quality row (lowest, low or medium —
 // never more: medium is already two million points and the heavier tiers are a
 // choice, not a default) and caps the pixel ratio at 1 when even that pass is slow.
-let probeFrames = 0, probeInfo = null;
+let probeFrames = 0;
 function perfProbe(){
   const fb = gl.createFramebuffer(), tex = gl.createTexture(), pw = canvas.width, ph = canvas.height;
   gl.bindTexture(gl.TEXTURE_2D, tex);
@@ -3069,11 +3069,11 @@ function runFirstLaunchProbe(){
   const r = perfProbe();
   r.msLow = r.ms < 0 ? -1 : r.ms * 95000 / Math.max(1, r.points);   // per pass of the lowest tier's points, whatever tier was drawn
   const d = pickDetail(r.msLow);
-  if(r.msLow > 8){ dprCap = 1; resize(); }                  // a slow fill: fewer pixels first
-  r.detail = DETAIL_NAMES[d]; r.dpr = DPR; probeInfo = r;
+  if(r.msLow > 8){ view.dprCap = 1; resize(); }                  // a slow fill: fewer pixels first
+  r.detail = DETAIL_NAMES[d]; r.dpr = view.DPR; readout.probeInfo = r;
   $('detail').value = d; $('detail').dispatchEvent(new Event('input'));
   saveSettingsNow();                                         // at once: a tab closed inside the debounce would probe again
-  try{ $('buildStamp').textContent += ' · probe ' + (r.ms < 0 ? 'failed' : r.msLow.toFixed(1) + ' ms/pass') + ' → ' + r.detail + (dprCap < 2 ? ', 1× pixels' : ''); }catch(e){}
+  try{ $('buildStamp').textContent += ' · probe ' + (r.ms < 0 ? 'failed' : r.msLow.toFixed(1) + ' ms/pass') + ' → ' + r.detail + (view.dprCap < 2 ? ', 1× pixels' : ''); }catch(e){}
 }
 
 function frame(now){
@@ -3090,7 +3090,7 @@ function frame(now){
     simClock.simT += dt*simClock.speed*simClock.speedMult*drive;
     // the clock in years a second decides whether the globe still has days (see uAvg)
     { const yps = simClock.speed*simClock.speedMult*Math.abs(drive); const want = Math.max(0, Math.min(1, (Math.log10(Math.max(1e-9, yps)) + 1.3)));
-      avgLight += (want - avgLight)*Math.min(1, dt*4); }
+      readout.avgLight += (want - readout.avgLight)*Math.min(1, dt*4); }
     if(drive < 0){
       // backwards: the trail is the path swept up to now, so it retracts — recomputed
       // from the clock at ~10 Hz rather than every frame (2400 samples a body)
@@ -3130,10 +3130,10 @@ function frame(now){
     // realSizes[0] is the Sun's diameter today; the model scales it, so a red giant is
     // drawn at the size the model says it has rather than at a fixed dot
     const sunDia = realSizes[0]*sunState(ageGyr()).R;
-    plasmaSunPx = sunDia*((H*DPR)/(2*Math.tan(Math.PI/6)))/camSunDist;   // the camera's distance to the SUN: from Earth it is an AU
-    globePx = realSizes[3]*((H*DPR)/(2*Math.tan(Math.PI/6)))/cam.dist;
+    readout.plasmaSunPx = sunDia*((view.H*view.DPR)/(2*Math.tan(Math.PI/6)))/readout.camSunDist;   // the camera's distance to the SUN: from Earth it is an AU
+    readout.globePx = realSizes[3]*((view.H*view.DPR)/(2*Math.tan(Math.PI/6)))/cam.dist;
     // the findable dot stands down once the true disc takes over
-    sunSizeTmp[0] = plasmaSunPx > 7 ? 0.0 : Math.max(sunDia, camSunDist*0.0075);
+    sunSizeTmp[0] = readout.plasmaSunPx > 7 ? 0.0 : Math.max(sunDia, readout.camSunDist*0.0075);
     gl.bindBuffer(gl.ARRAY_BUFFER,bufBodySize); gl.bufferSubData(gl.ARRAY_BUFFER,0,sunSizeTmp);
   }
   // The Sun's colour, and the inner planets' fate. Both read the same model.
@@ -3152,7 +3152,7 @@ function frame(now){
       if(eatFlash[i] >= 0){ eatFlash[i] += dt; if(eatFlash[i] > 1.6) eatFlash[i] = -1; }
       // hidden for good once inside; the flare is its own pass over the disc — and Earth's
       // dot stands down while the globe is drawn in its place
-      eatSizeTmp[0] = now ? 0 : (i === 3 && globePx > 4) ? 0 : realSizes[i];
+      eatSizeTmp[0] = now ? 0 : (i === 3 && readout.globePx > 4) ? 0 : realSizes[i];
       gl.bindBuffer(gl.ARRAY_BUFFER,bufBodySize); gl.bufferSubData(gl.ARRAY_BUFFER,i*4,eatSizeTmp);
     }
     simClock.lastAgeSeen = a;
@@ -3215,20 +3215,20 @@ function frame(now){
         tgy=cam.smoothTarget[1]-org[1] + ry*pdx + uy*pdy,
         tgz=cam.smoothTarget[2]-org[2] + rz*pdx + uz*pdy;
   const eye=[ tgx+cam.dist*dx, tgy+cam.dist*dy, tgz+cam.dist*dz ];
-  camSunDist = Math.hypot(eye[0], eye[1], eye[2]) || cam.dist;   // Sun-relative eye: how far the Sun is
+  readout.camSunDist = Math.hypot(eye[0], eye[1], eye[2]) || cam.dist;   // Sun-relative eye: how far the Sun is
   const viewMat = lookAt(eye, [tgx,tgy,tgz], upV);
   // near plane tracks the zoom so sub-AU views don't clip
-  projMat = skyProjection(Math.min(0.5, Math.max(1e-13, cam.dist*0.04)), 25000);   // no depth buffer: a tiny near plane costs nothing, and Earth needs it
-  const pxScale = (H*DPR)/(2*Math.tan(Math.PI/6));
+  view.projMat = skyProjection(Math.min(0.5, Math.max(1e-13, cam.dist*0.04)), 25000);   // no depth buffer: a tiny near plane costs nothing, and Earth needs it
+  const pxScale = (view.H*view.DPR)/(2*Math.tan(Math.PI/6));
 
   // at 100% nothing is compressed, so the old direct path is kept exactly
-  const toneOn = hdrOK && coreKnee < 0.999;
-  if(toneOn) gl.bindFramebuffer(gl.FRAMEBUFFER, hdrFB);
+  const toneOn = view.hdrOK && coreKnee < 0.999;
+  if(toneOn) gl.bindFramebuffer(gl.FRAMEBUFFER, view.hdrFB);
   gl.clear(gl.COLOR_BUFFER_BIT);
 
   // points: stars, galaxy, bodies
   gl.useProgram(pPt);
-  gl.uniformMatrix4fv(U.ptProj,false,projMat);
+  gl.uniformMatrix4fv(U.ptProj,false,view.projMat);
   gl.uniformMatrix4fv(U.ptView,false,viewMat);
   const and = updateAnd();
   const gl710 = g710();   // read by the Oort brightening before the star is drawn
@@ -3269,7 +3269,7 @@ function frame(now){
   const nebulaPass = (haze, which = 'both') => {   // which: 'mw' | 'and' | 'both'
     gl.useProgram(pNeb);
   gl.useProgram(pNeb);
-  gl.uniformMatrix4fv(UN.proj,false,projMat);
+  gl.uniformMatrix4fv(UN.proj,false,view.projMat);
   gl.uniformMatrix4fv(UN.view,false,viewMat);
   gl.uniform1f(UN.px,pxScale);
   // The haze must dim as the camera closes in, whatever the mode: nearby sprites
@@ -3318,7 +3318,7 @@ function frame(now){
     // dust lanes: multiply what's behind them down, blue first (see DUST_FS)
     gl.blendFunc(gl.ZERO, gl.ONE_MINUS_SRC_COLOR);
     gl.useProgram(pDust);
-    gl.uniformMatrix4fv(UD.proj,false,projMat);
+    gl.uniformMatrix4fv(UD.proj,false,view.projMat);
     gl.uniformMatrix4fv(UD.view,false,viewMat);
     gl.uniform1f(UD.px,pxScale);
     gl.uniform1f(UD.wa, 1.0); // dust lanes trace the wave
@@ -3439,17 +3439,17 @@ function frame(now){
     gl.uniform1f(U.ptMinB, 0.0);
     gl.uniform1f(U.ptMinSz, 1.3);   // events keep their own scale
     gl.uniform1f(U.ptCap, deep?36.0:110.0); // a supernova blooms, within reason
-    if(evN){
-      gl.bindBuffer(gl.ARRAY_BUFFER,evGL.p); gl.bufferSubData(gl.ARRAY_BUFFER,0,evPos.subarray(0,evN*3));
-      gl.bindBuffer(gl.ARRAY_BUFFER,evGL.s); gl.bufferSubData(gl.ARRAY_BUFFER,0,evSize.subarray(0,evN));
-      gl.bindBuffer(gl.ARRAY_BUFFER,evGL.c); gl.bufferSubData(gl.ARRAY_BUFFER,0,evCol.subarray(0,evN*3));
-      gl.bindBuffer(gl.ARRAY_BUFFER,evGL.w); gl.bufferSubData(gl.ARRAY_BUFFER,0,evWave.subarray(0,evN));
-      gl.bindVertexArray(evGL.vao); gl.drawArrays(gl.POINTS,0,evN);
+    if(readout.evN){
+      gl.bindBuffer(gl.ARRAY_BUFFER,evGL.p); gl.bufferSubData(gl.ARRAY_BUFFER,0,evPos.subarray(0,readout.evN*3));
+      gl.bindBuffer(gl.ARRAY_BUFFER,evGL.s); gl.bufferSubData(gl.ARRAY_BUFFER,0,evSize.subarray(0,readout.evN));
+      gl.bindBuffer(gl.ARRAY_BUFFER,evGL.c); gl.bufferSubData(gl.ARRAY_BUFFER,0,evCol.subarray(0,readout.evN*3));
+      gl.bindBuffer(gl.ARRAY_BUFFER,evGL.w); gl.bufferSubData(gl.ARRAY_BUFFER,0,evWave.subarray(0,readout.evN));
+      gl.bindVertexArray(evGL.vao); gl.drawArrays(gl.POINTS,0,readout.evN);
     }
     // the blasts, in their own pass, on top of everything the flash lights up
-    if(snN){
+    if(readout.snN){
       gl.useProgram(pSN);
-      gl.uniformMatrix4fv(USN.proj,false,projMat);
+      gl.uniformMatrix4fv(USN.proj,false,view.projMat);
       gl.uniformMatrix4fv(USN.view,false,viewMat);
       gl.uniform1f(USN.px, pxScale);
       gl.uniform1f(USN.spin, spinMW);
@@ -3457,11 +3457,11 @@ function frame(now){
       gl.uniform1f(USN.cap, deep?36.0:110.0);
       gl.uniform3f(USN.sun, sunX, bubY, sunZ);
       gl.uniform3f(USN.org, org[0], org[1], org[2]);
-      gl.bindBuffer(gl.ARRAY_BUFFER,snGL.p); gl.bufferSubData(gl.ARRAY_BUFFER,0,snPos.subarray(0,snN*3));
-      gl.bindBuffer(gl.ARRAY_BUFFER,snGL.s); gl.bufferSubData(gl.ARRAY_BUFFER,0,snSize.subarray(0,snN));
-      gl.bindBuffer(gl.ARRAY_BUFFER,snGL.c); gl.bufferSubData(gl.ARRAY_BUFFER,0,snCol.subarray(0,snN*3));
-      gl.bindBuffer(gl.ARRAY_BUFFER,snGL.w); gl.bufferSubData(gl.ARRAY_BUFFER,0,snPh.subarray(0,snN));
-      gl.bindVertexArray(snGL.vao); gl.drawArrays(gl.POINTS,0,snN);
+      gl.bindBuffer(gl.ARRAY_BUFFER,snGL.p); gl.bufferSubData(gl.ARRAY_BUFFER,0,snPos.subarray(0,readout.snN*3));
+      gl.bindBuffer(gl.ARRAY_BUFFER,snGL.s); gl.bufferSubData(gl.ARRAY_BUFFER,0,snSize.subarray(0,readout.snN));
+      gl.bindBuffer(gl.ARRAY_BUFFER,snGL.c); gl.bufferSubData(gl.ARRAY_BUFFER,0,snCol.subarray(0,readout.snN*3));
+      gl.bindBuffer(gl.ARRAY_BUFFER,snGL.w); gl.bufferSubData(gl.ARRAY_BUFFER,0,snPh.subarray(0,readout.snN));
+      gl.bindVertexArray(snGL.vao); gl.drawArrays(gl.POINTS,0,readout.snN);
       gl.useProgram(pPt);   // the restores below belong to the point program
     }
     gl.uniform1f(U.ptMinB, minBright);
@@ -3479,7 +3479,7 @@ function frame(now){
   if(lifeOn && puffs.length){
     fillPuffs();
     gl.useProgram(pRem);
-    gl.uniformMatrix4fv(UREM.proj,false,projMat);
+    gl.uniformMatrix4fv(UREM.proj,false,view.projMat);
     gl.uniformMatrix4fv(UREM.view,false,viewMat);
     gl.uniform1f(UREM.px, pxScale);
     gl.uniform1f(UREM.spin, spinMW);
@@ -3504,7 +3504,7 @@ function frame(now){
   const solarClose = cam.dist < 0.13;
   if(showTrails && trailPct > 0){
     gl.useProgram(pTr);
-    gl.uniformMatrix4fv(U.trProj,false,projMat);
+    gl.uniformMatrix4fv(U.trProj,false,view.projMat);
     gl.uniformMatrix4fv(U.trView,false,viewMat);
     gl.uniform1f(U.trLen,TRAIL_N);
     // A local `last`, shadowing nothing — the clock's own `last` is a property now. It was
@@ -3518,7 +3518,7 @@ function frame(now){
       if(i === I_P9 && !showP9) continue;
       if(i >= N_PLANETS && i < I_P9 && !showDwarfs) continue;
       if(i <= 3 && i > 0 && wasEaten[i]) continue;   // no path for a planet that is gone
-      if(globePx > 40) continue;   // zoomed onto the globe, every orbit and helix is a line across the sky
+      if(readout.globePx > 40) continue;   // zoomed onto the globe, every orbit and helix is a line across the sky
       if(i > 0){
         if(!solarClose) continue;                    // collapsed into the Sun's point
         const spo = BODIES[i][1]/simClock.dtSample;
@@ -3562,7 +3562,7 @@ function frame(now){
   const ooA = beltFade(REAL_MODE ? 130*OO_REAL : 130);
   if(showBelt && abA>0){
     gl.useProgram(pAB);
-    gl.uniformMatrix4fv(UA.uProj,false,projMat);
+    gl.uniformMatrix4fv(UA.uProj,false,view.projMat);
     gl.uniformMatrix4fv(UA.uView,false,viewMat);
     // simT in float32 quantises the phase after ~1e5 years and the ring collapses
     // into spokes; wrapped time (exact in f64, small in f32) keeps every phase clean.
@@ -3578,7 +3578,7 @@ function frame(now){
   }
   if(showKuiper && kbA>0){
     gl.useProgram(pKB);
-    gl.uniformMatrix4fv(UK.uProj,false,projMat);
+    gl.uniformMatrix4fv(UK.uProj,false,view.projMat);
     gl.uniformMatrix4fv(UK.uView,false,viewMat);
     gl.uniform1f(UK.uPx,pxScale); gl.uniform1f(UK.uT, simClock.simT % 65536);
     gl.uniform1f(UK.uS, REAL_MODE?AU2U:1.0); // real mode: the belt radii are AU
@@ -3591,7 +3591,7 @@ function frame(now){
   }
   if(showOort){ // rings always (they locate the shell); points fade via ooA
     gl.useProgram(pOO);
-    gl.uniformMatrix4fv(UO.uProj,false,projMat);
+    gl.uniformMatrix4fv(UO.uProj,false,view.projMat);
     gl.uniformMatrix4fv(UO.uView,false,viewMat);
     gl.uniform1f(UO.uPx,pxScale);
     gl.uniform1f(UO.uS, REAL_MODE?OO_REAL:1.0);
@@ -3603,13 +3603,13 @@ function frame(now){
     gl.bindVertexArray(vaoOO); gl.drawArrays(gl.POINTS,0,OO_N);
     // boundary: wireframe-sphere hint of the shell
     gl.useProgram(pRing);
-    gl.uniformMatrix4fv(UR.uProj,false,projMat);
+    gl.uniformMatrix4fv(UR.uProj,false,view.projMat);
     gl.uniformMatrix4fv(UR.uView,false,viewMat);
     gl.uniform3f(UR.uSun,0,0,0);
     gl.uniform1f(UR.uR, REAL_MODE?178.0*OO_REAL:178.0);
     gl.uniform3f(UR.uColor,0.10,0.13,0.19);
     gl.bindVertexArray(vaoRing);
-    if(globePx <= 40) for(const [A,B] of [[E1,E2],[E1,EN],[E2,EN]]){   // from a globe's zoom the shell is lines across the sky
+    if(readout.globePx <= 40) for(const [A,B] of [[E1,E2],[E1,EN],[E2,EN]]){   // from a globe's zoom the shell is lines across the sky
       gl.uniform3f(UR.uA,A[0],A[1],A[2]);
       gl.uniform3f(UR.uB,B[0],B[1],B[2]);
       gl.drawArrays(gl.LINE_LOOP,0,RING_SEGS);
@@ -3629,49 +3629,49 @@ function frame(now){
 
   // Earth as a globe, and the Moon, once they are more than a dot. Opaque discs, so the
   // same blend as the Sun's disc; the atmosphere adds over what is behind it.
-  moonPx = 0;
+  readout.moonPx = 0;
   // the pass opens on Earth's size, or on the Moon's when she is the one being followed
-  if((globePx > 4 || cam.followTarget === 'moon') && !wasEaten[3]){
+  if((readout.globePx > 4 || cam.followTarget === 'moon') && !wasEaten[3]){
     const a = ageGyr(), era = earthEra(a, environment().mean);
     const ex = bodyPosArr[9], ey = bodyPosArr[10], ez = bodyPosArr[11];
     const sunV = norm3(vecV(viewMat, [-ex, -ey, -ez]));
     const axV = norm3(vecV(viewMat, EARTH_AXIS));
     const prime = earthPrime(simClock.simT, tmp); const prV = norm3(vecV(viewMat, [prime[0],prime[1],prime[2]]));
-    earthDbg = { sunV, axV, prV, era };   // read by the debug tooling
+    readout.earthDbg = { sunV, axV, prV, era };   // read by the debug tooling
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     gl.useProgram(pGlobe);
-    gl.uniformMatrix4fv(UG.uProj,false,projMat); gl.uniformMatrix4fv(UG.uView,false,viewMat);
+    gl.uniformMatrix4fv(UG.uProj,false,view.projMat); gl.uniformMatrix4fv(UG.uView,false,viewMat);
     gl.uniform1f(UG.uMirror, SKY_MIRROR); gl.uniform1f(UG.uTime, simClock.shimT);
     gl.uniform3f(UG.uSunV, sunV[0],sunV[1],sunV[2]); gl.uniform3f(UG.uAxisV, axV[0],axV[1],axV[2]); gl.uniform3f(UG.uPrimeV, prV[0],prV[1],prV[2]);
-    gl.uniform1f(UG.uAvg, avgLight);
+    gl.uniform1f(UG.uAvg, readout.avgLight);
     gl.uniform1f(UG.uMolten, era.molten); gl.uniform1f(UG.uOcean, era.ocean); gl.uniform1f(UG.uSea, era.sea); gl.uniform1f(UG.uHaze, era.haze);
     gl.uniform1f(UG.uVeg, era.veg); gl.uniform1f(UG.uIceLat, era.iceLat); gl.uniform1f(UG.uCloud, era.cloud); gl.uniform1f(UG.uLights, era.lights); gl.uniform1f(UG.uDrift, era.drift);
     gl.uniform1f(UG.uDry, era.dry); gl.uniform1f(UG.uSeaLevel, era.seaLevel);
     gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, gfx.earthTex); gl.uniform1i(UG.uMap, 0);
     gl.uniform1f(UG.uHasMap, gfx.earthTex ? 1.0 : 0.0);
     fillPlateMats((a - AGE0)*1000); gl.uniformMatrix3fv(UG.uPlate, false, plateMats);
-    const disc = 1/1.09, sz = Math.min(2400, globePx/disc);
+    const disc = 1/1.09, sz = Math.min(2400, readout.globePx/disc);
     gl.uniform1f(UG.uMoon, 0.0); gl.uniform1f(UG.uDisc, disc); gl.uniform1f(UG.uSz, sz);
     gl.uniform3f(UG.uPos, ex, ey, ez);
     gl.bindVertexArray(vaoGlobe); gl.drawArrays(gl.POINTS, 0, 1);
     if(a > MOON_BORN){
       moonPos(simClock.simT, moonW);
       moonRel[0] = moonW[0]-org[0]; moonRel[1] = moonW[1]-org[1]; moonRel[2] = moonW[2]-org[2];
-      moonPx = MOON_DIA*((H*DPR)/(2*Math.tan(Math.PI/6)))/cam.dist;
-      if(moonPx > 1.5){
+      readout.moonPx = MOON_DIA*((view.H*view.DPR)/(2*Math.tan(Math.PI/6)))/cam.dist;
+      if(readout.moonPx > 1.5){
         const msunV = norm3(vecV(viewMat, [-moonRel[0], -moonRel[1], -moonRel[2]]));
         gl.uniform3f(UG.uSunV, msunV[0],msunV[1],msunV[2]);
-        gl.uniform1f(UG.uMoon, 1.0); gl.uniform1f(UG.uDisc, 1.0); gl.uniform1f(UG.uSz, Math.min(2400, moonPx));
+        gl.uniform1f(UG.uMoon, 1.0); gl.uniform1f(UG.uDisc, 1.0); gl.uniform1f(UG.uSz, Math.min(2400, readout.moonPx));
         gl.uniform3f(UG.uPos, moonRel[0], moonRel[1], moonRel[2]);
         gl.drawArrays(gl.POINTS, 0, 1);
       }
     }
     gl.blendFunc(gl.ONE, gl.ONE);
     // the Moon's orbit, once it spans more than a few pixels
-    const d = moonDist(a), ringPx = 2*d*((H*DPR)/(2*Math.tan(Math.PI/6)))/cam.dist;
-    if(a > MOON_BORN && ringPx > 14 && ringPx < 3*H*DPR){   // and not once it dwarfs the view
+    const d = moonDist(a), ringPx = 2*d*((view.H*view.DPR)/(2*Math.tan(Math.PI/6)))/cam.dist;
+    if(a > MOON_BORN && ringPx > 14 && ringPx < 3*view.H*view.DPR){   // and not once it dwarfs the view
       gl.useProgram(pRing);
-      gl.uniformMatrix4fv(UR.uProj,false,projMat); gl.uniformMatrix4fv(UR.uView,false,viewMat);
+      gl.uniformMatrix4fv(UR.uProj,false,view.projMat); gl.uniformMatrix4fv(UR.uView,false,viewMat);
       gl.uniform3f(UR.uSun, ex, ey, ez); gl.uniform1f(UR.uR, d);
       gl.uniform3f(UR.uColor, 0.16, 0.20, 0.30);
       gl.uniform3f(UR.uA, MOON_M1[0],MOON_M1[1],MOON_M1[2]); gl.uniform3f(UR.uB, MOON_M2[0],MOON_M2[1],MOON_M2[2]);
@@ -3699,15 +3699,15 @@ function frame(now){
   // cannot show a hollow shell from within, and from inside a real one there is
   // nothing to see but a faint sky glow anyway.
   const pn = pnState(ageGyr());
-  pnShown = false;
+  readout.pnShown = false;
   if(pn){
-    const rScene = pn.rAU*AU2U, px = (2*rScene/0.74)*pxScale/camSunDist;
-    const outside = Math.min(1, Math.max(0, (camSunDist/rScene - 1.15)/0.6));
+    const rScene = pn.rAU*AU2U, px = (2*rScene/0.74)*pxScale/readout.camSunDist;
+    const outside = Math.min(1, Math.max(0, (readout.camSunDist/rScene - 1.15)/0.6));
     const alpha = pn.alpha*outside;
     if(alpha > 0.004 && px > 3){
-      pnShown = true;
+      readout.pnShown = true;
       gl.useProgram(pPN);
-      gl.uniformMatrix4fv(UPN.proj,false,projMat);
+      gl.uniformMatrix4fv(UPN.proj,false,view.projMat);
       gl.uniformMatrix4fv(UPN.view,false,viewMat);
       gl.uniform1f(UPN.time, simClock.shimT);
       gl.uniform1f(UPN.age, pn.age);
@@ -3718,19 +3718,19 @@ function frame(now){
       gl.bindVertexArray(vaoSunPt); gl.drawArrays(gl.POINTS,0,1);
     }
   }
-  if(plasmaSunPx > 7){
+  if(readout.plasmaSunPx > 7){
     // Drawn last, and not additively: the photosphere is opaque, so the disc must
     // occlude the sky behind it, with only the corona and arcs blending over it.
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     gl.useProgram(pSunP);
-    gl.uniformMatrix4fv(USn.proj,false,projMat);
+    gl.uniformMatrix4fv(USn.proj,false,view.projMat);
     gl.uniformMatrix4fv(USn.view,false,viewMat);
     gl.uniform1f(USn.time, simClock.shimT);
     gl.uniform3f(USn.colD, tint.d[0], tint.d[1], tint.d[2]);
     gl.uniform3f(USn.colB, tint.b[0], tint.b[1], tint.b[2]);
-    const sz = Math.min(1000, plasmaSunPx*2.7);
+    const sz = Math.min(1000, readout.plasmaSunPx*2.7);
     gl.uniform1f(USn.sz, sz);
-    gl.uniform1f(USn.disc, plasmaSunPx/sz);
+    gl.uniform1f(USn.disc, readout.plasmaSunPx/sz);
     gl.bindVertexArray(vaoSunPt); gl.drawArrays(gl.POINTS,0,1);
     gl.blendFunc(gl.ONE, gl.ONE);
   }
@@ -3766,7 +3766,7 @@ function frame(now){
     gl.disable(gl.BLEND);
     gl.useProgram(pTone);
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, hdrTex);
+    gl.bindTexture(gl.TEXTURE_2D, view.hdrTex);
     gl.uniform1i(UT.tex, 0);
     gl.uniform1f(UT.knee, coreKnee);
     gl.bindVertexArray(emptyVAO);
@@ -3777,18 +3777,18 @@ function frame(now){
   }
 
   // labels
-  frameDt = dt;
+  readout.frameDt = dt;
   if(showLabels){
-    const pv = mul(projMat, viewMat);
+    const pv = mul(view.projMat, viewMat);
     const proj = (x, y, z) => { const cw = pv[3]*x+pv[7]*y+pv[11]*z+pv[15];
-      return [cw, ((pv[0]*x+pv[4]*y+pv[8]*z+pv[12])/cw*0.5+0.5)*W, (-(pv[1]*x+pv[5]*y+pv[9]*z+pv[13])/cw*0.5+0.5)*H]; };
+      return [cw, ((pv[0]*x+pv[4]*y+pv[8]*z+pv[12])/cw*0.5+0.5)*view.W, (-(pv[1]*x+pv[5]*y+pv[9]*z+pv[13])/cw*0.5+0.5)*view.H]; };
     let sunSX=0, sunSY=0;
     for(let i=0;i<NB;i++){
       const l=labelEls[i];
       if(i === I_P9 ? !showP9 : (i >= N_PLANETS && !showDwarfs)){ placeLabel(l, 0, 0, false); continue; }
       if(i > 0 && i <= 3 && wasEaten[i]){ placeLabel(l, 0, 0, false); continue; }   // swallowed
-      if(globePx > 40 && i > 0){ placeLabel(l, 0, 0, false); continue; }          // zoomed onto Earth: only the Sun's place in the sky
-      if(i === 0) l.textContent = pnShown ? 'Anthropic Nebula' : 'Sun';
+      if(readout.globePx > 40 && i > 0){ placeLabel(l, 0, 0, false); continue; }          // zoomed onto Earth: only the Sun's place in the sky
+      if(i === 0) l.textContent = readout.pnShown ? 'Anthropic Nebula' : 'Sun';
       const [cw, lsx, lsy] = proj(bodyPosArr[i*3], bodyPosArr[i*3+1], bodyPosArr[i*3+2]);
       if(cw<=Math.max(1e-9,cam.dist*0.01) || cam.dist>900){ placeLabel(l, 0, 0, false); continue; }
       if(i===0){ sunSX=lsx; sunSY=lsy; }
@@ -3797,7 +3797,7 @@ function frame(now){
       l.style.opacity = i===0?0.9:0.65;
     }
     // the Moon: labelled while it is drawn as a disc and stands clear of Earth's label
-    if(moonPx > 1.5){
+    if(readout.moonPx > 1.5){
       const [cw, mx, my] = proj(moonRel[0], moonRel[1], moonRel[2]);
       const [ , ex, ey] = proj(bodyPosArr[9], bodyPosArr[10], bodyPosArr[11]);
       placeLabel(moonEl, mx, my, cw > 0 && Math.hypot(mx-ex, my-ey) > 16);
@@ -3808,7 +3808,7 @@ function frame(now){
       if(!STRUCTS[s][2]()){ placeLabel(el, 0, 0, false); continue; }
       const rU = STRUCTS[s][1]*AU2U;
       const rpx = rU*pxScale/cam.dist;
-      if(globePx > 40){ el.style.display = 'none'; if(el._lb) el._lb.on = false; continue; }   // at once, not debounced
+      if(readout.globePx > 40){ el.style.display = 'none'; if(el._lb) el._lb.on = false; continue; }   // at once, not debounced
       if(rpx < 46 || rpx > 2600){ placeLabel(el, 0, 0, false); continue; }
       const [cw, sx, sy] = proj(rU*0.71, 0, rU*0.71);    // 45 degrees round the ring
       placeLabel(el, sx, sy, cw > 1e-9);
@@ -4122,7 +4122,7 @@ function qrRedraw(force){
   let q; try{ q = qrEncode(payload); }catch(e){ cv.style.display = 'none'; return; }
   const sc = QR_SCALES[+$('qrScale').value] || 2, quiet = 4, size = (q.n + 2*quiet)*sc;
   cv.width = size; cv.height = size;
-  cv.style.width = (size/DPR) + 'px'; cv.style.height = (size/DPR) + 'px';   // sc DEVICE pixels a module
+  cv.style.width = (size/view.DPR) + 'px'; cv.style.height = (size/view.DPR) + 'px';   // sc DEVICE pixels a module
   const g = cv.getContext('2d');
   g.fillStyle = '#fff'; g.fillRect(0, 0, size, size); g.fillStyle = '#000';
   for(let y=0;y<q.n;y++) for(let x=0;x<q.n;x++) if(q.m[y*q.n+x]) g.fillRect((x+quiet)*sc, (y+quiet)*sc, sc, sc);
@@ -4277,8 +4277,8 @@ Object.defineProperty(globalThis, '__gt', { value: {
   get shimT(){ return simClock.shimT; },
   get simT(){ return simClock.simT; },
   get curD(){ return gfx.curD; },
-  get earthDbg(){ return earthDbg; },
-  get probeInfo(){ return probeInfo; },
+  get earthDbg(){ return readout.earthDbg; },
+  get probeInfo(){ return readout.probeInfo; },
   get galaxyKeys(){ return Object.keys(gxyCache); },
 } });
 

@@ -132,3 +132,57 @@ export const gfx = {
   /** How deep into the dust the deep-Gaia stars are still drawn. */
   DUST_DEEP_CAP: 40.0,
 }
+
+/** The drawing surface, and the framebuffer the scene resolves through. */
+export const view = {
+  W: 0, H: 0, DPR: 1,
+  /** Rebuilt every frame, because the near plane tracks the camera distance. */
+  projMat: null as Float32Array | null,
+  /** The first-launch probe lowers this on a slow device, and it is saved. */
+  dprCap: 2,
+  /**
+   * The RGBA16F target the scene renders into before the tone-map resolve. Without it,
+   * additive stacking clips galaxy cores to flat white — 0.59% of the frame at the merger,
+   * which is where all the structure went. `ok` is false when EXT_color_buffer_float is
+   * missing, and the direct-to-screen path is used unchanged.
+   */
+  hdrFB: null as WebGLFramebuffer | null,
+  hdrTex: null as WebGLTexture | null,
+  hdrOK: false,
+}
+
+/**
+ * What the last frame worked out. Written by the draw, read by the HUD and the panels — and
+ * in two cases by nothing at all inside the page.
+ *
+ * `earthDbg` and `probeInfo` have no in-file readers: a classic script put them on the global
+ * object by accident, and a module does not, so they are published deliberately through
+ * `__gt` or they become unreachable and then tree-shaken.
+ */
+export const readout = {
+  /** The globe's and the Moon's apparent size. Labels and structure names hide above 40 px. */
+  globePx: 0,
+  moonPx: 0,
+  /** Distance to the SUN, not to the followed body — the Sun's disc and the nebula size on it. */
+  camSunDist: 150,
+  /** Eased 0..1: past a few weeks a second a frame spans days, so the globe is lit by the daily mean. */
+  avgLight: 0,
+  plasmaSunPx: 0,
+  /** The planetary nebula is on screen this frame, so its label follows it. */
+  pnShown: false,
+  /** How many births and supernovae the last fillEvents() actually wrote. */
+  evN: 0,
+  snN: 0,
+  frameDt: 1 / 60,
+  earthDbg: null as unknown,
+  probeInfo: null as unknown,
+}
+
+/**
+ * Fractional accumulators for the stellar life cycle: births, supernovae, planetary nebulae.
+ *
+ * Named `lifeAcc`, not `life`, because setStateColour already has a local `life` — an array
+ * of RGB values — and a singleton that only works because a local happens to shadow it is a
+ * trap for whoever edits that function next.
+ */
+export const lifeAcc = { accB: 0, accSN: 0, accPN: 0 }
