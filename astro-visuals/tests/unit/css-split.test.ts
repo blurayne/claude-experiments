@@ -104,3 +104,50 @@ describe('the CSS split', () => {
     expect(hud).toMatch(/#tip\s*\{/)
   })
 })
+
+/**
+ * The same guarantees, asserted against the FILE THAT SHIPS rather than against the sources.
+ *
+ * The source concatenation being right does not make the artifact right: the bundler decides
+ * the final order, and a `<link>` that Vite chose to hoist, defer or merge differently would
+ * change the cascade with nothing in `src/` to show for it. This nearly went unnoticed once
+ * already — the first check reported the 820px ordering broken, which turned out to be the
+ * checker matching a documentation comment that quoted both selectors. Comments are stripped
+ * here for that reason.
+ */
+describe('the stylesheet that ships', () => {
+  const shipped = (path: string): string[] => {
+    const html = readFileSync(resolve(ROOT, path), 'utf8')
+    // The built page inlines its JS before its CSS, and that script contains the characters
+    // `<style` in more than one string — so the block is found from the end, not the start.
+    const end = html.lastIndexOf('</style>')
+    const open = html.lastIndexOf('<style', end)
+    const body = html.slice(html.indexOf('>', open) + 1, end)
+    return body
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .split('\n')
+      .map((l) => l.trim())
+      .filter(Boolean)
+  }
+
+  it('is one inline <style>, and holds exactly the rules the original did', () => {
+    const built = shipped('galactic-transit.html')
+    const before = shipped('baseline-page.html')
+    expect(built).toHaveLength(before.length)
+    expect([...built].sort()).toEqual([...before].sort())
+  })
+
+  it.each([
+    ['tints the panels but not the status bar', '--iceA', '.gamebar{'],
+    ['tints the panels but not the info card', '--iceA', '.info-card{'],
+    ['lets the unconditional stat rule win', '@media (max-width:820px)', '.gamebar .stat b{'],
+  ])('%s', (_label, first, second) => {
+    const built = shipped('galactic-transit.html')
+    const at = (needle: string): number => {
+      const i = built.findIndex((l) => l.includes(needle))
+      expect(i, `not found in the shipped stylesheet: ${needle}`).toBeGreaterThan(-1)
+      return i
+    }
+    expect(at(first)).toBeLessThan(at(second))
+  })
+})
