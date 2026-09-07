@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite'
 import { viteSingleFile } from 'vite-plugin-singlefile'
-import { readFileSync } from 'node:fs'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -64,21 +63,9 @@ export default defineConfig({
 
     viteSingleFile({ removeViteModuleLoader: true }),
 
-    /**
-     * GLSL as real files. `import src from './point.vert?raw'` already works in Vite; this
-     * plugin only strips comments and collapses blank runs so the shaders cost the same in
-     * the bundle as the template literals they replace. It must not touch anything else —
-     * a shader is compiled by the driver, and a plugin that reformats it is a rendering
-     * change wearing a build tool's clothes.
-     */
-    {
-      name: 'glsl-raw',
-      transform(_code, id) {
-        if (!/\.(vert|frag|glsl)$/.test(id.split('?')[0]!)) return null
-        const src = readFileSync(id.split('?')[0]!, 'utf8')
-        return { code: `export default ${JSON.stringify(src)}`, map: null }
-      },
-    },
+    // GLSL needs no plugin of its own: Vite's `?raw` import hands the file's bytes to the
+    // driver unaltered, which is the only acceptable behaviour here. A plugin that
+    // reformatted a shader would be a rendering change wearing a build tool's clothes.
   ],
 
   define: {
