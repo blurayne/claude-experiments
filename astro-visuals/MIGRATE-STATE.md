@@ -2,7 +2,7 @@
 
 Working notes for picking this up cold, in a later session or on another machine. The plan being executed is `docs/refactor/00-PLAN.md`; this file records how far along it is, what has been learned since it was written, and the things that will waste a day if you do not know them.
 
-**Status: 7 of 23 steps done. Every one gated at 30/30. `main` is untouched and still ships v2.78.0.**
+**Status: 8 of 23 steps done. `main` is untouched and still ships v2.78.0.**
 
 ## The shape of it
 
@@ -27,30 +27,30 @@ The pin lives in `tests/harness/pin.ts`. Playwright's `globalSetup` materialises
 cd astro-visuals
 npm install
 npx playwright install chromium     # no --with-deps; it wants sudo and does not need it
-npm run baseline                    # ~27 min. REQUIRED: baselines are gitignored.
 npm run verify                      # check + unit tests + build + boot + parity
 ```
 
-`npm run baseline` is not optional and not cached. The baseline PNGs are deliberately **not committed** — they are regenerated from the pinned commit, so they can never drift out of step with the build they claim to represent, and several megabytes of PNG never reach a repository that is served publicly. Until you run it the parity project skips every state and reports green, which is the one way this setup can lie to you.
+There is no baseline step and nothing to pre-generate. That is a deliberate change, made after stored reference images caused three separate phantom failures — see below.
 
 | command | what it does | cost |
 | --- | --- | --- |
 | `npm run check` | `tsc --noEmit` | seconds |
 | `npm test` | 91 unit tests | under a second |
 | `npm run build` | Vite → `galactic-transit.html` + `check-build.mjs` | seconds |
-| `npm run baseline` | photograph the pinned build, 24 states | ~27 min |
-| `npm run e2e` | boot tests + parity against those baselines | ~27 min |
-| `PARITY_URL=/baseline-page.html npm run e2e` | **the control**: pinned build against its own baselines | ~27 min |
+| `npm run e2e` | boot tests + all 23 parity states | ~1.4 h |
+| `PARITY_SCOPE=fast npm run e2e` | boot tests + the 5-state subset, for per-step checking | ~20 min |
 
 ## The gate, and how to read it
 
 24 states in `tests/harness/states.ts`. Fifteen are the page's own `#jump` scenarios, driven through the selector and its GO button — the flow a visitor uses. The other nine exist because `00-PLAN.md` §5.2 lists things a desktop screenshot cannot see: four viewport bands, a phone layout, a fresh profile, a reduced-motion-allowed boot, a second timezone, and an open tooltip.
 
-**Before believing any failure, run the control.** More than half the failures during this work were the harness, not the code, and the control tells the two apart in one run. If the pinned build differs from its own baselines, the harness is at fault or the baselines are stale.
+**There are no stored baselines.** Each test photographs the pinned pre-refactor page and the built page back to back, moments apart, on the same machine under the same load, and compares those two. Storing reference PNGs looked obviously right and was the source of every unexplained failure in this project: three times a state came back differing by tens of thousands of pixels, and three times the stored reference was the odd one out — perfectly reproducible in the mode it was captured in, different in the mode it was compared in. A reference photographed as one of twenty-four in a batch is not the same measurement as one photographed alone, and no amount of pinning inside the page fixes an asymmetry that lives outside it.
+
+**`PARITY_SCOPE=fast` runs five states instead of twenty-three.** It is for keeping a twenty-step migration moving, not a replacement for the full set — run everything at a phase boundary and before any merge. The subset reaches the galaxy from inside and outside, both globes, the merger, the belts, both trail kinds and the tone-map knee.
 
 **Tolerance is measured, not assumed.** No pixel may differ by more than 1, and no more than 1% of them may differ at all. That is not a fudge factor: every real difference caught during this refactor came in at max Δ174–252 over 5–20% of the frame, and the rasteriser's own noise floor comes in at max Δ1 over 0.3%. The threshold sits in a gap of two orders of magnitude. The numbers print on every state, pass or fail, so drift toward the limit is visible rather than silent. **If a state starts sitting near the limit, that is a finding, not a flake.**
 
-`fresh-profile` is looser still and separately so: its content depends on the first-launch performance probe measuring the machine.
+**The first visit is not photographed at all.** The performance probe measures the machine, so photographing that path twice runs the benchmark twice and can honestly get two answers — it came back 35% of the frame different at max Δ254, which is a different number of stars rather than a different rendering. It is asserted in `tests/e2e/boot.spec.ts` instead: that it runs, picks a tier no heavier than medium, saves it, and stages the opening without throwing.
 
 ## What makes the page reproducible — do not undo any of these
 
@@ -62,7 +62,8 @@ Each of these cost a run or several to find. They live in `tests/harness/session
 - **The five data fetches are serialised.** `loadGalaxyMap()` and `loadM31Map()` each call `setGalaxy()` from their `.then()`, so whichever wins the race decides where the seeded PRNG stands when the galaxy is generated.
 - **The frame clock is virtual, ticks once per REAL FRAME, and starts stopped.** `shimT` accumulates real elapsed time and drives the star variability phase — "runs even when paused", says the line that does it. Counting `requestAnimationFrame` *calls* rather than frames made the clock run at a rate that depended on how much the tour had redrawn; the page registers rAF from three places and Playwright registers more.
 - **Every capture gets its own browser process.** The same state photographed as one test of twenty-four differed from the same state photographed alone by 16% of pixels — reproducible within each mode, different between them. A software rasteriser accumulating state across two dozen WebGL contexts in one process will do that.
-- **One worker.** Three workers produced an 8%-of-frame difference at max Δ3 that vanished on a re-run alone. Wall clock is a wash; the workers were only splitting a fixed amount of CPU.
+- **One worker.** Three workers still broke the symmetry between the two shots, even taken back to back — 5% of the frame at max Δ155. Wall clock is close to a wash anyway; the workers were only splitting a fixed amount of CPU.
+- **`__arm` forgets the last counted frame.** The page registers two rAF callbacks inside one real frame in places, and a pair straddling the arm left the budget one frame short — a discrete difference, which is why one state produced *exactly* the same differing-pixel count across runs made days and two harness designs apart.
 
 Two page-specific traps worth knowing: `#tPause` carries class `on` while the piece is **running**, not while it is paused; and dismissing the first-run tour **starts** the clock, so pausing has to come after.
 
@@ -79,12 +80,13 @@ Two page-specific traps worth knowing: `#tPause` carries class `on` while the pi
 | 4–5 | `core/` — errorlog, build, mat4, rng, dom | `d64b15f` |
 | 6 | `astro/constants`, `astro/sun` | `bacb3a0` |
 | 7 | `astro/merger` | `740c645` |
+| 8 | `gpu/` — context, program, buffers; the gate stops storing baselines | (this commit) |
 
-`main.ts` is down from 5,347 lines to 4,616. Unit tests: 91.
+`main.ts` is down from 5,347 lines to 4,595. Unit tests: 91. Boot assertions: 7.
 
 ## Next
 
-Steps 8–23 of `docs/refactor/00-PLAN.md` §4, in order. Step 8 is `gpu/` — context, program, buffers, framebuffer.
+Steps 9–23 of `docs/refactor/00-PLAN.md` §4, in order. Step 9 is the remaining `astro/` leaves: `bodies`, `earth`, `environment`, `calendar`.
 
 Two of the remaining steps are the ones to be careful with:
 

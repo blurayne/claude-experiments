@@ -122,3 +122,62 @@ test.describe('boot', () => {
     expect(() => new Function(sw), 'sw.js does not parse').not.toThrow()
   })
 })
+
+/**
+ * The first visit, which the parity gate deliberately does not photograph.
+ *
+ * A fresh profile runs the performance probe, and the probe MEASURES THE MACHINE: it draws
+ * the galaxy's star pass into a hidden framebuffer for thirty milliseconds and picks a detail
+ * tier from how far it got. Photographing that twice runs the benchmark twice and can
+ * legitimately get two answers — it came back 35% of the frame different at max Δ254, which
+ * is not a rendering difference but a different number of stars. So this path is asserted for
+ * what it should actually guarantee: that it runs, picks a tier, saves it, and stages the
+ * opening without throwing.
+ *
+ * 00-PLAN.md wants this covered (R4, R16, R22): the !hadSaved branch of restoreSettings, the
+ * detail default at boot that decides the star count, and the probe firing on frame three.
+ */
+test.describe('the first visit', () => {
+  test('runs the probe, picks a tier, and stages the opening without error', async ({ page }) => {
+    const errors: string[] = []
+    page.on('pageerror', (e) => errors.push(`pageerror: ${e}`))
+    page.on('console', (m) => m.type() === 'error' && errors.push(`console: ${m.text()}`))
+
+    // No addInitScript writing settings: this is the point of the test.
+    await page.goto('/galactic-transit.html', { waitUntil: 'load' })
+    await page.waitForFunction(() => !!document.getElementById('gl'))
+
+    // The tour is shown only when nothing is saved, on a 400 ms timer — so its appearance is
+    // itself evidence that the page took the first-visit branch.
+    await page.waitForSelector('#tourGo', { state: 'visible', timeout: 30_000 })
+    await page.locator('#tourGo').click()
+
+    // The probe runs on the third rendered frame and writes its result to probeInfo.
+    await page.waitForFunction(
+      () => {
+        const g = (globalThis as Record<string, unknown>).__gt as { probeInfo?: unknown } | undefined
+        return !!g?.probeInfo
+      },
+      undefined,
+      { timeout: 60_000 },
+    )
+
+    const probe = await page.evaluate(() => {
+      const g = (globalThis as Record<string, unknown>).__gt as { probeInfo?: Record<string, unknown>; curD?: number }
+      return { info: g.probeInfo, curD: g.curD }
+    })
+
+    // DETAIL_D — the tier ladder. The probe is documented never to pick above medium, because
+    // the heavy tiers fetch and build for seconds and that is a choice, not a default.
+    expect([1, 5, 20, 40, 80, 160]).toContain(probe.curD)
+    expect(probe.curD!, 'the probe picked a tier above medium as a first-launch default').toBeLessThanOrEqual(20)
+    expect(probe.info).toBeTruthy()
+
+    // And it saved what it decided, so it never runs twice.
+    const saved = await page.evaluate((k) => JSON.parse(localStorage.getItem(k) ?? 'null'), SETTINGS_KEY)
+    expect(saved, 'the first visit saved no settings, so the probe would run again').toBeTruthy()
+    expect([1, 5, 20, 40, 80, 160]).toContain(saved.dens)
+
+    expect(errors, errors.join('\n')).toEqual([])
+  })
+})

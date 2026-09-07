@@ -32,6 +32,13 @@ for (const token of ['__BUILD_DATE__', '__BUILD_TIME__', '__BUILD_SHA__'])
 for (const marker of ['webgl2', 'galaxy-map.webp', 'm31-map.webp', 'earth-map.webp', 'stars-gaia.bin'])
   check(html.includes(marker), `marker "${marker}" is missing — a side-effect module was dropped`)
 
+// Exactly one WebGL2 context. Asking for a second on the same canvas does not create one:
+// the browser returns the existing context and silently ignores the attributes, so a
+// duplicate call appears to work while quietly dropping `antialias` and `alpha`. Two copies
+// of gpu/context in the bundle — which mixed import specifiers can produce — would do this.
+const contexts = (html.match(/getContext\(\s*['"]webgl2['"]/g) ?? []).length
+check(contexts === 1, `the page creates ${contexts} WebGL2 contexts; there must be exactly 1`)
+
 // The service worker's cache name and the page's own version must agree, or a release ships
 // with a worker that keeps serving the previous build from cache.
 const pageVersion = html.match(/version:\s*['"]([\d.]+)['"]/)?.[1]

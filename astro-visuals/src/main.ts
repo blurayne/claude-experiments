@@ -29,6 +29,9 @@ import {
   M31_DIR, M31_E2, M31_ROT, KPC2U, M31_ORBIT, MERGE_A0, MERGE_A1, MERGE_T0, MERGE_T1,
   orbitUV, sepScene, mergeAt, diskSpin,
 } from './astro/merger'
+import { canvas, gl } from './gpu/context'
+import { prog } from './gpu/program'
+import { makeBuf, pointVAO, deleteVAO, trackVAOBuffers } from './gpu/buffers'
 
 installErrorCollector()
 // A thunk, so this does not depend on where renderLog ends up living.
@@ -69,24 +72,6 @@ import PN_FS from './shaders/pn.frag?raw'
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-
-// ---------- GL setup ----------
-const canvas = document.getElementById('gl');
-const gl = canvas.getContext('webgl2', {antialias:true, alpha:false});
-if(!gl){ document.body.innerHTML = '<p style="padding:2em">WebGL2 is not available in this browser.</p>'; throw new Error('no webgl2'); }
-
-function sh(type, src){
-  const s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s);
-  if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
-  return s;
-}
-function prog(vs,fs){
-  const p=gl.createProgram();
-  gl.attachShader(p,sh(gl.VERTEX_SHADER,vs)); gl.attachShader(p,sh(gl.FRAGMENT_SHADER,fs));
-  gl.linkProgram(p);
-  if(!gl.getProgramParameter(p,gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
-  return p;
-}
 
 // glowing point sprites (stars, galaxy, bodies)
 
@@ -227,12 +212,6 @@ function bodyPos(i, t, out){
 }
 
 // ---------- static geometry: starfield + galaxy ----------
-function makeBuf(data, loc, comps){
-  const b = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER,b);
-  gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);
-  return b;
-}
 
 // distant stars
 const N_STAR = 3200;
@@ -416,10 +395,6 @@ function genGalaxy(D){ // D = density multiplier (hi-fi galaxy mode)
   }
 }
 
-// Buffers are tracked alongside their VAO so a density can be released again: deleting
-// a vertex array does not free what it references, and the big densities are hundreds
-// of megabytes apiece.
-const vaoBufs = new WeakMap();
 // Drop every cached galaxy build. The Andromeda entry is an { a, an, ad } bundle, and
 // both map loaders race each other here — this must never throw mid-flush, or the
 // loser leaves the scene pointing at deleted vertex arrays.
@@ -428,22 +403,6 @@ function flushGxyCache(){
     deleteVAO(o.g); deleteVAO(o.nb); deleteVAO(o.d);
     deleteVAO(o.a.a); if(o.a.an) deleteVAO(o.a.an); if(o.a.ad) deleteVAO(o.a.ad);
     delete gxyCache[k]; }
-}
-function deleteVAO(vao){
-  const bufs = vaoBufs.get(vao);
-  if(bufs) bufs.forEach(b => gl.deleteBuffer(b));
-  gl.deleteVertexArray(vao);
-}
-function pointVAO(pos, size, col, wave, vel){
-  const vao=gl.createVertexArray(); gl.bindVertexArray(vao);
-  const bufs=[];
-  const attach=(data,loc,comps)=>{ const b=gl.createBuffer(); bufs.push(b);
-    gl.bindBuffer(gl.ARRAY_BUFFER,b); gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,comps,gl.FLOAT,false,0,0); };
-  attach(pos,0,3); attach(size,1,1); attach(col,2,3);
-  if(wave) attach(wave,3,1);
-  if(vel) attach(vel,4,3);   // populations without one read a constant zero
-  gl.bindVertexArray(null); vaoBufs.set(vao,bufs); return vao;
 }
 const vaoStars = pointVAO(starPos, starSize, starCol);
 let vaoGxy, vaoNeb, vaoDust;
@@ -1218,7 +1177,7 @@ const ringVaos = [];
     const b=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,b);
     gl.bufferData(gl.ARRAY_BUFFER,a,gl.STATIC_DRAW);
     gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
-    gl.bindVertexArray(null); vaoBufs.set(vao,[b]); ringVaos.push(vao);
+    gl.bindVertexArray(null); trackVAOBuffers(vao,[b]); ringVaos.push(vao);
   }
 }
 // In real scale everything but the Sun is stored as an offset from it.
@@ -4612,5 +4571,25 @@ $('dbgPaste').addEventListener('click', ()=>{
   navigator.clipboard.readText()
     .then(v=>{ $('dbgText').value=v; dbgSay('pasted'); },
           ()=>dbgSay('clipboard refused — paste into the box by hand')); });
+// Devtools readouts, and the answer to a problem the move created rather than solved: a
+// classic <script> put its top-level bindings on the global object by accident, so
+// `earthDbg` and `probeInfo` — which have no in-file readers at all — were reachable from a
+// console. A module's scope is its own, so they have to be published deliberately or they
+// become unreachable and then tree-shaken. Getters, not values, so nothing is captured at
+// the wrong moment.
+//
+// It also gives the parity harness something to ask. `shimT` is a wall-time accumulator that
+// drives every variable star's phase, and when the gate reports the whole Milky Way differing
+// while the solar system in front of it is pixel-identical, "what is shimT" is the question,
+// and guessing at it has already cost several runs.
+Object.defineProperty(globalThis, '__gt', { value: {
+  get shimT(){ return shimT; },
+  get simT(){ return simT; },
+  get curD(){ return curD; },
+  get earthDbg(){ return earthDbg; },
+  get probeInfo(){ return probeInfo; },
+  get galaxyKeys(){ return Object.keys(gxyCache); },
+} });
+
 fitPanels();
 requestAnimationFrame(frame);

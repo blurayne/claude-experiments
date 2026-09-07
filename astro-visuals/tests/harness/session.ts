@@ -149,6 +149,14 @@ function pinEverything({ seed, now, settings, key, step }: InitArgs): void {
   globalThis.__arm = (k: number) => {
     n = 0
     cap = k
+    // Forget which real frame was last counted, or the budget can come up one short.
+    // The page registers two rAF callbacks within a single frame in places (drawTourLines
+    // nests a pair), and if such a pair straddles this call, the one that runs after it sees
+    // a timestamp equal to lastRealFrame and does not advance the count. That makes the
+    // budget k or k−1 depending on timing — a DISCRETE difference, which is what a state
+    // producing exactly two possible renderings looks like, and it produced exactly the same
+    // differing-pixel count across runs weeks of debugging apart.
+    lastRealFrame = -1
   }
   globalThis.__frames = () => ({ n, cap, done: n > cap })
 
@@ -174,6 +182,8 @@ export interface CaptureResult {
    * worth guessing at, and the plan requires at least one frame with the ice styling live.
    */
   flags: { ice: boolean; tip: boolean; panels: number }
+  /** The page's own __gt readout, when the build under test publishes one. */
+  debug: Record<string, unknown> | null
 }
 
 /**
@@ -242,16 +252,32 @@ export async function capture(url: string, state: ParityState): Promise<CaptureR
     )
   }
 
-  await runFrames(20)
-
-  if (await page.locator('#tourGo').isVisible().catch(() => false)) await page.locator('#tourGo').click()
+  // The first-run tour appears ONLY when nothing is saved — `!hadSaved && !TOURKEY`, on a
+  // 400 ms real timer (main.ts:4317). So it is waited for on exactly the state that gets one
+  // and never looked for on the rest, rather than sampled with an isVisible() that answers
+  // "not yet" as confidently as "never".
+  if (state.freshProfile) {
+    await page.waitForSelector('#tourGo', { state: 'visible', timeout: 30_000 })
+    await page.locator('#tourGo').click()
+  }
 
   // `toggle($('tPause'), on => paused = !on)`: the button carries class `on` while RUNNING.
+  // Dismissing the tour starts the clock, so this comes after it.
+  //
+  // Stopped BEFORE any frames are armed, and that ordering is the fix for a real flake. On
+  // `motion-allowed` the piece is permitted to run its own clock, so simT advanced during the
+  // first frame budget — and boot schedules refillTrails on a 90 ms real timer, which then
+  // sampled the trails at whatever clock reading it happened to land on. 22% of the frame,
+  // differing run to run. With the clock stopped first, simT is a constant in every state and
+  // no real-time debounce can reach it. The branch R24 cares about is still exercised: the
+  // reduced-motion check at boot is what did not fire, and that is what the state is for.
   const stopClock = async (): Promise<void> => {
     if (await page.evaluate(() => document.getElementById('tPause')!.classList.contains('on')))
       await page.evaluate(() => document.getElementById('tPause')!.click())
   }
   await stopClock()
+
+  await runFrames(20)
 
   if (state.scenario !== null) {
     if (!(await page.locator('#jump').isVisible().catch(() => false))) await page.click('#simPlus')
@@ -284,6 +310,14 @@ export async function capture(url: string, state: ParityState): Promise<CaptureR
 
   const png = await page.screenshot({ type: 'png', animations: 'disabled' })
 
+  // Asked before the export click, like the flags: this is what the frame that was just
+  // photographed was drawn from.
+  const debug = await page.evaluate(() => {
+    const g = (globalThis as Record<string, unknown>).__gt as Record<string, unknown> | undefined
+    if (!g) return null
+    return { shimT: g.shimT, simT: g.simT, curD: g.curD, galaxyKeys: g.galaxyKeys }
+  })
+
   const flags = await page.evaluate(() => ({
     ice: document.body.classList.contains('ice') ||
          getComputedStyle(document.body).getPropertyValue('--iceA').trim() > '0',
@@ -302,5 +336,5 @@ export async function capture(url: string, state: ParityState): Promise<CaptureR
   const reported = JSON.parse(await page.inputValue('#dbgText'))
 
   await browser.close()
-  return { png, errors, simT: reported.time?.simT, camera: reported.camera, flags }
+  return { png, errors, simT: reported.time?.simT, camera: reported.camera, flags, debug }
 }
