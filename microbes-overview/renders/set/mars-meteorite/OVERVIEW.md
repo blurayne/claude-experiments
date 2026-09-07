@@ -28,8 +28,8 @@ Full log: [`alh-84001.render.md`](alh-84001.render.md)
 | ALH 84001 (Mars meteorite) | SEM micrograph | gemini-3-pro-image | 3 | ✅ | pending (same pipeline) | 35s | 5339 | $0.119 |
 | ALH 84001 (Mars meteorite) | 3D medical render | gemini-3-pro-image | 4 | ✅ | built | 38s | 6843 | $0.155 |
 | ALH 84001 (Mars meteorite) | Watercolor plate | gemini-3-pro-image | 5 | ✅ | built | 1.3m | 11134 | $0.229 |
-| ALH 84001 (Mars meteorite) | SEM · Public domain (NASA) | — (download) | 1 | ✅ | n/a | 1s | 0 | $0.000 |
+| ALH 84001 (Mars meteorite) | SEM · Public domain (NASA) | — (download) | 2 | ✅ | n/a | 4s | 0 | $0.000 |
 
 **Set total: 35,006 tokens · $0.735**
 
-_Updated 2026-09-06 12:12 local._
+_Updated 2026-09-07 09:08 local._

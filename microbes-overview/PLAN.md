@@ -167,6 +167,18 @@ a compromise someone chose deliberately — listed so a later pass can revisit t
       **not** a figure from the *Science* paper — NASA released it a week before
       publication and its own caption says the structure was not part of the
       published research. It is the image that carried the story to the public.
+      **2026-09-07:** the shipped reference tile was swapped from that SEM plate to
+      NASA frame S85-39565, the actual hand-specimen photograph, because a real
+      photograph of this subject exists in the public domain and the viewer labels
+      that slot "Real" while labelling every other style "·gen". Only one slot can
+      honestly hold a real image, so the rock itself takes it and the SEM plate
+      stays fully documented in the render log. The frame was padded to square
+      rather than cropped, keeping NASA's `ALH84001,0` lettering and the 1 cm scale
+      cube — on a macroscopic specimen the cube is the reader's only size cue.
+      A watermarked Science Photo Library copy was offered as the source and
+      deliberately not used; SPL resells NASA imagery, so the clean PD original was
+      sourced instead. The sawn-face view (green interior, ruler) could not be
+      found in clean PD form — NASA's own library carries only S85-39565.
 - [ ] **`tapeworm` and `ebola-virus` (2026-09)** — both live at 5/5, 3/3, coloring
       and EN+DE narration. Compromises the agents flagged:
       - `tapeworm` — the real reference is *Taenia **solium*** (CDC PHIL #5262, PD)
