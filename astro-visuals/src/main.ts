@@ -20,6 +20,11 @@ import { BUILD, VERSION, BUILD_LINE, localBuildStamp } from './core/build'
 import { perspective, lookAt, mul } from './core/mat4'
 import { gauss, expR } from './core/rng'
 import { $ } from './core/dom'
+import {
+  R_GAL, V_GAL, GAL_PERIOD, YR_PER_SIM, AGE0, AND_AGE, SCATTER_AGE, SR_A, SR_B, SR_K,
+  TILT, E1, E2, AU2U, OO_REAL, PITCH, BAR_L, BAR_A, armAngle, ARMS, sA, cA,
+} from './astro/constants'
+import { sunR, sunPhase } from './astro/sun'
 
 installErrorCollector()
 // A thunk, so this does not depend on where renderLog ends up living.
@@ -149,40 +154,6 @@ const UREM = {
 };
 
 // ---------- the physics (compressed but honest) ----------
-const R_GAL = 900;            // scene units: Sun's distance from galactic core
-const V_GAL = 2*Math.PI*900/225e6;  // scene units per Earth year: one lap in 225 Myr, exactly
-const GAL_PERIOD = 2*Math.PI*R_GAL/V_GAL; // sim "galactic year" in Earth-years (display only)
-const YR_PER_SIM = (225/GAL_PERIOD)*1e6;  // real years in one simulated year (~1.19e6)
-const AGE0 = 4.568;                       // Gyr: age of the solar system at simT = 0
-const AND_AGE = 9.07;                     // Gyr: Andromeda's first passage, ~4.5 Gyr from now
-// The merger scatters the Sun outward. N-body work on this encounter (Cox & Loeb 2008)
-// finds a median final distance near 30 kpc against today's 8 — roughly 3.75x out — with
-// about a 12% chance of the tidal tails beyond that and 3% of ending up bound to
-// Andromeda instead. This follows the median outcome.
-const SCATTER_AGE = 11.45;   // Gyr: the second passage, where the scatter begins
-const SR_A = 3.75, SR_B = 2.75, SR_K = 1/0.9;   // sunR/R_GAL = SR_A - SR_B·e^(-SR_K·u)
-function sunR(ts){
-  // the scatter builds through the later passages, not the distant first one
-  const d = AGE0 + ts*YR_PER_SIM/1e9 - SCATTER_AGE;
-  return d <= 0 ? R_GAL : R_GAL*(SR_A - SR_B*Math.exp(-SR_K*d));
-}
-// How far round the galaxy the Sun has travelled. The rotation curve is flat, so the
-// orbital *speed* stays near 230 km/s and the angular rate is v/R: as the merger widens
-// the orbit the laps lengthen, out to 3.75× today's period. Turning the widening radius
-// alone while holding the angular rate fixed — which is what an earlier build drew —
-// would have carried the Sun round at 860 km/s, well above escape speed out there.
-// This is the exact integral of that rate, so the galactic-year counter genuinely slows.
-function sunPhase(ts){
-  const u = AGE0 + ts*YR_PER_SIM/1e9 - SCATTER_AGE;
-  if(u <= 0) return ts*V_GAL/R_GAL;
-  const tPre = (SCATTER_AGE - AGE0)*1e9/YR_PER_SIM;
-  const dU = Math.log(SR_A*Math.exp(SR_K*u) - SR_B)/(SR_K*SR_A);   // in Gyr
-  return (tPre + dU*1e9/YR_PER_SIM)*V_GAL/R_GAL;
-}
-// ecliptic tilted 60.2° to the galactic plane; orientation is inertially fixed
-const TILT = 60.2*Math.PI/180;
-const E1 = [1,0,0];
-const E2 = [0, Math.sin(TILT), -Math.cos(TILT)];
 
 // name, real period (yr), display orbit radius, sprite size, color
 const BODIES = [ // name, period yr, display radius, sprite size, color, real semi-major axis (AU), real radius (km)
@@ -205,9 +176,6 @@ const BODIES = [ // name, period yr, display radius, sprite size, color, real se
   // the far Kuiper objects. ~400 AU and ~6 Earth masses, after Brown & Batygin.
   ['Planet 9?', 8000.0, 78.0, 0.62,[0.36,0.66,0.77], 400.0, 19100],
 ];
-// real scale: 1 unit ~ 30 ly, 1 ly = 63,241 AU -> units per AU
-const AU2U = 1/(63241*30);
-const OO_REAL = 3.0e-4; // real mode: maps the symbolic Oort shell onto its true ~1.6 ly outer edge
 let realMode = true;   // true proportions, always — the magnified display mode is gone
 let curD = 1; // active galaxy density (set by setGalaxy, read by the life-cycle rates)
 const NB = BODIES.length;
@@ -276,19 +244,6 @@ const N_STAR = 3200;
 // Milky Way, roughly to scale: 1 unit ≈ 30 ly, Sun at 900 ≈ 26,700 ly from the core.
 // Barred core (half-length ~500 ≈ 15,000 ly, tilted 28° to the Sun–center line),
 // two major arms (Scutum–Centaurus, Perseus) springing from the bar tips,
-// two fainter arms (Sagittarius, Norma/Outer), and the Local (Orion) Spur at the Sun.
-const PITCH = Math.tan(12.5*Math.PI/180);   // Milky Way arm pitch angle ≈ 12–13°
-const BAR_L = 500;                          // bar half-length
-const BAR_A = 28*Math.PI/180;               // bar angle to the Sun–center line (+z)
-// trailing log-spirals: going outward, arms sweep backward against the rotation
-const armAngle = (r,off) => off - Math.log(r/BAR_L)/PITCH;
-const ARMS = [
-  [BAR_A,             1.00],  // Scutum–Centaurus (near bar tip)
-  [BAR_A+Math.PI,     1.00],  // Perseus (far bar tip)
-  [BAR_A+Math.PI/2,   0.50],  // Sagittarius
-  [BAR_A+3*Math.PI/2, 0.50],  // Norma / Outer
-];
-const sA=Math.sin(BAR_A), cA=Math.cos(BAR_A);
 let N_GXY, NEB_N, DUST_N;
 let N_AND = 0, vaoAnd = null;   // declared here: setGalaxy builds Andromeda too, and runs earlier
 let N_ANDN = 0, N_ANDD = 0, vaoAndNeb = null, vaoAndDust = null, m31Map = null;

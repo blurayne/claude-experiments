@@ -64,15 +64,35 @@ function compare(a: Buffer, b: Buffer): Diff {
 /**
  * The gate.
  *
- * Exact, not approximate: scripts/smoke.mjs established that two runs of the same build
- * produce byte-identical pixels once the seed, the clock, the settings, the fetch order and
- * the frame budget are pinned. So any difference at all is a difference the refactor made,
- * and the right response is to revert the step rather than widen the threshold.
+ * Byte-identical is the intent, and almost always the result: once the seed, the clock, the
+ * settings, the fetch order and the frame budget are pinned, and each capture gets its own
+ * browser process, 24 states reproduce exactly, run after run.
  *
- * The one exception is `fresh-profile`, whose content depends on the first-launch
- * performance probe measuring the machine — that one is allowed a small tolerance, and says
- * so out loud.
+ * Almost. Roughly one state in a full run comes back with a scatter of pixels differing by
+ * exactly one — a software rasteriser rounding the last bit differently — and it is not
+ * reproducible: re-run that state and it is identical again. So the gate admits that and
+ * nothing else.
+ *
+ * The threshold is not a guess, it is the gap between two measured populations. Every real
+ * difference caught during this refactor came in at max Δ174, 197, 220 or 252, over 5–20% of
+ * the frame. The noise comes in at max Δ1 over 0.3%. A rule of "no pixel may differ by more
+ * than one, and no more than 1% may differ at all" sits in a gap of more than two orders of
+ * magnitude in amplitude. Nothing that changes geometry, colour, timing or content can hide
+ * under it: to move a star you must change a pixel by far more than one, and to move the sky
+ * you must change far more than 1% of them.
+ *
+ * The numbers are printed on every state, pass or fail, so drift toward the threshold is
+ * visible rather than silent. If a state starts sitting near the limit, that is a finding.
+ *
+ * `fresh-profile` is looser still, and separately: its content depends on the first-launch
+ * performance probe measuring the machine, so it can legitimately pick a different detail
+ * tier.
  */
+
+/** No pixel may differ by more than this. Real changes measured 174–252. */
+const MAX_DELTA = 1
+/** And no more than this share may differ at all. Real changes measured 5–20%. */
+const MAX_DIFFERING_FRACTION = 0.01
 test.describe('parity against the pre-refactor build', () => {
   test.beforeAll(() => mkdirSync(FAILURES, { recursive: true }))
 
@@ -114,6 +134,13 @@ test.describe('parity against the pre-refactor build', () => {
         await testInfo.attach(`${state.id}.actual.png`, { body: shot.png, contentType: 'image/png' })
       }
 
+      // Reported on every state, not only on failures, so a slow drift toward the threshold
+      // shows up in the log instead of one day crossing it.
+      testInfo.annotations.push({
+        type: 'diff',
+        description: `${diff.differing} px (${percent.toFixed(3)}%), max Δ${diff.maxDelta}`,
+      })
+
       const detail = `${diff.differing}/${diff.total} px (${percent.toFixed(3)}%), max Δ${diff.maxDelta}, mean Δ${diff.meanDelta.toFixed(2)} — ${state.covers}`
 
       if (TOLERANT.has(state.id)) {
@@ -121,7 +148,12 @@ test.describe('parity against the pre-refactor build', () => {
         // detail tier. Anything past a tenth of a percent is not the probe, it is the move.
         expect(percent, detail).toBeLessThan(0.1)
       } else {
-        expect(diff.differing, detail).toBe(0)
+        // Both conditions, so neither can be satisfied by the other: a change cannot pass by
+        // being small in area if it is large in amplitude, or vice versa.
+        expect(diff.maxDelta, `amplitude beyond the rasteriser's noise floor — ${detail}`)
+          .toBeLessThanOrEqual(MAX_DELTA)
+        expect(percent, `too much of the frame changed — ${detail}`)
+          .toBeLessThan(MAX_DIFFERING_FRACTION * 100)
       }
     })
   }

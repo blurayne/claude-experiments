@@ -186,6 +186,90 @@ function expR(a        , b        , Rd        )         { // radius in [a,b] fro
  */
 const $ = (id        )              => document.getElementById(id);
 
+/**
+ * The numbers the simulation is built on, and where each comes from.
+ *
+ * Copied across verbatim, including the ones that look redundant. V_GAL writes 900 rather
+ * than R_GAL, and zoomStep clamps to 9500 while the wheel clamps to 7500; unifying either
+ * would be a behaviour change wearing a tidy-up's clothes, and this refactor is not allowed
+ * to make behaviour changes. Where two constants ought to agree and do not, that is a
+ * question for the science work, not for the move.
+ *
+ * The arm geometry lives here rather than with the galaxy that draws it, because
+ * environment() reads ARMS and armAngle to decide when the Sun crosses a spiral arm — and
+ * astro must not depend on scene.
+ */
+                                        
+
+const R_GAL = 900;            // scene units: Sun's distance from galactic core
+const V_GAL = 2*Math.PI*900/225e6;  // scene units per Earth year: one lap in 225 Myr, exactly
+const GAL_PERIOD = 2*Math.PI*R_GAL/V_GAL; // sim "galactic year" in Earth-years (display only)
+const YR_PER_SIM = (225/GAL_PERIOD)*1e6;  // real years in one simulated year (~1.19e6)
+const AGE0 = 4.568;                       // Gyr: age of the solar system at simT = 0
+// The merger scatters the Sun outward. N-body work on this encounter (Cox & Loeb 2008)
+// finds a median final distance near 30 kpc against today's 8 — roughly 3.75x out — with
+// about a 12% chance of the tidal tails beyond that and 3% of ending up bound to
+// Andromeda instead. This follows the median outcome.
+const SCATTER_AGE = 11.45;   // Gyr: the second passage, where the scatter begins
+const SR_A = 3.75, SR_B = 2.75, SR_K = 1/0.9;   // sunR/R_GAL = SR_A - SR_B·e^(-SR_K·u)
+
+// ecliptic tilted 60.2° to the galactic plane; orientation is inertially fixed
+const TILT = 60.2*Math.PI/180;
+const E1       = [1,0,0];
+const E2       = [0, Math.sin(TILT), -Math.cos(TILT)];
+
+// real scale: 1 unit ~ 30 ly, 1 ly = 63,241 AU -> units per AU
+const AU2U = 1/(63241*30);
+const OO_REAL = 3.0e-4; // real mode: maps the symbolic Oort shell onto its true ~1.6 ly outer edge
+
+// two fainter arms (Sagittarius, Norma/Outer), and the Local (Orion) Spur at the Sun.
+const PITCH = Math.tan(12.5*Math.PI/180);   // Milky Way arm pitch angle ≈ 12–13°
+const BAR_L = 500;                          // bar half-length
+const BAR_A = 28*Math.PI/180;               // bar angle to the Sun–center line (+z)
+// trailing log-spirals: going outward, arms sweep backward against the rotation
+const armAngle = (r        , off        ) => off - Math.log(r/BAR_L)/PITCH;
+const ARMS = [
+  [BAR_A,             1.00],  // Scutum–Centaurus (near bar tip)
+  [BAR_A+Math.PI,     1.00],  // Perseus (far bar tip)
+  [BAR_A+Math.PI/2,   0.50],  // Sagittarius
+  [BAR_A+3*Math.PI/2, 0.50],  // Norma / Outer
+];
+const sA = Math.sin(BAR_A), cA = Math.cos(BAR_A);
+
+/**
+ * Where the Sun is in its trip round the galaxy: how far out, and how far round.
+ *
+ * Both are pure functions of the simulation clock, with no state of their own — which is why
+ * the clock can be scrubbed backwards, and why the trail is recomputed from any time rather
+ * than kept as history.
+ *
+ * sunPhase is the closed-form integral of the angular rate, not the rate itself applied
+ * step by step. That distinction is the whole of v2.53.1: the flat rotation curve means the
+ * orbital SPEED stays near 230 km/s, so as the merger widens the orbit the angular rate must
+ * fall and the laps must lengthen. An earlier build advanced the anomaly at a fixed rate
+ * while letting the radius grow, which carried the Sun round at 860 km/s — well above escape
+ * speed out there.
+ */
+
+function sunR(ts        )         {
+  // the scatter builds through the later passages, not the distant first one
+  const d = AGE0 + ts*YR_PER_SIM/1e9 - SCATTER_AGE;
+  return d <= 0 ? R_GAL : R_GAL*(SR_A - SR_B*Math.exp(-SR_K*d));
+}
+// How far round the galaxy the Sun has travelled. The rotation curve is flat, so the
+// orbital *speed* stays near 230 km/s and the angular rate is v/R: as the merger widens
+// the orbit the laps lengthen, out to 3.75× today's period. Turning the widening radius
+// alone while holding the angular rate fixed — which is what an earlier build drew —
+// would have carried the Sun round at 860 km/s, well above escape speed out there.
+// This is the exact integral of that rate, so the galactic-year counter genuinely slows.
+function sunPhase(ts        )         {
+  const u = AGE0 + ts*YR_PER_SIM/1e9 - SCATTER_AGE;
+  if(u <= 0) return ts*V_GAL/R_GAL;
+  const tPre = (SCATTER_AGE - AGE0)*1e9/YR_PER_SIM;
+  const dU = Math.log(SR_A*Math.exp(SR_K*u) - SR_B)/(SR_K*SR_A);   // in Gyr
+  return (tPre + dU*1e9/YR_PER_SIM)*V_GAL/R_GAL;
+}
+
 const PT_VS = "#version 300 es\nlayout(location=0) in vec3 aPos;\nlayout(location=1) in float aSize;\nlayout(location=2) in vec3 aColor;\nlayout(location=3) in float aWave; // 1: point rides the spiral density-wave pattern\nlayout(location=4) in vec3 aVel;   // heliocentric space velocity, km/s (real stars only)\nuniform float uVelT;               // km/s -> scene displacement for the elapsed years\nuniform mat4 uProj, uView;\nuniform float uPx;\nuniform float uSpin; // distance travelled at the flat-curve speed; 0 = no rotation\nuniform float uWarp; // precession phase of the disk warp\nuniform vec3 uSunPos; // center of the clearance bubble around the magnified solar system\nuniform float uCap;   // sprite size ceiling (smaller at deep zoom: near stars stay point-like)\nuniform float uWaveAll; // 1: treat every point in this draw as wave-riding (nebulae, dust)\nuniform float uTime;    // wall-clock seconds for the variability animation\nuniform float uVarMode; // 0 off | 1 stars (a few % pulse, reddening at minimum) | 2 nebulae (all breathe)\nuniform vec3 uAnd;      // Andromeda's centre, galactic coordinates\nuniform float uTide;    // 0 far apart .. 1 at contact\nuniform float uWarpAmp; // how strongly this draw takes the disk warp\nuniform float uMinB;    // brightness floor: lift the faintest stars to at least this\nuniform float uMinSz;   // sprite floor in pixels: how small a star is allowed to get\nuniform float uFadeOut; // 0 draws normally, 1 hides: used where a layer stops being true\nuniform vec3 uOrg;    // rendering origin (the Sun) — keeps deep real-scale zooms float-precise\nuniform float uGal;   // 1: this draw is a whole galaxy, placed by uGRot/uGOff\nuniform mat3 uGRot;   // the galaxy's disk frame in scene coordinates (identity for ours)\nuniform vec3 uGOff;   // the galaxy's centre (zero for ours)\nuniform float uMerge; // 0 two galaxies .. 1 one relaxed remnant\nout vec3 vColor;\nvoid main(){\n  vec3 p = aPos + aVel*uVelT;\n  float fade = 1.0;\n  if(uSpin != 0.0){\n    float r = length(p.xz);\n    // material stars: flat rotation curve, so they shear differentially. Wave-flagged\n    // points (bar, arms, spur, gas, young stars) rigidly follow one pattern speed\n    // instead — corotation at r=640 (~19 kly) — so stars stream through the arms\n    // and the pattern never winds up: density-wave theory's answer to the winding problem.\n    float w = max(aWave, uWaveAll);\n    float d = mix(uSpin / max(r, 520.0), uSpin/640.0, w);\n    float c = cos(d), s = sin(d);\n    p = vec3(p.x*c + p.z*s, p.y, p.z*c - p.x*s);\n    // Gaia-style warp: outer disk bends up on one side, down on the other,\n    // and the whole pattern precesses retrograde (uWarp) like a wobbling top\n    float wr = max(0.0, r - 950.0);\n    p.y += uWarpAmp*(wr*0.13*sin(atan(p.x,p.z) - uWarp)  // integral-sign warp, growing outward\n         + 4.0*sin(r*0.021));                            // faint corrugation ripples in the disk\n    // the planetary system is drawn ~10-million-fold magnified; clear its space\n    fade = smoothstep(80.0, 240.0, distance(p, uSunPos));\n  }\n  // Whole-galaxy draws: place the cloud in the world — identity for the Milky Way,\n  // Andromeda's measured orientation and moving centre for its own — then the mutual\n  // tide, then, while the remnant relaxes, the slide into a single spheroid.\n  if(uGal > 0.5){\n    float rL = length(aPos.xz);      // radius in the galaxy's own disk, pre-transform\n    p = uGRot*p + uGOff;\n    // Tidal pull toward the companion. A real encounter is an N-body problem; this is\n    // the leading effect only — the differential pull grows with disk radius, so the\n    // outer disk reaches into a bridge while the core barely moves. Softened and\n    // capped: a bare inverse square tears passing stars into a streak.\n    if(uTide > 0.001){\n      vec3 dv = uAnd - p;\n      float dd = length(dv);\n      float pull = uTide * (rL/900.0) * 480.0 / (1.0 + (dd*dd)/(2600.0*2600.0));\n      p += normalize(dv) * min(pull, 560.0);\n    }\n    // Coalescence: violent relaxation scrambles both disks into one elliptical.\n    // Each star slides to a stable pseudo-random spot on a de-Vaucouleurs-ish\n    // spheroid, mildly flattened, its radius loosely keeping the star's rank.\n    if(uMerge > 0.001){\n      float h1 = fract(sin(dot(aPos.xy, vec2(127.1,311.7)))*43758.5453);\n      float h2 = fract(sin(dot(aPos.yz, vec2(269.5,183.3)))*43758.5453);\n      float cz = h2*2.0-1.0, sz = sqrt(max(0.0, 1.0-cz*cz)), ph = 6.28318*h1;\n      vec3 tgt = vec3(sz*cos(ph), cz*0.72, sz*sin(ph))\n               * (90.0 + 200.0*pow(0.5*(h1+h2), 1.6)*3.0 + length(aPos)*0.34);\n      p = mix(p, tgt, uMerge*uMerge);\n    }\n  }\n  vec4 mv = uView * vec4(p - uOrg,1.0);\n  gl_Position = uProj * mv;\n  float dd = max(1e-9, -mv.z); // no floor of 1: real-scale zooms get much closer than that\n  float s0 = aSize * uPx / dd;\n  gl_PointSize = clamp(s0, max(uMinSz, 0.7), uCap);\n  // a star smaller than a pixel keeps its flux, not its size: clamped points dim by\n  // the area they were denied, so the far field stops shimmering at full brightness.\n  // Referenced against the fixed floor, so the min-size slider still brightens.\n  float sub = clamp(s0/0.7, 0.0, 1.0);\n  float fluxKeep = mix(1.0, sub*sub, 0.62);\n  vec3 col = aColor;\n  if(uVarMode > 0.5){\n    float h = fract(sin(dot(aPos.xz, vec2(12.9898,78.233)))*43758.5453);\n    if(uVarMode < 1.5){\n      // variable stars: ~4-5% of points pulse Mira/Cepheid-style — dimmer AND redder\n      // at minimum light, because the star is coolest there\n      if(h > 0.955){\n        float w = 2.0 + 10.0*fract(h*97.0);\n        float dim = 0.5 + 0.5*sin(uTime*w + h*6283.0);\n        col *= 0.45 + 0.75*dim;\n        col.g *= 0.85 + 0.15*dim;\n        col.b *= 0.70 + 0.30*dim;\n      }\n    } else {\n      // nebulae: every puff breathes gently and drifts in hue (ionization flicker)\n      float ph = h*6283.0;\n      float s1 = sin(uTime*0.5 + ph), s2 = sin(uTime*0.23 + ph*1.7);\n      col *= 0.82 + 0.18*s1;\n      col.r *= 1.0 + 0.10*s2;\n      col.b *= 1.0 - 0.08*s2;\n    }\n  }\n  // A floor rather than a gain: anything already brighter than it is left alone, so\n  // raising it reveals the faint disk without blowing out the arms and the core.\n  if(uMinB > 0.0){\n    float lum = max(max(col.r, col.g), col.b);\n    if(lum > 0.0002 && lum < uMinB) col *= uMinB/lum;\n  }\n  vColor = col * fade * fluxKeep * (1.0 - uFadeOut);\n}";
 
 const PT_FS = "#version 300 es\nprecision mediump float;\nin vec3 vColor; out vec4 o;\nvoid main(){\n  vec2 q = gl_PointCoord*2.0-1.0;\n  float r = length(q);\n  if(r>1.0) discard;\n  float d = 1.0-r;\n  float corona = pow(d, 6.0);\n  float core   = pow(d, 20.0);\n  float a = corona*0.85 + core*1.35;\n  vec3 col = vColor*a + vColor.g*core*0.9;   // the white-core lift, scaled by luminance\n  o = vec4(col, a);\n}";
@@ -343,39 +427,6 @@ const UREM = {
 };
 
 // ---------- the physics (compressed but honest) ----------
-const R_GAL = 900;            // scene units: Sun's distance from galactic core
-const V_GAL = 2*Math.PI*900/225e6;  // scene units per Earth year: one lap in 225 Myr, exactly
-const GAL_PERIOD = 2*Math.PI*R_GAL/V_GAL; // sim "galactic year" in Earth-years (display only)
-const YR_PER_SIM = (225/GAL_PERIOD)*1e6;  // real years in one simulated year (~1.19e6)
-const AGE0 = 4.568;                       // Gyr: age of the solar system at simT = 0
-// The merger scatters the Sun outward. N-body work on this encounter (Cox & Loeb 2008)
-// finds a median final distance near 30 kpc against today's 8 — roughly 3.75x out — with
-// about a 12% chance of the tidal tails beyond that and 3% of ending up bound to
-// Andromeda instead. This follows the median outcome.
-const SCATTER_AGE = 11.45;   // Gyr: the second passage, where the scatter begins
-const SR_A = 3.75, SR_B = 2.75, SR_K = 1/0.9;   // sunR/R_GAL = SR_A - SR_B·e^(-SR_K·u)
-function sunR(ts){
-  // the scatter builds through the later passages, not the distant first one
-  const d = AGE0 + ts*YR_PER_SIM/1e9 - SCATTER_AGE;
-  return d <= 0 ? R_GAL : R_GAL*(SR_A - SR_B*Math.exp(-SR_K*d));
-}
-// How far round the galaxy the Sun has travelled. The rotation curve is flat, so the
-// orbital *speed* stays near 230 km/s and the angular rate is v/R: as the merger widens
-// the orbit the laps lengthen, out to 3.75× today's period. Turning the widening radius
-// alone while holding the angular rate fixed — which is what an earlier build drew —
-// would have carried the Sun round at 860 km/s, well above escape speed out there.
-// This is the exact integral of that rate, so the galactic-year counter genuinely slows.
-function sunPhase(ts){
-  const u = AGE0 + ts*YR_PER_SIM/1e9 - SCATTER_AGE;
-  if(u <= 0) return ts*V_GAL/R_GAL;
-  const tPre = (SCATTER_AGE - AGE0)*1e9/YR_PER_SIM;
-  const dU = Math.log(SR_A*Math.exp(SR_K*u) - SR_B)/(SR_K*SR_A);   // in Gyr
-  return (tPre + dU*1e9/YR_PER_SIM)*V_GAL/R_GAL;
-}
-// ecliptic tilted 60.2° to the galactic plane; orientation is inertially fixed
-const TILT = 60.2*Math.PI/180;
-const E1 = [1,0,0];
-const E2 = [0, Math.sin(TILT), -Math.cos(TILT)];
 
 // name, real period (yr), display orbit radius, sprite size, color
 const BODIES = [ // name, period yr, display radius, sprite size, color, real semi-major axis (AU), real radius (km)
@@ -398,9 +449,6 @@ const BODIES = [ // name, period yr, display radius, sprite size, color, real se
   // the far Kuiper objects. ~400 AU and ~6 Earth masses, after Brown & Batygin.
   ['Planet 9?', 8000.0, 78.0, 0.62,[0.36,0.66,0.77], 400.0, 19100],
 ];
-// real scale: 1 unit ~ 30 ly, 1 ly = 63,241 AU -> units per AU
-const AU2U = 1/(63241*30);
-const OO_REAL = 3.0e-4; // real mode: maps the symbolic Oort shell onto its true ~1.6 ly outer edge
 let curD = 1; // active galaxy density (set by setGalaxy, read by the life-cycle rates)
 const NB = BODIES.length;
 const N_PLANETS = 9;         // Sun + 8 planets; dwarfs follow
@@ -460,19 +508,6 @@ const N_STAR = 3200;
 // Milky Way, roughly to scale: 1 unit ≈ 30 ly, Sun at 900 ≈ 26,700 ly from the core.
 // Barred core (half-length ~500 ≈ 15,000 ly, tilted 28° to the Sun–center line),
 // two major arms (Scutum–Centaurus, Perseus) springing from the bar tips,
-// two fainter arms (Sagittarius, Norma/Outer), and the Local (Orion) Spur at the Sun.
-const PITCH = Math.tan(12.5*Math.PI/180);   // Milky Way arm pitch angle ≈ 12–13°
-const BAR_L = 500;                          // bar half-length
-const BAR_A = 28*Math.PI/180;               // bar angle to the Sun–center line (+z)
-// trailing log-spirals: going outward, arms sweep backward against the rotation
-const armAngle = (r,off) => off - Math.log(r/BAR_L)/PITCH;
-const ARMS = [
-  [BAR_A,             1.00],  // Scutum–Centaurus (near bar tip)
-  [BAR_A+Math.PI,     1.00],  // Perseus (far bar tip)
-  [BAR_A+Math.PI/2,   0.50],  // Sagittarius
-  [BAR_A+3*Math.PI/2, 0.50],  // Norma / Outer
-];
-const sA=Math.sin(BAR_A), cA=Math.cos(BAR_A);
 let N_GXY, NEB_N, DUST_N;
 let N_AND = 0, vaoAnd = null;   // declared here: setGalaxy builds Andromeda too, and runs earlier
 let N_ANDN = 0, N_ANDD = 0, vaoAndNeb = null, vaoAndDust = null, m31Map = null;
