@@ -22,13 +22,17 @@ import { gauss, expR } from './core/rng'
 import { $ } from './core/dom'
 import {
   R_GAL, V_GAL, GAL_PERIOD, YR_PER_SIM, AGE0, AND_AGE, SCATTER_AGE, SR_A, SR_B, SR_K,
-  TILT, E1, E2, AU2U, OO_REAL, PITCH, BAR_L, BAR_A, armAngle, ARMS, sA, cA,
+  TILT, E1, E2, AU2U, OO_REAL, REAL_MODE, PITCH, BAR_L, BAR_A, armAngle, ARMS, sA, cA,
 } from './astro/constants'
 import { sunR, sunPhase } from './astro/sun'
 import {
   M31_DIR, M31_E2, M31_ROT, KPC2U, M31_ORBIT, MERGE_A0, MERGE_A1, MERGE_T0, MERGE_T1,
   orbitUV, sepScene, mergeAt, diskSpin,
 } from './astro/merger'
+import {
+  BODIES, NB, N_PLANETS, I_P9, PHASE, EN, DTILT, BU, BV, WOB_A, WOB_T,
+  tmp, tmpSun, earthW, bodyPos,
+} from './astro/bodies'
 import { canvas, gl } from './gpu/context'
 import { prog } from './gpu/program'
 import { makeBuf, pointVAO, deleteVAO, trackVAOBuffers } from './gpu/buffers'
@@ -144,72 +148,8 @@ const UREM = {
 
 // ---------- the physics (compressed but honest) ----------
 
-// name, real period (yr), display orbit radius, sprite size, color
-const BODIES = [ // name, period yr, display radius, sprite size, color, real semi-major axis (AU), real radius (km)
-  ['Sun',     0,      0,   5.2, [1.0,0.86,0.55], 0, 696000],
-  ['Mercury', 0.241,  6.0, 0.85,[0.66,0.64,0.62], 0.387, 2440],
-  ['Venus',   0.615,  8.5, 1.15,[0.93,0.82,0.58], 0.723, 6052],
-  ['Earth',   1.000, 11.0, 1.2, [0.35,0.58,1.0],  1.000, 6371],
-  ['Mars',    1.881, 14.0, 1.0, [0.92,0.44,0.26], 1.524, 3390],
-  ['Jupiter',11.862, 20.0, 2.6, [0.85,0.66,0.42], 5.203, 69911],
-  ['Saturn', 29.457, 26.0, 2.3, [0.90,0.79,0.53], 9.537, 58232],
-  ['Uranus', 84.02,  32.5, 1.7, [0.52,0.83,0.86], 19.19, 25362],
-  ['Neptune',164.8,  38.5, 1.7, [0.30,0.42,0.90], 30.07, 24622],
-  // IAU dwarf planets (drawn smaller; note their strongly inclined orbits)
-  ['Ceres',    4.60, 16.0, 0.55,[0.62,0.60,0.56], 2.766, 470],
-  ['Pluto',  248.0,  43.0, 0.60,[0.80,0.69,0.58], 39.48, 1188],
-  ['Haumea', 285.0,  44.5, 0.50,[0.82,0.82,0.85], 43.1, 816],
-  ['Makemake',306.0, 46.0, 0.50,[0.76,0.56,0.43], 45.4, 715],
-  ['Eris',   558.0,  52.5, 0.55,[0.83,0.83,0.90], 67.7, 1163],
-  // Hypothetical, and drawn as such: the orbit that would explain the clustering of
-  // the far Kuiper objects. ~400 AU and ~6 Earth masses, after Brown & Batygin.
-  ['Planet 9?', 8000.0, 78.0, 0.62,[0.36,0.66,0.77], 400.0, 19100],
-];
-let realMode = true;   // true proportions, always — the magnified display mode is gone
 let curD = 1; // active galaxy density (set by setGalaxy, read by the life-cycle rates)
-const NB = BODIES.length;
-const N_PLANETS = 9;         // Sun + 8 planets; dwarfs follow
-const I_P9 = NB - 1;         // the hypothetical one, last in the table
 let showP9 = true;
-const PHASE = BODIES.map((_,i)=> i*2.399963); // golden-angle spread
-
-// per-body orbital plane: planets share the ecliptic; dwarfs are tilted [inclination°, node°]
-const EN = [0, Math.cos(TILT), Math.sin(TILT)]; // ecliptic normal
-const DTILT = { Ceres:[10.6,80], Pluto:[17.2,110], Haumea:[28.2,122], Makemake:[29.0,79], Eris:[44.0,36],
-  // the candidate's orbit is tilted too, by about 16 degrees in the current estimates
-  'Planet 9?':[16.0,95] };
-const BU=[], BV=[];
-BODIES.forEach((b,i)=>{
-  if(i<N_PLANETS){ BU.push(E1); BV.push(E2); return; }
-  const [inc,node]=DTILT[b[0]];
-  const ci=Math.cos(inc*Math.PI/180), si=Math.sin(inc*Math.PI/180);
-  const cn=Math.cos(node*Math.PI/180), sn=Math.sin(node*Math.PI/180);
-  const u=[cn*E1[0]+sn*E2[0], cn*E1[1]+sn*E2[1], cn*E1[2]+sn*E2[2]];
-  const w=[-sn*E1[0]+cn*E2[0], -sn*E1[1]+cn*E2[1], -sn*E1[2]+cn*E2[2]];
-  BU.push(u); BV.push([w[0]*ci+EN[0]*si, w[1]*ci+EN[1]*si, w[2]*ci+EN[2]*si]);
-});
-
-// Sun's vertical bob through the disk plane: real period ~90 Myr, amplitude ~±250 ly.
-// Amplitude shown ~3× exaggerated so it reads at this zoom.
-const WOB_A = 24, WOB_T = 90e6; // scene units, and the real ~90 Myr vertical period
-
-const tmp = new Float64Array(3), tmpSun = new Float64Array(3), earthW = new Float64Array(3);
-function bodyPos(i, t, out){
-  const phi = sunPhase(t);                       // galactic anomaly, slowing as R grows
-  const R = sunR(t);                             // constant until the merger flings it out
-  const sx = R*Math.sin(phi), sz = R*Math.cos(phi);
-  const sy = (realMode?8.3:WOB_A)*Math.sin(2*Math.PI*t/WOB_T + 2.1);
-  if(i===0){ out[0]=sx; out[1]=sy; out[2]=sz; return out; }
-  const b = BODIES[i];
-  const th = 2*Math.PI*t/b[1] + PHASE[i];
-  const rr = realMode ? b[5]*AU2U : b[2]; // true proportions: the whole system is sub-pixel
-  const c = Math.cos(th)*rr, s = Math.sin(th)*rr;
-  const u=BU[i], v=BV[i];
-  out[0] = sx + c*u[0] + s*v[0];
-  out[1] = sy + c*u[1] + s*v[1];
-  out[2] = sz + c*u[2] + s*v[2];
-  return out;
-}
 
 // ---------- static geometry: starfield + galaxy ----------
 
@@ -1819,7 +1759,7 @@ addEventListener('pointercancel', endPointer);
 // the floor: ~0.04 AU across, eight solar radii; at Earth and at the Moon, a body filling
 // the view. The Moon's view before she forms is Earth's view, so it keeps Earth's floor.
 const minDist = ()=> followTarget === 'moon' ? (ageGyr() > MOON_BORN ? 5.5e-12 : 2e-11)
-                   : followTarget === 'earth' ? 2e-11 : (realMode ? 2e-8 : 25);
+                   : followTarget === 'earth' ? 2e-11 : (REAL_MODE ? 2e-8 : 25);
 // The zoom buttons step along a ladder of the objects themselves — the Sun, the planets'
 // orbits, the belts, the Oort shell, the nearest stars, the arm, the Galaxy, the Local
 // Group — with one rung between each pair, so two presses take you from one object to
@@ -1838,7 +1778,7 @@ function zoomStep(dir){
 }
 canvas.addEventListener('wheel', e=>{
   e.preventDefault();
-  const rate = realMode ? 0.0018 : 0.0011; // faster travel across real scale's ~11 decades
+  const rate = REAL_MODE ? 0.0018 : 0.0011; // faster travel across real scale's ~11 decades
   cam.distGoal = Math.max(minDist(), Math.min(7500, cam.distGoal*Math.exp(e.deltaY*rate)));
 },{passive:false});
 // pinch zoom
@@ -2758,7 +2698,7 @@ function refillTrails(){
     gl.bufferSubData(gl.ARRAY_BUFFER,0,a);
   }
 }
-function setBodySizes(){ gl.bindBuffer(gl.ARRAY_BUFFER,bufBodySize); gl.bufferData(gl.ARRAY_BUFFER, realMode?realSizes:dispSizes, gl.STATIC_DRAW); }
+function setBodySizes(){ gl.bindBuffer(gl.ARRAY_BUFFER,bufBodySize); gl.bufferData(gl.ARRAY_BUFFER, REAL_MODE?realSizes:dispSizes, gl.STATIC_DRAW); }
 setBodySizes();   // real proportions from the first frame
 toggle($('tDive'), on=>{ panF[0]=panF[1]=0;
   reseedFollow = true; panF[0]=panF[1]=0;
@@ -3437,7 +3377,7 @@ function frame(now){
     bodyPos(i,simT,tmp);
     bodyPosArr[i*3]=tmp[0]-org[0]; bodyPosArr[i*3+1]=tmp[1]-org[1]; bodyPosArr[i*3+2]=tmp[2]-org[2];
   }
-  if(realMode){ // the Sun's sprite: true diameter once close enough, else a small findable dot
+  if(REAL_MODE){ // the Sun's sprite: true diameter once close enough, else a small findable dot
     // realSizes[0] is the Sun's diameter today; the model scales it, so a red giant is
     // drawn at the size the model says it has rather than at a fixed dot
     const sunDia = realSizes[0]*sunState(ageGyr()).R;
@@ -3543,7 +3483,7 @@ function frame(now){
   gl.uniformMatrix4fv(U.ptView,false,viewMat);
   const and = updateAnd();
   const gl710 = g710();   // read by the Oort brightening before the star is drawn
-  const deep = realMode && cam.dist<1.0; // inside ~30 ly: keep the backdrop point-like
+  const deep = REAL_MODE && cam.dist<1.0; // inside ~30 ly: keep the backdrop point-like
   // Inside the disk the band's light — haze, HII regions, the core — all lies BEHIND
   // the local dust: that is the Great Rift. So from in here the whole backdrop goes
   // down first and the dust over it; from outside the arms' HII knots sit on top of
@@ -3558,7 +3498,7 @@ function frame(now){
   const spinMW  = spin;
   const spinM31 = spin*1.07;   // M31's flat curve runs ~7% faster
   const sunX=org[0], sunY=org[1], sunZ=org[2];
-  const bubY = realMode ? sunY+1e8 : sunY; // real scale: nothing is magnified, so no clearance bubble
+  const bubY = REAL_MODE ? sunY+1e8 : sunY; // real scale: nothing is magnified, so no clearance bubble
   gl.uniform1f(U.ptPx,pxScale);
   gl.uniform1f(U.ptWA, 0.0);
   gl.uniform1f(U.ptTime, shimT);
@@ -3686,7 +3626,7 @@ function frame(now){
   // both at once, so they fade out as the magnified solar system takes over the view and
   // return once it is small enough for the proportion to read. Real scale keeps them
   // throughout, where nothing is magnified and they are simply correct.
-  const gaiaFade = realMode ? 0 : 1 - Math.min(1, Math.max(0, (cam.dist - 210)/280));
+  const gaiaFade = REAL_MODE ? 0 : 1 - Math.min(1, Math.max(0, (cam.dist - 210)/280));
   if(gaiaOn && vaoGaia && gaiaFade < 0.999){
     gl.uniform1f(U.ptFade, gaiaFade);
     gl.uniform3f(U.ptOrg, 0,0,0);
@@ -3866,9 +3806,9 @@ function frame(now){
   // Each fades out while its ring is too small on screen to resolve — otherwise its
   // points would pile up additively into a false bright blob on the Sun's pixel.
   const beltFade = rw => Math.max(0, Math.min(1, (rw/cam.dist*pxScale - 24)/50));
-  const abA = beltFade(realMode ? 2.7*AU2U : 16.6);
-  const kbA = beltFade(realMode ? 45*AU2U : 45);
-  const ooA = beltFade(realMode ? 130*OO_REAL : 130);
+  const abA = beltFade(REAL_MODE ? 2.7*AU2U : 16.6);
+  const kbA = beltFade(REAL_MODE ? 45*AU2U : 45);
+  const ooA = beltFade(REAL_MODE ? 130*OO_REAL : 130);
   if(showBelt && abA>0){
     gl.useProgram(pAB);
     gl.uniformMatrix4fv(UA.uProj,false,projMat);
@@ -3877,20 +3817,20 @@ function frame(now){
     // into spokes; wrapped time (exact in f64, small in f32) keeps every phase clean.
     // Anonymous specks reshuffling once per 65,536 years is invisible in a uniform ring.
     gl.uniform1f(UA.uPx,pxScale); gl.uniform1f(UA.uT, simT % 65536);
-    gl.uniform1f(UA.uS, realMode?AU2U:1.0);
+    gl.uniform1f(UA.uS, REAL_MODE?AU2U:1.0);
     gl.uniform3f(UA.uSun,0,0,0);
     gl.uniform3f(UA.uE1,E1[0],E1[1],E1[2]);
     gl.uniform3f(UA.uE2,E2[0],E2[1],E2[2]);
     gl.uniform3f(UA.uEN,EN[0],EN[1],EN[2]);
     gl.uniform3f(UA.uColor,0.15,0.13,0.11); gl.uniform1f(UA.uAlpha,abA);
-    gl.bindVertexArray(realMode?vaoABr:vaoABd); gl.drawArrays(gl.POINTS,0,AB_N);
+    gl.bindVertexArray(REAL_MODE?vaoABr:vaoABd); gl.drawArrays(gl.POINTS,0,AB_N);
   }
   if(showKuiper && kbA>0){
     gl.useProgram(pKB);
     gl.uniformMatrix4fv(UK.uProj,false,projMat);
     gl.uniformMatrix4fv(UK.uView,false,viewMat);
     gl.uniform1f(UK.uPx,pxScale); gl.uniform1f(UK.uT, simT % 65536);
-    gl.uniform1f(UK.uS, realMode?AU2U:1.0); // real mode: the belt radii are AU
+    gl.uniform1f(UK.uS, REAL_MODE?AU2U:1.0); // real mode: the belt radii are AU
     gl.uniform3f(UK.uSun,0,0,0);
     gl.uniform3f(UK.uE1,E1[0],E1[1],E1[2]);
     gl.uniform3f(UK.uE2,E2[0],E2[1],E2[2]);
@@ -3903,7 +3843,7 @@ function frame(now){
     gl.uniformMatrix4fv(UO.uProj,false,projMat);
     gl.uniformMatrix4fv(UO.uView,false,viewMat);
     gl.uniform1f(UO.uPx,pxScale);
-    gl.uniform1f(UO.uS, realMode?OO_REAL:1.0);
+    gl.uniform1f(UO.uS, REAL_MODE?OO_REAL:1.0);
     gl.uniform3f(UO.uSun,0,0,0);
     // a passing star stirs the cloud: brighten it while Gliese 710 is inside
     const stir = Math.min(1, Math.max(0, (1.9-gl710.d)/1.9));
@@ -3915,7 +3855,7 @@ function frame(now){
     gl.uniformMatrix4fv(UR.uProj,false,projMat);
     gl.uniformMatrix4fv(UR.uView,false,viewMat);
     gl.uniform3f(UR.uSun,0,0,0);
-    gl.uniform1f(UR.uR, realMode?178.0*OO_REAL:178.0);
+    gl.uniform1f(UR.uR, REAL_MODE?178.0*OO_REAL:178.0);
     gl.uniform3f(UR.uColor,0.10,0.13,0.19);
     gl.bindVertexArray(vaoRing);
     if(globePx <= 40) for(const [A,B] of [[E1,E2],[E1,EN],[E2,EN]]){   // from a globe's zoom the shell is lines across the sky
@@ -3991,9 +3931,9 @@ function frame(now){
   // Gliese 710, on the same symbolic scale as the Oort cloud in the compressed view and
   // at its true separation in real scale, so it passes where the cloud actually is.
   if(gl710.d < 60){
-    const k = realMode ? 1/30 : 178/1.6;      // scene units per light year
+    const k = REAL_MODE ? 1/30 : 178/1.6;      // scene units per light year
     g710Pos[0]=gl710.x*k; g710Pos[1]=gl710.y*k; g710Pos[2]=gl710.z*k;
-    g710Size[0] = realMode ? Math.max(0.9, cam.dist*0.006) : 2.6;
+    g710Size[0] = REAL_MODE ? Math.max(0.9, cam.dist*0.006) : 2.6;
     const near = Math.min(1, Math.max(0, (6-gl710.d)/6));
     g710Col[0]=0.55+0.75*near; g710Col[1]=0.34+0.34*near; g710Col[2]=0.20+0.18*near;
     gl.uniform1f(U.ptSpin, 0.0); gl.uniform1f(U.ptVM, 0.0); gl.uniform1f(U.ptTide, 0.0);
@@ -4101,7 +4041,7 @@ function frame(now){
       const [cw, lsx, lsy] = proj(bodyPosArr[i*3], bodyPosArr[i*3+1], bodyPosArr[i*3+2]);
       if(cw<=Math.max(1e-9,cam.dist*0.01) || cam.dist>900){ placeLabel(l, 0, 0, false); continue; }
       if(i===0){ sunSX=lsx; sunSY=lsy; }
-      else if(realMode && Math.hypot(lsx-sunSX,lsy-sunSY)<14){ placeLabel(l, 0, 0, false); continue; }
+      else if(REAL_MODE && Math.hypot(lsx-sunSX,lsy-sunSY)<14){ placeLabel(l, 0, 0, false); continue; }
       placeLabel(l, lsx, lsy, true);
       l.style.opacity = i===0?0.9:0.65;
     }
@@ -4152,7 +4092,7 @@ function frame(now){
     { const [cw, sx, sy] = proj(-org[0], -org[1], -org[2]);
       placeLabel(mergedEl, sx, sy, galaxyNames && and.merge >= 0.35 && cw > 1); }
     if(gl710.d < 40){
-      const k = realMode ? 1/30 : 178/1.6;
+      const k = REAL_MODE ? 1/30 : 178/1.6;
       const [cw, sx, sy] = proj(gl710.x*k, gl710.y*k, gl710.z*k);
       placeLabel(g710Lbl, sx, sy, cw > Math.max(1e-9,cam.dist*0.01) && cam.dist <= 900);
     } else placeLabel(g710Lbl, 0, 0, false);

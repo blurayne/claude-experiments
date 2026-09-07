@@ -33,6 +33,13 @@ export const E2: Vec3 = [0, Math.sin(TILT), -Math.cos(TILT)];
 
 // real scale: 1 unit ~ 30 ly, 1 ly = 63,241 AU -> units per AU
 export const AU2U = 1/(63241*30);
+/**
+ * True proportions, always. The magnified display mode is gone, and this was a `let` whose
+ * only assignment in the whole file was its own declaration. A const, so astro/ stops
+ * depending on a mutable the renderer owns.
+ */
+export const REAL_MODE = true
+
 export const OO_REAL = 3.0e-4; // real mode: maps the symbolic Oort shell onto its true ~1.6 ly outer edge
 
 // two fainter arms (Sagittarius, Norma/Outer), and the Local (Orion) Spur at the Sun.
