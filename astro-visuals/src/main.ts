@@ -13,6 +13,18 @@
 // scaffolding that lets the move happen in reviewable steps instead of one unreadable diff.
 // @ts-nocheck
 
+// core/errorlog is FIRST and bare on purpose: it installs the global error handlers, and it
+// has to be in place before any later import can throw.
+import { installErrorCollector, setLogRenderer, logErr, errLog, TOUCH_DEV } from './core/errorlog'
+import { BUILD, VERSION, BUILD_LINE, localBuildStamp } from './core/build'
+import { perspective, lookAt, mul } from './core/mat4'
+import { gauss, expR } from './core/rng'
+import { $ } from './core/dom'
+
+installErrorCollector()
+// A thunk, so this does not depend on where renderLog ends up living.
+setLogRenderer(() => renderLog())
+
 // The GLSL, moved out to src/shaders/ as files a syntax highlighter can read. Imported with
 // Vite's `?raw`, so what reaches the driver is the file's bytes and nothing has been
 // reformatted, reindented or comment-stripped on the way. They stay ordinary module-scope
@@ -48,92 +60,6 @@ import PN_FS from './shaders/pn.frag?raw'
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
-// ---------- the error log ----------
-// A phone has no console to open, so on a touch device every error the page can see is
-// kept and shown in the settings dialog's log tab. On a desktop nothing is collected:
-// the browser's own console is better than anything this could render.
-const TOUCH_DEV = (matchMedia('(pointer: coarse)').matches || (navigator.maxTouchPoints|0) > 1)
-                  && !matchMedia('(pointer: fine)').matches;
-const errLog = [], ERR_MAX = 120;
-function logErr(kind, msg, where){
-  if(!TOUCH_DEV || !msg) return;
-  const top = errLog[0];
-  if(top && top.kind === kind && top.msg === msg && top.where === where){ top.n++; top.t = Date.now(); }
-  else { errLog.unshift({ kind, msg: String(msg).slice(0, 400), where: where || '', t: Date.now(), n: 1 });
-         if(errLog.length > ERR_MAX) errLog.pop(); }
-  if(typeof renderLog === 'function') try{ renderLog(); }catch(e){}
-}
-if(TOUCH_DEV){
-  addEventListener('error', e => {
-    const t = e.target;
-    if(t && t !== window && (t.src || t.href)) logErr('load', 'failed to load ' + String(t.src || t.href).split('/').pop(), t.tagName.toLowerCase());
-    else logErr('error', e.message || String(e.error || 'error'), (e.filename||'').split('/').pop() + (e.lineno ? ':' + e.lineno : ''));
-  }, true);   // capture: a failed <img> or <script> does not bubble
-  addEventListener('unhandledrejection', e => {
-    const r = e.reason; logErr('promise', (r && (r.message || r)) || 'promise rejected', '');
-  });
-  for(const k of ['error','warn']){
-    const orig = console[k].bind(console);
-    console[k] = (...a) => {
-      try{ logErr(k, a.map(x => x instanceof Error ? (x.message || String(x))
-                                : (x && typeof x === 'object') ? JSON.stringify(x).slice(0,200) : String(x)).join(' '), ''); }catch(e){}
-      orig(...a);
-    };
-  }
-}
-const BUILD = { version: '2.78.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
-const VERSION = 'v' + BUILD.version;
-// The stamp is written in UTC; show it in whatever zone the browser is in, and always
-// name the offset — "+00:00" is information too, not an absence of it.
-function localBuildStamp(){
-  const d = new Date(BUILD.date + 'T' + BUILD.time + 'Z');
-  if(isNaN(d.getTime())) return BUILD.date + ' ' + BUILD.time + ' +00:00';
-  const pad = n => String(n).padStart(2, '0');
-  // Prefer the zone's own abbreviation (CEST, PDT, IST...). Some locales only offer a
-  // "GMT+2" style name; those fall through to a numeric UTC offset — and a zone at zero
-  // says UTC±0 outright, because a zero offset is a fact, not a blank.
-  let zone = '';
-  try{
-    const part = new Intl.DateTimeFormat(undefined, {timeZoneName:'short'})
-      .formatToParts(d).find(q => q.type === 'timeZoneName');
-    if(part && !/^(GMT|UTC)([+-−]|$)/.test(part.value)) zone = part.value;
-  }catch(err){}
-  if(!zone){
-    const off = -d.getTimezoneOffset();
-    zone = off === 0 ? 'UTC±0'
-         : 'UTC' + (off < 0 ? '−' : '+') +
-           pad(Math.floor(Math.abs(off)/60)) + ':' + pad(Math.abs(off)%60);
-  }
-  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ` +
-         `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} ${zone}`;
-}
-const BUILD_LINE = BUILD.date.indexOf('__') === 0
-  ? 'dev build'
-  : localBuildStamp() + ' · ' + BUILD.sha;
-// ---------- tiny mat4 ----------
-function perspective(fov, asp, n, f){
-  const t = 1/Math.tan(fov/2), m = new Float32Array(16);
-  m[0]=t/asp; m[5]=t; m[10]=(f+n)/(n-f); m[11]=-1; m[14]=2*f*n/(n-f);
-  return m;
-}
-function lookAt(eye, at, up){
-  const zx=eye[0]-at[0], zy=eye[1]-at[1], zz=eye[2]-at[2];
-  let zl=Math.hypot(zx,zy,zz)||1; const Z=[zx/zl,zy/zl,zz/zl];
-  const X=[up[1]*Z[2]-up[2]*Z[1], up[2]*Z[0]-up[0]*Z[2], up[0]*Z[1]-up[1]*Z[0]];
-  let xl=Math.hypot(...X)||1; X[0]/=xl;X[1]/=xl;X[2]/=xl;
-  const Y=[Z[1]*X[2]-Z[2]*X[1], Z[2]*X[0]-Z[0]*X[2], Z[0]*X[1]-Z[1]*X[0]];
-  return new Float32Array([
-    X[0],Y[0],Z[0],0, X[1],Y[1],Z[1],0, X[2],Y[2],Z[2],0,
-    -(X[0]*eye[0]+X[1]*eye[1]+X[2]*eye[2]),
-    -(Y[0]*eye[0]+Y[1]*eye[1]+Y[2]*eye[2]),
-    -(Z[0]*eye[0]+Z[1]*eye[1]+Z[2]*eye[2]),1]);
-}
-function mul(a,b){ // a*b, column-major
-  const o=new Float32Array(16);
-  for(let c=0;c<4;c++)for(let r=0;r<4;r++){
-    o[c*4+r]=a[r]*b[c*4]+a[4+r]*b[c*4+1]+a[8+r]*b[c*4+2]+a[12+r]*b[c*4+3];
-  } return o;
-}
 
 // ---------- GL setup ----------
 const canvas = document.getElementById('gl');
@@ -334,12 +260,6 @@ function makeBuf(data, loc, comps){
   gl.bindBuffer(gl.ARRAY_BUFFER,b);
   gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);
   return b;
-}
-function gauss(){ let u=0,v=0; while(!u)u=Math.random(); while(!v)v=Math.random();
-  return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
-function expR(a,b,Rd){ // radius in [a,b] from an exponential disk profile ~exp(-r/Rd)
-  const ea=Math.exp(-a/Rd), eb=Math.exp(-b/Rd);
-  return -Rd*Math.log(ea-(ea-eb)*Math.random());
 }
 
 // distant stars
@@ -2091,7 +2011,6 @@ canvas.addEventListener('touchmove', e=>{
 },{passive:true});
 
 // ---------- UI ----------
-const $=id=>document.getElementById(id);
 $('verInfo').textContent = VERSION;
 $('buildStamp').textContent = BUILD_LINE;
 $('tourBuild').textContent = VERSION + ' · ' + BUILD_LINE;

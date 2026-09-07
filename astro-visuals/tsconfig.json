@@ -7,7 +7,12 @@
     "types": ["vite/client", "node"],
 
     "strict": true,
-    "noUncheckedIndexedAccess": true,
+
+    // Deliberately NOT set: "noUncheckedIndexedAccess". This page is mostly numeric buffers —
+    // positions, sizes, colours, matrices — and that flag types every Float32Array read as
+    // `number | undefined`. In a renderer where every index is in bounds by construction it
+    // buys no safety and costs a non-null assertion on almost every line, which is worse than
+    // the problem: assertions stop being read. Bounds here are the algorithm's business.
     "noImplicitOverride": true,
     "noFallthroughCasesInSwitch": true,
     "exactOptionalPropertyTypes": true,
