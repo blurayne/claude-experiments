@@ -270,6 +270,97 @@ function sunPhase(ts        )         {
   return (tPre + dU*1e9/YR_PER_SIM)*V_GAL/R_GAL;
 }
 
+/**
+ * Andromeda's approach, the passages, and the merger.
+ *
+ * The control points are Gaia-era: 765 kpc today closing at about 110 km/s, first passage
+ * near 95 kpc at +4.5 Gyr, coalescence around +8.8. Sawala et al. 2025 puts the odds of a
+ * merger within 10 Gyr at only about even; what is drawn is the median of the merging half,
+ * and the info panel says so rather than presenting one track as the answer.
+ *
+ * Everything here is a pure function of age or of the simulation clock. That is deliberate
+ * and about to be useful: rebuilding this against the current simulations — M33 and the LMC
+ * included — is its own project, and a module with no state and its own tests is where that
+ * work can happen without touching anything that draws.
+ */
+                                        
+
+// The orbit follows the Gaia-era picture (van der Marel et al.; Sawala et al., Nature
+// Astronomy 2025): a first passage ~4.5 Gyr from now at ~95 kpc — the disks never touch,
+// they trade bridges — then dynamical friction bites, the passages shrink, and the pair
+// coalesces about 8.8 Gyr from now. The 2025 ensemble gives only ~50% odds of merging
+// within 10 Gyr at all; what is drawn is the median of the merging half, and the info
+// panel says so. Andromeda approaches from its true direction (l=121.2°, b=−21.6°).
+const M31_DIR       = [0.7957, -0.3677, 0.4814];   // toward M31 today, scene coordinates
+const M31_E2       = [0.3037, -0.4454, -0.8422];  // second axis of the orbital plane
+// M31's disk frame in scene coordinates, from its measured PA 38°, inclination 77°,
+// near side NW, NE side approaching — the spin pole lands at galactic (242°, −30°),
+// matching published values. Local y is minus the spin axis so a positive shader spin
+// turns it its real way, the same convention the Milky Way is drawn with.
+const M31_ROT = new Float32Array([
+  -0.0926, 0.7115, 0.6965,     // local x: the major axis
+   0.7623, 0.5007,-0.4102,     // local y
+  -0.6406, 0.4930,-0.5887]);   // local z
+const KPC2U = 1000*3.2616/30;  // scene units per kpc (true scale)
+// (age Gyr, u kpc, v kpc) in the orbital plane; Hermite-interpolated below
+const M31_ORBIT = [
+  [ 3.0,   942,  -14],
+  [ 4.568, 765,    0],   // today: 765 kpc, closing ~110 km/s, small tangential drift
+  [ 6.6,   555,   18],
+  [ 8.1,   305,   48],
+  [ 8.85,  128,   78],
+  [ 9.07,   18,   93],   // first passage, ~95 kpc
+  [ 9.55, -172,   62],
+  [10.35, -290,  -18],   // out to first apocentre
+  [11.0,  -168,  -82],
+  [11.45,   -8,  -40],   // second passage, ~41 kpc: bridges and tails
+  [11.8,    68,   30],
+  [12.0,    77,    8],   // second rebound, already shrunk by friction
+  [12.3,     4,  -13],   // third passage: the disks interpenetrate
+  [12.55,  -20,   -4],
+  [12.8,    -7,    4],
+  [13.05,    3,    1],
+  [13.35,    0,    0],   // one remnant
+  [20.0,     0,    0]];
+function orbitUV(a        )                   {
+  const O = M31_ORBIT, n = O.length;
+  let i = 0;
+  while(i < n-2 && a > O[i+1][0]) i++;
+  const a0 = O[i][0], a1 = O[i+1][0], h = a1 - a0;
+  const s = Math.min(1, Math.max(0, (a - a0)/h)), s2 = s*s, s3 = s2*s;
+  const P0 = O[i], P1 = O[i+1], Pm = O[Math.max(0,i-1)], Pp = O[Math.min(n-1,i+2)];
+  const out                   = [0, 0];
+  for(let k=1;k<=2;k++){
+    const m0 = (P1[k]-Pm[k])/(a1-Pm[0])*h, m1 = (Pp[k]-P0[k])/(Pp[0]-a0)*h;
+    out[k-1] = (2*s3-3*s2+1)*P0[k] + (s3-2*s2+s)*m0 + (-2*s3+3*s2)*P1[k] + (s3-s2)*m1;
+  }
+  return out;
+}
+// Separations are drawn at true scale out to ~83 kpc — every passage, honestly spaced —
+// and log-compressed beyond, so today's 765 kpc looms at the edge of the drawn sky
+// instead of 25 disk-diameters offstage. The info panel discloses the compression.
+function sepScene(kpc        )         {
+  return kpc <= 82.8 ? kpc*KPC2U
+       : 9000 + 4000*Math.log(kpc/82.8)/Math.log(765/82.8);
+}
+// Violent relaxation builds through the close passages rather than switching on: by the
+// third pass the rings are already coming apart, as they would be. Everything that stops
+// being true when the disks stop being disks reads this.
+const MERGE_A0 = 11.7, MERGE_A1 = 13.4;   // Gyr: relaxation begins, remnant settled
+const mergeAt = (a        )         => Math.min(1, Math.max(0, (a - MERGE_A0)/(MERGE_A1 - MERGE_A0)));
+// The disk's accumulated rotation. The rate is the flat-curve speed, dying away as the
+// merger scrambles the ordered disk into a spheroid — so this is the integral of
+// V_GAL·(1 − mergeAt), linear before the merger, a parabola through it, constant after.
+// An earlier build scaled the accumulated *angle* by (1 − merge) instead, which is not
+// the same thing at all: with thirty laps already on the clock, that ran the whole disk
+// backwards at four times its speed the moment relaxation began (galactic year ~51.7).
+const MERGE_T0 = (MERGE_A0 - AGE0)*1e9/YR_PER_SIM, MERGE_T1 = (MERGE_A1 - AGE0)*1e9/YR_PER_SIM;
+function diskSpin(ts        )         {
+  if(ts <= MERGE_T0) return ts*V_GAL;
+  const w = MERGE_T1 - MERGE_T0, x = Math.min(ts, MERGE_T1) - MERGE_T0;
+  return (MERGE_T0 + x - x*x/(2*w))*V_GAL;
+}
+
 const PT_VS = "#version 300 es\nlayout(location=0) in vec3 aPos;\nlayout(location=1) in float aSize;\nlayout(location=2) in vec3 aColor;\nlayout(location=3) in float aWave; // 1: point rides the spiral density-wave pattern\nlayout(location=4) in vec3 aVel;   // heliocentric space velocity, km/s (real stars only)\nuniform float uVelT;               // km/s -> scene displacement for the elapsed years\nuniform mat4 uProj, uView;\nuniform float uPx;\nuniform float uSpin; // distance travelled at the flat-curve speed; 0 = no rotation\nuniform float uWarp; // precession phase of the disk warp\nuniform vec3 uSunPos; // center of the clearance bubble around the magnified solar system\nuniform float uCap;   // sprite size ceiling (smaller at deep zoom: near stars stay point-like)\nuniform float uWaveAll; // 1: treat every point in this draw as wave-riding (nebulae, dust)\nuniform float uTime;    // wall-clock seconds for the variability animation\nuniform float uVarMode; // 0 off | 1 stars (a few % pulse, reddening at minimum) | 2 nebulae (all breathe)\nuniform vec3 uAnd;      // Andromeda's centre, galactic coordinates\nuniform float uTide;    // 0 far apart .. 1 at contact\nuniform float uWarpAmp; // how strongly this draw takes the disk warp\nuniform float uMinB;    // brightness floor: lift the faintest stars to at least this\nuniform float uMinSz;   // sprite floor in pixels: how small a star is allowed to get\nuniform float uFadeOut; // 0 draws normally, 1 hides: used where a layer stops being true\nuniform vec3 uOrg;    // rendering origin (the Sun) — keeps deep real-scale zooms float-precise\nuniform float uGal;   // 1: this draw is a whole galaxy, placed by uGRot/uGOff\nuniform mat3 uGRot;   // the galaxy's disk frame in scene coordinates (identity for ours)\nuniform vec3 uGOff;   // the galaxy's centre (zero for ours)\nuniform float uMerge; // 0 two galaxies .. 1 one relaxed remnant\nout vec3 vColor;\nvoid main(){\n  vec3 p = aPos + aVel*uVelT;\n  float fade = 1.0;\n  if(uSpin != 0.0){\n    float r = length(p.xz);\n    // material stars: flat rotation curve, so they shear differentially. Wave-flagged\n    // points (bar, arms, spur, gas, young stars) rigidly follow one pattern speed\n    // instead — corotation at r=640 (~19 kly) — so stars stream through the arms\n    // and the pattern never winds up: density-wave theory's answer to the winding problem.\n    float w = max(aWave, uWaveAll);\n    float d = mix(uSpin / max(r, 520.0), uSpin/640.0, w);\n    float c = cos(d), s = sin(d);\n    p = vec3(p.x*c + p.z*s, p.y, p.z*c - p.x*s);\n    // Gaia-style warp: outer disk bends up on one side, down on the other,\n    // and the whole pattern precesses retrograde (uWarp) like a wobbling top\n    float wr = max(0.0, r - 950.0);\n    p.y += uWarpAmp*(wr*0.13*sin(atan(p.x,p.z) - uWarp)  // integral-sign warp, growing outward\n         + 4.0*sin(r*0.021));                            // faint corrugation ripples in the disk\n    // the planetary system is drawn ~10-million-fold magnified; clear its space\n    fade = smoothstep(80.0, 240.0, distance(p, uSunPos));\n  }\n  // Whole-galaxy draws: place the cloud in the world — identity for the Milky Way,\n  // Andromeda's measured orientation and moving centre for its own — then the mutual\n  // tide, then, while the remnant relaxes, the slide into a single spheroid.\n  if(uGal > 0.5){\n    float rL = length(aPos.xz);      // radius in the galaxy's own disk, pre-transform\n    p = uGRot*p + uGOff;\n    // Tidal pull toward the companion. A real encounter is an N-body problem; this is\n    // the leading effect only — the differential pull grows with disk radius, so the\n    // outer disk reaches into a bridge while the core barely moves. Softened and\n    // capped: a bare inverse square tears passing stars into a streak.\n    if(uTide > 0.001){\n      vec3 dv = uAnd - p;\n      float dd = length(dv);\n      float pull = uTide * (rL/900.0) * 480.0 / (1.0 + (dd*dd)/(2600.0*2600.0));\n      p += normalize(dv) * min(pull, 560.0);\n    }\n    // Coalescence: violent relaxation scrambles both disks into one elliptical.\n    // Each star slides to a stable pseudo-random spot on a de-Vaucouleurs-ish\n    // spheroid, mildly flattened, its radius loosely keeping the star's rank.\n    if(uMerge > 0.001){\n      float h1 = fract(sin(dot(aPos.xy, vec2(127.1,311.7)))*43758.5453);\n      float h2 = fract(sin(dot(aPos.yz, vec2(269.5,183.3)))*43758.5453);\n      float cz = h2*2.0-1.0, sz = sqrt(max(0.0, 1.0-cz*cz)), ph = 6.28318*h1;\n      vec3 tgt = vec3(sz*cos(ph), cz*0.72, sz*sin(ph))\n               * (90.0 + 200.0*pow(0.5*(h1+h2), 1.6)*3.0 + length(aPos)*0.34);\n      p = mix(p, tgt, uMerge*uMerge);\n    }\n  }\n  vec4 mv = uView * vec4(p - uOrg,1.0);\n  gl_Position = uProj * mv;\n  float dd = max(1e-9, -mv.z); // no floor of 1: real-scale zooms get much closer than that\n  float s0 = aSize * uPx / dd;\n  gl_PointSize = clamp(s0, max(uMinSz, 0.7), uCap);\n  // a star smaller than a pixel keeps its flux, not its size: clamped points dim by\n  // the area they were denied, so the far field stops shimmering at full brightness.\n  // Referenced against the fixed floor, so the min-size slider still brightens.\n  float sub = clamp(s0/0.7, 0.0, 1.0);\n  float fluxKeep = mix(1.0, sub*sub, 0.62);\n  vec3 col = aColor;\n  if(uVarMode > 0.5){\n    float h = fract(sin(dot(aPos.xz, vec2(12.9898,78.233)))*43758.5453);\n    if(uVarMode < 1.5){\n      // variable stars: ~4-5% of points pulse Mira/Cepheid-style — dimmer AND redder\n      // at minimum light, because the star is coolest there\n      if(h > 0.955){\n        float w = 2.0 + 10.0*fract(h*97.0);\n        float dim = 0.5 + 0.5*sin(uTime*w + h*6283.0);\n        col *= 0.45 + 0.75*dim;\n        col.g *= 0.85 + 0.15*dim;\n        col.b *= 0.70 + 0.30*dim;\n      }\n    } else {\n      // nebulae: every puff breathes gently and drifts in hue (ionization flicker)\n      float ph = h*6283.0;\n      float s1 = sin(uTime*0.5 + ph), s2 = sin(uTime*0.23 + ph*1.7);\n      col *= 0.82 + 0.18*s1;\n      col.r *= 1.0 + 0.10*s2;\n      col.b *= 1.0 - 0.08*s2;\n    }\n  }\n  // A floor rather than a gain: anything already brighter than it is left alone, so\n  // raising it reveals the faint disk without blowing out the arms and the core.\n  if(uMinB > 0.0){\n    float lum = max(max(col.r, col.g), col.b);\n    if(lum > 0.0002 && lum < uMinB) col *= uMinB/lum;\n  }\n  vColor = col * fade * fluxKeep * (1.0 - uFadeOut);\n}";
 
 const PT_FS = "#version 300 es\nprecision mediump float;\nin vec3 vColor; out vec4 o;\nvoid main(){\n  vec2 q = gl_PointCoord*2.0-1.0;\n  float r = length(q);\n  if(r>1.0) discard;\n  float d = 1.0-r;\n  float corona = pow(d, 6.0);\n  float core   = pow(d, 20.0);\n  float a = corona*0.85 + core*1.35;\n  vec3 col = vColor*a + vColor.g*core*0.9;   // the white-core lift, scaled by luminance\n  o = vec4(col, a);\n}";
@@ -1168,81 +1259,6 @@ for(const [pr, gr] of [[pPt,U.ptGRot],[pNeb,UN.grot],[pDust,UD.grot]]){
   gl.useProgram(pr); gl.uniformMatrix3fv(gr, false, MAT3_ID);
 }
 setGalaxy(1);   // real default ("low") applied after full init, below — see hadSaved
-// The orbit follows the Gaia-era picture (van der Marel et al.; Sawala et al., Nature
-// Astronomy 2025): a first passage ~4.5 Gyr from now at ~95 kpc — the disks never touch,
-// they trade bridges — then dynamical friction bites, the passages shrink, and the pair
-// coalesces about 8.8 Gyr from now. The 2025 ensemble gives only ~50% odds of merging
-// within 10 Gyr at all; what is drawn is the median of the merging half, and the info
-// panel says so. Andromeda approaches from its true direction (l=121.2°, b=−21.6°).
-const M31_DIR = [0.7957, -0.3677, 0.4814];   // toward M31 today, scene coordinates
-const M31_E2  = [0.3037, -0.4454, -0.8422];  // second axis of the orbital plane
-// M31's disk frame in scene coordinates, from its measured PA 38°, inclination 77°,
-// near side NW, NE side approaching — the spin pole lands at galactic (242°, −30°),
-// matching published values. Local y is minus the spin axis so a positive shader spin
-// turns it its real way, the same convention the Milky Way is drawn with.
-const M31_ROT = new Float32Array([
-  -0.0926, 0.7115, 0.6965,     // local x: the major axis
-   0.7623, 0.5007,-0.4102,     // local y
-  -0.6406, 0.4930,-0.5887]);   // local z
-const KPC2U = 1000*3.2616/30;  // scene units per kpc (true scale)
-// (age Gyr, u kpc, v kpc) in the orbital plane; Hermite-interpolated below
-const M31_ORBIT = [
-  [ 3.0,   942,  -14],
-  [ 4.568, 765,    0],   // today: 765 kpc, closing ~110 km/s, small tangential drift
-  [ 6.6,   555,   18],
-  [ 8.1,   305,   48],
-  [ 8.85,  128,   78],
-  [ 9.07,   18,   93],   // first passage, ~95 kpc
-  [ 9.55, -172,   62],
-  [10.35, -290,  -18],   // out to first apocentre
-  [11.0,  -168,  -82],
-  [11.45,   -8,  -40],   // second passage, ~41 kpc: bridges and tails
-  [11.8,    68,   30],
-  [12.0,    77,    8],   // second rebound, already shrunk by friction
-  [12.3,     4,  -13],   // third passage: the disks interpenetrate
-  [12.55,  -20,   -4],
-  [12.8,    -7,    4],
-  [13.05,    3,    1],
-  [13.35,    0,    0],   // one remnant
-  [20.0,     0,    0]];
-function orbitUV(a){
-  const O = M31_ORBIT, n = O.length;
-  let i = 0;
-  while(i < n-2 && a > O[i+1][0]) i++;
-  const a0 = O[i][0], a1 = O[i+1][0], h = a1 - a0;
-  const s = Math.min(1, Math.max(0, (a - a0)/h)), s2 = s*s, s3 = s2*s;
-  const P0 = O[i], P1 = O[i+1], Pm = O[Math.max(0,i-1)], Pp = O[Math.min(n-1,i+2)];
-  const out = [0,0];
-  for(let k=1;k<=2;k++){
-    const m0 = (P1[k]-Pm[k])/(a1-Pm[0])*h, m1 = (Pp[k]-P0[k])/(Pp[0]-a0)*h;
-    out[k-1] = (2*s3-3*s2+1)*P0[k] + (s3-2*s2+s)*m0 + (-2*s3+3*s2)*P1[k] + (s3-s2)*m1;
-  }
-  return out;
-}
-// Separations are drawn at true scale out to ~83 kpc — every passage, honestly spaced —
-// and log-compressed beyond, so today's 765 kpc looms at the edge of the drawn sky
-// instead of 25 disk-diameters offstage. The info panel discloses the compression.
-function sepScene(kpc){
-  return kpc <= 82.8 ? kpc*KPC2U
-       : 9000 + 4000*Math.log(kpc/82.8)/Math.log(765/82.8);
-}
-// Violent relaxation builds through the close passages rather than switching on: by the
-// third pass the rings are already coming apart, as they would be. Everything that stops
-// being true when the disks stop being disks reads this.
-const MERGE_A0 = 11.7, MERGE_A1 = 13.4;   // Gyr: relaxation begins, remnant settled
-const mergeAt = a => Math.min(1, Math.max(0, (a - MERGE_A0)/(MERGE_A1 - MERGE_A0)));
-// The disk's accumulated rotation. The rate is the flat-curve speed, dying away as the
-// merger scrambles the ordered disk into a spheroid — so this is the integral of
-// V_GAL·(1 − mergeAt), linear before the merger, a parabola through it, constant after.
-// An earlier build scaled the accumulated *angle* by (1 − merge) instead, which is not
-// the same thing at all: with thirty laps already on the clock, that ran the whole disk
-// backwards at four times its speed the moment relaxation began (galactic year ~51.7).
-const MERGE_T0 = (MERGE_A0 - AGE0)*1e9/YR_PER_SIM, MERGE_T1 = (MERGE_A1 - AGE0)*1e9/YR_PER_SIM;
-function diskSpin(ts){
-  if(ts <= MERGE_T0) return ts*V_GAL;
-  const w = MERGE_T1 - MERGE_T0, x = Math.min(ts, MERGE_T1) - MERGE_T0;
-  return (MERGE_T0 + x - x*x/(2*w))*V_GAL;
-}
 const andPos = new Float32Array(3);
 function updateAnd(){
   const a = ageGyr();
