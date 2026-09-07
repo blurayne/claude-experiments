@@ -80,3 +80,55 @@ export const cam = {
   dirW: [0, 0, 1],
   spinP: new Float64Array(3),
 }
+
+/**
+ * Everything the GPU is currently holding, and how much of it there is.
+ *
+ * Flat, with the original names, rather than nested by population. The plan sketched
+ * `gfx.gxy.vao` and friends, which reads better — but nesting is a second change riding on a
+ * rename across a hundred and thirty call sites, and every rename in this migration has found
+ * at least one place where a bare identifier was not a variable reference. The shape can be
+ * improved once the draw passes exist and there is something to shape it around.
+ *
+ * The counts are not decoration: several draw calls are `drawArrays(POINTS, first, count)`
+ * over segments of one buffer, so NUC0/NUC1 and the PINK/GLOW pairs are the difference
+ * between drawing the nuclear star cluster and drawing the whole galaxy.
+ */
+export const gfx = {
+  /** Active galaxy density. setGalaxy writes it; the life-cycle rates read it. */
+  curD: 1,
+
+  // Milky Way: stars, nebulae, dust.
+  N_GXY: 0, NEB_N: 0, DUST_N: 0,
+  vaoGxy: null as WebGLVertexArrayObject | null,
+  vaoNeb: null as WebGLVertexArrayObject | null,
+  vaoDust: null as WebGLVertexArrayObject | null,
+  /** Segment boundaries inside the nebula buffer: Halpha pink, then the haze. */
+  NEB_PINK: 0, NEB_GLOW: 0,
+  /** The nuclear stellar disc and the star cluster around Sgr A*, inside the star buffer. */
+  NUC0: 0, NUC1: 0,
+  hideNucleus: true,
+
+  // Andromeda, built by the same machinery.
+  N_AND: 0, N_ANDN: 0, N_ANDD: 0,
+  vaoAnd: null as WebGLVertexArrayObject | null,
+  vaoAndNeb: null as WebGLVertexArrayObject | null,
+  vaoAndDust: null as WebGLVertexArrayObject | null,
+  AND_PINK: 0, AND_GLOW: 0,
+
+  // The real sky, from AT-HYG and Gaia DR3.
+  vaoGaia: null as WebGLVertexArrayObject | null,
+  N_GAIA: 0,
+  gaiaOn: true,
+  vaoGaiaDeep: null as WebGLVertexArrayObject | null,
+  N_GAIA_DEEP: 0,
+  deepAsked: false,
+
+  /** The probability maps and the Earth texture, once their fetches land. */
+  galaxyMap: null as unknown,
+  m31Map: null as unknown,
+  earthTex: null as WebGLTexture | null,
+
+  /** How deep into the dust the deep-Gaia stars are still drawn. */
+  DUST_DEEP_CAP: 40.0,
+}

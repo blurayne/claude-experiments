@@ -50,7 +50,7 @@ import {
   MOON_D0, MOON_M1, MOON_M2, moonDist, moonW, moonRel,
   EARTH_AXIS, EARTH_P0, SIDEREAL, earthPrime as earthPrimeAt, earthEra,
 } from './astro/earth'
-import { simClock, cam } from './render/state'
+import { simClock, cam, gfx } from './render/state'
 
 // earthPrime calibrates itself against the rendering origin on its first call, and `org` is
 // the renderer's — so it is handed in here rather than reached for from inside astro/.
@@ -176,7 +176,7 @@ const UREM = {
 
 // ---------- the physics (compressed but honest) ----------
 
-let curD = 1; // active galaxy density (set by setGalaxy, read by the life-cycle rates)
+ // active galaxy density (set by setGalaxy, read by the life-cycle rates)
 let showP9 = true;
 
 // ---------- static geometry: starfield + galaxy ----------
@@ -195,29 +195,29 @@ const N_STAR = 3200;
 // Milky Way, roughly to scale: 1 unit ≈ 30 ly, Sun at 900 ≈ 26,700 ly from the core.
 // Barred core (half-length ~500 ≈ 15,000 ly, tilted 28° to the Sun–center line),
 // two major arms (Scutum–Centaurus, Perseus) springing from the bar tips,
-let N_GXY, NEB_N, DUST_N;
-let N_AND = 0, vaoAnd = null;   // declared here: setGalaxy builds Andromeda too, and runs earlier
-let N_ANDN = 0, N_ANDD = 0, vaoAndNeb = null, vaoAndDust = null, m31Map = null;
+
+   // declared here: setGalaxy builds Andromeda too, and runs earlier
+
 // The nebula buffers hold three runs in order — HII pink, the diffuse haze, the core —
 // and the frame draws them in two halves around the dust: the haze goes down first and
 // the dark clouds darken it, then the stars, the HII and the core go over both, so a
 // cloud sits within the star field instead of on top of it. These are the run lengths.
-let NEB_PINK = 0, NEB_GLOW = 0, AND_PINK = 0, AND_GLOW = 0;
+
 // The galaxy star buffer's nuclear run — the ~200 pc nuclear disc and the 4 pc cluster
 // around Sgr A* — as an index range [NUC0, NUC1). From inside the disk those stars are
 // not drawn: at 8 kpc they collapse onto one pixel, add up to a hard spot, and are drawn
 // after the dust that, from Earth, hides them behind ~30 magnitudes. Only these; the
 // bulge proper still draws, as the Sagittarius star clouds do. 0,0 when there is none.
-let NUC0 = 0, NUC1 = 0, hideNucleus = true;
+
 let gxyPos,gxySize,gxyCol,gxyWave, nebPos,nebSize,nebCol, dustPos,dustSize,dustStr;
 function genGalaxy(D){ // D = density multiplier (hi-fi galaxy mode)
-  N_GXY = Math.round(92000*D);
-  NUC0 = NUC1 = 0;
+  gfx.N_GXY = Math.round(92000*D);
+  gfx.NUC0 = gfx.NUC1 = 0;
   const BS = 1/Math.sqrt(D);      // per-star brightness comp: more stars, finer grain
   const SS = Math.pow(D,-0.12);   // slightly smaller sprites when dense
   const NBS = Math.max(Math.pow(D,-0.7), 0.25), DS = 1/D; // floor: nebulae must survive ultra
-  gxyPos=new Float32Array(N_GXY*3); gxySize=new Float32Array(N_GXY); gxyCol=new Float32Array(N_GXY*3); gxyWave=new Float32Array(N_GXY);
-  for(let i=0;i<N_GXY;i++){
+  gxyPos=new Float32Array(gfx.N_GXY*3); gxySize=new Float32Array(gfx.N_GXY); gxyCol=new Float32Array(gfx.N_GXY*3); gxyWave=new Float32Array(gfx.N_GXY);
+  for(let i=0;i<gfx.N_GXY;i++){
     let x,y,z,cr,cg,cb,s,wv=0;
     if(i<3200*D){ // nuclear bulge — old, dense, warm
       const r=Math.abs(gauss())*80, th=Math.random()*2*Math.PI;
@@ -281,14 +281,14 @@ function genGalaxy(D){ // D = density multiplier (hi-fi galaxy mode)
   }
 
   // ~420 emission nebulae: along the arms, at the bar tips, and in the Local Spur
-  NEB_N = Math.round(2600*D);
-  NEB_PINK = 0; NEB_GLOW = NEB_N;   // no runs in the schematic galaxy: all of it is haze
-  nebPos=new Float32Array(NEB_N*3); nebSize=new Float32Array(NEB_N); nebCol=new Float32Array(NEB_N*3);
+  gfx.NEB_N = Math.round(2600*D);
+  gfx.NEB_PINK = 0; gfx.NEB_GLOW = gfx.NEB_N;   // no runs in the schematic galaxy: all of it is haze
+  nebPos=new Float32Array(gfx.NEB_N*3); nebSize=new Float32Array(gfx.NEB_N); nebCol=new Float32Array(gfx.NEB_N*3);
   {
     const TYPES=[[.058,.018,.030],[.016,.044,.050],[.030,.020,.060],[.052,.033,.014]]; // Hα pink, OIII teal, violet dust-glow, amber
     const TW=[.38,.28,.22,.12];
     let p=0;
-    while(p<NEB_N){
+    while(p<gfx.NEB_N){
       let r, th, str=1, core=false;
       const kind=Math.random();
       if(kind<0.05){ // soft warm glow enveloping the nucleus
@@ -309,7 +309,7 @@ function genGalaxy(D){ // D = density multiplier (hi-fi galaxy mode)
       for(let k=0;k<4;k++){ acc+=TW[k]; if(roll<acc){ ti=k; break; } }
       if(core) ti=3; // nucleus glows amber
       const col=TYPES[ti], scale=(22+Math.random()*46)*str;
-      const puffs=Math.min(NEB_N-p, 5+((Math.random()*4)|0));
+      const puffs=Math.min(gfx.NEB_N-p, 5+((Math.random()*4)|0));
       for(let q=0;q<puffs;q++,p++){
         nebPos[p*3]  =ax+gauss()*scale*0.45;
         nebPos[p*3+1]=ay+gauss()*scale*0.18;
@@ -324,9 +324,9 @@ function genGalaxy(D){ // D = density multiplier (hi-fi galaxy mode)
   // dark dust lanes — the light-blocking clouds that define real spiral photos:
   // streaks along the inner (concave) edge of each arm, plus the bar's twin lanes
   const XD = D>1 ? Math.round(9000*D) : 0; // hi-fi only: extra discrete dark clouds (Dunkelwolken)
-  DUST_N = Math.round(3400*D) + XD;
-  const LANE_N = DUST_N - XD;
-  dustPos=new Float32Array(DUST_N*3); dustSize=new Float32Array(DUST_N); dustStr=new Float32Array(DUST_N*3);
+  gfx.DUST_N = Math.round(3400*D) + XD;
+  const LANE_N = gfx.DUST_N - XD;
+  dustPos=new Float32Array(gfx.DUST_N*3); dustSize=new Float32Array(gfx.DUST_N); dustStr=new Float32Array(gfx.DUST_N*3);
   {
     let p=0;
     while(p<Math.round(420*D)){ // the bar's point-symmetric leading-edge lanes
@@ -346,14 +346,14 @@ function genGalaxy(D){ // D = density multiplier (hi-fi galaxy mode)
         dustStr[p*3]=(.22+Math.random()*.28)*arm[1]*DS;
       }
     }
-    while(p<DUST_N){ // Dunkelwolken: discrete dark molecular clouds, arm-hugging but also scattered
+    while(p<gfx.DUST_N){ // Dunkelwolken: discrete dark molecular clouds, arm-hugging but also scattered
       const arm = ARMS[(Math.random()*4)|0];
       let r, th;
       if(Math.random()<0.62){ r=BAR_L+Math.pow(Math.random(),1.05)*1500; th=armAngle(r,arm[0])+gauss()*0.10; }
       else { r=300+Math.pow(Math.random(),0.8)*1650; th=Math.random()*6.28318; }
       const cx=r*Math.sin(th), cz=r*Math.cos(th), cy=gauss()*7;
       const sc=7+Math.random()*26, str=.16+Math.random()*.30;
-      const puffs=Math.min(DUST_N-p, 3+((Math.random()*5)|0));
+      const puffs=Math.min(gfx.DUST_N-p, 3+((Math.random()*5)|0));
       for(let q=0;q<puffs;q++,p++){
         dustPos[p*3]=cx+gauss()*sc*.6; dustPos[p*3+1]=cy+gauss()*sc*.22; dustPos[p*3+2]=cz+gauss()*sc*.6;
         dustSize[p]=sc*(.5+Math.random()*.9);
@@ -373,7 +373,7 @@ function flushGxyCache(){
     delete gxyCache[k]; }
 }
 const vaoStars = pointVAO(starPos, starSize, starCol);
-let vaoGxy, vaoNeb, vaoDust;
+
 const gxyCache = {}; // both densities kept once generated, so toggling back is instant
 // ---------- the photographic density map ----------
 // The classic face-on Milky Way illustration is used as a probability map: stars are
@@ -381,7 +381,7 @@ const gxyCache = {}; // both densities kept once generated, so toggling back is 
 // lanes are dark; HII nebulae where it is pink. The shipped copy is mirrored so the arms
 // trail the pattern's rotation, and rotated so its bar sits at the scene's 28 degrees —
 // both measured, not guessed. The procedural generator remains the fallback offline.
-let galaxyMap = null;
+
 const MAP_SCALE = 2100/188.6;   // scene units per map pixel: the disk edge lands at 2100
 function loadGalaxyMap(){
   fetch('galaxy-map.webp').then(r => r.ok ? r.blob() : Promise.reject())
@@ -419,10 +419,10 @@ function loadGalaxyMap(){
       }
       const cum = a => { const c=new Float32Array(a.length); let s=0;
         for(let i=0;i<a.length;i++){ s+=a[i]; c[i]=s; } return c; };
-      galaxyMap = { n, px, lum, blur, starC:cum(star), nebC:cum(neb), dustC:cum(dust) };
+      gfx.galaxyMap = { n, px, lum, blur, starC:cum(star), nebC:cum(neb), dustC:cum(dust) };
       // whatever is cached was built procedurally: rebuild the active density from the map
       flushGxyCache();
-      setGalaxy(curD);
+      setGalaxy(gfx.curD);
     })
     .catch(()=>{});   // opened from disk: the procedural galaxy stands in
 }
@@ -433,25 +433,25 @@ function mapPick(cdf){
   return lo;
 }
 function mapXZ(i, spread){
-  const n=galaxyMap.n, c0=(n-1)/2;
+  const n=gfx.galaxyMap.n, c0=(n-1)/2;
   const u=(i%n)+Math.random()-0.5+gauss()*spread, v=((i/n)|0)+Math.random()-0.5+gauss()*spread;
   return [ (u-c0)*MAP_SCALE, -(v-c0)*MAP_SCALE ];
 }
 function genGalaxyMap(D){
-  N_GXY = Math.round(92000*D);
+  gfx.N_GXY = Math.round(92000*D);
   const BS = 1/Math.sqrt(D), SS = Math.pow(D,-0.12);
   const NBS = Math.max(Math.pow(D,-0.7), 0.25), DS = 1/D;
-  gxyPos=new Float32Array(N_GXY*3); gxySize=new Float32Array(N_GXY);
-  gxyCol=new Float32Array(N_GXY*3); gxyWave=new Float32Array(N_GXY);
-  const m = galaxyMap, pxd = m.px;
-  const HALO = Math.round(N_GXY*0.045);   // the picture is flat; the 3D halo stays procedural
+  gxyPos=new Float32Array(gfx.N_GXY*3); gxySize=new Float32Array(gfx.N_GXY);
+  gxyCol=new Float32Array(gfx.N_GXY*3); gxyWave=new Float32Array(gfx.N_GXY);
+  const m = gfx.galaxyMap, pxd = m.px;
+  const HALO = Math.round(gfx.N_GXY*0.045);   // the picture is flat; the 3D halo stays procedural
   // The innermost parsecs, below the picture's resolution: a nuclear stellar disc of
   // ~200 pc and, inside it, the compact nuclear star cluster around Sgr A* — linked
   // structures that grow together, fed by gas the bar drives inward (Sormani et al.,
   // A&A 2025; AIP: "How central galactic structures grow together").
-  const NSD = Math.round(N_GXY*0.022), NSC = Math.round(N_GXY*0.004);
-  NUC0 = HALO; NUC1 = HALO + NSD + NSC;
-  for(let i=0;i<N_GXY;i++){
+  const NSD = Math.round(gfx.N_GXY*0.022), NSC = Math.round(gfx.N_GXY*0.004);
+  gfx.NUC0 = HALO; gfx.NUC1 = HALO + NSD + NSC;
+  for(let i=0;i<gfx.N_GXY;i++){
     let X,Y,Z,cr,cg,cb,s,wv=0;
     if(i<HALO){
       const rr=150+Math.abs(gauss())*1000, th=Math.random()*6.28318, ph=Math.acos(2*Math.random()-1);
@@ -483,9 +483,9 @@ function genGalaxyMap(D){
   }
   const Dg = Math.min(D, 8);
   const PINK_N = Math.round(2600*D), GLOW_N = Math.round(3800*Dg), CORE_N = Math.round(900*Dg);
-  NEB_N = PINK_N + GLOW_N + CORE_N;
-  NEB_PINK = PINK_N; NEB_GLOW = GLOW_N;
-  nebPos=new Float32Array(NEB_N*3); nebSize=new Float32Array(NEB_N); nebCol=new Float32Array(NEB_N*3);
+  gfx.NEB_N = PINK_N + GLOW_N + CORE_N;
+  gfx.NEB_PINK = PINK_N; gfx.NEB_GLOW = GLOW_N;
+  nebPos=new Float32Array(gfx.NEB_N*3); nebSize=new Float32Array(gfx.NEB_N); nebCol=new Float32Array(gfx.NEB_N*3);
   for(let q=0;q<PINK_N;q++){
     const pI = mapPick(m.nebC);
     const w = mapXZ(pI, 0.8);
@@ -512,7 +512,7 @@ function genGalaxyMap(D){
   // and the golden centre, which the picture renders far brighter than any arm
   { // elongated along the bar at 28 degrees, like the picture's, not a round flare
     const sA=Math.sin(28*Math.PI/180), cA=Math.cos(28*Math.PI/180);
-    for(let q=PINK_N+GLOW_N;q<NEB_N;q++){
+    for(let q=PINK_N+GLOW_N;q<gfx.NEB_N;q++){
       const u=gauss()*165, v=gauss()*80;
       nebPos[q*3]=u*sA+v*cA; nebPos[q*3+1]=gauss()*Math.max(10,42-Math.abs(u)*0.16); nebPos[q*3+2]=u*cA-v*sA;
       nebSize[q]=40+Math.random()*95;
@@ -521,9 +521,9 @@ function genGalaxyMap(D){
     }
   }
   const XD = D>1 ? Math.round(9000*D) : 0;
-  DUST_N = Math.round(3400*D)+XD;
-  dustPos=new Float32Array(DUST_N*3); dustSize=new Float32Array(DUST_N); dustStr=new Float32Array(DUST_N*3);
-  for(let q=0;q<DUST_N;q++){
+  gfx.DUST_N = Math.round(3400*D)+XD;
+  dustPos=new Float32Array(gfx.DUST_N*3); dustSize=new Float32Array(gfx.DUST_N); dustStr=new Float32Array(gfx.DUST_N*3);
+  for(let q=0;q<gfx.DUST_N;q++){
     const pI = mapPick(m.dustC);
     const w = mapXZ(pI, 0.5);
     dustPos[q*3]=w[0]; dustPos[q*3+1]=gauss()*5; dustPos[q*3+2]=w[1];
@@ -533,13 +533,13 @@ function genGalaxyMap(D){
   }
 }
 function setGalaxy(D){
-  const key = (galaxyMap ? 'm' : 'p') + (m31Map ? 'M' : 'q') + D;
+  const key = (gfx.galaxyMap ? 'm' : 'p') + (gfx.m31Map ? 'M' : 'q') + D;
   if(!gxyCache[key]){
-    (galaxyMap ? genGalaxyMap : genGalaxy)(D);
+    (gfx.galaxyMap ? genGalaxyMap : genGalaxy)(D);
     const gv = pointVAO(gxyPos,gxySize,gxyCol,gxyWave);
     const nv = pointVAO(nebPos,nebSize,nebCol), dv = pointVAO(dustPos,dustSize,dustStr);
-    const av = (m31Map ? genAndromedaMap : genAndromeda)(D);
-    gxyCache[key] = { D, n:[N_GXY,NEB_N,DUST_N], seg:[NEB_PINK,NEB_GLOW,AND_PINK,AND_GLOW], nuc:[NUC0,NUC1], g:gv, nb:nv, d:dv, a:av };
+    const av = (gfx.m31Map ? genAndromedaMap : genAndromeda)(D);
+    gxyCache[key] = { D, n:[gfx.N_GXY,gfx.NEB_N,gfx.DUST_N], seg:[gfx.NEB_PINK,gfx.NEB_GLOW,gfx.AND_PINK,gfx.AND_GLOW], nuc:[gfx.NUC0,gfx.NUC1], g:gv, nb:nv, d:dv, a:av };
     gxyPos=gxySize=gxyCol=gxyWave=nebPos=nebSize=nebCol=dustPos=dustSize=dustStr=null; // uploaded; free the JS copies
   }
   // the cheap densities stay cached; only one heavy one is kept at a time
@@ -552,12 +552,12 @@ function setGalaxy(D){
     }
   }
   const c=gxyCache[key];
-  N_GXY=c.n[0]; NEB_N=c.n[1]; DUST_N=c.n[2];
-  [NEB_PINK, NEB_GLOW, AND_PINK, AND_GLOW] = c.seg;
-  [NUC0, NUC1] = c.nuc || [0, 0];
-  N_AND=c.a.n[0]; N_ANDN=c.a.n[1]; N_ANDD=c.a.n[2];
-  vaoGxy=c.g; vaoNeb=c.nb; vaoDust=c.d; curD=D;
-  vaoAnd=c.a.a; vaoAndNeb=c.a.an; vaoAndDust=c.a.ad;
+  gfx.N_GXY=c.n[0]; gfx.NEB_N=c.n[1]; gfx.DUST_N=c.n[2];
+  [gfx.NEB_PINK, gfx.NEB_GLOW, gfx.AND_PINK, gfx.AND_GLOW] = c.seg;
+  [gfx.NUC0, gfx.NUC1] = c.nuc || [0, 0];
+  gfx.N_AND=c.a.n[0]; gfx.N_ANDN=c.a.n[1]; gfx.N_ANDD=c.a.n[2];
+  gfx.vaoGxy=c.g; gfx.vaoNeb=c.nb; gfx.vaoDust=c.d; gfx.curD=D;
+  gfx.vaoAnd=c.a.a; gfx.vaoAndNeb=c.a.an; gfx.vaoAndDust=c.a.ad;
   if(D >= 5) loadGaiaDeep();
 }
 
@@ -591,7 +591,7 @@ const pDust = prog(PT_VS, DUST_FS);
 // band and across the core and leaves the HII glow standing above it — the Rift as seen
 // from inside. 120 and 220 were tried and crush the whole band to a scatter of stars: the
 // multiply compounds, and larger discs overlap everywhere.
-let DUST_DEEP_CAP = 40.0;
+
 const UD = {
   minSz: gl.getUniformLocation(pDust,'uMinSz'),
   gal: gl.getUniformLocation(pDust,'uGal'), grot: gl.getUniformLocation(pDust,'uGRot'),
@@ -623,7 +623,7 @@ const UD = {
 const R_A = 2245;                        // M31's R25, 20.6 kpc, at true scale
 const M31_MAP_SCALE = R_A/188.6;         // scene units per map pixel
 function mapXZ31(i, spread){
-  const n=m31Map.n, c0=(n-1)/2;
+  const n=gfx.m31Map.n, c0=(n-1)/2;
   const u=(i%n)+Math.random()-0.5+gauss()*spread, v=((i/n)|0)+Math.random()-0.5+gauss()*spread;
   return [ (u-c0)*M31_MAP_SCALE, -(v-c0)*M31_MAP_SCALE ];
 }
@@ -632,18 +632,18 @@ const M32_C  = [-150, -80, 530];         // compact elliptical, ~5 kpc off the n
 const M110_C = [760, 240, -420];         // NGC 205, ~8.5 kpc the other side
 const GSS_DIR = [0.355, -0.457, -0.833]; // the Giant Southern Stream's plume
 function genAndromeda(D){                // fallback when the map has not loaded
-  N_AND = Math.round(52000*D); N_ANDN = 0; N_ANDD = 0; AND_PINK = 0; AND_GLOW = 0;
+  gfx.N_AND = Math.round(52000*D); gfx.N_ANDN = 0; gfx.N_ANDD = 0; gfx.AND_PINK = 0; gfx.AND_GLOW = 0;
   const BS = 1/Math.sqrt(D);
-  const pos=new Float32Array(N_AND*3), size=new Float32Array(N_AND), col=new Float32Array(N_AND*3);
+  const pos=new Float32Array(gfx.N_AND*3), size=new Float32Array(gfx.N_AND), col=new Float32Array(gfx.N_AND*3);
   const PITCH_A = Math.tan(14*Math.PI/180);
-  for(let i=0;i<N_AND;i++){
+  for(let i=0;i<gfx.N_AND;i++){
     let x,y,z,b,s;
-    if(i<0.155*N_AND){                            // M31's large classical bulge
+    if(i<0.155*gfx.N_AND){                            // M31's large classical bulge
       const r=Math.abs(gauss())*120, th=Math.random()*6.28318;
       x=r*Math.sin(th); z=r*Math.cos(th); y=gauss()*85;
       b=.30+Math.random()*.34; s=2.6+Math.random()*2.2;
       col[i*3]=b*1.2; col[i*3+1]=b*.92; col[i*3+2]=b*.6;
-    } else if(i<0.367*N_AND){                     // its smooth inner disk
+    } else if(i<0.367*gfx.N_AND){                     // its smooth inner disk
       const r=expR(220,R_A,340), th=Math.random()*6.28318;
       x=r*Math.sin(th); z=r*Math.cos(th); y=gauss()*13;
       b=.07+Math.random()*.09; s=1.5+Math.random()*1.4;
@@ -662,19 +662,19 @@ function genAndromeda(D){                // fallback when the map has not loaded
     pos[i*3]=x; pos[i*3+1]=y; pos[i*3+2]=z;       // flat: uGRot orients the disk
     size[i]=s*Math.pow(D,-0.12);
   }
-  return { a: pointVAO(pos, size, col), an: null, ad: null, n: [N_AND, 0, 0] };
+  return { a: pointVAO(pos, size, col), an: null, ad: null, n: [gfx.N_AND, 0, 0] };
 }
 function genAndromedaMap(D){
-  N_AND = Math.round(58000*D);
+  gfx.N_AND = Math.round(58000*D);
   const BS = 1/Math.sqrt(D), SS = Math.pow(D,-0.12);
   const NBS = Math.max(Math.pow(D,-0.7), 0.25), DS = 1/D, Dg = Math.min(D, 8);
-  const m = m31Map, pxd = m.px;
-  const pos=new Float32Array(N_AND*3), size=new Float32Array(N_AND);
-  const col=new Float32Array(N_AND*3), wav=new Float32Array(N_AND);
-  const HALO = Math.round(N_AND*0.05);     // M31's halo is bigger than ours
-  const GSS  = Math.round(N_AND*0.015);    // the Giant Southern Stream
-  const M32N = Math.round(N_AND*0.008), M110N = Math.round(N_AND*0.011);
-  for(let i=0;i<N_AND;i++){
+  const m = gfx.m31Map, pxd = m.px;
+  const pos=new Float32Array(gfx.N_AND*3), size=new Float32Array(gfx.N_AND);
+  const col=new Float32Array(gfx.N_AND*3), wav=new Float32Array(gfx.N_AND);
+  const HALO = Math.round(gfx.N_AND*0.05);     // M31's halo is bigger than ours
+  const GSS  = Math.round(gfx.N_AND*0.015);    // the Giant Southern Stream
+  const M32N = Math.round(gfx.N_AND*0.008), M110N = Math.round(gfx.N_AND*0.011);
+  for(let i=0;i<gfx.N_AND;i++){
     let X,Y,Z,cr,cg,cb,s,wv=0;
     if(i<HALO){
       const rr=160+Math.abs(gauss())*1350, th=Math.random()*6.28318, ph=Math.acos(2*Math.random()-1);
@@ -711,9 +711,9 @@ function genAndromedaMap(D){
   const av = pointVAO(pos, size, col, wav);
   // HII in Hα pink, the star-forming ring first; then the unresolved haze; then the core
   const PINK_N = Math.round(2200*D), GLOW_N = Math.round(3200*Dg), CORE_N = Math.round(800*Dg);
-  N_ANDN = PINK_N + GLOW_N + CORE_N;
-  AND_PINK = PINK_N; AND_GLOW = GLOW_N;
-  const nPos=new Float32Array(N_ANDN*3), nSize=new Float32Array(N_ANDN), nCol=new Float32Array(N_ANDN*3);
+  gfx.N_ANDN = PINK_N + GLOW_N + CORE_N;
+  gfx.AND_PINK = PINK_N; gfx.AND_GLOW = GLOW_N;
+  const nPos=new Float32Array(gfx.N_ANDN*3), nSize=new Float32Array(gfx.N_ANDN), nCol=new Float32Array(gfx.N_ANDN*3);
   for(let q=0;q<PINK_N;q++){
     const pI = mapPick(m.nebC);
     const w = mapXZ31(pI, 0.8);
@@ -734,7 +734,7 @@ function genAndromedaMap(D){
     const j=(0.7+Math.random()*0.6)*gGain*(0.4+l);
     nCol[q*3]=m.px[pI*4]/255*j*0.99; nCol[q*3+1]=m.px[pI*4+1]/255*j; nCol[q*3+2]=m.px[pI*4+2]/255*j*1.06;
   }
-  for(let q=PINK_N+GLOW_N;q<N_ANDN;q++){
+  for(let q=PINK_N+GLOW_N;q<gfx.N_ANDN;q++){
     const u=gauss()*180, v=gauss()*140;    // rounder than our barred centre
     nPos[q*3]=u; nPos[q*3+1]=gauss()*Math.max(12,46-Math.hypot(u,v)*0.14); nPos[q*3+2]=v;
     nSize[q]=40+Math.random()*95;
@@ -742,9 +742,9 @@ function genAndromedaMap(D){
     nCol[q*3]=1.00*j; nCol[q*3+1]=0.80*j; nCol[q*3+2]=0.52*j;
   }
   const anv = pointVAO(nPos, nSize, nCol);
-  N_ANDD = Math.round(3000*D);
-  const dPos=new Float32Array(N_ANDD*3), dSize=new Float32Array(N_ANDD), dStr=new Float32Array(N_ANDD*3);
-  for(let q=0;q<N_ANDD;q++){
+  gfx.N_ANDD = Math.round(3000*D);
+  const dPos=new Float32Array(gfx.N_ANDD*3), dSize=new Float32Array(gfx.N_ANDD), dStr=new Float32Array(gfx.N_ANDD*3);
+  for(let q=0;q<gfx.N_ANDD;q++){
     const pI = mapPick(m.dustC);
     const w = mapXZ31(pI, 0.5);
     dPos[q*3]=w[0]; dPos[q*3+1]=gauss()*5; dPos[q*3+2]=w[1];
@@ -753,7 +753,7 @@ function genAndromedaMap(D){
     dStr[q*3]=(0.35+4.5*dk)*DS*(0.7+Math.random()*0.6);
   }
   const adv = pointVAO(dPos, dSize, dStr);
-  return { a: av, an: anv, ad: adv, n: [N_AND, N_ANDN, N_ANDD] };
+  return { a: av, an: anv, ad: adv, n: [gfx.N_AND, gfx.N_ANDN, gfx.N_ANDD] };
 }
 // How much the arms are favoured when Andromeda is drawn from its map: the star and HII
 // density on a ridge is (1 + M31_ARM_K × ridge), the haze 60% of that, each star's light
@@ -824,9 +824,9 @@ function loadM31Map(){
       }
       const cum = a => { const c=new Float32Array(a.length); let s=0;
         for(let i=0;i<a.length;i++){ s+=a[i]; c[i]=s; } return c; };
-      m31Map = { n, px, lum, blur, ridge, starC:cum(star), hazeC:cum(haze), nebC:cum(neb), dustC:cum(dust) };
+      gfx.m31Map = { n, px, lum, blur, ridge, starC:cum(star), hazeC:cum(haze), nebC:cum(neb), dustC:cum(dust) };
       flushGxyCache();
-      setGalaxy(curD);
+      setGalaxy(gfx.curD);
     })
     .catch(()=>{});   // opened from disk: the schematic Andromeda stands in
 }
@@ -944,7 +944,7 @@ const UG = {}; for(const k of ['uProj','uView','uPos','uSz','uSunV','uAxisV','uP
 UG.uPlate = gl.getUniformLocation(pGlobe,'uPlate[0]');
 // The real map: today's land from GSHHG (tools/build_earth_map.py), R land, G plate id,
 // B continentality. Loaded like the galaxy maps; without it the globe falls back to noise.
-let earthTex = null;
+
 function loadEarthMap(){
   fetch('earth-map.webp').then(r => r.ok ? r.blob() : Promise.reject())
     .then(b => createImageBitmap(b, { premultiplyAlpha: 'none', colorSpaceConversion: 'none' }))
@@ -953,7 +953,7 @@ function loadEarthMap(){
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, bm);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-      gl.bindTexture(gl.TEXTURE_2D, null); earthTex = t;
+      gl.bindTexture(gl.TEXTURE_2D, null); gfx.earthTex = t;
     }).catch(()=>{});
 }
 loadEarthMap();
@@ -1057,7 +1057,7 @@ function pushTrail(i, ts){
 // mirrored. Colours come from each star's measured colour index, sizes from apparent
 // magnitude. This is the local sky only: Gaia sees the Galaxy from inside, and the far
 // side of the disk is hidden behind dust, so the large-scale structure stays modelled.
-let vaoGaia = null, N_GAIA = 0, gaiaOn = true;
+
 function parseStarBin(buf){
   // 'GSK2': 20-byte records with a velocity; the old 16-byte layout still parses
   const v2 = buf.byteLength >= 4 && new DataView(buf).getUint32(0) === 0x47534B32;
@@ -1090,16 +1090,16 @@ function parseStarBin(buf){
 }
 function loadGaiaStars(){
   fetch('stars-gaia.bin').then(r => r.ok ? r.arrayBuffer() : Promise.reject())
-    .then(buf => { const s = parseStarBin(buf); vaoGaia = s.vao; N_GAIA = s.n; })
+    .then(buf => { const s = parseStarBin(buf); gfx.vaoGaia = s.vao; gfx.N_GAIA = s.n; })
     .catch(()=>{});   // opened from disk, where fetch is blocked: the modelled sky stands in
 }
-let vaoGaiaDeep = null, N_GAIA_DEEP = 0, deepAsked = false;
+
 function loadGaiaDeep(){
   // the next 400,000 stars, 8 MB — fetched once, the first time a heavy quality is chosen
-  if(deepAsked) return; deepAsked = true;
+  if(gfx.deepAsked) return; gfx.deepAsked = true;
   fetch('stars-gaia-deep.bin').then(r => r.ok ? r.arrayBuffer() : Promise.reject())
-    .then(buf => { const s = parseStarBin(buf); vaoGaiaDeep = s.vao; N_GAIA_DEEP = s.n; })
-    .catch(()=>{ deepAsked = false; });
+    .then(buf => { const s = parseStarBin(buf); gfx.vaoGaiaDeep = s.vao; gfx.N_GAIA_DEEP = s.n; })
+    .catch(()=>{ gfx.deepAsked = false; });
 }
 loadGaiaStars();
 loadGalaxyMap();
@@ -1369,10 +1369,10 @@ function lifeStep(dt, dtSim){
   const sfr = sfrFactor(ageGyr());
   // Per year now, not per compressed step. These are drawn events, a sampled fraction of
   // the real rates — the true figures are in the status bar and the info panel.
-  if(evBirth) accB += dtSim*1.84e-6*curD*sfr; else accB = 0;
+  if(evBirth) accB += dtSim*1.84e-6*gfx.curD*sfr; else accB = 0;
   if(evSN){
-    accSN += dtSim*Math.max(9.2e-9*curD, 1.26e-7)*sfr;
-    accPN += dtSim*1.26e-6*curD*Math.sqrt(sfr);   // low-mass deaths ride with the deaths switch
+    accSN += dtSim*Math.max(9.2e-9*gfx.curD, 1.26e-7)*sfr;
+    accPN += dtSim*1.26e-6*gfx.curD*Math.sqrt(sfr);   // low-mass deaths ride with the deaths switch
   } else accSN = accPN = 0;
   const CAP = 40;
   for(let n=0; accB>=1 && n<CAP; n++){ accB--; if(events.length<EV_CAP){ const s=armSite();
@@ -1894,7 +1894,7 @@ $('focusGo').addEventListener('click', applyFocusView);   // re-apply the curren
   });
   if(bar.classList.contains('slid')) setSlid(true);   // restored state applies the style too
 }
-toggle($('tGaia'), on=> gaiaOn=on);
+toggle($('tGaia'), on=> gfx.gaiaOn=on);
 toggle($('tFps'), on=>{ showFps=on; $('fpsBox').style.display = on ? '' : 'none'; fitPanels(); });
 const lifeSupOn = true;   // the reading is a fixture of the Earth panel now
 function applySfxGain(){
@@ -2155,7 +2155,7 @@ const S_CHK = ['fxBirth','fxSn','fxPn','fxDrone','secSolo','closeOnGo','qrOn'];
 let qrPos = { x: 1, y: 1 }, qrHeld = false;
 function saveSettingsNow(){
   try{
-    const s = { t:{}, s:{}, c:{}, cal:$('cal').value, mult:simClock.speedMult, dens:curD, dprc:dprCap,
+    const s = { t:{}, s:{}, c:{}, cal:$('cal').value, mult:simClock.speedMult, dens:gfx.curD, dprc:dprCap,
                 units:unitMode,
                 fsel:$('focusSel').value, sec:secOpen,
                 pan:Object.fromEntries(PANELS.map(q => [q.id, { s:pState[q.id].s, o:pState[q.id].o }])),
@@ -2188,7 +2188,7 @@ function restoreSettings(register){
     if(s.dprc === 1 || s.dprc === 2){ if(s.dprc !== dprCap){ dprCap = s.dprc; resize(); } }   // the probe's pixel cap, kept
     if(s.dens){ const i = DETAIL_D.indexOf(s.dens);
       if(i >= 0){ $('detail').value = i; $('detailv').textContent = DETAIL_NAMES[i];   // the slider shows the tier even when it is the boot tier
-        if(s.dens !== curD) $('detail').dispatchEvent(new Event('input')); } }
+        if(s.dens !== gfx.curD) $('detail').dispatchEvent(new Event('input')); } }
     if(s.units === 'words' || s.units === 'sup' || s.units === 'e') setSegUnits(s.units);
     if(s.fsel === 'sun' || s.fsel === 'mw' || s.fsel === 'and') $('focusSel').value = s.fsel;
     if(s.pan) for(const q of PANELS){
@@ -2465,11 +2465,11 @@ const DETAIL_D = [1,5,20,40,80,160];
 const DETAIL_NAMES = ['lowest','low','medium','high','max','ultra'];
 $('detail').addEventListener('input', e=>{
   const i = Math.max(0, Math.min(5, Math.round(+e.target.value)));
-  const prev = curD;
+  const prev = gfx.curD;
   try{ setGalaxy(DETAIL_D[i]); }
   catch(err){ try{ setGalaxy(prev); }catch(e2){}
-    const j = DETAIL_D.indexOf(curD); if(j>=0) e.target.value = j; }
-  $('detailv').textContent = DETAIL_NAMES[DETAIL_D.indexOf(curD)] || DETAIL_NAMES[0];
+    const j = DETAIL_D.indexOf(gfx.curD); if(j>=0) e.target.value = j; }
+  $('detailv').textContent = DETAIL_NAMES[DETAIL_D.indexOf(gfx.curD)] || DETAIL_NAMES[0];
 });
 // ---------- (i) tooltips: one floating box, shown by a tap, gone on the next ----------
 const tipEl = document.createElement('div'); tipEl.id = 'tip'; document.body.appendChild(tipEl);
@@ -3050,17 +3050,17 @@ function perfProbe(){
     if(gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) throw new Error('fbo');
     gl.viewport(0, 0, pw, ph); gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT);
     gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE);
-    gl.useProgram(pPt); gl.bindVertexArray(vaoGxy);        // the uniforms as the last frame left them
-    gl.drawArrays(gl.POINTS, 0, N_GXY); sync();             // warm-up: not timed
+    gl.useProgram(pPt); gl.bindVertexArray(gfx.vaoGxy);        // the uniforms as the last frame left them
+    gl.drawArrays(gl.POINTS, 0, gfx.N_GXY); sync();             // warm-up: not timed
     const t0 = performance.now();
-    do{ gl.drawArrays(gl.POINTS, 0, N_GXY); passes++; sync(); }
+    do{ gl.drawArrays(gl.POINTS, 0, gfx.N_GXY); passes++; sync(); }
     while(performance.now() - t0 < 30 && passes < 40);
     ms = (performance.now() - t0)/passes;
   }catch(e){ ms = -1; }
   gl.bindVertexArray(null); gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gl.deleteFramebuffer(fb); gl.deleteTexture(tex);
   gl.viewport(0, 0, canvas.width, canvas.height);
-  return { ms, passes, points: N_GXY, px: pw + '×' + ph };
+  return { ms, passes, points: gfx.N_GXY, px: pw + '×' + ph };
 }
 // one pass at density D costs about ms·D/2 (denser tiers draw smaller points); with the
 // rest of the frame the budget is eleven milliseconds, which keeps sixty frames a second
@@ -3294,15 +3294,15 @@ function frame(now){
       else { if(pink) gl.drawArrays(gl.POINTS, 0, pink);
              if(n - pink - glow > 0) gl.drawArrays(gl.POINTS, pink + glow, n - pink - glow); }
     };
-    if(which !== 'and'){ gl.bindVertexArray(vaoNeb); seg(NEB_PINK, NEB_GLOW, NEB_N); }
-    if(vaoAndNeb && which !== 'mw'){
+    if(which !== 'and'){ gl.bindVertexArray(gfx.vaoNeb); seg(gfx.NEB_PINK, gfx.NEB_GLOW, gfx.NEB_N); }
+    if(gfx.vaoAndNeb && which !== 'mw'){
     gl.uniformMatrix3fv(UN.grot, false, M31_ROT);
     gl.uniform3f(UN.goff, andPos[0], andPos[1], andPos[2]);
     gl.uniform1f(UN.spin, spinM31);
     gl.uniform1f(UN.warpAmp, 0.35);
     gl.uniform3f(UN.and, 0, 0, 0);
     gl.uniform3f(UN.sun, sunX, sunY+1e8, sunZ);
-      gl.bindVertexArray(vaoAndNeb); seg(AND_PINK, AND_GLOW, N_ANDN);
+      gl.bindVertexArray(gfx.vaoAndNeb); seg(gfx.AND_PINK, gfx.AND_GLOW, gfx.N_ANDN);
     gl.uniformMatrix3fv(UN.grot, false, MAT3_ID);
     gl.uniform3f(UN.goff, 0, 0, 0);
     gl.uniform1f(UN.spin, spinMW);
@@ -3327,7 +3327,7 @@ function frame(now){
     // on a 400 px phone at the desktop's 40. Scaled by canvas width, 900 being the width
     // it was judged at. Between the dive and the wider views the eye is still in the
     // disk with the backdrop beneath the dust, so the ceiling stays moderate there too.
-    gl.uniform1f(UD.cap, deep ? DUST_DEEP_CAP * Math.min(1.5, Math.max(0.45, canvas.width/900))
+    gl.uniform1f(UD.cap, deep ? gfx.DUST_DEEP_CAP * Math.min(1.5, Math.max(0.45, canvas.width/900))
                         : insideDisk ? 200.0 : 560.0);
     gl.uniform1f(UD.minSz, 1.3);
     gl.uniform3f(UD.and, andPos[0], andPos[1], andPos[2]); gl.uniform1f(UD.tide, and.tide);
@@ -3338,15 +3338,15 @@ function frame(now){
     gl.uniform3f(UD.sun, sunX, bubY, sunZ);
     gl.uniform1f(UD.gal, 1.0);
     gl.uniform1f(UD.merge, and.merge);
-    if(which !== 'and'){ gl.bindVertexArray(vaoDust); gl.drawArrays(gl.POINTS,0,DUST_N); }
-    if(vaoAndDust && which !== 'mw'){
+    if(which !== 'and'){ gl.bindVertexArray(gfx.vaoDust); gl.drawArrays(gl.POINTS,0,gfx.DUST_N); }
+    if(gfx.vaoAndDust && which !== 'mw'){
       gl.uniformMatrix3fv(UD.grot, false, M31_ROT);
       gl.uniform3f(UD.goff, andPos[0], andPos[1], andPos[2]);
       gl.uniform1f(UD.spin, spinM31);
       gl.uniform1f(UD.warpAmp, 0.35);
       gl.uniform3f(UD.and, 0, 0, 0);
       gl.uniform3f(UD.sun, sunX, sunY+1e8, sunZ);
-      gl.bindVertexArray(vaoAndDust); gl.drawArrays(gl.POINTS,0,N_ANDD);
+      gl.bindVertexArray(gfx.vaoAndDust); gl.drawArrays(gl.POINTS,0,gfx.N_ANDD);
       gl.uniformMatrix3fv(UD.grot, false, MAT3_ID);
       gl.uniform3f(UD.goff, 0, 0, 0);
       gl.uniform1f(UD.spin, spinMW);
@@ -3376,7 +3376,7 @@ function frame(now){
   // return once it is small enough for the proportion to read. Real scale keeps them
   // throughout, where nothing is magnified and they are simply correct.
   const gaiaFade = REAL_MODE ? 0 : 1 - Math.min(1, Math.max(0, (cam.dist - 210)/280));
-  if(gaiaOn && vaoGaia && gaiaFade < 0.999){
+  if(gfx.gaiaOn && gfx.vaoGaia && gaiaFade < 0.999){
     gl.uniform1f(U.ptFade, gaiaFade);
     gl.uniform3f(U.ptOrg, 0,0,0);
     // Real Gaia DR3 space velocities: each star drifts along its measured track. A
@@ -3389,8 +3389,8 @@ function frame(now){
     // (over 20 Myr the Sun turns through 32 degrees, which is anything but negligible).
     gl.uniform1f(U.ptWA, 1.0);
     gl.uniform1f(U.ptSpin, (simClock.simT*V_GAL/900) * 640);
-    gl.bindVertexArray(vaoGaia); gl.drawArrays(gl.POINTS,0,N_GAIA);
-    if(vaoGaiaDeep && curD >= 5){ gl.bindVertexArray(vaoGaiaDeep); gl.drawArrays(gl.POINTS,0,N_GAIA_DEEP); }
+    gl.bindVertexArray(gfx.vaoGaia); gl.drawArrays(gl.POINTS,0,gfx.N_GAIA);
+    if(gfx.vaoGaiaDeep && gfx.curD >= 5){ gl.bindVertexArray(gfx.vaoGaiaDeep); gl.drawArrays(gl.POINTS,0,gfx.N_GAIA_DEEP); }
     gl.uniform1f(U.velT, 0.0);
     gl.uniform1f(U.ptWA, 0.0);
     gl.uniform1f(U.ptSpin, 0.0);
@@ -3402,17 +3402,17 @@ function frame(now){
   gl.uniform3f(U.ptSun, sunX, bubY, sunZ);
   gl.uniform1f(U.ptGal, 1.0);
   gl.uniform1f(U.ptMerge, and.merge);
-  gl.bindVertexArray(vaoGxy);
-  if(insideDisk && hideNucleus && NUC1 > NUC0){   // the centre's own stars stay behind the dust
-    if(NUC0 > 0) gl.drawArrays(gl.POINTS, 0, NUC0);
-    if(N_GXY > NUC1) gl.drawArrays(gl.POINTS, NUC1, N_GXY - NUC1);
-  } else gl.drawArrays(gl.POINTS,0,N_GXY);
+  gl.bindVertexArray(gfx.vaoGxy);
+  if(insideDisk && gfx.hideNucleus && gfx.NUC1 > gfx.NUC0){   // the centre's own stars stay behind the dust
+    if(gfx.NUC0 > 0) gl.drawArrays(gl.POINTS, 0, gfx.NUC0);
+    if(gfx.N_GXY > gfx.NUC1) gl.drawArrays(gl.POINTS, gfx.NUC1, gfx.N_GXY - gfx.NUC1);
+  } else gl.drawArrays(gl.POINTS,0,gfx.N_GXY);
 
   // Andromeda: generated flat in its own disk frame; uGRot turns it to its measured
   // orientation — the two disks stand 120° apart, nowhere near parallel — and uGOff
   // carries it along its orbit. It spins its real way, ~7% faster than we do, and its
   // tide pulls toward the Milky Way: the bridge is mutual, both disks reaching.
-  if(vaoAnd){
+  if(gfx.vaoAnd){
     gl.uniformMatrix3fv(U.ptGRot, false, M31_ROT);
     gl.uniform3f(U.ptGOff, andPos[0], andPos[1], andPos[2]);
     gl.uniform1f(U.ptSpin, spinM31);
@@ -3420,7 +3420,7 @@ function frame(now){
     gl.uniform3f(U.ptSun, sunX, sunY+1e8, sunZ);   // no clearance bubble in its frame
     gl.uniform3f(U.ptAnd, 0, 0, 0);
     gl.uniform1f(U.ptVM, 0.0);
-    gl.bindVertexArray(vaoAnd); gl.drawArrays(gl.POINTS,0,N_AND);
+    gl.bindVertexArray(gfx.vaoAnd); gl.drawArrays(gl.POINTS,0,gfx.N_AND);
     gl.uniformMatrix3fv(U.ptGRot, false, MAT3_ID);
     gl.uniform3f(U.ptGOff, 0, 0, 0);
     gl.uniform3f(U.ptSun, sunX, bubY, sunZ);
@@ -3647,8 +3647,8 @@ function frame(now){
     gl.uniform1f(UG.uMolten, era.molten); gl.uniform1f(UG.uOcean, era.ocean); gl.uniform1f(UG.uSea, era.sea); gl.uniform1f(UG.uHaze, era.haze);
     gl.uniform1f(UG.uVeg, era.veg); gl.uniform1f(UG.uIceLat, era.iceLat); gl.uniform1f(UG.uCloud, era.cloud); gl.uniform1f(UG.uLights, era.lights); gl.uniform1f(UG.uDrift, era.drift);
     gl.uniform1f(UG.uDry, era.dry); gl.uniform1f(UG.uSeaLevel, era.seaLevel);
-    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, earthTex); gl.uniform1i(UG.uMap, 0);
-    gl.uniform1f(UG.uHasMap, earthTex ? 1.0 : 0.0);
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, gfx.earthTex); gl.uniform1i(UG.uMap, 0);
+    gl.uniform1f(UG.uHasMap, gfx.earthTex ? 1.0 : 0.0);
     fillPlateMats((a - AGE0)*1000); gl.uniformMatrix3fv(UG.uPlate, false, plateMats);
     const disc = 1/1.09, sz = Math.min(2400, globePx/disc);
     gl.uniform1f(UG.uMoon, 0.0); gl.uniform1f(UG.uDisc, disc); gl.uniform1f(UG.uSz, sz);
@@ -3829,7 +3829,7 @@ function frame(now){
     if(galaxyNames && and.merge < 0.35){
       for(let a=0;a<M31_LBLS.length;a++){
         // the satellites and the stream exist only in the map-built Andromeda
-        if(a > 0 && !m31Map){ placeLabel(m31Els[a], 0, 0, false); continue; }
+        if(a > 0 && !gfx.m31Map){ placeLabel(m31Els[a], 0, 0, false); continue; }
         const L = M31_LBLS[a];
         const wx = M31_ROT[0]*L[1]+M31_ROT[3]*L[2]+M31_ROT[6]*L[3]+andPos[0];
         const wy = M31_ROT[1]*L[1]+M31_ROT[4]*L[2]+M31_ROT[7]*L[3]+andPos[1];
@@ -4276,7 +4276,7 @@ $('dbgPaste').addEventListener('click', ()=>{
 Object.defineProperty(globalThis, '__gt', { value: {
   get shimT(){ return simClock.shimT; },
   get simT(){ return simClock.simT; },
-  get curD(){ return curD; },
+  get curD(){ return gfx.curD; },
   get earthDbg(){ return earthDbg; },
   get probeInfo(){ return probeInfo; },
   get galaxyKeys(){ return Object.keys(gxyCache); },
