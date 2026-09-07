@@ -16,7 +16,12 @@ import type { Vec3 } from '../core/mat4'
 export const R_GAL = 900;            // scene units: Sun's distance from galactic core
 export const V_GAL = 2*Math.PI*900/225e6;  // scene units per Earth year: one lap in 225 Myr, exactly
 export const GAL_PERIOD = 2*Math.PI*R_GAL/V_GAL; // sim "galactic year" in Earth-years (display only)
-export const YR_PER_SIM = (225/GAL_PERIOD)*1e6;  // real years in one simulated year (~1.19e6)
+// Real years in one simulated year. The arithmetic cancels to exactly 1: GAL_PERIOD is
+// 2*pi*R_GAL/V_GAL and V_GAL is 2*pi*900/225e6, so with R_GAL = 900 this is 225e6/225e6.
+// The comment here used to claim ~1.19e6, left over from a design that did compress time.
+// One simulated year IS one Earth year, which is what AGENTS.md's "one clock" rule requires,
+// and tests/unit/earth.test.ts pins it.
+export const YR_PER_SIM = (225/GAL_PERIOD)*1e6;
 export const AGE0 = 4.568;                       // Gyr: age of the solar system at simT = 0
 export const AND_AGE = 9.07;                     // Gyr: Andromeda's first passage, ~4.5 Gyr from now
 // The merger scatters the Sun outward. N-body work on this encounter (Cox & Loeb 2008)

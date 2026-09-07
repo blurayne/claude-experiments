@@ -34,8 +34,13 @@ before the work starts. An item is ticked when it ships, with the version that c
         the "oceans boil away" scenario, whose retreating seas come from `earthEra`'s
         `uSeaLevel`/`uDry` instead. Two separate accounts of deep time, which the info panel
         already discloses — but worth deciding about while the Sun's end is being reworked.
-      Each is pinned by a test in `tests/unit/environment.test.ts`, so changing one is a
-      deliberate act with a number attached rather than a silent drift.
+      - `earthPrime` calibrates its spin phase once, lazily, on the first call, and reads
+        the rendering origin to do it — so which way the planet faces depends on *when* the
+        globe pass first ran, not only on the clock. A scenario that jumps the clock before
+        the globe is ever drawn calibrates against a Sun in the wrong place. The origin is
+        an explicit argument now, so the dependency is visible, but the laziness is intact.
+      Each is pinned by a test in `tests/unit/environment.test.ts` or `earth.test.ts`, so
+      changing one is a deliberate act with a number attached rather than a silent drift.
 
 ## 2026-09-01
 

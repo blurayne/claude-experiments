@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build && node scripts/check-build.mjs",
-    "check": "tsc --noEmit",
+    "check": "tsc --noEmit && node scripts/check-names.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "e2e": "playwright test --project=boot --project=parity",

@@ -19,14 +19,19 @@ export const FROZEN_NOW = Date.UTC(2026, 5, 15, 12, 0, 0)
 export const STEP_MS = 50
 
 /**
- * Frames run after the state is set. Three seconds of virtual time, which clears every
- * wall-time easing in the piece by a wide margin — avgLight converges in about a second, the
- * hazard colour ramp likewise, and holdBarWidth releases after exactly one. It was six
- * seconds until the dive states, which are the heaviest fragment load here, spent more than
- * three minutes on them under a software rasteriser. Frames are not free; buy only what the
- * easings actually need.
+ * Frames run after the state is set — two seconds of virtual time.
+ *
+ * Every wall-time easing in the piece is comfortably inside that: avgLight moves 0.2 of the
+ * remaining distance per frame and is 99% converged in twenty-three, the hazard colour ramp
+ * behaves the same way, and holdBarWidth releases after exactly one second. Frames are not
+ * free, so buy what the easings need and no more: this was six seconds, then three, and the
+ * globe states — the heaviest fragment load here, about a frame a second under a software
+ * rasteriser, and now photographed twice per test — were still timing out at three.
+ *
+ * Changing this number is cheap precisely because there are no stored baselines. Both shots
+ * move together, so a harness parameter cannot silently invalidate a reference.
  */
-export const SETTLE_FRAMES = 60
+export const SETTLE_FRAMES = 40
 
 /** Frames after the `after` clicks — enough to lay out and draw, not enough to time anything out. */
 export const POST_ACTION_FRAMES = 3
