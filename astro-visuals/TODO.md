@@ -21,7 +21,21 @@ before the work starts. An item is ticked when it ships, with the version that c
       median track.
 - [ ] Then: what becomes of the Earth and the Sun once the Sun has expanded. Check the
       planetary nebula against the science; if it is right, leave it alone or make it
-      prettier.
+      prettier. Three things found while extracting `astro/sun` and writing its tests,
+      all pre-existing and all deliberately left alone by the refactor:
+      - `sunState` steps at the end of the main sequence (10.9 Gyr): luminosity 2.2424 →
+        2.2000, and radius 1.7801 → 1.6000. The radius one is a tenth of the drawn disc,
+        disappearing in an instant, at the age the scenario list calls "leaving the main
+        sequence".
+      - It steps again where the white dwarf begins (12.44 Gyr): luminosity 0.5 → 0.1, a
+        five-fold dimming in one frame. The planetary-nebula branch ends at 0.5 and the
+        white-dwarf branch starts from "a tenth of today's Sun" without meeting it.
+      - `environment()` does not reach 100 °C until ~10.95 Gyr, about five gigayears after
+        the "oceans boil away" scenario, whose retreating seas come from `earthEra`'s
+        `uSeaLevel`/`uDry` instead. Two separate accounts of deep time, which the info panel
+        already discloses — but worth deciding about while the Sun's end is being reworked.
+      Each is pinned by a test in `tests/unit/environment.test.ts`, so changing one is a
+      deliberate act with a number attached rather than a silent drift.
 
 ## 2026-09-01
 
