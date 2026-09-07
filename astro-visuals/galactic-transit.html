@@ -779,6 +779,49 @@ function earthEra(a        , meanC        )           {
 }
 
 /**
+ * The state the renderer and the interface share.
+ *
+ * In one long script every one of these was a top-level `let` that anything could assign. An
+ * imported binding cannot be assigned, so they gather into singleton objects instead — the
+ * same mutability, but with one owner per field and a name that says where it lives.
+ *
+ * Plain data only. Nothing here touches gl, the DOM or Math.random, so it can be imported
+ * from anywhere without dragging a context along.
+ */
+
+/**
+ * The clock, and everything that moves with it.
+ *
+ * `simT` is the elapsed Earth years the whole piece counts — one simulated year is one Earth
+ * year, and every readout is derived from this one number. `shimT` is the other clock: wall
+ * time, which keeps the variable stars twinkling even while the simulation is paused, and
+ * which is why the parity harness has to stop both.
+ */
+const simClock = {
+  /** Elapsed Earth years. Every readout in the piece counts this. */
+  simT: 0,
+  /** Wall-clock seconds, for the variability phase. Runs even while paused. */
+  shimT: 0,
+  /** Years per second at the slider's rung; multiplied by speedMult for the effective rate. */
+  speed: 1.5,
+  speedMult: 1,
+  /** −100..100. Zero means "not engaged", so play/pause keeps the clock; off zero it outranks pause. */
+  shuttle: 0,
+  shuttleLastSign: 0,
+  paused: false,
+  /** Trail sampling: the next simT to sample at, and the spacing the length slider sets. */
+  nextSample: 0.01,
+  dtSample: 0.01,
+  /** Wall-clock guards for the trail rebuild and the anchor rebase. */
+  trailRefillAt: 0,
+  lastAnchor: 0,
+  /** The previous frame's rAF timestamp, for dt. */
+  last: 0,
+  /** Tells the clock running across an engulfment from a jump straight past it. */
+  lastAgeSeen: AGE0,
+};
+
+/**
  * The one WebGL2 context, and the one place that gives up if there is not one.
  *
  * Asking for a second context on the same canvas does NOT create one — the browser returns
@@ -940,8 +983,8 @@ const earthPrime = (t        , out              ) => earthPrime$1(t, out, org);
 
 // Thin wrappers over the pure functions, so the twenty-odd call sites below read as they
 // always did. The clock lives here; the model does not.
-const ageGyr = () => ageAt(simT);
-const environment = () => environment$1(simT);
+const ageGyr = () => ageAt(simClock.simT);
+const environment = () => environment$1(simClock.simT);
 const lifeState = () => lifeState$1(ageGyr(), environment());
 
 installErrorCollector();
@@ -1834,12 +1877,12 @@ gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2,3,gl.FLOAT,false,0,0);
 gl.bindVertexArray(null);
 
 // ---------- trails ----------
-const TRAIL_N = 2400; let DT_SAMPLE = 0.01;  // sliding window: TRAIL_N samples, spacing set by the length slider
+const TRAIL_N = 2400;  // sliding window: TRAIL_N samples, spacing set by the length slider
 const trails = [], trailBufs = [], trailVaos = [];
 for(let i=0;i<NB;i++){
   const a = new Float32Array(TRAIL_N*3);
   for(let k=0;k<TRAIL_N;k++){
-    bodyPos(i, (k-(TRAIL_N-1))*DT_SAMPLE, tmp);
+    bodyPos(i, (k-(TRAIL_N-1))*simClock.dtSample, tmp);
     a[k*3]=tmp[0]; a[k*3+1]=tmp[1]; a[k*3+2]=tmp[2];
   }
   trails.push(a);
@@ -1968,7 +2011,7 @@ const G710_OFF  = (()=>{                // perihelion offset, perpendicular to t
   return v.map(c=>c/n);
 })();
 function g710(){                        // position relative to the Sun, in light years
-  const s = (simT - G710_AT)*G710_V;
+  const s = (simClock.simT - G710_AT)*G710_V;
   const x = G710_OFF[0]*G710_PERI + G710_DIR[0]*s;
   const y = G710_OFF[1]*G710_PERI + G710_DIR[1]*s;
   const z = G710_OFF[2]*G710_PERI + G710_DIR[2]*s;
@@ -1989,7 +2032,7 @@ const wasEaten = [false,false,false,false], eatFlash = [-1,-1,-1,-1];   // -1: n
 // galactic clock (1 sim-yr ~ 1.19 Myr) births are drawn at the real rate scaled to the
 // point sampling (~2.2 per sim-yr per density unit); featured supernovae are a sampled
 // fraction of the true ~24,000 per sim-yr, which would be a continuous glitter.
-let varOn = true; let shimT = 0; // variability clock (wall time, runs even when paused)
+let varOn = true; // variability clock (wall time, runs even when paused)
 
 // ---------- sound: everything synthesized live via Web Audio — no samples, still one file ----------
 let soundOn = false, sfxVol = 0, audio = null;   // silence is the off position
@@ -2268,7 +2311,7 @@ function fillEvents(){
       s=(0.6+2.8*u)*f;
       cr=(0.55+0.07*u)*f; cg=(0.16+0.56*u)*f; cb=(0.10+0.95*u)*f;
       if(e.st < 0.25e6){ // the pling: a brief white twinkle, the opposite of a blast
-        const w = (1 - e.st/0.25e6)*(0.55+0.45*Math.sin(shimT*9.0 + e.x*3.1));
+        const w = (1 - e.st/0.25e6)*(0.55+0.45*Math.sin(simClock.shimT*9.0 + e.x*3.1));
         s += 3.2*w; cr += 1.05*w; cg += 1.05*w; cb += 1.15*w;
       }
     } else if(e.k===2){ // red supergiant: swelling, reddening
@@ -2454,9 +2497,9 @@ async function doRefresh(){
     tapTimer = setTimeout(act, 450);   // the run of taps ends when the tapping stops
   });
 }
-let paused=false, showLabels=true, showStats=true;
+let showLabels=true, showStats=true;
 let showDwarfs=true, showBelt=true, showKuiper=true, showOort=true;
-let speed = 1.5; // years per second
+ // years per second
 const WEEK_YR = 7/365.2425;                          // one week, in years
 // The ladder the slider climbs, in years per second: hours, weeks, months, then whole
 // years 1…10; the ×10^k slider on top carries each rung through the decades, so
@@ -2473,10 +2516,10 @@ const speedFromSlider = v => SPEED_RUNGS[Math.max(0, Math.min(SPEED_RUNGS.length
 // the rung nearest a rate, in log space — for settings saved by the old continuous slider
 function speedRungOf(yrs){ let b=0, e=1e9; SPEED_RUNGS.forEach((r,i)=>{ const d=Math.abs(Math.log(r/yrs)); if(d<e){ e=d; b=i; } }); return b; }
 function supStr(e){ return String(e).split('').map(d=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[+d]).join(''); }
-let speedMult = 1;
+
 // the rate in the unit it is easiest to read: hours, weeks and months below a year
 function speedLabel(){
-  const eff = speed*speedMult, n = x => (Math.abs(x-Math.round(x)) < 0.05 ? Math.round(x) : +x.toFixed(1));
+  const eff = simClock.speed*simClock.speedMult, n = x => (Math.abs(x-Math.round(x)) < 0.05 ? Math.round(x) : +x.toFixed(1));
   if(eff < WEEK_YR*0.999) return n(eff/HOUR_YR)+' h/s';
   if(eff < 0.999/12)      return n(eff/WEEK_YR)+' wk/s';
   if(eff < 0.999)         return n(eff*12)+' mo/s';
@@ -2488,7 +2531,7 @@ function fmtSpeed(){ $('speedv').textContent = speedLabel(); }
 // Whole decades on top of the slider, for crossing deep time without waiting on it.
 function setMultExp(x){
   x = Math.max(0, Math.min(10, Math.round(x)));
-  speedMult = Math.pow(10, x);
+  simClock.speedMult = Math.pow(10, x);
   $('multExp').value = x;
   $('multExpv').textContent = x === 0 ? '×1' : '×1e' + x;
   fmtSpeed(); applyTrailWindow();
@@ -2498,15 +2541,15 @@ $('multExp').addEventListener('input', e => setMultExp(+e.target.value));
 // and the clock belongs to play/pause as before; off 0 it takes the clock over — forward
 // or backward, paused or not — and the reset hands it back. Deliberately not persisted:
 // a shuttle rests at 0 when you pick the piece up.
-let shuttle = 0, shuttleLastSign = 0, trailRefillAt = 0;
+
 function setShuttle(v){
-  const before = Math.sign(shuttle);
-  shuttle = Math.max(-100, Math.min(100, Math.round(v)));
+  const before = Math.sign(simClock.shuttle);
+  simClock.shuttle = Math.max(-100, Math.min(100, Math.round(v)));
   // a change of the shuttle's own sign re-sweeps the trails at once — the clock's drive
   // sign does that too, but not while paused, and a paused reverse left them leading
-  if(Math.sign(shuttle) !== before){ refillTrails(); nextSample = simT + DT_SAMPLE; }
-  $('shuttle').value = shuttle;
-  $('shuttlev').textContent = shuttle === 0 ? 'off' : shuttle > 0 ? '+'+shuttle+'%' : shuttle+'%';
+  if(Math.sign(simClock.shuttle) !== before){ refillTrails(); simClock.nextSample = simClock.simT + simClock.dtSample; }
+  $('shuttle').value = simClock.shuttle;
+  $('shuttlev').textContent = simClock.shuttle === 0 ? 'off' : simClock.shuttle > 0 ? '+'+simClock.shuttle+'%' : simClock.shuttle+'%';
 }
 $('shuttle').addEventListener('input', e => setShuttle(+e.target.value));
 $('shuttleReset').addEventListener('click', ()=> setShuttle(0));
@@ -2517,8 +2560,8 @@ document.querySelectorAll('.stepb').forEach(b => b.addEventListener('click', ()=
   el.value = Math.max(+el.min, Math.min(+el.max, +el.value + +d));
   el.dispatchEvent(new Event('input'));
 }));
-$('speed').addEventListener('input', e=>{ speed = speedFromSlider(+e.target.value); fmtSpeed(); applyTrailWindow(); });
-speed = speedFromSlider(SPEED_YEAR); fmtSpeed();   // one Earth year per second
+$('speed').addEventListener('input', e=>{ simClock.speed = speedFromSlider(+e.target.value); fmtSpeed(); applyTrailWindow(); });
+simClock.speed = speedFromSlider(SPEED_YEAR); fmtSpeed();   // one Earth year per second
 // One slider, two effects, because they are the same intent: make the faint stars
 // carry. It lifts a floor under their colour and widens the smallest sprites, which is
 // where most of the lost light actually goes.
@@ -2552,8 +2595,8 @@ $('orbitA').addEventListener('input', e=>{
   $('orbitAv').textContent = psO ? Math.round(orbitAlpha*100)+'%' : 'off'; });
 let trailPct = 300, trailRefill = 0;
 function applyTrailWindow(){
-  const w = (trailPct/100) * speed * speedMult;      // years covered by the whole trail
-  DT_SAMPLE = Math.max(1e-9, w/TRAIL_N);
+  const w = (trailPct/100) * simClock.speed * simClock.speedMult;      // years covered by the whole trail
+  simClock.dtSample = Math.max(1e-9, w/TRAIL_N);
   const span = w < 1e3 ? (w<10 ? w.toFixed(w<1?2:1) : String(Math.round(w)))+' yr'
              : w < 1e6 ? (w/1e3).toFixed(w<1e4?1:0)+' kyr'
              : w < 1e9 ? (w/1e6).toFixed(w<1e7?1:0)+' Myr'
@@ -2561,9 +2604,9 @@ function applyTrailWindow(){
   $('trailLv').textContent = trailPct + '% · ' + span;
   // rebuilding is 34,000 samples, so coalesce the bursts a slider drag produces
   clearTimeout(trailRefill);
-  trailRefill = setTimeout(()=>{ refillTrails(); nextSample = simT + DT_SAMPLE; }, 90);
+  trailRefill = setTimeout(()=>{ refillTrails(); simClock.nextSample = simClock.simT + simClock.dtSample; }, 90);
 }
-let lastAnchor = 0;
+
 $('trailL').addEventListener('input', e=>{ trailPct = +e.target.value; applyTrailWindow(); });
 
 // A switch, however it is drawn: lit buttons carry their state in a class, checkboxes
@@ -2576,7 +2619,7 @@ function toggle(btn, fn){
 const ICO_PAUSE = '<svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><rect x="1.4" y="1" width="2.7" height="8"/><rect x="5.9" y="1" width="2.7" height="8"/></svg>';
 const ICO_PLAY  = '<svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 1 L9 5 L2 9 Z"/></svg>';
 // drawn, not typed: a glyph would be recoloured as emoji on some platforms
-toggle($('tPause'), on=>{ paused=!on;
+toggle($('tPause'), on=>{ simClock.paused=!on;
   $('tPause').innerHTML = on ? ICO_PAUSE : ICO_PLAY;
   $('tPause').setAttribute('aria-label', on ? 'pause' : 'play'); });
 toggle($('tLabels'), on=>{ showLabels=on; if(!on) labelEls.forEach(l=>l.style.display='none'); });
@@ -2626,7 +2669,7 @@ toggle($('tZoomBtns'), on=>{ syncZoomBtns(on); layoutPanels(); fitPanels(); });
 // in view however fast the clock runs — the plates drift under a still camera. Switching
 // it re-expresses the current line of sight in the other frame, so the view does not jump.
 let spinLock = false; const camDirW = [0,0,1], spinP = new Float64Array(3);
-function spinFrame(){ const A = EARTH_AXIS, P = earthPrime(simT, spinP); return [P, A, [A[1]*P[2]-A[2]*P[1], A[2]*P[0]-A[0]*P[2], A[0]*P[1]-A[1]*P[0]]]; }
+function spinFrame(){ const A = EARTH_AXIS, P = earthPrime(simClock.simT, spinP); return [P, A, [A[1]*P[2]-A[2]*P[1], A[2]*P[0]-A[0]*P[2], A[0]*P[1]-A[1]*P[0]]]; }
 toggle($('tSpinLock'), on=>{
   const d = camDirW;
   if(on){ const [P, A, Q] = spinFrame(); const dP = d[0]*P[0]+d[1]*P[1]+d[2]*P[2], dA = d[0]*A[0]+d[1]*A[1]+d[2]*A[2], dQ = d[0]*Q[0]+d[1]*Q[1]+d[2]*Q[2];
@@ -2999,7 +3042,7 @@ const S_CHK = ['fxBirth','fxSn','fxPn','fxDrone','secSolo','closeOnGo','qrOn'];
 let qrPos = { x: 1, y: 1 }, qrHeld = false;
 function saveSettingsNow(){
   try{
-    const s = { t:{}, s:{}, c:{}, cal:$('cal').value, mult:speedMult, dens:curD, dprc:dprCap,
+    const s = { t:{}, s:{}, c:{}, cal:$('cal').value, mult:simClock.speedMult, dens:curD, dprc:dprCap,
                 units:unitMode,
                 fsel:$('focusSel').value, sec:secOpen,
                 pan:Object.fromEntries(PANELS.map(q => [q.id, { s:pState[q.id].s, o:pState[q.id].o }])),
@@ -3028,7 +3071,7 @@ function restoreSettings(register){
     if(s.t) S_TOG.forEach(id=>{ const v=s.t[id];
       if(v != null && isOn($(id)) !== v) $(id).click(); });   // a checkbox click fires change
     if(s.cal && s.cal !== $('cal').value){ $('cal').value = s.cal; $('cal').dispatchEvent(new Event('change')); }
-    if(s.mult > 0 && s.mult !== speedMult) setMultExp(Math.log10(s.mult));
+    if(s.mult > 0 && s.mult !== simClock.speedMult) setMultExp(Math.log10(s.mult));
     if(s.dprc === 1 || s.dprc === 2){ if(s.dprc !== dprCap){ dprCap = s.dprc; resize(); } }   // the probe's pixel cap, kept
     if(s.dens){ const i = DETAIL_D.indexOf(s.dens);
       if(i >= 0){ $('detail').value = i; $('detailv').textContent = DETAIL_NAMES[i];   // the slider shows the tier even when it is the boot tier
@@ -3113,13 +3156,13 @@ function jumpToEpoch(){
     cam.distGoal = 1.449e-5;                   // ~31 AU across
     cam.yaw = 0.7014; cam.pitch = 0.2757;      // the exported angle chosen by hand
     // the clock reads the real date and time: simT counts Earth's orbits from 2026.0
-    simT = (Date.now() - Date.UTC(2026, 0, 1)) / (365.2425*86400e3);
-    nextSample = simT + DT_SAMPLE; refillTrails();
+    simClock.simT = (Date.now() - Date.UTC(2026, 0, 1)) / (365.2425*86400e3);
+    simClock.nextSample = simClock.simT + simClock.dtSample; refillTrails();
     // never unpause someone who asked for reduced motion
-    if(paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
+    if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
     return;
   }
-  simT = (a - AGE0)*1e9/YR_PER_SIM;
+  simClock.simT = (a - AGE0)*1e9/YR_PER_SIM;
   if(sel.value === '11.3586'){
     // Lands where the Sun has swollen to ten times its size and runs to the moment its
     // surface passes Earth's orbit: 768 Myr of red giant, played out in about 35
@@ -3131,7 +3174,7 @@ function jumpToEpoch(){
     cam.dist = cam.distGoal = 1.14e-6;
     cam.yaw = 0.6; cam.pitch = 0.34;
     reseedFollow = true; panF[0]=panF[1]=0;
-    if(paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
+    if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
   }
   if(sel.value === '12.35'){
     // Lands 20 Myr short of the shell: at ten million years a second it is cast in seven
@@ -3143,7 +3186,7 @@ function jumpToEpoch(){
     cam.dist = cam.distGoal = 0.1;
     cam.yaw = 0.9; cam.pitch = 0.28;
     reseedFollow = true; panF[0]=panF[1]=0;
-    if(paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
+    if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
   }
   if(sel.value === '8.36149'){
     // Lands 0.7 Gyr short of the first passage — ~95,000 parsecs, drawn to scale, so
@@ -3157,7 +3200,7 @@ function jumpToEpoch(){
     cam.dist = cam.distGoal = 15500;
     cam.yaw = 5.9257; cam.pitch = 0.5771;
     reseedFollow = true; panF[0]=panF[1]=0;
-    if(paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
+    if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
   }
   if(sel.value === '11.25'){
     // The main event: the second passage at ~30 kpc, the third at ~13, and the slide
@@ -3169,7 +3212,7 @@ function jumpToEpoch(){
     cam.dist = cam.distGoal = 9200;
     cam.yaw = 5.6; cam.pitch = 0.62;
     reseedFollow = true; panF[0]=panF[1]=0;
-    if(paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
+    if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
   }
   if(sel.value === '4.5692567'){
     // stage the pass: the camera frames the Oort cloud with the star already in view.
@@ -3196,9 +3239,9 @@ function jumpToEpoch(){
       if(!$('tSpinLock').checked){ $('tSpinLock').checked = true; $('tSpinLock').dispatchEvent(new Event('change')); }
       cam.yaw = aim[0]; cam.pitch = aim[1];
     }
-    if(paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
+    if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
   }
-  nextSample = simT + DT_SAMPLE;
+  simClock.nextSample = simClock.simT + simClock.dtSample;
   events.length = 0; puffs.length = 0;
   accB = accSN = accPN = 0;
   refillTrails();
@@ -3244,8 +3287,8 @@ function humanYear(){
   // as the age and galactic-year stats, since that is what they are counting. The two
   // diverge by the compression factor, which is the whole subject of the piece; jump to
   // a galactic epoch and the civil year is the reading that stops meaning anything.
-  const el = simT*YR_PER_SIM;      // galactic clock: real years elapsed
-  const g = 2026 + simT;           // planetary clock: Earth orbits counted
+  const el = simClock.simT*YR_PER_SIM;      // galactic clock: real years elapsed
+  const g = 2026 + simClock.simT;           // planetary clock: Earth orbits counted
   const fmt = n => Math.floor(n).toLocaleString('en-US');
   switch(calMode){
     case 'ah':   return fmt((g-621.57)*1.03069)+' A.H.'; // lunar years run ~3% faster
@@ -3272,18 +3315,18 @@ function humanYear(){
 }
 toggle($('tView'), on=>{ followTarget='sun'; cam.follow=!on; cam.distGoal = on? 4300 : 150; reseedFollow=true; panF[0]=panF[1]=0; });
 function refillTrails(){
-  bodyPos(0, simT, tmpSun);
+  bodyPos(0, simClock.simT, tmpSun);
   trailAnchor[0]=tmpSun[0]; trailAnchor[1]=tmpSun[1]; trailAnchor[2]=tmpSun[2];
   // The trail is the path the viewer has watched being swept: sample TRAIL_N−1 is now and
   // the brightest, sample 0 the earliest seen and the dimmest. With the clock running
   // backwards "earliest seen" is the LATER sim time, so the samples run the other way —
   // otherwise the trail pointed into the sim-past, which in reverse lies ahead of the
   // body, and it led instead of trailed.
-  const dirT = shuttle < 0 ? -1 : 1;
+  const dirT = simClock.shuttle < 0 ? -1 : 1;
   for(let i=0;i<NB;i++){
     const a=trails[i];
     for(let k=0;k<TRAIL_N;k++){
-      trailPos(i, simT - dirT*((TRAIL_N-1)-k)*DT_SAMPLE, tmp);
+      trailPos(i, simClock.simT - dirT*((TRAIL_N-1)-k)*simClock.dtSample, tmp);
       a[k*3]=tmp[0]; a[k*3+1]=tmp[1]; a[k*3+2]=tmp[2];
     }
     gl.bindBuffer(gl.ARRAY_BUFFER,trailBufs[i]);
@@ -3499,13 +3542,13 @@ function showTour(){
   // on a narrow screen the panel and the hints cannot both have the corner: the panel
   // steps aside for the tour, and the tour hands it back on the way out
   if(innerWidth < 760 || innerHeight > innerWidth) setPanelOpen('env', false);
-  if(!paused){ tourHeldClock = true; $('tPause').click(); }   // nothing moves while you read
+  if(!simClock.paused){ tourHeldClock = true; $('tPause').click(); }   // nothing moves while you read
   requestAnimationFrame(()=> requestAnimationFrame(drawTourLines));
 }
 $('tourGo').addEventListener('click', ()=>{
   $('tour').style.display = 'none';
   setPanelOpen('env', true);                                 // the readings are the default view
-  if(tourHeldClock && paused) $('tPause').click();            // and starts when you do
+  if(tourHeldClock && simClock.paused) $('tPause').click();            // and starts when you do
   tourHeldClock = false;
   try{ localStorage.setItem(TOURKEY, '1'); }catch(e){}
 });
@@ -3784,14 +3827,14 @@ let hiddenState = null;
 document.addEventListener('visibilitychange', ()=>{
   if(document.hidden){
     if(hiddenState) return;             // some browsers fire it more than once
-    hiddenState = { sim: !paused, music: musicOn && !!player.src, audio: !!audio };
+    hiddenState = { sim: !simClock.paused, music: musicOn && !!player.src, audio: !!audio };
     if(hiddenState.sim) $('tPause').click();
     if(hiddenState.music) player.pause();   // harmless if the browser got there first
     if(audio && audio.ctx.state === 'running') audio.ctx.suspend().catch(()=>{});
   } else {
     const was = hiddenState; hiddenState = null;
     if(!was) return;
-    if(was.sim && paused) $('tPause').click();
+    if(was.sim && simClock.paused) $('tPause').click();
     if(was.audio && audio && audio.ctx.state === 'suspended') audio.ctx.resume().catch(()=>{});
     // play() can be refused after a long background; armUnlock retries on the next touch
     if(was.music && musicOn && player.paused) player.play().catch(()=>armUnlock());
@@ -3804,7 +3847,7 @@ gl.enable(gl.BLEND);
 gl.blendFunc(gl.ONE, gl.ONE);
 gl.clearColor(0.010,0.015,0.040,1);
 
-let simT=0, nextSample=DT_SAMPLE, last=performance.now();
+
 let showFps=false, fpsFrames=0, fpsSince=performance.now();
 let hudHz=8, lastHud=0;
 // The status bar is sized by its numbers, and they change length — "2,026 AD" one moment,
@@ -3832,7 +3875,7 @@ const smoothTarget=[0,0,0]; let firstFrame=true;
 const smoothOfs=[0,0,0]; let reseedFollow=false;
 const org=new Float64Array(3); // rendering origin: the Sun, in double precision
 const sunSizeTmp=new Float32Array(1), eatSizeTmp=new Float32Array(1);
-let lastAgeSeen = AGE0;   // to tell the clock running across an engulfment from a jump past it
+   // to tell the clock running across an engulfment from a jump past it
 let pnShown = false;      // the nebula is on screen this frame: the label follows it
 // Once the Sun's true disc spans more than a few pixels, the point sprite hands over to
 // a procedural star: limb-darkened granulation that churns, prominence arcs that rise
@@ -3920,38 +3963,38 @@ function runFirstLaunchProbe(){
 }
 
 function frame(now){
-  const dt = Math.min(0.05,(now-last)/1000); last=now;
-  shimT += dt; // variables keep twinkling even while the simulation is paused
-  const drive = shuttle !== 0 ? shuttle/100 : (paused ? 0 : 1);   // the shuttle outranks pause
+  const dt = Math.min(0.05,(now-simClock.last)/1000); simClock.last=now;
+  simClock.shimT += dt; // variables keep twinkling even while the simulation is paused
+  const drive = simClock.shuttle !== 0 ? simClock.shuttle/100 : (simClock.paused ? 0 : 1);   // the shuttle outranks pause
   const sign = Math.sign(drive);
-  if(sign !== shuttleLastSign){           // a change of direction: the swept path is recomputed
-    shuttleLastSign = sign;               // for this moment, not extended from a stale end
-    if(sign !== 0){ refillTrails(); nextSample = simT + DT_SAMPLE; }
+  if(sign !== simClock.shuttleLastSign){           // a change of direction: the swept path is recomputed
+    simClock.shuttleLastSign = sign;               // for this moment, not extended from a stale end
+    if(sign !== 0){ refillTrails(); simClock.nextSample = simClock.simT + simClock.dtSample; }
   }
   let n=0;                                // trail samples taken this frame; read below
   if(drive !== 0 && !holding){
-    simT += dt*speed*speedMult*drive;
+    simClock.simT += dt*simClock.speed*simClock.speedMult*drive;
     // the clock in years a second decides whether the globe still has days (see uAvg)
-    { const yps = speed*speedMult*Math.abs(drive); const want = Math.max(0, Math.min(1, (Math.log10(Math.max(1e-9, yps)) + 1.3)));
+    { const yps = simClock.speed*simClock.speedMult*Math.abs(drive); const want = Math.max(0, Math.min(1, (Math.log10(Math.max(1e-9, yps)) + 1.3)));
       avgLight += (want - avgLight)*Math.min(1, dt*4); }
     if(drive < 0){
       // backwards: the trail is the path swept up to now, so it retracts — recomputed
       // from the clock at ~10 Hz rather than every frame (2400 samples a body)
-      if(now - trailRefillAt > 100){ trailRefillAt = now; refillTrails(); }
-      nextSample = simT + DT_SAMPLE;
+      if(now - simClock.trailRefillAt > 100){ simClock.trailRefillAt = now; refillTrails(); }
+      simClock.nextSample = simClock.simT + simClock.dtSample;
     } else {
-    while(nextSample<=simT && n<400){
-      for(let i=0;i<NB;i++) pushTrail(i,nextSample);
-      nextSample+=DT_SAMPLE; n++;
+    while(simClock.nextSample<=simClock.simT && n<400){
+      for(let i=0;i<NB;i++) pushTrail(i,simClock.nextSample);
+      simClock.nextSample+=simClock.dtSample; n++;
     }
-    if(nextSample<=simT) nextSample=simT+DT_SAMPLE; // skip backlog at extreme speeds
+    if(simClock.nextSample<=simClock.simT) simClock.nextSample=simClock.simT+simClock.dtSample; // skip backlog at extreme speeds
     }
     // While zoomed into the system, drift between the Sun and the trail anchor eats the
     // float precision that the anchor exists to protect. Re-anchor once it passes a
     // third of a unit, at most once a second — a rebuild is a few milliseconds.
-    if(cam.dist < 0.13 && now - lastAnchor > 1000){
+    if(cam.dist < 0.13 && now - simClock.lastAnchor > 1000){
       const dx=org[0]-trailAnchor[0], dy=org[1]-trailAnchor[1], dz=org[2]-trailAnchor[2];
-      if(dx*dx+dy*dy+dz*dz > 0.09){ lastAnchor = now; refillTrails(); nextSample = simT + DT_SAMPLE; }
+      if(dx*dx+dy*dy+dz*dz > 0.09){ simClock.lastAnchor = now; refillTrails(); simClock.nextSample = simClock.simT + simClock.dtSample; }
     }
     if(n>0){
       for(let i=0;i<NB;i++){
@@ -3959,14 +4002,14 @@ function frame(now){
         gl.bufferSubData(gl.ARRAY_BUFFER,0,trails[i]);
       }
     }
-    if(lifeOn) lifeStep(dt, dt*speed*speedMult);
+    if(lifeOn) lifeStep(dt, dt*simClock.speed*simClock.speedMult);
   }
 
   // body positions, stored relative to the Sun (the rendering origin) — exact in doubles,
   // so a real-scale zoom to sub-AU distances is free of float32 jitter
-  bodyPos(0,simT,org);
+  bodyPos(0,simClock.simT,org);
   for(let i=0;i<NB;i++){
-    bodyPos(i,simT,tmp);
+    bodyPos(i,simClock.simT,tmp);
     bodyPosArr[i*3]=tmp[0]-org[0]; bodyPosArr[i*3+1]=tmp[1]-org[1]; bodyPosArr[i*3+2]=tmp[2]-org[2];
   }
   { // the Sun's sprite: true diameter once close enough, else a small findable dot
@@ -3986,7 +4029,7 @@ function frame(now){
     // Engulfment latches on age, never on the current radius (the Sun shrinks again
     // after the tip; the planet does not come back). A flare starts only when the clock
     // runs across the moment — a jump that lands past it finds the planet already gone.
-    const a = ageGyr(), jumped = Math.abs(a - lastAgeSeen) > 0.05;
+    const a = ageGyr(), jumped = Math.abs(a - simClock.lastAgeSeen) > 0.05;
     for(let i=1;i<=3;i++){
       const now = a >= EAT_AGES[i];
       if(now && !wasEaten[i] && !jumped) eatFlash[i] = 0;
@@ -3998,7 +4041,7 @@ function frame(now){
       eatSizeTmp[0] = now ? 0 : (i === 3 && globePx > 4) ? 0 : realSizes[i];
       gl.bindBuffer(gl.ARRAY_BUFFER,bufBodySize); gl.bufferSubData(gl.ARRAY_BUFFER,i*4,eatSizeTmp);
     }
-    lastAgeSeen = a;
+    simClock.lastAgeSeen = a;
   }
   gl.bindBuffer(gl.ARRAY_BUFFER,bufBodyCol); gl.bufferSubData(gl.ARRAY_BUFFER,0,bodyCol,0,3);
   gl.bindBuffer(gl.ARRAY_BUFFER,bufBodyPos);
@@ -4006,9 +4049,9 @@ function frame(now){
 
   // camera — the view matrix is built Sun-relative for the same precision reason
   // Earth's world position in doubles: the follow target when the view is hers
-  bodyPos(3, simT, earthW);
+  bodyPos(3, simClock.simT, earthW);
   const moonHere = followTarget === 'moon' && !wasEaten[3] && ageGyr() > MOON_BORN;
-  if(moonHere) moonPos(simT, moonW);                                  // the camera needs her before the draw does
+  if(moonHere) moonPos(simClock.simT, moonW);                                  // the camera needs her before the draw does
   const followPos = followTarget === 'and' ? andPos
                   : moonHere ? moonW
                   : ((followTarget === 'earth' || followTarget === 'moon') && !wasEaten[3]) ? earthW : org;
@@ -4085,15 +4128,15 @@ function frame(now){
   // does not rotate coherently: the rate dies away as the remnant relaxes. diskSpin()
   // is that rate's integral, so the angle only ever grows (never zero either — uSpin==0.0
   // is the shader's "not a galaxy" gate).
-  const spin = diskSpin(simT);
-  const warp = -2*Math.PI*simT/650e6; // warp precession: retrograde, ~650 Myr per turn
+  const spin = diskSpin(simClock.simT);
+  const warp = -2*Math.PI*simClock.simT/650e6; // warp precession: retrograde, ~650 Myr per turn
   const spinMW  = spin;
   const spinM31 = spin*1.07;   // M31's flat curve runs ~7% faster
   const sunX=org[0], sunY=org[1], sunZ=org[2];
   const bubY = sunY+1e8 ; // real scale: nothing is magnified, so no clearance bubble
   gl.uniform1f(U.ptPx,pxScale);
   gl.uniform1f(U.ptWA, 0.0);
-  gl.uniform1f(U.ptTime, shimT);
+  gl.uniform1f(U.ptTime, simClock.shimT);
   gl.uniform3f(U.ptAnd, andPos[0], andPos[1], andPos[2]);
   gl.uniform1f(U.ptTide, and.tide);
   gl.uniform1f(U.ptVM, varOn?1.0:0.0);
@@ -4119,7 +4162,7 @@ function frame(now){
   // project enormous and stack into a whiteout. From inside the system the Milky Way
   // stays visible as a band — a quarter strength — rather than vanishing outright.
   gl.uniform1f(UN.gf, Math.min(1, Math.max(0.25, cam.dist/45)));
-  gl.uniform1f(UN.time, shimT);
+  gl.uniform1f(UN.time, simClock.shimT);
   gl.uniform1f(UN.vm, varOn?2.0:0.0);
   gl.uniform1f(UN.wa, 1.0); // HII regions trace the wave
   gl.uniform1f(UN.cap, deep?60.0:560.0);
@@ -4225,13 +4268,13 @@ function frame(now){
     // Real Gaia DR3 space velocities: each star drifts along its measured track. A
     // straight line is only honest for so long, so the extrapolation stops at +-20 Myr —
     // beyond that the local sky simply holds its furthest computed shape.
-    gl.uniform1f(U.velT, Math.max(-2e7, Math.min(2e7, simT)) * 1.1119e-7);
+    gl.uniform1f(U.velT, Math.max(-2e7, Math.min(2e7, simClock.simT)) * 1.1119e-7);
     // The bubble rides the Sun's orbital frame. Its coordinates are Sun-relative, so the
     // wave-rotation path — a rigid turn about the origin — turns it about the Sun by the
     // Sun's own orbital angle: the side that faces the galactic centre keeps facing it
     // (over 20 Myr the Sun turns through 32 degrees, which is anything but negligible).
     gl.uniform1f(U.ptWA, 1.0);
-    gl.uniform1f(U.ptSpin, (simT*V_GAL/900) * 640);
+    gl.uniform1f(U.ptSpin, (simClock.simT*V_GAL/900) * 640);
     gl.bindVertexArray(vaoGaia); gl.drawArrays(gl.POINTS,0,N_GAIA);
     if(vaoGaiaDeep && curD >= 5){ gl.bindVertexArray(vaoGaiaDeep); gl.drawArrays(gl.POINTS,0,N_GAIA_DEEP); }
     gl.uniform1f(U.velT, 0.0);
@@ -4350,6 +4393,8 @@ function frame(now){
     gl.uniformMatrix4fv(U.trProj,false,projMat);
     gl.uniformMatrix4fv(U.trView,false,viewMat);
     gl.uniform1f(U.trLen,TRAIL_N);
+    // A local `last`, shadowing nothing — the clock's own `last` is a property now. It was
+    // a plain top-level shadow before, which is why the mechanical rename reached it.
     const last = (showP9 ? NB : I_P9)-1;
     // the origin for anchored buffers, subtracted in double precision
     const aox = org[0]-trailAnchor[0], aoy = org[1]-trailAnchor[1], aoz = org[2]-trailAnchor[2];
@@ -4362,7 +4407,7 @@ function frame(now){
       if(globePx > 40) continue;   // zoomed onto the globe, every orbit and helix is a line across the sky
       if(i > 0){
         if(!solarClose) continue;                    // collapsed into the Sun's point
-        const spo = BODIES[i][1]/DT_SAMPLE;
+        const spo = BODIES[i][1]/simClock.dtSample;
         // the ring draws when asked for, or as the fallback for an unresolvable helix
         if(psO || (psH && spo < 12)){
           // the closed path itself — also the honest fallback when the sampling
@@ -4408,7 +4453,7 @@ function frame(now){
     // simT in float32 quantises the phase after ~1e5 years and the ring collapses
     // into spokes; wrapped time (exact in f64, small in f32) keeps every phase clean.
     // Anonymous specks reshuffling once per 65,536 years is invisible in a uniform ring.
-    gl.uniform1f(UA.uPx,pxScale); gl.uniform1f(UA.uT, simT % 65536);
+    gl.uniform1f(UA.uPx,pxScale); gl.uniform1f(UA.uT, simClock.simT % 65536);
     gl.uniform1f(UA.uS, AU2U);
     gl.uniform3f(UA.uSun,0,0,0);
     gl.uniform3f(UA.uE1,E1[0],E1[1],E1[2]);
@@ -4421,7 +4466,7 @@ function frame(now){
     gl.useProgram(pKB);
     gl.uniformMatrix4fv(UK.uProj,false,projMat);
     gl.uniformMatrix4fv(UK.uView,false,viewMat);
-    gl.uniform1f(UK.uPx,pxScale); gl.uniform1f(UK.uT, simT % 65536);
+    gl.uniform1f(UK.uPx,pxScale); gl.uniform1f(UK.uT, simClock.simT % 65536);
     gl.uniform1f(UK.uS, AU2U); // real mode: the belt radii are AU
     gl.uniform3f(UK.uSun,0,0,0);
     gl.uniform3f(UK.uE1,E1[0],E1[1],E1[2]);
@@ -4477,12 +4522,12 @@ function frame(now){
     const ex = bodyPosArr[9], ey = bodyPosArr[10], ez = bodyPosArr[11];
     const sunV = norm3(vecV(viewMat, [-ex, -ey, -ez]));
     const axV = norm3(vecV(viewMat, EARTH_AXIS));
-    const prime = earthPrime(simT, tmp); const prV = norm3(vecV(viewMat, [prime[0],prime[1],prime[2]]));
+    const prime = earthPrime(simClock.simT, tmp); const prV = norm3(vecV(viewMat, [prime[0],prime[1],prime[2]]));
     earthDbg = { sunV, axV, prV, era };   // read by the debug tooling
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     gl.useProgram(pGlobe);
     gl.uniformMatrix4fv(UG.uProj,false,projMat); gl.uniformMatrix4fv(UG.uView,false,viewMat);
-    gl.uniform1f(UG.uMirror, SKY_MIRROR); gl.uniform1f(UG.uTime, shimT);
+    gl.uniform1f(UG.uMirror, SKY_MIRROR); gl.uniform1f(UG.uTime, simClock.shimT);
     gl.uniform3f(UG.uSunV, sunV[0],sunV[1],sunV[2]); gl.uniform3f(UG.uAxisV, axV[0],axV[1],axV[2]); gl.uniform3f(UG.uPrimeV, prV[0],prV[1],prV[2]);
     gl.uniform1f(UG.uAvg, avgLight);
     gl.uniform1f(UG.uMolten, era.molten); gl.uniform1f(UG.uOcean, era.ocean); gl.uniform1f(UG.uSea, era.sea); gl.uniform1f(UG.uHaze, era.haze);
@@ -4496,7 +4541,7 @@ function frame(now){
     gl.uniform3f(UG.uPos, ex, ey, ez);
     gl.bindVertexArray(vaoGlobe); gl.drawArrays(gl.POINTS, 0, 1);
     if(a > MOON_BORN){
-      moonPos(simT, moonW);
+      moonPos(simClock.simT, moonW);
       moonRel[0] = moonW[0]-org[0]; moonRel[1] = moonW[1]-org[1]; moonRel[2] = moonW[2]-org[2];
       moonPx = MOON_DIA*((H*DPR)/(2*Math.tan(Math.PI/6)))/cam.dist;
       if(moonPx > 1.5){
@@ -4550,7 +4595,7 @@ function frame(now){
       gl.useProgram(pPN);
       gl.uniformMatrix4fv(UPN.proj,false,projMat);
       gl.uniformMatrix4fv(UPN.view,false,viewMat);
-      gl.uniform1f(UPN.time, shimT);
+      gl.uniform1f(UPN.time, simClock.shimT);
       gl.uniform1f(UPN.age, pn.age);
       gl.uniform1f(UPN.alpha, alpha);
       const burst = Math.exp(-Math.pow((pn.age - 0.07)/0.06, 2));   // the casting itself
@@ -4566,7 +4611,7 @@ function frame(now){
     gl.useProgram(pSunP);
     gl.uniformMatrix4fv(USn.proj,false,projMat);
     gl.uniformMatrix4fv(USn.view,false,viewMat);
-    gl.uniform1f(USn.time, shimT);
+    gl.uniform1f(USn.time, simClock.shimT);
     gl.uniform3f(USn.colD, tint.d[0], tint.d[1], tint.d[2]);
     gl.uniform3f(USn.colB, tint.b[0], tint.b[1], tint.b[2]);
     const sz = Math.min(1000, plasmaSunPx*2.7);
@@ -4783,8 +4828,8 @@ function frame(now){
     setStateColour(ls ? ls.h : 0, e.mean); }
 
   // stats
-  $('yrs').textContent = fmtYears(Math.abs(simT));
-  $('pct').textContent = (simT/GAL_PERIOD*100).toFixed(3);
+  $('yrs').textContent = fmtYears(Math.abs(simClock.simT));
+  $('pct').textContent = (simClock.simT/GAL_PERIOD*100).toFixed(3);
   if(showFps){
     if(now - fpsSince >= 500){
       $('fpsVal').textContent = (fpsFrames*1000/(now - fpsSince)).toFixed(0);
@@ -4801,17 +4846,17 @@ function frame(now){
   if(showStats){
     $('gCal').textContent = humanYear();
     // real elapsed time: one sim lap ≡ one real galactic year of 225 Myr
-    const myr = simT*(225/GAL_PERIOD);                       // real megayears elapsed
+    const myr = simClock.simT*(225/GAL_PERIOD);                       // real megayears elapsed
     $('gAge').textContent = fmtYears(4.568e9 + myr*1e6);
     // Once the remnant has relaxed there are no laps left to count: the Sun's ordered
     // circular orbit has been scattered into a random one inside an elliptical, so the
     // readout turns to the thing that still means something — how far out it now sits.
     if(mergeAt(AGE0 + myr/1e3) > 0.9){
       $('lGyr').textContent = 'distance from centre';
-      $('gGyr').textContent = (sunR(simT)*30/3261.6).toFixed(1)+' kpc';
+      $('gGyr').textContent = (sunR(simClock.simT)*30/3261.6).toFixed(1)+' kpc';
     } else {
       $('lGyr').textContent = 'galactic years';
-      $('gGyr').textContent = (4568/225 + sunPhase(simT)/(2*Math.PI)).toFixed(3);
+      $('gGyr').textContent = (4568/225 + sunPhase(simClock.simT)/(2*Math.PI)).toFixed(3);
     }
   }
   }
@@ -5050,7 +5095,7 @@ function exportState(){
   let settings = null; try{ settings = JSON.parse(localStorage.getItem(SKEY)||'null'); }catch(e){}
   return {
     app: 'galactic-transit', version: BUILD.version, exported: new Date().toISOString(),
-    time: { simT, paused },
+    time: { simT: simClock.simT, paused: simClock.paused },
     camera: { yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, distGoal:cam.distGoal,
               follow:cam.follow, coreLock, dive:$('tDive').classList.contains('on') },
     viewport: { w:innerWidth, h:innerHeight, dpr:devicePixelRatio },
@@ -5061,9 +5106,9 @@ function applyState(o){
   if(!o || o.app !== 'galactic-transit') throw new Error('not a galactic-transit state');
   if(o.settings){ localStorage.setItem(SKEY, JSON.stringify(o.settings)); restoreSettings(false); }
   if(o.time && typeof o.time.simT === 'number'){
-    simT = o.time.simT; nextSample = simT + DT_SAMPLE;
+    simClock.simT = o.time.simT; simClock.nextSample = simClock.simT + simClock.dtSample;
     events.length = 0; puffs.length = 0; refillTrails();
-    if(typeof o.time.paused === 'boolean' && paused !== o.time.paused) $('tPause').click();
+    if(typeof o.time.paused === 'boolean' && simClock.paused !== o.time.paused) $('tPause').click();
   }
   if(o.camera){ const c = o.camera;
     for(const k of ['yaw','pitch','dist','distGoal']) if(typeof c[k] === 'number') cam[k] = c[k];
@@ -5105,8 +5150,8 @@ $('dbgPaste').addEventListener('click', ()=>{
 // while the solar system in front of it is pixel-identical, "what is shimT" is the question,
 // and guessing at it has already cost several runs.
 Object.defineProperty(globalThis, '__gt', { value: {
-  get shimT(){ return shimT; },
-  get simT(){ return simT; },
+  get shimT(){ return simClock.shimT; },
+  get simT(){ return simClock.simT; },
   get curD(){ return curD; },
   get earthDbg(){ return earthDbg; },
   get probeInfo(){ return probeInfo; },
