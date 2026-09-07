@@ -51,6 +51,7 @@ import {
   EARTH_AXIS, EARTH_P0, SIDEREAL, earthPrime as earthPrimeAt, earthEra,
 } from './astro/earth'
 import { simClock, cam, gfx, view, readout, lifeAcc } from './render/state'
+import { buildStarfield, N_STAR } from './scene/starfield'
 
 // earthPrime calibrates itself against the rendering origin on its first call, and `org` is
 // the renderer's — so it is handed in here rather than reached for from inside astro/.
@@ -181,34 +182,9 @@ let showP9 = true;
 
 // ---------- static geometry: starfield + galaxy ----------
 
-// distant stars
-const N_STAR = 3200;
-{ var starPos=new Float32Array(N_STAR*3), starSize=new Float32Array(N_STAR), starCol=new Float32Array(N_STAR*3);
-  for(let i=0;i<N_STAR;i++){
-    const th=Math.random()*2*Math.PI, ph=Math.acos(2*Math.random()-1), r=7500;
-    starPos[i*3]=r*Math.sin(ph)*Math.cos(th); starPos[i*3+1]=r*Math.cos(ph); starPos[i*3+2]=r*Math.sin(ph)*Math.sin(th);
-    starSize[i]= 6 + Math.random()*9;
-    const w = .35+Math.random()*.5, warm=Math.random()*.15;
-    starCol[i*3]=w+warm; starCol[i*3+1]=w+warm*.5; starCol[i*3+2]=w+Math.random()*.2;
-  }
-}
-// Milky Way, roughly to scale: 1 unit ≈ 30 ly, Sun at 900 ≈ 26,700 ly from the core.
-// Barred core (half-length ~500 ≈ 15,000 ly, tilted 28° to the Sun–center line),
-// two major arms (Scutum–Centaurus, Perseus) springing from the bar tips,
-
-   // declared here: setGalaxy builds Andromeda too, and runs earlier
-
-// The nebula buffers hold three runs in order — HII pink, the diffuse haze, the core —
-// and the frame draws them in two halves around the dust: the haze goes down first and
-// the dark clouds darken it, then the stars, the HII and the core go over both, so a
-// cloud sits within the star field instead of on top of it. These are the run lengths.
-
-// The galaxy star buffer's nuclear run — the ~200 pc nuclear disc and the 4 pc cluster
-// around Sgr A* — as an index range [NUC0, NUC1). From inside the disk those stars are
-// not drawn: at 8 kpc they collapse onto one pixel, add up to a hard spot, and are drawn
-// after the dust that, from Earth, hides them behind ~30 magnitudes. Only these; the
-// bulge proper still draws, as the Sagittarius star clouds do. 0,0 when there is none.
-
+// The backdrop starfield. Built here, and here specifically: it is the first of the seven
+// things that consume randomness at boot, and the seeded parity stream depends on the order.
+const { pos: starPos, size: starSize, col: starCol } = buildStarfield();
 let gxyPos,gxySize,gxyCol,gxyWave, nebPos,nebSize,nebCol, dustPos,dustSize,dustStr;
 function genGalaxy(D){ // D = density multiplier (hi-fi galaxy mode)
   gfx.N_GXY = Math.round(92000*D);

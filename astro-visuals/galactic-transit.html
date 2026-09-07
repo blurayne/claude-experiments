@@ -881,9 +881,21 @@ const gfx = {
   vaoGxy: null                                 ,
   vaoNeb: null                                 ,
   vaoDust: null                                 ,
-  /** Segment boundaries inside the nebula buffer: Halpha pink, then the haze. */
+  /**
+   * Segment boundaries inside the nebula buffer, which holds three runs in order: Halpha
+   * pink, the diffuse haze, then the core. The frame draws them in two halves around the
+   * dust — the haze goes down first and the dark clouds darken it, then the stars, the HII
+   * and the core go over both — so a cloud sits within the star field rather than on top of
+   * it. These are the run lengths that split it.
+   */
   NEB_PINK: 0, NEB_GLOW: 0,
-  /** The nuclear stellar disc and the star cluster around Sgr A*, inside the star buffer. */
+  /**
+   * The galaxy star buffer's nuclear run — the ~200 pc nuclear disc and the 4 pc cluster
+   * around Sgr A* — as an index range [NUC0, NUC1). From inside the disk those stars are not
+   * drawn: at 8 kpc they collapse onto one pixel, add up to a hard bright spot, and sit
+   * behind ~30 magnitudes of extinction that the dust pass cannot reproduce. Only these; the
+   * bulge proper still draws, as the Sagittarius star clouds do. 0,0 when there is none.
+   */
   NUC0: 0, NUC1: 0,
   hideNucleus: true,
 
@@ -964,6 +976,23 @@ const readout = {
  * trap for whoever edits that function next.
  */
 const lifeAcc = { accB: 0, accSN: 0, accPN: 0 };
+
+/** How many. The draw call needs it too, so it is exported rather than inlined twice. */
+const N_STAR = 3200;
+
+function buildStarfield()            {
+  const pos = new Float32Array(N_STAR * 3);
+  const size = new Float32Array(N_STAR);
+  const col = new Float32Array(N_STAR * 3);
+  for (let i = 0; i < N_STAR; i++) {
+    const th = Math.random()*2*Math.PI, ph = Math.acos(2*Math.random()-1), r = 7500;
+    pos[i*3]=r*Math.sin(ph)*Math.cos(th); pos[i*3+1]=r*Math.cos(ph); pos[i*3+2]=r*Math.sin(ph)*Math.sin(th);
+    size[i]= 6 + Math.random()*9;
+    const w = .35+Math.random()*.5, warm=Math.random()*.15;
+    col[i*3]=w+warm; col[i*3+1]=w+warm*.5; col[i*3+2]=w+Math.random()*.2;
+  }
+  return { pos, size, col }
+}
 
 /**
  * The one WebGL2 context, and the one place that gives up if there is not one.
@@ -1214,34 +1243,9 @@ let showP9 = true;
 
 // ---------- static geometry: starfield + galaxy ----------
 
-// distant stars
-const N_STAR = 3200;
-{ var starPos=new Float32Array(N_STAR*3), starSize=new Float32Array(N_STAR), starCol=new Float32Array(N_STAR*3);
-  for(let i=0;i<N_STAR;i++){
-    const th=Math.random()*2*Math.PI, ph=Math.acos(2*Math.random()-1), r=7500;
-    starPos[i*3]=r*Math.sin(ph)*Math.cos(th); starPos[i*3+1]=r*Math.cos(ph); starPos[i*3+2]=r*Math.sin(ph)*Math.sin(th);
-    starSize[i]= 6 + Math.random()*9;
-    const w = .35+Math.random()*.5, warm=Math.random()*.15;
-    starCol[i*3]=w+warm; starCol[i*3+1]=w+warm*.5; starCol[i*3+2]=w+Math.random()*.2;
-  }
-}
-// Milky Way, roughly to scale: 1 unit ≈ 30 ly, Sun at 900 ≈ 26,700 ly from the core.
-// Barred core (half-length ~500 ≈ 15,000 ly, tilted 28° to the Sun–center line),
-// two major arms (Scutum–Centaurus, Perseus) springing from the bar tips,
-
-   // declared here: setGalaxy builds Andromeda too, and runs earlier
-
-// The nebula buffers hold three runs in order — HII pink, the diffuse haze, the core —
-// and the frame draws them in two halves around the dust: the haze goes down first and
-// the dark clouds darken it, then the stars, the HII and the core go over both, so a
-// cloud sits within the star field instead of on top of it. These are the run lengths.
-
-// The galaxy star buffer's nuclear run — the ~200 pc nuclear disc and the 4 pc cluster
-// around Sgr A* — as an index range [NUC0, NUC1). From inside the disk those stars are
-// not drawn: at 8 kpc they collapse onto one pixel, add up to a hard spot, and are drawn
-// after the dust that, from Earth, hides them behind ~30 magnitudes. Only these; the
-// bulge proper still draws, as the Sagittarius star clouds do. 0,0 when there is none.
-
+// The backdrop starfield. Built here, and here specifically: it is the first of the seven
+// things that consume randomness at boot, and the seeded parity stream depends on the order.
+const { pos: starPos, size: starSize, col: starCol } = buildStarfield();
 let gxyPos,gxySize,gxyCol,gxyWave, nebPos,nebSize,nebCol, dustPos,dustSize,dustStr;
 function genGalaxy(D){ // D = density multiplier (hi-fi galaxy mode)
   gfx.N_GXY = Math.round(92000*D);

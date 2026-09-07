@@ -103,9 +103,21 @@ export const gfx = {
   vaoGxy: null as WebGLVertexArrayObject | null,
   vaoNeb: null as WebGLVertexArrayObject | null,
   vaoDust: null as WebGLVertexArrayObject | null,
-  /** Segment boundaries inside the nebula buffer: Halpha pink, then the haze. */
+  /**
+   * Segment boundaries inside the nebula buffer, which holds three runs in order: Halpha
+   * pink, the diffuse haze, then the core. The frame draws them in two halves around the
+   * dust — the haze goes down first and the dark clouds darken it, then the stars, the HII
+   * and the core go over both — so a cloud sits within the star field rather than on top of
+   * it. These are the run lengths that split it.
+   */
   NEB_PINK: 0, NEB_GLOW: 0,
-  /** The nuclear stellar disc and the star cluster around Sgr A*, inside the star buffer. */
+  /**
+   * The galaxy star buffer's nuclear run — the ~200 pc nuclear disc and the 4 pc cluster
+   * around Sgr A* — as an index range [NUC0, NUC1). From inside the disk those stars are not
+   * drawn: at 8 kpc they collapse onto one pixel, add up to a hard bright spot, and sit
+   * behind ~30 magnitudes of extinction that the dust pass cannot reproduce. Only these; the
+   * bulge proper still draws, as the Sagittarius star clouds do. 0,0 when there is none.
+   */
   NUC0: 0, NUC1: 0,
   hideNucleus: true,
 
