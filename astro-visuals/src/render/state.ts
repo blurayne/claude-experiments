@@ -42,3 +42,41 @@ export const simClock = {
   /** Tells the clock running across an engulfment from a jump straight past it. */
   lastAgeSeen: AGE0,
 }
+
+/**
+ * Where the camera is, and what it is following.
+ *
+ * `yaw` and `pitch` are in the world frame normally and in the PLANET's frame when spinLock
+ * is on — that is what keeps the same face in view at any clock rate, and why switching the
+ * lock re-expresses the current line of sight rather than jumping. `dirW` is the line of
+ * sight in world coordinates, written every frame, so the two frames can be reconciled.
+ *
+ * `panF` is a fraction of the view's height, not a world offset: a pan has to survive a zoom,
+ * and a world offset made at galaxy scale would strand the Sun a thousand units away after a
+ * dive.
+ */
+export const cam = {
+  yaw: 0.9,
+  pitch: 0.32,
+  dist: 150,
+  distGoal: 150,
+  target: [0, 0, 0],
+  follow: true,
+  /** Dive: hold the camera on the Sun-to-core line. */
+  coreLock: false,
+  /** Which absolute-frame position the camera tracks: 'sun' | 'earth' | 'moon' | 'and'. */
+  followTarget: 'sun',
+  /** The camera turns with the planet, so the same face stays in view while the clock runs. */
+  spinLock: false,
+  /** Set wherever the view is re-seeded; the frame consumes it and clears it. */
+  reseedFollow: false,
+  firstFrame: true,
+  /** Two-finger pan, as a fraction of the view height along the camera's right and up. */
+  panF: [0, 0],
+  smoothTarget: [0, 0, 0],
+  /** Decays toward zero and never re-grows from the target's own motion. */
+  smoothOfs: [0, 0, 0],
+  /** The line of sight in world coordinates, written every frame. */
+  dirW: [0, 0, 1],
+  spinP: new Float64Array(3),
+}

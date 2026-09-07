@@ -822,6 +822,44 @@ const simClock = {
 };
 
 /**
+ * Where the camera is, and what it is following.
+ *
+ * `yaw` and `pitch` are in the world frame normally and in the PLANET's frame when spinLock
+ * is on — that is what keeps the same face in view at any clock rate, and why switching the
+ * lock re-expresses the current line of sight rather than jumping. `dirW` is the line of
+ * sight in world coordinates, written every frame, so the two frames can be reconciled.
+ *
+ * `panF` is a fraction of the view's height, not a world offset: a pan has to survive a zoom,
+ * and a world offset made at galaxy scale would strand the Sun a thousand units away after a
+ * dive.
+ */
+const cam = {
+  yaw: 0.9,
+  pitch: 0.32,
+  dist: 150,
+  distGoal: 150,
+  target: [0, 0, 0],
+  follow: true,
+  /** Dive: hold the camera on the Sun-to-core line. */
+  coreLock: false,
+  /** Which absolute-frame position the camera tracks: 'sun' | 'earth' | 'moon' | 'and'. */
+  followTarget: 'sun',
+  /** The camera turns with the planet, so the same face stays in view while the clock runs. */
+  spinLock: false,
+  /** Set wherever the view is re-seeded; the frame consumes it and clears it. */
+  reseedFollow: false,
+  firstFrame: true,
+  /** Two-finger pan, as a fraction of the view height along the camera's right and up. */
+  panF: [0, 0],
+  smoothTarget: [0, 0, 0],
+  /** Decays toward zero and never re-grows from the target's own motion. */
+  smoothOfs: [0, 0, 0],
+  /** The line of sight in world coordinates, written every frame. */
+  dirW: [0, 0, 1],
+  spinP: new Float64Array(3),
+};
+
+/**
  * The one WebGL2 context, and the one place that gives up if there is not one.
  *
  * Asking for a second context on the same canvas does NOT create one — the browser returns
@@ -2342,11 +2380,11 @@ function fillPuffs(){
 }
 
 // ---------- camera & interaction ----------
-const cam = { yaw: 0.9, pitch: 0.32, dist: 150, distGoal: 150, target:[0,0,0], follow:true };
-let coreLock = false;   // dive: hold the camera on the Sun-to-core line
+
+   // dive: hold the camera on the Sun-to-core line
 // which absolute-frame position cam.follow tracks when true — the Sun everywhere
 // except the one Andromeda view, which needs its own moving target the same way
-let followTarget = 'sun';
+
 let dragging=false, px=0, py=0;
 // While a pointer or finger is down the clock holds, so the galaxy does not keep
 // turning under the hand that is trying to orbit it. Released, it carries straight on.
@@ -2356,7 +2394,7 @@ const touches = new Map();     // every pointer currently down on the canvas
 // and up, not as a world offset: zooming then keeps the composition, and a pan made at
 // galaxy scale cannot leave the Sun a thousand units off-screen once you dive. Cleared
 // wherever the view is re-seeded (a scenario, a focus, the dive), like the transition.
-const panF = [0, 0];
+
 let panCX = 0, panCY = 0;      // the last two-pointer centroid
 function panCentroid(){ let x=0,y=0; for(const q of touches.values()){ x+=q.clientX; y+=q.clientY; } return [x/touches.size, y/touches.size]; }
 canvas.addEventListener('pointerdown', e=>{
@@ -2373,8 +2411,8 @@ canvas.addEventListener('pointermove', e=>{
   if(touches.size === 2){
     // the fingers' midpoint carries the scene with it; the pinch (below) reads the spread
     const [cx, cy] = panCentroid();
-    panF[0] = Math.max(-2, Math.min(2, panF[0] + (cx - panCX)/H));
-    panF[1] = Math.max(-2, Math.min(2, panF[1] + (cy - panCY)/H));
+    cam.panF[0] = Math.max(-2, Math.min(2, cam.panF[0] + (cx - panCX)/H));
+    cam.panF[1] = Math.max(-2, Math.min(2, cam.panF[1] + (cy - panCY)/H));
     panCX = cx; panCY = cy;
     return;
   }
@@ -2396,8 +2434,8 @@ addEventListener('pointerup', endPointer);
 addEventListener('pointercancel', endPointer);
 // the floor: ~0.04 AU across, eight solar radii; at Earth and at the Moon, a body filling
 // the view. The Moon's view before she forms is Earth's view, so it keeps Earth's floor.
-const minDist = ()=> followTarget === 'moon' ? (ageGyr() > MOON_BORN ? 5.5e-12 : 2e-11)
-                   : followTarget === 'earth' ? 2e-11 : (2e-8 );
+const minDist = ()=> cam.followTarget === 'moon' ? (ageGyr() > MOON_BORN ? 5.5e-12 : 2e-11)
+                   : cam.followTarget === 'earth' ? 2e-11 : (2e-8 );
 // The zoom buttons step along a ladder of the objects themselves — the Sun, the planets'
 // orbits, the belts, the Oort shell, the nearest stars, the arm, the Galaxy, the Local
 // Group — with one rung between each pair, so two presses take you from one object to
@@ -2668,15 +2706,15 @@ toggle($('tZoomBtns'), on=>{ syncZoomBtns(on); layoutPanels(); fitPanels(); });
 // about its axis, latitude), so the eye rides round with the spin and the same face stays
 // in view however fast the clock runs — the plates drift under a still camera. Switching
 // it re-expresses the current line of sight in the other frame, so the view does not jump.
-let spinLock = false; const camDirW = [0,0,1], spinP = new Float64Array(3);
-function spinFrame(){ const A = EARTH_AXIS, P = earthPrime(simClock.simT, spinP); return [P, A, [A[1]*P[2]-A[2]*P[1], A[2]*P[0]-A[0]*P[2], A[0]*P[1]-A[1]*P[0]]]; }
+
+function spinFrame(){ const A = EARTH_AXIS, P = earthPrime(simClock.simT, cam.spinP); return [P, A, [A[1]*P[2]-A[2]*P[1], A[2]*P[0]-A[0]*P[2], A[0]*P[1]-A[1]*P[0]]]; }
 toggle($('tSpinLock'), on=>{
-  const d = camDirW;
+  const d = cam.dirW;
   if(on){ const [P, A, Q] = spinFrame(); const dP = d[0]*P[0]+d[1]*P[1]+d[2]*P[2], dA = d[0]*A[0]+d[1]*A[1]+d[2]*A[2], dQ = d[0]*Q[0]+d[1]*Q[1]+d[2]*Q[2];
     cam.yaw = Math.atan2(dP, -dQ); cam.pitch = Math.asin(Math.max(-1, Math.min(1, dA))); }
   else { cam.yaw = Math.atan2(d[0], d[2]); cam.pitch = Math.asin(Math.max(-1, Math.min(1, d[1]))); }
-  if(coreLock){ coreLock = false; }   // the lock's own base yaw would double up
-  spinLock = on; panF[0]=panF[1]=0;
+  if(cam.coreLock){ cam.coreLock = false; }   // the lock's own base yaw would double up
+  cam.spinLock = on; cam.panF[0]=cam.panF[1]=0;
   $('tSpinLock2').checked = on;        // the settings dialog's twin follows
 });
 $('tSpinLock2').addEventListener('change', ()=>{   // and drives the dock's box, which owns the state
@@ -2698,34 +2736,34 @@ function bodyViewDist(dia){        // the distance at which a body of this diame
 function applyFocusView(){
   const v = $('focusSel').value;
   if(v === 'sun'){
-    followTarget = 'sun';
+    cam.followTarget = 'sun';
     if($('tView').classList.contains('on')) $('tView').click();
     if(!$('tDive').classList.contains('on')) $('tDive').click();
-    else { cam.follow = true; coreLock = true; cam.distGoal = 3.5e-5; reseedFollow = true; panF[0]=panF[1]=0; }
+    else { cam.follow = true; cam.coreLock = true; cam.distGoal = 3.5e-5; cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0; }
   } else if(v === 'earth'){
     // the planet itself with the Moon's whole orbit in frame, following Earth. Set after
     // the toggle clicks: both handlers reset the follow target to the Sun as a side effect.
     if($('tView').classList.contains('on')) $('tView').click();
     if(!$('tDive').classList.contains('on')) $('tDive').click();
-    followTarget = 'earth';
-    cam.follow = true; coreLock = false; cam.distGoal = earthViewDist(); reseedFollow = true; panF[0]=panF[1]=0;
+    cam.followTarget = 'earth';
+    cam.follow = true; cam.coreLock = false; cam.distGoal = earthViewDist(); cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
   } else if(v === 'moon'){
     // the Moon herself, filling the view. Followed like Earth: the same handlers, and the
     // same order — the toggles reset the target to the Sun as they turn themselves on.
     if($('tView').classList.contains('on')) $('tView').click();
     if(!$('tDive').classList.contains('on')) $('tDive').click();
-    followTarget = 'moon';
+    cam.followTarget = 'moon';
     // before the Theia impact there is no Moon: the view holds on the world she comes
     // from, at Earth's own distance, and takes her up when she forms
-    cam.follow = true; coreLock = false; reseedFollow = true; panF[0]=panF[1]=0;
+    cam.follow = true; cam.coreLock = false; cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
     cam.distGoal = ageGyr() > MOON_BORN ? moonViewDist() : earthViewDist();
   } else if(v === 'pn'){
     // the shell's full reach, ~3.5 ly across, following what is left of the Sun; before
     // the shell exists this is simply the Sun's neighbourhood at that scale
-    followTarget = 'sun';
+    cam.followTarget = 'sun';
     if($('tView').classList.contains('on')) $('tView').click();
     if(!$('tDive').classList.contains('on')) $('tDive').click();
-    cam.follow = true; coreLock = false; cam.distGoal = 0.1; reseedFollow = true; panF[0]=panF[1]=0;
+    cam.follow = true; cam.coreLock = false; cam.distGoal = 0.1; cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
   } else if(v === 'and'){
     // framed wide enough for the whole disk plus its extended halo and stream
     // (R_A=2245, halo out to ~4200, the Giant Southern Stream past 5700), at any
@@ -2734,13 +2772,13 @@ function applyFocusView(){
     // handler resets followTarget to 'sun' as a side effect of turning itself on.
     if($('tDive').classList.contains('on')) $('tDive').click();
     if(!$('tView').classList.contains('on')) $('tView').click();
-    followTarget = 'and';
-    cam.follow = true; coreLock = false; cam.distGoal = 9500; reseedFollow = true; panF[0]=panF[1]=0;
+    cam.followTarget = 'and';
+    cam.follow = true; cam.coreLock = false; cam.distGoal = 9500; cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
   } else {
-    followTarget = 'sun';
+    cam.followTarget = 'sun';
     if($('tDive').classList.contains('on')) $('tDive').click();
     if(!$('tView').classList.contains('on')) $('tView').click();
-    else { cam.follow = false; cam.distGoal = 4300; reseedFollow = true; panF[0]=panF[1]=0; }
+    else { cam.follow = false; cam.distGoal = 4300; cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0; }
   }
   saveSettings();
 }
@@ -3131,7 +3169,7 @@ $('cal').addEventListener('change', syncCal);
 // it short of reloading.
 let keepSaved = false;   // set only while the opening scenario stages itself
 function jumpToEpoch(){
-  followTarget = 'sun';
+  cam.followTarget = 'sun';
   const sel = $('jump');
   const a = sel.value === '' ? AGE0 : parseFloat(sel.value);   // a letter after the age marks a staged event at that age
   // some epochs are over in a blink on the galactic clock; land at a speed that shows them
@@ -3170,10 +3208,10 @@ function jumpToEpoch(){
     // to something that fills it and takes the inner planets on the way.
     if($('tView').classList.contains('on')) $('tView').click();
     if($('tDive').classList.contains('on')) $('tDive').click();
-    cam.follow = true; coreLock = false;
+    cam.follow = true; cam.coreLock = false;
     cam.dist = cam.distGoal = 1.14e-6;
     cam.yaw = 0.6; cam.pitch = 0.34;
-    reseedFollow = true; panF[0]=panF[1]=0;
+    cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
     if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
   }
   if(sel.value === '12.35'){
@@ -3182,10 +3220,10 @@ function jumpToEpoch(){
     // reach, the eye following what is left of the Sun.
     if($('tView').classList.contains('on')) $('tView').click();
     if(!$('tDive').classList.contains('on')) $('tDive').click();
-    cam.follow = true; coreLock = false;
+    cam.follow = true; cam.coreLock = false;
     cam.dist = cam.distGoal = 0.1;
     cam.yaw = 0.9; cam.pitch = 0.28;
-    reseedFollow = true; panF[0]=panF[1]=0;
+    cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
     if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
   }
   if(sel.value === '8.36149'){
@@ -3194,12 +3232,12 @@ function jumpToEpoch(){
     // At a hundred million years a second the pass arrives in about seven.
     if($('tView').classList.contains('on')) $('tView').click();
     if(!$('tDive').classList.contains('on')) $('tDive').click();
-    cam.follow = true; coreLock = true;
+    cam.follow = true; cam.coreLock = true;
     // set outright, not eased: the climb from dive scale spans eleven decades and would
     // spend the whole approach travelling instead of watching it
     cam.dist = cam.distGoal = 15500;
     cam.yaw = 5.9257; cam.pitch = 0.5771;
-    reseedFollow = true; panF[0]=panF[1]=0;
+    cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
     if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
   }
   if(sel.value === '11.25'){
@@ -3208,10 +3246,10 @@ function jumpToEpoch(){
     // back to hold both galaxies as they close.
     if($('tView').classList.contains('on')) $('tView').click();
     if(!$('tDive').classList.contains('on')) $('tDive').click();
-    cam.follow = true; coreLock = true;
+    cam.follow = true; cam.coreLock = true;
     cam.dist = cam.distGoal = 9200;
     cam.yaw = 5.6; cam.pitch = 0.62;
-    reseedFollow = true; panF[0]=panF[1]=0;
+    cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
     if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
   }
   if(sel.value === '4.5692567'){
@@ -3220,7 +3258,7 @@ function jumpToEpoch(){
     // crossing — 3.2 ly at 14.4 km/s — takes almost exactly 35 seconds.
     if($('tView').classList.contains('on')) $('tView').click();
     if($('tDive').classList.contains('on')) $('tDive').click();
-    cam.follow = true; coreLock = false;
+    cam.follow = true; cam.coreLock = false;
     cam.distGoal = 0.144;                     // ~5 ly across: the whole Oort shell
     cam.yaw = 0.72; cam.pitch = -0.31;        // faces the star's approach track
   }
@@ -3246,7 +3284,7 @@ function jumpToEpoch(){
   accB = accSN = accPN = 0;
   refillTrails();
 }
-$('jump').addEventListener('change', e=>{ reseedFollow=true; panF[0]=panF[1]=0; jumpToEpoch(); });
+$('jump').addEventListener('change', e=>{ cam.reseedFollow=true; cam.panF[0]=cam.panF[1]=0; jumpToEpoch(); });
 $('jumpGo').addEventListener('click', ()=>{
   jumpToEpoch();
   // the point of GO is to watch the scenario, so the panel steps aside — unless the
@@ -3313,7 +3351,7 @@ function humanYear(){
     default:     return g>=1 ? fmt(g)+' AD' : fmt(1-g)+' BC';
   }
 }
-toggle($('tView'), on=>{ followTarget='sun'; cam.follow=!on; cam.distGoal = on? 4300 : 150; reseedFollow=true; panF[0]=panF[1]=0; });
+toggle($('tView'), on=>{ cam.followTarget='sun'; cam.follow=!on; cam.distGoal = on? 4300 : 150; cam.reseedFollow=true; cam.panF[0]=cam.panF[1]=0; });
 function refillTrails(){
   bodyPos(0, simClock.simT, tmpSun);
   trailAnchor[0]=tmpSun[0]; trailAnchor[1]=tmpSun[1]; trailAnchor[2]=tmpSun[2];
@@ -3335,14 +3373,14 @@ function refillTrails(){
 }
 function setBodySizes(){ gl.bindBuffer(gl.ARRAY_BUFFER,bufBodySize); gl.bufferData(gl.ARRAY_BUFFER, realSizes, gl.STATIC_DRAW); }
 setBodySizes();   // real proportions from the first frame
-toggle($('tDive'), on=>{ panF[0]=panF[1]=0;
-  reseedFollow = true; panF[0]=panF[1]=0;
+toggle($('tDive'), on=>{ cam.panF[0]=cam.panF[1]=0;
+  cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
   if(on){
     if($('tView').classList.contains('on')) $('tView').click();  // diving follows the Sun
-    followTarget='sun'; cam.follow=true;
-    coreLock=true; cam.yaw=0; cam.pitch=0;   // start looking straight down the line to the core
+    cam.followTarget='sun'; cam.follow=true;
+    cam.coreLock=true; cam.yaw=0; cam.pitch=0;   // start looking straight down the line to the core
     cam.distGoal=3.5e-5; // ~75 AU across: the whole planetary system, Kuiper belt included
-  } else { coreLock=false; cam.distGoal=150; }
+  } else { cam.coreLock=false; cam.distGoal=150; }
 });
 // Star density as one row of choices rather than stacked overrides. The top settings
 // are enormous — x8 is some seventeen million sprites — so a failed allocation falls
@@ -3867,12 +3905,12 @@ function holdBarWidth(now){
   }
   bar.style.minWidth = barHeld + 'px';
 }
-const smoothTarget=[0,0,0]; let firstFrame=true;
+
 // Following is exact; only transitions ease. The offset decays toward zero and never
 // re-grows from the target's own motion — easing the position itself made the camera
 // trail a moving Sun by up to 20% of the view, so at dive zoom the Sun slid across the
 // frame every time a touch held the clock and the lag collapsed.
-const smoothOfs=[0,0,0]; let reseedFollow=false;
+
 const org=new Float64Array(3); // rendering origin: the Sun, in double precision
 const sunSizeTmp=new Float32Array(1), eatSizeTmp=new Float32Array(1);
    // to tell the clock running across an engulfment from a jump past it
@@ -4050,25 +4088,25 @@ function frame(now){
   // camera — the view matrix is built Sun-relative for the same precision reason
   // Earth's world position in doubles: the follow target when the view is hers
   bodyPos(3, simClock.simT, earthW);
-  const moonHere = followTarget === 'moon' && !wasEaten[3] && ageGyr() > MOON_BORN;
+  const moonHere = cam.followTarget === 'moon' && !wasEaten[3] && ageGyr() > MOON_BORN;
   if(moonHere) moonPos(simClock.simT, moonW);                                  // the camera needs her before the draw does
-  const followPos = followTarget === 'and' ? andPos
+  const followPos = cam.followTarget === 'and' ? andPos
                   : moonHere ? moonW
-                  : ((followTarget === 'earth' || followTarget === 'moon') && !wasEaten[3]) ? earthW : org;
+                  : ((cam.followTarget === 'earth' || cam.followTarget === 'moon') && !wasEaten[3]) ? earthW : org;
   const goal = cam.follow ? [followPos[0],followPos[1],followPos[2]] : [0,0,0];
-  if(reseedFollow){ for(let i=0;i<3;i++) smoothOfs[i] = smoothTarget[i]-goal[i]; reseedFollow=false; }
-  const k = firstFrame?1:Math.min(1,dt*4);
-  for(let i=0;i<3;i++) smoothOfs[i] *= 1-k;
+  if(cam.reseedFollow){ for(let i=0;i<3;i++) cam.smoothOfs[i] = cam.smoothTarget[i]-goal[i]; cam.reseedFollow=false; }
+  const k = cam.firstFrame?1:Math.min(1,dt*4);
+  for(let i=0;i<3;i++) cam.smoothOfs[i] *= 1-k;
   { // cap the transition offset at 20% of the view distance, so deep zooms never lose the Sun
-    const lag=Math.hypot(smoothOfs[0],smoothOfs[1],smoothOfs[2]), maxLag=cam.dist*0.2;
-    if(lag>maxLag){ const f=maxLag/lag; smoothOfs[0]*=f; smoothOfs[1]*=f; smoothOfs[2]*=f; }
+    const lag=Math.hypot(cam.smoothOfs[0],cam.smoothOfs[1],cam.smoothOfs[2]), maxLag=cam.dist*0.2;
+    if(lag>maxLag){ const f=maxLag/lag; cam.smoothOfs[0]*=f; cam.smoothOfs[1]*=f; cam.smoothOfs[2]*=f; }
   }
-  for(let i=0;i<3;i++) smoothTarget[i] = goal[i]+smoothOfs[i];
+  for(let i=0;i<3;i++) cam.smoothTarget[i] = goal[i]+cam.smoothOfs[i];
   // log-space zoom smoothing: uniform speed per decade across 11 orders of magnitude
   cam.dist = Math.exp(Math.log(cam.dist)+(Math.log(cam.distGoal)-Math.log(cam.dist))*Math.min(1,dt*4));
-  firstFrame=false;
+  cam.firstFrame=false;
   let baseYaw = 0, basePitch = 0;
-  if(coreLock){
+  if(cam.coreLock){
     // the direction from the core out to the Sun: put the eye further along it, so the
     // line of sight runs eye -> Sun -> galactic centre
     const r = Math.hypot(org[0], org[1], org[2]) || 1;
@@ -4085,7 +4123,7 @@ function frame(now){
   let rx = cy, ry = 0, rz = -sy;                                        // right, in the plane
   let ux = -sp*sy, uy = cp, uz = -sp*cy;                                // up, tilted with the pitch
   let dx = cp*sy, dy = sp, dz = cp*cy, upV = [0,1,0];                   // the eye's direction from the target
-  const spinOn = spinLock && cam.follow && followTarget === 'earth' && !wasEaten[3];
+  const spinOn = cam.spinLock && cam.follow && cam.followTarget === 'earth' && !wasEaten[3];
   if(spinOn){
     // the same three vectors, but in the planet's frame: x → prime meridian P, y → axis A,
     // z → −Q (so the frame keeps the world's handedness); the frame turns with the spin
@@ -4095,11 +4133,11 @@ function frame(now){
     dx = cp*sy*P[0]+sp*A[0]-cp*cy*Q[0]; dy = cp*sy*P[1]+sp*A[1]-cp*cy*Q[1]; dz = cp*sy*P[2]+sp*A[2]-cp*cy*Q[2];
     upV = A;
   }
-  camDirW[0] = dx; camDirW[1] = dy; camDirW[2] = dz;                     // read by the spin lock's switch
-  const pv = 1.1547*cam.dist, pdx = -panF[0]*pv*SKY_MIRROR, pdy = panF[1]*pv;
-  const tgx=smoothTarget[0]-org[0] + rx*pdx + ux*pdy,
-        tgy=smoothTarget[1]-org[1] + ry*pdx + uy*pdy,
-        tgz=smoothTarget[2]-org[2] + rz*pdx + uz*pdy;
+  cam.dirW[0] = dx; cam.dirW[1] = dy; cam.dirW[2] = dz;                     // read by the spin lock's switch
+  const pv = 1.1547*cam.dist, pdx = -cam.panF[0]*pv*SKY_MIRROR, pdy = cam.panF[1]*pv;
+  const tgx=cam.smoothTarget[0]-org[0] + rx*pdx + ux*pdy,
+        tgy=cam.smoothTarget[1]-org[1] + ry*pdx + uy*pdy,
+        tgz=cam.smoothTarget[2]-org[2] + rz*pdx + uz*pdy;
   const eye=[ tgx+cam.dist*dx, tgy+cam.dist*dy, tgz+cam.dist*dz ];
   camSunDist = Math.hypot(eye[0], eye[1], eye[2]) || cam.dist;   // Sun-relative eye: how far the Sun is
   const viewMat = lookAt(eye, [tgx,tgy,tgz], upV);
@@ -4517,7 +4555,7 @@ function frame(now){
   // same blend as the Sun's disc; the atmosphere adds over what is behind it.
   moonPx = 0;
   // the pass opens on Earth's size, or on the Moon's when she is the one being followed
-  if((globePx > 4 || followTarget === 'moon') && !wasEaten[3]){
+  if((globePx > 4 || cam.followTarget === 'moon') && !wasEaten[3]){
     const a = ageGyr(), era = earthEra(a, environment().mean);
     const ex = bodyPosArr[9], ey = bodyPosArr[10], ez = bodyPosArr[11];
     const sunV = norm3(vecV(viewMat, [-ex, -ey, -ez]));
@@ -5097,7 +5135,7 @@ function exportState(){
     app: 'galactic-transit', version: BUILD.version, exported: new Date().toISOString(),
     time: { simT: simClock.simT, paused: simClock.paused },
     camera: { yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, distGoal:cam.distGoal,
-              follow:cam.follow, coreLock, dive:$('tDive').classList.contains('on') },
+              follow:cam.follow, coreLock: cam.coreLock, dive:$('tDive').classList.contains('on') },
     viewport: { w:innerWidth, h:innerHeight, dpr:devicePixelRatio },
     settings,
   };
@@ -5113,9 +5151,9 @@ function applyState(o){
   if(o.camera){ const c = o.camera;
     for(const k of ['yaw','pitch','dist','distGoal']) if(typeof c[k] === 'number') cam[k] = c[k];
     if(typeof c.follow === 'boolean') cam.follow = c.follow;
-    coreLock = !!c.coreLock;
+    cam.coreLock = !!c.coreLock;
     $('tDive').classList.toggle('on', !!c.dive);
-    reseedFollow = true; panF[0]=panF[1]=0;
+    cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
   }
 }
 const dbgSay = m => { $('dbgMsg').textContent = m; };
