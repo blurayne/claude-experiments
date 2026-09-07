@@ -84,8 +84,17 @@ test.describe('the built page against the pre-refactor page', () => {
 
   for (const state of SELECTED) {
     test(state.id, async ({}, testInfo) => {
-      const before = await capture(`/${BASELINE_PAGE}`, state)
-      const after = await capture('/galactic-transit.html', state)
+      // Both shots at once, in their own browser processes, rather than one after the other.
+      //
+      // Sequential was fair only on an idle machine: whatever load arrived between them hit
+      // one side and not the other, which is exactly how three parallel workers broke this —
+      // 26 of 30 passing and four states off by tens of thousands of pixels, reproducibly.
+      // Run concurrently, contention lands on both and cancels, and a test costs the longer
+      // of the two captures rather than their sum.
+      const [before, after] = await Promise.all([
+        capture(`/${BASELINE_PAGE}`, state),
+        capture('/galactic-transit.html', state),
+      ])
 
       expect(before.errors, `the pre-refactor page logged errors:\n${before.errors.join('\n')}`).toEqual([])
       expect(after.errors, `the built page logged errors:\n${after.errors.join('\n')}`).toEqual([])

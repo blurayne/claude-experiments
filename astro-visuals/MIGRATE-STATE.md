@@ -10,6 +10,42 @@ Working notes for picking this up cold, in a later session or on another machine
 
 The refactor is structural only. Nothing may move a pixel. Visual and scientific changes are three separate projects that come after, and they are already recorded as checkboxes in `TODO.md`: the Milky Way's and Andromeda's rotation, the merger against the current simulations, and the Sun's expansion with the planetary nebula.
 
+## Corrections are allowed — deliberately, and one at a time
+
+The rule was "nothing may move a pixel". The owner has widened it: where the new version can
+be **more precise or more correct** than the old, that is welcome — but it has to be reasoned
+and verified, not assumed and not smuggled in.
+
+The discipline that keeps this from destroying the gate:
+
+1. **A correction never rides along with a move.** Extraction commits stay null-change, so
+   that a difference in the gate always means a mistake. A correction is its own commit, with
+   its own reasoning and its own parity run.
+2. **Say why it is more correct**, against a source or an argument, not against taste. "The
+   old number looks wrong" is not a reason; "the branches do not meet, and here is the
+   arithmetic" is.
+3. **Say what it changes on screen**, before running the gate. If the prediction and the
+   pixels disagree, the change is not understood well enough to make.
+4. **Verify it independently of the gate.** A unit test that pins the new behaviour, and where
+   the change is visual, a before/after pair looked at by eye.
+
+### Candidates already found and left alone
+
+Each was discovered while extracting and testing, each is pre-existing, each is pinned by a
+test so it cannot drift further, and each is recorded in `TODO.md` against the project that
+should decide it:
+
+| what | where | why it is a candidate |
+| --- | --- | --- |
+| `sunState` steps L 2.2424 → 2.2000 and R 1.7801 → 1.6000 at 10.9 Gyr | `astro/sun` | The main-sequence and red-giant branches do not meet. The radius step is a tenth of the drawn disc, gone in one frame. |
+| `sunState` steps L 0.5 → 0.1 at 12.44 Gyr | `astro/sun` | A five-fold dimming in a single frame, because the white-dwarf branch starts from "a tenth of today's Sun" without meeting what the previous branch was leaving. |
+| `earthPrime` calibrates against whatever origin the first call happens to see | `astro/earth` | Which way the planet faces depends on *when* the globe pass first ran. A scenario that jumps the clock before the globe is drawn calibrates against a Sun in the wrong place. |
+| `sepScene` steps 0.02% at the 82.8 kpc compression handover | `astro/merger` | Invisible, but the two branches genuinely do not meet. |
+| Corotation at r = 640 rather than the measured ~8.5 kpc | `astro/constants` | Deliberate, and load-bearing: the measured value ends the glacial epochs. A decision about what the piece claims, not a bug. |
+
+The first four are arguably wrong. The fifth is arguably right, and is the one that needs a
+conversation rather than a fix.
+
 ## Where the work is
 
 | | |
