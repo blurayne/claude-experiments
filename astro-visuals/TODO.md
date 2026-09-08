@@ -5,8 +5,10 @@ before the work starts. An item is ticked when it ships, with the version that c
 
 ## 2026-09-06
 
-- [ ] Break the page into modules and move it to TypeScript, so there is somewhere to put
-      the next thing. Vite bundles `src/` back into the same single self-contained
+- [x] Break the page into modules and move it to TypeScript, so there is somewhere to put
+      the next thing. **v3.0.0.** `main.ts` is 553 lines from 5,347; 55 modules; every draw
+      pass, the whole interface and the frame itself are out. The gate held at zero
+      differing pixels through all of it. `astro/` and `scene/` are pure — no DOM, no GL. Vite bundles `src/` back into the same single self-contained
       `galactic-transit.html`; `sw.js`, the PWA and the build stamp are untouched. The
       astronomy and the generators become pure functions with no DOM and no GL — which is
       also what a WASM port would need later, though none is built here. Tests: unit tests

@@ -2,9 +2,14 @@
 
 Working notes for picking this up cold, in a later session or on another machine. The plan being executed is `docs/refactor/inventory/00-PLAN.md`; this file records how far along it is, what has been learned since it was written, and the things that will waste a day if you do not know them.
 
-**Status: `main.ts` is down from 5,347 lines to 2,588 — 52% of it moved into 41 modules. `main` is untouched and still ships v2.78.0.**
+**Status: `main.ts` is down from 5,347 lines to 553 — 90% of it moved into 55 modules. The migration is finished; what remains is the merge.**
 
-Of the plan's 24 steps, fifteen are complete (0–14 except the part of 12 noted below), one is part-done (15, the `ui/` leaves: one of five), and eight have not started. **Every draw pass is out.** What is left is the interface, then the boot sequence, then cleanup.
+Of the plan's 24 steps, **twenty-two are complete**. Step 23 (cleanup) is deliberately not
+done — it was never part of the migration — and `ui/dialogs` never became a module, because
+what it would hold is four lines about one modal.
+
+Every draw pass, the whole interface, the frame and the boot sequence are out. `main.ts` is
+imports, five clock wrappers, the boot order, and the tail.
 
 This file is the live status; the chat is not. Regenerate the numbers with `wc -l src/main.ts`,
 `npx vitest run`, and `git log --oneline main..HEAD`.
@@ -22,28 +27,28 @@ this column is the fact.
 | 2 | CSS → four files, linked in cascade order | **done** `7a60435` |
 | 3 | 23 shaders → `.glsl`, byte-exact, `?raw` | **done** `7a3de48` |
 | 4 | `core/errorlog`, imported first and bare | **done** `d64b15f` |
-| 5 | the rest of `core/` | **done** `d64b15f`, `ff065df`. `core/keys` does not exist yet: it holds `SKEY`/`TOURKEY`/`DBGKEY`, and it waits for the ui steps that read them |
+| 5 | the rest of `core/` | **done** `d64b15f`, `ff065df`. No `core/keys`: each storage key ended up owned by the one module that reads it — SKEY in ui/persist, TOURKEY in ui/tour, DBGKEY in ui/debug — which is better than a module of three strings |
 | 6 | `astro/constants` | **done** `bacb3a0` |
 | 7 | `render/state` — the §3 singletons, a mechanical rename | **done** in four: `227a397` `468616b` `5cff82c` `9d2f692` |
 | 8 | `gpu/` | **done** `b644d8f`. No `gpu/framebuffer`: the only framebuffer is the HDR target, and it belongs to `passes/tone` |
 | 9 | the `astro/` leaves | **done** `45a70ae` `6c6e33e` `58f7eef` `0c6ae6a`. No `astro/calendar`: `ageAt` is one line and lives in `astro/environment`, the module that needs it |
 | 10 | `passes/points`, `supernova`, `remnant` — programs and uniform tables only | **done** `a2c8f5f`. Tables only, as the plan asks; the star-field draw itself is the one thing still in frame() |
-| 11 | `scene/` as pure builders, and the seven RNG calls made explicit | **done** `da28433` `28e0c59` `b37f5d3` `9220ba9` `68dd011`. `galaxymap` folded into `scene/galaxy`; `scene/cache` did not happen — `flushGxyCache` is still in main.ts, because it evicts what `setGalaxy` publishes into `gfx` |
+| 11 | `scene/` as pure builders, and the seven RNG calls made explicit | **done** `da28433` `28e0c59` `b37f5d3` `9220ba9` `68dd011` `4d629b1`. `galaxymap` folded into `scene/galaxy`; `scene/cache` came last, holding the maps, the density cache and setGalaxy together |
 | 12 | the remaining `render/passes/*`, one per commit | **done.** `belts` `204e43e`, `tone` `e14f20d`, `sun`+`pn` `1e2ecc4`, `rings` `db915dc`, `globe` `a2c8f5f`, `nebula`+`dust` `52faa8e`, `bodies`+`g710`+`eatflash` `9a5e9d2`. Ten modules for the plan's eleven passes |
 | 13 | `render/trails`, `render/labels`, `render/lifecycle` | **done** `e43604c`. The life cycle got its first coverage in the same commit — see below |
 | 14 | `audio/` | **done** `173dea8` (covered before being moved) `7bf6539`. One module, not the planned `engine`/`music`/`sfx`: the drone, the tracks and the banks hang off one `AudioContext` and one master gain, and splitting them would have exported the graph |
-| 15 | `ui/` leaves — theme, tooltips, fullscreen, tour, dialogs | **one of five.** `tooltips` `e0abaaf` |
-| 16 | `ui/persist` — the settings replay, with the snapshot/apply registry | **not started, deliberately.** `00-PLAN.md` ranks it the highest-risk failure in the file; the boot suite covers it today |
-| 17 | `ui/panels`, `ui/sections` | **not started** |
-| 18 | `ui/hud` | **not started.** The one to be careful with — see below |
-| 19 | `render/camera`, `ui/scenarios` | **not started** |
-| 20 | `ui/qr`, `ui/debug` | **not started** |
-| 21 | `render/probe`, `render/frame` — `frame()` becomes a sequencer | **not started.** Everything in step 12's second group is really waiting on this one |
-| 22 | `main.ts` is only boot | **not started** |
-| 23 | cleanup, separately, each its own commit | **not started.** Dead bindings, the `USN`/`USUN` rename, a shared `noise.glsl`. Explicitly not part of the migration |
+| 15 | `ui/` leaves — theme, tooltips, fullscreen, tour, dialogs | **done** `e0abaaf` `09fd944`. No `ui/dialogs`: the info modal is four listeners, and they live where they are opened from |
+| 16 | `ui/persist` — the settings replay, with the snapshot/apply registry | **done** `f84ac9b`. The registry is what keeps persist from importing the modules whose state it saves |
+| 17 | `ui/panels`, `ui/sections` | **done** `09fd944` `f84ac9b` |
+| 18 | `ui/hud` | **done** `0024312` `82a1ec7`. The whole control block moved as ONE function so nothing could be reordered — see below |
+| 19 | `render/camera`, `ui/scenarios` | **done** `bbe2dec` `b059793` |
+| 20 | `ui/qr`, `ui/debug` | **done** `f84ac9b`. The door drives the overlay, so the encoder takes its payload as an injection rather than importing the exporter |
+| 21 | `render/probe`, `render/frame` — `frame()` becomes a sequencer | **done** `09fd944` `0024312`. The per-frame context was discovered, not designed |
+| 22 | `main.ts` is only boot | **done.** 553 lines: imports, five clock wrappers, the boot order, the tail |
+| 23 | cleanup, separately, each its own commit | **not started, and that is correct.** Dead bindings, the `USN`/`USUN` rename, a shared `noise.glsl`. R28 is explicit that none of it is part of the migration |
 
-One more item is open and belongs to no step: the `show*` toggles are still top-level `let`s in
-main.ts. They go with `ui/`, not with `render/state`.
+The `show*` toggles belonged to no step. They are fields on `ui/hud`'s `hud` object now — with
+`ui/`, as `00-PLAN.md` said, not with `render/state`.
 
 ## The shape of it
 
@@ -200,68 +205,89 @@ Every entry gated. "Gate" means the parity suite green — see above for what th
 | check-build rejects a rename that reached into prose | `7a7d506` |
 | `render/passes/sun` — the disc and the shed envelope | `1e2ecc4` |
 | `render/passes/rings`; `belts` takes back the Oort shell | `db915dc` |
+| `passes/globe`, and step 10's three programs | `a2c8f5f` |
+| the clouds; main.ts stops importing GLSL at all | `52faa8e` |
+| `bodies`, `g710`, `eatflash` — the first passes to share `U` | `9a5e9d2` |
+| **step 13** — trails, labels, lifecycle; the life cycle covered first | `e43604c` |
+| theme, fullscreen, tour, panels, probe; a TDZ that killed the page | `09fd944` |
+| **step 16** — `ui/persist` with the registry; sections, qr, debug; 7 QR tests | `f84ac9b` |
+| `render/camera`, the `hud` object, and the id-literal guard | `bbe2dec` |
+| **step 21** — `frame()` leaves; the readouts go to `ui/hud` | `0024312` |
+| **step 19** — `ui/scenarios` | `b059793` |
+| **step 18** — `ui/hud` takes the controls, and R1 survives | `82a1ec7` |
+| **step 11's last piece** — `scene/cache` | `4d629b1` |
 
 ### Where the code lives now
 
 ```
+main.ts                                                        imports, wrappers, boot
 core/     errorlog build mat4 rng dom format
-astro/    constants sun merger bodies environment earth g710    complete, pure
-scene/    starfield galaxy andromeda belts sky                  complete, pure
+astro/    constants sun merger bodies environment earth g710    pure
+scene/    starfield galaxy andromeda belts sky cache            pure
 gpu/      context program buffers
-render/   state trails labels lifecycle
+render/   state frame camera trails labels lifecycle probe
 render/passes/  points supernova remnant nebula dust belts rings
-                globe bodies tone sun g710 eatflash             complete
+                globe bodies tone sun g710 eatflash
 audio/    index
-ui/       tooltips
+ui/       hud persist panels sections scenarios tour tooltips
+          theme fullscreen qr debug
 ```
 
 `astro/` and `scene/` are finished and contain no DOM or GL reference at all — the boundary a
 WASM port would need, and the code the science projects rewrite.
 
-Tests: **173 unit, 10 boot, 23 parity.**
+Tests: **180 unit, 10 boot, 23 parity.**
 
-## Next
+## What is left
 
-Roughly half the file remains, and it is nearly all interface.
+**Nothing in the migration.** Steps 0–22 are done; step 23 is cleanup and R28 says explicitly
+that it is not part of this work. What remains is the merge, and the list is at the bottom of
+this file.
 
-1. **The interface** — about 1,500 lines: the panels and their layout, the sections, settings
-   persistence, the HUD, the scenarios, the tour, the debug door, the QR overlay. Steps 15–20,
-   and the only part of the migration where a mistake can be silent rather than loud.
-2. **`render/frame`** — step 21. `frame()` is down to the camera, the clock, the star-field
-   draw and a list of `draw*()` calls. What is left to invent is the per-frame context object,
-   and two of them exist already in embryo: `CloudFrame` in `passes/nebula` and the `lifeFrame`
-   literal in `frame()` itself. They were discovered from what the passes actually read, which
-   is what the plan asked for, and `render/frame` should build one object that satisfies both
-   rather than a third design.
-3. **main.ts as boot only**, then the cleanup step.
+The three projects the refactor was done FOR are the ones to pick up next, and they are
+checkboxes in `TODO.md` already: the Milky Way's and Andromeda's rotation against the
+measurements, the merger against the current simulations, and the Sun's expansion with the
+planetary nebula. `astro/` and `scene/` are pure and tested, which is what makes those
+possible without touching the renderer.
 
-The draw passes are finished. `render/passes/` holds thirteen modules and `frame()` issues
-one call each, in the order the picture requires: clouds, stars, galaxy, Andromeda, events,
-remnants, trails, belts, bodies, globe, Gliese 710, the Sun, the flares, the tone map. The
-only draw still written out inline is the star field and the Gaia catalogue, which is step 21's
-business because it is interleaved with the galaxy's own uniform setting.
+### The rule step 11 left behind
 
-**Step 11 is behind us**, and the rule it left behind still binds. The seven eval-time RNG consumers are seven explicit calls from `main.ts` in source order — `buildStarfield()` → `setGalaxy(1)` → asteroid belt → Kuiper → Oort → the trail pre-fill → the orbit rings — and the asteroid belt's Kirkwood rejection loop makes its draw count data-dependent, so anything that shifts the stream above it is unrecoverable. Any later step that adds a generator or moves one has to keep its place in that list. It fails on every state at once, which at least makes it impossible to miss.
+The seven eval-time RNG consumers are seven explicit calls from `main.ts` in source order —
+`buildStarfield()` → `setGalaxy(1)` → asteroid belt → Kuiper → Oort → the trail pre-fill → the
+orbit rings — and the asteroid belt's Kirkwood rejection loop makes its draw count
+data-dependent, so anything that shifts the stream above it is unrecoverable. Any change that
+adds a generator or moves one has to keep its place in that list. It fails on every state at
+once, which at least makes it impossible to miss.
 
-The step still to be careful with:
-
-- **Step 18**, `ui/hud`. `restoreSettings()` replays saved state through synthetic `input`/`change`/`click` events, so every listener must already be registered. Get the order wrong and the page boots clean, throws nothing, logs nothing, and renders with **default** settings. `00-PLAN.md` ranks it the highest-risk failure mode in the file. Every parity screenshot boots from the settings fixture partly so this shows up as pixels; `tests/e2e/boot.spec.ts` also asserts it directly.
-
-### What the gate cannot see, and what was done about it
+### What the gate cannot see
 
 The parity states have `tEvSN` and `tEvBirth` **off** — all twenty-three of them, because the
-events are opt-in and that is the honest default. So the entire stellar life cycle — the
-cluster, the supergiant, the blast, the expanding remnant, the fading white dwarf — was drawn
-by code no screenshot had ever exercised, and `render/lifecycle` would have moved on nothing
-but "it compiles".
-
-`tests/e2e/boot.spec.ts` now drives it: the multiplier to a million years a second, both
-switches on, and a wait for events and then for remnants to actually appear. `__gt.lifeCounts`
-exists so it has something to watch.
+events are opt-in and that is the honest default. So the entire stellar life cycle was drawn by
+code no screenshot had ever exercised. `tests/e2e/boot.spec.ts` drives it now: the multiplier to
+a million years a second, both switches on, and a wait for events and then remnants to appear.
 
 **Assume there is more of this.** Anything a settings fixture switches off is invisible to the
-gate, and the fixture is a snapshot of one plausible visitor. Before moving a block, check
-whether any state actually runs it.
+gate, and the fixture is one plausible visitor, not a survey.
+
+### The five contexts a mechanical rename has been wrong in
+
+Identifiers inside strings; element ids; object-literal property shorthand; local shadows; and
+the word inside an English sentence. Every one shipped or broke a build before its guard
+existed, and three of them happened during this migration:
+
+- `audio` → `sound.graph` reached into the tour's own description of the settings panel, and
+  shipped. `check-build` now rejects an article followed by a state singleton and a property.
+- `hudHz` → `hud.hudHz` reached inside `$('hudHz')`. tsc and check-names both passed; the page
+  died on a null at boot. The boot suite now pulls every id literal out of the BUILT page and
+  checks it resolves.
+- The same rename broke seven object-literal shorthands, which the build caught in a second.
+
+**The guard for the second one was decoration on its first attempt.** Its pattern required
+`[A-Za-z][\w-]*`, so `'hud.hudHz'` did not match it — it passed cleanly against the exact bug
+it was written for. That only came out by mutating the built file to put the bug back and
+checking the test went red. Do that. A guard you have not seen fail is a guess.
+
+Assume there is a sixth context.
 
 ## Decisions made along the way
 
@@ -273,11 +299,11 @@ whether any state actually runs it.
 
 ## Outstanding before this can merge to `main`
 
-- Steps 10, the rest of 12, 13, the rest of 15, and 16–23 — the ledger at the top says what each one is.
-- Version → **3.0.0**: `BUILD.version` in the page *and* the cache name in `sw.js`. `check-build.mjs` asserts they agree.
-- `AGENTS.md` — a section on the new layout, the gate, and the reproducibility pins.
-- `TODO.md` — tick the refactor checkbox, naming the version.
-- `index.md` — it links the page's files and has not been touched yet; the whole `src/` tree is new.
-- `CHANGELOG.md` — regenerated with `python3 ../.github/scripts/build_changelog.py` **after** the commit it describes, as its own commit.
-- A CI workflow rebuilding `galactic-transit.html` on pushes touching `astro-visuals/src/**`, following the repository's auto-rebuild convention: `permissions: contents: write`, and a `paths:` filter naming only the sources so the bot's own commit does not retrigger it.
+- ~~Version → **3.0.0**~~ done: `BUILD.version` and `sw.js`'s cache name, which `check-build.mjs` asserts agree.
+- ~~`AGENTS.md`~~ done: the layout, the commands, the four checks, the gate and the pins.
+- ~~`TODO.md`~~ done: ticked, naming v3.0.0.
+- ~~`index.md`~~ done: `src/` is the source, the page is the artifact, and how to build it.
+- `CHANGELOG.md` — regenerate with `python3 ../.github/scripts/build_changelog.py` **after** the commit it describes, as its own commit.
+- **The full 23-state gate**, which the per-step runs deliberately were not.
+- ~~A CI workflow~~ done: `.github/workflows/astro-visuals-page.yml`. Its own file rather than a job in `astro-visuals.yml`, because a workflow's `paths:` filter cannot be per-job.
 - Merge is `main` fast-forwarded to this branch, per the repo's git workflow. No pull request.

@@ -112,6 +112,24 @@ The build renders it to `changelog.html`, which the panel footer links to.
 
 ## Files
 
+- [`src/`](src/) — **where `galactic-transit.html` comes from.** Since v3.0.0 the page is
+  the artifact, not the source: Vite bundles `src/` back into that one self-contained file,
+  in place, so `sw.js` still caches it by name and every bookmark still works. Edit `src/`;
+  a change made in the built page is lost the next time it is rebuilt. 55 modules —
+  `astro/` and `scene/` are pure functions with no DOM and no GL, `render/` and
+  `render/passes/` are the drawing, `ui/` is the interface, `shaders/` and `styles/` are the
+  GLSL and the CSS as files a syntax highlighter can read.
+- [`package.json`](package.json) — the build and the checks: `npm run check` (types, and
+  that every name resolves), `npm test` (180 unit tests), `npm run build` (the page, plus
+  assertions about what came out), `npm run e2e` (a boot suite, and a screenshot-parity
+  suite against the pre-refactor page). `npm run verify` is all of them.
+- [`tests/`](tests/) — the parity gate and the boot suite. The gate photographs the pinned
+  pre-refactor build and the current one back to back and requires them to agree, which is
+  how a refactor this size was done without moving a pixel.
+- [`docs/refactor/inventory/`](docs/refactor/inventory/) — the plan the migration followed
+  and the thirteen inventories it was written from.
+- [`MIGRATE-STATE.md`](MIGRATE-STATE.md) — where that work got to, what it learned, and the
+  things that will waste a day if you do not know them.
 - [`icon.svg`](icon.svg) — the *Galactic Transit* emblem, hand-authored as vector
   (with Orbitron embedded so the lettering renders identically everywhere) and
   rasterised to the PNG sizes the manifest needs (favicons, the Apple touch icon,
@@ -163,12 +181,26 @@ end-to-end on synthetic data. To light it up:
 
 ## Running locally
 
-No build step and no internet access needed — just open a page directly:
+**To look at them**, no build step and no internet access is needed — open a page directly:
 
 ```bash
 xdg-open solar-system.html      # Linux
 open galactic-transit.html      # macOS
 ```
+
+**To change Galactic Transit**, work in `src/` and rebuild:
+
+```bash
+cd astro-visuals
+npm install
+npm run build                   # → galactic-transit.html, in place
+npm run check && npm test       # types, names, 180 unit tests
+```
+
+The screenshot-parity suite needs a browser (`npx playwright install chromium`, no
+`--with-deps`) and takes half an hour or more; `PARITY_SCOPE=fast npm run e2e` runs a
+five-state subset. `.github/workflows/astro-visuals-page.yml` rebuilds the page on every
+push that touches the sources, so the committed artifact cannot drift from them.
 
 ## History
 

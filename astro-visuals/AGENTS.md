@@ -28,6 +28,115 @@ built it.
   SwiftShader flags). Report honest, measured numbers; SwiftShader runs ~6 fps and
   stretches CSS transitions, so slow measurements there are artefacts, not bugs.
 
+## The page is built from `src/` now (v3.0.0)
+
+`galactic-transit.html` used to BE the source: one file, six and a half thousand lines,
+edited in place. **It is now the artifact.** Vite bundles `src/` back into exactly that one
+self-contained file, in place, so `sw.js` still caches it by name, `build_site.py` still
+substitutes the build stamp into it, and every bookmark still works. Nothing about the
+deployed page's shape changed.
+
+**Edit `src/`, never `galactic-transit.html`.** A change made in the artifact is lost the next
+time anything runs `npm run build`, and `.github/workflows/astro-visuals-page.yml` rebuilds it
+on every push that touches the sources.
+
+```
+src/
+  main.ts        the boot sequence, and nothing else
+  core/          errorlog build mat4 rng dom format        no DOM beyond $, no GL
+  astro/         constants bodies sun earth environment merger g710   pure
+  scene/         starfield galaxy andromeda belts sky cache           pure
+  gpu/           context program buffers
+  render/        state frame camera trails labels lifecycle probe
+  render/passes/ points supernova remnant nebula dust belts rings
+                 globe bodies tone sun g710 eatflash
+  audio/         index
+  ui/            hud persist panels sections scenarios tour tooltips
+                 theme fullscreen qr debug
+  shaders/       23 × .glsl, imported with Vite's ?raw
+  styles/        base panels dialogs hud
+```
+
+`astro/` and `scene/` contain no DOM or GL reference at all. That is the boundary a WASM port
+would need, and the code the science projects rewrite.
+
+### The commands
+
+| command | what it does | cost |
+| --- | --- | --- |
+| `npm run check` | `tsc --noEmit`, then `scripts/check-names.mjs` | seconds |
+| `npm test` | 180 unit tests | about a second |
+| `npm run build` | Vite → `galactic-transit.html`, then `scripts/check-build.mjs` | seconds |
+| `npm run e2e` | 10 boot tests + 23 parity states | 35 min to 2 h |
+| `PARITY_SCOPE=fast npm run e2e` | the boot tests + a 5-state subset | 15–40 min |
+| `npx playwright test --project=parity --grep '<ids>'` | the states a change touches | ~2 min each |
+
+`npm run verify` is all of it in order.
+
+### Four checks that exist because something got through
+
+- **`scripts/check-names.mjs`** type-checks a copy of `main.ts` with `@ts-nocheck` stripped and
+  reports only "cannot find name". Take a helper out and leave a caller behind and nothing else
+  complains until the page reaches that line.
+- **`scripts/check-build.mjs`** asserts the emitted page is one file, that the build-stamp
+  placeholders survived, that exactly one WebGL2 context is created, that the version matches
+  `sw.js`, and that no rename leaked into English prose ("the sound.graph" shipped once).
+- **"every id literal in the built page resolves"** in the boot suite. A mechanical rename can
+  invent an id — `$('hudHz')` became `$('hud.hudHz')` — and neither tsc nor check-names can see
+  inside a string.
+- **The parity gate.** See below.
+
+### A mechanical rename has been wrong in five distinct contexts
+
+Identifiers inside strings; element ids; object-literal property shorthand; local shadows; and
+the word inside an English sentence. Each got its guard only after it had already shipped or
+broken a build. **Assume there is a sixth.** Before running one, decide how you will find out
+if it went wrong, and prefer the compiler and the build over reading the diff.
+
+## The parity gate
+
+`tests/e2e/parity.spec.ts` photographs the pinned pre-refactor page (`fd0f980`, v2.78.0) and
+the built page back to back and compares them. It is what says the refactor changed nothing,
+and it stays useful for any change that is supposed to be invisible.
+
+- **There are no stored baselines.** Both shots are taken moments apart, on the same machine,
+  under the same load. Storing reference PNGs was the source of every unexplained failure in
+  this project: three times a state differed by tens of thousands of pixels and three times the
+  stored reference was the odd one out.
+- **On a mismatch it runs its own control**, re-photographing BOTH builds and requiring each to
+  reproduce itself. If either cannot, the state reports as INCONCLUSIVE rather than as a
+  rendering change — re-run that state alone. Roughly one state in ten comes out this way.
+- **Tolerance is on AREA, not amplitude.** Everything that has ever been a real mistake covered
+  at least 5% of the frame; harness wobble and a real error both reach max Δ238. A difference
+  passes only if it touches ≤0.05% of the frame at any amplitude, or stays within Δ1 across
+  under 1%.
+- **The first visit is not photographed.** The probe measures the machine, so two shots can
+  honestly disagree. `boot.spec.ts` asserts it instead.
+- **What the fixture switches off, the gate cannot see.** `tEvSN` and `tEvBirth` are off in all
+  23 states, so the whole stellar life cycle is invisible to it — that is why `boot.spec.ts`
+  drives those switches directly. Before trusting the gate on a block, check that some state
+  actually runs it.
+
+### Reproducibility pins — do not undo any of these
+
+They live in `tests/harness/session.ts`, and each cost a run or several to find.
+
+- **`Math.random` is seeded**, so the generators may not be reorganised: the gate compares a
+  seeded stream, and the order and count of draws is part of the picture. Seven things consume
+  randomness at boot, in this order: `buildStarfield()` → `setGalaxy(1)` → asteroids → Kuiper →
+  Oort → the trail pre-fill → the orbit rings. The asteroid belt's Kirkwood rejection loop makes
+  its draw count data-dependent, so anything that shifts the stream above it is unrecoverable.
+- **`Date` is frozen**, and a settings fixture is written before boot — an unpinned profile runs
+  the performance probe and draws a different number of stars.
+- **The five data fetches are serialised**: both map loaders call `setGalaxy()` from their
+  `.then()`, so which one wins the race decides where the PRNG stands.
+- **The frame clock is virtual, ticks once per real frame, and starts stopped.**
+- **Every capture gets its own browser process, and one worker.** A software rasteriser
+  accumulating state across two dozen WebGL contexts in one process differs from itself by 16%.
+
+Two page-specific traps: `#tPause` carries class `on` while the piece is **running**, and
+dismissing the first-run tour **starts** the clock, so pausing has to come after.
+
 ## The emblem and the icons
 
 - The emblem is **Galactic Transit** — the wordmark on `icon.svg`'s arc, the manifest's
