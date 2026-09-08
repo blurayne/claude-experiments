@@ -59,6 +59,10 @@ import {
 } from './scene/andromeda'
 import { buildBelts, AB_N, KB_N, OO_N } from './scene/belts'
 import { parseStarBin } from './scene/sky'
+import {
+  sound, fxOn, TRACKS, initAudio, showTrack, playTrack, loadTrack, nextTrack,
+  armUnlock, loadBanks, playBank, sfx, applySfxGain, player,
+} from './audio/index'
 import { g710 as g710At, G710_AT, G710_PERI, G710_V, G710_DIR, G710_OFF } from './astro/g710'
 
 // The clock lives here; the encounter does not.
@@ -645,179 +649,6 @@ const wasEaten = [false,false,false,false], eatFlash = [-1,-1,-1,-1];   // -1: n
 let varOn = true; // variability clock (wall time, runs even when paused)
 
 // ---------- sound: everything synthesized live via Web Audio — no samples, still one file ----------
-let soundOn = false, sfxVol = 0, audio = null;   // silence is the off position
-const sfxLast = {};
-function initAudio(){
-  const ctx = new (window.AudioContext||window.webkitAudioContext)();
-  const comp = ctx.createDynamicsCompressor(); comp.connect(ctx.destination);
-  const master = ctx.createGain(); master.gain.value = soundOn?sfxVol:0; master.connect(comp);
-  // Ambient drone. It needs energy above ~150 Hz or laptop and phone speakers reproduce
-  // nothing at all, so the deep sines carry a set of quieter mid partials with them.
-  const droneG = ctx.createGain(); droneG.gain.value = 1; droneG.connect(master);
-  const padG = ctx.createGain(); padG.gain.value = 0.20; padG.connect(droneG);
-  for(const [f,g0] of [[55,0.34],[55.6,0.34],[110.4,0.26],[165.3,0.15],[220.6,0.10],[330.9,0.05]]){
-    const o = ctx.createOscillator(); o.type='sine'; o.frequency.value = f;
-    const g = ctx.createGain(); g.gain.value = g0;
-    o.connect(g); g.connect(padG); o.start();
-  }
-  const nbuf = ctx.createBuffer(1, ctx.sampleRate*4, ctx.sampleRate);
-  const nd = nbuf.getChannelData(0); let v = 0;
-  for(let i=0;i<nd.length;i++){ v = v*0.98 + (Math.random()*2-1)*0.04; nd[i] = v*6; }
-  const ns = ctx.createBufferSource(); ns.buffer = nbuf; ns.loop = true;
-  const nf = ctx.createBiquadFilter(); nf.type='lowpass'; nf.frequency.value = 140;
-  const ng = ctx.createGain(); ng.gain.value = 0.5;
-  ns.connect(nf); nf.connect(ng); ng.connect(padG); ns.start();
-  const lfo = ctx.createOscillator(); lfo.frequency.value = 0.05;
-  const lg = ctx.createGain(); lg.gain.value = 0.06;
-  lfo.connect(lg); lg.connect(padG.gain); lfo.start();
-  return {ctx, master, comp, droneG};
-}
-// background music: two ambient tracks shipped alongside this page (music/*.mp3).
-// Kept as separate files rather than embedded: 10 MB of base64 would bloat the HTML
-// past any sane single-file limit, and this way nothing is fetched until music is on.
-const TRACKS = [
-  {src:'music/galactic-year-remix-1.mp3', name:'Galactic Year — Remix I'},
-  {src:'music/galactic-year-1.mp3', name:'Galactic Year I'},
-  {src:'music/galactic-year-2.mp3', name:'Galactic Year II'},
-];
-let musicOn = true, musicVol = 0.40, trackIx = 0;
-const player = new Audio();
-player.preload = 'none';
-player.volume = musicVol;
-player.addEventListener('ended', ()=> nextTrack());
-player.addEventListener('error', ()=>{ $('trackName').textContent = 'track unavailable'; });
-function showTrack(){ $('trackName').textContent = (trackIx+1)+'/'+TRACKS.length+' · '+TRACKS[trackIx].name; }
-function playTrack(){
-  if(!musicOn) return null;
-  const q = player.play();
-  if(q && q.catch) q.catch(()=> armUnlock()); // autoplay blocked until the first gesture
-  return q;                                   // handed back so the unlock can wait on it
-}
-function loadTrack(i){
-  trackIx = (i + TRACKS.length) % TRACKS.length;
-  player.src = TRACKS[trackIx].src;
-  showTrack();
-  return playTrack();
-}
-function nextTrack(){ loadTrack(trackIx + 1); }
-// Browsers refuse audio before a user gesture, so anything on by default waits for one.
-// It waits for ANY of these — a phone that reports only touchend, a keyboard, a click on
-// a control that swallowed the pointerdown — and it keeps waiting until the audio is
-// genuinely playing. The old version stood down on the first gesture whether or not the
-// play succeeded, so one refused attempt (and a refusal is ordinary: a gesture the
-// browser judges too old, a media element still loading) left the music dead for the
-// rest of the visit with nothing left listening to try again.
-const UNLOCK_EVENTS = ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown'];
-let unlockArmed = false;
-function armUnlock(){
-  if(unlockArmed) return;
-  unlockArmed = true;
-  const disarm = ()=>{
-    if(!unlockArmed) return;
-    unlockArmed = false;
-    for(const t of UNLOCK_EVENTS) removeEventListener(t, go);
-  };
-  const go = ()=>{
-    if(audio) audio.ctx.resume().catch(()=>{});
-    loadBanks();                       // the samples may have been waiting on the context too
-    if(!musicOn){ disarm(); return; }
-    const q = player.src ? playTrack() : loadTrack(trackIx);
-    if(q && q.then) q.then(disarm, ()=>{});   // still armed if it was refused: try the next gesture
-    else disarm();
-  };
-  for(const t of UNLOCK_EVENTS) addEventListener(t, go);
-}
-// Recorded sample banks: five supernova blasts and four soft star ignitions, each
-// picked at random with a slight detune so repeats never sound looped. Decoded through
-// the audio graph where fetch is allowed, so the effects volume and compressor still
-// apply; opened straight from disk (file://) fetch is blocked and plain media elements
-// stand in.
-const BANKS = {
-  sn:    { src:[1,2,3,4,5].map(i=>'sfx/supernova-'+i+'.mp3'), gain:0.80, max:3, bufs:null, els:null, voices:0 },
-  birth: { src:[1,2,3,4].map(i=>'sfx/ignition-'+i+'.mp3'),    gain:0.62, max:5, bufs:null, els:null, voices:0 },
-};
-// `banksTried` used to latch before the work, so a single failed or — worse — never
-// settling decode killed the samples for the whole visit: the catch that installs the
-// <audio> fallback only runs on a rejection, and decodeAudioData on a context the
-// browser has interrupted can simply never settle either way. Now the latch is only
-// held while an attempt is in flight, a timer installs the fallback if nothing has
-// arrived, and every sfx() is free to ask again.
-let banksLoading = false;
-const banksDone = b => !!(b.bufs || b.els);
-function elFallback(b){ if(!banksDone(b)) b.els = b.src.map(s=>{ const a=new Audio(s); a.preload='auto'; return a; }); }
-function loadBanks(){
-  if(banksLoading || !audio) return;
-  const todo = Object.values(BANKS).filter(b => !banksDone(b));
-  if(!todo.length) return;
-  banksLoading = true;
-  let left = todo.length;
-  const done = ()=>{ if(--left === 0) banksLoading = false; };
-  for(const b of todo){
-    Promise.all(b.src.map(s => fetch(s).then(r=>r.arrayBuffer()).then(a=>audio.ctx.decodeAudioData(a))))
-      .then(bs => { b.bufs = bs; }, () => elFallback(b))
-      .then(done, done);
-  }
-  setTimeout(()=>{ banksLoading = false; todo.forEach(elFallback); }, 6000);
-}
-function playBank(k){
-  const b = BANKS[k];
-  if(!b) return false;
-  const {ctx, master} = audio;
-  if(b.bufs){
-    if(b.voices >= b.max) return true; // already thick; skip rather than stack
-    const src = ctx.createBufferSource();
-    src.buffer = b.bufs[(Math.random()*b.bufs.length)|0];
-    src.playbackRate.value = 0.93 + Math.random()*0.14;
-    const g = ctx.createGain(); g.gain.value = b.gain;
-    src.connect(g); g.connect(master); src.start(ctx.currentTime);
-    b.voices++; src.onended = ()=>{ b.voices--; };
-    return true;
-  }
-  if(b.els){
-    const a = b.els[(Math.random()*b.els.length)|0].cloneNode();
-    a.volume = Math.min(1, sfxVol*b.gain*1.4); a.play().catch(()=>{});
-    return true;
-  }
-  return false; // not loaded yet
-}
-const fxOn = {birth:true, sn:true, pn:true, drone:true};
-function sfx(kind){
-  if(!soundOn || !audio || !fxOn[kind]) return;
-  if(BANKS[kind] && !banksDone(BANKS[kind])) loadBanks();   // never gave up on them
-  const {ctx, master} = audio, t = ctx.currentTime;
-  const gap = {sn:1.4, birth:0.45, pn:0.25}[kind]; // blasts run 7.7 s: don't let them pile up
-  if(sfxLast[kind] && t - sfxLast[kind] < gap) return;
-  sfxLast[kind] = t;
-  if(kind==='birth'){ // a soft ignition; silent until the samples are decoded
-    playBank('birth');
-    return;
-  }
-  if(kind==='sn'){ // the immense one: a recorded blast, or the synth until they load
-    if(playBank('sn')) return;
-    const o = ctx.createOscillator(); o.type='sine';
-    o.frequency.setValueAtTime(90,t); o.frequency.exponentialRampToValueAtTime(28,t+1.6);
-    const g = ctx.createGain(); g.gain.setValueAtTime(0.0001,t);
-    g.gain.exponentialRampToValueAtTime(0.5,t+0.08); g.gain.exponentialRampToValueAtTime(0.0001,t+2.6);
-    o.connect(g); g.connect(master); o.start(t); o.stop(t+2.7);
-    const nb = ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate), nd2 = nb.getChannelData(0);
-    for(let i=0;i<nd2.length;i++) nd2[i] = Math.random()*2-1;
-    const s2 = ctx.createBufferSource(); s2.buffer = nb;
-    const f = ctx.createBiquadFilter(); f.type='lowpass';
-    f.frequency.setValueAtTime(2400,t); f.frequency.exponentialRampToValueAtTime(60,t+2.0);
-    const g2 = ctx.createGain(); g2.gain.setValueAtTime(0.0001,t);
-    g2.gain.exponentialRampToValueAtTime(0.35,t+0.05); g2.gain.exponentialRampToValueAtTime(0.0001,t+2.2);
-    s2.connect(f); f.connect(g2); g2.connect(master); s2.start(t); s2.stop(t+2.2);
-  } else if(kind==='pn'){ // planetary nebula: an airy exhale
-    const nb = ctx.createBuffer(1,ctx.sampleRate*1.4,ctx.sampleRate), nd2 = nb.getChannelData(0);
-    for(let i=0;i<nd2.length;i++) nd2[i] = Math.random()*2-1;
-    const s2 = ctx.createBufferSource(); s2.buffer = nb;
-    const f = ctx.createBiquadFilter(); f.type='bandpass'; f.Q.value = 1.6;
-    f.frequency.setValueAtTime(700,t); f.frequency.exponentialRampToValueAtTime(240,t+1.2);
-    const g = ctx.createGain(); g.gain.setValueAtTime(0.0001,t);
-    g.gain.exponentialRampToValueAtTime(1.10,t+0.35); g.gain.exponentialRampToValueAtTime(0.0001,t+1.3);
-    s2.connect(f); f.connect(g); g.connect(master); s2.start(t); s2.stop(t+1.4);
-  }
-}
 const EV_CAP = 1024, PUFF_CAP = 512;
 const evPos=new Float32Array(EV_CAP*3), evSize=new Float32Array(EV_CAP), evCol=new Float32Array(EV_CAP*3), evWave=new Float32Array(EV_CAP);
 const pfPos=new Float32Array(PUFF_CAP*3), pfSize=new Float32Array(PUFF_CAP), pfCol=new Float32Array(PUFF_CAP*3), pfWave=new Float32Array(PUFF_CAP);
@@ -1396,12 +1227,6 @@ $('focusGo').addEventListener('click', applyFocusView);   // re-apply the curren
 toggle($('tGaia'), on=> gfx.gaiaOn=on);
 toggle($('tFps'), on=>{ showFps=on; $('fpsBox').style.display = on ? '' : 'none'; fitPanels(); });
 const lifeSupOn = true;   // the reading is a fixture of the Earth panel now
-function applySfxGain(){
-  if(!audio) return;
-  const at=audio.ctx.currentTime;
-  audio.master.gain.cancelScheduledValues(at);
-  audio.master.gain.setTargetAtTime(soundOn?sfxVol:0.0, at, 0.3); // fade, never a click
-}
 // ---------- movable panels ----------
 // Four panels share two columns. Each carries a side and an open flag; the layout
 // stacks the open ones first, then the dots that reopen the closed ones — down the
@@ -1597,39 +1422,39 @@ function seg(id, initial, fn){
 // The volume slider is the switch: silence is off, and the audio graph is built the
 // first time it is raised, so a visitor who never asks for sound never pays for it.
 function setMusicVol(v){
-  musicVol = v; player.volume = v;
+  sound.musicVol = v; player.volume = v;
   $('musicVolv').textContent = v > 0 ? Math.round(v*100)+'%' : 'off';
   const want = v > 0;
-  if(want === musicOn) return;
-  musicOn = want;
-  if(want){ if(!player.src) loadTrack(trackIx); else playTrack(); }
+  if(want === sound.musicOn) return;
+  sound.musicOn = want;
+  if(want){ if(!player.src) loadTrack(sound.trackIx); else playTrack(); }
   else player.pause();
 }
 $('musicVol').addEventListener('input', e => setMusicVol(+e.target.value));
 $('tNext').addEventListener('click', ()=>{
   nextTrack();
   // asking for the next track means you want music: give it back its default level
-  if(!musicOn){ $('musicVol').value = 0.4; setMusicVol(0.4); saveSettings(); }
+  if(!sound.musicOn){ $('musicVol').value = 0.4; setMusicVol(0.4); saveSettings(); }
 });
 for(const [id,key] of [['fxBirth','birth'],['fxSn','sn'],['fxPn','pn'],['fxDrone','drone']]){
   $(id).addEventListener('change', e=>{
     fxOn[key] = e.target.checked;
-    if(key==='drone' && audio){
-      const at = audio.ctx.currentTime;
-      audio.droneG.gain.cancelScheduledValues(at);
-      audio.droneG.gain.setTargetAtTime(e.target.checked?1:0, at, 0.4);
+    if(key==='drone' && sound.graph){
+      const at = sound.graph.ctx.currentTime;
+      sound.graph.droneG.gain.cancelScheduledValues(at);
+      sound.graph.droneG.gain.setTargetAtTime(e.target.checked?1:0, at, 0.4);
     }
   });
 }
 function setSfxVol(v){
-  sfxVol = v;
+  sound.sfxVol = v;
   $('sfxVolv').textContent = v > 0 ? Math.round(v*100)+'%' : 'off';
-  if(v > 0 && !soundOn){
-    soundOn = true;
-    if(!audio) audio = initAudio();
-    if(audio) audio.ctx.resume().catch(()=>armUnlock());
+  if(v > 0 && !sound.soundOn){
+    sound.soundOn = true;
+    if(!sound.graph) sound.graph = initAudio();
+    if(sound.graph) sound.graph.ctx.resume().catch(()=>armUnlock());
     loadBanks();
-  } else if(v === 0) soundOn = false;
+  } else if(v === 0) sound.soundOn = false;
   applySfxGain();
 }
 $('sfxVol').addEventListener('input', e => setSfxVol(+e.target.value));
@@ -2059,7 +1884,7 @@ const TOURKEY = 'galactic-transit.tour';
 const TOUR_HINTS = [
   { t:'env',      k:'Earth',      s:"Conditions on Earth as the Galaxy carries it, and what the view is centred on." },
   { t:'simPanel', k:'Simulation', s:"The pace of the clock, and the scenarios worth watching." },
-  { t:'hud',      k:'Settings',   s:"Everything else: what is drawn, the audio, the readouts." },
+  { t:'hud',      k:'Settings',   s:"Everything else: what is drawn, the sound.graph, the readouts." },
   { t:'tLabelsAll', k:'Labels',   s:"Every on-screen label at once — planets, galaxy arms, Andromeda and its companions." },
   { t:'tInfo',    k:'About',      s:"This text again, with the notes on what is measured and what is modelled." },
   { t:'zoomIn',   k:'Zoom',       s:"In or out, object to object: two presses take the view from one scale to the next." },
@@ -2440,17 +2265,17 @@ let hiddenState = null;
 document.addEventListener('visibilitychange', ()=>{
   if(document.hidden){
     if(hiddenState) return;             // some browsers fire it more than once
-    hiddenState = { sim: !simClock.paused, music: musicOn && !!player.src, audio: !!audio };
+    hiddenState = { sim: !simClock.paused, music: sound.musicOn && !!player.src, audio: !!sound.graph };
     if(hiddenState.sim) $('tPause').click();
     if(hiddenState.music) player.pause();   // harmless if the browser got there first
-    if(audio && audio.ctx.state === 'running') audio.ctx.suspend().catch(()=>{});
+    if(sound.graph && sound.graph.ctx.state === 'running') sound.graph.ctx.suspend().catch(()=>{});
   } else {
     const was = hiddenState; hiddenState = null;
     if(!was) return;
     if(was.sim && simClock.paused) $('tPause').click();
-    if(was.audio && audio && audio.ctx.state === 'suspended') audio.ctx.resume().catch(()=>{});
+    if(was.audio && sound.graph && sound.graph.ctx.state === 'suspended') sound.graph.ctx.resume().catch(()=>{});
     // play() can be refused after a long background; armUnlock retries on the next touch
-    if(was.music && musicOn && player.paused) player.play().catch(()=>armUnlock());
+    if(was.music && sound.musicOn && player.paused) player.play().catch(()=>armUnlock());
   }
 });
 
