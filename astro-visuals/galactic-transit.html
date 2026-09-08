@@ -1534,6 +1534,185 @@ const KB_N = 1600;
 const OO_N = 2400; // Oort cloud: symbolically close — really 2,000–100,000+ AU out
 
 /**
+ * The one WebGL2 context, and the one place that gives up if there is not one.
+ *
+ * Asking for a second context on the same canvas does NOT create one — the browser returns
+ * the existing context and silently ignores the attributes, so a second call with different
+ * antialias or alpha would appear to work and quietly do nothing. One module, one call;
+ * scripts/check-build.mjs asserts the emitted page contains exactly one getContext.
+ *
+ * The failure path replaces the whole body and throws. In a module that abort propagates to
+ * main.ts, which imports this first, so nothing downstream runs against a null context —
+ * which is what used to happen by accident when this was one long script.
+ */
+
+const canvasEl = document.getElementById('gl');                    
+const glCtx = canvasEl.getContext('webgl2', {antialias:true, alpha:false});
+if(!glCtx){ document.body.innerHTML = '<p style="padding:2em">WebGL2 is not available in this browser.</p>'; throw new Error('no webgl2'); }
+
+const canvas = canvasEl;
+const gl                         = glCtx;
+
+/**
+ * Compile and link. Both throw on failure rather than returning null, because a program that
+ * failed to link draws nothing and reports nothing — the canvas is simply black, and the
+ * info log is the only thing that says why.
+ *
+ * The uniform-location tables stay hand-written at their call sites and are NOT harvested by
+ * a helper here. They are not interchangeable: UN omits uVelT/uMinB/uFadeOut, UD omits those
+ * plus uTime/uVarMode, and the GL default of zero for the missing ones is load-bearing —
+ * attribute location 4 (aVel) is never enabled by any VAO, so unioning the key lists would
+ * give nebulae and dust a proper-motion shear they have never had.
+ */
+
+function sh(type        , src        )              {
+  const s=gl.createShader(type) ; gl.shaderSource(s,src); gl.compileShader(s);
+  if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s) ?? 'shader failed to compile, with no info log');
+  return s;
+}
+function prog(vs        , fs        )               {
+  const p=gl.createProgram() ;
+  gl.attachShader(p,sh(gl.VERTEX_SHADER,vs)); gl.attachShader(p,sh(gl.FRAGMENT_SHADER,fs));
+  gl.linkProgram(p);
+  if(!gl.getProgramParameter(p,gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p) ?? 'program failed to link, with no info log');
+  return p;
+}
+
+const AB_VS = "#version 300 es\nlayout(location=0) in vec2 aRT;  // orbit radius, initial angle\nlayout(location=1) in float aH;  // offset along the ecliptic normal\nlayout(location=2) in float aSz;\nlayout(location=3) in float aP;  // real orbital period, years\nuniform mat4 uProj,uView; uniform float uPx,uT,uS;\nuniform vec3 uSun,uE1,uE2,uEN;\nvoid main(){\n  float a = aRT.y + uT*6.28318/aP;\n  vec3 p = uSun + (cos(a)*aRT.x*uS)*uE1 + (sin(a)*aRT.x*uS)*uE2 + aH*uS*uEN;\n  vec4 mv=uView*vec4(p,1.0); gl_Position=uProj*mv;\n  gl_PointSize=clamp(aSz*uS*uPx/max(1e-9,-mv.z),1.0,6.0);\n}";
+
+const KB_VS = "#version 300 es\nlayout(location=0) in vec2 aRT;  // orbit radius, initial angle\nlayout(location=1) in float aH;  // offset along the ecliptic normal\nlayout(location=2) in float aSz;\nuniform mat4 uProj,uView; uniform float uPx,uT,uS;\nuniform vec3 uSun,uE1,uE2,uEN;\nvoid main(){\n  float a = aRT.y + uT*6.28318/(165.0*pow(aRT.x/38.5,1.5)); // Kepler-scaled periods vs Neptune\n  vec3 p = uSun + (cos(a)*aRT.x*uS)*uE1 + (sin(a)*aRT.x*uS)*uE2 + aH*uS*uEN;\n  vec4 mv=uView*vec4(p,1.0); gl_Position=uProj*mv;\n  gl_PointSize=clamp(aSz*uS*uPx/max(1e-9,-mv.z),1.0,9.0);\n}";
+
+const OO_VS = "#version 300 es\nlayout(location=0) in vec3 aOff;\nlayout(location=1) in float aSz;\nuniform mat4 uProj,uView; uniform float uPx,uS; uniform vec3 uSun;\nvoid main(){\n  vec4 mv=uView*vec4(uSun+aOff*uS,1.0); gl_Position=uProj*mv;\n  gl_PointSize=clamp(aSz*uS*uPx/max(1e-9,-mv.z),1.0,6.0);\n}";
+
+const BELT_FS = "#version 300 es\nprecision mediump float; uniform vec3 uColor; uniform float uAlpha; out vec4 o;\nvoid main(){ vec2 q=gl_PointCoord*2.0-1.0; float r=length(q); if(r>1.0) discard;\n  float a=smoothstep(1.0,0.0,r)*uAlpha; o=vec4(uColor*a,a); }";
+
+/**
+ * The three populations that follow the Sun: the asteroid belt, the Kuiper belt and the Oort
+ * cloud. Static geometry, carried round by the vertex shader from a radius, an angle and a
+ * Kepler period rather than re-integrated every frame.
+ *
+ * They fade as the camera pulls out, and that is not decoration. Past the point where a whole
+ * belt spans a couple of dozen pixels its points pile up additively into a false bright blob
+ * sitting on the Sun's own pixel.
+ *
+ * Programs, uniform tables, vertex arrays and the draw all live together — the shape the rest
+ * of the passes will take. The three tables stay hand-written: they genuinely differ, since
+ * the Oort cloud has neither an orbital plane nor a time, and a generic harvester would union
+ * the key lists and hand the shaders defaults they were never written to receive.
+ */
+
+const pKB = prog(KB_VS, BELT_FS), pOO = prog(OO_VS, BELT_FS), pAB = prog(AB_VS, BELT_FS);
+const UA                                              = {}; for(const k of ['uProj','uView','uPx','uT','uS','uSun','uE1','uE2','uEN','uColor','uAlpha']) UA[k]=gl.getUniformLocation(pAB,k);
+const UK                                              = {}; for(const k of ['uProj','uView','uPx','uT','uS','uSun','uE1','uE2','uEN','uColor','uAlpha']) UK[k]=gl.getUniformLocation(pKB,k);
+const UO                                              = {}; for(const k of ['uProj','uView','uPx','uS','uSun','uColor','uAlpha']) UO[k]=gl.getUniformLocation(pOO,k);
+
+let vaoKB;                        
+let vaoOO;                        
+let vaoABr;                        
+
+/**
+ * Upload the belts. Called from main.ts rather than run at import: buildBelts() is the fourth
+ * of the seven things that consume randomness at boot, and generating here would move it in
+ * that sequence, which the seeded parity stream would notice immediately.
+ */
+function initBelts(b       )       {
+  const { abRT, abRTd, abH, abHd, abSz, abP, kbRT, kbH, kbSz, ooOff, ooSz } = b;
+  vaoKB = gl.createVertexArray() ; gl.bindVertexArray(vaoKB);
+  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer() ); gl.bufferData(gl.ARRAY_BUFFER,kbRT,gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer() ); gl.bufferData(gl.ARRAY_BUFFER,kbH,gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,1,gl.FLOAT,false,0,0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer() ); gl.bufferData(gl.ARRAY_BUFFER,kbSz,gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2,1,gl.FLOAT,false,0,0);
+  gl.bindVertexArray(null);
+  const bufAbSz=gl.createBuffer() ; gl.bindBuffer(gl.ARRAY_BUFFER,bufAbSz); gl.bufferData(gl.ARRAY_BUFFER,abSz,gl.STATIC_DRAW);
+  const bufAbP =gl.createBuffer() ; gl.bindBuffer(gl.ARRAY_BUFFER,bufAbP);  gl.bufferData(gl.ARRAY_BUFFER,abP,gl.STATIC_DRAW);
+  function beltVAO(rt              , h              )                         {
+    const vao=gl.createVertexArray() ; gl.bindVertexArray(vao);
+    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer() ); gl.bufferData(gl.ARRAY_BUFFER,rt,gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer() ); gl.bufferData(gl.ARRAY_BUFFER,h,gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,1,gl.FLOAT,false,0,0);
+    gl.bindBuffer(gl.ARRAY_BUFFER,bufAbSz); gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2,1,gl.FLOAT,false,0,0);
+    gl.bindBuffer(gl.ARRAY_BUFFER,bufAbP);  gl.enableVertexAttribArray(3); gl.vertexAttribPointer(3,1,gl.FLOAT,false,0,0);
+    gl.bindVertexArray(null); return vao;
+  }
+  vaoABr = beltVAO(abRT, abH); beltVAO(abRTd, abHd);
+  vaoOO = gl.createVertexArray() ; gl.bindVertexArray(vaoOO);
+  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer() ); gl.bufferData(gl.ARRAY_BUFFER,ooOff,gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer() ); gl.bufferData(gl.ARRAY_BUFFER,ooSz,gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,1,gl.FLOAT,false,0,0);
+  gl.bindVertexArray(null);
+}
+                       
+                       
+                 
+                 
+              
+                                                                                                
+                  
+                   
+                     
+                   
+ 
+
+function drawBelts(
+  { projMat, viewMat, pxScale, camDist, simT, g710Dist, showBelt, showKuiper, showOort }            ,
+)       {
+  // points would pile up additively into a false bright blob on the Sun's pixel.
+  const beltFade = (rw        ) => Math.max(0, Math.min(1, (rw/camDist*pxScale - 24)/50));
+  const abA = beltFade(2.7*AU2U );
+  const kbA = beltFade(45*AU2U );
+  const ooA = beltFade(130*OO_REAL );
+  if(showBelt && abA>0){
+    gl.useProgram(pAB);
+    gl.uniformMatrix4fv(UA.uProj,false,projMat);
+    gl.uniformMatrix4fv(UA.uView,false,viewMat);
+    // simT in float32 quantises the phase after ~1e5 years and the ring collapses
+    // into spokes; wrapped time (exact in f64, small in f32) keeps every phase clean.
+    // Anonymous specks reshuffling once per 65,536 years is invisible in a uniform ring.
+    gl.uniform1f(UA.uPx,pxScale); gl.uniform1f(UA.uT, simT % 65536);
+    gl.uniform1f(UA.uS, AU2U);
+    gl.uniform3f(UA.uSun,0,0,0);
+    gl.uniform3f(UA.uE1,E1[0],E1[1],E1[2]);
+    gl.uniform3f(UA.uE2,E2[0],E2[1],E2[2]);
+    gl.uniform3f(UA.uEN,EN[0],EN[1],EN[2]);
+    gl.uniform3f(UA.uColor,0.15,0.13,0.11); gl.uniform1f(UA.uAlpha,abA);
+    gl.bindVertexArray(vaoABr); gl.drawArrays(gl.POINTS,0,AB_N);
+  }
+  if(showKuiper && kbA>0){
+    gl.useProgram(pKB);
+    gl.uniformMatrix4fv(UK.uProj,false,projMat);
+    gl.uniformMatrix4fv(UK.uView,false,viewMat);
+    gl.uniform1f(UK.uPx,pxScale); gl.uniform1f(UK.uT, simT % 65536);
+    gl.uniform1f(UK.uS, AU2U); // real mode: the belt radii are AU
+    gl.uniform3f(UK.uSun,0,0,0);
+    gl.uniform3f(UK.uE1,E1[0],E1[1],E1[2]);
+    gl.uniform3f(UK.uE2,E2[0],E2[1],E2[2]);
+    gl.uniform3f(UK.uEN,EN[0],EN[1],EN[2]);
+    gl.uniform3f(UK.uColor,0.10,0.11,0.14); gl.uniform1f(UK.uAlpha,kbA);
+    gl.bindVertexArray(vaoKB); gl.drawArrays(gl.POINTS,0,KB_N);
+  }
+  if(showOort){ // rings always (they locate the shell); points fade via ooA
+    gl.useProgram(pOO);
+    gl.uniformMatrix4fv(UO.uProj,false,projMat);
+    gl.uniformMatrix4fv(UO.uView,false,viewMat);
+    gl.uniform1f(UO.uPx,pxScale);
+    gl.uniform1f(UO.uS, OO_REAL);
+    gl.uniform3f(UO.uSun,0,0,0);
+    // a passing star stirs the cloud: brighten it while Gliese 710 is inside
+    const stir = Math.min(1, Math.max(0, (1.9-g710Dist)/1.9));
+    gl.uniform3f(UO.uColor, 0.11+0.30*stir, 0.12+0.20*stir, 0.15+0.10*stir);
+    gl.uniform1f(UO.uAlpha,ooA);
+    gl.bindVertexArray(vaoOO); gl.drawArrays(gl.POINTS,0,OO_N);
+  }
+  // The wireframe hint of the shell's boundary stays in main.ts for now: it draws through
+  // pRing, which the orbit rings also use, and splitting a shared program across two modules
+  // would be worse than leaving one `if(showOort)` in two adjacent halves.
+}
+
+/**
  * The real sky: the local stars, as measured.
  * The 100,000 brightest stars from AT-HYG 3.2 (Tycho-2 merged with Gaia DR3): 98.7%
  * carry Gaia DR3 parallax distances, Hipparcos covers the bright ones Gaia saturates
@@ -1834,51 +2013,6 @@ function g710$1(ts        )               {                        // position r
 }
 
 /**
- * The one WebGL2 context, and the one place that gives up if there is not one.
- *
- * Asking for a second context on the same canvas does NOT create one — the browser returns
- * the existing context and silently ignores the attributes, so a second call with different
- * antialias or alpha would appear to work and quietly do nothing. One module, one call;
- * scripts/check-build.mjs asserts the emitted page contains exactly one getContext.
- *
- * The failure path replaces the whole body and throws. In a module that abort propagates to
- * main.ts, which imports this first, so nothing downstream runs against a null context —
- * which is what used to happen by accident when this was one long script.
- */
-
-const canvasEl = document.getElementById('gl');                    
-const glCtx = canvasEl.getContext('webgl2', {antialias:true, alpha:false});
-if(!glCtx){ document.body.innerHTML = '<p style="padding:2em">WebGL2 is not available in this browser.</p>'; throw new Error('no webgl2'); }
-
-const canvas = canvasEl;
-const gl                         = glCtx;
-
-/**
- * Compile and link. Both throw on failure rather than returning null, because a program that
- * failed to link draws nothing and reports nothing — the canvas is simply black, and the
- * info log is the only thing that says why.
- *
- * The uniform-location tables stay hand-written at their call sites and are NOT harvested by
- * a helper here. They are not interchangeable: UN omits uVelT/uMinB/uFadeOut, UD omits those
- * plus uTime/uVarMode, and the GL default of zero for the missing ones is load-bearing —
- * attribute location 4 (aVel) is never enabled by any VAO, so unioning the key lists would
- * give nebulae and dust a proper-motion shear they have never had.
- */
-
-function sh(type        , src        )              {
-  const s=gl.createShader(type) ; gl.shaderSource(s,src); gl.compileShader(s);
-  if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s) ?? 'shader failed to compile, with no info log');
-  return s;
-}
-function prog(vs        , fs        )               {
-  const p=gl.createProgram() ;
-  gl.attachShader(p,sh(gl.VERTEX_SHADER,vs)); gl.attachShader(p,sh(gl.FRAGMENT_SHADER,fs));
-  gl.linkProgram(p);
-  if(!gl.getProgramParameter(p,gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p) ?? 'program failed to link, with no info log');
-  return p;
-}
-
-/**
  * Vertex buffers and the vertex arrays that reference them.
  *
  * Deleting a vertex array does not free the buffers it points at, and at the heavy densities
@@ -1942,14 +2076,6 @@ const REM_FS = "#version 300 es\nprecision highp float;\nin vec3 vColor; in floa
 const NEB_FS = "#version 300 es\nprecision mediump float;\nuniform float uGFade;  // galaxy-haze pass only: dies away when the camera is in close\nin vec3 vColor; out vec4 o;\nvoid main(){\n  vec2 q = gl_PointCoord*2.0-1.0;\n  float r = length(q);\n  if(r>1.0) discard;\n  float a = pow(1.0-r, 2.1)*uGFade;\n  o = vec4(vColor*a, a);\n}";
 
 const DUST_FS = "#version 300 es\nprecision mediump float;\nin vec3 vColor; out vec4 o;\nvoid main(){\n  vec2 q = gl_PointCoord*2.0-1.0;\n  float r = length(q);\n  if(r>1.0) discard;\n  // never opaque at the centre: a cloud thins the haze behind it, it does not punch\n  // a black hole in it (that is what the old profile did, reaching alpha 1 and past)\n  // interstellar dust reddens: the blend multiplies what is behind by 1 − rgb, and the\n  // extinction runs A_R : A_V : A_B ≈ 0.82 : 1 : 1.32 (R_V = 3.1), so blue goes first\n  float a = min(0.72, pow(1.0-r, 2.4)*vColor.r);\n  o = vec4(a*vec3(0.62, 0.76, 1.0), a);\n}";
-
-const KB_VS = "#version 300 es\nlayout(location=0) in vec2 aRT;  // orbit radius, initial angle\nlayout(location=1) in float aH;  // offset along the ecliptic normal\nlayout(location=2) in float aSz;\nuniform mat4 uProj,uView; uniform float uPx,uT,uS;\nuniform vec3 uSun,uE1,uE2,uEN;\nvoid main(){\n  float a = aRT.y + uT*6.28318/(165.0*pow(aRT.x/38.5,1.5)); // Kepler-scaled periods vs Neptune\n  vec3 p = uSun + (cos(a)*aRT.x*uS)*uE1 + (sin(a)*aRT.x*uS)*uE2 + aH*uS*uEN;\n  vec4 mv=uView*vec4(p,1.0); gl_Position=uProj*mv;\n  gl_PointSize=clamp(aSz*uS*uPx/max(1e-9,-mv.z),1.0,9.0);\n}";
-
-const AB_VS = "#version 300 es\nlayout(location=0) in vec2 aRT;  // orbit radius, initial angle\nlayout(location=1) in float aH;  // offset along the ecliptic normal\nlayout(location=2) in float aSz;\nlayout(location=3) in float aP;  // real orbital period, years\nuniform mat4 uProj,uView; uniform float uPx,uT,uS;\nuniform vec3 uSun,uE1,uE2,uEN;\nvoid main(){\n  float a = aRT.y + uT*6.28318/aP;\n  vec3 p = uSun + (cos(a)*aRT.x*uS)*uE1 + (sin(a)*aRT.x*uS)*uE2 + aH*uS*uEN;\n  vec4 mv=uView*vec4(p,1.0); gl_Position=uProj*mv;\n  gl_PointSize=clamp(aSz*uS*uPx/max(1e-9,-mv.z),1.0,6.0);\n}";
-
-const OO_VS = "#version 300 es\nlayout(location=0) in vec3 aOff;\nlayout(location=1) in float aSz;\nuniform mat4 uProj,uView; uniform float uPx,uS; uniform vec3 uSun;\nvoid main(){\n  vec4 mv=uView*vec4(uSun+aOff*uS,1.0); gl_Position=uProj*mv;\n  gl_PointSize=clamp(aSz*uS*uPx/max(1e-9,-mv.z),1.0,6.0);\n}";
-
-const BELT_FS = "#version 300 es\nprecision mediump float; uniform vec3 uColor; uniform float uAlpha; out vec4 o;\nvoid main(){ vec2 q=gl_PointCoord*2.0-1.0; float r=length(q); if(r>1.0) discard;\n  float a=smoothstep(1.0,0.0,r)*uAlpha; o=vec4(uColor*a,a); }";
 
 const RING_VS = "#version 300 es\nlayout(location=0) in vec2 aCS;\nuniform mat4 uProj,uView; uniform vec3 uSun,uA,uB; uniform float uR;\nvoid main(){ gl_Position = uProj*uView*vec4(uSun + uR*(aCS.x*uA + aCS.y*uB), 1.0); }";
 
@@ -2339,38 +2465,7 @@ function updateAnd(){
 // The belts, built here because this is the fourth of the seven things that consume
 // randomness at boot and the seeded parity stream depends on the order.
 const { abRT, abRTd, abH, abHd, abSz, abP, kbRT, kbH, kbSz, ooOff, ooSz } = buildBelts();
-const pKB = prog(KB_VS, BELT_FS), pOO = prog(OO_VS, BELT_FS), pAB = prog(AB_VS, BELT_FS);
-const UA = {}; for(const k of ['uProj','uView','uPx','uT','uS','uSun','uE1','uE2','uEN','uColor','uAlpha']) UA[k]=gl.getUniformLocation(pAB,k);
-const UK = {}; for(const k of ['uProj','uView','uPx','uT','uS','uSun','uE1','uE2','uEN','uColor','uAlpha']) UK[k]=gl.getUniformLocation(pKB,k);
-const UO = {}; for(const k of ['uProj','uView','uPx','uS','uSun','uColor','uAlpha']) UO[k]=gl.getUniformLocation(pOO,k);
-const vaoKB = gl.createVertexArray(); gl.bindVertexArray(vaoKB);
-gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,kbRT,gl.STATIC_DRAW);
-gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
-gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,kbH,gl.STATIC_DRAW);
-gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,1,gl.FLOAT,false,0,0);
-gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,kbSz,gl.STATIC_DRAW);
-gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2,1,gl.FLOAT,false,0,0);
-gl.bindVertexArray(null);
-const bufAbSz=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,bufAbSz); gl.bufferData(gl.ARRAY_BUFFER,abSz,gl.STATIC_DRAW);
-const bufAbP =gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,bufAbP);  gl.bufferData(gl.ARRAY_BUFFER,abP,gl.STATIC_DRAW);
-function beltVAO(rt,h){
-  const vao=gl.createVertexArray(); gl.bindVertexArray(vao);
-  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,rt,gl.STATIC_DRAW);
-  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
-  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,h,gl.STATIC_DRAW);
-  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,1,gl.FLOAT,false,0,0);
-  gl.bindBuffer(gl.ARRAY_BUFFER,bufAbSz); gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2,1,gl.FLOAT,false,0,0);
-  gl.bindBuffer(gl.ARRAY_BUFFER,bufAbP);  gl.enableVertexAttribArray(3); gl.vertexAttribPointer(3,1,gl.FLOAT,false,0,0);
-  gl.bindVertexArray(null); return vao;
-}
-const vaoABr = beltVAO(abRT, abH); beltVAO(abRTd, abHd);
-const vaoOO = gl.createVertexArray(); gl.bindVertexArray(vaoOO);
-gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,ooOff,gl.STATIC_DRAW);
-gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
-gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,ooSz,gl.STATIC_DRAW);
-gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,1,gl.FLOAT,false,0,0);
-gl.bindVertexArray(null);
-
+initBelts({ abRT, abRTd, abH, abHd, abSz, abP, kbRT, kbH, kbSz, ooOff, ooSz });
 // Oort boundary: three great circles suggesting the spherical shell
 const RING_SEGS=160;
 var ringCS=new Float32Array(RING_SEGS*2);
@@ -4718,52 +4813,11 @@ function frame(now){
 
   // asteroid belt, Kuiper belt & Oort cloud, riding along with the Sun.
   // Each fades out while its ring is too small on screen to resolve — otherwise its
-  // points would pile up additively into a false bright blob on the Sun's pixel.
-  const beltFade = rw => Math.max(0, Math.min(1, (rw/cam.dist*pxScale - 24)/50));
-  const abA = beltFade(2.7*AU2U );
-  const kbA = beltFade(45*AU2U );
-  const ooA = beltFade(130*OO_REAL );
-  if(showBelt && abA>0){
-    gl.useProgram(pAB);
-    gl.uniformMatrix4fv(UA.uProj,false,view.projMat);
-    gl.uniformMatrix4fv(UA.uView,false,viewMat);
-    // simT in float32 quantises the phase after ~1e5 years and the ring collapses
-    // into spokes; wrapped time (exact in f64, small in f32) keeps every phase clean.
-    // Anonymous specks reshuffling once per 65,536 years is invisible in a uniform ring.
-    gl.uniform1f(UA.uPx,pxScale); gl.uniform1f(UA.uT, simClock.simT % 65536);
-    gl.uniform1f(UA.uS, AU2U);
-    gl.uniform3f(UA.uSun,0,0,0);
-    gl.uniform3f(UA.uE1,E1[0],E1[1],E1[2]);
-    gl.uniform3f(UA.uE2,E2[0],E2[1],E2[2]);
-    gl.uniform3f(UA.uEN,EN[0],EN[1],EN[2]);
-    gl.uniform3f(UA.uColor,0.15,0.13,0.11); gl.uniform1f(UA.uAlpha,abA);
-    gl.bindVertexArray(vaoABr); gl.drawArrays(gl.POINTS,0,AB_N);
-  }
-  if(showKuiper && kbA>0){
-    gl.useProgram(pKB);
-    gl.uniformMatrix4fv(UK.uProj,false,view.projMat);
-    gl.uniformMatrix4fv(UK.uView,false,viewMat);
-    gl.uniform1f(UK.uPx,pxScale); gl.uniform1f(UK.uT, simClock.simT % 65536);
-    gl.uniform1f(UK.uS, AU2U); // real mode: the belt radii are AU
-    gl.uniform3f(UK.uSun,0,0,0);
-    gl.uniform3f(UK.uE1,E1[0],E1[1],E1[2]);
-    gl.uniform3f(UK.uE2,E2[0],E2[1],E2[2]);
-    gl.uniform3f(UK.uEN,EN[0],EN[1],EN[2]);
-    gl.uniform3f(UK.uColor,0.10,0.11,0.14); gl.uniform1f(UK.uAlpha,kbA);
-    gl.bindVertexArray(vaoKB); gl.drawArrays(gl.POINTS,0,KB_N);
-  }
-  if(showOort){ // rings always (they locate the shell); points fade via ooA
-    gl.useProgram(pOO);
-    gl.uniformMatrix4fv(UO.uProj,false,view.projMat);
-    gl.uniformMatrix4fv(UO.uView,false,viewMat);
-    gl.uniform1f(UO.uPx,pxScale);
-    gl.uniform1f(UO.uS, OO_REAL);
-    gl.uniform3f(UO.uSun,0,0,0);
-    // a passing star stirs the cloud: brighten it while Gliese 710 is inside
-    const stir = Math.min(1, Math.max(0, (1.9-gl710.d)/1.9));
-    gl.uniform3f(UO.uColor, 0.11+0.30*stir, 0.12+0.20*stir, 0.15+0.10*stir);
-    gl.uniform1f(UO.uAlpha,ooA);
-    gl.bindVertexArray(vaoOO); gl.drawArrays(gl.POINTS,0,OO_N);
+  drawBelts({
+    projMat: view.projMat , viewMat, pxScale, camDist: cam.dist, simT: simClock.simT,
+    g710Dist: gl710.d, showBelt, showKuiper, showOort,
+  });
+  if(showOort){
     // boundary: wireframe-sphere hint of the shell
     gl.useProgram(pRing);
     gl.uniformMatrix4fv(UR.uProj,false,view.projMat);

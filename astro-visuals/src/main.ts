@@ -60,6 +60,7 @@ import {
   R_A, M31_MAP_SCALE, M32_C, M110_C, GSS_DIR, M31_ARM_K,
 } from './scene/andromeda'
 import { buildBelts, AB_N, KB_N, OO_N } from './scene/belts'
+import { initBelts, drawBelts } from './render/passes/belts'
 import { parseStarBin } from './scene/sky'
 import {
   sound, fxOn, TRACKS, initAudio, showTrack, playTrack, loadTrack, nextTrack,
@@ -453,38 +454,7 @@ function updateAnd(){
 // The belts, built here because this is the fourth of the seven things that consume
 // randomness at boot and the seeded parity stream depends on the order.
 const { abRT, abRTd, abH, abHd, abSz, abP, kbRT, kbH, kbSz, ooOff, ooSz } = buildBelts();
-const pKB = prog(KB_VS, BELT_FS), pOO = prog(OO_VS, BELT_FS), pAB = prog(AB_VS, BELT_FS);
-const UA = {}; for(const k of ['uProj','uView','uPx','uT','uS','uSun','uE1','uE2','uEN','uColor','uAlpha']) UA[k]=gl.getUniformLocation(pAB,k);
-const UK = {}; for(const k of ['uProj','uView','uPx','uT','uS','uSun','uE1','uE2','uEN','uColor','uAlpha']) UK[k]=gl.getUniformLocation(pKB,k);
-const UO = {}; for(const k of ['uProj','uView','uPx','uS','uSun','uColor','uAlpha']) UO[k]=gl.getUniformLocation(pOO,k);
-const vaoKB = gl.createVertexArray(); gl.bindVertexArray(vaoKB);
-gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,kbRT,gl.STATIC_DRAW);
-gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
-gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,kbH,gl.STATIC_DRAW);
-gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,1,gl.FLOAT,false,0,0);
-gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,kbSz,gl.STATIC_DRAW);
-gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2,1,gl.FLOAT,false,0,0);
-gl.bindVertexArray(null);
-const bufAbSz=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,bufAbSz); gl.bufferData(gl.ARRAY_BUFFER,abSz,gl.STATIC_DRAW);
-const bufAbP =gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,bufAbP);  gl.bufferData(gl.ARRAY_BUFFER,abP,gl.STATIC_DRAW);
-function beltVAO(rt,h){
-  const vao=gl.createVertexArray(); gl.bindVertexArray(vao);
-  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,rt,gl.STATIC_DRAW);
-  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
-  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,h,gl.STATIC_DRAW);
-  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,1,gl.FLOAT,false,0,0);
-  gl.bindBuffer(gl.ARRAY_BUFFER,bufAbSz); gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2,1,gl.FLOAT,false,0,0);
-  gl.bindBuffer(gl.ARRAY_BUFFER,bufAbP);  gl.enableVertexAttribArray(3); gl.vertexAttribPointer(3,1,gl.FLOAT,false,0,0);
-  gl.bindVertexArray(null); return vao;
-}
-const vaoABr = beltVAO(abRT, abH), vaoABd = beltVAO(abRTd, abHd);
-const vaoOO = gl.createVertexArray(); gl.bindVertexArray(vaoOO);
-gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,ooOff,gl.STATIC_DRAW);
-gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
-gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,ooSz,gl.STATIC_DRAW);
-gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,1,gl.FLOAT,false,0,0);
-gl.bindVertexArray(null);
-
+initBelts({ abRT, abRTd, abH, abHd, abSz, abP, kbRT, kbH, kbSz, ooOff, ooSz });
 // Oort boundary: three great circles suggesting the spherical shell
 const RING_SEGS=160;
 var ringCS=new Float32Array(RING_SEGS*2);
@@ -2835,52 +2805,11 @@ function frame(now){
 
   // asteroid belt, Kuiper belt & Oort cloud, riding along with the Sun.
   // Each fades out while its ring is too small on screen to resolve — otherwise its
-  // points would pile up additively into a false bright blob on the Sun's pixel.
-  const beltFade = rw => Math.max(0, Math.min(1, (rw/cam.dist*pxScale - 24)/50));
-  const abA = beltFade(REAL_MODE ? 2.7*AU2U : 16.6);
-  const kbA = beltFade(REAL_MODE ? 45*AU2U : 45);
-  const ooA = beltFade(REAL_MODE ? 130*OO_REAL : 130);
-  if(showBelt && abA>0){
-    gl.useProgram(pAB);
-    gl.uniformMatrix4fv(UA.uProj,false,view.projMat);
-    gl.uniformMatrix4fv(UA.uView,false,viewMat);
-    // simT in float32 quantises the phase after ~1e5 years and the ring collapses
-    // into spokes; wrapped time (exact in f64, small in f32) keeps every phase clean.
-    // Anonymous specks reshuffling once per 65,536 years is invisible in a uniform ring.
-    gl.uniform1f(UA.uPx,pxScale); gl.uniform1f(UA.uT, simClock.simT % 65536);
-    gl.uniform1f(UA.uS, REAL_MODE?AU2U:1.0);
-    gl.uniform3f(UA.uSun,0,0,0);
-    gl.uniform3f(UA.uE1,E1[0],E1[1],E1[2]);
-    gl.uniform3f(UA.uE2,E2[0],E2[1],E2[2]);
-    gl.uniform3f(UA.uEN,EN[0],EN[1],EN[2]);
-    gl.uniform3f(UA.uColor,0.15,0.13,0.11); gl.uniform1f(UA.uAlpha,abA);
-    gl.bindVertexArray(REAL_MODE?vaoABr:vaoABd); gl.drawArrays(gl.POINTS,0,AB_N);
-  }
-  if(showKuiper && kbA>0){
-    gl.useProgram(pKB);
-    gl.uniformMatrix4fv(UK.uProj,false,view.projMat);
-    gl.uniformMatrix4fv(UK.uView,false,viewMat);
-    gl.uniform1f(UK.uPx,pxScale); gl.uniform1f(UK.uT, simClock.simT % 65536);
-    gl.uniform1f(UK.uS, REAL_MODE?AU2U:1.0); // real mode: the belt radii are AU
-    gl.uniform3f(UK.uSun,0,0,0);
-    gl.uniform3f(UK.uE1,E1[0],E1[1],E1[2]);
-    gl.uniform3f(UK.uE2,E2[0],E2[1],E2[2]);
-    gl.uniform3f(UK.uEN,EN[0],EN[1],EN[2]);
-    gl.uniform3f(UK.uColor,0.10,0.11,0.14); gl.uniform1f(UK.uAlpha,kbA);
-    gl.bindVertexArray(vaoKB); gl.drawArrays(gl.POINTS,0,KB_N);
-  }
-  if(showOort){ // rings always (they locate the shell); points fade via ooA
-    gl.useProgram(pOO);
-    gl.uniformMatrix4fv(UO.uProj,false,view.projMat);
-    gl.uniformMatrix4fv(UO.uView,false,viewMat);
-    gl.uniform1f(UO.uPx,pxScale);
-    gl.uniform1f(UO.uS, REAL_MODE?OO_REAL:1.0);
-    gl.uniform3f(UO.uSun,0,0,0);
-    // a passing star stirs the cloud: brighten it while Gliese 710 is inside
-    const stir = Math.min(1, Math.max(0, (1.9-gl710.d)/1.9));
-    gl.uniform3f(UO.uColor, 0.11+0.30*stir, 0.12+0.20*stir, 0.15+0.10*stir);
-    gl.uniform1f(UO.uAlpha,ooA);
-    gl.bindVertexArray(vaoOO); gl.drawArrays(gl.POINTS,0,OO_N);
+  drawBelts({
+    projMat: view.projMat!, viewMat, pxScale, camDist: cam.dist, simT: simClock.simT,
+    g710Dist: gl710.d, showBelt, showKuiper, showOort,
+  });
+  if(showOort){
     // boundary: wireframe-sphere hint of the shell
     gl.useProgram(pRing);
     gl.uniformMatrix4fv(UR.uProj,false,view.projMat);
