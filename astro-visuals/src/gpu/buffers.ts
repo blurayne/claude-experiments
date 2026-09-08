@@ -39,6 +39,36 @@ export function deleteVAO(vao: WebGLVertexArrayObject): void {
   if(bufs) bufs.forEach(b => gl.deleteBuffer(b));
   gl.deleteVertexArray(vao);
 }
+/** A point VAO whose four attributes are all refilled every frame. */
+export interface DynVAO {
+  vao: WebGLVertexArrayObject
+  /** position, size, colour, wave — the attribute order the point shaders expect */
+  p: WebGLBuffer
+  s: WebGLBuffer
+  c: WebGLBuffer
+  w: WebGLBuffer
+}
+
+/**
+ * The same four attributes as `pointVAO`, sized for `cap` points and left empty. Everything
+ * whose contents change every frame is built this way — the life-cycle events, the blasts,
+ * the remnants, Gliese 710, the engulfment flares — and each of them uploads a subarray of
+ * exactly the length it needs, so the capacity is a ceiling rather than a count.
+ */
+export function dynVAO(cap: number): DynVAO {
+  const o = { vao: gl.createVertexArray()! } as DynVAO;
+  gl.bindVertexArray(o.vao);
+  o.p=gl.createBuffer()!; gl.bindBuffer(gl.ARRAY_BUFFER,o.p); gl.bufferData(gl.ARRAY_BUFFER,cap*12,gl.DYNAMIC_DRAW);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
+  o.s=gl.createBuffer()!; gl.bindBuffer(gl.ARRAY_BUFFER,o.s); gl.bufferData(gl.ARRAY_BUFFER,cap*4,gl.DYNAMIC_DRAW);
+  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,1,gl.FLOAT,false,0,0);
+  o.c=gl.createBuffer()!; gl.bindBuffer(gl.ARRAY_BUFFER,o.c); gl.bufferData(gl.ARRAY_BUFFER,cap*12,gl.DYNAMIC_DRAW);
+  gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2,3,gl.FLOAT,false,0,0);
+  o.w=gl.createBuffer()!; gl.bindBuffer(gl.ARRAY_BUFFER,o.w); gl.bufferData(gl.ARRAY_BUFFER,cap*4,gl.DYNAMIC_DRAW);
+  gl.enableVertexAttribArray(3); gl.vertexAttribPointer(3,1,gl.FLOAT,false,0,0);
+  gl.bindVertexArray(null); return o;
+}
+
 export function pointVAO(pos: Float32Array, size: Float32Array, col: Float32Array, wave?: Float32Array, vel?: Float32Array): WebGLVertexArrayObject {
   const vao=gl.createVertexArray()!; gl.bindVertexArray(vao);
   const bufs: WebGLBuffer[]=[];

@@ -2384,6 +2384,244 @@ function drawDust(
   }
 }
 
+/**
+ * The Sun, the planets and the dwarfs, as points.
+ *
+ * Positions are uploaded Sun-relative and already include the bodies' motion, so this pass
+ * turns off the wave rotation, the variability and the star field's brightness floor: a
+ * planet is not part of the galaxy and must not be lifted with it.
+ *
+ * Three buffers, one static-looking and two not. Sizes change when the piece switches between
+ * the drawn scale and the real one, and again as the Sun swells and each inner planet is
+ * swallowed. Colours change because the Sun's follows its temperature. The CPU-side arrays
+ * are exported because the frame fills them and the labels read them — they are the model of
+ * where the bodies are, not this pass's private state.
+ */
+
+// BODIES is a table of mixed columns — name, period, radii, colour, axis — so each column is
+// read through the type it actually holds. main.ts got this for free under @ts-nocheck.
+const spriteSize = (b                         )         => b[3];         
+const realRadiusKm = (b                         )         => b[6];         
+const colour = (b                         )           => b[4];           
+
+const bodyPosArr = new Float32Array(NB*3);
+const dispSizes = new Float32Array(BODIES.map(spriteSize));
+/** true diameters in scene units */
+const realSizes = new Float32Array(BODIES.map(b=>2*(realRadiusKm(b)/1.496e8)*AU2U));
+const bodyCol = new Float32Array(NB*3);
+BODIES.forEach((b,i)=>{ const c = colour(b); bodyCol[i*3]=c[0]; bodyCol[i*3+1]=c[1]; bodyCol[i*3+2]=c[2]; });
+
+const vaoBodies = gl.createVertexArray() ; gl.bindVertexArray(vaoBodies);
+const bufBodyPos = gl.createBuffer() ;
+gl.bindBuffer(gl.ARRAY_BUFFER,bufBodyPos); gl.bufferData(gl.ARRAY_BUFFER,bodyPosArr,gl.DYNAMIC_DRAW);
+gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
+const bufBodySize = gl.createBuffer() ;
+gl.bindBuffer(gl.ARRAY_BUFFER, bufBodySize); gl.bufferData(gl.ARRAY_BUFFER,dispSizes,gl.STATIC_DRAW);
+gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,1,gl.FLOAT,false,0,0);
+// colours are dynamic too: the Sun's follows its temperature, and a planet being
+// swallowed flares white for a moment
+const bufBodyCol = gl.createBuffer() ;
+gl.bindBuffer(gl.ARRAY_BUFFER, bufBodyCol); gl.bufferData(gl.ARRAY_BUFFER,bodyCol,gl.DYNAMIC_DRAW);
+gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2,3,gl.FLOAT,false,0,0);
+gl.bindVertexArray(null);
+
+/** Swap the whole size buffer: the drawn scale, or the true diameters. */
+function setBodySizes$1(real         )       {
+  gl.bindBuffer(gl.ARRAY_BUFFER,bufBodySize);
+  gl.bufferData(gl.ARRAY_BUFFER, realSizes, gl.STATIC_DRAW);
+}
+
+/**
+ * Write one body's size in place. `index` is the body, not a byte offset — the Sun swelling
+ * and a planet being swallowed each touch exactly one float, every frame.
+ */
+function uploadBodySize(index        , size              )       {
+  gl.bindBuffer(gl.ARRAY_BUFFER,bufBodySize); gl.bufferSubData(gl.ARRAY_BUFFER,index*4,size);
+}
+
+/** The Sun's colour, which is the only one that moves. */
+function uploadSunColour()       {
+  gl.bindBuffer(gl.ARRAY_BUFFER,bufBodyCol); gl.bufferSubData(gl.ARRAY_BUFFER,0,bodyCol,0,3);
+}
+
+function uploadBodyPositions()       {
+  gl.bindBuffer(gl.ARRAY_BUFFER,bufBodyPos);
+  gl.bufferSubData(gl.ARRAY_BUFFER,0,bodyPosArr);
+}
+                     
+                                                                                
+                 
+ 
+
+function drawBodies({ showDwarfs, showP9 }            )       {
+  gl.useProgram(pPt);
+  gl.uniform1f(U.ptSpin, 0.0); // body positions already include their motion
+  gl.uniform1f(U.ptVM, 0.0);
+  gl.uniform1f(U.ptMinB, 0.0);   // the planets are not part of the star field
+  gl.uniform1f(U.ptMinSz, 1.3);
+  gl.uniform1f(U.ptCap, 110.0);
+  gl.uniform3f(U.ptOrg, 0,0,0); // bodies are uploaded Sun-relative already
+  gl.bindVertexArray(vaoBodies);
+  gl.drawArrays(gl.POINTS, 0, showDwarfs ? I_P9 : N_PLANETS);
+  if(showP9) gl.drawArrays(gl.POINTS, I_P9, 1);
+}
+
+/**
+ * Vertex buffers and the vertex arrays that reference them.
+ *
+ * Deleting a vertex array does not free the buffers it points at, and at the heavy densities
+ * those run to hundreds of megabytes — so every VAO's buffers are tracked beside it and
+ * released together. That bookkeeping is the whole reason this is a module rather than three
+ * loose helpers.
+ *
+ * flushGxyCache stays with the galaxy cache that owns the entries: it must never throw
+ * mid-flush, because both map loaders race each other into it and the loser would be left
+ * pointing at deleted vertex arrays.
+ */
+
+// Buffers are tracked alongside their VAO so a density can be released again: deleting
+// a vertex array does not free what it references, and the big densities are hundreds
+// of megabytes apiece.
+const vaoBufs = new WeakMap                                       ();
+
+/**
+ * Register a vertex array's buffers for release, for callers that build their own VAO.
+ * The orbit rings do: one buffer, laid out by hand. Exposed as a function rather than by
+ * exporting the map, so there is one owner of the bookkeeping and no way to end up with two
+ * copies of it — deleting a VAO whose buffers were tracked in the other map leaks them, and
+ * nothing reports it.
+ */
+function trackVAOBuffers(vao                        , bufs               )       {
+  vaoBufs.set(vao, bufs);
+}
+function deleteVAO(vao                        )       {
+  const bufs = vaoBufs.get(vao);
+  if(bufs) bufs.forEach(b => gl.deleteBuffer(b));
+  gl.deleteVertexArray(vao);
+}
+                             
+                                                                                    
+                
+                
+                
+                
+ 
+
+/**
+ * The same four attributes as `pointVAO`, sized for `cap` points and left empty. Everything
+ * whose contents change every frame is built this way — the life-cycle events, the blasts,
+ * the remnants, Gliese 710, the engulfment flares — and each of them uploads a subarray of
+ * exactly the length it needs, so the capacity is a ceiling rather than a count.
+ */
+function dynVAO(cap        )         {
+  const o = { vao: gl.createVertexArray()  }          ;
+  gl.bindVertexArray(o.vao);
+  o.p=gl.createBuffer() ; gl.bindBuffer(gl.ARRAY_BUFFER,o.p); gl.bufferData(gl.ARRAY_BUFFER,cap*12,gl.DYNAMIC_DRAW);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
+  o.s=gl.createBuffer() ; gl.bindBuffer(gl.ARRAY_BUFFER,o.s); gl.bufferData(gl.ARRAY_BUFFER,cap*4,gl.DYNAMIC_DRAW);
+  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,1,gl.FLOAT,false,0,0);
+  o.c=gl.createBuffer() ; gl.bindBuffer(gl.ARRAY_BUFFER,o.c); gl.bufferData(gl.ARRAY_BUFFER,cap*12,gl.DYNAMIC_DRAW);
+  gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2,3,gl.FLOAT,false,0,0);
+  o.w=gl.createBuffer() ; gl.bindBuffer(gl.ARRAY_BUFFER,o.w); gl.bufferData(gl.ARRAY_BUFFER,cap*4,gl.DYNAMIC_DRAW);
+  gl.enableVertexAttribArray(3); gl.vertexAttribPointer(3,1,gl.FLOAT,false,0,0);
+  gl.bindVertexArray(null); return o;
+}
+
+function pointVAO(pos              , size              , col              , wave               , vel               )                         {
+  const vao=gl.createVertexArray() ; gl.bindVertexArray(vao);
+  const bufs               =[];
+  const attach=(data              ,loc        ,comps        )=>{ const b=gl.createBuffer() ; bufs.push(b);
+    gl.bindBuffer(gl.ARRAY_BUFFER,b); gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,comps,gl.FLOAT,false,0,0); };
+  attach(pos,0,3); attach(size,1,1); attach(col,2,3);
+  if(wave) attach(wave,3,1);
+  if(vel) attach(vel,4,3);   // populations without one read a constant zero
+  gl.bindVertexArray(null); vaoBufs.set(vao,bufs); return vao;
+}
+
+/**
+ * Gliese 710's passage: one point, on the same symbolic scale as the Oort cloud in the
+ * compressed view and at its true separation in real scale, so it passes where the cloud
+ * actually is. It reddens and brightens as it closes.
+ *
+ * It draws on the point program, whose uniforms the passes before it have been setting and
+ * unsetting all frame, so this one sets the six it depends on rather than trusting them.
+ */
+
+const g710GL = dynVAO(1);
+const g710Pos = new Float32Array(3), g710Size = new Float32Array(1), g710Col = new Float32Array(3);
+
+                             
+                                                            
+                    
+                 
+ 
+
+function drawG710({ star, camDist }            )       {
+  if(star.d < 60){
+    const k = 1/30 ;      // scene units per light year
+    g710Pos[0]=star.x*k; g710Pos[1]=star.y*k; g710Pos[2]=star.z*k;
+    g710Size[0] = Math.max(0.9, camDist*0.006) ;
+    const near = Math.min(1, Math.max(0, (6-star.d)/6));
+    g710Col[0]=0.55+0.75*near; g710Col[1]=0.34+0.34*near; g710Col[2]=0.20+0.18*near;
+    gl.uniform1f(U.ptSpin, 0.0); gl.uniform1f(U.ptVM, 0.0); gl.uniform1f(U.ptTide, 0.0);
+    gl.uniform1f(U.ptMinB, 0.0); gl.uniform1f(U.ptMinSz, 1.3);
+    gl.uniform3f(U.ptOrg, 0,0,0);
+    gl.bindBuffer(gl.ARRAY_BUFFER,g710GL.p); gl.bufferSubData(gl.ARRAY_BUFFER,0,g710Pos);
+    gl.bindBuffer(gl.ARRAY_BUFFER,g710GL.s); gl.bufferSubData(gl.ARRAY_BUFFER,0,g710Size);
+    gl.bindBuffer(gl.ARRAY_BUFFER,g710GL.c); gl.bufferSubData(gl.ARRAY_BUFFER,0,g710Col);
+    gl.bindVertexArray(g710GL.vao); gl.drawArrays(gl.POINTS,0,1);
+  }
+}
+
+/**
+ * The flares: a planet the Sun's surface has just reached, a white point over the limb for a
+ * moment.
+ *
+ * Over the disc on purpose — at that instant the planet IS at the surface, and a disc drawn
+ * opaque would otherwise hide the one thing worth seeing. Which is why this is the last thing
+ * drawn before the tone map: three points at most, and they have to be on top.
+ *
+ * The timers live in the frame, not here. Engulfment latches on age and a flare only starts
+ * when the clock runs across the moment, so a jump that lands past it finds the planet
+ * already gone — that is a statement about the model, and it stays with the model.
+ */
+
+const eatGL = dynVAO(4);
+const eatPos = new Float32Array(12), eatSize = new Float32Array(4), eatCol = new Float32Array(12), eatW = new Float32Array(4);
+
+                                 
+                                                                                      
+                                   
+                                                                                    
+                          
+                 
+ 
+
+function drawEatFlash({ eatFlash, bodyPosArr, camDist }                )       {
+  let n = 0;
+  for(let i=1;i<=3;i++){
+    const t = eatFlash[i];
+    if(t < 0 || camDist >= 0.13) continue;
+    const env = t < 0.12 ? t/0.12 : Math.exp(-(t-0.12)/0.5);
+    eatPos[n*3]=bodyPosArr[i*3]; eatPos[n*3+1]=bodyPosArr[i*3+1]; eatPos[n*3+2]=bodyPosArr[i*3+2];
+    eatSize[n] = camDist*0.032*(0.6+0.4*env);
+    eatCol[n*3]=2.4*env; eatCol[n*3+1]=2.4*env; eatCol[n*3+2]=2.6*env;
+    eatW[n] = 0; n++;
+  }
+  if(n){
+    gl.useProgram(pPt);
+    gl.uniform1f(U.ptSpin, 0.0); gl.uniform1f(U.ptVM, 0.0); gl.uniform1f(U.ptTide, 0.0);
+    gl.uniform1f(U.ptMinB, 0.0); gl.uniform1f(U.ptMinSz, 1.3); gl.uniform1f(U.ptCap, 110.0);
+    gl.uniform3f(U.ptOrg, 0,0,0);
+    gl.bindBuffer(gl.ARRAY_BUFFER,eatGL.p); gl.bufferSubData(gl.ARRAY_BUFFER,0,eatPos.subarray(0,n*3));
+    gl.bindBuffer(gl.ARRAY_BUFFER,eatGL.s); gl.bufferSubData(gl.ARRAY_BUFFER,0,eatSize.subarray(0,n));
+    gl.bindBuffer(gl.ARRAY_BUFFER,eatGL.c); gl.bufferSubData(gl.ARRAY_BUFFER,0,eatCol.subarray(0,n*3));
+    gl.bindBuffer(gl.ARRAY_BUFFER,eatGL.w); gl.bufferSubData(gl.ARRAY_BUFFER,0,eatW.subarray(0,n));
+    gl.bindVertexArray(eatGL.vao); gl.drawArrays(gl.POINTS,0,n);
+  }
+}
+
 const SN_VS = "#version 300 es\nlayout(location=0) in vec3 aPos;\nlayout(location=1) in float aSize;\nlayout(location=2) in vec3 aColor;\nlayout(location=3) in float aPhase;  // 0 at collapse .. 1 at the end of the drawn flash\nuniform mat4 uProj, uView;\nuniform float uPx, uSpin, uWarp, uCap;\nuniform vec3 uSunPos, uOrg;\nout vec3 vColor; out float vPhase; out float vSeed;\nvoid main(){\n  vec3 p = aPos;\n  float fade = 1.0;\n  if(uSpin != 0.0){\n    float r = length(p.xz);\n    float d = uSpin/640.0;                       // the arms' pattern speed: these are arm stars\n    float c = cos(d), s = sin(d);\n    p = vec3(p.x*c + p.z*s, p.y, p.z*c - p.x*s);\n    float wr = max(0.0, r - 950.0);\n    p.y += wr*0.13*sin(atan(p.x,p.z) - uWarp) + 4.0*sin(r*0.021);\n    fade = smoothstep(80.0, 240.0, distance(p, uSunPos));\n  }\n  vec4 mv = uView * vec4(p - uOrg, 1.0);\n  gl_Position = uProj * mv;\n  gl_PointSize = clamp(aSize * uPx / max(1e-9, -mv.z), 1.0, uCap);\n  vColor = aColor * fade;\n  vPhase = aPhase;\n  vSeed  = fract(sin(dot(aPos.xz, vec2(41.7, 289.3)))*43758.5453);\n}";
 
 const SN_FS = "#version 300 es\nprecision mediump float;\nin vec3 vColor; in float vPhase; in float vSeed; out vec4 o;\nvoid main(){\n  vec2 q = gl_PointCoord*2.0-1.0;\n  float r = length(q);\n  if(r > 1.0) discard;\n  float ang = atan(q.y, q.x) + vSeed*6.2831;\n  float d = 1.0 - r;\n\n  // the photosphere: a hard white core, at its tightest right at the collapse\n  float core = pow(d, mix(26.0, 9.0, vPhase));\n  // the light around it, spreading and softening as the blast runs\n  float glow = pow(d, mix(7.0, 3.2, vPhase));\n\n  // Radiating spikes. Two sets at different counts and angles, each a narrow lobe in\n  // angle and a slow falloff in radius, so they reach well past the glow. They lead the\n  // flash and are gone before it is: the blast is brightest first and blurs outward.\n  float lead = exp(-vPhase*2.6);\n  float s1 = pow(abs(cos(ang*3.0)), 34.0);\n  float s2 = pow(abs(cos(ang*2.0 + 0.9)), 22.0);\n  float spikes = (s1*0.85 + s2*0.5) * pow(d, 1.7) * lead;\n\n  // The shock front: a shell overtaking the glow and thinning as it goes. Nothing\n  // explodes into a perfect circle, so the radius is bent a little with angle — enough\n  // that the front reads as ejecta rather than as a drawn ring.\n  // Ejecta are not evenly bright around the rim. Modulating brightness rather than\n  // radius is what keeps this: bending the radius with angle only turns the circle into\n  // a polygon, while an uneven rim on a round front reads as clumps.\n  float sh = clamp(vPhase*1.35, 0.0, 1.0);\n  float clumps = 0.68 + 0.32*sin(ang*5.0 + vSeed*17.0)*sin(ang*2.0 - vSeed*9.0);\n  float ring = exp(-pow((r - sh)/mix(0.07, 0.19, vPhase), 2.0)) * (1.0 - vPhase)*0.85 * clumps;\n\n  // cooling: blue-white through the peak, then into the ejecta's red\n  vec3 hot  = vec3(0.86, 0.92, 1.0);\n  vec3 cool = vec3(1.0, 0.52, 0.26);\n  vec3 tint = mix(hot, cool, smoothstep(0.15, 1.0, vPhase));\n\n  float a = core*1.5 + glow*0.9 + spikes*0.8 + ring*0.7;\n  vec3 col = vColor * tint * (glow*0.9 + spikes*0.8 + ring*0.7)\n           + vColor * core * 1.5;              // the core stays white, whatever the tint\n  o = vec4(col, a);\n}";
@@ -2742,51 +2980,6 @@ function g710$1(ts        )               {                        // position r
   return { x, y, z, d: Math.hypot(x,y,z) };
 }
 
-/**
- * Vertex buffers and the vertex arrays that reference them.
- *
- * Deleting a vertex array does not free the buffers it points at, and at the heavy densities
- * those run to hundreds of megabytes — so every VAO's buffers are tracked beside it and
- * released together. That bookkeeping is the whole reason this is a module rather than three
- * loose helpers.
- *
- * flushGxyCache stays with the galaxy cache that owns the entries: it must never throw
- * mid-flush, because both map loaders race each other into it and the loser would be left
- * pointing at deleted vertex arrays.
- */
-
-// Buffers are tracked alongside their VAO so a density can be released again: deleting
-// a vertex array does not free what it references, and the big densities are hundreds
-// of megabytes apiece.
-const vaoBufs = new WeakMap                                       ();
-
-/**
- * Register a vertex array's buffers for release, for callers that build their own VAO.
- * The orbit rings do: one buffer, laid out by hand. Exposed as a function rather than by
- * exporting the map, so there is one owner of the bookkeeping and no way to end up with two
- * copies of it — deleting a VAO whose buffers were tracked in the other map leaks them, and
- * nothing reports it.
- */
-function trackVAOBuffers(vao                        , bufs               )       {
-  vaoBufs.set(vao, bufs);
-}
-function deleteVAO(vao                        )       {
-  const bufs = vaoBufs.get(vao);
-  if(bufs) bufs.forEach(b => gl.deleteBuffer(b));
-  gl.deleteVertexArray(vao);
-}
-function pointVAO(pos              , size              , col              , wave               , vel               )                         {
-  const vao=gl.createVertexArray() ; gl.bindVertexArray(vao);
-  const bufs               =[];
-  const attach=(data              ,loc        ,comps        )=>{ const b=gl.createBuffer() ; bufs.push(b);
-    gl.bindBuffer(gl.ARRAY_BUFFER,b); gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,comps,gl.FLOAT,false,0,0); };
-  attach(pos,0,3); attach(size,1,1); attach(col,2,3);
-  if(wave) attach(wave,3,1);
-  if(vel) attach(vel,4,3);   // populations without one read a constant zero
-  gl.bindVertexArray(null); vaoBufs.set(vao,bufs); return vao;
-}
-
 // The whole of galactic-transit.html's script, moved here verbatim and not yet split.
 //
 // Step 1 of the migration (docs/refactor/inventory/00-PLAN.md §4) changes exactly one thing:
@@ -3076,26 +3269,7 @@ initBelts({ abRT, abRTd, abH, abHd, abSz, abP, kbRT, kbH, kbSz, ooOff, ooSz });
 // part of what makes a run reproducible.
 loadEarthMap();
 
-// bodies: dynamic positions, static size/color
-const bodyPosArr = new Float32Array(NB*3);
-const dispSizes = new Float32Array(BODIES.map(b=>b[3]));
-const realSizes = new Float32Array(BODIES.map(b=>2*(b[6]/1.496e8)*AU2U)); // true diameters in scene units
-const bodyCol = new Float32Array(NB*3);
-BODIES.forEach((b,i)=>{ bodyCol[i*3]=b[4][0]; bodyCol[i*3+1]=b[4][1]; bodyCol[i*3+2]=b[4][2]; });
-const vaoBodies = gl.createVertexArray(); gl.bindVertexArray(vaoBodies);
-const bufBodyPos = gl.createBuffer();
-gl.bindBuffer(gl.ARRAY_BUFFER,bufBodyPos); gl.bufferData(gl.ARRAY_BUFFER,bodyPosArr,gl.DYNAMIC_DRAW);
-gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
-const bufBodySize = gl.createBuffer();
-gl.bindBuffer(gl.ARRAY_BUFFER, bufBodySize); gl.bufferData(gl.ARRAY_BUFFER,dispSizes,gl.STATIC_DRAW);
-gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,1,gl.FLOAT,false,0,0);
-// colours are dynamic too: the Sun's follows its temperature, and a planet being
-// swallowed flares white for a moment
-const bufBodyCol = gl.createBuffer();
-gl.bindBuffer(gl.ARRAY_BUFFER, bufBodyCol); gl.bufferData(gl.ARRAY_BUFFER,bodyCol,gl.DYNAMIC_DRAW);
-gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2,3,gl.FLOAT,false,0,0);
-gl.bindVertexArray(null);
-
+// The bodies' buffers, their CPU-side arrays and their draw are render/passes/bodies.
 // ---------- trails ----------
 const TRAIL_N = 2400;  // sliding window: TRAIL_N samples, spacing set by the length slider
 const trails = [], trailBufs = [], trailVaos = [];
@@ -3200,19 +3374,7 @@ let varOn = true; // variability clock (wall time, runs even when paused)
 const EV_CAP = 1024, PUFF_CAP = 512;
 const evPos=new Float32Array(EV_CAP*3), evSize=new Float32Array(EV_CAP), evCol=new Float32Array(EV_CAP*3), evWave=new Float32Array(EV_CAP);
 const pfPos=new Float32Array(PUFF_CAP*3), pfSize=new Float32Array(PUFF_CAP), pfCol=new Float32Array(PUFF_CAP*3), pfWave=new Float32Array(PUFF_CAP);
-function dynVAO(cap){
-  const o={vao:gl.createVertexArray()};
-  gl.bindVertexArray(o.vao);
-  o.p=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,o.p); gl.bufferData(gl.ARRAY_BUFFER,cap*12,gl.DYNAMIC_DRAW);
-  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
-  o.s=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,o.s); gl.bufferData(gl.ARRAY_BUFFER,cap*4,gl.DYNAMIC_DRAW);
-  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,1,gl.FLOAT,false,0,0);
-  o.c=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,o.c); gl.bufferData(gl.ARRAY_BUFFER,cap*12,gl.DYNAMIC_DRAW);
-  gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2,3,gl.FLOAT,false,0,0);
-  o.w=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,o.w); gl.bufferData(gl.ARRAY_BUFFER,cap*4,gl.DYNAMIC_DRAW);
-  gl.enableVertexAttribArray(3); gl.vertexAttribPointer(3,1,gl.FLOAT,false,0,0);
-  gl.bindVertexArray(null); return o;
-}
+
 const evGL = dynVAO(EV_CAP), pfGL = dynVAO(PUFF_CAP);
 // Blasts are drawn by their own program, so they travel in their own buffers. There are
 // never many at once — a flash lasts 1.6 s — and the fourth channel carries how far the
@@ -4290,7 +4452,7 @@ function refillTrails(){
     gl.bufferSubData(gl.ARRAY_BUFFER,0,a);
   }
 }
-function setBodySizes(){ gl.bindBuffer(gl.ARRAY_BUFFER,bufBodySize); gl.bufferData(gl.ARRAY_BUFFER, realSizes, gl.STATIC_DRAW); }
+const setBodySizes = () => setBodySizes$1();
 setBodySizes();   // real proportions from the first frame
 toggle($('tDive'), on=>{ cam.panF[0]=cam.panF[1]=0;
   cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
@@ -4585,9 +4747,7 @@ function placeLabel(el, x, y, show){
   s.on = true;
   el.style.display='block'; el.style.left=s.x+'px'; el.style.top=s.y+'px';
 }
-// Gliese 710's own buffer and label, here because dynVAO and the label host exist by now
-const g710GL = dynVAO(1);
-const g710Pos = new Float32Array(3), g710Size = new Float32Array(1), g710Col = new Float32Array(3);
+// Gliese 710's label lives here; its buffer and its draw are render/passes/g710.
 const g710Lbl = (()=>{ const d=document.createElement('div'); d.className='lbl'; d.textContent='Gliese 710';
   d.style.color='rgba(255,190,140,.9)'; labelWrap.appendChild(d); return d; })();
 
@@ -4786,9 +4946,7 @@ const sunSizeTmp=new Float32Array(1), eatSizeTmp=new Float32Array(1);
 // The Sun's own two programs — the procedural disc and the envelope it sheds — are
 // render/passes/sun now, together with the single point both of them stand on.
 
-// the engulfment flares: up to three points, drawn over the disc
-const eatGL = dynVAO(4);
-const eatPos = new Float32Array(12), eatSize = new Float32Array(4), eatCol = new Float32Array(12), eatW = new Float32Array(4);
+// the engulfment flares are render/passes/eatflash
 
 
 // ---------- the first-launch performance probe ----------
@@ -4897,7 +5055,7 @@ function frame(now){
     readout.globePx = realSizes[3]*((view.H*view.DPR)/(2*Math.tan(Math.PI/6)))/cam.dist;
     // the findable dot stands down once the true disc takes over
     sunSizeTmp[0] = readout.plasmaSunPx > 7 ? 0.0 : Math.max(sunDia, readout.camSunDist*0.0075);
-    gl.bindBuffer(gl.ARRAY_BUFFER,bufBodySize); gl.bufferSubData(gl.ARRAY_BUFFER,0,sunSizeTmp);
+    uploadBodySize(0, sunSizeTmp);
   }
   // The Sun's colour, and the inner planets' fate. Both read the same model.
   const ssNow = sunState(ageGyr()), tint = sunTint(ssNow.T);
@@ -4916,13 +5074,12 @@ function frame(now){
       // hidden for good once inside; the flare is its own pass over the disc — and Earth's
       // dot stands down while the globe is drawn in its place
       eatSizeTmp[0] = now ? 0 : (i === 3 && readout.globePx > 4) ? 0 : realSizes[i];
-      gl.bindBuffer(gl.ARRAY_BUFFER,bufBodySize); gl.bufferSubData(gl.ARRAY_BUFFER,i*4,eatSizeTmp);
+      uploadBodySize(i, eatSizeTmp);
     }
     simClock.lastAgeSeen = a;
   }
-  gl.bindBuffer(gl.ARRAY_BUFFER,bufBodyCol); gl.bufferSubData(gl.ARRAY_BUFFER,0,bodyCol,0,3);
-  gl.bindBuffer(gl.ARRAY_BUFFER,bufBodyPos);
-  gl.bufferSubData(gl.ARRAY_BUFFER,0,bodyPosArr);
+  uploadSunColour();
+  uploadBodyPositions();
 
   // camera — the view matrix is built Sun-relative for the same precision reason
   // Earth's world position in doubles: the follow target when the view is hers
@@ -5236,16 +5393,7 @@ function frame(now){
     g710Dist: gl710.d, showBelt, showKuiper, showOort, globePx: readout.globePx,
   });
 
-  gl.useProgram(pPt);
-  gl.uniform1f(U.ptSpin, 0.0); // body positions already include their motion
-  gl.uniform1f(U.ptVM, 0.0);
-  gl.uniform1f(U.ptMinB, 0.0);   // the planets are not part of the star field
-  gl.uniform1f(U.ptMinSz, 1.3);
-  gl.uniform1f(U.ptCap, 110.0);
-  gl.uniform3f(U.ptOrg, 0,0,0); // bodies are uploaded Sun-relative already
-  gl.bindVertexArray(vaoBodies);
-  gl.drawArrays(gl.POINTS, 0, showDwarfs ? I_P9 : N_PLANETS);
-  if(showP9) gl.drawArrays(gl.POINTS, I_P9, 1);
+  drawBodies({ showDwarfs, showP9 });
 
   // Earth as a globe, and the Moon, once they are more than a dot. Opaque discs, so the
   // same blend as the Sun's disc; the atmosphere adds over what is behind it.
@@ -5265,22 +5413,7 @@ function frame(now){
     readout.earthDbg = g.earthDbg;   // read by the debug tooling
   }
 
-  // Gliese 710, on the same symbolic scale as the Oort cloud in the compressed view and
-  // at its true separation in real scale, so it passes where the cloud actually is.
-  if(gl710.d < 60){
-    const k = 1/30 ;      // scene units per light year
-    g710Pos[0]=gl710.x*k; g710Pos[1]=gl710.y*k; g710Pos[2]=gl710.z*k;
-    g710Size[0] = Math.max(0.9, cam.dist*0.006) ;
-    const near = Math.min(1, Math.max(0, (6-gl710.d)/6));
-    g710Col[0]=0.55+0.75*near; g710Col[1]=0.34+0.34*near; g710Col[2]=0.20+0.18*near;
-    gl.uniform1f(U.ptSpin, 0.0); gl.uniform1f(U.ptVM, 0.0); gl.uniform1f(U.ptTide, 0.0);
-    gl.uniform1f(U.ptMinB, 0.0); gl.uniform1f(U.ptMinSz, 1.3);
-    gl.uniform3f(U.ptOrg, 0,0,0);
-    gl.bindBuffer(gl.ARRAY_BUFFER,g710GL.p); gl.bufferSubData(gl.ARRAY_BUFFER,0,g710Pos);
-    gl.bindBuffer(gl.ARRAY_BUFFER,g710GL.s); gl.bufferSubData(gl.ARRAY_BUFFER,0,g710Size);
-    gl.bindBuffer(gl.ARRAY_BUFFER,g710GL.c); gl.bufferSubData(gl.ARRAY_BUFFER,0,g710Col);
-    gl.bindVertexArray(g710GL.vao); gl.drawArrays(gl.POINTS,0,1);
-  }
+  drawG710({ star: gl710, camDist: cam.dist });
   // The Sun itself, last of the scene: the envelope it has shed, then its disc over that.
   // Whether the envelope is on screen decides what the Sun's label says, so the pass
   // reports it and the readout is set here rather than from inside the draw.
@@ -5296,32 +5429,7 @@ function frame(now){
     projMat: view.projMat , viewMat, shimT: simClock.shimT,
     plasmaSunPx: readout.plasmaSunPx, tint,
   });
-  // The flares: a planet the surface has just reached, a white point over the limb for
-  // a moment. Over the disc on purpose — at that instant the planet is at the surface,
-  // and a disc drawn opaque would otherwise hide the one thing worth seeing.
-  {
-    let n = 0;
-    for(let i=1;i<=3;i++){
-      const t = eatFlash[i];
-      if(t < 0 || cam.dist >= 0.13) continue;
-      const env = t < 0.12 ? t/0.12 : Math.exp(-(t-0.12)/0.5);
-      eatPos[n*3]=bodyPosArr[i*3]; eatPos[n*3+1]=bodyPosArr[i*3+1]; eatPos[n*3+2]=bodyPosArr[i*3+2];
-      eatSize[n] = cam.dist*0.032*(0.6+0.4*env);
-      eatCol[n*3]=2.4*env; eatCol[n*3+1]=2.4*env; eatCol[n*3+2]=2.6*env;
-      eatW[n] = 0; n++;
-    }
-    if(n){
-      gl.useProgram(pPt);
-      gl.uniform1f(U.ptSpin, 0.0); gl.uniform1f(U.ptVM, 0.0); gl.uniform1f(U.ptTide, 0.0);
-      gl.uniform1f(U.ptMinB, 0.0); gl.uniform1f(U.ptMinSz, 1.3); gl.uniform1f(U.ptCap, 110.0);
-      gl.uniform3f(U.ptOrg, 0,0,0);
-      gl.bindBuffer(gl.ARRAY_BUFFER,eatGL.p); gl.bufferSubData(gl.ARRAY_BUFFER,0,eatPos.subarray(0,n*3));
-      gl.bindBuffer(gl.ARRAY_BUFFER,eatGL.s); gl.bufferSubData(gl.ARRAY_BUFFER,0,eatSize.subarray(0,n));
-      gl.bindBuffer(gl.ARRAY_BUFFER,eatGL.c); gl.bufferSubData(gl.ARRAY_BUFFER,0,eatCol.subarray(0,n*3));
-      gl.bindBuffer(gl.ARRAY_BUFFER,eatGL.w); gl.bufferSubData(gl.ARRAY_BUFFER,0,eatW.subarray(0,n));
-      gl.bindVertexArray(eatGL.vao); gl.drawArrays(gl.POINTS,0,n);
-    }
-  }
+  drawEatFlash({ eatFlash, bodyPosArr, camDist: cam.dist });
 
   if(toneOn){   // resolve the half-float scene to the screen through the rolloff curve
     resolveTone(coreKnee);
