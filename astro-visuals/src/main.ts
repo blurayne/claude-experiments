@@ -58,6 +58,7 @@ import {
   R_A, M31_MAP_SCALE, M32_C, M110_C, GSS_DIR, M31_ARM_K,
 } from './scene/andromeda'
 import { buildBelts, AB_N, KB_N, OO_N } from './scene/belts'
+import { parseStarBin } from './scene/sky'
 import { g710 as g710At, G710_AT, G710_PERI, G710_V, G710_DIR, G710_OFF } from './astro/g710'
 
 // The clock lives here; the encounter does not.
@@ -606,47 +607,10 @@ function pushTrail(i, ts){
 
 
 // ---------- the real sky ----------
-// The 100,000 brightest stars from AT-HYG 3.2 (Tycho-2 merged with Gaia DR3): 98.7%
-// carry Gaia DR3 parallax distances, Hipparcos covers the bright ones Gaia saturates
-// on. Rotated from equatorial into galactic coordinates and placed relative to the Sun,
-// with galactic l=90 on +x — the direction the Sun orbits — which an earlier build had
-// mirrored. Colours come from each star's measured colour index, sizes from apparent
-// magnitude. This is the local sky only: Gaia sees the Galaxy from inside, and the far
-// side of the disk is hidden behind dust, so the large-scale structure stays modelled.
-
-function parseStarBin(buf){
-  // 'GSK2': 20-byte records with a velocity; the old 16-byte layout still parses
-  const v2 = buf.byteLength >= 4 && new DataView(buf).getUint32(0) === 0x47534B32;
-  const off = v2 ? 4 : 0, rec = v2 ? 20 : 16;
-  const n = Math.floor((buf.byteLength - off)/rec);
-  const dv = new DataView(buf);
-  const pos = new Float32Array(n*3), size = new Float32Array(n), col = new Float32Array(n*3);
-  const vel = v2 ? new Float32Array(n*3) : null;
-  for(let i=0;i<n;i++){
-    const o = off + i*rec;
-    pos[i*3]   = dv.getFloat32(o,   true);
-    pos[i*3+1] = dv.getFloat32(o+4, true);
-    pos[i*3+2] = dv.getFloat32(o+8, true);
-    // the file stores hue and apparent magnitude; brightness and sprite size come
-    // from the magnitude here, scaled to sit alongside the modelled star field
-    const mag  = -2 + dv.getUint8(o+15)/255*14;
-    const flux = Math.pow(2.512, (2 - mag)/2.5);
-    const b    = Math.min(0.55, 0.042*flux);
-    col[i*3]   = dv.getUint8(o+12)/255*b;
-    col[i*3+1] = dv.getUint8(o+13)/255*b;
-    col[i*3+2] = dv.getUint8(o+14)/255*b;
-    size[i]    = Math.min(3.4, 0.72 + 0.9*Math.log10(1 + flux*4));
-    if(vel){
-      vel[i*3]   = dv.getInt8(o+16);
-      vel[i*3+1] = dv.getInt8(o+17);
-      vel[i*3+2] = dv.getInt8(o+18);
-    }
-  }
-  return { n, vao: pointVAO(pos, size, col, null, vel) };
-}
 function loadGaiaStars(){
   fetch('stars-gaia.bin').then(r => r.ok ? r.arrayBuffer() : Promise.reject())
-    .then(buf => { const s = parseStarBin(buf); gfx.vaoGaia = s.vao; gfx.N_GAIA = s.n; })
+    .then(buf => { const s = parseStarBin(buf);
+      gfx.vaoGaia = pointVAO(s.pos, s.size, s.col, undefined, s.vel ?? undefined); gfx.N_GAIA = s.n; })
     .catch(()=>{});   // opened from disk, where fetch is blocked: the modelled sky stands in
 }
 
@@ -654,7 +618,8 @@ function loadGaiaDeep(){
   // the next 400,000 stars, 8 MB — fetched once, the first time a heavy quality is chosen
   if(gfx.deepAsked) return; gfx.deepAsked = true;
   fetch('stars-gaia-deep.bin').then(r => r.ok ? r.arrayBuffer() : Promise.reject())
-    .then(buf => { const s = parseStarBin(buf); gfx.vaoGaiaDeep = s.vao; gfx.N_GAIA_DEEP = s.n; })
+    .then(buf => { const s = parseStarBin(buf);
+      gfx.vaoGaiaDeep = pointVAO(s.pos, s.size, s.col, undefined, s.vel ?? undefined); gfx.N_GAIA_DEEP = s.n; })
     .catch(()=>{ gfx.deepAsked = false; });
 }
 loadGaiaStars();
