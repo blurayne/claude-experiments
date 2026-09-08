@@ -1,6 +1,25 @@
 import { AGE0 } from '../astro/constants'
 
 /**
+ * A photographic probability map: an image turned into cumulative distributions that the
+ * generators sample. `lum` is the deprojected luminance, `blur` a wide blur of it (the dust
+ * lanes are where the blur exceeds the luminance), and the three `*C` arrays are the running
+ * sums a binary search picks from. Andromeda's carries two more: a `ridge` map that favours
+ * the arms, and a separate haze distribution.
+ */
+export interface ProbabilityMap {
+  n: number
+  px: Uint8ClampedArray
+  lum: Float32Array
+  blur: Float32Array
+  starC: Float32Array
+  nebC: Float32Array
+  dustC: Float32Array
+  hazeC?: Float32Array
+  ridge?: Float32Array
+}
+
+/**
  * The state the renderer and the interface share.
  *
  * In one long script every one of these was a top-level `let` that anything could assign. An
@@ -137,8 +156,8 @@ export const gfx = {
   deepAsked: false,
 
   /** The probability maps and the Earth texture, once their fetches land. */
-  galaxyMap: null as unknown,
-  m31Map: null as unknown,
+  galaxyMap: null as ProbabilityMap | null,
+  m31Map: null as ProbabilityMap | null,
   earthTex: null as WebGLTexture | null,
 
   /** How deep into the dust the deep-Gaia stars are still drawn. */
