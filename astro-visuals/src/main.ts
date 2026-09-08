@@ -24,6 +24,7 @@ import { BUILD, VERSION, BUILD_LINE, localBuildStamp } from './core/build'
 import { perspective, lookAt, mul } from './core/mat4'
 import { gauss, expR } from './core/rng'
 import { $ } from './core/dom'
+import { sup, fmtCount, fmtYears as fmtYearsIn, type UnitMode } from './core/format'
 import {
   R_GAL, V_GAL, GAL_PERIOD, YR_PER_SIM, AGE0, AND_AGE, SCATTER_AGE, SR_A, SR_B, SR_K,
   TILT, E1, E2, AU2U, OO_REAL, REAL_MODE, PITCH, BAR_L, BAR_A, armAngle, ARMS, sA, cA,
@@ -957,7 +958,6 @@ const SPEED_YEAR = 21;                                     // the rung of one ye
 const speedFromSlider = v => SPEED_RUNGS[Math.max(0, Math.min(SPEED_RUNGS.length-1, Math.round(+v)))];
 // the rung nearest a rate, in log space — for settings saved by the old continuous slider
 function speedRungOf(yrs){ let b=0, e=1e9; SPEED_RUNGS.forEach((r,i)=>{ const d=Math.abs(Math.log(r/yrs)); if(d<e){ e=d; b=i; } }); return b; }
-function supStr(e){ return String(e).split('').map(d=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[+d]).join(''); }
 
 // the rate in the unit it is easiest to read: hours, weeks and months below a year
 function speedLabel(){
@@ -967,7 +967,7 @@ function speedLabel(){
   if(eff < 0.999)         return n(eff*12)+' mo/s';
   if(eff < 1000)          return n(eff)+' yr/s';
   const e = Math.floor(Math.log10(eff)), mant = eff/Math.pow(10,e);
-  return (Math.abs(mant-Math.round(mant)) < 0.005 ? Math.round(mant) : mant.toFixed(2))+'×10'+supStr(e)+' yr/s';
+  return (Math.abs(mant-Math.round(mant)) < 0.005 ? Math.round(mant) : mant.toFixed(2))+'×10'+sup(e)+' yr/s';
 }
 function fmtSpeed(){ $('speedv').textContent = speedLabel(); }
 // Whole decades on top of the slider, for crossing deep time without waiting on it.
@@ -1555,7 +1555,8 @@ statToggle($('tStatSn'), 'cDeath');
 statToggle($('tStatBirth'), 'cBirth');
 const setSegUnits = seg('segUnits', 'words', v => { unitMode = v; });
 let liveCount = false;   // retired control; the rate view lives in the calendar options
-let calMode='ad', unitMode='words';
+let calMode='ad', unitMode: UnitMode = 'words';
+const fmtYears = (y: number) => fmtYearsIn(y, unitMode);
 function syncCal(){
   calMode = $('cal').value;
   // "none" is the off position: the cell leaves the bar entirely
@@ -1691,32 +1692,6 @@ $('jumpGo').addEventListener('click', ()=>{
   // visitor would rather keep it open and try one scenario after another
   if($('closeOnGo').checked && pState.simPanel.o) setPanelOpen('simPanel', false);
 });
-const sup = e => String(e).split('').map(d=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[+d]).join('');
-function fmtYears(y){ // a duration in years → astronomer units, or ×10^x notation
-  // Jumping to an epoch before an era began gives a negative span: show how far short
-  // it falls rather than a raw minus sign glued to a locale string.
-  if(y < 0) return '−'+fmtYears(-y);
-  if(unitMode==='sup'){
-    const e=Math.floor(Math.log10(Math.max(1,y)));
-    return (y/Math.pow(10,e)).toFixed(4)+'×10'+sup(e)+' yr';
-  }
-  if(unitMode==='e'){
-    const e=Math.floor(Math.log10(Math.max(1,y)));
-    return (y/Math.pow(10,e)).toFixed(4)+'e'+e+' yr';
-  }
-  if(y>=1e9) return (y/1e9).toFixed(4)+' Gyr';
-  if(y>=1e6) return (y/1e6).toFixed(4)+' Myr';
-  if(y>=1e3) return (y/1e3).toFixed(3)+' kyr';
-  return Math.floor(y).toLocaleString('en-US')+' yr';
-}
-function fmtCount(n){
-  if(n>=1e15){ const e=Math.floor(Math.log10(n)); return (n/Math.pow(10,e)).toFixed(2)+'×10'+supStr(e); }
-  if(n>=1e12) return (n/1e12).toFixed(2)+'T';
-  if(n>=1e9)  return (n/1e9).toFixed(2)+'B';
-  if(n>=1e6)  return (n/1e6).toFixed(2)+'M';
-  if(n>=1e3)  return (n/1e3).toFixed(1)+'k';
-  return String(Math.floor(n));
-}
 function humanYear(){
   // Two clocks, and each reading takes the one it actually measures. A year IS one
   // orbit of the Earth, and the Earth is drawn orbiting once per simulated year, so the
