@@ -1,8 +1,10 @@
 # MIGRATE-STATE — where the TypeScript refactor has got to
 
-Working notes for picking this up cold, in a later session or on another machine. The plan being executed is `docs/refactor/00-PLAN.md`; this file records how far along it is, what has been learned since it was written, and the things that will waste a day if you do not know them.
+Working notes for picking this up cold, in a later session or on another machine. The plan being executed is `docs/refactor/inventory/00-PLAN.md`; this file records how far along it is, what has been learned since it was written, and the things that will waste a day if you do not know them.
 
-**Status: `main.ts` is down from 5,347 lines to 3,496 — 35% of it moved into 26 modules. `main` is untouched and still ships v2.78.0.**
+**Status: `main.ts` is down from 5,347 lines to 3,400 — 36% of it moved into 28 modules. `main` is untouched and still ships v2.78.0.**
+
+Of the plan's 24 steps, twelve are complete (0–9, 11, 14), two are part-done (12, the draw passes: three of eleven; and 15, the `ui/` leaves: one of five), and ten have not started.
 
 This file is the live status; the chat is not. Regenerate the numbers with `wc -l src/main.ts`,
 `npx vitest run`, and `git log --oneline main..HEAD`.
@@ -155,6 +157,9 @@ Every entry gated. "Gate" means the parity suite green — see above for what th
 | `core/format` + 10 tests | `ff065df` |
 | `ui/tooltips`; two-sided control; gate relaxed on area | `e0abaaf` |
 | `render/passes/belts` — the first draw pass | `204e43e` |
+| `render/passes/tone`, and the rule about being last | `e14f20d` |
+| check-build rejects a rename that reached into prose | `7a7d506` |
+| `render/passes/sun` — the disc and the shed envelope | `1e2ecc4` |
 
 ### Where the code lives now
 
@@ -163,7 +168,7 @@ core/     errorlog build mat4 rng dom format
 astro/    constants sun merger bodies environment earth g710    complete, pure
 scene/    starfield galaxy andromeda belts sky                  complete, pure
 gpu/      context program buffers
-render/   state  passes/belts
+render/   state  passes/belts passes/tone passes/sun
 audio/    index
 ui/       tooltips
 ```
@@ -177,11 +182,25 @@ Tests: **173 unit, 8 boot, 23 parity.**
 
 Roughly half the file remains, in three pieces:
 
-1. **The draw passes** — about 860 lines still inside one `frame()`. `render/passes/belts` is
-   the template: programs, uniform tables, vertex arrays and the draw together; geometry
+1. **The draw passes** — `frame()` is 837 lines (2268–3104). `render/passes/belts` is the
+   template: programs, uniform tables, vertex arrays and the draw together; geometry
    uploaded by an explicit `init*()` from main.ts so the RNG sequence does not move; inputs
    passed as an argument rather than reached for. The per-frame context is being discovered
    from what each pass actually needs rather than designed up front.
+
+   Three have moved — `belts`, `tone`, `sun`. What is left falls into two kinds, and the
+   easy kind is nearly gone:
+
+   - **Own program, own draw:** `globe` (with the Moon and her orbit), `rings`. `rings` is
+     the one to take next: `pRing` is shared by the Oort shell hint, the orbit rings and
+     the Moon's orbit, which is exactly why `passes/belts` had to leave the shell's
+     wireframe behind in main.ts. Moving the program unblocks that note.
+   - **On the points program:** `nebula`, `dust`, `bodies`, `g710`, `eatflash`, and step
+     10's `points`/`supernova`/`remnant`. These all write through the one `U` uniform
+     table, set a value and set it back, and read a dozen frame-locals apiece — `and`,
+     `spin`, `warp`, `deep`, `insideDisk`, the Sun's position, the bubble. `nebula` and
+     `dust` are closures called four times each in a distance-sorted loop. They need the
+     per-frame context object to exist first, so they should go last rather than first.
 2. **The interface** — about 1,500 lines: panels, sections, settings persistence, the HUD, the
    scenarios, the tour, the debug door, the QR overlay.
 3. **main.ts as boot only**, then the cleanup step.
@@ -190,9 +209,10 @@ Two of the plan's steps are deliberately still open: `ui/persist` (the settings 
 the highest-risk failure in the file — the boot suite already covers it) and the `show`
 toggles, which belong with `ui/` rather than with `render/state`.
 
-Two of the remaining steps are the ones to be careful with:
+**Step 11 is behind us**, and the rule it left behind still binds. The seven eval-time RNG consumers are seven explicit calls from `main.ts` in source order — `buildStarfield()` → `setGalaxy(1)` → asteroid belt → Kuiper → Oort → the trail pre-fill → the orbit rings — and the asteroid belt's Kirkwood rejection loop makes its draw count data-dependent, so anything that shifts the stream above it is unrecoverable. Any later step that adds a generator or moves one has to keep its place in that list. It fails on every state at once, which at least makes it impossible to miss.
 
-- **Step 11**, the `scene/` generators. The seven eval-time RNG consumers become seven explicit calls from `main.ts` in source order: starfield → `setGalaxy(1)` → asteroid belt → Kuiper → Oort → the trail pre-fill → the orbit rings. The asteroid belt's Kirkwood rejection loop makes its draw count data-dependent, so any upstream shift is unrecoverable. It fails on every state at once, which at least makes it impossible to miss.
+The step still to be careful with:
+
 - **Step 18**, `ui/hud`. `restoreSettings()` replays saved state through synthetic `input`/`change`/`click` events, so every listener must already be registered. Get the order wrong and the page boots clean, throws nothing, logs nothing, and renders with **default** settings. `00-PLAN.md` ranks it the highest-risk failure mode in the file. Every parity screenshot boots from the settings fixture partly so this shows up as pixels; `tests/e2e/boot.spec.ts` also asserts it directly.
 
 ## Decisions made along the way
@@ -200,11 +220,12 @@ Two of the remaining steps are the ones to be careful with:
 - **Types are erased, not transpiled.** esbuild's TypeScript loader discards every comment, minified or not — the first build came out 66 kB smaller and all of it was the reasoning. `ts-blank-space` overwrites type syntax with spaces and leaves every comment, line and column where it was.
 - **`noUncheckedIndexedAccess` is off**; `strict` stays on. It types every `Float32Array` read as `number | undefined`, which in a renderer where every index is in bounds by construction buys no safety and costs a non-null assertion on nearly every line.
 - **`main.ts` carries `@ts-nocheck`** and shrinks with every extraction. Extracted modules are typed properly. The directive goes when the file is small enough to type in one sitting.
+- **A mechanical rename has now been wrong in five distinct contexts**, and each one got its guard only after it had already shipped into the build: identifiers inside strings, element ids, property shorthand, local shadows, and — last — the word inside an English sentence, where `audio` became `sound.graph` in the tour's own description of the settings panel. `check-names` covers the identifier cases; `check-build` now rejects an article followed by a state singleton and a property, because that shape is prose rather than code. Assume the sixth context exists and write the guard when you find it.
 - **Verbatim means verbatim.** `V_GAL` still writes `900` rather than `R_GAL`; `zoomStep` still clamps to 9500 where the wheel clamps to 7500; `sepScene` still has its 0.02% step at the compression handover. Where two constants ought to agree and do not, that is a question for the science work, not licence for the move to answer it. Dead code is carried across too — cleanup is step 23, separately, with its own parity runs.
 
 ## Outstanding before this can merge to `main`
 
-- Steps 8–23.
+- Steps 10, the rest of 12, 13, the rest of 15, and 16–23.
 - Version → **3.0.0**: `BUILD.version` in the page *and* the cache name in `sw.js`. `check-build.mjs` asserts they agree.
 - `AGENTS.md` — a section on the new layout, the gate, and the reproducibility pins.
 - `TODO.md` — tick the refactor checkbox, naming the version.
