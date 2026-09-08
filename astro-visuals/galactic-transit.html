@@ -192,7 +192,19 @@ function expR(a        , b        , Rd        )         { // radius in [a,b] fro
  * missing id is a TypeError at the call site rather than a silent undefined — which is what
  * you want, and what tests/e2e/boot.spec.ts asserts against the whole list up front.
  */
-const $ = (id        )              => document.getElementById(id);
+const $ = (id        )              => document.getElementById(id);              
+
+/**
+ * The same lookup, typed for a control that carries a value.
+ *
+ * Most of the interface is read and written through `.value`, `.checked` and
+ * `.selectedOptions`, and `HTMLElement` has none of those. This is one cast in one place
+ * instead of one at every call site — and it stays a cast rather than a runtime check because
+ * the id list is asserted whole by the boot suite: if the element is there, it is the control
+ * the markup says it is.
+ */
+const $v = (id        )                                       =>
+  document.getElementById(id);
 
 /**
  * The numbers as the HUD writes them.
@@ -1414,7 +1426,7 @@ function setStateColour(h        , meanC        )       {
 }
 
 let fitPanels$4             = () => {};
-let saveSettings$3             = () => {};
+let saveSettings$4             = () => {};
 
 // Four panels share two columns. Each carries a side and an open flag; the layout
 // stacks the open ones first, then the dots that reopen the closed ones — down the
@@ -1445,7 +1457,7 @@ function setPanelOpen(id         , open         )       {
             const el = $(id); el.classList.remove('pop'); void el.offsetWidth;
             el.classList.add('pop'); setTimeout(()=> el.classList.remove('pop'), 260); }
   layoutPanels();
-  fitPanels$4(); saveSettings$3();
+  fitPanels$4(); saveSettings$4();
 }
 // One pass of the layout: put every shown panel and dot where it belongs and report
 // the rectangles, so the caller can judge whether the result actually fits.
@@ -1525,7 +1537,7 @@ function layoutPanels()       {
  * cannot import. Called from main.ts at the point the listeners used to be registered.
  */
 function initPanels(deps                                                     )       {
-  fitPanels$4 = deps.fitPanels; saveSettings$3 = deps.saveSettings;
+  fitPanels$4 = deps.fitPanels; saveSettings$4 = deps.saveSettings;
   // dragging: inward switches columns, outward closes
   for(const p of PANELS){
     const el = $(p.id);
@@ -1561,7 +1573,7 @@ function initPanels(deps                                                     )  
       else if(Math.sign(moved) === Math.sign(inward) && Math.abs(moved) >= TH){
         pState[p.id].s = side === 'l' ? 'r' : 'l';
         pState[p.id].seq = ++openSeq;   // moving a panel is asking to see it
-        layoutPanels(); fitPanels$4(); saveSettings$3();
+        layoutPanels(); fitPanels$4(); saveSettings$4();
       }
       moved = 0;
     };
@@ -1681,7 +1693,7 @@ const hud = {
  * and the readouts only read them. Injected rather than imported so that this module stays
  * downstream of the model rather than reaching into it.
  */
-let ageGyr$3               = () => 0;
+let ageGyr$4               = () => 0;
 let environment$2            = () => ({});
 let lifeState$1            = () => null;
 let g710$3                      = () => ({ d: Infinity });
@@ -1783,7 +1795,7 @@ function updateHud(now        , pn                )       {
   {
     // Running totals at the real rates: ~2 supernovae per century, and a ~2 solar-mass
     // per year formation rate which at a ~0.5 solar-mass mean is roughly 4 stars a year.
-    const w = ratesIntegral(ageGyr$3());   // integrates the declining rate, not a flat one
+    const w = ratesIntegral(ageGyr$4());   // integrates the declining rate, not a flat one
     $('nDeath').textContent = '−'+fmtCount(w*0.02);
     $('nBirth').textContent = '+'+fmtCount(w*4);
   }
@@ -1792,7 +1804,7 @@ function updateHud(now        , pn                )       {
     // a glacial epoch is marked on the reading itself rather than in a banner below it
     let lost = false;
     { // Earth's readings mean nothing once there is no Earth: the panel turns to the Sun
-      const ss = sunState(ageGyr$3());
+      const ss = sunState(ageGyr$4());
       lost = ss.eaten || ss.gone;
       // "Solar System" stops being the right name once there is no Sun left to orbit —
       // ss.gone is the same age latch (a >= SUN_AGB) the panel above already uses, so the
@@ -1914,7 +1926,7 @@ function initHudReadouts(deps
                           
  )                                       {
   seg$1 = deps.seg; toggle$1 = deps.toggle; fitPanels$3 = deps.fitPanels;
-  ageGyr$3 = deps.ageGyr; environment$2 = deps.environment; lifeState$1 = deps.lifeState;
+  ageGyr$4 = deps.ageGyr; environment$2 = deps.environment; lifeState$1 = deps.lifeState;
   g710$3 = deps.g710; speedLabel$1 = deps.speedLabel;
   focusSunOpt = ($('focusSel')                     ).options[0];   // its name changes once the Sun is gone
   setSegUnits$1 = seg$1('segUnits', 'words', v => { hud.unitMode = v            ; });
@@ -1924,6 +1936,792 @@ function initHudReadouts(deps
   statToggle($('tStatBirth'), 'cBirth');
   $('cal').addEventListener('change', syncCal);
   return setSegUnits$1;
+}
+
+/**
+ * The Earth: which way it is facing, where the Moon is, and what the surface looks like at a
+ * given age.
+ *
+ * The plate motion is a SCHEMATIC of the published reconstructions, not a plate model — the
+ * poles and angles were chosen by hand to land the continents where the maps put them, and
+ * the info panel says so, because a reader with a geology textbook would otherwise be right
+ * to call it wrong.
+ *
+ * earthPrime carries a trap worth knowing about. Its spin phase is calibrated once, lazily,
+ * on the first call, so that the Sun stands over Greenwich at noon on 2026-01-01 — and the
+ * calibration reads the rendering origin. That origin used to be picked out of the renderer's
+ * scope, which made the answer depend on WHEN the globe pass first ran rather than only on
+ * the arguments; at a scenario that jumps the clock before the globe is ever drawn, the
+ * calibration is against a Sun in the wrong place. It is a parameter now: the arithmetic is
+ * unchanged and so is the result at the existing call site, but the dependency is in the
+ * signature where it can be seen. Still lazy, and still not to be hoisted to module
+ * evaluation.
+ */
+                                        
+                
+               
+                                                                                                   
+             
+              
+             
+                
+               
+                
+               
+             
+                  
+ 
+
+// The plates: each carried by a rotation about a fixed pole, its angle keyed by time in
+// Myr from today (negative past), interpolated between keys. A SCHEMATIC of the published
+// reconstructions — the Atlantic opening from Pangaea, India's run north, Australia's,
+// then the Atlantic closing and the continents gathering again into Pangaea Proxima —
+// with the poles and angles chosen by hand to land the continents where the maps put
+// them, not a plate model. Africa is the near-fixed reference. Order matches the map's ids.
+const PLATE_MODEL = [
+  { name:'Antarctica', pole:[5.0,-5.8], keys:[[-250,10.4], [-100,5.2], [0,0.0], [250,-22.9]] },
+  { name:'India', pole:[-17.7,160.6], keys:[[-250,54.8], [-130,50.4], [-60,21.9], [-40,6.6], [0,0.0], [250,-5.5]] },
+  { name:'Australia', pole:[-11.4,-129.6], keys:[[-250,36.5], [-60,32.9], [0,0.0], [250,-23.7]] },
+  { name:'S. America', pole:[70.0,-17.4], keys:[[-250,43.1], [-130,43.1], [0,0.0], [100,-6.5], [250,32.3]] },
+  { name:'N. America', pole:[45.0,80.5], keys:[[-250,40.0], [-180,40.0], [0,0.0], [100,-6], [250,32.0]] },
+  { name:'Africa', pole:[0,110], keys:[[0,0], [250,-8]] },
+  { name:'Eurasia', pole:[30,90], keys:[[-250,10], [0,0], [250,-4]] }
+];
+const plateMats = new Float32Array(63);
+function plateAngle(keys                                , tMyr        )         {
+  if(tMyr <= keys[0] [0] ) return keys[0] [1] ;
+  for(let i=1;i<keys.length;i++) if(tMyr <= keys[i][0]){ const [t0,a0]=keys[i-1] , [t1,a1]=keys[i] ; return a0 + (a1-a0)*(tMyr-t0)/(t1-t0); }
+  return keys[keys.length-1] [1] ;
+}
+function fillPlateMats(tMyr        )       {
+  for(let k=0;k<7;k++){
+    const m = PLATE_MODEL[k] , la = m.pole[0]*Math.PI/180, lo = m.pole[1]*Math.PI/180;
+    const ax = Math.cos(la)*Math.cos(lo), ay = Math.cos(la)*Math.sin(lo), az = Math.sin(la);
+    const th = -plateAngle(m.keys, tMyr)*Math.PI/180;          // the inverse: from now back to then
+    const c = Math.cos(th), sn = Math.sin(th), C = 1-c;
+    const M = [ c+ax*ax*C, ax*ay*C-az*sn, ax*az*C+ay*sn,
+                ay*ax*C+az*sn, c+ay*ay*C, ay*az*C-ax*sn,
+                az*ax*C-ay*sn, az*ay*C+ax*sn, c+az*az*C ];       // rows
+    const o = k*9;                                              // column-major for GLSL
+    plateMats[o]=M[0]; plateMats[o+1]=M[3]; plateMats[o+2]=M[6];
+    plateMats[o+3]=M[1]; plateMats[o+4]=M[4]; plateMats[o+5]=M[7];
+    plateMats[o+6]=M[2]; plateMats[o+7]=M[5]; plateMats[o+8]=M[8];
+  }
+}
+// The Moon's orbit: its distance today, receding as it always has (3.8 cm/yr now, far faster
+// when it was young) — a power law fitted to formation ~4.5 Gyr ago at a few Earth radii,
+// not a dynamical model; Kepler's third law sets the period from the distance.
+const MOON_D0 = 384400/1.496e8*AU2U, MOON_INC = 5.145*Math.PI/180, MOON_P0 = 27.3217/365.25;
+const MOON_M1 = E1, MOON_M2 = [E2[0]*Math.cos(MOON_INC)+EN[0]*Math.sin(MOON_INC), E2[1]*Math.cos(MOON_INC)+EN[1]*Math.sin(MOON_INC), E2[2]*Math.cos(MOON_INC)+EN[2]*Math.sin(MOON_INC)];
+const MOON_BORN = 0.06;                                  // Gyr: the Theia impact, as the scenario has it
+const MOON_DIA = 2*(1737/1.496e8)*AU2U;                  // scene units, her true diameter
+function moonDist(a        )         { return MOON_D0*Math.pow(Math.max(0.02, Math.min(3, (a - 0.05)/4.518)), 0.45); }
+const moonW = new Float64Array(3), moonRel = new Float32Array(3);
+function moonPos(t        , out              )               {                                // world position, doubles
+  const a = AGE0 + t*YR_PER_SIM/1e9, d = moonDist(a), P = MOON_P0*Math.pow(d/MOON_D0, 1.5);
+  const th = 2*Math.PI*t/P + 1.3;
+  bodyPos(3, t, out);
+  for(let k=0;k<3;k++) out[k] += d*(Math.cos(th)*MOON_M1[k] + Math.sin(th)*MOON_M2[k]);
+  return out;
+}
+// Earth's spin axis: 23.44° from the ecliptic normal, tilted toward the direction that
+// makes northern summer fall on the calendar's June — the piece's year phase is Jan 1.
+const OBLIQ = 23.44*Math.PI/180;
+const EARTH_AXIS = (()=>{ const psi = PHASE[3] + 2*Math.PI*0.471 + Math.PI, c=Math.cos(psi), s=Math.sin(psi);
+  const e=[c*E1[0]+s*E2[0], c*E1[1]+s*E2[1], c*E1[2]+s*E2[2]];
+  return [Math.cos(OBLIQ)*EN[0]+Math.sin(OBLIQ)*e[0], Math.cos(OBLIQ)*EN[1]+Math.sin(OBLIQ)*e[1], Math.cos(OBLIQ)*EN[2]+Math.sin(OBLIQ)*e[2]]; })();
+const EARTH_P0 = (()=>{ const A=EARTH_AXIS, d=E1[0]*A[0]+E1[1]*A[1]+E1[2]*A[2]; const v=[E1[0]-d*A[0],E1[1]-d*A[1],E1[2]-d*A[2]];
+  const l=Math.hypot(...v); return [v[0]/l,v[1]/l,v[2]/l]; })();
+const SIDEREAL = 366.2422;                                 // rotations per year
+let earthPhi0                = null;                                     // set once: Greenwich noon on 2026-01-01
+function earthPrime$2(t        , out              , org              )               {                              // the prime meridian's direction on the equator at t
+  const A = EARTH_AXIS, P0 = EARTH_P0, Q0 = [A[1]*P0[2]-A[2]*P0[1], A[2]*P0[0]-A[0]*P0[2], A[0]*P0[1]-A[1]*P0[0]];
+  if(earthPhi0 === null){
+    // solve the spin phase so that the Sun stands over the prime meridian at that noon
+    const tn = 0.5/365.25, e = new Float64Array(3); bodyPos(3, tn, e);
+    const sx=-e[0]+org[0], sy=-e[1]+org[1], sz=-e[2]+org[2];   // toward the Sun, from Earth (org is the Sun now)
+    const lam = Math.atan2(sx*Q0[0]+sy*Q0[1]+sz*Q0[2], sx*P0[0]+sy*P0[1]+sz*P0[2]);
+    earthPhi0 = lam - 2*Math.PI*SIDEREAL*tn;
+  }
+  const w = 2*Math.PI*SIDEREAL*t + earthPhi0, c=Math.cos(w), sn=Math.sin(w);
+  for(let k=0;k<3;k++) out[k] = c*P0[k] + sn*Q0[k];
+  return out;
+}
+// The era: what the planet looks like at a given age, from the piece's own timeline and
+// its climate model. Every number here is a model choice, disclosed in the info panel.
+const clamp01 = (x        )         => Math.max(0, Math.min(1, x));
+function earthEra(a        , meanC        )           {
+  const molten = Math.max(clamp01((0.16 - a)/0.09), clamp01((a - 11.15)/0.12));          // Hadean, and under the giant
+  const ocean  = clamp01((a - 0.15)/0.10) * clamp01((6.6 - a)/1.0);                       // late Hadean to the moist greenhouse
+  const haze   = clamp01((2.55 - a)/0.45);                                                // methane haze until the Great Oxidation
+  const veg    = clamp01((a - 4.12)/0.13) * clamp01((5.45 - a)/0.25);                     // land plants: Devonian on, starved ~0.9 Gyr ahead
+  const landF  = ocean > 0 ? 0.06 + 0.23*clamp01((a - 0.3)/2.2) : 1;                      // continents grow through the Archean
+  // the noise threshold that gives that land fraction: the fbm in the shader averages 0.48
+  // with a spread of ~0.11, so 29% land sits 0.55σ above the mean and 6% at 1.55σ
+  const sea    = ocean > 0 ? 0.485 + 0.113*(1.55 - 1.0*Math.min(1, landF/0.29)) : -1;   // ported and measured: 0.547 -> 29%, 0.660 -> 6%
+  const snow   = Math.max(clamp01(1 - Math.abs(a - 2.20)/0.15), clamp01(1 - Math.abs(a - 3.885)/0.05));   // Huronian, Cryogenian
+  // Ice from the climate model only in the Phanerozoic, where its greenhouse is roughly
+  // right; earlier it reads the faint young Sun without the greenhouse that kept the
+  // early oceans liquid, so before that the caps follow the rock record instead: none,
+  // except the snowballs above and the Pongola (2.9 Ga) and Karoo (300 Ma) ice ages.
+  let iceLat = a > 3.95 ? Math.max(18, Math.min(88, 90 - (18 - meanC)*5.5))                 // 15 °C -> ~74°; 11 -> ~52°; 5 -> ~18°
+             : 95 - 40*clamp01(1 - Math.abs(a - 1.67)/0.06);                                // Pongola: caps to ~55° for a moment
+  if(a > 4.03 && a <= AGE0 + 1e-6){
+    // where there is a rock record it outranks the model: the Phanerozoic's three ice
+    // ages, and no caps at all between them — the Permian–Triassic world of Pangaea and
+    // the Cretaceous were hothouses. The HUD's glacial badge stays the model's own word.
+    let rec = 88;
+    rec = Math.min(rec, 95 - 50*clamp01(1 - Math.abs(a - 4.130)/0.010));                     // Ordovician–Silurian, 445–430 Ma
+    if(a > 4.208 && a < 4.313) rec = Math.min(rec, 50 + 8*clamp01(Math.abs(a - 4.26)/0.05));  // Karoo, 360–255 Ma
+    if(a >= 4.534) rec = Math.min(rec, a >= 4.565 ? 64 : 70);                                  // Antarctic ice from 34 Ma; both poles in the Pleistocene
+    iceLat = rec;
+  }
+  if(a > 4.22 && a < 4.31) iceLat = Math.min(iceLat, 50);                                  // Karoo
+  iceLat = Math.min(iceLat, 95 - 50*clamp01(1 - Math.abs(a - 4.123)/0.008));              // Ordovician (445 Ma)
+  if(a > 4.44 && a < 4.51) iceLat = Math.max(iceLat, 89);                                  // the Cretaceous hothouse: no caps
+  if(a > 4.75 && a < 4.85) iceLat = Math.min(iceLat, 62);                                  // Proxima: a supercontinent's caps
+  iceLat = (1 - snow)*iceLat + snow*0;
+  // dry periods: Pangaea's interior (Permian–Triassic), the Old Red Sandstone deserts of
+  // the Devonian, and Proxima's; then the drying that ends the oceans
+  const dry = Math.max(clamp01(1 - Math.abs(a - 4.32)/0.06), 0.6*clamp01(1 - Math.abs(a - 4.175)/0.03),
+                       0.8*clamp01(1 - Math.abs(a - 4.80)/0.06), clamp01((a - 5.4)/0.8));
+  const seaLevel = ocean >= 0.999 ? 1 : Math.pow(ocean, 0.5);
+  if(ocean <= 0 || molten > 0) iceLat = 95;
+  const cloud  = ocean*(0.55 + 0.35*clamp01((a - 5.3)/0.8))*(1 - molten);
+  const lights = Math.abs(a - AGE0) < 2e-5 ? 1 : 0;                                       // twenty thousand years around now
+  return { molten, ocean, sea: sea < 0 ? -2 : sea, haze, veg, iceLat, cloud, lights, drift: a*2.5, dry, seaLevel };
+}
+
+/**
+ * The camera: what a hand does to the view.
+ *
+ * One pointer turns it, two pan and pinch it, the wheel zooms, and the zoom buttons step
+ * along a ladder of the objects themselves. All of it is listener registration, so the module
+ * is an `initCamera()` plus the one thing the interface calls into — `zoomStep`.
+ *
+ * Two values are injected. `ageGyr` decides the Moon's zoom floor, and `holding` is read by
+ * the frame: while a pointer or finger is down the clock holds, so the galaxy does not keep
+ * turning under the hand that is trying to orbit it.
+ */
+
+let ageGyr$3               = () => 0;
+let onHold                          = () => {};
+
+// dive: hold the camera on the Sun-to-core line
+// which absolute-frame position cam.follow tracks when true — the Sun everywhere
+// except the one Andromeda view, which needs its own moving target the same way
+
+let dragging=false, px=0, py=0;
+// While a pointer or finger is down the clock holds, so the galaxy does not keep
+// turning under the hand that is trying to orbit it. Released, it carries straight on.
+// The flag itself belongs to the frame, so it is reported rather than kept.
+const touches = new Map                      ();     // every pointer currently down on the canvas
+// Two-finger pan. Kept as a fraction of the view's height along the camera's own right
+// and up, not as a world offset: zooming then keeps the composition, and a pan made at
+// galaxy scale cannot leave the Sun a thousand units off-screen once you dive. Cleared
+// wherever the view is re-seeded (a scenario, a focus, the dive), like the transition.
+
+let panCX = 0, panCY = 0;      // the last two-pointer centroid
+function panCentroid()           { let x=0,y=0; for(const q of touches.values()){ x+=q.clientX; y+=q.clientY; } return [x/touches.size, y/touches.size]; }
+// the floor: ~0.04 AU across, eight solar radii; at Earth and at the Moon, a body filling
+// the view. The Moon's view before she forms is Earth's view, so it keeps Earth's floor.
+const minDist = ()         => cam.followTarget === 'moon' ? (ageGyr$3() > MOON_BORN ? 5.5e-12 : 2e-11)
+                   : cam.followTarget === 'earth' ? 2e-11 : (2e-8 );
+// The zoom buttons step along a ladder of the objects themselves — the Sun, the planets'
+// orbits, the belts, the Oort shell, the nearest stars, the arm, the Galaxy, the Local
+// Group — with one rung between each pair, so two presses take you from one object to
+// the next, and every press eases in log space like any other zoom. Clamped to the same
+// floor and ceiling as the wheel. Distances in camera units: 1 AU across the view is
+// 4.67e-7, 1 ly is 0.0288.
+const ZOOM_OBJ = [1.2e-10, 3.2e-9, 2e-8, 1e-7, 3.7e-7, 9.3e-7, 1.45e-6, 4.9e-6, 8.9e-6, 2.8e-5, 4.7e-5, 9.3e-4, 0.144, 0.72, 17, 150, 4300, 9500];
+const ZOOM_RUNGS = ZOOM_OBJ.flatMap((d, i) => i ? [Math.sqrt(ZOOM_OBJ[i-1]*d), d] : [d]);
+function zoomStep(dir        )       {
+  const cur = cam.distGoal, lo = Math.log(cur);
+  let next = null;
+  if(dir < 0){ for(const r of ZOOM_RUNGS) if(Math.log(r) < lo - 0.03) next = r; }        // the largest rung below
+  else       { for(const r of ZOOM_RUNGS) if(Math.log(r) > lo + 0.03){ next = r; break; } } // the smallest above
+  if(next === null) return;
+  cam.distGoal = Math.max(minDist(), Math.min(9500, next));
+}
+
+function initCamera(deps                                                           )       {
+  ageGyr$3 = deps.ageGyr; onHold = deps.onHold;
+  canvas.addEventListener('pointerdown', e=>{
+    touches.set(e.pointerId, e);
+    onHold(true);
+    canvas.classList.add('dragging');
+    if(touches.size === 1){ dragging = true; px = e.clientX; py = e.clientY;
+      // capture can be refused; a throw here would abandon the handler mid-way
+      try{ canvas.setPointerCapture(e.pointerId); }catch(err){} }
+    else { dragging = false; [panCX, panCY] = panCentroid(); }   // two fingers: pinch and pan, not a turn
+  });
+  canvas.addEventListener('pointermove', e=>{
+    if(touches.has(e.pointerId)) touches.set(e.pointerId, e);
+    if(touches.size === 2){
+      // the fingers' midpoint carries the scene with it; the pinch (below) reads the spread
+      const [cx, cy] = panCentroid();
+      cam.panF[0] = Math.max(-2, Math.min(2, cam.panF[0] + (cx - panCX)/view.H));
+      cam.panF[1] = Math.max(-2, Math.min(2, cam.panF[1] + (cy - panCY)/view.H));
+      panCX = cx; panCY = cy;
+      return;
+    }
+    if(!dragging || touches.size > 1) return;
+    cam.yaw   -= (e.clientX-px)*0.005*SKY_MIRROR;
+    cam.pitch  = Math.max(-1.45, Math.min(1.45, cam.pitch + (e.clientY-py)*0.005));
+    px=e.clientX; py=e.clientY;
+  });
+  function endPointer(e              )       {
+    touches.delete(e.pointerId);
+    if(touches.size === 0){ dragging = false; onHold(false); canvas.classList.remove('dragging'); }
+    else if(touches.size === 1){
+      // one finger left: pick the drag up from where it actually is, or the view jumps
+      const q = touches.values().next().value ;   // size is 1, so there is one
+      px = q.clientX; py = q.clientY; dragging = true;
+    } else if(touches.size === 2) [panCX, panCY] = panCentroid();   // three down to two: restart from here
+  }
+  addEventListener('pointerup', endPointer);
+  addEventListener('pointercancel', endPointer);
+  canvas.addEventListener('wheel', e=>{
+    e.preventDefault();
+    const rate = 0.0018 ; // faster travel across real scale's ~11 decades
+    cam.distGoal = Math.max(minDist(), Math.min(7500, cam.distGoal*Math.exp(e.deltaY*rate)));
+  },{passive:false});
+  // pinch zoom
+  let pinchD=0;
+  canvas.addEventListener('touchstart', e=>{ onHold(true); if(e.touches.length===2){ pinchD=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY); } },{passive:true});
+  canvas.addEventListener('touchend', e=>{ onHold(e.touches.length>0); },{passive:true});
+  canvas.addEventListener('touchmove', e=>{
+    if(e.touches.length===2){
+      const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+      if(pinchD>0) cam.distGoal=Math.max(minDist(),Math.min(7500,cam.distGoal*pinchD/d));
+      pinchD=d; dragging=false;   // belt and braces alongside the pointer bookkeeping
+    }
+  },{passive:true});
+}
+
+/**
+ * The Sun, the planets and the dwarfs, as points.
+ *
+ * Positions are uploaded Sun-relative and already include the bodies' motion, so this pass
+ * turns off the wave rotation, the variability and the star field's brightness floor: a
+ * planet is not part of the galaxy and must not be lifted with it.
+ *
+ * Three buffers, one static-looking and two not. Sizes change when the piece switches between
+ * the drawn scale and the real one, and again as the Sun swells and each inner planet is
+ * swallowed. Colours change because the Sun's follows its temperature. The CPU-side arrays
+ * are exported because the frame fills them and the labels read them — they are the model of
+ * where the bodies are, not this pass's private state.
+ */
+
+// BODIES is a table of mixed columns — name, period, radii, colour, axis — so each column is
+// read through the type it actually holds. main.ts got this for free under @ts-nocheck.
+const spriteSize = (b                         )         => b[3];         
+const realRadiusKm = (b                         )         => b[6];         
+const colour = (b                         )           => b[4];           
+
+const bodyPosArr = new Float32Array(NB*3);
+const dispSizes = new Float32Array(BODIES.map(spriteSize));
+/** true diameters in scene units */
+const realSizes = new Float32Array(BODIES.map(b=>2*(realRadiusKm(b)/1.496e8)*AU2U));
+const bodyCol = new Float32Array(NB*3);
+BODIES.forEach((b,i)=>{ const c = colour(b); bodyCol[i*3]=c[0]; bodyCol[i*3+1]=c[1]; bodyCol[i*3+2]=c[2]; });
+
+const vaoBodies = gl.createVertexArray() ; gl.bindVertexArray(vaoBodies);
+const bufBodyPos = gl.createBuffer() ;
+gl.bindBuffer(gl.ARRAY_BUFFER,bufBodyPos); gl.bufferData(gl.ARRAY_BUFFER,bodyPosArr,gl.DYNAMIC_DRAW);
+gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
+const bufBodySize = gl.createBuffer() ;
+gl.bindBuffer(gl.ARRAY_BUFFER, bufBodySize); gl.bufferData(gl.ARRAY_BUFFER,dispSizes,gl.STATIC_DRAW);
+gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,1,gl.FLOAT,false,0,0);
+// colours are dynamic too: the Sun's follows its temperature, and a planet being
+// swallowed flares white for a moment
+const bufBodyCol = gl.createBuffer() ;
+gl.bindBuffer(gl.ARRAY_BUFFER, bufBodyCol); gl.bufferData(gl.ARRAY_BUFFER,bodyCol,gl.DYNAMIC_DRAW);
+gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2,3,gl.FLOAT,false,0,0);
+gl.bindVertexArray(null);
+
+/** Swap the whole size buffer: the drawn scale, or the true diameters. */
+function setBodySizes$1(real         )       {
+  gl.bindBuffer(gl.ARRAY_BUFFER,bufBodySize);
+  gl.bufferData(gl.ARRAY_BUFFER, realSizes, gl.STATIC_DRAW);
+}
+
+/**
+ * Write one body's size in place. `index` is the body, not a byte offset — the Sun swelling
+ * and a planet being swallowed each touch exactly one float, every frame.
+ */
+function uploadBodySize(index        , size              )       {
+  gl.bindBuffer(gl.ARRAY_BUFFER,bufBodySize); gl.bufferSubData(gl.ARRAY_BUFFER,index*4,size);
+}
+
+/** The Sun's colour, which is the only one that moves. */
+function uploadSunColour()       {
+  gl.bindBuffer(gl.ARRAY_BUFFER,bufBodyCol); gl.bufferSubData(gl.ARRAY_BUFFER,0,bodyCol,0,3);
+}
+
+function uploadBodyPositions()       {
+  gl.bindBuffer(gl.ARRAY_BUFFER,bufBodyPos);
+  gl.bufferSubData(gl.ARRAY_BUFFER,0,bodyPosArr);
+}
+                     
+                                                                                
+                 
+ 
+
+function drawBodies({ showDwarfs, showP9 }            )       {
+  gl.useProgram(pPt);
+  gl.uniform1f(U.ptSpin, 0.0); // body positions already include their motion
+  gl.uniform1f(U.ptVM, 0.0);
+  gl.uniform1f(U.ptMinB, 0.0);   // the planets are not part of the star field
+  gl.uniform1f(U.ptMinSz, 1.3);
+  gl.uniform1f(U.ptCap, 110.0);
+  gl.uniform3f(U.ptOrg, 0,0,0); // bodies are uploaded Sun-relative already
+  gl.bindVertexArray(vaoBodies);
+  gl.drawArrays(gl.POINTS, 0, showDwarfs ? I_P9 : N_PLANETS);
+  if(showP9) gl.drawArrays(gl.POINTS, I_P9, 1);
+}
+
+/**
+ * The swept paths, and the closed orbits that stand in for them.
+ *
+ * Two different things are drawn through one program. A TRAIL is the path actually watched
+ * being swept: TRAIL_N samples in a sliding window, sample TRAIL_N−1 being now and the
+ * brightest, sample 0 the earliest seen. A RING is each planet's orbit as a closed
+ * heliocentric loop, sampled once — in this model orbits neither precess nor decay, so the
+ * ring is the same at any epoch — and it stands in wherever sweeping is impossible: inside the
+ * dive at high speed a million orbits pass per second, no line can trace them, and the path
+ * they all follow is exactly this ring.
+ */
+
+/** sliding window: TRAIL_N samples, spacing set by the length slider */
+const TRAIL_N = 2400;
+const trails                 = [], trailBufs                = [], trailVaos                           = [];
+
+/**
+ * Build the sliding windows. Called from main.ts rather than at import: this is the sixth of
+ * the seven things that consume the boot sequence in order, and building it anywhere else
+ * moves everything after it.
+ */
+function initTrails()       {
+  for(let i=0;i<NB;i++){
+    const a = new Float32Array(TRAIL_N*3);
+    for(let k=0;k<TRAIL_N;k++){
+      bodyPos(i, (k-(TRAIL_N-1))*simClock.dtSample, tmp);
+      a[k*3]=tmp[0]; a[k*3+1]=tmp[1]; a[k*3+2]=tmp[2];
+    }
+    trails.push(a);
+    const vao=gl.createVertexArray() ; gl.bindVertexArray(vao);
+    const b=gl.createBuffer() ; gl.bindBuffer(gl.ARRAY_BUFFER,b);
+    gl.bufferData(gl.ARRAY_BUFFER,a,gl.DYNAMIC_DRAW);
+    gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
+    gl.bindVertexArray(null);
+    trailBufs.push(b); trailVaos.push(vao);
+  }
+}
+
+const RING_N = 96;
+const ringVaos                                    = [];
+
+/** The orbit rings — the seventh and last of the boot's ordered builders. */
+function initOrbitRings()       {
+  const q = new Float64Array(3), s0 = new Float64Array(3);
+  for(let i=0;i<NB;i++){
+    if(i === 0){ ringVaos.push(null); continue; }
+    const a = new Float32Array(RING_N*3);
+    const P = BODIES[i][1]          ;
+    for(let k=0;k<RING_N;k++){
+      const ts = k/RING_N*P;
+      bodyPos(i, ts, q); bodyPos(0, ts, s0);
+      a[k*3]=q[0]-s0[0]; a[k*3+1]=q[1]-s0[1]; a[k*3+2]=q[2]-s0[2];
+    }
+    const vao=gl.createVertexArray() ; gl.bindVertexArray(vao);
+    const b=gl.createBuffer() ; gl.bindBuffer(gl.ARRAY_BUFFER,b);
+    gl.bufferData(gl.ARRAY_BUFFER,a,gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
+    gl.bindVertexArray(null); trackVAOBuffers(vao,[b]); ringVaos.push(vao);
+  }
+}
+
+// Trails are stored as absolute positions minus a local anchor. Float32 alone cannot
+// hold a position of magnitude ~900 to sub-AU precision — the error is about 7 AU,
+// which at dive zoom is the whole frame — so the anchor keeps the stored numbers small
+// and the draw passes (org - anchor), subtracted in double precision, as the origin.
+const trailAnchor = new Float64Array(3);
+
+function trailPos(i        , ts        , out              )               {
+  bodyPos(i, ts, out);
+  out[0]-=trailAnchor[0]; out[1]-=trailAnchor[1]; out[2]-=trailAnchor[2];
+  return out;
+}
+
+function pushTrail(i        , ts        )       {
+  const a=trails[i];
+  a.copyWithin(0,3);
+  trailPos(i, ts, tmp);
+  a[(TRAIL_N-1)*3]=tmp[0]; a[(TRAIL_N-1)*3+1]=tmp[1]; a[(TRAIL_N-1)*3+2]=tmp[2];
+}
+
+/** Push this frame's samples to the GPU. Only called on a frame that took any. */
+function uploadTrails()       {
+  for(let i=0;i<NB;i++){
+    gl.bindBuffer(gl.ARRAY_BUFFER,trailBufs[i]);
+    gl.bufferSubData(gl.ARRAY_BUFFER,0,trails[i]);
+  }
+}
+
+function refillTrails()       {
+  bodyPos(0, simClock.simT, tmpSun);
+  trailAnchor[0]=tmpSun[0]; trailAnchor[1]=tmpSun[1]; trailAnchor[2]=tmpSun[2];
+  // The trail is the path the viewer has watched being swept: sample TRAIL_N−1 is now and
+  // the brightest, sample 0 the earliest seen and the dimmest. With the clock running
+  // backwards "earliest seen" is the LATER sim time, so the samples run the other way —
+  // otherwise the trail pointed into the sim-past, which in reverse lies ahead of the
+  // body, and it led instead of trailed.
+  const dirT = simClock.shuttle < 0 ? -1 : 1;
+  for(let i=0;i<NB;i++){
+    const a=trails[i];
+    for(let k=0;k<TRAIL_N;k++){
+      trailPos(i, simClock.simT - dirT*((TRAIL_N-1)-k)*simClock.dtSample, tmp);
+      a[k*3]=tmp[0]; a[k*3+1]=tmp[1]; a[k*3+2]=tmp[2];
+    }
+    gl.bindBuffer(gl.ARRAY_BUFFER,trailBufs[i]);
+    gl.bufferSubData(gl.ARRAY_BUFFER,0,a);
+  }
+}
+                       
+                       
+                 
+                   
+                                                                                       
+                    
+                    
+                  
+                                                                                           
+              
+              
+                 
+                     
+                              
+ 
+
+/**
+ * Trail buffers hold absolute positions, and at the Sun's radius a float32 step is 6.1e-5
+ * scene units — a quarter pixel around cam.dist 0.17. Fade across that boundary rather than
+ * cutting, so leaving real scale doesn't drop them abruptly.
+ *
+ * Planets are drawable only while their points stand apart from the Sun's: Neptune's orbit
+ * spans about six pixels at 0.13 units of camera distance, and beyond that the whole system
+ * is inside one point — only the Sun's own trail means anything there.
+ */
+function drawTrails(
+  { projMat, viewMat, camDist, org, trailAlpha, orbitAlpha, starGain,
+    psH, psO, showP9, showDwarfs, wasEaten }             ,
+)       {
+  const solarClose = camDist < 0.13;
+  gl.useProgram(pTr);
+  gl.uniformMatrix4fv(U.trProj,false,projMat);
+  gl.uniformMatrix4fv(U.trView,false,viewMat);
+  gl.uniform1f(U.trLen,TRAIL_N);
+  const last = (showP9 ? NB : I_P9)-1;
+  // the origin for anchored buffers, subtracted in double precision
+  const aox = org[0]-trailAnchor[0], aoy = org[1]-trailAnchor[1], aoz = org[2]-trailAnchor[2];
+  gl.uniform3f(U.trOrg, aox, aoy, aoz);
+  for(let i=last;i>=0;i--){
+    const c=BODIES[i][4]            ;
+    if(i === I_P9 && !showP9) continue;
+    if(i >= N_PLANETS && i < I_P9 && !showDwarfs) continue;
+    if(i <= 3 && i > 0 && wasEaten[i]) continue;   // no path for a planet that is gone
+    if(readout.globePx > 40) continue;   // zoomed onto the globe, every orbit and helix is a line across the sky
+    if(i > 0){
+      if(!solarClose) continue;                    // collapsed into the Sun's point
+      const spo = (BODIES[i][1]          )/simClock.dtSample;
+      // the ring draws when asked for, or as the fallback for an unresolvable helix
+      if(psO || (psH && spo < 12)){
+        // the closed path itself — also the honest fallback when the sampling
+        // cannot resolve the orbit and no accurate helix is drawable
+        gl.uniform3f(U.trOrg, 0,0,0);
+        gl.uniform3f(U.trCol, c[0],c[1],c[2]);
+        gl.uniform1f(U.trA, 0.4*orbitAlpha*(1+starGain*0.9));
+        gl.uniform1f(U.trFlat, 1.0);
+        gl.bindVertexArray(ringVaos[i]);
+        gl.drawArrays(gl.LINE_LOOP, 0, RING_N);
+        gl.uniform1f(U.trFlat, 0.0);
+        gl.uniform3f(U.trOrg, aox, aoy, aoz);
+      }
+      if(!psH || spo < 12) continue;
+      // the accurate helix: the swept absolute path, no styling — Mercury winds
+      // tightly, the giants barely wave, because that is how it actually is
+      gl.uniform3f(U.trCol, c[0],c[1],c[2]);
+      gl.uniform1f(U.trA, 0.55*trailAlpha*(1+starGain*0.9));
+      gl.bindVertexArray(trailVaos[i]);
+      gl.drawArrays(gl.LINE_STRIP, TRAIL_N-Math.min(TRAIL_N, Math.round(200*spo)), Math.min(TRAIL_N, Math.round(200*spo)));
+      continue;
+    }
+    if(!psH) continue;   // the Sun's arc is a swept trail: it follows the helix switch
+    gl.uniform3f(U.trCol,c[0],c[1],c[2]);
+    // lift with the star gain, or a brightened field washes the thin line out
+    gl.uniform1f(U.trA, 0.9*trailAlpha*(1+starGain*0.9));
+    gl.bindVertexArray(trailVaos[i]);
+    gl.drawArrays(gl.LINE_STRIP, 0, TRAIL_N);
+  }
+}
+
+/**
+ * The staged views and the epoch jumps: everything the two selectors do.
+ *
+ * Both work by driving the page's own controls rather than by setting state directly — a
+ * scenario clicks `#tDive` and `#tView` and dispatches `input` on the sliders, exactly as a
+ * visitor would. That is deliberate and it is fragile in one specific way: **the order of the
+ * synthetic clicks is load-bearing.** Both toggles reset the follow target to the Sun as a
+ * side effect of turning themselves on, so `followTarget` is set AFTER them, never before.
+ * 06-camera-panels H5 records what that cost the first time.
+ *
+ * The clock is part of a staged view, not a preference. The helix is only legible at a year a
+ * second, the Gliese pass at a thousand, the Andromeda approach at a hundred million — so a
+ * scenario sets its own pace even at boot, where a returning visitor's other settings are
+ * left alone.
+ */
+
+let ageGyr$2               = () => 0;
+let saveSettings$3             = () => {};
+let speedRungOf$1                          = () => 0;
+let setMultExp$1                      = () => {};
+
+/** set only while the opening scenario stages itself */
+let keepSaved = false;
+const setKeepSaved = (v         )       => { keepSaved = v; };
+
+// The Earth view fills the viewport: the globe's diameter at 80% of the shorter side,
+// whatever the screen. The projection's field is vertical (see pxScale in the draw),
+// so the distance is the planet's true diameter over that many pixels.
+function earthViewDist()         { return bodyViewDist(realSizes[3]); }
+function moonViewDist()         { return bodyViewDist(MOON_DIA); }
+function bodyViewDist(dia        )         {        // the distance at which a body of this diameter fills 80% of the shorter side
+  const h = innerHeight, px = 0.8*Math.min(innerWidth, h);
+  return Math.max(minDist(), dia*(h/(2*Math.tan(Math.PI/6)))/px);
+}
+function applyFocusView()       {
+  const v = ($('focusSel')                     ).value;
+  if(v === 'sun'){
+    cam.followTarget = 'sun';
+    if($('tView').classList.contains('on')) $('tView').click();
+    if(!$('tDive').classList.contains('on')) $('tDive').click();
+    else { cam.follow = true; cam.coreLock = true; cam.distGoal = 3.5e-5; cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0; }
+  } else if(v === 'earth'){
+    // the planet itself with the Moon's whole orbit in frame, following Earth. Set after
+    // the toggle clicks: both handlers reset the follow target to the Sun as a side effect.
+    if($('tView').classList.contains('on')) $('tView').click();
+    if(!$('tDive').classList.contains('on')) $('tDive').click();
+    cam.followTarget = 'earth';
+    cam.follow = true; cam.coreLock = false; cam.distGoal = earthViewDist(); cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
+  } else if(v === 'moon'){
+    // the Moon herself, filling the view. Followed like Earth: the same handlers, and the
+    // same order — the toggles reset the target to the Sun as they turn themselves on.
+    if($('tView').classList.contains('on')) $('tView').click();
+    if(!$('tDive').classList.contains('on')) $('tDive').click();
+    cam.followTarget = 'moon';
+    // before the Theia impact there is no Moon: the view holds on the world she comes
+    // from, at Earth's own distance, and takes her up when she forms
+    cam.follow = true; cam.coreLock = false; cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
+    cam.distGoal = ageGyr$2() > MOON_BORN ? moonViewDist() : earthViewDist();
+  } else if(v === 'pn'){
+    // the shell's full reach, ~3.5 ly across, following what is left of the Sun; before
+    // the shell exists this is simply the Sun's neighbourhood at that scale
+    cam.followTarget = 'sun';
+    if($('tView').classList.contains('on')) $('tView').click();
+    if(!$('tDive').classList.contains('on')) $('tDive').click();
+    cam.follow = true; cam.coreLock = false; cam.distGoal = 0.1; cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
+  } else if(v === 'and'){
+    // framed wide enough for the whole disk plus its extended halo and stream
+    // (R_A=2245, halo out to ~4200, the Giant Southern Stream past 5700), at any
+    // point in the encounter; continuously tracked, so the view holds through a
+    // running merger scenario too. Set after the toggle clicks below: tView's own
+    // handler resets followTarget to 'sun' as a side effect of turning itself on.
+    if($('tDive').classList.contains('on')) $('tDive').click();
+    if(!$('tView').classList.contains('on')) $('tView').click();
+    cam.followTarget = 'and';
+    cam.follow = true; cam.coreLock = false; cam.distGoal = 9500; cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
+  } else {
+    cam.followTarget = 'sun';
+    if($('tDive').classList.contains('on')) $('tDive').click();
+    if(!$('tView').classList.contains('on')) $('tView').click();
+    else { cam.follow = false; cam.distGoal = 4300; cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0; }
+  }
+  saveSettings$3();
+}
+
+function jumpToEpoch()       {
+  cam.followTarget = 'sun';
+  const sel = $v('jump');
+  const a = sel.value === '' ? AGE0 : parseFloat(sel.value);   // a letter after the age marks a staged event at that age
+  // some epochs are over in a blink on the galactic clock; land at a speed that shows them
+  const opt = sel.selectedOptions[0];
+  // The clock is part of the staged view, not a preference: the helix is only legible
+  // at a year a second, the Gliese pass at a thousand, the Andromeda approach at a
+  // hundred million. A scenario therefore sets its own pace even at boot, where a
+  // returning visitor's other settings are left alone.
+  const sp = opt && opt.dataset.rate, mu = opt && opt.dataset.mult;   // the rate in years per second → its rung
+  if(sp !== undefined && sp !== null){ $v('speed').value = String(speedRungOf$1(+sp)); $('speed').dispatchEvent(new Event('input')); }
+  if(mu) setMultExp$1(Math.log10(+mu));
+  if(sel.value === 'helix'){
+    // not an epoch: a staging entry for the true helix. At one year a second the Sun
+    // covers 48 AU while Earth loops once around it — visible, and actually accurate.
+    if($('tView').classList.contains('on')) $('tView').click();
+    if(!keepSaved){   // the owner's exported look: full trails over half-strength rings
+      $v('trailA').value = String(1);   $('trailA').dispatchEvent(new Event('input'));
+      $v('orbitA').value = String(0.5); $('orbitA').dispatchEvent(new Event('input'));
+      if(hud.trailPct < 250){ $v('trailL').value = String(300); $('trailL').dispatchEvent(new Event('input')); }
+    }
+    if(!$('tDive').classList.contains('on')) $('tDive').click();
+    cam.distGoal = 1.449e-5;                   // ~31 AU across
+    cam.yaw = 0.7014; cam.pitch = 0.2757;      // the exported angle chosen by hand
+    // the clock reads the real date and time: simT counts Earth's orbits from 2026.0
+    simClock.simT = (Date.now() - Date.UTC(2026, 0, 1)) / (365.2425*86400e3);
+    simClock.nextSample = simClock.simT + simClock.dtSample; refillTrails();
+    // never unpause someone who asked for reduced motion
+    if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
+    return;
+  }
+  simClock.simT = (a - AGE0)*1e9/YR_PER_SIM;
+  if(sel.value === '11.3586'){
+    // Lands where the Sun has swollen to ten times its size and runs to the moment its
+    // surface passes Earth's orbit: 768 Myr of red giant, played out in about 35
+    // seconds. The frame is two and a half AU, so the disc grows from a small circle
+    // to something that fills it and takes the inner planets on the way.
+    if($('tView').classList.contains('on')) $('tView').click();
+    if($('tDive').classList.contains('on')) $('tDive').click();
+    cam.follow = true; cam.coreLock = false;
+    cam.dist = cam.distGoal = 1.14e-6;
+    cam.yaw = 0.6; cam.pitch = 0.34;
+    cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
+    if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
+  }
+  if(sel.value === '12.35'){
+    // Lands 20 Myr short of the shell: at ten million years a second it is cast in seven
+    // seconds and fades over the next thirty. The frame is ~3.5 ly, the shell's full
+    // reach, the eye following what is left of the Sun.
+    if($('tView').classList.contains('on')) $('tView').click();
+    if(!$('tDive').classList.contains('on')) $('tDive').click();
+    cam.follow = true; cam.coreLock = false;
+    cam.dist = cam.distGoal = 0.1;
+    cam.yaw = 0.9; cam.pitch = 0.28;
+    cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
+    if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
+  }
+  if(sel.value === '8.36149'){
+    // Lands 0.7 Gyr short of the first passage — ~95,000 parsecs, drawn to scale, so
+    // the disks never touch; watch the far outer disks reach for each other instead.
+    // At a hundred million years a second the pass arrives in about seven.
+    if($('tView').classList.contains('on')) $('tView').click();
+    if(!$('tDive').classList.contains('on')) $('tDive').click();
+    cam.follow = true; cam.coreLock = true;
+    // set outright, not eased: the climb from dive scale spans eleven decades and would
+    // spend the whole approach travelling instead of watching it
+    cam.dist = cam.distGoal = 15500;
+    cam.yaw = 5.9257; cam.pitch = 0.5771;
+    cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
+    if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
+  }
+  if(sel.value === '11.25'){
+    // The main event: the second passage at ~30 kpc, the third at ~13, and the slide
+    // into one elliptical — 2.3 Gyr in about 23 seconds. The camera stands far enough
+    // back to hold both galaxies as they close.
+    if($('tView').classList.contains('on')) $('tView').click();
+    if(!$('tDive').classList.contains('on')) $('tDive').click();
+    cam.follow = true; cam.coreLock = true;
+    cam.dist = cam.distGoal = 9200;
+    cam.yaw = 5.6; cam.pitch = 0.62;
+    cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
+    if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
+  }
+  if(sel.value === '4.5692567'){
+    // stage the pass: the camera frames the Oort cloud with the star already in view.
+    // It lands at the shell's outer edge, 1.6 ly out; at 1,900 years a second the
+    // crossing — 3.2 ly at 14.4 km/s — takes almost exactly 35 seconds.
+    if($('tView').classList.contains('on')) $('tView').click();
+    if($('tDive').classList.contains('on')) $('tDive').click();
+    cam.follow = true; cam.coreLock = false;
+    cam.distGoal = 0.144;                     // ~5 ly across: the whole Oort shell
+    cam.yaw = 0.72; cam.pitch = -0.31;        // faces the star's approach track
+  }
+  // Earth's own events are watched from Earth: the globe filling the view, followed. The
+  // continental ones lock the camera to the spin and put the eye over the face that
+  // matters, given as yaw = atan2(cos lat cos lon, −cos lat sin lon), pitch = lat:
+  //   plates    20° N 30° W  the Atlantic, so it opens and closes in view
+  //   Pangaea   15° N  0°    the supercontinent's heart, Africa still where it is
+  //   Proxima   10° N 20° W  the closed Atlantic again
+  //   oceans    10° N 20° W  the same face, drying
+  const EARTH_AIM                           = { '4.318':[1.047, 0.35], '4.318p':[1.571, 0.26], '4.818x':[1.222, 0.17], '5.6v':[1.222, 0.17] };
+  if(sel.value === '0.058' || sel.value === '0.768' || sel.value === '2.068' || EARTH_AIM[sel.value]){
+    $v('focusSel').value = 'earth'; applyFocusView();
+    const aim = EARTH_AIM[sel.value];
+    if(aim){
+      if(!$v('tSpinLock').checked){ $v('tSpinLock').checked = true; $('tSpinLock').dispatchEvent(new Event('change')); }
+      cam.yaw = aim[0]; cam.pitch = aim[1];
+    }
+    if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
+  }
+  simClock.nextSample = simClock.simT + simClock.dtSample;
+  events.length = 0; puffs.length = 0;
+  lifeAcc.accB = lifeAcc.accSN = lifeAcc.accPN = 0;
+  refillTrails();
+}
+
+function initScenarioViews(deps   
+                      
+                          
+                                      
+                                 
+                          
+                              
+                                 
+ )       {
+  ageGyr$2 = deps.ageGyr; saveSettings$3 = deps.saveSettings; speedRungOf$1 = deps.speedRungOf;
+  setMultExp$1 = deps.setMultExp;  $('focusSel').addEventListener('change', applyFocusView);
+  $('focusGo').addEventListener('click', applyFocusView);   // re-apply the current pick, e.g. after drifting off it
+  // the status bar slides down to a grip and back up — by click or by an actual slide
+  {
+    const bar = $('gamebar'), grip = $('barGrip');
+    let y0                = null, moved = false;
+    // hiding is done on the bar itself — slide it down; the grip appears only then,
+    // as the handle to bring it back
+    let by0                = null;
+    bar.addEventListener('pointerdown', e => { if(e.target !== grip) by0 = e.clientY; });
+    bar.addEventListener('pointermove', e => {
+      if(by0 === null) return;
+      if(e.clientY - by0 > 26){ setSlid(true); by0 = null; }
+    });
+    bar.addEventListener('pointerup',   () => { by0 = null; });
+    bar.addEventListener('pointercancel', () => { by0 = null; });
+    const setSlid = (s         )       => {
+      bar.classList.toggle('slid', s);
+      // the transform is set inline as well as by the class: an inline style wins over
+      // whatever else the cascade is doing, and this must work on every browser
+      bar.style.transform = s ? 'translate(-50%, calc(100% + 15px))' : '';
+      saveSettings$3();
+    };
+    grip.addEventListener('pointerdown', e => { y0 = e.clientY; moved = false;
+      try{ grip.setPointerCapture(e.pointerId); }catch(err){} });
+    grip.addEventListener('pointermove', e => {
+      if(y0 === null) return;
+      const dy = e.clientY - y0;
+      if(dy > 22){ setSlid(true);  moved = true; y0 = null; }
+      else if(dy < -22){ setSlid(false); moved = true; y0 = null; }
+    });
+    grip.addEventListener('pointerup', () => { y0 = null; });
+    grip.addEventListener('click', () => {
+      if(moved){ moved = false; return; }     // a slide already did the work
+      setSlid(!bar.classList.contains('slid'));
+    });
+    if(bar.classList.contains('slid')) setSlid(true);   // restored state applies the style too
+  }
+  $('jump').addEventListener('change', e=>{ cam.reseedFollow=true; cam.panF[0]=cam.panF[1]=0; jumpToEpoch(); });   // the event was never read; the selector carries the pick
+  $('jumpGo').addEventListener('click', ()=>{
+    jumpToEpoch();
+    // the point of GO is to watch the scenario, so the panel steps aside — unless the
+    // visitor would rather keep it open and try one scenario after another
+    if($v('closeOnGo').checked && panelIsOpen('simPanel')) setPanelOpen('simPanel', false);
+  });
 }
 
 /**
@@ -2539,191 +3337,6 @@ function initQr(deps
 }
 
 /**
- * The swept paths, and the closed orbits that stand in for them.
- *
- * Two different things are drawn through one program. A TRAIL is the path actually watched
- * being swept: TRAIL_N samples in a sliding window, sample TRAIL_N−1 being now and the
- * brightest, sample 0 the earliest seen. A RING is each planet's orbit as a closed
- * heliocentric loop, sampled once — in this model orbits neither precess nor decay, so the
- * ring is the same at any epoch — and it stands in wherever sweeping is impossible: inside the
- * dive at high speed a million orbits pass per second, no line can trace them, and the path
- * they all follow is exactly this ring.
- */
-
-/** sliding window: TRAIL_N samples, spacing set by the length slider */
-const TRAIL_N = 2400;
-const trails                 = [], trailBufs                = [], trailVaos                           = [];
-
-/**
- * Build the sliding windows. Called from main.ts rather than at import: this is the sixth of
- * the seven things that consume the boot sequence in order, and building it anywhere else
- * moves everything after it.
- */
-function initTrails()       {
-  for(let i=0;i<NB;i++){
-    const a = new Float32Array(TRAIL_N*3);
-    for(let k=0;k<TRAIL_N;k++){
-      bodyPos(i, (k-(TRAIL_N-1))*simClock.dtSample, tmp);
-      a[k*3]=tmp[0]; a[k*3+1]=tmp[1]; a[k*3+2]=tmp[2];
-    }
-    trails.push(a);
-    const vao=gl.createVertexArray() ; gl.bindVertexArray(vao);
-    const b=gl.createBuffer() ; gl.bindBuffer(gl.ARRAY_BUFFER,b);
-    gl.bufferData(gl.ARRAY_BUFFER,a,gl.DYNAMIC_DRAW);
-    gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
-    gl.bindVertexArray(null);
-    trailBufs.push(b); trailVaos.push(vao);
-  }
-}
-
-const RING_N = 96;
-const ringVaos                                    = [];
-
-/** The orbit rings — the seventh and last of the boot's ordered builders. */
-function initOrbitRings()       {
-  const q = new Float64Array(3), s0 = new Float64Array(3);
-  for(let i=0;i<NB;i++){
-    if(i === 0){ ringVaos.push(null); continue; }
-    const a = new Float32Array(RING_N*3);
-    const P = BODIES[i][1]          ;
-    for(let k=0;k<RING_N;k++){
-      const ts = k/RING_N*P;
-      bodyPos(i, ts, q); bodyPos(0, ts, s0);
-      a[k*3]=q[0]-s0[0]; a[k*3+1]=q[1]-s0[1]; a[k*3+2]=q[2]-s0[2];
-    }
-    const vao=gl.createVertexArray() ; gl.bindVertexArray(vao);
-    const b=gl.createBuffer() ; gl.bindBuffer(gl.ARRAY_BUFFER,b);
-    gl.bufferData(gl.ARRAY_BUFFER,a,gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
-    gl.bindVertexArray(null); trackVAOBuffers(vao,[b]); ringVaos.push(vao);
-  }
-}
-
-// Trails are stored as absolute positions minus a local anchor. Float32 alone cannot
-// hold a position of magnitude ~900 to sub-AU precision — the error is about 7 AU,
-// which at dive zoom is the whole frame — so the anchor keeps the stored numbers small
-// and the draw passes (org - anchor), subtracted in double precision, as the origin.
-const trailAnchor = new Float64Array(3);
-
-function trailPos(i        , ts        , out              )               {
-  bodyPos(i, ts, out);
-  out[0]-=trailAnchor[0]; out[1]-=trailAnchor[1]; out[2]-=trailAnchor[2];
-  return out;
-}
-
-function pushTrail(i        , ts        )       {
-  const a=trails[i];
-  a.copyWithin(0,3);
-  trailPos(i, ts, tmp);
-  a[(TRAIL_N-1)*3]=tmp[0]; a[(TRAIL_N-1)*3+1]=tmp[1]; a[(TRAIL_N-1)*3+2]=tmp[2];
-}
-
-/** Push this frame's samples to the GPU. Only called on a frame that took any. */
-function uploadTrails()       {
-  for(let i=0;i<NB;i++){
-    gl.bindBuffer(gl.ARRAY_BUFFER,trailBufs[i]);
-    gl.bufferSubData(gl.ARRAY_BUFFER,0,trails[i]);
-  }
-}
-
-function refillTrails()       {
-  bodyPos(0, simClock.simT, tmpSun);
-  trailAnchor[0]=tmpSun[0]; trailAnchor[1]=tmpSun[1]; trailAnchor[2]=tmpSun[2];
-  // The trail is the path the viewer has watched being swept: sample TRAIL_N−1 is now and
-  // the brightest, sample 0 the earliest seen and the dimmest. With the clock running
-  // backwards "earliest seen" is the LATER sim time, so the samples run the other way —
-  // otherwise the trail pointed into the sim-past, which in reverse lies ahead of the
-  // body, and it led instead of trailed.
-  const dirT = simClock.shuttle < 0 ? -1 : 1;
-  for(let i=0;i<NB;i++){
-    const a=trails[i];
-    for(let k=0;k<TRAIL_N;k++){
-      trailPos(i, simClock.simT - dirT*((TRAIL_N-1)-k)*simClock.dtSample, tmp);
-      a[k*3]=tmp[0]; a[k*3+1]=tmp[1]; a[k*3+2]=tmp[2];
-    }
-    gl.bindBuffer(gl.ARRAY_BUFFER,trailBufs[i]);
-    gl.bufferSubData(gl.ARRAY_BUFFER,0,a);
-  }
-}
-                       
-                       
-                 
-                   
-                                                                                       
-                    
-                    
-                  
-                                                                                           
-              
-              
-                 
-                     
-                              
- 
-
-/**
- * Trail buffers hold absolute positions, and at the Sun's radius a float32 step is 6.1e-5
- * scene units — a quarter pixel around cam.dist 0.17. Fade across that boundary rather than
- * cutting, so leaving real scale doesn't drop them abruptly.
- *
- * Planets are drawable only while their points stand apart from the Sun's: Neptune's orbit
- * spans about six pixels at 0.13 units of camera distance, and beyond that the whole system
- * is inside one point — only the Sun's own trail means anything there.
- */
-function drawTrails(
-  { projMat, viewMat, camDist, org, trailAlpha, orbitAlpha, starGain,
-    psH, psO, showP9, showDwarfs, wasEaten }             ,
-)       {
-  const solarClose = camDist < 0.13;
-  gl.useProgram(pTr);
-  gl.uniformMatrix4fv(U.trProj,false,projMat);
-  gl.uniformMatrix4fv(U.trView,false,viewMat);
-  gl.uniform1f(U.trLen,TRAIL_N);
-  const last = (showP9 ? NB : I_P9)-1;
-  // the origin for anchored buffers, subtracted in double precision
-  const aox = org[0]-trailAnchor[0], aoy = org[1]-trailAnchor[1], aoz = org[2]-trailAnchor[2];
-  gl.uniform3f(U.trOrg, aox, aoy, aoz);
-  for(let i=last;i>=0;i--){
-    const c=BODIES[i][4]            ;
-    if(i === I_P9 && !showP9) continue;
-    if(i >= N_PLANETS && i < I_P9 && !showDwarfs) continue;
-    if(i <= 3 && i > 0 && wasEaten[i]) continue;   // no path for a planet that is gone
-    if(readout.globePx > 40) continue;   // zoomed onto the globe, every orbit and helix is a line across the sky
-    if(i > 0){
-      if(!solarClose) continue;                    // collapsed into the Sun's point
-      const spo = (BODIES[i][1]          )/simClock.dtSample;
-      // the ring draws when asked for, or as the fallback for an unresolvable helix
-      if(psO || (psH && spo < 12)){
-        // the closed path itself — also the honest fallback when the sampling
-        // cannot resolve the orbit and no accurate helix is drawable
-        gl.uniform3f(U.trOrg, 0,0,0);
-        gl.uniform3f(U.trCol, c[0],c[1],c[2]);
-        gl.uniform1f(U.trA, 0.4*orbitAlpha*(1+starGain*0.9));
-        gl.uniform1f(U.trFlat, 1.0);
-        gl.bindVertexArray(ringVaos[i]);
-        gl.drawArrays(gl.LINE_LOOP, 0, RING_N);
-        gl.uniform1f(U.trFlat, 0.0);
-        gl.uniform3f(U.trOrg, aox, aoy, aoz);
-      }
-      if(!psH || spo < 12) continue;
-      // the accurate helix: the swept absolute path, no styling — Mercury winds
-      // tightly, the giants barely wave, because that is how it actually is
-      gl.uniform3f(U.trCol, c[0],c[1],c[2]);
-      gl.uniform1f(U.trA, 0.55*trailAlpha*(1+starGain*0.9));
-      gl.bindVertexArray(trailVaos[i]);
-      gl.drawArrays(gl.LINE_STRIP, TRAIL_N-Math.min(TRAIL_N, Math.round(200*spo)), Math.min(TRAIL_N, Math.round(200*spo)));
-      continue;
-    }
-    if(!psH) continue;   // the Sun's arc is a swept trail: it follows the helix switch
-    gl.uniform3f(U.trCol,c[0],c[1],c[2]);
-    // lift with the star gain, or a brightened field washes the thin line out
-    gl.uniform1f(U.trA, 0.9*trailAlpha*(1+starGain*0.9));
-    gl.bindVertexArray(trailVaos[i]);
-    gl.drawArrays(gl.LINE_STRIP, 0, TRAIL_N);
-  }
-}
-
-/**
  * The debug door: opened by `?debug` in the URL or ten taps on refresh, and remembered.
  *
  * Behind it are the error log (collected on touch devices, which have no console to open),
@@ -2846,160 +3459,6 @@ function initDebug(deps
       .then(v=>{ ($('dbgText')                       ).value=v; dbgSay('pasted'); },
             ()=>dbgSay('clipboard refused — paste into the box by hand')); });
   if(DEBUG) setDebugUI(true, new URLSearchParams(location.search).get('debug') !== null);
-}
-
-/**
- * The Earth: which way it is facing, where the Moon is, and what the surface looks like at a
- * given age.
- *
- * The plate motion is a SCHEMATIC of the published reconstructions, not a plate model — the
- * poles and angles were chosen by hand to land the continents where the maps put them, and
- * the info panel says so, because a reader with a geology textbook would otherwise be right
- * to call it wrong.
- *
- * earthPrime carries a trap worth knowing about. Its spin phase is calibrated once, lazily,
- * on the first call, so that the Sun stands over Greenwich at noon on 2026-01-01 — and the
- * calibration reads the rendering origin. That origin used to be picked out of the renderer's
- * scope, which made the answer depend on WHEN the globe pass first ran rather than only on
- * the arguments; at a scenario that jumps the clock before the globe is ever drawn, the
- * calibration is against a Sun in the wrong place. It is a parameter now: the arithmetic is
- * unchanged and so is the result at the existing call site, but the dependency is in the
- * signature where it can be seen. Still lazy, and still not to be hoisted to module
- * evaluation.
- */
-                                        
-                
-               
-                                                                                                   
-             
-              
-             
-                
-               
-                
-               
-             
-                  
- 
-
-// The plates: each carried by a rotation about a fixed pole, its angle keyed by time in
-// Myr from today (negative past), interpolated between keys. A SCHEMATIC of the published
-// reconstructions — the Atlantic opening from Pangaea, India's run north, Australia's,
-// then the Atlantic closing and the continents gathering again into Pangaea Proxima —
-// with the poles and angles chosen by hand to land the continents where the maps put
-// them, not a plate model. Africa is the near-fixed reference. Order matches the map's ids.
-const PLATE_MODEL = [
-  { name:'Antarctica', pole:[5.0,-5.8], keys:[[-250,10.4], [-100,5.2], [0,0.0], [250,-22.9]] },
-  { name:'India', pole:[-17.7,160.6], keys:[[-250,54.8], [-130,50.4], [-60,21.9], [-40,6.6], [0,0.0], [250,-5.5]] },
-  { name:'Australia', pole:[-11.4,-129.6], keys:[[-250,36.5], [-60,32.9], [0,0.0], [250,-23.7]] },
-  { name:'S. America', pole:[70.0,-17.4], keys:[[-250,43.1], [-130,43.1], [0,0.0], [100,-6.5], [250,32.3]] },
-  { name:'N. America', pole:[45.0,80.5], keys:[[-250,40.0], [-180,40.0], [0,0.0], [100,-6], [250,32.0]] },
-  { name:'Africa', pole:[0,110], keys:[[0,0], [250,-8]] },
-  { name:'Eurasia', pole:[30,90], keys:[[-250,10], [0,0], [250,-4]] }
-];
-const plateMats = new Float32Array(63);
-function plateAngle(keys                                , tMyr        )         {
-  if(tMyr <= keys[0] [0] ) return keys[0] [1] ;
-  for(let i=1;i<keys.length;i++) if(tMyr <= keys[i][0]){ const [t0,a0]=keys[i-1] , [t1,a1]=keys[i] ; return a0 + (a1-a0)*(tMyr-t0)/(t1-t0); }
-  return keys[keys.length-1] [1] ;
-}
-function fillPlateMats(tMyr        )       {
-  for(let k=0;k<7;k++){
-    const m = PLATE_MODEL[k] , la = m.pole[0]*Math.PI/180, lo = m.pole[1]*Math.PI/180;
-    const ax = Math.cos(la)*Math.cos(lo), ay = Math.cos(la)*Math.sin(lo), az = Math.sin(la);
-    const th = -plateAngle(m.keys, tMyr)*Math.PI/180;          // the inverse: from now back to then
-    const c = Math.cos(th), sn = Math.sin(th), C = 1-c;
-    const M = [ c+ax*ax*C, ax*ay*C-az*sn, ax*az*C+ay*sn,
-                ay*ax*C+az*sn, c+ay*ay*C, ay*az*C-ax*sn,
-                az*ax*C-ay*sn, az*ay*C+ax*sn, c+az*az*C ];       // rows
-    const o = k*9;                                              // column-major for GLSL
-    plateMats[o]=M[0]; plateMats[o+1]=M[3]; plateMats[o+2]=M[6];
-    plateMats[o+3]=M[1]; plateMats[o+4]=M[4]; plateMats[o+5]=M[7];
-    plateMats[o+6]=M[2]; plateMats[o+7]=M[5]; plateMats[o+8]=M[8];
-  }
-}
-// The Moon's orbit: its distance today, receding as it always has (3.8 cm/yr now, far faster
-// when it was young) — a power law fitted to formation ~4.5 Gyr ago at a few Earth radii,
-// not a dynamical model; Kepler's third law sets the period from the distance.
-const MOON_D0 = 384400/1.496e8*AU2U, MOON_INC = 5.145*Math.PI/180, MOON_P0 = 27.3217/365.25;
-const MOON_M1 = E1, MOON_M2 = [E2[0]*Math.cos(MOON_INC)+EN[0]*Math.sin(MOON_INC), E2[1]*Math.cos(MOON_INC)+EN[1]*Math.sin(MOON_INC), E2[2]*Math.cos(MOON_INC)+EN[2]*Math.sin(MOON_INC)];
-const MOON_BORN = 0.06;                                  // Gyr: the Theia impact, as the scenario has it
-const MOON_DIA = 2*(1737/1.496e8)*AU2U;                  // scene units, her true diameter
-function moonDist(a        )         { return MOON_D0*Math.pow(Math.max(0.02, Math.min(3, (a - 0.05)/4.518)), 0.45); }
-const moonW = new Float64Array(3), moonRel = new Float32Array(3);
-function moonPos(t        , out              )               {                                // world position, doubles
-  const a = AGE0 + t*YR_PER_SIM/1e9, d = moonDist(a), P = MOON_P0*Math.pow(d/MOON_D0, 1.5);
-  const th = 2*Math.PI*t/P + 1.3;
-  bodyPos(3, t, out);
-  for(let k=0;k<3;k++) out[k] += d*(Math.cos(th)*MOON_M1[k] + Math.sin(th)*MOON_M2[k]);
-  return out;
-}
-// Earth's spin axis: 23.44° from the ecliptic normal, tilted toward the direction that
-// makes northern summer fall on the calendar's June — the piece's year phase is Jan 1.
-const OBLIQ = 23.44*Math.PI/180;
-const EARTH_AXIS = (()=>{ const psi = PHASE[3] + 2*Math.PI*0.471 + Math.PI, c=Math.cos(psi), s=Math.sin(psi);
-  const e=[c*E1[0]+s*E2[0], c*E1[1]+s*E2[1], c*E1[2]+s*E2[2]];
-  return [Math.cos(OBLIQ)*EN[0]+Math.sin(OBLIQ)*e[0], Math.cos(OBLIQ)*EN[1]+Math.sin(OBLIQ)*e[1], Math.cos(OBLIQ)*EN[2]+Math.sin(OBLIQ)*e[2]]; })();
-const EARTH_P0 = (()=>{ const A=EARTH_AXIS, d=E1[0]*A[0]+E1[1]*A[1]+E1[2]*A[2]; const v=[E1[0]-d*A[0],E1[1]-d*A[1],E1[2]-d*A[2]];
-  const l=Math.hypot(...v); return [v[0]/l,v[1]/l,v[2]/l]; })();
-const SIDEREAL = 366.2422;                                 // rotations per year
-let earthPhi0                = null;                                     // set once: Greenwich noon on 2026-01-01
-function earthPrime$2(t        , out              , org              )               {                              // the prime meridian's direction on the equator at t
-  const A = EARTH_AXIS, P0 = EARTH_P0, Q0 = [A[1]*P0[2]-A[2]*P0[1], A[2]*P0[0]-A[0]*P0[2], A[0]*P0[1]-A[1]*P0[0]];
-  if(earthPhi0 === null){
-    // solve the spin phase so that the Sun stands over the prime meridian at that noon
-    const tn = 0.5/365.25, e = new Float64Array(3); bodyPos(3, tn, e);
-    const sx=-e[0]+org[0], sy=-e[1]+org[1], sz=-e[2]+org[2];   // toward the Sun, from Earth (org is the Sun now)
-    const lam = Math.atan2(sx*Q0[0]+sy*Q0[1]+sz*Q0[2], sx*P0[0]+sy*P0[1]+sz*P0[2]);
-    earthPhi0 = lam - 2*Math.PI*SIDEREAL*tn;
-  }
-  const w = 2*Math.PI*SIDEREAL*t + earthPhi0, c=Math.cos(w), sn=Math.sin(w);
-  for(let k=0;k<3;k++) out[k] = c*P0[k] + sn*Q0[k];
-  return out;
-}
-// The era: what the planet looks like at a given age, from the piece's own timeline and
-// its climate model. Every number here is a model choice, disclosed in the info panel.
-const clamp01 = (x        )         => Math.max(0, Math.min(1, x));
-function earthEra(a        , meanC        )           {
-  const molten = Math.max(clamp01((0.16 - a)/0.09), clamp01((a - 11.15)/0.12));          // Hadean, and under the giant
-  const ocean  = clamp01((a - 0.15)/0.10) * clamp01((6.6 - a)/1.0);                       // late Hadean to the moist greenhouse
-  const haze   = clamp01((2.55 - a)/0.45);                                                // methane haze until the Great Oxidation
-  const veg    = clamp01((a - 4.12)/0.13) * clamp01((5.45 - a)/0.25);                     // land plants: Devonian on, starved ~0.9 Gyr ahead
-  const landF  = ocean > 0 ? 0.06 + 0.23*clamp01((a - 0.3)/2.2) : 1;                      // continents grow through the Archean
-  // the noise threshold that gives that land fraction: the fbm in the shader averages 0.48
-  // with a spread of ~0.11, so 29% land sits 0.55σ above the mean and 6% at 1.55σ
-  const sea    = ocean > 0 ? 0.485 + 0.113*(1.55 - 1.0*Math.min(1, landF/0.29)) : -1;   // ported and measured: 0.547 -> 29%, 0.660 -> 6%
-  const snow   = Math.max(clamp01(1 - Math.abs(a - 2.20)/0.15), clamp01(1 - Math.abs(a - 3.885)/0.05));   // Huronian, Cryogenian
-  // Ice from the climate model only in the Phanerozoic, where its greenhouse is roughly
-  // right; earlier it reads the faint young Sun without the greenhouse that kept the
-  // early oceans liquid, so before that the caps follow the rock record instead: none,
-  // except the snowballs above and the Pongola (2.9 Ga) and Karoo (300 Ma) ice ages.
-  let iceLat = a > 3.95 ? Math.max(18, Math.min(88, 90 - (18 - meanC)*5.5))                 // 15 °C -> ~74°; 11 -> ~52°; 5 -> ~18°
-             : 95 - 40*clamp01(1 - Math.abs(a - 1.67)/0.06);                                // Pongola: caps to ~55° for a moment
-  if(a > 4.03 && a <= AGE0 + 1e-6){
-    // where there is a rock record it outranks the model: the Phanerozoic's three ice
-    // ages, and no caps at all between them — the Permian–Triassic world of Pangaea and
-    // the Cretaceous were hothouses. The HUD's glacial badge stays the model's own word.
-    let rec = 88;
-    rec = Math.min(rec, 95 - 50*clamp01(1 - Math.abs(a - 4.130)/0.010));                     // Ordovician–Silurian, 445–430 Ma
-    if(a > 4.208 && a < 4.313) rec = Math.min(rec, 50 + 8*clamp01(Math.abs(a - 4.26)/0.05));  // Karoo, 360–255 Ma
-    if(a >= 4.534) rec = Math.min(rec, a >= 4.565 ? 64 : 70);                                  // Antarctic ice from 34 Ma; both poles in the Pleistocene
-    iceLat = rec;
-  }
-  if(a > 4.22 && a < 4.31) iceLat = Math.min(iceLat, 50);                                  // Karoo
-  iceLat = Math.min(iceLat, 95 - 50*clamp01(1 - Math.abs(a - 4.123)/0.008));              // Ordovician (445 Ma)
-  if(a > 4.44 && a < 4.51) iceLat = Math.max(iceLat, 89);                                  // the Cretaceous hothouse: no caps
-  if(a > 4.75 && a < 4.85) iceLat = Math.min(iceLat, 62);                                  // Proxima: a supercontinent's caps
-  iceLat = (1 - snow)*iceLat + snow*0;
-  // dry periods: Pangaea's interior (Permian–Triassic), the Old Red Sandstone deserts of
-  // the Devonian, and Proxima's; then the drying that ends the oceans
-  const dry = Math.max(clamp01(1 - Math.abs(a - 4.32)/0.06), 0.6*clamp01(1 - Math.abs(a - 4.175)/0.03),
-                       0.8*clamp01(1 - Math.abs(a - 4.80)/0.06), clamp01((a - 5.4)/0.8));
-  const seaLevel = ocean >= 0.999 ? 1 : Math.pow(ocean, 0.5);
-  if(ocean <= 0 || molten > 0) iceLat = 95;
-  const cloud  = ocean*(0.55 + 0.35*clamp01((a - 5.3)/0.8))*(1 - molten);
-  const lights = Math.abs(a - AGE0) < 2e-5 ? 1 : 0;                                       // twenty thousand years around now
-  return { molten, ocean, sea: sea < 0 ? -2 : sea, haze, veg, iceLat, cloud, lights, drift: a*2.5, dry, seaLevel };
 }
 
 /** How many. The draw call needs it too, so it is exported rather than inlined twice. */
@@ -4236,88 +4695,6 @@ function drawDust(
 }
 
 /**
- * The Sun, the planets and the dwarfs, as points.
- *
- * Positions are uploaded Sun-relative and already include the bodies' motion, so this pass
- * turns off the wave rotation, the variability and the star field's brightness floor: a
- * planet is not part of the galaxy and must not be lifted with it.
- *
- * Three buffers, one static-looking and two not. Sizes change when the piece switches between
- * the drawn scale and the real one, and again as the Sun swells and each inner planet is
- * swallowed. Colours change because the Sun's follows its temperature. The CPU-side arrays
- * are exported because the frame fills them and the labels read them — they are the model of
- * where the bodies are, not this pass's private state.
- */
-
-// BODIES is a table of mixed columns — name, period, radii, colour, axis — so each column is
-// read through the type it actually holds. main.ts got this for free under @ts-nocheck.
-const spriteSize = (b                         )         => b[3];         
-const realRadiusKm = (b                         )         => b[6];         
-const colour = (b                         )           => b[4];           
-
-const bodyPosArr = new Float32Array(NB*3);
-const dispSizes = new Float32Array(BODIES.map(spriteSize));
-/** true diameters in scene units */
-const realSizes = new Float32Array(BODIES.map(b=>2*(realRadiusKm(b)/1.496e8)*AU2U));
-const bodyCol = new Float32Array(NB*3);
-BODIES.forEach((b,i)=>{ const c = colour(b); bodyCol[i*3]=c[0]; bodyCol[i*3+1]=c[1]; bodyCol[i*3+2]=c[2]; });
-
-const vaoBodies = gl.createVertexArray() ; gl.bindVertexArray(vaoBodies);
-const bufBodyPos = gl.createBuffer() ;
-gl.bindBuffer(gl.ARRAY_BUFFER,bufBodyPos); gl.bufferData(gl.ARRAY_BUFFER,bodyPosArr,gl.DYNAMIC_DRAW);
-gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
-const bufBodySize = gl.createBuffer() ;
-gl.bindBuffer(gl.ARRAY_BUFFER, bufBodySize); gl.bufferData(gl.ARRAY_BUFFER,dispSizes,gl.STATIC_DRAW);
-gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,1,gl.FLOAT,false,0,0);
-// colours are dynamic too: the Sun's follows its temperature, and a planet being
-// swallowed flares white for a moment
-const bufBodyCol = gl.createBuffer() ;
-gl.bindBuffer(gl.ARRAY_BUFFER, bufBodyCol); gl.bufferData(gl.ARRAY_BUFFER,bodyCol,gl.DYNAMIC_DRAW);
-gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2,3,gl.FLOAT,false,0,0);
-gl.bindVertexArray(null);
-
-/** Swap the whole size buffer: the drawn scale, or the true diameters. */
-function setBodySizes$1(real         )       {
-  gl.bindBuffer(gl.ARRAY_BUFFER,bufBodySize);
-  gl.bufferData(gl.ARRAY_BUFFER, realSizes, gl.STATIC_DRAW);
-}
-
-/**
- * Write one body's size in place. `index` is the body, not a byte offset — the Sun swelling
- * and a planet being swallowed each touch exactly one float, every frame.
- */
-function uploadBodySize(index        , size              )       {
-  gl.bindBuffer(gl.ARRAY_BUFFER,bufBodySize); gl.bufferSubData(gl.ARRAY_BUFFER,index*4,size);
-}
-
-/** The Sun's colour, which is the only one that moves. */
-function uploadSunColour()       {
-  gl.bindBuffer(gl.ARRAY_BUFFER,bufBodyCol); gl.bufferSubData(gl.ARRAY_BUFFER,0,bodyCol,0,3);
-}
-
-function uploadBodyPositions()       {
-  gl.bindBuffer(gl.ARRAY_BUFFER,bufBodyPos);
-  gl.bufferSubData(gl.ARRAY_BUFFER,0,bodyPosArr);
-}
-                     
-                                                                                
-                 
- 
-
-function drawBodies({ showDwarfs, showP9 }            )       {
-  gl.useProgram(pPt);
-  gl.uniform1f(U.ptSpin, 0.0); // body positions already include their motion
-  gl.uniform1f(U.ptVM, 0.0);
-  gl.uniform1f(U.ptMinB, 0.0);   // the planets are not part of the star field
-  gl.uniform1f(U.ptMinSz, 1.3);
-  gl.uniform1f(U.ptCap, 110.0);
-  gl.uniform3f(U.ptOrg, 0,0,0); // bodies are uploaded Sun-relative already
-  gl.bindVertexArray(vaoBodies);
-  gl.drawArrays(gl.POINTS, 0, showDwarfs ? I_P9 : N_PLANETS);
-  if(showP9) gl.drawArrays(gl.POINTS, I_P9, 1);
-}
-
-/**
  * Gliese 710's passage: one point, on the same symbolic scale as the Oort cloud in the
  * compressed view and at its true separation in real scale, so it passes where the cloud
  * actually is. It reddens and brightens as it closes.
@@ -4449,113 +4826,6 @@ function runFirstLaunchProbe({ detailNames, resize, saveSettingsNow }           
   detail.value = String(d); detail.dispatchEvent(new Event('input'));
   saveSettingsNow();
   try{ $('buildStamp').textContent += ' · probe ' + (r.ms < 0 ? 'failed' : r.msLow.toFixed(1) + ' ms/pass') + ' → ' + r.detail + (view.dprCap < 2 ? ', 1× pixels' : ''); }catch(e){}
-}
-
-/**
- * The camera: what a hand does to the view.
- *
- * One pointer turns it, two pan and pinch it, the wheel zooms, and the zoom buttons step
- * along a ladder of the objects themselves. All of it is listener registration, so the module
- * is an `initCamera()` plus the one thing the interface calls into — `zoomStep`.
- *
- * Two values are injected. `ageGyr` decides the Moon's zoom floor, and `holding` is read by
- * the frame: while a pointer or finger is down the clock holds, so the galaxy does not keep
- * turning under the hand that is trying to orbit it.
- */
-
-let ageGyr$2               = () => 0;
-let onHold                          = () => {};
-
-// dive: hold the camera on the Sun-to-core line
-// which absolute-frame position cam.follow tracks when true — the Sun everywhere
-// except the one Andromeda view, which needs its own moving target the same way
-
-let dragging=false, px=0, py=0;
-// While a pointer or finger is down the clock holds, so the galaxy does not keep
-// turning under the hand that is trying to orbit it. Released, it carries straight on.
-// The flag itself belongs to the frame, so it is reported rather than kept.
-const touches = new Map                      ();     // every pointer currently down on the canvas
-// Two-finger pan. Kept as a fraction of the view's height along the camera's own right
-// and up, not as a world offset: zooming then keeps the composition, and a pan made at
-// galaxy scale cannot leave the Sun a thousand units off-screen once you dive. Cleared
-// wherever the view is re-seeded (a scenario, a focus, the dive), like the transition.
-
-let panCX = 0, panCY = 0;      // the last two-pointer centroid
-function panCentroid()           { let x=0,y=0; for(const q of touches.values()){ x+=q.clientX; y+=q.clientY; } return [x/touches.size, y/touches.size]; }
-// the floor: ~0.04 AU across, eight solar radii; at Earth and at the Moon, a body filling
-// the view. The Moon's view before she forms is Earth's view, so it keeps Earth's floor.
-const minDist = ()         => cam.followTarget === 'moon' ? (ageGyr$2() > MOON_BORN ? 5.5e-12 : 2e-11)
-                   : cam.followTarget === 'earth' ? 2e-11 : (2e-8 );
-// The zoom buttons step along a ladder of the objects themselves — the Sun, the planets'
-// orbits, the belts, the Oort shell, the nearest stars, the arm, the Galaxy, the Local
-// Group — with one rung between each pair, so two presses take you from one object to
-// the next, and every press eases in log space like any other zoom. Clamped to the same
-// floor and ceiling as the wheel. Distances in camera units: 1 AU across the view is
-// 4.67e-7, 1 ly is 0.0288.
-const ZOOM_OBJ = [1.2e-10, 3.2e-9, 2e-8, 1e-7, 3.7e-7, 9.3e-7, 1.45e-6, 4.9e-6, 8.9e-6, 2.8e-5, 4.7e-5, 9.3e-4, 0.144, 0.72, 17, 150, 4300, 9500];
-const ZOOM_RUNGS = ZOOM_OBJ.flatMap((d, i) => i ? [Math.sqrt(ZOOM_OBJ[i-1]*d), d] : [d]);
-function zoomStep(dir        )       {
-  const cur = cam.distGoal, lo = Math.log(cur);
-  let next = null;
-  if(dir < 0){ for(const r of ZOOM_RUNGS) if(Math.log(r) < lo - 0.03) next = r; }        // the largest rung below
-  else       { for(const r of ZOOM_RUNGS) if(Math.log(r) > lo + 0.03){ next = r; break; } } // the smallest above
-  if(next === null) return;
-  cam.distGoal = Math.max(minDist(), Math.min(9500, next));
-}
-
-function initCamera(deps                                                           )       {
-  ageGyr$2 = deps.ageGyr; onHold = deps.onHold;
-  canvas.addEventListener('pointerdown', e=>{
-    touches.set(e.pointerId, e);
-    onHold(true);
-    canvas.classList.add('dragging');
-    if(touches.size === 1){ dragging = true; px = e.clientX; py = e.clientY;
-      // capture can be refused; a throw here would abandon the handler mid-way
-      try{ canvas.setPointerCapture(e.pointerId); }catch(err){} }
-    else { dragging = false; [panCX, panCY] = panCentroid(); }   // two fingers: pinch and pan, not a turn
-  });
-  canvas.addEventListener('pointermove', e=>{
-    if(touches.has(e.pointerId)) touches.set(e.pointerId, e);
-    if(touches.size === 2){
-      // the fingers' midpoint carries the scene with it; the pinch (below) reads the spread
-      const [cx, cy] = panCentroid();
-      cam.panF[0] = Math.max(-2, Math.min(2, cam.panF[0] + (cx - panCX)/view.H));
-      cam.panF[1] = Math.max(-2, Math.min(2, cam.panF[1] + (cy - panCY)/view.H));
-      panCX = cx; panCY = cy;
-      return;
-    }
-    if(!dragging || touches.size > 1) return;
-    cam.yaw   -= (e.clientX-px)*0.005*SKY_MIRROR;
-    cam.pitch  = Math.max(-1.45, Math.min(1.45, cam.pitch + (e.clientY-py)*0.005));
-    px=e.clientX; py=e.clientY;
-  });
-  function endPointer(e              )       {
-    touches.delete(e.pointerId);
-    if(touches.size === 0){ dragging = false; onHold(false); canvas.classList.remove('dragging'); }
-    else if(touches.size === 1){
-      // one finger left: pick the drag up from where it actually is, or the view jumps
-      const q = touches.values().next().value ;   // size is 1, so there is one
-      px = q.clientX; py = q.clientY; dragging = true;
-    } else if(touches.size === 2) [panCX, panCY] = panCentroid();   // three down to two: restart from here
-  }
-  addEventListener('pointerup', endPointer);
-  addEventListener('pointercancel', endPointer);
-  canvas.addEventListener('wheel', e=>{
-    e.preventDefault();
-    const rate = 0.0018 ; // faster travel across real scale's ~11 decades
-    cam.distGoal = Math.max(minDist(), Math.min(7500, cam.distGoal*Math.exp(e.deltaY*rate)));
-  },{passive:false});
-  // pinch zoom
-  let pinchD=0;
-  canvas.addEventListener('touchstart', e=>{ onHold(true); if(e.touches.length===2){ pinchD=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY); } },{passive:true});
-  canvas.addEventListener('touchend', e=>{ onHold(e.touches.length>0); },{passive:true});
-  canvas.addEventListener('touchmove', e=>{
-    if(e.touches.length===2){
-      const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
-      if(pinchD>0) cam.distGoal=Math.max(minDist(),Math.min(7500,cam.distGoal*pinchD/d));
-      pinchD=d; dragging=false;   // belt and braces alongside the pointer bookkeeping
-    }
-  },{passive:true});
 }
 
 /**
@@ -6072,103 +6342,8 @@ $('tSpinLock2').addEventListener('change', ()=>{   // and drives the dock's box,
 syncZoomBtns($('tZoomBtns').checked);   // on by default: the markup says checked, and the dots follow it
 $('zoomIn').addEventListener('click', ()=> zoomStep(-1));     // here, after $ exists: zoomStep is
 $('zoomOut').addEventListener('click', ()=> zoomStep(1));    // hoisted, the listeners are not
-$('focusSel').options[0];   // its name changes once the Sun is gone
-// The Earth view fills the viewport: the globe's diameter at 80% of the shorter side,
-// whatever the screen. The projection's field is vertical (see pxScale in the draw),
-// so the distance is the planet's true diameter over that many pixels.
-function earthViewDist(){ return bodyViewDist(realSizes[3]); }
-function moonViewDist(){ return bodyViewDist(MOON_DIA); }
-function bodyViewDist(dia){        // the distance at which a body of this diameter fills 80% of the shorter side
-  const h = innerHeight, px = 0.8*Math.min(innerWidth, h);
-  return Math.max(minDist(), dia*(h/(2*Math.tan(Math.PI/6)))/px);
-}
-function applyFocusView(){
-  const v = $('focusSel').value;
-  if(v === 'sun'){
-    cam.followTarget = 'sun';
-    if($('tView').classList.contains('on')) $('tView').click();
-    if(!$('tDive').classList.contains('on')) $('tDive').click();
-    else { cam.follow = true; cam.coreLock = true; cam.distGoal = 3.5e-5; cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0; }
-  } else if(v === 'earth'){
-    // the planet itself with the Moon's whole orbit in frame, following Earth. Set after
-    // the toggle clicks: both handlers reset the follow target to the Sun as a side effect.
-    if($('tView').classList.contains('on')) $('tView').click();
-    if(!$('tDive').classList.contains('on')) $('tDive').click();
-    cam.followTarget = 'earth';
-    cam.follow = true; cam.coreLock = false; cam.distGoal = earthViewDist(); cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
-  } else if(v === 'moon'){
-    // the Moon herself, filling the view. Followed like Earth: the same handlers, and the
-    // same order — the toggles reset the target to the Sun as they turn themselves on.
-    if($('tView').classList.contains('on')) $('tView').click();
-    if(!$('tDive').classList.contains('on')) $('tDive').click();
-    cam.followTarget = 'moon';
-    // before the Theia impact there is no Moon: the view holds on the world she comes
-    // from, at Earth's own distance, and takes her up when she forms
-    cam.follow = true; cam.coreLock = false; cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
-    cam.distGoal = ageGyr() > MOON_BORN ? moonViewDist() : earthViewDist();
-  } else if(v === 'pn'){
-    // the shell's full reach, ~3.5 ly across, following what is left of the Sun; before
-    // the shell exists this is simply the Sun's neighbourhood at that scale
-    cam.followTarget = 'sun';
-    if($('tView').classList.contains('on')) $('tView').click();
-    if(!$('tDive').classList.contains('on')) $('tDive').click();
-    cam.follow = true; cam.coreLock = false; cam.distGoal = 0.1; cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
-  } else if(v === 'and'){
-    // framed wide enough for the whole disk plus its extended halo and stream
-    // (R_A=2245, halo out to ~4200, the Giant Southern Stream past 5700), at any
-    // point in the encounter; continuously tracked, so the view holds through a
-    // running merger scenario too. Set after the toggle clicks below: tView's own
-    // handler resets followTarget to 'sun' as a side effect of turning itself on.
-    if($('tDive').classList.contains('on')) $('tDive').click();
-    if(!$('tView').classList.contains('on')) $('tView').click();
-    cam.followTarget = 'and';
-    cam.follow = true; cam.coreLock = false; cam.distGoal = 9500; cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
-  } else {
-    cam.followTarget = 'sun';
-    if($('tDive').classList.contains('on')) $('tDive').click();
-    if(!$('tView').classList.contains('on')) $('tView').click();
-    else { cam.follow = false; cam.distGoal = 4300; cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0; }
-  }
-  saveSettings$1();
-}
-$('focusSel').addEventListener('change', applyFocusView);
-$('focusGo').addEventListener('click', applyFocusView);   // re-apply the current pick, e.g. after drifting off it
-// the status bar slides down to a grip and back up — by click or by an actual slide
-{
-  const bar = $('gamebar'), grip = $('barGrip');
-  let y0 = null, moved = false;
-  // hiding is done on the bar itself — slide it down; the grip appears only then,
-  // as the handle to bring it back
-  let by0 = null;
-  bar.addEventListener('pointerdown', e => { if(e.target !== grip) by0 = e.clientY; });
-  bar.addEventListener('pointermove', e => {
-    if(by0 === null) return;
-    if(e.clientY - by0 > 26){ setSlid(true); by0 = null; }
-  });
-  bar.addEventListener('pointerup',   () => { by0 = null; });
-  bar.addEventListener('pointercancel', () => { by0 = null; });
-  const setSlid = s => {
-    bar.classList.toggle('slid', s);
-    // the transform is set inline as well as by the class: an inline style wins over
-    // whatever else the cascade is doing, and this must work on every browser
-    bar.style.transform = s ? 'translate(-50%, calc(100% + 15px))' : '';
-    saveSettings$1();
-  };
-  grip.addEventListener('pointerdown', e => { y0 = e.clientY; moved = false;
-    try{ grip.setPointerCapture(e.pointerId); }catch(err){} });
-  grip.addEventListener('pointermove', e => {
-    if(y0 === null) return;
-    const dy = e.clientY - y0;
-    if(dy > 22){ setSlid(true);  moved = true; y0 = null; }
-    else if(dy < -22){ setSlid(false); moved = true; y0 = null; }
-  });
-  grip.addEventListener('pointerup', () => { y0 = null; });
-  grip.addEventListener('click', () => {
-    if(moved){ moved = false; return; }     // a slide already did the work
-    setSlid(!bar.classList.contains('slid'));
-  });
-  if(bar.classList.contains('slid')) setSlid(true);   // restored state applies the style too
-}
+initScenarioViews({
+  ageGyr, saveSettings: () => saveSettings$1(), speedRungOf, setMultExp});
 toggle($('tGaia'), on=> gfx.gaiaOn=on);
 toggle($('tFps'), on=>{ hud.showFps=on; $('fpsBox').style.display = on ? '' : 'none'; fitPanels(); });
 // ---------- movable panels ----------
@@ -6274,130 +6449,6 @@ const setSegUnits = initHudReadouts({
 // Replaying matters here: an event like the Gliese 710 pass is over in a second or two,
 // and re-picking the same entry fires no change event, so there would be no way back to
 // it short of reloading.
-let keepSaved = false;   // set only while the opening scenario stages itself
-function jumpToEpoch(){
-  cam.followTarget = 'sun';
-  const sel = $('jump');
-  const a = sel.value === '' ? AGE0 : parseFloat(sel.value);   // a letter after the age marks a staged event at that age
-  // some epochs are over in a blink on the galactic clock; land at a speed that shows them
-  const opt = sel.selectedOptions[0];
-  // The clock is part of the staged view, not a preference: the helix is only legible
-  // at a year a second, the Gliese pass at a thousand, the Andromeda approach at a
-  // hundred million. A scenario therefore sets its own pace even at boot, where a
-  // returning visitor's other settings are left alone.
-  const sp = opt && opt.dataset.rate, mu = opt && opt.dataset.mult;   // the rate in years per second → its rung
-  if(sp !== undefined && sp !== null){ $('speed').value = speedRungOf(+sp); $('speed').dispatchEvent(new Event('input')); }
-  if(mu) setMultExp(Math.log10(+mu));
-  if(sel.value === 'helix'){
-    // not an epoch: a staging entry for the true helix. At one year a second the Sun
-    // covers 48 AU while Earth loops once around it — visible, and actually accurate.
-    if($('tView').classList.contains('on')) $('tView').click();
-    if(!keepSaved){   // the owner's exported look: full trails over half-strength rings
-      $('trailA').value = 1;   $('trailA').dispatchEvent(new Event('input'));
-      $('orbitA').value = 0.5; $('orbitA').dispatchEvent(new Event('input'));
-      if(hud.trailPct < 250){ $('trailL').value = 300; $('trailL').dispatchEvent(new Event('input')); }
-    }
-    if(!$('tDive').classList.contains('on')) $('tDive').click();
-    cam.distGoal = 1.449e-5;                   // ~31 AU across
-    cam.yaw = 0.7014; cam.pitch = 0.2757;      // the exported angle chosen by hand
-    // the clock reads the real date and time: simT counts Earth's orbits from 2026.0
-    simClock.simT = (Date.now() - Date.UTC(2026, 0, 1)) / (365.2425*86400e3);
-    simClock.nextSample = simClock.simT + simClock.dtSample; refillTrails();
-    // never unpause someone who asked for reduced motion
-    if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
-    return;
-  }
-  simClock.simT = (a - AGE0)*1e9/YR_PER_SIM;
-  if(sel.value === '11.3586'){
-    // Lands where the Sun has swollen to ten times its size and runs to the moment its
-    // surface passes Earth's orbit: 768 Myr of red giant, played out in about 35
-    // seconds. The frame is two and a half AU, so the disc grows from a small circle
-    // to something that fills it and takes the inner planets on the way.
-    if($('tView').classList.contains('on')) $('tView').click();
-    if($('tDive').classList.contains('on')) $('tDive').click();
-    cam.follow = true; cam.coreLock = false;
-    cam.dist = cam.distGoal = 1.14e-6;
-    cam.yaw = 0.6; cam.pitch = 0.34;
-    cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
-    if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
-  }
-  if(sel.value === '12.35'){
-    // Lands 20 Myr short of the shell: at ten million years a second it is cast in seven
-    // seconds and fades over the next thirty. The frame is ~3.5 ly, the shell's full
-    // reach, the eye following what is left of the Sun.
-    if($('tView').classList.contains('on')) $('tView').click();
-    if(!$('tDive').classList.contains('on')) $('tDive').click();
-    cam.follow = true; cam.coreLock = false;
-    cam.dist = cam.distGoal = 0.1;
-    cam.yaw = 0.9; cam.pitch = 0.28;
-    cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
-    if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
-  }
-  if(sel.value === '8.36149'){
-    // Lands 0.7 Gyr short of the first passage — ~95,000 parsecs, drawn to scale, so
-    // the disks never touch; watch the far outer disks reach for each other instead.
-    // At a hundred million years a second the pass arrives in about seven.
-    if($('tView').classList.contains('on')) $('tView').click();
-    if(!$('tDive').classList.contains('on')) $('tDive').click();
-    cam.follow = true; cam.coreLock = true;
-    // set outright, not eased: the climb from dive scale spans eleven decades and would
-    // spend the whole approach travelling instead of watching it
-    cam.dist = cam.distGoal = 15500;
-    cam.yaw = 5.9257; cam.pitch = 0.5771;
-    cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
-    if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
-  }
-  if(sel.value === '11.25'){
-    // The main event: the second passage at ~30 kpc, the third at ~13, and the slide
-    // into one elliptical — 2.3 Gyr in about 23 seconds. The camera stands far enough
-    // back to hold both galaxies as they close.
-    if($('tView').classList.contains('on')) $('tView').click();
-    if(!$('tDive').classList.contains('on')) $('tDive').click();
-    cam.follow = true; cam.coreLock = true;
-    cam.dist = cam.distGoal = 9200;
-    cam.yaw = 5.6; cam.pitch = 0.62;
-    cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
-    if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
-  }
-  if(sel.value === '4.5692567'){
-    // stage the pass: the camera frames the Oort cloud with the star already in view.
-    // It lands at the shell's outer edge, 1.6 ly out; at 1,900 years a second the
-    // crossing — 3.2 ly at 14.4 km/s — takes almost exactly 35 seconds.
-    if($('tView').classList.contains('on')) $('tView').click();
-    if($('tDive').classList.contains('on')) $('tDive').click();
-    cam.follow = true; cam.coreLock = false;
-    cam.distGoal = 0.144;                     // ~5 ly across: the whole Oort shell
-    cam.yaw = 0.72; cam.pitch = -0.31;        // faces the star's approach track
-  }
-  // Earth's own events are watched from Earth: the globe filling the view, followed. The
-  // continental ones lock the camera to the spin and put the eye over the face that
-  // matters, given as yaw = atan2(cos lat cos lon, −cos lat sin lon), pitch = lat:
-  //   plates    20° N 30° W  the Atlantic, so it opens and closes in view
-  //   Pangaea   15° N  0°    the supercontinent's heart, Africa still where it is
-  //   Proxima   10° N 20° W  the closed Atlantic again
-  //   oceans    10° N 20° W  the same face, drying
-  const EARTH_AIM = { '4.318':[1.047, 0.35], '4.318p':[1.571, 0.26], '4.818x':[1.222, 0.17], '5.6v':[1.222, 0.17] };
-  if(sel.value === '0.058' || sel.value === '0.768' || sel.value === '2.068' || EARTH_AIM[sel.value]){
-    $('focusSel').value = 'earth'; applyFocusView();
-    const aim = EARTH_AIM[sel.value];
-    if(aim){
-      if(!$('tSpinLock').checked){ $('tSpinLock').checked = true; $('tSpinLock').dispatchEvent(new Event('change')); }
-      cam.yaw = aim[0]; cam.pitch = aim[1];
-    }
-    if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
-  }
-  simClock.nextSample = simClock.simT + simClock.dtSample;
-  events.length = 0; puffs.length = 0;
-  lifeAcc.accB = lifeAcc.accSN = lifeAcc.accPN = 0;
-  refillTrails();
-}
-$('jump').addEventListener('change', e=>{ cam.reseedFollow=true; cam.panF[0]=cam.panF[1]=0; jumpToEpoch(); });
-$('jumpGo').addEventListener('click', ()=>{
-  jumpToEpoch();
-  // the point of GO is to watch the scenario, so the panel steps aside — unless the
-  // visitor would rather keep it open and try one scenario after another
-  if($('closeOnGo').checked && panelIsOpen('simPanel')) setPanelOpen('simPanel', false);
-});
 const setBodySizes = () => setBodySizes$1();
 setBodySizes();   // real proportions from the first frame
 toggle($('tDive'), on=>{ cam.panF[0]=cam.panF[1]=0;
@@ -6536,10 +6587,10 @@ applyTrailWindow();
 // The piece opens on its signature view. A first-time visitor gets the whole staging;
 // a returning one gets the camera and keeps every setting they chose, because a
 // remembered setting is a decision and the opening is only a default.
-keepSaved = hadSaved;
-$('jump').value = 'helix';
+setKeepSaved(hadSaved);
+$v('jump').value = 'helix';
 $('jump').dispatchEvent(new Event('change'));
-keepSaved = false;
+setKeepSaved(false);
 try{ if(!hadSaved && !localStorage.getItem(TOURKEY)) setTimeout(showTour, 400); }catch(e){}
 // ---------- the debug door: opened by ?debug in the URL or ten taps on refresh ----------
 // The door itself, the error log, the state export/import and the QR overlay are ui/debug and
