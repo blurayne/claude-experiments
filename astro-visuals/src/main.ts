@@ -62,6 +62,7 @@ import {
 import { buildBelts, AB_N, KB_N, OO_N } from './scene/belts'
 import { initBelts, drawBelts } from './render/passes/belts'
 import { makeHDR, resolveTone, bindHDR } from './render/passes/tone'
+import { drawShed, drawSunDisc } from './render/passes/sun'
 import { parseStarBin } from './scene/sky'
 import {
   sound, fxOn, TRACKS, initAudio, showTrack, playTrack, loadTrack, nextTrack,
@@ -118,9 +119,6 @@ import GLOBE_VS from './shaders/globe.vert?raw'
 import GLOBE_FS from './shaders/globe.frag?raw'
 import TONE_VS from './shaders/tone.vert?raw'
 import TONE_FS from './shaders/tone.frag?raw'
-import SUN_VS from './shaders/sun.vert?raw'
-import SUN_FS from './shaders/sun.frag?raw'
-import PN_FS from './shaders/pn.frag?raw'
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
@@ -2211,41 +2209,12 @@ const org=new Float64Array(3); // rendering origin: the Sun, in double precision
 const sunSizeTmp=new Float32Array(1), eatSizeTmp=new Float32Array(1);
    // to tell the clock running across an engulfment from a jump past it
       // the nebula is on screen this frame: the label follows it
-// Once the Sun's true disc spans more than a few pixels, the point sprite hands over to
-// a procedural star: limb-darkened granulation that churns, prominence arcs that rise
-// and fall with a slow magnetic-storm cycle, and a streaked corona. All of it is noise
-// shaped in the fragment shader — no texture, and nothing about its SIZE is stylised:
-// the disc is the Sun's real diameter at the real distance.
+// The Sun's own two programs — the procedural disc and the envelope it sheds — are
+// render/passes/sun now, together with the single point both of them stand on.
 
-
-const pSunP = prog(SUN_VS, SUN_FS);
-const USn = {
-  proj: gl.getUniformLocation(pSunP,'uProj'), view: gl.getUniformLocation(pSunP,'uView'),
-  time: gl.getUniformLocation(pSunP,'uTime'), sz: gl.getUniformLocation(pSunP,'uSz'),
-  disc: gl.getUniformLocation(pSunP,'uDisc'),
-  colD: gl.getUniformLocation(pSunP,'uColD'), colB: gl.getUniformLocation(pSunP,'uColB'),
-};
-// ---------- what is left of the Sun ----------
-// The shed envelope, on the same one-point vertex shader as the disc: a limb-brightened
-// shell — a hollow sphere is brightest where the line of sight runs longest through it,
-// which is the rim — in the colours every planetary nebula actually shows, [O III] teal
-// inside and Hα red at the edge, with filaments and a mild two-lobed tilt, since a round
-// one is the exception. Additive, drawn under the central star.
-
-const pPN = prog(SUN_VS, PN_FS);
-const UPN = {
-  proj: gl.getUniformLocation(pPN,'uProj'), view: gl.getUniformLocation(pPN,'uView'),
-  sz: gl.getUniformLocation(pPN,'uSz'), time: gl.getUniformLocation(pPN,'uTime'),
-  age: gl.getUniformLocation(pPN,'uAge'), alpha: gl.getUniformLocation(pPN,'uAlpha'), burst: gl.getUniformLocation(pPN,'uBurst'),
-};
 // the engulfment flares: up to three points, drawn over the disc
 const eatGL = dynVAO(4);
 const eatPos = new Float32Array(12), eatSize = new Float32Array(4), eatCol = new Float32Array(12), eatW = new Float32Array(4);
-const vaoSunPt = (()=>{ const v=gl.createVertexArray(); gl.bindVertexArray(v);
-  const b=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,b);
-  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(3),gl.STATIC_DRAW);
-  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
-  gl.bindVertexArray(null); return v; })();
 
 
 // ---------- the first-launch performance probe ----------
@@ -2874,45 +2843,21 @@ function frame(now){
     gl.bindBuffer(gl.ARRAY_BUFFER,g710GL.c); gl.bufferSubData(gl.ARRAY_BUFFER,0,g710Col);
     gl.bindVertexArray(g710GL.vao); gl.drawArrays(gl.POINTS,0,1);
   }
-  // What the Sun sheds: under the star, additive, only from outside it — a billboard
-  // cannot show a hollow shell from within, and from inside a real one there is
-  // nothing to see but a faint sky glow anyway.
+  // The Sun itself, last of the scene: the envelope it has shed, then its disc over that.
+  // Whether the envelope is on screen decides what the Sun's label says, so the pass
+  // reports it and the readout is set here rather than from inside the draw.
+  // `pn` outlives the draw: the HUD's phase reading follows the shell's existence, which
+  // runs 0.3 Gyr past sunState()'s own 'planetary nebula' phase, so it stays a frame-level
+  // value rather than something the pass computes and keeps to itself.
   const pn = pnState(ageGyr());
-  readout.pnShown = false;
-  if(pn){
-    const rScene = pn.rAU*AU2U, px = (2*rScene/0.74)*pxScale/readout.camSunDist;
-    const outside = Math.min(1, Math.max(0, (readout.camSunDist/rScene - 1.15)/0.6));
-    const alpha = pn.alpha*outside;
-    if(alpha > 0.004 && px > 3){
-      readout.pnShown = true;
-      gl.useProgram(pPN);
-      gl.uniformMatrix4fv(UPN.proj,false,view.projMat);
-      gl.uniformMatrix4fv(UPN.view,false,viewMat);
-      gl.uniform1f(UPN.time, simClock.shimT);
-      gl.uniform1f(UPN.age, pn.age);
-      gl.uniform1f(UPN.alpha, alpha);
-      const burst = Math.exp(-Math.pow((pn.age - 0.07)/0.06, 2));   // the casting itself
-      gl.uniform1f(UPN.burst, burst);
-      gl.uniform1f(UPN.sz, Math.min(1800, px*(1 + 2.5*burst)));
-      gl.bindVertexArray(vaoSunPt); gl.drawArrays(gl.POINTS,0,1);
-    }
-  }
-  if(readout.plasmaSunPx > 7){
-    // Drawn last, and not additively: the photosphere is opaque, so the disc must
-    // occlude the sky behind it, with only the corona and arcs blending over it.
-    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-    gl.useProgram(pSunP);
-    gl.uniformMatrix4fv(USn.proj,false,view.projMat);
-    gl.uniformMatrix4fv(USn.view,false,viewMat);
-    gl.uniform1f(USn.time, simClock.shimT);
-    gl.uniform3f(USn.colD, tint.d[0], tint.d[1], tint.d[2]);
-    gl.uniform3f(USn.colB, tint.b[0], tint.b[1], tint.b[2]);
-    const sz = Math.min(1000, readout.plasmaSunPx*2.7);
-    gl.uniform1f(USn.sz, sz);
-    gl.uniform1f(USn.disc, readout.plasmaSunPx/sz);
-    gl.bindVertexArray(vaoSunPt); gl.drawArrays(gl.POINTS,0,1);
-    gl.blendFunc(gl.ONE, gl.ONE);
-  }
+  readout.pnShown = drawShed({
+    projMat: view.projMat!, viewMat, shimT: simClock.shimT, pxScale,
+    camSunDist: readout.camSunDist, pn,
+  });
+  drawSunDisc({
+    projMat: view.projMat!, viewMat, shimT: simClock.shimT,
+    plasmaSunPx: readout.plasmaSunPx, tint,
+  });
   // The flares: a planet the surface has just reached, a white point over the limb for
   // a moment. Over the disc on purpose — at that instant the planet is at the surface,
   // and a disc drawn opaque would otherwise hide the one thing worth seeing.

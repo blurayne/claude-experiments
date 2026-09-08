@@ -1772,6 +1772,122 @@ function resolveTone(coreKnee        )       {
 /** Bind the half-float target, so the scene renders into it rather than the screen. */
 function bindHDR()       { gl.bindFramebuffer(gl.FRAMEBUFFER, view.hdrFB); }
 
+const SUN_VS = "#version 300 es\nuniform mat4 uProj,uView; uniform float uSz;\nvoid main(){ gl_Position=uProj*uView*vec4(0.,0.,0.,1.); gl_PointSize=uSz; }";
+
+const SUN_FS = "#version 300 es\nprecision highp float;\nuniform float uTime, uDisc;\nuniform vec3 uColD, uColB;   // the photosphere's dark and bright tones, set by its temperature\nout vec4 o;\nfloat h21(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }\nfloat vnoise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);\n  return mix(mix(h21(i),h21(i+vec2(1,0)),f.x), mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x), f.y); }\nfloat fbm(vec2 p){ float a=.5,s=0.; for(int i=0;i<4;i++){ s+=a*vnoise(p); p*=2.13; a*=.5; } return s; }\nvoid main(){\n  vec2 q = gl_PointCoord*2.0-1.0;\n  float r = length(q);\n  if(r>1.0) discard;\n  float ang = atan(q.y,q.x);\n  float R = uDisc;\n  vec3 col = vec3(0.0); float lum = 0.0;\n  float t = uTime;\n  if(r < R){\n    float rr = r/R;\n    float limb = sqrt(max(0.0, 1.0-rr*rr));\n    float g  = fbm(q/R*7.0  + vec2(t*0.030,-t*0.021));\n    float g2 = fbm(q/R*17.0 - vec2(t*0.050, t*0.033));\n    float b = 0.55 + 0.50*limb + 0.35*(g-0.5) + 0.22*(g2-0.5);\n    col = mix(uColD, uColB, clamp(b,0.,1.));\n    col += mix(uColD, uColB, 0.8)*pow(limb,3.0)*0.35;\n    lum = 1.0;\n  }\n  float storm = 0.55 + 0.45*sin(t*0.23 + 2.0*sin(t*0.11));   // the slow magnetic cycle\n  float rim = (r-R)/R;\n  if(rim > -0.05){\n    float p1 = fbm(vec2(ang*2.2 + t*0.07, rim*5.0 - t*0.16));\n    float arcs = smoothstep(0.60, 0.95, p1) * exp(-max(rim,0.0)*3.2) * (0.45+storm);\n    // prominences run a shade redder than the surface, the corona a shade brighter —\n    // the same offsets today's fixed colours had, now riding the temperature\n    col += uColD*vec3(1.0,0.78,1.2)*arcs*1.6;\n    float st = 0.75 + 0.25*fbm(vec2(ang*3.5, t*0.05));\n    float cor = exp(-max(rim,0.0)*2.6)*0.35*st;\n    col += uColB*vec3(1.0,0.86,0.81)*cor;\n    lum = max(lum, max(arcs, cor));\n  }\n  float aDisc = smoothstep(R, R-0.015, r);\n  float a = max(aDisc, min(0.95, lum*0.85));\n  o = vec4(col*max(lum, aDisc), a);\n}";
+
+const PN_FS = "#version 300 es\nprecision highp float;\nuniform float uTime, uAge, uAlpha, uBurst;   // uAge 0..1 through the nebula's life; uBurst 0..1 at the casting\nout vec4 o;\nfloat h21(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }\nfloat vnoise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);\n  return mix(mix(h21(i),h21(i+vec2(1,0)),f.x), mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x), f.y); }\nfloat fbm(vec2 p){ float a=.5,s=0.; for(int i=0;i<4;i++){ s+=a*vnoise(p); p*=2.13; a*=.5; } return s; }\n// The interacting-winds picture, in stages over uAge. The envelope goes first: dense,\n// dusty, lit warm by the still-cool star, thrown off in a burst. Then the exposed core\n// heats and its ionisation front sweeps outward through the ejecta — teal [OIII] inside\n// the front, warm dust still beyond it — while the fast wind hollows a cavity, so the\n// shell becomes the limb-brightened, filamentary thing with Hα at its rim that a\n// planetary nebula is, with radial cometary knots where the front passed and a faint\n// outer halo of the earlier, slower wind. Then it thins and dissolves.\nvoid main(){\n  vec2 q = gl_PointCoord*2.0-1.0;\n  float rg = length(q);                              // in the sprite, which the burst enlarges\n  if(rg>1.0) discard;\n  // During the casting the sprite is drawn up to 3.5× the shell, so the star's light\n  // scattered off the fresh dust — a reflection halo, not a shock — has room beyond it;\n  // everything that belongs to the shell is measured in r, the shell's own scale.\n  float grow = 1.0 + 2.5*uBurst;\n  float r = min(1.0, rg*grow);\n  float ang = atan(q.y,q.x), a = uAge;\n  float eject = smoothstep(0.0, 0.18, a);            // the envelope is off\n  float ion   = smoothstep(0.15, 0.55, a);           // the front has swept out\n  float old   = smoothstep(0.72, 1.0, a);            // dissolving\n  float R = mix(0.52, 0.76, a);                      // the shell in the sprite (the sprite itself grows)\n  float w = mix(0.24, 0.075, ion) + 0.14*old;        // thick envelope -> thin shell -> frayed\n  float n1 = fbm(vec2(ang*3.0 + 3.0, r*6.0 - a*1.5));\n  float knots = fbm(vec2(ang*11.0 + uTime*0.005, r*1.6));      // streaks along r: cometary knots\n  float clump = fbm(q*5.0 + 7.0);\n  float fil = 0.40 + 0.70*n1 + 0.55*(knots-0.5)*ion + 0.30*(clump-0.5);\n  float env = exp(-pow((r-R)/w, 2.0));\n  float cavity = smoothstep(R*0.25, R*0.92, r);      // the fast wind empties the middle\n  float body = env * max(fil, 0.0) * mix(1.0, cavity, ion) * (0.82 + 0.18*cos(2.0*ang + 0.8));\n  float dust = smoothstep(R+0.12, 0.0, r) * (0.22 + 0.30*clump) * (1.0-ion) * eject;\n  float rIon = mix(0.0, 1.08, ion);                  // where the ionisation front stands\n  float inFront = smoothstep(rIon+0.07, rIon-0.07, r);\n  vec3 warm = vec3(1.00, 0.56, 0.30);\n  vec3 oiii = vec3(0.32, 0.92, 0.78);\n  vec3 ha   = vec3(1.00, 0.34, 0.26);\n  vec3 shellCol = mix(oiii, ha, smoothstep(R-0.03, R+0.10, r));\n  vec3 col = body * mix(warm, shellCol, inFront) * 0.95 + dust * warm;\n  col += oiii * exp(-pow((r-rIon)/0.05, 2.0)) * 0.55 * ion * (1.0-old) * step(rIon, 1.0) * (0.7+0.6*n1);   // the front itself\n  col += oiii * smoothstep(R, 0.0, r) * 0.08 * inFront * (1.0-old);                                          // the interior's glow\n  col += ha * exp(-pow((r-0.95)/0.05, 2.0)) * 0.14 * ion * (1.0-old) * (0.5+0.5*n1);                        // the old wind's halo\n  float flash = uBurst;                              // the casting: a burst of light, not a shock\n  col *= 1.0 + 1.3*flash;\n  col += warm * exp(-pow(rg/0.45, 2.0)) * 0.9 * flash * (0.75+0.5*fbm(q*4.0+2.0));   // scattered off the fresh dust\n  col += vec3(1.0,0.85,0.6) * exp(-pow(rg/0.12, 2.0)) * 1.4 * flash;                 // and the star, glaring through\n  col *= 1.0 - 0.65*old;\n  o = vec4(col*uAlpha, 0.0);\n}";
+
+/**
+ * The Sun at close range, and what it leaves behind. Two programs over one vertex shader
+ * and one point: both are billboards standing on the Sun's own position, which is the
+ * rendering origin, so the vertex data is three zeroes and everything else is a uniform.
+ *
+ * They are drawn together and in this order — the envelope under the star — because the
+ * disc is opaque and the envelope is not. Neither knows the clock: the age comes in as a
+ * `PnState` and a `SunTint` that `astro/sun` computed, the same model the Sun's dot colour
+ * and the engulfment ages read.
+ */
+
+// Once the Sun's true disc spans more than a few pixels, the point sprite hands over to
+// a procedural star: limb-darkened granulation that churns, prominence arcs that rise
+// and fall with a slow magnetic-storm cycle, and a streaked corona. All of it is noise
+// shaped in the fragment shader — no texture, and nothing about its SIZE is stylised:
+// the disc is the Sun's real diameter at the real distance.
+const pSunP = prog(SUN_VS, SUN_FS);
+const USn = {
+  proj: gl.getUniformLocation(pSunP,'uProj'), view: gl.getUniformLocation(pSunP,'uView'),
+  time: gl.getUniformLocation(pSunP,'uTime'), sz: gl.getUniformLocation(pSunP,'uSz'),
+  disc: gl.getUniformLocation(pSunP,'uDisc'),
+  colD: gl.getUniformLocation(pSunP,'uColD'), colB: gl.getUniformLocation(pSunP,'uColB'),
+};
+// ---------- what is left of the Sun ----------
+// The shed envelope, on the same one-point vertex shader as the disc: a limb-brightened
+// shell — a hollow sphere is brightest where the line of sight runs longest through it,
+// which is the rim — in the colours every planetary nebula actually shows, [O III] teal
+// inside and Hα red at the edge, with filaments and a mild two-lobed tilt, since a round
+// one is the exception. Additive, drawn under the central star.
+
+const pPN = prog(SUN_VS, PN_FS);
+const UPN = {
+  proj: gl.getUniformLocation(pPN,'uProj'), view: gl.getUniformLocation(pPN,'uView'),
+  sz: gl.getUniformLocation(pPN,'uSz'), time: gl.getUniformLocation(pPN,'uTime'),
+  age: gl.getUniformLocation(pPN,'uAge'), alpha: gl.getUniformLocation(pPN,'uAlpha'), burst: gl.getUniformLocation(pPN,'uBurst'),
+};
+const vaoSunPt = (()=>{ const v=gl.createVertexArray(); gl.bindVertexArray(v);
+  const b=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,b);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(3),gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
+  gl.bindVertexArray(null); return v; })();
+
+                             
+                       
+                       
+                                                                                      
+               
+                 
+                                                                                              
+                    
+                                                                                             
+                    
+ 
+
+/**
+ * What the Sun sheds: under the star, additive, only from outside it — a billboard cannot
+ * show a hollow shell from within, and from inside a real one there is nothing to see but a
+ * faint sky glow anyway.
+ *
+ * @returns whether it is on screen this frame. The Sun's label reads "Anthropic Nebula"
+ * while it is, so the answer is the caller's, not this pass's to publish.
+ */
+function drawShed({ projMat, viewMat, shimT, pxScale, camSunDist, pn }            )          {
+  if(!pn) return false;
+  const rScene = pn.rAU*AU2U, px = (2*rScene/0.74)*pxScale/camSunDist;
+  const outside = Math.min(1, Math.max(0, (camSunDist/rScene - 1.15)/0.6));
+  const alpha = pn.alpha*outside;
+  if(!(alpha > 0.004 && px > 3)) return false;
+  gl.useProgram(pPN);
+  gl.uniformMatrix4fv(UPN.proj,false,projMat);
+  gl.uniformMatrix4fv(UPN.view,false,viewMat);
+  gl.uniform1f(UPN.time, shimT);
+  gl.uniform1f(UPN.age, pn.age);
+  gl.uniform1f(UPN.alpha, alpha);
+  const burst = Math.exp(-Math.pow((pn.age - 0.07)/0.06, 2));   // the casting itself
+  gl.uniform1f(UPN.burst, burst);
+  gl.uniform1f(UPN.sz, Math.min(1800, px*(1 + 2.5*burst)));
+  gl.bindVertexArray(vaoSunPt); gl.drawArrays(gl.POINTS,0,1);
+  return true;
+}
+                       
+                       
+               
+                                                                                             
+                     
+                                                                                          
+               
+ 
+
+/**
+ * The Sun's disc. Drawn late, and not additively: the photosphere is opaque, so it must
+ * occlude the sky behind it, with only the corona and the arcs blending over it. The blend
+ * is put back the way it was found, because everything else in the frame is additive.
+ */
+function drawSunDisc({ projMat, viewMat, shimT, plasmaSunPx, tint }               )       {
+  if(!(plasmaSunPx > 7)) return;
+  gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+  gl.useProgram(pSunP);
+  gl.uniformMatrix4fv(USn.proj,false,projMat);
+  gl.uniformMatrix4fv(USn.view,false,viewMat);
+  gl.uniform1f(USn.time, shimT);
+  gl.uniform3f(USn.colD, tint.d[0], tint.d[1], tint.d[2]);
+  gl.uniform3f(USn.colB, tint.b[0], tint.b[1], tint.b[2]);
+  const sz = Math.min(1000, plasmaSunPx*2.7);
+  gl.uniform1f(USn.sz, sz);
+  gl.uniform1f(USn.disc, plasmaSunPx/sz);
+  gl.bindVertexArray(vaoSunPt); gl.drawArrays(gl.POINTS,0,1);
+  gl.blendFunc(gl.ONE, gl.ONE);
+}
+
 /**
  * The real sky: the local stars, as measured.
  * The 100,000 brightest stars from AT-HYG 3.2 (Tycho-2 merged with Gaia DR3): 98.7%
@@ -2144,12 +2260,6 @@ const RING_FS = "#version 300 es\nprecision mediump float; uniform vec3 uColor; 
 const GLOBE_VS = "#version 300 es\nuniform mat4 uProj,uView; uniform vec3 uPos; uniform float uSz;\nvoid main(){ gl_Position = uProj*uView*vec4(uPos,1.0); gl_PointSize = uSz; }";
 
 const GLOBE_FS = "#version 300 es\nprecision highp float;\nuniform vec3 uSunV, uAxisV, uPrimeV;     // view space: toward the Sun; the spin axis; the prime meridian on the equator\nuniform float uAvg;                      // 1: the clock outruns the day — light is the daily mean by latitude\nuniform float uMirror, uDisc, uTime, uMoon;\nuniform float uMolten, uOcean, uSea, uHaze, uVeg, uIceLat, uCloud, uLights, uDrift;\nuniform sampler2D uMap; uniform float uHasMap, uDry, uSeaLevel; uniform mat3 uPlate[7];\nout vec4 o;\n// today's real land and its plate, looked up for a planet-frame direction\nvec3 mapAt(vec3 v){ float lat = asin(clamp(v.z,-1.0,1.0)), lon = atan(v.y, v.x);\n  return texture(uMap, vec2(lon/6.2831853+0.5, 0.5-lat/3.14159265)).rgb; }\nfloat h31(vec3 p){ p=fract(p*0.3183099+vec3(0.71,0.113,0.419)); p*=17.0; return fract(p.x*p.y*p.z*(p.x+p.y+p.z)); }\nfloat vn3(vec3 p){ vec3 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);\n  return mix(mix(mix(h31(i),h31(i+vec3(1,0,0)),f.x), mix(h31(i+vec3(0,1,0)),h31(i+vec3(1,1,0)),f.x),f.y),\n             mix(mix(h31(i+vec3(0,0,1)),h31(i+vec3(1,0,1)),f.x), mix(h31(i+vec3(0,1,1)),h31(i+vec3(1,1,1)),f.x),f.y),f.z); }\nfloat fbm3(vec3 p){ float a=0.5,s=0.0; for(int i=0;i<4;i++){ s+=a*vn3(p); p=p*2.07+vec3(1.3,2.1,0.7); a*=0.5; } return s; }\nvoid main(){\n  vec2 q = gl_PointCoord*2.0-1.0; q.y = -q.y; q.x *= uMirror;   // sprite space -> view space\n  float rr = length(q)/uDisc;\n  if(rr > 1.09) discard;\n  if(rr > 1.0){                                                 // the atmosphere, beyond the limb\n    if(uMoon > 0.5 || uMolten > 0.99) discard;\n    float t = (rr-1.0)/0.09, glow = exp(-t*2.6)*(1.0-t);\n    vec3 atm = mix(vec3(0.38,0.62,1.0), vec3(1.0,0.58,0.28), uHaze);\n    vec2 d = q/max(length(q),1e-4);\n    float side = smoothstep(-0.45, 0.45, dot(vec3(d,0.0), uSunV) + 0.35*uSunV.z);\n    o = vec4(atm*glow*0.6*side*(0.35+0.65*uOcean), 0.0); return;   // additive\n  }\n  vec3 n = vec3(q/uDisc, sqrt(max(0.0, 1.0-rr*rr)));\n  float lit = dot(n, uSunV);\n  vec3 Q = cross(uAxisV, uPrimeV);\n  vec3 p = vec3(dot(n,uPrimeV), dot(n,Q), dot(n,uAxisV));       // the planet's own frame; p.z = sin(latitude)\n  // when a frame spans days the terminator would land somewhere new each time and strobe;\n  // the light becomes the day's mean instead — brightest at the equator, dim at the poles\n  lit = mix(lit, 0.18 + 0.62*pow(sqrt(max(0.0, 1.0 - p.z*p.z)), 0.7), uAvg);\n  float day = smoothstep(-0.10, 0.18, lit), dif = max(lit, 0.0);\n  float lat = abs(asin(clamp(p.z,-1.0,1.0)))*57.2958;\n  vec3 col;\n  if(uMoon > 0.5){\n    // grey regolith, dark maria in the lowest of the low-frequency noise, and a pass of\n    // fine crater texture; no atmosphere, so the terminator is hard\n    float m = fbm3(p*2.4+vec3(4.0)), c = fbm3(p*13.0);\n    float maria = smoothstep(0.66, 0.74, m);\n    col = mix(vec3(0.56,0.55,0.53), vec3(0.28,0.28,0.30), maria) * (0.82+0.36*(c-0.5));\n    col *= 0.04 + 0.96*pow(dif, 0.85);\n    o = vec4(col, 1.0); return;\n  }\n  vec3 dr = vec3(uDrift, uDrift*0.7, -uDrift*0.4);\n  float land, shallow, cont = 0.0;\n  if(uHasMap > 0.5){\n    // the real map: each plate carried by its own rotation. Every plate is asked, and\n    // land wins over water: a plate's polygon carries ocean too, and where two moved\n    // polygons overlap that ocean must not punch a hole in the other plate's land.\n    // Between the plates, where none claims the point, there is sea.\n    land = 0.0; shallow = 0.0;\n    for(int k=0;k<7;k++){\n      vec3 q = uPlate[k]*p; vec3 m = mapAt(q);\n      if(int(floor(m.g*255.0/32.0+0.5)) == k){\n        if(m.r > land){ land = m.r; cont = m.b; }\n        else if(land <= 0.0) cont = max(cont, m.b);\n      }\n    }\n    // the oceans retreat to their deepest basins as they go — the map has no depths, so\n    // the continentality field stands in, inverted\n    float water = (1.0-land) * smoothstep(uSeaLevel+0.04, uSeaLevel-0.04, cont);\n    land = 1.0 - water;\n    shallow = (1.0-land) * smoothstep(0.12, 0.45, cont);   // from 0.12: open water inside a plate's polygon reads as the water outside it, so no seams where a plate has moved\n  } else {\n    float h = fbm3(p*2.6 + dr) + 0.35*fbm3(p*7.0 + 1.7*dr) - 0.17;\n    land = smoothstep(uSea-0.025, uSea+0.025, h);\n    shallow = smoothstep(uSea-0.10, uSea, h);\n    cont = land*0.5;\n  }\n  // the land: bare rock, greened by vegetation where it is not desert, whitened by ice.\n  // Deserts: the subtropical belts, and the interiors far from any coast — the more so\n  // in the dry periods, a supercontinent's heart most of all\n  float dry = max(exp(-pow((lat-24.0)/11.0, 2.0)), pow(cont, 1.4)*(0.55 + 0.7*uDry));\n  dry = min(1.0, dry*(0.8 + 0.5*uDry));\n  float detail = fbm3(p*5.0+dr*2.0);                              // one texture, shared below\n  vec3 rock = mix(vec3(0.42,0.32,0.22), vec3(0.62,0.52,0.36), detail);\n  vec3 green = mix(vec3(0.15,0.30,0.09), vec3(0.28,0.42,0.14), fract(detail*1.7+0.3));\n  vec3 landCol = mix(rock, green, uVeg*(1.0-dry*0.85));\n  vec3 sea = mix(vec3(0.02,0.10,0.32), vec3(0.05,0.28,0.42), shallow*0.6);\n  sea = mix(sea, vec3(0.06,0.14,0.18), uHaze*0.6);                // a dimmer, greener sea under the haze\n  col = mix(sea, landCol, land);\n  col = mix(col, vec3(0.42,0.34,0.24), (1.0-uOcean)*(1.0-land));  // a sea floor bared as the oceans go\n  float ice = smoothstep(uIceLat-6.0, uIceLat+6.0, lat + 4.0*(detail-0.5)) * (1.0-uMolten);\n  col = mix(col, vec3(1.0,1.0,1.0), ice);\n  // clouds, drifting, and their shadows a little sunward of them on the ground\n  vec3 cq = p*4.2 + vec3(uTime*0.012, 0.0, -uTime*0.007) + dr*0.3;\n  float cl = fbm3(cq);\n  float cloud = smoothstep(0.50 + 0.22*(1.0-uCloud), 0.74, cl) * min(1.0, uCloud*1.4);\n  vec3 sunP = vec3(dot(uSunV,uPrimeV), dot(uSunV,Q), dot(uSunV,uAxisV));   // the Sun in the planet frame\n  float clS = fbm3(cq + sunP*0.09*(1.0-uAvg));   // the shadow offset would jump with the Sun's phase\n  float shadow = smoothstep(0.50 + 0.22*(1.0-uCloud), 0.74, clS) * min(1.0, uCloud*1.4);\n  col *= 1.0 - 0.35*shadow*(1.0-cloud);\n  col = mix(col, vec3(0.96,0.97,0.99), cloud*0.92);\n  // the haze: an orange cast, thicker toward the limb\n  col = mix(col, col*vec3(1.05,0.72,0.42)+vec3(0.10,0.05,0.0), uHaze*(0.45+0.45*(1.0-n.z)));\n  // sunlight: snow and cloud scatter forward, so they hold their brightness under a low\n  // sun; the terminator is softened by the air, and reddened in it\n  float difS = mix(dif, pow(dif, 0.6), max(ice, cloud));\n  float dusk = exp(-pow(lit/0.16, 2.0)) * uOcean;                               // the band around the terminator\n  vec3 R = reflect(-uSunV, n);\n  float spec = pow(max(R.z,0.0), 180.0) * (1.0-land) * (1.0-cloud) * uOcean * (1.0-uHaze*0.7) * (1.0-uAvg);\n  col = col*(0.012 + 0.988*difS) + vec3(0.9,0.9,0.8)*spec*0.35;\n  col += vec3(0.9,0.45,0.18) * dusk * 0.10 * (1.0-uHaze);\n  // the air itself: Rayleigh blue over the day side, strongest where the view grazes it\n  float fres = pow(1.0 - n.z, 2.2);\n  vec3 air = mix(vec3(0.30,0.55,1.0), vec3(1.0,0.6,0.3), uHaze);\n  col += air * fres * (0.10 + 0.45*day) * (0.4 + 0.6*uOcean) * (1.0-uMolten);\n  // molten: the crust dark, cracked with lava, glowing on its own — only when it is\n  if(uMolten > 0.001){\n    float cracks = smoothstep(0.55, 0.78, fbm3(p*9.0+vec3(uTime*0.02)));\n    vec3 lava = vec3(0.05,0.03,0.03)*(0.3+0.7*dif) + vec3(1.0,0.32,0.04)*(0.25+cracks*1.2);\n    col = mix(col, lava, uMolten);\n  }\n  // the night side: cities, in the one era that has them, crossfading out through the dusk\n  if(uLights > 0.001){\n    float city = smoothstep(0.72, 0.9, vn3(p*70.0)) * land * (1.0-ice) * (1.0-dry*0.5);\n    col += vec3(1.0,0.80,0.45) * city * uLights * smoothstep(0.12, -0.20, lit) * (1.0-cloud*0.7) * 0.9;\n  }\n  o = vec4(col, 1.0);\n}";
-
-const SUN_VS = "#version 300 es\nuniform mat4 uProj,uView; uniform float uSz;\nvoid main(){ gl_Position=uProj*uView*vec4(0.,0.,0.,1.); gl_PointSize=uSz; }";
-
-const SUN_FS = "#version 300 es\nprecision highp float;\nuniform float uTime, uDisc;\nuniform vec3 uColD, uColB;   // the photosphere's dark and bright tones, set by its temperature\nout vec4 o;\nfloat h21(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }\nfloat vnoise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);\n  return mix(mix(h21(i),h21(i+vec2(1,0)),f.x), mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x), f.y); }\nfloat fbm(vec2 p){ float a=.5,s=0.; for(int i=0;i<4;i++){ s+=a*vnoise(p); p*=2.13; a*=.5; } return s; }\nvoid main(){\n  vec2 q = gl_PointCoord*2.0-1.0;\n  float r = length(q);\n  if(r>1.0) discard;\n  float ang = atan(q.y,q.x);\n  float R = uDisc;\n  vec3 col = vec3(0.0); float lum = 0.0;\n  float t = uTime;\n  if(r < R){\n    float rr = r/R;\n    float limb = sqrt(max(0.0, 1.0-rr*rr));\n    float g  = fbm(q/R*7.0  + vec2(t*0.030,-t*0.021));\n    float g2 = fbm(q/R*17.0 - vec2(t*0.050, t*0.033));\n    float b = 0.55 + 0.50*limb + 0.35*(g-0.5) + 0.22*(g2-0.5);\n    col = mix(uColD, uColB, clamp(b,0.,1.));\n    col += mix(uColD, uColB, 0.8)*pow(limb,3.0)*0.35;\n    lum = 1.0;\n  }\n  float storm = 0.55 + 0.45*sin(t*0.23 + 2.0*sin(t*0.11));   // the slow magnetic cycle\n  float rim = (r-R)/R;\n  if(rim > -0.05){\n    float p1 = fbm(vec2(ang*2.2 + t*0.07, rim*5.0 - t*0.16));\n    float arcs = smoothstep(0.60, 0.95, p1) * exp(-max(rim,0.0)*3.2) * (0.45+storm);\n    // prominences run a shade redder than the surface, the corona a shade brighter —\n    // the same offsets today's fixed colours had, now riding the temperature\n    col += uColD*vec3(1.0,0.78,1.2)*arcs*1.6;\n    float st = 0.75 + 0.25*fbm(vec2(ang*3.5, t*0.05));\n    float cor = exp(-max(rim,0.0)*2.6)*0.35*st;\n    col += uColB*vec3(1.0,0.86,0.81)*cor;\n    lum = max(lum, max(arcs, cor));\n  }\n  float aDisc = smoothstep(R, R-0.015, r);\n  float a = max(aDisc, min(0.95, lum*0.85));\n  o = vec4(col*max(lum, aDisc), a);\n}";
-
-const PN_FS = "#version 300 es\nprecision highp float;\nuniform float uTime, uAge, uAlpha, uBurst;   // uAge 0..1 through the nebula's life; uBurst 0..1 at the casting\nout vec4 o;\nfloat h21(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }\nfloat vnoise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);\n  return mix(mix(h21(i),h21(i+vec2(1,0)),f.x), mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x), f.y); }\nfloat fbm(vec2 p){ float a=.5,s=0.; for(int i=0;i<4;i++){ s+=a*vnoise(p); p*=2.13; a*=.5; } return s; }\n// The interacting-winds picture, in stages over uAge. The envelope goes first: dense,\n// dusty, lit warm by the still-cool star, thrown off in a burst. Then the exposed core\n// heats and its ionisation front sweeps outward through the ejecta — teal [OIII] inside\n// the front, warm dust still beyond it — while the fast wind hollows a cavity, so the\n// shell becomes the limb-brightened, filamentary thing with Hα at its rim that a\n// planetary nebula is, with radial cometary knots where the front passed and a faint\n// outer halo of the earlier, slower wind. Then it thins and dissolves.\nvoid main(){\n  vec2 q = gl_PointCoord*2.0-1.0;\n  float rg = length(q);                              // in the sprite, which the burst enlarges\n  if(rg>1.0) discard;\n  // During the casting the sprite is drawn up to 3.5× the shell, so the star's light\n  // scattered off the fresh dust — a reflection halo, not a shock — has room beyond it;\n  // everything that belongs to the shell is measured in r, the shell's own scale.\n  float grow = 1.0 + 2.5*uBurst;\n  float r = min(1.0, rg*grow);\n  float ang = atan(q.y,q.x), a = uAge;\n  float eject = smoothstep(0.0, 0.18, a);            // the envelope is off\n  float ion   = smoothstep(0.15, 0.55, a);           // the front has swept out\n  float old   = smoothstep(0.72, 1.0, a);            // dissolving\n  float R = mix(0.52, 0.76, a);                      // the shell in the sprite (the sprite itself grows)\n  float w = mix(0.24, 0.075, ion) + 0.14*old;        // thick envelope -> thin shell -> frayed\n  float n1 = fbm(vec2(ang*3.0 + 3.0, r*6.0 - a*1.5));\n  float knots = fbm(vec2(ang*11.0 + uTime*0.005, r*1.6));      // streaks along r: cometary knots\n  float clump = fbm(q*5.0 + 7.0);\n  float fil = 0.40 + 0.70*n1 + 0.55*(knots-0.5)*ion + 0.30*(clump-0.5);\n  float env = exp(-pow((r-R)/w, 2.0));\n  float cavity = smoothstep(R*0.25, R*0.92, r);      // the fast wind empties the middle\n  float body = env * max(fil, 0.0) * mix(1.0, cavity, ion) * (0.82 + 0.18*cos(2.0*ang + 0.8));\n  float dust = smoothstep(R+0.12, 0.0, r) * (0.22 + 0.30*clump) * (1.0-ion) * eject;\n  float rIon = mix(0.0, 1.08, ion);                  // where the ionisation front stands\n  float inFront = smoothstep(rIon+0.07, rIon-0.07, r);\n  vec3 warm = vec3(1.00, 0.56, 0.30);\n  vec3 oiii = vec3(0.32, 0.92, 0.78);\n  vec3 ha   = vec3(1.00, 0.34, 0.26);\n  vec3 shellCol = mix(oiii, ha, smoothstep(R-0.03, R+0.10, r));\n  vec3 col = body * mix(warm, shellCol, inFront) * 0.95 + dust * warm;\n  col += oiii * exp(-pow((r-rIon)/0.05, 2.0)) * 0.55 * ion * (1.0-old) * step(rIon, 1.0) * (0.7+0.6*n1);   // the front itself\n  col += oiii * smoothstep(R, 0.0, r) * 0.08 * inFront * (1.0-old);                                          // the interior's glow\n  col += ha * exp(-pow((r-0.95)/0.05, 2.0)) * 0.14 * ion * (1.0-old) * (0.5+0.5*n1);                        // the old wind's halo\n  float flash = uBurst;                              // the casting: a burst of light, not a shock\n  col *= 1.0 + 1.3*flash;\n  col += warm * exp(-pow(rg/0.45, 2.0)) * 0.9 * flash * (0.75+0.5*fbm(q*4.0+2.0));   // scattered off the fresh dust\n  col += vec3(1.0,0.85,0.6) * exp(-pow(rg/0.12, 2.0)) * 1.4 * flash;                 // and the star, glaring through\n  col *= 1.0 - 0.65*old;\n  o = vec4(col*uAlpha, 0.0);\n}";
 
 // The whole of galactic-transit.html's script, moved here verbatim and not yet split.
 //
@@ -4274,41 +4384,12 @@ const org=new Float64Array(3); // rendering origin: the Sun, in double precision
 const sunSizeTmp=new Float32Array(1), eatSizeTmp=new Float32Array(1);
    // to tell the clock running across an engulfment from a jump past it
       // the nebula is on screen this frame: the label follows it
-// Once the Sun's true disc spans more than a few pixels, the point sprite hands over to
-// a procedural star: limb-darkened granulation that churns, prominence arcs that rise
-// and fall with a slow magnetic-storm cycle, and a streaked corona. All of it is noise
-// shaped in the fragment shader — no texture, and nothing about its SIZE is stylised:
-// the disc is the Sun's real diameter at the real distance.
+// The Sun's own two programs — the procedural disc and the envelope it sheds — are
+// render/passes/sun now, together with the single point both of them stand on.
 
-
-const pSunP = prog(SUN_VS, SUN_FS);
-const USn = {
-  proj: gl.getUniformLocation(pSunP,'uProj'), view: gl.getUniformLocation(pSunP,'uView'),
-  time: gl.getUniformLocation(pSunP,'uTime'), sz: gl.getUniformLocation(pSunP,'uSz'),
-  disc: gl.getUniformLocation(pSunP,'uDisc'),
-  colD: gl.getUniformLocation(pSunP,'uColD'), colB: gl.getUniformLocation(pSunP,'uColB'),
-};
-// ---------- what is left of the Sun ----------
-// The shed envelope, on the same one-point vertex shader as the disc: a limb-brightened
-// shell — a hollow sphere is brightest where the line of sight runs longest through it,
-// which is the rim — in the colours every planetary nebula actually shows, [O III] teal
-// inside and Hα red at the edge, with filaments and a mild two-lobed tilt, since a round
-// one is the exception. Additive, drawn under the central star.
-
-const pPN = prog(SUN_VS, PN_FS);
-const UPN = {
-  proj: gl.getUniformLocation(pPN,'uProj'), view: gl.getUniformLocation(pPN,'uView'),
-  sz: gl.getUniformLocation(pPN,'uSz'), time: gl.getUniformLocation(pPN,'uTime'),
-  age: gl.getUniformLocation(pPN,'uAge'), alpha: gl.getUniformLocation(pPN,'uAlpha'), burst: gl.getUniformLocation(pPN,'uBurst'),
-};
 // the engulfment flares: up to three points, drawn over the disc
 const eatGL = dynVAO(4);
 const eatPos = new Float32Array(12), eatSize = new Float32Array(4), eatCol = new Float32Array(12), eatW = new Float32Array(4);
-const vaoSunPt = (()=>{ const v=gl.createVertexArray(); gl.bindVertexArray(v);
-  const b=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,b);
-  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(3),gl.STATIC_DRAW);
-  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
-  gl.bindVertexArray(null); return v; })();
 
 
 // ---------- the first-launch performance probe ----------
@@ -4937,45 +5018,21 @@ function frame(now){
     gl.bindBuffer(gl.ARRAY_BUFFER,g710GL.c); gl.bufferSubData(gl.ARRAY_BUFFER,0,g710Col);
     gl.bindVertexArray(g710GL.vao); gl.drawArrays(gl.POINTS,0,1);
   }
-  // What the Sun sheds: under the star, additive, only from outside it — a billboard
-  // cannot show a hollow shell from within, and from inside a real one there is
-  // nothing to see but a faint sky glow anyway.
+  // The Sun itself, last of the scene: the envelope it has shed, then its disc over that.
+  // Whether the envelope is on screen decides what the Sun's label says, so the pass
+  // reports it and the readout is set here rather than from inside the draw.
+  // `pn` outlives the draw: the HUD's phase reading follows the shell's existence, which
+  // runs 0.3 Gyr past sunState()'s own 'planetary nebula' phase, so it stays a frame-level
+  // value rather than something the pass computes and keeps to itself.
   const pn = pnState(ageGyr());
-  readout.pnShown = false;
-  if(pn){
-    const rScene = pn.rAU*AU2U, px = (2*rScene/0.74)*pxScale/readout.camSunDist;
-    const outside = Math.min(1, Math.max(0, (readout.camSunDist/rScene - 1.15)/0.6));
-    const alpha = pn.alpha*outside;
-    if(alpha > 0.004 && px > 3){
-      readout.pnShown = true;
-      gl.useProgram(pPN);
-      gl.uniformMatrix4fv(UPN.proj,false,view.projMat);
-      gl.uniformMatrix4fv(UPN.view,false,viewMat);
-      gl.uniform1f(UPN.time, simClock.shimT);
-      gl.uniform1f(UPN.age, pn.age);
-      gl.uniform1f(UPN.alpha, alpha);
-      const burst = Math.exp(-Math.pow((pn.age - 0.07)/0.06, 2));   // the casting itself
-      gl.uniform1f(UPN.burst, burst);
-      gl.uniform1f(UPN.sz, Math.min(1800, px*(1 + 2.5*burst)));
-      gl.bindVertexArray(vaoSunPt); gl.drawArrays(gl.POINTS,0,1);
-    }
-  }
-  if(readout.plasmaSunPx > 7){
-    // Drawn last, and not additively: the photosphere is opaque, so the disc must
-    // occlude the sky behind it, with only the corona and arcs blending over it.
-    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-    gl.useProgram(pSunP);
-    gl.uniformMatrix4fv(USn.proj,false,view.projMat);
-    gl.uniformMatrix4fv(USn.view,false,viewMat);
-    gl.uniform1f(USn.time, simClock.shimT);
-    gl.uniform3f(USn.colD, tint.d[0], tint.d[1], tint.d[2]);
-    gl.uniform3f(USn.colB, tint.b[0], tint.b[1], tint.b[2]);
-    const sz = Math.min(1000, readout.plasmaSunPx*2.7);
-    gl.uniform1f(USn.sz, sz);
-    gl.uniform1f(USn.disc, readout.plasmaSunPx/sz);
-    gl.bindVertexArray(vaoSunPt); gl.drawArrays(gl.POINTS,0,1);
-    gl.blendFunc(gl.ONE, gl.ONE);
-  }
+  readout.pnShown = drawShed({
+    projMat: view.projMat , viewMat, shimT: simClock.shimT, pxScale,
+    camSunDist: readout.camSunDist, pn,
+  });
+  drawSunDisc({
+    projMat: view.projMat , viewMat, shimT: simClock.shimT,
+    plasmaSunPx: readout.plasmaSunPx, tint,
+  });
   // The flares: a planet the surface has just reached, a white point over the limb for
   // a moment. Over the disc on purpose — at that instant the planet is at the surface,
   // and a disc drawn opaque would otherwise hide the one thing worth seeing.
