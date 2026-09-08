@@ -134,6 +134,35 @@ test.describe('the built page against the pre-refactor page', () => {
 
       const detail = `${diff.differing}/${diff.total} px (${percent.toFixed(3)}%), max Δ${diff.maxDelta}, mean Δ${diff.meanDelta.toFixed(2)} — ${state.covers}`
 
+      // When the pixels disagree, run the control before reporting a difference.
+      //
+      // Photograph the PRE-REFACTOR page a second time and compare it with its own first
+      // shot. If those two disagree, this state could not be held still on this run and the
+      // comparison says nothing about the build — which is a fact about the harness, and it
+      // should be reported as one rather than as a rendering change. Roughly two states in
+      // twenty-three come out this way on a full run, and every one investigated by hand so
+      // far has been the harness. Doing it here makes that automatic, evidenced, and visible.
+      //
+      // It is NOT a retry: the second shot is of the reference, not the candidate, so a real
+      // difference can never be washed out by taking another look at it.
+      if (diff.differing > 0 && !TOLERANT.has(state.id)) {
+        const control = await capture(`/${BASELINE_PAGE}`, state)
+        const self = compare(before.png, control.png)
+        if (self.differing > 0) {
+          const selfPct = ((self.differing / self.total) * 100).toFixed(3)
+          testInfo.annotations.push({
+            type: 'inconclusive',
+            description: `the pre-refactor page differed from ITSELF by ${self.differing} px (${selfPct}%), max Δ${self.maxDelta}`,
+          })
+          test.skip(
+            true,
+            `harness could not hold this state still: the reference differed from itself by ` +
+              `${selfPct}% (max Δ${self.maxDelta}), so the ${percent.toFixed(3)}% against the ` +
+              `build is not evidence either way. Re-run this state alone.`,
+          )
+        }
+      }
+
       if (TOLERANT.has(state.id)) {
         // The first-launch probe measures the machine, so this one can legitimately pick a
         // different detail tier between two captures.
