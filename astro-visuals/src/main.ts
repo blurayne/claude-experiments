@@ -74,6 +74,12 @@ import {
 } from './render/passes/bodies'
 import { drawG710 } from './render/passes/g710'
 import { drawEatFlash } from './render/passes/eatflash'
+import { drawLabels, setLabelSteady, labelEls, armEls } from './render/labels'
+import {
+  initTrails, initOrbitRings, drawTrails, pushTrail, refillTrails, uploadTrails,
+  trailAnchor, TRAIL_N,
+} from './render/trails'
+import { lifeStep, drawEvents, drawRemnants, events, puffs, setLifeSfx } from './render/lifecycle'
 import { pSN, USN } from './render/passes/supernova'
 import { pRem, UREM } from './render/passes/remnant'
 import { parseStarBin } from './scene/sky'
@@ -357,65 +363,12 @@ loadEarthMap();
 
 // The bodies' buffers, their CPU-side arrays and their draw are render/passes/bodies.
 // ---------- trails ----------
-const TRAIL_N = 2400;  // sliding window: TRAIL_N samples, spacing set by the length slider
-const trails = [], trailBufs = [], trailVaos = [];
-for(let i=0;i<NB;i++){
-  const a = new Float32Array(TRAIL_N*3);
-  for(let k=0;k<TRAIL_N;k++){
-    bodyPos(i, (k-(TRAIL_N-1))*simClock.dtSample, tmp);
-    a[k*3]=tmp[0]; a[k*3+1]=tmp[1]; a[k*3+2]=tmp[2];
-  }
-  trails.push(a);
-  const vao=gl.createVertexArray(); gl.bindVertexArray(vao);
-  const b=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,b);
-  gl.bufferData(gl.ARRAY_BUFFER,a,gl.DYNAMIC_DRAW);
-  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
-  gl.bindVertexArray(null);
-  trailBufs.push(b); trailVaos.push(vao);
-}
-// Each planet's orbit as a closed heliocentric ring, sampled once: in this model the
-// orbits neither precess nor decay, so the ring is the same at any epoch. It stands in
-// for the swept trail wherever sweeping is impossible — inside the dive at high speed,
-// a million orbits pass per second and no line can trace them, but the path they all
-// follow is exactly this ring.
-const RING_N = 96;
-const ringVaos = [];
-{
-  const q = new Float64Array(3), s0 = new Float64Array(3);
-  for(let i=0;i<NB;i++){
-    if(i === 0){ ringVaos.push(null); continue; }
-    const a = new Float32Array(RING_N*3);
-    const P = BODIES[i][1];
-    for(let k=0;k<RING_N;k++){
-      const ts = k/RING_N*P;
-      bodyPos(i, ts, q); bodyPos(0, ts, s0);
-      a[k*3]=q[0]-s0[0]; a[k*3+1]=q[1]-s0[1]; a[k*3+2]=q[2]-s0[2];
-    }
-    const vao=gl.createVertexArray(); gl.bindVertexArray(vao);
-    const b=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,b);
-    gl.bufferData(gl.ARRAY_BUFFER,a,gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
-    gl.bindVertexArray(null); trackVAOBuffers(vao,[b]); ringVaos.push(vao);
-  }
-}
+// The swept paths, the closed orbit rings and the anchor they are stored against are
+// render/trails. The two builders are called here, in their place in the boot's RNG order.
+initTrails();
+initOrbitRings();
 // In real scale everything but the Sun is stored as an offset from it.
 let psH = true, psO = true;   // derived from the two transparency sliders: 0% is off
-// Trails are stored as absolute positions minus a local anchor. Float32 alone cannot
-// hold a position of magnitude ~900 to sub-AU precision — the error is about 7 AU,
-// which at dive zoom is the whole frame — so the anchor keeps the stored numbers small
-// and the draw passes (org - anchor), subtracted in double precision, as the origin.
-const trailAnchor = new Float64Array(3);
-function trailPos(i, ts, out){
-  bodyPos(i, ts, out);
-  out[0]-=trailAnchor[0]; out[1]-=trailAnchor[1]; out[2]-=trailAnchor[2];
-  return out;
-}
-function pushTrail(i, ts){
-  const a=trails[i];
-  a.copyWithin(0,3);
-  trailPos(i, ts, tmp);
-  a[(TRAIL_N-1)*3]=tmp[0]; a[(TRAIL_N-1)*3+1]=tmp[1]; a[(TRAIL_N-1)*3+2]=tmp[2];
-}
 
 
 // ---------- the real sky ----------
@@ -456,128 +409,9 @@ const wasEaten = [false,false,false,false], eatFlash = [-1,-1,-1,-1];   // -1: n
 // fraction of the true ~24,000 per sim-yr, which would be a continuous glitter.
 let varOn = true; // variability clock (wall time, runs even when paused)
 
-// ---------- sound: everything synthesized live via Web Audio — no samples, still one file ----------
-const EV_CAP = 1024, PUFF_CAP = 512;
-const evPos=new Float32Array(EV_CAP*3), evSize=new Float32Array(EV_CAP), evCol=new Float32Array(EV_CAP*3), evWave=new Float32Array(EV_CAP);
-const pfPos=new Float32Array(PUFF_CAP*3), pfSize=new Float32Array(PUFF_CAP), pfCol=new Float32Array(PUFF_CAP*3), pfWave=new Float32Array(PUFF_CAP);
-
-const evGL = dynVAO(EV_CAP), pfGL = dynVAO(PUFF_CAP);
-// Blasts are drawn by their own program, so they travel in their own buffers. There are
-// never many at once — a flash lasts 1.6 s — and the fourth channel carries how far the
-// blast has run instead of the wave flag, which every one of them has set anyway.
-const SN_CAP = 96;
-const snPos=new Float32Array(SN_CAP*3), snSize=new Float32Array(SN_CAP),
-      snCol=new Float32Array(SN_CAP*3), snPh=new Float32Array(SN_CAP);
-const snGL = dynVAO(SN_CAP);
-   // how many of each the last fillEvents() actually wrote
-const events=[], puffs=[];
-function armSite(){ // where massive stars are born: an arm's inner edge, the spur, or a bar tip
-  const roll=Math.random();
-  let r, th;
-  if(roll<0.12){ th=(Math.random()<0.5?BAR_A:BAR_A+Math.PI)+gauss()*0.05; r=BAR_L*(0.95+Math.random()*0.12); }
-  else if(roll<0.30){ r=900+(Math.random()*2-1)*150; th=-(r-900)/(900*PITCH)+0.02+gauss()*0.04; }
-  else { const arm=Math.random()<0.7?ARMS[(Math.random()*2)|0]:ARMS[2+((Math.random()*2)|0)];
-    r=BAR_L+40+Math.pow(Math.random(),0.95)*1200; th=armAngle(r,arm[0])+0.025+gauss()*0.03; }
-  return [r*Math.sin(th), gauss()*6, r*Math.cos(th)];
-}
-function diskSite(){ // old stars die everywhere in the disk
-  const r=expR(300,1700,283), th=Math.random()*6.28318;
-  return [r*Math.sin(th), gauss()*14, r*Math.cos(th)];
-}
-function addPuff(e, r1, dur, col){
-  if(puffs.length>=PUFF_CAP) return;
-  puffs.push({x:e.x,y:e.y,z:e.z,wv:e.wv,t:0,r1,dur,col});
-}
-
-// event kinds: 1 OB cluster, 2 red supergiant, 3 supernova flash, 4 red giant,
-//              5 cooling neutron star, 6 fading white dwarf
-function lifeStep(dt, dtSim){
-  const sfr = sfrFactor(ageGyr());
-  // Per year now, not per compressed step. These are drawn events, a sampled fraction of
-  // the real rates — the true figures are in the status bar and the info panel.
-  if(evBirth) lifeAcc.accB += dtSim*1.84e-6*gfx.curD*sfr; else lifeAcc.accB = 0;
-  if(evSN){
-    lifeAcc.accSN += dtSim*Math.max(9.2e-9*gfx.curD, 1.26e-7)*sfr;
-    lifeAcc.accPN += dtSim*1.26e-6*gfx.curD*Math.sqrt(sfr);   // low-mass deaths ride with the deaths switch
-  } else lifeAcc.accSN = lifeAcc.accPN = 0;
-  const CAP = 40;
-  for(let n=0; lifeAcc.accB>=1 && n<CAP; n++){ lifeAcc.accB--; if(events.length<EV_CAP){ const s=armSite();
-    events.push({k:1,x:s[0],y:s[1],z:s[2],wv:1,st:0,t:0,L:(3+Math.random()*6)*1e6,sn:evSN && Math.random()<0.12});
-    if(Math.random()<0.5) sfx('birth'); } } // only half of them sound, or it never stops
-  if(lifeAcc.accB>1) lifeAcc.accB = 0;
-  for(let n=0; lifeAcc.accSN>=1 && n<CAP; n++){ lifeAcc.accSN--; if(events.length<EV_CAP){ const s=armSite();
-    events.push({k:2,x:s[0],y:s[1],z:s[2],wv:1,st:0,t:0}); } }
-  if(lifeAcc.accSN>1) lifeAcc.accSN = 0;
-  for(let n=0; lifeAcc.accPN>=1 && n<CAP; n++){ lifeAcc.accPN--; if(events.length<EV_CAP){ const s=diskSite();
-    events.push({k:4,x:s[0],y:s[1],z:s[2],wv:0,st:0,t:0}); } }
-  if(lifeAcc.accPN>1) lifeAcc.accPN = 0;
-  for(let i=events.length-1;i>=0;i--){
-    const e=events[i]; e.st+=dtSim; e.t+=dt;
-    if(e.k===1 && e.st>e.L){
-      if(e.sn){ e.k=2; e.st=0; }                    // a massive member goes supergiant
-      else if(e.st>e.L+0.8e6) events.splice(i,1);  // cluster disperses into the disk
-    }
-    else if(e.k===2 && e.st>1.0e6){ e.k=3; e.t=0; sfx('sn'); } // ~1 Myr as a red supergiant, then collapse
-    else if(e.k===3 && e.t>1.6){ addPuff(e,7,2.8,[0.55,0.35,0.22]); e.k=5; e.t=0; }
-    else if(e.k===4 && e.st>1.2e6){ addPuff(e,1.8,2.2,[0.10,0.50,0.42]); e.k=6; e.t=0; sfx('pn'); }
-    else if((e.k===5||e.k===6) && e.t>2.5) events.splice(i,1);
-  }
-  for(let i=puffs.length-1;i>=0;i--){ const q=puffs[i]; q.t+=dt; if(q.t>q.dur) puffs.splice(i,1); }
-}
-function fillEvents(){
-  readout.evN = 0; readout.snN = 0;
-  for(let i=0;i<events.length;i++){
-    const e=events[i]; let s=0,cr=0,cg=0,cb=0;
-    if(e.k===3){
-      // The blast leaves this pass entirely: its own program draws it. The sprite grows
-      // through the whole flash — a fireball only expands — while the brightness peaks
-      // in the first fifth of a second and falls away, so it dims as it spreads.
-      if(readout.snN < SN_CAP){
-        const u = Math.min(1, e.t/1.6);
-        const a = e.t<0.15 ? e.t/0.15 : Math.exp(-(e.t-0.15)/0.45);
-        const j = readout.snN++;
-        snPos[j*3]=e.x; snPos[j*3+1]=e.y; snPos[j*3+2]=e.z;
-        snSize[j] = 14 + 92*Math.min(1, 0.3 + u);
-        snCol[j*3]=2.4*a; snCol[j*3+1]=2.3*a; snCol[j*3+2]=2.1*a;
-        snPh[j] = u;
-      }
-      continue;
-    }
-    if(e.k===1){ // embedded reddish protocluster brightening into a blue OB cluster
-      const u=Math.min(1,e.st/0.8e6), f=e.st>e.L?Math.max(0,1-(e.st-e.L)/0.8e6):1;
-      s=(0.6+2.8*u)*f;
-      cr=(0.55+0.07*u)*f; cg=(0.16+0.56*u)*f; cb=(0.10+0.95*u)*f;
-      if(e.st < 0.25e6){ // the pling: a brief white twinkle, the opposite of a blast
-        const w = (1 - e.st/0.25e6)*(0.55+0.45*Math.sin(simClock.shimT*9.0 + e.x*3.1));
-        s += 3.2*w; cr += 1.05*w; cg += 1.05*w; cb += 1.15*w;
-      }
-    } else if(e.k===2){ // red supergiant: swelling, reddening
-      const u=Math.min(1,e.st/1e6);
-      s=3.2+2.6*u; cr=0.62+0.5*u; cg=0.72-0.34*u; cb=1.05-0.87*u;
-    } else if(e.k===5){ // what remains: a cooling neutron star
-      const f=Math.max(0,1-e.t/2.5); s=1.4; cr=0.35*f; cg=0.5*f; cb=0.9*f;
-    } else if(e.k===4){ // a low-mass star swells into a red giant
-      const u=Math.min(1,e.st/1.2e6); s=1.2+2.4*u; cr=0.9; cg=0.42-0.12*u; cb=0.16;
-    } else { // white dwarf, slowly fading
-      const f=Math.max(0,1-e.t/2.5); s=1.1; cr=0.8*f; cg=0.85*f; cb=1.0*f;
-    }
-    const j = readout.evN++;   // compacted: the blasts that left this pass leave no gaps behind
-    evPos[j*3]=e.x; evPos[j*3+1]=e.y; evPos[j*3+2]=e.z;
-    evSize[j]=s; evCol[j*3]=cr; evCol[j*3+1]=cg; evCol[j*3+2]=cb; evWave[j]=e.wv;
-  }
-}
-function fillPuffs(){
-  for(let i=0;i<puffs.length;i++){
-    const q=puffs[i], u=q.t/q.dur, rad=q.r1*(1-(1-u)*(1-u)), a=Math.pow(1-u,1.6);
-    pfPos[i*3]=q.x; pfPos[i*3+1]=q.y; pfPos[i*3+2]=q.z;
-    pfSize[i]=Math.max(0.8, rad*2);
-    pfCol[i*3]=q.col[0]*a; pfCol[i*3+1]=q.col[1]*a; pfCol[i*3+2]=q.col[2]*a;
-    // the fourth channel carries both the frame flag and how far the shell has run:
-    // wave in the twos, phase in the fraction — the remnant shader unpacks it
-    pfWave[i]=q.wv*2 + Math.min(0.999, u);
-  }
-}
-
+// The stellar life cycle — the events, the blasts, the expanding shells and their three
+// draws — is render/lifecycle. The sound is handed to it here rather than imported there.
+setLifeSfx(sfx);
 // ---------- camera & interaction ----------
 
    // dive: hold the camera on the Sun-to-core line
@@ -863,8 +697,7 @@ toggle($('tLabels'), on=>{ showLabels=on; if(!on) labelEls.forEach(l=>l.style.di
 toggle($('tArms'), on=>{ armsOn=on; if(!on) armEls.forEach(l=>l.style.display='none'); });
 // steady labels: eased into place, held through a single leap, stepped aside while a
 // body whirls faster than a label can follow (see placeLabel). On by default for now.
-let labelSteady = true;
-toggle($('tLabelSteady'), on=>{ labelSteady = on; });
+toggle($('tLabelSteady'), on=>{ setLabelSteady(on); });
 // The dock's master switch mirrors these two rather than owning its own saved state:
 // on whenever either is showing, off only when both are hidden. Individual settings
 // checkboxes are untouched — this only adds a second listener alongside their own.
@@ -1522,25 +1355,6 @@ function humanYear(){
   }
 }
 toggle($('tView'), on=>{ cam.followTarget='sun'; cam.follow=!on; cam.distGoal = on? 4300 : 150; cam.reseedFollow=true; cam.panF[0]=cam.panF[1]=0; });
-function refillTrails(){
-  bodyPos(0, simClock.simT, tmpSun);
-  trailAnchor[0]=tmpSun[0]; trailAnchor[1]=tmpSun[1]; trailAnchor[2]=tmpSun[2];
-  // The trail is the path the viewer has watched being swept: sample TRAIL_N−1 is now and
-  // the brightest, sample 0 the earliest seen and the dimmest. With the clock running
-  // backwards "earliest seen" is the LATER sim time, so the samples run the other way —
-  // otherwise the trail pointed into the sim-past, which in reverse lies ahead of the
-  // body, and it led instead of trailed.
-  const dirT = simClock.shuttle < 0 ? -1 : 1;
-  for(let i=0;i<NB;i++){
-    const a=trails[i];
-    for(let k=0;k<TRAIL_N;k++){
-      trailPos(i, simClock.simT - dirT*((TRAIL_N-1)-k)*simClock.dtSample, tmp);
-      a[k*3]=tmp[0]; a[k*3+1]=tmp[1]; a[k*3+2]=tmp[2];
-    }
-    gl.bindBuffer(gl.ARRAY_BUFFER,trailBufs[i]);
-    gl.bufferSubData(gl.ARRAY_BUFFER,0,a);
-  }
-}
 const setBodySizes = () => setBodySizesTo(REAL_MODE);
 setBodySizes();   // real proportions from the first frame
 toggle($('tDive'), on=>{ cam.panF[0]=cam.panF[1]=0;
@@ -1748,98 +1562,9 @@ $('infoClose').addEventListener('click', ()=>{ $('infoModal').style.display='non
 $('infoModal').addEventListener('click', e=>{ if(e.target.id==='infoModal') $('infoModal').style.display='none'; });
 if(matchMedia('(prefers-reduced-motion: reduce)').matches){ $('tPause').click(); }
 
-// labels
-const labelWrap=$('labels');
-const labelEls = BODIES.map(b=>{
-  const d=document.createElement('div'); d.className='lbl'; d.textContent=b[0];
-  labelWrap.appendChild(d); return d;
-});
-const moonEl = (()=>{ const d=document.createElement('div'); d.className='lbl'; d.textContent='Moon'; d.style.display='none'; d.style.opacity='0.65'; labelWrap.appendChild(d); return d; })();
-// The solar system's own structures, labelled at their real radii. Each label sits on
-// its ring at the Sun's side, appears only while its structure is switched on and its
-// ring is actually resolvable on screen, and hides again when it would be a dot.
-const STRUCTS = [            // name, ring radius in AU, visibility switch
-  ['asteroid belt', 2.7,     () => showBelt],
-  ['Kuiper belt',   44,      () => showKuiper],
-  ['Oort cloud',    63241,   () => showOort],       // one light year, mid-shell
-];
-const structEls = STRUCTS.map(s=>{
-  const d=document.createElement('div'); d.className='lbl'; d.textContent=s[0];
-  d.style.display='none'; d.style.opacity='0.55'; labelWrap.appendChild(d); return d;
-});
-// Spiral-arm names, placed on this map's measured bright ridges and named by their
-// radial order from the Sun, after the canonical face-on annotation. They ride the
-// density-wave rotation, exactly as the arm pattern itself does in the shader.
+// Every name on the screen is render/labels: the six element pools, the steadying, and the
+// pass that places them. The switches stay here, because they are the interface's.
 let armsOn = true;
-const ARM_LBLS = [
-  ['Orion Spur',          150,  830],
-  ['Sagittarius–Carina',  110,  580],
-  ['Perseus',              70, 1010],
-  ['Scutum–Centaurus',   -170, -560],
-  ['Outer Arm',          -260, 1340],
-  ['Galactic bar',         30,   40],
-];
-const armEls = ARM_LBLS.map(a=>{
-  const d=document.createElement('div'); d.className='armlbl'; d.textContent=a[0];
-  d.style.display='none'; labelWrap.appendChild(d); return d;
-});
-// Andromeda and company, positioned in its own disk frame and carried on its orbit
-const M31_LBLS = [
-  ['Andromeda (M31)', 0, 60, 0],
-  ['M32', -150, -80, 530],
-  ['M110', 760, 240, -420],
-  ['Giant Southern Stream', 1030, -1330, -2420],
-];
-const m31Els = M31_LBLS.map(a=>{
-  const d=document.createElement('div'); d.className='armlbl'; d.textContent=a[0];
-  d.style.display='none'; labelWrap.appendChild(d); return d;
-});
-// One galaxy, one name: once the two disks have become a single blob the remnant is
-// Milkomeda (Cox & Loeb 2008), and every other galaxy name has already stepped down.
-const mergedEl = (()=>{ const d=document.createElement('div'); d.className='armlbl'; d.textContent='Milkomeda';
-  d.style.display='none'; labelWrap.appendChild(d); return d; })();
-// Steady labels. A label follows its target by easing (a short time constant, so it
-// never visibly lags), holds still through a single leap (a scenario jump, a
-// reappearance — a label should land, not fly across the screen), and steps aside
-// while its target leaps frame after frame: a planet sweeping round its orbit several
-// times a second is motion no label can follow, and one that tries just spins. It
-// comes back once the motion has been calm for a dozen frames. Hiding is debounced
-// too, so a target flickering across a visibility threshold does not blink its name.
-// Off, it is the old direct placement. State rides on the element itself.
-
-function placeLabel(el, x, y, show){
-  if(!labelSteady){
-    if(show){ el.style.display='block'; el.style.left=x+'px'; el.style.top=y+'px'; }
-    else el.style.display='none';
-    return;
-  }
-  const s = el._lb || (el._lb = { x, y, on:false, hid:0, leaps:0, calm:99, spin:false });
-  if(!show){
-    s.hid += readout.frameDt; s.x = x; s.y = y;
-    if(s.on && s.hid > 0.18){ el.style.display='none'; s.on=false; }
-    return;
-  }
-  s.hid = 0;
-  const leap = Math.hypot(x - s.x, y - s.y) > 90;
-  if(leap){ s.leaps = Math.min(6, s.leaps + 2); s.calm = 0; } else { s.leaps = Math.max(0, s.leaps - 1); s.calm++; }
-  if(s.spin){                                  // stepped aside: wait for calm
-    s.x = x; s.y = y;
-    if(s.calm < 12) return;
-    s.spin = false;
-  } else if(s.leaps >= 4){                     // leaping every frame: whirling
-    s.spin = true; s.x = x; s.y = y;
-    if(s.on){ el.style.display='none'; s.on=false; }
-    return;
-  }
-  if(!s.on || leap){ s.x = x; s.y = y; }        // land; never fly
-  else { const k = 1 - Math.exp(-readout.frameDt/0.06); s.x += (x - s.x)*k; s.y += (y - s.y)*k; }
-  s.on = true;
-  el.style.display='block'; el.style.left=s.x+'px'; el.style.top=s.y+'px';
-}
-// Gliese 710's label lives here; its buffer and its draw are render/passes/g710.
-const g710Lbl = (()=>{ const d=document.createElement('div'); d.className='lbl'; d.textContent='Gliese 710';
-  d.style.color='rgba(255,190,140,.9)'; labelWrap.appendChild(d); return d; })();
-
 // ---------- the interface colour follows the hazard ----------
 // Blended rather than stepped, because the hazard itself varies continuously with where
 // the Sun sits: cosmic rays climb as it enters a spiral arm and fall again on the way
@@ -2120,13 +1845,8 @@ function frame(now){
       const dx=org[0]-trailAnchor[0], dy=org[1]-trailAnchor[1], dz=org[2]-trailAnchor[2];
       if(dx*dx+dy*dy+dz*dz > 0.09){ simClock.lastAnchor = now; refillTrails(); simClock.nextSample = simClock.simT + simClock.dtSample; }
     }
-    if(n>0){
-      for(let i=0;i<NB;i++){
-        gl.bindBuffer(gl.ARRAY_BUFFER,trailBufs[i]);
-        gl.bufferSubData(gl.ARRAY_BUFFER,0,trails[i]);
-      }
-    }
-    if(lifeOn) lifeStep(dt, dt*simClock.speed*simClock.speedMult);
+    if(n>0) uploadTrails();
+    if(lifeOn) lifeStep({ dt, dtSim: dt*simClock.speed*simClock.speedMult, ageGyr: ageGyr(), evBirth, evSN });
   }
 
   // body positions, stored relative to the Sun (the rendering origin) — exact in doubles,
@@ -2275,6 +1995,12 @@ function frame(now){
   // haze — and then the stars, the HII and the core are drawn over both, so a cloud
   // sits within the star field. Drawn after everything, as they used to be, the clouds
   // multiplied the stars and the core down to black discs on top of the picture.
+  // What both the clouds and the life cycle read off this frame. One object each, built
+  // where the values are, rather than a dozen arguments repeated at four call sites.
+  const lifeFrame = {
+    projMat: view.projMat!, viewMat, pxScale, deep, spinMW, warp, sunX, bubY, sunZ, org,
+    minBright, minSprite, tide: and.tide, varOn,
+  };
   const clouds: CloudFrame = {
     projMat: view.projMat!, viewMat, pxScale, camDist: cam.dist, shimT: simClock.shimT,
     varOn, deep, insideDisk, andPos, tide: and.tide, merge: and.merge,
@@ -2354,126 +2080,15 @@ function frame(now){
   gl.uniform1f(U.ptGal, 0.0);
 
   // life-cycle events (OB clusters, supergiants, supernova flashes, remnant cores)
-  if(lifeOn && events.length){
-    fillEvents();
-    gl.uniform1f(U.ptVM, 0.0); // events animate themselves
-    gl.uniform1f(U.ptTide, 0.0);
-    gl.uniform1f(U.ptMinB, 0.0);
-    gl.uniform1f(U.ptMinSz, 1.3);   // events keep their own scale
-    gl.uniform1f(U.ptCap, deep?36.0:110.0); // a supernova blooms, within reason
-    if(readout.evN){
-      gl.bindBuffer(gl.ARRAY_BUFFER,evGL.p); gl.bufferSubData(gl.ARRAY_BUFFER,0,evPos.subarray(0,readout.evN*3));
-      gl.bindBuffer(gl.ARRAY_BUFFER,evGL.s); gl.bufferSubData(gl.ARRAY_BUFFER,0,evSize.subarray(0,readout.evN));
-      gl.bindBuffer(gl.ARRAY_BUFFER,evGL.c); gl.bufferSubData(gl.ARRAY_BUFFER,0,evCol.subarray(0,readout.evN*3));
-      gl.bindBuffer(gl.ARRAY_BUFFER,evGL.w); gl.bufferSubData(gl.ARRAY_BUFFER,0,evWave.subarray(0,readout.evN));
-      gl.bindVertexArray(evGL.vao); gl.drawArrays(gl.POINTS,0,readout.evN);
-    }
-    // the blasts, in their own pass, on top of everything the flash lights up
-    if(readout.snN){
-      gl.useProgram(pSN);
-      gl.uniformMatrix4fv(USN.proj,false,view.projMat);
-      gl.uniformMatrix4fv(USN.view,false,viewMat);
-      gl.uniform1f(USN.px, pxScale);
-      gl.uniform1f(USN.spin, spinMW);
-      gl.uniform1f(USN.warp, warp);
-      gl.uniform1f(USN.cap, deep?36.0:110.0);
-      gl.uniform3f(USN.sun, sunX, bubY, sunZ);
-      gl.uniform3f(USN.org, org[0], org[1], org[2]);
-      gl.bindBuffer(gl.ARRAY_BUFFER,snGL.p); gl.bufferSubData(gl.ARRAY_BUFFER,0,snPos.subarray(0,readout.snN*3));
-      gl.bindBuffer(gl.ARRAY_BUFFER,snGL.s); gl.bufferSubData(gl.ARRAY_BUFFER,0,snSize.subarray(0,readout.snN));
-      gl.bindBuffer(gl.ARRAY_BUFFER,snGL.c); gl.bufferSubData(gl.ARRAY_BUFFER,0,snCol.subarray(0,readout.snN*3));
-      gl.bindBuffer(gl.ARRAY_BUFFER,snGL.w); gl.bufferSubData(gl.ARRAY_BUFFER,0,snPh.subarray(0,readout.snN));
-      gl.bindVertexArray(snGL.vao); gl.drawArrays(gl.POINTS,0,readout.snN);
-      gl.useProgram(pPt);   // the restores below belong to the point program
-    }
-    gl.uniform1f(U.ptMinB, minBright);
-    gl.uniform1f(U.ptMinSz, minSprite);
-    gl.uniform1f(U.ptTide, and.tide);
-    gl.uniform1f(U.ptVM, varOn?1.0:0.0);
-    gl.uniform1f(U.ptCap, deep?26.0:110.0);
-  }
-
+  if(lifeOn && events.length) drawEvents(lifeFrame);
 
   if(!insideDisk) drawNebula(clouds, false);   // the HII regions and the core, over the stars
-  // expanding shells: supernova remnants and planetary nebulae, on their own program
-  // (sizes exaggerated — see info). After the dust on purpose: a remnant next door is
-  // not something the backdrop's lanes should darken.
-  if(lifeOn && puffs.length){
-    fillPuffs();
-    gl.useProgram(pRem);
-    gl.uniformMatrix4fv(UREM.proj,false,view.projMat);
-    gl.uniformMatrix4fv(UREM.view,false,viewMat);
-    gl.uniform1f(UREM.px, pxScale);
-    gl.uniform1f(UREM.spin, spinMW);
-    gl.uniform1f(UREM.warp, warp);
-    gl.uniform1f(UREM.cap, deep?60.0:560.0);
-    gl.uniform3f(UREM.sun, sunX, bubY, sunZ);
-    gl.uniform3f(UREM.org, org[0], org[1], org[2]);
-    gl.bindBuffer(gl.ARRAY_BUFFER,pfGL.p); gl.bufferSubData(gl.ARRAY_BUFFER,0,pfPos.subarray(0,puffs.length*3));
-    gl.bindBuffer(gl.ARRAY_BUFFER,pfGL.s); gl.bufferSubData(gl.ARRAY_BUFFER,0,pfSize.subarray(0,puffs.length));
-    gl.bindBuffer(gl.ARRAY_BUFFER,pfGL.c); gl.bufferSubData(gl.ARRAY_BUFFER,0,pfCol.subarray(0,puffs.length*3));
-    gl.bindBuffer(gl.ARRAY_BUFFER,pfGL.w); gl.bufferSubData(gl.ARRAY_BUFFER,0,pfWave.subarray(0,puffs.length));
-    gl.bindVertexArray(pfGL.vao); gl.drawArrays(gl.POINTS,0,puffs.length);
-  }
-
+  if(lifeOn && puffs.length) drawRemnants(lifeFrame);
   // trails
-  // Trail buffers hold absolute positions, and at the Sun's radius a float32 step is
-  // 6.1e-5 scene units — a quarter pixel around cam.dist 0.17. Fade across that
-  // boundary rather than cutting, so leaving real scale doesn't drop them abruptly.
-  // Planets are drawable only while their points stand apart from the Sun's: Neptune's
-  // orbit spans about six pixels at 0.13 units of camera distance, and beyond that the
-  // whole system is inside one point — only the Sun's own trail means anything there.
-  const solarClose = cam.dist < 0.13;
-  if(showTrails && trailPct > 0){
-    gl.useProgram(pTr);
-    gl.uniformMatrix4fv(U.trProj,false,view.projMat);
-    gl.uniformMatrix4fv(U.trView,false,viewMat);
-    gl.uniform1f(U.trLen,TRAIL_N);
-    // A local `last`, shadowing nothing — the clock's own `last` is a property now. It was
-    // a plain top-level shadow before, which is why the mechanical rename reached it.
-    const last = (showP9 ? NB : I_P9)-1;
-    // the origin for anchored buffers, subtracted in double precision
-    const aox = org[0]-trailAnchor[0], aoy = org[1]-trailAnchor[1], aoz = org[2]-trailAnchor[2];
-    gl.uniform3f(U.trOrg, aox, aoy, aoz);
-    for(let i=last;i>=0;i--){
-      const c=BODIES[i][4];
-      if(i === I_P9 && !showP9) continue;
-      if(i >= N_PLANETS && i < I_P9 && !showDwarfs) continue;
-      if(i <= 3 && i > 0 && wasEaten[i]) continue;   // no path for a planet that is gone
-      if(readout.globePx > 40) continue;   // zoomed onto the globe, every orbit and helix is a line across the sky
-      if(i > 0){
-        if(!solarClose) continue;                    // collapsed into the Sun's point
-        const spo = BODIES[i][1]/simClock.dtSample;
-        // the ring draws when asked for, or as the fallback for an unresolvable helix
-        if(psO || (psH && spo < 12)){
-          // the closed path itself — also the honest fallback when the sampling
-          // cannot resolve the orbit and no accurate helix is drawable
-          gl.uniform3f(U.trOrg, 0,0,0);
-          gl.uniform3f(U.trCol, c[0],c[1],c[2]);
-          gl.uniform1f(U.trA, 0.4*orbitAlpha*(1+starGain*0.9));
-          gl.uniform1f(U.trFlat, 1.0);
-          gl.bindVertexArray(ringVaos[i]);
-          gl.drawArrays(gl.LINE_LOOP, 0, RING_N);
-          gl.uniform1f(U.trFlat, 0.0);
-          gl.uniform3f(U.trOrg, aox, aoy, aoz);
-        }
-        if(!psH || spo < 12) continue;
-        // the accurate helix: the swept absolute path, no styling — Mercury winds
-        // tightly, the giants barely wave, because that is how it actually is
-        gl.uniform3f(U.trCol, c[0],c[1],c[2]);
-        gl.uniform1f(U.trA, 0.55*trailAlpha*(1+starGain*0.9));
-        gl.bindVertexArray(trailVaos[i]);
-        gl.drawArrays(gl.LINE_STRIP, TRAIL_N-Math.min(TRAIL_N, Math.round(200*spo)), Math.min(TRAIL_N, Math.round(200*spo)));
-        continue;
-      }
-      if(!psH) continue;   // the Sun's arc is a swept trail: it follows the helix switch
-      gl.uniform3f(U.trCol,c[0],c[1],c[2]);
-      // lift with the star gain, or a brightened field washes the thin line out
-      gl.uniform1f(U.trA, 0.9*trailAlpha*(1+starGain*0.9));
-      gl.bindVertexArray(trailVaos[i]);
-      gl.drawArrays(gl.LINE_STRIP, 0, TRAIL_N);
-    }
-  }
+  if(showTrails && trailPct > 0) drawTrails({
+    projMat: view.projMat!, viewMat, camDist: cam.dist, org,
+    trailAlpha, orbitAlpha, starGain, psH, psO, showP9, showDwarfs, wasEaten,
+  });
 
   // asteroid belt, Kuiper belt & Oort cloud, riding along with the Sun.
   // Each fades out while its ring is too small on screen to resolve — otherwise its
@@ -2527,77 +2142,12 @@ function frame(now){
 
   // labels
   readout.frameDt = dt;
-  if(showLabels){
-    const pv = mul(view.projMat, viewMat);
-    const proj = (x, y, z) => { const cw = pv[3]*x+pv[7]*y+pv[11]*z+pv[15];
-      return [cw, ((pv[0]*x+pv[4]*y+pv[8]*z+pv[12])/cw*0.5+0.5)*view.W, (-(pv[1]*x+pv[5]*y+pv[9]*z+pv[13])/cw*0.5+0.5)*view.H]; };
-    let sunSX=0, sunSY=0;
-    for(let i=0;i<NB;i++){
-      const l=labelEls[i];
-      if(i === I_P9 ? !showP9 : (i >= N_PLANETS && !showDwarfs)){ placeLabel(l, 0, 0, false); continue; }
-      if(i > 0 && i <= 3 && wasEaten[i]){ placeLabel(l, 0, 0, false); continue; }   // swallowed
-      if(readout.globePx > 40 && i > 0){ placeLabel(l, 0, 0, false); continue; }          // zoomed onto Earth: only the Sun's place in the sky
-      if(i === 0) l.textContent = readout.pnShown ? 'Anthropic Nebula' : 'Sun';
-      const [cw, lsx, lsy] = proj(bodyPosArr[i*3], bodyPosArr[i*3+1], bodyPosArr[i*3+2]);
-      if(cw<=Math.max(1e-9,cam.dist*0.01) || cam.dist>900){ placeLabel(l, 0, 0, false); continue; }
-      if(i===0){ sunSX=lsx; sunSY=lsy; }
-      else if(REAL_MODE && Math.hypot(lsx-sunSX,lsy-sunSY)<14){ placeLabel(l, 0, 0, false); continue; }
-      placeLabel(l, lsx, lsy, true);
-      l.style.opacity = i===0?0.9:0.65;
-    }
-    // the Moon: labelled while it is drawn as a disc and stands clear of Earth's label
-    if(readout.moonPx > 1.5){
-      const [cw, mx, my] = proj(moonRel[0], moonRel[1], moonRel[2]);
-      const [ , ex, ey] = proj(bodyPosArr[9], bodyPosArr[10], bodyPosArr[11]);
-      placeLabel(moonEl, mx, my, cw > 0 && Math.hypot(mx-ex, my-ey) > 16);
-    } else placeLabel(moonEl, 0, 0, false);
-    // structure labels: a point on each ring, Sun-relative like the rings themselves
-    for(let s=0;s<STRUCTS.length;s++){
-      const el = structEls[s];
-      if(!STRUCTS[s][2]()){ placeLabel(el, 0, 0, false); continue; }
-      const rU = STRUCTS[s][1]*AU2U;
-      const rpx = rU*pxScale/cam.dist;
-      if(readout.globePx > 40){ el.style.display = 'none'; if(el._lb) el._lb.on = false; continue; }   // at once, not debounced
-      if(rpx < 46 || rpx > 2600){ placeLabel(el, 0, 0, false); continue; }
-      const [cw, sx, sy] = proj(rU*0.71, 0, rU*0.71);    // 45 degrees round the ring
-      placeLabel(el, sx, sy, cw > 1e-9);
-    }
-    const galaxyNames = armsOn && cam.dist > 600;
-    // arm names: world coordinates rotated with the wave, then projected like the rest
-    // (once the remnant starts to relax there are no arms left to name)
-    if(galaxyNames && and.merge < 0.35){
-      const d = spinMW/640, cD = Math.cos(d), sD = Math.sin(d);
-      for(let a=0;a<ARM_LBLS.length;a++){
-        const wx = ARM_LBLS[a][1]*cD + ARM_LBLS[a][2]*sD, wz = ARM_LBLS[a][2]*cD - ARM_LBLS[a][1]*sD;
-        const [cw, sx, sy] = proj(wx-org[0], -org[1], wz-org[2]);
-        placeLabel(armEls[a], sx, sy, cw > 1);
-      }
-    } else armEls.forEach(l=>placeLabel(l, 0, 0, false));
-    // named together, retired together: past this point the two disks already render as
-    // one blob, so naming only "Andromeda" there would mislabel the Milky Way's own remnant
-    if(galaxyNames && and.merge < 0.35){
-      for(let a=0;a<M31_LBLS.length;a++){
-        // the satellites and the stream exist only in the map-built Andromeda
-        if(a > 0 && !gfx.m31Map){ placeLabel(m31Els[a], 0, 0, false); continue; }
-        const L = M31_LBLS[a];
-        const wx = M31_ROT[0]*L[1]+M31_ROT[3]*L[2]+M31_ROT[6]*L[3]+andPos[0];
-        const wy = M31_ROT[1]*L[1]+M31_ROT[4]*L[2]+M31_ROT[7]*L[3]+andPos[1];
-        const wz = M31_ROT[2]*L[1]+M31_ROT[5]*L[2]+M31_ROT[8]*L[3]+andPos[2];
-        const [cw, sx, sy] = proj(wx-org[0], wy-org[1], wz-org[2]);
-        // the small companions only earn a name once Andromeda fills some of the view
-        placeLabel(m31Els[a], sx, sy, !(cw <= 1 || (a > 0 && and.sep > 0.9*cam.dist + 4000)));
-      }
-    } else m31Els.forEach(l=>placeLabel(l, 0, 0, false));
-    // one galaxy, one name: from the moment the disks are one blob, the remnant's centre
-    { const [cw, sx, sy] = proj(-org[0], -org[1], -org[2]);
-      placeLabel(mergedEl, sx, sy, galaxyNames && and.merge >= 0.35 && cw > 1); }
-    if(gl710.d < 40){
-      const k = REAL_MODE ? 1/30 : 178/1.6;
-      const [cw, sx, sy] = proj(gl710.x*k, gl710.y*k, gl710.z*k);
-      placeLabel(g710Lbl, sx, sy, cw > Math.max(1e-9,cam.dist*0.01) && cam.dist <= 900);
-    } else placeLabel(g710Lbl, 0, 0, false);
-  } else placeLabel(g710Lbl, 0, 0, false);
-  
+  drawLabels(showLabels, {
+    projMat: view.projMat!, viewMat, pxScale, camDist: cam.dist, org, andPos,
+    merge: and.merge, sep: and.sep, spinMW, star: gl710,
+    showP9, showDwarfs, wasEaten,
+    structOn: [showBelt, showKuiper, showOort], armsOn,
+  });
 
   if(showFps) fpsFrames++;      // counted every frame; only the display is paced
   if(now - lastHud >= 1000/hudHz){
@@ -3029,6 +2579,9 @@ Object.defineProperty(globalThis, '__gt', { value: {
   get earthDbg(){ return readout.earthDbg; },
   get probeInfo(){ return readout.probeInfo; },
   get galaxyKeys(){ return Object.keys(gxyCache); },
+  // The life cycle is off in every parity state, so nothing photographed can see it. The
+  // boot suite drives the switches and watches these two instead.
+  get lifeCounts(){ return { events: events.length, puffs: puffs.length }; },
 } });
 
 fitPanels();

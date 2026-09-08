@@ -240,3 +240,54 @@ test.describe('sound', () => {
     expect(errors, errors.join('\n')).toEqual([])
   })
 })
+
+/**
+ * The stellar life cycle, covered before it is moved.
+ *
+ * The parity gate cannot see any of this. Its settings fixture has `tEvSN` and `tEvBirth`
+ * off in all twenty-three states, which is the honest default — the events are opt-in — and
+ * it means the birth of a cluster, the collapse of a supergiant, the blast, the expanding
+ * remnant and the fading white dwarf are drawn by code no screenshot ever exercises. Moving
+ * that code out of main.ts with only "it still compiles" behind it is exactly the bargain
+ * this project does not take, so the switches get driven here instead.
+ *
+ * Black-box, like the sound tests: turn on what a visitor turns on, wind the clock the way
+ * the speed controls wind it, and check that events actually appear and nothing throws.
+ */
+test.describe('the life cycle', () => {
+  test('births and deaths accumulate, and draw without error', async ({ page }) => {
+    const errors: string[] = []
+    page.on('pageerror', (e) => errors.push(`pageerror: ${e}`))
+    page.on('console', (m) => m.type() === 'error' && errors.push(`console: ${m.text()}`))
+
+    await page.goto('/galactic-transit.html?debug', { waitUntil: 'load' })
+    await page.waitForFunction(() => !!document.getElementById('gl'))
+
+    // The tour covers the screen, and dismissing it is also what starts the clock.
+    const tour = page.locator('#tourGo')
+    if (await tour.isVisible().catch(() => false)) await tour.click()
+
+    // A million years a second: below that the rates are drawn from so little simulated time
+    // that nothing is born inside a test's patience. This is the multiplier the galactic
+    // scenarios use, driven through its own control.
+    await page.evaluate(() => {
+      const mult = document.getElementById('multExp') as HTMLInputElement
+      mult.value = '6'
+      mult.dispatchEvent(new Event('input', { bubbles: true }))
+      document.getElementById('tEvSN')!.click()
+      document.getElementById('tEvBirth')!.click()
+    })
+
+    // Something must be alive within a few seconds of galactic time.
+    await page.waitForFunction(() => (globalThis as { __gt?: { lifeCounts: { events: number } } })
+      .__gt!.lifeCounts.events > 0, undefined, { timeout: 60_000 })
+
+    // And the shells too: a supergiant takes ~1 Myr of simulated time to collapse, the blast
+    // runs 1.6 s of wall time, and only then is a remnant pushed. Give it room; if nothing
+    // ever arrives, the chain from birth to remnant is broken somewhere.
+    await page.waitForFunction(() => (globalThis as { __gt?: { lifeCounts: { puffs: number } } })
+      .__gt!.lifeCounts.puffs > 0, undefined, { timeout: 120_000 })
+
+    expect(errors, errors.join('\n')).toEqual([])
+  })
+})
