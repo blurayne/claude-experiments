@@ -2,7 +2,10 @@
 
 Working notes for picking this up cold, in a later session or on another machine. The plan being executed is `docs/refactor/00-PLAN.md`; this file records how far along it is, what has been learned since it was written, and the things that will waste a day if you do not know them.
 
-**Status: 8 of 23 steps done. `main` is untouched and still ships v2.78.0.**
+**Status: `main.ts` is down from 5,347 lines to 3,496 — 35% of it moved into 26 modules. `main` is untouched and still ships v2.78.0.**
+
+This file is the live status; the chat is not. Regenerate the numbers with `wc -l src/main.ts`,
+`npx vitest run`, and `git log --oneline main..HEAD`.
 
 ## The shape of it
 
@@ -118,24 +121,74 @@ Two page-specific traps worth knowing: `#tPause` carries class `on` while the pi
 
 ## Done
 
-| step | what | commit |
-| --- | --- | --- |
-| 0 | toolchain, 13-agent inventory (`docs/refactor/`, 404 KB) | `91b8533` |
-| 0 | parity harness proved byte-exact | `fc5be09` |
-| 1 | page built from `src/`; classic `<script>` → deferred ES module | `0ff1a82` |
-| — | harness made trustworthy; 30/30 on step 1 | `52381d0` |
-| 2 | stylesheet → `src/styles/` ×4, cascade asserted on source and artifact | `7a60435` |
-| 3 | 23 shaders → `src/shaders/`, byte-exact, `?raw` | `7a3de48` |
-| 4–5 | `core/` — errorlog, build, mat4, rng, dom | `d64b15f` |
-| 6 | `astro/constants`, `astro/sun` | `bacb3a0` |
-| 7 | `astro/merger` | `740c645` |
-| 8 | `gpu/` — context, program, buffers; the gate stops storing baselines | (this commit) |
+Every entry gated. "Gate" means the parity suite green — see above for what that now means.
 
-`main.ts` is down from 5,347 lines to 4,595. Unit tests: 91. Boot assertions: 7.
+| what | commit |
+| --- | --- |
+| toolchain, 13-agent inventory (`docs/refactor/`, 404 KB) | `91b8533` |
+| the parity harness, proved byte-exact | `fc5be09` |
+| **step 1** — page built from `src/`; classic `<script>` → deferred ES module | `0ff1a82` |
+| harness made trustworthy; 30/30 | `52381d0` |
+| **step 2** — stylesheet → 4 files, cascade asserted on source *and* artifact | `7a60435` |
+| **step 3** — 23 shaders → `.glsl`, byte-exact, `?raw` | `7a3de48` |
+| **steps 4–5** — `core/` errorlog, build, mat4, rng, dom | `d64b15f` |
+| **step 6** — `astro/constants`, `astro/sun` | `bacb3a0` |
+| `astro/merger` + 21 tests | `740c645` |
+| **step 8** — `gpu/`; the gate stops storing baselines | `b644d8f` |
+| MIGRATE-STATE.md | `cba8acd` |
+| `astro/bodies` + Kepler's third law as a test | `45a70ae` |
+| `astro/sun` life cycle, `astro/environment` — three findings | `6c6e33e` |
+| `astro/earth` + `scripts/check-names.mjs` | `58f7eef` |
+| **step 7a** — `simClock` | `227a397` |
+| both builds photographed concurrently; full gate 1.4 h → 34 min | `6e43bf4` |
+| **step 7b** — `cam` | `468616b` |
+| **step 7c** — `gfx` | `5cff82c` |
+| **step 7d** — `view`, `readout`, `lifeAcc` | `9d2f692` |
+| `scene/starfield` | `da28433` |
+| `scene/galaxy` | `28e0c59` |
+| `scene/andromeda`; the gate runs its own control | `b37f5d3` |
+| `scene/belts` | `9220ba9` |
+| `astro/g710`, checked against Bailer-Jones 2018 | `0c6ae6a` |
+| `scene/sky` | `68dd011` |
+| sound covered *before* being moved | `173dea8` |
+| `audio/` | `7bf6539` |
+| `core/format` + 10 tests | `ff065df` |
+| `ui/tooltips`; two-sided control; gate relaxed on area | `e0abaaf` |
+| `render/passes/belts` — the first draw pass | `204e43e` |
+
+### Where the code lives now
+
+```
+core/     errorlog build mat4 rng dom format
+astro/    constants sun merger bodies environment earth g710    complete, pure
+scene/    starfield galaxy andromeda belts sky                  complete, pure
+gpu/      context program buffers
+render/   state  passes/belts
+audio/    index
+ui/       tooltips
+```
+
+`astro/` and `scene/` are finished and contain no DOM or GL reference at all — the boundary a
+WASM port would need, and the code the science projects rewrite.
+
+Tests: **173 unit, 8 boot, 23 parity.**
 
 ## Next
 
-Steps 9–23 of `docs/refactor/00-PLAN.md` §4, in order. Step 9 is the remaining `astro/` leaves: `bodies`, `earth`, `environment`, `calendar`.
+Roughly half the file remains, in three pieces:
+
+1. **The draw passes** — about 860 lines still inside one `frame()`. `render/passes/belts` is
+   the template: programs, uniform tables, vertex arrays and the draw together; geometry
+   uploaded by an explicit `init*()` from main.ts so the RNG sequence does not move; inputs
+   passed as an argument rather than reached for. The per-frame context is being discovered
+   from what each pass actually needs rather than designed up front.
+2. **The interface** — about 1,500 lines: panels, sections, settings persistence, the HUD, the
+   scenarios, the tour, the debug door, the QR overlay.
+3. **main.ts as boot only**, then the cleanup step.
+
+Two of the plan's steps are deliberately still open: `ui/persist` (the settings replay, ranked
+the highest-risk failure in the file — the boot suite already covers it) and the `show`
+toggles, which belong with `ui/` rather than with `render/state`.
 
 Two of the remaining steps are the ones to be careful with:
 
