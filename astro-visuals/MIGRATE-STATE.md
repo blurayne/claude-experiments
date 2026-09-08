@@ -2,9 +2,9 @@
 
 Working notes for picking this up cold, in a later session or on another machine. The plan being executed is `docs/refactor/inventory/00-PLAN.md`; this file records how far along it is, what has been learned since it was written, and the things that will waste a day if you do not know them.
 
-**Status: `main.ts` is down from 5,347 lines to 3,371 — 37% of it moved into 29 modules. `main` is untouched and still ships v2.78.0.**
+**Status: `main.ts` is down from 5,347 lines to 2,588 — 52% of it moved into 41 modules. `main` is untouched and still ships v2.78.0.**
 
-Of the plan's 24 steps, twelve are complete (0–9, 11, 14), two are part-done (12, the draw passes: five of eleven; and 15, the `ui/` leaves: one of five), and ten have not started.
+Of the plan's 24 steps, fifteen are complete (0–14 except the part of 12 noted below), one is part-done (15, the `ui/` leaves: one of five), and eight have not started. **Every draw pass is out.** What is left is the interface, then the boot sequence, then cleanup.
 
 This file is the live status; the chat is not. Regenerate the numbers with `wc -l src/main.ts`,
 `npx vitest run`, and `git log --oneline main..HEAD`.
@@ -27,10 +27,10 @@ this column is the fact.
 | 7 | `render/state` — the §3 singletons, a mechanical rename | **done** in four: `227a397` `468616b` `5cff82c` `9d2f692` |
 | 8 | `gpu/` | **done** `b644d8f`. No `gpu/framebuffer`: the only framebuffer is the HDR target, and it belongs to `passes/tone` |
 | 9 | the `astro/` leaves | **done** `45a70ae` `6c6e33e` `58f7eef` `0c6ae6a`. No `astro/calendar`: `ageAt` is one line and lives in `astro/environment`, the module that needs it |
-| 10 | `passes/points`, `supernova`, `remnant` — programs and uniform tables only | **not started**. Blocked with the rest of the points family: see step 12 |
+| 10 | `passes/points`, `supernova`, `remnant` — programs and uniform tables only | **done** `a2c8f5f`. Tables only, as the plan asks; the star-field draw itself is the one thing still in frame() |
 | 11 | `scene/` as pure builders, and the seven RNG calls made explicit | **done** `da28433` `28e0c59` `b37f5d3` `9220ba9` `68dd011`. `galaxymap` folded into `scene/galaxy`; `scene/cache` did not happen — `flushGxyCache` is still in main.ts, because it evicts what `setGalaxy` publishes into `gfx` |
-| 12 | the remaining `render/passes/*`, one per commit | **five of eleven.** `belts` `204e43e`, `tone` `e14f20d`, `sun` **and** `pn` together `1e2ecc4`, `rings` `db915dc`. Left: `nebula`, `dust`, `globe`, `bodies`, `g710`, `eatflash` |
-| 13 | `render/trails`, `render/labels`, `render/lifecycle` | **not started** |
+| 12 | the remaining `render/passes/*`, one per commit | **done.** `belts` `204e43e`, `tone` `e14f20d`, `sun`+`pn` `1e2ecc4`, `rings` `db915dc`, `globe` `a2c8f5f`, `nebula`+`dust` `52faa8e`, `bodies`+`g710`+`eatflash` `9a5e9d2`. Ten modules for the plan's eleven passes |
+| 13 | `render/trails`, `render/labels`, `render/lifecycle` | **done** `e43604c`. The life cycle got its first coverage in the same commit — see below |
 | 14 | `audio/` | **done** `173dea8` (covered before being moved) `7bf6539`. One module, not the planned `engine`/`music`/`sfx`: the drone, the tracks and the banks hang off one `AudioContext` and one master gain, and splitting them would have exported the graph |
 | 15 | `ui/` leaves — theme, tooltips, fullscreen, tour, dialogs | **one of five.** `tooltips` `e0abaaf` |
 | 16 | `ui/persist` — the settings replay, with the snapshot/apply registry | **not started, deliberately.** `00-PLAN.md` ranks it the highest-risk failure in the file; the boot suite covers it today |
@@ -208,7 +208,9 @@ core/     errorlog build mat4 rng dom format
 astro/    constants sun merger bodies environment earth g710    complete, pure
 scene/    starfield galaxy andromeda belts sky                  complete, pure
 gpu/      context program buffers
-render/   state  passes/belts passes/tone passes/sun passes/rings
+render/   state trails labels lifecycle
+render/passes/  points supernova remnant nebula dust belts rings
+                globe bodies tone sun g710 eatflash             complete
 audio/    index
 ui/       tooltips
 ```
@@ -216,40 +218,50 @@ ui/       tooltips
 `astro/` and `scene/` are finished and contain no DOM or GL reference at all — the boundary a
 WASM port would need, and the code the science projects rewrite.
 
-Tests: **173 unit, 8 boot, 23 parity.**
+Tests: **173 unit, 10 boot, 23 parity.**
 
 ## Next
 
-Roughly half the file remains, in three pieces:
+Roughly half the file remains, and it is nearly all interface.
 
-1. **The draw passes** — `frame()` is 819 lines (2256–3075). `render/passes/belts` is the
-   template: programs, uniform tables, vertex arrays and the draw together; geometry
-   uploaded by an explicit `init*()` from main.ts so the RNG sequence does not move; inputs
-   passed as an argument rather than reached for. The per-frame context is being discovered
-   from what each pass actually needs rather than designed up front.
-
-   Four modules have moved — `belts`, `tone`, `sun`, `rings` — covering five of the plan's
-   eleven passes, since the shed envelope shipped inside `passes/sun` rather than as its
-   own `pn`. What is left falls into two kinds, and the easy kind is down to one:
-
-   - **Own program, own draw:** `globe`, and it is the one to take next. It carries the
-     Moon and the era terms, it is the largest uniform table in the piece, and it already
-     calls `passes/rings` for the Moon's orbit, so the seam is drawn.
-   - **On the points program:** `nebula`, `dust`, `bodies`, `g710`, `eatflash`, and step
-     10's `points`/`supernova`/`remnant`. These all write through the one `U` uniform
-     table, set a value and set it back, and read a dozen frame-locals apiece — `and`,
-     `spin`, `warp`, `deep`, `insideDisk`, the Sun's position, the bubble. `nebula` and
-     `dust` are closures called four times each in a distance-sorted loop. They need the
-     per-frame context object to exist first, so they should go last rather than first.
-2. **The interface** — about 1,500 lines: panels, sections, settings persistence, the HUD, the
-   scenarios, the tour, the debug door, the QR overlay.
+1. **The interface** — about 1,500 lines: the panels and their layout, the sections, settings
+   persistence, the HUD, the scenarios, the tour, the debug door, the QR overlay. Steps 15–20,
+   and the only part of the migration where a mistake can be silent rather than loud.
+2. **`render/frame`** — step 21. `frame()` is down to the camera, the clock, the star-field
+   draw and a list of `draw*()` calls. What is left to invent is the per-frame context object,
+   and two of them exist already in embryo: `CloudFrame` in `passes/nebula` and the `lifeFrame`
+   literal in `frame()` itself. They were discovered from what the passes actually read, which
+   is what the plan asked for, and `render/frame` should build one object that satisfies both
+   rather than a third design.
 3. **main.ts as boot only**, then the cleanup step.
+
+The draw passes are finished. `render/passes/` holds thirteen modules and `frame()` issues
+one call each, in the order the picture requires: clouds, stars, galaxy, Andromeda, events,
+remnants, trails, belts, bodies, globe, Gliese 710, the Sun, the flares, the tone map. The
+only draw still written out inline is the star field and the Gaia catalogue, which is step 21's
+business because it is interleaved with the galaxy's own uniform setting.
 
 **Step 11 is behind us**, and the rule it left behind still binds. The seven eval-time RNG consumers are seven explicit calls from `main.ts` in source order — `buildStarfield()` → `setGalaxy(1)` → asteroid belt → Kuiper → Oort → the trail pre-fill → the orbit rings — and the asteroid belt's Kirkwood rejection loop makes its draw count data-dependent, so anything that shifts the stream above it is unrecoverable. Any later step that adds a generator or moves one has to keep its place in that list. It fails on every state at once, which at least makes it impossible to miss.
 
 The step still to be careful with:
 
 - **Step 18**, `ui/hud`. `restoreSettings()` replays saved state through synthetic `input`/`change`/`click` events, so every listener must already be registered. Get the order wrong and the page boots clean, throws nothing, logs nothing, and renders with **default** settings. `00-PLAN.md` ranks it the highest-risk failure mode in the file. Every parity screenshot boots from the settings fixture partly so this shows up as pixels; `tests/e2e/boot.spec.ts` also asserts it directly.
+
+### What the gate cannot see, and what was done about it
+
+The parity states have `tEvSN` and `tEvBirth` **off** — all twenty-three of them, because the
+events are opt-in and that is the honest default. So the entire stellar life cycle — the
+cluster, the supergiant, the blast, the expanding remnant, the fading white dwarf — was drawn
+by code no screenshot had ever exercised, and `render/lifecycle` would have moved on nothing
+but "it compiles".
+
+`tests/e2e/boot.spec.ts` now drives it: the multiplier to a million years a second, both
+switches on, and a wait for events and then for remnants to actually appear. `__gt.lifeCounts`
+exists so it has something to watch.
+
+**Assume there is more of this.** Anything a settings fixture switches off is invisible to the
+gate, and the fixture is a snapshot of one plausible visitor. Before moving a block, check
+whether any state actually runs it.
 
 ## Decisions made along the way
 
