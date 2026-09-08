@@ -26,6 +26,10 @@ import { gauss, expR } from './core/rng'
 import { $ } from './core/dom'
 import { sup, fmtCount, fmtYears as fmtYearsIn, type UnitMode } from './core/format'
 import { hideTip } from './ui/tooltips'
+import { tempColour, setStateColour } from './ui/theme'
+import { initFullscreen, registerServiceWorker } from './ui/fullscreen'
+import { initPanels, setPanelOpen, layoutPanels, PANELS, panelSnapshot, panelApply, panelIsOpen } from './ui/panels'
+import { initTour, showTour, TOURKEY } from './ui/tour'
 import {
   R_GAL, V_GAL, GAL_PERIOD, YR_PER_SIM, AGE0, AND_AGE, SCATTER_AGE, SR_A, SR_B, SR_K,
   TILT, E1, E2, AU2U, OO_REAL, REAL_MODE, PITCH, BAR_L, BAR_A, armAngle, ARMS, sA, cA,
@@ -74,6 +78,7 @@ import {
 } from './render/passes/bodies'
 import { drawG710 } from './render/passes/g710'
 import { drawEatFlash } from './render/passes/eatflash'
+import { runFirstLaunchProbe } from './render/probe'
 import { drawLabels, setLabelSteady, labelEls, armEls } from './render/labels'
 import {
   initTrails, initOrbitRings, drawTrails, pushTrail, refillTrails, uploadTrails,
@@ -856,155 +861,16 @@ toggle($('tGaia'), on=> gfx.gaiaOn=on);
 toggle($('tFps'), on=>{ showFps=on; $('fpsBox').style.display = on ? '' : 'none'; fitPanels(); });
 const lifeSupOn = true;   // the reading is a fixture of the Earth panel now
 // ---------- movable panels ----------
-// Four panels share two columns. Each carries a side and an open flag; the layout
-// stacks the open ones first, then the dots that reopen the closed ones — down the
-// screen in portrait, across it in landscape, where vertical room is the scarce thing.
-// Dragging a panel inward moves it to the other column; dragging it toward its own
-// edge closes it. Both gestures read the same pointer stream, so a mouse and a finger
-// behave identically.
-const PANELS = [
-  { id:'simPanel', dot:'simPlus' },
-  { id:'env',      dot:'envPlus' },
-  { id:'hud',      dot:'reopen'  },
-];
-// Two states, kept apart on purpose. `o` is what the visitor asked for; `auto` is what
-// the layout had to do about it. Only `o` is saved, so a panel hidden to make room for
-// a newer one comes back the moment that one closes — the automatic state is never
-// mistaken for a decision. `seq` records the order things were opened in: the newest
-// panel wins an overlap and sits on top.
-let openSeq = 0;
-const pState = {
-  env:     { s:'l', o:true,  auto:false, seq:++openSeq },
-  simPanel:{ s:'r', o:false, auto:false, seq:0 },
-  hud:     { s:'r', o:false, auto:false, seq:0 },
-};
-const panelShown = id => pState[id].o && !pState[id].auto;
-function setPanelOpen(id, open){
-  pState[id].o = open;
-  if(open){ pState[id].seq = ++openSeq;
-            const el = $(id); el.classList.remove('pop'); void el.offsetWidth;
-            el.classList.add('pop'); setTimeout(()=> el.classList.remove('pop'), 260); }
-  layoutPanels();
-  fitPanels(); saveSettings();
-}
-// One pass of the layout: put every shown panel and dot where it belongs and report
-// the rectangles, so the caller can judge whether the result actually fits.
-function placePanels(){
-  const land = innerWidth > innerHeight, pad = 14, gap = 8;
-  const boxes = [];
-  for(const p of PANELS){
-    const shown = panelShown(p.id);
-    $(p.id).style.display = shown ? '' : 'none';
-    $(p.dot).style.display = (!pState[p.id].o || pState[p.id].auto) ? 'block' : 'none';
-    $(p.id).style.zIndex = 5 + pState[p.id].seq;   // the newest opened sits on top
-  }
-  for(const side of ['l','r']){
-    const mine = PANELS.filter(p => pState[p.id].s === side);
-    let y = pad, dotX = 0;
-    const put = (el, x) => {
-      el.style.top = y + 'px';
-      if(side === 'l'){ el.style.left = x + 'px'; el.style.right = 'auto'; }
-      else { el.style.right = x + 'px'; el.style.left = 'auto'; }
-    };
-    for(const p of mine){                      // open panels first, one under the next
-      if(!panelShown(p.id)) continue;
-      const el = $(p.id);
-      if(p.id === 'hud') el.style.maxHeight = 'calc(100vh - ' + (y + pad) + 'px)';
-      put(el, pad);
-      const r = el.getBoundingClientRect();
-      boxes.push({ id:p.id, seq:pState[p.id].seq, top:y, bottom:y + r.height,
-                   left:r.left, right:r.right });
-      y += r.height + gap;
-    }
-    const dock = mine.map(p => $(p.dot));
-    if(side === 'r') dock.push($('tLabelsAll'), $('tInfo'), $('tPause'), $('zoomIn'), $('zoomOut'));   // standing actions; zoom under play
-    for(const el of dock){
-      if(getComputedStyle(el).display === 'none') continue;
-      put(el, pad + dotX);
-      const r = el.getBoundingClientRect();
-      // out of room even for the buttons: this one steps off rather than overlap
-      el.style.visibility = (y + r.height > innerHeight || pad + dotX + r.width > innerWidth)
-        ? 'hidden' : 'visible';
-      if(land) dotX += r.width + gap; else y += r.height + gap;
-    }
-    if(land && dotX) y += 36 + gap;
-    if(side === 'l'){                          // the bare frame rate rides below them
-      const f = $('fpsBox');
-      if(getComputedStyle(f).display !== 'none'){ f.style.top = y+'px'; f.style.left = pad+'px'; }
-    }
-  }
-  return boxes;
-}
-// The oldest panel that either runs off the bottom or overlaps a newer one. Rectangles
-// are compared rather than columns, so a panel dragged across still yields correctly.
-function findCrowded(boxes){
-  let worst = null;
-  const note = b => { if(!worst || b.seq < worst.seq) worst = b; };
-  for(const b of boxes) if(b.bottom > innerHeight - 4) note(b);
-  for(let i=0;i<boxes.length;i++) for(let j=i+1;j<boxes.length;j++){
-    const a = boxes[i], c = boxes[j];
-    if(a.left < c.right && c.left < a.right && a.top < c.bottom && c.top < a.bottom)
-      note(a.seq < c.seq ? a : c);
-  }
-  return worst && worst.id;
-}
-function layoutPanels(){
-  for(const p of PANELS) pState[p.id].auto = false;
-  for(let pass = 0; pass <= PANELS.length; pass++){
-    const crowded = findCrowded(placePanels());
-    if(!crowded) break;
-    pState[crowded].auto = true;      // recomputed from scratch every time, so it can return
-  }
-}
-// dragging: inward switches columns, outward closes
-for(const p of PANELS){
-  const el = $(p.id);
-  let x0 = 0, active = false, moved = 0, pid = -1;
-  el.addEventListener('pointerdown', e => {
-    // never steal a gesture that belongs to a control inside the panel
-    if(e.target.closest('input, button, select, textarea, a, .seg, .chk')) return;
-    x0 = e.clientX; active = true; moved = 0; pid = e.pointerId;
-    // Capture the pointer, or the swipe dies the moment the finger leaves the panel —
-    // and on a phone the panel is ~178 px wide, so a 60 px swipe started anywhere near
-    // its middle crosses its own edge before it ever reaches the threshold. That is why
-    // this worked under a mouse on a 216 px panel and not under a thumb.
-    try{ el.setPointerCapture(e.pointerId); }catch(err){}
-  });
-  el.addEventListener('pointermove', e => {
-    if(!active) return;
-    moved = e.clientX - x0;
-    if(Math.abs(moved) < 6) return;
-    el.classList.add('drag');
-    el.style.transform = 'translateX(' + moved + 'px)';
-  });
-  const finish = () => {
-    if(!active) return;
-    active = false;
-    try{ if(pid >= 0) el.releasePointerCapture(pid); }catch(err){}
-    pid = -1;
-    el.classList.remove('drag');
-    el.style.transform = '';
-    const side = pState[p.id].s, TH = 60;
-    const outward = side === 'l' ? -TH : TH;      // toward this panel's own edge
-    const inward  = side === 'l' ?  TH : -TH;
-    if(Math.sign(moved) === Math.sign(outward) && Math.abs(moved) >= TH) setPanelOpen(p.id, false);
-    else if(Math.sign(moved) === Math.sign(inward) && Math.abs(moved) >= TH){
-      pState[p.id].s = side === 'l' ? 'r' : 'l';
-      pState[p.id].seq = ++openSeq;   // moving a panel is asking to see it
-      layoutPanels(); fitPanels(); saveSettings();
-    }
-    moved = 0;
-  };
-  el.addEventListener('pointerup', finish);
-  el.addEventListener('pointercancel', finish);
-  // deliberately not pointerleave: with the pointer captured it cannot fire until
-  // release anyway, and without capture it was what killed the swipe at the edge
-}
-// only the dots that stand for a panel reopen one; pause and help share the dock's
-// look but carry their own actions
-document.querySelectorAll('.pdot[data-open]').forEach(b =>
-  b.addEventListener('click', () => setPanelOpen(b.dataset.open, true)));
-
+// The three panels, their two columns, the crowding pass and the drag gestures are ui/panels.
+// It is handed the two things it must not import: the resize logic's fitPanels, and
+// ui/persist's saveSettings — a panel's position is something the settings record, not
+// something the settings own.
+// Both are read through a thunk, not passed by value. `saveSettings` is a `const` declared
+// 265 lines below this call, and handing it over here reaches into its temporal dead zone —
+// which the boot suite caught as "Cannot access 'saveSettings' before initialization", the
+// whole page dead on the first frame. 00-PLAN.md's R6 wants it hoisted at step 16; until
+// then, deferring the read to call time is the smaller change.
+initPanels({ fitPanels: () => fitPanels(), saveSettings: () => saveSettings() });
 // ---------- collapsible sections ----------
 // Each heading owns a body; the arrow turns to show which way it goes. Simulation
 // starts closed: its two sliders and the scenario list are the controls a visitor is
@@ -1110,7 +976,7 @@ function saveSettingsNow(){
     const s = { t:{}, s:{}, c:{}, cal:$('cal').value, mult:simClock.speedMult, dens:gfx.curD, dprc:view.dprCap,
                 units:unitMode,
                 fsel:$('focusSel').value, sec:secOpen,
-                pan:Object.fromEntries(PANELS.map(q => [q.id, { s:pState[q.id].s, o:pState[q.id].o }])),
+                pan:panelSnapshot(),
                 bar:$('gamebar').classList.contains('slid'), qrPos,
  };
     S_TOG.forEach(id => s.t[id] = isOn($(id)));
@@ -1143,20 +1009,11 @@ function restoreSettings(register){
         if(s.dens !== gfx.curD) $('detail').dispatchEvent(new Event('input')); } }
     if(s.units === 'words' || s.units === 'sup' || s.units === 'e') setSegUnits(s.units);
     if(s.fsel === 'sun' || s.fsel === 'mw' || s.fsel === 'and') $('focusSel').value = s.fsel;
-    if(s.pan) for(const q of PANELS){
-      const v = s.pan[q.id]; if(!v) continue;
-      if(v.s === 'l' || v.s === 'r') pState[q.id].s = v.s;
-      if(typeof v.o === 'boolean'){ pState[q.id].o = v.o; if(v.o) pState[q.id].seq = ++openSeq; }
-    }
     if(s.sec) for(const k of SECS) if(typeof s.sec[k] === 'boolean') secOpen[k] = s.sec[k];
     if(s.bar) $('gamebar').classList.add('slid');
     if(s.qrPos && typeof s.qrPos.x === 'number' && typeof s.qrPos.y === 'number') qrPos = s.qrPos;
   }
-  { // the settings dialog stays shut unless a saved record says otherwise
-    if(!(s && s.pan && s.pan.hud && s.pan.hud.o === true)) pState.hud.o = false;
-    layoutPanels();
-
-  }
+  panelApply(s && s.pan);   // sides and open flags, then the layout — see ui/panels
   applySecs();
   if(register === false) return;
   // from here on, anything the user touches is remembered
@@ -1318,7 +1175,7 @@ $('jumpGo').addEventListener('click', ()=>{
   jumpToEpoch();
   // the point of GO is to watch the scenario, so the panel steps aside — unless the
   // visitor would rather keep it open and try one scenario after another
-  if($('closeOnGo').checked && pState.simPanel.o) setPanelOpen('simPanel', false);
+  if($('closeOnGo').checked && panelIsOpen('simPanel')) setPanelOpen('simPanel', false);
 });
 function humanYear(){
   // Two clocks, and each reading takes the one it actually measures. A year IS one
@@ -1380,183 +1237,17 @@ $('detail').addEventListener('input', e=>{
   $('detailv').textContent = DETAIL_NAMES[DETAIL_D.indexOf(gfx.curD)] || DETAIL_NAMES[0];
 });
 // ---------- fullscreen & screen orientation ----------
-const isFs = ()=> !!(document.fullscreenElement || document.webkitFullscreenElement);
-function reqFs(){
-  const el = document.documentElement, f = el.requestFullscreen || el.webkitRequestFullscreen;
-  return f ? Promise.resolve(f.call(el)).catch(()=>{}) : Promise.reject();
-}
-function exitFs(){ const f = document.exitFullscreen || document.webkitExitFullscreen; if(f) f.call(document); }
-const toggleFs = ()=> isFs() ? exitFs() : reqFs();
-$('tFull').addEventListener('click', toggleFs);
-document.addEventListener('fullscreenchange', ()=> $('tFull').classList.toggle('on', isFs()));
-// Turning the device to landscape asks for fullscreen. Browsers only grant it while a
-// gesture is still being handled, so this is armed on rotation and fires on the next
-// touch rather than fighting the permission model — and it never forces you back in
-// after you deliberately left fullscreen in landscape.
-let autoFsArmed = false, leftFsInLandscape = false;
-const landscape = ()=> matchMedia('(orientation: landscape)').matches;
-document.addEventListener('fullscreenchange', ()=>{ if(!isFs() && landscape()) leftFsInLandscape = true; });
-function armAutoFs(){
-  if(!landscape() || isFs() || autoFsArmed) return;
-  autoFsArmed = true;
-  const go = ()=>{
-    removeEventListener('pointerup', go); removeEventListener('touchend', go);
-    autoFsArmed = false;
-    if(landscape() && !isFs() && !leftFsInLandscape) reqFs();
-  };
-  addEventListener('pointerup', go, {once:false}); addEventListener('touchend', go, {once:false});
-}
-matchMedia('(orientation: landscape)').addEventListener('change', e=>{
-  if(e.matches){ leftFsInLandscape = false; reqFs().catch(()=>armAutoFs()); armAutoFs(); }
-});
-// Rotation cycles auto -> landscape -> portrait. Locking requires fullscreen and is
-// mobile-only; where the API refuses, the button falls back to auto rather than lying.
-const ROT = ['auto','landscape','portrait'];
-let rotIx = 0;
-$('tRotate').addEventListener('click', async ()=>{
-  rotIx = (rotIx+1) % ROT.length;
-  const mode = ROT[rotIx];
-  const setLabel = m => { $('tRotate').textContent = '⟳ '+m; $('tRotate').classList.toggle('on', m!=='auto'); };
-  setLabel(mode);
-  try{
-    if(mode==='auto'){ screen.orientation.unlock(); return; }
-    if(!isFs()) await reqFs();
-    await screen.orientation.lock(mode);
-  }catch(err){ rotIx = 0; setLabel('auto'); }
-});
-// Launched as an installed app: the manifest asks for fullscreen, and this catches
-// the platforms that don't honour it. Orientation is deliberately left unlocked, so
-// the app opens in whatever rotation the screen is already in.
-if(matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches || navigator.standalone === true){
-  const once = ()=>{ removeEventListener('pointerdown', once); removeEventListener('keydown', once); if(!isFs()) reqFs(); };
-  addEventListener('pointerdown', once); addEventListener('keydown', once);
-}
-if(location.protocol.startsWith('http') && 'serviceWorker' in navigator){
-  addEventListener('load', ()=> navigator.serviceWorker.register('sw.js').catch(()=>{}));
-}
+// All of it — the button, the rotation lock, the armed landscape request and the installed-app
+// case — is ui/fullscreen. So is registering the service worker, for the same reason: both are
+// browser capabilities asked for once at boot and never spoken to again.
+initFullscreen();
+registerServiceWorker();
 $('collapse').addEventListener('click', ()=> setPanelOpen('hud', false));
 document.querySelectorAll('.pclose[data-close]').forEach(b =>
   b.addEventListener('click', () => setPanelOpen(b.dataset.close, false)));
 // ---------- the first run ----------
-// A guided look at what is on screen, drawn with a line from each line of text to the
-// thing it names. It is shown once, and only to a visitor who has no saved settings —
-// somebody returning has already met the interface.
-const TOURKEY = 'galactic-transit.tour';
-// Each hint is a small box of its own, set beside the thing it names with a short
-// line between the two — the way a wizard points at an interface rather than
-// describing it from a distance.
-const TOUR_HINTS = [
-  { t:'env',      k:'Earth',      s:"Conditions on Earth as the Galaxy carries it, and what the view is centred on." },
-  { t:'simPanel', k:'Simulation', s:"The pace of the clock, and the scenarios worth watching." },
-  { t:'hud',      k:'Settings',   s:"Everything else: what is drawn, the sound, the readouts." },
-  { t:'tLabelsAll', k:'Labels',   s:"Every on-screen label at once — planets, galaxy arms, Andromeda and its companions." },
-  { t:'tInfo',    k:'About',      s:"This text again, with the notes on what is measured and what is modelled." },
-  { t:'zoomIn',   k:'Zoom',       s:"In or out, object to object: two presses take the view from one scale to the next." },
-  { t:'gamebar',  k:'Readouts',   s:"Drag a panel to the other side, or off its edge to close it. This bar slides away downward." },
-];
-// a closed panel is represented by its dot, which is what the visitor can actually see
-function tourTarget(id){
-  const el = $(id);
-  if(el && getComputedStyle(el).display !== 'none' && el.style.visibility !== 'hidden') return el;
-  const pan = PANELS.find(q => q.id === id);
-  const dot = pan && $(pan.dot);
-  return (dot && getComputedStyle(dot).display !== 'none') ? dot : null;
-}
-function drawTourLines(){
-  const svg = $('tourSvg'), host = $('tourHints');
-  const card = $('tourCard').getBoundingClientRect();
-  svg.innerHTML = ''; host.innerHTML = '';
-  const ns = 'http://www.w3.org/2000/svg', W = innerWidth, H = innerHeight, GAP = 18;
-  const placed = [card];
-  const clash = r => placed.some(q => r.left < q.right+8 && q.left < r.right+8 &&
-                                      r.top < q.bottom+8 && q.top < r.bottom+8);
-  for(const h of TOUR_HINTS){
-    const tgt = tourTarget(h.t);
-    if(!tgt) continue;
-    const r = tgt.getBoundingClientRect();
-    if(!r.width && !r.height) continue;
-    const box = document.createElement('div');
-    box.className = 'hint';
-    box.innerHTML = '<b>' + h.k + '</b>' + h.s;
-    host.appendChild(box);
-    const bw = box.offsetWidth, bh = box.offsetHeight;
-    // beside the target, on the side with room; below it when it spans the width
-    const wide = r.width > view.W*0.6;
-    const onLeft = r.left + r.width/2 < view.W/2;
-    // On a narrow screen a hint set beside its target leaves the two columns
-    // overlapping, and then no two hints may share a row. Pinned to the edges they
-    // clear each other, and the connector still says which is which.
-    const tight = view.W < 620;
-    let x = tight ? (onLeft ? 14 : view.W - bw - 14)
-          : wide  ? Math.min(Math.max(r.left, 14), view.W-bw-14)
-                  : (onLeft ? r.right + GAP : r.left - GAP - bw);
-    let y = wide ? (r.top > view.H/2 ? r.top - GAP - bh : r.bottom + GAP)
-                 : r.top + Math.min(r.height/2, 24) - bh/2;
-    x = Math.min(Math.max(x, 14), view.W - bw - 14);
-    y = Math.min(Math.max(y, 14), view.H - bh - 14);
-    // Look over the whole column rather than stepping downward and giving up: on a
-    // narrow screen the free room is in the bands above and below the card, which a
-    // one-directional walk never reaches. Candidates are tried nearest-first, so a
-    // hint stays beside its target when it can and travels only as far as it must.
-    let cand = { left:x, top:y, right:x+bw, bottom:y+bh };
-    if(clash(cand)){
-      // the other flank as well as the other height: with two columns of hints on a
-      // narrow screen, a free row often exists only on the side the hint did not want
-      const xAlt = tight ? (onLeft ? view.W - bw - 14 : 14)
-        : Math.min(Math.max(wide ? view.W - bw - 14
-                    : (x > r.left ? r.left - GAP - bw : r.right + GAP), 14), view.W - bw - 14);
-      const lo = 14, hi = Math.max(lo, view.H - bh - 14), slots = [];
-      for(let yy = lo; yy <= hi; yy += 8) slots.push(yy);
-      slots.sort((a,b)=> Math.abs(a-y) - Math.abs(b-y));
-      let found = null;
-      for(const xx of (xAlt === x ? [x] : [x, xAlt])){
-        for(const yy of slots){
-          const c2 = { left:xx, top:yy, right:xx+bw, bottom:yy+bh };
-          if(!clash(c2)){ found = c2; break; }
-        }
-        if(found) break;
-      }
-      if(found) cand = found;
-    }
-    box.style.left = cand.left + 'px'; box.style.top = cand.top + 'px';
-    placed.push(cand);
-    // the connector runs from the hint's near flank to the target's
-    const fromRight = cand.left > r.left;
-    const x1 = fromRight ? cand.left : cand.right, y1 = cand.top + bh/2;
-    const x2 = fromRight ? Math.min(r.right, x1) : Math.max(r.left, x1);
-    const y2 = r.top + Math.min(r.height/2, 24);
-    const mid = (x1 + x2)/2;
-    const path = document.createElementNS(ns,'path');
-    path.setAttribute('d', `M ${x1} ${y1} C ${mid} ${y1} ${mid} ${y2} ${x2} ${y2}`);
-    path.setAttribute('fill','none');
-    path.setAttribute('stroke','rgba(95,216,255,.6)');
-    path.setAttribute('stroke-width','1.2');
-    svg.appendChild(path);
-    const d = document.createElementNS(ns,'circle');
-    d.setAttribute('cx', x2); d.setAttribute('cy', y2); d.setAttribute('r','3.5');
-    d.setAttribute('fill','rgb(95,216,255)');
-    svg.appendChild(d);
-  }
-}
-let tourHeldClock = false;
-function showTour(){
-  $('tour').style.display = 'flex';
-  // on a narrow screen the panel and the hints cannot both have the corner: the panel
-  // steps aside for the tour, and the tour hands it back on the way out
-  if(innerWidth < 760 || innerHeight > innerWidth) setPanelOpen('env', false);
-  if(!simClock.paused){ tourHeldClock = true; $('tPause').click(); }   // nothing moves while you read
-  requestAnimationFrame(()=> requestAnimationFrame(drawTourLines));
-}
-$('tourGo').addEventListener('click', ()=>{
-  $('tour').style.display = 'none';
-  setPanelOpen('env', true);                                 // the readings are the default view
-  if(tourHeldClock && simClock.paused) $('tPause').click();            // and starts when you do
-  tourHeldClock = false;
-  try{ localStorage.setItem(TOURKEY, '1'); }catch(e){}
-});
-$('tourAgain').addEventListener('click', ()=>{ $('infoModal').style.display='none'; showTour(); });
-addEventListener('resize', ()=>{ if($('tour').style.display === 'flex') drawTourLines(); });
-
+// The guided look at the interface, its hint placement and its two buttons are ui/tour.
+initTour();
 $('tInfo').addEventListener('click', ()=>{ $('infoModal').style.display='flex'; });
 $('infoClose').addEventListener('click', ()=>{ $('infoModal').style.display='none'; });
 $('infoModal').addEventListener('click', e=>{ if(e.target.id==='infoModal') $('infoModal').style.display='none'; });
@@ -1565,86 +1256,7 @@ if(matchMedia('(prefers-reduced-motion: reduce)').matches){ $('tPause').click();
 // Every name on the screen is render/labels: the six element pools, the steadying, and the
 // pass that places them. The switches stay here, because they are the interface's.
 let armsOn = true;
-// ---------- the interface colour follows the hazard ----------
-// Blended rather than stepped, because the hazard itself varies continuously with where
-// the Sun sits: cosmic rays climb as it enters a spiral arm and fall again on the way
-// out, so the panels warm and cool with the crossing instead of flipping at a threshold.
-// Temperature as colour, on the scale the user set: −20 is ice, +50 is extreme heat,
-// +60 and beyond is the violet of a world past saving. The stops in between are chosen
-// so that Earth's own comfortable range reads green rather than alarming.
-const T_STOPS = [
-  [-60, [120,170,255]], [-20, [ 74,168,255]], [  0, [102,216,232]],
-  [ 15, [ 95,211,154]], [ 30, [255,209,102]], [ 50, [255, 90, 74]],
-  [ 60, [196,107,255]], [ 90, [214,140,255]],
-];
-function tempColour(c){
-  const s = T_STOPS;
-  if(c <= s[0][0]) return 'rgb('+s[0][1].join(',')+')';
-  for(let i=1;i<s.length;i++){
-    if(c <= s[i][0]){
-      const u = (c - s[i-1][0])/(s[i][0] - s[i-1][0]);
-      const a = s[i-1][1], b = s[i][1];
-      return 'rgb('+a.map((v,k)=> Math.round(v + (b[k]-v)*u)).join(',')+')';
-    }
-  }
-  return 'rgb('+s[s.length-1][1].join(',')+')';
-}
-const C_SAFE = [95,216,255], C_WARN = [255,207,92], C_DEAD = [255,110,110], C_ICE = [176,232,255];
-const C_LIFE = [74,214,126];   // habitable reads green, not the interface's cyan
-const mix3 = (a,b,u)=> [a[0]+(b[0]-a[0])*u, a[1]+(b[1]-a[1])*u, a[2]+(b[2]-a[2])*u];
-const INK_WARM = [220,232,245], DIM_WARM = [132,146,172];   // the unfrozen text colours
-const rgbStr = c => 'rgb('+c.map(v=>Math.round(v)).join(',')+')';
-let lastRGB = '', lastA = -1, lastIce = -1, lastWhite = -1, iceShown = 0, iceLast = performance.now();
-function setStateColour(h, meanC){
-  h = Math.min(1, Math.max(0, h));
-  let rgb = h < 0.5 ? mix3(C_SAFE, C_WARN, h/0.5) : mix3(C_WARN, C_DEAD, (h-0.5)/0.5);
-  // how cold the climate model runs, eased in over the couple of degrees around the
-  // glacial threshold so the frost arrives gradually too
-  const coldNow = Math.min(1, Math.max(0, (11.9 - meanC)/2.4));
-  { // ease toward it over about a second, independent of frame rate
-    const now = performance.now(), dt = Math.min(0.1, (now - iceLast)/1000); iceLast = now;
-    iceShown += (coldNow - iceShown) * Math.min(1, dt*1.6);
-  }
-  const cold = iceShown;
-  if(cold > 0) rgb = mix3(rgb, C_ICE, cold*(1-h)*0.85);
-  const amt = Math.min(1, Math.max(h, cold*0.75));
-  const life = h < 0.5 ? mix3(C_LIFE, C_WARN, h/0.5) : mix3(C_WARN, C_DEAD, (h-0.5)/0.5);
-  // A frozen interface reads white. Anything already carrying a warning is left as it
-  // is: the whitening fades out as the hazard rises into amber, and is gone by the time
-  // it is red. The life-support word keeps its own ramp throughout — it is the one
-  // reading whose colour is the message.
-  // cold rarely reaches its ceiling, so the curve is steepened: a real glacial should
-  // read white, not merely pale
-  // The gate has to start where the colour actually turns amber, not at zero hazard: a
-  // glacial epoch is caused by high cosmic rays, so it always carries some hazard of its
-  // own, and ramping from zero meant a deep freeze suppressed its own whitening.
-  const gate = 1 - Math.min(1, Math.max(0, (h - 0.30)/0.04));
-  const whiten = Math.min(1, cold*1.6) * gate;
-  rgb = mix3(rgb, [255,255,255], whiten);
-  const s = rgb.map(v=>Math.round(v)).join(',');
-  const a = Math.round(amt*100)/100;
-  const ia = Math.round(cold*100)/100;
-  if(ia !== lastIce){
-    lastIce = ia;
-    document.documentElement.style.setProperty('--iceA', String(ia));
-  }
-  const wr = Math.round(whiten*100)/100;
-  if(wr !== lastWhite){
-    lastWhite = wr;
-    const st2 = document.documentElement.style;
-    st2.setProperty('--ink', rgbStr(mix3(INK_WARM, [255,255,255], wr)));
-    st2.setProperty('--dim', rgbStr(mix3(DIM_WARM, [228,242,255], wr)));
-  }
-  if(s === lastRGB && a === lastA) return;   // only touch styles when it actually moves
-  lastRGB = s; lastA = a;
-  // On the root element, not the body: --accent and --glow are declared on :root and
-  // resolve their var() there, so an override further down never reaches them.
-  const st = document.documentElement.style;
-  st.setProperty('--stateRGB', s);
-  st.setProperty('--stateA', String(a));
-  st.setProperty('--lifeRGB', life.map(v=>Math.round(v)).join(','));
-}
-
+// The hazard colour — what the panels, the readouts and the frost are tinted by — is ui/theme.
 // ---------- resize ----------
    // dprCap: the first-launch probe lowers it on a slow device
 // The settings panel gets the room it needs. On a small screen it reaches across the
@@ -1764,52 +1376,11 @@ const sunSizeTmp=new Float32Array(1), eatSizeTmp=new Float32Array(1);
 
 
 // ---------- the first-launch performance probe ----------
-// A first visit has no saved quality. Two frames in — the programs compiled, the first
-// scenario's camera set — the galaxy's own star pass is drawn into a hidden framebuffer
-// of the canvas's size, over and over for about thirty milliseconds, and gl.finish()
-// plus a one-pixel read make the GPU account for all of it. The time one pass takes,
-// on the lowest tier's ~95,000 points, sets the quality row (lowest, low or medium —
-// never more: medium is already two million points and the heavier tiers are a
-// choice, not a default) and caps the pixel ratio at 1 when even that pass is slow.
+// render/probe measures the machine and picks the quality row. It is handed the two things
+// only main.ts can do: resize the canvas when the pixel cap drops, and write the settings at
+// once rather than through the debounce.
 let probeFrames = 0;
-function perfProbe(){
-  const fb = gl.createFramebuffer(), tex = gl.createTexture(), pw = canvas.width, ph = canvas.height;
-  gl.bindTexture(gl.TEXTURE_2D, tex);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, pw, ph, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
-  const px = new Uint8Array(4), sync = ()=>{ gl.finish(); gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); };
-  let ms = -1, passes = 0;
-  try{
-    if(gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) throw new Error('fbo');
-    gl.viewport(0, 0, pw, ph); gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE);
-    gl.useProgram(pPt); gl.bindVertexArray(gfx.vaoGxy);        // the uniforms as the last frame left them
-    gl.drawArrays(gl.POINTS, 0, gfx.N_GXY); sync();             // warm-up: not timed
-    const t0 = performance.now();
-    do{ gl.drawArrays(gl.POINTS, 0, gfx.N_GXY); passes++; sync(); }
-    while(performance.now() - t0 < 30 && passes < 40);
-    ms = (performance.now() - t0)/passes;
-  }catch(e){ ms = -1; }
-  gl.bindVertexArray(null); gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  gl.deleteFramebuffer(fb); gl.deleteTexture(tex);
-  gl.viewport(0, 0, canvas.width, canvas.height);
-  return { ms, passes, points: gfx.N_GXY, px: pw + '×' + ph };
-}
-// one pass at density D costs about ms·D/2 (denser tiers draw smaller points); with the
-// rest of the frame the budget is eleven milliseconds, which keeps sixty frames a second
-const pickDetail = ms => ms < 0 ? 1 : ms*20*0.5 + 3 <= 11 ? 2 : ms*5*0.5 + 3 <= 11 ? 1 : 0;
-function runFirstLaunchProbe(){
-  const r = perfProbe();
-  r.msLow = r.ms < 0 ? -1 : r.ms * 95000 / Math.max(1, r.points);   // per pass of the lowest tier's points, whatever tier was drawn
-  const d = pickDetail(r.msLow);
-  if(r.msLow > 8){ view.dprCap = 1; resize(); }                  // a slow fill: fewer pixels first
-  r.detail = DETAIL_NAMES[d]; r.dpr = view.DPR; readout.probeInfo = r;
-  $('detail').value = d; $('detail').dispatchEvent(new Event('input'));
-  saveSettingsNow();                                         // at once: a tab closed inside the debounce would probe again
-  try{ $('buildStamp').textContent += ' · probe ' + (r.ms < 0 ? 'failed' : r.msLow.toFixed(1) + ' ms/pass') + ' → ' + r.detail + (view.dprCap < 2 ? ', 1× pixels' : ''); }catch(e){}
-}
+const runProbe = () => runFirstLaunchProbe({ detailNames: DETAIL_NAMES, resize, saveSettingsNow });
 
 function frame(now){
   const dt = Math.min(0.05,(now-simClock.last)/1000); simClock.last=now;
@@ -2284,7 +1855,7 @@ function frame(now){
   }
   }
 
-  if(probeFrames >= 0 && ++probeFrames === 3){ probeFrames = -1; if(!hadSaved) runFirstLaunchProbe(); }
+  if(probeFrames >= 0 && ++probeFrames === 3){ probeFrames = -1; if(!hadSaved) runProbe(); }
   requestAnimationFrame(frame);
 }
 // Whether this visitor has been here before decides how much the opening scenario may
