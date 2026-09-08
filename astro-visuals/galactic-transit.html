@@ -440,8 +440,8 @@ function registerServiceWorker()       {
   }
 }
 
-let fitPanels$1             = () => {};
-let saveSettings$1             = () => {};
+let fitPanels$3             = () => {};
+let saveSettings$3             = () => {};
 
 // Four panels share two columns. Each carries a side and an open flag; the layout
 // stacks the open ones first, then the dots that reopen the closed ones — down the
@@ -472,7 +472,7 @@ function setPanelOpen(id         , open         )       {
             const el = $(id); el.classList.remove('pop'); void el.offsetWidth;
             el.classList.add('pop'); setTimeout(()=> el.classList.remove('pop'), 260); }
   layoutPanels();
-  fitPanels$1(); saveSettings$1();
+  fitPanels$3(); saveSettings$3();
 }
 // One pass of the layout: put every shown panel and dot where it belongs and report
 // the rectangles, so the caller can judge whether the result actually fits.
@@ -552,7 +552,7 @@ function layoutPanels()       {
  * cannot import. Called from main.ts at the point the listeners used to be registered.
  */
 function initPanels(deps                                                     )       {
-  fitPanels$1 = deps.fitPanels; saveSettings$1 = deps.saveSettings;
+  fitPanels$3 = deps.fitPanels; saveSettings$3 = deps.saveSettings;
   // dragging: inward switches columns, outward closes
   for(const p of PANELS){
     const el = $(p.id);
@@ -588,7 +588,7 @@ function initPanels(deps                                                     )  
       else if(Math.sign(moved) === Math.sign(inward) && Math.abs(moved) >= TH){
         pState[p.id].s = side === 'l' ? 'r' : 'l';
         pState[p.id].seq = ++openSeq;   // moving a panel is asking to see it
-        layoutPanels(); fitPanels$1(); saveSettings$1();
+        layoutPanels(); fitPanels$3(); saveSettings$3();
       }
       moved = 0;
     };
@@ -1003,6 +1003,470 @@ function initTour()       {
 }
 
 /**
+ * The settings panel's collapsible sections, and the segmented buttons inside them.
+ *
+ * Each heading owns a body; the arrow turns to show which way it goes. Simulation starts
+ * closed: its two sliders and the scenario list are the controls a visitor is least likely to
+ * want on arrival, and the piece opens on a staged scenario anyway. One section at a time by
+ * default, so the panel stays a screenful — Graphics is the one that earns the opening slot,
+ * holding the controls a visitor reaches for most.
+ *
+ * `fitPanels` and `saveSettings` are injected for the same reason as in ui/panels: one belongs
+ * to the resize logic and the other to ui/persist, which must not depend on either of us.
+ */
+
+const SECS = ['audio','gfx','hud','other','debug']         ;
+                                
+const SEC_BODY                      = { audio:'secAudio', gfx:'secGfx', hud:'secHud', other:'secOther', debug:'secDebug' };
+const secOpen                       = { audio:false, gfx:true, hud:false, other:false, debug:false };
+
+let fitPanels$2             = () => {};
+let saveSettings$2             = () => {};
+
+function applySecs()       {
+  for(const k of SECS){
+    $(SEC_BODY[k]).classList.toggle('closed', !secOpen[k]);
+    document.querySelector('.sect[data-sec="'+k+'"]') .classList.toggle('closed', !secOpen[k]);
+  }
+  fitPanels$2();
+}
+
+/**
+ * One control, several faces: a segmented button where exactly one segment is lit.
+ *
+ * Only the lit segment is set at build time — the state variables carry the same defaults,
+ * and calling `fn` this early would touch bindings not yet initialised. That is a real trap
+ * and not a micro-optimisation: several of these are built before the values they set exist.
+ */
+function seg(id        , initial        , fn                     )                                       {
+  const bs = [...$(id).children]                 ;
+  const set = (v        , apply          )       => {
+    bs.forEach(b => b.classList.toggle('on', b.dataset.v === v));
+    if(apply !== false) fn(v);
+  };
+  bs.forEach(b => b.addEventListener('click', ()=>{ set(b.dataset.v ); saveSettings$2(); }));
+  set(initial, false);
+  return set;
+}
+
+function initSections(deps                                                     )       {
+  fitPanels$2 = deps.fitPanels; saveSettings$2 = deps.saveSettings;
+  document.querySelectorAll('.sect[data-sec]').forEach(h =>
+    h.addEventListener('click', ()=>{
+      const k = (h               ).dataset.sec       , opening = !secOpen[k];
+      if(opening && ($('secSolo')                    ).checked) for(const s of SECS) secOpen[s] = false;
+      secOpen[k] = opening;
+      applySecs(); saveSettings$2();
+    }));
+  $('secSolo').addEventListener('change', ()=>{
+    if(($('secSolo')                    ).checked){   // keep the topmost open one, fold the rest away
+      let kept = false;
+      for(const s of SECS){ if(secOpen[s] && !kept) kept = true; else secOpen[s] = false; }
+    }
+    applySecs(); saveSettings$2();
+  });
+}
+
+const sectionSnapshot = ()                          => ({ ...secOpen });
+function sectionApply(saved                                     )       {
+  if(!saved) return;
+  for(const k of SECS) if(typeof saved[k] === 'boolean') secOpen[k] = saved[k]           ;
+}
+
+/**
+ * Fold a section away. Only the debug door uses this: closing the door folds its section
+ * with it, and it reopens like any other section afterwards.
+ */
+function closeSection(k         )       { secOpen[k] = false; }
+
+/**
+ * Remembering the settings.
+ *
+ * Saved state is replayed through the existing handlers rather than assigned directly, so
+ * restoring a setting does exactly what clicking it would. Anything momentary — the pause, the
+ * dive, the epoch jump, the current track position — is deliberately left out.
+ *
+ * **This is the highest-risk code in the migration** (`00-PLAN.md` R1). The replay dispatches
+ * synthetic `input`/`change`/`click` events, so every listener a saved id depends on must
+ * already be registered when `restoreSettings()` runs. Get that order wrong and the page boots
+ * clean, throws nothing, logs nothing, and renders with DEFAULT settings — which looks exactly
+ * like a working page. `restoreSettings` is therefore exported and NOT called at import time:
+ * main.ts calls it at the very end of the script, once every binding exists.
+ *
+ * This module owns the three id lists and the mechanics. It owns nothing else. Everything a
+ * particular part of the interface wants remembered arrives through `registerSnapshot` and
+ * `registerApply`, so persist never has to import the module whose state it is saving — which
+ * is the rule that keeps ui/persist from depending on ui/panels, ui/hud and the rest.
+ */
+
+const SKEY = 'galactic-transit.settings.v1';
+
+const S_TOG = ['tLabels','tArms','tLabelSteady','tZoomBtns','tSpinLock','tDwarfs','tP9','tBelt','tKuiper','tOort','tDust',
+               'tEvSN','tEvBirth','tVar',
+               'tStatAge','tStatGyr','tStatSn','tStatBirth','tGaia','tFps'];
+const S_SLD = ['speed','trailA','orbitA','trailL','musicVol','sfxVol','minB','hudHz','coreB','qrScale'];
+const S_CHK = ['fxBirth','fxSn','fxPn','fxDrone','secSolo','closeOnGo','qrOn'];
+
+const isOn$1 = (el             )          =>
+  (el                    ).type === 'checkbox' ? (el                    ).checked : el.classList.contains('on');
+
+/** Whatever was written last time, or null. Deliberately untyped: it is data from a browser. */
+                                              
+
+const snapshots                                    = [];
+const applies                         = [];
+
+/** Contribute fields to the saved record. Called on every save, merged in registration order. */
+function registerSnapshot(fn                               )       { snapshots.push(fn); }
+
+/**
+ * Contribute to the replay. Called with the saved record — or null when there is none, which
+ * is why the callback takes it rather than being skipped: some state has to be put right on a
+ * first visit too. **Registration order is replay order**, and replay order matters.
+ */
+function registerApply(fn                    )       { applies.push(fn); }
+
+function saveSettingsNow()       {
+  try{
+    const s                      = { t:{}, s:{}, c:{} };
+    for(const fn of snapshots) Object.assign(s, fn());
+    S_TOG.forEach(id => s.t[id] = isOn$1($(id)));
+    S_SLD.forEach(id => s.s[id] = ($(id)                    ).value); s.sv = 2;   // sv 2: the speed slider is a rung index
+    S_CHK.forEach(id => s.c[id] = ($(id)                    ).checked);
+    localStorage.setItem(SKEY, JSON.stringify(s));
+  }catch(e){}   // private browsing, or storage disabled: just don't remember
+}
+
+let saveTimer = 0;
+/**
+ * A hoisted `function`, not a `const` arrow. Two modules are handed this at boot from a point
+ * above its own declaration, and a `const` there is a temporal dead zone — which has already
+ * killed the page once. `00-PLAN.md` R6 asked for exactly this.
+ */
+function saveSettings$1()       {
+  clearTimeout(saveTimer); saveTimer = setTimeout(saveSettingsNow, 250)                     ;
+}
+
+/**
+ * Replay, then start remembering.
+ *
+ * @param register pass `false` to replay without registering the save listeners — the opening
+ * scenario stages itself that way, so that staging is not mistaken for a decision.
+ * @param legacySpeed converts the pre-v2 continuous speed slider to a rung index. It lives
+ * with the speed ladder, not here.
+ */
+function restoreSettings$2(register                     , legacySpeed                       )       {
+  let s        = null;
+  try{ s = JSON.parse(localStorage.getItem(SKEY) || 'null'); }catch(e){}
+  if(s){
+    if(s.s && !(s.sv >= 2) && s.s.speed != null) s.s.speed = String(legacySpeed(+s.s.speed));   // the old continuous slider
+    if(s.s) S_SLD.forEach(id=>{ const v=s .s[id];
+      if(v != null && ($(id)                    ).value !== v){ ($(id)                    ).value = v; $(id).dispatchEvent(new Event('input')); } });
+    if(s.c) S_CHK.forEach(id=>{ const v=s .c[id];
+      if(v != null && ($(id)                    ).checked !== v){ ($(id)                    ).checked = v; $(id).dispatchEvent(new Event('change')); } });
+    if(s.t) S_TOG.forEach(id=>{ const v=s .t[id];
+      if(v != null && isOn$1($(id)) !== v) $(id).click(); });   // a checkbox click fires change
+  }
+  for(const fn of applies) fn(s);
+  if(register === false) return;
+  // from here on, anything the user touches is remembered
+  S_TOG.forEach(id => $(id).addEventListener('click', saveSettings$1));
+  S_SLD.forEach(id => $(id).addEventListener('input', saveSettings$1));
+  S_CHK.forEach(id => $(id).addEventListener('change', saveSettings$1));
+  $('cal').addEventListener('change', saveSettings$1);
+  $('collapse').addEventListener('click', saveSettings$1);
+  $('reopen').addEventListener('click', saveSettings$1);
+  $('multExp').addEventListener('input', saveSettings$1);
+  $('detail').addEventListener('input', saveSettings$1);
+  $('focusSel').addEventListener('change', saveSettings$1);
+}
+
+/**
+ * The QR overlay: the page's whole state as a code on screen, so a phone can be photographed
+ * by a laptop and the scene reproduced exactly. It is the debug door's most useful tool and
+ * the reason the encoder is here at all.
+ *
+ * `qrEncode` is a complete QR encoder — byte mode, EC level L, versions 1–40, standard masking
+ * by penalty — and it is self-contained, with no tables beyond the version capacity / EC block
+ * list, which is the spec's Table 9 for level L. It is pure, and the only thing in the ui/
+ * tree that could be unit-tested without a DOM.
+ *
+ * What it encodes is injected. This module must not import ui/debug, because ui/debug drives
+ * this one: it calls qrRedraw whenever the door opens or closes.
+ */
+
+let exportState$1                                = () => ({});
+let isDebug                = () => false;
+let saveSettings             = () => {};
+
+// Where the overlay sits, as fractions of the free space rather than pixels: (1,1) is the
+// bottom right corner at any screen size or module scale, so a place chosen by hand survives
+// a rotation, a change of scale and a reload.
+let qrPos = { x: 1, y: 1 }, qrHeld = false;
+const qrSnapshot = ()                           => qrPos;
+function qrApply(p                                          )       {
+  if(p && typeof p.x === 'number' && typeof p.y === 'number') qrPos = { x: p.x, y: p.y };
+}
+
+// QR encoder: byte mode, EC level L, versions 1–40, standard masking by penalty. Returns
+// {n, m} with m a Uint8Array of n*n modules (1 = dark). Self-contained; no tables beyond
+// the version capacity/EC block list, which is the spec's Table 9 for level L.
+function qrEncode(text        , forceMask         )                                                              {
+  const bytes = new TextEncoder().encode(text);
+  // [total codewords, ec codewords per block, blocks group1, data cw group1, blocks group2, data cw group2] for level L
+  // Index 0 is a hole: QR versions are 1-based, and keeping the table that way means every
+  // lookup reads as the spec does. `v` is clamped to 1..40 above, so T[v] is never the hole.
+  const T                      = [null,
+    [26,7,1,19,0,0],[44,10,1,34,0,0],[70,15,1,55,0,0],[100,20,1,80,0,0],[134,26,1,108,0,0],[172,18,2,68,0,0],[196,20,2,78,0,0],[242,24,2,97,0,0],[292,30,2,116,0,0],[346,18,2,68,2,69],
+    [404,20,4,81,0,0],[466,24,2,92,2,93],[532,26,4,107,0,0],[581,30,3,115,1,116],[655,22,5,87,1,88],[733,24,5,98,1,99],[815,28,1,107,5,108],[901,30,5,120,1,121],[991,28,3,113,4,114],[1085,28,3,107,5,108],
+    [1156,28,4,116,4,117],[1258,28,2,111,7,112],[1364,30,4,121,5,122],[1474,30,6,117,4,118],[1588,26,8,106,4,107],[1706,28,10,114,2,115],[1828,30,8,122,4,123],[1921,30,3,117,10,118],[2051,30,7,116,7,117],[2185,30,5,115,10,116],
+    [2323,30,13,115,3,116],[2465,30,17,115,0,0],[2611,30,17,115,1,116],[2761,30,13,115,6,116],[2876,30,12,121,7,122],[3034,30,6,121,14,122],[3196,30,17,122,4,123],[3362,30,4,122,18,123],[3532,30,20,117,4,118],[3706,30,19,118,6,119]];
+  const ALIGN                      = [null,[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],
+    [6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110],[6,30,58,86,114],[6,34,62,90,118],[6,26,50,74,98,122],[6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],[6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],[6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170]];
+  // version: the first whose data capacity holds mode(4) + count(8|16) + bytes
+  let v = 1;
+  for(; v <= 40; v++){ const t = T[v] , dataCW = t[2]*t[3] + t[4]*t[5]; const cnt = v <= 9 ? 8 : 16;
+    if(4 + cnt + bytes.length*8 <= dataCW*8) break; }
+  if(v > 40) throw new Error('too long for a QR code');
+  const t = T[v] , dataCW = t[2]*t[3] + t[4]*t[5], cnt = v <= 9 ? 8 : 16;
+  // data bit stream
+  const bits           = []; const put = (val        , n        )       => { for(let i=n-1;i>=0;i--) bits.push((val>>i)&1); };
+  put(4,4); put(bytes.length, cnt); for(const b of bytes) put(b,8);
+  const cap = dataCW*8; for(let i=0;i<4 && bits.length<cap;i++) bits.push(0);
+  while(bits.length%8) bits.push(0);
+  const data = []; for(let i=0;i<bits.length;i+=8){ let x=0; for(let j=0;j<8;j++) x=(x<<1)|bits[i+j]; data.push(x); }
+  for(let k=0; data.length<dataCW; k++) data.push(k%2 ? 0x11 : 0xEC);
+  // GF(256) Reed–Solomon
+  const EXP = new Uint8Array(512), LOG = new Uint8Array(256);
+  for(let i=0,x=1;i<255;i++){ EXP[i]=x; LOG[x]=i; x<<=1; if(x&256) x^=0x11d; }
+  for(let i=255;i<512;i++) EXP[i]=EXP[i-255];
+  const mul = (a        , b        )         => (a&&b) ? EXP[LOG[a]+LOG[b]] : 0;
+  const ecN = t[1]; let gen = [1];
+  for(let i=0;i<ecN;i++){ const ng = new Array(gen.length+1).fill(0);
+    for(let j=0;j<gen.length;j++){ ng[j] ^= gen[j]; ng[j+1] ^= mul(gen[j], EXP[i]); } gen = ng; }
+  const ecOf = (blk          )           => { const r = blk.slice().concat(new Array(ecN).fill(0));
+    for(let i=0;i<blk.length;i++){ const c = r[i]; if(!c) continue; for(let j=1;j<gen.length;j++) r[i+j] ^= mul(gen[j], c); }
+    return r.slice(blk.length); };
+  const blocks = [], ecs = []; let p = 0;
+  for(let g=0; g<2; g++){ const nb = t[2+2*g], len = t[3+2*g]; for(let b=0;b<nb;b++){ const blk = data.slice(p, p+len); p += len; blocks.push(blk); ecs.push(ecOf(blk)); } }
+  const out           = []; const maxLen = Math.max(...blocks.map((b          )=>b.length));
+  for(let i=0;i<maxLen;i++) for(const b of blocks) if(i<b.length) out.push(b[i]);
+  for(let i=0;i<ecN;i++) for(const e of ecs) out.push(e[i]);
+  // the matrix
+  const n = 17 + 4*v, m = new Uint8Array(n*n), fixed = new Uint8Array(n*n);
+  const set = (x        , y        , val        )       => { m[y*n+x] = val; fixed[y*n+x] = 1; };
+  const finder = (x0        , y0        )       => { for(let dy=-1;dy<=7;dy++) for(let dx=-1;dx<=7;dx++){ const x=x0+dx, y=y0+dy; if(x<0||y<0||x>=n||y>=n) continue;
+    const on = (dx>=0&&dx<=6&&dy>=0&&dy<=6) && (dx===0||dx===6||dy===0||dy===6||(dx>=2&&dx<=4&&dy>=2&&dy<=4)); set(x,y,on?1:0); } };
+  finder(0,0); finder(n-7,0); finder(0,n-7);
+  for(let i=8;i<n-8;i++){ set(i,6,i%2===0?1:0); set(6,i,i%2===0?1:0); }
+  const al = ALIGN[v] ;
+  // omitted only where one would overlap a finder — the ones on the timing lines are drawn
+  for(const cy of al) for(const cx of al){ if((cx<9&&cy<9)||(cx>n-10&&cy<9)||(cx<9&&cy>n-10)) continue;
+    for(let dy=-2;dy<=2;dy++) for(let dx=-2;dx<=2;dx++) set(cx+dx, cy+dy, (Math.max(Math.abs(dx),Math.abs(dy))!==1)?1:0); }
+  set(8, n-8, 1);   // the dark module
+  // reserve format (and version) areas
+  for(let i=0;i<9;i++){ if(i!==6){ fixed[8*n+i]=1; fixed[i*n+8]=1; } }
+  for(let i=0;i<8;i++){ fixed[8*n+(n-1-i)]=1; fixed[(n-1-i)*n+8]=1; }
+  if(v>=7){ for(let i=0;i<6;i++) for(let j=0;j<3;j++){ fixed[i*n+(n-11+j)]=1; fixed[(n-11+j)*n+i]=1; } }
+  let bi = 0; const total = out.length*8; const bitAt = (k        )         => (out[k>>3] >> (7-(k&7))) & 1;
+  // codewords into the matrix: column pairs from the right, direction alternating, starting upward
+  { let up = true;
+    for(let x=n-1; x>0; x-=2){ if(x===6) x--;
+      for(let k=0;k<n;k++){ const y = up ? n-1-k : k;
+        for(let dx=0; dx<2; dx++){ const xx = x-dx; if(fixed[y*n+xx]) continue;
+          m[y*n+xx] = bi < total ? bitAt(bi) : 0; bi++; } }
+      up = !up; } }
+  // masks
+  const MASK                                        = [ (x,y)=>(x+y)%2===0, (x,y)=>y%2===0, (x,y)=>x%3===0, (x,y)=>(x+y)%3===0,
+    (x,y)=>((y>>1)+Math.floor(x/3))%2===0, (x,y)=>(x*y)%2+(x*y)%3===0, (x,y)=>((x*y)%2+(x*y)%3)%2===0, (x,y)=>((x+y)%2+(x*y)%3)%2===0 ];
+  const applyMask = (mk        , src            )             => { const r = new Uint8Array(src); for(let y=0;y<n;y++) for(let x=0;x<n;x++) if(!fixed[y*n+x] && MASK[mk](x,y)) r[y*n+x]^=1; return r; };
+  const formatBits = (mk        )         => { const d = (1<<3)|mk;   // level L = 01 -> value 1 in the two EC bits... (L=01)
+    let f = d<<10; const G = 0x537; for(let i=14;i>=10;i--) if((f>>i)&1) f ^= G<<(i-10); return ((d<<10)|f) ^ 0x5412; };
+  const writeFormat = (mat            , mk        )       => { const f = formatBits(mk); const b = (i        )         => (f>>i)&1;
+    const pos1 = [[0,8],[1,8],[2,8],[3,8],[4,8],[5,8],[7,8],[8,8],[8,7],[8,5],[8,4],[8,3],[8,2],[8,1],[8,0]];   // (x,y) for bits 14..0
+    for(let i=0;i<15;i++){ const [x,y] = pos1[i]; mat[y*n+x] = b(14-i); }
+    for(let i=0;i<8;i++) mat[8*n+(n-1-i)] = b(i);                 // bits 0..7 along the top-right row? spec: right of row 8
+    for(let i=0;i<7;i++) mat[(n-1-i)*n+8] = b(14-i);              // bits 14..8 down the bottom-left column
+  };
+  const writeVersion = (mat            )       => { if(v<7) return; let f = v<<12; const G = 0x1f25; for(let i=17;i>=12;i--) if((f>>i)&1) f ^= G<<(i-12); const val = (v<<12)|f;
+    for(let i=0;i<18;i++){ const bit = (val>>i)&1; const a = Math.floor(i/3), b = i%3; mat[(n-11+b)*n + a] = bit; mat[a*n + (n-11+b)] = bit; } };
+  const penalty = (mat            )         => { let s=0;
+    for(let y=0;y<n;y++){ let run=1; for(let x=1;x<n;x++){ if(mat[y*n+x]===mat[y*n+x-1]){ run++; if(run===5) s+=3; else if(run>5) s++; } else run=1; } }
+    for(let x=0;x<n;x++){ let run=1; for(let y=1;y<n;y++){ if(mat[y*n+x]===mat[(y-1)*n+x]){ run++; if(run===5) s+=3; else if(run>5) s++; } else run=1; } }
+    for(let y=0;y<n-1;y++) for(let x=0;x<n-1;x++){ const a=mat[y*n+x]; if(a===mat[y*n+x+1]&&a===mat[(y+1)*n+x]&&a===mat[(y+1)*n+x+1]) s+=3; }
+    const P = [1,0,1,1,1,0,1,0,0,0,0], Q = [0,0,0,0,1,0,1,1,1,0,1];
+    const chk = (get                       )       => { for(let i=0;i<=n-11;i++){ let okP=true, okQ=true; for(let k=0;k<11;k++){ const val=get(i+k); if(val!==P[k]) okP=false; if(val!==Q[k]) okQ=false; } if(okP) s+=40; if(okQ) s+=40; } };
+    for(let y=0;y<n;y++) chk((i        )=>mat[y*n+i]); for(let x=0;x<n;x++) chk((i        )=>mat[i*n+x]);
+    let dark=0; for(let i=0;i<n*n;i++) dark+=mat[i]; const pct = dark*100/(n*n); s += Math.floor(Math.abs(pct-50)/5)*10; return s; };
+  let best             = m, bestS=Infinity, bestMk=0;
+  const tryMasks = [0,1,2,3,4,5,6,7] ;
+  for(const mk of tryMasks){ const mat = applyMask(mk, m); writeFormat(mat, mk); writeVersion(mat); const sc = penalty(mat); if(sc<bestS){ bestS=sc; best=mat; bestMk=mk; } }
+  return { n, m: best, version: v, mask: bestMk };
+}
+
+// The overlay: the exported state (settings, clock, camera — the timestamp left out, so
+// the code holds still while nothing changes) as a QR code, redrawn once a second when
+// it differs, at 1, 2 or 4 device pixels a module with a four-module quiet zone. Debug
+
+// only; nothing below reaches it when debug mode is off.
+const QR_SCALES = [1, 2, 4]; let qrLast = '';
+function qrPlace()       {
+  const cv = $('qrOverlay')                     , w = cv.offsetWidth, h = cv.offsetHeight;
+  const gap = 8, fx = Math.max(0, innerWidth - w - gap), fy = Math.max(0, innerHeight - h - gap);
+  cv.style.left = (gap/2 + fx*Math.min(1, Math.max(0, qrPos.x))) + 'px';
+  cv.style.top  = (gap/2 + fy*Math.min(1, Math.max(0, qrPos.y))) + 'px';
+}
+function qrRedraw(force          )       {
+  const cv = $('qrOverlay')                     ;
+  if(!isDebug() || !($('qrOn')                    ).checked){ cv.style.display = 'none'; qrLast = ''; return; }
+  const st = exportState$1(); delete st.exported;
+  const payload = JSON.stringify(st);
+  if(!force && payload === qrLast) return;
+  qrLast = payload;
+  let q; try{ q = qrEncode(payload); }catch(e){ cv.style.display = 'none'; return; }
+  const sc = QR_SCALES[+($('qrScale')                    ).value] || 2, quiet = 4, size = (q.n + 2*quiet)*sc;
+  cv.width = size; cv.height = size;
+  cv.style.width = (size/view.DPR) + 'px'; cv.style.height = (size/view.DPR) + 'px';   // sc DEVICE pixels a module
+  const g = (cv                     ).getContext('2d') ;
+  g.fillStyle = '#fff'; g.fillRect(0, 0, size, size); g.fillStyle = '#000';
+  for(let y=0;y<q.n;y++) for(let x=0;x<q.n;x++) if(q.m[y*q.n+x]) g.fillRect((x+quiet)*sc, (y+quiet)*sc, sc, sc);
+  cv.style.display = 'block';
+  if(!qrHeld) qrPlace();   // the canvas has just changed size: keep its corner
+}
+
+function initQr(deps   
+                                            
+                        
+                          
+ )       {
+  exportState$1 = deps.exportState; isDebug = deps.isDebug; saveSettings = deps.saveSettings;
+  $('qrOn').addEventListener('change', ()=> qrRedraw(true));
+  // Movable by finger or mouse, and the canvas below never sees the gesture. A drag ends by
+  // recording the corner it was dropped nearest, in the same free-space fractions; a double
+  // tap that did not drag switches the overlay off.
+  { const cv = $('qrOverlay')                     ; let dx = 0, dy = 0, sx = 0, sy = 0, held = false, moved = false, lastTap = 0;
+    const record = ()=>{
+      const gap = 8, w = cv.offsetWidth, h = cv.offsetHeight;
+      const fx = Math.max(1, innerWidth - w - gap), fy = Math.max(1, innerHeight - h - gap);
+      qrPos = { x: Math.min(1, Math.max(0, (parseFloat(cv.style.left) - gap/2)/fx)),
+                y: Math.min(1, Math.max(0, (parseFloat(cv.style.top)  - gap/2)/fy)) };
+      saveSettings();
+    };
+    cv.addEventListener('pointerdown', e=>{ held = qrHeld = true; moved = false; sx = e.clientX; sy = e.clientY;
+      const r = cv.getBoundingClientRect(); dx = e.clientX - r.left; dy = e.clientY - r.top;
+      try{ cv.setPointerCapture(e.pointerId); }catch(err){} e.stopPropagation(); e.preventDefault(); });
+    cv.addEventListener('pointermove', e=>{ if(!held) return;
+      if(Math.hypot(e.clientX - sx, e.clientY - sy) > 6) moved = true;
+      cv.style.left = Math.max(0, Math.min(innerWidth - cv.offsetWidth, e.clientX - dx)) + 'px';
+      cv.style.top  = Math.max(0, Math.min(innerHeight - cv.offsetHeight, e.clientY - dy)) + 'px'; e.stopPropagation(); });
+    const drop = (e              )       =>{
+      if(!held) return;
+      held = qrHeld = false; e.stopPropagation();
+      if(moved){ record(); lastTap = 0; return; }
+      const now = performance.now();
+      if(now - lastTap < 400){ lastTap = 0; ($('qrOn')                    ).checked = false; $('qrOn').dispatchEvent(new Event('change')); saveSettings(); }
+      else lastTap = now;
+    };
+    cv.addEventListener('pointerup', drop); cv.addEventListener('pointercancel', drop);
+    addEventListener('resize', ()=>{ if(cv.style.display !== 'none') qrPlace(); }); }
+  $('qrScale').addEventListener('input', (e       )=>{ $('qrScalev').textContent = QR_SCALES[+(e.target                    ).value] + '×'; qrRedraw(true); });
+  setInterval(()=> qrRedraw(false), 1000);
+}
+
+/**
+ * The one WebGL2 context, and the one place that gives up if there is not one.
+ *
+ * Asking for a second context on the same canvas does NOT create one — the browser returns
+ * the existing context and silently ignores the attributes, so a second call with different
+ * antialias or alpha would appear to work and quietly do nothing. One module, one call;
+ * scripts/check-build.mjs asserts the emitted page contains exactly one getContext.
+ *
+ * The failure path replaces the whole body and throws. In a module that abort propagates to
+ * main.ts, which imports this first, so nothing downstream runs against a null context —
+ * which is what used to happen by accident when this was one long script.
+ */
+
+const canvasEl = document.getElementById('gl');                    
+const glCtx = canvasEl.getContext('webgl2', {antialias:true, alpha:false});
+if(!glCtx){ document.body.innerHTML = '<p style="padding:2em">WebGL2 is not available in this browser.</p>'; throw new Error('no webgl2'); }
+
+const canvas = canvasEl;
+const gl                         = glCtx;
+
+/**
+ * Vertex buffers and the vertex arrays that reference them.
+ *
+ * Deleting a vertex array does not free the buffers it points at, and at the heavy densities
+ * those run to hundreds of megabytes — so every VAO's buffers are tracked beside it and
+ * released together. That bookkeeping is the whole reason this is a module rather than three
+ * loose helpers.
+ *
+ * flushGxyCache stays with the galaxy cache that owns the entries: it must never throw
+ * mid-flush, because both map loaders race each other into it and the loser would be left
+ * pointing at deleted vertex arrays.
+ */
+
+// Buffers are tracked alongside their VAO so a density can be released again: deleting
+// a vertex array does not free what it references, and the big densities are hundreds
+// of megabytes apiece.
+const vaoBufs = new WeakMap                                       ();
+
+/**
+ * Register a vertex array's buffers for release, for callers that build their own VAO.
+ * The orbit rings do: one buffer, laid out by hand. Exposed as a function rather than by
+ * exporting the map, so there is one owner of the bookkeeping and no way to end up with two
+ * copies of it — deleting a VAO whose buffers were tracked in the other map leaks them, and
+ * nothing reports it.
+ */
+function trackVAOBuffers(vao                        , bufs               )       {
+  vaoBufs.set(vao, bufs);
+}
+function deleteVAO(vao                        )       {
+  const bufs = vaoBufs.get(vao);
+  if(bufs) bufs.forEach(b => gl.deleteBuffer(b));
+  gl.deleteVertexArray(vao);
+}
+                             
+                                                                                    
+                
+                
+                
+                
+ 
+
+/**
+ * The same four attributes as `pointVAO`, sized for `cap` points and left empty. Everything
+ * whose contents change every frame is built this way — the life-cycle events, the blasts,
+ * the remnants, Gliese 710, the engulfment flares — and each of them uploads a subarray of
+ * exactly the length it needs, so the capacity is a ceiling rather than a count.
+ */
+function dynVAO(cap        )         {
+  const o = { vao: gl.createVertexArray()  }          ;
+  gl.bindVertexArray(o.vao);
+  o.p=gl.createBuffer() ; gl.bindBuffer(gl.ARRAY_BUFFER,o.p); gl.bufferData(gl.ARRAY_BUFFER,cap*12,gl.DYNAMIC_DRAW);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
+  o.s=gl.createBuffer() ; gl.bindBuffer(gl.ARRAY_BUFFER,o.s); gl.bufferData(gl.ARRAY_BUFFER,cap*4,gl.DYNAMIC_DRAW);
+  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,1,gl.FLOAT,false,0,0);
+  o.c=gl.createBuffer() ; gl.bindBuffer(gl.ARRAY_BUFFER,o.c); gl.bufferData(gl.ARRAY_BUFFER,cap*12,gl.DYNAMIC_DRAW);
+  gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2,3,gl.FLOAT,false,0,0);
+  o.w=gl.createBuffer() ; gl.bindBuffer(gl.ARRAY_BUFFER,o.w); gl.bufferData(gl.ARRAY_BUFFER,cap*4,gl.DYNAMIC_DRAW);
+  gl.enableVertexAttribArray(3); gl.vertexAttribPointer(3,1,gl.FLOAT,false,0,0);
+  gl.bindVertexArray(null); return o;
+}
+
+function pointVAO(pos              , size              , col              , wave               , vel               )                         {
+  const vao=gl.createVertexArray() ; gl.bindVertexArray(vao);
+  const bufs               =[];
+  const attach=(data              ,loc        ,comps        )=>{ const b=gl.createBuffer() ; bufs.push(b);
+    gl.bindBuffer(gl.ARRAY_BUFFER,b); gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,comps,gl.FLOAT,false,0,0); };
+  attach(pos,0,3); attach(size,1,1); attach(col,2,3);
+  if(wave) attach(wave,3,1);
+  if(vel) attach(vel,4,3);   // populations without one read a constant zero
+  gl.bindVertexArray(null); vaoBufs.set(vao,bufs); return vao;
+}
+
+/**
  * Where the Sun is in its trip round the galaxy: how far out, and how far round.
  *
  * Both are pure functions of the simulation clock, with no state of their own — which is why
@@ -1126,6 +1590,341 @@ function pnState(a        )                 {
 }
 
 /**
+ * The Sun, the planets, the dwarfs, the hypothetical ninth — and where each of them is.
+ *
+ * bodyPos is the only position function in the piece, and everything drawn in the solar
+ * system goes through it: the sprites, the orbit rings, both kinds of trail. It writes into a
+ * caller-supplied Float64Array rather than allocating, because at a million years a second
+ * the trails resample thousands of positions per frame.
+ *
+ * Doubles, not floats, deliberately. The origin stays at the Sun and Earth is 1 AU out, where
+ * float32 rounds a position to about 9 km — under a pixel on a 6,371 km globe at any zoom the
+ * view uses, but only because the arithmetic is done in double first.
+ */
+                                        
+
+// name, real period (yr), display orbit radius, sprite size, color
+const BODIES = [ // name, period yr, display radius, sprite size, color, real semi-major axis (AU), real radius (km)
+  ['Sun',     0,      0,   5.2, [1.0,0.86,0.55], 0, 696000],
+  ['Mercury', 0.241,  6.0, 0.85,[0.66,0.64,0.62], 0.387, 2440],
+  ['Venus',   0.615,  8.5, 1.15,[0.93,0.82,0.58], 0.723, 6052],
+  ['Earth',   1.000, 11.0, 1.2, [0.35,0.58,1.0],  1.000, 6371],
+  ['Mars',    1.881, 14.0, 1.0, [0.92,0.44,0.26], 1.524, 3390],
+  ['Jupiter',11.862, 20.0, 2.6, [0.85,0.66,0.42], 5.203, 69911],
+  ['Saturn', 29.457, 26.0, 2.3, [0.90,0.79,0.53], 9.537, 58232],
+  ['Uranus', 84.02,  32.5, 1.7, [0.52,0.83,0.86], 19.19, 25362],
+  ['Neptune',164.8,  38.5, 1.7, [0.30,0.42,0.90], 30.07, 24622],
+  // IAU dwarf planets (drawn smaller; note their strongly inclined orbits)
+  ['Ceres',    4.60, 16.0, 0.55,[0.62,0.60,0.56], 2.766, 470],
+  ['Pluto',  248.0,  43.0, 0.60,[0.80,0.69,0.58], 39.48, 1188],
+  ['Haumea', 285.0,  44.5, 0.50,[0.82,0.82,0.85], 43.1, 816],
+  ['Makemake',306.0, 46.0, 0.50,[0.76,0.56,0.43], 45.4, 715],
+  ['Eris',   558.0,  52.5, 0.55,[0.83,0.83,0.90], 67.7, 1163],
+  // Hypothetical, and drawn as such: the orbit that would explain the clustering of
+  // the far Kuiper objects. ~400 AU and ~6 Earth masses, after Brown & Batygin.
+  ['Planet 9?', 8000.0, 78.0, 0.62,[0.36,0.66,0.77], 400.0, 19100],
+];
+const NB = BODIES.length;
+const N_PLANETS = 9;         // Sun + 8 planets; dwarfs follow
+const I_P9 = NB - 1;         // the hypothetical one, last in the table
+const PHASE = BODIES.map((_,i)=> i*2.399963); // golden-angle spread
+
+// per-body orbital plane: planets share the ecliptic; dwarfs are tilted [inclination°, node°]
+const EN       = [0, Math.cos(TILT), Math.sin(TILT)]; // ecliptic normal
+const DTILT = { Ceres:[10.6,80], Pluto:[17.2,110], Haumea:[28.2,122], Makemake:[29.0,79], Eris:[44.0,36],
+  // the candidate's orbit is tilted too, by about 16 degrees in the current estimates
+  'Planet 9?':[16.0,95] };
+const BU        =[], BV        =[];
+BODIES.forEach((b,i)=>{
+  if(i<N_PLANETS){ BU.push(E1); BV.push(E2); return; }
+  const [inc,node]=DTILT[b[0]                      ];
+  const ci=Math.cos(inc*Math.PI/180), si=Math.sin(inc*Math.PI/180);
+  const cn=Math.cos(node*Math.PI/180), sn=Math.sin(node*Math.PI/180);
+  const u      =[cn*E1[0]+sn*E2[0], cn*E1[1]+sn*E2[1], cn*E1[2]+sn*E2[2]];
+  const w=[-sn*E1[0]+cn*E2[0], -sn*E1[1]+cn*E2[1], -sn*E1[2]+cn*E2[2]];
+  BU.push(u); BV.push([w[0]*ci+EN[0]*si, w[1]*ci+EN[1]*si, w[2]*ci+EN[2]*si]        );
+});
+
+// Sun's vertical bob through the disk plane: real period ~90 Myr, amplitude ~±250 ly.
+// Amplitude shown ~3× exaggerated so it reads at this zoom.
+const WOB_T = 90e6; // scene units, and the real ~90 Myr vertical period
+
+const tmp = new Float64Array(3), tmpSun = new Float64Array(3), earthW = new Float64Array(3);
+function bodyPos(i        , t        , out              )               {
+  const phi = sunPhase(t);                       // galactic anomaly, slowing as R grows
+  const R = sunR(t);                             // constant until the merger flings it out
+  const sx = R*Math.sin(phi), sz = R*Math.cos(phi);
+  const sy = (8.3)*Math.sin(2*Math.PI*t/WOB_T + 2.1);
+  if(i===0){ out[0]=sx; out[1]=sy; out[2]=sz; return out; }
+  const b = BODIES[i];
+  const th = 2*Math.PI*t/(b[1]          ) + PHASE[i];
+  const rr = (b[5]          )*AU2U ; // true proportions: the whole system is sub-pixel
+  const c = Math.cos(th)*rr, s = Math.sin(th)*rr;
+  const u=BU[i], v=BV[i];
+  out[0] = sx + c*u[0] + s*v[0];
+  out[1] = sy + c*u[1] + s*v[1];
+  out[2] = sz + c*u[2] + s*v[2];
+  return out;
+}
+
+/**
+ * Compile and link. Both throw on failure rather than returning null, because a program that
+ * failed to link draws nothing and reports nothing — the canvas is simply black, and the
+ * info log is the only thing that says why.
+ *
+ * The uniform-location tables stay hand-written at their call sites and are NOT harvested by
+ * a helper here. They are not interchangeable: UN omits uVelT/uMinB/uFadeOut, UD omits those
+ * plus uTime/uVarMode, and the GL default of zero for the missing ones is load-bearing —
+ * attribute location 4 (aVel) is never enabled by any VAO, so unioning the key lists would
+ * give nebulae and dust a proper-motion shear they have never had.
+ */
+
+function sh(type        , src        )              {
+  const s=gl.createShader(type) ; gl.shaderSource(s,src); gl.compileShader(s);
+  if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s) ?? 'shader failed to compile, with no info log');
+  return s;
+}
+function prog(vs        , fs        )               {
+  const p=gl.createProgram() ;
+  gl.attachShader(p,sh(gl.VERTEX_SHADER,vs)); gl.attachShader(p,sh(gl.FRAGMENT_SHADER,fs));
+  gl.linkProgram(p);
+  if(!gl.getProgramParameter(p,gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p) ?? 'program failed to link, with no info log');
+  return p;
+}
+
+const PT_VS = "#version 300 es\nlayout(location=0) in vec3 aPos;\nlayout(location=1) in float aSize;\nlayout(location=2) in vec3 aColor;\nlayout(location=3) in float aWave; // 1: point rides the spiral density-wave pattern\nlayout(location=4) in vec3 aVel;   // heliocentric space velocity, km/s (real stars only)\nuniform float uVelT;               // km/s -> scene displacement for the elapsed years\nuniform mat4 uProj, uView;\nuniform float uPx;\nuniform float uSpin; // distance travelled at the flat-curve speed; 0 = no rotation\nuniform float uWarp; // precession phase of the disk warp\nuniform vec3 uSunPos; // center of the clearance bubble around the magnified solar system\nuniform float uCap;   // sprite size ceiling (smaller at deep zoom: near stars stay point-like)\nuniform float uWaveAll; // 1: treat every point in this draw as wave-riding (nebulae, dust)\nuniform float uTime;    // wall-clock seconds for the variability animation\nuniform float uVarMode; // 0 off | 1 stars (a few % pulse, reddening at minimum) | 2 nebulae (all breathe)\nuniform vec3 uAnd;      // Andromeda's centre, galactic coordinates\nuniform float uTide;    // 0 far apart .. 1 at contact\nuniform float uWarpAmp; // how strongly this draw takes the disk warp\nuniform float uMinB;    // brightness floor: lift the faintest stars to at least this\nuniform float uMinSz;   // sprite floor in pixels: how small a star is allowed to get\nuniform float uFadeOut; // 0 draws normally, 1 hides: used where a layer stops being true\nuniform vec3 uOrg;    // rendering origin (the Sun) — keeps deep real-scale zooms float-precise\nuniform float uGal;   // 1: this draw is a whole galaxy, placed by uGRot/uGOff\nuniform mat3 uGRot;   // the galaxy's disk frame in scene coordinates (identity for ours)\nuniform vec3 uGOff;   // the galaxy's centre (zero for ours)\nuniform float uMerge; // 0 two galaxies .. 1 one relaxed remnant\nout vec3 vColor;\nvoid main(){\n  vec3 p = aPos + aVel*uVelT;\n  float fade = 1.0;\n  if(uSpin != 0.0){\n    float r = length(p.xz);\n    // material stars: flat rotation curve, so they shear differentially. Wave-flagged\n    // points (bar, arms, spur, gas, young stars) rigidly follow one pattern speed\n    // instead — corotation at r=640 (~19 kly) — so stars stream through the arms\n    // and the pattern never winds up: density-wave theory's answer to the winding problem.\n    float w = max(aWave, uWaveAll);\n    float d = mix(uSpin / max(r, 520.0), uSpin/640.0, w);\n    float c = cos(d), s = sin(d);\n    p = vec3(p.x*c + p.z*s, p.y, p.z*c - p.x*s);\n    // Gaia-style warp: outer disk bends up on one side, down on the other,\n    // and the whole pattern precesses retrograde (uWarp) like a wobbling top\n    float wr = max(0.0, r - 950.0);\n    p.y += uWarpAmp*(wr*0.13*sin(atan(p.x,p.z) - uWarp)  // integral-sign warp, growing outward\n         + 4.0*sin(r*0.021));                            // faint corrugation ripples in the disk\n    // the planetary system is drawn ~10-million-fold magnified; clear its space\n    fade = smoothstep(80.0, 240.0, distance(p, uSunPos));\n  }\n  // Whole-galaxy draws: place the cloud in the world — identity for the Milky Way,\n  // Andromeda's measured orientation and moving centre for its own — then the mutual\n  // tide, then, while the remnant relaxes, the slide into a single spheroid.\n  if(uGal > 0.5){\n    float rL = length(aPos.xz);      // radius in the galaxy's own disk, pre-transform\n    p = uGRot*p + uGOff;\n    // Tidal pull toward the companion. A real encounter is an N-body problem; this is\n    // the leading effect only — the differential pull grows with disk radius, so the\n    // outer disk reaches into a bridge while the core barely moves. Softened and\n    // capped: a bare inverse square tears passing stars into a streak.\n    if(uTide > 0.001){\n      vec3 dv = uAnd - p;\n      float dd = length(dv);\n      float pull = uTide * (rL/900.0) * 480.0 / (1.0 + (dd*dd)/(2600.0*2600.0));\n      p += normalize(dv) * min(pull, 560.0);\n    }\n    // Coalescence: violent relaxation scrambles both disks into one elliptical.\n    // Each star slides to a stable pseudo-random spot on a de-Vaucouleurs-ish\n    // spheroid, mildly flattened, its radius loosely keeping the star's rank.\n    if(uMerge > 0.001){\n      float h1 = fract(sin(dot(aPos.xy, vec2(127.1,311.7)))*43758.5453);\n      float h2 = fract(sin(dot(aPos.yz, vec2(269.5,183.3)))*43758.5453);\n      float cz = h2*2.0-1.0, sz = sqrt(max(0.0, 1.0-cz*cz)), ph = 6.28318*h1;\n      vec3 tgt = vec3(sz*cos(ph), cz*0.72, sz*sin(ph))\n               * (90.0 + 200.0*pow(0.5*(h1+h2), 1.6)*3.0 + length(aPos)*0.34);\n      p = mix(p, tgt, uMerge*uMerge);\n    }\n  }\n  vec4 mv = uView * vec4(p - uOrg,1.0);\n  gl_Position = uProj * mv;\n  float dd = max(1e-9, -mv.z); // no floor of 1: real-scale zooms get much closer than that\n  float s0 = aSize * uPx / dd;\n  gl_PointSize = clamp(s0, max(uMinSz, 0.7), uCap);\n  // a star smaller than a pixel keeps its flux, not its size: clamped points dim by\n  // the area they were denied, so the far field stops shimmering at full brightness.\n  // Referenced against the fixed floor, so the min-size slider still brightens.\n  float sub = clamp(s0/0.7, 0.0, 1.0);\n  float fluxKeep = mix(1.0, sub*sub, 0.62);\n  vec3 col = aColor;\n  if(uVarMode > 0.5){\n    float h = fract(sin(dot(aPos.xz, vec2(12.9898,78.233)))*43758.5453);\n    if(uVarMode < 1.5){\n      // variable stars: ~4-5% of points pulse Mira/Cepheid-style — dimmer AND redder\n      // at minimum light, because the star is coolest there\n      if(h > 0.955){\n        float w = 2.0 + 10.0*fract(h*97.0);\n        float dim = 0.5 + 0.5*sin(uTime*w + h*6283.0);\n        col *= 0.45 + 0.75*dim;\n        col.g *= 0.85 + 0.15*dim;\n        col.b *= 0.70 + 0.30*dim;\n      }\n    } else {\n      // nebulae: every puff breathes gently and drifts in hue (ionization flicker)\n      float ph = h*6283.0;\n      float s1 = sin(uTime*0.5 + ph), s2 = sin(uTime*0.23 + ph*1.7);\n      col *= 0.82 + 0.18*s1;\n      col.r *= 1.0 + 0.10*s2;\n      col.b *= 1.0 - 0.08*s2;\n    }\n  }\n  // A floor rather than a gain: anything already brighter than it is left alone, so\n  // raising it reveals the faint disk without blowing out the arms and the core.\n  if(uMinB > 0.0){\n    float lum = max(max(col.r, col.g), col.b);\n    if(lum > 0.0002 && lum < uMinB) col *= uMinB/lum;\n  }\n  vColor = col * fade * fluxKeep * (1.0 - uFadeOut);\n}";
+
+const PT_FS = "#version 300 es\nprecision mediump float;\nin vec3 vColor; out vec4 o;\nvoid main(){\n  vec2 q = gl_PointCoord*2.0-1.0;\n  float r = length(q);\n  if(r>1.0) discard;\n  float d = 1.0-r;\n  float corona = pow(d, 6.0);\n  float core   = pow(d, 20.0);\n  float a = corona*0.85 + core*1.35;\n  vec3 col = vColor*a + vColor.g*core*0.9;   // the white-core lift, scaled by luminance\n  o = vec4(col, a);\n}";
+
+const TR_VS = "#version 300 es\nlayout(location=0) in vec3 aPos;\nuniform mat4 uProj,uView;\nuniform float uLen;\nuniform vec3 uOrg;\nout float vF;\nvoid main(){\n  gl_Position = uProj*uView*vec4(aPos-uOrg,1.0);\n  vF = float(gl_VertexID)/uLen;\n}";
+
+const TR_FS = "#version 300 es\nprecision mediump float;\nin float vF; uniform vec3 uColor; uniform float uAlpha; uniform float uFlat; out vec4 o;\nvoid main(){ float f = mix(pow(vF,1.7), 1.0, uFlat)*uAlpha; o = vec4(uColor*f, f); }";
+
+/**
+ * The two programs almost everything is drawn with.
+ *
+ * `pPt` is the glowing point sprite — stars, the galaxy, Andromeda, the bodies, the life-cycle
+ * events, Gliese 710, the engulfment flares. Its star profile follows Gaia Sky (MPL-2.0,
+ * assets/shader/lib/star.glsl): a wide soft corona with a tight hot core, and the core lifts
+ * the colour toward white, so a bright star reads as luminous rather than as a tinted disc.
+ * Reimplemented, not copied.
+ *
+ * `pTr` is the trails, faded by vertex index.
+ *
+ * Only the programs and the locations live here for now — the draws are still in `frame()`,
+ * which is what `00-PLAN.md` step 10 asks for. They cannot follow yet: six separate passes
+ * write through this one table, each setting a uniform and setting it back, and they read a
+ * dozen values apiece off the frame. They move once `render/frame` exists to hand those over.
+ *
+ * `U` stays one object with both programs' locations in it, exactly as it was. Splitting the
+ * `tr*` half out belongs with `render/trails` at step 13, and a table that is half-moved is
+ * worse than one that has not moved at all.
+ */
+
+const pPt = prog(PT_VS,PT_FS), pTr = prog(TR_VS,TR_FS);
+const U = {
+  ptProj: gl.getUniformLocation(pPt,'uProj'), ptView: gl.getUniformLocation(pPt,'uView'), ptPx: gl.getUniformLocation(pPt,'uPx'),
+  ptSpin: gl.getUniformLocation(pPt,'uSpin'), ptWarp: gl.getUniformLocation(pPt,'uWarp'), ptSun: gl.getUniformLocation(pPt,'uSunPos'),
+  ptOrg: gl.getUniformLocation(pPt,'uOrg'), trOrg: gl.getUniformLocation(pTr,'uOrg'),
+  velT: gl.getUniformLocation(pPt,'uVelT'),
+  ptCap: gl.getUniformLocation(pPt,'uCap'), ptWA: gl.getUniformLocation(pPt,'uWaveAll'),
+  ptTime: gl.getUniformLocation(pPt,'uTime'), ptVM: gl.getUniformLocation(pPt,'uVarMode'),
+  ptAnd: gl.getUniformLocation(pPt,'uAnd'), ptTide: gl.getUniformLocation(pPt,'uTide'),
+  ptWarpAmp: gl.getUniformLocation(pPt,'uWarpAmp'), ptMinB: gl.getUniformLocation(pPt,'uMinB'),
+  ptMinSz: gl.getUniformLocation(pPt,'uMinSz'), ptFade: gl.getUniformLocation(pPt,'uFadeOut'),
+  ptGal: gl.getUniformLocation(pPt,'uGal'), ptGRot: gl.getUniformLocation(pPt,'uGRot'),
+  ptGOff: gl.getUniformLocation(pPt,'uGOff'), ptMerge: gl.getUniformLocation(pPt,'uMerge'),
+  trProj: gl.getUniformLocation(pTr,'uProj'), trView: gl.getUniformLocation(pTr,'uView'),
+  trLen: gl.getUniformLocation(pTr,'uLen'), trCol: gl.getUniformLocation(pTr,'uColor'), trA: gl.getUniformLocation(pTr,'uAlpha'),
+  trFlat: gl.getUniformLocation(pTr,'uFlat')
+};
+
+/**
+ * The swept paths, and the closed orbits that stand in for them.
+ *
+ * Two different things are drawn through one program. A TRAIL is the path actually watched
+ * being swept: TRAIL_N samples in a sliding window, sample TRAIL_N−1 being now and the
+ * brightest, sample 0 the earliest seen. A RING is each planet's orbit as a closed
+ * heliocentric loop, sampled once — in this model orbits neither precess nor decay, so the
+ * ring is the same at any epoch — and it stands in wherever sweeping is impossible: inside the
+ * dive at high speed a million orbits pass per second, no line can trace them, and the path
+ * they all follow is exactly this ring.
+ */
+
+/** sliding window: TRAIL_N samples, spacing set by the length slider */
+const TRAIL_N = 2400;
+const trails                 = [], trailBufs                = [], trailVaos                           = [];
+
+/**
+ * Build the sliding windows. Called from main.ts rather than at import: this is the sixth of
+ * the seven things that consume the boot sequence in order, and building it anywhere else
+ * moves everything after it.
+ */
+function initTrails()       {
+  for(let i=0;i<NB;i++){
+    const a = new Float32Array(TRAIL_N*3);
+    for(let k=0;k<TRAIL_N;k++){
+      bodyPos(i, (k-(TRAIL_N-1))*simClock.dtSample, tmp);
+      a[k*3]=tmp[0]; a[k*3+1]=tmp[1]; a[k*3+2]=tmp[2];
+    }
+    trails.push(a);
+    const vao=gl.createVertexArray() ; gl.bindVertexArray(vao);
+    const b=gl.createBuffer() ; gl.bindBuffer(gl.ARRAY_BUFFER,b);
+    gl.bufferData(gl.ARRAY_BUFFER,a,gl.DYNAMIC_DRAW);
+    gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
+    gl.bindVertexArray(null);
+    trailBufs.push(b); trailVaos.push(vao);
+  }
+}
+
+const RING_N = 96;
+const ringVaos                                    = [];
+
+/** The orbit rings — the seventh and last of the boot's ordered builders. */
+function initOrbitRings()       {
+  const q = new Float64Array(3), s0 = new Float64Array(3);
+  for(let i=0;i<NB;i++){
+    if(i === 0){ ringVaos.push(null); continue; }
+    const a = new Float32Array(RING_N*3);
+    const P = BODIES[i][1]          ;
+    for(let k=0;k<RING_N;k++){
+      const ts = k/RING_N*P;
+      bodyPos(i, ts, q); bodyPos(0, ts, s0);
+      a[k*3]=q[0]-s0[0]; a[k*3+1]=q[1]-s0[1]; a[k*3+2]=q[2]-s0[2];
+    }
+    const vao=gl.createVertexArray() ; gl.bindVertexArray(vao);
+    const b=gl.createBuffer() ; gl.bindBuffer(gl.ARRAY_BUFFER,b);
+    gl.bufferData(gl.ARRAY_BUFFER,a,gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
+    gl.bindVertexArray(null); trackVAOBuffers(vao,[b]); ringVaos.push(vao);
+  }
+}
+
+// Trails are stored as absolute positions minus a local anchor. Float32 alone cannot
+// hold a position of magnitude ~900 to sub-AU precision — the error is about 7 AU,
+// which at dive zoom is the whole frame — so the anchor keeps the stored numbers small
+// and the draw passes (org - anchor), subtracted in double precision, as the origin.
+const trailAnchor = new Float64Array(3);
+
+function trailPos(i        , ts        , out              )               {
+  bodyPos(i, ts, out);
+  out[0]-=trailAnchor[0]; out[1]-=trailAnchor[1]; out[2]-=trailAnchor[2];
+  return out;
+}
+
+function pushTrail(i        , ts        )       {
+  const a=trails[i];
+  a.copyWithin(0,3);
+  trailPos(i, ts, tmp);
+  a[(TRAIL_N-1)*3]=tmp[0]; a[(TRAIL_N-1)*3+1]=tmp[1]; a[(TRAIL_N-1)*3+2]=tmp[2];
+}
+
+/** Push this frame's samples to the GPU. Only called on a frame that took any. */
+function uploadTrails()       {
+  for(let i=0;i<NB;i++){
+    gl.bindBuffer(gl.ARRAY_BUFFER,trailBufs[i]);
+    gl.bufferSubData(gl.ARRAY_BUFFER,0,trails[i]);
+  }
+}
+
+function refillTrails()       {
+  bodyPos(0, simClock.simT, tmpSun);
+  trailAnchor[0]=tmpSun[0]; trailAnchor[1]=tmpSun[1]; trailAnchor[2]=tmpSun[2];
+  // The trail is the path the viewer has watched being swept: sample TRAIL_N−1 is now and
+  // the brightest, sample 0 the earliest seen and the dimmest. With the clock running
+  // backwards "earliest seen" is the LATER sim time, so the samples run the other way —
+  // otherwise the trail pointed into the sim-past, which in reverse lies ahead of the
+  // body, and it led instead of trailed.
+  const dirT = simClock.shuttle < 0 ? -1 : 1;
+  for(let i=0;i<NB;i++){
+    const a=trails[i];
+    for(let k=0;k<TRAIL_N;k++){
+      trailPos(i, simClock.simT - dirT*((TRAIL_N-1)-k)*simClock.dtSample, tmp);
+      a[k*3]=tmp[0]; a[k*3+1]=tmp[1]; a[k*3+2]=tmp[2];
+    }
+    gl.bindBuffer(gl.ARRAY_BUFFER,trailBufs[i]);
+    gl.bufferSubData(gl.ARRAY_BUFFER,0,a);
+  }
+}
+                       
+                       
+                 
+                   
+                                                                                       
+                    
+                    
+                  
+                                                                                           
+              
+              
+                 
+                     
+                              
+ 
+
+/**
+ * Trail buffers hold absolute positions, and at the Sun's radius a float32 step is 6.1e-5
+ * scene units — a quarter pixel around cam.dist 0.17. Fade across that boundary rather than
+ * cutting, so leaving real scale doesn't drop them abruptly.
+ *
+ * Planets are drawable only while their points stand apart from the Sun's: Neptune's orbit
+ * spans about six pixels at 0.13 units of camera distance, and beyond that the whole system
+ * is inside one point — only the Sun's own trail means anything there.
+ */
+function drawTrails(
+  { projMat, viewMat, camDist, org, trailAlpha, orbitAlpha, starGain,
+    psH, psO, showP9, showDwarfs, wasEaten }             ,
+)       {
+  const solarClose = camDist < 0.13;
+  gl.useProgram(pTr);
+  gl.uniformMatrix4fv(U.trProj,false,projMat);
+  gl.uniformMatrix4fv(U.trView,false,viewMat);
+  gl.uniform1f(U.trLen,TRAIL_N);
+  const last = (showP9 ? NB : I_P9)-1;
+  // the origin for anchored buffers, subtracted in double precision
+  const aox = org[0]-trailAnchor[0], aoy = org[1]-trailAnchor[1], aoz = org[2]-trailAnchor[2];
+  gl.uniform3f(U.trOrg, aox, aoy, aoz);
+  for(let i=last;i>=0;i--){
+    const c=BODIES[i][4]            ;
+    if(i === I_P9 && !showP9) continue;
+    if(i >= N_PLANETS && i < I_P9 && !showDwarfs) continue;
+    if(i <= 3 && i > 0 && wasEaten[i]) continue;   // no path for a planet that is gone
+    if(readout.globePx > 40) continue;   // zoomed onto the globe, every orbit and helix is a line across the sky
+    if(i > 0){
+      if(!solarClose) continue;                    // collapsed into the Sun's point
+      const spo = (BODIES[i][1]          )/simClock.dtSample;
+      // the ring draws when asked for, or as the fallback for an unresolvable helix
+      if(psO || (psH && spo < 12)){
+        // the closed path itself — also the honest fallback when the sampling
+        // cannot resolve the orbit and no accurate helix is drawable
+        gl.uniform3f(U.trOrg, 0,0,0);
+        gl.uniform3f(U.trCol, c[0],c[1],c[2]);
+        gl.uniform1f(U.trA, 0.4*orbitAlpha*(1+starGain*0.9));
+        gl.uniform1f(U.trFlat, 1.0);
+        gl.bindVertexArray(ringVaos[i]);
+        gl.drawArrays(gl.LINE_LOOP, 0, RING_N);
+        gl.uniform1f(U.trFlat, 0.0);
+        gl.uniform3f(U.trOrg, aox, aoy, aoz);
+      }
+      if(!psH || spo < 12) continue;
+      // the accurate helix: the swept absolute path, no styling — Mercury winds
+      // tightly, the giants barely wave, because that is how it actually is
+      gl.uniform3f(U.trCol, c[0],c[1],c[2]);
+      gl.uniform1f(U.trA, 0.55*trailAlpha*(1+starGain*0.9));
+      gl.bindVertexArray(trailVaos[i]);
+      gl.drawArrays(gl.LINE_STRIP, TRAIL_N-Math.min(TRAIL_N, Math.round(200*spo)), Math.min(TRAIL_N, Math.round(200*spo)));
+      continue;
+    }
+    if(!psH) continue;   // the Sun's arc is a swept trail: it follows the helix switch
+    gl.uniform3f(U.trCol,c[0],c[1],c[2]);
+    // lift with the star gain, or a brightened field washes the thin line out
+    gl.uniform1f(U.trA, 0.9*trailAlpha*(1+starGain*0.9));
+    gl.bindVertexArray(trailVaos[i]);
+    gl.drawArrays(gl.LINE_STRIP, 0, TRAIL_N);
+  }
+}
+
+/**
  * Andromeda's approach, the passages, and the merger.
  *
  * The control points are Gaia-era: 765 kpc today closing at about 110 km/s, first passage
@@ -1217,84 +2016,6 @@ function diskSpin(ts        )         {
 }
 
 /**
- * The Sun, the planets, the dwarfs, the hypothetical ninth — and where each of them is.
- *
- * bodyPos is the only position function in the piece, and everything drawn in the solar
- * system goes through it: the sprites, the orbit rings, both kinds of trail. It writes into a
- * caller-supplied Float64Array rather than allocating, because at a million years a second
- * the trails resample thousands of positions per frame.
- *
- * Doubles, not floats, deliberately. The origin stays at the Sun and Earth is 1 AU out, where
- * float32 rounds a position to about 9 km — under a pixel on a 6,371 km globe at any zoom the
- * view uses, but only because the arithmetic is done in double first.
- */
-                                        
-
-// name, real period (yr), display orbit radius, sprite size, color
-const BODIES = [ // name, period yr, display radius, sprite size, color, real semi-major axis (AU), real radius (km)
-  ['Sun',     0,      0,   5.2, [1.0,0.86,0.55], 0, 696000],
-  ['Mercury', 0.241,  6.0, 0.85,[0.66,0.64,0.62], 0.387, 2440],
-  ['Venus',   0.615,  8.5, 1.15,[0.93,0.82,0.58], 0.723, 6052],
-  ['Earth',   1.000, 11.0, 1.2, [0.35,0.58,1.0],  1.000, 6371],
-  ['Mars',    1.881, 14.0, 1.0, [0.92,0.44,0.26], 1.524, 3390],
-  ['Jupiter',11.862, 20.0, 2.6, [0.85,0.66,0.42], 5.203, 69911],
-  ['Saturn', 29.457, 26.0, 2.3, [0.90,0.79,0.53], 9.537, 58232],
-  ['Uranus', 84.02,  32.5, 1.7, [0.52,0.83,0.86], 19.19, 25362],
-  ['Neptune',164.8,  38.5, 1.7, [0.30,0.42,0.90], 30.07, 24622],
-  // IAU dwarf planets (drawn smaller; note their strongly inclined orbits)
-  ['Ceres',    4.60, 16.0, 0.55,[0.62,0.60,0.56], 2.766, 470],
-  ['Pluto',  248.0,  43.0, 0.60,[0.80,0.69,0.58], 39.48, 1188],
-  ['Haumea', 285.0,  44.5, 0.50,[0.82,0.82,0.85], 43.1, 816],
-  ['Makemake',306.0, 46.0, 0.50,[0.76,0.56,0.43], 45.4, 715],
-  ['Eris',   558.0,  52.5, 0.55,[0.83,0.83,0.90], 67.7, 1163],
-  // Hypothetical, and drawn as such: the orbit that would explain the clustering of
-  // the far Kuiper objects. ~400 AU and ~6 Earth masses, after Brown & Batygin.
-  ['Planet 9?', 8000.0, 78.0, 0.62,[0.36,0.66,0.77], 400.0, 19100],
-];
-const NB = BODIES.length;
-const N_PLANETS = 9;         // Sun + 8 planets; dwarfs follow
-const I_P9 = NB - 1;         // the hypothetical one, last in the table
-const PHASE = BODIES.map((_,i)=> i*2.399963); // golden-angle spread
-
-// per-body orbital plane: planets share the ecliptic; dwarfs are tilted [inclination°, node°]
-const EN       = [0, Math.cos(TILT), Math.sin(TILT)]; // ecliptic normal
-const DTILT = { Ceres:[10.6,80], Pluto:[17.2,110], Haumea:[28.2,122], Makemake:[29.0,79], Eris:[44.0,36],
-  // the candidate's orbit is tilted too, by about 16 degrees in the current estimates
-  'Planet 9?':[16.0,95] };
-const BU        =[], BV        =[];
-BODIES.forEach((b,i)=>{
-  if(i<N_PLANETS){ BU.push(E1); BV.push(E2); return; }
-  const [inc,node]=DTILT[b[0]                      ];
-  const ci=Math.cos(inc*Math.PI/180), si=Math.sin(inc*Math.PI/180);
-  const cn=Math.cos(node*Math.PI/180), sn=Math.sin(node*Math.PI/180);
-  const u      =[cn*E1[0]+sn*E2[0], cn*E1[1]+sn*E2[1], cn*E1[2]+sn*E2[2]];
-  const w=[-sn*E1[0]+cn*E2[0], -sn*E1[1]+cn*E2[1], -sn*E1[2]+cn*E2[2]];
-  BU.push(u); BV.push([w[0]*ci+EN[0]*si, w[1]*ci+EN[1]*si, w[2]*ci+EN[2]*si]        );
-});
-
-// Sun's vertical bob through the disk plane: real period ~90 Myr, amplitude ~±250 ly.
-// Amplitude shown ~3× exaggerated so it reads at this zoom.
-const WOB_T = 90e6; // scene units, and the real ~90 Myr vertical period
-
-const tmp = new Float64Array(3), tmpSun = new Float64Array(3), earthW = new Float64Array(3);
-function bodyPos(i        , t        , out              )               {
-  const phi = sunPhase(t);                       // galactic anomaly, slowing as R grows
-  const R = sunR(t);                             // constant until the merger flings it out
-  const sx = R*Math.sin(phi), sz = R*Math.cos(phi);
-  const sy = (8.3)*Math.sin(2*Math.PI*t/WOB_T + 2.1);
-  if(i===0){ out[0]=sx; out[1]=sy; out[2]=sz; return out; }
-  const b = BODIES[i];
-  const th = 2*Math.PI*t/(b[1]          ) + PHASE[i];
-  const rr = (b[5]          )*AU2U ; // true proportions: the whole system is sub-pixel
-  const c = Math.cos(th)*rr, s = Math.sin(th)*rr;
-  const u=BU[i], v=BV[i];
-  out[0] = sx + c*u[0] + s*v[0];
-  out[1] = sy + c*u[1] + s*v[1];
-  out[2] = sz + c*u[2] + s*v[2];
-  return out;
-}
-
-/**
  * Earth's galactic environment, and what it does to the climate.
  *
  * Everything here is a pure function of the clock, where it used to read `simT` directly.
@@ -1382,6 +2103,414 @@ function lifeState$1(a        , e             )            {
   if(rad > h){ h = rad; why = 'supernovae & cosmic rays'; }
   return { h, why, label: h > 0.75 ? 'uninhabitable' : h > 0.33 ? 'endangered'
                         : h > 0.05 ? 'habitable' : 'excellent' };
+}
+
+const SN_VS = "#version 300 es\nlayout(location=0) in vec3 aPos;\nlayout(location=1) in float aSize;\nlayout(location=2) in vec3 aColor;\nlayout(location=3) in float aPhase;  // 0 at collapse .. 1 at the end of the drawn flash\nuniform mat4 uProj, uView;\nuniform float uPx, uSpin, uWarp, uCap;\nuniform vec3 uSunPos, uOrg;\nout vec3 vColor; out float vPhase; out float vSeed;\nvoid main(){\n  vec3 p = aPos;\n  float fade = 1.0;\n  if(uSpin != 0.0){\n    float r = length(p.xz);\n    float d = uSpin/640.0;                       // the arms' pattern speed: these are arm stars\n    float c = cos(d), s = sin(d);\n    p = vec3(p.x*c + p.z*s, p.y, p.z*c - p.x*s);\n    float wr = max(0.0, r - 950.0);\n    p.y += wr*0.13*sin(atan(p.x,p.z) - uWarp) + 4.0*sin(r*0.021);\n    fade = smoothstep(80.0, 240.0, distance(p, uSunPos));\n  }\n  vec4 mv = uView * vec4(p - uOrg, 1.0);\n  gl_Position = uProj * mv;\n  gl_PointSize = clamp(aSize * uPx / max(1e-9, -mv.z), 1.0, uCap);\n  vColor = aColor * fade;\n  vPhase = aPhase;\n  vSeed  = fract(sin(dot(aPos.xz, vec2(41.7, 289.3)))*43758.5453);\n}";
+
+const SN_FS = "#version 300 es\nprecision mediump float;\nin vec3 vColor; in float vPhase; in float vSeed; out vec4 o;\nvoid main(){\n  vec2 q = gl_PointCoord*2.0-1.0;\n  float r = length(q);\n  if(r > 1.0) discard;\n  float ang = atan(q.y, q.x) + vSeed*6.2831;\n  float d = 1.0 - r;\n\n  // the photosphere: a hard white core, at its tightest right at the collapse\n  float core = pow(d, mix(26.0, 9.0, vPhase));\n  // the light around it, spreading and softening as the blast runs\n  float glow = pow(d, mix(7.0, 3.2, vPhase));\n\n  // Radiating spikes. Two sets at different counts and angles, each a narrow lobe in\n  // angle and a slow falloff in radius, so they reach well past the glow. They lead the\n  // flash and are gone before it is: the blast is brightest first and blurs outward.\n  float lead = exp(-vPhase*2.6);\n  float s1 = pow(abs(cos(ang*3.0)), 34.0);\n  float s2 = pow(abs(cos(ang*2.0 + 0.9)), 22.0);\n  float spikes = (s1*0.85 + s2*0.5) * pow(d, 1.7) * lead;\n\n  // The shock front: a shell overtaking the glow and thinning as it goes. Nothing\n  // explodes into a perfect circle, so the radius is bent a little with angle — enough\n  // that the front reads as ejecta rather than as a drawn ring.\n  // Ejecta are not evenly bright around the rim. Modulating brightness rather than\n  // radius is what keeps this: bending the radius with angle only turns the circle into\n  // a polygon, while an uneven rim on a round front reads as clumps.\n  float sh = clamp(vPhase*1.35, 0.0, 1.0);\n  float clumps = 0.68 + 0.32*sin(ang*5.0 + vSeed*17.0)*sin(ang*2.0 - vSeed*9.0);\n  float ring = exp(-pow((r - sh)/mix(0.07, 0.19, vPhase), 2.0)) * (1.0 - vPhase)*0.85 * clumps;\n\n  // cooling: blue-white through the peak, then into the ejecta's red\n  vec3 hot  = vec3(0.86, 0.92, 1.0);\n  vec3 cool = vec3(1.0, 0.52, 0.26);\n  vec3 tint = mix(hot, cool, smoothstep(0.15, 1.0, vPhase));\n\n  float a = core*1.5 + glow*0.9 + spikes*0.8 + ring*0.7;\n  vec3 col = vColor * tint * (glow*0.9 + spikes*0.8 + ring*0.7)\n           + vColor * core * 1.5;              // the core stays white, whatever the tint\n  o = vec4(col, a);\n}";
+
+/**
+ * The supernova blast.
+ *
+ * A collapse is not a big round star, and drawing it with the star sprite made it one: a white
+ * disc that only grew. This is its own pass. The transform is the wave-riding branch of PT_VS,
+ * copied rather than shared so the flash sits exactly where its progenitor stood — every
+ * supernova here descends from a red supergiant on an arm, so aWave is always 1 and uGal
+ * always 0, and the rest of that shader's work (velocities, variability, tides, the merge
+ * scramble) has nothing to do here.
+ *
+ * Four things stacked, all keyed to how far the blast has run: the photosphere, the light
+ * thrown off it, the shock front leaving it, and the spikes any bright point grows in an
+ * optical system. The colour follows the real thing — blue-white at peak, reddening as the
+ * ejecta expand and cool — so the flash reads as an event with a direction in time rather
+ * than a lamp being turned up and down.
+ *
+ * Program and table only; the draw is still in `frame()`, interleaved with the events it
+ * belongs to. Step 10.
+ */
+
+const pSN = prog(SN_VS, SN_FS);
+const USN = {
+  proj: gl.getUniformLocation(pSN,'uProj'), view: gl.getUniformLocation(pSN,'uView'),
+  px: gl.getUniformLocation(pSN,'uPx'), spin: gl.getUniformLocation(pSN,'uSpin'),
+  warp: gl.getUniformLocation(pSN,'uWarp'), cap: gl.getUniformLocation(pSN,'uCap'),
+  sun: gl.getUniformLocation(pSN,'uSunPos'), org: gl.getUniformLocation(pSN,'uOrg')
+};
+
+const REM_VS = "#version 300 es\nlayout(location=0) in vec3 aPos;\nlayout(location=1) in float aSize;\nlayout(location=2) in vec3 aColor;\nlayout(location=3) in float aPack;   // wave*2 + phase\nuniform mat4 uProj, uView;\nuniform float uPx, uSpin, uWarp, uCap;\nuniform vec3 uSunPos, uOrg;\nout vec3 vColor; out float vPhase; out float vSeed;\nvoid main(){\n  float w = floor(aPack*0.5 + 0.25), ph = aPack - 2.0*w;\n  vec3 p = aPos;\n  float fade = 1.0;\n  if(uSpin != 0.0){\n    float r = length(p.xz);\n    float d = mix(uSpin / max(r, 520.0), uSpin/640.0, w);\n    float c = cos(d), s = sin(d);\n    p = vec3(p.x*c + p.z*s, p.y, p.z*c - p.x*s);\n    float wr = max(0.0, r - 950.0);\n    p.y += wr*0.13*sin(atan(p.x,p.z) - uWarp) + 4.0*sin(r*0.021);\n    fade = smoothstep(80.0, 240.0, distance(p, uSunPos));\n  }\n  vec4 mv = uView * vec4(p - uOrg, 1.0);\n  gl_Position = uProj * mv;\n  gl_PointSize = clamp(aSize * uPx / max(1e-9, -mv.z), 1.0, uCap);\n  vColor = aColor * fade;\n  vPhase = ph;\n  vSeed  = fract(sin(dot(aPos.xz, vec2(73.1, 157.9)))*43758.5453);\n}";
+
+const REM_FS = "#version 300 es\nprecision highp float;\nin vec3 vColor; in float vPhase; in float vSeed; out vec4 o;\nfloat h21(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }\nfloat vnoise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);\n  return mix(mix(h21(i),h21(i+vec2(1,0)),f.x), mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x), f.y); }\nvoid main(){\n  vec2 q = gl_PointCoord*2.0-1.0;\n  float r = length(q);\n  if(r > 1.0) discard;\n  // the shell: thin and sharp while young, thick and frayed when old\n  float R = mix(0.58, 0.80, vPhase);\n  float w = mix(0.09, 0.22, vPhase);\n  // Filaments from value noise over the sprite, not from harmonics in angle: harmonics\n  // bead the rim into a string of pearls, and noise is seamless and never repeats.\n  // The seed places each remnant somewhere else in the noise, so no two match.\n  vec2 s = vec2(vSeed*37.0, vSeed*91.0);\n  float n1 = vnoise(q*4.5 + s), n2 = vnoise(q*10.0 - s*1.7), n3 = vnoise(q*21.0 + s*0.6);\n  float fil = 0.35 + 0.65*n1 + 0.40*(n2-0.5) + 0.22*(n3-0.5)*(1.0 - vPhase);\n  float shell = exp(-pow((r - R)/w, 2.0)) * max(fil, 0.0);\n  float fill  = smoothstep(R, 0.0, r) * 0.18;      // the thin glow of the interior\n  // the rim runs warmer than the body, as shocked gas does\n  vec3 col = vColor * (shell * mix(1.0, 1.35, smoothstep(R-0.05, R+0.12, r)) + fill);\n  o = vec4(col, shell + fill);\n}";
+
+/**
+ * What a death leaves behind.
+ *
+ * Supernova remnants and planetary nebulae were soft blobs. A remnant is a hollow shell, and a
+ * hollow shell is brightest at its rim, where the line of sight runs longest through it — the
+ * Veil, the Crab's edges, Cas A all read that way — and it is ragged, because the ejecta are.
+ * Same transform as the point pass, both branches: remnants sit in the arms (wave-riding) and
+ * planetaries anywhere in the disk (material). The fourth attribute packs the frame flag and
+ * the phase: wave in the twos, phase in the fraction, so the shell can thicken and fray as it
+ * runs without a fifth buffer.
+ *
+ * Program and table only; the draw is still in `frame()`. Step 10.
+ */
+
+const pRem = prog(REM_VS, REM_FS);
+const UREM = {
+  proj: gl.getUniformLocation(pRem,'uProj'), view: gl.getUniformLocation(pRem,'uView'),
+  px: gl.getUniformLocation(pRem,'uPx'), spin: gl.getUniformLocation(pRem,'uSpin'),
+  warp: gl.getUniformLocation(pRem,'uWarp'), cap: gl.getUniformLocation(pRem,'uCap'),
+  sun: gl.getUniformLocation(pRem,'uSunPos'), org: gl.getUniformLocation(pRem,'uOrg')
+};
+
+const EV_CAP = 1024, PUFF_CAP = 512;
+const evPos=new Float32Array(EV_CAP*3), evSize=new Float32Array(EV_CAP), evCol=new Float32Array(EV_CAP*3), evWave=new Float32Array(EV_CAP);
+const pfPos=new Float32Array(PUFF_CAP*3), pfSize=new Float32Array(PUFF_CAP), pfCol=new Float32Array(PUFF_CAP*3), pfWave=new Float32Array(PUFF_CAP);
+
+const evGL = dynVAO(EV_CAP), pfGL = dynVAO(PUFF_CAP);
+// Blasts are drawn by their own program, so they travel in their own buffers. There are
+// never many at once — a flash lasts 1.6 s — and the fourth channel carries how far the
+// blast has run instead of the wave flag, which every one of them has set anyway.
+const SN_CAP = 96;
+const snPos=new Float32Array(SN_CAP*3), snSize=new Float32Array(SN_CAP),
+      snCol=new Float32Array(SN_CAP*3), snPh=new Float32Array(SN_CAP);
+const snGL = dynVAO(SN_CAP);
+
+const events              = [], puffs         = [];
+
+/** The sound effects, handed in at boot so this module does not import the audio graph. */
+let sfx$1                         = () => {};
+const setLifeSfx = (fn                        )       => { sfx$1 = fn; };
+
+function armSite()           { // where massive stars are born: an arm's inner edge, the spur, or a bar tip
+  const roll=Math.random();
+  let r, th;
+  if(roll<0.12){ th=(Math.random()<0.5?BAR_A:BAR_A+Math.PI)+gauss()*0.05; r=BAR_L*(0.95+Math.random()*0.12); }
+  else if(roll<0.30){ r=900+(Math.random()*2-1)*150; th=-(r-900)/(900*PITCH)+0.02+gauss()*0.04; }
+  else { const arm=Math.random()<0.7?ARMS[(Math.random()*2)|0]:ARMS[2+((Math.random()*2)|0)];
+    r=BAR_L+40+Math.pow(Math.random(),0.95)*1200; th=armAngle(r,arm[0])+0.025+gauss()*0.03; }
+  return [r*Math.sin(th), gauss()*6, r*Math.cos(th)];
+}
+function diskSite()           { // old stars die everywhere in the disk
+  const r=expR(300,1700,283), th=Math.random()*6.28318;
+  return [r*Math.sin(th), gauss()*14, r*Math.cos(th)];
+}
+function addPuff(e           , r1        , dur        , col          )       {
+  if(puffs.length>=PUFF_CAP) return;
+  puffs.push({x:e.x,y:e.y,z:e.z,wv:e.wv,t:0,r1,dur,col});
+}
+                                                              
+            
+               
+                
+                                                                                           
+                  
+               
+ 
+
+function lifeStep({ dt, dtSim, ageGyr, evBirth, evSN }                )       {
+  const sfr = sfrFactor(ageGyr);
+  // Per year now, not per compressed step. These are drawn events, a sampled fraction of
+  // the real rates — the true figures are in the status bar and the info panel.
+  if(evBirth) lifeAcc.accB += dtSim*1.84e-6*gfx.curD*sfr; else lifeAcc.accB = 0;
+  if(evSN){
+    lifeAcc.accSN += dtSim*Math.max(9.2e-9*gfx.curD, 1.26e-7)*sfr;
+    lifeAcc.accPN += dtSim*1.26e-6*gfx.curD*Math.sqrt(sfr);   // low-mass deaths ride with the deaths switch
+  } else lifeAcc.accSN = lifeAcc.accPN = 0;
+  const CAP = 40;
+  for(let n=0; lifeAcc.accB>=1 && n<CAP; n++){ lifeAcc.accB--; if(events.length<EV_CAP){ const s=armSite();
+    events.push({k:1,x:s[0],y:s[1],z:s[2],wv:1,st:0,t:0,L:(3+Math.random()*6)*1e6,sn:evSN && Math.random()<0.12});
+    if(Math.random()<0.5) sfx$1('birth'); } } // only half of them sound, or it never stops
+  if(lifeAcc.accB>1) lifeAcc.accB = 0;
+  for(let n=0; lifeAcc.accSN>=1 && n<CAP; n++){ lifeAcc.accSN--; if(events.length<EV_CAP){ const s=armSite();
+    events.push({k:2,x:s[0],y:s[1],z:s[2],wv:1,st:0,t:0}); } }
+  if(lifeAcc.accSN>1) lifeAcc.accSN = 0;
+  for(let n=0; lifeAcc.accPN>=1 && n<CAP; n++){ lifeAcc.accPN--; if(events.length<EV_CAP){ const s=diskSite();
+    events.push({k:4,x:s[0],y:s[1],z:s[2],wv:0,st:0,t:0}); } }
+  if(lifeAcc.accPN>1) lifeAcc.accPN = 0;
+  for(let i=events.length-1;i>=0;i--){
+    const e=events[i]; e.st+=dtSim; e.t+=dt;
+    if(e.k===1 && e.st>e.L ){
+      if(e.sn){ e.k=2; e.st=0; }                    // a massive member goes supergiant
+      else if(e.st>e.L +0.8e6) events.splice(i,1);  // cluster disperses into the disk
+    }
+    else if(e.k===2 && e.st>1.0e6){ e.k=3; e.t=0; sfx$1('sn'); } // ~1 Myr as a red supergiant, then collapse
+    else if(e.k===3 && e.t>1.6){ addPuff(e,7,2.8,[0.55,0.35,0.22]); e.k=5; e.t=0; }
+    else if(e.k===4 && e.st>1.2e6){ addPuff(e,1.8,2.2,[0.10,0.50,0.42]); e.k=6; e.t=0; sfx$1('pn'); }
+    else if((e.k===5||e.k===6) && e.t>2.5) events.splice(i,1);
+  }
+  for(let i=puffs.length-1;i>=0;i--){ const q=puffs[i]; q.t+=dt; if(q.t>q.dur) puffs.splice(i,1); }
+}
+
+function fillEvents()       {
+  readout.evN = 0; readout.snN = 0;
+  for(let i=0;i<events.length;i++){
+    const e=events[i]; let s=0,cr=0,cg=0,cb=0;
+    if(e.k===3){
+      // The blast leaves this pass entirely: its own program draws it. The sprite grows
+      // through the whole flash — a fireball only expands — while the brightness peaks
+      // in the first fifth of a second and falls away, so it dims as it spreads.
+      if(readout.snN < SN_CAP){
+        const u = Math.min(1, e.t/1.6);
+        const a = e.t<0.15 ? e.t/0.15 : Math.exp(-(e.t-0.15)/0.45);
+        const j = readout.snN++;
+        snPos[j*3]=e.x; snPos[j*3+1]=e.y; snPos[j*3+2]=e.z;
+        snSize[j] = 14 + 92*Math.min(1, 0.3 + u);
+        snCol[j*3]=2.4*a; snCol[j*3+1]=2.3*a; snCol[j*3+2]=2.1*a;
+        snPh[j] = u;
+      }
+      continue;
+    }
+    if(e.k===1){ // embedded reddish protocluster brightening into a blue OB cluster
+      const u=Math.min(1,e.st/0.8e6), f=e.st>e.L ?Math.max(0,1-(e.st-e.L )/0.8e6):1;
+      s=(0.6+2.8*u)*f;
+      cr=(0.55+0.07*u)*f; cg=(0.16+0.56*u)*f; cb=(0.10+0.95*u)*f;
+      if(e.st < 0.25e6){ // the pling: a brief white twinkle, the opposite of a blast
+        const w = (1 - e.st/0.25e6)*(0.55+0.45*Math.sin(simClock.shimT*9.0 + e.x*3.1));
+        s += 3.2*w; cr += 1.05*w; cg += 1.05*w; cb += 1.15*w;
+      }
+    } else if(e.k===2){ // red supergiant: swelling, reddening
+      const u=Math.min(1,e.st/1e6);
+      s=3.2+2.6*u; cr=0.62+0.5*u; cg=0.72-0.34*u; cb=1.05-0.87*u;
+    } else if(e.k===5){ // what remains: a cooling neutron star
+      const f=Math.max(0,1-e.t/2.5); s=1.4; cr=0.35*f; cg=0.5*f; cb=0.9*f;
+    } else if(e.k===4){ // a low-mass star swells into a red giant
+      const u=Math.min(1,e.st/1.2e6); s=1.2+2.4*u; cr=0.9; cg=0.42-0.12*u; cb=0.16;
+    } else { // white dwarf, slowly fading
+      const f=Math.max(0,1-e.t/2.5); s=1.1; cr=0.8*f; cg=0.85*f; cb=1.0*f;
+    }
+    const j = readout.evN++;   // compacted: the blasts that left this pass leave no gaps behind
+    evPos[j*3]=e.x; evPos[j*3+1]=e.y; evPos[j*3+2]=e.z;
+    evSize[j]=s; evCol[j*3]=cr; evCol[j*3+1]=cg; evCol[j*3+2]=cb; evWave[j]=e.wv;
+  }
+}
+
+function fillPuffs()       {
+  for(let i=0;i<puffs.length;i++){
+    const q=puffs[i], u=q.t/q.dur, rad=q.r1*(1-(1-u)*(1-u)), a=Math.pow(1-u,1.6);
+    pfPos[i*3]=q.x; pfPos[i*3+1]=q.y; pfPos[i*3+2]=q.z;
+    pfSize[i]=Math.max(0.8, rad*2);
+    pfCol[i*3]=q.col[0]*a; pfCol[i*3+1]=q.col[1]*a; pfCol[i*3+2]=q.col[2]*a;
+    // the fourth channel carries both the frame flag and how far the shell has run:
+    // wave in the twos, phase in the fraction — the remnant shader unpacks it
+    pfWave[i]=q.wv*2 + Math.min(0.999, u);
+  }
+}
+                       
+                       
+                 
+               
+                
+              
+              
+              
+              
+                   
+                                                                            
+                   
+                   
+              
+                
+ 
+
+/**
+ * The events, then the blasts on top of everything their flash lights up.
+ *
+ * The events borrow the point program and hand it back: they animate themselves, keep their
+ * own scale and are not part of the star field, so four of its uniforms are set and then set
+ * back to what the star passes left. Getting that restore wrong dims or inflates every star
+ * drawn after this in the frame.
+ */
+function drawEvents(
+  { projMat, viewMat, pxScale, deep, spinMW, warp, sunX, bubY, sunZ, org,
+    minBright, minSprite, tide, varOn }                ,
+)       {
+  fillEvents();
+  gl.uniform1f(U.ptVM, 0.0); // events animate themselves
+  gl.uniform1f(U.ptTide, 0.0);
+  gl.uniform1f(U.ptMinB, 0.0);
+  gl.uniform1f(U.ptMinSz, 1.3);   // events keep their own scale
+  gl.uniform1f(U.ptCap, deep?36.0:110.0); // a supernova blooms, within reason
+  if(readout.evN){
+    gl.bindBuffer(gl.ARRAY_BUFFER,evGL.p); gl.bufferSubData(gl.ARRAY_BUFFER,0,evPos.subarray(0,readout.evN*3));
+    gl.bindBuffer(gl.ARRAY_BUFFER,evGL.s); gl.bufferSubData(gl.ARRAY_BUFFER,0,evSize.subarray(0,readout.evN));
+    gl.bindBuffer(gl.ARRAY_BUFFER,evGL.c); gl.bufferSubData(gl.ARRAY_BUFFER,0,evCol.subarray(0,readout.evN*3));
+    gl.bindBuffer(gl.ARRAY_BUFFER,evGL.w); gl.bufferSubData(gl.ARRAY_BUFFER,0,evWave.subarray(0,readout.evN));
+    gl.bindVertexArray(evGL.vao); gl.drawArrays(gl.POINTS,0,readout.evN);
+  }
+  // the blasts, in their own pass, on top of everything the flash lights up
+  if(readout.snN){
+    gl.useProgram(pSN);
+    gl.uniformMatrix4fv(USN.proj,false,projMat);
+    gl.uniformMatrix4fv(USN.view,false,viewMat);
+    gl.uniform1f(USN.px, pxScale);
+    gl.uniform1f(USN.spin, spinMW);
+    gl.uniform1f(USN.warp, warp);
+    gl.uniform1f(USN.cap, deep?36.0:110.0);
+    gl.uniform3f(USN.sun, sunX, bubY, sunZ);
+    gl.uniform3f(USN.org, org[0], org[1], org[2]);
+    gl.bindBuffer(gl.ARRAY_BUFFER,snGL.p); gl.bufferSubData(gl.ARRAY_BUFFER,0,snPos.subarray(0,readout.snN*3));
+    gl.bindBuffer(gl.ARRAY_BUFFER,snGL.s); gl.bufferSubData(gl.ARRAY_BUFFER,0,snSize.subarray(0,readout.snN));
+    gl.bindBuffer(gl.ARRAY_BUFFER,snGL.c); gl.bufferSubData(gl.ARRAY_BUFFER,0,snCol.subarray(0,readout.snN*3));
+    gl.bindBuffer(gl.ARRAY_BUFFER,snGL.w); gl.bufferSubData(gl.ARRAY_BUFFER,0,snPh.subarray(0,readout.snN));
+    gl.bindVertexArray(snGL.vao); gl.drawArrays(gl.POINTS,0,readout.snN);
+    gl.useProgram(pPt);   // the restores below belong to the point program
+  }
+  gl.uniform1f(U.ptMinB, minBright);
+  gl.uniform1f(U.ptMinSz, minSprite);
+  gl.uniform1f(U.ptTide, tide);
+  gl.uniform1f(U.ptVM, varOn?1.0:0.0);
+  gl.uniform1f(U.ptCap, deep?26.0:110.0);
+}
+
+/**
+ * Expanding shells: supernova remnants and planetary nebulae, on their own program (sizes
+ * exaggerated — see info). After the dust on purpose: a remnant next door is not something
+ * the backdrop's lanes should darken.
+ */
+function drawRemnants(
+  { projMat, viewMat, pxScale, deep, spinMW, warp, sunX, bubY, sunZ, org }                ,
+)       {
+  fillPuffs();
+  gl.useProgram(pRem);
+  gl.uniformMatrix4fv(UREM.proj,false,projMat);
+  gl.uniformMatrix4fv(UREM.view,false,viewMat);
+  gl.uniform1f(UREM.px, pxScale);
+  gl.uniform1f(UREM.spin, spinMW);
+  gl.uniform1f(UREM.warp, warp);
+  gl.uniform1f(UREM.cap, deep?60.0:560.0);
+  gl.uniform3f(UREM.sun, sunX, bubY, sunZ);
+  gl.uniform3f(UREM.org, org[0], org[1], org[2]);
+  gl.bindBuffer(gl.ARRAY_BUFFER,pfGL.p); gl.bufferSubData(gl.ARRAY_BUFFER,0,pfPos.subarray(0,puffs.length*3));
+  gl.bindBuffer(gl.ARRAY_BUFFER,pfGL.s); gl.bufferSubData(gl.ARRAY_BUFFER,0,pfSize.subarray(0,puffs.length));
+  gl.bindBuffer(gl.ARRAY_BUFFER,pfGL.c); gl.bufferSubData(gl.ARRAY_BUFFER,0,pfCol.subarray(0,puffs.length*3));
+  gl.bindBuffer(gl.ARRAY_BUFFER,pfGL.w); gl.bufferSubData(gl.ARRAY_BUFFER,0,pfWave.subarray(0,puffs.length));
+  gl.bindVertexArray(pfGL.vao); gl.drawArrays(gl.POINTS,0,puffs.length);
+}
+
+/**
+ * The debug door: opened by `?debug` in the URL or ten taps on refresh, and remembered.
+ *
+ * Behind it are the error log (collected on touch devices, which have no console to open),
+ * the state export and import, and the QR overlay. It drives ui/qr rather than the other way
+ * round, which is why the encoder takes its payload as an injection.
+ *
+ * `exportState` and `applyState` are the pair that makes a scene reproducible somewhere else:
+ * the clock, the camera, the viewport and the whole settings record, in and out as JSON.
+ */
+
+let restoreSettings$1                              = () => {};
+let fitPanels$1             = () => {};
+const DBGKEY = 'galactic-transit.debug';
+const DEBUG          = (()=>{ try{
+  const v = new URLSearchParams(location.search).get('debug');
+  if(v !== null){
+    const on = !['0','false','off'].includes(v.toLowerCase());
+    try{ localStorage.setItem(DBGKEY, on ? '1' : '0'); }catch(e){}
+    return on;
+  }
+  return localStorage.getItem(DBGKEY) === '1';
+}catch(e){ return false; } })();
+let debugMode = false;
+const isDebugMode = ()          => debugMode;
+// ---------- the settings / log tabs ----------
+const ESC                         = {'&':'&amp;','<':'&lt;','>':'&gt;'};
+const esc = (t         )         => String(t).replace(/[&<>]/g, c => ESC[c]);
+const clock = (t        )         => new Date(t).toTimeString().slice(0,8);
+function renderLog()       {
+  const total = errLog.reduce((n,e)=>n+e.n, 0);
+  $('logCount').textContent = total ? ' ' + total : '';
+  if($('logBody').style.display === 'none') return;      // counted always, drawn only when open
+  $('logNote').textContent = TOUCH_DEV ? BUILD.version + ' · since load' : 'desktop: use the browser console';
+  $('logList').innerHTML = errLog.length
+    ? errLog.map(e => '<div class="logrow ' + e.kind + '"><div class="meta">' + clock(e.t) + ' · ' + e.kind
+        + (e.n > 1 ? ' ×' + e.n : '') + (e.where ? ' · ' + esc(e.where) : '') + '</div>' + esc(e.msg) + '</div>').join('')
+    : '<div class="logempty">' + (TOUCH_DEV ? 'Nothing has gone wrong since this page loaded.'
+        : 'Errors are collected on phones and tablets only, where there is no console to open. This device has one — use it.') + '</div>';
+}
+function setHudTab(t        )       {
+  $('hudBody').style.display = t === 'log' ? 'none' : '';
+  $('logBody').style.display = t === 'log' ? '' : 'none';
+  for(const b of document.querySelectorAll('#hudTabs .tab')) b.classList.toggle('on', (b               ).dataset.tab === t);
+  renderLog(); fitPanels$1();
+}
+function setDebugUI(on         , entering         )       {
+  debugMode = on;
+  $('dbgBtn').style.display = on ? '' : 'none';
+  $('rowHudHz').style.display = on ? '' : 'none';
+  $('rowGain').style.display = on ? '' : 'none';
+  $('secDebugHead').style.display = on ? '' : 'none';
+  $('hudTabs').style.display = on ? '' : 'none';
+  // the log is what debug mode is entered for, so it opens on it; leaving takes the
+  // settings back, since without the strip there is no way back to them
+  setHudTab(on && entering ? 'log' : 'set');
+  if(!on){ closeSection('debug'); applySecs(); }       // folded away with its heading; opens as any section
+  // entering debug mode switches the QR on; a plain boot in debug mode leaves the choice alone
+  if(on && entering && !($('qrOn')                    ).checked){ ($('qrOn')                    ).checked = true; $('qrOn').dispatchEvent(new Event('change')); }
+  qrRedraw(true);
+}
+function exportState()                      {
+  saveSettingsNow();
+  let settings = null; try{ settings = JSON.parse(localStorage.getItem(SKEY)||'null'); }catch(e){}
+  return {
+    app: 'galactic-transit', version: BUILD.version, exported: new Date().toISOString(),
+    time: { simT: simClock.simT, paused: simClock.paused },
+    camera: { yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, distGoal:cam.distGoal,
+              follow:cam.follow, coreLock: cam.coreLock, dive:$('tDive').classList.contains('on') },
+    viewport: { w:innerWidth, h:innerHeight, dpr:devicePixelRatio },
+    settings,
+  };
+}
+function applyState(o     )       {
+  if(!o || o.app !== 'galactic-transit') throw new Error('not a galactic-transit state');
+  if(o.settings){ localStorage.setItem(SKEY, JSON.stringify(o.settings)); restoreSettings$1(false); }
+  if(o.time && typeof o.time.simT === 'number'){
+    simClock.simT = o.time.simT; simClock.nextSample = simClock.simT + simClock.dtSample;
+    events.length = 0; puffs.length = 0; refillTrails();
+    if(typeof o.time.paused === 'boolean' && simClock.paused !== o.time.paused) $('tPause').click();
+  }
+  if(o.camera){ const c = o.camera;
+    for(const k of ['yaw','pitch','dist','distGoal']         ) if(typeof c[k] === 'number') cam[k] = c[k];
+    if(typeof c.follow === 'boolean') cam.follow = c.follow;
+    cam.coreLock = !!c.coreLock;
+    $('tDive').classList.toggle('on', !!c.dive);
+    cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
+  }
+}
+
+function initDebug(deps   
+                                              
+                       
+ )       {
+  restoreSettings$1 = deps.restoreSettings; fitPanels$1 = deps.fitPanels;
+  for(const b of document.querySelectorAll('#hudTabs .tab')) b.addEventListener('click', ()=> setHudTab((b               ).dataset.tab ));
+  $('logClear').addEventListener('click', ()=>{ errLog.length = 0; renderLog(); });
+  $('logCopy').addEventListener('click', ()=>{
+    const txt = 'galactic-transit ' + BUILD.version + ' · ' + navigator.userAgent + '\n'
+      + errLog.map(e => clock(e.t) + ' ' + e.kind + (e.n>1 ? ' x'+e.n : '') + (e.where ? ' (' + e.where + ')' : '') + ': ' + e.msg).join('\n');
+    try{ navigator.clipboard.writeText(txt); $('logCopy').textContent = 'copied'; setTimeout(()=> $('logCopy').textContent = 'copy', 1200); }catch(e){}
+  });
+  const dbgSay = (m        )       => { $('dbgMsg').textContent = m; };
+  $('dbgBtn').addEventListener('click', ()=>{
+    $('dbgCard').style.display='';
+    // open on the current state, ready to copy — export is one keypress saved
+    ($('dbgText')                       ).value = JSON.stringify(exportState(), null, 2);
+    dbgSay('current state');
+  });
+  $('dbgClose').addEventListener('click', ()=>{ $('dbgCard').style.display='none'; });
+  $('dbgExport').addEventListener('click', ()=>{
+    ($('dbgText')                       ).value = JSON.stringify(exportState(), null, 2); dbgSay('state exported'); });
+  $('dbgImport').addEventListener('click', ()=>{
+    try{ applyState(JSON.parse(($('dbgText')                       ).value)); dbgSay('state imported'); }
+    catch(e){ dbgSay('import failed: '+(e         ).message); } });
+  $('dbgCopy').addEventListener('click', ()=>{
+    navigator.clipboard.writeText(($('dbgText')                       ).value)
+      .then(()=>dbgSay('copied'), ()=>dbgSay('clipboard refused — select and copy by hand')); });
+  $('dbgPaste').addEventListener('click', ()=>{
+    navigator.clipboard.readText()
+      .then(v=>{ ($('dbgText')                       ).value=v; dbgSay('pasted'); },
+            ()=>dbgSay('clipboard refused — paste into the box by hand')); });
+  if(DEBUG) setDebugUI(true, new URLSearchParams(location.search).get('debug') !== null);
 }
 
 /**
@@ -2020,51 +3149,6 @@ const AB_N = 1500;
 const KB_N = 1600;
 const OO_N = 2400; // Oort cloud: symbolically close — really 2,000–100,000+ AU out
 
-/**
- * The one WebGL2 context, and the one place that gives up if there is not one.
- *
- * Asking for a second context on the same canvas does NOT create one — the browser returns
- * the existing context and silently ignores the attributes, so a second call with different
- * antialias or alpha would appear to work and quietly do nothing. One module, one call;
- * scripts/check-build.mjs asserts the emitted page contains exactly one getContext.
- *
- * The failure path replaces the whole body and throws. In a module that abort propagates to
- * main.ts, which imports this first, so nothing downstream runs against a null context —
- * which is what used to happen by accident when this was one long script.
- */
-
-const canvasEl = document.getElementById('gl');                    
-const glCtx = canvasEl.getContext('webgl2', {antialias:true, alpha:false});
-if(!glCtx){ document.body.innerHTML = '<p style="padding:2em">WebGL2 is not available in this browser.</p>'; throw new Error('no webgl2'); }
-
-const canvas = canvasEl;
-const gl                         = glCtx;
-
-/**
- * Compile and link. Both throw on failure rather than returning null, because a program that
- * failed to link draws nothing and reports nothing — the canvas is simply black, and the
- * info log is the only thing that says why.
- *
- * The uniform-location tables stay hand-written at their call sites and are NOT harvested by
- * a helper here. They are not interchangeable: UN omits uVelT/uMinB/uFadeOut, UD omits those
- * plus uTime/uVarMode, and the GL default of zero for the missing ones is load-bearing —
- * attribute location 4 (aVel) is never enabled by any VAO, so unioning the key lists would
- * give nebulae and dust a proper-motion shear they have never had.
- */
-
-function sh(type        , src        )              {
-  const s=gl.createShader(type) ; gl.shaderSource(s,src); gl.compileShader(s);
-  if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s) ?? 'shader failed to compile, with no info log');
-  return s;
-}
-function prog(vs        , fs        )               {
-  const p=gl.createProgram() ;
-  gl.attachShader(p,sh(gl.VERTEX_SHADER,vs)); gl.attachShader(p,sh(gl.FRAGMENT_SHADER,fs));
-  gl.linkProgram(p);
-  if(!gl.getProgramParameter(p,gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p) ?? 'program failed to link, with no info log');
-  return p;
-}
-
 const AB_VS = "#version 300 es\nlayout(location=0) in vec2 aRT;  // orbit radius, initial angle\nlayout(location=1) in float aH;  // offset along the ecliptic normal\nlayout(location=2) in float aSz;\nlayout(location=3) in float aP;  // real orbital period, years\nuniform mat4 uProj,uView; uniform float uPx,uT,uS;\nuniform vec3 uSun,uE1,uE2,uEN;\nvoid main(){\n  float a = aRT.y + uT*6.28318/aP;\n  vec3 p = uSun + (cos(a)*aRT.x*uS)*uE1 + (sin(a)*aRT.x*uS)*uE2 + aH*uS*uEN;\n  vec4 mv=uView*vec4(p,1.0); gl_Position=uProj*mv;\n  gl_PointSize=clamp(aSz*uS*uPx/max(1e-9,-mv.z),1.0,6.0);\n}";
 
 const KB_VS = "#version 300 es\nlayout(location=0) in vec2 aRT;  // orbit radius, initial angle\nlayout(location=1) in float aH;  // offset along the ecliptic normal\nlayout(location=2) in float aSz;\nuniform mat4 uProj,uView; uniform float uPx,uT,uS;\nuniform vec3 uSun,uE1,uE2,uEN;\nvoid main(){\n  float a = aRT.y + uT*6.28318/(165.0*pow(aRT.x/38.5,1.5)); // Kepler-scaled periods vs Neptune\n  vec3 p = uSun + (cos(a)*aRT.x*uS)*uE1 + (sin(a)*aRT.x*uS)*uE2 + aH*uS*uEN;\n  vec4 mv=uView*vec4(p,1.0); gl_Position=uProj*mv;\n  gl_PointSize=clamp(aSz*uS*uPx/max(1e-9,-mv.z),1.0,9.0);\n}";
@@ -2591,53 +3675,6 @@ function drawGlobe(
   return { moonPx, earthDbg };
 }
 
-const PT_VS = "#version 300 es\nlayout(location=0) in vec3 aPos;\nlayout(location=1) in float aSize;\nlayout(location=2) in vec3 aColor;\nlayout(location=3) in float aWave; // 1: point rides the spiral density-wave pattern\nlayout(location=4) in vec3 aVel;   // heliocentric space velocity, km/s (real stars only)\nuniform float uVelT;               // km/s -> scene displacement for the elapsed years\nuniform mat4 uProj, uView;\nuniform float uPx;\nuniform float uSpin; // distance travelled at the flat-curve speed; 0 = no rotation\nuniform float uWarp; // precession phase of the disk warp\nuniform vec3 uSunPos; // center of the clearance bubble around the magnified solar system\nuniform float uCap;   // sprite size ceiling (smaller at deep zoom: near stars stay point-like)\nuniform float uWaveAll; // 1: treat every point in this draw as wave-riding (nebulae, dust)\nuniform float uTime;    // wall-clock seconds for the variability animation\nuniform float uVarMode; // 0 off | 1 stars (a few % pulse, reddening at minimum) | 2 nebulae (all breathe)\nuniform vec3 uAnd;      // Andromeda's centre, galactic coordinates\nuniform float uTide;    // 0 far apart .. 1 at contact\nuniform float uWarpAmp; // how strongly this draw takes the disk warp\nuniform float uMinB;    // brightness floor: lift the faintest stars to at least this\nuniform float uMinSz;   // sprite floor in pixels: how small a star is allowed to get\nuniform float uFadeOut; // 0 draws normally, 1 hides: used where a layer stops being true\nuniform vec3 uOrg;    // rendering origin (the Sun) — keeps deep real-scale zooms float-precise\nuniform float uGal;   // 1: this draw is a whole galaxy, placed by uGRot/uGOff\nuniform mat3 uGRot;   // the galaxy's disk frame in scene coordinates (identity for ours)\nuniform vec3 uGOff;   // the galaxy's centre (zero for ours)\nuniform float uMerge; // 0 two galaxies .. 1 one relaxed remnant\nout vec3 vColor;\nvoid main(){\n  vec3 p = aPos + aVel*uVelT;\n  float fade = 1.0;\n  if(uSpin != 0.0){\n    float r = length(p.xz);\n    // material stars: flat rotation curve, so they shear differentially. Wave-flagged\n    // points (bar, arms, spur, gas, young stars) rigidly follow one pattern speed\n    // instead — corotation at r=640 (~19 kly) — so stars stream through the arms\n    // and the pattern never winds up: density-wave theory's answer to the winding problem.\n    float w = max(aWave, uWaveAll);\n    float d = mix(uSpin / max(r, 520.0), uSpin/640.0, w);\n    float c = cos(d), s = sin(d);\n    p = vec3(p.x*c + p.z*s, p.y, p.z*c - p.x*s);\n    // Gaia-style warp: outer disk bends up on one side, down on the other,\n    // and the whole pattern precesses retrograde (uWarp) like a wobbling top\n    float wr = max(0.0, r - 950.0);\n    p.y += uWarpAmp*(wr*0.13*sin(atan(p.x,p.z) - uWarp)  // integral-sign warp, growing outward\n         + 4.0*sin(r*0.021));                            // faint corrugation ripples in the disk\n    // the planetary system is drawn ~10-million-fold magnified; clear its space\n    fade = smoothstep(80.0, 240.0, distance(p, uSunPos));\n  }\n  // Whole-galaxy draws: place the cloud in the world — identity for the Milky Way,\n  // Andromeda's measured orientation and moving centre for its own — then the mutual\n  // tide, then, while the remnant relaxes, the slide into a single spheroid.\n  if(uGal > 0.5){\n    float rL = length(aPos.xz);      // radius in the galaxy's own disk, pre-transform\n    p = uGRot*p + uGOff;\n    // Tidal pull toward the companion. A real encounter is an N-body problem; this is\n    // the leading effect only — the differential pull grows with disk radius, so the\n    // outer disk reaches into a bridge while the core barely moves. Softened and\n    // capped: a bare inverse square tears passing stars into a streak.\n    if(uTide > 0.001){\n      vec3 dv = uAnd - p;\n      float dd = length(dv);\n      float pull = uTide * (rL/900.0) * 480.0 / (1.0 + (dd*dd)/(2600.0*2600.0));\n      p += normalize(dv) * min(pull, 560.0);\n    }\n    // Coalescence: violent relaxation scrambles both disks into one elliptical.\n    // Each star slides to a stable pseudo-random spot on a de-Vaucouleurs-ish\n    // spheroid, mildly flattened, its radius loosely keeping the star's rank.\n    if(uMerge > 0.001){\n      float h1 = fract(sin(dot(aPos.xy, vec2(127.1,311.7)))*43758.5453);\n      float h2 = fract(sin(dot(aPos.yz, vec2(269.5,183.3)))*43758.5453);\n      float cz = h2*2.0-1.0, sz = sqrt(max(0.0, 1.0-cz*cz)), ph = 6.28318*h1;\n      vec3 tgt = vec3(sz*cos(ph), cz*0.72, sz*sin(ph))\n               * (90.0 + 200.0*pow(0.5*(h1+h2), 1.6)*3.0 + length(aPos)*0.34);\n      p = mix(p, tgt, uMerge*uMerge);\n    }\n  }\n  vec4 mv = uView * vec4(p - uOrg,1.0);\n  gl_Position = uProj * mv;\n  float dd = max(1e-9, -mv.z); // no floor of 1: real-scale zooms get much closer than that\n  float s0 = aSize * uPx / dd;\n  gl_PointSize = clamp(s0, max(uMinSz, 0.7), uCap);\n  // a star smaller than a pixel keeps its flux, not its size: clamped points dim by\n  // the area they were denied, so the far field stops shimmering at full brightness.\n  // Referenced against the fixed floor, so the min-size slider still brightens.\n  float sub = clamp(s0/0.7, 0.0, 1.0);\n  float fluxKeep = mix(1.0, sub*sub, 0.62);\n  vec3 col = aColor;\n  if(uVarMode > 0.5){\n    float h = fract(sin(dot(aPos.xz, vec2(12.9898,78.233)))*43758.5453);\n    if(uVarMode < 1.5){\n      // variable stars: ~4-5% of points pulse Mira/Cepheid-style — dimmer AND redder\n      // at minimum light, because the star is coolest there\n      if(h > 0.955){\n        float w = 2.0 + 10.0*fract(h*97.0);\n        float dim = 0.5 + 0.5*sin(uTime*w + h*6283.0);\n        col *= 0.45 + 0.75*dim;\n        col.g *= 0.85 + 0.15*dim;\n        col.b *= 0.70 + 0.30*dim;\n      }\n    } else {\n      // nebulae: every puff breathes gently and drifts in hue (ionization flicker)\n      float ph = h*6283.0;\n      float s1 = sin(uTime*0.5 + ph), s2 = sin(uTime*0.23 + ph*1.7);\n      col *= 0.82 + 0.18*s1;\n      col.r *= 1.0 + 0.10*s2;\n      col.b *= 1.0 - 0.08*s2;\n    }\n  }\n  // A floor rather than a gain: anything already brighter than it is left alone, so\n  // raising it reveals the faint disk without blowing out the arms and the core.\n  if(uMinB > 0.0){\n    float lum = max(max(col.r, col.g), col.b);\n    if(lum > 0.0002 && lum < uMinB) col *= uMinB/lum;\n  }\n  vColor = col * fade * fluxKeep * (1.0 - uFadeOut);\n}";
-
-const PT_FS = "#version 300 es\nprecision mediump float;\nin vec3 vColor; out vec4 o;\nvoid main(){\n  vec2 q = gl_PointCoord*2.0-1.0;\n  float r = length(q);\n  if(r>1.0) discard;\n  float d = 1.0-r;\n  float corona = pow(d, 6.0);\n  float core   = pow(d, 20.0);\n  float a = corona*0.85 + core*1.35;\n  vec3 col = vColor*a + vColor.g*core*0.9;   // the white-core lift, scaled by luminance\n  o = vec4(col, a);\n}";
-
-const TR_VS = "#version 300 es\nlayout(location=0) in vec3 aPos;\nuniform mat4 uProj,uView;\nuniform float uLen;\nuniform vec3 uOrg;\nout float vF;\nvoid main(){\n  gl_Position = uProj*uView*vec4(aPos-uOrg,1.0);\n  vF = float(gl_VertexID)/uLen;\n}";
-
-const TR_FS = "#version 300 es\nprecision mediump float;\nin float vF; uniform vec3 uColor; uniform float uAlpha; uniform float uFlat; out vec4 o;\nvoid main(){ float f = mix(pow(vF,1.7), 1.0, uFlat)*uAlpha; o = vec4(uColor*f, f); }";
-
-/**
- * The two programs almost everything is drawn with.
- *
- * `pPt` is the glowing point sprite — stars, the galaxy, Andromeda, the bodies, the life-cycle
- * events, Gliese 710, the engulfment flares. Its star profile follows Gaia Sky (MPL-2.0,
- * assets/shader/lib/star.glsl): a wide soft corona with a tight hot core, and the core lifts
- * the colour toward white, so a bright star reads as luminous rather than as a tinted disc.
- * Reimplemented, not copied.
- *
- * `pTr` is the trails, faded by vertex index.
- *
- * Only the programs and the locations live here for now — the draws are still in `frame()`,
- * which is what `00-PLAN.md` step 10 asks for. They cannot follow yet: six separate passes
- * write through this one table, each setting a uniform and setting it back, and they read a
- * dozen values apiece off the frame. They move once `render/frame` exists to hand those over.
- *
- * `U` stays one object with both programs' locations in it, exactly as it was. Splitting the
- * `tr*` half out belongs with `render/trails` at step 13, and a table that is half-moved is
- * worse than one that has not moved at all.
- */
-
-const pPt = prog(PT_VS,PT_FS), pTr = prog(TR_VS,TR_FS);
-const U = {
-  ptProj: gl.getUniformLocation(pPt,'uProj'), ptView: gl.getUniformLocation(pPt,'uView'), ptPx: gl.getUniformLocation(pPt,'uPx'),
-  ptSpin: gl.getUniformLocation(pPt,'uSpin'), ptWarp: gl.getUniformLocation(pPt,'uWarp'), ptSun: gl.getUniformLocation(pPt,'uSunPos'),
-  ptOrg: gl.getUniformLocation(pPt,'uOrg'), trOrg: gl.getUniformLocation(pTr,'uOrg'),
-  velT: gl.getUniformLocation(pPt,'uVelT'),
-  ptCap: gl.getUniformLocation(pPt,'uCap'), ptWA: gl.getUniformLocation(pPt,'uWaveAll'),
-  ptTime: gl.getUniformLocation(pPt,'uTime'), ptVM: gl.getUniformLocation(pPt,'uVarMode'),
-  ptAnd: gl.getUniformLocation(pPt,'uAnd'), ptTide: gl.getUniformLocation(pPt,'uTide'),
-  ptWarpAmp: gl.getUniformLocation(pPt,'uWarpAmp'), ptMinB: gl.getUniformLocation(pPt,'uMinB'),
-  ptMinSz: gl.getUniformLocation(pPt,'uMinSz'), ptFade: gl.getUniformLocation(pPt,'uFadeOut'),
-  ptGal: gl.getUniformLocation(pPt,'uGal'), ptGRot: gl.getUniformLocation(pPt,'uGRot'),
-  ptGOff: gl.getUniformLocation(pPt,'uGOff'), ptMerge: gl.getUniformLocation(pPt,'uMerge'),
-  trProj: gl.getUniformLocation(pTr,'uProj'), trView: gl.getUniformLocation(pTr,'uView'),
-  trLen: gl.getUniformLocation(pTr,'uLen'), trCol: gl.getUniformLocation(pTr,'uColor'), trA: gl.getUniformLocation(pTr,'uAlpha'),
-  trFlat: gl.getUniformLocation(pTr,'uFlat')
-};
-
 const NEB_FS = "#version 300 es\nprecision mediump float;\nuniform float uGFade;  // galaxy-haze pass only: dies away when the camera is in close\nin vec3 vColor; out vec4 o;\nvoid main(){\n  vec2 q = gl_PointCoord*2.0-1.0;\n  float r = length(q);\n  if(r>1.0) discard;\n  float a = pow(1.0-r, 2.1)*uGFade;\n  o = vec4(vColor*a, a);\n}";
 
 /**
@@ -2943,79 +3980,6 @@ function drawBodies({ showDwarfs, showP9 }            )       {
   gl.bindVertexArray(vaoBodies);
   gl.drawArrays(gl.POINTS, 0, showDwarfs ? I_P9 : N_PLANETS);
   if(showP9) gl.drawArrays(gl.POINTS, I_P9, 1);
-}
-
-/**
- * Vertex buffers and the vertex arrays that reference them.
- *
- * Deleting a vertex array does not free the buffers it points at, and at the heavy densities
- * those run to hundreds of megabytes — so every VAO's buffers are tracked beside it and
- * released together. That bookkeeping is the whole reason this is a module rather than three
- * loose helpers.
- *
- * flushGxyCache stays with the galaxy cache that owns the entries: it must never throw
- * mid-flush, because both map loaders race each other into it and the loser would be left
- * pointing at deleted vertex arrays.
- */
-
-// Buffers are tracked alongside their VAO so a density can be released again: deleting
-// a vertex array does not free what it references, and the big densities are hundreds
-// of megabytes apiece.
-const vaoBufs = new WeakMap                                       ();
-
-/**
- * Register a vertex array's buffers for release, for callers that build their own VAO.
- * The orbit rings do: one buffer, laid out by hand. Exposed as a function rather than by
- * exporting the map, so there is one owner of the bookkeeping and no way to end up with two
- * copies of it — deleting a VAO whose buffers were tracked in the other map leaks them, and
- * nothing reports it.
- */
-function trackVAOBuffers(vao                        , bufs               )       {
-  vaoBufs.set(vao, bufs);
-}
-function deleteVAO(vao                        )       {
-  const bufs = vaoBufs.get(vao);
-  if(bufs) bufs.forEach(b => gl.deleteBuffer(b));
-  gl.deleteVertexArray(vao);
-}
-                             
-                                                                                    
-                
-                
-                
-                
- 
-
-/**
- * The same four attributes as `pointVAO`, sized for `cap` points and left empty. Everything
- * whose contents change every frame is built this way — the life-cycle events, the blasts,
- * the remnants, Gliese 710, the engulfment flares — and each of them uploads a subarray of
- * exactly the length it needs, so the capacity is a ceiling rather than a count.
- */
-function dynVAO(cap        )         {
-  const o = { vao: gl.createVertexArray()  }          ;
-  gl.bindVertexArray(o.vao);
-  o.p=gl.createBuffer() ; gl.bindBuffer(gl.ARRAY_BUFFER,o.p); gl.bufferData(gl.ARRAY_BUFFER,cap*12,gl.DYNAMIC_DRAW);
-  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
-  o.s=gl.createBuffer() ; gl.bindBuffer(gl.ARRAY_BUFFER,o.s); gl.bufferData(gl.ARRAY_BUFFER,cap*4,gl.DYNAMIC_DRAW);
-  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,1,gl.FLOAT,false,0,0);
-  o.c=gl.createBuffer() ; gl.bindBuffer(gl.ARRAY_BUFFER,o.c); gl.bufferData(gl.ARRAY_BUFFER,cap*12,gl.DYNAMIC_DRAW);
-  gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2,3,gl.FLOAT,false,0,0);
-  o.w=gl.createBuffer() ; gl.bindBuffer(gl.ARRAY_BUFFER,o.w); gl.bufferData(gl.ARRAY_BUFFER,cap*4,gl.DYNAMIC_DRAW);
-  gl.enableVertexAttribArray(3); gl.vertexAttribPointer(3,1,gl.FLOAT,false,0,0);
-  gl.bindVertexArray(null); return o;
-}
-
-function pointVAO(pos              , size              , col              , wave               , vel               )                         {
-  const vao=gl.createVertexArray() ; gl.bindVertexArray(vao);
-  const bufs               =[];
-  const attach=(data              ,loc        ,comps        )=>{ const b=gl.createBuffer() ; bufs.push(b);
-    gl.bindBuffer(gl.ARRAY_BUFFER,b); gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,comps,gl.FLOAT,false,0,0); };
-  attach(pos,0,3); attach(size,1,1); attach(col,2,3);
-  if(wave) attach(wave,3,1);
-  if(vel) attach(vel,4,3);   // populations without one read a constant zero
-  gl.bindVertexArray(null); vaoBufs.set(vao,bufs); return vao;
 }
 
 /**
@@ -3362,474 +4326,6 @@ function drawLabels(showLabels         , inputs             )       {
     const [cw, sx, sy] = proj(star.x*k, star.y*k, star.z*k);
     placeLabel(g710Lbl, sx, sy, cw > Math.max(1e-9,camDist*0.01) && camDist <= 900);
   } else placeLabel(g710Lbl, 0, 0, false);
-}
-
-/**
- * The swept paths, and the closed orbits that stand in for them.
- *
- * Two different things are drawn through one program. A TRAIL is the path actually watched
- * being swept: TRAIL_N samples in a sliding window, sample TRAIL_N−1 being now and the
- * brightest, sample 0 the earliest seen. A RING is each planet's orbit as a closed
- * heliocentric loop, sampled once — in this model orbits neither precess nor decay, so the
- * ring is the same at any epoch — and it stands in wherever sweeping is impossible: inside the
- * dive at high speed a million orbits pass per second, no line can trace them, and the path
- * they all follow is exactly this ring.
- */
-
-/** sliding window: TRAIL_N samples, spacing set by the length slider */
-const TRAIL_N = 2400;
-const trails                 = [], trailBufs                = [], trailVaos                           = [];
-
-/**
- * Build the sliding windows. Called from main.ts rather than at import: this is the sixth of
- * the seven things that consume the boot sequence in order, and building it anywhere else
- * moves everything after it.
- */
-function initTrails()       {
-  for(let i=0;i<NB;i++){
-    const a = new Float32Array(TRAIL_N*3);
-    for(let k=0;k<TRAIL_N;k++){
-      bodyPos(i, (k-(TRAIL_N-1))*simClock.dtSample, tmp);
-      a[k*3]=tmp[0]; a[k*3+1]=tmp[1]; a[k*3+2]=tmp[2];
-    }
-    trails.push(a);
-    const vao=gl.createVertexArray() ; gl.bindVertexArray(vao);
-    const b=gl.createBuffer() ; gl.bindBuffer(gl.ARRAY_BUFFER,b);
-    gl.bufferData(gl.ARRAY_BUFFER,a,gl.DYNAMIC_DRAW);
-    gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
-    gl.bindVertexArray(null);
-    trailBufs.push(b); trailVaos.push(vao);
-  }
-}
-
-const RING_N = 96;
-const ringVaos                                    = [];
-
-/** The orbit rings — the seventh and last of the boot's ordered builders. */
-function initOrbitRings()       {
-  const q = new Float64Array(3), s0 = new Float64Array(3);
-  for(let i=0;i<NB;i++){
-    if(i === 0){ ringVaos.push(null); continue; }
-    const a = new Float32Array(RING_N*3);
-    const P = BODIES[i][1]          ;
-    for(let k=0;k<RING_N;k++){
-      const ts = k/RING_N*P;
-      bodyPos(i, ts, q); bodyPos(0, ts, s0);
-      a[k*3]=q[0]-s0[0]; a[k*3+1]=q[1]-s0[1]; a[k*3+2]=q[2]-s0[2];
-    }
-    const vao=gl.createVertexArray() ; gl.bindVertexArray(vao);
-    const b=gl.createBuffer() ; gl.bindBuffer(gl.ARRAY_BUFFER,b);
-    gl.bufferData(gl.ARRAY_BUFFER,a,gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
-    gl.bindVertexArray(null); trackVAOBuffers(vao,[b]); ringVaos.push(vao);
-  }
-}
-
-// Trails are stored as absolute positions minus a local anchor. Float32 alone cannot
-// hold a position of magnitude ~900 to sub-AU precision — the error is about 7 AU,
-// which at dive zoom is the whole frame — so the anchor keeps the stored numbers small
-// and the draw passes (org - anchor), subtracted in double precision, as the origin.
-const trailAnchor = new Float64Array(3);
-
-function trailPos(i        , ts        , out              )               {
-  bodyPos(i, ts, out);
-  out[0]-=trailAnchor[0]; out[1]-=trailAnchor[1]; out[2]-=trailAnchor[2];
-  return out;
-}
-
-function pushTrail(i        , ts        )       {
-  const a=trails[i];
-  a.copyWithin(0,3);
-  trailPos(i, ts, tmp);
-  a[(TRAIL_N-1)*3]=tmp[0]; a[(TRAIL_N-1)*3+1]=tmp[1]; a[(TRAIL_N-1)*3+2]=tmp[2];
-}
-
-/** Push this frame's samples to the GPU. Only called on a frame that took any. */
-function uploadTrails()       {
-  for(let i=0;i<NB;i++){
-    gl.bindBuffer(gl.ARRAY_BUFFER,trailBufs[i]);
-    gl.bufferSubData(gl.ARRAY_BUFFER,0,trails[i]);
-  }
-}
-
-function refillTrails()       {
-  bodyPos(0, simClock.simT, tmpSun);
-  trailAnchor[0]=tmpSun[0]; trailAnchor[1]=tmpSun[1]; trailAnchor[2]=tmpSun[2];
-  // The trail is the path the viewer has watched being swept: sample TRAIL_N−1 is now and
-  // the brightest, sample 0 the earliest seen and the dimmest. With the clock running
-  // backwards "earliest seen" is the LATER sim time, so the samples run the other way —
-  // otherwise the trail pointed into the sim-past, which in reverse lies ahead of the
-  // body, and it led instead of trailed.
-  const dirT = simClock.shuttle < 0 ? -1 : 1;
-  for(let i=0;i<NB;i++){
-    const a=trails[i];
-    for(let k=0;k<TRAIL_N;k++){
-      trailPos(i, simClock.simT - dirT*((TRAIL_N-1)-k)*simClock.dtSample, tmp);
-      a[k*3]=tmp[0]; a[k*3+1]=tmp[1]; a[k*3+2]=tmp[2];
-    }
-    gl.bindBuffer(gl.ARRAY_BUFFER,trailBufs[i]);
-    gl.bufferSubData(gl.ARRAY_BUFFER,0,a);
-  }
-}
-                       
-                       
-                 
-                   
-                                                                                       
-                    
-                    
-                  
-                                                                                           
-              
-              
-                 
-                     
-                              
- 
-
-/**
- * Trail buffers hold absolute positions, and at the Sun's radius a float32 step is 6.1e-5
- * scene units — a quarter pixel around cam.dist 0.17. Fade across that boundary rather than
- * cutting, so leaving real scale doesn't drop them abruptly.
- *
- * Planets are drawable only while their points stand apart from the Sun's: Neptune's orbit
- * spans about six pixels at 0.13 units of camera distance, and beyond that the whole system
- * is inside one point — only the Sun's own trail means anything there.
- */
-function drawTrails(
-  { projMat, viewMat, camDist, org, trailAlpha, orbitAlpha, starGain,
-    psH, psO, showP9, showDwarfs, wasEaten }             ,
-)       {
-  const solarClose = camDist < 0.13;
-  gl.useProgram(pTr);
-  gl.uniformMatrix4fv(U.trProj,false,projMat);
-  gl.uniformMatrix4fv(U.trView,false,viewMat);
-  gl.uniform1f(U.trLen,TRAIL_N);
-  const last = (showP9 ? NB : I_P9)-1;
-  // the origin for anchored buffers, subtracted in double precision
-  const aox = org[0]-trailAnchor[0], aoy = org[1]-trailAnchor[1], aoz = org[2]-trailAnchor[2];
-  gl.uniform3f(U.trOrg, aox, aoy, aoz);
-  for(let i=last;i>=0;i--){
-    const c=BODIES[i][4]            ;
-    if(i === I_P9 && !showP9) continue;
-    if(i >= N_PLANETS && i < I_P9 && !showDwarfs) continue;
-    if(i <= 3 && i > 0 && wasEaten[i]) continue;   // no path for a planet that is gone
-    if(readout.globePx > 40) continue;   // zoomed onto the globe, every orbit and helix is a line across the sky
-    if(i > 0){
-      if(!solarClose) continue;                    // collapsed into the Sun's point
-      const spo = (BODIES[i][1]          )/simClock.dtSample;
-      // the ring draws when asked for, or as the fallback for an unresolvable helix
-      if(psO || (psH && spo < 12)){
-        // the closed path itself — also the honest fallback when the sampling
-        // cannot resolve the orbit and no accurate helix is drawable
-        gl.uniform3f(U.trOrg, 0,0,0);
-        gl.uniform3f(U.trCol, c[0],c[1],c[2]);
-        gl.uniform1f(U.trA, 0.4*orbitAlpha*(1+starGain*0.9));
-        gl.uniform1f(U.trFlat, 1.0);
-        gl.bindVertexArray(ringVaos[i]);
-        gl.drawArrays(gl.LINE_LOOP, 0, RING_N);
-        gl.uniform1f(U.trFlat, 0.0);
-        gl.uniform3f(U.trOrg, aox, aoy, aoz);
-      }
-      if(!psH || spo < 12) continue;
-      // the accurate helix: the swept absolute path, no styling — Mercury winds
-      // tightly, the giants barely wave, because that is how it actually is
-      gl.uniform3f(U.trCol, c[0],c[1],c[2]);
-      gl.uniform1f(U.trA, 0.55*trailAlpha*(1+starGain*0.9));
-      gl.bindVertexArray(trailVaos[i]);
-      gl.drawArrays(gl.LINE_STRIP, TRAIL_N-Math.min(TRAIL_N, Math.round(200*spo)), Math.min(TRAIL_N, Math.round(200*spo)));
-      continue;
-    }
-    if(!psH) continue;   // the Sun's arc is a swept trail: it follows the helix switch
-    gl.uniform3f(U.trCol,c[0],c[1],c[2]);
-    // lift with the star gain, or a brightened field washes the thin line out
-    gl.uniform1f(U.trA, 0.9*trailAlpha*(1+starGain*0.9));
-    gl.bindVertexArray(trailVaos[i]);
-    gl.drawArrays(gl.LINE_STRIP, 0, TRAIL_N);
-  }
-}
-
-const SN_VS = "#version 300 es\nlayout(location=0) in vec3 aPos;\nlayout(location=1) in float aSize;\nlayout(location=2) in vec3 aColor;\nlayout(location=3) in float aPhase;  // 0 at collapse .. 1 at the end of the drawn flash\nuniform mat4 uProj, uView;\nuniform float uPx, uSpin, uWarp, uCap;\nuniform vec3 uSunPos, uOrg;\nout vec3 vColor; out float vPhase; out float vSeed;\nvoid main(){\n  vec3 p = aPos;\n  float fade = 1.0;\n  if(uSpin != 0.0){\n    float r = length(p.xz);\n    float d = uSpin/640.0;                       // the arms' pattern speed: these are arm stars\n    float c = cos(d), s = sin(d);\n    p = vec3(p.x*c + p.z*s, p.y, p.z*c - p.x*s);\n    float wr = max(0.0, r - 950.0);\n    p.y += wr*0.13*sin(atan(p.x,p.z) - uWarp) + 4.0*sin(r*0.021);\n    fade = smoothstep(80.0, 240.0, distance(p, uSunPos));\n  }\n  vec4 mv = uView * vec4(p - uOrg, 1.0);\n  gl_Position = uProj * mv;\n  gl_PointSize = clamp(aSize * uPx / max(1e-9, -mv.z), 1.0, uCap);\n  vColor = aColor * fade;\n  vPhase = aPhase;\n  vSeed  = fract(sin(dot(aPos.xz, vec2(41.7, 289.3)))*43758.5453);\n}";
-
-const SN_FS = "#version 300 es\nprecision mediump float;\nin vec3 vColor; in float vPhase; in float vSeed; out vec4 o;\nvoid main(){\n  vec2 q = gl_PointCoord*2.0-1.0;\n  float r = length(q);\n  if(r > 1.0) discard;\n  float ang = atan(q.y, q.x) + vSeed*6.2831;\n  float d = 1.0 - r;\n\n  // the photosphere: a hard white core, at its tightest right at the collapse\n  float core = pow(d, mix(26.0, 9.0, vPhase));\n  // the light around it, spreading and softening as the blast runs\n  float glow = pow(d, mix(7.0, 3.2, vPhase));\n\n  // Radiating spikes. Two sets at different counts and angles, each a narrow lobe in\n  // angle and a slow falloff in radius, so they reach well past the glow. They lead the\n  // flash and are gone before it is: the blast is brightest first and blurs outward.\n  float lead = exp(-vPhase*2.6);\n  float s1 = pow(abs(cos(ang*3.0)), 34.0);\n  float s2 = pow(abs(cos(ang*2.0 + 0.9)), 22.0);\n  float spikes = (s1*0.85 + s2*0.5) * pow(d, 1.7) * lead;\n\n  // The shock front: a shell overtaking the glow and thinning as it goes. Nothing\n  // explodes into a perfect circle, so the radius is bent a little with angle — enough\n  // that the front reads as ejecta rather than as a drawn ring.\n  // Ejecta are not evenly bright around the rim. Modulating brightness rather than\n  // radius is what keeps this: bending the radius with angle only turns the circle into\n  // a polygon, while an uneven rim on a round front reads as clumps.\n  float sh = clamp(vPhase*1.35, 0.0, 1.0);\n  float clumps = 0.68 + 0.32*sin(ang*5.0 + vSeed*17.0)*sin(ang*2.0 - vSeed*9.0);\n  float ring = exp(-pow((r - sh)/mix(0.07, 0.19, vPhase), 2.0)) * (1.0 - vPhase)*0.85 * clumps;\n\n  // cooling: blue-white through the peak, then into the ejecta's red\n  vec3 hot  = vec3(0.86, 0.92, 1.0);\n  vec3 cool = vec3(1.0, 0.52, 0.26);\n  vec3 tint = mix(hot, cool, smoothstep(0.15, 1.0, vPhase));\n\n  float a = core*1.5 + glow*0.9 + spikes*0.8 + ring*0.7;\n  vec3 col = vColor * tint * (glow*0.9 + spikes*0.8 + ring*0.7)\n           + vColor * core * 1.5;              // the core stays white, whatever the tint\n  o = vec4(col, a);\n}";
-
-/**
- * The supernova blast.
- *
- * A collapse is not a big round star, and drawing it with the star sprite made it one: a white
- * disc that only grew. This is its own pass. The transform is the wave-riding branch of PT_VS,
- * copied rather than shared so the flash sits exactly where its progenitor stood — every
- * supernova here descends from a red supergiant on an arm, so aWave is always 1 and uGal
- * always 0, and the rest of that shader's work (velocities, variability, tides, the merge
- * scramble) has nothing to do here.
- *
- * Four things stacked, all keyed to how far the blast has run: the photosphere, the light
- * thrown off it, the shock front leaving it, and the spikes any bright point grows in an
- * optical system. The colour follows the real thing — blue-white at peak, reddening as the
- * ejecta expand and cool — so the flash reads as an event with a direction in time rather
- * than a lamp being turned up and down.
- *
- * Program and table only; the draw is still in `frame()`, interleaved with the events it
- * belongs to. Step 10.
- */
-
-const pSN = prog(SN_VS, SN_FS);
-const USN = {
-  proj: gl.getUniformLocation(pSN,'uProj'), view: gl.getUniformLocation(pSN,'uView'),
-  px: gl.getUniformLocation(pSN,'uPx'), spin: gl.getUniformLocation(pSN,'uSpin'),
-  warp: gl.getUniformLocation(pSN,'uWarp'), cap: gl.getUniformLocation(pSN,'uCap'),
-  sun: gl.getUniformLocation(pSN,'uSunPos'), org: gl.getUniformLocation(pSN,'uOrg')
-};
-
-const REM_VS = "#version 300 es\nlayout(location=0) in vec3 aPos;\nlayout(location=1) in float aSize;\nlayout(location=2) in vec3 aColor;\nlayout(location=3) in float aPack;   // wave*2 + phase\nuniform mat4 uProj, uView;\nuniform float uPx, uSpin, uWarp, uCap;\nuniform vec3 uSunPos, uOrg;\nout vec3 vColor; out float vPhase; out float vSeed;\nvoid main(){\n  float w = floor(aPack*0.5 + 0.25), ph = aPack - 2.0*w;\n  vec3 p = aPos;\n  float fade = 1.0;\n  if(uSpin != 0.0){\n    float r = length(p.xz);\n    float d = mix(uSpin / max(r, 520.0), uSpin/640.0, w);\n    float c = cos(d), s = sin(d);\n    p = vec3(p.x*c + p.z*s, p.y, p.z*c - p.x*s);\n    float wr = max(0.0, r - 950.0);\n    p.y += wr*0.13*sin(atan(p.x,p.z) - uWarp) + 4.0*sin(r*0.021);\n    fade = smoothstep(80.0, 240.0, distance(p, uSunPos));\n  }\n  vec4 mv = uView * vec4(p - uOrg, 1.0);\n  gl_Position = uProj * mv;\n  gl_PointSize = clamp(aSize * uPx / max(1e-9, -mv.z), 1.0, uCap);\n  vColor = aColor * fade;\n  vPhase = ph;\n  vSeed  = fract(sin(dot(aPos.xz, vec2(73.1, 157.9)))*43758.5453);\n}";
-
-const REM_FS = "#version 300 es\nprecision highp float;\nin vec3 vColor; in float vPhase; in float vSeed; out vec4 o;\nfloat h21(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }\nfloat vnoise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);\n  return mix(mix(h21(i),h21(i+vec2(1,0)),f.x), mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x), f.y); }\nvoid main(){\n  vec2 q = gl_PointCoord*2.0-1.0;\n  float r = length(q);\n  if(r > 1.0) discard;\n  // the shell: thin and sharp while young, thick and frayed when old\n  float R = mix(0.58, 0.80, vPhase);\n  float w = mix(0.09, 0.22, vPhase);\n  // Filaments from value noise over the sprite, not from harmonics in angle: harmonics\n  // bead the rim into a string of pearls, and noise is seamless and never repeats.\n  // The seed places each remnant somewhere else in the noise, so no two match.\n  vec2 s = vec2(vSeed*37.0, vSeed*91.0);\n  float n1 = vnoise(q*4.5 + s), n2 = vnoise(q*10.0 - s*1.7), n3 = vnoise(q*21.0 + s*0.6);\n  float fil = 0.35 + 0.65*n1 + 0.40*(n2-0.5) + 0.22*(n3-0.5)*(1.0 - vPhase);\n  float shell = exp(-pow((r - R)/w, 2.0)) * max(fil, 0.0);\n  float fill  = smoothstep(R, 0.0, r) * 0.18;      // the thin glow of the interior\n  // the rim runs warmer than the body, as shocked gas does\n  vec3 col = vColor * (shell * mix(1.0, 1.35, smoothstep(R-0.05, R+0.12, r)) + fill);\n  o = vec4(col, shell + fill);\n}";
-
-/**
- * What a death leaves behind.
- *
- * Supernova remnants and planetary nebulae were soft blobs. A remnant is a hollow shell, and a
- * hollow shell is brightest at its rim, where the line of sight runs longest through it — the
- * Veil, the Crab's edges, Cas A all read that way — and it is ragged, because the ejecta are.
- * Same transform as the point pass, both branches: remnants sit in the arms (wave-riding) and
- * planetaries anywhere in the disk (material). The fourth attribute packs the frame flag and
- * the phase: wave in the twos, phase in the fraction, so the shell can thicken and fray as it
- * runs without a fifth buffer.
- *
- * Program and table only; the draw is still in `frame()`. Step 10.
- */
-
-const pRem = prog(REM_VS, REM_FS);
-const UREM = {
-  proj: gl.getUniformLocation(pRem,'uProj'), view: gl.getUniformLocation(pRem,'uView'),
-  px: gl.getUniformLocation(pRem,'uPx'), spin: gl.getUniformLocation(pRem,'uSpin'),
-  warp: gl.getUniformLocation(pRem,'uWarp'), cap: gl.getUniformLocation(pRem,'uCap'),
-  sun: gl.getUniformLocation(pRem,'uSunPos'), org: gl.getUniformLocation(pRem,'uOrg')
-};
-
-const EV_CAP = 1024, PUFF_CAP = 512;
-const evPos=new Float32Array(EV_CAP*3), evSize=new Float32Array(EV_CAP), evCol=new Float32Array(EV_CAP*3), evWave=new Float32Array(EV_CAP);
-const pfPos=new Float32Array(PUFF_CAP*3), pfSize=new Float32Array(PUFF_CAP), pfCol=new Float32Array(PUFF_CAP*3), pfWave=new Float32Array(PUFF_CAP);
-
-const evGL = dynVAO(EV_CAP), pfGL = dynVAO(PUFF_CAP);
-// Blasts are drawn by their own program, so they travel in their own buffers. There are
-// never many at once — a flash lasts 1.6 s — and the fourth channel carries how far the
-// blast has run instead of the wave flag, which every one of them has set anyway.
-const SN_CAP = 96;
-const snPos=new Float32Array(SN_CAP*3), snSize=new Float32Array(SN_CAP),
-      snCol=new Float32Array(SN_CAP*3), snPh=new Float32Array(SN_CAP);
-const snGL = dynVAO(SN_CAP);
-
-const events              = [], puffs         = [];
-
-/** The sound effects, handed in at boot so this module does not import the audio graph. */
-let sfx$1                         = () => {};
-const setLifeSfx = (fn                        )       => { sfx$1 = fn; };
-
-function armSite()           { // where massive stars are born: an arm's inner edge, the spur, or a bar tip
-  const roll=Math.random();
-  let r, th;
-  if(roll<0.12){ th=(Math.random()<0.5?BAR_A:BAR_A+Math.PI)+gauss()*0.05; r=BAR_L*(0.95+Math.random()*0.12); }
-  else if(roll<0.30){ r=900+(Math.random()*2-1)*150; th=-(r-900)/(900*PITCH)+0.02+gauss()*0.04; }
-  else { const arm=Math.random()<0.7?ARMS[(Math.random()*2)|0]:ARMS[2+((Math.random()*2)|0)];
-    r=BAR_L+40+Math.pow(Math.random(),0.95)*1200; th=armAngle(r,arm[0])+0.025+gauss()*0.03; }
-  return [r*Math.sin(th), gauss()*6, r*Math.cos(th)];
-}
-function diskSite()           { // old stars die everywhere in the disk
-  const r=expR(300,1700,283), th=Math.random()*6.28318;
-  return [r*Math.sin(th), gauss()*14, r*Math.cos(th)];
-}
-function addPuff(e           , r1        , dur        , col          )       {
-  if(puffs.length>=PUFF_CAP) return;
-  puffs.push({x:e.x,y:e.y,z:e.z,wv:e.wv,t:0,r1,dur,col});
-}
-                                                              
-            
-               
-                
-                                                                                           
-                  
-               
- 
-
-function lifeStep({ dt, dtSim, ageGyr, evBirth, evSN }                )       {
-  const sfr = sfrFactor(ageGyr);
-  // Per year now, not per compressed step. These are drawn events, a sampled fraction of
-  // the real rates — the true figures are in the status bar and the info panel.
-  if(evBirth) lifeAcc.accB += dtSim*1.84e-6*gfx.curD*sfr; else lifeAcc.accB = 0;
-  if(evSN){
-    lifeAcc.accSN += dtSim*Math.max(9.2e-9*gfx.curD, 1.26e-7)*sfr;
-    lifeAcc.accPN += dtSim*1.26e-6*gfx.curD*Math.sqrt(sfr);   // low-mass deaths ride with the deaths switch
-  } else lifeAcc.accSN = lifeAcc.accPN = 0;
-  const CAP = 40;
-  for(let n=0; lifeAcc.accB>=1 && n<CAP; n++){ lifeAcc.accB--; if(events.length<EV_CAP){ const s=armSite();
-    events.push({k:1,x:s[0],y:s[1],z:s[2],wv:1,st:0,t:0,L:(3+Math.random()*6)*1e6,sn:evSN && Math.random()<0.12});
-    if(Math.random()<0.5) sfx$1('birth'); } } // only half of them sound, or it never stops
-  if(lifeAcc.accB>1) lifeAcc.accB = 0;
-  for(let n=0; lifeAcc.accSN>=1 && n<CAP; n++){ lifeAcc.accSN--; if(events.length<EV_CAP){ const s=armSite();
-    events.push({k:2,x:s[0],y:s[1],z:s[2],wv:1,st:0,t:0}); } }
-  if(lifeAcc.accSN>1) lifeAcc.accSN = 0;
-  for(let n=0; lifeAcc.accPN>=1 && n<CAP; n++){ lifeAcc.accPN--; if(events.length<EV_CAP){ const s=diskSite();
-    events.push({k:4,x:s[0],y:s[1],z:s[2],wv:0,st:0,t:0}); } }
-  if(lifeAcc.accPN>1) lifeAcc.accPN = 0;
-  for(let i=events.length-1;i>=0;i--){
-    const e=events[i]; e.st+=dtSim; e.t+=dt;
-    if(e.k===1 && e.st>e.L ){
-      if(e.sn){ e.k=2; e.st=0; }                    // a massive member goes supergiant
-      else if(e.st>e.L +0.8e6) events.splice(i,1);  // cluster disperses into the disk
-    }
-    else if(e.k===2 && e.st>1.0e6){ e.k=3; e.t=0; sfx$1('sn'); } // ~1 Myr as a red supergiant, then collapse
-    else if(e.k===3 && e.t>1.6){ addPuff(e,7,2.8,[0.55,0.35,0.22]); e.k=5; e.t=0; }
-    else if(e.k===4 && e.st>1.2e6){ addPuff(e,1.8,2.2,[0.10,0.50,0.42]); e.k=6; e.t=0; sfx$1('pn'); }
-    else if((e.k===5||e.k===6) && e.t>2.5) events.splice(i,1);
-  }
-  for(let i=puffs.length-1;i>=0;i--){ const q=puffs[i]; q.t+=dt; if(q.t>q.dur) puffs.splice(i,1); }
-}
-
-function fillEvents()       {
-  readout.evN = 0; readout.snN = 0;
-  for(let i=0;i<events.length;i++){
-    const e=events[i]; let s=0,cr=0,cg=0,cb=0;
-    if(e.k===3){
-      // The blast leaves this pass entirely: its own program draws it. The sprite grows
-      // through the whole flash — a fireball only expands — while the brightness peaks
-      // in the first fifth of a second and falls away, so it dims as it spreads.
-      if(readout.snN < SN_CAP){
-        const u = Math.min(1, e.t/1.6);
-        const a = e.t<0.15 ? e.t/0.15 : Math.exp(-(e.t-0.15)/0.45);
-        const j = readout.snN++;
-        snPos[j*3]=e.x; snPos[j*3+1]=e.y; snPos[j*3+2]=e.z;
-        snSize[j] = 14 + 92*Math.min(1, 0.3 + u);
-        snCol[j*3]=2.4*a; snCol[j*3+1]=2.3*a; snCol[j*3+2]=2.1*a;
-        snPh[j] = u;
-      }
-      continue;
-    }
-    if(e.k===1){ // embedded reddish protocluster brightening into a blue OB cluster
-      const u=Math.min(1,e.st/0.8e6), f=e.st>e.L ?Math.max(0,1-(e.st-e.L )/0.8e6):1;
-      s=(0.6+2.8*u)*f;
-      cr=(0.55+0.07*u)*f; cg=(0.16+0.56*u)*f; cb=(0.10+0.95*u)*f;
-      if(e.st < 0.25e6){ // the pling: a brief white twinkle, the opposite of a blast
-        const w = (1 - e.st/0.25e6)*(0.55+0.45*Math.sin(simClock.shimT*9.0 + e.x*3.1));
-        s += 3.2*w; cr += 1.05*w; cg += 1.05*w; cb += 1.15*w;
-      }
-    } else if(e.k===2){ // red supergiant: swelling, reddening
-      const u=Math.min(1,e.st/1e6);
-      s=3.2+2.6*u; cr=0.62+0.5*u; cg=0.72-0.34*u; cb=1.05-0.87*u;
-    } else if(e.k===5){ // what remains: a cooling neutron star
-      const f=Math.max(0,1-e.t/2.5); s=1.4; cr=0.35*f; cg=0.5*f; cb=0.9*f;
-    } else if(e.k===4){ // a low-mass star swells into a red giant
-      const u=Math.min(1,e.st/1.2e6); s=1.2+2.4*u; cr=0.9; cg=0.42-0.12*u; cb=0.16;
-    } else { // white dwarf, slowly fading
-      const f=Math.max(0,1-e.t/2.5); s=1.1; cr=0.8*f; cg=0.85*f; cb=1.0*f;
-    }
-    const j = readout.evN++;   // compacted: the blasts that left this pass leave no gaps behind
-    evPos[j*3]=e.x; evPos[j*3+1]=e.y; evPos[j*3+2]=e.z;
-    evSize[j]=s; evCol[j*3]=cr; evCol[j*3+1]=cg; evCol[j*3+2]=cb; evWave[j]=e.wv;
-  }
-}
-
-function fillPuffs()       {
-  for(let i=0;i<puffs.length;i++){
-    const q=puffs[i], u=q.t/q.dur, rad=q.r1*(1-(1-u)*(1-u)), a=Math.pow(1-u,1.6);
-    pfPos[i*3]=q.x; pfPos[i*3+1]=q.y; pfPos[i*3+2]=q.z;
-    pfSize[i]=Math.max(0.8, rad*2);
-    pfCol[i*3]=q.col[0]*a; pfCol[i*3+1]=q.col[1]*a; pfCol[i*3+2]=q.col[2]*a;
-    // the fourth channel carries both the frame flag and how far the shell has run:
-    // wave in the twos, phase in the fraction — the remnant shader unpacks it
-    pfWave[i]=q.wv*2 + Math.min(0.999, u);
-  }
-}
-                       
-                       
-                 
-               
-                
-              
-              
-              
-              
-                   
-                                                                            
-                   
-                   
-              
-                
- 
-
-/**
- * The events, then the blasts on top of everything their flash lights up.
- *
- * The events borrow the point program and hand it back: they animate themselves, keep their
- * own scale and are not part of the star field, so four of its uniforms are set and then set
- * back to what the star passes left. Getting that restore wrong dims or inflates every star
- * drawn after this in the frame.
- */
-function drawEvents(
-  { projMat, viewMat, pxScale, deep, spinMW, warp, sunX, bubY, sunZ, org,
-    minBright, minSprite, tide, varOn }                ,
-)       {
-  fillEvents();
-  gl.uniform1f(U.ptVM, 0.0); // events animate themselves
-  gl.uniform1f(U.ptTide, 0.0);
-  gl.uniform1f(U.ptMinB, 0.0);
-  gl.uniform1f(U.ptMinSz, 1.3);   // events keep their own scale
-  gl.uniform1f(U.ptCap, deep?36.0:110.0); // a supernova blooms, within reason
-  if(readout.evN){
-    gl.bindBuffer(gl.ARRAY_BUFFER,evGL.p); gl.bufferSubData(gl.ARRAY_BUFFER,0,evPos.subarray(0,readout.evN*3));
-    gl.bindBuffer(gl.ARRAY_BUFFER,evGL.s); gl.bufferSubData(gl.ARRAY_BUFFER,0,evSize.subarray(0,readout.evN));
-    gl.bindBuffer(gl.ARRAY_BUFFER,evGL.c); gl.bufferSubData(gl.ARRAY_BUFFER,0,evCol.subarray(0,readout.evN*3));
-    gl.bindBuffer(gl.ARRAY_BUFFER,evGL.w); gl.bufferSubData(gl.ARRAY_BUFFER,0,evWave.subarray(0,readout.evN));
-    gl.bindVertexArray(evGL.vao); gl.drawArrays(gl.POINTS,0,readout.evN);
-  }
-  // the blasts, in their own pass, on top of everything the flash lights up
-  if(readout.snN){
-    gl.useProgram(pSN);
-    gl.uniformMatrix4fv(USN.proj,false,projMat);
-    gl.uniformMatrix4fv(USN.view,false,viewMat);
-    gl.uniform1f(USN.px, pxScale);
-    gl.uniform1f(USN.spin, spinMW);
-    gl.uniform1f(USN.warp, warp);
-    gl.uniform1f(USN.cap, deep?36.0:110.0);
-    gl.uniform3f(USN.sun, sunX, bubY, sunZ);
-    gl.uniform3f(USN.org, org[0], org[1], org[2]);
-    gl.bindBuffer(gl.ARRAY_BUFFER,snGL.p); gl.bufferSubData(gl.ARRAY_BUFFER,0,snPos.subarray(0,readout.snN*3));
-    gl.bindBuffer(gl.ARRAY_BUFFER,snGL.s); gl.bufferSubData(gl.ARRAY_BUFFER,0,snSize.subarray(0,readout.snN));
-    gl.bindBuffer(gl.ARRAY_BUFFER,snGL.c); gl.bufferSubData(gl.ARRAY_BUFFER,0,snCol.subarray(0,readout.snN*3));
-    gl.bindBuffer(gl.ARRAY_BUFFER,snGL.w); gl.bufferSubData(gl.ARRAY_BUFFER,0,snPh.subarray(0,readout.snN));
-    gl.bindVertexArray(snGL.vao); gl.drawArrays(gl.POINTS,0,readout.snN);
-    gl.useProgram(pPt);   // the restores below belong to the point program
-  }
-  gl.uniform1f(U.ptMinB, minBright);
-  gl.uniform1f(U.ptMinSz, minSprite);
-  gl.uniform1f(U.ptTide, tide);
-  gl.uniform1f(U.ptVM, varOn?1.0:0.0);
-  gl.uniform1f(U.ptCap, deep?26.0:110.0);
-}
-
-/**
- * Expanding shells: supernova remnants and planetary nebulae, on their own program (sizes
- * exaggerated — see info). After the dust on purpose: a remnant next door is not something
- * the backdrop's lanes should darken.
- */
-function drawRemnants(
-  { projMat, viewMat, pxScale, deep, spinMW, warp, sunX, bubY, sunZ, org }                ,
-)       {
-  fillPuffs();
-  gl.useProgram(pRem);
-  gl.uniformMatrix4fv(UREM.proj,false,projMat);
-  gl.uniformMatrix4fv(UREM.view,false,viewMat);
-  gl.uniform1f(UREM.px, pxScale);
-  gl.uniform1f(UREM.spin, spinMW);
-  gl.uniform1f(UREM.warp, warp);
-  gl.uniform1f(UREM.cap, deep?60.0:560.0);
-  gl.uniform3f(UREM.sun, sunX, bubY, sunZ);
-  gl.uniform3f(UREM.org, org[0], org[1], org[2]);
-  gl.bindBuffer(gl.ARRAY_BUFFER,pfGL.p); gl.bufferSubData(gl.ARRAY_BUFFER,0,pfPos.subarray(0,puffs.length*3));
-  gl.bindBuffer(gl.ARRAY_BUFFER,pfGL.s); gl.bufferSubData(gl.ARRAY_BUFFER,0,pfSize.subarray(0,puffs.length));
-  gl.bindBuffer(gl.ARRAY_BUFFER,pfGL.c); gl.bufferSubData(gl.ARRAY_BUFFER,0,pfCol.subarray(0,puffs.length*3));
-  gl.bindBuffer(gl.ARRAY_BUFFER,pfGL.w); gl.bufferSubData(gl.ARRAY_BUFFER,0,pfWave.subarray(0,puffs.length));
-  gl.bindVertexArray(pfGL.vao); gl.drawArrays(gl.POINTS,0,puffs.length);
 }
 
 /**
@@ -4769,7 +5265,7 @@ toggle($('tLabelsAll'), on=>{
   if($('tArms').checked !== on){ $('tArms').checked = on; $('tArms').dispatchEvent(new Event('change')); }
   // the cascade only fires 'change', not the 'click' the checkboxes' own save binding
   // listens for — without this, a choice made through the master would not survive reload
-  saveSettings();
+  saveSettings$1();
 });
 toggle($('tP9'), on=>{ showP9=on; if(!on) labelEls[I_P9].style.display='none'; });
 toggle($('tDwarfs'), on=>{ showDwarfs=on; if(!on) labelEls.forEach((l,i)=>{ if(i>=N_PLANETS) l.style.display='none'; }); });
@@ -4871,7 +5367,7 @@ function applyFocusView(){
     if(!$('tView').classList.contains('on')) $('tView').click();
     else { cam.follow = false; cam.distGoal = 4300; cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0; }
   }
-  saveSettings();
+  saveSettings$1();
 }
 $('focusSel').addEventListener('change', applyFocusView);
 $('focusGo').addEventListener('click', applyFocusView);   // re-apply the current pick, e.g. after drifting off it
@@ -4894,7 +5390,7 @@ $('focusGo').addEventListener('click', applyFocusView);   // re-apply the curren
     // the transform is set inline as well as by the class: an inline style wins over
     // whatever else the cascade is doing, and this must work on every browser
     bar.style.transform = s ? 'translate(-50%, calc(100% + 15px))' : '';
-    saveSettings();
+    saveSettings$1();
   };
   grip.addEventListener('pointerdown', e => { y0 = e.clientY; moved = false;
     try{ grip.setPointerCapture(e.pointerId); }catch(err){} });
@@ -4923,49 +5419,11 @@ toggle($('tFps'), on=>{ showFps=on; $('fpsBox').style.display = on ? '' : 'none'
 // which the boot suite caught as "Cannot access 'saveSettings' before initialization", the
 // whole page dead on the first frame. 00-PLAN.md's R6 wants it hoisted at step 16; until
 // then, deferring the read to call time is the smaller change.
-initPanels({ fitPanels: () => fitPanels(), saveSettings: () => saveSettings() });
+initPanels({ fitPanels: () => fitPanels(), saveSettings: () => saveSettings$1() });
 // ---------- collapsible sections ----------
-// Each heading owns a body; the arrow turns to show which way it goes. Simulation
-// starts closed: its two sliders and the scenario list are the controls a visitor is
-// least likely to want on arrival, and the piece opens on a staged scenario anyway.
-const SECS = ['audio','gfx','hud','other','debug'];
-const SEC_BODY = { audio:'secAudio', gfx:'secGfx', hud:'secHud', other:'secOther', debug:'secDebug' };
-// one at a time by default, so the panel stays a screenful; Graphics is the one that
-// earns the opening slot, holding the controls a visitor reaches for most
-const secOpen = { audio:false, gfx:true, hud:false, other:false, debug:false };
-function applySecs(){
-  for(const k of SECS){
-    $(SEC_BODY[k]).classList.toggle('closed', !secOpen[k]);
-    document.querySelector('.sect[data-sec="'+k+'"]').classList.toggle('closed', !secOpen[k]);
-  }
-  fitPanels();
-}
-document.querySelectorAll('.sect[data-sec]').forEach(h =>
-  h.addEventListener('click', ()=>{
-    const k = h.dataset.sec, opening = !secOpen[k];
-    if(opening && $('secSolo').checked) for(const s of SECS) secOpen[s] = false;
-    secOpen[k] = opening;
-    applySecs(); saveSettings();
-  }));
-$('secSolo').addEventListener('change', ()=>{
-  if($('secSolo').checked){   // keep the topmost open one, fold the rest away
-    let kept = false;
-    for(const s of SECS){ if(secOpen[s] && !kept) kept = true; else secOpen[s] = false; }
-  }
-  applySecs(); saveSettings();
-});
+// The headings, their bodies, the solo rule and the segmented buttons are ui/sections.
+initSections({ fitPanels: () => fitPanels(), saveSettings: () => saveSettings$1() });
 
-// one control, several faces: a segmented button where exactly one segment is lit
-function seg(id, initial, fn){
-  const bs = [...$(id).children];
-  const set = (v, apply)=>{ bs.forEach(b => b.classList.toggle('on', b.dataset.v === v));
-    if(apply !== false) fn(v); };
-  bs.forEach(b => b.addEventListener('click', ()=>{ set(b.dataset.v); saveSettings(); }));
-  // only the lit segment is set at build time: the state variables carry the same
-  // defaults, and calling fn this early would touch bindings not yet initialised
-  set(initial, false);
-  return set;
-}
 // The volume slider is the switch: silence is off, and the audio graph is built the
 // first time it is raised, so a visitor who never asks for sound never pays for it.
 function setMusicVol(v){
@@ -4981,7 +5439,7 @@ $('musicVol').addEventListener('input', e => setMusicVol(+e.target.value));
 $('tNext').addEventListener('click', ()=>{
   nextTrack();
   // asking for the next track means you want music: give it back its default level
-  if(!sound.musicOn){ $('musicVol').value = 0.4; setMusicVol(0.4); saveSettings(); }
+  if(!sound.musicOn){ $('musicVol').value = 0.4; setMusicVol(0.4); saveSettings$1(); }
 });
 for(const [id,key] of [['fxBirth','birth'],['fxSn','sn'],['fxPn','pn'],['fxDrone','drone']]){
   $(id).addEventListener('change', e=>{
@@ -5010,76 +5468,41 @@ $('sfxVol').addEventListener('input', e => setSfxVol(+e.target.value));
 loadTrack(0);
 
 // ---------- remembering the settings ----------
-// Saved state is replayed through the existing handlers rather than assigned directly,
-// so restoring a setting does exactly what clicking it would. Anything momentary — the
-// pause, the dive, the epoch jump, the current track position — is deliberately left out.
-const SKEY = 'galactic-transit.settings.v1';
-const S_TOG = ['tLabels','tArms','tLabelSteady','tZoomBtns','tSpinLock','tDwarfs','tP9','tBelt','tKuiper','tOort','tDust',
-               'tEvSN','tEvBirth','tVar',
-               'tStatAge','tStatGyr','tStatSn','tStatBirth','tGaia','tFps'];
-const S_SLD = ['speed','trailA','orbitA','trailL','musicVol','sfxVol','minB','hudHz','coreB','qrScale'];
-const S_CHK = ['fxBirth','fxSn','fxPn','fxDrone','secSolo','closeOnGo','qrOn'];
-// Where the QR overlay sits, as fractions of the free space rather than pixels: (1,1) is
-// the bottom right corner at any screen size or module scale, so a place chosen by hand
-// survives a rotation, a change of scale and a reload. Declared here, above the settings
-// writer that reads it — inside the overlay's own block it was a TDZ error at boot.
-let qrPos = { x: 1, y: 1 }, qrHeld = false;
-function saveSettingsNow(){
-  try{
-    const s = { t:{}, s:{}, c:{}, cal:$('cal').value, mult:simClock.speedMult, dens:gfx.curD, dprc:view.dprCap,
-                units:unitMode,
-                fsel:$('focusSel').value, sec:secOpen,
-                pan:panelSnapshot(),
-                bar:$('gamebar').classList.contains('slid'), qrPos,
- };
-    S_TOG.forEach(id => s.t[id] = isOn($(id)));
-    S_SLD.forEach(id => s.s[id] = $(id).value); s.sv = 2;   // sv 2: the speed slider is a rung index
-    S_CHK.forEach(id => s.c[id] = $(id).checked);
-    localStorage.setItem(SKEY, JSON.stringify(s));
-  }catch(e){}   // private browsing, or storage disabled: just don't remember
-}
-let saveTimer = 0;
-const saveSettings = ()=>{ clearTimeout(saveTimer); saveTimer = setTimeout(saveSettingsNow, 250); };
-// Deferred: replaying a saved toggle runs its handler, and some of those reach for
-// state declared further down the file (the label elements, the simulation clock).
-// This is called at the very end of the script, once every binding exists.
-function restoreSettings(register){
-  let s = null;
-  try{ s = JSON.parse(localStorage.getItem(SKEY) || 'null'); }catch(e){}
-  if(s){
-    if(s.s && !(s.sv >= 2) && s.s.speed != null) s.s.speed = String(speedRungOf(Math.pow(WEEK_YR, 1-(+s.s.speed))));   // the old continuous slider
-    if(s.s) S_SLD.forEach(id=>{ const v=s.s[id];
-      if(v != null && $(id).value !== v){ $(id).value = v; $(id).dispatchEvent(new Event('input')); } });
-    if(s.c) S_CHK.forEach(id=>{ const v=s.c[id];
-      if(v != null && $(id).checked !== v){ $(id).checked = v; $(id).dispatchEvent(new Event('change')); } });
-    if(s.t) S_TOG.forEach(id=>{ const v=s.t[id];
-      if(v != null && isOn($(id)) !== v) $(id).click(); });   // a checkbox click fires change
-    if(s.cal && s.cal !== $('cal').value){ $('cal').value = s.cal; $('cal').dispatchEvent(new Event('change')); }
-    if(s.mult > 0 && s.mult !== simClock.speedMult) setMultExp(Math.log10(s.mult));
-    if(s.dprc === 1 || s.dprc === 2){ if(s.dprc !== view.dprCap){ view.dprCap = s.dprc; resize(); } }   // the probe's pixel cap, kept
-    if(s.dens){ const i = DETAIL_D.indexOf(s.dens);
-      if(i >= 0){ $('detail').value = i; $('detailv').textContent = DETAIL_NAMES[i];   // the slider shows the tier even when it is the boot tier
-        if(s.dens !== gfx.curD) $('detail').dispatchEvent(new Event('input')); } }
-    if(s.units === 'words' || s.units === 'sup' || s.units === 'e') setSegUnits(s.units);
-    if(s.fsel === 'sun' || s.fsel === 'mw' || s.fsel === 'and') $('focusSel').value = s.fsel;
-    if(s.sec) for(const k of SECS) if(typeof s.sec[k] === 'boolean') secOpen[k] = s.sec[k];
-    if(s.bar) $('gamebar').classList.add('slid');
-    if(s.qrPos && typeof s.qrPos.x === 'number' && typeof s.qrPos.y === 'number') qrPos = s.qrPos;
-  }
-  panelApply(s && s.pan);   // sides and open flags, then the layout — see ui/panels
-  applySecs();
-  if(register === false) return;
-  // from here on, anything the user touches is remembered
-  S_TOG.forEach(id => $(id).addEventListener('click', saveSettings));
-  S_SLD.forEach(id => $(id).addEventListener('input', saveSettings));
-  S_CHK.forEach(id => $(id).addEventListener('change', saveSettings));
-  $('cal').addEventListener('change', saveSettings);
-  $('collapse').addEventListener('click', saveSettings);
-  $('reopen').addEventListener('click', saveSettings);
-  $('multExp').addEventListener('input', saveSettings);
-  $('detail').addEventListener('input', saveSettings);
-  $('focusSel').addEventListener('change', saveSettings);
-}
+// The mechanics are ui/persist: the three id lists, the debounce, and the replay through the
+// page's own handlers. What is saved BEYOND those lists is contributed from here, through the
+// registry — persist must not import the modules whose state it records.
+
+registerSnapshot(() => ({
+  cal:$('cal').value, mult:simClock.speedMult, dens:gfx.curD, dprc:view.dprCap,
+  units:unitMode,
+  fsel:$('focusSel').value, sec:sectionSnapshot(),
+  pan:panelSnapshot(),
+  bar:$('gamebar').classList.contains('slid'), qrPos:qrSnapshot(),
+}));
+
+// Registration order is replay order. These three run after persist's own id lists, in
+// exactly the sequence the single restoreSettings() used to run them in.
+registerApply(s => {
+  if(!s) return;
+  if(s.cal && s.cal !== $('cal').value){ $('cal').value = s.cal; $('cal').dispatchEvent(new Event('change')); }
+  if(s.mult > 0 && s.mult !== simClock.speedMult) setMultExp(Math.log10(s.mult));
+  if(s.dprc === 1 || s.dprc === 2){ if(s.dprc !== view.dprCap){ view.dprCap = s.dprc; resize(); } }   // the probe's pixel cap, kept
+  if(s.dens){ const i = DETAIL_D.indexOf(s.dens);
+    if(i >= 0){ $('detail').value = i; $('detailv').textContent = DETAIL_NAMES[i];   // the slider shows the tier even when it is the boot tier
+      if(s.dens !== gfx.curD) $('detail').dispatchEvent(new Event('input')); } }
+  if(s.units === 'words' || s.units === 'sup' || s.units === 'e') setSegUnits(s.units);
+  if(s.fsel === 'sun' || s.fsel === 'mw' || s.fsel === 'and') $('focusSel').value = s.fsel;
+  sectionApply(s.sec);
+  if(s.bar) $('gamebar').classList.add('slid');
+  qrApply(s.qrPos);
+});
+registerApply(s => panelApply(s && s.pan));   // sides and open flags, then the layout
+registerApply(() => applySecs());
+
+// The speed ladder's own business: the pre-v2 slider was continuous, and this is the rung
+// nearest what it meant.
+const legacySpeed = (v        ) => speedRungOf(Math.pow(WEEK_YR, 1-v));
+const restoreSettings = (register          ) => restoreSettings$2(register, legacySpeed);
 toggle($('tOort'), on=> showOort=on);
 function updateBar(){
   showStats = ['sCal','sAge','sGyr','cDeath','cBirth'].some(id => $(id).style.display !== 'none');
@@ -5919,261 +6342,12 @@ $('jump').dispatchEvent(new Event('change'));
 keepSaved = false;
 try{ if(!hadSaved && !localStorage.getItem(TOURKEY)) setTimeout(showTour, 400); }catch(e){}
 // ---------- the debug door: opened by ?debug in the URL or ten taps on refresh ----------
-// QR encoder: byte mode, EC level L, versions 1–40, standard masking by penalty. Returns
-// {n, m} with m a Uint8Array of n*n modules (1 = dark). Self-contained; no tables beyond
-// the version capacity/EC block list, which is the spec's Table 9 for level L.
-function qrEncode(text, forceMask){
-  const bytes = new TextEncoder().encode(text);
-  // [total codewords, ec codewords per block, blocks group1, data cw group1, blocks group2, data cw group2] for level L
-  const T = [null,
-    [26,7,1,19,0,0],[44,10,1,34,0,0],[70,15,1,55,0,0],[100,20,1,80,0,0],[134,26,1,108,0,0],[172,18,2,68,0,0],[196,20,2,78,0,0],[242,24,2,97,0,0],[292,30,2,116,0,0],[346,18,2,68,2,69],
-    [404,20,4,81,0,0],[466,24,2,92,2,93],[532,26,4,107,0,0],[581,30,3,115,1,116],[655,22,5,87,1,88],[733,24,5,98,1,99],[815,28,1,107,5,108],[901,30,5,120,1,121],[991,28,3,113,4,114],[1085,28,3,107,5,108],
-    [1156,28,4,116,4,117],[1258,28,2,111,7,112],[1364,30,4,121,5,122],[1474,30,6,117,4,118],[1588,26,8,106,4,107],[1706,28,10,114,2,115],[1828,30,8,122,4,123],[1921,30,3,117,10,118],[2051,30,7,116,7,117],[2185,30,5,115,10,116],
-    [2323,30,13,115,3,116],[2465,30,17,115,0,0],[2611,30,17,115,1,116],[2761,30,13,115,6,116],[2876,30,12,121,7,122],[3034,30,6,121,14,122],[3196,30,17,122,4,123],[3362,30,4,122,18,123],[3532,30,20,117,4,118],[3706,30,19,118,6,119]];
-  const ALIGN = [null,[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],
-    [6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110],[6,30,58,86,114],[6,34,62,90,118],[6,26,50,74,98,122],[6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],[6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],[6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170]];
-  // version: the first whose data capacity holds mode(4) + count(8|16) + bytes
-  let v = 1;
-  for(; v <= 40; v++){ const t = T[v], dataCW = t[2]*t[3] + t[4]*t[5]; const cnt = v <= 9 ? 8 : 16;
-    if(4 + cnt + bytes.length*8 <= dataCW*8) break; }
-  if(v > 40) throw new Error('too long for a QR code');
-  const t = T[v], dataCW = t[2]*t[3] + t[4]*t[5], cnt = v <= 9 ? 8 : 16;
-  // data bit stream
-  const bits = []; const put = (val, n) => { for(let i=n-1;i>=0;i--) bits.push((val>>i)&1); };
-  put(4,4); put(bytes.length, cnt); for(const b of bytes) put(b,8);
-  const cap = dataCW*8; for(let i=0;i<4 && bits.length<cap;i++) bits.push(0);
-  while(bits.length%8) bits.push(0);
-  const data = []; for(let i=0;i<bits.length;i+=8){ let x=0; for(let j=0;j<8;j++) x=(x<<1)|bits[i+j]; data.push(x); }
-  for(let k=0; data.length<dataCW; k++) data.push(k%2 ? 0x11 : 0xEC);
-  // GF(256) Reed–Solomon
-  const EXP = new Uint8Array(512), LOG = new Uint8Array(256);
-  for(let i=0,x=1;i<255;i++){ EXP[i]=x; LOG[x]=i; x<<=1; if(x&256) x^=0x11d; }
-  for(let i=255;i<512;i++) EXP[i]=EXP[i-255];
-  const mul = (a,b) => (a&&b) ? EXP[LOG[a]+LOG[b]] : 0;
-  const ecN = t[1]; let gen = [1];
-  for(let i=0;i<ecN;i++){ const ng = new Array(gen.length+1).fill(0);
-    for(let j=0;j<gen.length;j++){ ng[j] ^= gen[j]; ng[j+1] ^= mul(gen[j], EXP[i]); } gen = ng; }
-  const ecOf = blk => { const r = blk.slice().concat(new Array(ecN).fill(0));
-    for(let i=0;i<blk.length;i++){ const c = r[i]; if(!c) continue; for(let j=1;j<gen.length;j++) r[i+j] ^= mul(gen[j], c); }
-    return r.slice(blk.length); };
-  const blocks = [], ecs = []; let p = 0;
-  for(let g=0; g<2; g++){ const nb = t[2+2*g], len = t[3+2*g]; for(let b=0;b<nb;b++){ const blk = data.slice(p, p+len); p += len; blocks.push(blk); ecs.push(ecOf(blk)); } }
-  const out = []; const maxLen = Math.max(...blocks.map(b=>b.length));
-  for(let i=0;i<maxLen;i++) for(const b of blocks) if(i<b.length) out.push(b[i]);
-  for(let i=0;i<ecN;i++) for(const e of ecs) out.push(e[i]);
-  // the matrix
-  const n = 17 + 4*v, m = new Uint8Array(n*n), fixed = new Uint8Array(n*n);
-  const set = (x,y,val) => { m[y*n+x] = val; fixed[y*n+x] = 1; };
-  const finder = (x0,y0) => { for(let dy=-1;dy<=7;dy++) for(let dx=-1;dx<=7;dx++){ const x=x0+dx, y=y0+dy; if(x<0||y<0||x>=n||y>=n) continue;
-    const on = (dx>=0&&dx<=6&&dy>=0&&dy<=6) && (dx===0||dx===6||dy===0||dy===6||(dx>=2&&dx<=4&&dy>=2&&dy<=4)); set(x,y,on?1:0); } };
-  finder(0,0); finder(n-7,0); finder(0,n-7);
-  for(let i=8;i<n-8;i++){ set(i,6,i%2===0?1:0); set(6,i,i%2===0?1:0); }
-  const al = ALIGN[v];
-  // omitted only where one would overlap a finder — the ones on the timing lines are drawn
-  for(const cy of al) for(const cx of al){ if((cx<9&&cy<9)||(cx>n-10&&cy<9)||(cx<9&&cy>n-10)) continue;
-    for(let dy=-2;dy<=2;dy++) for(let dx=-2;dx<=2;dx++) set(cx+dx, cy+dy, (Math.max(Math.abs(dx),Math.abs(dy))!==1)?1:0); }
-  set(8, n-8, 1);   // the dark module
-  // reserve format (and version) areas
-  for(let i=0;i<9;i++){ if(i!==6){ fixed[8*n+i]=1; fixed[i*n+8]=1; } }
-  for(let i=0;i<8;i++){ fixed[8*n+(n-1-i)]=1; fixed[(n-1-i)*n+8]=1; }
-  if(v>=7){ for(let i=0;i<6;i++) for(let j=0;j<3;j++){ fixed[i*n+(n-11+j)]=1; fixed[(n-11+j)*n+i]=1; } }
-  let bi = 0; const total = out.length*8; const bitAt = k => (out[k>>3] >> (7-(k&7))) & 1;
-  // codewords into the matrix: column pairs from the right, direction alternating, starting upward
-  { let up = true;
-    for(let x=n-1; x>0; x-=2){ if(x===6) x--;
-      for(let k=0;k<n;k++){ const y = up ? n-1-k : k;
-        for(let dx=0; dx<2; dx++){ const xx = x-dx; if(fixed[y*n+xx]) continue;
-          m[y*n+xx] = bi < total ? bitAt(bi) : 0; bi++; } }
-      up = !up; } }
-  // masks
-  const MASK = [ (x,y)=>(x+y)%2===0, (x,y)=>y%2===0, (x,y)=>x%3===0, (x,y)=>(x+y)%3===0,
-    (x,y)=>((y>>1)+Math.floor(x/3))%2===0, (x,y)=>(x*y)%2+(x*y)%3===0, (x,y)=>((x*y)%2+(x*y)%3)%2===0, (x,y)=>((x+y)%2+(x*y)%3)%2===0 ];
-  const applyMask = (mk, src) => { const r = new Uint8Array(src); for(let y=0;y<n;y++) for(let x=0;x<n;x++) if(!fixed[y*n+x] && MASK[mk](x,y)) r[y*n+x]^=1; return r; };
-  const formatBits = mk => { const d = (1<<3)|mk;   // level L = 01 -> value 1 in the two EC bits... (L=01)
-    let f = d<<10; const G = 0x537; for(let i=14;i>=10;i--) if((f>>i)&1) f ^= G<<(i-10); return ((d<<10)|f) ^ 0x5412; };
-  const writeFormat = (mat, mk) => { const f = formatBits(mk); const b = i => (f>>i)&1;
-    const pos1 = [[0,8],[1,8],[2,8],[3,8],[4,8],[5,8],[7,8],[8,8],[8,7],[8,5],[8,4],[8,3],[8,2],[8,1],[8,0]];   // (x,y) for bits 14..0
-    for(let i=0;i<15;i++){ const [x,y] = pos1[i]; mat[y*n+x] = b(14-i); }
-    for(let i=0;i<8;i++) mat[8*n+(n-1-i)] = b(i);                 // bits 0..7 along the top-right row? spec: right of row 8
-    for(let i=0;i<7;i++) mat[(n-1-i)*n+8] = b(14-i);              // bits 14..8 down the bottom-left column
-  };
-  const writeVersion = mat => { if(v<7) return; let f = v<<12; const G = 0x1f25; for(let i=17;i>=12;i--) if((f>>i)&1) f ^= G<<(i-12); const val = (v<<12)|f;
-    for(let i=0;i<18;i++){ const bit = (val>>i)&1; const a = Math.floor(i/3), b = i%3; mat[(n-11+b)*n + a] = bit; mat[a*n + (n-11+b)] = bit; } };
-  const penalty = mat => { let s=0;
-    for(let y=0;y<n;y++){ let run=1; for(let x=1;x<n;x++){ if(mat[y*n+x]===mat[y*n+x-1]){ run++; if(run===5) s+=3; else if(run>5) s++; } else run=1; } }
-    for(let x=0;x<n;x++){ let run=1; for(let y=1;y<n;y++){ if(mat[y*n+x]===mat[(y-1)*n+x]){ run++; if(run===5) s+=3; else if(run>5) s++; } else run=1; } }
-    for(let y=0;y<n-1;y++) for(let x=0;x<n-1;x++){ const a=mat[y*n+x]; if(a===mat[y*n+x+1]&&a===mat[(y+1)*n+x]&&a===mat[(y+1)*n+x+1]) s+=3; }
-    const P = [1,0,1,1,1,0,1,0,0,0,0], Q = [0,0,0,0,1,0,1,1,1,0,1];
-    const chk = (get) => { for(let i=0;i<=n-11;i++){ let okP=true, okQ=true; for(let k=0;k<11;k++){ const val=get(i+k); if(val!==P[k]) okP=false; if(val!==Q[k]) okQ=false; } if(okP) s+=40; if(okQ) s+=40; } };
-    for(let y=0;y<n;y++) chk(i=>mat[y*n+i]); for(let x=0;x<n;x++) chk(i=>mat[i*n+x]);
-    let dark=0; for(let i=0;i<n*n;i++) dark+=mat[i]; const pct = dark*100/(n*n); s += Math.floor(Math.abs(pct-50)/5)*10; return s; };
-  let best=null, bestS=Infinity, bestMk=0;
-  const tryMasks = [0,1,2,3,4,5,6,7] ;
-  for(const mk of tryMasks){ const mat = applyMask(mk, m); writeFormat(mat, mk); writeVersion(mat); const sc = penalty(mat); if(sc<bestS){ bestS=sc; best=mat; bestMk=mk; } }
-  return { n, m: best, version: v, mask: bestMk };
-}
+// The door itself, the error log, the state export/import and the QR overlay are ui/debug and
+// ui/qr. ui/debug drives ui/qr — it decides when the code is redrawn — so the encoder takes
+// its payload as an injection rather than importing the exporter.
+initQr({ exportState, isDebug: isDebugMode, saveSettings: () => saveSettings$1() });
+initDebug({ restoreSettings, fitPanels: () => fitPanels() });
 
-// The overlay: the exported state (settings, clock, camera — the timestamp left out, so
-// the code holds still while nothing changes) as a QR code, redrawn once a second when
-// it differs, at 1, 2 or 4 device pixels a module with a four-module quiet zone. Debug
-// only; nothing below reaches it when debug mode is off.
-const QR_SCALES = [1, 2, 4]; let qrLast = '';
-function qrPlace(){
-  const cv = $('qrOverlay'), w = cv.offsetWidth, h = cv.offsetHeight;
-  const gap = 8, fx = Math.max(0, innerWidth - w - gap), fy = Math.max(0, innerHeight - h - gap);
-  cv.style.left = (gap/2 + fx*Math.min(1, Math.max(0, qrPos.x))) + 'px';
-  cv.style.top  = (gap/2 + fy*Math.min(1, Math.max(0, qrPos.y))) + 'px';
-}
-function qrRedraw(force){
-  const cv = $('qrOverlay');
-  if(!debugMode || !$('qrOn').checked){ cv.style.display = 'none'; qrLast = ''; return; }
-  const st = exportState(); delete st.exported;
-  const payload = JSON.stringify(st);
-  if(!force && payload === qrLast) return;
-  qrLast = payload;
-  let q; try{ q = qrEncode(payload); }catch(e){ cv.style.display = 'none'; return; }
-  const sc = QR_SCALES[+$('qrScale').value] || 2, quiet = 4, size = (q.n + 2*quiet)*sc;
-  cv.width = size; cv.height = size;
-  cv.style.width = (size/view.DPR) + 'px'; cv.style.height = (size/view.DPR) + 'px';   // sc DEVICE pixels a module
-  const g = cv.getContext('2d');
-  g.fillStyle = '#fff'; g.fillRect(0, 0, size, size); g.fillStyle = '#000';
-  for(let y=0;y<q.n;y++) for(let x=0;x<q.n;x++) if(q.m[y*q.n+x]) g.fillRect((x+quiet)*sc, (y+quiet)*sc, sc, sc);
-  cv.style.display = 'block';
-  if(!qrHeld) qrPlace();   // the canvas has just changed size: keep its corner
-}
-$('qrOn').addEventListener('change', ()=> qrRedraw(true));
-// Movable by finger or mouse, and the canvas below never sees the gesture. A drag ends by
-// recording the corner it was dropped nearest, in the same free-space fractions; a double
-// tap that did not drag switches the overlay off.
-{ const cv = $('qrOverlay'); let dx = 0, dy = 0, sx = 0, sy = 0, held = false, moved = false, lastTap = 0;
-  const record = ()=>{
-    const gap = 8, w = cv.offsetWidth, h = cv.offsetHeight;
-    const fx = Math.max(1, innerWidth - w - gap), fy = Math.max(1, innerHeight - h - gap);
-    qrPos = { x: Math.min(1, Math.max(0, (parseFloat(cv.style.left) - gap/2)/fx)),
-              y: Math.min(1, Math.max(0, (parseFloat(cv.style.top)  - gap/2)/fy)) };
-    saveSettings();
-  };
-  cv.addEventListener('pointerdown', e=>{ held = qrHeld = true; moved = false; sx = e.clientX; sy = e.clientY;
-    const r = cv.getBoundingClientRect(); dx = e.clientX - r.left; dy = e.clientY - r.top;
-    try{ cv.setPointerCapture(e.pointerId); }catch(err){} e.stopPropagation(); e.preventDefault(); });
-  cv.addEventListener('pointermove', e=>{ if(!held) return;
-    if(Math.hypot(e.clientX - sx, e.clientY - sy) > 6) moved = true;
-    cv.style.left = Math.max(0, Math.min(innerWidth - cv.offsetWidth, e.clientX - dx)) + 'px';
-    cv.style.top  = Math.max(0, Math.min(innerHeight - cv.offsetHeight, e.clientY - dy)) + 'px'; e.stopPropagation(); });
-  const drop = e=>{
-    if(!held) return;
-    held = qrHeld = false; e.stopPropagation();
-    if(moved){ record(); lastTap = 0; return; }
-    const now = performance.now();
-    if(now - lastTap < 400){ lastTap = 0; $('qrOn').checked = false; $('qrOn').dispatchEvent(new Event('change')); saveSettings(); }
-    else lastTap = now;
-  };
-  cv.addEventListener('pointerup', drop); cv.addEventListener('pointercancel', drop);
-  addEventListener('resize', ()=>{ if(cv.style.display !== 'none') qrPlace(); }); }
-$('qrScale').addEventListener('input', e=>{ $('qrScalev').textContent = QR_SCALES[+e.target.value] + '×'; qrRedraw(true); });
-setInterval(()=> qrRedraw(false), 1000);
-const DBGKEY = 'galactic-transit.debug';
-const DEBUG = (()=>{ try{
-  const v = new URLSearchParams(location.search).get('debug');
-  if(v !== null){
-    const on = !['0','false','off'].includes(v.toLowerCase());
-    try{ localStorage.setItem(DBGKEY, on ? '1' : '0'); }catch(e){}
-    return on;
-  }
-  return localStorage.getItem(DBGKEY) === '1';
-}catch(e){ return false; } })();
-let debugMode = false;
-// ---------- the settings / log tabs ----------
-const esc = t => String(t).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-const clock = t => new Date(t).toTimeString().slice(0,8);
-function renderLog(){
-  const total = errLog.reduce((n,e)=>n+e.n, 0);
-  $('logCount').textContent = total ? ' ' + total : '';
-  if($('logBody').style.display === 'none') return;      // counted always, drawn only when open
-  $('logNote').textContent = TOUCH_DEV ? BUILD.version + ' · since load' : 'desktop: use the browser console';
-  $('logList').innerHTML = errLog.length
-    ? errLog.map(e => '<div class="logrow ' + e.kind + '"><div class="meta">' + clock(e.t) + ' · ' + e.kind
-        + (e.n > 1 ? ' ×' + e.n : '') + (e.where ? ' · ' + esc(e.where) : '') + '</div>' + esc(e.msg) + '</div>').join('')
-    : '<div class="logempty">' + (TOUCH_DEV ? 'Nothing has gone wrong since this page loaded.'
-        : 'Errors are collected on phones and tablets only, where there is no console to open. This device has one — use it.') + '</div>';
-}
-function setHudTab(t){
-  $('hudBody').style.display = t === 'log' ? 'none' : '';
-  $('logBody').style.display = t === 'log' ? '' : 'none';
-  for(const b of document.querySelectorAll('#hudTabs .tab')) b.classList.toggle('on', b.dataset.tab === t);
-  renderLog(); fitPanels();
-}
-for(const b of document.querySelectorAll('#hudTabs .tab')) b.addEventListener('click', ()=> setHudTab(b.dataset.tab));
-$('logClear').addEventListener('click', ()=>{ errLog.length = 0; renderLog(); });
-$('logCopy').addEventListener('click', ()=>{
-  const txt = 'galactic-transit ' + BUILD.version + ' · ' + navigator.userAgent + '\n'
-    + errLog.map(e => clock(e.t) + ' ' + e.kind + (e.n>1 ? ' x'+e.n : '') + (e.where ? ' (' + e.where + ')' : '') + ': ' + e.msg).join('\n');
-  try{ navigator.clipboard.writeText(txt); $('logCopy').textContent = 'copied'; setTimeout(()=> $('logCopy').textContent = 'copy', 1200); }catch(e){}
-});
-function setDebugUI(on, entering){
-  debugMode = on;
-  $('dbgBtn').style.display = on ? '' : 'none';
-  $('rowHudHz').style.display = on ? '' : 'none';
-  $('rowGain').style.display = on ? '' : 'none';
-  $('secDebugHead').style.display = on ? '' : 'none';
-  $('hudTabs').style.display = on ? '' : 'none';
-  // the log is what debug mode is entered for, so it opens on it; leaving takes the
-  // settings back, since without the strip there is no way back to them
-  setHudTab(on && entering ? 'log' : 'set');
-  if(!on){ secOpen.debug = false; applySecs(); }       // folded away with its heading; opens as any section
-  // entering debug mode switches the QR on; a plain boot in debug mode leaves the choice alone
-  if(on && entering && !$('qrOn').checked){ $('qrOn').checked = true; $('qrOn').dispatchEvent(new Event('change')); }
-  qrRedraw(true);
-}
-if(DEBUG) setDebugUI(true, new URLSearchParams(location.search).get('debug') !== null);
-function exportState(){
-  saveSettingsNow();
-  let settings = null; try{ settings = JSON.parse(localStorage.getItem(SKEY)||'null'); }catch(e){}
-  return {
-    app: 'galactic-transit', version: BUILD.version, exported: new Date().toISOString(),
-    time: { simT: simClock.simT, paused: simClock.paused },
-    camera: { yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, distGoal:cam.distGoal,
-              follow:cam.follow, coreLock: cam.coreLock, dive:$('tDive').classList.contains('on') },
-    viewport: { w:innerWidth, h:innerHeight, dpr:devicePixelRatio },
-    settings,
-  };
-}
-function applyState(o){
-  if(!o || o.app !== 'galactic-transit') throw new Error('not a galactic-transit state');
-  if(o.settings){ localStorage.setItem(SKEY, JSON.stringify(o.settings)); restoreSettings(false); }
-  if(o.time && typeof o.time.simT === 'number'){
-    simClock.simT = o.time.simT; simClock.nextSample = simClock.simT + simClock.dtSample;
-    events.length = 0; puffs.length = 0; refillTrails();
-    if(typeof o.time.paused === 'boolean' && simClock.paused !== o.time.paused) $('tPause').click();
-  }
-  if(o.camera){ const c = o.camera;
-    for(const k of ['yaw','pitch','dist','distGoal']) if(typeof c[k] === 'number') cam[k] = c[k];
-    if(typeof c.follow === 'boolean') cam.follow = c.follow;
-    cam.coreLock = !!c.coreLock;
-    $('tDive').classList.toggle('on', !!c.dive);
-    cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
-  }
-}
-const dbgSay = m => { $('dbgMsg').textContent = m; };
-$('dbgBtn').addEventListener('click', ()=>{
-  $('dbgCard').style.display='';
-  // open on the current state, ready to copy — export is one keypress saved
-  $('dbgText').value = JSON.stringify(exportState(), null, 2);
-  dbgSay('current state');
-});
-$('dbgClose').addEventListener('click', ()=>{ $('dbgCard').style.display='none'; });
-$('dbgExport').addEventListener('click', ()=>{
-  $('dbgText').value = JSON.stringify(exportState(), null, 2); dbgSay('state exported'); });
-$('dbgImport').addEventListener('click', ()=>{
-  try{ applyState(JSON.parse($('dbgText').value)); dbgSay('state imported'); }
-  catch(e){ dbgSay('import failed: '+e.message); } });
-$('dbgCopy').addEventListener('click', ()=>{
-  navigator.clipboard.writeText($('dbgText').value)
-    .then(()=>dbgSay('copied'), ()=>dbgSay('clipboard refused — select and copy by hand')); });
-$('dbgPaste').addEventListener('click', ()=>{
-  navigator.clipboard.readText()
-    .then(v=>{ $('dbgText').value=v; dbgSay('pasted'); },
-          ()=>dbgSay('clipboard refused — paste into the box by hand')); });
 // Devtools readouts, and the answer to a problem the move created rather than solved: a
 // classic <script> put its top-level bindings on the global object by accident, so
 // `earthDbg` and `probeInfo` — which have no in-file readers at all — were reachable from a

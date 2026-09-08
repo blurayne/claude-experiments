@@ -30,6 +30,13 @@ import { tempColour, setStateColour } from './ui/theme'
 import { initFullscreen, registerServiceWorker } from './ui/fullscreen'
 import { initPanels, setPanelOpen, layoutPanels, PANELS, panelSnapshot, panelApply, panelIsOpen } from './ui/panels'
 import { initTour, showTour, TOURKEY } from './ui/tour'
+import { initSections, applySecs, seg, sectionSnapshot, sectionApply, closeSection } from './ui/sections'
+import {
+  SKEY, saveSettings, saveSettingsNow, registerSnapshot, registerApply,
+  restoreSettings as restoreSettingsIn,
+} from './ui/persist'
+import { initQr, qrSnapshot, qrApply } from './ui/qr'
+import { initDebug, isDebugMode, exportState, renderLog, DEBUG, DBGKEY, setDebugUI } from './ui/debug'
 import {
   R_GAL, V_GAL, GAL_PERIOD, YR_PER_SIM, AGE0, AND_AGE, SCATTER_AGE, SR_A, SR_B, SR_K,
   TILT, E1, E2, AU2U, OO_REAL, REAL_MODE, PITCH, BAR_L, BAR_A, armAngle, ARMS, sA, cA,
@@ -872,47 +879,9 @@ const lifeSupOn = true;   // the reading is a fixture of the Earth panel now
 // then, deferring the read to call time is the smaller change.
 initPanels({ fitPanels: () => fitPanels(), saveSettings: () => saveSettings() });
 // ---------- collapsible sections ----------
-// Each heading owns a body; the arrow turns to show which way it goes. Simulation
-// starts closed: its two sliders and the scenario list are the controls a visitor is
-// least likely to want on arrival, and the piece opens on a staged scenario anyway.
-const SECS = ['audio','gfx','hud','other','debug'];
-const SEC_BODY = { audio:'secAudio', gfx:'secGfx', hud:'secHud', other:'secOther', debug:'secDebug' };
-// one at a time by default, so the panel stays a screenful; Graphics is the one that
-// earns the opening slot, holding the controls a visitor reaches for most
-const secOpen = { audio:false, gfx:true, hud:false, other:false, debug:false };
-function applySecs(){
-  for(const k of SECS){
-    $(SEC_BODY[k]).classList.toggle('closed', !secOpen[k]);
-    document.querySelector('.sect[data-sec="'+k+'"]').classList.toggle('closed', !secOpen[k]);
-  }
-  fitPanels();
-}
-document.querySelectorAll('.sect[data-sec]').forEach(h =>
-  h.addEventListener('click', ()=>{
-    const k = h.dataset.sec, opening = !secOpen[k];
-    if(opening && $('secSolo').checked) for(const s of SECS) secOpen[s] = false;
-    secOpen[k] = opening;
-    applySecs(); saveSettings();
-  }));
-$('secSolo').addEventListener('change', ()=>{
-  if($('secSolo').checked){   // keep the topmost open one, fold the rest away
-    let kept = false;
-    for(const s of SECS){ if(secOpen[s] && !kept) kept = true; else secOpen[s] = false; }
-  }
-  applySecs(); saveSettings();
-});
+// The headings, their bodies, the solo rule and the segmented buttons are ui/sections.
+initSections({ fitPanels: () => fitPanels(), saveSettings: () => saveSettings() });
 
-// one control, several faces: a segmented button where exactly one segment is lit
-function seg(id, initial, fn){
-  const bs = [...$(id).children];
-  const set = (v, apply)=>{ bs.forEach(b => b.classList.toggle('on', b.dataset.v === v));
-    if(apply !== false) fn(v); };
-  bs.forEach(b => b.addEventListener('click', ()=>{ set(b.dataset.v); saveSettings(); }));
-  // only the lit segment is set at build time: the state variables carry the same
-  // defaults, and calling fn this early would touch bindings not yet initialised
-  set(initial, false);
-  return set;
-}
 // The volume slider is the switch: silence is off, and the audio graph is built the
 // first time it is raised, so a visitor who never asks for sound never pays for it.
 function setMusicVol(v){
@@ -957,76 +926,41 @@ $('sfxVol').addEventListener('input', e => setSfxVol(+e.target.value));
 loadTrack(0);
 
 // ---------- remembering the settings ----------
-// Saved state is replayed through the existing handlers rather than assigned directly,
-// so restoring a setting does exactly what clicking it would. Anything momentary — the
-// pause, the dive, the epoch jump, the current track position — is deliberately left out.
-const SKEY = 'galactic-transit.settings.v1';
-const S_TOG = ['tLabels','tArms','tLabelSteady','tZoomBtns','tSpinLock','tDwarfs','tP9','tBelt','tKuiper','tOort','tDust',
-               'tEvSN','tEvBirth','tVar',
-               'tStatAge','tStatGyr','tStatSn','tStatBirth','tGaia','tFps'];
-const S_SLD = ['speed','trailA','orbitA','trailL','musicVol','sfxVol','minB','hudHz','coreB','qrScale'];
-const S_CHK = ['fxBirth','fxSn','fxPn','fxDrone','secSolo','closeOnGo','qrOn'];
-// Where the QR overlay sits, as fractions of the free space rather than pixels: (1,1) is
-// the bottom right corner at any screen size or module scale, so a place chosen by hand
-// survives a rotation, a change of scale and a reload. Declared here, above the settings
-// writer that reads it — inside the overlay's own block it was a TDZ error at boot.
-let qrPos = { x: 1, y: 1 }, qrHeld = false;
-function saveSettingsNow(){
-  try{
-    const s = { t:{}, s:{}, c:{}, cal:$('cal').value, mult:simClock.speedMult, dens:gfx.curD, dprc:view.dprCap,
-                units:unitMode,
-                fsel:$('focusSel').value, sec:secOpen,
-                pan:panelSnapshot(),
-                bar:$('gamebar').classList.contains('slid'), qrPos,
- };
-    S_TOG.forEach(id => s.t[id] = isOn($(id)));
-    S_SLD.forEach(id => s.s[id] = $(id).value); s.sv = 2;   // sv 2: the speed slider is a rung index
-    S_CHK.forEach(id => s.c[id] = $(id).checked);
-    localStorage.setItem(SKEY, JSON.stringify(s));
-  }catch(e){}   // private browsing, or storage disabled: just don't remember
-}
-let saveTimer = 0;
-const saveSettings = ()=>{ clearTimeout(saveTimer); saveTimer = setTimeout(saveSettingsNow, 250); };
-// Deferred: replaying a saved toggle runs its handler, and some of those reach for
-// state declared further down the file (the label elements, the simulation clock).
-// This is called at the very end of the script, once every binding exists.
-function restoreSettings(register){
-  let s = null;
-  try{ s = JSON.parse(localStorage.getItem(SKEY) || 'null'); }catch(e){}
-  if(s){
-    if(s.s && !(s.sv >= 2) && s.s.speed != null) s.s.speed = String(speedRungOf(Math.pow(WEEK_YR, 1-(+s.s.speed))));   // the old continuous slider
-    if(s.s) S_SLD.forEach(id=>{ const v=s.s[id];
-      if(v != null && $(id).value !== v){ $(id).value = v; $(id).dispatchEvent(new Event('input')); } });
-    if(s.c) S_CHK.forEach(id=>{ const v=s.c[id];
-      if(v != null && $(id).checked !== v){ $(id).checked = v; $(id).dispatchEvent(new Event('change')); } });
-    if(s.t) S_TOG.forEach(id=>{ const v=s.t[id];
-      if(v != null && isOn($(id)) !== v) $(id).click(); });   // a checkbox click fires change
-    if(s.cal && s.cal !== $('cal').value){ $('cal').value = s.cal; $('cal').dispatchEvent(new Event('change')); }
-    if(s.mult > 0 && s.mult !== simClock.speedMult) setMultExp(Math.log10(s.mult));
-    if(s.dprc === 1 || s.dprc === 2){ if(s.dprc !== view.dprCap){ view.dprCap = s.dprc; resize(); } }   // the probe's pixel cap, kept
-    if(s.dens){ const i = DETAIL_D.indexOf(s.dens);
-      if(i >= 0){ $('detail').value = i; $('detailv').textContent = DETAIL_NAMES[i];   // the slider shows the tier even when it is the boot tier
-        if(s.dens !== gfx.curD) $('detail').dispatchEvent(new Event('input')); } }
-    if(s.units === 'words' || s.units === 'sup' || s.units === 'e') setSegUnits(s.units);
-    if(s.fsel === 'sun' || s.fsel === 'mw' || s.fsel === 'and') $('focusSel').value = s.fsel;
-    if(s.sec) for(const k of SECS) if(typeof s.sec[k] === 'boolean') secOpen[k] = s.sec[k];
-    if(s.bar) $('gamebar').classList.add('slid');
-    if(s.qrPos && typeof s.qrPos.x === 'number' && typeof s.qrPos.y === 'number') qrPos = s.qrPos;
-  }
-  panelApply(s && s.pan);   // sides and open flags, then the layout — see ui/panels
-  applySecs();
-  if(register === false) return;
-  // from here on, anything the user touches is remembered
-  S_TOG.forEach(id => $(id).addEventListener('click', saveSettings));
-  S_SLD.forEach(id => $(id).addEventListener('input', saveSettings));
-  S_CHK.forEach(id => $(id).addEventListener('change', saveSettings));
-  $('cal').addEventListener('change', saveSettings);
-  $('collapse').addEventListener('click', saveSettings);
-  $('reopen').addEventListener('click', saveSettings);
-  $('multExp').addEventListener('input', saveSettings);
-  $('detail').addEventListener('input', saveSettings);
-  $('focusSel').addEventListener('change', saveSettings);
-}
+// The mechanics are ui/persist: the three id lists, the debounce, and the replay through the
+// page's own handlers. What is saved BEYOND those lists is contributed from here, through the
+// registry — persist must not import the modules whose state it records.
+
+registerSnapshot(() => ({
+  cal:$('cal').value, mult:simClock.speedMult, dens:gfx.curD, dprc:view.dprCap,
+  units:unitMode,
+  fsel:$('focusSel').value, sec:sectionSnapshot(),
+  pan:panelSnapshot(),
+  bar:$('gamebar').classList.contains('slid'), qrPos:qrSnapshot(),
+}));
+
+// Registration order is replay order. These three run after persist's own id lists, in
+// exactly the sequence the single restoreSettings() used to run them in.
+registerApply(s => {
+  if(!s) return;
+  if(s.cal && s.cal !== $('cal').value){ $('cal').value = s.cal; $('cal').dispatchEvent(new Event('change')); }
+  if(s.mult > 0 && s.mult !== simClock.speedMult) setMultExp(Math.log10(s.mult));
+  if(s.dprc === 1 || s.dprc === 2){ if(s.dprc !== view.dprCap){ view.dprCap = s.dprc; resize(); } }   // the probe's pixel cap, kept
+  if(s.dens){ const i = DETAIL_D.indexOf(s.dens);
+    if(i >= 0){ $('detail').value = i; $('detailv').textContent = DETAIL_NAMES[i];   // the slider shows the tier even when it is the boot tier
+      if(s.dens !== gfx.curD) $('detail').dispatchEvent(new Event('input')); } }
+  if(s.units === 'words' || s.units === 'sup' || s.units === 'e') setSegUnits(s.units);
+  if(s.fsel === 'sun' || s.fsel === 'mw' || s.fsel === 'and') $('focusSel').value = s.fsel;
+  sectionApply(s.sec);
+  if(s.bar) $('gamebar').classList.add('slid');
+  qrApply(s.qrPos);
+});
+registerApply(s => panelApply(s && s.pan));   // sides and open flags, then the layout
+registerApply(() => applySecs());
+
+// The speed ladder's own business: the pre-v2 slider was continuous, and this is the rung
+// nearest what it meant.
+const legacySpeed = (v: number) => speedRungOf(Math.pow(WEEK_YR, 1-v));
+const restoreSettings = (register?: boolean) => restoreSettingsIn(register, legacySpeed);
 toggle($('tOort'), on=> showOort=on);
 function updateBar(){
   showStats = ['sCal','sAge','sGyr','cDeath','cBirth'].some(id => $(id).style.display !== 'none');
@@ -1877,261 +1811,12 @@ $('jump').dispatchEvent(new Event('change'));
 keepSaved = false;
 try{ if(!hadSaved && !localStorage.getItem(TOURKEY)) setTimeout(showTour, 400); }catch(e){}
 // ---------- the debug door: opened by ?debug in the URL or ten taps on refresh ----------
-// QR encoder: byte mode, EC level L, versions 1–40, standard masking by penalty. Returns
-// {n, m} with m a Uint8Array of n*n modules (1 = dark). Self-contained; no tables beyond
-// the version capacity/EC block list, which is the spec's Table 9 for level L.
-function qrEncode(text, forceMask){
-  const bytes = new TextEncoder().encode(text);
-  // [total codewords, ec codewords per block, blocks group1, data cw group1, blocks group2, data cw group2] for level L
-  const T = [null,
-    [26,7,1,19,0,0],[44,10,1,34,0,0],[70,15,1,55,0,0],[100,20,1,80,0,0],[134,26,1,108,0,0],[172,18,2,68,0,0],[196,20,2,78,0,0],[242,24,2,97,0,0],[292,30,2,116,0,0],[346,18,2,68,2,69],
-    [404,20,4,81,0,0],[466,24,2,92,2,93],[532,26,4,107,0,0],[581,30,3,115,1,116],[655,22,5,87,1,88],[733,24,5,98,1,99],[815,28,1,107,5,108],[901,30,5,120,1,121],[991,28,3,113,4,114],[1085,28,3,107,5,108],
-    [1156,28,4,116,4,117],[1258,28,2,111,7,112],[1364,30,4,121,5,122],[1474,30,6,117,4,118],[1588,26,8,106,4,107],[1706,28,10,114,2,115],[1828,30,8,122,4,123],[1921,30,3,117,10,118],[2051,30,7,116,7,117],[2185,30,5,115,10,116],
-    [2323,30,13,115,3,116],[2465,30,17,115,0,0],[2611,30,17,115,1,116],[2761,30,13,115,6,116],[2876,30,12,121,7,122],[3034,30,6,121,14,122],[3196,30,17,122,4,123],[3362,30,4,122,18,123],[3532,30,20,117,4,118],[3706,30,19,118,6,119]];
-  const ALIGN = [null,[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],
-    [6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110],[6,30,58,86,114],[6,34,62,90,118],[6,26,50,74,98,122],[6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],[6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],[6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170]];
-  // version: the first whose data capacity holds mode(4) + count(8|16) + bytes
-  let v = 1;
-  for(; v <= 40; v++){ const t = T[v], dataCW = t[2]*t[3] + t[4]*t[5]; const cnt = v <= 9 ? 8 : 16;
-    if(4 + cnt + bytes.length*8 <= dataCW*8) break; }
-  if(v > 40) throw new Error('too long for a QR code');
-  const t = T[v], dataCW = t[2]*t[3] + t[4]*t[5], cnt = v <= 9 ? 8 : 16;
-  // data bit stream
-  const bits = []; const put = (val, n) => { for(let i=n-1;i>=0;i--) bits.push((val>>i)&1); };
-  put(4,4); put(bytes.length, cnt); for(const b of bytes) put(b,8);
-  const cap = dataCW*8; for(let i=0;i<4 && bits.length<cap;i++) bits.push(0);
-  while(bits.length%8) bits.push(0);
-  const data = []; for(let i=0;i<bits.length;i+=8){ let x=0; for(let j=0;j<8;j++) x=(x<<1)|bits[i+j]; data.push(x); }
-  for(let k=0; data.length<dataCW; k++) data.push(k%2 ? 0x11 : 0xEC);
-  // GF(256) Reed–Solomon
-  const EXP = new Uint8Array(512), LOG = new Uint8Array(256);
-  for(let i=0,x=1;i<255;i++){ EXP[i]=x; LOG[x]=i; x<<=1; if(x&256) x^=0x11d; }
-  for(let i=255;i<512;i++) EXP[i]=EXP[i-255];
-  const mul = (a,b) => (a&&b) ? EXP[LOG[a]+LOG[b]] : 0;
-  const ecN = t[1]; let gen = [1];
-  for(let i=0;i<ecN;i++){ const ng = new Array(gen.length+1).fill(0);
-    for(let j=0;j<gen.length;j++){ ng[j] ^= gen[j]; ng[j+1] ^= mul(gen[j], EXP[i]); } gen = ng; }
-  const ecOf = blk => { const r = blk.slice().concat(new Array(ecN).fill(0));
-    for(let i=0;i<blk.length;i++){ const c = r[i]; if(!c) continue; for(let j=1;j<gen.length;j++) r[i+j] ^= mul(gen[j], c); }
-    return r.slice(blk.length); };
-  const blocks = [], ecs = []; let p = 0;
-  for(let g=0; g<2; g++){ const nb = t[2+2*g], len = t[3+2*g]; for(let b=0;b<nb;b++){ const blk = data.slice(p, p+len); p += len; blocks.push(blk); ecs.push(ecOf(blk)); } }
-  const out = []; const maxLen = Math.max(...blocks.map(b=>b.length));
-  for(let i=0;i<maxLen;i++) for(const b of blocks) if(i<b.length) out.push(b[i]);
-  for(let i=0;i<ecN;i++) for(const e of ecs) out.push(e[i]);
-  // the matrix
-  const n = 17 + 4*v, m = new Uint8Array(n*n), fixed = new Uint8Array(n*n);
-  const set = (x,y,val) => { m[y*n+x] = val; fixed[y*n+x] = 1; };
-  const finder = (x0,y0) => { for(let dy=-1;dy<=7;dy++) for(let dx=-1;dx<=7;dx++){ const x=x0+dx, y=y0+dy; if(x<0||y<0||x>=n||y>=n) continue;
-    const on = (dx>=0&&dx<=6&&dy>=0&&dy<=6) && (dx===0||dx===6||dy===0||dy===6||(dx>=2&&dx<=4&&dy>=2&&dy<=4)); set(x,y,on?1:0); } };
-  finder(0,0); finder(n-7,0); finder(0,n-7);
-  for(let i=8;i<n-8;i++){ set(i,6,i%2===0?1:0); set(6,i,i%2===0?1:0); }
-  const al = ALIGN[v];
-  // omitted only where one would overlap a finder — the ones on the timing lines are drawn
-  for(const cy of al) for(const cx of al){ if((cx<9&&cy<9)||(cx>n-10&&cy<9)||(cx<9&&cy>n-10)) continue;
-    for(let dy=-2;dy<=2;dy++) for(let dx=-2;dx<=2;dx++) set(cx+dx, cy+dy, (Math.max(Math.abs(dx),Math.abs(dy))!==1)?1:0); }
-  set(8, n-8, 1);   // the dark module
-  // reserve format (and version) areas
-  for(let i=0;i<9;i++){ if(i!==6){ fixed[8*n+i]=1; fixed[i*n+8]=1; } }
-  for(let i=0;i<8;i++){ fixed[8*n+(n-1-i)]=1; fixed[(n-1-i)*n+8]=1; }
-  if(v>=7){ for(let i=0;i<6;i++) for(let j=0;j<3;j++){ fixed[i*n+(n-11+j)]=1; fixed[(n-11+j)*n+i]=1; } }
-  let bi = 0; const total = out.length*8; const bitAt = k => (out[k>>3] >> (7-(k&7))) & 1;
-  // codewords into the matrix: column pairs from the right, direction alternating, starting upward
-  { let up = true;
-    for(let x=n-1; x>0; x-=2){ if(x===6) x--;
-      for(let k=0;k<n;k++){ const y = up ? n-1-k : k;
-        for(let dx=0; dx<2; dx++){ const xx = x-dx; if(fixed[y*n+xx]) continue;
-          m[y*n+xx] = bi < total ? bitAt(bi) : 0; bi++; } }
-      up = !up; } }
-  // masks
-  const MASK = [ (x,y)=>(x+y)%2===0, (x,y)=>y%2===0, (x,y)=>x%3===0, (x,y)=>(x+y)%3===0,
-    (x,y)=>((y>>1)+Math.floor(x/3))%2===0, (x,y)=>(x*y)%2+(x*y)%3===0, (x,y)=>((x*y)%2+(x*y)%3)%2===0, (x,y)=>((x+y)%2+(x*y)%3)%2===0 ];
-  const applyMask = (mk, src) => { const r = new Uint8Array(src); for(let y=0;y<n;y++) for(let x=0;x<n;x++) if(!fixed[y*n+x] && MASK[mk](x,y)) r[y*n+x]^=1; return r; };
-  const formatBits = mk => { const d = (1<<3)|mk;   // level L = 01 -> value 1 in the two EC bits... (L=01)
-    let f = d<<10; const G = 0x537; for(let i=14;i>=10;i--) if((f>>i)&1) f ^= G<<(i-10); return ((d<<10)|f) ^ 0x5412; };
-  const writeFormat = (mat, mk) => { const f = formatBits(mk); const b = i => (f>>i)&1;
-    const pos1 = [[0,8],[1,8],[2,8],[3,8],[4,8],[5,8],[7,8],[8,8],[8,7],[8,5],[8,4],[8,3],[8,2],[8,1],[8,0]];   // (x,y) for bits 14..0
-    for(let i=0;i<15;i++){ const [x,y] = pos1[i]; mat[y*n+x] = b(14-i); }
-    for(let i=0;i<8;i++) mat[8*n+(n-1-i)] = b(i);                 // bits 0..7 along the top-right row? spec: right of row 8
-    for(let i=0;i<7;i++) mat[(n-1-i)*n+8] = b(14-i);              // bits 14..8 down the bottom-left column
-  };
-  const writeVersion = mat => { if(v<7) return; let f = v<<12; const G = 0x1f25; for(let i=17;i>=12;i--) if((f>>i)&1) f ^= G<<(i-12); const val = (v<<12)|f;
-    for(let i=0;i<18;i++){ const bit = (val>>i)&1; const a = Math.floor(i/3), b = i%3; mat[(n-11+b)*n + a] = bit; mat[a*n + (n-11+b)] = bit; } };
-  const penalty = mat => { let s=0;
-    for(let y=0;y<n;y++){ let run=1; for(let x=1;x<n;x++){ if(mat[y*n+x]===mat[y*n+x-1]){ run++; if(run===5) s+=3; else if(run>5) s++; } else run=1; } }
-    for(let x=0;x<n;x++){ let run=1; for(let y=1;y<n;y++){ if(mat[y*n+x]===mat[(y-1)*n+x]){ run++; if(run===5) s+=3; else if(run>5) s++; } else run=1; } }
-    for(let y=0;y<n-1;y++) for(let x=0;x<n-1;x++){ const a=mat[y*n+x]; if(a===mat[y*n+x+1]&&a===mat[(y+1)*n+x]&&a===mat[(y+1)*n+x+1]) s+=3; }
-    const P = [1,0,1,1,1,0,1,0,0,0,0], Q = [0,0,0,0,1,0,1,1,1,0,1];
-    const chk = (get) => { for(let i=0;i<=n-11;i++){ let okP=true, okQ=true; for(let k=0;k<11;k++){ const val=get(i+k); if(val!==P[k]) okP=false; if(val!==Q[k]) okQ=false; } if(okP) s+=40; if(okQ) s+=40; } };
-    for(let y=0;y<n;y++) chk(i=>mat[y*n+i]); for(let x=0;x<n;x++) chk(i=>mat[i*n+x]);
-    let dark=0; for(let i=0;i<n*n;i++) dark+=mat[i]; const pct = dark*100/(n*n); s += Math.floor(Math.abs(pct-50)/5)*10; return s; };
-  let best=null, bestS=Infinity, bestMk=0;
-  const tryMasks = forceMask===undefined ? [0,1,2,3,4,5,6,7] : [forceMask];
-  for(const mk of tryMasks){ const mat = applyMask(mk, m); writeFormat(mat, mk); writeVersion(mat); const sc = penalty(mat); if(sc<bestS){ bestS=sc; best=mat; bestMk=mk; } }
-  return { n, m: best, version: v, mask: bestMk };
-}
+// The door itself, the error log, the state export/import and the QR overlay are ui/debug and
+// ui/qr. ui/debug drives ui/qr — it decides when the code is redrawn — so the encoder takes
+// its payload as an injection rather than importing the exporter.
+initQr({ exportState, isDebug: isDebugMode, saveSettings: () => saveSettings() });
+initDebug({ restoreSettings, fitPanels: () => fitPanels() });
 
-// The overlay: the exported state (settings, clock, camera — the timestamp left out, so
-// the code holds still while nothing changes) as a QR code, redrawn once a second when
-// it differs, at 1, 2 or 4 device pixels a module with a four-module quiet zone. Debug
-// only; nothing below reaches it when debug mode is off.
-const QR_SCALES = [1, 2, 4]; let qrLast = '';
-function qrPlace(){
-  const cv = $('qrOverlay'), w = cv.offsetWidth, h = cv.offsetHeight;
-  const gap = 8, fx = Math.max(0, innerWidth - w - gap), fy = Math.max(0, innerHeight - h - gap);
-  cv.style.left = (gap/2 + fx*Math.min(1, Math.max(0, qrPos.x))) + 'px';
-  cv.style.top  = (gap/2 + fy*Math.min(1, Math.max(0, qrPos.y))) + 'px';
-}
-function qrRedraw(force){
-  const cv = $('qrOverlay');
-  if(!debugMode || !$('qrOn').checked){ cv.style.display = 'none'; qrLast = ''; return; }
-  const st = exportState(); delete st.exported;
-  const payload = JSON.stringify(st);
-  if(!force && payload === qrLast) return;
-  qrLast = payload;
-  let q; try{ q = qrEncode(payload); }catch(e){ cv.style.display = 'none'; return; }
-  const sc = QR_SCALES[+$('qrScale').value] || 2, quiet = 4, size = (q.n + 2*quiet)*sc;
-  cv.width = size; cv.height = size;
-  cv.style.width = (size/view.DPR) + 'px'; cv.style.height = (size/view.DPR) + 'px';   // sc DEVICE pixels a module
-  const g = cv.getContext('2d');
-  g.fillStyle = '#fff'; g.fillRect(0, 0, size, size); g.fillStyle = '#000';
-  for(let y=0;y<q.n;y++) for(let x=0;x<q.n;x++) if(q.m[y*q.n+x]) g.fillRect((x+quiet)*sc, (y+quiet)*sc, sc, sc);
-  cv.style.display = 'block';
-  if(!qrHeld) qrPlace();   // the canvas has just changed size: keep its corner
-}
-$('qrOn').addEventListener('change', ()=> qrRedraw(true));
-// Movable by finger or mouse, and the canvas below never sees the gesture. A drag ends by
-// recording the corner it was dropped nearest, in the same free-space fractions; a double
-// tap that did not drag switches the overlay off.
-{ const cv = $('qrOverlay'); let dx = 0, dy = 0, sx = 0, sy = 0, held = false, moved = false, lastTap = 0;
-  const record = ()=>{
-    const gap = 8, w = cv.offsetWidth, h = cv.offsetHeight;
-    const fx = Math.max(1, innerWidth - w - gap), fy = Math.max(1, innerHeight - h - gap);
-    qrPos = { x: Math.min(1, Math.max(0, (parseFloat(cv.style.left) - gap/2)/fx)),
-              y: Math.min(1, Math.max(0, (parseFloat(cv.style.top)  - gap/2)/fy)) };
-    saveSettings();
-  };
-  cv.addEventListener('pointerdown', e=>{ held = qrHeld = true; moved = false; sx = e.clientX; sy = e.clientY;
-    const r = cv.getBoundingClientRect(); dx = e.clientX - r.left; dy = e.clientY - r.top;
-    try{ cv.setPointerCapture(e.pointerId); }catch(err){} e.stopPropagation(); e.preventDefault(); });
-  cv.addEventListener('pointermove', e=>{ if(!held) return;
-    if(Math.hypot(e.clientX - sx, e.clientY - sy) > 6) moved = true;
-    cv.style.left = Math.max(0, Math.min(innerWidth - cv.offsetWidth, e.clientX - dx)) + 'px';
-    cv.style.top  = Math.max(0, Math.min(innerHeight - cv.offsetHeight, e.clientY - dy)) + 'px'; e.stopPropagation(); });
-  const drop = e=>{
-    if(!held) return;
-    held = qrHeld = false; e.stopPropagation();
-    if(moved){ record(); lastTap = 0; return; }
-    const now = performance.now();
-    if(now - lastTap < 400){ lastTap = 0; $('qrOn').checked = false; $('qrOn').dispatchEvent(new Event('change')); saveSettings(); }
-    else lastTap = now;
-  };
-  cv.addEventListener('pointerup', drop); cv.addEventListener('pointercancel', drop);
-  addEventListener('resize', ()=>{ if(cv.style.display !== 'none') qrPlace(); }); }
-$('qrScale').addEventListener('input', e=>{ $('qrScalev').textContent = QR_SCALES[+e.target.value] + '×'; qrRedraw(true); });
-setInterval(()=> qrRedraw(false), 1000);
-const DBGKEY = 'galactic-transit.debug';
-const DEBUG = (()=>{ try{
-  const v = new URLSearchParams(location.search).get('debug');
-  if(v !== null){
-    const on = !['0','false','off'].includes(v.toLowerCase());
-    try{ localStorage.setItem(DBGKEY, on ? '1' : '0'); }catch(e){}
-    return on;
-  }
-  return localStorage.getItem(DBGKEY) === '1';
-}catch(e){ return false; } })();
-let debugMode = false;
-// ---------- the settings / log tabs ----------
-const esc = t => String(t).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-const clock = t => new Date(t).toTimeString().slice(0,8);
-function renderLog(){
-  const total = errLog.reduce((n,e)=>n+e.n, 0);
-  $('logCount').textContent = total ? ' ' + total : '';
-  if($('logBody').style.display === 'none') return;      // counted always, drawn only when open
-  $('logNote').textContent = TOUCH_DEV ? BUILD.version + ' · since load' : 'desktop: use the browser console';
-  $('logList').innerHTML = errLog.length
-    ? errLog.map(e => '<div class="logrow ' + e.kind + '"><div class="meta">' + clock(e.t) + ' · ' + e.kind
-        + (e.n > 1 ? ' ×' + e.n : '') + (e.where ? ' · ' + esc(e.where) : '') + '</div>' + esc(e.msg) + '</div>').join('')
-    : '<div class="logempty">' + (TOUCH_DEV ? 'Nothing has gone wrong since this page loaded.'
-        : 'Errors are collected on phones and tablets only, where there is no console to open. This device has one — use it.') + '</div>';
-}
-function setHudTab(t){
-  $('hudBody').style.display = t === 'log' ? 'none' : '';
-  $('logBody').style.display = t === 'log' ? '' : 'none';
-  for(const b of document.querySelectorAll('#hudTabs .tab')) b.classList.toggle('on', b.dataset.tab === t);
-  renderLog(); fitPanels();
-}
-for(const b of document.querySelectorAll('#hudTabs .tab')) b.addEventListener('click', ()=> setHudTab(b.dataset.tab));
-$('logClear').addEventListener('click', ()=>{ errLog.length = 0; renderLog(); });
-$('logCopy').addEventListener('click', ()=>{
-  const txt = 'galactic-transit ' + BUILD.version + ' · ' + navigator.userAgent + '\n'
-    + errLog.map(e => clock(e.t) + ' ' + e.kind + (e.n>1 ? ' x'+e.n : '') + (e.where ? ' (' + e.where + ')' : '') + ': ' + e.msg).join('\n');
-  try{ navigator.clipboard.writeText(txt); $('logCopy').textContent = 'copied'; setTimeout(()=> $('logCopy').textContent = 'copy', 1200); }catch(e){}
-});
-function setDebugUI(on, entering){
-  debugMode = on;
-  $('dbgBtn').style.display = on ? '' : 'none';
-  $('rowHudHz').style.display = on ? '' : 'none';
-  $('rowGain').style.display = on ? '' : 'none';
-  $('secDebugHead').style.display = on ? '' : 'none';
-  $('hudTabs').style.display = on ? '' : 'none';
-  // the log is what debug mode is entered for, so it opens on it; leaving takes the
-  // settings back, since without the strip there is no way back to them
-  setHudTab(on && entering ? 'log' : 'set');
-  if(!on){ secOpen.debug = false; applySecs(); }       // folded away with its heading; opens as any section
-  // entering debug mode switches the QR on; a plain boot in debug mode leaves the choice alone
-  if(on && entering && !$('qrOn').checked){ $('qrOn').checked = true; $('qrOn').dispatchEvent(new Event('change')); }
-  qrRedraw(true);
-}
-if(DEBUG) setDebugUI(true, new URLSearchParams(location.search).get('debug') !== null);
-function exportState(){
-  saveSettingsNow();
-  let settings = null; try{ settings = JSON.parse(localStorage.getItem(SKEY)||'null'); }catch(e){}
-  return {
-    app: 'galactic-transit', version: BUILD.version, exported: new Date().toISOString(),
-    time: { simT: simClock.simT, paused: simClock.paused },
-    camera: { yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, distGoal:cam.distGoal,
-              follow:cam.follow, coreLock: cam.coreLock, dive:$('tDive').classList.contains('on') },
-    viewport: { w:innerWidth, h:innerHeight, dpr:devicePixelRatio },
-    settings,
-  };
-}
-function applyState(o){
-  if(!o || o.app !== 'galactic-transit') throw new Error('not a galactic-transit state');
-  if(o.settings){ localStorage.setItem(SKEY, JSON.stringify(o.settings)); restoreSettings(false); }
-  if(o.time && typeof o.time.simT === 'number'){
-    simClock.simT = o.time.simT; simClock.nextSample = simClock.simT + simClock.dtSample;
-    events.length = 0; puffs.length = 0; refillTrails();
-    if(typeof o.time.paused === 'boolean' && simClock.paused !== o.time.paused) $('tPause').click();
-  }
-  if(o.camera){ const c = o.camera;
-    for(const k of ['yaw','pitch','dist','distGoal']) if(typeof c[k] === 'number') cam[k] = c[k];
-    if(typeof c.follow === 'boolean') cam.follow = c.follow;
-    cam.coreLock = !!c.coreLock;
-    $('tDive').classList.toggle('on', !!c.dive);
-    cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
-  }
-}
-const dbgSay = m => { $('dbgMsg').textContent = m; };
-$('dbgBtn').addEventListener('click', ()=>{
-  $('dbgCard').style.display='';
-  // open on the current state, ready to copy — export is one keypress saved
-  $('dbgText').value = JSON.stringify(exportState(), null, 2);
-  dbgSay('current state');
-});
-$('dbgClose').addEventListener('click', ()=>{ $('dbgCard').style.display='none'; });
-$('dbgExport').addEventListener('click', ()=>{
-  $('dbgText').value = JSON.stringify(exportState(), null, 2); dbgSay('state exported'); });
-$('dbgImport').addEventListener('click', ()=>{
-  try{ applyState(JSON.parse($('dbgText').value)); dbgSay('state imported'); }
-  catch(e){ dbgSay('import failed: '+e.message); } });
-$('dbgCopy').addEventListener('click', ()=>{
-  navigator.clipboard.writeText($('dbgText').value)
-    .then(()=>dbgSay('copied'), ()=>dbgSay('clipboard refused — select and copy by hand')); });
-$('dbgPaste').addEventListener('click', ()=>{
-  navigator.clipboard.readText()
-    .then(v=>{ $('dbgText').value=v; dbgSay('pasted'); },
-          ()=>dbgSay('clipboard refused — paste into the box by hand')); });
 // Devtools readouts, and the answer to a problem the move created rather than solved: a
 // classic <script> put its top-level bindings on the global object by accident, so
 // `earthDbg` and `probeInfo` — which have no in-file readers at all — were reachable from a
