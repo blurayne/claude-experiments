@@ -2,9 +2,9 @@
 
 Working notes for picking this up cold, in a later session or on another machine. The plan being executed is `docs/refactor/inventory/00-PLAN.md`; this file records how far along it is, what has been learned since it was written, and the things that will waste a day if you do not know them.
 
-**Status: `main.ts` is down from 5,347 lines to 3,400 — 36% of it moved into 28 modules. `main` is untouched and still ships v2.78.0.**
+**Status: `main.ts` is down from 5,347 lines to 3,371 — 37% of it moved into 29 modules. `main` is untouched and still ships v2.78.0.**
 
-Of the plan's 24 steps, twelve are complete (0–9, 11, 14), two are part-done (12, the draw passes: three of eleven; and 15, the `ui/` leaves: one of five), and ten have not started.
+Of the plan's 24 steps, twelve are complete (0–9, 11, 14), two are part-done (12, the draw passes: four of eleven; and 15, the `ui/` leaves: one of five), and ten have not started.
 
 This file is the live status; the chat is not. Regenerate the numbers with `wc -l src/main.ts`,
 `npx vitest run`, and `git log --oneline main..HEAD`.
@@ -78,8 +78,11 @@ There is no baseline step and nothing to pre-generate. That is a deliberate chan
 | `npm run check` | `tsc --noEmit` | seconds |
 | `npm test` | 91 unit tests | under a second |
 | `npm run build` | Vite → `galactic-transit.html` + `check-build.mjs` | seconds |
-| `npm run e2e` | boot tests + all 23 parity states | ~1.4 h |
-| `PARITY_SCOPE=fast npm run e2e` | boot tests + the 5-state subset, for per-step checking | ~20 min |
+| `npm run e2e` | boot tests + all 23 parity states | 35 min to 2 h |
+| `PARITY_SCOPE=fast npm run e2e` | boot tests + the 5-state subset, for per-step checking | 15–40 min |
+| `npx playwright test --project=boot --project=parity --grep '<ids>'` | the states a change actually touches | ~4 min each |
+
+**The gate's cost is not a fixed number, and planning around one wastes an afternoon.** Both builds are photographed concurrently, each driving its own software rasteriser, so a run wants roughly twice the machine and gets what is left of it. The same state — `opening-helix` — took 2.4 minutes in the morning and 6.8 in the afternoon of the same day, and `theia-impact` took 9.3. Watch the first two states and re-plan from what they actually cost rather than from the numbers above. When the machine is slow, `--grep` the states that exercise what the commit touched: `states.ts` gives every one of them a `covers:` line saying what it is for, and that is what it is for.
 
 ## The gate, and how to read it
 
@@ -160,6 +163,7 @@ Every entry gated. "Gate" means the parity suite green — see above for what th
 | `render/passes/tone`, and the rule about being last | `e14f20d` |
 | check-build rejects a rename that reached into prose | `7a7d506` |
 | `render/passes/sun` — the disc and the shed envelope | `1e2ecc4` |
+| `render/passes/rings`; `belts` takes back the Oort shell | `db915dc` |
 
 ### Where the code lives now
 
@@ -168,7 +172,7 @@ core/     errorlog build mat4 rng dom format
 astro/    constants sun merger bodies environment earth g710    complete, pure
 scene/    starfield galaxy andromeda belts sky                  complete, pure
 gpu/      context program buffers
-render/   state  passes/belts passes/tone passes/sun
+render/   state  passes/belts passes/tone passes/sun passes/rings
 audio/    index
 ui/       tooltips
 ```
@@ -182,19 +186,18 @@ Tests: **173 unit, 8 boot, 23 parity.**
 
 Roughly half the file remains, in three pieces:
 
-1. **The draw passes** — `frame()` is 837 lines (2268–3104). `render/passes/belts` is the
+1. **The draw passes** — `frame()` is 819 lines (2256–3075). `render/passes/belts` is the
    template: programs, uniform tables, vertex arrays and the draw together; geometry
    uploaded by an explicit `init*()` from main.ts so the RNG sequence does not move; inputs
    passed as an argument rather than reached for. The per-frame context is being discovered
    from what each pass actually needs rather than designed up front.
 
-   Three have moved — `belts`, `tone`, `sun`. What is left falls into two kinds, and the
-   easy kind is nearly gone:
+   Four have moved — `belts`, `tone`, `sun`, `rings`. What is left falls into two kinds,
+   and the easy kind is down to one:
 
-   - **Own program, own draw:** `globe` (with the Moon and her orbit), `rings`. `rings` is
-     the one to take next: `pRing` is shared by the Oort shell hint, the orbit rings and
-     the Moon's orbit, which is exactly why `passes/belts` had to leave the shell's
-     wireframe behind in main.ts. Moving the program unblocks that note.
+   - **Own program, own draw:** `globe`, and it is the one to take next. It carries the
+     Moon and the era terms, it is the largest uniform table in the piece, and it already
+     calls `passes/rings` for the Moon's orbit, so the seam is drawn.
    - **On the points program:** `nebula`, `dust`, `bodies`, `g710`, `eatflash`, and step
      10's `points`/`supernova`/`remnant`. These all write through the one `U` uniform
      table, set a value and set it back, and read a dozen frame-locals apiece — `and`,
