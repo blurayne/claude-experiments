@@ -1712,6 +1712,66 @@ function drawBelts(
   // would be worse than leaving one `if(showOort)` in two adjacent halves.
 }
 
+const TONE_VS = "#version 300 es\nout vec2 vUV;\nvoid main(){\n  vec2 p = vec2(float((gl_VertexID<<1)&2), float(gl_VertexID&2));\n  vUV = p;\n  gl_Position = vec4(p*2.0-1.0, 0.0, 1.0);\n}";
+
+const TONE_FS = "#version 300 es\nprecision highp float;\nuniform sampler2D uTex;\nuniform float uKnee;\nin vec2 vUV; out vec4 o;\nvoid main(){\n  vec3 c = texture(uTex, vUV).rgb;\n  float m = max(max(c.r, c.g), c.b);\n  if(m > uKnee && m > 1e-6){\n    float h = max(1.0 - uKnee, 1e-4);\n    c *= (uKnee + h*(1.0 - exp(-(m - uKnee)/h)))/m;\n  }\n  o = vec4(c, 1.0);\n}";
+
+// Everything is drawn with additive blending, so a galaxy core — thousands of sprites
+// stacked on one pixel — sums far past 1.0 and the screen simply clips it to flat white.
+// That is fine for one core and useless during the merger, where the whole remnant piles
+// into a single blown-out disc. The scene is drawn into a half-float buffer instead,
+// which holds those sums, and this pass maps them back into range: identity below the
+// knee, then asymptotic, so a core keeps its gradient and its colour instead of becoming
+// a white hole. The ratio is applied to all three channels together, so hues survive.
+
+
+const pTone = prog(TONE_VS, TONE_FS);
+const UT = { tex: gl.getUniformLocation(pTone,'uTex'), knee: gl.getUniformLocation(pTone,'uKnee') };
+const emptyVAO = gl.createVertexArray() ;
+const hdrExt = gl.getExtension('EXT_color_buffer_float') || gl.getExtension('EXT_color_buffer_half_float');
+
+function makeHDR()       {
+  if(!hdrExt) return;
+  if(view.hdrTex) gl.deleteTexture(view.hdrTex);
+  if(view.hdrFB) gl.deleteFramebuffer(view.hdrFB);
+  view.hdrTex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, view.hdrTex);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, canvas.width, canvas.height, 0, gl.RGBA, gl.HALF_FLOAT, null);
+  for(const [k,v] of [[gl.TEXTURE_MIN_FILTER,gl.NEAREST],[gl.TEXTURE_MAG_FILTER,gl.NEAREST],
+                      [gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE],[gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE]])
+    gl.texParameteri(gl.TEXTURE_2D, k, v);
+  view.hdrFB = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, view.hdrFB);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, view.hdrTex, 0);
+  view.hdrOK = gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE;
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.bindTexture(gl.TEXTURE_2D, null);
+}
+
+/**
+ * Resolve the half-float scene to the screen.
+ *
+ * Must be the LAST thing drawn. Anything added after it lands on the tone-mapped image
+ * instead of inside it, which is a different picture — and an easy mistake to make, since a
+ * new draw call appended to frame() looks like it belongs at the end.
+ */
+function resolveTone(coreKnee        )       {
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.disable(gl.BLEND);
+  gl.useProgram(pTone);
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, view.hdrTex);
+  gl.uniform1i(UT.tex, 0);
+  gl.uniform1f(UT.knee, coreKnee);
+  gl.bindVertexArray(emptyVAO);
+  gl.drawArrays(gl.TRIANGLES, 0, 3);
+  gl.bindVertexArray(null);
+  gl.enable(gl.BLEND);
+}
+
+/** Bind the half-float target, so the scene renders into it rather than the screen. */
+function bindHDR()       { gl.bindFramebuffer(gl.FRAMEBUFFER, view.hdrFB); }
+
 /**
  * The real sky: the local stars, as measured.
  * The 100,000 brightest stars from AT-HYG 3.2 (Tycho-2 merged with Gaia DR3): 98.7%
@@ -2084,10 +2144,6 @@ const RING_FS = "#version 300 es\nprecision mediump float; uniform vec3 uColor; 
 const GLOBE_VS = "#version 300 es\nuniform mat4 uProj,uView; uniform vec3 uPos; uniform float uSz;\nvoid main(){ gl_Position = uProj*uView*vec4(uPos,1.0); gl_PointSize = uSz; }";
 
 const GLOBE_FS = "#version 300 es\nprecision highp float;\nuniform vec3 uSunV, uAxisV, uPrimeV;     // view space: toward the Sun; the spin axis; the prime meridian on the equator\nuniform float uAvg;                      // 1: the clock outruns the day — light is the daily mean by latitude\nuniform float uMirror, uDisc, uTime, uMoon;\nuniform float uMolten, uOcean, uSea, uHaze, uVeg, uIceLat, uCloud, uLights, uDrift;\nuniform sampler2D uMap; uniform float uHasMap, uDry, uSeaLevel; uniform mat3 uPlate[7];\nout vec4 o;\n// today's real land and its plate, looked up for a planet-frame direction\nvec3 mapAt(vec3 v){ float lat = asin(clamp(v.z,-1.0,1.0)), lon = atan(v.y, v.x);\n  return texture(uMap, vec2(lon/6.2831853+0.5, 0.5-lat/3.14159265)).rgb; }\nfloat h31(vec3 p){ p=fract(p*0.3183099+vec3(0.71,0.113,0.419)); p*=17.0; return fract(p.x*p.y*p.z*(p.x+p.y+p.z)); }\nfloat vn3(vec3 p){ vec3 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);\n  return mix(mix(mix(h31(i),h31(i+vec3(1,0,0)),f.x), mix(h31(i+vec3(0,1,0)),h31(i+vec3(1,1,0)),f.x),f.y),\n             mix(mix(h31(i+vec3(0,0,1)),h31(i+vec3(1,0,1)),f.x), mix(h31(i+vec3(0,1,1)),h31(i+vec3(1,1,1)),f.x),f.y),f.z); }\nfloat fbm3(vec3 p){ float a=0.5,s=0.0; for(int i=0;i<4;i++){ s+=a*vn3(p); p=p*2.07+vec3(1.3,2.1,0.7); a*=0.5; } return s; }\nvoid main(){\n  vec2 q = gl_PointCoord*2.0-1.0; q.y = -q.y; q.x *= uMirror;   // sprite space -> view space\n  float rr = length(q)/uDisc;\n  if(rr > 1.09) discard;\n  if(rr > 1.0){                                                 // the atmosphere, beyond the limb\n    if(uMoon > 0.5 || uMolten > 0.99) discard;\n    float t = (rr-1.0)/0.09, glow = exp(-t*2.6)*(1.0-t);\n    vec3 atm = mix(vec3(0.38,0.62,1.0), vec3(1.0,0.58,0.28), uHaze);\n    vec2 d = q/max(length(q),1e-4);\n    float side = smoothstep(-0.45, 0.45, dot(vec3(d,0.0), uSunV) + 0.35*uSunV.z);\n    o = vec4(atm*glow*0.6*side*(0.35+0.65*uOcean), 0.0); return;   // additive\n  }\n  vec3 n = vec3(q/uDisc, sqrt(max(0.0, 1.0-rr*rr)));\n  float lit = dot(n, uSunV);\n  vec3 Q = cross(uAxisV, uPrimeV);\n  vec3 p = vec3(dot(n,uPrimeV), dot(n,Q), dot(n,uAxisV));       // the planet's own frame; p.z = sin(latitude)\n  // when a frame spans days the terminator would land somewhere new each time and strobe;\n  // the light becomes the day's mean instead — brightest at the equator, dim at the poles\n  lit = mix(lit, 0.18 + 0.62*pow(sqrt(max(0.0, 1.0 - p.z*p.z)), 0.7), uAvg);\n  float day = smoothstep(-0.10, 0.18, lit), dif = max(lit, 0.0);\n  float lat = abs(asin(clamp(p.z,-1.0,1.0)))*57.2958;\n  vec3 col;\n  if(uMoon > 0.5){\n    // grey regolith, dark maria in the lowest of the low-frequency noise, and a pass of\n    // fine crater texture; no atmosphere, so the terminator is hard\n    float m = fbm3(p*2.4+vec3(4.0)), c = fbm3(p*13.0);\n    float maria = smoothstep(0.66, 0.74, m);\n    col = mix(vec3(0.56,0.55,0.53), vec3(0.28,0.28,0.30), maria) * (0.82+0.36*(c-0.5));\n    col *= 0.04 + 0.96*pow(dif, 0.85);\n    o = vec4(col, 1.0); return;\n  }\n  vec3 dr = vec3(uDrift, uDrift*0.7, -uDrift*0.4);\n  float land, shallow, cont = 0.0;\n  if(uHasMap > 0.5){\n    // the real map: each plate carried by its own rotation. Every plate is asked, and\n    // land wins over water: a plate's polygon carries ocean too, and where two moved\n    // polygons overlap that ocean must not punch a hole in the other plate's land.\n    // Between the plates, where none claims the point, there is sea.\n    land = 0.0; shallow = 0.0;\n    for(int k=0;k<7;k++){\n      vec3 q = uPlate[k]*p; vec3 m = mapAt(q);\n      if(int(floor(m.g*255.0/32.0+0.5)) == k){\n        if(m.r > land){ land = m.r; cont = m.b; }\n        else if(land <= 0.0) cont = max(cont, m.b);\n      }\n    }\n    // the oceans retreat to their deepest basins as they go — the map has no depths, so\n    // the continentality field stands in, inverted\n    float water = (1.0-land) * smoothstep(uSeaLevel+0.04, uSeaLevel-0.04, cont);\n    land = 1.0 - water;\n    shallow = (1.0-land) * smoothstep(0.12, 0.45, cont);   // from 0.12: open water inside a plate's polygon reads as the water outside it, so no seams where a plate has moved\n  } else {\n    float h = fbm3(p*2.6 + dr) + 0.35*fbm3(p*7.0 + 1.7*dr) - 0.17;\n    land = smoothstep(uSea-0.025, uSea+0.025, h);\n    shallow = smoothstep(uSea-0.10, uSea, h);\n    cont = land*0.5;\n  }\n  // the land: bare rock, greened by vegetation where it is not desert, whitened by ice.\n  // Deserts: the subtropical belts, and the interiors far from any coast — the more so\n  // in the dry periods, a supercontinent's heart most of all\n  float dry = max(exp(-pow((lat-24.0)/11.0, 2.0)), pow(cont, 1.4)*(0.55 + 0.7*uDry));\n  dry = min(1.0, dry*(0.8 + 0.5*uDry));\n  float detail = fbm3(p*5.0+dr*2.0);                              // one texture, shared below\n  vec3 rock = mix(vec3(0.42,0.32,0.22), vec3(0.62,0.52,0.36), detail);\n  vec3 green = mix(vec3(0.15,0.30,0.09), vec3(0.28,0.42,0.14), fract(detail*1.7+0.3));\n  vec3 landCol = mix(rock, green, uVeg*(1.0-dry*0.85));\n  vec3 sea = mix(vec3(0.02,0.10,0.32), vec3(0.05,0.28,0.42), shallow*0.6);\n  sea = mix(sea, vec3(0.06,0.14,0.18), uHaze*0.6);                // a dimmer, greener sea under the haze\n  col = mix(sea, landCol, land);\n  col = mix(col, vec3(0.42,0.34,0.24), (1.0-uOcean)*(1.0-land));  // a sea floor bared as the oceans go\n  float ice = smoothstep(uIceLat-6.0, uIceLat+6.0, lat + 4.0*(detail-0.5)) * (1.0-uMolten);\n  col = mix(col, vec3(1.0,1.0,1.0), ice);\n  // clouds, drifting, and their shadows a little sunward of them on the ground\n  vec3 cq = p*4.2 + vec3(uTime*0.012, 0.0, -uTime*0.007) + dr*0.3;\n  float cl = fbm3(cq);\n  float cloud = smoothstep(0.50 + 0.22*(1.0-uCloud), 0.74, cl) * min(1.0, uCloud*1.4);\n  vec3 sunP = vec3(dot(uSunV,uPrimeV), dot(uSunV,Q), dot(uSunV,uAxisV));   // the Sun in the planet frame\n  float clS = fbm3(cq + sunP*0.09*(1.0-uAvg));   // the shadow offset would jump with the Sun's phase\n  float shadow = smoothstep(0.50 + 0.22*(1.0-uCloud), 0.74, clS) * min(1.0, uCloud*1.4);\n  col *= 1.0 - 0.35*shadow*(1.0-cloud);\n  col = mix(col, vec3(0.96,0.97,0.99), cloud*0.92);\n  // the haze: an orange cast, thicker toward the limb\n  col = mix(col, col*vec3(1.05,0.72,0.42)+vec3(0.10,0.05,0.0), uHaze*(0.45+0.45*(1.0-n.z)));\n  // sunlight: snow and cloud scatter forward, so they hold their brightness under a low\n  // sun; the terminator is softened by the air, and reddened in it\n  float difS = mix(dif, pow(dif, 0.6), max(ice, cloud));\n  float dusk = exp(-pow(lit/0.16, 2.0)) * uOcean;                               // the band around the terminator\n  vec3 R = reflect(-uSunV, n);\n  float spec = pow(max(R.z,0.0), 180.0) * (1.0-land) * (1.0-cloud) * uOcean * (1.0-uHaze*0.7) * (1.0-uAvg);\n  col = col*(0.012 + 0.988*difS) + vec3(0.9,0.9,0.8)*spec*0.35;\n  col += vec3(0.9,0.45,0.18) * dusk * 0.10 * (1.0-uHaze);\n  // the air itself: Rayleigh blue over the day side, strongest where the view grazes it\n  float fres = pow(1.0 - n.z, 2.2);\n  vec3 air = mix(vec3(0.30,0.55,1.0), vec3(1.0,0.6,0.3), uHaze);\n  col += air * fres * (0.10 + 0.45*day) * (0.4 + 0.6*uOcean) * (1.0-uMolten);\n  // molten: the crust dark, cracked with lava, glowing on its own — only when it is\n  if(uMolten > 0.001){\n    float cracks = smoothstep(0.55, 0.78, fbm3(p*9.0+vec3(uTime*0.02)));\n    vec3 lava = vec3(0.05,0.03,0.03)*(0.3+0.7*dif) + vec3(1.0,0.32,0.04)*(0.25+cracks*1.2);\n    col = mix(col, lava, uMolten);\n  }\n  // the night side: cities, in the one era that has them, crossfading out through the dusk\n  if(uLights > 0.001){\n    float city = smoothstep(0.72, 0.9, vn3(p*70.0)) * land * (1.0-ice) * (1.0-dry*0.5);\n    col += vec3(1.0,0.80,0.45) * city * uLights * smoothstep(0.12, -0.20, lit) * (1.0-cloud*0.7) * 0.9;\n  }\n  o = vec4(col, 1.0);\n}";
-
-const TONE_VS = "#version 300 es\nout vec2 vUV;\nvoid main(){\n  vec2 p = vec2(float((gl_VertexID<<1)&2), float(gl_VertexID&2));\n  vUV = p;\n  gl_Position = vec4(p*2.0-1.0, 0.0, 1.0);\n}";
-
-const TONE_FS = "#version 300 es\nprecision highp float;\nuniform sampler2D uTex;\nuniform float uKnee;\nin vec2 vUV; out vec4 o;\nvoid main(){\n  vec3 c = texture(uTex, vUV).rgb;\n  float m = max(max(c.r, c.g), c.b);\n  if(m > uKnee && m > 1e-6){\n    float h = max(1.0 - uKnee, 1e-4);\n    c *= (uKnee + h*(1.0 - exp(-(m - uKnee)/h)))/m;\n  }\n  o = vec4(c, 1.0);\n}";
 
 const SUN_VS = "#version 300 es\nuniform mat4 uProj,uView; uniform float uSz;\nvoid main(){ gl_Position=uProj*uView*vec4(0.,0.,0.,1.); gl_PointSize=uSz; }";
 
@@ -4131,37 +4187,6 @@ function fitPanels(){
   }
 }
 // ---------- highlight rolloff ----------
-// Everything is drawn with additive blending, so a galaxy core — thousands of sprites
-// stacked on one pixel — sums far past 1.0 and the screen simply clips it to flat white.
-// That is fine for one core and useless during the merger, where the whole remnant piles
-// into a single blown-out disc. The scene is drawn into a half-float buffer instead,
-// which holds those sums, and this pass maps them back into range: identity below the
-// knee, then asymptotic, so a core keeps its gradient and its colour instead of becoming
-// a white hole. The ratio is applied to all three channels together, so hues survive.
-
-
-const pTone = prog(TONE_VS, TONE_FS);
-const UT = { tex: gl.getUniformLocation(pTone,'uTex'), knee: gl.getUniformLocation(pTone,'uKnee') };
-const emptyVAO = gl.createVertexArray();
-const hdrExt = gl.getExtension('EXT_color_buffer_float') || gl.getExtension('EXT_color_buffer_half_float');
-
-function makeHDR(){
-  if(!hdrExt) return;
-  if(view.hdrTex) gl.deleteTexture(view.hdrTex);
-  if(view.hdrFB) gl.deleteFramebuffer(view.hdrFB);
-  view.hdrTex = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, view.hdrTex);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, canvas.width, canvas.height, 0, gl.RGBA, gl.HALF_FLOAT, null);
-  for(const [k,v] of [[gl.TEXTURE_MIN_FILTER,gl.NEAREST],[gl.TEXTURE_MAG_FILTER,gl.NEAREST],
-                      [gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE],[gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE]])
-    gl.texParameteri(gl.TEXTURE_2D, k, v);
-  view.hdrFB = gl.createFramebuffer();
-  gl.bindFramebuffer(gl.FRAMEBUFFER, view.hdrFB);
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, view.hdrTex, 0);
-  view.hdrOK = gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE;
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  gl.bindTexture(gl.TEXTURE_2D, null);
-}
 // The scene frame is LEFT-handed: the star builders put the direction the Sun orbits
 // (l=90°) on +x, galactic north on +y and the Galactic Centre on −z, and that triple has
 // determinant −1 — every data set (the AT-HYG sky, the StarHorse cube, the galaxy and M31
@@ -4481,7 +4506,7 @@ function frame(now){
 
   // at 100% nothing is compressed, so the old direct path is kept exactly
   const toneOn = view.hdrOK && coreKnee < 0.999;
-  if(toneOn) gl.bindFramebuffer(gl.FRAMEBUFFER, view.hdrFB);
+  if(toneOn) bindHDR();
   gl.clear(gl.COLOR_BUFFER_BIT);
 
   // points: stars, galaxy, bodies
@@ -4979,17 +5004,7 @@ function frame(now){
   }
 
   if(toneOn){   // resolve the half-float scene to the screen through the rolloff curve
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    gl.disable(gl.BLEND);
-    gl.useProgram(pTone);
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, view.hdrTex);
-    gl.uniform1i(UT.tex, 0);
-    gl.uniform1f(UT.knee, coreKnee);
-    gl.bindVertexArray(emptyVAO);
-    gl.drawArrays(gl.TRIANGLES, 0, 3);
-    gl.bindVertexArray(null);
-    gl.enable(gl.BLEND);
+    resolveTone(coreKnee);
     gl.blendFunc(gl.ONE, gl.ONE);
   }
 
