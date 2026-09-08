@@ -1902,7 +1902,7 @@ function loadTrack(i        ) {
 function nextTrack(){ loadTrack(sound.trackIx + 1); }
 // Browsers refuse sound.graph before a user gesture, so anything on by default waits for one.
 // It waits for ANY of these — a phone that reports only touchend, a keyboard, a click on
-// a control that swallowed the pointerdown — and it keeps waiting until the sound.graph is
+// a control that swallowed the pointerdown — and it keeps waiting until the audio is
 // genuinely playing. The old version stood down on the first gesture whether or not the
 // play succeeded, so one refused attempt (and a refusal is ordinary: a gesture the
 // browser judges too old, a media element still loading) left the music dead for the
@@ -1929,7 +1929,7 @@ function armUnlock(){
 }
 // Recorded sample banks: five supernova blasts and four soft star ignitions, each
 // picked at random with a slight detune so repeats never sound looped. Decoded through
-// the sound.graph graph where fetch is allowed, so the effects volume and compressor still
+// the audio graph where fetch is allowed, so the effects volume and compressor still
 // apply; opened straight from disk (file://) fetch is blocked and plain media elements
 // stand in.
 const BANKS                         = {
@@ -1938,7 +1938,7 @@ const BANKS                         = {
 };
 // `banksTried` used to latch before the work, so a single failed or — worse — never
 // settling decode killed the samples for the whole visit: the catch that installs the
-// <sound.graph> fallback only runs on a rejection, and decodeAudioData on a context the
+// <audio> fallback only runs on a rejection, and decodeAudioData on a context the
 // browser has interrupted can simply never settle either way. Now the latch is only
 // held while an attempt is in flight, a timer installs the fallback if nothing has
 // arrived, and every sfx() is free to ask again.
@@ -3874,7 +3874,7 @@ const TOURKEY = 'galactic-transit.tour';
 const TOUR_HINTS = [
   { t:'env',      k:'Earth',      s:"Conditions on Earth as the Galaxy carries it, and what the view is centred on." },
   { t:'simPanel', k:'Simulation', s:"The pace of the clock, and the scenarios worth watching." },
-  { t:'hud',      k:'Settings',   s:"Everything else: what is drawn, the sound.graph, the readouts." },
+  { t:'hud',      k:'Settings',   s:"Everything else: what is drawn, the sound, the readouts." },
   { t:'tLabelsAll', k:'Labels',   s:"Every on-screen label at once — planets, galaxy arms, Andromeda and its companions." },
   { t:'tInfo',    k:'About',      s:"This text again, with the notes on what is measured and what is modelled." },
   { t:'zoomIn',   k:'Zoom',       s:"In or out, object to object: two presses take the view from one scale to the next." },

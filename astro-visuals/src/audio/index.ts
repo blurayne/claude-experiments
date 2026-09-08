@@ -117,7 +117,7 @@ export function loadTrack(i: number) {
 export function nextTrack(){ loadTrack(sound.trackIx + 1); }
 // Browsers refuse sound.graph before a user gesture, so anything on by default waits for one.
 // It waits for ANY of these — a phone that reports only touchend, a keyboard, a click on
-// a control that swallowed the pointerdown — and it keeps waiting until the sound.graph is
+// a control that swallowed the pointerdown — and it keeps waiting until the audio is
 // genuinely playing. The old version stood down on the first gesture whether or not the
 // play succeeded, so one refused attempt (and a refusal is ordinary: a gesture the
 // browser judges too old, a media element still loading) left the music dead for the
@@ -144,7 +144,7 @@ export function armUnlock(){
 }
 // Recorded sample banks: five supernova blasts and four soft star ignitions, each
 // picked at random with a slight detune so repeats never sound looped. Decoded through
-// the sound.graph graph where fetch is allowed, so the effects volume and compressor still
+// the audio graph where fetch is allowed, so the effects volume and compressor still
 // apply; opened straight from disk (file://) fetch is blocked and plain media elements
 // stand in.
 const BANKS: Record<BankName, Bank> = {
@@ -153,7 +153,7 @@ const BANKS: Record<BankName, Bank> = {
 };
 // `banksTried` used to latch before the work, so a single failed or — worse — never
 // settling decode killed the samples for the whole visit: the catch that installs the
-// <sound.graph> fallback only runs on a rejection, and decodeAudioData on a context the
+// <audio> fallback only runs on a rejection, and decodeAudioData on a context the
 // browser has interrupted can simply never settle either way. Now the latch is only
 // held while an attempt is in flight, a timer installs the fallback if nothing has
 // arrived, and every sfx() is free to ask again.

@@ -39,6 +39,16 @@ for (const marker of ['webgl2', 'galaxy-map.webp', 'm31-map.webp', 'earth-map.we
 const contexts = (html.match(/getContext\(\s*['"]webgl2['"]/g) ?? []).length
 check(contexts === 1, `the page creates ${contexts} WebGL2 contexts; there must be exactly 1`)
 
+// A state-object property inside an English sentence is a rename that reached into prose.
+//
+// The audio extraction renamed `audio` to `sound.graph` and hit the tour's own description of
+// the settings panel: "what is drawn, the sound.graph, the readouts". It shipped in the built
+// page and no test could see it — check-names only looks at identifiers, and the parity gate
+// photographs a panel that was closed. This is the cheap guard: an article followed by one of
+// the state singletons and a property is prose, not code.
+const prose = html.match(/\b(?:the|a|an|its|and|with) (?:simClock|cam|gfx|view|readout|lifeAcc|sound)\.\w+/g) ?? []
+check(prose.length === 0, `a rename leaked into prose: ${[...new Set(prose)].join(', ')}`)
+
 // The service worker's cache name and the page's own version must agree, or a release ships
 // with a worker that keeps serving the previous build from cache.
 const pageVersion = html.match(/version:\s*['"]([\d.]+)['"]/)?.[1]

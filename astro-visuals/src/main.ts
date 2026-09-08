@@ -1811,7 +1811,7 @@ const TOURKEY = 'galactic-transit.tour';
 const TOUR_HINTS = [
   { t:'env',      k:'Earth',      s:"Conditions on Earth as the Galaxy carries it, and what the view is centred on." },
   { t:'simPanel', k:'Simulation', s:"The pace of the clock, and the scenarios worth watching." },
-  { t:'hud',      k:'Settings',   s:"Everything else: what is drawn, the sound.graph, the readouts." },
+  { t:'hud',      k:'Settings',   s:"Everything else: what is drawn, the sound, the readouts." },
   { t:'tLabelsAll', k:'Labels',   s:"Every on-screen label at once — planets, galaxy arms, Andromeda and its companions." },
   { t:'tInfo',    k:'About',      s:"This text again, with the notes on what is measured and what is modelled." },
   { t:'zoomIn',   k:'Zoom',       s:"In or out, object to object: two presses take the view from one scale to the next." },
