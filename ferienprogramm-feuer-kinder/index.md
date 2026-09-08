@@ -7,8 +7,8 @@ offenen Angeboten für Kinder, umschaltbar zwischen zwei Standorten:
 
 ## Worum geht's
 
-Statt einer langen Linkliste bündelt die Seite über 200 konkrete Angebote
-(195 in München, 14 in Lam) aus mehreren Anbietern in einzelnen Karten und
+Statt einer langen Linkliste bündelt die Seite über 215 konkrete Angebote
+(202 in München, 14 in Lam) aus mehreren Anbietern in einzelnen Karten und
 lässt sie nach den Kriterien filtern, die bei der Ferienplanung wirklich
 zählen:
 
@@ -49,12 +49,16 @@ Am Fuß der Seite steht eine kuratierte, standortabhängige Liste der
 Kalender/Portale, aus denen die Angebote stammen. Für München u. a. HIMBEER
 München mit Kind, Feierwerk-Ferienprogramm, der städtische Ferienpass,
 FreizeitSport München, Musenkuss München, Kindaling, der Kreisjugendring,
-das Deutsche Museum, Gasteig HP8, Mädchen an den Ball und Capablz (ehemals
-Kursfreunde). Für Lam/Bayerischer Wald u. a. der Ferienkalender des
-Landkreises Cham, der Kreisjugendring Cham, die Tourismusregion Lamer
-Winkel und der Nationalpark Bayerischer Wald. Recherchestand: 14.07.2026,
-ergänzt am 23.08.2026 — Preise, Termine und Restplätze ändern sich
-täglich, vor jeder Buchung direkt beim Anbieter prüfen.
+das Deutsche Museum, Gasteig HP8, Mädchen an den Ball, Capablz (ehemals
+Kursfreunde), die Camp-Plattform campcheck24 (Feriencamps mehrerer
+Anbieter, u. a. Liga der Roboter und Oskar lernt Englisch), Free Arts of
+Movement/FAM München (Parkour, Ninja Warrior, Trampolin) und der
+Alpenverein München & Oberland (Kletter- und Boulderkurse). Für
+Lam/Bayerischer Wald u. a. der Ferienkalender des Landkreises Cham, der
+Kreisjugendring Cham, die Tourismusregion Lamer Winkel und der
+Nationalpark Bayerischer Wald. Recherchestand: 14.07.2026, ergänzt am
+23.08.2026 — Preise, Termine und Restplätze ändern sich täglich, vor jeder
+Buchung direkt beim Anbieter prüfen.
 
 ## Technik
 
