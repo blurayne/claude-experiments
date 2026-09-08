@@ -4,10 +4,46 @@ Working notes for picking this up cold, in a later session or on another machine
 
 **Status: `main.ts` is down from 5,347 lines to 3,371 — 37% of it moved into 29 modules. `main` is untouched and still ships v2.78.0.**
 
-Of the plan's 24 steps, twelve are complete (0–9, 11, 14), two are part-done (12, the draw passes: four of eleven; and 15, the `ui/` leaves: one of five), and ten have not started.
+Of the plan's 24 steps, twelve are complete (0–9, 11, 14), two are part-done (12, the draw passes: five of eleven; and 15, the `ui/` leaves: one of five), and ten have not started.
 
 This file is the live status; the chat is not. Regenerate the numbers with `wc -l src/main.ts`,
 `npx vitest run`, and `git log --oneline main..HEAD`.
+
+## Every step, and where it stands
+
+`00-PLAN.md` §4 in full, with what actually happened to each. Where the plan named a module
+that did not survive contact, the row says where its contents went — the plan is the intent,
+this column is the fact.
+
+| # | the step | where it stands |
+| --- | --- | --- |
+| 0 | the gate itself | **done**, and rebuilt twice since: stored baselines were removed entirely, and a mismatch now runs a two-sided control |
+| 1 | the shell — page built from `src/`, classic `<script>` → deferred ES module | **done** `0ff1a82` |
+| 2 | CSS → four files, linked in cascade order | **done** `7a60435` |
+| 3 | 23 shaders → `.glsl`, byte-exact, `?raw` | **done** `7a3de48` |
+| 4 | `core/errorlog`, imported first and bare | **done** `d64b15f` |
+| 5 | the rest of `core/` | **done** `d64b15f`, `ff065df`. `core/keys` does not exist yet: it holds `SKEY`/`TOURKEY`/`DBGKEY`, and it waits for the ui steps that read them |
+| 6 | `astro/constants` | **done** `bacb3a0` |
+| 7 | `render/state` — the §3 singletons, a mechanical rename | **done** in four: `227a397` `468616b` `5cff82c` `9d2f692` |
+| 8 | `gpu/` | **done** `b644d8f`. No `gpu/framebuffer`: the only framebuffer is the HDR target, and it belongs to `passes/tone` |
+| 9 | the `astro/` leaves | **done** `45a70ae` `6c6e33e` `58f7eef` `0c6ae6a`. No `astro/calendar`: `ageAt` is one line and lives in `astro/environment`, the module that needs it |
+| 10 | `passes/points`, `supernova`, `remnant` — programs and uniform tables only | **not started**. Blocked with the rest of the points family: see step 12 |
+| 11 | `scene/` as pure builders, and the seven RNG calls made explicit | **done** `da28433` `28e0c59` `b37f5d3` `9220ba9` `68dd011`. `galaxymap` folded into `scene/galaxy`; `scene/cache` did not happen — `flushGxyCache` is still in main.ts, because it evicts what `setGalaxy` publishes into `gfx` |
+| 12 | the remaining `render/passes/*`, one per commit | **five of eleven.** `belts` `204e43e`, `tone` `e14f20d`, `sun` **and** `pn` together `1e2ecc4`, `rings` `db915dc`. Left: `nebula`, `dust`, `globe`, `bodies`, `g710`, `eatflash` |
+| 13 | `render/trails`, `render/labels`, `render/lifecycle` | **not started** |
+| 14 | `audio/` | **done** `173dea8` (covered before being moved) `7bf6539`. One module, not the planned `engine`/`music`/`sfx`: the drone, the tracks and the banks hang off one `AudioContext` and one master gain, and splitting them would have exported the graph |
+| 15 | `ui/` leaves — theme, tooltips, fullscreen, tour, dialogs | **one of five.** `tooltips` `e0abaaf` |
+| 16 | `ui/persist` — the settings replay, with the snapshot/apply registry | **not started, deliberately.** `00-PLAN.md` ranks it the highest-risk failure in the file; the boot suite covers it today |
+| 17 | `ui/panels`, `ui/sections` | **not started** |
+| 18 | `ui/hud` | **not started.** The one to be careful with — see below |
+| 19 | `render/camera`, `ui/scenarios` | **not started** |
+| 20 | `ui/qr`, `ui/debug` | **not started** |
+| 21 | `render/probe`, `render/frame` — `frame()` becomes a sequencer | **not started.** Everything in step 12's second group is really waiting on this one |
+| 22 | `main.ts` is only boot | **not started** |
+| 23 | cleanup, separately, each its own commit | **not started.** Dead bindings, the `USN`/`USUN` rename, a shared `noise.glsl`. Explicitly not part of the migration |
+
+One more item is open and belongs to no step: the `show*` toggles are still top-level `let`s in
+main.ts. They go with `ui/`, not with `render/state`.
 
 ## The shape of it
 
@@ -76,7 +112,7 @@ There is no baseline step and nothing to pre-generate. That is a deliberate chan
 | command | what it does | cost |
 | --- | --- | --- |
 | `npm run check` | `tsc --noEmit` | seconds |
-| `npm test` | 91 unit tests | under a second |
+| `npm test` | 173 unit tests | about a second |
 | `npm run build` | Vite → `galactic-transit.html` + `check-build.mjs` | seconds |
 | `npm run e2e` | boot tests + all 23 parity states | 35 min to 2 h |
 | `PARITY_SCOPE=fast npm run e2e` | boot tests + the 5-state subset, for per-step checking | 15–40 min |
@@ -86,7 +122,7 @@ There is no baseline step and nothing to pre-generate. That is a deliberate chan
 
 ## The gate, and how to read it
 
-24 states in `tests/harness/states.ts`. Fifteen are the page's own `#jump` scenarios, driven through the selector and its GO button — the flow a visitor uses. The other nine exist because `00-PLAN.md` §5.2 lists things a desktop screenshot cannot see: four viewport bands, a phone layout, a fresh profile, a reduced-motion-allowed boot, a second timezone, and an open tooltip.
+23 states in `tests/harness/states.ts`. Fifteen are the page's own `#jump` scenarios, driven through the selector and its GO button — the flow a visitor uses. The other eight exist because `00-PLAN.md` §5.2 lists things a desktop screenshot cannot see: four viewport bands, a phone layout, a reduced-motion-allowed boot, a second timezone, and an open tooltip. The fresh profile §5.2 also asks for is not among them — it cannot be photographed, and `boot.spec.ts` asserts it instead (see below).
 
 **On a mismatch the gate runs its own control**, photographing BOTH builds a second time and requiring each to reproduce itself. If either cannot, the state reports as inconclusive rather than as a rendering change. The first version of this re-shot only the reference, which catches an unstable reference and quietly certifies an unstable candidate — and on the run that exposed it, the built page was the wobbly side and two harness flakes were reported as real differences.
 
@@ -192,8 +228,9 @@ Roughly half the file remains, in three pieces:
    passed as an argument rather than reached for. The per-frame context is being discovered
    from what each pass actually needs rather than designed up front.
 
-   Four have moved — `belts`, `tone`, `sun`, `rings`. What is left falls into two kinds,
-   and the easy kind is down to one:
+   Four modules have moved — `belts`, `tone`, `sun`, `rings` — covering five of the plan's
+   eleven passes, since the shed envelope shipped inside `passes/sun` rather than as its
+   own `pn`. What is left falls into two kinds, and the easy kind is down to one:
 
    - **Own program, own draw:** `globe`, and it is the one to take next. It carries the
      Moon and the era terms, it is the largest uniform table in the piece, and it already
@@ -207,10 +244,6 @@ Roughly half the file remains, in three pieces:
 2. **The interface** — about 1,500 lines: panels, sections, settings persistence, the HUD, the
    scenarios, the tour, the debug door, the QR overlay.
 3. **main.ts as boot only**, then the cleanup step.
-
-Two of the plan's steps are deliberately still open: `ui/persist` (the settings replay, ranked
-the highest-risk failure in the file — the boot suite already covers it) and the `show`
-toggles, which belong with `ui/` rather than with `render/state`.
 
 **Step 11 is behind us**, and the rule it left behind still binds. The seven eval-time RNG consumers are seven explicit calls from `main.ts` in source order — `buildStarfield()` → `setGalaxy(1)` → asteroid belt → Kuiper → Oort → the trail pre-fill → the orbit rings — and the asteroid belt's Kirkwood rejection loop makes its draw count data-dependent, so anything that shifts the stream above it is unrecoverable. Any later step that adds a generator or moves one has to keep its place in that list. It fails on every state at once, which at least makes it impossible to miss.
 
@@ -228,7 +261,7 @@ The step still to be careful with:
 
 ## Outstanding before this can merge to `main`
 
-- Steps 10, the rest of 12, 13, the rest of 15, and 16–23.
+- Steps 10, the rest of 12, 13, the rest of 15, and 16–23 — the ledger at the top says what each one is.
 - Version → **3.0.0**: `BUILD.version` in the page *and* the cache name in `sw.js`. `check-build.mjs` asserts they agree.
 - `AGENTS.md` — a section on the new layout, the gate, and the reproducibility pins.
 - `TODO.md` — tick the refactor checkbox, naming the version.
