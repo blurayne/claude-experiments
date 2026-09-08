@@ -46,7 +46,11 @@ check(contexts === 1, `the page creates ${contexts} WebGL2 contexts; there must 
 // page and no test could see it — check-names only looks at identifiers, and the parity gate
 // photographs a panel that was closed. This is the cheap guard: an article followed by one of
 // the state singletons and a property is prose, not code.
-const prose = html.match(/\b(?:the|a|an|its|and|with) (?:simClock|cam|gfx|view|readout|lifeAcc|sound)\.\w+/g) ?? []
+// `hud` is in the list, so the file extensions have to come out of it: the stylesheet
+// split left "base, panels, dialogs and hud.css" in a comment, which is prose about a
+// FILE and not a rename that leaked.
+const prose = (html.match(/\b(?:the|a|an|its|and|with) (?:simClock|cam|gfx|view|readout|lifeAcc|sound|hud)\.\w+/g) ?? [])
+  .filter((m) => !/\.(?:css|js|mjs|ts|html|json|webp|bin|py)$/.test(m))
 check(prose.length === 0, `a rename leaked into prose: ${[...new Set(prose)].join(', ')}`)
 
 // The service worker's cache name and the page's own version must agree, or a release ships

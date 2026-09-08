@@ -25,6 +25,7 @@ import { perspective, lookAt, mul, MAT3_ID } from './core/mat4'
 import { gauss, expR } from './core/rng'
 import { $ } from './core/dom'
 import { sup, fmtCount, fmtYears as fmtYearsIn, type UnitMode } from './core/format'
+import { hud } from './ui/hud'
 import { hideTip } from './ui/tooltips'
 import { tempColour, setStateColour } from './ui/theme'
 import { initFullscreen, registerServiceWorker } from './ui/fullscreen'
@@ -63,7 +64,7 @@ import {
   MOON_D0, moonW, moonRel,
   EARTH_AXIS, EARTH_P0, SIDEREAL, earthPrime as earthPrimeAt, earthEra,
 } from './astro/earth'
-import { simClock, cam, gfx, view, readout, lifeAcc } from './render/state'
+import { simClock, cam, gfx, view, readout, lifeAcc, SKY_MIRROR } from './render/state'
 import { buildStarfield, N_STAR } from './scene/starfield'
 import { genGalaxy, genGalaxyMap, mapPick, mapXZ, MAP_SCALE } from './scene/galaxy'
 import {
@@ -86,6 +87,7 @@ import {
 import { drawG710 } from './render/passes/g710'
 import { drawEatFlash } from './render/passes/eatflash'
 import { runFirstLaunchProbe } from './render/probe'
+import { initCamera, zoomStep, minDist } from './render/camera'
 import { drawLabels, setLabelSteady, labelEls, armEls } from './render/labels'
 import {
   initTrails, initOrbitRings, drawTrails, pushTrail, refillTrails, uploadTrails,
@@ -148,10 +150,12 @@ setLogRenderer(() => renderLog())
 // them reads a dozen values off the frame. They follow when render/frame exists to hand
 // those over — 00-PLAN.md step 10, then step 21.
 
+// While a pointer or finger is down the clock holds — render/camera reports it.
+let holding = false;
+
 // ---------- the physics (compressed but honest) ----------
 
  // active galaxy density (set by setGalaxy, read by the life-cycle rates)
-let showP9 = true;
 
 // ---------- static geometry: starfield + galaxy ----------
 
@@ -380,7 +384,6 @@ loadEarthMap();
 initTrails();
 initOrbitRings();
 // In real scale everything but the Sun is stored as an offset from it.
-let psH = true, psO = true;   // derived from the two transparency sliders: 0% is off
 
 
 // ---------- the real sky ----------
@@ -410,7 +413,6 @@ loadM31Map();
 // now, long before Andromeda arrives. Galactic position contributes a second hazard: a
 // supernova within ~30 ly would strip the ozone layer, and that risk tracks the star
 // formation rate and the cosmic-ray background.
-let lifeOn = false;   // supernovae and births are opt-in
 const wasEaten = [false,false,false,false], eatFlash = [-1,-1,-1,-1];   // -1: no flare running
 
 // ---------- stellar life cycle: birth, death, supernovae ----------
@@ -419,100 +421,15 @@ const wasEaten = [false,false,false,false], eatFlash = [-1,-1,-1,-1];   // -1: n
 // galactic clock (1 sim-yr ~ 1.19 Myr) births are drawn at the real rate scaled to the
 // point sampling (~2.2 per sim-yr per density unit); featured supernovae are a sampled
 // fraction of the true ~24,000 per sim-yr, which would be a continuous glitter.
-let varOn = true; // variability clock (wall time, runs even when paused)
 
 // The stellar life cycle — the events, the blasts, the expanding shells and their three
 // draws — is render/lifecycle. The sound is handed to it here rather than imported there.
 setLifeSfx(sfx);
 // ---------- camera & interaction ----------
-
-   // dive: hold the camera on the Sun-to-core line
-// which absolute-frame position cam.follow tracks when true — the Sun everywhere
-// except the one Andromeda view, which needs its own moving target the same way
-
-let dragging=false, px=0, py=0;
-// While a pointer or finger is down the clock holds, so the galaxy does not keep
-// turning under the hand that is trying to orbit it. Released, it carries straight on.
-let holding=false;
-const touches = new Map();     // every pointer currently down on the canvas
-// Two-finger pan. Kept as a fraction of the view's height along the camera's own right
-// and up, not as a world offset: zooming then keeps the composition, and a pan made at
-// galaxy scale cannot leave the Sun a thousand units off-screen once you dive. Cleared
-// wherever the view is re-seeded (a scenario, a focus, the dive), like the transition.
-
-let panCX = 0, panCY = 0;      // the last two-pointer centroid
-function panCentroid(){ let x=0,y=0; for(const q of touches.values()){ x+=q.clientX; y+=q.clientY; } return [x/touches.size, y/touches.size]; }
-canvas.addEventListener('pointerdown', e=>{
-  touches.set(e.pointerId, e);
-  holding = true;
-  canvas.classList.add('dragging');
-  if(touches.size === 1){ dragging = true; px = e.clientX; py = e.clientY;
-    // capture can be refused; a throw here would abandon the handler mid-way
-    try{ canvas.setPointerCapture(e.pointerId); }catch(err){} }
-  else { dragging = false; [panCX, panCY] = panCentroid(); }   // two fingers: pinch and pan, not a turn
-});
-canvas.addEventListener('pointermove', e=>{
-  if(touches.has(e.pointerId)) touches.set(e.pointerId, e);
-  if(touches.size === 2){
-    // the fingers' midpoint carries the scene with it; the pinch (below) reads the spread
-    const [cx, cy] = panCentroid();
-    cam.panF[0] = Math.max(-2, Math.min(2, cam.panF[0] + (cx - panCX)/view.H));
-    cam.panF[1] = Math.max(-2, Math.min(2, cam.panF[1] + (cy - panCY)/view.H));
-    panCX = cx; panCY = cy;
-    return;
-  }
-  if(!dragging || touches.size > 1) return;
-  cam.yaw   -= (e.clientX-px)*0.005*SKY_MIRROR;
-  cam.pitch  = Math.max(-1.45, Math.min(1.45, cam.pitch + (e.clientY-py)*0.005));
-  px=e.clientX; py=e.clientY;
-});
-function endPointer(e){
-  touches.delete(e.pointerId);
-  if(touches.size === 0){ dragging = false; holding = false; canvas.classList.remove('dragging'); }
-  else if(touches.size === 1){
-    // one finger left: pick the drag up from where it actually is, or the view jumps
-    const q = touches.values().next().value;
-    px = q.clientX; py = q.clientY; dragging = true;
-  } else if(touches.size === 2) [panCX, panCY] = panCentroid();   // three down to two: restart from here
-}
-addEventListener('pointerup', endPointer);
-addEventListener('pointercancel', endPointer);
-// the floor: ~0.04 AU across, eight solar radii; at Earth and at the Moon, a body filling
-// the view. The Moon's view before she forms is Earth's view, so it keeps Earth's floor.
-const minDist = ()=> cam.followTarget === 'moon' ? (ageGyr() > MOON_BORN ? 5.5e-12 : 2e-11)
-                   : cam.followTarget === 'earth' ? 2e-11 : (REAL_MODE ? 2e-8 : 25);
-// The zoom buttons step along a ladder of the objects themselves — the Sun, the planets'
-// orbits, the belts, the Oort shell, the nearest stars, the arm, the Galaxy, the Local
-// Group — with one rung between each pair, so two presses take you from one object to
-// the next, and every press eases in log space like any other zoom. Clamped to the same
-// floor and ceiling as the wheel. Distances in camera units: 1 AU across the view is
-// 4.67e-7, 1 ly is 0.0288.
-const ZOOM_OBJ = [1.2e-10, 3.2e-9, 2e-8, 1e-7, 3.7e-7, 9.3e-7, 1.45e-6, 4.9e-6, 8.9e-6, 2.8e-5, 4.7e-5, 9.3e-4, 0.144, 0.72, 17, 150, 4300, 9500];
-const ZOOM_RUNGS = ZOOM_OBJ.flatMap((d, i) => i ? [Math.sqrt(ZOOM_OBJ[i-1]*d), d] : [d]);
-function zoomStep(dir){
-  const cur = cam.distGoal, lo = Math.log(cur);
-  let next = null;
-  if(dir < 0){ for(const r of ZOOM_RUNGS) if(Math.log(r) < lo - 0.03) next = r; }        // the largest rung below
-  else       { for(const r of ZOOM_RUNGS) if(Math.log(r) > lo + 0.03){ next = r; break; } } // the smallest above
-  if(next === null) return;
-  cam.distGoal = Math.max(minDist(), Math.min(9500, next));
-}
-canvas.addEventListener('wheel', e=>{
-  e.preventDefault();
-  const rate = REAL_MODE ? 0.0018 : 0.0011; // faster travel across real scale's ~11 decades
-  cam.distGoal = Math.max(minDist(), Math.min(7500, cam.distGoal*Math.exp(e.deltaY*rate)));
-},{passive:false});
-// pinch zoom
-let pinchD=0;
-canvas.addEventListener('touchstart', e=>{ holding=true; if(e.touches.length===2){ pinchD=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY); } },{passive:true});
-canvas.addEventListener('touchend', e=>{ holding = e.touches.length>0; },{passive:true});
-canvas.addEventListener('touchmove', e=>{
-  if(e.touches.length===2){
-    const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
-    if(pinchD>0) cam.distGoal=Math.max(minDist(),Math.min(7500,cam.distGoal*pinchD/d));
-    pinchD=d; dragging=false;   // belt and braces alongside the pointer bookkeeping
-  }
-},{passive:true});
+// The turn, the two-finger pan, the pinch, the wheel and the zoom ladder are render/camera.
+// It reports `holding` back rather than keeping it: while a pointer is down the clock holds,
+// and the clock is the frame's.
+initCamera({ ageGyr, onHold: h => { holding = h; } });
 
 // ---------- UI ----------
 $('verInfo').textContent = VERSION;
@@ -581,8 +498,6 @@ async function doRefresh(){
     tapTimer = setTimeout(act, 450);   // the run of taps ends when the tapping stops
   });
 }
-let showTrails=true, showLabels=true, showStats=true;
-let showDwarfs=true, showBelt=true, showKuiper=true, showOort=true;
  // years per second
 const WEEK_YR = 7/365.2425;                          // one week, in years
 // The ladder the slider climbs, in years per second: hours, weeks, months, then whole
@@ -649,48 +564,45 @@ simClock.speed = speedFromSlider(SPEED_YEAR); fmtSpeed();   // one Earth year pe
 // carry. It lifts a floor under their colour and widens the smallest sprites, which is
 // where most of the lost light actually goes.
 $('hudHz').addEventListener('input', e=>{
-  hudHz = +e.target.value;
-  $('hudHzv').textContent = hudHz + '×/s';
+  hud.hudHz = +e.target.value;
+  $('hudHzv').textContent = hud.hudHz + '×/s';
 });
-let minBright = 0.05*0.38, minSprite = 1.3 + 0.05*2.1, starGain = 0.05;
 $('minB').addEventListener('input', e=>{
-  const v = starGain = +e.target.value;
-  minBright = v*0.38;
-  minSprite = 1.3 + v*2.1;
+  const v = hud.starGain = +e.target.value;
+  hud.minBright = v*0.38;
+  hud.minSprite = 1.3 + v*2.1;
   $('minBv').textContent = v ? '+'+Math.round(v*100) + '%' : 'off';
 });
 // How much headroom the bright cores get before they saturate. 100% ("off", the
 // default) is the old behaviour: no compression, and a merging pair of cores reads
 // as one white blob — left off by default since it's a corrective for that one
 // situation, not something every scene needs paying the extra render pass for.
-let coreKnee = 1;
 $('coreB').addEventListener('input', e=>{
-  coreKnee = +e.target.value;
-  $('coreBv').textContent = coreKnee >= 0.999 ? 'off' : Math.round(coreKnee*100)+'%';
+  hud.coreKnee = +e.target.value;
+  $('coreBv').textContent = hud.coreKnee >= 0.999 ? 'off' : Math.round(hud.coreKnee*100)+'%';
 });
-let trailAlpha = 1, orbitAlpha = 1;
 // each slider is its own switch: silence for sound, invisibility for lines
 $('trailA').addEventListener('input', e=>{
-  trailAlpha = +e.target.value; psH = trailAlpha > 0;
-  $('trailAv').textContent = psH ? Math.round(trailAlpha*100)+'%' : 'off'; });
+  hud.trailAlpha = +e.target.value; hud.psH = hud.trailAlpha > 0;
+  $('trailAv').textContent = hud.psH ? Math.round(hud.trailAlpha*100)+'%' : 'off'; });
 $('orbitA').addEventListener('input', e=>{
-  orbitAlpha = +e.target.value; psO = orbitAlpha > 0;
-  $('orbitAv').textContent = psO ? Math.round(orbitAlpha*100)+'%' : 'off'; });
-let trailPct = 300, trailRefill = 0;
+  hud.orbitAlpha = +e.target.value; hud.psO = hud.orbitAlpha > 0;
+  $('orbitAv').textContent = hud.psO ? Math.round(hud.orbitAlpha*100)+'%' : 'off'; });
+let trailRefill = 0;
 function applyTrailWindow(){
-  const w = (trailPct/100) * simClock.speed * simClock.speedMult;      // years covered by the whole trail
+  const w = (hud.trailPct/100) * simClock.speed * simClock.speedMult;      // years covered by the whole trail
   simClock.dtSample = Math.max(1e-9, w/TRAIL_N);
   const span = w < 1e3 ? (w<10 ? w.toFixed(w<1?2:1) : String(Math.round(w)))+' yr'
              : w < 1e6 ? (w/1e3).toFixed(w<1e4?1:0)+' kyr'
              : w < 1e9 ? (w/1e6).toFixed(w<1e7?1:0)+' Myr'
              : (w/1e9).toFixed(2)+' Gyr';
-  $('trailLv').textContent = trailPct + '% · ' + span;
+  $('trailLv').textContent = hud.trailPct + '% · ' + span;
   // rebuilding is 34,000 samples, so coalesce the bursts a slider drag produces
   clearTimeout(trailRefill);
   trailRefill = setTimeout(()=>{ refillTrails(); simClock.nextSample = simClock.simT + simClock.dtSample; }, 90);
 }
 
-$('trailL').addEventListener('input', e=>{ trailPct = +e.target.value; applyTrailWindow(); });
+$('trailL').addEventListener('input', e=>{ hud.trailPct = +e.target.value; applyTrailWindow(); });
 
 // A switch, however it is drawn: lit buttons carry their state in a class, checkboxes
 // in .checked. Both report through the same callback, so every call site is identical.
@@ -705,8 +617,8 @@ const ICO_PLAY  = '<svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><path
 toggle($('tPause'), on=>{ simClock.paused=!on;
   $('tPause').innerHTML = on ? ICO_PAUSE : ICO_PLAY;
   $('tPause').setAttribute('aria-label', on ? 'pause' : 'play'); });
-toggle($('tLabels'), on=>{ showLabels=on; if(!on) labelEls.forEach(l=>l.style.display='none'); });
-toggle($('tArms'), on=>{ armsOn=on; if(!on) armEls.forEach(l=>l.style.display='none'); });
+toggle($('tLabels'), on=>{ hud.showLabels=on; if(!on) labelEls.forEach(l=>l.style.display='none'); });
+toggle($('tArms'), on=>{ hud.armsOn=on; if(!on) armEls.forEach(l=>l.style.display='none'); });
 // steady labels: eased into place, held through a single leap, stepped aside while a
 // body whirls faster than a label can follow (see placeLabel). On by default for now.
 toggle($('tLabelSteady'), on=>{ setLabelSteady(on); });
@@ -724,26 +636,24 @@ toggle($('tLabelsAll'), on=>{
   // listens for — without this, a choice made through the master would not survive reload
   saveSettings();
 });
-toggle($('tP9'), on=>{ showP9=on; if(!on) labelEls[I_P9].style.display='none'; });
-toggle($('tDwarfs'), on=>{ showDwarfs=on; if(!on) labelEls.forEach((l,i)=>{ if(i>=N_PLANETS) l.style.display='none'; }); });
-toggle($('tBelt'), on=> showBelt=on);
-toggle($('tKuiper'), on=> showKuiper=on);
-let evSN = false, evBirth = false;
+toggle($('tP9'), on=>{ hud.showP9=on; if(!on) labelEls[I_P9].style.display='none'; });
+toggle($('tDwarfs'), on=>{ hud.showDwarfs=on; if(!on) labelEls.forEach((l,i)=>{ if(i>=N_PLANETS) l.style.display='none'; }); });
+toggle($('tBelt'), on=> hud.showBelt=on);
+toggle($('tKuiper'), on=> hud.showKuiper=on);
 function syncLife(){
-  lifeOn = evSN || evBirth;
-  if(!evSN){ // drop everything supernova-or-death shaped, keep living clusters
+  hud.lifeOn = hud.evSN || hud.evBirth;
+  if(!hud.evSN){ // drop everything supernova-or-death shaped, keep living clusters
     for(let i=events.length-1;i>=0;i--){ const k=events[i].k;
       if(k!==1) events.splice(i,1); else events[i].sn=false; }
-    if(!lifeOn) puffs.length = 0;
+    if(!hud.lifeOn) puffs.length = 0;
   }
-  if(!evBirth) for(let i=events.length-1;i>=0;i--) if(events[i].k===1) events.splice(i,1);
-  if(!lifeOn){ events.length=0; puffs.length=0; }
+  if(!hud.evBirth) for(let i=events.length-1;i>=0;i--) if(events[i].k===1) events.splice(i,1);
+  if(!hud.lifeOn){ events.length=0; puffs.length=0; }
 }
-toggle($('tEvSN'), on=>{ evSN=on; syncLife(); });
-toggle($('tEvBirth'), on=>{ evBirth=on; syncLife(); });
-toggle($('tVar'), on=> varOn=on);
-let dustOn = true;
-toggle($('tDust'), on=>{ dustOn = on; });
+toggle($('tEvSN'), on=>{ hud.evSN=on; syncLife(); });
+toggle($('tEvBirth'), on=>{ hud.evBirth=on; syncLife(); });
+toggle($('tVar'), on=> hud.varOn=on);
+toggle($('tDust'), on=>{ hud.dustOn = on; });
 const syncZoomBtns = on => { for(const id of ['zoomIn','zoomOut']) $(id).classList.toggle('act', on); };
 toggle($('tZoomBtns'), on=>{ syncZoomBtns(on); layoutPanels(); fitPanels(); });
 // The spin lock: the camera's yaw and pitch are read in the planet's own frame (longitude
@@ -865,7 +775,7 @@ $('focusGo').addEventListener('click', applyFocusView);   // re-apply the curren
   if(bar.classList.contains('slid')) setSlid(true);   // restored state applies the style too
 }
 toggle($('tGaia'), on=> gfx.gaiaOn=on);
-toggle($('tFps'), on=>{ showFps=on; $('fpsBox').style.display = on ? '' : 'none'; fitPanels(); });
+toggle($('tFps'), on=>{ hud.showFps=on; $('fpsBox').style.display = on ? '' : 'none'; fitPanels(); });
 const lifeSupOn = true;   // the reading is a fixture of the Earth panel now
 // ---------- movable panels ----------
 // The three panels, their two columns, the crowding pass and the drag gestures are ui/panels.
@@ -932,7 +842,7 @@ loadTrack(0);
 
 registerSnapshot(() => ({
   cal:$('cal').value, mult:simClock.speedMult, dens:gfx.curD, dprc:view.dprCap,
-  units:unitMode,
+  units:hud.unitMode,
   fsel:$('focusSel').value, sec:sectionSnapshot(),
   pan:panelSnapshot(),
   bar:$('gamebar').classList.contains('slid'), qrPos:qrSnapshot(),
@@ -961,10 +871,10 @@ registerApply(() => applySecs());
 // nearest what it meant.
 const legacySpeed = (v: number) => speedRungOf(Math.pow(WEEK_YR, 1-v));
 const restoreSettings = (register?: boolean) => restoreSettingsIn(register, legacySpeed);
-toggle($('tOort'), on=> showOort=on);
+toggle($('tOort'), on=> hud.showOort=on);
 function updateBar(){
-  showStats = ['sCal','sAge','sGyr','cDeath','cBirth'].some(id => $(id).style.display !== 'none');
-  $('gamebar').style.display = showStats ? 'flex' : 'none';
+  hud.showStats = ['sCal','sAge','sGyr','cDeath','cBirth'].some(id => $(id).style.display !== 'none');
+  $('gamebar').style.display = hud.showStats ? 'flex' : 'none';
   fitPanels();
 }
 function statToggle(btn, statId){ toggle(btn, on=>{ $(statId).style.display = on?'':'none'; updateBar(); }); }
@@ -972,16 +882,14 @@ statToggle($('tStatAge'), 'sAge');
 statToggle($('tStatGyr'), 'sGyr');
 statToggle($('tStatSn'), 'cDeath');
 statToggle($('tStatBirth'), 'cBirth');
-const setSegUnits = seg('segUnits', 'words', v => { unitMode = v; });
-let liveCount = false;   // retired control; the rate view lives in the calendar options
-let calMode='ad', unitMode: UnitMode = 'words';
-const fmtYears = (y: number) => fmtYearsIn(y, unitMode);
+const setSegUnits = seg('segUnits', 'words', v => { hud.unitMode = v; });
+const fmtYears = (y: number) => fmtYearsIn(y, hud.unitMode);
 function syncCal(){
-  calMode = $('cal').value;
+  hud.calMode = $('cal').value;
   // "none" is the off position: the cell leaves the bar entirely
-  $('sCal').style.display = calMode === 'none' ? 'none' : '';
+  $('sCal').style.display = hud.calMode === 'none' ? 'none' : '';
   updateBar();
-  $('lCal').textContent = calMode === 'rate' ? 'years per second' : 'human year';
+  $('lCal').textContent = hud.calMode === 'rate' ? 'years per second' : 'human year';
 }
 $('cal').addEventListener('change', syncCal);
 // Replaying matters here: an event like the Gliese 710 pass is over in a second or two,
@@ -1008,7 +916,7 @@ function jumpToEpoch(){
     if(!keepSaved){   // the owner's exported look: full trails over half-strength rings
       $('trailA').value = 1;   $('trailA').dispatchEvent(new Event('input'));
       $('orbitA').value = 0.5; $('orbitA').dispatchEvent(new Event('input'));
-      if(trailPct < 250){ $('trailL').value = 300; $('trailL').dispatchEvent(new Event('input')); }
+      if(hud.trailPct < 250){ $('trailL').value = 300; $('trailL').dispatchEvent(new Event('input')); }
     }
     if(!$('tDive').classList.contains('on')) $('tDive').click();
     cam.distGoal = 1.449e-5;                   // ~31 AU across
@@ -1122,7 +1030,7 @@ function humanYear(){
   const el = simClock.simT*YR_PER_SIM;      // galactic clock: real years elapsed
   const g = 2026 + simClock.simT;           // planetary clock: Earth orbits counted
   const fmt = n => Math.floor(n).toLocaleString('en-US');
-  switch(calMode){
+  switch(hud.calMode){
     case 'ah':   return fmt((g-621.57)*1.03069)+' A.H.'; // lunar years run ~3% faster
     case 'vs':   return fmt(g+57)+' V.S.';
     case 'saka': return fmt(g-78)+' Śaka';
@@ -1189,7 +1097,6 @@ if(matchMedia('(prefers-reduced-motion: reduce)').matches){ $('tPause').click();
 
 // Every name on the screen is render/labels: the six element pools, the steadying, and the
 // pass that places them. The switches stay here, because they are the interface's.
-let armsOn = true;
 // The hazard colour — what the panels, the readouts and the frost are tinted by — is ui/theme.
 // ---------- resize ----------
    // dprCap: the first-launch probe lowers it on a slow device
@@ -1226,7 +1133,6 @@ function fitPanels(){
 // points, trails, labels — comes out right-handed, and trailing arms stay trailing (a
 // reflection flips the spin and the winding together). Only the drag control needs the
 // same sign, so a drag still moves the world the way the hand moves.
-const SKY_MIRROR = -1;
 // the one way a projection is built: frame() rebuilds it every frame for its near plane
 function skyProjection(near, far){ const m = perspective(Math.PI/3, view.W/view.H, near, far); m[0] *= SKY_MIRROR; return m; }
 function resize(){
@@ -1274,8 +1180,8 @@ gl.blendFunc(gl.ONE, gl.ONE);
 gl.clearColor(0.010,0.015,0.040,1);
 
 
-let showFps=false, fpsFrames=0, fpsSince=performance.now();
-let hudHz=8, lastHud=0;
+let fpsFrames=0, fpsSince=performance.now();
+let lastHud=0;
 // The status bar is sized by its numbers, and they change length — "2,026 AD" one moment,
 // "12,345,678 AD" the next — so it used to twitch in width. Growing applies at once (a
 // floor never blocks widening); shrinking waits: the bar keeps its wider width until it
@@ -1351,7 +1257,7 @@ function frame(now){
       if(dx*dx+dy*dy+dz*dz > 0.09){ simClock.lastAnchor = now; refillTrails(); simClock.nextSample = simClock.simT + simClock.dtSample; }
     }
     if(n>0) uploadTrails();
-    if(lifeOn) lifeStep({ dt, dtSim: dt*simClock.speed*simClock.speedMult, ageGyr: ageGyr(), evBirth, evSN });
+    if(hud.lifeOn) lifeStep({ dt, dtSim: dt*simClock.speed*simClock.speedMult, ageGyr: ageGyr(), evBirth: hud.evBirth, evSN: hud.evSN });
   }
 
   // body positions, stored relative to the Sun (the rendering origin) — exact in doubles,
@@ -1456,7 +1362,7 @@ function frame(now){
   const pxScale = (view.H*view.DPR)/(2*Math.tan(Math.PI/6));
 
   // at 100% nothing is compressed, so the old direct path is kept exactly
-  const toneOn = view.hdrOK && coreKnee < 0.999;
+  const toneOn = view.hdrOK && hud.coreKnee < 0.999;
   if(toneOn) bindHDR();
   gl.clear(gl.COLOR_BUFFER_BIT);
 
@@ -1487,11 +1393,11 @@ function frame(now){
   gl.uniform1f(U.ptTime, simClock.shimT);
   gl.uniform3f(U.ptAnd, andPos[0], andPos[1], andPos[2]);
   gl.uniform1f(U.ptTide, and.tide);
-  gl.uniform1f(U.ptVM, varOn?1.0:0.0);
+  gl.uniform1f(U.ptVM, hud.varOn?1.0:0.0);
   gl.uniform1f(U.ptCap, deep?26.0:110.0);
   gl.uniform1f(U.ptWarpAmp, 1.0);
-  gl.uniform1f(U.ptMinB, minBright);
-  gl.uniform1f(U.ptMinSz, minSprite);
+  gl.uniform1f(U.ptMinB, hud.minBright);
+  gl.uniform1f(U.ptMinSz, hud.minSprite);
   gl.uniform3f(U.ptOrg, org[0],org[1],org[2]);
   gl.uniform1f(U.ptSpin, 0.0);
   gl.uniform1f(U.velT, 0.0);
@@ -1504,11 +1410,11 @@ function frame(now){
   // where the values are, rather than a dozen arguments repeated at four call sites.
   const lifeFrame = {
     projMat: view.projMat!, viewMat, pxScale, deep, spinMW, warp, sunX, bubY, sunZ, org,
-    minBright, minSprite, tide: and.tide, varOn,
+    minBright: hud.minBright, minSprite: hud.minSprite, tide: and.tide, varOn: hud.varOn,
   };
   const clouds: CloudFrame = {
     projMat: view.projMat!, viewMat, pxScale, camDist: cam.dist, shimT: simClock.shimT,
-    varOn, deep, insideDisk, andPos, tide: and.tide, merge: and.merge,
+    varOn: hud.varOn, deep, insideDisk, andPos, tide: and.tide, merge: and.merge,
     spinMW, spinM31, warp, sunX, sunY, bubY, sunZ, org,
   };
   // Multiply blending knows nothing of depth: a cloud of the galaxy BEHIND would darken
@@ -1517,7 +1423,7 @@ function frame(now){
   // eye is Sun-relative here, like everything drawn.
   const dMW  = Math.hypot(eye[0] + org[0], eye[1] + org[1], eye[2] + org[2]);
   const dAnd = Math.hypot(eye[0] - (andPos[0] - org[0]), eye[1] - (andPos[1] - org[1]), eye[2] - (andPos[2] - org[2]));
-  for(const g of (dAnd > dMW ? ['and', 'mw'] : ['mw', 'and']) as Which[]){ drawNebula(clouds, true, g); if(insideDisk) drawNebula(clouds, false, g); drawDust(clouds, dustOn, g); }
+  for(const g of (dAnd > dMW ? ['and', 'mw'] : ['mw', 'and']) as Which[]){ drawNebula(clouds, true, g); if(insideDisk) drawNebula(clouds, false, g); drawDust(clouds, hud.dustOn, g); }
   gl.useProgram(pPt);   // back to the points; their uniforms persist on the program
   gl.bindVertexArray(vaoStars); gl.drawArrays(gl.POINTS,0,N_STAR);
   // Real stars, carried along with the Sun. They are stored at the galaxy's scale — a
@@ -1580,29 +1486,31 @@ function frame(now){
     gl.uniform3f(U.ptAnd, andPos[0], andPos[1], andPos[2]);
     gl.uniform1f(U.ptWarpAmp, 1.0);
     gl.uniform1f(U.ptSpin, spinMW);
-    gl.uniform1f(U.ptVM, varOn?1.0:0.0);
+    gl.uniform1f(U.ptVM, hud.varOn?1.0:0.0);
   }
   gl.uniform1f(U.ptGal, 0.0);
 
   // life-cycle events (OB clusters, supergiants, supernova flashes, remnant cores)
-  if(lifeOn && events.length) drawEvents(lifeFrame);
+  if(hud.lifeOn && events.length) drawEvents(lifeFrame);
 
   if(!insideDisk) drawNebula(clouds, false);   // the HII regions and the core, over the stars
-  if(lifeOn && puffs.length) drawRemnants(lifeFrame);
+  if(hud.lifeOn && puffs.length) drawRemnants(lifeFrame);
   // trails
-  if(showTrails && trailPct > 0) drawTrails({
+  if(hud.showTrails && hud.trailPct > 0) drawTrails({
     projMat: view.projMat!, viewMat, camDist: cam.dist, org,
-    trailAlpha, orbitAlpha, starGain, psH, psO, showP9, showDwarfs, wasEaten,
+    trailAlpha: hud.trailAlpha, orbitAlpha: hud.orbitAlpha, starGain: hud.starGain,
+    psH: hud.psH, psO: hud.psO, showP9: hud.showP9, showDwarfs: hud.showDwarfs, wasEaten,
   });
 
   // asteroid belt, Kuiper belt & Oort cloud, riding along with the Sun.
   // Each fades out while its ring is too small on screen to resolve — otherwise its
   drawBelts({
     projMat: view.projMat!, viewMat, pxScale, camDist: cam.dist, simT: simClock.simT,
-    g710Dist: gl710.d, showBelt, showKuiper, showOort, globePx: readout.globePx,
+    g710Dist: gl710.d, showBelt: hud.showBelt, showKuiper: hud.showKuiper, showOort: hud.showOort,
+    globePx: readout.globePx,
   });
 
-  drawBodies({ showDwarfs, showP9 });
+  drawBodies({ showDwarfs: hud.showDwarfs, showP9: hud.showP9 });
 
   // Earth as a globe, and the Moon, once they are more than a dot. Opaque discs, so the
   // same blend as the Sun's disc; the atmosphere adds over what is behind it.
@@ -1641,24 +1549,24 @@ function frame(now){
   drawEatFlash({ eatFlash, bodyPosArr, camDist: cam.dist });
 
   if(toneOn){   // resolve the half-float scene to the screen through the rolloff curve
-    resolveTone(coreKnee);
+    resolveTone(hud.coreKnee);
     gl.blendFunc(gl.ONE, gl.ONE);
   }
 
   // labels
   readout.frameDt = dt;
-  drawLabels(showLabels, {
+  drawLabels(hud.showLabels, {
     projMat: view.projMat!, viewMat, pxScale, camDist: cam.dist, org, andPos,
     merge: and.merge, sep: and.sep, spinMW, star: gl710,
-    showP9, showDwarfs, wasEaten,
-    structOn: [showBelt, showKuiper, showOort], armsOn,
+    showP9: hud.showP9, showDwarfs: hud.showDwarfs, wasEaten,
+    structOn: [hud.showBelt, hud.showKuiper, hud.showOort], armsOn: hud.armsOn,
   });
 
-  if(showFps) fpsFrames++;      // counted every frame; only the display is paced
-  if(now - lastHud >= 1000/hudHz){
+  if(hud.showFps) fpsFrames++;      // counted every frame; only the display is paced
+  if(now - lastHud >= 1000/hud.hudHz){
   lastHud = now;
   holdBarWidth(now);
-  if(liveCount){
+  if(hud.liveCount){
     // What is happening in this moment: the drawn events actually in progress, so the
     // numbers step up as stars ignite or begin dying and back down as each one ends.
     let dying=0, forming=0;
@@ -1758,7 +1666,7 @@ function frame(now){
   // stats
   $('yrs').textContent = fmtYears(Math.abs(simClock.simT));
   $('pct').textContent = (simClock.simT/GAL_PERIOD*100).toFixed(3);
-  if(showFps){
+  if(hud.showFps){
     if(now - fpsSince >= 500){
       $('fpsVal').textContent = (fpsFrames*1000/(now - fpsSince)).toFixed(0);
       fpsFrames = 0; fpsSince = now;
@@ -1771,7 +1679,7 @@ function frame(now){
       : wAU*1.496e8 >= 1e6 ? (wAU*1.496e8/1e6).toFixed(2)+' Mkm'
       : wAU*1.496e8 >= 1 ? Math.round(wAU*1.496e8).toLocaleString('en-US')+' km'
       : (wAU*215).toFixed(1)+' R☉'; }   // below half an AU, solar radii say it better
-  if(showStats){
+  if(hud.showStats){
     $('gCal').textContent = humanYear();
     // real elapsed time: one sim lap ≡ one real galactic year of 225 Myr
     const myr = simClock.simT*(225/GAL_PERIOD);                       // real megayears elapsed

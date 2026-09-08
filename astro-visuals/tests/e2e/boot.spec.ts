@@ -46,6 +46,35 @@ test.describe('boot', () => {
     expect(missing, `ids addressed by the script but absent from the DOM: ${missing.join(', ')}`).toEqual([])
   })
 
+  /**
+   * The same question asked the other way round, and it is not the same test.
+   *
+   * BOOT_IDS is curated on purpose — a list derived from the file it is testing proves
+   * nothing about drift in the markup. But it cannot see an id the script has just STARTED
+   * asking for, and a mechanical rename can invent one: `$('hudHz')` became `$('hud.hudHz')`
+   * when a flag called `hudHz` moved onto an object, because a regex over identifiers does not
+   * know it is inside a string. tsc saw nothing, check-names saw nothing, and the page died on
+   * a null at boot with no clue as to which id.
+   *
+   * So: pull every id literal out of the built page and check each one resolves.
+   */
+  test('every id literal in the built page resolves', async ({ page }) => {
+    const html = readFileSync(resolve(ROOT, 'galactic-transit.html'), 'utf8')
+    const ids = new Set<string>()
+    // The id is whatever is between the quotes, NOT a pattern of what an id may look like.
+    // The first version of this required [A-Za-z][\w-]*, which quietly skipped
+    // `$('hud.hudHz')` — the exact call it was written to catch, because a dot is not in
+    // that class. A guard that cannot see the bug that motivated it is decoration.
+    for (const m of html.matchAll(/(?:\$|getElementById)\(\s*['"]([^'"]+)['"]\s*\)/g)) ids.add(m[1])
+    expect(ids.size, 'no id literals found — the extraction pattern has gone stale').toBeGreaterThan(100)
+
+    await page.goto('/galactic-transit.html?debug', { waitUntil: 'load' })
+    await page.waitForFunction(() => !!document.getElementById('gl'))
+    // #tip is created at runtime by ui/tooltips, so it is not in the markup.
+    const missing = await page.evaluate((list) => list.filter((id) => !document.getElementById(id)), [...ids])
+    expect(missing, `the script asks for ids that do not exist: ${missing.join(', ')}`).toEqual([])
+  })
+
   test('no id is declared twice', async ({ page }) => {
     await page.goto('/galactic-transit.html', { waitUntil: 'load' })
     const dupes = await page.evaluate(() => {

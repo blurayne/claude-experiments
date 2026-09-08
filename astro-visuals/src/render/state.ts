@@ -165,6 +165,13 @@ export const gfx = {
 }
 
 /** The drawing surface, and the framebuffer the scene resolves through. */
+/**
+ * Screen right is world right MIRRORED. The sky is seen from inside, so the projection's x
+ * axis is negated and everything that reasons about screen direction — the drag, the pan, the
+ * globe's lighting — has to agree with it. One constant, because two would drift.
+ */
+export const SKY_MIRROR = -1
+
 export const view = {
   W: 0, H: 0, DPR: 1,
   /** Rebuilt every frame, because the near plane tracks the camera distance. */
