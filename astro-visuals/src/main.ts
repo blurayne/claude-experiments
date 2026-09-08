@@ -25,7 +25,10 @@ import { perspective, lookAt, mul, MAT3_ID } from './core/mat4'
 import { gauss, expR } from './core/rng'
 import { $, $v } from './core/dom'
 import { sup, fmtCount, fmtYears as fmtYearsIn, type UnitMode } from './core/format'
-import { hud, updateHud, initHudReadouts, updateBar, syncCal } from './ui/hud'
+import {
+  hud, updateHud, initHudReadouts, initHudControls, updateBar, syncCal,
+  speedRungOf, setMultExp, speedLabel, applyTrailWindow, setShuttle, toggle, bustAndGo, legacySpeed,
+} from './ui/hud'
 import { initScenarioViews, applyFocusView, jumpToEpoch, setKeepSaved } from './ui/scenarios'
 import { hideTip } from './ui/tooltips'
 import { tempColour, setStateColour } from './ui/theme'
@@ -420,251 +423,15 @@ setLifeSfx(sfx);
 initCamera({ ageGyr, onHold: setHolding });
 
 // ---------- UI ----------
-$('verInfo').textContent = VERSION;
-$('buildStamp').textContent = BUILD_LINE;
-$('tourBuild').textContent = VERSION + ' · ' + BUILD_LINE;
-// the original UTC stamp stays available on hover
-$('buildInfo').title = VERSION + (BUILD.date.indexOf('__') !== 0
-  ? ' · built ' + BUILD.date + ' ' + BUILD.time + ' UTC' : '');
-// Hard refresh: drop every cache and the service worker, then reload on a fresh URL so
-// nothing between here and the server can hand back the old build.
-// One button, three depths, counted in taps: one tap reloads past every cache, three
-// taps also forget the saved settings, ten taps toggle debug mode. The counter shows on
-// the button while tapping, and the action fires only once the tapping stops.
-function bustAndGo(mutate){
-  const u = new URL(location.href);
-  u.searchParams.set('_', Date.now());
-  if(mutate) mutate(u);
-  location.replace(u.toString());
-}
-async function doRefresh(){
-  $('tReload').textContent = '⟲ …';
-  try{
-    if(window.caches) await Promise.all((await caches.keys()).map(k => caches.delete(k)));
-    if(navigator.serviceWorker){
-      const regs = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(regs.map(r => r.unregister()));
-    }
-  }catch(e){}
-  bustAndGo();
-}
-{
-  const b = $('tReload');
-  let taps = 0, tapTimer = null;
-  const act = ()=>{
-    const n = taps; taps = 0;
-    if(n >= 10){
-      // toggle the debug door, and remember the choice across reloads
-      const on = getComputedStyle($('dbgBtn')).display === 'none';
-      setDebugUI(on, true);
-      try{ localStorage.setItem(DBGKEY, on ? '1' : '0'); }catch(err){}
-    }
-    else if(n >= 3){
-      // debug mode is a mode you are in, not a setting you tuned: a reset returns the
-      // app to its defaults and leaves you where you were working
-      try{
-        const dbg = localStorage.getItem(DBGKEY);
-        localStorage.clear();
-        if(dbg !== null) localStorage.setItem(DBGKEY, dbg);
-      }catch(err){}
-      bustAndGo();
-    }
-    else doRefresh();
-  };
-  const flash = cls => {
-    const h = $('hud');
-    h.classList.remove('flash3','flash10');   // restart the animation cleanly
-    void h.offsetWidth;
-    h.classList.add(cls);
-    setTimeout(()=> h.classList.remove(cls), 450);
-  };
-  b.addEventListener('click', ()=>{
-    taps++;
-    if(taps === 3) flash('flash3');
-    if(taps === 10) flash('flash10');
-    clearTimeout(tapTimer);
-    tapTimer = setTimeout(act, 450);   // the run of taps ends when the tapping stops
-  });
-}
- // years per second
-const WEEK_YR = 7/365.2425;                          // one week, in years
-// The ladder the slider climbs, in years per second: hours, weeks, months, then whole
-// years 1…10; the ×10^k slider on top carries each rung through the decades, so
-// 3 yr/s × 10³ reads 3×10³ yr/s — n × 10^k, one digit and an exponent.
-const HOUR_YR = 1/(24*365.2425);
-const SPEED_RUNGS = [
-  ...[1,2,3,4,6,8,10,12,16,20,24,32].map(h => h*HOUR_YR),
-  ...[1,2,3,4].map(w => w*WEEK_YR),
-  ...[1,2,4,6,8].map(m => m/12),
-  ...[1,2,3,4,5,6,7,8,9,10]
-];
-const SPEED_YEAR = 21;                                     // the rung of one year per second
-const speedFromSlider = v => SPEED_RUNGS[Math.max(0, Math.min(SPEED_RUNGS.length-1, Math.round(+v)))];
-// the rung nearest a rate, in log space — for settings saved by the old continuous slider
-function speedRungOf(yrs){ let b=0, e=1e9; SPEED_RUNGS.forEach((r,i)=>{ const d=Math.abs(Math.log(r/yrs)); if(d<e){ e=d; b=i; } }); return b; }
-
-// the rate in the unit it is easiest to read: hours, weeks and months below a year
-function speedLabel(){
-  const eff = simClock.speed*simClock.speedMult, n = x => (Math.abs(x-Math.round(x)) < 0.05 ? Math.round(x) : +x.toFixed(1));
-  if(eff < WEEK_YR*0.999) return n(eff/HOUR_YR)+' h/s';
-  if(eff < 0.999/12)      return n(eff/WEEK_YR)+' wk/s';
-  if(eff < 0.999)         return n(eff*12)+' mo/s';
-  if(eff < 1000)          return n(eff)+' yr/s';
-  const e = Math.floor(Math.log10(eff)), mant = eff/Math.pow(10,e);
-  return (Math.abs(mant-Math.round(mant)) < 0.005 ? Math.round(mant) : mant.toFixed(2))+'×10'+sup(e)+' yr/s';
-}
-function fmtSpeed(){ $('speedv').textContent = speedLabel(); }
-// Whole decades on top of the slider, for crossing deep time without waiting on it.
-function setMultExp(x){
-  x = Math.max(0, Math.min(10, Math.round(x)));
-  simClock.speedMult = Math.pow(10, x);
-  $('multExp').value = x;
-  $('multExpv').textContent = x === 0 ? '×1' : '×1e' + x;
-  fmtSpeed(); applyTrailWindow();
-}
-$('multExp').addEventListener('input', e => setMultExp(+e.target.value));
-// The shuttle: a signed fraction of the set speed, driven by hand. At 0 it is not engaged
-// and the clock belongs to play/pause as before; off 0 it takes the clock over — forward
-// or backward, paused or not — and the reset hands it back. Deliberately not persisted:
-// a shuttle rests at 0 when you pick the piece up.
-
-function setShuttle(v){
-  const before = Math.sign(simClock.shuttle);
-  simClock.shuttle = Math.max(-100, Math.min(100, Math.round(v)));
-  // a change of the shuttle's own sign re-sweeps the trails at once — the clock's drive
-  // sign does that too, but not while paused, and a paused reverse left them leading
-  if(Math.sign(simClock.shuttle) !== before){ refillTrails(); simClock.nextSample = simClock.simT + simClock.dtSample; }
-  $('shuttle').value = simClock.shuttle;
-  $('shuttlev').textContent = simClock.shuttle === 0 ? 'off' : simClock.shuttle > 0 ? '+'+simClock.shuttle+'%' : simClock.shuttle+'%';
-}
-$('shuttle').addEventListener('input', e => setShuttle(+e.target.value));
-$('shuttleReset').addEventListener('click', ()=> setShuttle(0));
-document.querySelectorAll('.stepb').forEach(b => b.addEventListener('click', ()=>{
-  if(!b.dataset.step) return;             // the shuttle's reset shares the look, not the job
-  const [id, d] = b.dataset.step.split(':');
-  const el = $(id);
-  el.value = Math.max(+el.min, Math.min(+el.max, +el.value + +d));
-  el.dispatchEvent(new Event('input'));
-}));
-$('speed').addEventListener('input', e=>{ simClock.speed = speedFromSlider(+e.target.value); fmtSpeed(); applyTrailWindow(); });
-simClock.speed = speedFromSlider(SPEED_YEAR); fmtSpeed();   // one Earth year per second
-// One slider, two effects, because they are the same intent: make the faint stars
-// carry. It lifts a floor under their colour and widens the smallest sprites, which is
-// where most of the lost light actually goes.
-$('hudHz').addEventListener('input', e=>{
-  hud.hudHz = +e.target.value;
-  $('hudHzv').textContent = hud.hudHz + '×/s';
+// Every control in the settings panel and on the dock — the speed ladder, the shuttle, the
+// toggles, the sliders, the sound and the refresh button — is ui/hud's initHudControls. It is
+// one call because the ORDER the listeners are registered in is the thing that matters: the
+// settings replay dispatches synthetic events, and a control whose listener is not yet there
+// silently keeps its default (00-PLAN.md R1).
+initHudControls({
+  seg, fitPanels: () => fitPanels(), layoutPanels, saveSettings: () => saveSettings(),
+  setGalaxy, applyFocusView, zoomStep, ageGyr, updateBar, syncCal,
 });
-$('minB').addEventListener('input', e=>{
-  const v = hud.starGain = +e.target.value;
-  hud.minBright = v*0.38;
-  hud.minSprite = 1.3 + v*2.1;
-  $('minBv').textContent = v ? '+'+Math.round(v*100) + '%' : 'off';
-});
-// How much headroom the bright cores get before they saturate. 100% ("off", the
-// default) is the old behaviour: no compression, and a merging pair of cores reads
-// as one white blob — left off by default since it's a corrective for that one
-// situation, not something every scene needs paying the extra render pass for.
-$('coreB').addEventListener('input', e=>{
-  hud.coreKnee = +e.target.value;
-  $('coreBv').textContent = hud.coreKnee >= 0.999 ? 'off' : Math.round(hud.coreKnee*100)+'%';
-});
-// each slider is its own switch: silence for sound, invisibility for lines
-$('trailA').addEventListener('input', e=>{
-  hud.trailAlpha = +e.target.value; hud.psH = hud.trailAlpha > 0;
-  $('trailAv').textContent = hud.psH ? Math.round(hud.trailAlpha*100)+'%' : 'off'; });
-$('orbitA').addEventListener('input', e=>{
-  hud.orbitAlpha = +e.target.value; hud.psO = hud.orbitAlpha > 0;
-  $('orbitAv').textContent = hud.psO ? Math.round(hud.orbitAlpha*100)+'%' : 'off'; });
-let trailRefill = 0;
-function applyTrailWindow(){
-  const w = (hud.trailPct/100) * simClock.speed * simClock.speedMult;      // years covered by the whole trail
-  simClock.dtSample = Math.max(1e-9, w/TRAIL_N);
-  const span = w < 1e3 ? (w<10 ? w.toFixed(w<1?2:1) : String(Math.round(w)))+' yr'
-             : w < 1e6 ? (w/1e3).toFixed(w<1e4?1:0)+' kyr'
-             : w < 1e9 ? (w/1e6).toFixed(w<1e7?1:0)+' Myr'
-             : (w/1e9).toFixed(2)+' Gyr';
-  $('trailLv').textContent = hud.trailPct + '% · ' + span;
-  // rebuilding is 34,000 samples, so coalesce the bursts a slider drag produces
-  clearTimeout(trailRefill);
-  trailRefill = setTimeout(()=>{ refillTrails(); simClock.nextSample = simClock.simT + simClock.dtSample; }, 90);
-}
-
-$('trailL').addEventListener('input', e=>{ hud.trailPct = +e.target.value; applyTrailWindow(); });
-
-// A switch, however it is drawn: lit buttons carry their state in a class, checkboxes
-// in .checked. Both report through the same callback, so every call site is identical.
-const isOn = el => el.type === 'checkbox' ? el.checked : el.classList.contains('on');
-function toggle(btn, fn){
-  if(btn.type === 'checkbox') btn.addEventListener('change', ()=> fn(btn.checked));
-  else btn.addEventListener('click', ()=>{ btn.classList.toggle('on'); fn(isOn(btn)); });
-}
-const ICO_PAUSE = '<svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><rect x="1.4" y="1" width="2.7" height="8"/><rect x="5.9" y="1" width="2.7" height="8"/></svg>';
-const ICO_PLAY  = '<svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 1 L9 5 L2 9 Z"/></svg>';
-// drawn, not typed: a glyph would be recoloured as emoji on some platforms
-toggle($('tPause'), on=>{ simClock.paused=!on;
-  $('tPause').innerHTML = on ? ICO_PAUSE : ICO_PLAY;
-  $('tPause').setAttribute('aria-label', on ? 'pause' : 'play'); });
-toggle($('tLabels'), on=>{ hud.showLabels=on; if(!on) labelEls.forEach(l=>l.style.display='none'); });
-toggle($('tArms'), on=>{ hud.armsOn=on; if(!on) armEls.forEach(l=>l.style.display='none'); });
-// steady labels: eased into place, held through a single leap, stepped aside while a
-// body whirls faster than a label can follow (see placeLabel). On by default for now.
-toggle($('tLabelSteady'), on=>{ setLabelSteady(on); });
-// The dock's master switch mirrors these two rather than owning its own saved state:
-// on whenever either is showing, off only when both are hidden. Individual settings
-// checkboxes are untouched — this only adds a second listener alongside their own.
-function syncLabelsMaster(){ $('tLabelsAll').classList.toggle('on', $('tLabels').checked || $('tArms').checked); }
-$('tLabels').addEventListener('change', syncLabelsMaster);
-$('tArms').addEventListener('change', syncLabelsMaster);
-syncLabelsMaster();
-toggle($('tLabelsAll'), on=>{
-  if($('tLabels').checked !== on){ $('tLabels').checked = on; $('tLabels').dispatchEvent(new Event('change')); }
-  if($('tArms').checked !== on){ $('tArms').checked = on; $('tArms').dispatchEvent(new Event('change')); }
-  // the cascade only fires 'change', not the 'click' the checkboxes' own save binding
-  // listens for — without this, a choice made through the master would not survive reload
-  saveSettings();
-});
-toggle($('tP9'), on=>{ hud.showP9=on; if(!on) labelEls[I_P9].style.display='none'; });
-toggle($('tDwarfs'), on=>{ hud.showDwarfs=on; if(!on) labelEls.forEach((l,i)=>{ if(i>=N_PLANETS) l.style.display='none'; }); });
-toggle($('tBelt'), on=> hud.showBelt=on);
-toggle($('tKuiper'), on=> hud.showKuiper=on);
-function syncLife(){
-  hud.lifeOn = hud.evSN || hud.evBirth;
-  if(!hud.evSN){ // drop everything supernova-or-death shaped, keep living clusters
-    for(let i=events.length-1;i>=0;i--){ const k=events[i].k;
-      if(k!==1) events.splice(i,1); else events[i].sn=false; }
-    if(!hud.lifeOn) puffs.length = 0;
-  }
-  if(!hud.evBirth) for(let i=events.length-1;i>=0;i--) if(events[i].k===1) events.splice(i,1);
-  if(!hud.lifeOn){ events.length=0; puffs.length=0; }
-}
-toggle($('tEvSN'), on=>{ hud.evSN=on; syncLife(); });
-toggle($('tEvBirth'), on=>{ hud.evBirth=on; syncLife(); });
-toggle($('tVar'), on=> hud.varOn=on);
-toggle($('tDust'), on=>{ hud.dustOn = on; });
-const syncZoomBtns = on => { for(const id of ['zoomIn','zoomOut']) $(id).classList.toggle('act', on); };
-toggle($('tZoomBtns'), on=>{ syncZoomBtns(on); layoutPanels(); fitPanels(); });
-// The spin lock: the camera's yaw and pitch are read in the planet's own frame (longitude
-// about its axis, latitude), so the eye rides round with the spin and the same face stays
-// in view however fast the clock runs — the plates drift under a still camera. Switching
-// it re-expresses the current line of sight in the other frame, so the view does not jump.
-
-
-toggle($('tSpinLock'), on=>{
-  const d = cam.dirW;
-  if(on){ const [P, A, Q] = spinFrame(); const dP = d[0]*P[0]+d[1]*P[1]+d[2]*P[2], dA = d[0]*A[0]+d[1]*A[1]+d[2]*A[2], dQ = d[0]*Q[0]+d[1]*Q[1]+d[2]*Q[2];
-    cam.yaw = Math.atan2(dP, -dQ); cam.pitch = Math.asin(Math.max(-1, Math.min(1, dA))); }
-  else { cam.yaw = Math.atan2(d[0], d[2]); cam.pitch = Math.asin(Math.max(-1, Math.min(1, d[1]))); }
-  if(cam.coreLock){ cam.coreLock = false; }   // the lock's own base yaw would double up
-  cam.spinLock = on; cam.panF[0]=cam.panF[1]=0;
-  $('tSpinLock2').checked = on;        // the settings dialog's twin follows
-});
-$('tSpinLock2').addEventListener('change', ()=>{   // and drives the dock's box, which owns the state
-  if($('tSpinLock').checked !== $('tSpinLock2').checked){ $('tSpinLock').checked = $('tSpinLock2').checked; $('tSpinLock').dispatchEvent(new Event('change')); }
-});
-syncZoomBtns($('tZoomBtns').checked);   // on by default: the markup says checked, and the dots follow it
-$('zoomIn').addEventListener('click', ()=> zoomStep(-1));     // here, after $ exists: zoomStep is
-$('zoomOut').addEventListener('click', ()=> zoomStep(+1));    // hoisted, the listeners are not
 initScenarioViews({
   ageGyr, saveSettings: () => saveSettings(), speedRungOf, setMultExp,
   setBodySizes: () => setBodySizes(), applyTrailWindow, setShuttle,
@@ -762,14 +529,11 @@ registerApply(s => {
 registerApply(s => panelApply(s && s.pan));   // sides and open flags, then the layout
 registerApply(() => applySecs());
 
-// The speed ladder's own business: the pre-v2 slider was continuous, and this is the rung
-// nearest what it meant.
-const legacySpeed = (v: number) => speedRungOf(Math.pow(WEEK_YR, 1-v));
 const restoreSettings = (register?: boolean) => restoreSettingsIn(register, legacySpeed);
 toggle($('tOort'), on=> hud.showOort=on);
 const setSegUnits = initHudReadouts({
-  seg, toggle, fitPanels: () => fitPanels(),
-  ageGyr, environment, lifeState, g710, speedLabel,
+  seg, fitPanels: () => fitPanels(),
+  ageGyr, environment, lifeState, g710,
 });
 
 // Replaying matters here: an event like the Gliese 710 pass is over in a second or two,
@@ -777,6 +541,7 @@ const setSegUnits = initHudReadouts({
 // it short of reloading.
 const setBodySizes = () => setBodySizesTo(REAL_MODE);
 setBodySizes();   // real proportions from the first frame
+toggle($('tView'), on=>{ cam.followTarget='sun'; cam.follow=!on; cam.distGoal = on? 4300 : 150; cam.reseedFollow=true; cam.panF[0]=cam.panF[1]=0; });
 toggle($('tDive'), on=>{ cam.panF[0]=cam.panF[1]=0;
   cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
   if(on){
