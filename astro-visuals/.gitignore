@@ -8,5 +8,6 @@ node_modules/
 test-results/
 playwright-report/
 
-# The pinned pre-refactor page, materialised by scripts/pin.mjs for the baseline run.
+# The pinned pre-refactor page, materialised from git by tests/harness/pin.ts — by
+# Playwright's globalSetup for the e2e suites, and by vitest's for the unit tests.
 baseline-page.html
