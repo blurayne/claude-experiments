@@ -11,6 +11,14 @@
 export type Vec3 = readonly [number, number, number]
 export type Mat4 = Float32Array
 
+/**
+ * The identity, as a 3×3. Four passes carry a galaxy rotation — points, nebula, dust and the
+ * boot-time push that sets all three — and each of them turns Andromeda into her own frame
+ * and then puts this back, because a program keeps its uniforms and the Milky Way's next draw
+ * would otherwise inherit hers. One shared constant, never written to.
+ */
+export const MAT3_ID = new Float32Array([1,0,0, 0,1,0, 0,0,1])
+
 export function perspective(fov: number, asp: number, n: number, f: number): Mat4 {
   const t = 1 / Math.tan(fov / 2), m = new Float32Array(16)
   m[0]=t/asp; m[5]=t; m[10]=(f+n)/(n-f); m[11]=-1; m[14]=2*f*n/(n-f);

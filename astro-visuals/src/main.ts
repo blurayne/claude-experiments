@@ -21,7 +21,7 @@
 // has to be in place before any later import can throw.
 import { installErrorCollector, setLogRenderer, logErr, errLog, TOUCH_DEV } from './core/errorlog'
 import { BUILD, VERSION, BUILD_LINE, localBuildStamp } from './core/build'
-import { perspective, lookAt, mul } from './core/mat4'
+import { perspective, lookAt, mul, MAT3_ID } from './core/mat4'
 import { gauss, expR } from './core/rng'
 import { $ } from './core/dom'
 import { sup, fmtCount, fmtYears as fmtYearsIn, type UnitMode } from './core/format'
@@ -66,6 +66,8 @@ import { drawShed, drawSunDisc } from './render/passes/sun'
 import { drawRings } from './render/passes/rings'
 import { drawGlobe, loadEarthMap } from './render/passes/globe'
 import { pPt, pTr, U } from './render/passes/points'
+import { drawNebula, pNeb, UN, type CloudFrame, type Which } from './render/passes/nebula'
+import { drawDust, pDust, UD } from './render/passes/dust'
 import { pSN, USN } from './render/passes/supernova'
 import { pRem, UREM } from './render/passes/remnant'
 import { parseStarBin } from './scene/sky'
@@ -95,24 +97,12 @@ installErrorCollector()
 // A thunk, so this does not depend on where renderLog ends up living.
 setLogRenderer(() => renderLog())
 
-// The GLSL, moved out to src/shaders/ as files a syntax highlighter can read. Imported with
-// Vite's `?raw`, so what reaches the driver is the file's bytes and nothing has been
-// reformatted, reindented or comment-stripped on the way. They stay ordinary module-scope
-// bindings, consumed synchronously by prog() exactly where they were: a runtime fetch would
-// make program creation asynchronous and change first-frame timing.
-//
-// PT_VS is deliberately shared by several programs. Names match the consts they replaced —
-// PT points, TR trails, SN supernova, REM remnant, NEB nebula, KB Kuiper belt, AB asteroid
-// belt, OO Oort, PN planetary nebula — so a diff against the pre-refactor page still lines up.
-import PT_VS from './shaders/pt.vert?raw'
-import NEB_FS from './shaders/neb.frag?raw'
-import DUST_FS from './shaders/dust.frag?raw'
-import KB_VS from './shaders/kb.vert?raw'
-import AB_VS from './shaders/ab.vert?raw'
-import OO_VS from './shaders/oo.vert?raw'
-import BELT_FS from './shaders/belt.frag?raw'
-import TONE_VS from './shaders/tone.vert?raw'
-import TONE_FS from './shaders/tone.frag?raw'
+// The GLSL is gone from here entirely: every program now lives in the pass that draws with
+// it, and each pass imports its own shaders. The rule they follow is still the one this file
+// used to state — Vite's `?raw`, so what reaches the driver is the file's bytes, nothing
+// reformatted or comment-stripped on the way, and consumed synchronously by prog() where it
+// stands. A runtime fetch would make program creation asynchronous and change first-frame
+// timing. `pt.vert` is deliberately shared by the points, the nebulae and the dust.
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
@@ -247,53 +237,9 @@ function setGalaxy(D){
   if(D >= 5) loadGaiaDeep();
 }
 
-// nebulae: same vertex logic but a much larger sprite cap, and a coreless glow falloff
-
-const pNeb = prog(PT_VS, NEB_FS);
-const UN = {
-  minSz: gl.getUniformLocation(pNeb,'uMinSz'),
-  gal: gl.getUniformLocation(pNeb,'uGal'), grot: gl.getUniformLocation(pNeb,'uGRot'),
-  goff: gl.getUniformLocation(pNeb,'uGOff'), merge: gl.getUniformLocation(pNeb,'uMerge'),
-  and: gl.getUniformLocation(pNeb,'uAnd'), tide: gl.getUniformLocation(pNeb,'uTide'),
-  warpAmp: gl.getUniformLocation(pNeb,'uWarpAmp'),
-  time: gl.getUniformLocation(pNeb,'uTime'), vm: gl.getUniformLocation(pNeb,'uVarMode'),
-  wa:   gl.getUniformLocation(pNeb,'uWaveAll'),
-  cap:  gl.getUniformLocation(pNeb,'uCap'),
-  org:  gl.getUniformLocation(pNeb,'uOrg'),
-  proj: gl.getUniformLocation(pNeb,'uProj'),
-  view: gl.getUniformLocation(pNeb,'uView'),
-  px:   gl.getUniformLocation(pNeb,'uPx'),
-  spin: gl.getUniformLocation(pNeb,'uSpin'),
-  warp: gl.getUniformLocation(pNeb,'uWarp'),
-  sun:  gl.getUniformLocation(pNeb,'uSunPos'),
-  gf:   gl.getUniformLocation(pNeb,'uGFade')
-};
-
-// dust: soft sprites that darken instead of glow (drawn with a multiplying blend)
-
-const pDust = prog(PT_VS, DUST_FS);
-// Sprite ceiling for the dust when the camera is in close. Measured, not reasoned: with
-// the backdrop drawn beneath the dust (see insideDisk) 40 px carves a dark lane along the
-// band and across the core and leaves the HII glow standing above it — the Rift as seen
-// from inside. 120 and 220 were tried and crush the whole band to a scatter of stars: the
-// multiply compounds, and larger discs overlap everywhere.
-
-const UD = {
-  minSz: gl.getUniformLocation(pDust,'uMinSz'),
-  gal: gl.getUniformLocation(pDust,'uGal'), grot: gl.getUniformLocation(pDust,'uGRot'),
-  goff: gl.getUniformLocation(pDust,'uGOff'), merge: gl.getUniformLocation(pDust,'uMerge'),
-  and: gl.getUniformLocation(pDust,'uAnd'), tide: gl.getUniformLocation(pDust,'uTide'),
-  warpAmp: gl.getUniformLocation(pDust,'uWarpAmp'),
-  wa:   gl.getUniformLocation(pDust,'uWaveAll'),
-  cap:  gl.getUniformLocation(pDust,'uCap'),
-  org:  gl.getUniformLocation(pDust,'uOrg'),
-  proj: gl.getUniformLocation(pDust,'uProj'),
-  view: gl.getUniformLocation(pDust,'uView'),
-  px:   gl.getUniformLocation(pDust,'uPx'),
-  spin: gl.getUniformLocation(pDust,'uSpin'),
-  warp: gl.getUniformLocation(pDust,'uWarp'),
-  sun:  gl.getUniformLocation(pDust,'uSunPos')
-};
+// The clouds — the nebulae and the dust lanes — are render/passes/nebula and passes/dust.
+// They are always drawn as a pair, in the same order, from the same values, which is what
+// their shared CloudFrame is: the per-frame context, discovered rather than designed.
 // setGalaxy(1) is called after the Andromeda section below: its constants
 // (R_A, the satellite offsets) are const bindings the generator needs live.
 
@@ -374,7 +320,6 @@ function loadM31Map(){
     })
     .catch(()=>{});   // opened from disk: the schematic Andromeda stands in
 }
-const MAT3_ID = new Float32Array([1,0,0, 0,1,0, 0,0,1]);
 for(const [pr, gr] of [[pPt,U.ptGRot],[pNeb,UN.grot],[pDust,UD.grot]]){
   gl.useProgram(pr); gl.uniformMatrix3fv(gr, false, MAT3_ID);
 }
@@ -2360,97 +2305,10 @@ function frame(now){
   // haze — and then the stars, the HII and the core are drawn over both, so a cloud
   // sits within the star field. Drawn after everything, as they used to be, the clouds
   // multiplied the stars and the core down to black discs on top of the picture.
-  const nebulaPass = (haze, which = 'both') => {   // which: 'mw' | 'and' | 'both'
-    gl.useProgram(pNeb);
-  gl.useProgram(pNeb);
-  gl.uniformMatrix4fv(UN.proj,false,view.projMat);
-  gl.uniformMatrix4fv(UN.view,false,viewMat);
-  gl.uniform1f(UN.px,pxScale);
-  // The haze must dim as the camera closes in, whatever the mode: nearby sprites
-  // project enormous and stack into a whiteout. From inside the system the Milky Way
-  // stays visible as a band — a quarter strength — rather than vanishing outright.
-  gl.uniform1f(UN.gf, Math.min(1, Math.max(0.25, cam.dist/45)));
-  gl.uniform1f(UN.time, simClock.shimT);
-  gl.uniform1f(UN.vm, varOn?2.0:0.0);
-  gl.uniform1f(UN.wa, 1.0); // HII regions trace the wave
-  gl.uniform1f(UN.cap, deep?60.0:560.0);
-  gl.uniform1f(UN.minSz, 1.3);
-  gl.uniform3f(UN.and, andPos[0], andPos[1], andPos[2]); gl.uniform1f(UN.tide, and.tide);
-  gl.uniform1f(UN.warpAmp, 1.0);
-  gl.uniform3f(UN.org, org[0],org[1],org[2]);
-  gl.uniform1f(UN.spin, spinMW);
-  gl.uniform1f(UN.warp, warp);
-  gl.uniform3f(UN.sun, sunX, bubY, sunZ);
-  gl.uniform1f(UN.gal, 1.0);
-  gl.uniform1f(UN.merge, and.merge);
-    const seg = (pink, glow, n) => {
-      if(haze){ if(glow) gl.drawArrays(gl.POINTS, pink, glow); }
-      else { if(pink) gl.drawArrays(gl.POINTS, 0, pink);
-             if(n - pink - glow > 0) gl.drawArrays(gl.POINTS, pink + glow, n - pink - glow); }
-    };
-    if(which !== 'and'){ gl.bindVertexArray(gfx.vaoNeb); seg(gfx.NEB_PINK, gfx.NEB_GLOW, gfx.NEB_N); }
-    if(gfx.vaoAndNeb && which !== 'mw'){
-    gl.uniformMatrix3fv(UN.grot, false, M31_ROT);
-    gl.uniform3f(UN.goff, andPos[0], andPos[1], andPos[2]);
-    gl.uniform1f(UN.spin, spinM31);
-    gl.uniform1f(UN.warpAmp, 0.35);
-    gl.uniform3f(UN.and, 0, 0, 0);
-    gl.uniform3f(UN.sun, sunX, sunY+1e8, sunZ);
-      gl.bindVertexArray(gfx.vaoAndNeb); seg(gfx.AND_PINK, gfx.AND_GLOW, gfx.N_ANDN);
-    gl.uniformMatrix3fv(UN.grot, false, MAT3_ID);
-    gl.uniform3f(UN.goff, 0, 0, 0);
-    gl.uniform1f(UN.spin, spinMW);
-    gl.uniform1f(UN.warpAmp, 1.0);
-    gl.uniform3f(UN.and, andPos[0], andPos[1], andPos[2]);
-    gl.uniform3f(UN.sun, sunX, bubY, sunZ);
-    }
-    gl.uniform1f(UN.gal, 0.0);
-  };
-  const dustPass = (which = 'both') => {
-  // multiply what is behind them — by now only the haze — down toward black
-  if(dustOn){
-    // dust lanes: multiply what's behind them down, blue first (see DUST_FS)
-    gl.blendFunc(gl.ZERO, gl.ONE_MINUS_SRC_COLOR);
-    gl.useProgram(pDust);
-    gl.uniformMatrix4fv(UD.proj,false,view.projMat);
-    gl.uniformMatrix4fv(UD.view,false,viewMat);
-    gl.uniform1f(UD.px,pxScale);
-    gl.uniform1f(UD.wa, 1.0); // dust lanes trace the wave
-    // The ceiling is in device pixels, so on a narrow canvas one disc covers far more
-    // sky and the multiply compounds faster than the additive haze — the band went black
-    // on a 400 px phone at the desktop's 40. Scaled by canvas width, 900 being the width
-    // it was judged at. Between the dive and the wider views the eye is still in the
-    // disk with the backdrop beneath the dust, so the ceiling stays moderate there too.
-    gl.uniform1f(UD.cap, deep ? gfx.DUST_DEEP_CAP * Math.min(1.5, Math.max(0.45, canvas.width/900))
-                        : insideDisk ? 200.0 : 560.0);
-    gl.uniform1f(UD.minSz, 1.3);
-    gl.uniform3f(UD.and, andPos[0], andPos[1], andPos[2]); gl.uniform1f(UD.tide, and.tide);
-    gl.uniform1f(UD.warpAmp, 1.0);
-    gl.uniform3f(UD.org, org[0],org[1],org[2]);
-    gl.uniform1f(UD.spin, spinMW);
-    gl.uniform1f(UD.warp, warp);
-    gl.uniform3f(UD.sun, sunX, bubY, sunZ);
-    gl.uniform1f(UD.gal, 1.0);
-    gl.uniform1f(UD.merge, and.merge);
-    if(which !== 'and'){ gl.bindVertexArray(gfx.vaoDust); gl.drawArrays(gl.POINTS,0,gfx.DUST_N); }
-    if(gfx.vaoAndDust && which !== 'mw'){
-      gl.uniformMatrix3fv(UD.grot, false, M31_ROT);
-      gl.uniform3f(UD.goff, andPos[0], andPos[1], andPos[2]);
-      gl.uniform1f(UD.spin, spinM31);
-      gl.uniform1f(UD.warpAmp, 0.35);
-      gl.uniform3f(UD.and, 0, 0, 0);
-      gl.uniform3f(UD.sun, sunX, sunY+1e8, sunZ);
-      gl.bindVertexArray(gfx.vaoAndDust); gl.drawArrays(gl.POINTS,0,gfx.N_ANDD);
-      gl.uniformMatrix3fv(UD.grot, false, MAT3_ID);
-      gl.uniform3f(UD.goff, 0, 0, 0);
-      gl.uniform1f(UD.spin, spinMW);
-      gl.uniform1f(UD.warpAmp, 1.0);
-      gl.uniform3f(UD.and, andPos[0], andPos[1], andPos[2]);
-      gl.uniform3f(UD.sun, sunX, bubY, sunZ);
-    }
-    gl.uniform1f(UD.gal, 0.0);
-    gl.blendFunc(gl.ONE, gl.ONE);
-  }
+  const clouds: CloudFrame = {
+    projMat: view.projMat!, viewMat, pxScale, camDist: cam.dist, shimT: simClock.shimT,
+    varOn, deep, insideDisk, andPos, tide: and.tide, merge: and.merge,
+    spinMW, spinM31, warp, sunX, sunY, bubY, sunZ, org,
   };
   // Multiply blending knows nothing of depth: a cloud of the galaxy BEHIND would darken
   // the one in front. So the farther galaxy goes down whole — haze, then its dust — and
@@ -2458,7 +2316,7 @@ function frame(now){
   // eye is Sun-relative here, like everything drawn.
   const dMW  = Math.hypot(eye[0] + org[0], eye[1] + org[1], eye[2] + org[2]);
   const dAnd = Math.hypot(eye[0] - (andPos[0] - org[0]), eye[1] - (andPos[1] - org[1]), eye[2] - (andPos[2] - org[2]));
-  for(const g of (dAnd > dMW ? ['and', 'mw'] : ['mw', 'and'])){ nebulaPass(true, g); if(insideDisk) nebulaPass(false, g); dustPass(g); }
+  for(const g of (dAnd > dMW ? ['and', 'mw'] : ['mw', 'and']) as Which[]){ drawNebula(clouds, true, g); if(insideDisk) drawNebula(clouds, false, g); drawDust(clouds, dustOn, g); }
   gl.useProgram(pPt);   // back to the points; their uniforms persist on the program
   gl.bindVertexArray(vaoStars); gl.drawArrays(gl.POINTS,0,N_STAR);
   // Real stars, carried along with the Sun. They are stored at the galaxy's scale — a
@@ -2566,7 +2424,7 @@ function frame(now){
   }
 
 
-  if(!insideDisk) nebulaPass(false);   // the HII regions and the core, over the stars
+  if(!insideDisk) drawNebula(clouds, false);   // the HII regions and the core, over the stars
   // expanding shells: supernova remnants and planetary nebulae, on their own program
   // (sizes exaggerated — see info). After the dust on purpose: a remnant next door is
   // not something the backdrop's lanes should darken.

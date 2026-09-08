@@ -135,6 +135,14 @@ const BUILD_LINE = BUILD.date.indexOf('__') === 0
                                                     
                                
 
+/**
+ * The identity, as a 3×3. Four passes carry a galaxy rotation — points, nebula, dust and the
+ * boot-time push that sets all three — and each of them turns Andromeda into her own frame
+ * and then puts this back, because a program keeps its uniforms and the Milky Way's next draw
+ * would otherwise inherit hers. One shared constant, never written to.
+ */
+const MAT3_ID = new Float32Array([1,0,0, 0,1,0, 0,0,1]);
+
 function perspective(fov        , asp        , n        , f        )       {
   const t = 1 / Math.tan(fov / 2), m = new Float32Array(16);
   m[0]=t/asp; m[5]=t; m[10]=(f+n)/(n-f); m[11]=-1; m[14]=2*f*n/(n-f);
@@ -2151,6 +2159,231 @@ const U = {
   trFlat: gl.getUniformLocation(pTr,'uFlat')
 };
 
+const NEB_FS = "#version 300 es\nprecision mediump float;\nuniform float uGFade;  // galaxy-haze pass only: dies away when the camera is in close\nin vec3 vColor; out vec4 o;\nvoid main(){\n  vec2 q = gl_PointCoord*2.0-1.0;\n  float r = length(q);\n  if(r>1.0) discard;\n  float a = pow(1.0-r, 2.1)*uGFade;\n  o = vec4(vColor*a, a);\n}";
+
+/**
+ * The nebulae: same vertex logic as the points, but a much larger sprite cap and a coreless
+ * glow falloff.
+ *
+ * One buffer holds three populations in order — HII pink, then the diffuse haze, then the
+ * core — and this pass draws either the haze alone or everything except it. That is what
+ * `haze` selects, and it is why the pass runs more than once a frame: the haze is laid down
+ * first, the dark clouds darken it (that is all a dust lane is, less haze), and then the
+ * stars, the HII knots and the core are drawn over both, so a cloud sits WITHIN the star
+ * field. Drawn after everything, as they used to be, the clouds multiplied the stars and the
+ * core down to black discs on top of the picture.
+ *
+ * `which` picks a galaxy, because multiply blending knows nothing of depth: the farther of
+ * the two goes down whole and the nearer over it. The caller decides which is farther.
+ */
+
+// Exported only for the boot-time identity push in main.ts, which sets uGRot on all three
+// programs that carry a galaxy rotation, in one loop, before anything is drawn. That loop
+// goes when render/frame does.
+const pNeb = prog(PT_VS, NEB_FS);
+const UN = {
+  minSz: gl.getUniformLocation(pNeb,'uMinSz'),
+  gal: gl.getUniformLocation(pNeb,'uGal'), grot: gl.getUniformLocation(pNeb,'uGRot'),
+  goff: gl.getUniformLocation(pNeb,'uGOff'), merge: gl.getUniformLocation(pNeb,'uMerge'),
+  and: gl.getUniformLocation(pNeb,'uAnd'), tide: gl.getUniformLocation(pNeb,'uTide'),
+  warpAmp: gl.getUniformLocation(pNeb,'uWarpAmp'),
+  time: gl.getUniformLocation(pNeb,'uTime'), vm: gl.getUniformLocation(pNeb,'uVarMode'),
+  wa:   gl.getUniformLocation(pNeb,'uWaveAll'),
+  cap:  gl.getUniformLocation(pNeb,'uCap'),
+  org:  gl.getUniformLocation(pNeb,'uOrg'),
+  proj: gl.getUniformLocation(pNeb,'uProj'),
+  view: gl.getUniformLocation(pNeb,'uView'),
+  px:   gl.getUniformLocation(pNeb,'uPx'),
+  spin: gl.getUniformLocation(pNeb,'uSpin'),
+  warp: gl.getUniformLocation(pNeb,'uWarp'),
+  sun:  gl.getUniformLocation(pNeb,'uSunPos'),
+  gf:   gl.getUniformLocation(pNeb,'uGFade')
+};
+
+/** Which galaxy's clouds to draw. */
+                                         
+
+/**
+ * Everything about the frame that both cloud passes read. It is deliberately one object
+ * rather than fifteen arguments: the pass is called four times a frame and the values do not
+ * change between the calls. `render/frame` will build this once, at step 21.
+ */
+                             
+                       
+                       
+                 
+                 
+                                                                              
+               
+                
+                                                                                        
+               
+                                                                                   
+                     
+                                                                              
+                      
+              
+               
+                                                                  
+                
+                 
+              
+                                                                           
+              
+              
+              
+              
+                             
+                   
+ 
+
+function drawNebula(
+  { projMat, viewMat, pxScale, camDist, shimT, varOn, deep,
+    andPos, tide, merge, spinMW, spinM31, warp, sunX, sunY, bubY, sunZ, org }            ,
+  haze         ,
+  which        = 'both',
+)       {
+  gl.useProgram(pNeb);
+  gl.uniformMatrix4fv(UN.proj,false,projMat);
+  gl.uniformMatrix4fv(UN.view,false,viewMat);
+  gl.uniform1f(UN.px,pxScale);
+  // The haze must dim as the camera closes in, whatever the mode: nearby sprites
+  // project enormous and stack into a whiteout. From inside the system the Milky Way
+  // stays visible as a band — a quarter strength — rather than vanishing outright.
+  gl.uniform1f(UN.gf, Math.min(1, Math.max(0.25, camDist/45)));
+  gl.uniform1f(UN.time, shimT);
+  gl.uniform1f(UN.vm, varOn?2.0:0.0);
+  gl.uniform1f(UN.wa, 1.0); // HII regions trace the wave
+  gl.uniform1f(UN.cap, deep?60.0:560.0);
+  gl.uniform1f(UN.minSz, 1.3);
+  gl.uniform3f(UN.and, andPos[0], andPos[1], andPos[2]); gl.uniform1f(UN.tide, tide);
+  gl.uniform1f(UN.warpAmp, 1.0);
+  gl.uniform3f(UN.org, org[0],org[1],org[2]);
+  gl.uniform1f(UN.spin, spinMW);
+  gl.uniform1f(UN.warp, warp);
+  gl.uniform3f(UN.sun, sunX, bubY, sunZ);
+  gl.uniform1f(UN.gal, 1.0);
+  gl.uniform1f(UN.merge, merge);
+  const seg = (pink        , glow        , n        ) => {
+    if(haze){ if(glow) gl.drawArrays(gl.POINTS, pink, glow); }
+    else { if(pink) gl.drawArrays(gl.POINTS, 0, pink);
+           if(n - pink - glow > 0) gl.drawArrays(gl.POINTS, pink + glow, n - pink - glow); }
+  };
+  if(which !== 'and'){ gl.bindVertexArray(gfx.vaoNeb); seg(gfx.NEB_PINK, gfx.NEB_GLOW, gfx.NEB_N); }
+  if(gfx.vaoAndNeb && which !== 'mw'){
+    // Andromeda is generated flat in her own disk frame: uGRot turns her to her measured
+    // orientation and uGOff carries her along her orbit. Set, drawn, and set back — the
+    // program keeps its uniforms, and the Milky Way's next pass would inherit hers.
+    gl.uniformMatrix3fv(UN.grot, false, M31_ROT);
+    gl.uniform3f(UN.goff, andPos[0], andPos[1], andPos[2]);
+    gl.uniform1f(UN.spin, spinM31);
+    gl.uniform1f(UN.warpAmp, 0.35);
+    gl.uniform3f(UN.and, 0, 0, 0);
+    gl.uniform3f(UN.sun, sunX, sunY+1e8, sunZ);
+    gl.bindVertexArray(gfx.vaoAndNeb); seg(gfx.AND_PINK, gfx.AND_GLOW, gfx.N_ANDN);
+    gl.uniformMatrix3fv(UN.grot, false, MAT3_ID);
+    gl.uniform3f(UN.goff, 0, 0, 0);
+    gl.uniform1f(UN.spin, spinMW);
+    gl.uniform1f(UN.warpAmp, 1.0);
+    gl.uniform3f(UN.and, andPos[0], andPos[1], andPos[2]);
+    gl.uniform3f(UN.sun, sunX, bubY, sunZ);
+  }
+  gl.uniform1f(UN.gal, 0.0);
+}
+
+const DUST_FS = "#version 300 es\nprecision mediump float;\nin vec3 vColor; out vec4 o;\nvoid main(){\n  vec2 q = gl_PointCoord*2.0-1.0;\n  float r = length(q);\n  if(r>1.0) discard;\n  // never opaque at the centre: a cloud thins the haze behind it, it does not punch\n  // a black hole in it (that is what the old profile did, reaching alpha 1 and past)\n  // interstellar dust reddens: the blend multiplies what is behind by 1 − rgb, and the\n  // extinction runs A_R : A_V : A_B ≈ 0.82 : 1 : 1.32 (R_V = 3.1), so blue goes first\n  float a = min(0.72, pow(1.0-r, 2.4)*vColor.r);\n  o = vec4(a*vec3(0.62, 0.76, 1.0), a);\n}";
+
+/**
+ * The dust lanes: soft sprites that darken instead of glow, drawn with a multiplying blend.
+ * A lane is not a dark thing added to the picture — it is less haze — so these multiply what
+ * is behind them, by this point only the haze, down toward black.
+ *
+ * It shares `CloudFrame` with the nebulae because the two are always drawn as a pair, in the
+ * same order, from the same values. It does not share a program: the falloff and the blend
+ * are different, and the sprite ceiling is measured separately.
+ */
+
+const pDust = prog(PT_VS, DUST_FS);
+// Sprite ceiling for the dust when the camera is in close. Measured, not reasoned: with
+// the backdrop drawn beneath the dust (see insideDisk) 40 px carves a dark lane along the
+// band and across the core and leaves the HII glow standing above it — the Rift as seen
+// from inside. 120 and 220 were tried and crush the whole band to a scatter of stars: the
+// multiply compounds, and larger discs overlap everywhere. The number itself lives on
+// `gfx`, because the debug door can turn it.
+
+const UD = {
+  minSz: gl.getUniformLocation(pDust,'uMinSz'),
+  gal: gl.getUniformLocation(pDust,'uGal'), grot: gl.getUniformLocation(pDust,'uGRot'),
+  goff: gl.getUniformLocation(pDust,'uGOff'), merge: gl.getUniformLocation(pDust,'uMerge'),
+  and: gl.getUniformLocation(pDust,'uAnd'), tide: gl.getUniformLocation(pDust,'uTide'),
+  warpAmp: gl.getUniformLocation(pDust,'uWarpAmp'),
+  wa:   gl.getUniformLocation(pDust,'uWaveAll'),
+  cap:  gl.getUniformLocation(pDust,'uCap'),
+  org:  gl.getUniformLocation(pDust,'uOrg'),
+  proj: gl.getUniformLocation(pDust,'uProj'),
+  view: gl.getUniformLocation(pDust,'uView'),
+  px:   gl.getUniformLocation(pDust,'uPx'),
+  spin: gl.getUniformLocation(pDust,'uSpin'),
+  warp: gl.getUniformLocation(pDust,'uWarp'),
+  sun:  gl.getUniformLocation(pDust,'uSunPos')
+};
+
+/**
+ * Draw one galaxy's dust, or both. `dustOn` is the viewer's switch and is checked here
+ * rather than at the call site, because the pass is called inside a loop over the two
+ * galaxies and the test would otherwise be written twice.
+ */
+function drawDust(
+  { projMat, viewMat, pxScale, deep, insideDisk,
+    andPos, tide, merge, spinMW, spinM31, warp, sunX, sunY, bubY, sunZ, org }            ,
+  dustOn         ,
+  which        = 'both',
+)       {
+  if(dustOn){
+    // dust lanes: multiply what's behind them down, blue first (see DUST_FS)
+    gl.blendFunc(gl.ZERO, gl.ONE_MINUS_SRC_COLOR);
+    gl.useProgram(pDust);
+    gl.uniformMatrix4fv(UD.proj,false,projMat);
+    gl.uniformMatrix4fv(UD.view,false,viewMat);
+    gl.uniform1f(UD.px,pxScale);
+    gl.uniform1f(UD.wa, 1.0); // dust lanes trace the wave
+    // The ceiling is in device pixels, so on a narrow canvas one disc covers far more
+    // sky and the multiply compounds faster than the additive haze — the band went black
+    // on a 400 px phone at the desktop's 40. Scaled by canvas width, 900 being the width
+    // it was judged at. Between the dive and the wider views the eye is still in the
+    // disk with the backdrop beneath the dust, so the ceiling stays moderate there too.
+    gl.uniform1f(UD.cap, deep ? gfx.DUST_DEEP_CAP * Math.min(1.5, Math.max(0.45, canvas.width/900))
+                        : insideDisk ? 200.0 : 560.0);
+    gl.uniform1f(UD.minSz, 1.3);
+    gl.uniform3f(UD.and, andPos[0], andPos[1], andPos[2]); gl.uniform1f(UD.tide, tide);
+    gl.uniform1f(UD.warpAmp, 1.0);
+    gl.uniform3f(UD.org, org[0],org[1],org[2]);
+    gl.uniform1f(UD.spin, spinMW);
+    gl.uniform1f(UD.warp, warp);
+    gl.uniform3f(UD.sun, sunX, bubY, sunZ);
+    gl.uniform1f(UD.gal, 1.0);
+    gl.uniform1f(UD.merge, merge);
+    if(which !== 'and'){ gl.bindVertexArray(gfx.vaoDust); gl.drawArrays(gl.POINTS,0,gfx.DUST_N); }
+    if(gfx.vaoAndDust && which !== 'mw'){
+      gl.uniformMatrix3fv(UD.grot, false, M31_ROT);
+      gl.uniform3f(UD.goff, andPos[0], andPos[1], andPos[2]);
+      gl.uniform1f(UD.spin, spinM31);
+      gl.uniform1f(UD.warpAmp, 0.35);
+      gl.uniform3f(UD.and, 0, 0, 0);
+      gl.uniform3f(UD.sun, sunX, sunY+1e8, sunZ);
+      gl.bindVertexArray(gfx.vaoAndDust); gl.drawArrays(gl.POINTS,0,gfx.N_ANDD);
+      gl.uniformMatrix3fv(UD.grot, false, MAT3_ID);
+      gl.uniform3f(UD.goff, 0, 0, 0);
+      gl.uniform1f(UD.spin, spinMW);
+      gl.uniform1f(UD.warpAmp, 1.0);
+      gl.uniform3f(UD.and, andPos[0], andPos[1], andPos[2]);
+      gl.uniform3f(UD.sun, sunX, bubY, sunZ);
+    }
+    gl.uniform1f(UD.gal, 0.0);
+    gl.blendFunc(gl.ONE, gl.ONE);
+  }
+}
+
 const SN_VS = "#version 300 es\nlayout(location=0) in vec3 aPos;\nlayout(location=1) in float aSize;\nlayout(location=2) in vec3 aColor;\nlayout(location=3) in float aPhase;  // 0 at collapse .. 1 at the end of the drawn flash\nuniform mat4 uProj, uView;\nuniform float uPx, uSpin, uWarp, uCap;\nuniform vec3 uSunPos, uOrg;\nout vec3 vColor; out float vPhase; out float vSeed;\nvoid main(){\n  vec3 p = aPos;\n  float fade = 1.0;\n  if(uSpin != 0.0){\n    float r = length(p.xz);\n    float d = uSpin/640.0;                       // the arms' pattern speed: these are arm stars\n    float c = cos(d), s = sin(d);\n    p = vec3(p.x*c + p.z*s, p.y, p.z*c - p.x*s);\n    float wr = max(0.0, r - 950.0);\n    p.y += wr*0.13*sin(atan(p.x,p.z) - uWarp) + 4.0*sin(r*0.021);\n    fade = smoothstep(80.0, 240.0, distance(p, uSunPos));\n  }\n  vec4 mv = uView * vec4(p - uOrg, 1.0);\n  gl_Position = uProj * mv;\n  gl_PointSize = clamp(aSize * uPx / max(1e-9, -mv.z), 1.0, uCap);\n  vColor = aColor * fade;\n  vPhase = aPhase;\n  vSeed  = fract(sin(dot(aPos.xz, vec2(41.7, 289.3)))*43758.5453);\n}";
 
 const SN_FS = "#version 300 es\nprecision mediump float;\nin vec3 vColor; in float vPhase; in float vSeed; out vec4 o;\nvoid main(){\n  vec2 q = gl_PointCoord*2.0-1.0;\n  float r = length(q);\n  if(r > 1.0) discard;\n  float ang = atan(q.y, q.x) + vSeed*6.2831;\n  float d = 1.0 - r;\n\n  // the photosphere: a hard white core, at its tightest right at the collapse\n  float core = pow(d, mix(26.0, 9.0, vPhase));\n  // the light around it, spreading and softening as the blast runs\n  float glow = pow(d, mix(7.0, 3.2, vPhase));\n\n  // Radiating spikes. Two sets at different counts and angles, each a narrow lobe in\n  // angle and a slow falloff in radius, so they reach well past the glow. They lead the\n  // flash and are gone before it is: the blast is brightest first and blurs outward.\n  float lead = exp(-vPhase*2.6);\n  float s1 = pow(abs(cos(ang*3.0)), 34.0);\n  float s2 = pow(abs(cos(ang*2.0 + 0.9)), 22.0);\n  float spikes = (s1*0.85 + s2*0.5) * pow(d, 1.7) * lead;\n\n  // The shock front: a shell overtaking the glow and thinning as it goes. Nothing\n  // explodes into a perfect circle, so the radius is bent a little with angle — enough\n  // that the front reads as ejecta rather than as a drawn ring.\n  // Ejecta are not evenly bright around the rim. Modulating brightness rather than\n  // radius is what keeps this: bending the radius with angle only turns the circle into\n  // a polygon, while an uneven rim on a round front reads as clumps.\n  float sh = clamp(vPhase*1.35, 0.0, 1.0);\n  float clumps = 0.68 + 0.32*sin(ang*5.0 + vSeed*17.0)*sin(ang*2.0 - vSeed*9.0);\n  float ring = exp(-pow((r - sh)/mix(0.07, 0.19, vPhase), 2.0)) * (1.0 - vPhase)*0.85 * clumps;\n\n  // cooling: blue-white through the peak, then into the ejecta's red\n  vec3 hot  = vec3(0.86, 0.92, 1.0);\n  vec3 cool = vec3(1.0, 0.52, 0.26);\n  vec3 tint = mix(hot, cool, smoothstep(0.15, 1.0, vPhase));\n\n  float a = core*1.5 + glow*0.9 + spikes*0.8 + ring*0.7;\n  vec3 col = vColor * tint * (glow*0.9 + spikes*0.8 + ring*0.7)\n           + vColor * core * 1.5;              // the core stays white, whatever the tint\n  o = vec4(col, a);\n}";
@@ -2554,10 +2787,6 @@ function pointVAO(pos              , size              , col              , wave
   gl.bindVertexArray(null); vaoBufs.set(vao,bufs); return vao;
 }
 
-const NEB_FS = "#version 300 es\nprecision mediump float;\nuniform float uGFade;  // galaxy-haze pass only: dies away when the camera is in close\nin vec3 vColor; out vec4 o;\nvoid main(){\n  vec2 q = gl_PointCoord*2.0-1.0;\n  float r = length(q);\n  if(r>1.0) discard;\n  float a = pow(1.0-r, 2.1)*uGFade;\n  o = vec4(vColor*a, a);\n}";
-
-const DUST_FS = "#version 300 es\nprecision mediump float;\nin vec3 vColor; out vec4 o;\nvoid main(){\n  vec2 q = gl_PointCoord*2.0-1.0;\n  float r = length(q);\n  if(r>1.0) discard;\n  // never opaque at the centre: a cloud thins the haze behind it, it does not punch\n  // a black hole in it (that is what the old profile did, reaching alpha 1 and past)\n  // interstellar dust reddens: the blend multiplies what is behind by 1 − rgb, and the\n  // extinction runs A_R : A_V : A_B ≈ 0.82 : 1 : 1.32 (R_V = 3.1), so blue goes first\n  float a = min(0.72, pow(1.0-r, 2.4)*vColor.r);\n  o = vec4(a*vec3(0.62, 0.76, 1.0), a);\n}";
-
 // The whole of galactic-transit.html's script, moved here verbatim and not yet split.
 //
 // Step 1 of the migration (docs/refactor/inventory/00-PLAN.md §4) changes exactly one thing:
@@ -2594,6 +2823,13 @@ const lifeState = () => lifeState$1(ageGyr(), environment());
 installErrorCollector();
 // A thunk, so this does not depend on where renderLog ends up living.
 setLogRenderer(() => renderLog());
+
+// The GLSL is gone from here entirely: every program now lives in the pass that draws with
+// it, and each pass imports its own shaders. The rule they follow is still the one this file
+// used to state — Vite's `?raw`, so what reaches the driver is the file's bytes, nothing
+// reformatted or comment-stripped on the way, and consumed synchronously by prog() where it
+// stands. A runtime fetch would make program creation asynchronous and change first-frame
+// timing. `pt.vert` is deliberately shared by the points, the nebulae and the dust.
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
 // stamped in at build time by .github/scripts/build_site.py; opened straight from the
 // working copy the placeholders survive and it reports itself as a dev build.
@@ -2728,53 +2964,9 @@ function setGalaxy(D){
   if(D >= 5) loadGaiaDeep();
 }
 
-// nebulae: same vertex logic but a much larger sprite cap, and a coreless glow falloff
-
-const pNeb = prog(PT_VS, NEB_FS);
-const UN = {
-  minSz: gl.getUniformLocation(pNeb,'uMinSz'),
-  gal: gl.getUniformLocation(pNeb,'uGal'), grot: gl.getUniformLocation(pNeb,'uGRot'),
-  goff: gl.getUniformLocation(pNeb,'uGOff'), merge: gl.getUniformLocation(pNeb,'uMerge'),
-  and: gl.getUniformLocation(pNeb,'uAnd'), tide: gl.getUniformLocation(pNeb,'uTide'),
-  warpAmp: gl.getUniformLocation(pNeb,'uWarpAmp'),
-  time: gl.getUniformLocation(pNeb,'uTime'), vm: gl.getUniformLocation(pNeb,'uVarMode'),
-  wa:   gl.getUniformLocation(pNeb,'uWaveAll'),
-  cap:  gl.getUniformLocation(pNeb,'uCap'),
-  org:  gl.getUniformLocation(pNeb,'uOrg'),
-  proj: gl.getUniformLocation(pNeb,'uProj'),
-  view: gl.getUniformLocation(pNeb,'uView'),
-  px:   gl.getUniformLocation(pNeb,'uPx'),
-  spin: gl.getUniformLocation(pNeb,'uSpin'),
-  warp: gl.getUniformLocation(pNeb,'uWarp'),
-  sun:  gl.getUniformLocation(pNeb,'uSunPos'),
-  gf:   gl.getUniformLocation(pNeb,'uGFade')
-};
-
-// dust: soft sprites that darken instead of glow (drawn with a multiplying blend)
-
-const pDust = prog(PT_VS, DUST_FS);
-// Sprite ceiling for the dust when the camera is in close. Measured, not reasoned: with
-// the backdrop drawn beneath the dust (see insideDisk) 40 px carves a dark lane along the
-// band and across the core and leaves the HII glow standing above it — the Rift as seen
-// from inside. 120 and 220 were tried and crush the whole band to a scatter of stars: the
-// multiply compounds, and larger discs overlap everywhere.
-
-const UD = {
-  minSz: gl.getUniformLocation(pDust,'uMinSz'),
-  gal: gl.getUniformLocation(pDust,'uGal'), grot: gl.getUniformLocation(pDust,'uGRot'),
-  goff: gl.getUniformLocation(pDust,'uGOff'), merge: gl.getUniformLocation(pDust,'uMerge'),
-  and: gl.getUniformLocation(pDust,'uAnd'), tide: gl.getUniformLocation(pDust,'uTide'),
-  warpAmp: gl.getUniformLocation(pDust,'uWarpAmp'),
-  wa:   gl.getUniformLocation(pDust,'uWaveAll'),
-  cap:  gl.getUniformLocation(pDust,'uCap'),
-  org:  gl.getUniformLocation(pDust,'uOrg'),
-  proj: gl.getUniformLocation(pDust,'uProj'),
-  view: gl.getUniformLocation(pDust,'uView'),
-  px:   gl.getUniformLocation(pDust,'uPx'),
-  spin: gl.getUniformLocation(pDust,'uSpin'),
-  warp: gl.getUniformLocation(pDust,'uWarp'),
-  sun:  gl.getUniformLocation(pDust,'uSunPos')
-};
+// The clouds — the nebulae and the dust lanes — are render/passes/nebula and passes/dust.
+// They are always drawn as a pair, in the same order, from the same values, which is what
+// their shared CloudFrame is: the per-frame context, discovered rather than designed.
 // setGalaxy(1) is called after the Andromeda section below: its constants
 // (R_A, the satellite offsets) are const bindings the generator needs live.
 
@@ -2855,7 +3047,6 @@ function loadM31Map(){
     })
     .catch(()=>{});   // opened from disk: the schematic Andromeda stands in
 }
-const MAT3_ID = new Float32Array([1,0,0, 0,1,0, 0,0,1]);
 for(const [pr, gr] of [[pPt,U.ptGRot],[pNeb,UN.grot],[pDust,UD.grot]]){
   gl.useProgram(pr); gl.uniformMatrix3fv(gr, false, MAT3_ID);
 }
@@ -4838,97 +5029,10 @@ function frame(now){
   // haze — and then the stars, the HII and the core are drawn over both, so a cloud
   // sits within the star field. Drawn after everything, as they used to be, the clouds
   // multiplied the stars and the core down to black discs on top of the picture.
-  const nebulaPass = (haze, which = 'both') => {   // which: 'mw' | 'and' | 'both'
-    gl.useProgram(pNeb);
-  gl.useProgram(pNeb);
-  gl.uniformMatrix4fv(UN.proj,false,view.projMat);
-  gl.uniformMatrix4fv(UN.view,false,viewMat);
-  gl.uniform1f(UN.px,pxScale);
-  // The haze must dim as the camera closes in, whatever the mode: nearby sprites
-  // project enormous and stack into a whiteout. From inside the system the Milky Way
-  // stays visible as a band — a quarter strength — rather than vanishing outright.
-  gl.uniform1f(UN.gf, Math.min(1, Math.max(0.25, cam.dist/45)));
-  gl.uniform1f(UN.time, simClock.shimT);
-  gl.uniform1f(UN.vm, varOn?2.0:0.0);
-  gl.uniform1f(UN.wa, 1.0); // HII regions trace the wave
-  gl.uniform1f(UN.cap, deep?60.0:560.0);
-  gl.uniform1f(UN.minSz, 1.3);
-  gl.uniform3f(UN.and, andPos[0], andPos[1], andPos[2]); gl.uniform1f(UN.tide, and.tide);
-  gl.uniform1f(UN.warpAmp, 1.0);
-  gl.uniform3f(UN.org, org[0],org[1],org[2]);
-  gl.uniform1f(UN.spin, spinMW);
-  gl.uniform1f(UN.warp, warp);
-  gl.uniform3f(UN.sun, sunX, bubY, sunZ);
-  gl.uniform1f(UN.gal, 1.0);
-  gl.uniform1f(UN.merge, and.merge);
-    const seg = (pink, glow, n) => {
-      if(haze){ if(glow) gl.drawArrays(gl.POINTS, pink, glow); }
-      else { if(pink) gl.drawArrays(gl.POINTS, 0, pink);
-             if(n - pink - glow > 0) gl.drawArrays(gl.POINTS, pink + glow, n - pink - glow); }
-    };
-    if(which !== 'and'){ gl.bindVertexArray(gfx.vaoNeb); seg(gfx.NEB_PINK, gfx.NEB_GLOW, gfx.NEB_N); }
-    if(gfx.vaoAndNeb && which !== 'mw'){
-    gl.uniformMatrix3fv(UN.grot, false, M31_ROT);
-    gl.uniform3f(UN.goff, andPos[0], andPos[1], andPos[2]);
-    gl.uniform1f(UN.spin, spinM31);
-    gl.uniform1f(UN.warpAmp, 0.35);
-    gl.uniform3f(UN.and, 0, 0, 0);
-    gl.uniform3f(UN.sun, sunX, sunY+1e8, sunZ);
-      gl.bindVertexArray(gfx.vaoAndNeb); seg(gfx.AND_PINK, gfx.AND_GLOW, gfx.N_ANDN);
-    gl.uniformMatrix3fv(UN.grot, false, MAT3_ID);
-    gl.uniform3f(UN.goff, 0, 0, 0);
-    gl.uniform1f(UN.spin, spinMW);
-    gl.uniform1f(UN.warpAmp, 1.0);
-    gl.uniform3f(UN.and, andPos[0], andPos[1], andPos[2]);
-    gl.uniform3f(UN.sun, sunX, bubY, sunZ);
-    }
-    gl.uniform1f(UN.gal, 0.0);
-  };
-  const dustPass = (which = 'both') => {
-  // multiply what is behind them — by now only the haze — down toward black
-  if(dustOn){
-    // dust lanes: multiply what's behind them down, blue first (see DUST_FS)
-    gl.blendFunc(gl.ZERO, gl.ONE_MINUS_SRC_COLOR);
-    gl.useProgram(pDust);
-    gl.uniformMatrix4fv(UD.proj,false,view.projMat);
-    gl.uniformMatrix4fv(UD.view,false,viewMat);
-    gl.uniform1f(UD.px,pxScale);
-    gl.uniform1f(UD.wa, 1.0); // dust lanes trace the wave
-    // The ceiling is in device pixels, so on a narrow canvas one disc covers far more
-    // sky and the multiply compounds faster than the additive haze — the band went black
-    // on a 400 px phone at the desktop's 40. Scaled by canvas width, 900 being the width
-    // it was judged at. Between the dive and the wider views the eye is still in the
-    // disk with the backdrop beneath the dust, so the ceiling stays moderate there too.
-    gl.uniform1f(UD.cap, deep ? gfx.DUST_DEEP_CAP * Math.min(1.5, Math.max(0.45, canvas.width/900))
-                        : insideDisk ? 200.0 : 560.0);
-    gl.uniform1f(UD.minSz, 1.3);
-    gl.uniform3f(UD.and, andPos[0], andPos[1], andPos[2]); gl.uniform1f(UD.tide, and.tide);
-    gl.uniform1f(UD.warpAmp, 1.0);
-    gl.uniform3f(UD.org, org[0],org[1],org[2]);
-    gl.uniform1f(UD.spin, spinMW);
-    gl.uniform1f(UD.warp, warp);
-    gl.uniform3f(UD.sun, sunX, bubY, sunZ);
-    gl.uniform1f(UD.gal, 1.0);
-    gl.uniform1f(UD.merge, and.merge);
-    if(which !== 'and'){ gl.bindVertexArray(gfx.vaoDust); gl.drawArrays(gl.POINTS,0,gfx.DUST_N); }
-    if(gfx.vaoAndDust && which !== 'mw'){
-      gl.uniformMatrix3fv(UD.grot, false, M31_ROT);
-      gl.uniform3f(UD.goff, andPos[0], andPos[1], andPos[2]);
-      gl.uniform1f(UD.spin, spinM31);
-      gl.uniform1f(UD.warpAmp, 0.35);
-      gl.uniform3f(UD.and, 0, 0, 0);
-      gl.uniform3f(UD.sun, sunX, sunY+1e8, sunZ);
-      gl.bindVertexArray(gfx.vaoAndDust); gl.drawArrays(gl.POINTS,0,gfx.N_ANDD);
-      gl.uniformMatrix3fv(UD.grot, false, MAT3_ID);
-      gl.uniform3f(UD.goff, 0, 0, 0);
-      gl.uniform1f(UD.spin, spinMW);
-      gl.uniform1f(UD.warpAmp, 1.0);
-      gl.uniform3f(UD.and, andPos[0], andPos[1], andPos[2]);
-      gl.uniform3f(UD.sun, sunX, bubY, sunZ);
-    }
-    gl.uniform1f(UD.gal, 0.0);
-    gl.blendFunc(gl.ONE, gl.ONE);
-  }
+  const clouds             = {
+    projMat: view.projMat , viewMat, pxScale, camDist: cam.dist, shimT: simClock.shimT,
+    varOn, deep, insideDisk, andPos, tide: and.tide, merge: and.merge,
+    spinMW, spinM31, warp, sunX, sunY, bubY, sunZ, org,
   };
   // Multiply blending knows nothing of depth: a cloud of the galaxy BEHIND would darken
   // the one in front. So the farther galaxy goes down whole — haze, then its dust — and
@@ -4936,7 +5040,7 @@ function frame(now){
   // eye is Sun-relative here, like everything drawn.
   const dMW  = Math.hypot(eye[0] + org[0], eye[1] + org[1], eye[2] + org[2]);
   const dAnd = Math.hypot(eye[0] - (andPos[0] - org[0]), eye[1] - (andPos[1] - org[1]), eye[2] - (andPos[2] - org[2]));
-  for(const g of (dAnd > dMW ? ['and', 'mw'] : ['mw', 'and'])){ nebulaPass(true, g); if(insideDisk) nebulaPass(false, g); dustPass(g); }
+  for(const g of (dAnd > dMW ? ['and', 'mw'] : ['mw', 'and'])           ){ drawNebula(clouds, true, g); if(insideDisk) drawNebula(clouds, false, g); drawDust(clouds, dustOn, g); }
   gl.useProgram(pPt);   // back to the points; their uniforms persist on the program
   gl.bindVertexArray(vaoStars); gl.drawArrays(gl.POINTS,0,N_STAR);
   // Real stars, carried along with the Sun. They are stored at the galaxy's scale — a
@@ -5044,7 +5148,7 @@ function frame(now){
   }
 
 
-  if(!insideDisk) nebulaPass(false);   // the HII regions and the core, over the stars
+  if(!insideDisk) drawNebula(clouds, false);   // the HII regions and the core, over the stars
   // expanding shells: supernova remnants and planetary nebulae, on their own program
   // (sizes exaggerated — see info). After the dust on purpose: a remnant next door is
   // not something the backdrop's lanes should darken.
