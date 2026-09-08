@@ -181,3 +181,62 @@ test.describe('the first visit', () => {
     expect(errors, errors.join('\n')).toEqual([])
   })
 })
+
+/**
+ * Sound, which the parity gate cannot see.
+ *
+ * Everything else in this refactor is guarded by comparing pixels, and audio moves none. A
+ * broken graph, a track that never loads, a volume slider wired to nothing — all of them look
+ * exactly like a working page in a screenshot. So the audio module gets its own assertions
+ * before it is extracted, and they are black-box: drive the controls a visitor drives, and
+ * check what a visitor would notice.
+ *
+ * Headless Chromium is started with --mute-audio, so nothing is heard; the graph is still
+ * built and the elements still update, which is what these check.
+ */
+test.describe('sound', () => {
+  test('names a track, advances to the next, and raises no errors', async ({ page }) => {
+    const errors: string[] = []
+    page.on('pageerror', (e) => errors.push(`pageerror: ${e}`))
+    page.on('console', (m) => m.type() === 'error' && errors.push(`console: ${m.text()}`))
+
+    await page.goto('/galactic-transit.html', { waitUntil: 'load' })
+    await page.waitForFunction(() => !!document.getElementById('gl'))
+
+    // Everything is driven through evaluate rather than by clicking. The audio controls live
+    // in a panel that opens folded, inside a section that starts closed, and none of that is
+    // what this test is about — a click waiting on visibility took fifteen minutes and then
+    // failed on the one control that happened to be off-screen.
+    const named = async (): Promise<string> =>
+      (await page.evaluate(() => document.getElementById('trackName')!.textContent)) ?? ''
+
+    // "1/3 · <title>" as soon as a track is loaded.
+    await page.waitForFunction(() => /^\d+\/\d+ · .+/.test(document.getElementById('trackName')!.textContent ?? ''),
+      undefined, { timeout: 60_000 })
+    const first = await named()
+
+    await page.evaluate(() => document.getElementById('tNext')!.click())
+    await page.waitForFunction((was) => document.getElementById('trackName')!.textContent !== was,
+      first, { timeout: 60_000 })
+
+    // Volume zero reads "off" and IS the switch — there is no separate toggle, which is a
+    // deliberate design rule and the kind of thing a refactor can quietly undo.
+    const setSlider = (id: string, v: string) =>
+      page.evaluate(({ id, v }) => {
+        const el = document.getElementById(id) as HTMLInputElement
+        el.value = v
+        el.dispatchEvent(new Event('input', { bubbles: true }))
+      }, { id, v })
+
+    await setSlider('musicVol', '0')
+    expect(await page.evaluate(() => document.getElementById('musicVolv')!.textContent)).toBe('off')
+
+    await setSlider('sfxVol', '0.5')
+    expect(await page.evaluate(() => document.getElementById('sfxVolv')!.textContent)).toBe('50%')
+
+    await setSlider('sfxVol', '0')
+    expect(await page.evaluate(() => document.getElementById('sfxVolv')!.textContent)).toBe('off')
+
+    expect(errors, errors.join('\n')).toEqual([])
+  })
+})
