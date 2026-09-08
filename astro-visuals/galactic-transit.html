@@ -1460,6 +1460,45 @@ const KB_N = 1600;
 const OO_N = 2400; // Oort cloud: symbolically close — really 2,000–100,000+ AU out
 
 /**
+ * Gliese 710's passage.
+ *
+ * A pure function of the clock, like everything else in astro/. The star moves in a straight
+ * line at constant speed — which is the right model at this range and over this interval, and
+ * is not a placeholder for something better.
+ */
+
+                                                                            
+
+// A K7 dwarf, presently ~62 light years off and closing at 14.4 km/s. Gaia's astrometry
+// (Bailer-Jones et al. 2018) puts its closest approach 1.29 Myr from now at 0.0676 pc —
+// 13,944 AU, well inside the Oort cloud, and the closest stellar encounter known either
+// side of the present. It is expected to shake comets loose for a few million years
+// afterwards, a modest shower rather than a bombardment.
+const G710_AT   = 1.29e6;              // years from now
+const G710_PERI = 0.2204;              // light years at perihelion
+const G710_V    = 4.804e-5;            // light years per year, from 14.4 km/s
+/** Unit vector along the track, from the measured proper motion and radial velocity. */
+const G710_DIR       = (() => {
+  const v = [0.62, -0.34, 0.71], n = Math.hypot(...v);
+  return [v[0]  / n, v[1]  / n, v[2]  / n]
+})();
+/** The perihelion offset: the component of "up" perpendicular to the track, normalised. */
+const G710_OFF       = (() => {
+  const a = [0, 1, 0], d = G710_DIR;
+  const dot = a[0]  * d[0] + a[1]  * d[1] + a[2]  * d[2];
+  const v = [a[0]  - dot * d[0], a[1]  - dot * d[1], a[2]  - dot * d[2]];
+  const n = Math.hypot(...v);
+  return [v[0]  / n, v[1]  / n, v[2]  / n]
+})();
+function g710$1(ts        )               {                        // position relative to the Sun, in light years
+  const s = (ts - G710_AT)*G710_V;
+  const x = G710_OFF[0]*G710_PERI + G710_DIR[0]*s;
+  const y = G710_OFF[1]*G710_PERI + G710_DIR[1]*s;
+  const z = G710_OFF[2]*G710_PERI + G710_DIR[2]*s;
+  return { x, y, z, d: Math.hypot(x,y,z) };
+}
+
+/**
  * The one WebGL2 context, and the one place that gives up if there is not one.
  *
  * Asking for a second context on the same canvas does NOT create one — the browser returns
@@ -1614,6 +1653,9 @@ const PN_FS = "#version 300 es\nprecision highp float;\nuniform float uTime, uAg
 // scripts/check-names.mjs type-checks a copy with the directive removed and reports only that.
 // @ts-nocheck
 
+
+// The clock lives here; the encounter does not.
+const g710 = () => g710$1(simClock.simT);
 
 // earthPrime calibrates itself against the rendering origin on its first call, and `org` is
 // the renderer's — so it is handed in here rather than reached for from inside astro/.
@@ -2178,28 +2220,6 @@ loadGalaxyMap();
 loadM31Map();
 
 // ---------- Gliese 710 ----------
-// A K7 dwarf, presently ~62 light years off and closing at 14.4 km/s. Gaia's astrometry
-// (Bailer-Jones et al. 2018) puts its closest approach 1.29 Myr from now at 0.0676 pc —
-// 13,944 AU, well inside the Oort cloud, and the closest stellar encounter known either
-// side of the present. It is expected to shake comets loose for a few million years
-// afterwards, a modest shower rather than a bombardment.
-const G710_AT   = 1.29e6;              // years from now
-const G710_PERI = 0.2204;              // light years at perihelion
-const G710_V    = 4.804e-5;            // light years per year, from 14.4 km/s
-const G710_DIR  = (()=>{ const v=[0.62,-0.34,0.71], n=Math.hypot(...v); return v.map(c=>c/n); })();
-const G710_OFF  = (()=>{                // perihelion offset, perpendicular to the track
-  const a=[0,1,0], d=G710_DIR;
-  const dot=a[0]*d[0]+a[1]*d[1]+a[2]*d[2];
-  const v=[a[0]-dot*d[0], a[1]-dot*d[1], a[2]-dot*d[2]], n=Math.hypot(...v);
-  return v.map(c=>c/n);
-})();
-function g710(){                        // position relative to the Sun, in light years
-  const s = (simClock.simT - G710_AT)*G710_V;
-  const x = G710_OFF[0]*G710_PERI + G710_DIR[0]*s;
-  const y = G710_OFF[1]*G710_PERI + G710_DIR[1]*s;
-  const z = G710_OFF[2]*G710_PERI + G710_DIR[2]*s;
-  return { x, y, z, d: Math.hypot(x,y,z) };
-}
 // ---------- life support ----------
 // What actually ends life on Earth is the Sun, not the Galaxy. Solar luminosity climbs
 // about 10% per Gyr; a moist greenhouse takes the oceans roughly a billion years from
