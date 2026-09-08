@@ -7,6 +7,7 @@ import BELT_FS from '../../shaders/belt.frag?raw'
 import { E1, E2, AU2U, OO_REAL, REAL_MODE } from '../../astro/constants'
 import { EN } from '../../astro/bodies'
 import { AB_N, KB_N, OO_N, type Belts } from '../../scene/belts'
+import { drawRings, type RingPlane } from './rings'
 
 /**
  * The three populations that follow the Sun: the asteroid belt, the Kuiper belt and the Oort
@@ -80,10 +81,15 @@ export interface BeltInputs {
   showBelt: boolean
   showKuiper: boolean
   showOort: boolean
+  /** Earth's diameter on screen: past 40 px the shell's circles are lines across the sky. */
+  globePx: number
 }
 
+/** The three great circles that suggest the Oort cloud's spherical boundary. */
+const SHELL: readonly RingPlane[] = [[E1,E2],[E1,EN],[E2,EN]];
+
 export function drawBelts(
-  { projMat, viewMat, pxScale, camDist, simT, g710Dist, showBelt, showKuiper, showOort }: BeltInputs,
+  { projMat, viewMat, pxScale, camDist, simT, g710Dist, showBelt, showKuiper, showOort, globePx }: BeltInputs,
 ): void {
   // points would pile up additively into a false bright blob on the Sun's pixel.
   const beltFade = (rw: number) => Math.max(0, Math.min(1, (rw/camDist*pxScale - 24)/50));
@@ -131,8 +137,15 @@ export function drawBelts(
     gl.uniform3f(UO.uColor, 0.11+0.30*stir, 0.12+0.20*stir, 0.15+0.10*stir);
     gl.uniform1f(UO.uAlpha,ooA);
     gl.bindVertexArray(vaoOO); gl.drawArrays(gl.POINTS,0,OO_N);
+    // and the boundary itself: a wireframe hint of where the shell stands. Its points fade
+    // with ooA, these circles do not — they are what locates the cloud once it is too far
+    // out to resolve. Zoomed onto a globe they would be three lines across the sky, so the
+    // planes are withheld there and the program is left set exactly as it would have been.
+    drawRings({
+      projMat, viewMat, centre: [0,0,0],
+      radius: REAL_MODE?178.0*OO_REAL:178.0,
+      colour: [0.10,0.13,0.19],
+      planes: globePx <= 40 ? SHELL : [],
+    });
   }
-  // The wireframe hint of the shell's boundary stays in main.ts for now: it draws through
-  // pRing, which the orbit rings also use, and splitting a shared program across two modules
-  // would be worse than leaving one `if(showOort)` in two adjacent halves.
 }

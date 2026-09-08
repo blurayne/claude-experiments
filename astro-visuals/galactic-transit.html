@@ -1586,6 +1586,66 @@ const OO_VS = "#version 300 es\nlayout(location=0) in vec3 aOff;\nlayout(locatio
 
 const BELT_FS = "#version 300 es\nprecision mediump float; uniform vec3 uColor; uniform float uAlpha; out vec4 o;\nvoid main(){ vec2 q=gl_PointCoord*2.0-1.0; float r=length(q); if(r>1.0) discard;\n  float a=smoothstep(1.0,0.0,r)*uAlpha; o=vec4(uColor*a,a); }";
 
+const RING_VS = "#version 300 es\nlayout(location=0) in vec2 aCS;\nuniform mat4 uProj,uView; uniform vec3 uSun,uA,uB; uniform float uR;\nvoid main(){ gl_Position = uProj*uView*vec4(uSun + uR*(aCS.x*uA + aCS.y*uB), 1.0); }";
+
+const RING_FS = "#version 300 es\nprecision mediump float; uniform vec3 uColor; out vec4 o;\nvoid main(){ o=vec4(uColor,1.0); }";
+
+/**
+ * One circle, drawn anywhere. The vertex buffer is a unit circle in two dimensions and the
+ * shader puts it in space: a centre, a radius, and two orthogonal unit vectors spanning the
+ * plane it lies in. Everything circular in the piece that is not a body's swept path is this
+ * — the three great circles that suggest the Oort cloud's shell, and the Moon's orbit.
+ *
+ * It is its own module because it is shared. `passes/belts` needed it and could not have it:
+ * the shell's wireframe had to stay behind in main.ts because splitting one program across
+ * two modules would have been worse than leaving one `if(showOort)` in two adjacent halves.
+ * With the program here, both halves are in `passes/belts` where they belong.
+ */
+
+const RING_SEGS = 160;
+const ringCS = new Float32Array(RING_SEGS*2);
+for(let i=0;i<RING_SEGS;i++){ const a=i/RING_SEGS*6.28318530718; ringCS[i*2]=Math.cos(a); ringCS[i*2+1]=Math.sin(a); }
+
+const pRing = prog(RING_VS, RING_FS);
+const UR                                              = {}; for(const k of ['uProj','uView','uSun','uA','uB','uR','uColor']) UR[k]=gl.getUniformLocation(pRing,k);
+const vaoRing = gl.createVertexArray() ; gl.bindVertexArray(vaoRing);
+gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer() ); gl.bufferData(gl.ARRAY_BUFFER,ringCS,gl.STATIC_DRAW);
+gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
+gl.bindVertexArray(null);
+
+/** A great circle's plane: two orthogonal unit vectors that span it. */
+                                                                       
+
+                             
+                       
+                       
+                                                            
+                           
+                
+                           
+     
+                                                                                           
+                                                                                           
+                                                                                 
+     
+                              
+ 
+
+function drawRings({ projMat, viewMat, centre, radius, colour, planes }            )       {
+  gl.useProgram(pRing);
+  gl.uniformMatrix4fv(UR.uProj,false,projMat);
+  gl.uniformMatrix4fv(UR.uView,false,viewMat);
+  gl.uniform3f(UR.uSun, centre[0], centre[1], centre[2]);
+  gl.uniform1f(UR.uR, radius);
+  gl.uniform3f(UR.uColor, colour[0], colour[1], colour[2]);
+  gl.bindVertexArray(vaoRing);
+  for(const [A,B] of planes){
+    gl.uniform3f(UR.uA,A[0],A[1],A[2]);
+    gl.uniform3f(UR.uB,B[0],B[1],B[2]);
+    gl.drawArrays(gl.LINE_LOOP,0,RING_SEGS);
+  }
+}
+
 /**
  * The three populations that follow the Sun: the asteroid belt, the Kuiper belt and the Oort
  * cloud. Static geometry, carried round by the vertex shader from a radius, an angle and a
@@ -1655,10 +1715,15 @@ function initBelts(b       )       {
                    
                      
                    
+                                                                                             
+                 
  
 
+/** The three great circles that suggest the Oort cloud's spherical boundary. */
+const SHELL                       = [[E1,E2],[E1,EN],[E2,EN]];
+
 function drawBelts(
-  { projMat, viewMat, pxScale, camDist, simT, g710Dist, showBelt, showKuiper, showOort }            ,
+  { projMat, viewMat, pxScale, camDist, simT, g710Dist, showBelt, showKuiper, showOort, globePx }            ,
 )       {
   // points would pile up additively into a false bright blob on the Sun's pixel.
   const beltFade = (rw        ) => Math.max(0, Math.min(1, (rw/camDist*pxScale - 24)/50));
@@ -1706,10 +1771,17 @@ function drawBelts(
     gl.uniform3f(UO.uColor, 0.11+0.30*stir, 0.12+0.20*stir, 0.15+0.10*stir);
     gl.uniform1f(UO.uAlpha,ooA);
     gl.bindVertexArray(vaoOO); gl.drawArrays(gl.POINTS,0,OO_N);
+    // and the boundary itself: a wireframe hint of where the shell stands. Its points fade
+    // with ooA, these circles do not — they are what locates the cloud once it is too far
+    // out to resolve. Zoomed onto a globe they would be three lines across the sky, so the
+    // planes are withheld there and the program is left set exactly as it would have been.
+    drawRings({
+      projMat, viewMat, centre: [0,0,0],
+      radius: 178.0*OO_REAL,
+      colour: [0.10,0.13,0.19],
+      planes: globePx <= 40 ? SHELL : [],
+    });
   }
-  // The wireframe hint of the shell's boundary stays in main.ts for now: it draws through
-  // pRing, which the orbit rings also use, and splitting a shared program across two modules
-  // would be worse than leaving one `if(showOort)` in two adjacent halves.
 }
 
 const TONE_VS = "#version 300 es\nout vec2 vUV;\nvoid main(){\n  vec2 p = vec2(float((gl_VertexID<<1)&2), float(gl_VertexID&2));\n  vUV = p;\n  gl_Position = vec4(p*2.0-1.0, 0.0, 1.0);\n}";
@@ -2253,10 +2325,6 @@ const NEB_FS = "#version 300 es\nprecision mediump float;\nuniform float uGFade;
 
 const DUST_FS = "#version 300 es\nprecision mediump float;\nin vec3 vColor; out vec4 o;\nvoid main(){\n  vec2 q = gl_PointCoord*2.0-1.0;\n  float r = length(q);\n  if(r>1.0) discard;\n  // never opaque at the centre: a cloud thins the haze behind it, it does not punch\n  // a black hole in it (that is what the old profile did, reaching alpha 1 and past)\n  // interstellar dust reddens: the blend multiplies what is behind by 1 − rgb, and the\n  // extinction runs A_R : A_V : A_B ≈ 0.82 : 1 : 1.32 (R_V = 3.1), so blue goes first\n  float a = min(0.72, pow(1.0-r, 2.4)*vColor.r);\n  o = vec4(a*vec3(0.62, 0.76, 1.0), a);\n}";
 
-const RING_VS = "#version 300 es\nlayout(location=0) in vec2 aCS;\nuniform mat4 uProj,uView; uniform vec3 uSun,uA,uB; uniform float uR;\nvoid main(){ gl_Position = uProj*uView*vec4(uSun + uR*(aCS.x*uA + aCS.y*uB), 1.0); }";
-
-const RING_FS = "#version 300 es\nprecision mediump float; uniform vec3 uColor; out vec4 o;\nvoid main(){ o=vec4(uColor,1.0); }";
-
 const GLOBE_VS = "#version 300 es\nuniform mat4 uProj,uView; uniform vec3 uPos; uniform float uSz;\nvoid main(){ gl_Position = uProj*uView*vec4(uPos,1.0); gl_PointSize = uSz; }";
 
 const GLOBE_FS = "#version 300 es\nprecision highp float;\nuniform vec3 uSunV, uAxisV, uPrimeV;     // view space: toward the Sun; the spin axis; the prime meridian on the equator\nuniform float uAvg;                      // 1: the clock outruns the day — light is the daily mean by latitude\nuniform float uMirror, uDisc, uTime, uMoon;\nuniform float uMolten, uOcean, uSea, uHaze, uVeg, uIceLat, uCloud, uLights, uDrift;\nuniform sampler2D uMap; uniform float uHasMap, uDry, uSeaLevel; uniform mat3 uPlate[7];\nout vec4 o;\n// today's real land and its plate, looked up for a planet-frame direction\nvec3 mapAt(vec3 v){ float lat = asin(clamp(v.z,-1.0,1.0)), lon = atan(v.y, v.x);\n  return texture(uMap, vec2(lon/6.2831853+0.5, 0.5-lat/3.14159265)).rgb; }\nfloat h31(vec3 p){ p=fract(p*0.3183099+vec3(0.71,0.113,0.419)); p*=17.0; return fract(p.x*p.y*p.z*(p.x+p.y+p.z)); }\nfloat vn3(vec3 p){ vec3 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);\n  return mix(mix(mix(h31(i),h31(i+vec3(1,0,0)),f.x), mix(h31(i+vec3(0,1,0)),h31(i+vec3(1,1,0)),f.x),f.y),\n             mix(mix(h31(i+vec3(0,0,1)),h31(i+vec3(1,0,1)),f.x), mix(h31(i+vec3(0,1,1)),h31(i+vec3(1,1,1)),f.x),f.y),f.z); }\nfloat fbm3(vec3 p){ float a=0.5,s=0.0; for(int i=0;i<4;i++){ s+=a*vn3(p); p=p*2.07+vec3(1.3,2.1,0.7); a*=0.5; } return s; }\nvoid main(){\n  vec2 q = gl_PointCoord*2.0-1.0; q.y = -q.y; q.x *= uMirror;   // sprite space -> view space\n  float rr = length(q)/uDisc;\n  if(rr > 1.09) discard;\n  if(rr > 1.0){                                                 // the atmosphere, beyond the limb\n    if(uMoon > 0.5 || uMolten > 0.99) discard;\n    float t = (rr-1.0)/0.09, glow = exp(-t*2.6)*(1.0-t);\n    vec3 atm = mix(vec3(0.38,0.62,1.0), vec3(1.0,0.58,0.28), uHaze);\n    vec2 d = q/max(length(q),1e-4);\n    float side = smoothstep(-0.45, 0.45, dot(vec3(d,0.0), uSunV) + 0.35*uSunV.z);\n    o = vec4(atm*glow*0.6*side*(0.35+0.65*uOcean), 0.0); return;   // additive\n  }\n  vec3 n = vec3(q/uDisc, sqrt(max(0.0, 1.0-rr*rr)));\n  float lit = dot(n, uSunV);\n  vec3 Q = cross(uAxisV, uPrimeV);\n  vec3 p = vec3(dot(n,uPrimeV), dot(n,Q), dot(n,uAxisV));       // the planet's own frame; p.z = sin(latitude)\n  // when a frame spans days the terminator would land somewhere new each time and strobe;\n  // the light becomes the day's mean instead — brightest at the equator, dim at the poles\n  lit = mix(lit, 0.18 + 0.62*pow(sqrt(max(0.0, 1.0 - p.z*p.z)), 0.7), uAvg);\n  float day = smoothstep(-0.10, 0.18, lit), dif = max(lit, 0.0);\n  float lat = abs(asin(clamp(p.z,-1.0,1.0)))*57.2958;\n  vec3 col;\n  if(uMoon > 0.5){\n    // grey regolith, dark maria in the lowest of the low-frequency noise, and a pass of\n    // fine crater texture; no atmosphere, so the terminator is hard\n    float m = fbm3(p*2.4+vec3(4.0)), c = fbm3(p*13.0);\n    float maria = smoothstep(0.66, 0.74, m);\n    col = mix(vec3(0.56,0.55,0.53), vec3(0.28,0.28,0.30), maria) * (0.82+0.36*(c-0.5));\n    col *= 0.04 + 0.96*pow(dif, 0.85);\n    o = vec4(col, 1.0); return;\n  }\n  vec3 dr = vec3(uDrift, uDrift*0.7, -uDrift*0.4);\n  float land, shallow, cont = 0.0;\n  if(uHasMap > 0.5){\n    // the real map: each plate carried by its own rotation. Every plate is asked, and\n    // land wins over water: a plate's polygon carries ocean too, and where two moved\n    // polygons overlap that ocean must not punch a hole in the other plate's land.\n    // Between the plates, where none claims the point, there is sea.\n    land = 0.0; shallow = 0.0;\n    for(int k=0;k<7;k++){\n      vec3 q = uPlate[k]*p; vec3 m = mapAt(q);\n      if(int(floor(m.g*255.0/32.0+0.5)) == k){\n        if(m.r > land){ land = m.r; cont = m.b; }\n        else if(land <= 0.0) cont = max(cont, m.b);\n      }\n    }\n    // the oceans retreat to their deepest basins as they go — the map has no depths, so\n    // the continentality field stands in, inverted\n    float water = (1.0-land) * smoothstep(uSeaLevel+0.04, uSeaLevel-0.04, cont);\n    land = 1.0 - water;\n    shallow = (1.0-land) * smoothstep(0.12, 0.45, cont);   // from 0.12: open water inside a plate's polygon reads as the water outside it, so no seams where a plate has moved\n  } else {\n    float h = fbm3(p*2.6 + dr) + 0.35*fbm3(p*7.0 + 1.7*dr) - 0.17;\n    land = smoothstep(uSea-0.025, uSea+0.025, h);\n    shallow = smoothstep(uSea-0.10, uSea, h);\n    cont = land*0.5;\n  }\n  // the land: bare rock, greened by vegetation where it is not desert, whitened by ice.\n  // Deserts: the subtropical belts, and the interiors far from any coast — the more so\n  // in the dry periods, a supercontinent's heart most of all\n  float dry = max(exp(-pow((lat-24.0)/11.0, 2.0)), pow(cont, 1.4)*(0.55 + 0.7*uDry));\n  dry = min(1.0, dry*(0.8 + 0.5*uDry));\n  float detail = fbm3(p*5.0+dr*2.0);                              // one texture, shared below\n  vec3 rock = mix(vec3(0.42,0.32,0.22), vec3(0.62,0.52,0.36), detail);\n  vec3 green = mix(vec3(0.15,0.30,0.09), vec3(0.28,0.42,0.14), fract(detail*1.7+0.3));\n  vec3 landCol = mix(rock, green, uVeg*(1.0-dry*0.85));\n  vec3 sea = mix(vec3(0.02,0.10,0.32), vec3(0.05,0.28,0.42), shallow*0.6);\n  sea = mix(sea, vec3(0.06,0.14,0.18), uHaze*0.6);                // a dimmer, greener sea under the haze\n  col = mix(sea, landCol, land);\n  col = mix(col, vec3(0.42,0.34,0.24), (1.0-uOcean)*(1.0-land));  // a sea floor bared as the oceans go\n  float ice = smoothstep(uIceLat-6.0, uIceLat+6.0, lat + 4.0*(detail-0.5)) * (1.0-uMolten);\n  col = mix(col, vec3(1.0,1.0,1.0), ice);\n  // clouds, drifting, and their shadows a little sunward of them on the ground\n  vec3 cq = p*4.2 + vec3(uTime*0.012, 0.0, -uTime*0.007) + dr*0.3;\n  float cl = fbm3(cq);\n  float cloud = smoothstep(0.50 + 0.22*(1.0-uCloud), 0.74, cl) * min(1.0, uCloud*1.4);\n  vec3 sunP = vec3(dot(uSunV,uPrimeV), dot(uSunV,Q), dot(uSunV,uAxisV));   // the Sun in the planet frame\n  float clS = fbm3(cq + sunP*0.09*(1.0-uAvg));   // the shadow offset would jump with the Sun's phase\n  float shadow = smoothstep(0.50 + 0.22*(1.0-uCloud), 0.74, clS) * min(1.0, uCloud*1.4);\n  col *= 1.0 - 0.35*shadow*(1.0-cloud);\n  col = mix(col, vec3(0.96,0.97,0.99), cloud*0.92);\n  // the haze: an orange cast, thicker toward the limb\n  col = mix(col, col*vec3(1.05,0.72,0.42)+vec3(0.10,0.05,0.0), uHaze*(0.45+0.45*(1.0-n.z)));\n  // sunlight: snow and cloud scatter forward, so they hold their brightness under a low\n  // sun; the terminator is softened by the air, and reddened in it\n  float difS = mix(dif, pow(dif, 0.6), max(ice, cloud));\n  float dusk = exp(-pow(lit/0.16, 2.0)) * uOcean;                               // the band around the terminator\n  vec3 R = reflect(-uSunV, n);\n  float spec = pow(max(R.z,0.0), 180.0) * (1.0-land) * (1.0-cloud) * uOcean * (1.0-uHaze*0.7) * (1.0-uAvg);\n  col = col*(0.012 + 0.988*difS) + vec3(0.9,0.9,0.8)*spec*0.35;\n  col += vec3(0.9,0.45,0.18) * dusk * 0.10 * (1.0-uHaze);\n  // the air itself: Rayleigh blue over the day side, strongest where the view grazes it\n  float fres = pow(1.0 - n.z, 2.2);\n  vec3 air = mix(vec3(0.30,0.55,1.0), vec3(1.0,0.6,0.3), uHaze);\n  col += air * fres * (0.10 + 0.45*day) * (0.4 + 0.6*uOcean) * (1.0-uMolten);\n  // molten: the crust dark, cracked with lava, glowing on its own — only when it is\n  if(uMolten > 0.001){\n    float cracks = smoothstep(0.55, 0.78, fbm3(p*9.0+vec3(uTime*0.02)));\n    vec3 lava = vec3(0.05,0.03,0.03)*(0.3+0.7*dif) + vec3(1.0,0.32,0.04)*(0.25+cracks*1.2);\n    col = mix(col, lava, uMolten);\n  }\n  // the night side: cities, in the one era that has them, crossfading out through the dusk\n  if(uLights > 0.001){\n    float city = smoothstep(0.72, 0.9, vn3(p*70.0)) * land * (1.0-ice) * (1.0-dry*0.5);\n    col += vec3(1.0,0.80,0.45) * city * uLights * smoothstep(0.12, -0.20, lit) * (1.0-cloud*0.7) * 0.9;\n  }\n  o = vec4(col, 1.0);\n}";
@@ -2632,13 +2700,8 @@ function updateAnd(){
 // randomness at boot and the seeded parity stream depends on the order.
 const { abRT, abRTd, abH, abHd, abSz, abP, kbRT, kbH, kbSz, ooOff, ooSz } = buildBelts();
 initBelts({ abRT, abRTd, abH, abHd, abSz, abP, kbRT, kbH, kbSz, ooOff, ooSz });
-// Oort boundary: three great circles suggesting the spherical shell
-const RING_SEGS=160;
-var ringCS=new Float32Array(RING_SEGS*2);
-for(let i=0;i<RING_SEGS;i++){ const a=i/RING_SEGS*6.28318530718; ringCS[i*2]=Math.cos(a); ringCS[i*2+1]=Math.sin(a); }
-
-
-const pRing = prog(RING_VS, RING_FS);
+// The Oort boundary's three great circles, and the Moon's orbit, are drawn by
+// render/passes/rings — one unit circle placed in space by the shader.
 
 // ---------- Earth and the Moon: spheres shaded in the fragment, as everything here ----------
 // A point sprite whose fragment builds the sphere: the normal from the sprite coordinate,
@@ -2670,12 +2733,6 @@ loadEarthMap();
 const vaoGlobe = (()=>{ const v=gl.createVertexArray(); gl.bindVertexArray(v); gl.bindVertexArray(null); return v; })();
 const vecV = (m, v) => [m[0]*v[0]+m[4]*v[1]+m[8]*v[2], m[1]*v[0]+m[5]*v[1]+m[9]*v[2], m[2]*v[0]+m[6]*v[1]+m[10]*v[2]];
 const norm3 = v => { const l = Math.hypot(v[0],v[1],v[2]) || 1; return [v[0]/l, v[1]/l, v[2]/l]; };
-
-const UR = {}; for(const k of ['uProj','uView','uSun','uA','uB','uR','uColor']) UR[k]=gl.getUniformLocation(pRing,k);
-const vaoRing = gl.createVertexArray(); gl.bindVertexArray(vaoRing);
-gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,ringCS,gl.STATIC_DRAW);
-gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
-gl.bindVertexArray(null);
 
 // bodies: dynamic positions, static size/color
 const bodyPosArr = new Float32Array(NB*3);
@@ -4921,23 +4978,8 @@ function frame(now){
   // Each fades out while its ring is too small on screen to resolve — otherwise its
   drawBelts({
     projMat: view.projMat , viewMat, pxScale, camDist: cam.dist, simT: simClock.simT,
-    g710Dist: gl710.d, showBelt, showKuiper, showOort,
+    g710Dist: gl710.d, showBelt, showKuiper, showOort, globePx: readout.globePx,
   });
-  if(showOort){
-    // boundary: wireframe-sphere hint of the shell
-    gl.useProgram(pRing);
-    gl.uniformMatrix4fv(UR.uProj,false,view.projMat);
-    gl.uniformMatrix4fv(UR.uView,false,viewMat);
-    gl.uniform3f(UR.uSun,0,0,0);
-    gl.uniform1f(UR.uR, 178.0*OO_REAL);
-    gl.uniform3f(UR.uColor,0.10,0.13,0.19);
-    gl.bindVertexArray(vaoRing);
-    if(readout.globePx <= 40) for(const [A,B] of [[E1,E2],[E1,EN],[E2,EN]]){   // from a globe's zoom the shell is lines across the sky
-      gl.uniform3f(UR.uA,A[0],A[1],A[2]);
-      gl.uniform3f(UR.uB,B[0],B[1],B[2]);
-      gl.drawArrays(gl.LINE_LOOP,0,RING_SEGS);
-    }
-  }
 
   gl.useProgram(pPt);
   gl.uniform1f(U.ptSpin, 0.0); // body positions already include their motion
@@ -4993,12 +5035,10 @@ function frame(now){
     // the Moon's orbit, once it spans more than a few pixels
     const d = moonDist(a), ringPx = 2*d*((view.H*view.DPR)/(2*Math.tan(Math.PI/6)))/cam.dist;
     if(a > MOON_BORN && ringPx > 14 && ringPx < 3*view.H*view.DPR){   // and not once it dwarfs the view
-      gl.useProgram(pRing);
-      gl.uniformMatrix4fv(UR.uProj,false,view.projMat); gl.uniformMatrix4fv(UR.uView,false,viewMat);
-      gl.uniform3f(UR.uSun, ex, ey, ez); gl.uniform1f(UR.uR, d);
-      gl.uniform3f(UR.uColor, 0.16, 0.20, 0.30);
-      gl.uniform3f(UR.uA, MOON_M1[0],MOON_M1[1],MOON_M1[2]); gl.uniform3f(UR.uB, MOON_M2[0],MOON_M2[1],MOON_M2[2]);
-      gl.bindVertexArray(vaoRing); gl.drawArrays(gl.LINE_LOOP, 0, RING_SEGS);
+      drawRings({
+        projMat: view.projMat , viewMat, centre: [ex, ey, ez], radius: d,
+        colour: [0.16, 0.20, 0.30], planes: [[MOON_M1, MOON_M2]],
+      });
     }
   }
 

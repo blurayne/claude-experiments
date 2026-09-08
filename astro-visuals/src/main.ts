@@ -63,6 +63,7 @@ import { buildBelts, AB_N, KB_N, OO_N } from './scene/belts'
 import { initBelts, drawBelts } from './render/passes/belts'
 import { makeHDR, resolveTone, bindHDR } from './render/passes/tone'
 import { drawShed, drawSunDisc } from './render/passes/sun'
+import { drawRings } from './render/passes/rings'
 import { parseStarBin } from './scene/sky'
 import {
   sound, fxOn, TRACKS, initAudio, showTrack, playTrack, loadTrack, nextTrack,
@@ -113,8 +114,6 @@ import KB_VS from './shaders/kb.vert?raw'
 import AB_VS from './shaders/ab.vert?raw'
 import OO_VS from './shaders/oo.vert?raw'
 import BELT_FS from './shaders/belt.frag?raw'
-import RING_VS from './shaders/ring.vert?raw'
-import RING_FS from './shaders/ring.frag?raw'
 import GLOBE_VS from './shaders/globe.vert?raw'
 import GLOBE_FS from './shaders/globe.frag?raw'
 import TONE_VS from './shaders/tone.vert?raw'
@@ -454,13 +453,8 @@ function updateAnd(){
 // randomness at boot and the seeded parity stream depends on the order.
 const { abRT, abRTd, abH, abHd, abSz, abP, kbRT, kbH, kbSz, ooOff, ooSz } = buildBelts();
 initBelts({ abRT, abRTd, abH, abHd, abSz, abP, kbRT, kbH, kbSz, ooOff, ooSz });
-// Oort boundary: three great circles suggesting the spherical shell
-const RING_SEGS=160;
-var ringCS=new Float32Array(RING_SEGS*2);
-for(let i=0;i<RING_SEGS;i++){ const a=i/RING_SEGS*6.28318530718; ringCS[i*2]=Math.cos(a); ringCS[i*2+1]=Math.sin(a); }
-
-
-const pRing = prog(RING_VS, RING_FS);
+// The Oort boundary's three great circles, and the Moon's orbit, are drawn by
+// render/passes/rings — one unit circle placed in space by the shader.
 
 // ---------- Earth and the Moon: spheres shaded in the fragment, as everything here ----------
 // A point sprite whose fragment builds the sphere: the normal from the sprite coordinate,
@@ -492,12 +486,6 @@ loadEarthMap();
 const vaoGlobe = (()=>{ const v=gl.createVertexArray(); gl.bindVertexArray(v); gl.bindVertexArray(null); return v; })();
 const vecV = (m, v) => [m[0]*v[0]+m[4]*v[1]+m[8]*v[2], m[1]*v[0]+m[5]*v[1]+m[9]*v[2], m[2]*v[0]+m[6]*v[1]+m[10]*v[2]];
 const norm3 = v => { const l = Math.hypot(v[0],v[1],v[2]) || 1; return [v[0]/l, v[1]/l, v[2]/l]; };
-
-const UR = {}; for(const k of ['uProj','uView','uSun','uA','uB','uR','uColor']) UR[k]=gl.getUniformLocation(pRing,k);
-const vaoRing = gl.createVertexArray(); gl.bindVertexArray(vaoRing);
-gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER,ringCS,gl.STATIC_DRAW);
-gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
-gl.bindVertexArray(null);
 
 // bodies: dynamic positions, static size/color
 const bodyPosArr = new Float32Array(NB*3);
@@ -2746,23 +2734,8 @@ function frame(now){
   // Each fades out while its ring is too small on screen to resolve — otherwise its
   drawBelts({
     projMat: view.projMat!, viewMat, pxScale, camDist: cam.dist, simT: simClock.simT,
-    g710Dist: gl710.d, showBelt, showKuiper, showOort,
+    g710Dist: gl710.d, showBelt, showKuiper, showOort, globePx: readout.globePx,
   });
-  if(showOort){
-    // boundary: wireframe-sphere hint of the shell
-    gl.useProgram(pRing);
-    gl.uniformMatrix4fv(UR.uProj,false,view.projMat);
-    gl.uniformMatrix4fv(UR.uView,false,viewMat);
-    gl.uniform3f(UR.uSun,0,0,0);
-    gl.uniform1f(UR.uR, REAL_MODE?178.0*OO_REAL:178.0);
-    gl.uniform3f(UR.uColor,0.10,0.13,0.19);
-    gl.bindVertexArray(vaoRing);
-    if(readout.globePx <= 40) for(const [A,B] of [[E1,E2],[E1,EN],[E2,EN]]){   // from a globe's zoom the shell is lines across the sky
-      gl.uniform3f(UR.uA,A[0],A[1],A[2]);
-      gl.uniform3f(UR.uB,B[0],B[1],B[2]);
-      gl.drawArrays(gl.LINE_LOOP,0,RING_SEGS);
-    }
-  }
 
   gl.useProgram(pPt);
   gl.uniform1f(U.ptSpin, 0.0); // body positions already include their motion
@@ -2818,12 +2791,10 @@ function frame(now){
     // the Moon's orbit, once it spans more than a few pixels
     const d = moonDist(a), ringPx = 2*d*((view.H*view.DPR)/(2*Math.tan(Math.PI/6)))/cam.dist;
     if(a > MOON_BORN && ringPx > 14 && ringPx < 3*view.H*view.DPR){   // and not once it dwarfs the view
-      gl.useProgram(pRing);
-      gl.uniformMatrix4fv(UR.uProj,false,view.projMat); gl.uniformMatrix4fv(UR.uView,false,viewMat);
-      gl.uniform3f(UR.uSun, ex, ey, ez); gl.uniform1f(UR.uR, d);
-      gl.uniform3f(UR.uColor, 0.16, 0.20, 0.30);
-      gl.uniform3f(UR.uA, MOON_M1[0],MOON_M1[1],MOON_M1[2]); gl.uniform3f(UR.uB, MOON_M2[0],MOON_M2[1],MOON_M2[2]);
-      gl.bindVertexArray(vaoRing); gl.drawArrays(gl.LINE_LOOP, 0, RING_SEGS);
+      drawRings({
+        projMat: view.projMat!, viewMat, centre: [ex, ey, ez], radius: d,
+        colour: [0.16, 0.20, 0.30], planes: [[MOON_M1, MOON_M2]],
+      });
     }
   }
 
