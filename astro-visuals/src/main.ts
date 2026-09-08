@@ -48,8 +48,8 @@ import {
   environment as environmentAt, lifeState as lifeStateAt,
 } from './astro/environment'
 import {
-  PLATE_MODEL, plateMats, plateAngle, fillPlateMats, MOON_DIA, MOON_BORN, moonPos,
-  MOON_D0, MOON_M1, MOON_M2, moonDist, moonW, moonRel,
+  PLATE_MODEL, plateAngle, MOON_DIA, MOON_BORN, moonPos,
+  MOON_D0, moonW, moonRel,
   EARTH_AXIS, EARTH_P0, SIDEREAL, earthPrime as earthPrimeAt, earthEra,
 } from './astro/earth'
 import { simClock, cam, gfx, view, readout, lifeAcc } from './render/state'
@@ -64,6 +64,10 @@ import { initBelts, drawBelts } from './render/passes/belts'
 import { makeHDR, resolveTone, bindHDR } from './render/passes/tone'
 import { drawShed, drawSunDisc } from './render/passes/sun'
 import { drawRings } from './render/passes/rings'
+import { drawGlobe, loadEarthMap } from './render/passes/globe'
+import { pPt, pTr, U } from './render/passes/points'
+import { pSN, USN } from './render/passes/supernova'
+import { pRem, UREM } from './render/passes/remnant'
 import { parseStarBin } from './scene/sky'
 import {
   sound, fxOn, TRACKS, initAudio, showTrack, playTrack, loadTrack, nextTrack,
@@ -101,21 +105,12 @@ setLogRenderer(() => renderLog())
 // PT points, TR trails, SN supernova, REM remnant, NEB nebula, KB Kuiper belt, AB asteroid
 // belt, OO Oort, PN planetary nebula — so a diff against the pre-refactor page still lines up.
 import PT_VS from './shaders/pt.vert?raw'
-import PT_FS from './shaders/pt.frag?raw'
-import TR_VS from './shaders/tr.vert?raw'
-import TR_FS from './shaders/tr.frag?raw'
-import SN_VS from './shaders/sn.vert?raw'
-import SN_FS from './shaders/sn.frag?raw'
-import REM_VS from './shaders/rem.vert?raw'
-import REM_FS from './shaders/rem.frag?raw'
 import NEB_FS from './shaders/neb.frag?raw'
 import DUST_FS from './shaders/dust.frag?raw'
 import KB_VS from './shaders/kb.vert?raw'
 import AB_VS from './shaders/ab.vert?raw'
 import OO_VS from './shaders/oo.vert?raw'
 import BELT_FS from './shaders/belt.frag?raw'
-import GLOBE_VS from './shaders/globe.vert?raw'
-import GLOBE_FS from './shaders/globe.frag?raw'
 import TONE_VS from './shaders/tone.vert?raw'
 import TONE_FS from './shaders/tone.frag?raw'
 // Semantic version: minor for a feature set, patch for fixes. The date and commit are
@@ -133,63 +128,11 @@ import TONE_FS from './shaders/tone.frag?raw'
 
 
 
-const pPt = prog(PT_VS,PT_FS), pTr = prog(TR_VS,TR_FS);
-const U = {
-  ptProj: gl.getUniformLocation(pPt,'uProj'), ptView: gl.getUniformLocation(pPt,'uView'), ptPx: gl.getUniformLocation(pPt,'uPx'),
-  ptSpin: gl.getUniformLocation(pPt,'uSpin'), ptWarp: gl.getUniformLocation(pPt,'uWarp'), ptSun: gl.getUniformLocation(pPt,'uSunPos'),
-  ptOrg: gl.getUniformLocation(pPt,'uOrg'), trOrg: gl.getUniformLocation(pTr,'uOrg'),
-  velT: gl.getUniformLocation(pPt,'uVelT'),
-  ptCap: gl.getUniformLocation(pPt,'uCap'), ptWA: gl.getUniformLocation(pPt,'uWaveAll'),
-  ptTime: gl.getUniformLocation(pPt,'uTime'), ptVM: gl.getUniformLocation(pPt,'uVarMode'),
-  ptAnd: gl.getUniformLocation(pPt,'uAnd'), ptTide: gl.getUniformLocation(pPt,'uTide'),
-  ptWarpAmp: gl.getUniformLocation(pPt,'uWarpAmp'), ptMinB: gl.getUniformLocation(pPt,'uMinB'),
-  ptMinSz: gl.getUniformLocation(pPt,'uMinSz'), ptFade: gl.getUniformLocation(pPt,'uFadeOut'),
-  ptGal: gl.getUniformLocation(pPt,'uGal'), ptGRot: gl.getUniformLocation(pPt,'uGRot'),
-  ptGOff: gl.getUniformLocation(pPt,'uGOff'), ptMerge: gl.getUniformLocation(pPt,'uMerge'),
-  trProj: gl.getUniformLocation(pTr,'uProj'), trView: gl.getUniformLocation(pTr,'uView'),
-  trLen: gl.getUniformLocation(pTr,'uLen'), trCol: gl.getUniformLocation(pTr,'uColor'), trA: gl.getUniformLocation(pTr,'uAlpha'),
-  trFlat: gl.getUniformLocation(pTr,'uFlat')
-};
-
-// ---------- the supernova blast ----------
-// A collapse is not a big round star, and drawing it with the star sprite made it one:
-// a white disc that only grew. This is its own pass. The transform is the wave-riding
-// branch of PT_VS, copied rather than shared so the flash sits exactly where its
-// progenitor stood — every supernova here descends from a red supergiant on an arm,
-// so aWave is always 1 and uGal always 0, and the rest of that shader's work
-// (velocities, variability, tides, the merge scramble) has nothing to do here.
-
-// Four things stacked, all keyed to how far the blast has run: the photosphere, the
-// light thrown off it, the shock front leaving it, and the spikes any bright point
-// grows in an optical system. The colour follows the real thing — blue-white at peak,
-// reddening as the ejecta expand and cool — so the flash reads as an event with a
-// direction in time rather than a lamp being turned up and down.
-
-const pSN = prog(SN_VS, SN_FS);
-const USN = {
-  proj: gl.getUniformLocation(pSN,'uProj'), view: gl.getUniformLocation(pSN,'uView'),
-  px: gl.getUniformLocation(pSN,'uPx'), spin: gl.getUniformLocation(pSN,'uSpin'),
-  warp: gl.getUniformLocation(pSN,'uWarp'), cap: gl.getUniformLocation(pSN,'uCap'),
-  sun: gl.getUniformLocation(pSN,'uSunPos'), org: gl.getUniformLocation(pSN,'uOrg')
-};
-
-// ---------- what a death leaves behind ----------
-// Supernova remnants and planetary nebulae were soft blobs. A remnant is a hollow
-// shell, and a hollow shell is brightest at its rim, where the line of sight runs
-// longest through it — the Veil, the Crab's edges, Cas A all read that way — and it is
-// ragged, because the ejecta are. Same transform as the point pass, both branches:
-// remnants sit in the arms (wave-riding) and planetaries anywhere in the disk (material).
-// The fourth attribute packs the frame flag and the phase: wave in the twos, phase in
-// the fraction, so the shell can thicken and fray as it runs without a fifth buffer.
-
-
-const pRem = prog(REM_VS, REM_FS);
-const UREM = {
-  proj: gl.getUniformLocation(pRem,'uProj'), view: gl.getUniformLocation(pRem,'uView'),
-  px: gl.getUniformLocation(pRem,'uPx'), spin: gl.getUniformLocation(pRem,'uSpin'),
-  warp: gl.getUniformLocation(pRem,'uWarp'), cap: gl.getUniformLocation(pRem,'uCap'),
-  sun: gl.getUniformLocation(pRem,'uSunPos'), org: gl.getUniformLocation(pRem,'uOrg')
-};
+// The point and trail programs are render/passes/points, the blast is passes/supernova and
+// the shells are passes/remnant. Only the programs and their uniform tables have moved:
+// their draws are still in frame() below, because six passes write through `U` and each of
+// them reads a dozen values off the frame. They follow when render/frame exists to hand
+// those over — 00-PLAN.md step 10, then step 21.
 
 // ---------- the physics (compressed but honest) ----------
 
@@ -456,36 +399,10 @@ initBelts({ abRT, abRTd, abH, abHd, abSz, abP, kbRT, kbH, kbSz, ooOff, ooSz });
 // The Oort boundary's three great circles, and the Moon's orbit, are drawn by
 // render/passes/rings — one unit circle placed in space by the shader.
 
-// ---------- Earth and the Moon: spheres shaded in the fragment, as everything here ----------
-// A point sprite whose fragment builds the sphere: the normal from the sprite coordinate,
-// the lighting from the Sun's direction in view space, the surface from 3-D noise on the
-// unit vector in the planet's own frame (spin axis, prime meridian), so the planet turns
-// under its map and the map holds still. The Earth's surface is a MODEL of an era, not a
-// map of the real continents: coastlines are noise, drifting slowly with the age.
-
-
-const pGlobe = prog(GLOBE_VS, GLOBE_FS);
-const UG = {}; for(const k of ['uProj','uView','uPos','uSz','uSunV','uAxisV','uPrimeV','uAvg','uMirror','uDisc','uTime','uMoon',
-  'uMolten','uOcean','uSea','uHaze','uVeg','uIceLat','uCloud','uLights','uDrift','uMap','uHasMap','uDry','uSeaLevel']) UG[k]=gl.getUniformLocation(pGlobe,k);
-UG.uPlate = gl.getUniformLocation(pGlobe,'uPlate[0]');
-// The real map: today's land from GSHHG (tools/build_earth_map.py), R land, G plate id,
-// B continentality. Loaded like the galaxy maps; without it the globe falls back to noise.
-
-function loadEarthMap(){
-  fetch('earth-map.webp').then(r => r.ok ? r.blob() : Promise.reject())
-    .then(b => createImageBitmap(b, { premultiplyAlpha: 'none', colorSpaceConversion: 'none' }))
-    .then(bm => {
-      const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, bm);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-      gl.bindTexture(gl.TEXTURE_2D, null); gfx.earthTex = t;
-    }).catch(()=>{});
-}
+// Earth and the Moon — the globe program, its map and its draw — are render/passes/globe.
+// The fetch is kicked from here, in its place among the others, because when it starts is
+// part of what makes a run reproducible.
 loadEarthMap();
-const vaoGlobe = (()=>{ const v=gl.createVertexArray(); gl.bindVertexArray(v); gl.bindVertexArray(null); return v; })();
-const vecV = (m, v) => [m[0]*v[0]+m[4]*v[1]+m[8]*v[2], m[1]*v[0]+m[5]*v[1]+m[9]*v[2], m[2]*v[0]+m[6]*v[1]+m[10]*v[2]];
-const norm3 = v => { const l = Math.hypot(v[0],v[1],v[2]) || 1; return [v[0]/l, v[1]/l, v[2]/l]; };
 
 // bodies: dynamic positions, static size/color
 const bodyPosArr = new Float32Array(NB*3);
@@ -2753,49 +2670,17 @@ function frame(now){
   readout.moonPx = 0;
   // the pass opens on Earth's size, or on the Moon's when she is the one being followed
   if((readout.globePx > 4 || cam.followTarget === 'moon') && !wasEaten[3]){
-    const a = ageGyr(), era = earthEra(a, environment().mean);
-    const ex = bodyPosArr[9], ey = bodyPosArr[10], ez = bodyPosArr[11];
-    const sunV = norm3(vecV(viewMat, [-ex, -ey, -ez]));
-    const axV = norm3(vecV(viewMat, EARTH_AXIS));
-    const prime = earthPrime(simClock.simT, tmp); const prV = norm3(vecV(viewMat, [prime[0],prime[1],prime[2]]));
-    readout.earthDbg = { sunV, axV, prV, era };   // read by the debug tooling
-    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-    gl.useProgram(pGlobe);
-    gl.uniformMatrix4fv(UG.uProj,false,view.projMat); gl.uniformMatrix4fv(UG.uView,false,viewMat);
-    gl.uniform1f(UG.uMirror, SKY_MIRROR); gl.uniform1f(UG.uTime, simClock.shimT);
-    gl.uniform3f(UG.uSunV, sunV[0],sunV[1],sunV[2]); gl.uniform3f(UG.uAxisV, axV[0],axV[1],axV[2]); gl.uniform3f(UG.uPrimeV, prV[0],prV[1],prV[2]);
-    gl.uniform1f(UG.uAvg, readout.avgLight);
-    gl.uniform1f(UG.uMolten, era.molten); gl.uniform1f(UG.uOcean, era.ocean); gl.uniform1f(UG.uSea, era.sea); gl.uniform1f(UG.uHaze, era.haze);
-    gl.uniform1f(UG.uVeg, era.veg); gl.uniform1f(UG.uIceLat, era.iceLat); gl.uniform1f(UG.uCloud, era.cloud); gl.uniform1f(UG.uLights, era.lights); gl.uniform1f(UG.uDrift, era.drift);
-    gl.uniform1f(UG.uDry, era.dry); gl.uniform1f(UG.uSeaLevel, era.seaLevel);
-    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, gfx.earthTex); gl.uniform1i(UG.uMap, 0);
-    gl.uniform1f(UG.uHasMap, gfx.earthTex ? 1.0 : 0.0);
-    fillPlateMats((a - AGE0)*1000); gl.uniformMatrix3fv(UG.uPlate, false, plateMats);
-    const disc = 1/1.09, sz = Math.min(2400, readout.globePx/disc);
-    gl.uniform1f(UG.uMoon, 0.0); gl.uniform1f(UG.uDisc, disc); gl.uniform1f(UG.uSz, sz);
-    gl.uniform3f(UG.uPos, ex, ey, ez);
-    gl.bindVertexArray(vaoGlobe); gl.drawArrays(gl.POINTS, 0, 1);
-    if(a > MOON_BORN){
-      moonPos(simClock.simT, moonW);
-      moonRel[0] = moonW[0]-org[0]; moonRel[1] = moonW[1]-org[1]; moonRel[2] = moonW[2]-org[2];
-      readout.moonPx = MOON_DIA*((view.H*view.DPR)/(2*Math.tan(Math.PI/6)))/cam.dist;
-      if(readout.moonPx > 1.5){
-        const msunV = norm3(vecV(viewMat, [-moonRel[0], -moonRel[1], -moonRel[2]]));
-        gl.uniform3f(UG.uSunV, msunV[0],msunV[1],msunV[2]);
-        gl.uniform1f(UG.uMoon, 1.0); gl.uniform1f(UG.uDisc, 1.0); gl.uniform1f(UG.uSz, Math.min(2400, readout.moonPx));
-        gl.uniform3f(UG.uPos, moonRel[0], moonRel[1], moonRel[2]);
-        gl.drawArrays(gl.POINTS, 0, 1);
-      }
-    }
-    gl.blendFunc(gl.ONE, gl.ONE);
-    // the Moon's orbit, once it spans more than a few pixels
-    const d = moonDist(a), ringPx = 2*d*((view.H*view.DPR)/(2*Math.tan(Math.PI/6)))/cam.dist;
-    if(a > MOON_BORN && ringPx > 14 && ringPx < 3*view.H*view.DPR){   // and not once it dwarfs the view
-      drawRings({
-        projMat: view.projMat!, viewMat, centre: [ex, ey, ez], radius: d,
-        colour: [0.16, 0.20, 0.30], planes: [[MOON_M1, MOON_M2]],
-      });
-    }
+    const a = ageGyr();
+    const g = drawGlobe({
+      projMat: view.projMat!, viewMat, ageGyr: a, era: earthEra(a, environment().mean),
+      earthPos: [bodyPosArr[9], bodyPosArr[10], bodyPosArr[11]],
+      prime: earthPrime(simClock.simT, tmp),
+      mirror: SKY_MIRROR, shimT: simClock.shimT, simT: simClock.simT,
+      avgLight: readout.avgLight, globePx: readout.globePx, camDist: cam.dist,
+      pxScale, viewH: view.H, dpr: view.DPR, org,
+    });
+    readout.moonPx = g.moonPx;
+    readout.earthDbg = g.earthDbg;   // read by the debug tooling
   }
 
   // Gliese 710, on the same symbolic scale as the Oort cloud in the compressed view and
