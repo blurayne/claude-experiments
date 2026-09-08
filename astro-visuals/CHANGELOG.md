@@ -5,8 +5,51 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
-### 2.78.0 — 2026-09-03
+### 3.0.0 — 2026-09-08
 
+- V3.0.0 — the page is built from src/ (`972590a`)
+
+### 2.78.0 — 2026-09-08
+
+- Scene/cache — the maps, the generators' results, and the density tiers (`4d629b1`)
+- Step 18 — ui/hud takes the controls, and R1 survives it (`82a1ec7`)
+- Ui/scenarios — the staged views and the epoch jumps (`b059793`)
+- Step 21 — frame() leaves main.ts, and the readouts go with the settings (`0024312`)
+- Render/camera, the hud state object, and the guard the rename needed (`bbe2dec`)
+- Ui/persist with the registry, plus sections, the QR overlay and the debug door (`f84ac9b`)
+- The interface starts moving — theme, fullscreen, tour, panels, probe (`b6588ac`)
+- Step 13 — trails, labels and the life cycle, with the life cycle covered first (`e43604c`)
+- Bodies, g710 and the flares — the first passes to share the U table (`9a5e9d2`)
+- The clouds come out, and main.ts stops importing GLSL altogether (`569e61b`)
+- Render/passes/globe and step 10's three programs (`a2c8f5f`)
+- Render/passes/rings, and belts gets the other half of its shell back (`db915dc`)
+- Render/passes/sun — the star's own two programs, and a name the HUD still needed (`1e2ecc4`)
+- A rename reached into an English sentence, and nothing could see it (`7a7d506`)
+- Render/passes/tone — the highlight rolloff, and the rule about being last (`e14f20d`)
+- Render/passes/belts — the first draw pass leaves frame() (`204e43e`)
+- Ui/tooltips, a control that checks both sides, and a gate relaxed on area (`e0abaaf`)
+- Core/format — the most-read text in the piece, now tested (`ff065df`)
+- Audio/ — the drone, the tracks and the sample banks come out (`7bf6539`)
+- Scene/sky — the star catalogue parser stops needing a GL context (`68dd011`)
+- Astro/g710 — Gliese 710's passage, checked against Bailer-Jones 2018 (`0c6ae6a`)
+- Scene/belts — the asteroids, the Kuiper belt and the Oort cloud (`9220ba9`)
+- Scene/andromeda, and a gate that runs its own control (`b37f5d3`)
+- Scene/galaxy — the Milky Way's generators return their buffers (`28e0c59`)
+- Scene/starfield, and the var-hoisting trap it was built on (`da28433`)
+- Step 7d — the drawing surface, the frame's readouts, and the life counters (`9d2f692`)
+- Step 7c — the GPU's contents join render/state (`5cff82c`)
+- Step 7b — the camera joins render/state (`468616b`)
+- Step 7a — the clock becomes render/state's first singleton (`227a397`)
+- Step 9c — astro/earth, and a check for the mistake it made (`58f7eef`)
+- Step 9b — the Sun's life and Earth's climate become pure functions (`6c6e33e`)
+- Step 9a — astro/bodies, and Kepler as a test (`45a70ae`)
+- Step 8 — gpu/, and the gate stops keeping baselines (`b644d8f`)
+- Step 7 — the Andromeda encounter becomes astro/merger, with 21 tests (`740c645`)
+- Step 6 — the physics constants and the Sun's orbit become astro/ (`bacb3a0`)
+- Steps 4–5 — core/ comes out, and the first real unit tests with it (`d64b15f`)
+- Step 3 — 23 shaders become files, byte for byte (`7a3de48`)
+- Step 2 — the stylesheet becomes four files, and the cascade is asserted (`7a60435`)
+- Step 1 — the page is built from src/, and it is still one file (`0ff1a82`)
 - Feat(astro-visuals): v2.78.0 — the Moon joins the views (`fd0f980`)
 
 ### 2.77.0 — 2026-09-03
