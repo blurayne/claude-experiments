@@ -80,11 +80,24 @@ There is no baseline step and nothing to pre-generate. That is a deliberate chan
 
 24 states in `tests/harness/states.ts`. Fifteen are the page's own `#jump` scenarios, driven through the selector and its GO button — the flow a visitor uses. The other nine exist because `00-PLAN.md` §5.2 lists things a desktop screenshot cannot see: four viewport bands, a phone layout, a fresh profile, a reduced-motion-allowed boot, a second timezone, and an open tooltip.
 
+**On a mismatch the gate runs its own control**, photographing BOTH builds a second time and requiring each to reproduce itself. If either cannot, the state reports as inconclusive rather than as a rendering change. The first version of this re-shot only the reference, which catches an unstable reference and quietly certifies an unstable candidate — and on the run that exposed it, the built page was the wobbly side and two harness flakes were reported as real differences.
+
 **There are no stored baselines.** Each test photographs the pinned pre-refactor page and the built page back to back, moments apart, on the same machine under the same load, and compares those two. Storing reference PNGs looked obviously right and was the source of every unexplained failure in this project: three times a state came back differing by tens of thousands of pixels, and three times the stored reference was the odd one out — perfectly reproducible in the mode it was captured in, different in the mode it was compared in. A reference photographed as one of twenty-four in a batch is not the same measurement as one photographed alone, and no amount of pinning inside the page fixes an asymmetry that lives outside it.
 
 **`PARITY_SCOPE=fast` runs five states instead of twenty-three.** It is for keeping a twenty-step migration moving, not a replacement for the full set — run everything at a phase boundary and before any merge. The subset reaches the galaxy from inside and outside, both globes, the merger, the belts, both trail kinds and the tone-map knee.
 
-**Tolerance is measured, not assumed.** No pixel may differ by more than 1, and no more than 1% of them may differ at all. That is not a fudge factor: every real difference caught during this refactor came in at max Δ174–252 over 5–20% of the frame, and the rasteriser's own noise floor comes in at max Δ1 over 0.3%. The threshold sits in a gap of two orders of magnitude. The numbers print on every state, pass or fail, so drift toward the limit is visible rather than silent. **If a state starts sitting near the limit, that is a finding, not a flake.**
+**Tolerance is measured, not assumed — and it is on AREA, not amplitude.** Four populations have been measured over this refactor:
+
+| | amplitude | area |
+| --- | --- | --- |
+| structural mistakes | max Δ174–252 | 5–22% |
+| harness instability | max Δ238 | 20–22% |
+| rasteriser rounding | max Δ1 | ~0.3% |
+| a handful of pixels | max Δ33 | 0.014% |
+
+Amplitude does not separate them: a real mistake and a harness wobble both reach Δ238. Area does, by two orders of magnitude — everything that has ever been a genuine error covered at least 5% of the frame, because moving a star or shifting the sky moves thousands of pixels at once.
+
+So a difference passes if EITHER it touches at most 0.05% of the frame at any amplitude (a few hundred pixels cannot be a moved galaxy), OR no pixel differs by more than 1 and it stays under 1% (the rounding floor, faint but everywhere). The numbers print on every state, pass or fail. **If a state starts sitting near either limit, that is a finding, not a flake.**
 
 **The first visit is not photographed at all.** The performance probe measures the machine, so photographing that path twice runs the benchmark twice and can honestly get two answers — it came back 35% of the frame different at max Δ254, which is a different number of stars rather than a different rendering. It is asserted in `tests/e2e/boot.spec.ts` instead: that it runs, picks a tier no heavier than medium, saves it, and stages the opening without throwing.
 

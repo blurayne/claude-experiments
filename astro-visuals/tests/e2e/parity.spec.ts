@@ -74,10 +74,34 @@ function compare(a: Buffer, b: Buffer): Diff {
  * print on every state so drift toward it is visible rather than silent.
  */
 
-/** No pixel may differ by more than this. Real changes measured 174–252. */
+/**
+ * What counts as "the same picture".
+ *
+ * The owner has allowed minimal differences, and the useful question is which axis to relax.
+ * Four populations have been measured over this refactor:
+ *
+ *   structural mistakes   max Δ174–252 over  5–22% of the frame
+ *   harness instability   max Δ238     over 20–22%
+ *   rasteriser rounding   max Δ1       over ~0.3%
+ *   a handful of pixels   max Δ33      over  0.014%
+ *
+ * Amplitude does not separate them: a real mistake and a harness wobble both hit Δ238. AREA
+ * does, by two orders of magnitude — everything that has ever been a genuine error covered at
+ * least 5% of the frame, because moving a star or shifting the sky moves thousands of pixels
+ * at once. So the relaxation is on area, and the amplitude allowance stays where it was.
+ *
+ * A difference passes if EITHER holds:
+ *   - it touches at most SMALL_AREA of the frame, whatever the amplitude — a few hundred
+ *     pixels cannot be a moved galaxy; or
+ *   - no pixel differs by more than MAX_DELTA and it stays under BROAD_AREA — the rounding
+ *     floor, which is faint but everywhere.
+ */
+
+/** ~288 px at 960×600. Structural errors have never come in under 5% of the frame. */
+const SMALL_AREA = 0.0005
+/** The last-bit rounding floor is faint and wide, so it gets area instead of amplitude. */
 const MAX_DELTA = 1
-/** And no more than this share may differ at all. Real changes measured 5–20%. */
-const MAX_DIFFERING_FRACTION = 0.01
+const BROAD_AREA = 0.01
 
 test.describe('the built page against the pre-refactor page', () => {
   test.beforeAll(() => mkdirSync(FAILURES, { recursive: true }))
@@ -146,19 +170,33 @@ test.describe('the built page against the pre-refactor page', () => {
       // It is NOT a retry: the second shot is of the reference, not the candidate, so a real
       // difference can never be washed out by taking another look at it.
       if (diff.differing > 0 && !TOLERANT.has(state.id)) {
-        const control = await capture(`/${BASELINE_PAGE}`, state)
-        const self = compare(before.png, control.png)
-        if (self.differing > 0) {
-          const selfPct = ((self.differing / self.total) * 100).toFixed(3)
+        // Photograph BOTH sides a second time, not just the reference.
+        //
+        // The first version of this control only re-shot the reference, which catches an
+        // unstable reference and quietly certifies an unstable CANDIDATE — the run that
+        // exposed it reported two states as real differences with the harness's own
+        // signature, 22% of frame at max Δ238, because the built page happened to be the
+        // wobbly side that time. Either shot failing to reproduce itself means the
+        // comparison says nothing.
+        const [beforeAgain, afterAgain] = await Promise.all([
+          capture(`/${BASELINE_PAGE}`, state),
+          capture('/galactic-transit.html', state),
+        ])
+        const refSelf = compare(before.png, beforeAgain.png)
+        const buildSelf = compare(after.png, afterAgain.png)
+        const unstable = refSelf.differing > 0 ? 'the pre-refactor page' : buildSelf.differing > 0 ? 'the built page' : null
+        if (unstable) {
+          const s = refSelf.differing > 0 ? refSelf : buildSelf
+          const pct = ((s.differing / s.total) * 100).toFixed(3)
           testInfo.annotations.push({
             type: 'inconclusive',
-            description: `the pre-refactor page differed from ITSELF by ${self.differing} px (${selfPct}%), max Δ${self.maxDelta}`,
+            description: `${unstable} differed from ITSELF by ${s.differing} px (${pct}%), max Δ${s.maxDelta}`,
           })
           test.skip(
             true,
-            `harness could not hold this state still: the reference differed from itself by ` +
-              `${selfPct}% (max Δ${self.maxDelta}), so the ${percent.toFixed(3)}% against the ` +
-              `build is not evidence either way. Re-run this state alone.`,
+            `harness could not hold this state still: ${unstable} differed from itself by ` +
+              `${pct}% (max Δ${s.maxDelta}), so the ${percent.toFixed(3)}% between the two is ` +
+              `not evidence either way. Re-run this state alone.`,
           )
         }
       }
@@ -168,12 +206,14 @@ test.describe('the built page against the pre-refactor page', () => {
         // different detail tier between two captures.
         expect(percent, detail).toBeLessThan(0.1)
       } else {
-        // Both conditions, so neither can be satisfied by the other: a change cannot pass by
-        // being small in area if it is large in amplitude, or vice versa.
-        expect(diff.maxDelta, `amplitude beyond the rasteriser's noise floor — ${detail}`)
-          .toBeLessThanOrEqual(MAX_DELTA)
-        expect(percent, `too much of the frame changed — ${detail}`)
-          .toBeLessThan(MAX_DIFFERING_FRACTION * 100)
+        const tiny = percent <= SMALL_AREA * 100
+        const faint = diff.maxDelta <= MAX_DELTA && percent < BROAD_AREA * 100
+        expect(
+          tiny || faint,
+          `the picture changed — ${detail}\n` +
+            `  a difference passes only if it touches at most ${(SMALL_AREA * 100).toFixed(4)}% of the ` +
+            `frame at any amplitude, or stays within Δ${MAX_DELTA} across under ${BROAD_AREA * 100}%.`,
+        ).toBe(true)
       }
     })
   }

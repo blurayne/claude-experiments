@@ -25,6 +25,7 @@ import { perspective, lookAt, mul } from './core/mat4'
 import { gauss, expR } from './core/rng'
 import { $ } from './core/dom'
 import { sup, fmtCount, fmtYears as fmtYearsIn, type UnitMode } from './core/format'
+import { hideTip } from './ui/tooltips'
 import {
   R_GAL, V_GAL, GAL_PERIOD, YR_PER_SIM, AGE0, AND_AGE, SCATTER_AGE, SR_A, SR_B, SR_K,
   TILT, E1, E2, AU2U, OO_REAL, REAL_MODE, PITCH, BAR_L, BAR_A, armAngle, ARMS, sA, cA,
@@ -1770,26 +1771,6 @@ $('detail').addEventListener('input', e=>{
     const j = DETAIL_D.indexOf(gfx.curD); if(j>=0) e.target.value = j; }
   $('detailv').textContent = DETAIL_NAMES[DETAIL_D.indexOf(gfx.curD)] || DETAIL_NAMES[0];
 });
-// ---------- (i) tooltips: one floating box, shown by a tap, gone on the next ----------
-const tipEl = document.createElement('div'); tipEl.id = 'tip'; document.body.appendChild(tipEl);
-let tipFor = null, tipTimer = 0;
-function hideTip(){ tipEl.style.display = 'none'; if(tipFor) tipFor.classList.remove('on'); tipFor = null; clearTimeout(tipTimer); }
-function showTip(btn){
-  if(tipFor === btn){ hideTip(); return; }
-  hideTip(); tipFor = btn; btn.classList.add('on');
-  tipEl.textContent = btn.dataset.tip; tipEl.style.display = 'block';
-  const r = btn.getBoundingClientRect(), tw = tipEl.offsetWidth, th = tipEl.offsetHeight;
-  const x = Math.min(innerWidth - tw - 6, Math.max(6, r.left + r.width/2 - tw/2));
-  const y = r.bottom + th + 6 > innerHeight - 6 ? r.top - th - 6 : r.bottom + 6;
-  tipEl.style.left = x + 'px'; tipEl.style.top = y + 'px';
-  tipTimer = setTimeout(hideTip, 8000);
-}
-document.addEventListener('click', e=>{
-  const b = e.target.closest('.info');
-  if(b){ e.preventDefault(); e.stopPropagation(); showTip(b); } else if(tipFor) hideTip();
-}, true);
-addEventListener('scroll', ()=>{ if(tipFor) hideTip(); }, true);
-addEventListener('resize', ()=>{ if(tipFor) hideTip(); });
 // ---------- fullscreen & screen orientation ----------
 const isFs = ()=> !!(document.fullscreenElement || document.webkitFullscreenElement);
 function reqFs(){
