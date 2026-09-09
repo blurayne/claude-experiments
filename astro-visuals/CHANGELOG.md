@@ -5,8 +5,13 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
-### 3.0.0 — 2026-09-08
+### 3.1.0 — 2026-09-09
 
+- V3.1.0 — how the galaxies turn (`824a297`)
+
+### 3.0.0 — 2026-09-09
+
+- Two measured pattern speeds — the bar drives the arms, the spur keeps the Sun (`ddb87bd`)
 - V3.0.0 — the page is built from src/ (`972590a`)
 
 ### 2.78.0 — 2026-09-08
