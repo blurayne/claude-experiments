@@ -198,6 +198,15 @@ export function jumpToEpoch(): void {
     cam.distGoal = 0.144;                     // ~5 ly across: the whole Oort shell
     cam.yaw = 0.72; cam.pitch = -0.31;        // faces the star's approach track
   }
+  if(sel.value === '4.568r'){
+    // Just the turning: the whole disk face-on from the north galactic pole at ten
+    // million years a second — one galactic rotation every ~22 seconds — with the spin
+    // lock deliberately OFF. This is the raw clockwise sweep with the arms trailing;
+    // the arm-evolution scenario below is its counterpart with the pattern frozen.
+    $v('focusSel').value = 'mw'; applyFocusView();
+    if($v('tSpinLock').checked){ $v('tSpinLock').checked = false; $('tSpinLock').dispatchEvent(new Event('change')); }
+    if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
+  }
   if(sel.value === '2.568g'){
     // The arm evolution time-lapse: the whole disk face-on from the north pole, the camera
     // locked to the bar pattern so the four arms hold still on screen while their
