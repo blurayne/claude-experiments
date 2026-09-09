@@ -1,6 +1,6 @@
 import { $ } from '../core/dom'
 import { simClock, view } from '../render/state'
-import { PANELS, setPanelOpen } from './panels'
+import { PANELS, setPanelOpen, panelIsOpen } from './panels'
 
 /**
  * The first run: a guided look at what is on screen, drawn with a line from each line of text
@@ -134,6 +134,21 @@ export function initTour(): void {
     if(tourHeldClock && simClock.paused) $('tPause').click();            // and starts when you do
     tourHeldClock = false;
     try{ localStorage.setItem(TOURKEY, '1'); }catch(e){}
+    // After the tutorial, the scenarios are the next thing worth finding. Where there is
+    // room the simulation panel simply opens; and whenever it ends up closed instead —
+    // a phone, or anything else that kept it shut — its dot pulses until the first tap,
+    // then never again (per browser).
+    let seen = null; try{ seen = localStorage.getItem('gt-sim-seen'); }catch(e){}
+    if(!seen){
+      const mark = (): void => { try{ localStorage.setItem('gt-sim-seen', '1'); }catch(e){} };
+      if(!matchMedia('(max-width: 700px)').matches) setPanelOpen('simPanel', true);
+      if(panelIsOpen('simPanel')) mark();
+      else {
+        const b = $('simPlus');
+        b.classList.add('attn');
+        b.addEventListener('click', ()=>{ b.classList.remove('attn'); mark(); }, { once: true });
+      }
+    }
   });
   $('tourAgain').addEventListener('click', ()=>{ $('infoModal').style.display='none'; showTour(); });
   addEventListener('resize', ()=>{ if($('tour').style.display === 'flex') drawTourLines(); });
