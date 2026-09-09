@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 3.4.2 — 2026-09-09
+
+- V3.4.2 — the neighbours shed their cutouts (`d1b3067`)
+
 ### 3.4.1 — 2026-09-09
 
 - V3.4.1 — the nearest galaxies, named (`38fd907`)
