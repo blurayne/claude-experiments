@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 3.1.1 — 2026-09-09
+
+- V3.1.1 — Andromeda's limbs unswapped, and the sky now checks itself (`69cf663`)
+
 ### 3.1.0 — 2026-09-09
 
 - V3.1.0 — how the galaxies turn (`824a297`)
