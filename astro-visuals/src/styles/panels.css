@@ -225,3 +225,12 @@
      while a finger is actually on the panel (see .pnl.drag above). */
   .pnl, .hud{transition:top .26s cubic-bezier(.22,.61,.36,1),
     left .26s cubic-bezier(.22,.61,.36,1), right .26s cubic-bezier(.22,.61,.36,1)}
+  /* The debug panel is wider than the readings panels it sits under: it carries a state
+     box meant to be read, and its slider row needs somewhere for the value to land. */
+  #dbgPanel{width:min(320px, calc(100vw - 28px))}
+  #dbgPanel .row{display:flex;align-items:center;gap:8px;margin-top:8px}
+  #dbgPanel .row label{flex:0 0 auto;min-width:64px}
+  #dbgPanel .row input[type=range]{flex:1 1 auto;min-width:0}
+  #dbgPanel .row span{flex:0 0 auto}
+  #dbgPanel .chks{margin-top:2px}
+  #dbgPanel textarea{margin-top:2px}

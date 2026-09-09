@@ -122,13 +122,6 @@
       <label class="chk" title="labels ease into place, hold still through a jump, and step aside while a body whirls faster than a label can follow"><input type="checkbox" id="tLabelSteady" checked> steady labels<button type="button" class="info" data-tip="Labels ease into place and hold still through a jump instead of jittering with every frame." aria-label="about this setting">i</button></label>
     </div>
     </div>
-    <div class="sect" data-sec="debug" id="secDebugHead" style="display:none">Debug<span class="arw">▾</span></div>
-    <div class="sbody closed" id="secDebug">
-    <div class="chks">
-      <label class="chk" title="the whole exported state as a QR code, drawn over everything"><input type="checkbox" id="qrOn"> settings as QR overlay<button type="button" class="info" data-tip="The whole exported state as a QR code drawn over everything; drag to move it, double-tap to dismiss." aria-label="about this setting">i</button></label>
-    </div>
-    <div class="row"><label for="qrScale">qr pixels<button type="button" class="info" data-tip="How many device pixels one QR module gets: 1×, 2× or 4×." aria-label="about this setting">i</button></label><input type="range" id="qrScale" min="0" max="2" step="1" value="0"><span id="qrScalev" style="min-width:44px;text-align:right;color:var(--ink)">1×</span></div>
-    </div>
     <button id="tView" style="display:none"></button>
     <button id="tDive" style="display:none"></button>
   </div>
@@ -278,26 +271,27 @@
 <div id="fpsBox" style="display:none"><span id="fpsVal">—</span></div>
 <div class="alertbox" id="iceBox">❄ GLACIAL EPOCH</div>
 <div class="alertbox" id="g710Box">☄ GLIESE 710 · <span id="eG710d">—</span></div>
-<div id="dbgCard" style="display:none;position:fixed;inset:0;z-index:40;background:rgba(2,6,14,.72);
-    backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)">
-  <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(560px,calc(100vw - 32px));
-      background:var(--panel);border:1px solid var(--line);border-top:1px solid rgba(95,216,255,.55);
-      border-radius:3px;padding:14px 16px;box-shadow:0 0 40px rgba(0,0,0,.6)">
-    <button id="dbgClose" aria-label="close" style="position:absolute;top:8px;right:10px;background:none;
-        border:0;color:var(--dim);cursor:pointer;font-size:15px;font-family:inherit;line-height:1">×</button>
-    <h2 style="margin:0 0 8px;font-size:11px;letter-spacing:.2em;color:var(--accent);text-transform:uppercase">Debug — app state</h2>
-    <textarea id="dbgText" spellcheck="false" style="width:100%;height:min(300px,42vh);resize:vertical;
-        background:rgba(0,0,0,.45);border:1px solid var(--line);border-radius:2px;color:var(--ink);
-        font:11px/1.45 ui-monospace,Menlo,monospace;padding:8px;box-sizing:border-box"></textarea>
-    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-      <button class="dbg-b" id="dbgExport" title="write the current state into the box">export</button>
-      <button class="dbg-b" id="dbgImport" title="apply the state in the box">import</button>
-      <button class="dbg-b" id="dbgCopy" title="copy the box to the clipboard">copy</button>
-      <button class="dbg-b" id="dbgPaste" title="paste the clipboard into the box">paste</button>
-    </div>
-    <div id="dbgMsg" style="margin-top:6px;font-size:9.5px;letter-spacing:.1em;color:var(--dim);min-height:14px"></div>
+<div class="env pnl" id="dbgPanel" style="display:none">
+  <button class="pclose" data-close="dbgPanel" aria-label="close">−</button>
+  <h2>Debug — app state</h2>
+  <textarea id="dbgText" spellcheck="false" style="width:100%;height:min(220px,32vh);resize:vertical;
+      background:rgba(0,0,0,.45);border:1px solid var(--line);border-radius:2px;color:var(--ink);
+      font:11px/1.45 ui-monospace,Menlo,monospace;padding:8px;box-sizing:border-box"></textarea>
+  <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+    <button class="dbg-b" id="dbgExport" title="write the current state into the box">export</button>
+    <button class="dbg-b" id="dbgImport" title="apply the state in the box">import</button>
+    <button class="dbg-b" id="dbgCopy" title="copy the box to the clipboard">copy</button>
+    <button class="dbg-b" id="dbgPaste" title="paste the clipboard into the box">paste</button>
   </div>
+  <div id="dbgMsg" style="margin-top:5px;font-size:9.5px;letter-spacing:.1em;color:var(--dim);min-height:13px"></div>
+  <div class="envsep"></div>
+  <div class="chks">
+    <label class="chk" title="the whole exported state as a QR code, drawn over everything"><input type="checkbox" id="qrOn"> settings as QR overlay<button type="button" class="info" data-tip="The whole exported state as a QR code drawn over everything; drag to move it, double-tap to dismiss." aria-label="about this setting">i</button></label>
+    <label class="chk" title="the frame rate, in its own small box"><input type="checkbox" id="tFps2"> fps<button type="button" class="info" data-tip="The frame rate in its own small box. The same switch as the one in the settings' readouts — either turns it on." aria-label="about this setting">i</button></label>
+  </div>
+  <div class="row"><label for="qrScale">qr pixels<button type="button" class="info" data-tip="How many device pixels one QR module gets: 1×, 2× or 4×." aria-label="about this setting">i</button></label><input type="range" id="qrScale" min="0" max="2" step="1" value="0"><span id="qrScalev" style="min-width:44px;text-align:right;color:var(--ink)">1×</span></div>
 </div>
+<button class="pdot" id="dbgPlus" data-open="dbgPanel" style="display:none" aria-label="show the debug panel">&#9881;</button>
 <div id="scaleNote">
   <div class="sbar"><span class="sfill" id="sFill"></span><i class="stk"></i><i class="stk mid" id="sTkMid"></i><i class="stk end" id="sTkEnd"></i></div>
   <div class="slab"><span>0</span><span class="mid" id="sHalf">—</span><span class="end" id="sEnd">—</span><em id="sUnit">—</em></div>

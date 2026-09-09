@@ -6,7 +6,8 @@ import { cam, simClock } from '../render/state'
 import { refillTrails } from '../render/trails'
 import { events, puffs } from '../render/lifecycle'
 import { SKEY, saveSettingsNow } from './persist'
-import { applySecs, closeSection } from './sections'
+import { applySecs } from './sections'
+import { setPanelOpen, setPanelsDebug } from './panels'
 import { qrRedraw } from './qr'
 
 /**
@@ -63,15 +64,18 @@ function setHudTab(t: string): void {
 }
 export function setDebugUI(on: boolean, entering: boolean): void {
   debugMode = on;
-  $('dbgBtn').style.display = on ? '' : 'none';
   $('rowHudHz').style.display = on ? '' : 'none';
   $('rowGain').style.display = on ? '' : 'none';
-  $('secDebugHead').style.display = on ? '' : 'none';
   $('hudTabs').style.display = on ? '' : 'none';
   // the log is what debug mode is entered for, so it opens on it; leaving takes the
   // settings back, since without the strip there is no way back to them
   setHudTab(on && entering ? 'log' : 'set');
-  if(!on){ closeSection('debug'); applySecs(); }       // folded away with its heading; opens as any section
+  // The state box, the QR switches and a second frame-rate box are a panel of their own
+  // now rather than a modal behind a button — it opens with the door and closes with it,
+  // and can be moved, docked and dismissed like any other panel while it is open.
+  setPanelsDebug(on);
+  if(on && entering) setPanelOpen('dbgPanel', true);
+  if(!on) setPanelOpen('dbgPanel', false);
   // entering debug mode switches the QR on; a plain boot in debug mode leaves the choice alone
   if(on && entering && !($('qrOn') as HTMLInputElement).checked){ ($('qrOn') as HTMLInputElement).checked = true; $('qrOn').dispatchEvent(new Event('change')); }
   qrRedraw(true);
@@ -119,13 +123,8 @@ export function initDebug(deps: {
     try{ navigator.clipboard.writeText(txt); $('logCopy').textContent = 'copied'; setTimeout(()=> $('logCopy').textContent = 'copy', 1200); }catch(e){}
   });
   const dbgSay = (m: string): void => { $('dbgMsg').textContent = m; };
-  $('dbgBtn').addEventListener('click', ()=>{
-    $('dbgCard').style.display='';
-    // open on the current state, ready to copy — export is one keypress saved
-    ($('dbgText') as HTMLTextAreaElement).value = JSON.stringify(exportState(), null, 2);
-    dbgSay('current state');
-  });
-  $('dbgClose').addEventListener('click', ()=>{ $('dbgCard').style.display='none'; });
+  // the panel opens on the current state, ready to copy — export is one keypress saved
+  ($('dbgText') as HTMLTextAreaElement).value = JSON.stringify(exportState(), null, 2);
   $('dbgExport').addEventListener('click', ()=>{
     ($('dbgText') as HTMLTextAreaElement).value = JSON.stringify(exportState(), null, 2); dbgSay('state exported'); });
   $('dbgImport').addEventListener('click', ()=>{

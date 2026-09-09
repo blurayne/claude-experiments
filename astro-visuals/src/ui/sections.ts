@@ -13,10 +13,10 @@ import { $ } from '../core/dom'
  * to the resize logic and the other to ui/persist, which must not depend on either of us.
  */
 
-const SECS = ['audio','gfx','hud','other','debug'] as const;
+const SECS = ['audio','gfx','hud','other'] as const;
 type Sec = (typeof SECS)[number]
-const SEC_BODY: Record<Sec, string> = { audio:'secAudio', gfx:'secGfx', hud:'secHud', other:'secOther', debug:'secDebug' };
-const secOpen: Record<Sec, boolean> = { audio:false, gfx:true, hud:false, other:false, debug:false };
+const SEC_BODY: Record<Sec, string> = { audio:'secAudio', gfx:'secGfx', hud:'secHud', other:'secOther' };
+const secOpen: Record<Sec, boolean> = { audio:false, gfx:true, hud:false, other:false };
 
 let fitPanels: () => void = () => {}
 let saveSettings: () => void = () => {}
@@ -71,8 +71,5 @@ export function sectionApply(saved: Record<string, unknown> | undefined): void {
   for(const k of SECS) if(typeof saved[k] === 'boolean') secOpen[k] = saved[k] as boolean;
 }
 
-/**
- * Fold a section away. Only the debug door uses this: closing the door folds its section
- * with it, and it reopens like any other section afterwards.
- */
-export function closeSection(k: 'debug'): void { secOpen[k] = false }
+// The debug settings left the settings panel in v3.7 — they live in the debug panel now,
+// beside the state box they belong with — so there is no section for the door to fold.

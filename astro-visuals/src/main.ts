@@ -248,7 +248,15 @@ initScenarioViews({
   setBodySizes: () => setBodySizes(), applyTrailWindow, setShuttle,
 });
 toggle($('tGaia'), on=> gfx.gaiaOn=on);
-toggle($('tFps'), on=>{ hud.showFps=on; $('fpsBox').style.display = on ? '' : 'none'; fitPanels(); });
+// The frame rate has two switches on purpose: one in the settings' readouts, one in the
+// debug panel beside the state box, because that is where somebody debugging looks for
+// it. tFps owns the state; its twin follows, exactly as the spin lock's pair does.
+toggle($('tFps'), on=>{ hud.showFps=on; $('fpsBox').style.display = on ? '' : 'none';
+  ($('tFps2') as HTMLInputElement).checked = on; fitPanels(); });
+$('tFps2').addEventListener('change', ()=>{
+  const a = $('tFps') as HTMLInputElement, b = $('tFps2') as HTMLInputElement;
+  if(a.checked !== b.checked){ a.checked = b.checked; a.dispatchEvent(new Event('change')); }
+});
 const lifeSupOn = true;   // the reading is a fixture of the Earth panel now
 // ---------- movable panels ----------
 // The three panels, their two columns, the crowding pass and the drag gestures are ui/panels.

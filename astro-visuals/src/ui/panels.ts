@@ -12,7 +12,7 @@ import { $ } from '../core/dom'
  * position is something the settings record, not something the settings own.
  */
 
-export type PanelId = 'env' | 'simPanel' | 'hud'
+export type PanelId = 'env' | 'simPanel' | 'hud' | 'dbgPanel'
 /** `s` side, `o` what the visitor asked for, `auto` what the layout had to do, `seq` recency */
 interface PanelState { s: 'l' | 'r'; o: boolean; auto: boolean; seq: number
   /** docked to the foot of its column rather than the head — a downward swipe puts it there */
@@ -33,6 +33,7 @@ export const PANELS: readonly { id: PanelId; dot: string }[] = [
   { id:'simPanel', dot:'simPlus' },
   { id:'env',      dot:'envPlus' },
   { id:'hud',      dot:'reopen'  },
+  { id:'dbgPanel', dot:'dbgPlus' },   // only ever shown with the debug door open
 ];
 // Two states, kept apart on purpose. `o` is what the visitor asked for; `auto` is what
 // the layout had to do about it. Only `o` is saved, so a panel hidden to make room for
@@ -40,10 +41,14 @@ export const PANELS: readonly { id: PanelId; dot: string }[] = [
 // mistaken for a decision. `seq` records the order things were opened in: the newest
 // panel wins an overlap and sits on top.
 let openSeq = 0;
+// the debug door's state, pushed in by ui/debug: the fourth panel exists only behind it
+let debugOn = false;
+export const setPanelsDebug = (on: boolean): void => { debugOn = on; layoutPanels(); };
 const pState: Record<PanelId, PanelState> = {
   env:     { s:'l', o:true,  auto:false, seq:++openSeq, b:false },
   simPanel:{ s:'r', o:false, auto:false, seq:0, b:false },
   hud:     { s:'r', o:false, auto:false, seq:0, b:false },
+  dbgPanel:{ s:'l', o:false, auto:false, seq:0, b:false },
 };
 const panelShown = (id: PanelId): boolean => pState[id].o && !pState[id].auto;
 export function setPanelOpen(id: PanelId, open: boolean): void {
@@ -60,9 +65,10 @@ function placePanels(): Box[] {
   const land = innerWidth > innerHeight, pad = 14, gap = 8;
   const boxes = [];
   for(const p of PANELS){
-    const shown = panelShown(p.id);
+    const gated = p.id === 'dbgPanel' && !debugOn;   // no debug panel without the debug door
+    const shown = panelShown(p.id) && !gated;
     $(p.id).style.display = shown ? '' : 'none';
-    $(p.dot).style.display = (!pState[p.id].o || pState[p.id].auto) ? 'block' : 'none';
+    $(p.dot).style.display = (!gated && (!pState[p.id].o || pState[p.id].auto)) ? 'block' : 'none';
     $(p.id).style.zIndex = String(5 + pState[p.id].seq);   // the newest opened sits on top
   }
   for(const side of ['l','r']){

@@ -24,7 +24,7 @@ export const BOOT_IDS = [
   // render/labels **(new)**
   'labels',
   // ui/debug
-  'dbgBtn', 'dbgCard', 'dbgClose', 'dbgCopy', 'dbgExport', 'dbgImport', 'dbgMsg', 'dbgPaste',
+  'dbgCopy', 'dbgExport', 'dbgImport', 'dbgMsg', 'dbgPaste',
   'dbgText', 'hudTabs', 'logBody', 'logClear', 'logCopy', 'logCount', 'logList', 'logNote',
   // ui/dialogs
   'buildInfo', 'buildStamp', 'infoClose', 'infoModal', 'pct', 'tInfo', 'tourAgain', 'verInfo',
@@ -45,7 +45,7 @@ export const BOOT_IDS = [
   // ui/scenarios
   'jump', 'jumpGo', 'tDive', 'tView',
   // ui/sections
-  'secAudio', 'secDebug', 'secDebugHead', 'secGfx', 'secHud', 'secOther', 'secSolo',
+  'secAudio', 'secGfx', 'secHud', 'secOther', 'secSolo',
   // ui/settings
   'cal', 'closeOnGo', 'coreB', 'coreBv', 'detail', 'detailv', 'hudHz', 'hudHzv', 'minB',
   'minBv', 'orbitA', 'orbitAv', 'rowGain', 'rowHudHz', 'segUnits', 'tArms', 'tBelt', 'tDust',
@@ -59,5 +59,5 @@ export const BOOT_IDS = [
 /** Declared in the markup, never addressed by the script. */
 export const MARKUP_ONLY_IDS = [
   // evoBand/evoClip left with the Earth-across-deep-time SVG when it became an article (v3.5)
-  'changelogLink', 'eSunRow', 'envMin', 'lBirth', 'lDeath', 'tourLogo',
+  'dbgPanel', 'dbgPlus', 'tFps2', 'changelogLink', 'eSunRow', 'envMin', 'lBirth', 'lDeath', 'tourLogo',
 ]
