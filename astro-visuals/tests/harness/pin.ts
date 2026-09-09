@@ -16,7 +16,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
  * that intends visual change repins to its own final content commit, as its own commit, and
  * the pin never moves to make an unintended difference go away.
  */
-export const PIN = '0143a88c2d0123de3cdde1e0b5bd96539b0ce0d3'
+export const PIN = 'fa8fa5d73f69e28436138f335ce3f719649dcaf1'
 
 /**
  * The pinned page is written as a sibling of the live one rather than into a checkout of its
