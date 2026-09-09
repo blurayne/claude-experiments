@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 3.8.0 — 2026-09-09
+
+- V3.8.0 — the Moon's own frame, and the doors relabelled (`34d268d`)
+
 ### 3.7.0 — 2026-09-09
 
 - V3.7.0 — the hot Galaxy, and every merger we know of (`b30c780`)
