@@ -92,7 +92,7 @@ function installErrorCollector(){
  * property of the machine that loaded the page. The parity harness pins TZ for that reason.
  */
 
-const BUILD = { version: '3.4.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '3.4.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2529,6 +2529,14 @@ const IMAGES                                                                 = [
   ['img/sky/m33.webp', 23.46,  30.66, 1.6,  50],
 ];
 
+// The name labels render/labels places over the photographed three — the nearest
+// galaxies a viewer will actually recognise. Sun-relative positions, like the quads.
+const SKY_LABELS                                     = [
+  { name: 'Large Magellanic Cloud', p: dirOf(80.89, -69.76).map(c => c*R_SKY)       },
+  { name: 'Small Magellanic Cloud', p: dirOf(13.19, -72.83).map(c => c*R_SKY)       },
+  { name: 'Triangulum (M33)',       p: dirOf(23.46,  30.66).map(c => c*R_SKY)       },
+];
+
 const pSky = prog(SKY_VS, SKY_FS);
 const US = {
   proj: gl.getUniformLocation(pSky, 'uProj'),
@@ -3539,6 +3547,12 @@ const m31Els = M31_LBLS.map(a=>{
 });
 // One galaxy, one name: once the two disks have become a single blob the remnant is
 // Milkomeda (Cox & Loeb 2008), and every other galaxy name has already stepped down.
+// the nearest galaxies beyond our pair, named over their skybox photographs; they are
+// extragalactic, so unlike everything else these labels survive the merger
+const skyEls = SKY_LABELS.map(a=>{
+  const d=document.createElement('div'); d.className='armlbl'; d.textContent=a.name;
+  d.style.display='none'; labelWrap.appendChild(d); return d;
+});
 const mergedEl = (()=>{ const d=document.createElement('div'); d.className='armlbl'; d.textContent='Milkomeda';
   d.style.display='none'; labelWrap.appendChild(d); return d; })();
 const g710Lbl = (()=>{ const d=document.createElement('div'); d.className='lbl'; d.textContent='Gliese 710';
@@ -3694,6 +3708,13 @@ function drawLabels(showLabels         , inputs             )       {
       placeLabel(m31Els[a]         , sx, sy, show);
     }
   } else m31Els.forEach(l=>placeLabel(l         , 0, 0, false));
+  // the skybox names: pinned to the far sphere, Sun-relative like their images, shown
+  // whenever the view is wide enough to be looking at sky at all
+  for(let a=0;a<SKY_LABELS.length;a++){
+    const L = SKY_LABELS[a].p;
+    const [cw, sx, sy] = proj(L[0], L[1], L[2]);
+    placeLabel(skyEls[a]         , sx, sy + 12, galaxyNames && cw > 1);
+  }
   // one galaxy, one name: from the moment the disks are one blob, the remnant's centre
   { const [cw, sx, sy] = proj(-org[0], -org[1], -org[2]);
     placeLabel(mergedEl, sx, sy, galaxyNames && merge >= 0.35 && cw > 1); }

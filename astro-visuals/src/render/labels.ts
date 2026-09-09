@@ -3,6 +3,7 @@ import { mul } from '../core/mat4'
 import { AU2U, REAL_MODE, RC_BAR, RC_ARMS } from '../astro/constants'
 import { BODIES, NB, N_PLANETS, I_P9 } from '../astro/bodies'
 import { M31_ROT } from '../astro/merger'
+import { SKY_LABELS } from '../scene/skybox'
 import { gfx, readout, view } from './state'
 import { bodyPosArr } from './passes/bodies'
 import { moonRel } from '../astro/earth'
@@ -83,6 +84,12 @@ const m31Els = M31_LBLS.map(a=>{
 });
 // One galaxy, one name: once the two disks have become a single blob the remnant is
 // Milkomeda (Cox & Loeb 2008), and every other galaxy name has already stepped down.
+// the nearest galaxies beyond our pair, named over their skybox photographs; they are
+// extragalactic, so unlike everything else these labels survive the merger
+const skyEls = SKY_LABELS.map(a=>{
+  const d=document.createElement('div'); d.className='armlbl'; d.textContent=a.name;
+  d.style.display='none'; labelWrap.appendChild(d); return d;
+});
 const mergedEl = (()=>{ const d=document.createElement('div'); d.className='armlbl'; d.textContent='Milkomeda';
   d.style.display='none'; labelWrap.appendChild(d); return d; })();
 const g710Lbl = (()=>{ const d=document.createElement('div'); d.className='lbl'; d.textContent='Gliese 710';
@@ -240,6 +247,13 @@ export function drawLabels(showLabels: boolean, inputs: LabelInputs): void {
       placeLabel(m31Els[a] as Label, sx, sy, show);
     }
   } else m31Els.forEach(l=>placeLabel(l as Label, 0, 0, false));
+  // the skybox names: pinned to the far sphere, Sun-relative like their images, shown
+  // whenever the view is wide enough to be looking at sky at all
+  for(let a=0;a<SKY_LABELS.length;a++){
+    const L = SKY_LABELS[a].p;
+    const [cw, sx, sy] = proj(L[0], L[1], L[2]);
+    placeLabel(skyEls[a] as Label, sx, sy + 12, galaxyNames && cw > 1);
+  }
   // one galaxy, one name: from the moment the disks are one blob, the remnant's centre
   { const [cw, sx, sy] = proj(-org[0], -org[1], -org[2]);
     placeLabel(mergedEl, sx, sy, galaxyNames && merge >= 0.35 && cw > 1); }

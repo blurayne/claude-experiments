@@ -69,6 +69,14 @@ const IMAGES: readonly (readonly [string, number, number, number, number])[] = [
   ['img/sky/m33.webp', 23.46,  30.66, 1.6,  50],
 ];
 
+// The name labels render/labels places over the photographed three — the nearest
+// galaxies a viewer will actually recognise. Sun-relative positions, like the quads.
+export const SKY_LABELS: readonly { name: string; p: V3 }[] = [
+  { name: 'Large Magellanic Cloud', p: dirOf(80.89, -69.76).map(c => c*R_SKY) as V3 },
+  { name: 'Small Magellanic Cloud', p: dirOf(13.19, -72.83).map(c => c*R_SKY) as V3 },
+  { name: 'Triangulum (M33)',       p: dirOf(23.46,  30.66).map(c => c*R_SKY) as V3 },
+];
+
 const pSky = prog(SKY_VS, SKY_FS);
 const US = {
   proj: gl.getUniformLocation(pSky, 'uProj'),
