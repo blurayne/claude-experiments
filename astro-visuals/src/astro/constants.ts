@@ -81,6 +81,10 @@ export const sA = Math.sin(BAR_A), cA = Math.cos(BAR_A);
  * kinematics have it. One relative lap takes ~6 Gyr: the spur is our neighbourhood for
  * the rest of the disk's life.
  */
+/** The Big Bang, on this page's clock (real years from today): the universe is ~13.787 Gyr
+ * old, and the clock refuses to scrub before it — there is nothing there to draw. */
+export const T_BIG_BANG = -13.787e9;
+
 export const RC_BAR = 650;
 export const RC_ARMS = 933;
 

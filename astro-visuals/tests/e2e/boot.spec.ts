@@ -338,6 +338,30 @@ test.describe('the life cycle', () => {
  * cannot deceive: what a viewer actually sees. The arm labels ride the pattern through the
  * page's own projection; over 40 Myr each must sweep clockwise about the screen centre.
  */
+test.describe('the panels obey the pointer', () => {
+  test('settings accordions and tabs answer real clicks, debug mode or not', async ({ page }) => {
+    // Two stacked regressions once made this fail: every ?debug boot hijacked the
+    // settings panel onto the log tab, and the panel swipe handler captured the pointer
+    // on the plain-div section headers, retargeting their clicks to the panel itself.
+    // Synthetic .click() calls bypass hit-testing, so only REAL pointer clicks catch it.
+    await page.goto('/galactic-transit.html?debug', { waitUntil: 'load' })
+    await page.waitForFunction(() => !!document.getElementById('gl'))
+    const tour = page.locator('#tourGo')
+    if (await tour.isVisible().catch(() => false)) await tour.click()
+    await page.evaluate(() => document.getElementById('reopen')?.click())
+    await page.waitForTimeout(400)
+    await page.locator('#hudTabs .tab[data-tab="set"]').click()
+    await page.waitForTimeout(200)
+    expect(await page.evaluate(() => (document.getElementById('hudBody') as HTMLElement).style.display)).not.toBe('none')
+    for (const sec of ['audio', 'hud'] as const) {
+      await page.locator(`.sect[data-sec="${sec}"]`).click()
+      await page.waitForTimeout(250)
+      expect(await page.evaluate((k) => !document.getElementById(k)!.classList.contains('closed'),
+        sec === 'audio' ? 'secAudio' : 'secHud'), `${sec} section did not open`).toBe(true)
+    }
+  })
+})
+
 test.describe('the rotation sense', () => {
   test('from the north galactic pole, the disk turns clockwise on screen', async ({ page }) => {
     await page.setViewportSize({ width: 900, height: 900 })

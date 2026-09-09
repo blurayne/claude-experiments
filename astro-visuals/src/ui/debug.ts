@@ -1,4 +1,5 @@
 import { $ } from '../core/dom'
+import { T_BIG_BANG } from '../astro/constants'
 import { BUILD } from '../core/build'
 import { errLog, TOUCH_DEV } from '../core/errorlog'
 import { cam, simClock } from '../render/state'
@@ -22,14 +23,20 @@ import { qrRedraw } from './qr'
 let restoreSettings: (register: boolean) => void = () => {}
 let fitPanels: () => void = () => {}
 export const DBGKEY = 'galactic-transit.debug';
+// Whether debug was already on BEFORE this load: a ?debug boot is only "entering" the
+// mode the first time. It used to count every reload as an entry, so anyone living with
+// ?debug in the URL found the settings panel hijacked by the log tab on every visit —
+// which read as "the accordions are broken", because they were a tab away.
+let wasAlreadyOn = false;
 export const DEBUG: boolean = (()=>{ try{
+  wasAlreadyOn = localStorage.getItem(DBGKEY) === '1';
   const v = new URLSearchParams(location.search).get('debug');
   if(v !== null){
     const on = !['0','false','off'].includes(v.toLowerCase());
     try{ localStorage.setItem(DBGKEY, on ? '1' : '0'); }catch(e){}
     return on;
   }
-  return localStorage.getItem(DBGKEY) === '1';
+  return wasAlreadyOn;
 }catch(e){ return false; } })();
 let debugMode = false;
 export const isDebugMode = (): boolean => debugMode
@@ -85,7 +92,8 @@ export function applyState(o: any): void {
   if(!o || o.app !== 'galactic-transit') throw new Error('not a galactic-transit state');
   if(o.settings){ localStorage.setItem(SKEY, JSON.stringify(o.settings)); restoreSettings(false); }
   if(o.time && typeof o.time.simT === 'number'){
-    simClock.simT = o.time.simT; simClock.nextSample = simClock.simT + simClock.dtSample;
+    simClock.simT = Math.max(T_BIG_BANG, o.time.simT);   // imports cannot precede the universe either
+    simClock.nextSample = simClock.simT + simClock.dtSample;
     events.length = 0; puffs.length = 0; refillTrails();
     if(typeof o.time.paused === 'boolean' && simClock.paused !== o.time.paused) $('tPause').click();
   }
@@ -130,5 +138,5 @@ export function initDebug(deps: {
     navigator.clipboard.readText()
       .then(v=>{ ($('dbgText') as HTMLTextAreaElement).value=v; dbgSay('pasted'); },
             ()=>dbgSay('clipboard refused — paste into the box by hand')); });
-  if(DEBUG) setDebugUI(true, new URLSearchParams(location.search).get('debug') !== null);
+  if(DEBUG) setDebugUI(true, !wasAlreadyOn);
 }

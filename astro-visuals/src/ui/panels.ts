@@ -137,7 +137,11 @@ export function initPanels(deps: { fitPanels: () => void; saveSettings: () => vo
     let x0 = 0, active = false, moved = 0, pid = -1;
     el.addEventListener('pointerdown', e => {
       // never steal a gesture that belongs to a control inside the panel
-      if((e.target as HTMLElement | null)?.closest('input, button, select, textarea, a, .seg, .chk')) return;
+      // .sect and .tab are plain divs that act as buttons: if the swipe capture starts
+      // on them, the pointer capture retargets the eventual click to the PANEL and the
+      // header's own listener never fires — the accordions read as broken. Every
+      // clickable thing in a panel must be listed here, not just the form controls.
+      if((e.target as HTMLElement | null)?.closest('input, button, select, textarea, a, .seg, .chk, .sect, .tab')) return;
       x0 = e.clientX; active = true; moved = 0; pid = e.pointerId;
       // Capture the pointer, or the swipe dies the moment the finger leaves the panel —
       // and on a phone the panel is ~178 px wide, so a 60 px swipe started anywhere near

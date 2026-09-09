@@ -1,7 +1,7 @@
 import { $ } from '../core/dom'
 import { lookAt, mul, perspective, MAT3_ID, type Vec3 } from '../core/mat4'
 import {
-  R_GAL, V_GAL, AGE0, AU2U, REAL_MODE, TILT, E1, E2, RC_BAR, ARM_EVO_AMP,
+  R_GAL, V_GAL, AGE0, AU2U, REAL_MODE, TILT, E1, E2, RC_BAR, ARM_EVO_AMP, T_BIG_BANG,
 } from '../astro/constants'
 import { BODIES, NB, N_PLANETS, I_P9, bodyPos, tmp, earthW } from '../astro/bodies'
 import { EAT_AGES, sunState, sunTint, pnState, type PnState } from '../astro/sun'
@@ -16,6 +16,7 @@ import { cam, gfx, lifeAcc, readout, simClock, view, SKY_MIRROR } from './state'
 import { hud, updateHud } from '../ui/hud'
 import { N_STAR } from '../scene/starfield'
 import { drawNebula, type CloudFrame, type Which } from './passes/nebula'
+import { drawSkyImages, N_SKYDOTS, skyDotVAO } from '../scene/skybox'
 import { drawDust } from './passes/dust'
 import { pPt, U } from './passes/points'
 import { drawBelts } from './passes/belts'
@@ -98,6 +99,7 @@ function frame(now: number): void {
   let n=0;                                // trail samples taken this frame; read below
   if(drive !== 0 && !holding){
     simClock.simT += dt*simClock.speed*simClock.speedMult*drive;
+    if(simClock.simT < T_BIG_BANG) simClock.simT = T_BIG_BANG;   // nothing to draw before the universe
     // the clock in years a second decides whether the globe still has days (see uAvg)
     { const yps = simClock.speed*simClock.speedMult*Math.abs(drive); const want = Math.max(0, Math.min(1, (Math.log10(Math.max(1e-9, yps)) + 1.3)));
       readout.avgLight += (want - readout.avgLight)*Math.min(1, dt*4); }
@@ -347,6 +349,10 @@ function frame(now: number): void {
     }
     if(!insideDisk) drawNebula(clouds, false, 'and');   // her HII ring and core, over her stars
   };
+  // the extragalactic sky first: it is behind everything, and it does not turn
+  drawSkyImages(view.projMat!, viewMat, org);
+  { const dots = skyDotVAO();
+    if(dots){ gl.useProgram(pPt); gl.bindVertexArray(dots); gl.drawArrays(gl.POINTS, 0, N_SKYDOTS); } }
   if(andFar) andLayer();
   // the Milky Way's layer: haze, lanes, then the backdrop sky and the Gaia bubble (our
   // own foreground stars — in front of Andromeda from every camera this side of her),

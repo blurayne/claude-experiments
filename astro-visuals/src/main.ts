@@ -70,6 +70,7 @@ import {
 } from './astro/earth'
 import { simClock, cam, gfx, view, readout, lifeAcc, SKY_MIRROR } from './render/state'
 import { buildStarfield, N_STAR } from './scene/starfield'
+import { initSkybox } from './scene/skybox'
 import {
   setGalaxy, loadGalaxyMap, loadM31Map, loadGaiaStars, galaxyKeys,
 } from './scene/cache'
@@ -167,6 +168,7 @@ setLogRenderer(() => renderLog())
 // The backdrop starfield. Built here, and here specifically: it is the first of the seven
 // things that consume randomness at boot, and the seeded parity stream depends on the order.
 const { pos: starPos, size: starSize, col: starCol } = buildStarfield();
+initSkybox();   // the real brightest galaxies, pinned to the far sky
 
 // Drop every cached galaxy build. The Andromeda entry is an { a, an, ad } bundle, and
 // both map loaders race each other here — this must never throw mid-flush, or the
@@ -327,7 +329,7 @@ registerApply(s => {
   if(s.mult > 0 && s.mult !== simClock.speedMult) setMultExp(Math.log10(s.mult));
   if(s.dprc === 1 || s.dprc === 2){ if(s.dprc !== view.dprCap){ view.dprCap = s.dprc; resize(); } }   // the probe's pixel cap, kept
   if(s.dens){ const i = DETAIL_D.indexOf(s.dens);
-    if(i >= 0){ $('detail').value = i; $('detailv').textContent = DETAIL_NAMES[i];   // the slider shows the tier even when it is the boot tier
+    if(i >= 0){ $('detail').value = i;   // the dropdown shows the tier even when it is the boot tier
       if(s.dens !== gfx.curD) $('detail').dispatchEvent(new Event('input')); } }
   if(s.units === 'words' || s.units === 'sup' || s.units === 'e') setSegUnits(s.units);
   if(s.fsel === 'sun' || s.fsel === 'mw' || s.fsel === 'and') $('focusSel').value = s.fsel;
@@ -365,14 +367,24 @@ toggle($('tDive'), on=>{ cam.panF[0]=cam.panF[1]=0;
 // back to what was working instead of leaving a half-built galaxy.
 const DETAIL_D = [1,5,20,40,80,160];
 const DETAIL_NAMES = ['lowest','low','medium','high','max','ultra'];
-$('detail').addEventListener('input', e=>{
+// what a tier actually draws: both galaxies scale with D (92k and 58k points per unit),
+// the Gaia bubble is a flat 100k plus its 400k deep tier from "low" up, and the backdrop
+// sphere is 3,200. The note under the dropdown states it instead of asking anyone to know.
+const detailCount = (d: number): string => {
+  const n = 150000*d + 100000 + (d >= 5 ? 400000 : 0) + 3200;
+  return n >= 1e6 ? '≈ ' + (n/1e6).toFixed(1) + ' M stars' : '≈ ' + Math.round(n/1000) + ' k stars';
+};
+const applyDetail = (e: { target: { value: string | number } }): void => {
   const i = Math.max(0, Math.min(5, Math.round(+e.target.value)));
   const prev = gfx.curD;
   try{ setGalaxy(DETAIL_D[i]); }
   catch(err){ try{ setGalaxy(prev); }catch(e2){}
     const j = DETAIL_D.indexOf(gfx.curD); if(j>=0) e.target.value = j; }
-  $('detailv').textContent = DETAIL_NAMES[DETAIL_D.indexOf(gfx.curD)] || DETAIL_NAMES[0];
-});
+  $('detailv').textContent = detailCount(gfx.curD);
+};
+$('detail').addEventListener('input', applyDetail);
+$('detail').addEventListener('change', applyDetail);   // a <select> speaks change, not input
+$('detailv').textContent = detailCount(gfx.curD);
 // ---------- fullscreen & screen orientation ----------
 // All of it — the button, the rotation lock, the armed landscape request and the installed-app
 // case — is ui/fullscreen. So is registering the service worker, for the same reason: both are

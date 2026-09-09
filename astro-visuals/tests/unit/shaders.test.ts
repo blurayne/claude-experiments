@@ -20,11 +20,12 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
 describe('the shaders', () => {
   const files = readdirSync(resolve(ROOT, 'src/shaders')).sort()
 
-  it('is still the full set of 23, all of them vert or frag', () => {
-    // The set the original page carried, proved equal during the migration and counted here
-    // ever since: a shader deleted by accident is a program that fails at runtime with a
-    // message nobody reads until the canvas is black.
-    expect(files).toHaveLength(23)
+  it('is still the full set of 25, all of them vert or frag', () => {
+    // The 23 the original page carried — proved equal during the migration and counted
+    // here ever since — plus the v3.4 skybox pair (sky.vert/sky.frag). A shader deleted
+    // by accident is a program that fails at runtime with a message nobody reads until
+    // the canvas is black.
+    expect(files).toHaveLength(25)
     for (const f of files) expect(f, `${f} is neither .vert nor .frag`).toMatch(/\.(vert|frag)$/)
   })
 

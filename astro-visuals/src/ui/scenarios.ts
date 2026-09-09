@@ -218,6 +218,21 @@ export function jumpToEpoch(): void {
     if(!$v('tSpinLock').checked){ $v('tSpinLock').checked = true; $('tSpinLock').dispatchEvent(new Event('change')); }
     if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
   }
+  if(sel.value === '5.8534w'){
+    // Milky Way wobble — a view a user found and exported, staged as they had it: the
+    // disk from just above the plane (pitch 0.35), the camera riding the bar pattern
+    // (spin lock ON), the clock at rung 21 with the ×1e8 multiplier. From this grazing
+    // angle the arms hold still and what moves is the WARP: the disk's outer rim rolls
+    // through its retrograde ~650 Myr precession, the whole galaxy visibly wobbling
+    // like a plate settling on a table, while the beat breathes through the frozen arms.
+    $v('focusSel').value = 'mw'; applyFocusView();
+    if(!$v('tSpinLock').checked){ $v('tSpinLock').checked = true; $('tSpinLock').dispatchEvent(new Event('change')); }
+    cam.yaw = 0.0189; cam.pitch = 0.3538;
+    cam.dist = cam.distGoal = 4300;
+    $v('speed').value = '21'; $('speed').dispatchEvent(new Event('input'));
+    setMultExp(8);
+    if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
+  }
   // Earth's own events are watched from Earth: the globe filling the view, followed. The
   // continental ones lock the camera to the spin and put the eye over the face that
   // matters, given as yaw = atan2(cos lat cos lon, −cos lat sin lon), pitch = lat:

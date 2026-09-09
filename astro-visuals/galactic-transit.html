@@ -92,7 +92,7 @@ function installErrorCollector(){
  * property of the machine that loaded the page. The parity harness pins TZ for that reason.
  */
 
-const BUILD = { version: '3.3.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '3.4.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -321,6 +321,10 @@ const sA = Math.sin(BAR_A), cA = Math.cos(BAR_A);
  * kinematics have it. One relative lap takes ~6 Gyr: the spur is our neighbourhood for
  * the rest of the disk's life.
  */
+/** The Big Bang, on this page's clock (real years from today): the universe is ~13.787 Gyr
+ * old, and the clock refuses to scrub before it — there is nothing there to draw. */
+const T_BIG_BANG = -13787e6;
+
 const RC_BAR = 650;
 const RC_ARMS = 933;
 
@@ -589,6 +593,13 @@ const gl                         = glCtx;
  * mid-flush, because both map loaders race each other into it and the loser would be left
  * pointing at deleted vertex arrays.
  */
+
+function makeBuf(data              )              {
+  const b = gl.createBuffer() ;
+  gl.bindBuffer(gl.ARRAY_BUFFER,b);
+  gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);
+  return b;
+}
 
 // Buffers are tracked alongside their VAO so a density can be released again: deleting
 // a vertex array does not free what it references, and the big densities are hundreds
@@ -2018,14 +2029,20 @@ function initQr(deps
 let restoreSettings$1                              = () => {};
 let fitPanels$3             = () => {};
 const DBGKEY = 'galactic-transit.debug';
+// Whether debug was already on BEFORE this load: a ?debug boot is only "entering" the
+// mode the first time. It used to count every reload as an entry, so anyone living with
+// ?debug in the URL found the settings panel hijacked by the log tab on every visit —
+// which read as "the accordions are broken", because they were a tab away.
+let wasAlreadyOn = false;
 const DEBUG          = (()=>{ try{
+  wasAlreadyOn = localStorage.getItem(DBGKEY) === '1';
   const v = new URLSearchParams(location.search).get('debug');
   if(v !== null){
     const on = !['0','false','off'].includes(v.toLowerCase());
     try{ localStorage.setItem(DBGKEY, on ? '1' : '0'); }catch(e){}
     return on;
   }
-  return localStorage.getItem(DBGKEY) === '1';
+  return wasAlreadyOn;
 }catch(e){ return false; } })();
 let debugMode = false;
 const isDebugMode = ()          => debugMode;
@@ -2081,7 +2098,8 @@ function applyState(o     )       {
   if(!o || o.app !== 'galactic-transit') throw new Error('not a galactic-transit state');
   if(o.settings){ localStorage.setItem(SKEY, JSON.stringify(o.settings)); restoreSettings$1(false); }
   if(o.time && typeof o.time.simT === 'number'){
-    simClock.simT = o.time.simT; simClock.nextSample = simClock.simT + simClock.dtSample;
+    simClock.simT = Math.max(T_BIG_BANG, o.time.simT);   // imports cannot precede the universe either
+    simClock.nextSample = simClock.simT + simClock.dtSample;
     events.length = 0; puffs.length = 0; refillTrails();
     if(typeof o.time.paused === 'boolean' && simClock.paused !== o.time.paused) $('tPause').click();
   }
@@ -2126,7 +2144,7 @@ function initDebug(deps
     navigator.clipboard.readText()
       .then(v=>{ ($('dbgText')                       ).value=v; dbgSay('pasted'); },
             ()=>dbgSay('clipboard refused — paste into the box by hand')); });
-  if(DEBUG) setDebugUI(true, new URLSearchParams(location.search).get('debug') !== null);
+  if(DEBUG) setDebugUI(true, !wasAlreadyOn);
 }
 
 /**
@@ -2442,6 +2460,172 @@ function drawNebula(
   }
   gl.uniform1f(UN.gal, 0.0);
 }
+
+const SKY_VS = "#version 300 es\nlayout(location=0) in vec3 aPos;\nlayout(location=1) in vec2 aUV;\nuniform mat4 uProj, uView;\nuniform vec3 uOrg;\nout vec2 vUV;\n// The extragalactic skybox: textured quads pinned to the far sky. Sun-relative like\n// everything drawn (uOrg), and deliberately NOT wave-rotated: the background universe\n// does not turn with our disk, so over deep time the Milky Way visibly rotates against\n// the fixed field of the bright galaxies — which is the whole point of drawing them.\nvoid main(){\n  vUV = aUV;\n  gl_Position = uProj * uView * vec4(aPos - uOrg, 1.0);\n}\n";
+
+const SKY_FS = "#version 300 es\nprecision highp float;\nin vec2 vUV;\nuniform sampler2D uTex;\nuniform float uGain;\nout vec4 o;\n// Additive, like every sprite here: the photographs are vignetted to black at their\n// edges during ingest, so black adds nothing and no alpha channel is needed.\nvoid main(){\n  o = vec4(texture(uTex, vUV).rgb * uGain, 1.0);\n}\n";
+
+/**
+ * The extragalactic sky: the brightest real galaxies we see from here, at their true
+ * J2000 positions. The three big ones — the two Magellanic Clouds and Triangulum — are
+ * their photographs on billboards; the rest are tinted points sized by apparent
+ * diameter. All of it rides the Sun like the backdrop does, and none of it rotates
+ * with the disk: the background universe holds still while the Milky Way turns.
+ *
+ * Positions go through the same equatorial→galactic→scene chain as the star-catalogue
+ * builder (tools/build_athyg_stars.py), which the orientation tests verify end to end.
+ * One disclosed simplification: everything sits on one far sphere (R_SKY), so the
+ * Clouds — really at 50–60 kpc — are drawn as sky, not as neighbours; they do not
+ * move through the merger. Photo credits live in the info panel's what's-real ledger.
+ */
+
+// equatorial -> galactic, J2000 — the catalogue builder's matrix
+const R = [
+  [-0.05487556, -0.87343709, -0.48383502],
+  [ 0.49410943, -0.44482963,  0.74698225],
+  [-0.86766615, -0.19807637,  0.45598378],
+];        
+const eqToScene = ([x, y, z]    )     => {
+  const Xg = R[0][0]*x + R[0][1]*y + R[0][2]*z;
+  const Yg = R[1][0]*x + R[1][1]*y + R[1][2]*z;
+  const Zg = R[2][0]*x + R[2][1]*y + R[2][2]*z;
+  return [Yg, Zg, -Xg]                       // scene: l=90 on +x, north on +y, GC on −z
+};
+const dirOf = (raDeg        , decDeg        )     => {
+  const ra = raDeg*Math.PI/180, dec = decDeg*Math.PI/180;
+  return eqToScene([Math.cos(dec)*Math.cos(ra), Math.cos(dec)*Math.sin(ra), Math.sin(dec)])
+};
+const cross = (a    , b    )     => [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];
+const norm = (v    )     => { const l = Math.hypot(...v) || 1; return [v[0]/l, v[1]/l, v[2]/l] };
+
+const R_SKY = 17000;   // beyond Andromeda's farthest drawn separation, inside the far plane
+
+// name, RA°, Dec°, major axis arcmin, position angle °, and a display tint from the
+// galaxy's dominant colour (yellow ellipticals, blue-white face-on spirals, dusty warms)
+const DOTS                                                                                                    = [
+  ['M81',      148.89,  69.07, 27, 157, [1.00, 0.92, 0.78]],
+  ['M82',      148.97,  69.68, 11,  65, [1.00, 0.84, 0.62]],
+  ['Centaurus A', 201.37, -43.02, 26, 35, [0.95, 0.88, 0.80]],
+  ['M83',      204.25, -29.87, 13,  45, [0.85, 0.92, 1.00]],
+  ['M101',     210.80,  54.35, 29,   0, [0.82, 0.90, 1.00]],
+  ['M51',      202.47,  47.20, 11, 163, [0.85, 0.92, 1.00]],
+  ['NGC 253',   11.89, -25.29, 27,  52, [1.00, 0.88, 0.70]],
+  ['M104',     190.00, -11.62,  9,  89, [1.00, 0.93, 0.80]],
+  ['M87',      187.71,  12.39,  8,   0, [1.00, 0.95, 0.82]],
+  ['M64',      194.18,  21.68, 10, 115, [0.95, 0.90, 0.82]],
+  ['M94',      192.72,  41.12, 11, 120, [0.95, 0.93, 0.85]],
+  ['M106',     184.74,  47.30, 19, 150, [0.88, 0.92, 1.00]],
+  ['NGC 300',   13.72, -37.68, 22, 111, [0.85, 0.92, 1.00]],
+  ['NGC 55',     3.79, -39.2, 32, 108, [0.88, 0.92, 1.00]],
+  ['M49',      187.44,   8.00, 10,   0, [1.00, 0.94, 0.80]],
+  ['IC 342',    56.70,  68.10, 21,   0, [0.90, 0.92, 1.00]],
+];
+
+// the three photographed ones: file, RA°, Dec°, apparent size ° (drawn edge to edge),
+// and the rotation of the image's vertical onto the sky, eyeballed against the real frames
+const IMAGES                                                                 = [
+  ['img/sky/lmc.webp', 80.89, -69.76, 9.0,  10],
+  ['img/sky/smc.webp', 13.19, -72.83, 5.0,  35],
+  ['img/sky/m33.webp', 23.46,  30.66, 1.6,  50],
+];
+
+const pSky = prog(SKY_VS, SKY_FS);
+const US = {
+  proj: gl.getUniformLocation(pSky, 'uProj'),
+  view: gl.getUniformLocation(pSky, 'uView'),
+  org:  gl.getUniformLocation(pSky, 'uOrg'),
+  tex:  gl.getUniformLocation(pSky, 'uTex'),
+  gain: gl.getUniformLocation(pSky, 'uGain'),
+};
+
+let dotVAO                                = null;
+let quadVAOs                                                       = [];
+let N_SKYDOTS = 0;
+
+function initSkybox()       {
+  // the dots, through the same point pipeline as everything else
+  N_SKYDOTS = DOTS.length;
+  const pos = new Float32Array(N_SKYDOTS*3), size = new Float32Array(N_SKYDOTS), col = new Float32Array(N_SKYDOTS*3);
+  DOTS.forEach(([, ra, dec, arcmin, , tint], i) => {
+    const d = dirOf(ra, dec);
+    pos[i*3] = d[0]*R_SKY; pos[i*3+1] = d[1]*R_SKY; pos[i*3+2] = d[2]*R_SKY;
+    // aSize is divided by the view distance in the shader; at R_SKY this lands 3–9 px,
+    // scaled with apparent diameter and floored so the small ones survive
+    size[i] = Math.min(340, Math.max(95, arcmin*8));
+    const b = 0.8;
+    col[i*3] = tint[0]*b; col[i*3+1] = tint[1]*b; col[i*3+2] = tint[2]*b;
+  });
+  dotVAO = pointVAO(pos, size, col);
+
+  // the photographed three: one quad each, corners set on the sky's north/east tangents
+  // at the true position angle. The photos are vignetted to black, so additive blending
+  // needs no alpha and no sorting.
+  for (const [file, ra, dec, sizeDeg, rot] of IMAGES) {
+    const d = dirOf(ra, dec);
+    // celestial north's tangent at this point, and east's — polar vectors, safe to
+    // transform one by one through the left-handed scene map
+    const nPole = eqToScene([0, 0, 1]);
+    const nT = norm([nPole[0] - (nPole[0]*d[0]+nPole[1]*d[1]+nPole[2]*d[2])*d[0],
+                     nPole[1] - (nPole[0]*d[0]+nPole[1]*d[1]+nPole[2]*d[2])*d[1],
+                     nPole[2] - (nPole[0]*d[0]+nPole[1]*d[1]+nPole[2]*d[2])*d[2]]);
+    const eT = norm(cross(d, nT));
+    const a = rot*Math.PI/180;
+    const up     = [nT[0]*Math.cos(a)+eT[0]*Math.sin(a), nT[1]*Math.cos(a)+eT[1]*Math.sin(a), nT[2]*Math.cos(a)+eT[2]*Math.sin(a)];
+    const rt     = [eT[0]*Math.cos(a)-nT[0]*Math.sin(a), eT[1]*Math.cos(a)-nT[1]*Math.sin(a), eT[2]*Math.cos(a)-nT[2]*Math.sin(a)];
+    const h = R_SKY*Math.tan(sizeDeg*Math.PI/360);
+    const c     = [d[0]*R_SKY, d[1]*R_SKY, d[2]*R_SKY];
+    const corner = (su        , sv        )           =>
+      [c[0]+rt[0]*h*su+up[0]*h*sv, c[1]+rt[1]*h*su+up[1]*h*sv, c[2]+rt[2]*h*su+up[2]*h*sv];
+    const v = new Float32Array([
+      ...corner(-1,-1), 0,1,  ...corner(1,-1), 1,1,  ...corner(1,1), 1,0,
+      ...corner(-1,-1), 0,1,  ...corner(1,1), 1,0,   ...corner(-1,1), 0,0,
+    ]);
+    const vao = gl.createVertexArray(); 
+    gl.bindVertexArray(vao);
+    const buf = makeBuf(v);
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 20, 0);
+    gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 20, 12);
+    gl.bindVertexArray(null);
+    trackVAOBuffers(vao, [buf]);
+    const tex = gl.createTexture(); 
+    quadVAOs.push({ vao, tex });
+    fetch(file).then(r => r.ok ? r.blob() : Promise.reject())
+      .then(b => createImageBitmap(b))
+      .then(bm => {
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, bm);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        loaded.add(tex);
+      })
+      .catch(() => {});   // offline: the dots still carry the sky
+  }
+}
+const loaded = new Set              ();
+
+/** The image quads. The dots draw through the point pipeline in render/frame instead. */
+function drawSkyImages(projMat              , viewMat              , org              )       {
+  if (!quadVAOs.some(q => loaded.has(q.tex))) return
+  gl.useProgram(pSky);
+  gl.uniformMatrix4fv(US.proj, false, projMat);
+  gl.uniformMatrix4fv(US.view, false, viewMat);
+  gl.uniform3f(US.org, org[0], org[1], org[2]);
+  gl.uniform1i(US.tex, 0);
+  gl.uniform1f(US.gain, 0.85);
+  gl.activeTexture(gl.TEXTURE0);
+  for (const q of quadVAOs) {
+    if (!loaded.has(q.tex)) continue
+    gl.bindTexture(gl.TEXTURE_2D, q.tex);
+    gl.bindVertexArray(q.vao);
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+  }
+  gl.bindVertexArray(null);
+}
+
+const skyDotVAO = ()                                => dotVAO;
 
 const DUST_FS = "#version 300 es\nprecision mediump float;\nin vec3 vColor; out vec4 o;\nvoid main(){\n  vec2 q = gl_PointCoord*2.0-1.0;\n  float r = length(q);\n  if(r>1.0) discard;\n  // never opaque at the centre: a cloud thins the haze behind it, it does not punch\n  // a black hole in it (that is what the old profile did, reaching alpha 1 and past)\n  // interstellar dust reddens: the blend multiplies what is behind by 1 − rgb, and the\n  // extinction runs A_R : A_V : A_B ≈ 0.82 : 1 : 1.32 (R_V = 3.1), so blue goes first\n  float a = min(0.72, pow(1.0-r, 2.4)*vColor.r);\n  o = vec4(a*vec3(0.62, 0.76, 1.0), a);\n}";
 
@@ -3589,6 +3773,7 @@ function frame(now        )       {
   let n=0;                                // trail samples taken this frame; read below
   if(drive !== 0 && !holding){
     simClock.simT += dt*simClock.speed*simClock.speedMult*drive;
+    if(simClock.simT < T_BIG_BANG) simClock.simT = T_BIG_BANG;   // nothing to draw before the universe
     // the clock in years a second decides whether the globe still has days (see uAvg)
     { const yps = simClock.speed*simClock.speedMult*Math.abs(drive); const want = Math.max(0, Math.min(1, (Math.log10(Math.max(1e-9, yps)) + 1.3)));
       readout.avgLight += (want - readout.avgLight)*Math.min(1, dt*4); }
@@ -3838,6 +4023,10 @@ function frame(now        )       {
     }
     if(!insideDisk) drawNebula(clouds, false, 'and');   // her HII ring and core, over her stars
   };
+  // the extragalactic sky first: it is behind everything, and it does not turn
+  drawSkyImages(view.projMat , viewMat, org);
+  { const dots = skyDotVAO();
+    if(dots){ gl.useProgram(pPt); gl.bindVertexArray(dots); gl.drawArrays(gl.POINTS, 0, N_SKYDOTS); } }
   if(andFar) andLayer();
   // the Milky Way's layer: haze, lanes, then the backdrop sky and the Gaia bubble (our
   // own foreground stars — in front of Andromeda from every camera this side of her),
@@ -4199,7 +4388,11 @@ function initPanels(deps                                                     )  
     let x0 = 0, active = false, moved = 0, pid = -1;
     el.addEventListener('pointerdown', e => {
       // never steal a gesture that belongs to a control inside the panel
-      if((e.target                      )?.closest('input, button, select, textarea, a, .seg, .chk')) return;
+      // .sect and .tab are plain divs that act as buttons: if the swipe capture starts
+      // on them, the pointer capture retargets the eventual click to the PANEL and the
+      // header's own listener never fires — the accordions read as broken. Every
+      // clickable thing in a panel must be listed here, not just the form controls.
+      if((e.target                      )?.closest('input, button, select, textarea, a, .seg, .chk, .sect, .tab')) return;
       x0 = e.clientX; active = true; moved = 0; pid = e.pointerId;
       // Capture the pointer, or the swipe dies the moment the finger leaves the panel —
       // and on a phone the panel is ~178 px wide, so a 60 px swipe started anywhere near
@@ -4928,6 +5121,7 @@ let dragging=false, px=0, py=0;
 // turning under the hand that is trying to orbit it. Released, it carries straight on.
 // The flag itself belongs to the frame, so it is reported rather than kept.
 const touches = new Map                      ();     // every pointer currently down on the canvas
+let rPan = false;                                    // the right mouse button is a pan, not a turn
 // Two-finger pan. Kept as a fraction of the view's height along the camera's own right
 // and up, not as a world offset: zooming then keeps the composition, and a pan made at
 // galaxy scale cannot leave the Sun a thousand units off-screen once you dive. Cleared
@@ -4958,7 +5152,16 @@ function zoomStep(dir        )       {
 
 function initCamera(deps                                                           )       {
   ageGyr$2 = deps.ageGyr; onHold = deps.onHold;
+  // the right button pans, exactly as two fingers do — so its menu stays away
+  canvas.addEventListener('contextmenu', e => e.preventDefault());
   canvas.addEventListener('pointerdown', e=>{
+    if(e.button === 2){
+      rPan = true; dragging = false; px = e.clientX; py = e.clientY;
+      onHold(true);
+      canvas.classList.add('dragging');
+      try{ canvas.setPointerCapture(e.pointerId); }catch(err){}
+      return;
+    }
     touches.set(e.pointerId, e);
     onHold(true);
     canvas.classList.add('dragging');
@@ -4968,6 +5171,13 @@ function initCamera(deps                                                        
     else { dragging = false; [panCX, panCY] = panCentroid(); }   // two fingers: pinch and pan, not a turn
   });
   canvas.addEventListener('pointermove', e=>{
+    if(rPan){
+      // the mouse's version of the two-finger pan: the scene rides the cursor
+      cam.panF[0] = Math.max(-2, Math.min(2, cam.panF[0] + (e.clientX-px)/view.H));
+      cam.panF[1] = Math.max(-2, Math.min(2, cam.panF[1] + (e.clientY-py)/view.H));
+      px = e.clientX; py = e.clientY;
+      return;
+    }
     if(touches.has(e.pointerId)) touches.set(e.pointerId, e);
     if(touches.size === 2){
       // the fingers' midpoint carries the scene with it; the pinch (below) reads the spread
@@ -4983,6 +5193,7 @@ function initCamera(deps                                                        
     px=e.clientX; py=e.clientY;
   });
   function endPointer(e              )       {
+    if(rPan){ rPan = false; onHold(false); canvas.classList.remove('dragging'); return; }
     touches.delete(e.pointerId);
     if(touches.size === 0){ dragging = false; onHold(false); canvas.classList.remove('dragging'); }
     else if(touches.size === 1){
@@ -5214,6 +5425,21 @@ function jumpToEpoch()       {
     // evolution into a blur of motion.
     $v('focusSel').value = 'mw'; applyFocusView();
     if(!$v('tSpinLock').checked){ $v('tSpinLock').checked = true; $('tSpinLock').dispatchEvent(new Event('change')); }
+    if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
+  }
+  if(sel.value === '5.8534w'){
+    // Milky Way wobble — a view a user found and exported, staged as they had it: the
+    // disk from just above the plane (pitch 0.35), the camera riding the bar pattern
+    // (spin lock ON), the clock at rung 21 with the ×1e8 multiplier. From this grazing
+    // angle the arms hold still and what moves is the WARP: the disk's outer rim rolls
+    // through its retrograde ~650 Myr precession, the whole galaxy visibly wobbling
+    // like a plate settling on a table, while the beat breathes through the frozen arms.
+    $v('focusSel').value = 'mw'; applyFocusView();
+    if(!$v('tSpinLock').checked){ $v('tSpinLock').checked = true; $('tSpinLock').dispatchEvent(new Event('change')); }
+    cam.yaw = 0.0189; cam.pitch = 0.3538;
+    cam.dist = cam.distGoal = 4300;
+    $v('speed').value = '21'; $('speed').dispatchEvent(new Event('input'));
+    setMultExp(8);
     if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
   }
   // Earth's own events are watched from Earth: the globe filling the view, followed. The
@@ -6647,6 +6873,7 @@ setLogRenderer(() => renderLog());
 // The backdrop starfield. Built here, and here specifically: it is the first of the seven
 // things that consume randomness at boot, and the seeded parity stream depends on the order.
 const { pos: starPos, size: starSize, col: starCol } = buildStarfield();
+initSkybox();   // the real brightest galaxies, pinned to the far sky
 
 // Drop every cached galaxy build. The Andromeda entry is an { a, an, ad } bundle, and
 // both map loaders race each other here — this must never throw mid-flush, or the
@@ -6803,7 +7030,7 @@ registerApply(s => {
   if(s.mult > 0 && s.mult !== simClock.speedMult) setMultExp$1(Math.log10(s.mult));
   if(s.dprc === 1 || s.dprc === 2){ if(s.dprc !== view.dprCap){ view.dprCap = s.dprc; resize(); } }   // the probe's pixel cap, kept
   if(s.dens){ const i = DETAIL_D.indexOf(s.dens);
-    if(i >= 0){ $('detail').value = i; $('detailv').textContent = DETAIL_NAMES[i];   // the slider shows the tier even when it is the boot tier
+    if(i >= 0){ $('detail').value = i;   // the dropdown shows the tier even when it is the boot tier
       if(s.dens !== gfx.curD) $('detail').dispatchEvent(new Event('input')); } }
   if(s.units === 'words' || s.units === 'sup' || s.units === 'e') setSegUnits(s.units);
   if(s.fsel === 'sun' || s.fsel === 'mw' || s.fsel === 'and') $('focusSel').value = s.fsel;
@@ -6841,14 +7068,24 @@ toggle($('tDive'), on=>{ cam.panF[0]=cam.panF[1]=0;
 // back to what was working instead of leaving a half-built galaxy.
 const DETAIL_D = [1,5,20,40,80,160];
 const DETAIL_NAMES = ['lowest','low','medium','high','max','ultra'];
-$('detail').addEventListener('input', e=>{
+// what a tier actually draws: both galaxies scale with D (92k and 58k points per unit),
+// the Gaia bubble is a flat 100k plus its 400k deep tier from "low" up, and the backdrop
+// sphere is 3,200. The note under the dropdown states it instead of asking anyone to know.
+const detailCount = (d        )         => {
+  const n = 150000*d + 100000 + (d >= 5 ? 400000 : 0) + 3200;
+  return n >= 1e6 ? '≈ ' + (n/1e6).toFixed(1) + ' M stars' : '≈ ' + Math.round(n/1000) + ' k stars';
+};
+const applyDetail = (e                                        )       => {
   const i = Math.max(0, Math.min(5, Math.round(+e.target.value)));
   const prev = gfx.curD;
   try{ setGalaxy(DETAIL_D[i]); }
   catch(err){ try{ setGalaxy(prev); }catch(e2){}
     const j = DETAIL_D.indexOf(gfx.curD); if(j>=0) e.target.value = j; }
-  $('detailv').textContent = DETAIL_NAMES[DETAIL_D.indexOf(gfx.curD)] || DETAIL_NAMES[0];
-});
+  $('detailv').textContent = detailCount(gfx.curD);
+};
+$('detail').addEventListener('input', applyDetail);
+$('detail').addEventListener('change', applyDetail);   // a <select> speaks change, not input
+$('detailv').textContent = detailCount(gfx.curD);
 // ---------- fullscreen & screen orientation ----------
 // All of it — the button, the rotation lock, the armed landscape request and the installed-app
 // case — is ui/fullscreen. So is registering the service worker, for the same reason: both are
@@ -7443,7 +7680,10 @@ startFrameLoop({
     </div>
     <div class="sect" data-sec="gfx">Visuals<span class="arw">▾</span></div>
     <div class="sbody" id="secGfx">
-    <div class="row"><label for="detail">detail<button type="button" class="info" data-tip="How many star points are drawn: lowest is ~95,000, medium two million. The first launch measures the machine and picks one." aria-label="about this setting">i</button></label><input type="range" id="detail" min="0" max="5" step="1" value="1"><span id="detailv" style="min-width:56px;text-align:right;color:var(--ink)">low</span><button class="stepb" data-step="detail:-1">−</button><button class="stepb" data-step="detail:1">+</button></div>
+    <div class="row"><label for="detail">detail<button type="button" class="info" data-tip="How many star points are drawn, between both galaxies, the Gaia bubble and the backdrop. The first launch measures the machine and picks a tier." aria-label="about this setting">i</button></label><select id="detail">
+      <option value="0">lowest</option><option value="1" selected>low</option><option value="2">medium</option>
+      <option value="3">high</option><option value="4">max</option><option value="5">ultra</option>
+    </select><span id="detailv" style="min-width:92px;text-align:right;color:var(--ink)">—</span></div>
     <div class="row" id="rowGain" style="display:none"><label for="minB">Gaia brght<button type="button" class="info" data-tip="A floor under the real Gaia stars, so the faint ones keep a little colour and size." aria-label="about this setting">i</button></label><input type="range" id="minB" min="0" max="1" step="0.01" value="0.05"><span id="minBv" style="min-width:52px;text-align:right;color:var(--ink)">+5%</span><button class="stepb" data-step="minB:-0.05">−</button><button class="stepb" data-step="minB:0.05">+</button></div>
     <div class="row"><label for="coreB" title="how hard galaxy cores are allowed to blow out to white">core glare<button type="button" class="info" data-tip="How hard the galaxy cores may blow out to white." aria-label="about this setting">i</button></label><input type="range" id="coreB" min="0.3" max="1" step="0.01" value="1"><span id="coreBv" style="min-width:52px;text-align:right;color:var(--ink)">off</span><button class="stepb" data-step="coreB:-0.04">−</button><button class="stepb" data-step="coreB:0.04">+</button></div>
     <div class="row"><label for="orbitA" title="the closed orbit around the Sun">orbit<button type="button" class="info" data-tip="Opacity of the closed orbits drawn around the Sun." aria-label="about this setting">i</button></label><input type="range" id="orbitA" min="0" max="1" step="0.01" value="1"><span id="orbitAv" style="min-width:36px;text-align:right;color:var(--ink)">100%</span><button class="stepb" data-step="orbitA:-0.05">−</button><button class="stepb" data-step="orbitA:0.05">+</button></div>
@@ -7717,6 +7957,13 @@ startFrameLoop({
   </g>
 </svg></div>
     <h3>What's real, what's modeled</h3>
+    <p><b>The far sky is real too (v3.4):</b> the brightest galaxies of the local sky sit at their true
+    J2000 positions — the Large and Small Magellanic Clouds and Triangulum as their photographs
+    (LMC: AURA/NOAO/NSF; SMC: ESO/Digitized Sky Survey 2; M33: A.&nbsp;Meleg, CC&nbsp;BY-SA), a dozen
+    more from M81 to Centaurus&nbsp;A as tinted points sized by apparent diameter. They ride one far
+    sphere — the Clouds are really at 50&ndash;60&nbsp;kpc and take no part in the merger — and they do
+    not turn with the disk, so over deep time the Milky Way visibly rotates against them. And the clock
+    now refuses to scrub past the Big Bang: before 13.79&nbsp;Gyr ago there is nothing to draw.</p>
     <ul>
       <li>Planets are <b>not dragged behind the Sun</b> — the viral "vortex" video is wrong. With the 60° tilt
       they run ahead of the Sun for half of every orbit, exactly as shown.</li>
@@ -7879,6 +8126,7 @@ startFrameLoop({
       <option value="4.5692567" data-rate="0.19" data-mult="10000">Gliese 710 grazes the Oort cloud (+1.29 Myr)</option>
       <option value="4.818x" data-rate="1" data-mult="1">Pangaea Proxima — the next supercontinent (+250 Myr)</option>
       <option value="5.6v" data-rate="1" data-mult="10000000">The oceans boil away (+1.0 Gyr → +2.0 Gyr)</option>
+      <option value="5.8534w">Milky Way wobble — the warp, ridden from just above the plane (+1.3 Gyr)</option>
       <option value="8.36149" data-rate="1" data-mult="100000000">Andromeda first pass (+4.5 Gyr)</option>
       <option value="11.25" data-rate="1" data-mult="100000000">Galaxies collide &amp; merge (+6.9 Gyr)</option>
       <option value="11.3586" data-rate="0.2195" data-mult="100000000">The Sun swallows the Earth (+7.6 Gyr)</option>

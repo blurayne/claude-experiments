@@ -27,6 +27,7 @@ let dragging=false, px=0, py=0;
 // turning under the hand that is trying to orbit it. Released, it carries straight on.
 // The flag itself belongs to the frame, so it is reported rather than kept.
 const touches = new Map<number, PointerEvent>();     // every pointer currently down on the canvas
+let rPan = false;                                    // the right mouse button is a pan, not a turn
 // Two-finger pan. Kept as a fraction of the view's height along the camera's own right
 // and up, not as a world offset: zooming then keeps the composition, and a pan made at
 // galaxy scale cannot leave the Sun a thousand units off-screen once you dive. Cleared
@@ -57,7 +58,16 @@ export function zoomStep(dir: number): void {
 
 export function initCamera(deps: { ageGyr: () => number; onHold: (held: boolean) => void }): void {
   ageGyr = deps.ageGyr; onHold = deps.onHold;
+  // the right button pans, exactly as two fingers do — so its menu stays away
+  canvas.addEventListener('contextmenu', e => e.preventDefault());
   canvas.addEventListener('pointerdown', e=>{
+    if(e.button === 2){
+      rPan = true; dragging = false; px = e.clientX; py = e.clientY;
+      onHold(true);
+      canvas.classList.add('dragging');
+      try{ canvas.setPointerCapture(e.pointerId); }catch(err){}
+      return;
+    }
     touches.set(e.pointerId, e);
     onHold(true);
     canvas.classList.add('dragging');
@@ -67,6 +77,13 @@ export function initCamera(deps: { ageGyr: () => number; onHold: (held: boolean)
     else { dragging = false; [panCX, panCY] = panCentroid(); }   // two fingers: pinch and pan, not a turn
   });
   canvas.addEventListener('pointermove', e=>{
+    if(rPan){
+      // the mouse's version of the two-finger pan: the scene rides the cursor
+      cam.panF[0] = Math.max(-2, Math.min(2, cam.panF[0] + (e.clientX-px)/view.H));
+      cam.panF[1] = Math.max(-2, Math.min(2, cam.panF[1] + (e.clientY-py)/view.H));
+      px = e.clientX; py = e.clientY;
+      return;
+    }
     if(touches.has(e.pointerId)) touches.set(e.pointerId, e);
     if(touches.size === 2){
       // the fingers' midpoint carries the scene with it; the pinch (below) reads the spread
@@ -82,6 +99,7 @@ export function initCamera(deps: { ageGyr: () => number; onHold: (held: boolean)
     px=e.clientX; py=e.clientY;
   });
   function endPointer(e: PointerEvent): void {
+    if(rPan){ rPan = false; onHold(false); canvas.classList.remove('dragging'); return; }
     touches.delete(e.pointerId);
     if(touches.size === 0){ dragging = false; onHold(false); canvas.classList.remove('dragging'); }
     else if(touches.size === 1){

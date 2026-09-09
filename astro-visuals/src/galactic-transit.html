@@ -52,7 +52,10 @@
     </div>
     <div class="sect" data-sec="gfx">Visuals<span class="arw">▾</span></div>
     <div class="sbody" id="secGfx">
-    <div class="row"><label for="detail">detail<button type="button" class="info" data-tip="How many star points are drawn: lowest is ~95,000, medium two million. The first launch measures the machine and picks one." aria-label="about this setting">i</button></label><input type="range" id="detail" min="0" max="5" step="1" value="1"><span id="detailv" style="min-width:56px;text-align:right;color:var(--ink)">low</span><button class="stepb" data-step="detail:-1">−</button><button class="stepb" data-step="detail:1">+</button></div>
+    <div class="row"><label for="detail">detail<button type="button" class="info" data-tip="How many star points are drawn, between both galaxies, the Gaia bubble and the backdrop. The first launch measures the machine and picks a tier." aria-label="about this setting">i</button></label><select id="detail">
+      <option value="0">lowest</option><option value="1" selected>low</option><option value="2">medium</option>
+      <option value="3">high</option><option value="4">max</option><option value="5">ultra</option>
+    </select><span id="detailv" style="min-width:92px;text-align:right;color:var(--ink)">—</span></div>
     <div class="row" id="rowGain" style="display:none"><label for="minB">Gaia brght<button type="button" class="info" data-tip="A floor under the real Gaia stars, so the faint ones keep a little colour and size." aria-label="about this setting">i</button></label><input type="range" id="minB" min="0" max="1" step="0.01" value="0.05"><span id="minBv" style="min-width:52px;text-align:right;color:var(--ink)">+5%</span><button class="stepb" data-step="minB:-0.05">−</button><button class="stepb" data-step="minB:0.05">+</button></div>
     <div class="row"><label for="coreB" title="how hard galaxy cores are allowed to blow out to white">core glare<button type="button" class="info" data-tip="How hard the galaxy cores may blow out to white." aria-label="about this setting">i</button></label><input type="range" id="coreB" min="0.3" max="1" step="0.01" value="1"><span id="coreBv" style="min-width:52px;text-align:right;color:var(--ink)">off</span><button class="stepb" data-step="coreB:-0.04">−</button><button class="stepb" data-step="coreB:0.04">+</button></div>
     <div class="row"><label for="orbitA" title="the closed orbit around the Sun">orbit<button type="button" class="info" data-tip="Opacity of the closed orbits drawn around the Sun." aria-label="about this setting">i</button></label><input type="range" id="orbitA" min="0" max="1" step="0.01" value="1"><span id="orbitAv" style="min-width:36px;text-align:right;color:var(--ink)">100%</span><button class="stepb" data-step="orbitA:-0.05">−</button><button class="stepb" data-step="orbitA:0.05">+</button></div>
@@ -326,6 +329,13 @@
   </g>
 </svg></div>
     <h3>What's real, what's modeled</h3>
+    <p><b>The far sky is real too (v3.4):</b> the brightest galaxies of the local sky sit at their true
+    J2000 positions — the Large and Small Magellanic Clouds and Triangulum as their photographs
+    (LMC: AURA/NOAO/NSF; SMC: ESO/Digitized Sky Survey 2; M33: A.&nbsp;Meleg, CC&nbsp;BY-SA), a dozen
+    more from M81 to Centaurus&nbsp;A as tinted points sized by apparent diameter. They ride one far
+    sphere — the Clouds are really at 50&ndash;60&nbsp;kpc and take no part in the merger — and they do
+    not turn with the disk, so over deep time the Milky Way visibly rotates against them. And the clock
+    now refuses to scrub past the Big Bang: before 13.79&nbsp;Gyr ago there is nothing to draw.</p>
     <ul>
       <li>Planets are <b>not dragged behind the Sun</b> — the viral "vortex" video is wrong. With the 60° tilt
       they run ahead of the Sun for half of every orbit, exactly as shown.</li>
@@ -488,6 +498,7 @@
       <option value="4.5692567" data-rate="0.19" data-mult="10000">Gliese 710 grazes the Oort cloud (+1.29 Myr)</option>
       <option value="4.818x" data-rate="1" data-mult="1">Pangaea Proxima — the next supercontinent (+250 Myr)</option>
       <option value="5.6v" data-rate="1" data-mult="10000000">The oceans boil away (+1.0 Gyr → +2.0 Gyr)</option>
+      <option value="5.8534w">Milky Way wobble — the warp, ridden from just above the plane (+1.3 Gyr)</option>
       <option value="8.36149" data-rate="1" data-mult="100000000">Andromeda first pass (+4.5 Gyr)</option>
       <option value="11.25" data-rate="1" data-mult="100000000">Galaxies collide &amp; merge (+6.9 Gyr)</option>
       <option value="11.3586" data-rate="0.2195" data-mult="100000000">The Sun swallows the Earth (+7.6 Gyr)</option>
