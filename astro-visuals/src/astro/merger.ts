@@ -31,6 +31,31 @@ export const M31_ROT = new Float32Array([
    0.7623, 0.5007,-0.4102,     // local y
   -0.6406, 0.4930,-0.5887]);   // local z
 export const KPC2U = 1000*3.2616/30;  // scene units per kpc (true scale)
+
+/**
+ * Andromeda's rings are collision debris, not spiral arms (v3.1).
+ *
+ * In the infrared M31 is a set of nested rings — the 10 kpc star-forming ring and a smaller
+ * off-centre inner one — and the leading explanation (Block et al. 2006, Nature 443, 832,
+ * with N-body/SPH simulations) is that the compact satellite M32 plunged almost head-on
+ * through the disk ~210 Myr ago, sending ring-shaped density waves outward like ripples
+ * from a dropped stone. Drawn here as an expanding brightness wave over the Hubble map's
+ * baked rings: crest spacing ~5 kpc, expansion ~10 kpc per 210 Myr (~47 km/s), centred a
+ * little off the nucleus toward M32's side, and switched off before the plunge happened.
+ * At ts = 0 the modulation is identically zero, so today's photographic map is untouched.
+ */
+export const M31_RING = {
+  /** expansion speed, scene units per year: 10 kpc in ~210 Myr */
+  v: 5.18e-6,
+  /** brightness amplitude of the travelling wave */
+  amp: 0.32,
+  /** crest-to-crest spacing in scene units (~5 kpc) */
+  wavelength: 545,
+  /** the impact point in M31's disk frame, ~0.5 kpc off the nucleus toward M32 */
+  cx: -14.7, cz: 51.9,
+  /** the plunge was ~210 Myr ago: no ring waves before it */
+  t0: -2.1e8,
+} as const;
 // (age Gyr, u kpc, v kpc) in the orbital plane; Hermite-interpolated below
 export const M31_ORBIT = [
   [ 3.0,   942,  -14],

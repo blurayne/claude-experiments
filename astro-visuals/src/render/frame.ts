@@ -6,7 +6,7 @@ import {
 import { BODIES, NB, N_PLANETS, I_P9, bodyPos, tmp, earthW } from '../astro/bodies'
 import { EAT_AGES, sunState, sunTint, pnState, type PnState } from '../astro/sun'
 import {
-  M31_DIR, M31_E2, M31_ROT, KPC2U, MERGE_T0, orbitUV, sepScene, mergeAt, diskSpin,
+  M31_DIR, M31_E2, M31_ROT, KPC2U, MERGE_T0, M31_RING, orbitUV, sepScene, mergeAt, diskSpin,
 } from '../astro/merger'
 import {
   EARTH_AXIS, MOON_BORN, MOON_DIA, moonPos, moonW, moonRel, earthEra,
@@ -255,6 +255,11 @@ function frame(now: number): void {
   // shader's RC_BAR divisor, so the factor carries 650/640 from the v3.1 pattern-radius
   // change to keep the drawn rate exactly what it was.
   const spinM31 = spin*1.087;
+  // M31's collision rings: the phase is distance-travelled SINCE TODAY, so the shader's
+  // modulation is exactly zero at simT=0 and the photographic map is untouched. Scrubbed
+  // backward the crests contract toward the impact point, reaching it at the plunge
+  // (~210 Myr ago) and holding there for earlier times — the waves have no earlier history.
+  const ringT = Math.max(simClock.simT, M31_RING.t0)*M31_RING.v;
   const sunX=org[0], sunY=org[1], sunZ=org[2];
   const bubY = REAL_MODE ? sunY+1e8 : sunY; // real scale: nothing is magnified, so no clearance bubble
   gl.uniform1f(U.ptPx,pxScale);
@@ -284,7 +289,7 @@ function frame(now: number): void {
   const clouds: CloudFrame = {
     projMat: view.projMat!, viewMat, pxScale, camDist: cam.dist, shimT: simClock.shimT,
     varOn: hud.varOn, deep, insideDisk, andPos, tide: and.tide, merge: and.merge,
-    spinMW, spinM31, warp, sunX, sunY, bubY, sunZ, org,
+    spinMW, spinM31, warp, ringT, sunX, sunY, bubY, sunZ, org,
   };
   // Multiply blending knows nothing of depth: a cloud of the galaxy BEHIND would darken
   // the one in front. So the farther galaxy goes down whole — haze, then its dust — and
@@ -352,6 +357,8 @@ function frame(now: number): void {
     gl.uniform3f(U.ptAnd, 0, 0, 0);
     gl.uniform1f(U.ptVM, 0.0);
     gl.uniform1f(U.ptArmAmp, 0.0);         // Andromeda's structure is rings, not this beat
+    gl.uniform1f(U.ptRingAmp, M31_RING.amp); gl.uniform1f(U.ptRingT, ringT);
+    gl.uniform2f(U.ptRingC, M31_RING.cx, M31_RING.cz);
     gl.bindVertexArray(gfx.vaoAnd); gl.drawArrays(gl.POINTS,0,gfx.N_AND);
     gl.uniformMatrix3fv(U.ptGRot, false, MAT3_ID);
     gl.uniform3f(U.ptGOff, 0, 0, 0);
@@ -361,6 +368,7 @@ function frame(now: number): void {
     gl.uniform1f(U.ptSpin, spinMW);
     gl.uniform1f(U.ptVM, hud.varOn?1.0:0.0);
     gl.uniform1f(U.ptArmAmp, ARM_EVO_AMP);
+    gl.uniform1f(U.ptRingAmp, 0.0);
   }
   gl.uniform1f(U.ptGal, 0.0);
 

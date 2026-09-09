@@ -26,6 +26,9 @@ uniform mat3 uGRot;   // the galaxy's disk frame in scene coordinates (identity 
 uniform vec3 uGOff;   // the galaxy's centre (zero for ours)
 uniform float uMerge; // 0 two galaxies .. 1 one relaxed remnant
 uniform float uArmAmp; // beat amplitude for the arm evolution; 0 on every non-Milky-Way draw
+uniform float uRingAmp; // M31's collision rings: amplitude, 0 on every non-Andromeda draw
+uniform float uRingT;   // how far the ring waves have expanded, in scene units
+uniform vec2  uRingC;   // the M32 impact point in M31's disk frame
 out vec3 vColor;
 void main(){
   vec3 p = aPos + aVel*uVelT;
@@ -55,6 +58,17 @@ void main(){
       float du = uSpin*(1.0/650.0 - 1.0/933.0);
       float u0 = atan(p.x, p.z) + log(max(r, 80.0)/500.0)/0.221695;
       armMod = max(0.05, 1.0 + uArmAmp*(cos(2.0*u0 - 2.0*du) - cos(2.0*u0))*smoothstep(560.0, 700.0, r));
+    }
+    // Andromeda's pattern is not a spiral beat but COLLISION RINGS: M32 plunged through
+    // the disk ~210 Myr ago and ring-shaped density waves have been expanding from the
+    // impact point since — ripples from a dropped stone (Block et al. 2006). A brightness
+    // wave travels outward over the map's baked rings; at uRingT=0 it is exactly zero, so
+    // the present-day photograph is untouched. Mirror of M31_RING in astro/merger.
+    if(uRingAmp > 0.0 && w > 0.0){
+      float rc2 = length(p.xz - uRingC);
+      float kR = 6.28318/545.0;
+      armMod = max(0.05, 1.0 + uRingAmp*(cos(kR*(rc2 - uRingT)) - cos(kR*rc2))
+                       * smoothstep(120.0, 350.0, rc2)*(1.0 - smoothstep(1900.0, 2450.0, rc2)));
     }
     float c = cos(d), s = sin(d);
     p = vec3(p.x*c + p.z*s, p.y, p.z*c - p.x*s);

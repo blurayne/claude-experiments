@@ -3,7 +3,7 @@ import { prog } from '../../gpu/program'
 import PT_VS from '../../shaders/pt.vert?raw'
 import DUST_FS from '../../shaders/dust.frag?raw'
 import { MAT3_ID } from '../../core/mat4'
-import { M31_ROT } from '../../astro/merger'
+import { M31_ROT, M31_RING } from '../../astro/merger'
 import { ARM_EVO_AMP } from '../../astro/constants'
 import { gfx } from '../state'
 import type { CloudFrame, Which } from './nebula'
@@ -30,6 +30,8 @@ export const UD = {
   minSz: gl.getUniformLocation(pDust,'uMinSz'),
   gal: gl.getUniformLocation(pDust,'uGal'), grot: gl.getUniformLocation(pDust,'uGRot'),
   armAmp: gl.getUniformLocation(pDust,'uArmAmp'),
+  ringAmp: gl.getUniformLocation(pDust,'uRingAmp'), ringT: gl.getUniformLocation(pDust,'uRingT'),
+  ringC: gl.getUniformLocation(pDust,'uRingC'),
   goff: gl.getUniformLocation(pDust,'uGOff'), merge: gl.getUniformLocation(pDust,'uMerge'),
   and: gl.getUniformLocation(pDust,'uAnd'), tide: gl.getUniformLocation(pDust,'uTide'),
   warpAmp: gl.getUniformLocation(pDust,'uWarpAmp'),
@@ -51,7 +53,7 @@ export const UD = {
  */
 export function drawDust(
   { projMat, viewMat, pxScale, deep, insideDisk,
-    andPos, tide, merge, spinMW, spinM31, warp, sunX, sunY, bubY, sunZ, org }: CloudFrame,
+    andPos, tide, merge, spinMW, spinM31, warp, ringT, sunX, sunY, bubY, sunZ, org }: CloudFrame,
   dustOn: boolean,
   which: Which = 'both',
 ): void {
@@ -89,6 +91,8 @@ export function drawDust(
       gl.uniform3f(UD.and, 0, 0, 0);
       gl.uniform3f(UD.sun, sunX, sunY+1e8, sunZ);
       gl.uniform1f(UD.armAmp, 0.0);
+      gl.uniform1f(UD.ringAmp, M31_RING.amp); gl.uniform1f(UD.ringT, ringT);
+      gl.uniform2f(UD.ringC, M31_RING.cx, M31_RING.cz);
       gl.bindVertexArray(gfx.vaoAndDust); gl.drawArrays(gl.POINTS,0,gfx.N_ANDD);
       gl.uniformMatrix3fv(UD.grot, false, MAT3_ID);
       gl.uniform3f(UD.goff, 0, 0, 0);
@@ -97,6 +101,7 @@ export function drawDust(
       gl.uniform3f(UD.and, andPos[0], andPos[1], andPos[2]);
       gl.uniform3f(UD.sun, sunX, bubY, sunZ);
       gl.uniform1f(UD.armAmp, ARM_EVO_AMP);
+      gl.uniform1f(UD.ringAmp, 0.0);
     }
     gl.uniform1f(UD.gal, 0.0);
     gl.blendFunc(gl.ONE, gl.ONE);

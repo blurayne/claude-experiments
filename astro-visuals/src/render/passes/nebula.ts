@@ -3,7 +3,7 @@ import { prog } from '../../gpu/program'
 import PT_VS from '../../shaders/pt.vert?raw'
 import NEB_FS from '../../shaders/neb.frag?raw'
 import { MAT3_ID } from '../../core/mat4'
-import { M31_ROT } from '../../astro/merger'
+import { M31_ROT, M31_RING } from '../../astro/merger'
 import { ARM_EVO_AMP } from '../../astro/constants'
 import { gfx } from '../state'
 
@@ -31,6 +31,8 @@ export const UN = {
   minSz: gl.getUniformLocation(pNeb,'uMinSz'),
   gal: gl.getUniformLocation(pNeb,'uGal'), grot: gl.getUniformLocation(pNeb,'uGRot'),
   armAmp: gl.getUniformLocation(pNeb,'uArmAmp'),
+  ringAmp: gl.getUniformLocation(pNeb,'uRingAmp'), ringT: gl.getUniformLocation(pNeb,'uRingT'),
+  ringC: gl.getUniformLocation(pNeb,'uRingC'),
   goff: gl.getUniformLocation(pNeb,'uGOff'), merge: gl.getUniformLocation(pNeb,'uMerge'),
   and: gl.getUniformLocation(pNeb,'uAnd'), tide: gl.getUniformLocation(pNeb,'uTide'),
   warpAmp: gl.getUniformLocation(pNeb,'uWarpAmp'),
@@ -75,6 +77,8 @@ export interface CloudFrame {
   spinMW: number
   spinM31: number
   warp: number
+  /** how far M31's collision rings have expanded (see M31_RING in astro/merger) */
+  ringT: number
   /** the Sun's position, and its clearance-bubble variant on the y axis */
   sunX: number
   sunY: number
@@ -86,7 +90,7 @@ export interface CloudFrame {
 
 export function drawNebula(
   { projMat, viewMat, pxScale, camDist, shimT, varOn, deep,
-    andPos, tide, merge, spinMW, spinM31, warp, sunX, sunY, bubY, sunZ, org }: CloudFrame,
+    andPos, tide, merge, spinMW, spinM31, warp, ringT, sunX, sunY, bubY, sunZ, org }: CloudFrame,
   haze: boolean,
   which: Which = 'both',
 ): void {
@@ -129,6 +133,8 @@ export function drawNebula(
     gl.uniform3f(UN.and, 0, 0, 0);
     gl.uniform3f(UN.sun, sunX, sunY+1e8, sunZ);
     gl.uniform1f(UN.armAmp, 0.0);          // Andromeda's structure is rings, not this beat
+    gl.uniform1f(UN.ringAmp, M31_RING.amp); gl.uniform1f(UN.ringT, ringT);
+    gl.uniform2f(UN.ringC, M31_RING.cx, M31_RING.cz);
     gl.bindVertexArray(gfx.vaoAndNeb); seg(gfx.AND_PINK, gfx.AND_GLOW, gfx.N_ANDN);
     gl.uniformMatrix3fv(UN.grot, false, MAT3_ID);
     gl.uniform3f(UN.goff, 0, 0, 0);
@@ -137,6 +143,7 @@ export function drawNebula(
     gl.uniform3f(UN.and, andPos[0], andPos[1], andPos[2]);
     gl.uniform3f(UN.sun, sunX, bubY, sunZ);
     gl.uniform1f(UN.armAmp, ARM_EVO_AMP);
+    gl.uniform1f(UN.ringAmp, 0.0);
   }
   gl.uniform1f(UN.gal, 0.0);
 }
