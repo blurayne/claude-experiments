@@ -92,7 +92,7 @@ function installErrorCollector(){
  * property of the machine that loaded the page. The parity harness pins TZ for that reason.
  */
 
-const BUILD = { version: '3.1.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '3.2.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -3314,12 +3314,16 @@ const structEls = STRUCTS.map(s=>{
 // pattern, exactly as the structure it names does in the shader: the bar-driven arms the
 // fast pattern (RC_BAR), the Orion Spur the slow near-corotation one (RC_ARMS) — so the
 // spur's name stays with the Sun's neighbourhood while the arm names sweep past.
+// The four bar-pattern anchors sit ON their armAngle loci (checked by tests/unit/winding):
+// with the map's winding fixed, the drawn ridges and the analytic skeleton finally agree,
+// so a label can be computed instead of eyeballed. Sagittarius–Carina inside the Sun's
+// radius, Perseus just outside, the Outer Arm far out — the real radial order from home.
 const ARM_LBLS                                                         = [
   ['Orion Spur',          150,  830, RC_ARMS],
-  ['Sagittarius–Carina',  110,  580, RC_BAR],
-  ['Perseus',              70, 1010, RC_BAR],
-  ['Scutum–Centaurus',   -170, -560, RC_BAR],
-  ['Outer Arm',          -260, 1340, RC_BAR],
+  ['Sagittarius–Carina',  129,  749, RC_BAR],
+  ['Perseus',             168, 1067, RC_BAR],
+  ['Scutum–Centaurus',   -600,  360, RC_BAR],
+  ['Outer Arm',           563, 1336, RC_BAR],
   ['Galactic bar',         30,   40, RC_BAR],
 ];
 const armEls = ARM_LBLS.map(a=>{
@@ -3657,7 +3661,14 @@ function frame(now        )       {
     baseYaw = Math.atan2(org[0], org[2]);
     basePitch = Math.asin(Math.max(-1, Math.min(1, org[1]/r)));
   }
-  const yawE = cam.yaw + baseYaw;
+  // The galaxy spin lock: with nothing followed, the spin-lock checkbox rides the camera
+  // on the BAR pattern — the one the four arms are driven by — so the arms hold still on
+  // screen and what remains visible is the evolution itself: the beat waxing and waning,
+  // material stars and star-forming events sweeping through the frozen pattern. The angle
+  // is exactly the shader's own for wave points, uSpin/RC_BAR; the toggle handler in
+  // ui/hud re-expresses the yaw at the flip so the view never jumps.
+  const galLockA = cam.spinLock && !cam.follow ? diskSpin(simClock.simT)/RC_BAR : 0;
+  const yawE = cam.yaw + baseYaw + galLockA;
   const pitchE = Math.max(-1.45, Math.min(1.45, cam.pitch + basePitch));
   const cp=Math.cos(pitchE), sp=Math.sin(pitchE);
   // the pan: a screen-space offset, so it rides the camera's right and up at this distance.
@@ -4817,6 +4828,17 @@ function initHudControls(deps
 
 
   toggleLocal($('tSpinLock'), on=>{
+    if(!cam.follow){
+      // The galaxy overview: the lock adds the arm pattern's accumulated angle to the yaw
+      // (render/frame's galLockA). Re-express the yaw so the flip leaves the view exactly
+      // where it is — written against the CURRENT lock state, so a redundant re-dispatch
+      // (the boot restore fires one) changes nothing.
+      const A = diskSpin(simClock.simT)/RC_BAR;
+      cam.yaw = cam.yaw + (cam.spinLock ? A : 0) - (on ? A : 0);
+      cam.spinLock = on; cam.panF[0]=cam.panF[1]=0;
+      $v('tSpinLock2').checked = on;
+      return;
+    }
     const d = cam.dirW;
     if(on){ const [P, A, Q] = spinFrame(); const dP = d[0]*P[0]+d[1]*P[1]+d[2]*P[2], dA = d[0]*A[0]+d[1]*A[1]+d[2]*A[2], dQ = d[0]*Q[0]+d[1]*Q[1]+d[2]*Q[2];
       cam.yaw = Math.atan2(dP, -dQ); cam.pitch = Math.asin(Math.max(-1, Math.min(1, dA))); }
@@ -5128,6 +5150,17 @@ function jumpToEpoch()       {
     cam.distGoal = 0.144;                     // ~5 ly across: the whole Oort shell
     cam.yaw = 0.72; cam.pitch = -0.31;        // faces the star's approach track
   }
+  if(sel.value === '2.568g'){
+    // The arm evolution time-lapse: the whole disk face-on from the north pole, the camera
+    // locked to the bar pattern so the four arms hold still on screen while their
+    // brightness beats — two billion years to today in about 45 seconds (seven or so full
+    // beat cycles), and straight onward into the future at the same pace for whoever keeps
+    // watching. The lock is the point: unlocked, the pattern's own rotation smears the
+    // evolution into a blur of motion.
+    $v('focusSel').value = 'mw'; applyFocusView();
+    if(!$v('tSpinLock').checked){ $v('tSpinLock').checked = true; $('tSpinLock').dispatchEvent(new Event('change')); }
+    if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
+  }
   // Earth's own events are watched from Earth: the globe filling the view, followed. The
   // continental ones lock the camera to the spin and put the eye over the face that
   // matters, given as yaw = atan2(cos lat cos lon, −cos lat sin lon), pitch = lat:
@@ -5138,11 +5171,13 @@ function jumpToEpoch()       {
   const EARTH_AIM                           = { '4.318':[1.047, 0.35], '4.318p':[1.571, 0.26], '4.818x':[1.222, 0.17], '5.6v':[1.222, 0.17] };
   if(sel.value === '0.058' || sel.value === '0.768' || sel.value === '2.068' || EARTH_AIM[sel.value]){
     $v('focusSel').value = 'earth'; applyFocusView();
+    // Every planet-watched event locks the camera to the spin, not just the continental
+    // ones: without it the globe turns under the eye and the event happens on whatever
+    // face the clock rate lands on. The aimed entries then point the locked camera at the
+    // face that matters (set after the dispatch — the toggle re-expresses the yaw).
+    if(!$v('tSpinLock').checked){ $v('tSpinLock').checked = true; $('tSpinLock').dispatchEvent(new Event('change')); }
     const aim = EARTH_AIM[sel.value];
-    if(aim){
-      if(!$v('tSpinLock').checked){ $v('tSpinLock').checked = true; $('tSpinLock').dispatchEvent(new Event('change')); }
-      cam.yaw = aim[0]; cam.pitch = aim[1];
-    }
+    if(aim){ cam.yaw = aim[0]; cam.pitch = aim[1]; }
     if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
   }
   simClock.nextSample = simClock.simT + simClock.dtSample;
@@ -5677,8 +5712,17 @@ function mapPick(cdf              )         {
 function mapXZ(i        , spread        )                   {
   const n=gfx.galaxyMap .n, c0=(n-1)/2;
   const u=(i%n)+Math.random()-0.5+gauss()*spread, v=((i/n)|0)+Math.random()-0.5+gauss()*spread;
-  return [ (u-c0)*MAP_SCALE, -(v-c0)*MAP_SCALE ];
+  const x0=(u-c0)*MAP_SCALE, z0=-((v-c0)*MAP_SCALE);
+  // Reflected about the BAR AXIS on the way into the scene. The shipped illustration's
+  // spiral winds outward-clockwise, which on this page's north-pole view (clockwise
+  // rotation, both measured) would be LEADING arms — backwards; a user saw it where two
+  // sessions of sign-chasing had not. Reflecting about the bar keeps the bar at its
+  // measured 28° while turning the arms around it into trailing ones, so the picture,
+  // the armAngle skeleton, the labels, the events and the ice ages all finally agree on
+  // where an arm IS. Pinned by 'the arms trail' in boot.spec and tests/unit/winding.
+  return [ z0*S2B - x0*C2B, x0*S2B + z0*C2B ];
 }
+const C2B = Math.cos(2*BAR_A), S2B = Math.sin(2*BAR_A);
 
 function genGalaxyMap(D        )                {
   let gxyPos, gxySize, gxyCol, gxyWave, nebPos, nebSize, nebCol, dustPos, dustSize, dustStr;
@@ -5972,9 +6016,12 @@ function flushGxyCache()       {
 
 // The classic face-on Milky Way illustration is used as a probability map: stars are
 // placed where the picture is bright, with colours taken from its pixels; dust where its
-// lanes are dark; HII nebulae where it is pink. The shipped copy is mirrored so the arms
-// trail the pattern's rotation, and rotated so its bar sits at the scene's 28 degrees —
-// both measured, not guessed. The procedural generator remains the fallback offline.
+// lanes are dark; HII nebulae where it is pink. The shipped copy is rotated so its bar
+// sits at the scene's 28 degrees, but — despite what an earlier comment here claimed to
+// have measured — it is NOT mirrored: its spiral winds outward-clockwise, which on the
+// north-pole view would read as leading arms. mapXZ (scene/galaxy) therefore reflects
+// every sample about the bar axis on ingest; the winding is pinned by pixel measurement
+// in boot.spec ('the arms trail'). The procedural generator remains the fallback offline.
 
 function loadGalaxyMap()       {
   fetch('galaxy-map.webp').then(r => r.ok ? r.blob() : Promise.reject())
@@ -7335,7 +7382,7 @@ startFrameLoop({
       <label class="chk"><input type="checkbox" id="tGaia" checked> gaia sky<button type="button" class="info" data-tip="The 100,000 nearest real stars from Gaia DR3, each where it is." aria-label="about this setting">i</button></label>
       <label class="chk"><input type="checkbox" id="tVar" checked> variables<button type="button" class="info" data-tip="Variable stars pulse at their own measured periods." aria-label="about this setting">i</button></label>
       <label class="chk" title="the + and − buttons under help"><input type="checkbox" id="tZoomBtns" checked> zoom buttons<button type="button" class="info" data-tip="The + and − buttons under the play button, stepping through the objects from planet to galaxy." aria-label="about this setting">i</button></label>
-      <label class="chk" title="the camera turns with the planet: the same face stays in view while the clock runs"><input type="checkbox" id="tSpinLock2"> spin lock<button type="button" class="info" data-tip="The camera turns with the planet, so the same face stays in view while the clock runs." aria-label="about this setting">i</button></label>
+      <label class="chk" title="the camera turns with what it watches: a planet's spin, or the galaxy's arm pattern"><input type="checkbox" id="tSpinLock2"> spin lock<button type="button" class="info" data-tip="The camera turns with what it watches. Following a planet it rides the spin, so the same face stays in view. In the galaxy view it rides the spiral-arm pattern instead: the arms hold still while the stars and the ages sweep through them." aria-label="about this setting">i</button></label>
     </div>
     </div>
     <div class="sect" data-sec="hud">Hud<span class="arw">▾</span></div>
@@ -7586,6 +7633,12 @@ startFrameLoop({
     around the central supermassive black hole M31* (NASA/CXC). Found via the
     <a href="https://www.messier-objects.com/messier-31-andromeda-galaxy/" target="_blank" rel="noopener">Messier
     Objects guide to M31</a>, a good lay overview of the galaxy.</p>
+    <p><b>Watching it happen:</b> in the Galaxy view, tick <b>spin lock</b> and the camera rides the bar
+    pattern — the arms hold still on screen, and what moves is the evolution itself: each arm waxing and
+    waning on its ~268&nbsp;Myr beat, star formation migrating to whichever arms are bright, the material
+    stars sweeping through the frozen pattern. The scenario <b>How the arms evolve</b> stages exactly this:
+    two billion years to today in about 45 seconds, then straight onward into the future at the same pace.</p>
+
     <p>A fuller version of this explainer, with its own animation of density waves against material arms,
     ships beside this page: <a href="docs/how-the-milky-way-turns.html" target="_blank" rel="noopener">How
     the Milky Way turns</a>.</p>
@@ -8013,6 +8066,7 @@ startFrameLoop({
       <option value="0.058">Theia impact — the Moon forms (4.51 Gyr ago)</option>
       <option value="0.768">Young Earth — first life (3.8 Gyr ago)</option>
       <option value="2.068">Great Oxidation (2.5 Gyr ago)</option>
+      <option value="2.568g" data-rate="0.4444" data-mult="100000000">How the arms evolve — 2 Gyr time-lapse, then onward (2.0 Gyr ago &rarr;)</option>
       <option value="4.318p" data-rate="1" data-mult="1">Pangaea — one continent, one ocean (250 Myr ago)</option>
       <option value="4.318" data-rate="1" data-mult="10000000">Plate tectonics — Pangaea to Pangaea Proxima (250 Myr ago → +250 Myr)</option>
       <option value="4.5692567" data-rate="0.19" data-mult="10000">Gliese 710 grazes the Oort cloud (+1.29 Myr)</option>
@@ -8068,7 +8122,7 @@ startFrameLoop({
       <select id="focusSel"><option value="sun">Solar System</option><option value="earth">Earth</option><option value="moon">Moon</option><option value="pn">Anthropic Nebula</option><option value="mw">Milky Way</option><option value="and">Andromeda</option></select>
       <button class="rowbtn" id="focusGo">GO</button>
     </span>
-    <label class="chk plain"><input type="checkbox" id="tSpinLock"> spin lock<button type="button" class="info" data-tip="The camera turns with the planet, so the same face stays in view while the clock runs. Tick it to watch the plates drift." aria-label="about spin lock">i</button></label>
+    <label class="chk plain"><input type="checkbox" id="tSpinLock"> spin lock<button type="button" class="info" data-tip="The camera turns with what it watches. Following a planet it rides the spin — tick it to watch the plates drift. In the galaxy view it rides the spiral-arm pattern: the arms hold still while the stars and the ages sweep through them." aria-label="about spin lock">i</button></label>
     </span></div>
 </div>
 
