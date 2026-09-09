@@ -130,6 +130,10 @@ The build renders it to `changelog.html`, which the panel footer links to.
   and the thirteen inventories it was written from.
 - [`MIGRATE-STATE.md`](MIGRATE-STATE.md) — where that work got to, what it learned, and the
   things that will waste a day if you do not know them.
+- [`docs/how-the-milky-way-turns.html`](docs/how-the-milky-way-turns.html) — the standalone
+  explainer behind v3.1's rotation work: which way the galaxy spins, how we can tell from
+  inside it, why the arms are density waves, and what the same questions reveal about
+  Andromeda. Linked from the page's own info panel.
 - [`icon.svg`](icon.svg) — the *Galactic Transit* emblem, hand-authored as vector
   (with Orbitron embedded so the lettering renders identically everywhere) and
   rasterised to the PNG sizes the manifest needs (favicons, the Apple touch icon,

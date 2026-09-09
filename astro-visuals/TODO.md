@@ -15,9 +15,16 @@ before the work starts. An item is ticked when it ships, with the version that c
       on the maths, headless screenshot parity against today's build under a seeded RNG,
       and a boot test that catches what a parse check cannot. Refactor only — nothing may
       move a pixel.
-- [ ] Then: the Milky Way's and Andromeda's rotation, checked against the measurements
+- [x] Then: the Milky Way's and Andromeda's rotation, checked against the measurements
       rather than against the piece's own convenience — the flat curve, the pattern speed
       and the corotation radius, rebuilding the point sets if that is what it takes.
+      **v3.1.0.** The direction was verified correct and pinned by a boot test; the Galaxy
+      view now looks down from the north pole so it can be SEEN. Two measured pattern
+      speeds replace the invented one (bar corotation 5.9 kpc driving the four arms, spur
+      near-corotating at 8.5 kpc), the arms beat and re-form on ~268 Myr, star formation
+      follows the bright arms, Andromeda runs M32's collision rings instead of a spiral,
+      and the tide became Toomre–Toomre bridges and tails. The point sets did NOT need
+      rebuilding: the wave flag grew a second value instead.
       Requested 9 Sep 2026 with an explainer to work from
       (`docs/how-the-milky-way-turns.html`, to be folded into the info panel):
       - The **direction was checked first and is already right**, which is worth recording
@@ -48,7 +55,12 @@ before the work starts. An item is ticked when it ships, with the version that c
         within the last few hundred Myr, plus a warp from repeated satellite tugs.
 - [ ] Then: redo the merger against the current simulations — the Gaia-era proper motions,
       what M33 and the LMC do to the orbit, and the real spread of outcomes rather than one
-      median track.
+      median track. *Partly done in v3.1.0:* the tidal response is rebuilt (Toomre–Toomre
+      bridges and tails) and the info panel now cites Sawala 2025 (~50%, the drawn track's
+      source) against the April 2026 reanalysis (arXiv:2603.22863, ~90%, median 6.5 Gyr —
+      the drawn coalescence sits inside its band, so the timeline was kept). Still open:
+      drawing the SPREAD of outcomes rather than one track, and re-fitting the orbit if the
+      2026 fiducial hardens.
 - [ ] Then: what becomes of the Earth and the Sun once the Sun has expanded. Check the
       planetary nebula against the science; if it is right, leave it alone or make it
       prettier. Three things found while extracting `astro/sun` and writing its tests,

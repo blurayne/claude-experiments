@@ -95,6 +95,17 @@ if it went wrong, and prefer the compiler and the build over reading the diff.
 
 ## The parity gate
 
+**Since v3.1 the pin moves with the releases.** The gate was built to prove the TypeScript
+migration changed nothing against v2.78; the rotation/arms/collision work (v3.1.0) then
+changed pixels deliberately, so comparing against the old pin reports those changes as
+failures — correctly, and uselessly. The discipline now: a release that intends visual
+change updates `PIN` in `tests/harness/pin.ts` to its own final content commit as a
+separate commit, so the gate is green against the new baseline and guards the NEXT change.
+Structural work between releases runs against the current pin exactly as before. Never
+update the pin to make an unintended difference go away — that is the one move that
+destroys the gate's meaning.
+
+
 `tests/e2e/parity.spec.ts` photographs the pinned pre-refactor page (`fd0f980`, v2.78.0) and
 the built page back to back and compares them. It is what says the refactor changed nothing,
 and it stays useful for any change that is supposed to be invisible.
