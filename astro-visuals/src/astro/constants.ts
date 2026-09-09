@@ -83,3 +83,30 @@ export const sA = Math.sin(BAR_A), cA = Math.cos(BAR_A);
  */
 export const RC_BAR = 650;
 export const RC_ARMS = 933;
+
+/**
+ * The arms evolve: the two patterns beat (v3.1).
+ *
+ * "Computer simulations rarely produce a single long-lived wave… a typical spiral probably
+ * hosts two or more overlapping waves moving at different speeds, which beat against each
+ * other and make arms come and go" — the ingested explainer, and the modern literature
+ * behind it (swing amplification; Sellwood & Carlberg's transient recurrent spirals). With
+ * static point sets the geometry cannot re-form, but its BRIGHTNESS can carry the beat: each
+ * arm waxes and wanes as the two patterns' relative phase du(t) sweeps an m=2 mode across
+ * it. The two strong arms fade while the weak pair brightens and back — the disk oscillates
+ * between a two-armed and a four-armed appearance, which is literally the state of the
+ * observational debate — with a full cycle of 2π/(2·Δω) ≈ 268 Myr.
+ *
+ * At ts = 0 the beat is identically 1 everywhere, so the present-day picture is exact.
+ */
+export const ARM_EVO_AMP = 0.30;
+/** the two patterns' relative phase at a given clock reading, in radians */
+export const patternPhase = (ts: number): number => ts*V_GAL*(1/RC_BAR - 1/RC_ARMS);
+/**
+ * How bright an arm anchored at pattern-frame azimuth `off` runs at clock ts, ≥ 0.05.
+ * The same formula the vertex shader applies per point; keep the two in step.
+ */
+export const armBeat = (ts: number, off: number): number => {
+  const du = patternPhase(ts);
+  return Math.max(0.05, 1 + ARM_EVO_AMP*(Math.cos(2*off - 2*du) - Math.cos(2*off)));
+};

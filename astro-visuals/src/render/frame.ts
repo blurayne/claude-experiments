@@ -1,7 +1,7 @@
 import { $ } from '../core/dom'
 import { lookAt, mul, perspective, MAT3_ID, type Vec3 } from '../core/mat4'
 import {
-  R_GAL, V_GAL, AGE0, AU2U, REAL_MODE, TILT, E1, E2, RC_BAR,
+  R_GAL, V_GAL, AGE0, AU2U, REAL_MODE, TILT, E1, E2, RC_BAR, ARM_EVO_AMP,
 } from '../astro/constants'
 import { BODIES, NB, N_PLANETS, I_P9, bodyPos, tmp, earthW } from '../astro/bodies'
 import { EAT_AGES, sunState, sunTint, pnState, type PnState } from '../astro/sun'
@@ -332,6 +332,7 @@ function frame(now: number): void {
   gl.uniform3f(U.ptSun, sunX, bubY, sunZ);
   gl.uniform1f(U.ptGal, 1.0);
   gl.uniform1f(U.ptMerge, and.merge);
+  gl.uniform1f(U.ptArmAmp, ARM_EVO_AMP);   // the Milky Way's arms wax and wane with the beat
   gl.bindVertexArray(gfx.vaoGxy);
   if(insideDisk && gfx.hideNucleus && gfx.NUC1 > gfx.NUC0){   // the centre's own stars stay behind the dust
     if(gfx.NUC0 > 0) gl.drawArrays(gl.POINTS, 0, gfx.NUC0);
@@ -350,6 +351,7 @@ function frame(now: number): void {
     gl.uniform3f(U.ptSun, sunX, sunY+1e8, sunZ);   // no clearance bubble in its frame
     gl.uniform3f(U.ptAnd, 0, 0, 0);
     gl.uniform1f(U.ptVM, 0.0);
+    gl.uniform1f(U.ptArmAmp, 0.0);         // Andromeda's structure is rings, not this beat
     gl.bindVertexArray(gfx.vaoAnd); gl.drawArrays(gl.POINTS,0,gfx.N_AND);
     gl.uniformMatrix3fv(U.ptGRot, false, MAT3_ID);
     gl.uniform3f(U.ptGOff, 0, 0, 0);
@@ -358,6 +360,7 @@ function frame(now: number): void {
     gl.uniform1f(U.ptWarpAmp, 1.0);
     gl.uniform1f(U.ptSpin, spinMW);
     gl.uniform1f(U.ptVM, hud.varOn?1.0:0.0);
+    gl.uniform1f(U.ptArmAmp, ARM_EVO_AMP);
   }
   gl.uniform1f(U.ptGal, 0.0);
 

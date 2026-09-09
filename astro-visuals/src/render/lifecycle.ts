@@ -1,7 +1,7 @@
 import { gl } from '../gpu/context'
 import { dynVAO } from '../gpu/buffers'
 import { gauss, expR } from '../core/rng'
-import { PITCH, BAR_L, BAR_A, armAngle, ARMS } from '../astro/constants'
+import { PITCH, BAR_L, BAR_A, armAngle, ARMS, armBeat } from '../astro/constants'
 import { sfrFactor } from '../astro/environment'
 import { pPt, U } from './passes/points'
 import { pSN, USN } from './passes/supernova'
@@ -55,7 +55,16 @@ function armSite(): number[] { // where massive stars are born: an arm's inner e
   let r, th;
   if(roll<0.12){ th=(Math.random()<0.5?BAR_A:BAR_A+Math.PI)+gauss()*0.05; r=BAR_L*(0.95+Math.random()*0.12); }
   else if(roll<0.30){ r=900+(Math.random()*2-1)*150; th=-(r-900)/(900*PITCH)+0.02+gauss()*0.04; }
-  else { const arm=Math.random()<0.7?ARMS[(Math.random()*2)|0]:ARMS[2+((Math.random()*2)|0)];
+  else {
+    // Star formation follows the BRIGHT arms: each arm's chance rides its base strength
+    // times its current beat brightness, so as an arm fades its clusters and supernovae
+    // thin out with it, and a re-forming arm lights up first through its births — the
+    // visible face of the transient-arm picture.
+    const w0 = ARMS[0][1]*armBeat(simClock.simT, ARMS[0][0]), w1 = ARMS[1][1]*armBeat(simClock.simT, ARMS[1][0]);
+    const w2 = ARMS[2][1]*armBeat(simClock.simT, ARMS[2][0]), w3 = ARMS[3][1]*armBeat(simClock.simT, ARMS[3][0]);
+    let t = Math.random()*(w0+w1+w2+w3), ai = 0;
+    if(t > w0){ t -= w0; ai = 1; if(t > w1){ t -= w1; ai = 2; if(t > w2) ai = 3; } }
+    const arm = ARMS[ai];
     r=BAR_L+40+Math.pow(Math.random(),0.95)*1200; th=armAngle(r,arm[0])+0.025+gauss()*0.03; }
   return [r*Math.sin(th), gauss()*6, r*Math.cos(th)];
 }

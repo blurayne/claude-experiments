@@ -4,6 +4,7 @@ import PT_VS from '../../shaders/pt.vert?raw'
 import DUST_FS from '../../shaders/dust.frag?raw'
 import { MAT3_ID } from '../../core/mat4'
 import { M31_ROT } from '../../astro/merger'
+import { ARM_EVO_AMP } from '../../astro/constants'
 import { gfx } from '../state'
 import type { CloudFrame, Which } from './nebula'
 
@@ -28,6 +29,7 @@ export const pDust = prog(PT_VS, DUST_FS);
 export const UD = {
   minSz: gl.getUniformLocation(pDust,'uMinSz'),
   gal: gl.getUniformLocation(pDust,'uGal'), grot: gl.getUniformLocation(pDust,'uGRot'),
+  armAmp: gl.getUniformLocation(pDust,'uArmAmp'),
   goff: gl.getUniformLocation(pDust,'uGOff'), merge: gl.getUniformLocation(pDust,'uMerge'),
   and: gl.getUniformLocation(pDust,'uAnd'), tide: gl.getUniformLocation(pDust,'uTide'),
   warpAmp: gl.getUniformLocation(pDust,'uWarpAmp'),
@@ -77,6 +79,7 @@ export function drawDust(
     gl.uniform3f(UD.sun, sunX, bubY, sunZ);
     gl.uniform1f(UD.gal, 1.0);
     gl.uniform1f(UD.merge, merge);
+    gl.uniform1f(UD.armAmp, ARM_EVO_AMP);   // a faded arm's dust lane fades with it
     if(which !== 'and'){ gl.bindVertexArray(gfx.vaoDust); gl.drawArrays(gl.POINTS,0,gfx.DUST_N); }
     if(gfx.vaoAndDust && which !== 'mw'){
       gl.uniformMatrix3fv(UD.grot, false, M31_ROT);
@@ -85,6 +88,7 @@ export function drawDust(
       gl.uniform1f(UD.warpAmp, 0.35);
       gl.uniform3f(UD.and, 0, 0, 0);
       gl.uniform3f(UD.sun, sunX, sunY+1e8, sunZ);
+      gl.uniform1f(UD.armAmp, 0.0);
       gl.bindVertexArray(gfx.vaoAndDust); gl.drawArrays(gl.POINTS,0,gfx.N_ANDD);
       gl.uniformMatrix3fv(UD.grot, false, MAT3_ID);
       gl.uniform3f(UD.goff, 0, 0, 0);
@@ -92,6 +96,7 @@ export function drawDust(
       gl.uniform1f(UD.warpAmp, 1.0);
       gl.uniform3f(UD.and, andPos[0], andPos[1], andPos[2]);
       gl.uniform3f(UD.sun, sunX, bubY, sunZ);
+      gl.uniform1f(UD.armAmp, ARM_EVO_AMP);
     }
     gl.uniform1f(UD.gal, 0.0);
     gl.blendFunc(gl.ONE, gl.ONE);

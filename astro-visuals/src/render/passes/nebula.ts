@@ -4,6 +4,7 @@ import PT_VS from '../../shaders/pt.vert?raw'
 import NEB_FS from '../../shaders/neb.frag?raw'
 import { MAT3_ID } from '../../core/mat4'
 import { M31_ROT } from '../../astro/merger'
+import { ARM_EVO_AMP } from '../../astro/constants'
 import { gfx } from '../state'
 
 /**
@@ -29,6 +30,7 @@ export const pNeb = prog(PT_VS, NEB_FS);
 export const UN = {
   minSz: gl.getUniformLocation(pNeb,'uMinSz'),
   gal: gl.getUniformLocation(pNeb,'uGal'), grot: gl.getUniformLocation(pNeb,'uGRot'),
+  armAmp: gl.getUniformLocation(pNeb,'uArmAmp'),
   goff: gl.getUniformLocation(pNeb,'uGOff'), merge: gl.getUniformLocation(pNeb,'uMerge'),
   and: gl.getUniformLocation(pNeb,'uAnd'), tide: gl.getUniformLocation(pNeb,'uTide'),
   warpAmp: gl.getUniformLocation(pNeb,'uWarpAmp'),
@@ -109,6 +111,7 @@ export function drawNebula(
   gl.uniform3f(UN.sun, sunX, bubY, sunZ);
   gl.uniform1f(UN.gal, 1.0);
   gl.uniform1f(UN.merge, merge);
+  gl.uniform1f(UN.armAmp, ARM_EVO_AMP);   // the Milky Way's arms breathe with the beat
   const seg = (pink: number, glow: number, n: number) => {
     if(haze){ if(glow) gl.drawArrays(gl.POINTS, pink, glow); }
     else { if(pink) gl.drawArrays(gl.POINTS, 0, pink);
@@ -125,6 +128,7 @@ export function drawNebula(
     gl.uniform1f(UN.warpAmp, 0.35);
     gl.uniform3f(UN.and, 0, 0, 0);
     gl.uniform3f(UN.sun, sunX, sunY+1e8, sunZ);
+    gl.uniform1f(UN.armAmp, 0.0);          // Andromeda's structure is rings, not this beat
     gl.bindVertexArray(gfx.vaoAndNeb); seg(gfx.AND_PINK, gfx.AND_GLOW, gfx.N_ANDN);
     gl.uniformMatrix3fv(UN.grot, false, MAT3_ID);
     gl.uniform3f(UN.goff, 0, 0, 0);
@@ -132,6 +136,7 @@ export function drawNebula(
     gl.uniform1f(UN.warpAmp, 1.0);
     gl.uniform3f(UN.and, andPos[0], andPos[1], andPos[2]);
     gl.uniform3f(UN.sun, sunX, bubY, sunZ);
+    gl.uniform1f(UN.armAmp, ARM_EVO_AMP);
   }
   gl.uniform1f(UN.gal, 0.0);
 }

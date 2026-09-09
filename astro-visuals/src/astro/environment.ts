@@ -16,7 +16,7 @@
  * starlight term below, and it is why "we sit on the spur's inner edge" stays true on
  * screen for the rest of the disk's life.
  */
-import { AGE0, YR_PER_SIM, V_GAL, R_GAL, RC_BAR, RC_ARMS, ARMS, armAngle } from './constants'
+import { AGE0, YR_PER_SIM, V_GAL, R_GAL, RC_BAR, RC_ARMS, ARMS, armAngle, armBeat } from './constants'
 import { WOB_T } from './bodies'
 import { mergeAt } from './merger'
 import { sunState } from './sun'
@@ -58,13 +58,15 @@ function rawCR(ts: number): { cr: number; armProx: number; spurProx: number } {
   const relFast = ts*V_GAL*(1/R_GAL - 1/RC_BAR);
   // Against the spur's pattern the Sun creeps AHEAD — one relative lap in ~6 Gyr.
   const relSlow = ts*V_GAL*(1/R_GAL - 1/RC_ARMS);
-  let best = 9;
+  // Each arm's proximity is weighted by its CURRENT brightness in the beat: a crossing
+  // through a faded arm is a mild one, and may not freeze the planet at all — which is the
+  // real glaciation record's own irregularity, drawn rather than smoothed away.
+  let armProx = 0;
   for(const a of ARMS){
     let d = relFast - armAngle(R_GAL, a[0]);
     d = Math.atan2(Math.sin(d), Math.cos(d));
-    best = Math.min(best, Math.abs(d));
+    armProx = Math.max(armProx, Math.exp(-Math.pow(d/0.45,2)) * Math.min(armBeat(ts, a[0]), 1.6));
   }
-  const armProx = Math.exp(-Math.pow(best/0.45,2));
   // The Local Spur: a short segment whose centre sits 0.02 rad ahead of the Sun today.
   // The Sun reaches its middle in ~20 Myr and is out the front ~130 Myr later; the next
   // pass comes only after the ~6 Gyr relative lap, by which time the merger has begun.

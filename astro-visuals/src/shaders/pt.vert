@@ -25,10 +25,12 @@ uniform float uGal;   // 1: this draw is a whole galaxy, placed by uGRot/uGOff
 uniform mat3 uGRot;   // the galaxy's disk frame in scene coordinates (identity for ours)
 uniform vec3 uGOff;   // the galaxy's centre (zero for ours)
 uniform float uMerge; // 0 two galaxies .. 1 one relaxed remnant
+uniform float uArmAmp; // beat amplitude for the arm evolution; 0 on every non-Milky-Way draw
 out vec3 vColor;
 void main(){
   vec3 p = aPos + aVel*uVelT;
   float fade = 1.0;
+  float armMod = 1.0;
   if(uSpin != 0.0){
     float r = length(p.xz);
     // material stars: flat rotation curve, so they shear differentially. Wave-flagged
@@ -42,6 +44,18 @@ void main(){
     float w = min(max(aWave, uWaveAll), 1.0);
     float rc = mix(650.0, 933.0, step(1.5, aWave));
     float d = mix(uSpin / max(r, 520.0), uSpin/rc, w);
+    // The arms EVOLVE: the two patterns' relative phase du sweeps an m=2 brightness mode
+    // across the bar-driven arms, so each waxes and wanes on a ~268 Myr cycle — arms come
+    // and go, and the disk oscillates between a two-armed and a four-armed look, which is
+    // the modern transient-spiral picture (and the observational debate) drawn with static
+    // geometry. The bar (inner smoothstep) and the spur (aWave=2) stay steady, and at
+    // uSpin=0 the factor is exactly 1: today's picture is untouched. Mirror of armBeat()
+    // in astro/constants — keep the two in step.
+    if(uArmAmp > 0.0 && w > 0.0 && aWave < 1.5){
+      float du = uSpin*(1.0/650.0 - 1.0/933.0);
+      float u0 = atan(p.x, p.z) + log(max(r, 80.0)/500.0)/0.221695;
+      armMod = max(0.05, 1.0 + uArmAmp*(cos(2.0*u0 - 2.0*du) - cos(2.0*u0))*smoothstep(560.0, 700.0, r));
+    }
     float c = cos(d), s = sin(d);
     p = vec3(p.x*c + p.z*s, p.y, p.z*c - p.x*s);
     // Gaia-style warp: outer disk bends up on one side, down on the other,
@@ -118,5 +132,5 @@ void main(){
     float lum = max(max(col.r, col.g), col.b);
     if(lum > 0.0002 && lum < uMinB) col *= uMinB/lum;
   }
-  vColor = col * fade * fluxKeep * (1.0 - uFadeOut);
+  vColor = col * fade * fluxKeep * armMod * (1.0 - uFadeOut);
 }

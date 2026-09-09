@@ -4,6 +4,7 @@ import {
   SUN_MS_END, SUN_RGB_TIP, SUN_HB, SUN_AGB, SUN_WD, SUN_EAT_AGE, EAT_AGES, EARTH_ORBIT_RSUN,
 } from '../../src/astro/sun'
 import { ageAt, environment, lifeState, sfrFactor } from '../../src/astro/environment'
+import { ARMS, armBeat, RC_BAR, RC_ARMS, V_GAL } from '../../src/astro/constants'
 import { AGE0, YR_PER_SIM } from '../../src/astro/constants'
 import { MERGE_A1 } from '../../src/astro/merger'
 
@@ -262,6 +263,43 @@ describe('environment — the climate model', () => {
     expect(boils, 'the oceans never boil').toBeGreaterThan(AGE0)
     expect(boils, `the model boils the oceans at ${boils.toFixed(2)} Gyr`).toBeCloseTo(10.95, 1)
     expect(boils).toBeLessThan(SUN_RGB_TIP)
+  })
+})
+
+describe('the arm beat — the transient-spiral picture', () => {
+  // Two patterns at different speeds beat against each other, and each arm's brightness
+  // rides the beat: the modern answer to "is the Milky Way two-armed or four-armed?" is
+  // "yes, alternately", and this is the function that draws it. The vertex shader carries
+  // the same formula inline (pt.vert) — if this model changes, change both.
+  it('is exactly 1 for every arm at the present day, so today\'s picture is untouched', () => {
+    for (const a of ARMS) expect(armBeat(0, a[0])).toBeCloseTo(1, 12)
+  })
+
+  it('cycles with the two patterns\' relative phase, a full period of about 268 Myr', () => {
+    const period = 2 * Math.PI / (2 * V_GAL * (1 / RC_BAR - 1 / RC_ARMS))
+    expect(period / 1e6).toBeGreaterThan(250)
+    expect(period / 1e6).toBeLessThan(290)
+    for (const a of ARMS) expect(armBeat(period, a[0])).toBeCloseTo(armBeat(0, a[0]), 6)
+  })
+
+  it('fades the strong pair while the weak pair brightens, and swaps back', () => {
+    // Scutum–Centaurus and Perseus sit at off and off+π: the m=2 mode treats them alike.
+    // Sagittarius and Norma sit π/2 away, in antiphase. When one pair dips the other peaks.
+    const quarter = 0.25 * 2 * Math.PI / (2 * V_GAL * (1 / RC_BAR - 1 / RC_ARMS))
+    let swapped = 0
+    for (let k = 1; k <= 8; k++) {
+      const strong = armBeat(k * quarter, ARMS[0]![0]!), weak = armBeat(k * quarter, ARMS[2]![0]!)
+      if ((strong - 1) * (weak - 1) < -1e-6) swapped++
+    }
+    expect(swapped, 'the pairs never moved in antiphase').toBeGreaterThan(4)
+  })
+
+  it('stays bounded: no arm ever quite vanishes or more than doubles', () => {
+    for (let t = 0; t < 3e9; t += 37e6) for (const a of ARMS) {
+      const b = armBeat(t, a[0])
+      expect(b).toBeGreaterThanOrEqual(0.05)
+      expect(b).toBeLessThanOrEqual(2)
+    }
   })
 })
 
