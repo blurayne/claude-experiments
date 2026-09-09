@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 3.9.0 — 2026-09-10
+
+- V3.9.0 — the debug panel gathers its own, and the scale becomes optional (`d8e865b`)
+
 ### 3.8.0 — 2026-09-09
 
 - V3.8.0 — the Moon's own frame, and the doors relabelled (`34d268d`)
