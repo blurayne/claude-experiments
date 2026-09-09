@@ -74,7 +74,7 @@
       <label class="chk"><input type="checkbox" id="tGaia" checked> gaia sky<button type="button" class="info" data-tip="The 100,000 nearest real stars from Gaia DR3, each where it is." aria-label="about this setting">i</button></label>
       <label class="chk"><input type="checkbox" id="tVar" checked> variables<button type="button" class="info" data-tip="Variable stars pulse at their own measured periods." aria-label="about this setting">i</button></label>
       <label class="chk" title="the + and − buttons under help"><input type="checkbox" id="tZoomBtns" checked> zoom buttons<button type="button" class="info" data-tip="The + and − buttons under the play button, stepping through the objects from planet to galaxy." aria-label="about this setting">i</button></label>
-      <label class="chk" title="the camera turns with the planet: the same face stays in view while the clock runs"><input type="checkbox" id="tSpinLock2"> spin lock<button type="button" class="info" data-tip="The camera turns with the planet, so the same face stays in view while the clock runs." aria-label="about this setting">i</button></label>
+      <label class="chk" title="the camera turns with what it watches: a planet's spin, or the galaxy's arm pattern"><input type="checkbox" id="tSpinLock2"> spin lock<button type="button" class="info" data-tip="The camera turns with what it watches. Following a planet it rides the spin, so the same face stays in view. In the galaxy view it rides the spiral-arm pattern instead: the arms hold still while the stars and the ages sweep through them." aria-label="about this setting">i</button></label>
     </div>
     </div>
     <div class="sect" data-sec="hud">Hud<span class="arw">▾</span></div>
@@ -325,6 +325,12 @@
     around the central supermassive black hole M31* (NASA/CXC). Found via the
     <a href="https://www.messier-objects.com/messier-31-andromeda-galaxy/" target="_blank" rel="noopener">Messier
     Objects guide to M31</a>, a good lay overview of the galaxy.</p>
+    <p><b>Watching it happen:</b> in the Galaxy view, tick <b>spin lock</b> and the camera rides the bar
+    pattern — the arms hold still on screen, and what moves is the evolution itself: each arm waxing and
+    waning on its ~268&nbsp;Myr beat, star formation migrating to whichever arms are bright, the material
+    stars sweeping through the frozen pattern. The scenario <b>How the arms evolve</b> stages exactly this:
+    two billion years to today in about 45 seconds, then straight onward into the future at the same pace.</p>
+
     <p>A fuller version of this explainer, with its own animation of density waves against material arms,
     ships beside this page: <a href="docs/how-the-milky-way-turns.html" target="_blank" rel="noopener">How
     the Milky Way turns</a>.</p>
@@ -752,6 +758,7 @@
       <option value="0.058">Theia impact — the Moon forms (4.51 Gyr ago)</option>
       <option value="0.768">Young Earth — first life (3.8 Gyr ago)</option>
       <option value="2.068">Great Oxidation (2.5 Gyr ago)</option>
+      <option value="2.568g" data-rate="0.4444" data-mult="100000000">How the arms evolve — 2 Gyr time-lapse, then onward (2.0 Gyr ago &rarr;)</option>
       <option value="4.318p" data-rate="1" data-mult="1">Pangaea — one continent, one ocean (250 Myr ago)</option>
       <option value="4.318" data-rate="1" data-mult="10000000">Plate tectonics — Pangaea to Pangaea Proxima (250 Myr ago → +250 Myr)</option>
       <option value="4.5692567" data-rate="0.19" data-mult="10000">Gliese 710 grazes the Oort cloud (+1.29 Myr)</option>
@@ -807,7 +814,7 @@
       <select id="focusSel"><option value="sun">Solar System</option><option value="earth">Earth</option><option value="moon">Moon</option><option value="pn">Anthropic Nebula</option><option value="mw">Milky Way</option><option value="and">Andromeda</option></select>
       <button class="rowbtn" id="focusGo">GO</button>
     </span>
-    <label class="chk plain"><input type="checkbox" id="tSpinLock"> spin lock<button type="button" class="info" data-tip="The camera turns with the planet, so the same face stays in view while the clock runs. Tick it to watch the plates drift." aria-label="about spin lock">i</button></label>
+    <label class="chk plain"><input type="checkbox" id="tSpinLock"> spin lock<button type="button" class="info" data-tip="The camera turns with what it watches. Following a planet it rides the spin — tick it to watch the plates drift. In the galaxy view it rides the spiral-arm pattern: the arms hold still while the stars and the ages sweep through them." aria-label="about spin lock">i</button></label>
     </span></div>
 </div>
 

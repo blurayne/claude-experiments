@@ -7,10 +7,10 @@ import { refillTrails, TRAIL_N } from '../render/trails'
 const $v0 = (e: Event): HTMLInputElement & HTMLSelectElement =>
   e.target as HTMLInputElement & HTMLSelectElement
 import { fmtCount, fmtYears as fmtYearsIn, sup, type UnitMode } from '../core/format'
-import { AGE0, GAL_PERIOD, YR_PER_SIM, REAL_MODE, AU2U } from '../astro/constants'
+import { AGE0, GAL_PERIOD, YR_PER_SIM, REAL_MODE, AU2U, RC_BAR } from '../astro/constants'
 import { sunR, sunPhase, sunState, SUN_AGB, EARTH_ORBIT_RSUN, type PnState } from '../astro/sun'
 import { ratesIntegral } from '../astro/environment'
-import { mergeAt } from '../astro/merger'
+import { mergeAt, diskSpin } from '../astro/merger'
 import { cam, gfx, readout, simClock, view } from '../render/state'
 import { spinFrame } from '../render/frame'
 import { N_PLANETS, I_P9 } from '../astro/bodies'
@@ -645,6 +645,17 @@ export function initHudControls(deps: {
 
 
   toggleLocal($('tSpinLock'), on=>{
+    if(!cam.follow){
+      // The galaxy overview: the lock adds the arm pattern's accumulated angle to the yaw
+      // (render/frame's galLockA). Re-express the yaw so the flip leaves the view exactly
+      // where it is — written against the CURRENT lock state, so a redundant re-dispatch
+      // (the boot restore fires one) changes nothing.
+      const A = diskSpin(simClock.simT)/RC_BAR;
+      cam.yaw = cam.yaw + (cam.spinLock ? A : 0) - (on ? A : 0);
+      cam.spinLock = on; cam.panF[0]=cam.panF[1]=0;
+      $v('tSpinLock2').checked = on;
+      return;
+    }
     const d = cam.dirW;
     if(on){ const [P, A, Q] = spinFrame(); const dP = d[0]*P[0]+d[1]*P[1]+d[2]*P[2], dA = d[0]*A[0]+d[1]*A[1]+d[2]*A[2], dQ = d[0]*Q[0]+d[1]*Q[1]+d[2]*Q[2];
       cam.yaw = Math.atan2(dP, -dQ); cam.pitch = Math.asin(Math.max(-1, Math.min(1, dA))); }

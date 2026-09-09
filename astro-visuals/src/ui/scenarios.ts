@@ -198,6 +198,17 @@ export function jumpToEpoch(): void {
     cam.distGoal = 0.144;                     // ~5 ly across: the whole Oort shell
     cam.yaw = 0.72; cam.pitch = -0.31;        // faces the star's approach track
   }
+  if(sel.value === '2.568g'){
+    // The arm evolution time-lapse: the whole disk face-on from the north pole, the camera
+    // locked to the bar pattern so the four arms hold still on screen while their
+    // brightness beats — two billion years to today in about 45 seconds (seven or so full
+    // beat cycles), and straight onward into the future at the same pace for whoever keeps
+    // watching. The lock is the point: unlocked, the pattern's own rotation smears the
+    // evolution into a blur of motion.
+    $v('focusSel').value = 'mw'; applyFocusView();
+    if(!$v('tSpinLock').checked){ $v('tSpinLock').checked = true; $('tSpinLock').dispatchEvent(new Event('change')); }
+    if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
+  }
   // Earth's own events are watched from Earth: the globe filling the view, followed. The
   // continental ones lock the camera to the spin and put the eye over the face that
   // matters, given as yaw = atan2(cos lat cos lon, −cos lat sin lon), pitch = lat:
@@ -208,11 +219,13 @@ export function jumpToEpoch(): void {
   const EARTH_AIM: Record<string, number[]> = { '4.318':[1.047, 0.35], '4.318p':[1.571, 0.26], '4.818x':[1.222, 0.17], '5.6v':[1.222, 0.17] };
   if(sel.value === '0.058' || sel.value === '0.768' || sel.value === '2.068' || EARTH_AIM[sel.value]){
     $v('focusSel').value = 'earth'; applyFocusView();
+    // Every planet-watched event locks the camera to the spin, not just the continental
+    // ones: without it the globe turns under the eye and the event happens on whatever
+    // face the clock rate lands on. The aimed entries then point the locked camera at the
+    // face that matters (set after the dispatch — the toggle re-expresses the yaw).
+    if(!$v('tSpinLock').checked){ $v('tSpinLock').checked = true; $('tSpinLock').dispatchEvent(new Event('change')); }
     const aim = EARTH_AIM[sel.value];
-    if(aim){
-      if(!$v('tSpinLock').checked){ $v('tSpinLock').checked = true; $('tSpinLock').dispatchEvent(new Event('change')); }
-      cam.yaw = aim[0]; cam.pitch = aim[1];
-    }
+    if(aim){ cam.yaw = aim[0]; cam.pitch = aim[1]; }
     if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
   }
   simClock.nextSample = simClock.simT + simClock.dtSample;

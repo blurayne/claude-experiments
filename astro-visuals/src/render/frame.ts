@@ -193,7 +193,14 @@ function frame(now: number): void {
     baseYaw = Math.atan2(org[0], org[2]);
     basePitch = Math.asin(Math.max(-1, Math.min(1, org[1]/r)));
   }
-  const yawE = cam.yaw + baseYaw;
+  // The galaxy spin lock: with nothing followed, the spin-lock checkbox rides the camera
+  // on the BAR pattern — the one the four arms are driven by — so the arms hold still on
+  // screen and what remains visible is the evolution itself: the beat waxing and waning,
+  // material stars and star-forming events sweeping through the frozen pattern. The angle
+  // is exactly the shader's own for wave points, uSpin/RC_BAR; the toggle handler in
+  // ui/hud re-expresses the yaw at the flip so the view never jumps.
+  const galLockA = cam.spinLock && !cam.follow ? diskSpin(simClock.simT)/RC_BAR : 0;
+  const yawE = cam.yaw + baseYaw + galLockA;
   const pitchE = Math.max(-1.45, Math.min(1.45, cam.pitch + basePitch));
   const cp=Math.cos(pitchE), sp=Math.sin(pitchE);
   // the pan: a screen-space offset, so it rides the camera's right and up at this distance.
