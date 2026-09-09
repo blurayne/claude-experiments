@@ -5,6 +5,11 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 3.3.0 — 2026-09-09
+
+- Hovered buttons breathe (`fa8fa5d`)
+- V3.3.0 — the About panel becomes a library (`41fa14e`)
+
 ### 3.2.0 — 2026-09-09
 
 - V3.2.0 — ride the pattern, and the arms finally trail (`0143a88`)
