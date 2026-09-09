@@ -6,14 +6,16 @@ import { fileURLToPath } from 'node:url'
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
 
 /**
- * The stylesheet was one 368-line block and is now four files. Splitting CSS is the kind of
- * change that looks safe and is not: the cascade is positional, so a rule that used to lose
- * can start winning purely because it moved into a file that loads later. Three such
- * conflicts exist in this page and every one of them is invisible on a desktop screenshot.
+ * The stylesheet is four source files whose concatenation order IS the cascade. Splitting
+ * CSS was the migration's risk; keeping the cascade honest is the live one: the order is
+ * positional, so a rule that used to lose can start winning purely because it moved into a
+ * file that loads later. Three such conflicts exist in this page and every one is invisible
+ * on a desktop screenshot. These assertions take milliseconds and say which rule moved.
  *
- * The parity gate photographs four viewport bands and a glacial frame partly to catch this,
- * but a screenshot takes two minutes and says only "different". These assertions take
- * milliseconds and say which rule moved.
+ * The migration-era half of this file — proving the split lost no rule of v2.78's single
+ * block — retired when the gate was repinned to v3.1.0 (the sources are live now, and the
+ * old pin's <style> block is history, provable from git any time). What ships is asserted
+ * against the SOURCES instead: the artifact must carry exactly their rules in their order.
  */
 
 const FILES = ['base', 'panels', 'dialogs', 'hud'] as const
@@ -27,47 +29,7 @@ function concatenated(): string[] {
   })
 }
 
-/** The stylesheet as it was before the split, read from the pinned pre-refactor page. */
-function original(): string[] {
-  const html = readFileSync(resolve(ROOT, 'baseline-page.html'), 'utf8').split('\n')
-  const open = html.findIndex((l) => l.trim() === '<style>')
-  const close = html.findIndex((l) => l.trim() === '</style>')
-  expect(open, 'no <style> in the pinned page').toBeGreaterThan(-1)
-  return html.slice(open + 1, close).filter((l) => l.trim())
-}
-
 describe('the CSS split', () => {
-  it('loses no rule and invents none', () => {
-    const before = original()
-    const after = concatenated()
-    expect(after).toHaveLength(before.length)
-    expect([...after].sort()).toEqual([...before].sort())
-  })
-
-  // The other half of the contract: within a file, blocks keep their original relative order.
-  // Between files the order is chosen (that is what the split is for); inside one it is not,
-  // and a block that drifted upward past a sibling is a cascade change disguised as tidying.
-  //
-  // Checked as a subsequence rather than by line number so that it survives duplicates —
-  // `@media (max-width:620px){` genuinely occurs twice in the original, once for the tour and
-  // once for the status bar, which is also why "no rule appears in two files" is the wrong
-  // assertion to make here. The multiset check above already proves nothing was duplicated.
-  it.each(FILES)('keeps %s.css in ascending original order', (name) => {
-    const before = original()
-    const text = readFileSync(resolve(ROOT, `src/styles/${name}.css`), 'utf8')
-    const mine = text
-      .slice(text.indexOf('*/') + 2)
-      .split('\n')
-      .filter((l) => l.trim())
-
-    let cursor = 0
-    for (const line of mine) {
-      const found = before.indexOf(line, cursor)
-      expect(found, `"${line.trim().slice(0, 60)}" is out of order in ${name}.css`).toBeGreaterThan(-1)
-      cursor = found + 1
-    }
-  })
-
   describe('the cascade conflicts the split could silently resolve the other way', () => {
     const order = concatenated()
     const at = (needle: string): number => {
@@ -130,11 +92,18 @@ describe('the stylesheet that ships', () => {
       .filter(Boolean)
   }
 
-  it('is one inline <style>, and holds exactly the rules the original did', () => {
+  it('is one inline <style>, and holds exactly the source files\' rules in their order', () => {
+    // The bundler decides what actually ships; the sources being right proves nothing about
+    // the artifact. Line for line, in order — a hoisted, merged or reformatted rule fails here.
     const built = shipped('galactic-transit.html')
-    const before = shipped('baseline-page.html')
-    expect(built).toHaveLength(before.length)
-    expect([...built].sort()).toEqual([...before].sort())
+    const fromSources = FILES.flatMap((name) =>
+      readFileSync(resolve(ROOT, `src/styles/${name}.css`), 'utf8')
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+        .split('\n')
+        .map((l) => l.trim())
+        .filter(Boolean),
+    )
+    expect(built).toEqual(fromSources)
   })
 
   it.each([

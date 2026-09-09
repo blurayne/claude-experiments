@@ -6,11 +6,16 @@ import { fileURLToPath } from 'node:url'
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
 
 /**
- * v2.78.0 — the last commit to touch the page before the refactor began. The baselines are
- * captured from this, not from the working tree, so "what the page used to do" is a fixed
- * point in git rather than whatever happens to be checked out.
+ * The gate's baseline: the release the current work is compared against.
+ *
+ * Through the TypeScript migration this was fd0f980 (v2.78.0, the last commit before it),
+ * and the gate proved the whole migration pixel-null against it. v3.1.0 then changed pixels
+ * DELIBERATELY — the rotation, arm-evolution and collision work — so the pin moves to that
+ * release and the gate guards the next change instead. AGENTS.md carries the rule: a release
+ * that intends visual change repins to its own final content commit, as its own commit, and
+ * the pin never moves to make an unintended difference go away.
  */
-export const PIN = 'fd0f980bec38084b58c7a90c152bff94b73a6959'
+export const PIN = '824a29719e4588a14e965504ffd403051d494ab3'
 
 /**
  * The pinned page is written as a sibling of the live one rather than into a checkout of its
