@@ -30,6 +30,7 @@ export const UD = {
   minSz: gl.getUniformLocation(pDust,'uMinSz'),
   gal: gl.getUniformLocation(pDust,'uGal'), grot: gl.getUniformLocation(pDust,'uGRot'),
   armAmp: gl.getUniformLocation(pDust,'uArmAmp'),
+  asm: gl.getUniformLocation(pDust,'uAsm'), chaos: gl.getUniformLocation(pDust,'uChaos'),
   ringAmp: gl.getUniformLocation(pDust,'uRingAmp'), ringT: gl.getUniformLocation(pDust,'uRingT'),
   ringC: gl.getUniformLocation(pDust,'uRingC'),
   goff: gl.getUniformLocation(pDust,'uGOff'), merge: gl.getUniformLocation(pDust,'uMerge'),
@@ -53,7 +54,7 @@ export const UD = {
  */
 export function drawDust(
   { projMat, viewMat, pxScale, deep, insideDisk,
-    andPos, tide, merge, spinMW, spinM31, warp, ringT, sunX, sunY, bubY, sunZ, org }: CloudFrame,
+    andPos, tide, merge, spinMW, spinM31, warp, ringT, asm, chaos, sunX, sunY, bubY, sunZ, org }: CloudFrame,
   dustOn: boolean,
   which: Which = 'both',
 ): void {
@@ -82,6 +83,7 @@ export function drawDust(
     gl.uniform1f(UD.gal, 1.0);
     gl.uniform1f(UD.merge, merge);
     gl.uniform1f(UD.armAmp, ARM_EVO_AMP);   // a faded arm's dust lane fades with it
+    gl.uniform1f(UD.asm, asm); gl.uniform1f(UD.chaos, chaos);
     if(which !== 'and'){ gl.bindVertexArray(gfx.vaoDust); gl.drawArrays(gl.POINTS,0,gfx.DUST_N); }
     if(gfx.vaoAndDust && which !== 'mw'){
       gl.uniformMatrix3fv(UD.grot, false, M31_ROT);

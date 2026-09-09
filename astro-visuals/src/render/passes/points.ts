@@ -40,6 +40,7 @@ export const U = {
   ptGal: gl.getUniformLocation(pPt,'uGal'), ptGRot: gl.getUniformLocation(pPt,'uGRot'),
   ptGOff: gl.getUniformLocation(pPt,'uGOff'), ptMerge: gl.getUniformLocation(pPt,'uMerge'),
   ptArmAmp: gl.getUniformLocation(pPt,'uArmAmp'),
+  ptAsm: gl.getUniformLocation(pPt,'uAsm'), ptChaos: gl.getUniformLocation(pPt,'uChaos'),
   ptRingAmp: gl.getUniformLocation(pPt,'uRingAmp'), ptRingT: gl.getUniformLocation(pPt,'uRingT'),
   ptRingC: gl.getUniformLocation(pPt,'uRingC'),
   trProj: gl.getUniformLocation(pTr,'uProj'), trView: gl.getUniformLocation(pTr,'uView'),

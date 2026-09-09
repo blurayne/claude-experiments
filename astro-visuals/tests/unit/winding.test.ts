@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { PITCH, BAR_A, BAR_L, ARMS, armAngle } from '../../src/astro/constants'
+import { PITCH, BAR_A, BAR_L, ARMS, armAngle, asmAt, chaosAt } from '../../src/astro/constants'
 import { readFileSync } from 'node:fs'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -73,5 +73,21 @@ describe('the arms trail', () => {
       checked++
     }
     expect(checked).toBe(4)
+  })
+})
+
+describe('the assembly model', () => {
+  it('is exactly the identity today: asm 1, chaos 0 — the present picture untouched', () => {
+    expect(asmAt(0)).toBe(1)
+    expect(chaosAt(0)).toBe(0)
+  })
+  it('un-forms going back: compact and chaotic in the deep past, convulsing at Gaia-Enceladus', () => {
+    expect(asmAt(-13.0e9)).toBeLessThan(0.05)
+    expect(chaosAt(-13.0e9)).toBeGreaterThan(0.5)
+    expect(asmAt(-6e9)).toBeGreaterThan(0.9)
+    // the ~10 Gyr-ago merger stands above its surroundings
+    expect(chaosAt(-10.0e9)).toBeGreaterThan(chaosAt(-7.5e9) + 0.3)
+    expect(chaosAt(-2e9)).toBeLessThan(0.02)
+    expect(asmAt(-13.6e9)).toBe(0)
   })
 })

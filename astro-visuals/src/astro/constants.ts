@@ -81,6 +81,33 @@ export const sA = Math.sin(BAR_A), cA = Math.cos(BAR_A);
  * kinematics have it. One relative lap takes ~6 Gyr: the spur is our neighbourhood for
  * the rest of the disk's life.
  */
+/**
+ * How the galaxy ASSEMBLED (v3.6, after the VINTERGATAN storyline — Agertz, Renaud
+ * et al. 2021: a cosmological zoom of a Milky Way-mass galaxy).
+ *
+ * asmAt(ts) is the disk's settledness, exactly 1 today so the present picture is
+ * untouched: 0 in the protogalactic dark, rising as the disk grows and thins, settled
+ * once the thin disk is in place (~6 Gyr after the Big Bang — the bar and today's
+ * pattern belong to this era). chaosAt(ts) is the merger turbulence on top: high
+ * through the chaotic early accretion, spiking at the Gaia-Enceladus merger ~10 Gyr
+ * ago (the event that built the inner halo and puffed the thick disk), and dying to
+ * zero well before today. Both feed the vertex shader as uniforms, where going back in
+ * time contracts the disk, puffs and scrambles it, and turns it blue and clumpy.
+ */
+export const asmAt = (ts: number): number => {
+  const u = (13.787e9 + ts)/1e9;               // Gyr after the Big Bang
+  if(u <= 0.45) return 0;
+  const x = Math.min(1, (u - 0.45)/5.6);
+  return x*x*(3 - 2*x);
+};
+export const chaosAt = (ts: number): number => {
+  const u = (13.787e9 + ts)/1e9;
+  if(u <= 0) return 0;
+  const enceladus = Math.exp(-Math.pow((u - 3.8)/0.9, 2));   // the big one, ~10 Gyr ago
+  const c = Math.min(1, (1 - asmAt(ts))*0.8 + enceladus*0.9);
+  return c < 1e-6 ? 0 : c;   // exactly zero today — e^-123 is not a number to ship a wobble on
+};
+
 /** The Big Bang, on this page's clock (real years from today): the universe is ~13.787 Gyr
  * old, and the clock refuses to scrub before it — there is nothing there to draw. */
 export const T_BIG_BANG = -13.787e9;

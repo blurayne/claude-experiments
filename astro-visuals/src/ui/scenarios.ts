@@ -198,6 +198,17 @@ export function jumpToEpoch(): void {
     cam.distGoal = 0.144;                     // ~5 ly across: the whole Oort shell
     cam.yaw = 0.72; cam.pitch = -0.31;        // faces the star's approach track
   }
+  if(sel.value === '-8.732m'){
+    // How the Milky Way grew: lands ~0.5 Gyr after the Big Bang, where the shader's
+    // assembly model (astro/constants asmAt/chaosAt, after VINTERGATAN) has the disk
+    // compact, thick, blue and merger-scrambled, and runs to today in ~45 seconds —
+    // the Gaia-Enceladus convulsion sweeping through around 10 Gyr ago, the disk
+    // settling and the arms condensing out of the chaos as the pattern lock holds
+    // the frame steady.
+    $v('focusSel').value = 'mw'; applyFocusView();
+    if(!$v('tSpinLock').checked){ $v('tSpinLock').checked = true; $('tSpinLock').dispatchEvent(new Event('change')); }
+    if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
+  }
   if(sel.value === '4.568r'){
     // Just the turning: the whole disk face-on from the north galactic pole at ten
     // million years a second — one galactic rotation every ~22 seconds — with the spin

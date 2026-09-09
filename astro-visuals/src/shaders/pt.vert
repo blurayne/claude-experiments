@@ -26,6 +26,8 @@ uniform mat3 uGRot;   // the galaxy's disk frame in scene coordinates (identity 
 uniform vec3 uGOff;   // the galaxy's centre (zero for ours)
 uniform float uMerge; // 0 two galaxies .. 1 one relaxed remnant
 uniform float uArmAmp; // beat amplitude for the arm evolution; 0 on every non-Milky-Way draw
+uniform float uAsm;    // how assembled the disk is: 1 today (exact), falling into the past
+uniform float uChaos;  // merger turbulence: 0 today, spiking at Gaia-Enceladus ~10 Gyr ago
 uniform float uRingAmp; // M31's collision rings: amplitude, 0 on every non-Andromeda draw
 uniform float uRingT;   // how far the ring waves have expanded, in scene units
 uniform vec2  uRingC;   // the M32 impact point in M31's disk frame
@@ -69,6 +71,22 @@ void main(){
       float kR = 6.28318/545.0;
       armMod = max(0.05, 1.0 + uRingAmp*(cos(kR*(rc2 - uRingT)) - cos(kR*rc2))
                        * smoothstep(120.0, 350.0, rc2)*(1.0 - smoothstep(1900.0, 2450.0, rc2)));
+    }
+    // The ASSEMBLY: scrubbed into the deep past the settled disk un-forms — after the
+    // VINTERGATAN storyline. uAsm==1 and uChaos==0 today, so all of this is exactly the
+    // identity now; going back the disk contracts (half its radius when young), puffs
+    // (the thick, hot early disk), and merger chaos scrambles the baked spiral into
+    // clumps — the arms literally dissolve, because a pattern needs a settled disk.
+    if(uAsm < 0.999 || uChaos > 0.001){
+      float shrink = mix(0.45, 1.0, uAsm);
+      p.x *= shrink; p.z *= shrink;
+      float h1 = fract(sin(dot(aPos.xz, vec2(12.9898, 78.233)))*43758.5453);
+      float h2 = fract(sin(dot(aPos.zx, vec2(39.3468, 11.135)))*24634.6345);
+      p.y *= mix(3.2, 1.0, uAsm);
+      p.x += uChaos*(h1 - 0.5)*r*0.55*shrink;
+      p.z += uChaos*(h2 - 0.5)*r*0.55*shrink;
+      p.y += uChaos*(fract(h1*7.31) - 0.5)*r*0.3;
+      armMod *= mix(0.75, 1.0, uAsm);          // structure dims before it dissolves
     }
     float c = cos(d), s = sin(d);
     p = vec3(p.x*c + p.z*s, p.y, p.z*c - p.x*s);
@@ -155,5 +173,7 @@ void main(){
     float lum = max(max(col.r, col.g), col.b);
     if(lum > 0.0002 && lum < uMinB) col *= uMinB/lum;
   }
-  vColor = col * fade * fluxKeep * armMod * (1.0 - uFadeOut);
+  // young galaxies burn blue: the early disk's light shifts toward its O and B stars
+  vec3 asmCol = mix(vec3(col.r*0.7 + col.b*0.15, col.g*0.85 + col.b*0.15, col.b*1.15 + col.g*0.2), col, uAsm);
+  vColor = asmCol * fade * fluxKeep * armMod * (1.0 - uFadeOut);
 }

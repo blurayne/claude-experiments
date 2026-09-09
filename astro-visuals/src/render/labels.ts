@@ -157,6 +157,8 @@ export interface LabelInputs {
   /** the Milky Way's accumulated wave rotation — the arm names ride it */
   spinMW: number
   spinM31: number
+  /** the disk's settledness: arm names only exist once there are arms to name */
+  asm: number
   /** where Gliese 710 is, in light years */
   star: { x: number; y: number; z: number; d: number }
   /** which bodies are drawn at all, and which have been swallowed */
@@ -175,7 +177,7 @@ export interface LabelInputs {
  */
 export function drawLabels(showLabels: boolean, inputs: LabelInputs): void {
   if(!showLabels){ placeLabel(g710Lbl, 0, 0, false); return }
-  const { projMat, viewMat, pxScale, camDist, org, andPos, merge, sep, spinMW, spinM31, star,
+  const { projMat, viewMat, pxScale, camDist, org, andPos, merge, sep, spinMW, spinM31, asm, star,
           showP9, showDwarfs, wasEaten, structOn, armsOn } = inputs;
   const pv = mul(projMat, viewMat);
   const proj = (x: number, y: number, z: number): number[] => { const cw = pv[3]*x+pv[7]*y+pv[11]*z+pv[15];
@@ -214,7 +216,7 @@ export function drawLabels(showLabels: boolean, inputs: LabelInputs): void {
   const galaxyNames = armsOn && camDist > 600;
   // arm names: world coordinates rotated with the wave, then projected like the rest
   // (once the remnant starts to relax there are no arms left to name)
-  if(galaxyNames && merge < 0.35){
+  if(galaxyNames && merge < 0.35 && asm > 0.85){   // no arms before the disk settles, no names either
     for(let a=0;a<ARM_LBLS.length;a++){
       const d = spinMW/ARM_LBLS[a][3], cD = Math.cos(d), sD = Math.sin(d);
       const wx = ARM_LBLS[a][1]*cD + ARM_LBLS[a][2]*sD, wz = ARM_LBLS[a][2]*cD - ARM_LBLS[a][1]*sD;

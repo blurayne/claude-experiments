@@ -1,7 +1,7 @@
 import { $ } from '../core/dom'
 import { lookAt, mul, perspective, MAT3_ID, type Vec3 } from '../core/mat4'
 import {
-  R_GAL, V_GAL, AGE0, AU2U, REAL_MODE, TILT, E1, E2, RC_BAR, ARM_EVO_AMP, T_BIG_BANG,
+  R_GAL, V_GAL, AGE0, AU2U, REAL_MODE, TILT, E1, E2, RC_BAR, ARM_EVO_AMP, T_BIG_BANG, asmAt, chaosAt,
 } from '../astro/constants'
 import { BODIES, NB, N_PLANETS, I_P9, bodyPos, tmp, earthW } from '../astro/bodies'
 import { EAT_AGES, sunState, sunTint, pnState, type PnState } from '../astro/sun'
@@ -269,6 +269,9 @@ function frame(now: number): void {
   // backward the crests contract toward the impact point, reaching it at the plunge
   // (~210 Myr ago) and holding there for earlier times — the waves have no earlier history.
   const ringT = Math.max(simClock.simT, M31_RING.t0)*M31_RING.v;
+  // the assembly state: exactly (1, 0) today, so the present frame is untouched
+  const asm = asmAt(simClock.simT), chaos = chaosAt(simClock.simT);
+  gl.uniform1f(U.ptAsm, asm); gl.uniform1f(U.ptChaos, chaos);
   const sunX=org[0], sunY=org[1], sunZ=org[2];
   const bubY = REAL_MODE ? sunY+1e8 : sunY; // real scale: nothing is magnified, so no clearance bubble
   gl.uniform1f(U.ptPx,pxScale);
@@ -298,7 +301,7 @@ function frame(now: number): void {
   const clouds: CloudFrame = {
     projMat: view.projMat!, viewMat, pxScale, camDist: cam.dist, shimT: simClock.shimT,
     varOn: hud.varOn, deep, insideDisk, andPos, tide: and.tide, merge: and.merge,
-    spinMW, spinM31, warp, ringT, sunX, sunY, bubY, sunZ, org,
+    spinMW, spinM31, warp, ringT, asm, chaos, sunX, sunY, bubY, sunZ, org,
   };
   // Multiply blending and additive sprites know nothing of depth, so the galaxies are
   // painted as CLOSED LAYERS, farther one first: haze, dust lanes, stars, then HII and
@@ -475,7 +478,7 @@ function frame(now: number): void {
   readout.frameDt = dt;
   drawLabels(hud.showLabels, {
     projMat: view.projMat!, viewMat, pxScale, camDist: cam.dist, org, andPos,
-    merge: and.merge, sep: and.sep, spinMW, spinM31, star: gl710,
+    merge: and.merge, sep: and.sep, spinMW, spinM31, asm, star: gl710,
     showP9: hud.showP9, showDwarfs: hud.showDwarfs, wasEaten,
     structOn: [hud.showBelt, hud.showKuiper, hud.showOort], armsOn: hud.armsOn,
   });

@@ -92,7 +92,7 @@ function installErrorCollector(){
  * property of the machine that loaded the page. The parity harness pins TZ for that reason.
  */
 
-const BUILD = { version: '3.5.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '3.6.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -321,6 +321,33 @@ const sA = Math.sin(BAR_A), cA = Math.cos(BAR_A);
  * kinematics have it. One relative lap takes ~6 Gyr: the spur is our neighbourhood for
  * the rest of the disk's life.
  */
+/**
+ * How the galaxy ASSEMBLED (v3.6, after the VINTERGATAN storyline — Agertz, Renaud
+ * et al. 2021: a cosmological zoom of a Milky Way-mass galaxy).
+ *
+ * asmAt(ts) is the disk's settledness, exactly 1 today so the present picture is
+ * untouched: 0 in the protogalactic dark, rising as the disk grows and thins, settled
+ * once the thin disk is in place (~6 Gyr after the Big Bang — the bar and today's
+ * pattern belong to this era). chaosAt(ts) is the merger turbulence on top: high
+ * through the chaotic early accretion, spiking at the Gaia-Enceladus merger ~10 Gyr
+ * ago (the event that built the inner halo and puffed the thick disk), and dying to
+ * zero well before today. Both feed the vertex shader as uniforms, where going back in
+ * time contracts the disk, puffs and scrambles it, and turns it blue and clumpy.
+ */
+const asmAt = (ts        )         => {
+  const u = (13.787e9 + ts)/1e9;               // Gyr after the Big Bang
+  if(u <= 0.45) return 0;
+  const x = Math.min(1, (u - 0.45)/5.6);
+  return x*x*(3 - 2*x);
+};
+const chaosAt = (ts        )         => {
+  const u = (13.787e9 + ts)/1e9;
+  if(u <= 0) return 0;
+  const enceladus = Math.exp(-Math.pow((u - 3.8)/0.9, 2));   // the big one, ~10 Gyr ago
+  const c = Math.min(1, (1 - asmAt(ts))*0.8 + enceladus*0.9);
+  return c < 1e-6 ? 0 : c;   // exactly zero today — e^-123 is not a number to ship a wobble on
+};
+
 /** The Big Bang, on this page's clock (real years from today): the universe is ~13.787 Gyr
  * old, and the clock refuses to scrub before it — there is nothing there to draw. */
 const T_BIG_BANG = -13787e6;
@@ -887,7 +914,7 @@ function prog(vs        , fs        )               {
   return p;
 }
 
-const PT_VS = "#version 300 es\nlayout(location=0) in vec3 aPos;\nlayout(location=1) in float aSize;\nlayout(location=2) in vec3 aColor;\nlayout(location=3) in float aWave; // 1: point rides the spiral density-wave pattern\nlayout(location=4) in vec3 aVel;   // heliocentric space velocity, km/s (real stars only)\nuniform float uVelT;               // km/s -> scene displacement for the elapsed years\nuniform mat4 uProj, uView;\nuniform float uPx;\nuniform float uSpin; // distance travelled at the flat-curve speed; 0 = no rotation\nuniform float uWarp; // precession phase of the disk warp\nuniform vec3 uSunPos; // center of the clearance bubble around the magnified solar system\nuniform float uCap;   // sprite size ceiling (smaller at deep zoom: near stars stay point-like)\nuniform float uWaveAll; // 1: treat every point in this draw as wave-riding (nebulae, dust)\nuniform float uTime;    // wall-clock seconds for the variability animation\nuniform float uVarMode; // 0 off | 1 stars (a few % pulse, reddening at minimum) | 2 nebulae (all breathe)\nuniform vec3 uAnd;      // Andromeda's centre, galactic coordinates\nuniform float uTide;    // 0 far apart .. 1 at contact\nuniform float uWarpAmp; // how strongly this draw takes the disk warp\nuniform float uMinB;    // brightness floor: lift the faintest stars to at least this\nuniform float uMinSz;   // sprite floor in pixels: how small a star is allowed to get\nuniform float uFadeOut; // 0 draws normally, 1 hides: used where a layer stops being true\nuniform vec3 uOrg;    // rendering origin (the Sun) — keeps deep real-scale zooms float-precise\nuniform float uGal;   // 1: this draw is a whole galaxy, placed by uGRot/uGOff\nuniform mat3 uGRot;   // the galaxy's disk frame in scene coordinates (identity for ours)\nuniform vec3 uGOff;   // the galaxy's centre (zero for ours)\nuniform float uMerge; // 0 two galaxies .. 1 one relaxed remnant\nuniform float uArmAmp; // beat amplitude for the arm evolution; 0 on every non-Milky-Way draw\nuniform float uRingAmp; // M31's collision rings: amplitude, 0 on every non-Andromeda draw\nuniform float uRingT;   // how far the ring waves have expanded, in scene units\nuniform vec2  uRingC;   // the M32 impact point in M31's disk frame\nout vec3 vColor;\nvoid main(){\n  vec3 p = aPos + aVel*uVelT;\n  float fade = 1.0;\n  float armMod = 1.0;\n  if(uSpin != 0.0){\n    float r = length(p.xz);\n    // material stars: flat rotation curve, so they shear differentially. Wave-flagged\n    // points ride a rigid pattern instead, so stars stream through the arms and the\n    // pattern never winds up — and there are TWO patterns now, both measured. aWave=1:\n    // the bar and the four arms it drives, corotation r=650 (~5.9 kpc, pattern speed\n    // ~39 km/s/kpc, the published bar value); the Sun sits outside it, so these arms\n    // overtake the Sun about every 146 Myr. aWave=2: the Local Spur, corotation r=933\n    // (~8.5 kpc, the measured spiral value, just outside the Sun's 8.2) — the Sun creeps\n    // deeper into its own spur and will leave it out the front.\n    float w = min(max(aWave, uWaveAll), 1.0);\n    float rc = mix(650.0, 933.0, step(1.5, aWave));\n    float d = mix(uSpin / max(r, 520.0), uSpin/rc, w);\n    // The arms EVOLVE: the two patterns' relative phase du sweeps an m=2 brightness mode\n    // across the bar-driven arms, so each waxes and wanes on a ~268 Myr cycle — arms come\n    // and go, and the disk oscillates between a two-armed and a four-armed look, which is\n    // the modern transient-spiral picture (and the observational debate) drawn with static\n    // geometry. The bar (inner smoothstep) and the spur (aWave=2) stay steady, and at\n    // uSpin=0 the factor is exactly 1: today's picture is untouched. Mirror of armBeat()\n    // in astro/constants — keep the two in step.\n    if(uArmAmp > 0.0 && w > 0.0 && aWave < 1.5){\n      float du = uSpin*(1.0/650.0 - 1.0/933.0);\n      float u0 = atan(p.x, p.z) + log(max(r, 80.0)/500.0)/0.221695;\n      armMod = max(0.05, 1.0 + uArmAmp*(cos(2.0*u0 - 2.0*du) - cos(2.0*u0))*smoothstep(560.0, 700.0, r));\n    }\n    // Andromeda's pattern is not a spiral beat but COLLISION RINGS: M32 plunged through\n    // the disk ~210 Myr ago and ring-shaped density waves have been expanding from the\n    // impact point since — ripples from a dropped stone (Block et al. 2006). A brightness\n    // wave travels outward over the map's baked rings; at uRingT=0 it is exactly zero, so\n    // the present-day photograph is untouched. Mirror of M31_RING in astro/merger.\n    if(uRingAmp > 0.0 && w > 0.0){\n      float rc2 = length(p.xz - uRingC);\n      float kR = 6.28318/545.0;\n      armMod = max(0.05, 1.0 + uRingAmp*(cos(kR*(rc2 - uRingT)) - cos(kR*rc2))\n                       * smoothstep(120.0, 350.0, rc2)*(1.0 - smoothstep(1900.0, 2450.0, rc2)));\n    }\n    float c = cos(d), s = sin(d);\n    p = vec3(p.x*c + p.z*s, p.y, p.z*c - p.x*s);\n    // Gaia-style warp: outer disk bends up on one side, down on the other,\n    // and the whole pattern precesses retrograde (uWarp) like a wobbling top\n    float wr = max(0.0, r - 950.0);\n    p.y += uWarpAmp*(wr*0.13*sin(atan(p.x,p.z) - uWarp)  // integral-sign warp, growing outward\n         + 4.0*sin(r*0.021));                            // faint corrugation ripples in the disk\n    // the planetary system is drawn ~10-million-fold magnified; clear its space\n    fade = smoothstep(80.0, 240.0, distance(p, uSunPos));\n  }\n  // Whole-galaxy draws: place the cloud in the world — identity for the Milky Way,\n  // Andromeda's measured orientation and moving centre for its own — then the mutual\n  // tide, then, while the remnant relaxes, the slide into a single spheroid.\n  if(uGal > 0.5){\n    float rL = length(aPos.xz);      // radius in the galaxy's own disk, pre-transform\n    p = uGRot*p + uGOff;\n    // The tidal response, after Toomre & Toomre 1972: a tide does not PULL a disk toward\n    // the companion, it STRETCHES it along the companion axis — the near side reaches into\n    // a bridge toward it while the far side is flung into a counter-tail away from it, with\n    // mild compression across the axis. That is the leading quadrupole, which is what the\n    // N-body studies of this pair show (Cox & Loeb 2008; van der Marel et al. 2012;\n    // Schiavi et al. 2020). The differential grows with disk radius, so the outer disk\n    // responds while the core barely moves; softened by the separation and capped, because\n    // a bare inverse cube tears passing stars into streaks.\n    if(uTide > 0.001){\n      vec3 dc = uAnd - uGOff;                 // the companion, seen from this galaxy's centre\n      float D = max(length(dc), 1.0);\n      vec3 dhat = dc / D;\n      vec3 rel = p - uGOff;\n      float s = dot(rel, dhat);\n      float k = uTide * (rL/900.0) * 0.62 / (1.0 + (D*D)/(2600.0*2600.0));\n      vec3 disp = (dhat*s - (rel - dhat*s)*0.30) * k;\n      float dl = max(length(disp), 1e-3);\n      p += disp * (min(dl, 560.0)/dl);\n    }\n    // Coalescence: violent relaxation scrambles both disks into one elliptical.\n    // Each star slides to a stable pseudo-random spot on a de-Vaucouleurs-ish\n    // spheroid, mildly flattened, its radius loosely keeping the star's rank.\n    if(uMerge > 0.001){\n      float h1 = fract(sin(dot(aPos.xy, vec2(127.1,311.7)))*43758.5453);\n      float h2 = fract(sin(dot(aPos.yz, vec2(269.5,183.3)))*43758.5453);\n      float cz = h2*2.0-1.0, sz = sqrt(max(0.0, 1.0-cz*cz)), ph = 6.28318*h1;\n      vec3 tgt = vec3(sz*cos(ph), cz*0.72, sz*sin(ph))\n               * (90.0 + 200.0*pow(0.5*(h1+h2), 1.6)*3.0 + length(aPos)*0.34);\n      p = mix(p, tgt, uMerge*uMerge);\n    }\n  }\n  vec4 mv = uView * vec4(p - uOrg,1.0);\n  gl_Position = uProj * mv;\n  float dd = max(1e-9, -mv.z); // no floor of 1: real-scale zooms get much closer than that\n  float s0 = aSize * uPx / dd;\n  gl_PointSize = clamp(s0, max(uMinSz, 0.7), uCap);\n  // a star smaller than a pixel keeps its flux, not its size: clamped points dim by\n  // the area they were denied, so the far field stops shimmering at full brightness.\n  // Referenced against the fixed floor, so the min-size slider still brightens.\n  float sub = clamp(s0/0.7, 0.0, 1.0);\n  float fluxKeep = mix(1.0, sub*sub, 0.62);\n  vec3 col = aColor;\n  if(uVarMode > 0.5){\n    float h = fract(sin(dot(aPos.xz, vec2(12.9898,78.233)))*43758.5453);\n    if(uVarMode < 1.5){\n      // variable stars: ~4-5% of points pulse Mira/Cepheid-style — dimmer AND redder\n      // at minimum light, because the star is coolest there\n      if(h > 0.955){\n        float w = 2.0 + 10.0*fract(h*97.0);\n        float dim = 0.5 + 0.5*sin(uTime*w + h*6283.0);\n        col *= 0.45 + 0.75*dim;\n        col.g *= 0.85 + 0.15*dim;\n        col.b *= 0.70 + 0.30*dim;\n      }\n    } else {\n      // nebulae: every puff breathes gently and drifts in hue (ionization flicker)\n      float ph = h*6283.0;\n      float s1 = sin(uTime*0.5 + ph), s2 = sin(uTime*0.23 + ph*1.7);\n      col *= 0.82 + 0.18*s1;\n      col.r *= 1.0 + 0.10*s2;\n      col.b *= 1.0 - 0.08*s2;\n    }\n  }\n  // A floor rather than a gain: anything already brighter than it is left alone, so\n  // raising it reveals the faint disk without blowing out the arms and the core.\n  if(uMinB > 0.0){\n    float lum = max(max(col.r, col.g), col.b);\n    if(lum > 0.0002 && lum < uMinB) col *= uMinB/lum;\n  }\n  vColor = col * fade * fluxKeep * armMod * (1.0 - uFadeOut);\n}";
+const PT_VS = "#version 300 es\nlayout(location=0) in vec3 aPos;\nlayout(location=1) in float aSize;\nlayout(location=2) in vec3 aColor;\nlayout(location=3) in float aWave; // 1: point rides the spiral density-wave pattern\nlayout(location=4) in vec3 aVel;   // heliocentric space velocity, km/s (real stars only)\nuniform float uVelT;               // km/s -> scene displacement for the elapsed years\nuniform mat4 uProj, uView;\nuniform float uPx;\nuniform float uSpin; // distance travelled at the flat-curve speed; 0 = no rotation\nuniform float uWarp; // precession phase of the disk warp\nuniform vec3 uSunPos; // center of the clearance bubble around the magnified solar system\nuniform float uCap;   // sprite size ceiling (smaller at deep zoom: near stars stay point-like)\nuniform float uWaveAll; // 1: treat every point in this draw as wave-riding (nebulae, dust)\nuniform float uTime;    // wall-clock seconds for the variability animation\nuniform float uVarMode; // 0 off | 1 stars (a few % pulse, reddening at minimum) | 2 nebulae (all breathe)\nuniform vec3 uAnd;      // Andromeda's centre, galactic coordinates\nuniform float uTide;    // 0 far apart .. 1 at contact\nuniform float uWarpAmp; // how strongly this draw takes the disk warp\nuniform float uMinB;    // brightness floor: lift the faintest stars to at least this\nuniform float uMinSz;   // sprite floor in pixels: how small a star is allowed to get\nuniform float uFadeOut; // 0 draws normally, 1 hides: used where a layer stops being true\nuniform vec3 uOrg;    // rendering origin (the Sun) — keeps deep real-scale zooms float-precise\nuniform float uGal;   // 1: this draw is a whole galaxy, placed by uGRot/uGOff\nuniform mat3 uGRot;   // the galaxy's disk frame in scene coordinates (identity for ours)\nuniform vec3 uGOff;   // the galaxy's centre (zero for ours)\nuniform float uMerge; // 0 two galaxies .. 1 one relaxed remnant\nuniform float uArmAmp; // beat amplitude for the arm evolution; 0 on every non-Milky-Way draw\nuniform float uAsm;    // how assembled the disk is: 1 today (exact), falling into the past\nuniform float uChaos;  // merger turbulence: 0 today, spiking at Gaia-Enceladus ~10 Gyr ago\nuniform float uRingAmp; // M31's collision rings: amplitude, 0 on every non-Andromeda draw\nuniform float uRingT;   // how far the ring waves have expanded, in scene units\nuniform vec2  uRingC;   // the M32 impact point in M31's disk frame\nout vec3 vColor;\nvoid main(){\n  vec3 p = aPos + aVel*uVelT;\n  float fade = 1.0;\n  float armMod = 1.0;\n  if(uSpin != 0.0){\n    float r = length(p.xz);\n    // material stars: flat rotation curve, so they shear differentially. Wave-flagged\n    // points ride a rigid pattern instead, so stars stream through the arms and the\n    // pattern never winds up — and there are TWO patterns now, both measured. aWave=1:\n    // the bar and the four arms it drives, corotation r=650 (~5.9 kpc, pattern speed\n    // ~39 km/s/kpc, the published bar value); the Sun sits outside it, so these arms\n    // overtake the Sun about every 146 Myr. aWave=2: the Local Spur, corotation r=933\n    // (~8.5 kpc, the measured spiral value, just outside the Sun's 8.2) — the Sun creeps\n    // deeper into its own spur and will leave it out the front.\n    float w = min(max(aWave, uWaveAll), 1.0);\n    float rc = mix(650.0, 933.0, step(1.5, aWave));\n    float d = mix(uSpin / max(r, 520.0), uSpin/rc, w);\n    // The arms EVOLVE: the two patterns' relative phase du sweeps an m=2 brightness mode\n    // across the bar-driven arms, so each waxes and wanes on a ~268 Myr cycle — arms come\n    // and go, and the disk oscillates between a two-armed and a four-armed look, which is\n    // the modern transient-spiral picture (and the observational debate) drawn with static\n    // geometry. The bar (inner smoothstep) and the spur (aWave=2) stay steady, and at\n    // uSpin=0 the factor is exactly 1: today's picture is untouched. Mirror of armBeat()\n    // in astro/constants — keep the two in step.\n    if(uArmAmp > 0.0 && w > 0.0 && aWave < 1.5){\n      float du = uSpin*(1.0/650.0 - 1.0/933.0);\n      float u0 = atan(p.x, p.z) + log(max(r, 80.0)/500.0)/0.221695;\n      armMod = max(0.05, 1.0 + uArmAmp*(cos(2.0*u0 - 2.0*du) - cos(2.0*u0))*smoothstep(560.0, 700.0, r));\n    }\n    // Andromeda's pattern is not a spiral beat but COLLISION RINGS: M32 plunged through\n    // the disk ~210 Myr ago and ring-shaped density waves have been expanding from the\n    // impact point since — ripples from a dropped stone (Block et al. 2006). A brightness\n    // wave travels outward over the map's baked rings; at uRingT=0 it is exactly zero, so\n    // the present-day photograph is untouched. Mirror of M31_RING in astro/merger.\n    if(uRingAmp > 0.0 && w > 0.0){\n      float rc2 = length(p.xz - uRingC);\n      float kR = 6.28318/545.0;\n      armMod = max(0.05, 1.0 + uRingAmp*(cos(kR*(rc2 - uRingT)) - cos(kR*rc2))\n                       * smoothstep(120.0, 350.0, rc2)*(1.0 - smoothstep(1900.0, 2450.0, rc2)));\n    }\n    // The ASSEMBLY: scrubbed into the deep past the settled disk un-forms — after the\n    // VINTERGATAN storyline. uAsm==1 and uChaos==0 today, so all of this is exactly the\n    // identity now; going back the disk contracts (half its radius when young), puffs\n    // (the thick, hot early disk), and merger chaos scrambles the baked spiral into\n    // clumps — the arms literally dissolve, because a pattern needs a settled disk.\n    if(uAsm < 0.999 || uChaos > 0.001){\n      float shrink = mix(0.45, 1.0, uAsm);\n      p.x *= shrink; p.z *= shrink;\n      float h1 = fract(sin(dot(aPos.xz, vec2(12.9898, 78.233)))*43758.5453);\n      float h2 = fract(sin(dot(aPos.zx, vec2(39.3468, 11.135)))*24634.6345);\n      p.y *= mix(3.2, 1.0, uAsm);\n      p.x += uChaos*(h1 - 0.5)*r*0.55*shrink;\n      p.z += uChaos*(h2 - 0.5)*r*0.55*shrink;\n      p.y += uChaos*(fract(h1*7.31) - 0.5)*r*0.3;\n      armMod *= mix(0.75, 1.0, uAsm);          // structure dims before it dissolves\n    }\n    float c = cos(d), s = sin(d);\n    p = vec3(p.x*c + p.z*s, p.y, p.z*c - p.x*s);\n    // Gaia-style warp: outer disk bends up on one side, down on the other,\n    // and the whole pattern precesses retrograde (uWarp) like a wobbling top\n    float wr = max(0.0, r - 950.0);\n    p.y += uWarpAmp*(wr*0.13*sin(atan(p.x,p.z) - uWarp)  // integral-sign warp, growing outward\n         + 4.0*sin(r*0.021));                            // faint corrugation ripples in the disk\n    // the planetary system is drawn ~10-million-fold magnified; clear its space\n    fade = smoothstep(80.0, 240.0, distance(p, uSunPos));\n  }\n  // Whole-galaxy draws: place the cloud in the world — identity for the Milky Way,\n  // Andromeda's measured orientation and moving centre for its own — then the mutual\n  // tide, then, while the remnant relaxes, the slide into a single spheroid.\n  if(uGal > 0.5){\n    float rL = length(aPos.xz);      // radius in the galaxy's own disk, pre-transform\n    p = uGRot*p + uGOff;\n    // The tidal response, after Toomre & Toomre 1972: a tide does not PULL a disk toward\n    // the companion, it STRETCHES it along the companion axis — the near side reaches into\n    // a bridge toward it while the far side is flung into a counter-tail away from it, with\n    // mild compression across the axis. That is the leading quadrupole, which is what the\n    // N-body studies of this pair show (Cox & Loeb 2008; van der Marel et al. 2012;\n    // Schiavi et al. 2020). The differential grows with disk radius, so the outer disk\n    // responds while the core barely moves; softened by the separation and capped, because\n    // a bare inverse cube tears passing stars into streaks.\n    if(uTide > 0.001){\n      vec3 dc = uAnd - uGOff;                 // the companion, seen from this galaxy's centre\n      float D = max(length(dc), 1.0);\n      vec3 dhat = dc / D;\n      vec3 rel = p - uGOff;\n      float s = dot(rel, dhat);\n      float k = uTide * (rL/900.0) * 0.62 / (1.0 + (D*D)/(2600.0*2600.0));\n      vec3 disp = (dhat*s - (rel - dhat*s)*0.30) * k;\n      float dl = max(length(disp), 1e-3);\n      p += disp * (min(dl, 560.0)/dl);\n    }\n    // Coalescence: violent relaxation scrambles both disks into one elliptical.\n    // Each star slides to a stable pseudo-random spot on a de-Vaucouleurs-ish\n    // spheroid, mildly flattened, its radius loosely keeping the star's rank.\n    if(uMerge > 0.001){\n      float h1 = fract(sin(dot(aPos.xy, vec2(127.1,311.7)))*43758.5453);\n      float h2 = fract(sin(dot(aPos.yz, vec2(269.5,183.3)))*43758.5453);\n      float cz = h2*2.0-1.0, sz = sqrt(max(0.0, 1.0-cz*cz)), ph = 6.28318*h1;\n      vec3 tgt = vec3(sz*cos(ph), cz*0.72, sz*sin(ph))\n               * (90.0 + 200.0*pow(0.5*(h1+h2), 1.6)*3.0 + length(aPos)*0.34);\n      p = mix(p, tgt, uMerge*uMerge);\n    }\n  }\n  vec4 mv = uView * vec4(p - uOrg,1.0);\n  gl_Position = uProj * mv;\n  float dd = max(1e-9, -mv.z); // no floor of 1: real-scale zooms get much closer than that\n  float s0 = aSize * uPx / dd;\n  gl_PointSize = clamp(s0, max(uMinSz, 0.7), uCap);\n  // a star smaller than a pixel keeps its flux, not its size: clamped points dim by\n  // the area they were denied, so the far field stops shimmering at full brightness.\n  // Referenced against the fixed floor, so the min-size slider still brightens.\n  float sub = clamp(s0/0.7, 0.0, 1.0);\n  float fluxKeep = mix(1.0, sub*sub, 0.62);\n  vec3 col = aColor;\n  if(uVarMode > 0.5){\n    float h = fract(sin(dot(aPos.xz, vec2(12.9898,78.233)))*43758.5453);\n    if(uVarMode < 1.5){\n      // variable stars: ~4-5% of points pulse Mira/Cepheid-style — dimmer AND redder\n      // at minimum light, because the star is coolest there\n      if(h > 0.955){\n        float w = 2.0 + 10.0*fract(h*97.0);\n        float dim = 0.5 + 0.5*sin(uTime*w + h*6283.0);\n        col *= 0.45 + 0.75*dim;\n        col.g *= 0.85 + 0.15*dim;\n        col.b *= 0.70 + 0.30*dim;\n      }\n    } else {\n      // nebulae: every puff breathes gently and drifts in hue (ionization flicker)\n      float ph = h*6283.0;\n      float s1 = sin(uTime*0.5 + ph), s2 = sin(uTime*0.23 + ph*1.7);\n      col *= 0.82 + 0.18*s1;\n      col.r *= 1.0 + 0.10*s2;\n      col.b *= 1.0 - 0.08*s2;\n    }\n  }\n  // A floor rather than a gain: anything already brighter than it is left alone, so\n  // raising it reveals the faint disk without blowing out the arms and the core.\n  if(uMinB > 0.0){\n    float lum = max(max(col.r, col.g), col.b);\n    if(lum > 0.0002 && lum < uMinB) col *= uMinB/lum;\n  }\n  // young galaxies burn blue: the early disk's light shifts toward its O and B stars\n  vec3 asmCol = mix(vec3(col.r*0.7 + col.b*0.15, col.g*0.85 + col.b*0.15, col.b*1.15 + col.g*0.2), col, uAsm);\n  vColor = asmCol * fade * fluxKeep * armMod * (1.0 - uFadeOut);\n}";
 
 const PT_FS = "#version 300 es\nprecision mediump float;\nin vec3 vColor; out vec4 o;\nvoid main(){\n  vec2 q = gl_PointCoord*2.0-1.0;\n  float r = length(q);\n  if(r>1.0) discard;\n  float d = 1.0-r;\n  float corona = pow(d, 6.0);\n  float core   = pow(d, 20.0);\n  float a = corona*0.85 + core*1.35;\n  vec3 col = vColor*a + vColor.g*core*0.9;   // the white-core lift, scaled by luminance\n  o = vec4(col, a);\n}";
 
@@ -930,6 +957,7 @@ const U = {
   ptGal: gl.getUniformLocation(pPt,'uGal'), ptGRot: gl.getUniformLocation(pPt,'uGRot'),
   ptGOff: gl.getUniformLocation(pPt,'uGOff'), ptMerge: gl.getUniformLocation(pPt,'uMerge'),
   ptArmAmp: gl.getUniformLocation(pPt,'uArmAmp'),
+  ptAsm: gl.getUniformLocation(pPt,'uAsm'), ptChaos: gl.getUniformLocation(pPt,'uChaos'),
   ptRingAmp: gl.getUniformLocation(pPt,'uRingAmp'), ptRingT: gl.getUniformLocation(pPt,'uRingT'),
   ptRingC: gl.getUniformLocation(pPt,'uRingC'),
   trProj: gl.getUniformLocation(pTr,'uProj'), trView: gl.getUniformLocation(pTr,'uView'),
@@ -2344,6 +2372,7 @@ const UN = {
   minSz: gl.getUniformLocation(pNeb,'uMinSz'),
   gal: gl.getUniformLocation(pNeb,'uGal'), grot: gl.getUniformLocation(pNeb,'uGRot'),
   armAmp: gl.getUniformLocation(pNeb,'uArmAmp'),
+  asm: gl.getUniformLocation(pNeb,'uAsm'), chaos: gl.getUniformLocation(pNeb,'uChaos'),
   ringAmp: gl.getUniformLocation(pNeb,'uRingAmp'), ringT: gl.getUniformLocation(pNeb,'uRingT'),
   ringC: gl.getUniformLocation(pNeb,'uRingC'),
   goff: gl.getUniformLocation(pNeb,'uGOff'), merge: gl.getUniformLocation(pNeb,'uMerge'),
@@ -2392,6 +2421,9 @@ const UN = {
               
                                                                                    
                
+                                                                                          
+             
+               
                                                                            
               
               
@@ -2403,7 +2435,7 @@ const UN = {
 
 function drawNebula(
   { projMat, viewMat, pxScale, camDist, shimT, varOn, deep,
-    andPos, tide, merge, spinMW, spinM31, warp, ringT, sunX, sunY, bubY, sunZ, org }            ,
+    andPos, tide, merge, spinMW, spinM31, warp, ringT, asm, chaos, sunX, sunY, bubY, sunZ, org }            ,
   haze         ,
   which        = 'both',
 )       {
@@ -2429,6 +2461,7 @@ function drawNebula(
   gl.uniform1f(UN.gal, 1.0);
   gl.uniform1f(UN.merge, merge);
   gl.uniform1f(UN.armAmp, ARM_EVO_AMP);   // the Milky Way's arms breathe with the beat
+  gl.uniform1f(UN.asm, asm); gl.uniform1f(UN.chaos, chaos);
   const seg = (pink        , glow        , n        ) => {
     if(haze){ if(glow) gl.drawArrays(gl.POINTS, pink, glow); }
     else { if(pink) gl.drawArrays(gl.POINTS, 0, pink);
@@ -2659,6 +2692,7 @@ const UD = {
   minSz: gl.getUniformLocation(pDust,'uMinSz'),
   gal: gl.getUniformLocation(pDust,'uGal'), grot: gl.getUniformLocation(pDust,'uGRot'),
   armAmp: gl.getUniformLocation(pDust,'uArmAmp'),
+  asm: gl.getUniformLocation(pDust,'uAsm'), chaos: gl.getUniformLocation(pDust,'uChaos'),
   ringAmp: gl.getUniformLocation(pDust,'uRingAmp'), ringT: gl.getUniformLocation(pDust,'uRingT'),
   ringC: gl.getUniformLocation(pDust,'uRingC'),
   goff: gl.getUniformLocation(pDust,'uGOff'), merge: gl.getUniformLocation(pDust,'uMerge'),
@@ -2682,7 +2716,7 @@ const UD = {
  */
 function drawDust(
   { projMat, viewMat, pxScale, deep, insideDisk,
-    andPos, tide, merge, spinMW, spinM31, warp, ringT, sunX, sunY, bubY, sunZ, org }            ,
+    andPos, tide, merge, spinMW, spinM31, warp, ringT, asm, chaos, sunX, sunY, bubY, sunZ, org }            ,
   dustOn         ,
   which        = 'both',
 )       {
@@ -2711,6 +2745,7 @@ function drawDust(
     gl.uniform1f(UD.gal, 1.0);
     gl.uniform1f(UD.merge, merge);
     gl.uniform1f(UD.armAmp, ARM_EVO_AMP);   // a faded arm's dust lane fades with it
+    gl.uniform1f(UD.asm, asm); gl.uniform1f(UD.chaos, chaos);
     if(which !== 'and'){ gl.bindVertexArray(gfx.vaoDust); gl.drawArrays(gl.POINTS,0,gfx.DUST_N); }
     if(gfx.vaoAndDust && which !== 'mw'){
       gl.uniformMatrix3fv(UD.grot, false, M31_ROT);
@@ -3618,6 +3653,8 @@ function placeLabel(el       , x        , y        , show         )       {
                                                                           
                 
                  
+                                                                                 
+             
                                             
                                                       
                                                                      
@@ -3636,7 +3673,7 @@ function placeLabel(el       , x        , y        , show         )       {
  */
 function drawLabels(showLabels         , inputs             )       {
   if(!showLabels){ placeLabel(g710Lbl, 0, 0, false); return }
-  const { projMat, viewMat, pxScale, camDist, org, andPos, merge, sep, spinMW, spinM31, star,
+  const { projMat, viewMat, pxScale, camDist, org, andPos, merge, sep, spinMW, spinM31, asm, star,
           showP9, showDwarfs, wasEaten, structOn, armsOn } = inputs;
   const pv = mul(projMat, viewMat);
   const proj = (x        , y        , z        )           => { const cw = pv[3]*x+pv[7]*y+pv[11]*z+pv[15];
@@ -3675,7 +3712,7 @@ function drawLabels(showLabels         , inputs             )       {
   const galaxyNames = armsOn && camDist > 600;
   // arm names: world coordinates rotated with the wave, then projected like the rest
   // (once the remnant starts to relax there are no arms left to name)
-  if(galaxyNames && merge < 0.35){
+  if(galaxyNames && merge < 0.35 && asm > 0.85){   // no arms before the disk settles, no names either
     for(let a=0;a<ARM_LBLS.length;a++){
       const d = spinMW/ARM_LBLS[a][3], cD = Math.cos(d), sD = Math.sin(d);
       const wx = ARM_LBLS[a][1]*cD + ARM_LBLS[a][2]*sD, wz = ARM_LBLS[a][2]*cD - ARM_LBLS[a][1]*sD;
@@ -3964,6 +4001,9 @@ function frame(now        )       {
   // backward the crests contract toward the impact point, reaching it at the plunge
   // (~210 Myr ago) and holding there for earlier times — the waves have no earlier history.
   const ringT = Math.max(simClock.simT, M31_RING.t0)*M31_RING.v;
+  // the assembly state: exactly (1, 0) today, so the present frame is untouched
+  const asm = asmAt(simClock.simT), chaos = chaosAt(simClock.simT);
+  gl.uniform1f(U.ptAsm, asm); gl.uniform1f(U.ptChaos, chaos);
   const sunX=org[0], sunY=org[1], sunZ=org[2];
   const bubY = sunY+1e8 ; // real scale: nothing is magnified, so no clearance bubble
   gl.uniform1f(U.ptPx,pxScale);
@@ -3993,7 +4033,7 @@ function frame(now        )       {
   const clouds             = {
     projMat: view.projMat , viewMat, pxScale, camDist: cam.dist, shimT: simClock.shimT,
     varOn: hud.varOn, deep, insideDisk, andPos, tide: and.tide, merge: and.merge,
-    spinMW, spinM31, warp, ringT, sunX, sunY, bubY, sunZ, org,
+    spinMW, spinM31, warp, ringT, asm, chaos, sunX, sunY, bubY, sunZ, org,
   };
   // Multiply blending and additive sprites know nothing of depth, so the galaxies are
   // painted as CLOSED LAYERS, farther one first: haze, dust lanes, stars, then HII and
@@ -4170,7 +4210,7 @@ function frame(now        )       {
   readout.frameDt = dt;
   drawLabels(hud.showLabels, {
     projMat: view.projMat , viewMat, pxScale, camDist: cam.dist, org, andPos,
-    merge: and.merge, sep: and.sep, spinMW, spinM31, star: gl710,
+    merge: and.merge, sep: and.sep, spinMW, spinM31, asm, star: gl710,
     showP9: hud.showP9, showDwarfs: hud.showDwarfs, wasEaten,
     structOn: [hud.showBelt, hud.showKuiper, hud.showOort], armsOn: hud.armsOn,
   });
@@ -5427,6 +5467,17 @@ function jumpToEpoch()       {
     cam.follow = true; cam.coreLock = false;
     cam.distGoal = 0.144;                     // ~5 ly across: the whole Oort shell
     cam.yaw = 0.72; cam.pitch = -0.31;        // faces the star's approach track
+  }
+  if(sel.value === '-8.732m'){
+    // How the Milky Way grew: lands ~0.5 Gyr after the Big Bang, where the shader's
+    // assembly model (astro/constants asmAt/chaosAt, after VINTERGATAN) has the disk
+    // compact, thick, blue and merger-scrambled, and runs to today in ~45 seconds —
+    // the Gaia-Enceladus convulsion sweeping through around 10 Gyr ago, the disk
+    // settling and the arms condensing out of the chaos as the pattern lock holds
+    // the frame steady.
+    $v('focusSel').value = 'mw'; applyFocusView();
+    if(!$v('tSpinLock').checked){ $v('tSpinLock').checked = true; $('tSpinLock').dispatchEvent(new Event('change')); }
+    if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
   }
   if(sel.value === '4.568r'){
     // Just the turning: the whole disk face-on from the north galactic pole at ten
@@ -7865,6 +7916,7 @@ startFrameLoop({
       <li><b>NASA/JPL-Caltech/R. Hurt</b> — the face-on Milky Way illustration used as the probability map (reflected on ingest so the arms trail; see the winding tests)</li>
       <li><b>Hubble PHAT/PHAST</b> mosaics (<a href="https://esahubble.org/news/heic2508/" target="_blank" rel="noopener">heic2508</a>) — Andromeda's photographic map</li>
       <li>Oort 1927 — differential rotation; Lin &amp; Shu 1964 — density waves; Toomre &amp; Toomre 1972 — tidal bridges and tails; Sellwood &amp; Carlberg — transient, recurring arms</li>
+      <li><a href="https://people.astro.unistra.fr/f.renaud/vintergatan.php" target="_blank" rel="noopener"><b>VINTERGATAN</b></a> (Agertz, Renaud et&nbsp;al. 2021) — the cosmological zoom simulation behind the assembly scenario: the contracting, thickened, merger-scrambled young disk and the Gaia-Enceladus convulsion</li>
       <li>Reid et&nbsp;al. — maser parallaxes, the pattern speeds and the plan view; <a href="https://arxiv.org/abs/astro-ph/9903101" target="_blank" rel="noopener">Han &amp; Qiao</a> — the angular momentum toward the south galactic pole</li>
       <li><a href="https://www.aanda.org/articles/aa/pdf/2010/03/aa13297-09.pdf" target="_blank" rel="noopener">Chemin et&nbsp;al. 2009</a> and Corbelli et&nbsp;al. 2010 — M31's HI kinematics (the SW limb approaches); <a href="https://iopscience.iop.org/article/10.3847/1538-4357/ab001b" target="_blank" rel="noopener">van der Marel et&nbsp;al. 2019</a> — Gaia's direct M31 rotation</li>
       <li><b>Block et&nbsp;al. 2006</b> (Nature 443, 832) — M32's plunge and the off-centre rings; the lay account:
@@ -7907,6 +7959,7 @@ startFrameLoop({
            happens, each landing a little before its event so the visitor watches it arrive -->
       <option value="">— present day —</option>
       <option value="helix" data-rate="1" data-mult="1">The helix — planets winding through space</option>
+      <option value="-8.732m" data-rate="3" data-mult="100000000">How the Milky Way grew — from the first disk to today (13.3 Gyr ago &rarr;)</option>
       <option value="4.568r" data-rate="1" data-mult="10000000">The galaxy turning — face-on from the north pole (today &rarr;)</option>
       <option value="0.058">Theia impact — the Moon forms (4.51 Gyr ago)</option>
       <option value="0.768">Young Earth — first life (3.8 Gyr ago)</option>

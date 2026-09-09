@@ -31,6 +31,7 @@ export const UN = {
   minSz: gl.getUniformLocation(pNeb,'uMinSz'),
   gal: gl.getUniformLocation(pNeb,'uGal'), grot: gl.getUniformLocation(pNeb,'uGRot'),
   armAmp: gl.getUniformLocation(pNeb,'uArmAmp'),
+  asm: gl.getUniformLocation(pNeb,'uAsm'), chaos: gl.getUniformLocation(pNeb,'uChaos'),
   ringAmp: gl.getUniformLocation(pNeb,'uRingAmp'), ringT: gl.getUniformLocation(pNeb,'uRingT'),
   ringC: gl.getUniformLocation(pNeb,'uRingC'),
   goff: gl.getUniformLocation(pNeb,'uGOff'), merge: gl.getUniformLocation(pNeb,'uMerge'),
@@ -79,6 +80,9 @@ export interface CloudFrame {
   warp: number
   /** how far M31's collision rings have expanded (see M31_RING in astro/merger) */
   ringT: number
+  /** the assembly state: 1/0 today, the deep past contracting and scrambling the disks */
+  asm: number
+  chaos: number
   /** the Sun's position, and its clearance-bubble variant on the y axis */
   sunX: number
   sunY: number
@@ -90,7 +94,7 @@ export interface CloudFrame {
 
 export function drawNebula(
   { projMat, viewMat, pxScale, camDist, shimT, varOn, deep,
-    andPos, tide, merge, spinMW, spinM31, warp, ringT, sunX, sunY, bubY, sunZ, org }: CloudFrame,
+    andPos, tide, merge, spinMW, spinM31, warp, ringT, asm, chaos, sunX, sunY, bubY, sunZ, org }: CloudFrame,
   haze: boolean,
   which: Which = 'both',
 ): void {
@@ -116,6 +120,7 @@ export function drawNebula(
   gl.uniform1f(UN.gal, 1.0);
   gl.uniform1f(UN.merge, merge);
   gl.uniform1f(UN.armAmp, ARM_EVO_AMP);   // the Milky Way's arms breathe with the beat
+  gl.uniform1f(UN.asm, asm); gl.uniform1f(UN.chaos, chaos);
   const seg = (pink: number, glow: number, n: number) => {
     if(haze){ if(glow) gl.drawArrays(gl.POINTS, pink, glow); }
     else { if(pink) gl.drawArrays(gl.POINTS, 0, pink);
