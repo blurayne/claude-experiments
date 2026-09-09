@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 3.6.0 — 2026-09-09
+
+- V3.6.0 — how the Milky Way grew (`d2cb533`)
+
 ### 3.5.0 — 2026-09-09
 
 - V3.5.0 — the About dialog becomes a title page with a bibliography (`4222358`)
