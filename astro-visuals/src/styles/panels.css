@@ -220,3 +220,8 @@
   #scaleNote .sacross em{font-family:'Orbitron',ui-monospace,monospace;font-size:.92em;
     color:var(--accent);font-style:normal;font-weight:600;text-shadow:0 0 8px var(--glow)}
   @media (max-width:600px){ #scaleNote .sacross{display:none} }
+  /* A panel slides to its new home rather than teleporting: swiped down to the foot of
+     its column, back up to the head, or across to the other side. .drag suppresses it
+     while a finger is actually on the panel (see .pnl.drag above). */
+  .pnl, .hud{transition:top .26s cubic-bezier(.22,.61,.36,1),
+    left .26s cubic-bezier(.22,.61,.36,1), right .26s cubic-bezier(.22,.61,.36,1)}

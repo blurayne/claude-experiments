@@ -14,7 +14,9 @@ import { $ } from '../core/dom'
 
 export type PanelId = 'env' | 'simPanel' | 'hud'
 /** `s` side, `o` what the visitor asked for, `auto` what the layout had to do, `seq` recency */
-interface PanelState { s: 'l' | 'r'; o: boolean; auto: boolean; seq: number }
+interface PanelState { s: 'l' | 'r'; o: boolean; auto: boolean; seq: number
+  /** docked to the foot of its column rather than the head — a downward swipe puts it there */
+  b: boolean }
 /** a laid-out rectangle, for the crowding test */
 interface Box { id: PanelId; seq: number; left: number; top: number; right: number; bottom: number }
 
@@ -39,9 +41,9 @@ export const PANELS: readonly { id: PanelId; dot: string }[] = [
 // panel wins an overlap and sits on top.
 let openSeq = 0;
 const pState: Record<PanelId, PanelState> = {
-  env:     { s:'l', o:true,  auto:false, seq:++openSeq },
-  simPanel:{ s:'r', o:false, auto:false, seq:0 },
-  hud:     { s:'r', o:false, auto:false, seq:0 },
+  env:     { s:'l', o:true,  auto:false, seq:++openSeq, b:false },
+  simPanel:{ s:'r', o:false, auto:false, seq:0, b:false },
+  hud:     { s:'r', o:false, auto:false, seq:0, b:false },
 };
 const panelShown = (id: PanelId): boolean => pState[id].o && !pState[id].auto;
 export function setPanelOpen(id: PanelId, open: boolean): void {
@@ -71,8 +73,27 @@ function placePanels(): Box[] {
       if(side === 'l'){ el.style.left = x + 'px'; el.style.right = 'auto'; }
       else { el.style.right = x + 'px'; el.style.left = 'auto'; }
     };
+    // The foot of the column, claimed first so the head knows how much room is left:
+    // a downward swipe parks a panel down here, above the status bar's own band.
+    // the foot, less the band the page already owns down there: the status bar across the
+    // middle, the scale bar bottom-left, the QR bottom-right when the debug door is open
+    let yb = innerHeight - pad - 62;
+    for(const p of mine){
+      if(!panelShown(p.id) || !pState[p.id].b) continue;
+      const el = $(p.id);
+      if(p.id === 'hud') el.style.maxHeight = 'calc(60vh)';
+      const h = el.getBoundingClientRect().height;
+      yb -= h;
+      el.style.top = yb + 'px';
+      if(side === 'l'){ el.style.left = pad + 'px'; el.style.right = 'auto'; }
+      else { el.style.right = pad + 'px'; el.style.left = 'auto'; }
+      const r = el.getBoundingClientRect();
+      boxes.push({ id:p.id, seq:pState[p.id].seq, top:yb, bottom:yb + r.height,
+                   left:r.left, right:r.right });
+      yb -= gap;
+    }
     for(const p of mine){                      // open panels first, one under the next
-      if(!panelShown(p.id)) continue;
+      if(!panelShown(p.id) || pState[p.id].b) continue;
       const el = $(p.id);
       if(p.id === 'hud') el.style.maxHeight = 'calc(100vh - ' + (y + pad) + 'px)';
       put(el, pad);
@@ -116,6 +137,37 @@ function findCrowded(boxes: Box[]): PanelId | null {
   // still believes the initialiser here.
   return (worst as Box | null)?.id ?? null;
 }
+/**
+ * Park a panel at the foot of its column, or bring it back to the head.
+ *
+ * The rule the user asked for: only if the rest still has room. Docking one panel low
+ * takes the bottom of that column away from whatever else lives there — usually the
+ * settings panel, which is the tall one — so the move is TRIED first: if the result
+ * would push a panel out of the layout altogether (findCrowded's auto-hide), the
+ * settings panel is offered the other column, and if that does not save it either the
+ * whole gesture is rolled back and nothing moves. The transition is CSS (.pnl/.hud
+ * carry one on top/left/right), so the panel slides to its new home rather than
+ * teleporting; the drag class that suppresses it has already been removed by here.
+ */
+export function dockPanel(id: PanelId, toBottom: boolean): void {
+  if(pState[id].b === toBottom) return;
+  const before = PANELS.map(p => ({ id: p.id, b: pState[p.id].b, s: pState[p.id].s }));
+  const hidden = (): PanelId[] => PANELS.filter(p => pState[p.id].o && pState[p.id].auto).map(p => p.id);
+  const was = hidden().length;
+  pState[id].b = toBottom;
+  layoutPanels();
+  if(hidden().length > was && id !== 'hud' && pState.hud.o && !pState.hud.b){
+    pState.hud.s = pState.hud.s === 'l' ? 'r' : 'l';   // the tall one takes the other column
+    layoutPanels();
+  }
+  if(hidden().length > was){                            // still no room: undo the whole thing
+    for(const b of before){ pState[b.id].b = b.b; pState[b.id].s = b.s as 'l' | 'r'; }
+    layoutPanels();
+    return;
+  }
+  fitPanels(); saveSettings();
+}
+
 export function layoutPanels(): void {
   for(const p of PANELS) pState[p.id].auto = false;
   for(let pass = 0; pass <= PANELS.length; pass++){
@@ -134,7 +186,7 @@ export function initPanels(deps: { fitPanels: () => void; saveSettings: () => vo
   // dragging: inward switches columns, outward closes
   for(const p of PANELS){
     const el = $(p.id);
-    let x0 = 0, active = false, moved = 0, pid = -1;
+    let x0 = 0, y0 = 0, active = false, moved = 0, movedY = 0, pid = -1;
     el.addEventListener('pointerdown', e => {
       // never steal a gesture that belongs to a control inside the panel
       // .sect and .tab are plain divs that act as buttons: if the swipe capture starts
@@ -142,7 +194,7 @@ export function initPanels(deps: { fitPanels: () => void; saveSettings: () => vo
       // header's own listener never fires — the accordions read as broken. Every
       // clickable thing in a panel must be listed here, not just the form controls.
       if((e.target as HTMLElement | null)?.closest('input, button, select, textarea, a, .seg, .chk, .sect, .tab')) return;
-      x0 = e.clientX; active = true; moved = 0; pid = e.pointerId;
+      x0 = e.clientX; y0 = e.clientY; active = true; moved = 0; movedY = 0; pid = e.pointerId;
       // Capture the pointer, or the swipe dies the moment the finger leaves the panel —
       // and on a phone the panel is ~178 px wide, so a 60 px swipe started anywhere near
       // its middle crosses its own edge before it ever reaches the threshold. That is why
@@ -151,10 +203,13 @@ export function initPanels(deps: { fitPanels: () => void; saveSettings: () => vo
     });
     el.addEventListener('pointermove', e => {
       if(!active) return;
-      moved = e.clientX - x0;
-      if(Math.abs(moved) < 6) return;
+      moved = e.clientX - x0; movedY = e.clientY - y0;
+      if(Math.abs(moved) < 6 && Math.abs(movedY) < 6) return;
       el.classList.add('drag');
-      el.style.transform = 'translateX(' + moved + 'px)';
+      // the gesture commits to an axis: whichever has travelled further is the one drawn,
+      // so a sloppy diagonal does not smear the panel about in two directions at once
+      el.style.transform = Math.abs(movedY) > Math.abs(moved)
+        ? 'translateY(' + movedY + 'px)' : 'translateX(' + moved + 'px)';
     });
     const finish = () => {
       if(!active) return;
@@ -166,13 +221,17 @@ export function initPanels(deps: { fitPanels: () => void; saveSettings: () => vo
       const side = pState[p.id].s, TH = 60;
       const outward = side === 'l' ? -TH : TH;      // toward this panel's own edge
       const inward  = side === 'l' ?  TH : -TH;
-      if(Math.sign(moved) === Math.sign(outward) && Math.abs(moved) >= TH) setPanelOpen(p.id, false);
+      if(Math.abs(movedY) > Math.abs(moved) && Math.abs(movedY) >= TH){
+        // down parks the panel at the foot of its own column, up brings it back to the head
+        dockPanel(p.id, movedY > 0);
+      }
+      else if(Math.sign(moved) === Math.sign(outward) && Math.abs(moved) >= TH) setPanelOpen(p.id, false);
       else if(Math.sign(moved) === Math.sign(inward) && Math.abs(moved) >= TH){
         pState[p.id].s = side === 'l' ? 'r' : 'l';
         pState[p.id].seq = ++openSeq;   // moving a panel is asking to see it
         layoutPanels(); fitPanels(); saveSettings();
       }
-      moved = 0;
+      moved = 0; movedY = 0;
     };
     el.addEventListener('pointerup', finish);
     el.addEventListener('pointercancel', finish);
@@ -186,16 +245,17 @@ export function initPanels(deps: { fitPanels: () => void; saveSettings: () => vo
 }
 
 /** The settings own what a visitor chose; this owns what the layout did about it. */
-export function panelSnapshot(): Record<string, { s: string; o: boolean }> {
-  const out: Record<string, { s: string; o: boolean }> = {};
-  for(const p of PANELS) out[p.id] = { s: pState[p.id].s, o: pState[p.id].o };
+export function panelSnapshot(): Record<string, { s: string; o: boolean; b: boolean }> {
+  const out: Record<string, { s: string; o: boolean; b: boolean }> = {};
+  for(const p of PANELS) out[p.id] = { s: pState[p.id].s, o: pState[p.id].o, b: pState[p.id].b };
   return out;
 }
-export function panelApply(saved: Record<string, { s?: string; o?: boolean }> | undefined): void {
+export function panelApply(saved: Record<string, { s?: string; o?: boolean; b?: boolean }> | undefined): void {
   if(saved) for(const p of PANELS){
     const v = saved[p.id]; if(!v) continue;
     if(v.s === 'l' || v.s === 'r') pState[p.id].s = v.s;
     if(typeof v.o === 'boolean'){ pState[p.id].o = v.o; if(v.o) pState[p.id].seq = ++openSeq; }
+    if(typeof v.b === 'boolean') pState[p.id].b = v.b;
   }
   // The settings dialog stays shut unless a saved record explicitly says otherwise. It is
   // the one panel that is a dialog rather than a reading, and opening on boot because it

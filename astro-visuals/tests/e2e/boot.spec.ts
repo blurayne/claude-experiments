@@ -362,6 +362,36 @@ test.describe('the panels obey the pointer', () => {
   })
 })
 
+test.describe('the panels dock', () => {
+  test('a downward swipe parks a panel at the foot of its column, an upward one brings it back', async ({ page }) => {
+    await page.setViewportSize({ width: 1300, height: 950 })
+    await page.goto('/galactic-transit.html', { waitUntil: 'load' })
+    await page.waitForFunction(() => !!document.getElementById('gl'))
+    const tour = page.locator('#tourGo')
+    if (await tour.isVisible().catch(() => false)) await tour.click()
+    await page.waitForTimeout(700)
+    const topOf = () => page.evaluate(() => Math.round(document.getElementById('env')!.getBoundingClientRect().top))
+    const swipe = async (dy: number) => {
+      const b = (await page.locator('#env').boundingBox())!
+      await page.mouse.move(b.x + b.width / 2, b.y + 14)
+      await page.mouse.down()
+      for (let i = 1; i <= 8; i++) await page.mouse.move(b.x + b.width / 2, b.y + 14 + (dy / 8) * i)
+      await page.mouse.up()
+      await page.waitForTimeout(800)
+    }
+    const started = await topOf()
+    expect(started).toBeLessThan(60)                 // begins at the head of its column
+    await swipe(112)
+    const docked = await topOf()
+    expect(docked, 'the panel did not travel to the foot').toBeGreaterThan(600)
+    // it must clear the bottom furniture: status bar, scale bar, QR
+    const h = await page.evaluate(() => Math.round(document.getElementById('env')!.getBoundingClientRect().height))
+    expect(docked + h).toBeLessThan(950 - 40)
+    await swipe(-112)
+    expect(await topOf(), 'the panel did not come back up').toBeLessThan(60)
+  })
+})
+
 test.describe('the rotation sense', () => {
   test('from the north galactic pole, the disk turns clockwise on screen', async ({ page }) => {
     await page.setViewportSize({ width: 900, height: 900 })
