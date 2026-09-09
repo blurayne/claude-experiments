@@ -59,5 +59,5 @@ export const BOOT_IDS = [
 /** Declared in the markup, never addressed by the script. */
 export const MARKUP_ONLY_IDS = [
   // evoBand/evoClip left with the Earth-across-deep-time SVG when it became an article (v3.5)
-  'dbgPanel', 'dbgPlus', 'tFps2', 'changelogLink', 'eSunRow', 'envMin', 'lBirth', 'lDeath', 'tourLogo',
+  'dbgPanel', 'dbgPlus', 'tFps2', 'tHalo', 'changelogLink', 'eSunRow', 'envMin', 'lBirth', 'lDeath', 'tourLogo',
 ]

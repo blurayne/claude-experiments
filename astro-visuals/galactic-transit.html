@@ -92,7 +92,7 @@ function installErrorCollector(){
  * property of the machine that loaded the page. The parity harness pins TZ for that reason.
  */
 
-const BUILD = { version: '3.6.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '3.7.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -496,7 +496,7 @@ const gfx = {
    * and the core go over both — so a cloud sits within the star field rather than on top of
    * it. These are the run lengths that split it.
    */
-  NEB_PINK: 0, NEB_GLOW: 0,
+  NEB_PINK: 0, NEB_GLOW: 0, NEB_HALO: 0,
   /**
    * The galaxy star buffer's nuclear run — the ~200 pc nuclear disc and the 4 pc cluster
    * around Sgr A* — as an index range [NUC0, NUC1). From inside the disk those stars are not
@@ -1700,7 +1700,7 @@ const SKEY = 'galactic-transit.settings.v1';
 
 const S_TOG = ['tLabels','tArms','tLabelSteady','tZoomBtns','tSpinLock','tDwarfs','tP9','tBelt','tKuiper','tOort','tDust',
                'tEvSN','tEvBirth','tVar',
-               'tStatAge','tStatGyr','tStatSn','tStatBirth','tGaia','tFps'];
+               'tStatAge','tStatGyr','tStatSn','tStatBirth','tGaia','tFps','tHalo'];
 const S_SLD = ['speed','trailA','orbitA','trailL','musicVol','sfxVol','minB','hudHz','coreB','qrScale'];
 const S_CHK = ['fxBirth','fxSn','fxPn','fxDrone','secSolo','closeOnGo','qrOn'];
 
@@ -2690,6 +2690,7 @@ function drawNebula(
     andPos, tide, merge, spinMW, spinM31, warp, ringT, asm, chaos, sunX, sunY, bubY, sunZ, org }            ,
   haze         ,
   which        = 'both',
+  haloOn = true,
 )       {
   gl.useProgram(pNeb);
   gl.uniformMatrix4fv(UN.proj,false,projMat);
@@ -2714,12 +2715,15 @@ function drawNebula(
   gl.uniform1f(UN.merge, merge);
   gl.uniform1f(UN.armAmp, ARM_EVO_AMP);   // the Milky Way's arms breathe with the beat
   gl.uniform1f(UN.asm, asm); gl.uniform1f(UN.chaos, chaos);
-  const seg = (pink        , glow        , n        ) => {
+  // The hot halo sits at the very end of the buffer, so switching it off is simply a
+  // shorter draw — no second pass, no second buffer, no per-point flag.
+  const seg = (pink        , glow        , n        , halo = 0) => {
+    const end = haloOn ? n : n - halo;
     if(haze){ if(glow) gl.drawArrays(gl.POINTS, pink, glow); }
     else { if(pink) gl.drawArrays(gl.POINTS, 0, pink);
-           if(n - pink - glow > 0) gl.drawArrays(gl.POINTS, pink + glow, n - pink - glow); }
+           if(end - pink - glow > 0) gl.drawArrays(gl.POINTS, pink + glow, end - pink - glow); }
   };
-  if(which !== 'and'){ gl.bindVertexArray(gfx.vaoNeb); seg(gfx.NEB_PINK, gfx.NEB_GLOW, gfx.NEB_N); }
+  if(which !== 'and'){ gl.bindVertexArray(gfx.vaoNeb); seg(gfx.NEB_PINK, gfx.NEB_GLOW, gfx.NEB_N, gfx.NEB_HALO); }
   if(gfx.vaoAndNeb && which !== 'mw'){
     // Andromeda is generated flat in her own disk frame: uGRot turns her to her measured
     // orientation and uGOff carries her along her orbit. Set, drawn, and set back — the
@@ -4355,8 +4359,8 @@ function frame(now        )       {
   // the Milky Way's layer: haze, lanes, then the backdrop sky and the Gaia bubble (our
   // own foreground stars — in front of Andromeda from every camera this side of her),
   // the disk's stars, the life-cycle events, and the HII regions and core over them
-  drawNebula(clouds, true, 'mw');
-  if(insideDisk) drawNebula(clouds, false, 'mw');
+  drawNebula(clouds, true, 'mw', hud.haloOn);
+  if(insideDisk) drawNebula(clouds, false, 'mw', hud.haloOn);
   drawDust(clouds, hud.dustOn, 'mw');
   gl.useProgram(pPt);   // back to the points; their uniforms persist on the program
   gl.bindVertexArray(vaoStars$1); gl.drawArrays(gl.POINTS,0,N_STAR);
@@ -4408,7 +4412,7 @@ function frame(now        )       {
   // life-cycle events (OB clusters, supergiants, supernova flashes, remnant cores)
   if(hud.lifeOn && events.length) drawEvents(lifeFrame);
 
-  if(!insideDisk) drawNebula(clouds, false, 'mw');   // the HII regions and the core, over the stars
+  if(!insideDisk) drawNebula(clouds, false, 'mw', hud.haloOn);   // the HII regions, the core and the hot halo, over the stars
   if(hud.lifeOn && puffs.length) drawRemnants(lifeFrame);
   if(!andFar) andLayer();   // Andromeda nearer: her whole layer over ours, lanes and all
   // Nothing of the solar system exists before it formed: no planets, no trails, no belts,
@@ -4622,6 +4626,8 @@ const hud = {
   showTrails: true,
   showLabels: true,
   showStats: true,
+  /** the hot circumgalactic halo — eROSITA's million-degree gas, off by default */
+  haloOn: false,
   showDwarfs: true,
   showBelt: true,
   showKuiper: true,
@@ -6115,7 +6121,7 @@ function genGalaxy(D        )                {
 
   // ~420 emission nebulae: along the arms, at the bar tips, and in the Local Spur
   gfx.NEB_N = Math.round(2600*D);
-  gfx.NEB_PINK = 0; gfx.NEB_GLOW = gfx.NEB_N;   // no runs in the schematic galaxy: all of it is haze
+  gfx.NEB_PINK = 0; gfx.NEB_GLOW = gfx.NEB_N; gfx.NEB_HALO = 0;   // no runs in the schematic galaxy: all of it is haze
   nebPos=new Float32Array(gfx.NEB_N*3); nebSize=new Float32Array(gfx.NEB_N); nebCol=new Float32Array(gfx.NEB_N*3);
   const nebWave=new Float32Array(gfx.NEB_N);
   {
@@ -6281,7 +6287,15 @@ function genGalaxyMap(D        )                {
   }
   const Dg = Math.min(D, 8);
   const PINK_N = Math.round(2600*D), GLOW_N = Math.round(3800*Dg), CORE_N = Math.round(900*Dg);
-  gfx.NEB_N = PINK_N + GLOW_N + CORE_N;
+  // The hot halo — the circumgalactic medium. The Milky Way sits inside a vast bubble of
+  // million-degree gas reaching past 100 kpc, which XMM-Newton and Chandra absorption
+  // lines found holds as much ordinary matter as every star in the disk put together.
+  // It is far too faint and far too hot to look like anything in visible light, so it is
+  // drawn as what it is: an enormous, barely-there X-ray-blue glow, roughly spherical,
+  // denser toward the middle, added to the haze population so it needs no new pass.
+  const HALO_N = Math.round(2200*Dg);
+  gfx.NEB_HALO = HALO_N;
+  gfx.NEB_N = PINK_N + GLOW_N + CORE_N + HALO_N;
   gfx.NEB_PINK = PINK_N; gfx.NEB_GLOW = GLOW_N;
   nebPos=new Float32Array(gfx.NEB_N*3); nebSize=new Float32Array(gfx.NEB_N); nebCol=new Float32Array(gfx.NEB_N*3);
   for(let q=0;q<PINK_N;q++){
@@ -6316,6 +6330,54 @@ function genGalaxyMap(D        )                {
       nebSize[q]=40+Math.random()*95;
       const j=(0.7+Math.random()*0.6)*0.30/Dg;
       nebCol[q*3]=1.00*j; nebCol[q*3+1]=0.80*j; nebCol[q*3+2]=0.50*j;
+    }
+  }
+  // The hot circumgalactic medium, as eROSITA measured it (MPE, Dec 2023): TWO
+  // components, not one. A roughly spherical million-degree halo reaching ~100 kpc —
+  // four times the optical Galaxy, holding most of the mass — and a much brighter
+  // disk-like component about 7 kpc in radius and 1 kpc thick, which is where most of
+  // the observed photons come from. Both are drawn as what they are: an X-ray blue so
+  // faint it reads as a presence rather than an object, in sprites large enough to
+  // overlap into smooth haze rather than resolve into dots.
+  { const H0 = PINK_N + GLOW_N + CORE_N, KPC = 108.72;
+    const DISK_N = Math.round(HALO_N*0.34), BUB_N = Math.round(HALO_N*0.20);
+    for(let q=H0;q<gfx.NEB_N;q++){
+      const k = q - H0, disky = k < DISK_N, bubbly = !disky && k < DISK_N + BUB_N;
+      let x, y, z, sz, j;
+      if(bubbly){
+        // The eROSITA BUBBLES (Predehl et al., Nature 588, 2020): an hourglass of
+        // shock-bounded X-ray gas rising ~14 kpc above and below the galactic centre —
+        // nearly as tall as the Galaxy is wide, and the X-ray sibling of the Fermi
+        // bubbles. Drawn as two shells rooted at the centre, brightest at the rim
+        // because that is where the shock is; a legacy of one enormous energy injection
+        // from the centre, whether the black hole's or a starburst's.
+        const up = Math.random() < 0.5 ? 1 : -1;
+        const R = 7*KPC, shell = R*(0.72 + Math.random()*0.28);
+        const ct = 2*Math.random() - 1, st = Math.sqrt(Math.max(0, 1 - ct*ct)), ph = Math.random()*6.28318;
+        x = shell*st*Math.cos(ph); z = shell*st*Math.sin(ph);
+        y = up*(R + shell*ct);                          // lobes centred a radius off the plane
+        if(up*y < 0.12*KPC) y = up*0.12*KPC;            // the waist pinches at the disk
+        sz = 190 + Math.random()*260;
+        j = (0.6 + Math.random()*0.8)*0.016/Dg;
+      } else if(disky){
+        // the bright inner component: 7 kpc across, 1 kpc scale height
+        const r = 7*KPC*Math.sqrt(Math.random()), th = Math.random()*6.28318;
+        x = r*Math.cos(th); y = gauss()*KPC*0.5; z = r*Math.sin(th);
+        sz = 150 + Math.random()*220;
+        j = (0.6 + Math.random()*0.8)*0.020/Dg;
+      } else {
+        // the great halo: r^-1.5 out to ~100 kpc, so it thins into nothing at the edge
+        const r = 2.2*KPC*Math.pow(1 - Math.random()*0.986, -1/1.5);
+        const ct = 2*Math.random() - 1, st = Math.sqrt(Math.max(0, 1 - ct*ct)), ph = Math.random()*6.28318;
+        x = r*st*Math.cos(ph); y = r*ct*0.85; z = r*st*Math.sin(ph);
+        sz = 420 + Math.random()*900;
+        j = (0.6 + Math.random()*0.8)*0.0042/Dg;
+      }
+      nebPos[q*3] = x; nebPos[q*3+1] = y; nebPos[q*3+2] = z;
+      nebSize[q] = sz;
+      // the bubbles run hotter and harder than the ambient halo, so they read whiter
+      if(bubbly){ nebCol[q*3] = 0.72*j; nebCol[q*3+1] = 0.80*j; nebCol[q*3+2] = 1.00*j; }
+      else { nebCol[q*3] = 0.34*j; nebCol[q*3+1] = 0.60*j; nebCol[q*3+2] = 1.00*j; }
     }
   }
   const XD = D>1 ? Math.round(9000*D) : 0;
@@ -7157,6 +7219,7 @@ toggle($('tGaia'), on=> gfx.gaiaOn=on);
 // The frame rate has two switches on purpose: one in the settings' readouts, one in the
 // debug panel beside the state box, because that is where somebody debugging looks for
 // it. tFps owns the state; its twin follows, exactly as the spin lock's pair does.
+toggle($('tHalo'), on=>{ hud.haloOn = on; });
 toggle($('tFps'), on=>{ hud.showFps=on; $('fpsBox').style.display = on ? '' : 'none';
   ($('tFps2')                    ).checked = on; fitPanels(); });
 $('tFps2').addEventListener('change', ()=>{
@@ -7949,6 +8012,7 @@ startFrameLoop({
       <label class="chk"><input type="checkbox" id="tEvBirth"> star birth</label></div>
     <div class="chks indent">
       <label class="chk"><input type="checkbox" id="tDust" checked> dark clouds</label>
+      <label class="chk" title="the million-degree gas eROSITA found around the Galaxy"><input type="checkbox" id="tHalo"> hot halo<button type="button" class="info" data-tip="The million-degree circumgalactic gas eROSITA mapped: a faint spherical halo out to ~100 kpc, and the brighter disk-like component inside it. Off by default — it is real, and it is very nearly invisible." aria-label="about this setting">i</button></label>
       <label class="chk"><input type="checkbox" id="tBelt" checked> asteroids</label>
       <label class="chk"><input type="checkbox" id="tKuiper" checked> kuiper</label>
       <label class="chk"><input type="checkbox" id="tOort" checked> oort</label>
@@ -8073,6 +8137,7 @@ startFrameLoop({
       <li><a href="docs/stellar-birth-and-death.html" target="_blank" rel="noopener">Stellar birth & death</a> — the drawn clusters, supergiants, supernovae and nebulae, at their real rates</li>
       <li><a href="docs/star-formation-ice-ages-andromeda.html" target="_blank" rel="noopener">Star formation, ice ages, and Andromeda</a> — the climate model: arm crossings, cosmic rays, and the glacial record</li>
       <li><a href="docs/does-the-merger-touch-the-solar-system.html" target="_blank" rel="noopener">Does the merger touch the solar system?</a> — what the collision means at the scale of one planetary system</li>
+      <li><a href="docs/every-merger-we-know-of.html" target="_blank" rel="noopener">Every merger we know of</a> — the galaxies we have eaten, the two we are eating, and what follows Milkomeda</li>
           <li><a href="docs/earth-across-deep-time.html" target="_blank" rel="noopener">Earth across deep time</a> — named milestones from the first amino acids to the boiling oceans, independently sourced</li>
       <li><a href="docs/whats-real-what-is-modeled.html" target="_blank" rel="noopener">What's real, what's modeled</a> — the honesty ledger: every measurement drawn, every compression disclosed</li>
     </ul>
@@ -8092,6 +8157,7 @@ startFrameLoop({
         <a href="https://www.nature.com/articles/nature.2014.15329" target="_blank" rel="noopener">"Galactic collision gave Andromeda its arms"</a> (Nature News, 2014)</li>
       <li>Cox &amp; Loeb 2008 — Milkomeda; <a href="https://www.nature.com/articles/s41550-025-02563-1" target="_blank" rel="noopener">Sawala et&nbsp;al. 2025</a> — ~50% merger odds (the drawn track is their merging-half median); arXiv:2603.22863 (2026) — the ~90% reanalysis whose band the track sits in</li>
       <li>Berski &amp; Dybczyński 2016 — Gliese 710's pass; Shaviv and Svensmark — the contested cosmic-ray/climate hypothesis the ice ages follow, flagged as such</li>
+      <li><a href="https://www.mpe.mpg.de/7978605/news20231214" target="_blank" rel="noopener"><b>eROSITA</b> / MPE</a> — the million-degree circumgalactic gas the <b>hot halo</b> switch draws: a spherical halo to ~100&nbsp;kpc holding most of the Galaxy's ordinary matter, and the brighter disk-like component ~7&nbsp;kpc across and ~1&nbsp;kpc thick inside it</li>
       <li>Images: Spitzer sig06-025 (NASA/JPL-Caltech/D.&nbsp;Block) and ssc2006-14a (P.&nbsp;Barmby); NASA/CXC — M31's core; AURA/NOAO/NSF — the LMC; ESO/DSS2 — the SMC; A.&nbsp;Meleg (CC&nbsp;BY-SA) — M33; the
         <a href="https://www.messier-objects.com/messier-31-andromeda-galaxy/" target="_blank" rel="noopener">Messier Objects</a> guide</li>
     </ul>

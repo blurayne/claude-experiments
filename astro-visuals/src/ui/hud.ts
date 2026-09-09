@@ -39,6 +39,8 @@ export const hud = {
   showTrails: true,
   showLabels: true,
   showStats: true,
+  /** the hot circumgalactic halo — eROSITA's million-degree gas, off by default */
+  haloOn: false,
   showDwarfs: true,
   showBelt: true,
   showKuiper: true,

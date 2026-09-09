@@ -97,6 +97,7 @@ export function drawNebula(
     andPos, tide, merge, spinMW, spinM31, warp, ringT, asm, chaos, sunX, sunY, bubY, sunZ, org }: CloudFrame,
   haze: boolean,
   which: Which = 'both',
+  haloOn = true,
 ): void {
   gl.useProgram(pNeb);
   gl.uniformMatrix4fv(UN.proj,false,projMat);
@@ -121,12 +122,15 @@ export function drawNebula(
   gl.uniform1f(UN.merge, merge);
   gl.uniform1f(UN.armAmp, ARM_EVO_AMP);   // the Milky Way's arms breathe with the beat
   gl.uniform1f(UN.asm, asm); gl.uniform1f(UN.chaos, chaos);
-  const seg = (pink: number, glow: number, n: number) => {
+  // The hot halo sits at the very end of the buffer, so switching it off is simply a
+  // shorter draw — no second pass, no second buffer, no per-point flag.
+  const seg = (pink: number, glow: number, n: number, halo = 0) => {
+    const end = haloOn ? n : n - halo;
     if(haze){ if(glow) gl.drawArrays(gl.POINTS, pink, glow); }
     else { if(pink) gl.drawArrays(gl.POINTS, 0, pink);
-           if(n - pink - glow > 0) gl.drawArrays(gl.POINTS, pink + glow, n - pink - glow); }
+           if(end - pink - glow > 0) gl.drawArrays(gl.POINTS, pink + glow, end - pink - glow); }
   };
-  if(which !== 'and'){ gl.bindVertexArray(gfx.vaoNeb); seg(gfx.NEB_PINK, gfx.NEB_GLOW, gfx.NEB_N); }
+  if(which !== 'and'){ gl.bindVertexArray(gfx.vaoNeb); seg(gfx.NEB_PINK, gfx.NEB_GLOW, gfx.NEB_N, gfx.NEB_HALO); }
   if(gfx.vaoAndNeb && which !== 'mw'){
     // Andromeda is generated flat in her own disk frame: uGRot turns her to her measured
     // orientation and uGOff carries her along her orbit. Set, drawn, and set back — the

@@ -363,8 +363,8 @@ function frame(now: number): void {
   // the Milky Way's layer: haze, lanes, then the backdrop sky and the Gaia bubble (our
   // own foreground stars — in front of Andromeda from every camera this side of her),
   // the disk's stars, the life-cycle events, and the HII regions and core over them
-  drawNebula(clouds, true, 'mw');
-  if(insideDisk) drawNebula(clouds, false, 'mw');
+  drawNebula(clouds, true, 'mw', hud.haloOn);
+  if(insideDisk) drawNebula(clouds, false, 'mw', hud.haloOn);
   drawDust(clouds, hud.dustOn, 'mw');
   gl.useProgram(pPt);   // back to the points; their uniforms persist on the program
   gl.bindVertexArray(vaoStars); gl.drawArrays(gl.POINTS,0,N_STAR);
@@ -416,7 +416,7 @@ function frame(now: number): void {
   // life-cycle events (OB clusters, supergiants, supernova flashes, remnant cores)
   if(hud.lifeOn && events.length) drawEvents(lifeFrame);
 
-  if(!insideDisk) drawNebula(clouds, false, 'mw');   // the HII regions and the core, over the stars
+  if(!insideDisk) drawNebula(clouds, false, 'mw', hud.haloOn);   // the HII regions, the core and the hot halo, over the stars
   if(hud.lifeOn && puffs.length) drawRemnants(lifeFrame);
   if(!andFar) andLayer();   // Andromeda nearer: her whole layer over ours, lanes and all
   // Nothing of the solar system exists before it formed: no planets, no trails, no belts,

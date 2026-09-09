@@ -102,7 +102,7 @@ export function genGalaxy(D: number): GalaxyBuffers {
 
   // ~420 emission nebulae: along the arms, at the bar tips, and in the Local Spur
   gfx.NEB_N = Math.round(2600*D);
-  gfx.NEB_PINK = 0; gfx.NEB_GLOW = gfx.NEB_N;   // no runs in the schematic galaxy: all of it is haze
+  gfx.NEB_PINK = 0; gfx.NEB_GLOW = gfx.NEB_N; gfx.NEB_HALO = 0;   // no runs in the schematic galaxy: all of it is haze
   nebPos=new Float32Array(gfx.NEB_N*3); nebSize=new Float32Array(gfx.NEB_N); nebCol=new Float32Array(gfx.NEB_N*3);
   const nebWave=new Float32Array(gfx.NEB_N);
   {
@@ -268,7 +268,15 @@ export function genGalaxyMap(D: number): GalaxyBuffers {
   }
   const Dg = Math.min(D, 8);
   const PINK_N = Math.round(2600*D), GLOW_N = Math.round(3800*Dg), CORE_N = Math.round(900*Dg);
-  gfx.NEB_N = PINK_N + GLOW_N + CORE_N;
+  // The hot halo — the circumgalactic medium. The Milky Way sits inside a vast bubble of
+  // million-degree gas reaching past 100 kpc, which XMM-Newton and Chandra absorption
+  // lines found holds as much ordinary matter as every star in the disk put together.
+  // It is far too faint and far too hot to look like anything in visible light, so it is
+  // drawn as what it is: an enormous, barely-there X-ray-blue glow, roughly spherical,
+  // denser toward the middle, added to the haze population so it needs no new pass.
+  const HALO_N = Math.round(2200*Dg);
+  gfx.NEB_HALO = HALO_N;
+  gfx.NEB_N = PINK_N + GLOW_N + CORE_N + HALO_N;
   gfx.NEB_PINK = PINK_N; gfx.NEB_GLOW = GLOW_N;
   nebPos=new Float32Array(gfx.NEB_N*3); nebSize=new Float32Array(gfx.NEB_N); nebCol=new Float32Array(gfx.NEB_N*3);
   for(let q=0;q<PINK_N;q++){
@@ -303,6 +311,54 @@ export function genGalaxyMap(D: number): GalaxyBuffers {
       nebSize[q]=40+Math.random()*95;
       const j=(0.7+Math.random()*0.6)*0.30/Dg;
       nebCol[q*3]=1.00*j; nebCol[q*3+1]=0.80*j; nebCol[q*3+2]=0.50*j;
+    }
+  }
+  // The hot circumgalactic medium, as eROSITA measured it (MPE, Dec 2023): TWO
+  // components, not one. A roughly spherical million-degree halo reaching ~100 kpc —
+  // four times the optical Galaxy, holding most of the mass — and a much brighter
+  // disk-like component about 7 kpc in radius and 1 kpc thick, which is where most of
+  // the observed photons come from. Both are drawn as what they are: an X-ray blue so
+  // faint it reads as a presence rather than an object, in sprites large enough to
+  // overlap into smooth haze rather than resolve into dots.
+  { const H0 = PINK_N + GLOW_N + CORE_N, KPC = 108.72;
+    const DISK_N = Math.round(HALO_N*0.34), BUB_N = Math.round(HALO_N*0.20);
+    for(let q=H0;q<gfx.NEB_N;q++){
+      const k = q - H0, disky = k < DISK_N, bubbly = !disky && k < DISK_N + BUB_N;
+      let x, y, z, sz, j;
+      if(bubbly){
+        // The eROSITA BUBBLES (Predehl et al., Nature 588, 2020): an hourglass of
+        // shock-bounded X-ray gas rising ~14 kpc above and below the galactic centre —
+        // nearly as tall as the Galaxy is wide, and the X-ray sibling of the Fermi
+        // bubbles. Drawn as two shells rooted at the centre, brightest at the rim
+        // because that is where the shock is; a legacy of one enormous energy injection
+        // from the centre, whether the black hole's or a starburst's.
+        const up = Math.random() < 0.5 ? 1 : -1;
+        const R = 7*KPC, shell = R*(0.72 + Math.random()*0.28);
+        const ct = 2*Math.random() - 1, st = Math.sqrt(Math.max(0, 1 - ct*ct)), ph = Math.random()*6.28318;
+        x = shell*st*Math.cos(ph); z = shell*st*Math.sin(ph);
+        y = up*(R + shell*ct);                          // lobes centred a radius off the plane
+        if(up*y < 0.12*KPC) y = up*0.12*KPC;            // the waist pinches at the disk
+        sz = 190 + Math.random()*260;
+        j = (0.6 + Math.random()*0.8)*0.016/Dg;
+      } else if(disky){
+        // the bright inner component: 7 kpc across, 1 kpc scale height
+        const r = 7*KPC*Math.sqrt(Math.random()), th = Math.random()*6.28318;
+        x = r*Math.cos(th); y = gauss()*KPC*0.5; z = r*Math.sin(th);
+        sz = 150 + Math.random()*220;
+        j = (0.6 + Math.random()*0.8)*0.020/Dg;
+      } else {
+        // the great halo: r^-1.5 out to ~100 kpc, so it thins into nothing at the edge
+        const r = 2.2*KPC*Math.pow(1 - Math.random()*0.986, -1/1.5);
+        const ct = 2*Math.random() - 1, st = Math.sqrt(Math.max(0, 1 - ct*ct)), ph = Math.random()*6.28318;
+        x = r*st*Math.cos(ph); y = r*ct*0.85; z = r*st*Math.sin(ph);
+        sz = 420 + Math.random()*900;
+        j = (0.6 + Math.random()*0.8)*0.0042/Dg;
+      }
+      nebPos[q*3] = x; nebPos[q*3+1] = y; nebPos[q*3+2] = z;
+      nebSize[q] = sz;
+      // the bubbles run hotter and harder than the ambient halo, so they read whiter
+      if(bubbly){ nebCol[q*3] = 0.72*j; nebCol[q*3+1] = 0.80*j; nebCol[q*3+2] = 1.00*j; }
+      else { nebCol[q*3] = 0.34*j; nebCol[q*3+1] = 0.60*j; nebCol[q*3+2] = 1.00*j; }
     }
   }
   const XD = D>1 ? Math.round(9000*D) : 0;

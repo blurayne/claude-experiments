@@ -138,7 +138,8 @@ The build renders it to `changelog.html`, which the panel footer links to.
   [How the Milky Way turns](docs/how-the-milky-way-turns.html) explainer with its density-wave
   animation, plus the About panel's former long-form sections, one page per subject
   (scale, Gliese 710, the Oort cloud, deep time, star counts, stellar birth and death,
-  ice ages, the merger). All linked from the page's About dialog, opening in new tabs.
+  ice ages, the merger, Earth across deep time, the what's-real ledger, and every merger
+  we know of). All linked from the page's About dialog, opening in new tabs.
 - [`icon.svg`](icon.svg) — the *Galactic Transit* emblem, hand-authored as vector
   (with Orbitron embedded so the lettering renders identically everywhere) and
   rasterised to the PNG sizes the manifest needs (favicons, the Apple touch icon,

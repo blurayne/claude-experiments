@@ -251,6 +251,7 @@ toggle($('tGaia'), on=> gfx.gaiaOn=on);
 // The frame rate has two switches on purpose: one in the settings' readouts, one in the
 // debug panel beside the state box, because that is where somebody debugging looks for
 // it. tFps owns the state; its twin follows, exactly as the spin lock's pair does.
+toggle($('tHalo'), on=>{ hud.haloOn = on; });
 toggle($('tFps'), on=>{ hud.showFps=on; $('fpsBox').style.display = on ? '' : 'none';
   ($('tFps2') as HTMLInputElement).checked = on; fitPanels(); });
 $('tFps2').addEventListener('change', ()=>{

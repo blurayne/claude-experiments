@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Every merger we know of</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sky:#080D1C; --sky-2:#0F1730; --star:#EDEEF3; --slate:#A3ABBE; --dust:#2A3350;
+    --halpha:#F2A65A; --sun:#6FA8FF; --line:#26304D;
+  }
+  *{box-sizing:border-box}
+  html{background:var(--sky)}
+  body{margin:0;color:var(--star);font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:17px;line-height:1.65;-webkit-font-smoothing:antialiased}
+  main{max-width:680px;margin:0 auto;padding:0 20px 80px}
+  h1,h2,h3{font-family:"Fraunces",Georgia,serif;font-weight:300;line-height:1.1;margin:0}
+  h1{font-size:clamp(38px,7vw,58px);letter-spacing:-.01em;padding:56px 0 14px}
+  h2{font-size:30px;padding:56px 0 14px;border-top:1px solid var(--line)}
+  h3{font-size:21px;font-weight:500;padding:22px 0 6px}
+  p{margin:0 0 16px;max-width:62ch}
+  p.lede{font-size:20px;color:var(--star);max-width:56ch}
+  em{color:var(--halpha);font-style:normal}
+  .muted{color:var(--slate)}
+  figure{margin:24px 0 8px}
+  figcaption{color:var(--slate);font-size:14px;line-height:1.5;margin-top:10px;max-width:62ch}
+  .galaxy{background:var(--sky-2);border-radius:14px;padding:16px}
+  canvas{display:block;width:100%;height:auto;max-width:520px;margin:0 auto}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+  button{font:inherit;font-size:14px;color:var(--star);background:transparent;border:1px solid var(--line);border-radius:999px;padding:6px 14px;cursor:pointer}
+  button[aria-pressed="true"]{background:var(--star);color:var(--sky);border-color:var(--star)}
+  button:focus-visible{outline:2px solid var(--sun);outline-offset:2px}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;font-size:14px;color:var(--slate);margin-top:12px}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:-1px;margin-right:6px}
+  .aside{border-left:2px solid var(--halpha);padding:4px 0 4px 18px;margin:22px 0;color:var(--slate)}
+  .aside p:last-child{margin:0}
+  table{border-collapse:collapse;width:100%;font-size:15px;margin:20px 0 8px}
+  th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-weight:500;color:var(--slate)}
+  td:first-child{color:var(--slate)}
+  .timeline{list-style:none;padding:0;margin:20px 0}
+  .timeline li{display:grid;grid-template-columns:110px 1fr;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .timeline .when{font-family:"Fraunces",serif;font-size:20px;line-height:1.2;color:var(--halpha)}
+  .timeline .what{color:var(--star)}
+  .timeline .what small{display:block;color:var(--slate);font-size:14px}
+  footer{margin-top:60px;font-size:14px;color:var(--slate);border-top:1px solid var(--line);padding-top:18px}
+  @media (max-width:480px){.timeline li{grid-template-columns:1fr;gap:4px}}
+  @media (prefers-reduced-motion:reduce){.hint{display:block}}
+  .hint{display:none;font-size:14px;color:var(--slate);margin-top:8px}
+</style>
+</head>
+<body>
+<main>
+<p style="padding-top:28px;margin:0"><a href="../galactic-transit.html" style="color:var(--slate);text-decoration:none">&larr; Galactic Transit</a></p>
+<h1>Every merger we know of</h1>
+<p class="lede">Our galaxy is not a thing that formed. It is a thing that keeps happening — assembled from
+other galaxies, still eating two of them, and with its largest meals still ahead.</p>
+
+<h2>How we know: galactic archaeology</h2>
+<p>A galaxy that swallows another does not digest it evenly. The victim's stars keep their orbits for billions of
+years, spread into streams and shells that look like nothing in particular on the sky but stand out sharply when
+you plot stars by <em>energy and angular momentum</em> instead of position. Gaia measured the motions of more than
+a billion stars precisely enough to make that plot, and the Milky Way's history fell out of it in clumps. This is
+why almost everything below dates from 2018 or later: the evidence was always in the sky, but the instrument to
+read it is recent.</p>
+
+<h2>What we have already eaten</h2>
+<ul class="timeline">
+  <li><span class="when">~11 Gyr</span><span class="what">Kraken (also called Heracles)
+    <small>The earliest large merger we can still identify, buried deep in the inner Galaxy. It happened when the
+    Milky Way was perhaps a quarter of its present mass, which makes it relatively the most violent thing that
+    ever happened to us, even though the galaxy it brought was small.</small></span></li>
+  <li><span class="when">~10 Gyr</span><span class="what">Gaia-Enceladus / the Sausage
+    <small>The big one. A galaxy perhaps a quarter of the Milky Way's then-mass, on a head-on plunge — its stars
+    ended up on long radial orbits, which is what gives the "sausage" its shape in velocity space. Most of the
+    inner stellar halo is its debris, and the collision is the leading explanation for why the Milky Way has a
+    thick disk at all: the pre-existing disk was heated and puffed up by the impact.</small></span></li>
+  <li><span class="when">~9 Gyr</span><span class="what">Sequoia, Thamnos, the Helmi streams
+    <small>Smaller courses in the same meal era, each identified as its own clump of stars with a shared history —
+    Sequoia notably on retrograde orbits, running around the Galaxy the wrong way.</small></span></li>
+</ul>
+
+<h2>What we are eating now</h2>
+<p>The <b>Sagittarius dwarf</b> was found in 1994 on the far side of the galactic centre, mid-destruction. Its stream
+of shredded stars wraps the entire sky more than once. It has plunged through the disk several times, and those
+crossings are the leading suspect for structures we can measure today: the disk's <em>warp</em>, the vertical
+corrugations rippling through it, and possibly bursts of star formation — one of which may coincide with the Sun's
+own formation, which would make us, in a small way, a product of a galactic collision.</p>
+<p>The <b>Magellanic Clouds</b> are the other ongoing case, and the more consequential one. Recent work suggests the
+LMC is far more massive than long assumed — massive enough that its gravity pulls the Milky Way's centre off course,
+which is precisely why it complicates predictions of the Andromeda encounter. It is expected to merge with us in
+roughly <em>2 billion years</em>, well before Andromeda arrives.</p>
+
+<h2>What is coming</h2>
+<ul class="timeline">
+  <li><span class="when">+2 Gyr</span><span class="what">The Large Magellanic Cloud merges
+    <small>The next real merger, and one that will feed the central black hole and disturb the disk long before
+    Andromeda is close.</small></span></li>
+  <li><span class="when">+4.5 Gyr</span><span class="what">Andromeda's first passage
+    <small>~95 kpc — the disks never touch. They trade bridges and tails, and dynamical friction begins draining
+    the orbit.</small></span></li>
+  <li><span class="when">+6.5 to +9 Gyr</span><span class="what">Milkomeda
+    <small>Successive closer passages, shock-driven starbursts, and then coalescence into a single pressure-supported
+    elliptical. The literature is genuinely unsettled on the odds and the date — see the About dialog's sources —
+    and the page draws one honest track through that uncertainty rather than pretending to certainty.</small></span></li>
+</ul>
+
+<h2>And after Milkomeda?</h2>
+<p>The Local Group does not stop at two. <b>M33</b> — Triangulum, the third-largest member — is bound to the pair and
+will join the remnant, along with the several dozen dwarf galaxies still orbiting both. Over the following tens of
+billions of years, the Local Group's members fall together into one large elliptical galaxy. That object is the end
+state of everything gravitationally bound to us.</p>
+<p>Everything else goes the other way. Dark energy is accelerating the expansion of the universe, and the Local Group
+is not bound to the wider cosmos — the Virgo cluster, the galaxies of the Local Sheet, the several trillion galaxies
+of the observable universe are all receding, faster with time. In roughly 100 billion years, an observer inside the
+Local Group's remnant would see a sky with <em>no other galaxies in it at all</em>: a single island of stars in an
+apparently empty void, with no way to discover from the inside that the rest ever existed. The cosmology we take for
+granted is a thing that can only be learned during a particular window of cosmic time, and we happen to live in it.</p>
+<p>The remnant itself fades. Mergers exhaust cold gas — through starbursts, and by heating what remains into the
+million-degree circumgalactic halo that <a href="https://www.mpe.mpg.de/7978605/news20231214">eROSITA has now
+mapped around us</a>, gas which the page can draw. With nothing left to make stars from, the elliptical reddens as
+its massive blue stars die and are not replaced. What is left is a red-and-dead island: long-lived low-mass stars,
+their remnants, and time.</p>
+
+<div class="aside"><p><b>What the page draws of this.</b> The scenario <em>How the Milky Way grew</em> runs the
+assembly forward from half a billion years after the Big Bang, with the merger chaos of the early era and the
+Gaia-Enceladus convulsion around 10&nbsp;Gyr ago written into the model. <em>Andromeda first pass</em> and
+<em>Galaxies collide &amp; merge</em> carry the encounter to Milkomeda. The Sagittarius dwarf is present only
+through the warp it excites — drawing the stream itself is on the list. Tick <b>hot halo</b> in the settings'
+visuals to see eROSITA's million-degree gas.</p></div>
+
+<div class="aside"><p><b>Where things are (v3.6):</b> the <b>Simulation</b> panel on the right holds the clock,
+the <b>scenario</b> list and — at its foot — the <b>view</b> row with the <b>spin lock</b> box. The <b>Earth</b> panel
+on the left carries the live conditions. Drag to orbit, scroll or pinch to zoom, right-drag or two fingers to pan,
+and swipe a panel sideways to move it to the other edge or off its own edge to close it. Every article here is
+reachable from the About dialog, which also carries the sources.</p></div>
+<footer>An article from <a href="../galactic-transit.html">Galactic Transit</a> — the notes that used to live in its About panel, one subject per page.</footer>
+</main>
+</body>
+</html>

@@ -129,7 +129,7 @@ export const gfx = {
    * and the core go over both — so a cloud sits within the star field rather than on top of
    * it. These are the run lengths that split it.
    */
-  NEB_PINK: 0, NEB_GLOW: 0,
+  NEB_PINK: 0, NEB_GLOW: 0, NEB_HALO: 0,
   /**
    * The galaxy star buffer's nuclear run — the ~200 pc nuclear disc and the 4 pc cluster
    * around Sgr A* — as an index range [NUC0, NUC1). From inside the disk those stars are not
