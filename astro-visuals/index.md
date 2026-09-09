@@ -131,7 +131,9 @@ The build renders it to `changelog.html`, which the panel footer links to.
 - [`MIGRATE-STATE.md`](MIGRATE-STATE.md) — where that work got to, what it learned, and the
   things that will waste a day if you do not know them.
 - `img/` — the observational Andromeda figures shown in the page's help panel (Spitzer's
-  annotated dust rings and infrared disk, the X-ray core), credited inline.
+  annotated dust rings and infrared disk, the X-ray core), credited inline; `img/sky/`
+  holds the skybox sprites — the Magellanic Clouds and Triangulum, star-subtracted and
+  luminance-faded from their photographs (v3.4).
 - [`docs/`](docs/) — the articles (v3.3): the complete
   [How the Milky Way turns](docs/how-the-milky-way-turns.html) explainer with its density-wave
   animation, plus the About panel's former long-form sections, one page per subject

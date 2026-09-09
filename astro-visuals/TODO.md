@@ -371,3 +371,14 @@ before the work starts. An item is ticked when it ships, with the version that c
 - [x] Scenario list in the order things happen; "After the merger" actually after it — v2.52.0.
 - [x] The Sun reddens as a giant; inner planets flare white when swallowed and stay gone;
       a planetary nebula is drawn and labelled; remnants are filamentary shells — v2.53.0.
+
+- [ ] Later: lift M32, M110 and the Giant Southern Stream out of Andromeda's disk-plane
+      map. Their drawn positions are the photograph's projection onto the disk, which
+      lands them ~50–70° from their true sky position angles (measured 9 Sep 2026 during
+      the v3.3 label work — the label anchors match the drawn blobs, so the picture is
+      self-consistent, just not sky-accurate). Drawing them as their own 3D objects would
+      also let the ring-wave impact direction be re-derived from the corrected M32.
+- [ ] Later: the Sagittarius dwarf and its stream — the nearest galaxy of all, currently
+      present only through the warp it excites. Its stream wraps the sky twice and its
+      disk plunges are the leading suspect for the corrugations; drawing it would complete
+      the local-mergers story the articles now tell.
