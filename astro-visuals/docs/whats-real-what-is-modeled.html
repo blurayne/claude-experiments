@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What&#x27;s real, what&#x27;s modeled</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sky:#080D1C; --sky-2:#0F1730; --star:#EDEEF3; --slate:#A3ABBE; --dust:#2A3350;
+    --halpha:#F2A65A; --sun:#6FA8FF; --line:#26304D;
+  }
+  *{box-sizing:border-box}
+  html{background:var(--sky)}
+  body{margin:0;color:var(--star);font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:17px;line-height:1.65;-webkit-font-smoothing:antialiased}
+  main{max-width:680px;margin:0 auto;padding:0 20px 80px}
+  h1,h2,h3{font-family:"Fraunces",Georgia,serif;font-weight:300;line-height:1.1;margin:0}
+  h1{font-size:clamp(38px,7vw,58px);letter-spacing:-.01em;padding:56px 0 14px}
+  h2{font-size:30px;padding:56px 0 14px;border-top:1px solid var(--line)}
+  h3{font-size:21px;font-weight:500;padding:22px 0 6px}
+  p{margin:0 0 16px;max-width:62ch}
+  p.lede{font-size:20px;color:var(--star);max-width:56ch}
+  em{color:var(--halpha);font-style:normal}
+  .muted{color:var(--slate)}
+  figure{margin:24px 0 8px}
+  figcaption{color:var(--slate);font-size:14px;line-height:1.5;margin-top:10px;max-width:62ch}
+  .galaxy{background:var(--sky-2);border-radius:14px;padding:16px}
+  canvas{display:block;width:100%;height:auto;max-width:520px;margin:0 auto}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+  button{font:inherit;font-size:14px;color:var(--star);background:transparent;border:1px solid var(--line);border-radius:999px;padding:6px 14px;cursor:pointer}
+  button[aria-pressed="true"]{background:var(--star);color:var(--sky);border-color:var(--star)}
+  button:focus-visible{outline:2px solid var(--sun);outline-offset:2px}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;font-size:14px;color:var(--slate);margin-top:12px}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:-1px;margin-right:6px}
+  .aside{border-left:2px solid var(--halpha);padding:4px 0 4px 18px;margin:22px 0;color:var(--slate)}
+  .aside p:last-child{margin:0}
+  table{border-collapse:collapse;width:100%;font-size:15px;margin:20px 0 8px}
+  th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-weight:500;color:var(--slate)}
+  td:first-child{color:var(--slate)}
+  .timeline{list-style:none;padding:0;margin:20px 0}
+  .timeline li{display:grid;grid-template-columns:110px 1fr;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .timeline .when{font-family:"Fraunces",serif;font-size:20px;line-height:1.2;color:var(--halpha)}
+  .timeline .what{color:var(--star)}
+  .timeline .what small{display:block;color:var(--slate);font-size:14px}
+  footer{margin-top:60px;font-size:14px;color:var(--slate);border-top:1px solid var(--line);padding-top:18px}
+  @media (max-width:480px){.timeline li{grid-template-columns:1fr;gap:4px}}
+  @media (prefers-reduced-motion:reduce){.hint{display:block}}
+  .hint{display:none;font-size:14px;color:var(--slate);margin-top:8px}
+</style>
+</head>
+<body>
+<main>
+<p style="padding-top:28px;margin:0"><a href="../galactic-transit.html" style="color:var(--slate);text-decoration:none">&larr; Galactic Transit</a></p>
+<h1>What's real, what's modeled</h1>
+    <p><b>The far sky is real too (v3.4):</b> the brightest galaxies of the local sky sit at their true
+    J2000 positions — the Large and Small Magellanic Clouds and Triangulum as their photographs
+    (LMC: AURA/NOAO/NSF; SMC: ESO/Digitized Sky Survey 2; M33: A.&nbsp;Meleg, CC&nbsp;BY-SA), a dozen
+    more from M81 to Centaurus&nbsp;A as tinted points sized by apparent diameter. They ride one far
+    sphere — the Clouds are really at 50&ndash;60&nbsp;kpc and take no part in the merger — and they do
+    not turn with the disk, so over deep time the Milky Way visibly rotates against them. And the clock
+    now refuses to scrub past the Big Bang: before 13.79&nbsp;Gyr ago there is nothing to draw.</p>
+    <ul>
+      <li>Planets are <b>not dragged behind the Sun</b> — the viral "vortex" video is wrong. With the 60° tilt
+      they run ahead of the Sun for half of every orbit, exactly as shown.</li>
+      <li>The disk stars rotate with a <b>flat rotation curve</b> (~230 km/s at almost every radius) and shear
+      differentially — while the wave-riding structure follows <b>two measured pattern speeds</b> (v3.1). The
+      bar and the four arms it drives turn with the bar's pattern: corotation at ~19,000&nbsp;ly (5.9&nbsp;kpc),
+      pattern speed ~39&nbsp;km/s/kpc, the published bar value. The Sun lies <i>outside</i> that corotation, so
+      those arms overtake the Sun — one sweeps past about every <b>146&nbsp;Myr</b>, the cadence the ice ages
+      below ride on. The Sun's own <b>Local Spur</b> instead rides the slow spiral pattern, corotation
+      ~27,700&nbsp;ly (8.5&nbsp;kpc) just outside the Sun's orbit: the Sun runs slightly faster than its spur,
+      creeping deeper into it and eventually out the front, exactly as the kinematics have it. Stars stream
+      <i>through</i> all of it and nothing winds up — density-wave theory's answer to the winding problem, with
+      the measured two-speed structure drawn rather than one invented compromise pattern.</li>
+      <li>Bar (half-length ~15,000 ly, 28° to the Sun–center line), arms sprouting from the bar tips
+      (Scutum–Centaurus, Perseus + Sagittarius, Norma), and the Sun's <b>Local Spur</b> follow Milky Way measurements.</li>
+      <li>The <b>warped outer disk</b> and its slow retrograde precession follow Gaia's findings.</li>
+      <li>Music: <b>&ldquo;Galactic Year&rdquo; I &amp; II</b> by barbedgreenroom3, shipped alongside this page.
+      Supernovae play one of five recorded blasts and star births one of four soft ignitions, picked at
+      random; the drone and the nebula exhales are synthesized live in the browser. Only half of all births
+      sound, or at these rates they would never stop. Each effect has its own switch.</li>
+      <li>The <b>asteroid belt</b> (~1,500 points at 2.1&ndash;3.3&nbsp;AU) carves out the Kirkwood gaps at
+      Jupiter's 3:1, 5:2 and 7:3 resonances, and its orbital periods are true Kepler in both scale modes.</li>
+      <li>The galaxy's face-on layout follows the well-known <b>face-on Milky Way illustration</b>, used
+      as a density map: stars are placed where it is bright and coloured from its pixels, dust lanes where
+      it is dark, HII regions where it is pink. The copy shipped here is mirrored so the arms trail the
+      rotation and rotated so its bar sits at the scene's measured 28&deg; — an illustration too, of
+      course: no one has photographed our galaxy from outside. Opened offline, the procedural layout
+      stands in.</li>
+      <li><b>Andromeda's map</b> is photographic, not an illustration: the Hubble <b>PHAT+PHAST</b>
+      panorama, the largest photomosaic Hubble has produced, deprojected to face-on by the build tooling
+      and reduced to a 448-pixel probability map. Its rings, its offset inner ring, its dust lanes and its
+      big warm bulge are where the mosaic puts them; the vertical structure is modelled. Opened offline,
+      a schematic Andromeda stands in.</li>
+      <li>Stars are drawn <b>additively</b>, which is what starlight does — but a screen stops at white,
+      so a galaxy core, where thousands of sprites land on one pixel, used to clip into a featureless
+      white hole, worst of all during the merger. The scene is rendered into a half-float buffer that
+      holds those sums, and <b>core glare</b> under Visuals sets how much headroom they get on the way
+      back down: the curve is exact below the knee and rolls off above it, so cores keep their gradient
+      and colour. At 100% there is no compression and the old clipping returns.</li>
+      <li>The <b>gaia sky</b> layer is not modelled at all: it is the 100,000 brightest stars from
+      AT-HYG 3.2, of which 99.9% carry <b>Gaia DR3</b> parallax distances (Hipparcos covers the very
+      bright ones Gaia saturates on), out to ~1,760&nbsp;pc, rotated into galactic coordinates and placed
+      relative to the Sun. Their colours come from measured colour indices and their sizes from apparent
+      magnitude, so the solar neighbourhood — Alpha Centauri at 1.32&nbsp;pc, Sirius at 2.64 — really is
+      where it is. Earlier builds mirrored this sky left-for-right; the frame is now checked against the
+      Sun's own orbital direction. At hi-fi quality and above a second tier loads: 400,000 more stars,
+      complete to magnitude 10.4. Each star also carries its measured <b>Gaia DR3 space velocity</b> and
+      drifts along it as time runs — watch the nearby stars stream at &times;10&sup3; — with the linear
+      extrapolation honestly stopped at &plusmn;20&nbsp;Myr. It covers the local sky only: Gaia sees the
+      Galaxy from inside and the far side of the disk hides behind dust, which is why everything beyond it
+      stays modelled. Below the picture's resolution the innermost parsecs add the <b>nuclear stellar
+      disc</b> (~200&nbsp;pc) and the <b>nuclear star cluster</b> around Sgr&nbsp;A* — linked structures
+      that grow together, fed by gas the bar drives inward. The bubble of real stars rides the Sun's
+      orbital frame — the side facing the galactic centre keeps facing it as the Sun goes round — and
+      star sprites use Gaia Sky's two-part profile: a wide corona around a hot core that saturates to
+      white, with sub-pixel stars keeping their flux rather than their size. Nothing on screen is magnified,
+      so they hold their true places at every zoom.</li>
+      <li><b>Surface temperature</b> is today's mean scaled by the fourth root of the Sun's output, with
+      the disputed cosmic-ray/cloud term on top. That is an equilibrium argument, not a climate model: it
+      has no runaway greenhouse, no atmospheric loss and no ocean, so treat the far-future numbers as the
+      right order of magnitude rather than a forecast.</li>
+      <li>The <b>Sun's own life</b> runs on the standard track: the faint-young-Sun relation on the main
+      sequence, which it leaves at ~10.9&nbsp;Gyr, a climb up the red giant branch to ~256 solar radii at
+      ~12.17&nbsp;Gyr — past Earth's orbit, which is where the scenario takes you — then the helium flash, a
+      second climb, and a white dwarf by ~12.4&nbsp;Gyr. <b>Sun strength</b> reads its luminosity against
+      today's. Once the Earth is inside that surface the panel stops reporting on it, because there is
+      nothing left to report. The disc's <b>colour</b> is not painted on: its temperature follows from the
+      model's own luminosity and radius as a blackbody, which is why the giant is red, the horizontal-branch
+      Sun orange, and the nebula's central star blue-white. As the surface reaches each inner planet —
+      Mercury first, then Venus, then the Earth; Mars, at 1.5&nbsp;AU, is outside the 256 solar radii the giant
+      reaches and survives — the planet <b>flares white for a moment</b> and is gone for good, its path with it.
+      The flare is a marker, not a prediction: a planet entering the envelope spirals in over centuries with
+      no flash anyone could see. The <b>planetary nebula</b> that follows is drawn at its true size — about a
+      light-year across by the end, so the view from the planets is from inside it, where a shell shows
+      nothing — and as the event it is: the envelope goes first, dense and dusty and lit warm by the still-cool
+      star, in a burst of light that is the star's glare scattered off the fresh ejecta rather than any shock;
+      then the exposed core heats and its ionisation front sweeps outward, [O&nbsp;III] teal inside the front and
+      warm dust still beyond it, while the fast wind hollows a cavity, leaving the limb-brightened, filamentary
+      shell with H&alpha; at its rim, cometary knots where the front passed and a faint halo of the earlier,
+      slower wind; then it thins and dissolves. It is stretched
+      in time like every death here, a third of a gigayear for something that really lasts twenty thousand
+      years. The Sun's label reads <i>Anthropic Nebula</i> while it is on screen.</li>
+      <li><b>Earth as a globe, and the Moon.</b> Close in — the <i>Earth</i> view, or two presses of the zoom
+      from it — Earth is drawn as a sphere shaded in the fragment: the Sun's light, a terminator softened and
+      reddened by the air, clouds with their shadows, Rayleigh blue thickening toward the limb, a glint on open
+      water, and on the night side the cities, in the twenty thousand years around now that have them. Its
+      coastlines are <b>today's real ones</b> (the GSHHG shoreline data), cut into seven plates that each ride a
+      rotation about a fixed pole through time — a <b>schematic</b> of the published reconstructions, not a plate
+      model: each pole is the great circle from a plate's seat today to its seat in Pangaea, the angles set so
+      the continents land where the maps put them, and the future runs the same arcs back: Pangaea at 250
+      Myr ago, the Atlantic opening, India and Australia running north, and ahead the Atlantic closing again into
+      Pangaea Proxima around +250 Myr. Before the map has meaning the surface is noise. The plates creep a degree in ten million years, so the <b>Plate tectonics</b> scenario runs the clock at ten million years a second, and <b>Pangaea</b>, <b>Pangaea Proxima</b> and <b>the oceans boiling away</b> are events of their own in the list — the first two still portraits at a year a second over the supercontinent, the third the same face at ten million years a second while the seas withdraw; at anything past a few weeks a second a frame spans whole days and the day/night line would land somewhere new each time, so the globe is then lit by the <b>daily mean</b> for its latitude instead. The <b>view</b> row also flies to the <b>Moon</b> herself, followed the same way and lit the same way, her orbit drawn behind her. Tick <b>spin lock</b> under the view row (or in the settings' visuals) and the camera turns
+      with the planet, so the same face stays in view while the clock runs — the way to watch the plates drift. Where the map has no
+      depths, the oceans retreat toward the regions farthest from any coast as they go. Through the clock it shows the Hadean's molten crust, the methane-hazed orange Archean
+      until the Great Oxidation, the Huronian and Cryogenian snowballs, ice caps from the <b>rock record</b> up to today — the
+      Ordovician, the Karoo and the Cenozoic ice ages, hothouse between them, Pangaea's world without a cap — and
+      from the piece's own climate model beyond today (the HUD's glacial badge is that model's word about arm
+      crossings, not the globe's), the dry interiors of Pangaea and of Proxima, land greening from the Devonian, the
+      moist greenhouse drying the oceans a billion years ahead, and the crust melting again under the red giant. The
+      <b>Moon</b> orbits it at its true distance, receding as it always has — 3.8 cm a year now, far faster when
+      young — on a power law fitted to formation at the Theia impact rather than a dynamical model, its period from
+      Kepler's law; its orbit is drawn once it spans more than a few pixels.</li>
+      <li><b>Planet 9?</b> is the one body here that may not exist: a ~6 Earth-mass planet on a ~400 AU
+      orbit, proposed to explain the clustered orbits of the far Kuiper belt. Its orbit is drawn from those
+      estimates and its question mark is part of its name. Switch it off in Visuals if you would rather
+      keep to what has been seen.</li>
+      <li>The <b>dark clouds</b> multiply what lies behind them down, and since v2.76.0 they do it the way interstellar dust does — blue absorbed most, red least, in the 0.82 : 1 : 1.32 proportion of the standard R<sub>V</sub> = 3.1 extinction law — so the lanes read brown against the disk and the Great Rift red-brown across the band, instead of the grey-violet a neutral darkening left over the pink haze. The HII knots lean toward Hα red rather than magenta.</li>
+      <li>On a first visit a thirty-millisecond <b>off-screen probe</b> draws the star field into a hidden buffer a few times, two frames in, and sets the quality row from the time one pass takes: lowest, low or medium, never more, and the pixel ratio drops to 1× when even that is slow. The choice is saved; change it here any time. The <b>quality</b> row raises the drawn star count five-fold (~460,000 points) and scatters
+      discrete <b>dark molecular clouds</b> (Dunkelwolken) through the disk on top of the arm-edge dust lanes —
+      closer to the Milky Way's real texture, at the cost of GPU load. The row runs on to
+      <b>&times;8</b> at a hundred and sixty-fold — some seventeen million sprites — which will not fit on
+      most machines; a failed allocation drops back to the last setting that worked. Only one heavy density
+      is held at a time. The <b>star gain</b> slider does two
+      things at once, because they are the same intent: it raises a floor under the faintest stars'
+      colour, and it widens the smallest sprites. The second matters more than it sounds — a star clamped
+      to a single pixel loses most of its light to the grid, so widening the floor recovers far more
+      brightness than lifting colour alone. Both leave anything already bright untouched. From inside the disk — the dive and the Solar System views — the band's light all lies behind the local clouds, so haze, HII regions and core are drawn first and the dust over them: that is the Great Rift you see splitting the band and hiding the centre, as it does from Earth. From outside, the arms' HII knots sit on the lanes and are drawn on top of them. One exception among the stars: the nuclear disc and the star cluster around Sgr&nbsp;A* — a few hundred sprites that from 8 kpc land on a single pixel — are not drawn from inside the disk, since from Earth they sit behind some thirty magnitudes of extinction; the bulge's star cloud around them draws as ever.</li>
+      <li>The inter-arm disk follows an <b>exponential profile</b> with the measured ~8,500&nbsp;ly scale
+      length, plus a thicker, older, yellower second disk at ~3&times; the scale height — the thin/thick
+      disk structure Gaia confirmed.</li>
+    </ul>
+
+<footer>An article from <a href="../galactic-transit.html">Galactic Transit</a> — the notes that used to live in its About panel, one subject per page.</footer>
+</main>
+</body>
+</html>

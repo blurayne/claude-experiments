@@ -58,5 +58,6 @@ export const BOOT_IDS = [
 
 /** Declared in the markup, never addressed by the script. */
 export const MARKUP_ONLY_IDS = [
-  'changelogLink', 'eSunRow', 'envMin', 'evoBand', 'evoClip', 'lBirth', 'lDeath', 'tourLogo',
+  // evoBand/evoClip left with the Earth-across-deep-time SVG when it became an article (v3.5)
+  'changelogLink', 'eSunRow', 'envMin', 'lBirth', 'lDeath', 'tourLogo',
 ]

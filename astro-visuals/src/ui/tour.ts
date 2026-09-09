@@ -141,9 +141,9 @@ export function initTour(): void {
     let seen = null; try{ seen = localStorage.getItem('gt-sim-seen'); }catch(e){}
     if(!seen){
       const mark = (): void => { try{ localStorage.setItem('gt-sim-seen', '1'); }catch(e){} };
-      if(!matchMedia('(max-width: 700px)').matches) setPanelOpen('simPanel', true);
+      setPanelOpen('simPanel', true);   // it lives on the right, clear of the Earth panel — phones included
       if(panelIsOpen('simPanel')) mark();
-      else {
+      else {                             // anything that kept it shut gets the pulsing dot instead
         const b = $('simPlus');
         b.classList.add('attn');
         b.addEventListener('click', ()=>{ b.classList.remove('attn'); mark(); }, { once: true });

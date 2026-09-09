@@ -92,7 +92,7 @@ function installErrorCollector(){
  * property of the machine that loaded the page. The parity harness pins TZ for that reason.
  */
 
-const BUILD = { version: '3.4.2', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '3.5.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -5788,9 +5788,9 @@ function initTour()       {
     let seen = null; try{ seen = localStorage.getItem('gt-sim-seen'); }catch(e){}
     if(!seen){
       const mark = ()       => { try{ localStorage.setItem('gt-sim-seen', '1'); }catch(e){} };
-      if(!matchMedia('(max-width: 700px)').matches) setPanelOpen('simPanel', true);
+      setPanelOpen('simPanel', true);   // it lives on the right, clear of the Earth panel — phones included
       if(panelIsOpen('simPanel')) mark();
-      else {
+      else {                             // anything that kept it shut gets the pulsing dot instead
         const b = $('simPlus');
         b.classList.add('attn');
         b.addEventListener('click', ()=>{ b.classList.remove('attn'); mark(); }, { once: true });
@@ -7550,7 +7550,7 @@ startFrameLoop({
   /* a short screen cannot hold the whole card and five hints at once: the card gives
      up the height and scrolls, since it is the one thing the visitor can scroll */
   @media (max-height:790px){ #tourCard{max-height:44vh} #tourLogo{width:96px;height:96px} }
-  .info-card{position:relative;width:min(560px, 100%);max-height:82vh;overflow:hidden;
+  .info-card{position:relative;width:min(1100px, calc(100vw - 24px));max-height:calc(100vh - 24px);overflow:hidden;
     display:flex;flex-direction:column;background:var(--panel);
     border:1px solid var(--line);border-top:1px solid rgba(95,216,255,.55);border-radius:3px;padding:20px 22px;backdrop-filter:blur(10px);
     -webkit-backdrop-filter:blur(10px);box-shadow:0 0 44px rgba(95,216,255,.10);font-size:11.5px;line-height:1.65;color:var(--dim);letter-spacing:.03em}
@@ -7561,6 +7561,10 @@ startFrameLoop({
   .info-card h2{flex:none;font-family:'Orbitron',ui-monospace,monospace;font-size:12px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;text-shadow:0 0 12px var(--glow)}
   .info-card h3{font-family:'Orbitron',ui-monospace,monospace;font-size:9px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--accent2);margin:16px 0 6px}
   .info-card b{color:var(--ink)}
+  /* links wear the page's accent, not the browser's default blue */
+  .info-card a{color:var(--accent);text-decoration:underline dotted rgba(95,216,255,.45);text-underline-offset:2px}
+  .info-card a:hover{color:#bfefff;text-decoration-color:rgba(95,216,255,.9)}
+  .info-card a:visited{color:var(--accent)}
   .info-card ul{margin:0;padding-left:16px}
   .info-card li{margin-bottom:7px}
   .evo-wrap{overflow-x:auto;margin:4px 0 2px;border:1px solid var(--line);border-radius:3px;-webkit-overflow-scrolling:touch}
@@ -7838,9 +7842,7 @@ startFrameLoop({
       drag to orbit &nbsp;·&nbsp; scroll / pinch to zoom &nbsp;·&nbsp; two fingers to pan &nbsp;·&nbsp; + / − step object to object
     </div>
     <h3>Articles</h3>
-    <p>The long-form notes live as their own pages now — one subject each, opening in a new tab.
-    Two sections stay below because they read the live simulation: the Earth timeline and the
-    what's-real ledger.</p>
+    <p>The long-form notes live as their own pages now — one subject each, opening in a new tab.</p>
     <ul style="margin:6px 0 14px;padding-left:18px;line-height:1.55">
       <li><a href="docs/how-the-milky-way-turns.html" target="_blank" rel="noopener">How the Milky Way turns</a> — which way we spin, how we can tell from inside, why the arms are density waves — with its own animation</li>
       <li><a href="docs/scale-honestly.html" target="_blank" rel="noopener">Scale, honestly</a> — what is drawn to scale, what is compressed, and where the seams are</li>
@@ -7851,260 +7853,26 @@ startFrameLoop({
       <li><a href="docs/stellar-birth-and-death.html" target="_blank" rel="noopener">Stellar birth & death</a> — the drawn clusters, supergiants, supernovae and nebulae, at their real rates</li>
       <li><a href="docs/star-formation-ice-ages-andromeda.html" target="_blank" rel="noopener">Star formation, ice ages, and Andromeda</a> — the climate model: arm crossings, cosmic rays, and the glacial record</li>
       <li><a href="docs/does-the-merger-touch-the-solar-system.html" target="_blank" rel="noopener">Does the merger touch the solar system?</a> — what the collision means at the scale of one planetary system</li>
+          <li><a href="docs/earth-across-deep-time.html" target="_blank" rel="noopener">Earth across deep time</a> — named milestones from the first amino acids to the boiling oceans, independently sourced</li>
+      <li><a href="docs/whats-real-what-is-modeled.html" target="_blank" rel="noopener">What's real, what's modeled</a> — the honesty ledger: every measurement drawn, every compression disclosed</li>
     </ul>
 
-    <h3>Earth across deep time</h3>
-    <p>A fuller picture than the live <b>Earth panel</b> attempts: named milestones from the first amino acids
-    to the oceans boiling away, with the atmosphere, pressure and UV/radiation environment estimated for each.
-    The panel's own temperature is a simplified continuous model &mdash; explicitly not a climate model, right
-    order of magnitude rather than a forecast &mdash; while this table gives specific, independently sourced
-    estimates at each point. The two will not always agree to the degree; both are honest about being
-    estimates, not measurements.</p>
-    <div class="evo-wrap"><table class="evo-table">
-      <thead><tr><th>Milestone</th><th>Temp min/max (avg)</th><th>Sun strength</th>
-        <th>Radiation &amp; UV</th><th>Pressure</th><th>Atmosphere</th><th>Note</th></tr></thead>
-      <tbody>
-      <tr><td>Formation of amino acids<br><span class="evo-age">~4.0 Gyr ago</span></td><td>20&nbsp;/&nbsp;100&nbsp;°C<br>(avg ~60&nbsp;°C)</td><td>~70&ndash;75%</td><td>Extremely high UV (no ozone layer); strong young solar wind; high cosmic radiation.</td><td>1&ndash;3 bar</td><td>CO₂, H₂O vapour, N₂, traces of CO, CH₄, NH₃; no free O₂.</td><td>Prebiotic chemistry; formation of organic building blocks.</td></tr>
-      <tr><td>First cells (prokaryotes)<br><span class="evo-age">~3.5&ndash;3.8 Gyr ago</span></td><td>30&nbsp;/&nbsp;80&nbsp;°C<br>(avg ~55&nbsp;°C)</td><td>~75&ndash;78%</td><td>Very high UV; intense cosmic-ray background; almost no protection.</td><td>1&ndash;2 bar</td><td>Mostly CO₂ and N₂, traces of CH₄; O₂ &lt;0.001%.</td><td>Life begins in sheltered niches (e.g. hydrothermal vents).</td></tr>
-      <tr><td>Great Oxidation Event<br><span class="evo-age">~2.4&ndash;2.1 Gyr ago</span></td><td>10&nbsp;/&nbsp;30&nbsp;°C<br>(avg ~15&ndash;20&nbsp;°C)</td><td>~80&ndash;85%</td><td>Early UV protection from the first ozone; initially extreme global cooling.</td><td>~1&ndash;1.5 bar</td><td>Free O₂ rising sharply (1&ndash;2%), CO₂ and methane declining, N₂ dominant.</td><td>The methane greenhouse collapses; first global "Snowball Earth" phases.</td></tr>
-      <tr><td>First fish in the water<br><span class="evo-age">~500&ndash;530 Myr ago · Cambrian</span></td><td>18&nbsp;/&nbsp;35&nbsp;°C<br>(avg ~24&nbsp;°C)</td><td>~95%</td><td>High UV on land; damped in water by depth and the early ozone layer.</td><td>~1 bar</td><td>N₂ ~80%, O₂ ~10&ndash;15%, CO₂ ~0.3&ndash;0.6%.</td><td>Cambrian explosion of species diversity in the oceans.</td></tr>
-      <tr><td>First plants (land plants)<br><span class="evo-age">~470 Myr ago · Ordovician</span></td><td>15&nbsp;/&nbsp;30&nbsp;°C<br>(avg ~22&nbsp;°C)</td><td>~95&ndash;96%</td><td>UV markedly declining as the ozone layer builds; normal cosmic radiation.</td><td>~1 bar</td><td>N₂ ~75&ndash;80%, O₂ ~15&ndash;20%, CO₂ ~0.2&ndash;0.5%.</td><td>Mosses and ferns are first to take the land.</td></tr>
-      <tr><td>First land animals (arthropods)<br><span class="evo-age">~430 Myr ago · Silurian</span></td><td>16&nbsp;/&nbsp;28&nbsp;°C<br>(avg ~20&nbsp;°C)</td><td>~96%</td><td>Moderate UV; a working ozone layer makes land life possible.</td><td>~1 bar</td><td>N₂ ~78%, O₂ ~15&ndash;20%, CO₂ ~0.1&ndash;0.3%.</td><td>First arthropods (millipedes, scorpions) colonise land.</td></tr>
-      <tr><td>The great mass extinction<br><span class="evo-age">end-Permian, ~252 Myr ago</span></td><td>20&nbsp;/&nbsp;40&nbsp;°C<br>(avg ~25&ndash;30&nbsp;°C)</td><td>~97&ndash;98%</td><td>High UV (ozone collapse from volcanic gases — the Siberian Traps).</td><td>~0.8&ndash;1 bar</td><td>Massive CO₂ spike, drastic ocean-oxygen loss, large methane release.</td><td>Earth's largest mass extinction — ~90% of species wiped out.</td></tr>
-      <tr><td>First mammals<br><span class="evo-age">~210 Myr ago · late Triassic</span></td><td>12&nbsp;/&nbsp;35&nbsp;°C<br>(avg ~21&nbsp;°C)</td><td>~98%</td><td>Cosmic-ray background near today's; stable UV protection.</td><td>~0.9&ndash;1.1 bar</td><td>N₂ ~70&ndash;75%, O₂ ~15&ndash;20%, CO₂ ~0.1&ndash;0.2% (1000&ndash;2000 ppm).</td><td>First small, often nocturnal mammals appear in the dinosaurs' shadow.</td></tr>
-      <tr><td>Jurassic &amp; Cretaceous<br><span class="evo-age">~201&ndash;66 Myr ago</span></td><td>18&nbsp;/&nbsp;32&nbsp;°C<br>(avg ~22&ndash;25&nbsp;°C)</td><td>~98&ndash;99%</td><td>Stable planetary UV protection; very stable cosmic-ray background.</td><td>~1 bar</td><td>N₂ ~70&ndash;75%, O₂ ~20&ndash;25%, CO₂ strongly elevated (~1000&ndash;2000+ ppm).</td><td>Warm greenhouse climate; the dinosaurs' heyday and the rise of flowering plants.</td></tr>
-      <tr><td>1 Myr after the dinosaurs died out<br><span class="evo-age">early Paleocene, ~65 Myr ago</span></td><td>20&nbsp;/&nbsp;30&nbsp;°C<br>(avg ~24&nbsp;°C)</td><td>~99%</td><td>UV protection recovered; rapid biological regeneration as ozone recovers.</td><td>~1 bar</td><td>N₂ ~78%, O₂ ~20&ndash;21%, CO₂ spiking from the impact and volcanism.</td><td>Rapid adaptive radiation and the rise of mammals after the extinction.</td></tr>
-      <tr><td>Paleocene&ndash;Eocene Thermal Maximum<br><span class="evo-age">~56 Myr ago</span></td><td>25&nbsp;/&nbsp;38&nbsp;°C<br>(avg ~28&ndash;30&nbsp;°C)</td><td>~99%</td><td>Normal planetary UV protection.</td><td>~1 bar</td><td>CO₂ and methane strongly elevated; O₂ stable (~20&ndash;21%).</td><td>The Cenozoic's hottest climate; severe ocean acidification.</td></tr>
-      <tr><td>Antarctic glaciation<br><span class="evo-age">Eocene&ndash;Oligocene transition, ~34 Myr ago</span></td><td>10&nbsp;/&nbsp;20&nbsp;°C<br>(avg ~14&nbsp;°C)</td><td>~99%</td><td>Normal planetary UV protection.</td><td>~1 bar</td><td>CO₂ falling (~500&ndash;700 ppm), O₂ ~21%.</td><td>Earth turns from "greenhouse" to "icehouse"; the Antarctic ice cap forms.</td></tr>
-      <tr><td>Start of the Quaternary ice age<br><span class="evo-age">~2.6 Myr ago</span></td><td>5&nbsp;/&nbsp;18&nbsp;°C<br>(avg ~10&nbsp;°C)</td><td>~99.8%</td><td>Normal planetary UV protection.</td><td>~1 bar</td><td>Low CO₂ (~200&ndash;300 ppm), O₂ ~21%.</td><td>The glacial/interglacial cycle begins; Northern-Hemisphere ice sheets form.</td></tr>
-      <tr><td>Last cold period<br><span class="evo-age">Last Glacial Maximum, ~20,000 yr ago</span></td><td>&minus;10&nbsp;/&nbsp;20&nbsp;°C<br>(avg ~8&ndash;9&nbsp;°C)</td><td>~100%</td><td>Normal planetary UV protection.</td><td>~1 bar</td><td>Very low CO₂ (~180&ndash;200 ppm), O₂ ~21%.</td><td>Peak of the recent ice age; vast ice sheets, sea level ~120&nbsp;m lower.</td></tr>
-      <tr><td>Today<br><span class="evo-age">present</span></td><td>&minus;89&nbsp;/&nbsp;57&nbsp;°C<br>(avg ~15&nbsp;°C)</td><td>100%</td><td>Standard protection from an intact ozone layer; normal cosmic-ray background.</td><td>1 bar (1013 hPa)</td><td>N₂ 78.08%, O₂ 20.95%, Ar 0.93%, CO₂ ~425 ppm, water vapour variable.</td><td>Anthropocene: rapid global change driven by human activity.</td></tr>
-      <tr><td>Future: +1 Myr<br><span class="evo-age">near future</span></td><td>12&nbsp;/&nbsp;18&nbsp;°C<br>(avg ~15&nbsp;°C)</td><td>100.01%</td><td>Stable planetary UV protection from the ozone layer.</td><td>~1 bar</td><td>N₂ ~78%, O₂ ~21%, CO₂ settling back down after human influence.</td><td>Anthropocene aftermath; new evolutionary speciation begins.</td></tr>
-      <tr><td>Future: +5 Myr<br><span class="evo-age">mid future</span></td><td>14&nbsp;/&nbsp;19&nbsp;°C<br>(avg ~16&nbsp;°C)</td><td>100.05%</td><td>Stable UV protection.</td><td>~1 bar</td><td>N₂ ~78%, O₂ ~21%, CO₂ on its natural long-term trend.</td><td>First effects of continental drift and reshaped ocean basins become noticeable.</td></tr>
-      <tr><td>Future: +10 Myr<br><span class="evo-age">late future</span></td><td>15&nbsp;/&nbsp;20&nbsp;°C<br>(avg ~16.5&nbsp;°C)</td><td>100.10%</td><td>Standard protection.</td><td>~1 bar</td><td>N₂ ~78%, O₂ ~20&ndash;21%, CO₂ stable.</td><td>Mammal and bird lineages diversify into new ecological niches.</td></tr>
-      <tr><td>Future: +16 Myr<br><span class="evo-age">end of the near horizon</span></td><td>16&nbsp;/&nbsp;21&nbsp;°C<br>(avg ~17&nbsp;°C)</td><td>100.16%</td><td>Standard protection.</td><td>~1 bar</td><td>N₂ ~78%, O₂ ~20&ndash;21%, CO₂ on its slow long-term trend.</td><td>A 0.16%-brighter Sun lifts temperatures slightly; polar ice shrinks each summer.</td></tr>
-      <tr><td>Future: +500 Myr<br><span class="evo-age">collapse of the biosphere</span></td><td>20&nbsp;/&nbsp;60&nbsp;°C<br>(avg ~40&nbsp;°C)</td><td>~105%</td><td>Rising UV exposure; a markedly aging Sun.</td><td>~1 bar</td><td>CO₂ collapses (&lt;10 ppm), O₂ falls sharply, N₂ dominates.</td><td>Photosynthesis fails as CO₂ runs out: the end of higher land plants and animals.</td></tr>
-      <tr><td>Future: +1 Gyr<br><span class="evo-age">oceans evaporate</span></td><td>50&nbsp;/&nbsp;120&nbsp;°C<br>(avg ~80&nbsp;°C)</td><td>~110%</td><td>High solar radiation; a moist greenhouse effect.</td><td>~1.5&ndash;2 bar</td><td>Water vapour and CO₂ rising sharply, almost no free O₂ left, N₂.</td><td>End of multicellular life: the oceans begin to boil; only deep extremophile microbes remain.</td></tr>
-      <tr><td>Future: +1.5 Gyr<br><span class="evo-age">tectonics stall</span></td><td>100&nbsp;/&nbsp;250&nbsp;°C<br>(avg ~170&nbsp;°C)</td><td>~115%</td><td>Extreme solar radiation; the ozone layer long gone.</td><td>~2&ndash;3 bar</td><td>Dominated by water vapour and CO₂.</td><td>No liquid water left to drive the water cycle or plate tectonics: they stop.</td></tr>
-      <tr><td>Future: +2 Gyr<br><span class="evo-age">greenhouse hell</span></td><td>200&nbsp;/&nbsp;450&nbsp;°C<br>(avg ~300&nbsp;°C)</td><td>~120%</td><td>Extreme UV and hard solar radiation.</td><td>~3&ndash;5 bar</td><td>A dense atmosphere of water vapour, CO₂ and nitrogen.</td><td>Complete sterility: a parched, scorched world — the oceans are long gone.</td></tr>
-      </tbody>
-    </table></div>
-    <p>The same data as a curve: minimum, maximum and average temperature across the same 23 milestones,
-    on a linear scale from four billion years ago to two billion years from now. <b>Today's</b> minimum and
-    maximum use actual recorded planetary extremes (Antarctica's coldest, Death Valley's hottest) rather
-    than the modelled global-mean range every other row uses, so it is drawn as a separate whisker instead of
-    joining the band &mdash; splicing it into the curve would tear a 146-degree spike through an otherwise
-    smooth line for a difference of definition, not of climate. Two points run hotter than the chart's own
-    frame and are marked <b>off scale</b> rather than compressed to fit; their true values are in the table above.</p>
-<div class="evo-chart-wrap"><svg class="evo-chart" viewBox="0 0 900 430" role="img" aria-label="Earth's estimated surface temperature range across deep time, from the first amino acids to a runaway greenhouse two billion years from now">
-  <defs>
-    <linearGradient id="evoBand" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#ff6e6e" stop-opacity=".16"/>
-      <stop offset="100%" stop-color="#5fd8ff" stop-opacity=".16"/>
-    </linearGradient>
-    <clipPath id="evoClip"><rect x="56" y="66" width="806" height="214"/></clipPath>
-  </defs>
-  <text class="evo-title" x="450.0" y="16" text-anchor="middle">Earth's surface temperature across deep time</text>
-  <line class="evo-grid" x1="56" y1="280.0" x2="862" y2="280.0"/>
-      <text class="evo-axis" x="48" y="283.0" text-anchor="end">-100°C</text>
-      <line class="evo-grid" x1="56" y1="233.5" x2="862" y2="233.5"/>
-      <text class="evo-axis" x="48" y="236.5" text-anchor="end">-50°C</text>
-      <line class="evo-grid" x1="56" y1="187.0" x2="862" y2="187.0"/>
-      <text class="evo-axis" x="48" y="190.0" text-anchor="end">0°C</text>
-      <line class="evo-grid" x1="56" y1="140.4" x2="862" y2="140.4"/>
-      <text class="evo-axis" x="48" y="143.4" text-anchor="end">+50°C</text>
-      <line class="evo-grid" x1="56" y1="93.9" x2="862" y2="93.9"/>
-      <text class="evo-axis" x="48" y="96.9" text-anchor="end">+100°C</text>
-      <line class="evo-grid" x1="56.0" y1="66" x2="56.0" y2="280"/>
-      <text class="evo-axis" x="56.0" y="294" text-anchor="middle">4 Gyr ago</text>
-      <line class="evo-grid" x1="190.3" y1="66" x2="190.3" y2="280"/>
-      <text class="evo-axis" x="190.3" y="294" text-anchor="middle">3 Gyr ago</text>
-      <line class="evo-grid" x1="324.7" y1="66" x2="324.7" y2="280"/>
-      <text class="evo-axis" x="324.7" y="294" text-anchor="middle">2 Gyr ago</text>
-      <line class="evo-grid" x1="459.0" y1="66" x2="459.0" y2="280"/>
-      <text class="evo-axis" x="459.0" y="294" text-anchor="middle">1 Gyr ago</text>
-      <line class="evo-grid" x1="727.7" y1="66" x2="727.7" y2="280"/>
-      <text class="evo-axis" x="727.7" y="294" text-anchor="middle">+1 Gyr</text>
-      <line class="evo-grid" x1="862.0" y1="66" x2="862.0" y2="280"/>
-      <text class="evo-axis" x="862.0" y="294" text-anchor="middle">+2 Gyr</text>
-  <rect class="evo-frame" x="56" y="66" width="806" height="214"/>
-  <g clip-path="url(#evoClip)">
-    <path class="evo-band" d="M56.00,168.35 C56.00,168.35 82.02,160.06 103.02,159.04 C165.71,156.01 172.40,173.82 291.08,177.65 C430.66,182.31 427.06,163.04 524.15,170.21 C549.20,175.30 505.93,169.48 530.20,173.00 C534.00,173.50 528.71,173.19 535.57,172.07 C543.13,170.83 550.19,165.16 559.48,168.35 C567.46,171.57 555.94,174.09 565.12,175.79 C570.29,176.90 566.84,173.36 575.40,170.21 C581.89,167.85 579.51,172.62 584.60,168.35 C587.36,165.74 584.28,162.74 585.81,163.70 C587.08,163.72 585.54,170.97 588.77,177.65 C591.54,183.08 590.22,174.48 592.98,182.30 C595.16,187.74 593.17,196.64 593.33,196.26 C593.51,196.26 592.51,185.56 593.47,175.79 C594.06,171.68 592.35,177.49 594.00,173.93 C594.43,173.05 593.91,173.97 594.68,173.00 C595.17,172.38 593.77,172.68 595.48,172.07 C600.42,169.64 634.59,174.31 660.50,168.35 C704.59,158.23 671.97,170.96 727.67,140.43 C772.52,115.94 742.42,146.01 794.83,93.91 C840.26,49.37 843.11,27.04 862.00,0.87 L862.00,-231.74 C862.00,-231.74 819.61,-100.16 794.83,-45.65 C749.34,54.43 805.82,-21.39 727.67,75.30 C681.70,130.76 732.81,81.31 660.50,131.13 C616.36,161.41 624.31,148.88 595.48,167.42 C590.61,171.38 598.63,163.36 594.68,168.35 C594.19,168.97 594.56,168.41 594.00,169.28 C593.60,169.90 593.77,170.35 593.47,170.21 C593.20,170.15 593.51,168.36 593.33,168.35 C593.17,168.34 594.16,169.76 592.98,170.21 C591.90,170.78 590.81,171.28 588.77,168.35 C585.55,164.25 587.26,152.27 585.81,151.60 C584.55,151.61 590.09,155.51 584.60,159.04 C581.40,161.26 583.16,159.02 575.40,157.18 C568.92,155.65 572.45,158.09 565.12,154.39 C560.02,151.75 567.60,150.00 559.48,149.74 C551.71,148.75 546.14,159.64 535.57,160.90 C528.01,161.30 538.55,163.64 530.20,159.04 C526.38,156.99 534.00,156.76 524.15,154.39 C498.96,146.10 384.81,169.42 291.08,159.04 C151.49,143.45 235.79,153.04 103.02,112.52 C40.31,92.46 86.68,106.05 56.00,93.91 Z" fill="url(#evoBand)"/>
-    <path class="evo-max" d="M56.00,93.91 C56.00,93.91 81.81,105.74 103.02,112.52 C165.72,132.59 170.69,145.84 291.08,159.04 C430.67,174.64 427.16,140.97 524.15,154.39 C549.34,162.68 506.86,146.15 530.20,159.04 C534.01,161.10 528.60,161.74 535.57,160.90 C543.13,160.51 549.83,149.28 559.48,149.74 C567.25,150.73 555.19,149.41 565.12,154.39 C570.23,157.03 567.45,155.30 575.40,157.18 C581.88,158.72 579.76,162.18 584.60,159.04 C587.80,156.83 584.38,150.80 585.81,151.60 C587.07,151.59 584.45,161.79 588.77,168.35 C591.98,172.45 589.60,171.22 592.98,170.21 C594.07,169.64 593.03,168.34 593.33,168.35 C593.49,168.36 593.07,170.01 593.47,170.21 C593.74,170.27 593.37,170.26 594.00,169.28 C594.41,168.66 594.05,169.14 594.68,168.35 C595.17,167.73 593.90,168.58 595.48,167.42 C600.36,163.45 635.19,148.50 660.50,131.13 C704.64,100.85 677.46,137.09 727.67,75.30 C773.63,19.85 747.93,58.37 794.83,-45.65 C840.33,-145.74 843.28,-179.87 862.00,-231.74" fill="none"/>
-    <path class="evo-min" d="M56.00,168.35 C56.00,168.35 82.02,160.06 103.02,159.04 C165.71,156.01 172.40,173.82 291.08,177.65 C430.66,182.31 427.06,163.04 524.15,170.21 C549.20,175.30 505.93,169.48 530.20,173.00 C534.00,173.50 528.71,173.19 535.57,172.07 C543.13,170.83 550.19,165.16 559.48,168.35 C567.46,171.57 555.94,174.09 565.12,175.79 C570.29,176.90 566.84,173.36 575.40,170.21 C581.89,167.85 579.51,172.62 584.60,168.35 C587.36,165.74 584.28,162.74 585.81,163.70 C587.08,163.72 585.54,170.97 588.77,177.65 C591.54,183.08 590.22,174.48 592.98,182.30 C595.16,187.74 593.17,196.64 593.33,196.26 C593.51,196.26 592.51,185.56 593.47,175.79 C594.06,171.68 592.35,177.49 594.00,173.93 C594.43,173.05 593.91,173.97 594.68,173.00 C595.17,172.38 593.77,172.68 595.48,172.07 C600.42,169.64 634.59,174.31 660.50,168.35 C704.59,158.23 671.97,170.96 727.67,140.43 C772.52,115.94 742.42,146.01 794.83,93.91 C840.26,49.37 843.11,27.04 862.00,0.87" fill="none"/>
-    <path class="evo-avg" d="M56.00,131.13 C56.00,131.13 82.20,132.83 103.02,135.78 C165.71,144.68 172.69,161.53 291.08,170.67 C430.66,181.69 426.14,160.01 524.15,164.63 C549.18,168.06 505.95,158.57 530.20,166.49 C534.00,167.73 528.90,168.51 535.57,168.35 C543.13,168.53 549.97,159.41 559.48,161.37 C567.34,163.53 555.43,164.66 565.12,167.42 C570.28,169.01 567.09,166.24 575.40,165.09 C581.88,164.20 579.67,168.13 584.60,164.63 C587.38,162.37 584.29,159.03 585.81,159.97 C587.08,160.00 585.38,167.67 588.77,173.93 C591.62,178.83 590.02,173.48 592.98,177.65 C593.92,179.20 593.05,179.67 593.33,179.05 C593.57,179.02 592.93,174.17 593.33,173.00 C593.63,172.70 592.80,173.62 593.47,173.00 C593.66,172.89 593.66,172.45 594.00,172.07 C594.42,171.62 593.98,172.04 594.68,171.60 C595.17,171.29 594.11,171.71 595.48,171.14 C600.31,168.98 635.31,160.76 660.50,149.74 C704.59,130.47 675.17,157.47 727.67,112.52 C773.07,74.25 744.83,103.61 794.83,28.78 C839.97,-38.42 842.28,-56.66 862.00,-92.17" fill="none"/>
-  </g>
-  <line class="evo-today" x1="593.3" y1="66" x2="593.3" y2="280"/>
-  <text class="evo-today-lbl" x="593.3" y="54" text-anchor="middle">TODAY</text>
-  <line class="evo-whisker" x1="584.3" y1="269.8" x2="584.3" y2="133.9"/>
-  <line class="evo-whisker" x1="580.3" y1="269.8" x2="588.3" y2="269.8"/>
-  <line class="evo-whisker" x1="580.3" y1="133.9" x2="588.3" y2="133.9"/>
-  <text class="evo-whisker-lbl" x="576.3" y="204.8" text-anchor="end">record: &minus;89&deg;/57&deg;C</text>
-  <line class="evo-lead" x1="56.0" y1="131.1" x2="60.0" y2="55.0"/>
-      <circle class="evo-mk" cx="56.0" cy="131.1" r="3.4"/>
-      <text class="evo-lbl" x="60.0" y="50.0" text-anchor="start">First amino acids</text>
-      <line class="evo-lead" x1="103.0" y1="135.8" x2="100.0" y2="351.0"/>
-      <circle class="evo-mk" cx="103.0" cy="135.8" r="3.4"/>
-      <text class="evo-lbl" x="100.0" y="356.0" text-anchor="start">First cells</text>
-      <line class="evo-lead" x1="291.1" y1="170.7" x2="210.0" y2="55.0"/>
-      <circle class="evo-mk" cx="291.1" cy="170.7" r="3.4"/>
-      <text class="evo-lbl" x="210.0" y="50.0" text-anchor="start">Great Oxidation Event</text>
-      <line class="evo-lead" x1="524.2" y1="164.6" x2="400.0" y2="55.0"/>
-      <circle class="evo-mk" cx="524.2" cy="164.6" r="3.4"/>
-      <text class="evo-lbl" x="400.0" y="50.0" text-anchor="start">First fish (Cambrian)</text>
-      <line class="evo-lead" x1="559.5" y1="161.4" x2="420.0" y2="351.0"/>
-      <circle class="evo-mk" cx="559.5" cy="161.4" r="3.4"/>
-      <text class="evo-lbl" x="420.0" y="356.0" text-anchor="start">Mass extinction (Permian)</text>
-      <line class="evo-lead" x1="575.4" y1="165.1" x2="500.0" y2="35.0"/>
-      <circle class="evo-mk" cx="575.4" cy="165.1" r="3.4"/>
-      <text class="evo-lbl" x="500.0" y="30.0" text-anchor="start">Dinosaurs</text>
-      <line class="evo-lead" x1="660.5" y1="149.7" x2="660.0" y2="55.0"/>
-      <circle class="evo-mk" cx="660.5" cy="149.7" r="3.4"/>
-      <text class="evo-lbl" x="660.0" y="50.0" text-anchor="start">Biosphere collapses</text>
-      <line class="evo-lead" x1="727.7" y1="112.5" x2="660.0" y2="351.0"/>
-      <circle class="evo-mk" cx="727.7" cy="112.5" r="3.4"/>
-      <text class="evo-lbl" x="660.0" y="356.0" text-anchor="start">Oceans evaporate</text>
-      <line class="evo-lead" x1="794.8" y1="68.0" x2="700.0" y2="35.0"/>
-      <circle class="evo-mk" cx="794.8" cy="68.0" r="3.4"/>
-      <text class="evo-lbl" x="700.0" y="30.0" text-anchor="start">Plate tectonics stalls (off scale)</text>
-      <line class="evo-lead" x1="862.0" y1="68.0" x2="858.0" y2="371.0"/>
-      <circle class="evo-mk" cx="862.0" cy="68.0" r="3.4"/>
-      <text class="evo-lbl" x="858.0" y="376.0" text-anchor="end">Runaway greenhouse (off scale)</text>
-  <g class="evo-legend" transform="translate(300,190)">
-    <rect x="-8" y="-14" width="152" height="62" rx="3"/>
-    <line x1="0" y1="0" x2="20" y2="0" class="evo-max"/><text x="26" y="3">max (modelled/recorded)</text>
-    <line x1="0" y1="16" x2="20" y2="16" class="evo-avg"/><text x="26" y="19">average</text>
-    <line x1="0" y1="32" x2="20" y2="32" class="evo-min"/><text x="26" y="35">min (modelled/recorded)</text>
-  </g>
-</svg></div>
-    <h3>What's real, what's modeled</h3>
-    <p><b>The far sky is real too (v3.4):</b> the brightest galaxies of the local sky sit at their true
-    J2000 positions — the Large and Small Magellanic Clouds and Triangulum as their photographs
-    (LMC: AURA/NOAO/NSF; SMC: ESO/Digitized Sky Survey 2; M33: A.&nbsp;Meleg, CC&nbsp;BY-SA), a dozen
-    more from M81 to Centaurus&nbsp;A as tinted points sized by apparent diameter. They ride one far
-    sphere — the Clouds are really at 50&ndash;60&nbsp;kpc and take no part in the merger — and they do
-    not turn with the disk, so over deep time the Milky Way visibly rotates against them. And the clock
-    now refuses to scrub past the Big Bang: before 13.79&nbsp;Gyr ago there is nothing to draw.</p>
-    <ul>
-      <li>Planets are <b>not dragged behind the Sun</b> — the viral "vortex" video is wrong. With the 60° tilt
-      they run ahead of the Sun for half of every orbit, exactly as shown.</li>
-      <li>The disk stars rotate with a <b>flat rotation curve</b> (~230 km/s at almost every radius) and shear
-      differentially — while the wave-riding structure follows <b>two measured pattern speeds</b> (v3.1). The
-      bar and the four arms it drives turn with the bar's pattern: corotation at ~19,000&nbsp;ly (5.9&nbsp;kpc),
-      pattern speed ~39&nbsp;km/s/kpc, the published bar value. The Sun lies <i>outside</i> that corotation, so
-      those arms overtake the Sun — one sweeps past about every <b>146&nbsp;Myr</b>, the cadence the ice ages
-      below ride on. The Sun's own <b>Local Spur</b> instead rides the slow spiral pattern, corotation
-      ~27,700&nbsp;ly (8.5&nbsp;kpc) just outside the Sun's orbit: the Sun runs slightly faster than its spur,
-      creeping deeper into it and eventually out the front, exactly as the kinematics have it. Stars stream
-      <i>through</i> all of it and nothing winds up — density-wave theory's answer to the winding problem, with
-      the measured two-speed structure drawn rather than one invented compromise pattern.</li>
-      <li>Bar (half-length ~15,000 ly, 28° to the Sun–center line), arms sprouting from the bar tips
-      (Scutum–Centaurus, Perseus + Sagittarius, Norma), and the Sun's <b>Local Spur</b> follow Milky Way measurements.</li>
-      <li>The <b>warped outer disk</b> and its slow retrograde precession follow Gaia's findings.</li>
-      <li>Music: <b>&ldquo;Galactic Year&rdquo; I &amp; II</b> by barbedgreenroom3, shipped alongside this page.
-      Supernovae play one of five recorded blasts and star births one of four soft ignitions, picked at
-      random; the drone and the nebula exhales are synthesized live in the browser. Only half of all births
-      sound, or at these rates they would never stop. Each effect has its own switch.</li>
-      <li>The <b>asteroid belt</b> (~1,500 points at 2.1&ndash;3.3&nbsp;AU) carves out the Kirkwood gaps at
-      Jupiter's 3:1, 5:2 and 7:3 resonances, and its orbital periods are true Kepler in both scale modes.</li>
-      <li>The galaxy's face-on layout follows the well-known <b>face-on Milky Way illustration</b>, used
-      as a density map: stars are placed where it is bright and coloured from its pixels, dust lanes where
-      it is dark, HII regions where it is pink. The copy shipped here is mirrored so the arms trail the
-      rotation and rotated so its bar sits at the scene's measured 28&deg; — an illustration too, of
-      course: no one has photographed our galaxy from outside. Opened offline, the procedural layout
-      stands in.</li>
-      <li><b>Andromeda's map</b> is photographic, not an illustration: the Hubble <b>PHAT+PHAST</b>
-      panorama, the largest photomosaic Hubble has produced, deprojected to face-on by the build tooling
-      and reduced to a 448-pixel probability map. Its rings, its offset inner ring, its dust lanes and its
-      big warm bulge are where the mosaic puts them; the vertical structure is modelled. Opened offline,
-      a schematic Andromeda stands in.</li>
-      <li>Stars are drawn <b>additively</b>, which is what starlight does — but a screen stops at white,
-      so a galaxy core, where thousands of sprites land on one pixel, used to clip into a featureless
-      white hole, worst of all during the merger. The scene is rendered into a half-float buffer that
-      holds those sums, and <b>core glare</b> under Visuals sets how much headroom they get on the way
-      back down: the curve is exact below the knee and rolls off above it, so cores keep their gradient
-      and colour. At 100% there is no compression and the old clipping returns.</li>
-      <li>The <b>gaia sky</b> layer is not modelled at all: it is the 100,000 brightest stars from
-      AT-HYG 3.2, of which 99.9% carry <b>Gaia DR3</b> parallax distances (Hipparcos covers the very
-      bright ones Gaia saturates on), out to ~1,760&nbsp;pc, rotated into galactic coordinates and placed
-      relative to the Sun. Their colours come from measured colour indices and their sizes from apparent
-      magnitude, so the solar neighbourhood — Alpha Centauri at 1.32&nbsp;pc, Sirius at 2.64 — really is
-      where it is. Earlier builds mirrored this sky left-for-right; the frame is now checked against the
-      Sun's own orbital direction. At hi-fi quality and above a second tier loads: 400,000 more stars,
-      complete to magnitude 10.4. Each star also carries its measured <b>Gaia DR3 space velocity</b> and
-      drifts along it as time runs — watch the nearby stars stream at &times;10&sup3; — with the linear
-      extrapolation honestly stopped at &plusmn;20&nbsp;Myr. It covers the local sky only: Gaia sees the
-      Galaxy from inside and the far side of the disk hides behind dust, which is why everything beyond it
-      stays modelled. Below the picture's resolution the innermost parsecs add the <b>nuclear stellar
-      disc</b> (~200&nbsp;pc) and the <b>nuclear star cluster</b> around Sgr&nbsp;A* — linked structures
-      that grow together, fed by gas the bar drives inward. The bubble of real stars rides the Sun's
-      orbital frame — the side facing the galactic centre keeps facing it as the Sun goes round — and
-      star sprites use Gaia Sky's two-part profile: a wide corona around a hot core that saturates to
-      white, with sub-pixel stars keeping their flux rather than their size. Nothing on screen is magnified,
-      so they hold their true places at every zoom.</li>
-      <li><b>Surface temperature</b> is today's mean scaled by the fourth root of the Sun's output, with
-      the disputed cosmic-ray/cloud term on top. That is an equilibrium argument, not a climate model: it
-      has no runaway greenhouse, no atmospheric loss and no ocean, so treat the far-future numbers as the
-      right order of magnitude rather than a forecast.</li>
-      <li>The <b>Sun's own life</b> runs on the standard track: the faint-young-Sun relation on the main
-      sequence, which it leaves at ~10.9&nbsp;Gyr, a climb up the red giant branch to ~256 solar radii at
-      ~12.17&nbsp;Gyr — past Earth's orbit, which is where the scenario takes you — then the helium flash, a
-      second climb, and a white dwarf by ~12.4&nbsp;Gyr. <b>Sun strength</b> reads its luminosity against
-      today's. Once the Earth is inside that surface the panel stops reporting on it, because there is
-      nothing left to report. The disc's <b>colour</b> is not painted on: its temperature follows from the
-      model's own luminosity and radius as a blackbody, which is why the giant is red, the horizontal-branch
-      Sun orange, and the nebula's central star blue-white. As the surface reaches each inner planet —
-      Mercury first, then Venus, then the Earth; Mars, at 1.5&nbsp;AU, is outside the 256 solar radii the giant
-      reaches and survives — the planet <b>flares white for a moment</b> and is gone for good, its path with it.
-      The flare is a marker, not a prediction: a planet entering the envelope spirals in over centuries with
-      no flash anyone could see. The <b>planetary nebula</b> that follows is drawn at its true size — about a
-      light-year across by the end, so the view from the planets is from inside it, where a shell shows
-      nothing — and as the event it is: the envelope goes first, dense and dusty and lit warm by the still-cool
-      star, in a burst of light that is the star's glare scattered off the fresh ejecta rather than any shock;
-      then the exposed core heats and its ionisation front sweeps outward, [O&nbsp;III] teal inside the front and
-      warm dust still beyond it, while the fast wind hollows a cavity, leaving the limb-brightened, filamentary
-      shell with H&alpha; at its rim, cometary knots where the front passed and a faint halo of the earlier,
-      slower wind; then it thins and dissolves. It is stretched
-      in time like every death here, a third of a gigayear for something that really lasts twenty thousand
-      years. The Sun's label reads <i>Anthropic Nebula</i> while it is on screen.</li>
-      <li><b>Earth as a globe, and the Moon.</b> Close in — the <i>Earth</i> view, or two presses of the zoom
-      from it — Earth is drawn as a sphere shaded in the fragment: the Sun's light, a terminator softened and
-      reddened by the air, clouds with their shadows, Rayleigh blue thickening toward the limb, a glint on open
-      water, and on the night side the cities, in the twenty thousand years around now that have them. Its
-      coastlines are <b>today's real ones</b> (the GSHHG shoreline data), cut into seven plates that each ride a
-      rotation about a fixed pole through time — a <b>schematic</b> of the published reconstructions, not a plate
-      model: each pole is the great circle from a plate's seat today to its seat in Pangaea, the angles set so
-      the continents land where the maps put them, and the future runs the same arcs back: Pangaea at 250
-      Myr ago, the Atlantic opening, India and Australia running north, and ahead the Atlantic closing again into
-      Pangaea Proxima around +250 Myr. Before the map has meaning the surface is noise. The plates creep a degree in ten million years, so the <b>Plate tectonics</b> scenario runs the clock at ten million years a second, and <b>Pangaea</b>, <b>Pangaea Proxima</b> and <b>the oceans boiling away</b> are events of their own in the list — the first two still portraits at a year a second over the supercontinent, the third the same face at ten million years a second while the seas withdraw; at anything past a few weeks a second a frame spans whole days and the day/night line would land somewhere new each time, so the globe is then lit by the <b>daily mean</b> for its latitude instead. The <b>view</b> row also flies to the <b>Moon</b> herself, followed the same way and lit the same way, her orbit drawn behind her. Tick <b>spin lock</b> under the view row (or in the settings' visuals) and the camera turns
-      with the planet, so the same face stays in view while the clock runs — the way to watch the plates drift. Where the map has no
-      depths, the oceans retreat toward the regions farthest from any coast as they go. Through the clock it shows the Hadean's molten crust, the methane-hazed orange Archean
-      until the Great Oxidation, the Huronian and Cryogenian snowballs, ice caps from the <b>rock record</b> up to today — the
-      Ordovician, the Karoo and the Cenozoic ice ages, hothouse between them, Pangaea's world without a cap — and
-      from the piece's own climate model beyond today (the HUD's glacial badge is that model's word about arm
-      crossings, not the globe's), the dry interiors of Pangaea and of Proxima, land greening from the Devonian, the
-      moist greenhouse drying the oceans a billion years ahead, and the crust melting again under the red giant. The
-      <b>Moon</b> orbits it at its true distance, receding as it always has — 3.8 cm a year now, far faster when
-      young — on a power law fitted to formation at the Theia impact rather than a dynamical model, its period from
-      Kepler's law; its orbit is drawn once it spans more than a few pixels.</li>
-      <li><b>Planet 9?</b> is the one body here that may not exist: a ~6 Earth-mass planet on a ~400 AU
-      orbit, proposed to explain the clustered orbits of the far Kuiper belt. Its orbit is drawn from those
-      estimates and its question mark is part of its name. Switch it off in Visuals if you would rather
-      keep to what has been seen.</li>
-      <li>The <b>dark clouds</b> multiply what lies behind them down, and since v2.76.0 they do it the way interstellar dust does — blue absorbed most, red least, in the 0.82 : 1 : 1.32 proportion of the standard R<sub>V</sub> = 3.1 extinction law — so the lanes read brown against the disk and the Great Rift red-brown across the band, instead of the grey-violet a neutral darkening left over the pink haze. The HII knots lean toward Hα red rather than magenta.</li>
-      <li>On a first visit a thirty-millisecond <b>off-screen probe</b> draws the star field into a hidden buffer a few times, two frames in, and sets the quality row from the time one pass takes: lowest, low or medium, never more, and the pixel ratio drops to 1× when even that is slow. The choice is saved; change it here any time. The <b>quality</b> row raises the drawn star count five-fold (~460,000 points) and scatters
-      discrete <b>dark molecular clouds</b> (Dunkelwolken) through the disk on top of the arm-edge dust lanes —
-      closer to the Milky Way's real texture, at the cost of GPU load. The row runs on to
-      <b>&times;8</b> at a hundred and sixty-fold — some seventeen million sprites — which will not fit on
-      most machines; a failed allocation drops back to the last setting that worked. Only one heavy density
-      is held at a time. The <b>star gain</b> slider does two
-      things at once, because they are the same intent: it raises a floor under the faintest stars'
-      colour, and it widens the smallest sprites. The second matters more than it sounds — a star clamped
-      to a single pixel loses most of its light to the grid, so widening the floor recovers far more
-      brightness than lifting colour alone. Both leave anything already bright untouched. From inside the disk — the dive and the Solar System views — the band's light all lies behind the local clouds, so haze, HII regions and core are drawn first and the dust over them: that is the Great Rift you see splitting the band and hiding the centre, as it does from Earth. From outside, the arms' HII knots sit on the lanes and are drawn on top of them. One exception among the stars: the nuclear disc and the star cluster around Sgr&nbsp;A* — a few hundred sprites that from 8 kpc land on a single pixel — are not drawn from inside the disk, since from Earth they sit behind some thirty magnitudes of extinction; the bulge's star cloud around them draws as ever.</li>
-      <li>The inter-arm disk follows an <b>exponential profile</b> with the measured ~8,500&nbsp;ly scale
-      length, plus a thicker, older, yellower second disk at ~3&times; the scale height — the thin/thick
-      disk structure Gaia confirmed.</li>
+    <h3>Sources</h3>
+    <p>Everything drawn or claimed traces to these. Data first, then the science, then the images.</p>
+    <ul style="margin:6px 0 4px;padding-left:18px;line-height:1.5;font-size:11px">
+      <li><b>Gaia DR3</b> via <a href="https://www.astronexus.com/projects/hyg" target="_blank" rel="noopener">AT-HYG v3.2</a> (D. Nash) — the 500,000 real stars and their velocities; Hipparcos for those Gaia saturates on</li>
+      <li><a href="https://data.aip.de/projects/starhorse2021.html" target="_blank" rel="noopener"><b>StarHorse</b></a> (Anders et&nbsp;al.) — the measured 3-D stellar density the disk is checked against</li>
+      <li><b>NASA/JPL-Caltech/R. Hurt</b> — the face-on Milky Way illustration used as the probability map (reflected on ingest so the arms trail; see the winding tests)</li>
+      <li><b>Hubble PHAT/PHAST</b> mosaics (<a href="https://esahubble.org/news/heic2508/" target="_blank" rel="noopener">heic2508</a>) — Andromeda's photographic map</li>
+      <li>Oort 1927 — differential rotation; Lin &amp; Shu 1964 — density waves; Toomre &amp; Toomre 1972 — tidal bridges and tails; Sellwood &amp; Carlberg — transient, recurring arms</li>
+      <li>Reid et&nbsp;al. — maser parallaxes, the pattern speeds and the plan view; <a href="https://arxiv.org/abs/astro-ph/9903101" target="_blank" rel="noopener">Han &amp; Qiao</a> — the angular momentum toward the south galactic pole</li>
+      <li><a href="https://www.aanda.org/articles/aa/pdf/2010/03/aa13297-09.pdf" target="_blank" rel="noopener">Chemin et&nbsp;al. 2009</a> and Corbelli et&nbsp;al. 2010 — M31's HI kinematics (the SW limb approaches); <a href="https://iopscience.iop.org/article/10.3847/1538-4357/ab001b" target="_blank" rel="noopener">van der Marel et&nbsp;al. 2019</a> — Gaia's direct M31 rotation</li>
+      <li><b>Block et&nbsp;al. 2006</b> (Nature 443, 832) — M32's plunge and the off-centre rings; the lay account:
+        <a href="https://www.nature.com/articles/nature.2014.15329" target="_blank" rel="noopener">"Galactic collision gave Andromeda its arms"</a> (Nature News, 2014)</li>
+      <li>Cox &amp; Loeb 2008 — Milkomeda; <a href="https://www.nature.com/articles/s41550-025-02563-1" target="_blank" rel="noopener">Sawala et&nbsp;al. 2025</a> — ~50% merger odds (the drawn track is their merging-half median); arXiv:2603.22863 (2026) — the ~90% reanalysis whose band the track sits in</li>
+      <li>Berski &amp; Dybczyński 2016 — Gliese 710's pass; Shaviv and Svensmark — the contested cosmic-ray/climate hypothesis the ice ages follow, flagged as such</li>
+      <li>Images: Spitzer sig06-025 (NASA/JPL-Caltech/D.&nbsp;Block) and ssc2006-14a (P.&nbsp;Barmby); NASA/CXC — M31's core; AURA/NOAO/NSF — the LMC; ESO/DSS2 — the SMC; A.&nbsp;Meleg (CC&nbsp;BY-SA) — M33; the
+        <a href="https://www.messier-objects.com/messier-31-andromeda-galaxy/" target="_blank" rel="noopener">Messier Objects</a> guide</li>
     </ul>
     </div>
   </div>
@@ -8132,6 +7900,8 @@ startFrameLoop({
   <div class="row"><label for="speed">speed<button type="button" class="info" data-tip="Years of simulation per real second, on fixed rungs from one hour up to ten years." aria-label="about this setting">i</button></label><input type="range" id="speed" min="0" max="30" step="1" value="21"><span id="speedv" style="min-width:64px;text-align:right;color:var(--ink)"></span><button class="stepb" data-step="speed:-1">−</button><button class="stepb" data-step="speed:1">+</button></div>
   <div class="row"><label for="multExp">× exp<button type="button" class="info" data-tip="Multiplies the speed by a power of ten: ×1e6 turns ten years a second into ten million." aria-label="about this setting">i</button></label><input type="range" id="multExp" min="0" max="10" step="1" value="0"><span id="multExpv" style="min-width:44px;text-align:right;color:var(--ink)">×1</span><button class="stepb" data-step="multExp:-1">−</button><button class="stepb" data-step="multExp:1">+</button></div>
   <div class="row"><label for="shuttle" title="drive the clock by hand: +100% is the set speed forward, −100% the same speed backwards, 0 hands the clock back to play/pause">shuttle<button type="button" class="info" data-tip="Drive the clock by hand: +100% is the set speed forward, −100% the same backwards, 0 hands the clock back to the play button." aria-label="about this setting">i</button></label><input type="range" id="shuttle" min="-100" max="100" step="1" value="0"><span id="shuttlev" style="min-width:44px;text-align:right;color:var(--ink)">off</span><button class="stepb" id="shuttleReset" title="back to 0">↺</button></div>
+  <div class="row"><label for="focusSel">view</label><select id="focusSel"><option value="sun">Solar System</option><option value="earth">Earth</option><option value="moon">Moon</option><option value="pn">Anthropic Nebula</option><option value="mw">Milky Way</option><option value="and">Andromeda</option></select><button class="rowbtn" id="focusGo">GO</button>
+    <label class="chk plain" style="margin-left:6px"><input type="checkbox" id="tSpinLock"> spin lock<button type="button" class="info" data-tip="The camera turns with what it watches. Following a planet it rides the spin — tick it to watch the plates drift. In the galaxy view it rides the spiral-arm pattern: the arms hold still while the stars and the ages sweep through them." aria-label="about spin lock">i</button></label></div>
   <div class="row"><label for="jump">scenario</label><select id="jump">
       <!-- the two entries that are not epochs lead; everything else runs in the order it
            happens, each landing a little before its event so the visitor watches it arrive -->
@@ -8191,15 +7961,6 @@ startFrameLoop({
   <div class="er" id="eSLRow"><span>starlight</span><b id="eSL">1.0×</b></div>
   <div class="er" id="eSunRow"><span>sun strength</span><b id="eSun">100%</b></div>
   <div class="er" id="eLifeRow"><span>life support</span><b id="eLife">habitable</b></div>
-  <div class="envsep"></div>
-  <div class="er" style="align-items:flex-start"><span>view</span>
-    <span style="display:flex;flex-direction:column;gap:5px;align-items:flex-start">
-    <span style="display:flex;gap:6px;align-items:center">
-      <select id="focusSel"><option value="sun">Solar System</option><option value="earth">Earth</option><option value="moon">Moon</option><option value="pn">Anthropic Nebula</option><option value="mw">Milky Way</option><option value="and">Andromeda</option></select>
-      <button class="rowbtn" id="focusGo">GO</button>
-    </span>
-    <label class="chk plain"><input type="checkbox" id="tSpinLock"> spin lock<button type="button" class="info" data-tip="The camera turns with what it watches. Following a planet it rides the spin — tick it to watch the plates drift. In the galaxy view it rides the spiral-arm pattern: the arms hold still while the stars and the ages sweep through them." aria-label="about spin lock">i</button></label>
-    </span></div>
 </div>
 
 <div id="labels"></div>
