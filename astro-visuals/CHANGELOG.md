@@ -5,8 +5,16 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 3.7.0 — 2026-09-09
+
+- V3.7.0 — the hot Galaxy, and every merger we know of (`b30c780`)
+
 ### 3.6.0 — 2026-09-09
 
+- The debug door opens a panel, not a modal (`c400dd9`)
+- Panels dock to the foot of their column (`c1e3ce8`)
+- A scale bar, three times the zoom, and nothing before there was anything (`1a81221`)
+- The view row moves last, and the articles catch up with the UI (`a48c1ef`)
 - V3.6.0 — how the Milky Way grew (`d2cb533`)
 
 ### 3.5.0 — 2026-09-09
