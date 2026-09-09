@@ -25,13 +25,13 @@ export const TOURKEY = 'galactic-transit.tour';
 // line between the two — the way a wizard points at an interface rather than
 // describing it from a distance.
 const TOUR_HINTS = [
-  { t:'env',      k:'Earth',      s:"Conditions on Earth as the Galaxy carries it, and what the view is centred on." },
-  { t:'simPanel', k:'Simulation', s:"The pace of the clock, and the scenarios worth watching." },
+  { t:'env',      k:'Earth',      s:"Conditions on Earth as the Galaxy carries it. Swipe any panel sideways to move it to the other edge — or off its own edge to close it." },
+  { t:'simPanel', k:'Simulation', s:"The pace of the clock, the scenarios worth watching, and what the view is centred on." },
   { t:'hud',      k:'Settings',   s:"Everything else: what is drawn, the sound, the readouts." },
   { t:'tLabelsAll', k:'Labels',   s:"Every on-screen label at once — planets, galaxy arms, Andromeda and its companions." },
   { t:'tInfo',    k:'About',      s:"This text again, with the notes on what is measured and what is modelled." },
   { t:'zoomIn',   k:'Zoom',       s:"In or out, object to object: two presses take the view from one scale to the next." },
-  { t:'gamebar',  k:'Readouts',   s:"Drag a panel to the other side, or off its edge to close it. This bar slides away downward." },
+  { t:'gamebar',  k:'Readouts',   s:"Slide this bar down out of the way; its grip brings it back." },
 ];
 // a closed panel is represented by its dot, which is what the visitor can actually see
 function tourTarget(id: string): HTMLElement | null {

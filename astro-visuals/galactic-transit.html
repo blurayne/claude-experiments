@@ -5723,13 +5723,13 @@ const TOURKEY = 'galactic-transit.tour';
 // line between the two — the way a wizard points at an interface rather than
 // describing it from a distance.
 const TOUR_HINTS = [
-  { t:'env',      k:'Earth',      s:"Conditions on Earth as the Galaxy carries it, and what the view is centred on." },
-  { t:'simPanel', k:'Simulation', s:"The pace of the clock, and the scenarios worth watching." },
+  { t:'env',      k:'Earth',      s:"Conditions on Earth as the Galaxy carries it. Swipe any panel sideways to move it to the other edge — or off its own edge to close it." },
+  { t:'simPanel', k:'Simulation', s:"The pace of the clock, the scenarios worth watching, and what the view is centred on." },
   { t:'hud',      k:'Settings',   s:"Everything else: what is drawn, the sound, the readouts." },
   { t:'tLabelsAll', k:'Labels',   s:"Every on-screen label at once — planets, galaxy arms, Andromeda and its companions." },
   { t:'tInfo',    k:'About',      s:"This text again, with the notes on what is measured and what is modelled." },
   { t:'zoomIn',   k:'Zoom',       s:"In or out, object to object: two presses take the view from one scale to the next." },
-  { t:'gamebar',  k:'Readouts',   s:"Drag a panel to the other side, or off its edge to close it. This bar slides away downward." },
+  { t:'gamebar',  k:'Readouts',   s:"Slide this bar down out of the way; its grip brings it back." },
 ];
 // a closed panel is represented by its dot, which is what the visitor can actually see
 function tourTarget(id        )                     {
@@ -7890,7 +7890,7 @@ startFrameLoop({
     <button class="rowbtn" id="tourAgain" style="margin-bottom:12px">show the tour again</button>
     <div class="stats" style="margin-top:0;padding-top:0;border-top:0">
       elapsed <b id="yrs">0.0</b> yr &nbsp;·&nbsp; galactic lap <b id="pct">0.000</b>%<br>
-      drag to orbit &nbsp;·&nbsp; scroll / pinch to zoom &nbsp;·&nbsp; two fingers to pan &nbsp;·&nbsp; + / − step object to object
+      drag to orbit &nbsp;·&nbsp; scroll / pinch to zoom &nbsp;·&nbsp; right-drag or two fingers to pan &nbsp;·&nbsp; + / − step object to object &nbsp;·&nbsp; swipe a panel sideways to move it, off its edge to close it
     </div>
     <h3>Articles</h3>
     <p>The long-form notes live as their own pages now — one subject each, opening in a new tab.</p>
@@ -7952,8 +7952,6 @@ startFrameLoop({
   <div class="row"><label for="speed">speed<button type="button" class="info" data-tip="Years of simulation per real second, on fixed rungs from one hour up to ten years." aria-label="about this setting">i</button></label><input type="range" id="speed" min="0" max="30" step="1" value="21"><span id="speedv" style="min-width:64px;text-align:right;color:var(--ink)"></span><button class="stepb" data-step="speed:-1">−</button><button class="stepb" data-step="speed:1">+</button></div>
   <div class="row"><label for="multExp">× exp<button type="button" class="info" data-tip="Multiplies the speed by a power of ten: ×1e6 turns ten years a second into ten million." aria-label="about this setting">i</button></label><input type="range" id="multExp" min="0" max="10" step="1" value="0"><span id="multExpv" style="min-width:44px;text-align:right;color:var(--ink)">×1</span><button class="stepb" data-step="multExp:-1">−</button><button class="stepb" data-step="multExp:1">+</button></div>
   <div class="row"><label for="shuttle" title="drive the clock by hand: +100% is the set speed forward, −100% the same speed backwards, 0 hands the clock back to play/pause">shuttle<button type="button" class="info" data-tip="Drive the clock by hand: +100% is the set speed forward, −100% the same backwards, 0 hands the clock back to the play button." aria-label="about this setting">i</button></label><input type="range" id="shuttle" min="-100" max="100" step="1" value="0"><span id="shuttlev" style="min-width:44px;text-align:right;color:var(--ink)">off</span><button class="stepb" id="shuttleReset" title="back to 0">↺</button></div>
-  <div class="row"><label for="focusSel">view</label><select id="focusSel"><option value="sun">Solar System</option><option value="earth">Earth</option><option value="moon">Moon</option><option value="pn">Anthropic Nebula</option><option value="mw">Milky Way</option><option value="and">Andromeda</option></select><button class="rowbtn" id="focusGo">GO</button>
-    <label class="chk plain" style="margin-left:6px"><input type="checkbox" id="tSpinLock"> spin lock<button type="button" class="info" data-tip="The camera turns with what it watches. Following a planet it rides the spin — tick it to watch the plates drift. In the galaxy view it rides the spiral-arm pattern: the arms hold still while the stars and the ages sweep through them." aria-label="about spin lock">i</button></label></div>
   <div class="row"><label for="jump">scenario</label><select id="jump">
       <!-- the two entries that are not epochs lead; everything else runs in the order it
            happens, each landing a little before its event so the visitor watches it arrive -->
@@ -7977,6 +7975,8 @@ startFrameLoop({
       <option value="12.35" data-rate="1" data-mult="10000000">The Anthropic Nebula — the Sun casts its shell (+7.8 Gyr)</option>
       <option value="13.5">After the merger (+8.9 Gyr)</option>
     </select><button class="rowbtn" id="jumpGo" title="apply the selected scenario and close the panel">GO</button></div>
+  <div class="row"><label for="focusSel">view</label><select id="focusSel"><option value="sun">Solar System</option><option value="earth">Earth</option><option value="moon">Moon</option><option value="pn">Anthropic Nebula</option><option value="mw">Milky Way</option><option value="and">Andromeda</option></select><button class="rowbtn" id="focusGo">GO</button>
+    <label class="chk plain" style="margin-left:6px"><input type="checkbox" id="tSpinLock"> spin lock<button type="button" class="info" data-tip="The camera turns with what it watches. Following a planet it rides the spin — tick it to watch the plates drift. In the galaxy view it rides the spiral-arm pattern: the arms hold still while the stars and the ages sweep through them." aria-label="about spin lock">i</button></label></div>
 </div>
 <button class="pdot" id="simPlus" data-open="simPanel" title="simulation"><svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><path fill-rule="evenodd" d="M5,0.6 C7.43,0.6 9.4,2.57 9.4,5 C9.4,7.43 7.43,9.4 5,9.4 C2.57,9.4 0.6,7.43 0.6,5 C0.6,2.57 2.57,0.6 5,0.6 Z M5,1.9 C3.29,1.9 1.9,3.29 1.9,5 C1.9,6.71 3.29,8.1 5,8.1 C6.71,8.1 8.1,6.71 8.1,5 C8.1,3.29 6.71,1.9 5,1.9 Z"/><rect x="4.6" y="2.6" width="0.8" height="2.7"/><rect x="4.7" y="4.6" width="2.3" height="0.8"/></svg></button>
 <div id="fpsBox" style="display:none"><span id="fpsVal">—</span></div>
