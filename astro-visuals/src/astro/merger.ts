@@ -23,8 +23,12 @@ import { AGE0, YR_PER_SIM, V_GAL } from './constants'
 export const M31_DIR: Vec3 = [0.7957, -0.3677, 0.4814];   // toward M31 today, scene coordinates
 export const M31_E2: Vec3 = [0.3037, -0.4454, -0.8422];  // second axis of the orbital plane
 // M31's disk frame in scene coordinates, from its measured PA 38°, inclination 77°,
-// near side NW, NE side approaching — the spin pole lands at galactic (242°, −30°),
-// matching published values. Local y is minus the spin axis so a positive shader spin
+// near side NW, SW side approaching (the NE limb recedes — HI, planetary nebulae and
+// Gaia's proper motions agree; an earlier comment here had the limbs swapped, though the
+// matrix itself was right). The spin pole lands at galactic (242°, −30°), matching the
+// published values, its axis leaning slightly toward us — face-on from Earth's side she
+// turns counterclockwise. tests/unit/m31-orientation.test.ts re-derives all of this from
+// these numbers on every run. Local y is minus the spin axis so a positive shader spin
 // turns it its real way, the same convention the Milky Way is drawn with.
 export const M31_ROT = new Float32Array([
   -0.0926, 0.7115, 0.6965,     // local x: the major axis

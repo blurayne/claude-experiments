@@ -130,6 +130,8 @@ The build renders it to `changelog.html`, which the panel footer links to.
   and the thirteen inventories it was written from.
 - [`MIGRATE-STATE.md`](MIGRATE-STATE.md) — where that work got to, what it learned, and the
   things that will waste a day if you do not know them.
+- `img/` — the observational Andromeda figures shown in the page's help panel (Spitzer's
+  annotated dust rings and infrared disk, the X-ray core), credited inline.
 - [`docs/how-the-milky-way-turns.html`](docs/how-the-milky-way-turns.html) — the standalone
   explainer behind v3.1's rotation work: which way the galaxy spins, how we can tell from
   inside it, why the arms are density waves, and what the same questions reveal about
