@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deep-time perspective</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sky:#080D1C; --sky-2:#0F1730; --star:#EDEEF3; --slate:#A3ABBE; --dust:#2A3350;
+    --halpha:#F2A65A; --sun:#6FA8FF; --line:#26304D;
+  }
+  *{box-sizing:border-box}
+  html{background:var(--sky)}
+  body{margin:0;color:var(--star);font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:17px;line-height:1.65;-webkit-font-smoothing:antialiased}
+  main{max-width:680px;margin:0 auto;padding:0 20px 80px}
+  h1,h2,h3{font-family:"Fraunces",Georgia,serif;font-weight:300;line-height:1.1;margin:0}
+  h1{font-size:clamp(38px,7vw,58px);letter-spacing:-.01em;padding:56px 0 14px}
+  h2{font-size:30px;padding:56px 0 14px;border-top:1px solid var(--line)}
+  h3{font-size:21px;font-weight:500;padding:22px 0 6px}
+  p{margin:0 0 16px;max-width:62ch}
+  p.lede{font-size:20px;color:var(--star);max-width:56ch}
+  em{color:var(--halpha);font-style:normal}
+  .muted{color:var(--slate)}
+  figure{margin:24px 0 8px}
+  figcaption{color:var(--slate);font-size:14px;line-height:1.5;margin-top:10px;max-width:62ch}
+  .galaxy{background:var(--sky-2);border-radius:14px;padding:16px}
+  canvas{display:block;width:100%;height:auto;max-width:520px;margin:0 auto}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+  button{font:inherit;font-size:14px;color:var(--star);background:transparent;border:1px solid var(--line);border-radius:999px;padding:6px 14px;cursor:pointer}
+  button[aria-pressed="true"]{background:var(--star);color:var(--sky);border-color:var(--star)}
+  button:focus-visible{outline:2px solid var(--sun);outline-offset:2px}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;font-size:14px;color:var(--slate);margin-top:12px}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:-1px;margin-right:6px}
+  .aside{border-left:2px solid var(--halpha);padding:4px 0 4px 18px;margin:22px 0;color:var(--slate)}
+  .aside p:last-child{margin:0}
+  table{border-collapse:collapse;width:100%;font-size:15px;margin:20px 0 8px}
+  th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-weight:500;color:var(--slate)}
+  td:first-child{color:var(--slate)}
+  .timeline{list-style:none;padding:0;margin:20px 0}
+  .timeline li{display:grid;grid-template-columns:110px 1fr;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .timeline .when{font-family:"Fraunces",serif;font-size:20px;line-height:1.2;color:var(--halpha)}
+  .timeline .what{color:var(--star)}
+  .timeline .what small{display:block;color:var(--slate);font-size:14px}
+  footer{margin-top:60px;font-size:14px;color:var(--slate);border-top:1px solid var(--line);padding-top:18px}
+  @media (max-width:480px){.timeline li{grid-template-columns:1fr;gap:4px}}
+  @media (prefers-reduced-motion:reduce){.hint{display:block}}
+  .hint{display:none;font-size:14px;color:var(--slate);margin-top:8px}
+</style>
+</head>
+<body>
+<main>
+<p style="padding-top:28px;margin:0"><a href="../galactic-transit.html" style="color:var(--slate);text-decoration:none">&larr; Galactic Transit</a></p>
+<h1>Deep-time perspective</h1>
+    <ul>
+      <li>Even the full 7-million-year hominin story is only <b>0.031 galactic laps</b> — every human-like creature
+      that ever lived did so within the last 3% of the Sun's current orbit.</li>
+      <li>All <b>300,000 years of Homo sapiens</b> amount to 0.0013 galactic years: the current lap was 99.9%
+      complete when the first modern humans appeared.</li>
+      <li><b>Mammals (~200 Myr)</b> span almost exactly one galactic year — when the first mammals appeared,
+      the Sun stood roughly where it stands again today.</li>
+      <li>The solar system is <b>~20.3 galactic years old</b>. Complex life on land arrived about two laps ago;
+      the dinosaurs died out barely a quarter-lap ago.</li>
+      <li>The Sun <b>bobs through the disk plane</b> every ~45 Myr (shown ~3× exaggerated). Whether these plane
+      crossings correlate with extinction events is speculated but unproven.</li>
+    </ul>
+
+<footer>An article from <a href="../galactic-transit.html">Galactic Transit</a> — the notes that used to live in its About panel, one subject per page.</footer>
+</main>
+</body>
+</html>

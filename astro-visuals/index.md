@@ -132,10 +132,11 @@ The build renders it to `changelog.html`, which the panel footer links to.
   things that will waste a day if you do not know them.
 - `img/` — the observational Andromeda figures shown in the page's help panel (Spitzer's
   annotated dust rings and infrared disk, the X-ray core), credited inline.
-- [`docs/how-the-milky-way-turns.html`](docs/how-the-milky-way-turns.html) — the standalone
-  explainer behind v3.1's rotation work: which way the galaxy spins, how we can tell from
-  inside it, why the arms are density waves, and what the same questions reveal about
-  Andromeda. Linked from the page's own info panel.
+- [`docs/`](docs/) — the articles (v3.3): the complete
+  [How the Milky Way turns](docs/how-the-milky-way-turns.html) explainer with its density-wave
+  animation, plus the About panel's former long-form sections, one page per subject
+  (scale, Gliese 710, the Oort cloud, deep time, star counts, stellar birth and death,
+  ice ages, the merger). All linked from the page's About dialog, opening in new tabs.
 - [`icon.svg`](icon.svg) — the *Galactic Transit* emblem, hand-authored as vector
   (with Orbitron embedded so the lettering renders identically everywhere) and
   rasterised to the PNG sizes the manifest needs (favicons, the Apple touch icon,

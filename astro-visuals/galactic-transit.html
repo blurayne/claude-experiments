@@ -92,7 +92,7 @@ function installErrorCollector(){
  * property of the machine that loaded the page. The parity harness pins TZ for that reason.
  */
 
-const BUILD = { version: '3.2.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '3.3.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -3330,13 +3330,25 @@ const armEls = ARM_LBLS.map(a=>{
   const d=document.createElement('div'); d.className='armlbl'; d.textContent=a[0];
   d.style.display='none'; labelWrap.appendChild(d); return d;
 });
-// Andromeda and company, positioned in its own disk frame and carried on its orbit
+// Andromeda and company, positioned in its own disk frame and carried on its orbit.
+// The named structure joined in v3.3: the 10-kpc star-forming ring (Baade's N4/S4 arm
+// segments are largely pieces of it), the smaller inner dust ring the M32 plunge left
+// off-centre, and NGC 206, the brightest star cloud in M31 — placed at its real side of
+// the sky (southwest, on the ring; disk azimuth solved from the orientation chain, see
+// tests/unit/m31-orientation). The rings are circles, so their labels are free to sit
+// at whatever azimuth reads clearly. The three disk features ride the disk's own wave
+// rotation, unlike the satellites, which sit still in her frame.
 const M31_LBLS                                                         = [
   ['Andromeda (M31)', 0, 60, 0],
   ['M32', -150, -80, 530],
   ['M110', 760, 240, -420],
   ['Giant Southern Stream', 1030, -1330, -2420],
+  ['10-kpc ring', 545, 0, -944],
+  ['inner ring', 126, 0, 134],
+  ['NGC 206', -1053, 0, 282],
 ];
+/** the entries that are disk material rather than companions: they turn with the disk */
+const M31_DISK_FROM = 4;
 const m31Els = M31_LBLS.map(a=>{
   const d=document.createElement('div'); d.className='armlbl'; d.textContent=a[0];
   d.style.display='none'; labelWrap.appendChild(d); return d;
@@ -3407,6 +3419,7 @@ function placeLabel(el       , x        , y        , show         )       {
              
                                                                           
                 
+                 
                                             
                                                       
                                                                      
@@ -3425,7 +3438,7 @@ function placeLabel(el       , x        , y        , show         )       {
  */
 function drawLabels(showLabels         , inputs             )       {
   if(!showLabels){ placeLabel(g710Lbl, 0, 0, false); return }
-  const { projMat, viewMat, pxScale, camDist, org, andPos, merge, sep, spinMW, star,
+  const { projMat, viewMat, pxScale, camDist, org, andPos, merge, sep, spinMW, spinM31, star,
           showP9, showDwarfs, wasEaten, structOn, armsOn } = inputs;
   const pv = mul(projMat, viewMat);
   const proj = (x        , y        , z        )           => { const cw = pv[3]*x+pv[7]*y+pv[11]*z+pv[15];
@@ -3475,16 +3488,26 @@ function drawLabels(showLabels         , inputs             )       {
   // named together, retired together: past this point the two disks already render as
   // one blob, so naming only "Andromeda" there would mislabel the Milky Way's own remnant
   if(galaxyNames && merge < 0.35){
+    const cD = Math.cos(spinM31/650), sD = Math.sin(spinM31/650);   // her wave rotation, as the shader turns it
+    let m31CW = 1e9;
     for(let a=0;a<M31_LBLS.length;a++){
       // the satellites and the stream exist only in the map-built Andromeda
       if(a > 0 && !gfx.m31Map){ placeLabel(m31Els[a]         , 0, 0, false); continue; }
       const L = M31_LBLS[a];
-      const wx = M31_ROT[0]*L[1]+M31_ROT[3]*L[2]+M31_ROT[6]*L[3]+andPos[0];
-      const wy = M31_ROT[1]*L[1]+M31_ROT[4]*L[2]+M31_ROT[7]*L[3]+andPos[1];
-      const wz = M31_ROT[2]*L[1]+M31_ROT[5]*L[2]+M31_ROT[8]*L[3]+andPos[2];
+      // the ring and star-cloud labels ride the disk like the points they name
+      const lx = a >= M31_DISK_FROM ? L[1]*cD + L[3]*sD : L[1];
+      const lz = a >= M31_DISK_FROM ? L[3]*cD - L[1]*sD : L[3];
+      const wx = M31_ROT[0]*lx+M31_ROT[3]*L[2]+M31_ROT[6]*lz+andPos[0];
+      const wy = M31_ROT[1]*lx+M31_ROT[4]*L[2]+M31_ROT[7]*lz+andPos[1];
+      const wz = M31_ROT[2]*lx+M31_ROT[5]*L[2]+M31_ROT[8]*lz+andPos[2];
       const [cw, sx, sy] = proj(wx-org[0], wy-org[1], wz-org[2]);
-      // the small companions only earn a name once Andromeda fills some of the view
-      placeLabel(m31Els[a]         , sx, sy, !(cw <= 1 || (a > 0 && sep > 0.9*camDist + 4000)));
+      if(a === 0) m31CW = cw;   // the nucleus's view distance: how large the disk projects
+      // the small companions only earn a name once Andromeda fills some of the view; the
+      // ring and star-cloud names need more still — a disk spanning a few hundred pixels —
+      // or they pile up on a thumbnail-sized galaxy
+      const show = cw > 1 && (a === 0
+        || (a < M31_DISK_FROM ? sep <= 0.9*camDist + 4000 : pxScale*2245/Math.max(m31CW, 1) > 240));
+      placeLabel(m31Els[a]         , sx, sy, show);
     }
   } else m31Els.forEach(l=>placeLabel(l         , 0, 0, false));
   // one galaxy, one name: from the moment the disks are one blob, the remnant's centre
@@ -3766,13 +3789,62 @@ function frame(now        )       {
     varOn: hud.varOn, deep, insideDisk, andPos, tide: and.tide, merge: and.merge,
     spinMW, spinM31, warp, ringT, sunX, sunY, bubY, sunZ, org,
   };
-  // Multiply blending knows nothing of depth: a cloud of the galaxy BEHIND would darken
-  // the one in front. So the farther galaxy goes down whole — haze, then its dust — and
-  // the nearer one over it; a galaxy's clouds can only ever thin its own light. The
-  // eye is Sun-relative here, like everything drawn.
+  // Multiply blending and additive sprites know nothing of depth, so the galaxies are
+  // painted as CLOSED LAYERS, farther one first: haze, dust lanes, stars, then HII and
+  // core, per galaxy. The nearer galaxy's dark clouds then genuinely stand in front of
+  // the farther one's starlight — Andromeda's lanes silhouette against the Milky Way
+  // when she crosses it, and ours against her the other way about. (An earlier build
+  // ordered only the CLOUDS and drew all stars afterwards, so each galaxy's light shone
+  // straight through the other's dust.) The eye is Sun-relative, like everything drawn.
   const dMW  = Math.hypot(eye[0] + org[0], eye[1] + org[1], eye[2] + org[2]);
   const dAnd = Math.hypot(eye[0] - (andPos[0] - org[0]), eye[1] - (andPos[1] - org[1]), eye[2] - (andPos[2] - org[2]));
-  for(const g of (dAnd > dMW ? ['and', 'mw'] : ['mw', 'and'])           ){ drawNebula(clouds, true, g); if(insideDisk) drawNebula(clouds, false, g); drawDust(clouds, hud.dustOn, g); }
+  const andFar = dAnd > dMW;
+  const andLayer = ()       => {
+    drawNebula(clouds, true, 'and');
+    if(insideDisk) drawNebula(clouds, false, 'and');
+    drawDust(clouds, hud.dustOn, 'and');
+    if(gfx.vaoAnd){
+      // Andromeda: generated flat in its own disk frame; uGRot turns it to its measured
+      // orientation — the two disks stand 120° apart, nowhere near parallel — and uGOff
+      // carries it along its orbit. It spins its real way, ~7% faster than we do, and its
+      // tide pulls toward the Milky Way: the bridge is mutual, both disks reaching.
+      // Every uniform this draw needs is set here rather than inherited, because the
+      // layer runs before OR after the Milky Way's depending on who is nearer.
+      gl.useProgram(pPt);
+      gl.uniformMatrix3fv(U.ptGRot, false, M31_ROT);
+      gl.uniform3f(U.ptGOff, andPos[0], andPos[1], andPos[2]);
+      gl.uniform1f(U.ptSpin, spinM31);
+      gl.uniform1f(U.ptWarp, warp);
+      gl.uniform1f(U.ptWarpAmp, 0.35);
+      gl.uniform3f(U.ptSun, sunX, sunY+1e8, sunZ);   // no clearance bubble in its frame
+      gl.uniform3f(U.ptAnd, 0, 0, 0);
+      gl.uniform1f(U.ptVM, 0.0);
+      gl.uniform1f(U.ptGal, 1.0);
+      gl.uniform1f(U.ptMerge, and.merge);
+      gl.uniform1f(U.ptArmAmp, 0.0);         // Andromeda's structure is rings, not the beat
+      gl.uniform1f(U.ptRingAmp, M31_RING.amp); gl.uniform1f(U.ptRingT, ringT);
+      gl.uniform2f(U.ptRingC, M31_RING.cx, M31_RING.cz);
+      gl.bindVertexArray(gfx.vaoAnd); gl.drawArrays(gl.POINTS,0,gfx.N_AND);
+      gl.uniformMatrix3fv(U.ptGRot, false, MAT3_ID);
+      gl.uniform3f(U.ptGOff, 0, 0, 0);
+      gl.uniform3f(U.ptSun, sunX, bubY, sunZ);
+      gl.uniform3f(U.ptAnd, andPos[0], andPos[1], andPos[2]);
+      gl.uniform1f(U.ptWarpAmp, 1.0);
+      gl.uniform1f(U.ptSpin, spinMW);
+      gl.uniform1f(U.ptVM, hud.varOn?1.0:0.0);
+      gl.uniform1f(U.ptArmAmp, ARM_EVO_AMP);
+      gl.uniform1f(U.ptRingAmp, 0.0);
+      gl.uniform1f(U.ptGal, 0.0);
+    }
+    if(!insideDisk) drawNebula(clouds, false, 'and');   // her HII ring and core, over her stars
+  };
+  if(andFar) andLayer();
+  // the Milky Way's layer: haze, lanes, then the backdrop sky and the Gaia bubble (our
+  // own foreground stars — in front of Andromeda from every camera this side of her),
+  // the disk's stars, the life-cycle events, and the HII regions and core over them
+  drawNebula(clouds, true, 'mw');
+  if(insideDisk) drawNebula(clouds, false, 'mw');
+  drawDust(clouds, hud.dustOn, 'mw');
   gl.useProgram(pPt);   // back to the points; their uniforms persist on the program
   gl.bindVertexArray(vaoStars$1); gl.drawArrays(gl.POINTS,0,N_STAR);
   // Real stars, carried along with the Sun. They are stored at the galaxy's scale — a
@@ -3818,40 +3890,14 @@ function frame(now        )       {
     if(gfx.NUC0 > 0) gl.drawArrays(gl.POINTS, 0, gfx.NUC0);
     if(gfx.N_GXY > gfx.NUC1) gl.drawArrays(gl.POINTS, gfx.NUC1, gfx.N_GXY - gfx.NUC1);
   } else gl.drawArrays(gl.POINTS,0,gfx.N_GXY);
-
-  // Andromeda: generated flat in its own disk frame; uGRot turns it to its measured
-  // orientation — the two disks stand 120° apart, nowhere near parallel — and uGOff
-  // carries it along its orbit. It spins its real way, ~7% faster than we do, and its
-  // tide pulls toward the Milky Way: the bridge is mutual, both disks reaching.
-  if(gfx.vaoAnd){
-    gl.uniformMatrix3fv(U.ptGRot, false, M31_ROT);
-    gl.uniform3f(U.ptGOff, andPos[0], andPos[1], andPos[2]);
-    gl.uniform1f(U.ptSpin, spinM31);
-    gl.uniform1f(U.ptWarpAmp, 0.35);
-    gl.uniform3f(U.ptSun, sunX, sunY+1e8, sunZ);   // no clearance bubble in its frame
-    gl.uniform3f(U.ptAnd, 0, 0, 0);
-    gl.uniform1f(U.ptVM, 0.0);
-    gl.uniform1f(U.ptArmAmp, 0.0);         // Andromeda's structure is rings, not this beat
-    gl.uniform1f(U.ptRingAmp, M31_RING.amp); gl.uniform1f(U.ptRingT, ringT);
-    gl.uniform2f(U.ptRingC, M31_RING.cx, M31_RING.cz);
-    gl.bindVertexArray(gfx.vaoAnd); gl.drawArrays(gl.POINTS,0,gfx.N_AND);
-    gl.uniformMatrix3fv(U.ptGRot, false, MAT3_ID);
-    gl.uniform3f(U.ptGOff, 0, 0, 0);
-    gl.uniform3f(U.ptSun, sunX, bubY, sunZ);
-    gl.uniform3f(U.ptAnd, andPos[0], andPos[1], andPos[2]);
-    gl.uniform1f(U.ptWarpAmp, 1.0);
-    gl.uniform1f(U.ptSpin, spinMW);
-    gl.uniform1f(U.ptVM, hud.varOn?1.0:0.0);
-    gl.uniform1f(U.ptArmAmp, ARM_EVO_AMP);
-    gl.uniform1f(U.ptRingAmp, 0.0);
-  }
   gl.uniform1f(U.ptGal, 0.0);
 
   // life-cycle events (OB clusters, supergiants, supernova flashes, remnant cores)
   if(hud.lifeOn && events.length) drawEvents(lifeFrame);
 
-  if(!insideDisk) drawNebula(clouds, false);   // the HII regions and the core, over the stars
+  if(!insideDisk) drawNebula(clouds, false, 'mw');   // the HII regions and the core, over the stars
   if(hud.lifeOn && puffs.length) drawRemnants(lifeFrame);
+  if(!andFar) andLayer();   // Andromeda nearer: her whole layer over ours, lanes and all
   // trails
   if(hud.trailPct > 0) drawTrails({
     projMat: view.projMat , viewMat, camDist: cam.dist, org,
@@ -3914,7 +3960,7 @@ function frame(now        )       {
   readout.frameDt = dt;
   drawLabels(hud.showLabels, {
     projMat: view.projMat , viewMat, pxScale, camDist: cam.dist, org, andPos,
-    merge: and.merge, sep: and.sep, spinMW, star: gl710,
+    merge: and.merge, sep: and.sep, spinMW, spinM31, star: gl710,
     showP9: hud.showP9, showDwarfs: hud.showDwarfs, wasEaten,
     structOn: [hud.showBelt, hud.showKuiper, hud.showOort], armsOn: hud.armsOn,
   });
@@ -5150,6 +5196,15 @@ function jumpToEpoch()       {
     cam.distGoal = 0.144;                     // ~5 ly across: the whole Oort shell
     cam.yaw = 0.72; cam.pitch = -0.31;        // faces the star's approach track
   }
+  if(sel.value === '4.568r'){
+    // Just the turning: the whole disk face-on from the north galactic pole at ten
+    // million years a second — one galactic rotation every ~22 seconds — with the spin
+    // lock deliberately OFF. This is the raw clockwise sweep with the arms trailing;
+    // the arm-evolution scenario below is its counterpart with the pattern frozen.
+    $v('focusSel').value = 'mw'; applyFocusView();
+    if($v('tSpinLock').checked){ $v('tSpinLock').checked = false; $('tSpinLock').dispatchEvent(new Event('change')); }
+    if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
+  }
   if(sel.value === '2.568g'){
     // The arm evolution time-lapse: the whole disk face-on from the north pole, the camera
     // locked to the bar pattern so the four arms hold still on screen while their
@@ -5479,6 +5534,21 @@ function initTour()       {
     if(tourHeldClock && simClock.paused) $('tPause').click();            // and starts when you do
     tourHeldClock = false;
     try{ localStorage.setItem(TOURKEY, '1'); }catch(e){}
+    // After the tutorial, the scenarios are the next thing worth finding. Where there is
+    // room the simulation panel simply opens; and whenever it ends up closed instead —
+    // a phone, or anything else that kept it shut — its dot pulses until the first tap,
+    // then never again (per browser).
+    let seen = null; try{ seen = localStorage.getItem('gt-sim-seen'); }catch(e){}
+    if(!seen){
+      const mark = ()       => { try{ localStorage.setItem('gt-sim-seen', '1'); }catch(e){} };
+      if(!matchMedia('(max-width: 700px)').matches) setPanelOpen('simPanel', true);
+      if(panelIsOpen('simPanel')) mark();
+      else {
+        const b = $('simPlus');
+        b.classList.add('attn');
+        b.addEventListener('click', ()=>{ b.classList.remove('attn'); mark(); }, { once: true });
+      }
+    }
   });
   $('tourAgain').addEventListener('click', ()=>{ $('infoModal').style.display='none'; showTour(); });
   addEventListener('resize', ()=>{ if($('tour').style.display === 'flex') drawTourLines(); });
@@ -7165,6 +7235,9 @@ startFrameLoop({
   #reopen{position:fixed;top:14px;right:14px;z-index:6;display:none;width:36px;height:36px;border-radius:2px;
     background:var(--panel);border:1px solid var(--line);color:var(--accent);cursor:pointer;font-size:15px;
     font-family:inherit;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+  .pdot.attn{animation:attnPulse 1.1s ease-in-out infinite}
+  @keyframes attnPulse{0%,100%{box-shadow:0 0 0 0 rgba(95,216,255,0)}
+    50%{box-shadow:0 0 10px 3px rgba(95,216,255,.55)}}
 /* The modal surfaces: the debug card, the first-run tour, the info dialog and the deep-time
    table and chart inside it.
    
@@ -7493,299 +7566,22 @@ startFrameLoop({
       elapsed <b id="yrs">0.0</b> yr &nbsp;·&nbsp; galactic lap <b id="pct">0.000</b>%<br>
       drag to orbit &nbsp;·&nbsp; scroll / pinch to zoom &nbsp;·&nbsp; two fingers to pan &nbsp;·&nbsp; + / − step object to object
     </div>
-    <h3>Scale, honestly</h3>
-    <p>Everything is drawn at true proportions, always: real semi-major axes, real diameters, the ~60° tilt
-    of the ecliptic to the galactic plane, and a galactic orbit ~14&nbsp;billion× wider than Neptune's. Seen
-    from the galaxy the whole planetary system therefore collapses inside the Sun's single pixel — that is
-    the true proportion, and the <b>☉ dive</b> is how you cross it. There is one clock, and everything on
-    screen reads from it: the civil year, the deep-time eras, the age of the solar system and the galactic
-    year all count the same elapsed Earth years. Earlier versions ran the galaxy about 1.2 million times
-    faster than the planets so both could be watched at once, which meant the civil year and the age of the
-    solar system advanced at wildly different rates from the same moment — they no longer do.</p>
-    <p>The <b>speed</b> control carries that range instead. At the default of one year a second you watch
-    Earth orbit and the galaxy stands still, because in one year it very nearly does. The
-    <b>&times;10<sup>3</sup> to &times;10<sup>12</sup></b> buttons open it up: at &times;10<sup>6</sup> a
-    full galactic lap takes 225 seconds and the planets become smooth rings, at &times;10<sup>9</sup> the
-    Sun's whole life passes in a few seconds. Nothing is compressed behind your back — you choose the
-    scale, and every readout stays true to it. The <b>shuttle</b> drives the clock by hand: +100% is the set speed forward, −100% the same speed backwards, anything between a fraction of it; at 0 it is not engaged and the clock belongs to play/pause. It outranks pause — a paused scene can be nudged either way — and it rests at 0 whenever the piece is opened. Run backwards, the swept paths retract with the clock.</p>
-    <p>The <b>Oort cloud</b> is the most symbolic object here, squeezed from both directions: really spanning
-    ~3,300 Neptune-orbits (its ring is drawn ~700× too small versus the planets), yet at galaxy scale it would be
-    under a pixel (drawn ~3,300× too big versus the galaxy). Its true outer edge lies ~1.6 light-years out —
-    <b>a third of the way to Alpha Centauri</b> — because that is where the Sun's gravity loses the tug-of-war
-    against galactic tides. It is the one solar-system structure whose size is set by the galaxy itself, and
-    passing stars and the galactic tide are what nudge its comets sunward.</p>
-    <p>Since the piece always renders true proportions there is no scale toggle to find: the zoom is simply
-    open. Scroll in (or hit <b>☉ dive</b>) and descend ~9 orders of magnitude —
-    past the Oort shell at its true ~1.6-light-year edge and through the Kuiper belt down to the planets, each
-    drawn at its real diameter but clamped to a pixel so it stays findable. The view-width readout (bottom left)
-    tracks the descent. At planetary zoom the background stars race past — that is the compressed galactic clock
-    (~1.2 million real years per simulated year) made visible at true scale.</p>
-    <h3>Gliese 710</h3>
-    <p>The closest stellar encounter known, in either direction. <b>Gliese 710</b> is a K7 dwarf about
-    62 light years away, closing at 14.4&nbsp;km/s; Gaia's astrometry puts its closest approach
-    <b>1.29 million years from now at 0.0676&nbsp;pc</b> — 0.22 light years, or <b>13,944&nbsp;AU</b>.
-    That is well inside the Oort cloud, which reaches out to about 1.6 light years, so the star passes
-    <i>through</i> the comet reservoir rather than by it. Expect it to shake comets loose for a few
-    million years afterwards: a modest shower, not a bombardment, and no threat to the planets, which sit
-    four thousand times closer to the Sun than the point it grazes.</p>
-    <p>The jump menu lands ten thousand years before the closest approach and sets a speed of a thousand
-    years a second, so the pass unfolds over a few tens of seconds. The cloud brightens as the star crosses
-    it, at its true separation.</p>
-    <h3>The Oort cloud &amp; the galactic tide</h3>
-    <ul>
-      <li>Everything in the solar system falls around the galactic center <b>together</b>, so the center's pull is
-      not felt directly — what matters is the <b>difference</b> in pull across the system: the galactic tide.</li>
-      <li>At 1–2 light-years out that difference rivals the Sun's own weakening grip. The tide <b>sculpts the
-      cloud</b> — slightly stretched toward the galactic center, squashed along the direction of motion — and sets
-      its outer edge exactly where the tug-of-war is lost.</li>
-      <li>Objects nudged past that boundary are stripped and become independent orbiters of the galaxy. Interstellar
-      visitors like <b>'Oumuamua and Borisov</b> are presumably escapees from other stars' Oort clouds.</li>
-      <li>The traffic runs both ways: the tide (plus passing stars) is the main mechanism that torques Oort comets
-      <b>inward</b>, delivering the long-period comets we see.</li>
-      <li>As a mass, the cloud is insignificant — trillions of objects totalling only a few Earth masses,
-      ~0.001% of the Sun. It is a swarm of passive test particles marking the frontier where the Sun's gravity
-      ends and the galaxy's begins.</li>
+    <h3>Articles</h3>
+    <p>The long-form notes live as their own pages now — one subject each, opening in a new tab.
+    Two sections stay below because they read the live simulation: the Earth timeline and the
+    what's-real ledger.</p>
+    <ul style="margin:6px 0 14px;padding-left:18px;line-height:1.55">
+      <li><a href="docs/how-the-milky-way-turns.html" target="_blank" rel="noopener">How the Milky Way turns</a> — which way we spin, how we can tell from inside, why the arms are density waves — with its own animation</li>
+      <li><a href="docs/scale-honestly.html" target="_blank" rel="noopener">Scale, honestly</a> — what is drawn to scale, what is compressed, and where the seams are</li>
+      <li><a href="docs/gliese-710.html" target="_blank" rel="noopener">Gliese 710</a> — the star that will graze the Oort cloud in 1.3 million years</li>
+      <li><a href="docs/oort-cloud-and-galactic-tide.html" target="_blank" rel="noopener">The Oort cloud & the galactic tide</a> — the comet shell, and the galaxy kneading it</li>
+      <li><a href="docs/deep-time-perspective.html" target="_blank" rel="noopener">Deep-time perspective</a> — the numbers that put a human lifetime against a galactic year</li>
+      <li><a href="docs/how-many-stars.html" target="_blank" rel="noopener">How many stars?</a> — what a hundred thousand drawn points stand for</li>
+      <li><a href="docs/stellar-birth-and-death.html" target="_blank" rel="noopener">Stellar birth & death</a> — the drawn clusters, supergiants, supernovae and nebulae, at their real rates</li>
+      <li><a href="docs/star-formation-ice-ages-andromeda.html" target="_blank" rel="noopener">Star formation, ice ages, and Andromeda</a> — the climate model: arm crossings, cosmic rays, and the glacial record</li>
+      <li><a href="docs/does-the-merger-touch-the-solar-system.html" target="_blank" rel="noopener">Does the merger touch the solar system?</a> — what the collision means at the scale of one planetary system</li>
     </ul>
-    <h3>Deep-time perspective</h3>
-    <ul>
-      <li>Even the full 7-million-year hominin story is only <b>0.031 galactic laps</b> — every human-like creature
-      that ever lived did so within the last 3% of the Sun's current orbit.</li>
-      <li>All <b>300,000 years of Homo sapiens</b> amount to 0.0013 galactic years: the current lap was 99.9%
-      complete when the first modern humans appeared.</li>
-      <li><b>Mammals (~200 Myr)</b> span almost exactly one galactic year — when the first mammals appeared,
-      the Sun stood roughly where it stands again today.</li>
-      <li>The solar system is <b>~20.3 galactic years old</b>. Complex life on land arrived about two laps ago;
-      the dinosaurs died out barely a quarter-lap ago.</li>
-      <li>The Sun <b>bobs through the disk plane</b> every ~45 Myr (shown ~3× exaggerated). Whether these plane
-      crossings correlate with extinction events is speculated but unproven.</li>
-    </ul>
-    <h3>How many stars?</h3>
-    <p>The simulation draws ~95,000 star points by default, ~463,000 in hi-fi and ~1.9&nbsp;million in ultra.
-    The real Milky Way holds an estimated <b>100&ndash;400 billion stars</b> (often quoted as ~200 billion) —
-    extrapolated from the galaxy's mass and the stellar mass function, because most stars are dim red dwarfs
-    no survey can see across the disk. So even in ultra mode <b>each drawn point stands in for roughly
-    100,000 real stars</b>; in hi-fi it is ~430,000, in the default ~2&nbsp;million. Rendering one point per
-    real star at 60&nbsp;fps is far beyond WebGL — for comparison, <b>Gaia</b>, the best real star catalog
-    ever made, has measured about 2 billion stars: roughly 1% of the galaxy. And Gaia maps the sky from
-    <i>inside</i> — the far half of the disk hides behind dust, so the face-on shape drawn here follows the
-    structural measurements (bar length and angle, arm tangents, maser parallaxes, disk profile) rather than
-    any single catalog.</p>
-    <h3>How the galaxies turn</h3>
-    <p>There is no absolute clockwise in space; the answer depends on where you stand. Seen from the
-    <b>north galactic pole</b> — the side of the disk toward which Earth's own north pole roughly points —
-    the Milky Way rotates <b>clockwise</b>, and that is the view the <b>Galaxy</b> entry in the view menu
-    now gives you. From the south pole it is counterclockwise. The perspective-free statement is that
-    everything in the disk orbits in the same sense, and the spiral arms <b>trail</b> that motion, their
-    outer ends lagging like the wake of a spinning sparkler. The Sun rides that flow at ~230&nbsp;km/s
-    toward Cygnus, one lap in 225&ndash;250&nbsp;Myr — a <b>galactic year</b>, about twenty of them since
-    the Sun formed.</p>
-    <p><b>How we can tell from inside:</b> Jan Oort found the signature in 1927 — nearby stars' radial
-    velocities vary around the sky as a double sine wave, exactly what a disk in <b>differential
-    rotation</b> produces, with the centre of rotation in Sagittarius. Radio maps of hydrogen at 21&nbsp;cm
-    and of CO gave the <b>rotation curve</b>, nearly flat at ~230&nbsp;km/s far past the visible edge —
-    one of the original arguments for dark matter, and the curve the stars here actually follow. Sgr&nbsp;A*,
-    essentially at rest, appears to slide ~6&nbsp;milliarcseconds a year across the sky: the reflection of
-    our own orbit. And Gaia's billion-star proper motions show the whole disk streaming one way, sheared
-    between inner and outer orbits, rippled and warped by the Sagittarius dwarf's plunges.</p>
-    <p><b>Why the arms are not what they look like:</b> if an arm were a fixed chain of stars, differential
-    rotation would wind it into a tight coil within a few hundred Myr — the <b>winding problem</b>. Real
-    arms are <b>density waves</b> (Lin &amp; Shu 1964): slowly turning zones of crowding, like a traffic
-    jam that keeps its shape while cars pass through. Stars and gas enter, are compressed — the gas into
-    new stars, which is why arms glow blue and pink although the underlying density contrast is only
-    ~10&ndash;20% — and move on. Where a star's own angular speed matches the pattern's is the
-    <b>corotation radius</b>; inside it stars overtake the arms, outside it the arms overtake the stars.
-    The modern picture is messier still: simulations rarely make one eternal wave. Small clumps get
-    <b>swing-amplified</b> by the disk's shear, and arms form, wind up, dissolve and regrow over a few
-    hundred Myr, with two or more patterns at different speeds beating against each other — which is why
-    astronomers still argue whether we have two major arms or four. When Earth formed, the spiral pattern
-    may have looked entirely different.</p>
-    <p><b>And Andromeda?</b> M31 spins the same way in physical terms — one coherent disk, its gas at
-    250&ndash;260&nbsp;km/s on a rotation curve that stays flat past 35&nbsp;kpc; it was one of Vera Rubin's
-    key dark-matter galaxies. We see it nearly edge-on, tilted 77&deg;: spectra show the <b>south-western
-    half approaching</b> and the north-eastern receding — HI gas, planetary nebulae and Gaia's proper
-    motions all agree — and the dust lanes silhouetted against the bulge mark the north-west side as the
-    near one. Her spin axis leans slightly toward us: tilted face-on from our side she would turn
-    counterclockwise, the same sense Gaia traces on the sky. Not that a match with our disk would mean
-    anything — spin directions across the universe are random, and the two disks stand steeply inclined
-    to each other. Its pattern is a useful contrast to ours: in the infrared M31 is less a spiral than a
-    set of <b>nested rings</b> — a star-forming ring ~10&nbsp;kpc out and a smaller off-centre inner one —
-    the aftermath of the compact satellite <b>M32</b> plunging almost head-on through the disk a few
-    hundred Myr ago (Block et&nbsp;al. 2006), ring-shaped density waves spreading like ripples from a
-    dropped stone. That is what is drawn: run the clock and brightness waves expand across Andromeda's
-    map from the impact point, while the Milky Way's arms beat and re-form — bar-driven transience on one
-    side of the sky, collision aftermath on the other.</p>
 
-    <div style="display:flex;gap:6px;margin:10px 0 4px">
-      <a href="img/m31-rings-herschel.jpg" target="_blank" rel="noopener" style="flex:1;min-width:0"><img
-        src="img/m31-rings-herschel.jpg" loading="lazy" alt="Spitzer infrared view of Andromeda's dust rings, with the off-centre inner ring, the outer ring and M32 annotated"
-        style="width:100%;border:1px solid #345;border-radius:3px"></a>
-      <a href="img/m31-infrared.jpg" target="_blank" rel="noopener" style="flex:1;min-width:0"><img
-        src="img/m31-infrared.jpg" loading="lazy" alt="Spitzer infrared Andromeda: old stars in blue, the dust rings in red"
-        style="width:100%;border:1px solid #345;border-radius:3px"></a>
-      <a href="img/m31-core-xray.jpg" target="_blank" rel="noopener" style="flex:1;min-width:0"><img
-        src="img/m31-core-xray.jpg" loading="lazy" alt="X-ray view of Andromeda's core: dozens of point sources around the central supermassive black hole"
-        style="width:100%;border:1px solid #345;border-radius:3px"></a>
-    </div>
-    <p style="font-size:11px;opacity:.75;margin-top:0">The observations behind the model, left to right: the dust
-    <b>rings</b> with the off-centre inner ring and M32 annotated — the very figure of the Block et&nbsp;al. collision
-    study (Spitzer/IRAC, NASA/JPL-Caltech/D.&nbsp;Block); the infrared disk, old stars in blue and the ring-shaped dust
-    in red (Spitzer/IRAC, NASA/JPL-Caltech/P.&nbsp;Barmby); and the <b>core in X-rays</b>, a crowd of accreting binaries
-    around the central supermassive black hole M31* (NASA/CXC). Found via the
-    <a href="https://www.messier-objects.com/messier-31-andromeda-galaxy/" target="_blank" rel="noopener">Messier
-    Objects guide to M31</a>, a good lay overview of the galaxy.</p>
-    <p><b>Watching it happen:</b> in the Galaxy view, tick <b>spin lock</b> and the camera rides the bar
-    pattern — the arms hold still on screen, and what moves is the evolution itself: each arm waxing and
-    waning on its ~268&nbsp;Myr beat, star formation migrating to whichever arms are bright, the material
-    stars sweeping through the frozen pattern. The scenario <b>How the arms evolve</b> stages exactly this:
-    two billion years to today in about 45 seconds, then straight onward into the future at the same pace.</p>
-
-    <p>A fuller version of this explainer, with its own animation of density waves against material arms,
-    ships beside this page: <a href="docs/how-the-milky-way-turns.html" target="_blank" rel="noopener">How
-    the Milky Way turns</a>.</p>
-    <h3>Stellar birth &amp; death</h3>
-    <p>With <b>life cycle</b> on, the arms do what real arms do: gas piles into the wave's inner edge,
-    collapses inside dark clouds, and lights up as blue OB clusters. Massive stars live only
-    3&ndash;30&nbsp;Myr — <b>a few <i>simulated</i> years on this clock</b>, so an entire stellar life plays
-    out before your eyes: reddish protocluster, blue association, red supergiant, collapse, supernova.
-    The Milky Way's measured star-formation rate is <b>~2 solar masses (a handful of stars) per year</b>;
-    birth points here match that rate scaled to the point sampling. Old low-mass stars die too, disk-wide:
-    they swell into red giants, puff teal <b>planetary nebulae</b>, and leave slowly fading white dwarfs.</p>
-    <ul>
-      <li><b>Live count</b> switches the two status-bar counters from running totals to what is
-      happening in this moment — stars currently igniting, and stars currently dying — stepping up and
-      down as each event begins and ends. Those are counts of <i>drawn</i> events, so they follow the
-      sampled fraction rather than the real numbers; the totals below are the real ones.</li>
-      <li>The counters in the status bar run at the measured rates rather than counting the drawn
-      points: <b>&minus;</b> supernovae at ~2 per century, <b>+</b> stars born at ~4 a year (a ~2
-      solar-mass yearly formation rate over a ~0.5 solar-mass mean). Both are tallies since the
-      simulation started, which is why they climb so fast — a single simulated year is ~1.2 million
-      real ones.</li>
-      <li>The Galaxy hosts <b>~2 supernovae per century</b>. On the compressed clock that is ~24,000 per
-      simulated year — a continuous glitter — so only a sampled fraction is drawn as featured explosions.</li>
-      <li>A supernova peaks near <b>5&times;10&#8313; solar luminosities</b>: for a few weeks one star rivals
-      billions, approaching the output of its entire galaxy. Its flash (weeks) and expanding remnant
-      (~50,000 years, ~10,000&nbsp;km/s) both last far less than a pixel of simulated time, so they are
-      stretched here to be seeable at all, and remnants are drawn several times too large — the real Crab
-      Nebula is 11&nbsp;ly across, well under one scene unit. A remnant is drawn as what it is, a hollow
-      shell: brightest at its rim, where the line of sight runs longest through it, knotted with filaments,
-      thin and sharp while young and thick and frayed when old. What the blast is <i>made of</i> is honest as far
-      as it goes: it expands while it dims, and it cools from blue-white through amber to a red ember, which is
-      the real colour history. The <b>radiating spikes are not</b>. A star has none — they are what a telescope
-      or an eye adds to any point too bright for it, and they are drawn here for the same reason the flash is
-      stretched: without them a collapse and a bright star look identical.</li>
-      <li><b>Variables</b>: a few percent of the drawn star points pulse and <b>redden at minimum light</b>,
-      standing in for the Cepheids, RR Lyrae and Mira-type pulsators (Miras swing by up to ~8 magnitudes as
-      they cool and reheat); the HII nebulae breathe and drift in hue, as real nebular illumination genuinely
-      does (Hubble's Variable Nebula changes within weeks). Their real day-to-year cycles are far below this
-      clock's resolution — like the supernova flashes, the shimmer you see is a stretched sample.</li>
-      <li><b>Trails</b> are measurements, nothing else, and they follow the zoom. Close in, where the
-      planets stand apart from the Sun, the <b>orbit</b> and <b>helix</b> switches choose what they show, separately or together:
-      <b>helix</b> draws each planet's true swept path through space — at one year a second the Sun covers
-      48&nbsp;AU while the Earth loops once around it, so Mercury winds tightly, Earth coils visibly and
-      the giants barely wave, exactly as reality has it — and <b>orbit</b> draws the closed path around
-      the Sun instead. Where the sampling cannot resolve an orbit, the orbit ring stands in for the helix,
-      since an inaccurate helix is not worth drawing. Zoomed out, the whole system collapses into the
-      Sun's single point and only the Sun's own trail remains; a stylized planetary corkscrew used to be
-      drawn there, and was retired for the reason above: by the time the Sun moves one Earth-orbit radius
-      at galactic scale, the Earth has gone round 440,000 times, and no drawn coil could be anything but
-      an invention.</li>
-      <li>Zoomed all the way in — the floor is about eight solar radii across — the Sun stops being a
-      point and becomes a living disc: churning granulation under limb darkening, prominence arcs rising
-      and falling on a slow magnetic-storm cycle, a streaked corona. The surface detail is drawn with
-      shader noise and is illustrative; the disc's size is not — it is the Sun's true diameter at the
-      true distance.</li>
-      <li>Choosing the <b>Solar System</b> view (top left) is a camera move, not a mode change: it descends nine orders of magnitude to
-      a view about 75 AU across — the whole planetary system, Kuiper belt included, at its true scale,
-      which is why the galaxy shrinks to a band of sky and the Sun to a nearby star. The camera follows
-      the Sun exactly and holds the line from the Sun to the galactic centre, so the core stays behind
-      the planets rather than sweeping past as the Sun orbits; dragging turns the view relative to that
-      line. Time keeps running: at one year a second you can watch the planets orbit, and the background
-      genuinely streams past, because 230 km/s of real solar motion crosses most of a 75 AU view every
-      year. At higher speeds the orbits blur beyond drawing, so each planet's trail gives way to its
-      <b>orbit ring</b> — the closed path itself, which does not change over those windows. Zooming out
-      again is the same journey in reverse; nothing else is altered.</li>
-      <li>What remains is a <b>neutron star</b> (drawn as a fading blue point) or a black hole (nothing).
-      The last naked-eye supernova in our galaxy was <b>Kepler's, in 1604</b>; statistically we are overdue,
-      and Betelgeuse (~550&nbsp;ly away, already a red supergiant) is a leading candidate.</li>
-    </ul>
-    <h3>Star formation, ice ages, and Andromeda</h3>
-    <p>The Galaxy's star formation is <b>winding down</b>: the cold gas is being used up faster than it is
-    replaced, so the rate here decays with a ~6&nbsp;Gyr e-folding time — roughly twice today's rate early on,
-    about half by an age of 8&nbsp;Gyr. Then comes <b>Andromeda</b>: a first passage ~4.5&nbsp;Gyr from
-    now at ~95&nbsp;kpc that the disks barely feel, then — dynamical friction shrinking each swing — close
-    passages at ~30 and ~13&nbsp;kpc whose shocks drive starbursts, and coalescence ~8.8&nbsp;Gyr out,
-    after which the gas-poor remnant forms almost nothing. Watch the arms light up late, then go quiet.
-    Once the two disks are one blob the arm names and Andromeda's own name step down and a single label
-    takes over: <b>Milkomeda</b>, the name Cox &amp; Loeb gave the remnant in 2008.</p>
-    <p>The <b>galactic environment</b> panel is the honest edge of this: Earth's temperature is set by the Sun,
-    not by where the Sun sits in the Galaxy — interstellar starlight at Earth is around a ten-millionth of
-    sunlight. What galactic position plausibly <i>does</i> change is the <b>cosmic-ray flux</b>: crossing a
-    spiral arm means more nearby supernovae, and the Sun's bob through the dense mid-plane adds more again.
-    Shaviv and Svensmark proposed that this modulates low cloud cover and so the climate, which would match the
-    ~140&nbsp;Myr spacing of the great glaciations — and the arm crossings here fall at about that interval.
-    <b>The link is contested</b>; the temperatures shown follow that hypothesis, not a settled result, and the
-    interface frosts over when the model dips into a glacial epoch. That whole argument has an <b>expiry
-    date</b>: it rests on crossing spiral arms, and the merged remnant is an elliptical with none, so the arm
-    term fades out with the merger rather than ticking on over a galaxy that no longer has arms.</p>
-    <p><b>Andromeda itself</b> is drawn the way the Milky Way is: from a photographic probability map,
-    deprojected from its 77&deg; inclination to face-on — and, since v2.56, one instrument per channel.
-    The <b>Hubble PHAT+PHAST panorama</b> (heic2501a, ~200 million resolved stars; NASA, ESA,
-    B.&nbsp;F.&nbsp;Williams, Z.&nbsp;Chen, L.&nbsp;C.&nbsp;Johnson and the PHAT/PHAST teams, CC&nbsp;BY&nbsp;4.0)
-    is a strip along the major axis, so it is kept exactly where it has coverage and nowhere else. Luminance
-    and colour across the rest of the disk come from a <b>wide-field optical</b> image (Adam Evans,
-    CC&nbsp;BY&nbsp;2.0); the dust lanes from <b>Herschel/Planck far-infrared</b> emission (ESA/NASA/JPL-Caltech),
-    which is bright exactly where cold dust is, turned into darkening; the star-forming rings from
-    <b>GALEX ultraviolet</b> (NASA/JPL-Caltech), turned into the blue excess the HII sampler reads. Each
-    picture is deprojected on its own and registered to the panorama by its 10-kpc ring and by cross-correlation;
-    M32's position and the ring's lopsided brightness settle which end of the axis is which. Stars are then
-    sampled from luminance, dust from local darkness, HII from blue excess and drawn in H&alpha; pink. Only
-    sky-plane positions are measured; depths, thickness and halo are modelled, and so is the <b>bulge</b>,
-    which a 77&deg; deprojection cannot recover (it stretches into a column). That composite was then
-    <b>completed by hand and by AI</b> (v2.58): the bulge zone and the seams the pipeline could not close were
-    finished face-on over the measured picture, so what you see there is a completion, not a measurement.
-    So are the line-of-sight placements of <b>M32</b>, <b>M110</b> and
-    the <b>Giant Southern Stream</b>. The disk stands at its measured orientation — spin pole at galactic
-    (242&deg;,&nbsp;&minus;30&deg;), 120&deg; from ours — turning its real way, ~7% faster than we do. The picture's arm-to-interarm contrast is modest, so when its stars, HII knots and haze are drawn they are weighted toward its <b>ridges</b> — pixels brighter than their own surroundings at arm scale — and an arm's stars are drawn brighter: the arms you see are the map's, favoured, not invented.</p>
-    <p><b>The encounter follows the Gaia-era orbit</b>: today's 765&nbsp;kpc and &minus;110&nbsp;km/s, a first
-    passage ~4.5&nbsp;Gyr out near 95&nbsp;kpc, a 290&nbsp;kpc rebound, then friction-shrunk passages at ~30
-    and ~13&nbsp;kpc and one relaxed elliptical ~8.8&nbsp;Gyr from now. The drawn track is the median of the
-    <i>merging half</i> of the 2025 ensemble (Sawala et&nbsp;al., <i>Nature Astronomy</i>): folding in the
-    measurement uncertainties plus M33 and the LMC — whose orbit runs perpendicular to ours and pulls the
-    Milky Way off the collision plane — left only ~50% odds of merging within 10&nbsp;Gyr at all. An April
-    2026 reanalysis with corrected Gaia proper motions (arXiv:2603.22863) swung the pendulum back: ~90% in
-    its preferred model, median merger ~6.5&nbsp;Gyr out, a band the drawn track sits inside. The literature
-    is oscillating and the panel says so rather than pretending a settled number. The <b>tidal response</b>
-    is Toomre &amp; Toomre's classic mechanism, as in the N-body studies of this pair (Cox&nbsp;&amp;&nbsp;Loeb
-    2008; van&nbsp;der&nbsp;Marel et&nbsp;al. 2012; Schiavi et&nbsp;al. 2020): each disk <i>stretches</i>
-    along the axis to the other — a bridge reaching toward it, a counter-tail flung away — rather than
-    leaning toward it whole. Separations inside ~83&nbsp;kpc are
-    drawn <b>to scale</b> — every passage honestly spaced — and log-compressed beyond, which is why today's
-    Andromeda looms at the edge of the sky instead of 25 disk-diameters offstage. Two honest caveats: the
-    tides and the final relaxation are parametrised leading-order effects, not an N-body solution; and the
-    2025 ensemble reruns (Sawala et al., Nature Astronomy) give only <b>about even odds</b> that the merger
-    happens within 10&nbsp;Gyr at all once the Large Magellanic Cloud's pull and the measurement errors are
-    included. What is drawn is the median of the merging half of those futures.</p>
-    <h3>Does the merger touch the solar system?</h3>
-    <p>Barely, and not where you would expect. Comparing Andromeda's <b>tidal pull</b> — the difference in
-    its gravity across the solar system — against the Sun's own hold, with its centre 30&nbsp;kpc away:
-    at Earth's orbit the ratio is <b>1.3&times;10<sup>&minus;17</sup></b>, at Neptune's
-    3&times;10<sup>&minus;13</sup>. Even for a close passage at 1&nbsp;kpc it is 3&times;10<sup>&minus;13</sup>
-    at Earth. <b>The planets do not notice.</b> Two galaxies pass through each other and the orbits stay
-    exactly as they are, because stars are so tiny against the distances between them that direct collisions
-    are essentially impossible.</p>
-    <p>The <b>Oort cloud</b> is another matter, as it is the one structure the Galaxy already governs. The
-    Sun loses the tug-of-war beyond ~6.8&nbsp;ly with Andromeda at 30&nbsp;kpc — safely outside the cloud's
-    1.6&nbsp;ly edge — but at a 1&nbsp;kpc passage that boundary closes to <b>0.23 ly</b>, and most of the
-    cloud is stripped away into intergalactic space. The comets go first.</p>
-    <p>What does change is <b>where the Sun ends up</b>. Its ordered 230&nbsp;km/s circular orbit is scattered
-    into a random one in the merged elliptical. N-body work on this encounter finds a median final distance
-    near <b>30&nbsp;kpc against today's 8</b>, with roughly a 12% chance of being flung into the tidal tails
-    and 3% of ending up bound to Andromeda instead. The Sun here follows that median, drifting outward after
-    the collision. The rotation curve is flat, so its speed stays near 230&nbsp;km/s and the <b>laps
-    lengthen</b> instead — out to 3.75&times; today's 225&nbsp;Myr — which is why the galactic-year counter
-    visibly slows as the orbit widens. Once the remnant has relaxed there are no laps left to count at all:
-    an ordered circular orbit has become a random one, so the counter gives way to the reading that still
-    means something, the Sun's distance from the centre.</p>
     <h3>Earth across deep time</h3>
     <p>A fuller picture than the live <b>Earth panel</b> attempts: named milestones from the first amino acids
     to the oceans boiling away, with the atmosphere, pressure and UV/radiation environment estimated for each.
@@ -8063,6 +7859,7 @@ startFrameLoop({
            happens, each landing a little before its event so the visitor watches it arrive -->
       <option value="">— present day —</option>
       <option value="helix" data-rate="1" data-mult="1">The helix — planets winding through space</option>
+      <option value="4.568r" data-rate="1" data-mult="10000000">The galaxy turning — face-on from the north pole (today &rarr;)</option>
       <option value="0.058">Theia impact — the Moon forms (4.51 Gyr ago)</option>
       <option value="0.768">Young Earth — first life (3.8 Gyr ago)</option>
       <option value="2.068">Great Oxidation (2.5 Gyr ago)</option>

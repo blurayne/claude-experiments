@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Star formation, ice ages, and Andromeda</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sky:#080D1C; --sky-2:#0F1730; --star:#EDEEF3; --slate:#A3ABBE; --dust:#2A3350;
+    --halpha:#F2A65A; --sun:#6FA8FF; --line:#26304D;
+  }
+  *{box-sizing:border-box}
+  html{background:var(--sky)}
+  body{margin:0;color:var(--star);font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:17px;line-height:1.65;-webkit-font-smoothing:antialiased}
+  main{max-width:680px;margin:0 auto;padding:0 20px 80px}
+  h1,h2,h3{font-family:"Fraunces",Georgia,serif;font-weight:300;line-height:1.1;margin:0}
+  h1{font-size:clamp(38px,7vw,58px);letter-spacing:-.01em;padding:56px 0 14px}
+  h2{font-size:30px;padding:56px 0 14px;border-top:1px solid var(--line)}
+  h3{font-size:21px;font-weight:500;padding:22px 0 6px}
+  p{margin:0 0 16px;max-width:62ch}
+  p.lede{font-size:20px;color:var(--star);max-width:56ch}
+  em{color:var(--halpha);font-style:normal}
+  .muted{color:var(--slate)}
+  figure{margin:24px 0 8px}
+  figcaption{color:var(--slate);font-size:14px;line-height:1.5;margin-top:10px;max-width:62ch}
+  .galaxy{background:var(--sky-2);border-radius:14px;padding:16px}
+  canvas{display:block;width:100%;height:auto;max-width:520px;margin:0 auto}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+  button{font:inherit;font-size:14px;color:var(--star);background:transparent;border:1px solid var(--line);border-radius:999px;padding:6px 14px;cursor:pointer}
+  button[aria-pressed="true"]{background:var(--star);color:var(--sky);border-color:var(--star)}
+  button:focus-visible{outline:2px solid var(--sun);outline-offset:2px}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;font-size:14px;color:var(--slate);margin-top:12px}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:-1px;margin-right:6px}
+  .aside{border-left:2px solid var(--halpha);padding:4px 0 4px 18px;margin:22px 0;color:var(--slate)}
+  .aside p:last-child{margin:0}
+  table{border-collapse:collapse;width:100%;font-size:15px;margin:20px 0 8px}
+  th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-weight:500;color:var(--slate)}
+  td:first-child{color:var(--slate)}
+  .timeline{list-style:none;padding:0;margin:20px 0}
+  .timeline li{display:grid;grid-template-columns:110px 1fr;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .timeline .when{font-family:"Fraunces",serif;font-size:20px;line-height:1.2;color:var(--halpha)}
+  .timeline .what{color:var(--star)}
+  .timeline .what small{display:block;color:var(--slate);font-size:14px}
+  footer{margin-top:60px;font-size:14px;color:var(--slate);border-top:1px solid var(--line);padding-top:18px}
+  @media (max-width:480px){.timeline li{grid-template-columns:1fr;gap:4px}}
+  @media (prefers-reduced-motion:reduce){.hint{display:block}}
+  .hint{display:none;font-size:14px;color:var(--slate);margin-top:8px}
+</style>
+</head>
+<body>
+<main>
+<p style="padding-top:28px;margin:0"><a href="../galactic-transit.html" style="color:var(--slate);text-decoration:none">&larr; Galactic Transit</a></p>
+<h1>Star formation, ice ages, and Andromeda</h1>
+    <p>The Galaxy's star formation is <b>winding down</b>: the cold gas is being used up faster than it is
+    replaced, so the rate here decays with a ~6&nbsp;Gyr e-folding time — roughly twice today's rate early on,
+    about half by an age of 8&nbsp;Gyr. Then comes <b>Andromeda</b>: a first passage ~4.5&nbsp;Gyr from
+    now at ~95&nbsp;kpc that the disks barely feel, then — dynamical friction shrinking each swing — close
+    passages at ~30 and ~13&nbsp;kpc whose shocks drive starbursts, and coalescence ~8.8&nbsp;Gyr out,
+    after which the gas-poor remnant forms almost nothing. Watch the arms light up late, then go quiet.
+    Once the two disks are one blob the arm names and Andromeda's own name step down and a single label
+    takes over: <b>Milkomeda</b>, the name Cox &amp; Loeb gave the remnant in 2008.</p>
+    <p>The <b>galactic environment</b> panel is the honest edge of this: Earth's temperature is set by the Sun,
+    not by where the Sun sits in the Galaxy — interstellar starlight at Earth is around a ten-millionth of
+    sunlight. What galactic position plausibly <i>does</i> change is the <b>cosmic-ray flux</b>: crossing a
+    spiral arm means more nearby supernovae, and the Sun's bob through the dense mid-plane adds more again.
+    Shaviv and Svensmark proposed that this modulates low cloud cover and so the climate, which would match the
+    ~140&nbsp;Myr spacing of the great glaciations — and the arm crossings here fall at about that interval.
+    <b>The link is contested</b>; the temperatures shown follow that hypothesis, not a settled result, and the
+    interface frosts over when the model dips into a glacial epoch. That whole argument has an <b>expiry
+    date</b>: it rests on crossing spiral arms, and the merged remnant is an elliptical with none, so the arm
+    term fades out with the merger rather than ticking on over a galaxy that no longer has arms.</p>
+    <p><b>Andromeda itself</b> is drawn the way the Milky Way is: from a photographic probability map,
+    deprojected from its 77&deg; inclination to face-on — and, since v2.56, one instrument per channel.
+    The <b>Hubble PHAT+PHAST panorama</b> (heic2501a, ~200 million resolved stars; NASA, ESA,
+    B.&nbsp;F.&nbsp;Williams, Z.&nbsp;Chen, L.&nbsp;C.&nbsp;Johnson and the PHAT/PHAST teams, CC&nbsp;BY&nbsp;4.0)
+    is a strip along the major axis, so it is kept exactly where it has coverage and nowhere else. Luminance
+    and colour across the rest of the disk come from a <b>wide-field optical</b> image (Adam Evans,
+    CC&nbsp;BY&nbsp;2.0); the dust lanes from <b>Herschel/Planck far-infrared</b> emission (ESA/NASA/JPL-Caltech),
+    which is bright exactly where cold dust is, turned into darkening; the star-forming rings from
+    <b>GALEX ultraviolet</b> (NASA/JPL-Caltech), turned into the blue excess the HII sampler reads. Each
+    picture is deprojected on its own and registered to the panorama by its 10-kpc ring and by cross-correlation;
+    M32's position and the ring's lopsided brightness settle which end of the axis is which. Stars are then
+    sampled from luminance, dust from local darkness, HII from blue excess and drawn in H&alpha; pink. Only
+    sky-plane positions are measured; depths, thickness and halo are modelled, and so is the <b>bulge</b>,
+    which a 77&deg; deprojection cannot recover (it stretches into a column). That composite was then
+    <b>completed by hand and by AI</b> (v2.58): the bulge zone and the seams the pipeline could not close were
+    finished face-on over the measured picture, so what you see there is a completion, not a measurement.
+    So are the line-of-sight placements of <b>M32</b>, <b>M110</b> and
+    the <b>Giant Southern Stream</b>. The disk stands at its measured orientation — spin pole at galactic
+    (242&deg;,&nbsp;&minus;30&deg;), 120&deg; from ours — turning its real way, ~7% faster than we do. The picture's arm-to-interarm contrast is modest, so when its stars, HII knots and haze are drawn they are weighted toward its <b>ridges</b> — pixels brighter than their own surroundings at arm scale — and an arm's stars are drawn brighter: the arms you see are the map's, favoured, not invented.</p>
+    <p><b>The encounter follows the Gaia-era orbit</b>: today's 765&nbsp;kpc and &minus;110&nbsp;km/s, a first
+    passage ~4.5&nbsp;Gyr out near 95&nbsp;kpc, a 290&nbsp;kpc rebound, then friction-shrunk passages at ~30
+    and ~13&nbsp;kpc and one relaxed elliptical ~8.8&nbsp;Gyr from now. The drawn track is the median of the
+    <i>merging half</i> of the 2025 ensemble (Sawala et&nbsp;al., <i>Nature Astronomy</i>): folding in the
+    measurement uncertainties plus M33 and the LMC — whose orbit runs perpendicular to ours and pulls the
+    Milky Way off the collision plane — left only ~50% odds of merging within 10&nbsp;Gyr at all. An April
+    2026 reanalysis with corrected Gaia proper motions (arXiv:2603.22863) swung the pendulum back: ~90% in
+    its preferred model, median merger ~6.5&nbsp;Gyr out, a band the drawn track sits inside. The literature
+    is oscillating and the panel says so rather than pretending a settled number. The <b>tidal response</b>
+    is Toomre &amp; Toomre's classic mechanism, as in the N-body studies of this pair (Cox&nbsp;&amp;&nbsp;Loeb
+    2008; van&nbsp;der&nbsp;Marel et&nbsp;al. 2012; Schiavi et&nbsp;al. 2020): each disk <i>stretches</i>
+    along the axis to the other — a bridge reaching toward it, a counter-tail flung away — rather than
+    leaning toward it whole. Separations inside ~83&nbsp;kpc are
+    drawn <b>to scale</b> — every passage honestly spaced — and log-compressed beyond, which is why today's
+    Andromeda looms at the edge of the sky instead of 25 disk-diameters offstage. Two honest caveats: the
+    tides and the final relaxation are parametrised leading-order effects, not an N-body solution; and the
+    2025 ensemble reruns (Sawala et al., Nature Astronomy) give only <b>about even odds</b> that the merger
+    happens within 10&nbsp;Gyr at all once the Large Magellanic Cloud's pull and the measurement errors are
+    included. What is drawn is the median of the merging half of those futures.</p>
+
+<footer>An article from <a href="../galactic-transit.html">Galactic Transit</a> — the notes that used to live in its About panel, one subject per page.</footer>
+</main>
+</body>
+</html>
