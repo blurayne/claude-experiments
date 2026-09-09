@@ -86,15 +86,24 @@ void main(){
   if(uGal > 0.5){
     float rL = length(aPos.xz);      // radius in the galaxy's own disk, pre-transform
     p = uGRot*p + uGOff;
-    // Tidal pull toward the companion. A real encounter is an N-body problem; this is
-    // the leading effect only — the differential pull grows with disk radius, so the
-    // outer disk reaches into a bridge while the core barely moves. Softened and
-    // capped: a bare inverse square tears passing stars into a streak.
+    // The tidal response, after Toomre & Toomre 1972: a tide does not PULL a disk toward
+    // the companion, it STRETCHES it along the companion axis — the near side reaches into
+    // a bridge toward it while the far side is flung into a counter-tail away from it, with
+    // mild compression across the axis. That is the leading quadrupole, which is what the
+    // N-body studies of this pair show (Cox & Loeb 2008; van der Marel et al. 2012;
+    // Schiavi et al. 2020). The differential grows with disk radius, so the outer disk
+    // responds while the core barely moves; softened by the separation and capped, because
+    // a bare inverse cube tears passing stars into streaks.
     if(uTide > 0.001){
-      vec3 dv = uAnd - p;
-      float dd = length(dv);
-      float pull = uTide * (rL/900.0) * 480.0 / (1.0 + (dd*dd)/(2600.0*2600.0));
-      p += normalize(dv) * min(pull, 560.0);
+      vec3 dc = uAnd - uGOff;                 // the companion, seen from this galaxy's centre
+      float D = max(length(dc), 1.0);
+      vec3 dhat = dc / D;
+      vec3 rel = p - uGOff;
+      float s = dot(rel, dhat);
+      float k = uTide * (rL/900.0) * 0.62 / (1.0 + (D*D)/(2600.0*2600.0));
+      vec3 disp = (dhat*s - (rel - dhat*s)*0.30) * k;
+      float dl = max(length(disp), 1e-3);
+      p += disp * (min(dl, 560.0)/dl);
     }
     // Coalescence: violent relaxation scrambles both disks into one elliptical.
     // Each star slides to a stable pseudo-random spot on a de-Vaucouleurs-ish
