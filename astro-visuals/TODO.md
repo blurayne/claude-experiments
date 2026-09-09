@@ -18,6 +18,34 @@ before the work starts. An item is ticked when it ships, with the version that c
 - [ ] Then: the Milky Way's and Andromeda's rotation, checked against the measurements
       rather than against the piece's own convenience — the flat curve, the pattern speed
       and the corotation radius, rebuilding the point sets if that is what it takes.
+      Requested 9 Sep 2026 with an explainer to work from
+      (`docs/how-the-milky-way-turns.html`, to be folded into the info panel):
+      - The **direction was checked first and is already right**, which is worth recording
+        so nobody "fixes" it. Measured two ways. Photographed from +y (the north galactic
+        pole in this scene's frame — `tools/build_athyg_stars.py` fixes l=90 on +x, north
+        on +y, the centre on −z) the disk turns **clockwise**, which is correct. And
+        Andromeda's own numbers come out right on the sky: major axis PA 38°, near side
+        NW, north-east half approaching, inclination 77.0°, all matching the measurements.
+        The catch is that the scene stores a MIRRORED universe (the frame's determinant is
+        −1) and `SKY_MIRROR` mirrors the projection back, so anything checked in scene
+        coordinates alone reads backwards. The two galaxies' spin axes come out 60° apart
+        against a true 63°.
+      - What a viewer actually sees is another matter: the "Milky Way" view opens 15.8°
+        above the plane, nearly edge-on, where the near and far halves sweep opposite ways
+        and the sense cannot be read. Worth giving the view an honest way to show it.
+      - **Corotation is at r = 640 and should be about 930** (~8.5 kpc against the Sun's
+        8.2). As drawn, the pattern is faster than the Sun and the arms overtake it; the
+        measurement has it the other way round — the Sun moving deeper into its arm. This
+        is the one the migration notes parked as needing a decision rather than a fix,
+        because the measured value ends the arm crossings the glacial epochs are built on.
+      - **The arms are one rigid pattern, forever**, which is the 1964 Lin–Shu picture.
+        The modern one is messier: two or more overlapping patterns at different speeds,
+        beating against each other, arms forming, winding up and dissolving over a few
+        hundred Myr through swing amplification. That also dissolves the corotation
+        problem above — transient arms still sweep the Sun even near corotation.
+      - **Andromeda is rings, not arms**: a 10 kpc star-forming ring and a smaller
+        off-centre inner one, the aftermath of M32 plunging head-on through the disk
+        within the last few hundred Myr, plus a warp from repeated satellite tugs.
 - [ ] Then: redo the merger against the current simulations — the Gaia-era proper motions,
       what M33 and the LMC do to the orbit, and the real spread of outcomes rather than one
       median track.

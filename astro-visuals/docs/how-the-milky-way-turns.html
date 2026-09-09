@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How the Milky Way turns</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sky:#080D1C; --sky-2:#0F1730; --star:#EDEEF3; --slate:#A3ABBE; --dust:#2A3350;
+    --halpha:#F2A65A; --sun:#6FA8FF; --line:#26304D;
+  }
+  *{box-sizing:border-box}
+  html{background:var(--sky)}
+  body{margin:0;color:var(--star);font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:17px;line-height:1.65;-webkit-font-smoothing:antialiased}
+  main{max-width:680px;margin:0 auto;padding:0 20px 80px}
+  h1,h2,h3{font-family:"Fraunces",Georgia,serif;font-weight:300;line-height:1.1;margin:0}
+  h1{font-size:clamp(38px,7vw,58px);letter-spacing:-.01em;padding:56px 0 14px}
+  h2{font-size:30px;padding:56px 0 14px;border-top:1px solid var(--line)}
+  h3{font-size:21px;font-weight:500;padding:22px 0 6px}
+  p{margin:0 0 16px;max-width:62ch}
+  p.lede{font-size:20px;color:var(--star);max-width:56ch}
+  em{color:var(--halpha);font-style:normal}
+  .muted{color:var(--slate)}
+  figure{margin:24px 0 8px}
+  figcaption{color:var(--slate);font-size:14px;line-height:1.5;margin-top:10px;max-width:62ch}
+  .galaxy{background:var(--sky-2);border-radius:14px;padding:16px}
+  canvas{display:block;width:100%;height:auto;max-width:520px;margin:0 auto}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+  button{font:inherit;font-size:14px;color:var(--star);background:transparent;border:1px solid var(--line);border-radius:999px;padding:6px 14px;cursor:pointer}
+  button[aria-pressed="true"]{background:var(--star);color:var(--sky);border-color:var(--star)}
+  button:focus-visible{outline:2px solid var(--sun);outline-offset:2px}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;font-size:14px;color:var(--slate);margin-top:12px}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:-1px;margin-right:6px}
+  .aside{border-left:2px solid var(--halpha);padding:4px 0 4px 18px;margin:22px 0;color:var(--slate)}
+  .aside p:last-child{margin:0}
+  table{border-collapse:collapse;width:100%;font-size:15px;margin:20px 0 8px}
+  th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-weight:500;color:var(--slate)}
+  td:first-child{color:var(--slate)}
+  .timeline{list-style:none;padding:0;margin:20px 0}
+  .timeline li{display:grid;grid-template-columns:110px 1fr;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .timeline .when{font-family:"Fraunces",serif;font-size:20px;line-height:1.2;color:var(--halpha)}
+  .timeline .what{color:var(--star)}
+  .timeline .what small{display:block;color:var(--slate);font-size:14px}
+  footer{margin-top:60px;font-size:14px;color:var(--slate);border-top:1px solid var(--line);padding-top:18px}
+  @media (max-width:480px){.timeline li{grid-template-columns:1fr;gap:4px}}
+  @media (prefers-reduced-motion:reduce){.hint{display:block}}
+  .hint{display:none;font-size:14px;color:var(--slate);margin-top:8px}
+</style>
+</head>
+<body>
+<main>
+
+<h1>How the Milky Way turns</h1>
+<p class="lede">Which way our galaxy spins, how we can tell from inside it, why its spiral arms are not what they look like, and what the same questions reveal about Andromeda.</p>
+
+<figure class="galaxy">
+  <div class="controls">
+    <button id="m-dw" aria-pressed="true">Density wave</button>
+    <button id="m-mat" aria-pressed="false">Material arms</button>
+    <button id="pause">Pause</button>
+    <button id="reset">Reset</button>
+  </div>
+  <canvas id="gal" width="520" height="520" role="img" aria-label="Animated face-on galaxy rotating clockwise; stars light up as they pass through a slowly turning spiral pattern"></canvas>
+  <div class="legend">
+    <span><span class="dot" style="background:var(--halpha)"></span>stars inside an arm</span>
+    <span><span class="dot" style="background:var(--sun)"></span>the Sun</span>
+    <span id="laps"></span>
+  </div>
+  <p class="hint">Animation starts paused because your system prefers reduced motion. Press play to run it.</p>
+  <figcaption>Seen from the north galactic pole the disk turns clockwise. Inner stars lap the outer ones, yet the arm pattern keeps its shape because it rotates at its own slower speed and stars drift through it. Switch to "Material arms" to watch what would happen if the arms were fixed chains of stars.</figcaption>
+</figure>
+
+<h2>Which way does it spin?</h2>
+<p>There is no absolute clockwise in space; the answer depends on where you stand. Looking down from the <em>north galactic pole</em>, the side of the disk toward which Earth's north pole roughly points, the Milky Way rotates <em>clockwise</em>. Looking up from the south pole it is counterclockwise. The perspective-free statement is that everything in the disk orbits in the same sense, and the spiral arms <em>trail</em> that motion: their outer ends lag behind, like the wake of a spinning sparkler.</p>
+<p>The Sun sits about 27,000 light-years from the center, on the inner edge of the Orion Spur, and travels at roughly 230 km/s toward the constellation Cygnus. One full lap takes about 225 to 250 million years, a "galactic year". The Sun has completed around twenty of them since it formed.</p>
+
+<h2>How we know, from the inside</h2>
+<p>We cannot step outside and watch, so the proof is kinematic: the Doppler shift of light tells us how fast things along the plane move toward or away from us, and modern astrometry tells us how fast they slide across the sky.</p>
+<h3>Oort's pattern, 1927</h3>
+<p>Jan Oort measured radial velocities of nearby stars around the sky and found they varied with galactic longitude as a double sine wave. That is exactly the signature of a disk in <em>differential rotation</em>, where inner material orbits faster than outer material. It also placed the center of rotation in Sagittarius, confirming Harlow Shapley's earlier claim that we are far from the middle.</p>
+<h3>Radio maps of gas</h3>
+<p>Neutral hydrogen emits at 21 cm and carbon monoxide at millimeter wavelengths; both pass through the dust that blocks visible light. Velocities of gas clouds along the whole plane give the rotation curve, which stays nearly flat far outside the visible disk. That flatness is one of the original arguments for dark matter.</p>
+<h3>The center appears to drift</h3>
+<p>Sagittarius A*, the black hole at the center, is essentially at rest. Yet radio interferometry sees it slide across the sky by about 6 milliarcseconds per year. That apparent motion is the reflection of our own orbit, and it fixes both our speed and our direction. The same reflex shows up on a larger canvas: the whole sky of distant quasars appears to shift very slightly in the direction opposite to the Sun's motion.</p>
+<h3>Gaia</h3>
+<p>The Gaia satellite has measured positions, distances and proper motions for well over a billion stars. Plotted together, they show the whole disk streaming in one direction, with the expected shear between inner and outer orbits, plus ripples, a corrugated disk and a warp that record the galaxy's recent history, including a past plunge of the Sagittarius dwarf galaxy through the disk.</p>
+
+<h2>The rotation curve</h2>
+<p>Planets orbit the Sun in a Keplerian way: speed falls with distance because almost all the mass sits in the middle. A galaxy behaves differently. Beyond the inner few thousand light-years the orbital <em>speed</em> stays roughly constant at about 230 km/s, all the way out past the visible edge. Since angular speed is speed divided by radius, a star at half the Sun's distance completes a lap in half the time, which is the differential rotation that drives everything else on this page. The flat curve also demands far more mass than we can see, spread through an extended halo of dark matter.</p>
+<figure>
+  <svg viewBox="0 0 520 240" width="100%" role="img" aria-label="Sketch of orbital speed versus radius: a Keplerian curve falls with distance while the Milky Way's curve rises steeply then stays flat near 230 km/s" style="max-width:520px;display:block;margin:0 auto">
+    <line x1="50" y1="200" x2="500" y2="200" stroke="#26304D"/>
+    <line x1="50" y1="200" x2="50" y2="20" stroke="#26304D"/>
+    <path d="M50 200 C 80 60, 110 60, 150 95 S 300 185, 500 195" fill="none" stroke="#5A6580" stroke-width="2" stroke-dasharray="6 5"/>
+    <path d="M50 200 C 60 130, 80 90, 130 80 S 300 74, 500 72" fill="none" stroke="#F2A65A" stroke-width="2.5"/>
+    <circle cx="245" cy="76" r="5" fill="#6FA8FF"/>
+    <text x="245" y="60" fill="#6FA8FF" font-size="13" text-anchor="middle" font-family="IBM Plex Sans, sans-serif">Sun</text>
+    <text x="500" y="60" fill="#F2A65A" font-size="13" text-anchor="end" font-family="IBM Plex Sans, sans-serif">observed, flat near 230 km/s</text>
+    <text x="500" y="184" fill="#8F97AD" font-size="13" text-anchor="end" font-family="IBM Plex Sans, sans-serif">expected from visible mass alone</text>
+    <text x="275" y="228" fill="#8F97AD" font-size="13" text-anchor="middle" font-family="IBM Plex Sans, sans-serif">distance from the galactic center</text>
+    <text x="22" y="115" fill="#8F97AD" font-size="13" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" transform="rotate(-90 22 115)">orbital speed</text>
+  </svg>
+  <figcaption>Schematic, not to scale. Inside the animation above, star angular speeds follow this flat curve, so orbital period grows in proportion to radius.</figcaption>
+</figure>
+
+<h2>Why a disk in the first place</h2>
+<p>Thirteen billion years ago the gas and dust that would become the Milky Way moved in every direction, stirred by early supernovae. Each parcel carried some angular momentum, and although the individual motions were chaotic, their sum was not zero: the cloud as a whole had a net spin about one axis.</p>
+<p>Collisions between parcels turned motion into heat that radiated away, so gravity could pull the material inward. But angular momentum cannot be lost, only redistributed. Falling straight toward the center would have violated it, so material collapsed preferentially <em>along</em> the spin axis and settled into a thin, fast-rotating disk. Stars and planets stay round because they are dense enough for pressure to balance gravity; a young galaxy is far too diffuse for that, so spin wins. Galaxies with little net angular momentum end up as egg-shaped ellipticals instead.</p>
+
+<h2>How the arms really work</h2>
+<h3>The winding problem</h3>
+<p>If the arms were made of a fixed set of stars, differential rotation would wrap them into a tight coil within a few hundred million years. Real disks are billions of years old and still show open spirals, so the arms cannot be permanent chains of the same stars. The "Material arms" mode in the animation shows the failure.</p>
+<h3>Density waves</h3>
+<p>The standard answer, from Chia-Chiao Lin and Frank Shu in 1964, is that an arm is a <em>wave</em>: a slowly rotating zone where gravity is slightly stronger and orbits crowd together. Think of a traffic jam on a highway. The jam moves at its own pace while individual cars enter, slow down, and leave. Stars and gas clouds pass through the arm, are compressed for a while, then move on. The compression squeezes gas clouds into new stars, so arms glow with short-lived blue stars and pink nebulae even though the underlying density contrast is only around ten to twenty percent. Older, redder stars are spread almost evenly across the disk; what makes an arm visible is mostly the youth of what it just created. Like a whirlpool, one wave has several crests, so a two-armed pattern is really one wave with two peaks.</p>
+<p>Because the pattern turns more slowly than the inner disk and faster than the outer disk, there is a <em>corotation radius</em> where the two match. Inside it stars overtake the arms; outside it the arms overtake the stars. The Sun orbits somewhat faster than the pattern, so we are moving deeper into our current arm and will eventually leave it out the front. When the dinosaurs died out 66 million years ago, the solar system was in a different arm than it is today.</p>
+<div class="aside">
+  <p>Where do the waves come from? A passing companion galaxy can break the disk's symmetry and launch a wave that lasts a billion years. Or a clump of stars and gas inside the disk can seed one spontaneously; that is the favored story for the Milky Way, together with the central bar, which drives spiral structure like a paddle.</p>
+</div>
+<h3>The modern, messier picture</h3>
+<p>Computer simulations rarely produce a single long-lived wave. Instead, small clumps get "swing-amplified" by the disk's shear: a leading feature is sheared into a trailing one and grows while it swings. Arms form, wind up, dissolve and regrow on timescales of a few hundred million years. A typical spiral probably hosts two or more overlapping waves moving at different speeds, which beat against each other and make arms come and go. Gaia's kinematic maps of the Milky Way show kinks and corrugations consistent with that, and astronomers still debate whether we have two major arms or four. When the Earth formed 4.5 billion years ago, the spirals may have looked entirely different.</p>
+
+<h2>And Andromeda?</h2>
+<p>M31 spins the same way in physical terms, a single coherent disk, only slightly faster: its gas orbits at about 250 to 260 km/s, and the rotation curve stays flat or even rises out to about 35 kiloparsecs. It was one of Vera Rubin's key dark-matter galaxies in the 1970s.</p>
+<p>The direction is easy to measure because we see it nearly edge-on, tilted about 77 degrees. Spectra show the northeastern half approaching us and the southwestern half receding, on top of the galaxy's overall approach of about 300 km/s. Dust lanes silhouetted against the bulge mark the northwestern side as the near side. Combining the two, Andromeda would turn <em>clockwise</em> if you tilted it face-on from our side. That matches our galaxy only by coincidence; the two disks are steeply inclined to each other, and spin directions across the universe are random.</p>
+<p>Its arms are a useful contrast. In infrared light Andromeda looks less like a spiral and more like a set of nested rings, with a bright ring of star formation about 10 kiloparsecs out and a smaller, off-center inner ring. The leading explanation is that the compact satellite M32 plunged through the disk head-on within the last few hundred million years, sending ring-shaped density waves outward like ripples from a dropped stone. The outer disk is also warped by repeated tugs from its satellites. So where the Milky Way's arms are probably bar-driven and transient, Andromeda's pattern looks like the aftermath of a collision.</p>
+
+<table>
+  <thead><tr><th></th><th>Milky Way</th><th>Andromeda (M31)</th></tr></thead>
+  <tbody>
+    <tr><td>Type</td><td>Barred spiral</td><td>Spiral with ring structure, weak bar</td></tr>
+    <tr><td>Disk diameter</td><td>~100,000 light-years</td><td>~150,000–220,000 light-years</td></tr>
+    <tr><td>Rotation speed in the flat part</td><td>~230 km/s</td><td>~250–260 km/s</td></tr>
+    <tr><td>Orbital period at the Sun's radius</td><td>225–250 million years</td><td>similar</td></tr>
+    <tr><td>Rotation seen face-on from our side</td><td>Clockwise (from galactic north)</td><td>Clockwise (near side is the northwest edge)</td></tr>
+    <tr><td>How rotation was measured</td><td>Oort's velocity pattern, 21 cm and CO gas, reflex motion of Sgr A*, Gaia proper motions</td><td>Doppler shifts of gas and stars along the tilted disk: northeast half approaching, southwest half receding</td></tr>
+    <tr><td>Arm pattern</td><td>2–4 arms, likely transient, bar-driven</td><td>10 kpc star-forming ring plus inner off-center ring, from a collision with M32</td></tr>
+    <tr><td>Disk disturbances</td><td>Warp and corrugations, partly from the Sagittarius dwarf</td><td>Strong outer warp from satellite tugs</td></tr>
+    <tr><td>Approach velocity</td><td>—</td><td>~300 km/s toward the Sun, ~110 km/s toward the Milky Way's center</td></tr>
+  </tbody>
+</table>
+
+<h2>What happens next</h2>
+<ul class="timeline">
+  <li><span class="when">Today</span><span class="what">The Sun is on the inner edge of the Orion Spur, moving deeper into it.<small>It will take millions of years to cross out the far side.</small></span></li>
+  <li><span class="when">~1 Gyr</span><span class="what">Current arm pattern has likely dissolved and re-formed several times.<small>Corotation and the bar keep regenerating structure.</small></span></li>
+  <li><span class="when">~4–5 Gyr</span><span class="what">Milky Way and Andromeda begin to merge.<small>Their spin axes are misaligned, so neither disk survives.</small></span></li>
+  <li><span class="when">~7 Gyr</span><span class="what">A single, slowly tumbling elliptical galaxy.<small>Angular momentum scrambled; spiral arms gone for good.</small></span></li>
+</ul>
+
+<h2>Glossary</h2>
+<table>
+  <tbody>
+    <tr><td>Galactic pole</td><td>The two directions perpendicular to the disk. The north galactic pole lies in Coma Berenices; "clockwise" on this page means as seen from there.</td></tr>
+    <tr><td>Differential rotation</td><td>Inner parts of the disk complete orbits faster than outer parts, because speed is roughly constant while circumference grows with radius.</td></tr>
+    <tr><td>Rotation curve</td><td>Orbital speed plotted against distance from the center. Flat for the Milky Way and Andromeda, evidence for dark matter.</td></tr>
+    <tr><td>Trailing arm</td><td>An arm whose outer end lags behind the rotation. Nearly all observed spirals trail.</td></tr>
+    <tr><td>Density wave</td><td>A slowly rotating pattern of slightly enhanced density and gravity that stars and gas move through, rather than a fixed set of stars.</td></tr>
+    <tr><td>Pattern speed</td><td>How fast the arm pattern rotates, independent of how fast individual stars orbit.</td></tr>
+    <tr><td>Corotation radius</td><td>The distance where stars and the pattern move at the same angular speed. Inside it stars overtake arms; outside, arms overtake stars. The Sun is thought to be fairly close to it.</td></tr>
+    <tr><td>Winding problem</td><td>The observation that permanent material arms would be wound into a tight coil within a few hundred million years, which rules them out.</td></tr>
+    <tr><td>Swing amplification</td><td>A mechanism in which shear stretches small disturbances into trailing spiral features that grow, producing transient, recurring arms.</td></tr>
+    <tr><td>Angular momentum</td><td>A measure of rotation that is conserved in the absence of outside torques; it explains why collapsing galaxies flatten into disks.</td></tr>
+    <tr><td>Proper motion</td><td>The apparent sideways drift of an object across the sky, measured in milliarcseconds per year.</td></tr>
+    <tr><td>Galactic year</td><td>One orbit of the Sun around the galactic center, about 225–250 million years.</td></tr>
+  </tbody>
+</table>
+
+<footer>Compiled 9 September 2026 from our conversation plus the added explainer on galactic angular momentum and density waves. Numbers are rounded; the corotation radius, the number of major arms, and the origin of the Milky Way's spiral pattern remain open research questions.</footer>
+</main>
+
+<script>
+(function(){
+  var cv=document.getElementById('gal'),ctx=cv.getContext('2d');
+  var W=520,C=W/2,R=225,N=2400;
+  var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var mode='dw',paused=reduce,t=0,stars=[];
+  var a=3.2,Wp=0.35,V=1;
+  var dim='#8F97AD',arm='#F2A65A',sunC='#6FA8FF',band='#1B2440';
+  function armPhase(r){return -a*Math.log(r/R);}
+  function init(){stars=[];t=0;for(var i=0;i<N;i++){var r=0.1*R+Math.sqrt(Math.random())*0.9*R;var th=Math.random()*Math.PI*2;if(mode==='mat'){var k=Math.random()<0.5?0:Math.PI;th=k+armPhase(r)+(Math.random()-0.5)*0.5;}stars.push({r:r,th:th,w:V/r*R*0.35*(0.9+0.2*Math.random())});}draw();}
+  function draw(){ctx.clearRect(0,0,W,W);
+    if(mode==='dw'){ctx.strokeStyle=band;ctx.lineWidth=26;ctx.lineCap='round';for(var k=0;k<2;k++){ctx.beginPath();for(var r=0.12*R;r<=0.95*R;r+=3){var th=k*Math.PI+armPhase(r)+Wp*t;var x=C+r*Math.cos(th),y=C+r*Math.sin(th);r===0.12*R?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke();}}
+    for(var i=0;i<stars.length;i++){var s=stars[i];var th2=s.th+s.w*t;var inArm=false;if(mode==='dw'){var d=(th2-Wp*t-armPhase(s.r))%Math.PI;if(d<0)d+=Math.PI;inArm=Math.min(d,Math.PI-d)<0.24;}
+      ctx.fillStyle=inArm?arm:dim;ctx.beginPath();ctx.arc(C+s.r*Math.cos(th2),C+s.r*Math.sin(th2),inArm?2.2:1.2,0,Math.PI*2);ctx.fill();}
+    var sr=0.55*R,sth=Math.PI*0.4+V/sr*R*0.35*t;ctx.fillStyle=sunC;ctx.beginPath();ctx.arc(C+sr*Math.cos(sth),C+sr*Math.sin(sth),5,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#EDEEF3';ctx.beginPath();ctx.arc(C,C,3.5,0,Math.PI*2);ctx.fill();
+    document.getElementById('laps').textContent='Sun orbits: '+((V/sr*R*0.35*t)/(2*Math.PI)).toFixed(1);}
+  function loop(){if(!paused){t+=0.03;draw();}requestAnimationFrame(loop);}
+  var bDw=document.getElementById('m-dw'),bMat=document.getElementById('m-mat'),bP=document.getElementById('pause');
+  bDw.onclick=function(){mode='dw';bDw.setAttribute('aria-pressed','true');bMat.setAttribute('aria-pressed','false');init();};
+  bMat.onclick=function(){mode='mat';bMat.setAttribute('aria-pressed','true');bDw.setAttribute('aria-pressed','false');init();};
+  document.getElementById('reset').onclick=init;
+  bP.textContent=paused?'Play':'Pause';
+  bP.onclick=function(){paused=!paused;bP.textContent=paused?'Play':'Pause';};
+  init();loop();
+})();
+</script>
+</body>
+</html>
