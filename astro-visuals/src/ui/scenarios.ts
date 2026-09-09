@@ -93,6 +93,13 @@ export function applyFocusView(): void {
     if($('tDive').classList.contains('on')) $('tDive').click();
     if(!$('tView').classList.contains('on')) $('tView').click();
     else { cam.follow = false; cam.distGoal = 4300; cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0; }
+    // Face-on from the NORTH galactic pole, not the old 16-degrees-above-the-plane slant. From
+    // near the plane the far half of the disk sweeps one way across the screen and the near
+    // half the other, and the rotation's sense cannot be read at all — which is exactly the
+    // complaint that led here. From the pole it reads plainly: clockwise, as measured. +y is
+    // north (tools/build_athyg_stars.py fixes the frame), so positive pitch is the north side;
+    // 1.38 rad leaves a little depth so the warp and the dust stay three-dimensional.
+    cam.yaw = 0; cam.pitch = 1.38;
   }
   saveSettings();
 }

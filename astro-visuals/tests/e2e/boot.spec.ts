@@ -320,3 +320,71 @@ test.describe('the life cycle', () => {
     expect(errors, errors.join('\n')).toEqual([])
   })
 })
+
+/**
+ * The rotation's sense, pinned.
+ *
+ * Seen from the north galactic pole the Milky Way turns CLOCKWISE — Oort's 1927 velocity
+ * pattern, the reflex motion of Sgr A*, and Gaia's proper motions all say so, and the
+ * explainer shipped at docs/how-the-milky-way-turns.html walks through the evidence. This
+ * scene's frame puts north on +y (tools/build_athyg_stars.py), so a camera at positive pitch
+ * looks down from the north side.
+ *
+ * The question was raised once as "the rotation is wrong", and answering it took a day of
+ * measurement, because the scene STORES a mirrored universe (the l=90/north/−centre frame has
+ * determinant −1) and SKY_MIRROR mirrors the projection back — any check made in scene
+ * coordinates alone reads backwards. So the sense is pinned here at the only level that
+ * cannot deceive: what a viewer actually sees. The arm labels ride the pattern through the
+ * page's own projection; over 40 Myr each must sweep clockwise about the screen centre.
+ */
+test.describe('the rotation sense', () => {
+  test('from the north galactic pole, the disk turns clockwise on screen', async ({ page }) => {
+    await page.setViewportSize({ width: 900, height: 900 })
+    await page.goto('/galactic-transit.html?debug', { waitUntil: 'load' })
+    await page.waitForFunction(() => !!document.getElementById('gl'))
+    const tour = page.locator('#tourGo')
+    if (await tour.isVisible().catch(() => false)) await tour.click()
+
+    const armsAt = async (simT: number) => {
+      await page.evaluate((t) => {
+        const state = {
+          app: 'galactic-transit',
+          time: { simT: t, paused: true },
+          camera: { yaw: 0, pitch: 1.45, dist: 3000, distGoal: 3000, follow: false, coreLock: false, dive: false },
+        }
+        ;(document.getElementById('dbgText') as HTMLTextAreaElement).value = JSON.stringify(state)
+        document.getElementById('dbgImport')!.click()
+      }, simT)
+      // labels ease toward their targets; give them time to land
+      await page.waitForTimeout(2500)
+      return page.evaluate(() => {
+        const out: Record<string, [number, number]> = {}
+        for (const el of document.querySelectorAll('#labels .armlbl')) {
+          const e = el as HTMLElement
+          if (e.style.display === 'none' || !e.textContent) continue
+          out[e.textContent] = [parseFloat(e.style.left), parseFloat(e.style.top)]
+        }
+        return out
+      })
+    }
+
+    const a = await armsAt(0)
+    const b = await armsAt(40e6)
+    const cx = 450, cy = 450
+    let clockwise = 0, counter = 0
+    // .armlbl also dresses Andromeda, her companions and Milkomeda, whose labels move with
+    // the ORBIT, not the disk — only the Milky Way's own arms may vote. The bar label sits
+    // near the centre, where its lever arm is noise.
+    const ARMS_ONLY = ['Orion Spur', 'Sagittarius–Carina', 'Perseus', 'Scutum–Centaurus', 'Outer Arm']
+    for (const k of ARMS_ONLY) {
+      if (!a[k] || !b[k]) continue
+      const [x0, y0] = a[k]!, [x1, y1] = b[k]!
+      // screen y grows downward, so a positive cross product is a CLOCKWISE sweep
+      const cross = (x0 - cx) * (y1 - cy) - (y0 - cy) * (x1 - cx)
+      if (Math.abs(cross) < 1) continue // did not move measurably; no vote
+      cross > 0 ? clockwise++ : counter++
+    }
+    expect(clockwise, 'no arm label moved measurably — the probe has gone stale').toBeGreaterThan(0)
+    expect(counter, 'an arm label swept COUNTERCLOCKWISE seen from the north pole').toBe(0)
+  })
+})
