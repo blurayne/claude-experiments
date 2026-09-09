@@ -95,7 +95,7 @@ export function setGalaxy(D: number): void {
   if(!gxyCache[key]){
     const b = (gfx.galaxyMap ? genGalaxyMap : genGalaxy)(D);
     const gv = pointVAO(b.star.pos, b.star.size, b.star.col, b.star.wave);
-    const nv = pointVAO(b.neb.pos, b.neb.size, b.neb.col);
+    const nv = pointVAO(b.neb.pos, b.neb.size, b.neb.col, b.neb.wave);   // spur puffs carry the slow-pattern flag
     const dv = pointVAO(b.dust.pos, b.dust.size, b.dust.str);
     // Andromeda's buffers come back unuploaded now, so the three VAOs are built here — the
     // only place that knows both what was generated and how to put it on the GPU.

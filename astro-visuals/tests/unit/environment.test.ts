@@ -266,10 +266,12 @@ describe('environment — the climate model', () => {
 })
 
 describe('the glacial epochs — the model\'s headline claim', () => {
-  // This is what the cosmic-ray coupling exists to produce, and it is the thing the science
-  // work will change: the spacing follows from the corotation radius the piece uses, which is
-  // not the measured one. Asserted here so that when that radius moves, the consequence shows
-  // up as a failing test with a number in it rather than as a quietly different piece.
+  // This is what the cosmic-ray coupling exists to produce. Since v3.1 the spacing follows
+  // from the BAR's measured pattern speed (corotation RC_BAR ~5.9 kpc): the Sun sits outside
+  // it, the four bar-driven arms overtake the Sun, and one sweeps past about every 146 Myr —
+  // within errors of the ~140 Myr glaciation record the hypothesis was fitted to. Asserted
+  // here so that if the pattern speeds move again, the consequence shows up as a failing
+  // test with a number in it rather than as a quietly different piece.
   const iceEpochs = (fromGyr: number, toGyr: number): number[] => {
     const onsets: number[] = []
     let wasIce = false
@@ -313,13 +315,22 @@ describe('lifeState — how habitable it is', () => {
   })
 
   it('ends habitability as the Sun brightens, and never recovers it', () => {
+    // Not a monotonicity check on h itself — the radiation term rides the arm crossings
+    // and oscillates on top of the solar ramp, and the old envelope assertion only passed
+    // because the pre-3.1 pattern speed happened to leave no arm near a = 5.35. (The trend
+    // test above learned the same lesson earlier, and says so.) What the model actually
+    // claims is that the SOLAR hazard is a one-way ramp: h never falls below it, and once
+    // the Sun has made the world uninhabitable it stays that way.
     expect(at(6.5).label).toBe('uninhabitable')
-    let worst = 0
+    let doomed = false
     for (let a = 5.35; a < 12; a += 0.05) {
       const h = at(a).h
-      expect(h).toBeGreaterThanOrEqual(worst - 1e-9)
-      worst = Math.max(worst, h)
+      const solarFloor = Math.min(1, Math.max(0, (a - 5.35) / 0.95))
+      expect(h, `h fell below the solar ramp at ${a.toFixed(2)} Gyr`).toBeGreaterThanOrEqual(solarFloor - 1e-9)
+      if (h >= 1 - 1e-9) doomed = true
+      if (doomed) expect(h, `habitability recovered at ${a.toFixed(2)} Gyr`).toBeGreaterThanOrEqual(1 - 1e-9)
     }
+    expect(doomed, 'the Sun never finished the job').toBe(true)
   })
 
   it('keeps the hazard bounded to 0..1 across the whole history', () => {

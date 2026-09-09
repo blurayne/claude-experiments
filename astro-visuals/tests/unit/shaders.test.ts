@@ -6,17 +6,15 @@ import { fileURLToPath } from 'node:url'
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
 
 /**
- * The 23 GLSL programs used to be template literals in the page and are now files.
+ * The 23 GLSL programs used to be template literals in the page and are now files — and since
+ * v3.1 the files are the LIVE source: the rotation work edits pt/sn/rem.vert deliberately, so
+ * byte-parity against the pre-refactor page is no longer the claim.
  *
- * A shader is compiled by the driver from exactly the bytes it is handed, and nothing else in
- * this project will tell you if those bytes changed: there is no type checker for GLSL, the
- * compile happens at runtime, and a shader that still compiles but computes something
- * slightly different fails silently and looks like a rendering bug months later. So the
- * extraction is asserted to be byte-exact against the pre-refactor page, character for
- * character, including the indentation and the comments.
- *
- * `?raw` is used precisely so this can be true — no plugin reformats, minifies or
- * comment-strips on the way through.
+ * What still must hold, and is asserted here: the set of shaders is exactly the set the
+ * original page carried (none lost, none invented), each opens with #version on its first
+ * byte, and each reaches the BUILT page exactly as written on disk — `?raw` exists precisely
+ * so no plugin can reformat, minify or comment-strip on the way through, because a shader is
+ * compiled from exactly the bytes it is handed and a mangled one fails silently at runtime.
  */
 
 const KIND = { VS: 'vert', FS: 'frag' } as const
@@ -50,20 +48,14 @@ describe('the extracted shaders', () => {
     expect(files).toEqual([...pinned.keys()].sort())
   })
 
-  it.each([...pinned.keys()].sort())('%s is byte-identical to the original literal', (name) => {
-    const onDisk = readFileSync(resolve(ROOT, 'src/shaders', name), 'utf8')
-    expect(onDisk).toBe(pinned.get(name))
-  })
-
-  it('reaches the shipped page unaltered', () => {
-    // The build inlines the modules, so each shader ends up as a JS string literal. Checking
-    // a distinctive slice of each is enough to catch a plugin that reformatted them: the
-    // version directive plus the first real line is unique per shader and would not survive
-    // reindentation or comment stripping.
+  it('reaches the shipped page exactly as written on disk', () => {
+    // The build inlines the modules, so each shader ends up as a JS string literal. The
+    // WHOLE file must survive: since the sources are live now, this is the only assertion
+    // standing between an edited shader and a bundler that quietly reformats it.
     const built = readFileSync(resolve(ROOT, 'galactic-transit.html'), 'utf8')
-    for (const [name, source] of pinned) {
-      const firstLines = source.split('\n').slice(0, 2).join('\n')
-      const escaped = JSON.stringify(firstLines).slice(1, -1)
+    for (const name of files) {
+      const onDisk = readFileSync(resolve(ROOT, 'src/shaders', name), 'utf8')
+      const escaped = JSON.stringify(onDisk).slice(1, -1)
       expect(built.includes(escaped), `${name} is not in the built page as written`).toBe(true)
     }
   })

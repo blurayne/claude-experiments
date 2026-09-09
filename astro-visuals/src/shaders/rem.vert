@@ -13,7 +13,7 @@ void main(){
   float fade = 1.0;
   if(uSpin != 0.0){
     float r = length(p.xz);
-    float d = mix(uSpin / max(r, 520.0), uSpin/640.0, w);
+    float d = mix(uSpin / max(r, 520.0), uSpin/650.0, w);   // arm remnants ride the bar-driven pattern
     float c = cos(d), s = sin(d);
     p = vec3(p.x*c + p.z*s, p.y, p.z*c - p.x*s);
     float wr = max(0.0, r - 950.0);

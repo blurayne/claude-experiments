@@ -1,6 +1,6 @@
 import { $ } from '../core/dom'
 import { mul } from '../core/mat4'
-import { AU2U, REAL_MODE } from '../astro/constants'
+import { AU2U, REAL_MODE, RC_BAR, RC_ARMS } from '../astro/constants'
 import { BODIES, NB, N_PLANETS, I_P9 } from '../astro/bodies'
 import { M31_ROT } from '../astro/merger'
 import { gfx, readout, view } from './state'
@@ -38,15 +38,17 @@ const structEls = STRUCTS.map(s=>{
   d.style.display='none'; d.style.opacity='0.55'; labelWrap.appendChild(d); return d;
 });
 // Spiral-arm names, placed on this map's measured bright ridges and named by their
-// radial order from the Sun, after the canonical face-on annotation. They ride the
-// density-wave rotation, exactly as the arm pattern itself does in the shader.
-const ARM_LBLS: readonly (readonly [string, number, number])[] = [
-  ['Orion Spur',          150,  830],
-  ['Sagittarius–Carina',  110,  580],
-  ['Perseus',              70, 1010],
-  ['Scutum–Centaurus',   -170, -560],
-  ['Outer Arm',          -260, 1340],
-  ['Galactic bar',         30,   40],
+// radial order from the Sun, after the canonical face-on annotation. Each rides ITS OWN
+// pattern, exactly as the structure it names does in the shader: the bar-driven arms the
+// fast pattern (RC_BAR), the Orion Spur the slow near-corotation one (RC_ARMS) — so the
+// spur's name stays with the Sun's neighbourhood while the arm names sweep past.
+const ARM_LBLS: readonly (readonly [string, number, number, number])[] = [
+  ['Orion Spur',          150,  830, RC_ARMS],
+  ['Sagittarius–Carina',  110,  580, RC_BAR],
+  ['Perseus',              70, 1010, RC_BAR],
+  ['Scutum–Centaurus',   -170, -560, RC_BAR],
+  ['Outer Arm',          -260, 1340, RC_BAR],
+  ['Galactic bar',         30,   40, RC_BAR],
 ];
 export const armEls = ARM_LBLS.map(a=>{
   const d=document.createElement('div'); d.className='armlbl'; d.textContent=a[0];
@@ -189,8 +191,8 @@ export function drawLabels(showLabels: boolean, inputs: LabelInputs): void {
   // arm names: world coordinates rotated with the wave, then projected like the rest
   // (once the remnant starts to relax there are no arms left to name)
   if(galaxyNames && merge < 0.35){
-    const d = spinMW/640, cD = Math.cos(d), sD = Math.sin(d);
     for(let a=0;a<ARM_LBLS.length;a++){
+      const d = spinMW/ARM_LBLS[a][3], cD = Math.cos(d), sD = Math.sin(d);
       const wx = ARM_LBLS[a][1]*cD + ARM_LBLS[a][2]*sD, wz = ARM_LBLS[a][2]*cD - ARM_LBLS[a][1]*sD;
       const [cw, sx, sy] = proj(wx-org[0], -org[1], wz-org[2]);
       placeLabel(armEls[a] as Label, sx, sy, cw > 1);

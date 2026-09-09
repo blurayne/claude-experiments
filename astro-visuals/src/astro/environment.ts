@@ -2,18 +2,21 @@
  * Earth's galactic environment, and what it does to the climate.
  *
  * Everything here is a pure function of the clock, where it used to read `simT` directly.
- * That is not tidiness: this is the model the science work will revisit — the arm-crossing
- * cadence, the corotation radius, whether the cosmic-ray coupling belongs at all — and a
- * function you can call at an arbitrary time is one you can plot, tabulate and test.
+ * That is not tidiness: this is the model the science work revisits — and in v3.1 it did.
  *
  * The cosmic-ray/cloud coupling is drawn as a HYPOTHESIS, not a result, and the info panel
- * says so: Shaviv and Svensmark proposed it and it remains contested. The ~140 Myr glaciation
- * spacing it produces is a consequence of the corotation radius this piece uses, which is not
- * the measured one. Moving it to the measured value ends the glacial epochs — a decision
- * about what the piece claims, not a bug fix, and one recorded in TODO.md rather than taken
- * here.
+ * says so: Shaviv and Svensmark proposed it and it remains contested. What changed in v3.1
+ * is that the cadence no longer rests on an invented corotation radius. The arms are
+ * bar-driven and ride the bar's measured pattern speed (corotation RC_BAR, ~5.9 kpc,
+ * ~39 km/s/kpc): the Sun sits outside that corotation, so the four arms overtake it, one
+ * about every 146 Myr — within errors of the ~140 Myr glaciation spacing the whole argument
+ * was built around. The Sun's own Local Spur rides the slow spiral pattern instead
+ * (corotation RC_ARMS, ~8.5 kpc, just outside the Sun), so the Sun creeps deeper into it
+ * and leaves out the front over the next ~150 Myr — that is the small extra cosmic-ray and
+ * starlight term below, and it is why "we sit on the spur's inner edge" stays true on
+ * screen for the rest of the disk's life.
  */
-import { AGE0, YR_PER_SIM, V_GAL, R_GAL, ARMS, armAngle } from './constants'
+import { AGE0, YR_PER_SIM, V_GAL, R_GAL, RC_BAR, RC_ARMS, ARMS, armAngle } from './constants'
 import { WOB_T } from './bodies'
 import { mergeAt } from './merger'
 import { sunState } from './sun'
@@ -49,17 +52,32 @@ export function ratesIntegral(a: number): number { // factor-weighted years betw
 // Shaviv and Svensmark proposed that this modulates low cloud cover and so the climate,
 // matching the ~140 Myr spacing of the great ice ages. It remains contested, and it is
 // drawn here as a hypothesis, not a result.
-function rawCR(ts: number): { cr: number; armProx: number } {
-  const rel = ts*V_GAL*(1/R_GAL - 1/640);        // Sun's angle within the spiral pattern
+function rawCR(ts: number): { cr: number; armProx: number; spurProx: number } {
+  // The Sun's angle within each of the two patterns. Against the bar-driven arms it is
+  // NEGATIVE and growing: the pattern is the faster one, and the arms sweep past the Sun.
+  const relFast = ts*V_GAL*(1/R_GAL - 1/RC_BAR);
+  // Against the spur's pattern the Sun creeps AHEAD — one relative lap in ~6 Gyr.
+  const relSlow = ts*V_GAL*(1/R_GAL - 1/RC_ARMS);
   let best = 9;
   for(const a of ARMS){
-    let d = rel - armAngle(R_GAL, a[0]);
+    let d = relFast - armAngle(R_GAL, a[0]);
     d = Math.atan2(Math.sin(d), Math.cos(d));
     best = Math.min(best, Math.abs(d));
   }
   const armProx = Math.exp(-Math.pow(best/0.45,2));
+  // The Local Spur: a short segment whose centre sits 0.02 rad ahead of the Sun today.
+  // The Sun reaches its middle in ~20 Myr and is out the front ~130 Myr later; the next
+  // pass comes only after the ~6 Gyr relative lap, by which time the merger has begun.
+  let ds = relSlow - 0.02;
+  ds = Math.atan2(Math.sin(ds), Math.cos(ds));
+  const spurProx = Math.exp(-Math.pow(ds/0.12,2));
   const planeProx = 1 - Math.abs(Math.sin(2*Math.PI*ts/WOB_T + 2.1));
-  return { cr: 1 + 2.2*armProx + 0.5*planeProx, armProx };
+  // The spur deliberately does NOT enter the cosmic-ray sum. Its supernova contribution is
+  // second-order against a grand arm's, and adding even a small term lifts the present-day
+  // normalisation enough that real arm crossings stop clearing the glacial threshold — the
+  // 210-Myr spacing that mistake produced is pinned in the tests. It feeds the starlight
+  // readout instead, which is what a nearby lane of OB stars actually dominates.
+  return { cr: 1 + 2.2*armProx + 0.5*planeProx, armProx, spurProx };
 }
 const CR0 = rawCR(0).cr;                          // normalise: today is 1.00x
 export function environment(ts: number): Environment {
@@ -81,7 +99,9 @@ export function environment(ts: number): Environment {
   const mean = (288.15 + dT)*L4 - 273.15;
   const spread = 1/Math.max(1, L4);
   return { cr, mean, min: mean - 104*spread, max: mean + 42*spread,
-           star: 1 + 2.0*r.armProx*spiral, ice: mean < 11.2 };
+           // the spur is close and its young stars are bright: it carries a starlight
+           // share out of proportion to its modest cosmic-ray weight
+           star: 1 + (2.0*r.armProx + 0.5*r.spurProx)*spiral, ice: mean < 11.2 };
 }
 
 export function lifeState(a: number, e: Environment): LifeState {

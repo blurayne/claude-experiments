@@ -22,7 +22,8 @@ import { gfx } from '../render/state'
 
 export interface GalaxyBuffers {
   star: { pos: Float32Array; size: Float32Array; col: Float32Array; wave: Float32Array }
-  neb: { pos: Float32Array; size: Float32Array; col: Float32Array }
+  /** wave: 2 marks Local Spur puffs, which ride the slow near-corotation pattern (v3.1) */
+  neb: { pos: Float32Array; size: Float32Array; col: Float32Array; wave?: Float32Array }
   dust: { pos: Float32Array; size: Float32Array; str: Float32Array }
 }
 
@@ -62,7 +63,8 @@ export function genGalaxy(D: number): GalaxyBuffers {
     } else if(i<24600*D){ // Local (Orion) Spur — the short arm segment the Sun lives in
       const r=900+(Math.random()*2-1)*170+gauss()*26;
       const th=-(r-900)/(900*PITCH)+0.02+gauss()*0.05;
-      x=r*Math.sin(th); z=r*Math.cos(th); y=gauss()*7; wv=1;
+      // wv=2: the spur rides the slow, near-corotation pattern and stays the Sun's home
+      x=r*Math.sin(th); z=r*Math.cos(th); y=gauss()*7; wv=2;
       const roll=Math.random();
       if(roll<0.05){ cr=.8; cg=.46; cb=.55; s=3.2+Math.random()*2.2; }
       else if(roll<0.16){ cr=.5; cg=.62; cb=.9; s=2.8+Math.random()*2.4; }
@@ -102,21 +104,22 @@ export function genGalaxy(D: number): GalaxyBuffers {
   gfx.NEB_N = Math.round(2600*D);
   gfx.NEB_PINK = 0; gfx.NEB_GLOW = gfx.NEB_N;   // no runs in the schematic galaxy: all of it is haze
   nebPos=new Float32Array(gfx.NEB_N*3); nebSize=new Float32Array(gfx.NEB_N); nebCol=new Float32Array(gfx.NEB_N*3);
+  const nebWave=new Float32Array(gfx.NEB_N);
   {
     const TYPES=[[.058,.018,.030],[.016,.044,.050],[.030,.020,.060],[.052,.033,.014]]; // Hα pink, OIII teal, violet dust-glow, amber
     const TW=[.38,.28,.22,.12];
     let p=0;
     while(p<gfx.NEB_N){
-      let r, th, str=1, core=false;
+      let r, th, str=1, core=false, nwv=0;
       const kind=Math.random();
       if(kind<0.05){ // soft warm glow enveloping the nucleus
         r=Math.abs(gauss())*70; th=Math.random()*2*Math.PI; str=1.6; core=true;
       } else if(kind<0.14){ // starburst knots at the bar tips — a real feature of barred galaxies
         th=(Math.random()<0.5?BAR_A:BAR_A+Math.PI)+gauss()*0.06;
         r=BAR_L*(0.95+Math.random()*0.15);
-      } else if(kind<0.27){ // Local Spur, around the Sun
+      } else if(kind<0.27){ // Local Spur, around the Sun — rides the slow pattern with its stars
         r=900+(Math.random()*2-1)*150;
-        th=-(r-900)/(900*PITCH)+0.02+gauss()*0.04; str=0.8;
+        th=-(r-900)/(900*PITCH)+0.02+gauss()*0.04; str=0.8; nwv=2;
       } else { // spiral arms
         const arm = Math.random()<0.72 ? ARMS[(Math.random()*2)|0] : ARMS[2+((Math.random()*2)|0)];
         r=BAR_L+40+Math.pow(Math.random(),0.95)*1150;
@@ -135,6 +138,7 @@ export function genGalaxy(D: number): GalaxyBuffers {
         nebSize[p]=scale*(0.6+Math.random()*0.8);
         const j=0.7+Math.random()*0.6;
         nebCol[p*3]=col[0]*j*NBS; nebCol[p*3+1]=col[1]*j*NBS; nebCol[p*3+2]=col[2]*j*NBS;
+        nebWave[p]=nwv;
       }
     }
   }
@@ -180,7 +184,7 @@ export function genGalaxy(D: number): GalaxyBuffers {
     }
   }
   return { star: { pos: gxyPos!, size: gxySize!, col: gxyCol!, wave: gxyWave! },
-           neb:  { pos: nebPos!,  size: nebSize!,  col: nebCol! },
+           neb:  { pos: nebPos!,  size: nebSize!,  col: nebCol!, wave: nebWave },
            dust: { pos: dustPos!, size: dustSize!, str: dustStr! } };
 }
 
@@ -242,6 +246,13 @@ export function genGalaxyMap(D: number): GalaxyBuffers {
       s = 1.4 + Math.random()*1.8 + (l>0.72 ? Math.random()*1.2 : 0);
       // bright structure and the bar ride the density wave; the smooth background shears
       wv = (l > m.blur[pI]*1.10 || rw < 560) ? 1 : 0;
+      // The Local Spur rides the SLOW pattern (wv=2), co-moving with the Sun. Identified
+      // geometrically — the map cannot say which arm a pixel belongs to — as bright
+      // structure on the spur's own locus. Arithmetic only: the RNG stream must not move.
+      if(wv === 1 && Math.abs(rw-900) < 180){
+        const dth = Math.atan2(X,Z) - (-(rw-900)/(900*PITCH)+0.02);
+        if(Math.abs(Math.atan2(Math.sin(dth), Math.cos(dth))) < 0.10) wv = 2;
+      }
     }
     gxyPos[i*3]=X; gxyPos[i*3+1]=Y; gxyPos[i*3+2]=Z; gxyWave[i]=wv;
     gxySize[i]=s*SS; gxyCol[i*3]=cr*BS; gxyCol[i*3+1]=cg*BS; gxyCol[i*3+2]=cb*BS;

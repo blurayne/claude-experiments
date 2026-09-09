@@ -32,11 +32,16 @@ void main(){
   if(uSpin != 0.0){
     float r = length(p.xz);
     // material stars: flat rotation curve, so they shear differentially. Wave-flagged
-    // points (bar, arms, spur, gas, young stars) rigidly follow one pattern speed
-    // instead — corotation at r=640 (~19 kly) — so stars stream through the arms
-    // and the pattern never winds up: density-wave theory's answer to the winding problem.
-    float w = max(aWave, uWaveAll);
-    float d = mix(uSpin / max(r, 520.0), uSpin/640.0, w);
+    // points ride a rigid pattern instead, so stars stream through the arms and the
+    // pattern never winds up — and there are TWO patterns now, both measured. aWave=1:
+    // the bar and the four arms it drives, corotation r=650 (~5.9 kpc, pattern speed
+    // ~39 km/s/kpc, the published bar value); the Sun sits outside it, so these arms
+    // overtake the Sun about every 146 Myr. aWave=2: the Local Spur, corotation r=933
+    // (~8.5 kpc, the measured spiral value, just outside the Sun's 8.2) — the Sun creeps
+    // deeper into its own spur and will leave it out the front.
+    float w = min(max(aWave, uWaveAll), 1.0);
+    float rc = mix(650.0, 933.0, step(1.5, aWave));
+    float d = mix(uSpin / max(r, 520.0), uSpin/rc, w);
     float c = cos(d), s = sin(d);
     p = vec3(p.x*c + p.z*s, p.y, p.z*c - p.x*s);
     // Gaia-style warp: outer disk bends up on one side, down on the other,

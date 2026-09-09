@@ -1,7 +1,7 @@
 import { $ } from '../core/dom'
 import { lookAt, mul, perspective, MAT3_ID, type Vec3 } from '../core/mat4'
 import {
-  R_GAL, V_GAL, AGE0, AU2U, REAL_MODE, TILT, E1, E2,
+  R_GAL, V_GAL, AGE0, AU2U, REAL_MODE, TILT, E1, E2, RC_BAR,
 } from '../astro/constants'
 import { BODIES, NB, N_PLANETS, I_P9, bodyPos, tmp, earthW } from '../astro/bodies'
 import { EAT_AGES, sunState, sunTint, pnState, type PnState } from '../astro/sun'
@@ -251,7 +251,10 @@ function frame(now: number): void {
   const spin = diskSpin(simClock.simT);
   const warp = -2*Math.PI*simClock.simT/650e6; // warp precession: retrograde, ~650 Myr per turn
   const spinMW  = spin;
-  const spinM31 = spin*1.07;   // M31's flat curve runs ~7% faster
+  // M31's flat curve runs ~7% faster in angular terms. Its rigid rate goes through the
+  // shader's RC_BAR divisor, so the factor carries 650/640 from the v3.1 pattern-radius
+  // change to keep the drawn rate exactly what it was.
+  const spinM31 = spin*1.087;
   const sunX=org[0], sunY=org[1], sunZ=org[2];
   const bubY = REAL_MODE ? sunY+1e8 : sunY; // real scale: nothing is magnified, so no clearance bubble
   gl.uniform1f(U.ptPx,pxScale);
@@ -313,7 +316,9 @@ function frame(now: number): void {
     // Sun's own orbital angle: the side that faces the galactic centre keeps facing it
     // (over 20 Myr the Sun turns through 32 degrees, which is anything but negligible).
     gl.uniform1f(U.ptWA, 1.0);
-    gl.uniform1f(U.ptSpin, (simClock.simT*V_GAL/900) * 640);
+    // pre-scaled by RC_BAR: the bubble's points carry no wave flag, so the shader divides
+    // by the fast pattern's radius, and this hack must hand it the Sun's own angle
+    gl.uniform1f(U.ptSpin, (simClock.simT*V_GAL/900) * RC_BAR);
     gl.bindVertexArray(gfx.vaoGaia); gl.drawArrays(gl.POINTS,0,gfx.N_GAIA);
     if(gfx.vaoGaiaDeep && gfx.curD >= 5){ gl.bindVertexArray(gfx.vaoGaiaDeep); gl.drawArrays(gl.POINTS,0,gfx.N_GAIA_DEEP); }
     gl.uniform1f(U.velT, 0.0);

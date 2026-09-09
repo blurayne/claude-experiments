@@ -60,3 +60,26 @@ export const ARMS = [
   [BAR_A+3*Math.PI/2, 0.50],  // Norma / Outer
 ];
 export const sA = Math.sin(BAR_A), cA = Math.cos(BAR_A);
+
+/**
+ * The two pattern speeds, both anchored to measurements (v3.1, the rotation work).
+ *
+ * Each is the corotation radius in scene units — the radius where a star's own angular
+ * speed matches the pattern's, which with the flat curve V_GAL fixes the pattern speed as
+ * V_GAL/rc. The Sun sits at R_GAL = 900 = 8.2 kpc, so 900 units/8.2 kpc converts.
+ *
+ * RC_BAR: the bar and the four arms it drives. 650 units = 5.9 kpc corotation, pattern
+ * speed 230/5.9 ≈ 39 km/s/kpc — the published bar speed (35–40 across the Gaia-era
+ * fits). The Sun lies OUTSIDE this corotation, so these arms overtake the Sun: one
+ * sweeps past about every 146 Myr, which is the cadence the glacial epochs ride on and
+ * within errors the ~140 Myr the deep-time table quotes. (The pre-3.1 single pattern
+ * used 640; the bar measurement lands within two percent of it.)
+ *
+ * RC_ARMS: the Local (Orion) Spur. 933 units = 8.5 kpc, the measured spiral-arm
+ * corotation, just outside the Sun's 8.2 — so the Sun runs slightly FASTER than its
+ * spur, creeping deeper into it and eventually leaving out the front, exactly as the
+ * kinematics have it. One relative lap takes ~6 Gyr: the spur is our neighbourhood for
+ * the rest of the disk's life.
+ */
+export const RC_BAR = 650;
+export const RC_ARMS = 933;
