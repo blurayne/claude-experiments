@@ -7406,7 +7406,17 @@ startFrameLoop({
   }
   .gamebar .stat b{display:block;font-family:'Orbitron',ui-monospace,monospace;font-size:14px;letter-spacing:.06em;color:var(--accent);font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums;text-shadow:0 0 10px var(--glow)}
   @media (max-width:600px){ .note{display:none} .hud{width:min(366px, calc(100vw - 28px))} .gamebar{gap:16px;padding:8px 14px} .gamebar .stat b{font-size:14px} }
-  @media (prefers-reduced-motion: reduce){ /* start paused for reduced-motion users (handled in JS) */ }</style>
+  @media (prefers-reduced-motion: reduce){ /* start paused for reduced-motion users (handled in JS) */ }
+  /* Hovered buttons breathe: a sine-eased glow while the pointer rests on them, and a
+     quick transition back the moment it leaves (the animation stops, the base shadow
+     eases in over 0.22s). The attention pulse (.pdot.attn) outranks it by specificity. */
+  button{transition:box-shadow .22s ease}
+  button:hover{animation:hoverGlow 1.6s ease-in-out infinite}
+  @keyframes hoverGlow{0%,100%{box-shadow:0 0 4px 1px rgba(95,216,255,.22)}
+    50%{box-shadow:0 0 12px 3px rgba(95,216,255,.5)}}
+  @media (prefers-reduced-motion: reduce){
+    button:hover{animation:none;box-shadow:0 0 8px 2px rgba(95,216,255,.35)}
+  }</style>
 </head>
 <body>
 <canvas id="gl"></canvas>
