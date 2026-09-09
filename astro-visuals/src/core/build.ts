@@ -9,7 +9,7 @@
  * property of the machine that loaded the page. The parity harness pins TZ for that reason.
  */
 
-export const BUILD = { version: '3.8.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+export const BUILD = { version: '3.9.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 export const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.

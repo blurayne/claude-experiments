@@ -219,7 +219,11 @@
   #scaleNote .sacross{margin-top:3px;font-size:10px;color:var(--dim);letter-spacing:.03em}
   #scaleNote .sacross em{font-family:'Orbitron',ui-monospace,monospace;font-size:.92em;
     color:var(--accent);font-style:normal;font-weight:600;text-shadow:0 0 8px var(--glow)}
-  @media (max-width:600px){ #scaleNote .sacross{display:none} }
+  /* both parts are switchable (settings ▸ readouts); the classes are what the switches
+     drive, so the media query no longer decides anything on its own — it only sets the
+     default the first boot on a phone picks up. */
+  #scaleNote.noBar .sbar, #scaleNote.noBar .slab{display:none}
+  #scaleNote.noText .sacross{display:none}
   /* A panel slides to its new home rather than teleporting: swiped down to the foot of
      its column, back up to the head, or across to the other side. .drag suppresses it
      while a finger is actually on the panel (see .pnl.drag above). */

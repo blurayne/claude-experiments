@@ -251,6 +251,15 @@ toggle($('tGaia'), on=> gfx.gaiaOn=on);
 // The frame rate has two switches on purpose: one in the settings' readouts, one in the
 // debug panel beside the state box, because that is where somebody debugging looks for
 // it. tFps owns the state; its twin follows, exactly as the spin lock's pair does.
+// The scale, in two parts, each switchable. A phone gets neither by default — the screen
+// is wanted for the sky — and the choice is remembered from then on like any other.
+{ const phone = matchMedia('(max-width: 600px)').matches;
+  let saved: string | null = null; try{ saved = localStorage.getItem(SKEY); }catch(e){}
+  if(!saved && phone){ ($('tScaleBar') as HTMLInputElement).checked = false;
+                       ($('tScaleText') as HTMLInputElement).checked = false; }
+}
+toggle($('tScaleBar'), on=>{ $('scaleNote').classList.toggle('noBar', !on); fitPanels(); });
+toggle($('tScaleText'), on=>{ $('scaleNote').classList.toggle('noText', !on); fitPanels(); });
 toggle($('tHalo'), on=>{ hud.haloOn = on; });
 toggle($('tFps'), on=>{ hud.showFps=on; $('fpsBox').style.display = on ? '' : 'none';
   ($('tFps2') as HTMLInputElement).checked = on; fitPanels(); });
@@ -406,14 +415,10 @@ document.querySelectorAll('.pclose[data-close]').forEach(b =>
 // ---------- the first run ----------
 // The guided look at the interface, its hint placement and its two buttons are ui/tour.
 initTour();
-// The "?" TOGGLES the dialog rather than only opening it, and it rides above the dialog
-// (see #tInfo in dialogs.css) — both so the dialog can be dismissed from the button that
-// summoned it, and so the ten-tap debug gesture in ui/hud is physically possible: the
-// dialog would otherwise cover the button after the very first tap.
-$('tInfo').addEventListener('click', ()=>{
-  const m = $('infoModal');
-  m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
-});
+// The "?" is handled entirely in ui/hud, where the tap counter lives: a run of taps that
+// ends below ten toggles the About dialog, a run that reaches ten toggles the debug door.
+// Nothing fires until the tapping stops — a dialog that opened on the first tap would
+// cover the button and make the count impossible.
 $('infoClose').addEventListener('click', ()=>{ $('infoModal').style.display='none'; });
 $('infoModal').addEventListener('click', e=>{ if(e.target.id==='infoModal') $('infoModal').style.display='none'; });
 if(matchMedia('(prefers-reduced-motion: reduce)').matches){ $('tPause').click(); }

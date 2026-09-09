@@ -509,20 +509,27 @@ export function initHudControls(deps: {
     }), 260);
   });
   {
-    // ten taps on the "?" open or close the debug door, and the choice outlives the reload
+    // One button, two meanings, told apart by counting: a run of taps that ends below ten
+    // toggles the About dialog, a run that reaches ten toggles the debug door and the
+    // choice outlives the reload. Nothing happens until the tapping stops, which is what
+    // makes the count possible at all: the dialog is toggled here, not on the click.
     const b = $('tInfo');
     let taps = 0, tapTimer: ReturnType<typeof setTimeout> | null = null;
     b.addEventListener('click', ()=>{
       taps++;
-      if(taps === 10){
-        flash('flash10');
-        const on = !isDebugMode();
-        setDebugUI(on, true);
-        try{ localStorage.setItem(DBGKEY, on ? '1' : '0'); }catch(err){}
-        taps = 0;
-      }
+      if(taps === 10) flash('flash10');
       if(tapTimer !== null) clearTimeout(tapTimer);
-      tapTimer = setTimeout(()=>{ taps = 0; }, 900);   // the run ends when the tapping stops
+      tapTimer = setTimeout(()=>{
+        const n = taps; taps = 0;
+        if(n >= 10){
+          const on = !isDebugMode();
+          setDebugUI(on, true);
+          try{ localStorage.setItem(DBGKEY, on ? '1' : '0'); }catch(err){}
+        } else {
+          const m = $('infoModal');
+          m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
+        }
+      }, 340);
     });
   }
    // years per second

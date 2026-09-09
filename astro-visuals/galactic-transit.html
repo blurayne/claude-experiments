@@ -92,7 +92,7 @@ function installErrorCollector(){
  * property of the machine that loaded the page. The parity harness pins TZ for that reason.
  */
 
-const BUILD = { version: '3.8.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '3.9.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -1700,7 +1700,7 @@ const SKEY = 'galactic-transit.settings.v1';
 
 const S_TOG = ['tLabels','tArms','tLabelSteady','tZoomBtns','tSpinLock','tDwarfs','tP9','tBelt','tKuiper','tOort','tDust',
                'tEvSN','tEvBirth','tVar',
-               'tStatAge','tStatGyr','tStatSn','tStatBirth','tGaia','tFps','tHalo'];
+               'tStatAge','tStatGyr','tStatSn','tStatBirth','tGaia','tFps','tHalo','tScaleBar','tScaleText'];
 const S_SLD = ['speed','trailA','orbitA','trailL','musicVol','sfxVol','minB','hudHz','coreB','qrScale'];
 const S_CHK = ['fxBirth','fxSn','fxPn','fxDrone','secSolo','closeOnGo','qrOn'];
 
@@ -2343,20 +2343,42 @@ function renderLog()       {
     : '<div class="logempty">' + (TOUCH_DEV ? 'Nothing has gone wrong since this page loaded.'
         : 'Errors are collected on phones and tablets only, where there is no console to open. This device has one — use it.') + '</div>';
 }
-function setHudTab(t        )       {
-  $('hudBody').style.display = t === 'log' ? 'none' : '';
-  $('logBody').style.display = t === 'log' ? '' : 'none';
-  for(const b of document.querySelectorAll('#hudTabs .tab')) b.classList.toggle('on', (b               ).dataset.tab === t);
+/**
+ * The debug panel's three collapsibles — app state, settings, log.
+ *
+ * Its own machinery rather than ui/sections', deliberately: that one enforces
+ * one-section-at-a-time across the settings panel, and folding away the state box
+ * because somebody opened the log would be the wrong answer here.
+ */
+const DSECS = ['state','set','log']         ;
+const dsecBody                         = { state:'dsecState', set:'dsecSet', log:'dsecLog' };
+function initDebugSections()       {
+  for(const h of document.querySelectorAll('.sect[data-dsec]')){
+    h.addEventListener('click', ()=>{
+      const k = (h               ).dataset.dsec ;
+      const closing = !$(dsecBody[k] ).classList.contains('closed');
+      $(dsecBody[k] ).classList.toggle('closed', closing);
+      h.classList.toggle('closed', closing);
+      if(k === 'log' && !closing) renderLog();
+      fitPanels$2();
+    });
+  }
+}
+/** Open the log section and show its contents — what entering debug mode lands on. */
+function openLogSection()       {
+  for(const k of DSECS){
+    const open = k === 'log';
+    $(dsecBody[k] ).classList.toggle('closed', !open);
+    document.querySelector('.sect[data-dsec="'+k+'"]') .classList.toggle('closed', !open);
+  }
   renderLog(); fitPanels$2();
 }
 function setDebugUI(on         , entering         )       {
   debugMode = on;
   $('rowHudHz').style.display = on ? '' : 'none';
   $('rowGain').style.display = on ? '' : 'none';
-  $('hudTabs').style.display = on ? '' : 'none';
-  // the log is what debug mode is entered for, so it opens on it; leaving takes the
-  // settings back, since without the strip there is no way back to them
-  setHudTab(on && entering ? 'log' : 'set');
+  // the log is what debug mode is usually entered for, so entering opens on it
+  if(on && entering) openLogSection();
   // The state box, the QR switches and a second frame-rate box are a panel of their own
   // now rather than a modal behind a button — it opens with the door and closes with it,
   // and can be moved, docked and dismissed like any other panel while it is open.
@@ -2402,7 +2424,7 @@ function initDebug(deps
                        
  )       {
   restoreSettings$1 = deps.restoreSettings; fitPanels$2 = deps.fitPanels;
-  for(const b of document.querySelectorAll('#hudTabs .tab')) b.addEventListener('click', ()=> setHudTab((b               ).dataset.tab ));
+  initDebugSections();
   $('logClear').addEventListener('click', ()=>{ errLog.length = 0; renderLog(); });
   $('logCopy').addEventListener('click', ()=>{
     const txt = 'galactic-transit ' + BUILD.version + ' · ' + navigator.userAgent + '\n'
@@ -4401,7 +4423,14 @@ function frame(now        )       {
   // both at once, so they fade out as the magnified solar system takes over the view and
   // return once it is small enough for the proportion to read. Real scale keeps them
   // throughout, where nothing is magnified and they are simply correct.
-  const gaiaFade = 0 ;
+  // Two fades, because the real-star bubble is wrong at BOTH ends of the zoom. Close in,
+  // the magnified solar system swallows it (the original fade). Far out, the whole 216-unit
+  // bubble collapses into a handful of pixels and a hundred thousand stars stack into one
+  // glaring white dot beside the galaxy — so it fades again on the way out, gone well
+  // before the Galaxy view. Real scale keeps them throughout, where nothing is magnified.
+  const gaiaNear = 0 ;
+  const gaiaFar = Math.min(1, Math.max(0, (cam.dist - 1200)/1800));
+  const gaiaFade = Math.max(gaiaNear, gaiaFar*gaiaFar*(3 - 2*gaiaFar));
   if(gfx.gaiaOn && gfx.vaoGaia && gaiaFade < 0.999){
     gl.uniform1f(U.ptFade, gaiaFade);
     gl.uniform3f(U.ptOrg, 0,0,0);
@@ -5106,20 +5135,27 @@ function initHudControls(deps
     }), 260);
   });
   {
-    // ten taps on the "?" open or close the debug door, and the choice outlives the reload
+    // One button, two meanings, told apart by counting: a run of taps that ends below ten
+    // toggles the About dialog, a run that reaches ten toggles the debug door and the
+    // choice outlives the reload. Nothing happens until the tapping stops, which is what
+    // makes the count possible at all: the dialog is toggled here, not on the click.
     const b = $('tInfo');
     let taps = 0, tapTimer                                       = null;
     b.addEventListener('click', ()=>{
       taps++;
-      if(taps === 10){
-        flash('flash10');
-        const on = !isDebugMode();
-        setDebugUI(on, true);
-        try{ localStorage.setItem(DBGKEY, on ? '1' : '0'); }catch(err){}
-        taps = 0;
-      }
+      if(taps === 10) flash('flash10');
       if(tapTimer !== null) clearTimeout(tapTimer);
-      tapTimer = setTimeout(()=>{ taps = 0; }, 900);   // the run ends when the tapping stops
+      tapTimer = setTimeout(()=>{
+        const n = taps; taps = 0;
+        if(n >= 10){
+          const on = !isDebugMode();
+          setDebugUI(on, true);
+          try{ localStorage.setItem(DBGKEY, on ? '1' : '0'); }catch(err){}
+        } else {
+          const m = $('infoModal');
+          m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
+        }
+      }, 340);
     });
   }
    // years per second
@@ -7249,6 +7285,15 @@ toggle($('tGaia'), on=> gfx.gaiaOn=on);
 // The frame rate has two switches on purpose: one in the settings' readouts, one in the
 // debug panel beside the state box, because that is where somebody debugging looks for
 // it. tFps owns the state; its twin follows, exactly as the spin lock's pair does.
+// The scale, in two parts, each switchable. A phone gets neither by default — the screen
+// is wanted for the sky — and the choice is remembered from then on like any other.
+{ const phone = matchMedia('(max-width: 600px)').matches;
+  let saved                = null; try{ saved = localStorage.getItem(SKEY); }catch(e){}
+  if(!saved && phone){ ($('tScaleBar')                    ).checked = false;
+                       ($('tScaleText')                    ).checked = false; }
+}
+toggle($('tScaleBar'), on=>{ $('scaleNote').classList.toggle('noBar', !on); fitPanels(); });
+toggle($('tScaleText'), on=>{ $('scaleNote').classList.toggle('noText', !on); fitPanels(); });
 toggle($('tHalo'), on=>{ hud.haloOn = on; });
 toggle($('tFps'), on=>{ hud.showFps=on; $('fpsBox').style.display = on ? '' : 'none';
   ($('tFps2')                    ).checked = on; fitPanels(); });
@@ -7403,14 +7448,10 @@ document.querySelectorAll('.pclose[data-close]').forEach(b =>
 // ---------- the first run ----------
 // The guided look at the interface, its hint placement and its two buttons are ui/tour.
 initTour();
-// The "?" TOGGLES the dialog rather than only opening it, and it rides above the dialog
-// (see #tInfo in dialogs.css) — both so the dialog can be dismissed from the button that
-// summoned it, and so the ten-tap debug gesture in ui/hud is physically possible: the
-// dialog would otherwise cover the button after the very first tap.
-$('tInfo').addEventListener('click', ()=>{
-  const m = $('infoModal');
-  m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
-});
+// The "?" is handled entirely in ui/hud, where the tap counter lives: a run of taps that
+// ends below ten toggles the About dialog, a run that reaches ten toggles the debug door.
+// Nothing fires until the tapping stops — a dialog that opened on the first tap would
+// cover the button and make the count impossible.
 $('infoClose').addEventListener('click', ()=>{ $('infoModal').style.display='none'; });
 $('infoModal').addEventListener('click', e=>{ if(e.target.id==='infoModal') $('infoModal').style.display='none'; });
 if(matchMedia('(prefers-reduced-motion: reduce)').matches){ $('tPause').click(); }
@@ -7808,7 +7849,11 @@ startFrameLoop({
   #scaleNote .sacross{margin-top:3px;font-size:10px;color:var(--dim);letter-spacing:.03em}
   #scaleNote .sacross em{font-family:'Orbitron',ui-monospace,monospace;font-size:.92em;
     color:var(--accent);font-style:normal;font-weight:600;text-shadow:0 0 8px var(--glow)}
-  @media (max-width:600px){ #scaleNote .sacross{display:none} }
+  /* both parts are switchable (settings ▸ readouts); the classes are what the switches
+     drive, so the media query no longer decides anything on its own — it only sets the
+     default the first boot on a phone picks up. */
+  #scaleNote.noBar .sbar, #scaleNote.noBar .slab{display:none}
+  #scaleNote.noText .sacross{display:none}
   /* A panel slides to its new home rather than teleporting: swiped down to the foot of
      its column, back up to the head, or across to the other side. .drag suppresses it
      while a finger is actually on the panel (see .pnl.drag above). */
@@ -8016,10 +8061,6 @@ startFrameLoop({
 <div class="hud" id="hud">
   <button class="pclose" id="collapse" aria-label="collapse panel">−</button>
   <h1>Settings</h1>
-  <div class="tabs" id="hudTabs" style="display:none">
-    <button class="tab" data-tab="log">log<b id="logCount"></b></button>
-    <button class="tab on" data-tab="set">settings</button>
-  </div>
   <div class="body" id="hudBody">
     <div class="sect" data-sec="audio">Audio<span class="arw">▾</span></div>
     <div class="sbody" id="secAudio">
@@ -8095,6 +8136,8 @@ startFrameLoop({
       <label class="chk"><input type="checkbox" id="tStatSn"> sn count</label>
       <label class="chk"><input type="checkbox" id="tStatBirth"> births count</label>
       <label class="chk"><input type="checkbox" id="tFps"> fps</label>
+      <label class="chk" title="the scale bar, bottom left"><input type="checkbox" id="tScaleBar" checked> scale bar<button type="button" class="info" data-tip="The bar-and-ticks scale, bottom left, in whatever astronomical unit the zoom has reached. Off by default on a phone, where the screen is needed for the sky." aria-label="about this setting">i</button></label>
+      <label class="chk" title="the spoken width under the scale bar"><input type="checkbox" id="tScaleText" checked> scale in words<button type="button" class="info" data-tip="The &quot;view N across&quot; line under the scale bar." aria-label="about this setting">i</button></label>
     </div>
     <div class="row" id="rowHudHz" style="display:none"><label for="hudHz">hud rate<button type="button" class="info" data-tip="How many times a second the HUD numbers are redrawn. Lower saves battery; the simulation itself keeps its full frame rate." aria-label="about this setting">i</button></label><input type="range" id="hudHz" min="1" max="16" step="1" value="8"><span id="hudHzv" style="min-width:52px;text-align:right;color:var(--ink)">8×/s</span><button class="stepb" data-step="hudHz:-1">−</button><button class="stepb" data-step="hudHz:1">+</button></div>
     </div>
@@ -8109,18 +8152,10 @@ startFrameLoop({
     <button id="tView" style="display:none"></button>
     <button id="tDive" style="display:none"></button>
   </div>
-  <div class="body" id="logBody" style="display:none">
-    <div class="row" style="margin-top:0;justify-content:flex-end;gap:8px">
-      <span id="logNote" style="margin-right:auto;font-size:9px;letter-spacing:.06em;color:var(--dim)"></span>
-      <button class="rowbtn" id="logCopy">copy</button><button class="rowbtn" id="logClear">clear</button>
-    </div>
-    <div id="logList"></div>
-  </div>
   <div class="hudfoot">
     <button class="tg" id="tFull">⛶ full</button>
     <button class="tg" id="tRotate">⟳ auto</button>
     <span style="margin-right:auto"></span>
-    <button id="dbgBtn" style="display:none" title="export or import the full app state">debug</button>
     <button id="tReset" title="forget every saved setting and start over">⟳ reset</button>
     <button id="tReload" title="reload past every cache">⟲ refresh</button>
   </div>
@@ -8260,7 +8295,9 @@ startFrameLoop({
 <div class="alertbox" id="g710Box">☄ GLIESE 710 · <span id="eG710d">—</span></div>
 <div class="env pnl" id="dbgPanel" style="display:none">
   <button class="pclose" data-close="dbgPanel" aria-label="close">−</button>
-  <h2>Debug — app state</h2>
+  <h2>Debug</h2>
+  <div class="sect" data-dsec="state">App state<span class="arw">▾</span></div>
+  <div class="sbody" id="dsecState">
   <textarea id="dbgText" spellcheck="false" style="width:100%;height:min(220px,32vh);resize:vertical;
       background:rgba(0,0,0,.45);border:1px solid var(--line);border-radius:2px;color:var(--ink);
       font:11px/1.45 ui-monospace,Menlo,monospace;padding:8px;box-sizing:border-box"></textarea>
@@ -8271,12 +8308,25 @@ startFrameLoop({
     <button class="dbg-b" id="dbgPaste" title="paste the clipboard into the box">paste</button>
   </div>
   <div id="dbgMsg" style="margin-top:5px;font-size:9.5px;letter-spacing:.1em;color:var(--dim);min-height:13px"></div>
-  <div class="envsep"></div>
+  </div>
+  <div class="sect closed" data-dsec="set">Settings<span class="arw">▾</span></div>
+  <div class="sbody closed" id="dsecSet">
   <div class="chks">
     <label class="chk" title="the whole exported state as a QR code, drawn over everything"><input type="checkbox" id="qrOn"> settings as QR overlay<button type="button" class="info" data-tip="The whole exported state as a QR code drawn over everything; drag to move it, double-tap to dismiss." aria-label="about this setting">i</button></label>
     <label class="chk" title="the frame rate, in its own small box"><input type="checkbox" id="tFps2"> fps<button type="button" class="info" data-tip="The frame rate in its own small box. The same switch as the one in the settings' readouts — either turns it on." aria-label="about this setting">i</button></label>
   </div>
   <div class="row"><label for="qrScale">qr pixels<button type="button" class="info" data-tip="How many device pixels one QR module gets: 1×, 2× or 4×." aria-label="about this setting">i</button></label><input type="range" id="qrScale" min="0" max="2" step="1" value="0"><span id="qrScalev" style="min-width:44px;text-align:right;color:var(--ink)">1×</span></div>
+  </div>
+  <div class="sect closed" data-dsec="log">Log<b id="logCount"></b><span class="arw">▾</span></div>
+  <div class="sbody closed" id="dsecLog">
+  <div id="logBody">
+    <div class="row" style="margin-top:0;justify-content:flex-end;gap:8px">
+      <span id="logNote" style="margin-right:auto;font-size:9px;letter-spacing:.06em;color:var(--dim)"></span>
+      <button class="rowbtn" id="logCopy">copy</button><button class="rowbtn" id="logClear">clear</button>
+    </div>
+    <div id="logList"></div>
+  </div>
+  </div>
 </div>
 <button class="pdot" id="dbgPlus" data-open="dbgPanel" style="display:none" aria-label="show the debug panel">&#9881;</button>
 <div id="scaleNote">

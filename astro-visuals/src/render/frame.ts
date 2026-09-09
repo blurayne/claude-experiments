@@ -405,7 +405,14 @@ function frame(now: number): void {
   // both at once, so they fade out as the magnified solar system takes over the view and
   // return once it is small enough for the proportion to read. Real scale keeps them
   // throughout, where nothing is magnified and they are simply correct.
-  const gaiaFade = REAL_MODE ? 0 : 1 - Math.min(1, Math.max(0, (cam.dist - 210)/280));
+  // Two fades, because the real-star bubble is wrong at BOTH ends of the zoom. Close in,
+  // the magnified solar system swallows it (the original fade). Far out, the whole 216-unit
+  // bubble collapses into a handful of pixels and a hundred thousand stars stack into one
+  // glaring white dot beside the galaxy — so it fades again on the way out, gone well
+  // before the Galaxy view. Real scale keeps them throughout, where nothing is magnified.
+  const gaiaNear = REAL_MODE ? 0 : 1 - Math.min(1, Math.max(0, (cam.dist - 210)/280));
+  const gaiaFar = Math.min(1, Math.max(0, (cam.dist - 1200)/1800));
+  const gaiaFade = Math.max(gaiaNear, gaiaFar*gaiaFar*(3 - 2*gaiaFar));
   if(gfx.gaiaOn && gfx.vaoGaia && gaiaFade < 0.999){
     gl.uniform1f(U.ptFade, gaiaFade);
     gl.uniform3f(U.ptOrg, 0,0,0);

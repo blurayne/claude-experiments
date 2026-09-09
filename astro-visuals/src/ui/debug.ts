@@ -56,20 +56,42 @@ export function renderLog(): void {
     : '<div class="logempty">' + (TOUCH_DEV ? 'Nothing has gone wrong since this page loaded.'
         : 'Errors are collected on phones and tablets only, where there is no console to open. This device has one — use it.') + '</div>';
 }
-function setHudTab(t: string): void {
-  $('hudBody').style.display = t === 'log' ? 'none' : '';
-  $('logBody').style.display = t === 'log' ? '' : 'none';
-  for(const b of document.querySelectorAll('#hudTabs .tab')) b.classList.toggle('on', (b as HTMLElement).dataset.tab === t);
+/**
+ * The debug panel's three collapsibles — app state, settings, log.
+ *
+ * Its own machinery rather than ui/sections', deliberately: that one enforces
+ * one-section-at-a-time across the settings panel, and folding away the state box
+ * because somebody opened the log would be the wrong answer here.
+ */
+const DSECS = ['state','set','log'] as const;
+const dsecBody: Record<string, string> = { state:'dsecState', set:'dsecSet', log:'dsecLog' };
+function initDebugSections(): void {
+  for(const h of document.querySelectorAll('.sect[data-dsec]')){
+    h.addEventListener('click', ()=>{
+      const k = (h as HTMLElement).dataset.dsec!;
+      const closing = !$(dsecBody[k]!).classList.contains('closed');
+      $(dsecBody[k]!).classList.toggle('closed', closing);
+      h.classList.toggle('closed', closing);
+      if(k === 'log' && !closing) renderLog();
+      fitPanels();
+    });
+  }
+}
+/** Open the log section and show its contents — what entering debug mode lands on. */
+function openLogSection(): void {
+  for(const k of DSECS){
+    const open = k === 'log';
+    $(dsecBody[k]!).classList.toggle('closed', !open);
+    document.querySelector('.sect[data-dsec="'+k+'"]')!.classList.toggle('closed', !open);
+  }
   renderLog(); fitPanels();
 }
 export function setDebugUI(on: boolean, entering: boolean): void {
   debugMode = on;
   $('rowHudHz').style.display = on ? '' : 'none';
   $('rowGain').style.display = on ? '' : 'none';
-  $('hudTabs').style.display = on ? '' : 'none';
-  // the log is what debug mode is entered for, so it opens on it; leaving takes the
-  // settings back, since without the strip there is no way back to them
-  setHudTab(on && entering ? 'log' : 'set');
+  // the log is what debug mode is usually entered for, so entering opens on it
+  if(on && entering) openLogSection();
   // The state box, the QR switches and a second frame-rate box are a panel of their own
   // now rather than a modal behind a button — it opens with the door and closes with it,
   // and can be moved, docked and dismissed like any other panel while it is open.
@@ -115,7 +137,7 @@ export function initDebug(deps: {
   fitPanels: () => void
 }): void {
   restoreSettings = deps.restoreSettings; fitPanels = deps.fitPanels;
-  for(const b of document.querySelectorAll('#hudTabs .tab')) b.addEventListener('click', ()=> setHudTab((b as HTMLElement).dataset.tab!));
+  initDebugSections();
   $('logClear').addEventListener('click', ()=>{ errLog.length = 0; renderLog(); });
   $('logCopy').addEventListener('click', ()=>{
     const txt = 'galactic-transit ' + BUILD.version + ' · ' + navigator.userAgent + '\n'

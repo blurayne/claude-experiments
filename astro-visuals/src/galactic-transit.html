@@ -33,10 +33,6 @@
 <div class="hud" id="hud">
   <button class="pclose" id="collapse" aria-label="collapse panel">−</button>
   <h1>Settings</h1>
-  <div class="tabs" id="hudTabs" style="display:none">
-    <button class="tab" data-tab="log">log<b id="logCount"></b></button>
-    <button class="tab on" data-tab="set">settings</button>
-  </div>
   <div class="body" id="hudBody">
     <div class="sect" data-sec="audio">Audio<span class="arw">▾</span></div>
     <div class="sbody" id="secAudio">
@@ -112,6 +108,8 @@
       <label class="chk"><input type="checkbox" id="tStatSn"> sn count</label>
       <label class="chk"><input type="checkbox" id="tStatBirth"> births count</label>
       <label class="chk"><input type="checkbox" id="tFps"> fps</label>
+      <label class="chk" title="the scale bar, bottom left"><input type="checkbox" id="tScaleBar" checked> scale bar<button type="button" class="info" data-tip="The bar-and-ticks scale, bottom left, in whatever astronomical unit the zoom has reached. Off by default on a phone, where the screen is needed for the sky." aria-label="about this setting">i</button></label>
+      <label class="chk" title="the spoken width under the scale bar"><input type="checkbox" id="tScaleText" checked> scale in words<button type="button" class="info" data-tip="The &quot;view N across&quot; line under the scale bar." aria-label="about this setting">i</button></label>
     </div>
     <div class="row" id="rowHudHz" style="display:none"><label for="hudHz">hud rate<button type="button" class="info" data-tip="How many times a second the HUD numbers are redrawn. Lower saves battery; the simulation itself keeps its full frame rate." aria-label="about this setting">i</button></label><input type="range" id="hudHz" min="1" max="16" step="1" value="8"><span id="hudHzv" style="min-width:52px;text-align:right;color:var(--ink)">8×/s</span><button class="stepb" data-step="hudHz:-1">−</button><button class="stepb" data-step="hudHz:1">+</button></div>
     </div>
@@ -126,18 +124,10 @@
     <button id="tView" style="display:none"></button>
     <button id="tDive" style="display:none"></button>
   </div>
-  <div class="body" id="logBody" style="display:none">
-    <div class="row" style="margin-top:0;justify-content:flex-end;gap:8px">
-      <span id="logNote" style="margin-right:auto;font-size:9px;letter-spacing:.06em;color:var(--dim)"></span>
-      <button class="rowbtn" id="logCopy">copy</button><button class="rowbtn" id="logClear">clear</button>
-    </div>
-    <div id="logList"></div>
-  </div>
   <div class="hudfoot">
     <button class="tg" id="tFull">⛶ full</button>
     <button class="tg" id="tRotate">⟳ auto</button>
     <span style="margin-right:auto"></span>
-    <button id="dbgBtn" style="display:none" title="export or import the full app state">debug</button>
     <button id="tReset" title="forget every saved setting and start over">⟳ reset</button>
     <button id="tReload" title="reload past every cache">⟲ refresh</button>
   </div>
@@ -277,7 +267,9 @@
 <div class="alertbox" id="g710Box">☄ GLIESE 710 · <span id="eG710d">—</span></div>
 <div class="env pnl" id="dbgPanel" style="display:none">
   <button class="pclose" data-close="dbgPanel" aria-label="close">−</button>
-  <h2>Debug — app state</h2>
+  <h2>Debug</h2>
+  <div class="sect" data-dsec="state">App state<span class="arw">▾</span></div>
+  <div class="sbody" id="dsecState">
   <textarea id="dbgText" spellcheck="false" style="width:100%;height:min(220px,32vh);resize:vertical;
       background:rgba(0,0,0,.45);border:1px solid var(--line);border-radius:2px;color:var(--ink);
       font:11px/1.45 ui-monospace,Menlo,monospace;padding:8px;box-sizing:border-box"></textarea>
@@ -288,12 +280,25 @@
     <button class="dbg-b" id="dbgPaste" title="paste the clipboard into the box">paste</button>
   </div>
   <div id="dbgMsg" style="margin-top:5px;font-size:9.5px;letter-spacing:.1em;color:var(--dim);min-height:13px"></div>
-  <div class="envsep"></div>
+  </div>
+  <div class="sect closed" data-dsec="set">Settings<span class="arw">▾</span></div>
+  <div class="sbody closed" id="dsecSet">
   <div class="chks">
     <label class="chk" title="the whole exported state as a QR code, drawn over everything"><input type="checkbox" id="qrOn"> settings as QR overlay<button type="button" class="info" data-tip="The whole exported state as a QR code drawn over everything; drag to move it, double-tap to dismiss." aria-label="about this setting">i</button></label>
     <label class="chk" title="the frame rate, in its own small box"><input type="checkbox" id="tFps2"> fps<button type="button" class="info" data-tip="The frame rate in its own small box. The same switch as the one in the settings' readouts — either turns it on." aria-label="about this setting">i</button></label>
   </div>
   <div class="row"><label for="qrScale">qr pixels<button type="button" class="info" data-tip="How many device pixels one QR module gets: 1×, 2× or 4×." aria-label="about this setting">i</button></label><input type="range" id="qrScale" min="0" max="2" step="1" value="0"><span id="qrScalev" style="min-width:44px;text-align:right;color:var(--ink)">1×</span></div>
+  </div>
+  <div class="sect closed" data-dsec="log">Log<b id="logCount"></b><span class="arw">▾</span></div>
+  <div class="sbody closed" id="dsecLog">
+  <div id="logBody">
+    <div class="row" style="margin-top:0;justify-content:flex-end;gap:8px">
+      <span id="logNote" style="margin-right:auto;font-size:9px;letter-spacing:.06em;color:var(--dim)"></span>
+      <button class="rowbtn" id="logCopy">copy</button><button class="rowbtn" id="logClear">clear</button>
+    </div>
+    <div id="logList"></div>
+  </div>
+  </div>
 </div>
 <button class="pdot" id="dbgPlus" data-open="dbgPanel" style="display:none" aria-label="show the debug panel">&#9881;</button>
 <div id="scaleNote">
