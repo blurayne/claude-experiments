@@ -1,6 +1,6 @@
 import { $, $v } from '../core/dom'
 import { BUILD, VERSION, BUILD_LINE } from '../core/build'
-import { DBGKEY, setDebugUI } from './debug'
+import { DBGKEY, setDebugUI, isDebugMode } from './debug'
 import { refillTrails, TRAIL_N } from '../render/trails'
 
 /** the control an event came from, typed. Every listener here is bound to one. */
@@ -12,7 +12,7 @@ import { sunR, sunPhase, sunState, SUN_AGB, EARTH_ORBIT_RSUN, type PnState } fro
 import { ratesIntegral } from '../astro/environment'
 import { mergeAt, diskSpin } from '../astro/merger'
 import { cam, gfx, readout, simClock, view } from '../render/state'
-import { spinFrame } from '../render/frame'
+import { spinFrame, moonSpinFrame } from '../render/frame'
 import { N_PLANETS, I_P9 } from '../astro/bodies'
 import { events, puffs } from '../render/lifecycle'
 import { armEls, labelEls, setLabelSteady } from '../render/labels'
@@ -467,9 +467,10 @@ export function initHudControls(deps: {
     ? ' · built ' + BUILD.date + ' ' + BUILD.time + ' UTC' : '');
   // Hard refresh: drop every cache and the service worker, then reload on a fresh URL so
   // nothing between here and the server can hand back the old build.
-  // One button, three depths, counted in taps: one tap reloads past every cache, three
-  // taps also forget the saved settings, ten taps toggle debug mode. The counter shows on
-  // the button while tapping, and the action fires only once the tapping stops.
+  // Refresh reloads past every cache. Reset is its own button beside it — forgetting your
+  // settings should not be something you discover by tapping three times — and the debug
+  // door moved to ten taps on the "?", where a curious finger is more likely to find it
+  // than on a button whose job is already done in one press.
   function bustAndGoLocal(mutate?: (u: URL) => void): void {
     const u = new URL(location.href);
     u.searchParams.set('_', String(Date.now()));
@@ -487,42 +488,41 @@ export function initHudControls(deps: {
     }catch(e){}
     bustAndGoLocal();
   }
+  const flash = (cls: string) => {
+    const h = $('hud');
+    h.classList.remove('flash3','flash10');   // restart the animation cleanly
+    void h.offsetWidth;
+    h.classList.add(cls);
+    setTimeout(()=> h.classList.remove(cls), 450);
+  };
+  $('tReload').addEventListener('click', ()=>{ doRefresh(); });
+  $('tReset').addEventListener('click', ()=>{
+    // Debug mode is a mode you are IN, not a setting you tuned, so a reset keeps it —
+    // and carries it through the reload in the URL as well as in storage, so the page
+    // that comes back is the one you were debugging.
+    let dbg: string | null = null;
+    try{ dbg = localStorage.getItem(DBGKEY); localStorage.clear(); }catch(err){}
+    flash('flash3');
+    setTimeout(()=> bustAndGoLocal(u => {
+      if(dbg === '1'){ try{ localStorage.setItem(DBGKEY, '1'); }catch(err){} u.searchParams.set('debug', '1'); }
+      else u.searchParams.delete('debug');
+    }), 260);
+  });
   {
-    const b = $('tReload');
+    // ten taps on the "?" open or close the debug door, and the choice outlives the reload
+    const b = $('tInfo');
     let taps = 0, tapTimer: ReturnType<typeof setTimeout> | null = null;
-    const act = ()=>{
-      const n = taps; taps = 0;
-      if(n >= 10){
-        // toggle the debug door, and remember the choice across reloads
-        const on = getComputedStyle($('dbgBtn')).display === 'none';
-        setDebugUI(on, true);
-        try{ localStorage.setItem(DBGKEY, on ? '1' : '0'); }catch(err){}
-      }
-      else if(n >= 3){
-        // debug mode is a mode you are in, not a setting you tuned: a reset returns the
-        // app to its defaults and leaves you where you were working
-        try{
-          const dbg = localStorage.getItem(DBGKEY);
-          localStorage.clear();
-          if(dbg !== null) localStorage.setItem(DBGKEY, dbg);
-        }catch(err){}
-        bustAndGoLocal();
-      }
-      else doRefresh();
-    };
-    const flash = (cls: string) => {
-      const h = $('hud');
-      h.classList.remove('flash3','flash10');   // restart the animation cleanly
-      void h.offsetWidth;
-      h.classList.add(cls);
-      setTimeout(()=> h.classList.remove(cls), 450);
-    };
     b.addEventListener('click', ()=>{
       taps++;
-      if(taps === 3) flash('flash3');
-      if(taps === 10) flash('flash10');
+      if(taps === 10){
+        flash('flash10');
+        const on = !isDebugMode();
+        setDebugUI(on, true);
+        try{ localStorage.setItem(DBGKEY, on ? '1' : '0'); }catch(err){}
+        taps = 0;
+      }
       if(tapTimer !== null) clearTimeout(tapTimer);
-      tapTimer = setTimeout(act, 450);   // the run of taps ends when the tapping stops
+      tapTimer = setTimeout(()=>{ taps = 0; }, 900);   // the run ends when the tapping stops
     });
   }
    // years per second
@@ -705,7 +705,8 @@ export function initHudControls(deps: {
       return;
     }
     const d = cam.dirW;
-    if(on){ const [P, A, Q] = spinFrame(); const dP = d[0]*P[0]+d[1]*P[1]+d[2]*P[2], dA = d[0]*A[0]+d[1]*A[1]+d[2]*A[2], dQ = d[0]*Q[0]+d[1]*Q[1]+d[2]*Q[2];
+    const frame = cam.followTarget === 'moon' ? moonSpinFrame : spinFrame;
+    if(on){ const [P, A, Q] = frame(); const dP = d[0]*P[0]+d[1]*P[1]+d[2]*P[2], dA = d[0]*A[0]+d[1]*A[1]+d[2]*A[2], dQ = d[0]*Q[0]+d[1]*Q[1]+d[2]*Q[2];
       cam.yaw = Math.atan2(dP, -dQ); cam.pitch = Math.asin(Math.max(-1, Math.min(1, dA))); }
     else { cam.yaw = Math.atan2(d[0], d[2]); cam.pitch = Math.asin(Math.max(-1, Math.min(1, d[1]))); }
     if(cam.coreLock){ cam.coreLock = false; }   // the lock's own base yaw would double up

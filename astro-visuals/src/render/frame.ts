@@ -84,6 +84,33 @@ const wasEaten = [false,false,false,false], eatFlash = [-1,-1,-1,-1];   // -1: n
 export function skyProjection(near: number, far: number): Float32Array { const m = perspective(Math.PI/3, view.W/view.H, near, far); m[0] *= SKY_MIRROR; return m; }
 
 export function spinFrame(): ArrayLike<number>[] { const A = EARTH_AXIS, P = earthPrime(simClock.simT, cam.spinP); return [P, A, [A[1]*P[2]-A[2]*P[1], A[2]*P[0]-A[0]*P[2], A[0]*P[1]-A[1]*P[0]]]; }
+/**
+ * The Moon's own frame, for her spin lock.
+ *
+ * She is tidally locked, so her rotation is her orbit: the same face has pointed at
+ * Earth for four billion years. That makes her prime meridian simply the direction
+ * back to Earth, and a camera riding this frame holds the near side — the face every
+ * human who ever lived has seen — while she goes round. Her axis is very nearly the
+ * orbit normal (a 6.7° tilt this ignores), which is recovered from the orbit itself so
+ * it stays right as the orbit precesses and widens.
+ */
+export function moonSpinFrame(): ArrayLike<number>[] {
+  const t = simClock.simT;
+  moonPos(t, moonW);                                        // where she is now
+  bodyPos(3, t, tmpEarthB);                                 // and where Earth is
+  const px = tmpEarthB[0]-moonW[0], py = tmpEarthB[1]-moonW[1], pz = tmpEarthB[2]-moonW[2];
+  const pl = Math.hypot(px, py, pz) || 1;
+  const P = [px/pl, py/pl, pz/pl];                          // the near side faces Earth
+  // a moment later, to get the direction she is travelling — the orbit normal is P × V
+  const dt = 2e-4;
+  moonPos(t + dt, tmpMoonB);
+  const vx = tmpMoonB[0]-moonW[0], vy = tmpMoonB[1]-moonW[1], vz = tmpMoonB[2]-moonW[2];
+  let ax = P[1]*vz - P[2]*vy, ay = P[2]*vx - P[0]*vz, az = P[0]*vy - P[1]*vx;
+  const al = Math.hypot(ax, ay, az) || 1; ax/=al; ay/=al; az/=al;
+  const A = [ax, ay, az];
+  return [P, A, [A[1]*P[2]-A[2]*P[1], A[2]*P[0]-A[0]*P[2], A[0]*P[1]-A[1]*P[0]]];
+}
+const tmpMoonB = new Float64Array(3), tmpEarthB = new Float64Array(3);
 
 let probeFrames = 0;
 
@@ -212,11 +239,13 @@ function frame(now: number): void {
   let rx = cy, ry = 0, rz = -sy;                                        // right, in the plane
   let ux = -sp*sy, uy = cp, uz = -sp*cy;                                // up, tilted with the pitch
   let dx = cp*sy, dy = sp, dz = cp*cy, upV: ArrayLike<number> = [0,1,0];                   // the eye's direction from the target
-  const spinOn = cam.spinLock && cam.follow && cam.followTarget === 'earth' && !wasEaten[3];
+  const moonLock = cam.spinLock && cam.follow && cam.followTarget === 'moon' && moonHere;
+  const spinOn = cam.spinLock && cam.follow && !wasEaten[3]
+               && (cam.followTarget === 'earth' || moonLock);
   if(spinOn){
     // the same three vectors, but in the planet's frame: x → prime meridian P, y → axis A,
     // z → −Q (so the frame keeps the world's handedness); the frame turns with the spin
-    const [P, A, Q] = spinFrame();
+    const [P, A, Q] = moonLock ? moonSpinFrame() : spinFrame();
     rx = cy*P[0]+sy*Q[0]; ry = cy*P[1]+sy*Q[1]; rz = cy*P[2]+sy*Q[2];
     ux = -sp*sy*P[0]+cp*A[0]+sp*cy*Q[0]; uy = -sp*sy*P[1]+cp*A[1]+sp*cy*Q[1]; uz = -sp*sy*P[2]+cp*A[2]+sp*cy*Q[2];
     dx = cp*sy*P[0]+sp*A[0]-cp*cy*Q[0]; dy = cp*sy*P[1]+sp*A[1]-cp*cy*Q[1]; dz = cp*sy*P[2]+sp*A[2]-cp*cy*Q[2];

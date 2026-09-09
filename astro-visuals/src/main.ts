@@ -406,7 +406,14 @@ document.querySelectorAll('.pclose[data-close]').forEach(b =>
 // ---------- the first run ----------
 // The guided look at the interface, its hint placement and its two buttons are ui/tour.
 initTour();
-$('tInfo').addEventListener('click', ()=>{ $('infoModal').style.display='flex'; });
+// The "?" TOGGLES the dialog rather than only opening it, and it rides above the dialog
+// (see #tInfo in dialogs.css) — both so the dialog can be dismissed from the button that
+// summoned it, and so the ten-tap debug gesture in ui/hud is physically possible: the
+// dialog would otherwise cover the button after the very first tap.
+$('tInfo').addEventListener('click', ()=>{
+  const m = $('infoModal');
+  m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
+});
 $('infoClose').addEventListener('click', ()=>{ $('infoModal').style.display='none'; });
 $('infoModal').addEventListener('click', e=>{ if(e.target.id==='infoModal') $('infoModal').style.display='none'; });
 if(matchMedia('(prefers-reduced-motion: reduce)').matches){ $('tPause').click(); }
