@@ -21,8 +21,11 @@ import { moonRel } from '../astro/earth'
 const labelWrap = $('labels');
 
 export const labelEls = BODIES.map(b=>{
+  // display:none like every other label group — without it a body label that has never
+  // been shown carries an empty inline display, which is VISIBLE, and placeLabel's hide
+  // could not clear it because it only acted on labels it had itself turned on.
   const d=document.createElement('div'); d.className='lbl'; d.textContent=b[0] as string;
-  labelWrap.appendChild(d); return d;
+  d.style.display='none'; labelWrap.appendChild(d); return d;
 });
 export const moonEl = (()=>{ const d=document.createElement('div'); d.className='lbl'; d.textContent='Moon'; d.style.display='none'; d.style.opacity='0.65'; labelWrap.appendChild(d); return d; })();
 // The solar system's own structures, labelled at their real radii. Each label sits on
@@ -122,7 +125,9 @@ export function placeLabel(el: Label, x: number, y: number, show: boolean): void
   const s = el._lb || (el._lb = { x, y, on:false, hid:0, leaps:0, calm:99, spin:false });
   if(!show){
     s.hid += readout.frameDt; s.x = x; s.y = y;
-    if(s.on && s.hid > 0.18){ el.style.display='none'; s.on=false; }
+    // written against the ELEMENT's state, not this module's memory of it: a label the
+    // page put on screen some other way must still be able to go away.
+    if(s.hid > 0.18 && el.style.display !== 'none'){ el.style.display='none'; s.on=false; }
     return;
   }
   s.hid = 0;
@@ -157,6 +162,8 @@ export interface LabelInputs {
   /** the Milky Way's accumulated wave rotation — the arm names ride it */
   spinMW: number
   spinM31: number
+  /** false before the solar system formed: no Sun, no planets, no names for them */
+  bornYet: boolean
   /** the disk's settledness: arm names only exist once there are arms to name */
   asm: number
   /** where Gliese 710 is, in light years */
@@ -177,7 +184,7 @@ export interface LabelInputs {
  */
 export function drawLabels(showLabels: boolean, inputs: LabelInputs): void {
   if(!showLabels){ placeLabel(g710Lbl, 0, 0, false); return }
-  const { projMat, viewMat, pxScale, camDist, org, andPos, merge, sep, spinMW, spinM31, asm, star,
+  const { projMat, viewMat, pxScale, camDist, org, andPos, merge, sep, spinMW, spinM31, asm, bornYet, star,
           showP9, showDwarfs, wasEaten, structOn, armsOn } = inputs;
   const pv = mul(projMat, viewMat);
   const proj = (x: number, y: number, z: number): number[] => { const cw = pv[3]*x+pv[7]*y+pv[11]*z+pv[15];
@@ -185,6 +192,7 @@ export function drawLabels(showLabels: boolean, inputs: LabelInputs): void {
   let sunSX=0, sunSY=0;
   for(let i=0;i<NB;i++){
     const l=labelEls[i] as Label;
+    if(!bornYet){ placeLabel(l, 0, 0, false); continue; }   // nothing here has formed yet
     if(i === I_P9 ? !showP9 : (i >= N_PLANETS && !showDwarfs)){ placeLabel(l, 0, 0, false); continue; }
     if(i > 0 && i <= 3 && wasEaten[i]){ placeLabel(l, 0, 0, false); continue; }   // swallowed
     if(readout.globePx > 40 && i > 0){ placeLabel(l, 0, 0, false); continue; }          // zoomed onto Earth: only the Sun's place in the sky
@@ -205,7 +213,7 @@ export function drawLabels(showLabels: boolean, inputs: LabelInputs): void {
   // structure labels: a point on each ring, Sun-relative like the rings themselves
   for(let s=0;s<STRUCTS.length;s++){
     const el = structEls[s] as Label;
-    if(!structOn[s]){ placeLabel(el, 0, 0, false); continue; }
+    if(!structOn[s] || !bornYet){ placeLabel(el, 0, 0, false); continue; }   // the belts form with the Sun
     const rU = STRUCTS[s][1]*AU2U;
     const rpx = rU*pxScale/camDist;
     if(readout.globePx > 40){ el.style.display = 'none'; if(el._lb) el._lb.on = false; continue; }   // at once, not debounced

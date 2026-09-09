@@ -7,7 +7,7 @@ import { refillTrails, TRAIL_N } from '../render/trails'
 const $v0 = (e: Event): HTMLInputElement & HTMLSelectElement =>
   e.target as HTMLInputElement & HTMLSelectElement
 import { fmtCount, fmtYears as fmtYearsIn, sup, type UnitMode } from '../core/format'
-import { AGE0, GAL_PERIOD, YR_PER_SIM, REAL_MODE, AU2U, RC_BAR } from '../astro/constants'
+import { AGE0, GAL_PERIOD, YR_PER_SIM, REAL_MODE, AU2U, RC_BAR, SUN_BORN_T } from '../astro/constants'
 import { sunR, sunPhase, sunState, SUN_AGB, EARTH_ORBIT_RSUN, type PnState } from '../astro/sun'
 import { ratesIntegral } from '../astro/environment'
 import { mergeAt, diskSpin } from '../astro/merger'
@@ -137,6 +137,26 @@ function holdBarWidth(now: number): void {
   bar.style.minWidth = barHeld + 'px';
 }
 
+/**
+ * The scale bar's arithmetic: which unit, which round number, how many pixels.
+ *
+ * Astronomical units only, and light years rather than parsecs — a parsec is a working
+ * astronomer's unit, a light year is everyone's. Solar radii carry the deepest zoom,
+ * where an AU is already too big to say anything about a star's surface.
+ */
+const SCALE_U: readonly (readonly [number, string])[] = [
+  [1.0570e-13, 'km'], [7.3544e-8, 'R☉'], [1.58125e-5, 'AU'], [1, 'ly'], [1e3, 'kly'], [1e6, 'Mly'],
+];
+const trim = (v: number): string => (v < 1 ? v.toFixed(v < 0.1 ? 2 : 1) : v.toLocaleString('en-US'));
+export function scaleBar(lyPerPx: number, maxPx: number): { px: number; half: string; full: string; unit: string } {
+  const raw = Math.max(1e-30, maxPx*lyPerPx);
+  let u = SCALE_U[0]!;
+  for(const c of SCALE_U) if(raw/c[0] >= 1) u = c;
+  const v = raw/u[0], p = Math.pow(10, Math.floor(Math.log10(v))), m = v/p;
+  const nice = (m >= 5 ? 5 : m >= 2 ? 2 : 1)*p;
+  return { px: nice*u[0]/lyPerPx, half: trim(nice/2), full: trim(nice), unit: u[1]! };
+}
+
 export function updateBar(): void {
   hud.showStats = ['sCal','sAge','sGyr','cDeath','cBirth'].some(id => $(id).style.display !== 'none');
   $('gamebar').style.display = hud.showStats ? 'flex' : 'none';
@@ -223,6 +243,20 @@ export function updateHud(now: number, pn: PnState | null): void {
   }
 
   { const e = environment();
+    // Before the Sun formed there are no readings to take: the panel says so once, in
+    // dashes, rather than reporting a climate for a planet that will not exist for
+    // another few billion years.
+    const unborn = simClock.simT < SUN_BORN_T;
+    $('env').classList.toggle('unborn', unborn);
+    if(unborn){
+      $('env').querySelector('h2')!.textContent = 'Earth';
+      for(const id of ['eMean','eMin','eMax','eCR','eSL','eSun','eLife']){
+        $(id).textContent = '—'; $(id).style.color = 'var(--dim)';
+      }
+      for(const id of ['eSunPhaseRow','eSunSizeRow']) $(id).style.display = 'none';
+      for(const id of ['eMeanRow','eRangeRow','eCRRow','eSLRow','eLifeRow']) $(id).style.display = '';
+      setStateColour(0, 15);
+    } else {
     // a glacial epoch is marked on the reading itself rather than in a banner below it
     let lost = false;
     { // Earth's readings mean nothing once there is no Earth: the panel turns to the Sun
@@ -299,10 +333,10 @@ export function updateHud(now: number, pn: PnState | null): void {
     }
     if(gd < 1.9) $('eG710d').textContent = gd < 0.995
       ? Math.round(gd*63241).toLocaleString('en-US')+' AU' : gd.toFixed(2)+' ly';
-    setStateColour(ls ? ls.h : 0, e.mean); }
+    setStateColour(ls ? ls.h : 0, e.mean); } }
 
   // stats
-  $('yrs').textContent = fmtYears(Math.abs(simClock.simT));
+  $('yrs').textContent = fmtYears(Math.abs(simClock.simT));   // signed by the label beside it
   $('pct').textContent = (simClock.simT/GAL_PERIOD*100).toFixed(3);
   if(hud.showFps){
     if(now - fpsSince >= 500){
@@ -316,12 +350,23 @@ export function updateHud(now: number, pn: PnState | null): void {
       : wAU >= 0.5 ? wAU.toFixed(wAU<10?1:0)+' AU'
       : wAU*1.496e8 >= 1e6 ? (wAU*1.496e8/1e6).toFixed(2)+' Mkm'
       : wAU*1.496e8 >= 1 ? Math.round(wAU*1.496e8).toLocaleString('en-US')+' km'
-      : (wAU*215).toFixed(1)+' R☉'; }   // below half an AU, solar radii say it better
+      : (wAU*215).toFixed(1)+' R☉';    // below half an AU, solar radii say it better
+    // and the bar itself: the largest round number of a sensible unit that fits 132 px
+    const s = scaleBar(wLy/Math.max(1, view.H), 132);
+    $('sFill').style.width = s.px.toFixed(1)+'px';
+    $('sTkMid').style.left = (s.px/2).toFixed(1)+'px';
+    $('sTkEnd').style.left = s.px.toFixed(1)+'px';
+    $('sHalf').style.left = (s.px/2).toFixed(1)+'px'; $('sHalf').textContent = s.half;
+    $('sEnd').style.left = s.px.toFixed(1)+'px';      $('sEnd').textContent = s.full;
+    $('sUnit').style.left = (s.px+16).toFixed(1)+'px'; $('sUnit').textContent = s.unit; }
   if(hud.showStats){
     $('gCal').textContent = humanYear();
     // real elapsed time: one sim lap ≡ one real galactic year of 225 Myr
     const myr = simClock.simT*(225/GAL_PERIOD);                       // real megayears elapsed
-    $('gAge').textContent = fmtYears(4.568e9 + myr*1e6);
+    // Before the Sun formed there is no age to report, and a negative one is nonsense
+    // rather than information — every such readout says so with a dash instead.
+    const ageYr = 4.568e9 + myr*1e6;
+    $('gAge').textContent = ageYr < 0 ? '—' : fmtYears(ageYr);
     // Once the remnant has relaxed there are no laps left to count: the Sun's ordered
     // circular orbit has been scattered into a random one inside an elliptical, so the
     // readout turns to the thing that still means something — how far out it now sits.
@@ -330,7 +375,8 @@ export function updateHud(now: number, pn: PnState | null): void {
       $('gGyr').textContent = (sunR(simClock.simT)*30/3261.6).toFixed(1)+' kpc';
     } else {
       $('lGyr').textContent = 'galactic years';
-      $('gGyr').textContent = (4568/225 + sunPhase(simClock.simT)/(2*Math.PI)).toFixed(3);
+      const laps = 4568/225 + sunPhase(simClock.simT)/(2*Math.PI);
+      $('gGyr').textContent = laps < 0 ? '—' : laps.toFixed(3);
     }
   }
   }

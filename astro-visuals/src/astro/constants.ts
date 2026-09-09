@@ -108,6 +108,10 @@ export const chaosAt = (ts: number): number => {
   return c < 1e-6 ? 0 : c;   // exactly zero today — e^-123 is not a number to ship a wobble on
 };
 
+/** When the Sun and its planets condensed, on the sim clock: before this there is no
+ * solar system to draw, and no age of one to report. */
+export const SUN_BORN_T = -AGE0*1e9/YR_PER_SIM;
+
 /** The Big Bang, on this page's clock (real years from today): the universe is ~13.787 Gyr
  * old, and the clock refuses to scrub before it — there is nothing there to draw. */
 export const T_BIG_BANG = -13.787e9;

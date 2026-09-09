@@ -348,6 +348,10 @@ const chaosAt = (ts        )         => {
   return c < 1e-6 ? 0 : c;   // exactly zero today — e^-123 is not a number to ship a wobble on
 };
 
+/** When the Sun and its planets condensed, on the sim clock: before this there is no
+ * solar system to draw, and no age of one to report. */
+const SUN_BORN_T = -AGE0*1e9/YR_PER_SIM;
+
 /** The Big Bang, on this page's clock (real years from today): the universe is ~13.787 Gyr
  * old, and the clock refuses to scrub before it — there is nothing there to draw. */
 const T_BIG_BANG = -13787e6;
@@ -3519,8 +3523,11 @@ function bindHDR()       { gl.bindFramebuffer(gl.FRAMEBUFFER, view.hdrFB); }
 const labelWrap = $('labels');
 
 const labelEls = BODIES.map(b=>{
+  // display:none like every other label group — without it a body label that has never
+  // been shown carries an empty inline display, which is VISIBLE, and placeLabel's hide
+  // could not clear it because it only acted on labels it had itself turned on.
   const d=document.createElement('div'); d.className='lbl'; d.textContent=b[0]          ;
-  labelWrap.appendChild(d); return d;
+  d.style.display='none'; labelWrap.appendChild(d); return d;
 });
 const moonEl = (()=>{ const d=document.createElement('div'); d.className='lbl'; d.textContent='Moon'; d.style.display='none'; d.style.opacity='0.65'; labelWrap.appendChild(d); return d; })();
 // The solar system's own structures, labelled at their real radii. Each label sits on
@@ -3620,7 +3627,9 @@ function placeLabel(el       , x        , y        , show         )       {
   const s = el._lb || (el._lb = { x, y, on:false, hid:0, leaps:0, calm:99, spin:false });
   if(!show){
     s.hid += readout.frameDt; s.x = x; s.y = y;
-    if(s.on && s.hid > 0.18){ el.style.display='none'; s.on=false; }
+    // written against the ELEMENT's state, not this module's memory of it: a label the
+    // page put on screen some other way must still be able to go away.
+    if(s.hid > 0.18 && el.style.display !== 'none'){ el.style.display='none'; s.on=false; }
     return;
   }
   s.hid = 0;
@@ -3653,6 +3662,8 @@ function placeLabel(el       , x        , y        , show         )       {
                                                                           
                 
                  
+                                                                                    
+                  
                                                                                  
              
                                             
@@ -3673,7 +3684,7 @@ function placeLabel(el       , x        , y        , show         )       {
  */
 function drawLabels(showLabels         , inputs             )       {
   if(!showLabels){ placeLabel(g710Lbl, 0, 0, false); return }
-  const { projMat, viewMat, pxScale, camDist, org, andPos, merge, sep, spinMW, spinM31, asm, star,
+  const { projMat, viewMat, pxScale, camDist, org, andPos, merge, sep, spinMW, spinM31, asm, bornYet, star,
           showP9, showDwarfs, wasEaten, structOn, armsOn } = inputs;
   const pv = mul(projMat, viewMat);
   const proj = (x        , y        , z        )           => { const cw = pv[3]*x+pv[7]*y+pv[11]*z+pv[15];
@@ -3681,6 +3692,7 @@ function drawLabels(showLabels         , inputs             )       {
   let sunSX=0, sunSY=0;
   for(let i=0;i<NB;i++){
     const l=labelEls[i]         ;
+    if(!bornYet){ placeLabel(l, 0, 0, false); continue; }   // nothing here has formed yet
     if(i === I_P9 ? !showP9 : (i >= N_PLANETS && !showDwarfs)){ placeLabel(l, 0, 0, false); continue; }
     if(i > 0 && i <= 3 && wasEaten[i]){ placeLabel(l, 0, 0, false); continue; }   // swallowed
     if(readout.globePx > 40 && i > 0){ placeLabel(l, 0, 0, false); continue; }          // zoomed onto Earth: only the Sun's place in the sky
@@ -3701,7 +3713,7 @@ function drawLabels(showLabels         , inputs             )       {
   // structure labels: a point on each ring, Sun-relative like the rings themselves
   for(let s=0;s<STRUCTS.length;s++){
     const el = structEls[s]         ;
-    if(!structOn[s]){ placeLabel(el, 0, 0, false); continue; }
+    if(!structOn[s] || !bornYet){ placeLabel(el, 0, 0, false); continue; }   // the belts form with the Sun
     const rU = STRUCTS[s][1]*AU2U;
     const rpx = rU*pxScale/camDist;
     if(readout.globePx > 40){ el.style.display = 'none'; if(el._lb) el._lb.on = false; continue; }   // at once, not debounced
@@ -3965,7 +3977,10 @@ function frame(now        )       {
   // the planet's own axis, and TypeScript cannot see the length of either.
   const viewMat = lookAt(eye                   , [tgx,tgy,tgz], upV                   );
   // near plane tracks the zoom so sub-AU views don't clip
-  view.projMat = skyProjection(Math.min(0.5, Math.max(1e-13, cam.dist*0.04)), 25000);   // no depth buffer: a tiny near plane costs nothing, and Earth needs it
+  // no depth buffer: a tiny near plane costs nothing, and Earth needs it. The far plane
+  // follows the zoom — at the new ceiling the sky sphere's far side is 40,000 out, and a
+  // fixed 25,000 would have clipped the backdrop away just as the Galaxy came whole into view.
+  view.projMat = skyProjection(Math.min(0.5, Math.max(1e-13, cam.dist*0.04)), Math.max(25000, cam.dist + R_SKY + 6000));
   const pxScale = (view.H*view.DPR)/(2*Math.tan(Math.PI/6));
 
   // at 100% nothing is compressed, so the old direct path is kept exactly
@@ -4148,8 +4163,13 @@ function frame(now        )       {
   if(!insideDisk) drawNebula(clouds, false, 'mw');   // the HII regions and the core, over the stars
   if(hud.lifeOn && puffs.length) drawRemnants(lifeFrame);
   if(!andFar) andLayer();   // Andromeda nearer: her whole layer over ours, lanes and all
+  // Nothing of the solar system exists before it formed: no planets, no trails, no belts,
+  // no globe. The galaxy around it does — that is the whole point of scrubbing back there —
+  // but drawing Earth's orbit 9 Gyr before Earth would be a lie the rest of the page has
+  // spent every version avoiding.
+  const bornYet = simClock.simT >= SUN_BORN_T;
   // trails
-  if(hud.trailPct > 0) drawTrails({
+  if(bornYet && hud.showTrails && hud.trailPct > 0) drawTrails({
     projMat: view.projMat , viewMat, camDist: cam.dist, org,
     trailAlpha: hud.trailAlpha, orbitAlpha: hud.orbitAlpha, starGain: hud.starGain,
     psH: hud.psH, psO: hud.psO, showP9: hud.showP9, showDwarfs: hud.showDwarfs, wasEaten,
@@ -4157,19 +4177,19 @@ function frame(now        )       {
 
   // asteroid belt, Kuiper belt & Oort cloud, riding along with the Sun.
   // Each fades out while its ring is too small on screen to resolve — otherwise its
-  drawBelts({
+  if(bornYet) drawBelts({
     projMat: view.projMat , viewMat, pxScale, camDist: cam.dist, simT: simClock.simT,
     g710Dist: gl710.d, showBelt: hud.showBelt, showKuiper: hud.showKuiper, showOort: hud.showOort,
     globePx: readout.globePx,
   });
 
-  drawBodies({ showDwarfs: hud.showDwarfs, showP9: hud.showP9 });
+  if(bornYet) drawBodies({ showDwarfs: hud.showDwarfs, showP9: hud.showP9 });
 
   // Earth as a globe, and the Moon, once they are more than a dot. Opaque discs, so the
   // same blend as the Sun's disc; the atmosphere adds over what is behind it.
   readout.moonPx = 0;
   // the pass opens on Earth's size, or on the Moon's when she is the one being followed
-  if((readout.globePx > 4 || cam.followTarget === 'moon') && !wasEaten[3]){
+  if(bornYet && (readout.globePx > 4 || cam.followTarget === 'moon') && !wasEaten[3]){
     const a = ageGyr$4();
     const g = drawGlobe({
       projMat: view.projMat , viewMat, ageGyr: a, era: earthEra(a, environment$2().mean),
@@ -4191,11 +4211,11 @@ function frame(now        )       {
   // runs 0.3 Gyr past sunState()'s own 'planetary nebula' phase, so it stays a frame-level
   // value rather than something the pass computes and keeps to itself.
   const pn = pnState(ageGyr$4());
-  readout.pnShown = drawShed({
+  readout.pnShown = bornYet && drawShed({
     projMat: view.projMat , viewMat, shimT: simClock.shimT, pxScale,
     camSunDist: readout.camSunDist, pn,
   });
-  drawSunDisc({
+  if(bornYet) drawSunDisc({
     projMat: view.projMat , viewMat, shimT: simClock.shimT,
     plasmaSunPx: readout.plasmaSunPx, tint,
   });
@@ -4210,7 +4230,7 @@ function frame(now        )       {
   readout.frameDt = dt;
   drawLabels(hud.showLabels, {
     projMat: view.projMat , viewMat, pxScale, camDist: cam.dist, org, andPos,
-    merge: and.merge, sep: and.sep, spinMW, spinM31, asm, star: gl710,
+    merge: and.merge, sep: and.sep, spinMW, spinM31, asm, bornYet, star: gl710,
     showP9: hud.showP9, showDwarfs: hud.showDwarfs, wasEaten,
     structOn: [hud.showBelt, hud.showKuiper, hud.showOort], armsOn: hud.armsOn,
   });
@@ -4539,6 +4559,8 @@ const $v0 = (e       )                                       =>
  * person asked for, not what the renderer worked out.
  */
 const hud = {
+  /** what is drawn */
+  showTrails: true,
   showLabels: true,
   showStats: true,
   showDwarfs: true,
@@ -4635,6 +4657,26 @@ function holdBarWidth(now        )       {
   bar.style.minWidth = barHeld + 'px';
 }
 
+/**
+ * The scale bar's arithmetic: which unit, which round number, how many pixels.
+ *
+ * Astronomical units only, and light years rather than parsecs — a parsec is a working
+ * astronomer's unit, a light year is everyone's. Solar radii carry the deepest zoom,
+ * where an AU is already too big to say anything about a star's surface.
+ */
+const SCALE_U                                         = [
+  [1.0570e-13, 'km'], [7.3544e-8, 'R☉'], [1.58125e-5, 'AU'], [1, 'ly'], [1e3, 'kly'], [1e6, 'Mly'],
+];
+const trim = (v        )         => (v < 1 ? v.toFixed(v < 0.1 ? 2 : 1) : v.toLocaleString('en-US'));
+function scaleBar(lyPerPx        , maxPx        )                                                           {
+  const raw = Math.max(1e-30, maxPx*lyPerPx);
+  let u = SCALE_U[0] ;
+  for(const c of SCALE_U) if(raw/c[0] >= 1) u = c;
+  const v = raw/u[0], p = Math.pow(10, Math.floor(Math.log10(v))), m = v/p;
+  const nice = (m >= 5 ? 5 : m >= 2 ? 2 : 1)*p;
+  return { px: nice*u[0]/lyPerPx, half: trim(nice/2), full: trim(nice), unit: u[1]  };
+}
+
 function updateBar()       {
   hud.showStats = ['sCal','sAge','sGyr','cDeath','cBirth'].some(id => $(id).style.display !== 'none');
   $('gamebar').style.display = hud.showStats ? 'flex' : 'none';
@@ -4711,6 +4753,20 @@ function updateHud(now        , pn                )       {
   }
 
   { const e = environment$1();
+    // Before the Sun formed there are no readings to take: the panel says so once, in
+    // dashes, rather than reporting a climate for a planet that will not exist for
+    // another few billion years.
+    const unborn = simClock.simT < SUN_BORN_T;
+    $('env').classList.toggle('unborn', unborn);
+    if(unborn){
+      $('env').querySelector('h2') .textContent = 'Earth';
+      for(const id of ['eMean','eMin','eMax','eCR','eSL','eSun','eLife']){
+        $(id).textContent = '—'; $(id).style.color = 'var(--dim)';
+      }
+      for(const id of ['eSunPhaseRow','eSunSizeRow']) $(id).style.display = 'none';
+      for(const id of ['eMeanRow','eRangeRow','eCRRow','eSLRow','eLifeRow']) $(id).style.display = '';
+      setStateColour(0, 15);
+    } else {
     // a glacial epoch is marked on the reading itself rather than in a banner below it
     let lost = false;
     { // Earth's readings mean nothing once there is no Earth: the panel turns to the Sun
@@ -4787,10 +4843,10 @@ function updateHud(now        , pn                )       {
     }
     if(gd < 1.9) $('eG710d').textContent = gd < 0.995
       ? Math.round(gd*63241).toLocaleString('en-US')+' AU' : gd.toFixed(2)+' ly';
-    setStateColour(ls ? ls.h : 0, e.mean); }
+    setStateColour(ls ? ls.h : 0, e.mean); } }
 
   // stats
-  $('yrs').textContent = fmtYears(Math.abs(simClock.simT));
+  $('yrs').textContent = fmtYears(Math.abs(simClock.simT));   // signed by the label beside it
   $('pct').textContent = (simClock.simT/GAL_PERIOD*100).toFixed(3);
   if(hud.showFps){
     if(now - fpsSince >= 500){
@@ -4804,12 +4860,23 @@ function updateHud(now        , pn                )       {
       : wAU >= 0.5 ? wAU.toFixed(wAU<10?1:0)+' AU'
       : wAU*1.496e8 >= 1e6 ? (wAU*1.496e8/1e6).toFixed(2)+' Mkm'
       : wAU*1.496e8 >= 1 ? Math.round(wAU*1.496e8).toLocaleString('en-US')+' km'
-      : (wAU*215).toFixed(1)+' R☉'; }   // below half an AU, solar radii say it better
+      : (wAU*215).toFixed(1)+' R☉';    // below half an AU, solar radii say it better
+    // and the bar itself: the largest round number of a sensible unit that fits 132 px
+    const s = scaleBar(wLy/Math.max(1, view.H), 132);
+    $('sFill').style.width = s.px.toFixed(1)+'px';
+    $('sTkMid').style.left = (s.px/2).toFixed(1)+'px';
+    $('sTkEnd').style.left = s.px.toFixed(1)+'px';
+    $('sHalf').style.left = (s.px/2).toFixed(1)+'px'; $('sHalf').textContent = s.half;
+    $('sEnd').style.left = s.px.toFixed(1)+'px';      $('sEnd').textContent = s.full;
+    $('sUnit').style.left = (s.px+16).toFixed(1)+'px'; $('sUnit').textContent = s.unit; }
   if(hud.showStats){
     $('gCal').textContent = humanYear();
     // real elapsed time: one sim lap ≡ one real galactic year of 225 Myr
     const myr = simClock.simT*(225/GAL_PERIOD);                       // real megayears elapsed
-    $('gAge').textContent = fmtYears(4.568e9 + myr*1e6);
+    // Before the Sun formed there is no age to report, and a negative one is nonsense
+    // rather than information — every such readout says so with a dash instead.
+    const ageYr = 4.568e9 + myr*1e6;
+    $('gAge').textContent = ageYr < 0 ? '—' : fmtYears(ageYr);
     // Once the remnant has relaxed there are no laps left to count: the Sun's ordered
     // circular orbit has been scattered into a random one inside an elliptical, so the
     // readout turns to the thing that still means something — how far out it now sits.
@@ -4818,7 +4885,8 @@ function updateHud(now        , pn                )       {
       $('gGyr').textContent = (sunR(simClock.simT)*30/3261.6).toFixed(1)+' kpc';
     } else {
       $('lGyr').textContent = 'galactic years';
-      $('gGyr').textContent = (4568/225 + sunPhase(simClock.simT)/(2*Math.PI)).toFixed(3);
+      const laps = 4568/225 + sunPhase(simClock.simT)/(2*Math.PI);
+      $('gGyr').textContent = laps < 0 ? '—' : laps.toFixed(3);
     }
   }
   }
@@ -5190,10 +5258,15 @@ let rPan = false;                                    // the right mouse button i
 
 let panCX = 0, panCY = 0;      // the last two-pointer centroid
 function panCentroid()           { let x=0,y=0; for(const q of touches.values()){ x+=q.clientX; y+=q.clientY; } return [x/touches.size, y/touches.size]; }
-// the floor: ~0.04 AU across, eight solar radii; at Earth and at the Moon, a body filling
-// the view. The Moon's view before she forms is Earth's view, so it keeps Earth's floor.
-const minDist = ()         => cam.followTarget === 'moon' ? (ageGyr$2() > MOON_BORN ? 5.5e-12 : 2e-11)
-                   : cam.followTarget === 'earth' ? 2e-11 : (2e-8 );
+// the floor: with a body followed, three times closer than the old one — a planet may fill
+// the frame and then some, which is what a visitor reaches for once they are already there.
+// The Moon's view before she forms is Earth's view, so it keeps Earth's floor.
+const minDist = ()         => cam.followTarget === 'moon' ? (ageGyr$2() > MOON_BORN ? 1.8e-12 : 6.7e-12)
+                   : cam.followTarget === 'earth' ? 6.7e-12 : (2e-8 );
+// The ceiling: three times further out than the old 7500, so the Galaxy can be seen whole
+// with room around it. The sky sphere and the far plane follow it (render/frame's
+// skyProjection), or the backdrop would clip away exactly when there is most of it to see.
+const MAX_DIST = 22500;
 // The zoom buttons step along a ladder of the objects themselves — the Sun, the planets'
 // orbits, the belts, the Oort shell, the nearest stars, the arm, the Galaxy, the Local
 // Group — with one rung between each pair, so two presses take you from one object to
@@ -5208,7 +5281,7 @@ function zoomStep(dir        )       {
   if(dir < 0){ for(const r of ZOOM_RUNGS) if(Math.log(r) < lo - 0.03) next = r; }        // the largest rung below
   else       { for(const r of ZOOM_RUNGS) if(Math.log(r) > lo + 0.03){ next = r; break; } } // the smallest above
   if(next === null) return;
-  cam.distGoal = Math.max(minDist(), Math.min(9500, next));
+  cam.distGoal = Math.max(minDist(), Math.min(MAX_DIST, next));
 }
 
 function initCamera(deps                                                           )       {
@@ -5268,7 +5341,7 @@ function initCamera(deps                                                        
   canvas.addEventListener('wheel', e=>{
     e.preventDefault();
     const rate = 0.0018 ; // faster travel across real scale's ~11 decades
-    cam.distGoal = Math.max(minDist(), Math.min(7500, cam.distGoal*Math.exp(e.deltaY*rate)));
+    cam.distGoal = Math.max(minDist(), Math.min(MAX_DIST, cam.distGoal*Math.exp(e.deltaY*rate)));
   },{passive:false});
   // pinch zoom
   let pinchD=0;
@@ -5277,7 +5350,7 @@ function initCamera(deps                                                        
   canvas.addEventListener('touchmove', e=>{
     if(e.touches.length===2){
       const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
-      if(pinchD>0) cam.distGoal=Math.max(minDist(),Math.min(7500,cam.distGoal*pinchD/d));
+      if(pinchD>0) cam.distGoal=Math.max(minDist(),Math.min(MAX_DIST,cam.distGoal*pinchD/d));
       pinchD=d; dragging=false;   // belt and braces alongside the pointer bookkeeping
     }
   },{passive:true});
@@ -7547,6 +7620,28 @@ startFrameLoop({
   .pdot.attn{animation:attnPulse 1.1s ease-in-out infinite}
   @keyframes attnPulse{0%,100%{box-shadow:0 0 0 0 rgba(95,216,255,0)}
     50%{box-shadow:0 0 10px 3px rgba(95,216,255,.55)}}
+  /* The scale bar: a map's bar-and-ticks rather than a sentence, in whatever astronomical
+     unit the zoom has reached (km, solar radii, AU, light years — never parsecs). The bar
+     grows to whatever round number fits under 132 px, so the number is always 1, 2 or 5 of
+     something. No box: it sits on the sky the way a map's scale sits on the map, with the
+     old spoken form kept underneath for anyone who preferred reading it. */
+  #scaleNote{position:fixed;left:16px;bottom:12px;z-index:5;pointer-events:none;
+    text-shadow:0 1px 3px rgba(0,0,0,.85)}
+  #scaleNote .sbar{position:relative;height:9px;width:132px}
+  #scaleNote .sfill{position:absolute;left:0;bottom:0;height:1px;background:var(--accent);
+    box-shadow:0 0 6px var(--glow);transition:width .18s ease}
+  #scaleNote .stk{position:absolute;bottom:0;left:0;width:1px;height:7px;background:var(--accent);
+    box-shadow:0 0 6px var(--glow);transition:left .18s ease}
+  #scaleNote .slab{position:relative;height:12px;width:132px;margin-top:3px;
+    font-family:'Orbitron',ui-monospace,monospace;font-size:9px;color:var(--dim);letter-spacing:.04em}
+  #scaleNote .slab span{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap}
+  #scaleNote .slab span:first-child{left:0;transform:none}
+  #scaleNote .slab em{position:absolute;top:0;font-style:normal;color:var(--accent);
+    font-weight:600;text-shadow:0 0 8px var(--glow);white-space:nowrap;transition:left .18s ease}
+  #scaleNote .sacross{margin-top:3px;font-size:10px;color:var(--dim);letter-spacing:.03em}
+  #scaleNote .sacross em{font-family:'Orbitron',ui-monospace,monospace;font-size:.92em;
+    color:var(--accent);font-style:normal;font-weight:600;text-shadow:0 0 8px var(--glow)}
+  @media (max-width:600px){ #scaleNote .sacross{display:none} }
 /* The modal surfaces: the debug card, the first-run tour, the info dialog and the deep-time
    table and chart inside it.
    
@@ -8002,7 +8097,11 @@ startFrameLoop({
     <div id="dbgMsg" style="margin-top:6px;font-size:9.5px;letter-spacing:.1em;color:var(--dim);min-height:14px"></div>
   </div>
 </div>
-<div class="note" id="scaleNote">view <em id="sScale">—</em> across</div>
+<div id="scaleNote">
+  <div class="sbar"><span class="sfill" id="sFill"></span><i class="stk"></i><i class="stk mid" id="sTkMid"></i><i class="stk end" id="sTkEnd"></i></div>
+  <div class="slab"><span>0</span><span class="mid" id="sHalf">—</span><span class="end" id="sEnd">—</span><em id="sUnit">—</em></div>
+  <div class="sacross">view <em id="sScale">—</em> across</div>
+</div>
 <div class="env" id="env">
   <button class="pclose" id="envMin" data-close="env" aria-label="minimise the Earth panel">−</button>
   <h2>Earth</h2>

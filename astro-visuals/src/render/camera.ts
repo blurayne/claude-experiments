@@ -35,10 +35,15 @@ let rPan = false;                                    // the right mouse button i
 
 let panCX = 0, panCY = 0;      // the last two-pointer centroid
 function panCentroid(): number[] { let x=0,y=0; for(const q of touches.values()){ x+=q.clientX; y+=q.clientY; } return [x/touches.size, y/touches.size]; }
-// the floor: ~0.04 AU across, eight solar radii; at Earth and at the Moon, a body filling
-// the view. The Moon's view before she forms is Earth's view, so it keeps Earth's floor.
-export const minDist = (): number => cam.followTarget === 'moon' ? (ageGyr() > MOON_BORN ? 5.5e-12 : 2e-11)
-                   : cam.followTarget === 'earth' ? 2e-11 : (REAL_MODE ? 2e-8 : 25);
+// the floor: with a body followed, three times closer than the old one — a planet may fill
+// the frame and then some, which is what a visitor reaches for once they are already there.
+// The Moon's view before she forms is Earth's view, so it keeps Earth's floor.
+export const minDist = (): number => cam.followTarget === 'moon' ? (ageGyr() > MOON_BORN ? 1.8e-12 : 6.7e-12)
+                   : cam.followTarget === 'earth' ? 6.7e-12 : (REAL_MODE ? 2e-8 : 25);
+// The ceiling: three times further out than the old 7500, so the Galaxy can be seen whole
+// with room around it. The sky sphere and the far plane follow it (render/frame's
+// skyProjection), or the backdrop would clip away exactly when there is most of it to see.
+export const MAX_DIST = 22500;
 // The zoom buttons step along a ladder of the objects themselves — the Sun, the planets'
 // orbits, the belts, the Oort shell, the nearest stars, the arm, the Galaxy, the Local
 // Group — with one rung between each pair, so two presses take you from one object to
@@ -53,7 +58,7 @@ export function zoomStep(dir: number): void {
   if(dir < 0){ for(const r of ZOOM_RUNGS) if(Math.log(r) < lo - 0.03) next = r; }        // the largest rung below
   else       { for(const r of ZOOM_RUNGS) if(Math.log(r) > lo + 0.03){ next = r; break; } } // the smallest above
   if(next === null) return;
-  cam.distGoal = Math.max(minDist(), Math.min(9500, next));
+  cam.distGoal = Math.max(minDist(), Math.min(MAX_DIST, next));
 }
 
 export function initCamera(deps: { ageGyr: () => number; onHold: (held: boolean) => void }): void {
@@ -113,7 +118,7 @@ export function initCamera(deps: { ageGyr: () => number; onHold: (held: boolean)
   canvas.addEventListener('wheel', e=>{
     e.preventDefault();
     const rate = REAL_MODE ? 0.0018 : 0.0011; // faster travel across real scale's ~11 decades
-    cam.distGoal = Math.max(minDist(), Math.min(7500, cam.distGoal*Math.exp(e.deltaY*rate)));
+    cam.distGoal = Math.max(minDist(), Math.min(MAX_DIST, cam.distGoal*Math.exp(e.deltaY*rate)));
   },{passive:false});
   // pinch zoom
   let pinchD=0;
@@ -122,7 +127,7 @@ export function initCamera(deps: { ageGyr: () => number; onHold: (held: boolean)
   canvas.addEventListener('touchmove', e=>{
     if(e.touches.length===2){
       const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
-      if(pinchD>0) cam.distGoal=Math.max(minDist(),Math.min(7500,cam.distGoal*pinchD/d));
+      if(pinchD>0) cam.distGoal=Math.max(minDist(),Math.min(MAX_DIST,cam.distGoal*pinchD/d));
       pinchD=d; dragging=false;   // belt and braces alongside the pointer bookkeeping
     }
   },{passive:true});

@@ -1,7 +1,7 @@
 import { $ } from '../core/dom'
 import { lookAt, mul, perspective, MAT3_ID, type Vec3 } from '../core/mat4'
 import {
-  R_GAL, V_GAL, AGE0, AU2U, REAL_MODE, TILT, E1, E2, RC_BAR, ARM_EVO_AMP, T_BIG_BANG, asmAt, chaosAt,
+  R_GAL, V_GAL, AGE0, AU2U, REAL_MODE, TILT, E1, E2, RC_BAR, ARM_EVO_AMP, T_BIG_BANG, SUN_BORN_T, asmAt, chaosAt,
 } from '../astro/constants'
 import { BODIES, NB, N_PLANETS, I_P9, bodyPos, tmp, earthW } from '../astro/bodies'
 import { EAT_AGES, sunState, sunTint, pnState, type PnState } from '../astro/sun'
@@ -16,7 +16,7 @@ import { cam, gfx, lifeAcc, readout, simClock, view, SKY_MIRROR } from './state'
 import { hud, updateHud } from '../ui/hud'
 import { N_STAR } from '../scene/starfield'
 import { drawNebula, type CloudFrame, type Which } from './passes/nebula'
-import { drawSkyImages, N_SKYDOTS, skyDotVAO } from '../scene/skybox'
+import { drawSkyImages, N_SKYDOTS, skyDotVAO, R_SKY } from '../scene/skybox'
 import { drawDust } from './passes/dust'
 import { pPt, U } from './passes/points'
 import { drawBelts } from './passes/belts'
@@ -233,7 +233,10 @@ function frame(now: number): void {
   // the planet's own axis, and TypeScript cannot see the length of either.
   const viewMat = lookAt(eye as unknown as Vec3, [tgx,tgy,tgz], upV as unknown as Vec3);
   // near plane tracks the zoom so sub-AU views don't clip
-  view.projMat = skyProjection(Math.min(0.5, Math.max(1e-13, cam.dist*0.04)), 25000);   // no depth buffer: a tiny near plane costs nothing, and Earth needs it
+  // no depth buffer: a tiny near plane costs nothing, and Earth needs it. The far plane
+  // follows the zoom — at the new ceiling the sky sphere's far side is 40,000 out, and a
+  // fixed 25,000 would have clipped the backdrop away just as the Galaxy came whole into view.
+  view.projMat = skyProjection(Math.min(0.5, Math.max(1e-13, cam.dist*0.04)), Math.max(25000, cam.dist + R_SKY + 6000));
   const pxScale = (view.H*view.DPR)/(2*Math.tan(Math.PI/6));
 
   // at 100% nothing is compressed, so the old direct path is kept exactly
@@ -416,8 +419,13 @@ function frame(now: number): void {
   if(!insideDisk) drawNebula(clouds, false, 'mw');   // the HII regions and the core, over the stars
   if(hud.lifeOn && puffs.length) drawRemnants(lifeFrame);
   if(!andFar) andLayer();   // Andromeda nearer: her whole layer over ours, lanes and all
+  // Nothing of the solar system exists before it formed: no planets, no trails, no belts,
+  // no globe. The galaxy around it does — that is the whole point of scrubbing back there —
+  // but drawing Earth's orbit 9 Gyr before Earth would be a lie the rest of the page has
+  // spent every version avoiding.
+  const bornYet = simClock.simT >= SUN_BORN_T;
   // trails
-  if(hud.showTrails && hud.trailPct > 0) drawTrails({
+  if(bornYet && hud.showTrails && hud.trailPct > 0) drawTrails({
     projMat: view.projMat!, viewMat, camDist: cam.dist, org,
     trailAlpha: hud.trailAlpha, orbitAlpha: hud.orbitAlpha, starGain: hud.starGain,
     psH: hud.psH, psO: hud.psO, showP9: hud.showP9, showDwarfs: hud.showDwarfs, wasEaten,
@@ -425,19 +433,19 @@ function frame(now: number): void {
 
   // asteroid belt, Kuiper belt & Oort cloud, riding along with the Sun.
   // Each fades out while its ring is too small on screen to resolve — otherwise its
-  drawBelts({
+  if(bornYet) drawBelts({
     projMat: view.projMat!, viewMat, pxScale, camDist: cam.dist, simT: simClock.simT,
     g710Dist: gl710.d, showBelt: hud.showBelt, showKuiper: hud.showKuiper, showOort: hud.showOort,
     globePx: readout.globePx,
   });
 
-  drawBodies({ showDwarfs: hud.showDwarfs, showP9: hud.showP9 });
+  if(bornYet) drawBodies({ showDwarfs: hud.showDwarfs, showP9: hud.showP9 });
 
   // Earth as a globe, and the Moon, once they are more than a dot. Opaque discs, so the
   // same blend as the Sun's disc; the atmosphere adds over what is behind it.
   readout.moonPx = 0;
   // the pass opens on Earth's size, or on the Moon's when she is the one being followed
-  if((readout.globePx > 4 || cam.followTarget === 'moon') && !wasEaten[3]){
+  if(bornYet && (readout.globePx > 4 || cam.followTarget === 'moon') && !wasEaten[3]){
     const a = ageGyr();
     const g = drawGlobe({
       projMat: view.projMat!, viewMat, ageGyr: a, era: earthEra(a, environment().mean),
@@ -459,11 +467,11 @@ function frame(now: number): void {
   // runs 0.3 Gyr past sunState()'s own 'planetary nebula' phase, so it stays a frame-level
   // value rather than something the pass computes and keeps to itself.
   const pn = pnState(ageGyr());
-  readout.pnShown = drawShed({
+  readout.pnShown = bornYet && drawShed({
     projMat: view.projMat!, viewMat, shimT: simClock.shimT, pxScale,
     camSunDist: readout.camSunDist, pn,
   });
-  drawSunDisc({
+  if(bornYet) drawSunDisc({
     projMat: view.projMat!, viewMat, shimT: simClock.shimT,
     plasmaSunPx: readout.plasmaSunPx, tint,
   });
@@ -478,7 +486,7 @@ function frame(now: number): void {
   readout.frameDt = dt;
   drawLabels(hud.showLabels, {
     projMat: view.projMat!, viewMat, pxScale, camDist: cam.dist, org, andPos,
-    merge: and.merge, sep: and.sep, spinMW, spinM31, asm, star: gl710,
+    merge: and.merge, sep: and.sep, spinMW, spinM31, asm, bornYet, star: gl710,
     showP9: hud.showP9, showDwarfs: hud.showDwarfs, wasEaten,
     structOn: [hud.showBelt, hud.showKuiper, hud.showOort], armsOn: hud.armsOn,
   });
