@@ -9,13 +9,14 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
  * The gate's baseline: the release the current work is compared against.
  *
  * Through the TypeScript migration this was fd0f980 (v2.78.0, the last commit before it),
- * and the gate proved the whole migration pixel-null against it. v3.1.0 then changed pixels
- * DELIBERATELY — the rotation, arm-evolution and collision work — so the pin moves to that
- * release and the gate guards the next change instead. AGENTS.md carries the rule: a release
+ * and the gate proved the whole migration pixel-null against it. v3.1.0 changed pixels deliberately
+ * (rotation, arm evolution, collision) and v3.1.1 after it (Andromeda's limb prose and the
+ * observational figures in the help), so the pin rides the latest release and the gate
+ * guards the next change instead. AGENTS.md carries the rule: a release
  * that intends visual change repins to its own final content commit, as its own commit, and
  * the pin never moves to make an unintended difference go away.
  */
-export const PIN = '824a29719e4588a14e965504ffd403051d494ab3'
+export const PIN = '69cf66398e2059a5ee29fd514a729f976223868b'
 
 /**
  * The pinned page is written as a sibling of the live one rather than into a checkout of its
