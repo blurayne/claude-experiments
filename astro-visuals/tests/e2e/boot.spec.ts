@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { PNG } from 'pngjs'
 import { readFileSync } from 'node:fs'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -386,5 +387,107 @@ test.describe('the rotation sense', () => {
     }
     expect(clockwise, 'no arm label moved measurably — the probe has gone stale').toBeGreaterThan(0)
     expect(counter, 'an arm label swept COUNTERCLOCKWISE seen from the north pole').toBe(0)
+  })
+
+  test('the galaxy spin lock freezes the arm pattern on screen', async ({ page }) => {
+    // The counterpart of the sweep test above: with the spin lock ticked in the galaxy
+    // view the camera rides the bar pattern, so over the same 40 Myr that sweeps every
+    // label clockwise when unlocked, each label must now hold its screen position. This
+    // is what makes the arm-evolution scenario watchable at all.
+    await page.setViewportSize({ width: 900, height: 900 })
+    await page.goto('/galactic-transit.html?debug', { waitUntil: 'load' })
+    await page.waitForFunction(() => !!document.getElementById('gl'))
+    const tour = page.locator('#tourGo')
+    if (await tour.isVisible().catch(() => false)) await tour.click()
+
+    const armsAt = async (simT: number) => {
+      await page.evaluate((t) => {
+        const state = {
+          app: 'galactic-transit',
+          time: { simT: t, paused: true },
+          camera: { yaw: 0, pitch: 1.45, dist: 3000, distGoal: 3000, follow: false, coreLock: false, dive: false },
+        }
+        ;(document.getElementById('dbgText') as HTMLTextAreaElement).value = JSON.stringify(state)
+        document.getElementById('dbgImport')!.click()
+      }, simT)
+      await page.waitForTimeout(2500)
+      return page.evaluate(() => {
+        const out: Record<string, [number, number]> = {}
+        for (const el of document.querySelectorAll('#labels .armlbl')) {
+          const e = el as HTMLElement
+          if (e.style.display === 'none' || !e.textContent) continue
+          out[e.textContent] = [parseFloat(e.style.left), parseFloat(e.style.top)]
+        }
+        return out
+      })
+    }
+
+    await armsAt(0)   // land in the galaxy view first: the lock toggle reads cam.follow
+    await page.evaluate(() => {
+      const c = document.getElementById('tSpinLock') as HTMLInputElement
+      if (!c.checked) { c.checked = true; c.dispatchEvent(new Event('change')) }
+    })
+    const a = await armsAt(0)
+    const b = await armsAt(40e6)
+    const ARMS_ONLY = ['Sagittarius–Carina', 'Perseus', 'Scutum–Centaurus', 'Outer Arm']
+    let held = 0
+    for (const k of ARMS_ONLY) {
+      if (!a[k] || !b[k]) continue
+      const d = Math.hypot(a[k]![0] - b[k]![0], a[k]![1] - b[k]![1])
+      expect(d, `${k} drifted ${d.toFixed(1)} px under the spin lock`).toBeLessThan(10)
+      held++
+    }
+    expect(held, 'no arm label was visible in both frames — the probe has gone stale').toBeGreaterThan(1)
+  })
+
+  test('the arms trail: the drawn spiral winds against the rotation', async ({ page }) => {
+    // The whole chain in one pixel measurement: map asset, ingest reflection, shader,
+    // mirrored projection. Fit a two-armed logarithmic spiral of the coded pitch to the
+    // rendered brightness at its best phase, once wound trailing and once leading; the
+    // trailing fit must win. A user caught this backwards by eye in v3.1 — the shipped
+    // illustration winds outward-clockwise and an ingest comment claimed the mirror had
+    // been "measured" — so the winding is now pinned at the only level that cannot lie.
+    await page.setViewportSize({ width: 900, height: 900 })
+    await page.goto('/galactic-transit.html?debug', { waitUntil: 'load' })
+    await page.waitForFunction(() => !!document.getElementById('gl'))
+    const tour = page.locator('#tourGo')
+    if (await tour.isVisible().catch(() => false)) await tour.click()
+    await page.evaluate(() => {
+      const state = { app: 'galactic-transit', time: { simT: 0, paused: true },
+        camera: { yaw: 0, pitch: 1.45, dist: 3000, distGoal: 3000, follow: false, coreLock: false, dive: false } }
+      ;(document.getElementById('dbgText') as HTMLTextAreaElement).value = JSON.stringify(state)
+      document.getElementById('dbgImport')!.click()
+    })
+    await page.waitForTimeout(3500)
+    const shot = PNG.sync.read(await page.locator('#gl').screenshot())
+    const { width: W, height: H, data } = shot
+    const cx = W / 2, cy = H / 2
+    const kPx = (H / 1.1547) / 3000            // px per scene unit at dist 3000
+    const PITCH = Math.tan(12.5 * Math.PI / 180)
+    const lum = (r: number, psi: number): number | null => {
+      // scene (x,z) -> screen: x mirrored to the left, +z down (north-pole view)
+      const sx = Math.round(cx - kPx * r * Math.sin(psi)), sy = Math.round(cy + kPx * r * Math.cos(psi))
+      if (sx < 2 || sx >= W - 2 || sy < 2 || sy >= H - 2) return null
+      const i = (sy * W + sx) * 4
+      return data[i]! + data[i + 1]! + data[i + 2]!
+    }
+    const score = (sgn: number): number => {
+      let best = -1
+      for (let pk = 0; pk < 72; pk++) {
+        const ph = pk / 72 * 2 * Math.PI
+        let tot = 0, n = 0
+        for (let arm = 0; arm < 2; arm++) {
+          for (let r = 600; r < 1300; r += 15) {
+            const b = lum(r, ph + arm * Math.PI + sgn * Math.log(r / 500) / PITCH)
+            if (b !== null) { tot += b; n++ }
+          }
+        }
+        best = Math.max(best, tot / Math.max(n, 1))
+      }
+      return best
+    }
+    const trailing = score(-1), leading = score(+1)
+    expect(trailing, `trailing fit ${trailing.toFixed(1)} vs leading ${leading.toFixed(1)} — the drawn spiral winds WITH the rotation`)
+      .toBeGreaterThan(leading * 1.1)
   })
 })

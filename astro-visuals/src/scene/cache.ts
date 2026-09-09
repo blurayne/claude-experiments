@@ -43,9 +43,12 @@ export function flushGxyCache(): void {
 
 // The classic face-on Milky Way illustration is used as a probability map: stars are
 // placed where the picture is bright, with colours taken from its pixels; dust where its
-// lanes are dark; HII nebulae where it is pink. The shipped copy is mirrored so the arms
-// trail the pattern's rotation, and rotated so its bar sits at the scene's 28 degrees —
-// both measured, not guessed. The procedural generator remains the fallback offline.
+// lanes are dark; HII nebulae where it is pink. The shipped copy is rotated so its bar
+// sits at the scene's 28 degrees, but — despite what an earlier comment here claimed to
+// have measured — it is NOT mirrored: its spiral winds outward-clockwise, which on the
+// north-pole view would read as leading arms. mapXZ (scene/galaxy) therefore reflects
+// every sample about the bar axis on ingest; the winding is pinned by pixel measurement
+// in boot.spec ('the arms trail'). The procedural generator remains the fallback offline.
 
 export function loadGalaxyMap(): void {
   fetch('galaxy-map.webp').then(r => r.ok ? r.blob() : Promise.reject())

@@ -42,12 +42,16 @@ const structEls = STRUCTS.map(s=>{
 // pattern, exactly as the structure it names does in the shader: the bar-driven arms the
 // fast pattern (RC_BAR), the Orion Spur the slow near-corotation one (RC_ARMS) — so the
 // spur's name stays with the Sun's neighbourhood while the arm names sweep past.
+// The four bar-pattern anchors sit ON their armAngle loci (checked by tests/unit/winding):
+// with the map's winding fixed, the drawn ridges and the analytic skeleton finally agree,
+// so a label can be computed instead of eyeballed. Sagittarius–Carina inside the Sun's
+// radius, Perseus just outside, the Outer Arm far out — the real radial order from home.
 const ARM_LBLS: readonly (readonly [string, number, number, number])[] = [
   ['Orion Spur',          150,  830, RC_ARMS],
-  ['Sagittarius–Carina',  110,  580, RC_BAR],
-  ['Perseus',              70, 1010, RC_BAR],
-  ['Scutum–Centaurus',   -170, -560, RC_BAR],
-  ['Outer Arm',          -260, 1340, RC_BAR],
+  ['Sagittarius–Carina',  129,  749, RC_BAR],
+  ['Perseus',             168, 1067, RC_BAR],
+  ['Scutum–Centaurus',   -600,  360, RC_BAR],
+  ['Outer Arm',           563, 1336, RC_BAR],
   ['Galactic bar',         30,   40, RC_BAR],
 ];
 export const armEls = ARM_LBLS.map(a=>{

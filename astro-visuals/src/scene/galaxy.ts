@@ -199,8 +199,17 @@ export function mapPick(cdf: Float32Array): number {
 export function mapXZ(i: number, spread: number): [number, number] {
   const n=gfx.galaxyMap!.n, c0=(n-1)/2;
   const u=(i%n)+Math.random()-0.5+gauss()*spread, v=((i/n)|0)+Math.random()-0.5+gauss()*spread;
-  return [ (u-c0)*MAP_SCALE, -(v-c0)*MAP_SCALE ];
+  const x0=(u-c0)*MAP_SCALE, z0=-((v-c0)*MAP_SCALE);
+  // Reflected about the BAR AXIS on the way into the scene. The shipped illustration's
+  // spiral winds outward-clockwise, which on this page's north-pole view (clockwise
+  // rotation, both measured) would be LEADING arms — backwards; a user saw it where two
+  // sessions of sign-chasing had not. Reflecting about the bar keeps the bar at its
+  // measured 28° while turning the arms around it into trailing ones, so the picture,
+  // the armAngle skeleton, the labels, the events and the ice ages all finally agree on
+  // where an arm IS. Pinned by 'the arms trail' in boot.spec and tests/unit/winding.
+  return [ z0*S2B - x0*C2B, x0*S2B + z0*C2B ];
 }
+const C2B = Math.cos(2*BAR_A), S2B = Math.sin(2*BAR_A);
 
 export function genGalaxyMap(D: number): GalaxyBuffers {
   let gxyPos, gxySize, gxyCol, gxyWave, nebPos, nebSize, nebCol, dustPos, dustSize, dustStr;
