@@ -298,13 +298,62 @@ function frame(now: number): void {
     varOn: hud.varOn, deep, insideDisk, andPos, tide: and.tide, merge: and.merge,
     spinMW, spinM31, warp, ringT, sunX, sunY, bubY, sunZ, org,
   };
-  // Multiply blending knows nothing of depth: a cloud of the galaxy BEHIND would darken
-  // the one in front. So the farther galaxy goes down whole — haze, then its dust — and
-  // the nearer one over it; a galaxy's clouds can only ever thin its own light. The
-  // eye is Sun-relative here, like everything drawn.
+  // Multiply blending and additive sprites know nothing of depth, so the galaxies are
+  // painted as CLOSED LAYERS, farther one first: haze, dust lanes, stars, then HII and
+  // core, per galaxy. The nearer galaxy's dark clouds then genuinely stand in front of
+  // the farther one's starlight — Andromeda's lanes silhouette against the Milky Way
+  // when she crosses it, and ours against her the other way about. (An earlier build
+  // ordered only the CLOUDS and drew all stars afterwards, so each galaxy's light shone
+  // straight through the other's dust.) The eye is Sun-relative, like everything drawn.
   const dMW  = Math.hypot(eye[0] + org[0], eye[1] + org[1], eye[2] + org[2]);
   const dAnd = Math.hypot(eye[0] - (andPos[0] - org[0]), eye[1] - (andPos[1] - org[1]), eye[2] - (andPos[2] - org[2]));
-  for(const g of (dAnd > dMW ? ['and', 'mw'] : ['mw', 'and']) as Which[]){ drawNebula(clouds, true, g); if(insideDisk) drawNebula(clouds, false, g); drawDust(clouds, hud.dustOn, g); }
+  const andFar = dAnd > dMW;
+  const andLayer = (): void => {
+    drawNebula(clouds, true, 'and');
+    if(insideDisk) drawNebula(clouds, false, 'and');
+    drawDust(clouds, hud.dustOn, 'and');
+    if(gfx.vaoAnd){
+      // Andromeda: generated flat in its own disk frame; uGRot turns it to its measured
+      // orientation — the two disks stand 120° apart, nowhere near parallel — and uGOff
+      // carries it along its orbit. It spins its real way, ~7% faster than we do, and its
+      // tide pulls toward the Milky Way: the bridge is mutual, both disks reaching.
+      // Every uniform this draw needs is set here rather than inherited, because the
+      // layer runs before OR after the Milky Way's depending on who is nearer.
+      gl.useProgram(pPt);
+      gl.uniformMatrix3fv(U.ptGRot, false, M31_ROT);
+      gl.uniform3f(U.ptGOff, andPos[0], andPos[1], andPos[2]);
+      gl.uniform1f(U.ptSpin, spinM31);
+      gl.uniform1f(U.ptWarp, warp);
+      gl.uniform1f(U.ptWarpAmp, 0.35);
+      gl.uniform3f(U.ptSun, sunX, sunY+1e8, sunZ);   // no clearance bubble in its frame
+      gl.uniform3f(U.ptAnd, 0, 0, 0);
+      gl.uniform1f(U.ptVM, 0.0);
+      gl.uniform1f(U.ptGal, 1.0);
+      gl.uniform1f(U.ptMerge, and.merge);
+      gl.uniform1f(U.ptArmAmp, 0.0);         // Andromeda's structure is rings, not the beat
+      gl.uniform1f(U.ptRingAmp, M31_RING.amp); gl.uniform1f(U.ptRingT, ringT);
+      gl.uniform2f(U.ptRingC, M31_RING.cx, M31_RING.cz);
+      gl.bindVertexArray(gfx.vaoAnd); gl.drawArrays(gl.POINTS,0,gfx.N_AND);
+      gl.uniformMatrix3fv(U.ptGRot, false, MAT3_ID);
+      gl.uniform3f(U.ptGOff, 0, 0, 0);
+      gl.uniform3f(U.ptSun, sunX, bubY, sunZ);
+      gl.uniform3f(U.ptAnd, andPos[0], andPos[1], andPos[2]);
+      gl.uniform1f(U.ptWarpAmp, 1.0);
+      gl.uniform1f(U.ptSpin, spinMW);
+      gl.uniform1f(U.ptVM, hud.varOn?1.0:0.0);
+      gl.uniform1f(U.ptArmAmp, ARM_EVO_AMP);
+      gl.uniform1f(U.ptRingAmp, 0.0);
+      gl.uniform1f(U.ptGal, 0.0);
+    }
+    if(!insideDisk) drawNebula(clouds, false, 'and');   // her HII ring and core, over her stars
+  };
+  if(andFar) andLayer();
+  // the Milky Way's layer: haze, lanes, then the backdrop sky and the Gaia bubble (our
+  // own foreground stars — in front of Andromeda from every camera this side of her),
+  // the disk's stars, the life-cycle events, and the HII regions and core over them
+  drawNebula(clouds, true, 'mw');
+  if(insideDisk) drawNebula(clouds, false, 'mw');
+  drawDust(clouds, hud.dustOn, 'mw');
   gl.useProgram(pPt);   // back to the points; their uniforms persist on the program
   gl.bindVertexArray(vaoStars); gl.drawArrays(gl.POINTS,0,N_STAR);
   // Real stars, carried along with the Sun. They are stored at the galaxy's scale — a
@@ -350,40 +399,14 @@ function frame(now: number): void {
     if(gfx.NUC0 > 0) gl.drawArrays(gl.POINTS, 0, gfx.NUC0);
     if(gfx.N_GXY > gfx.NUC1) gl.drawArrays(gl.POINTS, gfx.NUC1, gfx.N_GXY - gfx.NUC1);
   } else gl.drawArrays(gl.POINTS,0,gfx.N_GXY);
-
-  // Andromeda: generated flat in its own disk frame; uGRot turns it to its measured
-  // orientation — the two disks stand 120° apart, nowhere near parallel — and uGOff
-  // carries it along its orbit. It spins its real way, ~7% faster than we do, and its
-  // tide pulls toward the Milky Way: the bridge is mutual, both disks reaching.
-  if(gfx.vaoAnd){
-    gl.uniformMatrix3fv(U.ptGRot, false, M31_ROT);
-    gl.uniform3f(U.ptGOff, andPos[0], andPos[1], andPos[2]);
-    gl.uniform1f(U.ptSpin, spinM31);
-    gl.uniform1f(U.ptWarpAmp, 0.35);
-    gl.uniform3f(U.ptSun, sunX, sunY+1e8, sunZ);   // no clearance bubble in its frame
-    gl.uniform3f(U.ptAnd, 0, 0, 0);
-    gl.uniform1f(U.ptVM, 0.0);
-    gl.uniform1f(U.ptArmAmp, 0.0);         // Andromeda's structure is rings, not this beat
-    gl.uniform1f(U.ptRingAmp, M31_RING.amp); gl.uniform1f(U.ptRingT, ringT);
-    gl.uniform2f(U.ptRingC, M31_RING.cx, M31_RING.cz);
-    gl.bindVertexArray(gfx.vaoAnd); gl.drawArrays(gl.POINTS,0,gfx.N_AND);
-    gl.uniformMatrix3fv(U.ptGRot, false, MAT3_ID);
-    gl.uniform3f(U.ptGOff, 0, 0, 0);
-    gl.uniform3f(U.ptSun, sunX, bubY, sunZ);
-    gl.uniform3f(U.ptAnd, andPos[0], andPos[1], andPos[2]);
-    gl.uniform1f(U.ptWarpAmp, 1.0);
-    gl.uniform1f(U.ptSpin, spinMW);
-    gl.uniform1f(U.ptVM, hud.varOn?1.0:0.0);
-    gl.uniform1f(U.ptArmAmp, ARM_EVO_AMP);
-    gl.uniform1f(U.ptRingAmp, 0.0);
-  }
   gl.uniform1f(U.ptGal, 0.0);
 
   // life-cycle events (OB clusters, supergiants, supernova flashes, remnant cores)
   if(hud.lifeOn && events.length) drawEvents(lifeFrame);
 
-  if(!insideDisk) drawNebula(clouds, false);   // the HII regions and the core, over the stars
+  if(!insideDisk) drawNebula(clouds, false, 'mw');   // the HII regions and the core, over the stars
   if(hud.lifeOn && puffs.length) drawRemnants(lifeFrame);
+  if(!andFar) andLayer();   // Andromeda nearer: her whole layer over ours, lanes and all
   // trails
   if(hud.showTrails && hud.trailPct > 0) drawTrails({
     projMat: view.projMat!, viewMat, camDist: cam.dist, org,
@@ -446,7 +469,7 @@ function frame(now: number): void {
   readout.frameDt = dt;
   drawLabels(hud.showLabels, {
     projMat: view.projMat!, viewMat, pxScale, camDist: cam.dist, org, andPos,
-    merge: and.merge, sep: and.sep, spinMW, star: gl710,
+    merge: and.merge, sep: and.sep, spinMW, spinM31, star: gl710,
     showP9: hud.showP9, showDwarfs: hud.showDwarfs, wasEaten,
     structOn: [hud.showBelt, hud.showKuiper, hud.showOort], armsOn: hud.armsOn,
   });

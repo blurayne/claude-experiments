@@ -1,4 +1,7 @@
 import { describe, it, expect } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { resolve, dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { M31_DIR, M31_ROT, sepScene } from '../../src/astro/merger'
 import { R_GAL, V_GAL } from '../../src/astro/constants'
 import { bodyPos } from '../../src/astro/bodies'
@@ -116,6 +119,39 @@ describe("Andromeda's orientation and spin, re-derived from the shipped constant
     expect(Math.abs(((deg(Math.atan2(Lg[1], Lg[0])) + 360) % 360) - 242)).toBeLessThan(3)
     expect(Math.abs(deg(Math.asin(Lg[2])) - (-30))).toBeLessThan(3)
     expect(dot(L, u), 'her spin axis must lean toward us').toBeLessThan(0)
+  })
+})
+
+describe("Andromeda's named structure", () => {
+  it('puts NGC 206 on the south-western sky, on the 10-kpc ring, and the rings at their radii', () => {
+    // NGC 206 is the brightest star cloud in M31 and it lives in the SW half — the
+    // approaching side. Its label anchor is solved from the same orientation chain the
+    // tests above verify, so this pins that it stays on the physically right side.
+    const src = readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), '../../src/render/labels.ts'), 'utf8')
+    const anchor = (name: string): V3 => {
+      const m = src.match(new RegExp(`\\['${name}',\\s*(-?\\d+),\\s*(-?\\d+),\\s*(-?\\d+)\\]`))
+      expect(m, `${name} label not found`).toBeTruthy()
+      return [Number(m![1]), Number(m![2]), Number(m![3])]
+    }
+    const skyPA = ([lx, ly, lz]: V3): number => {
+      const w: V3 = [
+        M31_ROT[0]!*lx + M31_ROT[3]!*ly + M31_ROT[6]!*lz,
+        M31_ROT[1]!*lx + M31_ROT[4]!*ly + M31_ROT[7]!*lz,
+        M31_ROT[2]!*lx + M31_ROT[5]!*ly + M31_ROT[8]!*lz,
+      ]
+      const e = s2e(w)
+      const sky: V3 = [e[0]-dot(e,u)*u[0], e[1]-dot(e,u)*u[1], e[2]-dot(e,u)*u[2]]
+      return (deg(Math.atan2(dot(sky, east), dot(sky, north))) + 360) % 360
+    }
+    const ngc = anchor('NGC 206')
+    const pa = skyPA(ngc)
+    expect(pa, `NGC 206 projects to PA ${pa.toFixed(0)}° — not the south-west`).toBeGreaterThan(180)
+    expect(pa).toBeLessThan(270)
+    expect(Math.hypot(ngc[0], ngc[2])).toBeCloseTo(1090, -2)          // on the 10-kpc ring
+    expect(Math.hypot(...anchor('10-kpc ring'))).toBeCloseTo(1090, -2)
+    const inner = anchor('inner ring')                                 // ~1.5 kpc, off-centre
+    expect(Math.hypot(inner[0], inner[2])).toBeGreaterThan(120)
+    expect(Math.hypot(inner[0], inner[2])).toBeLessThan(250)
   })
 })
 

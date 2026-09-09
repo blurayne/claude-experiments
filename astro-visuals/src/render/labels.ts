@@ -58,13 +58,25 @@ export const armEls = ARM_LBLS.map(a=>{
   const d=document.createElement('div'); d.className='armlbl'; d.textContent=a[0];
   d.style.display='none'; labelWrap.appendChild(d); return d;
 });
-// Andromeda and company, positioned in its own disk frame and carried on its orbit
+// Andromeda and company, positioned in its own disk frame and carried on its orbit.
+// The named structure joined in v3.3: the 10-kpc star-forming ring (Baade's N4/S4 arm
+// segments are largely pieces of it), the smaller inner dust ring the M32 plunge left
+// off-centre, and NGC 206, the brightest star cloud in M31 — placed at its real side of
+// the sky (southwest, on the ring; disk azimuth solved from the orientation chain, see
+// tests/unit/m31-orientation). The rings are circles, so their labels are free to sit
+// at whatever azimuth reads clearly. The three disk features ride the disk's own wave
+// rotation, unlike the satellites, which sit still in her frame.
 const M31_LBLS: readonly (readonly [string, number, number, number])[] = [
   ['Andromeda (M31)', 0, 60, 0],
   ['M32', -150, -80, 530],
   ['M110', 760, 240, -420],
   ['Giant Southern Stream', 1030, -1330, -2420],
+  ['10-kpc ring', 545, 0, -944],
+  ['inner ring', 126, 0, 134],
+  ['NGC 206', -1053, 0, 282],
 ];
+/** the entries that are disk material rather than companions: they turn with the disk */
+const M31_DISK_FROM = 4;
 const m31Els = M31_LBLS.map(a=>{
   const d=document.createElement('div'); d.className='armlbl'; d.textContent=a[0];
   d.style.display='none'; labelWrap.appendChild(d); return d;
@@ -137,6 +149,7 @@ export interface LabelInputs {
   sep: number
   /** the Milky Way's accumulated wave rotation — the arm names ride it */
   spinMW: number
+  spinM31: number
   /** where Gliese 710 is, in light years */
   star: { x: number; y: number; z: number; d: number }
   /** which bodies are drawn at all, and which have been swallowed */
@@ -155,7 +168,7 @@ export interface LabelInputs {
  */
 export function drawLabels(showLabels: boolean, inputs: LabelInputs): void {
   if(!showLabels){ placeLabel(g710Lbl, 0, 0, false); return }
-  const { projMat, viewMat, pxScale, camDist, org, andPos, merge, sep, spinMW, star,
+  const { projMat, viewMat, pxScale, camDist, org, andPos, merge, sep, spinMW, spinM31, star,
           showP9, showDwarfs, wasEaten, structOn, armsOn } = inputs;
   const pv = mul(projMat, viewMat);
   const proj = (x: number, y: number, z: number): number[] => { const cw = pv[3]*x+pv[7]*y+pv[11]*z+pv[15];
@@ -205,16 +218,26 @@ export function drawLabels(showLabels: boolean, inputs: LabelInputs): void {
   // named together, retired together: past this point the two disks already render as
   // one blob, so naming only "Andromeda" there would mislabel the Milky Way's own remnant
   if(galaxyNames && merge < 0.35){
+    const cD = Math.cos(spinM31/650), sD = Math.sin(spinM31/650);   // her wave rotation, as the shader turns it
+    let m31CW = 1e9;
     for(let a=0;a<M31_LBLS.length;a++){
       // the satellites and the stream exist only in the map-built Andromeda
       if(a > 0 && !gfx.m31Map){ placeLabel(m31Els[a] as Label, 0, 0, false); continue; }
       const L = M31_LBLS[a];
-      const wx = M31_ROT[0]*L[1]+M31_ROT[3]*L[2]+M31_ROT[6]*L[3]+andPos[0];
-      const wy = M31_ROT[1]*L[1]+M31_ROT[4]*L[2]+M31_ROT[7]*L[3]+andPos[1];
-      const wz = M31_ROT[2]*L[1]+M31_ROT[5]*L[2]+M31_ROT[8]*L[3]+andPos[2];
+      // the ring and star-cloud labels ride the disk like the points they name
+      const lx = a >= M31_DISK_FROM ? L[1]*cD + L[3]*sD : L[1];
+      const lz = a >= M31_DISK_FROM ? L[3]*cD - L[1]*sD : L[3];
+      const wx = M31_ROT[0]*lx+M31_ROT[3]*L[2]+M31_ROT[6]*lz+andPos[0];
+      const wy = M31_ROT[1]*lx+M31_ROT[4]*L[2]+M31_ROT[7]*lz+andPos[1];
+      const wz = M31_ROT[2]*lx+M31_ROT[5]*L[2]+M31_ROT[8]*lz+andPos[2];
       const [cw, sx, sy] = proj(wx-org[0], wy-org[1], wz-org[2]);
-      // the small companions only earn a name once Andromeda fills some of the view
-      placeLabel(m31Els[a] as Label, sx, sy, !(cw <= 1 || (a > 0 && sep > 0.9*camDist + 4000)));
+      if(a === 0) m31CW = cw;   // the nucleus's view distance: how large the disk projects
+      // the small companions only earn a name once Andromeda fills some of the view; the
+      // ring and star-cloud names need more still — a disk spanning a few hundred pixels —
+      // or they pile up on a thumbnail-sized galaxy
+      const show = cw > 1 && (a === 0
+        || (a < M31_DISK_FROM ? sep <= 0.9*camDist + 4000 : pxScale*2245/Math.max(m31CW, 1) > 240));
+      placeLabel(m31Els[a] as Label, sx, sy, show);
     }
   } else m31Els.forEach(l=>placeLabel(l as Label, 0, 0, false));
   // one galaxy, one name: from the moment the disks are one blob, the remnant's centre
