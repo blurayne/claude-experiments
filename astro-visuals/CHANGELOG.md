@@ -2,8 +2,13 @@
 
 Generated from the git history by `.github/scripts/build_changelog.py`;
 each entry is filed under the version the page carried once it landed.
+Hand-written release notes come from `CHANGELOG.notes.md`, never from here.
 
 ## Galactic Transit
+
+### 3.11.0 — 2026-09-10
+
+- V3.11.0 — debug mode becomes a switch under Other (`47f9a8f`)
 
 ### 3.10.0 — 2026-09-10
 
@@ -63,6 +68,14 @@ each entry is filed under the version the page carried once it landed.
 - V3.1.0 — how the galaxies turn (`824a297`)
 
 ### 3.0.0 — 2026-09-09
+
+**The migration, in numbers** (measured from the git history, 10 Sep 2026):
+
+- **How long it took:** just over 50 hours wall clock from the toolchain-and-inventory commit (6 Sep, 19:54) to v3.0.0 (8 Sep, 21:53), across 50 commits of migration work — with sessions running through the nights: commits land at 01:36, 03:40 and 08:15.
+- **How big the diff was:** 136 files, +27,388/−5,424 lines against v2.78.0 (`fd0f980`). Of that: +12,532 lines across 114 new source, test and config files; +5,025 lines of refactor documentation (the 14-file inventory and `MIGRATE-STATE.md`); the rebuilt page artifact (+6,824/−5,422); and a lockfile. `main.ts` ended at 553 lines, down from 5,347; 55 modules, the 23 shaders as files, 83 files under `src/` and 22 under `tests/`. Shipped with **180 unit tests, 10 boot tests and 23 parity states**; 22 of the 24 planned steps.
+- **Real runtime:** the full parity gate costs 34 minutes to 2 hours per run — 23 states, both builds photographed back to back under SwiftShader at ~6 fps, every capture in its own browser process. It started near double that and dropped to ~34 minutes mid-migration when the two builds began being photographed at once (`6e43bf4`). The unit suite runs in about a second; the boot suite in ~3 minutes.
+- **The hard parts:** making the gate trustworthy enough to trust — stored baseline PNGs turned out to be the flakiest thing in the project (three times a state differed by tens of thousands of pixels and three times the stored reference was the odd one out), so they were abolished for same-run photographs plus a two-sided control on every mismatch, with tolerance on area rather than amplitude. SwiftShader differing from *itself* by 16% when one process accumulated two dozen WebGL contexts. The seeded RNG stream, whose seven boot-time consumers may not be reordered because the asteroid belt's rejection loop makes its draw count data-dependent. The settings replay (R1), which dispatches synthetic events and — if any listener registers late — boots clean, throws nothing, and silently renders a default page. And mechanical renames, wrong in five distinct contexts (ids inside strings, element ids, property shorthand, local shadows, English prose) before each context got its own guard.
+- **Left to do, on purpose:** the two unshipped steps are "cleanup" (ruled out of scope by R28) and `ui/dialogs` (it would hold four lines about one modal). `astro/` and `scene/` are pure — the boundary a WASM port would need — but no port is built. The science work the refactor existed to enable (the measured rotation, the merger's spread of outcomes, the Sun's end) went to `TODO.md` and started landing with v3.1.0.
 
 - Two measured pattern speeds — the bar drives the arms, the spur keeps the Sun (`ddb87bd`)
 - V3.0.0 — the page is built from src/ (`972590a`)
