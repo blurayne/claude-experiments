@@ -5,6 +5,10 @@ each entry is filed under the version the page carried once it landed.
 
 ## Galactic Transit
 
+### 3.10.0 — 2026-09-10
+
+- V3.10.0 — hold to open the door, and the instructions catch up (`6a20e9c`)
+
 ### 3.9.0 — 2026-09-10
 
 - V3.9.0 — the debug panel gathers its own, and the scale becomes optional (`d8e865b`)
