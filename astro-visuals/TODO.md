@@ -5,9 +5,11 @@ before the work starts. An item is ticked when it ships, with the version that c
 
 ## 2026-09-10
 
-- [ ] Quick stats about the v3.0.0 refactoring in the changelog: real (wall-clock) runtime,
+- [x] Quick stats about the v3.0.0 refactoring in the changelog: real (wall-clock) runtime,
       how long it took, how big the diff was, the hard challenges, and what is left to do —
-      measured from the git history, not remembered.
+      measured from the git history, not remembered. Done via `CHANGELOG.notes.md`, a new
+      sidecar the generator merges under the matching version heading, so hand-written
+      notes survive regeneration.
 - [x] Debug mode also as a toggle under the "Other" settings section. The hold gesture on
       the "?" stays; the switch shows the mode you are in and flips it, carried by the
       existing debug flag (which survives reset), not by the settings record — v3.11.0.

@@ -108,6 +108,8 @@ so a log generated before the commit exists — or amended into it — would poi
 hash that never reaches `main`. Commits that only regenerate the log are skipped, so it
 does not grow by talking about itself.
 
+Hand-written release notes live in [`CHANGELOG.notes.md`](CHANGELOG.notes.md) — one `## <semver>` heading per version — and the generator merges each under its version's heading on regeneration. Never edit `CHANGELOG.md` itself; it is overwritten wholesale.
+
 The build renders it to `changelog.html`, which the panel footer links to.
 
 ## Files

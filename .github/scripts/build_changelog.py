@@ -43,6 +43,33 @@ def tidy(subject: str) -> str:
     return s[0].upper() + s[1:] if s else s
 
 
+def load_notes() -> dict[str, str]:
+    """Hand-written per-version notes from CHANGELOG.notes.md, keyed by version.
+
+    The changelog itself is regenerated from history and cannot be edited in place, so
+    anything worth saying about a release beyond its commit subjects lives in the sidecar:
+    a `## <semver>` heading per version, body in Markdown, merged under the matching
+    version heading of the Galactic Transit section.
+    """
+    src = ROOT / SUB / "CHANGELOG.notes.md"
+    if not src.exists():
+        return {}
+    notes: dict[str, str] = {}
+    ver: str | None = None
+    buf: list[str] = []
+    for line in src.read_text(encoding="utf-8").splitlines():
+        m = re.match(r"^## (\d+\.\d+\.\d+)\s*$", line)
+        if m:
+            if ver:
+                notes[ver] = "\n".join(buf).strip()
+            ver, buf = m.group(1), []
+        elif ver is not None:
+            buf.append(line)
+    if ver:
+        notes[ver] = "\n".join(buf).strip()
+    return notes
+
+
 def main() -> None:
     raw = git("log", "--format=%H" + UNIT + "%ad" + UNIT + "%s", "--date=short",
               "--", SUB).strip()
@@ -58,8 +85,10 @@ def main() -> None:
 
     out = ["# Changelog", "",
            "Generated from the git history by `.github/scripts/build_changelog.py`;",
-           "each entry is filed under the version the page carried once it landed.", ""]
+           "each entry is filed under the version the page carried once it landed.",
+           "Hand-written release notes come from `CHANGELOG.notes.md`, never from here.", ""]
 
+    notes = load_notes()
     for title, path in SECTIONS:
         mine = [c for c in commits if path in c[3]]
         if not mine:
@@ -73,6 +102,11 @@ def main() -> None:
             head = f"### {ver}" if ver != "unversioned" else "### Before versioning"
             out.append(f"{head} — {items[0][1]}")
             out.append("")
+            # notes belong to the versioned page; emitting them once keeps a version
+            # that appears under both sections from saying the same thing twice
+            if title == "Galactic Transit" and ver in notes:
+                out.append(notes[ver])
+                out.append("")
             for sha, _, subject in items:
                 out.append(f"- {tidy(subject)} (`{sha[:7]}`)")
             out.append("")
