@@ -5,9 +5,14 @@ before the work starts. An item is ticked when it ships, with the version that c
 
 ## 2026-09-10
 
-- [ ] Debug mode also as a toggle under the "Other" settings section. The hold gesture on
+- [ ] Quick stats about the v3.0.0 refactoring in the changelog: real (wall-clock) runtime,
+      how long it took, how big the diff was, the hard challenges, and what is left to do —
+      measured from the git history, not remembered.
+- [x] Debug mode also as a toggle under the "Other" settings section. The hold gesture on
       the "?" stays; the switch shows the mode you are in and flips it, carried by the
-      existing debug flag (which survives reset), not by the settings record.
+      existing debug flag (which survives reset), not by the settings record — v3.11.0.
+      Both doors go through `setDebugMode`, so the box mirrors the mode whichever way it
+      was entered; two boot tests pin the round trip and the `?debug` boot.
 
 ## 2026-09-06
 
