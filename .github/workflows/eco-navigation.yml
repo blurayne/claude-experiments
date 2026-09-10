@@ -1,0 +1,78 @@
+name: Build eco-navigation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      # Trigger on sources only. The job commits the regenerated data bundle,
+      # CSVs, app.js and methodology.html back; none of those match the paths
+      # below, so the bot's own commit cannot retrigger this workflow.
+      #
+      # Note the cached API responses (data/elevation_*.json,
+      # data/speedlimits_*.json) are deliberately NOT listed: build.py consumes
+      # them but the CI runner never refetches them. Refreshing the terrain
+      # needs `python3 fetch_real_data.py --speed --force` run locally.
+      - 'eco-navigation/*.py'
+      - 'eco-navigation/EcoNavigation.jsx'
+      - 'eco-navigation/METHODOLOGY.md'
+      - 'eco-navigation/data/gpx/*.gpx'
+      - '.github/workflows/eco-navigation.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: eco-navigation
+  cancel-in-progress: false
+
+jobs:
+  build:
+    # Skip the bot's own artifact commit to avoid a loop.
+    if: github.event_name == 'workflow_dispatch' || github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install doc renderer
+        run: pip install markdown
+
+      - name: Rebuild the data bundle
+        working-directory: eco-navigation
+        run: python3 build.py
+
+      - name: Recompile the UI
+        working-directory: eco-navigation
+        run: npx --yes esbuild@0.25.0 EcoNavigation.jsx --jsx=transform --format=iife --outfile=app.js
+
+      - name: Render the methodology page
+        working-directory: eco-navigation
+        run: python3 render_docs.py
+
+      - name: Commit regenerated artifacts
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add eco-navigation/data.js eco-navigation/app.js \
+                  eco-navigation/methodology.html \
+                  eco-navigation/data/eco_data.json \
+                  eco-navigation/data/results.csv \
+                  eco-navigation/data/route_metrics.csv \
+                  eco-navigation/data/profile_*.csv
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git commit -m "ci(eco-navigation): rebuild data bundle, UI and methodology page"
+          git push

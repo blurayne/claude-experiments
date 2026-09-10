@@ -8,8 +8,8 @@
  */
 const { useState, useMemo } = React;
 const {
-  ResponsiveContainer, ComposedChart, AreaChart, LineChart, BarChart,
-  Area, Line, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+  ResponsiveContainer, ComposedChart, BarChart,
+  Area, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   ReferenceLine,
 } = Recharts;
 
@@ -17,16 +17,18 @@ const D = window.ECO_DATA;
 const ROUTES = D.routes;
 const CARS = D.cars;
 const RES = D.results;
+const ROUTE_KEYS = D.route_order;
+const CMP = D.comparison;
 
 const C = {
   bg: "#0E1519", panel: "#15201F", panelHi: "#1B2A2A", line: "#26383A",
   ink: "#E7EFEF", dim: "#8AA0A1", faint: "#5C7172",
-  A: "#E0A800", B: "#E51B23", eco: "#38C7A6", amber: "#E8B23A",
+  eco: "#38C7A6", amber: "#E8B23A",
   good: "#5FB87A", bad: "#D9655A", elev: "#7FB7E8", curve: "#C792EA",
-  speed: "#65C7A8",
+  climb: "#E8825A", aero: "#5FB8C8", roll: "#8E9AA0", accel: "#D6B85A",
 };
-const ROUTE_KEYS = ["arnbruck", "koetzting"];
-const routeColor = (k) => (k === "arnbruck" ? C.A : C.B);
+const routeColor = (k) => ROUTES[k].color;
+const routeShort = (k) => ROUTES[k].short;
 
 const CAR_COLORS = {
   auris: "#5FB87A", id3: "#4FA6E0", panda: "#E8B23A",
@@ -38,15 +40,15 @@ const fmt = (n, d = 0) => Number(n).toLocaleString("de-DE",
 /* ----------------------------------------------------------------- atoms */
 function Stat({ label, value, unit, sub, color }) {
   return (
-    <div style={{ flex: "1 1 0", minWidth: 90 }}>
-      <div style={{ fontSize: 11, color: C.faint, textTransform: "uppercase",
+    <div style={{ flex: "1 1 0", minWidth: 84 }}>
+      <div style={{ fontSize: 10.5, color: C.faint, textTransform: "uppercase",
         letterSpacing: ".06em" }}>{label}</div>
-      <div style={{ fontSize: 22, fontWeight: 700, color: color || C.ink,
+      <div style={{ fontSize: 20, fontWeight: 700, color: color || C.ink,
         lineHeight: 1.2 }}>
-        {value}<span style={{ fontSize: 12, color: C.dim, fontWeight: 500,
+        {value}<span style={{ fontSize: 11.5, color: C.dim, fontWeight: 500,
           marginLeft: 3 }}>{unit}</span>
       </div>
-      {sub && <div style={{ fontSize: 11, color: C.dim }}>{sub}</div>}
+      {sub && <div style={{ fontSize: 10.5, color: C.dim }}>{sub}</div>}
     </div>
   );
 }
@@ -73,6 +75,23 @@ function Badge({ children, tone }) {
       whiteSpace: "nowrap" }}>{children}</span>
   );
 }
+function Pills({ value, onChange, options }) {
+  return (
+    <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginBottom: 12 }}>
+      {options.map(([v, lbl, col]) => {
+        const on = value === v;
+        const accent = col || C.eco;
+        return (
+          <button key={v} onClick={() => onChange(v)} style={{
+            cursor: "pointer", fontSize: 12.5, padding: "6px 12px",
+            borderRadius: 20, border: `1px solid ${on ? accent : C.line}`,
+            background: on ? `${accent}1c` : "transparent",
+            color: on ? accent : C.dim }}>{lbl}</button>
+        );
+      })}
+    </div>
+  );
+}
 
 /* --------------------------------------------------------------- tooltip */
 function ProfileTip({ active, payload, label, unit }) {
@@ -91,17 +110,21 @@ function ProfileTip({ active, payload, label, unit }) {
 }
 
 /* ------------------------------------------------------------------- MAP */
-function RouteMap() {
-  const towns = [
-    ["Deggendorf", 48.8345, 12.9580, "start"],
-    ["Teisnach", 49.0167, 12.9833, "split"],
-    ["Viechtach", 49.0786, 12.8856, "B"],
-    ["Bad Kötzting", 49.1786, 12.8556, "B"],
-    ["Drachselsried", 49.0970, 13.0060, "A"],
-    ["Arnbruck", 49.1230, 13.0180, "A"],
-    ["Engelshütt", 49.2067, 13.0319, "end"],
-  ];
-  const W = 720, H = 460, PAD = 38;
+const TOWNS = [
+  ["Deggendorf", 48.8345, 12.9580, 1],
+  ["Teisnach", 49.0167, 12.9833, 1],
+  ["Viechtach", 49.0786, 12.8856, 0],
+  ["Bad Kötzting", 49.1786, 12.8556, 0],
+  ["Drachselsried", 49.0970, 13.0060, 0],
+  ["Arnbruck", 49.1230, 13.0180, 0],
+  ["Regen", 48.9744, 13.1281, 0],
+  ["Bodenmais", 49.0714, 13.1000, 0],
+  ["Lam", 49.1975, 13.0553, 0],
+  ["Engelshütt", 49.2067, 13.0319, 1],
+];
+
+function RouteMap({ shown }) {
+  const W = 760, H = 500, PAD = 40;
   const all = [];
   ROUTE_KEYS.forEach((k) => {
     const p = ROUTES[k].profile;
@@ -126,22 +149,20 @@ function RouteMap() {
     }
     return d;
   };
+  const visible = ROUTE_KEYS.filter((k) => shown === "all" || shown === k);
   return (
     <Card>
       <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "auto",
         background: "#0c1417", borderRadius: 8 }}>
-        <path d={poly("koetzting")} fill="none" stroke={C.B} strokeWidth="3.2"
-          strokeOpacity="0.9" strokeLinejoin="round" />
-        <path d={poly("arnbruck")} fill="none" stroke={C.A} strokeWidth="3.2"
-          strokeOpacity="0.95" strokeLinejoin="round" />
-        {towns.map(([name, lat, lon, kind], i) => {
+        {visible.slice().reverse().map((k) => (
+          <path key={k} d={poly(k)} fill="none" stroke={routeColor(k)}
+            strokeWidth="3.2" strokeOpacity={0.92} strokeLinejoin="round" />
+        ))}
+        {TOWNS.map(([name, lat, lon, big], i) => {
           const [x, y] = px(lat, lon);
-          const big = kind === "start" || kind === "end" || kind === "split";
-          const col = kind === "A" ? C.A : kind === "B" ? C.B
-            : kind === "split" ? C.eco : C.ink;
           return (
             <g key={i}>
-              <circle cx={x} cy={y} r={big ? 5.5 : 3.6} fill={col}
+              <circle cx={x} cy={y} r={big ? 5.5 : 3.6} fill={big ? C.eco : C.ink}
                 stroke="#0c1417" strokeWidth="1.5" />
               <text x={x + 8} y={y + 4} fill={C.ink} fontSize={big ? 13 : 11.5}
                 fontWeight={big ? 700 : 500}
@@ -150,19 +171,24 @@ function RouteMap() {
             </g>
           );
         })}
-        <g transform={`translate(${W - 190},${H - 56})`} fontSize="12">
-          <rect x="-10" y="-16" width="190" height="58" rx="6"
-            fill="#0c1417" stroke={C.line} />
-          <line x1="0" y1="-2" x2="22" y2="-2" stroke={C.A} strokeWidth="3.5" />
-          <text x="30" y="2" fill={C.ink}>Route A · via Arnbruck</text>
-          <line x1="0" y1="20" x2="22" y2="20" stroke={C.B} strokeWidth="3.5" />
-          <text x="30" y="24" fill={C.ink}>Route B · Viechtach/Kötzting</text>
+        <g transform={`translate(18,${H - 96})`} fontSize="12">
+          <rect x="-8" y="-14" width="228" height={ROUTE_KEYS.length * 20 + 12}
+            rx="6" fill="#0c1417" stroke={C.line} />
+          {ROUTE_KEYS.map((k, i) => (
+            <g key={k} opacity={visible.includes(k) ? 1 : 0.28}>
+              <line x1="0" y1={i * 20} x2="22" y2={i * 20}
+                stroke={routeColor(k)} strokeWidth="3.5" />
+              <text x="30" y={i * 20 + 4} fill={C.ink}>
+                {routeShort(k)} · {fmt(ROUTES[k].total_km, 1)} km</text>
+            </g>
+          ))}
         </g>
       </svg>
       <div style={{ fontSize: 11.5, color: C.dim, marginTop: 8 }}>
-        Drawn from the real GPX track points (equirectangular projection,
-        longitude scaled by cos φ). Both routes share Deggendorf → Teisnach,
-        then split.
+        Drawn from the real track geometry (equirectangular projection, longitude
+        scaled by cos φ). Routes A and B are CoMaps tracks; routes C and D are
+        OSRM routes over the OpenStreetMap road network. All four share the first
+        22 km from Deggendorf to Teisnach.
       </div>
     </Card>
   );
@@ -171,36 +197,38 @@ function RouteMap() {
 /* --------------------------------------------------------- route summary */
 function RouteSummary() {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+    <div style={{ display: "grid",
+      gridTemplateColumns: "repeat(auto-fit,minmax(420px,1fr))", gap: 14 }}>
       {ROUTE_KEYS.map((k) => {
-        const r = ROUTES[k]; const cv = r.curviness; const e = r.elev_stats;
+        const r = ROUTES[k], cv = r.curviness, e = r.elev_stats;
         const t = RES[k].auris.time_min;
         return (
           <Card key={k} style={{ borderTop: `3px solid ${routeColor(k)}` }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: routeColor(k) }}>
+            <div style={{ fontSize: 14.5, fontWeight: 700, color: routeColor(k) }}>
               {r.name}</div>
             <div style={{ display: "flex", gap: 10, marginTop: 12,
               flexWrap: "wrap" }}>
               <Stat label="Distance" value={fmt(r.total_km, 1)} unit="km" />
               <Stat label="Drive time" value={fmt(t, 0)} unit="min"
                 sub={`Ø ${fmt(RES[k].auris.avg_kmh, 0)} km/h`} />
-              <Stat label="Net climb" value={`+${fmt(e.net_m)}`} unit="m"
-                sub={`${e.start_m}→${e.end_m} m`} />
+              <Stat label="Highest point" value={fmt(e.max_m)} unit="m"
+                color={C.elev} sub={`${e.start_m}→${e.end_m} m`} />
             </div>
             <div style={{ display: "flex", gap: 10, marginTop: 14,
               flexWrap: "wrap" }}>
               <Stat label="Total ascent" value={fmt(e.ascent_m)} unit="m"
-                color={C.elev} />
+                color={C.elev} sub={`${e.pct_steep}% at ≥5 %`} />
               <Stat label="Curviness" value={fmt(cv.deg_per_km)} unit="°/km"
-                color={C.curve} sub={`${cv.pct_curvy}% in curves`} />
-              <Stat label="Tight bends" value={cv.sharp_curves} unit="<80 m R"
-                sub={`med. R ${cv.median_curve_radius_m} m`} />
+                color={C.curve} sub={`index ${cv.curviness_index}/100`} />
+              <Stat label="Bends" value={fmt(cv.bends_per_km, 1)} unit="/km"
+                color={C.curve} sub={`median R ${cv.median_curve_radius_m} m`} />
             </div>
             <div style={{ fontSize: 11.5, color: C.dim, marginTop: 12,
               borderTop: `1px solid ${C.line}`, paddingTop: 8 }}>
-              ~<b style={{ color: C.ink }}>{r.stops_est}</b> modelled stops
-              (lights/junctions) · passes {r.villages_passed.length} built-up
-              areas
+              ~<b style={{ color: C.ink }}>{r.stops_est}</b> modelled stops ·{" "}
+              {r.villages_passed.length} built-up areas ·{" "}
+              <b style={{ color: C.ink }}>{r.elev_samples}</b> real elevation
+              samples · {r.osm_limit_pct}% of speed limits from OSM
             </div>
           </Card>
         );
@@ -211,48 +239,49 @@ function RouteSummary() {
 
 /* --------------------------------------------------------------- profiles */
 function Profiles() {
-  const [sel, setSel] = useState("both");
-  const show = sel === "both" ? ROUTE_KEYS : [sel];
-  // merge profiles onto a shared dist axis per route (each route own array)
-  const mkData = (k) => {
-    const p = ROUTES[k].profile;
-    return p.dist_km.map((d, i) => ({
-      d, elevation: p.elevation[i], curvature: p.curvature[i],
-      speed: p.speed_kmh[i], legal: p.legal_kmh[i],
-    }));
-  };
-  const dataA = useMemo(() => mkData("arnbruck"), []);
-  const dataB = useMemo(() => mkData("koetzting"), []);
-  const datasets = { arnbruck: dataA, koetzting: dataB };
-  const maxKm = Math.max(ROUTES.arnbruck.total_km, ROUTES.koetzting.total_km);
+  const [sel, setSel] = useState("all");
+  const show = sel === "all" ? ROUTE_KEYS : [sel];
+  const datasets = useMemo(() => {
+    const o = {};
+    ROUTE_KEYS.forEach((k) => {
+      const p = ROUTES[k].profile;
+      o[k] = p.dist_km.map((d, i) => ({
+        d, elevation: p.elevation[i], grade: p.grade_pct[i],
+        curvature: p.curvature[i], speed: p.speed_kmh[i], legal: p.legal_kmh[i],
+      }));
+    });
+    return o;
+  }, []);
+  const maxKm = Math.max(...ROUTE_KEYS.map((k) => ROUTES[k].total_km));
 
-  const Chart = ({ title, dataKey, unit, color, area, refLine }) => (
+  const Chart = ({ title, dataKey, unit, area, refLine, hint }) => (
     <Card style={{ marginBottom: 14 }}>
-      <div style={{ fontSize: 13.5, fontWeight: 600, color: C.ink,
-        marginBottom: 6 }}>{title}</div>
-      <ResponsiveContainer width="100%" height={190}>
-        <ComposedChart margin={{ top: 4, right: 14, bottom: 2, left: -8 }}>
+      <div style={{ fontSize: 13.5, fontWeight: 600, color: C.ink }}>{title}</div>
+      {hint && <div style={{ fontSize: 11.5, color: C.dim, margin: "2px 0 6px" }}>
+        {hint}</div>}
+      <ResponsiveContainer width="100%" height={200}>
+        <ComposedChart margin={{ top: 6, right: 14, bottom: 2, left: -8 }}>
           <CartesianGrid stroke={C.line} strokeDasharray="2 4" />
           <XAxis type="number" dataKey="d" domain={[0, maxKm]}
             tick={{ fill: C.dim, fontSize: 11 }} stroke={C.line}
             tickFormatter={(v) => fmt(v, 0)} unit=" km"
             allowDuplicatedCategory={false} />
-          <YAxis tick={{ fill: C.dim, fontSize: 11 }} stroke={C.line}
-            width={48} unit={unit === "°/100m" ? "" : ""} />
+          <YAxis tick={{ fill: C.dim, fontSize: 11 }} stroke={C.line} width={48} />
           <Tooltip content={<ProfileTip unit={unit} />} />
-          {refLine && <ReferenceLine y={refLine} stroke={C.faint}
-            strokeDasharray="4 4" label={{ value: refLine + "", fill: C.faint,
-              fontSize: 10, position: "insideTopRight" }} />}
+          {refLine !== undefined && <ReferenceLine y={refLine} stroke={C.faint}
+            strokeDasharray="4 4" />}
           {show.map((k) =>
-            area ? (
+            /* Filled areas only read well one at a time; with four routes
+               overlaid the fills muddy each other, so fall back to lines. */
+            area && show.length === 1 ? (
               <Area key={k} data={datasets[k]} type="monotone" dataKey={dataKey}
-                name={k === "arnbruck" ? "A" : "B"} stroke={routeColor(k)}
-                fill={routeColor(k)} fillOpacity={0.12} strokeWidth={2}
-                dot={false} isAnimationActive={false} />
+                name={routeShort(k)} stroke={routeColor(k)} fill={routeColor(k)}
+                fillOpacity={0.16} strokeWidth={2} dot={false}
+                isAnimationActive={false} />
             ) : (
               <Line key={k} data={datasets[k]} type="monotone" dataKey={dataKey}
-                name={k === "arnbruck" ? "A" : "B"} stroke={routeColor(k)}
-                strokeWidth={1.8} dot={false} isAnimationActive={false} />
+                name={routeShort(k)} stroke={routeColor(k)} strokeWidth={1.7}
+                dot={false} isAnimationActive={false} />
             )
           )}
         </ComposedChart>
@@ -261,22 +290,256 @@ function Profiles() {
   );
   return (
     <div>
-      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-        {[["both", "Both routes"], ["arnbruck", "A · Arnbruck"],
-          ["koetzting", "B · Viechtach/Kötzting"]].map(([v, lbl]) => (
-          <button key={v} onClick={() => setSel(v)} style={{
-            cursor: "pointer", fontSize: 12.5, padding: "6px 12px",
-            borderRadius: 20, border: `1px solid ${sel === v ? C.eco : C.line}`,
-            background: sel === v ? `${C.eco}1c` : "transparent",
-            color: sel === v ? C.eco : C.dim }}>{lbl}</button>
-        ))}
-      </div>
-      <Chart title="Elevation profile  (m a.s.l.) — modelled" dataKey="elevation"
-        unit="m" area />
-      <Chart title="Curviness  (° heading change per 100 m) — from GPX"
+      <Pills value={sel} onChange={setSel}
+        options={[["all", "All routes"],
+          ...ROUTE_KEYS.map((k) => [k, routeShort(k), routeColor(k)])]} />
+      <Chart title="Elevation profile (m above sea level)"
+        hint="Real EU-DEM 25 m terrain, sampled every 25 m along each track."
+        dataKey="elevation" unit="m" area />
+      <Chart title="Road grade (%)"
+        hint="Slope over a 300 m baseline. Positive is uphill in the direction of travel — this is the curve that drives the mountain-energy metric below."
+        dataKey="grade" unit="%" refLine={0} />
+      <Chart title="Curviness (° of heading change per 100 m)"
+        hint="Measured on a uniform 25 m grid, so the CoMaps and OSRM tracks are directly comparable."
         dataKey="curvature" unit="°/100m" />
-      <Chart title="Modelled driving speed  (km/h)" dataKey="speed"
-        unit="km/h" refLine={100} />
+      <Chart title="Modelled driving speed (km/h)"
+        hint="Capped by the real OSM speed limit, by bend radius at 2.2 m/s² lateral acceleration, and by comfortable acceleration."
+        dataKey="speed" unit="km/h" refLine={100} />
+    </div>
+  );
+}
+
+/* ------------------------------------------- NEW: where the energy goes */
+const WORK_PARTS = [
+  ["climb", "Climbing", C.climb],
+  ["aero", "Air drag", C.aero],
+  ["roll", "Rolling resistance", C.roll],
+  ["accel", "Accelerating", C.accel],
+];
+function EnergySplit({ carId }) {
+  const data = ROUTE_KEYS.map((k) => {
+    const w = RES[k][carId].work_kWh;
+    return { route: routeShort(k), ...w };
+  });
+  return (
+    <Card>
+      <ResponsiveContainer width="100%" height={260}>
+        <BarChart data={data} margin={{ top: 6, right: 16, bottom: 4, left: -6 }}>
+          <CartesianGrid stroke={C.line} strokeDasharray="2 4" vertical={false} />
+          <XAxis dataKey="route" tick={{ fill: C.dim, fontSize: 11 }}
+            stroke={C.line} interval={0} />
+          <YAxis tick={{ fill: C.dim, fontSize: 11 }} stroke={C.line} width={46}
+            label={{ value: "kWh at the wheel", angle: -90, position: "insideLeft",
+              fill: C.faint, fontSize: 11, offset: 14 }} />
+          <Tooltip
+            contentStyle={{ background: C.bg, border: `1px solid ${C.line}`,
+              borderRadius: 8, fontSize: 12 }}
+            formatter={(v, n) => [`${fmt(v, 2)} kWh`, n]} />
+          <Legend wrapperStyle={{ fontSize: 12 }} />
+          {WORK_PARTS.map(([id, label, col]) => (
+            <Bar key={id} dataKey={id} name={label} stackId="w" fill={col} />
+          ))}
+        </BarChart>
+      </ResponsiveContainer>
+      <div style={{ fontSize: 12, color: C.dim, marginTop: 6 }}>
+        Propulsion work at the wheel, split by which force it went against —
+        before drivetrain losses and before any regenerative braking is credited
+        back. <b style={{ color: C.climb }}>Climbing</b> is the part the terrain
+        is responsible for.
+      </div>
+    </Card>
+  );
+}
+
+/* ------------------------------------------------ NEW: the mountain tax */
+function MountainTax({ carId }) {
+  const car = CARS.find((c) => c.id === carId);
+  const data = ROUTE_KEYS.map((k) => {
+    const m = RES[k][carId].mountain;
+    return {
+      route: routeShort(k), cost: m.cost_eur, pct: m.pct_of_trip,
+      amount: m.amount, unit: m.unit, flat: m.flat_per100,
+      real: RES[k][carId].per100, unit100: RES[k][carId].unit100,
+      climb: m.climb_work_kWh, recovered: m.descent_recovered_kWh,
+    };
+  });
+  const cell = { padding: "7px 9px", fontSize: 12.5,
+    borderBottom: `1px solid ${C.line}`, textAlign: "right", whiteSpace: "nowrap" };
+  const head = { ...cell, color: C.faint, fontWeight: 600,
+    textTransform: "uppercase", fontSize: 10.5, letterSpacing: ".04em" };
+  return (
+    <div>
+      <Card style={{ marginBottom: 14 }}>
+        <div style={{ fontSize: 13.5, fontWeight: 600, color: C.ink,
+          marginBottom: 6 }}>Energy lifted, and how much of it comes back</div>
+        <ResponsiveContainer width="100%" height={250}>
+          <BarChart data={data} margin={{ top: 6, right: 16, bottom: 4, left: -6 }}
+            barGap={3}>
+            <CartesianGrid stroke={C.line} strokeDasharray="2 4" vertical={false} />
+            <XAxis dataKey="route" tick={{ fill: C.dim, fontSize: 11 }}
+              stroke={C.line} interval={0} />
+            <YAxis tick={{ fill: C.dim, fontSize: 11 }} stroke={C.line} width={46}
+              unit=" kWh" />
+            <Tooltip
+              contentStyle={{ background: C.bg, border: `1px solid ${C.line}`,
+                borderRadius: 8, fontSize: 12 }}
+              formatter={(v, n, p) => n === "Climb work"
+                ? [`${fmt(v, 1)} kWh lifted — costs €${fmt(p.payload.cost, 2)}, `
+                   + `${p.payload.pct}% of the trip`, n]
+                : [`${fmt(v, 1)} kWh recovered`, n]} />
+            <Legend wrapperStyle={{ fontSize: 12 }} />
+            <Bar dataKey="climb" name="Climb work" fill={C.climb}
+              radius={[3, 3, 0, 0]} />
+            <Bar dataKey="recovered" name="Won back on the descents" fill={C.good}
+              radius={[3, 3, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+        <div style={{ fontSize: 12, color: C.dim, marginTop: 6 }}>
+          Potential energy the <b style={{ color: C.ink }}>{car.name}</b> has to
+          lift on each route, and how much of it regenerative braking hands back
+          on the way down. What is left over — plus the drivetrain losses on both
+          — is the euro figure in the table below. A car without regen wins back{" "}
+          <i>nothing</i>: every descent is heat in the brake discs.
+        </div>
+      </Card>
+      <Card style={{ overflowX: "auto" }}>
+        <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 620 }}>
+          <thead><tr>
+            <th style={{ ...head, textAlign: "left" }}>Route</th>
+            <th style={head}>Real road</th>
+            <th style={head}>Same road, flattened</th>
+            <th style={head}>Mountain cost</th>
+            <th style={head}>Share of trip</th>
+            <th style={head}>Climb work</th>
+            <th style={head}>Won back</th>
+          </tr></thead>
+          <tbody>
+            {data.map((r, i) => (
+              <tr key={i}>
+                <td style={{ ...cell, textAlign: "left", fontWeight: 600,
+                  color: routeColor(ROUTE_KEYS[i]) }}>{r.route}</td>
+                <td style={cell}>{fmt(r.real, 2)} {r.unit100.split("/")[0]}</td>
+                <td style={{ ...cell, color: C.dim }}>{fmt(r.flat, 2)}{" "}
+                  {r.unit100.split("/")[0]}</td>
+                <td style={{ ...cell, color: C.climb, fontWeight: 700 }}>
+                  €{fmt(r.cost, 2)}</td>
+                <td style={{ ...cell, color: C.climb }}>{fmt(r.pct, 1)} %</td>
+                <td style={cell}>{fmt(r.climb, 1)} kWh</td>
+                <td style={{ ...cell, color: r.recovered > 0 ? C.good : C.faint }}>
+                  {r.recovered > 0 ? `${fmt(r.recovered, 1)} kWh` : "none"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div style={{ fontSize: 11.5, color: C.dim, marginTop: 10 }}>
+          <b style={{ color: C.ink }}>How this is measured.</b> Every trip is
+          simulated twice: once over the real terrain, and once over the identical
+          road with the grade set to zero — same distance, same bends, same speeds,
+          same stops. The difference is the fuel the mountains cost.{" "}
+          <b style={{ color: C.ink }}>Climb work</b> is the raw potential energy
+          gained (m·g·Δh) and{" "}
+          <b style={{ color: C.ink }}>won back</b> is how much of the descent a
+          car with regenerative braking recovers — which is why the hybrid and the
+          EV pay a smaller mountain bill than their weight alone would suggest.
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+/* --------------------------------------------------- NEW: the curve tax */
+const RADIUS_BANDS = [
+  ["hairpin", "Hairpin (<45 m)", "#D9655A"],
+  ["tight", "Tight (45–80 m)", "#E8825A"],
+  ["moderate", "Moderate (80–200 m)", "#E8B23A"],
+  ["gentle", "Gentle (200–500 m)", "#7FB7E8"],
+  ["straight", "Straight (>500 m)", "#5FB87A"],
+];
+function CurveTax({ carId }) {
+  const car = CARS.find((c) => c.id === carId);
+  const bandData = ROUTE_KEYS.map((k) => ({
+    route: routeShort(k), ...ROUTES[k].curviness.pct_distance,
+  }));
+  const cell = { padding: "7px 9px", fontSize: 12.5,
+    borderBottom: `1px solid ${C.line}`, textAlign: "right", whiteSpace: "nowrap" };
+  const head = { ...cell, color: C.faint, fontWeight: 600,
+    textTransform: "uppercase", fontSize: 10.5, letterSpacing: ".04em" };
+  return (
+    <div>
+      <Card style={{ marginBottom: 14 }}>
+        <div style={{ fontSize: 13.5, fontWeight: 600, color: C.ink,
+          marginBottom: 6 }}>How much of each route is actually bendy</div>
+        <ResponsiveContainer width="100%" height={230}>
+          <BarChart data={bandData} layout="vertical"
+            margin={{ top: 6, right: 16, bottom: 4, left: 22 }}>
+            <CartesianGrid stroke={C.line} strokeDasharray="2 4" horizontal={false} />
+            <XAxis type="number" domain={[0, 100]} unit=" %"
+              tick={{ fill: C.dim, fontSize: 11 }} stroke={C.line} />
+            <YAxis type="category" dataKey="route" width={110}
+              tick={{ fill: C.dim, fontSize: 11 }} stroke={C.line} />
+            <Tooltip
+              contentStyle={{ background: C.bg, border: `1px solid ${C.line}`,
+                borderRadius: 8, fontSize: 12 }}
+              formatter={(v, n) => [`${fmt(v, 1)} % of the route`, n]} />
+            <Legend wrapperStyle={{ fontSize: 11.5 }} />
+            {RADIUS_BANDS.map(([id, label, col]) => (
+              <Bar key={id} dataKey={id} name={label} stackId="r" fill={col} />
+            ))}
+          </BarChart>
+        </ResponsiveContainer>
+        <div style={{ fontSize: 12, color: C.dim, marginTop: 6 }}>
+          Share of each route's length by corner radius. The bands are the radii
+          at which a driver genuinely has to slow down — below 80 m you are down
+          to about 45 km/h at a comfortable 2.2 m/s² of lateral acceleration.
+        </div>
+      </Card>
+      <Card style={{ overflowX: "auto" }}>
+        <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 640 }}>
+          <thead><tr>
+            <th style={{ ...head, textAlign: "left" }}>Route</th>
+            <th style={head}>Curviness</th>
+            <th style={head}>Index</th>
+            <th style={head}>Bends / km</th>
+            <th style={head}>Median R</th>
+            <th style={head}>Tightest</th>
+            <th style={head}>Corner cost</th>
+            <th style={head}>Time lost</th>
+          </tr></thead>
+          <tbody>
+            {ROUTE_KEYS.map((k) => {
+              const cv = ROUTES[k].curviness, cu = RES[k][carId].curves;
+              return (
+                <tr key={k}>
+                  <td style={{ ...cell, textAlign: "left", fontWeight: 600,
+                    color: routeColor(k) }}>{routeShort(k)}</td>
+                  <td style={cell}>{fmt(cv.deg_per_km, 1)} °/km</td>
+                  <td style={{ ...cell, color: C.curve, fontWeight: 700 }}>
+                    {fmt(cv.curviness_index, 1)}</td>
+                  <td style={cell}>{fmt(cv.bends_per_km, 1)}</td>
+                  <td style={cell}>{cv.median_curve_radius_m} m</td>
+                  <td style={cell}>{cv.min_curve_radius_m} m</td>
+                  <td style={{ ...cell, color: C.curve, fontWeight: 700 }}>
+                    €{fmt(cu.cost_eur, 2)}</td>
+                  <td style={cell}>+{fmt(cu.time_min_lost, 0)} min</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        <div style={{ fontSize: 11.5, color: C.dim, marginTop: 10 }}>
+          <b style={{ color: C.ink }}>Curviness</b> is total heading change per
+          kilometre, measured on a uniform 25 m grid so the CoMaps and OSRM tracks
+          compare fairly; the <b style={{ color: C.ink }}>index</b> puts that on a
+          0–100 scale where 300 °/km is a genuinely serpentine mountain road.{" "}
+          <b style={{ color: C.ink }}>Corner cost</b> and{" "}
+          <b style={{ color: C.ink }}>time lost</b> come from re-running the same
+          trip with the bend-radius speed cap removed, for the{" "}
+          <b style={{ color: C.ink }}>{car.name}</b> — so they are what the corners
+          cost in fuel and minutes, over and above the hills and the distance.
+          Cars with regenerative braking pay far less, because the energy shed
+          entering a bend comes back on the way out.
+        </div>
+      </Card>
     </div>
   );
 }
@@ -292,48 +555,36 @@ function Energy() {
   const [metric, setMetric] = useState("cost_eur");
   const m = METRICS.find((x) => x.id === metric);
   const data = CARS.map((c) => {
-    const a = RES.arnbruck[c.id], b = RES.koetzting[c.id];
-    return {
-      car: c.name.split(" (")[0], id: c.id,
-      A: a[metric], B: b[metric],
-      Aunit: a.unit100 || m.unit, Bunit: b.unit100 || m.unit,
-    };
+    const row = { car: c.name.split(" (")[0], id: c.id };
+    ROUTE_KEYS.forEach((k) => {
+      row[k] = RES[k][c.id][metric];
+      row[k + "_u"] = RES[k][c.id].unit100 || m.unit;
+    });
+    return row;
   });
-  const unitFor = (row) => m.dyn ? row.Aunit : m.unit;
   return (
     <div>
-      <div style={{ display: "flex", gap: 8, marginBottom: 14,
-        flexWrap: "wrap" }}>
-        {METRICS.map((x) => (
-          <button key={x.id} onClick={() => setMetric(x.id)} style={{
-            cursor: "pointer", fontSize: 12.5, padding: "6px 14px",
-            borderRadius: 20,
-            border: `1px solid ${metric === x.id ? C.eco : C.line}`,
-            background: metric === x.id ? `${C.eco}1c` : "transparent",
-            color: metric === x.id ? C.eco : C.dim }}>{x.label}</button>
-        ))}
-      </div>
+      <Pills value={metric} onChange={setMetric}
+        options={METRICS.map((x) => [x.id, x.label])} />
       <Card>
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={320}>
           <BarChart data={data} margin={{ top: 6, right: 16, bottom: 4, left: -6 }}
             barGap={2}>
             <CartesianGrid stroke={C.line} strokeDasharray="2 4" vertical={false} />
             <XAxis dataKey="car" tick={{ fill: C.dim, fontSize: 11 }}
               stroke={C.line} interval={0} angle={-12} textAnchor="end"
-              height={50} />
-            <YAxis tick={{ fill: C.dim, fontSize: 11 }} stroke={C.line}
-              width={46} />
+              height={54} />
+            <YAxis tick={{ fill: C.dim, fontSize: 11 }} stroke={C.line} width={46} />
             <Tooltip
               contentStyle={{ background: C.bg, border: `1px solid ${C.line}`,
                 borderRadius: 8, fontSize: 12 }}
               formatter={(v, n, p) => [`${fmt(v, m.d)} ${m.dyn
-                ? (n === "A" ? p.payload.Aunit : p.payload.Bunit)
-                : m.unit}`, n === "A" ? "Route A" : "Route B"]} />
-            <Legend formatter={(v) => v === "A" ? "Route A · Arnbruck"
-              : "Route B · Viechtach/Kötzting"}
+                ? p.payload[n + "_u"] : m.unit}`, routeShort(n)]} />
+            <Legend formatter={(v) => routeShort(v)}
               wrapperStyle={{ fontSize: 12 }} />
-            <Bar dataKey="A" fill={C.A} radius={[3, 3, 0, 0]} />
-            <Bar dataKey="B" fill={C.B} radius={[3, 3, 0, 0]} />
+            {ROUTE_KEYS.map((k) => (
+              <Bar key={k} dataKey={k} fill={routeColor(k)} radius={[3, 3, 0, 0]} />
+            ))}
           </BarChart>
         </ResponsiveContainer>
         <div style={{ fontSize: 12, color: C.dim, marginTop: 6 }}>
@@ -347,43 +598,15 @@ function Energy() {
 }
 
 function FullTable() {
-  const cell = { padding: "7px 9px", fontSize: 12.5, borderBottom:
+  const cell = { padding: "6px 9px", fontSize: 12.5, borderBottom:
     `1px solid ${C.line}`, textAlign: "right", whiteSpace: "nowrap" };
-  const head = { ...cell, color: C.faint, fontWeight: 600, textAlign: "right",
+  const head = { ...cell, color: C.faint, fontWeight: 600,
     textTransform: "uppercase", fontSize: 10.5, letterSpacing: ".04em" };
-  const Row = ({ c }) => {
-    const a = RES.arnbruck[c.id], b = RES.koetzting[c.id];
-    const save = b.cost_eur - a.cost_eur;
-    return (
-      <>
-        <tr>
-          <td style={{ ...cell, textAlign: "left", fontWeight: 600,
-            color: C.ink }} rowSpan={2}>
-            {c.name}<div style={{ fontSize: 10.5, color: C.faint,
-              fontWeight: 400 }}>{c.type}</div></td>
-          <td style={{ ...cell, color: C.A, fontWeight: 600, textAlign: "left" }}>A · Arnbruck</td>
-          <td style={cell}>{fmt(a.per100, 2)} {a.unit100.split("/")[0]}</td>
-          <td style={cell}>{fmt(a.amount, 2)} {a.unit}</td>
-          <td style={{ ...cell, color: C.ink, fontWeight: 700 }}>€{fmt(a.cost_eur, 2)}</td>
-          <td style={cell}>{fmt(a.co2_kg, 1)} kg</td>
-          <td style={cell}>{fmt(a.time_min, 0)} min</td>
-        </tr>
-        <tr>
-          <td style={{ ...cell, color: C.B, fontWeight: 600, textAlign: "left" }}>B · Viechtach/Kötzting</td>
-          <td style={cell}>{fmt(b.per100, 2)} {b.unit100.split("/")[0]}</td>
-          <td style={cell}>{fmt(b.amount, 2)} {b.unit}</td>
-          <td style={{ ...cell, color: C.ink, fontWeight: 700 }}>€{fmt(b.cost_eur, 2)}</td>
-          <td style={cell}>{fmt(b.co2_kg, 1)} kg</td>
-          <td style={cell}>{fmt(b.time_min, 0)} min</td>
-        </tr>
-      </>
-    );
-  };
   return (
     <Card style={{ marginTop: 16, overflowX: "auto" }}>
       <div style={{ fontSize: 13.5, fontWeight: 600, color: C.ink,
-        marginBottom: 8 }}>All cars · both routes · per one-way trip</div>
-      <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 620 }}>
+        marginBottom: 8 }}>All cars · all routes · per one-way trip</div>
+      <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 720 }}>
         <thead><tr>
           <th style={{ ...head, textAlign: "left" }}>Vehicle</th>
           <th style={{ ...head, textAlign: "left" }}>Route</th>
@@ -392,9 +615,45 @@ function FullTable() {
           <th style={head}>Cost</th>
           <th style={head}>CO₂</th>
           <th style={head}>Time</th>
+          <th style={head}>of which hills</th>
+          <th style={head}>of which bends</th>
         </tr></thead>
-        <tbody>{CARS.map((c) => <Row key={c.id} c={c} />)}</tbody>
+        <tbody>
+          {CARS.map((c) => ROUTE_KEYS.map((k, i) => {
+            const r = RES[k][c.id];
+            const best = ROUTE_KEYS.reduce((a, b) =>
+              RES[b][c.id].cost_eur < RES[a][c.id].cost_eur ? b : a);
+            return (
+              <tr key={c.id + k}>
+                {i === 0 && (
+                  <td style={{ ...cell, textAlign: "left", fontWeight: 600,
+                    color: C.ink, verticalAlign: "top" }}
+                    rowSpan={ROUTE_KEYS.length}>
+                    {c.name}
+                    <div style={{ fontSize: 10.5, color: C.faint,
+                      fontWeight: 400 }}>{c.type}</div>
+                  </td>
+                )}
+                <td style={{ ...cell, color: routeColor(k), fontWeight: 600,
+                  textAlign: "left" }}>{routeShort(k)}</td>
+                <td style={cell}>{fmt(r.per100, 2)} {r.unit100.split("/")[0]}</td>
+                <td style={cell}>{fmt(r.amount, 2)} {r.unit}</td>
+                <td style={{ ...cell, color: k === best ? C.good : C.ink,
+                  fontWeight: 700 }}>€{fmt(r.cost_eur, 2)}</td>
+                <td style={cell}>{fmt(r.co2_kg, 1)} kg</td>
+                <td style={cell}>{fmt(r.time_min, 0)} min</td>
+                <td style={{ ...cell, color: C.climb }}>
+                  €{fmt(r.mountain.cost_eur, 2)}</td>
+                <td style={{ ...cell, color: C.curve }}>
+                  €{fmt(r.curves.cost_eur, 2)}</td>
+              </tr>
+            );
+          }))}
+        </tbody>
       </table>
+      <div style={{ fontSize: 11.5, color: C.dim, marginTop: 8 }}>
+        Cheapest route per car highlighted in green.
+      </div>
     </Card>
   );
 }
@@ -412,13 +671,6 @@ function Annual() {
     fontSize: 18, fontWeight: 700, lineHeight: 1, display: "flex",
     alignItems: "center", justifyContent: "center", flex: "0 0 auto",
   };
-  const rows = CARS.map((c) => {
-    const a = RES.arnbruck[c.id], b = RES.koetzting[c.id];
-    return {
-      c, aCost: a.cost_eur * trips, bCost: b.cost_eur * trips,
-      aCo2: a.co2_kg * trips, bCo2: b.co2_kg * trips,
-    };
-  });
   return (
     <Card>
       <div style={{ display: "flex", alignItems: "center", gap: 12,
@@ -439,9 +691,15 @@ function Annual() {
           {fmt(trips)}/yr</span>
       </div>
       <div style={{ display: "grid",
-        gridTemplateColumns: "repeat(auto-fit,minmax(165px,1fr))", gap: 10 }}>
-        {rows.map(({ c, aCost, bCost, aCo2, bCo2 }) => {
-          const dCost = bCost - aCost, dCo2 = bCo2 - aCo2;
+        gridTemplateColumns: "repeat(auto-fit,minmax(190px,1fr))", gap: 10 }}>
+        {CARS.map((c) => {
+          const best = ROUTE_KEYS.reduce((a, b) =>
+            RES[b][c.id].cost_eur < RES[a][c.id].cost_eur ? b : a);
+          const worst = ROUTE_KEYS.reduce((a, b) =>
+            RES[b][c.id].cost_eur > RES[a][c.id].cost_eur ? b : a);
+          const save = (RES[worst][c.id].cost_eur - RES[best][c.id].cost_eur) * trips;
+          const saveCo2 = (RES[worst][c.id].co2_kg - RES[best][c.id].co2_kg) * trips;
+          const mtn = RES[best][c.id].mountain.cost_eur * trips;
           return (
             <div key={c.id} style={{ background: C.panelHi,
               border: `1px solid ${C.line}`, borderRadius: 10, padding: 12,
@@ -450,20 +708,22 @@ function Annual() {
                 {c.name.split(" (")[0]}</div>
               <div style={{ fontSize: 11, color: C.faint, marginBottom: 8 }}>
                 {c.type}</div>
-              <div style={{ display: "flex", justifyContent: "space-between",
-                fontSize: 12.5, color: C.dim }}>
-                <span>A · Arnbruck</span>
-                <b style={{ color: C.A }}>€{fmt(aCost)}</b></div>
-              <div style={{ display: "flex", justifyContent: "space-between",
-                fontSize: 12.5, color: C.dim }}>
-                <span>B · V./Kötzting</span>
-                <b style={{ color: C.B }}>€{fmt(bCost)}</b></div>
+              {ROUTE_KEYS.map((k) => (
+                <div key={k} style={{ display: "flex",
+                  justifyContent: "space-between", fontSize: 12.5, color: C.dim }}>
+                  <span>{routeShort(k)}</span>
+                  <b style={{ color: routeColor(k) }}>
+                    €{fmt(RES[k][c.id].cost_eur * trips)}</b>
+                </div>
+              ))}
               <div style={{ marginTop: 8, paddingTop: 8,
                 borderTop: `1px solid ${C.line}`, fontSize: 12 }}>
                 <div style={{ color: C.good }}>
-                  Route A saves <b>€{fmt(dCost)}</b>/yr</div>
+                  Best route saves <b>€{fmt(save)}</b>/yr</div>
                 <div style={{ color: C.good }}>
-                  & <b>{fmt(dCo2)} kg</b> CO₂/yr</div>
+                  & <b>{fmt(saveCo2)} kg</b> CO₂/yr</div>
+                <div style={{ color: C.climb, marginTop: 4 }}>
+                  Climbing alone: <b>€{fmt(mtn)}</b>/yr</div>
               </div>
             </div>
           );
@@ -477,22 +737,145 @@ function Annual() {
   );
 }
 
+/* ------------------------------------- NEW: real terrain vs the old model */
+function WhatChanged() {
+  if (!CMP) return null;
+  const cell = { padding: "6px 9px", fontSize: 12.5, borderBottom:
+    `1px solid ${C.line}`, textAlign: "right", whiteSpace: "nowrap" };
+  const head = { ...cell, color: C.faint, fontWeight: 600,
+    textTransform: "uppercase", fontSize: 10.5, letterSpacing: ".04em" };
+  const ROWS = [
+    ["peak_m", "Highest point", " m"],
+    ["ascent_m", "Total ascent", " m"],
+    ["descent_m", "Total descent", " m"],
+    ["max_grade_pct", "Steepest grade", " %"],
+    ["curviness", "Curviness", " °/km"],
+  ];
+  const delta = (o, n) => {
+    if (!o) return "—";
+    const p = 100 * (n - o) / Math.abs(o);
+    return `${p > 0 ? "+" : ""}${fmt(p, 0)} %`;
+  };
+  return (
+    <div>
+      <Card style={{ overflowX: "auto", marginBottom: 14 }}>
+        <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 620 }}>
+          <thead><tr>
+            <th style={{ ...head, textAlign: "left" }}>Route</th>
+            <th style={{ ...head, textAlign: "left" }}>Metric</th>
+            <th style={head}>Modelled (v1)</th>
+            <th style={head}>Real DEM (now)</th>
+            <th style={head}>Change</th>
+          </tr></thead>
+          <tbody>
+            {Object.keys(CMP.routes).map((k) =>
+              ROWS.map(([id, label, unit], i) => {
+                const [o, n] = CMP.routes[k][id];
+                return (
+                  <tr key={k + id}>
+                    {i === 0 && (
+                      <td style={{ ...cell, textAlign: "left", fontWeight: 600,
+                        color: routeColor(k), verticalAlign: "top" }}
+                        rowSpan={ROWS.length}>{routeShort(k)}</td>
+                    )}
+                    <td style={{ ...cell, textAlign: "left", color: C.dim }}>
+                      {label}</td>
+                    <td style={{ ...cell, color: C.faint }}>{fmt(o, 1)}{unit}</td>
+                    <td style={{ ...cell, color: C.ink, fontWeight: 600 }}>
+                      {fmt(n, 1)}{unit}</td>
+                    <td style={{ ...cell, color: n > o ? C.amber : C.dim,
+                      fontWeight: 600 }}>{delta(o, n)}</td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </Card>
+      <Card style={{ overflowX: "auto", marginBottom: 14 }}>
+        <div style={{ fontSize: 13.5, fontWeight: 600, color: C.ink,
+          marginBottom: 8 }}>What it did to the cost per trip</div>
+        <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 560 }}>
+          <thead><tr>
+            <th style={{ ...head, textAlign: "left" }}>Car</th>
+            {Object.keys(CMP.cars).map((k) => (
+              <th key={k} style={head} colSpan={2}>{routeShort(k)}</th>
+            ))}
+          </tr></thead>
+          <tbody>
+            {CARS.map((c) => (
+              <tr key={c.id}>
+                <td style={{ ...cell, textAlign: "left", color: C.ink,
+                  fontWeight: 600 }}>{c.name.split(" (")[0]}</td>
+                {Object.keys(CMP.cars).map((k) => {
+                  const [o, n] = CMP.cars[k][c.id];
+                  const up = n > o;
+                  return (
+                    <React.Fragment key={k}>
+                      <td style={{ ...cell, color: C.faint, borderBottom:
+                        `1px solid ${C.line}` }}>€{fmt(o, 2)} →</td>
+                      <td style={{ ...cell, color: up ? C.bad : C.good,
+                        fontWeight: 700, textAlign: "left" }}>€{fmt(n, 2)}</td>
+                    </React.Fragment>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Card>
+      <Card style={{ borderLeft: `3px solid ${C.amber}` }}>
+        <div style={{ fontSize: 13.5, color: C.ink, lineHeight: 1.65 }}>
+          The first version of this experiment had no network access, so its
+          terrain was <b>16 researched town elevations</b> interpolated along the
+          track. It is now <b>{fmt(ROUTE_KEYS.reduce((s, k) =>
+            s + ROUTES[k].elev_samples, 0))} real EU-DEM samples</b>, one every
+          25 m. Three things were badly wrong:
+          <ul style={{ margin: "8px 0 0", paddingLeft: 20 }}>
+            <li>The modelled profile <b>missed an entire mountain pass</b>. Route A
+              crosses the Eck saddle at <b>843 m</b>; the old model topped out at
+              709 m and put the summit in the wrong place.</li>
+            <li>It understated climbing by more than half — <b>957 m of real
+              ascent</b> on route A versus 444 m modelled — because interpolating
+              between town centres smooths away every intermediate hill.</li>
+            <li>Its steepest grade anywhere was <b>2.1 %</b>. The real roads reach
+              9–12 %, which is what makes the mountain-energy metric worth having
+              at all.</li>
+          </ul>
+          <div style={{ marginTop: 10 }}>
+            The effect on cost splits neatly by drivetrain: the{" "}
+            <b style={{ color: C.good }}>hybrid and the EV got slightly cheaper</b>{" "}
+            (−1 to −3 %), because real descents are long enough to hand energy back
+            through regenerative braking, while the{" "}
+            <b style={{ color: C.bad }}>three cars without regen got dearer</b>{" "}
+            (+2 to +12 %) — they buy every metre of climb with fuel and throw it
+            away again as brake heat. The overall verdict did not move:{" "}
+            <b>Route A still wins for all five cars.</b>
+          </div>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
 /* ------------------------------------------------------------- provenance */
 function Provenance() {
   const p = D.meta.provenance;
   const items = [
     ["Geometry & distance", p.geometry, "real"],
     ["Curviness", p.curviness, "real"],
-    ["Village / speed zones", p.village_zones, "rule"],
-    ["Speed limits", p.speed_limits, "rule"],
-    ["Elevation & grade", p.elevation, "model"],
+    ["Elevation & grade", p.elevation, "real"],
+    ["Speed limits", p.speed_limits, "real"],
+    ["Village zones", p.village_zones, "rule"],
+    ["Stops at lights", p.stops, "model"],
     ["Energy & consumption", p.energy_model, "model"],
+    ["Mountain & curve metrics", p.mountain_curve_metrics, "model"],
     ["Prices & CO₂", p.prices_co2, "model"],
   ];
   return (
     <Card>
       <div style={{ display: "grid",
-        gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: 10 }}>
+        gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: 12 }}>
         {items.map(([k, v, tone], i) => (
           <div key={i} style={{ fontSize: 12, color: C.dim }}>
             <div style={{ marginBottom: 3 }}>
@@ -507,27 +890,52 @@ function Provenance() {
   );
 }
 
-/* -------------------------------------------------------------- verdict */
+/* ---------------------------------------------------------------- verdict */
 function Verdict() {
-  const a = RES.arnbruck, b = RES.koetzting;
-  const dKm = (ROUTES.koetzting.total_km - ROUTES.arnbruck.total_km).toFixed(1);
-  const costSaveAuris = (b.auris.cost_eur - a.auris.cost_eur).toFixed(2);
+  const a = ROUTE_KEYS[0];
+  const ranked = ROUTE_KEYS.slice().sort((x, y) =>
+    RES[x].auris.cost_eur - RES[y].auris.cost_eur);
+  const second = ranked[1];
+  const gap = (RES[second].auris.cost_eur - RES[a].auris.cost_eur).toFixed(2);
+  const mtnPct = RES[a].auris.mountain.pct_of_trip;
   return (
     <Card style={{ borderLeft: `3px solid ${C.eco}` }}>
-      <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.6 }}>
-        <b style={{ color: C.A }}>Route A (via Arnbruck) wins on every metric.</b>{" "}
-        It is <b>{dKm} km shorter</b>, climbs less in total
-        ({ROUTES.arnbruck.elev_stats.ascent_m} m vs {ROUTES.koetzting.elev_stats.ascent_m} m),
-        and costs less per trip for all five cars — e.g. the Auris hybrid spends
-        €{a.auris.cost_eur.toFixed(2)} vs €{b.auris.cost_eur.toFixed(2)}{" "}
-        (saving €{costSaveAuris}). Route B’s only advantage is marginally{" "}
-        <i>better per-100 km efficiency</i> on its faster, steadier B85 section —
-        but the extra distance and the deeper drop-and-climb through Bad Kötzting
-        more than cancel it. All five cars are mechanically <b>fully capable</b>{" "}
-        of both routes: modelled grades stay gentle (valley roads), so even the
-        51 kW Panda and the old Opel manage easily — the difference is efficiency
-        and comfort, not capability. The hybrid and EV benefit most from the
-        curvy, village-dotted terrain thanks to regenerative braking.
+      <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.65 }}>
+        <b style={{ color: routeColor(a) }}>Route A (via Arnbruck) still wins</b>{" "}
+        — now on real terrain, real speed limits and against two newly-found
+        alternatives. It is the shortest at {fmt(ROUTES[a].total_km, 1)} km and
+        the cheapest for all five cars, even though it is the{" "}
+        <i>hilliest by peak</i>: it crosses the Eck saddle at{" "}
+        {ROUTES[a].elev_stats.max_m} m, about 250 m higher than route B ever goes.
+        Distance beats altitude here.
+        <div style={{ marginTop: 10 }}>
+          <b>The new third route is real but second-best.</b>{" "}
+          {routeShort("bodenmais")} was found by routing the same origin and
+          destination through every plausible intermediate town and scoring each
+          candidate through the full energy model. At{" "}
+          €{RES.bodenmais.auris.cost_eur.toFixed(2)} it beats the existing route B
+          (€{RES.koetzting.auris.cost_eur.toFixed(2)}) on{" "}
+          <b>cost for all five cars, and on time, distance, curviness and
+          stops</b> — though it climbs marginally more in total (1 060 m vs
+          1 050 m) and crosses a far higher summit. So it is a genuinely better
+          alternative than B, just not better than A, which stays €{gap} cheaper.{" "}
+          {routeShort("regen")} is the most distinct corridor of the four and has
+          the fewest stops, but its extra climbing makes it the dearest.
+        </div>
+        <div style={{ marginTop: 10 }}>
+          <b style={{ color: C.climb }}>The mountains are a sixth of the fuel
+          bill.</b> On route A the hybrid spends{" "}
+          €{RES[a].auris.mountain.cost_eur.toFixed(2)} of its{" "}
+          €{RES[a].auris.cost_eur.toFixed(2)} purely on gaining height — {mtnPct} %
+          of the trip — and the old diesel pays{" "}
+          €{RES[a].merc.mountain.cost_eur.toFixed(2)}. Corners cost far less than
+          hills (€{RES[a].auris.curves.cost_eur.toFixed(2)} for the hybrid) but
+          they cost <i>time</i>: about{" "}
+          {fmt(RES[a].auris.curves.time_min_lost, 0)} minutes on route A. All five
+          cars remain fully capable of every route — real grades peak around 9–12 %
+          on short ramps, which even the 51 kW Panda handles; the difference is
+          efficiency and comfort, not capability.
+        </div>
       </div>
     </Card>
   );
@@ -535,8 +943,12 @@ function Verdict() {
 
 /* ----------------------------------------------------------------- app */
 function App() {
+  const [mapSel, setMapSel] = useState("all");
+  const [car, setCar] = useState("auris");
+  const carPills = CARS.map((c) => [c.id, c.name.split(" (")[0], CAR_COLORS[c.id]]);
+  const totalSamples = ROUTE_KEYS.reduce((s, k) => s + ROUTES[k].elev_samples, 0);
   return (
-    <div style={{ maxWidth: 1000, margin: "0 auto", padding: "28px 18px 60px",
+    <div style={{ maxWidth: 1040, margin: "0 auto", padding: "28px 18px 60px",
       color: C.ink, fontFamily: "system-ui, -apple-system, Segoe UI, sans-serif" }}>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 10,
         alignItems: "baseline", justifyContent: "space-between" }}>
@@ -544,21 +956,23 @@ function App() {
           Eco-Navigation <span style={{ color: C.dim, fontWeight: 500,
             fontSize: 17 }}>· Deggendorf → Engelshütt</span></h1>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-          <Badge tone="real">geometry from your GPX</Badge>
-          <Badge tone="model">elevation &amp; energy modelled</Badge>
+          <Badge tone="real">real EU-DEM terrain</Badge>
+          <Badge tone="real">real OSM speed limits</Badge>
+          <Badge tone="model">energy modelled</Badge>
         </div>
       </div>
-      <p style={{ color: C.dim, fontSize: 13.5, maxWidth: 720, marginTop: 8 }}>
-        Two ways through the Bavarian Forest compared for distance, hilliness,
-        curviness, speed and — for five very different cars — energy use, cost
-        and CO₂. Geometry and curviness come straight from the two CoMaps GPX
-        tracks; elevation, speed and energy are a transparent physics model
-        (the GPX carried no elevation data, and routing/elevation APIs were
-        unreachable from the build sandbox).
+      <p style={{ color: C.dim, fontSize: 13.5, maxWidth: 760, marginTop: 8 }}>
+        Four ways through the Bavarian Forest compared for distance, hilliness,
+        curviness, speed and — for five very different cars — energy use, cost and
+        CO₂. Terrain is <b style={{ color: C.ink }}>{fmt(totalSamples)} real
+        elevation samples</b> from the EU-DEM 25 m raster, speed limits come from
+        OpenStreetMap, and two of the four routes were found by searching the road
+        network for a genuinely better alternative.
       </p>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 4 }}>
         {[["methodology.html", "📐 Method, algorithm & data sources"],
           ["data/results.csv", "⬇ results.csv"],
+          ["data/route_metrics.csv", "⬇ route_metrics.csv"],
           ["data/eco_data.json", "⬇ data (JSON)"],
           ["data/gpx/", "⬇ GPX tracks"]].map(([href, label], i) => (
           <a key={i} href={href} style={{
@@ -570,22 +984,43 @@ function App() {
         ))}
       </div>
 
-      <SectionTitle>The two routes</SectionTitle>
-      <RouteMap />
+      <SectionTitle hint="Click a route to isolate it on the map.">
+        The four routes</SectionTitle>
+      <Pills value={mapSel} onChange={setMapSel}
+        options={[["all", "All routes"],
+          ...ROUTE_KEYS.map((k) => [k, routeShort(k), routeColor(k)])]} />
+      <RouteMap shown={mapSel} />
       <div style={{ height: 14 }} />
       <RouteSummary />
 
-      <SectionTitle hint="Toggle routes. Elevation is modelled & smoothed; curviness is measured from the GPX.">
+      <SectionTitle hint="Everything below the speed chart is measured, not assumed.">
         Profiles along the way</SectionTitle>
       <Profiles />
+
+      <SectionTitle hint="Pick a car — the split and both taxes are drivetrain-specific.">
+        Where the energy actually goes</SectionTitle>
+      <Pills value={car} onChange={setCar} options={carPills} />
+      <EnergySplit carId={car} />
+
+      <SectionTitle hint="What the climbing costs, after the descents pay back everything they can.">
+        The mountain tax ⛰</SectionTitle>
+      <MountainTax carId={car} />
+
+      <SectionTitle hint="How bendy each route is, and what those bends cost in fuel and minutes.">
+        The curve tax ↝</SectionTitle>
+      <CurveTax carId={car} />
 
       <SectionTitle hint="Per one-way trip. Switch the metric.">
         Energy, cost &amp; CO₂ by car</SectionTitle>
       <Energy />
 
-      <SectionTitle hint="How the small per-trip gap compounds if you drive it regularly.">
+      <SectionTitle hint="How the per-trip gap compounds if you drive it regularly.">
         Annual impact</SectionTitle>
       <Annual />
+
+      <SectionTitle hint="The same two routes, before and after the guessed terrain was replaced with measured terrain.">
+        What the real elevation data changed</SectionTitle>
+      <WhatChanged />
 
       <SectionTitle>Verdict</SectionTitle>
       <Verdict />
@@ -598,12 +1033,12 @@ function App() {
         borderTop: `1px solid ${C.line}`, paddingTop: 12 }}>
         Generated {D.meta.generated}. Full method, equations &amp; data sources:{" "}
         <a href="methodology.html" style={{ color: C.eco }}>methodology.html</a>{" "}
-        (source <code>METHODOLOGY.md</code>). Data &amp; model:{" "}
-        <code>build.py</code> → <code>data/results.csv</code>,{" "}
-        <code>data/profile_*.csv</code>; raw tracks in{" "}
-        <a href="data/gpx/" style={{ color: C.eco }}>data/gpx/</a>.
-        To swap in real elevation, run <code>fetch_real_data.py</code> where an
-        elevation API is reachable, then rebuild.
+        (source <code>METHODOLOGY.md</code>). Pipeline:{" "}
+        <code>fetch_routes.py</code> → <code>fetch_real_data.py</code> →{" "}
+        <code>screen_routes.py</code> → <code>build.py</code>. Raw tracks in{" "}
+        <a href="data/gpx/" style={{ color: C.eco }}>data/gpx/</a>; terrain and
+        OSM caches in <code>data/elevation_*.json</code> and{" "}
+        <code>data/speedlimits_*.json</code>.
       </div>
     </div>
   );

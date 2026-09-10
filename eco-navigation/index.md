@@ -1,91 +1,111 @@
 # Eco-Navigation — Deggendorf → Engelshütt
 
-Two ways through the Bavarian Forest, compared for **distance, elevation,
-curviness, speed** and — for five very different cars — **energy use, cost and
-CO₂**.
+Four ways through the Bavarian Forest, compared for **distance, elevation, curviness, speed** and — for five very different cars — **energy use, cost and CO₂**.
 
-> The published page at `/eco-navigation/` serves the interactive
-> [`index.html`](index.html). This `index.md` is documentation; the full method
-> is in [`METHODOLOGY.md`](METHODOLOGY.md).
+> The published page at `/eco-navigation/` serves the interactive [`index.html`](index.html). This `index.md` is documentation; the full method is in [`METHODOLOGY.md`](METHODOLOGY.md).
 
-- **Route A — via Arnbruck** (Zellertal direct): **55.1 km**, ~49 min, +396 m net.
-- **Route B — via Viechtach & Bad Kötzting**: **65.8 km**, ~58 min, +396 m net
-  but more total climbing (drops to Bad Kötzting, then climbs back).
+**Version 2** replaced the guessed terrain with real measurements. Elevation is now **10 064 EU-DEM 25 m samples** (one every 25 m along every track) instead of 16 interpolated town heights, speed limits come from OpenStreetMap, and two additional routes were found by searching the road network and scoring every candidate through the full energy model.
 
-Both start at Deggendorf and share the first 22 km to Teisnach, then diverge.
+## The routes
+
+| | Distance | Time | Peak | Ascent | Curviness | Stops | Cost (Auris) |
+|---|---|---|---|---|---|---|---|
+| **A — via Arnbruck** (Zellertal & Eck pass) | **55.1 km** | 52 min | 843 m | 957 m | 163.7 °/km | 6 | **€4.52** |
+| **B — via Viechtach & Bad Kötzting** | 65.8 km | 63 min | 593 m | 1 050 m | 155.8 °/km | 9 | €5.13 |
+| **C — via Bodenmais** *(new)* | 64.2 km | 62 min | 843 m | 1 060 m | 145.3 °/km | 6 | €4.88 |
+| **D — via Regen** *(new)* | 66.5 km | 59 min | 859 m | 1 299 m | 143.8 °/km | 5 | €5.21 |
+
+Routes A and B are the original CoMaps tracks; C and D are OSRM routes over the OpenStreetMap network, picked from eight distinct candidates.
 
 ## Key findings
 
-- **Route A wins on every metric** — shorter, less total ascent, fewer
-  traffic-light stops (~6 vs ~9), and cheaper per trip for **all five cars**.
-- Route B has marginally **better per-100 km efficiency** (more steady B85
-  running) but its extra 10.7 km and deeper drop-and-climb more than cancel it.
-- **All five cars are fully capable** of both routes — grades are gentle; the
-  difference is efficiency and comfort, not capability.
-- Hybrid (Auris) and EV (ID.3) benefit most from the curvy, stop-and-go terrain
-  thanks to **regenerative braking**.
+- **Route A still wins** — for all five cars, on real terrain, real speed limits, and against both newly-found alternatives. It is the shortest, and here distance beats altitude: it is also the *hilliest by peak*, crossing the **Eck saddle at 843 m**, ~250 m higher than route B ever goes.
+- **The new route C is genuinely better than route B** — cheaper for all five cars, faster, shorter, less curvy and with three fewer stops — but it does not beat A, which stays €0.36 cheaper for the hybrid. **No route beats A.**
+- **The mountains cost an eighth to a fifth of the fuel.** On route A the hybrid spends €0.83 of its €4.52 purely on gaining height; the old diesel spends €1.09.
+- **Corners cost far less than hills, but they cost time.** €0.16 for the hybrid on route A against €0.65 for the old Opel — and about 3 minutes for everyone, since the time penalty depends on the road, not the drivetrain.
+- **Regenerative braking is what separates the cars.** The hybrid and the EV win back 1.8–3.8 kWh on the descents; the three cars without regen win back nothing and turn every metre of descent into brake heat.
 
-Example (per one-way trip, Route A → B):
+## What the real elevation data changed
 
-| Car | Route A | Route B | A saves |
-|---|---|---|---|
-| Toyota Auris Hybrid | €4.55 / 5.9 kg | €5.28 / 6.8 kg | €0.73 |
-| VW ID.3 | €4.38 / 3.8 kg | €5.06 / 4.4 kg | €0.68 |
-| Fiat Panda 1.2 | €5.53 / 7.2 kg | €6.48 / 8.4 kg | €0.95 |
-| Opel (2005) | €6.78 / 8.8 kg | €7.95 / 10.3 kg | €1.17 |
-| Mercedes C-diesel | €4.83 / 7.6 kg | €5.61 / 8.8 kg | €0.78 |
+The old modelled profile was badly wrong in three ways — see [`METHODOLOGY.md` §10](METHODOLOGY.md) for the full comparison, or run `python3 compare_versions.py`.
 
-(Full table and an annual-cost slider are in the interactive page.)
+| Route | Metric | Modelled (v1) | Real DEM | Change |
+|---|---|---|---|---|
+| A | Highest point | 709 m | **843 m** | +19 % |
+| A | Total ascent | 444 m | **957 m** | +116 % |
+| A | Steepest grade | 2.1 % | **8.9 %** | +324 % |
+| B | Highest point | 709 m | **593 m** | −16 % |
+| B | Total ascent | 502 m | **1 050 m** | +109 % |
+
+1. It **missed an entire mountain pass** — route A's 843 m Eck saddle was flattened to a 709 m plateau in the wrong place.
+2. It **understated climbing by more than half**, because interpolating between town centres smooths away every hill in between.
+3. Its **steepest grade anywhere was 2.1 %**, which made a mountain-energy metric meaningless.
+
+The cost effect splits by drivetrain: the hybrid and EV got slightly **cheaper** (−1 to −3 %) because real descents hand energy back through regen, while the three cars without regen got **dearer** (+2 to +12 %). **The verdict did not change** — route A won before and wins now.
 
 ## Data provenance at a glance
 
 | Quantity | Source |
 |---|---|
-| Geometry, distance, curviness | **Measured** — your CoMaps GPX tracks |
-| Village/rural speed zones, limits | **Rule-based** — German StVO defaults |
+| Geometry, distance, curviness | **Measured** — CoMaps GPX (A, B), OSRM (C, D) |
+| Elevation & grade | **Measured** — EU-DEM 25 m, 10 064 samples |
+| Speed limits | **Measured** — OpenStreetMap `maxspeed`, StVO fallback |
+| Village/rural zones | **Rule-based** — German StVO defaults |
 | Traffic-light / junction stops | **Modelled** — per-town stop estimate |
-| Elevation & grade | **Modelled** — researched town heights, interpolated |
 | Energy, cost, CO₂ | **Modelled** — vehicle physics, calibrated |
+| Mountain & curve taxes | **Modelled** — counterfactual re-runs |
 
-The GPX files carried **no elevation data**, and routing/elevation APIs were
-unreachable from the build sandbox, so elevation and energy are a transparent
-physics model — see [`METHODOLOGY.md`](METHODOLOGY.md) for every equation and
-assumption.
+## The two new metrics
+
+**The mountain tax** — every trip is simulated twice: once over the real terrain, and once over the *identical road with the grade set to zero* (same distance, same bends, same speeds, same stops). The difference is exactly what the hills cost, net of everything the descents give back through engine braking and regen.
+
+**The curve tax** — the same trick applied to geometry: a third run with the bend-radius speed cap removed, so speed is limited only by the legal limit and comfortable acceleration. The difference is what the corners cost in fuel and in minutes.
+
+Curviness itself was already measured in v1 but is now reported properly: total heading change per km, a 0–100 index, bends per km, median and minimum corner radius, and the share of each route's length in five radius bands. It is computed on the uniform 25 m grid so the CoMaps and OSRM tracks compare fairly.
 
 ## Files
 
-- [`index.html`](index.html) — interactive comparison (React + Recharts,
-  no build step, no external CDN; libs vendored in [`vendor/`](vendor/)).
-- [`EcoNavigation.jsx`](EcoNavigation.jsx) — UI source; precompiled to
-  [`app.js`](app.js) with esbuild (no in-browser transform).
-- [`build.py`](build.py) — parses the GPX and generates all data (pure stdlib).
-- [`fetch_real_data.py`](fetch_real_data.py) — optional: pulls **real**
-  elevation + speed limits where APIs are reachable, to replace the modelled
-  profile.
-- [`METHODOLOGY.md`](METHODOLOGY.md) — full algorithm, equations and sources
-  (rendered for the web as [`methodology.html`](methodology.html)).
-- [`render_docs.py`](render_docs.py) — regenerates `methodology.html` from the markdown.
+- [`index.html`](index.html) — interactive comparison (React + Recharts, no build step, no external CDN; libs vendored in [`vendor/`](vendor/)).
+- [`EcoNavigation.jsx`](EcoNavigation.jsx) — UI source; precompiled to [`app.js`](app.js) with esbuild.
+- [`geo.py`](geo.py) — shared geodesy, resampling and GPX I/O.
+- [`model.py`](model.py) — terrain conditioning, curvature, speed, energy and the counterfactuals behind both new metrics.
+- [`build.py`](build.py) — orchestrates the build, emits all data products (pure stdlib, no network).
+- [`fetch_real_data.py`](fetch_real_data.py) — downloads EU-DEM elevation and OSM speed limits.
+- [`fetch_routes.py`](fetch_routes.py) — OSRM candidate search; `--adopt <key>` writes a GPX.
+- [`screen_routes.py`](screen_routes.py) — scores candidates through the full model.
+- [`compare_versions.py`](compare_versions.py) — diffs the current bundle against archived v1.
+- [`METHODOLOGY.md`](METHODOLOGY.md) — full algorithm, equations and sources (rendered as [`methodology.html`](methodology.html)).
+- [`render_docs.py`](render_docs.py) — regenerates `methodology.html`.
 - `data/`
-  - [`gpx/`](data/gpx/) — the two original tracks.
+  - [`gpx/`](data/gpx/) — the four tracks.
   - [`eco_data.json`](data/eco_data.json) — full data bundle.
-  - [`results.csv`](data/results.csv) — per-car/route consumption, cost, CO₂, time.
-  - `profile_arnbruck.csv`, `profile_koetzting.csv` — per-25 m profiles
-    (km, elevation, grade, curvature, speed, legal limit, lat/lon).
+  - [`results.csv`](data/results.csv) — per car/route consumption, cost, CO₂, time, plus both new taxes.
+  - [`route_metrics.csv`](data/route_metrics.csv) — per-route terrain and curviness metrics.
+  - `profile_*.csv` — per-25 m profiles (km, elevation, grade, curvature, speed, legal limit and its provenance, lat/lon).
+  - `elevation_*.json`, `speedlimits_*.json` — cached raw API responses.
+  - [`eco_data_modelled_v1.json`](data/eco_data_modelled_v1.json) — archived v1 bundle, so the before/after stays reproducible.
 - [`data.js`](data.js) — the bundle as `window.ECO_DATA` for the page.
 
 ## Running locally
 
-No build step and no internet needed — React/Recharts are vendored and the JSX
-is precompiled. Just open it:
+No build step and no internet needed — React/Recharts are vendored and the JSX is precompiled:
 
 ```bash
 xdg-open index.html   # Linux
 open index.html       # macOS
 ```
 
-To regenerate the data or rebuild the UI:
+To rebuild from the cached data (no network):
 
 ```bash
 python3 build.py
 npx esbuild EcoNavigation.jsx --jsx=transform --format=iife --outfile=app.js
+python3 render_docs.py
+```
+
+To refresh the terrain and OSM data from the APIs (needs network, ~2 minutes):
+
+```bash
+python3 fetch_real_data.py --speed --force
+python3 build.py
 ```
