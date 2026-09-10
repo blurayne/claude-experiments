@@ -93,7 +93,7 @@ Eight distinct candidates survived. `screen_routes.py` then gave each one real D
 | via Zwiesel | 75.87 | 1 480 m | 161.0 | 8 | €6.31 |
 | via Kirchberg | 77.59 | 1 616 m | 147.2 | 6 | €6.32 |
 
-(Screening samples the DEM every 100 m rather than 25 m — four times fewer API calls, and after the grade smoothing it ranks candidates identically. The two adopted routes were then re-fetched at the full 25 m, which is why the costs in this screening table differ by a couple of cents from the published figures elsewhere in this document.)
+(Screening samples the DEM every 100 m rather than 25 m — four times fewer API calls, and after the grade smoothing it ranks candidates identically. The two adopted routes were then re-fetched at the full 25 m, which is why the costs in this screening table differ from the published figures elsewhere in this document; the screening also ran at the older default fuel prices. Neither matters for the ranking — within one car, the route ordering is price-independent.)
 
 **No candidate beats route A.** Two were published anyway because they are interesting for different reasons.
 
@@ -305,7 +305,7 @@ litres     = fuel_J / LHV        petrol 32.04 MJ/L, diesel 35.64 MJ/L
 | Opel (2005, small petrol) | 1 080 kg | 0.697 | 0.0125 | 0.235 | 0 | 0.25 kW |
 | Mercedes C-Class diesel | 1 620 kg | 0.594 | 0.010 | 0.34 | 0 | 0.35 kW |
 
-`η` is a single average tank-to-wheel efficiency, not a speed/load map — the main simplification in the model. Prices: petrol 1.79 €/L, diesel 1.69 €/L, electricity 0.40 €/kWh. Carbon: 2.32 kg/L petrol, 2.65 kg/L diesel, 0.35 kg/kWh grid.
+`η` is a single average tank-to-wheel efficiency, not a speed/load map — the main simplification in the model. Default prices are **current regional values, researched 2026-09-10**: Super E10 **2.18 €/L** and diesel **2.27 €/L** (Bavaria state averages, MTS-K data via ADAC/SpritFuchs — Bavaria is currently the cheapest German state to refuel in), household electricity **0.37 €/kWh** (BDEW 2026 average, home-charging assumption). The interactive page has sliders to change all three; costs reprice linearly (litres/kWh × price) without re-running the physics. Carbon: 2.32 kg/L petrol, 2.65 kg/L diesel, 0.35 kg/kWh grid.
 
 ---
 
@@ -340,11 +340,11 @@ Results for one one-way trip:
 
 | Car | Route A | Route B | Route C | Route D | Share of trip |
 |---|---|---|---|---|---|
-| Toyota Auris Hybrid | €0.83 | €0.84 | €0.81 | €0.86 | 16.3–18.1 % |
-| VW ID.3 | €0.87 | €0.89 | €0.86 | €0.91 | 17.9–19.9 % |
-| Fiat Panda 1.2 | €0.89 | €0.88 | €0.85 | €0.90 | 13.0–14.7 % |
-| Opel (2005) | €1.09 | €1.07 | €1.04 | €1.10 | 12.9–14.6 % |
-| Mercedes C-diesel | €1.09 | €1.12 | €1.10 | €1.25 | 18.1–20.4 % |
+| Toyota Auris Hybrid | €1.01 | €1.03 | €0.99 | €1.05 | 16.3–18.1 % |
+| VW ID.3 | €0.81 | €0.82 | €0.79 | €0.84 | 17.9–19.9 % |
+| Fiat Panda 1.2 | €1.08 | €1.07 | €1.04 | €1.09 | 13.0–14.7 % |
+| Opel (2005) | €1.33 | €1.30 | €1.27 | €1.34 | 12.9–14.6 % |
+| Mercedes C-diesel | €1.46 | €1.51 | €1.48 | €1.69 | 18.1–20.4 % |
 
 **Between an eighth and a fifth of the fuel on every one of these routes is spent purely on gaining height.** The mountain tax barely differs between routes — they all climb from the same valley to the same destination — but it differs a lot between *cars*: the two with regenerative braking recover 1.8–3.8 kWh on the descents, while the three without recover nothing and turn every metre of descent into brake heat.
 
@@ -361,12 +361,12 @@ curve_time_lost = t(real bends) − t(same hills, straightened)
 
 | Route | Auris | ID.3 | Panda | Opel | Merc | Time lost |
 |---|---|---|---|---|---|---|
-| A · Arnbruck | €0.13 | €0.11 | €0.46 | €0.58 | €0.56 | +2.8 min |
-| B · Viechtach/Kötzting | €0.06 | €0.05 | €0.25 | €0.31 | €0.35 | +2.3 min |
-| C · Bodenmais | €0.03 | €0.03 | €0.20 | €0.25 | €0.25 | +2.4 min |
-| D · Regen | €0.07 | €0.06 | €0.29 | €0.36 | €0.38 | +2.6 min |
+| A · Arnbruck | €0.16 | €0.10 | €0.57 | €0.70 | €0.76 | +2.8 min |
+| B · Viechtach/Kötzting | €0.07 | €0.05 | €0.30 | €0.38 | €0.47 | +2.3 min |
+| C · Bodenmais | €0.04 | €0.03 | €0.24 | €0.30 | €0.34 | +2.4 min |
+| D · Regen | €0.08 | €0.06 | €0.35 | €0.43 | €0.51 | +2.6 min |
 
-Two things stand out. **Corners cost far less than hills** — a few cents against roughly a euro. And **the split by drivetrain is even sharper than for the mountain tax**: the hybrid pays €0.13 on route A where the old Opel pays €0.58, more than four times as much, because the energy shed entering a bend comes straight back out of the battery on the way out. Corners cost a regen car *time* much more than they cost it fuel — the time penalty is identical for all five cars, since it depends on the road, not the drivetrain.
+Two things stand out. **Corners cost far less than hills** — a few cents against roughly a euro. And **the split by drivetrain is even sharper than for the mountain tax**: the hybrid pays €0.16 on route A where the old Opel pays €0.70, more than four times as much, because the energy shed entering a bend comes straight back out of the battery on the way out. Corners cost a regen car *time* much more than they cost it fuel — the time penalty is identical for all five cars, since it depends on the road, not the drivetrain.
 
 ---
 
@@ -385,12 +385,12 @@ The stop *inventory* is measured from OSM ([section 5.4](#5-speed-model-measured
 
 | Route | Auris | ID.3 | Panda | Opel | Merc | Time lost |
 |---|---|---|---|---|---|---|
-| A · Arnbruck | €0.14 | €0.12 | €0.31 | €0.38 | €0.33 | +2.2 min |
-| B · Viechtach/Kötzting | €0.16 | €0.14 | €0.35 | €0.42 | €0.37 | +2.6 min |
-| C · Bodenmais | €0.15 | €0.13 | €0.32 | €0.40 | €0.35 | +2.0 min |
-| D · Regen | €0.11 | €0.10 | €0.24 | €0.29 | €0.26 | +1.9 min |
+| A · Arnbruck | €0.17 | €0.11 | €0.38 | €0.46 | €0.44 | +2.2 min |
+| B · Viechtach/Kötzting | €0.19 | €0.13 | €0.42 | €0.52 | €0.50 | +2.6 min |
+| C · Bodenmais | €0.18 | €0.12 | €0.39 | €0.48 | €0.47 | +2.0 min |
+| D · Regen | €0.13 | €0.09 | €0.29 | €0.36 | €0.35 | +1.9 min |
 
-The three taxes now have a clear hierarchy: **hills (€0.81–1.25) ≫ stops ≈ curves (a few cents to ~€0.6)**. Stops and curves trade places depending on the drivetrain — for the non-regen cars route A's bends cost more than its stops (€0.58 vs €0.38 for the Opel), while for the hybrid and the EV stops edge out curves on every route except A, because braking energy is recovered but standing time is not. Route D confirms its character here: fewest expected stops, lowest stop tax, least time lost.
+The three taxes now have a clear hierarchy: **hills (€0.79–1.69) ≫ stops ≈ curves (a few cents to ~€0.8)**. Stops and curves trade places depending on the drivetrain — for the non-regen cars route A's bends cost more than its stops (€0.70 vs €0.46 for the Opel), while for the hybrid and the EV stops edge out curves on every route except A, because braking energy is recovered but standing time is not. Route D confirms its character here: fewest expected stops, lowest stop tax, least time lost.
 
 ## 10. Capability
 
@@ -428,7 +428,7 @@ The effect on cost splits cleanly by drivetrain:
 | Opel (2005) | €6.78 → **€7.45** (+10 %) | €7.95 → **€8.31** (+5 %) |
 | Mercedes C-diesel | €4.83 → **€5.62** (+16 %) | €5.61 → **€6.21** (+11 %) |
 
-(These figures include both upgrades: the real terrain and the measured stop inventory of [section 5.4](#5-speed-model-measured-limits--physics), which found more stop-causing features than the old per-town guess.) The hybrid and the EV are **essentially unchanged**: real descents hand meaningful energy back through regenerative braking, which offsets both the extra climbing and the extra stops. The three cars without regen got **dearer**: they buy every metre of climb with fuel and throw it away again as brake heat.
+(Both columns are priced at v1's fuel prices, so the change shown is the model, not the 2026 price rally. The figures include both upgrades: the real terrain and the measured stop inventory of [section 5.4](#5-speed-model-measured-limits--physics), which found more stop-causing features than the old per-town guess.) The hybrid and the EV are **essentially unchanged**: real descents hand meaningful energy back through regenerative braking, which offsets both the extra climbing and the extra stops. The three cars without regen got **dearer**: they buy every metre of climb with fuel and throw it away again as brake heat.
 
 **The verdict did not change.** Route A was the cheapest for all five cars before and is the cheapest for all five cars now — and it stays cheapest against the two newly-found alternatives as well. It wins despite being the *hilliest by peak*, because it is 9–11 km shorter and distance beats altitude here.
 
@@ -438,13 +438,13 @@ The effect on cost splits cleanly by drivetrain:
 
 Route A's win is worth stress-testing, because several inputs are modelled. Each experiment below re-runs the full physics with one assumption pushed to its plausible extreme. None of them flips the ranking; the structural reason is that **route B is dominated**: it is 10.7 km longer, 10 minutes slower, climbs *more* in total (1 050 m vs 957 m — the lower peak is misleading), is steeper at its worst (12.0 % vs 8.9 %), and has slightly more expected stops (9.0 vs 8.4).
 
-**Reverse direction and round trip.** All published figures are Deggendorf → Engelshütt; the return could in principle differ (grades flip sign). It doesn't: reversed, route A still wins for all five cars (Auris €3.42 vs €4.05 — the return is much cheaper for everyone, since it is a net 256 m descent), because B's reverse ascent is also larger (788 m vs 694 m). Round trip, Auris: **A €8.02 vs B €9.24**.
+**Reverse direction and round trip.** All published figures are Deggendorf → Engelshütt; the return could in principle differ (grades flip sign). It doesn't: reversed, route A still wins for all five cars (Auris €4.17 vs €4.93 at current prices — the return is much cheaper for everyone, since it is a net 256 m descent), because B's reverse ascent is also larger (788 m vs 694 m). Round trip, Auris: **A €9.78 vs B €11.26**.
 
-**Stop-count error.** Before the inventory was measured, swapping the guessed counts to *favour B maximally* (A = 9 stops, B = 6) moved the Auris gap from €0.61 to €0.55 — stops are worth about €0.02 each. The measured inventory has since replaced the guess, and even zeroing all stops entirely changes no ranking.
+**Stop-count error.** Before the inventory was measured, swapping the guessed counts to *favour B maximally* (A = 9 stops, B = 6) moved the Auris gap from €0.74 to €0.67 (current prices) — stops are worth about €0.03 each. The measured inventory has since replaced the guess, and even zeroing all stops entirely changes no ranking.
 
 **Break-even efficiency.** The one structural advantage B has is steadier running (more B 85, fewer bends), and a constant-η model undervalues steady-state running for combustion engines. Quantified: B would need a **9.5–11.4 % lower cost** to match A, while its modelled per-100 km advantage is already 5.4–7.5 % — so the *unmodelled* remainder would have to be another ~4–6 %. A realistic BSFC correction for the difference between these two road types is 2–3 %; a hybrid or EV is nearly indifferent to it. B falls short even under generous assumptions.
 
-**Winter on the pass.** The genuine flip is not in the fuel model at all. Route A spends **7.2 km above 650 m** crossing the Eck saddle; simulating snow as a 50 km/h crawl up there actually *lowers* A's fuel cost (slower = less drag, €4.60 → €4.44) and adds only 3 minutes — fuel cannot flip it. What flips it is **availability**: with snowfall, chain requirements or a closure on the saddle, A, C and D are all out, because they all cross 843–859 m. **Route B is the only route that stays below 600 m.** That is its real role: not the cheaper route, but the all-weather one.
+**Winter on the pass.** The genuine flip is not in the fuel model at all. Route A spends **7.2 km above 650 m** crossing the Eck saddle; simulating snow as a 50 km/h crawl up there actually *lowers* A's fuel cost (slower = less drag, €5.61 → €5.41) and adds only 3 minutes — fuel cannot flip it. What flips it is **availability**: with snowfall, chain requirements or a closure on the saddle, A, C and D are all out, because they all cross 843–859 m. **Route B is the only route that stays below 600 m.** That is its real role: not the cheaper route, but the all-weather one.
 
 **What does not move the ranking at all:** fuel/electricity prices (scale all routes equally), payload (B climbs more, so extra mass favours A), a trailer (B's 12 % max grade is worse than A's 8.9 %), and value-of-time (A is also the fastest). Adding distance-proportional wear — entirely missing from the model, and at a typical 10–20 ct/km it is *larger* than the fuel cost — widens A's lead by a further €1–2 per trip.
 

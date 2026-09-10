@@ -10,10 +10,12 @@ Four ways through the Bavarian Forest, compared for **distance, elevation, curvi
 
 | | Distance | Time | Peak | Ascent | Curviness | Expected stops | Cost (Auris) |
 |---|---|---|---|---|---|---|---|
-| **A — via Arnbruck** (Zellertal & Eck pass) | **55.1 km** | 52 min | 843 m | 957 m | 163.7 °/km | 8.4 | **€4.60** |
-| **B — via Viechtach & Bad Kötzting** | 65.8 km | 62 min | 593 m | 1 050 m | 155.8 °/km | 9.0 | €5.19 |
-| **C — via Bodenmais** *(new)* | 64.2 km | 61 min | 843 m | 1 060 m | 145.3 °/km | 9.1 | €4.97 |
-| **D — via Regen** *(new)* | 66.5 km | 59 min | 859 m | 1 299 m | 143.8 °/km | 6.9 | €5.27 |
+| **A — via Arnbruck** (Zellertal & Eck pass) | **55.1 km** | 52 min | 843 m | 957 m | 163.7 °/km | 8.4 | **€5.61** |
+| **B — via Viechtach & Bad Kötzting** | 65.8 km | 62 min | 593 m | 1 050 m | 155.8 °/km | 9.0 | €6.33 |
+| **C — via Bodenmais** *(new)* | 64.2 km | 61 min | 843 m | 1 060 m | 145.3 °/km | 9.1 | €6.05 |
+| **D — via Regen** *(new)* | 66.5 km | 59 min | 859 m | 1 299 m | 143.8 °/km | 6.9 | €6.41 |
+
+Costs at current regional prices (10 Sep 2026): Super E10 **2.18 €/L** and diesel **2.27 €/L** (Bavaria averages, MTS-K/ADAC), household electricity **0.37 €/kWh** (BDEW). The interactive page has **price sliders** in the annual-impact section — costs reprice linearly without re-running the physics. At these prices the **VW ID.3 is the cheapest car outright** (€4.05 on route A vs €5.61 for the hybrid).
 
 Routes A and B are the original CoMaps tracks; C and D are OSRM routes over the OpenStreetMap network, picked from eight distinct candidates.
 
@@ -29,9 +31,9 @@ Routes A and B are the original CoMaps tracks; C and D are OSRM routes over the 
 ## Key findings
 
 - **Route A still wins** — for all five cars, on real terrain, real speed limits, and against both newly-found alternatives. It is the shortest, and here distance beats altitude: it is also the *hilliest by peak*, crossing the **Eck saddle at 843 m**, ~250 m higher than route B ever goes.
-- **The new route C is genuinely better than route B** — cheaper for all five cars, faster, shorter and less curvy (though level on expected stops: 9.1 vs 9.0) — but it does not beat A, which stays €0.37 cheaper for the hybrid. **No route beats A.**
-- **The mountains cost an eighth to a fifth of the fuel.** On route A the hybrid spends €0.83 of its €4.60 purely on gaining height; the old diesel spends €1.09.
-- **Corners cost far less than hills, but they cost time.** €0.13 for the hybrid on route A against €0.58 for the old Opel — and about 3 minutes for everyone, since the time penalty depends on the road, not the drivetrain.
+- **The new route C is genuinely better than route B** — cheaper for all five cars, faster, shorter and less curvy (though level on expected stops: 9.1 vs 9.0) — but it does not beat A, which stays €0.44 cheaper for the hybrid. **No route beats A.**
+- **The mountains cost an eighth to a fifth of the fuel.** On route A the hybrid spends €1.01 of its €5.61 purely on gaining height; the old diesel spends €1.46.
+- **Corners cost far less than hills, but they cost time.** €0.16 for the hybrid on route A against €0.70 for the old Opel — and about 3 minutes for everyone, since the time penalty depends on the road, not the drivetrain.
 - **Regenerative braking is what separates the cars.** The hybrid and the EV win back 1.8–3.8 kWh on the descents; the three cars without regen win back nothing and turn every metre of descent into brake heat.
 
 ## What the real elevation data changed
@@ -62,7 +64,8 @@ The cost effect splits by drivetrain: the hybrid and EV are essentially **unchan
 | Village/rural zones | **Rule-based** — German StVO defaults |
 | Stop-feature inventory | **Measured** — OSM signals, signs, roundabouts, crossings |
 | Probability of stopping per feature | **Modelled** — documented per-class assumption |
-| Energy, cost, CO₂ | **Modelled** — vehicle physics, calibrated |
+| Energy, CO₂ | **Modelled** — vehicle physics, calibrated |
+| Prices | **Measured** — Bavaria fuel Ø & BDEW electricity, 10 Sep 2026, user-adjustable |
 | Mountain, curve & stop taxes | **Modelled** — counterfactual re-runs |
 
 ## The counterfactual metrics
@@ -71,7 +74,7 @@ The cost effect splits by drivetrain: the hybrid and EV are essentially **unchan
 
 **The curve tax** — the same trick applied to geometry: a run with the bend-radius speed cap removed, so speed is limited only by the legal limit and comfortable acceleration. The difference is what the corners cost in fuel and in minutes.
 
-**The stop tax** — the same trick applied to the measured stop inventory: a run on a *green wave* (every signal green, every barrier open, every roundabout rolled through). The difference is what red lights, signs, barriers and roundabouts cost — €0.10–0.42 per trip and ~2–3 minutes, always far less than the hills.
+**The stop tax** — the same trick applied to the measured stop inventory: a run on a *green wave* (every signal green, every barrier open, every roundabout rolled through). The difference is what red lights, signs, barriers and roundabouts cost — €0.09–0.52 per trip and ~2–3 minutes, always far less than the hills.
 
 Curviness itself was already measured in v1 but is now reported properly: total heading change per km, a 0–100 index, bends per km, median and minimum corner radius, and the share of each route's length in five radius bands. It is computed on the uniform 25 m grid so the CoMaps and OSRM tracks compare fairly.
 

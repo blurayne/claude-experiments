@@ -849,7 +849,7 @@
         }
       ),
       ROUTE_KEYS.map((k) => /* @__PURE__ */ React.createElement(Bar, { key: k, dataKey: k, fill: routeColor(k), radius: [3, 3, 0, 0] }))
-    )), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: C.dim, marginTop: 6 } }, m.label, m.dyn ? "" : ` (${m.unit})`, " per one-way trip", metric === "cost_eur" && " \u2014 German 2026 prices: petrol 1.79 \u20AC/L, diesel 1.69 \u20AC/L, electricity 0.40 \u20AC/kWh", ".")), /* @__PURE__ */ React.createElement(FullTable, null));
+    )), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: C.dim, marginTop: 6 } }, m.label, m.dyn ? "" : ` (${m.unit})`, " per one-way trip", metric === "cost_eur" && ` \u2014 current regional prices (${P0.asof}): petrol ${fmt(P0.petrol, 2)} \u20AC/L, diesel ${fmt(P0.diesel, 2)} \u20AC/L, electricity ${fmt(P0.electric, 2)} \u20AC/kWh; adjustable in the annual-impact section`, ".")), /* @__PURE__ */ React.createElement(FullTable, null));
   }
   function FullTable() {
     const cell = { padding: "6px 9px", fontSize: 12.5, borderBottom: `1px solid ${C.line}`, textAlign: "right", whiteSpace: "nowrap" };
@@ -899,8 +899,26 @@
       } }, "\u20AC", fmt(r.cost_eur, 2)), /* @__PURE__ */ React.createElement("td", { style: cell }, fmt(r.co2_kg, 1), " kg"), /* @__PURE__ */ React.createElement("td", { style: cell }, fmt(r.time_min, 0), " min"), /* @__PURE__ */ React.createElement("td", { style: { ...cell, color: C.climb } }, "\u20AC", fmt(r.mountain.cost_eur, 2)), /* @__PURE__ */ React.createElement("td", { style: { ...cell, color: C.curve } }, "\u20AC", fmt(r.curves.cost_eur, 2)), /* @__PURE__ */ React.createElement("td", { style: { ...cell, color: "#E06060" } }, "\u20AC", fmt(r.stops.cost_eur, 2)));
     })))), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11.5, color: C.dim, marginTop: 8 } }, "Cheapest route per car highlighted in green."));
   }
+  const P0 = D.meta.prices || { petrol: 2.18, diesel: 2.27, electric: 0.37 };
+  const PRICE_SLIDERS = [
+    ["petrol", "Petrol (Super E10)", "\u20AC/L", 1.2, 3, "#E8B23A"],
+    ["diesel", "Diesel", "\u20AC/L", 1.2, 3, "#B08CE0"],
+    ["electric", "Electricity (home)", "\u20AC/kWh", 0.1, 0.8, "#4FA6E0"]
+  ];
   function Annual() {
     const [perMonth, setPerMonth] = useState(8);
+    const [prices, setPrices] = useState({
+      petrol: P0.petrol,
+      diesel: P0.diesel,
+      electric: P0.electric
+    });
+    const isDefault = PRICE_SLIDERS.every(([id]) => prices[id] === P0[id]);
+    const fuelOf = {};
+    CARS.forEach((c) => {
+      fuelOf[c.id] = c.fuel;
+    });
+    const cost = (k, id) => RES[k][id].amount * prices[fuelOf[id]];
+    const mtnCost = (k, id) => RES[k][id].mountain.amount * prices[fuelOf[id]];
     const MIN = 0.1, MAX = 10;
     const clamp = (v) => Math.max(MIN, Math.min(MAX, Math.round(v * 10) / 10));
     const step = (d) => setPerMonth((v) => clamp(v + d));
@@ -969,15 +987,65 @@
       minWidth: 130,
       textAlign: "right"
     } }, fmt(perMonth, 1), "/month \xB7", " ", fmt(trips), "/yr")), /* @__PURE__ */ React.createElement("div", { style: {
+      background: C.panelHi,
+      border: `1px solid ${C.line}`,
+      borderRadius: 10,
+      padding: "10px 14px",
+      marginBottom: 14
+    } }, /* @__PURE__ */ React.createElement("div", { style: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "baseline",
+      flexWrap: "wrap",
+      gap: 8,
+      marginBottom: 6
+    } }, /* @__PURE__ */ React.createElement("span", { style: { color: C.ink, fontSize: 13, fontWeight: 600 } }, "Fuel & electricity prices"), /* @__PURE__ */ React.createElement("span", { style: { fontSize: 11, color: C.faint } }, "defaults: Bavaria / Germany, ", P0.asof || "Sept 2026", !isDefault && /* @__PURE__ */ React.createElement(React.Fragment, null, " \xB7 ", /* @__PURE__ */ React.createElement(
+      "a",
+      {
+        href: "#",
+        onClick: (e) => {
+          e.preventDefault();
+          setPrices({
+            petrol: P0.petrol,
+            diesel: P0.diesel,
+            electric: P0.electric
+          });
+        },
+        style: { color: C.eco }
+      },
+      "reset"
+    )))), PRICE_SLIDERS.map(([id, label, unit, lo, hi, col]) => /* @__PURE__ */ React.createElement("div", { key: id, style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      marginTop: 6
+    } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: 12, color: C.dim, flex: "0 0 150px" } }, label), /* @__PURE__ */ React.createElement(
+      "input",
+      {
+        type: "range",
+        min: lo,
+        max: hi,
+        step: 0.01,
+        value: prices[id],
+        onChange: (e) => setPrices((p) => ({ ...p, [id]: +e.target.value })),
+        style: { flex: "1 1 120px", accentColor: col }
+      }
+    ), /* @__PURE__ */ React.createElement("span", { style: {
+      fontSize: 13,
+      fontWeight: 700,
+      color: col,
+      flex: "0 0 92px",
+      textAlign: "right"
+    } }, fmt(prices[id], 2), " ", unit))), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 10.5, color: C.faint, marginTop: 8 } }, P0.note || "", " Costs reprice linearly (litres/kWh \xD7 price) \u2014 the physics stays fixed.")), /* @__PURE__ */ React.createElement("div", { style: {
       display: "grid",
       gridTemplateColumns: "repeat(auto-fit,minmax(190px,1fr))",
       gap: 10
     } }, CARS.map((c) => {
-      const best = ROUTE_KEYS.reduce((a, b) => RES[b][c.id].cost_eur < RES[a][c.id].cost_eur ? b : a);
-      const worst = ROUTE_KEYS.reduce((a, b) => RES[b][c.id].cost_eur > RES[a][c.id].cost_eur ? b : a);
-      const save = (RES[worst][c.id].cost_eur - RES[best][c.id].cost_eur) * trips;
+      const best = ROUTE_KEYS.reduce((a, b) => cost(b, c.id) < cost(a, c.id) ? b : a);
+      const worst = ROUTE_KEYS.reduce((a, b) => cost(b, c.id) > cost(a, c.id) ? b : a);
+      const save = (cost(worst, c.id) - cost(best, c.id)) * trips;
       const saveCo2 = (RES[worst][c.id].co2_kg - RES[best][c.id].co2_kg) * trips;
-      const mtn = RES[best][c.id].mountain.cost_eur * trips;
+      const mtn = mtnCost(best, c.id) * trips;
       return /* @__PURE__ */ React.createElement("div", { key: c.id, style: {
         background: C.panelHi,
         border: `1px solid ${C.line}`,
@@ -989,13 +1057,13 @@
         justifyContent: "space-between",
         fontSize: 12.5,
         color: C.dim
-      } }, /* @__PURE__ */ React.createElement("span", null, routeShort(k)), /* @__PURE__ */ React.createElement("b", { style: { color: routeColor(k) } }, "\u20AC", fmt(RES[k][c.id].cost_eur * trips)))), /* @__PURE__ */ React.createElement("div", { style: {
+      } }, /* @__PURE__ */ React.createElement("span", null, routeShort(k)), /* @__PURE__ */ React.createElement("b", { style: { color: routeColor(k) } }, "\u20AC", fmt(cost(k, c.id) * trips)))), /* @__PURE__ */ React.createElement("div", { style: {
         marginTop: 8,
         paddingTop: 8,
         borderTop: `1px solid ${C.line}`,
         fontSize: 12
       } }, /* @__PURE__ */ React.createElement("div", { style: { color: C.good } }, "Best route saves ", /* @__PURE__ */ React.createElement("b", null, "\u20AC", fmt(save)), "/yr"), /* @__PURE__ */ React.createElement("div", { style: { color: C.good } }, "& ", /* @__PURE__ */ React.createElement("b", null, fmt(saveCo2), " kg"), " CO\u2082/yr"), /* @__PURE__ */ React.createElement("div", { style: { color: C.climb, marginTop: 4 } }, "Climbing alone: ", /* @__PURE__ */ React.createElement("b", null, "\u20AC", fmt(mtn)), "/yr")));
-    })), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11.5, color: C.dim, marginTop: 10 } }, "Linear extrapolation of the per-trip model. Round trips \u2248 double these figures. Electricity assumes home charging at 0.40 \u20AC/kWh."));
+    })), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11.5, color: C.dim, marginTop: 10 } }, "Linear extrapolation of the per-trip model. Round trips \u2248 double these figures. Electricity assumes home charging at the price set above."));
   }
   function WhatChanged() {
     if (!CMP) return null;
@@ -1046,8 +1114,8 @@
       fontSize: 13.5,
       fontWeight: 600,
       color: C.ink,
-      marginBottom: 8
-    } }, "What it did to the cost per trip"), /* @__PURE__ */ React.createElement("table", { style: { borderCollapse: "collapse", width: "100%", minWidth: 560 } }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { style: { ...head, textAlign: "left" } }, "Car"), Object.keys(CMP.cars).map((k) => /* @__PURE__ */ React.createElement("th", { key: k, style: head, colSpan: 2 }, routeShort(k))))), /* @__PURE__ */ React.createElement("tbody", null, CARS.map((c) => /* @__PURE__ */ React.createElement("tr", { key: c.id }, /* @__PURE__ */ React.createElement("td", { style: {
+      marginBottom: 2
+    } }, "What it did to the cost per trip"), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11, color: C.faint, marginBottom: 8 } }, CMP.price_note || "at identical fuel prices", " \u2014 so the change shown is the terrain and stop model, not the 2026 price rally"), /* @__PURE__ */ React.createElement("table", { style: { borderCollapse: "collapse", width: "100%", minWidth: 560 } }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { style: { ...head, textAlign: "left" } }, "Car"), Object.keys(CMP.cars).map((k) => /* @__PURE__ */ React.createElement("th", { key: k, style: head, colSpan: 2 }, routeShort(k))))), /* @__PURE__ */ React.createElement("tbody", null, CARS.map((c) => /* @__PURE__ */ React.createElement("tr", { key: c.id }, /* @__PURE__ */ React.createElement("td", { style: {
       ...cell,
       textAlign: "left",
       color: C.ink,

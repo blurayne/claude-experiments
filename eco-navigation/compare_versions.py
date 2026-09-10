@@ -30,6 +30,11 @@ ARCHIVED_V1 = os.path.join(DATA, "eco_data_modelled_v1.json")
 COMPARABLE = ["arnbruck", "koetzting"]
 LABEL = {"arnbruck": "Route A · Arnbruck", "koetzting": "Route B · Kötzting"}
 
+# v1's fuel prices. Cost comparisons are made at these prices for BOTH
+# versions, so the diff isolates the model change (terrain, stops) from the
+# fuel-price development since.
+V1_PRICE = {"petrol": 1.79, "diesel": 1.69, "electric": 0.40}
+
 
 def load_old(path=None):
     path = path or ARCHIVED_V1
@@ -75,7 +80,9 @@ def main():
             rows_cost.append({
                 "route": LABEL[k], "car": car["name"].split(" (")[0],
                 "per100": (ores["per100"], nres["per100"]),
-                "cost": (ores["cost_eur"], nres["cost_eur"]),
+                # new cost re-priced at v1 prices -> pure model change
+                "cost": (ores["cost_eur"],
+                         round(nres["amount"] * V1_PRICE[car["fuel"]], 2)),
                 "time": (ores["time_min"], nres["time_min"]),
                 "unit": nres["unit100"],
             })
@@ -117,6 +124,7 @@ def main():
 
     print("=" * 78)
     print("CONSUMPTION & COST — same cars, same routes, real terrain")
+    print("(costs on both sides at v1 fuel prices, isolating the model change)")
     print("=" * 78)
     hdr = (f"{'route':26s}{'car':22s}{'old':>9s}{'new':>9s}{'Δcost':>10s}")
     print(hdr)
@@ -144,9 +152,9 @@ def main():
     print()
     a_old = old["results"]["arnbruck"]["auris"]["cost_eur"]
     b_old = old["results"]["koetzting"]["auris"]["cost_eur"]
-    a_new = new["results"]["arnbruck"]["auris"]["cost_eur"]
-    b_new = new["results"]["koetzting"]["auris"]["cost_eur"]
-    print(f"  Auris A vs B gap: €{b_old - a_old:.2f} (old) -> "
+    a_new = new["results"]["arnbruck"]["auris"]["amount"] * V1_PRICE["petrol"]
+    b_new = new["results"]["koetzting"]["auris"]["amount"] * V1_PRICE["petrol"]
+    print(f"  Auris A vs B gap (at v1 prices): €{b_old - a_old:.2f} (old) -> "
           f"€{b_new - a_new:.2f} (new)")
 
 

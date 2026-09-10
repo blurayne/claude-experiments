@@ -41,7 +41,7 @@ import os
 import sys
 
 from geo import read_gpx
-from model import CARS, build_route, simulate
+from model import CARS, PRICE, PRICE_ASOF, build_route, simulate
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(HERE, "data")
@@ -88,7 +88,7 @@ TLDR = {
                      "required, or you tow a heavy load in bad conditions — "
                      "this is the only route that stays below 600 m. Never "
                      "the cheapest, but always open.",
-        "avoid_if": "conditions are good — you pay ~€0.6–0.9 extra per trip "
+        "avoid_if": "conditions are good — you pay ~€0.5–1.0 extra per trip "
                     "and 10 minutes for altitude insurance you don't need. "
                     "Most traffic lights of any route (12 signals).",
     },
@@ -188,15 +188,30 @@ def main():
                 "curviness": [old["routes"][k]["curviness"]["deg_per_km"],
                               routes[k]["curviness"]["deg_per_km"]],
             }
+            # Price-normalised: the new costs are re-priced at v1's fuel
+            # prices, so this comparison isolates the terrain/stop-model
+            # change instead of mixing in the 2026 price rally.
+            V1_PRICE = {"petrol": 1.79, "diesel": 1.69, "electric": 0.40}
             comparison["cars"][k] = {
                 c["id"]: [old["results"][k][c["id"]]["cost_eur"],
-                          results[k][c["id"]]["cost_eur"]] for c in CARS}
+                          round(results[k][c["id"]]["amount"]
+                                * V1_PRICE[c["fuel"]], 2)] for c in CARS}
+            comparison["price_note"] = ("both columns at v1 fuel prices "
+                                        "(petrol 1.79, diesel 1.69 €/L, "
+                                        "electricity 0.40 €/kWh)")
     except Exception as exc:                       # noqa: BLE001
         print(f"(comparison against the archived v1 bundle skipped: {exc})")
     bundle = {
         "meta": {
             "title": "Eco-Navigation — Deggendorf → Engelshütt (Bavarian Forest)",
             "generated": GENERATED,
+            "prices": {
+                "petrol": PRICE["petrol"], "diesel": PRICE["diesel"],
+                "electric": PRICE["electric"], "asof": PRICE_ASOF,
+                "note": "Super E10 & diesel: Bavaria state averages "
+                        "(MTS-K via ADAC/SpritFuchs); electricity: German "
+                        "household average incl. taxes (BDEW), home charging",
+            },
             "elev_cross_check": cross,
             "provenance": {
                 "geometry": "REAL — CoMaps GPX tracks (routes A, B) and an OSRM "
@@ -219,8 +234,13 @@ def main():
                                           "the same trip on a flat road, on a "
                                           "straight road, and on a green wave "
                                           "with no stops",
-                "prices_co2": "Germany 2026 estimate: petrol 1.79 €/L, diesel "
-                              "1.69 €/L, elec 0.40 €/kWh; grid 0.35 kg CO2/kWh",
+                "prices_co2": f"Current regional prices as of {PRICE_ASOF}: "
+                              f"Super E10 (Bavaria Ø) {PRICE['petrol']:.2f} €/L, "
+                              f"diesel (Bavaria Ø) {PRICE['diesel']:.2f} €/L "
+                              f"(MTS-K/ADAC), household electricity "
+                              f"{PRICE['electric']:.2f} €/kWh (BDEW); grid "
+                              "0.35 kg CO2/kWh. Adjustable via the sliders in "
+                              "the annual-impact section.",
             },
         },
         "cars": [{k: c[k] for k in ("id", "name", "type", "fuel", "mass",

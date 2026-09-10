@@ -360,7 +360,15 @@ CARS = [
 
 PETROL_J_L = 8.9 * 3.6e6       # 32.04 MJ/L
 DIESEL_J_L = 9.9 * 3.6e6       # 35.64 MJ/L
-PRICE = {"petrol": 1.79, "diesel": 1.69, "electric": 0.40}
+# Default prices: current regional values, researched 2026-09-10.
+#   petrol   Super E10, Bavaria state average (MTS-K data via ADAC/SpritFuchs)
+#   diesel   Bavaria state average (same sources)
+#   electric German household average incl. taxes (BDEW 2026 analysis) —
+#            home-charging assumption
+# The UI lets the user override these with sliders; costs scale linearly
+# (cost = amount × price), so no re-simulation is needed.
+PRICE = {"petrol": 2.18, "diesel": 2.27, "electric": 0.37}
+PRICE_ASOF = "2026-09-10"
 CO2 = {"petrol": 2.32, "diesel": 2.65, "electric": 0.35}
 
 

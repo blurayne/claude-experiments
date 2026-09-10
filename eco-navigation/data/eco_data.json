@@ -2,6 +2,13 @@
  "meta": {
   "title": "Eco-Navigation — Deggendorf → Engelshütt (Bavarian Forest)",
   "generated": "2026-09-10",
+  "prices": {
+   "petrol": 2.18,
+   "diesel": 2.27,
+   "electric": 0.37,
+   "asof": "2026-09-10",
+   "note": "Super E10 & diesel: Bavaria state averages (MTS-K via ADAC/SpritFuchs); electricity: German household average incl. taxes (BDEW), home charging"
+  },
   "elev_cross_check": null,
   "provenance": {
    "geometry": "REAL — CoMaps GPX tracks (routes A, B) and an OSRM route over the OSM road network (route C)",
@@ -13,7 +20,7 @@
    "stops": "MEASURED inventory — OSM traffic signals, stop/give-way signs, roundabouts and level crossings snapped to each track; the per-class probability of actually stopping is a documented assumption (e.g. 45% per signal)",
    "energy_model": "MODELLED — longitudinal vehicle physics, calibrated to typical real-world consumption",
    "mountain_curve_metrics": "MODELLED — counterfactual re-runs of the same trip on a flat road, on a straight road, and on a green wave with no stops",
-   "prices_co2": "Germany 2026 estimate: petrol 1.79 €/L, diesel 1.69 €/L, elec 0.40 €/kWh; grid 0.35 kg CO2/kWh"
+   "prices_co2": "Current regional prices as of 2026-09-10: Super E10 (Bavaria Ø) 2.18 €/L, diesel (Bavaria Ø) 2.27 €/L (MTS-K/ADAC), household electricity 0.37 €/kWh (BDEW); grid 0.35 kg CO2/kWh. Adjustable via the sliders in the annual-impact section."
   }
  },
  "cars": [
@@ -20597,7 +20604,7 @@
     "unit": "L",
     "per100": 4.67,
     "unit100": "L/100km",
-    "cost_eur": 4.6,
+    "cost_eur": 5.61,
     "co2_kg": 5.97,
     "time_min": 51.6,
     "avg_kmh": 64.1,
@@ -20619,7 +20626,7 @@
     "mountain": {
      "amount": 0.47,
      "unit": "L",
-     "cost_eur": 0.83,
+     "cost_eur": 1.01,
      "co2_kg": 1.08,
      "pct_of_trip": 18.1,
      "flat_per100": 3.82,
@@ -20630,7 +20637,7 @@
     "curves": {
      "amount": 0.07,
      "unit": "L",
-     "cost_eur": 0.13,
+     "cost_eur": 0.16,
      "pct_of_trip": 2.9,
      "straight_per100": 4.53,
      "time_min_lost": 2.8
@@ -20638,7 +20645,7 @@
     "stops": {
      "amount": 0.08,
      "unit": "L",
-     "cost_eur": 0.14,
+     "cost_eur": 0.17,
      "co2_kg": 0.18,
      "pct_of_trip": 3.1,
      "green_per100": 4.53,
@@ -20653,7 +20660,7 @@
     "unit": "kWh",
     "per100": 19.88,
     "unit100": "kWh/100km",
-    "cost_eur": 4.38,
+    "cost_eur": 4.05,
     "co2_kg": 3.83,
     "time_min": 51.6,
     "avg_kmh": 64.1,
@@ -20675,7 +20682,7 @@
     "mountain": {
      "amount": 2.18,
      "unit": "kWh",
-     "cost_eur": 0.87,
+     "cost_eur": 0.81,
      "co2_kg": 0.76,
      "pct_of_trip": 19.9,
      "flat_per100": 15.92,
@@ -20686,7 +20693,7 @@
     "curves": {
      "amount": 0.28,
      "unit": "kWh",
-     "cost_eur": 0.11,
+     "cost_eur": 0.1,
      "pct_of_trip": 2.6,
      "straight_per100": 19.37,
      "time_min_lost": 2.8
@@ -20694,7 +20701,7 @@
     "stops": {
      "amount": 0.31,
      "unit": "kWh",
-     "cost_eur": 0.12,
+     "cost_eur": 0.11,
      "co2_kg": 0.11,
      "pct_of_trip": 2.8,
      "green_per100": 19.32,
@@ -20709,7 +20716,7 @@
     "unit": "L",
     "per100": 6.16,
     "unit100": "L/100km",
-    "cost_eur": 6.07,
+    "cost_eur": 7.39,
     "co2_kg": 7.87,
     "time_min": 51.6,
     "avg_kmh": 64.1,
@@ -20731,7 +20738,7 @@
     "mountain": {
      "amount": 0.5,
      "unit": "L",
-     "cost_eur": 0.89,
+     "cost_eur": 1.08,
      "co2_kg": 1.15,
      "pct_of_trip": 14.7,
      "flat_per100": 5.26,
@@ -20742,7 +20749,7 @@
     "curves": {
      "amount": 0.26,
      "unit": "L",
-     "cost_eur": 0.46,
+     "cost_eur": 0.57,
      "pct_of_trip": 7.7,
      "straight_per100": 5.69,
      "time_min_lost": 2.8
@@ -20750,7 +20757,7 @@
     "stops": {
      "amount": 0.17,
      "unit": "L",
-     "cost_eur": 0.31,
+     "cost_eur": 0.38,
      "co2_kg": 0.4,
      "pct_of_trip": 5.1,
      "green_per100": 5.85,
@@ -20765,7 +20772,7 @@
     "unit": "L",
     "per100": 7.56,
     "unit100": "L/100km",
-    "cost_eur": 7.45,
+    "cost_eur": 9.08,
     "co2_kg": 9.66,
     "time_min": 51.6,
     "avg_kmh": 64.1,
@@ -20787,7 +20794,7 @@
     "mountain": {
      "amount": 0.61,
      "unit": "L",
-     "cost_eur": 1.09,
+     "cost_eur": 1.33,
      "co2_kg": 1.41,
      "pct_of_trip": 14.6,
      "flat_per100": 6.46,
@@ -20798,7 +20805,7 @@
     "curves": {
      "amount": 0.32,
      "unit": "L",
-     "cost_eur": 0.58,
+     "cost_eur": 0.7,
      "pct_of_trip": 7.7,
      "straight_per100": 6.98,
      "time_min_lost": 2.8
@@ -20806,7 +20813,7 @@
     "stops": {
      "amount": 0.21,
      "unit": "L",
-     "cost_eur": 0.38,
+     "cost_eur": 0.46,
      "co2_kg": 0.49,
      "pct_of_trip": 5.1,
      "green_per100": 7.18,
@@ -20821,7 +20828,7 @@
     "unit": "L",
     "per100": 6.04,
     "unit100": "L/100km",
-    "cost_eur": 5.62,
+    "cost_eur": 7.55,
     "co2_kg": 8.81,
     "time_min": 51.6,
     "avg_kmh": 64.1,
@@ -20843,7 +20850,7 @@
     "mountain": {
      "amount": 0.64,
      "unit": "L",
-     "cost_eur": 1.09,
+     "cost_eur": 1.46,
      "co2_kg": 1.7,
      "pct_of_trip": 19.3,
      "flat_per100": 4.87,
@@ -20854,7 +20861,7 @@
     "curves": {
      "amount": 0.33,
      "unit": "L",
-     "cost_eur": 0.56,
+     "cost_eur": 0.76,
      "pct_of_trip": 10.0,
      "straight_per100": 5.43,
      "time_min_lost": 2.8
@@ -20862,7 +20869,7 @@
     "stops": {
      "amount": 0.2,
      "unit": "L",
-     "cost_eur": 0.33,
+     "cost_eur": 0.44,
      "co2_kg": 0.52,
      "pct_of_trip": 5.9,
      "green_per100": 5.68,
@@ -20879,7 +20886,7 @@
     "unit": "L",
     "per100": 4.41,
     "unit100": "L/100km",
-    "cost_eur": 5.19,
+    "cost_eur": 6.33,
     "co2_kg": 6.73,
     "time_min": 62.0,
     "avg_kmh": 63.6,
@@ -20901,7 +20908,7 @@
     "mountain": {
      "amount": 0.47,
      "unit": "L",
-     "cost_eur": 0.84,
+     "cost_eur": 1.03,
      "co2_kg": 1.1,
      "pct_of_trip": 16.3,
      "flat_per100": 3.69,
@@ -20912,7 +20919,7 @@
     "curves": {
      "amount": 0.03,
      "unit": "L",
-     "cost_eur": 0.06,
+     "cost_eur": 0.07,
      "pct_of_trip": 1.2,
      "straight_per100": 4.36,
      "time_min_lost": 2.3
@@ -20920,7 +20927,7 @@
     "stops": {
      "amount": 0.09,
      "unit": "L",
-     "cost_eur": 0.16,
+     "cost_eur": 0.19,
      "co2_kg": 0.21,
      "pct_of_trip": 3.1,
      "green_per100": 4.28,
@@ -20935,7 +20942,7 @@
     "unit": "kWh",
     "per100": 18.8,
     "unit100": "kWh/100km",
-    "cost_eur": 4.94,
+    "cost_eur": 4.57,
     "co2_kg": 4.33,
     "time_min": 62.0,
     "avg_kmh": 63.6,
@@ -20957,7 +20964,7 @@
     "mountain": {
      "amount": 2.22,
      "unit": "kWh",
-     "cost_eur": 0.89,
+     "cost_eur": 0.82,
      "co2_kg": 0.78,
      "pct_of_trip": 17.9,
      "flat_per100": 15.42,
@@ -20976,7 +20983,7 @@
     "stops": {
      "amount": 0.35,
      "unit": "kWh",
-     "cost_eur": 0.14,
+     "cost_eur": 0.13,
      "co2_kg": 0.12,
      "pct_of_trip": 2.8,
      "green_per100": 18.27,
@@ -20991,7 +20998,7 @@
     "unit": "L",
     "per100": 5.75,
     "unit100": "L/100km",
-    "cost_eur": 6.77,
+    "cost_eur": 8.24,
     "co2_kg": 8.77,
     "time_min": 62.0,
     "avg_kmh": 63.6,
@@ -21013,7 +21020,7 @@
     "mountain": {
      "amount": 0.49,
      "unit": "L",
-     "cost_eur": 0.88,
+     "cost_eur": 1.07,
      "co2_kg": 1.14,
      "pct_of_trip": 13.0,
      "flat_per100": 5.01,
@@ -21024,7 +21031,7 @@
     "curves": {
      "amount": 0.14,
      "unit": "L",
-     "cost_eur": 0.25,
+     "cost_eur": 0.3,
      "pct_of_trip": 3.7,
      "straight_per100": 5.54,
      "time_min_lost": 2.3
@@ -21032,7 +21039,7 @@
     "stops": {
      "amount": 0.19,
      "unit": "L",
-     "cost_eur": 0.35,
+     "cost_eur": 0.42,
      "co2_kg": 0.45,
      "pct_of_trip": 5.1,
      "green_per100": 5.46,
@@ -21047,7 +21054,7 @@
     "unit": "L",
     "per100": 7.06,
     "unit100": "L/100km",
-    "cost_eur": 8.31,
+    "cost_eur": 10.12,
     "co2_kg": 10.77,
     "time_min": 62.0,
     "avg_kmh": 63.6,
@@ -21069,7 +21076,7 @@
     "mountain": {
      "amount": 0.6,
      "unit": "L",
-     "cost_eur": 1.07,
+     "cost_eur": 1.3,
      "co2_kg": 1.39,
      "pct_of_trip": 12.9,
      "flat_per100": 6.15,
@@ -21080,7 +21087,7 @@
     "curves": {
      "amount": 0.17,
      "unit": "L",
-     "cost_eur": 0.31,
+     "cost_eur": 0.38,
      "pct_of_trip": 3.7,
      "straight_per100": 6.8,
      "time_min_lost": 2.3
@@ -21088,7 +21095,7 @@
     "stops": {
      "amount": 0.24,
      "unit": "L",
-     "cost_eur": 0.42,
+     "cost_eur": 0.52,
      "co2_kg": 0.55,
      "pct_of_trip": 5.1,
      "green_per100": 6.7,
@@ -21103,7 +21110,7 @@
     "unit": "L",
     "per100": 5.59,
     "unit100": "L/100km",
-    "cost_eur": 6.21,
+    "cost_eur": 8.34,
     "co2_kg": 9.73,
     "time_min": 62.0,
     "avg_kmh": 63.6,
@@ -21125,7 +21132,7 @@
     "mountain": {
      "amount": 0.67,
      "unit": "L",
-     "cost_eur": 1.12,
+     "cost_eur": 1.51,
      "co2_kg": 1.76,
      "pct_of_trip": 18.1,
      "flat_per100": 4.57,
@@ -21136,7 +21143,7 @@
     "curves": {
      "amount": 0.21,
      "unit": "L",
-     "cost_eur": 0.35,
+     "cost_eur": 0.47,
      "pct_of_trip": 5.6,
      "straight_per100": 5.27,
      "time_min_lost": 2.3
@@ -21144,7 +21151,7 @@
     "stops": {
      "amount": 0.22,
      "unit": "L",
-     "cost_eur": 0.37,
+     "cost_eur": 0.5,
      "co2_kg": 0.58,
      "pct_of_trip": 6.0,
      "green_per100": 5.25,
@@ -21161,7 +21168,7 @@
     "unit": "L",
     "per100": 4.32,
     "unit100": "L/100km",
-    "cost_eur": 4.97,
+    "cost_eur": 6.05,
     "co2_kg": 6.44,
     "time_min": 61.3,
     "avg_kmh": 62.8,
@@ -21183,7 +21190,7 @@
     "mountain": {
      "amount": 0.46,
      "unit": "L",
-     "cost_eur": 0.81,
+     "cost_eur": 0.99,
      "co2_kg": 1.06,
      "pct_of_trip": 16.4,
      "flat_per100": 3.61,
@@ -21194,7 +21201,7 @@
     "curves": {
      "amount": 0.02,
      "unit": "L",
-     "cost_eur": 0.03,
+     "cost_eur": 0.04,
      "pct_of_trip": 0.7,
      "straight_per100": 4.3,
      "time_min_lost": 2.4
@@ -21202,7 +21209,7 @@
     "stops": {
      "amount": 0.08,
      "unit": "L",
-     "cost_eur": 0.15,
+     "cost_eur": 0.18,
      "co2_kg": 0.19,
      "pct_of_trip": 3.0,
      "green_per100": 4.2,
@@ -21217,7 +21224,7 @@
     "unit": "kWh",
     "per100": 18.46,
     "unit100": "kWh/100km",
-    "cost_eur": 4.74,
+    "cost_eur": 4.38,
     "co2_kg": 4.15,
     "time_min": 61.3,
     "avg_kmh": 62.8,
@@ -21239,7 +21246,7 @@
     "mountain": {
      "amount": 2.14,
      "unit": "kWh",
-     "cost_eur": 0.86,
+     "cost_eur": 0.79,
      "co2_kg": 0.75,
      "pct_of_trip": 18.0,
      "flat_per100": 15.13,
@@ -21258,7 +21265,7 @@
     "stops": {
      "amount": 0.32,
      "unit": "kWh",
-     "cost_eur": 0.13,
+     "cost_eur": 0.12,
      "co2_kg": 0.11,
      "pct_of_trip": 2.7,
      "green_per100": 17.96,
@@ -21273,7 +21280,7 @@
     "unit": "L",
     "per100": 5.59,
     "unit100": "L/100km",
-    "cost_eur": 6.42,
+    "cost_eur": 7.82,
     "co2_kg": 8.32,
     "time_min": 61.3,
     "avg_kmh": 62.8,
@@ -21295,7 +21302,7 @@
     "mountain": {
      "amount": 0.48,
      "unit": "L",
-     "cost_eur": 0.85,
+     "cost_eur": 1.04,
      "co2_kg": 1.11,
      "pct_of_trip": 13.3,
      "flat_per100": 4.84,
@@ -21306,7 +21313,7 @@
     "curves": {
      "amount": 0.11,
      "unit": "L",
-     "cost_eur": 0.2,
+     "cost_eur": 0.24,
      "pct_of_trip": 3.1,
      "straight_per100": 5.41,
      "time_min_lost": 2.4
@@ -21314,7 +21321,7 @@
     "stops": {
      "amount": 0.18,
      "unit": "L",
-     "cost_eur": 0.32,
+     "cost_eur": 0.39,
      "co2_kg": 0.42,
      "pct_of_trip": 5.0,
      "green_per100": 5.31,
@@ -21329,7 +21336,7 @@
     "unit": "L",
     "per100": 6.86,
     "unit100": "L/100km",
-    "cost_eur": 7.88,
+    "cost_eur": 9.6,
     "co2_kg": 10.21,
     "time_min": 61.3,
     "avg_kmh": 62.8,
@@ -21351,7 +21358,7 @@
     "mountain": {
      "amount": 0.58,
      "unit": "L",
-     "cost_eur": 1.04,
+     "cost_eur": 1.27,
      "co2_kg": 1.35,
      "pct_of_trip": 13.2,
      "flat_per100": 5.96,
@@ -21362,7 +21369,7 @@
     "curves": {
      "amount": 0.14,
      "unit": "L",
-     "cost_eur": 0.25,
+     "cost_eur": 0.3,
      "pct_of_trip": 3.2,
      "straight_per100": 6.64,
      "time_min_lost": 2.4
@@ -21370,7 +21377,7 @@
     "stops": {
      "amount": 0.22,
      "unit": "L",
-     "cost_eur": 0.4,
+     "cost_eur": 0.48,
      "co2_kg": 0.51,
      "pct_of_trip": 5.0,
      "green_per100": 6.52,
@@ -21385,7 +21392,7 @@
     "unit": "L",
     "per100": 5.41,
     "unit100": "L/100km",
-    "cost_eur": 5.86,
+    "cost_eur": 7.88,
     "co2_kg": 9.2,
     "time_min": 61.3,
     "avg_kmh": 62.8,
@@ -21407,7 +21414,7 @@
     "mountain": {
      "amount": 0.65,
      "unit": "L",
-     "cost_eur": 1.1,
+     "cost_eur": 1.48,
      "co2_kg": 1.73,
      "pct_of_trip": 18.8,
      "flat_per100": 4.39,
@@ -21418,7 +21425,7 @@
     "curves": {
      "amount": 0.15,
      "unit": "L",
-     "cost_eur": 0.25,
+     "cost_eur": 0.34,
      "pct_of_trip": 4.3,
      "straight_per100": 5.18,
      "time_min_lost": 2.4
@@ -21426,7 +21433,7 @@
     "stops": {
      "amount": 0.21,
      "unit": "L",
-     "cost_eur": 0.35,
+     "cost_eur": 0.47,
      "co2_kg": 0.55,
      "pct_of_trip": 5.9,
      "green_per100": 5.09,
@@ -21443,7 +21450,7 @@
     "unit": "L",
     "per100": 4.42,
     "unit100": "L/100km",
-    "cost_eur": 5.27,
+    "cost_eur": 6.41,
     "co2_kg": 6.82,
     "time_min": 59.0,
     "avg_kmh": 67.6,
@@ -21465,7 +21472,7 @@
     "mountain": {
      "amount": 0.48,
      "unit": "L",
-     "cost_eur": 0.86,
+     "cost_eur": 1.05,
      "co2_kg": 1.12,
      "pct_of_trip": 16.4,
      "flat_per100": 3.7,
@@ -21476,7 +21483,7 @@
     "curves": {
      "amount": 0.04,
      "unit": "L",
-     "cost_eur": 0.07,
+     "cost_eur": 0.08,
      "pct_of_trip": 1.3,
      "straight_per100": 4.37,
      "time_min_lost": 2.6
@@ -21484,7 +21491,7 @@
     "stops": {
      "amount": 0.06,
      "unit": "L",
-     "cost_eur": 0.11,
+     "cost_eur": 0.13,
      "co2_kg": 0.14,
      "pct_of_trip": 2.1,
      "green_per100": 4.33,
@@ -21499,7 +21506,7 @@
     "unit": "kWh",
     "per100": 18.82,
     "unit100": "kWh/100km",
-    "cost_eur": 5.01,
+    "cost_eur": 4.63,
     "co2_kg": 4.38,
     "time_min": 59.0,
     "avg_kmh": 67.6,
@@ -21521,7 +21528,7 @@
     "mountain": {
      "amount": 2.27,
      "unit": "kWh",
-     "cost_eur": 0.91,
+     "cost_eur": 0.84,
      "co2_kg": 0.79,
      "pct_of_trip": 18.1,
      "flat_per100": 15.41,
@@ -21540,7 +21547,7 @@
     "stops": {
      "amount": 0.24,
      "unit": "kWh",
-     "cost_eur": 0.1,
+     "cost_eur": 0.09,
      "co2_kg": 0.08,
      "pct_of_trip": 1.9,
      "green_per100": 18.46,
@@ -21555,7 +21562,7 @@
     "unit": "L",
     "per100": 5.66,
     "unit100": "L/100km",
-    "cost_eur": 6.74,
+    "cost_eur": 8.2,
     "co2_kg": 8.73,
     "time_min": 59.0,
     "avg_kmh": 67.6,
@@ -21577,7 +21584,7 @@
     "mountain": {
      "amount": 0.5,
      "unit": "L",
-     "cost_eur": 0.9,
+     "cost_eur": 1.09,
      "co2_kg": 1.17,
      "pct_of_trip": 13.3,
      "flat_per100": 4.9,
@@ -21588,7 +21595,7 @@
     "curves": {
      "amount": 0.16,
      "unit": "L",
-     "cost_eur": 0.29,
+     "cost_eur": 0.35,
      "pct_of_trip": 4.3,
      "straight_per100": 5.42,
      "time_min_lost": 2.6
@@ -21596,7 +21603,7 @@
     "stops": {
      "amount": 0.13,
      "unit": "L",
-     "cost_eur": 0.24,
+     "cost_eur": 0.29,
      "co2_kg": 0.31,
      "pct_of_trip": 3.6,
      "green_per100": 5.46,
@@ -21611,7 +21618,7 @@
     "unit": "L",
     "per100": 6.94,
     "unit100": "L/100km",
-    "cost_eur": 8.26,
+    "cost_eur": 10.06,
     "co2_kg": 10.71,
     "time_min": 59.0,
     "avg_kmh": 67.6,
@@ -21633,7 +21640,7 @@
     "mountain": {
      "amount": 0.61,
      "unit": "L",
-     "cost_eur": 1.1,
+     "cost_eur": 1.34,
      "co2_kg": 1.42,
      "pct_of_trip": 13.3,
      "flat_per100": 6.02,
@@ -21644,7 +21651,7 @@
     "curves": {
      "amount": 0.2,
      "unit": "L",
-     "cost_eur": 0.36,
+     "cost_eur": 0.43,
      "pct_of_trip": 4.3,
      "straight_per100": 6.64,
      "time_min_lost": 2.6
@@ -21652,7 +21659,7 @@
     "stops": {
      "amount": 0.16,
      "unit": "L",
-     "cost_eur": 0.29,
+     "cost_eur": 0.36,
      "co2_kg": 0.38,
      "pct_of_trip": 3.6,
      "green_per100": 6.69,
@@ -21667,7 +21674,7 @@
     "unit": "L",
     "per100": 5.48,
     "unit100": "L/100km",
-    "cost_eur": 6.16,
+    "cost_eur": 8.28,
     "co2_kg": 9.66,
     "time_min": 59.0,
     "avg_kmh": 67.6,
@@ -21689,7 +21696,7 @@
     "mountain": {
      "amount": 0.74,
      "unit": "L",
-     "cost_eur": 1.25,
+     "cost_eur": 1.69,
      "co2_kg": 1.97,
      "pct_of_trip": 20.4,
      "flat_per100": 4.37,
@@ -21700,7 +21707,7 @@
     "curves": {
      "amount": 0.23,
      "unit": "L",
-     "cost_eur": 0.38,
+     "cost_eur": 0.51,
      "pct_of_trip": 6.2,
      "straight_per100": 5.14,
      "time_min_lost": 2.6
@@ -21708,7 +21715,7 @@
     "stops": {
      "amount": 0.15,
      "unit": "L",
-     "cost_eur": 0.26,
+     "cost_eur": 0.35,
      "co2_kg": 0.41,
      "pct_of_trip": 4.2,
      "green_per100": 5.25,
@@ -21787,7 +21794,7 @@
     ],
     "merc": [
      4.83,
-     5.62
+     5.63
     ]
    },
    "koetzting": {
@@ -21809,9 +21816,10 @@
     ],
     "merc": [
      5.61,
-     6.21
+     6.2
     ]
    }
-  }
+  },
+  "price_note": "both columns at v1 fuel prices (petrol 1.79, diesel 1.69 €/L, electricity 0.40 €/kWh)"
  }
 }

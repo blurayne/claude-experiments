@@ -725,7 +725,7 @@ function Energy() {
         </ResponsiveContainer>
         <div style={{ fontSize: 12, color: C.dim, marginTop: 6 }}>
           {m.label}{m.dyn ? "" : ` (${m.unit})`} per one-way trip
-          {metric === "cost_eur" && " — German 2026 prices: petrol 1.79 €/L, diesel 1.69 €/L, electricity 0.40 €/kWh"}.
+          {metric === "cost_eur" && ` — current regional prices (${P0.asof}): petrol ${fmt(P0.petrol, 2)} €/L, diesel ${fmt(P0.diesel, 2)} €/L, electricity ${fmt(P0.electric, 2)} €/kWh; adjustable in the annual-impact section`}.
         </div>
       </Card>
       <FullTable />
@@ -798,8 +798,24 @@ function FullTable() {
 }
 
 /* --------------------------------------------------------- annual impact */
+const P0 = D.meta.prices || { petrol: 2.18, diesel: 2.27, electric: 0.37 };
+const PRICE_SLIDERS = [
+  ["petrol", "Petrol (Super E10)", "€/L", 1.2, 3.0, "#E8B23A"],
+  ["diesel", "Diesel", "€/L", 1.2, 3.0, "#B08CE0"],
+  ["electric", "Electricity (home)", "€/kWh", 0.1, 0.8, "#4FA6E0"],
+];
 function Annual() {
   const [perMonth, setPerMonth] = useState(8);
+  const [prices, setPrices] = useState({
+    petrol: P0.petrol, diesel: P0.diesel, electric: P0.electric });
+  const isDefault = PRICE_SLIDERS.every(([id]) => prices[id] === P0[id]);
+  const fuelOf = {};
+  CARS.forEach((c) => { fuelOf[c.id] = c.fuel; });
+  // cost scales linearly with price (cost = amount × price), so the whole
+  // annual projection reprices without re-running the physics
+  const cost = (k, id) => RES[k][id].amount * prices[fuelOf[id]];
+  const mtnCost = (k, id) => RES[k][id].mountain.amount * prices[fuelOf[id]];
+
   const MIN = 0.1, MAX = 10;
   const clamp = (v) => Math.max(MIN, Math.min(MAX, Math.round(v * 10) / 10));
   const step = (d) => setPerMonth((v) => clamp(v + d));
@@ -829,16 +845,50 @@ function Annual() {
           minWidth: 130, textAlign: "right" }}>{fmt(perMonth, 1)}/month ·{" "}
           {fmt(trips)}/yr</span>
       </div>
+      <div style={{ background: C.panelHi, border: `1px solid ${C.line}`,
+        borderRadius: 10, padding: "10px 14px", marginBottom: 14 }}>
+        <div style={{ display: "flex", justifyContent: "space-between",
+          alignItems: "baseline", flexWrap: "wrap", gap: 8, marginBottom: 6 }}>
+          <span style={{ color: C.ink, fontSize: 13, fontWeight: 600 }}>
+            Fuel &amp; electricity prices</span>
+          <span style={{ fontSize: 11, color: C.faint }}>
+            defaults: Bavaria / Germany, {P0.asof || "Sept 2026"}
+            {!isDefault && <>{" · "}
+              <a href="#" onClick={(e) => { e.preventDefault();
+                setPrices({ petrol: P0.petrol, diesel: P0.diesel,
+                  electric: P0.electric }); }}
+                style={{ color: C.eco }}>reset</a></>}
+          </span>
+        </div>
+        {PRICE_SLIDERS.map(([id, label, unit, lo, hi, col]) => (
+          <div key={id} style={{ display: "flex", alignItems: "center",
+            gap: 10, marginTop: 6 }}>
+            <span style={{ fontSize: 12, color: C.dim, flex: "0 0 150px" }}>
+              {label}</span>
+            <input type="range" min={lo} max={hi} step={0.01}
+              value={prices[id]}
+              onChange={(e) => setPrices((p) => ({ ...p, [id]: +e.target.value }))}
+              style={{ flex: "1 1 120px", accentColor: col }} />
+            <span style={{ fontSize: 13, fontWeight: 700, color: col,
+              flex: "0 0 92px", textAlign: "right" }}>
+              {fmt(prices[id], 2)} {unit}</span>
+          </div>
+        ))}
+        <div style={{ fontSize: 10.5, color: C.faint, marginTop: 8 }}>
+          {P0.note || ""} Costs reprice linearly (litres/kWh × price) — the
+          physics stays fixed.
+        </div>
+      </div>
       <div style={{ display: "grid",
         gridTemplateColumns: "repeat(auto-fit,minmax(190px,1fr))", gap: 10 }}>
         {CARS.map((c) => {
           const best = ROUTE_KEYS.reduce((a, b) =>
-            RES[b][c.id].cost_eur < RES[a][c.id].cost_eur ? b : a);
+            cost(b, c.id) < cost(a, c.id) ? b : a);
           const worst = ROUTE_KEYS.reduce((a, b) =>
-            RES[b][c.id].cost_eur > RES[a][c.id].cost_eur ? b : a);
-          const save = (RES[worst][c.id].cost_eur - RES[best][c.id].cost_eur) * trips;
+            cost(b, c.id) > cost(a, c.id) ? b : a);
+          const save = (cost(worst, c.id) - cost(best, c.id)) * trips;
           const saveCo2 = (RES[worst][c.id].co2_kg - RES[best][c.id].co2_kg) * trips;
-          const mtn = RES[best][c.id].mountain.cost_eur * trips;
+          const mtn = mtnCost(best, c.id) * trips;
           return (
             <div key={c.id} style={{ background: C.panelHi,
               border: `1px solid ${C.line}`, borderRadius: 10, padding: 12,
@@ -852,7 +902,7 @@ function Annual() {
                   justifyContent: "space-between", fontSize: 12.5, color: C.dim }}>
                   <span>{routeShort(k)}</span>
                   <b style={{ color: routeColor(k) }}>
-                    €{fmt(RES[k][c.id].cost_eur * trips)}</b>
+                    €{fmt(cost(k, c.id) * trips)}</b>
                 </div>
               ))}
               <div style={{ marginTop: 8, paddingTop: 8,
@@ -870,7 +920,7 @@ function Annual() {
       </div>
       <div style={{ fontSize: 11.5, color: C.dim, marginTop: 10 }}>
         Linear extrapolation of the per-trip model. Round trips ≈ double these
-        figures. Electricity assumes home charging at 0.40 €/kWh.
+        figures. Electricity assumes home charging at the price set above.
       </div>
     </Card>
   );
@@ -933,7 +983,11 @@ function WhatChanged() {
       </Card>
       <Card style={{ overflowX: "auto", marginBottom: 14 }}>
         <div style={{ fontSize: 13.5, fontWeight: 600, color: C.ink,
-          marginBottom: 8 }}>What it did to the cost per trip</div>
+          marginBottom: 2 }}>What it did to the cost per trip</div>
+        <div style={{ fontSize: 11, color: C.faint, marginBottom: 8 }}>
+          {CMP.price_note || "at identical fuel prices"} — so the change shown
+          is the terrain and stop model, not the 2026 price rally
+        </div>
         <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 560 }}>
           <thead><tr>
             <th style={{ ...head, textAlign: "left" }}>Car</th>
