@@ -216,8 +216,9 @@ VILLAGES = {
     "Miltach": (49.1550, 12.8000), "Blaibach": (49.1594, 12.8408),
 }
 
-# Stop-causing features (lights, give-way junctions, crossings) a through
-# driver actually stops at, per built-up area.
+# FALLBACK ONLY (used when no measured stop inventory is available, e.g. when
+# screening OSRM candidates that have no data/stops_*.json yet): stop-causing
+# features a through driver actually stops at, guessed per built-up area.
 MAJOR_STOPS = {
     "Deggendorf": 3, "Viechtach": 2, "Bad Kötzting": 2, "Regen": 2,
     "Zwiesel": 2, "Teisnach": 1, "Drachselsried": 1, "Arnbruck": 1,
@@ -225,6 +226,26 @@ MAJOR_STOPS = {
     "Miltach": 1, "Blaibach": 1, "Kirchberg im Wald": 1,
 }
 STOP_IDLE_S = 22.0
+
+# Behaviour at a MEASURED stop feature (from data/stops_<route>.json, fetched
+# by fetch_real_data.py --stops). The inventory is real OSM data; these
+# per-class assumptions are what turn an inventory into expected stops:
+#   p       probability the driver actually has to slow/stop there
+#   v_after speed after the event (0 = full stop), km/h
+#   idle    expected standing time when the event fires, seconds
+# Sources for the assumptions: a through driver on the priority road hits a
+# red on roughly 40-50% of signals; a stop sign legally requires a halt; a
+# give-way on the priority road rarely fires; a roundabout always forces a
+# slow-through; level-crossing barriers on the Waldbahn (hourly service) are
+# closed only a small fraction of the time but cost a long wait when they are.
+STOP_BEHAVIOUR = {
+    "traffic_signals": {"p": 0.45, "v_after": 0.0, "idle": 25.0},
+    "stop":            {"p": 0.90, "v_after": 0.0, "idle": 3.0},
+    "give_way":        {"p": 0.20, "v_after": 0.0, "idle": 3.0},
+    "roundabout":      {"p": 1.00, "v_after": 25.0, "idle": 0.0},
+    "mini_roundabout": {"p": 1.00, "v_after": 20.0, "idle": 0.0},
+    "level_crossing":  {"p": 0.10, "v_after": 0.0, "idle": 45.0},
+}
 
 
 def in_village(lat, lon):
@@ -406,14 +427,22 @@ def run(route, car, grade=None, v=None):
             W_descent += -F_grade * ds
         t += ds / max(va, 0.5)
 
-    # discrete stops: decelerate to 0, then accelerate back to village speed
-    n_stops = route["stops_est"]
-    v_stop = 50 / 3.6
-    stop_kin = 0.5 * m * v_stop * v_stop
-    E_prop += n_stops * stop_kin
-    W["accel"] += n_stops * stop_kin
-    E_brake += n_stops * stop_kin
-    t += n_stops * STOP_IDLE_S
+    # discrete stop events: each is an expected decelerate-then-reaccelerate
+    # cycle. With a measured inventory, the approach speed is the modelled
+    # speed at the feature's actual position and the event fires with its
+    # class probability; the fallback events approximate one full stop from
+    # 50 km/h per guessed town feature.
+    for ev in route["stop_events"]:
+        v_app = v[ev["idx"]] if ev["idx"] is not None else 50 / 3.6
+        v_to = ev["v_to"]
+        if v_app <= v_to:
+            t += ev["p"] * ev["idle"]
+            continue
+        dkin = 0.5 * m * (v_app * v_app - v_to * v_to)
+        E_prop += ev["p"] * dkin
+        W["accel"] += ev["p"] * dkin
+        E_brake += ev["p"] * dkin
+        t += ev["p"] * ev["idle"]
 
     regen = car["regen"] * E_brake
     net_prop = max(E_prop - regen, 0.0)
@@ -498,7 +527,22 @@ def simulate(route, car):
 
 
 # ---------------------------------------------------------------- assembly
-def build_route(key, name, color, pts, ele_raw=None, osm=None):
+def stop_events_from_inventory(stops, n):
+    """Turn the measured OSM stop-feature inventory into simulation events."""
+    events = []
+    for f in stops.get("features", []):
+        beh = STOP_BEHAVIOUR.get(f["kind"])
+        if beh is None:
+            continue
+        events.append({
+            "idx": min(n - 1, int(round(f["dist_m"] / STEP))),
+            "kind": f["kind"], "p": beh["p"],
+            "v_to": beh["v_after"] / 3.6, "idle": beh["idle"],
+        })
+    return events
+
+
+def build_route(key, name, color, pts, ele_raw=None, osm=None, stops=None):
     """Assemble a full route object from geometry + real DEM + real OSM tags."""
     rs, total = resample(pts, STEP)
     n = len(rs)
@@ -513,6 +557,23 @@ def build_route(key, name, color, pts, ele_raw=None, osm=None):
 
     villages_passed = sorted({x for x in villages if x})
     asc, desc = ascent_descent(ele)
+
+    # --- discrete stop events: measured OSM inventory when available, the
+    #     per-town guess otherwise (candidates screened before any fetch) ---
+    if stops is not None:
+        stop_events = stop_events_from_inventory(stops, n)
+        stops_measured = True
+        stop_inventory = stops.get("counts", {})
+        # headline number: expected *full* stops (v_after == 0), so it stays
+        # comparable with the old per-town count
+        stops_est = round(sum(e["p"] for e in stop_events if e["v_to"] == 0), 1)
+    else:
+        fallback = sum(MAJOR_STOPS.get(x, 0) for x in villages_passed)
+        stop_events = [{"idx": None, "kind": "fallback", "p": 1.0,
+                        "v_to": 0.0, "idle": STOP_IDLE_S}] * fallback
+        stops_measured = False
+        stop_inventory = None
+        stops_est = fallback
 
     route = {
         "key": key, "name": name, "color": color, "n": n,
@@ -532,7 +593,10 @@ def build_route(key, name, color, pts, ele_raw=None, osm=None):
         "v_ms": v_ms,
         "village": villages,
         "villages_passed": villages_passed,
-        "stops_est": sum(MAJOR_STOPS.get(x, 0) for x in villages_passed),
+        "stop_events": stop_events,
+        "stops_est": stops_est,
+        "stops_measured": stops_measured,
+        "stop_inventory": stop_inventory,
         "osm_limit_pct": round(100.0 * sum(1 for s in src if s == "osm") / n, 1),
     }
     route["curviness"] = curviness_stats(rs, curv_raw, curv100, route["total_km"])

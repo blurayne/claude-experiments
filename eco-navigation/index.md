@@ -4,25 +4,25 @@ Four ways through the Bavarian Forest, compared for **distance, elevation, curvi
 
 > The published page at `/eco-navigation/` serves the interactive [`index.html`](index.html). This `index.md` is documentation; the full method is in [`METHODOLOGY.md`](METHODOLOGY.md).
 
-**Version 2** replaced the guessed terrain with real measurements. Elevation is now **10 064 EU-DEM 25 m samples** (one every 25 m along every track) instead of 16 interpolated town heights, speed limits come from OpenStreetMap, and two additional routes were found by searching the road network and scoring every candidate through the full energy model.
+**Version 2** replaced the guessed terrain with real measurements. Elevation is now **10 064 EU-DEM 25 m samples** (one every 25 m along every track) instead of 16 interpolated town heights, speed limits come from OpenStreetMap, the stop model is built on a **measured OSM inventory** of every traffic signal, stop/give-way sign, roundabout and level crossing along each route, and two additional routes were found by searching the road network and scoring every candidate through the full energy model.
 
 ## The routes
 
-| | Distance | Time | Peak | Ascent | Curviness | Stops | Cost (Auris) |
+| | Distance | Time | Peak | Ascent | Curviness | Expected stops | Cost (Auris) |
 |---|---|---|---|---|---|---|---|
-| **A — via Arnbruck** (Zellertal & Eck pass) | **55.1 km** | 52 min | 843 m | 957 m | 163.7 °/km | 6 | **€4.52** |
-| **B — via Viechtach & Bad Kötzting** | 65.8 km | 63 min | 593 m | 1 050 m | 155.8 °/km | 9 | €5.13 |
-| **C — via Bodenmais** *(new)* | 64.2 km | 62 min | 843 m | 1 060 m | 145.3 °/km | 6 | €4.88 |
-| **D — via Regen** *(new)* | 66.5 km | 59 min | 859 m | 1 299 m | 143.8 °/km | 5 | €5.21 |
+| **A — via Arnbruck** (Zellertal & Eck pass) | **55.1 km** | 52 min | 843 m | 957 m | 163.7 °/km | 8.4 | **€4.60** |
+| **B — via Viechtach & Bad Kötzting** | 65.8 km | 62 min | 593 m | 1 050 m | 155.8 °/km | 9.0 | €5.19 |
+| **C — via Bodenmais** *(new)* | 64.2 km | 61 min | 843 m | 1 060 m | 145.3 °/km | 9.1 | €4.97 |
+| **D — via Regen** *(new)* | 66.5 km | 59 min | 859 m | 1 299 m | 143.8 °/km | 6.9 | €5.27 |
 
 Routes A and B are the original CoMaps tracks; C and D are OSRM routes over the OpenStreetMap network, picked from eight distinct candidates.
 
 ## Key findings
 
 - **Route A still wins** — for all five cars, on real terrain, real speed limits, and against both newly-found alternatives. It is the shortest, and here distance beats altitude: it is also the *hilliest by peak*, crossing the **Eck saddle at 843 m**, ~250 m higher than route B ever goes.
-- **The new route C is genuinely better than route B** — cheaper for all five cars, faster, shorter, less curvy and with three fewer stops — but it does not beat A, which stays €0.36 cheaper for the hybrid. **No route beats A.**
-- **The mountains cost an eighth to a fifth of the fuel.** On route A the hybrid spends €0.83 of its €4.52 purely on gaining height; the old diesel spends €1.09.
-- **Corners cost far less than hills, but they cost time.** €0.16 for the hybrid on route A against €0.65 for the old Opel — and about 3 minutes for everyone, since the time penalty depends on the road, not the drivetrain.
+- **The new route C is genuinely better than route B** — cheaper for all five cars, faster, shorter and less curvy (though level on expected stops: 9.1 vs 9.0) — but it does not beat A, which stays €0.37 cheaper for the hybrid. **No route beats A.**
+- **The mountains cost an eighth to a fifth of the fuel.** On route A the hybrid spends €0.83 of its €4.60 purely on gaining height; the old diesel spends €1.09.
+- **Corners cost far less than hills, but they cost time.** €0.13 for the hybrid on route A against €0.58 for the old Opel — and about 3 minutes for everyone, since the time penalty depends on the road, not the drivetrain.
 - **Regenerative braking is what separates the cars.** The hybrid and the EV win back 1.8–3.8 kWh on the descents; the three cars without regen win back nothing and turn every metre of descent into brake heat.
 
 ## What the real elevation data changed
@@ -41,7 +41,7 @@ The old modelled profile was badly wrong in three ways — see [`METHODOLOGY.md`
 2. It **understated climbing by more than half**, because interpolating between town centres smooths away every hill in between.
 3. Its **steepest grade anywhere was 2.1 %**, which made a mountain-energy metric meaningless.
 
-The cost effect splits by drivetrain: the hybrid and EV got slightly **cheaper** (−1 to −3 %) because real descents hand energy back through regen, while the three cars without regen got **dearer** (+2 to +12 %). **The verdict did not change** — route A won before and wins now.
+The cost effect splits by drivetrain: the hybrid and EV are essentially **unchanged** (−2 to +1 %) because real descents hand energy back through regen, while the three cars without regen got **dearer** (+4 to +16 %). **The verdict did not change** — route A won before and wins now. A sensitivity analysis (reverse direction, stop-count error, winter on the pass, break-even efficiency — [`METHODOLOGY.md` §11](METHODOLOGY.md)) finds no plausible correction that lets route B win on cost; its real role is the **all-weather route**, being the only one of the four staying below 600 m.
 
 ## Data provenance at a glance
 
@@ -51,7 +51,8 @@ The cost effect splits by drivetrain: the hybrid and EV got slightly **cheaper**
 | Elevation & grade | **Measured** — EU-DEM 25 m, 10 064 samples |
 | Speed limits | **Measured** — OpenStreetMap `maxspeed`, StVO fallback |
 | Village/rural zones | **Rule-based** — German StVO defaults |
-| Traffic-light / junction stops | **Modelled** — per-town stop estimate |
+| Stop-feature inventory | **Measured** — OSM signals, signs, roundabouts, crossings |
+| Probability of stopping per feature | **Modelled** — documented per-class assumption |
 | Energy, cost, CO₂ | **Modelled** — vehicle physics, calibrated |
 | Mountain & curve taxes | **Modelled** — counterfactual re-runs |
 
@@ -70,7 +71,7 @@ Curviness itself was already measured in v1 but is now reported properly: total 
 - [`geo.py`](geo.py) — shared geodesy, resampling and GPX I/O.
 - [`model.py`](model.py) — terrain conditioning, curvature, speed, energy and the counterfactuals behind both new metrics.
 - [`build.py`](build.py) — orchestrates the build, emits all data products (pure stdlib, no network).
-- [`fetch_real_data.py`](fetch_real_data.py) — downloads EU-DEM elevation and OSM speed limits.
+- [`fetch_real_data.py`](fetch_real_data.py) — downloads EU-DEM elevation, OSM speed limits and the stop-feature inventory.
 - [`fetch_routes.py`](fetch_routes.py) — OSRM candidate search; `--adopt <key>` writes a GPX.
 - [`screen_routes.py`](screen_routes.py) — scores candidates through the full model.
 - [`compare_versions.py`](compare_versions.py) — diffs the current bundle against archived v1.
@@ -82,7 +83,7 @@ Curviness itself was already measured in v1 but is now reported properly: total 
   - [`results.csv`](data/results.csv) — per car/route consumption, cost, CO₂, time, plus both new taxes.
   - [`route_metrics.csv`](data/route_metrics.csv) — per-route terrain and curviness metrics.
   - `profile_*.csv` — per-25 m profiles (km, elevation, grade, curvature, speed, legal limit and its provenance, lat/lon).
-  - `elevation_*.json`, `speedlimits_*.json` — cached raw API responses.
+  - `elevation_*.json`, `speedlimits_*.json`, `stops_*.json` — cached raw API responses (terrain, speed limits, stop-feature inventory).
   - [`eco_data_modelled_v1.json`](data/eco_data_modelled_v1.json) — archived v1 bundle, so the before/after stays reproducible.
 - [`data.js`](data.js) — the bundle as `window.ECO_DATA` for the page.
 
@@ -106,6 +107,6 @@ python3 render_docs.py
 To refresh the terrain and OSM data from the APIs (needs network, ~2 minutes):
 
 ```bash
-python3 fetch_real_data.py --speed --force
+python3 fetch_real_data.py --speed --stops --force
 python3 build.py
 ```

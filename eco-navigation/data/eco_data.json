@@ -10,7 +10,7 @@
    "village_zones": "RULE — proximity to town centres",
    "elevation": "REAL — EU-DEM 25 m (Copernicus/EEA) sampled every 25 m along each track, de-spiked and smoothed",
    "speed_limits": "REAL — OpenStreetMap maxspeed via Overpass, with German StVO defaults where untagged",
-   "stops": "MODELLED — per built-up area estimate of lights and give-way junctions a through driver stops at",
+   "stops": "MEASURED inventory — OSM traffic signals, stop/give-way signs, roundabouts and level crossings snapped to each track; the per-class probability of actually stopping is a documented assumption (e.g. 45% per signal)",
    "energy_model": "MODELLED — longitudinal vehicle physics, calibrated to typical real-world consumption",
    "mountain_curve_metrics": "MODELLED — counterfactual re-runs of the same trip on a flat road and on a straight road",
    "prices_co2": "Germany 2026 estimate: petrol 1.79 €/L, diesel 1.69 €/L, elec 0.40 €/kWh; grid 0.35 kg CO2/kWh"
@@ -80,7 +80,15 @@
    "short": "A · Arnbruck",
    "color": "#E0A800",
    "total_km": 55.07,
-   "stops_est": 6,
+   "stops_est": 8.4,
+   "stops_measured": true,
+   "stop_inventory": {
+    "traffic_signals": 8,
+    "roundabout": 3,
+    "give_way": 12,
+    "stop": 2,
+    "level_crossing": 6
+   },
    "villages_passed": [
     "Arrach",
     "Deggendorf",
@@ -4563,7 +4571,15 @@
    "short": "B · Viechtach/Kötzting",
    "color": "#E51B23",
    "total_km": 65.76,
-   "stops_est": 9,
+   "stops_est": 9.0,
+   "stops_measured": true,
+   "stop_inventory": {
+    "traffic_signals": 12,
+    "roundabout": 4,
+    "give_way": 12,
+    "stop": 1,
+    "level_crossing": 3
+   },
    "villages_passed": [
     "Arrach",
     "Bad Kötzting",
@@ -9903,7 +9919,15 @@
    "short": "C · Bodenmais",
    "color": "#4FA6E0",
    "total_km": 64.15,
-   "stops_est": 6,
+   "stops_est": 9.1,
+   "stops_measured": true,
+   "stop_inventory": {
+    "traffic_signals": 7,
+    "roundabout": 6,
+    "give_way": 18,
+    "stop": 2,
+    "level_crossing": 5
+   },
    "villages_passed": [
     "Arrach",
     "Bodenmais",
@@ -15115,7 +15139,15 @@
    "short": "D · Regen",
    "color": "#A78BFA",
    "total_km": 66.5,
-   "stops_est": 5,
+   "stops_est": 6.9,
+   "stops_measured": true,
+   "stop_inventory": {
+    "traffic_signals": 9,
+    "roundabout": 4,
+    "give_way": 9,
+    "stop": 1,
+    "level_crossing": 1
+   },
    "villages_passed": [
     "Arrach",
     "Deggendorf",
@@ -20513,230 +20545,230 @@
    "auris": {
     "car_id": "auris",
     "route": "arnbruck",
-    "amount": 2.53,
+    "amount": 2.57,
     "unit": "L",
-    "per100": 4.59,
+    "per100": 4.67,
     "unit100": "L/100km",
-    "cost_eur": 4.52,
-    "co2_kg": 5.86,
+    "cost_eur": 4.6,
+    "co2_kg": 5.97,
     "time_min": 51.6,
-    "avg_kmh": 64.0,
-    "E_prop_kWh": 9.98,
-    "E_brake_kWh": 4.17,
-    "regen_kWh": 2.59,
+    "avg_kmh": 64.1,
+    "E_prop_kWh": 10.33,
+    "E_brake_kWh": 4.53,
+    "regen_kWh": 2.81,
     "work_kWh": {
      "roll": 1.6,
      "aero": 1.99,
      "climb": 3.56,
-     "accel": 3.84
+     "accel": 4.2
     },
     "work_pct": {
-     "roll": 16.0,
-     "aero": 19.9,
-     "climb": 35.7,
-     "accel": 38.5
+     "roll": 15.4,
+     "aero": 19.3,
+     "climb": 34.5,
+     "accel": 40.6
     },
     "mountain": {
      "amount": 0.47,
      "unit": "L",
      "cost_eur": 0.83,
      "co2_kg": 1.08,
-     "pct_of_trip": 18.4,
-     "flat_per100": 3.74,
+     "pct_of_trip": 18.1,
+     "flat_per100": 3.82,
      "climb_work_kWh": 3.56,
      "descent_energy_kWh": 2.82,
      "descent_recovered_kWh": 1.75
     },
     "curves": {
-     "amount": 0.09,
+     "amount": 0.07,
      "unit": "L",
-     "cost_eur": 0.16,
-     "pct_of_trip": 3.5,
-     "straight_per100": 4.43,
+     "cost_eur": 0.13,
+     "pct_of_trip": 2.9,
+     "straight_per100": 4.53,
      "time_min_lost": 2.8
     }
    },
    "id3": {
     "car_id": "id3",
     "route": "arnbruck",
-    "amount": 10.77,
+    "amount": 10.95,
     "unit": "kWh",
-    "per100": 19.56,
+    "per100": 19.88,
     "unit100": "kWh/100km",
-    "cost_eur": 4.31,
-    "co2_kg": 3.77,
+    "cost_eur": 4.38,
+    "co2_kg": 3.83,
     "time_min": 51.6,
-    "avg_kmh": 64.0,
-    "E_prop_kWh": 12.02,
-    "E_brake_kWh": 5.48,
-    "regen_kWh": 3.84,
+    "avg_kmh": 64.1,
+    "E_prop_kWh": 12.47,
+    "E_brake_kWh": 5.93,
+    "regen_kWh": 4.15,
     "work_kWh": {
      "roll": 1.99,
      "aero": 1.87,
      "climb": 4.51,
-     "accel": 4.86
+     "accel": 5.32
     },
     "work_pct": {
-     "roll": 16.6,
-     "aero": 15.6,
-     "climb": 37.5,
-     "accel": 40.5
+     "roll": 16.0,
+     "aero": 15.0,
+     "climb": 36.1,
+     "accel": 42.6
     },
     "mountain": {
      "amount": 2.18,
      "unit": "kWh",
      "cost_eur": 0.87,
      "co2_kg": 0.76,
-     "pct_of_trip": 20.2,
-     "flat_per100": 15.61,
+     "pct_of_trip": 19.9,
+     "flat_per100": 15.92,
      "climb_work_kWh": 4.51,
      "descent_energy_kWh": 3.58,
      "descent_recovered_kWh": 2.5
     },
     "curves": {
-     "amount": 0.33,
+     "amount": 0.28,
      "unit": "kWh",
-     "cost_eur": 0.13,
-     "pct_of_trip": 3.1,
-     "straight_per100": 18.96,
+     "cost_eur": 0.11,
+     "pct_of_trip": 2.6,
+     "straight_per100": 19.37,
      "time_min_lost": 2.8
     }
    },
    "panda": {
     "car_id": "panda",
     "route": "arnbruck",
-    "amount": 3.29,
+    "amount": 3.39,
     "unit": "L",
-    "per100": 5.98,
+    "per100": 6.16,
     "unit100": "L/100km",
-    "cost_eur": 5.89,
-    "co2_kg": 7.64,
+    "cost_eur": 6.07,
+    "co2_kg": 7.87,
     "time_min": 51.6,
-    "avg_kmh": 64.0,
-    "E_prop_kWh": 7.65,
-    "E_brake_kWh": 2.54,
+    "avg_kmh": 64.1,
+    "E_prop_kWh": 7.89,
+    "E_brake_kWh": 2.78,
     "regen_kWh": 0.0,
     "work_kWh": {
      "roll": 1.3,
      "aero": 2.16,
      "climb": 2.41,
-     "accel": 2.6
+     "accel": 2.84
     },
     "work_pct": {
-     "roll": 17.0,
-     "aero": 28.2,
-     "climb": 31.5,
-     "accel": 33.9
+     "roll": 16.4,
+     "aero": 27.4,
+     "climb": 30.5,
+     "accel": 35.9
     },
     "mountain": {
      "amount": 0.5,
      "unit": "L",
      "cost_eur": 0.89,
      "co2_kg": 1.15,
-     "pct_of_trip": 15.1,
-     "flat_per100": 5.07,
+     "pct_of_trip": 14.7,
+     "flat_per100": 5.26,
      "climb_work_kWh": 2.41,
      "descent_energy_kWh": 1.9,
      "descent_recovered_kWh": 0.0
     },
     "curves": {
-     "amount": 0.29,
+     "amount": 0.26,
      "unit": "L",
-     "cost_eur": 0.52,
-     "pct_of_trip": 8.8,
-     "straight_per100": 5.45,
+     "cost_eur": 0.46,
+     "pct_of_trip": 7.7,
+     "straight_per100": 5.69,
      "time_min_lost": 2.8
     }
    },
    "opel": {
     "car_id": "opel",
     "route": "arnbruck",
-    "amount": 4.04,
+    "amount": 4.16,
     "unit": "L",
-    "per100": 7.34,
+    "per100": 7.56,
     "unit100": "L/100km",
-    "cost_eur": 7.23,
-    "co2_kg": 9.37,
+    "cost_eur": 7.45,
+    "co2_kg": 9.66,
     "time_min": 51.6,
-    "avg_kmh": 64.0,
-    "E_prop_kWh": 8.23,
-    "E_brake_kWh": 2.7,
+    "avg_kmh": 64.1,
+    "E_prop_kWh": 8.49,
+    "E_brake_kWh": 2.96,
     "regen_kWh": 0.0,
     "work_kWh": {
      "roll": 1.58,
      "aero": 2.18,
      "climb": 2.58,
-     "accel": 2.78
+     "accel": 3.03
     },
     "work_pct": {
-     "roll": 19.2,
-     "aero": 26.4,
-     "climb": 31.3,
-     "accel": 33.7
+     "roll": 18.6,
+     "aero": 25.6,
+     "climb": 30.3,
+     "accel": 35.7
     },
     "mountain": {
      "amount": 0.61,
      "unit": "L",
      "cost_eur": 1.09,
      "co2_kg": 1.41,
-     "pct_of_trip": 15.1,
-     "flat_per100": 6.23,
+     "pct_of_trip": 14.6,
+     "flat_per100": 6.46,
      "climb_work_kWh": 2.58,
      "descent_energy_kWh": 2.03,
      "descent_recovered_kWh": 0.0
     },
     "curves": {
-     "amount": 0.36,
+     "amount": 0.32,
      "unit": "L",
-     "cost_eur": 0.65,
-     "pct_of_trip": 8.9,
-     "straight_per100": 6.68,
+     "cost_eur": 0.58,
+     "pct_of_trip": 7.7,
+     "straight_per100": 6.98,
      "time_min_lost": 2.8
     }
    },
    "merc": {
     "car_id": "merc",
     "route": "arnbruck",
-    "amount": 3.21,
+    "amount": 3.33,
     "unit": "L",
-    "per100": 5.83,
+    "per100": 6.04,
     "unit100": "L/100km",
-    "cost_eur": 5.43,
-    "co2_kg": 8.51,
+    "cost_eur": 5.62,
+    "co2_kg": 8.81,
     "time_min": 51.6,
-    "avg_kmh": 64.0,
-    "E_prop_kWh": 10.51,
-    "E_brake_kWh": 4.59,
+    "avg_kmh": 64.1,
+    "E_prop_kWh": 10.89,
+    "E_brake_kWh": 4.97,
     "regen_kWh": 0.0,
     "work_kWh": {
      "roll": 1.8,
      "aero": 1.78,
      "climb": 3.84,
-     "accel": 4.15
+     "accel": 4.53
     },
     "work_pct": {
-     "roll": 17.1,
-     "aero": 16.9,
-     "climb": 36.6,
-     "accel": 39.5
+     "roll": 16.5,
+     "aero": 16.3,
+     "climb": 35.3,
+     "accel": 41.6
     },
     "mountain": {
      "amount": 0.64,
      "unit": "L",
      "cost_eur": 1.09,
      "co2_kg": 1.7,
-     "pct_of_trip": 20.0,
-     "flat_per100": 4.66,
+     "pct_of_trip": 19.3,
+     "flat_per100": 4.87,
      "climb_work_kWh": 3.84,
      "descent_energy_kWh": 3.05,
      "descent_recovered_kWh": 0.0
     },
     "curves": {
-     "amount": 0.37,
+     "amount": 0.33,
      "unit": "L",
-     "cost_eur": 0.63,
-     "pct_of_trip": 11.5,
-     "straight_per100": 5.16,
+     "cost_eur": 0.56,
+     "pct_of_trip": 10.0,
+     "straight_per100": 5.43,
      "time_min_lost": 2.8
     }
    }
@@ -20745,230 +20777,230 @@
    "auris": {
     "car_id": "auris",
     "route": "koetzting",
-    "amount": 2.86,
+    "amount": 2.9,
     "unit": "L",
-    "per100": 4.35,
+    "per100": 4.41,
     "unit100": "L/100km",
-    "cost_eur": 5.13,
-    "co2_kg": 6.64,
-    "time_min": 62.7,
-    "avg_kmh": 62.9,
-    "E_prop_kWh": 11.09,
-    "E_brake_kWh": 4.41,
-    "regen_kWh": 2.73,
+    "cost_eur": 5.19,
+    "co2_kg": 6.73,
+    "time_min": 62.0,
+    "avg_kmh": 63.6,
+    "E_prop_kWh": 11.4,
+    "E_brake_kWh": 4.72,
+    "regen_kWh": 2.93,
     "work_kWh": {
      "roll": 1.88,
      "aero": 2.32,
      "climb": 3.82,
-     "accel": 4.04
+     "accel": 4.36
     },
     "work_pct": {
-     "roll": 16.9,
-     "aero": 20.9,
-     "climb": 34.4,
-     "accel": 36.5
+     "roll": 16.5,
+     "aero": 20.3,
+     "climb": 33.5,
+     "accel": 38.2
     },
     "mountain": {
      "amount": 0.47,
      "unit": "L",
      "cost_eur": 0.84,
      "co2_kg": 1.1,
-     "pct_of_trip": 16.5,
-     "flat_per100": 3.64,
+     "pct_of_trip": 16.3,
+     "flat_per100": 3.69,
      "climb_work_kWh": 3.82,
      "descent_energy_kWh": 3.17,
      "descent_recovered_kWh": 1.96
     },
     "curves": {
-     "amount": 0.06,
+     "amount": 0.03,
      "unit": "L",
-     "cost_eur": 0.11,
-     "pct_of_trip": 2.1,
-     "straight_per100": 4.27,
+     "cost_eur": 0.06,
+     "pct_of_trip": 1.2,
+     "straight_per100": 4.36,
      "time_min_lost": 2.3
     }
    },
    "id3": {
     "car_id": "id3",
     "route": "koetzting",
-    "amount": 12.22,
+    "amount": 12.36,
     "unit": "kWh",
-    "per100": 18.58,
+    "per100": 18.8,
     "unit100": "kWh/100km",
-    "cost_eur": 4.89,
-    "co2_kg": 4.28,
-    "time_min": 62.7,
-    "avg_kmh": 62.9,
-    "E_prop_kWh": 13.33,
-    "E_brake_kWh": 5.82,
-    "regen_kWh": 4.08,
+    "cost_eur": 4.94,
+    "co2_kg": 4.33,
+    "time_min": 62.0,
+    "avg_kmh": 63.6,
+    "E_prop_kWh": 13.72,
+    "E_brake_kWh": 6.22,
+    "regen_kWh": 4.35,
     "work_kWh": {
      "roll": 2.33,
      "aero": 2.17,
      "climb": 4.83,
-     "accel": 5.12
+     "accel": 5.52
     },
     "work_pct": {
-     "roll": 17.5,
-     "aero": 16.3,
-     "climb": 36.3,
-     "accel": 38.4
+     "roll": 17.0,
+     "aero": 15.8,
+     "climb": 35.2,
+     "accel": 40.2
     },
     "mountain": {
      "amount": 2.22,
      "unit": "kWh",
      "cost_eur": 0.89,
      "co2_kg": 0.78,
-     "pct_of_trip": 18.2,
-     "flat_per100": 15.2,
+     "pct_of_trip": 17.9,
+     "flat_per100": 15.42,
      "climb_work_kWh": 4.83,
      "descent_energy_kWh": 4.01,
      "descent_recovered_kWh": 2.81
     },
     "curves": {
-     "amount": 0.23,
+     "amount": 0.14,
      "unit": "kWh",
-     "cost_eur": 0.09,
-     "pct_of_trip": 1.9,
-     "straight_per100": 18.23,
+     "cost_eur": 0.05,
+     "pct_of_trip": 1.1,
+     "straight_per100": 18.59,
      "time_min_lost": 2.3
     }
    },
    "panda": {
     "car_id": "panda",
     "route": "koetzting",
-    "amount": 3.7,
+    "amount": 3.78,
     "unit": "L",
-    "per100": 5.62,
+    "per100": 5.75,
     "unit100": "L/100km",
-    "cost_eur": 6.62,
-    "co2_kg": 8.57,
-    "time_min": 62.7,
-    "avg_kmh": 62.9,
-    "E_prop_kWh": 8.57,
-    "E_brake_kWh": 2.65,
+    "cost_eur": 6.77,
+    "co2_kg": 8.77,
+    "time_min": 62.0,
+    "avg_kmh": 63.6,
+    "E_prop_kWh": 8.78,
+    "E_brake_kWh": 2.86,
     "regen_kWh": 0.0,
     "work_kWh": {
      "roll": 1.54,
      "aero": 2.56,
      "climb": 2.58,
-     "accel": 2.73
+     "accel": 2.94
     },
     "work_pct": {
-     "roll": 18.0,
-     "aero": 29.8,
-     "climb": 30.1,
-     "accel": 31.8
+     "roll": 17.6,
+     "aero": 29.1,
+     "climb": 29.3,
+     "accel": 33.5
     },
     "mountain": {
      "amount": 0.49,
      "unit": "L",
      "cost_eur": 0.88,
      "co2_kg": 1.14,
-     "pct_of_trip": 13.3,
-     "flat_per100": 4.87,
+     "pct_of_trip": 13.0,
+     "flat_per100": 5.01,
      "climb_work_kWh": 2.58,
      "descent_energy_kWh": 2.13,
      "descent_recovered_kWh": 0.0
     },
     "curves": {
-     "amount": 0.19,
+     "amount": 0.14,
      "unit": "L",
-     "cost_eur": 0.35,
-     "pct_of_trip": 5.2,
-     "straight_per100": 5.33,
+     "cost_eur": 0.25,
+     "pct_of_trip": 3.7,
+     "straight_per100": 5.54,
      "time_min_lost": 2.3
     }
    },
    "opel": {
     "car_id": "opel",
     "route": "koetzting",
-    "amount": 4.54,
+    "amount": 4.64,
     "unit": "L",
-    "per100": 6.9,
+    "per100": 7.06,
     "unit100": "L/100km",
-    "cost_eur": 8.12,
-    "co2_kg": 10.52,
-    "time_min": 62.7,
-    "avg_kmh": 62.9,
-    "E_prop_kWh": 9.22,
-    "E_brake_kWh": 2.81,
+    "cost_eur": 8.31,
+    "co2_kg": 10.77,
+    "time_min": 62.0,
+    "avg_kmh": 63.6,
+    "E_prop_kWh": 9.45,
+    "E_brake_kWh": 3.04,
     "regen_kWh": 0.0,
     "work_kWh": {
      "roll": 1.88,
      "aero": 2.58,
      "climb": 2.75,
-     "accel": 2.92
+     "accel": 3.14
     },
     "work_pct": {
-     "roll": 20.4,
-     "aero": 27.9,
-     "climb": 29.9,
-     "accel": 31.6
+     "roll": 19.9,
+     "aero": 27.3,
+     "climb": 29.2,
+     "accel": 33.2
     },
     "mountain": {
      "amount": 0.6,
      "unit": "L",
      "cost_eur": 1.07,
      "co2_kg": 1.39,
-     "pct_of_trip": 13.2,
-     "flat_per100": 5.99,
+     "pct_of_trip": 12.9,
+     "flat_per100": 6.15,
      "climb_work_kWh": 2.75,
      "descent_energy_kWh": 2.28,
      "descent_recovered_kWh": 0.0
     },
     "curves": {
-     "amount": 0.24,
+     "amount": 0.17,
      "unit": "L",
-     "cost_eur": 0.43,
-     "pct_of_trip": 5.3,
-     "straight_per100": 6.53,
+     "cost_eur": 0.31,
+     "pct_of_trip": 3.7,
+     "straight_per100": 6.8,
      "time_min_lost": 2.3
     }
    },
    "merc": {
     "car_id": "merc",
     "route": "koetzting",
-    "amount": 3.57,
+    "amount": 3.67,
     "unit": "L",
-    "per100": 5.44,
+    "per100": 5.59,
     "unit100": "L/100km",
-    "cost_eur": 6.04,
-    "co2_kg": 9.47,
-    "time_min": 62.7,
-    "avg_kmh": 62.9,
-    "E_prop_kWh": 11.67,
-    "E_brake_kWh": 4.86,
+    "cost_eur": 6.21,
+    "co2_kg": 9.73,
+    "time_min": 62.0,
+    "avg_kmh": 63.6,
+    "E_prop_kWh": 12.0,
+    "E_brake_kWh": 5.2,
     "regen_kWh": 0.0,
     "work_kWh": {
      "roll": 2.12,
      "aero": 2.06,
      "climb": 4.12,
-     "accel": 4.37
+     "accel": 4.7
     },
     "work_pct": {
-     "roll": 18.1,
-     "aero": 17.7,
-     "climb": 35.3,
-     "accel": 37.4
+     "roll": 17.6,
+     "aero": 17.2,
+     "climb": 34.3,
+     "accel": 39.2
     },
     "mountain": {
      "amount": 0.67,
      "unit": "L",
      "cost_eur": 1.12,
      "co2_kg": 1.76,
-     "pct_of_trip": 18.6,
-     "flat_per100": 4.42,
+     "pct_of_trip": 18.1,
+     "flat_per100": 4.57,
      "climb_work_kWh": 4.12,
      "descent_energy_kWh": 3.42,
      "descent_recovered_kWh": 0.0
     },
     "curves": {
-     "amount": 0.27,
+     "amount": 0.21,
      "unit": "L",
-     "cost_eur": 0.45,
-     "pct_of_trip": 7.5,
-     "straight_per100": 5.03,
+     "cost_eur": 0.35,
+     "pct_of_trip": 5.6,
+     "straight_per100": 5.27,
      "time_min_lost": 2.3
     }
    }
@@ -20977,230 +21009,230 @@
    "auris": {
     "car_id": "auris",
     "route": "bodenmais",
-    "amount": 2.73,
+    "amount": 2.77,
     "unit": "L",
-    "per100": 4.25,
+    "per100": 4.32,
     "unit100": "L/100km",
-    "cost_eur": 4.88,
-    "co2_kg": 6.32,
-    "time_min": 61.5,
-    "avg_kmh": 62.6,
-    "E_prop_kWh": 10.37,
-    "E_brake_kWh": 3.91,
-    "regen_kWh": 2.43,
+    "cost_eur": 4.97,
+    "co2_kg": 6.44,
+    "time_min": 61.3,
+    "avg_kmh": 62.8,
+    "E_prop_kWh": 10.76,
+    "E_brake_kWh": 4.3,
+    "regen_kWh": 2.67,
     "work_kWh": {
      "roll": 1.84,
      "aero": 2.23,
      "climb": 3.95,
-     "accel": 3.47
+     "accel": 3.85
     },
     "work_pct": {
-     "roll": 17.7,
-     "aero": 21.5,
-     "climb": 38.1,
-     "accel": 33.4
+     "roll": 17.1,
+     "aero": 20.8,
+     "climb": 36.7,
+     "accel": 35.8
     },
     "mountain": {
      "amount": 0.46,
      "unit": "L",
      "cost_eur": 0.81,
      "co2_kg": 1.06,
-     "pct_of_trip": 16.7,
-     "flat_per100": 3.54,
+     "pct_of_trip": 16.4,
+     "flat_per100": 3.61,
      "climb_work_kWh": 3.95,
      "descent_energy_kWh": 3.31,
      "descent_recovered_kWh": 2.05
     },
     "curves": {
-     "amount": 0.04,
+     "amount": 0.02,
      "unit": "L",
-     "cost_eur": 0.08,
-     "pct_of_trip": 1.6,
-     "straight_per100": 4.18,
+     "cost_eur": 0.03,
+     "pct_of_trip": 0.7,
+     "straight_per100": 4.3,
      "time_min_lost": 2.4
     }
    },
    "id3": {
     "car_id": "id3",
     "route": "bodenmais",
-    "amount": 11.66,
+    "amount": 11.84,
     "unit": "kWh",
-    "per100": 18.17,
+    "per100": 18.46,
     "unit100": "kWh/100km",
-    "cost_eur": 4.66,
-    "co2_kg": 4.08,
-    "time_min": 61.5,
-    "avg_kmh": 62.6,
-    "E_prop_kWh": 12.45,
-    "E_brake_kWh": 5.18,
-    "regen_kWh": 3.63,
+    "cost_eur": 4.74,
+    "co2_kg": 4.15,
+    "time_min": 61.3,
+    "avg_kmh": 62.8,
+    "E_prop_kWh": 12.94,
+    "E_brake_kWh": 5.68,
+    "regen_kWh": 3.97,
     "work_kWh": {
      "roll": 2.27,
      "aero": 2.07,
      "climb": 4.99,
-     "accel": 4.39
+     "accel": 4.88
     },
     "work_pct": {
-     "roll": 18.2,
-     "aero": 16.6,
-     "climb": 40.1,
-     "accel": 35.3
+     "roll": 17.5,
+     "aero": 16.0,
+     "climb": 38.6,
+     "accel": 37.7
     },
     "mountain": {
      "amount": 2.14,
      "unit": "kWh",
      "cost_eur": 0.86,
      "co2_kg": 0.75,
-     "pct_of_trip": 18.3,
-     "flat_per100": 14.84,
+     "pct_of_trip": 18.0,
+     "flat_per100": 15.13,
      "climb_work_kWh": 4.99,
      "descent_energy_kWh": 4.19,
      "descent_recovered_kWh": 2.93
     },
     "curves": {
-     "amount": 0.17,
+     "amount": 0.07,
      "unit": "kWh",
-     "cost_eur": 0.07,
-     "pct_of_trip": 1.4,
-     "straight_per100": 17.91,
+     "cost_eur": 0.03,
+     "pct_of_trip": 0.6,
+     "straight_per100": 18.35,
      "time_min_lost": 2.4
     }
    },
    "panda": {
     "car_id": "panda",
     "route": "bodenmais",
-    "amount": 3.48,
+    "amount": 3.59,
     "unit": "L",
-    "per100": 5.42,
+    "per100": 5.59,
     "unit100": "L/100km",
-    "cost_eur": 6.22,
-    "co2_kg": 8.07,
-    "time_min": 61.5,
-    "avg_kmh": 62.6,
-    "E_prop_kWh": 8.05,
-    "E_brake_kWh": 2.34,
+    "cost_eur": 6.42,
+    "co2_kg": 8.32,
+    "time_min": 61.3,
+    "avg_kmh": 62.8,
+    "E_prop_kWh": 8.31,
+    "E_brake_kWh": 2.6,
     "regen_kWh": 0.0,
     "work_kWh": {
      "roll": 1.52,
      "aero": 2.47,
      "climb": 2.68,
-     "accel": 2.34
+     "accel": 2.6
     },
     "work_pct": {
-     "roll": 18.9,
-     "aero": 30.7,
-     "climb": 33.3,
-     "accel": 29.0
+     "roll": 18.3,
+     "aero": 29.8,
+     "climb": 32.2,
+     "accel": 31.3
     },
     "mountain": {
      "amount": 0.48,
      "unit": "L",
      "cost_eur": 0.85,
      "co2_kg": 1.11,
-     "pct_of_trip": 13.7,
-     "flat_per100": 4.68,
+     "pct_of_trip": 13.3,
+     "flat_per100": 4.84,
      "climb_work_kWh": 2.68,
      "descent_energy_kWh": 2.23,
      "descent_recovered_kWh": 0.0
     },
     "curves": {
-     "amount": 0.17,
+     "amount": 0.11,
      "unit": "L",
-     "cost_eur": 0.3,
-     "pct_of_trip": 4.8,
-     "straight_per100": 5.16,
+     "cost_eur": 0.2,
+     "pct_of_trip": 3.1,
+     "straight_per100": 5.41,
      "time_min_lost": 2.4
     }
    },
    "opel": {
     "car_id": "opel",
     "route": "bodenmais",
-    "amount": 4.27,
+    "amount": 4.4,
     "unit": "L",
-    "per100": 6.65,
+    "per100": 6.86,
     "unit100": "L/100km",
-    "cost_eur": 7.64,
-    "co2_kg": 9.9,
-    "time_min": 61.5,
-    "avg_kmh": 62.6,
-    "E_prop_kWh": 8.67,
-    "E_brake_kWh": 2.48,
+    "cost_eur": 7.88,
+    "co2_kg": 10.21,
+    "time_min": 61.3,
+    "avg_kmh": 62.8,
+    "E_prop_kWh": 8.95,
+    "E_brake_kWh": 2.76,
     "regen_kWh": 0.0,
     "work_kWh": {
      "roll": 1.87,
      "aero": 2.5,
      "climb": 2.86,
-     "accel": 2.5
+     "accel": 2.78
     },
     "work_pct": {
-     "roll": 21.5,
-     "aero": 28.8,
-     "climb": 33.0,
-     "accel": 28.8
+     "roll": 20.9,
+     "aero": 27.9,
+     "climb": 32.0,
+     "accel": 31.1
     },
     "mountain": {
      "amount": 0.58,
      "unit": "L",
      "cost_eur": 1.04,
      "co2_kg": 1.35,
-     "pct_of_trip": 13.6,
-     "flat_per100": 5.75,
+     "pct_of_trip": 13.2,
+     "flat_per100": 5.96,
      "climb_work_kWh": 2.86,
      "descent_energy_kWh": 2.38,
      "descent_recovered_kWh": 0.0
     },
     "curves": {
-     "amount": 0.21,
+     "amount": 0.14,
      "unit": "L",
-     "cost_eur": 0.37,
-     "pct_of_trip": 4.9,
-     "straight_per100": 6.33,
+     "cost_eur": 0.25,
+     "pct_of_trip": 3.2,
+     "straight_per100": 6.64,
      "time_min_lost": 2.4
     }
    },
    "merc": {
     "car_id": "merc",
     "route": "bodenmais",
-    "amount": 3.35,
+    "amount": 3.47,
     "unit": "L",
-    "per100": 5.21,
+    "per100": 5.41,
     "unit100": "L/100km",
-    "cost_eur": 5.65,
-    "co2_kg": 8.87,
-    "time_min": 61.5,
-    "avg_kmh": 62.6,
-    "E_prop_kWh": 10.9,
-    "E_brake_kWh": 4.32,
+    "cost_eur": 5.86,
+    "co2_kg": 9.2,
+    "time_min": 61.3,
+    "avg_kmh": 62.8,
+    "E_prop_kWh": 11.32,
+    "E_brake_kWh": 4.74,
     "regen_kWh": 0.0,
     "work_kWh": {
      "roll": 2.06,
      "aero": 1.97,
      "climb": 4.26,
-     "accel": 3.75
+     "accel": 4.17
     },
     "work_pct": {
-     "roll": 18.9,
-     "aero": 18.1,
-     "climb": 39.1,
-     "accel": 34.4
+     "roll": 18.2,
+     "aero": 17.4,
+     "climb": 37.6,
+     "accel": 36.8
     },
     "mountain": {
      "amount": 0.65,
      "unit": "L",
      "cost_eur": 1.1,
      "co2_kg": 1.73,
-     "pct_of_trip": 19.5,
-     "flat_per100": 4.2,
+     "pct_of_trip": 18.8,
+     "flat_per100": 4.39,
      "climb_work_kWh": 4.26,
      "descent_energy_kWh": 3.57,
      "descent_recovered_kWh": 0.0
     },
     "curves": {
-     "amount": 0.21,
+     "amount": 0.15,
      "unit": "L",
-     "cost_eur": 0.36,
-     "pct_of_trip": 6.4,
-     "straight_per100": 4.88,
+     "cost_eur": 0.25,
+     "pct_of_trip": 4.3,
+     "straight_per100": 5.18,
      "time_min_lost": 2.4
     }
    }
@@ -21209,230 +21241,230 @@
    "auris": {
     "car_id": "auris",
     "route": "regen",
-    "amount": 2.91,
+    "amount": 2.94,
     "unit": "L",
-    "per100": 4.37,
+    "per100": 4.42,
     "unit100": "L/100km",
-    "cost_eur": 5.21,
-    "co2_kg": 6.75,
-    "time_min": 58.9,
-    "avg_kmh": 67.7,
-    "E_prop_kWh": 11.07,
-    "E_brake_kWh": 4.14,
-    "regen_kWh": 2.56,
+    "cost_eur": 5.27,
+    "co2_kg": 6.82,
+    "time_min": 59.0,
+    "avg_kmh": 67.6,
+    "E_prop_kWh": 11.33,
+    "E_brake_kWh": 4.4,
+    "regen_kWh": 2.73,
     "work_kWh": {
      "roll": 1.82,
      "aero": 2.35,
      "climb": 4.74,
-     "accel": 3.47
+     "accel": 3.73
     },
     "work_pct": {
-     "roll": 16.5,
-     "aero": 21.2,
-     "climb": 42.8,
-     "accel": 31.3
+     "roll": 16.1,
+     "aero": 20.7,
+     "climb": 41.8,
+     "accel": 32.9
     },
     "mountain": {
      "amount": 0.48,
      "unit": "L",
      "cost_eur": 0.86,
      "co2_kg": 1.12,
-     "pct_of_trip": 16.6,
-     "flat_per100": 3.65,
+     "pct_of_trip": 16.4,
+     "flat_per100": 3.7,
      "climb_work_kWh": 4.74,
      "descent_energy_kWh": 4.25,
-     "descent_recovered_kWh": 2.56
+     "descent_recovered_kWh": 2.63
     },
     "curves": {
-     "amount": 0.06,
+     "amount": 0.04,
      "unit": "L",
-     "cost_eur": 0.11,
-     "pct_of_trip": 2.1,
-     "straight_per100": 4.28,
+     "cost_eur": 0.07,
+     "pct_of_trip": 1.3,
+     "straight_per100": 4.37,
      "time_min_lost": 2.6
     }
    },
    "id3": {
     "car_id": "id3",
     "route": "regen",
-    "amount": 12.39,
+    "amount": 12.51,
     "unit": "kWh",
-    "per100": 18.63,
+    "per100": 18.82,
     "unit100": "kWh/100km",
-    "cost_eur": 4.95,
-    "co2_kg": 4.34,
-    "time_min": 58.9,
-    "avg_kmh": 67.7,
-    "E_prop_kWh": 13.31,
-    "E_brake_kWh": 5.56,
-    "regen_kWh": 3.89,
+    "cost_eur": 5.01,
+    "co2_kg": 4.38,
+    "time_min": 59.0,
+    "avg_kmh": 67.6,
+    "E_prop_kWh": 13.64,
+    "E_brake_kWh": 5.9,
+    "regen_kWh": 4.13,
     "work_kWh": {
      "roll": 2.23,
      "aero": 2.15,
      "climb": 6.0,
-     "accel": 4.39
+     "accel": 4.73
     },
     "work_pct": {
-     "roll": 16.7,
-     "aero": 16.1,
-     "climb": 45.1,
-     "accel": 33.0
+     "roll": 16.3,
+     "aero": 15.7,
+     "climb": 44.0,
+     "accel": 34.7
     },
     "mountain": {
      "amount": 2.27,
      "unit": "kWh",
      "cost_eur": 0.91,
      "co2_kg": 0.79,
-     "pct_of_trip": 18.3,
-     "flat_per100": 15.21,
+     "pct_of_trip": 18.1,
+     "flat_per100": 15.41,
      "climb_work_kWh": 6.0,
      "descent_energy_kWh": 5.38,
      "descent_recovered_kWh": 3.77
     },
     "curves": {
-     "amount": 0.24,
+     "amount": 0.15,
      "unit": "kWh",
-     "cost_eur": 0.1,
-     "pct_of_trip": 1.9,
-     "straight_per100": 18.27,
+     "cost_eur": 0.06,
+     "pct_of_trip": 1.2,
+     "straight_per100": 18.59,
      "time_min_lost": 2.6
     }
    },
    "panda": {
     "car_id": "panda",
     "route": "regen",
-    "amount": 3.69,
+    "amount": 3.76,
     "unit": "L",
-    "per100": 5.55,
+    "per100": 5.66,
     "unit100": "L/100km",
-    "cost_eur": 6.6,
-    "co2_kg": 8.56,
-    "time_min": 58.9,
-    "avg_kmh": 67.7,
-    "E_prop_kWh": 8.57,
-    "E_brake_kWh": 2.37,
+    "cost_eur": 6.74,
+    "co2_kg": 8.73,
+    "time_min": 59.0,
+    "avg_kmh": 67.6,
+    "E_prop_kWh": 8.75,
+    "E_brake_kWh": 2.55,
     "regen_kWh": 0.0,
     "work_kWh": {
      "roll": 1.51,
      "aero": 2.63,
      "climb": 3.2,
-     "accel": 2.34
+     "accel": 2.51
     },
     "work_pct": {
-     "roll": 17.6,
-     "aero": 30.6,
-     "climb": 37.4,
-     "accel": 27.3
+     "roll": 17.2,
+     "aero": 30.0,
+     "climb": 36.6,
+     "accel": 28.7
     },
     "mountain": {
      "amount": 0.5,
      "unit": "L",
      "cost_eur": 0.9,
      "co2_kg": 1.17,
-     "pct_of_trip": 13.6,
-     "flat_per100": 4.79,
+     "pct_of_trip": 13.3,
+     "flat_per100": 4.9,
      "climb_work_kWh": 3.2,
      "descent_energy_kWh": 2.86,
      "descent_recovered_kWh": 0.0
     },
     "curves": {
-     "amount": 0.21,
+     "amount": 0.16,
      "unit": "L",
-     "cost_eur": 0.38,
-     "pct_of_trip": 5.7,
-     "straight_per100": 5.23,
+     "cost_eur": 0.29,
+     "pct_of_trip": 4.3,
+     "straight_per100": 5.42,
      "time_min_lost": 2.6
     }
    },
    "opel": {
     "car_id": "opel",
     "route": "regen",
-    "amount": 4.52,
+    "amount": 4.61,
     "unit": "L",
-    "per100": 6.8,
+    "per100": 6.94,
     "unit100": "L/100km",
-    "cost_eur": 8.1,
-    "co2_kg": 10.49,
-    "time_min": 58.9,
-    "avg_kmh": 67.7,
-    "E_prop_kWh": 9.22,
-    "E_brake_kWh": 2.52,
+    "cost_eur": 8.26,
+    "co2_kg": 10.71,
+    "time_min": 59.0,
+    "avg_kmh": 67.6,
+    "E_prop_kWh": 9.41,
+    "E_brake_kWh": 2.71,
     "regen_kWh": 0.0,
     "work_kWh": {
      "roll": 1.84,
      "aero": 2.65,
      "climb": 3.42,
-     "accel": 2.5
+     "accel": 2.69
     },
     "work_pct": {
-     "roll": 20.0,
-     "aero": 28.7,
-     "climb": 37.2,
-     "accel": 27.1
+     "roll": 19.6,
+     "aero": 28.2,
+     "climb": 36.4,
+     "accel": 28.6
     },
     "mountain": {
      "amount": 0.61,
      "unit": "L",
      "cost_eur": 1.1,
      "co2_kg": 1.42,
-     "pct_of_trip": 13.6,
-     "flat_per100": 5.88,
+     "pct_of_trip": 13.3,
+     "flat_per100": 6.02,
      "climb_work_kWh": 3.42,
      "descent_energy_kWh": 3.06,
      "descent_recovered_kWh": 0.0
     },
     "curves": {
-     "amount": 0.26,
+     "amount": 0.2,
      "unit": "L",
-     "cost_eur": 0.47,
-     "pct_of_trip": 5.8,
-     "straight_per100": 6.41,
+     "cost_eur": 0.36,
+     "pct_of_trip": 4.3,
+     "straight_per100": 6.64,
      "time_min_lost": 2.6
     }
    },
    "merc": {
     "car_id": "merc",
     "route": "regen",
-    "amount": 3.56,
+    "amount": 3.65,
     "unit": "L",
-    "per100": 5.35,
+    "per100": 5.48,
     "unit100": "L/100km",
-    "cost_eur": 6.02,
-    "co2_kg": 9.43,
-    "time_min": 58.9,
-    "avg_kmh": 67.7,
-    "E_prop_kWh": 11.64,
-    "E_brake_kWh": 4.6,
+    "cost_eur": 6.16,
+    "co2_kg": 9.66,
+    "time_min": 59.0,
+    "avg_kmh": 67.6,
+    "E_prop_kWh": 11.93,
+    "E_brake_kWh": 4.89,
     "regen_kWh": 0.0,
     "work_kWh": {
      "roll": 2.03,
      "aero": 2.05,
      "climb": 5.12,
-     "accel": 3.75
+     "accel": 4.03
     },
     "work_pct": {
-     "roll": 17.4,
-     "aero": 17.6,
-     "climb": 44.0,
-     "accel": 32.2
+     "roll": 17.0,
+     "aero": 17.2,
+     "climb": 42.9,
+     "accel": 33.8
     },
     "mountain": {
      "amount": 0.74,
      "unit": "L",
      "cost_eur": 1.25,
      "co2_kg": 1.97,
-     "pct_of_trip": 20.9,
-     "flat_per100": 4.24,
+     "pct_of_trip": 20.4,
+     "flat_per100": 4.37,
      "climb_work_kWh": 5.12,
      "descent_energy_kWh": 4.59,
      "descent_recovered_kWh": 0.0
     },
     "curves": {
-     "amount": 0.28,
+     "amount": 0.23,
      "unit": "L",
-     "cost_eur": 0.48,
-     "pct_of_trip": 8.0,
-     "straight_per100": 4.93,
+     "cost_eur": 0.38,
+     "pct_of_trip": 6.2,
+     "straight_per100": 5.14,
      "time_min_lost": 2.6
     }
    }
@@ -21491,45 +21523,45 @@
    "arnbruck": {
     "auris": [
      4.55,
-     4.52
+     4.6
     ],
     "id3": [
      4.38,
-     4.31
+     4.38
     ],
     "panda": [
      5.53,
-     5.89
+     6.07
     ],
     "opel": [
      6.78,
-     7.23
+     7.45
     ],
     "merc": [
      4.83,
-     5.43
+     5.62
     ]
    },
    "koetzting": {
     "auris": [
      5.28,
-     5.13
+     5.19
     ],
     "id3": [
      5.06,
-     4.89
+     4.94
     ],
     "panda": [
      6.48,
-     6.62
+     6.77
     ],
     "opel": [
      7.95,
-     8.12
+     8.31
     ],
     "merc": [
      5.61,
-     6.04
+     6.21
     ]
    }
   }

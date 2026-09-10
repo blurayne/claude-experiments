@@ -35,7 +35,7 @@
 <h1 id="methodology-how-the-routes-and-the-energy-model-were-built">Methodology — how the routes and the energy model were built</h1>
 <p>This document describes <strong>exactly</strong> how every number in the Eco-Navigation visualization was produced: the algorithms, the equations, the parameters, and where each input came from. The guiding principle is <strong>honest provenance</strong> — some inputs are <em>measured</em>, some are <em>rule-based</em> (German traffic law), and some are <em>modelled</em> (the energy physics). Each is labelled as such here and in the app.</p>
 <blockquote>
-<p><strong>This is version 2.</strong> The first version of this experiment ran in a sandbox with no outbound network, so its terrain was sixteen researched town elevations interpolated along the track. Elevation, speed limits and the routing engine are now all real. <a href="#10-what-changed-when-the-terrain-became-real">Section 10</a> documents exactly what that changed, and the old bundle is archived at <code>data/eco_data_modelled_v1.json</code> so the comparison stays reproducible.</p>
+<p><strong>This is version 2.</strong> The first version of this experiment ran in a sandbox with no outbound network, so its terrain was sixteen researched town elevations interpolated along the track. Elevation, speed limits, the stop-feature inventory and the routing engine are now all real. <a href="#10-what-changed-when-the-terrain-became-real">Section 10</a> documents exactly what that changed, and the old bundle is archived at <code>data/eco_data_modelled_v1.json</code> so the comparison stays reproducible.</p>
 <p><strong>TL;DR of provenance</strong></p>
 <table>
 <thead>
@@ -77,9 +77,14 @@
 <td>Medium</td>
 </tr>
 <tr>
-<td>Traffic-light / junction stops</td>
-<td><strong>Modelled</strong> — per-town stop count</td>
-<td>Low–Medium</td>
+<td>Stop-feature inventory (signals, signs, roundabouts, crossings)</td>
+<td><strong>Measured</strong> — OSM nodes/ways snapped to the track</td>
+<td>High</td>
+</tr>
+<tr>
+<td>Probability of stopping at each feature</td>
+<td><strong>Modelled</strong> — per-class assumption</td>
+<td>Medium</td>
 </tr>
 <tr>
 <td>Energy, fuel/kWh, cost, CO₂</td>
@@ -564,7 +569,116 @@ d   = 2R · asin(√a)
 backward:  v_i ≤ √(v_{i+1}² + 2·a_dec·Δs),   a_dec = 1.6 m/s²
 </code></pre>
 <p>Braking is allowed to be firmer than acceleration, which is how people actually drive. A floor of 2.8 m/s keeps the time integral finite. A free-flow ceiling of 88 km/h reflects what these single-carriageway B- and St-roads sustain in practice, regardless of a 100 km/h sign.</p>
-<p><strong>5.4 Discrete stops.</strong> A continuous speed profile misses the fact that you actually stop at traffic lights. Each built-up area contributes an estimated number of stop events (3 for Deggendorf, 2 for Viechtach, Bad Kötzting, Regen and Zwiesel, 1 for smaller places). Each stop adds 22 s of standing time and a full decelerate-to-zero / accelerate-back-to-50 km/h cycle. This is the weakest input in the model and is labelled as modelled throughout.</p>
+<p><strong>5.4 Discrete stops — measured inventory × assumed behaviour.</strong> A continuous speed profile misses the fact that you actually stop at traffic lights. The first pass at this guessed a stop count per town; it is now built on a <strong>measured inventory</strong>: <code>fetch_real_data.py --stops</code> queries Overpass for every <code>highway=traffic_signals</code>, <code>stop</code>, <code>give_way</code> and <code>mini_roundabout</code> node, every <code>railway=level_crossing</code>, and every <code>junction=roundabout</code> way near the track, snaps each to the 25 m grid (30 m tolerance; 12 m for stop/give-way signs, which apply to a single approach), clusters same-kind features within 60 m into one junction, and drops give-way signs that are just a roundabout entry.</p>
+<p>What a driver <em>does</em> at each feature is still an assumption, applied per class:</p>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>P(event)</th>
+<th>Speed after</th>
+<th>Standing time</th>
+<th>Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Traffic signal</td>
+<td>0.45</td>
+<td>0</td>
+<td>25 s</td>
+<td>a through driver hits red on roughly 40–50 % of signals</td>
+</tr>
+<tr>
+<td>Stop sign</td>
+<td>0.90</td>
+<td>0</td>
+<td>3 s</td>
+<td>legally requires a halt</td>
+</tr>
+<tr>
+<td>Give-way sign</td>
+<td>0.20</td>
+<td>0</td>
+<td>3 s</td>
+<td>on the priority road it rarely fires</td>
+</tr>
+<tr>
+<td>Roundabout</td>
+<td>1.00</td>
+<td>25 km/h</td>
+<td>—</td>
+<td>always a slow-through, rarely a stop</td>
+</tr>
+<tr>
+<td>Mini-roundabout</td>
+<td>1.00</td>
+<td>20 km/h</td>
+<td>—</td>
+<td></td>
+</tr>
+<tr>
+<td>Level crossing</td>
+<td>0.10</td>
+<td>0</td>
+<td>45 s</td>
+<td>Waldbahn barriers are usually open, but cost a long wait when closed</td>
+</tr>
+</tbody>
+</table>
+<p>Each event's kinetic cost uses the modelled speed <strong>at that feature's actual position</strong> (½·m·(v² − v_after²), weighted by its probability), not a flat 50 km/h assumption. The measured inventories:</p>
+<table>
+<thead>
+<tr>
+<th>Route</th>
+<th>Signals</th>
+<th>Roundabouts</th>
+<th>Stop</th>
+<th>Give-way</th>
+<th>Level crossings</th>
+<th>Expected full stops</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A · Arnbruck</td>
+<td>8</td>
+<td>3</td>
+<td>2</td>
+<td>12</td>
+<td>6</td>
+<td><strong>8.4</strong></td>
+</tr>
+<tr>
+<td>B · Viechtach/Kötzting</td>
+<td>12</td>
+<td>4</td>
+<td>1</td>
+<td>12</td>
+<td>3</td>
+<td><strong>9.0</strong></td>
+</tr>
+<tr>
+<td>C · Bodenmais</td>
+<td>7</td>
+<td>6</td>
+<td>2</td>
+<td>18</td>
+<td>5</td>
+<td><strong>9.1</strong></td>
+</tr>
+<tr>
+<td>D · Regen</td>
+<td>9</td>
+<td>4</td>
+<td>1</td>
+<td>9</td>
+<td>1</td>
+<td><strong>6.9</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Two things the old per-town guess missed entirely: the six <strong>Waldbahn level crossings</strong> on route A, and the fact that route C is the roundabout-heaviest of the four — which erases what looked like a three-stop advantage for C over B (the guess said 6 vs 9; the measured inventory says 9.1 vs 9.0). The per-class probabilities remain the modelled part; the sensitivity analysis in <a href="#11-sensitivity--could-route-b-ever-win">section 11</a> shows even large errors in them cannot change the route ranking. The old per-town guess survives only as a fallback for screening OSRM candidates that have no cached inventory yet.</p>
 <hr />
 <h2 id="6-energy-model-modelled-vehicle-physics">6. Energy model <em>(modelled vehicle physics)</em></h2>
 <p>At each 25 m step the longitudinal force balance is integrated:</p>
@@ -683,7 +797,7 @@ litres     = fuel_J / LHV        petrol 32.04 MJ/L, diesel 35.64 MJ/L
 <td>€0.84</td>
 <td>€0.81</td>
 <td>€0.86</td>
-<td>16.5–18.4 %</td>
+<td>16.3–18.1 %</td>
 </tr>
 <tr>
 <td>VW ID.3</td>
@@ -691,7 +805,7 @@ litres     = fuel_J / LHV        petrol 32.04 MJ/L, diesel 35.64 MJ/L
 <td>€0.89</td>
 <td>€0.86</td>
 <td>€0.91</td>
-<td>18.2–20.2 %</td>
+<td>17.9–19.9 %</td>
 </tr>
 <tr>
 <td>Fiat Panda 1.2</td>
@@ -699,7 +813,7 @@ litres     = fuel_J / LHV        petrol 32.04 MJ/L, diesel 35.64 MJ/L
 <td>€0.88</td>
 <td>€0.85</td>
 <td>€0.90</td>
-<td>13.3–15.1 %</td>
+<td>13.0–14.7 %</td>
 </tr>
 <tr>
 <td>Opel (2005)</td>
@@ -707,7 +821,7 @@ litres     = fuel_J / LHV        petrol 32.04 MJ/L, diesel 35.64 MJ/L
 <td>€1.07</td>
 <td>€1.04</td>
 <td>€1.10</td>
-<td>13.2–15.1 %</td>
+<td>12.9–14.6 %</td>
 </tr>
 <tr>
 <td>Mercedes C-diesel</td>
@@ -715,7 +829,7 @@ litres     = fuel_J / LHV        petrol 32.04 MJ/L, diesel 35.64 MJ/L
 <td>€1.12</td>
 <td>€1.10</td>
 <td>€1.25</td>
-<td>18.6–20.9 %</td>
+<td>18.1–20.4 %</td>
 </tr>
 </tbody>
 </table>
@@ -741,43 +855,43 @@ curve_time_lost = t(real bends) − t(same hills, straightened)
 <tbody>
 <tr>
 <td>A · Arnbruck</td>
-<td>€0.16</td>
 <td>€0.13</td>
-<td>€0.52</td>
-<td>€0.65</td>
-<td>€0.63</td>
+<td>€0.11</td>
+<td>€0.46</td>
+<td>€0.58</td>
+<td>€0.56</td>
 <td>+2.8 min</td>
 </tr>
 <tr>
 <td>B · Viechtach/Kötzting</td>
-<td>€0.11</td>
-<td>€0.09</td>
+<td>€0.06</td>
+<td>€0.05</td>
+<td>€0.25</td>
+<td>€0.31</td>
 <td>€0.35</td>
-<td>€0.43</td>
-<td>€0.45</td>
 <td>+2.3 min</td>
 </tr>
 <tr>
 <td>C · Bodenmais</td>
-<td>€0.08</td>
-<td>€0.07</td>
-<td>€0.30</td>
-<td>€0.37</td>
-<td>€0.36</td>
+<td>€0.03</td>
+<td>€0.03</td>
+<td>€0.20</td>
+<td>€0.25</td>
+<td>€0.25</td>
 <td>+2.4 min</td>
 </tr>
 <tr>
 <td>D · Regen</td>
-<td>€0.11</td>
-<td>€0.10</td>
+<td>€0.07</td>
+<td>€0.06</td>
+<td>€0.29</td>
+<td>€0.36</td>
 <td>€0.38</td>
-<td>€0.47</td>
-<td>€0.48</td>
 <td>+2.6 min</td>
 </tr>
 </tbody>
 </table>
-<p>Two things stand out. <strong>Corners cost far less than hills</strong> — a few cents against roughly a euro. And <strong>the split by drivetrain is even sharper than for the mountain tax</strong>: the hybrid pays €0.16 on route A where the old Opel pays €0.65, four times as much, because the energy shed entering a bend comes straight back out of the battery on the way out. Corners cost a regen car <em>time</em> much more than they cost it fuel — the time penalty is identical for all five cars, since it depends on the road, not the drivetrain.</p>
+<p>Two things stand out. <strong>Corners cost far less than hills</strong> — a few cents against roughly a euro. And <strong>the split by drivetrain is even sharper than for the mountain tax</strong>: the hybrid pays €0.13 on route A where the old Opel pays €0.58, more than four times as much, because the energy shed entering a bend comes straight back out of the battery on the way out. Corners cost a regen car <em>time</em> much more than they cost it fuel — the time penalty is identical for all five cars, since it depends on the road, not the drivetrain.</p>
 <hr />
 <h2 id="9-capability">9. Capability</h2>
 <p>All five cars are mechanically fine on all four routes. The steepest sustained grades are around 6 % with short ramps reaching 9–12 %; at 50 km/h on an 8 % grade a 1 010 kg Panda needs roughly 15 kW at the wheel against its 51 kW, so even the least powerful car in the set has ample margin. The differences between these cars are efficiency and comfort, not capability.</p>
@@ -864,42 +978,50 @@ curve_time_lost = t(real bends) − t(same hills, straightened)
 <tbody>
 <tr>
 <td>Toyota Auris Hybrid</td>
-<td>€4.55 → <strong>€4.52</strong> (−1 %)</td>
-<td>€5.28 → <strong>€5.13</strong> (−3 %)</td>
+<td>€4.55 → <strong>€4.60</strong> (+1 %)</td>
+<td>€5.28 → <strong>€5.19</strong> (−2 %)</td>
 </tr>
 <tr>
 <td>VW ID.3</td>
-<td>€4.38 → <strong>€4.31</strong> (−2 %)</td>
-<td>€5.06 → <strong>€4.89</strong> (−3 %)</td>
+<td>€4.38 → <strong>€4.38</strong> (±0 %)</td>
+<td>€5.06 → <strong>€4.94</strong> (−2 %)</td>
 </tr>
 <tr>
 <td>Fiat Panda 1.2</td>
-<td>€5.53 → <strong>€5.89</strong> (+7 %)</td>
-<td>€6.48 → <strong>€6.62</strong> (+2 %)</td>
+<td>€5.53 → <strong>€6.07</strong> (+10 %)</td>
+<td>€6.48 → <strong>€6.77</strong> (+4 %)</td>
 </tr>
 <tr>
 <td>Opel (2005)</td>
-<td>€6.78 → <strong>€7.23</strong> (+7 %)</td>
-<td>€7.95 → <strong>€8.12</strong> (+2 %)</td>
+<td>€6.78 → <strong>€7.45</strong> (+10 %)</td>
+<td>€7.95 → <strong>€8.31</strong> (+5 %)</td>
 </tr>
 <tr>
 <td>Mercedes C-diesel</td>
-<td>€4.83 → <strong>€5.43</strong> (+12 %)</td>
-<td>€5.61 → <strong>€6.04</strong> (+8 %)</td>
+<td>€4.83 → <strong>€5.62</strong> (+16 %)</td>
+<td>€5.61 → <strong>€6.21</strong> (+11 %)</td>
 </tr>
 </tbody>
 </table>
-<p>The hybrid and the EV got <strong>cheaper</strong>: real descents are long enough to hand meaningful energy back through regenerative braking, which the near-flat modelled profile never offered. The three cars without regen got <strong>dearer</strong>: they buy every metre of climb with fuel and throw it away again as brake heat.</p>
+<p>(These figures include both upgrades: the real terrain and the measured stop inventory of <a href="#5-speed-model-measured-limits--physics">section 5.4</a>, which found more stop-causing features than the old per-town guess.) The hybrid and the EV are <strong>essentially unchanged</strong>: real descents hand meaningful energy back through regenerative braking, which offsets both the extra climbing and the extra stops. The three cars without regen got <strong>dearer</strong>: they buy every metre of climb with fuel and throw it away again as brake heat.</p>
 <p><strong>The verdict did not change.</strong> Route A was the cheapest for all five cars before and is the cheapest for all five cars now — and it stays cheapest against the two newly-found alternatives as well. It wins despite being the <em>hilliest by peak</em>, because it is 9–11 km shorter and distance beats altitude here.</p>
 <hr />
-<h2 id="11-outputs-how-to-regenerate">11. Outputs &amp; how to regenerate</h2>
+<h2 id="11-sensitivity-could-route-b-ever-win">11. Sensitivity — could route B ever win?</h2>
+<p>Route A's win is worth stress-testing, because several inputs are modelled. Each experiment below re-runs the full physics with one assumption pushed to its plausible extreme. None of them flips the ranking; the structural reason is that <strong>route B is dominated</strong>: it is 10.7 km longer, 10 minutes slower, climbs <em>more</em> in total (1 050 m vs 957 m — the lower peak is misleading), is steeper at its worst (12.0 % vs 8.9 %), and has slightly more expected stops (9.0 vs 8.4).</p>
+<p><strong>Reverse direction and round trip.</strong> All published figures are Deggendorf → Engelshütt; the return could in principle differ (grades flip sign). It doesn't: reversed, route A still wins for all five cars (Auris €3.42 vs €4.05 — the return is much cheaper for everyone, since it is a net 256 m descent), because B's reverse ascent is also larger (788 m vs 694 m). Round trip, Auris: <strong>A €8.02 vs B €9.24</strong>.</p>
+<p><strong>Stop-count error.</strong> Before the inventory was measured, swapping the guessed counts to <em>favour B maximally</em> (A = 9 stops, B = 6) moved the Auris gap from €0.61 to €0.55 — stops are worth about €0.02 each. The measured inventory has since replaced the guess, and even zeroing all stops entirely changes no ranking.</p>
+<p><strong>Break-even efficiency.</strong> The one structural advantage B has is steadier running (more B 85, fewer bends), and a constant-η model undervalues steady-state running for combustion engines. Quantified: B would need a <strong>9.5–11.4 % lower cost</strong> to match A, while its modelled per-100 km advantage is already 5.4–7.5 % — so the <em>unmodelled</em> remainder would have to be another ~4–6 %. A realistic BSFC correction for the difference between these two road types is 2–3 %; a hybrid or EV is nearly indifferent to it. B falls short even under generous assumptions.</p>
+<p><strong>Winter on the pass.</strong> The genuine flip is not in the fuel model at all. Route A spends <strong>7.2 km above 650 m</strong> crossing the Eck saddle; simulating snow as a 50 km/h crawl up there actually <em>lowers</em> A's fuel cost (slower = less drag, €4.60 → €4.44) and adds only 3 minutes — fuel cannot flip it. What flips it is <strong>availability</strong>: with snowfall, chain requirements or a closure on the saddle, A, C and D are all out, because they all cross 843–859 m. <strong>Route B is the only route that stays below 600 m.</strong> That is its real role: not the cheaper route, but the all-weather one.</p>
+<p><strong>What does not move the ranking at all:</strong> fuel/electricity prices (scale all routes equally), payload (B climbs more, so extra mass favours A), a trailer (B's 12 % max grade is worse than A's 8.9 %), and value-of-time (A is also the fastest). Adding distance-proportional wear — entirely missing from the model, and at a typical 10–20 ct/km it is <em>larger</em> than the fuel cost — widens A's lead by a further €1–2 per trip.</p>
+<hr />
+<h2 id="12-outputs-how-to-regenerate">12. Outputs &amp; how to regenerate</h2>
 <pre><code class="language-bash"># 1. find candidate third routes (needs network: OSRM)
 python3 fetch_routes.py
 python3 fetch_routes.py --adopt bodenmais
 python3 fetch_routes.py --adopt regen
 
-# 2. download real terrain + OSM speed limits (needs network)
-python3 fetch_real_data.py --speed
+# 2. download real terrain + OSM speed limits + stop inventory (needs network)
+python3 fetch_real_data.py --speed --stops
 
 # 3. score candidates through the full model (needs network for new candidates)
 python3 screen_routes.py
@@ -936,7 +1058,7 @@ python3 render_docs.py
 </tr>
 <tr>
 <td><code>fetch_real_data.py</code></td>
-<td>downloads EU-DEM elevation and OSM speed limits</td>
+<td>downloads EU-DEM elevation, OSM speed limits and the stop-feature inventory</td>
 </tr>
 <tr>
 <td><code>fetch_routes.py</code></td>
@@ -975,16 +1097,20 @@ python3 render_docs.py
 <td>raw OSM tags per point (cached)</td>
 </tr>
 <tr>
+<td><code>data/stops_*.json</code></td>
+<td>measured stop-feature inventory per route (cached)</td>
+</tr>
+<tr>
 <td><code>data/eco_data_modelled_v1.json</code></td>
 <td>archived v1 bundle for the comparison</td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h2 id="12-known-limitations">12. Known limitations</h2>
+<h2 id="13-known-limitations">13. Known limitations</h2>
 <ul>
 <li><strong>The DEM samples terrain, not tarmac.</strong> Bridges, cuttings, embankments and a few metres of lateral track error all put the raster on the hillside instead of the road. This is the dominant uncertainty; see <a href="#41-why-300-m-and-not-25-m">section 4.1</a>. Integrated quantities are far more trustworthy than per-point grades.</li>
-<li><strong>Stops are estimated, not observed.</strong> The per-town stop counts are the weakest input. They shift time noticeably and energy slightly.</li>
+<li><strong>Stop behaviour is assumed, though the inventory is measured.</strong> Every signal, sign, roundabout and level crossing comes from OSM, but the probability of actually stopping at each is a documented per-class assumption. Section 11 shows even large errors here cannot reorder the routes.</li>
 <li><strong>Efficiency is a single constant per car</strong>, not a speed/load map. Real engines are markedly worse at low load, so the absolute consumption figures are indicative; the <em>differences between routes</em> are more reliable than the absolute numbers.</li>
 <li><strong>No traffic, weather, wind, payload or temperature.</strong> A cold engine on the first 10 km would add several percent; an EV in winter considerably more.</li>
 <li><strong>Routes C and D are routing-engine output</strong>, not tracks anyone drove. OSRM's chosen line through a town may differ slightly from what a driver would take.</li>

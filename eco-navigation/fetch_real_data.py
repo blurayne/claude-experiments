@@ -259,6 +259,98 @@ def speedlimits_for_route(key, gpx_path):
     }
 
 
+# ------------------------------------------------------------ stop features
+# Per-kind snap radius: a signalised junction is wide, so its nodes may sit
+# 20-30 m from the driven line; stop/give-way signs apply to a single approach
+# and must sit basically on the roadway to be ours rather than a side road's.
+STOP_SNAP_M = {"stop": 12.0, "give_way": 12.0}
+STOP_SNAP_DEFAULT = 30.0
+STOP_CLUSTER_M = 60.0     # same-kind features closer than this = one junction
+
+
+def stops_for_route(key, gpx_path):
+    """Fetch the stop-feature inventory along the track from OSM.
+
+    Traffic signals, stop signs, give-way signs, mini-roundabouts, railway
+    level crossings (nodes) and roundabouts (ways, via their centre) are
+    snapped to the 25 m grid. The *inventory* is measured; what a driver does
+    at each feature (probability of stopping, speed through a roundabout) is
+    a modelled assumption applied later in model.py.
+    """
+    pts = read_gpx(gpx_path)
+    rs, _total = resample(pts, STEP_M)
+    lats = [p[0] for p in rs]
+    lons = [p[1] for p in rs]
+    pad = 0.003
+    bbox = (min(lats) - pad, min(lons) - pad, max(lats) + pad, max(lons) + pad)
+    q = ("[out:json][timeout:90];("
+         "node(%f,%f,%f,%f)[highway~'^(traffic_signals|stop|give_way|mini_roundabout)$'];"
+         "node(%f,%f,%f,%f)[railway=level_crossing];"
+         "way(%f,%f,%f,%f)[junction=roundabout];"
+         ");out center;" % (bbox + bbox + bbox))
+    url = "https://overpass-api.de/api/interpreter?data=" + urllib.parse.quote(q)
+    print(f"  {key}: querying Overpass for stop features")
+    js = http_get(url, timeout=150, retries=6)
+
+    # spatial hash of grid points for O(n) snapping
+    CELL = 0.0025
+    grid = {}
+    for i, p in enumerate(rs):
+        grid.setdefault((int(p[0] / CELL), int(p[1] / CELL)), []).append(i)
+
+    feats = []
+    for e in js.get("elements", []):
+        lat = e.get("lat") or e.get("center", {}).get("lat")
+        lon = e.get("lon") or e.get("center", {}).get("lon")
+        if lat is None:
+            continue
+        tags = e.get("tags", {})
+        if tags.get("junction") == "roundabout":
+            kind = "roundabout"
+        else:
+            kind = tags.get("highway") or tags.get("railway")
+        limit = STOP_SNAP_M.get(kind, STOP_SNAP_DEFAULT)
+        best, bd = None, limit
+        cx, cy = int(lat / CELL), int(lon / CELL)
+        for dx in (-1, 0, 1):
+            for dy in (-1, 0, 1):
+                for i in grid.get((cx + dx, cy + dy), []):
+                    d = hav((lat, lon), (rs[i][0], rs[i][1]))
+                    if d < bd:
+                        bd, best = d, i
+        if best is not None:
+            feats.append({"dist_m": round(rs[best][2], 1), "kind": kind,
+                          "lat": round(lat, 6), "lon": round(lon, 6)})
+
+    # cluster same-kind features within STOP_CLUSTER_M of road (one junction
+    # carries several signal heads), and drop give-way signs that are just a
+    # roundabout entry already counted as the roundabout itself.
+    feats.sort(key=lambda f: f["dist_m"])
+    kept, last = [], {}
+    round_d = [f["dist_m"] for f in feats if f["kind"] == "roundabout"]
+    for f in feats:
+        k = f["kind"]
+        if k in last and f["dist_m"] - last[k] < STOP_CLUSTER_M:
+            last[k] = f["dist_m"]
+            continue
+        last[k] = f["dist_m"]
+        if k == "give_way" and any(abs(f["dist_m"] - rd) < 40 for rd in round_d):
+            continue
+        kept.append(f)
+
+    counts = {}
+    for f in kept:
+        counts[f["kind"]] = counts.get(f["kind"], 0) + 1
+    print(f"    {len(kept)} distinct stop features: "
+          + ", ".join(f"{v} {k}" for k, v in sorted(counts.items())))
+    return {
+        "route": key,
+        "source": "OpenStreetMap via Overpass API (nodes + roundabout ways)",
+        "counts": counts,
+        "features": kept,
+    }
+
+
 # --------------------------------------------------------------------- main
 def route_key(fn):
     return fn[len("route_"):-len(".gpx")] if fn.startswith("route_") else fn[:-4]
@@ -271,6 +363,10 @@ def main():
                     help="opentopodata dataset (eudem25m, srtm30m, mapzen…)")
     ap.add_argument("--speed", action="store_true",
                     help="also fetch OSM maxspeed via Overpass")
+    ap.add_argument("--stops", action="store_true",
+                    help="also fetch the OSM stop-feature inventory "
+                         "(signals, stop/give-way signs, roundabouts, "
+                         "level crossings)")
     ap.add_argument("--force", action="store_true",
                     help="refetch even if a cache file already exists")
     ap.add_argument("--no-cross-check", action="store_true")
@@ -310,6 +406,17 @@ def main():
                 print(f"    wrote {os.path.relpath(outs, HERE)}")
             else:
                 print(f"  {key}: speed limits cached — use --force to refetch")
+
+        if args.stops:
+            outt = os.path.join(DATA, f"stops_{key}.json")
+            if args.force or not os.path.exists(outt):
+                data = stops_for_route(key, path)
+                with open(outt, "w") as f:
+                    json.dump(data, f)
+                print(f"    wrote {os.path.relpath(outt, HERE)}")
+                time.sleep(8.0)          # Overpass rate limit between routes
+            else:
+                print(f"  {key}: stop features cached — use --force to refetch")
 
     print("\nDone. Run `python3 build.py` to rebuild the model on the real data.")
 

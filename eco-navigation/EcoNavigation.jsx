@@ -225,8 +225,12 @@ function RouteSummary() {
             </div>
             <div style={{ fontSize: 11.5, color: C.dim, marginTop: 12,
               borderTop: `1px solid ${C.line}`, paddingTop: 8 }}>
-              ~<b style={{ color: C.ink }}>{r.stops_est}</b> modelled stops ·{" "}
-              {r.villages_passed.length} built-up areas ·{" "}
+              ~<b style={{ color: C.ink }}>{fmt(r.stops_est, 1)}</b> expected
+              stops{r.stops_measured && r.stop_inventory ? (
+                ` (OSM inventory: ${r.stop_inventory.traffic_signals || 0} signals · ` +
+                `${r.stop_inventory.roundabout || 0} roundabouts · ` +
+                `${r.stop_inventory.level_crossing || 0} level crossings)`
+              ) : " (modelled)"} ·{" "}
               <b style={{ color: C.ink }}>{r.elev_samples}</b> real elevation
               samples · {r.osm_limit_pct}% of speed limits from OSM
             </div>
@@ -844,13 +848,15 @@ function WhatChanged() {
           </ul>
           <div style={{ marginTop: 10 }}>
             The effect on cost splits neatly by drivetrain: the{" "}
-            <b style={{ color: C.good }}>hybrid and the EV got slightly cheaper</b>{" "}
-            (−1 to −3 %), because real descents are long enough to hand energy back
+            <b style={{ color: C.good }}>hybrid and the EV are essentially
+            unchanged</b> (−2 to +1 %), because real descents hand energy back
             through regenerative braking, while the{" "}
             <b style={{ color: C.bad }}>three cars without regen got dearer</b>{" "}
-            (+2 to +12 %) — they buy every metre of climb with fuel and throw it
-            away again as brake heat. The overall verdict did not move:{" "}
-            <b>Route A still wins for all five cars.</b>
+            (+4 to +16 %) — they buy every metre of climb with fuel and throw it
+            away again as brake heat. (A small part of the shift also comes from
+            the stop model: the measured OSM inventory found more stop-causing
+            features than the old per-town guess.) The overall verdict did not
+            move: <b>Route A still wins for all five cars.</b>
           </div>
         </div>
       </Card>
@@ -915,12 +921,15 @@ function Verdict() {
           candidate through the full energy model. At{" "}
           €{RES.bodenmais.auris.cost_eur.toFixed(2)} it beats the existing route B
           (€{RES.koetzting.auris.cost_eur.toFixed(2)}) on{" "}
-          <b>cost for all five cars, and on time, distance, curviness and
-          stops</b> — though it climbs marginally more in total (1 060 m vs
-          1 050 m) and crosses a far higher summit. So it is a genuinely better
+          <b>cost for all five cars, and on time, distance and curviness</b> —
+          though it climbs marginally more in total (1 060 m vs 1 050 m),
+          crosses a far higher summit, and the measured OSM stop inventory puts
+          the two routes level on expected stops (
+          {fmt(ROUTES.bodenmais.stops_est, 1)} vs{" "}
+          {fmt(ROUTES.koetzting.stops_est, 1)}). So it is a genuinely better
           alternative than B, just not better than A, which stays €{gap} cheaper.{" "}
           {routeShort("regen")} is the most distinct corridor of the four and has
-          the fewest stops, but its extra climbing makes it the dearest.
+          the fewest expected stops, but its extra climbing makes it the dearest.
         </div>
         <div style={{ marginTop: 10 }}>
           <b style={{ color: C.climb }}>The mountains are a sixth of the fuel

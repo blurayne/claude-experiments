@@ -87,9 +87,10 @@ def main():
             sys.exit(f"missing data/elevation_{stem}.json — run "
                      f"`python3 fetch_real_data.py` first (it needs network)")
         osm = load_json(os.path.join(DATA, f"speedlimits_{stem}.json"))
+        stops = load_json(os.path.join(DATA, f"stops_{stem}.json"))
 
         r = build_route(key, name, color, read_gpx(gpx),
-                        ele_raw=elev["ele_m"], osm=osm)
+                        ele_raw=elev["ele_m"], osm=osm, stops=stops)
         r["elev_source"] = elev["source"]
         r["elev_samples"] = elev["n"]
         r["elev_cross_check"] = elev.get("cross_check")
@@ -159,8 +160,11 @@ def main():
                              "25 m along each track, de-spiked and smoothed",
                 "speed_limits": "REAL — OpenStreetMap maxspeed via Overpass, "
                                 "with German StVO defaults where untagged",
-                "stops": "MODELLED — per built-up area estimate of lights and "
-                         "give-way junctions a through driver stops at",
+                "stops": "MEASURED inventory — OSM traffic signals, stop/"
+                         "give-way signs, roundabouts and level crossings "
+                         "snapped to each track; the per-class probability of "
+                         "actually stopping is a documented assumption "
+                         "(e.g. 45% per signal)",
                 "energy_model": "MODELLED — longitudinal vehicle physics, "
                                 "calibrated to typical real-world consumption",
                 "mountain_curve_metrics": "MODELLED — counterfactual re-runs of "
@@ -176,6 +180,8 @@ def main():
         "routes": {k: {
             "key": k, "name": r["name"], "short": SHORT[k], "color": r["color"],
             "total_km": r["total_km"], "stops_est": r["stops_est"],
+            "stops_measured": r["stops_measured"],
+            "stop_inventory": r["stop_inventory"],
             "villages_passed": r["villages_passed"],
             "curviness": r["curviness"], "elev_stats": r["elev_stats"],
             "elev_source": r["elev_source"], "elev_samples": r["elev_samples"],
@@ -268,8 +274,14 @@ def main():
         print(f"   curviness : {cv['deg_per_km']}°/km (index {cv['curviness_index']}"
               f"/100), {cv['bends_per_km']} bends/km, median R "
               f"{cv['median_curve_radius_m']} m, tightest {cv['min_curve_radius_m']} m")
-        print(f"   limits    : {r['osm_limit_pct']}% of points from real OSM tags, "
-              f"{r['stops_est']} modelled stops")
+        if r["stops_measured"]:
+            inv = ", ".join(f"{v} {k}" for k, v in sorted(r["stop_inventory"].items()))
+            print(f"   limits    : {r['osm_limit_pct']}% of points from real OSM "
+                  f"tags; {r['stops_est']} expected stops from measured "
+                  f"inventory ({inv})")
+        else:
+            print(f"   limits    : {r['osm_limit_pct']}% of points from real OSM "
+                  f"tags, {r['stops_est']} modelled stops (fallback guess)")
         for c in CARS:
             res = results[k][c["id"]]
             m, cu = res["mountain"], res["curves"]
