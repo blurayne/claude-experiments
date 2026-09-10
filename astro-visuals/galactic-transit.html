@@ -92,7 +92,7 @@ function installErrorCollector(){
  * property of the machine that loaded the page. The parity harness pins TZ for that reason.
  */
 
-const BUILD = { version: '3.9.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '3.10.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -5135,26 +5135,49 @@ function initHudControls(deps
     }), 260);
   });
   {
-    // One button, two meanings, told apart by counting: a run of taps that ends below ten
-    // toggles the About dialog, a run that reaches ten toggles the debug door and the
-    // choice outlives the reload. Nothing happens until the tapping stops, which is what
-    // makes the count possible at all: the dialog is toggled here, not on the click.
+    // One button, two meanings, told apart by patience. Tap it and the About dialog
+    // toggles — after a beat, because the beat is what lets the other meaning exist.
+    // Tap twice more and HOLD the third for five seconds and the debug door opens:
+    // long enough that nobody finds it by accident, and it announces itself while you
+    // wait, glowing from the third second in warning yellow so you know something is
+    // going to happen and can let go if you did not mean it.
     const b = $('tInfo');
     let taps = 0, tapTimer                                       = null;
+    let holdT                                       = null;
+    let warnT                                       = null;
+    let fired = false;
+    const endHold = ()       => {
+      if(holdT !== null){ clearTimeout(holdT); holdT = null; }
+      if(warnT !== null){ clearTimeout(warnT); warnT = null; }
+      b.classList.remove('holding','holdWarn');
+    };
+    b.addEventListener('pointerdown', ()=>{
+      fired = false;
+      if(taps < 2) return;                    // only the third press in a run may be held
+      // Hold the pending dialog back. Let it open and it covers the button, the browser
+      // fires pointerleave on a control it can no longer see, and the hold cancels itself
+      // three seconds in — which is exactly how this failed the first time it was tried.
+      if(tapTimer !== null){ clearTimeout(tapTimer); tapTimer = null; }
+      b.classList.add('holding');
+      warnT = setTimeout(()=> b.classList.add('holdWarn'), 3000);
+      holdT = setTimeout(()=>{
+        fired = true; endHold(); taps = 0;
+        if(tapTimer !== null){ clearTimeout(tapTimer); tapTimer = null; }
+        flash('flash10');
+        const on = !isDebugMode();
+        setDebugUI(on, true);
+        try{ localStorage.setItem(DBGKEY, on ? '1' : '0'); }catch(err){}
+      }, 5000);
+    });
+    for(const ev of ['pointerup','pointercancel','pointerleave']) b.addEventListener(ev, endHold);
     b.addEventListener('click', ()=>{
+      if(fired){ fired = false; return; }     // the hold already spoke; the click is its echo
       taps++;
-      if(taps === 10) flash('flash10');
       if(tapTimer !== null) clearTimeout(tapTimer);
       tapTimer = setTimeout(()=>{
-        const n = taps; taps = 0;
-        if(n >= 10){
-          const on = !isDebugMode();
-          setDebugUI(on, true);
-          try{ localStorage.setItem(DBGKEY, on ? '1' : '0'); }catch(err){}
-        } else {
-          const m = $('infoModal');
-          m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
-        }
+        taps = 0;
+        const m = $('infoModal');
+        m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
       }, 340);
     });
   }
@@ -7868,6 +7891,15 @@ startFrameLoop({
   #dbgPanel .row span{flex:0 0 auto}
   #dbgPanel .chks{margin-top:2px}
   #dbgPanel textarea{margin-top:2px}
+  /* The debug dot wears a bug, and it is the only red thing in the dock: debug mode is a
+     state you should be able to see you are in from across the room. */
+  .pdot.bug{color:#ff5a5a}
+  .pdot.bug svg{fill:currentColor}
+  .pdot.bug:hover{color:#ff8080}
+  /* The collapse "−" is a bare glyph: the global button hover glow would draw a box
+     around it, which reads as a border on a control that has none. It brightens instead. */
+  .pclose:hover, #collapse:hover{animation:none;box-shadow:none;color:var(--accent);outline:none}
+  .pclose:focus-visible, #collapse:focus-visible{outline:1px solid var(--line);outline-offset:1px}
 /* The modal surfaces: the debug card, the first-run tour, the info dialog and the deep-time
    table and chart inside it.
    
@@ -7972,9 +8004,6 @@ startFrameLoop({
   #infoClose{position:absolute;top:10px;right:12px;background:none;border:0;color:var(--dim);cursor:pointer;
     font-size:16px;font-family:inherit}
   #infoClose:hover{color:var(--accent)}
-  /* the "?" stands above the dialog it opens: it toggles, and the ten-tap debug gesture
-     needs the button to stay reachable while the dialog is up */
-  #tInfo{z-index:22}
 /* The heads-up layer: the frames-per-second box, the 3-D labels, the alert boxes, the status
    bar, and the tooltip.
    
@@ -8053,7 +8082,15 @@ startFrameLoop({
     50%{box-shadow:0 0 12px 3px rgba(95,216,255,.5)}}
   @media (prefers-reduced-motion: reduce){
     button:hover{animation:none;box-shadow:0 0 8px 2px rgba(95,216,255,.35)}
-  }</style>
+  }
+  /* The debug hold: the "?" glows while it is held down, and turns warning-yellow from
+     the third second so the five-second door announces itself before it opens. */
+  #tInfo.holding{animation:holdGlow .9s ease-in-out infinite}
+  #tInfo.holdWarn{animation:holdGlowWarn .55s ease-in-out infinite;color:#ffd24a}
+  @keyframes holdGlow{0%,100%{box-shadow:0 0 5px 1px rgba(95,216,255,.35)}
+    50%{box-shadow:0 0 14px 4px rgba(95,216,255,.75)}}
+  @keyframes holdGlowWarn{0%,100%{box-shadow:0 0 6px 2px rgba(255,210,74,.45)}
+    50%{box-shadow:0 0 18px 6px rgba(255,210,74,.95)}}</style>
 </head>
 <body>
 <canvas id="gl"></canvas>
@@ -8233,6 +8270,7 @@ startFrameLoop({
         <a href="https://www.nature.com/articles/nature.2014.15329" target="_blank" rel="noopener">"Galactic collision gave Andromeda its arms"</a> (Nature News, 2014)</li>
       <li>Cox &amp; Loeb 2008 — Milkomeda; <a href="https://www.nature.com/articles/s41550-025-02563-1" target="_blank" rel="noopener">Sawala et&nbsp;al. 2025</a> — ~50% merger odds (the drawn track is their merging-half median); arXiv:2603.22863 (2026) — the ~90% reanalysis whose band the track sits in</li>
       <li>Berski &amp; Dybczyński 2016 — Gliese 710's pass; Shaviv and Svensmark — the contested cosmic-ray/climate hypothesis the ice ages follow, flagged as such</li>
+      <li><a href="https://people.astro.unistra.fr/f.renaud/vintergatan.php" target="_blank" rel="noopener"><b>VINTERGATAN</b></a> (Agertz, Renaud et&nbsp;al.) — the cosmological zoom simulation behind the assembly scenario: the contracting, thickened, merger-scrambled young disk, and the Gaia-Enceladus convulsion</li>
       <li><a href="https://www.mpe.mpg.de/7978605/news20231214" target="_blank" rel="noopener"><b>eROSITA</b> / MPE</a> — the million-degree circumgalactic gas the <b>hot halo</b> switch draws: a spherical halo to ~100&nbsp;kpc holding most of the Galaxy's ordinary matter, and the brighter disk-like component ~7&nbsp;kpc across and ~1&nbsp;kpc thick inside it</li>
       <li>Images: Spitzer sig06-025 (NASA/JPL-Caltech/D.&nbsp;Block) and ssc2006-14a (P.&nbsp;Barmby); NASA/CXC — M31's core; AURA/NOAO/NSF — the LMC; ESO/DSS2 — the SMC; A.&nbsp;Meleg (CC&nbsp;BY-SA) — M33; the
         <a href="https://www.messier-objects.com/messier-31-andromeda-galaxy/" target="_blank" rel="noopener">Messier Objects</a> guide</li>
@@ -8289,7 +8327,7 @@ startFrameLoop({
   <div class="row"><label for="focusSel">view</label><select id="focusSel"><option value="sun">Solar System</option><option value="earth">Earth</option><option value="moon">Moon</option><option value="pn">Anthropic Nebula</option><option value="mw">Milky Way</option><option value="and">Andromeda</option></select><button class="rowbtn" id="focusGo">GO</button>
     <label class="chk plain" style="margin-left:6px"><input type="checkbox" id="tSpinLock"> spin lock<button type="button" class="info" data-tip="The camera turns with what it watches. Following a planet it rides the spin — tick it to watch the plates drift. In the galaxy view it rides the spiral-arm pattern: the arms hold still while the stars and the ages sweep through them." aria-label="about spin lock">i</button></label></div>
 </div>
-<button class="pdot" id="simPlus" data-open="simPanel" title="simulation"><svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><path fill-rule="evenodd" d="M5,0.6 C7.43,0.6 9.4,2.57 9.4,5 C9.4,7.43 7.43,9.4 5,9.4 C2.57,9.4 0.6,7.43 0.6,5 C0.6,2.57 2.57,0.6 5,0.6 Z M5,1.9 C3.29,1.9 1.9,3.29 1.9,5 C1.9,6.71 3.29,8.1 5,8.1 C6.71,8.1 8.1,6.71 8.1,5 C8.1,3.29 6.71,1.9 5,1.9 Z"/><rect x="4.6" y="2.6" width="0.8" height="2.7"/><rect x="4.7" y="4.6" width="2.3" height="0.8"/></svg></button>
+<button class="pdot" id="simPlus" data-open="simPanel" title="simulation" aria-label="show the simulation panel"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.4 2.6c.3 3.4-.2 6.2-1.6 8.6-1.3 2.4-3.4 4.5-6.2 6.4L9.9 14 6.4 10.4c1.9-2.8 4-4.9 6.4-6.2 2.4-1.4 5.2-1.9 8.6-1.6Z"/><circle cx="15.4" cy="8.6" r="2.6" fill="#0b0f1a"/><path d="M7.6 4.4 10.5 7.3c-1.1 1.2-2 2.4-2.7 3.7L2.6 9.2c.9-1.9 2.6-3.5 5-4.8Z"/><path d="M19.6 16.4 16.7 13.5c-1.2 1.1-2.4 2-3.7 2.7l1.8 5.2c1.9-.9 3.5-2.6 4.8-5Z"/><path d="M8.6 13.4 10.6 15.4 7.2 18.8a1.1 1.1 0 0 1-1.6 0l-.4-.4a1.1 1.1 0 0 1 0-1.6Z"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5.6 12.2 2.4 15.4M8 14.6 4.8 17.8M10.4 17 7.2 20.2"/></g></svg></button>
 <div id="fpsBox" style="display:none"><span id="fpsVal">—</span></div>
 <div class="alertbox" id="iceBox">❄ GLACIAL EPOCH</div>
 <div class="alertbox" id="g710Box">☄ GLIESE 710 · <span id="eG710d">—</span></div>
@@ -8328,7 +8366,7 @@ startFrameLoop({
   </div>
   </div>
 </div>
-<button class="pdot" id="dbgPlus" data-open="dbgPanel" style="display:none" aria-label="show the debug panel">&#9881;</button>
+<button class="pdot bug" id="dbgPlus" data-open="dbgPanel" style="display:none" aria-label="show the debug panel" title="debug"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6.6c2.32 0 4.2 2.28 4.2 5.1v3.2c0 2.82-1.88 5.1-4.2 5.1s-4.2-2.28-4.2-5.1v-3.2c0-2.82 1.88-5.1 4.2-5.1Z"/><path d="M12 5.9c1.6 0 2.9 1.05 2.9 2.35H9.1C9.1 6.95 10.4 5.9 12 5.9Z"/><rect x="11.6" y="6.2" width="0.8" height="13.6" fill="#0b0f1a"/><g stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"><path d="M9.9 5.2 8.6 2.7M14.1 5.2l1.3-2.5M7.6 9.6 5.2 8.3 4.3 6.1M16.4 9.6l2.4-1.3 0.9-2.2M7.3 13.4H4.2l-1.9-1.7M16.7 13.4h3.1l1.9-1.7M7.7 17.1 5.4 18.4 4.6 20.8M16.3 17.1l2.3 1.3 0.8 2.4"/></g></svg></button>
 <div id="scaleNote">
   <div class="sbar"><span class="sfill" id="sFill"></span><i class="stk"></i><i class="stk mid" id="sTkMid"></i><i class="stk end" id="sTkEnd"></i></div>
   <div class="slab"><span>0</span><span class="mid" id="sHalf">—</span><span class="end" id="sEnd">—</span><em id="sUnit">—</em></div>

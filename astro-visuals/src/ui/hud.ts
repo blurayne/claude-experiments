@@ -509,26 +509,49 @@ export function initHudControls(deps: {
     }), 260);
   });
   {
-    // One button, two meanings, told apart by counting: a run of taps that ends below ten
-    // toggles the About dialog, a run that reaches ten toggles the debug door and the
-    // choice outlives the reload. Nothing happens until the tapping stops, which is what
-    // makes the count possible at all: the dialog is toggled here, not on the click.
+    // One button, two meanings, told apart by patience. Tap it and the About dialog
+    // toggles — after a beat, because the beat is what lets the other meaning exist.
+    // Tap twice more and HOLD the third for five seconds and the debug door opens:
+    // long enough that nobody finds it by accident, and it announces itself while you
+    // wait, glowing from the third second in warning yellow so you know something is
+    // going to happen and can let go if you did not mean it.
     const b = $('tInfo');
     let taps = 0, tapTimer: ReturnType<typeof setTimeout> | null = null;
+    let holdT: ReturnType<typeof setTimeout> | null = null;
+    let warnT: ReturnType<typeof setTimeout> | null = null;
+    let fired = false;
+    const endHold = (): void => {
+      if(holdT !== null){ clearTimeout(holdT); holdT = null; }
+      if(warnT !== null){ clearTimeout(warnT); warnT = null; }
+      b.classList.remove('holding','holdWarn');
+    };
+    b.addEventListener('pointerdown', ()=>{
+      fired = false;
+      if(taps < 2) return;                    // only the third press in a run may be held
+      // Hold the pending dialog back. Let it open and it covers the button, the browser
+      // fires pointerleave on a control it can no longer see, and the hold cancels itself
+      // three seconds in — which is exactly how this failed the first time it was tried.
+      if(tapTimer !== null){ clearTimeout(tapTimer); tapTimer = null; }
+      b.classList.add('holding');
+      warnT = setTimeout(()=> b.classList.add('holdWarn'), 3000);
+      holdT = setTimeout(()=>{
+        fired = true; endHold(); taps = 0;
+        if(tapTimer !== null){ clearTimeout(tapTimer); tapTimer = null; }
+        flash('flash10');
+        const on = !isDebugMode();
+        setDebugUI(on, true);
+        try{ localStorage.setItem(DBGKEY, on ? '1' : '0'); }catch(err){}
+      }, 5000);
+    });
+    for(const ev of ['pointerup','pointercancel','pointerleave']) b.addEventListener(ev, endHold);
     b.addEventListener('click', ()=>{
+      if(fired){ fired = false; return; }     // the hold already spoke; the click is its echo
       taps++;
-      if(taps === 10) flash('flash10');
       if(tapTimer !== null) clearTimeout(tapTimer);
       tapTimer = setTimeout(()=>{
-        const n = taps; taps = 0;
-        if(n >= 10){
-          const on = !isDebugMode();
-          setDebugUI(on, true);
-          try{ localStorage.setItem(DBGKEY, on ? '1' : '0'); }catch(err){}
-        } else {
-          const m = $('infoModal');
-          m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
-        }
+        taps = 0;
+        const m = $('infoModal');
+        m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
       }, 340);
     });
   }

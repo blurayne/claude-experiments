@@ -77,3 +77,11 @@
   @media (prefers-reduced-motion: reduce){
     button:hover{animation:none;box-shadow:0 0 8px 2px rgba(95,216,255,.35)}
   }
+  /* The debug hold: the "?" glows while it is held down, and turns warning-yellow from
+     the third second so the five-second door announces itself before it opens. */
+  #tInfo.holding{animation:holdGlow .9s ease-in-out infinite}
+  #tInfo.holdWarn{animation:holdGlowWarn .55s ease-in-out infinite;color:#ffd24a}
+  @keyframes holdGlow{0%,100%{box-shadow:0 0 5px 1px rgba(95,216,255,.35)}
+    50%{box-shadow:0 0 14px 4px rgba(95,216,255,.75)}}
+  @keyframes holdGlowWarn{0%,100%{box-shadow:0 0 6px 2px rgba(255,210,74,.45)}
+    50%{box-shadow:0 0 18px 6px rgba(255,210,74,.95)}}

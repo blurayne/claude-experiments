@@ -238,3 +238,12 @@
   #dbgPanel .row span{flex:0 0 auto}
   #dbgPanel .chks{margin-top:2px}
   #dbgPanel textarea{margin-top:2px}
+  /* The debug dot wears a bug, and it is the only red thing in the dock: debug mode is a
+     state you should be able to see you are in from across the room. */
+  .pdot.bug{color:#ff5a5a}
+  .pdot.bug svg{fill:currentColor}
+  .pdot.bug:hover{color:#ff8080}
+  /* The collapse "−" is a bare glyph: the global button hover glow would draw a box
+     around it, which reads as a border on a control that has none. It brightens instead. */
+  .pclose:hover, #collapse:hover{animation:none;box-shadow:none;color:var(--accent);outline:none}
+  .pclose:focus-visible, #collapse:focus-visible{outline:1px solid var(--line);outline-offset:1px}
