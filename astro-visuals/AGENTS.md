@@ -216,8 +216,12 @@ dismissing the first-run tour **starts** the clock, so pausing has to come after
   reset button. The reload button: 1 tap refreshes past caches, 3 taps also resets
   settings, 10 taps toggles debug mode; feedback is a panel flash at each threshold,
   never a visible counter.
-- Debug mode (via `?debug` or ten taps, persisted) reveals the debug dialog button
-  and the tuning rows (`hud rate`, `Gaia brght`); everything else stays user-facing.
+- Debug mode (via `?debug`, the hold on the "?", or the "debug mode" checkbox under
+  Other — all persisted by its own flag, which survives a settings reset) opens the
+  debug panel and reveals the tuning rows (`hud rate`, `Gaia brght`); everything else
+  stays user-facing. Both doors go through `setDebugMode` in `ui/debug`, and the
+  checkbox mirrors the mode whichever way it was entered; it is deliberately NOT in
+  persist's id lists.
 - Three panels — Simulation, Earth (which carries the view control), Settings — live
   in two columns and are movable: dragging one inward switches its column, dragging it toward its own screen
   edge closes it, and both gestures read one pointer stream so mouse and finger behave

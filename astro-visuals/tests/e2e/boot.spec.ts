@@ -361,6 +361,47 @@ test.describe('the panels obey the pointer', () => {
   })
 })
 
+/**
+ * The debug switch under Other (v3.11.0). The hold on the "?" remains, but the mode is
+ * also a checkbox now — and both doors go through setDebugMode, so the box must mirror
+ * the mode whichever way it was entered, and flipping it must persist the flag that a
+ * settings reset deliberately keeps.
+ */
+test.describe('the debug switch', () => {
+  test('the checkbox flips the mode both ways and persists the flag', async ({ page }) => {
+    await page.goto('/galactic-transit.html', { waitUntil: 'load' })
+    await page.waitForFunction(() => !!document.getElementById('gl'))
+    const tour = page.locator('#tourGo')
+    if (await tour.isVisible().catch(() => false)) await tour.click()
+
+    // a plain boot arrives outside the mode: box unticked, tuning rows hidden
+    expect(await page.evaluate(() => (document.getElementById('tDebug') as HTMLInputElement).checked)).toBe(false)
+    expect(await page.evaluate(() => document.getElementById('rowHudHz')!.style.display)).toBe('none')
+
+    // ticking it is entering: the tuning rows appear, the debug panel opens, the flag is written
+    await page.evaluate(() => {
+      const c = document.getElementById('tDebug') as HTMLInputElement
+      c.checked = true; c.dispatchEvent(new Event('change'))
+    })
+    expect(await page.evaluate(() => document.getElementById('rowHudHz')!.style.display)).toBe('')
+    expect(await page.evaluate(() => localStorage.getItem('galactic-transit.debug'))).toBe('1')
+
+    // unticking leaves the mode and remembers that too
+    await page.evaluate(() => {
+      const c = document.getElementById('tDebug') as HTMLInputElement
+      c.checked = false; c.dispatchEvent(new Event('change'))
+    })
+    expect(await page.evaluate(() => document.getElementById('rowHudHz')!.style.display)).toBe('none')
+    expect(await page.evaluate(() => localStorage.getItem('galactic-transit.debug'))).toBe('0')
+  })
+
+  test('a ?debug boot arrives with the box already ticked', async ({ page }) => {
+    await page.goto('/galactic-transit.html?debug', { waitUntil: 'load' })
+    await page.waitForFunction(() => !!document.getElementById('gl'))
+    expect(await page.evaluate(() => (document.getElementById('tDebug') as HTMLInputElement).checked)).toBe(true)
+  })
+})
+
 test.describe('the panels dock', () => {
   test('a downward swipe parks a panel at the foot of its column, an upward one brings it back', async ({ page }) => {
     await page.setViewportSize({ width: 1300, height: 950 })

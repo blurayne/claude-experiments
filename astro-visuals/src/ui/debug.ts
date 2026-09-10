@@ -86,8 +86,18 @@ function openLogSection(): void {
   }
   renderLog(); fitPanels();
 }
+/**
+ * The one entry to the mode: flips the UI and persists the flag. The gesture on the "?"
+ * and the "debug mode" checkbox under Other both land here, so they cannot disagree.
+ */
+export function setDebugMode(on: boolean, entering: boolean): void {
+  setDebugUI(on, entering);
+  try{ localStorage.setItem(DBGKEY, on ? '1' : '0'); }catch(e){}
+}
 export function setDebugUI(on: boolean, entering: boolean): void {
   debugMode = on;
+  // the checkbox under Other mirrors the mode, whichever door it was entered by
+  ($('tDebug') as HTMLInputElement).checked = on;
   $('rowHudHz').style.display = on ? '' : 'none';
   $('rowGain').style.display = on ? '' : 'none';
   // the log is what debug mode is usually entered for, so entering opens on it
@@ -138,6 +148,13 @@ export function initDebug(deps: {
 }): void {
   restoreSettings = deps.restoreSettings; fitPanels = deps.fitPanels;
   initDebugSections();
+  // The switch under Other. Not in persist's id lists: the mode rides its own flag, which
+  // deliberately survives a settings reset. Switching it ON is entering — the panel and
+  // the log open exactly as they do for the hold gesture.
+  $('tDebug').addEventListener('change', ()=>{
+    const on = ($('tDebug') as HTMLInputElement).checked;
+    setDebugMode(on, on);
+  });
   $('logClear').addEventListener('click', ()=>{ errLog.length = 0; renderLog(); });
   $('logCopy').addEventListener('click', ()=>{
     const txt = 'galactic-transit ' + BUILD.version + ' · ' + navigator.userAgent + '\n'

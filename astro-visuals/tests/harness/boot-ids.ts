@@ -25,7 +25,7 @@ export const BOOT_IDS = [
   'labels',
   // ui/debug
   'dbgCopy', 'dbgExport', 'dbgImport', 'dbgMsg', 'dbgPaste',
-  'dbgText', 'logBody', 'logClear', 'logCopy', 'logCount', 'logList', 'logNote',
+  'dbgText', 'logBody', 'logClear', 'logCopy', 'logCount', 'logList', 'logNote', 'tDebug',
   // ui/dialogs
   'buildInfo', 'buildStamp', 'infoClose', 'infoModal', 'pct', 'tInfo', 'tourAgain', 'verInfo',
   'yrs',

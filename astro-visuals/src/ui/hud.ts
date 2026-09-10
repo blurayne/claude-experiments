@@ -1,6 +1,6 @@
 import { $, $v } from '../core/dom'
 import { BUILD, VERSION, BUILD_LINE } from '../core/build'
-import { DBGKEY, setDebugUI, isDebugMode } from './debug'
+import { DBGKEY, setDebugMode, isDebugMode } from './debug'
 import { refillTrails, TRAIL_N } from '../render/trails'
 
 /** the control an event came from, typed. Every listener here is bound to one. */
@@ -538,9 +538,7 @@ export function initHudControls(deps: {
         fired = true; endHold(); taps = 0;
         if(tapTimer !== null){ clearTimeout(tapTimer); tapTimer = null; }
         flash('flash10');
-        const on = !isDebugMode();
-        setDebugUI(on, true);
-        try{ localStorage.setItem(DBGKEY, on ? '1' : '0'); }catch(err){}
+        setDebugMode(!isDebugMode(), true);
       }, 5000);
     });
     for(const ev of ['pointerup','pointercancel','pointerleave']) b.addEventListener(ev, endHold);
