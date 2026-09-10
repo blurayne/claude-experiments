@@ -297,6 +297,45 @@
       } }, "~", /* @__PURE__ */ React.createElement("b", { style: { color: C.ink } }, fmt(r.stops_est, 1)), " expected stops", r.stops_measured && r.stop_inventory ? ` (OSM inventory: ${r.stop_inventory.traffic_signals || 0} signals \xB7 ${r.stop_inventory.roundabout || 0} roundabouts \xB7 ${r.stop_inventory.level_crossing || 0} level crossings)` : " (modelled)", " \xB7", " ", /* @__PURE__ */ React.createElement("b", { style: { color: C.ink } }, r.elev_samples), " real elevation samples \xB7 ", r.osm_limit_pct, "% of speed limits from OSM"));
     }));
   }
+  function WhichRoute() {
+    return /* @__PURE__ */ React.createElement("div", { style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit,minmax(420px,1fr))",
+      gap: 14
+    } }, ROUTE_KEYS.map((k) => {
+      const r = ROUTES[k];
+      if (!r.tldr) return null;
+      return /* @__PURE__ */ React.createElement(Card, { key: k, style: { borderLeft: `3px solid ${routeColor(k)}` } }, /* @__PURE__ */ React.createElement("div", { style: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "baseline",
+        gap: 8,
+        flexWrap: "wrap"
+      } }, /* @__PURE__ */ React.createElement("span", { style: {
+        fontSize: 14,
+        fontWeight: 700,
+        color: routeColor(k)
+      } }, routeShort(k)), /* @__PURE__ */ React.createElement("span", { style: {
+        fontSize: 12,
+        fontWeight: 700,
+        color: C.ink,
+        background: C.panelHi,
+        border: `1px solid ${C.line}`,
+        borderRadius: 20,
+        padding: "2px 10px"
+      } }, r.tldr.label)), /* @__PURE__ */ React.createElement("div", { style: {
+        fontSize: 12.5,
+        color: C.dim,
+        lineHeight: 1.55,
+        marginTop: 10
+      } }, /* @__PURE__ */ React.createElement("b", { style: { color: C.good } }, "Choose it if"), " ", /* @__PURE__ */ React.createElement("span", { style: { color: C.ink } }, r.tldr.choose_if)), /* @__PURE__ */ React.createElement("div", { style: {
+        fontSize: 12.5,
+        color: C.dim,
+        lineHeight: 1.55,
+        marginTop: 8
+      } }, /* @__PURE__ */ React.createElement("b", { style: { color: C.bad } }, "Think twice if"), " ", r.tldr.avoid_if));
+    }));
+  }
   function Profiles() {
     const [sel, setSel] = useState("all");
     const show = sel === "all" ? ROUTE_KEYS : [sel];
@@ -650,6 +689,101 @@
       } }, routeShort(k)), /* @__PURE__ */ React.createElement("td", { style: cell }, fmt(cv.deg_per_km, 1), " \xB0/km"), /* @__PURE__ */ React.createElement("td", { style: { ...cell, color: C.curve, fontWeight: 700 } }, fmt(cv.curviness_index, 1)), /* @__PURE__ */ React.createElement("td", { style: cell }, fmt(cv.bends_per_km, 1)), /* @__PURE__ */ React.createElement("td", { style: cell }, cv.median_curve_radius_m, " m"), /* @__PURE__ */ React.createElement("td", { style: cell }, cv.min_curve_radius_m, " m"), /* @__PURE__ */ React.createElement("td", { style: { ...cell, color: C.curve, fontWeight: 700 } }, "\u20AC", fmt(cu.cost_eur, 2)), /* @__PURE__ */ React.createElement("td", { style: cell }, "+", fmt(cu.time_min_lost, 0), " min"));
     }))), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11.5, color: C.dim, marginTop: 10 } }, /* @__PURE__ */ React.createElement("b", { style: { color: C.ink } }, "Curviness"), " is total heading change per kilometre, measured on a uniform 25 m grid so the CoMaps and OSRM tracks compare fairly; the ", /* @__PURE__ */ React.createElement("b", { style: { color: C.ink } }, "index"), " puts that on a 0\u2013100 scale where 300 \xB0/km is a genuinely serpentine mountain road.", " ", /* @__PURE__ */ React.createElement("b", { style: { color: C.ink } }, "Corner cost"), " and", " ", /* @__PURE__ */ React.createElement("b", { style: { color: C.ink } }, "time lost"), " come from re-running the same trip with the bend-radius speed cap removed, for the", " ", /* @__PURE__ */ React.createElement("b", { style: { color: C.ink } }, car.name), " \u2014 so they are what the corners cost in fuel and minutes, over and above the hills and the distance. Cars with regenerative braking pay far less, because the energy shed entering a bend comes back on the way out.")));
   }
+  const STOP_KINDS = [
+    ["traffic_signals", "Traffic signals", "#E06060"],
+    ["stop", "Stop signs", "#E8825A"],
+    ["give_way", "Give-way signs", "#E8B23A"],
+    ["level_crossing", "Level crossings", "#7FB7E8"],
+    ["roundabout", "Roundabouts (slow-through)", "#C792EA"]
+  ];
+  function StopTax({ carId }) {
+    const car = CARS.find((c) => c.id === carId);
+    const data = ROUTE_KEYS.map((k) => ({
+      route: routeShort(k),
+      ...ROUTES[k].stops_by_kind || {}
+    }));
+    const cell = {
+      padding: "7px 9px",
+      fontSize: 12.5,
+      borderBottom: `1px solid ${C.line}`,
+      textAlign: "right",
+      whiteSpace: "nowrap"
+    };
+    const head = {
+      ...cell,
+      color: C.faint,
+      fontWeight: 600,
+      textTransform: "uppercase",
+      fontSize: 10.5,
+      letterSpacing: ".04em"
+    };
+    return /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement(Card, { style: { marginBottom: 14 } }, /* @__PURE__ */ React.createElement("div", { style: {
+      fontSize: 13.5,
+      fontWeight: 600,
+      color: C.ink,
+      marginBottom: 6
+    } }, "Expected stop events per trip, by cause"), /* @__PURE__ */ React.createElement(ResponsiveContainer, { width: "100%", height: 230 }, /* @__PURE__ */ React.createElement(
+      BarChart,
+      {
+        data,
+        layout: "vertical",
+        margin: { top: 6, right: 16, bottom: 4, left: 22 }
+      },
+      /* @__PURE__ */ React.createElement(
+        CartesianGrid,
+        {
+          stroke: C.line,
+          strokeDasharray: "2 4",
+          horizontal: false
+        }
+      ),
+      /* @__PURE__ */ React.createElement(
+        XAxis,
+        {
+          type: "number",
+          tick: { fill: C.dim, fontSize: 11 },
+          stroke: C.line
+        }
+      ),
+      /* @__PURE__ */ React.createElement(
+        YAxis,
+        {
+          type: "category",
+          dataKey: "route",
+          width: 110,
+          tick: { fill: C.dim, fontSize: 11 },
+          stroke: C.line
+        }
+      ),
+      /* @__PURE__ */ React.createElement(
+        Tooltip,
+        {
+          contentStyle: {
+            background: C.bg,
+            border: `1px solid ${C.line}`,
+            borderRadius: 8,
+            fontSize: 12
+          },
+          formatter: (v, n) => [`${fmt(v, 1)} expected events`, n]
+        }
+      ),
+      /* @__PURE__ */ React.createElement(Legend, { wrapperStyle: { fontSize: 11.5 } }),
+      STOP_KINDS.map(([id, label, col]) => /* @__PURE__ */ React.createElement(Bar, { key: id, dataKey: id, name: label, stackId: "s", fill: col }))
+    )), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 12, color: C.dim, marginTop: 6 } }, "Real OSM inventory \xD7 the probability of the event firing (45 % per signal, 90 % per stop sign, 20 % per give-way, 10 % per level crossing; roundabouts always force a slow-through). Each event is priced from the modelled speed at that exact spot.")), /* @__PURE__ */ React.createElement(Card, { style: { overflowX: "auto" } }, /* @__PURE__ */ React.createElement("table", { style: {
+      borderCollapse: "collapse",
+      width: "100%",
+      minWidth: 640
+    } }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { style: { ...head, textAlign: "left" } }, "Route"), /* @__PURE__ */ React.createElement("th", { style: head }, "Signals"), /* @__PURE__ */ React.createElement("th", { style: head }, "Roundabouts"), /* @__PURE__ */ React.createElement("th", { style: head }, "Level crossings"), /* @__PURE__ */ React.createElement("th", { style: head }, "Expected stops"), /* @__PURE__ */ React.createElement("th", { style: head }, "Stop cost"), /* @__PURE__ */ React.createElement("th", { style: head }, "Time lost"))), /* @__PURE__ */ React.createElement("tbody", null, ROUTE_KEYS.map((k) => {
+      const inv = ROUTES[k].stop_inventory || {};
+      const st = RES[k][carId].stops;
+      return /* @__PURE__ */ React.createElement("tr", { key: k }, /* @__PURE__ */ React.createElement("td", { style: {
+        ...cell,
+        textAlign: "left",
+        fontWeight: 600,
+        color: routeColor(k)
+      } }, routeShort(k)), /* @__PURE__ */ React.createElement("td", { style: cell }, inv.traffic_signals || 0), /* @__PURE__ */ React.createElement("td", { style: cell }, (inv.roundabout || 0) + (inv.mini_roundabout || 0)), /* @__PURE__ */ React.createElement("td", { style: cell }, inv.level_crossing || 0), /* @__PURE__ */ React.createElement("td", { style: { ...cell, fontWeight: 700, color: C.ink } }, fmt(ROUTES[k].stops_est, 1)), /* @__PURE__ */ React.createElement("td", { style: { ...cell, color: "#E06060", fontWeight: 700 } }, "\u20AC", fmt(st.cost_eur, 2)), /* @__PURE__ */ React.createElement("td", { style: cell }, "+", fmt(st.time_min_lost, 1), " min"));
+    }))), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11.5, color: C.dim, marginTop: 10 } }, /* @__PURE__ */ React.createElement("b", { style: { color: C.ink } }, "Stop cost"), " is the third counterfactual: the same trip re-run on a ", /* @__PURE__ */ React.createElement("i", null, "green wave"), " \u2014 every signal green, every barrier open, every roundabout rolled through \u2014 for the", " ", /* @__PURE__ */ React.createElement("b", { style: { color: C.ink } }, car.name), ". The inventory is measured from OpenStreetMap; only the per-class stop probabilities are assumptions. Like the curve tax, stops cost a regen car mostly", " ", /* @__PURE__ */ React.createElement("i", null, "time"), ": the braking energy comes back out of the battery, and the standing time is what remains.")));
+  }
   const METRICS = [
     { id: "cost_eur", label: "Cost", unit: "\u20AC", d: 2 },
     { id: "per100", label: "Consumption", unit: "/100 km", d: 2, dyn: true },
@@ -732,7 +866,7 @@
       fontWeight: 600,
       color: C.ink,
       marginBottom: 8
-    } }, "All cars \xB7 all routes \xB7 per one-way trip"), /* @__PURE__ */ React.createElement("table", { style: { borderCollapse: "collapse", width: "100%", minWidth: 720 } }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { style: { ...head, textAlign: "left" } }, "Vehicle"), /* @__PURE__ */ React.createElement("th", { style: { ...head, textAlign: "left" } }, "Route"), /* @__PURE__ */ React.createElement("th", { style: head }, "per 100 km"), /* @__PURE__ */ React.createElement("th", { style: head }, "Used"), /* @__PURE__ */ React.createElement("th", { style: head }, "Cost"), /* @__PURE__ */ React.createElement("th", { style: head }, "CO\u2082"), /* @__PURE__ */ React.createElement("th", { style: head }, "Time"), /* @__PURE__ */ React.createElement("th", { style: head }, "of which hills"), /* @__PURE__ */ React.createElement("th", { style: head }, "of which bends"))), /* @__PURE__ */ React.createElement("tbody", null, CARS.map((c) => ROUTE_KEYS.map((k, i) => {
+    } }, "All cars \xB7 all routes \xB7 per one-way trip"), /* @__PURE__ */ React.createElement("table", { style: { borderCollapse: "collapse", width: "100%", minWidth: 820 } }, /* @__PURE__ */ React.createElement("thead", null, /* @__PURE__ */ React.createElement("tr", null, /* @__PURE__ */ React.createElement("th", { style: { ...head, textAlign: "left" } }, "Vehicle"), /* @__PURE__ */ React.createElement("th", { style: { ...head, textAlign: "left" } }, "Route"), /* @__PURE__ */ React.createElement("th", { style: head }, "per 100 km"), /* @__PURE__ */ React.createElement("th", { style: head }, "Used"), /* @__PURE__ */ React.createElement("th", { style: head }, "Cost"), /* @__PURE__ */ React.createElement("th", { style: head }, "CO\u2082"), /* @__PURE__ */ React.createElement("th", { style: head }, "Time"), /* @__PURE__ */ React.createElement("th", { style: head }, "of which hills"), /* @__PURE__ */ React.createElement("th", { style: head }, "of which bends"), /* @__PURE__ */ React.createElement("th", { style: head }, "of which stops"))), /* @__PURE__ */ React.createElement("tbody", null, CARS.map((c) => ROUTE_KEYS.map((k, i) => {
       const r = RES[k][c.id];
       const best = ROUTE_KEYS.reduce((a, b) => RES[b][c.id].cost_eur < RES[a][c.id].cost_eur ? b : a);
       return /* @__PURE__ */ React.createElement("tr", { key: c.id + k }, i === 0 && /* @__PURE__ */ React.createElement(
@@ -762,7 +896,7 @@
         ...cell,
         color: k === best ? C.good : C.ink,
         fontWeight: 700
-      } }, "\u20AC", fmt(r.cost_eur, 2)), /* @__PURE__ */ React.createElement("td", { style: cell }, fmt(r.co2_kg, 1), " kg"), /* @__PURE__ */ React.createElement("td", { style: cell }, fmt(r.time_min, 0), " min"), /* @__PURE__ */ React.createElement("td", { style: { ...cell, color: C.climb } }, "\u20AC", fmt(r.mountain.cost_eur, 2)), /* @__PURE__ */ React.createElement("td", { style: { ...cell, color: C.curve } }, "\u20AC", fmt(r.curves.cost_eur, 2)));
+      } }, "\u20AC", fmt(r.cost_eur, 2)), /* @__PURE__ */ React.createElement("td", { style: cell }, fmt(r.co2_kg, 1), " kg"), /* @__PURE__ */ React.createElement("td", { style: cell }, fmt(r.time_min, 0), " min"), /* @__PURE__ */ React.createElement("td", { style: { ...cell, color: C.climb } }, "\u20AC", fmt(r.mountain.cost_eur, 2)), /* @__PURE__ */ React.createElement("td", { style: { ...cell, color: C.curve } }, "\u20AC", fmt(r.curves.cost_eur, 2)), /* @__PURE__ */ React.createElement("td", { style: { ...cell, color: "#E06060" } }, "\u20AC", fmt(r.stops.cost_eur, 2)));
     })))), /* @__PURE__ */ React.createElement("div", { style: { fontSize: 11.5, color: C.dim, marginTop: 8 } }, "Cheapest route per car highlighted in green."));
   }
   function Annual() {
@@ -939,7 +1073,7 @@
       ["Village zones", p.village_zones, "rule"],
       ["Stops at lights", p.stops, "model"],
       ["Energy & consumption", p.energy_model, "model"],
-      ["Mountain & curve metrics", p.mountain_curve_metrics, "model"],
+      ["Mountain, curve & stop taxes", p.mountain_curve_metrics, "model"],
       ["Prices & CO\u2082", p.prices_co2, "model"]
     ];
     return /* @__PURE__ */ React.createElement(Card, null, /* @__PURE__ */ React.createElement("div", { style: {
@@ -1002,7 +1136,7 @@
           ...ROUTE_KEYS.map((k) => [k, routeShort(k), routeColor(k)])
         ]
       }
-    ), /* @__PURE__ */ React.createElement(RouteMap, { shown: mapSel }), /* @__PURE__ */ React.createElement("div", { style: { height: 14 } }), /* @__PURE__ */ React.createElement(RouteSummary, null), /* @__PURE__ */ React.createElement(SectionTitle, { hint: "Everything below the speed chart is measured, not assumed." }, "Profiles along the way"), /* @__PURE__ */ React.createElement(Profiles, null), /* @__PURE__ */ React.createElement(SectionTitle, { hint: "Pick a car \u2014 the split and both taxes are drivetrain-specific." }, "Where the energy actually goes"), /* @__PURE__ */ React.createElement(Pills, { value: car, onChange: setCar, options: carPills }), /* @__PURE__ */ React.createElement(EnergySplit, { carId: car }), /* @__PURE__ */ React.createElement(SectionTitle, { hint: "What the climbing costs, after the descents pay back everything they can." }, "The mountain tax \u26F0"), /* @__PURE__ */ React.createElement(MountainTax, { carId: car }), /* @__PURE__ */ React.createElement(SectionTitle, { hint: "How bendy each route is, and what those bends cost in fuel and minutes." }, "The curve tax \u219D"), /* @__PURE__ */ React.createElement(CurveTax, { carId: car }), /* @__PURE__ */ React.createElement(SectionTitle, { hint: "Per one-way trip. Switch the metric." }, "Energy, cost & CO\u2082 by car"), /* @__PURE__ */ React.createElement(Energy, null), /* @__PURE__ */ React.createElement(SectionTitle, { hint: "How the per-trip gap compounds if you drive it regularly." }, "Annual impact"), /* @__PURE__ */ React.createElement(Annual, null), /* @__PURE__ */ React.createElement(SectionTitle, { hint: "The same two routes, before and after the guessed terrain was replaced with measured terrain." }, "What the real elevation data changed"), /* @__PURE__ */ React.createElement(WhatChanged, null), /* @__PURE__ */ React.createElement(SectionTitle, null, "Verdict"), /* @__PURE__ */ React.createElement(Verdict, null), /* @__PURE__ */ React.createElement(SectionTitle, { hint: "What is measured vs. modelled \u2014 so you can trust each number for what it is." }, "Data provenance"), /* @__PURE__ */ React.createElement(Provenance, null), /* @__PURE__ */ React.createElement("div", { style: {
+    ), /* @__PURE__ */ React.createElement(RouteMap, { shown: mapSel }), /* @__PURE__ */ React.createElement("div", { style: { height: 14 } }), /* @__PURE__ */ React.createElement(RouteSummary, null), /* @__PURE__ */ React.createElement(SectionTitle, { hint: "The IF for each route \u2014 when it is the right choice, grounded in the measured data." }, "Which route, when?"), /* @__PURE__ */ React.createElement(WhichRoute, null), /* @__PURE__ */ React.createElement(SectionTitle, { hint: "Everything below the speed chart is measured, not assumed." }, "Profiles along the way"), /* @__PURE__ */ React.createElement(Profiles, null), /* @__PURE__ */ React.createElement(SectionTitle, { hint: "Pick a car \u2014 the split and both taxes are drivetrain-specific." }, "Where the energy actually goes"), /* @__PURE__ */ React.createElement(Pills, { value: car, onChange: setCar, options: carPills }), /* @__PURE__ */ React.createElement(EnergySplit, { carId: car }), /* @__PURE__ */ React.createElement(SectionTitle, { hint: "What the climbing costs, after the descents pay back everything they can." }, "The mountain tax \u26F0"), /* @__PURE__ */ React.createElement(MountainTax, { carId: car }), /* @__PURE__ */ React.createElement(SectionTitle, { hint: "How bendy each route is, and what those bends cost in fuel and minutes." }, "The curve tax \u219D"), /* @__PURE__ */ React.createElement(CurveTax, { carId: car }), /* @__PURE__ */ React.createElement(SectionTitle, { hint: "Red lights, signs, barriers and roundabouts \u2014 measured from OSM, priced per car." }, "The stop tax \u{1F6A6}"), /* @__PURE__ */ React.createElement(StopTax, { carId: car }), /* @__PURE__ */ React.createElement(SectionTitle, { hint: "Per one-way trip. Switch the metric." }, "Energy, cost & CO\u2082 by car"), /* @__PURE__ */ React.createElement(Energy, null), /* @__PURE__ */ React.createElement(SectionTitle, { hint: "How the per-trip gap compounds if you drive it regularly." }, "Annual impact"), /* @__PURE__ */ React.createElement(Annual, null), /* @__PURE__ */ React.createElement(SectionTitle, { hint: "The same two routes, before and after the guessed terrain was replaced with measured terrain." }, "What the real elevation data changed"), /* @__PURE__ */ React.createElement(WhatChanged, null), /* @__PURE__ */ React.createElement(SectionTitle, null, "Verdict"), /* @__PURE__ */ React.createElement(Verdict, null), /* @__PURE__ */ React.createElement(SectionTitle, { hint: "What is measured vs. modelled \u2014 so you can trust each number for what it is." }, "Data provenance"), /* @__PURE__ */ React.createElement(Provenance, null), /* @__PURE__ */ React.createElement("div", { style: {
       marginTop: 28,
       fontSize: 11.5,
       color: C.faint,

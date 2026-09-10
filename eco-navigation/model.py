@@ -384,12 +384,13 @@ def _to_fuel(car, net_prop, aux_J, total_km):
     }
 
 
-def run(route, car, grade=None, v=None):
+def run(route, car, grade=None, v=None, stop_events=None):
     """Integrate the longitudinal energy balance over the route.
 
-    `grade`/`v` override the route's own profiles — that is how the flat and
-    straight counterfactuals are produced. Returns raw energies in joules plus
-    a per-force-component breakdown of the positive (propulsive) work.
+    `grade`/`v`/`stop_events` override the route's own profiles — that is how
+    the flat, straight and green-wave counterfactuals are produced. Returns
+    raw energies in joules plus a per-force-component breakdown of the
+    positive (propulsive) work.
     """
     n = route["n"]
     dist = route["dist_m"]
@@ -432,7 +433,9 @@ def run(route, car, grade=None, v=None):
     # speed at the feature's actual position and the event fires with its
     # class probability; the fallback events approximate one full stop from
     # 50 km/h per guessed town feature.
-    for ev in route["stop_events"]:
+    if stop_events is None:
+        stop_events = route["stop_events"]
+    for ev in stop_events:
         v_app = v[ev["idx"]] if ev["idx"] is not None else 50 / 3.6
         v_to = ev["v_to"]
         if v_app <= v_to:
@@ -476,12 +479,20 @@ def simulate(route, car):
     strt = run(route, car, v=v_straight)
     strt_fuel = _to_fuel(car, strt["net_prop"], strt["aux_J"], total_km)
 
+    # --- counterfactual 3: the same trip on a green wave ----------------
+    # Identical road, terrain and speeds, but every stop feature lets the car
+    # roll through: no red lights, no closed barriers, no braking for
+    # roundabouts. The difference is what the stops cost in fuel and minutes.
+    nostop = run(route, car, stop_events=[])
+    nostop_fuel = _to_fuel(car, nostop["net_prop"], nostop["aux_J"], total_km)
+
     W = base["W"]
     prop = max(base["E_prop"], 1e-9)
     j2kwh = 1 / 3.6e6
 
     mountain_amount = out["amount"] - flat_fuel["amount"]
     curve_amount = out["amount"] - strt_fuel["amount"]
+    stop_amount = out["amount"] - nostop_fuel["amount"]
 
     return {
         "car_id": car["id"], "route": route["key"],
@@ -522,6 +533,18 @@ def simulate(route, car):
                                  / max(out["amount"], 1e-9), 1),
             "straight_per100": round(strt_fuel["per100"], 2),
             "time_min_lost": round((base["t"] - strt["t"]) / 60.0, 1),
+        },
+        # --- NEW: the stop tax ---
+        "stops": {
+            "amount": round(stop_amount, 2),
+            "unit": out["unit"],
+            "cost_eur": round(out["cost_eur"] - nostop_fuel["cost_eur"], 2),
+            "co2_kg": round(out["co2_kg"] - nostop_fuel["co2_kg"], 2),
+            "pct_of_trip": round(100.0 * stop_amount
+                                 / max(out["amount"], 1e-9), 1),
+            "green_per100": round(nostop_fuel["per100"], 2),
+            "time_min_lost": round((base["t"] - nostop["t"]) / 60.0, 1),
+            "expected_stops": route["stops_est"],
         },
     }
 
@@ -567,6 +590,10 @@ def build_route(key, name, color, pts, ele_raw=None, osm=None, stops=None):
         # headline number: expected *full* stops (v_after == 0), so it stays
         # comparable with the old per-town count
         stops_est = round(sum(e["p"] for e in stop_events if e["v_to"] == 0), 1)
+        stops_by_kind = {}
+        for e in stop_events:
+            stops_by_kind[e["kind"]] = round(
+                stops_by_kind.get(e["kind"], 0.0) + e["p"], 2)
     else:
         fallback = sum(MAJOR_STOPS.get(x, 0) for x in villages_passed)
         stop_events = [{"idx": None, "kind": "fallback", "p": 1.0,
@@ -574,6 +601,7 @@ def build_route(key, name, color, pts, ele_raw=None, osm=None, stops=None):
         stops_measured = False
         stop_inventory = None
         stops_est = fallback
+        stops_by_kind = {"fallback": fallback}
 
     route = {
         "key": key, "name": name, "color": color, "n": n,
@@ -597,6 +625,7 @@ def build_route(key, name, color, pts, ele_raw=None, osm=None, stops=None):
         "stops_est": stops_est,
         "stops_measured": stops_measured,
         "stop_inventory": stop_inventory,
+        "stops_by_kind": stops_by_kind,
         "osm_limit_pct": round(100.0 * sum(1 for s in src if s == "osm") / n, 1),
     }
     route["curviness"] = curviness_stats(rs, curv_raw, curv100, route["total_km"])

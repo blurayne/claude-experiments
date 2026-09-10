@@ -2,7 +2,7 @@
 
 This document describes **exactly** how every number in the Eco-Navigation visualization was produced: the algorithms, the equations, the parameters, and where each input came from. The guiding principle is **honest provenance** — some inputs are *measured*, some are *rule-based* (German traffic law), and some are *modelled* (the energy physics). Each is labelled as such here and in the app.
 
-> **This is version 2.** The first version of this experiment ran in a sandbox with no outbound network, so its terrain was sixteen researched town elevations interpolated along the track. Elevation, speed limits, the stop-feature inventory and the routing engine are now all real. [Section 10](#10-what-changed-when-the-terrain-became-real) documents exactly what that changed, and the old bundle is archived at `data/eco_data_modelled_v1.json` so the comparison stays reproducible.
+> **This is version 2.** The first version of this experiment ran in a sandbox with no outbound network, so its terrain was sixteen researched town elevations interpolated along the track. Elevation, speed limits, the stop-feature inventory and the routing engine are now all real. [Section 11](#11-what-changed-when-the-terrain-became-real) documents exactly what that changed, and the old bundle is archived at `data/eco_data_modelled_v1.json` so the comparison stays reproducible.
 
 > **TL;DR of provenance**
 >
@@ -17,7 +17,7 @@ This document describes **exactly** how every number in the Eco-Navigation visua
 > | Stop-feature inventory (signals, signs, roundabouts, crossings) | **Measured** — OSM nodes/ways snapped to the track | High |
 > | Probability of stopping at each feature | **Modelled** — per-class assumption | Medium |
 > | Energy, fuel/kWh, cost, CO₂ | **Modelled** — vehicle physics, calibrated | Medium |
-> | Mountain & curve taxes | **Modelled** — counterfactual re-runs | Medium |
+> | Mountain, curve & stop taxes | **Modelled** — counterfactual re-runs | Medium |
 
 ---
 
@@ -264,7 +264,7 @@ Each event's kinetic cost uses the modelled speed **at that feature's actual pos
 | C · Bodenmais | 7 | 6 | 2 | 18 | 5 | **9.1** |
 | D · Regen | 9 | 4 | 1 | 9 | 1 | **6.9** |
 
-Two things the old per-town guess missed entirely: the six **Waldbahn level crossings** on route A, and the fact that route C is the roundabout-heaviest of the four — which erases what looked like a three-stop advantage for C over B (the guess said 6 vs 9; the measured inventory says 9.1 vs 9.0). The per-class probabilities remain the modelled part; the sensitivity analysis in [section 11](#11-sensitivity--could-route-b-ever-win) shows even large errors in them cannot change the route ranking. The old per-town guess survives only as a fallback for screening OSRM candidates that have no cached inventory yet.
+Two things the old per-town guess missed entirely: the six **Waldbahn level crossings** on route A, and the fact that route C is the roundabout-heaviest of the four — which erases what looked like a three-stop advantage for C over B (the guess said 6 vs 9; the measured inventory says 9.1 vs 9.0). The per-class probabilities remain the modelled part; the sensitivity analysis in [section 12](#12-sensitivity--could-route-b-ever-win) shows even large errors in them cannot change the route ranking. The old per-town guess survives only as a fallback for screening OSRM candidates that have no cached inventory yet.
 
 ---
 
@@ -370,13 +370,35 @@ Two things stand out. **Corners cost far less than hills** — a few cents again
 
 ---
 
-## 9. Capability
+---
+
+## 9. The stop tax — what red lights cost
+
+The third counterfactual. Each route is simulated once more on a **green wave**: the identical road, terrain and speed profile, but every stop feature lets the car roll through — every signal green, every level-crossing barrier open, every roundabout taken without braking.
+
+```
+stop_tax       = fuel(real stops) − fuel(green wave)
+stop_time_lost = t(real stops) − t(green wave)
+```
+
+The stop *inventory* is measured from OSM ([section 5.4](#5-speed-model-measured-limits--physics)); only the per-class firing probabilities are assumptions. Each event is priced from the modelled speed at its actual position, so a signal on a 100 km/h stretch costs far more than one in a 30 zone.
+
+| Route | Auris | ID.3 | Panda | Opel | Merc | Time lost |
+|---|---|---|---|---|---|---|
+| A · Arnbruck | €0.14 | €0.12 | €0.31 | €0.38 | €0.33 | +2.2 min |
+| B · Viechtach/Kötzting | €0.16 | €0.14 | €0.35 | €0.42 | €0.37 | +2.6 min |
+| C · Bodenmais | €0.15 | €0.13 | €0.32 | €0.40 | €0.35 | +2.0 min |
+| D · Regen | €0.11 | €0.10 | €0.24 | €0.29 | €0.26 | +1.9 min |
+
+The three taxes now have a clear hierarchy: **hills (€0.81–1.25) ≫ stops ≈ curves (a few cents to ~€0.6)**. Stops and curves trade places depending on the drivetrain — for the non-regen cars route A's bends cost more than its stops (€0.58 vs €0.38 for the Opel), while for the hybrid and the EV stops edge out curves on every route except A, because braking energy is recovered but standing time is not. Route D confirms its character here: fewest expected stops, lowest stop tax, least time lost.
+
+## 10. Capability
 
 All five cars are mechanically fine on all four routes. The steepest sustained grades are around 6 % with short ramps reaching 9–12 %; at 50 km/h on an 8 % grade a 1 010 kg Panda needs roughly 15 kW at the wheel against its 51 kW, so even the least powerful car in the set has ample margin. The differences between these cars are efficiency and comfort, not capability.
 
 ---
 
-## 10. What changed when the terrain became real
+## 11. What changed when the terrain became real
 
 Version 1's elevation came from 16 researched town heights interpolated along the track. Comparing it against the measured EU-DEM profile (`python3 compare_versions.py`):
 
@@ -412,7 +434,7 @@ The effect on cost splits cleanly by drivetrain:
 
 ---
 
-## 11. Sensitivity — could route B ever win?
+## 12. Sensitivity — could route B ever win?
 
 Route A's win is worth stress-testing, because several inputs are modelled. Each experiment below re-runs the full physics with one assumption pushed to its plausible extreme. None of them flips the ranking; the structural reason is that **route B is dominated**: it is 10.7 km longer, 10 minutes slower, climbs *more* in total (1 050 m vs 957 m — the lower peak is misleading), is steeper at its worst (12.0 % vs 8.9 %), and has slightly more expected stops (9.0 vs 8.4).
 
@@ -428,7 +450,7 @@ Route A's win is worth stress-testing, because several inputs are modelled. Each
 
 ---
 
-## 12. Outputs & how to regenerate
+## 13. Outputs & how to regenerate
 
 ```bash
 # 1. find candidate third routes (needs network: OSRM)
@@ -463,7 +485,7 @@ python3 render_docs.py
 | `screen_routes.py` | scores candidates through the full model |
 | `compare_versions.py` | diffs the current bundle against archived v1 |
 | `data/eco_data.json` | the complete data bundle |
-| `data/results.csv` | per car/route consumption, cost, CO₂, time, both taxes |
+| `data/results.csv` | per car/route consumption, cost, CO₂, time, all three taxes |
 | `data/route_metrics.csv` | per-route terrain and curviness metrics |
 | `data/profile_*.csv` | per-25 m profiles incl. limit provenance |
 | `data/elevation_*.json` | raw DEM samples (cached) |
@@ -473,10 +495,10 @@ python3 render_docs.py
 
 ---
 
-## 13. Known limitations
+## 14. Known limitations
 
 - **The DEM samples terrain, not tarmac.** Bridges, cuttings, embankments and a few metres of lateral track error all put the raster on the hillside instead of the road. This is the dominant uncertainty; see [section 4.1](#41-why-300-m-and-not-25-m). Integrated quantities are far more trustworthy than per-point grades.
-- **Stop behaviour is assumed, though the inventory is measured.** Every signal, sign, roundabout and level crossing comes from OSM, but the probability of actually stopping at each is a documented per-class assumption. Section 11 shows even large errors here cannot reorder the routes.
+- **Stop behaviour is assumed, though the inventory is measured.** Every signal, sign, roundabout and level crossing comes from OSM, but the probability of actually stopping at each is a documented per-class assumption. Section 12 shows even large errors here cannot reorder the routes.
 - **Efficiency is a single constant per car**, not a speed/load map. Real engines are markedly worse at low load, so the absolute consumption figures are indicative; the *differences between routes* are more reliable than the absolute numbers.
 - **No traffic, weather, wind, payload or temperature.** A cold engine on the first 10 km would add several percent; an EV in winter considerably more.
 - **Routes C and D are routing-engine output**, not tracks anyone drove. OSRM's chosen line through a town may differ slightly from what a driver would take.

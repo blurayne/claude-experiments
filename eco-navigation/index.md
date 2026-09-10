@@ -17,6 +17,15 @@ Four ways through the Bavarian Forest, compared for **distance, elevation, curvi
 
 Routes A and B are the original CoMaps tracks; C and D are OSRM routes over the OpenStreetMap network, picked from eight distinct candidates.
 
+## Which route, when?
+
+| Route | Character | Choose it if … |
+|---|---|---|
+| **A — Arnbruck** | The default | the weather is clear — cheapest and fastest for every car; its 10.7 km advantage beats the 843 m Eck saddle. Think twice in snow: highest bends and grades, six Waldbahn level crossings. |
+| **B — Viechtach/Kötzting** | The all-weather route | it is winter or the saddle needs chains — the **only route below 600 m**. Never the cheapest; always open. |
+| **C — Bodenmais** | The relaxed alternative | you want the calmest geometry (least curvy, gentlest bends) in good weather, or an errand in Bodenmais — cheaper and faster than B for every car. Crosses the same 843 m saddle as A; stoppiest route (9.1 expected stops). |
+| **D — Regen** | The steady cruiser | you hate stop-and-go (fewest expected stops, 6.9; one level crossing) or have an errand in Regen — but the most climbing (1 299 m) makes it the dearest. |
+
 ## Key findings
 
 - **Route A still wins** — for all five cars, on real terrain, real speed limits, and against both newly-found alternatives. It is the shortest, and here distance beats altitude: it is also the *hilliest by peak*, crossing the **Eck saddle at 843 m**, ~250 m higher than route B ever goes.
@@ -27,7 +36,7 @@ Routes A and B are the original CoMaps tracks; C and D are OSRM routes over the 
 
 ## What the real elevation data changed
 
-The old modelled profile was badly wrong in three ways — see [`METHODOLOGY.md` §10](METHODOLOGY.md) for the full comparison, or run `python3 compare_versions.py`.
+The old modelled profile was badly wrong in three ways — see [`METHODOLOGY.md` §11](METHODOLOGY.md) for the full comparison, or run `python3 compare_versions.py`.
 
 | Route | Metric | Modelled (v1) | Real DEM | Change |
 |---|---|---|---|---|
@@ -41,7 +50,7 @@ The old modelled profile was badly wrong in three ways — see [`METHODOLOGY.md`
 2. It **understated climbing by more than half**, because interpolating between town centres smooths away every hill in between.
 3. Its **steepest grade anywhere was 2.1 %**, which made a mountain-energy metric meaningless.
 
-The cost effect splits by drivetrain: the hybrid and EV are essentially **unchanged** (−2 to +1 %) because real descents hand energy back through regen, while the three cars without regen got **dearer** (+4 to +16 %). **The verdict did not change** — route A won before and wins now. A sensitivity analysis (reverse direction, stop-count error, winter on the pass, break-even efficiency — [`METHODOLOGY.md` §11](METHODOLOGY.md)) finds no plausible correction that lets route B win on cost; its real role is the **all-weather route**, being the only one of the four staying below 600 m.
+The cost effect splits by drivetrain: the hybrid and EV are essentially **unchanged** (−2 to +1 %) because real descents hand energy back through regen, while the three cars without regen got **dearer** (+4 to +16 %). **The verdict did not change** — route A won before and wins now. A sensitivity analysis (reverse direction, stop-count error, winter on the pass, break-even efficiency — [`METHODOLOGY.md` §12](METHODOLOGY.md)) finds no plausible correction that lets route B win on cost; its real role is the **all-weather route**, being the only one of the four staying below 600 m.
 
 ## Data provenance at a glance
 
@@ -54,13 +63,15 @@ The cost effect splits by drivetrain: the hybrid and EV are essentially **unchan
 | Stop-feature inventory | **Measured** — OSM signals, signs, roundabouts, crossings |
 | Probability of stopping per feature | **Modelled** — documented per-class assumption |
 | Energy, cost, CO₂ | **Modelled** — vehicle physics, calibrated |
-| Mountain & curve taxes | **Modelled** — counterfactual re-runs |
+| Mountain, curve & stop taxes | **Modelled** — counterfactual re-runs |
 
-## The two new metrics
+## The counterfactual metrics
 
 **The mountain tax** — every trip is simulated twice: once over the real terrain, and once over the *identical road with the grade set to zero* (same distance, same bends, same speeds, same stops). The difference is exactly what the hills cost, net of everything the descents give back through engine braking and regen.
 
-**The curve tax** — the same trick applied to geometry: a third run with the bend-radius speed cap removed, so speed is limited only by the legal limit and comfortable acceleration. The difference is what the corners cost in fuel and in minutes.
+**The curve tax** — the same trick applied to geometry: a run with the bend-radius speed cap removed, so speed is limited only by the legal limit and comfortable acceleration. The difference is what the corners cost in fuel and in minutes.
+
+**The stop tax** — the same trick applied to the measured stop inventory: a run on a *green wave* (every signal green, every barrier open, every roundabout rolled through). The difference is what red lights, signs, barriers and roundabouts cost — €0.10–0.42 per trip and ~2–3 minutes, always far less than the hills.
 
 Curviness itself was already measured in v1 but is now reported properly: total heading change per km, a 0–100 index, bends per km, median and minimum corner radius, and the share of each route's length in five radius bands. It is computed on the uniform 25 m grid so the CoMaps and OSRM tracks compare fairly.
 
@@ -69,7 +80,7 @@ Curviness itself was already measured in v1 but is now reported properly: total 
 - [`index.html`](index.html) — interactive comparison (React + Recharts, no build step, no external CDN; libs vendored in [`vendor/`](vendor/)).
 - [`EcoNavigation.jsx`](EcoNavigation.jsx) — UI source; precompiled to [`app.js`](app.js) with esbuild.
 - [`geo.py`](geo.py) — shared geodesy, resampling and GPX I/O.
-- [`model.py`](model.py) — terrain conditioning, curvature, speed, energy and the counterfactuals behind both new metrics.
+- [`model.py`](model.py) — terrain conditioning, curvature, speed, energy and the three counterfactual taxes.
 - [`build.py`](build.py) — orchestrates the build, emits all data products (pure stdlib, no network).
 - [`fetch_real_data.py`](fetch_real_data.py) — downloads EU-DEM elevation, OSM speed limits and the stop-feature inventory.
 - [`fetch_routes.py`](fetch_routes.py) — OSRM candidate search; `--adopt <key>` writes a GPX.
@@ -80,7 +91,7 @@ Curviness itself was already measured in v1 but is now reported properly: total 
 - `data/`
   - [`gpx/`](data/gpx/) — the four tracks.
   - [`eco_data.json`](data/eco_data.json) — full data bundle.
-  - [`results.csv`](data/results.csv) — per car/route consumption, cost, CO₂, time, plus both new taxes.
+  - [`results.csv`](data/results.csv) — per car/route consumption, cost, CO₂, time, plus all three taxes (mountain, curve, stop).
   - [`route_metrics.csv`](data/route_metrics.csv) — per-route terrain and curviness metrics.
   - `profile_*.csv` — per-25 m profiles (km, elevation, grade, curvature, speed, legal limit and its provenance, lat/lon).
   - `elevation_*.json`, `speedlimits_*.json`, `stops_*.json` — cached raw API responses (terrain, speed limits, stop-feature inventory).

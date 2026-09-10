@@ -12,7 +12,7 @@
    "speed_limits": "REAL — OpenStreetMap maxspeed via Overpass, with German StVO defaults where untagged",
    "stops": "MEASURED inventory — OSM traffic signals, stop/give-way signs, roundabouts and level crossings snapped to each track; the per-class probability of actually stopping is a documented assumption (e.g. 45% per signal)",
    "energy_model": "MODELLED — longitudinal vehicle physics, calibrated to typical real-world consumption",
-   "mountain_curve_metrics": "MODELLED — counterfactual re-runs of the same trip on a flat road and on a straight road",
+   "mountain_curve_metrics": "MODELLED — counterfactual re-runs of the same trip on a flat road, on a straight road, and on a green wave with no stops",
    "prices_co2": "Germany 2026 estimate: petrol 1.79 €/L, diesel 1.69 €/L, elec 0.40 €/kWh; grid 0.35 kg CO2/kWh"
   }
  },
@@ -88,6 +88,18 @@
     "give_way": 12,
     "stop": 2,
     "level_crossing": 6
+   },
+   "stops_by_kind": {
+    "traffic_signals": 3.6,
+    "roundabout": 3.0,
+    "give_way": 2.4,
+    "stop": 1.8,
+    "level_crossing": 0.6
+   },
+   "tldr": {
+    "label": "The default",
+    "choose_if": "the weather is clear. Cheapest and fastest for every car, despite crossing the highest point of any route except D — its 10.7 km distance advantage beats the 843 m Eck saddle.",
+    "avoid_if": "there is snow or ice: the saddle, its 9 % ramps and the tightest bends of all four routes (median radius 478 m, hairpins down to 25 m) make it the first to become unpleasant. Also has six Waldbahn level crossings."
    },
    "villages_passed": [
     "Arrach",
@@ -4579,6 +4591,18 @@
     "give_way": 12,
     "stop": 1,
     "level_crossing": 3
+   },
+   "stops_by_kind": {
+    "traffic_signals": 5.4,
+    "roundabout": 4.0,
+    "give_way": 2.4,
+    "stop": 0.9,
+    "level_crossing": 0.3
+   },
+   "tldr": {
+    "label": "The all-weather route",
+    "choose_if": "it is winter, the Eck saddle is snowed in, chains are required, or you tow a heavy load in bad conditions — this is the only route that stays below 600 m. Never the cheapest, but always open.",
+    "avoid_if": "conditions are good — you pay ~€0.6–0.9 extra per trip and 10 minutes for altitude insurance you don't need. Most traffic lights of any route (12 signals)."
    },
    "villages_passed": [
     "Arrach",
@@ -9928,6 +9952,18 @@
     "stop": 2,
     "level_crossing": 5
    },
+   "stops_by_kind": {
+    "traffic_signals": 3.15,
+    "roundabout": 6.0,
+    "give_way": 3.6,
+    "stop": 1.8,
+    "level_crossing": 0.5
+   },
+   "tldr": {
+    "label": "The relaxed alternative",
+    "choose_if": "you want a calmer drive in good weather or have an errand in Bodenmais: the least curvy route per km with the gentlest bends (median radius 529 m), and cheaper and faster than B for every car.",
+    "avoid_if": "you are in a hurry or it is snowing — it crosses the same 843 m saddle as A, and its six roundabouts plus five level crossings make it the stoppiest route (9.1 expected stops)."
+   },
    "villages_passed": [
     "Arrach",
     "Bodenmais",
@@ -15147,6 +15183,18 @@
     "give_way": 9,
     "stop": 1,
     "level_crossing": 1
+   },
+   "stops_by_kind": {
+    "traffic_signals": 4.05,
+    "roundabout": 4.0,
+    "give_way": 1.8,
+    "stop": 0.9,
+    "level_crossing": 0.1
+   },
+   "tldr": {
+    "label": "The steady cruiser",
+    "choose_if": "you dislike stop-and-go above all (fewest expected stops, 6.9, and only one level crossing) or have an errand in Regen or Bodenmais — long uninterrupted B11 running with the fewest built-up areas.",
+    "avoid_if": "you care about cost or carry weight: the most climbing of any route (1 299 m ascent, 859 m peak) makes it the dearest for four of the five cars, and it crosses the ridge even higher than A does."
    },
    "villages_passed": [
     "Arrach",
@@ -20586,6 +20634,16 @@
      "pct_of_trip": 2.9,
      "straight_per100": 4.53,
      "time_min_lost": 2.8
+    },
+    "stops": {
+     "amount": 0.08,
+     "unit": "L",
+     "cost_eur": 0.14,
+     "co2_kg": 0.18,
+     "pct_of_trip": 3.1,
+     "green_per100": 4.53,
+     "time_min_lost": 2.2,
+     "expected_stops": 8.4
     }
    },
    "id3": {
@@ -20632,6 +20690,16 @@
      "pct_of_trip": 2.6,
      "straight_per100": 19.37,
      "time_min_lost": 2.8
+    },
+    "stops": {
+     "amount": 0.31,
+     "unit": "kWh",
+     "cost_eur": 0.12,
+     "co2_kg": 0.11,
+     "pct_of_trip": 2.8,
+     "green_per100": 19.32,
+     "time_min_lost": 2.2,
+     "expected_stops": 8.4
     }
    },
    "panda": {
@@ -20678,6 +20746,16 @@
      "pct_of_trip": 7.7,
      "straight_per100": 5.69,
      "time_min_lost": 2.8
+    },
+    "stops": {
+     "amount": 0.17,
+     "unit": "L",
+     "cost_eur": 0.31,
+     "co2_kg": 0.4,
+     "pct_of_trip": 5.1,
+     "green_per100": 5.85,
+     "time_min_lost": 2.2,
+     "expected_stops": 8.4
     }
    },
    "opel": {
@@ -20724,6 +20802,16 @@
      "pct_of_trip": 7.7,
      "straight_per100": 6.98,
      "time_min_lost": 2.8
+    },
+    "stops": {
+     "amount": 0.21,
+     "unit": "L",
+     "cost_eur": 0.38,
+     "co2_kg": 0.49,
+     "pct_of_trip": 5.1,
+     "green_per100": 7.18,
+     "time_min_lost": 2.2,
+     "expected_stops": 8.4
     }
    },
    "merc": {
@@ -20770,6 +20858,16 @@
      "pct_of_trip": 10.0,
      "straight_per100": 5.43,
      "time_min_lost": 2.8
+    },
+    "stops": {
+     "amount": 0.2,
+     "unit": "L",
+     "cost_eur": 0.33,
+     "co2_kg": 0.52,
+     "pct_of_trip": 5.9,
+     "green_per100": 5.68,
+     "time_min_lost": 2.2,
+     "expected_stops": 8.4
     }
    }
   },
@@ -20818,6 +20916,16 @@
      "pct_of_trip": 1.2,
      "straight_per100": 4.36,
      "time_min_lost": 2.3
+    },
+    "stops": {
+     "amount": 0.09,
+     "unit": "L",
+     "cost_eur": 0.16,
+     "co2_kg": 0.21,
+     "pct_of_trip": 3.1,
+     "green_per100": 4.28,
+     "time_min_lost": 2.6,
+     "expected_stops": 9.0
     }
    },
    "id3": {
@@ -20864,6 +20972,16 @@
      "pct_of_trip": 1.1,
      "straight_per100": 18.59,
      "time_min_lost": 2.3
+    },
+    "stops": {
+     "amount": 0.35,
+     "unit": "kWh",
+     "cost_eur": 0.14,
+     "co2_kg": 0.12,
+     "pct_of_trip": 2.8,
+     "green_per100": 18.27,
+     "time_min_lost": 2.6,
+     "expected_stops": 9.0
     }
    },
    "panda": {
@@ -20910,6 +21028,16 @@
      "pct_of_trip": 3.7,
      "straight_per100": 5.54,
      "time_min_lost": 2.3
+    },
+    "stops": {
+     "amount": 0.19,
+     "unit": "L",
+     "cost_eur": 0.35,
+     "co2_kg": 0.45,
+     "pct_of_trip": 5.1,
+     "green_per100": 5.46,
+     "time_min_lost": 2.6,
+     "expected_stops": 9.0
     }
    },
    "opel": {
@@ -20956,6 +21084,16 @@
      "pct_of_trip": 3.7,
      "straight_per100": 6.8,
      "time_min_lost": 2.3
+    },
+    "stops": {
+     "amount": 0.24,
+     "unit": "L",
+     "cost_eur": 0.42,
+     "co2_kg": 0.55,
+     "pct_of_trip": 5.1,
+     "green_per100": 6.7,
+     "time_min_lost": 2.6,
+     "expected_stops": 9.0
     }
    },
    "merc": {
@@ -21002,6 +21140,16 @@
      "pct_of_trip": 5.6,
      "straight_per100": 5.27,
      "time_min_lost": 2.3
+    },
+    "stops": {
+     "amount": 0.22,
+     "unit": "L",
+     "cost_eur": 0.37,
+     "co2_kg": 0.58,
+     "pct_of_trip": 6.0,
+     "green_per100": 5.25,
+     "time_min_lost": 2.6,
+     "expected_stops": 9.0
     }
    }
   },
@@ -21050,6 +21198,16 @@
      "pct_of_trip": 0.7,
      "straight_per100": 4.3,
      "time_min_lost": 2.4
+    },
+    "stops": {
+     "amount": 0.08,
+     "unit": "L",
+     "cost_eur": 0.15,
+     "co2_kg": 0.19,
+     "pct_of_trip": 3.0,
+     "green_per100": 4.2,
+     "time_min_lost": 2.0,
+     "expected_stops": 9.1
     }
    },
    "id3": {
@@ -21096,6 +21254,16 @@
      "pct_of_trip": 0.6,
      "straight_per100": 18.35,
      "time_min_lost": 2.4
+    },
+    "stops": {
+     "amount": 0.32,
+     "unit": "kWh",
+     "cost_eur": 0.13,
+     "co2_kg": 0.11,
+     "pct_of_trip": 2.7,
+     "green_per100": 17.96,
+     "time_min_lost": 2.0,
+     "expected_stops": 9.1
     }
    },
    "panda": {
@@ -21142,6 +21310,16 @@
      "pct_of_trip": 3.1,
      "straight_per100": 5.41,
      "time_min_lost": 2.4
+    },
+    "stops": {
+     "amount": 0.18,
+     "unit": "L",
+     "cost_eur": 0.32,
+     "co2_kg": 0.42,
+     "pct_of_trip": 5.0,
+     "green_per100": 5.31,
+     "time_min_lost": 2.0,
+     "expected_stops": 9.1
     }
    },
    "opel": {
@@ -21188,6 +21366,16 @@
      "pct_of_trip": 3.2,
      "straight_per100": 6.64,
      "time_min_lost": 2.4
+    },
+    "stops": {
+     "amount": 0.22,
+     "unit": "L",
+     "cost_eur": 0.4,
+     "co2_kg": 0.51,
+     "pct_of_trip": 5.0,
+     "green_per100": 6.52,
+     "time_min_lost": 2.0,
+     "expected_stops": 9.1
     }
    },
    "merc": {
@@ -21234,6 +21422,16 @@
      "pct_of_trip": 4.3,
      "straight_per100": 5.18,
      "time_min_lost": 2.4
+    },
+    "stops": {
+     "amount": 0.21,
+     "unit": "L",
+     "cost_eur": 0.35,
+     "co2_kg": 0.55,
+     "pct_of_trip": 5.9,
+     "green_per100": 5.09,
+     "time_min_lost": 2.0,
+     "expected_stops": 9.1
     }
    }
   },
@@ -21282,6 +21480,16 @@
      "pct_of_trip": 1.3,
      "straight_per100": 4.37,
      "time_min_lost": 2.6
+    },
+    "stops": {
+     "amount": 0.06,
+     "unit": "L",
+     "cost_eur": 0.11,
+     "co2_kg": 0.14,
+     "pct_of_trip": 2.1,
+     "green_per100": 4.33,
+     "time_min_lost": 1.9,
+     "expected_stops": 6.9
     }
    },
    "id3": {
@@ -21328,6 +21536,16 @@
      "pct_of_trip": 1.2,
      "straight_per100": 18.59,
      "time_min_lost": 2.6
+    },
+    "stops": {
+     "amount": 0.24,
+     "unit": "kWh",
+     "cost_eur": 0.1,
+     "co2_kg": 0.08,
+     "pct_of_trip": 1.9,
+     "green_per100": 18.46,
+     "time_min_lost": 1.9,
+     "expected_stops": 6.9
     }
    },
    "panda": {
@@ -21374,6 +21592,16 @@
      "pct_of_trip": 4.3,
      "straight_per100": 5.42,
      "time_min_lost": 2.6
+    },
+    "stops": {
+     "amount": 0.13,
+     "unit": "L",
+     "cost_eur": 0.24,
+     "co2_kg": 0.31,
+     "pct_of_trip": 3.6,
+     "green_per100": 5.46,
+     "time_min_lost": 1.9,
+     "expected_stops": 6.9
     }
    },
    "opel": {
@@ -21420,6 +21648,16 @@
      "pct_of_trip": 4.3,
      "straight_per100": 6.64,
      "time_min_lost": 2.6
+    },
+    "stops": {
+     "amount": 0.16,
+     "unit": "L",
+     "cost_eur": 0.29,
+     "co2_kg": 0.38,
+     "pct_of_trip": 3.6,
+     "green_per100": 6.69,
+     "time_min_lost": 1.9,
+     "expected_stops": 6.9
     }
    },
    "merc": {
@@ -21466,6 +21704,16 @@
      "pct_of_trip": 6.2,
      "straight_per100": 5.14,
      "time_min_lost": 2.6
+    },
+    "stops": {
+     "amount": 0.15,
+     "unit": "L",
+     "cost_eur": 0.26,
+     "co2_kg": 0.41,
+     "pct_of_trip": 4.2,
+     "green_per100": 5.25,
+     "time_min_lost": 1.9,
+     "expected_stops": 6.9
     }
    }
   }

@@ -241,6 +241,41 @@ function RouteSummary() {
   );
 }
 
+/* ------------------------------------------------- TL;DR: which route when */
+function WhichRoute() {
+  return (
+    <div style={{ display: "grid",
+      gridTemplateColumns: "repeat(auto-fit,minmax(420px,1fr))", gap: 14 }}>
+      {ROUTE_KEYS.map((k) => {
+        const r = ROUTES[k];
+        if (!r.tldr) return null;
+        return (
+          <Card key={k} style={{ borderLeft: `3px solid ${routeColor(k)}` }}>
+            <div style={{ display: "flex", justifyContent: "space-between",
+              alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 14, fontWeight: 700,
+                color: routeColor(k) }}>{routeShort(k)}</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: C.ink,
+                background: C.panelHi, border: `1px solid ${C.line}`,
+                borderRadius: 20, padding: "2px 10px" }}>{r.tldr.label}</span>
+            </div>
+            <div style={{ fontSize: 12.5, color: C.dim, lineHeight: 1.55,
+              marginTop: 10 }}>
+              <b style={{ color: C.good }}>Choose it if</b>{" "}
+              <span style={{ color: C.ink }}>{r.tldr.choose_if}</span>
+            </div>
+            <div style={{ fontSize: 12.5, color: C.dim, lineHeight: 1.55,
+              marginTop: 8 }}>
+              <b style={{ color: C.bad }}>Think twice if</b>{" "}
+              {r.tldr.avoid_if}
+            </div>
+          </Card>
+        );
+      })}
+    </div>
+  );
+}
+
 /* --------------------------------------------------------------- profiles */
 function Profiles() {
   const [sel, setSel] = useState("all");
@@ -548,6 +583,103 @@ function CurveTax({ carId }) {
   );
 }
 
+/* ---------------------------------------------------- NEW: the stop tax */
+const STOP_KINDS = [
+  ["traffic_signals", "Traffic signals", "#E06060"],
+  ["stop", "Stop signs", "#E8825A"],
+  ["give_way", "Give-way signs", "#E8B23A"],
+  ["level_crossing", "Level crossings", "#7FB7E8"],
+  ["roundabout", "Roundabouts (slow-through)", "#C792EA"],
+];
+function StopTax({ carId }) {
+  const car = CARS.find((c) => c.id === carId);
+  const data = ROUTE_KEYS.map((k) => ({
+    route: routeShort(k), ...(ROUTES[k].stops_by_kind || {}),
+  }));
+  const cell = { padding: "7px 9px", fontSize: 12.5,
+    borderBottom: `1px solid ${C.line}`, textAlign: "right", whiteSpace: "nowrap" };
+  const head = { ...cell, color: C.faint, fontWeight: 600,
+    textTransform: "uppercase", fontSize: 10.5, letterSpacing: ".04em" };
+  return (
+    <div>
+      <Card style={{ marginBottom: 14 }}>
+        <div style={{ fontSize: 13.5, fontWeight: 600, color: C.ink,
+          marginBottom: 6 }}>Expected stop events per trip, by cause</div>
+        <ResponsiveContainer width="100%" height={230}>
+          <BarChart data={data} layout="vertical"
+            margin={{ top: 6, right: 16, bottom: 4, left: 22 }}>
+            <CartesianGrid stroke={C.line} strokeDasharray="2 4"
+              horizontal={false} />
+            <XAxis type="number" tick={{ fill: C.dim, fontSize: 11 }}
+              stroke={C.line} />
+            <YAxis type="category" dataKey="route" width={110}
+              tick={{ fill: C.dim, fontSize: 11 }} stroke={C.line} />
+            <Tooltip
+              contentStyle={{ background: C.bg, border: `1px solid ${C.line}`,
+                borderRadius: 8, fontSize: 12 }}
+              formatter={(v, n) => [`${fmt(v, 1)} expected events`, n]} />
+            <Legend wrapperStyle={{ fontSize: 11.5 }} />
+            {STOP_KINDS.map(([id, label, col]) => (
+              <Bar key={id} dataKey={id} name={label} stackId="s" fill={col} />
+            ))}
+          </BarChart>
+        </ResponsiveContainer>
+        <div style={{ fontSize: 12, color: C.dim, marginTop: 6 }}>
+          Real OSM inventory × the probability of the event firing (45 % per
+          signal, 90 % per stop sign, 20 % per give-way, 10 % per level
+          crossing; roundabouts always force a slow-through). Each event is
+          priced from the modelled speed at that exact spot.
+        </div>
+      </Card>
+      <Card style={{ overflowX: "auto" }}>
+        <table style={{ borderCollapse: "collapse", width: "100%",
+          minWidth: 640 }}>
+          <thead><tr>
+            <th style={{ ...head, textAlign: "left" }}>Route</th>
+            <th style={head}>Signals</th>
+            <th style={head}>Roundabouts</th>
+            <th style={head}>Level crossings</th>
+            <th style={head}>Expected stops</th>
+            <th style={head}>Stop cost</th>
+            <th style={head}>Time lost</th>
+          </tr></thead>
+          <tbody>
+            {ROUTE_KEYS.map((k) => {
+              const inv = ROUTES[k].stop_inventory || {};
+              const st = RES[k][carId].stops;
+              return (
+                <tr key={k}>
+                  <td style={{ ...cell, textAlign: "left", fontWeight: 600,
+                    color: routeColor(k) }}>{routeShort(k)}</td>
+                  <td style={cell}>{inv.traffic_signals || 0}</td>
+                  <td style={cell}>{(inv.roundabout || 0)
+                    + (inv.mini_roundabout || 0)}</td>
+                  <td style={cell}>{inv.level_crossing || 0}</td>
+                  <td style={{ ...cell, fontWeight: 700, color: C.ink }}>
+                    {fmt(ROUTES[k].stops_est, 1)}</td>
+                  <td style={{ ...cell, color: "#E06060", fontWeight: 700 }}>
+                    €{fmt(st.cost_eur, 2)}</td>
+                  <td style={cell}>+{fmt(st.time_min_lost, 1)} min</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        <div style={{ fontSize: 11.5, color: C.dim, marginTop: 10 }}>
+          <b style={{ color: C.ink }}>Stop cost</b> is the third counterfactual:
+          the same trip re-run on a <i>green wave</i> — every signal green, every
+          barrier open, every roundabout rolled through — for the{" "}
+          <b style={{ color: C.ink }}>{car.name}</b>. The inventory is measured
+          from OpenStreetMap; only the per-class stop probabilities are
+          assumptions. Like the curve tax, stops cost a regen car mostly{" "}
+          <i>time</i>: the braking energy comes back out of the battery, and the
+          standing time is what remains.
+        </div>
+      </Card>
+    </div>
+  );
+}
+
 /* ----------------------------------------------------------- energy panel */
 const METRICS = [
   { id: "cost_eur", label: "Cost", unit: "€", d: 2 },
@@ -610,7 +742,7 @@ function FullTable() {
     <Card style={{ marginTop: 16, overflowX: "auto" }}>
       <div style={{ fontSize: 13.5, fontWeight: 600, color: C.ink,
         marginBottom: 8 }}>All cars · all routes · per one-way trip</div>
-      <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 720 }}>
+      <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 820 }}>
         <thead><tr>
           <th style={{ ...head, textAlign: "left" }}>Vehicle</th>
           <th style={{ ...head, textAlign: "left" }}>Route</th>
@@ -621,6 +753,7 @@ function FullTable() {
           <th style={head}>Time</th>
           <th style={head}>of which hills</th>
           <th style={head}>of which bends</th>
+          <th style={head}>of which stops</th>
         </tr></thead>
         <tbody>
           {CARS.map((c) => ROUTE_KEYS.map((k, i) => {
@@ -650,6 +783,8 @@ function FullTable() {
                   €{fmt(r.mountain.cost_eur, 2)}</td>
                 <td style={{ ...cell, color: C.curve }}>
                   €{fmt(r.curves.cost_eur, 2)}</td>
+                <td style={{ ...cell, color: "#E06060" }}>
+                  €{fmt(r.stops.cost_eur, 2)}</td>
               </tr>
             );
           }))}
@@ -875,7 +1010,7 @@ function Provenance() {
     ["Village zones", p.village_zones, "rule"],
     ["Stops at lights", p.stops, "model"],
     ["Energy & consumption", p.energy_model, "model"],
-    ["Mountain & curve metrics", p.mountain_curve_metrics, "model"],
+    ["Mountain, curve & stop taxes", p.mountain_curve_metrics, "model"],
     ["Prices & CO₂", p.prices_co2, "model"],
   ];
   return (
@@ -1002,6 +1137,10 @@ function App() {
       <div style={{ height: 14 }} />
       <RouteSummary />
 
+      <SectionTitle hint="The IF for each route — when it is the right choice, grounded in the measured data.">
+        Which route, when?</SectionTitle>
+      <WhichRoute />
+
       <SectionTitle hint="Everything below the speed chart is measured, not assumed.">
         Profiles along the way</SectionTitle>
       <Profiles />
@@ -1018,6 +1157,10 @@ function App() {
       <SectionTitle hint="How bendy each route is, and what those bends cost in fuel and minutes.">
         The curve tax ↝</SectionTitle>
       <CurveTax carId={car} />
+
+      <SectionTitle hint="Red lights, signs, barriers and roundabouts — measured from OSM, priced per car.">
+        The stop tax 🚦</SectionTitle>
+      <StopTax carId={car} />
 
       <SectionTitle hint="Per one-way trip. Switch the metric.">
         Energy, cost &amp; CO₂ by car</SectionTitle>

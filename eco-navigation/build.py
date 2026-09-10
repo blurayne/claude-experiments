@@ -68,6 +68,54 @@ ROUTES = [
 SHORT = {"arnbruck": "A · Arnbruck", "koetzting": "B · Viechtach/Kötzting",
          "bodenmais": "C · Bodenmais", "regen": "D · Regen"}
 
+# Per-route TL;DR: what the route is, and the IF — the conditions under which
+# it is the right choice. Grounded in the measured data; see METHODOLOGY.
+TLDR = {
+    "arnbruck": {
+        "label": "The default",
+        "choose_if": "the weather is clear. Cheapest and fastest for every "
+                     "car, despite crossing the highest point of any route "
+                     "except D — its 10.7 km distance advantage beats the "
+                     "843 m Eck saddle.",
+        "avoid_if": "there is snow or ice: the saddle, its 9 % ramps and the "
+                    "tightest bends of all four routes (median radius 478 m, "
+                    "hairpins down to 25 m) make it the first to become "
+                    "unpleasant. Also has six Waldbahn level crossings.",
+    },
+    "koetzting": {
+        "label": "The all-weather route",
+        "choose_if": "it is winter, the Eck saddle is snowed in, chains are "
+                     "required, or you tow a heavy load in bad conditions — "
+                     "this is the only route that stays below 600 m. Never "
+                     "the cheapest, but always open.",
+        "avoid_if": "conditions are good — you pay ~€0.6–0.9 extra per trip "
+                    "and 10 minutes for altitude insurance you don't need. "
+                    "Most traffic lights of any route (12 signals).",
+    },
+    "bodenmais": {
+        "label": "The relaxed alternative",
+        "choose_if": "you want a calmer drive in good weather or have an "
+                     "errand in Bodenmais: the least curvy route per km with "
+                     "the gentlest bends (median radius 529 m), and cheaper "
+                     "and faster than B for every car.",
+        "avoid_if": "you are in a hurry or it is snowing — it crosses the "
+                    "same 843 m saddle as A, and its six roundabouts plus "
+                    "five level crossings make it the stoppiest route "
+                    "(9.1 expected stops).",
+    },
+    "regen": {
+        "label": "The steady cruiser",
+        "choose_if": "you dislike stop-and-go above all (fewest expected "
+                     "stops, 6.9, and only one level crossing) or have an "
+                     "errand in Regen or Bodenmais — long uninterrupted B11 "
+                     "running with the fewest built-up areas.",
+        "avoid_if": "you care about cost or carry weight: the most climbing "
+                    "of any route (1 299 m ascent, 859 m peak) makes it the "
+                    "dearest for four of the five cars, and it crosses the "
+                    "ridge even higher than A does.",
+    },
+}
+
 
 def load_json(path):
     if not os.path.exists(path):
@@ -168,8 +216,9 @@ def main():
                 "energy_model": "MODELLED — longitudinal vehicle physics, "
                                 "calibrated to typical real-world consumption",
                 "mountain_curve_metrics": "MODELLED — counterfactual re-runs of "
-                                          "the same trip on a flat road and on a "
-                                          "straight road",
+                                          "the same trip on a flat road, on a "
+                                          "straight road, and on a green wave "
+                                          "with no stops",
                 "prices_co2": "Germany 2026 estimate: petrol 1.79 €/L, diesel "
                               "1.69 €/L, elec 0.40 €/kWh; grid 0.35 kg CO2/kWh",
             },
@@ -182,6 +231,8 @@ def main():
             "total_km": r["total_km"], "stops_est": r["stops_est"],
             "stops_measured": r["stops_measured"],
             "stop_inventory": r["stop_inventory"],
+            "stops_by_kind": r["stops_by_kind"],
+            "tldr": TLDR.get(k),
             "villages_passed": r["villages_passed"],
             "curviness": r["curviness"], "elev_stats": r["elev_stats"],
             "elev_source": r["elev_source"], "elev_samples": r["elev_samples"],
@@ -209,6 +260,7 @@ def main():
                     "cost_eur", "co2_kg", "time_min", "avg_kmh",
                     "mountain_amount", "mountain_cost_eur", "mountain_pct",
                     "curve_amount", "curve_cost_eur", "curve_time_min",
+                    "stop_amount", "stop_cost_eur", "stop_time_min",
                     "work_climb_pct", "work_aero_pct", "work_roll_pct",
                     "work_accel_pct"])
         for k, r in routes.items():
@@ -222,6 +274,8 @@ def main():
                             res["mountain"]["pct_of_trip"],
                             res["curves"]["amount"], res["curves"]["cost_eur"],
                             res["curves"]["time_min_lost"],
+                            res["stops"]["amount"], res["stops"]["cost_eur"],
+                            res["stops"]["time_min_lost"],
                             res["work_pct"]["climb"], res["work_pct"]["aero"],
                             res["work_pct"]["roll"], res["work_pct"]["accel"]])
 
@@ -233,11 +287,13 @@ def main():
                     "curviness_deg_per_km", "curviness_index", "bends_per_km",
                     "median_curve_radius_m", "min_curve_radius_m", "pct_curvy",
                     "pct_hairpin", "pct_tight", "pct_moderate", "pct_gentle",
-                    "pct_straight", "stops_est", "osm_limit_pct",
-                    "elevation_samples"])
+                    "pct_straight", "stops_expected", "signals", "roundabouts",
+                    "stop_signs", "give_way_signs", "level_crossings",
+                    "osm_limit_pct", "elevation_samples"])
         for k, r in routes.items():
             e, cv = r["elev_stats"], r["curviness"]
             p = cv["pct_distance"]
+            inv = r["stop_inventory"] or {}
             w.writerow([k, r["name"], r["total_km"], e["ascent_m"],
                         e["descent_m"], e["net_m"], e["min_m"], e["max_m"],
                         e["max_grade_pct"], e["min_grade_pct"], e["pct_steep"],
@@ -246,6 +302,10 @@ def main():
                         cv["median_curve_radius_m"], cv["min_curve_radius_m"],
                         cv["pct_curvy"], p["hairpin"], p["tight"], p["moderate"],
                         p["gentle"], p["straight"], r["stops_est"],
+                        inv.get("traffic_signals", 0),
+                        inv.get("roundabout", 0) + inv.get("mini_roundabout", 0),
+                        inv.get("stop", 0), inv.get("give_way", 0),
+                        inv.get("level_crossing", 0),
                         r["osm_limit_pct"], r["elev_samples"]])
 
     for k, r in routes.items():
@@ -284,12 +344,13 @@ def main():
                   f"tags, {r['stops_est']} modelled stops (fallback guess)")
         for c in CARS:
             res = results[k][c["id"]]
-            m, cu = res["mountain"], res["curves"]
+            m, cu, st = res["mountain"], res["curves"], res["stops"]
             print(f"   {c['name']:42s} {res['per100']:5.2f} {res['unit100']:10s}"
                   f" €{res['cost_eur']:5.2f}  {res['co2_kg']:4.1f}kg  "
-                  f"{res['time_min']:4.0f}min │ mountains €{m['cost_eur']:4.2f} "
-                  f"({m['pct_of_trip']:4.1f}%)  curves €{cu['cost_eur']:4.2f} "
-                  f"(+{cu['time_min_lost']:.0f}min)")
+                  f"{res['time_min']:4.0f}min │ mtn €{m['cost_eur']:4.2f} "
+                  f"({m['pct_of_trip']:4.1f}%)  crv €{cu['cost_eur']:4.2f} "
+                  f"(+{cu['time_min_lost']:.0f}min)  stops €{st['cost_eur']:4.2f} "
+                  f"(+{st['time_min_lost']:.1f}min)")
         print()
 
 
