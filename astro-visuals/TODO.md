@@ -3,6 +3,12 @@
 Everything the owner asks for lands here first, as a checkbox, and is committed on its own
 before the work starts. An item is ticked when it ships, with the version that carried it.
 
+## 2026-09-10
+
+- [ ] Debug mode also as a toggle under the "Other" settings section. The hold gesture on
+      the "?" stays; the switch shows the mode you are in and flips it, carried by the
+      existing debug flag (which survives reset), not by the settings record.
+
 ## 2026-09-06
 
 - [x] Break the page into modules and move it to TypeScript, so there is somewhere to put
