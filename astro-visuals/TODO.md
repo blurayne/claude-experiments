@@ -3,6 +3,17 @@
 Everything the owner asks for lands here first, as a checkbox, and is committed on its own
 before the work starts. An item is ticked when it ships, with the version that carried it.
 
+## 2026-09-11
+
+- [ ] Simplify the debug-mode hold gesture: press-and-hold the "?" (about) button for a plain
+      3 seconds, from rest — no prior taps required. Warning glow (`holdWarn`) starts at 1.5s
+      instead of the old 3-of-5s mark; fires at 3s exactly as before (`flash10`,
+      `setDebugMode(!isDebugMode(), true)`). The tap-to-toggle-the-About-dialog behaviour is
+      unaffected. And: on touch devices (`TOUCH_DEV`), entering debug mode through ANY door
+      (the hold, the "debug mode" switch under Other, or a `?debug` boot) leaves `dbgPanel`
+      closed — only its reopen button (`dbgPlus`) shows, matching how every other panel
+      offers itself when closed. Desktop keeps opening the panel on entry, as today.
+
 ## 2026-09-10
 
 - [x] Quick stats about the v3.0.0 refactoring in the changelog: real (wall-clock) runtime,
