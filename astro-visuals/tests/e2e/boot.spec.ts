@@ -441,10 +441,15 @@ test.describe('the debug switch', () => {
 
     // Door 3: the 3-second hold, on a fresh boot (clear the flag Door 2 left behind).
     await page.evaluate(() => localStorage.clear())
+    // The tour fires on a real 400ms setTimeout (src/main.ts), so a click-if-visible check
+    // after `load` isn't a guarantee it loses that race. Seed the tour-dismissed flag
+    // directly so it never triggers at all — nothing left to cover #tInfo and cancel the
+    // hold via pointerleave (src/ui/hud.ts).
+    await page.addInitScript(() => { try { localStorage.setItem('galactic-transit.tour', '1') } catch {} })
     await page.goto('/galactic-transit.html', { waitUntil: 'load' })
     await page.waitForFunction(() => !!document.getElementById('gl'))
     const tour2 = page.locator('#tourGo')
-    if (await tour2.isVisible().catch(() => false)) await tour2.click()
+    if (await tour2.isVisible().catch(() => false)) await tour2.click()   // belt-and-braces; should be a no-op
     const info = page.locator('#tInfo')
     const box = (await info.boundingBox())!
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)

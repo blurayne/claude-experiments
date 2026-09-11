@@ -415,10 +415,10 @@ document.querySelectorAll('.pclose[data-close]').forEach(b =>
 // ---------- the first run ----------
 // The guided look at the interface, its hint placement and its two buttons are ui/tour.
 initTour();
-// The "?" is handled entirely in ui/hud, where the tap counter lives: a run of taps that
-// ends below ten toggles the About dialog, a run that reaches ten toggles the debug door.
-// Nothing fires until the tapping stops — a dialog that opened on the first tap would
-// cover the button and make the count impossible.
+// The "?" is handled entirely in ui/hud: a click, debounced 340ms, toggles the About
+// dialog; a 3-second press-and-hold (no taps needed) toggles the debug door instead,
+// warning from 1.5s in. The hold cancels any pending dialog-open on pointerdown, so a
+// dialog opening mid-hold can never cover the button and cancel the hold via pointerleave.
 $('infoClose').addEventListener('click', ()=>{ $('infoModal').style.display='none'; });
 $('infoModal').addEventListener('click', e=>{ if(e.target.id==='infoModal') $('infoModal').style.display='none'; });
 if(matchMedia('(prefers-reduced-motion: reduce)').matches){ $('tPause').click(); }
