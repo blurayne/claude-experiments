@@ -402,9 +402,11 @@ test.describe('the debug switch', () => {
   })
 
   test('on a touch device, every door into debug mode leaves the panel closed, button only', async ({ page }) => {
-    // navigator.maxTouchPoints > 1 is one half of this codebase's own TOUCH_DEV check
-    // (src/core/errorlog.ts) — forcing it directly is more reliable across Chromium
-    // versions than fighting `matchMedia('(pointer: coarse)')` emulation.
+    // TOUCH_DEV (src/core/errorlog.ts) is
+    //   (matchMedia('(pointer: coarse)').matches || (navigator.maxTouchPoints|0) > 1)
+    //   && !matchMedia('(pointer: fine)').matches
+    // — a default Playwright desktop context reports `(pointer: fine)` true, which negates
+    // the whole expression regardless of maxTouchPoints, so both queries need mocking here.
     await page.addInitScript(() => {
       Object.defineProperty(navigator, 'maxTouchPoints', { get: () => 5, configurable: true })
       // Also mock matchMedia to ensure TOUCH_DEV evaluates to true
@@ -412,7 +414,7 @@ test.describe('the debug switch', () => {
       window.matchMedia = ((query: string) => {
         if (query === '(pointer: fine)') return { matches: false, media: query, onchange: null, addListener: () => {}, removeListener: () => {}, addEventListener: () => {}, removeEventListener: () => {}, dispatchEvent: () => true } as any
         if (query === '(pointer: coarse)') return { matches: true, media: query, onchange: null, addListener: () => {}, removeListener: () => {}, addEventListener: () => {}, removeEventListener: () => {}, dispatchEvent: () => true } as any
-        return origMatchMedia(query)
+        return origMatchMedia.call(window, query)
       }) as any
     })
 
@@ -428,9 +430,28 @@ test.describe('the debug switch', () => {
     expect(await page.evaluate(() => (document.getElementById('dbgPanel') as HTMLElement).style.display)).toBe('none')
     expect(await page.evaluate(() => (document.getElementById('dbgPlus') as HTMLElement).style.display)).toBe('block')
 
-    // Door 2: a ?debug boot.
+    // Door 2: a ?debug boot. Clear the flag Door 1 persisted first, or `wasAlreadyOn` is
+    // already true on this navigation and `entering` (hence the panel-open gate) never
+    // fires for reasons that have nothing to do with TOUCH_DEV.
+    await page.evaluate(() => localStorage.clear())
     await page.goto('/galactic-transit.html?debug', { waitUntil: 'load' })
     await page.waitForFunction(() => !!document.getElementById('gl'))
+    expect(await page.evaluate(() => (document.getElementById('dbgPanel') as HTMLElement).style.display)).toBe('none')
+    expect(await page.evaluate(() => (document.getElementById('dbgPlus') as HTMLElement).style.display)).toBe('block')
+
+    // Door 3: the 3-second hold, on a fresh boot (clear the flag Door 2 left behind).
+    await page.evaluate(() => localStorage.clear())
+    await page.goto('/galactic-transit.html', { waitUntil: 'load' })
+    await page.waitForFunction(() => !!document.getElementById('gl'))
+    const tour2 = page.locator('#tourGo')
+    if (await tour2.isVisible().catch(() => false)) await tour2.click()
+    const info = page.locator('#tInfo')
+    const box = (await info.boundingBox())!
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+    await page.mouse.down()
+    await page.waitForTimeout(3200)
+    await page.mouse.up()
+    expect(await page.evaluate(() => (document.getElementById('tDebug') as HTMLInputElement).checked)).toBe(true)
     expect(await page.evaluate(() => (document.getElementById('dbgPanel') as HTMLElement).style.display)).toBe('none')
     expect(await page.evaluate(() => (document.getElementById('dbgPlus') as HTMLElement).style.display)).toBe('block')
   })
@@ -455,7 +476,8 @@ test.describe('the hold gesture', () => {
     await page.mouse.down()
     await page.waitForTimeout(500)
     await page.mouse.up()
-    await page.waitForTimeout(100)
+    await page.waitForTimeout(400)   // past the 340ms debounce — let any pending dialog-open resolve
+    await page.evaluate(() => { const m = document.getElementById('infoModal'); if (m) m.style.display = 'none' })
     expect(await page.evaluate(() => (document.getElementById('tDebug') as HTMLInputElement).checked)).toBe(false)
 
     // Held past 1.5s: the button glows its warning.

@@ -214,11 +214,13 @@ dismissing the first-run tour **starts** the clock, so pausing has to come after
 - Formerly the settings footer: build stamp in the viewer's own time zone (named, `UTC±0` when
   zero) + short sha + changelog link on one line; version only in the tooltip; no
   reset button. The reload button: 1 tap refreshes past caches, 3 taps also resets
-  settings, 10 taps toggles debug mode; feedback is a panel flash at each threshold,
-  never a visible counter.
+  settings; the "?" button is reused separately — a plain 3-second press-and-hold on it
+  toggles debug mode, warning-glowing (`holdWarn`) from 1.5s in — feedback is a panel
+  flash at each threshold, never a visible counter.
 - Debug mode (via `?debug`, the hold on the "?", or the "debug mode" checkbox under
   Other — all persisted by its own flag, which survives a settings reset) opens the
-  debug panel and reveals the tuning rows (`hud rate`, `Gaia brght`); everything else
+  debug panel on desktop (on a touch device it stays closed and offers its reopen dot,
+  `dbgPlus`) and reveals the tuning rows (`hud rate`, `Gaia brght`); everything else
   stays user-facing. Both doors go through `setDebugMode` in `ui/debug`, and the
   checkbox mirrors the mode whichever way it was entered; it is deliberately NOT in
   persist's id lists.
@@ -767,8 +769,8 @@ proves a drag is never a tap.
 
 The Debug section is a real section: `SECS`, `SEC_BODY`, `secOpen` all carry `debug`; its
 heading is hidden outside debug mode and the body folded through `applySecs()`, never by an
-inline `display` (which beats the fold's class). Entering debug — ten taps or `?debug` in the
-URL, not a plain boot with the flag set — switches the QR on.
+inline `display` (which beats the fold's class). Entering debug — a 3-second hold on "?" or
+`?debug` in the URL, not a plain boot with the flag set — switches the QR on.
 
 Trails in reverse: `refillTrails()` samples `simT − dirT·(N−1−k)·DT` with `dirT` the shuttle's
 sign, so the sweep is what the viewer watched; it is re-run on every change of the shuttle's

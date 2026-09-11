@@ -2298,7 +2298,8 @@ function initQr(deps
 }
 
 /**
- * The debug door: opened by `?debug` in the URL or ten taps on refresh, and remembered.
+ * The debug door: opened by `?debug` in the URL or a plain 3-second press-and-hold on the
+ * "?" button, and remembered.
  *
  * Behind it are the error log (collected on touch devices, which have no console to open),
  * the state export and import, and the QR overlay. It drives ui/qr rather than the other way
@@ -5115,8 +5116,8 @@ function initHudControls(deps
   // nothing between here and the server can hand back the old build.
   // Refresh reloads past every cache. Reset is its own button beside it — forgetting your
   // settings should not be something you discover by tapping three times — and the debug
-  // door moved to ten taps on the "?", where a curious finger is more likely to find it
-  // than on a button whose job is already done in one press.
+  // door is a plain 3-second press-and-hold on the "?", where a curious finger is more
+  // likely to find it than on a button whose job is already done in one press.
   function bustAndGoLocal(mutate                   )       {
     const u = new URL(location.href);
     u.searchParams.set('_', String(Date.now()));
@@ -7595,7 +7596,7 @@ $v('jump').value = 'helix';
 $('jump').dispatchEvent(new Event('change'));
 setKeepSaved(false);
 try{ if(!hadSaved && !localStorage.getItem(TOURKEY)) setTimeout(showTour, 400); }catch(e){}
-// ---------- the debug door: opened by ?debug in the URL or ten taps on refresh ----------
+// ---------- the debug door: opened by ?debug in the URL or a 3-second hold on "?" ----------
 // The door itself, the error log, the state export/import and the QR overlay are ui/debug and
 // ui/qr. ui/debug drives ui/qr — it decides when the code is redrawn — so the encoder takes
 // its payload as an injection rather than importing the exporter.
@@ -8097,8 +8098,8 @@ startFrameLoop({
   @media (prefers-reduced-motion: reduce){
     button:hover{animation:none;box-shadow:0 0 8px 2px rgba(95,216,255,.35)}
   }
-  /* The debug hold: the "?" glows while it is held down, and turns warning-yellow from
-     the third second so the five-second door announces itself before it opens. */
+  /* The debug hold: the "?" glows while it is held down, and turns warning-yellow at
+     1.5s so the 3-second door announces itself before it opens. */
   #tInfo.holding{animation:holdGlow .9s ease-in-out infinite}
   #tInfo.holdWarn{animation:holdGlowWarn .55s ease-in-out infinite;color:#ffd24a}
   @keyframes holdGlow{0%,100%{box-shadow:0 0 5px 1px rgba(95,216,255,.35)}

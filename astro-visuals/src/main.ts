@@ -547,7 +547,7 @@ $v('jump').value = 'helix';
 $('jump').dispatchEvent(new Event('change'));
 setKeepSaved(false);
 try{ if(!hadSaved && !localStorage.getItem(TOURKEY)) setTimeout(showTour, 400); }catch(e){}
-// ---------- the debug door: opened by ?debug in the URL or ten taps on refresh ----------
+// ---------- the debug door: opened by ?debug in the URL or a 3-second hold on "?" ----------
 // The door itself, the error log, the state export/import and the QR overlay are ui/debug and
 // ui/qr. ui/debug drives ui/qr — it decides when the code is redrawn — so the encoder takes
 // its payload as an injection rather than importing the exporter.

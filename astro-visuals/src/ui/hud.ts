@@ -469,8 +469,8 @@ export function initHudControls(deps: {
   // nothing between here and the server can hand back the old build.
   // Refresh reloads past every cache. Reset is its own button beside it — forgetting your
   // settings should not be something you discover by tapping three times — and the debug
-  // door moved to ten taps on the "?", where a curious finger is more likely to find it
-  // than on a button whose job is already done in one press.
+  // door is a plain 3-second press-and-hold on the "?", where a curious finger is more
+  // likely to find it than on a button whose job is already done in one press.
   function bustAndGoLocal(mutate?: (u: URL) => void): void {
     const u = new URL(location.href);
     u.searchParams.set('_', String(Date.now()));

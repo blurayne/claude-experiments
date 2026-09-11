@@ -11,7 +11,8 @@ import { setPanelOpen, setPanelsDebug } from './panels'
 import { qrRedraw } from './qr'
 
 /**
- * The debug door: opened by `?debug` in the URL or ten taps on refresh, and remembered.
+ * The debug door: opened by `?debug` in the URL or a plain 3-second press-and-hold on the
+ * "?" button, and remembered.
  *
  * Behind it are the error log (collected on touch devices, which have no console to open),
  * the state export and import, and the QR overlay. It drives ui/qr rather than the other way
