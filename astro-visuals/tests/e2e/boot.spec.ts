@@ -402,6 +402,42 @@ test.describe('the debug switch', () => {
   })
 })
 
+test.describe('the hold gesture', () => {
+  test('a 3-second hold on "?" enters debug mode and warns from halfway; a short press does not', async ({ page }) => {
+    await page.goto('/galactic-transit.html', { waitUntil: 'load' })
+    await page.waitForFunction(() => !!document.getElementById('gl'))
+    const tour = page.locator('#tourGo')
+    if (await tour.isVisible().catch(() => false)) await tour.click()
+
+    const info = page.locator('#tInfo')
+    const box = (await info.boundingBox())!
+    const cx = box.x + box.width / 2
+    const cy = box.y + box.height / 2
+
+    // A short press does not enter debug mode. (It also schedules the About dialog to open
+    // 340ms after release — the next pointerdown below cancels that pending open, the same
+    // way it always has, so it never actually appears.)
+    await page.mouse.move(cx, cy)
+    await page.mouse.down()
+    await page.waitForTimeout(500)
+    await page.mouse.up()
+    await page.waitForTimeout(100)
+    expect(await page.evaluate(() => (document.getElementById('tDebug') as HTMLInputElement).checked)).toBe(false)
+
+    // Held past 1.5s: the button glows its warning.
+    await page.mouse.down()
+    await page.waitForTimeout(1700)
+    expect(await info.evaluate((el) => el.classList.contains('holdWarn'))).toBe(true)
+
+    // Held to 3s: debug mode is entered, and on this non-touch context the panel opens too.
+    await page.waitForTimeout(1500)
+    await page.mouse.up()
+    expect(await page.evaluate(() => (document.getElementById('tDebug') as HTMLInputElement).checked)).toBe(true)
+    expect(await info.evaluate((el) => el.classList.contains('holding'))).toBe(false)
+    expect(await page.evaluate(() => (document.getElementById('dbgPanel') as HTMLElement).style.display)).toBe('')
+  })
+})
+
 test.describe('the panels dock', () => {
   test('a downward swipe parks a panel at the foot of its column, an upward one brings it back', async ({ page }) => {
     await page.setViewportSize({ width: 1300, height: 950 })

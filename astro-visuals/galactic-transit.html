@@ -5153,13 +5153,12 @@ function initHudControls(deps
   });
   {
     // One button, two meanings, told apart by patience. Tap it and the About dialog
-    // toggles — after a beat, because the beat is what lets the other meaning exist.
-    // Tap twice more and HOLD the third for five seconds and the debug door opens:
-    // long enough that nobody finds it by accident, and it announces itself while you
-    // wait, glowing from the third second in warning yellow so you know something is
-    // going to happen and can let go if you did not mean it.
+    // toggles, debounced so a rapid flurry of taps settles to one open or close rather
+    // than flickering. Press and HOLD it for three seconds and the debug door opens
+    // instead: long enough that nobody finds it by accident, and it warns from halfway
+    // through — glowing warning yellow — so you can let go if you did not mean it.
     const b = $('tInfo');
-    let taps = 0, tapTimer                                       = null;
+    let tapTimer                                       = null;
     let holdT                                       = null;
     let warnT                                       = null;
     let fired = false;
@@ -5170,27 +5169,24 @@ function initHudControls(deps
     };
     b.addEventListener('pointerdown', ()=>{
       fired = false;
-      if(taps < 2) return;                    // only the third press in a run may be held
       // Hold the pending dialog back. Let it open and it covers the button, the browser
       // fires pointerleave on a control it can no longer see, and the hold cancels itself
-      // three seconds in — which is exactly how this failed the first time it was tried.
+      // partway in — which is exactly how this failed the first time it was tried.
       if(tapTimer !== null){ clearTimeout(tapTimer); tapTimer = null; }
       b.classList.add('holding');
-      warnT = setTimeout(()=> b.classList.add('holdWarn'), 3000);
+      warnT = setTimeout(()=> b.classList.add('holdWarn'), 1500);
       holdT = setTimeout(()=>{
-        fired = true; endHold(); taps = 0;
+        fired = true; endHold();
         if(tapTimer !== null){ clearTimeout(tapTimer); tapTimer = null; }
         flash('flash10');
         setDebugMode(!isDebugMode(), true);
-      }, 5000);
+      }, 3000);
     });
     for(const ev of ['pointerup','pointercancel','pointerleave']) b.addEventListener(ev, endHold);
     b.addEventListener('click', ()=>{
       if(fired){ fired = false; return; }     // the hold already spoke; the click is its echo
-      taps++;
       if(tapTimer !== null) clearTimeout(tapTimer);
       tapTimer = setTimeout(()=>{
-        taps = 0;
         const m = $('infoModal');
         m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
       }, 340);
@@ -8306,7 +8302,7 @@ startFrameLoop({
 </div>
 <button class="pdot" id="reopen" data-open="hud" aria-label="show control panel"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.4a3.6 3.6 0 100 7.2 3.6 3.6 0 000-7.2zm9 3.6c0-.5 0-1-.1-1.5l2-1.5-2-3.4-2.3.9a7.8 7.8 0 00-2.6-1.5L15.6 2h-3.9l-.4 2.5c-.9.3-1.8.8-2.6 1.5L6.4 5.1l-2 3.4 2 1.5a9 9 0 000 3l-2 1.5 2 3.4 2.3-.9c.8.7 1.7 1.2 2.6 1.5l.4 2.5h3.9l.4-2.5c.9-.3 1.8-.8 2.6-1.5l2.3.9 2-3.4-2-1.5c.1-.5.1-1 .1-1.5z"/></svg></button>
 <button class="pdot act on" id="tPause" aria-label="pause"><svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><rect x="1.4" y="1" width="2.7" height="8"/><rect x="5.9" y="1" width="2.7" height="8"/></svg></button>
-<button class="pdot act" id="tInfo" aria-label="about" title="about · tap 10× to toggle debug mode">?</button>
+<button class="pdot act" id="tInfo" aria-label="about" title="about · hold 3s to toggle debug mode">?</button>
 <button class="pdot" id="envPlus" data-open="env" aria-label="show the Earth panel">ℹ</button>
 <button class="pdot act" id="zoomIn" aria-label="zoom in" title="zoom in — toward the next smaller object">+</button>
 <button class="pdot act" id="zoomOut" aria-label="zoom out" title="zoom out — toward the next bigger object">−</button>
