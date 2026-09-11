@@ -400,6 +400,40 @@ test.describe('the debug switch', () => {
     await page.waitForFunction(() => !!document.getElementById('gl'))
     expect(await page.evaluate(() => (document.getElementById('tDebug') as HTMLInputElement).checked)).toBe(true)
   })
+
+  test('on a touch device, every door into debug mode leaves the panel closed, button only', async ({ page }) => {
+    // navigator.maxTouchPoints > 1 is one half of this codebase's own TOUCH_DEV check
+    // (src/core/errorlog.ts) — forcing it directly is more reliable across Chromium
+    // versions than fighting `matchMedia('(pointer: coarse)')` emulation.
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, 'maxTouchPoints', { get: () => 5, configurable: true })
+      // Also mock matchMedia to ensure TOUCH_DEV evaluates to true
+      const origMatchMedia = window.matchMedia
+      window.matchMedia = ((query: string) => {
+        if (query === '(pointer: fine)') return { matches: false, media: query, onchange: null, addListener: () => {}, removeListener: () => {}, addEventListener: () => {}, removeEventListener: () => {}, dispatchEvent: () => true } as any
+        if (query === '(pointer: coarse)') return { matches: true, media: query, onchange: null, addListener: () => {}, removeListener: () => {}, addEventListener: () => {}, removeEventListener: () => {}, dispatchEvent: () => true } as any
+        return origMatchMedia(query)
+      }) as any
+    })
+
+    // Door 1: the "debug mode" switch under Other.
+    await page.goto('/galactic-transit.html', { waitUntil: 'load' })
+    await page.waitForFunction(() => !!document.getElementById('gl'))
+    const tour = page.locator('#tourGo')
+    if (await tour.isVisible().catch(() => false)) await tour.click()
+    await page.evaluate(() => {
+      const c = document.getElementById('tDebug') as HTMLInputElement
+      c.checked = true; c.dispatchEvent(new Event('change'))
+    })
+    expect(await page.evaluate(() => (document.getElementById('dbgPanel') as HTMLElement).style.display)).toBe('none')
+    expect(await page.evaluate(() => (document.getElementById('dbgPlus') as HTMLElement).style.display)).toBe('block')
+
+    // Door 2: a ?debug boot.
+    await page.goto('/galactic-transit.html?debug', { waitUntil: 'load' })
+    await page.waitForFunction(() => !!document.getElementById('gl'))
+    expect(await page.evaluate(() => (document.getElementById('dbgPanel') as HTMLElement).style.display)).toBe('none')
+    expect(await page.evaluate(() => (document.getElementById('dbgPlus') as HTMLElement).style.display)).toBe('block')
+  })
 })
 
 test.describe('the hold gesture', () => {

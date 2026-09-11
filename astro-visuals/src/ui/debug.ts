@@ -106,7 +106,10 @@ export function setDebugUI(on: boolean, entering: boolean): void {
   // now rather than a modal behind a button — it opens with the door and closes with it,
   // and can be moved, docked and dismissed like any other panel while it is open.
   setPanelsDebug(on);
-  if(on && entering) setPanelOpen('dbgPanel', true);
+  // Touch devices get the button, not the dialog: dbgPlus (its reopen dot) already shows
+  // the instant setPanelsDebug(on) makes the panel available, so nothing here is silently
+  // hidden — the panel is one tap away, not fully hidden.
+  if(on && entering && !TOUCH_DEV) setPanelOpen('dbgPanel', true);
   if(!on) setPanelOpen('dbgPanel', false);
   // entering debug mode switches the QR on; a plain boot in debug mode leaves the choice alone
   if(on && entering && !($('qrOn') as HTMLInputElement).checked){ ($('qrOn') as HTMLInputElement).checked = true; $('qrOn').dispatchEvent(new Event('change')); }
