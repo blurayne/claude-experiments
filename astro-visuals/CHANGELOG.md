@@ -6,8 +6,14 @@ Hand-written release notes come from `CHANGELOG.notes.md`, never from here.
 
 ## Galactic Transit
 
-### 3.11.0 — 2026-09-10
+### 3.12.0 — 2026-09-11
 
+- V3.12.0 — a plain 3s hold for debug mode, button-only on touch (`c62a255`)
+
+### 3.11.0 — 2026-09-11
+
+- Debug mode opens as a button only on touch, every door (`e48de9e`)
+- A plain 3-second hold opens the debug door (`ed1b65c`)
 - V3.11.0 — debug mode becomes a switch under Other (`47f9a8f`)
 
 ### 3.10.0 — 2026-09-10
