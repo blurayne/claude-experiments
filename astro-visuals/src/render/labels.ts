@@ -9,6 +9,7 @@ import { bodyPosArr } from './passes/bodies'
 import { moonRel } from '../astro/earth'
 import { SSTARS, sstarA, RADIO_GEOM } from '../astro/gc'
 import { LG, LG_BY_LIGHT, lyLabel } from '../astro/localgroup'
+import { SC_GROUPS_NAMED, SC_GALS } from '../astro/supercluster'
 
 /**
  * Every name on the screen. They are DOM, not GL: HTML text over the canvas, positioned each
@@ -115,6 +116,11 @@ const bh1El = mkLbl('Gaia BH1', 'rgba(236,214,190,.9)');
 const lgEls = LG.map(m => { const d = mkLbl(m.name, ''); d.classList.add('lg'); if(!m.major) d.classList.add('minor');
   if(m.major){ const sp = document.createElement('span'); sp.className = 'dist'; sp.textContent = lyLabel(m.ly); d.appendChild(sp); } return d; });
 const mwEl = (()=>{ const d = mkLbl('Milky Way Galaxy', 'rgba(120,190,255,.95)'); d.classList.add('lg'); return d; })();
+// the supercluster's names: the groups and clusters with their distances, the bright
+// nearby galaxies in grey
+const scEls = SC_GROUPS_NAMED.map(g => { const d = mkLbl(g.name, ''); d.classList.add('lg'); if(g.name === 'Local Group') d.style.color = 'rgba(120,190,255,.95)';
+  const sp = document.createElement('span'); sp.className = 'dist'; sp.textContent = lyLabel(g.ly); d.appendChild(sp); return d; });
+const scGalEls = SC_GALS.map(g => { if(!g.major) return null; const d = mkLbl(g.name, ''); d.classList.add('lg'); d.classList.add('minor'); return d; });
 // the radio field's names, in the map's own warm ink; the unnamed ridge gets no element
 const radioEls = RADIO_GEOM.map(g => g.obj.name ? mkLbl(g.obj.name, 'rgba(255,205,150,.78)') : null);
 const bh1StarEl = mkLbl('G dwarf companion', 'rgba(255,225,170,.75)');
@@ -201,8 +207,9 @@ export interface LabelInputs {
   gc: { on: boolean; view: Float32Array; dist: number; stars: Float32Array; sgraPx: number; radioA: number }
   /** Gaia BH1's frame, the same way: the hole at the origin, the star relative to it */
   bh1: { on: boolean; view: Float32Array; dist: number; star: Float32Array; holePx: number }
-  /** how much of the Local Group is drawn this frame */
+  /** how much of the Local Group is drawn this frame, and of the supercluster */
   lgA: number
+  scA: number
 }
 
 /**
@@ -218,12 +225,13 @@ function projector(projMat: Float32Array, viewMat: Float32Array): (x: number, y:
 const hideGC = (): void => { placeLabel(sgraEl, 0, 0, false); sstarEls.forEach(l => placeLabel(l as Label, 0, 0, false)); radioEls.forEach(l => l && placeLabel(l as Label, 0, 0, false)); };
 const hideBH1 = (): void => { placeLabel(bh1El, 0, 0, false); placeLabel(bh1StarEl, 0, 0, false); };
 const hideLG = (): void => { lgEls.forEach(l => placeLabel(l as Label, 0, 0, false)); placeLabel(mwEl, 0, 0, false); };
+const hideSC = (): void => { scEls.forEach(l => placeLabel(l as Label, 0, 0, false)); scGalEls.forEach(l => l && placeLabel(l as Label, 0, 0, false)); };
 const lgTaken = new Set<number>();
 
 export function drawLabels(showLabels: boolean, inputs: LabelInputs): void {
-  if(!showLabels){ placeLabel(g710Lbl, 0, 0, false); hideGC(); hideBH1(); hideLG(); return }
+  if(!showLabels){ placeLabel(g710Lbl, 0, 0, false); hideGC(); hideBH1(); hideLG(); hideSC(); return }
   const { projMat, viewMat, pxScale, camDist, org, andPos, merge, sep, spinMW, spinM31, asm, bornYet, star,
-          showP9, showDwarfs, wasEaten, structOn, armsOn, gc, bh1, lgA } = inputs;
+          showP9, showDwarfs, wasEaten, structOn, armsOn, gc, bh1, lgA, scA } = inputs;
   const pv = mul(projMat, viewMat);
   const proj = (x: number, y: number, z: number): number[] => { const cw = pv[3]*x+pv[7]*y+pv[11]*z+pv[15];
     return [cw, ((pv[0]*x+pv[4]*y+pv[8]*z+pv[12])/cw*0.5+0.5)*view.W, (-(pv[1]*x+pv[5]*y+pv[9]*z+pv[13])/cw*0.5+0.5)*view.H]; };
@@ -305,7 +313,7 @@ export function drawLabels(showLabels: boolean, inputs: LabelInputs): void {
   // the Local Group: the luminous claim their space first, and a name that would land on
   // one already placed steps aside — the chart's crowd round Andromeda cannot all be read
   // at once, and a pile of overprinted names reads as nothing
-  if(lgA > 0.5){
+  if(lgA > 0.5 && scA < 0.5){
     lgTaken.clear();
     const cellW = 96, cellH = 13;
     { const [cw, sx, sy] = proj(-org[0], -org[1], -org[2]);   // the Galaxy's centre
@@ -323,6 +331,23 @@ export function drawLabels(showLabels: boolean, inputs: LabelInputs): void {
       placeLabel(el as Label, sx, sy - 9, show);
     }
   } else hideLG();
+  // the supercluster: the named groups first, then the bright galaxies where there is room
+  if(scA > 0.5){
+    lgTaken.clear();
+    const cellW = 96, cellH = 13;
+    const claim = (el: HTMLElement, x: number, y: number, z: number, dy: number): void => {
+      const [cw, sx, sy] = proj(x, y, z);
+      let show = cw > 1 && sx > -40 && sx < view.W + 40 && sy > -20 && sy < view.H + 20;
+      if(show){
+        const cx = Math.floor(sx/cellW), cy = Math.floor((sy + 6)/cellH);
+        for(let dx=-1;dx<=1 && show;dx++) for(let ddy=-1;ddy<=1;ddy++) if(lgTaken.has((cx+dx)*4096 + cy+ddy)){ show = false; break; }
+        if(show) lgTaken.add(cx*4096 + cy);
+      }
+      placeLabel(el as Label, sx, sy + dy, show);
+    };
+    for(let k=0;k<SC_GROUPS_NAMED.length;k++){ const g = SC_GROUPS_NAMED[k]; claim(scEls[k], g.pos[0], g.pos[1], g.pos[2], -9); }
+    for(let k=0;k<SC_GALS.length;k++){ const el = scGalEls[k]; if(!el) continue; const g = SC_GALS[k]; claim(el, g.pos[0], g.pos[1], g.pos[2], 8); }
+  } else hideSC();
   // one galaxy, one name: from the moment the disks are one blob, the remnant's centre
   { const [cw, sx, sy] = proj(-org[0], -org[1], -org[2]);
     placeLabel(mergedEl, sx, sy, galaxyNames && merge >= 0.35 && cw > 1); }

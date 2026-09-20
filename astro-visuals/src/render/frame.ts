@@ -26,7 +26,9 @@ import { drawG710 } from './passes/g710'
 import { drawGalacticCentre, sstarRel, bh1StarRel } from './passes/gc'
 import { bh1Centre, SGRA } from '../astro/gc'
 import { drawLocalGroup } from './passes/localgroup'
+import { drawSupercluster } from './passes/supercluster'
 import { LG_BOX } from '../astro/localgroup'
+import { SG_SCENE } from '../astro/supergalactic'
 import { drawShed, drawSunDisc } from './passes/sun'
 import { drawEatFlash } from './passes/eatflash'
 import { bindHDR, resolveTone } from './passes/tone'
@@ -66,6 +68,8 @@ let vaoStars: WebGLVertexArrayObject
 let holding = false
 /** the Group's fade from the last frame: the skybox photographs read it a pass earlier */
 let lgFadeNow = 0
+/** and the supercluster's, the same way */
+let scFadeNow = 0
 export const setHolding = (h: boolean): void => { holding = h }
 
 /** the rendering origin: the Sun, in double precision */
@@ -94,6 +98,8 @@ const wasEaten = [false,false,false,false], eatFlash = [-1,-1,-1,-1];   // -1: n
 export function skyProjection(near: number, far: number): Float32Array { const m = perspective(Math.PI/3, view.W/view.H, near, far); m[0] *= SKY_MIRROR; return m; }
 
 /** The Centre's sky frame for the radio field: north, the line of sight, and their cross — see the camera block. */
+/** The supercluster's frame: the supergalactic pole as the axis, SGL = 0 toward the eye at yaw 0. */
+function scFrame(): ArrayLike<number>[] { const A = SG_SCENE.Z, Q = SG_SCENE.X; return [[Q[1]*A[2]-Q[2]*A[1], Q[2]*A[0]-Q[0]*A[2], Q[0]*A[1]-Q[1]*A[0]], A, Q]; }
 function gcSkyFrame(): ArrayLike<number>[] { const A = SGRA.basis.N, Q = SGRA.basis.Z; return [[Q[1]*A[2]-Q[2]*A[1], Q[2]*A[0]-Q[0]*A[2], Q[0]*A[1]-Q[1]*A[0]], A, Q]; }
 export function spinFrame(): ArrayLike<number>[] { const A = EARTH_AXIS, P = earthPrime(simClock.simT, cam.spinP); return [P, A, [A[1]*P[2]-A[2]*P[1], A[2]*P[0]-A[0]*P[2], A[0]*P[1]-A[1]*P[0]]]; }
 /**
@@ -220,6 +226,7 @@ function frame(now: number): void {
                   : cam.followTarget === 'gc' || cam.followTarget === 'gcr' ? GC_ORIGIN
                   : cam.followTarget === 'bh1' ? bh1Abs
                   : cam.followTarget === 'lg' ? lgAbs
+                  : cam.followTarget === 'sc' || cam.followTarget === 'web' ? org
                   : moonHere ? moonW
                   : ((cam.followTarget === 'earth' || cam.followTarget === 'moon') && !wasEaten[3]) ? earthW : org;
   const goal = cam.follow ? [followPos[0],followPos[1],followPos[2]] : [0,0,0];
@@ -266,6 +273,14 @@ function frame(now: number): void {
     // the same three vectors, but in the planet's frame: x → prime meridian P, y → axis A,
     // z → −Q (so the frame keeps the world's handedness); the frame turns with the spin
     const [P, A, Q] = moonLock ? moonSpinFrame() : spinFrame();
+    rx = cy*P[0]+sy*Q[0]; ry = cy*P[1]+sy*Q[1]; rz = cy*P[2]+sy*Q[2];
+    ux = -sp*sy*P[0]+cp*A[0]+sp*cy*Q[0]; uy = -sp*sy*P[1]+cp*A[1]+sp*cy*Q[1]; uz = -sp*sy*P[2]+cp*A[2]+sp*cy*Q[2];
+    dx = cp*sy*P[0]+sp*A[0]-cp*cy*Q[0]; dy = cp*sy*P[1]+sp*A[1]-cp*cy*Q[1]; dz = cp*sy*P[2]+sp*A[2]-cp*cy*Q[2];
+    upV = A;
+  } else if(cam.follow && (cam.followTarget === 'sc' || cam.followTarget === 'web')){
+    // the supercluster's frame: the supergalactic pole up, so the chart's cylinder stands
+    // upright and pitch tilts the eye above its plane
+    const [P, A, Q] = scFrame();
     rx = cy*P[0]+sy*Q[0]; ry = cy*P[1]+sy*Q[1]; rz = cy*P[2]+sy*Q[2];
     ux = -sp*sy*P[0]+cp*A[0]+sp*cy*Q[0]; uy = -sp*sy*P[1]+cp*A[1]+sp*cy*Q[1]; uz = -sp*sy*P[2]+cp*A[2]+sp*cy*Q[2];
     dx = cp*sy*P[0]+sp*A[0]-cp*cy*Q[0]; dy = cp*sy*P[1]+sp*A[1]-cp*cy*Q[1]; dz = cp*sy*P[2]+sp*A[2]-cp*cy*Q[2];
@@ -555,7 +570,9 @@ function frame(now: number): void {
     mirror: SKY_MIRROR, orbitAlpha: hud.orbitAlpha, showOrbits: hud.psO, trailAlpha: hud.trailAlpha, showTails: hud.psH, viewMat, org,
   });
   // the Local Group, once the eye is far enough out to see the Galaxy whole
-  lgFadeNow = drawLocalGroup({ projMat: view.projMat!, viewMat, eye, camDist: cam.dist, pxScale, showLabels: hud.showLabels });
+  lgFadeNow = drawLocalGroup({ projMat: view.projMat!, viewMat, eye, camDist: cam.dist, pxScale, showLabels: hud.showLabels, boxOn: scFadeNow < 0.5, dim: 1 - 0.85*scFadeNow });
+  // and beyond it, the supercluster and the nearer cosmic web
+  scFadeNow = drawSupercluster({ projMat: view.projMat!, viewMat, eye, camDist: cam.dist, pxScale, showLabels: hud.showLabels });
   // The Sun itself, last of the scene: the envelope it has shed, then its disc over that.
   // Whether the envelope is on screen decides what the Sun's label says, so the pass
   // reports it and the readout is set here rather than from inside the draw.
@@ -587,7 +604,7 @@ function frame(now: number): void {
     structOn: [hud.showBelt, hud.showKuiper, hud.showOort], armsOn: hud.armsOn,
     gc: { on: gcRes.gcOn, view: viewGC, dist: distGC, stars: sstarRel, sgraPx: gcRes.sgraPx, radioA: gcRes.radioA },
     bh1: { on: gcRes.bh1On, view: viewBH1, dist: distBH1, star: bh1StarRel, holePx: gcRes.bh1Px },
-    lgA: lgFadeNow,
+    lgA: lgFadeNow, scA: scFadeNow,
   });
 
   updateHud(now, pn);

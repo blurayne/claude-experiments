@@ -20,14 +20,14 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
 describe('the shaders', () => {
   const files = readdirSync(resolve(ROOT, 'src/shaders')).sort()
 
-  it('is still the full set of 29, all of them vert or frag', () => {
+  it('is still the full set of 31, all of them vert or frag', () => {
     // The 23 the original page carried — proved equal during the migration and counted
     // here ever since — plus the v3.4 skybox pair (sky.vert/sky.frag) and the v3.13 black
     // hole (bh.frag, on the Sun's one-point vertex shader) and the v3.14 radio field's pair
     // (gcradio.vert/gcradio.frag) and the v3.15 Local Group's galaxy.frag on that same vertex
-    // shader. A shader deleted by accident is
+    // shader, and the v3.16 supercluster's point pair (gx.vert/gx.frag). A shader deleted by accident is
     // a program that fails at runtime with a message nobody reads until the canvas is black.
-    expect(files).toHaveLength(29)
+    expect(files).toHaveLength(31)
     for (const f of files) expect(f, `${f} is neither .vert nor .frag`).toMatch(/\.(vert|frag)$/)
   })
 

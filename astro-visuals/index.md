@@ -88,6 +88,7 @@ in the browser with no build step and no external CDN.
 | [Event Horizon Telescope](https://eventhorizontelescope.org/) 2022 (ApJL 930, L12) | the shadow's measured size, which the drawn Schwarzschild shadow is checked against | scientific data, cite the paper; no image used |
 | [LaRosa, Kassim, Lazio & Hyman 2000](https://ui.adsabs.harvard.edu/abs/2000AJ....119..207L) (AJ 119, 207; VizieR J/AJ/119/207) + [Green 2019](https://www.mrao.cam.ac.uk/surveys/snrs/) (JApA 40, 36; VizieR VII/284) | the Galactic Centre's radio objects in `src/astro/gc-radio-data.ts`: positions from the designations, remnant sizes from Green; filaments per Yusef-Zadeh, Hewitt & Cotton 2004, Lang et al. 1999, Gray et al. 1995; the Mouse per Gaensler et al. 2004 | scientific data, cite the papers; the map image itself is not used |
 | [Local Volume Database](https://github.com/apace7/local_volume_database) (Pace 2024, arXiv:2411.07424) + [McConnachie 2012](https://ui.adsabs.harvard.edu/abs/2012AJ....144....4M) + [Xu et al. 2025](https://www.science.org/doi/10.1126/sciadv.ads4057) | the Local Group's galaxies in `src/astro/lg-data.ts`: positions, distances, sizes, magnitudes; Andromeda and Triangulum by hand; the dark-galaxy candidate AC G185.0−11.5 | scientific data; the database is MIT-licensed, cite Pace 2024 and each row's reference |
+| [Kourkchi & Tully 2017](https://ui.adsabs.harvard.edu/abs/2017ApJ...843...16K) (ApJ 843, 16; VizieR J/ApJ/843/16) + [Karachentsev, Makarov & Kaisina 2013](https://ui.adsabs.harvard.edu/abs/2013AJ....145..101K) (AJ 145, 101; VizieR J/AJ/145/101) | the groups to 3,500 km/s and the nearby galaxies in `src/astro/sc-data.ts`; Cloud-9 from Anand et al. 2025 | scientific data, cite the papers; VizieR copies CDS |
 | [El-Badry et al. 2023](https://ui.adsabs.harvard.edu/abs/2023MNRAS.518.1057E) (MNRAS 518, 1057) + Gaia DR3 4373465352415301632 | Gaia BH1's orbit, masses and position | scientific data; Gaia: "ESA/Gaia/DPAC" |
 | Nuclear disc & cluster | modelled after AIP's ["How central galactic structures grow together"](https://www.aip.de/en/news/galactic-structures-grow-together/) | scientific reference, no data used |
 | [ejtaal/gaia-web](https://github.com/ejtaal/gaia-web) | inspected as a data source; its `gaia-web-data` sets (175–290 MB) are beyond a Pages site's budget | BSD-3 (code); data derived from Gaia DR3 (ESA/Gaia/DPAC) |
@@ -165,6 +166,9 @@ The build renders it to `changelog.html`, which the panel footer links to.
   2000 on the runner, the same way.
 - [`tools/fetch_local_group.py`](tools/fetch_local_group.py) — regenerates `src/astro/lg-data.ts`,
   the Local Group's galaxies, from the Local Volume Database.
+- [`tools/fetch_supercluster.py`](tools/fetch_supercluster.py) — regenerates `src/astro/sc-data.ts`,
+  the groups to 3,500 km/s and the nearby galaxies, from Kourkchi & Tully 2017 and the
+  Updated Nearby Galaxy Catalog.
 - [`docs/sagittarius-a-star.html`](docs/sagittarius-a-star.html),
   [`docs/gaia-bh1.html`](docs/gaia-bh1.html) — the Galactic Centre and the nearest black
   hole: what is drawn, from which paper, and how the hole is rendered.
@@ -172,6 +176,8 @@ The build renders it to `changelog.html`, which the panel footer links to.
   sky: the VLA map's objects, what each is, and how a radio sky is drawn.
 - [`docs/local-group.html`](docs/local-group.html) — the Local Group: which galaxies, from
   where, how they are placed to scale, and what the box and the markers mean.
+- [`docs/supercluster.html`](docs/supercluster.html) — the Virgo Supercluster and the nearer
+  cosmic web: what the points are, which distances are measured and which are velocity.
 - [`manifest.json`](manifest.json), [`sw.js`](sw.js) — the PWA manifest and its
   offline service worker.
 ### Feeding in StarHorse (Gaia DR3) — awaiting data

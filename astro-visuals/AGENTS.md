@@ -253,6 +253,33 @@ dismissing the first-run tour **starts** the clock, so pausing has to come after
   camDist-keyed fade that assumed the old ceiling should be re-checked when a view goes
   further still (the supercluster will).
 
+## The supercluster and the web (v3.16.0)
+
+- **Two catalogues, both reachable as verbatim copies.** `tools/fetch_supercluster.py`
+  reads Kourkchi & Tully 2017 Table 2 (VizieR J/ApJ/843/16 on the runner; the DESI_SGA
+  repository's byte-identical ApJ MRT on raw.githubusercontent.com from the sandbox) and
+  the UNGC (J/AJ/145/101; a VizieR TSV copy in another repository). The research workflow
+  that found the copies verified their headers against the journals' layouts; the tool
+  refuses to write if either comes back short. `sc-data.ts` packs the groups at 10 bytes
+  each in base64 (8,826 rows of decimal would be a third of the page): SGL, SGB, distance
+  (bit 15 = velocity-placed), log Ks luminosity, members. `astro/supercluster.ts` unpacks
+  at load through `sgDir` (astro/supergalactic.ts — the frame is derived from the pole and
+  zero point only, and tested against NED's M87 and M81).
+- **Names by PGC, checked where possible.** `NAMED` in the tool maps the group's principal
+  galaxy's PGC number to the chart's name; where the UNGC has that galaxy, the group's
+  centroid and distance are compared (3.5° — a group's position is its members' mean, not
+  the principal's; Cen A's group sits 2.8° from NGC 5128) and the row is marked `ungc`;
+  the rest are `pgc` for the runner to confirm against HyperLEDA (VII/237). A `MISMATCH`
+  fails the unit test.
+- **The frame and the fade.** 'sc' and 'web' follow the Sun with `scFrame()` (the
+  supergalactic pole up, like `gcSkyFrame` for the radio view); the layer fades in from
+  700,000 to 2,000,000 units (`scFade`), the Local Group's markers dim by it and its box and
+  labels yield to the supercluster's. `MAX_DIST` is 2e7; the ladder ends at 9.5e6. The
+  box is shared now: `render/passes/box.ts` (`drawBox`) draws both cylinders.
+- **Velocity is not distance.** Six thousand of the groups have no measured distance and
+  sit at VLS/H0; the article and the table say so, the points are bluer, and nothing in
+  the piece calls that a measurement.
+
 ## The emblem and the icons
 
 - The emblem is **Galactic Transit** — the wordmark on `icon.svg`'s arc, the manifest's

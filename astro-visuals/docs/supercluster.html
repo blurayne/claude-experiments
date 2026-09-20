@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Virgo Supercluster</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sky:#080D1C; --sky-2:#0F1730; --star:#EDEEF3; --slate:#A3ABBE; --dust:#2A3350;
+    --halpha:#F2A65A; --sun:#6FA8FF; --line:#26304D;
+  }
+  *{box-sizing:border-box}
+  html{background:var(--sky)}
+  body{margin:0;color:var(--star);font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:17px;line-height:1.65;-webkit-font-smoothing:antialiased}
+  main{max-width:680px;margin:0 auto;padding:0 20px 80px}
+  h1,h2,h3{font-family:"Fraunces",Georgia,serif;font-weight:300;line-height:1.1;margin:0}
+  h1{font-size:clamp(38px,7vw,58px);letter-spacing:-.01em;padding:56px 0 14px}
+  h2{font-size:30px;padding:56px 0 14px;border-top:1px solid var(--line)}
+  p{margin:0 0 16px;max-width:62ch}
+  p.lede{font-size:20px;color:var(--star);max-width:56ch}
+  em{color:var(--halpha);font-style:normal}
+  .muted{color:var(--slate)}
+  table{border-collapse:collapse;width:100%;font-size:15px;margin:20px 0 8px}
+  th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-weight:500;color:var(--slate)}
+  td:first-child{color:var(--slate)}
+  footer{margin-top:60px;font-size:14px;color:var(--slate);border-top:1px solid var(--line);padding-top:18px}
+  a{color:var(--sun)}
+</style>
+</head>
+<body>
+<main>
+<p style="padding-top:28px;margin:0"><a href="../galactic-transit.html" style="color:var(--slate);text-decoration:none">&larr; Galactic Transit</a></p>
+<h1>The Virgo Supercluster, and the web beyond</h1>
+<p class="lede">Pull back past the Local Group and the galaxies stop being individuals. They come in
+groups, the groups in clouds and filaments, and the filaments enclose voids: the cosmic web. The
+piece draws the measured version of it — 8,826 groups of galaxies out to 3,500 kilometres a
+second, some 150 million light years — and names the clusters the charts name.</p>
+
+<p>Two entries in the <b>view</b> row: <b>Virgo Supercluster</b>, the chart's framing — a cylinder
+standing on the supergalactic plane, sixty million light years across, the Local Group in the
+middle and the Virgo cluster's knot fifty million light years off toward one side — and <b>The
+cosmic web</b>, the whole measured volume from above the plane. The zoom ladder's last rungs land
+on both. With the labels on: the named groups and clusters with their distances, the brightest
+nearby galaxies in grey, a drop-line from each named group to the plane.</p>
+
+<h2>What the points are</h2>
+<p>Every point is a catalogue row. The groups are Kourkchi &amp; Tully's 2017 catalogue
+(ApJ&nbsp;843,&nbsp;16): they took the 2MASS Redshift Survey's galaxies out to 3,500&nbsp;km/s,
+gathered them into groups by a calibrated linking procedure, and gave each group its
+supergalactic coordinates, its total near-infrared luminosity, and — where its members have
+measured distances in the Cosmicflows-3 compilation — a distance. 1,951 groups have one; the
+piece places the other 6,875 at their Local-Sheet velocity divided by the Hubble constant
+(74.6&nbsp;km/s/Mpc, Cosmicflows-4's value), which is a model of distance, not a measurement: a
+galaxy's velocity has its own motion in it, and toward Virgo that motion is hundreds of
+kilometres a second. Those groups are drawn a shade bluer, and the table flags them. A group's
+point is sized by its luminosity — a rich cluster a bright knot, a lone galaxy a faint speck —
+and the named clusters carry a glow the size of their turnaround radius, recovered from their
+luminosity by the catalogue's own relation.</p>
+
+<p>The nearby galaxies are Karachentsev, Makarov and Kaisina's Updated Nearby Galaxy Catalog
+(AJ&nbsp;145,&nbsp;101): 869 galaxies within about eleven megaparsecs with names, distances and
+types — Centaurus A, M81, M83, NGC 253, IC 342, the Maffei pair behind the dust of Cassiopeia,
+M101, M94 — coloured by type (the ellipticals warm, the spirals blue-white, the irregulars blue)
+and the bright ones named.</p>
+
+<table>
+<tr><th>named on the chart</th><th>distance</th><th>note</th></tr>
+<tr><td>Virgo Cluster</td><td>51 Mly (15.8 Mpc)</td><td>714 member galaxies in the catalogue; the supercluster's centre of mass, toward which the Local Group falls</td></tr>
+<tr><td>Fornax Cluster, Eridanus Cluster</td><td>59, 90 Mly</td><td>far below the supergalactic plane, at the box's floor</td></tr>
+<tr><td>Centaurus, Hydra, Antlia clusters</td><td>121, 155, 112 Mly</td><td>the next concentration out, beyond the supercluster proper</td></tr>
+<tr><td>Ursa Major, NGC 5846, Leo I, Leo Triplet, Canes II</td><td>65, 87, 35, 32, 104 Mly</td><td>the groups along the supercluster's filaments</td></tr>
+<tr><td>M81, Centaurus A, M83, IC 342, Maffei, M101, M94, M106, M51, NGC 6946, NGC 6744, NGC 1023, Sombrero</td><td>11–37 Mly</td><td>our neighbours, the Council of Giants round the Local Sheet</td></tr>
+</table>
+<p class="muted" style="font-size:14px">Names are attached by the group's principal galaxy's PGC number. Where that galaxy is in the
+nearby catalogue (sixteen of the thirty), its position and distance were checked against the group's
+and agree; the rest are named from the PGC number alone and marked for the data workflow to confirm
+against HyperLEDA on GitHub's runner.</p>
+
+<h2>Cloud-9</h2>
+<p>Near M94, fourteen million light years away, is a cloud of hydrogen with a million solar
+masses of gas and — after the Hubble Space Telescope looked, in 2025 — no stars in it at all.
+Cloud-9 is the first good example of a <em>RELHIC</em>, a reionisation-limited HI cloud: a small
+dark-matter halo that gathered gas in the early Universe but was never massive enough to make
+that gas form stars once the ultraviolet background heated it. The standard cosmology predicts
+such objects in numbers; this is the first that has been found and checked. It is drawn as a
+dashed outline beside M94, at the marker's size — its real gas disc is a few thousand light
+years across — and nothing inside the outline.</p>
+
+<h2>What the box means</h2>
+<p>The nearby Universe is flattened. De Vaucouleurs noticed in the 1950s that the bright
+galaxies of the sky lie along a great circle, and named the plane through it the supergalactic
+plane; the Local Group, the Virgo cluster, the Ursa Major and Coma clouds all sit near it. The
+chart's cylinder stands on that plane, with its axis at the supergalactic pole (galactic
+l&nbsp;=&nbsp;47.4°, b&nbsp;=&nbsp;+6.3°) — which is nearly in the Milky Way's own plane, so the
+supercluster's "up" is almost sideways to the Galaxy's. The piece derives the frame from those
+two numbers and nothing else, and the unit tests hold it to the textbook positions of M87 and
+M81. Beyond the box the points continue to the catalogue's edge, and the view called "the cosmic
+web" shows them from above the plane: the Virgo–Centaurus filament, the Fornax wall below, and
+the emptiness of the Local Void on the far side of the Milky Way's plane — which is also where
+the Galaxy's dust hides everything, the "zone of avoidance", so part of that emptiness is ours,
+not the Universe's. The article says so because the picture cannot.</p>
+
+<footer>An article from <a href="../galactic-transit.html">Galactic Transit</a> — the notes that used to live in its About panel, one subject per page.
+Sources: Kourkchi &amp; Tully 2017 (ApJ 843, 16); Karachentsev, Makarov &amp; Kaisina 2013 (AJ 145, 101); Tully et&nbsp;al. 2016 (Cosmicflows-3) and 2023 (Cosmicflows-4, AJ 944, 94);
+de Vaucouleurs 1953 and Lahav et&nbsp;al. 2000 (the supergalactic frame); Anand et&nbsp;al. 2025 (Cloud-9, arXiv:2508.20157); Benítez-Llambay &amp; Navarro 2023.</footer>
+</main>
+</body>
+</html>

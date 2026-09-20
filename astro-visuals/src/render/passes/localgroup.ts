@@ -2,8 +2,7 @@ import { gl } from '../../gpu/context'
 import { prog } from '../../gpu/program'
 import QUAD_VS from '../../shaders/gcradio.vert?raw'
 import GAL_FS from '../../shaders/galaxy.frag?raw'
-import { pTr, U } from './points'
-import { drawRings } from './rings'
+import { drawBox } from './box'
 import { LG, LG_BOX, lgFade, lgUpdate } from '../../astro/localgroup'
 import { KPC2U } from '../../astro/merger'
 import type { LgKind } from '../../astro/lg-data'
@@ -31,13 +30,7 @@ const KIND_COL: Record<LgKind, readonly [number, number, number]> = {
   spiral: [0.82, 0.88, 1.0], dark: [0.62, 0.58, 0.85],
 }
 
-// the drop-lines and the two silhouette edges: one dynamic buffer, refilled per frame
-const N_LINES = LG.length + 2
-const linePos = new Float32Array(N_LINES*2*3)
-const lineGL = (()=>{ const v=gl.createVertexArray()!; gl.bindVertexArray(v);
-  const b=gl.createBuffer()!; gl.bindBuffer(gl.ARRAY_BUFFER,b); gl.bufferData(gl.ARRAY_BUFFER, linePos.byteLength, gl.DYNAMIC_DRAW);
-  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
-  gl.bindVertexArray(null); return { vao: v, buf: b } })()
+const dropPos = new Float32Array(LG.length*3)
 
 export interface LgInputs {
   projMat: Float32Array
@@ -47,11 +40,15 @@ export interface LgInputs {
   camDist: number
   pxScale: number
   showLabels: boolean
+  /** false once the supercluster has taken over: the Group's box would be a speck */
+  boxOn: boolean
+  /** and the markers dim, or 130 of them pile into one glare at the Group's place */
+  dim: number
 }
 
 /** Draw the Group. Returns its fade, which the labels follow. */
 export function drawLocalGroup(inp: LgInputs): number {
-  const { projMat, viewMat, eye, camDist, pxScale, showLabels } = inp
+  const { projMat, viewMat, eye, camDist, pxScale, showLabels, boxOn, dim } = inp
   const fade = lgFade(camDist)
   if(fade < 0.002) return 0
   lgUpdate(fade)                      // the slide from the merger's compressed depth to true scale
@@ -79,7 +76,7 @@ export function drawLocalGroup(inp: LgInputs): number {
     gl.uniform3f(UG.col, c[0], c[1], c[2])
     gl.uniform1f(UG.gain, 2.2*m.gain*(m.confirmed ? 1 : 0.55))
     gl.uniform1f(UG.seed, k*0.731)
-    gl.uniform1f(UG.fade, fade*own)
+    gl.uniform1f(UG.fade, fade*own*dim)
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
   }
   // the Milky Way herself: the model's points are dust at this distance, so the Group's own
@@ -93,39 +90,13 @@ export function drawLocalGroup(inp: LgInputs): number {
     gl.uniform3f(UG.col, 0.86, 0.9, 1.0)
     gl.uniform1f(UG.gain, 2.4)
     gl.uniform1f(UG.seed, 2.0)
-    gl.uniform1f(UG.fade, fade)
+    gl.uniform1f(UG.fade, fade*dim)
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4) }
   gl.bindVertexArray(null)
-  if(!showLabels || fade < 0.98) return fade
+  if(!showLabels || fade < 0.98 || !boxOn) return fade
   // ---------- the box: only once the Group is at true scale ----------
-  const { centre, radius, halfH } = LG_BOX
-  const col = [0.30*fade, 0.46*fade, 0.66*fade] as const
-  const X = [1, 0, 0], Zp = [0, 0, 1]
-  drawRings({ projMat, viewMat, centre: [centre[0], centre[1] + halfH, centre[2]], radius, colour: col, planes: [[X, Zp]] })
-  drawRings({ projMat, viewMat, centre: [centre[0], centre[1] - halfH, centre[2]], radius, colour: col, planes: [[X, Zp]] })
-  drawRings({ projMat, viewMat, centre, radius, colour: [col[0]*0.6, col[1]*0.6, col[2]*0.6], planes: [[X, Zp]] })
-  // the silhouette edges: where the cylinder's side is tangent to the line of sight
-  const ex = eye[0] - centre[0], ez = eye[2] - centre[2], el = Math.hypot(ex, ez) || 1
-  const px = -ez/el*radius, pz = ex/el*radius
-  let o = 0
-  const line = (x0: number, y0: number, z0: number, x1: number, y1: number, z1: number): void => {
-    linePos[o++] = x0; linePos[o++] = y0; linePos[o++] = z0; linePos[o++] = x1; linePos[o++] = y1; linePos[o++] = z1
-  }
-  line(centre[0] + px, centre[1] - halfH, centre[2] + pz, centre[0] + px, centre[1] + halfH, centre[2] + pz)
-  line(centre[0] - px, centre[1] - halfH, centre[2] - pz, centre[0] - px, centre[1] + halfH, centre[2] - pz)
-  let n = 2
-  for(const m of LG){ line(m.pos[0], m.pos[1], m.pos[2], m.pos[0], centre[1], m.pos[2]); n++ }
-  gl.useProgram(pTr)
-  gl.uniformMatrix4fv(U.trProj, false, projMat)
-  gl.uniformMatrix4fv(U.trView, false, viewMat)
-  gl.uniform3f(U.trOrg, 0, 0, 0)
-  gl.uniform1f(U.trLen, 1e9); gl.uniform1f(U.trFlat, 1.0)
-  gl.bindBuffer(gl.ARRAY_BUFFER, lineGL.buf); gl.bufferSubData(gl.ARRAY_BUFFER, 0, linePos.subarray(0, n*6))
-  gl.bindVertexArray(lineGL.vao)
-  gl.uniform3f(U.trCol, col[0], col[1], col[2]); gl.uniform1f(U.trA, 0.9)
-  gl.drawArrays(gl.LINES, 0, 4)
-  gl.uniform3f(U.trCol, 0.55, 0.62, 0.78); gl.uniform1f(U.trA, 0.22*fade)
-  gl.drawArrays(gl.LINES, 4, (n - 2)*2)
-  gl.bindVertexArray(null)
+  let n = 0
+  for(const m of LG){ dropPos[n*3] = m.pos[0]; dropPos[n*3+1] = m.pos[1]; dropPos[n*3+2] = m.pos[2]; n++ }
+  drawBox({ projMat, viewMat, eye, centre: LG_BOX.centre, U: [1, 0, 0], V: [0, 0, 1], W: [0, 1, 0], radius: LG_BOX.radius, halfH: LG_BOX.halfH, fade, drops: dropPos, nDrops: n })
   return fade
 }

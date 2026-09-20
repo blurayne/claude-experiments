@@ -105,7 +105,7 @@ export const LG_BOX = (() => {
 
 /** true light years, written the way the charts write them */
 export function lyLabel(ly: number): string {
-  return ly >= 1e6 ? `${(ly/1e6).toFixed(2)} Mly` : `${Math.round(ly/1e3)} kly`
+  return ly >= 1e7 ? `${(ly/1e6).toFixed(1)} Mly` : ly >= 1e6 ? `${(ly/1e6).toFixed(2)} Mly` : `${Math.round(ly/1e3)} kly`
 }
 
 /**

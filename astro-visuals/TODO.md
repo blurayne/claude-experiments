@@ -42,14 +42,21 @@ before the work starts. An item is ticked when it ships, with the version that c
       https://en.wikipedia.org/wiki/File:Andromeda_and_Milky_Way_collision.ogv (from the
       Local Group article) — or is that model outdated and the piece more accurate? Tidal
       tails, bridges, the passages. After the research on it comes back.
-- [ ] The second picture as well: the Virgo Supercluster — the Local Group, the Maffei,
+- [x] The second picture as well: the Virgo Supercluster — the Local Group, the Maffei,
       Sculptor, M81, Canes and Leo groups, the Virgo, Fornax and Eridanus clusters — at
       their measured places (Cosmicflows / Tully's groups), the same box-and-distances
       presentation with the labels on, and a view for it.
-- [ ] Further out still: the cosmic web — the filaments and voids of the nearby Universe
+      Kourkchi & Tully 2017's 8,826 groups (Cosmicflows-3 distances where measured, velocity
+      over H0 flagged where not) and the 869 galaxies of the Updated Nearby Galaxy Catalog;
+      thirty groups and clusters named, sixteen position-checked; the cylinder on the
+      supergalactic plane; a "Virgo Supercluster" view — v3.16.0.
+- [x] Further out still: the cosmic web — the filaments and voids of the nearby Universe
       from real redshift-survey data (2MRS / Cosmicflows), showing as the zoom keeps going
       out past the supercluster. A pretty presentation, and honest about what is a
       measured galaxy and what is a model of the density between them.
+      The same catalogue seen whole from above the supergalactic plane — "The cosmic web"
+      view, 300 Mly across, every point a measured group — v3.16.0. Deeper (2MRS to
+      15,000 km/s, Laniakea) stays open as a further release.
 - [ ] The view from the Sun toward the Galactic Centre should look like the Gaia all-sky
       picture: the band's glow toward the centre and the dark clouds across it — not by
       using the image, but from data, tuned until the glow matches the picture as closely
