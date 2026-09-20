@@ -6,10 +6,17 @@ Hand-written release notes come from `CHANGELOG.notes.md`, never from here.
 
 ## Galactic Transit
 
+### 3.14.0 — 2026-09-20
+
+**The Galactic Centre in radio.** The objects of the wide-field 90-cm VLA map (LaRosa et al. 2000) — Sgr A to Sgr E along the plane, the supernova remnants G0.9+0.1, G0.3+0.0, G359.1−0.5, G359.0−0.9, Sgr D's and the Tornado, the Radio Arc, the Snake, the threads, the Ripple, the Pelican, the Cane, the Mouse — drawn where their designations put them, at the sizes Green's catalogue gives, on the sky at Sagittarius A*'s distance, in the map's own heat palette. A "Galactic Centre, radio" view with celestial north up as the map is printed, a scenario, labels, and an article that says which parts are catalogue and which are a model; the data workflow checks the table against VizieR on the runner.
+
+- The Galactic Centre in radio — the VLA map's objects, placed by catalogue (`45571e5`)
+
 ### 3.13.0 — 2026-09-20
 
-**The Galactic Centre, and the nearest black hole.** Sagittarius A* is drawn at its true size — a 0.44 AU shadow at 8.3 kpc — by a ray-marched Schwarzschild shader (the shadow, the lensed disc, the photon ring all fall out of the geodesic equation), with fourteen S-stars on their published orbits (Gillessen et al. 2017; S2 from GRAVITY 2020) and a scenario that lands in 2011 to watch S2's 2018 pericentre at a year a second. Gaia BH1, the nearest black hole known (El-Badry et al. 2023), joins the sky 1,565 light years out with its Sun-like companion on its 186-day orbit, and its own scenario. Both live in frames of their own for precision; both have a view entry, labels, and an article. The orbital table is regenerated from VizieR by the data workflow on GitHub's runner, since the sandbox cannot reach the astronomy hosts.
+**The Galactic Centre, and the nearest black hole.** Sagittarius A* is drawn at its true size — a 0.44 AU shadow at 8.3 kpc — by a ray-marched Schwarzschild shader (the shadow, the lensed disc, the photon ring all fall out of the geodesic equation), with fourteen S-stars on their published orbits (Gillessen et al. 2017; S2 from GRAVITY 2020) and a scenario that lands in 2011 to watch S2's 2018 pericentre at a year a second. Gaia BH1, the nearest black hole known (El-Badry et al. 2023), joins the sky 1,575 light years out with its Sun-like companion on its 186-day orbit, and its own scenario. Both live in frames of their own for precision; both have a view entry, labels, and an article. The orbital table is regenerated from VizieR by the data workflow on GitHub's runner, since the sandbox cannot reach the astronomy hosts.
 
+- Take the runner's verified table into the page and the prose (`33fcc01`)
 - The Galactic Centre, the S-stars, a black-hole shader, Gaia BH1 (v3.13.0) (`96f2c8b`)
 
 ### 3.12.0 — 2026-09-11
