@@ -3,6 +3,18 @@
 Everything the owner asks for lands here first, as a checkbox, and is committed on its own
 before the work starts. An item is ticked when it ships, with the version that carried it.
 
+## 2026-09-20
+
+- [ ] A new event at the centre of our galaxy, with the orbits of the stars circling the
+      supermassive black hole (the S-stars round Sagittarius A*), documented, from
+      research data as far as it is reachable; a black-hole shader so it looks like a
+      "real" black hole; and the nearest black hole to the solar system (Gaia BH1) added
+      as an object of its own.
+- [ ] The view from the Sun toward the Galactic Centre should look like the Gaia all-sky
+      picture: the band's glow toward the centre and the dark clouds across it — not by
+      using the image, but from data, tuned until the glow matches the picture as closely
+      as it can. A separate release after the black-hole work.
+
 ## 2026-09-11
 
 - [x] Simplify the debug-mode hold gesture: press-and-hold the "?" (about) button for a plain
