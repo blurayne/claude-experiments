@@ -1,6 +1,7 @@
 import type { Vec3 } from '../core/mat4'
 import { AU2U, R_GAL, V_GAL } from './constants'
 import { SSTARS, SGRA_MASS_MSUN, SGRA_R0_PC, SGRA_RA, SGRA_DEC, BH1, type SStar } from './gc-data'
+import { RADIO, type RadioObject } from './gc-radio-data'
 
 /**
  * The Galactic Centre, and the nearest black hole: where the S-stars are round Sagittarius A*
@@ -201,3 +202,72 @@ export function bh1Relative(year: number, out: Float64Array): Float64Array {
 export function bh1OrbitPoint(E: number, out: Float64Array): Float64Array {
   return orbitPoint(BH1.aAU*AU2U, BH1.e, E, bh1Frame, out)
 }
+
+// ---------------------------------------------------------------------------------------
+// The radio sky round the Centre
+
+/** a galactic direction (l, b in degrees) as a scene unit vector */
+export function galDir(lDeg: number, bDeg: number): Vec3 {
+  const l = lDeg*Math.PI/180, b = bDeg*Math.PI/180
+  return galToScene([Math.cos(b)*Math.cos(l), Math.cos(b)*Math.sin(l), Math.sin(b)])
+}
+
+/** the galactic longitude and latitude of a scene direction, degrees */
+export function sceneToGalLB(v: Vec3): { l: number; b: number } {
+  // the inverse of galToScene: g = (−z, x, y)
+  const gx = -v[2], gy = v[0], gz = v[1]
+  const l = Math.atan2(gy, gx)*180/Math.PI
+  return { l: (l + 360) % 360, b: Math.asin(Math.max(-1, Math.min(1, gz)))*180/Math.PI }
+}
+
+/** Sagittarius A*'s distance in scene units: 8,277 pc, the frame everything of the field sits at */
+export const SGRA_R0_U = SGRA_R0_PC*LY_PER_PC/30
+
+/**
+ * A radio object placed in the Centre's frame: its centre relative to Sagittarius A*, and the
+ * two half-axis vectors of its outline, all in scene units. Each sits on the sphere of the
+ * Centre's distance round the Sun — the sky, at that depth — so the angular separations and
+ * sizes of the map are exact; the outline lies in the local sky plane, its long axis turned
+ * by the object's position angle from galactic north toward increasing longitude.
+ */
+export interface RadioGeom {
+  obj: RadioObject
+  c: Vec3
+  /** the half-axis vectors: A along the long axis, B along the short */
+  A: Vec3
+  B: Vec3
+  /** the half-axes' lengths, scene units */
+  a: number
+  b: number
+}
+
+const arcminToU = (arcmin: number): number => SGRA_R0_U*Math.tan(arcmin/60*Math.PI/180)
+
+export const RADIO_GEOM: readonly RadioGeom[] = RADIO.map(obj => {
+  const d = galDir(obj.l, obj.b), Z = SGRA.basis.Z
+  const cc = [(d[0] - Z[0])*SGRA_R0_U, (d[1] - Z[1])*SGRA_R0_U, (d[2] - Z[2])*SGRA_R0_U]
+  // the local +l and +b directions on the sky at the object
+  const l = obj.l*Math.PI/180, b = obj.b*Math.PI/180
+  const uL = galToScene([-Math.sin(l), Math.cos(l), 0])
+  const uB = galToScene([-Math.sin(b)*Math.cos(l), -Math.sin(b)*Math.sin(l), Math.cos(b)])
+  const pa = obj.pa*Math.PI/180, cp = Math.cos(pa), sp = Math.sin(pa)
+  const a = arcminToU(obj.maj/2), bb = arcminToU(obj.min/2)
+  const A: Vec3 = [(uB[0]*cp + uL[0]*sp)*a, (uB[1]*cp + uL[1]*sp)*a, (uB[2]*cp + uL[2]*sp)*a]
+  const B: Vec3 = [(uL[0]*cp - uB[0]*sp)*bb, (uL[1]*cp - uB[1]*sp)*bb, (uL[2]*cp - uB[2]*sp)*bb]
+  // a nebula in flight is catalogued by its head, which the shader draws at −0.8 of the long
+  // axis: the quad slides along so the head sits on the designation and the tail runs +A
+  if(obj.kind === 'pwn') for(let i=0;i<3;i++) cc[i] += 0.8*A[i]
+  const c: Vec3 = [cc[0], cc[1], cc[2]]
+  return { obj, c, A, B, a, b: bb }
+})
+
+/** the position angle, degrees east of north, of the +l direction at Sagittarius A* */
+export function planePA(): number {
+  const { N, E } = SGRA.basis, lb = sceneToGalLB(SGRA.basis.Z)
+  const l = lb.l*Math.PI/180
+  const uL = galToScene([-Math.sin(l), Math.cos(l), 0])
+  const d = (u: Vec3, v: Vec3): number => u[0]*v[0] + u[1]*v[1] + u[2]*v[2]
+  return Math.atan2(d(uL, E), d(uL, N))*180/Math.PI
+}
+
+export { RADIO, type RadioObject }

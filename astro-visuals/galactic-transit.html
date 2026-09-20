@@ -92,7 +92,7 @@ function installErrorCollector(){
  * property of the machine that loaded the page. The parity harness pins TZ for that reason.
  */
 
-const BUILD = { version: '3.13.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '3.14.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -3143,7 +3143,7 @@ const ringCS = new Float32Array(RING_SEGS$1*2);
 for(let i=0;i<RING_SEGS$1;i++){ const a=i/RING_SEGS$1*6.28318530718; ringCS[i*2]=Math.cos(a); ringCS[i*2+1]=Math.sin(a); }
 
 const pRing = prog(RING_VS, RING_FS);
-const UR                                              = {}; for(const k of ['uProj','uView','uSun','uA','uB','uR','uColor']) UR[k]=gl.getUniformLocation(pRing,k);
+const UR$1                                              = {}; for(const k of ['uProj','uView','uSun','uA','uB','uR','uColor']) UR$1[k]=gl.getUniformLocation(pRing,k);
 const vaoRing = gl.createVertexArray() ; gl.bindVertexArray(vaoRing);
 gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer() ); gl.bufferData(gl.ARRAY_BUFFER,ringCS,gl.STATIC_DRAW);
 gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
@@ -3169,15 +3169,15 @@ gl.bindVertexArray(null);
 
 function drawRings({ projMat, viewMat, centre, radius, colour, planes }            )       {
   gl.useProgram(pRing);
-  gl.uniformMatrix4fv(UR.uProj,false,projMat);
-  gl.uniformMatrix4fv(UR.uView,false,viewMat);
-  gl.uniform3f(UR.uSun, centre[0], centre[1], centre[2]);
-  gl.uniform1f(UR.uR, radius);
-  gl.uniform3f(UR.uColor, colour[0], colour[1], colour[2]);
+  gl.uniformMatrix4fv(UR$1.uProj,false,projMat);
+  gl.uniformMatrix4fv(UR$1.uView,false,viewMat);
+  gl.uniform3f(UR$1.uSun, centre[0], centre[1], centre[2]);
+  gl.uniform1f(UR$1.uR, radius);
+  gl.uniform3f(UR$1.uColor, colour[0], colour[1], colour[2]);
   gl.bindVertexArray(vaoRing);
   for(const [A,B] of planes){
-    gl.uniform3f(UR.uA,A[0],A[1],A[2]);
-    gl.uniform3f(UR.uB,B[0],B[1],B[2]);
+    gl.uniform3f(UR$1.uA,A[0],A[1],A[2]);
+    gl.uniform3f(UR$1.uB,B[0],B[1],B[2]);
     gl.drawArrays(gl.LINE_LOOP,0,RING_SEGS$1);
   }
 }
@@ -3585,6 +3585,10 @@ const SUN_VS = "#version 300 es\nuniform mat4 uProj,uView; uniform float uSz;\nv
 
 const BH_FS = "#version 300 es\nprecision highp float;\n// A black hole, ray-marched. One billboard, and every fragment of it traces a light ray\n// backward from the eye through the Schwarzschild geometry: the rays that fall in paint the\n// shadow, the ones that bend round and strike the accretion disc paint the disc — including\n// the far side, lifted over and under the hole by the bending, and the thin photon ring\n// where rays have circled the hole before landing. Nothing about the shape is drawn; it all\n// falls out of the geodesic equation, and the shadow comes out 2.6 Schwarzschild radii wide\n// because that is where the photon capture cross-section is.\n//\n// Units: the Schwarzschild radius is 1. The null geodesic in these units, in a Cartesian\n// embedding, is d²x/dλ² = −(3/2)·h²·x/r⁵ with h the conserved |x × v| — the form every\n// real-time black-hole renderer integrates. Leapfrog steps, adaptive with the radius.\n//\n// The disc is a thin Shakura–Sunyaev sheet from the innermost stable orbit (3 r_s) out to\n// uDiscOut, temperature falling as r^(-3/4) and flux as r^(-3), Doppler-beamed by the\n// orbital speed sqrt(1/2r) and reddened by the gravitational redshift. It is a MODEL of an\n// accretion flow, drawn where a flow is known to exist; where none is (uDisc = 0) only the\n// shadow and a faint ring of lensed skylight are drawn.\nuniform float uSz;       // sprite width, pixels\nuniform float uRs;       // one Schwarzschild radius as a fraction of the sprite's half-width\nuniform float uMirror;   // the projection reflects x; the sprite does not\nuniform vec3  uDiscN;    // the disc's normal, in the sprite's own frame (x right, y up, z toward the eye)\nuniform float uDisc;     // 1: draw the accretion disc; 0: shadow and lensed sky only\nuniform float uDiscOut;  // the disc's outer edge, Schwarzschild radii\nuniform float uSpin;     // +1 / −1: which way the disc turns about its normal\nuniform float uTime;\nuniform float uFade;     // overall alpha\nout vec4 o;\n\nfloat h21(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }\nfloat vnoise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);\n  return mix(mix(h21(i),h21(i+vec2(1,0)),f.x), mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x), f.y); }\n\n// a thermal ramp: the hot inner rim runs white-blue, the cool rim deep orange-red\nvec3 thermal(float t){\n  t = clamp(t, 0.0, 1.0);\n  vec3 c = mix(vec3(0.50,0.10,0.02), vec3(1.0,0.50,0.14), smoothstep(0.0,0.35,t));\n  c = mix(c, vec3(1.0,0.84,0.58), smoothstep(0.3,0.7,t));\n  c = mix(c, vec3(0.90,0.94,1.0), smoothstep(0.65,1.0,t));\n  return c;\n}\n\n// The sheet's texture: streaks that shear round with the Keplerian flow. Built from the\n// in-plane coordinates turned by the local orbital angle, so it is periodic round the disc\n// by construction — an angle-based lookup would leave a seam where atan wraps.\nfloat sheet(vec3 xc, vec3 n, float rc, float t){\n  vec3 u = normalize(cross(n, abs(n.y) < 0.9 ? vec3(0,1,0) : vec3(1,0,0)));\n  vec3 w = cross(n, u);\n  float omega = 0.35*uSpin/pow(rc, 1.5);          // Keplerian: the inner sheet laps faster\n  float ph = omega*t;\n  float c = cos(ph), s = sin(ph);\n  vec2 q = vec2(dot(xc,u), dot(xc,w));\n  q = vec2(q.x*c - q.y*s, q.x*s + q.y*c);\n  // stretched along the azimuth: cells long round the ring, short across it\n  float ang = atan(q.y, q.x);\n  vec2 pc = vec2(rc*2.2, 0.0);\n  float a1 = 0.5 + 0.5*vnoise(vec2(rc*2.4 + 1.7*cos(ang) , 1.7*sin(ang) + rc*0.3));\n  float a2 = 0.5 + 0.5*vnoise(vec2(rc*4.8 + 3.1*cos(ang + 0.7), 3.1*sin(ang + 0.7)));\n  return 0.55 + 0.45*(0.65*a1 + 0.35*a2);\n}\n\nvoid main(){\n  vec2 qq = gl_PointCoord*2.0-1.0;\n  if(dot(qq,qq) > 1.0) discard;\n  // the sprite frame: x to the right on screen (the projection mirrors x), y up, z toward the eye\n  vec2 p2 = vec2(qq.x*uMirror, -qq.y)/uRs;         // in Schwarzschild radii\n  float Rmax = 1.0/uRs;                            // the sprite's half-width, r_s\n  // an orthographic ray: the hole is a speck at any distance the eye can reach; start it on\n  // the sprite's far bounding sphere and march it toward −z\n  float b2 = dot(p2,p2);\n  float z0 = sqrt(max(Rmax*Rmax - b2, 0.0)) + 0.5;\n  vec3 x = vec3(p2, z0);\n  vec3 v = vec3(0.0, 0.0, -1.0);\n  vec3 hv = cross(x, v);\n  float h2 = dot(hv, hv);\n  vec3 n = normalize(uDiscN);\n  float side = dot(x, n);\n  vec3 col = vec3(0.0); float a = 0.0; bool done = false;\n  float rmin = 1e9;                                // the closest the ray comes: the shadow's soft edge\n  float r = length(x);\n  for(int i=0;i<300;i++){\n    r = length(x);\n    rmin = min(rmin, r);\n    if(r < 1.0){ col = vec3(0.0); a = 1.0; done = true; break; }        // in\n    if(r > Rmax + 1.0 && dot(x,v) > 0.0){ break; }                        // out, and leaving\n    float dt = clamp(0.045*r, 0.035, 0.4);\n    // leapfrog: half kick, drift, half kick\n    vec3 acc = -1.5*h2*x/pow(r, 5.0);\n    v += acc*dt*0.5;\n    vec3 xprev = x;\n    x += v*dt;\n    float r2 = length(x);\n    acc = -1.5*h2*x/pow(r2, 5.0);\n    v += acc*dt*0.5;\n    v = normalize(v);\n    float s2 = dot(x, n);\n    if(uDisc > 0.5 && side*s2 < 0.0){\n      // crossed the disc's plane between the two points: where, and is it on the sheet\n      float f = side/(side - s2);\n      vec3 xc = mix(xprev, x, f);\n      float rc = length(xc);\n      if(rc >= 3.0 && rc <= uDiscOut){\n        // orbital velocity of the gas, in c: sqrt(r_s/2r); its direction round the normal\n        vec3 tang = normalize(cross(n, xc))*uSpin;\n        float vk = sqrt(0.5/rc);\n        // the photon is marching AWAY from the eye, so the direction to the eye is −v\n        float cosang = dot(tang, -v);\n        float gam = 1.0/sqrt(max(1.0 - vk*vk, 1e-4));\n        float dop = 1.0/(gam*(1.0 - vk*cosang));       // Doppler factor\n        float gz = sqrt(max(1.0 - 1.0/rc, 0.0));        // gravitational redshift\n        float g = dop*gz;\n        float temp = pow(3.0/rc, 0.75);                 // T ∝ r^(-3/4), 1 at the ISCO\n        float flux = pow(3.0/rc, 1.7);                  // the thin sheet's emission falls off outward\n        float tex = sheet(xc, n, rc, uTime);\n        float edge = smoothstep(3.0, 3.25, rc)*(1.0 - smoothstep(uDiscOut*0.8, uDiscOut, rc));\n        float bright = pow(g, 3.0)*flux*tex*edge;\n        col = thermal(clamp(temp*g*0.8, 0.0, 1.0))*bright*2.4;\n        a = clamp(bright*2.2, 0.0, 1.0);\n        done = true; break;\n      }\n    }\n    side = s2;\n  }\n  // A ray that has spent every step circling the photon sphere without leaving is part of the\n  // shadow's rim — its impact parameter sits within a hair of the critical one — and one\n  // that grazed the sphere and escaped is blended toward the shadow by how close it came,\n  // which softens the rim against the pixel grid.\n  if(!done && r < 3.0){ col = vec3(0.0); a = 1.0; done = true; }\n  if(!done && rmin < 1.12){ float k = smoothstep(1.12, 1.0, rmin); col *= 1.0 - k; a = max(a, k); }\n  if(!done && uDisc < 0.5){\n    // no flow to light it: what a real one shows against the sky is the sky itself, bent\n    // into a ring at the photon sphere — hinted at, faintly, as a mean skylight\n    float b = sqrt(b2);\n    float ring = exp(-pow((b - 2.6)/0.3, 2.0))*0.4 + exp(-pow((b - 3.6)/1.8, 2.0))*0.05;\n    col = vec3(0.55,0.62,0.75)*ring; a = ring*0.9;\n  }\n  o = vec4(col*uFade, a*uFade);\n}\n";
 
+const RADIO_VS = "#version 300 es\n// One quad per radio object, built from the vertex index — no buffer. The corners are the\n// object's outline in its own sky plane, with margin for the soft edges: centre plus the two\n// half-axis vectors, each scaled by uMargin. The fragment shader gets the corner's place on\n// the outline as uv in [−1, 1]·uMargin.\nuniform mat4 uProj, uView;\nuniform vec3 uC, uA, uB;\nuniform float uMargin;\nout vec2 vUv;\nvoid main(){\n  int i = gl_VertexID;\n  vec2 q = vec2(float(i & 1)*2.0 - 1.0, float((i >> 1) & 1)*2.0 - 1.0)*uMargin;\n  vUv = q;\n  gl_Position = uProj*uView*vec4(uC + uA*q.x + uB*q.y, 1.0);\n}\n";
+
+const RADIO_FS = "#version 300 es\nprecision highp float;\n// The radio sky of the Galactic Centre, one object per quad. What a 90-cm map shows is\n// synchrotron and free-free emission that no eye could see, so this is drawn the way radio\n// maps are printed — intensity through a heat ramp, black through red and orange to white —\n// and the article says so. The forms are the catalogue's (a shell, a filament, a glow); the\n// texture inside each form is noise, a model of clumpiness, not data.\nuniform float uKind;     // 0 glow, 1 shell, 2 filament, 3 cometary, 4 cluster, 5 double, 6 core, 7 ridge\nuniform float uBend;     // a filament's bend, fraction of its length\nuniform float uCore;     // a shell with a bright centre (composite remnant)\nuniform float uAspect;   // long axis over short: the filament's width profile needs it\nuniform float uSize;     // the long half-axis, scene units: the texture's cells are a fixed size on the sky\nuniform float uStrands;  // a filament bundle's strand count\nuniform float uGain;     // overall brightness\nuniform float uSeed;\nuniform float uFade;\nin vec2 vUv;\nout vec4 o;\n\nfloat h21(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }\nfloat vnoise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);\n  return mix(mix(h21(i),h21(i+vec2(1,0)),f.x), mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x), f.y); }\nfloat fbm(vec2 p){ float a=0.5, s=0.0; for(int k=0;k<4;k++){ s+=a*vnoise(p); p=p*2.03+vec2(1.7,9.2); a*=0.5; } return s; }\n\n// the printed map's ramp: black, deep red, orange, yellow, white\nvec3 heat(float t){\n  t = clamp(t, 0.0, 1.0);\n  vec3 c = mix(vec3(0.0), vec3(0.55,0.05,0.02), smoothstep(0.0, 0.25, t));\n  c = mix(c, vec3(1.0,0.42,0.08), smoothstep(0.2, 0.55, t));\n  c = mix(c, vec3(1.0,0.85,0.35), smoothstep(0.5, 0.8, t));\n  c = mix(c, vec3(1.0,0.97,0.9), smoothstep(0.78, 1.0, t));\n  return c;\n}\nfloat gauss(float x, float w){ return exp(-x*x/(w*w)); }\n\nvoid main(){\n  vec2 p = vUv;                       // 1 = the outline's half-axis, either way\n  float r = length(p);\n  int kind = int(uKind + 0.5);\n  float I = 0.0;\n  vec2 np = vec2(p.x, p.y/uAspect)*uSize*2.5 + uSeed*7.1;   // noise coordinates, isotropic on the sky: cells ~12 ly\n  float tex = 0.6 + 0.8*fbm(np*2.0);\n  if(kind == 0){                                   // an HII complex: a soft glow, clumpy\n    I = gauss(r, 0.62)*tex + 0.45*gauss(r, 0.28);\n  } else if(kind == 1){                            // a supernova remnant: a limb-brightened shell\n    float rim = gauss(r - 0.92, 0.09)*(0.25 + 1.3*fbm(np*1.5 + 3.0));\n    float fill = 0.16*smoothstep(1.0, 0.7, r)*tex;\n    I = rim + fill + uCore*(0.9*gauss(r, 0.2) + 0.5*gauss(r, 0.08));\n  } else if(kind == 2){                            // a nonthermal filament: a thin bright line\n    // the line runs along x, y is across it in units of the (half-)width; a gentle bend\n    float y = p.y - uBend*uAspect*sin(p.x*3.14159)*1.0;\n    float taper = smoothstep(1.0, 0.85, abs(p.x));\n    float along = 0.55 + 0.7*fbm(vec2(p.x*uSize*1.5 + uSeed, 0.3));\n    float n = max(uStrands, 1.0);\n    if(n < 1.5) I = gauss(y, 0.55)*taper*along*1.6;\n    else for(int k=0;k<8;k++){                     // a bundle: thin strands spread across the width\n      if(float(k) >= n) break;\n      float yk = (float(k) + 0.5)/n*2.0 - 1.0;\n      float bright = 0.5 + 0.8*h21(vec2(float(k), uSeed));\n      float along_k = 0.5 + 0.8*fbm(vec2(p.x*uSize*1.5 + float(k)*3.7, 0.3));\n      I += gauss(y - yk*0.85, 0.09*2.0/n*3.0)*taper*along_k*bright*1.2;\n    }\n  } else if(kind == 3){                            // a pulsar wind nebula in flight: head, then tail\n    float xh = -0.8;\n    float head = 1.6*gauss(length(vec2((p.x - xh)*uAspect*0.5, p.y)), 0.45) + 1.2*gauss(length(vec2((p.x - xh)*uAspect, p.y)), 0.25);\n    float t = clamp((p.x - xh)/(1.0 - xh), 0.0, 1.0);\n    float tail = exp(-t*2.2)*gauss(p.y, 0.55 + 0.35*t)*step(xh, p.x)*(0.6 + 0.6*fbm(vec2(p.x*5.0, 0.7)));\n    I = head + tail*0.8;\n  } else if(kind == 4){                            // a cluster of compact HII regions\n    for(int k=0;k<9;k++){\n      float fk = float(k);\n      vec2 c = vec2(h21(vec2(fk, uSeed))*1.7 - 0.85, (h21(vec2(uSeed, fk))*1.5 - 0.75));\n      c.x *= 1.0 - 0.3*abs(c.y);\n      float s = 0.06 + 0.06*h21(vec2(fk*3.1, 2.0));\n      I += (0.5 + 0.6*h21(vec2(fk, 5.0)))*gauss(length((p - c)*vec2(1.0, uAspect))/uAspect, s*uAspect);\n    }\n    I += 0.08*gauss(r, 0.7);\n  } else if(kind == 5){                            // a background radio galaxy: a compact double\n    I = 1.2*gauss(length(p - vec2(0.55, 0.0)), 0.3) + 1.2*gauss(length(p + vec2(0.55, 0.0)), 0.3) + 0.3*gauss(r, 0.7);\n  } else if(kind == 6){                            // Sgr A: East's shell, West's knot, the halo\n    I = 2.2*gauss(r, 0.16) + 1.1*gauss(r, 0.38)*tex + 0.6*gauss(r - 0.32, 0.08) + 0.35*gauss(r, 0.75);\n  } else {                                         // the plane's diffuse emission: soft, mottled, with dark lanes\n    float m = fbm(np*1.2 + 11.0);\n    I = gauss(r, 0.8)*(0.45 + 0.8*m)*smoothstep(0.0, 0.3, 1.0 - r);\n    I *= 0.55 + 0.45*smoothstep(0.25, 0.6, m);     // the dark clouds: where the noise is low, little shows\n  }\n  I *= uGain*uFade;\n  if(I < 0.002) discard;\n  o = vec4(heat(I), 1.0);\n}\n";
+
 /**
  * The measured orbits round Sagittarius A*, and the black hole's own numbers.
  *
@@ -3670,6 +3674,133 @@ const BH1 = {
   Pdays: 185.59,
   t0: 2016.04,         // JD 2457403.6, roughly
 };
+
+/**
+ * The Galactic Centre's radio sky: the named objects of the wide-field 90-cm VLA image
+ * (LaRosa, Kassim, Lazio & Hyman 2000, AJ 119, 207), the picture that shows the inner
+ * four degrees of the Galaxy as a radio telescope sees them — the thermal HII complexes
+ * Sgr A to Sgr E along the plane, the supernova remnants, and the nonthermal filaments
+ * (the Arc, the Snake, the threads, the Pelican) that run across the plane and exist
+ * nowhere else in the Galaxy.
+ *
+ * Every row is a catalogue position: galactic longitude and latitude in degrees, read
+ * from the object's designation (the G-name encodes l and b to a hundredth of a degree),
+ * with the sizes from Green's catalogue of supernova remnants (2019, the VII/284 VizieR
+ * copy) and the papers named in `src`. Two objects the image names have no designation
+ * this table could quote — "the Cane" and the background galaxy — and their positions
+ * were measured off the annotated image against the objects that do have one; they are
+ * flagged `fromImage`, disclosed in the article, and `tools/fetch_gc_radio.py` on GitHub's
+ * runner (where VizieR is reachable) checks the table against J/AJ/119/207 and Green's
+ * catalogue and rewrites what it can verify. The sandbox that wrote this could reach
+ * neither, so — as with the S-stars — these are the papers' values as transcribed, and
+ * the runner is what checks them.
+ *
+ * All of it is placed at Sagittarius A*'s distance, in the plane of the sky through it.
+ * The depths are not known to the precision the drawing would need (Sgr B2 is some 130 pc
+ * nearer than Sgr A*, Reid et al. 2009; the rest are inferred from absorption at best), so
+ * the field is drawn as the map shows it: a sky. The article says so.
+ */
+
+                       
+                                           
+         
+                                                     
+         
+                                                                            
+         
+                                                                           
+         
+                                         
+             
+                                                                                   
+            
+                                                                                 
+          
+                                                                                       
+           
+
+                              
+                                
+              
+                                                      
+           
+                 
+                                                 
+           
+           
+                                                                            
+             
+             
+                                                                                                         
+            
+                                                                                 
+               
+                                                                          
+                
+                                                                                 
+                  
+                                                                           
+               
+                                    
+             
+                                                                                      
+                     
+ 
+
+/** the object list, plane first, then the remnants, then the filaments */
+const RADIO                         = [
+  { name: 'Sgr A',        g: 'G0.0+0.0',      kind: 'core',    l: 359.944, b: -0.046, maj: 12,  min: 9,  pa: 90,
+    src: 'Sgr A East 3.5′×2.5′ (Green 2019) inside the ~7′ halo (Pedlar et al. 1989)' },
+  { name: 'the Arc',      g: 'G0.18-0.04',    kind: 'ntf',     l: 0.18,   b: -0.04,  maj: 20,  min: 3, pa: 0, bend: 0.06, strands: 6, gain: 1.4,
+    src: 'Yusef-Zadeh, Morris & Chance 1984; the straight filaments, b −0.2° to +0.1°' },
+  { name: 'Sgr B2',       g: 'G0.67-0.04',    kind: 'hii',     l: 0.67,   b: -0.04,  maj: 6,   min: 5,  pa: 90,
+    src: 'Mehringer et al. 1993' },
+  { name: 'Sgr B1',       g: 'G0.52-0.05',    kind: 'hii',     l: 0.52,   b: -0.05,  maj: 8,   min: 5,  pa: 90,
+    src: 'Mehringer et al. 1992' },
+  { name: 'Sgr C',        g: 'G359.43-0.09',  kind: 'hii',     l: 359.43, b: -0.09,  maj: 5,   min: 4,  pa: 90,
+    src: 'Liszt & Spiker 1995' },
+  { name: 'Sgr C filament', g: 'G359.45-0.01', kind: 'ntf',   l: 359.45, b: -0.01,  maj: 12,  min: 0.5, pa: 5,
+    src: 'Liszt & Spiker 1995: the filament north of the HII region, across the plane' },
+  { name: 'Sgr D HII',    g: 'G1.13-0.11',    kind: 'hii',     l: 1.13,   b: -0.11,  maj: 7,   min: 6,  pa: 90,
+    src: 'Liszt 1992' },
+  { name: 'Sgr D SNR',    g: 'G1.0-0.1',      kind: 'snr',     l: 1.05,   b: -0.15,  maj: 8,   min: 8,  pa: 0,
+    src: 'Green 2019: 8′' },
+  { name: 'Sgr E',        g: 'G358.7-0.0',    kind: 'cluster', l: 358.72, b: -0.02,  maj: 24,  min: 12, pa: 90,
+    src: 'Liszt 1992; Gray 1994: a dozen compact HII regions over ~0.4°' },
+  { name: 'SNR 0.9+0.1',  g: 'G0.9+0.1',      kind: 'snr',     l: 0.87,   b: 0.08,   maj: 8,   min: 8,  pa: 0, core: true,
+    src: 'Green 2019: 8′, composite — a pulsar wind nebula in a shell (Helfand & Becker 1987)' },
+  { name: 'SNR 0.3+0.0',  g: 'G0.3+0.0',      kind: 'snr',     l: 0.33,   b: 0.04,   maj: 16,  min: 15, pa: 0, gain: 0.5,
+    src: 'Green 2019: 16′×15′; first identified on this map (Kassim & Frail 1996)' },
+  { name: 'SNR 359.1−0.5', g: 'G359.1-0.5',   kind: 'snr',     l: 359.1,  b: -0.5,   maj: 24,  min: 24, pa: 0,
+    src: 'Green 2019: 24′' },
+  { name: 'SNR 359.0−0.9', g: 'G359.0-0.9',   kind: 'snr',     l: 359.0,  b: -0.9,   maj: 23,  min: 23, pa: 0, gain: 0.6,
+    src: 'Green 2019: 23′' },
+  { name: 'the Tornado',  g: 'G357.7-0.1',    kind: 'snr',     l: 357.7,  b: -0.1,   maj: 8,   min: 3,  pa: 90,
+    src: 'Green 2019: 8′×3′' },
+  { name: 'the Mouse',    g: 'G359.23-0.82',  kind: 'pwn',     l: 359.23, b: -0.82,  maj: 12,  min: 1.0, pa: -24,
+    src: 'Gaensler et al. 2004: PSR J1747−2958’s bow shock, the tail ~12′ behind it toward G359.1−0.5' },
+  { name: 'the Snake',    g: 'G359.1-0.2',    kind: 'ntf',     l: 359.1,  b: -0.2,   maj: 20,  min: 0.5, pa: 8, bend: 0.12,
+    src: 'Gray et al. 1995: ~20′ across the plane, kinked' },
+  { name: 'Northern Thread', g: 'G0.08+0.15', kind: 'ntf',     l: 0.08,   b: 0.15,   maj: 15,  min: 0.4, pa: 20,
+    src: 'Lang, Morris & Echevarria 1999' },
+  { name: 'Southern Thread', g: 'G359.96+0.09', kind: 'ntf',   l: 359.96, b: 0.09,   maj: 12,  min: 0.4, pa: 15,
+    src: 'Lang, Morris & Echevarria 1999' },
+  { name: 'G359.79+0.17', g: 'G359.79+0.17',  kind: 'ntf',     l: 359.79, b: 0.17,   maj: 10,  min: 0.4, pa: 10,
+    src: 'LaRosa et al. 2000; Yusef-Zadeh, Hewitt & Cotton 2004' },
+  { name: 'the Ripple',   g: 'G359.54+0.18',  kind: 'ntf',     l: 359.54, b: 0.18,   maj: 15,  min: 0.4, pa: 12,
+    src: 'LaRosa et al. 2000; Yusef-Zadeh, Hewitt & Cotton 2004' },
+  { name: 'the Pelican',  g: 'G358.85+0.47',  kind: 'ntf',     l: 358.85, b: 0.47,   maj: 7,   min: 0.4, pa: 85,
+    src: 'Lang et al. 1999: the one filament that runs along the plane, not across it' },
+  { name: 'the Cane',     g: '',              kind: 'ntf',     l: 359.88, b: 0.47,   maj: 8,   min: 0.4, pa: 20, fromImage: true,
+    src: 'LaRosa et al. 2000, named there; position read off the annotated image, ±0.1°' },
+  { name: 'background galaxy', g: '',         kind: 'galaxy',  l: 359.91, b: 0.16,   maj: 1.5, min: 0.8, pa: 60, fromImage: true,
+    src: 'LaRosa et al. 2000: an extragalactic double seen through the Centre; position read off the annotated image, ±0.1°' },
+  // Not an object: the diffuse emission along the plane that the map shows between Sgr B
+  // and Sgr C, drawn as one soft band so the named things sit in the glow they really sit
+  // in. Its extent is the map's; its texture is a model.
+  { name: '',             g: '',              kind: 'ridge',   l: 0.05,   b: -0.05,  maj: 110, min: 24, pa: 90, gain: 0.6,
+    src: 'the map itself: the plane between Sgr B2 and Sgr C, ~1.8° by ~0.35°' },
+];
 
 /**
  * The Galactic Centre, and the nearest black hole: where the S-stars are round Sagittarius A*
@@ -3845,6 +3976,131 @@ function bh1OrbitPoint(E        , out              )               {
   return orbitPoint(BH1.aAU*AU2U, BH1.e, E, bh1Frame, out)
 }
 
+// ---------------------------------------------------------------------------------------
+// The radio sky round the Centre
+
+/** a galactic direction (l, b in degrees) as a scene unit vector */
+function galDir(lDeg        , bDeg        )       {
+  const l = lDeg*Math.PI/180, b = bDeg*Math.PI/180;
+  return galToScene([Math.cos(b)*Math.cos(l), Math.cos(b)*Math.sin(l), Math.sin(b)])
+}
+
+/** Sagittarius A*'s distance in scene units: 8,277 pc, the frame everything of the field sits at */
+const SGRA_R0_U = SGRA_R0_PC*LY_PER_PC/30
+
+/**
+ * A radio object placed in the Centre's frame: its centre relative to Sagittarius A*, and the
+ * two half-axis vectors of its outline, all in scene units. Each sits on the sphere of the
+ * Centre's distance round the Sun — the sky, at that depth — so the angular separations and
+ * sizes of the map are exact; the outline lies in the local sky plane, its long axis turned
+ * by the object's position angle from galactic north toward increasing longitude.
+ */
+;                           
+                  
+         
+                                                                        
+         
+         
+                                            
+           
+           
+ 
+
+const arcminToU = (arcmin        )         => SGRA_R0_U*Math.tan(arcmin/60*Math.PI/180);
+
+const RADIO_GEOM                       = RADIO.map(obj => {
+  const d = galDir(obj.l, obj.b), Z = SGRA.basis.Z;
+  const cc = [(d[0] - Z[0])*SGRA_R0_U, (d[1] - Z[1])*SGRA_R0_U, (d[2] - Z[2])*SGRA_R0_U];
+  // the local +l and +b directions on the sky at the object
+  const l = obj.l*Math.PI/180, b = obj.b*Math.PI/180;
+  const uL = galToScene([-Math.sin(l), Math.cos(l), 0]);
+  const uB = galToScene([-Math.sin(b)*Math.cos(l), -Math.sin(b)*Math.sin(l), Math.cos(b)]);
+  const pa = obj.pa*Math.PI/180, cp = Math.cos(pa), sp = Math.sin(pa);
+  const a = arcminToU(obj.maj/2), bb = arcminToU(obj.min/2);
+  const A       = [(uB[0]*cp + uL[0]*sp)*a, (uB[1]*cp + uL[1]*sp)*a, (uB[2]*cp + uL[2]*sp)*a];
+  const B       = [(uL[0]*cp - uB[0]*sp)*bb, (uL[1]*cp - uB[1]*sp)*bb, (uL[2]*cp - uB[2]*sp)*bb];
+  // a nebula in flight is catalogued by its head, which the shader draws at −0.8 of the long
+  // axis: the quad slides along so the head sits on the designation and the tail runs +A
+  if(obj.kind === 'pwn') for(let i=0;i<3;i++) cc[i] += 0.8*A[i];
+  const c       = [cc[0], cc[1], cc[2]];
+  return { obj, c, A, B, a, b: bb }
+});
+
+/**
+ * The radio sky round the Centre: the objects of the wide-field 90-cm VLA map (LaRosa et al.
+ * 2000), each a quad in its own sky plane at Sagittarius A*'s distance, drawn in the
+ * Centre's frame with the Centre's view. Additive, through the map's heat ramp — see the
+ * shader's header for what is data here (the forms, the positions, the sizes) and what is
+ * not (the texture inside them).
+ *
+ * The field is a thing of the middle distances: from far out it is a speck in the bulge,
+ * and from the S-star framing every object is off screen and larger than the screen. It
+ * fades in as the eye comes within ~900 units (27,000 light years — the Sun's own distance
+ * is 900) and out again inside three, where Sgr A's glow alone would be the whole view.
+ */
+const pR = prog(RADIO_VS, RADIO_FS);
+const UR = {
+  proj: gl.getUniformLocation(pR, 'uProj'), view: gl.getUniformLocation(pR, 'uView'),
+  c: gl.getUniformLocation(pR, 'uC'), A: gl.getUniformLocation(pR, 'uA'), B: gl.getUniformLocation(pR, 'uB'),
+  margin: gl.getUniformLocation(pR, 'uMargin'), kind: gl.getUniformLocation(pR, 'uKind'),
+  bend: gl.getUniformLocation(pR, 'uBend'), core: gl.getUniformLocation(pR, 'uCore'),
+  aspect: gl.getUniformLocation(pR, 'uAspect'), gain: gl.getUniformLocation(pR, 'uGain'),
+  seed: gl.getUniformLocation(pR, 'uSeed'), fade: gl.getUniformLocation(pR, 'uFade'),
+  size: gl.getUniformLocation(pR, 'uSize'), strands: gl.getUniformLocation(pR, 'uStrands'),
+};
+const vaoEmpty = gl.createVertexArray(); 
+
+const KIND_ID                            = { hii: 0, snr: 1, ntf: 2, pwn: 3, cluster: 4, galaxy: 5, core: 6, ridge: 7 };
+const KIND_GAIN                            = { hii: 1.0, snr: 0.9, ntf: 0.7, pwn: 1.0, cluster: 0.5, galaxy: 1.0, core: 1.0, ridge: 0.5 };
+
+const smooth = (a        , b        , x        )         => { const t = Math.min(1, Math.max(0, (x - a)/(b - a))); return t*t*(3 - 2*t) };
+
+/** How much of the field shows at this distance from the Centre: 0 far out, 0 close in. */
+function radioFade(distGC        )         {
+  return smooth(900, 300, distGC)*smooth(0.6, 3.0, distGC)
+}
+
+/**
+ * Draw the field. `pxScale` and `distGC` set a floor on every outline's short axis — a
+ * filament an arcminute wide is a pixel wide at the map's own framing, and less than one
+ * from further out; below a pixel and a half it is widened and dimmed in proportion, so it
+ * stays a line and not a flicker. Returns the fade the caller's labels follow.
+ */
+function drawRadioField(proj              , viewGC              , distGC        , pxScale        )         {
+  const fade = radioFade(distGC);
+  if(fade < 0.002) return 0
+  gl.useProgram(pR);
+  gl.uniformMatrix4fv(UR.proj, false, proj);
+  gl.uniformMatrix4fv(UR.view, false, viewGC);
+  gl.uniform1f(UR.margin, 2.2);
+  gl.bindVertexArray(vaoEmpty);
+  const pxPerU = pxScale/distGC;
+  for(let k=0;k<RADIO_GEOM.length;k++){
+    const g = RADIO_GEOM[k], o = g.obj;
+    // the short axis's floor, in pixels; the flux stays the same as the line widens
+    const bPx = g.b*pxPerU, aPx = g.a*pxPerU;
+    const wb = Math.max(1, 1.5/Math.max(bPx, 1e-9)), wa = Math.max(1, 1.5/Math.max(aPx, 1e-9));
+    const dim = 1/(wa*wb);
+    // nothing smaller than a pixel across is worth a quad
+    if(aPx*2 < 0.7) continue
+    gl.uniform3f(UR.c, g.c[0], g.c[1], g.c[2]);
+    gl.uniform3f(UR.A, g.A[0]*wa, g.A[1]*wa, g.A[2]*wa);
+    gl.uniform3f(UR.B, g.B[0]*wb, g.B[1]*wb, g.B[2]*wb);
+    gl.uniform1f(UR.kind, KIND_ID[o.kind]);
+    gl.uniform1f(UR.bend, o.bend ?? 0);
+    gl.uniform1f(UR.core, o.core ? 1 : 0);
+    gl.uniform1f(UR.aspect, (g.a*wa)/(g.b*wb));
+    gl.uniform1f(UR.gain, KIND_GAIN[o.kind]*(o.gain ?? 1)*dim);
+    gl.uniform1f(UR.size, g.a*wa);
+    gl.uniform1f(UR.strands, o.strands ?? 1);
+    gl.uniform1f(UR.seed, k*1.37 + 0.5);
+    gl.uniform1f(UR.fade, fade);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  }
+  gl.bindVertexArray(null);
+  return fade
+}
+
 /**
  * The Galactic Centre, and the nearest black hole.
  *
@@ -3982,6 +4238,8 @@ const SGRA_DISC_N       = (()=>{
                                                                                       
                 
                
+                                                                                                
+                
  
 
 /**
@@ -4060,7 +4318,13 @@ function drawPoints(proj              , view              , n        )       {
 function drawGalacticCentre(inp          )           {
   const { projMat, viewGC, viewBH1, distGC, distBH1, pxScale, viewH, simT, shimT, mirror, orbitAlpha, showOrbits, trailAlpha, showTails, viewMat, org } = inp;
   const year = yearOf(simT);
-  const res           = { gcOn: false, bh1On: false, sgraPx: 0, bh1Px: 0 };
+  const res           = { gcOn: false, bh1On: false, sgraPx: 0, bh1Px: 0, radioA: 0 };
+
+  // ---------- the radio sky: the map's objects, from the middle distances ----------
+  if(distGC < 1000){
+    res.radioA = drawRadioField(projMat, viewGC, distGC, pxScale);
+    if(res.radioA > 0) res.gcOn = true;
+  }
 
   // ---------- Sagittarius A* and the S-stars: only from within ~1,200 light years ----------
   if(distGC < 40){
@@ -4464,6 +4728,8 @@ const mkLbl = (text        , colour        )              => { const d=document.
 const sgraEl = mkLbl('Sagittarius A*', 'rgba(236,214,190,.9)');
 const sstarEls = SSTARS.map(s => mkLbl(s.name, 'rgba(190,210,255,.7)'));
 const bh1El = mkLbl('Gaia BH1', 'rgba(236,214,190,.9)');
+// the radio field's names, in the map's own warm ink; the unnamed ridge gets no element
+const radioEls = RADIO_GEOM.map(g => g.obj.name ? mkLbl(g.obj.name, 'rgba(255,205,150,.78)') : null);
 const bh1StarEl = mkLbl('G dwarf companion', 'rgba(255,225,170,.75)');
 
 /** The easing state a steady label carries, parked on the element itself. */
@@ -4543,7 +4809,7 @@ function placeLabel(el       , x        , y        , show         )       {
                                                            
                  
                                                                                                                       
-                                                                                            
+                                                                                                            
                                                                                         
                                                                                             
  
@@ -4558,7 +4824,7 @@ function projector(projMat              , viewMat              )                
   return (x, y, z) => { const cw = pv[3]*x+pv[7]*y+pv[11]*z+pv[15];
     return [cw, ((pv[0]*x+pv[4]*y+pv[8]*z+pv[12])/cw*0.5+0.5)*view.W, (-(pv[1]*x+pv[5]*y+pv[9]*z+pv[13])/cw*0.5+0.5)*view.H]; };
 }
-const hideGC = ()       => { placeLabel(sgraEl, 0, 0, false); sstarEls.forEach(l => placeLabel(l         , 0, 0, false)); };
+const hideGC = ()       => { placeLabel(sgraEl, 0, 0, false); sstarEls.forEach(l => placeLabel(l         , 0, 0, false)); radioEls.forEach(l => l && placeLabel(l         , 0, 0, false)); };
 const hideBH1 = ()       => { placeLabel(bh1El, 0, 0, false); placeLabel(bh1StarEl, 0, 0, false); };
 
 function drawLabels(showLabels         , inputs             )       {
@@ -4654,7 +4920,16 @@ function drawLabels(showLabels         , inputs             )       {
   // the Centre: projected through its own view, so the names land where the points do
   if(gc.on){
     const pg = projector(projMat, gc.view);
-    { const [cw, sx, sy] = pg(0, 0, 0); placeLabel(sgraEl, sx, sy - Math.max(0, gc.sgraPx*0.5*7.5/2.6), cw > 0); }
+    // the hole's own name only once the field has faded: from the field's distances "Sgr A" is the name
+    { const [cw, sx, sy] = pg(0, 0, 0); placeLabel(sgraEl, sx, sy - Math.max(0, gc.sgraPx*0.5*7.5/2.6), cw > 0 && gc.radioA < 0.3); }
+    // the radio objects: each named once its outline is more than a few pixels, the name
+    // set just under the centre, the way the map's annotations sit beside their objects
+    for(let k=0;k<RADIO_GEOM.length;k++){
+      const el = radioEls[k]; if(!el) continue;
+      const g = RADIO_GEOM[k], apx = g.a*pxScale/gc.dist;
+      const [cw, sx, sy] = pg(g.c[0], g.c[1], g.c[2]);
+      placeLabel(el         , sx, sy + Math.min(46, apx*0.7) + 6, cw > 0 && gc.radioA > 0.3 && apx > 9 && apx < 900);
+    }
     for(let k=0;k<SSTARS.length;k++){
       const apx = sstarA(k).u*pxScale/gc.dist;                       // the orbit's semi-major axis on screen
       const [cw, sx, sy] = pg(gc.stars[k*3], gc.stars[k*3+1], gc.stars[k*3+2]);
@@ -4726,6 +5001,8 @@ const wasEaten = [false,false,false,false], eatFlash = [-1,-1,-1,-1];   // -1: n
 // the one way a projection is built: frame() rebuilds it every frame for its near plane
 function skyProjection(near        , far        )               { const m = perspective(Math.PI/3, view.W/view.H, near, far); m[0] *= SKY_MIRROR; return m; }
 
+/** The Centre's sky frame for the radio field: north, the line of sight, and their cross — see the camera block. */
+function gcSkyFrame()                      { const A = SGRA.basis.N, Q = SGRA.basis.Z; return [[Q[1]*A[2]-Q[2]*A[1], Q[2]*A[0]-Q[0]*A[2], Q[0]*A[1]-Q[1]*A[0]], A, Q]; }
 function spinFrame()                      { const A = EARTH_AXIS, P = earthPrime$1(simClock.simT, cam.spinP); return [P, A, [A[1]*P[2]-A[2]*P[1], A[2]*P[0]-A[0]*P[2], A[0]*P[1]-A[1]*P[0]]]; }
 /**
  * The Moon's own frame, for her spin lock.
@@ -4847,7 +5124,7 @@ function frame(now        )       {
   bh1Centre(simClock.simT, bh1C);
   for(let i=0;i<3;i++) bh1Abs[i] = org[i] + bh1C[i];
   const followPos = cam.followTarget === 'and' ? andPos
-                  : cam.followTarget === 'gc' ? GC_ORIGIN
+                  : cam.followTarget === 'gc' || cam.followTarget === 'gcr' ? GC_ORIGIN
                   : cam.followTarget === 'bh1' ? bh1Abs
                   : moonHere ? moonW
                   : ((cam.followTarget === 'earth' || cam.followTarget === 'moon') && !wasEaten[3]) ? earthW : org;
@@ -4899,6 +5176,16 @@ function frame(now        )       {
     ux = -sp*sy*P[0]+cp*A[0]+sp*cy*Q[0]; uy = -sp*sy*P[1]+cp*A[1]+sp*cy*Q[1]; uz = -sp*sy*P[2]+cp*A[2]+sp*cy*Q[2];
     dx = cp*sy*P[0]+sp*A[0]-cp*cy*Q[0]; dy = cp*sy*P[1]+sp*A[1]-cp*cy*Q[1]; dz = cp*sy*P[2]+sp*A[2]-cp*cy*Q[2];
     upV = A;
+  } else if(cam.follow && cam.followTarget === 'gcr'){
+    // The radio field's frame: the sky at Sagittarius A* with CELESTIAL north up, the way the
+    // map is printed (the plane then runs from upper left to lower right), and yaw 0 pitch 0
+    // looking along the line of sight from the Sun. The same three vectors as the spin
+    // frames: A is north, Q the line of sight away from the Sun, P completes the triad.
+    const [P, A, Q] = gcSkyFrame();
+    rx = cy*P[0]+sy*Q[0]; ry = cy*P[1]+sy*Q[1]; rz = cy*P[2]+sy*Q[2];
+    ux = -sp*sy*P[0]+cp*A[0]+sp*cy*Q[0]; uy = -sp*sy*P[1]+cp*A[1]+sp*cy*Q[1]; uz = -sp*sy*P[2]+cp*A[2]+sp*cy*Q[2];
+    dx = cp*sy*P[0]+sp*A[0]-cp*cy*Q[0]; dy = cp*sy*P[1]+sp*A[1]-cp*cy*Q[1]; dz = cp*sy*P[2]+sp*A[2]-cp*cy*Q[2];
+    upV = A;
   }
   cam.dirW[0] = dx; cam.dirW[1] = dy; cam.dirW[2] = dz;                     // read by the spin lock's switch
   const pv = 1.1547*cam.dist, pdx = -cam.panF[0]*pv*SKY_MIRROR, pdy = cam.panF[1]*pv;
@@ -4937,7 +5224,10 @@ function frame(now        )       {
   gl.uniformMatrix4fv(U.ptView,false,viewMat);
   const and = updateAnd();
   const gl710 = g710$3();   // read by the Oort brightening before the star is drawn
-  const deep = cam.dist<1.0; // inside ~30 ly: keep the backdrop point-like
+  // inside ~30 ly, and anywhere in the bulge (within 4,500 ly of the Centre, where the
+  // model's points are so close that their sprites would wash the whole view), keep the
+  // backdrop point-like
+  const deep = (cam.dist<1.0 || distGC < 150);
   // Inside the disk the band's light — haze, HII regions, the core — all lies BEHIND
   // the local dust: that is the Great Rift. So from in here the whole backdrop goes
   // down first and the dust over it; from outside the arms' HII knots sit on top of
@@ -5189,7 +5479,7 @@ function frame(now        )       {
     merge: and.merge, sep: and.sep, spinMW, spinM31, asm, bornYet, star: gl710,
     showP9: hud.showP9, showDwarfs: hud.showDwarfs, wasEaten,
     structOn: [hud.showBelt, hud.showKuiper, hud.showOort], armsOn: hud.armsOn,
-    gc: { on: gcRes.gcOn, view: viewGC, dist: distGC, stars: sstarRel, sgraPx: gcRes.sgraPx },
+    gc: { on: gcRes.gcOn, view: viewGC, dist: distGC, stars: sstarRel, sgraPx: gcRes.sgraPx, radioA: gcRes.radioA },
     bh1: { on: gcRes.bh1On, view: viewBH1, dist: distBH1, star: bh1StarRel, holePx: gcRes.bh1Px },
   });
 
@@ -6061,7 +6351,7 @@ function panCentroid()           { let x=0,y=0; for(const q of touches.values())
 // the view: Sagittarius A*'s 0.44 AU across, Gaia BH1's 146 km.
 const minDist = ()         => cam.followTarget === 'moon' ? (ageGyr$2() > MOON_BORN ? 1.8e-12 : 6.7e-12)
                    : cam.followTarget === 'earth' ? 6.7e-12
-                   : cam.followTarget === 'gc' ? 3e-7
+                   : cam.followTarget === 'gc' || cam.followTarget === 'gcr' ? 3e-7
                    : cam.followTarget === 'bh1' ? 1.5e-12
                    : (2e-8 );
 // The ceiling: three times further out than the old 7500, so the Galaxy can be seen whole
@@ -6230,6 +6520,15 @@ function applyFocusView()       {
     if(!$('tView').classList.contains('on')) $('tView').click();
     cam.followTarget = 'gc';
     cam.follow = true; cam.coreLock = false; cam.distGoal = 1.4e-3; cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
+    cam.yaw = 0; cam.pitch = 0;
+  } else if(v === 'gcr'){
+    // the radio sky of the Centre: the VLA map's four-degree field, celestial north up as it
+    // is printed, from 1,800 light years out — the same follow point as the S-stars, so the
+    // zoom buttons carry on inward from here to the orbits and the hole
+    if($('tDive').classList.contains('on')) $('tDive').click();
+    if(!$('tView').classList.contains('on')) $('tView').click();
+    cam.followTarget = 'gcr';
+    cam.follow = true; cam.coreLock = false; cam.distGoal = 48; cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
     cam.yaw = 0; cam.pitch = 0;
   } else if(v === 'bh1'){
     // the nearest black hole, 1,575 light years out: the whole 186-day orbit in frame
@@ -6410,6 +6709,12 @@ function jumpToEpoch()       {
     // it — looking along the line of sight from Earth with north up, the way the orbits are
     // drawn in the papers. The view select carries the framing.
     $v('focusSel').value = 'gc'; applyFocusView();
+    if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
+  }
+  if(sel.value === '4.567999985r'){
+    // the Centre in radio, today: nothing here moves at any pace the piece can show, so the
+    // clock simply runs on; the view select carries the framing
+    $v('focusSel').value = 'gcr'; applyFocusView();
     if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
   }
   if(sel.value === '4.568b'){
@@ -8933,6 +9238,7 @@ startFrameLoop({
           <li><a href="docs/earth-across-deep-time.html" target="_blank" rel="noopener">Earth across deep time</a> — named milestones from the first amino acids to the boiling oceans, independently sourced</li>
       <li><a href="docs/whats-real-what-is-modeled.html" target="_blank" rel="noopener">What's real, what's modeled</a> — the honesty ledger: every measurement drawn, every compression disclosed</li>
       <li><a href="docs/sagittarius-a-star.html" target="_blank" rel="noopener">Sagittarius A* and the S-stars</a> — the black hole at the centre, the stars that orbit it, and how the drawn hole is rendered</li>
+      <li><a href="docs/galactic-centre-radio.html" target="_blank" rel="noopener">The Galactic Centre in radio</a> — the Arc, the Snake, the Mouse and the rest of the VLA map's objects, and how a radio sky is drawn</li>
       <li><a href="docs/gaia-bh1.html" target="_blank" rel="noopener">Gaia BH1</a> — the nearest black hole known, and the Sun-like star that gives it away</li>
     </ul>
 
@@ -8952,6 +9258,7 @@ startFrameLoop({
       <li>Cox &amp; Loeb 2008 — Milkomeda; <a href="https://www.nature.com/articles/s41550-025-02563-1" target="_blank" rel="noopener">Sawala et&nbsp;al. 2025</a> — ~50% merger odds (the drawn track is their merging-half median); arXiv:2603.22863 (2026) — the ~90% reanalysis whose band the track sits in</li>
       <li>Berski &amp; Dybczyński 2016 — Gliese 710's pass; Shaviv and Svensmark — the contested cosmic-ray/climate hypothesis the ice ages follow, flagged as such</li>
       <li><b>GRAVITY Collaboration</b> 2018 (A&amp;A 615, L15), 2020 (A&amp;A 636, L5) and 2022 (A&amp;A 657, L12) — S2's orbit and radial-velocity curve, and Sagittarius A*'s mass and distance; <b>Gillessen et&nbsp;al. 2017</b> (ApJ 837, 30) — the other S-star orbits; <b>Event Horizon Telescope</b> 2022 (ApJL 930, L12) — the shadow's size; Reid &amp; Brunthaler 2004 — the plane's orientation at Sgr A*</li>
+      <li><b>LaRosa, Kassim, Lazio &amp; Hyman 2000</b> (AJ 119, 207) — the wide-field 90-cm VLA map of the Galactic Centre: which objects, where; <b>Green 2019</b> (JApA 40, 36; VizieR VII/284) — the supernova remnants' sizes; Yusef-Zadeh, Hewitt &amp; Cotton 2004, Lang et&nbsp;al. 1999, Gray et&nbsp;al. 1995, Gaensler et&nbsp;al. 2004 — the filaments and the Mouse</li>
       <li><b>El-Badry et&nbsp;al. 2023</b> (MNRAS 518, 1057) — Gaia BH1's orbit and masses; the position is the companion's Gaia DR3 astrometry (ESA/Gaia/DPAC)</li>
       <li><a href="https://people.astro.unistra.fr/f.renaud/vintergatan.php" target="_blank" rel="noopener"><b>VINTERGATAN</b></a> (Agertz, Renaud et&nbsp;al.) — the cosmological zoom simulation behind the assembly scenario: the contracting, thickened, merger-scrambled young disk, and the Gaia-Enceladus convulsion</li>
       <li><a href="https://www.mpe.mpg.de/7978605/news20231214" target="_blank" rel="noopener"><b>eROSITA</b> / MPE</a> — the million-degree circumgalactic gas the <b>hot halo</b> switch draws: a spherical halo to ~100&nbsp;kpc holding most of the Galaxy's ordinary matter, and the brighter disk-like component ~7&nbsp;kpc across and ~1&nbsp;kpc thick inside it</li>
@@ -8998,6 +9305,7 @@ startFrameLoop({
       <option value="4.318p" data-rate="1" data-mult="1">Pangaea — one continent, one ocean (250 Myr ago)</option>
       <option value="4.318" data-rate="1" data-mult="10000000">Plate tectonics — Pangaea to Pangaea Proxima (250 Myr ago → +250 Myr)</option>
       <option value="4.567999985s" data-rate="4" data-mult="1">The stars round the black hole — S2 at Sagittarius A* (2011 &rarr;)</option>
+      <option value="4.567999985r" data-rate="1" data-mult="1">The Galactic Centre in radio — Sgr A, the Arc, the Snake, the Mouse (today)</option>
       <option value="4.568b" data-rate="0.01917" data-mult="1">Gaia BH1 — the nearest black hole, its star swinging round (today &rarr;)</option>
       <option value="4.5692567" data-rate="0.19" data-mult="10000">Gliese 710 grazes the Oort cloud (+1.29 Myr)</option>
       <option value="4.818x" data-rate="1" data-mult="1">Pangaea Proxima — the next supercontinent (+250 Myr)</option>
@@ -9009,7 +9317,7 @@ startFrameLoop({
       <option value="12.35" data-rate="1" data-mult="10000000">The Anthropic Nebula — the Sun casts its shell (+7.8 Gyr)</option>
       <option value="13.5">After the merger (+8.9 Gyr)</option>
     </select><button class="rowbtn" id="jumpGo" title="apply the selected scenario and close the panel">GO</button></div>
-  <div class="row"><label for="focusSel">view</label><select id="focusSel"><option value="sun">Solar System</option><option value="earth">Earth</option><option value="moon">Moon</option><option value="pn">Anthropic Nebula</option><option value="gc">Galactic Centre</option><option value="bh1">Gaia BH1</option><option value="mw">Milky Way</option><option value="and">Andromeda</option></select><button class="rowbtn" id="focusGo">GO</button>
+  <div class="row"><label for="focusSel">view</label><select id="focusSel"><option value="sun">Solar System</option><option value="earth">Earth</option><option value="moon">Moon</option><option value="pn">Anthropic Nebula</option><option value="gc">Galactic Centre</option><option value="gcr">Galactic Centre, radio</option><option value="bh1">Gaia BH1</option><option value="mw">Milky Way</option><option value="and">Andromeda</option></select><button class="rowbtn" id="focusGo">GO</button>
     <label class="chk plain" style="margin-left:6px"><input type="checkbox" id="tSpinLock"> spin lock<button type="button" class="info" data-tip="The camera turns with what it watches. Following a planet it rides the spin — tick it to watch the plates drift. In the galaxy view it rides the spiral-arm pattern: the arms hold still while the stars and the ages sweep through them." aria-label="about spin lock">i</button></label></div>
 </div>
 <button class="pdot" id="simPlus" data-open="simPanel" title="simulation" aria-label="show the simulation panel"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.4 2.6c.3 3.4-.2 6.2-1.6 8.6-1.3 2.4-3.4 4.5-6.2 6.4L9.9 14 6.4 10.4c1.9-2.8 4-4.9 6.4-6.2 2.4-1.4 5.2-1.9 8.6-1.6Z"/><circle cx="15.4" cy="8.6" r="2.6" fill="#0b0f1a"/><path d="M7.6 4.4 10.5 7.3c-1.1 1.2-2 2.4-2.7 3.7L2.6 9.2c.9-1.9 2.6-3.5 5-4.8Z"/><path d="M19.6 16.4 16.7 13.5c-1.2 1.1-2.4 2-3.7 2.7l1.8 5.2c1.9-.9 3.5-2.6 4.8-5Z"/><path d="M8.6 13.4 10.6 15.4 7.2 18.8a1.1 1.1 0 0 1-1.6 0l-.4-.4a1.1 1.1 0 0 1 0-1.6Z"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5.6 12.2 2.4 15.4M8 14.6 4.8 17.8M10.4 17 7.2 20.2"/></g></svg></button>

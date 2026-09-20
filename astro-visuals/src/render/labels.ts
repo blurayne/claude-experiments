@@ -7,7 +7,7 @@ import { SKY_LABELS } from '../scene/skybox'
 import { gfx, readout, view } from './state'
 import { bodyPosArr } from './passes/bodies'
 import { moonRel } from '../astro/earth'
-import { SSTARS, sstarA } from '../astro/gc'
+import { SSTARS, sstarA, RADIO_GEOM } from '../astro/gc'
 
 /**
  * Every name on the screen. They are DOM, not GL: HTML text over the canvas, positioned each
@@ -106,6 +106,8 @@ const mkLbl = (text: string, colour: string): HTMLElement => { const d=document.
 const sgraEl = mkLbl('Sagittarius A*', 'rgba(236,214,190,.9)');
 const sstarEls = SSTARS.map(s => mkLbl(s.name, 'rgba(190,210,255,.7)'));
 const bh1El = mkLbl('Gaia BH1', 'rgba(236,214,190,.9)');
+// the radio field's names, in the map's own warm ink; the unnamed ridge gets no element
+const radioEls = RADIO_GEOM.map(g => g.obj.name ? mkLbl(g.obj.name, 'rgba(255,205,150,.78)') : null);
 const bh1StarEl = mkLbl('G dwarf companion', 'rgba(255,225,170,.75)');
 
 /** The easing state a steady label carries, parked on the element itself. */
@@ -187,7 +189,7 @@ export interface LabelInputs {
   /** the arm and galaxy names are a switch of their own */
   armsOn: boolean
   /** the Centre's frame: drawn this frame, its view, the eye's distance, the S-stars' positions, the shadow's size */
-  gc: { on: boolean; view: Float32Array; dist: number; stars: Float32Array; sgraPx: number }
+  gc: { on: boolean; view: Float32Array; dist: number; stars: Float32Array; sgraPx: number; radioA: number }
   /** Gaia BH1's frame, the same way: the hole at the origin, the star relative to it */
   bh1: { on: boolean; view: Float32Array; dist: number; star: Float32Array; holePx: number }
 }
@@ -202,7 +204,7 @@ function projector(projMat: Float32Array, viewMat: Float32Array): (x: number, y:
   return (x, y, z) => { const cw = pv[3]*x+pv[7]*y+pv[11]*z+pv[15];
     return [cw, ((pv[0]*x+pv[4]*y+pv[8]*z+pv[12])/cw*0.5+0.5)*view.W, (-(pv[1]*x+pv[5]*y+pv[9]*z+pv[13])/cw*0.5+0.5)*view.H]; };
 }
-const hideGC = (): void => { placeLabel(sgraEl, 0, 0, false); sstarEls.forEach(l => placeLabel(l as Label, 0, 0, false)); };
+const hideGC = (): void => { placeLabel(sgraEl, 0, 0, false); sstarEls.forEach(l => placeLabel(l as Label, 0, 0, false)); radioEls.forEach(l => l && placeLabel(l as Label, 0, 0, false)); };
 const hideBH1 = (): void => { placeLabel(bh1El, 0, 0, false); placeLabel(bh1StarEl, 0, 0, false); };
 
 export function drawLabels(showLabels: boolean, inputs: LabelInputs): void {
@@ -298,7 +300,16 @@ export function drawLabels(showLabels: boolean, inputs: LabelInputs): void {
   // the Centre: projected through its own view, so the names land where the points do
   if(gc.on){
     const pg = projector(projMat, gc.view);
-    { const [cw, sx, sy] = pg(0, 0, 0); placeLabel(sgraEl, sx, sy - Math.max(0, gc.sgraPx*0.5*7.5/2.6), cw > 0); }
+    // the hole's own name only once the field has faded: from the field's distances "Sgr A" is the name
+    { const [cw, sx, sy] = pg(0, 0, 0); placeLabel(sgraEl, sx, sy - Math.max(0, gc.sgraPx*0.5*7.5/2.6), cw > 0 && gc.radioA < 0.3); }
+    // the radio objects: each named once its outline is more than a few pixels, the name
+    // set just under the centre, the way the map's annotations sit beside their objects
+    for(let k=0;k<RADIO_GEOM.length;k++){
+      const el = radioEls[k]; if(!el) continue;
+      const g = RADIO_GEOM[k], apx = g.a*pxScale/gc.dist;
+      const [cw, sx, sy] = pg(g.c[0], g.c[1], g.c[2]);
+      placeLabel(el as Label, sx, sy + Math.min(46, apx*0.7) + 6, cw > 0 && gc.radioA > 0.3 && apx > 9 && apx < 900);
+    }
     for(let k=0;k<SSTARS.length;k++){
       const apx = sstarA(k).u*pxScale/gc.dist;                       // the orbit's semi-major axis on screen
       const [cw, sx, sy] = pg(gc.stars[k*3], gc.stars[k*3+1], gc.stars[k*3+2]);

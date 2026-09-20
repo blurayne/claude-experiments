@@ -86,6 +86,7 @@ in the browser with no build step and no external CDN.
 | [Gillessen et al. 2017](https://ui.adsabs.harvard.edu/abs/2017ApJ...837...30G) (ApJ 837, 30; VizieR J/ApJ/837/30) | the S-star orbital elements in `src/astro/gc-data.ts` — thirteen of the fourteen drawn | scientific data, cite the paper; VizieR copy CDS |
 | [GRAVITY Collaboration](https://www.mpe.mpg.de/ir/GRAVITY) 2018 (A&A 615, L15), 2020 (A&A 636, L5), 2022 (A&A 657, L12) | S2's orbit and radial-velocity curve (which pins the depth sign of every orbit drawn), Sgr A*'s mass and distance | scientific data, cite the papers |
 | [Event Horizon Telescope](https://eventhorizontelescope.org/) 2022 (ApJL 930, L12) | the shadow's measured size, which the drawn Schwarzschild shadow is checked against | scientific data, cite the paper; no image used |
+| [LaRosa, Kassim, Lazio & Hyman 2000](https://ui.adsabs.harvard.edu/abs/2000AJ....119..207L) (AJ 119, 207; VizieR J/AJ/119/207) + [Green 2019](https://www.mrao.cam.ac.uk/surveys/snrs/) (JApA 40, 36; VizieR VII/284) | the Galactic Centre's radio objects in `src/astro/gc-radio-data.ts`: positions from the designations, remnant sizes from Green; filaments per Yusef-Zadeh, Hewitt & Cotton 2004, Lang et al. 1999, Gray et al. 1995; the Mouse per Gaensler et al. 2004 | scientific data, cite the papers; the map image itself is not used |
 | [El-Badry et al. 2023](https://ui.adsabs.harvard.edu/abs/2023MNRAS.518.1057E) (MNRAS 518, 1057) + Gaia DR3 4373465352415301632 | Gaia BH1's orbit, masses and position | scientific data; Gaia: "ESA/Gaia/DPAC" |
 | Nuclear disc & cluster | modelled after AIP's ["How central galactic structures grow together"](https://www.aip.de/en/news/galactic-structures-grow-together/) | scientific reference, no data used |
 | [ejtaal/gaia-web](https://github.com/ejtaal/gaia-web) | inspected as a data source; its `gaia-web-data` sets (175–290 MB) are beyond a Pages site's budget | BSD-3 (code); data derived from Gaia DR3 (ESA/Gaia/DPAC) |
@@ -158,9 +159,14 @@ The build renders it to `changelog.html`, which the panel footer links to.
 - [`tools/fetch_sstars.py`](tools/fetch_sstars.py) — regenerates `src/astro/gc-data.ts`,
   the S-star orbits round Sagittarius A* and Gaia BH1's position, from VizieR on GitHub's
   runner (the data workflow), printing every value beside the one it replaces.
+- [`tools/fetch_gc_radio.py`](tools/fetch_gc_radio.py) — checks `src/astro/gc-radio-data.ts`,
+  the Galactic Centre's radio objects, against Green's SNR catalogue and LaRosa et al.
+  2000 on the runner, the same way.
 - [`docs/sagittarius-a-star.html`](docs/sagittarius-a-star.html),
   [`docs/gaia-bh1.html`](docs/gaia-bh1.html) — the Galactic Centre and the nearest black
   hole: what is drawn, from which paper, and how the hole is rendered.
+- [`docs/galactic-centre-radio.html`](docs/galactic-centre-radio.html) — the Centre's radio
+  sky: the VLA map's objects, what each is, and how a radio sky is drawn.
 - [`manifest.json`](manifest.json), [`sw.js`](sw.js) — the PWA manifest and its
   offline service worker.
 ### Feeding in StarHorse (Gaia DR3) — awaiting data

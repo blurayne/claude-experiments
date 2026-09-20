@@ -5,6 +5,7 @@ import SUN_VS from '../../shaders/sun.vert?raw'
 import BH_FS from '../../shaders/bh.frag?raw'
 import { pPt, pTr, U } from './points'
 import { drawRings } from './rings'
+import { drawRadioField } from './gcradio'
 import {
   SSTARS, SGRA, BH1_INFO, sstarPos, sstarOrbitPoint, sstarA, bh1Relative, bh1OrbitPoint, yearOf,
 } from '../../astro/gc'
@@ -174,6 +175,8 @@ export interface GcResult {
   /** the holes' apparent sizes, in pixels: below a few, the findable dot stands in */
   sgraPx: number
   bh1Px: number
+  /** how much of the radio field is showing (0 when none of it is drawn) — its labels follow */
+  radioA: number
 }
 
 /**
@@ -252,7 +255,13 @@ function drawPoints(proj: Float32Array, view: Float32Array, n: number): void {
 export function drawGalacticCentre(inp: GcInputs): GcResult {
   const { projMat, viewGC, viewBH1, distGC, distBH1, pxScale, viewH, simT, shimT, mirror, orbitAlpha, showOrbits, trailAlpha, showTails, viewMat, org } = inp
   const year = yearOf(simT)
-  const res: GcResult = { gcOn: false, bh1On: false, sgraPx: 0, bh1Px: 0 }
+  const res: GcResult = { gcOn: false, bh1On: false, sgraPx: 0, bh1Px: 0, radioA: 0 }
+
+  // ---------- the radio sky: the map's objects, from the middle distances ----------
+  if(distGC < 1000){
+    res.radioA = drawRadioField(projMat, viewGC, distGC, pxScale)
+    if(res.radioA > 0) res.gcOn = true
+  }
 
   // ---------- Sagittarius A* and the S-stars: only from within ~1,200 light years ----------
   if(distGC < 40){

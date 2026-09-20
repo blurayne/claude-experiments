@@ -24,7 +24,7 @@ import { drawBodies, bodyPosArr, bodyCol, realSizes, uploadBodySize, uploadSunCo
 import { drawGlobe } from './passes/globe'
 import { drawG710 } from './passes/g710'
 import { drawGalacticCentre, sstarRel, bh1StarRel } from './passes/gc'
-import { bh1Centre } from '../astro/gc'
+import { bh1Centre, SGRA } from '../astro/gc'
 import { drawShed, drawSunDisc } from './passes/sun'
 import { drawEatFlash } from './passes/eatflash'
 import { bindHDR, resolveTone } from './passes/tone'
@@ -87,6 +87,8 @@ const wasEaten = [false,false,false,false], eatFlash = [-1,-1,-1,-1];   // -1: n
 // the one way a projection is built: frame() rebuilds it every frame for its near plane
 export function skyProjection(near: number, far: number): Float32Array { const m = perspective(Math.PI/3, view.W/view.H, near, far); m[0] *= SKY_MIRROR; return m; }
 
+/** The Centre's sky frame for the radio field: north, the line of sight, and their cross — see the camera block. */
+function gcSkyFrame(): ArrayLike<number>[] { const A = SGRA.basis.N, Q = SGRA.basis.Z; return [[Q[1]*A[2]-Q[2]*A[1], Q[2]*A[0]-Q[0]*A[2], Q[0]*A[1]-Q[1]*A[0]], A, Q]; }
 export function spinFrame(): ArrayLike<number>[] { const A = EARTH_AXIS, P = earthPrime(simClock.simT, cam.spinP); return [P, A, [A[1]*P[2]-A[2]*P[1], A[2]*P[0]-A[0]*P[2], A[0]*P[1]-A[1]*P[0]]]; }
 /**
  * The Moon's own frame, for her spin lock.
@@ -208,7 +210,7 @@ function frame(now: number): void {
   bh1Centre(simClock.simT, bh1C);
   for(let i=0;i<3;i++) bh1Abs[i] = org[i] + bh1C[i];
   const followPos = cam.followTarget === 'and' ? andPos
-                  : cam.followTarget === 'gc' ? GC_ORIGIN
+                  : cam.followTarget === 'gc' || cam.followTarget === 'gcr' ? GC_ORIGIN
                   : cam.followTarget === 'bh1' ? bh1Abs
                   : moonHere ? moonW
                   : ((cam.followTarget === 'earth' || cam.followTarget === 'moon') && !wasEaten[3]) ? earthW : org;
@@ -260,6 +262,16 @@ function frame(now: number): void {
     ux = -sp*sy*P[0]+cp*A[0]+sp*cy*Q[0]; uy = -sp*sy*P[1]+cp*A[1]+sp*cy*Q[1]; uz = -sp*sy*P[2]+cp*A[2]+sp*cy*Q[2];
     dx = cp*sy*P[0]+sp*A[0]-cp*cy*Q[0]; dy = cp*sy*P[1]+sp*A[1]-cp*cy*Q[1]; dz = cp*sy*P[2]+sp*A[2]-cp*cy*Q[2];
     upV = A;
+  } else if(cam.follow && cam.followTarget === 'gcr'){
+    // The radio field's frame: the sky at Sagittarius A* with CELESTIAL north up, the way the
+    // map is printed (the plane then runs from upper left to lower right), and yaw 0 pitch 0
+    // looking along the line of sight from the Sun. The same three vectors as the spin
+    // frames: A is north, Q the line of sight away from the Sun, P completes the triad.
+    const [P, A, Q] = gcSkyFrame();
+    rx = cy*P[0]+sy*Q[0]; ry = cy*P[1]+sy*Q[1]; rz = cy*P[2]+sy*Q[2];
+    ux = -sp*sy*P[0]+cp*A[0]+sp*cy*Q[0]; uy = -sp*sy*P[1]+cp*A[1]+sp*cy*Q[1]; uz = -sp*sy*P[2]+cp*A[2]+sp*cy*Q[2];
+    dx = cp*sy*P[0]+sp*A[0]-cp*cy*Q[0]; dy = cp*sy*P[1]+sp*A[1]-cp*cy*Q[1]; dz = cp*sy*P[2]+sp*A[2]-cp*cy*Q[2];
+    upV = A;
   }
   cam.dirW[0] = dx; cam.dirW[1] = dy; cam.dirW[2] = dz;                     // read by the spin lock's switch
   const pv = 1.1547*cam.dist, pdx = -cam.panF[0]*pv*SKY_MIRROR, pdy = cam.panF[1]*pv;
@@ -298,7 +310,10 @@ function frame(now: number): void {
   gl.uniformMatrix4fv(U.ptView,false,viewMat);
   const and = updateAnd();
   const gl710 = g710();   // read by the Oort brightening before the star is drawn
-  const deep = REAL_MODE && cam.dist<1.0; // inside ~30 ly: keep the backdrop point-like
+  // inside ~30 ly, and anywhere in the bulge (within 4,500 ly of the Centre, where the
+  // model's points are so close that their sprites would wash the whole view), keep the
+  // backdrop point-like
+  const deep = REAL_MODE && (cam.dist<1.0 || distGC < 150);
   // Inside the disk the band's light — haze, HII regions, the core — all lies BEHIND
   // the local dust: that is the Great Rift. So from in here the whole backdrop goes
   // down first and the dust over it; from outside the arms' HII knots sit on top of
@@ -550,7 +565,7 @@ function frame(now: number): void {
     merge: and.merge, sep: and.sep, spinMW, spinM31, asm, bornYet, star: gl710,
     showP9: hud.showP9, showDwarfs: hud.showDwarfs, wasEaten,
     structOn: [hud.showBelt, hud.showKuiper, hud.showOort], armsOn: hud.armsOn,
-    gc: { on: gcRes.gcOn, view: viewGC, dist: distGC, stars: sstarRel, sgraPx: gcRes.sgraPx },
+    gc: { on: gcRes.gcOn, view: viewGC, dist: distGC, stars: sstarRel, sgraPx: gcRes.sgraPx, radioA: gcRes.radioA },
     bh1: { on: gcRes.bh1On, view: viewBH1, dist: distBH1, star: bh1StarRel, holePx: gcRes.bh1Px },
   });
 

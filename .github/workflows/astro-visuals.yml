@@ -17,6 +17,7 @@ on:
       - astro-visuals/tools/m31-wide-ir.jpg
       - astro-visuals/tools/m31-wide-uv.jpg
       - astro-visuals/tools/fetch_sstars.py
+      - astro-visuals/tools/fetch_gc_radio.py
       - .github/workflows/astro-visuals.yml
 permissions:
   contents: write
@@ -65,6 +66,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Check the Galactic Centre's radio objects against the catalogues
+        run: python astro-visuals/tools/fetch_gc_radio.py
       - name: Regenerate the S-star table from the catalogues
         run: python astro-visuals/tools/fetch_sstars.py
       - name: Commit the verified table, and rebuild the page from it
@@ -73,12 +76,12 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
-          git add astro-visuals/src/astro/gc-data.ts
+          git add astro-visuals/src/astro/gc-data.ts astro-visuals/src/astro/gc-radio-data.ts
           if git diff --cached --quiet; then
-            echo 'gc-data.ts already matches the catalogues; nothing to commit'
+            echo 'the Centre tables already match the catalogues; nothing to commit'
           else
-            git commit -m 'astro-visuals: regenerate gc-data.ts from VizieR' \
-              -m 'The S-star orbital elements from Gillessen et al. 2017 (J/ApJ/837/30) and Gaia BH1 from Gaia DR3 (I/355), fetched by tools/fetch_sstars.py.'
+            git commit -m 'astro-visuals: regenerate the Galactic Centre tables from VizieR' \
+              -m 'The S-star orbital elements from Gillessen et al. 2017 (J/ApJ/837/30) and Gaia BH1 from Gaia DR3 (I/355), fetched by tools/fetch_sstars.py; the radio objects checked against Green 2019 (VII/284) and LaRosa et al. 2000 (J/AJ/119/207) by tools/fetch_gc_radio.py.'
             git pull --rebase origin main
             git push origin main
             gh workflow run astro-visuals-page.yml --ref main

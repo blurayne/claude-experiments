@@ -189,6 +189,37 @@ dismissing the first-run tour **starts** the clock, so pausing has to come after
   as a ring; the arch of the far side shows from a grazing pitch. Shoot from the Sun (yaw 0,
   pitch 0), grazing (pitch −0.75) and above (pitch 0.9) — `gc-shots2.js` in the scratchpad.
 
+## The radio sky of the Centre (v3.14.0)
+
+- **Placed by designation, on the sky at R0.** `astro/gc-radio-data.ts` holds the named
+  objects of the LaRosa et al. 2000 VLA map: l and b from each G-name, sizes from Green's
+  catalogue (VII/284) or the paper the row cites. `RADIO_GEOM` in `astro/gc.ts` puts each on
+  the sphere of Sagittarius A*'s distance round the Sun, relative to Sgr A* (which is the
+  scene's origin), with its outline in the local sky plane, the long axis turned by `pa`
+  from galactic north toward +l. Depths are not modelled and the article says so. The
+  unit test pins the chain to Reid & Brunthaler's plane PA (31.4°) and to the sky's
+  handedness (Sgr B2 north-east of Sgr A*, the Pelican south-west, the Mouse south-east —
+  the plane runs NE–SW, so "a degree behind Sgr A* along the plane" is well south).
+- **Two rows are read off the picture, and flagged.** The Cane and the background galaxy
+  have no designation the table could quote; their `l, b` were measured against the
+  objects that have one (±0.1°) and carry `fromImage: true`. `tools/fetch_gc_radio.py`
+  replaces them when LaRosa's VizieR table names them in a note. Never quietly turn an
+  image-read row into a catalogue row by deleting the flag.
+- **One quad per object, in the Centre's frame.** `render/passes/gcradio` draws each with
+  `gcradio.vert` (corners from `gl_VertexID`, no buffer) and `gcradio.frag` (glow, shell,
+  filament, cometary, cluster, double, core, ridge), through the map's heat ramp, additive.
+  The noise inside each form is a model; positions, sizes and forms are the catalogue's. A
+  filament narrower than 1.5 px is widened and dimmed in proportion (`wa`, `wb`, `dim`).
+  The field fades in inside 900 units and out inside 3 (`radioFade`), so the S-star framing
+  never sees it and the bulge never shows it as a speck.
+- **The bulge washes out.** Within 150 units of the Centre the model's own points are so
+  near the eye that their sprites become the whole view (the first shots were white). The
+  `deep` flag — `cam.dist < 1` before — now also holds for `distGC < 150`, which keeps the
+  backdrop point-like there. The 'gcr' follow target shares the Centre's position with 'gc'
+  and its own camera frame (`gcSkyFrame`: celestial north up, the line of sight from the Sun
+  as Q) so the map's orientation is the default; the zoom buttons carry on inward to the
+  S-stars and the hole from it.
+
 ## The emblem and the icons
 
 - The emblem is **Galactic Transit** — the wordmark on `icon.svg`'s arc, the manifest's

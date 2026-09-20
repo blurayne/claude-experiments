@@ -87,6 +87,15 @@ export function applyFocusView(): void {
     cam.followTarget = 'gc';
     cam.follow = true; cam.coreLock = false; cam.distGoal = 1.4e-3; cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
     cam.yaw = 0; cam.pitch = 0;
+  } else if(v === 'gcr'){
+    // the radio sky of the Centre: the VLA map's four-degree field, celestial north up as it
+    // is printed, from 1,800 light years out — the same follow point as the S-stars, so the
+    // zoom buttons carry on inward from here to the orbits and the hole
+    if($('tDive').classList.contains('on')) $('tDive').click();
+    if(!$('tView').classList.contains('on')) $('tView').click();
+    cam.followTarget = 'gcr';
+    cam.follow = true; cam.coreLock = false; cam.distGoal = 48; cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
+    cam.yaw = 0; cam.pitch = 0;
   } else if(v === 'bh1'){
     // the nearest black hole, 1,575 light years out: the whole 186-day orbit in frame
     if($('tDive').classList.contains('on')) $('tDive').click();
@@ -266,6 +275,12 @@ export function jumpToEpoch(): void {
     // it — looking along the line of sight from Earth with north up, the way the orbits are
     // drawn in the papers. The view select carries the framing.
     $v('focusSel').value = 'gc'; applyFocusView();
+    if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
+  }
+  if(sel.value === '4.567999985r'){
+    // the Centre in radio, today: nothing here moves at any pace the piece can show, so the
+    // clock simply runs on; the view select carries the framing
+    $v('focusSel').value = 'gcr'; applyFocusView();
     if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
   }
   if(sel.value === '4.568b'){

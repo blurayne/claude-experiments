@@ -14,12 +14,31 @@ before the work starts. An item is ticked when it ships, with the version that c
       the Schwarzschild geometry (shadow, lensed disc, photon ring); Gaia BH1 with its
       Sun-like companion 1,575 ly out; two articles; the orbit table re-verified from
       VizieR by the data workflow, since the sandbox cannot reach the hosts — v3.13.0.
-- [ ] The Galactic Centre as the wide-field VLA 90-cm radio image shows it (LaRosa et al.
+- [x] The Galactic Centre as the wide-field VLA 90-cm radio image shows it (LaRosa et al.
       2000): the named objects — Sgr A, the Arc, Sgr B1/B2, Sgr C, Sgr D (HII and SNR),
       Sgr E, the supernova remnants G0.9+0.1, G0.3+0.0, G359.0−0.9, G359.1−0.5 and the
       Tornado, the Snake, the Mouse, the Pelican, the Cane, the threads — drawn at their
       positions in the ~240-light-year field, and a view that frames it that way. From
       catalogue positions and sizes, not the picture. After the black-hole release.
+      Twenty-three objects from their designations and Green's sizes in a sky-plane quad
+      shader through the map's heat ramp; the "Galactic Centre, radio" view with celestial
+      north up and a scenario; the runner checks the table against VizieR — v3.14.0.
+- [ ] The Local Group, all of it: every galaxy of the Local Group picture (the Andromeda
+      and Milky Way satellites, the field dwarfs — Wolf–Lundmark–Melotte, IC 1613, Leo A,
+      the Phoenix, Tucana, Aquarius, SagDIG and Cetus dwarfs …) at its measured distance and
+      direction, and the newly discovered dark ("black") galaxy; from a maintained catalogue
+      (the Local Volume Database / McConnachie 2012), fetched and verified on the runner.
+      With the labels switch on, the picture's presentation: the 3D box (the cylinder frame)
+      round the Group and each name with its distance in a small box beside it. A Local
+      Group view that frames the whole thing, and an article.
+- [ ] The second picture as well: the Virgo Supercluster — the Local Group, the Maffei,
+      Sculptor, M81, Canes and Leo groups, the Virgo, Fornax and Eridanus clusters — at
+      their measured places (Cosmicflows / Tully's groups), the same box-and-distances
+      presentation with the labels on, and a view for it.
+- [ ] Further out still: the cosmic web — the filaments and voids of the nearby Universe
+      from real redshift-survey data (2MRS / Cosmicflows), showing as the zoom keeps going
+      out past the supercluster. A pretty presentation, and honest about what is a
+      measured galaxy and what is a model of the density between them.
 - [ ] The view from the Sun toward the Galactic Centre should look like the Gaia all-sky
       picture: the band's glow toward the centre and the dark clouds across it — not by
       using the image, but from data, tuned until the glow matches the picture as closely
