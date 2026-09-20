@@ -14,6 +14,12 @@ before the work starts. An item is ticked when it ships, with the version that c
       the Schwarzschild geometry (shadow, lensed disc, photon ring); Gaia BH1 with its
       Sun-like companion 1,565 ly out; two articles; the orbit table re-verified from
       VizieR by the data workflow, since the sandbox cannot reach the hosts — v3.13.0.
+- [ ] The Galactic Centre as the wide-field VLA 90-cm radio image shows it (LaRosa et al.
+      2000): the named objects — Sgr A, the Arc, Sgr B1/B2, Sgr C, Sgr D (HII and SNR),
+      Sgr E, the supernova remnants G0.9+0.1, G0.3+0.0, G359.0−0.9, G359.1−0.5 and the
+      Tornado, the Snake, the Mouse, the Pelican, the Cane, the threads — drawn at their
+      positions in the ~240-light-year field, and a view that frames it that way. From
+      catalogue positions and sizes, not the picture. After the black-hole release.
 - [ ] The view from the Sun toward the Galactic Centre should look like the Gaia all-sky
       picture: the band's glow toward the centre and the dark clouds across it — not by
       using the image, but from data, tuned until the glow matches the picture as closely
