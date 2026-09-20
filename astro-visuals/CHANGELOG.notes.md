@@ -2,6 +2,10 @@
 
 Hand-written notes merged into `CHANGELOG.md` by `.github/scripts/build_changelog.py`: one `## <semver>` heading per version, Markdown body below it, inserted under that version's heading in the Galactic Transit section on the next regeneration. The generated changelog itself must never be edited by hand — it is overwritten wholesale.
 
+## 3.17.0
+
+**The merger's tails.** The tide has memory now: each passage launches a stretch of the outer disk along the axis the companion had at pericentre, rising over a third of a gigayear and persisting through apocentre, winding with the disk's rotation — Toomre & Toomre's tails and bridges, which the first cut lost by scaling the stretch with the separation of the moment. An integral-sign warp lifts the outer disk toward the companion at each pass. Both disks are prograde to the drawn orbit (checked in the right-handed frame the orientation test uses), so both carry tails; the orbit itself stays the Gaia-era one — the research comparing it with NASA's 2012 visualisation found the piece the more current of the two.
+
 ## 3.16.0
 
 **The Virgo Supercluster, and the web beyond.** The 8,826 galaxy groups of Kourkchi & Tully 2017 out to 3,500 km/s — Cosmicflows-3 distances where measured, Local-Sheet velocity over H0 = 74.6 where not, flagged and drawn bluer — and the 869 galaxies of the Updated Nearby Galaxy Catalog, placed through the supergalactic frame (derived from the pole and the zero point, tested against M87 and M81). Thirty groups and clusters named with their distances (sixteen position-checked against the nearby catalogue, the rest marked for the runner), the clusters with glows the size of their turnaround radii, Cloud-9 beside M94 as a dashed outline. Two views: "Virgo Supercluster" with the chart's cylinder on the supergalactic plane, and "The cosmic web", the whole measured volume from above; the zoom ceiling and ladder extended; an article on what is measured and what is velocity.

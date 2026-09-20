@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   M31_ORBIT, KPC2U, MERGE_A0, MERGE_A1, MERGE_T0, MERGE_T1,
-  orbitUV, sepScene, mergeAt, diskSpin,
+  orbitUV, sepScene, mergeAt, diskSpin, tideMemory, tideLaunch, passStrength, PERICENTRES,
 } from '../../src/astro/merger'
 import { AGE0, YR_PER_SIM, V_GAL } from '../../src/astro/constants'
 
@@ -177,5 +177,34 @@ describe('diskSpin — the v2.53.1 regression', () => {
     const settled = diskSpin(MERGE_T1)
     expect(diskSpin(MERGE_T1 * 2)).toBeCloseTo(settled, 6)
     expect(diskSpin(MERGE_T1 * 100)).toBeCloseTo(settled, 6)
+  })
+})
+
+describe('the tide\u2019s memory — tails launched at the passages, persisting past them', () => {
+  it('is nothing today and nothing until the first passage is near', () => {
+    expect(tideMemory(4.568).amp).toBe(0)
+    expect(tideMemory(8.5).amp).toBe(0)
+  })
+  it('rises through each pericentre and fades over a gigayear or so, rather than following the separation', () => {
+    expect(tideLaunch(9.07 - 0.3, 9.07)).toBe(0)
+    expect(tideLaunch(9.07 + 0.35, 9.07)).toBeCloseTo(1, 6)
+    expect(tideLaunch(9.07 + 1.75, 9.07)).toBeCloseTo(Math.exp(-1), 3)
+    // at the first apocentre (+10.35) the first passage's tails are still well developed
+    expect(tideMemory(10.35).amp).toBeGreaterThan(0.15)
+    // and the second, closer passage launches more than the first
+    expect(tideMemory(11.8).amp).toBeGreaterThan(tideMemory(9.42).amp)
+    expect(passStrength(41)).toBeGreaterThan(2*passStrength(95))
+  })
+  it('points along the companion\u2019s axis at pericentre, as a unit vector in the orbital plane', () => {
+    for (const a of [9.3, 10.0, 11.6, 12.4]) {
+      const m = tideMemory(a)
+      expect(Math.hypot(m.u, m.v)).toBeCloseTo(1, 9)
+    }
+    // just after the first passage the axis is that passage's: M31 at (18, 93) kpc
+    const m = tideMemory(9.3)
+    expect(Math.atan2(m.v, m.u)).toBeCloseTo(Math.atan2(93, 18), 1)
+    expect(PERICENTRES.length).toBe(3)
+    expect(tideMemory(9.3).since).toBeCloseTo(0.23, 6)
+    expect(tideMemory(8.0).since).toBe(0)
   })
 })

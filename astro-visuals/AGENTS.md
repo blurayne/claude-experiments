@@ -280,6 +280,27 @@ dismissing the first-run tour **starts** the clock, so pausing has to come after
   sit at VLS/H0; the article and the table say so, the points are bluer, and nothing in
   the piece calls that a measurement.
 
+## The tide's memory (v3.17.0)
+
+- **Tails are launched, not read off the separation.** `tideMemory(age)` in astro/merger.ts
+  sums, over `PERICENTRES` (9.07 / 11.45 / 12.3 Gyr; 95 / 41 / 13 kpc), a launch profile
+  (`tideLaunch`: smoothstep in over −0.2..+0.35 Gyr, exp decay over 1.4) weighted by
+  `passStrength(rp)`, and returns an amplitude, the in-plane axis to Andromeda at launch,
+  and the time since. `pt.vert` applies the stretch along that axis (`uTailDir`, negated
+  for Andromeda's draw), confined to the outer third (`smoothstep(380, 900, rL)·(rL/900)²`),
+  capped at 3,200 units, wound about the disk normal by `−uTailAge·0.9·√(900/rL)`; the
+  instantaneous quadrupole stays as the bridge of the moment. `uWarpT`/`uTideAz` bend the
+  disk toward the companion in its own frame before `uGRot` places it. Andromeda's draw
+  sets and restores all four uniforms.
+- **Prograde or retrograde is decided in the right-handed frame.** A raw cross product in
+  scene coordinates (left-handed) said both disks were retrograde; converted as
+  tests/unit/m31-orientation does, both are prograde (cos +0.91 M31, +0.82 MW), which is
+  why long tails on both are legitimate. Do not reason about spin sense with scene-frame
+  cross products.
+- **Judge it from above at the apocentre.** `merge-shots.js` in the scratchpad: ages 9.6,
+  10.3, 11.7, 12.2 from pitch 0.95 — the tails should be longest near 10.3 and 11.8, not at
+  the passages, and the inner disk should keep its spiral.
+
 ## The emblem and the icons
 
 - The emblem is **Galactic Transit** — the wordmark on `icon.svg`'s arc, the manifest's

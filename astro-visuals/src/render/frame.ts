@@ -6,7 +6,7 @@ import {
 import { BODIES, NB, N_PLANETS, I_P9, bodyPos, tmp, earthW } from '../astro/bodies'
 import { EAT_AGES, sunState, sunTint, pnState, type PnState } from '../astro/sun'
 import {
-  M31_DIR, M31_E2, M31_ROT, KPC2U, MERGE_T0, M31_RING, orbitUV, sepScene, mergeAt, diskSpin,
+  M31_DIR, M31_E2, M31_ROT, KPC2U, MERGE_T0, M31_RING, orbitUV, sepScene, mergeAt, diskSpin, tideMemory,
 } from '../astro/merger'
 import {
   EARTH_AXIS, MOON_BORN, MOON_DIA, moonPos, moonW, moonRel, earthEra,
@@ -76,6 +76,8 @@ export const setHolding = (h: boolean): void => { holding = h }
 export const org=new Float64Array(3); // rendering origin: the Sun, in double precision
 const sunSizeTmp=new Float32Array(1), eatSizeTmp=new Float32Array(1);
 const andPos = new Float32Array(3);
+/** the axis of the launched tails, from the Milky Way toward Andromeda at pericentre */
+const tailDir = new Float32Array(3);
 /** Gaia BH1 — the hole itself — Sun-relative in doubles, and the absolute position the camera follows */
 const bh1C = new Float64Array(3), bh1Abs = new Float64Array(3);
 /** the Local Group's box centre, absolute, for the camera to follow */
@@ -88,7 +90,11 @@ function updateAnd(){
   const s = sep/Math.max(kpc, 1e-6)/KPC2U;         // plane kpc -> scene, compression included
   for(let k=0;k<3;k++) andPos[k] = (u*M31_DIR[k] + v*M31_E2[k])*KPC2U*s;
   const tide = Math.min(1, Math.max(0, 1 - kpc/260));
-  return { sep, kpc, tide, merge: mergeAt(a) };
+  // the tide's memory: the tails the passages launched, and the axis they lie along
+  const mem = tideMemory(a);
+  const tl = Math.hypot(mem.u*M31_DIR[0] + mem.v*M31_E2[0], mem.u*M31_DIR[1] + mem.v*M31_E2[1], mem.u*M31_DIR[2] + mem.v*M31_E2[2]) || 1;
+  for(let k=0;k<3;k++) tailDir[k] = (mem.u*M31_DIR[k] + mem.v*M31_E2[k])/tl;
+  return { sep, kpc, tide, merge: mergeAt(a), tailAmp: mem.amp, tailAge: mem.since, warp: Math.min(1, 0.7*tide + 0.6*mem.amp) };
 }
 
 // to tell the clock running across an engulfment from a jump past it
@@ -368,6 +374,12 @@ function frame(now: number): void {
   gl.uniform1f(U.ptTime, simClock.shimT);
   gl.uniform3f(U.ptAnd, andPos[0], andPos[1], andPos[2]);
   gl.uniform1f(U.ptTide, and.tide);
+  // the Milky Way's tails and warp: toward Andromeda's launch axis, the companion's azimuth in our own frame
+  gl.uniform1f(U.ptTailAmp, and.tailAmp);
+  gl.uniform1f(U.ptTailAge, and.tailAge);
+  gl.uniform3f(U.ptTailDir, tailDir[0], tailDir[1], tailDir[2]);
+  gl.uniform1f(U.ptWarpT, and.warp);
+  gl.uniform1f(U.ptTideAz, Math.atan2(andPos[0], andPos[2]));
   gl.uniform1f(U.ptVM, hud.varOn?1.0:0.0);
   gl.uniform1f(U.ptCap, deep?26.0:110.0);
   gl.uniform1f(U.ptWarpAmp, 1.0);
@@ -432,8 +444,15 @@ function frame(now: number): void {
       gl.uniform1f(U.ptRingAmp, M31_RING.amp); gl.uniform1f(U.ptRingT, ringT);
       gl.uniform2f(U.ptRingC, M31_RING.cx, M31_RING.cz);
       gl.uniform1f(U.ptFade, lgFadeNow);
+      // her tails run the other way along the same axis; the companion's azimuth in her disk frame
+      gl.uniform3f(U.ptTailDir, -tailDir[0], -tailDir[1], -tailDir[2]);
+      { const lx = -(M31_ROT[0]*andPos[0] + M31_ROT[1]*andPos[1] + M31_ROT[2]*andPos[2]);
+        const lz = -(M31_ROT[6]*andPos[0] + M31_ROT[7]*andPos[1] + M31_ROT[8]*andPos[2]);
+        gl.uniform1f(U.ptTideAz, Math.atan2(lx, lz)); }
       gl.bindVertexArray(gfx.vaoAnd); gl.drawArrays(gl.POINTS,0,gfx.N_AND);
       gl.uniform1f(U.ptFade, 0.0);
+      gl.uniform3f(U.ptTailDir, tailDir[0], tailDir[1], tailDir[2]);
+      gl.uniform1f(U.ptTideAz, Math.atan2(andPos[0], andPos[2]));
       gl.uniformMatrix3fv(U.ptGRot, false, MAT3_ID);
       gl.uniform3f(U.ptGOff, 0, 0, 0);
       gl.uniform3f(U.ptSun, sunX, bubY, sunZ);

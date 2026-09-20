@@ -35,6 +35,8 @@ export const U = {
   ptCap: gl.getUniformLocation(pPt,'uCap'), ptWA: gl.getUniformLocation(pPt,'uWaveAll'),
   ptTime: gl.getUniformLocation(pPt,'uTime'), ptVM: gl.getUniformLocation(pPt,'uVarMode'),
   ptAnd: gl.getUniformLocation(pPt,'uAnd'), ptTide: gl.getUniformLocation(pPt,'uTide'),
+  ptTailAmp: gl.getUniformLocation(pPt,'uTailAmp'), ptTailDir: gl.getUniformLocation(pPt,'uTailDir'),
+  ptWarpT: gl.getUniformLocation(pPt,'uWarpT'), ptTideAz: gl.getUniformLocation(pPt,'uTideAz'), ptTailAge: gl.getUniformLocation(pPt,'uTailAge'),
   ptWarpAmp: gl.getUniformLocation(pPt,'uWarpAmp'), ptMinB: gl.getUniformLocation(pPt,'uMinB'),
   ptMinSz: gl.getUniformLocation(pPt,'uMinSz'), ptFade: gl.getUniformLocation(pPt,'uFadeOut'),
   ptGal: gl.getUniformLocation(pPt,'uGal'), ptGRot: gl.getUniformLocation(pPt,'uGRot'),

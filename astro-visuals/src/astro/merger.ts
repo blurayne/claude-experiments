@@ -118,3 +118,50 @@ export function diskSpin(ts: number): number {
   const w = MERGE_T1 - MERGE_T0, x = Math.min(ts, MERGE_T1) - MERGE_T0;
   return (MERGE_T0 + x - x*x/(2*w))*V_GAL;
 }
+
+// ---------------------------------------------------------------------------------------
+// The tide's memory (v3.17)
+//
+// A tidal tail is not a snapshot of the tide. Toomre & Toomre 1972: the features form in the
+// half-billion years AFTER a close passage — the far side of a prograde disk flung out into a
+// long counter-tail, the near side drawn into a bridge — and then persist and lengthen while
+// the pair coasts apart, so that the tails are fully developed near apocentre, when the
+// instantaneous tide is nothing (Cox & Loeb 2008 see the same in the N-body run of this
+// pair). The first cut of the piece scaled the stretch with the separation of the moment,
+// which made the tails vanish exactly when they should be longest. This is the memory: each
+// passage launches a stretch along the axis the companion had at pericentre, rising over
+// ~0.35 Gyr and decaying over ~1.4, its strength set by how close the passage was. Both
+// disks are prograde to the drawn orbit (the orientation test's right-handed frame — a raw
+// cross product in the left-handed scene frame says the opposite, and is wrong), so both
+// may carry long tails. The instantaneous quadrupole stays as the bridge of the moment.
+
+/** the passages, from the control points: age (Gyr) and pericentre distance (kpc) */
+export const PERICENTRES: readonly { age: number; rp: number }[] = [
+  { age: 9.07, rp: 95 }, { age: 11.45, rp: 41 }, { age: 12.3, rp: 13 },
+];
+const smooth = (a: number, b: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - a)/(b - a))); return t*t*(3 - 2*t); };
+/** one passage's contribution at age a: rises through pericentre, fades over a gigayear and a half */
+export function tideLaunch(a: number, age: number): number {
+  const dt = a - age;
+  return smooth(-0.2, 0.35, dt)*Math.exp(-Math.max(0, dt - 0.35)/1.4);
+}
+/** how strongly a passage at rp kpc stretches the disks: the 41-kpc pass about twice the 95 */
+export const passStrength = (rp: number): number => 1/(1 + (rp/70)*(rp/70));
+/**
+ * The memory at age a: an amplitude (0..~1) and the in-plane direction from the Milky Way to
+ * Andromeda at launch, weighted across the passages that have happened.
+ */
+export function tideMemory(a: number): { amp: number; u: number; v: number; since: number } {
+  let amp = 0, u = 0, v = 0, since = 0;
+  for(const pc of PERICENTRES){
+    const w = passStrength(pc.rp)*tideLaunch(a, pc.age);
+    if(w <= 0) continue;
+    const [pu, pv] = orbitUV(pc.age);
+    const l = Math.hypot(pu, pv) || 1;
+    amp += w; u += w*pu/l; v += w*pv/l; since += w*Math.max(0, a - pc.age);
+  }
+  const l = Math.hypot(u, v);
+  // `since`: the launch's age in Gyr, weighted across the passages — the tails have been
+  // winding with the disks' rotation for that long
+  return { amp: Math.min(1, amp), u: l > 0 ? u/l : 1, v: l > 0 ? v/l : 0, since: amp > 0 ? since/amp : 0 };
+}

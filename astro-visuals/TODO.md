@@ -38,10 +38,19 @@ before the work starts. An item is ticked when it ships, with the version that c
 - [x] Local Group labels: the smaller / less important galaxies in grey without the light
       years; or make the light years toggle-able in the settings. Both: M_V ≤ −11 carry the
       distance box, the rest are grey; a "distances" switch under labels — v3.15.0.
-- [ ] The Andromeda–Milky Way merger could look much better: compare with the simulation in
+- [x] The Andromeda–Milky Way merger could look much better: compare with the simulation in
       https://en.wikipedia.org/wiki/File:Andromeda_and_Milky_Way_collision.ogv (from the
       Local Group article) — or is that model outdated and the piece more accurate? Tidal
       tails, bridges, the passages. After the research on it comes back.
+      The video is NASA's 2012 visualisation of van der Marel et al. 2012 (near-radial
+      orbit, first pass at 31 kpc in 3.9 Gyr, merger at 5.9): the piece's Gaia-era track
+      (95-kpc first pass, Sawala 2025 / Wu 2026 odds) is the more current. What the video had
+      and the piece lacked was the LOOK: the tide now has memory — tails launched at each
+      passage along the axis the companion had then, rising over 0.35 Gyr, persisting ~1.4,
+      winding with the disks, confined to the outer third — and an integral-sign warp
+      toward the companion. Both disks are prograde to the drawn orbit, so both carry
+      tails (Toomre & Toomre 1972). Starburst, double-lobed core and the sky-from-Earth
+      frames stay open — v3.17.0.
 - [x] The second picture as well: the Virgo Supercluster — the Local Group, the Maffei,
       Sculptor, M81, Canes and Leo groups, the Virgo, Fornax and Eridanus clusters — at
       their measured places (Cosmicflows / Tully's groups), the same box-and-distances

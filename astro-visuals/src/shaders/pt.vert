@@ -16,6 +16,11 @@ uniform float uTime;    // wall-clock seconds for the variability animation
 uniform float uVarMode; // 0 off | 1 stars (a few % pulse, reddening at minimum) | 2 nebulae (all breathe)
 uniform vec3 uAnd;      // Andromeda's centre, galactic coordinates
 uniform float uTide;    // 0 far apart .. 1 at contact
+uniform float uTailAmp; // the tide's memory: tails launched at the passages, 0..1 (astro/merger tideMemory)
+uniform vec3  uTailDir; // the axis the companion had at launch, from this galaxy, world frame
+uniform float uWarpT;   // the tidal warp's amplitude, 0..1
+uniform float uTailAge; // gigayears since the tails were launched: they wind with the disk
+uniform float uTideAz;  // the companion's azimuth in this disk's own frame, for the warp
 uniform float uWarpAmp; // how strongly this draw takes the disk warp
 uniform float uMinB;    // brightness floor: lift the faintest stars to at least this
 uniform float uMinSz;   // sprite floor in pixels: how small a star is allowed to get
@@ -103,6 +108,13 @@ void main(){
   // tide, then, while the remnant relaxes, the slide into a single spheroid.
   if(uGal > 0.5){
     float rL = length(aPos.xz);      // radius in the galaxy's own disk, pre-transform
+    // The tidal warp, in the disk's own frame before it is placed: an integral-sign bend,
+    // up on the companion's side and down opposite, growing as the square of the radius —
+    // the outer disk lifts, the core does not (the "warped" Milky Way of the first passage).
+    if(uWarpT > 0.001){
+      float f = (rL/900.0)*(rL/900.0);
+      p.y += uWarpT*240.0*f*sin(atan(aPos.x, aPos.z) - uTideAz);
+    }
     p = uGRot*p + uGOff;
     // The tidal response, after Toomre & Toomre 1972: a tide does not PULL a disk toward
     // the companion, it STRETCHES it along the companion axis — the near side reaches into
@@ -122,6 +134,26 @@ void main(){
       vec3 disp = (dhat*s - (rel - dhat*s)*0.30) * k;
       float dl = max(length(disp), 1e-3);
       p += disp * (min(dl, 560.0)/dl);
+    }
+    // The memory: the stretch a passage launched, along the axis the companion had THEN,
+    // growing and persisting while the pair coasts apart (Toomre & Toomre 1972). Steeper in
+    // radius than the bridge of the moment, so the outer disk unwinds into a tail tens of
+    // kpc long while the inner disk keeps its shape; the far side's counter-tail and the
+    // near side's bridge are the two ends of the same stretch.
+    if(uTailAmp > 0.001){
+      vec3 rel = p - uGOff;
+      // the launched axis winds with the disk since the launch — faster inside, so the
+      // tail curls the way a trailing arm does rather than standing as a straight bar
+      vec3 nrm = uGRot*vec3(0.0, 1.0, 0.0);
+      float ph = -uTailAge*0.9*sqrt(900.0/max(rL, 120.0));
+      float cph = cos(ph), sph = sin(ph);
+      vec3 td = uTailDir*cph + cross(nrm, uTailDir)*sph + nrm*dot(nrm, uTailDir)*(1.0 - cph);
+      float s2 = dot(rel, td);
+      // the inner disk keeps its shape; the tails are the outer third, unwound
+      float f = smoothstep(380.0, 900.0, rL)*(rL/900.0)*(rL/900.0);
+      vec3 disp = (td*s2 - (rel - td*s2)*0.12) * (uTailAmp*f*4.5);
+      float dl = max(length(disp), 1e-3);
+      p += disp * (min(dl, 3200.0)/dl);
     }
     // Coalescence: violent relaxation scrambles both disks into one elliptical.
     // Each star slides to a stable pseudo-random spot on a de-Vaucouleurs-ish
