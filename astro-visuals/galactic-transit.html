@@ -92,7 +92,7 @@ function installErrorCollector(){
  * property of the machine that loaded the page. The parity harness pins TZ for that reason.
  */
 
-const BUILD = { version: '3.12.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '3.13.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -3138,9 +3138,9 @@ const RING_FS = "#version 300 es\nprecision mediump float; uniform vec3 uColor; 
  * With the program here, both halves are in `passes/belts` where they belong.
  */
 
-const RING_SEGS = 160;
-const ringCS = new Float32Array(RING_SEGS*2);
-for(let i=0;i<RING_SEGS;i++){ const a=i/RING_SEGS*6.28318530718; ringCS[i*2]=Math.cos(a); ringCS[i*2+1]=Math.sin(a); }
+const RING_SEGS$1 = 160;
+const ringCS = new Float32Array(RING_SEGS$1*2);
+for(let i=0;i<RING_SEGS$1;i++){ const a=i/RING_SEGS$1*6.28318530718; ringCS[i*2]=Math.cos(a); ringCS[i*2+1]=Math.sin(a); }
 
 const pRing = prog(RING_VS, RING_FS);
 const UR                                              = {}; for(const k of ['uProj','uView','uSun','uA','uB','uR','uColor']) UR[k]=gl.getUniformLocation(pRing,k);
@@ -3178,7 +3178,7 @@ function drawRings({ projMat, viewMat, centre, radius, colour, planes }         
   for(const [A,B] of planes){
     gl.uniform3f(UR.uA,A[0],A[1],A[2]);
     gl.uniform3f(UR.uB,B[0],B[1],B[2]);
-    gl.drawArrays(gl.LINE_LOOP,0,RING_SEGS);
+    gl.drawArrays(gl.LINE_LOOP,0,RING_SEGS$1);
   }
 }
 
@@ -3583,6 +3583,568 @@ function drawG710({ star, camDist }            )       {
 
 const SUN_VS = "#version 300 es\nuniform mat4 uProj,uView; uniform float uSz;\nvoid main(){ gl_Position=uProj*uView*vec4(0.,0.,0.,1.); gl_PointSize=uSz; }";
 
+const BH_FS = "#version 300 es\nprecision highp float;\n// A black hole, ray-marched. One billboard, and every fragment of it traces a light ray\n// backward from the eye through the Schwarzschild geometry: the rays that fall in paint the\n// shadow, the ones that bend round and strike the accretion disc paint the disc — including\n// the far side, lifted over and under the hole by the bending, and the thin photon ring\n// where rays have circled the hole before landing. Nothing about the shape is drawn; it all\n// falls out of the geodesic equation, and the shadow comes out 2.6 Schwarzschild radii wide\n// because that is where the photon capture cross-section is.\n//\n// Units: the Schwarzschild radius is 1. The null geodesic in these units, in a Cartesian\n// embedding, is d²x/dλ² = −(3/2)·h²·x/r⁵ with h the conserved |x × v| — the form every\n// real-time black-hole renderer integrates. Leapfrog steps, adaptive with the radius.\n//\n// The disc is a thin Shakura–Sunyaev sheet from the innermost stable orbit (3 r_s) out to\n// uDiscOut, temperature falling as r^(-3/4) and flux as r^(-3), Doppler-beamed by the\n// orbital speed sqrt(1/2r) and reddened by the gravitational redshift. It is a MODEL of an\n// accretion flow, drawn where a flow is known to exist; where none is (uDisc = 0) only the\n// shadow and a faint ring of lensed skylight are drawn.\nuniform float uSz;       // sprite width, pixels\nuniform float uRs;       // one Schwarzschild radius as a fraction of the sprite's half-width\nuniform float uMirror;   // the projection reflects x; the sprite does not\nuniform vec3  uDiscN;    // the disc's normal, in the sprite's own frame (x right, y up, z toward the eye)\nuniform float uDisc;     // 1: draw the accretion disc; 0: shadow and lensed sky only\nuniform float uDiscOut;  // the disc's outer edge, Schwarzschild radii\nuniform float uSpin;     // +1 / −1: which way the disc turns about its normal\nuniform float uTime;\nuniform float uFade;     // overall alpha\nout vec4 o;\n\nfloat h21(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }\nfloat vnoise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);\n  return mix(mix(h21(i),h21(i+vec2(1,0)),f.x), mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x), f.y); }\n\n// a thermal ramp: the hot inner rim runs white-blue, the cool rim deep orange-red\nvec3 thermal(float t){\n  t = clamp(t, 0.0, 1.0);\n  vec3 c = mix(vec3(0.50,0.10,0.02), vec3(1.0,0.50,0.14), smoothstep(0.0,0.35,t));\n  c = mix(c, vec3(1.0,0.84,0.58), smoothstep(0.3,0.7,t));\n  c = mix(c, vec3(0.90,0.94,1.0), smoothstep(0.65,1.0,t));\n  return c;\n}\n\n// The sheet's texture: streaks that shear round with the Keplerian flow. Built from the\n// in-plane coordinates turned by the local orbital angle, so it is periodic round the disc\n// by construction — an angle-based lookup would leave a seam where atan wraps.\nfloat sheet(vec3 xc, vec3 n, float rc, float t){\n  vec3 u = normalize(cross(n, abs(n.y) < 0.9 ? vec3(0,1,0) : vec3(1,0,0)));\n  vec3 w = cross(n, u);\n  float omega = 0.35*uSpin/pow(rc, 1.5);          // Keplerian: the inner sheet laps faster\n  float ph = omega*t;\n  float c = cos(ph), s = sin(ph);\n  vec2 q = vec2(dot(xc,u), dot(xc,w));\n  q = vec2(q.x*c - q.y*s, q.x*s + q.y*c);\n  // stretched along the azimuth: cells long round the ring, short across it\n  float ang = atan(q.y, q.x);\n  vec2 pc = vec2(rc*2.2, 0.0);\n  float a1 = 0.5 + 0.5*vnoise(vec2(rc*2.4 + 1.7*cos(ang) , 1.7*sin(ang) + rc*0.3));\n  float a2 = 0.5 + 0.5*vnoise(vec2(rc*4.8 + 3.1*cos(ang + 0.7), 3.1*sin(ang + 0.7)));\n  return 0.55 + 0.45*(0.65*a1 + 0.35*a2);\n}\n\nvoid main(){\n  vec2 qq = gl_PointCoord*2.0-1.0;\n  if(dot(qq,qq) > 1.0) discard;\n  // the sprite frame: x to the right on screen (the projection mirrors x), y up, z toward the eye\n  vec2 p2 = vec2(qq.x*uMirror, -qq.y)/uRs;         // in Schwarzschild radii\n  float Rmax = 1.0/uRs;                            // the sprite's half-width, r_s\n  // an orthographic ray: the hole is a speck at any distance the eye can reach; start it on\n  // the sprite's far bounding sphere and march it toward −z\n  float b2 = dot(p2,p2);\n  float z0 = sqrt(max(Rmax*Rmax - b2, 0.0)) + 0.5;\n  vec3 x = vec3(p2, z0);\n  vec3 v = vec3(0.0, 0.0, -1.0);\n  vec3 hv = cross(x, v);\n  float h2 = dot(hv, hv);\n  vec3 n = normalize(uDiscN);\n  float side = dot(x, n);\n  vec3 col = vec3(0.0); float a = 0.0; bool done = false;\n  float rmin = 1e9;                                // the closest the ray comes: the shadow's soft edge\n  float r = length(x);\n  for(int i=0;i<300;i++){\n    r = length(x);\n    rmin = min(rmin, r);\n    if(r < 1.0){ col = vec3(0.0); a = 1.0; done = true; break; }        // in\n    if(r > Rmax + 1.0 && dot(x,v) > 0.0){ break; }                        // out, and leaving\n    float dt = clamp(0.045*r, 0.035, 0.4);\n    // leapfrog: half kick, drift, half kick\n    vec3 acc = -1.5*h2*x/pow(r, 5.0);\n    v += acc*dt*0.5;\n    vec3 xprev = x;\n    x += v*dt;\n    float r2 = length(x);\n    acc = -1.5*h2*x/pow(r2, 5.0);\n    v += acc*dt*0.5;\n    v = normalize(v);\n    float s2 = dot(x, n);\n    if(uDisc > 0.5 && side*s2 < 0.0){\n      // crossed the disc's plane between the two points: where, and is it on the sheet\n      float f = side/(side - s2);\n      vec3 xc = mix(xprev, x, f);\n      float rc = length(xc);\n      if(rc >= 3.0 && rc <= uDiscOut){\n        // orbital velocity of the gas, in c: sqrt(r_s/2r); its direction round the normal\n        vec3 tang = normalize(cross(n, xc))*uSpin;\n        float vk = sqrt(0.5/rc);\n        // the photon is marching AWAY from the eye, so the direction to the eye is −v\n        float cosang = dot(tang, -v);\n        float gam = 1.0/sqrt(max(1.0 - vk*vk, 1e-4));\n        float dop = 1.0/(gam*(1.0 - vk*cosang));       // Doppler factor\n        float gz = sqrt(max(1.0 - 1.0/rc, 0.0));        // gravitational redshift\n        float g = dop*gz;\n        float temp = pow(3.0/rc, 0.75);                 // T ∝ r^(-3/4), 1 at the ISCO\n        float flux = pow(3.0/rc, 1.7);                  // the thin sheet's emission falls off outward\n        float tex = sheet(xc, n, rc, uTime);\n        float edge = smoothstep(3.0, 3.25, rc)*(1.0 - smoothstep(uDiscOut*0.8, uDiscOut, rc));\n        float bright = pow(g, 3.0)*flux*tex*edge;\n        col = thermal(clamp(temp*g*0.8, 0.0, 1.0))*bright*2.4;\n        a = clamp(bright*2.2, 0.0, 1.0);\n        done = true; break;\n      }\n    }\n    side = s2;\n  }\n  // A ray that has spent every step circling the photon sphere without leaving is part of the\n  // shadow's rim — its impact parameter sits within a hair of the critical one — and one\n  // that grazed the sphere and escaped is blended toward the shadow by how close it came,\n  // which softens the rim against the pixel grid.\n  if(!done && r < 3.0){ col = vec3(0.0); a = 1.0; done = true; }\n  if(!done && rmin < 1.12){ float k = smoothstep(1.12, 1.0, rmin); col *= 1.0 - k; a = max(a, k); }\n  if(!done && uDisc < 0.5){\n    // no flow to light it: what a real one shows against the sky is the sky itself, bent\n    // into a ring at the photon sphere — hinted at, faintly, as a mean skylight\n    float b = sqrt(b2);\n    float ring = exp(-pow((b - 2.6)/0.3, 2.0))*0.4 + exp(-pow((b - 3.6)/1.8, 2.0))*0.05;\n    col = vec3(0.55,0.62,0.75)*ring; a = ring*0.9;\n  }\n  o = vec4(col*uFade, a*uFade);\n}\n";
+
+/**
+ * The measured orbits round Sagittarius A*, and the black hole's own numbers.
+ *
+ * Every row is a published Keplerian solution: semi-major axis in milliarcseconds, the
+ * eccentricity, then the three angles in degrees (inclination, longitude of the ascending
+ * node, argument of pericentre), the epoch of pericentre and the period in years. S2's is the
+ * GRAVITY Collaboration's interferometric solution (2020, A&A 636, L5 — the Schwarzschild
+ * precession paper); the rest are Gillessen et al. 2017 (ApJ 837, 30, Table 3), the
+ * twenty-five-year VLT/Keck monitoring. Two famous claims are deliberately absent: S62 and
+ * S4714, whose sub-ten-year orbits (Peißker et al.) the GRAVITY imaging did not reproduce.
+ *
+ * `tools/fetch_sstars.py` regenerates this file from VizieR's copy of the 2017 table
+ * (J/ApJ/837/30) on GitHub's runner, where the astronomy hosts are reachable; the sandbox
+ * that wrote the first version could not reach them, so these are the papers' values as
+ * transcribed, and the runner is what checks them. Edit the tool, not this file.
+ */
+
+                        
+              
+                                         
+              
+           
+                                                     
+           
+                                                               
+            
+                                        
+           
+                                          
+            
+                      
+           
+ 
+
+/** shortest period first, so the stars a visitor will actually see move come first */
+const SSTARS                   = [
+  { name: 'S55', aMas: 107.8,   e: 0.7209,   i: 150.1,   om: 325.5,   w: 331.5,  t0: 2009.34,   P: 12.80  },
+  { name: 'S2',  aMas: 125.058, e: 0.884649, i: 134.567, om: 228.171, w: 66.263, t0: 2018.379,  P: 16.0455 },
+  { name: 'S38', aMas: 141.6,   e: 0.8201,   i: 171.1,   om: 101.06,  w: 17.99,  t0: 2003.30,   P: 19.2   },
+  { name: 'S21', aMas: 219.0,   e: 0.764,    i: 58.8,    om: 259.64,  w: 166.4,  t0: 2027.40,   P: 37.0   },
+  { name: 'S13', aMas: 264.1,   e: 0.4250,   i: 24.70,   om: 74.5,    w: 245.2,  t0: 2004.86,   P: 49.0   },
+  { name: 'S9',  aMas: 272.4,   e: 0.644,    i: 82.5,    om: 156.3,   w: 150.6,  t0: 1976.71,   P: 51.3   },
+  { name: 'S14', aMas: 286.3,   e: 0.9761,   i: 100.59,  om: 226.38,  w: 334.59, t0: 2000.12,   P: 55.3   },
+  { name: 'S12', aMas: 298.7,   e: 0.8883,   i: 33.56,   om: 230.1,   w: 317.9,  t0: 1995.59,   P: 58.9   },
+  { name: 'S17', aMas: 355.9,   e: 0.397,    i: 96.83,   om: 191.62,  w: 326.0,  t0: 1991.19,   P: 76.6   },
+  { name: 'S8',  aMas: 404.7,   e: 0.8031,   i: 74.37,   om: 315.43,  w: 346.70, t0: 1983.64,   P: 92.9   },
+  { name: 'S31', aMas: 449.0,   e: 0.5497,   i: 109.0,   om: 137.16,  w: 308.0,  t0: 2018.07,   P: 108    },
+  { name: 'S1',  aMas: 595.0,   e: 0.5560,   i: 119.14,  om: 342.04,  w: 122.30, t0: 2001.80,   P: 166    },
+  { name: 'S24', aMas: 944.0,   e: 0.8970,   i: 103.67,  om: 7.93,    w: 290.0,  t0: 2024.50,   P: 331    },
+  { name: 'S54', aMas: 1200.0,  e: 0.893,    i: 135.8,   om: 288.35,  w: 140.8,  t0: 2004.46,   P: 477    },
+];
+
+/**
+ * Sagittarius A* itself. Mass and distance from the GRAVITY Collaboration's 2022 multi-star
+ * fit (A&A 657, L12); the J2000 position is the radio source's; the shadow's size is what the
+ * Event Horizon Telescope measured in 2022 (ApJL 930, L12: a ring 51.8 ± 2.3 μas across).
+ */
+const SGRA_MASS_MSUN = 4.297e6;
+const SGRA_R0_PC = 8277;
+const SGRA_RA = 266.41683;      // 17h 45m 40.04s
+const SGRA_DEC = -29.00781;     // −29° 00′ 28.1″
+
+/**
+ * Gaia BH1: the nearest black hole known, from El-Badry et al. 2023 (MNRAS 518, 1057). A
+ * Sun-like star on a 186-day orbit round an unseen 9.6-solar-mass companion, 480 parsecs away
+ * toward Ophiuchus. The position is the companion star's, Gaia DR3 4373465352415301632 — the
+ * source id itself encodes the sky pixel, and the coordinates were checked against it.
+ * The periastron epoch is the fit's, to the day or so; at any rate the piece can show, a day
+ * of phase is nothing.
+ */
+const BH1 = {
+  ra: 262.17121,       // 17h 28m 41.10s
+  dec: -0.58111,       // −0° 34′ 52″
+  distPc: 480,
+  massBH: 9.62,        // solar masses
+  massStar: 0.93,
+  starTeffK: 5850,
+  aAU: 1.40,           // the relative orbit's semi-major axis
+  e: 0.451,
+  i: 126.6,
+  om: 97.8,
+  w: 12.8,
+  Pdays: 185.59,
+  t0: 2016.04,         // JD 2457403.6, roughly
+};
+
+/**
+ * The Galactic Centre, and the nearest black hole: where the S-stars are round Sagittarius A*
+ * and where Gaia BH1's star is round its dark companion, as pure functions of the clock.
+ *
+ * Both are Keplerian orbits published in the observer's frame — the plane of the sky and
+ * the line of sight from Earth — so the first job is to say what that frame is in scene
+ * coordinates. `skyBasis` derives it rather than quoting it: the tangent directions of
+ * celestial north and east at a given RA/Dec, turned into galactic coordinates by the same
+ * J2000 matrix `tools/build_athyg_stars.py` places the real stars with, and then into the
+ * scene's own left-handed frame (l=90° on +x, north on +y, the Centre on −z). Every sky
+ * direction in the piece goes through that one mapping, which is what keeps a drawn orbit
+ * consistent with the drawn sky it sits in.
+ *
+ * The depth convention is pinned to a measurement. Astrometry alone cannot tell an orbit from
+ * its mirror image about the sky plane; the radial velocity can. With z counted AWAY from the
+ * observer as `r·sin(ω+ν)·sin i`, S2 recedes at up to +4,000 km/s in the months before its
+ * 2018 pericentre and approaches at −1,900 afterwards, which is the curve GRAVITY measured
+ * (2018, A&A 615, L15, Fig. 2) — the unit test holds it there.
+ *
+ * Nothing here relativistic: the Schwarzschild precession of S2 (12′ per orbit, GRAVITY 2020)
+ * is a fraction of a degree per lap and is left out and disclosed, not faked.
+ */
+
+/** decimal year on the piece's clock: simT counts Earth years from 2026.0 */
+const yearOf = (simT        )         => 2026 + simT;
+
+// equatorial (J2000) -> galactic, the rotation the star builders use
+const EQ2GAL = [
+  [-0.0548755604, -0.8734370902, -0.4838350155],
+  [ 0.4941094279, -0.44482963,  0.7469822445],
+  [-0.867666149, -0.1980763734,  0.4559837762],
+];        
+
+/** galactic (x toward the Centre, y toward l=90°, z north) -> scene (l=90° on +x, north +y, Centre −z) */
+const galToScene = (g                   )       => [g[1], g[2], -g[0]]
+
+;                          
+                                                                       
+         
+               
+         
+                                                               
+         
+ 
+
+/** The observer's frame at a sky position, in scene coordinates. */
+function skyBasis(raDeg        , decDeg        )           {
+  const a = raDeg*Math.PI/180, d = decDeg*Math.PI/180;
+  const sa = Math.sin(a), ca = Math.cos(a), sd = Math.sin(d), cd = Math.cos(d);
+  const eq = {
+    Z: [cd*ca, cd*sa, sd],
+    N: [-sd*ca, -sd*sa, cd],
+    E: [-sa, ca, 0],
+  };
+  const toScene = (v                   )       =>
+    galToScene(EQ2GAL.map(row => row[0]*v[0] + row[1]*v[1] + row[2]*v[2]));
+  return { N: toScene(eq.N), E: toScene(eq.E), Z: toScene(eq.Z) }
+}
+
+/** Kepler's equation, solved by Newton's method from a starting point that also holds at e ≈ 0.98. */
+function eccentricAnomaly(M        , e        )         {
+  let m = M % (2*Math.PI); if(m > Math.PI) m -= 2*Math.PI; if(m < -Math.PI) m += 2*Math.PI;
+  let E = e > 0.8 ? (m < 0 ? -Math.PI : Math.PI) : m + e*Math.sin(m);
+  for(let k=0;k<50;k++){
+    const f = E - e*Math.sin(E) - m, fp = 1 - e*Math.cos(E);
+    const dE = f/fp; E -= dE;
+    if(Math.abs(dE) < 1e-13) break
+  }
+  return E
+}
+const orbitFrame = (i        , om        , w        , basis          )             => ({
+  cO: Math.cos(om*Math.PI/180), sO: Math.sin(om*Math.PI/180),
+  ci: Math.cos(i*Math.PI/180), si: Math.sin(i*Math.PI/180), w: w*Math.PI/180, basis,
+});
+
+/**
+ * The relative position at eccentric anomaly E, in scene units, for an orbit of semi-major
+ * axis `aU` (scene units) placed in the given frame. Sky frame first — north, east, and depth
+ * away from the observer — then into the scene through the basis.
+ */
+function orbitPoint(aU        , e        , E        , f            , out              )               {
+  const r = aU*(1 - e*Math.cos(E));
+  const nu = 2*Math.atan2(Math.sqrt(1+e)*Math.sin(E/2), Math.sqrt(1-e)*Math.cos(E/2));
+  const u = f.w + nu, cu = Math.cos(u), su = Math.sin(u);
+  const xN = r*(f.cO*cu - f.sO*su*f.ci);
+  const yE = r*(f.sO*cu + f.cO*su*f.ci);
+  const zA = r*su*f.si;
+  const { N, E: Ev, Z } = f.basis;
+  out[0] = xN*N[0] + yE*Ev[0] + zA*Z[0];
+  out[1] = xN*N[1] + yE*Ev[1] + zA*Z[1];
+  out[2] = xN*N[2] + yE*Ev[2] + zA*Z[2];
+  return out
+}
+
+// ---------------------------------------------------------------------------------------
+// Sagittarius A*
+
+/** the Schwarzschild radius of one solar mass, km: 2GM☉/c² */
+const RS_SUN_KM = 2.9532;
+const AU_KM = 1.495978707e8;
+/** an arcsecond at one parsec is an astronomical unit: mas at R0 → AU */
+const masToAU = (mas        )         => mas/1000*SGRA_R0_PC;
+
+const SGRA = {
+  rsU: RS_SUN_KM*SGRA_MASS_MSUN/AU_KM*AU2U,
+  /** the shadow's radius in Schwarzschild radii: 3√3/2, the photon capture radius */
+  shadowRs: 3*Math.sqrt(3)/2,
+  /** the modelled accretion flow's inclination to the line of sight, degrees: inside the EHT's
+   *  bound of 50°, and tilted enough for the bending of the far side to show — see the docs */
+  discIncDeg: 45,
+  basis: skyBasis(SGRA_RA, SGRA_DEC),
+};
+
+const sFrames = SSTARS.map(s => orbitFrame(s.i, s.om, s.w, SGRA.basis));
+const sAU = SSTARS.map(s => masToAU(s.aMas));
+
+/** the star's semi-major axis in AU and scene units */
+const sstarA = (k        )                            => ({ au: sAU[k], u: sAU[k]*AU2U });
+
+/** Where S-star `k` is at decimal year `year`, relative to Sagittarius A*, scene units. */
+function sstarPos(k        , year        , out              )               {
+  const s = SSTARS[k];
+  const E = eccentricAnomaly(2*Math.PI*(year - s.t0)/s.P, s.e);
+  return orbitPoint(sAU[k]*AU2U, s.e, E, sFrames[k], out)
+}
+
+/** A point on S-star `k`'s orbit at eccentric anomaly E — uniform in E puts the samples where the curve bends. */
+function sstarOrbitPoint(k        , E        , out              )               {
+  return orbitPoint(sAU[k]*AU2U, SSTARS[k].e, E, sFrames[k], out)
+}
+
+// ---------------------------------------------------------------------------------------
+// Gaia BH1
+
+const LY_PER_PC = 3.26156;
+const BH1_INFO = {
+  ...BH1,
+  rsU: RS_SUN_KM*BH1.massBH/AU_KM*AU2U,
+  Pyr: BH1.Pdays/365.25,
+  basis: skyBasis(BH1.ra, BH1.dec),
+};
+const bh1Frame = orbitFrame(BH1.i, BH1.om, BH1.w, BH1_INFO.basis);
+
+/**
+ * The black hole itself relative to the Sun at scene time `simT`, scene units, in doubles: the
+ * system's barycentre 480 pc along the line of sight, less the hole's own small swing about
+ * it. The local sky rides the Sun's orbital frame, so the vector turns with the Sun's phase
+ * exactly as the Gaia bubble does in the shader. The hole is the frame everything of the
+ * system is drawn in — its star's orbit round it IS the relative orbit — because the view
+ * that shows the hole's 146-km shadow is thirty thousand frames wide of the barycentre.
+ */
+function bh1Centre(simT        , out              )               {
+  const d = BH1.distPc*LY_PER_PC/30;
+  const Z = BH1_INFO.basis.Z;
+  bh1Relative(yearOf(simT), tmpRel);
+  const f = -0.08815165876777252;
+  const x = Z[0]*d + tmpRel[0]*f, y = Z[1]*d + tmpRel[1]*f, z = Z[2]*d + tmpRel[2]*f;
+  const th = simT*V_GAL/R_GAL, c = Math.cos(th), s = Math.sin(th);
+  out[0] = x*c + z*s; out[1] = y; out[2] = z*c - x*s;
+  return out
+}
+const tmpRel = new Float64Array(3);
+
+/** Star minus black hole, scene units, at decimal year `year`. */
+function bh1Relative(year        , out              )               {
+  const E = eccentricAnomaly(2*Math.PI*(year - BH1.t0)/BH1_INFO.Pyr, BH1.e);
+  return orbitPoint(BH1.aAU*AU2U, BH1.e, E, bh1Frame, out)
+}
+
+/** A point on the relative orbit at eccentric anomaly E. */
+function bh1OrbitPoint(E        , out              )               {
+  return orbitPoint(BH1.aAU*AU2U, BH1.e, E, bh1Frame, out)
+}
+
+/**
+ * The Galactic Centre, and the nearest black hole.
+ *
+ * Both are drawn in their OWN frames. Everything else in the piece is Sun-relative, and the
+ * Sun is 900 units from the Centre: a float32 there is good to about a hundred AU, which is
+ * the whole pericentre of S2. So the frame hands this pass a view matrix built (in doubles)
+ * with the eye relative to Sagittarius A* — and another relative to Gaia BH1's barycentre —
+ * and every position uploaded here is relative to that same point. Small numbers, exact.
+ *
+ * What is drawn: the fourteen S-stars as points on their published ellipses, the hole as a
+ * findable dot from afar and as the ray-marched shadow-and-disc once its true size is more
+ * than a few pixels; and Gaia BH1's star round its dark companion the same way, both bodies
+ * swinging about their common centre by their masses.
+ */
+
+const N_S = SSTARS.length;
+const RING_SEGS = 240;
+
+// ---------- the S-stars' orbits, as static line loops ----------
+const orbitVAO = gl.createVertexArray(); 
+{
+  const pts = new Float32Array((N_S + 1)*RING_SEGS*3);   // the S-stars, then BH1's star
+  const tmp = new Float64Array(3);
+  let o = 0;
+  for(let k=0;k<N_S;k++) for(let j=0;j<RING_SEGS;j++){
+    sstarOrbitPoint(k, j/RING_SEGS*2*Math.PI, tmp);
+    pts[o++] = tmp[0]; pts[o++] = tmp[1]; pts[o++] = tmp[2];
+  }
+  for(let j=0;j<RING_SEGS;j++){        // the star's orbit round the hole: the relative orbit itself
+    bh1OrbitPoint(j/RING_SEGS*2*Math.PI, tmp);
+    pts[o++] = tmp[0]; pts[o++] = tmp[1]; pts[o++] = tmp[2];
+  }
+  gl.bindVertexArray(orbitVAO);
+  const b = gl.createBuffer() ; gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, pts, gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+  gl.bindVertexArray(null);
+  trackVAOBuffers(orbitVAO, [b]);
+}
+const I_BH1_STAR = N_S;
+
+// ---------- the moving points ----------
+const starsGL = dynVAO(N_S + 3);
+const sPos = new Float32Array((N_S + 3)*3), sSize = new Float32Array(N_S + 3), sCol = new Float32Array((N_S + 3)*3), sW = new Float32Array(N_S + 3);
+/** the S-stars' positions this frame, relative to Sgr A* — the labels read them */
+const sstarRel = new Float32Array(N_S*3);
+/** Gaia BH1's star this frame, relative to the hole */
+const bh1StarRel = new Float32Array(3);
+const tmpD = new Float64Array(3);
+const ORIGIN = new Float32Array(3);
+
+// ---------- the S-stars' swept tails ----------
+// A short ring of recent positions behind each star, faded toward its head, so the swing
+// through pericentre reads as the speed it is. Each tail spans an eighth of its own star's
+// period, resampled per frame as the clock advances; a jump or a change of direction
+// refills it from the current position, exactly as the planets' trails do.
+const TAIL_N = 96;
+const tailPos = new Float32Array(N_S*TAIL_N*3);
+const tailAt = new Float64Array(N_S);          // the year of each star's newest sample
+let tailYear = NaN;                            // the year the tails were last advanced to
+const tailGL = (()=>{ const v=gl.createVertexArray() ; gl.bindVertexArray(v);
+  const b=gl.createBuffer() ; gl.bindBuffer(gl.ARRAY_BUFFER,b); gl.bufferData(gl.ARRAY_BUFFER, tailPos.byteLength, gl.DYNAMIC_DRAW);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
+  gl.bindVertexArray(null); trackVAOBuffers(v, [b]); return { vao: v, buf: b }; })();
+function refillTails(year        )       {
+  for(let k=0;k<N_S;k++){
+    const o = k*TAIL_N*3;
+    for(let j=0;j<TAIL_N;j++){ tailPos[o+j*3] = sstarRel[k*3]; tailPos[o+j*3+1] = sstarRel[k*3+1]; tailPos[o+j*3+2] = sstarRel[k*3+2]; }
+    tailAt[k] = year;
+  }
+  tailYear = year;
+}
+function advanceTails(year        )       {
+  // a leap of more than a decade, or the clock running the other way, is a new tail
+  if(!(Math.abs(year - tailYear) < 10) || (year - tailYear)*(tailYear - tailAt[0]) < 0 && Math.abs(year - tailYear) > 1e-6){ refillTails(year); return }
+  const dir = year >= tailYear ? 1 : -1;
+  for(let k=0;k<N_S;k++){
+    // sampled by the clock, not by the frame: a tail is an eighth of the orbit whatever the
+    // frame rate, so a slow machine fills in the samples a fast one drew one per frame
+    const step = SSTARS[k].P/8/TAIL_N;
+    let pushed = 0;
+    while(Math.abs(year - tailAt[k]) >= step && pushed < 400){
+      tailAt[k] += dir*step;
+      sstarPos(k, tailAt[k], tmpD);
+      const o = k*TAIL_N*3;
+      tailPos.copyWithin(o, o + 3, o + TAIL_N*3);                  // drop the oldest, the head is last
+      tailPos[o+(TAIL_N-1)*3] = tmpD[0]; tailPos[o+(TAIL_N-1)*3+1] = tmpD[1]; tailPos[o+(TAIL_N-1)*3+2] = tmpD[2];
+      pushed++;
+    }
+    if(pushed >= 400) tailAt[k] = year;                             // a leap too far to fill: catch up
+  }
+  tailYear = year;
+}
+function drawTails(proj              , view              , alpha        )       {
+  gl.useProgram(pTr);
+  gl.uniformMatrix4fv(U.trProj, false, proj);
+  gl.uniformMatrix4fv(U.trView, false, view);
+  gl.uniform3f(U.trOrg, 0, 0, 0);
+  gl.uniform1f(U.trLen, TAIL_N); gl.uniform1f(U.trFlat, 0.0);
+  gl.uniform3f(U.trCol, 0.55, 0.72, 1.0);
+  gl.uniform1f(U.trA, alpha);
+  gl.bindBuffer(gl.ARRAY_BUFFER, tailGL.buf); gl.bufferSubData(gl.ARRAY_BUFFER, 0, tailPos);
+  gl.bindVertexArray(tailGL.vao);
+  for(let k=0;k<N_S;k++) gl.drawArrays(gl.LINE_STRIP, k*TAIL_N, TAIL_N);
+}
+
+// ---------- the hole itself ----------
+const pBH = prog(SUN_VS, BH_FS);
+const UB = {
+  proj: gl.getUniformLocation(pBH,'uProj'), view: gl.getUniformLocation(pBH,'uView'),
+  sz: gl.getUniformLocation(pBH,'uSz'), rs: gl.getUniformLocation(pBH,'uRs'), mirror: gl.getUniformLocation(pBH,'uMirror'),
+  discN: gl.getUniformLocation(pBH,'uDiscN'), disc: gl.getUniformLocation(pBH,'uDisc'), discOut: gl.getUniformLocation(pBH,'uDiscOut'),
+  spin: gl.getUniformLocation(pBH,'uSpin'), time: gl.getUniformLocation(pBH,'uTime'), fade: gl.getUniformLocation(pBH,'uFade'),
+};
+const vaoOne = (()=>{ const v=gl.createVertexArray() ; gl.bindVertexArray(v);
+  const b=gl.createBuffer() ; gl.bindBuffer(gl.ARRAY_BUFFER,b);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(3),gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
+  gl.bindVertexArray(null); return v; })();
+
+/** the sprite reaches this many Schwarzschild radii from the hole: the disc, and room round it */
+const SPRITE_RS = 15;
+/** the modelled flow round Sgr A* runs out to here, in Schwarzschild radii */
+const SGRA_DISC_OUT = 12;
+
+/** Sgr A*'s modelled disc normal in scene coordinates: tilted `discIncDeg` from the line of sight toward the sky's north */
+const SGRA_DISC_N       = (()=>{
+  const { N, Z } = SGRA.basis, c = Math.cos(SGRA.discIncDeg*Math.PI/180), s = Math.sin(SGRA.discIncDeg*Math.PI/180);
+  return [-Z[0]*c + N[0]*s, -Z[1]*c + N[1]*s, -Z[2]*c + N[2]*s]
+})()
+
+;                          
+                                                                                 
+               
+                
+                                                                                      
+                
+               
+ 
+
+/**
+ * A reticle: a thin screen-facing circle round a point, on the ring program. The overdriven
+ * sprite alone was not enough to tell an S-star from the nuclear cluster's crowd — a point
+ * is a point — so each is circled, the way a finder chart marks the star it means.
+ */
+function drawReticles(proj              , view              , pts              , n        , px        , dist        , pxScale        , colour                   )       {
+  const right = [view[0], view[4], view[8]], up = [view[1], view[5], view[9]];
+  const r = px*dist/pxScale;
+  for(let k=0;k<n;k++) drawRings({ projMat: proj, viewMat: view, centre: [pts[k*3], pts[k*3+1], pts[k*3+2]], radius: r, colour, planes: [[right, up]] });
+}
+
+/** a fixed size on screen, expressed as the world size the point shader wants at this distance */
+const pxWorld = (px        , dist        , pxScale        )         => px*dist/pxScale;
+
+/** the ray-marched hole, as a billboard on its own point */
+function drawHole(proj              , view              , spritePx        , rsPx        , discN             , shimT        , mirror        , fade        )       {
+  gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+  gl.useProgram(pBH);
+  gl.uniformMatrix4fv(UB.proj, false, proj);
+  gl.uniformMatrix4fv(UB.view, false, view);
+  gl.uniform1f(UB.sz, spritePx);
+  gl.uniform1f(UB.rs, rsPx/(spritePx*0.5));
+  gl.uniform1f(UB.mirror, mirror);
+  if(discN){
+    // the normal in the sprite's frame: the view's rotation, then the screen's x reflection
+    const nx = view[0]*discN[0] + view[4]*discN[1] + view[8]*discN[2];
+    const ny = view[1]*discN[0] + view[5]*discN[1] + view[9]*discN[2];
+    const nz = view[2]*discN[0] + view[6]*discN[1] + view[10]*discN[2];
+    gl.uniform3f(UB.discN, nx*mirror, ny, nz);
+    gl.uniform1f(UB.disc, 1.0);
+  } else {
+    gl.uniform3f(UB.discN, 0, 0, 1);
+    gl.uniform1f(UB.disc, 0.0);
+  }
+  gl.uniform1f(UB.discOut, SGRA_DISC_OUT);
+  gl.uniform1f(UB.spin, 1.0);
+  gl.uniform1f(UB.time, shimT);
+  gl.uniform1f(UB.fade, fade);
+  gl.bindVertexArray(vaoOne); gl.drawArrays(gl.POINTS, 0, 1);
+  gl.blendFunc(gl.ONE, gl.ONE);
+}
+
+function drawOrbits(proj              , view              , first        , count        , alpha        , colour                   )       {
+  gl.useProgram(pTr);
+  gl.uniformMatrix4fv(U.trProj, false, proj);
+  gl.uniformMatrix4fv(U.trView, false, view);
+  gl.uniform3f(U.trOrg, 0, 0, 0);
+  gl.uniform1f(U.trLen, 1e9); gl.uniform1f(U.trFlat, 1.0);
+  gl.uniform3f(U.trCol, colour[0], colour[1], colour[2]);
+  gl.uniform1f(U.trA, alpha);
+  gl.bindVertexArray(orbitVAO);
+  for(let k=first;k<first+count;k++) gl.drawArrays(gl.LINE_LOOP, k*RING_SEGS, RING_SEGS);
+}
+
+function drawPoints(proj              , view              , n        )       {
+  gl.useProgram(pPt);
+  gl.uniformMatrix4fv(U.ptProj, false, proj);
+  gl.uniformMatrix4fv(U.ptView, false, view);
+  gl.uniform1f(U.ptSpin, 0.0); gl.uniform1f(U.ptVM, 0.0); gl.uniform1f(U.ptTide, 0.0);
+  gl.uniform1f(U.ptMinB, 0.0); gl.uniform1f(U.ptMinSz, 1.3); gl.uniform1f(U.ptCap, 110.0);
+  gl.uniform1f(U.ptGal, 0.0); gl.uniform1f(U.ptFade, 0.0);
+  gl.uniform3f(U.ptOrg, 0, 0, 0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, starsGL.p); gl.bufferSubData(gl.ARRAY_BUFFER, 0, sPos.subarray(0, n*3));
+  gl.bindBuffer(gl.ARRAY_BUFFER, starsGL.s); gl.bufferSubData(gl.ARRAY_BUFFER, 0, sSize.subarray(0, n));
+  gl.bindBuffer(gl.ARRAY_BUFFER, starsGL.c); gl.bufferSubData(gl.ARRAY_BUFFER, 0, sCol.subarray(0, n*3));
+  gl.bindBuffer(gl.ARRAY_BUFFER, starsGL.w); gl.bufferSubData(gl.ARRAY_BUFFER, 0, sW.subarray(0, n));
+  gl.bindVertexArray(starsGL.vao); gl.drawArrays(gl.POINTS, 0, n);
+}
+
+/**
+ * Draw the Centre and BH1 for this frame. The point program's view matrix and origin are put
+ * back to the frame's own before returning, since the passes after this one inherit them.
+ */
+function drawGalacticCentre(inp          )           {
+  const { projMat, viewGC, viewBH1, distGC, distBH1, pxScale, viewH, simT, shimT, mirror, orbitAlpha, showOrbits, trailAlpha, showTails, viewMat, org } = inp;
+  const year = yearOf(simT);
+  const res           = { gcOn: false, bh1On: false, sgraPx: 0, bh1Px: 0 };
+
+  // ---------- Sagittarius A* and the S-stars: only from within ~1,200 light years ----------
+  if(distGC < 40){
+    res.gcOn = true;
+    // the hole's true shadow, and the sprite that holds the disc round it
+    const rsPx = SGRA.rsU*pxScale/distGC;
+    res.sgraPx = 2*SGRA.shadowRs*rsPx;
+    // the S-stars: dots on their ellipses, fading in as the orbits become wider than a few pixels
+    const s2px = sstarA(1).u*pxScale/distGC;          // S2's semi-major axis on screen
+    const fade = Math.min(1, Math.max(0, (s2px - 4)/24));
+    let n = 0;
+    for(let k=0;k<N_S;k++){
+      sstarPos(k, year, tmpD);
+      sstarRel[k*3] = sPos[n*3] = tmpD[0]; sstarRel[k*3+1] = sPos[n*3+1] = tmpD[1]; sstarRel[k*3+2] = sPos[n*3+2] = tmpD[2];
+      // Drawn as markers, not as stars: at any framing that shows the orbits, a B star at
+      // the Centre is one white point among the nuclear cluster's thousands, so these are
+      // overdriven — the sprite's corona, invisible at normal brightness, becomes a blue
+      // halo round a white core, which is what tells an S-star from the crowd. S2 largest.
+      sSize[n] = pxWorld(k === 1 ? 16 : 13, distGC, pxScale);
+      const b = (k === 1 ? 14 : 11)*fade;
+      sCol[n*3] = 0.40*b; sCol[n*3+1] = 0.66*b; sCol[n*3+2] = 1.0*b; sW[n] = 0;
+      n++;
+    }
+    // the hole's findable dot, until the shadow itself is more than a few pixels
+    if(res.sgraPx < 5){
+      sPos[n*3]=0; sPos[n*3+1]=0; sPos[n*3+2]=0;
+      sSize[n] = pxWorld(12, distGC, pxScale);
+      sCol[n*3]=5.0; sCol[n*3+1]=4.4; sCol[n*3+2]=5.6; sW[n]=0;
+      n++;
+    }
+    advanceTails(year);
+    if(showTails && fade > 0.001) drawTails(projMat, viewGC, trailAlpha*0.9*fade);
+    if(showOrbits && fade > 0.001) for(let k=0;k<N_S;k++){
+      // an orbit that is wider than a few views is a straight line across the frame, and a
+      // dozen of them are a cage: each fades out as its ellipse outgrows the screen
+      const apx = sstarA(k).u*pxScale/distGC;
+      const wide = 1 - Math.min(1, Math.max(0, (apx - 1.6*viewH)/(2.4*viewH)));
+      if(wide > 0.001) drawOrbits(projMat, viewGC, k, 1, orbitAlpha*0.42*fade*wide, [0.62, 0.70, 0.95]);
+    }
+    drawPoints(projMat, viewGC, n);
+    if(fade > 0.001) drawReticles(projMat, viewGC, sstarRel, N_S, 7, distGC, pxScale, [0.30*fade, 0.42*fade, 0.62*fade]);
+    if(res.sgraPx < 5) drawReticles(projMat, viewGC, ORIGIN, 1, 9, distGC, pxScale, [0.55, 0.50, 0.58]);
+    if(res.sgraPx >= 5){
+      const spritePx = Math.min(4096, 2*SPRITE_RS*rsPx);
+      drawHole(projMat, viewGC, spritePx, rsPx, SGRA_DISC_N, shimT, mirror, 1.0);
+    }
+  }
+
+  // ---------- Gaia BH1: only from within ~60 light years ----------
+  if(distBH1 < 2){
+    res.bh1On = true;
+    const rsPx = BH1_INFO.rsU*pxScale/distBH1;
+    res.bh1Px = 2*SGRA.shadowRs*rsPx;
+    bh1Relative(year, tmpD);
+    bh1StarRel[0] = tmpD[0]; bh1StarRel[1] = tmpD[1]; bh1StarRel[2] = tmpD[2];
+    const orbitPx = BH1_INFO.aAU*AU2U*pxScale/distBH1;
+    const fade = Math.min(1, Math.max(0, (orbitPx - 4)/24));
+    let n = 0;
+    // the Sun-like companion: a G dwarf, the one thing here that shines
+    sPos[0]=bh1StarRel[0]; sPos[1]=bh1StarRel[1]; sPos[2]=bh1StarRel[2];
+    sSize[0] = pxWorld(14, distBH1, pxScale); sCol[0]=9.0; sCol[1]=7.4; sCol[2]=4.2; sW[0]=0; n++;   // overdriven like the S-stars: a warm halo
+    if(res.bh1Px < 5){
+      sPos[3]=0; sPos[4]=0; sPos[5]=0;
+      sSize[1] = pxWorld(10, distBH1, pxScale)*fade; sCol[3]=4.0; sCol[4]=3.6; sCol[5]=4.6; sW[1]=0; n++;
+    }
+    if(showOrbits && fade > 0.001) drawOrbits(projMat, viewBH1, I_BH1_STAR, 1, orbitAlpha*0.45*fade, [1.0, 0.86, 0.55]);
+    drawPoints(projMat, viewBH1, n);
+    if(fade > 0.001) drawReticles(projMat, viewBH1, bh1StarRel, 1, 7, distBH1, pxScale, [0.62*fade, 0.52*fade, 0.30*fade]);
+    if(res.bh1Px < 5) drawReticles(projMat, viewBH1, ORIGIN, 1, 9, distBH1, pxScale, [0.55, 0.50, 0.58]);
+    if(res.bh1Px >= 5){
+      // there is no known accretion flow on Gaia BH1 — it is dark in X-rays — so no disc is drawn
+      const spritePx = Math.min(4096, 2*6*rsPx);
+      drawHole(projMat, viewBH1, spritePx, rsPx, null, shimT, mirror, 1.0);
+    }
+  }
+  if(res.gcOn || res.bh1On){
+    // the passes after this one draw on the point program with the frame's own view
+    gl.useProgram(pPt);
+    gl.uniformMatrix4fv(U.ptView, false, viewMat);
+    gl.uniform3f(U.ptOrg, org[0], org[1], org[2]);
+  }
+  return res
+}
+
 const SUN_FS = "#version 300 es\nprecision highp float;\nuniform float uTime, uDisc;\nuniform vec3 uColD, uColB;   // the photosphere's dark and bright tones, set by its temperature\nout vec4 o;\nfloat h21(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }\nfloat vnoise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);\n  return mix(mix(h21(i),h21(i+vec2(1,0)),f.x), mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x), f.y); }\nfloat fbm(vec2 p){ float a=.5,s=0.; for(int i=0;i<4;i++){ s+=a*vnoise(p); p*=2.13; a*=.5; } return s; }\nvoid main(){\n  vec2 q = gl_PointCoord*2.0-1.0;\n  float r = length(q);\n  if(r>1.0) discard;\n  float ang = atan(q.y,q.x);\n  float R = uDisc;\n  vec3 col = vec3(0.0); float lum = 0.0;\n  float t = uTime;\n  if(r < R){\n    float rr = r/R;\n    float limb = sqrt(max(0.0, 1.0-rr*rr));\n    float g  = fbm(q/R*7.0  + vec2(t*0.030,-t*0.021));\n    float g2 = fbm(q/R*17.0 - vec2(t*0.050, t*0.033));\n    float b = 0.55 + 0.50*limb + 0.35*(g-0.5) + 0.22*(g2-0.5);\n    col = mix(uColD, uColB, clamp(b,0.,1.));\n    col += mix(uColD, uColB, 0.8)*pow(limb,3.0)*0.35;\n    lum = 1.0;\n  }\n  float storm = 0.55 + 0.45*sin(t*0.23 + 2.0*sin(t*0.11));   // the slow magnetic cycle\n  float rim = (r-R)/R;\n  if(rim > -0.05){\n    float p1 = fbm(vec2(ang*2.2 + t*0.07, rim*5.0 - t*0.16));\n    float arcs = smoothstep(0.60, 0.95, p1) * exp(-max(rim,0.0)*3.2) * (0.45+storm);\n    // prominences run a shade redder than the surface, the corona a shade brighter —\n    // the same offsets today's fixed colours had, now riding the temperature\n    col += uColD*vec3(1.0,0.78,1.2)*arcs*1.6;\n    float st = 0.75 + 0.25*fbm(vec2(ang*3.5, t*0.05));\n    float cor = exp(-max(rim,0.0)*2.6)*0.35*st;\n    col += uColB*vec3(1.0,0.86,0.81)*cor;\n    lum = max(lum, max(arcs, cor));\n  }\n  float aDisc = smoothstep(R, R-0.015, r);\n  float a = max(aDisc, min(0.95, lum*0.85));\n  o = vec4(col*max(lum, aDisc), a);\n}";
 
 const PN_FS = "#version 300 es\nprecision highp float;\nuniform float uTime, uAge, uAlpha, uBurst;   // uAge 0..1 through the nebula's life; uBurst 0..1 at the casting\nout vec4 o;\nfloat h21(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }\nfloat vnoise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);\n  return mix(mix(h21(i),h21(i+vec2(1,0)),f.x), mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x), f.y); }\nfloat fbm(vec2 p){ float a=.5,s=0.; for(int i=0;i<4;i++){ s+=a*vnoise(p); p*=2.13; a*=.5; } return s; }\n// The interacting-winds picture, in stages over uAge. The envelope goes first: dense,\n// dusty, lit warm by the still-cool star, thrown off in a burst. Then the exposed core\n// heats and its ionisation front sweeps outward through the ejecta — teal [OIII] inside\n// the front, warm dust still beyond it — while the fast wind hollows a cavity, so the\n// shell becomes the limb-brightened, filamentary thing with Hα at its rim that a\n// planetary nebula is, with radial cometary knots where the front passed and a faint\n// outer halo of the earlier, slower wind. Then it thins and dissolves.\nvoid main(){\n  vec2 q = gl_PointCoord*2.0-1.0;\n  float rg = length(q);                              // in the sprite, which the burst enlarges\n  if(rg>1.0) discard;\n  // During the casting the sprite is drawn up to 3.5× the shell, so the star's light\n  // scattered off the fresh dust — a reflection halo, not a shock — has room beyond it;\n  // everything that belongs to the shell is measured in r, the shell's own scale.\n  float grow = 1.0 + 2.5*uBurst;\n  float r = min(1.0, rg*grow);\n  float ang = atan(q.y,q.x), a = uAge;\n  float eject = smoothstep(0.0, 0.18, a);            // the envelope is off\n  float ion   = smoothstep(0.15, 0.55, a);           // the front has swept out\n  float old   = smoothstep(0.72, 1.0, a);            // dissolving\n  float R = mix(0.52, 0.76, a);                      // the shell in the sprite (the sprite itself grows)\n  float w = mix(0.24, 0.075, ion) + 0.14*old;        // thick envelope -> thin shell -> frayed\n  float n1 = fbm(vec2(ang*3.0 + 3.0, r*6.0 - a*1.5));\n  float knots = fbm(vec2(ang*11.0 + uTime*0.005, r*1.6));      // streaks along r: cometary knots\n  float clump = fbm(q*5.0 + 7.0);\n  float fil = 0.40 + 0.70*n1 + 0.55*(knots-0.5)*ion + 0.30*(clump-0.5);\n  float env = exp(-pow((r-R)/w, 2.0));\n  float cavity = smoothstep(R*0.25, R*0.92, r);      // the fast wind empties the middle\n  float body = env * max(fil, 0.0) * mix(1.0, cavity, ion) * (0.82 + 0.18*cos(2.0*ang + 0.8));\n  float dust = smoothstep(R+0.12, 0.0, r) * (0.22 + 0.30*clump) * (1.0-ion) * eject;\n  float rIon = mix(0.0, 1.08, ion);                  // where the ionisation front stands\n  float inFront = smoothstep(rIon+0.07, rIon-0.07, r);\n  vec3 warm = vec3(1.00, 0.56, 0.30);\n  vec3 oiii = vec3(0.32, 0.92, 0.78);\n  vec3 ha   = vec3(1.00, 0.34, 0.26);\n  vec3 shellCol = mix(oiii, ha, smoothstep(R-0.03, R+0.10, r));\n  vec3 col = body * mix(warm, shellCol, inFront) * 0.95 + dust * warm;\n  col += oiii * exp(-pow((r-rIon)/0.05, 2.0)) * 0.55 * ion * (1.0-old) * step(rIon, 1.0) * (0.7+0.6*n1);   // the front itself\n  col += oiii * smoothstep(R, 0.0, r) * 0.08 * inFront * (1.0-old);                                          // the interior's glow\n  col += ha * exp(-pow((r-0.95)/0.05, 2.0)) * 0.14 * ion * (1.0-old) * (0.5+0.5*n1);                        // the old wind's halo\n  float flash = uBurst;                              // the casting: a burst of light, not a shock\n  col *= 1.0 + 1.3*flash;\n  col += warm * exp(-pow(rg/0.45, 2.0)) * 0.9 * flash * (0.75+0.5*fbm(q*4.0+2.0));   // scattered off the fresh dust\n  col += vec3(1.0,0.85,0.6) * exp(-pow(rg/0.12, 2.0)) * 1.4 * flash;                 // and the star, glaring through\n  col *= 1.0 - 0.65*old;\n  o = vec4(col*uAlpha, 0.0);\n}";
@@ -3894,6 +4456,15 @@ const mergedEl = (()=>{ const d=document.createElement('div'); d.className='arml
   d.style.display='none'; labelWrap.appendChild(d); return d; })();
 const g710Lbl = (()=>{ const d=document.createElement('div'); d.className='lbl'; d.textContent='Gliese 710';
   d.style.color='rgba(255,190,140,.9)'; labelWrap.appendChild(d); return d; })();
+// The Galactic Centre: the hole and the fourteen S-stars, each named while its orbit is wide
+// enough on screen to tell from its neighbours'; and Gaia BH1's pair. Their positions arrive
+// relative to their own frames, with the view matrices built for those frames.
+const mkLbl = (text        , colour        )              => { const d=document.createElement('div'); d.className='lbl'; d.textContent=text;
+  d.style.display='none'; d.style.color=colour; labelWrap.appendChild(d); return d; };
+const sgraEl = mkLbl('Sagittarius A*', 'rgba(236,214,190,.9)');
+const sstarEls = SSTARS.map(s => mkLbl(s.name, 'rgba(190,210,255,.7)'));
+const bh1El = mkLbl('Gaia BH1', 'rgba(236,214,190,.9)');
+const bh1StarEl = mkLbl('G dwarf companion', 'rgba(255,225,170,.75)');
 
 /** The easing state a steady label carries, parked on the element itself. */
                                                                                                                    
@@ -3971,16 +4542,29 @@ function placeLabel(el       , x        , y        , show         )       {
                               
                                                            
                  
+                                                                                                                      
+                                                                                            
+                                                                                        
+                                                                                            
  
 
 /**
  * Place every label for this frame. `showLabels` off still runs one call — Gliese 710's name
  * has to be taken down, and it is the only label placed outside the main block.
  */
+/** a projector for one view: clip w and the screen position of a point in that view's frame */
+function projector(projMat              , viewMat              )                                                {
+  const pv = mul(projMat, viewMat);
+  return (x, y, z) => { const cw = pv[3]*x+pv[7]*y+pv[11]*z+pv[15];
+    return [cw, ((pv[0]*x+pv[4]*y+pv[8]*z+pv[12])/cw*0.5+0.5)*view.W, (-(pv[1]*x+pv[5]*y+pv[9]*z+pv[13])/cw*0.5+0.5)*view.H]; };
+}
+const hideGC = ()       => { placeLabel(sgraEl, 0, 0, false); sstarEls.forEach(l => placeLabel(l         , 0, 0, false)); };
+const hideBH1 = ()       => { placeLabel(bh1El, 0, 0, false); placeLabel(bh1StarEl, 0, 0, false); };
+
 function drawLabels(showLabels         , inputs             )       {
-  if(!showLabels){ placeLabel(g710Lbl, 0, 0, false); return }
+  if(!showLabels){ placeLabel(g710Lbl, 0, 0, false); hideGC(); hideBH1(); return }
   const { projMat, viewMat, pxScale, camDist, org, andPos, merge, sep, spinMW, spinM31, asm, bornYet, star,
-          showP9, showDwarfs, wasEaten, structOn, armsOn } = inputs;
+          showP9, showDwarfs, wasEaten, structOn, armsOn, gc, bh1 } = inputs;
   const pv = mul(projMat, viewMat);
   const proj = (x        , y        , z        )           => { const cw = pv[3]*x+pv[7]*y+pv[11]*z+pv[15];
     return [cw, ((pv[0]*x+pv[4]*y+pv[8]*z+pv[12])/cw*0.5+0.5)*view.W, (-(pv[1]*x+pv[5]*y+pv[9]*z+pv[13])/cw*0.5+0.5)*view.H]; };
@@ -4067,6 +4651,24 @@ function drawLabels(showLabels         , inputs             )       {
     const [cw, sx, sy] = proj(star.x*k, star.y*k, star.z*k);
     placeLabel(g710Lbl, sx, sy, cw > Math.max(1e-9,camDist*0.01) && camDist <= 900);
   } else placeLabel(g710Lbl, 0, 0, false);
+  // the Centre: projected through its own view, so the names land where the points do
+  if(gc.on){
+    const pg = projector(projMat, gc.view);
+    { const [cw, sx, sy] = pg(0, 0, 0); placeLabel(sgraEl, sx, sy - Math.max(0, gc.sgraPx*0.5*7.5/2.6), cw > 0); }
+    for(let k=0;k<SSTARS.length;k++){
+      const apx = sstarA(k).u*pxScale/gc.dist;                       // the orbit's semi-major axis on screen
+      const [cw, sx, sy] = pg(gc.stars[k*3], gc.stars[k*3+1], gc.stars[k*3+2]);
+      // a name needs an orbit wide enough to own it, and must not sit on the hole's own name
+      placeLabel(sstarEls[k]         , sx, sy, cw > 0 && apx > 36 && apx < 3000 && Math.hypot(sx - view.W/2, sy - view.H/2) > 0);
+    }
+  } else hideGC();
+  if(bh1.on){
+    const pb = projector(projMat, bh1.view);
+    const [cw, hx, hy] = pb(0, 0, 0);
+    placeLabel(bh1El, hx, hy - Math.max(0, bh1.holePx*0.5*7.5/2.6), cw > 0);
+    const [cw2, sx, sy] = pb(bh1.star[0], bh1.star[1], bh1.star[2]);
+    placeLabel(bh1StarEl, sx, sy, cw2 > 0 && Math.hypot(sx - hx, sy - hy) > 18);
+  } else hideBH1();
 }
 
 /**
@@ -4105,6 +4707,8 @@ const setHolding = (h         )       => { holding = h; };
 const org=new Float64Array(3); // rendering origin: the Sun, in double precision
 const sunSizeTmp=new Float32Array(1), eatSizeTmp=new Float32Array(1);
 const andPos = new Float32Array(3);
+/** Gaia BH1 — the hole itself — Sun-relative in doubles, and the absolute position the camera follows */
+const bh1C = new Float64Array(3), bh1Abs = new Float64Array(3);
 function updateAnd(){
   const a = ageGyr$4();
   const [u,v] = orbitUV(a);
@@ -4152,6 +4756,7 @@ function moonSpinFrame()                      {
 const tmpMoonB = new Float64Array(3), tmpEarthB = new Float64Array(3);
 
 let probeFrames = 0;
+const GC_ORIGIN = new Float64Array(3);
 
 function frame(now        )       {
   const dt = Math.min(0.05,(now-simClock.last)/1000); simClock.last=now;
@@ -4238,7 +4843,12 @@ function frame(now        )       {
   bodyPos(3, simClock.simT, earthW);
   const moonHere = cam.followTarget === 'moon' && !wasEaten[3] && ageGyr$4() > MOON_BORN;
   if(moonHere) moonPos(simClock.simT, moonW);                                  // the camera needs her before the draw does
+  // the two black holes: Sagittarius A* is the scene's origin, Gaia BH1 rides the local sky
+  bh1Centre(simClock.simT, bh1C);
+  for(let i=0;i<3;i++) bh1Abs[i] = org[i] + bh1C[i];
   const followPos = cam.followTarget === 'and' ? andPos
+                  : cam.followTarget === 'gc' ? GC_ORIGIN
+                  : cam.followTarget === 'bh1' ? bh1Abs
                   : moonHere ? moonW
                   : ((cam.followTarget === 'earth' || cam.followTarget === 'moon') && !wasEaten[3]) ? earthW : org;
   const goal = cam.follow ? [followPos[0],followPos[1],followPos[2]] : [0,0,0];
@@ -4300,6 +4910,15 @@ function frame(now        )       {
   // lookAt wants three-component vectors; these are built as three-element literals and as
   // the planet's own axis, and TypeScript cannot see the length of either.
   const viewMat = lookAt(eye                   , [tgx,tgy,tgz], upV                   );
+  // The same view from two other origins, for the black holes. Sun-relative, the eye and the
+  // target are 900 units out at the Centre and a float32 view matrix carries ~100 AU of error
+  // there — so the Centre's view is built with the eye relative to Sagittarius A* (the eye
+  // plus the Sun's own position, in doubles), and Gaia BH1's relative to the hole itself.
+  const eyeGC       = [eye[0]+org[0], eye[1]+org[1], eye[2]+org[2]];
+  const viewGC = lookAt(eyeGC, [tgx+org[0], tgy+org[1], tgz+org[2]], upV                   );
+  const eyeBH1       = [eye[0]-bh1C[0], eye[1]-bh1C[1], eye[2]-bh1C[2]];
+  const viewBH1 = lookAt(eyeBH1, [tgx-bh1C[0], tgy-bh1C[1], tgz-bh1C[2]], upV                   );
+  const distGC = Math.hypot(eyeGC[0], eyeGC[1], eyeGC[2]), distBH1 = Math.hypot(eyeBH1[0], eyeBH1[1], eyeBH1[2]);
   // near plane tracks the zoom so sub-AU views don't clip
   // no depth buffer: a tiny near plane costs nothing, and Earth needs it. The far plane
   // follows the zoom — at the new ceiling the sky sphere's far side is 40,000 out, and a
@@ -4535,6 +5154,12 @@ function frame(now        )       {
   }
 
   drawG710({ star: gl710, camDist: cam.dist });
+  // the Galactic Centre and the nearest black hole, each in its own frame; the hole's disc is
+  // opaque, so it comes after everything it should hide
+  const gcRes = drawGalacticCentre({
+    projMat: view.projMat , viewGC, viewBH1, distGC, distBH1, pxScale, viewH: view.H*view.DPR, simT: simClock.simT, shimT: simClock.shimT,
+    mirror: SKY_MIRROR, orbitAlpha: hud.orbitAlpha, showOrbits: hud.psO, trailAlpha: hud.trailAlpha, showTails: hud.psH, viewMat, org,
+  });
   // The Sun itself, last of the scene: the envelope it has shed, then its disc over that.
   // Whether the envelope is on screen decides what the Sun's label says, so the pass
   // reports it and the readout is set here rather than from inside the draw.
@@ -4564,6 +5189,8 @@ function frame(now        )       {
     merge: and.merge, sep: and.sep, spinMW, spinM31, asm, bornYet, star: gl710,
     showP9: hud.showP9, showDwarfs: hud.showDwarfs, wasEaten,
     structOn: [hud.showBelt, hud.showKuiper, hud.showOort], armsOn: hud.armsOn,
+    gc: { on: gcRes.gcOn, view: viewGC, dist: distGC, stars: sstarRel, sgraPx: gcRes.sgraPx },
+    bh1: { on: gcRes.bh1On, view: viewBH1, dist: distBH1, star: bh1StarRel, holePx: gcRes.bh1Px },
   });
 
   updateHud(now, pn);
@@ -5430,8 +6057,13 @@ function panCentroid()           { let x=0,y=0; for(const q of touches.values())
 // the floor: with a body followed, three times closer than the old one — a planet may fill
 // the frame and then some, which is what a visitor reaches for once they are already there.
 // The Moon's view before she forms is Earth's view, so it keeps Earth's floor.
+// The two black holes have floors of their own, set so the shadow fills about two thirds of
+// the view: Sagittarius A*'s 0.44 AU across, Gaia BH1's 146 km.
 const minDist = ()         => cam.followTarget === 'moon' ? (ageGyr$2() > MOON_BORN ? 1.8e-12 : 6.7e-12)
-                   : cam.followTarget === 'earth' ? 6.7e-12 : (2e-8 );
+                   : cam.followTarget === 'earth' ? 6.7e-12
+                   : cam.followTarget === 'gc' ? 3e-7
+                   : cam.followTarget === 'bh1' ? 1.5e-12
+                   : (2e-8 );
 // The ceiling: three times further out than the old 7500, so the Galaxy can be seen whole
 // with room around it. The sky sphere and the far plane follow it (render/frame's
 // skyProjection), or the backdrop would clip away exactly when there is most of it to see.
@@ -5590,6 +6222,21 @@ function applyFocusView()       {
     if($('tView').classList.contains('on')) $('tView').click();
     if(!$('tDive').classList.contains('on')) $('tDive').click();
     cam.follow = true; cam.coreLock = false; cam.distGoal = 0.1; cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
+  } else if(v === 'gc'){
+    // Sagittarius A* and the S-stars: the sky-plane view, north up, framed on the inner
+    // orbits (S2's ellipse is ~2,000 AU across). The Centre is the scene's origin, so the
+    // follow target is exact. Set after the toggle clicks, which reset the target to the Sun.
+    if($('tDive').classList.contains('on')) $('tDive').click();
+    if(!$('tView').classList.contains('on')) $('tView').click();
+    cam.followTarget = 'gc';
+    cam.follow = true; cam.coreLock = false; cam.distGoal = 1.4e-3; cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
+    cam.yaw = 0; cam.pitch = 0;
+  } else if(v === 'bh1'){
+    // the nearest black hole, 1,565 light years out: the whole 186-day orbit in frame
+    if($('tDive').classList.contains('on')) $('tDive').click();
+    if(!$('tView').classList.contains('on')) $('tView').click();
+    cam.followTarget = 'bh1';
+    cam.follow = true; cam.coreLock = false; cam.distGoal = 1.9e-6; cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
   } else if(v === 'and'){
     // framed wide enough for the whole disk plus its extended halo and stream
     // (R_A=2245, halo out to ~4200, the Giant Southern Stream past 5700), at any
@@ -5754,6 +6401,22 @@ function jumpToEpoch()       {
     cam.dist = cam.distGoal = 4300;
     $v('speed').value = '21'; $('speed').dispatchEvent(new Event('input'));
     setMultExp(8);
+    if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
+  }
+  if(sel.value === '4.567999985s'){
+    // The stars round the black hole: lands in 2011, seven years before S2's 2018 pericentre,
+    // at four years a second — S2 laps in four seconds, S55 in three, and the swing through
+    // pericentre is the whip it really is, each star trailing an eighth of its orbit behind
+    // it — looking along the line of sight from Earth with north up, the way the orbits are
+    // drawn in the papers. The view select carries the framing.
+    $v('focusSel').value = 'gc'; applyFocusView();
+    if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
+  }
+  if(sel.value === '4.568b'){
+    // Gaia BH1 today: its star swings round the dark companion once every 186 days, so a
+    // week a second shows a lap in under half a minute
+    $v('focusSel').value = 'bh1'; applyFocusView();
+    cam.yaw = 0.55; cam.pitch = 0.32;
     if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
   }
   // Earth's own events are watched from Earth: the globe filling the view, followed. The
@@ -8269,6 +8932,8 @@ startFrameLoop({
       <li><a href="docs/every-merger-we-know-of.html" target="_blank" rel="noopener">Every merger we know of</a> — the galaxies we have eaten, the two we are eating, and what follows Milkomeda</li>
           <li><a href="docs/earth-across-deep-time.html" target="_blank" rel="noopener">Earth across deep time</a> — named milestones from the first amino acids to the boiling oceans, independently sourced</li>
       <li><a href="docs/whats-real-what-is-modeled.html" target="_blank" rel="noopener">What's real, what's modeled</a> — the honesty ledger: every measurement drawn, every compression disclosed</li>
+      <li><a href="docs/sagittarius-a-star.html" target="_blank" rel="noopener">Sagittarius A* and the S-stars</a> — the black hole at the centre, the stars that orbit it, and how the drawn hole is rendered</li>
+      <li><a href="docs/gaia-bh1.html" target="_blank" rel="noopener">Gaia BH1</a> — the nearest black hole known, and the Sun-like star that gives it away</li>
     </ul>
 
     <h3>Sources</h3>
@@ -8286,6 +8951,8 @@ startFrameLoop({
         <a href="https://www.nature.com/articles/nature.2014.15329" target="_blank" rel="noopener">"Galactic collision gave Andromeda its arms"</a> (Nature News, 2014)</li>
       <li>Cox &amp; Loeb 2008 — Milkomeda; <a href="https://www.nature.com/articles/s41550-025-02563-1" target="_blank" rel="noopener">Sawala et&nbsp;al. 2025</a> — ~50% merger odds (the drawn track is their merging-half median); arXiv:2603.22863 (2026) — the ~90% reanalysis whose band the track sits in</li>
       <li>Berski &amp; Dybczyński 2016 — Gliese 710's pass; Shaviv and Svensmark — the contested cosmic-ray/climate hypothesis the ice ages follow, flagged as such</li>
+      <li><b>GRAVITY Collaboration</b> 2018 (A&amp;A 615, L15), 2020 (A&amp;A 636, L5) and 2022 (A&amp;A 657, L12) — S2's orbit and radial-velocity curve, and Sagittarius A*'s mass and distance; <b>Gillessen et&nbsp;al. 2017</b> (ApJ 837, 30) — the other S-star orbits; <b>Event Horizon Telescope</b> 2022 (ApJL 930, L12) — the shadow's size; Reid &amp; Brunthaler 2004 — the plane's orientation at Sgr A*</li>
+      <li><b>El-Badry et&nbsp;al. 2023</b> (MNRAS 518, 1057) — Gaia BH1's orbit and masses; the position is the companion's Gaia DR3 astrometry (ESA/Gaia/DPAC)</li>
       <li><a href="https://people.astro.unistra.fr/f.renaud/vintergatan.php" target="_blank" rel="noopener"><b>VINTERGATAN</b></a> (Agertz, Renaud et&nbsp;al.) — the cosmological zoom simulation behind the assembly scenario: the contracting, thickened, merger-scrambled young disk, and the Gaia-Enceladus convulsion</li>
       <li><a href="https://www.mpe.mpg.de/7978605/news20231214" target="_blank" rel="noopener"><b>eROSITA</b> / MPE</a> — the million-degree circumgalactic gas the <b>hot halo</b> switch draws: a spherical halo to ~100&nbsp;kpc holding most of the Galaxy's ordinary matter, and the brighter disk-like component ~7&nbsp;kpc across and ~1&nbsp;kpc thick inside it</li>
       <li>Images: Spitzer sig06-025 (NASA/JPL-Caltech/D.&nbsp;Block) and ssc2006-14a (P.&nbsp;Barmby); NASA/CXC — M31's core; AURA/NOAO/NSF — the LMC; ESO/DSS2 — the SMC; A.&nbsp;Meleg (CC&nbsp;BY-SA) — M33; the
@@ -8330,6 +8997,8 @@ startFrameLoop({
       <option value="2.568g" data-rate="0.4444" data-mult="100000000">How the arms evolve — 2 Gyr time-lapse, then onward (2.0 Gyr ago &rarr;)</option>
       <option value="4.318p" data-rate="1" data-mult="1">Pangaea — one continent, one ocean (250 Myr ago)</option>
       <option value="4.318" data-rate="1" data-mult="10000000">Plate tectonics — Pangaea to Pangaea Proxima (250 Myr ago → +250 Myr)</option>
+      <option value="4.567999985s" data-rate="4" data-mult="1">The stars round the black hole — S2 at Sagittarius A* (2011 &rarr;)</option>
+      <option value="4.568b" data-rate="0.01917" data-mult="1">Gaia BH1 — the nearest black hole, its star swinging round (today &rarr;)</option>
       <option value="4.5692567" data-rate="0.19" data-mult="10000">Gliese 710 grazes the Oort cloud (+1.29 Myr)</option>
       <option value="4.818x" data-rate="1" data-mult="1">Pangaea Proxima — the next supercontinent (+250 Myr)</option>
       <option value="5.6v" data-rate="1" data-mult="10000000">The oceans boil away (+1.0 Gyr → +2.0 Gyr)</option>
@@ -8340,7 +9009,7 @@ startFrameLoop({
       <option value="12.35" data-rate="1" data-mult="10000000">The Anthropic Nebula — the Sun casts its shell (+7.8 Gyr)</option>
       <option value="13.5">After the merger (+8.9 Gyr)</option>
     </select><button class="rowbtn" id="jumpGo" title="apply the selected scenario and close the panel">GO</button></div>
-  <div class="row"><label for="focusSel">view</label><select id="focusSel"><option value="sun">Solar System</option><option value="earth">Earth</option><option value="moon">Moon</option><option value="pn">Anthropic Nebula</option><option value="mw">Milky Way</option><option value="and">Andromeda</option></select><button class="rowbtn" id="focusGo">GO</button>
+  <div class="row"><label for="focusSel">view</label><select id="focusSel"><option value="sun">Solar System</option><option value="earth">Earth</option><option value="moon">Moon</option><option value="pn">Anthropic Nebula</option><option value="gc">Galactic Centre</option><option value="bh1">Gaia BH1</option><option value="mw">Milky Way</option><option value="and">Andromeda</option></select><button class="rowbtn" id="focusGo">GO</button>
     <label class="chk plain" style="margin-left:6px"><input type="checkbox" id="tSpinLock"> spin lock<button type="button" class="info" data-tip="The camera turns with what it watches. Following a planet it rides the spin — tick it to watch the plates drift. In the galaxy view it rides the spiral-arm pattern: the arms hold still while the stars and the ages sweep through them." aria-label="about spin lock">i</button></label></div>
 </div>
 <button class="pdot" id="simPlus" data-open="simPanel" title="simulation" aria-label="show the simulation panel"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.4 2.6c.3 3.4-.2 6.2-1.6 8.6-1.3 2.4-3.4 4.5-6.2 6.4L9.9 14 6.4 10.4c1.9-2.8 4-4.9 6.4-6.2 2.4-1.4 5.2-1.9 8.6-1.6Z"/><circle cx="15.4" cy="8.6" r="2.6" fill="#0b0f1a"/><path d="M7.6 4.4 10.5 7.3c-1.1 1.2-2 2.4-2.7 3.7L2.6 9.2c.9-1.9 2.6-3.5 5-4.8Z"/><path d="M19.6 16.4 16.7 13.5c-1.2 1.1-2.4 2-3.7 2.7l1.8 5.2c1.9-.9 3.5-2.6 4.8-5Z"/><path d="M8.6 13.4 10.6 15.4 7.2 18.8a1.1 1.1 0 0 1-1.6 0l-.4-.4a1.1 1.1 0 0 1 0-1.6Z"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5.6 12.2 2.4 15.4M8 14.6 4.8 17.8M10.4 17 7.2 20.2"/></g></svg></button>

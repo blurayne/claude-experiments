@@ -2,6 +2,10 @@
 
 Hand-written notes merged into `CHANGELOG.md` by `.github/scripts/build_changelog.py`: one `## <semver>` heading per version, Markdown body below it, inserted under that version's heading in the Galactic Transit section on the next regeneration. The generated changelog itself must never be edited by hand — it is overwritten wholesale.
 
+## 3.13.0
+
+**The Galactic Centre, and the nearest black hole.** Sagittarius A* is drawn at its true size — a 0.44 AU shadow at 8.3 kpc — by a ray-marched Schwarzschild shader (the shadow, the lensed disc, the photon ring all fall out of the geodesic equation), with fourteen S-stars on their published orbits (Gillessen et al. 2017; S2 from GRAVITY 2020) and a scenario that lands in 2011 to watch S2's 2018 pericentre at a year a second. Gaia BH1, the nearest black hole known (El-Badry et al. 2023), joins the sky 1,565 light years out with its Sun-like companion on its 186-day orbit, and its own scenario. Both live in frames of their own for precision; both have a view entry, labels, and an article. The orbital table is regenerated from VizieR by the data workflow on GitHub's runner, since the sandbox cannot reach the astronomy hosts.
+
 ## 3.0.0
 
 **The migration, in numbers** (measured from the git history, 10 Sep 2026):

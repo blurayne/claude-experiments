@@ -23,6 +23,8 @@ import { drawBelts } from './passes/belts'
 import { drawBodies, bodyPosArr, bodyCol, realSizes, uploadBodySize, uploadSunColour, uploadBodyPositions } from './passes/bodies'
 import { drawGlobe } from './passes/globe'
 import { drawG710 } from './passes/g710'
+import { drawGalacticCentre, sstarRel, bh1StarRel } from './passes/gc'
+import { bh1Centre } from '../astro/gc'
 import { drawShed, drawSunDisc } from './passes/sun'
 import { drawEatFlash } from './passes/eatflash'
 import { bindHDR, resolveTone } from './passes/tone'
@@ -66,6 +68,8 @@ export const setHolding = (h: boolean): void => { holding = h }
 export const org=new Float64Array(3); // rendering origin: the Sun, in double precision
 const sunSizeTmp=new Float32Array(1), eatSizeTmp=new Float32Array(1);
 const andPos = new Float32Array(3);
+/** Gaia BH1 — the hole itself — Sun-relative in doubles, and the absolute position the camera follows */
+const bh1C = new Float64Array(3), bh1Abs = new Float64Array(3);
 function updateAnd(){
   const a = ageGyr();
   const [u,v] = orbitUV(a);
@@ -113,6 +117,7 @@ export function moonSpinFrame(): ArrayLike<number>[] {
 const tmpMoonB = new Float64Array(3), tmpEarthB = new Float64Array(3);
 
 let probeFrames = 0;
+const GC_ORIGIN = new Float64Array(3);
 
 function frame(now: number): void {
   const dt = Math.min(0.05,(now-simClock.last)/1000); simClock.last=now;
@@ -199,7 +204,12 @@ function frame(now: number): void {
   bodyPos(3, simClock.simT, earthW);
   const moonHere = cam.followTarget === 'moon' && !wasEaten[3] && ageGyr() > MOON_BORN;
   if(moonHere) moonPos(simClock.simT, moonW);                                  // the camera needs her before the draw does
+  // the two black holes: Sagittarius A* is the scene's origin, Gaia BH1 rides the local sky
+  bh1Centre(simClock.simT, bh1C);
+  for(let i=0;i<3;i++) bh1Abs[i] = org[i] + bh1C[i];
   const followPos = cam.followTarget === 'and' ? andPos
+                  : cam.followTarget === 'gc' ? GC_ORIGIN
+                  : cam.followTarget === 'bh1' ? bh1Abs
                   : moonHere ? moonW
                   : ((cam.followTarget === 'earth' || cam.followTarget === 'moon') && !wasEaten[3]) ? earthW : org;
   const goal = cam.follow ? [followPos[0],followPos[1],followPos[2]] : [0,0,0];
@@ -261,6 +271,15 @@ function frame(now: number): void {
   // lookAt wants three-component vectors; these are built as three-element literals and as
   // the planet's own axis, and TypeScript cannot see the length of either.
   const viewMat = lookAt(eye as unknown as Vec3, [tgx,tgy,tgz], upV as unknown as Vec3);
+  // The same view from two other origins, for the black holes. Sun-relative, the eye and the
+  // target are 900 units out at the Centre and a float32 view matrix carries ~100 AU of error
+  // there — so the Centre's view is built with the eye relative to Sagittarius A* (the eye
+  // plus the Sun's own position, in doubles), and Gaia BH1's relative to the hole itself.
+  const eyeGC: Vec3 = [eye[0]+org[0], eye[1]+org[1], eye[2]+org[2]];
+  const viewGC = lookAt(eyeGC, [tgx+org[0], tgy+org[1], tgz+org[2]], upV as unknown as Vec3);
+  const eyeBH1: Vec3 = [eye[0]-bh1C[0], eye[1]-bh1C[1], eye[2]-bh1C[2]];
+  const viewBH1 = lookAt(eyeBH1, [tgx-bh1C[0], tgy-bh1C[1], tgz-bh1C[2]], upV as unknown as Vec3);
+  const distGC = Math.hypot(eyeGC[0], eyeGC[1], eyeGC[2]), distBH1 = Math.hypot(eyeBH1[0], eyeBH1[1], eyeBH1[2]);
   // near plane tracks the zoom so sub-AU views don't clip
   // no depth buffer: a tiny near plane costs nothing, and Earth needs it. The far plane
   // follows the zoom — at the new ceiling the sky sphere's far side is 40,000 out, and a
@@ -496,6 +515,12 @@ function frame(now: number): void {
   }
 
   drawG710({ star: gl710, camDist: cam.dist });
+  // the Galactic Centre and the nearest black hole, each in its own frame; the hole's disc is
+  // opaque, so it comes after everything it should hide
+  const gcRes = drawGalacticCentre({
+    projMat: view.projMat!, viewGC, viewBH1, distGC, distBH1, pxScale, viewH: view.H*view.DPR, simT: simClock.simT, shimT: simClock.shimT,
+    mirror: SKY_MIRROR, orbitAlpha: hud.orbitAlpha, showOrbits: hud.psO, trailAlpha: hud.trailAlpha, showTails: hud.psH, viewMat, org,
+  });
   // The Sun itself, last of the scene: the envelope it has shed, then its disc over that.
   // Whether the envelope is on screen decides what the Sun's label says, so the pass
   // reports it and the readout is set here rather than from inside the draw.
@@ -525,6 +550,8 @@ function frame(now: number): void {
     merge: and.merge, sep: and.sep, spinMW, spinM31, asm, bornYet, star: gl710,
     showP9: hud.showP9, showDwarfs: hud.showDwarfs, wasEaten,
     structOn: [hud.showBelt, hud.showKuiper, hud.showOort], armsOn: hud.armsOn,
+    gc: { on: gcRes.gcOn, view: viewGC, dist: distGC, stars: sstarRel, sgraPx: gcRes.sgraPx },
+    bh1: { on: gcRes.bh1On, view: viewBH1, dist: distBH1, star: bh1StarRel, holePx: gcRes.bh1Px },
   });
 
   updateHud(now, pn);

@@ -148,6 +148,47 @@ They live in `tests/harness/session.ts`, and each cost a run or several to find.
 Two page-specific traps: `#tPause` carries class `on` while the piece is **running**, and
 dismissing the first-run tour **starts** the clock, so pausing has to come after.
 
+## The Galactic Centre, and the nearest black hole (v3.13.0)
+
+- **Two frames of their own.** Everything else is drawn Sun-relative, and the Sun is 900
+  units from the Centre, where a float32 is good to ~100 AU — the whole of S2's pericentre.
+  `render/frame` therefore builds `viewGC` with the eye relative to Sagittarius A* (the
+  Sun-relative eye plus `org`, in doubles) and `viewBH1` relative to Gaia BH1's hole, and
+  `render/passes/gc` uploads every position relative to those points. The labels project
+  through the same matrices (`projector()` in `render/labels`). Never draw a Centre object
+  through the frame's own view: it lands within a hundred AU of where it should be, which at
+  a 3,000-AU frame is a visible wobble.
+- **The hole is the frame, not the barycentre.** BH1's first cut followed the barycentre; at
+  the zoom that shows the 146-km shadow, the hole was thirty thousand frames off-screen.
+  `bh1Centre()` returns the hole's own position (the barycentre less its swing), and the
+  star's drawn orbit round it is the relative orbit itself.
+- **Orbits come from `astro/gc-data.ts`, which the runner verifies.** The sandbox cannot
+  reach VizieR/ADS/arXiv (every host is `EGRESS_BLOCKED`), so the table was transcribed from
+  the papers and `tools/fetch_sstars.py` — a job in the data workflow — regenerates it from
+  VizieR J/ApJ/837/30 and Gaia DR3, prints each value beside the one it replaces, dispatches
+  the page rebuild, and leaves the file untouched if anything cannot be fetched. Read that
+  job's log after a push that touches the tool. S2 stays GRAVITY 2020's solution.
+- **The observer frame is derived, not quoted.** `skyBasis(ra, dec)` turns celestial north
+  and east at a sky position into scene directions through the same J2000 matrix the star
+  builders use. The plane's PA at Sgr A* then comes out at 31.4° (Reid & Brunthaler),
+  and the unit test asserts it. **The depth sign is pinned by S2's radial-velocity curve**
+  (+4,000 km/s before the 2018 pericentre, −1,900 after; GRAVITY 2018 Fig. 2) — astrometry
+  alone cannot tell an orbit from its mirror, and the test holds the model to the curve.
+- **The point sprite's corona is invisible at normal brightness.** The first S-star markers
+  were drawn at 3–40 px and looked absent: a `pow(d, 6)` corona leaves only a 4-px core, and
+  a white core at the Centre is one more star in the nuclear cluster. They are overdriven
+  (colour ×11–14) so the halo shows, in a blue the crowd does not have. Test a new marker by
+  colour, not by size — a red experiment found them in one shot after an hour of reasoning.
+- **`bh.frag` ray-marches Schwarzschild.** Units r_s = 1, `a = −1.5·h²·x/r⁵`, leapfrog, 300
+  steps; a ray that spends every step near the photon sphere is counted as shadow, and one
+  that grazed it (`rmin < 1.12`) is blended toward it, which is the rim's anti-aliasing.
+  Disc texture must be periodic in azimuth by construction — an `atan` lookup left a seam.
+  The disc is a model (Shakura–Sunyaev sheet, 3–12 r_s, 45° to the line of sight, inside the
+  EHT's <50° bound); BH1 gets none, being X-ray dark. Both are disclosed in the docs.
+- **Judging the shader needs several angles.** From the Sun's direction the 45° disc reads
+  as a ring; the arch of the far side shows from a grazing pitch. Shoot from the Sun (yaw 0,
+  pitch 0), grazing (pitch −0.75) and above (pitch 0.9) — `gc-shots2.js` in the scratchpad.
+
 ## The emblem and the icons
 
 - The emblem is **Galactic Transit** — the wordmark on `icon.svg`'s arc, the manifest's

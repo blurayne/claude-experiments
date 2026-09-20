@@ -5,11 +5,15 @@ before the work starts. An item is ticked when it ships, with the version that c
 
 ## 2026-09-20
 
-- [ ] A new event at the centre of our galaxy, with the orbits of the stars circling the
+- [x] A new event at the centre of our galaxy, with the orbits of the stars circling the
       supermassive black hole (the S-stars round Sagittarius A*), documented, from
       research data as far as it is reachable; a black-hole shader so it looks like a
       "real" black hole; and the nearest black hole to the solar system (Gaia BH1) added
-      as an object of its own.
+      as an object of its own. Two scenarios and two view entries; fourteen S-stars on
+      Gillessen 2017 / GRAVITY 2020 orbits in a frame of their own; `bh.frag` ray-marches
+      the Schwarzschild geometry (shadow, lensed disc, photon ring); Gaia BH1 with its
+      Sun-like companion 1,565 ly out; two articles; the orbit table re-verified from
+      VizieR by the data workflow, since the sandbox cannot reach the hosts — v3.13.0.
 - [ ] The view from the Sun toward the Galactic Centre should look like the Gaia all-sky
       picture: the band's glow toward the centre and the dark clouds across it — not by
       using the image, but from data, tuned until the glow matches the picture as closely

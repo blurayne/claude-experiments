@@ -83,6 +83,10 @@ in the browser with no build step and no external CDN.
 | [GALEX ultraviolet image of M31](https://www.nasa.gov/image-article/galex-andromeda/) (NASA/JPL-Caltech) | `m31-map.webp` — young stars and star-forming rings turned into the HII blue excess; `tools/m31-wide-uv.jpg` | NASA imagery, public domain, credit required |
 | Face-on completion of the composite above (project owner, by hand and with AI) | `m31-map.webp` as shipped since v2.58 — the four-source composite finished face-on where the pipeline left seams; `tools/m31-map-hand.jpg` is the 2048² original, and `build_m31_map.py` will not overwrite it without `--force` | derivative of the four sources above, same credits; the completion itself by the project owner |
 | [StarHorse](https://data.aip.de/projects/starhorse2019.html) (Anders et al. 2019, A&A 628, A94) | pending — `tools/build_starhorse_density.py` awaits a catalog sample | credit the paper and AIP; check the release page for the data licence |
+| [Gillessen et al. 2017](https://ui.adsabs.harvard.edu/abs/2017ApJ...837...30G) (ApJ 837, 30; VizieR J/ApJ/837/30) | the S-star orbital elements in `src/astro/gc-data.ts` — thirteen of the fourteen drawn | scientific data, cite the paper; VizieR copy CDS |
+| [GRAVITY Collaboration](https://www.mpe.mpg.de/ir/GRAVITY) 2018 (A&A 615, L15), 2020 (A&A 636, L5), 2022 (A&A 657, L12) | S2's orbit and radial-velocity curve (which pins the depth sign of every orbit drawn), Sgr A*'s mass and distance | scientific data, cite the papers |
+| [Event Horizon Telescope](https://eventhorizontelescope.org/) 2022 (ApJL 930, L12) | the shadow's measured size, which the drawn Schwarzschild shadow is checked against | scientific data, cite the paper; no image used |
+| [El-Badry et al. 2023](https://ui.adsabs.harvard.edu/abs/2023MNRAS.518.1057E) (MNRAS 518, 1057) + Gaia DR3 4373465352415301632 | Gaia BH1's orbit, masses and position | scientific data; Gaia: "ESA/Gaia/DPAC" |
 | Nuclear disc & cluster | modelled after AIP's ["How central galactic structures grow together"](https://www.aip.de/en/news/galactic-structures-grow-together/) | scientific reference, no data used |
 | [ejtaal/gaia-web](https://github.com/ejtaal/gaia-web) | inspected as a data source; its `gaia-web-data` sets (175–290 MB) are beyond a Pages site's budget | BSD-3 (code); data derived from Gaia DR3 (ESA/Gaia/DPAC) |
 | [Gaia Sky datasets](https://gaiasky.space/resources/datasets/) (ZAH/ARI Heidelberg) | noted as a resource; host unreachable from the build sandbox | per-dataset, see their page |
@@ -151,6 +155,12 @@ The build renders it to `changelog.html`, which the panel footer links to.
   Derived from `icon.svg`; change the artwork there first and re-derive.
 - [`tools/render_icons.js`](tools/render_icons.js) — rasterises `icon.svg` to those
   PNGs through Chromium. The PNGs are derived files: change the SVG, re-run this.
+- [`tools/fetch_sstars.py`](tools/fetch_sstars.py) — regenerates `src/astro/gc-data.ts`,
+  the S-star orbits round Sagittarius A* and Gaia BH1's position, from VizieR on GitHub's
+  runner (the data workflow), printing every value beside the one it replaces.
+- [`docs/sagittarius-a-star.html`](docs/sagittarius-a-star.html),
+  [`docs/gaia-bh1.html`](docs/gaia-bh1.html) — the Galactic Centre and the nearest black
+  hole: what is drawn, from which paper, and how the hole is rendered.
 - [`manifest.json`](manifest.json), [`sw.js`](sw.js) — the PWA manifest and its
   offline service worker.
 ### Feeding in StarHorse (Gaia DR3) — awaiting data

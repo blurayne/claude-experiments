@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gaia BH1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sky:#080D1C; --sky-2:#0F1730; --star:#EDEEF3; --slate:#A3ABBE; --dust:#2A3350;
+    --halpha:#F2A65A; --sun:#6FA8FF; --line:#26304D;
+  }
+  *{box-sizing:border-box}
+  html{background:var(--sky)}
+  body{margin:0;color:var(--star);font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:17px;line-height:1.65;-webkit-font-smoothing:antialiased}
+  main{max-width:680px;margin:0 auto;padding:0 20px 80px}
+  h1,h2,h3{font-family:"Fraunces",Georgia,serif;font-weight:300;line-height:1.1;margin:0}
+  h1{font-size:clamp(38px,7vw,58px);letter-spacing:-.01em;padding:56px 0 14px}
+  h2{font-size:30px;padding:56px 0 14px;border-top:1px solid var(--line)}
+  p{margin:0 0 16px;max-width:62ch}
+  p.lede{font-size:20px;color:var(--star);max-width:56ch}
+  em{color:var(--halpha);font-style:normal}
+  .muted{color:var(--slate)}
+  table{border-collapse:collapse;width:100%;font-size:15px;margin:20px 0 8px}
+  th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-weight:500;color:var(--slate)}
+  td:first-child{color:var(--slate)}
+  footer{margin-top:60px;font-size:14px;color:var(--slate);border-top:1px solid var(--line);padding-top:18px}
+  a{color:var(--sun)}
+</style>
+</head>
+<body>
+<main>
+<p style="padding-top:28px;margin:0"><a href="../galactic-transit.html" style="color:var(--slate);text-decoration:none">&larr; Galactic Transit</a></p>
+<h1>Gaia BH1</h1>
+<p class="lede">The nearest black hole known: 1,565 light years away toward Ophiuchus, ten solar
+masses, and completely dark. A star very like the Sun goes round it every 186 days, and its
+wobble on the sky is how Gaia found it.</p>
+
+<p>The scenario <b>Gaia BH1 — the nearest black hole</b> lands today at a week a second, so the
+star completes a lap in under half a minute, and the <b>view</b> row's <b>Gaia BH1</b> entry frames
+the same orbit without touching the clock. The zoom buttons step in from there — the orbit, then
+the star's swing, then, twelve decades further in, the hole's own 146-kilometre shadow. There is
+nothing to see on the way but the star: the piece draws what is there.</p>
+
+<h2>What was found</h2>
+<p>Gaia measures where a star is to a few tens of microarcseconds, many times over. For most stars
+the positions fit a straight-line proper motion and the yearly parallax ellipse. For
+Gaia&nbsp;DR3&nbsp;4373465352415301632, a G-type dwarf of 0.93 solar masses at 480 parsecs, they
+did not: the star traces an extra ellipse of its own, 1.3&nbsp;AU across, every 185.6 days.
+Something with nearly ten solar masses is pulling it round — and there is no light from it at
+all. El-Badry et&nbsp;al. 2023 (MNRAS 518, 1057) followed the star spectroscopically, confirmed the
+orbit from the velocity curve, and ruled out every alternative: no star of that mass could hide
+in the companion's light, and the object is dark in X-rays and radio. A stellar-mass black hole,
+in a wide, quiet orbit, in our own neighbourhood.</p>
+
+<table>
+<tr><th>quantity</th><th>value</th><th>note</th></tr>
+<tr><td>position (J2000)</td><td>17h&nbsp;28m&nbsp;41.1s, −0°&nbsp;34′&nbsp;52″</td><td>the companion star's; checked against the sky pixel its Gaia source id encodes</td></tr>
+<tr><td>distance</td><td>480 pc — 1,565 light years</td><td>Gaia parallax</td></tr>
+<tr><td>galactic coordinates</td><td>l = 22.6°, b = +18.1°</td><td>derived; 150 pc above the plane</td></tr>
+<tr><td>black hole mass</td><td>9.62 M☉</td><td></td></tr>
+<tr><td>companion</td><td>0.93 M☉, G dwarf, ~5,850 K</td><td>very nearly a twin of the Sun</td></tr>
+<tr><td>period</td><td>185.59 days</td><td></td></tr>
+<tr><td>separation</td><td>1.40 AU semi-major axis, e = 0.451</td><td>0.77 AU to 2.03 AU</td></tr>
+<tr><td>orientation</td><td>i = 126.6°, Ω = 97.8°, ω = 12.8°</td><td>observer's frame, like the S-stars</td></tr>
+<tr><td>Schwarzschild radius</td><td>28.4 km</td><td>the shadow is 2.6 times that: 146 km across</td></tr>
+</table>
+<p class="muted" style="font-size:14px">Orbit and masses from El-Badry et&nbsp;al. 2023; the periastron epoch is the fit's, and a day of phase
+is nothing at any pace the piece can show. The data workflow re-reads the companion's astrometry from
+Gaia DR3 on GitHub's runner.</p>
+
+<h2>How it is drawn</h2>
+<p>The system rides the local sky exactly as the Gaia stars do — 480 parsecs along its line of
+sight, turning with the Sun's own orbital phase — and it is drawn in a frame of its own, the hole
+at the origin and the star on the relative orbit round it, because the view that shows the shadow
+is thirty thousand frames wide of the system's barycentre. The orbit's orientation is placed
+through the same observer-frame derivation the S-stars use, so its ellipse sits in the drawn sky
+as it sits in the real one.</p>
+
+<p>At the orbit's scale the star is a point and the hole a mark; both are drawn as overdriven
+markers, a halo round a core, so they can be told from the field. Twelve decades further in the
+hole itself is drawn by the same ray-marched Schwarzschild shader as Sagittarius A* — with no
+disc, because there is none: Gaia BH1 is X-ray dark, and a bright disc would be an invention.
+What remains is the shadow, and a faint ring at the photon sphere standing in for the sky the
+hole would bend round itself, which the piece does not lens for real. It is a very dark
+thing, drawn as one.</p>
+
+<h2>Is it really the nearest?</h2>
+<p>Of the confirmed ones, yes. Gaia BH3 (590 pc) is the most massive stellar black hole known in
+the Galaxy, at 33 solar masses, and Gaia BH2 (1,160 pc) the widest; A0620−00, the nearest of the
+X-ray binaries, is 1,060 pc off. A dynamical argument has proposed black holes in the Hyades
+cluster at 150 pc, but that is an inference from the cluster's structure, not a detection, and
+the piece draws detections.</p>
+
+<footer>An article from <a href="../galactic-transit.html">Galactic Transit</a> — the notes that used to live in its About panel, one subject per page.
+Sources: El-Badry et&nbsp;al. 2023 (MNRAS 518, 1057); Gaia DR3 (ESA/Gaia/DPAC); El-Badry et&nbsp;al. 2023b (MNRAS 521, 4323, Gaia BH2);
+Gaia Collaboration, Panuzzo et&nbsp;al. 2024 (A&amp;A 686, L2, Gaia BH3); Torniamenti et&nbsp;al. 2023 (MNRAS 524, 1965, the Hyades).</footer>
+</main>
+</body>
+</html>

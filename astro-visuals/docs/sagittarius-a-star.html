@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sagittarius A* and the S-stars</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sky:#080D1C; --sky-2:#0F1730; --star:#EDEEF3; --slate:#A3ABBE; --dust:#2A3350;
+    --halpha:#F2A65A; --sun:#6FA8FF; --line:#26304D;
+  }
+  *{box-sizing:border-box}
+  html{background:var(--sky)}
+  body{margin:0;color:var(--star);font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:17px;line-height:1.65;-webkit-font-smoothing:antialiased}
+  main{max-width:680px;margin:0 auto;padding:0 20px 80px}
+  h1,h2,h3{font-family:"Fraunces",Georgia,serif;font-weight:300;line-height:1.1;margin:0}
+  h1{font-size:clamp(38px,7vw,58px);letter-spacing:-.01em;padding:56px 0 14px}
+  h2{font-size:30px;padding:56px 0 14px;border-top:1px solid var(--line)}
+  h3{font-size:21px;font-weight:500;padding:22px 0 6px}
+  p{margin:0 0 16px;max-width:62ch}
+  p.lede{font-size:20px;color:var(--star);max-width:56ch}
+  em{color:var(--halpha);font-style:normal}
+  .muted{color:var(--slate)}
+  .aside{border-left:2px solid var(--halpha);padding:4px 0 4px 18px;margin:22px 0;color:var(--slate)}
+  .aside p:last-child{margin:0}
+  table{border-collapse:collapse;width:100%;font-size:14px;margin:20px 0 8px}
+  th,td{text-align:right;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top;white-space:nowrap}
+  th{font-weight:500;color:var(--slate)}
+  th:first-child,td:first-child{text-align:left;color:var(--slate)}
+  .wrap{overflow-x:auto;margin:0 -20px;padding:0 20px}
+  footer{margin-top:60px;font-size:14px;color:var(--slate);border-top:1px solid var(--line);padding-top:18px}
+  a{color:var(--sun)}
+</style>
+</head>
+<body>
+<main>
+<p style="padding-top:28px;margin:0"><a href="../galactic-transit.html" style="color:var(--slate);text-decoration:none">&larr; Galactic Transit</a></p>
+<h1>Sagittarius A* and the S-stars</h1>
+<p class="lede">At the centre of the Milky Way, 27,000 light years from here, a black hole of
+4.3 million solar masses sits behind thirty magnitudes of dust. We know it is there because
+we have watched stars go round it.</p>
+
+<p>The scenario <b>The stars round the black hole</b> lands in 2011, with the clock at a year a
+second, looking along the line of sight from Earth with celestial north up — the view the
+orbits are published in. <b>S2</b> laps the hole in sixteen seconds, swinging in to 120&nbsp;AU
+at its 2018 pericentre; <b>S55</b> in thirteen, <b>S38</b> in nineteen. The <b>view</b> row's
+<b>Galactic Centre</b> entry frames the same scene without moving the clock, and the zoom
+buttons step in from there: the ellipses, then a single star's swing, then the hole itself.</p>
+
+<h2>The hole</h2>
+<p>Sagittarius A* is a compact radio source at RA 17h&nbsp;45m&nbsp;40s, Dec −29°&nbsp;00′&nbsp;28″.
+The GRAVITY interferometer's fit to several stellar orbits at once (GRAVITY Collaboration
+2022) puts <b>4.297&nbsp;million solar masses</b> at that point, <b>8,277&nbsp;parsecs</b> away. Its
+Schwarzschild radius — the radius at which escape speed reaches light speed — is
+<em>0.085&nbsp;AU</em>, twelve million kilometres, a fifth of Mercury's orbit. The shadow a
+black hole casts is larger than its horizon: light passing within 2.6 Schwarzschild radii is
+captured, so the dark disc on the sky is <b>0.44&nbsp;AU</b> across. At 8.3&nbsp;kpc that is
+53&nbsp;microarcseconds. The Event Horizon Telescope measured a ring 51.8&nbsp;±&nbsp;2.3&nbsp;μas
+across in 2022 — the same number, from a different instrument and a different physics.</p>
+
+<p>The piece draws all of that at its true size: the shadow is 0.44&nbsp;AU wide, the S-star
+orbits thousands of AU wide, and the Sun 8.3&nbsp;kpc off. The hole is the scene's origin. The
+Sun is 900 scene units out, and a single-precision number there is good to about a hundred
+AU — the whole of S2's pericentre — so the Centre is drawn in a frame of its own, with the
+eye's position relative to the hole computed in doubles and every position uploaded relative
+to it. Nothing here is compressed to make it visible; the zoom is how you cross it.</p>
+
+<h2>The S-stars</h2>
+<p>Fourteen stars are drawn, on the orbits published for them. Thirteen are from the twenty-five
+year VLT and Keck monitoring collected in Gillessen et&nbsp;al. 2017 (ApJ 837, 30, Table&nbsp;3).
+S2's is the interferometric solution from GRAVITY Collaboration 2020 (A&amp;A 636, L5), the
+paper that measured its Schwarzschild precession. The elements are the observer's: the
+semi-major axis as an angle on the sky, the inclination to the plane of the sky, the node
+east of north, the argument of pericentre, the epoch of pericentre. To place them the piece
+derives the sky's north and east at Sgr&nbsp;A* from the same J2000 rotation that places the real
+stars, so the drawn ellipses sit in the drawn sky exactly as they sit in the real one; the
+galactic plane comes out at position angle 31.4° east of north, which is Reid &amp; Brunthaler's
+measured value.</p>
+
+<div class="wrap"><table>
+<tr><th>star</th><th>a (mas)</th><th>a (AU)</th><th>e</th><th>i (°)</th><th>Ω (°)</th><th>ω (°)</th><th>pericentre</th><th>P (yr)</th></tr>
+<tr><td>S55</td><td>107.8</td><td>892</td><td>0.7209</td><td>150.1</td><td>325.5</td><td>331.5</td><td>2009.34</td><td>12.80</td></tr>
+<tr><td>S2</td><td>125.058</td><td>1,035</td><td>0.8846</td><td>134.57</td><td>228.17</td><td>66.26</td><td>2018.379</td><td>16.046</td></tr>
+<tr><td>S38</td><td>141.6</td><td>1,172</td><td>0.8201</td><td>171.1</td><td>101.06</td><td>17.99</td><td>2003.30</td><td>19.2</td></tr>
+<tr><td>S21</td><td>219.0</td><td>1,813</td><td>0.764</td><td>58.8</td><td>259.64</td><td>166.4</td><td>2027.40</td><td>37.0</td></tr>
+<tr><td>S13</td><td>264.1</td><td>2,186</td><td>0.4250</td><td>24.70</td><td>74.5</td><td>245.2</td><td>2004.86</td><td>49.0</td></tr>
+<tr><td>S9</td><td>272.4</td><td>2,255</td><td>0.644</td><td>82.5</td><td>156.3</td><td>150.6</td><td>1976.71</td><td>51.3</td></tr>
+<tr><td>S14</td><td>286.3</td><td>2,370</td><td>0.9761</td><td>100.59</td><td>226.38</td><td>334.59</td><td>2000.12</td><td>55.3</td></tr>
+<tr><td>S12</td><td>298.7</td><td>2,472</td><td>0.8883</td><td>33.56</td><td>230.1</td><td>317.9</td><td>1995.59</td><td>58.9</td></tr>
+<tr><td>S17</td><td>355.9</td><td>2,946</td><td>0.397</td><td>96.83</td><td>191.62</td><td>326.0</td><td>1991.19</td><td>76.6</td></tr>
+<tr><td>S8</td><td>404.7</td><td>3,350</td><td>0.8031</td><td>74.37</td><td>315.43</td><td>346.70</td><td>1983.64</td><td>92.9</td></tr>
+<tr><td>S31</td><td>449.0</td><td>3,716</td><td>0.5497</td><td>109.0</td><td>137.16</td><td>308.0</td><td>2018.07</td><td>108</td></tr>
+<tr><td>S1</td><td>595.0</td><td>4,925</td><td>0.5560</td><td>119.14</td><td>342.04</td><td>122.30</td><td>2001.80</td><td>166</td></tr>
+<tr><td>S24</td><td>944.0</td><td>7,813</td><td>0.8970</td><td>103.67</td><td>7.93</td><td>290.0</td><td>2024.50</td><td>331</td></tr>
+<tr><td>S54</td><td>1,200</td><td>9,932</td><td>0.893</td><td>135.8</td><td>288.35</td><td>140.8</td><td>2004.46</td><td>477</td></tr>
+</table></div>
+<p class="muted" style="font-size:14px">a in AU is the angle at 8,277 pc. The table is <code>src/astro/gc-data.ts</code>; the
+data workflow regenerates it from VizieR's copy of the 2017 paper (J/ApJ/837/30) on GitHub's runner,
+where the astronomy hosts are reachable, and prints every value beside the one it replaces.</p>
+
+<h3>Which way is depth?</h3>
+<p>Astrometry alone cannot tell an orbit from its mirror image about the plane of the sky: the
+ellipse on the sky is the same. The radial velocity breaks the tie. With depth counted away from
+the observer as <i>r&nbsp;sin(ω+ν)&nbsp;sin&nbsp;i</i>, S2 recedes at up to +4,000&nbsp;km/s in
+the months before its 2018 pericentre and approaches at −1,900 afterwards — which is the curve
+GRAVITY measured (2018, A&amp;A 615, L15, Fig.&nbsp;2), and the piece's unit test holds the
+model to it. Every orbit drawn shares that convention.</p>
+
+<h3>What is left out</h3>
+<p>The orbits are Keplerian. S2's Schwarzschild precession — 12 arcminutes per orbit, the 2020
+measurement — is a fraction of a degree per lap and is not drawn. Two much-publicised stars
+are absent on purpose: <b>S62</b> and <b>S4714</b>, whose sub-ten-year orbits were claimed from
+single-telescope imaging and were not reproduced by GRAVITY's interferometry. S29, which passed
+pericentre in 2021, is not drawn because its full element set was not at hand to transcribe;
+it is on the list for the data workflow. The nuclear star cluster's thousands of other stars are
+the modelled crowd the piece has always drawn there.</p>
+
+<h2>How the hole is drawn</h2>
+<p>One billboard, and every pixel of it traces a light ray backward from the eye through the
+Schwarzschild geometry — the null geodesic in a Cartesian embedding, <i>d²x/dλ² =
+−(3/2)h²x/r⁵</i>, stepped with a leapfrog integrator. Rays that fall in paint the shadow;
+rays that bend round and strike the disc paint the disc, including the far side lifted over
+and under the hole, and the thin bright ring where light has circled the hole before landing.
+Nothing about the shape is authored: the shadow comes out 2.6 Schwarzschild radii wide because
+that is the photon capture cross-section, and it comes out that size at the hole's true
+distance.</p>
+
+<p>The disc is the part that is a model. Sagittarius A*'s real accretion flow is faint, hot and
+thick — the EHT's ring is millimetre-wave emission from it, and in visible light there would be
+almost nothing to see. What is drawn is a thin, luminous Shakura–Sunyaev sheet from the innermost
+stable orbit (3 Schwarzschild radii) out to 12, its temperature falling as <i>r<sup>−3/4</sup></i>,
+Doppler-beamed by the orbital speed and reddened by the gravitational redshift — the picture a
+bright, thin disc would present, drawn round a hole that does not have one, so that the lensing
+has something to lens. Its inclination is set at 45° to the line of sight, inside the EHT's bound
+of under 50°, and tilted enough for the bending of the far side to show; the sense of its rotation
+is a choice. The background sky is not lensed: the stars behind the shadow are simply hidden.
+The <b>Gaia BH1</b> article describes the other case, a hole with no flow at all.</p>
+
+<footer>An article from <a href="../galactic-transit.html">Galactic Transit</a> — the notes that used to live in its About panel, one subject per page.
+Sources: GRAVITY Collaboration 2018 (A&amp;A 615, L15), 2020 (A&amp;A 636, L5), 2022 (A&amp;A 657, L12); Gillessen et&nbsp;al. 2017 (ApJ 837, 30);
+Event Horizon Telescope Collaboration 2022 (ApJL 930, L12); Reid &amp; Brunthaler 2004 (ApJ 616, 872).</footer>
+</main>
+</body>
+</html>

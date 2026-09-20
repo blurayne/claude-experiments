@@ -78,6 +78,21 @@ export function applyFocusView(): void {
     if($('tView').classList.contains('on')) $('tView').click();
     if(!$('tDive').classList.contains('on')) $('tDive').click();
     cam.follow = true; cam.coreLock = false; cam.distGoal = 0.1; cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
+  } else if(v === 'gc'){
+    // Sagittarius A* and the S-stars: the sky-plane view, north up, framed on the inner
+    // orbits (S2's ellipse is ~2,000 AU across). The Centre is the scene's origin, so the
+    // follow target is exact. Set after the toggle clicks, which reset the target to the Sun.
+    if($('tDive').classList.contains('on')) $('tDive').click();
+    if(!$('tView').classList.contains('on')) $('tView').click();
+    cam.followTarget = 'gc';
+    cam.follow = true; cam.coreLock = false; cam.distGoal = 1.4e-3; cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
+    cam.yaw = 0; cam.pitch = 0;
+  } else if(v === 'bh1'){
+    // the nearest black hole, 1,565 light years out: the whole 186-day orbit in frame
+    if($('tDive').classList.contains('on')) $('tDive').click();
+    if(!$('tView').classList.contains('on')) $('tView').click();
+    cam.followTarget = 'bh1';
+    cam.follow = true; cam.coreLock = false; cam.distGoal = 1.9e-6; cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
   } else if(v === 'and'){
     // framed wide enough for the whole disk plus its extended halo and stream
     // (R_A=2245, halo out to ~4200, the Giant Southern Stream past 5700), at any
@@ -242,6 +257,22 @@ export function jumpToEpoch(): void {
     cam.dist = cam.distGoal = 4300;
     $v('speed').value = '21'; $('speed').dispatchEvent(new Event('input'));
     setMultExp(8);
+    if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
+  }
+  if(sel.value === '4.567999985s'){
+    // The stars round the black hole: lands in 2011, seven years before S2's 2018 pericentre,
+    // at four years a second — S2 laps in four seconds, S55 in three, and the swing through
+    // pericentre is the whip it really is, each star trailing an eighth of its orbit behind
+    // it — looking along the line of sight from Earth with north up, the way the orbits are
+    // drawn in the papers. The view select carries the framing.
+    $v('focusSel').value = 'gc'; applyFocusView();
+    if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
+  }
+  if(sel.value === '4.568b'){
+    // Gaia BH1 today: its star swings round the dark companion once every 186 days, so a
+    // week a second shows a lap in under half a minute
+    $v('focusSel').value = 'bh1'; applyFocusView();
+    cam.yaw = 0.55; cam.pitch = 0.32;
     if(simClock.paused && !matchMedia('(prefers-reduced-motion: reduce)').matches) $('tPause').click();
   }
   // Earth's own events are watched from Earth: the globe filling the view, followed. The

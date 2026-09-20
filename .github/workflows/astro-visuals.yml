@@ -16,6 +16,7 @@ on:
       - astro-visuals/tools/m31-wide-optical.jpg
       - astro-visuals/tools/m31-wide-ir.jpg
       - astro-visuals/tools/m31-wide-uv.jpg
+      - astro-visuals/tools/fetch_sstars.py
       - .github/workflows/astro-visuals.yml
 permissions:
   contents: write
@@ -48,4 +49,36 @@ jobs:
             git commit -m 'astro-visuals: regenerate m31-map.webp from heic2501a' \
               -m 'Face-on probability map of Andromeda, deprojected from the Hubble PHAT+PHAST panorama. Credit: NASA, ESA, B. F. Williams, Z. Chen, L. C. Johnson, the PHAT and PHAST teams (CC BY 4.0).'
             git push origin main
+          fi
+  # The S-star orbits round Sagittarius A*, and Gaia BH1's position: src/astro/gc-data.ts is
+  # regenerated from VizieR (Gillessen+ 2017, J/ApJ/837/30; Gaia DR3, I/355), which the
+  # interactive session cannot reach. The page is built from src/, and a push made with the
+  # workflow's own token does not trigger the page workflow — so it is dispatched by hand.
+  sstars:
+    runs-on: ubuntu-latest
+    needs: m31-map
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Regenerate the S-star table from the catalogues
+        run: python astro-visuals/tools/fetch_sstars.py
+      - name: Commit the verified table, and rebuild the page from it
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add astro-visuals/src/astro/gc-data.ts
+          if git diff --cached --quiet; then
+            echo 'gc-data.ts already matches the catalogues; nothing to commit'
+          else
+            git commit -m 'astro-visuals: regenerate gc-data.ts from VizieR' \
+              -m 'The S-star orbital elements from Gillessen et al. 2017 (J/ApJ/837/30) and Gaia BH1 from Gaia DR3 (I/355), fetched by tools/fetch_sstars.py.'
+            git pull --rebase origin main
+            git push origin main
+            gh workflow run astro-visuals-page.yml --ref main
           fi

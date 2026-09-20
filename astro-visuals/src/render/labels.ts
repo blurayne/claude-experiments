@@ -7,6 +7,7 @@ import { SKY_LABELS } from '../scene/skybox'
 import { gfx, readout, view } from './state'
 import { bodyPosArr } from './passes/bodies'
 import { moonRel } from '../astro/earth'
+import { SSTARS, sstarA } from '../astro/gc'
 
 /**
  * Every name on the screen. They are DOM, not GL: HTML text over the canvas, positioned each
@@ -97,6 +98,15 @@ const mergedEl = (()=>{ const d=document.createElement('div'); d.className='arml
   d.style.display='none'; labelWrap.appendChild(d); return d; })();
 const g710Lbl = (()=>{ const d=document.createElement('div'); d.className='lbl'; d.textContent='Gliese 710';
   d.style.color='rgba(255,190,140,.9)'; labelWrap.appendChild(d); return d; })();
+// The Galactic Centre: the hole and the fourteen S-stars, each named while its orbit is wide
+// enough on screen to tell from its neighbours'; and Gaia BH1's pair. Their positions arrive
+// relative to their own frames, with the view matrices built for those frames.
+const mkLbl = (text: string, colour: string): HTMLElement => { const d=document.createElement('div'); d.className='lbl'; d.textContent=text;
+  d.style.display='none'; d.style.color=colour; labelWrap.appendChild(d); return d; };
+const sgraEl = mkLbl('Sagittarius A*', 'rgba(236,214,190,.9)');
+const sstarEls = SSTARS.map(s => mkLbl(s.name, 'rgba(190,210,255,.7)'));
+const bh1El = mkLbl('Gaia BH1', 'rgba(236,214,190,.9)');
+const bh1StarEl = mkLbl('G dwarf companion', 'rgba(255,225,170,.75)');
 
 /** The easing state a steady label carries, parked on the element itself. */
 interface LabelState { x: number; y: number; on: boolean; hid: number; leaps: number; calm: number; spin: boolean }
@@ -176,16 +186,29 @@ export interface LabelInputs {
   structOn: readonly boolean[]
   /** the arm and galaxy names are a switch of their own */
   armsOn: boolean
+  /** the Centre's frame: drawn this frame, its view, the eye's distance, the S-stars' positions, the shadow's size */
+  gc: { on: boolean; view: Float32Array; dist: number; stars: Float32Array; sgraPx: number }
+  /** Gaia BH1's frame, the same way: the hole at the origin, the star relative to it */
+  bh1: { on: boolean; view: Float32Array; dist: number; star: Float32Array; holePx: number }
 }
 
 /**
  * Place every label for this frame. `showLabels` off still runs one call — Gliese 710's name
  * has to be taken down, and it is the only label placed outside the main block.
  */
+/** a projector for one view: clip w and the screen position of a point in that view's frame */
+function projector(projMat: Float32Array, viewMat: Float32Array): (x: number, y: number, z: number) => number[] {
+  const pv = mul(projMat, viewMat);
+  return (x, y, z) => { const cw = pv[3]*x+pv[7]*y+pv[11]*z+pv[15];
+    return [cw, ((pv[0]*x+pv[4]*y+pv[8]*z+pv[12])/cw*0.5+0.5)*view.W, (-(pv[1]*x+pv[5]*y+pv[9]*z+pv[13])/cw*0.5+0.5)*view.H]; };
+}
+const hideGC = (): void => { placeLabel(sgraEl, 0, 0, false); sstarEls.forEach(l => placeLabel(l as Label, 0, 0, false)); };
+const hideBH1 = (): void => { placeLabel(bh1El, 0, 0, false); placeLabel(bh1StarEl, 0, 0, false); };
+
 export function drawLabels(showLabels: boolean, inputs: LabelInputs): void {
-  if(!showLabels){ placeLabel(g710Lbl, 0, 0, false); return }
+  if(!showLabels){ placeLabel(g710Lbl, 0, 0, false); hideGC(); hideBH1(); return }
   const { projMat, viewMat, pxScale, camDist, org, andPos, merge, sep, spinMW, spinM31, asm, bornYet, star,
-          showP9, showDwarfs, wasEaten, structOn, armsOn } = inputs;
+          showP9, showDwarfs, wasEaten, structOn, armsOn, gc, bh1 } = inputs;
   const pv = mul(projMat, viewMat);
   const proj = (x: number, y: number, z: number): number[] => { const cw = pv[3]*x+pv[7]*y+pv[11]*z+pv[15];
     return [cw, ((pv[0]*x+pv[4]*y+pv[8]*z+pv[12])/cw*0.5+0.5)*view.W, (-(pv[1]*x+pv[5]*y+pv[9]*z+pv[13])/cw*0.5+0.5)*view.H]; };
@@ -272,4 +295,22 @@ export function drawLabels(showLabels: boolean, inputs: LabelInputs): void {
     const [cw, sx, sy] = proj(star.x*k, star.y*k, star.z*k);
     placeLabel(g710Lbl, sx, sy, cw > Math.max(1e-9,camDist*0.01) && camDist <= 900);
   } else placeLabel(g710Lbl, 0, 0, false);
+  // the Centre: projected through its own view, so the names land where the points do
+  if(gc.on){
+    const pg = projector(projMat, gc.view);
+    { const [cw, sx, sy] = pg(0, 0, 0); placeLabel(sgraEl, sx, sy - Math.max(0, gc.sgraPx*0.5*7.5/2.6), cw > 0); }
+    for(let k=0;k<SSTARS.length;k++){
+      const apx = sstarA(k).u*pxScale/gc.dist;                       // the orbit's semi-major axis on screen
+      const [cw, sx, sy] = pg(gc.stars[k*3], gc.stars[k*3+1], gc.stars[k*3+2]);
+      // a name needs an orbit wide enough to own it, and must not sit on the hole's own name
+      placeLabel(sstarEls[k] as Label, sx, sy, cw > 0 && apx > 36 && apx < 3000 && Math.hypot(sx - view.W/2, sy - view.H/2) > 0);
+    }
+  } else hideGC();
+  if(bh1.on){
+    const pb = projector(projMat, bh1.view);
+    const [cw, hx, hy] = pb(0, 0, 0);
+    placeLabel(bh1El, hx, hy - Math.max(0, bh1.holePx*0.5*7.5/2.6), cw > 0);
+    const [cw2, sx, sy] = pb(bh1.star[0], bh1.star[1], bh1.star[2]);
+    placeLabel(bh1StarEl, sx, sy, cw2 > 0 && Math.hypot(sx - hx, sy - hy) > 18);
+  } else hideBH1();
 }

@@ -38,8 +38,13 @@ function panCentroid(): number[] { let x=0,y=0; for(const q of touches.values())
 // the floor: with a body followed, three times closer than the old one — a planet may fill
 // the frame and then some, which is what a visitor reaches for once they are already there.
 // The Moon's view before she forms is Earth's view, so it keeps Earth's floor.
+// The two black holes have floors of their own, set so the shadow fills about two thirds of
+// the view: Sagittarius A*'s 0.44 AU across, Gaia BH1's 146 km.
 export const minDist = (): number => cam.followTarget === 'moon' ? (ageGyr() > MOON_BORN ? 1.8e-12 : 6.7e-12)
-                   : cam.followTarget === 'earth' ? 6.7e-12 : (REAL_MODE ? 2e-8 : 25);
+                   : cam.followTarget === 'earth' ? 6.7e-12
+                   : cam.followTarget === 'gc' ? 3e-7
+                   : cam.followTarget === 'bh1' ? 1.5e-12
+                   : (REAL_MODE ? 2e-8 : 25);
 // The ceiling: three times further out than the old 7500, so the Galaxy can be seen whole
 // with room around it. The sky sphere and the far plane follow it (render/frame's
 // skyProjection), or the backdrop would clip away exactly when there is most of it to see.
