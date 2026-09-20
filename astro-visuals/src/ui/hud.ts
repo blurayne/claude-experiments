@@ -347,7 +347,8 @@ export function updateHud(now: number, pn: PnState | null): void {
     }
   }
   { const wLy = 1.155*cam.dist*30, wAU = wLy*63241; // view height in ly / AU (60° fov)
-    $('sScale').textContent = wLy>=1000 ? (wLy/1000).toFixed(1)+' kly'
+    $('sScale').textContent = wLy>=1e6 ? (wLy/1e6).toFixed(wLy<1e7?2:1)+' Mly'
+      : wLy>=1000 ? (wLy/1000).toFixed(1)+' kly'
       : wLy>=0.05 ? wLy.toFixed(wLy<10?2:0)+' ly'
       : wAU >= 0.5 ? wAU.toFixed(wAU<10?1:0)+' AU'
       : wAU*1.496e8 >= 1e6 ? (wAU*1.496e8/1e6).toFixed(2)+' Mkm'
