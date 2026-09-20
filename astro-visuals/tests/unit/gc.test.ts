@@ -128,8 +128,9 @@ describe('the other S-stars', () => {
 describe('Gaia BH1', () => {
   it('is 1,565 light years away toward Ophiuchus, 18° above the plane', () => {
     expect(BH1_INFO.distLy).toBeCloseTo(1565.5, 0)
+    // the frame is the hole, which swings a tenth of an AU (2e-6 ly) about the barycentre
     const c = bh1Centre(0, tmp)
-    expect(len(c)*30).toBeCloseTo(BH1_INFO.distLy, 6)
+    expect(len(c)*30).toBeCloseTo(BH1_INFO.distLy, 4)
     // galactic latitude from the scene: north is +y
     expect(Math.asin(c[1]/len(c))*180/Math.PI).toBeCloseTo(18.05, 1)
     // longitude 22.6°: measured from the Centre (−z) toward l=90° (+x)
@@ -137,7 +138,7 @@ describe('Gaia BH1', () => {
   })
 
   it('rides the Sun round the Galaxy, at a fixed distance', () => {
-    for (const t of [0, 1e6, 5e7, -3e7]) expect(len(bh1Centre(t, tmp))*30).toBeCloseTo(BH1_INFO.distLy, 6)
+    for (const t of [0, 1e6, 5e7, -3e7]) expect(len(bh1Centre(t, tmp))*30).toBeCloseTo(BH1_INFO.distLy, 4)
   })
 
   it('has a 185.6-day orbit between 0.77 and 2.03 AU', () => {
