@@ -37,7 +37,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 OUT = HERE.parent / "src" / "astro" / "sc-data.ts"
 KT_MIRROR = "https://raw.githubusercontent.com/DESI-UR/DESI_SGA/master/TF/apjaa76dbt2_mrt.txt"
-KT_VIZIER = "https://vizier.cds.unistra.fr/viz-bin/asu-txt?-source=J/ApJ/843/16/table2&-out.all=1&-out.max=unlimited"
+KT_VIZIER = "https://vizier.cds.unistra.fr/viz-bin/asu-tsv?-source=J/ApJ/843/16/table2&-out.all=1&-out.max=unlimited"
 UNGC_MIRROR = "https://raw.githubusercontent.com/carlzimmerman/zimmerman-formula/main/real_research/data/ungc_karachentsev2013.tsv"
 UNGC_VIZIER = "https://vizier.cds.unistra.fr/viz-bin/asu-tsv?-source=J/AJ/145/101/catalog&-out=Name,_RA,_DE,Kmag,TT,HRV,Dist,f_Dist&-out.max=unlimited"
 H0 = 74.6
@@ -128,8 +128,48 @@ def try_fetch(urls):
     raise RuntimeError(f"no source reachable: {last}")
 
 
+def parse_groups_tsv(text):
+    """VizieR's TSV: comment lines, a header row, a units row, a dashes row, then data — by column name"""
+    import re
+    rows = []
+    hdr = None
+    cols = {}
+    want = {"pgc1": r"^PGC1$", "mem": r"^(Mem|Nmem)$", "sgl": r"^SGL$", "sgb": r"^SGB$", "logK": r"^logK$",
+            "vls": r"^VLS$", "D": r"^(D|Dist)$", "sigV": r"^sigmaV$", "r2t": r"^R2t$"}
+    for line in text.splitlines():
+        if line.startswith("#") or not line.strip():
+            continue
+        cells = [c.strip() for c in line.split("\t")]
+        if hdr is None:
+            hdr = cells
+            for k, rx in want.items():
+                for i, h in enumerate(hdr):
+                    if re.match(rx, h):
+                        cols[k] = i; break
+            if any(k not in cols for k in ("pgc1", "mem", "sgl", "sgb", "vls")):
+                print(f"  VizieR columns not identified: {hdr}")
+                return []
+            continue
+        if set(line.strip()) <= set("-\t "):
+            continue
+        try:
+            g = lambda k, t=float: (t(cells[cols[k]]) if k in cols and cols[k] < len(cells) and cells[cols[k]] else None)  # noqa: E731
+            pgc1 = g("pgc1", int)
+        except ValueError:
+            continue  # the units row
+        if pgc1 is None:
+            continue
+        try:
+            rows.append(dict(pgc1=pgc1, mem=g("mem", int), sgl=g("sgl"), sgb=g("sgb"), logK=g("logK"), vls=g("vls", int), D=g("D"), sigV=g("sigV", int), r2t=g("r2t")))
+        except ValueError:
+            continue
+    return rows
+
+
 def parse_groups(text):
-    """the ApJ machine-readable table (fixed columns) — VizieR's asu-txt copy has the same layout"""
+    """the ApJ machine-readable table (fixed columns), or VizieR's TSV by header"""
+    if "#Column" in text[:40000] or "#RESOURCE=" in text[:4000]:   # VizieR's TSV, not the journal's MRT
+        return parse_groups_tsv(text)
     rows = []
     for line in text.splitlines():
         if not line.strip() or line[0] in "#-" or not line[:7].strip().isdigit():
@@ -177,10 +217,27 @@ def pretty(name):
 
 def main():
     check_only = "--check" in sys.argv
-    kt_text, kt_src = try_fetch([KT_VIZIER, KT_MIRROR])
-    groups = parse_groups(kt_text)
-    ungc_text, ungc_src = try_fetch([UNGC_VIZIER, UNGC_MIRROR])
-    gals = parse_ungc(ungc_text)
+    # each source is fetched AND parsed before it counts; a copy that parses short is skipped
+    groups, kt_src = [], ""
+    for url in (KT_VIZIER, KT_MIRROR):
+        try:
+            print(f"fetching {url}")
+            groups = parse_groups(fetch(url)); kt_src = url
+        except Exception as exc:  # noqa: BLE001
+            print(f"  not reachable: {exc}"); continue
+        if len(groups) >= 8000:
+            break
+        print(f"  parsed only {len(groups)} groups from this copy — trying the next")
+    gals, ungc_src = [], ""
+    for url in (UNGC_VIZIER, UNGC_MIRROR):
+        try:
+            print(f"fetching {url}")
+            gals = parse_ungc(fetch(url)); ungc_src = url
+        except Exception as exc:  # noqa: BLE001
+            print(f"  not reachable: {exc}"); continue
+        if len(gals) >= 800:
+            break
+        print(f"  parsed only {len(gals)} galaxies from this copy — trying the next")
     if len(groups) < 8000 or len(gals) < 800:
         print(f"unexpected sizes: {len(groups)} groups, {len(gals)} galaxies — file left untouched")
         return 2
