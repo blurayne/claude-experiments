@@ -23,7 +23,7 @@ before the work starts. An item is ticked when it ships, with the version that c
       Twenty-three objects from their designations and Green's sizes in a sky-plane quad
       shader through the map's heat ramp; the "Galactic Centre, radio" view with celestial
       north up and a scenario; the runner checks the table against VizieR — v3.14.0.
-- [ ] The Local Group, all of it: every galaxy of the Local Group picture (the Andromeda
+- [x] The Local Group, all of it: every galaxy of the Local Group picture (the Andromeda
       and Milky Way satellites, the field dwarfs — Wolf–Lundmark–Melotte, IC 1613, Leo A,
       the Phoenix, Tucana, Aquarius, SagDIG and Cetus dwarfs …) at its measured distance and
       direction, and the newly discovered dark ("black") galaxy; from a maintained catalogue
@@ -31,6 +31,17 @@ before the work starts. An item is ticked when it ships, with the version that c
       With the labels switch on, the picture's presentation: the 3D box (the cylinder frame)
       round the Group and each name with its distance in a small box beside it. A Local
       Group view that frames the whole thing, and an article.
+      130 galaxies from the Local Volume Database (fetched in the sandbox, re-fetched by the
+      data workflow) plus Andromeda, Triangulum and AC G185.0−11.5; to scale, with the
+      merger model's Andromeda standing down as the Group fades in; the box, the drop-lines,
+      the names with their distances; the "Local Group" view — v3.15.0.
+- [x] Local Group labels: the smaller / less important galaxies in grey without the light
+      years; or make the light years toggle-able in the settings. Both: M_V ≤ −11 carry the
+      distance box, the rest are grey; a "distances" switch under labels — v3.15.0.
+- [ ] The Andromeda–Milky Way merger could look much better: compare with the simulation in
+      https://en.wikipedia.org/wiki/File:Andromeda_and_Milky_Way_collision.ogv (from the
+      Local Group article) — or is that model outdated and the piece more accurate? Tidal
+      tails, bridges, the passages. After the research on it comes back.
 - [ ] The second picture as well: the Virgo Supercluster — the Local Group, the Maffei,
       Sculptor, M81, Canes and Leo groups, the Virgo, Fornax and Eridanus clusters — at
       their measured places (Cosmicflows / Tully's groups), the same box-and-distances

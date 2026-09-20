@@ -155,14 +155,14 @@ export function initSkybox(): void {
 const loaded = new Set<WebGLTexture>();
 
 /** The image quads. The dots draw through the point pipeline in render/frame instead. */
-export function drawSkyImages(projMat: Float32Array, viewMat: Float32Array, org: Float64Array): void {
-  if (!quadVAOs.some(q => loaded.has(q.tex))) return
+export function drawSkyImages(projMat: Float32Array, viewMat: Float32Array, org: Float64Array, gain = 1): void {
+  if (gain < 0.01 || !quadVAOs.some(q => loaded.has(q.tex))) return
   gl.useProgram(pSky)
   gl.uniformMatrix4fv(US.proj, false, projMat)
   gl.uniformMatrix4fv(US.view, false, viewMat)
   gl.uniform3f(US.org, org[0], org[1], org[2])
   gl.uniform1i(US.tex, 0)
-  gl.uniform1f(US.gain, 0.85)
+  gl.uniform1f(US.gain, 0.85*gain)
   gl.activeTexture(gl.TEXTURE0)
   for (const q of quadVAOs) {
     if (!loaded.has(q.tex)) continue

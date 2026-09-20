@@ -25,6 +25,8 @@ import { drawGlobe } from './passes/globe'
 import { drawG710 } from './passes/g710'
 import { drawGalacticCentre, sstarRel, bh1StarRel } from './passes/gc'
 import { bh1Centre, SGRA } from '../astro/gc'
+import { drawLocalGroup } from './passes/localgroup'
+import { LG_BOX } from '../astro/localgroup'
 import { drawShed, drawSunDisc } from './passes/sun'
 import { drawEatFlash } from './passes/eatflash'
 import { bindHDR, resolveTone } from './passes/tone'
@@ -62,6 +64,8 @@ let vaoStars: WebGLVertexArrayObject
 
 /** while a pointer is down the clock holds — render/camera reports it */
 let holding = false
+/** the Group's fade from the last frame: the skybox photographs read it a pass earlier */
+let lgFadeNow = 0
 export const setHolding = (h: boolean): void => { holding = h }
 
 /** the rendering origin: the Sun, in double precision */
@@ -70,6 +74,8 @@ const sunSizeTmp=new Float32Array(1), eatSizeTmp=new Float32Array(1);
 const andPos = new Float32Array(3);
 /** Gaia BH1 — the hole itself — Sun-relative in doubles, and the absolute position the camera follows */
 const bh1C = new Float64Array(3), bh1Abs = new Float64Array(3);
+/** the Local Group's box centre, absolute, for the camera to follow */
+const lgAbs = new Float64Array(3);
 function updateAnd(){
   const a = ageGyr();
   const [u,v] = orbitUV(a);
@@ -209,9 +215,11 @@ function frame(now: number): void {
   // the two black holes: Sagittarius A* is the scene's origin, Gaia BH1 rides the local sky
   bh1Centre(simClock.simT, bh1C);
   for(let i=0;i<3;i++) bh1Abs[i] = org[i] + bh1C[i];
+  for(let i=0;i<3;i++) lgAbs[i] = org[i] + LG_BOX.centre[i];
   const followPos = cam.followTarget === 'and' ? andPos
                   : cam.followTarget === 'gc' || cam.followTarget === 'gcr' ? GC_ORIGIN
                   : cam.followTarget === 'bh1' ? bh1Abs
+                  : cam.followTarget === 'lg' ? lgAbs
                   : moonHere ? moonW
                   : ((cam.followTarget === 'earth' || cam.followTarget === 'moon') && !wasEaten[3]) ? earthW : org;
   const goal = cam.follow ? [followPos[0],followPos[1],followPos[2]] : [0,0,0];
@@ -380,9 +388,13 @@ function frame(now: number): void {
   const dAnd = Math.hypot(eye[0] - (andPos[0] - org[0]), eye[1] - (andPos[1] - org[1]), eye[2] - (andPos[2] - org[2]));
   const andFar = dAnd > dMW;
   const andLayer = (): void => {
-    drawNebula(clouds, true, 'and');
-    if(insideDisk) drawNebula(clouds, false, 'and');
-    drawDust(clouds, hud.dustOn, 'and');
+    // the merger model's Andromeda stands down as the Local Group's to-scale one fades in
+    if(lgFadeNow >= 0.999) return;
+    if(lgFadeNow < 0.5){
+      drawNebula(clouds, true, 'and');
+      if(insideDisk) drawNebula(clouds, false, 'and');
+      drawDust(clouds, hud.dustOn, 'and');
+    }
     if(gfx.vaoAnd){
       // Andromeda: generated flat in its own disk frame; uGRot turns it to its measured
       // orientation — the two disks stand 120° apart, nowhere near parallel — and uGOff
@@ -404,7 +416,9 @@ function frame(now: number): void {
       gl.uniform1f(U.ptArmAmp, 0.0);         // Andromeda's structure is rings, not the beat
       gl.uniform1f(U.ptRingAmp, M31_RING.amp); gl.uniform1f(U.ptRingT, ringT);
       gl.uniform2f(U.ptRingC, M31_RING.cx, M31_RING.cz);
+      gl.uniform1f(U.ptFade, lgFadeNow);
       gl.bindVertexArray(gfx.vaoAnd); gl.drawArrays(gl.POINTS,0,gfx.N_AND);
+      gl.uniform1f(U.ptFade, 0.0);
       gl.uniformMatrix3fv(U.ptGRot, false, MAT3_ID);
       gl.uniform3f(U.ptGOff, 0, 0, 0);
       gl.uniform3f(U.ptSun, sunX, bubY, sunZ);
@@ -416,12 +430,16 @@ function frame(now: number): void {
       gl.uniform1f(U.ptRingAmp, 0.0);
       gl.uniform1f(U.ptGal, 0.0);
     }
-    if(!insideDisk) drawNebula(clouds, false, 'and');   // her HII ring and core, over her stars
+    if(!insideDisk && lgFadeNow < 0.5) drawNebula(clouds, false, 'and');   // her HII ring and core, over her stars
   };
   // the extragalactic sky first: it is behind everything, and it does not turn
-  drawSkyImages(view.projMat!, viewMat, org);
+  // the photographed Clouds and Triangulum sit on the far sphere: once the Group is drawn
+  // at its depth they would show twice, so they fade as it fades in
+  const lgA = lgFadeNow;
+  drawSkyImages(view.projMat!, viewMat, org, 1 - lgA);
   { const dots = skyDotVAO();
-    if(dots){ gl.useProgram(pPt); gl.bindVertexArray(dots); gl.drawArrays(gl.POINTS, 0, N_SKYDOTS); } }
+    // the far sphere's galaxy dots are sky, at no depth: they go as the Group comes
+    if(dots && lgFadeNow < 0.999){ gl.useProgram(pPt); gl.uniform1f(U.ptFade, lgFadeNow); gl.bindVertexArray(dots); gl.drawArrays(gl.POINTS, 0, N_SKYDOTS); gl.uniform1f(U.ptFade, 0.0); } }
   if(andFar) andLayer();
   // the Milky Way's layer: haze, lanes, then the backdrop sky and the Gaia bubble (our
   // own foreground stars — in front of Andromeda from every camera this side of her),
@@ -536,6 +554,8 @@ function frame(now: number): void {
     projMat: view.projMat!, viewGC, viewBH1, distGC, distBH1, pxScale, viewH: view.H*view.DPR, simT: simClock.simT, shimT: simClock.shimT,
     mirror: SKY_MIRROR, orbitAlpha: hud.orbitAlpha, showOrbits: hud.psO, trailAlpha: hud.trailAlpha, showTails: hud.psH, viewMat, org,
   });
+  // the Local Group, once the eye is far enough out to see the Galaxy whole
+  lgFadeNow = drawLocalGroup({ projMat: view.projMat!, viewMat, eye, camDist: cam.dist, pxScale, showLabels: hud.showLabels });
   // The Sun itself, last of the scene: the envelope it has shed, then its disc over that.
   // Whether the envelope is on screen decides what the Sun's label says, so the pass
   // reports it and the readout is set here rather than from inside the draw.
@@ -567,6 +587,7 @@ function frame(now: number): void {
     structOn: [hud.showBelt, hud.showKuiper, hud.showOort], armsOn: hud.armsOn,
     gc: { on: gcRes.gcOn, view: viewGC, dist: distGC, stars: sstarRel, sgraPx: gcRes.sgraPx, radioA: gcRes.radioA },
     bh1: { on: gcRes.bh1On, view: viewBH1, dist: distBH1, star: bh1StarRel, holePx: gcRes.bh1Px },
+    lgA: lgFadeNow,
   });
 
   updateHud(now, pn);

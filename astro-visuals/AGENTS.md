@@ -220,6 +220,39 @@ dismissing the first-run tour **starts** the clock, so pausing has to come after
   as Q) so the map's orientation is the default; the zoom buttons carry on inward to the
   S-stars and the hole from it.
 
+## The Local Group (v3.15.0)
+
+- **Data from the Local Volume Database, in the sandbox and on the runner.** raw.githubusercontent.com
+  is reachable from the sandbox (VizieR, NED, EDD are not), so `tools/fetch_local_group.py`
+  ran here and generated `src/astro/lg-data.ts` from real rows; the data workflow re-runs it.
+  Three rows are added by hand with sources (Andromeda, Triangulum, AC G185.0−11.5). The
+  classification (dSph/dIrr/dE/cE) is a name list in the tool, from McConnachie 2012 — the
+  database carries no morphology column. Edit the tool, never the generated file.
+- **To scale, with a slide.** The merger model draws Andromeda at `sepScene(765 kpc)` =
+  13,000 units (log-compressed beyond 83 kpc). The Group's layer (`render/passes/localgroup`)
+  fades in between camera distances 24,000 and 64,000 (`lgFade`), and over that fade every
+  member slides from the compressed depth to its true one (`lgUpdate(t)`) while the model's
+  Andromeda — her points (`uFadeOut`), nebula, dust and labels — fades out and the far
+  sphere's photographs and galaxy dots go with her. Past the fade the Group is to scale and
+  nothing is drawn twice. The 'and' view sits at 9,500 and is untouched. Do not draw the
+  Group at true scale while the model's Andromeda is visible: two Andromedas.
+- **Markers, not photometry.** Each galaxy is a quad on its half-light ellipse
+  (`galaxy.frag` on `gcradio.vert`), at the angular size it has from the Sun, with a pixel
+  floor (26 px for the spirals, 5–12 px for the dwarfs by luminosity) and a display gain from
+  M_V — a dwarf at its true surface brightness would be absent. The Milky Way gets a marker of
+  its own at the origin (the model's points are dust at 300,000 units). The article says so.
+- **The box and the labels.** `LG_BOX` is a cylinder on the Galaxy's axis centred between the
+  Milky Way and Andromeda, sized to the members; drawn only with the labels on and only past
+  the fade (`fade > 0.98`), with the two silhouette edges recomputed toward the eye each frame
+  and a drop-line per galaxy to the mid-plane. Labels: `LG_BY_LIGHT` order, a coarse screen
+  grid (`lgTaken`) so a name never overprints another — the luminous claim space first;
+  M_V ≤ −11 carry the distance box (`.dist`), the rest are `.minor` grey; `body.nodist` (the
+  "distances" switch, persisted as `tDist`) hides the boxes.
+- **The zoom ceiling is 400,000 now.** `MAX_DIST` was 22,500; the Group's view is at 330,000
+  and the ladder ends there. The far plane already followed the zoom. Anything with a
+  camDist-keyed fade that assumed the old ceiling should be re-checked when a view goes
+  further still (the supercluster will).
+
 ## The emblem and the icons
 
 - The emblem is **Galactic Transit** — the wordmark on `icon.svg`'s arc, the manifest's

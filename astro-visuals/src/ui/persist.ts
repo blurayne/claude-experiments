@@ -22,7 +22,7 @@ import { $ } from '../core/dom'
 
 export const SKEY = 'galactic-transit.settings.v1';
 
-const S_TOG = ['tLabels','tArms','tLabelSteady','tZoomBtns','tSpinLock','tDwarfs','tP9','tBelt','tKuiper','tOort','tDust',
+const S_TOG = ['tLabels','tArms','tDist','tLabelSteady','tZoomBtns','tSpinLock','tDwarfs','tP9','tBelt','tKuiper','tOort','tDust',
                'tEvSN','tEvBirth','tVar',
                'tStatAge','tStatGyr','tStatSn','tStatBirth','tGaia','tFps','tHalo','tScaleBar','tScaleText'];
 const S_SLD = ['speed','trailA','orbitA','trailL','musicVol','sfxVol','minB','hudHz','coreB','qrScale'];

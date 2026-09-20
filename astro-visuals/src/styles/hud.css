@@ -17,6 +17,11 @@
     text-shadow:0 0 8px rgba(0,0,0,.9);pointer-events:none;white-space:nowrap}
   .lbl{position:fixed;transform:translate(-50%,-140%);font-family:'Orbitron',ui-monospace,monospace;font-size:8px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;
     color:rgba(190,224,250,.8);pointer-events:none;z-index:3;text-shadow:0 0 6px #000;white-space:nowrap}
+  .lbl.lg{transform:translate(-50%,-50%);color:rgba(226,232,244,.86)}
+  .lbl.lg.minor{color:rgba(150,162,184,.62);font-size:7px}
+  body.nodist .lbl .dist{display:none}
+  .lbl .dist{display:inline-block;margin-left:5px;padding:1px 4px;border:1px solid rgba(150,180,220,.45);border-radius:2px;
+    font-size:7px;letter-spacing:.1em;color:rgba(190,205,230,.85);text-shadow:none;vertical-align:1px}
   .alertbox{position:fixed;left:14px;z-index:6;display:none;box-sizing:border-box;
     padding:6px 10px;border-radius:3px;text-align:center;background:rgba(10,16,28,.28);
     backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);

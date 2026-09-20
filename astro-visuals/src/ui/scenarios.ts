@@ -102,6 +102,14 @@ export function applyFocusView(): void {
     if(!$('tView').classList.contains('on')) $('tView').click();
     cam.followTarget = 'bh1';
     cam.follow = true; cam.coreLock = false; cam.distGoal = 1.9e-6; cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
+  } else if(v === 'lg'){
+    // the Local Group whole: the chart's box round the Milky Way, Andromeda and every dwarf
+    // between and about them, from a little above the plane
+    if($('tDive').classList.contains('on')) $('tDive').click();
+    if(!$('tView').classList.contains('on')) $('tView').click();
+    cam.followTarget = 'lg';
+    cam.follow = true; cam.coreLock = false; cam.distGoal = 330000; cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
+    cam.yaw = 0.7; cam.pitch = 0.3;
   } else if(v === 'and'){
     // framed wide enough for the whole disk plus its extended halo and stream
     // (R_A=2245, halo out to ~4200, the Giant Southern Stream past 5700), at any

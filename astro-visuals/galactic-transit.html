@@ -92,7 +92,7 @@ function installErrorCollector(){
  * property of the machine that loaded the page. The parity harness pins TZ for that reason.
  */
 
-const BUILD = { version: '3.14.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '3.15.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -1698,7 +1698,7 @@ function drawRemnants(
 
 const SKEY = 'galactic-transit.settings.v1';
 
-const S_TOG = ['tLabels','tArms','tLabelSteady','tZoomBtns','tSpinLock','tDwarfs','tP9','tBelt','tKuiper','tOort','tDust',
+const S_TOG = ['tLabels','tArms','tDist','tLabelSteady','tZoomBtns','tSpinLock','tDwarfs','tP9','tBelt','tKuiper','tOort','tDust',
                'tEvSN','tEvBirth','tVar',
                'tStatAge','tStatGyr','tStatSn','tStatBirth','tGaia','tFps','tHalo','tScaleBar','tScaleText'];
 const S_SLD = ['speed','trailA','orbitA','trailL','musicVol','sfxVol','minB','hudHz','coreB','qrScale'];
@@ -2947,14 +2947,14 @@ function initSkybox()       {
 const loaded = new Set              ();
 
 /** The image quads. The dots draw through the point pipeline in render/frame instead. */
-function drawSkyImages(projMat              , viewMat              , org              )       {
-  if (!quadVAOs.some(q => loaded.has(q.tex))) return
+function drawSkyImages(projMat              , viewMat              , org              , gain = 1)       {
+  if (gain < 0.01 || !quadVAOs.some(q => loaded.has(q.tex))) return
   gl.useProgram(pSky);
   gl.uniformMatrix4fv(US.proj, false, projMat);
   gl.uniformMatrix4fv(US.view, false, viewMat);
   gl.uniform3f(US.org, org[0], org[1], org[2]);
   gl.uniform1i(US.tex, 0);
-  gl.uniform1f(US.gain, 0.85);
+  gl.uniform1f(US.gain, 0.85*gain);
   gl.activeTexture(gl.TEXTURE0);
   for (const q of quadVAOs) {
     if (!loaded.has(q.tex)) continue
@@ -3421,12 +3421,12 @@ const GLOBE_FS = "#version 300 es\nprecision highp float;\nuniform vec3 uSunV, u
  */
 
 const pGlobe = prog(GLOBE_VS, GLOBE_FS);
-const UG                                              = {};
+const UG$1                                              = {};
 for(const k of ['uProj','uView','uPos','uSz','uSunV','uAxisV','uPrimeV','uAvg','uMirror','uDisc','uTime','uMoon',
-  'uMolten','uOcean','uSea','uHaze','uVeg','uIceLat','uCloud','uLights','uDrift','uMap','uHasMap','uDry','uSeaLevel']) UG[k]=gl.getUniformLocation(pGlobe,k);
+  'uMolten','uOcean','uSea','uHaze','uVeg','uIceLat','uCloud','uLights','uDrift','uMap','uHasMap','uDry','uSeaLevel']) UG$1[k]=gl.getUniformLocation(pGlobe,k);
 // Hand-written, and not folded into the loop above: an array uniform is addressed by its
 // first element, and the name in the shader is not the name in the table.
-UG.uPlate = gl.getUniformLocation(pGlobe,'uPlate[0]');
+UG$1.uPlate = gl.getUniformLocation(pGlobe,'uPlate[0]');
 
 // The real map: today's land from GSHHG (tools/build_earth_map.py), R land, G plate id,
 // B continentality. Loaded like the galaxy maps; without it the globe falls back to noise.
@@ -3505,19 +3505,19 @@ function drawGlobe(
   const earthDbg = { sunV, axV, prV, era };   // read by the debug tooling
   gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
   gl.useProgram(pGlobe);
-  gl.uniformMatrix4fv(UG.uProj,false,projMat); gl.uniformMatrix4fv(UG.uView,false,viewMat);
-  gl.uniform1f(UG.uMirror, mirror); gl.uniform1f(UG.uTime, shimT);
-  gl.uniform3f(UG.uSunV, sunV[0],sunV[1],sunV[2]); gl.uniform3f(UG.uAxisV, axV[0],axV[1],axV[2]); gl.uniform3f(UG.uPrimeV, prV[0],prV[1],prV[2]);
-  gl.uniform1f(UG.uAvg, avgLight);
-  gl.uniform1f(UG.uMolten, era.molten); gl.uniform1f(UG.uOcean, era.ocean); gl.uniform1f(UG.uSea, era.sea); gl.uniform1f(UG.uHaze, era.haze);
-  gl.uniform1f(UG.uVeg, era.veg); gl.uniform1f(UG.uIceLat, era.iceLat); gl.uniform1f(UG.uCloud, era.cloud); gl.uniform1f(UG.uLights, era.lights); gl.uniform1f(UG.uDrift, era.drift);
-  gl.uniform1f(UG.uDry, era.dry); gl.uniform1f(UG.uSeaLevel, era.seaLevel);
-  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, gfx.earthTex); gl.uniform1i(UG.uMap, 0);
-  gl.uniform1f(UG.uHasMap, gfx.earthTex ? 1.0 : 0.0);
-  fillPlateMats((a - AGE0)*1000); gl.uniformMatrix3fv(UG.uPlate, false, plateMats);
+  gl.uniformMatrix4fv(UG$1.uProj,false,projMat); gl.uniformMatrix4fv(UG$1.uView,false,viewMat);
+  gl.uniform1f(UG$1.uMirror, mirror); gl.uniform1f(UG$1.uTime, shimT);
+  gl.uniform3f(UG$1.uSunV, sunV[0],sunV[1],sunV[2]); gl.uniform3f(UG$1.uAxisV, axV[0],axV[1],axV[2]); gl.uniform3f(UG$1.uPrimeV, prV[0],prV[1],prV[2]);
+  gl.uniform1f(UG$1.uAvg, avgLight);
+  gl.uniform1f(UG$1.uMolten, era.molten); gl.uniform1f(UG$1.uOcean, era.ocean); gl.uniform1f(UG$1.uSea, era.sea); gl.uniform1f(UG$1.uHaze, era.haze);
+  gl.uniform1f(UG$1.uVeg, era.veg); gl.uniform1f(UG$1.uIceLat, era.iceLat); gl.uniform1f(UG$1.uCloud, era.cloud); gl.uniform1f(UG$1.uLights, era.lights); gl.uniform1f(UG$1.uDrift, era.drift);
+  gl.uniform1f(UG$1.uDry, era.dry); gl.uniform1f(UG$1.uSeaLevel, era.seaLevel);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, gfx.earthTex); gl.uniform1i(UG$1.uMap, 0);
+  gl.uniform1f(UG$1.uHasMap, gfx.earthTex ? 1.0 : 0.0);
+  fillPlateMats((a - AGE0)*1000); gl.uniformMatrix3fv(UG$1.uPlate, false, plateMats);
   const disc = 1/1.09, sz = Math.min(2400, globePx/disc);
-  gl.uniform1f(UG.uMoon, 0.0); gl.uniform1f(UG.uDisc, disc); gl.uniform1f(UG.uSz, sz);
-  gl.uniform3f(UG.uPos, ex, ey, ez);
+  gl.uniform1f(UG$1.uMoon, 0.0); gl.uniform1f(UG$1.uDisc, disc); gl.uniform1f(UG$1.uSz, sz);
+  gl.uniform3f(UG$1.uPos, ex, ey, ez);
   gl.bindVertexArray(vaoGlobe); gl.drawArrays(gl.POINTS, 0, 1);
   let moonPx = 0;
   if(a > MOON_BORN){
@@ -3528,9 +3528,9 @@ function drawGlobe(
     moonPx = MOON_DIA*pxScale/camDist;
     if(moonPx > 1.5){
       const msunV = norm3(vecV(viewMat, [-moonRel[0], -moonRel[1], -moonRel[2]]));
-      gl.uniform3f(UG.uSunV, msunV[0],msunV[1],msunV[2]);
-      gl.uniform1f(UG.uMoon, 1.0); gl.uniform1f(UG.uDisc, 1.0); gl.uniform1f(UG.uSz, Math.min(2400, moonPx));
-      gl.uniform3f(UG.uPos, moonRel[0], moonRel[1], moonRel[2]);
+      gl.uniform3f(UG$1.uSunV, msunV[0],msunV[1],msunV[2]);
+      gl.uniform1f(UG$1.uMoon, 1.0); gl.uniform1f(UG$1.uDisc, 1.0); gl.uniform1f(UG$1.uSz, Math.min(2400, moonPx));
+      gl.uniform3f(UG$1.uPos, moonRel[0], moonRel[1], moonRel[2]);
       gl.drawArrays(gl.POINTS, 0, 1);
     }
   }
@@ -3585,7 +3585,7 @@ const SUN_VS = "#version 300 es\nuniform mat4 uProj,uView; uniform float uSz;\nv
 
 const BH_FS = "#version 300 es\nprecision highp float;\n// A black hole, ray-marched. One billboard, and every fragment of it traces a light ray\n// backward from the eye through the Schwarzschild geometry: the rays that fall in paint the\n// shadow, the ones that bend round and strike the accretion disc paint the disc — including\n// the far side, lifted over and under the hole by the bending, and the thin photon ring\n// where rays have circled the hole before landing. Nothing about the shape is drawn; it all\n// falls out of the geodesic equation, and the shadow comes out 2.6 Schwarzschild radii wide\n// because that is where the photon capture cross-section is.\n//\n// Units: the Schwarzschild radius is 1. The null geodesic in these units, in a Cartesian\n// embedding, is d²x/dλ² = −(3/2)·h²·x/r⁵ with h the conserved |x × v| — the form every\n// real-time black-hole renderer integrates. Leapfrog steps, adaptive with the radius.\n//\n// The disc is a thin Shakura–Sunyaev sheet from the innermost stable orbit (3 r_s) out to\n// uDiscOut, temperature falling as r^(-3/4) and flux as r^(-3), Doppler-beamed by the\n// orbital speed sqrt(1/2r) and reddened by the gravitational redshift. It is a MODEL of an\n// accretion flow, drawn where a flow is known to exist; where none is (uDisc = 0) only the\n// shadow and a faint ring of lensed skylight are drawn.\nuniform float uSz;       // sprite width, pixels\nuniform float uRs;       // one Schwarzschild radius as a fraction of the sprite's half-width\nuniform float uMirror;   // the projection reflects x; the sprite does not\nuniform vec3  uDiscN;    // the disc's normal, in the sprite's own frame (x right, y up, z toward the eye)\nuniform float uDisc;     // 1: draw the accretion disc; 0: shadow and lensed sky only\nuniform float uDiscOut;  // the disc's outer edge, Schwarzschild radii\nuniform float uSpin;     // +1 / −1: which way the disc turns about its normal\nuniform float uTime;\nuniform float uFade;     // overall alpha\nout vec4 o;\n\nfloat h21(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }\nfloat vnoise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);\n  return mix(mix(h21(i),h21(i+vec2(1,0)),f.x), mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x), f.y); }\n\n// a thermal ramp: the hot inner rim runs white-blue, the cool rim deep orange-red\nvec3 thermal(float t){\n  t = clamp(t, 0.0, 1.0);\n  vec3 c = mix(vec3(0.50,0.10,0.02), vec3(1.0,0.50,0.14), smoothstep(0.0,0.35,t));\n  c = mix(c, vec3(1.0,0.84,0.58), smoothstep(0.3,0.7,t));\n  c = mix(c, vec3(0.90,0.94,1.0), smoothstep(0.65,1.0,t));\n  return c;\n}\n\n// The sheet's texture: streaks that shear round with the Keplerian flow. Built from the\n// in-plane coordinates turned by the local orbital angle, so it is periodic round the disc\n// by construction — an angle-based lookup would leave a seam where atan wraps.\nfloat sheet(vec3 xc, vec3 n, float rc, float t){\n  vec3 u = normalize(cross(n, abs(n.y) < 0.9 ? vec3(0,1,0) : vec3(1,0,0)));\n  vec3 w = cross(n, u);\n  float omega = 0.35*uSpin/pow(rc, 1.5);          // Keplerian: the inner sheet laps faster\n  float ph = omega*t;\n  float c = cos(ph), s = sin(ph);\n  vec2 q = vec2(dot(xc,u), dot(xc,w));\n  q = vec2(q.x*c - q.y*s, q.x*s + q.y*c);\n  // stretched along the azimuth: cells long round the ring, short across it\n  float ang = atan(q.y, q.x);\n  vec2 pc = vec2(rc*2.2, 0.0);\n  float a1 = 0.5 + 0.5*vnoise(vec2(rc*2.4 + 1.7*cos(ang) , 1.7*sin(ang) + rc*0.3));\n  float a2 = 0.5 + 0.5*vnoise(vec2(rc*4.8 + 3.1*cos(ang + 0.7), 3.1*sin(ang + 0.7)));\n  return 0.55 + 0.45*(0.65*a1 + 0.35*a2);\n}\n\nvoid main(){\n  vec2 qq = gl_PointCoord*2.0-1.0;\n  if(dot(qq,qq) > 1.0) discard;\n  // the sprite frame: x to the right on screen (the projection mirrors x), y up, z toward the eye\n  vec2 p2 = vec2(qq.x*uMirror, -qq.y)/uRs;         // in Schwarzschild radii\n  float Rmax = 1.0/uRs;                            // the sprite's half-width, r_s\n  // an orthographic ray: the hole is a speck at any distance the eye can reach; start it on\n  // the sprite's far bounding sphere and march it toward −z\n  float b2 = dot(p2,p2);\n  float z0 = sqrt(max(Rmax*Rmax - b2, 0.0)) + 0.5;\n  vec3 x = vec3(p2, z0);\n  vec3 v = vec3(0.0, 0.0, -1.0);\n  vec3 hv = cross(x, v);\n  float h2 = dot(hv, hv);\n  vec3 n = normalize(uDiscN);\n  float side = dot(x, n);\n  vec3 col = vec3(0.0); float a = 0.0; bool done = false;\n  float rmin = 1e9;                                // the closest the ray comes: the shadow's soft edge\n  float r = length(x);\n  for(int i=0;i<300;i++){\n    r = length(x);\n    rmin = min(rmin, r);\n    if(r < 1.0){ col = vec3(0.0); a = 1.0; done = true; break; }        // in\n    if(r > Rmax + 1.0 && dot(x,v) > 0.0){ break; }                        // out, and leaving\n    float dt = clamp(0.045*r, 0.035, 0.4);\n    // leapfrog: half kick, drift, half kick\n    vec3 acc = -1.5*h2*x/pow(r, 5.0);\n    v += acc*dt*0.5;\n    vec3 xprev = x;\n    x += v*dt;\n    float r2 = length(x);\n    acc = -1.5*h2*x/pow(r2, 5.0);\n    v += acc*dt*0.5;\n    v = normalize(v);\n    float s2 = dot(x, n);\n    if(uDisc > 0.5 && side*s2 < 0.0){\n      // crossed the disc's plane between the two points: where, and is it on the sheet\n      float f = side/(side - s2);\n      vec3 xc = mix(xprev, x, f);\n      float rc = length(xc);\n      if(rc >= 3.0 && rc <= uDiscOut){\n        // orbital velocity of the gas, in c: sqrt(r_s/2r); its direction round the normal\n        vec3 tang = normalize(cross(n, xc))*uSpin;\n        float vk = sqrt(0.5/rc);\n        // the photon is marching AWAY from the eye, so the direction to the eye is −v\n        float cosang = dot(tang, -v);\n        float gam = 1.0/sqrt(max(1.0 - vk*vk, 1e-4));\n        float dop = 1.0/(gam*(1.0 - vk*cosang));       // Doppler factor\n        float gz = sqrt(max(1.0 - 1.0/rc, 0.0));        // gravitational redshift\n        float g = dop*gz;\n        float temp = pow(3.0/rc, 0.75);                 // T ∝ r^(-3/4), 1 at the ISCO\n        float flux = pow(3.0/rc, 1.7);                  // the thin sheet's emission falls off outward\n        float tex = sheet(xc, n, rc, uTime);\n        float edge = smoothstep(3.0, 3.25, rc)*(1.0 - smoothstep(uDiscOut*0.8, uDiscOut, rc));\n        float bright = pow(g, 3.0)*flux*tex*edge;\n        col = thermal(clamp(temp*g*0.8, 0.0, 1.0))*bright*2.4;\n        a = clamp(bright*2.2, 0.0, 1.0);\n        done = true; break;\n      }\n    }\n    side = s2;\n  }\n  // A ray that has spent every step circling the photon sphere without leaving is part of the\n  // shadow's rim — its impact parameter sits within a hair of the critical one — and one\n  // that grazed the sphere and escaped is blended toward the shadow by how close it came,\n  // which softens the rim against the pixel grid.\n  if(!done && r < 3.0){ col = vec3(0.0); a = 1.0; done = true; }\n  if(!done && rmin < 1.12){ float k = smoothstep(1.12, 1.0, rmin); col *= 1.0 - k; a = max(a, k); }\n  if(!done && uDisc < 0.5){\n    // no flow to light it: what a real one shows against the sky is the sky itself, bent\n    // into a ring at the photon sphere — hinted at, faintly, as a mean skylight\n    float b = sqrt(b2);\n    float ring = exp(-pow((b - 2.6)/0.3, 2.0))*0.4 + exp(-pow((b - 3.6)/1.8, 2.0))*0.05;\n    col = vec3(0.55,0.62,0.75)*ring; a = ring*0.9;\n  }\n  o = vec4(col*uFade, a*uFade);\n}\n";
 
-const RADIO_VS = "#version 300 es\n// One quad per radio object, built from the vertex index — no buffer. The corners are the\n// object's outline in its own sky plane, with margin for the soft edges: centre plus the two\n// half-axis vectors, each scaled by uMargin. The fragment shader gets the corner's place on\n// the outline as uv in [−1, 1]·uMargin.\nuniform mat4 uProj, uView;\nuniform vec3 uC, uA, uB;\nuniform float uMargin;\nout vec2 vUv;\nvoid main(){\n  int i = gl_VertexID;\n  vec2 q = vec2(float(i & 1)*2.0 - 1.0, float((i >> 1) & 1)*2.0 - 1.0)*uMargin;\n  vUv = q;\n  gl_Position = uProj*uView*vec4(uC + uA*q.x + uB*q.y, 1.0);\n}\n";
+const QUAD_VS = "#version 300 es\n// One quad per radio object, built from the vertex index — no buffer. The corners are the\n// object's outline in its own sky plane, with margin for the soft edges: centre plus the two\n// half-axis vectors, each scaled by uMargin. The fragment shader gets the corner's place on\n// the outline as uv in [−1, 1]·uMargin.\nuniform mat4 uProj, uView;\nuniform vec3 uC, uA, uB;\nuniform float uMargin;\nout vec2 vUv;\nvoid main(){\n  int i = gl_VertexID;\n  vec2 q = vec2(float(i & 1)*2.0 - 1.0, float((i >> 1) & 1)*2.0 - 1.0)*uMargin;\n  vUv = q;\n  gl_Position = uProj*uView*vec4(uC + uA*q.x + uB*q.y, 1.0);\n}\n";
 
 const RADIO_FS = "#version 300 es\nprecision highp float;\n// The radio sky of the Galactic Centre, one object per quad. What a 90-cm map shows is\n// synchrotron and free-free emission that no eye could see, so this is drawn the way radio\n// maps are printed — intensity through a heat ramp, black through red and orange to white —\n// and the article says so. The forms are the catalogue's (a shell, a filament, a glow); the\n// texture inside each form is noise, a model of clumpiness, not data.\nuniform float uKind;     // 0 glow, 1 shell, 2 filament, 3 cometary, 4 cluster, 5 double, 6 core, 7 ridge\nuniform float uBend;     // a filament's bend, fraction of its length\nuniform float uCore;     // a shell with a bright centre (composite remnant)\nuniform float uAspect;   // long axis over short: the filament's width profile needs it\nuniform float uSize;     // the long half-axis, scene units: the texture's cells are a fixed size on the sky\nuniform float uStrands;  // a filament bundle's strand count\nuniform float uGain;     // overall brightness\nuniform float uSeed;\nuniform float uFade;\nin vec2 vUv;\nout vec4 o;\n\nfloat h21(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }\nfloat vnoise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);\n  return mix(mix(h21(i),h21(i+vec2(1,0)),f.x), mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x), f.y); }\nfloat fbm(vec2 p){ float a=0.5, s=0.0; for(int k=0;k<4;k++){ s+=a*vnoise(p); p=p*2.03+vec2(1.7,9.2); a*=0.5; } return s; }\n\n// the printed map's ramp: black, deep red, orange, yellow, white\nvec3 heat(float t){\n  t = clamp(t, 0.0, 1.0);\n  vec3 c = mix(vec3(0.0), vec3(0.55,0.05,0.02), smoothstep(0.0, 0.25, t));\n  c = mix(c, vec3(1.0,0.42,0.08), smoothstep(0.2, 0.55, t));\n  c = mix(c, vec3(1.0,0.85,0.35), smoothstep(0.5, 0.8, t));\n  c = mix(c, vec3(1.0,0.97,0.9), smoothstep(0.78, 1.0, t));\n  return c;\n}\nfloat gauss(float x, float w){ return exp(-x*x/(w*w)); }\n\nvoid main(){\n  vec2 p = vUv;                       // 1 = the outline's half-axis, either way\n  float r = length(p);\n  int kind = int(uKind + 0.5);\n  float I = 0.0;\n  vec2 np = vec2(p.x, p.y/uAspect)*uSize*2.5 + uSeed*7.1;   // noise coordinates, isotropic on the sky: cells ~12 ly\n  float tex = 0.6 + 0.8*fbm(np*2.0);\n  if(kind == 0){                                   // an HII complex: a soft glow, clumpy\n    I = gauss(r, 0.62)*tex + 0.45*gauss(r, 0.28);\n  } else if(kind == 1){                            // a supernova remnant: a limb-brightened shell\n    float rim = gauss(r - 0.92, 0.09)*(0.25 + 1.3*fbm(np*1.5 + 3.0));\n    float fill = 0.16*smoothstep(1.0, 0.7, r)*tex;\n    I = rim + fill + uCore*(0.9*gauss(r, 0.2) + 0.5*gauss(r, 0.08));\n  } else if(kind == 2){                            // a nonthermal filament: a thin bright line\n    // the line runs along x, y is across it in units of the (half-)width; a gentle bend\n    float y = p.y - uBend*uAspect*sin(p.x*3.14159)*1.0;\n    float taper = smoothstep(1.0, 0.85, abs(p.x));\n    float along = 0.55 + 0.7*fbm(vec2(p.x*uSize*1.5 + uSeed, 0.3));\n    float n = max(uStrands, 1.0);\n    if(n < 1.5) I = gauss(y, 0.55)*taper*along*1.6;\n    else for(int k=0;k<8;k++){                     // a bundle: thin strands spread across the width\n      if(float(k) >= n) break;\n      float yk = (float(k) + 0.5)/n*2.0 - 1.0;\n      float bright = 0.5 + 0.8*h21(vec2(float(k), uSeed));\n      float along_k = 0.5 + 0.8*fbm(vec2(p.x*uSize*1.5 + float(k)*3.7, 0.3));\n      I += gauss(y - yk*0.85, 0.09*2.0/n*3.0)*taper*along_k*bright*1.2;\n    }\n  } else if(kind == 3){                            // a pulsar wind nebula in flight: head, then tail\n    float xh = -0.8;\n    float head = 1.6*gauss(length(vec2((p.x - xh)*uAspect*0.5, p.y)), 0.45) + 1.2*gauss(length(vec2((p.x - xh)*uAspect, p.y)), 0.25);\n    float t = clamp((p.x - xh)/(1.0 - xh), 0.0, 1.0);\n    float tail = exp(-t*2.2)*gauss(p.y, 0.55 + 0.35*t)*step(xh, p.x)*(0.6 + 0.6*fbm(vec2(p.x*5.0, 0.7)));\n    I = head + tail*0.8;\n  } else if(kind == 4){                            // a cluster of compact HII regions\n    for(int k=0;k<9;k++){\n      float fk = float(k);\n      vec2 c = vec2(h21(vec2(fk, uSeed))*1.7 - 0.85, (h21(vec2(uSeed, fk))*1.5 - 0.75));\n      c.x *= 1.0 - 0.3*abs(c.y);\n      float s = 0.06 + 0.06*h21(vec2(fk*3.1, 2.0));\n      I += (0.5 + 0.6*h21(vec2(fk, 5.0)))*gauss(length((p - c)*vec2(1.0, uAspect))/uAspect, s*uAspect);\n    }\n    I += 0.08*gauss(r, 0.7);\n  } else if(kind == 5){                            // a background radio galaxy: a compact double\n    I = 1.2*gauss(length(p - vec2(0.55, 0.0)), 0.3) + 1.2*gauss(length(p + vec2(0.55, 0.0)), 0.3) + 0.3*gauss(r, 0.7);\n  } else if(kind == 6){                            // Sgr A: East's shell, West's knot, the halo\n    I = 2.2*gauss(r, 0.16) + 1.1*gauss(r, 0.38)*tex + 0.6*gauss(r - 0.32, 0.08) + 0.35*gauss(r, 0.75);\n  } else {                                         // the plane's diffuse emission: soft, mottled, with dark lanes\n    float m = fbm(np*1.2 + 11.0);\n    I = gauss(r, 0.8)*(0.45 + 0.8*m)*smoothstep(0.0, 0.3, 1.0 - r);\n    I *= 0.55 + 0.45*smoothstep(0.25, 0.6, m);     // the dark clouds: where the noise is low, little shows\n  }\n  I *= uGain*uFade;\n  if(I < 0.002) discard;\n  o = vec4(heat(I), 1.0);\n}\n";
 
@@ -4038,7 +4038,7 @@ const RADIO_GEOM                       = RADIO.map(obj => {
  * fades in as the eye comes within ~900 units (27,000 light years — the Sun's own distance
  * is 900) and out again inside three, where Sgr A's glow alone would be the whole view.
  */
-const pR = prog(RADIO_VS, RADIO_FS);
+const pR = prog(QUAD_VS, RADIO_FS);
 const UR = {
   proj: gl.getUniformLocation(pR, 'uProj'), view: gl.getUniformLocation(pR, 'uView'),
   c: gl.getUniformLocation(pR, 'uC'), A: gl.getUniformLocation(pR, 'uA'), B: gl.getUniformLocation(pR, 'uB'),
@@ -4048,9 +4048,9 @@ const UR = {
   seed: gl.getUniformLocation(pR, 'uSeed'), fade: gl.getUniformLocation(pR, 'uFade'),
   size: gl.getUniformLocation(pR, 'uSize'), strands: gl.getUniformLocation(pR, 'uStrands'),
 };
-const vaoEmpty = gl.createVertexArray(); 
+const vaoEmpty$1 = gl.createVertexArray(); 
 
-const KIND_ID                            = { hii: 0, snr: 1, ntf: 2, pwn: 3, cluster: 4, galaxy: 5, core: 6, ridge: 7 };
+const KIND_ID$1                            = { hii: 0, snr: 1, ntf: 2, pwn: 3, cluster: 4, galaxy: 5, core: 6, ridge: 7 };
 const KIND_GAIN                            = { hii: 1.0, snr: 0.9, ntf: 0.7, pwn: 1.0, cluster: 0.5, galaxy: 1.0, core: 1.0, ridge: 0.5 };
 
 const smooth = (a        , b        , x        )         => { const t = Math.min(1, Math.max(0, (x - a)/(b - a))); return t*t*(3 - 2*t) };
@@ -4073,7 +4073,7 @@ function drawRadioField(proj              , viewGC              , distGC        
   gl.uniformMatrix4fv(UR.proj, false, proj);
   gl.uniformMatrix4fv(UR.view, false, viewGC);
   gl.uniform1f(UR.margin, 2.2);
-  gl.bindVertexArray(vaoEmpty);
+  gl.bindVertexArray(vaoEmpty$1);
   const pxPerU = pxScale/distGC;
   for(let k=0;k<RADIO_GEOM.length;k++){
     const g = RADIO_GEOM[k], o = g.obj;
@@ -4086,7 +4086,7 @@ function drawRadioField(proj              , viewGC              , distGC        
     gl.uniform3f(UR.c, g.c[0], g.c[1], g.c[2]);
     gl.uniform3f(UR.A, g.A[0]*wa, g.A[1]*wa, g.A[2]*wa);
     gl.uniform3f(UR.B, g.B[0]*wb, g.B[1]*wb, g.B[2]*wb);
-    gl.uniform1f(UR.kind, KIND_ID[o.kind]);
+    gl.uniform1f(UR.kind, KIND_ID$1[o.kind]);
     gl.uniform1f(UR.bend, o.bend ?? 0);
     gl.uniform1f(UR.core, o.core ? 1 : 0);
     gl.uniform1f(UR.aspect, (g.a*wa)/(g.b*wb));
@@ -4409,6 +4409,342 @@ function drawGalacticCentre(inp          )           {
   return res
 }
 
+const GAL_FS = "#version 300 es\nprecision highp float;\n// A Local Group galaxy on its half-light ellipse (the quad from gcradio.vert, uv = 1 at\n// the half-light radius, margin beyond). Profiles by kind: the spheroidals and irregulars\n// exponential, the compact ellipticals steeper, the one spiral an exponential disk with a\n// two-armed modulation; the dark galaxy is an outline and nothing inside it, which is what\n// there is to see. Brightness is a marker's, not a photometer's — see astro/localgroup.\nuniform float uKind;     // 0 dSph, 1 dIrr, 2 dE/cE, 3 spiral, 4 dark\nuniform vec3  uCol;\nuniform float uGain;\nuniform float uSeed;\nuniform float uFade;\nin vec2 vUv;\nout vec4 o;\n\nfloat h21(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }\nfloat vnoise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);\n  return mix(mix(h21(i),h21(i+vec2(1,0)),f.x), mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x), f.y); }\nfloat gauss(float x, float w){ return exp(-x*x/(w*w)); }\n\nvoid main(){\n  vec2 p = vUv;\n  float r = length(p);\n  int kind = int(uKind + 0.5);\n  float I = 0.0;\n  vec3 col = uCol;\n  if(kind == 4){\n    // a dark galaxy: nothing shines; a dashed outline at the HI disc's edge says \"here\"\n    float th = atan(p.y, p.x);\n    float dash = step(0.5, fract(th*2.2));\n    I = gauss(r - 1.0, 0.07)*dash*0.9 + 0.05*smoothstep(1.0, 0.6, r);\n  } else if(kind == 3){\n    // an exponential disk with two arms wound round it\n    float th = atan(p.y, p.x);\n    float arms = 1.0 + 0.55*cos(2.0*th - 3.2*log(max(r, 0.05)) + uSeed)*smoothstep(0.15, 0.5, r);\n    I = exp(-1.68*r)*arms*(0.85 + 0.3*vnoise(p*9.0 + uSeed)) + 0.6*gauss(r, 0.12);\n    col = mix(uCol, vec3(1.0,0.9,0.72), gauss(r, 0.25));\n  } else if(kind == 2){\n    I = exp(-3.0*pow(r, 0.55)) + 0.5*gauss(r, 0.15);\n  } else if(kind == 1){\n    // an irregular: an exponential body with bright knots of star formation on it\n    float n = vnoise(p*7.0 + uSeed*3.0);\n    float knots = smoothstep(0.62, 0.9, n)*exp(-1.2*r);\n    I = exp(-1.68*r)*(0.8 + 0.4*vnoise(p*3.5 + uSeed)) + 1.4*knots;\n    col = mix(uCol, vec3(0.65,0.8,1.0), knots*2.0);\n  } else {\n    I = exp(-1.68*r)*(0.9 + 0.2*vnoise(p*4.0 + uSeed));\n  }\n  I *= uGain*uFade;\n  if(I < 0.002) discard;\n  o = vec4(col*I, 1.0);\n}\n";
+
+/**
+ * The Local Group: every galaxy within 1.6 Mpc, from the Local Volume Database (Pace 2024,
+ * arXiv:2411.07424 — github.com/apace7/local_volume_database), plus Andromeda and Triangulum (M33)
+ * from McConnachie 2012 and the dark-galaxy candidate AC G185.0−11.5 from Xu et al. 2025.
+ *
+ * Generated by `tools/fetch_local_group.py` — edit the tool, not this file. Each row:
+ *   name, RA°, Dec° (J2000), distance kpc (from the distance modulus), half-light radius
+ *   arcmin (0 where unmeasured), absolute V magnitude (null where unmeasured), position
+ *   angle °, ellipticity, kind, host, confirmed (1: the database confirms it a galaxy;
+ *   0: a candidate), source.
+ */
+
+                                                                      
+                                                                                                                                    
+
+const LG_ROWS                   = [
+  ['Draco II', 238.198, 64.5653, 21.6, 3, -0.8, 76, 0.23, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance Longeard2018MNRAS.480.2609L'],
+  ['Segue 1', 151.75, 16.0756, 22.9, 3.62, -1.3, 77, 0.33, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance Belokurov2007ApJ...654..897B'],
+  ['Tucana III', 359.108, -59.5833, 22.9, 5.1, -1.3, 25, 0.2, 'dSph', 'mw', 0, 'LVDB dwarf_mw; distance MutluPakdil2018ApJ...863...25M'],
+  ['Sagittarius dSph', 284.095, -30.5499, 26.3, 342, -13.5, 102, 0.64, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance McConnachie2012AJ....144....4M'],
+  ['Hydrus I', 37.389, -79.3089, 27.5, 7.42, -4.71, 97, 0.21, 'dSph', 'lmc', 1, 'LVDB dwarf_mw; distance Koposov2018MNRAS.479.5343K'],
+  ['Carina III', 114.63, -57.8997, 27.8, 3.75, -2.4, 150, 0.55, 'dSph', 'lmc', 1, 'LVDB dwarf_mw; distance Torrealba2018MNRAS.475.5085T'],
+  ['Triangulum II', 33.3155, 36.1691, 28.4, 2.5, -1.3, 73, 0.3, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance Carlin2017AJ....154..267C'],
+  ['Cetus II', 19.47, -17.42, 29.9, 1.9, 0, 0, 0, 'dSph', 'mw', 0, 'LVDB dwarf_mw; distance DrlicaWagner2015ApJ...813..109D'],
+  ['Reticulum II', 53.9203, -54.0513, 31.6, 6.3, -3.1, 68, 0.6, 'dSph', 'lmc', 1, 'LVDB dwarf_mw; distance MutluPakdil2018ApJ...863...25M'],
+  ['Ursa Major II', 132.873, 63.1335, 34.7, 13.8, -4.42, -76, 0.56, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance DallOra2012ApJ...752...42D'],
+  ['Segue 2', 34.8226, 20.1624, 36.5, 3.76, -1.95, 164, 0.22, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance Boettcher2013AJ....146...94B'],
+  ['Carina II', 114.107, -57.9991, 37.4, 8.69, -4.57, 170, 0.34, 'dSph', 'lmc', 1, 'LVDB dwarf_mw; distance Torrealba2018MNRAS.475.5085T'],
+  ['Willman 1', 162.344, 51.0501, 38, 2.51, -2.53, 73, 0.47, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance Willman2006astro.ph..3486W'],
+  ['Bootes II', 209.514, 12.8553, 41.7, 3.17, -2.94, -68, 0.25, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance Walsh2008ApJ...688..245W'],
+  ['Coma Berenices', 186.745, 23.9069, 42.3, 5.64, -4.29, -57, 0.37, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance Musella2009ApJ...695L..83M'],
+  ['Pictor II', 101.175, -59.901, 44.9, 2.8, -2.65, 55, 0.22, 'dSph', 'lmc', 1, 'LVDB dwarf_mw; distance Pace2025OJAp....8E.112P'],
+  ['Tucana IV', 0.717, -60.83, 47, 9.3, -3, 27, 0.39, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance Simon2020ApJ...892..137S'],
+  ['Bootes III', 209.557, 26.553, 48.5, 40.6, -5.83, 279, 0.33, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance Li2026arXiv260707803L'],
+  ['Large Magellanic Cloud', 78.76, -69.19, 49.6, 192.9, -18.08, 227.24, 0.164, 'dIrr', 'mw', 1, 'LVDB dwarf_mw; distance Pietrzynski2019Natur.567..200P'],
+  ['Tucana V', 354.347, -63.266, 55, 2.1, -1.1, 29, 0.51, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance Simon2020ApJ...892..137S'],
+  ['Grus II', 331.024, -46.4509, 55.2, 6.8, -4.19, 186, 0.25, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance MartinezVazquez2019MNRAS.490.2183M'],
+  ['Tucana II', 342.98, -58.5689, 56.2, 12.89, -3.75, 107, 0.39, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance Vivas2020ApJS..247...35V'],
+  ['Small Magellanic Cloud', 16.25, -72.42, 62.8, 59.4, -16.79, 0, 0, 'dIrr', 'lmc', 1, 'LVDB dwarf_mw; distance Cioni2000A&A...359..601C'],
+  ['Bootes I', 210.02, 14.5135, 66.4, 9.97, -6.02, 6, 0.3, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance DallOra2006ApJ...653L.109D'],
+  ['Eridanus IV', 76.4246, -9.5189, 69.8, 3.24, -3.55, 75, 0.26, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance Cerny2021ApJ...920L..44C'],
+  ['Ursa Minor', 227.242, 67.2221, 70.1, 18.3, -8.86, 50, 0.55, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance Garofalo2025A&A...695A..88G'],
+  ['Virgo II', 225.059, 5.909, 72.4, 0.74, -1.6, 0, 0, 'dSph', 'mw', 0, 'LVDB dwarf_mw; distance Cerny2023ApJ...953....1C'],
+  ['Horologium II', 49.131, -50.009, 78, 1.69, -2.07, 103, 0.23, 'dSph', 'mw', 0, 'LVDB dwarf_mw; distance Kim2015ApJ...808L..39K'],
+  ['Horologium I', 43.8755, -54.1174, 79.4, 1.61, -3.38, 44, 0.27, 'dSph', 'lmc', 1, 'LVDB dwarf_mw; distance Koposov2015ApJ...805..130K'],
+  ['Draco', 260.068, 57.9185, 81.5, 9.67, -8.87, 87, 0.29, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance Bhardwaj2024AJ....167..247B'],
+  ['Leo Minor I', 164.261, 28.875, 81.7, 1.09, -2.4, 0, 0, 'dSph', 'mw', 0, 'LVDB dwarf_mw; distance Cerny2023ApJ...953....1C'],
+  ['Phoenix II', 354.992, -54.4019, 83.2, 1.5, -2.6, -33, 0.44, 'dSph', 'lmc', 1, 'LVDB dwarf_mw; distance MutluPakdil2018ApJ...863...25M'],
+  ['Sculptor', 15.0183, -33.7186, 83.9, 11.17, -10.77, 92, 0.33, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance MartinezVazquez2015MNRAS.454.1509M'],
+  ['Aquarius III', 357.218, -3.489, 85.5, 2.1, -2.5, 119, 0.47, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance Cerny2025ApJ...979..164C'],
+  ['Sextans', 153.268, -1.62, 85.9, 22.8, -8.72, 52, 0.27, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance Lee2009ApJ...703..692L'],
+  ['Pegasus IV', 328.539, 26.62, 89.9, 1.6, -4.25, 115, 0, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance Cerny2023ApJ...942..111C'],
+  ['Virgo I', 180.038, -0.681, 91.2, 1.76, -0.9, 62, 0.59, 'dSph', 'mw', 0, 'LVDB dwarf_mw; distance Homma2024PASJ...76..733H'],
+  ['Reticulum III', 56.36, -60.45, 91.6, 2.4, -3.3, 0, 0, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance DrlicaWagner2015ApJ...813..109D'],
+  ['Ursa Major I', 158.771, 51.9479, 97.3, 8.31, -5.14, 67, 0.59, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance Garofalo2013ApJ...767...62G'],
+  ['Bootes V', 213.909, 32.914, 101.9, 0.76, -3.2, 18, 0.2, 'dSph', 'mw', 0, 'LVDB dwarf_mw; distance Cerny2023ApJ...953....1C'],
+  ['Carina IV', 104.046, -63.319, 104.7, 1.34, -2.8, 117, 0.21, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance Tan2026ApJ..1000...46T'],
+  ['Carina', 100.406, -50.9593, 105.6, 10.1, -9.43, 60, 0.36, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance Karczmarek2015AJ....150...90K'],
+  ['Aquarius II', 338.481, -9.3274, 107.6, 5.1, -4.36, 121, 0.39, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance Torrealba2016MNRAS.463..712T'],
+  ['Aquarius IV', 330.474, -2.575, 107.6, 0.6, -1.9, 0, 0, 'dSph', 'mw', 0, 'LVDB dwarf_mw; distance Cerny2026arXiv260802601C'],
+  ['Leo VI', 171.077, 24.874, 111.2, 4.17, -3.56, 63, 0.54, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance Tan2025ApJ...979..176T'],
+  ['Phoenix III', 26.711, -41.428, 114.8, 0.85, -1.2, 89, 0.52, 'dSph', 'mw', 0, 'LVDB dwarf_mw; distance Tan2026ApJ..1000...46T'],
+  ['Pictor I', 70.9475, -50.2831, 114.8, 1.29, -3.1, 55, 0.44, 'dSph', 'mw', 0, 'LVDB dwarf_mw; distance Koposov2015ApJ...805..130K'],
+  ['Crater II', 177.31, -18.413, 116.6, 31.2, -8.18, 0, 0, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance Vivas2020MNRAS.492.1061V'],
+  ['Centaurus I', 189.591, -40.9043, 117.7, 2.6, -5.35, 10, 0.36, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance MartinezVazquez2021AJ....162..253M'],
+  ['Antlia II', 143.808, -36.6991, 124.2, 104.6, -9.73, 156, 0.6, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance Vivas2022ApJ...926...78V'],
+  ['Sextans II', 156.437, -0.631, 125.9, 4.2, -3.91, -17, 0.43, 'dSph', 'mw', 0, 'LVDB dwarf_mw; distance Homma2024PASJ...76..733H'],
+  ['Grus I', 344.166, -50.168, 126.5, 4.16, -4.13, 153, 0.44, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance MartinezVazquez2019MNRAS.490.2183M'],
+  ['Hercules', 247.772, 12.7852, 130.6, 5.63, -5.81, -73, 0.69, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance MutluPakdil2020ApJ...902..106M'],
+  ['Fornax', 39.9583, -34.4997, 142.6, 19.9, -13.39, 42.7, 0.29, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance Oakes2022ApJ...929..116O'],
+  ['Hydra II', 185.429, -31.9728, 151.4, 1.52, -5.1, 16, 0.24, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance Vivas2016AJ....151..118V'],
+  ['Leo IV', 173.24, -0.5453, 151.4, 2.54, -4.95, -28, 0.17, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance Medina2018ApJ...855...43M'],
+  ['Virgo III', 186.35, 4.442, 151.4, 1.68, -2.72, -68, 0.48, 'dSph', 'mw', 0, 'LVDB dwarf_mw; distance Pai2026arXiv260725044P'],
+  ['Canes Venatici II', 194.293, 34.3226, 160, 1.52, -5.17, 9, 0.4, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance Greco2008ApJ...675L..73G'],
+  ['Leo V', 172.786, 2.2194, 169, 1, -4.4, -71, 0.43, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance Medina2018ApJ...855...43M'],
+  ['Columba I', 82.857, -28.0425, 182.8, 2.2, -4.2, 24, 0.3, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance Carlin2017AJ....154..267C'],
+  ['Pisces II', 344.636, 5.95554, 182.8, 1.34, -4.28, 98, 0.37, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance Sand2012ApJ...756...79S'],
+  ['Bootes IV', 233.689, 43.726, 208.9, 7.6, -5.34, 3, 0.64, 'dSph', 'mw', 0, 'LVDB dwarf_mw; distance Homma2019PASJ...71...94H'],
+  ['Leo II', 168.363, 22.1529, 208.9, 2.52, -9.48, 38, 0.07, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance Monelli2025A&A...700A.201M'],
+  ['Canes Venatici I', 202.009, 33.5521, 210.9, 7.12, -8.73, 80, 0.44, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance Kuehn2008ApJ...674L..81K'],
+  ['Pegasus III', 336.107, 5.41505, 214.8, 1.67, -4.17, 83, 0.37, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance Kim2016ApJ...833...16K'],
+  ['Cetus III', 31.331, -4.27, 251.2, 1.23, -3.45, 101, 0.76, 'dSph', 'mw', 0, 'LVDB dwarf_mw; distance Homma2024PASJ...76..733H'],
+  ['Leo I', 152.115, 12.3059, 258.2, 3.65, -11.82, 78, 0.3, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance Stetson2014PASP..126..616S'],
+  ['AC G185.0−11.5 (dark galaxy candidate)', 78.7891, 18.5186, 277.7, 6.2, null, 0, 0, 'dark', 'mw', 0, 'Xu et al. 2025'],
+  ['Eridanus II', 56.0925, -43.5329, 369.8, 2.31, -7.12, 72.6, 0.48, 'dSph', 'mw', 1, 'LVDB dwarf_mw; distance MartinezVazquez2021MNRAS.508.1064M'],
+  ['Phoenix', 27.775, -44.445, 409.3, 2.43, -9.87, 8, 0.3, 'dIrr', '', 1, 'LVDB dwarf_local_field; distance Battaglia2012MNRAS.424.1113B'],
+  ['Leo T', 143.722, 17.0514, 413, 1.39, -7.98, 121.13, 0.12, 'dIrr', '', 1, 'LVDB dwarf_local_field; distance Higgs2021MNRAS.503..176H'],
+  ['Leo K', 141.025, 16.5106, 434.5, 0.6367, -4.73, -69, 0.41, 'dSph', '', 1, 'LVDB dwarf_local_field; distance McQuinn2024ApJ...967..161M'],
+  ['Leo M', 166.339, 25.3453, 459.2, 0.9967, -5.77, -51, 0.61, 'dSph', '', 1, 'LVDB dwarf_local_field; distance McQuinn2024ApJ...967..161M'],
+  ['Andromeda XVI', 14.8763, 32.3761, 517.6, 1, -7.47, 98, 0.29, 'dSph', 'm_031', 1, 'LVDB dwarf_m31; distance MartinezVazquez2017ApJ...850..137M'],
+  ['Cassiopeia II', 9.14417, 49.6469, 559.8, 1.5, -7.74, 110, 0.43, 'dSph', 'm_031', 1, 'LVDB dwarf_m31; distance Savino2022ApJ...938..101S'],
+  ['AGC268071', 243.232, 14.3459, 570.2, 0, -6.99, 0, 0, 'dSph', '', 0, 'LVDB dwarf_local_field; distance Rhode2023AJ....166..113R'],
+  ['Barnard\'s Galaxy (NGC 6822)', 296.236, -14.7892, 570.2, 11.95, -15.68, 66.88, 0.28, 'dIrr', '', 1, 'LVDB dwarf_local_field; distance Higgs2021MNRAS.503..176H'],
+  ['LGS 3', 15.9792, 21.885, 605.3, 2.1, -9.61, 0, 0.2, 'dIrr', 'm_031', 1, 'LVDB dwarf_m31; distance Savino2022ApJ...938..101S'],
+  ['Andromeda XXIV', 19.6363, 46.3703, 608.1, 2.6, -7.62, 90, 0.1, 'dSph', 'm_031', 1, 'LVDB dwarf_m31; distance Savino2022ApJ...938..101S'],
+  ['Andromeda X', 16.6475, 44.8075, 631, 1.1, -7.3, 30, 0.1, 'dSph', 'm_031', 1, 'LVDB dwarf_m31; distance Savino2022ApJ...938..101S'],
+  ['NGC 185', 9.74167, 48.3361, 648.6, 2.94, -15.6, 45.9, 0.22, 'dE', 'm_031', 1, 'LVDB dwarf_m31; distance Savino2022ApJ...938..101S'],
+  ['Andromeda II', 19.1117, 33.4353, 666.8, 5.3, -11.72, 31, 0.16, 'dSph', 'm_031', 1, 'LVDB dwarf_m31; distance Savino2022ApJ...938..101S'],
+  ['Pegasus V', 349.616, 33.3589, 691.8, 0.4, -6.3, 96, 0.01, 'dSph', 'm_031', 1, 'LVDB dwarf_m31; distance Collins2022MNRAS.515L..72C'],
+  ['Andromeda IX', 13.2225, 43.1992, 701.5, 2, -8.63, 41, 0, 'dSph', 'm_031', 1, 'LVDB dwarf_m31; distance Savino2022ApJ...938..101S'],
+  ['Perseus I', 45.3477, 40.9848, 704.7, 1.4, -8.87, -58, 0.09, 'dSph', 'm_031', 1, 'LVDB dwarf_m31; distance Savino2022ApJ...938..101S'],
+  ['Andromeda XXIX', 359.732, 30.7556, 711.2, 1.39, -8.17, 55, 0.29, 'dSph', 'm_031', 1, 'LVDB dwarf_m31; distance Savino2022ApJ...938..101S'],
+  ['Andromeda XII', 11.8679, 34.3772, 717.8, 1.8, -6.58, 16, 0.61, 'dSph', 'm_031', 1, 'LVDB dwarf_m31; distance Savino2022ApJ...938..101S'],
+  ['Andromeda III', 8.87875, 36.4989, 721.1, 2, -9.49, 140, 0.59, 'dSph', 'm_031', 1, 'LVDB dwarf_m31; distance Savino2022ApJ...938..101S'],
+  ['IC 1613', 16.1992, 2.11778, 731.1, 7.57, -15.12, 90.49, 0.2, 'dIrr', '', 1, 'LVDB dwarf_local_field; distance Savino2022ApJ...938..101S'],
+  ['NGC 147', 8.29833, 48.5078, 734.5, 6.7, -16.57, 34.2, 0.46, 'dE', 'm_031', 1, 'LVDB dwarf_m31; distance Savino2022ApJ...938..101S'],
+  ['Andromeda XX', 1.8775, 35.1269, 741.3, 0.4, -6.35, 90, 0.11, 'dSph', 'm_031', 1, 'LVDB dwarf_m31; distance Savino2022ApJ...938..101S'],
+  ['Andromeda XXIII', 22.3375, 38.7239, 744.7, 5.4, -9.76, 138, 0.41, 'dSph', 'm_031', 1, 'LVDB dwarf_m31; distance Savino2022ApJ...938..101S'],
+  ['Andromeda XXVIII', 338.172, 31.2149, 744.7, 1.38, -8.51, 35.04, 0.42, 'dSph', 'm_031', 1, 'LVDB dwarf_m31; distance Savino2022ApJ...938..101S'],
+  ['Lacerta I', 344.551, 41.3062, 744.7, 3.13, -11.21, -64, 0.41, 'dSph', 'm_031', 1, 'LVDB dwarf_m31; distance Savino2022ApJ...938..101S'],
+  ['Andromeda XV', 18.5763, 38.1197, 748.2, 1.3, -8.37, 38, 0.24, 'dSph', 'm_031', 1, 'LVDB dwarf_m31; distance Savino2022ApJ...938..101S'],
+  ['Andromeda XI', 11.5821, 33.8028, 751.6, 0.6, -6.38, 54, 0.19, 'dSph', 'm_031', 1, 'LVDB dwarf_m31; distance Savino2022ApJ...938..101S'],
+  ['Andromeda XXV', 7.54125, 46.8614, 751.6, 2.7, -9.08, -16, 0.03, 'dSph', 'm_031', 1, 'LVDB dwarf_m31; distance Savino2022ApJ...938..101S'],
+  ['Pegasus VII', 345.455, 32.0978, 751.6, 0.8, -5.7, 40, 0.5, 'dSph', 'm_031', 1, 'LVDB dwarf_m31; distance Smith2025ApJ...983...59S'],
+  ['Andromeda XXII', 21.9183, 28.0903, 755.1, 0.9, -6.39, 114, 0.61, 'dSph', 'm_033', 1, 'LVDB dwarf_m31; distance Savino2022ApJ...938..101S'],
+  ['Cetus', 6.54583, -11.0444, 755.1, 3.2, -11.19, 63, 0.33, 'dSph', '', 1, 'LVDB dwarf_local_field; distance McConnachie2012AJ....144....4M'],
+  ['Andromeda V', 17.5729, 47.6283, 758.6, 1.6, -9.3, 54, 0.26, 'dSph', 'm_031', 1, 'LVDB dwarf_m31; distance Savino2022ApJ...938..101S'],
+  ['Andromeda XVII', 9.27625, 44.3231, 758.6, 1.4, -7.8, 110, 0.5, 'dSph', 'm_031', 1, 'LVDB dwarf_m31; distance Savino2022ApJ...938..101S'],
+  ['Andromeda Galaxy (M31)', 10.6847, 41.269, 765, 40, -21.5, 38, 0.7, 'spiral', '', 1, 'van der Marel et al. 2012; McConnachie 2012'],
+  ['IC 10', 5.10208, 59.2917, 769.1, 2.65, -14.93, 0, 0.19, 'dIrr', 'm_031', 1, 'LVDB dwarf_m31; distance McQuinn2017ApJ...834...78M'],
+  ['Andromeda XIV', 12.8958, 29.6897, 772.7, 1.5, -8.64, -4, 0.17, 'dSph', 'm_031', 1, 'LVDB dwarf_m31; distance Savino2022ApJ...938..101S'],
+  ['Andromeda XXI', 358.7, 42.4706, 772.7, 4.1, -8.94, 139, 0.36, 'dSph', 'm_031', 1, 'LVDB dwarf_m31; distance Savino2022ApJ...938..101S'],
+  ['M32', 10.6741, 40.8651, 772.7, 0.47, -16.34, 159, 0.25, 'cE', 'm_031', 1, 'LVDB dwarf_m31; distance Savino2022ApJ...938..101S'],
+  ['Andromeda I', 11.4154, 38.0375, 776.2, 3.9, -11.35, 30, 0.28, 'dSph', 'm_031', 1, 'LVDB dwarf_m31; distance Savino2022ApJ...938..101S'],
+  ['Andromeda XXXVI', 19.168, 47.656, 776.2, 0.284, -5.91, 78.6, 0.015, 'dSph', 'm_031', 1, 'LVDB dwarf_m31; distance'],
+  ['Andromeda XXVI', 5.94292, 47.9119, 787, 1, -5.98, 50, 0.35, 'dSph', 'm_031', 1, 'LVDB dwarf_m31; distance Savino2022ApJ...938..101S'],
+  ['Leo A', 149.86, 30.7464, 798, 2.3, -12.11, 116.4, 0.42, 'dIrr', '', 1, 'LVDB dwarf_local_field; distance Dolphin2002AJ....123.3154D'],
+  ['Cassiopeia III', 8.98933, 51.5601, 801.7, 4.73, -12.4, 91, 0.3, 'dSph', 'm_031', 1, 'LVDB dwarf_m31; distance Savino2022ApJ...938..101S'],
+  ['Triangulum (M33)', 23.4621, 30.6599, 809, 11, -18.8, 23, 0.34, 'spiral', '', 1, 'McConnachie 2012'],
+  ['Andromeda XIX', 4.89375, 35.0447, 812.8, 14.2, -10.05, 34, 0.58, 'dSph', 'm_031', 1, 'LVDB dwarf_m31; distance Savino2022ApJ...938..101S'],
+  ['Andromeda XIII', 12.9625, 33.0044, 820.4, 0.8, -6.77, -20, 0.61, 'dSph', 'm_031', 1, 'LVDB dwarf_m31; distance Savino2022ApJ...938..101S'],
+  ['Andromeda VII', 351.64, 50.68, 824.1, 3.47, -12.78, 94, 0.13, 'dSph', 'm_031', 1, 'LVDB dwarf_m31; distance Savino2022ApJ...938..101S'],
+  ['Andromeda XXVII', 9.36292, 45.3869, 827.9, 1.8, -7.9, 150, 0.4, 'dSph', 'm_031', 1, 'LVDB dwarf_m31; distance Richardson2011ApJ...732...76R'],
+  ['Andromeda VI', 357.945, 24.5825, 831.8, 2.15, -11.3, 163, 0.41, 'dSph', 'm_031', 1, 'LVDB dwarf_m31; distance Savino2022ApJ...938..101S'],
+  ['M110 (NGC 205)', 10.0938, 41.6864, 835.6, 2.46, -16.51, 28, 0.43, 'dE', 'm_031', 1, 'LVDB dwarf_m31; distance Savino2022ApJ...938..101S'],
+  ['Pegasus dIrr (DDO 216)', 352.151, 14.7431, 887.2, 3.81, -12.14, 126.3, 0.56, 'dIrr', '', 1, 'LVDB dwarf_local_field; distance Savino2022ApJ...938..101S'],
+  ['Tucana', 340.457, -64.4194, 887.2, 1.1, -9.54, 97, 0.48, 'dSph', '', 1, 'LVDB dwarf_local_field; distance McConnachie2012AJ....144....4M'],
+  ['Pisces VII', 20.419, 26.391, 912, 0.67, -6, 96, 0, 'dSph', 'm_033', 1, 'LVDB dwarf_m31; distance Collins2024MNRAS.528.2614C'],
+  ['Pegasus W', 358.312, 22.102, 916.2, 0.3833, -7.2, 92, 0.17, 'dIrr', '', 1, 'LVDB dwarf_local_field; distance McQuinn2023ApJ...944...14M'],
+  ['Andromeda XXXV', 6.66083, 40.1081, 924.7, 0.27, -5.2, 82, 0.43, 'dSph', 'm_031', 1, 'LVDB dwarf_m31; distance Arias2025ApJ...982L...3A'],
+  ['Triangulum IV', 22.1622, 30.9843, 933.3, 6.5, -6.39, 90, 0.21, 'dSph', 'm_033', 0, 'LVDB dwarf_m31; distance Ogami2024arXiv240707481O'],
+  ['Aquarius', 311.716, -12.8481, 986.3, 1.63, -10.47, 96.58, 0.53, 'dIrr', '', 1, 'LVDB dwarf_local_field; distance Higgs2021MNRAS.503..176H'],
+  ['Wolf–Lundmark–Melotte', 0.4925, -15.4608, 989.5, 4.1, -14.38, 177.02, 0.54, 'dIrr', '', 1, 'LVDB dwarf_local_field; distance Yan2025ApJ...986...54Y'],
+  ['Andromeda XVIII', 0.56025, 45.0877, 1180.3, 0.92, -9.16, 75.12, 0.44, 'dSph', '', 1, 'LVDB dwarf_m31; distance Higgs2021MNRAS.503..176H'],
+  ['SagDIG', 292.496, -17.6808, 1196.7, 1.13, -11.79, 86.91, 0.56, 'dIrr', '', 1, 'LVDB dwarf_local_field; distance Higgs2021MNRAS.503..176H'],
+  ['UGC 4879', 139.009, 52.84, 1219, 1.13, -12.23, 81.19, 0.43, 'dIrr', '', 1, 'LVDB dwarf_local_field; distance Higgs2021MNRAS.503..176H'],
+];
+
+const LY_PER_KPC = 3261.56;
+
+const LG                      = LG_ROWS.map(row => {
+  const [name, ra, dec, kpc, rh, Mv0, pa, ell, kind, , confirmed] = row;
+  const { N, E, Z } = skyBasis(ra, dec);
+  // the half-light radius at its angular size from the Sun; a minute of arc where unmeasured
+  const tanA = Math.tan((rh > 0 ? rh : 1)/60*Math.PI/180);
+  const tanB = tanA*(1 - Math.min(0.95, Math.max(0, ell)));
+  const p = pa*Math.PI/180, cp = Math.cos(p), sp = Math.sin(p);
+  const dirA       = [N[0]*cp + E[0]*sp, N[1]*cp + E[1]*sp, N[2]*cp + E[2]*sp];
+  const dirB       = [E[0]*cp - N[0]*sp, E[1]*cp - N[1]*sp, E[2]*cp - N[2]*sp];
+  const Mv = Mv0 ?? -1;
+  // a marker gain: the luminous ones brighter, the ultra-faints still there
+  const gain = 0.35 + 0.65*Math.min(1, Math.max(0, (-Mv - 1)/17));
+  return { row, name, kind, kpc, ly: kpc*LY_PER_KPC, dir: Z, dComp: sepScene(kpc), dTrue: kpc*KPC2U, tanA, tanB, dirA, dirB,
+    Mv, gain, confirmed: confirmed === 1, major: Mv <= -11, pos: new Float32Array(3), A: new Float32Array(3), B: new Float32Array(3), a: 0, b: 0 }
+});
+
+/** Place every member for a blend `t` from the compressed depth (0) to true scale (1). */
+function lgUpdate(t        )       {
+  for(const m of LG){
+    const d = m.dComp + (m.dTrue - m.dComp)*t;
+    m.pos[0] = m.dir[0]*d; m.pos[1] = m.dir[1]*d; m.pos[2] = m.dir[2]*d;
+    m.a = m.tanA*d; m.b = m.tanB*d;
+    for(let i=0;i<3;i++){ m.A[i] = m.dirA[i]*m.a; m.B[i] = m.dirB[i]*m.b; }
+  }
+}
+lgUpdate(1);
+
+/** the members in the order the labels claim space: the luminous first */
+const LG_BY_LIGHT                    = LG.map((_, i) => i).sort((i, j) => LG[i].Mv - LG[j].Mv);
+
+/**
+ * The box: a cylinder on the Galaxy's axis round the whole Group at true scale, as the
+ * classic chart draws it — centred between the Milky Way and Andromeda, wide and tall enough
+ * for every member with a little air.
+ */
+const LG_BOX = (() => {
+  const m31 = 765*KPC2U;
+  const centre       = [M31_DIR[0]*m31*0.5, M31_DIR[1]*m31*0.5, M31_DIR[2]*m31*0.5];
+  let r = 0, h = 0;
+  for(const m of LG){
+    r = Math.max(r, Math.hypot(m.dir[0]*m.dTrue - centre[0], m.dir[2]*m.dTrue - centre[2]));
+    h = Math.max(h, Math.abs(m.dir[1]*m.dTrue - centre[1]));
+  }
+  r = Math.max(r, Math.hypot(centre[0], centre[2]))*1.08;   // the Milky Way itself is a member
+  h = Math.max(h, Math.abs(centre[1]))*1.15;
+  return { centre, radius: r, halfH: h }
+})();
+
+/** true light years, written the way the charts write them */
+function lyLabel(ly        )         {
+  return ly >= 1e6 ? `${(ly/1e6).toFixed(2)} Mly` : `${Math.round(ly/1e3)} kly`
+}
+
+/**
+ * How much of the Group shows at this camera distance: nothing within the Galaxy's own
+ * views and the merger's (the Andromeda view sits at 9,500), all of it from 64,000 out.
+ */
+function lgFade(camDist        )         {
+  const t = Math.min(1, Math.max(0, (camDist - 24000)/(64000 - 24000)));
+  return t*t*(3 - 2*t)
+}
+
+/**
+ * The Local Group: its galaxies as glows on their half-light ellipses at the drawn depth
+ * (see astro/localgroup for what "drawn depth" means and why), and — with the labels on —
+ * the chart's box: a cylinder on the Galaxy's axis round the whole Group, its mid-plane
+ * ellipse, the silhouette edges toward the eye, and a drop-line from every galaxy to the
+ * mid-plane, so height above and below the Galactic plane can be read. Sun-relative,
+ * additive, in the main view.
+ */
+const pG = prog(QUAD_VS, GAL_FS);
+const UG = {
+  proj: gl.getUniformLocation(pG, 'uProj'), view: gl.getUniformLocation(pG, 'uView'),
+  c: gl.getUniformLocation(pG, 'uC'), A: gl.getUniformLocation(pG, 'uA'), B: gl.getUniformLocation(pG, 'uB'),
+  margin: gl.getUniformLocation(pG, 'uMargin'), kind: gl.getUniformLocation(pG, 'uKind'),
+  col: gl.getUniformLocation(pG, 'uCol'), gain: gl.getUniformLocation(pG, 'uGain'),
+  seed: gl.getUniformLocation(pG, 'uSeed'), fade: gl.getUniformLocation(pG, 'uFade'),
+};
+const vaoEmpty = gl.createVertexArray(); 
+const KIND_ID                         = { dSph: 0, dIrr: 1, dE: 2, cE: 2, spiral: 3, dark: 4 };
+const KIND_COL                                                    = {
+  dSph: [1.0, 0.90, 0.72], dIrr: [0.78, 0.86, 1.0], dE: [1.0, 0.88, 0.70], cE: [1.0, 0.90, 0.74],
+  spiral: [0.82, 0.88, 1.0], dark: [0.62, 0.58, 0.85],
+};
+
+// the drop-lines and the two silhouette edges: one dynamic buffer, refilled per frame
+const N_LINES = LG.length + 2;
+const linePos = new Float32Array(N_LINES*2*3);
+const lineGL = (()=>{ const v=gl.createVertexArray() ; gl.bindVertexArray(v);
+  const b=gl.createBuffer() ; gl.bindBuffer(gl.ARRAY_BUFFER,b); gl.bufferData(gl.ARRAY_BUFFER, linePos.byteLength, gl.DYNAMIC_DRAW);
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
+  gl.bindVertexArray(null); return { vao: v, buf: b } })()
+
+;                          
+                       
+                       
+                                                            
+                        
+                 
+                 
+                     
+ 
+
+/** Draw the Group. Returns its fade, which the labels follow. */
+function drawLocalGroup(inp          )         {
+  const { projMat, viewMat, eye, camDist, pxScale, showLabels } = inp;
+  const fade = lgFade(camDist);
+  if(fade < 0.002) return 0
+  lgUpdate(fade);                      // the slide from the merger's compressed depth to true scale
+  gl.useProgram(pG);
+  gl.uniformMatrix4fv(UG.proj, false, projMat);
+  gl.uniformMatrix4fv(UG.view, false, viewMat);
+  gl.uniform1f(UG.margin, 3.0);
+  gl.bindVertexArray(vaoEmpty);
+  for(let k=0;k<LG.length;k++){
+    const m = LG[k];
+    const dist = Math.hypot(m.pos[0] - eye[0], m.pos[1] - eye[1], m.pos[2] - eye[2]);
+    const pxPerU = pxScale/Math.max(dist, 1e-6);
+    // a marker floor: nothing smaller than a few pixels, and the flux is not conserved —
+    // these are markers, and a dwarf at its true faintness would simply be absent
+    const aPx = m.a*pxPerU, bPx = m.b*pxPerU;
+    const floor = m.kind === 'spiral' ? 26 : m.Mv < -15 ? 12 : m.Mv < -9 ? 7 : 5;
+    const wa = Math.max(1, floor/Math.max(aPx, 1e-9)), wb = Math.max(1, floor*0.7/Math.max(bPx, 1e-9));
+    // the two big spirals are drawn by their own models until the Group takes over
+    const own = m.kind === 'spiral' && m.name.startsWith('Andromeda') ? fade : 1;
+    const c = KIND_COL[m.kind];
+    gl.uniform3f(UG.c, m.pos[0], m.pos[1], m.pos[2]);
+    gl.uniform3f(UG.A, m.A[0]*wa, m.A[1]*wa, m.A[2]*wa);
+    gl.uniform3f(UG.B, m.B[0]*wb, m.B[1]*wb, m.B[2]*wb);
+    gl.uniform1f(UG.kind, KIND_ID[m.kind]);
+    gl.uniform3f(UG.col, c[0], c[1], c[2]);
+    gl.uniform1f(UG.gain, 2.2*m.gain*(m.confirmed ? 1 : 0.55));
+    gl.uniform1f(UG.seed, k*0.731);
+    gl.uniform1f(UG.fade, fade*own);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  }
+  // the Milky Way herself: the model's points are dust at this distance, so the Group's own
+  // marker takes over — a spiral glow the disk's true 15-kpc radius, in the disk's plane
+  { const R = 15*KPC2U, dist = Math.hypot(eye[0], eye[1], eye[2]), rPx = R*pxScale/Math.max(dist, 1e-6);
+    const w = Math.max(1, 26/Math.max(rPx, 1e-9));
+    gl.uniform3f(UG.c, 0, 0, 0);
+    gl.uniform3f(UG.A, R*w, 0, 0);
+    gl.uniform3f(UG.B, 0, 0, R*w);
+    gl.uniform1f(UG.kind, KIND_ID.spiral);
+    gl.uniform3f(UG.col, 0.86, 0.9, 1.0);
+    gl.uniform1f(UG.gain, 2.4);
+    gl.uniform1f(UG.seed, 2.0);
+    gl.uniform1f(UG.fade, fade);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); }
+  gl.bindVertexArray(null);
+  if(!showLabels || fade < 0.98) return fade
+  // ---------- the box: only once the Group is at true scale ----------
+  const { centre, radius, halfH } = LG_BOX;
+  const col = [0.30*fade, 0.46*fade, 0.66*fade];        
+  const X = [1, 0, 0], Zp = [0, 0, 1];
+  drawRings({ projMat, viewMat, centre: [centre[0], centre[1] + halfH, centre[2]], radius, colour: col, planes: [[X, Zp]] });
+  drawRings({ projMat, viewMat, centre: [centre[0], centre[1] - halfH, centre[2]], radius, colour: col, planes: [[X, Zp]] });
+  drawRings({ projMat, viewMat, centre, radius, colour: [col[0]*0.6, col[1]*0.6, col[2]*0.6], planes: [[X, Zp]] });
+  // the silhouette edges: where the cylinder's side is tangent to the line of sight
+  const ex = eye[0] - centre[0], ez = eye[2] - centre[2], el = Math.hypot(ex, ez) || 1;
+  const px = -ez/el*radius, pz = ex/el*radius;
+  let o = 0;
+  const line = (x0        , y0        , z0        , x1        , y1        , z1        )       => {
+    linePos[o++] = x0; linePos[o++] = y0; linePos[o++] = z0; linePos[o++] = x1; linePos[o++] = y1; linePos[o++] = z1;
+  };
+  line(centre[0] + px, centre[1] - halfH, centre[2] + pz, centre[0] + px, centre[1] + halfH, centre[2] + pz);
+  line(centre[0] - px, centre[1] - halfH, centre[2] - pz, centre[0] - px, centre[1] + halfH, centre[2] - pz);
+  let n = 2;
+  for(const m of LG){ line(m.pos[0], m.pos[1], m.pos[2], m.pos[0], centre[1], m.pos[2]); n++; }
+  gl.useProgram(pTr);
+  gl.uniformMatrix4fv(U.trProj, false, projMat);
+  gl.uniformMatrix4fv(U.trView, false, viewMat);
+  gl.uniform3f(U.trOrg, 0, 0, 0);
+  gl.uniform1f(U.trLen, 1e9); gl.uniform1f(U.trFlat, 1.0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, lineGL.buf); gl.bufferSubData(gl.ARRAY_BUFFER, 0, linePos.subarray(0, n*6));
+  gl.bindVertexArray(lineGL.vao);
+  gl.uniform3f(U.trCol, col[0], col[1], col[2]); gl.uniform1f(U.trA, 0.9);
+  gl.drawArrays(gl.LINES, 0, 4);
+  gl.uniform3f(U.trCol, 0.55, 0.62, 0.78); gl.uniform1f(U.trA, 0.22*fade);
+  gl.drawArrays(gl.LINES, 4, (n - 2)*2);
+  gl.bindVertexArray(null);
+  return fade
+}
+
 const SUN_FS = "#version 300 es\nprecision highp float;\nuniform float uTime, uDisc;\nuniform vec3 uColD, uColB;   // the photosphere's dark and bright tones, set by its temperature\nout vec4 o;\nfloat h21(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }\nfloat vnoise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);\n  return mix(mix(h21(i),h21(i+vec2(1,0)),f.x), mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x), f.y); }\nfloat fbm(vec2 p){ float a=.5,s=0.; for(int i=0;i<4;i++){ s+=a*vnoise(p); p*=2.13; a*=.5; } return s; }\nvoid main(){\n  vec2 q = gl_PointCoord*2.0-1.0;\n  float r = length(q);\n  if(r>1.0) discard;\n  float ang = atan(q.y,q.x);\n  float R = uDisc;\n  vec3 col = vec3(0.0); float lum = 0.0;\n  float t = uTime;\n  if(r < R){\n    float rr = r/R;\n    float limb = sqrt(max(0.0, 1.0-rr*rr));\n    float g  = fbm(q/R*7.0  + vec2(t*0.030,-t*0.021));\n    float g2 = fbm(q/R*17.0 - vec2(t*0.050, t*0.033));\n    float b = 0.55 + 0.50*limb + 0.35*(g-0.5) + 0.22*(g2-0.5);\n    col = mix(uColD, uColB, clamp(b,0.,1.));\n    col += mix(uColD, uColB, 0.8)*pow(limb,3.0)*0.35;\n    lum = 1.0;\n  }\n  float storm = 0.55 + 0.45*sin(t*0.23 + 2.0*sin(t*0.11));   // the slow magnetic cycle\n  float rim = (r-R)/R;\n  if(rim > -0.05){\n    float p1 = fbm(vec2(ang*2.2 + t*0.07, rim*5.0 - t*0.16));\n    float arcs = smoothstep(0.60, 0.95, p1) * exp(-max(rim,0.0)*3.2) * (0.45+storm);\n    // prominences run a shade redder than the surface, the corona a shade brighter —\n    // the same offsets today's fixed colours had, now riding the temperature\n    col += uColD*vec3(1.0,0.78,1.2)*arcs*1.6;\n    float st = 0.75 + 0.25*fbm(vec2(ang*3.5, t*0.05));\n    float cor = exp(-max(rim,0.0)*2.6)*0.35*st;\n    col += uColB*vec3(1.0,0.86,0.81)*cor;\n    lum = max(lum, max(arcs, cor));\n  }\n  float aDisc = smoothstep(R, R-0.015, r);\n  float a = max(aDisc, min(0.95, lum*0.85));\n  o = vec4(col*max(lum, aDisc), a);\n}";
 
 const PN_FS = "#version 300 es\nprecision highp float;\nuniform float uTime, uAge, uAlpha, uBurst;   // uAge 0..1 through the nebula's life; uBurst 0..1 at the casting\nout vec4 o;\nfloat h21(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }\nfloat vnoise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);\n  return mix(mix(h21(i),h21(i+vec2(1,0)),f.x), mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x), f.y); }\nfloat fbm(vec2 p){ float a=.5,s=0.; for(int i=0;i<4;i++){ s+=a*vnoise(p); p*=2.13; a*=.5; } return s; }\n// The interacting-winds picture, in stages over uAge. The envelope goes first: dense,\n// dusty, lit warm by the still-cool star, thrown off in a burst. Then the exposed core\n// heats and its ionisation front sweeps outward through the ejecta — teal [OIII] inside\n// the front, warm dust still beyond it — while the fast wind hollows a cavity, so the\n// shell becomes the limb-brightened, filamentary thing with Hα at its rim that a\n// planetary nebula is, with radial cometary knots where the front passed and a faint\n// outer halo of the earlier, slower wind. Then it thins and dissolves.\nvoid main(){\n  vec2 q = gl_PointCoord*2.0-1.0;\n  float rg = length(q);                              // in the sprite, which the burst enlarges\n  if(rg>1.0) discard;\n  // During the casting the sprite is drawn up to 3.5× the shell, so the star's light\n  // scattered off the fresh dust — a reflection halo, not a shock — has room beyond it;\n  // everything that belongs to the shell is measured in r, the shell's own scale.\n  float grow = 1.0 + 2.5*uBurst;\n  float r = min(1.0, rg*grow);\n  float ang = atan(q.y,q.x), a = uAge;\n  float eject = smoothstep(0.0, 0.18, a);            // the envelope is off\n  float ion   = smoothstep(0.15, 0.55, a);           // the front has swept out\n  float old   = smoothstep(0.72, 1.0, a);            // dissolving\n  float R = mix(0.52, 0.76, a);                      // the shell in the sprite (the sprite itself grows)\n  float w = mix(0.24, 0.075, ion) + 0.14*old;        // thick envelope -> thin shell -> frayed\n  float n1 = fbm(vec2(ang*3.0 + 3.0, r*6.0 - a*1.5));\n  float knots = fbm(vec2(ang*11.0 + uTime*0.005, r*1.6));      // streaks along r: cometary knots\n  float clump = fbm(q*5.0 + 7.0);\n  float fil = 0.40 + 0.70*n1 + 0.55*(knots-0.5)*ion + 0.30*(clump-0.5);\n  float env = exp(-pow((r-R)/w, 2.0));\n  float cavity = smoothstep(R*0.25, R*0.92, r);      // the fast wind empties the middle\n  float body = env * max(fil, 0.0) * mix(1.0, cavity, ion) * (0.82 + 0.18*cos(2.0*ang + 0.8));\n  float dust = smoothstep(R+0.12, 0.0, r) * (0.22 + 0.30*clump) * (1.0-ion) * eject;\n  float rIon = mix(0.0, 1.08, ion);                  // where the ionisation front stands\n  float inFront = smoothstep(rIon+0.07, rIon-0.07, r);\n  vec3 warm = vec3(1.00, 0.56, 0.30);\n  vec3 oiii = vec3(0.32, 0.92, 0.78);\n  vec3 ha   = vec3(1.00, 0.34, 0.26);\n  vec3 shellCol = mix(oiii, ha, smoothstep(R-0.03, R+0.10, r));\n  vec3 col = body * mix(warm, shellCol, inFront) * 0.95 + dust * warm;\n  col += oiii * exp(-pow((r-rIon)/0.05, 2.0)) * 0.55 * ion * (1.0-old) * step(rIon, 1.0) * (0.7+0.6*n1);   // the front itself\n  col += oiii * smoothstep(R, 0.0, r) * 0.08 * inFront * (1.0-old);                                          // the interior's glow\n  col += ha * exp(-pow((r-0.95)/0.05, 2.0)) * 0.14 * ion * (1.0-old) * (0.5+0.5*n1);                        // the old wind's halo\n  float flash = uBurst;                              // the casting: a burst of light, not a shock\n  col *= 1.0 + 1.3*flash;\n  col += warm * exp(-pow(rg/0.45, 2.0)) * 0.9 * flash * (0.75+0.5*fbm(q*4.0+2.0));   // scattered off the fresh dust\n  col += vec3(1.0,0.85,0.6) * exp(-pow(rg/0.12, 2.0)) * 1.4 * flash;                 // and the star, glaring through\n  col *= 1.0 - 0.65*old;\n  o = vec4(col*uAlpha, 0.0);\n}";
@@ -4728,6 +5064,14 @@ const mkLbl = (text        , colour        )              => { const d=document.
 const sgraEl = mkLbl('Sagittarius A*', 'rgba(236,214,190,.9)');
 const sstarEls = SSTARS.map(s => mkLbl(s.name, 'rgba(190,210,255,.7)'));
 const bh1El = mkLbl('Gaia BH1', 'rgba(236,214,190,.9)');
+// the Local Group's names, each with its true distance in a small box, the way the charts
+// print them; the two companions the map-built Andromeda already names get no element
+// the luminous members carry their true distance in a small box; the faint ones (the
+// ultra-faint dwarfs, the candidates) are named in grey with no distance, so the chart
+// reads at a glance; the settings' "distances" switch takes the boxes off altogether
+const lgEls = LG.map(m => { const d = mkLbl(m.name, ''); d.classList.add('lg'); if(!m.major) d.classList.add('minor');
+  if(m.major){ const sp = document.createElement('span'); sp.className = 'dist'; sp.textContent = lyLabel(m.ly); d.appendChild(sp); } return d; });
+const mwEl = (()=>{ const d = mkLbl('Milky Way Galaxy', 'rgba(120,190,255,.95)'); d.classList.add('lg'); return d; })();
 // the radio field's names, in the map's own warm ink; the unnamed ridge gets no element
 const radioEls = RADIO_GEOM.map(g => g.obj.name ? mkLbl(g.obj.name, 'rgba(255,205,150,.78)') : null);
 const bh1StarEl = mkLbl('G dwarf companion', 'rgba(255,225,170,.75)');
@@ -4812,6 +5156,8 @@ function placeLabel(el       , x        , y        , show         )       {
                                                                                                             
                                                                                         
                                                                                             
+                                                        
+             
  
 
 /**
@@ -4826,11 +5172,13 @@ function projector(projMat              , viewMat              )                
 }
 const hideGC = ()       => { placeLabel(sgraEl, 0, 0, false); sstarEls.forEach(l => placeLabel(l         , 0, 0, false)); radioEls.forEach(l => l && placeLabel(l         , 0, 0, false)); };
 const hideBH1 = ()       => { placeLabel(bh1El, 0, 0, false); placeLabel(bh1StarEl, 0, 0, false); };
+const hideLG = ()       => { lgEls.forEach(l => placeLabel(l         , 0, 0, false)); placeLabel(mwEl, 0, 0, false); };
+const lgTaken = new Set        ();
 
 function drawLabels(showLabels         , inputs             )       {
-  if(!showLabels){ placeLabel(g710Lbl, 0, 0, false); hideGC(); hideBH1(); return }
+  if(!showLabels){ placeLabel(g710Lbl, 0, 0, false); hideGC(); hideBH1(); hideLG(); return }
   const { projMat, viewMat, pxScale, camDist, org, andPos, merge, sep, spinMW, spinM31, asm, bornYet, star,
-          showP9, showDwarfs, wasEaten, structOn, armsOn, gc, bh1 } = inputs;
+          showP9, showDwarfs, wasEaten, structOn, armsOn, gc, bh1, lgA } = inputs;
   const pv = mul(projMat, viewMat);
   const proj = (x        , y        , z        )           => { const cw = pv[3]*x+pv[7]*y+pv[11]*z+pv[15];
     return [cw, ((pv[0]*x+pv[4]*y+pv[8]*z+pv[12])/cw*0.5+0.5)*view.W, (-(pv[1]*x+pv[5]*y+pv[9]*z+pv[13])/cw*0.5+0.5)*view.H]; };
@@ -4879,7 +5227,7 @@ function drawLabels(showLabels         , inputs             )       {
   } else armEls.forEach(l=>placeLabel(l         , 0, 0, false));
   // named together, retired together: past this point the two disks already render as
   // one blob, so naming only "Andromeda" there would mislabel the Milky Way's own remnant
-  if(galaxyNames && merge < 0.35){
+  if(galaxyNames && merge < 0.35 && lgA < 0.5){
     const cD = Math.cos(spinM31/650), sD = Math.sin(spinM31/650);   // her wave rotation, as the shader turns it
     let m31CW = 1e9;
     for(let a=0;a<M31_LBLS.length;a++){
@@ -4907,8 +5255,29 @@ function drawLabels(showLabels         , inputs             )       {
   for(let a=0;a<SKY_LABELS.length;a++){
     const L = SKY_LABELS[a].p;
     const [cw, sx, sy] = proj(L[0], L[1], L[2]);
-    placeLabel(skyEls[a]         , sx, sy + 12, galaxyNames && cw > 1);
+    placeLabel(skyEls[a]         , sx, sy + 12, galaxyNames && cw > 1 && lgA < 0.5);
   }
+  // the Local Group: the luminous claim their space first, and a name that would land on
+  // one already placed steps aside — the chart's crowd round Andromeda cannot all be read
+  // at once, and a pile of overprinted names reads as nothing
+  if(lgA > 0.5){
+    lgTaken.clear();
+    const cellW = 96, cellH = 13;
+    { const [cw, sx, sy] = proj(-org[0], -org[1], -org[2]);   // the Galaxy's centre
+      placeLabel(mwEl, sx, sy - 9, cw > 1); lgTaken.add(Math.floor(sx/cellW)*4096 + Math.floor((sy - 3)/cellH)); }
+    for(const k of LG_BY_LIGHT){
+      const el = lgEls[k];
+      const m = LG[k];
+      const [cw, sx, sy] = proj(m.pos[0], m.pos[1], m.pos[2]);
+      let show = cw > 1 && sx > -40 && sx < view.W + 40 && sy > -20 && sy < view.H + 20;
+      if(show){
+        const cx = Math.floor(sx/cellW), cy = Math.floor((sy + 6)/cellH);
+        for(let dx=-1;dx<=1 && show;dx++) for(let dy=-1;dy<=1;dy++) if(lgTaken.has((cx+dx)*4096 + cy+dy)){ show = false; break; }
+        if(show) lgTaken.add(cx*4096 + cy);
+      }
+      placeLabel(el         , sx, sy - 9, show);
+    }
+  } else hideLG();
   // one galaxy, one name: from the moment the disks are one blob, the remnant's centre
   { const [cw, sx, sy] = proj(-org[0], -org[1], -org[2]);
     placeLabel(mergedEl, sx, sy, galaxyNames && merge >= 0.35 && cw > 1); }
@@ -4976,6 +5345,8 @@ let vaoStars$1;
 
 /** while a pointer is down the clock holds — render/camera reports it */
 let holding = false;
+/** the Group's fade from the last frame: the skybox photographs read it a pass earlier */
+let lgFadeNow = 0;
 const setHolding = (h         )       => { holding = h; };
 
 /** the rendering origin: the Sun, in double precision */
@@ -4984,6 +5355,8 @@ const sunSizeTmp=new Float32Array(1), eatSizeTmp=new Float32Array(1);
 const andPos = new Float32Array(3);
 /** Gaia BH1 — the hole itself — Sun-relative in doubles, and the absolute position the camera follows */
 const bh1C = new Float64Array(3), bh1Abs = new Float64Array(3);
+/** the Local Group's box centre, absolute, for the camera to follow */
+const lgAbs = new Float64Array(3);
 function updateAnd(){
   const a = ageGyr$4();
   const [u,v] = orbitUV(a);
@@ -5123,9 +5496,11 @@ function frame(now        )       {
   // the two black holes: Sagittarius A* is the scene's origin, Gaia BH1 rides the local sky
   bh1Centre(simClock.simT, bh1C);
   for(let i=0;i<3;i++) bh1Abs[i] = org[i] + bh1C[i];
+  for(let i=0;i<3;i++) lgAbs[i] = org[i] + LG_BOX.centre[i];
   const followPos = cam.followTarget === 'and' ? andPos
                   : cam.followTarget === 'gc' || cam.followTarget === 'gcr' ? GC_ORIGIN
                   : cam.followTarget === 'bh1' ? bh1Abs
+                  : cam.followTarget === 'lg' ? lgAbs
                   : moonHere ? moonW
                   : ((cam.followTarget === 'earth' || cam.followTarget === 'moon') && !wasEaten[3]) ? earthW : org;
   const goal = cam.follow ? [followPos[0],followPos[1],followPos[2]] : [0,0,0];
@@ -5294,9 +5669,13 @@ function frame(now        )       {
   const dAnd = Math.hypot(eye[0] - (andPos[0] - org[0]), eye[1] - (andPos[1] - org[1]), eye[2] - (andPos[2] - org[2]));
   const andFar = dAnd > dMW;
   const andLayer = ()       => {
-    drawNebula(clouds, true, 'and');
-    if(insideDisk) drawNebula(clouds, false, 'and');
-    drawDust(clouds, hud.dustOn, 'and');
+    // the merger model's Andromeda stands down as the Local Group's to-scale one fades in
+    if(lgFadeNow >= 0.999) return;
+    if(lgFadeNow < 0.5){
+      drawNebula(clouds, true, 'and');
+      if(insideDisk) drawNebula(clouds, false, 'and');
+      drawDust(clouds, hud.dustOn, 'and');
+    }
     if(gfx.vaoAnd){
       // Andromeda: generated flat in its own disk frame; uGRot turns it to its measured
       // orientation — the two disks stand 120° apart, nowhere near parallel — and uGOff
@@ -5318,7 +5697,9 @@ function frame(now        )       {
       gl.uniform1f(U.ptArmAmp, 0.0);         // Andromeda's structure is rings, not the beat
       gl.uniform1f(U.ptRingAmp, M31_RING.amp); gl.uniform1f(U.ptRingT, ringT);
       gl.uniform2f(U.ptRingC, M31_RING.cx, M31_RING.cz);
+      gl.uniform1f(U.ptFade, lgFadeNow);
       gl.bindVertexArray(gfx.vaoAnd); gl.drawArrays(gl.POINTS,0,gfx.N_AND);
+      gl.uniform1f(U.ptFade, 0.0);
       gl.uniformMatrix3fv(U.ptGRot, false, MAT3_ID);
       gl.uniform3f(U.ptGOff, 0, 0, 0);
       gl.uniform3f(U.ptSun, sunX, bubY, sunZ);
@@ -5330,12 +5711,16 @@ function frame(now        )       {
       gl.uniform1f(U.ptRingAmp, 0.0);
       gl.uniform1f(U.ptGal, 0.0);
     }
-    if(!insideDisk) drawNebula(clouds, false, 'and');   // her HII ring and core, over her stars
+    if(!insideDisk && lgFadeNow < 0.5) drawNebula(clouds, false, 'and');   // her HII ring and core, over her stars
   };
   // the extragalactic sky first: it is behind everything, and it does not turn
-  drawSkyImages(view.projMat , viewMat, org);
+  // the photographed Clouds and Triangulum sit on the far sphere: once the Group is drawn
+  // at its depth they would show twice, so they fade as it fades in
+  const lgA = lgFadeNow;
+  drawSkyImages(view.projMat , viewMat, org, 1 - lgA);
   { const dots = skyDotVAO();
-    if(dots){ gl.useProgram(pPt); gl.bindVertexArray(dots); gl.drawArrays(gl.POINTS, 0, N_SKYDOTS); } }
+    // the far sphere's galaxy dots are sky, at no depth: they go as the Group comes
+    if(dots && lgFadeNow < 0.999){ gl.useProgram(pPt); gl.uniform1f(U.ptFade, lgFadeNow); gl.bindVertexArray(dots); gl.drawArrays(gl.POINTS, 0, N_SKYDOTS); gl.uniform1f(U.ptFade, 0.0); } }
   if(andFar) andLayer();
   // the Milky Way's layer: haze, lanes, then the backdrop sky and the Gaia bubble (our
   // own foreground stars — in front of Andromeda from every camera this side of her),
@@ -5450,6 +5835,8 @@ function frame(now        )       {
     projMat: view.projMat , viewGC, viewBH1, distGC, distBH1, pxScale, viewH: view.H*view.DPR, simT: simClock.simT, shimT: simClock.shimT,
     mirror: SKY_MIRROR, orbitAlpha: hud.orbitAlpha, showOrbits: hud.psO, trailAlpha: hud.trailAlpha, showTails: hud.psH, viewMat, org,
   });
+  // the Local Group, once the eye is far enough out to see the Galaxy whole
+  lgFadeNow = drawLocalGroup({ projMat: view.projMat , viewMat, eye, camDist: cam.dist, pxScale, showLabels: hud.showLabels });
   // The Sun itself, last of the scene: the envelope it has shed, then its disc over that.
   // Whether the envelope is on screen decides what the Sun's label says, so the pass
   // reports it and the readout is set here rather than from inside the draw.
@@ -5481,6 +5868,7 @@ function frame(now        )       {
     structOn: [hud.showBelt, hud.showKuiper, hud.showOort], armsOn: hud.armsOn,
     gc: { on: gcRes.gcOn, view: viewGC, dist: distGC, stars: sstarRel, sgraPx: gcRes.sgraPx, radioA: gcRes.radioA },
     bh1: { on: gcRes.bh1On, view: viewBH1, dist: distBH1, star: bh1StarRel, holePx: gcRes.bh1Px },
+    lgA: lgFadeNow,
   });
 
   updateHud(now, pn);
@@ -6237,6 +6625,8 @@ function initHudControls(deps
     $('tPause').setAttribute('aria-label', on ? 'pause' : 'play'); });
   toggleLocal($('tLabels'), on=>{ hud.showLabels=on; if(!on) labelEls.forEach(l=>l.style.display='none'); });
   toggleLocal($('tArms'), on=>{ hud.armsOn=on; if(!on) armEls.forEach(l=>l.style.display='none'); });
+  // the Local Group's distance boxes: a class on the body, read by the labels' stylesheet
+  toggleLocal($('tDist'), on=>{ document.body.classList.toggle('nodist', !on); });
   // steady labels: eased into place, held through a single leap, stepped aside while a
   // body whirls faster than a label can follow (see placeLabel). On by default for now.
   toggleLocal($('tLabelSteady'), on=>{ setLabelSteady(on); });
@@ -6357,14 +6747,14 @@ const minDist = ()         => cam.followTarget === 'moon' ? (ageGyr$2() > MOON_B
 // The ceiling: three times further out than the old 7500, so the Galaxy can be seen whole
 // with room around it. The sky sphere and the far plane follow it (render/frame's
 // skyProjection), or the backdrop would clip away exactly when there is most of it to see.
-const MAX_DIST = 22500;
+const MAX_DIST = 400000;   // v3.15: the Local Group to scale — Andromeda is 84,000 units out
 // The zoom buttons step along a ladder of the objects themselves — the Sun, the planets'
 // orbits, the belts, the Oort shell, the nearest stars, the arm, the Galaxy, the Local
 // Group — with one rung between each pair, so two presses take you from one object to
 // the next, and every press eases in log space like any other zoom. Clamped to the same
 // floor and ceiling as the wheel. Distances in camera units: 1 AU across the view is
 // 4.67e-7, 1 ly is 0.0288.
-const ZOOM_OBJ = [1.2e-10, 3.2e-9, 2e-8, 1e-7, 3.7e-7, 9.3e-7, 1.45e-6, 4.9e-6, 8.9e-6, 2.8e-5, 4.7e-5, 9.3e-4, 0.144, 0.72, 17, 150, 4300, 9500];
+const ZOOM_OBJ = [1.2e-10, 3.2e-9, 2e-8, 1e-7, 3.7e-7, 9.3e-7, 1.45e-6, 4.9e-6, 8.9e-6, 2.8e-5, 4.7e-5, 9.3e-4, 0.144, 0.72, 17, 150, 4300, 9500, 330000];
 const ZOOM_RUNGS = ZOOM_OBJ.flatMap((d, i) => i ? [Math.sqrt(ZOOM_OBJ[i-1]*d), d] : [d]);
 function zoomStep(dir        )       {
   const cur = cam.distGoal, lo = Math.log(cur);
@@ -6536,6 +6926,14 @@ function applyFocusView()       {
     if(!$('tView').classList.contains('on')) $('tView').click();
     cam.followTarget = 'bh1';
     cam.follow = true; cam.coreLock = false; cam.distGoal = 1.9e-6; cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
+  } else if(v === 'lg'){
+    // the Local Group whole: the chart's box round the Milky Way, Andromeda and every dwarf
+    // between and about them, from a little above the plane
+    if($('tDive').classList.contains('on')) $('tDive').click();
+    if(!$('tView').classList.contains('on')) $('tView').click();
+    cam.followTarget = 'lg';
+    cam.follow = true; cam.coreLock = false; cam.distGoal = 330000; cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
+    cam.yaw = 0.7; cam.pitch = 0.3;
   } else if(v === 'and'){
     // framed wide enough for the whole disk plus its extended halo and stream
     // (R_A=2245, halo out to ~4200, the Giant Southern Stream past 5700), at any
@@ -9006,6 +9404,11 @@ startFrameLoop({
     text-shadow:0 0 8px rgba(0,0,0,.9);pointer-events:none;white-space:nowrap}
   .lbl{position:fixed;transform:translate(-50%,-140%);font-family:'Orbitron',ui-monospace,monospace;font-size:8px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;
     color:rgba(190,224,250,.8);pointer-events:none;z-index:3;text-shadow:0 0 6px #000;white-space:nowrap}
+  .lbl.lg{transform:translate(-50%,-50%);color:rgba(226,232,244,.86)}
+  .lbl.lg.minor{color:rgba(150,162,184,.62);font-size:7px}
+  body.nodist .lbl .dist{display:none}
+  .lbl .dist{display:inline-block;margin-left:5px;padding:1px 4px;border:1px solid rgba(150,180,220,.45);border-radius:2px;
+    font-size:7px;letter-spacing:.1em;color:rgba(190,205,230,.85);text-shadow:none;vertical-align:1px}
   .alertbox{position:fixed;left:14px;z-index:6;display:none;box-sizing:border-box;
     padding:6px 10px;border-radius:3px;text-align:center;background:rgba(10,16,28,.28);
     backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
@@ -9107,7 +9510,8 @@ startFrameLoop({
     <div class="row"><label for="trailL">length<button type="button" class="info" data-tip="How far back the swept path reaches: 100% is one second of the clock at the set speed." aria-label="about this setting">i</button></label><input type="range" id="trailL" min="0" max="1000" step="10" value="300"><span id="trailLv" style="min-width:64px;text-align:right;color:var(--ink)">300%</span><button class="stepb" data-step="trailL:-50">−</button><button class="stepb" data-step="trailL:50">+</button></div>
     <div class="row"><label>labels</label>
       <label class="chk"><input type="checkbox" id="tArms" checked> galaxy arms</label>
-      <label class="chk"><input type="checkbox" id="tLabels" checked> solar system</label></div>
+      <label class="chk"><input type="checkbox" id="tLabels" checked> solar system</label>
+      <label class="chk"><input type="checkbox" id="tDist" checked> distances</label></div>
     <div class="row"><label>features</label>
       <label class="chk"><input type="checkbox" id="tEvSN"> supernovae</label>
       <label class="chk"><input type="checkbox" id="tEvBirth"> star birth</label></div>
@@ -9239,6 +9643,7 @@ startFrameLoop({
       <li><a href="docs/whats-real-what-is-modeled.html" target="_blank" rel="noopener">What's real, what's modeled</a> — the honesty ledger: every measurement drawn, every compression disclosed</li>
       <li><a href="docs/sagittarius-a-star.html" target="_blank" rel="noopener">Sagittarius A* and the S-stars</a> — the black hole at the centre, the stars that orbit it, and how the drawn hole is rendered</li>
       <li><a href="docs/galactic-centre-radio.html" target="_blank" rel="noopener">The Galactic Centre in radio</a> — the Arc, the Snake, the Mouse and the rest of the VLA map's objects, and how a radio sky is drawn</li>
+      <li><a href="docs/local-group.html" target="_blank" rel="noopener">The Local Group</a> — every galaxy within five million light years, the dark one among them, and the box they are drawn in</li>
       <li><a href="docs/gaia-bh1.html" target="_blank" rel="noopener">Gaia BH1</a> — the nearest black hole known, and the Sun-like star that gives it away</li>
     </ul>
 
@@ -9259,6 +9664,7 @@ startFrameLoop({
       <li>Berski &amp; Dybczyński 2016 — Gliese 710's pass; Shaviv and Svensmark — the contested cosmic-ray/climate hypothesis the ice ages follow, flagged as such</li>
       <li><b>GRAVITY Collaboration</b> 2018 (A&amp;A 615, L15), 2020 (A&amp;A 636, L5) and 2022 (A&amp;A 657, L12) — S2's orbit and radial-velocity curve, and Sagittarius A*'s mass and distance; <b>Gillessen et&nbsp;al. 2017</b> (ApJ 837, 30) — the other S-star orbits; <b>Event Horizon Telescope</b> 2022 (ApJL 930, L12) — the shadow's size; Reid &amp; Brunthaler 2004 — the plane's orientation at Sgr A*</li>
       <li><b>LaRosa, Kassim, Lazio &amp; Hyman 2000</b> (AJ 119, 207) — the wide-field 90-cm VLA map of the Galactic Centre: which objects, where; <b>Green 2019</b> (JApA 40, 36; VizieR VII/284) — the supernova remnants' sizes; Yusef-Zadeh, Hewitt &amp; Cotton 2004, Lang et&nbsp;al. 1999, Gray et&nbsp;al. 1995, Gaensler et&nbsp;al. 2004 — the filaments and the Mouse</li>
+      <li><b>Local Volume Database</b> (Pace 2024, arXiv:2411.07424) — the Local Group's galaxies: positions, distances, sizes, magnitudes, each with its own reference; <b>McConnachie 2012</b> (AJ 144, 4) — Triangulum; <b>Xu et&nbsp;al. 2025</b> (Sci. Adv. 11, eads4057) — the dark-galaxy candidate AC G185.0−11.5</li>
       <li><b>El-Badry et&nbsp;al. 2023</b> (MNRAS 518, 1057) — Gaia BH1's orbit and masses; the position is the companion's Gaia DR3 astrometry (ESA/Gaia/DPAC)</li>
       <li><a href="https://people.astro.unistra.fr/f.renaud/vintergatan.php" target="_blank" rel="noopener"><b>VINTERGATAN</b></a> (Agertz, Renaud et&nbsp;al.) — the cosmological zoom simulation behind the assembly scenario: the contracting, thickened, merger-scrambled young disk, and the Gaia-Enceladus convulsion</li>
       <li><a href="https://www.mpe.mpg.de/7978605/news20231214" target="_blank" rel="noopener"><b>eROSITA</b> / MPE</a> — the million-degree circumgalactic gas the <b>hot halo</b> switch draws: a spherical halo to ~100&nbsp;kpc holding most of the Galaxy's ordinary matter, and the brighter disk-like component ~7&nbsp;kpc across and ~1&nbsp;kpc thick inside it</li>
@@ -9317,7 +9723,7 @@ startFrameLoop({
       <option value="12.35" data-rate="1" data-mult="10000000">The Anthropic Nebula — the Sun casts its shell (+7.8 Gyr)</option>
       <option value="13.5">After the merger (+8.9 Gyr)</option>
     </select><button class="rowbtn" id="jumpGo" title="apply the selected scenario and close the panel">GO</button></div>
-  <div class="row"><label for="focusSel">view</label><select id="focusSel"><option value="sun">Solar System</option><option value="earth">Earth</option><option value="moon">Moon</option><option value="pn">Anthropic Nebula</option><option value="gc">Galactic Centre</option><option value="gcr">Galactic Centre, radio</option><option value="bh1">Gaia BH1</option><option value="mw">Milky Way</option><option value="and">Andromeda</option></select><button class="rowbtn" id="focusGo">GO</button>
+  <div class="row"><label for="focusSel">view</label><select id="focusSel"><option value="sun">Solar System</option><option value="earth">Earth</option><option value="moon">Moon</option><option value="pn">Anthropic Nebula</option><option value="gc">Galactic Centre</option><option value="gcr">Galactic Centre, radio</option><option value="bh1">Gaia BH1</option><option value="mw">Milky Way</option><option value="and">Andromeda</option><option value="lg">Local Group</option></select><button class="rowbtn" id="focusGo">GO</button>
     <label class="chk plain" style="margin-left:6px"><input type="checkbox" id="tSpinLock"> spin lock<button type="button" class="info" data-tip="The camera turns with what it watches. Following a planet it rides the spin — tick it to watch the plates drift. In the galaxy view it rides the spiral-arm pattern: the arms hold still while the stars and the ages sweep through them." aria-label="about spin lock">i</button></label></div>
 </div>
 <button class="pdot" id="simPlus" data-open="simPanel" title="simulation" aria-label="show the simulation panel"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.4 2.6c.3 3.4-.2 6.2-1.6 8.6-1.3 2.4-3.4 4.5-6.2 6.4L9.9 14 6.4 10.4c1.9-2.8 4-4.9 6.4-6.2 2.4-1.4 5.2-1.9 8.6-1.6Z"/><circle cx="15.4" cy="8.6" r="2.6" fill="#0b0f1a"/><path d="M7.6 4.4 10.5 7.3c-1.1 1.2-2 2.4-2.7 3.7L2.6 9.2c.9-1.9 2.6-3.5 5-4.8Z"/><path d="M19.6 16.4 16.7 13.5c-1.2 1.1-2.4 2-3.7 2.7l1.8 5.2c1.9-.9 3.5-2.6 4.8-5Z"/><path d="M8.6 13.4 10.6 15.4 7.2 18.8a1.1 1.1 0 0 1-1.6 0l-.4-.4a1.1 1.1 0 0 1 0-1.6Z"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5.6 12.2 2.4 15.4M8 14.6 4.8 17.8M10.4 17 7.2 20.2"/></g></svg></button>

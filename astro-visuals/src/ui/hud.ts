@@ -673,6 +673,8 @@ export function initHudControls(deps: {
     $('tPause').setAttribute('aria-label', on ? 'pause' : 'play'); });
   toggleLocal($('tLabels'), on=>{ hud.showLabels=on; if(!on) labelEls.forEach(l=>l.style.display='none'); });
   toggleLocal($('tArms'), on=>{ hud.armsOn=on; if(!on) armEls.forEach(l=>l.style.display='none'); });
+  // the Local Group's distance boxes: a class on the body, read by the labels' stylesheet
+  toggleLocal($('tDist'), on=>{ document.body.classList.toggle('nodist', !on); });
   // steady labels: eased into place, held through a single leap, stepped aside while a
   // body whirls faster than a label can follow (see placeLabel). On by default for now.
   toggleLocal($('tLabelSteady'), on=>{ setLabelSteady(on); });
