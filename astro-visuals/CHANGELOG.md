@@ -6,6 +6,12 @@ Hand-written release notes come from `CHANGELOG.notes.md`, never from here.
 
 ## Galactic Transit
 
+### 3.16.0 — 2026-09-20
+
+**The Virgo Supercluster, and the web beyond.** The 8,826 galaxy groups of Kourkchi & Tully 2017 out to 3,500 km/s — Cosmicflows-3 distances where measured, Local-Sheet velocity over H0 = 74.6 where not, flagged and drawn bluer — and the 869 galaxies of the Updated Nearby Galaxy Catalog, placed through the supergalactic frame (derived from the pole and the zero point, tested against M87 and M81). Thirty groups and clusters named with their distances (sixteen position-checked against the nearby catalogue, the rest marked for the runner), the clusters with glows the size of their turnaround radii, Cloud-9 beside M94 as a dashed outline. Two views: "Virgo Supercluster" with the chart's cylinder on the supergalactic plane, and "The cosmic web", the whole measured volume from above; the zoom ceiling and ladder extended; an article on what is measured and what is velocity.
+
+- The Virgo Supercluster and the web beyond — 8,826 measured groups, the clusters by name (`7d3c00c`)
+
 ### 3.15.1 — 2026-09-20
 
 The view-width readout writes megalight-years past a million: "11.43 Mly across" at the Local Group, not "11434.5 kly".
