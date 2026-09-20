@@ -173,7 +173,7 @@ const bh1Frame = orbitFrame(BH1.i, BH1.om, BH1.w, BH1_INFO.basis)
 
 /**
  * The black hole itself relative to the Sun at scene time `simT`, scene units, in doubles: the
- * system's barycentre 480 pc along the line of sight, less the hole's own small swing about
+ * system's barycentre 483 pc along the line of sight, less the hole's own small swing about
  * it. The local sky rides the Sun's orbital frame, so the vector turns with the Sun's phase
  * exactly as the Gaia bubble does in the shader. The hole is the frame everything of the
  * system is drawn in — its star's orbit round it IS the relative orbit — because the view

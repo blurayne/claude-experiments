@@ -88,7 +88,7 @@ export function applyFocusView(): void {
     cam.follow = true; cam.coreLock = false; cam.distGoal = 1.4e-3; cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
     cam.yaw = 0; cam.pitch = 0;
   } else if(v === 'bh1'){
-    // the nearest black hole, 1,565 light years out: the whole 186-day orbit in frame
+    // the nearest black hole, 1,575 light years out: the whole 186-day orbit in frame
     if($('tDive').classList.contains('on')) $('tDive').click();
     if(!$('tView').classList.contains('on')) $('tView').click();
     cam.followTarget = 'bh1';

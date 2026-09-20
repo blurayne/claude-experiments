@@ -63,7 +63,7 @@ export const EHT_RING_UAS = 51.8
 
 /**
  * Gaia BH1: the nearest black hole known, from El-Badry et al. 2023 (MNRAS 518, 1057). A
- * Sun-like star on a 186-day orbit round an unseen 9.6-solar-mass companion, 480 parsecs away
+ * Sun-like star on a 186-day orbit round an unseen 9.6-solar-mass companion, 483 parsecs away
  * toward Ophiuchus. The position is the companion star's, Gaia DR3 4373465352415301632 — the
  * source id itself encodes the sky pixel, and the coordinates were checked against it.
  * The periastron epoch is the fit's, to the day or so; at any rate the piece can show, a day

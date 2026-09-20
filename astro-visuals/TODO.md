@@ -12,7 +12,7 @@ before the work starts. An item is ticked when it ships, with the version that c
       as an object of its own. Two scenarios and two view entries; fourteen S-stars on
       Gillessen 2017 / GRAVITY 2020 orbits in a frame of their own; `bh.frag` ray-marches
       the Schwarzschild geometry (shadow, lensed disc, photon ring); Gaia BH1 with its
-      Sun-like companion 1,565 ly out; two articles; the orbit table re-verified from
+      Sun-like companion 1,575 ly out; two articles; the orbit table re-verified from
       VizieR by the data workflow, since the sandbox cannot reach the hosts — v3.13.0.
 - [ ] The Galactic Centre as the wide-field VLA 90-cm radio image shows it (LaRosa et al.
       2000): the named objects — Sgr A, the Arc, Sgr B1/B2, Sgr C, Sgr D (HII and SNR),

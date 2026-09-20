@@ -126,8 +126,8 @@ describe('the other S-stars', () => {
 })
 
 describe('Gaia BH1', () => {
-  it('is 1,565 light years away toward Ophiuchus, 18° above the plane', () => {
-    expect(BH1_INFO.distLy).toBeCloseTo(1565.5, 0)
+  it('is 1,575 light years away toward Ophiuchus, 18° above the plane', () => {
+    expect(BH1_INFO.distLy).toBeCloseTo(483*3.26156, 0)   // Gaia DR3's parallax, as VizieR gives it
     // the frame is the hole, which swings a tenth of an AU (2e-6 ly) about the barycentre
     const c = bh1Centre(0, tmp)
     expect(len(c)*30).toBeCloseTo(BH1_INFO.distLy, 4)
