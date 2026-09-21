@@ -227,6 +227,20 @@ const hideBH1 = (): void => { placeLabel(bh1El, 0, 0, false); placeLabel(bh1Star
 const hideLG = (): void => { lgEls.forEach(l => placeLabel(l as Label, 0, 0, false)); placeLabel(mwEl, 0, 0, false); };
 const hideSC = (): void => { scEls.forEach(l => placeLabel(l as Label, 0, 0, false)); scGalEls.forEach(l => l && placeLabel(l as Label, 0, 0, false)); };
 const lgTaken = new Set<number>();
+/**
+ * Claim the screen a label needs — every cell its width spans, on its row and the rows
+ * beside it — and say whether it was free. A name's width is estimated from its text
+ * (Orbitron at 8 px runs ~6.4 px a character, the distance box ~52 px more), so a long
+ * name claims more than a short one and two long names cannot overprint.
+ */
+function claimCells(el: HTMLElement, sx: number, sy: number): boolean {
+  const cellW = 32, cellH = 13;
+  const w = (el.textContent?.length ?? 8)*6.4*0.85 + (el.querySelector('.dist') ? 20 : 0);
+  const c0 = Math.floor((sx - w/2)/cellW), c1 = Math.floor((sx + w/2)/cellW), cy = Math.floor(sy/cellH);
+  for(let cx=c0;cx<=c1;cx++) for(let dy=-1;dy<=1;dy++) if(lgTaken.has(cx*4096 + cy + dy)) return false;
+  for(let cx=c0;cx<=c1;cx++) lgTaken.add(cx*4096 + cy);
+  return true;
+}
 
 export function drawLabels(showLabels: boolean, inputs: LabelInputs): void {
   if(!showLabels){ placeLabel(g710Lbl, 0, 0, false); hideGC(); hideBH1(); hideLG(); hideSC(); return }
@@ -270,7 +284,8 @@ export function drawLabels(showLabels: boolean, inputs: LabelInputs): void {
   const galaxyNames = armsOn && camDist > 600;
   // arm names: world coordinates rotated with the wave, then projected like the rest
   // (once the remnant starts to relax there are no arms left to name)
-  if(galaxyNames && merge < 0.35 && asm > 0.85){   // no arms before the disk settles, no names either
+  // (and none once the Galaxy is a speck under the Local Group's names)
+  if(galaxyNames && merge < 0.35 && asm > 0.85 && lgA < 0.5){   // no arms before the disk settles, no names either
     for(let a=0;a<ARM_LBLS.length;a++){
       const d = spinMW/ARM_LBLS[a][3], cD = Math.cos(d), sD = Math.sin(d);
       const wx = ARM_LBLS[a][1]*cD + ARM_LBLS[a][2]*sD, wz = ARM_LBLS[a][2]*cD - ARM_LBLS[a][1]*sD;
@@ -315,38 +330,30 @@ export function drawLabels(showLabels: boolean, inputs: LabelInputs): void {
   // at once, and a pile of overprinted names reads as nothing
   if(lgA > 0.5 && scA < 0.5){
     lgTaken.clear();
-    const cellW = 96, cellH = 13;
     { const [cw, sx, sy] = proj(-org[0], -org[1], -org[2]);   // the Galaxy's centre
-      placeLabel(mwEl, sx, sy - 9, cw > 1); lgTaken.add(Math.floor(sx/cellW)*4096 + Math.floor((sy - 3)/cellH)); }
+      placeLabel(mwEl, sx, sy - 9, cw > 1 && claimCells(mwEl, sx, sy)); }
     for(const k of LG_BY_LIGHT){
       const el = lgEls[k];
       const m = LG[k];
       const [cw, sx, sy] = proj(m.pos[0], m.pos[1], m.pos[2]);
       let show = cw > 1 && sx > -40 && sx < view.W + 40 && sy > -20 && sy < view.H + 20;
-      if(show){
-        const cx = Math.floor(sx/cellW), cy = Math.floor((sy + 6)/cellH);
-        for(let dx=-1;dx<=1 && show;dx++) for(let dy=-1;dy<=1;dy++) if(lgTaken.has((cx+dx)*4096 + cy+dy)){ show = false; break; }
-        if(show) lgTaken.add(cx*4096 + cy);
-      }
+      if(show) show = claimCells(el, sx, sy);
       placeLabel(el as Label, sx, sy - 9, show);
     }
   } else hideLG();
   // the supercluster: the named groups first, then the bright galaxies where there is room
   if(scA > 0.5){
     lgTaken.clear();
-    const cellW = 96, cellH = 13;
     const claim = (el: HTMLElement, x: number, y: number, z: number, dy: number): void => {
       const [cw, sx, sy] = proj(x, y, z);
       let show = cw > 1 && sx > -40 && sx < view.W + 40 && sy > -20 && sy < view.H + 20;
-      if(show){
-        const cx = Math.floor(sx/cellW), cy = Math.floor((sy + 6)/cellH);
-        for(let dx=-1;dx<=1 && show;dx++) for(let ddy=-1;ddy<=1;ddy++) if(lgTaken.has((cx+dx)*4096 + cy+ddy)){ show = false; break; }
-        if(show) lgTaken.add(cx*4096 + cy);
-      }
+      if(show) show = claimCells(el, sx, sy + dy + 9);
       placeLabel(el as Label, sx, sy + dy, show);
     };
     for(let k=0;k<SC_GROUPS_NAMED.length;k++){ const g = SC_GROUPS_NAMED[k]; claim(scEls[k], g.pos[0], g.pos[1], g.pos[2], -9); }
-    for(let k=0;k<SC_GALS.length;k++){ const el = scGalEls[k]; if(!el) continue; const g = SC_GALS[k]; claim(el, g.pos[0], g.pos[1], g.pos[2], 8); }
+    // the dark galaxy's outline needs its name, or it reads as a stray ring: it claims before the rest
+    for(let k=0;k<SC_GALS.length;k++){ const el = scGalEls[k]; if(!el || SC_GALS[k].kind !== 'dark') continue; const g = SC_GALS[k]; claim(el, g.pos[0], g.pos[1], g.pos[2], 12); }
+    for(let k=0;k<SC_GALS.length;k++){ const el = scGalEls[k]; if(!el || SC_GALS[k].kind === 'dark') continue; const g = SC_GALS[k]; claim(el, g.pos[0], g.pos[1], g.pos[2], 8); }
   } else hideSC();
   // one galaxy, one name: from the moment the disks are one blob, the remnant's centre
   { const [cw, sx, sy] = proj(-org[0], -org[1], -org[2]);

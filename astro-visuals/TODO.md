@@ -3,6 +3,13 @@
 Everything the owner asks for lands here first, as a checkbox, and is committed on its own
 before the work starts. An item is ticked when it ships, with the version that carried it.
 
+## 2026-09-21
+
+- [x] Continue and fix visual glitches. A zoom sweep from the Galaxy to the web: the
+      Local Group's mid-fade ring of blobs, arm names over the Group's names, label
+      overprinting, over-bright markers, oversized nearby-galaxy points, a nameless dashed
+      ring (Cloud-9) — v3.17.1.
+
 ## 2026-09-20
 
 - [x] A new event at the centre of our galaxy, with the orbits of the stars circling the

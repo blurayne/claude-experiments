@@ -86,7 +86,7 @@ EXTRA_GALAXIES = [
     # Cloud-9: the starless "dark galaxy" near M94 — Zhou et al. 2023 (FAST), Benítez-Llambay & Navarro
     # 2023, Anand et al. 2025 (arXiv:2508.20157; Hubble found no stars). RA 12h51m52s, Dec +40°17′29″
     # (the VLA field centre, Kurapati et al. 2024), 4.4 Mpc by association with M94.
-    ("Cloud-9 (dark galaxy candidate)", 192.9667, 40.2914, 4.4, None, -9, "dark", "Anand et al. 2025"),
+    ("Cloud-9 (dark galaxy)", 192.9667, 40.2914, 4.4, None, -9, "dark", "Anand et al. 2025"),
 ]
 
 # supergalactic frame (de Vaucouleurs): pole at galactic 47.37, +6.32; origin at 137.37, 0

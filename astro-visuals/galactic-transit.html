@@ -92,7 +92,7 @@ function installErrorCollector(){
  * property of the machine that loaded the page. The parity harness pins TZ for that reason.
  */
 
-const BUILD = { version: '3.17.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '3.17.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -4791,6 +4791,9 @@ function drawLocalGroup(inp          )         {
   const fade = lgFade(camDist);
   if(fade < 0.002) return 0
   lgUpdate(fade);                      // the slide from the merger's compressed depth to true scale
+  // the galaxies themselves show only once the slide is mostly done — mid-slide they are a
+  // ring of blobs at no real depth, and the merger model's Andromeda is still going out
+  const tv = Math.min(1, Math.max(0, (fade - 0.55)/0.45)), vis = tv*tv*(3 - 2*tv);
   gl.useProgram(pG$1);
   gl.uniformMatrix4fv(UG$1.proj, false, projMat);
   gl.uniformMatrix4fv(UG$1.view, false, viewMat);
@@ -4803,7 +4806,7 @@ function drawLocalGroup(inp          )         {
     // a marker floor: nothing smaller than a few pixels, and the flux is not conserved —
     // these are markers, and a dwarf at its true faintness would simply be absent
     const aPx = m.a*pxPerU, bPx = m.b*pxPerU;
-    const floor = m.kind === 'spiral' ? 26 : m.Mv < -15 ? 12 : m.Mv < -9 ? 7 : 5;
+    const floor = m.kind === 'spiral' ? 26 : m.Mv < -15 ? 12 : m.Mv < -9 ? 6 : 4;
     const wa = Math.max(1, floor/Math.max(aPx, 1e-9)), wb = Math.max(1, floor*0.7/Math.max(bPx, 1e-9));
     // the two big spirals are drawn by their own models until the Group takes over
     const own = m.kind === 'spiral' && m.name.startsWith('Andromeda') ? fade : 1;
@@ -4813,9 +4816,9 @@ function drawLocalGroup(inp          )         {
     gl.uniform3f(UG$1.B, m.B[0]*wb, m.B[1]*wb, m.B[2]*wb);
     gl.uniform1f(UG$1.kind, KIND_ID[m.kind]);
     gl.uniform3f(UG$1.col, c[0], c[1], c[2]);
-    gl.uniform1f(UG$1.gain, 2.2*m.gain*(m.confirmed ? 1 : 0.55));
+    gl.uniform1f(UG$1.gain, (m.kind === 'spiral' ? 1.3 : 1.5)*m.gain*(m.confirmed ? 1 : 0.55));
     gl.uniform1f(UG$1.seed, k*0.731);
-    gl.uniform1f(UG$1.fade, fade*own*dim);
+    gl.uniform1f(UG$1.fade, vis*own*dim);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   }
   // the Milky Way herself: the model's points are dust at this distance, so the Group's own
@@ -4827,9 +4830,9 @@ function drawLocalGroup(inp          )         {
     gl.uniform3f(UG$1.B, 0, 0, R*w);
     gl.uniform1f(UG$1.kind, KIND_ID.spiral);
     gl.uniform3f(UG$1.col, 0.86, 0.9, 1.0);
-    gl.uniform1f(UG$1.gain, 2.4);
+    gl.uniform1f(UG$1.gain, 1.5);
     gl.uniform1f(UG$1.seed, 2.0);
-    gl.uniform1f(UG$1.fade, fade*dim);
+    gl.uniform1f(UG$1.fade, vis*dim);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); }
   gl.bindVertexArray(null);
   if(!showLabels || fade < 0.98 || !boxOn) return fade
@@ -4889,7 +4892,7 @@ function sgDir(sglDeg        , sgbDeg        )       {
  * int16 SGB×100, uint16 distance Mpc×100 with bit 15 set when the distance is the
  * Local-Sheet velocity over H0 = 74.6 rather than a Cosmicflows-3 measurement (6875 of
  * them), int16 log Ks luminosity ×100, uint16 members. The turnaround radius the chart's
- * cluster glows use is recovered from the luminosity (Kourkchi & Tully eq. 6, R ∝ M^1/3). Sources at generation: raw.githubusercontent.com, vizier.cds.unistra.fr.
+ * cluster glows use is recovered from the luminosity (Kourkchi & Tully eq. 6, R ∝ M^1/3). Sources at generation: raw.githubusercontent.com, raw.githubusercontent.com.
  *
  * SC_NAMED: the chart's groups — index into the packed table, name, kind, and how the name
  * was checked: 'ungc' (the principal galaxy's position and distance agree with the nearby
@@ -5807,7 +5810,7 @@ const SC_GALAXIES                      = [
   ['CVnHI', 185.1808, 46.2092, 6.50, null, 'I'],
   ['GBT 1355+5439', 208.7108, 54.6472, 7.41, null, 'I'],
   ['Milky Way', 266.4167, -29.0078, 0.01, null, 'S'],
-  ['Cloud-9 (dark galaxy candidate)', 192.9667, 40.2914, 4.40, null, 'dark'],   // Anand et al. 2025
+  ['Cloud-9 (dark galaxy)', 192.9667, 40.2914, 4.40, null, 'dark'],   // Anand et al. 2025
 ];
 
 /**
@@ -5915,7 +5918,7 @@ const galsVAO = (()=>{
   const n = SC_GALS.length, pos = new Float32Array(n*3), size = new Float32Array(n), col = new Float32Array(n*3);
   SC_GALS.forEach((g, i) => {
     pos[i*3] = g.pos[0]; pos[i*3+1] = g.pos[1]; pos[i*3+2] = g.pos[2];
-    size[i] = MPC2U*0.12*Math.pow(10, -0.2*(g.k - 6));
+    size[i] = MPC2U*0.06*Math.pow(10, -0.2*(g.k - 6));
     const c = g.kind === 'E' ? [1.0, 0.9, 0.72] : g.kind === 'I' ? [0.7, 0.82, 1.0] : g.kind === 'S' ? [0.85, 0.9, 1.0] : g.kind === 'dark' ? [0.62, 0.58, 0.85] : [0.8, 0.8, 0.85];
     col[i*3] = c[0]; col[i*3+1] = c[1]; col[i*3+2] = c[2];
   });
@@ -5944,7 +5947,7 @@ function drawSupercluster(inp          )         {
   gl.uniform1f(UX.fade, fade);
   gl.uniform1f(UX.minPx, 2.2); gl.uniform1f(UX.maxPx, 42);
   gl.bindVertexArray(groupsVAO); gl.drawArrays(gl.POINTS, 0, SC.n);
-  gl.uniform1f(UX.minPx, 1.2); gl.uniform1f(UX.maxPx, 18);
+  gl.uniform1f(UX.minPx, 1.2); gl.uniform1f(UX.maxPx, 9);
   gl.bindVertexArray(galsVAO); gl.drawArrays(gl.POINTS, 0, SC_GALS.length);
   gl.bindVertexArray(null);
   // the clusters' glows: view-facing quads the size of the turnaround radius
@@ -5968,11 +5971,12 @@ function drawSupercluster(inp          )         {
     gl.uniform1f(UG.fade, fade);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   }
-  // the dark galaxy's outline: nothing to see, so an outline the marker's size
+  // the dark galaxy's outline: nothing to see, so an outline the marker's size — only while
+  // the view is close enough for its name to sit beside it, or it reads as a stray ring
   for(const g of SC_GALS){
-    if(g.kind !== 'dark') continue
+    if(g.kind !== 'dark' || camDist > 1.6e6) continue
     const dist = Math.hypot(g.pos[0] - eye[0], g.pos[1] - eye[1], g.pos[2] - eye[2]);
-    const r = 9*dist/pxScale;
+    const r = 7*dist/pxScale;
     gl.uniform3f(UG.c, g.pos[0], g.pos[1], g.pos[2]);
     gl.uniform3f(UG.A, right[0]*r, right[1]*r, right[2]*r);
     gl.uniform3f(UG.B, up[0]*r, up[1]*r, up[2]*r);
@@ -6426,6 +6430,20 @@ const hideBH1 = ()       => { placeLabel(bh1El, 0, 0, false); placeLabel(bh1Star
 const hideLG = ()       => { lgEls.forEach(l => placeLabel(l         , 0, 0, false)); placeLabel(mwEl, 0, 0, false); };
 const hideSC = ()       => { scEls.forEach(l => placeLabel(l         , 0, 0, false)); scGalEls.forEach(l => l && placeLabel(l         , 0, 0, false)); };
 const lgTaken = new Set        ();
+/**
+ * Claim the screen a label needs — every cell its width spans, on its row and the rows
+ * beside it — and say whether it was free. A name's width is estimated from its text
+ * (Orbitron at 8 px runs ~6.4 px a character, the distance box ~52 px more), so a long
+ * name claims more than a short one and two long names cannot overprint.
+ */
+function claimCells(el             , sx        , sy        )          {
+  const cellW = 32, cellH = 13;
+  const w = (el.textContent?.length ?? 8)*6.4*0.85 + (el.querySelector('.dist') ? 20 : 0);
+  const c0 = Math.floor((sx - w/2)/cellW), c1 = Math.floor((sx + w/2)/cellW), cy = Math.floor(sy/cellH);
+  for(let cx=c0;cx<=c1;cx++) for(let dy=-1;dy<=1;dy++) if(lgTaken.has(cx*4096 + cy + dy)) return false;
+  for(let cx=c0;cx<=c1;cx++) lgTaken.add(cx*4096 + cy);
+  return true;
+}
 
 function drawLabels(showLabels         , inputs             )       {
   if(!showLabels){ placeLabel(g710Lbl, 0, 0, false); hideGC(); hideBH1(); hideLG(); hideSC(); return }
@@ -6469,7 +6487,8 @@ function drawLabels(showLabels         , inputs             )       {
   const galaxyNames = armsOn && camDist > 600;
   // arm names: world coordinates rotated with the wave, then projected like the rest
   // (once the remnant starts to relax there are no arms left to name)
-  if(galaxyNames && merge < 0.35 && asm > 0.85){   // no arms before the disk settles, no names either
+  // (and none once the Galaxy is a speck under the Local Group's names)
+  if(galaxyNames && merge < 0.35 && asm > 0.85 && lgA < 0.5){   // no arms before the disk settles, no names either
     for(let a=0;a<ARM_LBLS.length;a++){
       const d = spinMW/ARM_LBLS[a][3], cD = Math.cos(d), sD = Math.sin(d);
       const wx = ARM_LBLS[a][1]*cD + ARM_LBLS[a][2]*sD, wz = ARM_LBLS[a][2]*cD - ARM_LBLS[a][1]*sD;
@@ -6514,38 +6533,30 @@ function drawLabels(showLabels         , inputs             )       {
   // at once, and a pile of overprinted names reads as nothing
   if(lgA > 0.5 && scA < 0.5){
     lgTaken.clear();
-    const cellW = 96, cellH = 13;
     { const [cw, sx, sy] = proj(-org[0], -org[1], -org[2]);   // the Galaxy's centre
-      placeLabel(mwEl, sx, sy - 9, cw > 1); lgTaken.add(Math.floor(sx/cellW)*4096 + Math.floor((sy - 3)/cellH)); }
+      placeLabel(mwEl, sx, sy - 9, cw > 1 && claimCells(mwEl, sx, sy)); }
     for(const k of LG_BY_LIGHT){
       const el = lgEls[k];
       const m = LG[k];
       const [cw, sx, sy] = proj(m.pos[0], m.pos[1], m.pos[2]);
       let show = cw > 1 && sx > -40 && sx < view.W + 40 && sy > -20 && sy < view.H + 20;
-      if(show){
-        const cx = Math.floor(sx/cellW), cy = Math.floor((sy + 6)/cellH);
-        for(let dx=-1;dx<=1 && show;dx++) for(let dy=-1;dy<=1;dy++) if(lgTaken.has((cx+dx)*4096 + cy+dy)){ show = false; break; }
-        if(show) lgTaken.add(cx*4096 + cy);
-      }
+      if(show) show = claimCells(el, sx, sy);
       placeLabel(el         , sx, sy - 9, show);
     }
   } else hideLG();
   // the supercluster: the named groups first, then the bright galaxies where there is room
   if(scA > 0.5){
     lgTaken.clear();
-    const cellW = 96, cellH = 13;
     const claim = (el             , x        , y        , z        , dy        )       => {
       const [cw, sx, sy] = proj(x, y, z);
       let show = cw > 1 && sx > -40 && sx < view.W + 40 && sy > -20 && sy < view.H + 20;
-      if(show){
-        const cx = Math.floor(sx/cellW), cy = Math.floor((sy + 6)/cellH);
-        for(let dx=-1;dx<=1 && show;dx++) for(let ddy=-1;ddy<=1;ddy++) if(lgTaken.has((cx+dx)*4096 + cy+ddy)){ show = false; break; }
-        if(show) lgTaken.add(cx*4096 + cy);
-      }
+      if(show) show = claimCells(el, sx, sy + dy + 9);
       placeLabel(el         , sx, sy + dy, show);
     };
     for(let k=0;k<SC_GROUPS_NAMED.length;k++){ const g = SC_GROUPS_NAMED[k]; claim(scEls[k], g.pos[0], g.pos[1], g.pos[2], -9); }
-    for(let k=0;k<SC_GALS.length;k++){ const el = scGalEls[k]; if(!el) continue; const g = SC_GALS[k]; claim(el, g.pos[0], g.pos[1], g.pos[2], 8); }
+    // the dark galaxy's outline needs its name, or it reads as a stray ring: it claims before the rest
+    for(let k=0;k<SC_GALS.length;k++){ const el = scGalEls[k]; if(!el || SC_GALS[k].kind !== 'dark') continue; const g = SC_GALS[k]; claim(el, g.pos[0], g.pos[1], g.pos[2], 12); }
+    for(let k=0;k<SC_GALS.length;k++){ const el = scGalEls[k]; if(!el || SC_GALS[k].kind === 'dark') continue; const g = SC_GALS[k]; claim(el, g.pos[0], g.pos[1], g.pos[2], 8); }
   } else hideSC();
   // one galaxy, one name: from the moment the disks are one blob, the remnant's centre
   { const [cw, sx, sy] = proj(-org[0], -org[1], -org[2]);
@@ -6616,6 +6627,8 @@ let vaoStars$1;
 let holding = false;
 /** the Group's fade from the last frame: the skybox photographs read it a pass earlier */
 let lgFadeNow = 0;
+/** the model Andromeda's and the far sphere's exit: done by the middle of the Group's fade, before the Group's own galaxies appear */
+const lgExit = ()         => { const t = Math.min(1, lgFadeNow/0.55); return t*t*(3 - 2*t) };
 /** and the supercluster's, the same way */
 let scFadeNow = 0;
 const setHolding = (h         )       => { holding = h; };
@@ -6964,8 +6977,8 @@ function frame(now        )       {
   const andFar = dAnd > dMW;
   const andLayer = ()       => {
     // the merger model's Andromeda stands down as the Local Group's to-scale one fades in
-    if(lgFadeNow >= 0.999) return;
-    if(lgFadeNow < 0.5){
+    if(lgExit() >= 0.999) return;
+    if(lgExit() < 0.5){
       drawNebula(clouds, true, 'and');
       if(insideDisk) drawNebula(clouds, false, 'and');
       drawDust(clouds, hud.dustOn, 'and');
@@ -6991,7 +7004,7 @@ function frame(now        )       {
       gl.uniform1f(U.ptArmAmp, 0.0);         // Andromeda's structure is rings, not the beat
       gl.uniform1f(U.ptRingAmp, M31_RING.amp); gl.uniform1f(U.ptRingT, ringT);
       gl.uniform2f(U.ptRingC, M31_RING.cx, M31_RING.cz);
-      gl.uniform1f(U.ptFade, lgFadeNow);
+      gl.uniform1f(U.ptFade, lgExit());
       // her tails run the other way along the same axis; the companion's azimuth in her disk frame
       gl.uniform3f(U.ptTailDir, -tailDir[0], -tailDir[1], -tailDir[2]);
       { const lx = -(M31_ROT[0]*andPos[0] + M31_ROT[1]*andPos[1] + M31_ROT[2]*andPos[2]);
@@ -7012,16 +7025,15 @@ function frame(now        )       {
       gl.uniform1f(U.ptRingAmp, 0.0);
       gl.uniform1f(U.ptGal, 0.0);
     }
-    if(!insideDisk && lgFadeNow < 0.5) drawNebula(clouds, false, 'and');   // her HII ring and core, over her stars
+    if(!insideDisk && lgExit() < 0.5) drawNebula(clouds, false, 'and');   // her HII ring and core, over her stars
   };
   // the extragalactic sky first: it is behind everything, and it does not turn
   // the photographed Clouds and Triangulum sit on the far sphere: once the Group is drawn
   // at its depth they would show twice, so they fade as it fades in
-  const lgA = lgFadeNow;
-  drawSkyImages(view.projMat , viewMat, org, 1 - lgA);
+  drawSkyImages(view.projMat , viewMat, org, 1 - lgExit());
   { const dots = skyDotVAO();
     // the far sphere's galaxy dots are sky, at no depth: they go as the Group comes
-    if(dots && lgFadeNow < 0.999){ gl.useProgram(pPt); gl.uniform1f(U.ptFade, lgFadeNow); gl.bindVertexArray(dots); gl.drawArrays(gl.POINTS, 0, N_SKYDOTS); gl.uniform1f(U.ptFade, 0.0); } }
+    if(dots && lgExit() < 0.999){ gl.useProgram(pPt); gl.uniform1f(U.ptFade, lgExit()); gl.bindVertexArray(dots); gl.drawArrays(gl.POINTS, 0, N_SKYDOTS); gl.uniform1f(U.ptFade, 0.0); } }
   if(andFar) andLayer();
   // the Milky Way's layer: haze, lanes, then the backdrop sky and the Gaia bubble (our
   // own foreground stars — in front of Andromeda from every camera this side of her),

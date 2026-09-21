@@ -43,7 +43,7 @@ const galsVAO = (()=>{
   const n = SC_GALS.length, pos = new Float32Array(n*3), size = new Float32Array(n), col = new Float32Array(n*3)
   SC_GALS.forEach((g, i) => {
     pos[i*3] = g.pos[0]; pos[i*3+1] = g.pos[1]; pos[i*3+2] = g.pos[2]
-    size[i] = MPC2U*0.12*Math.pow(10, -0.2*(g.k - 6))
+    size[i] = MPC2U*0.06*Math.pow(10, -0.2*(g.k - 6))
     const c = g.kind === 'E' ? [1.0, 0.9, 0.72] : g.kind === 'I' ? [0.7, 0.82, 1.0] : g.kind === 'S' ? [0.85, 0.9, 1.0] : g.kind === 'dark' ? [0.62, 0.58, 0.85] : [0.8, 0.8, 0.85]
     col[i*3] = c[0]; col[i*3+1] = c[1]; col[i*3+2] = c[2]
   })
@@ -72,7 +72,7 @@ export function drawSupercluster(inp: ScInputs): number {
   gl.uniform1f(UX.fade, fade)
   gl.uniform1f(UX.minPx, 2.2); gl.uniform1f(UX.maxPx, 42)
   gl.bindVertexArray(groupsVAO); gl.drawArrays(gl.POINTS, 0, SC.n)
-  gl.uniform1f(UX.minPx, 1.2); gl.uniform1f(UX.maxPx, 18)
+  gl.uniform1f(UX.minPx, 1.2); gl.uniform1f(UX.maxPx, 9)
   gl.bindVertexArray(galsVAO); gl.drawArrays(gl.POINTS, 0, SC_GALS.length)
   gl.bindVertexArray(null)
   // the clusters' glows: view-facing quads the size of the turnaround radius
@@ -96,11 +96,12 @@ export function drawSupercluster(inp: ScInputs): number {
     gl.uniform1f(UG.fade, fade)
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
   }
-  // the dark galaxy's outline: nothing to see, so an outline the marker's size
+  // the dark galaxy's outline: nothing to see, so an outline the marker's size — only while
+  // the view is close enough for its name to sit beside it, or it reads as a stray ring
   for(const g of SC_GALS){
-    if(g.kind !== 'dark') continue
+    if(g.kind !== 'dark' || camDist > 1.6e6) continue
     const dist = Math.hypot(g.pos[0] - eye[0], g.pos[1] - eye[1], g.pos[2] - eye[2])
-    const r = 9*dist/pxScale
+    const r = 7*dist/pxScale
     gl.uniform3f(UG.c, g.pos[0], g.pos[1], g.pos[2])
     gl.uniform3f(UG.A, right[0]*r, right[1]*r, right[2]*r)
     gl.uniform3f(UG.B, up[0]*r, up[1]*r, up[2]*r)

@@ -52,6 +52,9 @@ export function drawLocalGroup(inp: LgInputs): number {
   const fade = lgFade(camDist)
   if(fade < 0.002) return 0
   lgUpdate(fade)                      // the slide from the merger's compressed depth to true scale
+  // the galaxies themselves show only once the slide is mostly done — mid-slide they are a
+  // ring of blobs at no real depth, and the merger model's Andromeda is still going out
+  const tv = Math.min(1, Math.max(0, (fade - 0.55)/0.45)), vis = tv*tv*(3 - 2*tv)
   gl.useProgram(pG)
   gl.uniformMatrix4fv(UG.proj, false, projMat)
   gl.uniformMatrix4fv(UG.view, false, viewMat)
@@ -64,7 +67,7 @@ export function drawLocalGroup(inp: LgInputs): number {
     // a marker floor: nothing smaller than a few pixels, and the flux is not conserved —
     // these are markers, and a dwarf at its true faintness would simply be absent
     const aPx = m.a*pxPerU, bPx = m.b*pxPerU
-    const floor = m.kind === 'spiral' ? 26 : m.Mv < -15 ? 12 : m.Mv < -9 ? 7 : 5
+    const floor = m.kind === 'spiral' ? 26 : m.Mv < -15 ? 12 : m.Mv < -9 ? 6 : 4
     const wa = Math.max(1, floor/Math.max(aPx, 1e-9)), wb = Math.max(1, floor*0.7/Math.max(bPx, 1e-9))
     // the two big spirals are drawn by their own models until the Group takes over
     const own = m.kind === 'spiral' && m.name.startsWith('Andromeda') ? fade : 1
@@ -74,9 +77,9 @@ export function drawLocalGroup(inp: LgInputs): number {
     gl.uniform3f(UG.B, m.B[0]*wb, m.B[1]*wb, m.B[2]*wb)
     gl.uniform1f(UG.kind, KIND_ID[m.kind])
     gl.uniform3f(UG.col, c[0], c[1], c[2])
-    gl.uniform1f(UG.gain, 2.2*m.gain*(m.confirmed ? 1 : 0.55))
+    gl.uniform1f(UG.gain, (m.kind === 'spiral' ? 1.3 : 1.5)*m.gain*(m.confirmed ? 1 : 0.55))
     gl.uniform1f(UG.seed, k*0.731)
-    gl.uniform1f(UG.fade, fade*own*dim)
+    gl.uniform1f(UG.fade, vis*own*dim)
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
   }
   // the Milky Way herself: the model's points are dust at this distance, so the Group's own
@@ -88,9 +91,9 @@ export function drawLocalGroup(inp: LgInputs): number {
     gl.uniform3f(UG.B, 0, 0, R*w)
     gl.uniform1f(UG.kind, KIND_ID.spiral)
     gl.uniform3f(UG.col, 0.86, 0.9, 1.0)
-    gl.uniform1f(UG.gain, 2.4)
+    gl.uniform1f(UG.gain, 1.5)
     gl.uniform1f(UG.seed, 2.0)
-    gl.uniform1f(UG.fade, fade*dim)
+    gl.uniform1f(UG.fade, vis*dim)
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4) }
   gl.bindVertexArray(null)
   if(!showLabels || fade < 0.98 || !boxOn) return fade

@@ -8,7 +8,7 @@
  * int16 SGB×100, uint16 distance Mpc×100 with bit 15 set when the distance is the
  * Local-Sheet velocity over H0 = 74.6 rather than a Cosmicflows-3 measurement (6875 of
  * them), int16 log Ks luminosity ×100, uint16 members. The turnaround radius the chart's
- * cluster glows use is recovered from the luminosity (Kourkchi & Tully eq. 6, R ∝ M^1/3). Sources at generation: raw.githubusercontent.com, vizier.cds.unistra.fr.
+ * cluster glows use is recovered from the luminosity (Kourkchi & Tully eq. 6, R ∝ M^1/3). Sources at generation: raw.githubusercontent.com, raw.githubusercontent.com.
  *
  * SC_NAMED: the chart's groups — index into the packed table, name, kind, and how the name
  * was checked: 'ungc' (the principal galaxy's position and distance agree with the nearby
@@ -926,5 +926,5 @@ export const SC_GALAXIES: readonly ScGalaxy[] = [
   ['CVnHI', 185.1808, 46.2092, 6.50, null, 'I'],
   ['GBT 1355+5439', 208.7108, 54.6472, 7.41, null, 'I'],
   ['Milky Way', 266.4167, -29.0078, 0.01, null, 'S'],
-  ['Cloud-9 (dark galaxy candidate)', 192.9667, 40.2914, 4.40, null, 'dark'],   // Anand et al. 2025
+  ['Cloud-9 (dark galaxy)', 192.9667, 40.2914, 4.40, null, 'dark'],   // Anand et al. 2025
 ]

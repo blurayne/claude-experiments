@@ -68,6 +68,8 @@ let vaoStars: WebGLVertexArrayObject
 let holding = false
 /** the Group's fade from the last frame: the skybox photographs read it a pass earlier */
 let lgFadeNow = 0
+/** the model Andromeda's and the far sphere's exit: done by the middle of the Group's fade, before the Group's own galaxies appear */
+const lgExit = (): number => { const t = Math.min(1, lgFadeNow/0.55); return t*t*(3 - 2*t) }
 /** and the supercluster's, the same way */
 let scFadeNow = 0
 export const setHolding = (h: boolean): void => { holding = h }
@@ -416,8 +418,8 @@ function frame(now: number): void {
   const andFar = dAnd > dMW;
   const andLayer = (): void => {
     // the merger model's Andromeda stands down as the Local Group's to-scale one fades in
-    if(lgFadeNow >= 0.999) return;
-    if(lgFadeNow < 0.5){
+    if(lgExit() >= 0.999) return;
+    if(lgExit() < 0.5){
       drawNebula(clouds, true, 'and');
       if(insideDisk) drawNebula(clouds, false, 'and');
       drawDust(clouds, hud.dustOn, 'and');
@@ -443,7 +445,7 @@ function frame(now: number): void {
       gl.uniform1f(U.ptArmAmp, 0.0);         // Andromeda's structure is rings, not the beat
       gl.uniform1f(U.ptRingAmp, M31_RING.amp); gl.uniform1f(U.ptRingT, ringT);
       gl.uniform2f(U.ptRingC, M31_RING.cx, M31_RING.cz);
-      gl.uniform1f(U.ptFade, lgFadeNow);
+      gl.uniform1f(U.ptFade, lgExit());
       // her tails run the other way along the same axis; the companion's azimuth in her disk frame
       gl.uniform3f(U.ptTailDir, -tailDir[0], -tailDir[1], -tailDir[2]);
       { const lx = -(M31_ROT[0]*andPos[0] + M31_ROT[1]*andPos[1] + M31_ROT[2]*andPos[2]);
@@ -464,16 +466,15 @@ function frame(now: number): void {
       gl.uniform1f(U.ptRingAmp, 0.0);
       gl.uniform1f(U.ptGal, 0.0);
     }
-    if(!insideDisk && lgFadeNow < 0.5) drawNebula(clouds, false, 'and');   // her HII ring and core, over her stars
+    if(!insideDisk && lgExit() < 0.5) drawNebula(clouds, false, 'and');   // her HII ring and core, over her stars
   };
   // the extragalactic sky first: it is behind everything, and it does not turn
   // the photographed Clouds and Triangulum sit on the far sphere: once the Group is drawn
   // at its depth they would show twice, so they fade as it fades in
-  const lgA = lgFadeNow;
-  drawSkyImages(view.projMat!, viewMat, org, 1 - lgA);
+  drawSkyImages(view.projMat!, viewMat, org, 1 - lgExit());
   { const dots = skyDotVAO();
     // the far sphere's galaxy dots are sky, at no depth: they go as the Group comes
-    if(dots && lgFadeNow < 0.999){ gl.useProgram(pPt); gl.uniform1f(U.ptFade, lgFadeNow); gl.bindVertexArray(dots); gl.drawArrays(gl.POINTS, 0, N_SKYDOTS); gl.uniform1f(U.ptFade, 0.0); } }
+    if(dots && lgExit() < 0.999){ gl.useProgram(pPt); gl.uniform1f(U.ptFade, lgExit()); gl.bindVertexArray(dots); gl.drawArrays(gl.POINTS, 0, N_SKYDOTS); gl.uniform1f(U.ptFade, 0.0); } }
   if(andFar) andLayer();
   // the Milky Way's layer: haze, lanes, then the backdrop sky and the Gaia bubble (our
   // own foreground stars — in front of Andromeda from every camera this side of her),

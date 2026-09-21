@@ -56,7 +56,7 @@ describe('the nearby galaxies', () => {
     expect(SC_GALS[0].name).toBe('Large Magellanic Cloud'.slice(0, 0) + 'LMC')
     const m81 = SC_GALS.find(g => g.name === 'M81')!, c9 = SC_GALS.find(g => g.kind === 'dark')!
     expect(m81.dMpc).toBeCloseTo(3.63, 2); expect(m81.major).toBe(true)
-    expect(c9.name).toContain('Cloud-9'); expect(c9.dMpc).toBeCloseTo(4.4, 1)
+    expect(c9.name).toBe('Cloud-9 (dark galaxy)'); expect(c9.dMpc).toBeCloseTo(4.4, 1)
     // Cloud-9 is 51′ from M94 on the sky, at the same distance
     const m94 = SC_GALS.find(g => g.name === 'NGC 4736')!
     const cosA = (c9.pos[0]*m94.pos[0] + c9.pos[1]*m94.pos[1] + c9.pos[2]*m94.pos[2])/len(c9.pos)/len(m94.pos)
