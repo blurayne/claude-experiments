@@ -6,10 +6,17 @@ Hand-written release notes come from `CHANGELOG.notes.md`, never from here.
 
 ## Galactic Transit
 
+### 3.17.1 — 2026-09-21
+
+**Visual glitches, from a sweep of the whole zoom range.** Between the Galaxy and the Local Group the Group's galaxies no longer appear as a ring of blobs at no real depth mid-slide (the merger model's Andromeda and the far sphere leave in the first half of the fade, the Group's own galaxies arrive in the second); the arm names hide once the Galaxy is a speck under the Group's; labels claim the screen by their width, so long names no longer overprint; the Group's markers and the Milky Way's are dimmer; the nearby galaxies' points beyond the Group are smaller; Cloud-9's dashed outline carries its name.
+
+- Visual glitches from a sweep of the zoom range (`e0b0527`)
+
 ### 3.17.0 — 2026-09-20
 
 **The merger's tails.** The tide has memory now: each passage launches a stretch of the outer disk along the axis the companion had at pericentre, rising over a third of a gigayear and persisting through apocentre, winding with the disk's rotation — Toomre & Toomre's tails and bridges, which the first cut lost by scaling the stretch with the separation of the moment. An integral-sign warp lifts the outer disk toward the companion at each pass. Both disks are prograde to the drawn orbit (checked in the right-handed frame the orientation test uses), so both carry tails; the orbit itself stays the Gaia-era one — the research comparing it with NASA's 2012 visualisation found the piece the more current of the two.
 
+- Rebuild galactic-transit.html from src/ (`6d3314b`)
 - The merger's tails — the tide has memory (`9ea78c5`)
 
 ### 3.16.0 — 2026-09-20
