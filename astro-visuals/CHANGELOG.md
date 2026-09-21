@@ -6,10 +6,17 @@ Hand-written release notes come from `CHANGELOG.notes.md`, never from here.
 
 ## Galactic Transit
 
+### 3.18.0 — 2026-09-21
+
+**Further out: the deep field.** The zoom now runs to 1.5e8 units — five billion light years across — and past the 3,500 km/s groups there is something to see: the 2MASS Redshift Survey (Huchra et al. 2012), some 43,000 galaxies to 15,000 km/s, fetched by the data workflow from VizieR into a separate binary the page loads only when the eye goes that far, each placed at its heliocentric cz over H0 = 74.6 (a model of distance, and said to be). The great clusters — Coma, Perseus, Norma at the Great Attractor's core, Hydra, Centaurus, Antlia, Leo, Hercules, the Shapley Concentration — are named from NED's positions, each checked by the tool against the survey's own concentration round it. A "The deep field (2MRS)" view and a last rung on the ladder; the zone of avoidance disclosed in the article.
+
+- Zoom out further — the deep field, 2MRS to 15,000 km/s (`b66b07e`)
+
 ### 3.17.1 — 2026-09-21
 
 **Visual glitches, from a sweep of the whole zoom range.** Between the Galaxy and the Local Group the Group's galaxies no longer appear as a ring of blobs at no real depth mid-slide (the merger model's Andromeda and the far sphere leave in the first half of the fade, the Group's own galaxies arrive in the second); the arm names hide once the Galaxy is a speck under the Group's; labels claim the screen by their width, so long names no longer overprint; the Group's markers and the Milky Way's are dimmer; the nearby galaxies' points beyond the Group are smaller; Cloud-9's dashed outline carries its name.
 
+- Rebuild galactic-transit.html from src/ (`2035a60`)
 - Visual glitches from a sweep of the zoom range (`e0b0527`)
 
 ### 3.17.0 — 2026-09-20
