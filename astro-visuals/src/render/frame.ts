@@ -27,6 +27,7 @@ import { drawGalacticCentre, sstarRel, bh1StarRel } from './passes/gc'
 import { bh1Centre, SGRA } from '../astro/gc'
 import { drawLocalGroup } from './passes/localgroup'
 import { drawSupercluster } from './passes/supercluster'
+import { drawDeep } from './passes/deep'
 import { LG_BOX } from '../astro/localgroup'
 import { SG_SCENE } from '../astro/supergalactic'
 import { drawShed, drawSunDisc } from './passes/sun'
@@ -72,6 +73,8 @@ let lgFadeNow = 0
 const lgExit = (): number => { const t = Math.min(1, lgFadeNow/0.55); return t*t*(3 - 2*t) }
 /** and the supercluster's, the same way */
 let scFadeNow = 0
+/** and the deep field's */
+let deepFadeNow = 0
 export const setHolding = (h: boolean): void => { holding = h }
 
 /** the rendering origin: the Sun, in double precision */
@@ -234,7 +237,7 @@ function frame(now: number): void {
                   : cam.followTarget === 'gc' || cam.followTarget === 'gcr' ? GC_ORIGIN
                   : cam.followTarget === 'bh1' ? bh1Abs
                   : cam.followTarget === 'lg' ? lgAbs
-                  : cam.followTarget === 'sc' || cam.followTarget === 'web' ? org
+                  : cam.followTarget === 'sc' || cam.followTarget === 'web' || cam.followTarget === 'deep' ? org
                   : moonHere ? moonW
                   : ((cam.followTarget === 'earth' || cam.followTarget === 'moon') && !wasEaten[3]) ? earthW : org;
   const goal = cam.follow ? [followPos[0],followPos[1],followPos[2]] : [0,0,0];
@@ -285,7 +288,7 @@ function frame(now: number): void {
     ux = -sp*sy*P[0]+cp*A[0]+sp*cy*Q[0]; uy = -sp*sy*P[1]+cp*A[1]+sp*cy*Q[1]; uz = -sp*sy*P[2]+cp*A[2]+sp*cy*Q[2];
     dx = cp*sy*P[0]+sp*A[0]-cp*cy*Q[0]; dy = cp*sy*P[1]+sp*A[1]-cp*cy*Q[1]; dz = cp*sy*P[2]+sp*A[2]-cp*cy*Q[2];
     upV = A;
-  } else if(cam.follow && (cam.followTarget === 'sc' || cam.followTarget === 'web')){
+  } else if(cam.follow && (cam.followTarget === 'sc' || cam.followTarget === 'web' || cam.followTarget === 'deep')){
     // the supercluster's frame: the supergalactic pole up, so the chart's cylinder stands
     // upright and pitch tilts the eye above its plane
     const [P, A, Q] = scFrame();
@@ -593,6 +596,8 @@ function frame(now: number): void {
   lgFadeNow = drawLocalGroup({ projMat: view.projMat!, viewMat, eye, camDist: cam.dist, pxScale, showLabels: hud.showLabels, boxOn: scFadeNow < 0.5, dim: 1 - 0.85*scFadeNow });
   // and beyond it, the supercluster and the nearer cosmic web
   scFadeNow = drawSupercluster({ projMat: view.projMat!, viewMat, eye, camDist: cam.dist, pxScale, showLabels: hud.showLabels });
+  // and the deep field, 2MRS, fetched only when the eye goes that far
+  deepFadeNow = drawDeep({ projMat: view.projMat!, viewMat, camDist: cam.dist, pxScale });
   // The Sun itself, last of the scene: the envelope it has shed, then its disc over that.
   // Whether the envelope is on screen decides what the Sun's label says, so the pass
   // reports it and the readout is set here rather than from inside the draw.
@@ -624,7 +629,7 @@ function frame(now: number): void {
     structOn: [hud.showBelt, hud.showKuiper, hud.showOort], armsOn: hud.armsOn,
     gc: { on: gcRes.gcOn, view: viewGC, dist: distGC, stars: sstarRel, sgraPx: gcRes.sgraPx, radioA: gcRes.radioA },
     bh1: { on: gcRes.bh1On, view: viewBH1, dist: distBH1, star: bh1StarRel, holePx: gcRes.bh1Px },
-    lgA: lgFadeNow, scA: scFadeNow,
+    lgA: lgFadeNow, scA: scFadeNow, deepA: deepFadeNow,
   });
 
   updateHud(now, pn);

@@ -301,6 +301,24 @@ dismissing the first-run tour **starts** the clock, so pausing has to come after
   10.3, 11.7, 12.2 from pitch 0.95 — the tails should be longest near 10.3 and 11.8, not at
   the passages, and the inner disk should keep its spiral.
 
+## The deep field (v3.18.0)
+
+- **A separate file, fetched on demand.** 2MRS is 43,000 rows; in the page it would be a
+  third of the page. `tools/fetch_2mrs.py` (runner only — VizieR, and the catalogue's terms
+  ask that its files not be mirrored) writes `data/2mrs.bin` (8-byte header '2MRS' + count,
+  then uint16 SGL×100, int16 SGB×100, uint16 cz per galaxy) and `src/astro/deep-data.ts`
+  (the named clusters, each with the survey's count round it — a name with fewer than eight
+  galaxies within 2° and 1,500 km/s is dropped, not drawn). `render/passes/deep` fetches
+  the binary once the camera passes 6e6 and draws nothing if it is absent; `parseDeep`
+  refuses anything without the magic. The deploy carries the file like `stars-gaia.bin`.
+- **Velocity over H0 is the distance.** Every deep galaxy sits at cz/74.6. That is a model
+  and the article says so; nothing calls it a measurement. The nearer web (Kourkchi &
+  Tully) stays drawn underneath with its measured distances.
+- **The generated tables must not mention their source host**, or the runner (VizieR) and
+  the sandbox (mirrors) rewrite each other's file on every run and the data workflow
+  ping-pongs a page rebuild. `sc-data.ts` lost its "Sources at generation" line for that
+  reason.
+
 ## The emblem and the icons
 
 - The emblem is **Galactic Transit** — the wordmark on `icon.svg`'s arc, the manifest's

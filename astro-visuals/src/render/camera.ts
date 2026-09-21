@@ -48,14 +48,14 @@ export const minDist = (): number => cam.followTarget === 'moon' ? (ageGyr() > M
 // The ceiling: three times further out than the old 7500, so the Galaxy can be seen whole
 // with room around it. The sky sphere and the far plane follow it (render/frame's
 // skyProjection), or the backdrop would clip away exactly when there is most of it to see.
-export const MAX_DIST = 2e7;   // v3.16: the cosmic web to 3,500 km/s — 47 Mpc is 5 million units
+export const MAX_DIST = 1.5e8;   // v3.18: the deep field to 15,000 km/s — 200 Mpc is 22 million units
 // The zoom buttons step along a ladder of the objects themselves — the Sun, the planets'
 // orbits, the belts, the Oort shell, the nearest stars, the arm, the Galaxy, the Local
 // Group — with one rung between each pair, so two presses take you from one object to
 // the next, and every press eases in log space like any other zoom. Clamped to the same
 // floor and ceiling as the wheel. Distances in camera units: 1 AU across the view is
 // 4.67e-7, 1 ly is 0.0288.
-const ZOOM_OBJ = [1.2e-10, 3.2e-9, 2e-8, 1e-7, 3.7e-7, 9.3e-7, 1.45e-6, 4.9e-6, 8.9e-6, 2.8e-5, 4.7e-5, 9.3e-4, 0.144, 0.72, 17, 150, 4300, 9500, 330000, 5.2e6, 9.5e6];
+const ZOOM_OBJ = [1.2e-10, 3.2e-9, 2e-8, 1e-7, 3.7e-7, 9.3e-7, 1.45e-6, 4.9e-6, 8.9e-6, 2.8e-5, 4.7e-5, 9.3e-4, 0.144, 0.72, 17, 150, 4300, 9500, 330000, 5.2e6, 9.5e6, 6e7];
 const ZOOM_RUNGS = ZOOM_OBJ.flatMap((d, i) => i ? [Math.sqrt(ZOOM_OBJ[i-1]*d), d] : [d]);
 export function zoomStep(dir: number): void {
   const cur = cam.distGoal, lo = Math.log(cur);

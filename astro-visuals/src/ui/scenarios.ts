@@ -110,13 +110,14 @@ export function applyFocusView(): void {
     cam.followTarget = 'lg';
     cam.follow = true; cam.coreLock = false; cam.distGoal = 330000; cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
     cam.yaw = 0.7; cam.pitch = 0.3;
-  } else if(v === 'sc' || v === 'web'){
+  } else if(v === 'sc' || v === 'web' || v === 'deep'){
     // the Virgo Supercluster: the chart's cylinder on the supergalactic plane, 60 Mpc across,
-    // from above; or the whole measured volume to 3,500 km/s — the nearer cosmic web
+    // from above; the whole measured volume to 3,500 km/s — the nearer cosmic web; or the
+    // deep field, 2MRS to 15,000 km/s, two billion light years across
     if($('tDive').classList.contains('on')) $('tDive').click();
     if(!$('tView').classList.contains('on')) $('tView').click();
     cam.followTarget = v;
-    cam.follow = true; cam.coreLock = false; cam.distGoal = v === 'sc' ? 5.2e6 : 9.5e6; cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
+    cam.follow = true; cam.coreLock = false; cam.distGoal = v === 'sc' ? 5.2e6 : v === 'web' ? 9.5e6 : 6e7; cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
     cam.yaw = 0.5; cam.pitch = v === 'sc' ? 0.42 : 0.9;
   } else if(v === 'and'){
     // framed wide enough for the whole disk plus its extended halo and stream

@@ -5,12 +5,14 @@ before the work starts. An item is ticked when it ships, with the version that c
 
 ## 2026-09-21
 
-- [ ] Allow to zoom out even more. Past the 3,500 km/s groups there is nothing drawn, so a
+- [x] Allow to zoom out even more. Past the 3,500 km/s groups there is nothing drawn, so a
       higher ceiling alone would show empty space: the next survey out is 2MRS (Huchra et
       al. 2012, ~44,000 galaxies to ~650 Mly), fetched on the runner into a separate binary
       the page loads only when the eye goes that far, with the great clusters named (Coma,
       Perseus, Norma, Shapley) and the zone of avoidance disclosed; ceiling and ladder
       extended to match.
+      Ceiling 1.5e8, the deep view at 6e7, data/2mrs.bin from VizieR on the runner,
+      twelve clusters checked against the survey — v3.18.0.
 
 - [x] Continue and fix visual glitches. A zoom sweep from the Galaxy to the web: the
       Local Group's mid-fade ring of blobs, arm names over the Group's names, label

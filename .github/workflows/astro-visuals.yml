@@ -20,6 +20,7 @@ on:
       - astro-visuals/tools/fetch_gc_radio.py
       - astro-visuals/tools/fetch_local_group.py
       - astro-visuals/tools/fetch_supercluster.py
+      - astro-visuals/tools/fetch_2mrs.py
       - .github/workflows/astro-visuals.yml
 permissions:
   contents: write
@@ -76,18 +77,20 @@ jobs:
         run: python astro-visuals/tools/fetch_local_group.py
       - name: Regenerate the supercluster from Kourkchi & Tully 2017 and the Updated Nearby Galaxy Catalog
         run: python astro-visuals/tools/fetch_supercluster.py
+      - name: Fetch the 2MASS Redshift Survey as the deep field
+        run: python astro-visuals/tools/fetch_2mrs.py
       - name: Commit the verified table, and rebuild the page from it
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
-          git add astro-visuals/src/astro/gc-data.ts astro-visuals/src/astro/gc-radio-data.ts astro-visuals/src/astro/lg-data.ts astro-visuals/src/astro/sc-data.ts
+          git add astro-visuals/src/astro/gc-data.ts astro-visuals/src/astro/gc-radio-data.ts astro-visuals/src/astro/lg-data.ts astro-visuals/src/astro/sc-data.ts astro-visuals/src/astro/deep-data.ts astro-visuals/data/2mrs.bin
           if git diff --cached --quiet; then
             echo 'the Centre tables already match the catalogues; nothing to commit'
           else
             git commit -m 'astro-visuals: regenerate the Galactic Centre tables from VizieR' \
-              -m 'The S-star orbital elements from Gillessen et al. 2017 (J/ApJ/837/30) and Gaia BH1 from Gaia DR3 (I/355), fetched by tools/fetch_sstars.py; the radio objects checked against Green 2019 (VII/284) and LaRosa et al. 2000 (J/AJ/119/207) by tools/fetch_gc_radio.py; the Local Group from the Local Volume Database by tools/fetch_local_group.py; the supercluster from J/ApJ/843/16 and J/AJ/145/101 by tools/fetch_supercluster.py.'
+              -m 'The S-star orbital elements from Gillessen et al. 2017 (J/ApJ/837/30) and Gaia BH1 from Gaia DR3 (I/355), fetched by tools/fetch_sstars.py; the radio objects checked against Green 2019 (VII/284) and LaRosa et al. 2000 (J/AJ/119/207) by tools/fetch_gc_radio.py; the Local Group from the Local Volume Database by tools/fetch_local_group.py; the supercluster from J/ApJ/843/16 and J/AJ/145/101 by tools/fetch_supercluster.py; the deep field (data/2mrs.bin) from J/ApJS/199/26 by tools/fetch_2mrs.py.'
             git pull --rebase origin main
             git push origin main
             gh workflow run astro-visuals-page.yml --ref main

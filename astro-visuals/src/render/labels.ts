@@ -10,6 +10,7 @@ import { moonRel } from '../astro/earth'
 import { SSTARS, sstarA, RADIO_GEOM } from '../astro/gc'
 import { LG, LG_BY_LIGHT, lyLabel } from '../astro/localgroup'
 import { SC_GROUPS_NAMED, SC_GALS } from '../astro/supercluster'
+import { DEEP_NAMED } from '../astro/deep'
 
 /**
  * Every name on the screen. They are DOM, not GL: HTML text over the canvas, positioned each
@@ -120,6 +121,9 @@ const mwEl = (()=>{ const d = mkLbl('Milky Way Galaxy', 'rgba(120,190,255,.95)')
 // nearby galaxies in grey
 const scEls = SC_GROUPS_NAMED.map(g => { const d = mkLbl(g.name, ''); d.classList.add('lg'); if(g.name === 'Local Group') d.style.color = 'rgba(120,190,255,.95)';
   const sp = document.createElement('span'); sp.className = 'dist'; sp.textContent = lyLabel(g.ly); d.appendChild(sp); return d; });
+// the deep field's great clusters, with their distances
+const deepEls = DEEP_NAMED.map(g => { const d = mkLbl(g.name, ''); d.classList.add('lg');
+  const sp = document.createElement('span'); sp.className = 'dist'; sp.textContent = lyLabel(g.ly); d.appendChild(sp); return d; });
 const scGalEls = SC_GALS.map(g => { if(!g.major) return null; const d = mkLbl(g.name, ''); d.classList.add('lg'); d.classList.add('minor'); return d; });
 // the radio field's names, in the map's own warm ink; the unnamed ridge gets no element
 const radioEls = RADIO_GEOM.map(g => g.obj.name ? mkLbl(g.obj.name, 'rgba(255,205,150,.78)') : null);
@@ -210,6 +214,7 @@ export interface LabelInputs {
   /** how much of the Local Group is drawn this frame, and of the supercluster */
   lgA: number
   scA: number
+  deepA: number
 }
 
 /**
@@ -226,6 +231,7 @@ const hideGC = (): void => { placeLabel(sgraEl, 0, 0, false); sstarEls.forEach(l
 const hideBH1 = (): void => { placeLabel(bh1El, 0, 0, false); placeLabel(bh1StarEl, 0, 0, false); };
 const hideLG = (): void => { lgEls.forEach(l => placeLabel(l as Label, 0, 0, false)); placeLabel(mwEl, 0, 0, false); };
 const hideSC = (): void => { scEls.forEach(l => placeLabel(l as Label, 0, 0, false)); scGalEls.forEach(l => l && placeLabel(l as Label, 0, 0, false)); };
+const hideDeep = (): void => { deepEls.forEach(l => placeLabel(l as Label, 0, 0, false)); };
 const lgTaken = new Set<number>();
 /**
  * Claim the screen a label needs — every cell its width spans, on its row and the rows
@@ -243,9 +249,9 @@ function claimCells(el: HTMLElement, sx: number, sy: number): boolean {
 }
 
 export function drawLabels(showLabels: boolean, inputs: LabelInputs): void {
-  if(!showLabels){ placeLabel(g710Lbl, 0, 0, false); hideGC(); hideBH1(); hideLG(); hideSC(); return }
+  if(!showLabels){ placeLabel(g710Lbl, 0, 0, false); hideGC(); hideBH1(); hideLG(); hideSC(); hideDeep(); return }
   const { projMat, viewMat, pxScale, camDist, org, andPos, merge, sep, spinMW, spinM31, asm, bornYet, star,
-          showP9, showDwarfs, wasEaten, structOn, armsOn, gc, bh1, lgA, scA } = inputs;
+          showP9, showDwarfs, wasEaten, structOn, armsOn, gc, bh1, lgA, scA, deepA } = inputs;
   const pv = mul(projMat, viewMat);
   const proj = (x: number, y: number, z: number): number[] => { const cw = pv[3]*x+pv[7]*y+pv[11]*z+pv[15];
     return [cw, ((pv[0]*x+pv[4]*y+pv[8]*z+pv[12])/cw*0.5+0.5)*view.W, (-(pv[1]*x+pv[5]*y+pv[9]*z+pv[13])/cw*0.5+0.5)*view.H]; };
@@ -350,11 +356,20 @@ export function drawLabels(showLabels: boolean, inputs: LabelInputs): void {
       if(show) show = claimCells(el, sx, sy + dy + 9);
       placeLabel(el as Label, sx, sy + dy, show);
     };
-    for(let k=0;k<SC_GROUPS_NAMED.length;k++){ const g = SC_GROUPS_NAMED[k]; claim(scEls[k], g.pos[0], g.pos[1], g.pos[2], -9); }
+    // the deep field's great clusters claim first once it shows: the nearer names give way
+    if(deepA > 0.5) for(let k=0;k<DEEP_NAMED.length;k++){ const g = DEEP_NAMED[k]; claim(deepEls[k], g.pos[0], g.pos[1], g.pos[2], -9); }
+    else hideDeep();
+    // once the deep field shows, the nearer groups are a knot at the centre: only the Local
+    // Group and the clusters beyond 60 Mly keep their names, and the grey galaxies go
+    for(let k=0;k<SC_GROUPS_NAMED.length;k++){ const g = SC_GROUPS_NAMED[k];
+      if(deepA > 0.5 && g.name !== 'Local Group' && g.ly < 6e7){ placeLabel(scEls[k] as Label, 0, 0, false); continue; }
+      claim(scEls[k], g.pos[0], g.pos[1], g.pos[2], -9); }
     // the dark galaxy's outline needs its name, or it reads as a stray ring: it claims before the rest
     for(let k=0;k<SC_GALS.length;k++){ const el = scGalEls[k]; if(!el || SC_GALS[k].kind !== 'dark') continue; const g = SC_GALS[k]; claim(el, g.pos[0], g.pos[1], g.pos[2], 12); }
-    for(let k=0;k<SC_GALS.length;k++){ const el = scGalEls[k]; if(!el || SC_GALS[k].kind === 'dark') continue; const g = SC_GALS[k]; claim(el, g.pos[0], g.pos[1], g.pos[2], 8); }
-  } else hideSC();
+    for(let k=0;k<SC_GALS.length;k++){ const el = scGalEls[k]; if(!el || SC_GALS[k].kind === 'dark') continue; const g = SC_GALS[k];
+      if(deepA > 0.5){ placeLabel(el as Label, 0, 0, false); continue; }
+      claim(el, g.pos[0], g.pos[1], g.pos[2], 8); }
+  } else { hideSC(); hideDeep(); }
   // one galaxy, one name: from the moment the disks are one blob, the remnant's centre
   { const [cw, sx, sy] = proj(-org[0], -org[1], -org[2]);
     placeLabel(mergedEl, sx, sy, galaxyNames && merge >= 0.35 && cw > 1); }
