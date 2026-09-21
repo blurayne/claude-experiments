@@ -6,6 +6,12 @@ Hand-written release notes come from `CHANGELOG.notes.md`, never from here.
 
 ## Galactic Transit
 
+### 3.18.1 — 2026-09-21
+
+The deep field's first real run: the runner fetched 43,507 galaxies and confirmed all twelve named clusters against the survey (Coma with 119 neighbours, Perseus 130, Norma 122); an apostrophe in a source string broke the generated table's syntax, so the tool quotes its strings now.
+
+- The deep field's first real run — the tool quotes its strings (`85877d4`)
+
 ### 3.18.0 — 2026-09-21
 
 **Further out: the deep field.** The zoom now runs to 1.5e8 units — five billion light years across — and past the 3,500 km/s groups there is something to see: the 2MASS Redshift Survey (Huchra et al. 2012), some 43,000 galaxies to 15,000 km/s, fetched by the data workflow from VizieR into a separate binary the page loads only when the eye goes that far, each placed at its heliocentric cz over H0 = 74.6 (a model of distance, and said to be). The great clusters — Coma, Perseus, Norma at the Great Attractor's core, Hydra, Centaurus, Antlia, Leo, Hercules, the Shapley Concentration — are named from NED's positions, each checked by the tool against the survey's own concentration round it. A "The deep field (2MRS)" view and a last rung on the ladder; the zone of avoidance disclosed in the article.
