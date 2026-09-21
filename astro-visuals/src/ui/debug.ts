@@ -3,6 +3,7 @@ import { T_BIG_BANG } from '../astro/constants'
 import { BUILD } from '../core/build'
 import { errLog, TOUCH_DEV } from '../core/errorlog'
 import { cam, simClock } from '../render/state'
+import { gl } from '../gpu/context'
 import { refillTrails } from '../render/trails'
 import { events, puffs } from '../render/lifecycle'
 import { SKEY, saveSettingsNow } from './persist'
@@ -116,6 +117,10 @@ export function setDebugUI(on: boolean, entering: boolean): void {
   if(on && entering && !($('qrOn') as HTMLInputElement).checked){ ($('qrOn') as HTMLInputElement).checked = true; $('qrOn').dispatchEvent(new Event('change')); }
   qrRedraw(true);
 }
+/** the renderer's name, as the browser gives it — a phone's GPU is often the glitch */
+function gpuName(): string {
+  try{ const r = gl.getParameter(gl.RENDERER); return typeof r === 'string' ? r.slice(0, 80) : '' }catch(e){ return '' }
+}
 export function exportState(): Record<string, any> {
   saveSettingsNow();
   let settings = null; try{ settings = JSON.parse(localStorage.getItem(SKEY)||'null'); }catch(e){}
@@ -123,8 +128,8 @@ export function exportState(): Record<string, any> {
     app: 'galactic-transit', version: BUILD.version, exported: new Date().toISOString(),
     time: { simT: simClock.simT, paused: simClock.paused },
     camera: { yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, distGoal:cam.distGoal,
-              follow:cam.follow, coreLock: cam.coreLock, dive:$('tDive').classList.contains('on') },
-    viewport: { w:innerWidth, h:innerHeight, dpr:devicePixelRatio },
+              follow:cam.follow, followTarget:cam.followTarget, coreLock: cam.coreLock, dive:$('tDive').classList.contains('on') },
+    viewport: { w:innerWidth, h:innerHeight, dpr:devicePixelRatio, gpu: gpuName() },
     settings,
   };
 }
@@ -140,9 +145,13 @@ export function applyState(o: any): void {
   if(o.camera){ const c = o.camera;
     for(const k of ['yaw','pitch','dist','distGoal'] as const) if(typeof c[k] === 'number') cam[k] = c[k];
     if(typeof c.follow === 'boolean') cam.follow = c.follow;
+    if(typeof c.followTarget === 'string') cam.followTarget = c.followTarget;
     cam.coreLock = !!c.coreLock;
     $('tDive').classList.toggle('on', !!c.dive);
     cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
+    // an import is a teleport: land on the target at once, or the view creeps toward it
+    // for the next second (longer on a slow renderer) and the state is not yet the state
+    cam.firstFrame = true;
   }
 }
 

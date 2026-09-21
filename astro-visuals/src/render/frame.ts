@@ -28,7 +28,9 @@ import { bh1Centre, SGRA } from '../astro/gc'
 import { drawLocalGroup } from './passes/localgroup'
 import { drawSupercluster } from './passes/supercluster'
 import { drawDeep } from './passes/deep'
-import { LG_BOX } from '../astro/localgroup'
+import { LG_BOX, lgFade } from '../astro/localgroup'
+import { SC_BOX, scFade, MPC2U } from '../astro/supercluster'
+import { DEEP_CZ_MAX, DEEP_H0, deepFade } from '../astro/deep'
 import { SG_SCENE } from '../astro/supergalactic'
 import { drawShed, drawSunDisc } from './passes/sun'
 import { drawEatFlash } from './passes/eatflash'
@@ -105,6 +107,19 @@ function updateAnd(){
 // to tell the clock running across an engulfment from a jump past it
 const wasEaten = [false,false,false,false], eatFlash = [-1,-1,-1,-1];   // -1: no flare running
 
+/**
+ * How far past the eye's own distance the far plane must reach: the sky sphere always, and
+ * each outer layer's whole extent from the moment its fade begins — the eye orbits a
+ * target, so a layer's far side lies its full radius beyond the target. Without a depth
+ * buffer the far plane is only a clip, so a generous reach costs nothing.
+ */
+export function farReach(camDist: number): number {
+  let r = R_SKY
+  if(lgFade(camDist) > 0) r = Math.max(r, LG_BOX.radius*1.5 + LG_BOX.halfH)
+  if(scFade(camDist) > 0) r = Math.max(r, SC_BOX.radius*2.5)            // the 3,500 km/s galaxies reach past the box
+  if(deepFade(camDist) > 0 || camDist > 6e6) r = Math.max(r, DEEP_CZ_MAX/DEEP_H0*MPC2U*1.15)
+  return r
+}
 // the one way a projection is built: frame() rebuilds it every frame for its near plane
 export function skyProjection(near: number, far: number): Float32Array { const m = perspective(Math.PI/3, view.W/view.H, near, far); m[0] *= SKY_MIRROR; return m; }
 
@@ -328,9 +343,10 @@ function frame(now: number): void {
   const distGC = Math.hypot(eyeGC[0], eyeGC[1], eyeGC[2]), distBH1 = Math.hypot(eyeBH1[0], eyeBH1[1], eyeBH1[2]);
   // near plane tracks the zoom so sub-AU views don't clip
   // no depth buffer: a tiny near plane costs nothing, and Earth needs it. The far plane
-  // follows the zoom — at the new ceiling the sky sphere's far side is 40,000 out, and a
-  // fixed 25,000 would have clipped the backdrop away just as the Galaxy came whole into view.
-  view.projMat = skyProjection(Math.min(0.5, Math.max(1e-13, cam.dist*0.04)), Math.max(25000, cam.dist + R_SKY + 6000));
+  // follows the zoom, and reaches the whole of every layer that is showing — see farReach:
+  // a plane at the eye's distance plus the sky sphere sliced the Local Group's far-side
+  // galaxies in half, and which ones it sliced changed as the eye turned.
+  view.projMat = skyProjection(Math.min(0.5, Math.max(1e-13, cam.dist*0.04)), Math.max(25000, cam.dist + farReach(cam.dist) + 6000));
   const pxScale = (view.H*view.DPR)/(2*Math.tan(Math.PI/6));
 
   // at 100% nothing is compressed, so the old direct path is kept exactly

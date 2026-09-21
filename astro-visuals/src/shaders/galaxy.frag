@@ -10,6 +10,7 @@ uniform vec3  uCol;
 uniform float uGain;
 uniform float uSeed;
 uniform float uFade;
+uniform float uMargin;   // the quad's half-width in uv: the profile is windowed to nothing before it
 in vec2 vUv;
 out vec4 o;
 
@@ -46,7 +47,9 @@ void main(){
   } else {
     I = exp(-1.68*r)*(0.9 + 0.2*vnoise(p*4.0 + uSeed));
   }
-  I *= uGain*uFade;
+  // the exponential tails are still a few thousandths at the quad's edge, which after the
+  // tone curve is a visible plateau with a hard straight rim; a window takes it to nothing
+  I *= uGain*uFade*(1.0 - smoothstep(0.6, 0.95, max(abs(p.x), abs(p.y))/uMargin));
   if(I < 0.002) discard;
   o = vec4(col*I, 1.0);
 }

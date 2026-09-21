@@ -548,8 +548,7 @@ test.describe('the rotation sense', () => {
         document.getElementById('dbgImport')!.click()
       }, simT)
       // labels ease toward their targets; give them time to land
-      await page.waitForTimeout(2500)
-      return page.evaluate(() => {
+      const read = () => page.evaluate(() => {
         const out: Record<string, [number, number]> = {}
         for (const el of document.querySelectorAll('#labels .armlbl')) {
           const e = el as HTMLElement
@@ -558,6 +557,22 @@ test.describe('the rotation sense', () => {
         }
         return out
       })
+      // the camera eases in after an import with the frame's dt, which is clamped at 50 ms,
+      // so on a software renderer at a few frames a second it settles several times slower
+      // than on hardware, and at that rate two readings half a second apart can fall on
+      // the same frame: so at least eight seconds, then until nothing has moved for two
+      // seconds (four half-second readings in a row), up to 40 s
+      let last = await read(), stillFor = 0
+      for (let i = 0; i < 80; i++) {
+        await page.waitForTimeout(500)
+        const now = await read()
+        const keys = Object.keys(now)
+        const still = keys.length > 0 && keys.every(k => last[k] && Math.hypot(now[k]![0] - last[k]![0], now[k]![1] - last[k]![1]) < 0.3)
+        stillFor = still ? stillFor + 1 : 0
+        last = now
+        if (stillFor >= 4 && i >= 16) break
+      }
+      return last
     }
 
     const a = await armsAt(0)

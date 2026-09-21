@@ -2,6 +2,7 @@ import type { Vec3 } from '../core/mat4'
 import { sgDir } from './supergalactic'
 import { MPC2U } from './supercluster'
 import { DEEP_CLUSTERS, DEEP_H0 } from './deep-data'
+export { DEEP_H0 }
 
 /**
  * The deep field: the 2MASS Redshift Survey (Huchra et al. 2012), read from data/2mrs.bin

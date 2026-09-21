@@ -2,6 +2,10 @@
 
 Hand-written notes merged into `CHANGELOG.md` by `.github/scripts/build_changelog.py`: one `## <semver>` heading per version, Markdown body below it, inserted under that version's heading in the Galactic Transit section on the next regeneration. The generated changelog itself must never be edited by hand — it is overwritten wholesale.
 
+## 3.18.2
+
+**Galaxies sliced by the far plane.** From a phone at the Local Group's range (the state read off the screenshot's QR code: 411×882 at 2.625, 838,000 units out) galaxies showed cut in half by a straight edge, one side dark, and the cut jumped about with the slightest turn of the view. The far clip plane sat at the eye's distance plus the sky sphere, so every galaxy on the far side of the target lay beyond it and was clipped by it, and which ones straddled it changed as the eye turned; the same plane had been quietly clipping the back half of the supercluster and of the deep field. It now reaches the whole of every layer that is showing. The galaxy quads fade to nothing before their margin, so no quad's rim can show as a plateau with a straight edge; the belt names hide with the labels off instead of staying where they were placed; the exported state (and the QR) carries the follow target and the GPU's name, so a screenshot pins the camera and the device; and an imported state lands at once instead of creeping toward its target for the next second.
+
 ## 3.18.1
 
 The deep field's first real run: the runner fetched 43,507 galaxies and confirmed all twelve named clusters against the survey (Coma with 119 neighbours, Perseus 130, Norma 122); an apostrophe in a source string broke the generated table's syntax, so the tool quotes its strings now.

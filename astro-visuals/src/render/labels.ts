@@ -249,12 +249,29 @@ function claimCells(el: HTMLElement, sx: number, sy: number): boolean {
 }
 
 export function drawLabels(showLabels: boolean, inputs: LabelInputs): void {
-  if(!showLabels){ placeLabel(g710Lbl, 0, 0, false); hideGC(); hideBH1(); hideLG(); hideSC(); hideDeep(); return }
   const { projMat, viewMat, pxScale, camDist, org, andPos, merge, sep, spinMW, spinM31, asm, bornYet, star,
           showP9, showDwarfs, wasEaten, structOn, armsOn, gc, bh1, lgA, scA, deepA } = inputs;
   const pv = mul(projMat, viewMat);
   const proj = (x: number, y: number, z: number): number[] => { const cw = pv[3]*x+pv[7]*y+pv[11]*z+pv[15];
     return [cw, ((pv[0]*x+pv[4]*y+pv[8]*z+pv[12])/cw*0.5+0.5)*view.W, (-(pv[1]*x+pv[5]*y+pv[9]*z+pv[13])/cw*0.5+0.5)*view.H]; };
+  // arm names: world coordinates rotated with the wave, then projected like the rest
+  // (once the remnant starts to relax there are no arms left to name)
+  // (and none once the Galaxy is a speck under the Local Group's names)
+  // Their own switch, so they are placed with the labels off as well.
+  const armNames = (): void => {
+    if(armsOn && camDist > 600 && merge < 0.35 && asm > 0.85 && lgA < 0.5){   // no arms before the disk settles, no names either
+      for(let a=0;a<ARM_LBLS.length;a++){
+        const d = spinMW/ARM_LBLS[a][3], cD = Math.cos(d), sD = Math.sin(d);
+        const wx = ARM_LBLS[a][1]*cD + ARM_LBLS[a][2]*sD, wz = ARM_LBLS[a][2]*cD - ARM_LBLS[a][1]*sD;
+        const [cw, sx, sy] = proj(wx-org[0], -org[1], wz-org[2]);
+        placeLabel(armEls[a] as Label, sx, sy, cw > 1);
+      }
+    } else armEls.forEach(l=>placeLabel(l as Label, 0, 0, false));
+  };
+  // labels off: everything this pass owns goes, or a belt's name, placed while they were
+  // on, would stay where it was — a "Kuiper belt" over the Local Group
+  if(!showLabels){ placeLabel(g710Lbl, 0, 0, false); hideGC(); hideBH1(); hideLG(); hideSC(); hideDeep();
+    structEls.forEach(el=>placeLabel(el as Label, 0, 0, false)); armNames(); return }
   let sunSX=0, sunSY=0;
   for(let i=0;i<NB;i++){
     const l=labelEls[i] as Label;
@@ -288,17 +305,7 @@ export function drawLabels(showLabels: boolean, inputs: LabelInputs): void {
     placeLabel(el, sx, sy, cw > 1e-9);
   }
   const galaxyNames = armsOn && camDist > 600;
-  // arm names: world coordinates rotated with the wave, then projected like the rest
-  // (once the remnant starts to relax there are no arms left to name)
-  // (and none once the Galaxy is a speck under the Local Group's names)
-  if(galaxyNames && merge < 0.35 && asm > 0.85 && lgA < 0.5){   // no arms before the disk settles, no names either
-    for(let a=0;a<ARM_LBLS.length;a++){
-      const d = spinMW/ARM_LBLS[a][3], cD = Math.cos(d), sD = Math.sin(d);
-      const wx = ARM_LBLS[a][1]*cD + ARM_LBLS[a][2]*sD, wz = ARM_LBLS[a][2]*cD - ARM_LBLS[a][1]*sD;
-      const [cw, sx, sy] = proj(wx-org[0], -org[1], wz-org[2]);
-      placeLabel(armEls[a] as Label, sx, sy, cw > 1);
-    }
-  } else armEls.forEach(l=>placeLabel(l as Label, 0, 0, false));
+  armNames();
   // named together, retired together: past this point the two disks already render as
   // one blob, so naming only "Andromeda" there would mislabel the Milky Way's own remnant
   if(galaxyNames && merge < 0.35 && lgA < 0.5){

@@ -92,7 +92,7 @@ function installErrorCollector(){
  * property of the machine that loaded the page. The parity harness pins TZ for that reason.
  */
 
-const BUILD = { version: '3.18.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '3.18.2', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -2452,6 +2452,10 @@ function setDebugUI(on         , entering         )       {
   if(on && entering && !($('qrOn')                    ).checked){ ($('qrOn')                    ).checked = true; $('qrOn').dispatchEvent(new Event('change')); }
   qrRedraw(true);
 }
+/** the renderer's name, as the browser gives it — a phone's GPU is often the glitch */
+function gpuName()         {
+  try{ const r = gl.getParameter(gl.RENDERER); return typeof r === 'string' ? r.slice(0, 80) : '' }catch(e){ return '' }
+}
 function exportState()                      {
   saveSettingsNow();
   let settings = null; try{ settings = JSON.parse(localStorage.getItem(SKEY)||'null'); }catch(e){}
@@ -2459,8 +2463,8 @@ function exportState()                      {
     app: 'galactic-transit', version: BUILD.version, exported: new Date().toISOString(),
     time: { simT: simClock.simT, paused: simClock.paused },
     camera: { yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, distGoal:cam.distGoal,
-              follow:cam.follow, coreLock: cam.coreLock, dive:$('tDive').classList.contains('on') },
-    viewport: { w:innerWidth, h:innerHeight, dpr:devicePixelRatio },
+              follow:cam.follow, followTarget:cam.followTarget, coreLock: cam.coreLock, dive:$('tDive').classList.contains('on') },
+    viewport: { w:innerWidth, h:innerHeight, dpr:devicePixelRatio, gpu: gpuName() },
     settings,
   };
 }
@@ -2476,9 +2480,13 @@ function applyState(o     )       {
   if(o.camera){ const c = o.camera;
     for(const k of ['yaw','pitch','dist','distGoal']         ) if(typeof c[k] === 'number') cam[k] = c[k];
     if(typeof c.follow === 'boolean') cam.follow = c.follow;
+    if(typeof c.followTarget === 'string') cam.followTarget = c.followTarget;
     cam.coreLock = !!c.coreLock;
     $('tDive').classList.toggle('on', !!c.dive);
     cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
+    // an import is a teleport: land on the target at once, or the view creeps toward it
+    // for the next second (longer on a slow renderer) and the state is not yet the state
+    cam.firstFrame = true;
   }
 }
 
@@ -4458,7 +4466,7 @@ function drawGalacticCentre(inp          )           {
   return res
 }
 
-const GAL_FS = "#version 300 es\nprecision highp float;\n// A Local Group galaxy on its half-light ellipse (the quad from gcradio.vert, uv = 1 at\n// the half-light radius, margin beyond). Profiles by kind: the spheroidals and irregulars\n// exponential, the compact ellipticals steeper, the one spiral an exponential disk with a\n// two-armed modulation; the dark galaxy is an outline and nothing inside it, which is what\n// there is to see. Brightness is a marker's, not a photometer's — see astro/localgroup.\nuniform float uKind;     // 0 dSph, 1 dIrr, 2 dE/cE, 3 spiral, 4 dark\nuniform vec3  uCol;\nuniform float uGain;\nuniform float uSeed;\nuniform float uFade;\nin vec2 vUv;\nout vec4 o;\n\nfloat h21(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }\nfloat vnoise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);\n  return mix(mix(h21(i),h21(i+vec2(1,0)),f.x), mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x), f.y); }\nfloat gauss(float x, float w){ return exp(-x*x/(w*w)); }\n\nvoid main(){\n  vec2 p = vUv;\n  float r = length(p);\n  int kind = int(uKind + 0.5);\n  float I = 0.0;\n  vec3 col = uCol;\n  if(kind == 4){\n    // a dark galaxy: nothing shines; a dashed outline at the HI disc's edge says \"here\"\n    float th = atan(p.y, p.x);\n    float dash = step(0.5, fract(th*2.2));\n    I = gauss(r - 1.0, 0.07)*dash*0.9 + 0.05*smoothstep(1.0, 0.6, r);\n  } else if(kind == 3){\n    // an exponential disk with two arms wound round it\n    float th = atan(p.y, p.x);\n    float arms = 1.0 + 0.55*cos(2.0*th - 3.2*log(max(r, 0.05)) + uSeed)*smoothstep(0.15, 0.5, r);\n    I = exp(-1.68*r)*arms*(0.85 + 0.3*vnoise(p*9.0 + uSeed)) + 0.6*gauss(r, 0.12);\n    col = mix(uCol, vec3(1.0,0.9,0.72), gauss(r, 0.25));\n  } else if(kind == 2){\n    I = exp(-3.0*pow(r, 0.55)) + 0.5*gauss(r, 0.15);\n  } else if(kind == 1){\n    // an irregular: an exponential body with bright knots of star formation on it\n    float n = vnoise(p*7.0 + uSeed*3.0);\n    float knots = smoothstep(0.62, 0.9, n)*exp(-1.2*r);\n    I = exp(-1.68*r)*(0.8 + 0.4*vnoise(p*3.5 + uSeed)) + 1.4*knots;\n    col = mix(uCol, vec3(0.65,0.8,1.0), knots*2.0);\n  } else {\n    I = exp(-1.68*r)*(0.9 + 0.2*vnoise(p*4.0 + uSeed));\n  }\n  I *= uGain*uFade;\n  if(I < 0.002) discard;\n  o = vec4(col*I, 1.0);\n}\n";
+const GAL_FS = "#version 300 es\nprecision highp float;\n// A Local Group galaxy on its half-light ellipse (the quad from gcradio.vert, uv = 1 at\n// the half-light radius, margin beyond). Profiles by kind: the spheroidals and irregulars\n// exponential, the compact ellipticals steeper, the one spiral an exponential disk with a\n// two-armed modulation; the dark galaxy is an outline and nothing inside it, which is what\n// there is to see. Brightness is a marker's, not a photometer's — see astro/localgroup.\nuniform float uKind;     // 0 dSph, 1 dIrr, 2 dE/cE, 3 spiral, 4 dark\nuniform vec3  uCol;\nuniform float uGain;\nuniform float uSeed;\nuniform float uFade;\nuniform float uMargin;   // the quad's half-width in uv: the profile is windowed to nothing before it\nin vec2 vUv;\nout vec4 o;\n\nfloat h21(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }\nfloat vnoise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);\n  return mix(mix(h21(i),h21(i+vec2(1,0)),f.x), mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x), f.y); }\nfloat gauss(float x, float w){ return exp(-x*x/(w*w)); }\n\nvoid main(){\n  vec2 p = vUv;\n  float r = length(p);\n  int kind = int(uKind + 0.5);\n  float I = 0.0;\n  vec3 col = uCol;\n  if(kind == 4){\n    // a dark galaxy: nothing shines; a dashed outline at the HI disc's edge says \"here\"\n    float th = atan(p.y, p.x);\n    float dash = step(0.5, fract(th*2.2));\n    I = gauss(r - 1.0, 0.07)*dash*0.9 + 0.05*smoothstep(1.0, 0.6, r);\n  } else if(kind == 3){\n    // an exponential disk with two arms wound round it\n    float th = atan(p.y, p.x);\n    float arms = 1.0 + 0.55*cos(2.0*th - 3.2*log(max(r, 0.05)) + uSeed)*smoothstep(0.15, 0.5, r);\n    I = exp(-1.68*r)*arms*(0.85 + 0.3*vnoise(p*9.0 + uSeed)) + 0.6*gauss(r, 0.12);\n    col = mix(uCol, vec3(1.0,0.9,0.72), gauss(r, 0.25));\n  } else if(kind == 2){\n    I = exp(-3.0*pow(r, 0.55)) + 0.5*gauss(r, 0.15);\n  } else if(kind == 1){\n    // an irregular: an exponential body with bright knots of star formation on it\n    float n = vnoise(p*7.0 + uSeed*3.0);\n    float knots = smoothstep(0.62, 0.9, n)*exp(-1.2*r);\n    I = exp(-1.68*r)*(0.8 + 0.4*vnoise(p*3.5 + uSeed)) + 1.4*knots;\n    col = mix(uCol, vec3(0.65,0.8,1.0), knots*2.0);\n  } else {\n    I = exp(-1.68*r)*(0.9 + 0.2*vnoise(p*4.0 + uSeed));\n  }\n  // the exponential tails are still a few thousandths at the quad's edge, which after the\n  // tone curve is a visible plateau with a hard straight rim; a window takes it to nothing\n  I *= uGain*uFade*(1.0 - smoothstep(0.6, 0.95, max(abs(p.x), abs(p.y))/uMargin));\n  if(I < 0.002) discard;\n  o = vec4(col*I, 1.0);\n}\n";
 
 /**
  * The chart's box: a cylinder on an axis, drawn as its top and bottom rings, its mid-plane
@@ -6019,6 +6027,17 @@ const DEEP_CLUSTERS                         = [
   ['Pavo–Indus (A3742)', 229.486, 20.650, 4800, 19, 'Abell 3742 / NGC 7014; Struble & Rood 1999'],
 ];
 
+/**
+ * The deep field: the 2MASS Redshift Survey (Huchra et al. 2012), read from data/2mrs.bin
+ * when the eye goes far enough out to need it — 43,000-odd galaxies to ~650 million light
+ * years, every one placed at its heliocentric cz over H0 = 74.6, which is a MODEL of distance
+ * (the galaxy's own motion is in its velocity; the article says so). The binary's layout is
+ * the tool's: an 8-byte header, then 6 bytes a galaxy. The great clusters are named from
+ * `deep-data.ts`, each checked against the survey by the tool.
+ */
+
+const DEEP_CZ_MAX = 15000;
+
 /** parse the binary into Sun-relative positions (scene units); null if it is not the tool's file */
 function parseDeep(buf             )                                                            {
   if(buf.byteLength < 8) return null
@@ -6552,12 +6571,29 @@ function claimCells(el             , sx        , sy        )          {
 }
 
 function drawLabels(showLabels         , inputs             )       {
-  if(!showLabels){ placeLabel(g710Lbl, 0, 0, false); hideGC(); hideBH1(); hideLG(); hideSC(); hideDeep(); return }
   const { projMat, viewMat, pxScale, camDist, org, andPos, merge, sep, spinMW, spinM31, asm, bornYet, star,
           showP9, showDwarfs, wasEaten, structOn, armsOn, gc, bh1, lgA, scA, deepA } = inputs;
   const pv = mul(projMat, viewMat);
   const proj = (x        , y        , z        )           => { const cw = pv[3]*x+pv[7]*y+pv[11]*z+pv[15];
     return [cw, ((pv[0]*x+pv[4]*y+pv[8]*z+pv[12])/cw*0.5+0.5)*view.W, (-(pv[1]*x+pv[5]*y+pv[9]*z+pv[13])/cw*0.5+0.5)*view.H]; };
+  // arm names: world coordinates rotated with the wave, then projected like the rest
+  // (once the remnant starts to relax there are no arms left to name)
+  // (and none once the Galaxy is a speck under the Local Group's names)
+  // Their own switch, so they are placed with the labels off as well.
+  const armNames = ()       => {
+    if(armsOn && camDist > 600 && merge < 0.35 && asm > 0.85 && lgA < 0.5){   // no arms before the disk settles, no names either
+      for(let a=0;a<ARM_LBLS.length;a++){
+        const d = spinMW/ARM_LBLS[a][3], cD = Math.cos(d), sD = Math.sin(d);
+        const wx = ARM_LBLS[a][1]*cD + ARM_LBLS[a][2]*sD, wz = ARM_LBLS[a][2]*cD - ARM_LBLS[a][1]*sD;
+        const [cw, sx, sy] = proj(wx-org[0], -org[1], wz-org[2]);
+        placeLabel(armEls[a]         , sx, sy, cw > 1);
+      }
+    } else armEls.forEach(l=>placeLabel(l         , 0, 0, false));
+  };
+  // labels off: everything this pass owns goes, or a belt's name, placed while they were
+  // on, would stay where it was — a "Kuiper belt" over the Local Group
+  if(!showLabels){ placeLabel(g710Lbl, 0, 0, false); hideGC(); hideBH1(); hideLG(); hideSC(); hideDeep();
+    structEls.forEach(el=>placeLabel(el         , 0, 0, false)); armNames(); return }
   let sunSX=0, sunSY=0;
   for(let i=0;i<NB;i++){
     const l=labelEls[i]         ;
@@ -6591,17 +6627,7 @@ function drawLabels(showLabels         , inputs             )       {
     placeLabel(el, sx, sy, cw > 1e-9);
   }
   const galaxyNames = armsOn && camDist > 600;
-  // arm names: world coordinates rotated with the wave, then projected like the rest
-  // (once the remnant starts to relax there are no arms left to name)
-  // (and none once the Galaxy is a speck under the Local Group's names)
-  if(galaxyNames && merge < 0.35 && asm > 0.85 && lgA < 0.5){   // no arms before the disk settles, no names either
-    for(let a=0;a<ARM_LBLS.length;a++){
-      const d = spinMW/ARM_LBLS[a][3], cD = Math.cos(d), sD = Math.sin(d);
-      const wx = ARM_LBLS[a][1]*cD + ARM_LBLS[a][2]*sD, wz = ARM_LBLS[a][2]*cD - ARM_LBLS[a][1]*sD;
-      const [cw, sx, sy] = proj(wx-org[0], -org[1], wz-org[2]);
-      placeLabel(armEls[a]         , sx, sy, cw > 1);
-    }
-  } else armEls.forEach(l=>placeLabel(l         , 0, 0, false));
+  armNames();
   // named together, retired together: past this point the two disks already render as
   // one blob, so naming only "Andromeda" there would mislabel the Milky Way's own remnant
   if(galaxyNames && merge < 0.35 && lgA < 0.5){
@@ -6778,6 +6804,19 @@ function updateAnd(){
 // to tell the clock running across an engulfment from a jump past it
 const wasEaten = [false,false,false,false], eatFlash = [-1,-1,-1,-1];   // -1: no flare running
 
+/**
+ * How far past the eye's own distance the far plane must reach: the sky sphere always, and
+ * each outer layer's whole extent from the moment its fade begins — the eye orbits a
+ * target, so a layer's far side lies its full radius beyond the target. Without a depth
+ * buffer the far plane is only a clip, so a generous reach costs nothing.
+ */
+function farReach(camDist        )         {
+  let r = R_SKY;
+  if(lgFade(camDist) > 0) r = Math.max(r, LG_BOX.radius*1.5 + LG_BOX.halfH);
+  if(scFade(camDist) > 0) r = Math.max(r, SC_BOX.radius*2.5);            // the 3,500 km/s galaxies reach past the box
+  if(deepFade(camDist) > 0 || camDist > 6e6) r = Math.max(r, DEEP_CZ_MAX/DEEP_H0*MPC2U*1.15);
+  return r
+}
 // the one way a projection is built: frame() rebuilds it every frame for its near plane
 function skyProjection(near        , far        )               { const m = perspective(Math.PI/3, view.W/view.H, near, far); m[0] *= SKY_MIRROR; return m; }
 
@@ -7001,9 +7040,10 @@ function frame(now        )       {
   const distGC = Math.hypot(eyeGC[0], eyeGC[1], eyeGC[2]), distBH1 = Math.hypot(eyeBH1[0], eyeBH1[1], eyeBH1[2]);
   // near plane tracks the zoom so sub-AU views don't clip
   // no depth buffer: a tiny near plane costs nothing, and Earth needs it. The far plane
-  // follows the zoom — at the new ceiling the sky sphere's far side is 40,000 out, and a
-  // fixed 25,000 would have clipped the backdrop away just as the Galaxy came whole into view.
-  view.projMat = skyProjection(Math.min(0.5, Math.max(1e-13, cam.dist*0.04)), Math.max(25000, cam.dist + R_SKY + 6000));
+  // follows the zoom, and reaches the whole of every layer that is showing — see farReach:
+  // a plane at the eye's distance plus the sky sphere sliced the Local Group's far-side
+  // galaxies in half, and which ones it sliced changed as the eye turned.
+  view.projMat = skyProjection(Math.min(0.5, Math.max(1e-13, cam.dist*0.04)), Math.max(25000, cam.dist + farReach(cam.dist) + 6000));
   const pxScale = (view.H*view.DPR)/(2*Math.tan(Math.PI/6));
 
   // at 100% nothing is compressed, so the old direct path is kept exactly

@@ -301,6 +301,32 @@ dismissing the first-run tour **starts** the clock, so pausing has to come after
   10.3, 11.7, 12.2 from pitch 0.95 — the tails should be longest near 10.3 and 11.8, not at
   the passages, and the inner disk should keep its spiral.
 
+## The far plane reaches every showing layer (v3.18.2)
+
+- **`farReach(camDist)` in `render/frame`** is the far plane's reach past the eye's own
+  distance: the sky sphere always, and each outer layer's whole extent from the moment its
+  fade begins (the Group's box, the supercluster's box and the 3,500 km/s galaxies beyond
+  it, 2MRS to its cz limit). The eye orbits a target, so a layer's far side lies its full
+  radius beyond the target; a plane at `cam.dist + R_SKY` sliced the Local Group's far-side
+  galaxies in half and the cut moved with every turn. There is no depth buffer, so a
+  generous far plane costs nothing — never tighten it for "precision".
+- **A quad's profile goes to nothing before its margin.** `galaxy.frag` windows the
+  intensity to zero over the outer 40% of the quad (it reads `uMargin`); the exponential
+  tails were still a few thousandths at the rim, a visible plateau with a straight edge
+  after the tone curve. Any new quad-drawn glow needs the same window.
+- **Labels off hides everything the label pass owns**, the belt and arm names included —
+  `drawLabels` used to return before reaching them, so a name placed while labels were on
+  stayed on screen. The arm names have their own switch and are placed either way.
+- **The exported state names the follow target and the GPU.** A phone screenshot with the
+  QR overlay is then a full reproduction: viewport, DPR, camera, target, device. Decode it
+  (jsQR on a 6× Lanczos upscale of the crop reads the 1× code from a 1080-px screenshot)
+  and render at that viewport with `deviceScaleFactor`.
+- **An import lands at once.** `applyState` sets `cam.firstFrame`, which zeroes the
+  follow-target smoothing that frame; without it the view crept toward the target for a
+  second after every import — longer on a software renderer, whose frame dt is clamped
+  at 50 ms — and the boot suite's spin-lock probe read the creep as drift. Its `armsAt`
+  also waits for stillness now rather than a fixed sleep.
+
 ## The deep field (v3.18.0)
 
 - **A separate file, fetched on demand.** 2MRS is 43,000 rows; in the page it would be a
