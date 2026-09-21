@@ -141,7 +141,8 @@ def main():
         ok = n >= 8
         print(f"  {name:24} SGL {cl:7.2f} SGB {cb:6.2f} cz {cz:6.0f}: {n:4} survey galaxies within 2° and 1,500 km/s {'ok' if ok else 'DROPPED'}")
         if ok:
-            lines.append(f"  ['{name}', {cl:.3f}, {cb:.3f}, {cz}, {n}, '{src}'],")
+            q = lambda t: t.replace("\\", "\\\\").replace("'", "\\'")   # noqa: E731 — the apostrophe in "Attractor's" broke the build once
+            lines.append(f"  ['{q(name)}', {cl:.3f}, {cb:.3f}, {cz}, {n}, '{q(src)}'],")
     OUT.write_text(f'''/**
  * The deep field's names: the great clusters of the 2MASS Redshift Survey's volume, by
  * NED's positions and redshifts, each checked against the survey (the count is the survey's

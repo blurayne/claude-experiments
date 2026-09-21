@@ -30,7 +30,7 @@ describe('the deep field', () => {
   it('names only clusters the tool checked against the survey', () => {
     expect(DEEP_NAMED.length).toBe(DEEP_CLUSTERS.length)
     for (const c of DEEP_CLUSTERS) { expect(c[4]).toBeGreaterThanOrEqual(8); expect(c[3]).toBeLessThan(65000); expect(c[5].length).toBeGreaterThan(5) }
-    expect(DEEP_N === 0 || DEEP_N > 40000).toBe(true)
+    expect((DEEP_N as number) === 0 || DEEP_N > 40000).toBe(true)
   })
   it('fades in past the supercluster views', () => {
     expect(deepFade(9.5e6)).toBe(0); expect(deepFade(2.6e7)).toBe(1); expect(deepFade(1.8e7)).toBeGreaterThan(0.3)

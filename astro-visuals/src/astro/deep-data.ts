@@ -14,7 +14,7 @@ export const DEEP_CLUSTERS: readonly DeepCluster[] = [
   ['Fornax Cluster', 262.547, -42.077, 1442, 26, 'NGC 1399; Drinkwater et al. 2001'],
   ['Coma Cluster', 89.616, 8.324, 6925, 119, 'Abell 1656; Struble & Rood 1999'],
   ['Perseus Cluster', 347.877, -14.257, 5366, 130, 'Abell 426; Struble & Rood 1999'],
-  ['Norma Cluster', 187.982, 6.988, 4871, 122, 'Abell 3627, the Great Attractor's core; Kraan-Korteweg et al. 1996'],
+  ['Norma Cluster', 187.982, 6.988, 4871, 122, 'Abell 3627, the Great Attractor\'s core; Kraan-Korteweg et al. 1996'],
   ['Centaurus Cluster', 156.446, -11.440, 3397, 87, 'Abell 3526; Struble & Rood 1999'],
   ['Hydra Cluster', 139.369, -37.567, 3777, 84, 'Abell 1060; Struble & Rood 1999'],
   ['Antlia Cluster', 149.364, -38.383, 2797, 45, 'NGC 3268; Smith Castelli et al. 2008'],
