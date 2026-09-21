@@ -5,6 +5,15 @@ before the work starts. An item is ticked when it ships, with the version that c
 
 ## 2026-09-21
 
+- [ ] Galaxies split in half, one half black, blinking on a slight rotation, in the Local
+      Group at ~25 Mly (phone, 411×882 @2.625, yaw −4.79, pitch −0.62, dist 838,383 —
+      read off the screenshot's QR). The far clip plane is `cam.dist + R_SKY + 6000`: every
+      galaxy on the far side of the target sits beyond it and is sliced by it, and which
+      ones straddle it changes as the eye turns. Reach every showing layer's whole extent;
+      also fade the galaxy quads to nothing at their margin, so no quad edge can ever show.
+      Put the follow target and the GPU's name into the exported state (and the QR), so a
+      screenshot pins the camera and the device.
+
 - [x] Allow to zoom out even more. Past the 3,500 km/s groups there is nothing drawn, so a
       higher ceiling alone would show empty space: the next survey out is 2MRS (Huchra et
       al. 2012, ~44,000 galaxies to ~650 Mly), fetched on the runner into a separate binary
