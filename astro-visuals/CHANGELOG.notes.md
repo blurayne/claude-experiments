@@ -2,6 +2,10 @@
 
 Hand-written notes merged into `CHANGELOG.md` by `.github/scripts/build_changelog.py`: one `## <semver>` heading per version, Markdown body below it, inserted under that version's heading in the Galactic Transit section on the next regeneration. The generated changelog itself must never be edited by hand — it is overwritten wholesale.
 
+## 3.22.1
+
+**The zoom buttons are back, and the dock never hides a button again.** With the Settings panel open on a phone, the right-hand dock was stacked below the panels and every button past the foot of the screen was hidden: the zoom and flight buttons on a 411-wide phone, the whole dock on a small phone or in landscape. Now the Settings panel stops one button-row short of the foot (its content scrolls as before), the dock lays itself out as a row when a column does not fit, and it pins to the foot of the screen rather than disappear.
+
 ## 3.22.0
 
 **The ship has a sound.** Free flight is heard now, synthesised live with no files: an engine hum that climbs in pitch and opens up as the throttle rises, a rush of air that grows with the speed, and on a burst a low thump and a whoosh, then a roar for as long as the button is held. The hum sits where phone and laptop speakers can play it. It has its own "flight" slider under Audio, on at 40%, so it is heard whether or not the effects are on; at zero it is off, like the other sliders. Landing fades it out.

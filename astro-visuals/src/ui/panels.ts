@@ -73,7 +73,7 @@ function placePanels(): Box[] {
   }
   for(const side of ['l','r']){
     const mine = PANELS.filter(p => pState[p.id].s === side);
-    let y = pad, dotX = 0;
+    let y = pad;
     const put = (el: HTMLElement, x: number): void => {
       el.style.top = y + 'px';
       if(side === 'l'){ el.style.left = x + 'px'; el.style.right = 'auto'; }
@@ -98,10 +98,13 @@ function placePanels(): Box[] {
                    left:r.left, right:r.right });
       yb -= gap;
     }
+    // One button-row is always kept free below the panels for the dock (see below): the
+    // settings panel is the tall one, and it scrolls, so it is the one that gives the room.
+    const DOCK_ROW = 36 + gap;
     for(const p of mine){                      // open panels first, one under the next
       if(!panelShown(p.id) || pState[p.id].b) continue;
       const el = $(p.id);
-      if(p.id === 'hud') el.style.maxHeight = 'calc(100vh - ' + (y + pad) + 'px)';
+      if(p.id === 'hud') el.style.maxHeight = 'calc(100vh - ' + (y + pad + DOCK_ROW) + 'px)';
       put(el, pad);
       const r = el.getBoundingClientRect();
       boxes.push({ id:p.id, seq:pState[p.id].seq, top:y, bottom:y + r.height,
@@ -110,16 +113,26 @@ function placePanels(): Box[] {
     }
     const dock = mine.map(p => $(p.dot));
     if(side === 'r') dock.push($('tLabelsAll'), $('tInfo'), $('tPause'), $('zoomIn'), $('zoomOut'), $('tFly'));   // standing actions; zoom under play, flight last
-    for(const el of dock){
-      if(getComputedStyle(el).display === 'none') continue;
-      put(el, pad + dotX);
-      const r = el.getBoundingClientRect();
-      // out of room even for the buttons: this one steps off rather than overlap
-      el.style.visibility = (y + r.height > innerHeight || pad + dotX + r.width > innerWidth)
-        ? 'hidden' : 'visible';
-      if(land) dotX += r.width + gap; else y += r.height + gap;
+    // The dock NEVER hides a button (v3.22.1). It used to stack under the panels and hide
+    // whatever fell past the screen's foot — with the settings panel open on a phone that
+    // was the zoom buttons, on a small phone or in landscape the whole dock. Now: a column
+    // under the panels in portrait when it fits; otherwise a row (wrapped if it must be),
+    // under the panels when there is room, pinned to the foot of the screen when not.
+    const vis = dock.filter(el => getComputedStyle(el).display !== 'none');
+    for(const el of dock) el.style.visibility = 'visible';
+    const step = 36 + gap;
+    if(!land && y + vis.length*step - gap <= innerHeight - pad){
+      for(const el of vis){ put(el, pad); y += step; }
+    } else if(vis.length){
+      const perRow = Math.max(1, Math.floor((innerWidth - 2*pad + gap)/step));
+      const rows = Math.ceil(vis.length/perRow);
+      y = Math.max(pad, Math.min(y, innerHeight - pad - rows*step + gap));
+      vis.forEach((el, i) => {
+        const row = Math.floor(i/perRow), col = i % perRow, keep = y;
+        y = keep + row*step; put(el, pad + col*step); y = keep;
+      });
+      y += rows*step;
     }
-    if(land && dotX) y += 36 + gap;
     if(side === 'l'){                          // the bare frame rate rides below them
       const f = $('fpsBox');
       if(getComputedStyle(f).display !== 'none'){ f.style.top = y+'px'; f.style.left = pad+'px'; }

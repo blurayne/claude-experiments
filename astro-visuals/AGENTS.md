@@ -301,6 +301,20 @@ dismissing the first-run tour **starts** the clock, so pausing has to come after
   10.3, 11.7, 12.2 from pitch 0.95 — the tails should be longest near 10.3 and 11.8, not at
   the passages, and the inner disk should keep its spiral.
 
+## The dock never hides a button (v3.22.1)
+
+- `placePanels` in `ui/panels` used to stack the dock under a column's open panels and set
+  `visibility:hidden` on every button past the screen's foot. With Settings open on a
+  phone that hid the zoom buttons (the owner's "the zoom buttons vanished"), on a 360×640
+  phone or in landscape the whole dock. The standing actions must always be reachable:
+  the Settings panel's `maxHeight` keeps one button-row (`DOCK_ROW`) free below it; the
+  dock is a column under the panels in portrait when it fits, else a row (wrapped at the
+  screen's width) under the panels, pinned to the foot when even that does not fit.
+  Nothing in the dock is ever set hidden. A row pinned at the foot may overlap the status
+  bar's edge in landscape; that is the accepted cost.
+- To check: open the gear (`#reopen`) on 411×882, 360×640 and 882×411 and read each dock
+  button's computed visibility; all must be visible.
+
 ## The ship's sound (v3.22.0)
 
 - **`audio/engine`** synthesises the flight: two detuned saws at 70 Hz and a sine an
