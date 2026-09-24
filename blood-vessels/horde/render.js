@@ -685,14 +685,16 @@ vec3 glassLook(float N, float rB, vec2 S, float oxy, float kind, float wall, flo
     vec3 c = mix(plasma*0.85, deep, smoothstep(0.0, 1.0, u));
     c *= 1.0 + 0.18*side*(1.0 - u);
     c += mix(vec3(0.50, 0.16, 0.36), vec3(0.75, 0.30, 0.16), oxy)*cau*0.25*(1.0 - u);
-    float lw = max(0.08*wall*rB, 1.2*fp);
+    float lw = max(0.08*wall*rB, 1.4*fp);
     c += glow*0.55*exp(-dIn/lw);                                                       // the inner surface
     // thick glass: light caught inside the wall glows in its core, a second internal reflection
-    // runs along it, and faint striae stretch along the vessel once the band is wide on screen
+    // runs along it (both once the band is a few px wide), and faint striae stretch along the vessel
+    // once it is wide on screen
+    float bF = smoothstep(4.0, 12.0, wall*rB/fp);
     float zu = (u - 0.5)/0.2;
-    c += glow*0.1*exp(-zu*zu);
-    float l2 = max(0.03*wall*rB, 0.9*fp);
-    c += glow*0.22*exp(-abs(u - 0.74)*wall*rB/l2);
+    c += glow*0.1*bF*exp(-zu*zu);
+    float l2 = max(0.03*wall*rB, 1.2*fp);
+    c += glow*0.22*bF*exp(-abs(u - 0.74)*wall*rB/l2);
     float stF = smoothstep(25.0, 90.0, wall*rB/fp);
     if(stF > 0.0){
       float e0 = wS0 - wS2, e1 = wS1 - wS2;
@@ -700,18 +702,19 @@ vec3 glassLook(float N, float rB, vec2 S, float oxy, float kind, float wall, flo
       if(e1 > 0.02*e0) sn = mix(sn, vnoise(vec2(sA1.x/(0.45*sA1.z), 7.0*u + 1.7)), smoothstep(0.25, 0.75, e1/(e0 + e1)));
       c *= 1.0 + stF*0.16*(sn - 0.5);
     }
-    float ow = max(0.05*wall*rB, 0.9*fp);
+    float ow = max(0.05*wall*rB, 1.2*fp);
     c *= 1.0 - 0.6*exp(-dOut/ow);                                                      // refraction line at the edge
     c *= 1.0 + 0.1*pl;
     wal = c;
   }
   // ---- the front surface (skin) ----
-  float ao = clamp(1.0 + N, 0.0, 1.0), hz = sqrt(max(1.0 - ao*ao, 0.0));
+  float ao = clamp(1.0 + N, 0.0, 1.0);
+  float aF = min(ao, 1.0 - 0.7*gN*fp), hzF = sqrt(max(1.0 - aF*aF, 0.0));   // (the Fresnel rim: never steeper than the pixel)
   float sl = min(length(S), 1.0), hs = sqrt(1.0 - sl*sl);
   float dth = gN*fp/max(hs, 0.06);                       // the angle on the tube (asin |S|) per pixel
   float e0 = wS0 - wS2, e1 = wS1 - wS2, eR = e1/max(e0 + e1, 1e-20);
   float fe = mix(1.3, 2.0, smoothstep(10.0, 90.0, Dcss));  // a broader rim on thin tubes, so it reads at overview
-  float fres = pow(1.0 - hz, fe);
+  float fres = pow(1.0 - hzF, fe);
   // tinted glass: a light veil over the middle (the cells inside take on the vessel's colour a
   // little), thicker and more saturated toward the edges, where the eye looks through more glass
   vec3 tint = mix(vec3(0.24, 0.03, 0.20), vec3(0.62, 0.05, 0.06), oxy);
@@ -720,7 +723,7 @@ vec3 glassLook(float N, float rB, vec2 S, float oxy, float kind, float wall, flo
   skin = vec4(tint*va, va);
   float ra = mix(0.34, 0.24, kz)*fres;                   // Fresnel reflection: cool on veins, warm on arteries
   skin = over(vec4(mix(vec3(0.80, 0.78, 1.0), vec3(1.0, 0.84, 0.84), oxy)*ra, 0.75*ra), skin);
-  float dOut = max(-N, 0.0)/gN, ow = max(0.012*rB, fp);
+  float dOut = max(-N, 0.0)/gN, ow = max(0.012*rB, 1.3*fp);
   skin = over(vec4(tint*0.12*exp(-dOut/ow), 0.45*exp(-dOut/ow)), skin);            // dark refraction line at the silhouette
   // specular streaks: the reflections of two lights (key from the top-left, a dimmer bounce from the
   // bottom-right) sit at a fixed angle on the tube, so they run along every vessel and follow its
@@ -729,8 +732,8 @@ vec3 glassLook(float N, float rB, vec2 S, float oxy, float kind, float wall, flo
   // flat facets of the union (where a window highlight would balloon)
   float d1 = gSk.x, d2 = gSk.y;
   float f1 = max(dth, gSk.z), f2 = max(dth, gSk.w);    // (faster than a tube near junctions: widen there too)
-  float w1 = 0.035, we1 = max(w1, 1.2*f1), w2 = 0.03, we2 = max(w2, 1.2*f2);
-  float a1 = clamp(gSk.z, 0.5*dth, 0.5*we1), a2 = clamp(gSk.w, 0.5*dth, 0.5*we2);
+  float w1 = 0.035, we1 = max(w1, 1.5*f1), w2 = 0.03, we2 = max(w2, 1.5*f2);
+  float a1 = min(max(gSk.z, 0.8*dth), 0.6*we1), a2 = min(max(gSk.w, 0.8*dth), 0.6*we2);
   float jn = (1.0 - smoothstep(0.18, 0.42, eR))*smoothstep(0.55, 0.85, sl/max(ao, 1e-3));   // |S| < 1 + N: slopes cancel
   float s1 = (1.0 - smoothstep(we1 - a1, we1 + a1, d1))*w1/we1*jn;
   float s2 = (1.0 - smoothstep(we2 - a2, we2 + a2, d2))*w2/we2*jn;
