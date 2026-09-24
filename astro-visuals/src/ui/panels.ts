@@ -101,10 +101,15 @@ function placePanels(): Box[] {
     // One button-row is always kept free below the panels for the dock (see below): the
     // settings panel is the tall one, and it scrolls, so it is the one that gives the room.
     const DOCK_ROW = 36 + gap;
+    // In flight on a touch screen the bottom corners belong to the flight's hands: on the
+    // right the burst button (52) under the thumb stick (88), on the left the lever (150),
+    // each from 12 px up. The panels and the dock keep above them.
+    const flyHands = document.body.classList.contains('flying') && matchMedia('(pointer: coarse)').matches;
+    const flyReserve = flyHands ? (side === 'r' ? 12 + 52 + 10 + 88 : 12 + 150) + gap - pad : 0;
     for(const p of mine){                      // open panels first, one under the next
       if(!panelShown(p.id) || pState[p.id].b) continue;
       const el = $(p.id);
-      if(p.id === 'hud') el.style.maxHeight = 'calc(100vh - ' + (y + pad + DOCK_ROW) + 'px)';
+      if(p.id === 'hud') el.style.maxHeight = 'calc(100vh - ' + (y + pad + DOCK_ROW + flyReserve) + 'px)';
       put(el, pad);
       const r = el.getBoundingClientRect();
       boxes.push({ id:p.id, seq:pState[p.id].seq, top:y, bottom:y + r.height,
@@ -121,9 +126,9 @@ function placePanels(): Box[] {
     const vis = dock.filter(el => getComputedStyle(el).display !== 'none');
     for(const el of dock) el.style.visibility = 'visible';
     const step = 36 + gap;
-    // in flight on a touch screen the lever and the burst button own the bottom corners:
-    // the dock stays above them, or the burst button would cover + and −
-    const foot = innerHeight - pad - (document.body.classList.contains('flying') && matchMedia('(pointer: coarse)').matches ? 84 + gap + 4 : 0);
+    // in flight on a touch screen the flight's hands own the bottom corners: the dock
+    // stays above them, or the stick and the burst button would cover + and −
+    const foot = innerHeight - pad - flyReserve;
     if(!land && y + vis.length*step - gap <= foot){
       for(const el of vis){ put(el, pad); y += step; }
     } else if(vis.length){

@@ -5,10 +5,11 @@ before the work starts. An item is ticked when it ships, with the version that c
 
 ## 2026-09-24
 
-- [ ] Flight, touch controls: a thumb stick above the burst button — sideways strafes the
+- [x] Flight, touch controls: a thumb stick above the burst button — sideways strafes the
       ship left and right, up and down raises and lowers it, and it springs back to the
       centre when let go; the burst button a rounded rectangle instead of a circle. The
       dock and the Settings panel keep clear of the taller stack.
+      #padS writing flight.stick through sideWant, the burst 88×52 with 14 px corners — v3.24.0.
 
 - [x] Flight, third cut. (1) The flight's top speed 30% higher (the throttle's full
       deflection; the simulation's own speed slider is not touched). (2) In flight only,

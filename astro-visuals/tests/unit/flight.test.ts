@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { clockFactor, fullSpeed, forwardWant, FLY_BOOST, FLY_VIEW_PER_S, quatFromBasis, basisFromQuat, levelFromQuat, flight, flightLook, flightOrientFromYawPitch } from '../../src/render/flight'
+import { clockFactor, fullSpeed, forwardWant, sideWant, FLY_BOOST, FLY_VIEW_PER_S, quatFromBasis, basisFromQuat, levelFromQuat, flight, flightLook, flightOrientFromYawPitch } from '../../src/render/flight'
 
 describe('the flight pace', () => {
   it('scales with the view: a fixed fraction of the view height a second', () => {
@@ -82,5 +82,14 @@ describe('the free orientation in flight', () => {
     flightLook(0, 1.5)                                            // past the level camera's limit
     const { pitch } = levelFromQuat(flight.q)
     expect(Math.abs(pitch)).toBeLessThanOrEqual(1.45)
+  })
+})
+
+describe('the thumb stick', () => {
+  it('sums with the keys sideways and up, clamped', () => {
+    expect(sideWant(0, 0.5)).toBeCloseTo(0.5, 9)
+    expect(sideWant(1, 0.5)).toBe(1)
+    expect(sideWant(-1, 1)).toBe(0)
+    expect(sideWant(0, -2)).toBe(-1)
   })
 })

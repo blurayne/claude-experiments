@@ -2,6 +2,10 @@
 
 Hand-written notes merged into `CHANGELOG.md` by `.github/scripts/build_changelog.py`: one `## <semver>` heading per version, Markdown body below it, inserted under that version's heading in the Galactic Transit section on the next regeneration. The generated changelog itself must never be edited by hand — it is overwritten wholesale.
 
+## 3.24.0
+
+**A thumb stick for the flight.** On a touch screen in flight a thumb stick now sits above the burst button: push it sideways and the ship strafes left or right, up or down and it rises or sinks; let go and it springs back to the centre and the ship stops sliding. The burst button is a rounded rectangle now. The dock and the Settings panel keep clear of the taller stack in the corner.
+
 ## 3.23.0
 
 **Flight, third cut: turn anywhere.** In flight the view now turns freely: a drag carries it over the top and upside down, with no stop short of the poles, so any direction can be chosen to fly in. Out of flight the camera stays level exactly as before, and landing levels it, looking where the ship looked. The flight's top speed is thirty percent higher. The + and − buttons keep their zoom in flight and out of it, and on a touch screen in flight the dock now stays above the lever and the burst button, which could cover them. Pressing the lever or the burst button no longer flashes the phone browser's square tap highlight or a focus box.

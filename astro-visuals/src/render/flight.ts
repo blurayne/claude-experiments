@@ -20,7 +20,8 @@ import { cam, SKY_MIRROR } from './state'
  * ship, and a paused clock is the walking pace, never slower.
  *
  * Forward is the sum of three hands: the keys (`want[0]`), the throttle lever, which stays
- * where it is put, and the burst, which is full ahead at boost while held. `on` is the
+ * where it is put, and the burst, which is full ahead at boost while held. Sideways and
+ * up are the keys and the thumb stick, which springs back to the centre. `on` is the
  * controls being live; `anchored` is the camera riding the ship, which outlives the
  * controls — switching flight off stops the ship where it is rather than snapping the
  * view back to the Sun — until a view, a scenario or an import re-seeds the camera and
@@ -50,6 +51,8 @@ export const flight = {
   throttle: 0,
   /** the burst button: full ahead at boost while held */
   burst: false,
+  /** the thumb stick: [sideways, up], each −1..1, back to zero when let go */
+  stick: [0, 0] as number[],
   /** the keyboard's boost (shift) */
   boost: false,
   /** units a second at full throttle this frame — the readout */
@@ -80,6 +83,10 @@ export function setFlightBasis(r: readonly number[], u: readonly number[], d: re
 export function flightTarget(out: number[]): number[] {
   for(let i=0;i<3;i++) out[i] = flight.pos[i] - basis.d[i]*cam.dist
   return out
+}
+/** a side hand (strafe or rise): the keys and the thumb stick summed, and clamped */
+export function sideWant(keys: number, stick: number): number {
+  return Math.max(-1, Math.min(1, keys + stick))
 }
 /** the forward hand: keys, lever and burst summed, and clamped — the burst is always full ahead */
 export function forwardWant(keys: number, throttle: number, burst: boolean): number {
@@ -140,7 +147,7 @@ export function flightStart(): void {
   cam.panF[0] = cam.panF[1] = 0
   flight.on = flight.anchored = true
   flight.q = quatFromBasis(basis.r, basis.u, basis.d)   // the view as it is, whatever frame it was in
-  flight.want[0] = flight.want[1] = flight.want[2] = 0; flight.axis[0] = flight.axis[1] = flight.axis[2] = 0
+  flight.want[0] = flight.want[1] = flight.want[2] = 0; flight.axis[0] = flight.axis[1] = flight.axis[2] = 0; flight.stick[0] = flight.stick[1] = 0
   flight.throttle = 0; flight.burst = false; lastDist = cam.dist
   flight.factor = 1; flight.speedU = fullSpeed(cam.dist, 1, false)   // the readout has a pace before the first step
   cam.reseedFollow = true; cam.firstFrame = true    // the frame's target smoothing must not chase the hand-over
@@ -153,7 +160,7 @@ export function flightLevel(): void {
 /** the controls go off; the ship stays where it stopped */
 export function flightStop(): void {
   flight.on = false; flight.boost = false; flight.burst = false; flight.throttle = 0
-  flight.want[0] = flight.want[1] = flight.want[2] = 0
+  flight.want[0] = flight.want[1] = flight.want[2] = 0; flight.stick[0] = flight.stick[1] = 0
 }
 /** a view, a scenario or an import has re-seeded the camera: it is theirs again */
 export function flightRelease(): void {
@@ -175,7 +182,7 @@ export function flightStep(dt: number, yps: number, running: boolean): boolean {
   const k = 1 - Math.exp(-dt/0.12)
   const wantF = forwardWant(flight.want[0], flight.throttle, flight.burst)
   flight.axis[0] += (wantF - flight.axis[0])*k
-  for(let i=1;i<3;i++) flight.axis[i] += (flight.want[i] - flight.axis[i])*k
+  for(let i=1;i<3;i++) flight.axis[i] += (sideWant(flight.want[i], flight.stick[i - 1]) - flight.axis[i])*k
   flight.factor = clockFactor(yps, running)
   flight.speedU = fullSpeed(cam.dist, flight.factor, flight.boost || flight.burst)
   const [f, s, u] = flight.axis

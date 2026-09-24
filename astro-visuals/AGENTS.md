@@ -319,9 +319,13 @@ dismissing the first-run tour **starts** the clock, so pausing has to come after
 - **The state export carries `flight.q`** while flying; an import without it derives the
   orientation from the imported yaw and pitch (`flightOrientFromYawPitch`).
 - **The pace is 1.17 view heights a second** at full throttle (`FLY_VIEW_PER_S`, 0.9 × 1.3).
-- **On a touch screen in flight the dock's foot is above the pads** (`placePanels`: the
-  bottom 84 px + gap belong to the lever and the burst button), or the burst button covers
-  + and −. The pads carry `-webkit-tap-highlight-color: transparent` and no outline; the
+- **On a touch screen in flight the dock's foot is above the pads** (`placePanels`'s
+  `flyReserve`: on the right the burst button, 52 px, under the thumb stick, 88 px, from
+  12 px up; on the left the lever, 150 px), and the Settings panel's `maxHeight` leaves the
+  same room, or the stack covers + and −. The thumb stick (`#padS`, v3.24.0) writes
+  `flight.stick` [sideways, up], summed with the keys through `sideWant` and eased like
+  them; it springs back to zero on release. Screen-right is world-right mirrored, so a
+  check in world axes reads sideways inverted: verify by the labels sliding on screen. The pads carry `-webkit-tap-highlight-color: transparent` and no outline; the
   burst button is `tabindex=-1`: Android Chrome otherwise flashes a square box over them.
 
 ## The dock never hides a button (v3.22.1)

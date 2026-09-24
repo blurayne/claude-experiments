@@ -9,7 +9,8 @@ import { engine, engineWake } from '../audio/engine'
  * Keys: W/S or ↑/↓ forward and back, A/D or ←/→ sideways, R and F (or E and Q) up and
  * down, shift the boost, escape lands. On a touch screen: the lever on the left is the
  * throttle, and stays where it is put; the button on the right is a burst, full ahead at
- * boost while held; a finger anywhere else turns the ship, and in flight that turn is
+ * boost while held, and the thumb stick above it strafes and rises, springing back when
+ * let go; a finger anywhere else turns the ship, and in flight that turn is
  * about the ship itself and does not hold the clock. The lever and the button are their
  * own elements over the canvas, so a thumb on one never orbits the view. The readout says
  * the pace in real units, the lever's setting, and the clock's share.
@@ -61,6 +62,28 @@ function lever(id: string, apply: (t: number) => void): void {
   leverShow = show
 }
 let leverShow: (t: number) => void = () => {}
+
+/**
+ * The thumb stick: the offset from its centre, over its radius, is the two axes it drives —
+ * sideways and up — with a small dead zone, and it springs back to the centre when let go.
+ */
+function stick(id: string, apply: (x: number, y: number) => void): void {
+  const el = $(id); let pid = -1
+  const show = (x: number, y: number): void => { const reach = el.clientWidth/2 - 17
+    el.style.setProperty('--kx', (x*reach).toFixed(1) + 'px'); el.style.setProperty('--ky', (-y*reach).toFixed(1) + 'px') }
+  const read = (e: PointerEvent): void => {
+    const r = el.getBoundingClientRect(), rad = r.width/2 - 17
+    let x = (e.clientX - (r.left + r.width/2))/rad, y = -(e.clientY - (r.top + r.height/2))/rad
+    const m = Math.hypot(x, y); if(m > 1){ x /= m; y /= m }
+    const dead = 0.12, g = (v: number): number => Math.abs(v) < dead ? 0 : Math.sign(v)*(Math.abs(v) - dead)/(1 - dead)
+    apply(g(x), g(y)); show(x, y)
+  }
+  el.addEventListener('pointerdown', e => { pid = e.pointerId; try{ el.setPointerCapture(e.pointerId) }catch(err){} el.classList.add('held'); read(e); e.preventDefault(); e.stopPropagation() })
+  el.addEventListener('pointermove', e => { if(e.pointerId !== pid) return; read(e); e.stopPropagation() })
+  const drop = (e: PointerEvent): void => { if(e.pointerId !== pid) return; pid = -1; el.classList.remove('held'); apply(0, 0); show(0, 0); e.stopPropagation() }
+  el.addEventListener('pointerup', drop); el.addEventListener('pointercancel', drop)
+  el.addEventListener('contextmenu', e => e.preventDefault())
+}
 
 /** the burst: full ahead at boost while the button is held */
 function holdButton(id: string, apply: (down: boolean) => void): void {
@@ -120,4 +143,5 @@ export function initFlightUI(deps: { onChange: () => void }): void {
   addEventListener('blur', () => { down.clear(); keysToWant(); flight.boost = false })   // a key released in another window
   lever('padL', t => { flight.throttle = t })
   holdButton('padR', down => { flight.burst = down })
+  stick('padS', (x, y) => { flight.stick[0] = x; flight.stick[1] = y })
 }
