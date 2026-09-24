@@ -2,37 +2,53 @@
    HORDE — simulation
    ----------------------------------------------------------------------------
    S = BV.createSim(net, {seed, difficulty})     (µm, seconds, y down)
+   S.update(dt, {time, view:{x0,y0,x1,y1}, z, rbcLOD})   S.rbc   S.units   S.pulse
+   S.selectInRect / selectAt / selectAll / clearSelection / command(x, y)
+   S.stats  S.events  S.orders  S.home  S.reset(seed)   (see PUBLIC API below)
 
-   RED CELLS   viewport-local particle pool. A bin controller keeps ~18 % of the
-               lumen area covered: bins on the rim of the view refill at once
-               (inflow), bins inside fill / drain with a short fade, so panning
-               and zooming never show holes or pops. Cells ride the Poiseuille
-               profile (lateral a = 1+N and depth), tumble with the shear.
+   RED CELLS   viewport-local pool (≤ 5000) held at ~18 % of the lumen area by a
+               14×n bin controller: rim bins where the flow (relative to the
+               moving camera) enters the view are topped up every frame, with
+               the new cells placed at the rim so the inflow is exact; newly
+               revealed bins fill with a short fade; only real pile-ups drain.
+               Cells ride the Poiseuille profile (lateral a = 1+N and depth),
+               drift a little, tumble with the shear, fade in / out.
    WBC HORDE   SoA arrays. Per cell: flow carriage + swim thrust (crab-angled
-               against cross-flow) + separation (spatial hash, soft, mobility
-               weighted) + mild cohesion/alignment + wall contact (projection
-               back into N < −wall − r/rB). States: MOVE (follow an order's
-               flow field), HOLD (seek a wall anchor), ADHERE (marginated,
-               rolling → firm arrest), CHASE (engulf a nearby pathogen),
-               TRANSIT (left through the venous outlet, re-enters at the
-               arterial inlet), DYING.
-   NAVIGATION  coarse lumen grid (40 µm). Anisotropic Dijkstra from the target:
-               cost = length / ground speed, where ground speed = the swim speed
-               that is left after cancelling the cross-flow + the along-flow
-               component (downstream at the mean speed, upstream at the slow
-               near-wall lane speed; the cells steer to that lane). The venous
-               outlet links to the arterial inlet ("through the heart"). Fields
-               are computed in slices and cached per order; directions are the
-               best neighbour refined parabolically and blended bilinearly.
-   GAME        infection sites in vessel walls emit viruses / bacteria, bacteria
-               colonise walls and divide, WBCs engulf on contact and drain sites
-               they crowd, escapes + live load raise infection, waves, score,
-               reinforcements at the arterial inlet, events.
-   OUTPUT      S.rbc {data, count}   8 floats: x y r depth angle tumble oxy alpha
-               S.units {data, count} 16 floats (see packUnits for the extras):
-               x y r type angle phase flags hp lookX lookY stretch tint e0 e1 e2 e3
+               against the cross-flow) + soft, mobility-weighted separation
+               (spatial hash) + mild cohesion / alignment + wall contact
+               (projection back into N < −wall − (r+gap)/rB; slope-corrected and
+               Newton steps where vessels blend, never accepting a position
+               outside the lumen). States: MOVE (follow an order's flow field),
+               HOLD (seek a wall anchor), ADHERE (marginated: rolling → firm
+               arrest, clumps grow by contact), CHASE (engulf a nearby
+               pathogen), TRANSIT (left through the venous outlet, re-enters at
+               the arterial inlet), DYING.
+               Lanes: a cell never swims straight into a flow it can't beat — it
+               first slides into the slow near-wall lane (upstream travel, and
+               the last stretch before a target in fast flow).
+   NAVIGATION  lumen grid (40 µm, built in time slices). Anisotropic Dijkstra
+               from the target's cross-section (a seed disc, so lanes don't all
+               converge on one point): cost = length / ground speed, where the
+               ground speed is the swim speed left after cancelling the cross-flow
+               plus the along-flow component (downstream at the mean speed,
+               upstream and across at the local Poiseuille speed). The venous
+               outlet links to the arterial inlet ("through the heart").
+               Directions: best neighbour, parabolic refinement, flow-following
+               on near-ties, bilinear blend. Orders on a lesion are attack
+               orders; orders into a torrent (AV connectors) park upstream.
+   GAME        infection sites in vessel walls emit viruses / bacteria; bacteria
+               colonise walls and divide into small colonies; WBCs engulf on
+               contact (digest, energy cost) and drain sites they crowd; escapes
+               through the outlet, the live load and live sites raise infection;
+               waves, score, reinforcements at the arterial inlet, events.
+               Won when the last wave's lesions are all down and < 3 pathogens
+               remain (stragglers are cleared MOPUP_T s after the last lesion).
+   OUTPUT      S.rbc   {data, count}  8 floats: x y r depth angle tumble oxy alpha
+               S.units {data, count} 16 floats: x y r type angle phase flags hp
+               lookX lookY stretch tint e0 e1 e2 e3 (see packUnits)
    Deterministic for a seed and the same sequence of update()/command() calls
-   (seeded PRNGs; game logic never depends on the camera).
+   (seeded PRNGs; game logic never depends on the camera). Hot loops allocate
+   nothing (typed arrays; field samples through net.sample.f).
    ========================================================================== */
 (function(){
 'use strict';
@@ -65,6 +81,8 @@ const TUNE = BV.SIM_TUNE = Object.assign({
   NEAR_DIRECT: 90,    // closer than this to the target: steer straight at it
   SENSE_IDLE: 110,    // pathogen sensing radius, idle / adhered cells
   SENSE_MOVE: 34,     // … moving cells (they grab what they brush past)
+  SENSE_SLOW: 340,    // … idle cells, for near-stationary pathogens (stagnant pockets of wide vessels)
+  SLOW_V: 30,         // pathogen speed (µm/s) below which SENSE_SLOW applies
   LEASH: 260,         // an idle chaser never strays further from its anchor
   CHASE_T: 5,         // s before a chase is abandoned
   MAX_CHASE_V: 2,     // chasers per virus
@@ -76,6 +94,7 @@ const TUNE = BV.SIM_TUNE = Object.assign({
   CHARGE_B: 0.16,
   SITE_WEAR: 0.004,   // energy/s spent while crowding an infection site
   VMAX: 900,          // hard speed clamp (µm/s)
+  WALL_GAP: 1,        // cells keep their outline this far (µm) inside the lumen edge
   // ---- navigation ---------------------------------------------------------
   NAV_CS: 40,         // nav grid spacing (µm)
   NAV_S: 150,         // swim speed the planner assumes (µm/s)
@@ -86,15 +105,16 @@ const TUNE = BV.SIM_TUNE = Object.assign({
   RECIRC_COST: 26,    // planner cost of outlet → heart → inlet (s)
   RECIRC_T: 16,       // time a cell spends in transit (s)
   NAV_MS: 1.2,        // ms per update spent building the nav grid until it is ready
-  DIJ_BUDGET: 6000,   // Dijkstra pops per update (2× that synchronously per command)
+  DIJ_BUDGET: 4000,   // Dijkstra pops per update (3× that synchronously per command)
   // ---- pathogens ----------------------------------------------------------
   VIRUS_R: 3.2, BACT_R: 2.8, BACT_LEN: 2.2,
   BROWN: 7,           // virus drift (µm/s)
   VIRUS_MIG: 40,      // virus lateral migration speed toward the a≈0.6 lane (µm/s per unit a)
   BACT_SWIM: 14, BACT_CARRY: 0.8, BACT_FLEE: 22,
-  BACT_STICK: 0.12,   // /s chance to colonise when touching a wall
+  BACT_STICK: 0.06,   // /s chance to colonise when touching a wall
   BACT_DIV: 16,       // s between divisions (only colonised bacteria divide)
-  BACT_CAP: 120,
+  BACT_CAP: 90,
+  COLONY_MAX: 4,      // a wall colony stops dividing at this many bacteria
   // ---- game ---------------------------------------------------------------
   START_WBC: 220,
   WBC_CAP: 600,
@@ -102,13 +122,15 @@ const TUNE = BV.SIM_TUNE = Object.assign({
   SITE_HP: 220,       // WBC·seconds to destroy a site (grows per wave)
   SITE_PICK: 160,     // a move order this close to a lesion becomes an attack order
   SITE_CROWD: 30,     // at most this many cells drain a site at once
+  SITE_REACH: 4.5,    // cells within site radius + this × WBC_R of the lesion centre attack it (2–3 layers)
   SITE_REGEN: 0.006,  // hp/s when nobody attacks
-  EMIT_V: 4.5, EMIT_B: 7.0,   // s between emissions (virus / bacteria site)
+  EMIT_V: 4.5, EMIT_B: 9.0,   // s between emissions (virus / bacteria site)
   INF_LIVE: 0.00008,  // infection /s per live pathogen
   INF_SITE: 0.0006,   // infection /s per live site
   INF_ESC_V: 0.008, INF_ESC_B: 0.013,
   INF_DECAY: 0.004,
-  WAVES: 8, WAVE_T: 120, WAVE_BREAK: 8, FIRST_WAVE: 4,
+  WAVES: 8, WAVE_T: 180, WAVE_BREAK: 10, FIRST_WAVE: 4,
+  MOPUP_T: 30,        // s after the final wave's last lesion falls before stragglers are cleared (win)
   RBC_DENS: 0.19,     // area fraction of the lumen the red-cell pool aims for (measured ≈ 16–18 %)
 }, BV.SIM_TUNE || {});
 
@@ -120,8 +142,20 @@ Rng.prototype.next = function(){
   t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 };
+// same stream as a 30-bit integer (a small int is never boxed, even when V8
+// does not inline the call); caller scales by RI30 → [0, 1)
+Rng.prototype.ni = function(){
+  let a = this.s = (this.s + 0x6D2B79F5) | 0;
+  let t = Math.imul(a ^ (a >>> 15), 1 | a);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return (t ^ (t >>> 14)) >>> 2;
+};
+const RI30 = 1/1073741824;
 const smoothstep = (a, b, x) => { const t = Math.max(0, Math.min(1, (x-a)/(b-a))); return t*t*(3-2*t); };
 const DI = [1,1,0,-1,-1,-1,0,1], DJ = [0,1,1,1,0,-1,-1,-1];
+// wall projection: growing over-relaxation per try (where vessels of different
+// wall thickness blend, e.g. junction crotches, the limit moves along with ∇N)
+const RELAX = [1, 1.6, 2.5, 4, 4];
 const DL = [1,Math.SQRT2,1,Math.SQRT2,1,Math.SQRT2,1,Math.SQRT2];
 const DCX = new Float64Array(8), DCY = new Float64Array(8);
 for(let k=0;k<8;k++){ DCX[k] = DI[k]/DL[k]; DCY[k] = DJ[k]/DL[k]; }
@@ -163,9 +197,11 @@ BV.createSim = function(net, opts){
   const MAXW = opts.maxWbc || 1500, MAXR = opts.maxRbc || 5000;
   const MAXP = 640, MAXS = 32, MAXFX = 128, MAXF = 8;
   const b0 = net.bounds;
-  const smp = { N:0, rB:0, d:0, gx:0, gy:0, fx:0, fy:0, oxy:0, kind:0, wall:0 };
+  // field samples go through Float64Arrays (net.sample.f): io[10], io[11] = x, y →
+  // io[0..9] = N, rB, d, gx, gy, fx, fy, oxy, kind, wall. No per-call allocation.
+  const SF = new Float64Array(12), AF = new Float64Array(12), LF = new Float64Array(12);
+  const sampleF = net.sample.f || (() => { const o = {}; return io => { net.sample(io[10], io[11], o); io[0] = o.N; io[1] = o.rB; io[2] = o.d; io[3] = o.gx; io[4] = o.gy; io[5] = o.fx; io[6] = o.fy; io[7] = o.oxy; io[8] = o.kind; io[9] = o.wall; return io; }; })();
   const ev = {};
-  const sample = net.sample;
 
   // mean of the heart curve (planner uses the cycle-averaged pulse)
   let hMean = 0; for(let i=0;i<600;i++) hMean += BV.heart(i/600*60/66, 66); hMean /= 600;
@@ -185,6 +221,16 @@ BV.createSim = function(net, opts){
   mouths.forEach((m,i)=>{ mX[i]=m.x; mY[i]=m.y; mOX[i]=m.ox; mOY[i]=m.oy; mR2[i]=(2.6*m.r)*(2.6*m.r); mOut[i]=m.out?1:0; });
   let inMouth = mouths.filter(m=>!m.out).sort((a,b)=> (b.art-a.art) || (b.r-a.r))[0] || null;
   // returns the mouth index a point is beyond (within `margin` of the mouth plane), or -1
+  // hot-path variant without double arguments: MB = [x, y, margin]
+  const MB = new Float64Array(3);
+  function mouthAt(){
+    const x = MB[0], y = MB[1], margin = MB[2];
+    for(let i=0;i<NM;i++){
+      const dx = x - mX[i], dy = y - mY[i];
+      if(dx*dx + dy*dy < mR2[i] && dx*mOX[i] + dy*mOY[i] > -margin) return i;
+    }
+    return -1;
+  }
   function beyondMouth(x, y, margin){
     for(let i=0;i<NM;i++){
       const dx = x - mX[i], dy = y - mY[i];
@@ -476,11 +522,11 @@ BV.createSim = function(net, opts){
     if(n === 0){ F.done = true; if(pending === F) pending = null; }
   }
   // direction at a node: best neighbour, refined toward the better adjacent one
-  const ND = { x:0, y:0 };
+  const ND = new Float64Array(2);
   function nodeDir(F, id){
-    if(F.dok[id]){ ND.x = F.dx[id]; ND.y = F.dy[id]; return true; }
+    if(F.dok[id]){ ND[0] = F.dx[id]; ND[1] = F.dy[id]; return true; }
     const T = F.T;
-    if(F.link[id]){ const m = nMouth[id]; ND.x = mOX[m]; ND.y = mOY[m]; }
+    if(F.link[id]){ const m = nMouth[id]; ND[0] = mOX[m]; ND[1] = mOY[m]; }
     else {
       const base = id*8;
       let bq = Infinity, bk = -1;
@@ -498,12 +544,12 @@ BV.createSim = function(net, opts){
         const fa = Math.atan2(uy, ux)*4/Math.PI;               // flow angle in steps of 45°
         let rel = fa - bk; rel -= 8*Math.round(rel/8);          // −4..4
         const lo = qm <= bq + tau ? -1 : 0, hi = qp <= bq + tau ? 1 : 0;
-        if(lo < hi && rel >= lo && rel <= hi){ ND.x = ux/ul; ND.y = uy/ul; cacheDir(F, id); return true; }
+        if(lo < hi && rel >= lo && rel <= hi){ ND[0] = ux/ul; ND[1] = uy/ul; cacheDir(F, id); return true; }
       }
       let off = 0;
       if(qm < Infinity && qp < Infinity){ const den = qm - 2*bq + qp; if(den > 1e-6){ off = 0.5*(qm - qp)/den; off = off < -0.5 ? -0.5 : off > 0.5 ? 0.5 : off; } }
       const ang = (bk + off)*Math.PI/4;
-      ND.x = Math.cos(ang); ND.y = Math.sin(ang);
+      ND[0] = Math.cos(ang); ND[1] = Math.sin(ang);
     }
     cacheDir(F, id);
     return true;
@@ -515,11 +561,13 @@ BV.createSim = function(net, opts){
       const base = id*8;
       for(let k=0;k<8;k++){ const j = nb[base+k]; if(j >= 0 && hpos[j] !== -2) return; }
     }
-    F.dx[id] = ND.x; F.dy[id] = ND.y; F.dok[id] = 1;
+    F.dx[id] = ND[0]; F.dy[id] = ND[1]; F.dok[id] = 1;
   }
   // bilinear direction at a point
-  const NV = { x:0, y:0, T:0 };
-  function navDir(F, x, y){
+  const NV = new Float64Array(5);   // out: dir x, y, cost-to-go T; in: NV[3], NV[4] = point
+  function navDir(F, x, y){ NV[3] = x; NV[4] = y; return navDirIO(F); }
+  function navDirIO(F){
+    const x = NV[3], y = NV[4];
     const fx = (x - OX)/CS, fy = (y - OY)/CS;
     const i0 = Math.floor(fx), j0 = Math.floor(fy), a = fx - i0, b = fy - j0;
     const T = F.T;
@@ -530,11 +578,11 @@ BV.createSim = function(net, opts){
       const id = nidx[jj*NW+ii]; if(id < 0 || !(T[id] < Infinity)) continue;
       const w = ((c&1) ? a : 1-a) * ((c>>1) ? b : 1-b) + 1e-4;
       if(!nodeDir(F, id)) continue;
-      sx += w*ND.x; sy += w*ND.y; sw += w; sT += w*T[id];
+      sx += w*ND[0]; sy += w*ND[1]; sw += w; sT += w*T[id];
     }
     if(sw > 0){
       const l = Math.sqrt(sx*sx + sy*sy);
-      if(l > 1e-3*sw){ NV.x = sx/l; NV.y = sy/l; NV.T = sT/sw; return true; }
+      if(l > 1e-3*sw){ NV[0] = sx/l; NV[1] = sy/l; NV[2] = sT/sw; return true; }
     }
     // off the grid (fillet corner, wall-hugging spot): head for the nearest reached node
     let best = -1, bd = Infinity;
@@ -546,7 +594,7 @@ BV.createSim = function(net, opts){
     }
     if(best < 0) return false;
     const d = Math.sqrt(bd) || 1;
-    NV.x = (nX[best]-x)/d; NV.y = (nY[best]-y)/d; NV.T = T[best];
+    NV[0] = (nX[best]-x)/d; NV[1] = (nY[best]-y)/d; NV[2] = T[best];
     return true;
   }
 
@@ -560,6 +608,7 @@ BV.createSim = function(net, opts){
   W.st = new Uint8Array(MAXW); W.prev = new Uint8Array(MAXW); W.sel = new Uint8Array(MAXW); W.hov = new Uint8Array(MAXW);
   W.eat = new Uint8Array(MAXW); W.touch = new Uint8Array(MAXW); W.rch = new Uint8Array(MAXW);
   W.ord = new Int16Array(MAXW); W.ser = new Int32Array(MAXW); W.cs = new Int32Array(MAXW); W.cg = new Int32Array(MAXW);
+  W.clg = new Uint8Array(MAXW);   // long-range chase (slow prey beyond SENSE_IDLE)
   const WKEYS = Object.keys(W);
   let nW = 0;
   // --- pathogens (slots) ---------------------------------------------------
@@ -588,27 +637,24 @@ BV.createSim = function(net, opts){
   const events = [];
   const stats = { wbc:0, selected:0, viruses:0, bacteria:0, sites:0, infection:0, immunity:0, score:0, wave:0, time:0, state:'play',
                   transit:0, captured:0, escaped:0, sitesDown:0, deaths:0, reinforced:0 };
-  const orders = []; for(let i=0;i<MAXF;i++) orders.push({ active:false, x:0, y:0, n:0, serial:0, done:false });
+  const orders = []; for(let i=0;i<MAXF;i++) orders.push({ active:false, x:0, y:0, n:0, serial:0, done:false, attack:false });
+  const ordUsers = new Int32Array(MAXF), ordMoving = new Int32Array(MAXF);
   const home = { x: 0, y: 0 };
 
   let rng, rngV, simTime, pulse, frame, diff, infection, score, wave, waveDeadline, breakUntil, nextReinf, state;
-  let hover = { x:0, y:0, r:0, on:false };
-  const dbg = { kicks:0, projections:0, nanFix:0, lastUpdateMs:0, prof:null };
+  const dbg = { kicks:0, projections:0, reverts:0, nanFix:0, lastUpdateMs:0, prof:null };
 
   // =========================================================================
   //  helpers
   // =========================================================================
-  function pk(kind, h){ const a = 0.72+0.56*h, c = 0.9+0.2*h, v = 0.96+0.08*h; return kind <= 1 ? a + (c-a)*kind : c + (v-c)*(kind-1); }
   function isLumen(x, y, rad){
-    sample(x, y, smp);
-    return smp.N < -smp.wall - rad/smp.rB && beyondMouth(x, y, rad) < 0;
+    SF[10] = x; SF[11] = y; sampleF(SF);
+    return SF[0] < -SF[9] - rad/SF[1] && beyondMouth(x, y, rad) < 0;
   }
-  const AO = { N:0, rB:0, d:0, gx:0, gy:0, fx:0, fy:0, oxy:0, kind:0, wall:0 };
-  const LS = { N:0, rB:0, d:0, gx:0, gy:0, fx:0, fy:0, oxy:0, kind:0, wall:0 };
   function lineOfSight(x0, y0, x1, y1){
     for(let k=1;k<=3;k++){
-      const t = k/4; sample(x0 + (x1-x0)*t, y0 + (y1-y0)*t, LS);
-      if(!(LS.N < -LS.wall)) return false;
+      const t = k/4; LF[10] = x0 + (x1-x0)*t; LF[11] = y0 + (y1-y0)*t; sampleF(LF);
+      if(!(LF[0] < -LF[9])) return false;
     }
     return true;
   }
@@ -617,13 +663,27 @@ BV.createSim = function(net, opts){
     // distance inside junction blends, so walk there in a few corrected steps)
     let px = W.x[i], py = W.y[i];
     for(let it=0; it<6; it++){
-      sample(px, py, AO);
-      const gap = (-AO.wall - R/AO.rB - AO.N)*AO.rB - 0.5;
+      AF[10] = px; AF[11] = py; sampleF(AF);
+      const gap = (-AF[9] - (R*W.sz[i] + TUNE.WALL_GAP)/AF[1] - AF[0])*AF[1] - 0.5;
       if(gap > -0.3 && gap < 0.3) break;
-      const step = Math.max(-0.4*AO.rB, Math.min(0.6*AO.rB, gap));
-      px += AO.gx*step; py += AO.gy*step;
+      const step = Math.max(-0.4*AF[1], Math.min(0.6*AF[1], gap));
+      px += AF[3]*step; py += AF[4]*step;
     }
-    W.ax[i] = px; W.ay[i] = py;
+    exactInside(px, py, R*W.sz[i] + TUNE.WALL_GAP + 0.5);
+    W.ax[i] = EX[0]; W.ay[i] = EX[1];
+  }
+  // exact-field correction (net.evalAt) for points that stay put — anchors and
+  // adhered cells: the bilinear physics tiles can be a few µm off where vessels
+  // of different radius blend
+  const EX = new Float64Array(2);
+  function exactInside(x, y, rad){
+    for(let it=0; it<4; it++){
+      net.evalAt(x, y, ev);
+      const gap = (-ev.wall - ev.N)*ev.rB - rad;
+      if(gap >= 0 || !(ev.N < 50)) break;
+      const st = -gap*RELAX[it] + 0.1; x -= ev.gx*st; y -= ev.gy*st;
+    }
+    EX[0] = x; EX[1] = y;
   }
   function addWbc(x, y, st){
     if(nW >= MAXW) return -1;
@@ -653,12 +713,13 @@ BV.createSim = function(net, opts){
     P.ang[p] = rng.next()*Math.PI*2; P.fade[p] = 0; P.ex[p] = ex||0; P.ey[p] = ey||0; P.adh[p] = 0; P.chase[p] = 0;
     P.lx[p] = Math.cos(P.ang[p]); P.ly[p] = Math.sin(P.ang[p]); P.near[p] = 1e9; P.hit[p] = 0;
     const rad = type === 1 ? TUNE.VIRUS_R : TUNE.BACT_R*1.4;
-    for(let it=0; it<4; it++){
-      sample(P.x[p], P.y[p], AO);
-      const lim = -AO.wall - rad/AO.rB; if(AO.N <= lim) break;
-      const pen = (AO.N - lim)*AO.rB + 0.1; P.x[p] -= AO.gx*pen; P.y[p] -= AO.gy*pen;
+    for(let it=0; it<6; it++){
+      AF[10] = P.x[p]; AF[11] = P.y[p]; sampleF(AF);
+      const lim = -AF[9] - rad/AF[1]; if(AF[0] <= lim) return p;
+      const pen = ((AF[0] - lim)*AF[1] + 0.1)*RELAX[it < 4 ? it : 3]; P.x[p] -= AF[3]*pen; P.y[p] -= AF[4]*pen;
     }
-    return p;
+    killP(p);            // no room in the lumen here
+    return -1;
   }
   function addFx(kind, x, y, r, dur){
     let s = -1, oldest = -1, oa = -1;
@@ -753,9 +814,9 @@ BV.createSim = function(net, opts){
       const j = (((W.seed[i]*7.31) % 2) - 1)*0.9*Sx.r[s];
       W.ax[i] = Sx.cx[s] - Sx.ny[s]*j; W.ay[i] = Sx.cy[s] + Sx.nx[s]*j;
       const ax = W.ax[i], ay = W.ay[i];
-      sample(ax, ay, AO);
-      const gap = (-AO.wall - R/AO.rB - AO.N)*AO.rB;
-      if(gap < 0){ W.ax[i] = ax + AO.gx*gap; W.ay[i] = ay + AO.gy*gap; }
+      AF[10] = ax; AF[11] = ay; sampleF(AF);
+      const gap = (-AF[9] - R/AF[1] - AF[0])*AF[1];
+      if(gap < 0){ W.ax[i] = ax + AF[3]*gap; W.ay[i] = ay + AF[4]*gap; }
     } else wallAnchor(i);
   }
   function endChase(i){
@@ -781,12 +842,15 @@ BV.createSim = function(net, opts){
       W.sepx[i] = 0; W.sepy[i] = 0;
       if(st === TRANSIT) continue;
       const x = X[i], y = Y[i];
-      sample(x, y, smp);
-      const N = smp.N, rB = smp.rB, kind = smp.kind, gx = smp.gx, gy = smp.gy;
+      SF[10] = x; SF[11] = y; sampleF(SF);
+      const N = SF[0], rB = SF[1], kind = SF[8], gx = SF[3], gy = SF[4];
       let a = 1 + N; a = a < 0 ? 0 : a > 1 ? 1 : a;
       const prof = 1.6*(1 - a*a);
       const pkk = kind <= 1 ? pa + (pc-pa)*kind : pc + (pv-pc)*(kind-1);
-      const ux = smp.fx*prof*pkk, uy = smp.fy*prof*pkk;
+      let ux = SF[5]*prof*pkk, uy = SF[6]*prof*pkk;
+      // next to a wall the flow runs along it: drop the blended field's component
+      // into the wall (junction crotches would otherwise pin cells against the tip)
+      { const un = ux*gx + uy*gy, gp = W.gap[i]; if(un > 0 && gp < 3*R){ const w = gp <= 0 ? 1 : 1 - gp/(3*R); ux -= un*gx*w; uy -= un*gy*w; } }
       const ul = Math.sqrt(ux*ux + uy*uy);
       const dig = W.dig[i] > 0;
       const S = Tn.SWIM * (dig ? Tn.DIGEST_SLOW : 1) * (0.9 + 0.1*Math.sin(simTime*2.3 + W.ph[i])) * (0.75 + 0.25*W.chg[i]);
@@ -825,7 +889,7 @@ BV.createSim = function(net, opts){
       const sl = Math.sqrt(sx*sx + sy*sy);
       if(sl > Tn.SEP_VMAX){ sx *= Tn.SEP_VMAX/sl; sy *= Tn.SEP_VMAX/sl; }
       // separation pushes that point into the wall are dropped (the wall holds the cell)
-      const lim = -smp.wall - R*W.sz[i]/rB;
+      const lim = -SF[9] - (R*W.sz[i] + Tn.WALL_GAP)/rB;
       if(N > lim - 1.5/rB){ const sn = sx*gx + sy*gy; if(sn > 0){ sx -= sn*gx; sy -= sn*gy; } }
       W.sepx[i] = sx; W.sepy[i] = sy;
       W.touch[i] = touchAdh;
@@ -840,12 +904,12 @@ BV.createSim = function(net, opts){
           const arrR = Tn.ARR_MIN + Tn.ARR_K*R*Math.sqrt(F.arrived);
           let inSeed = false;
           // inside the target's seed disc (connected to it through the lumen)
-          if(dist < F.rs && navDir(F, x, y)) inSeed = NV.T <= F.rs*Tn.SEED_RAMP/Tn.NAV_S + 0.15;
+          if(dist < F.rs){ NV[3] = x; NV[4] = y; if(navDirIO(F)) inSeed = NV[2] <= F.rs*Tn.SEED_RAMP/Tn.NAV_S + 0.15; }
           if(dist < arrR || inSeed || (touchArr && dist < 3*arrR + 60)){ arrive(i, F); }
           else {
             let dirx, diry, ok = true, Tloc = 0;
             if(dist < Tn.NEAR_DIRECT){ dirx = dx/dist; diry = dy/dist; Tloc = dist/Tn.NAV_S; }
-            else if(navDir(F, x, y)){ dirx = NV.x; diry = NV.y; Tloc = NV.T; }
+            else if((NV[3] = x, NV[4] = y, navDirIO(F))){ dirx = NV[0]; diry = NV[1]; Tloc = NV[2]; }
             else ok = false;
             if(ok){
               // wander
@@ -866,10 +930,19 @@ BV.createSim = function(net, opts){
                   if(N > -0.85) side = (nX*gx + nY*gy) >= 0 ? 1 : -1;
                   else side = tSide && dist < 1500 ? tSide : (W.seed[i] % 2 < 1 ? 1 : -1);
                   if(cul > 0.75*S) latFirst = true; else latW = Tn.UP_LAT*Math.min(1, (-cu - 0.2)*1.6);
-                } else if(tSide && cul > 0.6*S && dist < 2000){
-                  const aoff = offT < 0 ? -offT : offT, along = Math.sqrt(Math.max(0, dist*dist - offT*offT));
-                  const need = (aoff - 2*R)/(0.9*S)*(cul + 0.3*S) + 120;   // along-flow run needed to change lanes
-                  if(along < need && lineOfSight(x, y, F.tx, F.ty)){ side = tSide; latW = Tn.APP_LAT; latFirst = along < 0.75*need; }
+                } else if(cul > 0.6*S && Tloc < 8){
+                  // closing in on the target in a lane too fast to stop in: slide over
+                  // early (judged by the remaining path time) — toward the target's side
+                  // when it sits off-centre in this same vessel, else to the nearest
+                  // wall — so the cell arrives in a lane where it can hold
+                  const sameV = tSide !== 0 && dist < 2500 && lineOfSight(x, y, F.tx, F.ty);
+                  const wSide = (N > -0.85) ? ((nX*gx + nY*gy) >= 0 ? 1 : -1) : (W.seed[i] % 2 < 1 ? 1 : -1);
+                  const aoff = sameV ? (offT < 0 ? -offT : offT) - 2*R : (-SF[9] - R/rB - N)*rB;
+                  const needT = aoff/(0.9*S)*1.3 + 0.8 + F.rs*Tn.SEED_RAMP/Tn.NAV_S;   // path time needed to change lanes
+                  // never against the field's own sideways intent (e.g. a branch to take)
+                  const fLat = dirx*nX + diry*nY;
+                  const agree = sameV || !(fLat > 0.15 || fLat < -0.15) || (fLat > 0 ? 1 : -1) === wSide;
+                  if(aoff > 4 && Tloc < needT && agree){ side = sameV ? tSide : wSide; latW = Tn.APP_LAT; latFirst = Tloc < 0.75*needT; }
                 }
                 if(latFirst){ dX = nX*side*0.94 + dX*0.34; dY = nY*side*0.94 + dY*0.34; const l = Math.sqrt(dX*dX+dY*dY); dX /= l; dY /= l; }
                 else if(latW > 0){ dX += nX*side*latW; dY += nY*side*latW; const l = Math.sqrt(dX*dX+dY*dY); dX /= l; dY /= l; }
@@ -928,7 +1001,7 @@ BV.createSim = function(net, opts){
         }
         thrustOn = dist > 3; if(thrustOn){ wantX = dx/dist; wantY = dy/dist; }
         const touching = W.con[i] > 0.5 || touchAdh;
-        if(touching && dist < 5*R + 40){ W.tim[i] += h; if(W.tim[i] > Tn.ADH_T){ ST[i] = ADH; W.tim[i] = 0; W.ax[i] = x; W.ay[i] = y; } }
+        if(touching && dist < 5*R + 40){ W.tim[i] += h; if(W.tim[i] > Tn.ADH_T){ ST[i] = ADH; W.tim[i] = 0; exactInside(x, y, R*W.sz[i] + TUNE.WALL_GAP); W.ax[i] = EX[0]; W.ay[i] = EX[1]; } }
         else W.tim[i] = Math.max(0, W.tim[i] - h);
         if(dist > Tn.WASH){
           const F = fieldOf(i);
@@ -940,7 +1013,7 @@ BV.createSim = function(net, opts){
         W.tim[i] += h;
         c = Tn.CARRY_ADH*Math.max(0, 1 - W.tim[i]/Tn.ARREST_T);
         const dx = W.ax[i] - x, dy = W.ay[i] - y;
-        tx = dx*1.5 - c*ux*0.0; ty = dy*1.5;
+        tx = dx*1.5; ty = dy*1.5;
         const tl = Math.sqrt(tx*tx + ty*ty); if(tl > 12){ tx *= 12/tl; ty *= 12/tl; }
         k = kAdh;
       } else if(st2 === CHASE){
@@ -954,7 +1027,8 @@ BV.createSim = function(net, opts){
           tx = axp/al*S; ty = ayp/al*S; thrustOn = true; wantX = axp/al; wantY = ayp/al;
           W.tim[i] += h;
           const lx = x - W.ax[i], ly = y - W.ay[i];
-          if(W.tim[i] > Tn.CHASE_T || (W.prev[i] !== MOVE && lx*lx + ly*ly > Tn.LEASH*Tn.LEASH) || dist > Tn.SENSE_IDLE*1.8) endChase(i);
+          const lsh = W.clg[i] ? Tn.SENSE_SLOW*1.5 : Tn.LEASH, far = W.clg[i] ? Tn.SENSE_SLOW*1.4 : Tn.SENSE_IDLE*1.8;
+          if(W.tim[i] > Tn.CHASE_T || (W.prev[i] !== MOVE && lx*lx + ly*ly > lsh*lsh) || dist > far) endChase(i);
         }
       } else if(st2 === DYING){
         c = 1; tx = 0; ty = 0; W.tim[i] += h;
@@ -996,7 +1070,7 @@ BV.createSim = function(net, opts){
       if(!(x === x && y === y)){ x = X[i]; y = Y[i]; VX[i] = 0; VY[i] = 0; dbg.nanFix++; }
       // mouths
       if(NM){
-        const m = beyondMouth(x, y, R);
+        MB[0] = x; MB[1] = y; MB[2] = R; const m = mouthAt();
         if(m >= 0){
           if(mOut[m] && st !== DYING){ ST[i] = TRANSIT; W.tim[i] = Tn.RECIRC_T; X[i] = x; Y[i] = y; W.cs[i] = -1; continue; }
           const dd = (x - mX[m])*mOX[m] + (y - mY[m])*mOY[m] + R;
@@ -1006,19 +1080,54 @@ BV.createSim = function(net, opts){
       }
       // wall: keep the centre inside N < −wall − r/rB (cells that were far from
       // the wall before this step and moved less than that distance can't touch it)
-      const rr = R*W.sz[i];
+      const rr = R*W.sz[i] + TUNE.WALL_GAP;
       let touched = false;
-      if(W.gap[i] > vl*h + 3){ W.gap[i] -= vl*h; X[i] = x; Y[i] = y; W.con[i] = Math.max(0, W.con[i] - h*4); continue; }
-      for(let it=0; it<3; it++){
-        sample(x, y, smp);
-        const lim = -smp.wall - rr/smp.rB;
-        if(smp.N <= lim) break;
-        const pen = (smp.N - lim)*smp.rB + 0.05;
-        x -= smp.gx*pen; y -= smp.gy*pen; touched = true; dbg.projections++;
-        const vn = VX[i]*smp.gx + VY[i]*smp.gy;
-        if(vn > 0){ VX[i] -= vn*smp.gx; VY[i] -= vn*smp.gy; }
+      if(W.gap[i] > 2*vl*h + 4){ W.gap[i] -= 2*vl*h; X[i] = x; Y[i] = y; W.con[i] = Math.max(0, W.con[i] - h*4); continue; }
+      let inside = false, pvio = 0, pstp = 0;
+      for(let it=0; it<5; it++){
+        SF[10] = x; SF[11] = y; sampleF(SF);
+        const viol = (SF[0] + SF[9])*SF[1] + rr;          // µm-ish beyond the allowed limit
+        if(viol <= 0){ inside = true; break; }
+        if(it === 4) break;
+        let dgx = SF[3], dgy = SF[4], pen = viol + 0.05;
+        const vn = VX[i]*dgx + VY[i]*dgy;
+        if(vn > 0){ VX[i] -= vn*dgx; VY[i] -= vn*dgy; }
+        if(it === 1){
+          // N·rB is only a distance on a single vessel; in junction blends it
+          // grows slower: take the step from the measured slope
+          const sl = (pvio - viol)/pstp; pen = sl > 0.1 ? viol/sl + 0.05 : (viol + 0.05)*2.5;
+        } else if(it >= 2){
+          // still out (crotches where vessels of different radius / wall blend and
+          // ∇N points the wrong way): Newton step on the numerical gradient of the
+          // violation itself
+          const e = 2;
+          SF[10] = x + e; SF[11] = y; sampleF(SF); const vxp = (SF[0] + SF[9])*SF[1];
+          SF[10] = x - e; sampleF(SF); const vxm = (SF[0] + SF[9])*SF[1];
+          SF[10] = x; SF[11] = y + e; sampleF(SF); const vyp = (SF[0] + SF[9])*SF[1];
+          SF[11] = y - e; sampleF(SF); const vym = (SF[0] + SF[9])*SF[1];
+          const ngx = (vxp - vxm)/(2*e), ngy = (vyp - vym)/(2*e), n2 = ngx*ngx + ngy*ngy;
+          if(n2 > 1e-4){ const nl = Math.sqrt(n2); dgx = ngx/nl; dgy = ngy/nl; pen = viol/nl + 0.1; }
+          else pen = (viol + 0.05)*2.5;
+        }
+        if(pen > 4*viol + 8) pen = 4*viol + 8;
+        pvio = viol; pstp = pen;
+        x -= dgx*pen; y -= dgy*pen; touched = true; dbg.projections++;
       }
-      { const lim = -smp.wall - rr/smp.rB; W.gap[i] = (lim - smp.N)*smp.rB; if(!touched && W.gap[i] < 1.2) touched = true; }
+      if(!inside){
+        // never accept a position outside the lumen: slide along the wall from
+        // where it was (inside) — this is what gets cells round junction crotches
+        // — or, failing that, stay put
+        const x0 = X[i], y0 = Y[i];
+        SF[10] = x0; SF[11] = y0; sampleF(SF);
+        const gxo = SF[3], gyo = SF[4], mx = vx*h, my = vy*h, mn = mx*gxo + my*gyo;
+        x = x0 + mx - (mn > 0 ? mn : 0)*gxo - gxo*0.3; y = y0 + my - (mn > 0 ? mn : 0)*gyo - gyo*0.3;
+        SF[10] = x; SF[11] = y; sampleF(SF);
+        if(!(SF[0] <= -SF[9] - rr/SF[1])){ x = x0; y = y0; SF[10] = x; SF[11] = y; sampleF(SF); }
+        dbg.reverts++;
+        const vn = VX[i]*gxo + VY[i]*gyo; if(vn > 0){ VX[i] -= vn*gxo; VY[i] -= vn*gyo; }
+        touched = true;
+      }
+      { const lim = -SF[9] - rr/SF[1]; W.gap[i] = (lim - SF[0])*SF[1]; if(!touched && W.gap[i] < 1.2) touched = true; }
       W.con[i] = touched ? Math.min(1, W.con[i] + h*10) : Math.max(0, W.con[i] - h*4);
       X[i] = x; Y[i] = y;
     }
@@ -1033,19 +1142,20 @@ BV.createSim = function(net, opts){
     for(let p=0;p<MAXP;p++){
       const ty = P.type[p]; if(!ty) continue;
       let x = P.x[p], y = P.y[p];
-      sample(x, y, smp);
-      let a = 1 + smp.N; a = a < 0 ? 0 : a > 1 ? 1 : a;
-      const kind = smp.kind, pkk = kind <= 1 ? pa + (pc-pa)*kind : pc + (pv-pc)*(kind-1);
+      SF[10] = x; SF[11] = y; sampleF(SF);
+      let a = 1 + SF[0]; a = a < 0 ? 0 : a > 1 ? 1 : a;
+      const kind = SF[8], pkk = kind <= 1 ? pa + (pc-pa)*kind : pc + (pv-pc)*(kind-1);
       const prof = 1.6*(1 - a*a)*pkk;
-      const ux = smp.fx*prof, uy = smp.fy*prof;
       const ph = P.ph[p], rad = ty === 1 ? Tn.VIRUS_R : Tn.BACT_R*1.4;
+      let ux = SF[5]*prof, uy = SF[6]*prof;
+      { const un = ux*SF[3] + uy*SF[4], gp = (-SF[9] - rad/SF[1] - SF[0])*SF[1]; if(un > 0 && gp < 12){ const w = gp <= 0 ? 1 : 1 - gp/12; ux -= un*SF[3]*w; uy -= un*SF[4]*w; } }
       let vx, vy;
       P.age[p] += h;
       if(ty === 1){
         // drift + slow migration toward the a ≈ 0.6 lane (tubular pinch effect),
         // so viruses leave the wall they were shed from and spread downstream
         const mig = -Tn.VIRUS_MIG*(a - 0.6);
-        vx = ux + Tn.BROWN*Math.sin(simTime*1.7 + ph) + smp.gx*mig; vy = uy + Tn.BROWN*Math.cos(simTime*1.3 + ph*1.7) + smp.gy*mig;
+        vx = ux + Tn.BROWN*Math.sin(simTime*1.7 + ph) + SF[3]*mig; vy = uy + Tn.BROWN*Math.cos(simTime*1.3 + ph*1.7) + SF[4]*mig;
         P.ang[p] += h*(0.6 + 0.4*Math.sin(ph));
       } else {
         if(P.adh[p]){ vx = ux*0.02; vy = uy*0.02; }
@@ -1061,9 +1171,15 @@ BV.createSim = function(net, opts){
         if(P.adh[p]) P.div[p] -= h;
         if(P.div[p] <= 0){
           P.div[p] = P.divD[p];
+          // colonies stop growing at a handful of cells
+          let near = 0;
+          for(let q=0;q<MAXP;q++){ if(q === p || P.type[q] !== 2) continue; const dx = P.x[q]-x, dy = P.y[q]-y; if(dx*dx + dy*dy < 22*22) near++; }
+          if(near >= Tn.COLONY_MAX - 1){ P.div[p] = P.divD[p]*1.5; }
+          else {
           const ca = Math.cos(P.ang[p]), sa = Math.sin(P.ang[p]);
           const q = addPathogen(2, x + ca*Tn.BACT_R*2.4, y + sa*Tn.BACT_R*2.4, 0, 0);
           if(q >= 0){ P.adh[q] = P.adh[p]; P.ang[q] = P.ang[p] + (rng.next()-0.5)*0.8; P.fade[q] = 1; P.x[p] -= ca*Tn.BACT_R*1.2; P.y[p] -= sa*Tn.BACT_R*1.2; x = P.x[p]; y = P.y[p]; }
+          }
         }
       }
       // ejected from a site: push into the lumen for the first half second
@@ -1071,19 +1187,24 @@ BV.createSim = function(net, opts){
       P.vx[p] = vx; P.vy[p] = vy;
       x += vx*h; y += vy*h;
       if(NM){
-        const m = beyondMouth(x, y, rad);
+        MB[0] = x; MB[1] = y; MB[2] = rad; const m = mouthAt();
         if(m >= 0){
           if(mOut[m]){ escape(p); continue; }
           const dd = (x - mX[m])*mOX[m] + (y - mY[m])*mOY[m] + rad; x -= mOX[m]*dd; y -= mOY[m]*dd;
         }
       }
-      let touched = false;
-      for(let it=0; it<3; it++){
-        sample(x, y, smp);
-        const lim = -smp.wall - rad/smp.rB;
-        if(smp.N <= lim) break;
-        const pen = (smp.N - lim)*smp.rB + 0.05; x -= smp.gx*pen; y -= smp.gy*pen; touched = true;
+      let touched = false, inside = false, pvio = 0, pstp = 0;
+      for(let it=0; it<5; it++){
+        SF[10] = x; SF[11] = y; sampleF(SF);
+        const viol = (SF[0] + SF[9])*SF[1] + rad;
+        if(viol <= 0){ inside = true; break; }
+        if(it === 4) break;
+        let pen = viol + 0.05;
+        if(it){ const sl = (pvio - viol)/pstp; pen = sl > 0.1 ? viol/sl + 0.05 : (viol + 0.05)*2.5; if(pen > 4*viol + 8) pen = 4*viol + 8; }
+        pvio = viol; pstp = pen;
+        x -= SF[3]*pen; y -= SF[4]*pen; touched = true;
       }
+      if(!inside){ x = P.x[p]; y = P.y[p]; }
       if(ty === 2 && touched && !P.adh[p] && P.age[p] > 1 && rng.next() < Tn.BACT_STICK*h) P.adh[p] = 1;
       P.x[p] = x; P.y[p] = y;
       if(P.fade[p] < 1) P.fade[p] = Math.min(1, P.fade[p] + h*2.5);
@@ -1136,7 +1257,7 @@ BV.createSim = function(net, opts){
   //  GAME (once per frame)
   // =========================================================================
   function placeSite(kind){
-    const o = {};
+    const o = {}, oh = {};
     let total = 0; for(let i=0;i<BZ.length;i++) total += bzLen[i]*siteWeight(BZ[i]);
     for(let tries=0; tries<300; tries++){
       let u = rng.next()*total, i = 0;
@@ -1154,6 +1275,10 @@ BV.createSim = function(net, opts){
       // emission point in the lumen
       const ex = x - ev.gx*(ev.wall*0.6*ev.rB + 6), ey = y - ev.gy*(ev.wall*0.6*ev.rB + 6);
       if(!isLumen(ex, ey, 3)) continue;
+      // attackable: white cells must be able to hold against the wall lane
+      // here (no lesions in AV-connector torrents), same test as snapTarget
+      { net.evalAt(ex, ey, oh); const ae = Math.max(0, 1 - oh.wall - 2*R/oh.rB);
+        if(Math.hypot(oh.fx, oh.fy)*1.6*(1 - ae*ae)*pkMean(oh.kind)*1.15*TUNE.CARRY > 0.7*TUNE.SWIM) continue; }
       // spacing: other sites, the inlet, the outlets, the horde
       let ok = true;
       for(let s=0;s<MAXS;s++) if(Sx.alive[s] && Math.hypot(Sx.x[s]-x, Sx.y[s]-y) < 1600){ ok = false; break; }
@@ -1172,8 +1297,8 @@ BV.createSim = function(net, opts){
         Sx.cx[s] = cx; Sx.cy[s] = cy;
       }
       Sx.r[s] = 18 + 12*rng.next() + Math.min(12, 0.03*o.r);
-      Sx.hp[s] = 1; Sx.max[s] = TUNE.SITE_HP*(1 + 0.15*(wave-1))*diff;
-      Sx.rate[s] = (kind === 1 ? TUNE.EMIT_V : TUNE.EMIT_B)/((1 + 0.12*(wave-1))*diff);
+      Sx.hp[s] = 1; Sx.max[s] = TUNE.SITE_HP*(1 + 0.1*(wave-1))*diff;
+      Sx.rate[s] = (kind === 1 ? TUNE.EMIT_V : TUNE.EMIT_B)/((1 + 0.08*(wave-1))*diff);
       Sx.tim[s] = 1 + rng.next()*2; Sx.ph[s] = rng.next()*100; Sx.tint[s] = rng.next();
       Sx.crowd[s] = 0; Sx.flash[s] = 0; Sx.emit[s] = 0; Sx.die[s] = 0; Sx.ncnt[s] = 0;
       emit({ type:'siteUp', x, y, kind: kind === 1 ? 'virus' : 'bacterium' });
@@ -1181,12 +1306,10 @@ BV.createSim = function(net, opts){
     }
     return -1;
   }
-  function siteWeight(b){ const r = 0.5*(b.r0+b.r2); return r > 520 ? 0.15 : r > 380 ? 0.5 : 1; }
+  function siteWeight(b){ const r = 0.5*(b.r0+b.r2), k = 0.5*(b.k0+b.k2); return (r > 520 ? 0.15 : r > 380 ? 0.5 : 1)*(k > 0.6 && k < 1.4 ? 0.3 : 1); }
 
   function gameStep(dt){
     const Tn = TUNE;
-    // coarse hash of the final positions (sites, sensing, selection)
-    hashC.build(nW, W.x, W.y, skipW);
     // ---- transit (recirculation) & deaths ---------------------------------
     for(let i=nW-1;i>=0;i--){
       const st = W.st[i];
@@ -1211,6 +1334,8 @@ BV.createSim = function(net, opts){
         removeWbc(i);
       }
     }
+    // coarse hash of the final positions (sites, sensing, selection)
+    hashC.build(nW, W.x, W.y, skipW);
     if(state !== 'play') return;
     // ---- sites -------------------------------------------------------------
     let sitesAlive = 0;
@@ -1219,7 +1344,7 @@ BV.createSim = function(net, opts){
       if(Sx.alive[s] === 2){ Sx.die[s] += dt; if(Sx.die[s] > 1.4) Sx.alive[s] = 0; continue; }
       sitesAlive++;
       // crowd: cells touching the lesion
-      const x = Sx.x[s], y = Sx.y[s], rc = Sx.r[s] + 2.2*R, rc2 = rc*rc;
+      const x = Sx.x[s], y = Sx.y[s], rc = Sx.r[s] + Tn.SITE_REACH*R, rc2 = rc*rc;
       const hs = hashC, inv = hs.inv, cx0 = Math.floor(x*inv), cy0 = Math.floor(y*inv);
       let n = 0;
       for(let qy=cy0-1; qy<=cy0+1; qy++) for(let qx=cx0-1; qx<=cx0+1; qx++){
@@ -1270,11 +1395,14 @@ BV.createSim = function(net, opts){
       breakUntil = simTime + Tn.WAVE_BREAK;
       if(wave >= 1){ const pts = 100*wave; score += pts; }
     }
-    if(wave >= Tn.WAVES && sitesAlive === 0 && nv + nbac < 3){
+    if(wave >= Tn.WAVES && sitesAlive === 0 && (nv + nbac < 3 || (breakUntil >= 0 && simTime >= breakUntil - Tn.WAVE_BREAK + Tn.MOPUP_T))){
+      // every lesion is down: the last stragglers (e.g. a wall colony nobody
+      // hunts) are cleared by the now-winning immune response
+      for(let p=0;p<MAXP;p++){ const t = P.type[p]; if(!t) continue; addFx(t, P.x[p], P.y[p], t === 1 ? 7 : 9, 0.55); killP(p); }
       state = 'won'; emit({ type:'won', score });
     } else if((wave === 0 && simTime >= waveDeadline) || (wave > 0 && wave < Tn.WAVES && ((breakUntil >= 0 && simTime >= breakUntil) || simTime >= waveDeadline))){
       wave++; breakUntil = -1; waveDeadline = simTime + Tn.WAVE_T;
-      const ns = 1 + Math.ceil(wave/2);
+      const ns = 1 + Math.floor((wave - 1)/2);
       let made = 0;
       for(let k=0;k<ns;k++){ const kind = (wave >= 3 && k % 3 === 2) || (wave >= 5 && k % 2 === 1) ? 2 : 1; if(placeSite(kind) >= 0) made++; }
       emit({ type:'wave', wave, sites: made });
@@ -1315,21 +1443,27 @@ BV.createSim = function(net, opts){
       let near = -1, nd = RS2, cand = -1, cd = Infinity;
       const maxC = ty === 1 ? Tn.MAX_CHASE_V : Tn.MAX_CHASE_B;
       const canAssign = P.chase[p] < maxC && ((p + frame) % 6 === 0);
-      for(let qy=cy0-2; qy<=cy0+2; qy++) for(let qx=cx0-2; qx<=cx0+2; qx++){
+      // near-stationary prey (stagnant pockets in wide veins) is hunted from
+      // further away so parked cells clear what the flow never brings them
+      const slow = canAssign && P.age[p] > 3 && P.vx[p]*P.vx[p] + P.vy[p]*P.vy[p] < Tn.SLOW_V*Tn.SLOW_V;
+      const K = slow ? Math.ceil(Tn.SENSE_SLOW*inv) : 2, rsI = slow ? Tn.SENSE_SLOW : Tn.SENSE_IDLE;
+      const lsh = slow ? Tn.SENSE_SLOW*1.2 : Tn.LEASH;
+      for(let qy=cy0-K; qy<=cy0+K; qy++) for(let qx=cx0-K; qx<=cx0+K; qx++){
         const bkt = hs.key(qx, qy);
         for(let q=hs.start[bkt], qe=hs.start[bkt+1]; q<qe; q++){
           const j = hs.items[q]; if(hs.cx[j] !== qx || hs.cy[j] !== qy) continue;
           const dx = W.x[j]-x, dy = W.y[j]-y, d2 = dx*dx + dy*dy;
-          if(d2 >= RS2) continue;
-          if(d2 < nd){ nd = d2; near = j; }
-          if(d2 < W.npd[j]*W.npd[j]){ W.npd[j] = Math.sqrt(d2); W.npx[j] = x; W.npy[j] = y; }
+          if(d2 < RS2){
+            if(d2 < nd){ nd = d2; near = j; }
+            if(d2 < W.npd[j]*W.npd[j]){ W.npd[j] = Math.sqrt(d2); W.npx[j] = x; W.npy[j] = y; }
+          } else if(!slow) continue;
           if(!canAssign) continue;
           const st = W.st[j];
           if(W.dig[j] > 0 || W.chg[j] <= 0) continue;
           let rs;
           if(st === HOLD || st === ADH){
-            rs = Tn.SENSE_IDLE;
-            const lx = x - W.ax[j], ly = y - W.ay[j]; if(lx*lx + ly*ly > Tn.LEASH*Tn.LEASH) continue;
+            rs = rsI;
+            const lx = x - W.ax[j], ly = y - W.ay[j]; if(lx*lx + ly*ly > lsh*lsh) continue;
           } else if(st === MOVE) rs = Tn.SENSE_MOVE;
           else continue;
           if(d2 < rs*rs && d2 < cd){ cd = d2; cand = j; }
@@ -1343,7 +1477,9 @@ BV.createSim = function(net, opts){
       if(cand >= 0){
         // line of sight through the lumen (midpoint check)
         const mx = 0.5*(x + W.x[cand]), my = 0.5*(y + W.y[cand]);
-        if(isLumen(mx, my, 1)){
+        const lng = cd > Tn.SENSE_IDLE*Tn.SENSE_IDLE;
+        if(lng ? lineOfSight(W.x[cand], W.y[cand], x, y) : isLumen(mx, my, 1)){
+          W.clg[cand] = lng ? 1 : 0;
           W.prev[cand] = W.st[cand] === MOVE ? MOVE : HOLD;
           W.st[cand] = CHASE; W.cs[cand] = p; W.cg[cand] = P.gen[p]; W.tim[cand] = 0;
           P.chase[p]++;
@@ -1358,7 +1494,7 @@ BV.createSim = function(net, opts){
   let rbcInit = false, lastBX = 0, lastBY = 0; const pv = { x0:0, y0:0, x1:0, y1:0 };
   const BMAX = 16*16;
   const bArea = new Float32Array(BMAX), bCnt = new Int32Array(BMAX), bSur = new Int32Array(BMAX), bTgt = new Float32Array(BMAX), bInf = new Uint8Array(BMAX);
-  const rbcState = { BX:0, BY:0, lastKey:'' , sampled:0 };
+  const bFx = new Float32Array(BMAX), bFy = new Float32Array(BMAX), bLum = new Int32Array(BMAX); let lastBXs = 0, lastBYs = 0;
   function updateRbc(dt, ctx){
     const V = ctx.view;
     let lod = ctx.rbcLOD;
@@ -1366,6 +1502,7 @@ BV.createSim = function(net, opts){
     if(!V || !(lod > 0)){ nR = 0; rbc.count = 0; rbcInit = false; return; }
     const x0 = Math.min(V.x0, V.x1), x1 = Math.max(V.x0, V.x1), y0 = Math.min(V.y0, V.y1), y1 = Math.max(V.y0, V.y1);
     const vw = x1 - x0, vh = y1 - y0;
+    const dtf = dt > 0 ? dt : 1/60;     // fades and refills keep going while the game is paused
     if(!(vw > 1 && vh > 1)){ nR = 0; rbc.count = 0; return; }
     // jump / zoom detection
     const ox = Math.max(0, Math.min(x1, pv.x1) - Math.max(x0, pv.x0)), oy = Math.max(0, Math.min(y1, pv.y1) - Math.max(y0, pv.y0));
@@ -1382,15 +1519,24 @@ BV.createSim = function(net, opts){
     const bw = vw/BX, bh = vh/BY, nb = BX*BY; lastBX = BX; lastBY = BY;
     const cellA = Math.PI*RR*RR;
     let tot = 0;
+    // lumen area + mean flow per bin: 3×3 samples, or 2×2 (alternating offsets)
+    // while the camera moves; nothing is re-sampled for a still camera
+    const still = !jump && x0 === px0 && y0 === py0 && x1 === px1 && y1 === py1 && BX === lastBXs && BY === lastBYs;
+    const SS = still ? 0 : (cvx !== 0 || cvy !== 0) ? 2 : 3, sOff = (frame & 1) ? 0.25 : 0;
+    lastBXs = BX; lastBYs = BY;
     for(let by=0; by<BY; by++) for(let bx=0; bx<BX; bx++){
-      let c = 0, fxs = 0, fys = 0;
-      for(let s=0;s<9;s++){
-        const sx = x0 + (bx + ((s%3)+0.5)/3)*bw, sy = y0 + (by + (((s/3)|0)+0.5)/3)*bh;
-        sample(sx, sy, smp);
-        if(smp.N < -smp.wall - RR/smp.rB){ c++; fxs += smp.fx; fys += smp.fy; }
-      }
       const k = by*BX + bx;
-      bArea[k] = c/9*bw*bh; bCnt[k] = 0;
+      bCnt[k] = 0;
+      if(SS){
+        let c = 0, fxs = 0, fys = 0;
+        for(let s=0;s<SS*SS;s++){
+          const sx = x0 + (bx + ((s%SS) + 0.5 + (SS === 2 ? sOff - 0.125 : 0))/SS)*bw, sy = y0 + (by + (((s/SS)|0) + 0.5 + (SS === 2 ? sOff - 0.125 : 0))/SS)*bh;
+          SF[10] = sx; SF[11] = sy; sampleF(SF);
+          if(SF[0] < -SF[9] - RR/SF[1]){ c++; fxs += SF[5]; fys += SF[6]; }
+        }
+        bArea[k] = c/(SS*SS)*bw*bh; bFx[k] = c ? fxs/c : 0; bFy[k] = c ? fys/c : 0; bLum[k] = c;
+      }
+      const c = bLum[k];
       bTgt[k] = bArea[k]*TUNE.RBC_DENS/cellA; tot += bTgt[k];
       // rim bins where the flow (relative to the moving camera) enters the view:
       // bit 1 = through the left side, 2 right, 4 top, 8 bottom
@@ -1398,10 +1544,14 @@ BV.createSim = function(net, opts){
       // flow sees slow cells enter at the front and fast ones at the back)
       let inf = 0;
       if(c && (bx === 0 || by === 0 || bx === BX-1 || by === BY-1)){
-        const mx = fxs/c, my = fys/c;
-        const ent = (nx, ny) => { const fn = mx*nx + my*ny, cn = cvx*nx + cvy*ny, e = 20; return 0.05*fn - cn > e || 1.5*fn - cn > e; };
-        if(bx === 0 && ent(1, 0)) inf |= 1; else if(bx === BX-1 && ent(-1, 0)) inf |= 2;
-        if(by === 0 && ent(0, 1)) inf |= 4; else if(by === BY-1 && ent(0, -1)) inf |= 8;
+        // entering through a side with inward normal n: flow·n (slowest or fastest
+        // cells) beats the camera's own motion along n. Written out (no closure:
+        // captured doubles would be boxed on every write)
+        const mx = bFx[k], my = bFy[k];
+        if(bx === 0){ if(0.05*mx - cvx > 20 || 1.5*mx - cvx > 20) inf |= 1; }
+        else if(bx === BX-1){ if(-0.05*mx + cvx > 20 || -1.5*mx + cvx > 20) inf |= 2; }
+        if(by === 0){ if(0.05*my - cvy > 20 || 1.5*my - cvy > 20) inf |= 4; }
+        else if(by === BY-1){ if(-0.05*my + cvy > 20 || -1.5*my + cvy > 20) inf |= 8; }
       }
       bInf[k] = inf;
       // newly revealed (not covered by last frame's rect): may be filled with a fade
@@ -1412,45 +1562,48 @@ BV.createSim = function(net, opts){
     const scale = tot > 0.96*MAXR ? 0.96*MAXR/tot : 1;
     // advect
     const hb = pulse, pa = 0.72+0.56*hb, pc = 0.9+0.2*hb, pvv = 0.96+0.08*hb;
-    const X = Rc.x, Y = Rc.y, D = Rc.d;
-    const ibw = 1/bw, ibh = 1/bh;
+    const X = Rc.x, Y = Rc.y, D = Rc.d, RA = Rc.a, RT = Rc.tp, RTR = Rc.tr, RO = Rc.o, RAL = Rc.al, RFR = Rc.fr, RR_ = Rc.r, RSD = Rc.sd;
+    const ibw = 1/bw, ibh = 1/bh, t08 = simTime*0.8, t05 = simTime*0.5, ko = Math.min(1, dt*2), stag = frame & 3;
     for(let i=0;i<nR;){
       let x = X[i], y = Y[i];
-      sample(x, y, smp);
-      let a = 1 + smp.N; a = a < 0 ? 0 : a > 1 ? 1 : a;
+      SF[10] = x; SF[11] = y; sampleF(SF);
+      let a = 1 + SF[0]; a = a < 0 ? 0 : a > 1 ? 1 : a;
       const dd = 2*D[i] - 1; let rho2 = a*a + dd*dd; if(rho2 > 1) rho2 = 1;
-      const kind = smp.kind, pkk = kind <= 1 ? pa + (pc-pa)*kind : pc + (pvv-pc)*(kind-1);
+      const kind = SF[8], pkk = kind <= 1 ? pa + (pc-pa)*kind : pc + (pvv-pc)*(kind-1);
       const spd = 1.6*(1 - rho2)*pkk + 0.03;
-      const sd = Rc.sd[i];
-      const lat = 2.5*Math.sin(simTime*0.8 + sd);
-      const vx = smp.fx*spd + smp.gx*lat, vy = smp.fy*spd + smp.gy*lat;
+      const sd = RSD[i], rr = RR_[i];
+      const lat = 2.5*Math.sin(t08 + sd);
+      const vx = SF[5]*spd + SF[3]*lat, vy = SF[6]*spd + SF[4]*lat;
+      const fsp = Math.sqrt(SF[5]*SF[5] + SF[6]*SF[6])/SF[1], oxy = SF[7];
       x += vx*dt; y += vy*dt;
-      const lim = -smp.wall - Rc.r[i]/smp.rB;
-      if(smp.N > lim - 0.1){
-        sample(x, y, smp);
-        const l2 = -smp.wall - Rc.r[i]/smp.rB;
-        if(smp.N > l2){ const pen = (smp.N - l2)*smp.rB + 0.05; x -= smp.gx*pen; y -= smp.gy*pen; }
+      if(SF[0] > -SF[9] - rr/SF[1] - 0.1){
+        SF[10] = x; SF[11] = y; sampleF(SF);
+        const l2 = -SF[9] - rr/SF[1];
+        if(SF[0] > l2){ const pen = (SF[0] - l2)*SF[1] + 0.05; x -= SF[3]*pen; y -= SF[4]*pen; }
       }
       // cull
-      let dead = x < x0 || x > x1 || y < y0 || y > y1 || !(smp.N < 0.5);
-      if(!dead && NM && beyondMouth(x, y, 0) >= 0) dead = true;
-      if(!dead && Rc.fr[i] < 0 && Rc.al[i] <= 0) dead = true;
-      if(dead){ nR--; if(i !== nR) copyR(i, nR); continue; }
+      const fr0 = RFR[i];
+      let dead = x < x0 || x > x1 || y < y0 || y > y1 || !(SF[0] < 0.5) || (fr0 < 0 && RAL[i] <= 0);
+      if(!dead && NM){ MB[0] = x; MB[1] = y; MB[2] = 0; if(mouthAt() >= 0) dead = true; }
+      if(dead){
+        const l = --nR;
+        if(i !== l){ X[i] = X[l]; Y[i] = Y[l]; D[i] = D[l]; RA[i] = RA[l]; RT[i] = RT[l]; RTR[i] = RTR[l]; RO[i] = RO[l]; RAL[i] = RAL[l]; RFR[i] = RFR[l]; RR_[i] = RR_[l]; RSD[i] = RSD[l]; }
+        continue;
+      }
       X[i] = x; Y[i] = y;
-      const sp2 = vx*vx + vy*vy;
-      if(sp2 > 1) Rc.a[i] = Math.atan2(vy, vx);
-      Rc.tp[i] += dt*Rc.tr[i]*(0.5 + 6*a*Math.sqrt(smp.fx*smp.fx + smp.fy*smp.fy)/smp.rB);
-      Rc.o[i] += (smp.oxy - Rc.o[i])*Math.min(1, dt*2);
-      D[i] += dt*0.02*Math.sin(simTime*0.5 + sd*1.3); D[i] = D[i] < 0.04 ? 0.04 : D[i] > 0.96 ? 0.96 : D[i];
+      if(((i + stag) & 3) === 0){ const sp2 = vx*vx + vy*vy; if(sp2 > 1) RA[i] = Math.atan2(vy, vx); }
+      RT[i] += dt*RTR[i]*(0.5 + 6*a*fsp);
+      RO[i] += (oxy - RO[i])*ko;
+      let dp = D[i] + dt*0.02*Math.sin(t05 + sd*1.3); D[i] = dp < 0.04 ? 0.04 : dp > 0.96 ? 0.96 : dp;
       // fades
-      const fr = Rc.fr[i];
-      if(fr > 0){ Rc.al[i] += dt*fr; if(Rc.al[i] >= 1){ Rc.al[i] = 1; Rc.fr[i] = 0; } }
-      else if(fr < 0){ Rc.al[i] += dt*fr; }
+      let fr = fr0;
+      if(fr > 0){ const al = RAL[i] + dtf*fr; if(al >= 1){ RAL[i] = 1; RFR[i] = 0; fr = 0; } else RAL[i] = al; }
+      else if(fr < 0){ RAL[i] += dtf*fr; }
       // bin census (+ drain surplus)
       let bx = ((x - x0)*ibw)|0, by = ((y - y0)*ibh)|0; if(bx >= BX) bx = BX-1; if(by >= BY) by = BY-1;
       const k = by*BX + bx;
-      if(Rc.fr[i] >= 0){
-        if(bSur[k] > 0 && Rc.fr[i] === 0){ bSur[k]--; Rc.fr[i] = -2.5; }
+      if(fr >= 0){
+        if(bSur[k] > 0 && fr === 0){ bSur[k]--; RFR[i] = -2.5; }
         else bCnt[k]++;
       }
       i++;
@@ -1467,31 +1620,31 @@ BV.createSim = function(net, opts){
       // everywhere else only real gaps (newly revealed area) and real pile-ups
       // are corrected, so Poisson noise never makes cells blink in and out
       let n = 0;
-      if(jump) n = need > 0 ? Math.floor(need + rngV.next()) : 0;
-      else if(inf & 15) n = need > 0 ? Math.floor(need + rngV.next()) : 0;
-      else if(inf & 16){ if(need > 0.6) n = Math.ceil(need*Math.min(1, dt*6)); }
-      else if(globalLow && need > 0.6) n = Math.floor(need*Math.min(1, dt*1.5) + rngV.next());
-      else if(need > Math.max(4, 0.6*tg)) n = Math.ceil(need*Math.min(1, dt*2));
-      else if(need < -Math.max(3, 0.35*tg)) bSur[k] = Math.ceil(-need*Math.min(1, dt*2));
+      if(jump) n = need > 0 ? Math.floor(need + (rngV.ni()*RI30)) : 0;
+      else if(inf & 15) n = need > 0 ? Math.floor(need + (rngV.ni()*RI30)) : 0;
+      else if(inf & 16){ if(need > 0.6) n = Math.ceil(need*Math.min(1, dtf*6)); }
+      else if(globalLow && need > 0.6) n = Math.floor(need*Math.min(1, dtf*1.5) + (rngV.ni()*RI30));
+      else if(need > Math.max(4, 0.6*tg)) n = Math.ceil(need*Math.min(1, dtf*2));
+      else if(need < -Math.max(3, 0.35*tg)) bSur[k] = Math.ceil(-need*Math.min(1, dtf*2));
       if(n <= 0) continue;
       const fade = jump ? 3.5 : (inf & 15) ? 9 : 2.5;
       const bxw = x0 + bx*bw, byw = y0 + by*bh;
       for(let s=0; s<n && nR<MAXR; s++){
         for(let t=0;t<4;t++){
-          let x = bxw + rngV.next()*bw, y = byw + rngV.next()*bh;
+          let x = bxw + (rngV.ni()*RI30)*bw, y = byw + (rngV.ni()*RI30)*bh;
           // inflow bins: new cells enter at the rim (a uniform refill would push
           // ~40 % too many cells inward)
-          if(inf & 15){ const u = rngV.next()*0.3;
+          if(inf & 15){ const u = (rngV.ni()*RI30)*0.3;
             if(inf & 1) x = bxw + u*bw; else if(inf & 2) x = bxw + (1-u)*bw;
             if(inf & 4) y = byw + u*bh; else if(inf & 8) y = byw + (1-u)*bh; }
-          sample(x, y, smp);
-          const r = RR*(0.9 + 0.2*rngV.next());
-          if(!(smp.N < -smp.wall - r/smp.rB)) continue;
-          if(NM && beyondMouth(x, y, 0) >= 0) continue;
+          SF[10] = x; SF[11] = y; sampleF(SF);
+          const r = RR*(0.9 + 0.2*(rngV.ni()*RI30));
+          if(!(SF[0] < -SF[9] - r/SF[1])) continue;
+          if(NM){ MB[0] = x; MB[1] = y; MB[2] = 0; if(mouthAt() >= 0) continue; }
           const i = nR++;
-          X[i] = x; Y[i] = y; D[i] = 0.05 + 0.9*rngV.next(); Rc.r[i] = r;
-          Rc.a[i] = Math.atan2(smp.fy, smp.fx) + (rngV.next()-0.5)*0.3; Rc.tp[i] = rngV.next()*6.283; Rc.tr[i] = 0.6 + 0.8*rngV.next();
-          Rc.o[i] = smp.oxy; Rc.al[i] = 0; Rc.fr[i] = fade; Rc.sd[i] = rngV.next()*100;
+          X[i] = x; Y[i] = y; D[i] = 0.05 + 0.9*(rngV.ni()*RI30); Rc.r[i] = r;
+          Rc.a[i] = Math.atan2(SF[6], SF[5]) + ((rngV.ni()*RI30)-0.5)*0.3; Rc.tp[i] = (rngV.ni()*RI30)*6.283; Rc.tr[i] = 0.6 + 0.8*(rngV.ni()*RI30);
+          Rc.o[i] = SF[7]; Rc.al[i] = 0; Rc.fr[i] = fade; Rc.sd[i] = (rngV.ni()*RI30)*100;
           break;
         }
       }
@@ -1505,7 +1658,6 @@ BV.createSim = function(net, opts){
     }
     rbc.count = nR;
   }
-  function copyR(i, j){ for(const k in Rc) Rc[k][i] = Rc[k][j]; }
 
   // =========================================================================
   //  PACK UNITS (16 floats)
@@ -1579,6 +1731,30 @@ BV.createSim = function(net, opts){
   // =========================================================================
   //  PUBLIC API
   // =========================================================================
+  // update(dt, ctx)       advance (dt clamped to 0.05 s, sub-stepped at ≤ 1/45 s;
+  //                       dt 0 = paused: red cells still follow the camera).
+  //                       ctx.view = world rect incl. margin; ctx.rbcLOD 0 → no
+  //                       red-cell particles (ctx.z alone also works).
+  // selectInRect(x0,y0,x1,y1, additive) → n selected
+  // selectAt(x, y, pickRadius µm, additive) → n   the clicked cell's connected
+  //                       horde (cells within 34 µm of each other); nothing hit
+  //                       → 0 and the selection is left unchanged
+  // selectAll() → n, clearSelection() → 0, selectionCenter() → {x,y,n}|null
+  // hoverAt(x, y, pickRadius) → n   flags that horde "hovered" (x = null clears)
+  // command(x, y) → {ok, x, y, n, attack}   move order for the selection; the
+  //                       target is snapped into the lumen (near a wall in fast
+  //                       vessels, upstream of AV connectors); within SITE_PICK
+  //                       of an infection site it is an attack order on it
+  // tracePath(x, y, orderSlot, maxPts, outFloat32) → points  path preview
+  // orders[slot] {active, x, y, n (still moving), serial, done, attack}
+  // stats {wbc, selected, viruses, bacteria, sites, infection, immunity, score,
+  //        wave, time, state:'play'|'over'|'won', transit, captured, escaped,
+  //        sitesDown, deaths, reinforced}
+  // events (drain it), {type, x, y, …}: capture{kind,score} spawn{n} order{n,attack}
+  //        siteUp{kind} siteDown{score} escape{kind} death; without a position:
+  //        wave{wave,sites} over{score} won{score}
+  // home {x,y} (start horde), pulse (BV.heart now), time, ready (nav grid built),
+  // prewarm(ms) (build the nav grid in idle time), reset(seed), setDifficulty(d)
   const S = {
     rbc, units, events, stats, orders, home, pulse: 0, tune: TUNE, net,
     get time(){ return simTime; },
@@ -1612,14 +1788,18 @@ BV.createSim = function(net, opts){
     }
     S.pulse = pulse;
     updateRbc(dt, ctx); if(PR) lap('rbc');
-    // orders: count users
-    for(const F of fields){ F.users = 0; }
-    for(let i=0;i<nW;i++){ const F = fieldOf(i); if(F) F.users++; }
+    // orders: users (cells on the order) and cells still moving, in one pass
+    ordUsers.fill(0); ordMoving.fill(0);
+    for(let i=0;i<nW;i++){
+      const o = W.ord[i]; if(o < 0) continue;
+      const F = fields[o]; if(!F || F.serial !== W.ser[i]) continue;
+      ordUsers[o]++; const st = W.st[i]; if(st === MOVE || st === TRANSIT) ordMoving[o]++;
+    }
     for(let f=0; f<MAXF; f++){
       const o = orders[f], F = fields[f];
-      if(!F || !F.serial || !F.users){ o.active = false; continue; }
-      let moving = 0; for(let i=0;i<nW;i++) if(W.ord[i] === f && W.ser[i] === F.serial && (W.st[i] === MOVE || W.st[i] === TRANSIT)) moving++;
-      o.active = true; o.x = F.tx; o.y = F.ty; o.n = moving; o.serial = F.serial; o.done = moving === 0;
+      if(F) F.users = ordUsers[f];
+      if(!F || !F.serial || !ordUsers[f]){ o.active = false; continue; }
+      o.active = true; o.x = F.tx; o.y = F.ty; o.n = ordMoving[f]; o.serial = F.serial; o.done = ordMoving[f] === 0; o.attack = F.site >= 0;
     }
     if(PR) lap('orders');
     packUnits(); if(PR) lap('pack');
@@ -1716,7 +1896,23 @@ BV.createSim = function(net, opts){
       px = nX[id]; py = nY[id]; net.evalAt(px, py, ev);
       if(Math.hypot(px-x, py-y) > 900) return null;
     }
-    // 2. in a fast vessel, slide toward the nearest wall until holding position is possible
+    // 2. a torrent nobody can park in (the wall lane a few cells deep is still too
+    //    fast — AV connectors): walk upstream until a horde could hold there
+    const holdSpd = () => { const ae = Math.max(0, 1 - ev.wall - 2*R/ev.rB); return Math.hypot(ev.fx, ev.fy)*1.6*(1 - ae*ae)*pkMean(ev.kind)*1.15*TUNE.CARRY; };
+    if(holdSpd() > 0.8*TUNE.SWIM){
+      let qx = px, qy = py, moved = 0;
+      while(moved < 1600){
+        const fl = Math.hypot(ev.fx, ev.fy) || 1;
+        qx -= ev.fx/fl*20; qy -= ev.fy/fl*20; moved += 20;
+        net.evalAt(qx, qy, ev);
+        const lim = -ev.wall - 3*R/ev.rB;
+        if(ev.N > lim){ const st = (ev.N - lim)*ev.rB + 1; qx -= ev.gx*st; qy -= ev.gy*st; net.evalAt(qx, qy, ev); }
+        if(!(ev.N < -ev.wall)) break;
+        if(holdSpd() <= 0.8*TUNE.SWIM){ px = qx; py = qy; break; }
+      }
+      net.evalAt(px, py, ev);
+    }
+    // 3. in a fast vessel, slide toward the nearest wall until holding position is possible
     for(let it=0; it<120; it++){
       let a = 1 + ev.N; a = a < 0 ? 0 : a > 1 ? 1 : a;
       const spd = Math.hypot(ev.fx, ev.fy)*1.6*(1 - a*a)*pkMean(ev.kind)*1.15*TUNE.CARRY;
@@ -1750,7 +1946,7 @@ BV.createSim = function(net, opts){
     net.evalAt(tgt.x, tgt.y, ev);
     F.rs = site >= 0 ? TUNE.SEED_MIN : Math.max(TUNE.SEED_MIN, Math.min(TUNE.SEED_MAX, TUNE.SEED_R*ev.rB));
     fieldStart(F, tnode, F.rs);
-    fieldStep(F, TUNE.DIJ_BUDGET*2);
+    fieldStep(F, TUNE.DIJ_BUDGET*3);
     for(let i=0;i<nW;i++){
       if(!W.sel[i] || W.st[i] === TRANSIT || W.st[i] === DYING){
         continue;
@@ -1772,7 +1968,7 @@ BV.createSim = function(net, opts){
       const dx = F.tx - px, dy = F.ty - py, d = Math.hypot(dx, dy);
       if(d < 30) { out[2*n] = F.tx; out[2*n+1] = F.ty; n++; break; }
       if(!navDir(F, px, py)) break;
-      px += NV.x*CS*0.9; py += NV.y*CS*0.9;
+      px += NV[0]*CS*0.9; py += NV[1]*CS*0.9;
       const m = beyondMouth(px, py, 0); if(m >= 0 && mOut[m] && inMouth){ px = inEntryX; py = inEntryY; }
     }
     return n;
@@ -1783,7 +1979,7 @@ BV.createSim = function(net, opts){
 
   // debug / test access (not part of the contract)
   S._dbg = { W, P, Sx, FX, Rc, fields, nav, dbg, mouths, get nW(){ return nW; }, get nR(){ return nR; }, get infection(){ return infection; }, set infection(v){ infection = v; },
-    navDir: (F,x,y)=> navDir(F,x,y) ? { x:NV.x, y:NV.y, T:NV.T } : null, nidx, NW, NH, OX, OY, CS, get nX(){ return nX; }, get nY(){ return nY; },
+    navDir: (F,x,y)=> navDir(F,x,y) ? { x:NV[0], y:NV[1], T:NV[2] } : null, nidx, NW, NH, OX, OY, CS, get nX(){ return nX; }, get nY(){ return nY; },
     placeSite: k => placeSite(k), addPathogen: (t,x,y)=>addPathogen(t,x,y,0,0), spawnCluster: (x,y,n)=>spawnCluster(x,y,n,HOLD), inMouth, get inEntry(){ return inEntry; },
     get pending(){ return pending; }, setWave: w => { wave = w; }, get state(){ return state; }, rbcBins: { bTgt, bCnt, bSur, bArea, get BX(){ return lastBX; }, get BY(){ return lastBY; } } };
 

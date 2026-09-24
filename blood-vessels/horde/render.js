@@ -2,8 +2,10 @@
    HORDE — WebGL2 renderer
    ----------------------------------------------------------------------------
    const R = BV.createRenderer(canvas, net, opts)   // throws without WebGL2
-   R.resize(cssW, cssH, dpr)   R.render(frame)   R.setQuality({scale, dof, fgCells})
-   R.stats()  R.destroy()      (extras: R.setNet(net), R.measure(frame), R.gl)
+   R.resize(cssW, cssH, dpr)   R.render(frame)   R.setQuality({scale, dof, fgCells, debug})
+   R.stats() → {gpuMs?, drawCalls, instances, fgCells, scale, listEntries, maxList}   R.destroy()
+   extras: R.setNet(net) (new map, same canvas), R.measure(frame, w?, h?) → per-pixel Bézier work
+   (debug read-back), R.gl. debug views: 1 work counters, 2 field (N / arc / wall), 3 grid + evals.
 
    Per frame:
    1. WORLD  one full-screen pass (optionally at a reduced resolution, then
@@ -25,10 +27,31 @@
              px wide. Every texture fades by pixel footprint.
    2. RBC    instanced biconcave impostors, far → near (bucket-sorted by depth),
              tumble, depth of field, × rbcLOD.
-   3. UNITS  instanced, in four sweeps over the same buffer: soft shadows →
-             infection sites → cells / pathogens / antibodies → FX.
+   3. UNITS  instanced, in five sweeps over the same buffer: soft shadows →
+             infection sites → selection rings → cells / pathogens / antibodies → FX
+             (rings under all bodies, so a packed selected horde is outlined, not meshed).
    4. FG     optional sparse big blurred red cells in front, faded out around
              units so they never cover a face.
+
+   Instance fields as the renderer reads them (HORDE_SPEC layouts; extras as sim.js packs them):
+     RBC  (8)  x y r depth(0 near…1 far) angle(travel) tumble(0 face-on…1 edge-on) oxy alpha
+               drawn × rbcLOD; depth → size, blur (DOF), sink toward plasma; the nearest band
+               (depth ≲ 0.06) is cross-faded into the big blurred foreground layer.
+     UNIT (16) x y r type angle phase flags hp lookX lookY stretch tint e0 e1 e2 e3
+       common  flags 1 selected (cyan ring; pathogens: red ring), 2 eating ("O" mouth), 4 hit
+               flash, 8 dying (fades by e0 = fade-out progress 0…1), 16 adhered (tighter,
+               darker shadow), 32 hovered (white ring); e3 = fade-in alpha 0…1 (spawn).
+               Min on-screen radius: WBC 2.5 css px, pathogens 2, sites 9; icon below ~9 px,
+               faces above ~13–19 px (WBC) / ~9–14 px (pathogens).
+       0 WBC   angle heading, stretch ≥ 1 along it (amoeboid), e2 swim activity (pseudopod),
+               e1 prey being digested (0 none, 1 virus, 2 bacterium) shrinking with hp,
+               look → eyes, tint → nucleus orientation / granules, phase → wobble, blink.
+       1 virus angle = spin of the spikes; look → eyes; face stays upright.
+       2 bact. r = rod half-width, stretch = half-length / r (2.2…3), angle body axis,
+               e1 division progress (waist pinches), flagella wave from the back.
+       3 site  angle wall tangent, stretch elongates along it, hp → HP ring, e2 emission pulse.
+       4 antibody Y along angle.   5 FX burst: hp life 1 → 0, tint < .33 cyan / < .66 green / orange.
+     frame.marks is not drawn here (main.js draws overlays on its 2D canvas).
 
    Per-list acceleration data built here (the net.js payload is used as is):
    a second list texture, parallel to net.gpu.listData, holds for every entry
@@ -591,7 +614,9 @@ out vec2 vP;
 flat out vec4 vA; flat out vec4 vB; flat out vec4 vC; flat out vec4 vD;
 void main(){
   int type = int(iA.w + 0.5);
-  bool ok = uPass == 0 ? (type <= 2) : uPass == 1 ? (type == 3) : uPass == 2 ? (type <= 2 || type == 4) : (type == 5);
+  int fl = int(iB.z + 0.5);
+  bool ok = uPass == 0 ? (type <= 2) : uPass == 1 ? (type == 3) : uPass == 2 ? (type <= 2 && (fl & 33) != 0)
+          : uPass == 3 ? (type <= 2 || type == 4) : (type == 5);
   if(!ok){ gl_Position = vec4(2.0, 2.0, 2.0, 1.0); return; }
   float z = uPPU/uDpr;                                        // css px per µm
   float minPx = type == 0 ? 2.5 : type == 3 ? 9.0 : type == 5 ? 0.0 : 2.0;
@@ -599,10 +624,11 @@ void main(){
   float rW = rc/z;                                            // µm radius as drawn
   float st = max(iC.z, 1.0);
   float icon = 1.0 - smoothstep(7.0, 11.0, rc);
-  vec2 ext = type == 0 ? vec2(1.72*st + 0.1, 1.72) : type == 1 ? vec2(1.4) : type == 2 ? vec2(2.65, 1.05)
-           : type == 3 ? vec2(1.55) : type == 4 ? vec2(1.2) : vec2(2.3);
-  if(uPass == 0) ext = type == 2 ? vec2(1.6, 0.9) : vec2(1.45*st, 1.45);
+  vec2 ext = type == 0 ? vec2(1.72*st + 0.1, 1.72) : type == 1 ? vec2(1.4) : type == 2 ? vec2(st + 2.7, 2.0)
+           : type == 3 ? vec2(1.5*st, 1.5) : type == 4 ? vec2(1.2) : vec2(2.3);
+  if(uPass == 0) ext = type == 2 ? vec2(st + 0.6, 1.6) : vec2(1.45*st, 1.45);
   if(icon > 0.0 && uPass != 0) ext = max(ext, vec2(2.6));
+  if(uPass == 2) ext += vec2(0.4);
   vec2 lc = aC*ext;
   float ang = iB.x, c = cos(ang), s = sin(ang);
   vec2 off = uPass == 0 ? vec2(0.26, 0.34)*((int(iB.z + 0.5) & 16) != 0 ? 0.45 : 1.0)*rW : vec2(0.0);
@@ -714,14 +740,19 @@ vec4 miniVirus(vec2 p, float aw, float t){
   return pm(c, cov);
 }
 
-vec4 drawWBC(vec2 pb, vec2 ps, float aw, float st, float ph, int flags, float hp, vec2 look, float tint, float prey, float faceMix){
+// amoeboid outline: q-space radius rho and the wobbling boundary radius R
+void wbcShape(vec2 pb, float st, float ph, int flags, float act, out float rho, out float R){
   float t = uTime + ph;
   vec2 q = vec2(pb.x/st, pb.y*sqrt(st));
-  float rho = length(q), phi = atan(q.y, q.x);
-  float mv = clamp((st - 1.0)*3.0, 0.0, 1.0);
-  float R = 0.93 + 0.04*sin(3.0*phi + 1.7*t) + 0.028*sin(5.0*phi - 2.3*t + 1.3) + 0.02*sin(2.0*phi + 1.1*t + 2.1)
-          + mv*(0.16*pow(max(cos(phi), 0.0), 6.0) - 0.035);
+  rho = length(q); float phi = atan(q.y, q.x);
+  float mv = clamp(max((st - 1.0)*3.0, act), 0.0, 1.0);
+  R = 0.93 + 0.04*sin(3.0*phi + 1.7*t) + 0.028*sin(5.0*phi - 2.3*t + 1.3) + 0.02*sin(2.0*phi + 1.1*t + 2.1)
+    + mv*(0.16*pow(max(cos(phi), 0.0), 6.0) - 0.035);
   if((flags & 2) != 0) R += 0.03*sin(uTime*9.0 + ph);
+}
+vec4 drawWBC(vec2 pb, vec2 ps, float aw, float st, float ph, int flags, float hp, vec2 look, float tint, float prey, float faceMix, float act){
+  float t = uTime + ph;
+  float rho, R; wbcShape(pb, st, ph, flags, act, rho, R);
   float sd = rho - R;
   float cov = fill(sd, aw*1.1);
   float s = clamp(rho/R, 0.0, 1.0), hz = sqrt(1.0 - s*s);
@@ -778,20 +809,25 @@ vec4 drawWBC(vec2 pb, vec2 ps, float aw, float st, float ph, int flags, float hp
   res.rgb += vec3(1.0, 0.97, 1.0)*0.5*smoothstep(0.8, 1.0, s)*fill(sd, aw)*(0.35 + 0.65*max(dot(dir, -SDIR), 0.0));
   res.rgb += vec3(1.0, 0.72, 0.82)*0.2*smoothstep(0.72, 1.0, s)*cov*max(dot(dir, SDIR), 0.0);
   if((flags & 4) != 0) res.rgb += vec3(0.7, 0.35, 0.35)*cov*(0.6 + 0.4*sin(uTime*40.0));
-  // selection / hover rings
-  if((flags & 1) != 0){
-    float rr = abs(rho - R - 0.2);
-    res = over(pm(vec3(0.35, 0.95, 1.0), fill(rr - 0.035, aw)), res);
-    res.rgb += vec3(0.2, 0.8, 1.0)*0.45*exp(-rr*14.0);
-  } else if((flags & 32) != 0){
-    res = over(pm(vec3(1.0), 0.55*fill(abs(rho - R - 0.18) - 0.02, aw)), res);
-  }
   return res;
 }
 
-vec4 drawVirus(vec2 ps, float aw, float ph, vec2 look, float faceMix, int flags){
-  float spin = ph*1.7 + uTime*0.35*(fract(ph*3.1) > 0.5 ? 1.0 : -1.0);
-  vec2 pr = rot(ps, spin);
+// selection (cyan) / hover (white) rings, drawn in their own pass beneath every body
+vec4 drawRing(int type, vec2 pb, float aw, float st, float ph, int flags, float act){
+  float d;
+  if(type == 0){ float rho, R; wbcShape(pb, st, ph, flags, act, rho, R); d = rho - R - 0.2; }
+  else if(type == 1) d = length(pb) - 1.08;
+  else d = sdSeg(pb, vec2(-max(st - 1.0, 0.0), 0.0), vec2(max(st - 1.0, 0.0), 0.0)) - 1.3;
+  if((flags & 1) != 0){
+    vec3 c = type == 0 ? vec3(0.35, 0.95, 1.0) : vec3(1.0, 0.4, 0.3);
+    vec4 res = vec4(c*0.5*exp(-abs(d)*12.0), 0.0);
+    return over(pm(c, fill(abs(d) - 0.035, aw)), res);
+  }
+  return pm(vec3(1.0), 0.55*fill(abs(d + 0.02) - 0.02, aw));
+}
+
+vec4 drawVirus(vec2 pb, vec2 ps, float aw, float ph, vec2 look, float faceMix, int flags){
+  vec2 pr = pb;                                   // spikes turn with the instance angle (spin)
   float rho = length(pr), phi = atan(pr.y, pr.x);
   const float NS = 18.0;
   float sec = 6.2831853/NS;
@@ -817,54 +853,56 @@ vec4 drawVirus(vec2 ps, float aw, float ph, vec2 look, float faceMix, int flags)
   res = over(pm(c, cov), res);
   if(faceMix > 0.0) res = over(face(ps - look*0.04 + vec2(0.0, 0.03), aw, 1, look, 0.0, 0.0, 1.4, c)*(faceMix*cov), res);
   if((flags & 4) != 0) res.rgb += vec3(0.6)*cov;
-  if((flags & 1) != 0) res = over(pm(vec3(1.0, 0.35, 0.25), fill(abs(rho - 1.08) - 0.03, aw)), res);
   return res;
 }
 
-vec4 drawBacterium(vec2 pb, vec2 ps, float aw, float ph, vec2 look, float faceMix, int flags, float ang){
+vec4 drawBacterium(vec2 pb, vec2 ps, float aw, float ph, vec2 look, float faceMix, int flags, float ang, float st, float div){
+  // local units: r = the rod's half-width; stretch = half-length / r (sim: 2.2 … 3, grows before dividing)
   float t = uTime + ph;
-  vec2 q = pb; q.y += 0.045*sin(q.x*3.0 + t*4.0);
-  const float HL = 0.58, HW = 0.46;
-  float sd = sdSeg(q, vec2(-HL, 0.0), vec2(HL, 0.0)) - HW;
+  float HL = max(st - 1.0, 0.0);
+  vec2 q = pb; q.y += 0.1*sin(q.x*1.4 + t*4.0);
+  float pinch = 0.42*smoothstep(0.35, 1.0, div)*exp(-q.x*q.x/0.5);      // waist forming before division
+  float sd = sdSeg(q, vec2(-HL, 0.0), vec2(HL, 0.0)) - (1.0 - pinch);
   float cov = fill(sd, aw);
   // flagella trailing from the back
   float fl = 0.0;
   for(int k = 0; k < 2; k++){
     float fk = float(k);
-    float x = pb.x + HL + 0.3;
-    float y0 = (fk - 0.5)*0.32;
-    float amp = 0.07 + 0.12*clamp(-x, 0.0, 1.2);
-    float ph2 = 5.5*x + t*8.0 + fk*2.4;
-    float y = y0*(1.0 + 0.5*clamp(-x, 0.0, 2.0)) + amp*sin(ph2);
-    float dy = 0.5*y0*step(x, 0.0) - 0.12*sin(ph2)*step(x, 0.0) + amp*5.5*cos(ph2);
-    float d = abs(pb.y - y)/sqrt(1.0 + dy*dy) - mix(0.05, 0.022, clamp(-x/1.5, 0.0, 1.0));
-    d = max(d, max(x, -x - 1.5));
-    fl = max(fl, fill(d, aw)*(1.0 - smoothstep(1.1, 1.5, -x)));
+    float x = pb.x + HL + 0.7;
+    float y0 = (fk - 0.5)*0.7;
+    float amp = 0.15 + 0.26*clamp(-x, 0.0, 2.5);
+    float ph2 = 2.6*x + t*8.0 + fk*2.4;
+    float y = y0*(1.0 + 0.45*clamp(-x, 0.0, 3.0)) + amp*sin(ph2);
+    float dy = 0.45*y0*step(x, 0.0) - 0.26*sin(ph2)*step(x, 0.0) + amp*2.6*cos(ph2);
+    float d = abs(pb.y - y)/sqrt(1.0 + dy*dy) - mix(0.11, 0.05, clamp(-x/3.2, 0.0, 1.0));
+    d = max(d, max(x, -x - 3.2));
+    fl = max(fl, fill(d, aw)*(1.0 - smoothstep(2.4, 3.2, -x)));
   }
-  float s = clamp(abs(sdSeg(q, vec2(-HL, 0.0), vec2(HL, 0.0)))/HW, 0.0, 1.0);
+  float s = clamp(abs(sdSeg(q, vec2(-HL, 0.0), vec2(HL, 0.0)))/(1.0 - pinch), 0.0, 1.0);
   vec2 nd = q - vec2(clamp(q.x, -HL, HL), 0.0);
   vec2 ns = rot(nd/max(length(nd), 1e-4), ang);
   vec3 n = normalize(vec3(ns*s, sqrt(max(1.0 - s*s, 0.0))));
   float dif = max(dot(n, LDIR), 0.0);
   vec3 c = mix(vec3(0.06, 0.38, 0.32), vec3(0.45, 0.90, 0.50), 0.2 + 0.8*dif);
-  vec2 sq = q/0.17; vec2 si = floor(sq);
+  vec2 sq = q/0.38; vec2 si = floor(sq);
   float spot = fill(length(fract(sq) - 0.5 - 0.3*(h22(ivec2(si)) - 0.5)) - 0.13, 0.08)*step(0.6, h21(ivec2(si) + 9));
   c *= 1.0 - 0.16*spot;
   c += vec3(0.8, 1.0, 0.8)*pow(max(dot(n, HDIR), 0.0), 18.0)*0.35;
   c *= 1.0 - 0.4*smoothstep(0.78, 1.0, s);
-  vec4 res = vec4(vec3(0.3, 1.0, 0.5)*0.16*exp(-max(sd, 0.0)*8.0)*(1.0 - cov), 0.0);
+  vec4 res = vec4(vec3(0.3, 1.0, 0.5)*0.16*exp(-max(sd, 0.0)*3.5)*(1.0 - cov), 0.0);
   res = over(pm(vec3(0.30, 0.62, 0.42), fl*0.8), res);
   res = over(pm(c, cov), res);
-  if(faceMix > 0.0) res = over(face(ps - look*0.03, aw, 2, look, 0.0, 0.0, 1.45, c)*(faceMix*cov), res);
+  if(faceMix > 0.0) res = over(face(ps - look*0.07, aw, 2, look, 0.0, 0.0, 2.3, c)*(faceMix*cov), res);
   if((flags & 4) != 0) res.rgb += vec3(0.6)*cov;
-  if((flags & 1) != 0) res = over(pm(vec3(1.0, 0.35, 0.25), fill(abs(sd - 0.14) - 0.03, aw)), res);
   return res;
 }
 
-vec4 drawSite(vec2 ps, float aw, float ph, float hp, int flags){
+vec4 drawSite(vec2 pb, float aw, float ph, float hp, int flags, float st, float emit, float ang){
+  // elongated along the wall tangent (angle) by stretch; e2 = emission pulse
+  vec2 ps = rot(vec2(pb.x/st, pb.y), ang);
   float t = uTime + ph;
   float rho = length(ps), phi = atan(ps.y, ps.x);
-  float pulse = 0.5 + 0.5*sin(t*3.2);
+  float pulse = max(0.5 + 0.5*sin(t*3.2), clamp(emit, 0.0, 1.0));
   float R = 1.0 + 0.06*sin(5.0*phi + ph*3.0) + 0.045*sin(9.0*phi + ph*5.0 + t*0.4) + 0.02*sin(17.0*phi + ph);
   float x = rho/R;
   float cov = 1.0 - smoothstep(0.86, 1.02, x);
@@ -955,23 +993,26 @@ void main(){
   vec4 res = vec4(0.0);
   if(uPass == 0){
     // soft contact shadow on the back wall
-    vec2 q = type == 2 ? vec2(max(abs(pb.x) - 0.55, 0.0), pb.y) : vec2(pb.x/st, pb.y);
-    float d = length(q) - (type == 2 ? 0.42 : 0.8);
+    vec2 q = type == 2 ? vec2(max(abs(pb.x) - max(st - 1.0, 0.0), 0.0), pb.y) : vec2(pb.x/st, pb.y);
+    float d = length(q) - (type == 2 ? 0.95 : 0.8);
     float a = (1.0 - smoothstep(-0.25, 0.55, d))*((flags & 16) != 0 ? 0.42 : 0.3)*(1.0 - icon);
     res = vec4(0.0, 0.0, 0.0, a);
+  } else if(uPass == 2){
+    res = drawRing(type, pb, aw, st, ph, flags, vD.z)*(1.0 - icon);
   } else {
-    float faceMix = smoothstep(13.0, 19.0, rcss);
+    float faceMix = type == 0 ? smoothstep(13.0, 19.0, rcss) : smoothstep(9.0, 14.0, rcss);
     if(icon < 1.0){
-      if(type == 0) res = drawWBC(pb, ps, aw, st, ph, flags, hp, look, tint, vD.y, faceMix);
-      else if(type == 1) res = drawVirus(ps, aw, ph, look, faceMix, flags);
-      else if(type == 2) res = drawBacterium(pb, ps, aw, ph, look, faceMix, flags, ang);
-      else if(type == 3) res = drawSite(ps, aw, ph, hp, flags);
+      if(type == 0) res = drawWBC(pb, ps, aw, st, ph, flags, hp, look, tint, vD.y, faceMix, vD.z);
+      else if(type == 1) res = drawVirus(pb, ps, aw, ph, look, faceMix, flags);
+      else if(type == 2) res = drawBacterium(pb, ps, aw, ph, look, faceMix, flags, ang, st, vD.y);
+      else if(type == 3) res = drawSite(pb, aw, ph, hp, flags, st, vD.z, ang);
       else if(type == 4) res = drawAntibody(pb, aw);
       else res = drawFX(ps, aw, hp, tint);
     }
     if(icon > 0.0 && type != 5) res = mix(res, drawIcon(type, flags, ps, aw, ph), icon);
   }
-  if((flags & 8) != 0) res *= clamp(1.0 - vD.x, 0.0, 1.0)*0.85;
+  if((flags & 8) != 0) res *= clamp(1.0 - vD.x, 0.0, 1.0)*0.85;   // e0: fade-out while dying
+  res *= clamp(vD.w, 0.0, 1.0);                                        // e3: fade-in alpha (spawn)
   o = res;
 }`;
 
@@ -1087,6 +1128,13 @@ BV.createRenderer = function(canvas, net, opts){
   let tq = null, queries = [];
   let lost = false;
 
+  const bufCap = new Map();
+  function upload(buf, arr){                 // orphan-free streaming: grow rarely, sub-update every frame
+    const bytes = arr.byteLength, cap = bufCap.get(buf) || 0;
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    if(bytes > cap){ const nc = Math.max(bytes, Math.ceil(cap*1.5), 65536); gl.bufferData(gl.ARRAY_BUFFER, nc, gl.DYNAMIC_DRAW); bufCap.set(buf, nc); }
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, arr);
+  }
   function instVAO(buf, stride, nAttr){
     const v = gl.createVertexArray();
     gl.bindVertexArray(v);
@@ -1103,6 +1151,7 @@ BV.createRenderer = function(canvas, net, opts){
     const g = net.gpu;
     if(W && W.tex) for(const t of W.tex) gl.deleteTexture(t);
     const maxl = Math.min(1024, Math.max(16, Math.ceil(g.maxList/16)*16));
+    if(g.maxList > 1024) console.warn('[render] a grid cell lists '+g.maxList+' Béziers; only the first 1024 are evaluated');
     const tex = [
       floatTex(gl, g.segW, g.segRows, gl.RGBA32F, gl.RGBA, g.segData),
       floatTex(gl, g.gridW, g.gridH, gl.RG32F, gl.RG, g.cellData),
@@ -1122,7 +1171,7 @@ BV.createRenderer = function(canvas, net, opts){
     gl.bindBuffer(gl.ARRAY_BUFFER, quad);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
     emptyVAO = gl.createVertexArray();
-    rbcBuf = gl.createBuffer(); fgBuf = gl.createBuffer(); unitBuf = gl.createBuffer();
+    rbcBuf = gl.createBuffer(); fgBuf = gl.createBuffer(); unitBuf = gl.createBuffer(); bufCap.clear();
     rbcVAO = instVAO(rbcBuf, 32, 2); fgVAO = instVAO(fgBuf, 32, 2); unitVAO = instVAO(unitBuf, 64, 4);
     rbcProg = program(gl, RBC_VS, RBC_FS, 'rbc');
     unitProg = program(gl, UNIT_VS, UNIT_FS, 'unit');
@@ -1196,39 +1245,35 @@ BV.createRenderer = function(canvas, net, opts){
   // ---- red cells: depth bucket sort (far first) + foreground split ---------
   let sortBuf = new Float32Array(0), fgArr = new Float32Array(0);
   const bucketN = 16, counts = new Int32Array(bucketN), starts = new Int32Array(bucketN);
+  // Far cells are bucket-sorted by depth (far → near). The nearest cells (depth band below ~0.06:
+  // about 1.5 % of a uniform 0..1 spread) are also drawn as the sparse foreground layer. The choice
+  // depends on depth only (stable per cell, whatever the buffer order) and is cross-faded, so no pop.
+  const fgW = d => 1 - Math.min(1, Math.max(0, (d - 0.055)/0.013));
   function prepRBC(src, n, fgOn, units){
     if(sortBuf.length < n*8) sortBuf = new Float32Array(Math.ceil(n*1.25)*8);
     if(fgArr.length < 64*8) fgArr = new Float32Array(64*8);
     counts.fill(0);
-    let nf = 0;
-    const isFg = i => fgOn && src[i*8+3] < 0.08 && nf < 48 && (Math.imul(i, 2654435761)>>>0) % 2 === 0;
-    const fgIdx = [];
-    for(let i=0;i<n;i++){
-      if(isFg(i)){ fgIdx.push(i); nf++; continue; }
-      const d = src[i*8+3];
-      let bk = bucketN - 1 - Math.min(bucketN-1, Math.max(0, (d*bucketN)|0));
-      counts[bk]++;
-    }
+    const bucketOf = d => bucketN - 1 - Math.min(bucketN-1, Math.max(0, (d*bucketN)|0));
+    for(let i=0;i<n;i++) counts[bucketOf(src[i*8+3])]++;
     let acc = 0; for(let k=0;k<bucketN;k++){ starts[k] = acc; acc += counts[k]; }
-    const fgSet = new Set(fgIdx);
-    for(let i=0;i<n;i++){
-      if(fgSet.has(i)) continue;
-      const d = src[i*8+3];
-      const bk = bucketN - 1 - Math.min(bucketN-1, Math.max(0, (d*bucketN)|0));
-      const o = (starts[bk]++)*8, s = i*8;
-      for(let j=0;j<8;j++) sortBuf[o+j] = src[s+j];
-    }
-    // foreground cells fade out near any unit (never over a face)
     let nfg = 0;
-    for(const i of fgIdx){
-      const s = i*8, x = src[s], y = src[s+1], r = src[s+2]*2.1*1.5;
-      let a = 1;
+    for(let i=0;i<n;i++){
+      const s = i*8, d = src[s+3];
+      const o = (starts[bucketOf(d)]++)*8;
+      for(let j=0;j<8;j++) sortBuf[o+j] = src[s+j];
+      const w = fgOn ? fgW(d) : 0;
+      if(w <= 0.001) continue;
+      sortBuf[o+7] *= 1 - w;                      // far copy fades out as the foreground copy fades in
+      if(nfg >= 64) continue;
+      // foreground copy, faded out near any unit (never over a face)
+      const x = src[s], y = src[s+1], r = src[s+2]*2.1*1.5;
+      let a = w;
       if(units && units.count){
         const U = units.data;
         for(let k=0;k<units.count;k++){
-          const o = k*16, ur = U[o+2]*1.9;
-          const d = Math.hypot(U[o]-x, U[o+1]-y) - ur - r;
-          if(d < r){ a = Math.min(a, Math.max(0, d/r)); if(a <= 0) break; }
+          const q = k*16, ur = U[q+2]*1.9;
+          const dd = Math.hypot(U[q]-x, U[q+1]-y) - ur - r;
+          if(dd < r){ a = Math.min(a, w*Math.max(0, dd/r)); if(a <= 0) break; }
         }
       }
       if(a <= 0.01) continue;
@@ -1240,8 +1285,7 @@ BV.createRenderer = function(canvas, net, opts){
 
   function drawRBC(vao, buf, data, n, frame, fg){
     const P = rbcProg, u = P.u, cam = frame.cam;
-    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-    gl.bufferData(gl.ARRAY_BUFFER, data.subarray(0, n*8), gl.STREAM_DRAW);
+    upload(buf, data.subarray(0, n*8));
     gl.useProgram(P.p);
     gl.bindVertexArray(vao);
     gl.uniform2f(u.uCam, cam.x, cam.y);
@@ -1256,8 +1300,7 @@ BV.createRenderer = function(canvas, net, opts){
 
   function drawUnits(frame){
     const units = frame.units, P = unitProg, u = P.u, cam = frame.cam;
-    gl.bindBuffer(gl.ARRAY_BUFFER, unitBuf);
-    gl.bufferData(gl.ARRAY_BUFFER, units.data.subarray(0, units.count*16), gl.STREAM_DRAW);
+    upload(unitBuf, units.data.subarray(0, units.count*16));
     gl.useProgram(P.p);
     gl.bindVertexArray(unitVAO);
     gl.uniform2f(u.uCam, cam.x, cam.y);
@@ -1265,7 +1308,7 @@ BV.createRenderer = function(canvas, net, opts){
     gl.uniform1f(u.uPPU, cam.z*dpr);
     gl.uniform1f(u.uDpr, dpr);
     gl.uniform1f(u.uTime, frame.time || 0);
-    for(let pass=0; pass<4; pass++){
+    for(let pass=0; pass<5; pass++){      // shadows, sites, selection rings, bodies, FX
       gl.uniform1i(u.uPass, pass);
       gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, units.count);
       st.drawCalls++;

@@ -7,7 +7,8 @@
    1. FLOW       Poiseuille solve on the graph (g = 1/Σ ℓ/r⁴, p = 1 at inlets,
                  0 at outlets). Edges are re-oriented along the solved flow and
                  carry Q; the mean speed is Q/(πr²), scaled so the inlet trunk
-                 runs at CONST.V_INLET.
+                 runs at CONST.V_INLET. Every point also carries its pressure
+                 (chain.P, bezier.p0/p2): the pulse wave rides on it.
    2. CHAINS     Edges are joined into render chains: at every junction the
                  straightest in→out pair continues as one chain, the other
                  vessel starts (or ends) there as a side branch. Joining the
@@ -135,6 +136,7 @@ BV.buildNet = function(gen){
     let q = F.Q[k];
     if(q < 0){ const t = e.a; e.a = e.b; e.b = t; e.pts.reverse(); q = -q; }
     e.Q = q;
+    e.pA = F.pres[F.idx.get(e.a)]; e.pB = F.pres[F.idx.get(e.b)];
   });
   for(const e of edges){ nodeById.get(e.a).outs.push(e); nodeById.get(e.b).ins.push(e); }
   for(const n of nodes) if(n.type==='inlet') for(const e of n.outs) qIn += e.Q;
@@ -148,7 +150,11 @@ BV.buildNet = function(gen){
     e.qn = e.Q / qIn;
     // per-point attributes: mean speed, oxygenation, kind
     const n = e.pts.length;
-    e.spd = new Float64Array(n); e.oxy = new Float64Array(n);
+    e.spd = new Float64Array(n); e.oxy = new Float64Array(n); e.prs = new Float64Array(n);
+    // pressure falls along the vessel in proportion to the Poiseuille resistance Σ ℓ/r⁴
+    { let Rt = 0; const cr = new Float64Array(n);
+      for(let i=1;i<n;i++){ const r = 0.5*(e.pts[i][2]+e.pts[i-1][2]); Rt += (e.cum[i]-e.cum[i-1])/(r*r*r*r); cr[i] = Rt; }
+      for(let i=0;i<n;i++) e.prs[i] = e.pA + (e.pB - e.pA)*(Rt > 0 ? cr[i]/Rt : i/(n-1||1)); }
     for(let i=0;i<n;i++){
       const r = e.pts[i][2];
       e.spd[i] = Math.min(CONST.V_INLET*1.6, e.Q*vScale/(Math.PI*r*r));
@@ -186,13 +192,13 @@ BV.buildNet = function(gen){
   for(const e of edges) if(!seen.has(e)) chains.push(walk(e));   // pure cycles
 
   const C = chains.map((list, ci)=>{
-    const X=[], Y=[], R=[], O=[], S=[], K=[], E=[], EA=[], joints=[];
+    const X=[], Y=[], R=[], O=[], S=[], K=[], E=[], EA=[], P=[], joints=[];
     list.forEach((e, li)=>{
       e.chain = ci;
       const n = e.pts.length;
       for(let i = li ? 1 : 0; i<n; i++){
         X.push(e.pts[i][0]); Y.push(e.pts[i][1]); R.push(e.pts[i][2]);
-        O.push(e.oxy[i]); S.push(e.spd[i]); K.push(e.kind); E.push(e.id); EA.push(e.cum[i]);
+        O.push(e.oxy[i]); S.push(e.spd[i]); K.push(e.kind); E.push(e.id); EA.push(e.cum[i]); P.push(e.prs[i]);
       }
       if(li < list.length-1) joints.push(X.length-1);
     });
@@ -206,9 +212,29 @@ BV.buildNet = function(gen){
         X[i] += 0.5*((X[i-1]+X[i+1])*0.5 - X[i]); Y[i] += 0.5*((Y[i-1]+Y[i+1])*0.5 - Y[i]);
       }
     }
+    // a vessel that continues into a thinner one (e.g. a terminal into its AV
+    // connector) may step in radius at the joint; a step reads as a notch or a
+    // bulb in the smooth union, so ramp it over ~1.5 r on either side
+    for(const j of joints){
+      if(j+1 >= R.length) continue;
+      const ra = R[j], rb = R[j+1];
+      if(Math.abs(ra-rb) < 0.04*Math.max(ra,rb)) continue;
+      const w = 1.5*Math.max(ra, rb);
+      let lo = j, hi = j+1, acc = 0;
+      while(lo>0 && acc < w){ acc += Math.hypot(X[lo]-X[lo-1], Y[lo]-Y[lo-1]); lo--; }
+      acc = 0; while(hi<X.length-1 && acc < w){ acc += Math.hypot(X[hi+1]-X[hi], Y[hi+1]-Y[hi]); hi++; }
+      const r0 = R[lo], r1 = R[hi]; let tot = 0;
+      for(let i=lo+1;i<=hi;i++) tot += Math.hypot(X[i]-X[i-1], Y[i]-Y[i-1]);
+      acc = 0;
+      for(let i=lo+1;i<hi;i++){
+        acc += Math.hypot(X[i]-X[i-1], Y[i]-Y[i-1]);
+        const f = tot > 0 ? acc/tot : 0.5;
+        R[i] = r0 + (r1-r0)*f*f*(3-2*f);
+      }
+    }
     const cum = new Float64Array(X.length);
     for(let i=1;i<X.length;i++) cum[i] = cum[i-1] + Math.hypot(X[i]-X[i-1], Y[i]-Y[i-1]);
-    return { id:ci, edges:list.map(e=>e.id), X, Y, R, O, S, K, E, EA, cum, len:cum[X.length-1] };
+    return { id:ci, edges:list.map(e=>e.id), X, Y, R, O, S, K, E, EA, P, cum, len:cum[X.length-1] };
   });
 
   // ---- 3. Béziers (quadratic B-spline per chain) --------------------------
@@ -218,7 +244,7 @@ BV.buildNet = function(gen){
     if(s <= 0) lo = hi = 0; else if(s >= ch.len) lo = hi = c.length-1;
     else { while(hi-lo > 1){ const m = (lo+hi)>>1; if(c[m] <= s) lo = m; else hi = m; } }
     const t = hi>lo ? (s-c[lo])/(c[hi]-c[lo]) : 0, L = (A)=>A[lo]+(A[hi]-A[lo])*t;
-    return { x:L(ch.X), y:L(ch.Y), r:L(ch.R), o:L(ch.O), v:L(ch.S), k:L(ch.K) };
+    return { x:L(ch.X), y:L(ch.Y), r:L(ch.R), o:L(ch.O), v:L(ch.S), k:L(ch.K), p:L(ch.P) };
   };
   for(const ch of C){
     // adaptive control vertices: spacing ~0.9 r, and never more than ~20° of turning per span
@@ -240,7 +266,7 @@ BV.buildNet = function(gen){
     const emit = (A, B, Cc) => {
       const a0 = attrAt(ch, A[2]), a2 = attrAt(ch, Cc[2]);
       beziers.push({ ax:A[0], ay:A[1], bx:B[0], by:B[1], cx:Cc[0], cy:Cc[1],
-        r0:a0.r, r2:a2.r, s0:A[2], s2:Cc[2], o0:a0.o, o2:a2.o, v0:a0.v, v2:a2.v, k0:a0.k, k2:a2.k, chain:ch.id });
+        r0:a0.r, r2:a2.r, s0:A[2], s2:Cc[2], o0:a0.o, o2:a2.o, v0:a0.v, v2:a2.v, k0:a0.k, k2:a2.k, p0:a0.p, p2:a2.p, chain:ch.id });
     };
     const mid = (p,q)=>[(p[0]+q[0])/2, (p[1]+q[1])/2, (p[2]+q[2])/2];
     if(m === 1){ emit(Q[0], mid(Q[0],Q[1]), Q[1]); }
@@ -476,6 +502,37 @@ function makeSampler(net){
     out.oxy = D[o00+6]*w00 + D[o10+6]*w10 + D[o01+6]*w01 + D[o11+6]*w11;
     out.kind = kk;
     out.wall = kk <= 1 ? W0 + (W1-W0)*kk : W1 + (W2-W1)*(kk-1);
+    return out;
+  };
+  // Allocation-free twin of sample() for hot loops (added for sim.js), same
+  // maths. The point goes in and the result comes out through one Float64Array
+  // (io[10] = x, io[11] = y → io[0..9] = N, rB, d, gx, gy, fx, fy, oxy, kind,
+  // wall): V8 boxes every double passed as an argument to, or stored into an
+  // object field by, a call it does not inline (~70 B per sample() call).
+  sample.f = function(out){
+    const x = out[10], y = out[11];
+    const fx = (x - x0)/TS, fy = (y - y0)/TS;
+    const tx = Math.floor(fx), ty = Math.floor(fy);
+    const ti = ty*TW + tx;
+    const D = (tx < 0 || ty < 0 || tx >= TW || ty >= THt) ? FAR : (tiles[ti] || build(ti));
+    if(D === FAR){ out[0] = 1e3; out[1] = 100; out[2] = 1e5; out[3] = 0; out[4] = 0; out[5] = 0; out[6] = 0; out[7] = 0.5; out[8] = 0; out[9] = W0; return out; }
+    const u = (fx - tx)*TN, v = (fy - ty)*TN;
+    let i = u|0, j = v|0; if(i >= TN) i = TN-1; if(j >= TN) j = TN-1;
+    const a = u - i, c = v - j, n1 = TN + 1;
+    const o00 = (j*n1 + i)*STR, o10 = o00 + STR, o01 = o00 + n1*STR, o11 = o01 + STR;
+    const w00 = (1-a)*(1-c), w10 = a*(1-c), w01 = (1-a)*c, w11 = a*c;
+    const N = D[o00]*w00 + D[o10]*w10 + D[o01]*w01 + D[o11]*w11;
+    const rB = D[o00+1]*w00 + D[o10+1]*w10 + D[o01+1]*w01 + D[o11+1]*w11;
+    const gx = D[o00+2]*w00 + D[o10+2]*w10 + D[o01+2]*w01 + D[o11+2]*w11;
+    const gy = D[o00+3]*w00 + D[o10+3]*w10 + D[o01+3]*w01 + D[o11+3]*w11;
+    const gl = Math.sqrt(gx*gx + gy*gy) || 1;
+    const kk = D[o00+7]*w00 + D[o10+7]*w10 + D[o01+7]*w01 + D[o11+7]*w11;
+    out[0] = N; out[1] = rB; out[2] = N*rB; out[3] = gx/gl; out[4] = gy/gl;
+    out[5] = D[o00+4]*w00 + D[o10+4]*w10 + D[o01+4]*w01 + D[o11+4]*w11;
+    out[6] = D[o00+5]*w00 + D[o10+5]*w10 + D[o01+5]*w01 + D[o11+5]*w11;
+    out[7] = D[o00+6]*w00 + D[o10+6]*w10 + D[o01+6]*w01 + D[o11+6]*w11;
+    out[8] = kk;
+    out[9] = kk <= 1 ? W0 + (W1-W0)*kk : W1 + (W2-W1)*(kk-1);
     return out;
   };
   // warm tiles in idle time so the first frames in a region don't stall
