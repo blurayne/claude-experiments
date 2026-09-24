@@ -5,6 +5,11 @@ before the work starts. An item is ticked when it ships, with the version that c
 
 ## 2026-09-24
 
+- [ ] Flight: the engine lower pitched, with the octave the visitor's choice in the
+      settings (−2 to +1, one octave lower than now by default); and the streaks follow
+      the ship's turns — looking round, flipping over, rolling — the way the stars do, a
+      fast turn streaking them a little even at rest.
+
 - [x] Flight: entering it minimises the other dialogs (the simulation, settings, Earth and
       debug panels); leaving it restores exactly those, and the status bar as it was. A
       settings save in flight records the layout from before it, not the flight's.
