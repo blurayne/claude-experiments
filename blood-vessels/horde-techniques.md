@@ -11,6 +11,7 @@ The page is plain JavaScript split over a few classic scripts in
 | [`horde/net.js`](horde/net.js) | flow solve, render chains, Bézier field, bin grid, physics tiles |
 | [`horde/render.js`](horde/render.js) | WebGL2 renderer |
 | [`horde/sim.js`](horde/sim.js) | red cells, the horde, pathogens, navigation, game rules |
+| [`horde/audio.js`](horde/audio.js) | procedural sound: heartbeat, blood flow, effects (Web Audio) |
 | [`horde/main.js`](horde/main.js) | loop, camera, mouse / touch input, HUD, minimap, settings |
 
 The microvascular sandbox ([`index.html`](index.html), [`techniques.md`](techniques.md))
@@ -250,5 +251,201 @@ out-of-focus red cells in front.
   zoom, tap to select or order on touch, long-press for a box.
 - HUD in the style of a sci-fi lab console (status, statistics, bio-control
   panel), minimap, off-screen threat indicators, settings (map style, vessel
-  look, seed, difficulty, quality, red cells, depth of field) and help.
+  look, seed, difficulty, quality, sound, volume, red cells, depth of field)
+  and help.
 - Automatic quality lowers the world pass resolution when frames run long.
+
+---
+
+## 7. Sound (`audio.js`)
+
+Everything you hear is synthesised in the page with the Web Audio API: no
+audio files, no network, no libraries.
+
+### 7a. Engine
+
+- **One-shots are rendered, not recorded.** Each sound is a small JS
+  "recipe" (damped sines, band-limited polyBLEP saws, filtered noise, all
+  through time-varying biquads) rendered into an `AudioBuffer`, a few seeded
+  variants each (~8 MB in all), built lazily in idle time (~1.5 ms per
+  frame at 60 fps, more on slow frames, the heart first). A voice is then
+  just a buffer source and a gain node into a shared pan bus, and it
+  disconnects itself when it ends.
+- **Beds are persistent node chains.** Blood flow, body rumble, swarm
+  murmur, zoom whoosh, tension drone and the flatline are fed by two looping
+  noise buffers (pink and brown, seamless loops) and a few oscillators, and
+  are steered with `setTargetAtTime`. A steady state creates no nodes.
+- **The first click does not stall.** The gesture only creates or resumes
+  the audio context (~28 ms, most of it the browser's own context
+  creation; building everything at once took ~140 ms). The graph is built on
+  the next frame, and the noise loops and the reverb impulse are generated
+  in chunks in idle time; the beds fade in when they are ready.
+- **Mix.** Buses (heart, ambience, physical SFX, chimes and stingers, UI) →
+  a world bus (the pause fade) → master volume (volume²) → a compressor that
+  only catches storms and stingers (threshold −10 dBFS, ratio 2) → a soft
+  clipper whose curve tops out at −1 dBFS. At the default volume, normal play
+  never reaches the clipper's knee, and the compressor takes at most 0.3 dB
+  off a beat. Physical sounds are panned by screen x, fade with distance
+  from the view (silent beyond ~1.3 screens) and get quieter and muffled (a
+  low-pass on their bus) at low zoom. A dark convolution reverb (a
+  synthesised decaying-noise impulse with early reflections) puts it all
+  inside a body.
+- **The heart makes room.** A capture, an order or a destroyed lesion ducks
+  the heart for ~¼ s. The duck is deep (−7.5 dB) only when a lub or dub would
+  land on the sound and light (−2 dB) otherwise, so the reward stays clear
+  without the heartbeat pumping.
+- **Limits.** Per-sound token buckets and concurrency caps, a global cap of
+  32 one-shot voices with priority stealing (a quick fade, never a cut), and a
+  soft budget of 260 new nodes per second for low-priority grains. A burst of
+  captures (a zoomed-out horde eating dozens of viruses a second) gathers
+  over 120 ms into one "multi" fizz whose level grows with the log of the
+  count. Under a synthetic storm (200 captures/s, 30 deaths/s, order and
+  alarm spam) the engine peaked at 28 live voices and 128 new nodes/s, and
+  the output at −2.8 dBFS.
+- **Muted means silent.** No sound starts while sound is off, the tab is
+  hidden or the context is suspended. A voice scheduled on a suspended
+  context's frozen clock would wait there and play, together with everything
+  else queued, the moment sound came back. Muting fades out over ~0.1 s,
+  then suspends. Hiding the tab fades out in 20 ms, then suspends. Unmuting
+  and showing the tab resume from silence and fade in, with no pops.
+
+### 7b. Heartbeat
+
+The heartbeat is meant to sound like a stethoscope pressed to the chest.
+
+- **S1 "lub"** is mitral then tricuspid closure: two damped low components
+  18–30 ms apart (45–65 Hz fundamental gliding down, 2nd and 3rd partials, a
+  lowpassed noise transient and a short leaflet knock at ~200 Hz), 85–160 ms
+  above −20 dB, 92–99 % of its energy in 30–150 Hz.
+- **S2 "dub"** is aortic then pulmonic closure: shorter (75–125 ms), higher
+  (centroid 90–185 Hz) and sharper, and 3–4 dB under S1. The A2–P2 split
+  widens on inspiration (8 split variants chosen by the simulation's breath,
+  which also sways the level a little); on expiration P2 fuses into A2.
+- **Small speakers.** A laptop speaker plays little below 150 Hz, a phone
+  little below 300 Hz, so a realistic heartbeat would all but vanish there.
+  A parallel harmonic path runs from the heart bus through a band-pass at
+  90 Hz, a hard tanh, then 380 Hz–1.4 kHz filters, adding a short knock of
+  overtones at each thump. The brain fills in the missing fundamental.
+  On full-range speakers it adds ~1 dB. Measured with a 4th-order high-pass
+  as a speaker proxy, the heart loses 6.3 dB on a laptop (150 Hz) and
+  10.6 dB on a phone (300 Hz); it lost 11.5 and 19.8 dB without the path.
+- The heart bus is low-passed (the body) and sent to the reverb. A soft
+  systolic flow whoosh fills the gap between S1 and S2. Every beat picks a
+  variant and varies level (±1.2 dB), pitch (±1.5 %) and timing (±4 ms),
+  seeded, so it never loops.
+- **Heart-rate variability.** The rate breathes (respiratory sinus
+  arrhythmia): ±5 % over a 4.3 s breath at rest, fading as the infection
+  climbs, because losing that variability is a sepsis sign. The beat-to-beat
+  interval varies by 31 ms (SD) at rest and 5 ms at 110 bpm.
+- **Locked to the picture.** The simulation's pulse is a phase accumulator
+  (`S.heart = {phase, beat, bpm, bpmNow, breath, flat}`). The pulse curve
+  `BV.heartPh(phase, bpm)` is rate-aware: it keeps its systolic timing at
+  every rate (u = phase·64/bpm), so a faster heart shortens diastole, not the
+  upstroke. The flow's copy keeps its resting cycle mean, so game balance
+  does not change. S1 lands at the onset of the systolic upstroke,
+  0.115–0.125 s before the renderer's low-passed arterial dilation peaks, at
+  64 and 110 bpm alike. S2 follows after the physiological S1–S2 interval,
+  0.355 − 0.0018·(bpm − 64) s (Weissler). That is 356 ms at 64 bpm, systole
+  38 % of the cycle, and 274 ms at 110 bpm, 50 %: the even "tic-tac" of a
+  racing heart. At rest S2 trails the rendered dicrotic notch by up to
+  ~0.1 s, within the tolerance for late audio; at 110 bpm the two coincide.
+  Each beat is predicted on the audio clock from the phase, the rate with
+  its breathing swing, and the measured game-to-real-time ratio (down to
+  0.04). It is scheduled once, when its S1 enters a lookahead of 1.5 frame
+  gaps. In the real page S1 lands within ±8 ms of the phase crossing at
+  50 fps, and within −19…+5 ms at 5 fps under a software renderer.
+- **Pause.** A beat already scheduled but not yet heard is silenced when
+  the game pauses. It plays when the visible pulse reaches it after the
+  resume, and the whoosh and the flow surge settle where they are.
+- **Tachycardia.** The rate eases (time constant 4 s) from 64 bpm toward
+  115 bpm as the infection climbs (smoothstep), so a fever, then sepsis, can
+  be heard, and the arterial pulse on screen speeds up with it. S1 gets a
+  little louder and the systolic whoosh stronger as the rate rises. After a
+  win the heart settles back to 60 bpm. After a loss it slows (time constant
+  3.5 s, with an ECG monitor beep on each beat), its last beat runs out into
+  diastole, and it stops: the arteries stop throbbing and a monitor flatline
+  sounds. Circulation has stopped, so the rumble, flow, murmur and drone fade
+  out under it (1.5 s), leaving the flatline, then silence.
+
+### 7c. Where you are: flow and zoom
+
+- **Zoomed out** you are outside the vessels: a deep, muffled body rumble
+  (brown noise, 4th-order low-pass at 95 Hz) with the heart on top. A quiet
+  150–300 Hz "room" band, ~7 dB under the rumble, keeps it audible on a
+  laptop.
+- **Zoomed in** over a lumen you are inside the flow. Each frame, main.js
+  samples the field on a 3×3 grid over the middle of the view: the lumen
+  share, the vessel's mean speed, arterial or venous, and left/right
+  balance. That crossfades into rushing filtered pink noise whose level and
+  brightness follow the speed. Arteries are bright and strongly pulsatile,
+  veins dark and steady. The flow surges on every beat with an envelope
+  shaped like the sim's pulsatile flow: up to +9 dB and +900 cents of
+  brightness in an artery. The sim's red cells surge at once everywhere,
+  while the renderer's wall throb reaches a vessel after a delay that grows
+  as the pressure falls (0.02 s near the arterial inlet, 0.2 s in distal
+  arteries, up to 0.54 s in veins). main.js looks that delay up at the
+  screen centre, the same way the renderer does, and the audible surge
+  follows it half-way.
+- **Red cells tumbling past**: at high zoom, sparse soft "plip" grains
+  (up to 6/s), lower and softer in veins, their density following the flow
+  speed and bunching on each beat's surge.
+- **Zoom whoosh**: a band-pass whoosh (plus a low-pass, so no hiss above a
+  few kHz) whose level follows zoom velocity and whose pitch follows the
+  zoom level, so it rises as you dive in and falls as you pull out.
+- **Pause** fades the world to near silence (the UI stays audible) and
+  brings it back smoothly.
+
+### 7d. Cells and combat
+
+| event | sound |
+|---|---|
+| select | soft bubble pops, 1–4 by selection size |
+| move order | a squishy "blorp" (a saw through two moving vocal formants, "b-l-o-rp", with a jelly vibrato) as a chorus of 1–4 staggered voices whose detune and depth grow with the horde; attack orders rise at the end |
+| cells swimming on screen | a squelchy murmur (a narrow noise band whose centre wanders every 120–200 ms) plus wet squelch grains; it grows with the horde and, inside a vessel, rises over the flow |
+| reinforcements | a rising bubbly pentatonic arpeggio |
+| a white cell dies | a small, sad deflate (merged when several die together) |
+| virus / bacterium engulfed | a crisp, bright pop / a wetter, lower squelch, over a quick "glk" |
+| reward chime | at most every 0.6 s (0.8 s in a burst), quieter the faster captures come; it climbs a step of E G A C D per chime (C-major pentatonic, in key with the stingers) while the streak lasts, and its top is a brighter two-note "streak" chime, then the climb starts over |
+| lesion destroyed | a juicy splat and a short triumphant arpeggio (root position or first inversion) |
+| new infection site / wave | an ominous low, detuned alarm pulse with an octave on top (two pulses; three and deeper for a wave) |
+| pathogen escaped | a sour, detuned, falling buzz (pitch, tremolo, detune and fifth vary) |
+| infection > 50 % | a detuned low drone with a quiet minor-second rub two octaves up, swelling, brightening and rising in pitch with the infection |
+| win / loss | a major bell arpeggio over a pad / a falling minor motif over a sagging chord, then the heart's arrest |
+| UI | quiet clicks, a soft swoosh when a dialog opens or closes |
+
+### 7e. Controls
+
+- Settings → Sound (on / off) and Volume, stored with the other settings.
+  Settings pauses the game (and fades the world), so dragging the volume
+  plays a heartbeat at its level through the UI bus every ~0.3 s.
+  `?sound=0` mutes this page load only.
+- M, or the small speaker in the status panel, toggles sound. On touch
+  screens its hit area is ~42 px while it looks as small as on desktop.
+- The audio context is created on the first pointer, touch or key gesture
+  (autoplay rules; iOS resumes on touchend / click). Without Web Audio the
+  game runs silently, the sound controls are disabled, and M and the speaker
+  only say that sound is not available.
+
+### 7f. Testing
+
+`BV.createAudio({context, clock, seed, log})` accepts an
+`OfflineAudioContext` and a virtual clock, so a whole scripted scene can be
+scheduled up front and rendered faster than real time. Every one-shot, 8 s
+of heartbeat at 64 and 110 bpm, a zoom dive, a capture storm, a loss, a win
+and a 30 s gameplay scene were rendered this way, then checked with waveform
+and log-frequency spectrogram plots, ITU-R BS.1770 loudness (integrated and
+momentary), peak level, click detection, speaker-proxy high-passes and
+masking ratios (a layer rendered alone by difference against the rest).
+The real page was driven headless for mute, pause, low frame rates, phone
+layout and the missing-Web-Audio case. Levels at the default volume (0.8):
+
+| | level |
+|---|---|
+| heart at 64 bpm | −24 LUFS integrated (−20.6 at 110 bpm) |
+| move order, captures, lesion splat, alarm, escape, reinforcements, deaths | −23 to −29 LUFS momentary max |
+| reward chime / streak chime | −32 / −29 LUFS momentary max |
+| win / lose stingers | −20 LUFS momentary max |
+| UI clicks, dialog swooshes | −30 to −38 LUFS momentary max (kept subtle) |
+| a capture landing in the mix (mid zoom, 100 ms windows) | median +3.6 dB above everything else (virus), +2.7 dB (bacterium) |
+| a moving horde's murmur in its own band | +2.8 dB over the flow for 40 cells zoomed into a vessel, +12 dB for 180 cells at mid zoom |
+| any render, including the storm | peak ≤ −2.8 dBFS, no clicks; beds ≤ −44 dB above 6 kHz, the zoom whoosh −37 dB |

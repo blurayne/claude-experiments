@@ -21,6 +21,9 @@ out, pass through narrow connectors and drain into veins, all in one plane), and
 a WebGL2 renderer draws the vessels as smooth, pulsing, cut-open tubes from the
 whole map down to single cells, either cut open or as see-through glass tubes
 with the horde swimming inside. The cells are glassy, wobbly and have faces.
+All sound is synthesised in the browser: a heartbeat locked to the pulse that
+races as the infection spreads, blood rushing louder the deeper you zoom, and
+squishy, poppy effects for the horde.
 [`horde-techniques.md`](horde-techniques.md) explains how it works; the code
 sits in [`horde/`](horde/) (generators, network, renderer, simulation, app shell).
 
@@ -168,7 +171,8 @@ network, same flow, same renderer.
   renderer and simulation work.
 - [`horde/`](horde/) — the page's scripts: map-style generators (`gen*.js`),
   the flow and field core (`net.js`), the WebGL2 renderer (`render.js`), the
-  simulation (`sim.js`) and the app shell (`main.js`).
+  simulation (`sim.js`), the procedural sound engine (`audio.js`) and the app
+  shell (`main.js`).
 
 ## Tech
 

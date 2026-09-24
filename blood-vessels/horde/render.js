@@ -11,7 +11,7 @@
    (debug read-back), R.gl. debug views: 1 work counters, 2 field (N / arc / wall), 3 grid + evals,
    4 lumen-edge check (r: physics lumen drawn as wall, depth / wall thickness × 2; g: wall drawn as
    lumen, / wall thickness; b: physics lumen). opts.bpm: heart rate for times frame.pulse has not
-   covered yet (default 66, as the simulation).
+   covered yet (default 64, the simulation's resting rate).
 
    Per frame:
    1. WORLD  one full-screen pass (optionally at a reduced resolution, then
@@ -1724,8 +1724,8 @@ BV.createRenderer = function(canvas, net, opts){
   // ---- arterial pulse wave -------------------------------------------------
   // The wall's dilation follows the heart low-passed (fast rise, slower recoil). frame.pulse is
   // recorded per frame; times the record does not cover (the first frames, single test frames,
-  // a jump in time) use BV.heart at CONST.BPM / opts.bpm (66 by default, as the simulation).
-  const bpm = opts.bpm || CONST.BPM || 66;
+  // a jump in time) use BV.heart at CONST.BPM / opts.bpm (64 by default, the simulation's resting rate).
+  const bpm = opts.bpm || CONST.BPM || 64;
   const HN = 512, hT = new Float64Array(HN), hP = new Float32Array(HN);
   let hN = 0, hHead = 0;
   const hIdx = j => (hHead - 1 - j + 2*HN) % HN;       // j steps back from the newest entry

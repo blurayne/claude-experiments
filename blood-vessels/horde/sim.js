@@ -2,7 +2,7 @@
    HORDE — simulation
    ----------------------------------------------------------------------------
    S = BV.createSim(net, {seed, difficulty})     (µm, seconds, y down)
-   S.update(dt, {time, view:{x0,y0,x1,y1}, z, rbcLOD})   S.rbc   S.units   S.pulse
+   S.update(dt, {time, view:{x0,y0,x1,y1}, z, rbcLOD})   S.rbc   S.units   S.pulse   S.heart
    S.selectInRect / selectAt / selectAll / clearSelection / command(x, y)
    S.stats  S.events  S.orders  S.home  S.reset(seed)   (see PUBLIC API below)
 
@@ -55,7 +55,17 @@
                waves, score, reinforcements at the arterial inlet, events.
                Won when the last wave's lesions are all down and < 3 pathogens
                remain (stragglers are cleared MOPUP_T s after the last lesion).
-   OUTPUT      S.rbc   {data, count}  8 floats: x y r depth angle tumble oxy alpha
+   HEART       a phase accumulator (phase += h·bpm/60·(1 + RSA), S.heart
+               {phase, beat, bpm, bpmNow, breath, flat}); S.pulse =
+               BV.heartPh(phase, bpm) (rate-aware: systole keeps its duration,
+               diastole shortens) drives the renderer's pulse wave and, with its
+               cycle mean held at the resting value (game balance), the
+               pulsatile flow. The rate eases from HR_REST toward HR_MAX with the
+               infection (smoothstep), to HR_WON after a win; after a loss it
+               slows and stops in diastole (flat). Respiratory sinus arrhythmia:
+               the rate swings ±HR_RSA over a HR_BREATH s breath, fading as the
+               infection climbs (lost heart-rate variability, as in sepsis).
+   OUTPUT     S.rbc   {data, count}  8 floats: x y r depth angle tumble oxy alpha
                S.units {data, count} 16 floats: x y r type angle phase flags hp
                lookX lookY stretch tint e0 e1 e2 e3 (see packUnits)
    Deterministic for a seed and the same sequence of update(dt > 0)/command()
@@ -158,6 +168,15 @@ const TUNE = BV.SIM_TUNE = Object.assign({
   MOPUP_T: 30,        // s after the final wave's last lesion falls before stragglers are cleared (win)
   RBC_DENS: 0.19,     // area fraction of the lumen the red-cell pool aims for (measured ≈ 16–18 %)
   RBC_TILES: 3,       // physics tiles (~4 ms each) the red-cell bins may build per update; bins over the rest wait
+  // ---- heart (S.heart: a phase accumulator; S.pulse = BV.heartPh(phase, bpm)) ----
+  HR_REST: 64,        // bpm at rest (no infection)
+  HR_MAX: 115,        // bpm at 100 % infection (fever / sepsis tachycardia), smoothstep in between
+  HR_WON: 60,         // bpm after a win (settles back to calm)
+  HR_TAU: 4,          // s: the rate eases toward its target with this time constant
+  HR_TAU_ARREST: 3.5, // s: … after a loss (the failing heart slows)
+  HR_LAST: 26,        // bpm floor of the failing heart: its last beat runs out into diastole, then it stops
+  HR_RSA: 0.05,       // respiratory sinus arrhythmia: ± rate swing over a breath at rest (× (1 − infection))
+  HR_BREATH: 4.3,     // s per breath (S.heart.breath: 0..1)
 }, BV.SIM_TUNE || {});
 
 // ---------------------------------------------------------------------------
@@ -683,6 +702,8 @@ BV.createSim = function(net, opts){
   const home = { x: 0, y: 0, nx: 0, ny: 1 };
 
   let rng, rngV, rngR, simTime, pulse, frame, vframe = 0, diff, infection, score, wave, waveDeadline, breakUntil, nextReinf, state;
+  let hPhase = 0, hBeat = 0, hBpm = TUNE.HR_REST, hNow = TUNE.HR_REST, hFlat = false, pulseRaw = 0;   // heart: cycle phase 0..1, beat count, rate (base, with RSA), arrested
+  const heart = { phase: 0, beat: 0, bpm: TUNE.HR_REST, bpmNow: TUNE.HR_REST, breath: 0, flat: false };  // S.heart (published per update)
   const dbg = { kicks:0, gaveUp:0, projections:0, reverts:0, nanFix:0, lastUpdateMs:0, prof:null };
 
   // =========================================================================
@@ -782,6 +803,33 @@ BV.createSim = function(net, opts){
     FX.on[s] = 1; FX.kind[s] = kind; FX.x[s] = x; FX.y[s] = y; FX.r[s] = r; FX.age[s] = 0; FX.dur[s] = dur; FX.ph[s] = rng.next()*100;
   }
   function emit(e){ events.push(e); if(events.length > 256) events.splice(0, events.length - 256); }
+  // heart: the pulse is a phase accumulator, so the rate can follow the game. It eases
+  // from rest toward tachycardia as the infection climbs (smoothstep), settles to calm
+  // after a win; after a loss it slows, its last beat runs out into diastole and it
+  // stops (flat: the pulse stays at its diastolic rest, the arteries stop throbbing).
+  // The rate breathes (respiratory sinus arrhythmia), less as the infection climbs.
+  function heartStep(h){
+    if(hFlat) return;
+    let tgt, tau = TUNE.HR_TAU;
+    const x = infection < 1 ? infection : 1;
+    if(state === 'over'){ tgt = 0; tau = TUNE.HR_TAU_ARREST; }
+    else if(state === 'won') tgt = TUNE.HR_WON;
+    else tgt = TUNE.HR_REST + (TUNE.HR_MAX - TUNE.HR_REST)*x*x*(3 - 2*x);
+    hBpm += (tgt - hBpm)*(1 - Math.exp(-h/tau));
+    if(state === 'over' && hBpm < TUNE.HR_LAST){
+      hBpm = TUNE.HR_LAST;
+      if(hPhase > 0.6){ hFlat = true; hBpm = 0; hNow = 0; return; }
+    }
+    hNow = hBpm*(1 + TUNE.HR_RSA*(1 - x)*Math.sin(2*Math.PI*simTime/TUNE.HR_BREATH));
+    hPhase += h*hNow/60;
+    while(hPhase >= 1){ hPhase -= 1; hBeat++; }
+  }
+  // the pulse: S.pulse (renderer) follows the rate-aware curve; the flow's copy keeps the
+  // resting cycle mean (a faster heart would otherwise push the mean flow up by ~8 %)
+  function heartPulse(){
+    pulseRaw = BV.heartPh(hPhase, hBpm);
+    pulse = pulseRaw + (hBpm > BV.HEART_REF_BPM ? hMean*(1 - hBpm/BV.HEART_REF_BPM) : 0);
+  }
 
   // bezier point helpers (site / home placement)
   const BZ = net.beziers;
@@ -806,7 +854,9 @@ BV.createSim = function(net, opts){
     seed = (seed == null ? (opts.seed|0) : seed|0);
     rng = new Rng(seed*2654435761 + 17); rngV = new Rng(seed*40503 + 991); rngR = new Rng(seed*69069 + 4057);
     diff = parseDifficulty(opts.difficulty);
-    simTime = 0; pulse = BV.heart(0, 66); frame = 0;
+    simTime = 0; frame = 0;
+    hPhase = 0; hBeat = 0; hBpm = TUNE.HR_REST; hNow = hBpm; hFlat = false; heartPulse();
+    heart.phase = 0; heart.beat = 0; heart.bpm = hBpm; heart.bpmNow = hNow; heart.breath = 0; heart.flat = false;
     infection = 0; score = 0; wave = 0; waveDeadline = TUNE.FIRST_WAVE; breakUntil = -1; nextReinf = TUNE.REINF_T; state = 'play';
     nW = 0; nR = 0; rbcInit = false;
     P.type.fill(0); pFreeN = 0; for(let p=MAXP-1;p>=0;p--) pFree[pFreeN++] = p;
@@ -2048,12 +2098,15 @@ BV.createSim = function(net, opts){
   // events (drain it), {type, x, y, …}: capture{kind,score} spawn{n} order{n,attack}
   //        siteUp{kind} siteDown{score} escape{kind} death; without a position:
   //        wave{wave,sites} over{score} won{score}
-  // home {x,y} (start horde), pulse (BV.heart now), time, ready (nav grid built),
+  // home {x,y} (start horde), pulse (BV.heartPh(heart.phase, heart.bpm) now), time, ready (nav grid built),
+  // heart {phase 0..1, beat (count), bpm, bpmNow (incl. the breathing swing), breath 0..1, flat}
+  //        (the rate follows the infection: HR_REST → HR_MAX; HR_WON after a win; after a
+  //        loss it slows and stops),
   // prewarm(ms) (build the nav grid in idle time), reset(seed),
   // setDifficulty(d) → factor ('easy' | 'normal' | 'hard' | number 0.3..3; live
   //                       lesions rescale their hit points and emission rate)
   const S = {
-    rbc, units, events, stats, orders, home, pulse: 0, tune: TUNE, net,
+    rbc, units, events, stats, orders, home, pulse: 0, heart, tune: TUNE, net,
     get time(){ return simTime; },
     get ready(){ return nav.ready; },
   };
@@ -2078,7 +2131,7 @@ BV.createSim = function(net, opts){
       const nsub = Math.max(1, Math.ceil(dt/(1/45)));
       const h = dt/nsub;
       for(let s=0;s<nsub;s++){
-        simTime += h; pulse = BV.heart(simTime, 66);
+        simTime += h; heartStep(h); heartPulse();
         stepUnits(h); if(PR) lap('units');
         stepPathogens(h); if(PR) lap('patho');
         interact(); if(PR) lap('interact');
@@ -2089,7 +2142,9 @@ BV.createSim = function(net, opts){
     } else {
       hashC.build(nW, W.x, W.y, skipW);
     }
-    S.pulse = pulse;
+    S.pulse = pulseRaw;
+    heart.phase = hPhase; heart.beat = hBeat; heart.bpm = hBpm; heart.bpmNow = hNow; heart.flat = hFlat;
+    heart.breath = (simTime/TUNE.HR_BREATH) % 1;
     updateRbc(dt, ctx); if(PR) lap('rbc');
     // orders: users (cells on the order) and cells still moving, in one pass
     ordUsers.fill(0); ordMoving.fill(0);

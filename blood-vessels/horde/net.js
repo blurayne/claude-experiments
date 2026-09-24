@@ -49,13 +49,19 @@ const CONST = BV.CONST = Object.assign(BV.CONST || {}, {
 const reach = r => 0.6*r + 160;
 BV.vesselReach = reach;
 
-// heart beat: systolic spike + dicrotic notch, ~0..1
-BV.heart = function(t, bpm){
-  const ph = (t*(bpm||66)/60) % 1;
-  const sys = Math.exp(-Math.pow((ph-0.10)/0.055, 2));
-  const dic = 0.32*Math.exp(-Math.pow((ph-0.36)/0.07, 2));
+// heart beat: systolic spike + dicrotic notch, ~0..1, as a function of the cycle
+// phase (0..1; the simulation runs a phase accumulator so the rate can change),
+// and of time at a fixed rate (identical output). With bpm the curve keeps the
+// timing it has at HEART_REF_BPM (it is evaluated at u = ph·REF/bpm, clamped to
+// 1): a faster heart shortens diastole, not the systolic upstroke and the notch.
+BV.HEART_REF_BPM = 64;
+BV.heartPh = function(ph, bpm){
+  const u = bpm > 0 ? Math.min(1, ph*BV.HEART_REF_BPM/bpm) : ph;
+  const sys = Math.exp(-Math.pow((u-0.10)/0.055, 2));
+  const dic = 0.32*Math.exp(-Math.pow((u-0.36)/0.07, 2));
   return Math.min(1, sys + dic);
 };
+BV.heart = function(t, bpm){ return BV.heartPh((t*(bpm||66)/60) % 1); };
 
 // ============================================================================
 //  1. FLOW

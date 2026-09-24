@@ -48,6 +48,19 @@ body.noblur .modal .card{-webkit-backdrop-filter:none;backdrop-filter:none;backg
 .row b.hot{color:var(--orange)} .row b.cyan{color:var(--cyan)}
 
 #p-status{left:calc(var(--gap) + var(--sal));top:calc(var(--gap) + var(--sat));max-width:min(340px,calc(64vw - 20px))}
+#p-status h2{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.snd{appearance:none;flex:none;width:22px;height:18px;margin:-3px -4px -3px 0;padding:0;border:1px solid var(--line2);border-radius:4px;
+  background:transparent;color:var(--dim);cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:center}
+.snd svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.snd:hover{color:#fff;border-color:var(--line)} .snd:focus-visible{outline:2px solid var(--cyan);outline-offset:1px}
+.snd .mute{display:none} .snd.off{color:var(--faint)} .snd.off .wav{display:none} .snd.off .mute{display:inline}
+/* touch: a ~44 px hit area around the small speaker (the visual size stays) */
+.snd{position:relative}
+body.touch .snd::after{content:"";position:absolute;left:-12px;right:-10px;top:-13px;bottom:-13px}
+@media (pointer:coarse){.snd::after{content:"";position:absolute;left:-12px;right:-10px;top:-13px;bottom:-13px}}
+.volrow{display:flex;align-items:center;gap:10px;min-width:0}
+.volrow input{width:10em;max-width:100%;accent-color:var(--cyan)}
+.volrow span{color:var(--dim);font-size:11px;min-width:3.4em}
 #p-status .classic{display:inline-block;margin-top:5px;color:var(--faint);text-decoration:none;font-size:10px;letter-spacing:.05em;text-transform:uppercase;pointer-events:auto}
 #p-status .classic:hover{color:var(--cyan)}
 
@@ -119,6 +132,7 @@ body.critical::after{animation:dangerPulse 1s ease-in-out infinite}
 .seg button:last-child{border-right:0}
 .seg button.on{background:rgba(127,240,255,.14);color:var(--cyan)}
 .seg button:hover{color:#fff}
+.seg button:disabled,.volrow input:disabled{opacity:.4;cursor:default}
 .hint{grid-column:1/-1;margin:-4px 0 0;color:var(--faint);font-size:10.5px;letter-spacing:.02em}
 .seedrow{display:flex;gap:6px;flex-wrap:wrap}
 .seedrow input,.seedrow select{min-width:0;width:9em;background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:6px;color:var(--text);padding:6px 8px;font:12px var(--mono)}
@@ -201,7 +215,8 @@ body.touch .help .mk,body.touch .set .mk{display:none}
 <canvas id="ov" tabindex="0" aria-label="Game world: drag to select white cells, right-click or tap to send them"></canvas>
 
 <section class="panel" id="p-status" aria-label="Simulation status">
-  <h2>Simulation HUD</h2>
+  <h2>Simulation HUD <button class="snd" id="b-snd" type="button" aria-pressed="true" aria-label="Sound" title="Sound — M mutes">
+    <svg viewBox="0 0 24 24"><path class="spk" d="M4 9.5h3.2L12 5.2v13.6l-4.8-4.3H4z"/><path class="wav" d="M15.3 9.2a4 4 0 0 1 0 5.6M17.9 6.8a7.5 7.5 0 0 1 0 10.4"/><path class="mute" d="M15.5 9.5l5 5M20.5 9.5l-5 5"/></svg></button></h2>
   <div class="row">SIM ID: <b id="h-id">[—]</b></div>
   <div class="row">WAVE: <b id="h-wave">#0</b></div>
   <div class="row">THREATS: <b id="h-threat">—</b></div>
@@ -270,6 +285,11 @@ body.touch .help .mk,body.touch .set .mk{display:none}
       <label id="l-look">Vessel look</label>
       <div class="seg" id="s-look" role="group" aria-labelledby="l-look"><button data-v="cut">Cut open</button><button data-v="glass">Glass</button></div>
       <p class="hint" id="s-look-hint">Zoomed in, the vessels are cut open; zoomed out, they close into glossy tubes.</p>
+      <label id="l-sound">Sound</label>
+      <div class="seg" id="s-sound" role="group" aria-labelledby="l-sound"><button data-v="1">On</button><button data-v="0">Off</button></div>
+      <label for="s-vol">Volume</label>
+      <div class="volrow"><input id="s-vol" type="range" min="0" max="100" step="1" value="80" aria-label="Volume"><span id="s-vol-v">80 %</span></div>
+      <p class="hint" id="s-sound-hint">Procedural heartbeat, blood flow and effects. M mutes.</p>
       <label id="l-rbc">Red cells</label>
       <div class="seg" id="s-rbc" role="group" aria-labelledby="l-rbc"><button data-v="1">On</button><button data-v="0">Off</button></div>
       <label id="l-dof">Depth of field</label>
@@ -314,6 +334,7 @@ body.touch .help .mk,body.touch .set .mk{display:none}
       <div class="mk"><kbd>H · 0</kbd><span>centre on the horde · whole map</span></div>
       <div class="mk"><kbd>+ / −</kbd><span>zoom in / out</span></div>
       <div class="mk"><kbd>P</kbd><span>pause</span></div>
+      <div class="mk"><kbd>M</kbd><span>sound on / off</span></div>
       <h4>Touch</h4>
       <div><kbd>Drag</kbd><span>pan</span></div>
       <div><kbd>Pinch</kbd><span>zoom (and pan)</span></div>
@@ -354,6 +375,7 @@ body.touch .help .mk,body.touch .set .mk{display:none}
 <script src="horde/net.js"></script>
 <script src="horde/render.js"></script>
 <script src="horde/sim.js"></script>
+<script src="horde/audio.js"></script>
 <script src="horde/main.js"></script>
 </body>
 </html>

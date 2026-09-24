@@ -32,8 +32,20 @@
             hysteresis; High / Medium / Low are fixed (scale + DPR cap).
    LOOK     Settings → vessel look: cut open (default) or glass (see-through
             tubes, the horde visible inside at every zoom); R.setQuality({look}).
+   SOUND    BV.createAudio (audio.js), created at boot without a context; the
+            first user gesture (pointerdown / touchend / click / keydown)
+            creates / resumes it (the graph is built on the next frame). Every
+            frame A.update gets the game clock, the heart (S.heart), pause (a
+            map load counts as one), camera zoom + zoom velocity, the flow under
+            the screen centre (a 3×3 net.sample grid, and the renderer's
+            pulse-wave delay there), the visibly swimming white cells (units
+            e2) and the infection; sim events and UI actions (select, order,
+            clicks, dialogs) go to A.event with screen positions, never while
+            muted. Settings → Sound / Volume (dragging it plays a heartbeat),
+            M or the HUD speaker mutes; a hidden tab fades out and suspends
+            the context. Without Web Audio the controls say so and stay off.
    SETTINGS stored per viewer (validated on read); URL overrides for this load
-            only: ?q= ?rbc= ?dof= ?fg= ?edge= ?diff= ?gen= ?look=cut|glass.
+            only: ?q= ?rbc= ?dof= ?fg= ?edge= ?diff= ?gen= ?look=cut|glass ?sound=0.
    ========================================================================== */
 (function(){
 'use strict';
@@ -56,7 +68,7 @@ const FONT = 'ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", 
 const QS = new URLSearchParams(location.search);
 const PDB = QS.has('pdb');                       // preserveDrawingBuffer, for screenshots
 const SKEY = 'bv-horde-settings-v1';
-const DEF = { quality:'auto', rbc:true, dof:true, fg:true, edge:true, difficulty:'normal', gen:'', look:'cut' };
+const DEF = { quality:'auto', rbc:true, dof:true, fg:true, edge:true, difficulty:'normal', gen:'', look:'cut', sound:true, vol:0.8 };
 // only what the viewer chose is stored (validated on read: an old or hand-edited value
 // must not break boot); the URL overrides below apply to this page load only
 const stored = (()=>{
@@ -65,7 +77,8 @@ const stored = (()=>{
     const s = JSON.parse(localStorage.getItem(SKEY) || 'null');
     if(!s || typeof s !== 'object' || Array.isArray(s)) return o;
     if(typeof s.quality === 'string' && /^(auto|high|medium|low)$/.test(s.quality)) o.quality = s.quality;
-    for(const k of ['rbc', 'dof', 'fg', 'edge']) if(typeof s[k] === 'boolean') o[k] = s[k];
+    for(const k of ['rbc', 'dof', 'fg', 'edge', 'sound']) if(typeof s[k] === 'boolean') o[k] = s[k];
+    if(typeof s.vol === 'number' && isFinite(s.vol) && s.vol >= 0 && s.vol <= 1) o.vol = s.vol;
     if(typeof s.difficulty === 'string' && /^(easy|normal|hard)$/.test(s.difficulty)) o.difficulty = s.difficulty;
     if(typeof s.gen === 'string') o.gen = s.gen;
     if(typeof s.look === 'string' && /^(cut|glass)$/.test(s.look)) o.look = s.look;
@@ -78,7 +91,7 @@ function setSetting(k, v){ settings[k] = v; stored[k] = v; saveSettings(); }
 {
   const q = QS.get('q'); if(q && /^(auto|high|medium|low)$/.test(q)) settings.quality = q;
   const flag = k => { const v = QS.get(k); return v == null ? null : !/^(0|off|false|no)$/i.test(v); };
-  for(const k of ['rbc', 'dof', 'fg', 'edge']){ const v = flag(k); if(v != null) settings[k] = v; }
+  for(const k of ['rbc', 'dof', 'fg', 'edge', 'sound']){ const v = flag(k); if(v != null) settings[k] = v; }
   const d = QS.get('diff'); if(d && /^(easy|normal|hard)$/.test(d)) settings.difficulty = d;
   if(QS.get('gen')) settings.gen = QS.get('gen');
   const lk = QS.get('look'); if(lk && /^(cut|glass)$/.test(lk)) settings.look = lk;
@@ -411,6 +424,11 @@ function giveOrder(wx, wy){
   try { r = S.command(wx, wy) || { ok:false, x:wx, y:wy }; } catch(e){ r = { ok:false, x:wx, y:wy }; console.error(e); }
   const x = isFinite(r.x) ? r.x : wx, y = isFinite(r.y) ? r.y : wy;
   pushLimited(markers, { x, y, t0: animT, ok: !!r.ok, attack: !!r.attack }, 12);
+  if(r.ok){
+    // the horde acknowledges from where it is
+    let c = null; try { c = typeof S.selectionCenter === 'function' ? S.selectionCenter() : null; } catch(e){}
+    sfx({ type:'command', n: had, attack: !!r.attack, sx: toSX(c ? c.x : x), sy: toSY(c ? c.y : y) });
+  } else sfx({ type:'nope' });
   if(!r.ok){
     if(!had) toast('Select white cells first', 'info', 'nosel', 4);
     else toast('No way through to there', 'warn', 'noreach', 3);
@@ -450,12 +468,12 @@ let lastAll = -1;          // selection count right after "select all" (a second
 function selectAll(){
   const S = G.S; if(!S) return;
   if(lastAll > 0 && selCount() === lastAll){ S.clearSelection(); lastAll = -1; }
-  else { const n = S.selectAll(); lastAll = typeof n === 'number' ? n : -2; }
+  else { const n = S.selectAll(); lastAll = typeof n === 'number' ? n : -2; selSound(n, V.w/2, V.h/2); }
   G.simDirty = true;
 }
 function selectVisible(additive){
   const S = G.S; if(!S) return;
-  S.selectInRect(toWX(0), toWY(0), toWX(V.w), toWY(V.h), !!additive);
+  selSound(S.selectInRect(toWX(0), toWY(0), toWX(V.w), toWY(V.h), !!additive), V.w/2, V.h/2);
   G.simDirty = true;
 }
 function goHome(){
@@ -634,7 +652,7 @@ function tick(ts){
   if(dt > 0 && dt < 3) perfTick(Math.min(dt, 0.5));
   if(!(dt > 0)) dt = 0; if(dt > 0.1) dt = 0.1;
   animT += dt; G.ticks++;
-  if(!G.ready || G.dead) return;
+  if(!G.ready || G.dead){ if(!G.dead) audioFrame(dt); return; }
   try {
     stepCamera(dt);
     stepIntroFollow(dt);
@@ -655,6 +673,7 @@ function tick(ts){
       if(simDt > 0 || moved) hoverDirty = true;
     }
     drainEvents();
+    audioFrame(dt);
     if(hoverDirty && animT - hoverT > 0.06) doHover();
     // ---- render (skipped while paused with a still camera) --------------
     const lod = rbcLOD();
@@ -703,6 +722,7 @@ function drainEvents(){
 }
 function handleEvent(e){
   if(!e) return;
+  sfx(e);
   switch(e.type){
     case 'capture':
       pushLimited(popups, { x:e.x, y:e.y, t0:animT, text:'+' + (e.score != null ? e.score : 10), col: e.kind === 'bacterium' ? '#b5ff7a' : '#ffae63' }, 40);
@@ -733,6 +753,121 @@ function handleEvent(e){
       showEnd(e.type, e.score);
       break;
   }
+}
+
+// ============================================================================
+//  sound (audio.js): per-frame state, events, UI sounds, mute / volume
+// ============================================================================
+let AUD = null;
+try { AUD = typeof BV.createAudio === 'function' ? BV.createAudio({ enabled: !!settings.sound, volume: settings.vol }) : null; } catch(e){ AUD = null; console.warn('[horde] no sound', e); }
+const aud = { time:0, paused:false, state:'play', infection:0, heart:null, z:1, zMin:0.05, zMax:MAX_ZOOM, zv:0, vw:1, vh:1,
+              flow:{ lumen:0, speed:0, kind:0, pan:0, delay:0 }, moving:{ n:0, pan:0 }, rbc:true };
+const audS = {}, pwS = {};
+let audLz = NaN, audZv = 0, audErr = 0;
+// the arterial pulse wave's delay under the screen centre, as the renderer draws it: the wall
+// dilates clamp((1 − p)/(1 − pArt), 0, 1.6)·PT_DELAY s after the heart (render.js; p = the
+// vessel's pressure from the Bézier p0/p2 at the arc length net.evalAt finds, pArt = the
+// lowest arterial pressure, ≤ 0.9). The flow's per-beat surge follows it half-way.
+const PT_DELAY = 0.34;
+let pwNet = null, pwChains = null, pwArt = 0.9, pwT = -1, pwTgt = 0;
+function pulseDelayAt(x, y){
+  const net = G.net;
+  if(pwNet !== net){
+    pwNet = net; pwChains = new Map(); let pa = 1;
+    for(const b of net.beziers || []){
+      const p0 = b.p0 != null ? b.p0 : 1 - 0.5*b.k0, p2 = b.p2 != null ? b.p2 : 1 - 0.5*b.k2;
+      let L = pwChains.get(b.chain); if(!L) pwChains.set(b.chain, L = []);
+      L.push(b.s0 <= b.s2 ? [b.s0, b.s2, p0, p2] : [b.s2, b.s0, p2, p0]);
+      if(b.k0 < 0.5 && b.k2 < 0.5) pa = Math.min(pa, p0, p2);
+    }
+    pwArt = Math.min(0.9, pa);
+  }
+  let o; try { o = net.evalAt(x, y, pwS); } catch(e){ return null; }
+  const L = o && o.chain >= 0 ? pwChains.get(o.chain) : null; if(!L) return null;
+  for(const q of L) if(o.s >= q[0] - 1e-6 && o.s <= q[1] + 1e-6){
+    const p = q[2] + (q[3] - q[2])*(o.s - q[0])/Math.max(1e-6, q[1] - q[0]);
+    return clamp((1 - p)/(1 - pwArt), 0, 1.6)*PT_DELAY;
+  }
+  return null;
+}
+// the flow under the screen centre: a 3×3 grid over the middle of the view (centre ×2);
+// tiles that are not built yet are read exactly (net.evalAt) instead of building one now
+function audioFlow(dt){
+  const F = aud.flow, net = G.net;
+  F.lumen = 0; F.speed = 0; F.kind = 0; F.pan = 0;
+  if(!net || cam.z < 0.15) return;
+  const smp = net.sample, built = smp && smp.isBuilt;
+  let wS = 0, wL = 0, sp = 0, kd = 0, pn = 0;
+  for(let j=-1;j<=1;j++) for(let i=-1;i<=1;i++){
+    const w = i === 0 && j === 0 ? 2 : 1, x = toWX(V.w*(0.5 + 0.28*i)), y = toWY(V.h*(0.5 + 0.28*j));
+    let o;
+    try { o = built && built(x, y) ? smp(x, y, audS) : net.evalAt(x, y, audS); } catch(e){ o = null; }
+    wS += w;
+    if(!o || !(o.N < -(o.wall || 0.1))) continue;
+    wL += w; sp += w*Math.hypot(o.fx || 0, o.fy || 0); kd += w*(o.kind || 0); pn += w*i;
+  }
+  if(wL > 0){ F.lumen = wL/wS; F.speed = sp/wL; F.kind = kd/wL; F.pan = 0.6*pn/wL; }
+  // the pulse-wave delay: looked up ~8×/s while over a lumen, eased (τ 0.3 s)
+  if(wL > 0 && animT - pwT > 0.12){ pwT = animT; const d = pulseDelayAt(cam.x, cam.y); if(d != null) pwTgt = d; }
+  F.delay += (pwTgt - F.delay)*(1 - Math.exp(-Math.max(0, dt)/0.3));
+}
+// white cells visibly swimming (units e2 = swim activity) on screen, and where they are
+function audioMoving(){
+  const M = aud.moving; M.n = 0; M.pan = 0;
+  const U = unitsBuf(); if(!U) return;
+  const d = U.data, x0 = toWX(0), x1 = toWX(V.w), y0 = toWY(0), y1 = toWY(V.h);
+  let n = 0, sx = 0;
+  for(let i=0;i<U.count;i++){
+    const o = i*16; if(d[o + U_TYPE] !== 0 || (d[o + U_FLAGS] & (F_DIE | 16)) || !(d[o + 14] > 0.35)) continue;
+    const x = d[o], y = d[o+1]; if(x < x0 || x > x1 || y < y0 || y > y1) continue;
+    n++; sx += x;
+  }
+  M.n = n; if(n) M.pan = clamp(((sx/n - cam.x)*cam.z/V.w)*2, -1, 1);
+}
+function audioFrame(dt){
+  if(!AUD || !AUD.ctx) return;
+  try {
+    const S = G.S;
+    if(G.ready && S){
+      const st = S.stats || {};
+      aud.time = G.time; aud.paused = G.paused; aud.state = st.state || 'play'; aud.infection = +st.infection || 0;
+      aud.heart = S.heart || null;
+      aud.z = cam.z; aud.zMin = zMin; aud.zMax = MAX_ZOOM; aud.vw = V.w; aud.vh = V.h; aud.rbc = !!settings.rbc;
+      const lz = Math.log(cam.z);
+      if(dt > 0 && isFinite(audLz)){ const v = (lz - audLz)/dt; audZv += (v - audZv)*(1 - Math.exp(-dt*14)); } else audZv = 0;
+      audLz = lz; aud.zv = audZv;
+      audioFlow(dt); audioMoving();
+    } else { aud.paused = true; aud.zv = 0; }            // loading a map: the world goes quiet
+    AUD.update(dt, aud);
+  } catch(e){ if(++audErr < 4) console.error(e); }
+}
+// sim events and UI actions (screen position when there is one); nothing while muted
+function sfx(e){
+  if(!AUD || !AUD.ctx || !e || !settings.sound) return;
+  if(e.sx == null && e.x != null && isFinite(e.x)){ e.sx = toSX(e.x); e.sy = toSY(e.y); }
+  AUD.event(e);
+}
+function selSound(n, sx, sy){ if(n > 0) sfx({ type:'select', n, sx, sy }); }
+function audioGesture(){ if(AUD && settings.sound && !document.hidden) AUD.unlock(); }
+function applySound(gesture){
+  if(AUD){
+    AUD.setVolume(settings.vol);
+    AUD.setEnabled(!!settings.sound);
+    if(settings.sound && gesture){ AUD.unlock(); sfx({ type:'toggle' }); }
+  }
+  const b = $('b-snd');
+  if(b){
+    const on = !!settings.sound && !!(AUD && AUD.available);
+    b.classList.toggle('off', !on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    b.title = !(AUD && AUD.available) ? 'Sound is not available in this browser' : on ? 'Sound on — M mutes' : 'Sound off — M turns it on';
+  }
+}
+function toggleSound(){
+  if(!(AUD && AUD.available)){ toast('Sound is not available in this browser', 'info', 'snd', 0.2, 1600); return; }
+  setSetting('sound', !settings.sound);
+  applySound(true);
+  if($('m-set').classList.contains('show')) syncSettingsUi();
+  toast(settings.sound ? 'Sound on' : 'Sound off', 'info', 'snd', 0.2, 1200);
 }
 
 // ============================================================================
@@ -928,6 +1063,7 @@ function mouseClick(p, shift){
   const n = S.selectAt(wx, wy, 10/cam.z, shift);
   if(!n && !shift) S.clearSelection();
   if(n) pushLimited(markers, { x:wx, y:wy, t0:animT, sel:true }, 12);
+  selSound(n, p.x, p.y);
   G.simDirty = true;
 }
 function tap(p){
@@ -936,7 +1072,7 @@ function tap(p){
   // a unit under the finger selects its horde; otherwise the tap is an order
   if(unitNear(wx, wy, pr) || !selCount()){
     const n = S.selectAt(wx, wy, pr, false);
-    if(n){ pushLimited(markers, { x:wx, y:wy, t0:animT, sel:true }, 12); G.simDirty = true; return; }
+    if(n){ pushLimited(markers, { x:wx, y:wy, t0:animT, sel:true }, 12); selSound(n, p.x, p.y); G.simDirty = true; return; }
     if(!selCount()){ toast('Tap a white cell to select its horde', 'info', 'taphint', 8); return; }
   }
   giveOrder(wx, wy);
@@ -948,7 +1084,7 @@ function finishBox(g, additive, touch){
     if(touch){ S.clearSelection(); toast('Selection cleared', 'info', 'clr', 1.5); G.simDirty = true; }
     return;
   }
-  S.selectInRect(g.wx, g.wy, toWX(g.ex), toWY(g.ey), !!additive);
+  selSound(S.selectInRect(g.wx, g.wy, toWX(g.ex), toWY(g.ey), !!additive), 0.5*(toSX(g.wx) + g.ex), 0.5*(toSY(g.wy) + g.ey));
   G.simDirty = true;
 }
 function hoverAt(wx, wy){
@@ -1033,11 +1169,12 @@ function onKey(e){
   // auto-repeat: only the held keys (pan, Space-pan, Shift, zoom) repeat; toggles fire once per
   // press (a Space held into a newly focused button, e.g. the end card's, must not press it)
   if(e.repeat && e.key !== 'Tab' && (e.code !== 'Space' || ctl) && e.key !== 'Shift' && !/^[-+=_]$/.test(e.key) && (mod ? isSelAllKey(e) : !keyName(e))){ e.preventDefault(); return; }
+  if((e.key === 'm' || e.key === 'M') && !e.ctrlKey && !e.metaKey && !e.altKey){ e.preventDefault(); toggleSound(); return; }
   if(e.key === 'Escape'){ if(modalOpen()){ if(!$('m-end').classList.contains('show')) closeModals(); } else if(G.S){ G.S.clearSelection(); G.simDirty = true; } return; }
   if(e.key === '?' || e.key === 'F1'){ e.preventDefault(); toggleModal('m-help'); return; }   // not over the end card (toggleModal)
   if(modalOpen() || !G.ready) return;
   if(e.key === 'Shift') keys.add('shift');
-  if(mod && isSelAllKey(e)){ e.preventDefault(); const n = G.S.selectAll(); lastAll = typeof n === 'number' ? n : -2; G.simDirty = true; return; }
+  if(mod && isSelAllKey(e)){ e.preventDefault(); const n = G.S.selectAll(); lastAll = typeof n === 'number' ? n : -2; selSound(n, V.w/2, V.h/2); G.simDirty = true; return; }
   if(mod || e.altKey) return;
   const k = keyName(e);
   if(k){ keys.add(k); e.preventDefault(); return; }
@@ -1565,6 +1702,7 @@ const MODALS = ['m-set', 'm-help', 'm-end'];
 let modalOpener = null;                 // focus returns here when the dialogs close
 const modalOpen = () => MODALS.some(id => $(id).classList.contains('show'));
 function openModal(id){
+  if(id !== 'm-end' && !$(id).classList.contains('show')) sfx({ type:'open' });
   if(!modalOpen()) modalOpener = document.activeElement;
   for(const m of MODALS) if(m !== id) $(m).classList.remove('show');
   $(id).classList.add('show');
@@ -1578,6 +1716,7 @@ function openModal(id){
   renderDirty = true;
 }
 function closeModals(){
+  if($('m-set').classList.contains('show') || $('m-help').classList.contains('show')) sfx({ type:'close' });
   for(const m of MODALS) $(m).classList.remove('show');
   if(G.modalPaused){ G.modalPaused = false; lastTs = 0; }
   const o = modalOpener; modalOpener = null;
@@ -1619,6 +1758,13 @@ function syncSettingsUi(){
   mark('s-rbc', settings.rbc ? 1 : 0); mark('s-dof', settings.dof ? 1 : 0); mark('s-fg', settings.fg ? 1 : 0); mark('s-edge', settings.edge ? 1 : 0);
   mark('s-diff', settings.difficulty);
   mark('s-look', settings.look);
+  mark('s-sound', settings.sound ? 1 : 0);
+  const avail = !!(AUD && AUD.available);
+  for(const b of $('s-sound').querySelectorAll('button')) b.disabled = !avail;
+  const vol = $('s-vol'); if(vol){ vol.disabled = !avail; if(document.activeElement !== vol) vol.value = String(Math.round(settings.vol*100)); }
+  const vv = $('s-vol-v'); if(vv) vv.textContent = Math.round(settings.vol*100) + ' %';
+  $('s-sound-hint').textContent = !(AUD && AUD.available) ? 'Web Audio is not available in this browser: the game runs silently.'
+    : 'Procedural heartbeat, blood flow and effects — the heart speeds up as the infection spreads. M mutes.';
   $('s-look-hint').textContent = settings.look === 'glass'
     ? 'See-through vessels: the horde stays visible inside arteries and veins at every zoom.'
     : 'Zoomed in, the vessels are cut open; zoomed out, they close into glossy tubes.';
@@ -1663,6 +1809,19 @@ function bindUi(){
   segBind('s-fg', 'fg', v => v === '1', applyQuality);
   segBind('s-look', 'look', v => v === 'glass' ? 'glass' : 'cut', applyQuality);
   segBind('s-edge', 'edge', v => v === '1');
+  segBind('s-sound', 'sound', v => v === '1', () => applySound(true));
+  // dragging the volume plays a heartbeat at its level every ~0.3 s (Settings pauses the world)
+  let volPrev = -1;
+  $('s-vol').addEventListener('input', e => {
+    const v = clamp((+e.target.value || 0)/100, 0, 1); settings.vol = v; if(AUD) AUD.setVolume(v); $('s-vol-v').textContent = Math.round(v*100) + ' %';
+    const t = now(); if(t - volPrev > 300){ volPrev = t; sfx({ type:'preview' }); }
+  });
+  $('s-vol').addEventListener('change', e => { setSetting('vol', clamp((+e.target.value || 0)/100, 0, 1)); });
+  $('b-snd').addEventListener('click', e => { e.stopPropagation(); toggleSound(); });
+  // UI clicks for every button (the sound toggle makes its own)
+  document.addEventListener('click', e => { const b = e.target && e.target.closest ? e.target.closest('button') : null; if(b && b.id !== 'b-snd' && !b.closest('#s-sound')) sfx({ type:'click' }); }, true);
+  // the first gesture creates / resumes the audio context (autoplay rules; iOS needs touchend / click)
+  for(const ev of ['pointerdown', 'touchend', 'click', 'keydown']) window.addEventListener(ev, audioGesture, { capture:true, passive:true });
   segBind('s-diff', 'difficulty', v => v, () => {
     if(G.S && typeof G.S.setDifficulty === 'function'){ G.S.setDifficulty(settings.difficulty); G.S._difficultyFromMain = settings.difficulty; toast('Difficulty: ' + settings.difficulty, 'info', 'diff', 0.5); }
     else toast('Difficulty applies on restart', 'info', 'diff', 1);
@@ -1692,6 +1851,7 @@ function bindUi(){
   // the renderer re-initialises on a restored context; repaint even while paused
   glc.addEventListener('webglcontextrestored', () => { renderDirty = true; }, false);
   document.addEventListener('visibilitychange', () => {
+    if(AUD) AUD.setHidden(document.hidden);
     if(document.hidden){
       G.hiddenPaused = true; keys.clear();
       if(raf){ cancelAnimationFrame(raf); raf = 0; }
@@ -1725,7 +1885,7 @@ function updateDebug(s){
 //  boot
 // ============================================================================
 async function boot(){
-  bindUi(); bindInput(); bindMinimap(); syncSettingsUi(); updatePauseUi();
+  bindUi(); bindInput(); bindMinimap(); syncSettingsUi(); updatePauseUi(); applySound(false);
   if(QS.has('debug')) toggleDebug();
   if(!webgl2Available()){
     return showError('WebGL2 is not available', 'This game renders the vessel network on the GPU and needs WebGL2, which this browser or device does not provide (or it is switched off).');
@@ -1749,6 +1909,8 @@ window.HORDE = {
   toWorld: (sx, sy) => [toWX(sx), toWY(sy)], toScreen: (wx, wy) => [toSX(wx), toSY(wy)],
   setCam(x, y, z){ fly = null; anchor = null; vel.x = vel.y = 0; if(z != null){ cam.z = clamp(z, zMin, MAX_ZOOM); lzGoal = Math.log(cam.z); } if(x != null) cam.x = x; if(y != null) cam.y = y; clampCam(); },
   get flying(){ return !!fly; },
+  get audio(){ return AUD; },
+  sound(on){ if(on == null) return !!settings.sound; if(!!on !== !!settings.sound) toggleSound(); return !!settings.sound; },
   get preview(){ return pathPrev ? { slot: pathPrev.slot, serial: pathPrev.serial, n: pathPrev.n } : null; },
   get hud(){ return { t: hud.t, b: hud.b }; },
   get settled(){ return !fly && Math.abs(Math.log(cam.z) - lzGoal) < 1e-3 && !vel.x && !vel.y && !keyV.x && !keyV.y && !gesture; },
