@@ -6,6 +6,12 @@ Hand-written release notes come from `CHANGELOG.notes.md`, never from here.
 
 ## Galactic Transit
 
+### 3.25.0 — 2026-09-24
+
+**Roll the ship.** In flight, twisting two fingers rolls the ship left or right about its line of sight, the scene turning with the fingers the way a map does; a pinch still zooms. On a desktop a right-drag rolls it the same way. Out of flight nothing changes: two fingers and the right button still pan, and the camera stays level.
+
+- V3.25.0 — roll the ship (`a2a1220`)
+
 ### 3.24.0 — 2026-09-24
 
 **A thumb stick for the flight.** On a touch screen in flight a thumb stick now sits above the burst button: push it sideways and the ship strafes left or right, up or down and it rises or sinks; let go and it springs back to the centre and the ship stops sliding. The burst button is a rounded rectangle now. The dock and the Settings panel keep clear of the taller stack in the corner.
