@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1a0709">
+<meta name="description" content="Direct hordes of white blood cells through a living vessel network: arteries branch, flow through AV connectors into veins, and infections bloom in the walls.">
+<title>Horde — white blood cells</title>
+<style>
+:root{
+  --bg:#1a0709;
+  --panel:rgba(15,12,16,.72);
+  --panel-solid:rgba(20,16,21,.94);
+  --line:rgba(255,255,255,.16);
+  --line2:rgba(255,255,255,.08);
+  --text:#dfe2e7;
+  --dim:#939aa6;
+  --faint:#646b76;
+  --cyan:#7ff0ff;
+  --orange:#ff8c3a;
+  --green:#a6f36a;
+  --red:#ff5566;
+  --yellow:#e9f26a;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono","DejaVu Sans Mono",monospace;
+  --gap:10px;
+  --sat:env(safe-area-inset-top,0px); --sar:env(safe-area-inset-right,0px);
+  --sab:env(safe-area-inset-bottom,0px); --sal:env(safe-area-inset-left,0px);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--text);
+  font:12px/1.45 var(--mono);touch-action:none;overscroll-behavior:none;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+canvas{display:block;position:fixed;left:0;top:0;width:100vw;height:100vh;touch-action:none}
+#gl{background:#2a0b0f}
+#ov{z-index:1;cursor:crosshair;outline:none}
+#ov.grab{cursor:grab} #ov.grabbing{cursor:grabbing} #ov.pick{cursor:pointer}
+
+/* ---------------------------------------------------------------- panels */
+/* no backdrop-filter on the always-visible panels: the world under them changes every
+   frame, so a blur would be re-rendered every frame (costly on phones / software GL) */
+.panel{position:fixed;z-index:3;background:var(--panel);border:1px solid var(--line);border-radius:7px;
+  box-shadow:0 6px 22px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.05);padding:8px 11px 9px}
+body.noblur .modal .card{-webkit-backdrop-filter:none;backdrop-filter:none;background:var(--panel-solid)}
+.panel h2{margin:0 0 5px;font:600 12px/1.2 var(--mono);letter-spacing:.07em;text-transform:uppercase;color:#f2f3f5}
+.row{display:flex;gap:.6em;white-space:nowrap;letter-spacing:.03em;text-transform:uppercase;color:var(--dim)}
+.row b{font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis}
+.row b.hot{color:var(--orange)} .row b.cyan{color:var(--cyan)}
+
+#p-status{left:calc(var(--gap) + var(--sal));top:calc(var(--gap) + var(--sat));max-width:min(340px,calc(64vw - 20px))}
+#p-status .classic{display:inline-block;margin-top:5px;color:var(--faint);text-decoration:none;font-size:10px;letter-spacing:.05em;text-transform:uppercase;pointer-events:auto}
+#p-status .classic:hover{color:var(--cyan)}
+
+#p-map{right:calc(var(--gap) + var(--sar));top:calc(var(--gap) + var(--sat));padding:6px;touch-action:none}
+#p-map h2{font-size:10px;margin:0 2px 4px;color:var(--dim);display:flex;justify-content:space-between}
+#p-map h2 span{color:var(--faint)}
+#mm{position:static;display:block;width:240px;height:152px;border-radius:4px;cursor:pointer;background:rgba(0,0,0,.25)}
+
+#p-stats{left:calc(var(--gap) + var(--sal));bottom:calc(var(--gap) + var(--sab));width:260px}
+.bar{height:5px;margin:2px 0 5px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.05)}
+.bar i{display:block;height:100%;width:0;border-radius:3px;transition:width .35s ease}
+#bar-inf i{background:linear-gradient(90deg,#f2b02e,#ff6a2b 55%,#ff3048)}
+#bar-imm i{background:linear-gradient(90deg,#2fa9d8,#7ff0ff)}
+#bar-inf.alarm i{animation:alarm .9s ease-in-out infinite}
+@keyframes alarm{50%{filter:brightness(1.6)}}
+
+#p-ctrl{right:calc(var(--gap) + var(--sar));bottom:calc(var(--gap) + var(--sab));width:296px}
+#p-ctrl h2{text-transform:none;letter-spacing:.03em}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.cb{appearance:none;border:1px solid rgba(255,255,255,.18);border-radius:6px;margin:0;padding:6px 2px 4px;min-width:0;
+  background:linear-gradient(#4a4e57,#2b2e35 60%,#24262c);color:#d7dbe2;cursor:pointer;touch-action:manipulation;
+  display:flex;flex-direction:column;align-items:center;gap:3px;font:600 8.5px/1.1 var(--mono);letter-spacing:.02em;text-transform:uppercase;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 2px 5px rgba(0,0,0,.35)}
+.cb svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;
+  filter:drop-shadow(0 1px 0 rgba(0,0,0,.6))}
+.cb span{max-width:100%;color:#b8bec8;text-align:center;overflow-wrap:anywhere}
+.cb:hover{background:linear-gradient(#565b66,#33363e 60%,#2a2c33);color:#fff}
+.cb:active,.cb.on{background:linear-gradient(#27414a,#1d2c33);color:var(--cyan);border-color:rgba(127,240,255,.45)}
+.cb:focus-visible,.seg button:focus-visible,.btn:focus-visible{outline:2px solid var(--cyan);outline-offset:1px}
+.cb .i-play{display:none} .cb.paused .i-play{display:inline} .cb.paused .i-pause{display:none}
+
+/* ---------------------------------------------------------------- toasts / badges */
+#toasts{position:fixed;z-index:4;left:50%;top:calc(14px + var(--sat));transform:translateX(-50%);width:min(440px,calc(100vw - 24px));
+  display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
+.toast{padding:6px 12px;border-radius:6px;background:var(--panel-solid);border:1px solid var(--line);color:var(--text);
+  letter-spacing:.04em;text-transform:uppercase;font-size:11px;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.4);
+  animation:tin .25s ease-out both}
+.toast.out{animation:tout .5s ease-in forwards}
+.toast.warn{border-color:rgba(255,140,58,.55);color:#ffd2b0} .toast.good{border-color:rgba(166,243,106,.5);color:#dcffc4}
+.toast.info{border-color:rgba(127,240,255,.45);color:#d4fbff} .toast.bad{border-color:rgba(255,85,102,.6);color:#ffc9cf}
+@keyframes tin{from{opacity:0;transform:translateY(-8px)}}
+@keyframes tout{to{opacity:0;transform:translateY(-6px)}}
+#pausebadge{position:fixed;z-index:2;left:50%;top:22%;transform:translate(-50%,-50%);pointer-events:none;display:none;
+  font:600 22px/1 var(--mono);letter-spacing:.35em;color:rgba(255,255,255,.8);text-shadow:0 2px 12px rgba(0,0,0,.7);text-align:center}
+#pausebadge small{display:block;margin-top:8px;font-size:10px;letter-spacing:.12em;color:var(--dim)}
+body.paused #pausebadge{display:block}
+#pausebadge .tc{display:none}
+body.touch #pausebadge .tc{display:inline} body.touch #pausebadge .mk{display:none}
+/* near defeat: a red vignette (opacity from --danger, set by main.js), pulsing when critical;
+   under the HUD panels, the toasts and the dialogs, and never in the way of input */
+body::after{content:"";position:fixed;inset:0;z-index:2;pointer-events:none;opacity:var(--danger,0);
+  background:radial-gradient(ellipse at center,transparent 55%,rgba(255,40,60,.55) 100%);transition:opacity .4s}
+body.critical::after{animation:dangerPulse 1s ease-in-out infinite}
+@keyframes dangerPulse{50%{opacity:calc(var(--danger,0)*.55)}}
+
+/* ---------------------------------------------------------------- modals */
+.modal{position:fixed;inset:0;z-index:6;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(8,3,5,.45)}
+.modal.show{display:flex}
+.modal .card{position:relative;width:min(460px,100%);max-height:calc(100% - 8px);overflow:auto;touch-action:pan-y;
+  background:rgba(18,15,20,.86);border:1px solid var(--line);border-radius:10px;padding:16px 18px;
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:0 20px 60px rgba(0,0,0,.6);-webkit-user-select:text;user-select:text}
+.card h3{margin:0 0 12px;font:600 14px/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.card .x{position:absolute;right:8px;top:8px;width:30px;height:30px;border-radius:6px;border:1px solid var(--line2);background:transparent;color:var(--dim);font:16px/1 var(--mono);cursor:pointer}
+.card .x:hover{color:#fff;border-color:var(--line)}
+.set{display:grid;grid-template-columns:auto 1fr;gap:10px 14px;align-items:center}
+.set label{color:var(--dim);letter-spacing:.04em;text-transform:uppercase;font-size:11px}
+.seg{display:inline-flex;flex-wrap:wrap;justify-self:start;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{appearance:none;border:0;border-right:1px solid var(--line2);background:transparent;color:var(--dim);padding:6px 9px;font:11px var(--mono);letter-spacing:.04em;text-transform:uppercase;cursor:pointer;touch-action:manipulation}
+.seg button:last-child{border-right:0}
+.seg button.on{background:rgba(127,240,255,.14);color:var(--cyan)}
+.seg button:hover{color:#fff}
+.hint{grid-column:1/-1;margin:-4px 0 0;color:var(--faint);font-size:10.5px;letter-spacing:.02em}
+.seedrow{display:flex;gap:6px;flex-wrap:wrap}
+.seedrow input,.seedrow select{min-width:0;width:9em;background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:6px;color:var(--text);padding:6px 8px;font:12px var(--mono)}
+.btn{appearance:none;border:1px solid var(--line);border-radius:6px;background:linear-gradient(#41454e,#2a2d34);color:var(--text);padding:7px 12px;font:600 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;cursor:pointer;touch-action:manipulation}
+.btn:hover{border-color:rgba(255,255,255,.3);color:#fff}
+.btn.primary{background:linear-gradient(#2a6573,#1b3e48);border-color:rgba(127,240,255,.5);color:#e8fdff}
+.help{display:grid;grid-template-columns:auto 1fr;gap:4px 18px}
+.help h4{grid-column:1/-1;margin:10px 0 3px;font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--cyan)}
+.help h4:first-child{margin-top:0}
+.help div{display:contents}
+.help kbd{font:11px var(--mono);color:#fff;white-space:nowrap}
+.help span{color:var(--dim);font-size:11px}
+.help p{grid-column:1/-1;margin:2px 0;color:var(--dim);font-size:11px;line-height:1.5}
+.help p.goal{margin:0 0 4px;color:var(--text)}
+/* touch devices: no mouse & keyboard help, no edge-scroll setting */
+body.touch .help .mk,body.touch .set .mk{display:none}
+#m-end .card{text-align:center;width:min(380px,100%)}
+#end-title{font-size:18px;margin-bottom:4px}
+#end-sub{color:var(--dim);margin:0 0 12px;letter-spacing:.04em;text-transform:uppercase;font-size:11px}
+#end-score{font:600 30px/1.1 var(--mono);color:#fff;margin:4px 0 10px;letter-spacing:.04em}
+.endstats{display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;text-align:left;margin:0 auto 14px;max-width:280px}
+.endstats span{color:var(--dim);text-transform:uppercase;font-size:11px} .endstats b{font-weight:500;text-align:right}
+.btnrow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+#m-end.won #end-title{color:var(--green)} #m-end.over #end-title{color:var(--red)}
+
+/* ---------------------------------------------------------------- loading / error */
+#loading{position:fixed;inset:0;z-index:8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  background:radial-gradient(ellipse at 50% 45%,#4a1219 0%,#260a0e 55%,#14060a 100%);transition:opacity .6s ease}
+#loading.hide{opacity:0;pointer-events:none}
+#loading .t{font:600 13px/1 var(--mono);letter-spacing:.3em;color:#f0d9dc;text-transform:uppercase}
+#loading .s{font:11px/1.4 var(--mono);letter-spacing:.12em;color:#b58d93;text-transform:uppercase;min-height:1.4em}
+.cellspin{width:54px;height:54px;border-radius:50%;position:relative;
+  background:radial-gradient(circle at 36% 32%,rgba(255,255,255,.95),rgba(236,228,255,.55) 22%,rgba(210,196,240,.28) 55%,rgba(255,255,255,.12) 70%,transparent 71%);
+  box-shadow:0 0 0 1px rgba(255,255,255,.25),0 0 24px rgba(220,210,255,.25);animation:wob 1.6s ease-in-out infinite}
+.cellspin:after{content:"";position:absolute;left:30%;top:36%;width:40%;height:34%;border-radius:45% 55% 50% 50%;background:rgba(122,84,178,.55);filter:blur(1px)}
+@keyframes wob{0%,100%{border-radius:50%;transform:scale(1)}30%{border-radius:56% 44% 52% 48%;transform:scale(1.06,.95)}65%{border-radius:46% 54% 45% 55%;transform:scale(.96,1.05)}}
+#error{position:fixed;inset:0;z-index:9;display:none;align-items:center;justify-content:center;padding:16px;background:#14060a}
+#error.show{display:flex}
+#error .card{max-width:480px;background:#1d1216;border:1px solid rgba(255,85,102,.45);border-radius:10px;padding:18px 20px;-webkit-user-select:text;user-select:text}
+#error h3{margin:0 0 8px;color:#ffb3bc;font:600 14px var(--mono);letter-spacing:.06em;text-transform:uppercase}
+#error p{margin:6px 0;color:#cfc3c6;font-size:12px;line-height:1.55}
+#error pre{white-space:pre-wrap;word-break:break-word;background:rgba(0,0,0,.35);padding:8px;border-radius:6px;color:#ff9aa6;font-size:11px;max-height:30vh;overflow:auto}
+#error a{color:var(--cyan)}
+
+/* ---------------------------------------------------------------- responsive */
+@media (max-width:640px){
+  :root{--gap:8px}
+  body{font-size:10.5px}
+  .panel{padding:6px 8px 7px;border-radius:6px}
+  .panel h2{font-size:10.5px;margin-bottom:3px}
+  #p-status{max-width:calc(100vw - 150px - 3*var(--gap))}
+  #p-status .classic{font-size:9px;margin-top:3px}
+  #mm{width:132px;height:84px}
+  #p-map{padding:4px} #p-map h2{display:none}
+  #p-stats{width:calc(50vw - 1.5*var(--gap) - var(--sal))}
+  #p-ctrl{width:calc(50vw - 1.5*var(--gap) - var(--sar));padding:6px 6px 6px}
+  #p-ctrl h2{font-size:10px}
+  .grid{gap:4px}
+  .cb{padding:5px 1px 3px;font-size:6.6px;gap:2px}
+  .cb svg{width:20px;height:20px}
+  .row{gap:.45em}
+  .toast{font-size:10px;padding:5px 9px}
+}
+@media (max-width:360px){ .cb span{display:none} .cb{padding:6px 1px} }
+@media (max-height:500px) and (orientation:landscape){
+  body{font-size:10px}
+  .panel{padding:5px 8px 6px}
+  .panel h2{font-size:10px;margin-bottom:2px}
+  #p-status .r-opt{display:none}
+  #p-stats{width:220px}
+  #p-stats .r-opt{display:none}
+  #p-ctrl{width:236px} #p-ctrl h2{display:none}
+  .cb{padding:4px 1px 3px;font-size:6.5px} .cb svg{width:18px;height:18px}
+  #mm{width:150px;height:95px} #p-map h2{display:none}
+}
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<canvas id="ov" tabindex="0" aria-label="Game world: drag to select white cells, right-click or tap to send them"></canvas>
+
+<section class="panel" id="p-status" aria-label="Simulation status">
+  <h2>Simulation HUD</h2>
+  <div class="row">SIM ID: <b id="h-id">[—]</b></div>
+  <div class="row">WAVE: <b id="h-wave">#0</b></div>
+  <div class="row">THREATS: <b id="h-threat">—</b></div>
+  <div class="row r-opt">DATA FEED: <b id="h-feed">webgl2</b></div>
+  <div class="row">SELECTED: <b id="h-sel" class="cyan">0/0</b></div>
+  <a class="classic" href="index.html" title="The original Canvas 2D microvascular sandbox">‹ classic sandbox</a>
+</section>
+
+<section class="panel" id="p-map" aria-label="Minimap">
+  <h2>Vascular map <span id="h-mapname"></span></h2>
+  <canvas id="mm" aria-label="Minimap: click to jump, right-click to send the selection"></canvas>
+</section>
+
+<section class="panel" id="p-stats" aria-label="Statistics">
+  <h2>Statistics</h2>
+  <div class="row">INFECTION LEVEL: <b id="h-inf">0%</b></div>
+  <div class="bar" id="bar-inf"><i></i></div>
+  <div class="row">IMMUNE STRENGTH: <b id="h-imm">0%</b></div>
+  <div class="bar" id="bar-imm"><i></i></div>
+  <div class="row">CELL POP: <b id="h-pop">0</b></div>
+  <div class="row r-opt">TIME: <b id="h-time">00:00 MIN</b></div>
+  <div class="row">SCORE: <b id="h-score">0</b></div>
+</section>
+
+<section class="panel" id="p-ctrl" aria-label="Controls">
+  <h2>Bio-Control Panel</h2>
+  <div class="grid">
+    <button class="cb" id="b-all" title="Select all white cells (Q / Ctrl+A)">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3" stroke-dasharray="3 2.6"/><circle cx="9" cy="10" r="2.6"/><circle cx="15.2" cy="8.8" r="2"/><circle cx="13" cy="15.6" r="2.5"/></svg>
+      <span>Select all</span></button>
+    <button class="cb" id="b-zin" title="Zoom in (+)">
+      <svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4 21 21M10.5 7.6v5.8M7.6 10.5h5.8"/></svg>
+      <span>Zoom in</span></button>
+    <button class="cb" id="b-zout" title="Zoom out (−)">
+      <svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4 21 21M7.6 10.5h5.8"/></svg>
+      <span>Zoom out</span></button>
+    <button class="cb" id="b-home" title="Centre on your horde (H) — press again for the whole map">
+      <svg viewBox="0 0 24 24"><path d="M3 11.6 12 4l9 7.6"/><path d="M5.6 9.8v9.7h12.8V9.8"/><path d="M10 19.5v-5h4v5"/></svg>
+      <span>Home</span></button>
+    <button class="cb" id="b-pause" title="Pause / resume (P)">
+      <svg viewBox="0 0 24 24"><path class="i-pause" d="M8.5 5v14M15.5 5v14" stroke-width="3"/><path class="i-play" d="M8 5v14l11-7z" fill="currentColor"/></svg>
+      <span id="b-pause-l">Pause</span></button>
+    <button class="cb" id="b-new" title="Grow a new vessel network">
+      <svg viewBox="0 0 24 24"><path d="M2.5 12H8c3.4 0 4.6-6 9-6h4.5M8 12c3.4 0 4.6 6 9 6h4.5"/><circle cx="8" cy="12" r="1.7" fill="currentColor"/></svg>
+      <span>New map</span></button>
+    <button class="cb" id="b-set" title="Settings">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.2" stroke-width="3.1" stroke-dasharray="2.83 2.83"/><circle cx="12" cy="12" r="5.4"/><circle cx="12" cy="12" r="2"/></svg>
+      <span>Settings</span></button>
+    <button class="cb" id="b-help" title="Controls (?)">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.3 9.4a2.8 2.8 0 1 1 4 2.5c-.9.4-1.3 1-1.3 1.9v.5"/><circle cx="12" cy="17.2" r=".9" fill="currentColor"/></svg>
+      <span>Help</span></button>
+  </div>
+</section>
+
+<div id="toasts" aria-live="polite"></div>
+<div id="pausebadge">PAUSED<small><span class="mk">press P or </span><span class="tc">tap </span>▶ to resume</small></div>
+
+<div class="modal" id="m-set" role="dialog" aria-modal="true" aria-labelledby="set-t">
+  <div class="card">
+    <button class="x" data-close aria-label="Close">×</button>
+    <h3 id="set-t">Settings</h3>
+    <div class="set">
+      <label id="l-quality">Quality</label>
+      <div class="seg" id="s-quality" role="group" aria-labelledby="l-quality"><button data-v="auto">Auto</button><button data-v="high">High</button><button data-v="medium">Med</button><button data-v="low">Low</button></div>
+      <p class="hint" id="s-quality-hint">Auto lowers the render resolution when frames get slow.</p>
+      <label id="l-rbc">Red cells</label>
+      <div class="seg" id="s-rbc" role="group" aria-labelledby="l-rbc"><button data-v="1">On</button><button data-v="0">Off</button></div>
+      <label id="l-dof">Depth of field</label>
+      <div class="seg" id="s-dof" role="group" aria-labelledby="l-dof"><button data-v="1">On</button><button data-v="0">Off</button></div>
+      <label id="l-fg">Front cells</label>
+      <div class="seg" id="s-fg" role="group" aria-labelledby="l-fg"><button data-v="1">On</button><button data-v="0">Off</button></div>
+      <label id="l-edge" class="mk">Edge scroll</label>
+      <div class="seg mk" id="s-edge" role="group" aria-labelledby="l-edge"><button data-v="1">On</button><button data-v="0">Off</button></div>
+      <label id="l-diff">Difficulty</label>
+      <div class="seg" id="s-diff" role="group" aria-labelledby="l-diff"><button data-v="easy">Easy</button><button data-v="normal">Normal</button><button data-v="hard">Hard</button></div>
+      <label id="l-gen" for="s-gen">Map style</label>
+      <div class="seedrow"><select id="s-gen" aria-labelledby="l-gen" style="width:auto"></select></div>
+      <p class="hint" id="s-gen-hint"></p>
+      <label for="s-seed">Map seed</label>
+      <div class="seedrow">
+        <input id="s-seed" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" aria-label="Map seed">
+        <button class="btn" id="s-dice" title="Random seed">Random</button>
+      </div>
+      <div></div>
+      <div class="btnrow" style="justify-content:flex-start"><button class="btn primary" id="s-go">Grow this map</button><button class="btn" id="s-restart">Restart</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="m-help" role="dialog" aria-modal="true" aria-labelledby="help-t">
+  <div class="card">
+    <button class="x" data-close aria-label="Close">×</button>
+    <h3 id="help-t">Controls</h3>
+    <div class="help">
+      <p class="goal">Goal: survive 8 waves — destroy every lesion before the infection reaches 100 %.</p>
+      <h4 class="mk">Mouse &amp; keyboard</h4>
+      <div class="mk"><kbd>Left-drag</kbd><span>box-select white cells (Shift adds)</span></div>
+      <div class="mk"><kbd>Left-click</kbd><span>select the horde under the cursor</span></div>
+      <div class="mk"><kbd>Double-click</kbd><span>select every cell on screen</span></div>
+      <div class="mk"><kbd>Right-click</kbd><span>send the selection there (on a lesion: attack)</span></div>
+      <div class="mk"><kbd>Minimap</kbd><span>click/drag to jump · right-click to send the selection</span></div>
+      <div class="mk"><kbd>Wheel</kbd><span>zoom at the cursor</span></div>
+      <div class="mk"><kbd>Middle / Space-drag</kbd><span>pan (flick for inertia)</span></div>
+      <div class="mk"><kbd>WASD / arrows</kbd><span>pan (Shift: faster), or push the mouse to a screen edge</span></div>
+      <div class="mk"><kbd>Q · Ctrl+A</kbd><span>select all cells</span></div>
+      <div class="mk"><kbd>Esc</kbd><span>clear the selection / close a panel</span></div>
+      <div class="mk"><kbd>H · 0</kbd><span>centre on the horde · whole map</span></div>
+      <div class="mk"><kbd>+ / −</kbd><span>zoom in / out</span></div>
+      <div class="mk"><kbd>P</kbd><span>pause</span></div>
+      <h4>Touch</h4>
+      <div><kbd>Drag</kbd><span>pan</span></div>
+      <div><kbd>Pinch</kbd><span>zoom (and pan)</span></div>
+      <div><kbd>Tap a cell</kbd><span>select its horde</span></div>
+      <div><kbd>Tap elsewhere</kbd><span>send the selection there</span></div>
+      <div><kbd>Long-press + drag</kbd><span>box-select (long-press alone clears)</span></div>
+      <h4>How it works</h4>
+      <p>Blood flows from the arterial trunk through the branches and the narrow AV connectors into the veins. Your neutrophils swim, but the current decides how fast: downstream is quick, upstream in a fast artery is near-impossible — go round through the veins and the heart instead.</p>
+      <p>Infection sites bloom in the vessel walls and shed viruses and bacteria into the flow. Touch a pathogen to engulf it, crowd a lesion to destroy it. Pathogens that escape into the veins and every living one raise the infection level; at 100 % the tissue is lost. Destroy the lesions of all 8 waves to clear the infection. Idle cells stick to the wall so the flow does not wash them away.</p>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="m-end" role="dialog" aria-modal="true" aria-labelledby="end-title">
+  <div class="card">
+    <h3 id="end-title">Infection cleared</h3>
+    <p id="end-sub">the tissue is safe</p>
+    <div id="end-score">0</div>
+    <div class="endstats" id="end-stats"></div>
+    <div class="btnrow"><button class="btn primary" id="e-restart">Play again</button><button class="btn" id="e-new">New map</button><button class="btn" id="e-look">Look around</button></div>
+  </div>
+</div>
+
+<div id="loading"><div class="cellspin"></div><div class="t">Horde</div><div class="s" id="load-s">booting…</div></div>
+<div id="error" role="alert"><div class="card">
+  <h3 id="err-t">WebGL2 is not available</h3>
+  <p id="err-p">This game renders the vessel network on the GPU and needs WebGL2, which this browser or device does not provide (or it is disabled).</p>
+  <pre id="err-pre" hidden></pre>
+  <p>The <a href="index.html">classic microvascular sandbox</a> runs on a plain Canvas 2D and works everywhere.</p>
+</div></div>
+
+<script src="horde/gen.js"></script>
+<script src="horde/gen-primaldual.js"></script>
+<script src="horde/gen-anatomic.js"></script>
+<script src="horde/gen-colonize.js"></script>
+<script src="horde/gen-dualcco.js"></script>
+<script src="horde/net.js"></script>
+<script src="horde/render.js"></script>
+<script src="horde/sim.js"></script>
+<script src="horde/main.js"></script>
+</body>
+</html>

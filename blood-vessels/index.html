@@ -192,6 +192,9 @@
   <div class="row">
     <button class="btn wide" id="playbtn">🦠 Play “Immune Patrol”</button>
   </div>
+  <div class="row">
+    <a class="btn wide" id="hordelink" href="horde.html" style="text-decoration:none" title="Game-scale vessels: command hordes of white blood cells">🧫 Immune Horde (game scale) ↗</a>
+  </div>
   <div class="toggles" id="diffs">
     <span class="chip" data-d="calm" title="Slow spread, forgiving">Calm</span>
     <span class="chip on" data-d="normal" title="Standard infection pressure">Normal</span>
@@ -384,18 +387,38 @@ const WALL_V = [44,18,34];     // venous wall
 // ============================================================================
 //  SPATIAL HASH GRID  (fast nearest-node queries during growth)
 // ============================================================================
+// Cells are keyed by one small integer (no string building per lookup), and the
+// bounding box of the occupied cells is tracked so a wide query radius never
+// walks rows/columns that cannot hold anything. The scan order is unchanged —
+// row by row, then insertion order inside a cell — so ties resolve as before.
+const gridKey=(gx,gy)=>(gx+8192)*16384+(gy+8192);   // exact for |gx|,|gy| < 8192 cells
 class Grid{
-  constructor(cell){ this.cs=cell; this.m=new Map(); }
-  key(x,y){ return ((x/this.cs)|0)+','+((y/this.cs)|0); }
-  add(n){ const k=this.key(n.x,n.y); let a=this.m.get(k); if(!a){a=[];this.m.set(k,a);} a.push(n); }
+  constructor(cell){ this.cs=cell; this.m=new Map(); this.x0=Infinity; this.x1=-Infinity; this.y0=Infinity; this.y1=-Infinity; }
+  add(n){ const cs=this.cs, gx=(n.x/cs)|0, gy=(n.y/cs)|0, k=gridKey(gx,gy);
+    let a=this.m.get(k);
+    if(!a){ a=[]; this.m.set(k,a);
+      if(gx<this.x0) this.x0=gx; if(gx>this.x1) this.x1=gx; if(gy<this.y0) this.y0=gy; if(gy>this.y1) this.y1=gy; }
+    a.push(n); }
   nearest(x,y,maxR){
     const cs=this.cs, r=Math.min(64,Math.ceil(maxR/cs)), cx=(x/cs)|0, cy=(y/cs)|0;
+    const gx0=Math.max(cx-r,this.x0), gx1=Math.min(cx+r,this.x1), gy0=Math.max(cy-r,this.y0), gy1=Math.min(cy+r,this.y1);
     let best=null, bd=maxR*maxR;
-    for(let gy=cy-r; gy<=cy+r; gy++) for(let gx=cx-r; gx<=cx+r; gx++){
-      const a=this.m.get(gx+','+gy); if(!a) continue;
-      for(const n of a){ const dx=n.x-x, dy=n.y-y, d=dx*dx+dy*dy; if(d<bd){bd=d;best=n;} }
+    for(let gy=gy0; gy<=gy1; gy++) for(let gx=gx0; gx<=gx1; gx++){
+      const a=this.m.get(gridKey(gx,gy)); if(a===undefined) continue;
+      for(let i=0;i<a.length;i++){ const n=a[i], dx=n.x-x, dy=n.y-y, d=dx*dx+dy*dy; if(d<bd){bd=d;best=n;} }
     }
     return best;
+  }
+  // existence test with the same reach as nearest(): true iff nearest() would
+  // return a node, but stops at the first hit
+  any(x,y,maxR){
+    const cs=this.cs, r=Math.min(64,Math.ceil(maxR/cs)), cx=(x/cs)|0, cy=(y/cs)|0, R2=maxR*maxR;
+    const gx0=Math.max(cx-r,this.x0), gx1=Math.min(cx+r,this.x1), gy0=Math.max(cy-r,this.y0), gy1=Math.min(cy+r,this.y1);
+    for(let gy=gy0; gy<=gy1; gy++) for(let gx=gx0; gx<=gx1; gx++){
+      const a=this.m.get(gridKey(gx,gy)); if(a===undefined) continue;
+      for(let i=0;i<a.length;i++){ const n=a[i], dx=n.x-x, dy=n.y-y; if(dx*dx+dy*dy<R2) return true; }
+    }
+    return false;
   }
 }
 
@@ -405,16 +428,38 @@ class Grid{
 function growTree(rng, root, attractors, P){
   root.children=[]; root.parent=null; root.depth=0;
   const nodes=[root];
-  const grid=new Grid(P.influence);
-  grid.add(root);
-  let live = attractors.map(p=>({x:p.x,y:p.y,dead:false}));
+  // Nodes never move and attractors never move, so each attractor keeps its
+  // nearest node (within the influence radius) cached and only the nodes added
+  // since the last iteration are tested against it. Attractors are bucketed once
+  // with cell = influence radius, so a node only visits the 3×3 cells around it.
+  // An exact distance tie goes to the node in the earlier (row, column) cell and
+  // then the earlier-added one — the order a full grid scan would have found them.
+  const cs=P.influence, infR2=cs*cs, kill2=P.kill*P.kill;
+  const live = attractors.map(p=>({x:p.x,y:p.y,dead:false,best:null,bd:infR2}));
   let liveN = live.length;
+  const buckets=new Map();
+  for(const at of live){ const k=gridKey((at.x/cs)|0,(at.y/cs)|0); let q=buckets.get(k); if(!q){ q=[]; buckets.set(k,q); } q.push(at); }
+  const around=(nd,rc,fn)=>{ const cx=(nd.x/cs)|0, cy=(nd.y/cs)|0;
+    for(let gy=cy-rc; gy<=cy+rc; gy++) for(let gx=cx-rc; gx<=cx+rc; gx++){
+      const q=buckets.get(gridKey(gx,gy)); if(q!==undefined) for(let i=0;i<q.length;i++) fn(q[i],nd); } };
+  const killR=Math.min(64,Math.ceil(P.kill/cs));   // cells a kill test must reach
+  const offer=(at,nd)=>{ if(at.dead) return;
+    const dx=nd.x-at.x, dy=nd.y-at.y, d=dx*dx+dy*dy;
+    if(d<at.bd){ at.bd=d; at.best=nd; }
+    else if(d===at.bd && at.best){ const b=at.best, ny=(nd.y/cs)|0, by=(b.y/cs)|0;
+      if(ny<by || (ny===by && ((nd.x/cs)|0)<((b.x/cs)|0))) at.best=nd; } };
+  const tryKill=(at,nd)=>{ if(at.dead) return;
+    const dx=nd.x-at.x, dy=nd.y-at.y; if(dx*dx+dy*dy<kill2){ at.dead=true; liveN--; } };
+  const fresh=[root], unchecked=[root];   // not yet offered to the attractors / not yet kill-tested
+  const addChild=(child)=>{ nodes.push(child); fresh.push(child); unchecked.push(child); };
 
   for(let it=0; it<P.maxIter && liveN>0 && nodes.length<P.maxNodes; it++){
+    for(let i=0;i<fresh.length;i++) around(fresh[i],1,offer);
+    fresh.length=0;
     const infl=new Map();
     for(const at of live){
       if(at.dead) continue;
-      const near=grid.nearest(at.x,at.y,P.influence);
+      const near=at.best;
       if(!near) continue;
       const dx=at.x-near.x, dy=at.y-near.y, L=Math.hypot(dx,dy)||1;
       let e=infl.get(near); if(!e){e={x:0,y:0,n:0};infl.set(near,e);}
@@ -429,7 +474,7 @@ function growTree(rng, root, attractors, P){
           for(const nd of nodes){ const d=(nd.x-at.x)**2+(nd.y-at.y)**2; if(d<bd){bd=d;bn=nd;ba=at;} } }
         if(bn){ const dx=ba.x-bn.x,dy=ba.y-bn.y,L=Math.hypot(dx,dy)||1;
           const child={x:bn.x+dx/L*P.seg,y:bn.y+dy/L*P.seg,children:[],parent:bn,depth:bn.depth+1};
-          bn.children.push(child); nodes.push(child); grid.add(child); continue; }
+          bn.children.push(child); addChild(child); continue; }
       }
       break;
     }
@@ -442,12 +487,12 @@ function growTree(rng, root, attractors, P){
       const nx=node.x+dx/L*P.seg, ny=node.y+dy/L*P.seg;
       if(nx<-40||ny<-40||nx>WORLD.w+40||ny>WORLD.h+40) continue;
       const child={x:nx,y:ny,children:[],parent:node,depth:node.depth+1};
-      node.children.push(child); nodes.push(child); grid.add(child);
+      node.children.push(child); addChild(child);
     }
-    for(const at of live){
-      if(at.dead) continue;
-      if(grid.nearest(at.x,at.y,P.kill)){ at.dead=true; liveN--; }
-    }
+    // an attractor dies once any node comes within the kill radius — only the
+    // nodes added since the last test can newly do that
+    for(let i=0;i<unchecked.length;i++) around(unchecked[i],killR,tryKill);
+    unchecked.length=0;
   }
   return nodes;
 }
@@ -578,20 +623,28 @@ function growCCOPlus(rng, root, P){
   const tgrid=new Grid(160); tgrid.add(first);
   const e2=2/P.gamma, dCap=WORLD.w*0.22;
   let guard=0, maxGuard=P.nTerm*26;
+  const topD=new Float64Array(P.nCon), topS=new Array(P.nCon);   // nearest-segment shortlist
   while(terminals.length<P.nTerm && guard++<maxGuard){
     const x=lerp(WORLD.w*P.xLo,WORLD.w*P.xHi,rng()), y=lerp(WORLD.h*P.yLo,WORLD.h*P.yHi,rng());
     if(inVoid(x,y)) continue;
     const dThresh=Math.min(dCap, P.dScale*Math.sqrt(P.area/terminals.length));
-    if(tgrid.nearest(x,y,dThresh)) continue;                 // spacing criterion
+    if(tgrid.any(x,y,dThresh)) continue;                     // spacing criterion
     const T={x,y};
     // score every segment by distance from T, keep the nearest nCon as candidates
-    const scored=[];
-    for(const s of segs){ const cp=closestOnSeg(T,s.a,s.b);
-      scored.push({s, d:Math.hypot(cp.x-T.x,cp.y-T.y)}); }
-    scored.sort((u,v)=>u.d-v.d);
-    const K=Math.min(P.nCon,scored.length), evald=[];
+    // (a stable insertion into a short sorted list: equal distances keep segment
+    // order, exactly as a stable sort of all of them would)
+    let K=0;
+    for(let si=0; si<segs.length; si++){ const s=segs[si], a=s.a, sb=s.b;
+      const abx=sb.x-a.x, aby=sb.y-a.y, dd=abx*abx+aby*aby||1;          // = closestOnSeg(T,a,sb)
+      const t=clamp(((T.x-a.x)*abx+(T.y-a.y)*aby)/dd,0,1);
+      const d=Math.hypot(a.x+abx*t-T.x, a.y+aby*t-T.y);
+      if(K===P.nCon && !(d<topD[K-1])) continue;
+      let j=K<P.nCon ? K++ : K-1;
+      while(j>0 && topD[j-1]>d){ topD[j]=topD[j-1]; topS[j]=topS[j-1]; j--; }
+      topD[j]=d; topS[j]=s; }
+    const evald=[];
     for(let i=0;i<K;i++){
-      const s=scored[i].s, p=s.a, c=s.b, nc=c.term||1;
+      const s=topS[i], p=s.a, c=s.b, nc=c.term||1;
       const wpb=Math.pow(nc+1,e2), wbc=Math.pow(nc,e2), wbt=1;
       // optimal junction b = weighted geometric median of {p,c,T} (Weiszfeld)
       let b=closestOnSeg(T,p,c);
@@ -710,7 +763,7 @@ function growAngio(rng, root, P){
 //  The one generator that isn't a tree. A dense mesh graph (a jittered triangular
 //  lattice) is treated as a network of resistive tubes: one inlet SOURCE feeds
 //  every node (tissue demand). We solve the flow — the graph-Laplacian analogue
-//  of Kirchhoff's laws, `L(κ)·p = q`, by conjugate gradient — then ADAPT each
+//  of Kirchhoff's laws, `L(κ)·p = q`, by banded Cholesky — then ADAPT each
 //  tube's conductance κ toward the optimum `κ ∝ ⟨Q²⟩^{1/(1+γ)}` under a cost
 //  budget, and repeat. The trick that keeps loops instead of collapsing to a
 //  tree is FLUCTUATING loads: averaging Q² over many random demand patterns makes
@@ -720,26 +773,45 @@ function growAngio(rng, root, P){
 //  existing merge / z-order / flow stages all still work on the general graph.
 //  Refs: Hu & Cai (2013); Ronellenfitsch & Katifori (2016); Corson (2010).
 // ============================================================================
-// Conjugate-gradient solve of the (singular, consistent) graph Laplacian
-// L·p = q, matrix-free over the edge list. q must sum to ~0; gauge fixed by
-// keeping the residual and solution mean-zero (L's null space is the constants).
-function solveCG(N, ei, ej, g, q, iters){
-  const E=ei.length;
-  const p=new Float64Array(N), r=new Float64Array(N), Ap=new Float64Array(N), pd=new Float64Array(N);
-  const apply=(x,out)=>{ out.fill(0);
-    for(let e=0;e<E;e++){ const i=ei[e], j=ej[e], d=g[e]*(x[i]-x[j]); out[i]+=d; out[j]-=d; } };
-  let mean=0; for(let i=0;i<N;i++) mean+=q[i]; mean/=N;
-  for(let i=0;i<N;i++){ r[i]=q[i]-mean; pd[i]=r[i]; }
-  let rs=0; for(let i=0;i<N;i++) rs+=r[i]*r[i];
-  const tol=rs*1e-8+1e-12;
-  for(let it=0; it<iters && rs>tol; it++){
-    apply(pd,Ap); let pAp=0; for(let i=0;i<N;i++) pAp+=pd[i]*Ap[i];
-    if(pAp<=1e-20) break; const al=rs/pAp;
-    for(let i=0;i<N;i++){ p[i]+=al*pd[i]; r[i]-=al*Ap[i]; }
-    let rs2=0; for(let i=0;i<N;i++) rs2+=r[i]*r[i]; const be=rs2/rs; rs=rs2;
-    for(let i=0;i<N;i++) pd[i]=r[i]+be*pd[i];
+// Kirchhoff solve by banded Cholesky. The graph Laplacian L·p = q is singular
+// (its null space is the constants), so node 0 — the inlet — is grounded: its row
+// and column are dropped, and the reduced matrix is symmetric positive definite
+// for a connected lattice with positive conductances. The lattice is laid out row
+// by row, so an edge never joins nodes more than about one lattice row apart in
+// index and the band stays narrow (half-bandwidth b ≈ nodes per row). One
+// factorisation per adaptation step then serves every load pattern of that step,
+// and each solve is just two triangular sweeps — exact, where the conjugate
+// gradient this replaces stopped at a 1e-4 relative residual.
+function bandFactor(N, ei, ej, g){
+  const n=N-1, E=ei.length; let b=0;
+  for(let e=0;e<E;e++) if(ei[e]>0 && ej[e]>0){ const d=Math.abs(ei[e]-ej[e]); if(d>b) b=d; }
+  const W=b+1, L=new Float64Array(n*W);          // row i keeps L[i][i-w] at i*W+w, w = 0..b
+  for(let e=0;e<E;e++){ const i=ei[e]-1, j=ej[e]-1, v=g[e];
+    if(i>=0) L[i*W]+=v;
+    if(j>=0) L[j*W]+=v;
+    if(i>=0 && j>=0){ if(i>j) L[i*W+i-j]-=v; else L[j*W+j-i]-=v; } }
+  for(let i=0;i<n;i++){                          // in place: L·Lᵀ = A
+    const ri=i*W, k0=Math.max(0,i-b);
+    for(let k=k0;k<=i;k++){
+      const rk=k*W; let s=L[ri+i-k];
+      for(let m=k0;m<k;m++) s-=L[ri+i-m]*L[rk+k-m];
+      L[ri+i-k] = k===i ? Math.sqrt(Math.max(s,1e-300)) : s/L[rk];
+    }
   }
-  let pm=0; for(let i=0;i<N;i++) pm+=p[i]; pm/=N; for(let i=0;i<N;i++) p[i]-=pm;
+  return {n,b,W,L};
+}
+// Solve for the potentials of load q (Σq = 0) into p (length N), then shift them
+// to mean zero — the same gauge the old iterative solve returned.
+function bandSolve(F, q, p){
+  const {n,b,W,L}=F;
+  for(let i=0;i<n;i++){ const ri=i*W; let s=q[i+1];          // forward:  L·y = q
+    for(let m=Math.max(0,i-b); m<i; m++) s-=L[ri+i-m]*p[m+1];
+    p[i+1]=s/L[ri]; }
+  for(let i=n-1;i>=0;i--){ let s=p[i+1]; const m1=Math.min(n-1,i+b);   // back: Lᵀ·x = y
+    for(let m=i+1; m<=m1; m++) s-=L[m*W+m-i]*p[m+1];
+    p[i+1]=s/L[i*W]; }
+  p[0]=0;
+  let pm=0; for(let i=0;i<=n;i++) pm+=p[i]; pm/=n+1; for(let i=0;i<=n;i++) p[i]-=pm;
   return p;
 }
 function buildLoops(rng, addNode, mkEdge, P){
@@ -766,16 +838,16 @@ function buildLoops(rng, addNode, mkEdge, P){
   const E=ei.length;
   // --- adapt conductances with fluctuating demand (this is what keeps loops) ---
   const kappa=new Float64Array(E); for(let e=0;e<E;e++) kappa[e]=0.5+rng();
-  const g=new Float64Array(E), q=new Float64Array(N), gammaC=P.gammaC, relax=P.relax;
+  const g=new Float64Array(E), q=new Float64Array(N), p=new Float64Array(N), gammaC=P.gammaC, relax=P.relax;
   for(let it=0; it<P.T; it++){
     for(let e=0;e<E;e++) g[e]=kappa[e]/elen[e];
-    const Q2=new Float64Array(E);
+    const Q2=new Float64Array(E), F=bandFactor(N, ei, ej, g);
     for(let m=0;m<P.M;m++){
       // fluctuating load: all the supply drains to ONE random node this scenario.
       // Averaging Q² over many such loads is what makes redundant loops worth
       // their cost — a single steady load would collapse to a tree.
       q.fill(0); const k=1+((rng()*(N-1))|0); q[k]=-1; q[0]=1;
-      const p=solveCG(N, ei, ej, g, q, 220);
+      bandSolve(F, q, p);
       for(let e=0;e<E;e++){ const d=g[e]*(p[ei[e]]-p[ej[e]]); Q2[e]+=d*d; }
     }
     // gradual relaxation toward the fixed point κ ∝ ⟨Q²⟩^{1/(1+γ)} — a full
@@ -788,7 +860,7 @@ function buildLoops(rng, addNode, mkEdge, P){
   // --- final steady potentials (uniform demand) → orientation + colour ---
   for(let e=0;e<E;e++) g[e]=kappa[e]/elen[e];
   { let s=0; for(let i=1;i<N;i++){ q[i]=-1; s++; } q[0]=s; }
-  const pot=solveCG(N, ei, ej, g, q, 400);
+  const pot=bandSolve(bandFactor(N, ei, ej, g), q, new Float64Array(N));
   let pmin=Infinity,pmax=-Infinity; for(let i=0;i<N;i++){ if(pot[i]<pmin)pmin=pot[i]; if(pot[i]>pmax)pmax=pot[i]; }
   const pn=(i)=>(pot[i]-pmin)/((pmax-pmin)||1);
   // --- radius from conductance; prune the weakest tubes to expose the hierarchy.
@@ -949,8 +1021,9 @@ function growDBM(rng, root, P){
   for(let i=0;i<cols;i++){ phi[at(i,0)]=1; fixed[at(i,0)]=1; phi[at(i,rows-1)]=1; fixed[at(i,rows-1)]=1; }
   for(let j=0;j<rows;j++){ phi[at(0,j)]=1; fixed[at(0,j)]=1; phi[at(cols-1,j)]=1; fixed[at(cols-1,j)]=1; }
   for(let k=0;k<NC;k++) if(!fixed[k]) phi[k]=1;
-  const relax=(sw)=>{ for(let s=0;s<sw;s++) for(let j=1;j<rows-1;j++) for(let i=1;i<cols-1;i++){
-    const k=at(i,j); if(fixed[k]) continue; phi[k]=0.25*(phi[k-1]+phi[k+1]+phi[k-cols]+phi[k+cols]); } };
+  const relax=(sw)=>{ for(let s=0;s<sw;s++) for(let j=1;j<rows-1;j++){      // Gauss–Seidel, row-major
+    for(let i=1, k=j*cols+1; i<cols-1; i++, k++){
+      if(fixed[k]===0) phi[k]=0.25*(phi[k-1]+phi[k+1]+phi[k-cols]+phi[k+cols]); } } };
   const si=clamp(Math.round(WORLD.w*0.12/gs),2,cols-3), sj=clamp(Math.round(root.y/gs),2,rows-3);
   const seed={x:si*gs, y:sj*gs, children:[], parent:root, depth:1}; root.children.push(seed); nodes.push(seed);
   occ[at(si,sj)]=1; phi[at(si,sj)]=0; fixed[at(si,sj)]=1; nodeAt[at(si,sj)]=1;
@@ -961,12 +1034,14 @@ function growDBM(rng, root, P){
   const surfAround=(i,j)=>{ for(const nb of NB8) addSurf(i+nb[0],j+nb[1]); };
   surfAround(si,sj);
   const eta=P.eta; let since=0;
+  const candK=new Int32Array(NC), candW=new Float64Array(NC);    // reused every step
   while(nodes.length<P.maxNodes && surf.size){
-    let tot=0; const arr=[];
-    for(const k of surf){ if(occ[k]){ continue; } const w=Math.pow(Math.max(phi[k],0),eta)+1e-6; arr.push(k); arr.push(w); tot+=w; }
-    if(!arr.length) break;
-    let r=rng()*tot, pick=arr[0];
-    for(let a=0;a<arr.length;a+=2){ r-=arr[a+1]; if(r<=0){ pick=arr[a]; break; } }
+    let tot=0, m=0;
+    for(const k of surf){ if(occ[k]) continue;
+      const v=Math.max(phi[k],0), w=(eta===1?v:Math.pow(v,eta))+1e-6; candK[m]=k; candW[m]=w; m++; tot+=w; }
+    if(!m) break;
+    let r=rng()*tot, pick=candK[0];
+    for(let a=0;a<m;a++){ r-=candW[a]; if(r<=0){ pick=candK[a]; break; } }
     const i=pick%cols, j=(pick/cols)|0;
     let pk=-1; for(const nb of NB8){ const nk=at(i+nb[0],j+nb[1]); if(occ[nk]){ pk=nk; break; } }
     const par = pk>=0 ? nodes[nodeAt[pk]] : seed;
@@ -1152,23 +1227,33 @@ function buildNetwork(seed, preset){
   register(vRoot,'ven');
 
   // collect leaves
-  const aLeaves=nodes.filter(n=>n.children.length===0 && n.depth!==undefined && isArt(n,aRoot));
-  // simpler: recompute membership flags
-  function isArt(){return false;}
   const artSet=new Set(); (function mark(n){artSet.add(n);n.children.forEach(mark);})(aRoot);
   const venSet=new Set(); (function mark(n){venSet.add(n);n.children.forEach(mark);})(vRoot);
   artLeaves=[...artSet].filter(n=>n.children.length===0);
   venLeaves=[...venSet].filter(n=>n.children.length===0);
 
-  // nearest venular tip for each arteriolar tip (linear scan — leaf counts are modest)
-  const nearestLeaf=(x,y,arr)=>{ let best=null,bd=Infinity;
-    for(const n of arr){ const d=(n.x-x)**2+(n.y-y)**2; if(d<bd){bd=d;best=n;} } return best; };
+  // nearest venular tip for each arteriolar tip. The tips are bucketed once into
+  // 400 µm cells and searched in two passes: anything within 400 µm means the true
+  // nearest is in the 3×3 cells around the query; otherwise widen to just past the
+  // 1500 µm cut-off, so the `dist>1500` test below sees exactly what a full scan
+  // would have shown it. Equal distances go to the earlier tip, as in a full scan.
+  const LCS=400, leafCells=new Map();
+  for(let i=0;i<venLeaves.length;i++){ const n=venLeaves[i], k=gridKey((n.x/LCS)|0,(n.y/LCS)|0);
+    let a=leafCells.get(k); if(!a){ a=[]; leafCells.set(k,a); } a.push(i); }
+  const leafWithin=(x,y,R)=>{ const r=Math.ceil(R/LCS), cx=(x/LCS)|0, cy=(y/LCS)|0;
+    let bi=-1, bd=R*R;
+    for(let gy=cy-r; gy<=cy+r; gy++) for(let gx=cx-r; gx<=cx+r; gx++){
+      const a=leafCells.get(gridKey(gx,gy)); if(a===undefined) continue;
+      for(let t=0;t<a.length;t++){ const i=a[t], n=venLeaves[i], d=(n.x-x)**2+(n.y-y)**2;
+        if(d<bd || (d===bd && i<bi)){ bd=d; bi=i; } } }
+    return bi<0 ? null : venLeaves[bi]; };
+  const nearestLeaf=(x,y)=>leafWithin(x,y,LCS)||leafWithin(x,y,1600);
 
   // ---- CAPILLARY TRANSITION: arteriole tip -> true capillary -> venule tip ----
   // radius eases A_tip -> CAP_R -> V_tip; blood deoxygenates 0..1 along the run.
   capBeds=0;
   for(const aL of artLeaves){
-    const vL = nearestLeaf(aL.x,aL.y, venLeaves);
+    const vL = nearestLeaf(aL.x,aL.y);
     if(!vL) continue;
     const dist=Math.hypot(vL.x-aL.x, vL.y-aL.y);
     if(dist>1500) continue;                // too far → leave as a dead tip
@@ -1227,14 +1312,13 @@ function buildNetwork(seed, preset){
     e.a.tx+=e.ux; e.a.ty+=e.uy;
     e.b.tx+=e.ux; e.b.ty+=e.uy;
   }
-  for(const e of edges){                       // fall back to the chord if degenerate
-    for(const n of [e.a,e.b]){
-      if(n._tn) continue;
-      const L=Math.hypot(n.tx,n.ty);
-      if(L>1e-6){ n.tx/=L; n.ty/=L; } else { n.tx=e.ux; n.ty=e.uy; }
-      n._tn=true;
-    }
-  }
+  const normTangent=(n,e)=>{                   // fall back to the chord if degenerate
+    if(n._tn) return;
+    const L=Math.hypot(n.tx,n.ty);
+    if(L>1e-6){ n.tx/=L; n.ty/=L; } else { n.tx=e.ux; n.ty=e.uy; }
+    n._tn=true;
+  };
+  for(const e of edges){ normTangent(e.a,e); normTangent(e.b,e); }
 
   // ---- undirected adjacency (game mode: a swimmer may go against the flow) ----
   // incident[nodeId] = [{e, d}] with d=+1 when leaving the node along a→b,
@@ -1273,35 +1357,33 @@ function buildNetwork(seed, preset){
     else if(e.layer===undefined) e.layer=0;
   }
 
-  // ---- pseudo-depth (z-order) ----------------------------------------------
+  // ---- pseudo-depth (z-order) and arc length --------------------------------
   // The bed is a flat projection of a network that is really three-dimensional.
   // Without a depth every crossing is ambiguous — and worse, blood cells in the
   // vessel *behind* were drawn over the one in front. Each root starts at
   // mid-depth and every branch point drifts a little, so a chain keeps its
   // depth and only junctions reshuffle the layering.
+  // Arc length is a single continuous "distance from the root" coordinate, in
+  // µm, running through every chain. The shaders draw the endothelial lining and
+  // the advected plasma streaks in this coordinate, so both patterns flow along
+  // the vessel and stay seamless across segment and branch boundaries.
+  // Both are filled in by the same breadth-first walk out of the arterial root;
+  // a detached fragment then gets its own arc-length walk (and a mid depth).
   {
-    for(const n of nodes) n.zd=-1;
-    const q=[aRoot]; aRoot.zd=0.5;
+    for(const n of nodes){ n.zd=-1; n.arc=-1; }
+    const q=[aRoot]; aRoot.zd=0.5; aRoot.arc=0;
     for(let qi=0; qi<q.length; qi++){
       const n=q[qi], inc=incident[n.id], branch=inc.length>2;
       for(const it of inc){
         const o=it.d>0?it.e.b:it.e.a;
         if(o.zd>=0) continue;
         o.zd=clamp(n.zd+(branch?(rng()-0.5)*0.34:(rng()-0.5)*0.015),0.06,0.94);
+        o.arc=n.arc+it.e.len;
         q.push(o);
       }
     }
     for(const n of nodes) if(n.zd<0) n.zd=0.5;
     for(const e of edges) e.zd=(e.a.zd+e.b.zd)*0.5;
-  }
-
-  // ---- arc length along the network ----------------------------------------
-  // A single continuous "distance from the root" coordinate, in µm, running
-  // through every chain. The shaders draw the endothelial lining and the
-  // advected plasma streaks in this coordinate, so both patterns flow along the
-  // vessel and stay seamless across segment and branch boundaries.
-  {
-    for(const n of nodes) n.arc=-1;
     const walk=(start)=>{
       const q=[start]; start.arc=0;
       for(let qi=0; qi<q.length; qi++){
@@ -1313,7 +1395,6 @@ function buildNetwork(seed, preset){
         }
       }
     };
-    walk(aRoot);
     for(const n of nodes) if(n.arc<0) walk(n);      // any detached fragment
   }
 
@@ -1348,12 +1429,23 @@ function buildNetwork(seed, preset){
 
 // a few anatomy labels placed on representative vessels
 function pickLandmarks(aRoot,vRoot,edges){
-  const big=(t)=>edges.filter(e=>e.type===t).sort((a,b)=>b.radius-a.radius);
-  const arts=big('art'), vens=big('ven'), caps=edges.filter(e=>e.type==='cap');
+  // the widest K edges of a type, widest first — a stable insertion, so equal
+  // radii keep edge order exactly as a stable sort of the whole list would
+  const big=(t,K)=>{ const top=[];
+    for(const e of edges){ if(e.type!==t) continue; const r=e.radius;
+      if(top.length===K && !(r>top[K-1].radius)) continue;
+      let j=top.length<K ? top.length : K-1;
+      while(j>0 && top[j-1].radius<r){ top[j]=top[j-1]; j--; }
+      top[j]=e; }
+    return top; };
+  const arts=big('art',19), vens=big('ven',19);
+  let nCap=0; for(const e of edges) if(e.type==='cap') nCap++;
   const L=[];
   if(arts[0]) L.push({x:arts[0].a.x,y:arts[0].a.y,t:'Artery'});
   if(arts[18]) L.push({x:arts[18].b.x,y:arts[18].b.y,t:'Arteriole'});
-  if(caps.length) { const m=caps[(caps.length/2)|0]; L.push({x:m.a.x,y:m.a.y,t:'Capillary bed'}); }
+  if(nCap){ let m=null;
+    for(let i=0, c=0, want=(nCap/2)|0; i<edges.length; i++) if(edges[i].type==='cap' && c++===want){ m=edges[i]; break; }
+    L.push({x:m.a.x,y:m.a.y,t:'Capillary bed'}); }
   if(vens[18]) L.push({x:vens[18].a.x,y:vens[18].a.y,t:'Venule'});
   if(vens[0]) L.push({x:vens[0].b.x,y:vens[0].b.y,t:'Vein'});
   return L;
@@ -1935,9 +2027,9 @@ function frame(now){
       }else{
         // far vessels → their cells → near vessels → their cells, so a cell in
         // a vessel that passes behind another one is covered by it
-        if(showTraffic||GAME.on) drawCellsCanvas(e=>e.zd>=Z_SPLIT);
+        if(showTraffic||GAME.on) drawCellsCanvas(e=>e.zd>=Z_SPLIT, false);
         ctx.drawImage(bgF,0,0,VW,VH);
-        if(showTraffic||GAME.on) drawCellsCanvas(e=>e.zd<Z_SPLIT);
+        if(showTraffic||GAME.on) drawCellsCanvas(e=>e.zd<Z_SPLIT, true);
       }
       _canvasReady=true;
     }
@@ -2061,11 +2153,14 @@ function drawCellCanvas(c,S){
   ctx.globalAlpha=1;
 }
 
-function drawCellsCanvas(){
+// One depth bucket of the traffic: the cells whose vessel passes `keep`. The game
+// actors (the foes, which also live in CELLS, and the player) are drawn once, on
+// top of everything, by the pass that asks for them — like the GPU paths, which
+// keep them in the last instance slots.
+function drawCellsCanvas(keep, actors){
   const S=cam.scale;
-  // game actors first so they are never dropped by the visible-cell budget
-  if(showTraffic) for(const c of CELLS){ if(c.foe) continue; drawCellCanvas(c,S); }
-  if(GAME.on){
+  if(showTraffic) for(const c of CELLS){ if(c.foe || !c.e.vis || (keep && !keep(c.e))) continue; drawCellCanvas(c,S); }
+  if(actors && GAME.on){
     for(const f of GAME.foes) drawCellCanvas(f,S);
     if(GAME.player) drawCellCanvas(GAME.player,S);
   }
@@ -2077,15 +2172,21 @@ function drawCellsCanvas(){
 // ============================================================================
 function niceNum(x){ const p=Math.pow(10,Math.floor(Math.log10(x))); const f=x/p;
   return (f<1.5?1:f<3.5?2:f<7.5?5:10)*p; }
+// runs every frame, but only touches the DOM when the zoom actually changed
+const _scaleBar={scale:NaN};
 function drawScaleBar(){
+  if(cam.scale===_scaleBar.scale) return;
+  _scaleBar.scale=cam.scale;
   const targetPx=120;
   const worldLen=niceNum(targetPx/cam.scale);
   const barPx=worldLen*cam.scale;
-  document.getElementById('barline').style.width=barPx.toFixed(0)+'px';
+  const w=barPx.toFixed(0)+'px';
   const lbl = worldLen>=1000? (worldLen/1000)+' mm' : worldLen+' µm';
-  document.getElementById('barlabel').textContent=lbl;
   // a 0.26µm/px reference ≈ a 400× light-microscope field; report relative mag
-  document.getElementById('zoomout').textContent='magnification ×'+(cam.scale*40).toFixed(cam.scale<0.5?1:0);
+  const mag='magnification ×'+(cam.scale*40).toFixed(cam.scale<0.5?1:0);
+  if(w!==_scaleBar.w){ _scaleBar.w=w; document.getElementById('barline').style.width=w; }
+  if(lbl!==_scaleBar.lbl){ _scaleBar.lbl=lbl; document.getElementById('barlabel').textContent=lbl; }
+  if(mag!==_scaleBar.mag){ _scaleBar.mag=mag; document.getElementById('zoomout').textContent=mag; }
 }
 
 // ============================================================================
@@ -2305,8 +2406,10 @@ function seedFlora(n){
     c.kind=Math.random()<0.6?'bac':'vir';
   }
 }
-function purgePathogens(){
-  for(let i=CELLS.length-1;i>=0;i--){ const k=CELLS[i].kind; if(k==='bac'||k==='vir') CELLS.splice(i,1); }
+function purgePathogens(){           // one in-place compaction pass; order kept
+  let w=0;
+  for(let i=0;i<CELLS.length;i++){ const c=CELLS[i], k=c.kind; if(k!=='bac'&&k!=='vir') CELLS[w++]=c; }
+  CELLS.length=w;
 }
 function removeFoe(f,i){
   GAME.foes.splice(i,1);
@@ -3272,18 +3375,28 @@ function initGL(){
 
   return { gl,P,vaoT,vaoV,vaoC,vaoFull,vessInst,cellInst,
            vessCount:0, layerStart:[0,0,0], acc:null,
-           cellData:new Float32Array(MAX_CELLS*12) };
+           cellData:new Float32Array(MAX_CELLS*12), cellCap:0 };
 }
 
 // 4 vec4 per segment: endpoints, radii+oxy+flags, node tangents, flow/z-order
 const VESS_STRIDE=64;
+// drawEdges regrouped by merge layer with the depth order kept inside each layer
+// — what a stable sort on the layer gives, as one linear pass when the layers
+// are the usual 0/1 (anything else falls back to that sort)
+function edgesByLayer(src){
+  let n0=0;
+  for(const e of src){ const l=e.layer|0; if(l===0) n0++; else if(l!==1) return src.slice().sort((p,q)=>(p.layer|0)-(q.layer|0)); }
+  const out=new Array(src.length); let i0=0, i1=n0;
+  for(const e of src){ if((e.layer|0)===0) out[i0++]=e; else out[i1++]=e; }
+  return out;
+}
 function uploadVessels(){
   if(!GL||!NET) return;
   const gl=GL.gl;
   // Instances are sorted by merge layer so each accumulation pass can draw a
   // contiguous range of them (WebGL2 has no base-instance, so the range is
   // selected by offsetting the attribute pointers).
-  const E=NET.drawEdges.slice().sort((p,q)=>(p.layer|0)-(q.layer|0));
+  const E=edgesByLayer(NET.drawEdges);
   const arr=new Float32Array(E.length*16);
   const start=[0,0,0];
   for(let i=0;i<E.length;i++){ const e=E[i], o=i*16;
@@ -3427,7 +3540,10 @@ function glRender(pulse, restream){
       n=packGameCells(data,n);
       GL._cellN=n;
       if(n){ gl.bindBuffer(gl.ARRAY_BUFFER,GL.cellInst);
-        gl.bufferData(gl.ARRAY_BUFFER,data.subarray(0,n*12),gl.DYNAMIC_DRAW); }
+        // the store is allocated once (grown if ever too small) and then only
+        // overwritten, instead of reallocated on every streamed frame
+        if(GL.cellCap<n*12){ GL.cellCap=data.length; gl.bufferData(gl.ARRAY_BUFFER,GL.cellCap*4,gl.DYNAMIC_DRAW); }
+        gl.bufferSubData(gl.ARRAY_BUFFER,0,data,0,n*12); }
     }
     if(n){
       // cells are depth-*tested* but never depth-*writing*: the out-of-focus
@@ -3898,7 +4014,7 @@ async function initWebGPU(){
   obj.cbuf=device.createBuffer({size:MAX_CELLS*12*4,usage:GPUBufferUsage.VERTEX|GPUBufferUsage.COPY_DST});
   obj.uploadVessels=()=>{
     if(!NET) return;
-    const E=NET.drawEdges.slice().sort((p,q)=>(p.layer|0)-(q.layer|0));
+    const E=edgesByLayer(NET.drawEdges);
     const arr=new Float32Array(E.length*16);
     for(let i=0;i<E.length;i++){ const e=E[i],o=i*16;
       arr[o]=e.a.x;arr[o+1]=e.a.y;arr[o+2]=e.b.x;arr[o+3]=e.b.y;
