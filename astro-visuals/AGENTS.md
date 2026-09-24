@@ -301,6 +301,28 @@ dismissing the first-run tour **starts** the clock, so pausing has to come after
   10.3, 11.7, 12.2 from pitch 0.95 — the tails should be longest near 10.3 and 11.8, not at
   the passages, and the inner disk should keep its spiral.
 
+## The ship's sound (v3.22.0)
+
+- **`audio/engine`** synthesises the flight: two detuned saws at 70 Hz and a sine an
+  octave up through a low-pass (the hum), a looped noise through a band-pass (the air),
+  and a second band-passed noise (the burst's roar), plus a one-shot thump and whoosh on
+  each burst press. Its own `GainNode` goes straight into the compressor, not through the
+  effects' master, so it is heard with the effects off.
+- **The mapping is pure and tested**: `audio/engine-map`'s `engineTargets(m, burst, boost)`
+  (kept apart because `audio/index` builds an `Audio` element at import, which a unit test
+  has no page for). Keep the hum's energy above ~150 Hz — the fundamental at 70 Hz and a
+  low-pass never below 420 Hz — or a phone plays nothing, the drone's old lesson.
+- **Driven once a frame** from `frame` (`engineUpdate`, right after `flightStep`), which
+  schedules only what changed. The graph is the page's one context; the take-off click
+  builds it if the effects never did (`engineWake`), and the page-hidden suspend covers it.
+- **Its slider is its own switch** (`#flightVol`, default 0.40, in `S_SLD`), and the boot
+  suite asserts it reads "off" at zero, like music's and the effects'.
+- **Measuring it**: an init script wrapping `AudioNode.prototype.connect` can tap the
+  compressor into an `AnalyserNode` in headless Chromium (`--autoplay-policy=no-user-
+  gesture-required`); band energies under 150, 150–600 and 600–4000 Hz tell the hum,
+  the air and the roar apart. In `?debug` the QR overlay covers the burst button — switch
+  `#qrOn` off before pressing it.
+
 ## Three more tracks (v3.20.0)
 
 - `music/` holds six tracks now, all barbedgreenroom399 at 64 kbps: the Dreamtime Kids

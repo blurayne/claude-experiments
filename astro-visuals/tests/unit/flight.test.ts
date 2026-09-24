@@ -26,3 +26,28 @@ describe('the flight pace', () => {
     expect(forwardWant(-1, 0, false)).toBe(-1)
   })
 })
+
+import { engineTargets } from '../../src/audio/engine-map'
+describe('the engine sound', () => {
+  it('idles as a quiet hum with no air and no roar', () => {
+    const k = engineTargets(0, false, false)
+    expect(k.humG).toBeGreaterThan(0)
+    expect(k.airG).toBe(0)
+    expect(k.roarG).toBe(0)
+  })
+  it('climbs in pitch, brightness and rush with the throttle', () => {
+    const a = engineTargets(0.3, false, false), b = engineTargets(1, false, false)
+    expect(b.humF).toBeGreaterThan(a.humF)
+    expect(b.lpF).toBeGreaterThan(a.lpF)
+    expect(b.airG).toBeGreaterThan(a.airG)
+    expect(b.airF).toBeGreaterThan(a.airF)
+  })
+  it('roars only while the burst is held', () => {
+    expect(engineTargets(1, true, true).roarG).toBeGreaterThan(0)
+    expect(engineTargets(1, false, true).roarG).toBe(0)
+  })
+  it('clamps the throttle it is given', () => {
+    expect(engineTargets(5, false, false)).toEqual(engineTargets(1, false, false))
+    expect(engineTargets(-2, false, false)).toEqual(engineTargets(0, false, false))
+  })
+})

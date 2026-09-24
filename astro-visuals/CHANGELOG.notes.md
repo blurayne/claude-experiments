@@ -2,6 +2,10 @@
 
 Hand-written notes merged into `CHANGELOG.md` by `.github/scripts/build_changelog.py`: one `## <semver>` heading per version, Markdown body below it, inserted under that version's heading in the Galactic Transit section on the next regeneration. The generated changelog itself must never be edited by hand — it is overwritten wholesale.
 
+## 3.22.0
+
+**The ship has a sound.** Free flight is heard now, synthesised live with no files: an engine hum that climbs in pitch and opens up as the throttle rises, a rush of air that grows with the speed, and on a burst a low thump and a whoosh, then a roar for as long as the button is held. The hum sits where phone and laptop speakers can play it. It has its own "flight" slider under Audio, on at 40%, so it is heard whether or not the effects are on; at zero it is off, like the other sliders. Landing fades it out.
+
 ## 3.21.1
 
 The QR overlay is the topmost layer again, always: above the flight's lever and burst button, which v3.19.0 had stacked over it, and above the tooltips too.

@@ -267,6 +267,11 @@ test.describe('sound', () => {
     await setSlider('sfxVol', '0')
     expect(await page.evaluate(() => document.getElementById('sfxVolv')!.textContent)).toBe('off')
 
+    await setSlider('flightVol', '0')
+    expect(await page.evaluate(() => document.getElementById('flightVolv')!.textContent)).toBe('off')
+    await setSlider('flightVol', '0.4')
+    expect(await page.evaluate(() => document.getElementById('flightVolv')!.textContent)).toBe('40%')
+
     expect(errors, errors.join('\n')).toEqual([])
   })
 })

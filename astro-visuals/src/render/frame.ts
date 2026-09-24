@@ -14,6 +14,7 @@ import {
 import { canvas, gl } from '../gpu/context'
 import { cam, gfx, lifeAcc, readout, simClock, view, SKY_MIRROR } from './state'
 import { flight, flightStep, flightTarget, setFlightBasis } from './flight'
+import { engineUpdate } from '../audio/engine'
 const flyTgt = [0, 0, 0];
 import { hud, updateHud } from '../ui/hud'
 import { N_STAR } from '../scene/starfield'
@@ -253,6 +254,7 @@ function frame(now: number): void {
   // the flight moves the ship first, with the clock's rate as its pace (a drag in flight
   // does not hold the clock: the pilot looks round while the world goes on)
   flightStep(dt, simClock.speed*simClock.speedMult*Math.abs(drive), drive !== 0 && !(holding && !flight.on));
+  engineUpdate(flight.on, Math.min(1, Math.hypot(flight.axis[0], flight.axis[1], flight.axis[2])), flight.burst, flight.boost);   // and its sound
   let baseYaw = 0, basePitch = 0;
   if(cam.coreLock){
     // the direction from the core out to the Sun: put the eye further along it, so the

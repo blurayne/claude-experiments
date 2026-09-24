@@ -1,5 +1,6 @@
 import { $ } from '../core/dom'
 import { flight, flightStart, flightStop } from '../render/flight'
+import { engine, engineWake } from '../audio/engine'
 
 /**
  * The flight's controls: the dock button that switches it on, the keys on a desktop, the
@@ -29,7 +30,7 @@ const typing = (e: KeyboardEvent): boolean => { const t = e.target as HTMLElemen
 let onChange: () => void = () => {}
 export function setFlight(on: boolean, keep?: boolean): void {
   if(on === flight.on) return
-  if(on){ if(keep) flight.on = true; else flightStart() } else { flightStop(); down.clear() }
+  if(on){ if(keep) flight.on = true; else flightStart(); engineWake() } else { flightStop(); down.clear() }
   leverShow(0)   // the lever rests at take-off and at landing
   $('tFly').classList.toggle('on', on)
   document.body.classList.toggle('flying', on)
@@ -92,8 +93,16 @@ export function updateFlightReadout(): void {
                                + (f > 1.05 ? ' · clock ×' + (f < 10 ? f.toFixed(1) : '10') : '')
 }
 
+/** the flight's volume: the slider is the switch, as music's and the effects' are */
+export function setFlightVol(x: number): void {
+  engine.vol = Math.max(0, Math.min(1, x))
+  $('flightVolv').textContent = engine.vol > 0 ? Math.round(engine.vol*100) + '%' : 'off'
+  if(engine.vol > 0 && flight.on) engineWake()
+}
+
 export function initFlightUI(deps: { onChange: () => void }): void {
   onChange = deps.onChange
+  $('flightVol').addEventListener('input', e => setFlightVol(+(e.target as HTMLInputElement).value))
   $('tFly').addEventListener('click', () => setFlight(!flight.on))
   addEventListener('keydown', e => {
     if(typing(e)) return

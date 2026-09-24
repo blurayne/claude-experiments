@@ -5,11 +5,12 @@ before the work starts. An item is ticked when it ships, with the version that c
 
 ## 2026-09-24
 
-- [ ] Sound for the free flight: the ship moving, and the burst. Plan: synthesised in the
+- [x] Sound for the free flight: the ship moving, and the burst. Plan: synthesised in the
       audio graph, no files — an engine hum whose pitch and brightness follow the throttle,
       a rush of air that grows with the speed, and on a burst a low thump and a roar held
       while the button is; on its own "flight" volume slider (the slider is the switch, as
       the others), on at 40% by default, so it is heard without the effects being on.
+      audio/engine + audio/engine-map, the flight slider — v3.22.0.
 
 - [x] The QR code must always be the topmost layer — above the flight's pads (which
       v3.19.0 had put over it) and above the tooltips.
