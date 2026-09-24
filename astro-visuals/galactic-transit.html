@@ -92,7 +92,7 @@ function installErrorCollector(){
  * property of the machine that loaded the page. The parity harness pins TZ for that reason.
  */
 
-const BUILD = { version: '3.24.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '3.25.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -736,6 +736,15 @@ function basisFromQuat(q                   )                                 {
  */
 function flightLook(dYaw        , dPitch        )       {
   flight.q = qNorm(qMul(qMul(flight.q, qAxis(0, 1, 0, dYaw)), qAxis(1, 0, 0, -dPitch)));
+}
+/**
+ * A roll in flight: the ship turns about its own line of sight by `a` radians, positive
+ * turning the SCENE clockwise on screen — a two-finger twist moves the picture with the
+ * fingers, as a map does. The screen is the world mirrored left to right (SKY_MIRROR),
+ * which flips the sense of a turn about the sight line, hence the sign.
+ */
+function flightRoll(a        )       {
+  flight.q = qNorm(qMul(flight.q, qAxis(0, 0, 1, a*SKY_MIRROR)));   // sign checked in a browser: a clockwise twist turns the labels clockwise
 }
 /** the ship's orientation from a level camera's yaw and pitch (world frame) — for a state import */
 function flightOrientFromYawPitch(yaw        , pitch        )       {
@@ -8940,6 +8949,8 @@ let rPan = false;                                    // the right mouse button i
 // wherever the view is re-seeded (a scenario, a focus, the dive), like the transition.
 
 let panCX = 0, panCY = 0;      // the last two-pointer centroid
+let twistA = 0;                // the last angle of the line between two fingers: in flight their twist rolls the ship
+function twistAngle()         { const [a, b] = [...touches.values()]; return Math.atan2(b.clientY - a.clientY, b.clientX - a.clientX); }
 function panCentroid()           { let x=0,y=0; for(const q of touches.values()){ x+=q.clientX; y+=q.clientY; } return [x/touches.size, y/touches.size]; }
 // the floor: with a body followed, three times closer than the old one — a planet may fill
 // the frame and then some, which is what a visitor reaches for once they are already there.
@@ -8990,9 +9001,16 @@ function initCamera(deps                                                        
     if(touches.size === 1){ dragging = true; px = e.clientX; py = e.clientY;
       // capture can be refused; a throw here would abandon the handler mid-way
       try{ canvas.setPointerCapture(e.pointerId); }catch(err){} }
-    else { dragging = false; [panCX, panCY] = panCentroid(); }   // two fingers: pinch and pan, not a turn
+    else { dragging = false; [panCX, panCY] = panCentroid(); if(touches.size === 2) twistA = twistAngle(); }   // two fingers: pinch and pan (in flight: twist), not a turn
   });
   canvas.addEventListener('pointermove', e=>{
+    if(rPan && flight.on){
+      // in flight the right button rolls the ship, as two fingers twist it: dragging right
+      // turns the scene clockwise
+      flightRoll((e.clientX-px)*0.005);
+      px = e.clientX; py = e.clientY;
+      return;
+    }
     if(rPan){
       // the mouse's version of the two-finger pan: the scene rides the cursor
       cam.panF[0] = Math.max(-2, Math.min(2, cam.panF[0] + (e.clientX-px)/view.H));
@@ -9001,6 +9019,15 @@ function initCamera(deps                                                        
       return;
     }
     if(touches.has(e.pointerId)) touches.set(e.pointerId, e);
+    if(touches.size === 2 && flight.on){
+      // in flight two fingers twist the ship about its line of sight, the scene turning
+      // with them; the pinch (below) still zooms, and there is no pan
+      const a = twistAngle();
+      let da = a - twistA; if(da > Math.PI) da -= 2*Math.PI; else if(da < -Math.PI) da += 2*Math.PI;
+      twistA = a;
+      if(Math.abs(da) < 0.5) flightRoll(da);     // a jump that large is a finger swap, not a twist
+      return;
+    }
     if(touches.size === 2){
       // the fingers' midpoint carries the scene with it; the pinch (below) reads the spread
       const [cx, cy] = panCentroid();
@@ -9027,7 +9054,7 @@ function initCamera(deps                                                        
       // one finger left: pick the drag up from where it actually is, or the view jumps
       const q = touches.values().next().value ;   // size is 1, so there is one
       px = q.clientX; py = q.clientY; dragging = true;
-    } else if(touches.size === 2) [panCX, panCY] = panCentroid();   // three down to two: restart from here
+    } else if(touches.size === 2){ [panCX, panCY] = panCentroid(); twistA = twistAngle(); }   // three down to two: restart from here
   }
   addEventListener('pointerup', endPointer);
   addEventListener('pointercancel', endPointer);
@@ -11674,7 +11701,7 @@ startFrameLoop({
     <button class="rowbtn" id="tourAgain" style="margin-bottom:12px">show the tour again</button>
     <div class="stats" style="margin-top:0;padding-top:0;border-top:0">
       elapsed <b id="yrs">0.0</b> yr &nbsp;·&nbsp; galactic lap <b id="pct">0.000</b>%<br>
-      drag to orbit &nbsp;·&nbsp; scroll / pinch to zoom &nbsp;·&nbsp; right-drag or two fingers to pan &nbsp;·&nbsp; + / − step object to object &nbsp;·&nbsp; ➤ free flight: W A S D, R F, shift, esc — or the throttle lever, the thumb stick and the burst button, drag to look round; the zoom is the pace &nbsp;·&nbsp; swipe a panel sideways to move it, off its edge to close it
+      drag to orbit &nbsp;·&nbsp; scroll / pinch to zoom &nbsp;·&nbsp; right-drag or two fingers to pan &nbsp;·&nbsp; + / − step object to object &nbsp;·&nbsp; ➤ free flight: W A S D, R F, shift, esc, right-drag to roll — or the throttle lever, the thumb stick and the burst button, drag to look round, twist two fingers to roll; the zoom is the pace &nbsp;·&nbsp; swipe a panel sideways to move it, off its edge to close it
     </div>
     <h3>Articles</h3>
     <p>The long-form notes live as their own pages now — one subject each, opening in a new tab.</p>
@@ -11742,7 +11769,7 @@ startFrameLoop({
 <button class="pdot" id="envPlus" data-open="env" aria-label="show the Earth panel">ℹ</button>
 <button class="pdot act" id="zoomIn" aria-label="zoom in" title="zoom in — toward the next smaller object">+</button>
 <button class="pdot act" id="zoomOut" aria-label="zoom out" title="zoom out — toward the next bigger object">−</button>
-<button class="pdot act" id="tFly" aria-label="free flight" aria-pressed="false" title="free flight — W A S D / arrows to move, R F up and down, shift to boost, esc to land; on a touch screen a throttle lever and a burst button, drag to look round. The zoom sets the pace: a fraction of the view a second. A faster clock is a faster ship."><svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><path d="M0.8 4.6 L9.4 1 L6.4 9.2 L4.9 5.6 Z"/></svg></button>
+<button class="pdot act" id="tFly" aria-label="free flight" aria-pressed="false" title="free flight — W A S D / arrows to move, R F up and down, shift to boost, right-drag to roll, esc to land; on a touch screen a throttle lever, a thumb stick and a burst button, drag to look round, twist two fingers to roll. The zoom sets the pace: a fraction of the view a second. A faster clock is a faster ship."><svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><path d="M0.8 4.6 L9.4 1 L6.4 9.2 L4.9 5.6 Z"/></svg></button>
 <div class="pad lever" id="padL" aria-label="throttle: forward at the head, back at the foot, rest in the middle"><i class="mark"></i><i class="knob"></i></div>
 <button class="pad burst" id="padR" tabindex="-1" aria-label="burst: full ahead while held">burst</button>
 <div class="pad stick" id="padS" aria-label="thumb stick: sideways strafes, up and down rise and sink"><i class="cross"></i><i class="knob"></i></div>

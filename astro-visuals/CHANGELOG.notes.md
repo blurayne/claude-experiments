@@ -2,6 +2,10 @@
 
 Hand-written notes merged into `CHANGELOG.md` by `.github/scripts/build_changelog.py`: one `## <semver>` heading per version, Markdown body below it, inserted under that version's heading in the Galactic Transit section on the next regeneration. The generated changelog itself must never be edited by hand — it is overwritten wholesale.
 
+## 3.25.0
+
+**Roll the ship.** In flight, twisting two fingers rolls the ship left or right about its line of sight, the scene turning with the fingers the way a map does; a pinch still zooms. On a desktop a right-drag rolls it the same way. Out of flight nothing changes: two fingers and the right button still pan, and the camera stays level.
+
 ## 3.24.0
 
 **A thumb stick for the flight.** On a touch screen in flight a thumb stick now sits above the burst button: push it sideways and the ship strafes left or right, up or down and it rises or sinks; let go and it springs back to the centre and the ship stops sliding. The burst button is a rounded rectangle now. The dock and the Settings panel keep clear of the taller stack in the corner.

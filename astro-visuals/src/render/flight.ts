@@ -128,6 +128,15 @@ export function basisFromQuat(q: readonly number[]): [number[], number[], number
 export function flightLook(dYaw: number, dPitch: number): void {
   flight.q = qNorm(qMul(qMul(flight.q, qAxis(0, 1, 0, dYaw)), qAxis(1, 0, 0, -dPitch)))
 }
+/**
+ * A roll in flight: the ship turns about its own line of sight by `a` radians, positive
+ * turning the SCENE clockwise on screen — a two-finger twist moves the picture with the
+ * fingers, as a map does. The screen is the world mirrored left to right (SKY_MIRROR),
+ * which flips the sense of a turn about the sight line, hence the sign.
+ */
+export function flightRoll(a: number): void {
+  flight.q = qNorm(qMul(flight.q, qAxis(0, 0, 1, a*SKY_MIRROR)))   // sign checked in a browser: a clockwise twist turns the labels clockwise
+}
 /** the ship's orientation from a level camera's yaw and pitch (world frame) — for a state import */
 export function flightOrientFromYawPitch(yaw: number, pitch: number): void {
   const cp = Math.cos(pitch), sp = Math.sin(pitch), cy = Math.cos(yaw), sy = Math.sin(yaw)

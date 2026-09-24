@@ -316,6 +316,13 @@ dismissing the first-run tour **starts** the clock, so pausing has to come after
   (yaw = atan2(d.x, d.z), pitch = asin(d.y) clamped to ±1.45, roll let go) means what it
   says. `setFlight(false, true)` (an import) does NOT level: it must not overwrite the
   imported yaw and pitch.
+- **Roll (v3.25.0).** `flightRoll(a)` turns the ship about its own sight line (body z);
+  positive turns the scene CLOCKWISE on screen. The sign carries SKY_MIRROR and was set
+  by measurement, not derivation — a real two-finger twist sent through CDP
+  `Input.dispatchTouchEvent`, the labels' mean angle about the screen centre compared.
+  In flight a two-finger twist rolls (1:1, a jump over 0.5 rad in one move is ignored as
+  a finger swap), the pinch still zooms, and there is no two-finger or right-button pan;
+  on a desktop a right-drag rolls. Out of flight both still pan.
 - **The state export carries `flight.q`** while flying; an import without it derives the
   orientation from the imported yaw and pitch (`flightOrientFromYawPitch`).
 - **The pace is 1.17 view heights a second** at full throttle (`FLY_VIEW_PER_S`, 0.9 × 1.3).

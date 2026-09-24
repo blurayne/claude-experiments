@@ -2,7 +2,7 @@ import { canvas } from '../gpu/context'
 import { REAL_MODE } from '../astro/constants'
 import { MOON_BORN } from '../astro/earth'
 import { cam, view, SKY_MIRROR } from './state'
-import { flight, flightLook } from './flight'
+import { flight, flightLook, flightRoll } from './flight'
 
 /**
  * The camera: what a hand does to the view.
@@ -35,6 +35,8 @@ let rPan = false;                                    // the right mouse button i
 // wherever the view is re-seeded (a scenario, a focus, the dive), like the transition.
 
 let panCX = 0, panCY = 0;      // the last two-pointer centroid
+let twistA = 0;                // the last angle of the line between two fingers: in flight their twist rolls the ship
+function twistAngle(): number { const [a, b] = [...touches.values()]; return Math.atan2(b.clientY - a.clientY, b.clientX - a.clientX); }
 function panCentroid(): number[] { let x=0,y=0; for(const q of touches.values()){ x+=q.clientX; y+=q.clientY; } return [x/touches.size, y/touches.size]; }
 // the floor: with a body followed, three times closer than the old one — a planet may fill
 // the frame and then some, which is what a visitor reaches for once they are already there.
@@ -85,9 +87,16 @@ export function initCamera(deps: { ageGyr: () => number; onHold: (held: boolean)
     if(touches.size === 1){ dragging = true; px = e.clientX; py = e.clientY;
       // capture can be refused; a throw here would abandon the handler mid-way
       try{ canvas.setPointerCapture(e.pointerId); }catch(err){} }
-    else { dragging = false; [panCX, panCY] = panCentroid(); }   // two fingers: pinch and pan, not a turn
+    else { dragging = false; [panCX, panCY] = panCentroid(); if(touches.size === 2) twistA = twistAngle(); }   // two fingers: pinch and pan (in flight: twist), not a turn
   });
   canvas.addEventListener('pointermove', e=>{
+    if(rPan && flight.on){
+      // in flight the right button rolls the ship, as two fingers twist it: dragging right
+      // turns the scene clockwise
+      flightRoll((e.clientX-px)*0.005);
+      px = e.clientX; py = e.clientY;
+      return;
+    }
     if(rPan){
       // the mouse's version of the two-finger pan: the scene rides the cursor
       cam.panF[0] = Math.max(-2, Math.min(2, cam.panF[0] + (e.clientX-px)/view.H));
@@ -96,6 +105,15 @@ export function initCamera(deps: { ageGyr: () => number; onHold: (held: boolean)
       return;
     }
     if(touches.has(e.pointerId)) touches.set(e.pointerId, e);
+    if(touches.size === 2 && flight.on){
+      // in flight two fingers twist the ship about its line of sight, the scene turning
+      // with them; the pinch (below) still zooms, and there is no pan
+      const a = twistAngle();
+      let da = a - twistA; if(da > Math.PI) da -= 2*Math.PI; else if(da < -Math.PI) da += 2*Math.PI;
+      twistA = a;
+      if(Math.abs(da) < 0.5) flightRoll(da);     // a jump that large is a finger swap, not a twist
+      return;
+    }
     if(touches.size === 2){
       // the fingers' midpoint carries the scene with it; the pinch (below) reads the spread
       const [cx, cy] = panCentroid();
@@ -122,7 +140,7 @@ export function initCamera(deps: { ageGyr: () => number; onHold: (held: boolean)
       // one finger left: pick the drag up from where it actually is, or the view jumps
       const q = touches.values().next().value!;   // size is 1, so there is one
       px = q.clientX; py = q.clientY; dragging = true;
-    } else if(touches.size === 2) [panCX, panCY] = panCentroid();   // three down to two: restart from here
+    } else if(touches.size === 2){ [panCX, panCY] = panCentroid(); twistA = twistAngle(); }   // three down to two: restart from here
   }
   addEventListener('pointerup', endPointer);
   addEventListener('pointercancel', endPointer);

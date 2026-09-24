@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { clockFactor, fullSpeed, forwardWant, sideWant, FLY_BOOST, FLY_VIEW_PER_S, quatFromBasis, basisFromQuat, levelFromQuat, flight, flightLook, flightOrientFromYawPitch } from '../../src/render/flight'
+import { clockFactor, fullSpeed, forwardWant, sideWant, FLY_BOOST, FLY_VIEW_PER_S, quatFromBasis, basisFromQuat, levelFromQuat, flight, flightLook, flightRoll, flightOrientFromYawPitch } from '../../src/render/flight'
 
 describe('the flight pace', () => {
   it('scales with the view: a fixed fraction of the view height a second', () => {
@@ -91,5 +91,23 @@ describe('the thumb stick', () => {
     expect(sideWant(1, 0.5)).toBe(1)
     expect(sideWant(-1, 1)).toBe(0)
     expect(sideWant(0, -2)).toBe(-1)
+  })
+})
+
+describe('the roll', () => {
+  it('turns about the line of sight only: where the ship looks does not change', () => {
+    flightOrientFromYawPitch(0.7, 0.2)
+    const before = basisFromQuat(flight.q)
+    flightRoll(0.6)
+    const after = basisFromQuat(flight.q)
+    after[2].forEach((v, i) => expect(v).toBeCloseTo(before[2][i], 9))       // the sight line stays
+    const cosA = after[1].reduce((s, v, i) => s + v*before[1][i], 0)
+    expect(cosA).toBeCloseTo(Math.cos(0.6), 9)                               // up turned by the roll
+  })
+  it('undoes itself', () => {
+    flightOrientFromYawPitch(-1.1, 0.4)
+    const q0 = flight.q.slice()
+    flightRoll(0.9); flightRoll(-0.9)
+    flight.q.forEach((v, i) => expect(Math.abs(v)).toBeCloseTo(Math.abs(q0[i]), 9))
   })
 })
