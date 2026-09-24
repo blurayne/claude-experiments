@@ -201,7 +201,9 @@
      dragged aside when it covers one. */
   .pad{position:fixed;bottom:max(12px, env(safe-area-inset-bottom));z-index:6;display:none;
     border:1px solid var(--line);background:rgba(8,14,22,.35);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
-    touch-action:none;user-select:none;-webkit-user-select:none;--ky:0px}
+    touch-action:none;user-select:none;-webkit-user-select:none;--ky:0px;
+    -webkit-tap-highlight-color:transparent;outline:none;-webkit-touch-callout:none}   /* no square tap flash, no focus box: the ring and its glow are the feedback */
+  .pad:focus, .pad:focus-visible, .pad:active{outline:none}
   .pad.lever{left:max(12px, env(safe-area-inset-left));width:44px;height:150px;border-radius:22px}
   .pad.lever .mark{position:absolute;left:8px;right:8px;top:50%;height:1px;background:var(--line)}
   .pad.lever .knob{position:absolute;left:50%;top:50%;width:36px;height:36px;margin:-18px 0 0 -18px;border-radius:50%;

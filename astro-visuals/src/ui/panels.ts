@@ -121,12 +121,15 @@ function placePanels(): Box[] {
     const vis = dock.filter(el => getComputedStyle(el).display !== 'none');
     for(const el of dock) el.style.visibility = 'visible';
     const step = 36 + gap;
-    if(!land && y + vis.length*step - gap <= innerHeight - pad){
+    // in flight on a touch screen the lever and the burst button own the bottom corners:
+    // the dock stays above them, or the burst button would cover + and −
+    const foot = innerHeight - pad - (document.body.classList.contains('flying') && matchMedia('(pointer: coarse)').matches ? 84 + gap + 4 : 0);
+    if(!land && y + vis.length*step - gap <= foot){
       for(const el of vis){ put(el, pad); y += step; }
     } else if(vis.length){
       const perRow = Math.max(1, Math.floor((innerWidth - 2*pad + gap)/step));
       const rows = Math.ceil(vis.length/perRow);
-      y = Math.max(pad, Math.min(y, innerHeight - pad - rows*step + gap));
+      y = Math.max(pad, Math.min(y, foot - rows*step + gap));
       vis.forEach((el, i) => {
         const row = Math.floor(i/perRow), col = i % perRow, keep = y;
         y = keep + row*step; put(el, pad + col*step); y = keep;

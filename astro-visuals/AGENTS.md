@@ -301,6 +301,29 @@ dismissing the first-run tour **starts** the clock, so pausing has to come after
   10.3, 11.7, 12.2 from pitch 0.95 — the tails should be longest near 10.3 and 11.8, not at
   the passages, and the inner disk should keep its spiral.
 
+## Free rotation in flight (v3.23.0)
+
+- **In flight the view is a quaternion**, `flight.q` in `render/flight`, taking the ship's
+  axes (x right, y up, z backward — the eye's direction from the point ahead) to the
+  world. The frame uses `basisFromQuat(flight.q)` for r, u, d while `flight.on`; a drag
+  calls `flightLook(dYaw, dPitch)`, which turns about the ship's OWN up and right with the
+  level camera's signs, so a drag feels the same but nothing stops it at the poles.
+  Take-off seeds `q` from the view's basis as it was (whatever frame: world, supergalactic,
+  radio sky), so there is no jump.
+- **Out of flight the camera is level yaw and pitch, unchanged.** While anchored (a ship
+  exists) the frame uses the plain world frame — the supergalactic and radio-sky frames,
+  the dive's core lock and the galaxy spin lock are skipped — so landing's `flightLevel`
+  (yaw = atan2(d.x, d.z), pitch = asin(d.y) clamped to ±1.45, roll let go) means what it
+  says. `setFlight(false, true)` (an import) does NOT level: it must not overwrite the
+  imported yaw and pitch.
+- **The state export carries `flight.q`** while flying; an import without it derives the
+  orientation from the imported yaw and pitch (`flightOrientFromYawPitch`).
+- **The pace is 1.17 view heights a second** at full throttle (`FLY_VIEW_PER_S`, 0.9 × 1.3).
+- **On a touch screen in flight the dock's foot is above the pads** (`placePanels`: the
+  bottom 84 px + gap belong to the lever and the burst button), or the burst button covers
+  + and −. The pads carry `-webkit-tap-highlight-color: transparent` and no outline; the
+  burst button is `tabindex=-1`: Android Chrome otherwise flashes a square box over them.
+
 ## The dock never hides a button (v3.22.1)
 
 - `placePanels` in `ui/panels` used to stack the dock under a column's open panels and set

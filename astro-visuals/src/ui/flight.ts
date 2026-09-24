@@ -1,5 +1,5 @@
 import { $ } from '../core/dom'
-import { flight, flightStart, flightStop } from '../render/flight'
+import { flight, flightStart, flightStop, flightLevel } from '../render/flight'
 import { engine, engineWake } from '../audio/engine'
 
 /**
@@ -30,7 +30,8 @@ const typing = (e: KeyboardEvent): boolean => { const t = e.target as HTMLElemen
 let onChange: () => void = () => {}
 export function setFlight(on: boolean, keep?: boolean): void {
   if(on === flight.on) return
-  if(on){ if(keep) flight.on = true; else flightStart(); engineWake() } else { flightStop(); down.clear() }
+  // landing by hand levels the camera where the ship looked; an import (keep) sets its own
+  if(on){ if(keep) flight.on = true; else flightStart(); engineWake() } else { if(!keep) flightLevel(); flightStop(); down.clear() }
   leverShow(0)   // the lever rests at take-off and at landing
   $('tFly').classList.toggle('on', on)
   document.body.classList.toggle('flying', on)

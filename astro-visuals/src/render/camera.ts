@@ -2,6 +2,7 @@ import { canvas } from '../gpu/context'
 import { REAL_MODE } from '../astro/constants'
 import { MOON_BORN } from '../astro/earth'
 import { cam, view, SKY_MIRROR } from './state'
+import { flight, flightLook } from './flight'
 
 /**
  * The camera: what a hand does to the view.
@@ -104,8 +105,13 @@ export function initCamera(deps: { ageGyr: () => number; onHold: (held: boolean)
       return;
     }
     if(!dragging || touches.size > 1) return;
-    cam.yaw   -= (e.clientX-px)*0.005*SKY_MIRROR;
-    cam.pitch  = Math.max(-1.45, Math.min(1.45, cam.pitch + (e.clientY-py)*0.005));
+    // in flight the drag turns the ship itself, freely — over the top and upside down;
+    // out of flight it is the level yaw and pitch, with the pitch stopped short of the poles
+    if(flight.on) flightLook(-(e.clientX-px)*0.005*SKY_MIRROR, (e.clientY-py)*0.005);
+    else {
+      cam.yaw   -= (e.clientX-px)*0.005*SKY_MIRROR;
+      cam.pitch  = Math.max(-1.45, Math.min(1.45, cam.pitch + (e.clientY-py)*0.005));
+    }
     px=e.clientX; py=e.clientY;
   });
   function endPointer(e: PointerEvent): void {

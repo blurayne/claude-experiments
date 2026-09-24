@@ -4,7 +4,7 @@ import { BUILD } from '../core/build'
 import { errLog, TOUCH_DEV } from '../core/errorlog'
 import { cam, simClock } from '../render/state'
 import { gl } from '../gpu/context'
-import { flight, flightRelease } from '../render/flight'
+import { flight, flightRelease, flightOrientFromYawPitch } from '../render/flight'
 import { setFlight } from './flight'
 import { refillTrails } from '../render/trails'
 import { events, puffs } from '../render/lifecycle'
@@ -131,7 +131,7 @@ export function exportState(): Record<string, any> {
     time: { simT: simClock.simT, paused: simClock.paused },
     camera: { yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, distGoal:cam.distGoal,
               follow:cam.follow, followTarget:cam.followTarget, coreLock: cam.coreLock, dive:$('tDive').classList.contains('on') },
-    flight: flight.anchored ? { on: flight.on, pos: [flight.pos[0], flight.pos[1], flight.pos[2]] } : undefined,
+    flight: flight.anchored ? { on: flight.on, pos: [flight.pos[0], flight.pos[1], flight.pos[2]], q: flight.on ? flight.q.slice() : undefined } : undefined,
     viewport: { w:innerWidth, h:innerHeight, dpr:devicePixelRatio, gpu: gpuName() },
     settings,
   };
@@ -157,11 +157,16 @@ export function applyState(o: any): void {
     cam.firstFrame = true;
   }
   // the flight: the ship where it was, with the controls live or not; absent means grounded
-  setFlight(false); flightRelease();
+  setFlight(false, true); flightRelease();   // keep: the imported yaw and pitch are not levelled over
   if(o.flight && Array.isArray(o.flight.pos) && o.flight.pos.length === 3 && o.flight.pos.every((v: unknown) => typeof v === 'number')){
     for(let i=0;i<3;i++) flight.pos[i] = o.flight.pos[i];
     flight.anchored = true; cam.reseedFollow = true; cam.firstFrame = true;
-    if(o.flight.on) setFlight(true, true);   // the controls live, the ship kept where the state put it
+    if(o.flight.on){
+      // the ship's orientation: as exported, or from the imported yaw and pitch
+      if(Array.isArray(o.flight.q) && o.flight.q.length === 4 && o.flight.q.every((v: unknown) => typeof v === 'number')) flight.q = o.flight.q.slice();
+      else flightOrientFromYawPitch(cam.yaw, cam.pitch);
+      setFlight(true, true);   // the controls live, the ship kept where the state put it
+    }
   }
 }
 

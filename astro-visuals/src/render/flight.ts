@@ -27,12 +27,19 @@ import { cam, SKY_MIRROR } from './state'
  * calls `flightRelease`.
  */
 export const FLY_YPS_REF = 1          // a year a second: the clock rate the flight is paced at
-export const FLY_VIEW_PER_S = 0.9     // view heights a second at full throttle, before the clock and the boost
+export const FLY_VIEW_PER_S = 1.17    // view heights a second at full throttle, before the clock and the boost (0.9 until v3.23.0: +30%)
 export const FLY_BOOST = 4
 
 export const flight = {
   on: false,
   anchored: false,
+  /**
+   * The ship's orientation while the controls are live, a unit quaternion [x, y, z, w]
+   * taking the ship's own axes — x right, y up, z backward (the eye's direction from the
+   * point ahead) — to the world. In flight the view turns freely: no pitch limit, over
+   * the top and upside down. Out of flight the camera is yaw and pitch again, level.
+   */
+  q: [0, 0, 0, 1] as number[],
   /** the ship, which is the eye: absolute world coordinates */
   pos: new Float64Array(3),
   /** what the keys ask for — forward, right, up — each −1..1 */
@@ -79,6 +86,52 @@ export function forwardWant(keys: number, throttle: number, burst: boolean): num
   return Math.max(-1, Math.min(1, keys + throttle + (burst ? 1 : 0)))
 }
 
+// ---------- the free orientation ----------
+type Q4 = number[]
+const qMul = (a: Q4, b: Q4): Q4 => [
+  a[3]*b[0] + a[0]*b[3] + a[1]*b[2] - a[2]*b[1],
+  a[3]*b[1] - a[0]*b[2] + a[1]*b[3] + a[2]*b[0],
+  a[3]*b[2] + a[0]*b[1] - a[1]*b[0] + a[2]*b[3],
+  a[3]*b[3] - a[0]*b[0] - a[1]*b[1] - a[2]*b[2]]
+const qAxis = (ax: number, ay: number, az: number, t: number): Q4 => { const h = Math.sin(t/2); return [ax*h, ay*h, az*h, Math.cos(t/2)] }
+const qNorm = (a: Q4): Q4 => { const n = Math.hypot(a[0], a[1], a[2], a[3]) || 1; return [a[0]/n, a[1]/n, a[2]/n, a[3]/n] }
+/** the quaternion whose rotation has columns r, u, d (an orthonormal right-handed basis) */
+export function quatFromBasis(r: readonly number[], u: readonly number[], d: readonly number[]): Q4 {
+  const m00 = r[0], m11 = u[1], m22 = d[2], tr = m00 + m11 + m22
+  let q: Q4
+  if(tr > 0){ const S = Math.sqrt(tr + 1)*2; q = [(u[2] - d[1])/S, (d[0] - r[2])/S, (r[1] - u[0])/S, 0.25*S] }
+  else if(m00 > m11 && m00 > m22){ const S = Math.sqrt(1 + m00 - m11 - m22)*2; q = [0.25*S, (u[0] + r[1])/S, (d[0] + r[2])/S, (u[2] - d[1])/S] }
+  else if(m11 > m22){ const S = Math.sqrt(1 + m11 - m00 - m22)*2; q = [(u[0] + r[1])/S, 0.25*S, (d[1] + u[2])/S, (d[0] - r[2])/S] }
+  else { const S = Math.sqrt(1 + m22 - m00 - m11)*2; q = [(d[0] + r[2])/S, (d[1] + u[2])/S, 0.25*S, (r[1] - u[0])/S] }
+  return qNorm(q)
+}
+/** the ship's right, up and backward axes in the world, from its quaternion */
+export function basisFromQuat(q: readonly number[]): [number[], number[], number[]] {
+  const [x, y, z, w] = q
+  return [
+    [1 - 2*(y*y + z*z), 2*(x*y + w*z), 2*(x*z - w*y)],
+    [2*(x*y - w*z), 1 - 2*(x*x + z*z), 2*(y*z + w*x)],
+    [2*(x*z + w*y), 2*(y*z - w*x), 1 - 2*(x*x + y*y)]]
+}
+/**
+ * A look round in flight, in the drag's own terms: `dYaw` turns about the ship's own up,
+ * `dPitch` about its own right, with the same signs a level camera's yaw and pitch have —
+ * so a drag feels the same as out of flight, but nothing stops it at the poles.
+ */
+export function flightLook(dYaw: number, dPitch: number): void {
+  flight.q = qNorm(qMul(qMul(flight.q, qAxis(0, 1, 0, dYaw)), qAxis(1, 0, 0, -dPitch)))
+}
+/** the ship's orientation from a level camera's yaw and pitch (world frame) — for a state import */
+export function flightOrientFromYawPitch(yaw: number, pitch: number): void {
+  const cp = Math.cos(pitch), sp = Math.sin(pitch), cy = Math.cos(yaw), sy = Math.sin(yaw)
+  flight.q = quatFromBasis([cy, 0, -sy], [-sp*sy, cp, -sp*cy], [cp*sy, sp, cp*cy])
+}
+/** landing: the level camera's yaw and pitch that look where the ship looks (roll is let go) */
+export function levelFromQuat(q: readonly number[]): { yaw: number; pitch: number } {
+  const d = basisFromQuat(q)[2]
+  return { yaw: Math.atan2(d[0], d[2]), pitch: Math.max(-1.45, Math.min(1.45, Math.asin(Math.max(-1, Math.min(1, d[1]))))) }
+}
+
 let lastDist = -1
 /** take off from where the view is: the eye itself, with any pan folded in, becomes the ship */
 export function flightStart(): void {
@@ -86,10 +139,16 @@ export function flightStart(): void {
   for(let i=0;i<3;i++) flight.pos[i] = cam.smoothTarget[i] + basis.r[i]*pdx + basis.u[i]*pdy + basis.d[i]*cam.dist
   cam.panF[0] = cam.panF[1] = 0
   flight.on = flight.anchored = true
+  flight.q = quatFromBasis(basis.r, basis.u, basis.d)   // the view as it is, whatever frame it was in
   flight.want[0] = flight.want[1] = flight.want[2] = 0; flight.axis[0] = flight.axis[1] = flight.axis[2] = 0
   flight.throttle = 0; flight.burst = false; lastDist = cam.dist
   flight.factor = 1; flight.speedU = fullSpeed(cam.dist, 1, false)   // the readout has a pace before the first step
   cam.reseedFollow = true; cam.firstFrame = true    // the frame's target smoothing must not chase the hand-over
+}
+/** landing: the camera levels — yaw and pitch that look where the ship looked, roll let go */
+export function flightLevel(): void {
+  const { yaw, pitch } = levelFromQuat(flight.q)
+  cam.yaw = yaw; cam.pitch = pitch
 }
 /** the controls go off; the ship stays where it stopped */
 export function flightStop(): void {

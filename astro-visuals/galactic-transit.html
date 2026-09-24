@@ -92,7 +92,7 @@ function installErrorCollector(){
  * property of the machine that loaded the page. The parity harness pins TZ for that reason.
  */
 
-const BUILD = { version: '3.22.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '3.23.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -639,12 +639,19 @@ const gl                         = glCtx;
  * calls `flightRelease`.
  */
 const FLY_YPS_REF = 1;          // a year a second: the clock rate the flight is paced at
-const FLY_VIEW_PER_S = 0.9;     // view heights a second at full throttle, before the clock and the boost
+const FLY_VIEW_PER_S = 1.17;    // view heights a second at full throttle, before the clock and the boost (0.9 until v3.23.0: +30%)
 const FLY_BOOST = 4;
 
 const flight = {
   on: false,
   anchored: false,
+  /**
+   * The ship's orientation while the controls are live, a unit quaternion [x, y, z, w]
+   * taking the ship's own axes — x right, y up, z backward (the eye's direction from the
+   * point ahead) — to the world. In flight the view turns freely: no pitch limit, over
+   * the top and upside down. Out of flight the camera is yaw and pitch again, level.
+   */
+  q: [0, 0, 0, 1]            ,
   /** the ship, which is the eye: absolute world coordinates */
   pos: new Float64Array(3),
   /** what the keys ask for — forward, right, up — each −1..1 */
@@ -690,6 +697,49 @@ function flightTarget(out          )           {
 function forwardWant(keys        , throttle        , burst         )         {
   return Math.max(-1, Math.min(1, keys + throttle + (burst ? 1 : 0)))
 }
+const qMul = (a    , b    )     => [
+  a[3]*b[0] + a[0]*b[3] + a[1]*b[2] - a[2]*b[1],
+  a[3]*b[1] - a[0]*b[2] + a[1]*b[3] + a[2]*b[0],
+  a[3]*b[2] + a[0]*b[1] - a[1]*b[0] + a[2]*b[3],
+  a[3]*b[3] - a[0]*b[0] - a[1]*b[1] - a[2]*b[2]];
+const qAxis = (ax        , ay        , az        , t        )     => { const h = Math.sin(t/2); return [ax*h, ay*h, az*h, Math.cos(t/2)] };
+const qNorm = (a    )     => { const n = Math.hypot(a[0], a[1], a[2], a[3]) || 1; return [a[0]/n, a[1]/n, a[2]/n, a[3]/n] };
+/** the quaternion whose rotation has columns r, u, d (an orthonormal right-handed basis) */
+function quatFromBasis(r                   , u                   , d                   )     {
+  const m00 = r[0], m11 = u[1], m22 = d[2], tr = m00 + m11 + m22;
+  let q;    
+  if(tr > 0){ const S = Math.sqrt(tr + 1)*2; q = [(u[2] - d[1])/S, (d[0] - r[2])/S, (r[1] - u[0])/S, 0.25*S]; }
+  else if(m00 > m11 && m00 > m22){ const S = Math.sqrt(1 + m00 - m11 - m22)*2; q = [0.25*S, (u[0] + r[1])/S, (d[0] + r[2])/S, (u[2] - d[1])/S]; }
+  else if(m11 > m22){ const S = Math.sqrt(1 + m11 - m00 - m22)*2; q = [(u[0] + r[1])/S, 0.25*S, (d[1] + u[2])/S, (d[0] - r[2])/S]; }
+  else { const S = Math.sqrt(1 + m22 - m00 - m11)*2; q = [(d[0] + r[2])/S, (d[1] + u[2])/S, 0.25*S, (r[1] - u[0])/S]; }
+  return qNorm(q)
+}
+/** the ship's right, up and backward axes in the world, from its quaternion */
+function basisFromQuat(q                   )                                 {
+  const [x, y, z, w] = q;
+  return [
+    [1 - 2*(y*y + z*z), 2*(x*y + w*z), 2*(x*z - w*y)],
+    [2*(x*y - w*z), 1 - 2*(x*x + z*z), 2*(y*z + w*x)],
+    [2*(x*z + w*y), 2*(y*z - w*x), 1 - 2*(x*x + y*y)]]
+}
+/**
+ * A look round in flight, in the drag's own terms: `dYaw` turns about the ship's own up,
+ * `dPitch` about its own right, with the same signs a level camera's yaw and pitch have —
+ * so a drag feels the same as out of flight, but nothing stops it at the poles.
+ */
+function flightLook(dYaw        , dPitch        )       {
+  flight.q = qNorm(qMul(qMul(flight.q, qAxis(0, 1, 0, dYaw)), qAxis(1, 0, 0, -dPitch)));
+}
+/** the ship's orientation from a level camera's yaw and pitch (world frame) — for a state import */
+function flightOrientFromYawPitch(yaw        , pitch        )       {
+  const cp = Math.cos(pitch), sp = Math.sin(pitch), cy = Math.cos(yaw), sy = Math.sin(yaw);
+  flight.q = quatFromBasis([cy, 0, -sy], [-sp*sy, cp, -sp*cy], [cp*sy, sp, cp*cy]);
+}
+/** landing: the level camera's yaw and pitch that look where the ship looks (roll is let go) */
+function levelFromQuat(q                   )                                 {
+  const d = basisFromQuat(q)[2];
+  return { yaw: Math.atan2(d[0], d[2]), pitch: Math.max(-1.45, Math.min(1.45, Math.asin(Math.max(-1, Math.min(1, d[1]))))) }
+}
 
 let lastDist = -1;
 /** take off from where the view is: the eye itself, with any pan folded in, becomes the ship */
@@ -698,10 +748,16 @@ function flightStart()       {
   for(let i=0;i<3;i++) flight.pos[i] = cam.smoothTarget[i] + basis.r[i]*pdx + basis.u[i]*pdy + basis.d[i]*cam.dist;
   cam.panF[0] = cam.panF[1] = 0;
   flight.on = flight.anchored = true;
+  flight.q = quatFromBasis(basis.r, basis.u, basis.d);   // the view as it is, whatever frame it was in
   flight.want[0] = flight.want[1] = flight.want[2] = 0; flight.axis[0] = flight.axis[1] = flight.axis[2] = 0;
   flight.throttle = 0; flight.burst = false; lastDist = cam.dist;
   flight.factor = 1; flight.speedU = fullSpeed(cam.dist, 1, false);   // the readout has a pace before the first step
   cam.reseedFollow = true; cam.firstFrame = true;    // the frame's target smoothing must not chase the hand-over
+}
+/** landing: the camera levels — yaw and pitch that look where the ship looked, roll let go */
+function flightLevel()       {
+  const { yaw, pitch } = levelFromQuat(flight.q);
+  cam.yaw = yaw; cam.pitch = pitch;
 }
 /** the controls go off; the ship stays where it stopped */
 function flightStop()       {
@@ -1110,7 +1166,8 @@ const typing = (e               )          => { const t = e.target              
 let onChange             = () => {};
 function setFlight(on         , keep          )       {
   if(on === flight.on) return
-  if(on){ if(keep) flight.on = true; else flightStart(); engineWake(); } else { flightStop(); down.clear(); }
+  // landing by hand levels the camera where the ship looked; an import (keep) sets its own
+  if(on){ if(keep) flight.on = true; else flightStart(); engineWake(); } else { if(!keep) flightLevel(); flightStop(); down.clear(); }
   leverShow(0);   // the lever rests at take-off and at landing
   $('tFly').classList.toggle('on', on);
   document.body.classList.toggle('flying', on);
@@ -2591,12 +2648,15 @@ function placePanels()        {
     const vis = dock.filter(el => getComputedStyle(el).display !== 'none');
     for(const el of dock) el.style.visibility = 'visible';
     const step = 36 + gap;
-    if(!land && y + vis.length*step - gap <= innerHeight - pad){
+    // in flight on a touch screen the lever and the burst button own the bottom corners:
+    // the dock stays above them, or the burst button would cover + and −
+    const foot = innerHeight - pad - (document.body.classList.contains('flying') && matchMedia('(pointer: coarse)').matches ? 84 + gap + 4 : 0);
+    if(!land && y + vis.length*step - gap <= foot){
       for(const el of vis){ put(el, pad); y += step; }
     } else if(vis.length){
       const perRow = Math.max(1, Math.floor((innerWidth - 2*pad + gap)/step));
       const rows = Math.ceil(vis.length/perRow);
-      y = Math.max(pad, Math.min(y, innerHeight - pad - rows*step + gap));
+      y = Math.max(pad, Math.min(y, foot - rows*step + gap));
       vis.forEach((el, i) => {
         const row = Math.floor(i/perRow), col = i % perRow, keep = y;
         y = keep + row*step; put(el, pad + col*step); y = keep;
@@ -3066,7 +3126,7 @@ function exportState()                      {
     time: { simT: simClock.simT, paused: simClock.paused },
     camera: { yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, distGoal:cam.distGoal,
               follow:cam.follow, followTarget:cam.followTarget, coreLock: cam.coreLock, dive:$('tDive').classList.contains('on') },
-    flight: flight.anchored ? { on: flight.on, pos: [flight.pos[0], flight.pos[1], flight.pos[2]] } : undefined,
+    flight: flight.anchored ? { on: flight.on, pos: [flight.pos[0], flight.pos[1], flight.pos[2]], q: flight.on ? flight.q.slice() : undefined } : undefined,
     viewport: { w:innerWidth, h:innerHeight, dpr:devicePixelRatio, gpu: gpuName() },
     settings,
   };
@@ -3092,11 +3152,16 @@ function applyState(o     )       {
     cam.firstFrame = true;
   }
   // the flight: the ship where it was, with the controls live or not; absent means grounded
-  setFlight(false); flightRelease();
+  setFlight(false, true); flightRelease();   // keep: the imported yaw and pitch are not levelled over
   if(o.flight && Array.isArray(o.flight.pos) && o.flight.pos.length === 3 && o.flight.pos.every((v         ) => typeof v === 'number')){
     for(let i=0;i<3;i++) flight.pos[i] = o.flight.pos[i];
     flight.anchored = true; cam.reseedFollow = true; cam.firstFrame = true;
-    if(o.flight.on) setFlight(true, true);   // the controls live, the ship kept where the state put it
+    if(o.flight.on){
+      // the ship's orientation: as exported, or from the imported yaw and pitch
+      if(Array.isArray(o.flight.q) && o.flight.q.length === 4 && o.flight.q.every((v         ) => typeof v === 'number')) flight.q = o.flight.q.slice();
+      else flightOrientFromYawPitch(cam.yaw, cam.pitch);
+      setFlight(true, true);   // the controls live, the ship kept where the state put it
+    }
   }
 }
 
@@ -7562,7 +7627,7 @@ function frame(now        )       {
   flightStep(dt, simClock.speed*simClock.speedMult*Math.abs(drive), drive !== 0 && !(holding && !flight.on));
   engineUpdate(flight.on, Math.min(1, Math.hypot(flight.axis[0], flight.axis[1], flight.axis[2])), flight.burst, flight.boost);   // and its sound
   let baseYaw = 0, basePitch = 0;
-  if(cam.coreLock){
+  if(cam.coreLock && !flight.anchored){   // the ship keeps its own line of sight
     // the direction from the core out to the Sun: put the eye further along it, so the
     // line of sight runs eye -> Sun -> galactic centre
     const r = Math.hypot(org[0], org[1], org[2]) || 1;
@@ -7575,7 +7640,7 @@ function frame(now        )       {
   // material stars and star-forming events sweeping through the frozen pattern. The angle
   // is exactly the shader's own for wave points, uSpin/RC_BAR; the toggle handler in
   // ui/hud re-expresses the yaw at the flip so the view never jumps.
-  const galLockA = cam.spinLock && !cam.follow ? diskSpin(simClock.simT)/RC_BAR : 0;
+  const galLockA = cam.spinLock && !cam.follow && !flight.anchored ? diskSpin(simClock.simT)/RC_BAR : 0;
   const yawE = cam.yaw + baseYaw + galLockA;
   const pitchE = Math.max(-1.45, Math.min(1.45, cam.pitch + basePitch));
   const cp=Math.cos(pitchE), sp=Math.sin(pitchE);
@@ -7597,7 +7662,7 @@ function frame(now        )       {
     ux = -sp*sy*P[0]+cp*A[0]+sp*cy*Q[0]; uy = -sp*sy*P[1]+cp*A[1]+sp*cy*Q[1]; uz = -sp*sy*P[2]+cp*A[2]+sp*cy*Q[2];
     dx = cp*sy*P[0]+sp*A[0]-cp*cy*Q[0]; dy = cp*sy*P[1]+sp*A[1]-cp*cy*Q[1]; dz = cp*sy*P[2]+sp*A[2]-cp*cy*Q[2];
     upV = A;
-  } else if(cam.follow && (cam.followTarget === 'sc' || cam.followTarget === 'web' || cam.followTarget === 'deep')){
+  } else if(cam.follow && !flight.anchored && (cam.followTarget === 'sc' || cam.followTarget === 'web' || cam.followTarget === 'deep')){
     // the supercluster's frame: the supergalactic pole up, so the chart's cylinder stands
     // upright and pitch tilts the eye above its plane
     const [P, A, Q] = scFrame();
@@ -7605,7 +7670,7 @@ function frame(now        )       {
     ux = -sp*sy*P[0]+cp*A[0]+sp*cy*Q[0]; uy = -sp*sy*P[1]+cp*A[1]+sp*cy*Q[1]; uz = -sp*sy*P[2]+cp*A[2]+sp*cy*Q[2];
     dx = cp*sy*P[0]+sp*A[0]-cp*cy*Q[0]; dy = cp*sy*P[1]+sp*A[1]-cp*cy*Q[1]; dz = cp*sy*P[2]+sp*A[2]-cp*cy*Q[2];
     upV = A;
-  } else if(cam.follow && cam.followTarget === 'gcr'){
+  } else if(cam.follow && !flight.anchored && cam.followTarget === 'gcr'){
     // The radio field's frame: the sky at Sagittarius A* with CELESTIAL north up, the way the
     // map is printed (the plane then runs from upper left to lower right), and yaw 0 pitch 0
     // looking along the line of sight from the Sun. The same three vectors as the spin
@@ -7615,6 +7680,14 @@ function frame(now        )       {
     ux = -sp*sy*P[0]+cp*A[0]+sp*cy*Q[0]; uy = -sp*sy*P[1]+cp*A[1]+sp*cy*Q[1]; uz = -sp*sy*P[2]+cp*A[2]+sp*cy*Q[2];
     dx = cp*sy*P[0]+sp*A[0]-cp*cy*Q[0]; dy = cp*sy*P[1]+sp*A[1]-cp*cy*Q[1]; dz = cp*sy*P[2]+sp*A[2]-cp*cy*Q[2];
     upV = A;
+  }
+  if(flight.on){
+    // In flight the ship's own orientation is the view: free, no pitch limit, any roll.
+    // (Anchored but landed, the plain world frame above is used, so landing's level yaw
+    // and pitch mean what they say.)
+    const [R, Uq, D] = basisFromQuat(flight.q);
+    rx = R[0]; ry = R[1]; rz = R[2]; ux = Uq[0]; uy = Uq[1]; uz = Uq[2]; dx = D[0]; dy = D[1]; dz = D[2];
+    upV = Uq;
   }
   cam.dirW[0] = dx; cam.dirW[1] = dy; cam.dirW[2] = dz;                     // read by the spin lock's switch
   setFlightBasis([rx, ry, rz], [ux, uy, uz], [dx, dy, dz]);                  // and the flight flies along these
@@ -8901,8 +8974,13 @@ function initCamera(deps                                                        
       return;
     }
     if(!dragging || touches.size > 1) return;
-    cam.yaw   -= (e.clientX-px)*0.005*SKY_MIRROR;
-    cam.pitch  = Math.max(-1.45, Math.min(1.45, cam.pitch + (e.clientY-py)*0.005));
+    // in flight the drag turns the ship itself, freely — over the top and upside down;
+    // out of flight it is the level yaw and pitch, with the pitch stopped short of the poles
+    if(flight.on) flightLook(-(e.clientX-px)*0.005*SKY_MIRROR, (e.clientY-py)*0.005);
+    else {
+      cam.yaw   -= (e.clientX-px)*0.005*SKY_MIRROR;
+      cam.pitch  = Math.max(-1.45, Math.min(1.45, cam.pitch + (e.clientY-py)*0.005));
+    }
     px=e.clientX; py=e.clientY;
   });
   function endPointer(e              )       {
@@ -11140,7 +11218,9 @@ startFrameLoop({
      dragged aside when it covers one. */
   .pad{position:fixed;bottom:max(12px, env(safe-area-inset-bottom));z-index:6;display:none;
     border:1px solid var(--line);background:rgba(8,14,22,.35);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
-    touch-action:none;user-select:none;-webkit-user-select:none;--ky:0px}
+    touch-action:none;user-select:none;-webkit-user-select:none;--ky:0px;
+    -webkit-tap-highlight-color:transparent;outline:none;-webkit-touch-callout:none}   /* no square tap flash, no focus box: the ring and its glow are the feedback */
+  .pad:focus, .pad:focus-visible, .pad:active{outline:none}
   .pad.lever{left:max(12px, env(safe-area-inset-left));width:44px;height:150px;border-radius:22px}
   .pad.lever .mark{position:absolute;left:8px;right:8px;top:50%;height:1px;background:var(--line)}
   .pad.lever .knob{position:absolute;left:50%;top:50%;width:36px;height:36px;margin:-18px 0 0 -18px;border-radius:50%;
@@ -11618,7 +11698,7 @@ startFrameLoop({
 <button class="pdot act" id="zoomOut" aria-label="zoom out" title="zoom out — toward the next bigger object">−</button>
 <button class="pdot act" id="tFly" aria-label="free flight" aria-pressed="false" title="free flight — W A S D / arrows to move, R F up and down, shift to boost, esc to land; on a touch screen a throttle lever and a burst button, drag to look round. The zoom sets the pace: a fraction of the view a second. A faster clock is a faster ship."><svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><path d="M0.8 4.6 L9.4 1 L6.4 9.2 L4.9 5.6 Z"/></svg></button>
 <div class="pad lever" id="padL" aria-label="throttle: forward at the head, back at the foot, rest in the middle"><i class="mark"></i><i class="knob"></i></div>
-<button class="pad burst" id="padR" aria-label="burst: full ahead while held">burst</button>
+<button class="pad burst" id="padR" tabindex="-1" aria-label="burst: full ahead while held">burst</button>
 <button class="pdot act on" id="tLabelsAll" aria-label="toggle all labels" title="toggle all labels"><svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.2,1.8 L6,1.8 L8.8,5 L6,8.2 L1.2,8.2 Z"/></svg></button>
 <div class="env pnl simPanelWide" id="simPanel">
   <button class="pclose" data-close="simPanel" aria-label="close">−</button>

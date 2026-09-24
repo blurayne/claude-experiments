@@ -13,7 +13,7 @@ import {
 } from '../astro/earth'
 import { canvas, gl } from '../gpu/context'
 import { cam, gfx, lifeAcc, readout, simClock, view, SKY_MIRROR } from './state'
-import { flight, flightStep, flightTarget, setFlightBasis } from './flight'
+import { flight, flightStep, flightTarget, setFlightBasis, basisFromQuat } from './flight'
 import { engineUpdate } from '../audio/engine'
 const flyTgt = [0, 0, 0];
 import { hud, updateHud } from '../ui/hud'
@@ -256,7 +256,7 @@ function frame(now: number): void {
   flightStep(dt, simClock.speed*simClock.speedMult*Math.abs(drive), drive !== 0 && !(holding && !flight.on));
   engineUpdate(flight.on, Math.min(1, Math.hypot(flight.axis[0], flight.axis[1], flight.axis[2])), flight.burst, flight.boost);   // and its sound
   let baseYaw = 0, basePitch = 0;
-  if(cam.coreLock){
+  if(cam.coreLock && !flight.anchored){   // the ship keeps its own line of sight
     // the direction from the core out to the Sun: put the eye further along it, so the
     // line of sight runs eye -> Sun -> galactic centre
     const r = Math.hypot(org[0], org[1], org[2]) || 1;
@@ -269,7 +269,7 @@ function frame(now: number): void {
   // material stars and star-forming events sweeping through the frozen pattern. The angle
   // is exactly the shader's own for wave points, uSpin/RC_BAR; the toggle handler in
   // ui/hud re-expresses the yaw at the flip so the view never jumps.
-  const galLockA = cam.spinLock && !cam.follow ? diskSpin(simClock.simT)/RC_BAR : 0;
+  const galLockA = cam.spinLock && !cam.follow && !flight.anchored ? diskSpin(simClock.simT)/RC_BAR : 0;
   const yawE = cam.yaw + baseYaw + galLockA;
   const pitchE = Math.max(-1.45, Math.min(1.45, cam.pitch + basePitch));
   const cp=Math.cos(pitchE), sp=Math.sin(pitchE);
@@ -291,7 +291,7 @@ function frame(now: number): void {
     ux = -sp*sy*P[0]+cp*A[0]+sp*cy*Q[0]; uy = -sp*sy*P[1]+cp*A[1]+sp*cy*Q[1]; uz = -sp*sy*P[2]+cp*A[2]+sp*cy*Q[2];
     dx = cp*sy*P[0]+sp*A[0]-cp*cy*Q[0]; dy = cp*sy*P[1]+sp*A[1]-cp*cy*Q[1]; dz = cp*sy*P[2]+sp*A[2]-cp*cy*Q[2];
     upV = A;
-  } else if(cam.follow && (cam.followTarget === 'sc' || cam.followTarget === 'web' || cam.followTarget === 'deep')){
+  } else if(cam.follow && !flight.anchored && (cam.followTarget === 'sc' || cam.followTarget === 'web' || cam.followTarget === 'deep')){
     // the supercluster's frame: the supergalactic pole up, so the chart's cylinder stands
     // upright and pitch tilts the eye above its plane
     const [P, A, Q] = scFrame();
@@ -299,7 +299,7 @@ function frame(now: number): void {
     ux = -sp*sy*P[0]+cp*A[0]+sp*cy*Q[0]; uy = -sp*sy*P[1]+cp*A[1]+sp*cy*Q[1]; uz = -sp*sy*P[2]+cp*A[2]+sp*cy*Q[2];
     dx = cp*sy*P[0]+sp*A[0]-cp*cy*Q[0]; dy = cp*sy*P[1]+sp*A[1]-cp*cy*Q[1]; dz = cp*sy*P[2]+sp*A[2]-cp*cy*Q[2];
     upV = A;
-  } else if(cam.follow && cam.followTarget === 'gcr'){
+  } else if(cam.follow && !flight.anchored && cam.followTarget === 'gcr'){
     // The radio field's frame: the sky at Sagittarius A* with CELESTIAL north up, the way the
     // map is printed (the plane then runs from upper left to lower right), and yaw 0 pitch 0
     // looking along the line of sight from the Sun. The same three vectors as the spin
@@ -309,6 +309,14 @@ function frame(now: number): void {
     ux = -sp*sy*P[0]+cp*A[0]+sp*cy*Q[0]; uy = -sp*sy*P[1]+cp*A[1]+sp*cy*Q[1]; uz = -sp*sy*P[2]+cp*A[2]+sp*cy*Q[2];
     dx = cp*sy*P[0]+sp*A[0]-cp*cy*Q[0]; dy = cp*sy*P[1]+sp*A[1]-cp*cy*Q[1]; dz = cp*sy*P[2]+sp*A[2]-cp*cy*Q[2];
     upV = A;
+  }
+  if(flight.on){
+    // In flight the ship's own orientation is the view: free, no pitch limit, any roll.
+    // (Anchored but landed, the plain world frame above is used, so landing's level yaw
+    // and pitch mean what they say.)
+    const [R, Uq, D] = basisFromQuat(flight.q);
+    rx = R[0]; ry = R[1]; rz = R[2]; ux = Uq[0]; uy = Uq[1]; uz = Uq[2]; dx = D[0]; dy = D[1]; dz = D[2];
+    upV = Uq;
   }
   cam.dirW[0] = dx; cam.dirW[1] = dy; cam.dirW[2] = dz;                     // read by the spin lock's switch
   setFlightBasis([rx, ry, rz], [ux, uy, uz], [dx, dy, dz]);                  // and the flight flies along these
