@@ -97,7 +97,7 @@ import { drawEatFlash } from './render/passes/eatflash'
 import { runFirstLaunchProbe } from './render/probe'
 import { initCamera, zoomStep, minDist } from './render/camera'
 import { flightRelease } from './render/flight'
-import { initFlightUI } from './ui/flight'
+import { initFlightUI, barUserSlid } from './ui/flight'
 import { startFrameLoop, setHolding, skyProjection, spinFrame, org } from './render/frame'
 import { drawLabels, setLabelSteady, labelEls, armEls } from './render/labels'
 import {
@@ -340,7 +340,7 @@ registerSnapshot(() => ({
   units:hud.unitMode,
   fsel:$('focusSel').value, sec:sectionSnapshot(),
   pan:panelSnapshot(),
-  bar:$('gamebar').classList.contains('slid'), qrPos:qrSnapshot(),
+  bar:barUserSlid(), qrPos:qrSnapshot(),   // the visitor's choice, not the flight's own slide
 }));
 
 // Registration order is replay order. These three run after persist's own id lists, in

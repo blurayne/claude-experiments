@@ -24,7 +24,7 @@ export const SKEY = 'galactic-transit.settings.v1';
 
 const S_TOG = ['tLabels','tArms','tDist','tLabelSteady','tZoomBtns','tSpinLock','tDwarfs','tP9','tBelt','tKuiper','tOort','tDust',
                'tEvSN','tEvBirth','tVar',
-               'tStatAge','tStatGyr','tStatSn','tStatBirth','tGaia','tFps','tHalo','tScaleBar','tScaleText'];
+               'tStatAge','tStatGyr','tStatSn','tStatBirth','tGaia','tFps','tHalo','tScaleBar','tScaleText','tWarp'];
 const S_SLD = ['speed','trailA','orbitA','trailL','musicVol','sfxVol','flightVol','minB','hudHz','coreB','qrScale'];
 const S_CHK = ['fxBirth','fxSn','fxPn','fxDrone','secSolo','closeOnGo','qrOn'];
 

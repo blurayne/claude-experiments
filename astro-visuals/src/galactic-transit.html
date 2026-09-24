@@ -29,6 +29,7 @@
 </head>
 <body>
 <canvas id="gl"></canvas>
+<canvas id="warp" aria-hidden="true"></canvas>
 
 <div class="hud" id="hud">
   <button class="pclose" id="collapse" aria-label="collapse panel">−</button>
@@ -67,6 +68,7 @@
       <label class="chk"><input type="checkbox" id="tEvBirth"> star birth</label></div>
     <div class="chks indent">
       <label class="chk"><input type="checkbox" id="tDust" checked> dark clouds</label>
+      <label class="chk"><input type="checkbox" id="tWarp" checked> flight streaks<button type="button" class="info" data-tip="In free flight, streaks of light rush past as the ship moves, stronger the faster it goes." aria-label="about this setting">i</button></label>
       <label class="chk" title="the million-degree gas eROSITA found around the Galaxy"><input type="checkbox" id="tHalo"> hot halo<button type="button" class="info" data-tip="The million-degree circumgalactic gas eROSITA mapped: a faint spherical halo out to ~100 kpc, and the brighter disk-like component inside it. Off by default — it is real, and it is very nearly invisible." aria-label="about this setting">i</button></label>
       <label class="chk"><input type="checkbox" id="tBelt" checked> asteroids</label>
       <label class="chk"><input type="checkbox" id="tKuiper" checked> kuiper</label>
@@ -243,6 +245,7 @@
 <button class="pdot act" id="zoomIn" aria-label="zoom in" title="zoom in — toward the next smaller object">+</button>
 <button class="pdot act" id="zoomOut" aria-label="zoom out" title="zoom out — toward the next bigger object">−</button>
 <button class="pdot act" id="tFly" aria-label="free flight" aria-pressed="false" title="free flight — W A S D / arrows to move, R F up and down, shift to boost, right-drag to roll, esc to land; on a touch screen a throttle lever, a thumb stick and a burst button, drag to look round, twist two fingers to roll. The zoom sets the pace: a fraction of the view a second. A faster clock is a faster ship."><svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><path d="M0.8 4.6 L9.4 1 L6.4 9.2 L4.9 5.6 Z"/></svg></button>
+<div id="flySpeed" aria-live="off"><b id="flySpeedV">at rest</b><span id="flySpeedS"></span></div>
 <div class="pad lever" id="padL" aria-label="throttle: forward at the head, back at the foot, rest in the middle"><i class="mark"></i><i class="knob"></i></div>
 <button class="pad burst" id="padR" tabindex="-1" aria-label="burst: full ahead while held">burst</button>
 <div class="pad stick" id="padS" aria-label="thumb stick: sideways strafes, up and down rise and sink"><i class="cross"></i><i class="knob"></i></div>
@@ -326,7 +329,6 @@
   <div class="sbar"><span class="sfill" id="sFill"></span><i class="stk"></i><i class="stk mid" id="sTkMid"></i><i class="stk end" id="sTkEnd"></i></div>
   <div class="slab"><span>0</span><span class="mid" id="sHalf">—</span><span class="end" id="sEnd">—</span><em id="sUnit">—</em></div>
   <div class="sacross">view <em id="sScale">—</em> across</div>
-  <div class="sacross" id="sFly" style="display:none">flight <em id="sPace">—</em><span id="sClockShare"></span></div>
 </div>
 <div class="env" id="env">
   <button class="pclose" id="envMin" data-close="env" aria-label="minimise the Earth panel">−</button>

@@ -84,6 +84,20 @@ export function flightTarget(out: number[]): number[] {
   for(let i=0;i<3;i++) out[i] = flight.pos[i] - basis.d[i]*cam.dist
   return out
 }
+/**
+ * The throttle lever: position `p` from its foot (0) to its head (1) to a throttle −1..1.
+ * Zero sits a quarter of the way up (LEVER_ZERO), so most of the travel is forward; above
+ * it the throttle rises on an exponential curve — little in the middle of the travel, the
+ * rest near the head — and below it is reverse, on the same curve over the short stretch.
+ * A small detent round the zero reads as zero.
+ */
+export const LEVER_ZERO = 0.25, LEVER_K = 3, LEVER_DETENT = 0.03
+const leverCurve = (u: number): number => (Math.exp(LEVER_K*u) - 1)/(Math.exp(LEVER_K) - 1)
+export function leverThrottle(p: number): number {
+  p = Math.max(0, Math.min(1, p))
+  if(Math.abs(p - LEVER_ZERO) < LEVER_DETENT) return 0
+  return p > LEVER_ZERO ? leverCurve((p - LEVER_ZERO)/(1 - LEVER_ZERO)) : -leverCurve((LEVER_ZERO - p)/LEVER_ZERO)
+}
 /** a side hand (strafe or rise): the keys and the thumb stick summed, and clamped */
 export function sideWant(keys: number, stick: number): number {
   return Math.max(-1, Math.min(1, keys + stick))

@@ -301,6 +301,33 @@ dismissing the first-run tour **starts** the clock, so pausing has to come after
   10.3, 11.7, 12.2 from pitch 0.95 — the tails should be longest near 10.3 and 11.8, not at
   the passages, and the inner disk should keep its spiral.
 
+## Flight, fourth cut (v3.26.0)
+
+- **Streaks** (`render/warp`): a see-through 2D canvas (`#warp`) over the GL canvas and
+  under everything else, drawn once a frame from `frame` after the engine. 170 points in a
+  box ahead of the eye, flowing against the ship's velocity in the EYE's space (screen
+  right, not the mirrored world's), drawn as lines from where each was 0.14 s ago. The
+  speed that drives them is the apparent one, view heights a second, capped at 4 — so
+  they look the same at every scale and a fast clock's burst is not a white-out. Strength
+  `warpStrength` (full from 0.35 view heights a second) fades in and out; at rest or with
+  `#tWarp` off the canvas is cleared and nothing is drawn. `#tWarp` is in `S_TOG`.
+- **The ion drive** (`audio/engine`, `engine-map`): no noise buffers any more. A whine
+  (sine, 2nd and 3rd partials) from 240 Hz at rest to ~1,300 Hz at full, gated by a soft
+  square LFO (6 to 40 pulses a second) — the pulse; a soft motor hum under it; a second
+  gated voice on the burst, and a thump plus a rising charge on its press. The whine must
+  be the loudest line (measure the analyser's peak above 180 Hz: 237 → 431 → 1,310 Hz from
+  rest to half to full lever), or it reads as a motor, not an ion drive.
+- **The lever** (`leverThrottle` in `render/flight`): position from foot 0 to head 1; zero
+  at `LEVER_ZERO` 0.25 with a ±0.03 detent; forward on `(e^(3u) − 1)/(e^3 − 1)` over the
+  upper three quarters (18% at half travel), reverse on the same curve over the lower
+  quarter. On release, reverse and the detent snap to zero; forward stays. The zero mark
+  in CSS (`top: calc(50% + 26.5px)`) is tied to the 150 px height and 22 px knob margin.
+- **The readout** (`#flySpeed`, bottom centre, only while flying): the speed actually made
+  — `speedU` times the eased axis magnitude — not the full-throttle pace; it lives on its
+  own because `#scaleNote .sacross` is hidden by the "scale text" setting.
+- **The status bar** slides away on take-off (`slideBar` in `ui/flight`) and comes back on
+  landing if it was up; the saved `bar` is `barUserSlid()`, the visitor's own choice.
+
 ## Free rotation in flight (v3.23.0)
 
 - **In flight the view is a quaternion**, `flight.q` in `render/flight`, taking the ship's

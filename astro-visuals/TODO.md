@@ -5,7 +5,7 @@ before the work starts. An item is ticked when it ships, with the version that c
 
 ## 2026-09-24
 
-- [ ] Flight, fourth cut. (1) Flying slides the status bar away, as the swipe-down does,
+- [x] Flight, fourth cut. (1) Flying slides the status bar away, as the swipe-down does,
       and landing brings it back if it was up. (2) The ship sounds ion-pulsed, like an
       electric vehicle — a whine that climbs with the speed, pulsed — instead of noise.
       (3) The lever: its zero a quarter of the way up, not in the middle; forward above it
@@ -15,6 +15,7 @@ before the work starts. An item is ticked when it ships, with the version that c
       text" setting hides). (5) A movement effect: streaks of light rushing past, like a
       star field at warp, stronger with the speed; switchable in the settings like the
       ship's sound, both on by default.
+      render/warp + #tWarp, the ion-pulse engine, leverThrottle, #flySpeed, slideBar — v3.26.0.
 
 - [x] Flight: tilt with two fingers — a two-finger twist rolls the ship left or right
       about its line of sight, the scene turning with the fingers as a map does. In flight

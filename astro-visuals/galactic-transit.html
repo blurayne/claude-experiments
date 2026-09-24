@@ -92,7 +92,7 @@ function installErrorCollector(){
  * property of the machine that loaded the page. The parity harness pins TZ for that reason.
  */
 
-const BUILD = { version: '3.25.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '3.26.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -696,6 +696,20 @@ function flightTarget(out          )           {
   for(let i=0;i<3;i++) out[i] = flight.pos[i] - basis.d[i]*cam.dist;
   return out
 }
+/**
+ * The throttle lever: position `p` from its foot (0) to its head (1) to a throttle −1..1.
+ * Zero sits a quarter of the way up (LEVER_ZERO), so most of the travel is forward; above
+ * it the throttle rises on an exponential curve — little in the middle of the travel, the
+ * rest near the head — and below it is reverse, on the same curve over the short stretch.
+ * A small detent round the zero reads as zero.
+ */
+const LEVER_ZERO = 0.25, LEVER_K = 3, LEVER_DETENT = 0.03;
+const leverCurve = (u        )         => (Math.exp(LEVER_K*u) - 1)/(Math.exp(LEVER_K) - 1);
+function leverThrottle(p        )         {
+  p = Math.max(0, Math.min(1, p));
+  if(Math.abs(p - LEVER_ZERO) < LEVER_DETENT) return 0
+  return p > LEVER_ZERO ? leverCurve((p - LEVER_ZERO)/(1 - LEVER_ZERO)) : -leverCurve((LEVER_ZERO - p)/LEVER_ZERO)
+}
 /** a side hand (strafe or rise): the keys and the thumb stick summed, and clamped */
 function sideWant(keys        , stick        )         {
   return Math.max(-1, Math.min(1, keys + stick))
@@ -810,6 +824,89 @@ function flightStep(dt        , yps        , running         )          {
   // projection mirrors x (SKY_MIRROR); up is the view's up
   for(let i=0;i<3;i++) flight.pos[i] += (-basis.d[i]*f + basis.r[i]*SKY_MIRROR*s + basis.u[i]*u)*v;
   return true
+}
+
+/**
+ * The movement effect: streaks of light rushing past while the ship moves — a star field at
+ * warp. Decoration, on its own see-through 2D canvas over the scene (and under the labels
+ * and panels), in the eye's own space: points in a box ahead of the eye, one unit deep,
+ * flowing against the ship's motion and drawn as lines from where each was a moment ago to
+ * where it is. The speed that drives it is the APPARENT one — view heights a second — so it
+ * looks the same at every scale, and is capped, or a burst at a fast clock would be white.
+ * Strength follows the speed and fades in and out; nothing is drawn at rest, or with the
+ * switch off.
+ */
+const N = 170;
+const P = new Float32Array(N*3);
+let cv                           = null, g                                  = null;
+let intensity = 0, drawn = false, dpr = 1;
+const warp = { on: true };
+
+function seed(i        , z0        , z1        )       {
+  P[i*3]   = (Math.random()*2 - 1)*0.9;
+  P[i*3+1] = (Math.random()*2 - 1)*0.9;
+  P[i*3+2] = z0 + Math.random()*(z1 - z0);
+}
+function resize$1()       {
+  if(!cv) return
+  dpr = Math.min(2, devicePixelRatio || 1);
+  cv.width = Math.round(innerWidth*dpr); cv.height = Math.round(innerHeight*dpr);
+  drawn = true;                              // a resize clears the canvas; draw or clear afresh
+}
+function initWarp()       {
+  cv = document.getElementById('warp');                           
+  g = cv ? cv.getContext('2d') : null;
+  for(let i=0;i<N;i++) seed(i, 0.05, 1);
+  resize$1(); addEventListener('resize', resize$1);
+}
+
+/** apparent speed (view heights a second) at which the streaks are at full strength, and the cap on their motion */
+const WARP_FULL = 0.35, WARP_CAP = 4;
+/** how strong the streaks are at this apparent speed, 0..1 */
+const warpStrength = (vh        )         => Math.max(0, Math.min(1, vh/WARP_FULL));
+
+/**
+ * One frame. `vr`, `vu`, `vf`: the ship's velocity along the eye's right, up and forward, in
+ * view heights a second (screen right, not the mirrored world's).
+ */
+function drawWarp(dt        , active         , vr        , vu        , vf        )       {
+  if(!cv || !g) return
+  let sp = Math.hypot(vr, vu, vf);
+  const target = active && warp.on ? warpStrength(sp) : 0;
+  intensity += (target - intensity)*(1 - Math.exp(-dt/0.25));
+  if(intensity < 0.01){
+    if(drawn){ g.clearRect(0, 0, cv.width, cv.height); drawn = false; }
+    return
+  }
+  if(sp > WARP_CAP){ const f = WARP_CAP/sp; vr *= f; vu *= f; vf *= f; sp = WARP_CAP; }
+  drawn = true;
+  const W = cv.width, H = cv.height, cx = W/2, cy = H/2, foc = (H/2)/Math.tan(Math.PI/6);
+  const K = 0.55, T = 0.14;                    // box units per view height; the streak's time span
+  const mx = vr*K, my = vu*K, mz = vf*K;
+  g.clearRect(0, 0, W, H);
+  g.globalCompositeOperation = 'lighter';
+  g.lineCap = 'round';
+  for(let i=0;i<N;i++){
+    let x = P[i*3] - mx*dt, y = P[i*3+1] - my*dt, z = P[i*3+2] - mz*dt;
+    // out of the box: back in at the far end going forward, near the eye going backward,
+    // on the far side going sideways
+    if(z < 0.05){ seed(i, 0.7, 1); continue }
+    if(z > 1.05){ seed(i, 0.06, 0.3); continue }
+    const sx = cx + x/z*foc, sy = cy - y/z*foc;
+    if(sx < -W*0.2 || sx > W*1.2 || sy < -H*0.2 || sy > H*1.2){ seed(i, 0.5, 1); continue }
+    P[i*3] = x; P[i*3+1] = y; P[i*3+2] = z;
+    // where it was a moment ago: the tail
+    const tz = Math.min(1.2, z + mz*T), tx = x + mx*T, ty = y + my*T;
+    if(tz <= 0.02) continue
+    const qx = cx + tx/tz*foc, qy = cy - ty/tz*foc;
+    const near = 1 - Math.min(1, z);            // nearer is brighter and wider
+    const a = intensity*(0.12 + 0.75*near*near);
+    if(a < 0.01) continue
+    g.strokeStyle = 'rgba(175,215,255,' + a.toFixed(3) + ')';
+    g.lineWidth = dpr*(0.5 + 1.8*near);
+    g.beginPath(); g.moveTo(qx, qy); g.lineTo(sx, sy); g.stroke();
+  }
+  g.globalCompositeOperation = 'source-over';
 }
 
 const sound = {
@@ -1023,43 +1120,50 @@ function applySfxGain(){
 
 /**
  * The engine sound's mapping, kept apart from the voices so it can be tested without a
- * page: what the hum, the air and the roar should be at a throttle magnitude (0..1), with
- * the burst held or not and the boost on or not. See audio/engine.
+ * page: what the motor hum, the ion whine, its pulse and the burst voice should be at a
+ * throttle magnitude (0..1), with the burst held or not and the boost on or not. See
+ * audio/engine.
  */
-                                                                                                                     
+                                
+                                         
+                                
+                 
+                
+ 
 /** what the voices should be at this throttle magnitude (0..1), burst held or not */
 function engineTargets(m        , burst         , boost         )                {
   m = Math.max(0, Math.min(1, m));
   const push = boost ? 1.25 : 1;
-  // the fundamental sits at 70 Hz and the filter never closes below 420: small speakers
-  // reproduce nothing under ~150 Hz, so the hum lives in its harmonics, as the drone's does
   return {
-    humF: 70*(1 + 0.6*m*push),
-    humG: 0.10 + 0.18*m,
-    lpF:  420 + 1500*m*push,
-    airG: 0.30*Math.pow(m, 1.5)*push,
-    airF: 380 + 1600*m*push,
-    // the burst stands clear of the throttle: a roar as loud as full ahead's air and hum
-    // together, on top of them, a band higher
-    roarG: burst ? 0.75 : 0,
+    // the motor: a low hum, its energy in harmonics a small speaker can play
+    humF: 70*(1 + 0.5*m*push),
+    humG: 0.045 + 0.05*m,
+    lpF:  380 + 900*m*push,
+    // the ion drive: an electric vehicle's whine, climbing with the speed, faint at rest —
+    // the character of the sound, so it stands above the motor
+    whineF: 240 + 1100*m*push,
+    whineG: 0.05 + 0.34*m,
+    // pulsed: slow ticks at rest, a fast flutter at full
+    pulseHz: 6 + 34*m*push,
+    // the burst: a second, brighter ion voice on top
+    burstG: burst ? 0.32 : 0,
   }
 }
 
 /**
- * The ship's sound, synthesised — no files. Three voices on their own gain, straight into
- * the compressor, so the flight is heard whether or not the effects are on:
+ * The ship's sound, synthesised — no files, and no noise: an ion drive, the way an electric
+ * vehicle sounds rather than a rocket. Its own gain, straight into the compressor, so the
+ * flight is heard whether or not the effects are on:
  *
- *  - the hum: two detuned saws at 70 Hz and a sine an octave up, through a low-pass that
- *    never closes below 420 Hz — small speakers play nothing under ~150 Hz, so the hum
- *    lives in its harmonics, as the drone's does. Idle, it is a quiet murmur that says the
- *    engine is lit; with the throttle its pitch climbs by up to sixty percent and the
- *    filter opens, so a harder push sounds harder.
- *  - the air: a looped noise through a band-pass whose centre rises with the speed — the
- *    rush of going somewhere. Silent at rest, it swells as the throttle to the power one
- *    and a half, so a nudge is barely there and full ahead is.
- *  - the burst: on the press a thump (a sine falling from 110 to 38 Hz in a quarter of a
- *    second, felt more than heard) and a whoosh (the noise swept up through a band-pass);
- *    while held, a roar a band above the air, loud enough to stand clear of full throttle.
+ *  - the motor: two detuned saws at 70 Hz through a low-pass that never closes below
+ *    380 Hz — small speakers play nothing under ~150 Hz, so it lives in its harmonics.
+ *  - the whine: a sine with its second and third partials, from 240 Hz at rest to some
+ *    1,300 Hz at full, faint when idle — the electric vehicle's rising tone.
+ *  - the pulse: the whine goes through a gate opened and closed by a soft square wave,
+ *    6 pulses a second at rest and 40 at full — the ion drive's beat.
+ *  - the burst: on the press a thump (a sine falling from 110 to 38 Hz) and a charge (a
+ *    sine swept from 220 to 1,760 Hz); while held, a second, brighter ion voice a fifth
+ *    above the whine, pulsing twice as fast.
  *
  * The volume slider is the switch, as music's and the effects' are: zero reads "off" and
  * silences it. Its level rides `engine.vol`; the whole voice fades out when flight lands.
@@ -1072,33 +1176,41 @@ const engine = { vol: 0.4 }
                
                                                              
                                      
-                                        
-                                          
-                    
+                                                                             
+                                              
+                                                                                  
  
 let v                = null;
 function build()                {
   const g = sound.graph; if(!g) return null
   const { ctx, comp } = g;
   const out = ctx.createGain(); out.gain.value = 0; out.connect(comp);
+  // the motor
   const hum = ctx.createGain(); hum.gain.value = 0; hum.connect(out);
-  const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 420; lp.Q.value = 0.9; lp.connect(hum);
-  const mk = (type                , f        , gain        )                 => {
+  const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 380; lp.Q.value = 0.9; lp.connect(hum);
+  const mk = (type                , f        , gain        , to           )                 => {
     const o = ctx.createOscillator(); o.type = type; o.frequency.value = f;
-    const og = ctx.createGain(); og.gain.value = gain; o.connect(og); og.connect(lp); o.start(); return o };
-  const o1 = mk('sawtooth', 70, 0.35), o2 = mk('sawtooth', 70, 0.35), sub = mk('sine', 140, 0.35);   // 'sub' is the octave above: body a small speaker can play
+    const og = ctx.createGain(); og.gain.value = gain; o.connect(og); og.connect(to); o.start(); return o };
+  const o1 = mk('sawtooth', 70, 0.35, lp), o2 = mk('sawtooth', 70, 0.35, lp), sub = mk('sine', 140, 0.35, lp);
   o2.detune.value = 9;
-  // one second of noise, looped, for the air and the roar
-  const noise = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate), nd = noise.getChannelData(0);
-  for(let i=0;i<nd.length;i++) nd[i] = Math.random()*2 - 1;
-  const src = ()                        => { const s = ctx.createBufferSource(); s.buffer = noise; s.loop = true; s.start(); return s };
-  const air = ctx.createGain(); air.gain.value = 0; air.connect(out);
-  const airBp = ctx.createBiquadFilter(); airBp.type = 'bandpass'; airBp.frequency.value = 320; airBp.Q.value = 0.8; airBp.connect(air);
-  src().connect(airBp);
-  const roar = ctx.createGain(); roar.gain.value = 0; roar.connect(out);
-  const roarBp = ctx.createBiquadFilter(); roarBp.type = 'bandpass'; roarBp.frequency.value = 1400; roarBp.Q.value = 0.6; roarBp.connect(roar);
-  src().connect(roarBp);
-  return { out, o1, o2, sub, lp, hum, air, airBp, roar, roarBp, noise }
+  // a gate: base gain, plus a soft square wave on its gain — the ion pulse
+  const gate = (to           , hz        )                                                                 => {
+    const gIn = ctx.createGain(); gIn.gain.value = 0.45; gIn.connect(to);
+    const lfo = ctx.createOscillator(); lfo.type = 'square'; lfo.frequency.value = hz;
+    const lfoLp = ctx.createBiquadFilter(); lfoLp.type = 'lowpass'; lfoLp.frequency.value = hz*4;
+    const depth = ctx.createGain(); depth.gain.value = 0.45;
+    lfo.connect(lfoLp); lfoLp.connect(depth); depth.connect(gIn.gain); lfo.start();
+    return { in: gIn, lfo, lfoLp }
+  };
+  const whine = ctx.createGain(); whine.gain.value = 0; whine.connect(out);
+  const wg = gate(whine, 6);
+  const w1 = mk('sine', 240, 0.6, wg.in), w2 = mk('triangle', 480, 0.22, wg.in), w3 = mk('sine', 722, 0.08, wg.in);
+  // the burst voice
+  const burst = ctx.createGain(); burst.gain.value = 0; burst.connect(out);
+  const bg = gate(burst, 12);
+  const bBp = ctx.createBiquadFilter(); bBp.type = 'bandpass'; bBp.frequency.value = 800; bBp.Q.value = 3; bBp.connect(bg.in);
+  const b1 = mk('sawtooth', 360, 0.5, bBp);
+  return { out, o1, o2, sub, lp, hum, w1, w2, w3, whine, lfo: wg.lfo, lfoLp: wg.lfoLp, b1, bBp, burst, lfo2: bg.lfo }
 }
 
 /** the take-off click: build the graph if nothing has, and wake the context */
@@ -1108,21 +1220,18 @@ function engineWake()       {
   if(sound.graph) sound.graph.ctx.resume().catch(()=>{});
 }
 
-/** the burst's attack: a falling thump and a whoosh swept up */
+/** the burst's attack: a falling thump and a rising charge */
 function kick()       {
   if(!v || !sound.graph) return
   const { ctx } = sound.graph, t = ctx.currentTime;
+  const env = (peak        , attack        , decay        )           => {
+    const gn = ctx.createGain(); gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(peak, t + attack); gn.gain.exponentialRampToValueAtTime(0.0001, t + decay); gn.connect(v .out); return gn };
   const o = ctx.createOscillator(); o.type = 'sine';
   o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(38, t + 0.25);
-  const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.7, t + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.34);
-  o.connect(g); g.connect(v.out); o.start(t); o.stop(t + 0.36);
-  const s = ctx.createBufferSource(); s.buffer = v.noise;
-  const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 1.2;
-  bp.frequency.setValueAtTime(400, t); bp.frequency.exponentialRampToValueAtTime(3200, t + 0.45);
-  const wg = ctx.createGain(); wg.gain.setValueAtTime(0.0001, t); wg.gain.exponentialRampToValueAtTime(0.45, t + 0.08); wg.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
-  s.connect(bp); bp.connect(wg); wg.connect(v.out); s.start(t); s.stop(t + 0.62);
-  // and the roar opens from its low end, not already bright
-  v.roarBp.frequency.cancelScheduledValues(t); v.roarBp.frequency.setValueAtTime(600, t); v.roarBp.frequency.setTargetAtTime(1800, t, 0.25);
+  o.connect(env(0.6, 0.012, 0.34)); o.start(t); o.stop(t + 0.36);
+  const c = ctx.createOscillator(); c.type = 'sine';
+  c.frequency.setValueAtTime(220, t); c.frequency.exponentialRampToValueAtTime(1760, t + 0.35);
+  c.connect(env(0.28, 0.03, 0.45)); c.start(t); c.stop(t + 0.47);
 }
 
 // the last targets sent, so a frame that changes nothing schedules nothing
@@ -1148,9 +1257,14 @@ function engineUpdate(flying         , m        , burst         , boost         
   if(!last || moved(k.humF, last.humF, 0.004)){ v.o1.frequency.setTargetAtTime(k.humF, t, 0.12); v.o2.frequency.setTargetAtTime(k.humF, t, 0.12); v.sub.frequency.setTargetAtTime(k.humF*2, t, 0.12); }
   if(!last || moved(k.lpF, last.lpF, 0.01)) v.lp.frequency.setTargetAtTime(k.lpF, t, 0.12);
   if(!last || moved(k.humG, last.humG, 0.01)) v.hum.gain.setTargetAtTime(k.humG, t, 0.12);
-  if(!last || moved(k.airG, last.airG, 0.02) || (k.airG === 0) !== (last.airG === 0)) v.air.gain.setTargetAtTime(k.airG, t, 0.18);
-  if(!last || moved(k.airF, last.airF, 0.01)) v.airBp.frequency.setTargetAtTime(k.airF, t, 0.18);
-  if(!last || k.roarG !== last.roarG) v.roar.gain.setTargetAtTime(k.roarG, t, k.roarG > 0 ? 0.08 : 0.35);
+  if(!last || moved(k.whineF, last.whineF, 0.004)){
+    v.w1.frequency.setTargetAtTime(k.whineF, t, 0.15); v.w2.frequency.setTargetAtTime(k.whineF*2, t, 0.15); v.w3.frequency.setTargetAtTime(k.whineF*3.01, t, 0.15);
+    v.b1.frequency.setTargetAtTime(k.whineF*1.5, t, 0.1); v.bBp.frequency.setTargetAtTime(k.whineF*2.2, t, 0.1); }
+  if(!last || moved(k.whineG, last.whineG, 0.01)) v.whine.gain.setTargetAtTime(k.whineG, t, 0.15);
+  if(!last || moved(k.pulseHz, last.pulseHz, 0.01)){
+    v.lfo.frequency.setTargetAtTime(k.pulseHz, t, 0.15); v.lfoLp.frequency.setTargetAtTime(k.pulseHz*4, t, 0.15);
+    v.lfo2.frequency.setTargetAtTime(k.pulseHz*2, t, 0.15); }
+  if(!last || k.burstG !== last.burstG) v.burst.gain.setTargetAtTime(k.burstG, t, k.burstG > 0 ? 0.06 : 0.3);
   last = k;
 }
 
@@ -1181,11 +1295,23 @@ function keysToWant()       {
 const typing = (e               )          => { const t = e.target                      ; return !!t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable) };
 
 let onChange             = () => {};
+// The status bar slides away while flying, as the swipe-down does, and comes back on landing
+// if it was up before. What the visitor chose is kept apart, so a save in flight does not
+// record the flight's own slide as theirs.
+let barWasSlid = false;
+function slideBar(on         )       {
+  const bar = $('gamebar');
+  if(on){ barWasSlid = bar.classList.contains('slid'); bar.classList.add('slid'); bar.style.transform = 'translate(-50%, calc(100% + 15px))'; }
+  else if(!barWasSlid){ bar.classList.remove('slid'); bar.style.transform = ''; }
+}
+/** the status bar's state as the visitor left it, for the saved settings */
+const barUserSlid = ()          => flight.on ? barWasSlid : $('gamebar').classList.contains('slid');
 function setFlight(on         , keep          )       {
   if(on === flight.on) return
   // landing by hand levels the camera where the ship looked; an import (keep) sets its own
   if(on){ if(keep) flight.on = true; else flightStart(); engineWake(); } else { if(!keep) flightLevel(); flightStop(); down.clear(); }
-  leverShow(0);   // the lever rests at take-off and at landing
+  leverShow(LEVER_ZERO);   // the lever rests at take-off and at landing
+  slideBar(on);            // the status bar steps aside while flying
   $('tFly').classList.toggle('on', on);
   document.body.classList.toggle('flying', on);
   $('tFly').setAttribute('aria-pressed', on ? 'true' : 'false');
@@ -1193,22 +1319,24 @@ function setFlight(on         , keep          )       {
 }
 
 /**
- * The throttle: a vertical lever. The knob follows the thumb and STAYS where it is left,
- * −100% at the foot, +100% at the head, with a detent at the middle (a release within a
- * few percent of it is zero). A tap sets it where the tap is.
+ * The throttle: a vertical lever. Its zero sits a quarter of the way up (LEVER_ZERO): above
+ * it is forward, and the knob stays where it is left; below it is reverse, which holds only
+ * while the finger does — let go there and the lever springs back to zero. A tap sets it
+ * where the tap is. The position-to-throttle curve is `leverThrottle` (render/flight).
  */
 function lever(id        , apply                     )       {
   const el = $(id), knob = el.querySelector('.knob')               ; let pid = -1;
-  const show = (t        )       => { knob.style.setProperty('--ky', (-t*(el.clientHeight/2 - 22)).toFixed(1) + 'px'); el.classList.toggle('rev', t < 0); };
+  const half = ()         => (el.clientHeight || 150)/2 - 22;
+  const show = (p        )       => { knob.style.setProperty('--ky', ((0.5 - p)*2*half()).toFixed(1) + 'px'); el.classList.toggle('rev', leverThrottle(p) < 0); };
   const read = (e              )         => {
-    const r = el.getBoundingClientRect(), half = r.height/2 - 22;
-    return Math.max(-1, Math.min(1, -(e.clientY - (r.top + r.height/2))/half))
+    const r = el.getBoundingClientRect(), h = r.height/2 - 22;
+    return Math.max(0, Math.min(1, 0.5 - (e.clientY - (r.top + r.height/2))/(2*h)))
   };
-  const set = (t        )       => { apply(t); show(t); };
+  const set = (p        )       => { apply(leverThrottle(p)); show(p); };
   el.addEventListener('pointerdown', e => { pid = e.pointerId; try{ el.setPointerCapture(e.pointerId); }catch(err){} el.classList.add('held'); set(read(e)); e.preventDefault(); e.stopPropagation(); });
   el.addEventListener('pointermove', e => { if(e.pointerId !== pid) return; set(read(e)); e.stopPropagation(); });
   const drop = (e              )       => { if(e.pointerId !== pid) return; pid = -1; el.classList.remove('held');
-    const t = read(e); set(Math.abs(t) < 0.08 ? 0 : t); e.stopPropagation(); };
+    const p = read(e); set(leverThrottle(p) > 0 ? p : LEVER_ZERO); e.stopPropagation(); };   // reverse and the detent spring back to zero
   el.addEventListener('pointerup', drop); el.addEventListener('pointercancel', drop);
   el.addEventListener('contextmenu', e => e.preventDefault());
   leverShow = show;
@@ -1258,15 +1386,21 @@ function fmtPace(unitsPerS        )         {
   if(km >= 1) return Math.round(km).toLocaleString('en-US') + ' km/s'
   return (km*1000).toFixed(0) + ' m/s'
 }
-/** the readout beside the scale bar; called by the HUD's own tick */
+/**
+ * The flight's readout, bottom centre where the status bar was: the speed the ship is
+ * actually making — not the full-throttle pace — and under it the lever, the burst, reverse
+ * and the clock's share. Its own element: the scale note it used to ride in is hidden by
+ * the "scale text" setting. Called by the HUD's own tick.
+ */
 function updateFlightReadout()       {
-  const el = $('sFly');
-  if(!flight.on){ el.style.display = 'none'; return }
-  el.style.display = '';
+  if(!flight.on) return
+  const a = flight.axis, now = flight.speedU*Math.min(1, Math.hypot(a[0], a[1], a[2]));
   const f = flight.factor, t = flight.throttle;
-  $('sPace').textContent = fmtPace(flight.speedU);
-  $('sClockShare').textContent = (flight.burst ? ' · burst' : t !== 0 ? ' · throttle ' + Math.round(t*100) + '%' : '')
-                               + (f > 1.05 ? ' · clock ×' + (f < 10 ? f.toFixed(1) : '10') : '');
+  $('flySpeedV').textContent = now < flight.speedU*0.004 ? 'at rest' : fmtPace(now);
+  $('flySpeedS').textContent = [
+    flight.burst ? 'burst' : t < 0 ? 'reverse ' + Math.round(-t*100) + '%' : t > 0 ? 'throttle ' + Math.round(t*100) + '%' : '',
+    f > 1.05 ? 'clock ×' + (f < 10 ? f.toFixed(1) : '10') : '',
+  ].filter(Boolean).join(' · ') || 'lever to the top: ahead';
 }
 
 /** the flight's volume: the slider is the switch, as music's and the effects' are */
@@ -1279,6 +1413,10 @@ function setFlightVol(x        )       {
 function initFlightUI(deps                          )       {
   onChange = deps.onChange;
   $('flightVol').addEventListener('input', e => setFlightVol(+(e.target                    ).value));
+  initWarp();
+  const tw = $('tWarp');                   
+  warp.on = tw.checked;
+  tw.addEventListener('change', () => { warp.on = tw.checked; });
   $('tFly').addEventListener('click', () => setFlight(!flight.on));
   addEventListener('keydown', e => {
     if(typing(e)) return
@@ -2435,7 +2573,7 @@ const SKEY = 'galactic-transit.settings.v1';
 
 const S_TOG = ['tLabels','tArms','tDist','tLabelSteady','tZoomBtns','tSpinLock','tDwarfs','tP9','tBelt','tKuiper','tOort','tDust',
                'tEvSN','tEvBirth','tVar',
-               'tStatAge','tStatGyr','tStatSn','tStatBirth','tGaia','tFps','tHalo','tScaleBar','tScaleText'];
+               'tStatAge','tStatGyr','tStatSn','tStatBirth','tGaia','tFps','tHalo','tScaleBar','tScaleText','tWarp'];
 const S_SLD = ['speed','trailA','orbitA','trailL','musicVol','sfxVol','flightVol','minB','hudHz','coreB','qrScale'];
 const S_CHK = ['fxBirth','fxSn','fxPn','fxDrone','secSolo','closeOnGo','qrOn'];
 
@@ -7671,6 +7809,8 @@ function frame(now        )       {
   // does not hold the clock: the pilot looks round while the world goes on)
   flightStep(dt, simClock.speed*simClock.speedMult*Math.abs(drive), drive !== 0 && !(holding && !flight.on));
   engineUpdate(flight.on, Math.min(1, Math.hypot(flight.axis[0], flight.axis[1], flight.axis[2])), flight.burst, flight.boost);   // and its sound
+  { const vh = flight.on ? flight.speedU/(1.1547*cam.dist) : 0;                 // view heights a second at full throttle
+    drawWarp(dt, flight.on, flight.axis[1]*vh, flight.axis[2]*vh, flight.axis[0]*vh); }   // and the streaks rushing past
   let baseYaw = 0, basePitch = 0;
   if(cam.coreLock && !flight.anchored){   // the ship keeps its own line of sight
     // the direction from the core out to the Sun: put the eye further along it, so the
@@ -10819,7 +10959,7 @@ registerSnapshot(() => ({
   units:hud.unitMode,
   fsel:$('focusSel').value, sec:sectionSnapshot(),
   pan:panelSnapshot(),
-  bar:$('gamebar').classList.contains('slid'), qrPos:qrSnapshot(),
+  bar:barUserSlid(), qrPos:qrSnapshot(),   // the visitor's choice, not the flight's own slide
 }));
 
 // Registration order is replay order. These three run after persist's own id lists, in
@@ -11068,6 +11208,7 @@ startFrameLoop({
     font-family:'Exo 2',system-ui,'Segoe UI',sans-serif;}
   canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
   canvas#gl.dragging{cursor:grabbing}
+  canvas#warp{position:fixed;inset:0;width:100%;height:100%;display:block;pointer-events:none}   /* the flight's streaks, over the scene, under everything else */
 
   .row{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:11px}
   .row label{color:var(--dim);letter-spacing:.06em;min-width:52px}
@@ -11285,7 +11426,7 @@ startFrameLoop({
     -webkit-tap-highlight-color:transparent;outline:none;-webkit-touch-callout:none}   /* no square tap flash, no focus box: the ring and its glow are the feedback */
   .pad:focus, .pad:focus-visible, .pad:active{outline:none}
   .pad.lever{left:max(12px, env(safe-area-inset-left));width:44px;height:150px;border-radius:22px}
-  .pad.lever .mark{position:absolute;left:8px;right:8px;top:50%;height:1px;background:var(--line)}
+  .pad.lever .mark{position:absolute;left:8px;right:8px;top:calc(50% + 26.5px);height:1px;background:var(--accent);opacity:.5}   /* the zero, a quarter of the way up (LEVER_ZERO) */
   .pad.lever .knob{position:absolute;left:50%;top:50%;width:36px;height:36px;margin:-18px 0 0 -18px;border-radius:50%;
     background:rgba(95,216,255,.22);border:1px solid var(--accent);transform:translateY(var(--ky));transition:transform .06s}
   .pad.lever.held .knob{background:rgba(95,216,255,.45)}
@@ -11305,6 +11446,12 @@ startFrameLoop({
   .pad.stick.held .knob{background:rgba(95,216,255,.45);transition:none}
   @media (pointer: coarse){ body.flying .pad{display:block} body.flying #scaleNote{bottom:172px} }   /* the scale bar steps up over the lever */
   body.flying #tFly{color:var(--accent);box-shadow:0 0 8px 2px rgba(95,216,255,.35)}
+  /* the flight's readout, bottom centre where the status bar was */
+  #flySpeed{position:fixed;left:50%;bottom:max(16px, env(safe-area-inset-bottom));transform:translateX(-50%);z-index:5;
+    display:none;text-align:center;pointer-events:none;white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,.85)}
+  #flySpeed b{display:block;font-family:'Orbitron',ui-monospace,monospace;font-weight:600;font-size:22px;letter-spacing:.04em;color:var(--accent)}
+  #flySpeed span{display:block;margin-top:3px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+  body.flying #flySpeed{display:block}
   .pdot.attn{animation:attnPulse 1.1s ease-in-out infinite}
   @keyframes attnPulse{0%,100%{box-shadow:0 0 0 0 rgba(95,216,255,0)}
     50%{box-shadow:0 0 10px 3px rgba(95,216,255,.55)}}
@@ -11556,6 +11703,7 @@ startFrameLoop({
 </head>
 <body>
 <canvas id="gl"></canvas>
+<canvas id="warp" aria-hidden="true"></canvas>
 
 <div class="hud" id="hud">
   <button class="pclose" id="collapse" aria-label="collapse panel">−</button>
@@ -11594,6 +11742,7 @@ startFrameLoop({
       <label class="chk"><input type="checkbox" id="tEvBirth"> star birth</label></div>
     <div class="chks indent">
       <label class="chk"><input type="checkbox" id="tDust" checked> dark clouds</label>
+      <label class="chk"><input type="checkbox" id="tWarp" checked> flight streaks<button type="button" class="info" data-tip="In free flight, streaks of light rush past as the ship moves, stronger the faster it goes." aria-label="about this setting">i</button></label>
       <label class="chk" title="the million-degree gas eROSITA found around the Galaxy"><input type="checkbox" id="tHalo"> hot halo<button type="button" class="info" data-tip="The million-degree circumgalactic gas eROSITA mapped: a faint spherical halo out to ~100 kpc, and the brighter disk-like component inside it. Off by default — it is real, and it is very nearly invisible." aria-label="about this setting">i</button></label>
       <label class="chk"><input type="checkbox" id="tBelt" checked> asteroids</label>
       <label class="chk"><input type="checkbox" id="tKuiper" checked> kuiper</label>
@@ -11770,6 +11919,7 @@ startFrameLoop({
 <button class="pdot act" id="zoomIn" aria-label="zoom in" title="zoom in — toward the next smaller object">+</button>
 <button class="pdot act" id="zoomOut" aria-label="zoom out" title="zoom out — toward the next bigger object">−</button>
 <button class="pdot act" id="tFly" aria-label="free flight" aria-pressed="false" title="free flight — W A S D / arrows to move, R F up and down, shift to boost, right-drag to roll, esc to land; on a touch screen a throttle lever, a thumb stick and a burst button, drag to look round, twist two fingers to roll. The zoom sets the pace: a fraction of the view a second. A faster clock is a faster ship."><svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><path d="M0.8 4.6 L9.4 1 L6.4 9.2 L4.9 5.6 Z"/></svg></button>
+<div id="flySpeed" aria-live="off"><b id="flySpeedV">at rest</b><span id="flySpeedS"></span></div>
 <div class="pad lever" id="padL" aria-label="throttle: forward at the head, back at the foot, rest in the middle"><i class="mark"></i><i class="knob"></i></div>
 <button class="pad burst" id="padR" tabindex="-1" aria-label="burst: full ahead while held">burst</button>
 <div class="pad stick" id="padS" aria-label="thumb stick: sideways strafes, up and down rise and sink"><i class="cross"></i><i class="knob"></i></div>
@@ -11853,7 +12003,6 @@ startFrameLoop({
   <div class="sbar"><span class="sfill" id="sFill"></span><i class="stk"></i><i class="stk mid" id="sTkMid"></i><i class="stk end" id="sTkEnd"></i></div>
   <div class="slab"><span>0</span><span class="mid" id="sHalf">—</span><span class="end" id="sEnd">—</span><em id="sUnit">—</em></div>
   <div class="sacross">view <em id="sScale">—</em> across</div>
-  <div class="sacross" id="sFly" style="display:none">flight <em id="sPace">—</em><span id="sClockShare"></span></div>
 </div>
 <div class="env" id="env">
   <button class="pclose" id="envMin" data-close="env" aria-label="minimise the Earth panel">−</button>

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { clockFactor, fullSpeed, forwardWant, sideWant, FLY_BOOST, FLY_VIEW_PER_S, quatFromBasis, basisFromQuat, levelFromQuat, flight, flightLook, flightRoll, flightOrientFromYawPitch } from '../../src/render/flight'
+import { clockFactor, fullSpeed, forwardWant, sideWant, leverThrottle, LEVER_ZERO, FLY_BOOST, FLY_VIEW_PER_S, quatFromBasis, basisFromQuat, levelFromQuat, flight, flightLook, flightRoll, flightOrientFromYawPitch } from '../../src/render/flight'
 
 describe('the flight pace', () => {
   it('scales with the view: a fixed fraction of the view height a second', () => {
@@ -30,22 +30,27 @@ describe('the flight pace', () => {
 
 import { engineTargets } from '../../src/audio/engine-map'
 describe('the engine sound', () => {
-  it('idles as a quiet hum with no air and no roar', () => {
+  it('idles as a quiet hum, a faint whine, slow pulses, no burst voice', () => {
     const k = engineTargets(0, false, false)
     expect(k.humG).toBeGreaterThan(0)
-    expect(k.airG).toBe(0)
-    expect(k.roarG).toBe(0)
+    expect(k.whineG).toBeGreaterThan(0)
+    expect(k.whineG).toBeLessThan(0.06)
+    expect(k.pulseHz).toBeLessThan(10)
+    expect(k.burstG).toBe(0)
   })
-  it('climbs in pitch, brightness and rush with the throttle', () => {
+  it('climbs in whine pitch and level, pulse rate, and motor brightness with the throttle', () => {
     const a = engineTargets(0.3, false, false), b = engineTargets(1, false, false)
-    expect(b.humF).toBeGreaterThan(a.humF)
+    expect(b.whineF).toBeGreaterThan(a.whineF)
+    expect(b.whineG).toBeGreaterThan(a.whineG)
+    expect(b.pulseHz).toBeGreaterThan(a.pulseHz)
     expect(b.lpF).toBeGreaterThan(a.lpF)
-    expect(b.airG).toBeGreaterThan(a.airG)
-    expect(b.airF).toBeGreaterThan(a.airF)
   })
-  it('roars only while the burst is held', () => {
-    expect(engineTargets(1, true, true).roarG).toBeGreaterThan(0)
-    expect(engineTargets(1, false, true).roarG).toBe(0)
+  it('keeps the whine where a phone can play it: above 200 Hz', () => {
+    expect(engineTargets(0, false, false).whineF).toBeGreaterThan(200)
+  })
+  it('sounds the burst voice only while the burst is held', () => {
+    expect(engineTargets(1, true, true).burstG).toBeGreaterThan(0)
+    expect(engineTargets(1, false, true).burstG).toBe(0)
   })
   it('clamps the throttle it is given', () => {
     expect(engineTargets(5, false, false)).toEqual(engineTargets(1, false, false))
@@ -109,5 +114,37 @@ describe('the roll', () => {
     const q0 = flight.q.slice()
     flightRoll(0.9); flightRoll(-0.9)
     flight.q.forEach((v, i) => expect(Math.abs(v)).toBeCloseTo(Math.abs(q0[i]), 9))
+  })
+})
+
+describe('the throttle lever', () => {
+  it('is zero a quarter of the way up, and round it (the detent)', () => {
+    expect(LEVER_ZERO).toBe(0.25)
+    expect(leverThrottle(0.25)).toBe(0)
+    expect(leverThrottle(0.27)).toBe(0)
+    expect(leverThrottle(0.23)).toBe(0)
+  })
+  it('is full ahead at the head and full reverse at the foot', () => {
+    expect(leverThrottle(1)).toBeCloseTo(1, 9)
+    expect(leverThrottle(0)).toBeCloseTo(-1, 9)
+  })
+  it('gives little in the middle of the forward travel: a curve, not a line', () => {
+    const mid = leverThrottle(0.25 + 0.75/2)
+    expect(mid).toBeGreaterThan(0.1)
+    expect(mid).toBeLessThan(0.25)
+  })
+  it('rises all the way up', () => {
+    let prev = 0
+    for (let p = 0.3; p <= 1.0001; p += 0.05) { const t = leverThrottle(p); expect(t).toBeGreaterThan(prev); prev = t }
+  })
+})
+
+import { warpStrength, WARP_FULL } from '../../src/render/warp'
+describe('the streaks', () => {
+  it('are nothing at rest and full from a third of the view a second', () => {
+    expect(warpStrength(0)).toBe(0)
+    expect(warpStrength(WARP_FULL)).toBe(1)
+    expect(warpStrength(10)).toBe(1)
+    expect(warpStrength(WARP_FULL/2)).toBeCloseTo(0.5, 9)
   })
 })

@@ -1,5 +1,6 @@
 import { $ } from '../core/dom'
-import { flight, flightStart, flightStop, flightLevel } from '../render/flight'
+import { flight, flightStart, flightStop, flightLevel, leverThrottle, LEVER_ZERO } from '../render/flight'
+import { warp, initWarp } from '../render/warp'
 import { engine, engineWake } from '../audio/engine'
 
 /**
@@ -29,11 +30,23 @@ function keysToWant(): void {
 const typing = (e: KeyboardEvent): boolean => { const t = e.target as HTMLElement | null; return !!t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable) }
 
 let onChange: () => void = () => {}
+// The status bar slides away while flying, as the swipe-down does, and comes back on landing
+// if it was up before. What the visitor chose is kept apart, so a save in flight does not
+// record the flight's own slide as theirs.
+let barWasSlid = false
+function slideBar(on: boolean): void {
+  const bar = $('gamebar')
+  if(on){ barWasSlid = bar.classList.contains('slid'); bar.classList.add('slid'); bar.style.transform = 'translate(-50%, calc(100% + 15px))' }
+  else if(!barWasSlid){ bar.classList.remove('slid'); bar.style.transform = '' }
+}
+/** the status bar's state as the visitor left it, for the saved settings */
+export const barUserSlid = (): boolean => flight.on ? barWasSlid : $('gamebar').classList.contains('slid')
 export function setFlight(on: boolean, keep?: boolean): void {
   if(on === flight.on) return
   // landing by hand levels the camera where the ship looked; an import (keep) sets its own
   if(on){ if(keep) flight.on = true; else flightStart(); engineWake() } else { if(!keep) flightLevel(); flightStop(); down.clear() }
-  leverShow(0)   // the lever rests at take-off and at landing
+  leverShow(LEVER_ZERO)   // the lever rests at take-off and at landing
+  slideBar(on)            // the status bar steps aside while flying
   $('tFly').classList.toggle('on', on)
   document.body.classList.toggle('flying', on)
   $('tFly').setAttribute('aria-pressed', on ? 'true' : 'false')
@@ -41,27 +54,29 @@ export function setFlight(on: boolean, keep?: boolean): void {
 }
 
 /**
- * The throttle: a vertical lever. The knob follows the thumb and STAYS where it is left,
- * −100% at the foot, +100% at the head, with a detent at the middle (a release within a
- * few percent of it is zero). A tap sets it where the tap is.
+ * The throttle: a vertical lever. Its zero sits a quarter of the way up (LEVER_ZERO): above
+ * it is forward, and the knob stays where it is left; below it is reverse, which holds only
+ * while the finger does — let go there and the lever springs back to zero. A tap sets it
+ * where the tap is. The position-to-throttle curve is `leverThrottle` (render/flight).
  */
 function lever(id: string, apply: (t: number) => void): void {
   const el = $(id), knob = el.querySelector('.knob') as HTMLElement; let pid = -1
-  const show = (t: number): void => { knob.style.setProperty('--ky', (-t*(el.clientHeight/2 - 22)).toFixed(1) + 'px'); el.classList.toggle('rev', t < 0) }
+  const half = (): number => (el.clientHeight || 150)/2 - 22
+  const show = (p: number): void => { knob.style.setProperty('--ky', ((0.5 - p)*2*half()).toFixed(1) + 'px'); el.classList.toggle('rev', leverThrottle(p) < 0) }
   const read = (e: PointerEvent): number => {
-    const r = el.getBoundingClientRect(), half = r.height/2 - 22
-    return Math.max(-1, Math.min(1, -(e.clientY - (r.top + r.height/2))/half))
+    const r = el.getBoundingClientRect(), h = r.height/2 - 22
+    return Math.max(0, Math.min(1, 0.5 - (e.clientY - (r.top + r.height/2))/(2*h)))
   }
-  const set = (t: number): void => { apply(t); show(t) }
+  const set = (p: number): void => { apply(leverThrottle(p)); show(p) }
   el.addEventListener('pointerdown', e => { pid = e.pointerId; try{ el.setPointerCapture(e.pointerId) }catch(err){} el.classList.add('held'); set(read(e)); e.preventDefault(); e.stopPropagation() })
   el.addEventListener('pointermove', e => { if(e.pointerId !== pid) return; set(read(e)); e.stopPropagation() })
   const drop = (e: PointerEvent): void => { if(e.pointerId !== pid) return; pid = -1; el.classList.remove('held')
-    const t = read(e); set(Math.abs(t) < 0.08 ? 0 : t); e.stopPropagation() }
+    const p = read(e); set(leverThrottle(p) > 0 ? p : LEVER_ZERO); e.stopPropagation() }   // reverse and the detent spring back to zero
   el.addEventListener('pointerup', drop); el.addEventListener('pointercancel', drop)
   el.addEventListener('contextmenu', e => e.preventDefault())
   leverShow = show
 }
-let leverShow: (t: number) => void = () => {}
+let leverShow: (p: number) => void = () => {}
 
 /**
  * The thumb stick: the offset from its centre, over its radius, is the two axes it drives —
@@ -106,15 +121,21 @@ export function fmtPace(unitsPerS: number): string {
   if(km >= 1) return Math.round(km).toLocaleString('en-US') + ' km/s'
   return (km*1000).toFixed(0) + ' m/s'
 }
-/** the readout beside the scale bar; called by the HUD's own tick */
+/**
+ * The flight's readout, bottom centre where the status bar was: the speed the ship is
+ * actually making — not the full-throttle pace — and under it the lever, the burst, reverse
+ * and the clock's share. Its own element: the scale note it used to ride in is hidden by
+ * the "scale text" setting. Called by the HUD's own tick.
+ */
 export function updateFlightReadout(): void {
-  const el = $('sFly')
-  if(!flight.on){ el.style.display = 'none'; return }
-  el.style.display = ''
+  if(!flight.on) return
+  const a = flight.axis, now = flight.speedU*Math.min(1, Math.hypot(a[0], a[1], a[2]))
   const f = flight.factor, t = flight.throttle
-  $('sPace').textContent = fmtPace(flight.speedU)
-  $('sClockShare').textContent = (flight.burst ? ' · burst' : t !== 0 ? ' · throttle ' + Math.round(t*100) + '%' : '')
-                               + (f > 1.05 ? ' · clock ×' + (f < 10 ? f.toFixed(1) : '10') : '')
+  $('flySpeedV').textContent = now < flight.speedU*0.004 ? 'at rest' : fmtPace(now)
+  $('flySpeedS').textContent = [
+    flight.burst ? 'burst' : t < 0 ? 'reverse ' + Math.round(-t*100) + '%' : t > 0 ? 'throttle ' + Math.round(t*100) + '%' : '',
+    f > 1.05 ? 'clock ×' + (f < 10 ? f.toFixed(1) : '10') : '',
+  ].filter(Boolean).join(' · ') || 'lever to the top: ahead'
 }
 
 /** the flight's volume: the slider is the switch, as music's and the effects' are */
@@ -127,6 +148,10 @@ export function setFlightVol(x: number): void {
 export function initFlightUI(deps: { onChange: () => void }): void {
   onChange = deps.onChange
   $('flightVol').addEventListener('input', e => setFlightVol(+(e.target as HTMLInputElement).value))
+  initWarp()
+  const tw = $('tWarp') as HTMLInputElement
+  warp.on = tw.checked
+  tw.addEventListener('change', () => { warp.on = tw.checked })
   $('tFly').addEventListener('click', () => setFlight(!flight.on))
   addEventListener('keydown', e => {
     if(typing(e)) return
