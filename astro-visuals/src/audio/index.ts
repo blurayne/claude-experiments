@@ -82,10 +82,14 @@ export function initAudio(){
   lfo.connect(lg); lg.connect(padG.gain); lfo.start();
   return {ctx, master, comp, droneG};
 }
-// background music: two ambient tracks shipped alongside this page (music/*.mp3).
-// Kept as separate files rather than embedded: 10 MB of base64 would bloat the HTML
-// past any sane single-file limit, and this way nothing is fetched until music is on.
+// background music: six ambient tracks shipped alongside this page (music/*.mp3), all
+// by barbedgreenroom399, 64 kbps, ten to thirteen minutes each. Kept as separate files
+// rather than embedded: 33 MB of base64 would bloat the HTML past any sane single-file
+// limit, and this way nothing is fetched until music is on. The Dreamtime Kids Mix opens.
 export const TRACKS = [
+  {src:'music/galactic-year-dreamtime-kids-mix.mp3', name:'Galactic Year — Dreamtime Kids Mix'},
+  {src:'music/galactic-year-cosmic-synth-ritual.mp3', name:'Galactic Year — Cosmic Synth Ritual'},
+  {src:'music/galactic-year-zero-beat-orbit.mp3', name:'Galactic Year — Zero-Beat Orbit'},
   {src:'music/galactic-year-remix-1.mp3', name:'Galactic Year — Remix I'},
   {src:'music/galactic-year-1.mp3', name:'Galactic Year I'},
   {src:'music/galactic-year-2.mp3', name:'Galactic Year II'},

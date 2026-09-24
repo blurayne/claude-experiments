@@ -301,6 +301,16 @@ dismissing the first-run tour **starts** the clock, so pausing has to come after
   10.3, 11.7, 12.2 from pitch 0.95 — the tails should be longest near 10.3 and 11.8, not at
   the passages, and the inner disk should keep its spiral.
 
+## Three more tracks (v3.20.0)
+
+- `music/` holds six tracks now, all barbedgreenroom399 at 64 kbps: the Dreamtime Kids
+  Mix, Cosmic Synth Ritual and Zero-Beat Orbit before the three that were there. The
+  playlist is `TRACKS` in `audio/index`, in play order; the first entry is what a new
+  visitor hears, and `index.md`'s music line names them. A returning visitor's saved
+  `trackIx` now points at a different track than it did — harmless, it is only where the
+  playlist resumes. The files are not in the service worker's CORE list on purpose:
+  nothing is fetched until music is on.
+
 ## Free flight (v3.19.0)
 
 - **The flight moves the target, not the camera.** `render/flight` keeps a free point in
@@ -504,7 +514,7 @@ dismissing the first-run tour **starts** the clock, so pausing has to come after
   paired choices (labels, events, orbit/helix, pause). `toggle()` handles both kinds,
   so call sites never care which. Volume sliders are their own on/off: 0% reads "off"
   and stops the audio, and raising one from zero builds the graph.
-- Defaults: music on at 40% with the remix first; sound effects at 0% (off); supernova and
+- Defaults: music on at 40% with the Dreamtime Kids Mix first (v3.20.0; the remix before that); sound effects at 0% (off); supernova and
   star-birth events **off** (the user switches the life cycle on); the supernova and
   star-birth counters **off**; the settings dialog **hidden** (a saved open state
   reopens it). A 3-tap reset clears the saved settings, keeping the debug flag.

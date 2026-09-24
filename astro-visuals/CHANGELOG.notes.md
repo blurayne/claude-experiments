@@ -2,6 +2,10 @@
 
 Hand-written notes merged into `CHANGELOG.md` by `.github/scripts/build_changelog.py`: one `## <semver>` heading per version, Markdown body below it, inserted under that version's heading in the Galactic Transit section on the next regeneration. The generated changelog itself must never be edited by hand — it is overwritten wholesale.
 
+## 3.20.0
+
+**Three more tracks.** *Galactic Year — Dreamtime Kids Mix*, *Cosmic Synth Ritual* and *Zero-Beat Orbit*, all by barbedgreenroom399, join the playlist ahead of the three that were there; the Dreamtime Kids Mix is what a new visitor hears first. Six tracks, an hour and ten minutes before it loops.
+
 ## 3.19.0
 
 **Free flight.** A button on the dock (the arrowhead) makes the eye a ship. The camera stays what it was — an eye a zoom's distance behind a target, turned by a drag — and the flight moves the target, so the zoom becomes the scale of the flight: at full throttle the ship crosses nine tenths of the view's height a second, a crawl among the planets and a leap across the supercluster with the same thumb on the same stick. The clock joins in: when it runs faster than a year a second the flight runs faster by the square root of that ratio, up to tenfold, and a paused clock is the walking pace. Keys on a desktop (W A S D or the arrows, R and F up and down, shift to boost fourfold, escape to land), two thumb pads on a touch screen (the left moves, the right rises, sinks and turns), a readout of the pace in real units beside the scale bar, and the state export carries the ship. Switching flight off leaves the ship where it stopped; a view, a scenario or the dive hands the camera back.

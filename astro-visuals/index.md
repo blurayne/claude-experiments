@@ -212,10 +212,12 @@ end-to-end on synthetic data. To light it up:
   astrometry), as packed position, hue and magnitude.
 - [`sfx/`](sfx/) — five recorded supernova blasts and four soft star ignitions,
   played at random (with a slight per-shot detune) so repeats don't sound looped.
-- [`music/`](music/) — the two background tracks, *Galactic Year* I & II by
-  barbedgreenroom3. They are kept as separate files rather than embedded in the
-  page: 10 MB of base64 would bloat the HTML past any sane single-file limit,
-  and this way nothing is fetched until the music is switched on.
+- [`music/`](music/) — the six background tracks, all by barbedgreenroom399:
+  *Galactic Year — Dreamtime Kids Mix* (the opener), *Cosmic Synth Ritual*,
+  *Zero-Beat Orbit*, *Remix I*, and *Galactic Year* I & II. They are kept as
+  separate files rather than embedded in the page: 33 MB of base64 would bloat
+  the HTML past any sane single-file limit, and this way nothing is fetched until
+  the music is switched on.
 - [`vendor/`](vendor/) — pinned third-party libraries (React 18.3.1,
   ReactDOM 18.3.1, Three.js r160) used by `solar-system.html`, vendored into the
   repo so the page has **no external CDN dependencies**.
