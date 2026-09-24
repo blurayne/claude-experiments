@@ -1,6 +1,7 @@
 import { $ } from '../core/dom'
 import { flight, flightStart, flightStop, flightLevel, leverThrottle, LEVER_ZERO } from '../render/flight'
 import { warp, initWarp } from '../render/warp'
+import { PANELS, panelIsOpen, panelSeq, setPanelOpen, type PanelId } from './panels'
 import { engine, engineWake } from '../audio/engine'
 
 /**
@@ -41,12 +42,33 @@ function slideBar(on: boolean): void {
 }
 /** the status bar's state as the visitor left it, for the saved settings */
 export const barUserSlid = (): boolean => flight.on ? barWasSlid : $('gamebar').classList.contains('slid')
+// The dialogs step aside too: every panel open at take-off is minimised, and exactly those
+// come back on landing (one opened by hand in flight stays as it is). The saved layout is
+// the one from before the flight, so a reload mid-flight does not lose the visitor's panels.
+let closedByFlight: PanelId[] = []
+function minimisePanels(on: boolean): void {
+  if(on){
+    // oldest first, so reopening them in this order leaves the newest on top again — on a
+    // phone that is the one the crowded layout shows
+    closedByFlight = PANELS.map(p => p.id).filter(id => panelIsOpen(id)).sort((a, b) => panelSeq(a) - panelSeq(b))
+    for(const id of closedByFlight) setPanelOpen(id, false)
+  } else {
+    const ids = closedByFlight; closedByFlight = []   // cleared first: the saves below record the real state
+    for(const id of ids) setPanelOpen(id, true)
+  }
+}
+/** the saved panel layout as the visitor left it: the flight's own minimising undone */
+export function flightPanelSnapshot<T extends Record<string, { o: boolean }>>(snap: T): T {
+  for(const id of closedByFlight) if(snap[id]) snap[id].o = true
+  return snap
+}
 export function setFlight(on: boolean, keep?: boolean): void {
   if(on === flight.on) return
   // landing by hand levels the camera where the ship looked; an import (keep) sets its own
   if(on){ if(keep) flight.on = true; else flightStart(); engineWake() } else { if(!keep) flightLevel(); flightStop(); down.clear() }
   leverShow(LEVER_ZERO)   // the lever rests at take-off and at landing
   slideBar(on)            // the status bar steps aside while flying
+  minimisePanels(on)      // and so do the dialogs; landing restores both as they were
   $('tFly').classList.toggle('on', on)
   document.body.classList.toggle('flying', on)
   $('tFly').setAttribute('aria-pressed', on ? 'true' : 'false')

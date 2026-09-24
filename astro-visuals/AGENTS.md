@@ -327,6 +327,11 @@ dismissing the first-run tour **starts** the clock, so pausing has to come after
   own because `#scaleNote .sacross` is hidden by the "scale text" setting.
 - **The status bar** slides away on take-off (`slideBar` in `ui/flight`) and comes back on
   landing if it was up; the saved `bar` is `barUserSlid()`, the visitor's own choice.
+- **The dialogs (v3.27.0)** minimise on take-off (`minimisePanels` in `ui/flight`): every
+  open panel is closed and remembered oldest-first by `panelSeq`, and landing reopens them
+  in that order — the newest on top again, which on a phone is the one the crowded layout
+  shows. The saved layout is `flightPanelSnapshot(panelSnapshot())`: in flight the panels
+  the flight closed are recorded as open, so a reload mid-flight keeps them.
 
 ## Free rotation in flight (v3.23.0)
 

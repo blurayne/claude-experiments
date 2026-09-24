@@ -97,7 +97,7 @@ import { drawEatFlash } from './render/passes/eatflash'
 import { runFirstLaunchProbe } from './render/probe'
 import { initCamera, zoomStep, minDist } from './render/camera'
 import { flightRelease } from './render/flight'
-import { initFlightUI, barUserSlid } from './ui/flight'
+import { initFlightUI, barUserSlid, flightPanelSnapshot } from './ui/flight'
 import { startFrameLoop, setHolding, skyProjection, spinFrame, org } from './render/frame'
 import { drawLabels, setLabelSteady, labelEls, armEls } from './render/labels'
 import {
@@ -339,7 +339,7 @@ registerSnapshot(() => ({
   cal:$('cal').value, mult:simClock.speedMult, dens:gfx.curD, dprc:view.dprCap,
   units:hud.unitMode,
   fsel:$('focusSel').value, sec:sectionSnapshot(),
-  pan:panelSnapshot(),
+  pan:flightPanelSnapshot(panelSnapshot()),   // the layout from before a flight, not the flight's minimising
   bar:barUserSlid(), qrPos:qrSnapshot(),   // the visitor's choice, not the flight's own slide
 }));
 

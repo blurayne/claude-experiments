@@ -293,3 +293,5 @@ export function panelApply(saved: Record<string, { s?: string; o?: boolean; b?: 
 
 /** Whether a panel is open as the visitor asked, ignoring what the layout did about it. */
 export const panelIsOpen = (id: PanelId): boolean => pState[id].o
+/** when a panel was last opened, as an order: the newest has the highest (the one a crowded layout keeps showing) */
+export const panelSeq = (id: PanelId): number => pState[id].seq

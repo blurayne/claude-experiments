@@ -92,7 +92,7 @@ function installErrorCollector(){
  * property of the machine that loaded the page. The parity harness pins TZ for that reason.
  */
 
-const BUILD = { version: '3.26.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '3.27.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -909,6 +909,282 @@ function drawWarp(dt        , active         , vr        , vu        , vf       
   g.globalCompositeOperation = 'source-over';
 }
 
+let fitPanels$4             = () => {};
+let saveSettings$4             = () => {};
+
+// Four panels share two columns. Each carries a side and an open flag; the layout
+// stacks the open ones first, then the dots that reopen the closed ones — down the
+// screen in portrait, across it in landscape, where vertical room is the scarce thing.
+// Dragging a panel inward moves it to the other column; dragging it toward its own
+// edge closes it. Both gestures read the same pointer stream, so a mouse and a finger
+// behave identically.
+const PANELS                                          = [
+  { id:'simPanel', dot:'simPlus' },
+  { id:'env',      dot:'envPlus' },
+  { id:'hud',      dot:'reopen'  },
+  { id:'dbgPanel', dot:'dbgPlus' },   // only ever shown with the debug door open
+];
+// Two states, kept apart on purpose. `o` is what the visitor asked for; `auto` is what
+// the layout had to do about it. Only `o` is saved, so a panel hidden to make room for
+// a newer one comes back the moment that one closes — the automatic state is never
+// mistaken for a decision. `seq` records the order things were opened in: the newest
+// panel wins an overlap and sits on top.
+let openSeq = 0;
+// the debug door's state, pushed in by ui/debug: the fourth panel exists only behind it
+let debugOn = false;
+const setPanelsDebug = (on         )       => { debugOn = on; layoutPanels(); };
+const pState                              = {
+  env:     { s:'l', o:true,  auto:false, seq:++openSeq, b:false },
+  simPanel:{ s:'r', o:false, auto:false, seq:0, b:false },
+  hud:     { s:'r', o:false, auto:false, seq:0, b:false },
+  dbgPanel:{ s:'l', o:false, auto:false, seq:0, b:false },
+};
+const panelShown = (id         )          => pState[id].o && !pState[id].auto;
+function setPanelOpen(id         , open         )       {
+  pState[id].o = open;
+  if(open){ pState[id].seq = ++openSeq;
+            const el = $(id); el.classList.remove('pop'); void el.offsetWidth;
+            el.classList.add('pop'); setTimeout(()=> el.classList.remove('pop'), 260); }
+  layoutPanels();
+  fitPanels$4(); saveSettings$4();
+}
+// One pass of the layout: put every shown panel and dot where it belongs and report
+// the rectangles, so the caller can judge whether the result actually fits.
+function placePanels()        {
+  const land = innerWidth > innerHeight, pad = 14, gap = 8;
+  const boxes = [];
+  for(const p of PANELS){
+    const gated = p.id === 'dbgPanel' && !debugOn;   // no debug panel without the debug door
+    const shown = panelShown(p.id) && !gated;
+    $(p.id).style.display = shown ? '' : 'none';
+    $(p.dot).style.display = (!gated && (!pState[p.id].o || pState[p.id].auto)) ? 'block' : 'none';
+    $(p.id).style.zIndex = String(5 + pState[p.id].seq);   // the newest opened sits on top
+  }
+  for(const side of ['l','r']){
+    const mine = PANELS.filter(p => pState[p.id].s === side);
+    let y = pad;
+    const put = (el             , x        )       => {
+      el.style.top = y + 'px';
+      if(side === 'l'){ el.style.left = x + 'px'; el.style.right = 'auto'; }
+      else { el.style.right = x + 'px'; el.style.left = 'auto'; }
+    };
+    // The foot of the column, claimed first so the head knows how much room is left:
+    // a downward swipe parks a panel down here, above the status bar's own band.
+    // the foot, less the band the page already owns down there: the status bar across the
+    // middle, the scale bar bottom-left, the QR bottom-right when the debug door is open
+    let yb = innerHeight - pad - 62;
+    for(const p of mine){
+      if(!panelShown(p.id) || !pState[p.id].b) continue;
+      const el = $(p.id);
+      if(p.id === 'hud') el.style.maxHeight = 'calc(60vh)';
+      const h = el.getBoundingClientRect().height;
+      yb -= h;
+      el.style.top = yb + 'px';
+      if(side === 'l'){ el.style.left = pad + 'px'; el.style.right = 'auto'; }
+      else { el.style.right = pad + 'px'; el.style.left = 'auto'; }
+      const r = el.getBoundingClientRect();
+      boxes.push({ id:p.id, seq:pState[p.id].seq, top:yb, bottom:yb + r.height,
+                   left:r.left, right:r.right });
+      yb -= gap;
+    }
+    // One button-row is always kept free below the panels for the dock (see below): the
+    // settings panel is the tall one, and it scrolls, so it is the one that gives the room.
+    const DOCK_ROW = 36 + gap;
+    // In flight on a touch screen the bottom corners belong to the flight's hands: on the
+    // right the burst button (52) under the thumb stick (88), on the left the lever (150),
+    // each from 12 px up. The panels and the dock keep above them.
+    const flyHands = document.body.classList.contains('flying') && matchMedia('(pointer: coarse)').matches;
+    const flyReserve = flyHands ? (side === 'r' ? 12 + 52 + 10 + 88 : 12 + 150) + gap - pad : 0;
+    for(const p of mine){                      // open panels first, one under the next
+      if(!panelShown(p.id) || pState[p.id].b) continue;
+      const el = $(p.id);
+      if(p.id === 'hud') el.style.maxHeight = 'calc(100vh - ' + (y + pad + DOCK_ROW + flyReserve) + 'px)';
+      put(el, pad);
+      const r = el.getBoundingClientRect();
+      boxes.push({ id:p.id, seq:pState[p.id].seq, top:y, bottom:y + r.height,
+                   left:r.left, right:r.right });
+      y += r.height + gap;
+    }
+    const dock = mine.map(p => $(p.dot));
+    if(side === 'r') dock.push($('tLabelsAll'), $('tInfo'), $('tPause'), $('zoomIn'), $('zoomOut'), $('tFly'));   // standing actions; zoom under play, flight last
+    // The dock NEVER hides a button (v3.22.1). It used to stack under the panels and hide
+    // whatever fell past the screen's foot — with the settings panel open on a phone that
+    // was the zoom buttons, on a small phone or in landscape the whole dock. Now: a column
+    // under the panels in portrait when it fits; otherwise a row (wrapped if it must be),
+    // under the panels when there is room, pinned to the foot of the screen when not.
+    const vis = dock.filter(el => getComputedStyle(el).display !== 'none');
+    for(const el of dock) el.style.visibility = 'visible';
+    const step = 36 + gap;
+    // in flight on a touch screen the flight's hands own the bottom corners: the dock
+    // stays above them, or the stick and the burst button would cover + and −
+    const foot = innerHeight - pad - flyReserve;
+    if(!land && y + vis.length*step - gap <= foot){
+      for(const el of vis){ put(el, pad); y += step; }
+    } else if(vis.length){
+      const perRow = Math.max(1, Math.floor((innerWidth - 2*pad + gap)/step));
+      const rows = Math.ceil(vis.length/perRow);
+      y = Math.max(pad, Math.min(y, foot - rows*step + gap));
+      vis.forEach((el, i) => {
+        const row = Math.floor(i/perRow), col = i % perRow, keep = y;
+        y = keep + row*step; put(el, pad + col*step); y = keep;
+      });
+      y += rows*step;
+    }
+    if(side === 'l'){                          // the bare frame rate rides below them
+      const f = $('fpsBox');
+      if(getComputedStyle(f).display !== 'none'){ f.style.top = y+'px'; f.style.left = pad+'px'; }
+    }
+  }
+  return boxes;
+}
+// The oldest panel that either runs off the bottom or overlaps a newer one. Rectangles
+// are compared rather than columns, so a panel dragged across still yields correctly.
+function findCrowded(boxes       )                 {
+  let worst             = null;
+  const note = (b     )       => { if(!worst || b.seq < worst.seq) worst = b; };
+  for(const b of boxes) if(b.bottom > innerHeight - 4) note(b);
+  for(let i=0;i<boxes.length;i++) for(let j=i+1;j<boxes.length;j++){
+    const a = boxes[i], c = boxes[j];
+    if(a.left < c.right && c.left < a.right && a.top < c.bottom && c.top < a.bottom)
+      note(a.seq < c.seq ? a : c);
+  }
+  // The cast is TypeScript's narrowing, not a doubt about the value: `worst` is only ever
+  // assigned inside `note`, and control-flow analysis cannot see through the closure, so it
+  // still believes the initialiser here.
+  return (worst              )?.id ?? null;
+}
+/**
+ * Park a panel at the foot of its column, or bring it back to the head.
+ *
+ * The rule the user asked for: only if the rest still has room. Docking one panel low
+ * takes the bottom of that column away from whatever else lives there — usually the
+ * settings panel, which is the tall one — so the move is TRIED first: if the result
+ * would push a panel out of the layout altogether (findCrowded's auto-hide), the
+ * settings panel is offered the other column, and if that does not save it either the
+ * whole gesture is rolled back and nothing moves. The transition is CSS (.pnl/.hud
+ * carry one on top/left/right), so the panel slides to its new home rather than
+ * teleporting; the drag class that suppresses it has already been removed by here.
+ */
+function dockPanel(id         , toBottom         )       {
+  if(pState[id].b === toBottom) return;
+  const before = PANELS.map(p => ({ id: p.id, b: pState[p.id].b, s: pState[p.id].s }));
+  const hidden = ()            => PANELS.filter(p => pState[p.id].o && pState[p.id].auto).map(p => p.id);
+  const was = hidden().length;
+  pState[id].b = toBottom;
+  layoutPanels();
+  if(hidden().length > was && id !== 'hud' && pState.hud.o && !pState.hud.b){
+    pState.hud.s = pState.hud.s === 'l' ? 'r' : 'l';   // the tall one takes the other column
+    layoutPanels();
+  }
+  if(hidden().length > was){                            // still no room: undo the whole thing
+    for(const b of before){ pState[b.id].b = b.b; pState[b.id].s = b.s             ; }
+    layoutPanels();
+    return;
+  }
+  fitPanels$4(); saveSettings$4();
+}
+
+function layoutPanels()       {
+  for(const p of PANELS) pState[p.id].auto = false;
+  for(let pass = 0; pass <= PANELS.length; pass++){
+    const crowded = findCrowded(placePanels());
+    if(!crowded) break;
+    pState[crowded].auto = true;      // recomputed from scratch every time, so it can return
+  }
+}
+
+/**
+ * Register the drag gestures and the reopen dots, and hand over the two things this module
+ * cannot import. Called from main.ts at the point the listeners used to be registered.
+ */
+function initPanels(deps                                                     )       {
+  fitPanels$4 = deps.fitPanels; saveSettings$4 = deps.saveSettings;
+  // dragging: inward switches columns, outward closes
+  for(const p of PANELS){
+    const el = $(p.id);
+    let x0 = 0, y0 = 0, active = false, moved = 0, movedY = 0, pid = -1;
+    el.addEventListener('pointerdown', e => {
+      // never steal a gesture that belongs to a control inside the panel
+      // .sect and .tab are plain divs that act as buttons: if the swipe capture starts
+      // on them, the pointer capture retargets the eventual click to the PANEL and the
+      // header's own listener never fires — the accordions read as broken. Every
+      // clickable thing in a panel must be listed here, not just the form controls.
+      if((e.target                      )?.closest('input, button, select, textarea, a, .seg, .chk, .sect, .tab')) return;
+      x0 = e.clientX; y0 = e.clientY; active = true; moved = 0; movedY = 0; pid = e.pointerId;
+      // Capture the pointer, or the swipe dies the moment the finger leaves the panel —
+      // and on a phone the panel is ~178 px wide, so a 60 px swipe started anywhere near
+      // its middle crosses its own edge before it ever reaches the threshold. That is why
+      // this worked under a mouse on a 216 px panel and not under a thumb.
+      try{ el.setPointerCapture(e.pointerId); }catch(err){}
+    });
+    el.addEventListener('pointermove', e => {
+      if(!active) return;
+      moved = e.clientX - x0; movedY = e.clientY - y0;
+      if(Math.abs(moved) < 6 && Math.abs(movedY) < 6) return;
+      el.classList.add('drag');
+      // the gesture commits to an axis: whichever has travelled further is the one drawn,
+      // so a sloppy diagonal does not smear the panel about in two directions at once
+      el.style.transform = Math.abs(movedY) > Math.abs(moved)
+        ? 'translateY(' + movedY + 'px)' : 'translateX(' + moved + 'px)';
+    });
+    const finish = () => {
+      if(!active) return;
+      active = false;
+      try{ if(pid >= 0) el.releasePointerCapture(pid); }catch(err){}
+      pid = -1;
+      el.classList.remove('drag');
+      el.style.transform = '';
+      const side = pState[p.id].s, TH = 60;
+      const outward = side === 'l' ? -TH : TH;      // toward this panel's own edge
+      const inward  = side === 'l' ?  TH : -TH;
+      if(Math.abs(movedY) > Math.abs(moved) && Math.abs(movedY) >= TH){
+        // down parks the panel at the foot of its own column, up brings it back to the head
+        dockPanel(p.id, movedY > 0);
+      }
+      else if(Math.sign(moved) === Math.sign(outward) && Math.abs(moved) >= TH) setPanelOpen(p.id, false);
+      else if(Math.sign(moved) === Math.sign(inward) && Math.abs(moved) >= TH){
+        pState[p.id].s = side === 'l' ? 'r' : 'l';
+        pState[p.id].seq = ++openSeq;   // moving a panel is asking to see it
+        layoutPanels(); fitPanels$4(); saveSettings$4();
+      }
+      moved = 0; movedY = 0;
+    };
+    el.addEventListener('pointerup', finish);
+    el.addEventListener('pointercancel', finish);
+    // deliberately not pointerleave: with the pointer captured it cannot fire until
+    // release anyway, and without capture it was what killed the swipe at the edge
+  }
+  // only the dots that stand for a panel reopen one; pause and help share the dock's
+  // look but carry their own actions
+  document.querySelectorAll('.pdot[data-open]').forEach(b =>
+    b.addEventListener('click', () => setPanelOpen((b               ).dataset.open           , true)));
+}
+
+/** The settings own what a visitor chose; this owns what the layout did about it. */
+function panelSnapshot()                                                        {
+  const out                                                        = {};
+  for(const p of PANELS) out[p.id] = { s: pState[p.id].s, o: pState[p.id].o, b: pState[p.id].b };
+  return out;
+}
+function panelApply(saved                                                                      )       {
+  if(saved) for(const p of PANELS){
+    const v = saved[p.id]; if(!v) continue;
+    if(v.s === 'l' || v.s === 'r') pState[p.id].s = v.s;
+    if(typeof v.o === 'boolean'){ pState[p.id].o = v.o; if(v.o) pState[p.id].seq = ++openSeq; }
+    if(typeof v.b === 'boolean') pState[p.id].b = v.b;
+  }
+  // The settings dialog stays shut unless a saved record explicitly says otherwise. It is
+  // the one panel that is a dialog rather than a reading, and opening on boot because it
+  // happened to be open when the tab closed is not what a visitor means by "remember".
+  if(!(saved && saved.hud && saved.hud.o === true)) pState.hud.o = false;
+  layoutPanels();
+}
+
+/** Whether a panel is open as the visitor asked, ignoring what the layout did about it. */
+const panelIsOpen = (id         )          => pState[id].o;
+/** when a panel was last opened, as an order: the newest has the highest (the one a crowded layout keeps showing) */
+const panelSeq = (id         )         => pState[id].seq;
+
 const sound = {
   soundOn: false,
   sfxVol: 0,
@@ -1306,12 +1582,33 @@ function slideBar(on         )       {
 }
 /** the status bar's state as the visitor left it, for the saved settings */
 const barUserSlid = ()          => flight.on ? barWasSlid : $('gamebar').classList.contains('slid');
+// The dialogs step aside too: every panel open at take-off is minimised, and exactly those
+// come back on landing (one opened by hand in flight stays as it is). The saved layout is
+// the one from before the flight, so a reload mid-flight does not lose the visitor's panels.
+let closedByFlight            = [];
+function minimisePanels(on         )       {
+  if(on){
+    // oldest first, so reopening them in this order leaves the newest on top again — on a
+    // phone that is the one the crowded layout shows
+    closedByFlight = PANELS.map(p => p.id).filter(id => panelIsOpen(id)).sort((a, b) => panelSeq(a) - panelSeq(b));
+    for(const id of closedByFlight) setPanelOpen(id, false);
+  } else {
+    const ids = closedByFlight; closedByFlight = [];   // cleared first: the saves below record the real state
+    for(const id of ids) setPanelOpen(id, true);
+  }
+}
+/** the saved panel layout as the visitor left it: the flight's own minimising undone */
+function flightPanelSnapshot                                          (snap   )    {
+  for(const id of closedByFlight) if(snap[id]) snap[id].o = true;
+  return snap
+}
 function setFlight(on         , keep          )       {
   if(on === flight.on) return
   // landing by hand levels the camera where the ship looked; an import (keep) sets its own
   if(on){ if(keep) flight.on = true; else flightStart(); engineWake(); } else { if(!keep) flightLevel(); flightStop(); down.clear(); }
   leverShow(LEVER_ZERO);   // the lever rests at take-off and at landing
   slideBar(on);            // the status bar steps aside while flying
+  minimisePanels(on);      // and so do the dialogs; landing restores both as they were
   $('tFly').classList.toggle('on', on);
   document.body.classList.toggle('flying', on);
   $('tFly').setAttribute('aria-pressed', on ? 'true' : 'false');
@@ -2613,7 +2910,7 @@ let saveTimer = 0;
  * above its own declaration, and a `const` there is a temporal dead zone — which has already
  * killed the page once. `00-PLAN.md` R6 asked for exactly this.
  */
-function saveSettings$4()       {
+function saveSettings$3()       {
   clearTimeout(saveTimer); saveTimer = setTimeout(saveSettingsNow, 250)                     ;
 }
 
@@ -2640,15 +2937,15 @@ function restoreSettings$2(register                     , legacySpeed           
   for(const fn of applies) fn(s);
   if(register === false) return;
   // from here on, anything the user touches is remembered
-  S_TOG.forEach(id => $(id).addEventListener('click', saveSettings$4));
-  S_SLD.forEach(id => $(id).addEventListener('input', saveSettings$4));
-  S_CHK.forEach(id => $(id).addEventListener('change', saveSettings$4));
-  $('cal').addEventListener('change', saveSettings$4);
-  $('collapse').addEventListener('click', saveSettings$4);
-  $('reopen').addEventListener('click', saveSettings$4);
-  $('multExp').addEventListener('input', saveSettings$4);
-  $('detail').addEventListener('input', saveSettings$4);
-  $('focusSel').addEventListener('change', saveSettings$4);
+  S_TOG.forEach(id => $(id).addEventListener('click', saveSettings$3));
+  S_SLD.forEach(id => $(id).addEventListener('input', saveSettings$3));
+  S_CHK.forEach(id => $(id).addEventListener('change', saveSettings$3));
+  $('cal').addEventListener('change', saveSettings$3);
+  $('collapse').addEventListener('click', saveSettings$3);
+  $('reopen').addEventListener('click', saveSettings$3);
+  $('multExp').addEventListener('input', saveSettings$3);
+  $('detail').addEventListener('input', saveSettings$3);
+  $('focusSel').addEventListener('change', saveSettings$3);
 }
 
 /**
@@ -2669,15 +2966,15 @@ const SECS = ['audio','gfx','hud','other']         ;
 const SEC_BODY                      = { audio:'secAudio', gfx:'secGfx', hud:'secHud', other:'secOther' };
 const secOpen                       = { audio:false, gfx:true, hud:false, other:false };
 
-let fitPanels$4             = () => {};
-let saveSettings$3             = () => {};
+let fitPanels$3             = () => {};
+let saveSettings$2             = () => {};
 
 function applySecs()       {
   for(const k of SECS){
     $(SEC_BODY[k]).classList.toggle('closed', !secOpen[k]);
     document.querySelector('.sect[data-sec="'+k+'"]') .classList.toggle('closed', !secOpen[k]);
   }
-  fitPanels$4();
+  fitPanels$3();
 }
 
 /**
@@ -2693,26 +2990,26 @@ function seg$1(id        , initial        , fn                     )            
     bs.forEach(b => b.classList.toggle('on', b.dataset.v === v));
     if(apply !== false) fn(v);
   };
-  bs.forEach(b => b.addEventListener('click', ()=>{ set(b.dataset.v ); saveSettings$3(); }));
+  bs.forEach(b => b.addEventListener('click', ()=>{ set(b.dataset.v ); saveSettings$2(); }));
   set(initial, false);
   return set;
 }
 
 function initSections(deps                                                     )       {
-  fitPanels$4 = deps.fitPanels; saveSettings$3 = deps.saveSettings;
+  fitPanels$3 = deps.fitPanels; saveSettings$2 = deps.saveSettings;
   document.querySelectorAll('.sect[data-sec]').forEach(h =>
     h.addEventListener('click', ()=>{
       const k = (h               ).dataset.sec       , opening = !secOpen[k];
       if(opening && ($('secSolo')                    ).checked) for(const s of SECS) secOpen[s] = false;
       secOpen[k] = opening;
-      applySecs(); saveSettings$3();
+      applySecs(); saveSettings$2();
     }));
   $('secSolo').addEventListener('change', ()=>{
     if(($('secSolo')                    ).checked){   // keep the topmost open one, fold the rest away
       let kept = false;
       for(const s of SECS){ if(secOpen[s] && !kept) kept = true; else secOpen[s] = false; }
     }
-    applySecs(); saveSettings$3();
+    applySecs(); saveSettings$2();
   });
 }
 
@@ -2724,280 +3021,6 @@ function sectionApply(saved                                     )       {
 
 // The debug settings left the settings panel in v3.7 — they live in the debug panel now,
 // beside the state box they belong with — so there is no section for the door to fold.
-
-let fitPanels$3             = () => {};
-let saveSettings$2             = () => {};
-
-// Four panels share two columns. Each carries a side and an open flag; the layout
-// stacks the open ones first, then the dots that reopen the closed ones — down the
-// screen in portrait, across it in landscape, where vertical room is the scarce thing.
-// Dragging a panel inward moves it to the other column; dragging it toward its own
-// edge closes it. Both gestures read the same pointer stream, so a mouse and a finger
-// behave identically.
-const PANELS                                          = [
-  { id:'simPanel', dot:'simPlus' },
-  { id:'env',      dot:'envPlus' },
-  { id:'hud',      dot:'reopen'  },
-  { id:'dbgPanel', dot:'dbgPlus' },   // only ever shown with the debug door open
-];
-// Two states, kept apart on purpose. `o` is what the visitor asked for; `auto` is what
-// the layout had to do about it. Only `o` is saved, so a panel hidden to make room for
-// a newer one comes back the moment that one closes — the automatic state is never
-// mistaken for a decision. `seq` records the order things were opened in: the newest
-// panel wins an overlap and sits on top.
-let openSeq = 0;
-// the debug door's state, pushed in by ui/debug: the fourth panel exists only behind it
-let debugOn = false;
-const setPanelsDebug = (on         )       => { debugOn = on; layoutPanels(); };
-const pState                              = {
-  env:     { s:'l', o:true,  auto:false, seq:++openSeq, b:false },
-  simPanel:{ s:'r', o:false, auto:false, seq:0, b:false },
-  hud:     { s:'r', o:false, auto:false, seq:0, b:false },
-  dbgPanel:{ s:'l', o:false, auto:false, seq:0, b:false },
-};
-const panelShown = (id         )          => pState[id].o && !pState[id].auto;
-function setPanelOpen(id         , open         )       {
-  pState[id].o = open;
-  if(open){ pState[id].seq = ++openSeq;
-            const el = $(id); el.classList.remove('pop'); void el.offsetWidth;
-            el.classList.add('pop'); setTimeout(()=> el.classList.remove('pop'), 260); }
-  layoutPanels();
-  fitPanels$3(); saveSettings$2();
-}
-// One pass of the layout: put every shown panel and dot where it belongs and report
-// the rectangles, so the caller can judge whether the result actually fits.
-function placePanels()        {
-  const land = innerWidth > innerHeight, pad = 14, gap = 8;
-  const boxes = [];
-  for(const p of PANELS){
-    const gated = p.id === 'dbgPanel' && !debugOn;   // no debug panel without the debug door
-    const shown = panelShown(p.id) && !gated;
-    $(p.id).style.display = shown ? '' : 'none';
-    $(p.dot).style.display = (!gated && (!pState[p.id].o || pState[p.id].auto)) ? 'block' : 'none';
-    $(p.id).style.zIndex = String(5 + pState[p.id].seq);   // the newest opened sits on top
-  }
-  for(const side of ['l','r']){
-    const mine = PANELS.filter(p => pState[p.id].s === side);
-    let y = pad;
-    const put = (el             , x        )       => {
-      el.style.top = y + 'px';
-      if(side === 'l'){ el.style.left = x + 'px'; el.style.right = 'auto'; }
-      else { el.style.right = x + 'px'; el.style.left = 'auto'; }
-    };
-    // The foot of the column, claimed first so the head knows how much room is left:
-    // a downward swipe parks a panel down here, above the status bar's own band.
-    // the foot, less the band the page already owns down there: the status bar across the
-    // middle, the scale bar bottom-left, the QR bottom-right when the debug door is open
-    let yb = innerHeight - pad - 62;
-    for(const p of mine){
-      if(!panelShown(p.id) || !pState[p.id].b) continue;
-      const el = $(p.id);
-      if(p.id === 'hud') el.style.maxHeight = 'calc(60vh)';
-      const h = el.getBoundingClientRect().height;
-      yb -= h;
-      el.style.top = yb + 'px';
-      if(side === 'l'){ el.style.left = pad + 'px'; el.style.right = 'auto'; }
-      else { el.style.right = pad + 'px'; el.style.left = 'auto'; }
-      const r = el.getBoundingClientRect();
-      boxes.push({ id:p.id, seq:pState[p.id].seq, top:yb, bottom:yb + r.height,
-                   left:r.left, right:r.right });
-      yb -= gap;
-    }
-    // One button-row is always kept free below the panels for the dock (see below): the
-    // settings panel is the tall one, and it scrolls, so it is the one that gives the room.
-    const DOCK_ROW = 36 + gap;
-    // In flight on a touch screen the bottom corners belong to the flight's hands: on the
-    // right the burst button (52) under the thumb stick (88), on the left the lever (150),
-    // each from 12 px up. The panels and the dock keep above them.
-    const flyHands = document.body.classList.contains('flying') && matchMedia('(pointer: coarse)').matches;
-    const flyReserve = flyHands ? (side === 'r' ? 12 + 52 + 10 + 88 : 12 + 150) + gap - pad : 0;
-    for(const p of mine){                      // open panels first, one under the next
-      if(!panelShown(p.id) || pState[p.id].b) continue;
-      const el = $(p.id);
-      if(p.id === 'hud') el.style.maxHeight = 'calc(100vh - ' + (y + pad + DOCK_ROW + flyReserve) + 'px)';
-      put(el, pad);
-      const r = el.getBoundingClientRect();
-      boxes.push({ id:p.id, seq:pState[p.id].seq, top:y, bottom:y + r.height,
-                   left:r.left, right:r.right });
-      y += r.height + gap;
-    }
-    const dock = mine.map(p => $(p.dot));
-    if(side === 'r') dock.push($('tLabelsAll'), $('tInfo'), $('tPause'), $('zoomIn'), $('zoomOut'), $('tFly'));   // standing actions; zoom under play, flight last
-    // The dock NEVER hides a button (v3.22.1). It used to stack under the panels and hide
-    // whatever fell past the screen's foot — with the settings panel open on a phone that
-    // was the zoom buttons, on a small phone or in landscape the whole dock. Now: a column
-    // under the panels in portrait when it fits; otherwise a row (wrapped if it must be),
-    // under the panels when there is room, pinned to the foot of the screen when not.
-    const vis = dock.filter(el => getComputedStyle(el).display !== 'none');
-    for(const el of dock) el.style.visibility = 'visible';
-    const step = 36 + gap;
-    // in flight on a touch screen the flight's hands own the bottom corners: the dock
-    // stays above them, or the stick and the burst button would cover + and −
-    const foot = innerHeight - pad - flyReserve;
-    if(!land && y + vis.length*step - gap <= foot){
-      for(const el of vis){ put(el, pad); y += step; }
-    } else if(vis.length){
-      const perRow = Math.max(1, Math.floor((innerWidth - 2*pad + gap)/step));
-      const rows = Math.ceil(vis.length/perRow);
-      y = Math.max(pad, Math.min(y, foot - rows*step + gap));
-      vis.forEach((el, i) => {
-        const row = Math.floor(i/perRow), col = i % perRow, keep = y;
-        y = keep + row*step; put(el, pad + col*step); y = keep;
-      });
-      y += rows*step;
-    }
-    if(side === 'l'){                          // the bare frame rate rides below them
-      const f = $('fpsBox');
-      if(getComputedStyle(f).display !== 'none'){ f.style.top = y+'px'; f.style.left = pad+'px'; }
-    }
-  }
-  return boxes;
-}
-// The oldest panel that either runs off the bottom or overlaps a newer one. Rectangles
-// are compared rather than columns, so a panel dragged across still yields correctly.
-function findCrowded(boxes       )                 {
-  let worst             = null;
-  const note = (b     )       => { if(!worst || b.seq < worst.seq) worst = b; };
-  for(const b of boxes) if(b.bottom > innerHeight - 4) note(b);
-  for(let i=0;i<boxes.length;i++) for(let j=i+1;j<boxes.length;j++){
-    const a = boxes[i], c = boxes[j];
-    if(a.left < c.right && c.left < a.right && a.top < c.bottom && c.top < a.bottom)
-      note(a.seq < c.seq ? a : c);
-  }
-  // The cast is TypeScript's narrowing, not a doubt about the value: `worst` is only ever
-  // assigned inside `note`, and control-flow analysis cannot see through the closure, so it
-  // still believes the initialiser here.
-  return (worst              )?.id ?? null;
-}
-/**
- * Park a panel at the foot of its column, or bring it back to the head.
- *
- * The rule the user asked for: only if the rest still has room. Docking one panel low
- * takes the bottom of that column away from whatever else lives there — usually the
- * settings panel, which is the tall one — so the move is TRIED first: if the result
- * would push a panel out of the layout altogether (findCrowded's auto-hide), the
- * settings panel is offered the other column, and if that does not save it either the
- * whole gesture is rolled back and nothing moves. The transition is CSS (.pnl/.hud
- * carry one on top/left/right), so the panel slides to its new home rather than
- * teleporting; the drag class that suppresses it has already been removed by here.
- */
-function dockPanel(id         , toBottom         )       {
-  if(pState[id].b === toBottom) return;
-  const before = PANELS.map(p => ({ id: p.id, b: pState[p.id].b, s: pState[p.id].s }));
-  const hidden = ()            => PANELS.filter(p => pState[p.id].o && pState[p.id].auto).map(p => p.id);
-  const was = hidden().length;
-  pState[id].b = toBottom;
-  layoutPanels();
-  if(hidden().length > was && id !== 'hud' && pState.hud.o && !pState.hud.b){
-    pState.hud.s = pState.hud.s === 'l' ? 'r' : 'l';   // the tall one takes the other column
-    layoutPanels();
-  }
-  if(hidden().length > was){                            // still no room: undo the whole thing
-    for(const b of before){ pState[b.id].b = b.b; pState[b.id].s = b.s             ; }
-    layoutPanels();
-    return;
-  }
-  fitPanels$3(); saveSettings$2();
-}
-
-function layoutPanels()       {
-  for(const p of PANELS) pState[p.id].auto = false;
-  for(let pass = 0; pass <= PANELS.length; pass++){
-    const crowded = findCrowded(placePanels());
-    if(!crowded) break;
-    pState[crowded].auto = true;      // recomputed from scratch every time, so it can return
-  }
-}
-
-/**
- * Register the drag gestures and the reopen dots, and hand over the two things this module
- * cannot import. Called from main.ts at the point the listeners used to be registered.
- */
-function initPanels(deps                                                     )       {
-  fitPanels$3 = deps.fitPanels; saveSettings$2 = deps.saveSettings;
-  // dragging: inward switches columns, outward closes
-  for(const p of PANELS){
-    const el = $(p.id);
-    let x0 = 0, y0 = 0, active = false, moved = 0, movedY = 0, pid = -1;
-    el.addEventListener('pointerdown', e => {
-      // never steal a gesture that belongs to a control inside the panel
-      // .sect and .tab are plain divs that act as buttons: if the swipe capture starts
-      // on them, the pointer capture retargets the eventual click to the PANEL and the
-      // header's own listener never fires — the accordions read as broken. Every
-      // clickable thing in a panel must be listed here, not just the form controls.
-      if((e.target                      )?.closest('input, button, select, textarea, a, .seg, .chk, .sect, .tab')) return;
-      x0 = e.clientX; y0 = e.clientY; active = true; moved = 0; movedY = 0; pid = e.pointerId;
-      // Capture the pointer, or the swipe dies the moment the finger leaves the panel —
-      // and on a phone the panel is ~178 px wide, so a 60 px swipe started anywhere near
-      // its middle crosses its own edge before it ever reaches the threshold. That is why
-      // this worked under a mouse on a 216 px panel and not under a thumb.
-      try{ el.setPointerCapture(e.pointerId); }catch(err){}
-    });
-    el.addEventListener('pointermove', e => {
-      if(!active) return;
-      moved = e.clientX - x0; movedY = e.clientY - y0;
-      if(Math.abs(moved) < 6 && Math.abs(movedY) < 6) return;
-      el.classList.add('drag');
-      // the gesture commits to an axis: whichever has travelled further is the one drawn,
-      // so a sloppy diagonal does not smear the panel about in two directions at once
-      el.style.transform = Math.abs(movedY) > Math.abs(moved)
-        ? 'translateY(' + movedY + 'px)' : 'translateX(' + moved + 'px)';
-    });
-    const finish = () => {
-      if(!active) return;
-      active = false;
-      try{ if(pid >= 0) el.releasePointerCapture(pid); }catch(err){}
-      pid = -1;
-      el.classList.remove('drag');
-      el.style.transform = '';
-      const side = pState[p.id].s, TH = 60;
-      const outward = side === 'l' ? -TH : TH;      // toward this panel's own edge
-      const inward  = side === 'l' ?  TH : -TH;
-      if(Math.abs(movedY) > Math.abs(moved) && Math.abs(movedY) >= TH){
-        // down parks the panel at the foot of its own column, up brings it back to the head
-        dockPanel(p.id, movedY > 0);
-      }
-      else if(Math.sign(moved) === Math.sign(outward) && Math.abs(moved) >= TH) setPanelOpen(p.id, false);
-      else if(Math.sign(moved) === Math.sign(inward) && Math.abs(moved) >= TH){
-        pState[p.id].s = side === 'l' ? 'r' : 'l';
-        pState[p.id].seq = ++openSeq;   // moving a panel is asking to see it
-        layoutPanels(); fitPanels$3(); saveSettings$2();
-      }
-      moved = 0; movedY = 0;
-    };
-    el.addEventListener('pointerup', finish);
-    el.addEventListener('pointercancel', finish);
-    // deliberately not pointerleave: with the pointer captured it cannot fire until
-    // release anyway, and without capture it was what killed the swipe at the edge
-  }
-  // only the dots that stand for a panel reopen one; pause and help share the dock's
-  // look but carry their own actions
-  document.querySelectorAll('.pdot[data-open]').forEach(b =>
-    b.addEventListener('click', () => setPanelOpen((b               ).dataset.open           , true)));
-}
-
-/** The settings own what a visitor chose; this owns what the layout did about it. */
-function panelSnapshot()                                                        {
-  const out                                                        = {};
-  for(const p of PANELS) out[p.id] = { s: pState[p.id].s, o: pState[p.id].o, b: pState[p.id].b };
-  return out;
-}
-function panelApply(saved                                                                      )       {
-  if(saved) for(const p of PANELS){
-    const v = saved[p.id]; if(!v) continue;
-    if(v.s === 'l' || v.s === 'r') pState[p.id].s = v.s;
-    if(typeof v.o === 'boolean'){ pState[p.id].o = v.o; if(v.o) pState[p.id].seq = ++openSeq; }
-    if(typeof v.b === 'boolean') pState[p.id].b = v.b;
-  }
-  // The settings dialog stays shut unless a saved record explicitly says otherwise. It is
-  // the one panel that is a dialog rather than a reading, and opening on boot because it
-  // happened to be open when the tab closed is not what a visitor means by "remember".
-  if(!(saved && saved.hud && saved.hud.o === true)) pState.hud.o = false;
-  layoutPanels();
-}
-
-/** Whether a panel is open as the visitor asked, ignoring what the layout did about it. */
-const panelIsOpen = (id         )          => pState[id].o;
 
 /**
  * The QR overlay: the page's whole state as a code on screen, so a phone can be photographed
@@ -10867,10 +10890,10 @@ initFlightUI({ onChange: () => fitPanels() });
 // settings replay dispatches synthetic events, and a control whose listener is not yet there
 // silently keeps its default (00-PLAN.md R1).
 initHudControls({
-  fitPanels: () => fitPanels(), layoutPanels, saveSettings: () => saveSettings$4(),
+  fitPanels: () => fitPanels(), layoutPanels, saveSettings: () => saveSettings$3(),
   zoomStep});
 initScenarioViews({
-  ageGyr, saveSettings: () => saveSettings$4(), speedRungOf: speedRungOf$1, setMultExp: setMultExp$1});
+  ageGyr, saveSettings: () => saveSettings$3(), speedRungOf: speedRungOf$1, setMultExp: setMultExp$1});
 toggle($('tGaia'), on=> gfx.gaiaOn=on);
 // The frame rate has two switches on purpose: one in the settings' readouts, one in the
 // debug panel beside the state box, because that is where somebody debugging looks for
@@ -10901,10 +10924,10 @@ $('tFps2').addEventListener('change', ()=>{
 // which the boot suite caught as "Cannot access 'saveSettings' before initialization", the
 // whole page dead on the first frame. 00-PLAN.md's R6 wants it hoisted at step 16; until
 // then, deferring the read to call time is the smaller change.
-initPanels({ fitPanels: () => fitPanels(), saveSettings: () => saveSettings$4() });
+initPanels({ fitPanels: () => fitPanels(), saveSettings: () => saveSettings$3() });
 // ---------- collapsible sections ----------
 // The headings, their bodies, the solo rule and the segmented buttons are ui/sections.
-initSections({ fitPanels: () => fitPanels(), saveSettings: () => saveSettings$4() });
+initSections({ fitPanels: () => fitPanels(), saveSettings: () => saveSettings$3() });
 
 // The volume slider is the switch: silence is off, and the audio graph is built the
 // first time it is raised, so a visitor who never asks for sound never pays for it.
@@ -10921,7 +10944,7 @@ $('musicVol').addEventListener('input', e => setMusicVol(+e.target.value));
 $('tNext').addEventListener('click', ()=>{
   nextTrack();
   // asking for the next track means you want music: give it back its default level
-  if(!sound.musicOn){ $('musicVol').value = 0.4; setMusicVol(0.4); saveSettings$4(); }
+  if(!sound.musicOn){ $('musicVol').value = 0.4; setMusicVol(0.4); saveSettings$3(); }
 });
 for(const [id,key] of [['fxBirth','birth'],['fxSn','sn'],['fxPn','pn'],['fxDrone','drone']]){
   $(id).addEventListener('change', e=>{
@@ -10958,7 +10981,7 @@ registerSnapshot(() => ({
   cal:$('cal').value, mult:simClock.speedMult, dens:gfx.curD, dprc:view.dprCap,
   units:hud.unitMode,
   fsel:$('focusSel').value, sec:sectionSnapshot(),
-  pan:panelSnapshot(),
+  pan:flightPanelSnapshot(panelSnapshot()),   // the layout from before a flight, not the flight's minimising
   bar:barUserSlid(), qrPos:qrSnapshot(),   // the visitor's choice, not the flight's own slide
 }));
 
@@ -11152,7 +11175,7 @@ try{ if(!hadSaved && !localStorage.getItem(TOURKEY)) setTimeout(showTour, 400); 
 // The door itself, the error log, the state export/import and the QR overlay are ui/debug and
 // ui/qr. ui/debug drives ui/qr — it decides when the code is redrawn — so the encoder takes
 // its payload as an injection rather than importing the exporter.
-initQr({ exportState, isDebug: isDebugMode, saveSettings: () => saveSettings$4() });
+initQr({ exportState, isDebug: isDebugMode, saveSettings: () => saveSettings$3() });
 initDebug({ restoreSettings, fitPanels: () => fitPanels() });
 
 // Devtools readouts, and the answer to a problem the move created rather than solved: a

@@ -5,9 +5,10 @@ before the work starts. An item is ticked when it ships, with the version that c
 
 ## 2026-09-24
 
-- [ ] Flight: entering it minimises the other dialogs (the simulation, settings, Earth and
+- [x] Flight: entering it minimises the other dialogs (the simulation, settings, Earth and
       debug panels); leaving it restores exactly those, and the status bar as it was. A
       settings save in flight records the layout from before it, not the flight's.
+      minimisePanels + flightPanelSnapshot, restored in panelSeq order — v3.27.0.
 
 - [x] Flight, fourth cut. (1) Flying slides the status bar away, as the swipe-down does,
       and landing brings it back if it was up. (2) The ship sounds ion-pulsed, like an

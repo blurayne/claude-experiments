@@ -2,6 +2,10 @@
 
 Hand-written notes merged into `CHANGELOG.md` by `.github/scripts/build_changelog.py`: one `## <semver>` heading per version, Markdown body below it, inserted under that version's heading in the Galactic Transit section on the next regeneration. The generated changelog itself must never be edited by hand — it is overwritten wholesale.
 
+## 3.27.0
+
+**Flight clears the screen, and landing puts it back.** Taking off now minimises every open dialog — the simulation, settings, Earth and debug panels — as well as sliding the status bar away. Landing reopens exactly those, in the order they were last opened (so on a phone the one that was showing shows again), and brings the status bar back if it was up. A panel opened by hand during the flight is left as it is, and a settings save made mid-flight records the layout from before the flight.
+
 ## 3.26.0
 
 **Flight, fourth cut: streaks, an ion drive, a better lever.** Moving ships leave streaks now: lines of light rushing past, like a star field at warp, stronger the faster the ship goes — switchable under Visuals ("flight streaks"), on by default. The ship sounds like an ion drive rather than a rocket: an electric vehicle's whine that climbs from about 240 Hz at rest to 1,300 Hz at full, pulsed faster as it goes, over a soft motor hum; the burst adds a thump, a rising charge and a brighter second voice. No noise any more. The throttle lever's zero sits a quarter of the way up, so most of its travel is forward, on a curve that gives little speed in the middle (18% halfway) and the rest near the top; below the zero is reverse, which holds only while the finger does and springs back to zero when let go. The speed the ship is actually making is shown bottom centre in its own readout, with the lever's setting under it (it used to ride in the scale note, which the "scale text" setting hides). And flying slides the status bar away, the way the swipe-down does; landing brings it back if it was up.
