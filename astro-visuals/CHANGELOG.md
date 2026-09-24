@@ -6,6 +6,12 @@ Hand-written release notes come from `CHANGELOG.notes.md`, never from here.
 
 ## Galactic Transit
 
+### 3.21.0 — 2026-09-24
+
+**Flight, second cut: the ship is the eye.** A drag in flight now turns the view round the ship itself, the way a pilot looks round, instead of swinging the ship round a point ahead — and it no longer holds the clock, so the world goes on while you look. A zoom keeps the point ahead and moves the eye along the line of sight: travel toward or away from it. On a touch screen the left pad is a throttle lever now, which stays where it is put (a detent at the middle, a tap sets it), and the right pad is a burst button: full ahead at boost while held. The readout beside the scale bar adds the lever's setting or "burst". The keys are unchanged.
+
+- V3.21.0 — flight, second cut: the ship is the eye, a throttle and a burst (`b024d04`)
+
 ### 3.20.0 — 2026-09-24
 
 **Three more tracks.** *Galactic Year — Dreamtime Kids Mix*, *Cosmic Synth Ritual* and *Zero-Beat Orbit*, all by barbedgreenroom399, join the playlist ahead of the three that were there; the Dreamtime Kids Mix is what a new visitor hears first. Six tracks, an hour and ten minutes before it loops.
