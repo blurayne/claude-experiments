@@ -313,14 +313,22 @@ dismissing the first-run tour **starts** the clock, so pausing has to come after
 
 ## Free flight (v3.19.0)
 
-- **The flight moves the target, not the camera.** `render/flight` keeps a free point in
-  absolute world coordinates (`flight.pos`, doubles like `org`); while `flight.anchored`
-  the frame follows it instead of the Sun or a planet, and the eye stays `cam.dist` behind
-  it, turned by yaw and pitch as ever. Nothing downstream changes: the zoom, the ladder,
-  the labels and every layer's fade stay keyed on `cam.dist`, which in flight is the chase
-  distance and so the scale of the view — and the pace: `fullSpeed` is a fixed fraction of
-  the view's height a second. Do not key the pace on anything else; the zoom is the
-  throttle's scale by design.
+- **The ship is the eye (v3.21.0; the first cut moved the target).** `render/flight`
+  keeps `flight.pos`, the eye, in absolute world coordinates (doubles like `org`); while
+  `flight.anchored` the frame's target is `flightTarget`: a zoom's distance ahead of the
+  ship along the line of sight the frame has just built. For that the frame builds the
+  view basis BEFORE it places the target (the target block moved below `setFlightBasis`);
+  keep that order, or a turn swings the ship. A turn is then about the eye; a zoom keeps
+  the point ahead and `flightStep` carries the eye along the sight by the zoom's change.
+  Nothing downstream changes: the zoom, the ladder, the labels and every layer's fade stay
+  keyed on `cam.dist`, which in flight is the scale of the view — and the pace: `fullSpeed`
+  is a fixed fraction of the view's height a second. Do not key the pace on anything else.
+- **A drag in flight does not hold the clock.** Both `holding` checks in `frame` read
+  `holding && !flight.on`; out of flight the old rule stands (the galaxy must not turn
+  under the hand that orbits it).
+- **Forward is three hands summed** — the keys, the throttle lever (`flight.throttle`,
+  sticky) and the burst (`flight.burst`, full ahead at boost while held) — through
+  `forwardWant`, clamped to ±1; the burst also counts as boost for the pace.
 - **The clock's share** is `clockFactor(yps, running)`: √(years a second / 1), clamped 1
   to 10, and 1 while the clock stands or is held. Tested in `tests/unit/flight`.
 - **`on` and `anchored` are different.** `on` is the controls being live; `anchored` is
@@ -330,14 +338,14 @@ dismissing the first-run tour **starts** the clock, so pausing has to come after
 - **The far plane** now adds the target's own distance from the Sun (`frame`): the sky
   sphere is Sun-centred, and a ship far from the Sun looks back at it from beyond the old
   reach.
-- **Inputs live in `ui/flight`.** Keys go through a set of codes → `flight.want`; the pads
-  are their own fixed elements over the canvas (pointer capture, `stopPropagation`), so a
-  thumb on one neither orbits the view nor holds the clock, and they sit above the QR
+- **Inputs live in `ui/flight`.** Keys go through a set of codes → `flight.want`; on a
+  touch screen the lever (`#padL`, vertical, a detent at the middle) and the burst button
+  (`#padR`, held) are their own fixed elements over the canvas (pointer capture,
+  `stopPropagation`), so a thumb on one never orbits the view, and they sit above the QR
   overlay (z 1001) because a thumb must win. They show only with `body.flying` on a coarse
-  pointer; the scale bar steps up over the left one. The readout ticks with the HUD.
+  pointer; the scale bar steps up over the lever. The readout ticks with the HUD.
 - **Signs.** Screen-right is the world's right mirrored (`SKY_MIRROR`, the projection's x
-  flip), so sideways is `r·SKY_MIRROR`; the right pad's turn is the opposite sign to a
-  drag, because a drag carries the scene and the pad turns the ship.
+  flip), so sideways is `r·SKY_MIRROR`.
 
 ## The far plane reaches every showing layer (v3.18.2)
 

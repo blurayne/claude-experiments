@@ -13,7 +13,8 @@ import {
 } from '../astro/earth'
 import { canvas, gl } from '../gpu/context'
 import { cam, gfx, lifeAcc, readout, simClock, view, SKY_MIRROR } from './state'
-import { flight, flightStep, setFlightBasis } from './flight'
+import { flight, flightStep, flightTarget, setFlightBasis } from './flight'
+const flyTgt = [0, 0, 0];
 import { hud, updateHud } from '../ui/hud'
 import { N_STAR } from '../scene/starfield'
 import { drawNebula, type CloudFrame, type Which } from './passes/nebula'
@@ -170,7 +171,7 @@ function frame(now: number): void {
     if(sign !== 0){ refillTrails(); simClock.nextSample = simClock.simT + simClock.dtSample; }
   }
   let n=0;                                // trail samples taken this frame; read below
-  if(drive !== 0 && !holding){
+  if(drive !== 0 && !(holding && !flight.on)){   // a drag holds the clock, except in flight
     simClock.simT += dt*simClock.speed*simClock.speedMult*drive;
     if(simClock.simT < T_BIG_BANG) simClock.simT = T_BIG_BANG;   // nothing to draw before the universe
     // the clock in years a second decides whether the globe still has days (see uAvg)
@@ -249,28 +250,9 @@ function frame(now: number): void {
   bh1Centre(simClock.simT, bh1C);
   for(let i=0;i<3;i++) bh1Abs[i] = org[i] + bh1C[i];
   for(let i=0;i<3;i++) lgAbs[i] = org[i] + LG_BOX.centre[i];
-  // the flight moves its own point first, with the clock's rate as its pace
-  flightStep(dt, simClock.speed*simClock.speedMult*Math.abs(drive), drive !== 0 && !holding);
-  const followPos = flight.anchored ? flight.pos
-                  : cam.followTarget === 'and' ? andPos
-                  : cam.followTarget === 'gc' || cam.followTarget === 'gcr' ? GC_ORIGIN
-                  : cam.followTarget === 'bh1' ? bh1Abs
-                  : cam.followTarget === 'lg' ? lgAbs
-                  : cam.followTarget === 'sc' || cam.followTarget === 'web' || cam.followTarget === 'deep' ? org
-                  : moonHere ? moonW
-                  : ((cam.followTarget === 'earth' || cam.followTarget === 'moon') && !wasEaten[3]) ? earthW : org;
-  const goal = cam.follow || flight.anchored ? [followPos[0],followPos[1],followPos[2]] : [0,0,0];
-  if(cam.reseedFollow){ for(let i=0;i<3;i++) cam.smoothOfs[i] = cam.smoothTarget[i]-goal[i]; cam.reseedFollow=false; }
-  const k = cam.firstFrame?1:Math.min(1,dt*4);
-  for(let i=0;i<3;i++) cam.smoothOfs[i] *= 1-k;
-  { // cap the transition offset at 20% of the view distance, so deep zooms never lose the Sun
-    const lag=Math.hypot(cam.smoothOfs[0],cam.smoothOfs[1],cam.smoothOfs[2]), maxLag=cam.dist*0.2;
-    if(lag>maxLag){ const f=maxLag/lag; cam.smoothOfs[0]*=f; cam.smoothOfs[1]*=f; cam.smoothOfs[2]*=f; }
-  }
-  for(let i=0;i<3;i++) cam.smoothTarget[i] = goal[i]+cam.smoothOfs[i];
-  // log-space zoom smoothing: uniform speed per decade across 11 orders of magnitude
-  cam.dist = Math.exp(Math.log(cam.dist)+(Math.log(cam.distGoal)-Math.log(cam.dist))*Math.min(1,dt*4));
-  cam.firstFrame=false;
+  // the flight moves the ship first, with the clock's rate as its pace (a drag in flight
+  // does not hold the clock: the pilot looks round while the world goes on)
+  flightStep(dt, simClock.speed*simClock.speedMult*Math.abs(drive), drive !== 0 && !(holding && !flight.on));
   let baseYaw = 0, basePitch = 0;
   if(cam.coreLock){
     // the direction from the core out to the Sun: put the eye further along it, so the
@@ -328,6 +310,27 @@ function frame(now: number): void {
   }
   cam.dirW[0] = dx; cam.dirW[1] = dy; cam.dirW[2] = dz;                     // read by the spin lock's switch
   setFlightBasis([rx, ry, rz], [ux, uy, uz], [dx, dy, dz]);                  // and the flight flies along these
+  // the target: in flight, a zoom's distance ahead of the ship along the line of sight
+  // just built above, so a turn is about the eye and a zoom is travel along the sight
+  cam.dist = Math.exp(Math.log(cam.dist)+(Math.log(cam.distGoal)-Math.log(cam.dist))*Math.min(1,dt*4));   // log-space zoom smoothing: uniform speed per decade
+  const followPos = flight.anchored ? flightTarget(flyTgt)
+                  : cam.followTarget === 'and' ? andPos
+                  : cam.followTarget === 'gc' || cam.followTarget === 'gcr' ? GC_ORIGIN
+                  : cam.followTarget === 'bh1' ? bh1Abs
+                  : cam.followTarget === 'lg' ? lgAbs
+                  : cam.followTarget === 'sc' || cam.followTarget === 'web' || cam.followTarget === 'deep' ? org
+                  : moonHere ? moonW
+                  : ((cam.followTarget === 'earth' || cam.followTarget === 'moon') && !wasEaten[3]) ? earthW : org;
+  const goal = cam.follow || flight.anchored ? [followPos[0],followPos[1],followPos[2]] : [0,0,0];
+  if(cam.reseedFollow){ for(let i=0;i<3;i++) cam.smoothOfs[i] = cam.smoothTarget[i]-goal[i]; cam.reseedFollow=false; }
+  const k = cam.firstFrame?1:Math.min(1,dt*4);
+  for(let i=0;i<3;i++) cam.smoothOfs[i] *= 1-k;
+  { // cap the transition offset at 20% of the view distance, so deep zooms never lose the Sun
+    const lag=Math.hypot(cam.smoothOfs[0],cam.smoothOfs[1],cam.smoothOfs[2]), maxLag=cam.dist*0.2;
+    if(lag>maxLag){ const f=maxLag/lag; cam.smoothOfs[0]*=f; cam.smoothOfs[1]*=f; cam.smoothOfs[2]*=f; }
+  }
+  for(let i=0;i<3;i++) cam.smoothTarget[i] = goal[i]+cam.smoothOfs[i];
+  cam.firstFrame=false;
   const pv = 1.1547*cam.dist, pdx = -cam.panF[0]*pv*SKY_MIRROR, pdy = cam.panF[1]*pv;
   const tgx=cam.smoothTarget[0]-org[0] + rx*pdx + ux*pdy,
         tgy=cam.smoothTarget[1]-org[1] + ry*pdx + uy*pdy,

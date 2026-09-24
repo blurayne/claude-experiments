@@ -173,7 +173,7 @@
     <button class="rowbtn" id="tourAgain" style="margin-bottom:12px">show the tour again</button>
     <div class="stats" style="margin-top:0;padding-top:0;border-top:0">
       elapsed <b id="yrs">0.0</b> yr &nbsp;·&nbsp; galactic lap <b id="pct">0.000</b>%<br>
-      drag to orbit &nbsp;·&nbsp; scroll / pinch to zoom &nbsp;·&nbsp; right-drag or two fingers to pan &nbsp;·&nbsp; + / − step object to object &nbsp;·&nbsp; ➤ free flight: W A S D, R F, shift, esc — or the two pads; the zoom is the pace &nbsp;·&nbsp; swipe a panel sideways to move it, off its edge to close it
+      drag to orbit &nbsp;·&nbsp; scroll / pinch to zoom &nbsp;·&nbsp; right-drag or two fingers to pan &nbsp;·&nbsp; + / − step object to object &nbsp;·&nbsp; ➤ free flight: W A S D, R F, shift, esc — or the throttle lever and the burst button, drag to look round; the zoom is the pace &nbsp;·&nbsp; swipe a panel sideways to move it, off its edge to close it
     </div>
     <h3>Articles</h3>
     <p>The long-form notes live as their own pages now — one subject each, opening in a new tab.</p>
@@ -241,9 +241,9 @@
 <button class="pdot" id="envPlus" data-open="env" aria-label="show the Earth panel">ℹ</button>
 <button class="pdot act" id="zoomIn" aria-label="zoom in" title="zoom in — toward the next smaller object">+</button>
 <button class="pdot act" id="zoomOut" aria-label="zoom out" title="zoom out — toward the next bigger object">−</button>
-<button class="pdot act" id="tFly" aria-label="free flight" aria-pressed="false" title="free flight — W A S D / arrows to move, R F up and down, shift to boost, esc to land; on a touch screen the two pads. The zoom sets the pace: a fraction of the view a second. A faster clock is a faster ship."><svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><path d="M0.8 4.6 L9.4 1 L6.4 9.2 L4.9 5.6 Z"/></svg></button>
-<div class="pad" id="padL" aria-label="move: forward, back, sideways"><i class="knob"></i></div>
-<div class="pad" id="padR" aria-label="rise, sink, turn"><i class="knob"></i></div>
+<button class="pdot act" id="tFly" aria-label="free flight" aria-pressed="false" title="free flight — W A S D / arrows to move, R F up and down, shift to boost, esc to land; on a touch screen a throttle lever and a burst button, drag to look round. The zoom sets the pace: a fraction of the view a second. A faster clock is a faster ship."><svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><path d="M0.8 4.6 L9.4 1 L6.4 9.2 L4.9 5.6 Z"/></svg></button>
+<div class="pad lever" id="padL" aria-label="throttle: forward at the head, back at the foot, rest in the middle"><i class="mark"></i><i class="knob"></i></div>
+<button class="pad burst" id="padR" aria-label="burst: full ahead while held">burst</button>
 <button class="pdot act on" id="tLabelsAll" aria-label="toggle all labels" title="toggle all labels"><svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.2,1.8 L6,1.8 L8.8,5 L6,8.2 L1.2,8.2 Z"/></svg></button>
 <div class="env pnl simPanelWide" id="simPanel">
   <button class="pclose" data-close="simPanel" aria-label="close">−</button>

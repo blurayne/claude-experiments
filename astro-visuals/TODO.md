@@ -5,10 +5,11 @@ before the work starts. An item is ticked when it ships, with the version that c
 
 ## 2026-09-24
 
-- [ ] Flight controls, second cut: rotating in flight must not stop the simulation and
+- [x] Flight controls, second cut: rotating in flight must not stop the simulation and
       must turn the view round the ship itself, not swing the ship round a point ahead;
       the left pad becomes a throttle (a lever that stays where it is put); the right
       button is a burst — forward at full boost while held.
+      The ship is the eye, the target a zoom ahead; the lever, the burst — v3.21.0.
 
 - [x] Add three more background tracks — Galactic Year: Dreamtime Kids Mix (Quieter),
       Cosmic Synth Ritual, Zero-Beat Orbit — with the Dreamtime Kids Mix playing first.

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { clockFactor, fullSpeed, FLY_BOOST } from '../../src/render/flight'
+import { clockFactor, fullSpeed, forwardWant, FLY_BOOST } from '../../src/render/flight'
 
 describe('the flight pace', () => {
   it('scales with the view: a fixed fraction of the view height a second', () => {
@@ -16,5 +16,13 @@ describe('the flight pace', () => {
     expect(clockFactor(0.01, true)).toBe(1)        // never slower than the walking pace
     expect(clockFactor(1e6, false)).toBe(1)        // a paused clock is the walking pace
     expect(clockFactor(NaN, true)).toBe(1)
+  })
+
+  it('sums the hands forward — keys, lever and burst — and the burst is always full ahead', () => {
+    expect(forwardWant(0, 0.6, false)).toBeCloseTo(0.6, 9)
+    expect(forwardWant(1, 0.6, false)).toBe(1)
+    expect(forwardWant(0, -1, true)).toBe(0)       // full reverse on the lever, a burst: they cancel
+    expect(forwardWant(0, 0, true)).toBe(1)
+    expect(forwardWant(-1, 0, false)).toBe(-1)
   })
 })

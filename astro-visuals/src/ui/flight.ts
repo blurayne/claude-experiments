@@ -6,10 +6,12 @@ import { flight, flightStart, flightStop } from '../render/flight'
  * two thumb pads on a touch screen, and the readout beside the scale bar.
  *
  * Keys: W/S or ↑/↓ forward and back, A/D or ←/→ sideways, R and F (or E and Q) up and
- * down, shift the boost, escape lands. The left pad is forward/back and sideways, the right
- * pad up/down and the turn. The pads are their own elements over the canvas, so a thumb on
- * one never orbits the view or holds the clock; a finger anywhere else still turns the eye
- * as it always did. The readout says the pace in real units, and the clock's share of it.
+ * down, shift the boost, escape lands. On a touch screen: the lever on the left is the
+ * throttle, and stays where it is put; the button on the right is a burst, full ahead at
+ * boost while held; a finger anywhere else turns the ship, and in flight that turn is
+ * about the ship itself and does not hold the clock. The lever and the button are their
+ * own elements over the canvas, so a thumb on one never orbits the view. The readout says
+ * the pace in real units, the lever's setting, and the clock's share.
  */
 const KEYS: Record<string, [number, number]> = {   // axis index, sign
   KeyW: [0, 1], ArrowUp: [0, 1], KeyS: [0, -1], ArrowDown: [0, -1],
@@ -28,26 +30,41 @@ let onChange: () => void = () => {}
 export function setFlight(on: boolean, keep?: boolean): void {
   if(on === flight.on) return
   if(on){ if(keep) flight.on = true; else flightStart() } else { flightStop(); down.clear() }
+  leverShow(0)   // the lever rests at take-off and at landing
   $('tFly').classList.toggle('on', on)
   document.body.classList.toggle('flying', on)
   $('tFly').setAttribute('aria-pressed', on ? 'true' : 'false')
   onChange()
 }
 
-/** a thumb pad: the offset from its centre, over its radius, is the two axes it drives */
-function pad(id: string, apply: (x: number, y: number) => void): void {
-  const el = $(id); let pid = -1
-  const read = (e: PointerEvent): void => {
-    const r = el.getBoundingClientRect(), rad = r.width/2
-    let x = (e.clientX - (r.left + rad))/rad, y = -(e.clientY - (r.top + rad))/rad
-    const m = Math.hypot(x, y); if(m > 1){ x /= m; y /= m }
-    const dead = 0.12, g = (v: number): number => Math.abs(v) < dead ? 0 : Math.sign(v)*(Math.abs(v) - dead)/(1 - dead)
-    apply(g(x), g(y))
-    el.style.setProperty('--kx', (x*rad*0.55).toFixed(1) + 'px'); el.style.setProperty('--ky', (-y*rad*0.55).toFixed(1) + 'px')
+/**
+ * The throttle: a vertical lever. The knob follows the thumb and STAYS where it is left,
+ * −100% at the foot, +100% at the head, with a detent at the middle (a release within a
+ * few percent of it is zero). A tap sets it where the tap is.
+ */
+function lever(id: string, apply: (t: number) => void): void {
+  const el = $(id), knob = el.querySelector('.knob') as HTMLElement; let pid = -1
+  const show = (t: number): void => { knob.style.setProperty('--ky', (-t*(el.clientHeight/2 - 22)).toFixed(1) + 'px'); el.classList.toggle('rev', t < 0) }
+  const read = (e: PointerEvent): number => {
+    const r = el.getBoundingClientRect(), half = r.height/2 - 22
+    return Math.max(-1, Math.min(1, -(e.clientY - (r.top + r.height/2))/half))
   }
-  el.addEventListener('pointerdown', e => { pid = e.pointerId; try{ el.setPointerCapture(e.pointerId) }catch(err){} el.classList.add('held'); read(e); e.preventDefault(); e.stopPropagation() })
-  el.addEventListener('pointermove', e => { if(e.pointerId !== pid) return; read(e); e.stopPropagation() })
-  const drop = (e: PointerEvent): void => { if(e.pointerId !== pid) return; pid = -1; el.classList.remove('held'); apply(0, 0); el.style.setProperty('--kx', '0px'); el.style.setProperty('--ky', '0px'); e.stopPropagation() }
+  const set = (t: number): void => { apply(t); show(t) }
+  el.addEventListener('pointerdown', e => { pid = e.pointerId; try{ el.setPointerCapture(e.pointerId) }catch(err){} el.classList.add('held'); set(read(e)); e.preventDefault(); e.stopPropagation() })
+  el.addEventListener('pointermove', e => { if(e.pointerId !== pid) return; set(read(e)); e.stopPropagation() })
+  const drop = (e: PointerEvent): void => { if(e.pointerId !== pid) return; pid = -1; el.classList.remove('held')
+    const t = read(e); set(Math.abs(t) < 0.08 ? 0 : t); e.stopPropagation() }
+  el.addEventListener('pointerup', drop); el.addEventListener('pointercancel', drop)
+  el.addEventListener('contextmenu', e => e.preventDefault())
+  leverShow = show
+}
+let leverShow: (t: number) => void = () => {}
+
+/** the burst: full ahead at boost while the button is held */
+function holdButton(id: string, apply: (down: boolean) => void): void {
+  const el = $(id); let pid = -1
+  el.addEventListener('pointerdown', e => { pid = e.pointerId; try{ el.setPointerCapture(e.pointerId) }catch(err){} el.classList.add('held'); apply(true); e.preventDefault(); e.stopPropagation() })
+  const drop = (e: PointerEvent): void => { if(e.pointerId !== pid) return; pid = -1; el.classList.remove('held'); apply(false); e.stopPropagation() }
   el.addEventListener('pointerup', drop); el.addEventListener('pointercancel', drop)
   el.addEventListener('contextmenu', e => e.preventDefault())
 }
@@ -69,9 +86,10 @@ export function updateFlightReadout(): void {
   const el = $('sFly')
   if(!flight.on){ el.style.display = 'none'; return }
   el.style.display = ''
-  const f = flight.factor
+  const f = flight.factor, t = flight.throttle
   $('sPace').textContent = fmtPace(flight.speedU)
-  $('sClockShare').textContent = f > 1.05 ? ' · clock ×' + (f < 10 ? f.toFixed(1) : '10') : ''
+  $('sClockShare').textContent = (flight.burst ? ' · burst' : t !== 0 ? ' · throttle ' + Math.round(t*100) + '%' : '')
+                               + (f > 1.05 ? ' · clock ×' + (f < 10 ? f.toFixed(1) : '10') : '')
 }
 
 export function initFlightUI(deps: { onChange: () => void }): void {
@@ -90,6 +108,6 @@ export function initFlightUI(deps: { onChange: () => void }): void {
     if(down.delete(e.code)) keysToWant()
   })
   addEventListener('blur', () => { down.clear(); keysToWant(); flight.boost = false })   // a key released in another window
-  pad('padL', (x, y) => { flight.want[1] = x; flight.want[0] = y })
-  pad('padR', (x, y) => { flight.turn = x; flight.want[2] = y })
+  lever('padL', t => { flight.throttle = t })
+  holdButton('padR', down => { flight.burst = down })
 }
