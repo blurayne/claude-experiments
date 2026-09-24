@@ -3,6 +3,18 @@
 Everything the owner asks for lands here first, as a checkbox, and is committed on its own
 before the work starts. An item is ticked when it ships, with the version that carried it.
 
+## 2026-09-24
+
+- [ ] A free flight mode, switched on by a button, with the speed of movement set by the
+      current scale of the view (zoomed in, slow; zoomed out, fast), the movement option
+      chosen by the piece, and the speed also tied to the passing of time. Plan: the eye
+      flies as a chase camera behind a free point — forward, sideways and up along the
+      view's own axes at a fraction of the view's height per second, so the zoom is the
+      throttle's scale; keys on a desktop (WASD, R/F, shift to boost), two thumb pads on a
+      touch screen; the clock's rate scales the flight by the square root of its ratio to
+      the default, so a faster clock is a faster ship, and paused is the walking pace;
+      a readout of the speed in real units; the state export carries the flight.
+
 ## 2026-09-21
 
 - [x] Galaxies split in half, one half black, blinking on a slight rotation, in the Local
