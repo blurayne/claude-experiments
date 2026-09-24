@@ -167,9 +167,17 @@ export function setFlightVol(x: number): void {
   if(engine.vol > 0 && flight.on) engineWake()
 }
 
+/** the flight's pitch: whole octaves, −2..+1, on the whine and the burst */
+export function setFlightOct(x: number): void {
+  engine.octave = Math.max(-2, Math.min(1, Math.round(x)))
+  $('flightOctv').textContent = engine.octave === 0 ? '0' : (engine.octave > 0 ? '+' : '−') + Math.abs(engine.octave) + ' oct'
+}
+
 export function initFlightUI(deps: { onChange: () => void }): void {
   onChange = deps.onChange
   $('flightVol').addEventListener('input', e => setFlightVol(+(e.target as HTMLInputElement).value))
+  $('flightOct').addEventListener('input', e => setFlightOct(+(e.target as HTMLInputElement).value))
+  setFlightOct(+($('flightOct') as HTMLInputElement).value)
   initWarp()
   const tw = $('tWarp') as HTMLInputElement
   warp.on = tw.checked

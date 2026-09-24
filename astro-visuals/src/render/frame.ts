@@ -13,9 +13,9 @@ import {
 } from '../astro/earth'
 import { canvas, gl } from '../gpu/context'
 import { cam, gfx, lifeAcc, readout, simClock, view, SKY_MIRROR } from './state'
-import { flight, flightStep, flightTarget, setFlightBasis, basisFromQuat } from './flight'
+import { flight, flightStep, flightTarget, setFlightBasis, basisFromQuat, flightBasis } from './flight'
 import { engineUpdate } from '../audio/engine'
-import { drawWarp } from './warp'
+import { drawWarp, eyeFrame } from './warp'
 const flyTgt = [0, 0, 0];
 import { hud, updateHud } from '../ui/hud'
 import { N_STAR } from '../scene/starfield'
@@ -257,7 +257,9 @@ function frame(now: number): void {
   flightStep(dt, simClock.speed*simClock.speedMult*Math.abs(drive), drive !== 0 && !(holding && !flight.on));
   engineUpdate(flight.on, Math.min(1, Math.hypot(flight.axis[0], flight.axis[1], flight.axis[2])), flight.burst, flight.boost);   // and its sound
   { const vh = flight.on ? flight.speedU/(1.1547*cam.dist) : 0;                 // view heights a second at full throttle
-    drawWarp(dt, flight.on, flight.axis[1]*vh, flight.axis[2]*vh, flight.axis[0]*vh); }   // and the streaks rushing past
+    const fb = flightBasis();
+    drawWarp(dt, flight.on, flight.axis[1]*vh, flight.axis[2]*vh, flight.axis[0]*vh,
+             flight.on ? eyeFrame(fb.r, fb.u, fb.d, SKY_MIRROR) : null); }   // and the streaks rushing past, turning with the ship
   let baseYaw = 0, basePitch = 0;
   if(cam.coreLock && !flight.anchored){   // the ship keeps its own line of sight
     // the direction from the core out to the Sun: put the eye further along it, so the

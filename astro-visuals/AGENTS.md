@@ -311,6 +311,15 @@ dismissing the first-run tour **starts** the clock, so pausing has to come after
   they look the same at every scale and a fast clock's burst is not a white-out. Strength
   `warpStrength` (full from 0.35 view heights a second) fades in and out; at rest or with
   `#tWarp` off the canvas is cleared and nothing is drawn. `#tWarp` is in `S_TOG`.
+- **The octave (v3.28.0)**: `engine.octave`, −2..+1, default −1, from `#flightOct` (in
+  `S_SLD`), multiplies the whine, the burst voice and the charge — not the motor hum. At
+  full throttle the whine measures 335 / 668 / 1,340 / 2,681 Hz for −2 / −1 / 0 / +1.
+- **The streaks turn (v3.28.0)**: their points are fixed in the world, so each frame
+  `frameChange(prevEye, eye)` (M[i][j] = e′ᵢ·eⱼ, the eye frame from `eyeFrame`, screen right
+  = world right × SKY_MIRROR) is applied to them, and the eased turn rate `(M − I)/dt` is
+  added to each tail. A turn alone brings streaks up (`turnStrength`, none under 0.3 rad/s,
+  at most 0.6). Checked against the labels in a browser: same direction on look and roll,
+  roll 20.7° against the labels' 22.2°. `?debug` exposes `window.__warpProbe()`.
 - **The ion drive** (`audio/engine`, `engine-map`): no noise buffers any more. A whine
   (sine, 2nd and 3rd partials) from 240 Hz at rest to ~1,300 Hz at full, gated by a soft
   square LFO (6 to 40 pulses a second) — the pulse; a soft motor hum under it; a second

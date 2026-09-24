@@ -92,7 +92,7 @@ function installErrorCollector(){
  * property of the machine that loaded the page. The parity harness pins TZ for that reason.
  */
 
-const BUILD = { version: '3.27.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '3.28.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -688,6 +688,8 @@ function fullSpeed(dist        , factor        , boost         )         {
 // target, so the target this frame is a zoom's distance ahead along the CURRENT line of
 // sight; only the flight's own movement uses it a frame late, which nobody can see.
 const basis = { r: [1, 0, 0], u: [0, 1, 0], d: [0, 0, 1] };
+/** the eye's frame as last built: right, up and backward, in the world */
+const flightBasis = ()                                            => basis;
 function setFlightBasis(r                   , u                   , d                   )       {
   for(let i=0;i<3;i++){ basis.r[i] = r[i]; basis.u[i] = u[i]; basis.d[i] = d[i]; }
 }
@@ -835,12 +837,38 @@ function flightStep(dt        , yps        , running         )          {
  * looks the same at every scale, and is capped, or a burst at a fast clock would be white.
  * Strength follows the speed and fades in and out; nothing is drawn at rest, or with the
  * switch off.
+ *
+ * The points are fixed in the world, so they turn with the ship's turns (v3.28.0): each
+ * frame the change in the eye's frame is applied to them — a look round swings them, a
+ * flip over sends them the other way, a roll wheels them round the centre — and the turn
+ * adds to each streak's tail, so a fast turn smears them the way it would smear stars. A
+ * fast turn alone brings some streaks up even at rest.
  */
 const N = 170;
 const P = new Float32Array(N*3);
 let cv                           = null, g                                  = null;
 let intensity = 0, drawn = false, dpr = 1;
 const warp = { on: true };
+// The eye's frame last frame, as screen right, up and forward in the world, and the turn
+// since: `turn` is (M − I)/dt, eased — how the eye-space points move a second from turning.
+let prevE                    = null;
+const turn = [0,0,0, 0,0,0, 0,0,0];
+let turnRate = 0;
+/**
+ * The rotation that carries eye-space points from the previous eye frame to this one, for
+ * points fixed in the world: M[i][j] = e′ᵢ · eⱼ. Row-major, 9 numbers. Pure, and tested.
+ */
+function frameChange(prev            , cur            )           {
+  const M = new Array(9);
+  for(let i=0;i<3;i++) for(let j=0;j<3;j++) M[i*3+j] = cur[i][0]*prev[j][0] + cur[i][1]*prev[j][1] + cur[i][2]*prev[j][2];
+  return M
+}
+/** the eye frame from the flight's basis: screen right is the world's right mirrored (the projection flips x) */
+function eyeFrame(r                   , u                   , d                   , mirror        )             {
+  return [[r[0]*mirror, r[1]*mirror, r[2]*mirror], [u[0], u[1], u[2]], [-d[0], -d[1], -d[2]]]
+}
+/** how strong a turn alone makes the streaks: none below a gentle look, up to 0.6 from 3 rad/s */
+const turnStrength = (w        )         => 0.6*Math.max(0, Math.min(1, (w - 0.3)/2.7));
 
 function seed(i        , z0        , z1        )       {
   P[i*3]   = (Math.random()*2 - 1)*0.9;
@@ -853,7 +881,14 @@ function resize$1()       {
   cv.width = Math.round(innerWidth*dpr); cv.height = Math.round(innerHeight*dpr);
   drawn = true;                              // a resize clears the canvas; draw or clear afresh
 }
+/** the points as they would be drawn now, in CSS pixels — for the debug checks in a browser */
+function warpProbe()             {
+  const H = innerHeight, cx = innerWidth/2, cy = H/2, foc = (H/2)/Math.tan(Math.PI/6), out             = [];
+  for(let i=0;i<N;i++){ const z = P[i*3+2]; out.push([cx + P[i*3]/z*foc, cy - P[i*3+1]/z*foc, z]); }
+  return out
+}
 function initWarp()       {
+  if(location.search.includes('debug')) (window                                                ).__warpProbe = warpProbe;
   cv = document.getElementById('warp');                           
   g = cv ? cv.getContext('2d') : null;
   for(let i=0;i<N;i++) seed(i, 0.05, 1);
@@ -869,10 +904,19 @@ const warpStrength = (vh        )         => Math.max(0, Math.min(1, vh/WARP_FUL
  * One frame. `vr`, `vu`, `vf`: the ship's velocity along the eye's right, up and forward, in
  * view heights a second (screen right, not the mirrored world's).
  */
-function drawWarp(dt        , active         , vr        , vu        , vf        )       {
+function drawWarp(dt        , active         , vr        , vu        , vf        , eye                   )       {
   if(!cv || !g) return
+  // the turn since last frame, applied to the points (they are fixed in the world)
+  let M                  = null;
+  if(active && eye && prevE && dt > 0){
+    M = frameChange(prevE, eye);
+    const k = 1 - Math.exp(-dt/0.08);
+    for(let i=0;i<9;i++) turn[i] += ((M[i] - (i % 4 === 0 ? 1 : 0))/dt - turn[i])*k;
+    turnRate = Math.acos(Math.max(-1, Math.min(1, (M[0] + M[4] + M[8] - 1)/2)))/dt;
+  } else { for(let i=0;i<9;i++) turn[i] = 0; turnRate = 0; }
+  prevE = active && eye ? eye.map(e => e.slice()) : null;
   let sp = Math.hypot(vr, vu, vf);
-  const target = active && warp.on ? warpStrength(sp) : 0;
+  const target = active && warp.on ? Math.max(warpStrength(sp), turnStrength(turnRate)) : 0;
   intensity += (target - intensity)*(1 - Math.exp(-dt/0.25));
   if(intensity < 0.01){
     if(drawn){ g.clearRect(0, 0, cv.width, cv.height); drawn = false; }
@@ -887,7 +931,9 @@ function drawWarp(dt        , active         , vr        , vu        , vf       
   g.globalCompositeOperation = 'lighter';
   g.lineCap = 'round';
   for(let i=0;i<N;i++){
-    let x = P[i*3] - mx*dt, y = P[i*3+1] - my*dt, z = P[i*3+2] - mz*dt;
+    let x = P[i*3], y = P[i*3+1], z = P[i*3+2];
+    if(M){ const a = x, b = y, c = z; x = M[0]*a + M[1]*b + M[2]*c; y = M[3]*a + M[4]*b + M[5]*c; z = M[6]*a + M[7]*b + M[8]*c; }
+    x -= mx*dt; y -= my*dt; z -= mz*dt;
     // out of the box: back in at the far end going forward, near the eye going backward,
     // on the far side going sideways
     if(z < 0.05){ seed(i, 0.7, 1); continue }
@@ -895,8 +941,12 @@ function drawWarp(dt        , active         , vr        , vu        , vf       
     const sx = cx + x/z*foc, sy = cy - y/z*foc;
     if(sx < -W*0.2 || sx > W*1.2 || sy < -H*0.2 || sy > H*1.2){ seed(i, 0.5, 1); continue }
     P[i*3] = x; P[i*3+1] = y; P[i*3+2] = z;
-    // where it was a moment ago: the tail
-    const tz = Math.min(1.2, z + mz*T), tx = x + mx*T, ty = y + my*T;
+    // where it was a moment ago: the tail — back along the motion, and back along the turn
+    // (capped, so a snap of the wrist is a smear and not a line across the screen)
+    const rs = Math.min(T, 0.6/Math.max(1e-6, turnRate));
+    const tx = x + mx*T - (turn[0]*x + turn[1]*y + turn[2]*z)*rs;
+    const ty = y + my*T - (turn[3]*x + turn[4]*y + turn[5]*z)*rs;
+    const tz = Math.min(1.2, z + mz*T - (turn[6]*x + turn[7]*y + turn[8]*z)*rs);
     if(tz <= 0.02) continue
     const qx = cx + tx/tz*foc, qy = cy - ty/tz*foc;
     const near = 1 - Math.min(1, z);            // nearer is brighter and wider
@@ -1407,9 +1457,10 @@ function applySfxGain(){
                 
  
 /** what the voices should be at this throttle magnitude (0..1), burst held or not */
-function engineTargets(m        , burst         , boost         )                {
+function engineTargets(m        , burst         , boost         , octave = 0)                {
   m = Math.max(0, Math.min(1, m));
   const push = boost ? 1.25 : 1;
+  const oct = Math.pow(2, Math.max(-2, Math.min(1, Math.round(octave))));   // the visitor's octave, −2..+1, on the whine
   return {
     // the motor: a low hum, its energy in harmonics a small speaker can play
     humF: 70*(1 + 0.5*m*push),
@@ -1417,7 +1468,7 @@ function engineTargets(m        , burst         , boost         )               
     lpF:  380 + 900*m*push,
     // the ion drive: an electric vehicle's whine, climbing with the speed, faint at rest —
     // the character of the sound, so it stands above the motor
-    whineF: 240 + 1100*m*push,
+    whineF: (240 + 1100*m*push)*oct,
     whineG: 0.05 + 0.34*m,
     // pulsed: slow ticks at rest, a fast flutter at full
     pulseHz: 6 + 34*m*push,
@@ -1434,7 +1485,9 @@ function engineTargets(m        , burst         , boost         )               
  *  - the motor: two detuned saws at 70 Hz through a low-pass that never closes below
  *    380 Hz — small speakers play nothing under ~150 Hz, so it lives in its harmonics.
  *  - the whine: a sine with its second and third partials, from 240 Hz at rest to some
- *    1,300 Hz at full, faint when idle — the electric vehicle's rising tone.
+ *    1,300 Hz at full, faint when idle — the electric vehicle's rising tone — times the
+ *    visitor's octave (`engine.octave`, the "flight pitch" setting; one octave down by
+ *    default, so 120 to 670 Hz).
  *  - the pulse: the whine goes through a gate opened and closed by a soft square wave,
  *    6 pulses a second at rest and 40 at full — the ion drive's beat.
  *  - the burst: on the press a thump (a sine falling from 110 to 38 Hz) and a charge (a
@@ -1446,7 +1499,8 @@ function engineTargets(m        , burst         , boost         )               
  * The graph is the page's one AudioContext, built here on the take-off click if nothing
  * built it before — a click is the gesture the browser wants.
  */
-const engine = { vol: 0.4 }
+/** `vol` the flight slider; `octave` the pitch setting, −2..+1 octaves on the whine and the burst (default −1: lower than v3.26's) */
+const engine = { vol: 0.4, octave: -1 }
 
 ;                 
                
@@ -1506,7 +1560,8 @@ function kick()       {
   o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(38, t + 0.25);
   o.connect(env(0.6, 0.012, 0.34)); o.start(t); o.stop(t + 0.36);
   const c = ctx.createOscillator(); c.type = 'sine';
-  c.frequency.setValueAtTime(220, t); c.frequency.exponentialRampToValueAtTime(1760, t + 0.35);
+  const oc = Math.pow(2, engine.octave);   // the charge sits in the same octave as the whine
+  c.frequency.setValueAtTime(220*oc, t); c.frequency.exponentialRampToValueAtTime(1760*oc, t + 0.35);
   c.connect(env(0.28, 0.03, 0.45)); c.start(t); c.stop(t + 0.47);
 }
 
@@ -1529,7 +1584,7 @@ function engineUpdate(flying         , m        , burst         , boost         
   if(flying && burst && !lastBurst) kick();
   lastBurst = flying && burst;
   if(!flying) return
-  const k = engineTargets(m, burst, boost || burst);
+  const k = engineTargets(m, burst, boost || burst, engine.octave);
   if(!last || moved(k.humF, last.humF, 0.004)){ v.o1.frequency.setTargetAtTime(k.humF, t, 0.12); v.o2.frequency.setTargetAtTime(k.humF, t, 0.12); v.sub.frequency.setTargetAtTime(k.humF*2, t, 0.12); }
   if(!last || moved(k.lpF, last.lpF, 0.01)) v.lp.frequency.setTargetAtTime(k.lpF, t, 0.12);
   if(!last || moved(k.humG, last.humG, 0.01)) v.hum.gain.setTargetAtTime(k.humG, t, 0.12);
@@ -1707,9 +1762,17 @@ function setFlightVol(x        )       {
   if(engine.vol > 0 && flight.on) engineWake();
 }
 
+/** the flight's pitch: whole octaves, −2..+1, on the whine and the burst */
+function setFlightOct(x        )       {
+  engine.octave = Math.max(-2, Math.min(1, Math.round(x)));
+  $('flightOctv').textContent = engine.octave === 0 ? '0' : (engine.octave > 0 ? '+' : '−') + Math.abs(engine.octave) + ' oct';
+}
+
 function initFlightUI(deps                          )       {
   onChange = deps.onChange;
   $('flightVol').addEventListener('input', e => setFlightVol(+(e.target                    ).value));
+  $('flightOct').addEventListener('input', e => setFlightOct(+(e.target                    ).value));
+  setFlightOct(+($('flightOct')                    ).value);
   initWarp();
   const tw = $('tWarp');                   
   warp.on = tw.checked;
@@ -2871,7 +2934,7 @@ const SKEY = 'galactic-transit.settings.v1';
 const S_TOG = ['tLabels','tArms','tDist','tLabelSteady','tZoomBtns','tSpinLock','tDwarfs','tP9','tBelt','tKuiper','tOort','tDust',
                'tEvSN','tEvBirth','tVar',
                'tStatAge','tStatGyr','tStatSn','tStatBirth','tGaia','tFps','tHalo','tScaleBar','tScaleText','tWarp'];
-const S_SLD = ['speed','trailA','orbitA','trailL','musicVol','sfxVol','flightVol','minB','hudHz','coreB','qrScale'];
+const S_SLD = ['speed','trailA','orbitA','trailL','musicVol','sfxVol','flightVol','flightOct','minB','hudHz','coreB','qrScale'];
 const S_CHK = ['fxBirth','fxSn','fxPn','fxDrone','secSolo','closeOnGo','qrOn'];
 
 const isOn = (el             )          =>
@@ -7833,7 +7896,9 @@ function frame(now        )       {
   flightStep(dt, simClock.speed*simClock.speedMult*Math.abs(drive), drive !== 0 && !(holding && !flight.on));
   engineUpdate(flight.on, Math.min(1, Math.hypot(flight.axis[0], flight.axis[1], flight.axis[2])), flight.burst, flight.boost);   // and its sound
   { const vh = flight.on ? flight.speedU/(1.1547*cam.dist) : 0;                 // view heights a second at full throttle
-    drawWarp(dt, flight.on, flight.axis[1]*vh, flight.axis[2]*vh, flight.axis[0]*vh); }   // and the streaks rushing past
+    const fb = flightBasis();
+    drawWarp(dt, flight.on, flight.axis[1]*vh, flight.axis[2]*vh, flight.axis[0]*vh,
+             flight.on ? eyeFrame(fb.r, fb.u, fb.d, SKY_MIRROR) : null); }   // and the streaks rushing past, turning with the ship
   let baseYaw = 0, basePitch = 0;
   if(cam.coreLock && !flight.anchored){   // the ship keeps its own line of sight
     // the direction from the core out to the Sun: put the eye further along it, so the
@@ -11744,6 +11809,7 @@ startFrameLoop({
       <label class="chk"><input type="checkbox" id="fxDrone" checked> drone</label>
     </div>
     <div class="row"><label>flight<button type="button" class="info" data-tip="The ship's engine in free flight: a hum that climbs with the throttle, the rush of air, and the burst's thump and roar. Heard whether or not the effects are on; 0 switches it off." aria-label="about this setting">i</button></label><input type="range" id="flightVol" min="0" max="1" step="0.01" value="0.40"><span id="flightVolv" style="min-width:36px;text-align:right;color:var(--ink)">40%</span><button class="stepb" data-step="flightVol:-0.05">−</button><button class="stepb" data-step="flightVol:0.05">+</button></div>
+    <div class="row"><label>pitch<button type="button" class="info" data-tip="The pitch of the ship's ion drive, in whole octaves: lower is deeper. One octave down by default." aria-label="about this setting">i</button></label><input type="range" id="flightOct" min="-2" max="1" step="1" value="-1"><span id="flightOctv" style="min-width:36px;text-align:right;color:var(--ink)">−1 oct</span><button class="stepb" data-step="flightOct:-1">−</button><button class="stepb" data-step="flightOct:1">+</button></div>
     </div>
     <div class="sect" data-sec="gfx">Visuals<span class="arw">▾</span></div>
     <div class="sbody" id="secGfx">

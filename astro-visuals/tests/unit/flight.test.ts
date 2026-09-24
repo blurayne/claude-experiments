@@ -139,12 +139,51 @@ describe('the throttle lever', () => {
   })
 })
 
-import { warpStrength, WARP_FULL } from '../../src/render/warp'
+import { warpStrength, WARP_FULL, frameChange, eyeFrame, turnStrength } from '../../src/render/warp'
 describe('the streaks', () => {
   it('are nothing at rest and full from a third of the view a second', () => {
     expect(warpStrength(0)).toBe(0)
     expect(warpStrength(WARP_FULL)).toBe(1)
     expect(warpStrength(10)).toBe(1)
     expect(warpStrength(WARP_FULL/2)).toBeCloseTo(0.5, 9)
+  })
+})
+
+describe('the streaks turn with the ship', () => {
+  const ident = [[1,0,0],[0,1,0],[0,0,1]]
+  it('an unchanged frame changes nothing', () => {
+    expect(frameChange(ident, ident)).toEqual([1,0,0, 0,1,0, 0,0,1])
+  })
+  it('a world-fixed point ahead goes to the screen left when the eye turns right', () => {
+    // the eye turns 10° to screen-right: its forward swings toward its old right
+    const a = 10*Math.PI/180, c = Math.cos(a), s = Math.sin(a)
+    const cur = [[c, 0, -s], [0, 1, 0], [s, 0, c]]            // right, up, forward after the turn
+    const M = frameChange(ident, cur)
+    const p = [0, 0, 1]                                           // straight ahead before
+    const x = M[0]*p[0] + M[1]*p[1] + M[2]*p[2], z = M[6]*p[0] + M[7]*p[1] + M[8]*p[2]
+    expect(x).toBeLessThan(0)                                     // now left of centre
+    expect(z).toBeCloseTo(c, 9)
+  })
+  it('builds the eye frame with screen right mirrored and forward against the backward axis', () => {
+    const e = eyeFrame([1,0,0], [0,1,0], [0,0,1], -1)
+    expect(e).toEqual([[-1,-0,-0],[0,1,0],[-0,-0,-1]])
+  })
+  it('a gentle look does not streak, a fast turn does, and never at full strength', () => {
+    expect(turnStrength(0.2)).toBe(0)
+    expect(turnStrength(3)).toBeCloseTo(0.6, 9)
+    expect(turnStrength(20)).toBeCloseTo(0.6, 9)
+  })
+})
+
+describe('the engine octave', () => {
+  it('halves the whine per octave down, and is clamped to −2..+1', () => {
+    const base = engineTargets(0.5, false, false, 0).whineF
+    expect(engineTargets(0.5, false, false, -1).whineF).toBeCloseTo(base/2, 9)
+    expect(engineTargets(0.5, false, false, -2).whineF).toBeCloseTo(base/4, 9)
+    expect(engineTargets(0.5, false, false, 1).whineF).toBeCloseTo(base*2, 9)
+    expect(engineTargets(0.5, false, false, -5).whineF).toBeCloseTo(base/4, 9)
+  })
+  it('leaves the motor hum where it is', () => {
+    expect(engineTargets(0.5, false, false, -2).humF).toBe(engineTargets(0.5, false, false, 0).humF)
   })
 })

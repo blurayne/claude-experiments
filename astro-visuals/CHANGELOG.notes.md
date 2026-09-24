@@ -2,6 +2,10 @@
 
 Hand-written notes merged into `CHANGELOG.md` by `.github/scripts/build_changelog.py`: one `## <semver>` heading per version, Markdown body below it, inserted under that version's heading in the Galactic Transit section on the next regeneration. The generated changelog itself must never be edited by hand — it is overwritten wholesale.
 
+## 3.28.0
+
+**A deeper engine, and streaks that turn with you.** The ship's ion drive is an octave lower by default — its whine now runs from about 120 Hz at rest to 670 Hz at full — and a new "pitch" setting under Audio picks the octave, from two down to one up. The streaks now turn with the ship: looking round swings them, flipping over sends them the other way, rolling wheels them round the centre, exactly as the stars behind them move; a fast turn smears them, and even at rest a quick flip brings a few up.
+
 ## 3.27.0
 
 **Flight clears the screen, and landing puts it back.** Taking off now minimises every open dialog — the simulation, settings, Earth and debug panels — as well as sliding the status bar away. Landing reopens exactly those, in the order they were last opened (so on a phone the one that was showing shows again), and brings the status bar back if it was up. A panel opened by hand during the flight is left as it is, and a settings save made mid-flight records the layout from before the flight.

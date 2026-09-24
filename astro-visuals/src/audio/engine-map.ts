@@ -11,9 +11,10 @@ export interface EngineTargets {
   burstG: number
 }
 /** what the voices should be at this throttle magnitude (0..1), burst held or not */
-export function engineTargets(m: number, burst: boolean, boost: boolean): EngineTargets {
+export function engineTargets(m: number, burst: boolean, boost: boolean, octave = 0): EngineTargets {
   m = Math.max(0, Math.min(1, m))
   const push = boost ? 1.25 : 1
+  const oct = Math.pow(2, Math.max(-2, Math.min(1, Math.round(octave))))   // the visitor's octave, −2..+1, on the whine
   return {
     // the motor: a low hum, its energy in harmonics a small speaker can play
     humF: 70*(1 + 0.5*m*push),
@@ -21,7 +22,7 @@ export function engineTargets(m: number, burst: boolean, boost: boolean): Engine
     lpF:  380 + 900*m*push,
     // the ion drive: an electric vehicle's whine, climbing with the speed, faint at rest —
     // the character of the sound, so it stands above the motor
-    whineF: 240 + 1100*m*push,
+    whineF: (240 + 1100*m*push)*oct,
     whineG: 0.05 + 0.34*m,
     // pulsed: slow ticks at rest, a fast flutter at full
     pulseHz: 6 + 34*m*push,

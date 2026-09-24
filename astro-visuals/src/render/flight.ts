@@ -76,6 +76,8 @@ export function fullSpeed(dist: number, factor: number, boost: boolean): number 
 // target, so the target this frame is a zoom's distance ahead along the CURRENT line of
 // sight; only the flight's own movement uses it a frame late, which nobody can see.
 const basis = { r: [1, 0, 0], u: [0, 1, 0], d: [0, 0, 1] }
+/** the eye's frame as last built: right, up and backward, in the world */
+export const flightBasis = (): { r: number[]; u: number[]; d: number[] } => basis
 export function setFlightBasis(r: readonly number[], u: readonly number[], d: readonly number[]): void {
   for(let i=0;i<3;i++){ basis.r[i] = r[i]; basis.u[i] = u[i]; basis.d[i] = d[i] }
 }

@@ -9,7 +9,9 @@ import { engineTargets, type EngineTargets } from './engine-map'
  *  - the motor: two detuned saws at 70 Hz through a low-pass that never closes below
  *    380 Hz — small speakers play nothing under ~150 Hz, so it lives in its harmonics.
  *  - the whine: a sine with its second and third partials, from 240 Hz at rest to some
- *    1,300 Hz at full, faint when idle — the electric vehicle's rising tone.
+ *    1,300 Hz at full, faint when idle — the electric vehicle's rising tone — times the
+ *    visitor's octave (`engine.octave`, the "flight pitch" setting; one octave down by
+ *    default, so 120 to 670 Hz).
  *  - the pulse: the whine goes through a gate opened and closed by a soft square wave,
  *    6 pulses a second at rest and 40 at full — the ion drive's beat.
  *  - the burst: on the press a thump (a sine falling from 110 to 38 Hz) and a charge (a
@@ -21,7 +23,8 @@ import { engineTargets, type EngineTargets } from './engine-map'
  * The graph is the page's one AudioContext, built here on the take-off click if nothing
  * built it before — a click is the gesture the browser wants.
  */
-export const engine = { vol: 0.4 }
+/** `vol` the flight slider; `octave` the pitch setting, −2..+1 octaves on the whine and the burst (default −1: lower than v3.26's) */
+export const engine = { vol: 0.4, octave: -1 }
 
 interface Voices {
   out: GainNode
@@ -81,7 +84,8 @@ function kick(): void {
   o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(38, t + 0.25)
   o.connect(env(0.6, 0.012, 0.34)); o.start(t); o.stop(t + 0.36)
   const c = ctx.createOscillator(); c.type = 'sine'
-  c.frequency.setValueAtTime(220, t); c.frequency.exponentialRampToValueAtTime(1760, t + 0.35)
+  const oc = Math.pow(2, engine.octave)   // the charge sits in the same octave as the whine
+  c.frequency.setValueAtTime(220*oc, t); c.frequency.exponentialRampToValueAtTime(1760*oc, t + 0.35)
   c.connect(env(0.28, 0.03, 0.45)); c.start(t); c.stop(t + 0.47)
 }
 
@@ -104,7 +108,7 @@ export function engineUpdate(flying: boolean, m: number, burst: boolean, boost: 
   if(flying && burst && !lastBurst) kick()
   lastBurst = flying && burst
   if(!flying) return
-  const k = engineTargets(m, burst, boost || burst)
+  const k = engineTargets(m, burst, boost || burst, engine.octave)
   if(!last || moved(k.humF, last.humF, 0.004)){ v.o1.frequency.setTargetAtTime(k.humF, t, 0.12); v.o2.frequency.setTargetAtTime(k.humF, t, 0.12); v.sub.frequency.setTargetAtTime(k.humF*2, t, 0.12) }
   if(!last || moved(k.lpF, last.lpF, 0.01)) v.lp.frequency.setTargetAtTime(k.lpF, t, 0.12)
   if(!last || moved(k.humG, last.humG, 0.01)) v.hum.gain.setTargetAtTime(k.humG, t, 0.12)
