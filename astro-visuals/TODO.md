@@ -5,6 +5,14 @@ before the work starts. An item is ticked when it ships, with the version that c
 
 ## 2026-09-24
 
+- [ ] Flight, third cut. (1) The flight's top speed 30% higher (the throttle's full
+      deflection; the simulation's own speed slider is not touched). (2) In flight only,
+      the camera turns freely — no pitch limit, over the top and upside down — so any
+      direction can be chosen to fly in; out of flight it stays level as before, and
+      landing levels it. (3) The + and − buttons are always there, with their old
+      function, whatever the flight is doing — including on a phone in flight, where the
+      burst button and lever must not cover them.
+
 - [x] The zoom buttons vanished. Reproduced: with the Settings panel open on a phone the
       right-hand dock is stacked below the panels and every button past the screen's foot
       is hidden — zoom and flight on a 411×882 phone, the whole dock on a 360×640 phone or
