@@ -6,6 +6,12 @@ Hand-written release notes come from `CHANGELOG.notes.md`, never from here.
 
 ## Galactic Transit
 
+### 3.26.0 — 2026-09-24
+
+**Flight, fourth cut: streaks, an ion drive, a better lever.** Moving ships leave streaks now: lines of light rushing past, like a star field at warp, stronger the faster the ship goes — switchable under Visuals ("flight streaks"), on by default. The ship sounds like an ion drive rather than a rocket: an electric vehicle's whine that climbs from about 240 Hz at rest to 1,300 Hz at full, pulsed faster as it goes, over a soft motor hum; the burst adds a thump, a rising charge and a brighter second voice. No noise any more. The throttle lever's zero sits a quarter of the way up, so most of its travel is forward, on a curve that gives little speed in the middle (18% halfway) and the rest near the top; below the zero is reverse, which holds only while the finger does and springs back to zero when let go. The speed the ship is actually making is shown bottom centre in its own readout, with the lever's setting under it (it used to ride in the scale note, which the "scale text" setting hides). And flying slides the status bar away, the way the swipe-down does; landing brings it back if it was up.
+
+- V3.26.0 — flight, fourth cut: streaks, an ion drive, a better lever (`b651271`)
+
 ### 3.25.0 — 2026-09-24
 
 **Roll the ship.** In flight, twisting two fingers rolls the ship left or right about its line of sight, the scene turning with the fingers the way a map does; a pinch still zooms. On a desktop a right-drag rolls it the same way. Out of flight nothing changes: two fingers and the right button still pan, and the camera stays level.
