@@ -5,6 +5,9 @@ before the work starts. An item is ticked when it ships, with the version that c
 
 ## 2026-09-24
 
+- [ ] Add three more background tracks — Galactic Year: Dreamtime Kids Mix (Quieter),
+      Cosmic Synth Ritual, Zero-Beat Orbit — with the Dreamtime Kids Mix playing first.
+
 - [x] A free flight mode, switched on by a button, with the speed of movement set by the
       current scale of the view (zoomed in, slow; zoomed out, fast), the movement option
       chosen by the piece, and the speed also tied to the passing of time. Plan: the eye
