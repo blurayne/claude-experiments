@@ -6,6 +6,12 @@ Hand-written release notes come from `CHANGELOG.notes.md`, never from here.
 
 ## Galactic Transit
 
+### 3.23.0 — 2026-09-24
+
+**Flight, third cut: turn anywhere.** In flight the view now turns freely: a drag carries it over the top and upside down, with no stop short of the poles, so any direction can be chosen to fly in. Out of flight the camera stays level exactly as before, and landing levels it, looking where the ship looked. The flight's top speed is thirty percent higher. The + and − buttons keep their zoom in flight and out of it, and on a touch screen in flight the dock now stays above the lever and the burst button, which could cover them. Pressing the lever or the burst button no longer flashes the phone browser's square tap highlight or a focus box.
+
+- V3.23.0 — flight, third cut: turn anywhere (`d5fb4e1`)
+
 ### 3.22.1 — 2026-09-24
 
 **The zoom buttons are back, and the dock never hides a button again.** With the Settings panel open on a phone, the right-hand dock was stacked below the panels and every button past the foot of the screen was hidden: the zoom and flight buttons on a 411-wide phone, the whole dock on a small phone or in landscape. Now the Settings panel stops one button-row short of the foot (its content scrolls as before), the dock lays itself out as a row when a column does not fit, and it pins to the foot of the screen rather than disappear.
