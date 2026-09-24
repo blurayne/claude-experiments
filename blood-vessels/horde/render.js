@@ -18,7 +18,11 @@
              polish and a straight-span fallback that are safe in fp32) →
              n_c = (|p − B(t*)| − r(t*)) / r(t*) → exp smooth union across chains
              (k = CONST.K_SMIN) with blended radius / gradient / flow / oxy /
-             kind. The two heaviest chains keep their own arc length s and
+             kind. Per chain, N and the weight come from the min normalized
+             distance, the coordinates (s, lateral offset, r, tangent, kind,
+             flow, oxy) from the Euclidean-closest centreline point, which is
+             continuous across Bézier joints where a taper flips the min.
+             The two heaviest chains keep their own arc length s and
              signed lateral offset, so arc-based textures are evaluated per
              chain and cross-faded, never blended as coordinates.
              WOBBLE: the merged field N is offset before shading, so the wall
@@ -171,7 +175,12 @@ ${GLSL_COMMON}
 float gAcc, gR, gO, gK, gProx, gBest; vec2 gG, gF, gGN;
 float wS0, wS1, wS2; vec4 sA0, sA1, sB0, sB1;      // top-2 chains: (s, lat, r, v), (tan.x, tan.y, kind, oxy)
 vec2 sC0, sC1;                                     // top-2 chains: (Bézier index, t*) — wobble data is fetched for these only
-float cN, cNr, cT, cR, cDist, cFade; int cIdx; vec2 cQ, cTan;
+// per chain, two picks: the weight pick (min faded normalized distance: N, weight, proximity) and the
+// coordinate pick (the Euclidean-closest centreline point: arc, lateral offset, r, tangent, kind, flow).
+// The latter is continuous across Bézier joints even where a taper or a tight bend flips the former,
+// so the chain-space textures (wall fibres, rim, adventitia, lumen) carry no straight seams.
+float cN, cNr, cFade, cRn; int cIdx;
+float eT, eR, eDist; int eIdx; vec2 eQ, eTan;
 int nFull, nVisit;
 
 float wallOf(float k){ return k <= 1.0 ? mix(WALLS.x, WALLS.y, k) : mix(WALLS.y, WALLS.z, k - 1.0); }
@@ -226,31 +235,32 @@ void evalBez(vec2 p, int bi){
   float fade = 1.0 - smoothstep(0.7*reach, reach, dist - r);
   nFull++;
   if(fade <= 0.0) return;
-  float nf = n - K*log2(fade);           // faded contribution: w = 2^(−n/k)·fade
-  if(nf < cN){
-    cN = nf; cNr = n; cFade = fade; cIdx = bi; cT = t; cQ = q; cDist = dist; cR = r;
+  if(dist < eDist){
+    eDist = dist; eIdx = bi; eT = t; eQ = q; eR = r;
     vec2 tg = a + b*t; float tl = length(tg);
-    cTan = tl > 1e-6 ? tg/tl : vec2(1.0, 0.0);
+    eTan = tl > 1e-6 ? tg/tl : vec2(1.0, 0.0);
   }
+  float nf = n - K*log2(fade);           // faded contribution: w = 2^(−n/k)·fade
+  if(nf < cN){ cN = nf; cNr = n; cFade = fade; cIdx = bi; cRn = r; }
 }
 
 void flushChain(vec2 p){
-  if(cIdx < 0) return;
-  int i4 = cIdx*4; ivec2 tc = ivec2(i4 % SEGW, i4 / SEGW);
+  if(cIdx < 0 || eIdx < 0) return;
+  int i4 = eIdx*4; ivec2 tc = ivec2(i4 % SEGW, i4 / SEGW);
   vec4 T2 = texelFetch(uSeg, tc + ivec2(2, 0), 0), T3 = texelFetch(uSeg, tc + ivec2(3, 0), 0);
-  float t = cT;
+  float t = eT;
   float kq0 = floor((T2.w + 0.5)/16.0), kq2 = T2.w - 16.0*kq0;
   float kind = mix(kq0, kq2, t)*0.25;
   float oxy = mix(T3.x, T3.y, t), v = mix(T3.z, T3.w, t);
   float w = exp2(-cN/K);
-  vec2 nr = vec2(-cTan.y, cTan.x);
-  vec2 g = cDist > 1e-3 ? (p - cQ)/cDist : nr;
-  gAcc += w; gR += w*cR; gG += w*g; gF += w*cTan*v; gO += w*oxy; gK += w*kind; gGN += w*g/cR;
-  gProx += cFade*exp2(-max(cNr*cR, 0.0)/(0.12*cR + 45.0));
-  // arc position extrapolated along the tangent: exact for an interior t*, continuous across the
-  // end caps (where a tapering chain's thicker cap wins over the next span and t* sticks at 0/1)
-  vec4 A = vec4(mix(T2.x, T2.y, t) + dot(p - cQ, cTan), dot(p - cQ, nr), cR, v), B = vec4(cTan, kind, oxy);
-  vec2 C = vec2(float(cIdx), t);
+  vec2 nr = vec2(-eTan.y, eTan.x);
+  vec2 g = eDist > 1e-3 ? (p - eQ)/eDist : nr;
+  gAcc += w; gR += w*eR; gG += w*g; gF += w*eTan*v; gO += w*oxy; gK += w*kind; gGN += w*g/eR;
+  gProx += cFade*exp2(-max(cNr*cRn, 0.0)/(0.12*cRn + 45.0));
+  // arc position extrapolated along the tangent: exact for an interior t*, continuous past the
+  // chain's end caps (where t* sticks at 0/1)
+  vec4 A = vec4(mix(T2.x, T2.y, t) + dot(p - eQ, eTan), dot(p - eQ, nr), eR, v), B = vec4(eTan, kind, oxy);
+  vec2 C = vec2(float(eIdx), t);
   if(w > wS0){ wS2 = wS1; wS1 = wS0; sA1 = sA0; sB1 = sB0; sC1 = sC0; wS0 = w; sA0 = A; sB0 = B; sC0 = C; }
   else if(w > wS1){ wS2 = wS1; wS1 = w; sA1 = A; sB1 = B; sC1 = C; }
   else wS2 = max(wS2, w);
@@ -260,7 +270,7 @@ void flushChain(vec2 p){
 void evalField(vec2 p){
   gAcc = 0.0; gR = 0.0; gO = 0.0; gK = 0.0; gProx = 0.0; gBest = 1e9; gG = vec2(0.0); gF = vec2(0.0); gGN = vec2(0.0);
   wS0 = 0.0; wS1 = 0.0; wS2 = 0.0; sA0 = vec4(0.0); sA1 = vec4(0.0); sB0 = vec4(1.0, 0.0, 0.0, 0.5); sB1 = sB0; sC0 = vec2(0.0); sC1 = sC0;
-  cIdx = -1; cN = 1e9; nFull = 0; nVisit = 0;
+  cIdx = -1; cN = 1e9; eIdx = -1; eDist = 1e9; nFull = 0; nVisit = 0;
   ivec2 gi = ivec2(floor((p - uGridO)/uCellSize));
   if(gi.x < 0 || gi.y < 0 || gi.x >= uGridN.x || gi.y >= uGridN.y) return;
   vec2 cd = texelFetch(uCell, gi, 0).rg;
@@ -270,12 +280,12 @@ void evalField(vec2 p){
     int e = off + i; ivec2 lc = ivec2(e % LISTW, e / LISTW);
     vec4 L = texelFetch(uList, lc, 0);       // bounding circle (x, y, R), ±rmax (− = first of a chain)
     nVisit++;
-    if(L.w < 0.0){ flushChain(p); cIdx = -1; cN = 1e9; }
+    if(L.w < 0.0){ flushChain(p); cIdx = -1; cN = 1e9; eIdx = -1; eDist = 1e9; }
     float rmax = abs(L.w);
     float dlow = max(length(p - L.xy) - L.z, 0.0);
     if(dlow >= 1.6*rmax + 160.0) continue;                       // beyond the reach for any radius
     float nlow = dlow/rmax - 1.0;
-    if(nlow >= cN || nlow > min(gBest, cN) + CUT) continue;      // cannot win / cannot matter
+    if((nlow >= cN && dlow >= eDist) || nlow > min(gBest, cN) + CUT) continue;   // cannot win either pick / cannot matter
     evalBez(p, int(texelFetch(uLidx, lc, 0).r + 0.5));
   }
   flushChain(p);
@@ -652,13 +662,18 @@ precision highp float;
 layout(location=0) in vec2 aC;
 layout(location=1) in vec4 iA;     // x, y, r, depth
 layout(location=2) in vec4 iB;     // angle, tumble, oxy, alpha
-uniform vec2 uCam, uRes; uniform float uPPU, uLOD, uDof, uFG;
+uniform vec2 uCam, uRes; uniform float uPPU, uLOD, uDof, uFG, uZc;   // uZc: css px per µm
 out vec2 vP; flat out vec4 vI; flat out vec4 vJ; flat out float vS;
 void main(){
   float depth = clamp(iA.w, 0.0, 1.0);
   float r = iA.z*mix(1.0, 0.8, depth)*(uFG > 0.5 ? 2.6 : 1.0);
   float rpx = r*uPPU;
   float blur = uFG > 0.5 ? 0.36*rpx*uDof + 1.0 : uDof*(0.02 + 0.5*smoothstep(0.35, 1.0, depth))*rpx;
+  // calm: while small on screen (diameter < 16 css px) the cells are soft defocused discs sunk a little
+  // into the plasma (no dark dimple rings, no glints) and a few fewer, so the lumen does not compete
+  // with the units; crisp glossy discs from ~16 px up. The foreground layer is never calmed.
+  float calm = uFG > 0.5 ? 0.0 : 1.0 - smoothstep(7.0, 16.0, 2.0*iA.z*uZc);
+  blur = max(blur, calm*0.35*rpx);
   float ext = 1.08 + (blur + 1.5)/max(rpx, 0.5);
   vS = fract(iA.z*7.31 + iA.w*97.13);           // stable per cell (radius and depth never change)
   float c = cos(iB.x), s = sin(iB.x);
@@ -667,10 +682,11 @@ void main(){
   vec2 sp = (w - uCam)*uPPU;
   gl_Position = vec4(sp.x*2.0/uRes.x, -sp.y*2.0/uRes.y, 0.0, 1.0);
   vP = lc;
-  vI = vec4(rpx, blur, depth, clamp(iB.y, 0.0, 1.0));
+  vI = vec4(rpx, blur, mix(depth, 1.0, 0.45*calm), clamp(iB.y, 0.0, 1.0));   // sink/alpha depth (size keeps the true depth)
   // foreground cells stay out of the middle of the screen (where the action is), like a lens vignette
   float edge = uFG > 0.5 ? 0.7*smoothstep(0.25, 0.85, length((iA.xy - uCam)*uPPU*2.0/uRes)) : 1.0;
   vJ = vec4(iB.z, iB.w*uLOD*edge, c, s);
+  vJ.y *= mix(1.0, 0.7, calm);
 }`;
 
 const RBC_FS = `#version 300 es
@@ -1075,7 +1091,7 @@ vec4 drawSite(vec2 pb, float aw, float ph, float hp, int flags, float st, float 
   // height profile: swollen inflamed ring (peak ~0.78), crater lip, pus dome in the middle
   float Rp = 0.52*(1.0 + 0.11*pulse);                                   // the pus dome bulges on each throb
   float xp = rho/Rp;
-  float ring = exp(-pow((x - 0.8)/0.2, 2.0));
+  float zr = (x - 0.8)/0.2; float ring = exp(-zr*zr);          // (pow() of a negative base is undefined in GLSL)
   float dring = -2.0*(x - 0.8)/0.04*ring;
   float dome = sqrt(max(1.0 - xp*xp, 0.0));
   vec2 slope = dir*(0.35*dring/R);
@@ -1084,7 +1100,6 @@ vec4 drawSite(vec2 pb, float aw, float ph, float hp, int flags, float st, float 
   float dif = max(dot(n, LDIR), 0.0);
   vec3 swell = mix(vec3(0.34, 0.06, 0.12), vec3(0.72, 0.24, 0.26), ring);
   vec3 c = swell;
-  float lip = smoothstep(0.62, 0.7, x/Rp*0.52/0.52*Rp/R*R) ;
   float pusM = fill(xp - 1.0, aw*1.5/Rp);
   vec3 pus = mix(vec3(0.55, 0.70, 0.12), vec3(0.90, 1.0, 0.45), 0.3 + 0.7*dif);
   vec2 bq = ps/0.13 + vec2(0.0, -t*0.2); vec2 bi = floor(bq);
@@ -1092,7 +1107,7 @@ vec4 drawSite(vec2 pb, float aw, float ph, float hp, int flags, float st, float 
   pus = mix(pus, vec3(0.98, 1.0, 0.7), 0.35*bub);
   c = c*(0.35 + 0.85*dif);
   // crusty yellow lip around the pus
-  float lipM = exp(-pow((xp - 1.08)/0.12, 2.0));
+  float zl = (xp - 1.08)/0.12; float lipM = exp(-zl*zl);
   c = mix(c, vec3(0.86, 0.70, 0.40)*(0.5 + 0.7*dif), 0.8*lipM);
   c = mix(c, pus, pusM);
   c += vec3(1.0, 1.0, 0.85)*pow(max(dot(n, HDIR), 0.0), 30.0)*0.5*(0.4 + 0.6*pusM);
@@ -1166,7 +1181,7 @@ void main(){
   } else if(uPass == 2){
     res = drawRing(type, pb, aw, st, ph, flags, vD.z, jig)*(1.0 - icon);
   } else {
-    float faceMix = type == 0 ? smoothstep(13.0, 19.0, rcss) : smoothstep(9.0, 14.0, rcss);
+    float faceMix = type == 0 ? smoothstep(10.0, 12.0, rcss) : smoothstep(9.0, 14.0, rcss);   // WBC face: right after the icon fades (rc 7..11)
     if(icon < 1.0){
       if(type == 0) res = drawWBC(pb, ang, aw, st, ph, flags, hp, look, tint, vD.y, faceMix, vD.z, jig);
       else if(type == 1) res = drawVirus(pb, ps, aw, ph, look, faceMix, flags);
@@ -1521,8 +1536,9 @@ BV.createRenderer = function(canvas, net, opts){
       if(units && units.count){
         const U = units.data;
         for(let k=0;k<units.count;k++){
-          const q = k*16, ur = U[q+2]*1.9;
-          const dd = Math.hypot(U[q]-x, U[q+1]-y) - ur - r;
+          const q = k*16, ur = U[q+2]*1.9, ex = U[q]-x, ey = U[q+1]-y, lim = ur + 2*r;
+          if(ex > lim || ex < -lim || ey > lim || ey < -lim) continue;     // farther than ur + 2r: cannot fade it
+          const dd = Math.sqrt(ex*ex + ey*ey) - ur - r;
           if(dd < r){ a = Math.min(a, w*Math.max(0, dd/r)); if(a <= 0) break; }
         }
       }
@@ -1541,6 +1557,7 @@ BV.createRenderer = function(canvas, net, opts){
     gl.uniform2f(u.uCam, cam.x, cam.y);
     gl.uniform2f(u.uRes, canvas.width, canvas.height);
     gl.uniform1f(u.uPPU, cam.z*dpr);
+    gl.uniform1f(u.uZc, cam.z);
     gl.uniform1f(u.uLOD, frame.rbcLOD == null ? 1 : frame.rbcLOD);
     gl.uniform1f(u.uDof, quality.dof ? 1 : 0);
     gl.uniform1f(u.uFG, fg ? 1 : 0);

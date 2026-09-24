@@ -364,20 +364,24 @@ function bezierClosest(px, py, ax, ay, bx, by, cx, cy){
   const p = ky - kx*kx, p3 = p*p*p;
   const q = kx*(2*kx*kx - 3*ky) + kz;
   const h = q*q + 4*p3;
-  const ev = t => { const qx = Dx + (2*Ax + Bx*t)*t, qy = Dy + (2*Ay + By*t)*t; return qx*qx+qy*qy; };
+  // |B(t) − p|² = |D + (2A + B·t)·t|², written out inline: a closure here would
+  // allocate on every call (this runs millions of times while physics tiles build)
   if(h >= 0){
     const hs = Math.sqrt(h);
     const x0 = (hs - q)/2, x1 = (-hs - q)/2;
     const u = Math.cbrt(x0), v = Math.cbrt(x1);
     let t = u + v - kx; t = t<0?0:t>1?1:t;
-    BZ.t = t; BZ.d2 = ev(t);
+    const qx = Dx + (2*Ax + Bx*t)*t, qy = Dy + (2*Ay + By*t)*t;
+    BZ.t = t; BZ.d2 = qx*qx + qy*qy;
   } else {
     const z = Math.sqrt(-p);
     const vv = Math.acos(Math.max(-1, Math.min(1, q/(p*z*2))))/3;
     const m = Math.cos(vv), nn = Math.sin(vv)*1.732050808;
     let t1 = (m+m)*z - kx, t2 = (-nn-m)*z - kx;
     t1 = t1<0?0:t1>1?1:t1; t2 = t2<0?0:t2>1?1:t2;
-    const d1 = ev(t1), d2 = ev(t2);
+    const q1x = Dx + (2*Ax + Bx*t1)*t1, q1y = Dy + (2*Ay + By*t1)*t1;
+    const q2x = Dx + (2*Ax + Bx*t2)*t2, q2y = Dy + (2*Ay + By*t2)*t2;
+    const d1 = q1x*q1x + q1y*q1y, d2 = q2x*q2x + q2y*q2y;
     if(d1 < d2){ BZ.t = t1; BZ.d2 = d1; } else { BZ.t = t2; BZ.d2 = d2; }
   }
 }
@@ -390,49 +394,75 @@ BV.bezierClosest = (px,py,ax,ay,bx,by,cx,cy) => { bezierClosest(px,py,ax,ay,bx,b
 //  merged:    N = −k·log2( Σ_c 2^(−n_c/k) )          (associative smooth union)
 //  attrs:     Σ w_c·attr_c / Σ w_c,  w_c = 2^(−n_c/k)
 function evalAt(net, x, y, out){
+  // Mirrors the world pass of render.js exactly (keep them in sync):
+  //  • each Bézier's contribution fades out at its shading reach (0.6 r + 160 µm):
+  //    fade = 1 − smoothstep(0.7·reach, reach, dist − r), weight 2^(−n/k)·fade;
+  //  • per chain, the weight comes from the smallest faded normalised distance,
+  //    the attributes (radius, gradient, tangent, flow, oxy, kind) from the
+  //    Euclidean-closest centreline point, which stays continuous across joints;
+  //  • kind is read at the GPU's quarter quantisation.
+  // So the physics lumen is the drawn lumen.
   const G = net.grid, B = net.beziers, k = CONST.K_SMIN;
   const gx = Math.floor((x - G.ox)/G.cs), gy = Math.floor((y - G.oy)/G.cs);
   out.N = 1e3; out.d = 1e5; out.rB = 100; out.gx = 0; out.gy = 0; out.fx = 0; out.fy = 0;
-  out.oxy = 0.5; out.kind = 0; out.chain = -1; out.s = 0; out.wall = CONST.WALL[0];
+  out.oxy = 0.5; out.kind = 0; out.chain = -1; out.s = 0; out.wall = CONST.WALL[0]; out.dmin = 1e5;
   if(gx < 0 || gy < 0 || gx >= G.w || gy >= G.h) return out;
   const L = G.cells[gy*G.w + gx];
   if(!L.length) return out;
   let acc = 0, aR = 0, aGx = 0, aGy = 0, aFx = 0, aFy = 0, aO = 0, aK = 0, dmin = 1e9;
   let bestN = 1e9, bestChain = -1, bestS = 0;
-  let cur = -1, cn = 1e9, cr = 0, cgx = 0, cgy = 0, ctx = 0, cty = 0, cv = 0, co = 0, ck = 0, cs = 0, cd = 1e9;
-  const flush = () => {
-    if(cur < 0) return;
-    const w = Math.pow(2, -cn/k);
-    acc += w; aR += w*cr; aGx += w*cgx; aGy += w*cgy; aFx += w*ctx*cv; aFy += w*cty*cv; aO += w*co; aK += w*ck;
-    if(cd < dmin) dmin = cd;
-    if(cn < bestN){ bestN = cn; bestChain = cur; bestS = cs; }
-  };
+  // cn: weight pick (min faded n); e*: coordinate pick (Euclidean-closest point)
+  let cur = -1, cn = 1e9, ed = 1e9, er = 0, egx = 0, egy = 0, etx = 0, ety = 0, ev = 0, eo = 0, ek = 0, es = 0, cd = 1e9;
+  // The per-chain flush is written out twice (on a chain change, and after the
+  // loop) rather than as a closure: a closure capturing these mutable doubles
+  // moves them into a heap context and boxes every write (~1.8 KB per call).
   for(let i=0;i<L.length;i++){
     const b = B[L[i]];
-    if(b.chain !== cur){ flush(); cur = b.chain; cn = 1e9; cd = 1e9; }
+    if(b.chain !== cur){
+      if(cur >= 0 && cn < 1e8 && ed < 1e8){   // flush the previous chain
+        const w = Math.pow(2, -cn/k);
+        acc += w; aR += w*er; aGx += w*egx; aGy += w*egy; aFx += w*etx*ev; aFy += w*ety*ev; aO += w*eo; aK += w*ek;
+        if(cd < dmin) dmin = cd;
+        if(cn < bestN){ bestN = cn; bestChain = cur; bestS = es; }
+      }
+      cur = b.chain; cn = 1e9; ed = 1e9; cd = 1e9;
+    }
     bezierClosest(x, y, b.ax, b.ay, b.bx, b.by, b.cx, b.cy);
     const t = BZ.t, dist = Math.sqrt(BZ.d2);
     const r = b.r0 + (b.r2-b.r0)*t;
-    const n = (dist - r)/r;
-    if(n < cn){
-      cn = n; cr = r; cd = dist - r;
-      // closest point + tangent
+    const reach = 0.6*r + 160, e0 = 0.7*reach, xr = dist - r;
+    let fade = 1;
+    if(xr >= reach) continue;
+    if(xr > e0){ const f = (xr - e0)/(reach - e0); fade = 1 - f*f*(3 - 2*f); if(fade <= 0) continue; }
+    if(xr < cd) cd = xr;
+    if(dist < ed){
+      ed = dist; er = r;
       const u = 1-t;
       const qx = u*u*b.ax + 2*u*t*b.bx + t*t*b.cx, qy = u*u*b.ay + 2*u*t*b.by + t*t*b.cy;
       let tx = 2*(u*(b.bx-b.ax) + t*(b.cx-b.bx)), ty = 2*(u*(b.by-b.ay) + t*(b.cy-b.by));
-      const tl = Math.hypot(tx,ty) || 1; tx /= tl; ty /= tl;
-      let ux = x - qx, uy = y - qy; const ul = Math.hypot(ux,uy);
-      if(ul > 1e-6){ ux /= ul; uy /= ul; } else { ux = -ty; uy = tx; }
-      cgx = ux; cgy = uy; ctx = tx; cty = ty;
-      cv = b.v0 + (b.v2-b.v0)*t; co = b.o0 + (b.o2-b.o0)*t;
-      ck = b.k0 + (b.k2-b.k0)*t;
-      cs = b.s0 + (b.s2-b.s0)*t;
+      const tl = Math.sqrt(tx*tx + ty*ty);
+      if(tl > 1e-6){ tx /= tl; ty /= tl; } else { tx = 1; ty = 0; }
+      let ux = x - qx, uy = y - qy; const ul = Math.sqrt(ux*ux + uy*uy);
+      if(ul > 1e-3){ ux /= ul; uy /= ul; } else { ux = -ty; uy = tx; }
+      egx = ux; egy = uy; etx = tx; ety = ty;
+      ev = b.v0 + (b.v2-b.v0)*t; eo = b.o0 + (b.o2-b.o0)*t;
+      const k0 = Math.round(4*b.k0), k2 = Math.round(4*b.k2);
+      ek = (k0 + (k2-k0)*t)*0.25;
+      es = b.s0 + (b.s2-b.s0)*t;
     }
+    const nf = (dist - r)/r - k*Math.log2(fade);
+    if(nf < cn) cn = nf;
   }
-  flush();
-  const N = -k*Math.log2(acc);
+  if(cur >= 0 && cn < 1e8 && ed < 1e8){   // flush the last chain
+    const w = Math.pow(2, -cn/k);
+    acc += w; aR += w*er; aGx += w*egx; aGy += w*egy; aFx += w*etx*ev; aFy += w*ety*ev; aO += w*eo; aK += w*ek;
+    if(cd < dmin) dmin = cd;
+    if(cn < bestN){ bestN = cn; bestChain = cur; bestS = es; }
+  }
+  if(!(acc > 1e-30)) return out;          // everything faded: far tissue
+  const N = Math.min(-k*Math.log2(acc), 6);   // the shader clamps at NFAR = 6
   const rB = aR/acc;
-  let gxx = aGx/acc, gyy = aGy/acc; const gl = Math.hypot(gxx,gyy) || 1;
+  let gxx = aGx/acc, gyy = aGy/acc; const gl = Math.sqrt(gxx*gxx + gyy*gyy) || 1;
   out.N = N; out.rB = rB; out.d = N*rB; out.dmin = dmin;
   out.gx = gxx/gl; out.gy = gyy/gl;
   out.fx = aFx/acc; out.fy = aFy/acc;
@@ -540,6 +570,35 @@ function makeSampler(net){
     const t0 = performance.now(); let k = 0;
     for(let ti=0; ti<tiles.length; ti++){ if(tiles[ti]) continue; build(ti); k++; if(performance.now() - t0 > budgetMs) break; }
     return k;
+  };
+  // Warm the tiles under a rect (µm), nearest its centre first, until budgetMs
+  // runs out (at least one tile per call). Tiles are otherwise built on the
+  // first sample, synchronously, and a view full of new tiles stalls a frame.
+  // Returns how many tiles under the rect are still missing.
+  sample.prewarmRect = function(ax0, ay0, ax1, ay1, budgetMs){
+    const t0 = performance.now();
+    const tx0 = Math.max(0, Math.floor((Math.min(ax0, ax1) - x0)/TS)), tx1 = Math.min(TW-1, Math.floor((Math.max(ax0, ax1) - x0)/TS));
+    const ty0 = Math.max(0, Math.floor((Math.min(ay0, ay1) - y0)/TS)), ty1 = Math.min(THt-1, Math.floor((Math.max(ay0, ay1) - y0)/TS));
+    let mx = 0.5*(ax0 + ax1), my = 0.5*(ay0 + ay1);
+    if(!isFinite(mx)) mx = x0 + 0.5*(tx0 + tx1 + 1)*TS;
+    if(!isFinite(my)) my = y0 + 0.5*(ty0 + ty1 + 1)*TS;
+    for(let k=0;; k++){
+      let best = -1, bd = Infinity, missing = 0;
+      for(let ty=ty0; ty<=ty1; ty++) for(let tx=tx0; tx<=tx1; tx++){
+        const ti = ty*TW + tx;
+        if(tiles[ti]) continue;
+        missing++;
+        const dx = x0 + (tx + 0.5)*TS - mx, dy = y0 + (ty + 0.5)*TS - my, d = dx*dx + dy*dy;
+        if(d < bd){ bd = d; best = ti; }
+      }
+      if(best < 0 || (k > 0 && performance.now() - t0 > budgetMs)) return missing;
+      build(best);
+    }
+  };
+  // true when sampling (x, y) will not have to build a tile first
+  sample.isBuilt = function(x, y){
+    const tx = Math.floor((x - x0)/TS), ty = Math.floor((y - y0)/TS);
+    return tx < 0 || ty < 0 || tx >= TW || ty >= THt || !!tiles[ty*TW + tx];
   };
   sample.stats = () => ({ built, total: tiles.length });
   return sample;

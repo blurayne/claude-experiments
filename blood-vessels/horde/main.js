@@ -53,8 +53,23 @@ const QS = new URLSearchParams(location.search);
 const PDB = QS.has('pdb');                       // preserveDrawingBuffer, for screenshots
 const SKEY = 'bv-horde-settings-v1';
 const DEF = { quality:'auto', rbc:true, dof:true, fg:true, edge:true, difficulty:'normal', gen:'' };
-const settings = Object.assign({}, DEF, (()=>{ try { const s = JSON.parse(localStorage.getItem(SKEY) || 'null'); return s && typeof s === 'object' ? s : {}; } catch(e){ return {}; } })());
-function saveSettings(){ try { localStorage.setItem(SKEY, JSON.stringify(settings)); } catch(e){} }
+// only what the viewer chose is stored (validated on read: an old or hand-edited value
+// must not break boot); the URL overrides below apply to this page load only
+const stored = (()=>{
+  const o = {};
+  try {
+    const s = JSON.parse(localStorage.getItem(SKEY) || 'null');
+    if(!s || typeof s !== 'object' || Array.isArray(s)) return o;
+    if(typeof s.quality === 'string' && /^(auto|high|medium|low)$/.test(s.quality)) o.quality = s.quality;
+    for(const k of ['rbc', 'dof', 'fg', 'edge']) if(typeof s[k] === 'boolean') o[k] = s[k];
+    if(typeof s.difficulty === 'string' && /^(easy|normal|hard)$/.test(s.difficulty)) o.difficulty = s.difficulty;
+    if(typeof s.gen === 'string') o.gen = s.gen;
+  } catch(e){}
+  return o;
+})();
+const settings = Object.assign({}, DEF, stored);
+function saveSettings(){ try { localStorage.setItem(SKEY, JSON.stringify(stored)); } catch(e){} }
+function setSetting(k, v){ settings[k] = v; stored[k] = v; saveSettings(); }
 {
   const q = QS.get('q'); if(q && /^(auto|high|medium|low)$/.test(q)) settings.quality = q;
   const flag = k => { const v = QS.get(k); return v == null ? null : !/^(0|off|false|no)$/i.test(v); };
@@ -80,6 +95,7 @@ const G = {
   userPaused:false, modalPaused:false, hiddenPaused:false, held:false,
   get paused(){ return this.userPaused || this.modalPaused || this.hiddenPaused || this.held; },
   time:0, acc:0, simDirty:true, endShown:null, frames:0, ticks:0, errors:0,
+  infWarn:{}, dangerQ:-1, critical:false,          // near-defeat warnings (updateHud)
 };
 const glc = $('gl'), ov = $('ov'), octx = ov.getContext('2d');
 const mm = $('mm'), mctx = mm.getContext('2d');
@@ -87,6 +103,9 @@ const V = { w:1, h:1, dpr:1, odpr:1 };              // css viewport, GL dpr, ove
 
 const cam = { x:0, y:0, z:0.1 };
 let lzGoal = Math.log(0.1), anchor = null, fly = null, zMin = 0.05;
+// after the fly-in the idle horde still drifts to the vessel wall and settles there;
+// the camera keeps it framed until then unless the player takes the camera
+let introFollow = null;
 const vel = { x:0, y:0 };                            // inertia (µm/s)
 const keyV = { x:0, y:0 };                           // keyboard / edge pan (css px/s)
 const lastCam = { x:NaN, y:NaN, z:NaN };
@@ -118,13 +137,17 @@ function perfTick(dt){
   if(dt <= 0) return;
   const T = perf.clock += dt;                     // real time (grace / hysteresis must not stretch at low fps)
   const ms = dt*1000;
-  perf.ema += (Math.min(ms, 120) - perf.ema)*0.08;
+  // an isolated spike (a tile build, a GC) is capped relative to the EMA so it cannot
+  // dominate it; a real move to a slower steady state still converges (the cap doubles)
+  perf.ema += (Math.min(ms, 120, Math.max(33, 2*perf.ema)) - perf.ema)*0.08;
   perf.fc++; perf.ft += dt;
   if(perf.ft >= 0.5){ perf.fps = perf.fc/perf.ft; perf.fc = 0; perf.ft = 0; }
   if(settings.quality !== 'auto' || !G.ready || T < perf.grace || G.hiddenPaused) return;
   // frame time is the main signal; GPU time (when the renderer can measure it) catches a
-  // GPU-bound frame that the rAF cadence hides for a moment
-  if(perf.ema > 21.5 || perf.gpuMs > 19){ perf.bad += dt; perf.good = 0; }
+  // GPU-bound frame that the rAF cadence hides for a moment, and tells a CPU-bound slow
+  // phase (which a lower render scale cannot fix) from a GPU-bound one
+  const gpuExplains = perf.gpuMs == null || perf.gpuMs > 0.6*perf.ema;
+  if((perf.ema > 21.5 && gpuExplains) || perf.gpuMs > 19){ perf.bad += dt; perf.good = 0; }
   else if(perf.ema < 17.8 && !(perf.gpuMs > 12)){ perf.good += dt; perf.bad = Math.max(0, perf.bad - dt); }
   else { perf.bad = Math.max(0, perf.bad - 0.5*dt); perf.good = 0; }
   if(perf.bad > 0.9 && perf.lvl < LEVELS.length - 1){
@@ -158,18 +181,32 @@ function resize(){
   if(ov.height !== oh) ov.height = oh;
   if(G.R) G.R.resize(w, h, V.dpr);
   if(G.net){
+    // the minimap first: its height is part of the HUD band that computeZMin measures
+    if(mmState.cssW !== (mm.clientWidth || 0) || mmState.dpr !== Math.min(window.devicePixelRatio || 1, 2)) buildMinimap();
     computeZMin();
     lzGoal = clamp(lzGoal, Math.log(zMin), Math.log(MAX_ZOOM));
     cam.z = clamp(cam.z, zMin, MAX_ZOOM);
     clampCam();
-    if(mmState.cssW !== (mm.clientWidth || 0)) buildMinimap();
   }
   G.simDirty = true; renderDirty = true;
   panelRectsT = -1;
 }
+// the free vertical band between the top and the bottom row of HUD panels (css px);
+// on layouts where the panels would leave almost no room the whole window is used
+let hud = { t:0, b:0 };
+function hudInsets(){
+  refreshPanelRects();
+  let t = 0, b = 0;
+  for(const r of panelRects){ if(r.b < V.h*0.5) t = Math.max(t, r.b); else if(r.t > V.h*0.5) b = Math.max(b, V.h - r.t); }
+  if(t + b > V.h*0.6){ t = b = 0; }
+  return { t, b };
+}
+// world y offset of the free band's centre from the window centre at zoom z
+const hudOffY = z => -(hud.t - hud.b)/(2*z);
 function computeZMin(){
   const b = G.net.bounds;
-  zMin = Math.min(MAX_ZOOM, 0.98*Math.min(V.w/Math.max(1, b.x1 - b.x0), V.h/Math.max(1, b.y1 - b.y0)));
+  hud = hudInsets();
+  zMin = Math.min(MAX_ZOOM, 0.98*Math.min(V.w/Math.max(1, b.x1 - b.x0), (V.h - hud.t - hud.b)/Math.max(1, b.y1 - b.y0)));
 }
 
 // ============================================================================
@@ -177,18 +214,20 @@ function computeZMin(){
 // ============================================================================
 // per axis: a view larger than the map is centred; a smaller one may show up to
 // 15 % of a screen beyond the map edge (fading to 0 as the view nears the map
-// size, so the whole-map view cannot be dragged away)
-function axisClamp(v, a0, a1, h){
-  const L = Math.max(1, a1 - a0), r = 2*h/L;
-  if(r >= 1) return 0.5*(a0 + a1);
+// size, so the whole-map view cannot be dragged away). `off` shifts the centred
+// position (y: centre the map in the band between the HUD rows); the clamp range
+// always admits it, so zooming in from the whole-map view does not jump.
+function axisClamp(v, a0, a1, h, off){
+  const L = Math.max(1, a1 - a0), r = 2*h/L, c = 0.5*(a0 + a1) + (off || 0);
+  if(r >= 1) return c;
   const pad = 0.3*h*clamp((1 - r)/0.5, 0, 1);
-  return clamp(v, a0 + h - pad, a1 - h + pad);
+  return clamp(v, Math.min(a0 + h - pad, c), Math.max(a1 - h + pad, c));
 }
 function clampCam(){
   if(!G.net) return;
   const b = G.net.bounds;
-  const nx = axisClamp(cam.x, b.x0, b.x1, V.w/(2*cam.z));
-  const ny = axisClamp(cam.y, b.y0, b.y1, V.h/(2*cam.z));
+  const nx = axisClamp(cam.x, b.x0, b.x1, V.w/(2*cam.z), 0);
+  const ny = axisClamp(cam.y, b.y0, b.y1, V.h/(2*cam.z), hudOffY(cam.z));
   if(nx !== cam.x){ vel.x = 0; cam.x = nx; }
   if(ny !== cam.y){ vel.y = 0; cam.y = ny; }
 }
@@ -198,6 +237,8 @@ function zoomAt(sx, sy, dlz){
   lzGoal = clamp(lzGoal + clamp(dlz, -0.8, 0.8), Math.log(zMin), Math.log(MAX_ZOOM));
   anchor = { sx, sy, wx: toWX(sx), wy: toWY(sy) };
 }
+// wheel → log-zoom step; a trackpad pinch arrives as ctrl+wheel with small deltas
+const wheelZoom = e => { let dy = e.deltaY; if(e.deltaMode === 1) dy *= 16; else if(e.deltaMode === 2) dy *= V.h; return -dy*(e.ctrlKey ? 0.011 : 0.0019); };
 // van Wijk & Nuij "smooth and efficient zooming and panning" (the d3 formula)
 function flyTo(x, y, z, maxT){
   z = clamp(z, zMin, MAX_ZOOM);
@@ -276,9 +317,27 @@ function comfortZoom(x, y){
   let rB = 300;
   try { const o = G.net.evalAt(x, y, {}); if(o && o.N < 1 && o.rB > 20) rB = o.rB; } catch(e){}
   const span = Math.sqrt(V.w*V.h);
-  return clamp(0.95*span/(2*rB), Math.min(zMin*1.5, MAX_ZOOM), MAX_ZOOM*0.5);
+  const zUnit = 12/WBC_R;           // a white cell ≈ 12 css px in radius: the full glassy cell with its face (past the icon blend)
+  return clamp(Math.max(0.95*span/(2*rB), zUnit), Math.min(zMin*1.5, MAX_ZOOM), MAX_ZOOM*0.5);
 }
-function overview(){ const b = G.net.bounds; flyTo(0.5*(b.x0 + b.x1), 0.5*(b.y0 + b.y1), zMin); }
+// the fly-in zoom: the comfortable unit zoom, but wide enough that a settling horde
+// (a clump ~160 µm in radius on the wall) stays inside the band between the HUD rows
+function startZoom(c){
+  const band = Math.max(120, Math.min(V.w, V.h - hud.t - hud.b));
+  return clamp(Math.min(comfortZoom(c.x, c.y), 0.5*band/160), Math.min(zMin*1.5, MAX_ZOOM), MAX_ZOOM);
+}
+function stepIntroFollow(dt){
+  const f = introFollow;
+  if(!f) return;
+  // the player took the camera (zoom, drag, pinch, keys, a jump elsewhere) or time is up
+  if(f.net !== G.net || animT > f.until || anchor || gesture || keyV.x || keyV.y || vel.x || vel.y || (fly && !fly.intro)){ introFollow = null; return; }
+  if(fly) return;                                   // still flying in
+  if(animT >= f.next){ f.next = animT + 0.25; f.c = hordeCenter(false); }
+  if(!f.c) return;
+  const k = 1 - Math.exp(-dt*2.2), ty = f.c.y + hudOffY(cam.z);
+  cam.x += (f.c.x - cam.x)*k; cam.y += (ty - cam.y)*k;
+}
+function overview(){ const b = G.net.bounds; flyTo(0.5*(b.x0 + b.x1), 0.5*(b.y0 + b.y1) + hudOffY(zMin), zMin); }
 
 // ============================================================================
 //  units buffer helpers (instance layout from the spec: 16 floats)
@@ -341,7 +400,7 @@ let pathPrev = null;
 function pushLimited(arr, item, max){ arr.push(item); if(arr.length > max) arr.splice(0, arr.length - max); }
 function giveOrder(wx, wy){
   const S = G.S; if(!S) return;
-  const had = selCount();
+  const had = selCount(), ser0 = maxOrderSerial();
   let r;
   try { r = S.command(wx, wy) || { ok:false, x:wx, y:wy }; } catch(e){ r = { ok:false, x:wx, y:wy }; console.error(e); }
   const x = isFinite(r.x) ? r.x : wx, y = isFinite(r.y) ? r.y : wy;
@@ -349,19 +408,37 @@ function giveOrder(wx, wy){
   if(!r.ok){
     if(!had) toast('Select white cells first', 'info', 'nosel', 4);
     else toast('No way through to there', 'warn', 'noreach', 3);
-    return;
+    return false;
   }
   G.simDirty = true;
-  startPathPreview();
+  startPathPreview(r, ser0);
+  return true;
 }
-function startPathPreview(){
+// the newest order: [slot, serial] (serials only grow), or [-1, -1]
+function newestOrder(){
+  const O = G.S && G.S.orders; let slot = -1, ser = -1;
+  if(Array.isArray(O)) O.forEach((o, i) => { if(o && o.serial > ser){ ser = o.serial; slot = i; } });
+  return [slot, ser];
+}
+const maxOrderSerial = () => newestOrder()[1];
+// r: what S.command returned. When it names the order ({slot, serial}) the preview uses
+// it; otherwise the preview waits for the first order newer than ser0 (the newest serial
+// before the command) — S.orders may only publish it on the next S.update.
+function startPathPreview(r, ser0){
   const S = G.S;
   pathPrev = null;
   if(!S || typeof S.tracePath !== 'function' || !Array.isArray(S.orders)) return;
   let slot = -1, ser = -1;
-  S.orders.forEach((o, i) => { if(o && o.serial > ser){ ser = o.serial; slot = i; } });
-  if(slot < 0) return;
-  pathPrev = { slot, serial: ser, t0: animT, calcT: -1, pts: new Float32Array(2*240), n: 0 };
+  if(r && Number.isInteger(r.slot) && r.serial > 0){ slot = r.slot; ser = r.serial; }
+  pathPrev = { slot, serial: ser, after: ser0 == null ? -1 : ser0, t0: animT, calcT: -1, pts: new Float32Array(2*240), n: 0 };
+  adoptPathOrder(pathPrev);
+}
+function adoptPathOrder(P){
+  if(P.slot >= 0) return true;
+  const [slot, ser] = newestOrder();
+  if(slot < 0 || ser <= P.after) return false;
+  P.slot = slot; P.serial = ser;
+  return true;
 }
 let lastAll = -1;          // selection count right after "select all" (a second press clears)
 function selectAll(){
@@ -386,7 +463,7 @@ function goHome(){
 function setUserPause(p){ G.userPaused = !!p; updatePauseUi(); }
 function restart(){
   closeModals();
-  G.endShown = null;
+  G.endShown = null; resetDanger();
   if(G.S){
     if(settings.difficulty !== G.S._difficultyFromMain && typeof G.S.setDifficulty !== 'function'){
       G.S = BV.createSim(G.net, { seed: G.seed, difficulty: settings.difficulty });
@@ -442,6 +519,8 @@ function genOpts(){
 async function loadMap(seed, first){
   if(G.loading) return;
   G.loading = true; G.ready = false;
+  introFollow = null;
+  clearOverlay();
   closeModals();
   showLoading(first ? 'growing the vessel network…' : 'growing a new vessel network…');
   await paint();
@@ -451,7 +530,17 @@ async function loadMap(seed, first){
     const gen = BV.generate(seed, genOpts());
     setLoad('solving blood flow…'); await paint();
     net = BV.buildNet(gen);
-  } catch(err){ G.loading = false; return showError('The map could not be generated', 'The vessel generator failed for seed ' + seed + '. Try another seed.', err); }
+  } catch(err){
+    G.loading = false;
+    // a new map that fails to grow leaves the running one untouched: go back to it
+    if(!first && G.net && G.R && G.S){
+      console.error(err);
+      G.ready = true; lastTs = 0; hideLoading();
+      toast('Seed ' + seed + ' failed to grow — try another', 'bad');
+      return;
+    }
+    return showError('The map could not be generated', 'The vessel generator failed for seed ' + seed + '. Reload to try another seed.', err);
+  }
   const tGen = now() - t0;
   setLoad('warming up the renderer…'); await paint();
   try {
@@ -464,41 +553,52 @@ async function loadMap(seed, first){
     G.S = BV.createSim(net, { seed, difficulty: settings.difficulty });
     G.S._difficultyFromMain = settings.difficulty;
   } catch(err){ G.loading = false; return showError('The simulation could not start', 'The white-cell simulation failed to initialise.', err); }
-  G.net = net; G.seed = seed; G.time = 0; G.acc = 0; G.endShown = null; G.simDirty = true; tilesDone = false;
-  markers.length = 0; popups.length = 0; pings.length = 0; pathPrev = null;
-  hudCache.clear();
-  resize();
-  if(first) perf.lvl = settings.quality === 'auto' ? initialLevel() : 0;
-  applyQuality();
-  // let the nav grid / physics tiles build before the first frame (bounded)
-  setLoad('charting the currents…');
-  const tEnd = now() + 2200;
-  while(now() < tEnd){
-    let done = true;
-    try { if(typeof G.S.prewarm === 'function') done = !!G.S.prewarm(28); } catch(e){ done = true; }
-    try { if(net.sample && net.sample.prewarm) net.sample.prewarm(6); } catch(e){}
-    if(done) break;
-    await paint();
+  try {
+    G.net = net; G.seed = seed; G.time = 0; G.acc = 0; G.endShown = null; G.simDirty = true; tilesDone = false; pwNext = 0;
+    markers.length = 0; popups.length = 0; pings.length = 0; pathPrev = null;
+    hudCache.clear(); resetDanger();
+    resize();
+    if(first) perf.lvl = settings.quality === 'auto' ? initialLevel() : 0;
+    applyQuality();
+    // let the nav grid / physics tiles build before the first frame (bounded)
+    setLoad('charting the currents…');
+    const tEnd = now() + 2200;
+    while(now() < tEnd){
+      let done = true;
+      try { if(typeof G.S.prewarm === 'function') done = !!G.S.prewarm(28); } catch(e){ done = true; }
+      try { if(net.sample && net.sample.prewarm) net.sample.prewarm(6); } catch(e){}
+      if(done) break;
+      await paint();
+    }
+    buildMinimap(); computeZMin();      // the new map's minimap height changes the HUD band
+    // camera: whole map (centred in the band between the HUD rows), then fly into the horde
+    const b = net.bounds;
+    cam.x = 0.5*(b.x0 + b.x1); cam.y = 0.5*(b.y0 + b.y1) + hudOffY(zMin); cam.z = zMin; lzGoal = Math.log(zMin);
+    anchor = null; fly = null; vel.x = vel.y = 0;
+    G.S.update(0, fillSimCtx());
+    const c = hordeCenter(false);
+    $('h-mapname').textContent = '#' + seed;
+    $('s-seed').value = String(seed);
+    try { const u = new URL(location.href); u.searchParams.set('seed', seed); if(settings.gen) u.searchParams.set('gen', settings.gen); else u.searchParams.delete('gen'); history.replaceState(null, '', u.href); } catch(e){}
+    G.ready = true; G.loading = false; lastTs = 0;
+    clearOverlay();
+    perf.grace = perf.clock + 1.5;
+    hideLoading();
+    console.info('[horde] map', seed, 'generated + built in', tGen.toFixed(0), 'ms,', net.chains.length, 'chains,', net.beziers.length, 'Béziers');
+    if(c) setTimeout(() => {
+      if(G.net !== net || fly || gesture) return;
+      flyTo(c.x, c.y + hudOffY(startZoom(c)), startZoom(c), 2.6);
+      if(fly) fly.intro = true;
+      introFollow = { net, until: animT + 9, next: 0 };
+    }, 350);
+    setTimeout(() => {
+      if(G.net !== net) return;
+      toast(touchUi ? 'Tap a white cell to select its horde · tap to send it' : 'Drag to select white cells · right-click to send them · wheel to zoom', 'info', 'hint', 60, 5200);
+    }, first ? 2600 : 1500);
+  } catch(err){
+    G.loading = false;
+    return showError('The map could not be started', 'The map was generated but could not be prepared. Try another seed.', err);
   }
-  buildMinimap();
-  // camera: whole map, then fly into the horde
-  const b = net.bounds;
-  cam.x = 0.5*(b.x0 + b.x1); cam.y = 0.5*(b.y0 + b.y1); cam.z = zMin; lzGoal = Math.log(zMin);
-  anchor = null; fly = null; vel.x = vel.y = 0;
-  G.S.update(0, fillSimCtx());
-  const c = hordeCenter(false);
-  $('h-mapname').textContent = '#' + seed;
-  $('s-seed').value = String(seed);
-  try { const u = new URL(location.href); u.searchParams.set('seed', seed); history.replaceState(null, '', u.href); } catch(e){}
-  G.ready = true; G.loading = false; lastTs = 0;
-  perf.grace = perf.clock + 1.5;
-  hideLoading();
-  console.info('[horde] map', seed, 'generated + built in', tGen.toFixed(0), 'ms,', net.chains.length, 'chains,', net.beziers.length, 'Béziers');
-  if(c) setTimeout(() => { if(G.net === net && !fly && !gesture) flyTo(c.x, c.y, comfortZoom(c.x, c.y), 2.6); }, 350);
-  setTimeout(() => {
-    if(G.net !== net) return;
-    toast(touchUi ? 'Tap a white cell to select its horde · tap to send it' : 'Drag to select white cells · right-click to send them · wheel to zoom', 'info', 'hint', 60, 5200);
-  }, first ? 2600 : 1500);
 }
 async function newMap(seed){
   if(G.loading) return;
@@ -519,6 +619,7 @@ function fillSimCtx(){
 }
 const rbcLOD = () => settings.rbc ? smoothstep(2.5, 6, 2*RBC_R*cam.z) : 0;
 function tick(ts){
+  if(G.dead){ raf = 0; return; }
   raf = requestAnimationFrame(tick);
   const t = ts/1000;
   let dt = lastTs ? t - lastTs : 1/60; lastTs = t;
@@ -530,6 +631,7 @@ function tick(ts){
   if(!G.ready || G.dead) return;
   try {
     stepCamera(dt);
+    stepIntroFollow(dt);
     const moved = camMoved();
     // ---- simulation: whole fixed steps ----------------------------------
     let simDt = 0;
@@ -564,8 +666,15 @@ function tick(ts){
     if(animT - mmState.t > 1/12){ mmState.t = animT; drawMinimap(); }
     if(animT - hudT > 0.2){ hudT = animT; updateHud(); }
     if(perf.clock - perf.statT > 0.5){ perf.statT = perf.clock; try { const s = G.R.stats && G.R.stats(); perf.gpuMs = s && s.gpuMs; if(dbgEl) updateDebug(s); } catch(e){} }
-    // idle time: finish the physics tiles
-    if(perf.ema < 17 && !tilesDone && (G.ticks & 3) === 0 && G.net.sample && G.net.sample.prewarm){ if(!G.net.sample.prewarm(1)) tilesDone = true; }
+    // idle time: finish the physics tiles, a small budget every frame (scaled by headroom,
+    // so slow devices still make progress). A sampler that can only build whole tiles
+    // overshoots the budget: the calls are then spaced so the average stays near it.
+    if(!tilesDone && G.ticks >= pwNext && G.net.sample && G.net.sample.prewarm){
+      const bud = perf.ema < 12 ? 1.5 : perf.ema < 17 ? 0.75 : 0.3, p0 = now();
+      if(!G.net.sample.prewarm(bud)) tilesDone = true;
+      const over = now() - p0 - bud;
+      pwNext = G.ticks + (over > 1 ? Math.min(30, Math.ceil(over/bud)) : 0);
+    }
     G.errors = 0;
   } catch(err){
     G.errors++;
@@ -574,7 +683,7 @@ function tick(ts){
     if(G.errors > 30){ cancelAnimationFrame(raf); raf = 0; showError('Something went wrong', 'The game loop stopped after repeated errors.', err); }
   }
 }
-let hudT = 0, tilesDone = false;
+let hudT = 0, tilesDone = false, pwNext = 0;
 
 // ============================================================================
 //  events → toasts, pop-ups, pings
@@ -639,6 +748,7 @@ function toast(msg, cls, key, minGap, dur){
 //  input
 // ============================================================================
 const touchUi = (navigator.maxTouchPoints || 0) > 0 && matchMedia('(pointer: coarse)').matches;
+document.body.classList.toggle('touch', touchUi);
 const keys = new Set();
 const mouse = { x:-1, y:-1, inWorld:false, type:'mouse', buttons:0, edgeT:0, moved:false };
 const ptrs = new Map();
@@ -861,12 +971,21 @@ function bindInput(){
   ov.addEventListener('wheel', e => {
     e.preventDefault();
     if(!G.ready) return;
-    let dy = e.deltaY;
-    if(e.deltaMode === 1) dy *= 16; else if(e.deltaMode === 2) dy *= V.h;
-    zoomAt(e.clientX, e.clientY, -dy*(e.ctrlKey ? 0.011 : 0.0019));
+    zoomAt(e.clientX, e.clientY, wheelZoom(e));
   }, { passive:false });
-  document.addEventListener('gesturestart', e => e.preventDefault());
-  document.addEventListener('wheel', e => { if(e.ctrlKey) e.preventDefault(); }, { passive:false });   // no page zoom over the HUD
+  // WebKit (macOS Safari) reports a trackpad pinch as gesture events, not ctrl+wheel
+  let gScale = 1, lastCtrlWheel = -1e9;
+  document.addEventListener('gesturestart', e => { e.preventDefault(); gScale = 1; });
+  document.addEventListener('gesturechange', e => {
+    e.preventDefault();
+    const s = e.scale || 1, prev = gScale; gScale = s;
+    if(!G.ready || modalOpen() || ptrs.size || !(s > 0) || !(prev > 0)) return;   // touch pinch: the pointer handlers own it
+    if(now() - lastCtrlWheel < 250) return;                                      // the engine also sent ctrl+wheel: no double zoom
+    const onWorld = e.target === ov; if(!onWorld && e.target !== mm) return;
+    zoomAt(onWorld ? e.clientX : V.w/2, onWorld ? e.clientY : V.h/2, Math.log(s/prev));
+  });
+  document.addEventListener('gestureend', e => e.preventDefault());
+  document.addEventListener('wheel', e => { if(e.ctrlKey){ e.preventDefault(); lastCtrlWheel = now(); } }, { passive:false });   // no page zoom over the HUD
   ov.addEventListener('mousedown', e => { if(e.button === 1) e.preventDefault(); });                   // no middle-click autoscroll
   ov.addEventListener('auxclick', e => e.preventDefault());
   document.addEventListener('dblclick', e => e.preventDefault());
@@ -887,18 +1006,37 @@ function keyName(e){
   }
   return null;
 }
+// Ctrl/Cmd+A by position (QWERTY) or by character (the key labelled A on AZERTY)
+const isSelAllKey = e => e.code === 'KeyA' || e.key === 'a' || e.key === 'A';
 function onKey(e){
+  // keep Tab inside an open dialog (also from its seed input)
+  if(e.key === 'Tab' && modalOpen()){
+    const card = document.querySelector('.modal.show');
+    const f = card ? [...card.querySelectorAll('button, input, select, a[href]')].filter(el => !el.hidden && el.offsetParent !== null) : [];
+    if(f.length){
+      const i = f.indexOf(document.activeElement);
+      const n = e.shiftKey ? (i <= 0 ? f.length - 1 : i - 1) : (i === f.length - 1 ? 0 : i + 1);
+      e.preventDefault(); f[n].focus();
+    }
+    return;
+  }
   const tag = e.target && e.target.tagName;
   if(tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA'){ if(e.key === 'Escape') e.target.blur(); return; }
+  const mod = e.ctrlKey || e.metaKey;
+  const ctl = e.target && e.target.closest ? e.target.closest('button, a, [role="button"]') : null;   // a keyboard-focused control
+  // auto-repeat: only the held keys (pan, Space-pan, Shift, zoom) repeat; toggles fire once per
+  // press (a Space held into a newly focused button, e.g. the end card's, must not press it)
+  if(e.repeat && e.key !== 'Tab' && (e.code !== 'Space' || ctl) && e.key !== 'Shift' && !/^[-+=_]$/.test(e.key) && (mod ? isSelAllKey(e) : !keyName(e))){ e.preventDefault(); return; }
   if(e.key === 'Escape'){ if(modalOpen()){ if(!$('m-end').classList.contains('show')) closeModals(); } else if(G.S){ G.S.clearSelection(); G.simDirty = true; } return; }
-  if(e.key === '?' || e.key === 'F1'){ e.preventDefault(); toggleModal('m-help'); return; }
+  if(e.key === '?' || e.key === 'F1'){ e.preventDefault(); toggleModal('m-help'); return; }   // not over the end card (toggleModal)
   if(modalOpen() || !G.ready) return;
   if(e.key === 'Shift') keys.add('shift');
-  const mod = e.ctrlKey || e.metaKey;
-  if(mod && (e.code === 'KeyA')){ e.preventDefault(); const n = G.S.selectAll(); lastAll = typeof n === 'number' ? n : -2; G.simDirty = true; return; }
+  if(mod && isSelAllKey(e)){ e.preventDefault(); const n = G.S.selectAll(); lastAll = typeof n === 'number' ? n : -2; G.simDirty = true; return; }
   if(mod || e.altKey) return;
   const k = keyName(e);
   if(k){ keys.add(k); e.preventDefault(); return; }
+  // let a keyboard-focused control take Space as its native activation
+  if(e.code === 'Space' && ctl) return;
   if(e.code === 'Space'){ e.preventDefault(); if(!spaceDown){ spaceDown = true; setCursor(); } return; }
   const zx = mouse.inWorld ? mouse.x : V.w/2, zy = mouse.inWorld ? mouse.y : V.h/2;
   switch(e.key){
@@ -933,6 +1071,10 @@ function refreshPanelRects(){
   for(const r of panelRects) if(r.t < V.h*0.3 && r.l < tr && r.r > tl) top = Math.max(top, r.b + 8);
   const ts = Math.round(top) + 'px';
   if(toastBox.style.top !== ts) toastBox.style.top = ts;
+}
+function clearOverlay(){
+  try { octx.setTransform(1, 0, 0, 1, 0, 0); octx.clearRect(0, 0, octx.canvas.width, octx.canvas.height); } catch(e){}
+  ovHadContent = true;
 }
 function drawOverlay(){
   const c = octx, W = V.w, H = V.h;
@@ -972,6 +1114,7 @@ function drawPathPreview(c){
   const P = pathPrev, S = G.S;
   if(!P || !S) return false;
   const age = animT - P.t0;
+  if(!adoptPathOrder(P)){ if(age > 1) pathPrev = null; return false; }     // not published yet
   const o = S.orders && S.orders[P.slot];
   if(age > 4.5 || !o || o.serial !== P.serial || !o.active){ pathPrev = null; return false; }
   if(P.calcT < 0 || animT - P.calcT > 0.35){
@@ -1142,13 +1285,15 @@ function drawIndicators(c){
   let drew = false;
   placed.length = 0;
   c.save();
-  c.font = '600 10px ' + FONT; c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.font = '600 11px ' + FONT; c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.lineJoin = 'round'; c.lineWidth = 3; c.strokeStyle = 'rgba(12,2,4,0.85)';      // label outline: legible over the busy lumen
   // the selected horde first, then sites, then pathogens (placement priority)
   if(selN > 0 && selOn === 0){
     const m = selN - selOn, wx = sx/m, wy = sy/m, dx = toSX(wx) - cx, dy = toSY(wy) - cy, L = Math.hypot(dx, dy) || 1;
     const [x, y] = placeClear(edgePoint(dx/L, dy/L, 26, 18), 26, 18);
     arrow(c, x, y, Math.atan2(dy, dx), 11, '#7ff0ff', 10);
-    c.fillStyle = '#bff8ff'; c.fillText(String(selN), x - dx/L*20, y - dy/L*20);
+    const s = String(selN), lx = x - dx/L*20, ly = y - dy/L*20;
+    c.strokeText(s, lx, ly); c.fillStyle = '#bff8ff'; c.fillText(s, lx, ly);
     drew = true;
   }
   // infection sites (each)
@@ -1161,7 +1306,8 @@ function drawIndicators(c){
     c.beginPath(); c.arc(x - ux*3, y - uy*3, 12 + 4*pulse, 0, TAU); c.stroke();
     c.restore();
     arrow(c, x, y, Math.atan2(uy, ux), 10, '#e1f25a', 10);
-    c.fillStyle = '#eef6a0'; c.fillText(fmtDist(Math.hypot(offSites[i] - cam.x, offSites[i+1] - cam.y)), x - ux*30, y - uy*30);
+    const s = fmtDist(Math.hypot(offSites[i] - cam.x, offSites[i+1] - cam.y)), lx = x - ux*30, ly = y - uy*30;
+    c.strokeText(s, lx, ly); c.fillStyle = '#eef6a0'; c.fillText(s, lx, ly);
     drew = true;
   }
   // pathogens (binned by direction)
@@ -1173,7 +1319,7 @@ function drawIndicators(c){
     const near = clamp(1 - binD[b]/(12*Math.max(W, H)/cam.z), 0, 1);
     arrow(c, x, y, Math.atan2(uy, ux), 7 + 3*near, col, 6);
     const k = nv + nb;
-    if(k > 1){ c.fillStyle = col; c.fillText(String(k), x - ux*16, y - uy*16); }
+    if(k > 1){ c.strokeText(String(k), x - ux*16, y - uy*16); c.fillStyle = col; c.fillText(String(k), x - ux*16, y - uy*16); }
     drew = true;
   }
   c.restore();
@@ -1323,13 +1469,20 @@ function bindMinimap(){
   mm.addEventListener('pointerdown', e => {
     if(!G.ready) return;
     e.preventDefault(); e.stopPropagation();
+    if(e.button === 2){           // RTS convention: right-click on the minimap sends the selection there
+      const r = mm.getBoundingClientRect();
+      const [wx, wy] = mmToWorld(e.clientX - r.left, e.clientY - r.top);
+      if(giveOrder(wx, wy)) pushLimited(pings, { x:wx, y:wy, t0:animT, col:'#7ff0ff', n:1 }, 16);
+      return;
+    }
+    if(e.button !== 0) return;    // middle button: nothing on the minimap
     try { mm.setPointerCapture(e.pointerId); } catch(_){}
     mmState.drag = true; jump(e);
   });
   mm.addEventListener('pointermove', e => { if(mmState.drag){ e.preventDefault(); jump(e); } });
   const end = () => { mmState.drag = false; };
   mm.addEventListener('pointerup', end); mm.addEventListener('pointercancel', end);
-  mm.addEventListener('wheel', e => { e.preventDefault(); if(G.ready) zoomAt(V.w/2, V.h/2, -e.deltaY*(e.deltaMode === 1 ? 16 : 1)*0.0019); }, { passive:false });
+  mm.addEventListener('wheel', e => { e.preventDefault(); if(G.ready) zoomAt(V.w/2, V.h/2, wheelZoom(e)); }, { passive:false });
   mm.addEventListener('contextmenu', e => e.preventDefault());
 }
 
@@ -1366,6 +1519,17 @@ function updateHud(){
   setText('h-imm', Math.round(imm*100) + '%'); setBar('bar-imm', imm);
   setClass($('bar-inf'), 'alarm', inf > 0.75);
   setClass($('h-inf'), 'hot', inf > 0.5);
+  // near defeat: a red screen vignette (horde.html, body::after) and one-shot warnings
+  const danger = state === 'play' ? clamp((inf - 0.5)/0.5, 0, 1) : 0;
+  const dq = Math.round(danger*20)/20;             // quantised: the style is not rewritten every frame
+  if(dq !== G.dangerQ){ G.dangerQ = dq; document.body.style.setProperty('--danger', String(dq*0.9)); }
+  const crit = state === 'play' && inf > 0.75;
+  if(crit !== G.critical){ G.critical = crit; document.body.classList.toggle('critical', crit); }
+  // infection decays, so a warning re-arms once the level drops 10 points below its threshold
+  for(const [th, msg] of INF_WARN){
+    if(state === 'play' && inf >= th && !G.infWarn[th]){ G.infWarn[th] = true; toast(msg, 'bad', null, 0, 4200); }
+    else if(inf < th - 0.1) G.infWarn[th] = false;
+  }
   setText('h-pop', String(wbc));
   setText('h-time', fmtTime(st.time != null ? st.time : G.time));
   setText('h-score', Math.round(st.score || 0).toLocaleString('en-US'));
@@ -1373,10 +1537,17 @@ function updateHud(){
   setClass($('b-all'), 'on', lastAll > 0 && sel === lastAll);
   if((state === 'over' || state === 'won') && !G.endShown) showEnd(state, st.score);
 }
+const INF_WARN = [[0.5, 'Infection 50 % — clear the infection sites'], [0.75, 'Infection 75 % — hunt the escaping pathogens'], [0.9, 'Infection 90 % — the tissue is about to be lost']];
+function resetDanger(){
+  G.infWarn = {}; G.dangerQ = -1; G.critical = false;
+  document.body.style.removeProperty('--danger');
+  document.body.classList.remove('critical');
+}
 function updatePauseUi(){
   const p = G.userPaused;
   document.body.classList.toggle('paused', p);
   $('b-pause').classList.toggle('paused', p);
+  $('b-pause').setAttribute('aria-pressed', p ? 'true' : 'false');
   $('b-pause-l').textContent = p ? 'Resume' : 'Pause';
   renderDirty = true;
 }
@@ -1385,10 +1556,14 @@ function updatePauseUi(){
 //  modals: settings, help, game over
 // ============================================================================
 const MODALS = ['m-set', 'm-help', 'm-end'];
+let modalOpener = null;                 // focus returns here when the dialogs close
 const modalOpen = () => MODALS.some(id => $(id).classList.contains('show'));
 function openModal(id){
+  if(!modalOpen()) modalOpener = document.activeElement;
   for(const m of MODALS) if(m !== id) $(m).classList.remove('show');
   $(id).classList.add('show');
+  const f = $(id).querySelector('.x, button, input, select');
+  try { if(f) f.focus({ preventScroll:true }); } catch(_){}
   // settings / help pause the game; the end card does not (the world keeps living behind it)
   if(id === 'm-end'){ if(G.modalPaused){ G.modalPaused = false; lastTs = 0; } }
   else if(!G.paused) G.modalPaused = true;
@@ -1399,9 +1574,14 @@ function openModal(id){
 function closeModals(){
   for(const m of MODALS) $(m).classList.remove('show');
   if(G.modalPaused){ G.modalPaused = false; lastTs = 0; }
-  try { ov.focus({ preventScroll:true }); } catch(_){}
+  const o = modalOpener; modalOpener = null;
+  try { (o && o !== document.body && document.contains(o) && !o.closest('.modal') ? o : ov).focus({ preventScroll:true }); } catch(_){}
 }
-function toggleModal(id){ if($(id).classList.contains('show')) closeModals(); else openModal(id); }
+// help / settings never replace the game-over card (its score and buttons would be lost)
+function toggleModal(id){
+  if(id !== 'm-end' && $('m-end').classList.contains('show')) return;
+  if($(id).classList.contains('show')) closeModals(); else openModal(id);
+}
 function showEnd(state, score){
   if(G.endShown) return;
   G.endShown = state;
@@ -1424,27 +1604,33 @@ function segBind(id, key, conv, after){
   const el = $(id);
   el.addEventListener('click', e => {
     const b = e.target.closest('button'); if(!b) return;
-    settings[key] = conv(b.dataset.v); saveSettings(); syncSettingsUi(); if(after) after();
+    setSetting(key, conv(b.dataset.v)); syncSettingsUi(); if(after) after();
   });
 }
 function syncSettingsUi(){
-  const mark = (id, v) => { for(const b of $(id).querySelectorAll('button')) b.classList.toggle('on', b.dataset.v === String(v)); };
+  const mark = (id, v) => { for(const b of $(id).querySelectorAll('button')){ const on = b.dataset.v === String(v); b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); } };
   mark('s-quality', settings.quality);
   mark('s-rbc', settings.rbc ? 1 : 0); mark('s-dof', settings.dof ? 1 : 0); mark('s-fg', settings.fg ? 1 : 0); mark('s-edge', settings.edge ? 1 : 0);
   mark('s-diff', settings.difficulty);
   $('s-quality-hint').textContent = settings.quality === 'auto'
     ? 'Auto lowers the render resolution when frames get slow (now ' + Math.round(renderScale()*100) + ' %).'
-    : 'Fixed render resolution: ' + Math.round(renderScale()*100) + ' % at up to ' + PRESETS[settings.quality].dpr + '× pixel density.';
-  const gens = Object.keys(BV.GENERATORS || {}), sel = $('s-gen');
-  if(gens.length > 1){
-    sel.hidden = false;
-    if(sel.options.length !== gens.length + 1){
-      sel.textContent = '';
-      const o0 = document.createElement('option'); o0.value = ''; o0.textContent = 'default'; sel.appendChild(o0);
-      for(const g of gens){ const o = document.createElement('option'); o.value = g; o.textContent = g; sel.appendChild(o); }
+    : 'Fixed render resolution: ' + Math.round(renderScale()*100) + ' % at up to ' + (PRESETS[settings.quality] || PRESETS.auto).dpr + '× pixel density.';
+  // map styles: every registered generator with a label; debug layouts stay out of the list
+  const INFO = BV.GENERATOR_INFO || {}, sel = $('s-gen');
+  const gens = Object.keys(BV.GENERATORS || {}).filter(g => INFO[g] && !INFO[g].hidden);
+  const def = BV.GEN_DEFAULT;
+  if(sel.options.length !== gens.length){
+    sel.textContent = '';
+    for(const g of gens){
+      const o = document.createElement('option'); o.value = g;
+      o.textContent = INFO[g].label + (g === def ? ' (default)' : '');
+      sel.appendChild(o);
     }
-    sel.value = settings.gen || '';
   }
+  const cur = settings.gen && BV.GENERATORS[settings.gen] ? settings.gen : def;
+  if(gens.includes(cur)) sel.value = cur;
+  const hint = $('s-gen-hint'), info = INFO[sel.value];
+  if(hint) hint.textContent = info && info.blurb ? info.blurb.charAt(0).toUpperCase() + info.blurb.slice(1) + '.' : '';
 }
 function bindUi(){
   $('b-all').addEventListener('click', () => G.ready && selectAll());
@@ -1470,7 +1656,8 @@ function bindUi(){
     if(G.S && typeof G.S.setDifficulty === 'function'){ G.S.setDifficulty(settings.difficulty); G.S._difficultyFromMain = settings.difficulty; toast('Difficulty: ' + settings.difficulty, 'info', 'diff', 0.5); }
     else toast('Difficulty applies on restart', 'info', 'diff', 1);
   });
-  $('s-gen').addEventListener('change', e => { settings.gen = e.target.value; saveSettings(); });
+  // a new map style grows at once (with the seed in the field), like "Grow this map"
+  $('s-gen').addEventListener('change', e => { setSetting('gen', e.target.value); syncSettingsUi(); newMap(parseSeed($('s-seed').value)); });
   $('s-dice').addEventListener('click', () => { $('s-seed').value = String(randomSeed()); });
   $('s-go').addEventListener('click', () => newMap(parseSeed($('s-seed').value)));
   $('s-seed').addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); newMap(parseSeed($('s-seed').value)); } });
@@ -1481,6 +1668,18 @@ function bindUi(){
   window.addEventListener('resize', resize);
   window.addEventListener('orientationchange', () => setTimeout(resize, 120));
   if(window.visualViewport) window.visualViewport.addEventListener('resize', resize);
+  // a devicePixelRatio change at the same css size (window moved to another monitor) fires
+  // no resize event: watch the current ratio, re-armed with the new one on every change
+  const watchDpr = () => {
+    if(!window.matchMedia) return;
+    const mq = matchMedia('(resolution: ' + (window.devicePixelRatio || 1) + 'dppx)');
+    const on = () => { resize(); watchDpr(); };
+    if(mq.addEventListener) mq.addEventListener('change', on, { once:true });
+    else if(mq.addListener) mq.addListener(function h(){ mq.removeListener(h); on(); });
+  };
+  watchDpr();
+  // the renderer re-initialises on a restored context; repaint even while paused
+  glc.addEventListener('webglcontextrestored', () => { renderDirty = true; }, false);
   document.addEventListener('visibilitychange', () => {
     if(document.hidden){
       G.hiddenPaused = true; keys.clear();
@@ -1539,6 +1738,8 @@ window.HORDE = {
   toWorld: (sx, sy) => [toWX(sx), toWY(sy)], toScreen: (wx, wy) => [toSX(wx), toSY(wy)],
   setCam(x, y, z){ fly = null; anchor = null; vel.x = vel.y = 0; if(z != null){ cam.z = clamp(z, zMin, MAX_ZOOM); lzGoal = Math.log(cam.z); } if(x != null) cam.x = x; if(y != null) cam.y = y; clampCam(); },
   get flying(){ return !!fly; },
+  get preview(){ return pathPrev ? { slot: pathPrev.slot, serial: pathPrev.serial, n: pathPrev.n } : null; },
+  get hud(){ return { t: hud.t, b: hud.b }; },
   get settled(){ return !fly && Math.abs(Math.log(cam.z) - lzGoal) < 1e-3 && !vel.x && !vel.y && !keyV.x && !keyV.y && !gesture; },
   get input(){ return { ptrs: ptrs.size, gesture: gesture && gesture.kind, mouse: Object.assign({}, mouse) }; },
   setQuality(q){ if(PRESETS[q]){ settings.quality = q; resize(); applyQuality(); } },
@@ -1546,5 +1747,6 @@ window.HORDE = {
   hold(on){ G.held = !!on; lastTs = 0; },   // freeze sim + rendering without any UI (screenshots)
 };
 
-if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+const start = () => boot().catch(err => showError('Something went wrong', 'The game failed to start.', err));
+if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();

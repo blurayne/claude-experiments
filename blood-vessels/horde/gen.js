@@ -2,8 +2,9 @@
    HORDE — vessel-network generators
    ----------------------------------------------------------------------------
    BV.generate(seed, opts) → { bounds, nodes:[{id,x,y,type}], edges:[{id,a,b,type,pts:[[x,y,r]]}] }
-   (µm, y down; see net.js). 'comb' is a simple development layout; the default
-   generator is BV.GEN_DEFAULT.
+   (µm, y down; see net.js). The map styles live in gen-*.js and register into
+   BV.GENERATORS / BV.GENERATOR_INFO; 'comb' here is a simple development layout.
+   The default map style is BV.GEN_DEFAULT ('primaldual').
    ========================================================================== */
 (function(){
 'use strict';
@@ -86,10 +87,15 @@ GEN.comb = function(seed, opts){
   return { bounds:{x0:0,y0:0,x1:W,y1:H}, nodes, edges, meta:{name:'dev'} };
 };
 
-BV.GEN_DEFAULT = BV.GEN_DEFAULT || 'comb';
+// map styles register themselves from horde/gen-*.js (loaded after this file);
+// the default is resolved at call time, falling back to the comb if it is missing
+const INFO = BV.GENERATOR_INFO = BV.GENERATOR_INFO || {};
+INFO.comb = { label: 'Comb (debug)', blurb: 'a plain development layout', hidden: true };
+BV.GEN_DEFAULT = BV.GEN_DEFAULT || 'primaldual';
 BV.generate = function(seed, opts){
   opts = Object.assign({ width: 22000, height: 14000 }, opts || {});
-  const name = opts.generator || BV.GEN_DEFAULT;
+  let name = opts.generator || BV.GEN_DEFAULT;
+  if(!GEN[name]) name = GEN[BV.GEN_DEFAULT] ? BV.GEN_DEFAULT : 'comb';
   return GEN[name](seed, opts);
 };
 })();

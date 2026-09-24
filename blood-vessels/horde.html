@@ -90,10 +90,18 @@ body.noblur .modal .card{-webkit-backdrop-filter:none;backdrop-filter:none;backg
 .toast.info{border-color:rgba(127,240,255,.45);color:#d4fbff} .toast.bad{border-color:rgba(255,85,102,.6);color:#ffc9cf}
 @keyframes tin{from{opacity:0;transform:translateY(-8px)}}
 @keyframes tout{to{opacity:0;transform:translateY(-6px)}}
-#pausebadge{position:fixed;z-index:2;left:50%;top:40%;transform:translate(-50%,-50%);pointer-events:none;display:none;
+#pausebadge{position:fixed;z-index:2;left:50%;top:22%;transform:translate(-50%,-50%);pointer-events:none;display:none;
   font:600 22px/1 var(--mono);letter-spacing:.35em;color:rgba(255,255,255,.8);text-shadow:0 2px 12px rgba(0,0,0,.7);text-align:center}
 #pausebadge small{display:block;margin-top:8px;font-size:10px;letter-spacing:.12em;color:var(--dim)}
 body.paused #pausebadge{display:block}
+#pausebadge .tc{display:none}
+body.touch #pausebadge .tc{display:inline} body.touch #pausebadge .mk{display:none}
+/* near defeat: a red vignette (opacity from --danger, set by main.js), pulsing when critical;
+   under the HUD panels, the toasts and the dialogs, and never in the way of input */
+body::after{content:"";position:fixed;inset:0;z-index:2;pointer-events:none;opacity:var(--danger,0);
+  background:radial-gradient(ellipse at center,transparent 55%,rgba(255,40,60,.55) 100%);transition:opacity .4s}
+body.critical::after{animation:dangerPulse 1s ease-in-out infinite}
+@keyframes dangerPulse{50%{opacity:calc(var(--danger,0)*.55)}}
 
 /* ---------------------------------------------------------------- modals */
 .modal{position:fixed;inset:0;z-index:6;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(8,3,5,.45)}
@@ -117,13 +125,16 @@ body.paused #pausebadge{display:block}
 .btn{appearance:none;border:1px solid var(--line);border-radius:6px;background:linear-gradient(#41454e,#2a2d34);color:var(--text);padding:7px 12px;font:600 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;cursor:pointer;touch-action:manipulation}
 .btn:hover{border-color:rgba(255,255,255,.3);color:#fff}
 .btn.primary{background:linear-gradient(#2a6573,#1b3e48);border-color:rgba(127,240,255,.5);color:#e8fdff}
-.help{display:grid;grid-template-columns:1fr 1fr;gap:4px 18px}
+.help{display:grid;grid-template-columns:auto 1fr;gap:4px 18px}
 .help h4{grid-column:1/-1;margin:10px 0 3px;font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--cyan)}
 .help h4:first-child{margin-top:0}
 .help div{display:contents}
 .help kbd{font:11px var(--mono);color:#fff;white-space:nowrap}
 .help span{color:var(--dim);font-size:11px}
 .help p{grid-column:1/-1;margin:2px 0;color:var(--dim);font-size:11px;line-height:1.5}
+.help p.goal{margin:0 0 4px;color:var(--text)}
+/* touch devices: no mouse & keyboard help, no edge-scroll setting */
+body.touch .help .mk,body.touch .set .mk{display:none}
 #m-end .card{text-align:center;width:min(380px,100%)}
 #end-title{font-size:18px;margin-bottom:4px}
 #end-sub{color:var(--dim);margin:0 0 12px;letter-spacing:.04em;text-transform:uppercase;font-size:11px}
@@ -170,7 +181,6 @@ body.paused #pausebadge{display:block}
   .cb svg{width:20px;height:20px}
   .row{gap:.45em}
   .toast{font-size:10px;padding:5px 9px}
-  .help{grid-template-columns:auto 1fr}
 }
 @media (max-width:360px){ .cb span{display:none} .cb{padding:6px 1px} }
 @media (max-height:500px) and (orientation:landscape){
@@ -202,7 +212,7 @@ body.paused #pausebadge{display:block}
 
 <section class="panel" id="p-map" aria-label="Minimap">
   <h2>Vascular map <span id="h-mapname"></span></h2>
-  <canvas id="mm" aria-label="Minimap: click to jump"></canvas>
+  <canvas id="mm" aria-label="Minimap: click to jump, right-click to send the selection"></canvas>
 </section>
 
 <section class="panel" id="p-stats" aria-label="Statistics">
@@ -247,31 +257,33 @@ body.paused #pausebadge{display:block}
 </section>
 
 <div id="toasts" aria-live="polite"></div>
-<div id="pausebadge">PAUSED<small>press P or ▶ to resume</small></div>
+<div id="pausebadge">PAUSED<small><span class="mk">press P or </span><span class="tc">tap </span>▶ to resume</small></div>
 
 <div class="modal" id="m-set" role="dialog" aria-modal="true" aria-labelledby="set-t">
   <div class="card">
     <button class="x" data-close aria-label="Close">×</button>
     <h3 id="set-t">Settings</h3>
     <div class="set">
-      <label>Quality</label>
-      <div class="seg" id="s-quality"><button data-v="auto">Auto</button><button data-v="high">High</button><button data-v="medium">Med</button><button data-v="low">Low</button></div>
+      <label id="l-quality">Quality</label>
+      <div class="seg" id="s-quality" role="group" aria-labelledby="l-quality"><button data-v="auto">Auto</button><button data-v="high">High</button><button data-v="medium">Med</button><button data-v="low">Low</button></div>
       <p class="hint" id="s-quality-hint">Auto lowers the render resolution when frames get slow.</p>
-      <label>Red cells</label>
-      <div class="seg" id="s-rbc"><button data-v="1">On</button><button data-v="0">Off</button></div>
-      <label>Depth of field</label>
-      <div class="seg" id="s-dof"><button data-v="1">On</button><button data-v="0">Off</button></div>
-      <label>Front cells</label>
-      <div class="seg" id="s-fg"><button data-v="1">On</button><button data-v="0">Off</button></div>
-      <label>Edge scroll</label>
-      <div class="seg" id="s-edge"><button data-v="1">On</button><button data-v="0">Off</button></div>
-      <label>Difficulty</label>
-      <div class="seg" id="s-diff"><button data-v="easy">Easy</button><button data-v="normal">Normal</button><button data-v="hard">Hard</button></div>
-      <label>Map seed</label>
+      <label id="l-rbc">Red cells</label>
+      <div class="seg" id="s-rbc" role="group" aria-labelledby="l-rbc"><button data-v="1">On</button><button data-v="0">Off</button></div>
+      <label id="l-dof">Depth of field</label>
+      <div class="seg" id="s-dof" role="group" aria-labelledby="l-dof"><button data-v="1">On</button><button data-v="0">Off</button></div>
+      <label id="l-fg">Front cells</label>
+      <div class="seg" id="s-fg" role="group" aria-labelledby="l-fg"><button data-v="1">On</button><button data-v="0">Off</button></div>
+      <label id="l-edge" class="mk">Edge scroll</label>
+      <div class="seg mk" id="s-edge" role="group" aria-labelledby="l-edge"><button data-v="1">On</button><button data-v="0">Off</button></div>
+      <label id="l-diff">Difficulty</label>
+      <div class="seg" id="s-diff" role="group" aria-labelledby="l-diff"><button data-v="easy">Easy</button><button data-v="normal">Normal</button><button data-v="hard">Hard</button></div>
+      <label id="l-gen" for="s-gen">Map style</label>
+      <div class="seedrow"><select id="s-gen" aria-labelledby="l-gen" style="width:auto"></select></div>
+      <p class="hint" id="s-gen-hint"></p>
+      <label for="s-seed">Map seed</label>
       <div class="seedrow">
         <input id="s-seed" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" aria-label="Map seed">
         <button class="btn" id="s-dice" title="Random seed">Random</button>
-        <select id="s-gen" aria-label="Generator" hidden></select>
       </div>
       <div></div>
       <div class="btnrow" style="justify-content:flex-start"><button class="btn primary" id="s-go">Grow this map</button><button class="btn" id="s-restart">Restart</button></div>
@@ -284,19 +296,21 @@ body.paused #pausebadge{display:block}
     <button class="x" data-close aria-label="Close">×</button>
     <h3 id="help-t">Controls</h3>
     <div class="help">
-      <h4>Mouse &amp; keyboard</h4>
-      <div><kbd>Left-drag</kbd><span>box-select white cells (Shift adds)</span></div>
-      <div><kbd>Left-click</kbd><span>select the horde under the cursor</span></div>
-      <div><kbd>Double-click</kbd><span>select every cell on screen</span></div>
-      <div><kbd>Right-click</kbd><span>send the selection there (on a lesion: attack)</span></div>
-      <div><kbd>Wheel</kbd><span>zoom at the cursor</span></div>
-      <div><kbd>Middle / Space-drag</kbd><span>pan (flick for inertia)</span></div>
-      <div><kbd>WASD / arrows</kbd><span>pan (Shift: faster), or push the mouse to a screen edge</span></div>
-      <div><kbd>Q · Ctrl+A</kbd><span>select all cells</span></div>
-      <div><kbd>Esc</kbd><span>clear the selection / close a panel</span></div>
-      <div><kbd>H · 0</kbd><span>centre on the horde · whole map</span></div>
-      <div><kbd>+ / −</kbd><span>zoom in / out</span></div>
-      <div><kbd>P</kbd><span>pause</span></div>
+      <p class="goal">Goal: survive 8 waves — destroy every lesion before the infection reaches 100 %.</p>
+      <h4 class="mk">Mouse &amp; keyboard</h4>
+      <div class="mk"><kbd>Left-drag</kbd><span>box-select white cells (Shift adds)</span></div>
+      <div class="mk"><kbd>Left-click</kbd><span>select the horde under the cursor</span></div>
+      <div class="mk"><kbd>Double-click</kbd><span>select every cell on screen</span></div>
+      <div class="mk"><kbd>Right-click</kbd><span>send the selection there (on a lesion: attack)</span></div>
+      <div class="mk"><kbd>Minimap</kbd><span>click/drag to jump · right-click to send the selection</span></div>
+      <div class="mk"><kbd>Wheel</kbd><span>zoom at the cursor</span></div>
+      <div class="mk"><kbd>Middle / Space-drag</kbd><span>pan (flick for inertia)</span></div>
+      <div class="mk"><kbd>WASD / arrows</kbd><span>pan (Shift: faster), or push the mouse to a screen edge</span></div>
+      <div class="mk"><kbd>Q · Ctrl+A</kbd><span>select all cells</span></div>
+      <div class="mk"><kbd>Esc</kbd><span>clear the selection / close a panel</span></div>
+      <div class="mk"><kbd>H · 0</kbd><span>centre on the horde · whole map</span></div>
+      <div class="mk"><kbd>+ / −</kbd><span>zoom in / out</span></div>
+      <div class="mk"><kbd>P</kbd><span>pause</span></div>
       <h4>Touch</h4>
       <div><kbd>Drag</kbd><span>pan</span></div>
       <div><kbd>Pinch</kbd><span>zoom (and pan)</span></div>
@@ -305,7 +319,7 @@ body.paused #pausebadge{display:block}
       <div><kbd>Long-press + drag</kbd><span>box-select (long-press alone clears)</span></div>
       <h4>How it works</h4>
       <p>Blood flows from the arterial trunk through the branches and the narrow AV connectors into the veins. Your neutrophils swim, but the current decides how fast: downstream is quick, upstream in a fast artery is near-impossible — go round through the veins and the heart instead.</p>
-      <p>Infection sites bloom in the vessel walls and shed viruses and bacteria into the flow. Touch a pathogen to engulf it, crowd a lesion to destroy it. Pathogens that escape into the veins and every living one raise the infection level; at 100 % the tissue is lost. Idle cells stick to the wall so the flow does not wash them away.</p>
+      <p>Infection sites bloom in the vessel walls and shed viruses and bacteria into the flow. Touch a pathogen to engulf it, crowd a lesion to destroy it. Pathogens that escape into the veins and every living one raise the infection level; at 100 % the tissue is lost. Destroy the lesions of all 8 waves to clear the infection. Idle cells stick to the wall so the flow does not wash them away.</p>
     </div>
   </div>
 </div>
@@ -329,6 +343,10 @@ body.paused #pausebadge{display:block}
 </div></div>
 
 <script src="horde/gen.js"></script>
+<script src="horde/gen-primaldual.js"></script>
+<script src="horde/gen-anatomic.js"></script>
+<script src="horde/gen-colonize.js"></script>
+<script src="horde/gen-dualcco.js"></script>
 <script src="horde/net.js"></script>
 <script src="horde/render.js"></script>
 <script src="horde/sim.js"></script>
