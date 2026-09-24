@@ -5,6 +5,11 @@ before the work starts. An item is ticked when it ships, with the version that c
 
 ## 2026-09-24
 
+- [ ] Flight: tilt with two fingers — a two-finger twist rolls the ship left or right
+      about its line of sight, the scene turning with the fingers as a map does. In flight
+      only; two fingers still pinch to zoom, and no longer pan (out of flight they do, as
+      before). On a desktop a right-drag rolls the same way in flight.
+
 - [x] Flight, touch controls: a thumb stick above the burst button — sideways strafes the
       ship left and right, up and down raises and lowers it, and it springs back to the
       centre when let go; the burst button a rounded rectangle instead of a circle. The
