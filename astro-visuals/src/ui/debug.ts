@@ -4,6 +4,8 @@ import { BUILD } from '../core/build'
 import { errLog, TOUCH_DEV } from '../core/errorlog'
 import { cam, simClock } from '../render/state'
 import { gl } from '../gpu/context'
+import { flight, flightRelease } from '../render/flight'
+import { setFlight } from './flight'
 import { refillTrails } from '../render/trails'
 import { events, puffs } from '../render/lifecycle'
 import { SKEY, saveSettingsNow } from './persist'
@@ -129,6 +131,7 @@ export function exportState(): Record<string, any> {
     time: { simT: simClock.simT, paused: simClock.paused },
     camera: { yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, distGoal:cam.distGoal,
               follow:cam.follow, followTarget:cam.followTarget, coreLock: cam.coreLock, dive:$('tDive').classList.contains('on') },
+    flight: flight.anchored ? { on: flight.on, pos: [flight.pos[0], flight.pos[1], flight.pos[2]] } : undefined,
     viewport: { w:innerWidth, h:innerHeight, dpr:devicePixelRatio, gpu: gpuName() },
     settings,
   };
@@ -152,6 +155,13 @@ export function applyState(o: any): void {
     // an import is a teleport: land on the target at once, or the view creeps toward it
     // for the next second (longer on a slow renderer) and the state is not yet the state
     cam.firstFrame = true;
+  }
+  // the flight: the ship where it was, with the controls live or not; absent means grounded
+  setFlight(false); flightRelease();
+  if(o.flight && Array.isArray(o.flight.pos) && o.flight.pos.length === 3 && o.flight.pos.every((v: unknown) => typeof v === 'number')){
+    for(let i=0;i<3;i++) flight.pos[i] = o.flight.pos[i];
+    flight.anchored = true; cam.reseedFollow = true; cam.firstFrame = true;
+    if(o.flight.on) setFlight(true, true);   // the controls live, the ship kept where the state put it
   }
 }
 

@@ -4,6 +4,7 @@ import { MOON_BORN, MOON_DIA } from '../astro/earth'
 import { MERGE_T0 } from '../astro/merger'
 import { cam, gfx, lifeAcc, simClock, view } from '../render/state'
 import { minDist } from '../render/camera'
+import { flightRelease } from '../render/flight'
 import { realSizes } from '../render/passes/bodies'
 import { refillTrails } from '../render/trails'
 import { events, puffs } from '../render/lifecycle'
@@ -48,6 +49,7 @@ function bodyViewDist(dia: number): number {        // the distance at which a b
   return Math.max(minDist(), dia*(h/(2*Math.tan(Math.PI/6)))/px);
 }
 export function applyFocusView(): void {
+  flightRelease();   // a view is a re-seed: the ship is left where it was
   const v = ($('focusSel') as HTMLSelectElement).value;
   if(v === 'sun'){
     cam.followTarget = 'sun';

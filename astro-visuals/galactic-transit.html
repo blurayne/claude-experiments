@@ -92,7 +92,7 @@ function installErrorCollector(){
  * property of the machine that loaded the page. The parity harness pins TZ for that reason.
  */
 
-const BUILD = { version: '3.18.2', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '3.19.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -611,6 +611,202 @@ if(!glCtx){ document.body.innerHTML = '<p style="padding:2em">WebGL2 is not avai
 
 const canvas = canvasEl;
 const gl                         = glCtx;
+
+/**
+ * Free flight: the eye as a ship.
+ *
+ * The camera stays what it is — an eye a distance `cam.dist` behind a target, turned by
+ * yaw and pitch — and flight moves the TARGET: a free point in absolute world coordinates
+ * (doubles, like `org`) that the frame follows instead of the Sun or a planet. Everything
+ * downstream keeps working unchanged: the zoom, the ladder, the labels, the layers' fades,
+ * all keyed on `cam.dist`, which in flight is the chase distance and so the SCALE of the
+ * view. That is what sets the pace: at full throttle the ship crosses a fraction of the
+ * view's own height each second, so zoomed in on a planet it creeps and zoomed out to the
+ * supercluster it leaps — the same thumb on the same stick.
+ *
+ * The clock joins in. When the simulation runs faster than a year a second, the flight
+ * runs faster by the square root of that ratio (capped at ten): a fast clock is a fast
+ * ship, and a paused clock is the walking pace, never slower.
+ *
+ * `on` is the controls being live; `anchored` is the camera riding `pos`, which outlives
+ * the controls — switching flight off stops the ship where it is rather than snapping the
+ * view back to the Sun — until a view, a scenario or an import re-seeds the camera and
+ * calls `flightRelease`.
+ */
+const FLY_YPS_REF = 1;          // a year a second: the clock rate the flight is paced at
+const FLY_VIEW_PER_S = 0.9;     // view heights a second at full throttle, before the clock and the boost
+const FLY_BOOST = 4;
+const FLY_TURN = 1.4;           // radians a second at the right pad's full deflection
+
+const flight = {
+  on: false,
+  anchored: false,
+  /** the ship: absolute world coordinates */
+  pos: new Float64Array(3),
+  /** the throttle asked for — forward, right, up — each −1..1 */
+  want: [0, 0, 0],
+  /** the throttle in effect: `want`, eased, so a key press does not jolt */
+  axis: [0, 0, 0],
+  /** the right pad's turn, −1..1 */
+  turn: 0,
+  boost: false,
+  /** units a second at full throttle this frame — the readout */
+  speedU: 0,
+  /** the clock's contribution, for the readout */
+  factor: 1,
+};
+
+/** how much the running clock speeds the ship: √(rate / a year a second), 1 to 10; 1 while it stands */
+function clockFactor(yps        , running         )         {
+  if(!running || !(yps > 0)) return 1
+  return Math.max(1, Math.min(10, Math.sqrt(yps/FLY_YPS_REF)))
+}
+/** units a second at full throttle: a fraction of the view's height (1.1547·dist at 60°), times the clock and the boost */
+function fullSpeed(dist        , factor        , boost         )         {
+  return 1.1547*dist*FLY_VIEW_PER_S*factor*(boost ? FLY_BOOST : 1)
+}
+
+// the eye's frame from the last frame drawn: right and up on screen, and the eye's own
+// direction from the target (so forward is −d). A frame late, which nobody can see.
+const basis = { r: [1, 0, 0], u: [0, 1, 0], d: [0, 0, 1] };
+function setFlightBasis(r                   , u                   , d                   )       {
+  for(let i=0;i<3;i++){ basis.r[i] = r[i]; basis.u[i] = u[i]; basis.d[i] = d[i]; }
+}
+
+/** take off from where the view is: the target, with any pan folded in, becomes the ship */
+function flightStart()       {
+  const pv = 1.1547*cam.dist, pdx = -cam.panF[0]*pv*SKY_MIRROR, pdy = cam.panF[1]*pv;
+  for(let i=0;i<3;i++) flight.pos[i] = cam.smoothTarget[i] + basis.r[i]*pdx + basis.u[i]*pdy;
+  cam.panF[0] = cam.panF[1] = 0;
+  flight.on = flight.anchored = true;
+  flight.want[0] = flight.want[1] = flight.want[2] = 0; flight.axis[0] = flight.axis[1] = flight.axis[2] = 0; flight.turn = 0;
+  flight.factor = 1; flight.speedU = fullSpeed(cam.dist, 1, false);   // the readout has a pace before the first step
+  cam.reseedFollow = true; cam.firstFrame = true;    // the frame's target smoothing must not chase the hand-over
+}
+/** the controls go off; the ship stays where it stopped */
+function flightStop()       {
+  flight.on = false; flight.boost = false;
+  flight.want[0] = flight.want[1] = flight.want[2] = 0; flight.turn = 0;
+}
+/** a view, a scenario or an import has re-seeded the camera: it is theirs again */
+function flightRelease()       {
+  flightStop(); flight.anchored = false;
+}
+
+/**
+ * One frame of flight: ease the throttle, set this frame's pace, move the ship along the
+ * eye's own axes. `yps` is the clock's rate in years a second and `running` whether it is
+ * advancing this frame. Returns whether the ship moved (the readout only cares that it
+ * exists; the frame does not).
+ */
+function flightStep(dt        , yps        , running         )          {
+  if(!flight.on){ flight.axis[0] = flight.axis[1] = flight.axis[2] = 0; return false }
+  const k = 1 - Math.exp(-dt/0.12);
+  for(let i=0;i<3;i++) flight.axis[i] += (flight.want[i] - flight.axis[i])*k;
+  flight.factor = clockFactor(yps, running);
+  flight.speedU = fullSpeed(cam.dist, flight.factor, flight.boost);
+  const [f, s, u] = flight.axis;
+  if(flight.turn !== 0) cam.yaw += flight.turn*FLY_TURN*dt*SKY_MIRROR;   // turning right looks right
+  if(Math.abs(f) < 1e-4 && Math.abs(s) < 1e-4 && Math.abs(u) < 1e-4) return false
+  const v = flight.speedU*dt;
+  // forward is toward the target (−d); screen-right is the world's right mirrored, as the
+  // projection mirrors x (SKY_MIRROR); up is the view's up
+  for(let i=0;i<3;i++) flight.pos[i] += (-basis.d[i]*f + basis.r[i]*SKY_MIRROR*s + basis.u[i]*u)*v;
+  return true
+}
+
+/**
+ * The flight's controls: the dock button that switches it on, the keys on a desktop, the
+ * two thumb pads on a touch screen, and the readout beside the scale bar.
+ *
+ * Keys: W/S or ↑/↓ forward and back, A/D or ←/→ sideways, R and F (or E and Q) up and
+ * down, shift the boost, escape lands. The left pad is forward/back and sideways, the right
+ * pad up/down and the turn. The pads are their own elements over the canvas, so a thumb on
+ * one never orbits the view or holds the clock; a finger anywhere else still turns the eye
+ * as it always did. The readout says the pace in real units, and the clock's share of it.
+ */
+const KEYS                                   = {   // axis index, sign
+  KeyW: [0, 1], ArrowUp: [0, 1], KeyS: [0, -1], ArrowDown: [0, -1],
+  KeyD: [1, 1], ArrowRight: [1, 1], KeyA: [1, -1], ArrowLeft: [1, -1],
+  KeyR: [2, 1], KeyE: [2, 1], KeyF: [2, -1], KeyQ: [2, -1],
+};
+const down = new Set        ();
+function keysToWant()       {
+  const w = [0, 0, 0];
+  for(const c of down){ const k = KEYS[c]; if(k) w[k[0]] += k[1]; }
+  for(let i=0;i<3;i++) flight.want[i] = Math.max(-1, Math.min(1, w[i]));
+}
+const typing = (e               )          => { const t = e.target                      ; return !!t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable) };
+
+let onChange             = () => {};
+function setFlight(on         , keep          )       {
+  if(on === flight.on) return
+  if(on){ if(keep) flight.on = true; else flightStart(); } else { flightStop(); down.clear(); }
+  $('tFly').classList.toggle('on', on);
+  document.body.classList.toggle('flying', on);
+  $('tFly').setAttribute('aria-pressed', on ? 'true' : 'false');
+  onChange();
+}
+
+/** a thumb pad: the offset from its centre, over its radius, is the two axes it drives */
+function pad(id        , apply                                )       {
+  const el = $(id); let pid = -1;
+  const read = (e              )       => {
+    const r = el.getBoundingClientRect(), rad = r.width/2;
+    let x = (e.clientX - (r.left + rad))/rad, y = -(e.clientY - (r.top + rad))/rad;
+    const m = Math.hypot(x, y); if(m > 1){ x /= m; y /= m; }
+    const dead = 0.12, g = (v        )         => Math.abs(v) < dead ? 0 : Math.sign(v)*(Math.abs(v) - dead)/(1 - dead);
+    apply(g(x), g(y));
+    el.style.setProperty('--kx', (x*rad*0.55).toFixed(1) + 'px'); el.style.setProperty('--ky', (-y*rad*0.55).toFixed(1) + 'px');
+  };
+  el.addEventListener('pointerdown', e => { pid = e.pointerId; try{ el.setPointerCapture(e.pointerId); }catch(err){} el.classList.add('held'); read(e); e.preventDefault(); e.stopPropagation(); });
+  el.addEventListener('pointermove', e => { if(e.pointerId !== pid) return; read(e); e.stopPropagation(); });
+  const drop = (e              )       => { if(e.pointerId !== pid) return; pid = -1; el.classList.remove('held'); apply(0, 0); el.style.setProperty('--kx', '0px'); el.style.setProperty('--ky', '0px'); e.stopPropagation(); };
+  el.addEventListener('pointerup', drop); el.addEventListener('pointercancel', drop);
+  el.addEventListener('contextmenu', e => e.preventDefault());
+}
+
+/** the pace in real units a second: one unit is 30 light years */
+function fmtPace(unitsPerS        )         {
+  const ly = unitsPerS*30, au = ly*63241;
+  if(ly >= 1e6) return (ly/1e6).toFixed(ly < 1e7 ? 2 : 1) + ' Mly/s'
+  if(ly >= 1000) return (ly/1000).toFixed(1) + ' kly/s'
+  if(ly >= 0.05) return ly.toFixed(ly < 10 ? 2 : 0) + ' ly/s'
+  if(au >= 0.5) return au.toFixed(au < 10 ? 1 : 0) + ' AU/s'
+  const km = au*1.496e8;
+  if(km >= 1e6) return (km/1e6).toFixed(2) + ' Mkm/s'
+  if(km >= 1) return Math.round(km).toLocaleString('en-US') + ' km/s'
+  return (km*1000).toFixed(0) + ' m/s'
+}
+/** the readout beside the scale bar; called by the HUD's own tick */
+function updateFlightReadout()       {
+  const el = $('sFly');
+  if(!flight.on){ el.style.display = 'none'; return }
+  el.style.display = '';
+  const f = flight.factor;
+  $('sPace').textContent = fmtPace(flight.speedU);
+  $('sClockShare').textContent = f > 1.05 ? ' · clock ×' + (f < 10 ? f.toFixed(1) : '10') : '';
+}
+
+function initFlightUI(deps                          )       {
+  onChange = deps.onChange;
+  $('tFly').addEventListener('click', () => setFlight(!flight.on));
+  addEventListener('keydown', e => {
+    if(typing(e)) return
+    if(e.code === 'Escape' && flight.on){ setFlight(false); return }
+    if(!flight.on) return
+    if(e.code === 'ShiftLeft' || e.code === 'ShiftRight'){ flight.boost = true; return }
+    if(!KEYS[e.code]) return
+    down.add(e.code); keysToWant(); e.preventDefault();
+  });
+  addEventListener('keyup', e => {
+    if(e.code === 'ShiftLeft' || e.code === 'ShiftRight'){ flight.boost = false; return }
+    if(down.delete(e.code)) keysToWant();
+  });
+  addEventListener('blur', () => { down.clear(); keysToWant(); flight.boost = false; });   // a key released in another window
+  pad('padL', (x, y) => { flight.want[1] = x; flight.want[0] = y; });
+  pad('padR', (x, y) => { flight.turn = x; flight.want[2] = y; });
+}
 
 /**
  * Vertex buffers and the vertex arrays that reference them.
@@ -1990,7 +2186,7 @@ function placePanels()        {
       y += r.height + gap;
     }
     const dock = mine.map(p => $(p.dot));
-    if(side === 'r') dock.push($('tLabelsAll'), $('tInfo'), $('tPause'), $('zoomIn'), $('zoomOut'));   // standing actions; zoom under play
+    if(side === 'r') dock.push($('tLabelsAll'), $('tInfo'), $('tPause'), $('zoomIn'), $('zoomOut'), $('tFly'));   // standing actions; zoom under play, flight last
     for(const el of dock){
       if(getComputedStyle(el).display === 'none') continue;
       put(el, pad + dotX);
@@ -2464,6 +2660,7 @@ function exportState()                      {
     time: { simT: simClock.simT, paused: simClock.paused },
     camera: { yaw:cam.yaw, pitch:cam.pitch, dist:cam.dist, distGoal:cam.distGoal,
               follow:cam.follow, followTarget:cam.followTarget, coreLock: cam.coreLock, dive:$('tDive').classList.contains('on') },
+    flight: flight.anchored ? { on: flight.on, pos: [flight.pos[0], flight.pos[1], flight.pos[2]] } : undefined,
     viewport: { w:innerWidth, h:innerHeight, dpr:devicePixelRatio, gpu: gpuName() },
     settings,
   };
@@ -2487,6 +2684,13 @@ function applyState(o     )       {
     // an import is a teleport: land on the target at once, or the view creeps toward it
     // for the next second (longer on a slow renderer) and the state is not yet the state
     cam.firstFrame = true;
+  }
+  // the flight: the ship where it was, with the controls live or not; absent means grounded
+  setFlight(false); flightRelease();
+  if(o.flight && Array.isArray(o.flight.pos) && o.flight.pos.length === 3 && o.flight.pos.every((v         ) => typeof v === 'number')){
+    for(let i=0;i<3;i++) flight.pos[i] = o.flight.pos[i];
+    flight.anchored = true; cam.reseedFollow = true; cam.firstFrame = true;
+    if(o.flight.on) setFlight(true, true);   // the controls live, the ship kept where the state put it
   }
 }
 
@@ -6945,14 +7149,17 @@ function frame(now        )       {
   bh1Centre(simClock.simT, bh1C);
   for(let i=0;i<3;i++) bh1Abs[i] = org[i] + bh1C[i];
   for(let i=0;i<3;i++) lgAbs[i] = org[i] + LG_BOX.centre[i];
-  const followPos = cam.followTarget === 'and' ? andPos
+  // the flight moves its own point first, with the clock's rate as its pace
+  flightStep(dt, simClock.speed*simClock.speedMult*Math.abs(drive), drive !== 0 && !holding);
+  const followPos = flight.anchored ? flight.pos
+                  : cam.followTarget === 'and' ? andPos
                   : cam.followTarget === 'gc' || cam.followTarget === 'gcr' ? GC_ORIGIN
                   : cam.followTarget === 'bh1' ? bh1Abs
                   : cam.followTarget === 'lg' ? lgAbs
                   : cam.followTarget === 'sc' || cam.followTarget === 'web' || cam.followTarget === 'deep' ? org
                   : moonHere ? moonW
                   : ((cam.followTarget === 'earth' || cam.followTarget === 'moon') && !wasEaten[3]) ? earthW : org;
-  const goal = cam.follow ? [followPos[0],followPos[1],followPos[2]] : [0,0,0];
+  const goal = cam.follow || flight.anchored ? [followPos[0],followPos[1],followPos[2]] : [0,0,0];
   if(cam.reseedFollow){ for(let i=0;i<3;i++) cam.smoothOfs[i] = cam.smoothTarget[i]-goal[i]; cam.reseedFollow=false; }
   const k = cam.firstFrame?1:Math.min(1,dt*4);
   for(let i=0;i<3;i++) cam.smoothOfs[i] *= 1-k;
@@ -6990,7 +7197,7 @@ function frame(now        )       {
   let ux = -sp*sy, uy = cp, uz = -sp*cy;                                // up, tilted with the pitch
   let dx = cp*sy, dy = sp, dz = cp*cy, upV                    = [0,1,0];                   // the eye's direction from the target
   const moonLock = cam.spinLock && cam.follow && cam.followTarget === 'moon' && moonHere;
-  const spinOn = cam.spinLock && cam.follow && !wasEaten[3]
+  const spinOn = cam.spinLock && cam.follow && !wasEaten[3] && !flight.anchored
                && (cam.followTarget === 'earth' || moonLock);
   if(spinOn){
     // the same three vectors, but in the planet's frame: x → prime meridian P, y → axis A,
@@ -7020,6 +7227,7 @@ function frame(now        )       {
     upV = A;
   }
   cam.dirW[0] = dx; cam.dirW[1] = dy; cam.dirW[2] = dz;                     // read by the spin lock's switch
+  setFlightBasis([rx, ry, rz], [ux, uy, uz], [dx, dy, dz]);                  // and the flight flies along these
   const pv = 1.1547*cam.dist, pdx = -cam.panF[0]*pv*SKY_MIRROR, pdy = cam.panF[1]*pv;
   const tgx=cam.smoothTarget[0]-org[0] + rx*pdx + ux*pdy,
         tgy=cam.smoothTarget[1]-org[1] + ry*pdx + uy*pdy,
@@ -7043,7 +7251,10 @@ function frame(now        )       {
   // follows the zoom, and reaches the whole of every layer that is showing — see farReach:
   // a plane at the eye's distance plus the sky sphere sliced the Local Group's far-side
   // galaxies in half, and which ones it sliced changed as the eye turned.
-  view.projMat = skyProjection(Math.min(0.5, Math.max(1e-13, cam.dist*0.04)), Math.max(25000, cam.dist + farReach(cam.dist) + 6000));
+  // The target may itself be far from the Sun — the Centre's views, and anywhere the flight
+  // has gone — and the sky sphere is centred on the Sun, so its far side is that much further.
+  { const tgtD = Math.hypot(cam.smoothTarget[0]-org[0], cam.smoothTarget[1]-org[1], cam.smoothTarget[2]-org[2]);
+    view.projMat = skyProjection(Math.min(0.5, Math.max(1e-13, cam.dist*0.04)), Math.max(25000, cam.dist + tgtD + farReach(cam.dist + tgtD) + 6000)); }
   const pxScale = (view.H*view.DPR)/(2*Math.tan(Math.PI/6));
 
   // at 100% nothing is compressed, so the old direct path is kept exactly
@@ -7793,6 +8004,7 @@ function updateHud(now        , pn                )       {
     $('sHalf').style.left = (s.px/2).toFixed(1)+'px'; $('sHalf').textContent = s.half;
     $('sEnd').style.left = s.px.toFixed(1)+'px';      $('sEnd').textContent = s.full;
     $('sUnit').style.left = (s.px+16).toFixed(1)+'px'; $('sUnit').textContent = s.unit; }
+  updateFlightReadout();
   if(hud.showStats){
     $('gCal').textContent = humanYear();
     // real elapsed time: one sim lap ≡ one real galactic year of 225 Myr
@@ -8347,6 +8559,7 @@ function bodyViewDist(dia        )         {        // the distance at which a b
   return Math.max(minDist(), dia*(h/(2*Math.tan(Math.PI/6)))/px);
 }
 function applyFocusView()       {
+  flightRelease();   // a view is a re-seed: the ship is left where it was
   const v = ($('focusSel')                     ).value;
   if(v === 'sun'){
     cam.followTarget = 'sun';
@@ -10157,6 +10370,8 @@ setLifeSfx(sfx);
 // It reports `holding` back rather than keeping it: while a pointer is down the clock holds,
 // and the clock is the frame's.
 initCamera({ ageGyr, onHold: setHolding });
+// the flight's button, keys and pads; a change re-lays the dock (the pads take the corners)
+initFlightUI({ onChange: () => fitPanels() });
 
 // ---------- UI ----------
 // Every control in the settings panel and on the dock — the speed ladder, the shuttle, the
@@ -10291,8 +10506,8 @@ const setSegUnits = initHudReadouts({
 // it short of reloading.
 const setBodySizes = () => setBodySizes$1();
 setBodySizes();   // real proportions from the first frame
-toggle($('tView'), on=>{ cam.followTarget='sun'; cam.follow=!on; cam.distGoal = on? 4300 : 150; cam.reseedFollow=true; cam.panF[0]=cam.panF[1]=0; });
-toggle($('tDive'), on=>{ cam.panF[0]=cam.panF[1]=0;
+toggle($('tView'), on=>{ flightRelease(); cam.followTarget='sun'; cam.follow=!on; cam.distGoal = on? 4300 : 150; cam.reseedFollow=true; cam.panF[0]=cam.panF[1]=0; });
+toggle($('tDive'), on=>{ flightRelease(); cam.panF[0]=cam.panF[1]=0;
   cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
   if(on){
     if($('tView').classList.contains('on')) $('tView').click();  // diving follows the Sun
@@ -10713,6 +10928,17 @@ startFrameLoop({
   #reopen{position:fixed;top:14px;right:14px;z-index:6;display:none;width:36px;height:36px;border-radius:2px;
     background:var(--panel);border:1px solid var(--line);color:var(--accent);cursor:pointer;font-size:15px;
     font-family:inherit;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+  /* the flight's thumb pads: two rings low in the corners, only while flying and only where
+     there is a thumb; the knob follows it. They sit over the canvas and keep their pointers. */
+  .pad{position:fixed;bottom:max(12px, env(safe-area-inset-bottom));width:84px;height:84px;border-radius:50%;z-index:1001;display:none;   /* above the QR overlay: a thumb must win */
+    border:1px solid var(--line);background:rgba(8,14,22,.35);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    touch-action:none;user-select:none;-webkit-user-select:none;--kx:0px;--ky:0px}
+  #padL{left:max(12px, env(safe-area-inset-left))} #padR{right:max(12px, env(safe-area-inset-right))}
+  .pad .knob{position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;
+    background:rgba(95,216,255,.22);border:1px solid var(--accent);transform:translate(var(--kx),var(--ky));transition:transform .06s}
+  .pad.held .knob{background:rgba(95,216,255,.45)}
+  @media (pointer: coarse){ body.flying .pad{display:block} body.flying #scaleNote{bottom:106px} }   /* the scale bar steps up over the left pad */
+  body.flying #tFly{color:var(--accent);box-shadow:0 0 8px 2px rgba(95,216,255,.35)}
   .pdot.attn{animation:attnPulse 1.1s ease-in-out infinite}
   @keyframes attnPulse{0%,100%{box-shadow:0 0 0 0 rgba(95,216,255,0)}
     50%{box-shadow:0 0 10px 3px rgba(95,216,255,.55)}}
@@ -11108,7 +11334,7 @@ startFrameLoop({
     <button class="rowbtn" id="tourAgain" style="margin-bottom:12px">show the tour again</button>
     <div class="stats" style="margin-top:0;padding-top:0;border-top:0">
       elapsed <b id="yrs">0.0</b> yr &nbsp;·&nbsp; galactic lap <b id="pct">0.000</b>%<br>
-      drag to orbit &nbsp;·&nbsp; scroll / pinch to zoom &nbsp;·&nbsp; right-drag or two fingers to pan &nbsp;·&nbsp; + / − step object to object &nbsp;·&nbsp; swipe a panel sideways to move it, off its edge to close it
+      drag to orbit &nbsp;·&nbsp; scroll / pinch to zoom &nbsp;·&nbsp; right-drag or two fingers to pan &nbsp;·&nbsp; + / − step object to object &nbsp;·&nbsp; ➤ free flight: W A S D, R F, shift, esc — or the two pads; the zoom is the pace &nbsp;·&nbsp; swipe a panel sideways to move it, off its edge to close it
     </div>
     <h3>Articles</h3>
     <p>The long-form notes live as their own pages now — one subject each, opening in a new tab.</p>
@@ -11176,6 +11402,9 @@ startFrameLoop({
 <button class="pdot" id="envPlus" data-open="env" aria-label="show the Earth panel">ℹ</button>
 <button class="pdot act" id="zoomIn" aria-label="zoom in" title="zoom in — toward the next smaller object">+</button>
 <button class="pdot act" id="zoomOut" aria-label="zoom out" title="zoom out — toward the next bigger object">−</button>
+<button class="pdot act" id="tFly" aria-label="free flight" aria-pressed="false" title="free flight — W A S D / arrows to move, R F up and down, shift to boost, esc to land; on a touch screen the two pads. The zoom sets the pace: a fraction of the view a second. A faster clock is a faster ship."><svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><path d="M0.8 4.6 L9.4 1 L6.4 9.2 L4.9 5.6 Z"/></svg></button>
+<div class="pad" id="padL" aria-label="move: forward, back, sideways"><i class="knob"></i></div>
+<div class="pad" id="padR" aria-label="rise, sink, turn"><i class="knob"></i></div>
 <button class="pdot act on" id="tLabelsAll" aria-label="toggle all labels" title="toggle all labels"><svg class="ico" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.2,1.8 L6,1.8 L8.8,5 L6,8.2 L1.2,8.2 Z"/></svg></button>
 <div class="env pnl simPanelWide" id="simPanel">
   <button class="pclose" data-close="simPanel" aria-label="close">−</button>
@@ -11256,6 +11485,7 @@ startFrameLoop({
   <div class="sbar"><span class="sfill" id="sFill"></span><i class="stk"></i><i class="stk mid" id="sTkMid"></i><i class="stk end" id="sTkEnd"></i></div>
   <div class="slab"><span>0</span><span class="mid" id="sHalf">—</span><span class="end" id="sEnd">—</span><em id="sUnit">—</em></div>
   <div class="sacross">view <em id="sScale">—</em> across</div>
+  <div class="sacross" id="sFly" style="display:none">flight <em id="sPace">—</em><span id="sClockShare"></span></div>
 </div>
 <div class="env" id="env">
   <button class="pclose" id="envMin" data-close="env" aria-label="minimise the Earth panel">−</button>

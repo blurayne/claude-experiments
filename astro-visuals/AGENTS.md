@@ -301,6 +301,34 @@ dismissing the first-run tour **starts** the clock, so pausing has to come after
   10.3, 11.7, 12.2 from pitch 0.95 — the tails should be longest near 10.3 and 11.8, not at
   the passages, and the inner disk should keep its spiral.
 
+## Free flight (v3.19.0)
+
+- **The flight moves the target, not the camera.** `render/flight` keeps a free point in
+  absolute world coordinates (`flight.pos`, doubles like `org`); while `flight.anchored`
+  the frame follows it instead of the Sun or a planet, and the eye stays `cam.dist` behind
+  it, turned by yaw and pitch as ever. Nothing downstream changes: the zoom, the ladder,
+  the labels and every layer's fade stay keyed on `cam.dist`, which in flight is the chase
+  distance and so the scale of the view — and the pace: `fullSpeed` is a fixed fraction of
+  the view's height a second. Do not key the pace on anything else; the zoom is the
+  throttle's scale by design.
+- **The clock's share** is `clockFactor(yps, running)`: √(years a second / 1), clamped 1
+  to 10, and 1 while the clock stands or is held. Tested in `tests/unit/flight`.
+- **`on` and `anchored` are different.** `on` is the controls being live; `anchored` is
+  the camera riding the ship, which outlives the controls — flight off stops the ship where
+  it is. Every re-seed of the camera (`applyFocusView`, the view and dive toggles, a state
+  import) calls `flightRelease`, or the ship would keep the view forever.
+- **The far plane** now adds the target's own distance from the Sun (`frame`): the sky
+  sphere is Sun-centred, and a ship far from the Sun looks back at it from beyond the old
+  reach.
+- **Inputs live in `ui/flight`.** Keys go through a set of codes → `flight.want`; the pads
+  are their own fixed elements over the canvas (pointer capture, `stopPropagation`), so a
+  thumb on one neither orbits the view nor holds the clock, and they sit above the QR
+  overlay (z 1001) because a thumb must win. They show only with `body.flying` on a coarse
+  pointer; the scale bar steps up over the left one. The readout ticks with the HUD.
+- **Signs.** Screen-right is the world's right mirrored (`SKY_MIRROR`, the projection's x
+  flip), so sideways is `r·SKY_MIRROR`; the right pad's turn is the opposite sign to a
+  drag, because a drag carries the scene and the pad turns the ship.
+
 ## The far plane reaches every showing layer (v3.18.2)
 
 - **`farReach(camDist)` in `render/frame`** is the far plane's reach past the eye's own

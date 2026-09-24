@@ -96,6 +96,8 @@ import { drawG710 } from './render/passes/g710'
 import { drawEatFlash } from './render/passes/eatflash'
 import { runFirstLaunchProbe } from './render/probe'
 import { initCamera, zoomStep, minDist } from './render/camera'
+import { flightRelease } from './render/flight'
+import { initFlightUI } from './ui/flight'
 import { startFrameLoop, setHolding, skyProjection, spinFrame, org } from './render/frame'
 import { drawLabels, setLabelSteady, labelEls, armEls } from './render/labels'
 import {
@@ -232,6 +234,8 @@ setLifeSfx(sfx);
 // It reports `holding` back rather than keeping it: while a pointer is down the clock holds,
 // and the clock is the frame's.
 initCamera({ ageGyr, onHold: setHolding });
+// the flight's button, keys and pads; a change re-lays the dock (the pads take the corners)
+initFlightUI({ onChange: () => fitPanels() });
 
 // ---------- UI ----------
 // Every control in the settings panel and on the dock — the speed ladder, the shuttle, the
@@ -370,8 +374,8 @@ const setSegUnits = initHudReadouts({
 // it short of reloading.
 const setBodySizes = () => setBodySizesTo(REAL_MODE);
 setBodySizes();   // real proportions from the first frame
-toggle($('tView'), on=>{ cam.followTarget='sun'; cam.follow=!on; cam.distGoal = on? 4300 : 150; cam.reseedFollow=true; cam.panF[0]=cam.panF[1]=0; });
-toggle($('tDive'), on=>{ cam.panF[0]=cam.panF[1]=0;
+toggle($('tView'), on=>{ flightRelease(); cam.followTarget='sun'; cam.follow=!on; cam.distGoal = on? 4300 : 150; cam.reseedFollow=true; cam.panF[0]=cam.panF[1]=0; });
+toggle($('tDive'), on=>{ flightRelease(); cam.panF[0]=cam.panF[1]=0;
   cam.reseedFollow = true; cam.panF[0]=cam.panF[1]=0;
   if(on){
     if($('tView').classList.contains('on')) $('tView').click();  // diving follows the Sun

@@ -16,6 +16,7 @@ import { spinFrame, moonSpinFrame } from '../render/frame'
 import { N_PLANETS, I_P9 } from '../astro/bodies'
 import { events, puffs } from '../render/lifecycle'
 import { armEls, labelEls, setLabelSteady } from '../render/labels'
+import { updateFlightReadout } from './flight'
 import { tempColour, setStateColour } from './theme'
 import { layoutPanels } from './panels'
 
@@ -362,6 +363,7 @@ export function updateHud(now: number, pn: PnState | null): void {
     $('sHalf').style.left = (s.px/2).toFixed(1)+'px'; $('sHalf').textContent = s.half;
     $('sEnd').style.left = s.px.toFixed(1)+'px';      $('sEnd').textContent = s.full;
     $('sUnit').style.left = (s.px+16).toFixed(1)+'px'; $('sUnit').textContent = s.unit; }
+  updateFlightReadout();
   if(hud.showStats){
     $('gCal').textContent = humanYear();
     // real elapsed time: one sim lap ≡ one real galactic year of 225 Myr

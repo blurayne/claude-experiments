@@ -13,6 +13,7 @@ import {
 } from '../astro/earth'
 import { canvas, gl } from '../gpu/context'
 import { cam, gfx, lifeAcc, readout, simClock, view, SKY_MIRROR } from './state'
+import { flight, flightStep, setFlightBasis } from './flight'
 import { hud, updateHud } from '../ui/hud'
 import { N_STAR } from '../scene/starfield'
 import { drawNebula, type CloudFrame, type Which } from './passes/nebula'
@@ -248,14 +249,17 @@ function frame(now: number): void {
   bh1Centre(simClock.simT, bh1C);
   for(let i=0;i<3;i++) bh1Abs[i] = org[i] + bh1C[i];
   for(let i=0;i<3;i++) lgAbs[i] = org[i] + LG_BOX.centre[i];
-  const followPos = cam.followTarget === 'and' ? andPos
+  // the flight moves its own point first, with the clock's rate as its pace
+  flightStep(dt, simClock.speed*simClock.speedMult*Math.abs(drive), drive !== 0 && !holding);
+  const followPos = flight.anchored ? flight.pos
+                  : cam.followTarget === 'and' ? andPos
                   : cam.followTarget === 'gc' || cam.followTarget === 'gcr' ? GC_ORIGIN
                   : cam.followTarget === 'bh1' ? bh1Abs
                   : cam.followTarget === 'lg' ? lgAbs
                   : cam.followTarget === 'sc' || cam.followTarget === 'web' || cam.followTarget === 'deep' ? org
                   : moonHere ? moonW
                   : ((cam.followTarget === 'earth' || cam.followTarget === 'moon') && !wasEaten[3]) ? earthW : org;
-  const goal = cam.follow ? [followPos[0],followPos[1],followPos[2]] : [0,0,0];
+  const goal = cam.follow || flight.anchored ? [followPos[0],followPos[1],followPos[2]] : [0,0,0];
   if(cam.reseedFollow){ for(let i=0;i<3;i++) cam.smoothOfs[i] = cam.smoothTarget[i]-goal[i]; cam.reseedFollow=false; }
   const k = cam.firstFrame?1:Math.min(1,dt*4);
   for(let i=0;i<3;i++) cam.smoothOfs[i] *= 1-k;
@@ -293,7 +297,7 @@ function frame(now: number): void {
   let ux = -sp*sy, uy = cp, uz = -sp*cy;                                // up, tilted with the pitch
   let dx = cp*sy, dy = sp, dz = cp*cy, upV: ArrayLike<number> = [0,1,0];                   // the eye's direction from the target
   const moonLock = cam.spinLock && cam.follow && cam.followTarget === 'moon' && moonHere;
-  const spinOn = cam.spinLock && cam.follow && !wasEaten[3]
+  const spinOn = cam.spinLock && cam.follow && !wasEaten[3] && !flight.anchored
                && (cam.followTarget === 'earth' || moonLock);
   if(spinOn){
     // the same three vectors, but in the planet's frame: x → prime meridian P, y → axis A,
@@ -323,6 +327,7 @@ function frame(now: number): void {
     upV = A;
   }
   cam.dirW[0] = dx; cam.dirW[1] = dy; cam.dirW[2] = dz;                     // read by the spin lock's switch
+  setFlightBasis([rx, ry, rz], [ux, uy, uz], [dx, dy, dz]);                  // and the flight flies along these
   const pv = 1.1547*cam.dist, pdx = -cam.panF[0]*pv*SKY_MIRROR, pdy = cam.panF[1]*pv;
   const tgx=cam.smoothTarget[0]-org[0] + rx*pdx + ux*pdy,
         tgy=cam.smoothTarget[1]-org[1] + ry*pdx + uy*pdy,
@@ -346,7 +351,10 @@ function frame(now: number): void {
   // follows the zoom, and reaches the whole of every layer that is showing — see farReach:
   // a plane at the eye's distance plus the sky sphere sliced the Local Group's far-side
   // galaxies in half, and which ones it sliced changed as the eye turned.
-  view.projMat = skyProjection(Math.min(0.5, Math.max(1e-13, cam.dist*0.04)), Math.max(25000, cam.dist + farReach(cam.dist) + 6000));
+  // The target may itself be far from the Sun — the Centre's views, and anywhere the flight
+  // has gone — and the sky sphere is centred on the Sun, so its far side is that much further.
+  { const tgtD = Math.hypot(cam.smoothTarget[0]-org[0], cam.smoothTarget[1]-org[1], cam.smoothTarget[2]-org[2]);
+    view.projMat = skyProjection(Math.min(0.5, Math.max(1e-13, cam.dist*0.04)), Math.max(25000, cam.dist + tgtD + farReach(cam.dist + tgtD) + 6000)); }
   const pxScale = (view.H*view.DPR)/(2*Math.tan(Math.PI/6));
 
   // at 100% nothing is compressed, so the old direct path is kept exactly
