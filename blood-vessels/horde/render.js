@@ -5,7 +5,10 @@
    R.resize(cssW, cssH, dpr)   R.render(frame)   R.setQuality({scale, dof, fgCells, debug})
    R.stats() → {gpuMs?, drawCalls, instances, fgCells, scale, listEntries, maxList}   R.destroy()
    extras: R.setNet(net) (new map, same canvas), R.measure(frame, w?, h?) → per-pixel Bézier work
-   (debug read-back), R.gl. debug views: 1 work counters, 2 field (N / arc / wall), 3 grid + evals.
+   (debug read-back), R.gl. debug views: 1 work counters, 2 field (N / arc / wall), 3 grid + evals,
+   4 lumen-edge check (r: physics lumen drawn as wall, depth / wall thickness × 2; g: wall drawn as
+   lumen, / wall thickness; b: physics lumen). opts.bpm: heart rate for times frame.pulse has not
+   covered yet (default 66, as the simulation).
 
    Per frame:
    1. WORLD  one full-screen pass (optionally at a reduced resolution, then
@@ -18,20 +21,38 @@
              kind. The two heaviest chains keep their own arc length s and
              signed lateral offset, so arc-based textures are evaluated per
              chain and cross-faded, never blended as coordinates.
+             WOBBLE: the merged field N is offset before shading, so the wall
+             band, lining, cut edge, contact shadow and tissue berm move
+             together: (a) a slow undulation travelling along each vessel (arc
+             in local radii, own phase per chain, different on its two sides,
+             from the two heaviest chains only), (b) the arterial pulse wave:
+             the wall's low-passed response to frame.pulse (recorded per
+             frame, BV.heart before that), delayed by the pressure drop from
+             the inlet (net.js chain.P / bezier.p0,p2), so arteries near the
+             heart dilate first (~5.8 % of r), connectors a little, veins
+             barely. The lumen scales about the axis; the rendered lumen edge
+             only moves outward of the physics lumen (N < −wall), or inward by
+             at most 0.1 of the wall thickness (debug view 4 measures it).
              Shading: wet tissue (lobules, flesh bumps, fibres along vessels,
              raised lit berms, contact shadow, deep pockets), the cut-open
-             vessel (rounded glossy wall band with fibres, bright lining, dark
-             cut edge; half-pipe lumen with folds, endothelial mosaic, advected
-             plasma streaks with a parabolic profile, red-cell haze), and the
-             glossy raised-tube look used when a vessel is only a few dozen
-             px wide. Every texture fades by pixel footprint.
+             vessel (a thick muscular rim: pillow-profiled media with wavy
+             muscle layers, bright lining, a lamina groove, and an adventitia
+             coat drawn over the tissue just outside the wall; a half-pipe lumen
+             seen through luminous plasma: folded fibrous far wall lit from the
+             top-left and fogged toward the deep axis, the rim's shadow on the
+             floor, endothelial mosaic, advected plasma streaks and blood
+             clouds with a parabolic profile, drifting bokeh specks, red-cell
+             haze), and the glossy raised-tube look used when a vessel is only a
+             few dozen px wide, throbbing as the pulse wave passes. Every
+             texture fades by pixel footprint.
    2. RBC    instanced biconcave impostors, far → near (bucket-sorted by depth),
-             tumble, depth of field, × rbcLOD.
+             tumble, a gentle parachute flex (own beat per cell), glossy torus
+             rim + crisp specular + subsurface edge glow, depth of field, × rbcLOD.
    3. UNITS  instanced, in five sweeps over the same buffer: soft shadows →
              infection sites → selection rings → cells / pathogens / antibodies → FX
              (rings under all bodies, so a packed selected horde is outlined, not meshed).
-   4. FG     optional sparse big blurred red cells in front, faded out around
-             units so they never cover a face.
+   4. FG     optional sparse big soft out-of-focus red cells in front, faded out
+             around units so they never cover a face.
 
    Instance fields as the renderer reads them (HORDE_SPEC layouts; extras as sim.js packs them):
      RBC  (8)  x y r depth(0 near…1 far) angle(travel) tumble(0 face-on…1 edge-on) oxy alpha
@@ -41,15 +62,22 @@
        common  flags 1 selected (cyan ring; pathogens: red ring), 2 eating ("O" mouth), 4 hit
                flash, 8 dying (fades by e0 = fade-out progress 0…1), 16 adhered (tighter,
                darker shadow), 32 hovered (white ring); e3 = fade-in alpha 0…1 (spawn).
+               e0 without flag 8 = WBC jiggle amplitude 0…1 (a decaying impulse from the sim).
                Min on-screen radius: WBC 2.5 css px, pathogens 2, sites 9; icon below ~9 px,
                faces above ~13–19 px (WBC) / ~9–14 px (pathogens).
-       0 WBC   angle heading, stretch ≥ 1 along it (amoeboid), e2 swim activity (pseudopod),
+       0 WBC   soft body: angle heading, stretch 0.85…1.35 along it (> 1 elongates, < 1
+               squashes; volume-preserving), e0 jiggle → fast quadrupole wobble + scale
+               bounce whose amplitude follows it, the nucleus and granules slosh behind
+               the membrane, the face (never deformed) bobs; e2 swim activity (pseudopod),
                e1 prey being digested (0 none, 1 virus, 2 bacterium) shrinking with hp,
-               look → eyes, tint → nucleus orientation / granules, phase → wobble, blink.
-       1 virus angle = spin of the spikes; look → eyes; face stays upright.
+               look → eyes, tint → nucleus orientation / granules, phase → ripples, blink.
+       1 virus angle = spin of the spikes; the capsid pulses, every spike waggles and
+               throbs on its own beat; look → eyes; face stays upright.
        2 bact. r = rod half-width, stretch = half-length / r (2.2…3), angle body axis,
-               e1 division progress (waist pinches), flagella wave from the back.
-       3 site  angle wall tangent, stretch elongates along it, hp → HP ring, e2 emission pulse.
+               e1 division progress (waist pinches); the rod flexes (banana bend + a wave
+               down its length), flagella undulate from the flexing tail.
+       3 site  angle wall tangent, stretch elongates along it, hp → HP ring, e2 emission
+               pulse; the lesion breathes and its pus dome bulges on every throb.
        4 antibody Y along angle.   5 FX burst: hp life 1 → 0, tint < .33 cyan / < .66 green / orange.
      frame.marks is not drawn here (main.js draws overlays on its 2D canvas).
 
@@ -123,14 +151,17 @@ precision highp float; precision highp int; precision highp sampler2D;
 #define MAXL __MAXL__
 #define SEGW __SEGW__
 #define LISTW __LISTW__
+#define PTN __PTN__
 const float K = __K__;
 const vec3 WALLS = vec3(__W0__, __W1__, __W2__);
 const float CUT = 3.1;          // chains whose lower bound is this far above the best so far weigh < 2^-14
 const float NFAR = 6.0;
-uniform sampler2D uSeg, uCell, uList, uLidx;
+uniform sampler2D uSeg, uCell, uList, uLidx, uSegX;
 uniform ivec2 uGridN; uniform vec2 uGridO; uniform float uCellSize;
 uniform vec2 uCam, uRes, uPPU;      // world centre, pass size (px), pass px per µm
 uniform float uZ, uTime, uPulse, uLOD, uTauP;
+uniform vec2 uWave;                 // pulse wave: (1 / (1 − p at the arterial ends), table steps per unit of wave delay)
+uniform float uPT[PTN];             // wall dilation response (0..1) at wave delays 0 … 1.6 (in units of PT_DELAY s)
 uniform vec4 uBounds;
 uniform int uDebug;
 out vec4 outColor;
@@ -139,6 +170,7 @@ ${GLSL_COMMON}
 // ---- field evaluation state -------------------------------------------------
 float gAcc, gR, gO, gK, gProx, gBest; vec2 gG, gF, gGN;
 float wS0, wS1, wS2; vec4 sA0, sA1, sB0, sB1;      // top-2 chains: (s, lat, r, v), (tan.x, tan.y, kind, oxy)
+vec2 sC0, sC1;                                     // top-2 chains: (Bézier index, t*) — wobble data is fetched for these only
 float cN, cNr, cT, cR, cDist, cFade; int cIdx; vec2 cQ, cTan;
 int nFull, nVisit;
 
@@ -218,15 +250,16 @@ void flushChain(vec2 p){
   // arc position extrapolated along the tangent: exact for an interior t*, continuous across the
   // end caps (where a tapering chain's thicker cap wins over the next span and t* sticks at 0/1)
   vec4 A = vec4(mix(T2.x, T2.y, t) + dot(p - cQ, cTan), dot(p - cQ, nr), cR, v), B = vec4(cTan, kind, oxy);
-  if(w > wS0){ wS2 = wS1; wS1 = wS0; sA1 = sA0; sB1 = sB0; wS0 = w; sA0 = A; sB0 = B; }
-  else if(w > wS1){ wS2 = wS1; wS1 = w; sA1 = A; sB1 = B; }
+  vec2 C = vec2(float(cIdx), t);
+  if(w > wS0){ wS2 = wS1; wS1 = wS0; sA1 = sA0; sB1 = sB0; sC1 = sC0; wS0 = w; sA0 = A; sB0 = B; sC0 = C; }
+  else if(w > wS1){ wS2 = wS1; wS1 = w; sA1 = A; sB1 = B; sC1 = C; }
   else wS2 = max(wS2, w);
   gBest = min(gBest, cN);
 }
 
 void evalField(vec2 p){
   gAcc = 0.0; gR = 0.0; gO = 0.0; gK = 0.0; gProx = 0.0; gBest = 1e9; gG = vec2(0.0); gF = vec2(0.0); gGN = vec2(0.0);
-  wS0 = 0.0; wS1 = 0.0; wS2 = 0.0; sA0 = vec4(0.0); sA1 = vec4(0.0); sB0 = vec4(1.0, 0.0, 0.0, 0.5); sB1 = sB0;
+  wS0 = 0.0; wS1 = 0.0; wS2 = 0.0; sA0 = vec4(0.0); sA1 = vec4(0.0); sB0 = vec4(1.0, 0.0, 0.0, 0.5); sB1 = sB0; sC0 = vec2(0.0); sC1 = sC0;
   cIdx = -1; cN = 1e9; nFull = 0; nVisit = 0;
   ivec2 gi = ivec2(floor((p - uGridO)/uCellSize));
   if(gi.x < 0 || gi.y < 0 || gi.x >= uGridN.x || gi.y >= uGridN.y) return;
@@ -282,12 +315,13 @@ vec2 hazeLayer(float s, float lat, float rl, float v, float tau, float fp, float
 // T = (fold height −1..1, mosaic −1..1, streak −1..1, wall fibre −1..1)
 // G = (fold gradient in world xy (1/µm·relief), fibre slope across the band, blood density −1..1)
 // H = haze (coverage, shade)
-void slotTex(vec4 A, vec4 B, float fp, float am, bool lumen, bool band, out vec4 T, out vec4 G, out vec2 H){
+// F = far-wall fibres (height −1..0.6, world gradient xy per µm), E = (unused, bokeh 0..1)
+void slotTex(vec4 A, vec4 B, float fp, float am, bool lumen, bool band, out vec4 T, out vec4 G, out vec2 H, out vec3 F, out vec2 E){
   float s = A.x, lat = A.y, r = A.z, v = A.w, kind = B.z;
   vec2 tg = B.xy, nr = vec2(-B.y, B.x);
   float rl = r*(1.0 - wallOf(kind));
   float ppu = 1.0/fp;
-  T = vec4(0.0); G = vec4(0.0); H = vec2(0.46, 0.92);
+  T = vec4(0.0); G = vec4(0.0); H = vec2(0.46, 0.92); F = vec3(0.0); E = vec2(0.0);
   if(lumen){
     // am: merged lumen coordinate (0 axis … 1 lumen edge), continuous across chains; drives the
     // foreshortening used for footprint fades. val: this chain's own lumen actually covers the pixel
@@ -303,6 +337,16 @@ void slotTex(vec4 A, vec4 B, float fp, float am, bool lumen, bool band, out vec4
     T.x = 0.75*f1.x*fF + 0.25*f2.x*fF2;
     vec2 dsl = vec2(0.75*fF*f1.y/170.0 + 0.25*fF2*f2.y/66.0, (0.75*fF*f1.z/34.0 + 0.2*fF2*f2.z/13.0)/max(cl, 0.2));
     G.xy = (dsl.x*tg + dsl.y*nr)*10.0;
+    // fibrous far wall: fine wavy ridges running with the flow (rounded ridges of stretched noise),
+    // faded in only once resolved (foreshortened toward the sides of the half-pipe)
+    float fb1 = smoothstep(3.0, 8.0, 3.4*ppu*comp)*val;
+    if(fb1 > 0.0){
+      float wq = sin(s/97.0 + 2.1*sin(la/31.0 + s/260.0));                        // the fibres meander
+      vec3 r1 = vnoised(vec2(s/60.0, la/3.4 + 2.4*wq) + 17.0);
+      F.x = fb1*(0.6 - 1.6*r1.x*r1.x);
+      vec2 dF = -fb1*3.2*r1.x*r1.yz*vec2(1.0/60.0, 1.0/(3.4*max(cl, 0.2)));
+      F.yz = dF.x*tg + dF.y*nr;
+    }
     // endothelial mosaic: flat cells stretched along the flow with a bulging nucleus (faint)
     float mF = smoothstep(3.0, 8.0, 10.0*ppu*comp)*val;
     if(mF > 0.0){
@@ -319,7 +363,18 @@ void slotTex(vec4 A, vec4 B, float fp, float am, bool lumen, bool band, out vec4
     if(sf > 0.0) T.z += sf*0.5*(streakSet(s, lat, rl, v, tau, 5.0, 46.0, 0.0) + streakSet(s, lat, rl, v, tau, 5.0, 46.0, 0.5));
     if(sc > 0.0) T.z += sc*0.5*(streakSet(s, lat, rl, v, tau, 26.0, 240.0, 0.0) + streakSet(s, lat, rl, v, tau, 26.0, 240.0, 0.5));
     // coarse blood-density clouds drifting with the flow (reads at mid zoom)
-    G.w = (2.0*vnoise(vec2((s - v*1.1*tau)/110.0, la/40.0) + 2.2) - 1.0)*smoothstep(4.0, 12.0, 40.0*ppu*comp)*val;
+    float gq = (s - v*1.1*tau)/170.0;
+    G.w = (2.0*vnoise(vec2(gq, la/38.0 + 0.35*sin(1.7*gq)) + 2.2) - 1.0)*smoothstep(4.0, 12.0, 38.0*ppu*comp)*val;
+    // out-of-focus specks drifting in front of the far wall (bokeh), only when big on screen
+    float bkF = smoothstep(5.0, 10.0, 4.0*ppu)*val;
+    if(bkF > 0.0){
+      vec2 bq = vec2((s - v*0.9*tau)/38.0, la/38.0);
+      ivec2 bi = ivec2(floor(bq)); vec2 bf = fract(bq);
+      vec2 bc = 0.25 + 0.5*h22(bi + ivec2(301, 17));
+      float br = 0.07 + 0.09*h21(bi + ivec2(7, 401));
+      float bd = length(bf - bc)/br;
+      E.y = bkF*step(0.8, h21(bi + ivec2(55, 9)))*(1.0 - smoothstep(0.55, 1.0, bd))*(0.75 + 0.25*smoothstep(0.5, 0.9, bd));
+    }
     // red-cell haze (procedural suspension below the zoom where particles are drawn)
     float hc = smoothstep(3.0, 7.0, 7.4*ppu)*val;           // cell-sized blobs only once they are ~5+ px
     if(uLOD < 1.0 && hc > 0.0){
@@ -337,6 +392,13 @@ void slotTex(vec4 A, vec4 B, float fp, float am, bool lumen, bool band, out vec4
     vec3 b1 = vnoised(vec2(s/70.0, wv/2.6)), b2 = vnoised(vec2(s/140.0, wv/6.0) + 7.0), b3 = vnoised(vec2(s/300.0, dm/14.0) + 11.0);
     T.w = 0.3*bF*b1.x + 0.3*bM*b2.x + 0.3*bC*b3.x;
     G.z = (0.3*bF*b1.z/2.6 + 0.3*bM*b2.z/6.0 + 0.25*bC*b3.z/14.0)*1.4;
+    // coarse muscle bundles, a few across the wall (read at mid zoom)
+    float bW = 0.045*r + 4.0, bK = smoothstep(3.0, 9.0, bW*ppu);
+    if(bK > 0.0){                                                                    // wavy muscle layers
+      float lay = 6.2831853*(dm/bW + 0.3*sin(s/(4.0*bW) + 1.3*sin(s/(11.0*bW))) + 0.2*sin(s/(1.7*bW) + dm/bW));
+      float sl = sin(lay);
+      T.w += bK*0.45*sl; G.z += bK*0.45*6.2831853*cos(lay)/bW*1.2;
+    }
     // smooth-muscle nuclei: small elongated light spots in the wall (only when resolved)
     float nF = smoothstep(3.0, 7.0, 1.6*ppu);
     if(nF > 0.0 && dm > -2.0){
@@ -404,7 +466,7 @@ vec3 tissue(vec2 p, float dW, vec2 g, float rB, float fp){
   return c;
 }
 
-vec3 tubeLook(float N, vec2 g, float oxy, float Dcss){
+vec3 tubeLook(float N, vec2 g, float oxy, float Dcss, float pl){
   float ao = clamp(1.0 + N, 0.0, 1.0), hz = sqrt(max(1.0 - ao*ao, 0.0));
   vec3 n = normalize(vec3(g*ao, hz + 0.02));
   vec3 base = mix(vec3(0.40, 0.06, 0.17), vec3(0.84, 0.09, 0.11), oxy);
@@ -413,62 +475,103 @@ vec3 tubeLook(float N, vec2 g, float oxy, float Dcss){
   vec3 c = base*(0.30 + 0.9*dif);
   c += vec3(1.0, 0.72, 0.72)*sp*mix(0.25, 0.5, smoothstep(4.0, 20.0, Dcss));
   c *= 1.0 - 0.4*pow(ao, 5.0);
+  c *= 1.0 + 0.3*pl;                                                   // the pulse wave: a throb running down the tree
+  c += vec3(0.5, 0.06, 0.05)*pl*0.35*(1.0 - ao*ao);
   return c;
 }
 
-vec3 cutLook(float N, float rB, vec2 g, float oxy, float kind, float wall, float fp, float aaN, float gN){
-  vec4 T, T1, G, G1; vec2 Hz, H1;
+// cut-open vessel. N: field (0 at the wall's outer physics edge); adv: the adventitia, an outer
+// layer drawn over the tissue beyond N = 0 (thick on arteries), so the rim reads muscular.
+vec3 cutLook(float N, float rB, vec2 g, float oxy, float kind, float wall, float adv, float fp, float aaN, float gN, float pl){
+  vec4 T, T1, G, G1; vec2 Hz, H1, E, E1; vec3 F, F1;
   float inL = 1.0 - smoothstep(-aaN, aaN, N + wall);
   bool needL = inL > 0.0, needB = inL < 1.0;
   float a = clamp((1.0 + N)/(1.0 - wall), 0.0, 1.0);
-  slotTex(sA0, sB0, fp, a, needL, needB, T, G, Hz);
+  slotTex(sA0, sB0, fp, a, needL, needB, T, G, Hz, F, E);
   float e0 = wS0 - wS2, e1 = wS1 - wS2;          // blend weights that vanish when a third chain swaps in
   if(e1 > 0.02*e0){
-    slotTex(sA1, sB1, fp, a, needL, needB, T1, G1, H1);
+    slotTex(sA1, sB1, fp, a, needL, needB, T1, G1, H1, F1, E1);
     float f = smoothstep(0.25, 0.75, e1/(e0 + e1));    // a soft stitch line where two chains meet, no plaid
-    T = mix(T, T1, f); G = mix(G, G1, f); Hz = mix(Hz, H1, f);
+    T = mix(T, T1, f); G = mix(G, G1, f); Hz = mix(Hz, H1, f); F = mix(F, F1, f); E = mix(E, E1, f);
   }
-  float u = clamp((N + wall)/wall, 0.0, 1.0);
   vec3 lum = vec3(0.0), wal = vec3(0.0);
+  float Lxy = length(LDIR.xy);
   if(inL > 0.0){
-    // half-pipe: the far inner wall, seen through plasma; axis deepest, sides curve up
-    float zd = sqrt(max(1.0 - a*a, 0.0));
+    // half-pipe: the far inner wall, seen through luminous plasma; axis deepest (and softest),
+    // the sides curve up toward the viewer, sharp and glossy
+    float zd = sqrt(max(1.0 - a*a, 0.0)), near = 1.0 - zd;
+    float focus = 1.0 - 0.5*zd;
     vec3 nI = normalize(vec3(-g*a, zd + 0.06));
-    vec3 n = normalize(nI + vec3(-G.xy*(0.3 + 0.7*zd), 0.0));
-    vec3 farW = mix(vec3(0.27, 0.05, 0.10), vec3(0.46, 0.075, 0.07), oxy);
-    float dif = max(dot(n, LDIR), 0.0);
-    vec3 c = farW*(0.40 + 0.78*dif)*(1.0 + 0.10*T.y);
-    c += vec3(0.9, 0.45, 0.4)*pow(max(dot(n, HDIR), 0.0), 16.0)*0.045;          // wet glint on the far wall
-    vec3 plasma = mix(vec3(0.11, 0.014, 0.045), vec3(0.20, 0.022, 0.026), oxy);
-    c = mix(c, plasma, 0.45*zd);
-    c *= 1.0 + 0.05*T.z*(0.4 + 0.6*zd);
-    c += vec3(0.16, 0.05, 0.05)*pow(a, 5.0);
+    float fr = mix(0.6, 3.2, smoothstep(0.6, 2.5, 1.0/fp))*(0.35 + 0.65*zd);          // fold relief: calm at mid zoom
+    vec3 n = normalize(nI + vec3(-G.xy*fr - F.yz*(0.7*focus), 0.0));
+    vec3 farW = mix(vec3(0.30, 0.05, 0.10), vec3(0.52, 0.085, 0.075), oxy);
+    float ndl = dot(n, LDIR), dif = max(ndl, 0.0), wrap = max(ndl + 0.5, 0.0)/1.5;
+    vec3 c = farW*(0.26 + 0.52*dif + 0.3*wrap)*(1.0 + 0.10*T.y)*(1.0 + 0.3*F.x*focus)*(1.0 + 0.22*T.x);
+    c += vec3(0.55, 0.10, 0.04)*(1.0 - wrap)*(1.0 - wrap)*0.12;                         // warm light bleeding through
+    float sp = pow(max(dot(n, HDIR), 0.0), mix(14.0, 44.0, near));
+    c += vec3(1.0, 0.58, 0.5)*sp*mix(0.05, 0.16, near)*(0.6 + 0.4*focus);         // wet glints on the folds
+    // the rim facing away from the light shades the floor next to it (reads as depth at mid zoom)
+    float rimSh = smoothstep(0.5, 0.97, a)*clamp(1.4*dot(g, LDIR.xy)/Lxy, 0.0, 1.0);
+    c *= 1.0 - mix(0.38, 0.2, smoothstep(1.0, 4.0, 1.0/fp))*rimSh;
+    // luminous plasma: warm, scattering, thickest (and brightest) over the deep axis; clouds drift
+    vec3 plasma = mix(vec3(0.25, 0.035, 0.075), vec3(0.44, 0.07, 0.05), oxy)*(0.92 + 0.22*G.w + 0.04*T.z);
+    c = mix(c, plasma, 0.58*pow(zd, 0.7));
+    c *= 1.0 + 0.06*T.z*(0.4 + 0.6*zd);
+    c += vec3(0.18, 0.05, 0.05)*pow(a, 5.0)*(1.0 - rimSh);
     // red-cell suspension at lower zooms (particles take over as rbcLOD → 1)
-    vec3 rbc = mix(vec3(0.52, 0.045, 0.11), vec3(0.84, 0.10, 0.09), oxy);
+    vec3 rbc = mix(vec3(0.52, 0.045, 0.11), vec3(0.86, 0.11, 0.09), oxy);
     Hz = mix(Hz, vec2(0.46, 0.92), 0.5*uLOD);                                     // hand-over: particles carry the detail
-    float hw = (1.0 - uLOD)*clamp(Hz.x*(1.0 + 0.18*G.w), 0.0, 1.0);
+    float hw = (1.0 - uLOD)*clamp(Hz.x*(1.0 + 0.3*G.w + 0.06*T.z), 0.0, 1.0);
     hw *= mix(0.55, 1.0, zd)*(1.0 - 0.6*smoothstep(0.82, 1.0, a));        // thinner blood + cell-free sleeve at the wall
-    c = mix(c, rbc*Hz.y*(1.08 - 0.22*zd)*(1.0 + 0.05*T.z + 0.05*G.w), hw);
-    c *= 1.0 + 0.06*uPulse*max(1.0 - kind, 0.0);
+    c = mix(c, rbc*Hz.y*(1.08 - 0.22*zd)*(1.0 + 0.05*T.z + 0.07*G.w)*(1.0 - 0.3*rimSh), hw);
+    c += vec3(1.0, 0.62, 0.52)*0.07*E.y;                                         // bokeh
+    c *= 1.0 + 0.1*pl;
     lum = c;
   }
   if(inL < 1.0){
-    // wall band: rounded glossy rim with fibres along the vessel, bright lining, dark cut edge
-    vec3 wc = kind <= 1.0 ? mix(vec3(0.70, 0.29, 0.30), vec3(0.64, 0.27, 0.32), kind) : mix(vec3(0.64, 0.27, 0.32), vec3(0.40, 0.17, 0.28), kind - 1.0);
-    float dh = 3.14159*cos(3.14159*u);
+    // wall: media (glossy, muscular, pink-red) + adventitia (darker fibrous outer coat), one rounded
+    // rim; bright lining at the lumen, a groove between the coats, dark cut edge outside
+    float wt = wall + adv;
+    float u = clamp((N + wall)/wt, 0.0, 1.0), um = wall/wt;
+    vec3 wc = kind <= 1.0 ? mix(vec3(0.72, 0.29, 0.30), vec3(0.64, 0.27, 0.32), kind) : mix(vec3(0.64, 0.27, 0.32), vec3(0.40, 0.17, 0.28), kind - 1.0);
+    vec3 ac = wc*vec3(0.72, 0.62, 0.66);
+    // a pillow profile: flat cut face, rounded shoulders at the lumen and at the outer edge
+    float dh = 2.6*(1.0 - smoothstep(0.0, 0.3, u)) - 2.6*smoothstep(0.7, 1.0, u) + 0.35*cos(3.14159*u);
     float gr = clamp(gN*rB, 0.25, 1.5);                   // < 1 where the union widens the band (fillets)
-    vec3 nW = normalize(vec3(-g*(0.5*dh*gr + G.z), 1.0));
-    vec3 c = wc*(0.34 + 0.8*max(dot(nW, LDIR), 0.0));
-    c *= 1.0 + 0.2*T.w;
-    c += vec3(1.0, 0.8, 0.78)*pow(max(dot(nW, HDIR), 0.0), 40.0)*0.42;
-    float dIn = (N + wall)/gN, dOut = -N/gN;            // true µm to the lumen edge / to the outer edge
+    vec3 nW = normalize(vec3(-g*(0.7*dh*gr + G.z), 1.0));
+    float dfw = max(dot(nW, LDIR), 0.0);
+    vec3 c = mix(wc, ac, smoothstep(um - 0.06, um + 0.06, u))*(0.34 + 0.86*dfw);
+    c *= 1.0 + 0.3*T.w;
+    c += vec3(1.0, 0.8, 0.78)*pow(max(dot(nW, HDIR), 0.0), 40.0)*0.42*(1.0 - 0.5*smoothstep(um, 1.0, u));
+    c += vec3(0.6, 0.12, 0.1)*0.08*pl*(1.0 - u);                                   // flushes on the beat
+    float dIn = (N + wall)/gN, dOut = (adv - N)/gN;       // true µm to the lumen edge / to the outer edge
     float lw = max(0.07*wall*rB, 1.2*fp);
     c += vec3(0.50, 0.30, 0.30)*exp(-dIn/lw);
+    float gw = max(0.035*wall*rB, 1.1*fp), dG = abs(N)/gN;
+    c *= 1.0 - 0.16*exp(-dG*dG/(gw*gw))*step(0.001, adv);                           // external lamina groove
     float ow = max(0.06*wall*rB, 0.9*fp);
     c *= mix(1.0, 0.62, smoothstep(0.5, 1.0, u))*(1.0 - 0.7*exp(-dOut/ow));
     wal = c;
   }
   return mix(wal, lum, inL);
+}
+
+// wall wobble of one chain slot → (displacement in r, + = outward; pressure). The wall undulates
+// slowly: waves travel along the chain (arc measured in local radii, so every vessel gets the same
+// number of waves per diameter), differently on its two sides, biased outward — the rendered wall
+// moves between −0.1 and +0.3 of its thickness.
+vec2 slotWobble(vec4 A, vec4 B, vec2 C){
+  int bi = int(C.x + 0.5); float t = C.y;
+  vec4 X = texelFetch(uSegX, ivec2(bi % SEGW, bi / SEGW), 0);       // (arc/r at the ends, pressure at the ends)
+  float wl = wallOf(B.z), u = 0.1*wl, px = 0.3*wl*A.z*uPPU.x;       // undulation amplitude on screen (px)
+  if(px > 0.25){                                                     // skipped while it moves < ¼ px
+    int i4 = bi*4;
+    vec4 T2 = texelFetch(uSeg, ivec2(i4 % SEGW, i4 / SEGW) + ivec2(2, 0), 0);
+    float ph = T2.z*2.3999632, ax = mix(X.x, X.y, t) + (A.x - mix(T2.x, T2.y, t))/A.z, xs = clamp(A.y/A.z, -1.0, 1.0);
+    vec4 wv = sin(6.2831853*(vec4(0.31, 0.53, 0.43, 0.71)*ax + vec4(-0.19, 0.12, -0.15, 0.22)*uTime) + vec4(1.0, 2.1, 1.3, 2.9)*ph);
+    u += 0.1*wl*smoothstep(0.25, 0.5, px)*(0.6*wv.x + 0.4*wv.y + xs*(0.6*wv.z + 0.4*wv.w));   // |·| ≤ 2
+  }
+  return vec2(u, mix(X.z, X.w, t));
 }
 
 void main(){
@@ -485,22 +588,47 @@ void main(){
   float wall = wallOf(kind);
   float gN = acc > 1e-30 ? max(length(gGN)*inv, 1e-5) : 1.0/200.0;   // |∇N| (1/µm)
   float aaN = max(1.2*gN*fp, 1e-5);          // analytic |∇N| per pixel: smooth, immune to the reach fade
-  // debug views: 1 = work counters (read back by R.measure), 2 = field (N, arc s, wall band), 3 = grid cells + full evaluations
+  // ---- wobble: the wall undulation + the arterial pulse wave, as an offset of the merged field.
+  // The pulse reaches a point after a delay that grows as the pressure falls (the heart end
+  // dilates first); arteries dilate most, connectors a little, veins barely.
+  float e0 = wS0 - wS2, e1 = wS1 - wS2;          // slot blend weights that vanish when a third chain swaps in
+  float sf = e1 > 0.02*e0 ? smoothstep(0.25, 0.75, e1/(e0 + e1)) : 0.0;
+  vec2 wb = vec2(0.0);
+  if(wS0 > 0.0){ wb = slotWobble(sA0, sB0, sC0); if(sf > 0.0) wb = mix(wb, slotWobble(sA1, sB1, sC1), sf); }
+  float prs = wb.y;
+  float wd = clamp((1.0 - prs)*uWave.x, 0.0, 1.6)*uWave.y, wi = min(floor(wd), float(PTN - 2));
+  float dil = mix(uPT[int(wi)], uPT[int(wi) + 1], clamp(wd - wi, 0.0, 1.0));
+  float kF = kind <= 1.0 ? mix(1.0, 0.5, kind) : mix(0.5, 0.1, kind - 1.0);
+  float pls = dil*kF*(0.45 + 0.55*clamp(prs, 0.0, 1.0));                // 0..1: the local pulse
+  float uD = wb.x + 0.058*pls;                                          // wall displacement (in r; + = outward)
+  // profile: the lumen scales about the axis, the wall band moves as a whole, the tissue follows
+  // elastically (berm and contact shadow move with the wall, far tissue stays put)
+  float Np = N - uD*(N < -wall ? max(1.0 + N, 0.0)/(1.0 - wall) : N < 0.0 ? 1.0 : exp(-2.0*N*N));
+  // debug views: 1 = work counters (read back by R.measure), 2 = field (N, arc s, wall band), 3 = grid cells + full evaluations,
+  // 4 = lumen-edge check: r = physics lumen drawn as wall (depth in wall thicknesses / 0.5), g = wall drawn as lumen (/ 1), b = physics lumen
   if(uDebug == 2){ outColor = vec4(0.5 + 0.5*clamp(-N, -1.0, 1.0), fract(sA0.x/200.0), step(-wall, N)*0.5, 1.0); return; }
   if(uDebug == 3){ ivec2 gi = ivec2(floor((p - uGridO)/uCellSize)); outColor = vec4(float(nFull)/8.0, float(gi.x % 2)*0.5, float(gi.y % 2)*0.5, 1.0); return; }
-  float cover = 1.0 - smoothstep(-aaN, aaN, N);
+  if(uDebug == 4){
+    float inPh = step(N, -wall), inR = step(Np, -wall);
+    outColor = vec4(inPh*(1.0 - inR)*clamp((-wall - N)/wall/0.5, 0.0, 1.0), inR*(1.0 - inPh)*clamp((N + wall)/wall, 0.0, 1.0), inPh, 1.0); return;
+  }
+  N = Np;
+  float ls = 1.0/(1.0 + uD/(1.0 - wall));                                // chain-space lumen textures scale with the wall
+  sA0.y *= ls; sA1.y *= ls;
+  // tube ↔ cut-open by on-screen width; near a junction the bigger vessel decides (continuous
+  // across slot swaps), so a thin branch switches look along its own length, not in the fillet
+  float rCo = max(max(rB, sA0.z), sA1.z*smoothstep(0.0, 0.3, e1/max(e0 + e1, 1e-20)));
+  float co = smoothstep(44.0, 140.0, 2.0*uZ*(0.4*rCo + 240.0));   // mostly zoom-driven: neighbours share a look
+  // adventitia: drawn over the tissue just outside the wall (arteries thick, veins thin), cut-open look only
+  float adv = co*wall*(kind <= 1.0 ? mix(0.85, 0.5, kind) : mix(0.5, 0.35, kind - 1.0));
+  float cover = 1.0 - smoothstep(-aaN, aaN, N - adv);
   vec3 col = vec3(0.0);
-  if(cover < 1.0) col = tissue(p, max(N, 0.0)*rB, g, rB, fp);
+  if(cover < 1.0) col = tissue(p, max(N - adv, 0.0)*rB, g, rB, fp);
   if(cover > 0.0){
-    // tube ↔ cut-open by on-screen width; near a junction the bigger vessel decides (continuous
-    // across slot swaps), so a thin branch switches look along its own length, not in the fillet
-    float e0 = wS0 - wS2, e1 = wS1 - wS2;
-    float rCo = max(max(rB, sA0.z), sA1.z*smoothstep(0.0, 0.3, e1/max(e0 + e1, 1e-20)));
     float Dcss = 2.0*rB*uZ;
-    float co = smoothstep(44.0, 140.0, 2.0*uZ*(0.4*rCo + 240.0));   // mostly zoom-driven: neighbours share a look
     vec3 v = vec3(0.0);
-    if(co < 1.0) v = tubeLook(N, g, oxy, Dcss);
-    if(co > 0.0) v = mix(v, cutLook(N, rB, g, oxy, kind, wall, fp, aaN, gN), co);
+    if(co < 1.0) v = tubeLook(N, g, oxy, Dcss, pls);
+    if(co > 0.0) v = mix(v, cutLook(N, rB, g, oxy, kind, wall, adv, fp, aaN, gN, pls), co);
     col = mix(col, v, cover);
   }
   // outside the map: fade into darkness
@@ -525,13 +653,14 @@ layout(location=0) in vec2 aC;
 layout(location=1) in vec4 iA;     // x, y, r, depth
 layout(location=2) in vec4 iB;     // angle, tumble, oxy, alpha
 uniform vec2 uCam, uRes; uniform float uPPU, uLOD, uDof, uFG;
-out vec2 vP; flat out vec4 vI; flat out vec4 vJ;
+out vec2 vP; flat out vec4 vI; flat out vec4 vJ; flat out float vS;
 void main(){
   float depth = clamp(iA.w, 0.0, 1.0);
-  float r = iA.z*mix(1.0, 0.8, depth)*(uFG > 0.5 ? 2.1 : 1.0);
+  float r = iA.z*mix(1.0, 0.8, depth)*(uFG > 0.5 ? 2.6 : 1.0);
   float rpx = r*uPPU;
-  float blur = uFG > 0.5 ? 0.26*rpx*uDof + 1.0 : uDof*(0.02 + 0.5*smoothstep(0.35, 1.0, depth))*rpx;
-  float ext = 1.0 + (blur + 1.5)/max(rpx, 0.5);
+  float blur = uFG > 0.5 ? 0.36*rpx*uDof + 1.0 : uDof*(0.02 + 0.5*smoothstep(0.35, 1.0, depth))*rpx;
+  float ext = 1.08 + (blur + 1.5)/max(rpx, 0.5);
+  vS = fract(iA.z*7.31 + iA.w*97.13);           // stable per cell (radius and depth never change)
   float c = cos(iB.x), s = sin(iB.x);
   vec2 lc = aC*ext;
   vec2 w = iA.xy + vec2(c*lc.x - s*lc.y, s*lc.x + c*lc.y)*r;
@@ -546,8 +675,8 @@ void main(){
 
 const RBC_FS = `#version 300 es
 precision highp float;
-in vec2 vP; flat in vec4 vI; flat in vec4 vJ;
-uniform float uFG;
+in vec2 vP; flat in vec4 vI; flat in vec4 vJ; flat in float vS;
+uniform float uFG, uTime;
 out vec4 o;
 ${GLSL_COMMON}
 float thick(float r){ float q = max(1.0 - r*r, 0.0), r2 = r*r; return 0.5*pow(q, 0.35)*(0.30 + 1.75*r2 - 1.05*r2*r2); }
@@ -559,6 +688,11 @@ void main(){
   float rpx = vI.x, blur = vI.y, depth = vI.z, tum = vI.w, oxy = vJ.x, alpha = vJ.y;
   float th = tum*1.5707963, ct = cos(th), st = sin(th);
   vec2 q = vP;                                      // x along travel, y across (units of r)
+  // a soft disc, not a coin: it flexes like a parachute in the flow (most visible edge-on)
+  // and its outline breathes a little, each cell on its own beat
+  float t = uTime + vS*37.0;
+  q.x += (0.10*sin(t*(1.6 + vS)) + 0.04*sin(t*3.7 + 2.0))*(0.3 + 0.7*st)*(q.y*q.y - 0.35);
+  q.y *= 1.0 + 0.035*sin(t*2.3 + 1.0);
   float ay = abs(q.y), yy = min(ay, 1.0);
   float cy = sqrt(max(1.0 - yy*yy, 0.0));
   float wy = ct*cy + st*thick(yy);                  // silhouette half-width at this row
@@ -581,19 +715,23 @@ void main(){
   vec2 dr = vJ.zw;                                   // travel direction (screen)
   vec3 L = vec3(dot(LDIR.xy, dr), dot(LDIR.xy, vec2(-dr.y, dr.x)), LDIR.z);
   vec3 H = normalize(L + vec3(0.0, 0.0, 1.0));
-  vec3 base = mix(vec3(0.52, 0.03, 0.09), vec3(0.86, 0.07, 0.06), oxy);
-  float dif = max(dot(n, L), 0.0);
+  vec3 base = mix(vec3(0.55, 0.03, 0.10), vec3(0.90, 0.075, 0.06), oxy);
+  float ndl = dot(n, L), dif = max(ndl, 0.0);
   float rim = smoothstep(0.45, 0.75, rho)*(1.0 - smoothstep(0.88, 1.0, rho))*(1.0 - st);
-  vec3 col = base*(0.30 + 0.80*dif);
-  col += base*0.45*rim*dif;
-  col *= 1.0 - 0.26*(1.0 - st)*(1.0 - smoothstep(0.08, 0.62, rho));             // shaded dimple (face-on only)
-  col += vec3(1.0, 0.66, 0.58)*pow(max(dot(n, H), 0.0), 24.0)*0.55;
-  col += vec3(0.70, 0.10, 0.05)*pow(1.0 - clamp(n.z, 0.0, 1.0), 2.0)*0.55;  // translucent edge
-  col *= 1.0 - 0.25*smoothstep(0.9, 1.0, rho)*(1.0 - st);                   // thin dark outline
+  vec3 col = base*(0.26 + 0.80*dif);
+  col += base*0.55*rim*(0.3 + dif);                                          // the bright torus
+  col *= 1.0 - 0.3*(1.0 - st)*(1.0 - smoothstep(0.08, 0.62, rho));              // shaded dimple (face-on only)
+  float nh = max(dot(n, H), 0.0);
+  col += vec3(1.0, 0.70, 0.62)*(pow(nh, 70.0)*0.85 + pow(nh, 14.0)*0.16);        // crisp + broad gloss
+  float ed = 1.0 - clamp(n.z, 0.0, 1.0);
+  col += vec3(0.95, 0.16, 0.07)*pow(ed, 1.6)*(0.3 + 0.35*(1.0 - dif));         // subsurface glow at the edge
+  col *= 1.0 - 0.22*smoothstep(0.92, 1.0, rho)*(1.0 - st);                  // thin dark outline
   float det = 1.0 - smoothstep(0.0, 0.45, blur/max(rpx, 1.0));
-  col = mix(base*0.58, col, det);
-  vec3 plasma = mix(vec3(0.13, 0.015, 0.05), vec3(0.24, 0.02, 0.025), oxy);
-  float sink = uFG > 0.5 ? 0.12 : 0.72*depth*depth + 0.08*depth;
+  // out of focus: a soft glowing disc, a little brighter toward the light, a hint of the dimple
+  vec3 dfc = base*(0.5 + 0.28*clamp(0.5 - 0.5*dot(q, normalize(LDIR.xy)), 0.0, 1.0) - 0.12*(1.0 - smoothstep(0.1, 0.7, length(q)))*(1.0 - st));
+  col = mix(dfc, col, det);
+  vec3 plasma = mix(vec3(0.18, 0.024, 0.06), vec3(0.34, 0.045, 0.04), oxy);
+  float sink = uFG > 0.5 ? 0.08 : 0.72*depth*depth + 0.08*depth;
   col = mix(col, plasma, sink);
   float a = cov*alpha*(uFG > 0.5 ? 1.0 : 1.0 - 0.25*depth);
   o = vec4(col*a, a);
@@ -622,11 +760,12 @@ void main(){
   float minPx = type == 0 ? 2.5 : type == 3 ? 9.0 : type == 5 ? 0.0 : 2.0;
   float rc = max(iA.z*z, minPx);                              // css px radius as drawn
   float rW = rc/z;                                            // µm radius as drawn
-  float st = max(iC.z, 1.0);
+  // WBC stretch 0.85 … 1.35 (< 1 squashes along the heading); rods and sites use it as a length ≥ 1
+  float st = type == 0 ? clamp(iC.z, 0.8, 1.6) : max(iC.z, 1.0);
   float icon = 1.0 - smoothstep(7.0, 11.0, rc);
-  vec2 ext = type == 0 ? vec2(1.72*st + 0.1, 1.72) : type == 1 ? vec2(1.4) : type == 2 ? vec2(st + 2.7, 2.0)
-           : type == 3 ? vec2(1.5*st, 1.5) : type == 4 ? vec2(1.2) : vec2(2.3);
-  if(uPass == 0) ext = type == 2 ? vec2(st + 0.6, 1.6) : vec2(1.45*st, 1.45);
+  vec2 ext = type == 0 ? vec2(1.72*max(st, 1.0) + 0.16, 1.72*inversesqrt(min(st, 1.0)) + 0.1) : type == 1 ? vec2(1.45) : type == 2 ? vec2(st + 2.7, 2.1)
+           : type == 3 ? vec2(1.55*st, 1.55) : type == 4 ? vec2(1.2) : vec2(2.3);
+  if(uPass == 0) ext = type == 2 ? vec2(st + 0.6, 1.6) : vec2(1.45*st, 1.45*inversesqrt(min(st, 1.0)));
   if(icon > 0.0 && uPass != 0) ext = max(ext, vec2(2.6));
   if(uPass == 2) ext += vec2(0.4);
   vec2 lc = aC*ext;
@@ -740,19 +879,29 @@ vec4 miniVirus(vec2 p, float aw, float t){
   return pm(c, cov);
 }
 
-// amoeboid outline: q-space radius rho and the wobbling boundary radius R
-void wbcShape(vec2 pb, float st, float ph, int flags, float act, out float rho, out float R){
+// Soft-body white cell. pb (body frame, x along the heading) → q, the cell's own material
+// coordinates: squash & stretch along the heading (volume-preserving: the cross axes shrink by
+// 1/√stretch), a jelly bounce of the whole cell and a quadrupole wobble, both driven by the
+// jiggle impulse jig (e0, decays in the sim) — a fast oscillation whose amplitude follows it.
+// R: the rippling membrane (a few low harmonics, own phase per cell) + pseudopod when moving.
+void wbcShape(vec2 pb, float st, float ph, int flags, float act, float jig, out vec2 q, out float rho, out float R){
   float t = uTime + ph;
-  vec2 q = vec2(pb.x/st, pb.y*sqrt(st));
+  float bo = 1.0 + jig*(0.075*sin(t*27.0) + 0.02) + 0.012*sin(t*1.3);          // bounce + slow breathing
+  q = vec2(pb.x/st, pb.y*sqrt(st))/bo;
   rho = length(q); float phi = atan(q.y, q.x);
   float mv = clamp(max((st - 1.0)*3.0, act), 0.0, 1.0);
-  R = 0.93 + 0.04*sin(3.0*phi + 1.7*t) + 0.028*sin(5.0*phi - 2.3*t + 1.3) + 0.02*sin(2.0*phi + 1.1*t + 2.1)
-    + mv*(0.16*pow(max(cos(phi), 0.0), 6.0) - 0.035);
+  float jA = 0.6 + 0.4*sin(t*0.37);                                               // ripples wax and wane
+  R = 0.93 + jA*(0.042*sin(3.0*phi + 2.6*t) + 0.028*sin(5.0*phi - 3.4*t + 1.3)) + 0.022*sin(2.0*phi + 1.7*t + 2.1)
+    + 0.012*sin(7.0*phi + 4.3*t + 0.7*ph)
+    + mv*(0.16*pow(max(cos(phi), 0.0), 6.0) - 0.035)
+    + jig*(0.10*sin(t*23.0 + 1.0)*cos(2.0*phi - 1.3*ph) + 0.045*sin(3.0*phi - t*31.0));
   if((flags & 2) != 0) R += 0.03*sin(uTime*9.0 + ph);
 }
-vec4 drawWBC(vec2 pb, vec2 ps, float aw, float st, float ph, int flags, float hp, vec2 look, float tint, float prey, float faceMix, float act){
+vec4 drawWBC(vec2 pb, float ang, float aw, float st, float ph, int flags, float hp, vec2 look, float tint, float prey, float faceMix, float act, float jig){
   float t = uTime + ph;
-  float rho, R; wbcShape(pb, st, ph, flags, act, rho, R);
+  vec2 q; float rho, R; wbcShape(pb, st, ph, flags, act, jig, q, rho, R);
+  vec2 ps = rot(q, ang);                          // material coordinates, screen-oriented (light, face)
+  vec2 hd = vec2(cos(ang), sin(ang));
   float sd = rho - R;
   float cov = fill(sd, aw*1.1);
   float s = clamp(rho/R, 0.0, 1.0), hz = sqrt(1.0 - s*s);
@@ -761,18 +910,21 @@ vec4 drawWBC(vec2 pb, vec2 ps, float aw, float st, float ph, int flags, float hp
   vec3 n = normalize(vec3(dir*s, hz));
   float F = pow(1.0 - hz, 1.8);
   float dif = max(dot(n, LDIR), 0.0);
+  float mv = clamp(max((st - 1.0)*3.0, act), 0.0, 1.0);
+  // the heavy insides lag behind the membrane: they trail when the cell swims and slosh after a jolt
+  vec2 slosh = -hd*0.07*mv + jig*0.075*vec2(sin(t*23.0 - 1.4), cos(t*19.0 - 0.9)) + 0.018*vec2(sin(t*0.9), cos(t*1.13));
   vec4 res = vec4(0.0);
   // soft white glow around the cell
   res += vec4(vec3(0.9, 0.86, 1.0)*0.34*exp(-max(sd, 0.0)*6.5)*(1.0 - cov), 0.0);
   // engulfed prey being digested
   if(prey > 0.5){
-    vec2 pp = (ps - vec2(0.1, 0.42))/(0.36*(1.0 - 0.55*clamp(hp, 0.0, 1.0)));
+    vec2 pp = (ps - 0.6*slosh - vec2(0.1, 0.42))/(0.36*(1.0 - 0.55*clamp(hp, 0.0, 1.0)));
     vec4 v = prey < 1.5 ? miniVirus(pp, aw*2.8, uTime*0.7) : pm(vec3(0.3, 0.8, 0.45), fill(sdSeg(pp, vec2(-0.5, 0.0), vec2(0.5, 0.0)) - 0.4, aw*2.8));
     res = over(v*cov, res);
   }
   // nucleus: a compact kidney of two-three lobes curling around the top-left, seen through the jelly
   float ra = (tint - 0.5)*1.3 + 0.1*sin(t*0.4);
-  vec2 np = rot(ps, -ra);
+  vec2 np = rot(ps - slosh, -ra);
   float sN = length((np - vec2(-0.28, -0.30))*vec2(1.0, 1.2)) - 0.25;
   sN = smin(sN, length((np - vec2(0.08, -0.44))*vec2(1.15, 1.0)) - 0.19, 0.12);
   sN = smin(sN, length(np - vec2(-0.47, 0.04)) - 0.16, 0.12);
@@ -784,20 +936,21 @@ vec4 drawWBC(vec2 pb, vec2 ps, float aw, float st, float ph, int flags, float hp
   vec3 cy = mix(vec3(0.86, 0.84, 0.93), vec3(1.0, 0.99, 1.0), F)*(0.84 + 0.26*dif);
   res = over(pm(cy, (0.40 + 0.56*F)*cov), res);
   res.rgb += vec3(0.10, 0.08, 0.11)*cov;                                  // light scattered inside the jelly
-  // granules
+  // granules (swirl a little with the sloshing cytoplasm)
   float gF = smoothstep(0.5, 1.2, 0.045/aw);
   if(gF > 0.0){
-    vec2 gq = rot(ps, 0.3*sin(t*0.3))/0.17 + tint*9.0;
+    vec2 gq = rot(ps - 0.5*slosh, 0.3*sin(t*0.3))/0.17 + tint*9.0;
     vec2 gi = floor(gq); vec2 gh = h22(ivec2(gi) + 40);
     float gd = length(fract(gq) - 0.25 - 0.5*gh) - 0.2;
     float gr = gF*step(0.7, h21(ivec2(gi) + 7))*fill(gd*0.17, aw)*(1.0 - smoothstep(0.72, 0.9, s));
     res = over(pm(vec3(1.0, 0.70, 0.36), 0.8*gr), res);
   }
-  // face
+  // face: rigid (never deformed), carried by the body and bobbing gently a beat behind it
   if(faceMix > 0.0){
     float bt = fract((uTime + ph*3.7)/3.9);
     float blink = smoothstep(0.0, 0.025, bt)*(1.0 - smoothstep(0.035, 0.065, bt));
-    vec2 fp = ps - look*0.07 - vec2(0.02, 0.02);
+    vec2 bob = vec2(0.012*sin(t*2.3), 0.02*sin(t*3.1 + 1.0)) + jig*0.035*vec2(sin(t*23.0 - 0.8), cos(t*27.0 - 0.6));
+    vec2 fp = rot(pb, ang) - look*0.07 - vec2(0.02, 0.02) - bob;
     vec4 f = face(fp, aw, 0, look, blink, (flags & 2) != 0 ? 1.0 : 0.0, 1.38, cy);
     res = over(f*(faceMix*cov), res);
   }
@@ -813,9 +966,9 @@ vec4 drawWBC(vec2 pb, vec2 ps, float aw, float st, float ph, int flags, float hp
 }
 
 // selection (cyan) / hover (white) rings, drawn in their own pass beneath every body
-vec4 drawRing(int type, vec2 pb, float aw, float st, float ph, int flags, float act){
+vec4 drawRing(int type, vec2 pb, float aw, float st, float ph, int flags, float act, float jig){
   float d;
-  if(type == 0){ float rho, R; wbcShape(pb, st, ph, flags, act, rho, R); d = rho - R - 0.2; }
+  if(type == 0){ vec2 q; float rho, R; wbcShape(pb, st, ph, flags, act, jig, q, rho, R); d = rho - R - 0.2; }
   else if(type == 1) d = length(pb) - 1.08;
   else d = sdSeg(pb, vec2(-max(st - 1.0, 0.0), 0.0), vec2(max(st - 1.0, 0.0), 0.0)) - 1.3;
   if((flags & 1) != 0){
@@ -827,16 +980,23 @@ vec4 drawRing(int type, vec2 pb, float aw, float st, float ph, int flags, float 
 }
 
 vec4 drawVirus(vec2 pb, vec2 ps, float aw, float ph, vec2 look, float faceMix, int flags){
-  vec2 pr = pb;                                   // spikes turn with the instance angle (spin)
+  float t = uTime + ph;
+  float pul = 1.0 + 0.035*sin(t*4.1) + 0.018*sin(t*6.7 + 1.3);       // the capsid pulses
+  vec2 pr = pb/pul;                               // spikes turn with the instance angle (spin)
   float rho = length(pr), phi = atan(pr.y, pr.x);
   const float NS = 18.0;
   float sec = 6.2831853/NS;
   float k = floor(phi/sec + 0.5);
   float pa = phi - k*sec;
   vec2 lp = rho*vec2(cos(pa), sin(pa));
-  float sl = 0.96 + 0.05*(h21(ivec2(int(k) + 40, 3)) - 0.5);
+  float hk = h21(ivec2(int(k) + 40, 3));
+  // every spike waggles on its own beat and throbs in length; a knob at the tip
+  float wag = 0.15*sin(t*(4.0 + 3.0*hk) + hk*6.2831853);
+  float sl = (0.96 + 0.05*(hk - 0.5))*(1.0 + 0.045*sin(t*(2.6 + 1.5*hk) + 9.0*hk));
+  vec2 sb = vec2(0.64, 0.0), sdir = vec2(cos(wag), sin(wag)), tip = sb + sdir*(sl - 0.64);
   float body = rho - 0.74;
-  float spike = sdSeg(lp, vec2(0.66, 0.0), vec2(sl, 0.0)) - mix(0.085, 0.018, clamp((lp.x - 0.66)/(sl - 0.66), 0.0, 1.0));
+  float spike = sdSeg(lp, sb, tip) - mix(0.085, 0.022, clamp(dot(lp - sb, sdir)/(sl - 0.64), 0.0, 1.0));
+  spike = smin(spike, length(lp - tip) - 0.048, 0.02);
   float sd = smin(body, spike, 0.04);
   float cov = fill(sd, aw);
   float s = clamp(rho/0.75, 0.0, 1.0), hz = sqrt(max(1.0 - s*s, 0.0));
@@ -851,7 +1011,7 @@ vec4 drawVirus(vec2 pb, vec2 ps, float aw, float ph, vec2 look, float faceMix, i
   c *= 1.0 - 0.3*smoothstep(0.6, 0.74, rho)*max(dot(n.xy, SDIR), 0.0);
   vec4 res = vec4(vec3(1.0, 0.45, 0.1)*0.22*exp(-max(sd, 0.0)*8.0)*(1.0 - cov), 0.0);
   res = over(pm(c, cov), res);
-  if(faceMix > 0.0) res = over(face(ps - look*0.04 + vec2(0.0, 0.03), aw, 1, look, 0.0, 0.0, 1.4, c)*(faceMix*cov), res);
+  if(faceMix > 0.0) res = over(face((ps - look*0.04 + vec2(0.0, 0.03))/pul, aw/pul, 1, look, 0.0, 0.0, 1.4, c)*(faceMix*cov), res);
   if((flags & 4) != 0) res.rgb += vec3(0.6)*cov;
   return res;
 }
@@ -860,21 +1020,25 @@ vec4 drawBacterium(vec2 pb, vec2 ps, float aw, float ph, vec2 look, float faceMi
   // local units: r = the rod's half-width; stretch = half-length / r (sim: 2.2 … 3, grows before dividing)
   float t = uTime + ph;
   float HL = max(st - 1.0, 0.0);
-  vec2 q = pb; q.y += 0.1*sin(q.x*1.4 + t*4.0);
+  // the rod flexes: a slow banana bend plus a wave running down its length
+  float kb = 0.085*sin(t*1.7) + 0.035*sin(t*2.9 + 1.0);
+  float yb = kb*(HL*HL/3.0 - pb.x*pb.x) - 0.075*sin(pb.x*1.6 - t*4.6);     // (zero mean along the rod)
+  vec2 q = pb; q.y += yb;
   float pinch = 0.42*smoothstep(0.35, 1.0, div)*exp(-q.x*q.x/0.5);      // waist forming before division
   float sd = sdSeg(q, vec2(-HL, 0.0), vec2(HL, 0.0)) - (1.0 - pinch);
   float cov = fill(sd, aw);
-  // flagella trailing from the back
+  // flagella trailing from the back (their root rides on the flexing tail)
   float fl = 0.0;
+  vec2 pf = vec2(pb.x, pb.y - kb*HL*HL*2.0/3.0 + 0.075*sin(HL*1.6 + t*4.6));
   for(int k = 0; k < 2; k++){
     float fk = float(k);
-    float x = pb.x + HL + 0.7;
+    float x = pf.x + HL + 0.7;
     float y0 = (fk - 0.5)*0.7;
     float amp = 0.15 + 0.26*clamp(-x, 0.0, 2.5);
     float ph2 = 2.6*x + t*8.0 + fk*2.4;
     float y = y0*(1.0 + 0.45*clamp(-x, 0.0, 3.0)) + amp*sin(ph2);
     float dy = 0.45*y0*step(x, 0.0) - 0.26*sin(ph2)*step(x, 0.0) + amp*2.6*cos(ph2);
-    float d = abs(pb.y - y)/sqrt(1.0 + dy*dy) - mix(0.11, 0.05, clamp(-x/3.2, 0.0, 1.0));
+    float d = abs(pf.y - y)/sqrt(1.0 + dy*dy) - mix(0.11, 0.05, clamp(-x/3.2, 0.0, 1.0));
     d = max(d, max(x, -x - 3.2));
     fl = max(fl, fill(d, aw)*(1.0 - smoothstep(2.4, 3.2, -x)));
   }
@@ -892,29 +1056,30 @@ vec4 drawBacterium(vec2 pb, vec2 ps, float aw, float ph, vec2 look, float faceMi
   vec4 res = vec4(vec3(0.3, 1.0, 0.5)*0.16*exp(-max(sd, 0.0)*3.5)*(1.0 - cov), 0.0);
   res = over(pm(vec3(0.30, 0.62, 0.42), fl*0.8), res);
   res = over(pm(c, cov), res);
-  if(faceMix > 0.0) res = over(face(ps - look*0.07, aw, 2, look, 0.0, 0.0, 2.3, c)*(faceMix*cov), res);
+  if(faceMix > 0.0) res = over(face(ps + rot(vec2(0.0, kb*HL*HL/3.0 + 0.075*sin(t*4.6)), ang) - look*0.07, aw, 2, look, 0.0, 0.0, 2.3, c)*(faceMix*cov), res);
   if((flags & 4) != 0) res.rgb += vec3(0.6)*cov;
   return res;
 }
 
 vec4 drawSite(vec2 pb, float aw, float ph, float hp, int flags, float st, float emit, float ang){
   // elongated along the wall tangent (angle) by stretch; e2 = emission pulse
-  vec2 ps = rot(vec2(pb.x/st, pb.y), ang);
   float t = uTime + ph;
-  float rho = length(ps), phi = atan(ps.y, ps.x);
   float pulse = max(0.5 + 0.5*sin(t*3.2), clamp(emit, 0.0, 1.0));
-  float R = 1.0 + 0.06*sin(5.0*phi + ph*3.0) + 0.045*sin(9.0*phi + ph*5.0 + t*0.4) + 0.02*sin(17.0*phi + ph);
+  float br = 1.0 + 0.04*sin(t*1.6) + 0.018*sin(t*2.7 + 1.0) + 0.03*pulse;       // the lesion breathes and swells
+  vec2 ps = rot(vec2(pb.x/st, pb.y), ang)/br;
+  float rho = length(ps), phi = atan(ps.y, ps.x);
+  float R = 1.0 + 0.06*sin(5.0*phi + ph*3.0 + 0.5*sin(t*0.7)) + 0.045*sin(9.0*phi + ph*5.0 + t*0.4) + 0.02*sin(17.0*phi + ph - t*0.9);
   float x = rho/R;
   float cov = 1.0 - smoothstep(0.86, 1.02, x);
   vec2 dir = ps/max(rho, 1e-4);
   // height profile: swollen inflamed ring (peak ~0.78), crater lip, pus dome in the middle
-  float Rp = 0.52*(1.0 + 0.05*pulse);
+  float Rp = 0.52*(1.0 + 0.11*pulse);                                   // the pus dome bulges on each throb
   float xp = rho/Rp;
   float ring = exp(-pow((x - 0.8)/0.2, 2.0));
   float dring = -2.0*(x - 0.8)/0.04*ring;
   float dome = sqrt(max(1.0 - xp*xp, 0.0));
   vec2 slope = dir*(0.35*dring/R);
-  if(xp < 1.0) slope = dir*xp/max(dome, 0.12)*0.9;
+  if(xp < 1.0) slope = dir*xp/max(dome, 0.12)*(0.75 + 0.35*pulse);
   vec3 n = normalize(vec3(-slope, 1.0));
   float dif = max(dot(n, LDIR), 0.0);
   vec3 swell = mix(vec3(0.34, 0.06, 0.12), vec3(0.72, 0.24, 0.26), ring);
@@ -990,19 +1155,20 @@ void main(){
   vec2 look = vC.xy; float tint = vC.z, icon = vC.w;
   vec2 pb = vP, ps = rot(pb, ang);
   float aw = 1.0/max(rpx, 1.0);
+  float jig = (flags & 8) != 0 ? 0.0 : clamp(vD.x, 0.0, 1.0);      // e0: jiggle impulse (fade-out progress while dying)
   vec4 res = vec4(0.0);
   if(uPass == 0){
     // soft contact shadow on the back wall
-    vec2 q = type == 2 ? vec2(max(abs(pb.x) - max(st - 1.0, 0.0), 0.0), pb.y) : vec2(pb.x/st, pb.y);
+    vec2 q = type == 2 ? vec2(max(abs(pb.x) - max(st - 1.0, 0.0), 0.0), pb.y) : vec2(pb.x/st, pb.y*(type == 0 ? sqrt(st) : 1.0));
     float d = length(q) - (type == 2 ? 0.95 : 0.8);
     float a = (1.0 - smoothstep(-0.25, 0.55, d))*((flags & 16) != 0 ? 0.42 : 0.3)*(1.0 - icon);
     res = vec4(0.0, 0.0, 0.0, a);
   } else if(uPass == 2){
-    res = drawRing(type, pb, aw, st, ph, flags, vD.z)*(1.0 - icon);
+    res = drawRing(type, pb, aw, st, ph, flags, vD.z, jig)*(1.0 - icon);
   } else {
     float faceMix = type == 0 ? smoothstep(13.0, 19.0, rcss) : smoothstep(9.0, 14.0, rcss);
     if(icon < 1.0){
-      if(type == 0) res = drawWBC(pb, ps, aw, st, ph, flags, hp, look, tint, vD.y, faceMix, vD.z);
+      if(type == 0) res = drawWBC(pb, ang, aw, st, ph, flags, hp, look, tint, vD.y, faceMix, vD.z, jig);
       else if(type == 1) res = drawVirus(pb, ps, aw, ph, look, faceMix, flags);
       else if(type == 2) res = drawBacterium(pb, ps, aw, ph, look, faceMix, flags, ang, st, vD.y);
       else if(type == 3) res = drawSite(pb, aw, ph, hp, flags, st, vD.z, ang);
@@ -1019,6 +1185,11 @@ void main(){
 // ---------------------------------------------------------------------------
 //  helpers
 // ---------------------------------------------------------------------------
+// arterial pulse wave: the world shader looks the wall's dilation up in a table of PT_N delays
+// spanning 0 … 1.6 × PT_DELAY s (PT_DELAY = the time the wave needs to cross the arterial tree)
+const PT_N = 32, PT_DELAY = 0.34;
+const PT_TAU = 0.1, PT_DT = 1/60, PT_K = 30;          // wall recoil time constant; response filter step, taps
+const PT_M = Math.ceil(1.6*PT_DELAY/PT_DT) + PT_K + 2;
 function compile(gl, type, src, name){
   const sh = gl.createShader(type);
   gl.shaderSource(sh, src); gl.compileShader(sh);
@@ -1106,6 +1277,34 @@ function buildLists(net){
   return { L4, LI, LW, rows, total };
 }
 
+// per-Bézier wobble data, parallel to net.gpu.segData (1 texel per Bézier, same width):
+// (arc in local radii at both ends, pressure at both ends). Arc in radii (∫ ds / r along the
+// chain) gives every vessel the same number of wall waves per diameter, however it tapers.
+function buildSegX(net){
+  const B = net.beziers, W = net.gpu.segW, rows = Math.max(1, Math.ceil(B.length/W));
+  const X = new Float32Array(W*rows*4);
+  const phiOf = new Map();
+  for(const ch of net.chains){
+    const n = ch.X.length, F = new Float64Array(n);
+    for(let i=1;i<n;i++) F[i] = F[i-1] + (ch.cum[i] - ch.cum[i-1])/Math.max(1, 0.5*(ch.R[i] + ch.R[i-1]));
+    phiOf.set(ch.id, s => {
+      const c = ch.cum; if(s <= 0) return F[0] + s/ch.R[0]; if(s >= ch.len) return F[n-1] + (s - ch.len)/ch.R[n-1];
+      let lo = 0, hi = n-1; while(hi-lo > 1){ const m = (lo+hi)>>1; if(c[m] <= s) lo = m; else hi = m; }
+      return F[lo] + (F[hi] - F[lo])*(s - c[lo])/Math.max(1e-9, c[hi] - c[lo]);
+    });
+  }
+  // pressure: net.js (bezier.p0/p2); a net without it falls back to the vessel kind
+  let pArt = 1;
+  B.forEach((b, i)=>{
+    const f = phiOf.get(b.chain);
+    const p0 = b.p0 != null ? b.p0 : 1 - 0.5*b.k0, p2 = b.p2 != null ? b.p2 : 1 - 0.5*b.k2;
+    X[i*4] = f ? f(b.s0) : b.s0/Math.max(1, b.r0); X[i*4+1] = f ? f(b.s2) : b.s2/Math.max(1, b.r2);
+    X[i*4+2] = p0; X[i*4+3] = p2;
+    if(b.k0 < 0.5 && b.k2 < 0.5) pArt = Math.min(pArt, p0, p2);
+  });
+  return { X, W, rows, pArt: Math.min(0.9, pArt) };
+}
+
 // ---------------------------------------------------------------------------
 //  createRenderer
 // ---------------------------------------------------------------------------
@@ -1124,6 +1323,7 @@ BV.createRenderer = function(canvas, net, opts){
   let quad, emptyVAO, rbcBuf, fgBuf, unitBuf, rbcVAO, fgVAO, unitVAO, rbcProg, unitProg, blitProg;
   let W = null;                     // world pass: program + network textures
   let lists = null;                 // CPU-side acceleration lists for the current net
+  let segX = null;                  // per-Bézier wobble data for the current net
   let fbo = null, fboTex = null, fboW = 0, fboH = 0;
   let tq = null, queries = [];
   let lost = false;
@@ -1157,10 +1357,11 @@ BV.createRenderer = function(canvas, net, opts){
       floatTex(gl, g.gridW, g.gridH, gl.RG32F, gl.RG, g.cellData),
       floatTex(gl, lists.LW, lists.rows, gl.RGBA32F, gl.RGBA, lists.L4),
       floatTex(gl, lists.LW, lists.rows, gl.R32F, gl.RED, lists.LI),
+      floatTex(gl, segX.W, segX.rows, gl.RGBA32F, gl.RGBA, segX.X),
     ];
     if(!W || !W.prog || W.maxl !== maxl){
       if(W && W.prog) gl.deleteProgram(W.prog.p);
-      const src = WORLD_FS.replace('__MAXL__', String(maxl)).replace('__SEGW__', String(g.segW)).replace('__LISTW__', String(lists.LW))
+      const src = WORLD_FS.replace('__PTN__', String(PT_N)).replace('__MAXL__', String(maxl)).replace('__SEGW__', String(g.segW)).replace('__LISTW__', String(lists.LW))
         .replace('__K__', CONST.K_SMIN.toFixed(6)).replace('__W0__', CONST.WALL[0].toFixed(6)).replace('__W1__', CONST.WALL[1].toFixed(6)).replace('__W2__', CONST.WALL[2].toFixed(6));
       W = { prog: program(gl, WORLD_VS, src, 'world'), maxl };
     }
@@ -1182,10 +1383,10 @@ BV.createRenderer = function(canvas, net, opts){
   }
   function setNet(n){
     net = n;
-    lists = buildLists(net);
+    lists = buildLists(net); segX = buildSegX(net);
     if(!lost) uploadNet();
   }
-  lists = buildLists(net);
+  lists = buildLists(net); segX = buildSegX(net);
   initGL();
   const onLost = e => { e.preventDefault(); lost = true; };
   const onRestored = () => { lost = false; initGL(); };
@@ -1217,13 +1418,62 @@ BV.createRenderer = function(canvas, net, opts){
     }
   }
 
+  // ---- arterial pulse wave -------------------------------------------------
+  // The wall's dilation follows the heart low-passed (fast rise, slower recoil). frame.pulse is
+  // recorded per frame; times the record does not cover (the first frames, single test frames,
+  // a jump in time) use BV.heart at CONST.BPM / opts.bpm (66 by default, as the simulation).
+  const bpm = opts.bpm || CONST.BPM || 66;
+  const HN = 512, hT = new Float64Array(HN), hP = new Float32Array(HN);
+  let hN = 0, hHead = 0;
+  const hIdx = j => (hHead - 1 - j + 2*HN) % HN;       // j steps back from the newest entry
+  const heart = t => BV.heart ? BV.heart(t, bpm) : 0;
+  const ptU = new Float32Array(PT_M + 1), ptab = new Float32Array(PT_N);
+  const ptW = new Float32Array(PT_K); let ptWs = 0;
+  for(let k=0;k<PT_K;k++){ ptW[k] = Math.exp(-k*PT_DT/PT_TAU); ptWs += ptW[k]; }
+  let ptNorm = 1;
+  { // normalise the response to peak at 1 over a beat of the analytic heart
+    let mx = 1e-6; const per = 60/bpm;
+    for(let i=0;i<120;i++){ const t = 5*per + i*per/120; let a = 0; for(let k=0;k<PT_K;k++) a += ptW[k]*heart(t - k*PT_DT); mx = Math.max(mx, a/ptWs); }
+    ptNorm = 1/mx;
+  }
+  function pulseTable(t, pulse){
+    if(pulse != null && isFinite(pulse)){
+      const last = hN ? hT[hIdx(0)] : -1e9;
+      if(hN && t < last - 1e-6) hN = 0;                      // time went back (new map / reset)
+      if(hN && Math.abs(t - last) < 1e-6) hP[hIdx(0)] = pulse;
+      else { hT[hHead] = t; hP[hHead] = pulse; hHead = (hHead + 1) % HN; hN = Math.min(HN, hN + 1); }
+    }
+    // resample the pulse at t, t − dt, t − 2dt, …
+    let j = 0;
+    for(let m=0;m<=PT_M;m++){
+      const tau = t - m*PT_DT;
+      while(j < hN - 1 && hT[hIdx(j)] > tau) j++;
+      let v = null;
+      if(hN && hT[hIdx(j)] <= tau + 1e-9){
+        if(j === 0) v = hP[hIdx(0)];
+        else { const a = hIdx(j), b = hIdx(j - 1), ta = hT[a], tb = hT[b];
+          if(tb - ta < 0.07) v = hP[a] + (hP[b] - hP[a])*(tau - ta)/Math.max(1e-9, tb - ta); }
+      }
+      ptU[m] = v == null ? heart(tau) : v;
+    }
+    for(let i=0;i<PT_N;i++){
+      const d = i*1.6*PT_DELAY/(PT_N - 1)/PT_DT;              // delay in resample steps
+      const d0 = Math.floor(d), f = d - d0;
+      let a = 0;
+      for(let k=0;k<PT_K;k++){ const m = d0 + k; a += ptW[k]*(ptU[m] + (ptU[m + 1] - ptU[m])*f); }
+      ptab[i] = Math.min(1.2, a/ptWs*ptNorm);
+    }
+  }
+
   // ---- world pass ----------------------------------------------------------
   function drawWorld(frame, rw, rh, ppuX, ppuY, debug){
     const P = W.prog, u = P.u, g = net.gpu, cam = frame.cam;
     gl.useProgram(P.p);
     gl.bindVertexArray(emptyVAO);
-    for(let i=0;i<4;i++){ gl.activeTexture(gl.TEXTURE0+i); gl.bindTexture(gl.TEXTURE_2D, W.tex[i]); }
-    gl.uniform1i(u.uSeg, 0); gl.uniform1i(u.uCell, 1); gl.uniform1i(u.uList, 2); gl.uniform1i(u.uLidx, 3);
+    for(let i=0;i<5;i++){ gl.activeTexture(gl.TEXTURE0+i); gl.bindTexture(gl.TEXTURE_2D, W.tex[i]); }
+    gl.uniform1i(u.uSeg, 0); gl.uniform1i(u.uCell, 1); gl.uniform1i(u.uList, 2); gl.uniform1i(u.uLidx, 3); gl.uniform1i(u.uSegX, 4);
+    gl.uniform2f(u.uWave, 1/(1 - segX.pArt), (PT_N - 1)/1.6);
+    gl.uniform1fv(u.uPT, ptab);
     gl.uniform2i(u.uGridN, g.gridW, g.gridH);
     gl.uniform2f(u.uGridO, g.originX, g.originY);
     gl.uniform1f(u.uCellSize, g.cellSize);
@@ -1266,7 +1516,7 @@ BV.createRenderer = function(canvas, net, opts){
       sortBuf[o+7] *= 1 - w;                      // far copy fades out as the foreground copy fades in
       if(nfg >= 64) continue;
       // foreground copy, faded out near any unit (never over a face)
-      const x = src[s], y = src[s+1], r = src[s+2]*2.1*1.5;
+      const x = src[s], y = src[s+1], r = src[s+2]*2.6*1.5;
       let a = w;
       if(units && units.count){
         const U = units.data;
@@ -1294,6 +1544,7 @@ BV.createRenderer = function(canvas, net, opts){
     gl.uniform1f(u.uLOD, frame.rbcLOD == null ? 1 : frame.rbcLOD);
     gl.uniform1f(u.uDof, quality.dof ? 1 : 0);
     gl.uniform1f(u.uFG, fg ? 1 : 0);
+    gl.uniform1f(u.uTime, frame.time || 0);
     gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, n);
     st.drawCalls++; st.instances += n;
   }
@@ -1331,6 +1582,7 @@ BV.createRenderer = function(canvas, net, opts){
     if(lastT === null) lastT = t;
     let dt = t - lastT; if(!(dt >= 0 && dt < 0.25)) dt = 0; lastT = t;
     tauP += dt*(frame.pulse || 0);
+    pulseTable(t, frame.pulse);
     st.drawCalls = 0; st.instances = 0;
     if(tq){ pollQueries(); }
     let q = null;

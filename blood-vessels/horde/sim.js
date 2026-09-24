@@ -26,6 +26,12 @@
                Lanes: a cell never swims straight into a flow it can't beat — it
                first slides into the slow near-wall lane (upstream travel, and
                the last stretch before a target in fast flow).
+   SOFT BODY   display only (never feeds back into the game): a jiggle
+               amplitude (decaying impulse, raised by impacts on neighbours
+               and walls, engulfing, orders, stops, adhesion, chewing on a
+               lesion) and a damped squash & stretch spring along the heading
+               (target from swim effort, ground speed and sideways squeeze;
+               driven by the acceleration along the heading, kicked on events).
    NAVIGATION  lumen grid (40 µm, built in time slices). Anisotropic Dijkstra
                from the target's cross-section (a seed disc, so lanes don't all
                converge on one point): cost = length / ground speed, where the
@@ -46,8 +52,9 @@
    OUTPUT      S.rbc   {data, count}  8 floats: x y r depth angle tumble oxy alpha
                S.units {data, count} 16 floats: x y r type angle phase flags hp
                lookX lookY stretch tint e0 e1 e2 e3 (see packUnits)
-   Deterministic for a seed and the same sequence of update()/command() calls
-   (seeded PRNGs; game logic never depends on the camera). Hot loops allocate
+   Deterministic for a seed and the same sequence of update(dt > 0)/command()
+   calls (seeded PRNGs; game logic never depends on the camera, and camera-
+   only update(0) calls in between change nothing). Hot loops allocate
    nothing (typed arrays; field samples through net.sample.f).
    ========================================================================== */
 (function(){
@@ -77,6 +84,7 @@ const TUNE = BV.SIM_TUNE = Object.assign({
   ARR_K: 1.25,
   K_SEEK: 2.2,        // seek gain for holding / arriving (1/s)
   ADH_T: 0.3,         // s touching a wall (or an adhered cell) before adhering
+  ANCHOR_YIELD: 2,    // /s: a settling / adhered cell's anchor creeps after it while neighbours push it off
   WASH: 320,          // an idle cell further than this from its anchor re-seeks
   NEAR_DIRECT: 90,    // closer than this to the target: steer straight at it
   SENSE_IDLE: 110,    // pathogen sensing radius, idle / adhered cells
@@ -95,6 +103,15 @@ const TUNE = BV.SIM_TUNE = Object.assign({
   SITE_WEAR: 0.004,   // energy/s spent while crowding an infection site
   VMAX: 900,          // hard speed clamp (µm/s)
   WALL_GAP: 1,        // cells keep their outline this far (µm) inside the lumen edge
+  // ---- soft body (display only) --------------------------------------------
+  JIG_DECAY: 4,       // jiggle amplitude decays as exp(−JIG_DECAY·t)
+  JIG_V0: 20,         // closing speed (µm/s, ground velocities) below which a bump doesn't jiggle
+  JIG_V1: 260,        // … at which a bump reaches JIG_BUMP (neighbours; walls need ×1.3)
+  JIG_BUMP: 0.8,      // strongest jiggle from a bump (engulfing is 1)
+  SQ_K: 5,            // sideways overlap (µm, summed over contacts) that fully squeezes a cell
+  STR_W: 13,          // squash & stretch spring: angular frequency (rad/s)
+  STR_Z: 0.4,         // … damping ratio (a little overshoot = jelly)
+  STR_ACC: 0.012,     // … drive per µm/s² of acceleration along the heading
   // ---- navigation ---------------------------------------------------------
   NAV_CS: 40,         // nav grid spacing (µm)
   NAV_S: 150,         // swim speed the planner assumes (µm/s)
@@ -122,7 +139,7 @@ const TUNE = BV.SIM_TUNE = Object.assign({
   SITE_HP: 220,       // WBC·seconds to destroy a site (grows per wave)
   SITE_PICK: 160,     // a move order this close to a lesion becomes an attack order
   SITE_CROWD: 30,     // at most this many cells drain a site at once
-  SITE_REACH: 4.5,    // cells within site radius + this × WBC_R of the lesion centre attack it (2–3 layers)
+  SITE_REACH: 5,      // cells within site radius + this × WBC_R of the lesion centre attack it (2–3 layers of relaxed cells)
   SITE_REGEN: 0.006,  // hp/s when nobody attacks
   EMIT_V: 4.5, EMIT_B: 9.0,   // s between emissions (virus / bacteria site)
   INF_LIVE: 0.00008,  // infection /s per live pathogen
@@ -220,6 +237,9 @@ BV.createSim = function(net, opts){
   const mX = new Float64Array(NM), mY = new Float64Array(NM), mOX = new Float64Array(NM), mOY = new Float64Array(NM), mR2 = new Float64Array(NM), mOut = new Uint8Array(NM);
   mouths.forEach((m,i)=>{ mX[i]=m.x; mY[i]=m.y; mOX[i]=m.ox; mOY[i]=m.oy; mR2[i]=(2.6*m.r)*(2.6*m.r); mOut[i]=m.out?1:0; });
   let inMouth = mouths.filter(m=>!m.out).sort((a,b)=> (b.art-a.art) || (b.r-a.r))[0] || null;
+  // re-entry point just inside the arterial inlet (known before the nav grid is)
+  const inEntryX = inMouth ? inMouth.x - inMouth.ox*1.3*inMouth.r : 0.5*(b0.x0 + b0.x1);
+  const inEntryY = inMouth ? inMouth.y - inMouth.oy*1.3*inMouth.r : 0.5*(b0.y0 + b0.y1);
   // returns the mouth index a point is beyond (within `margin` of the mouth plane), or -1
   // hot-path variant without double arguments: MB = [x, y, margin]
   const MB = new Float64Array(3);
@@ -251,7 +271,7 @@ BV.createSim = function(net, opts){
   let fN = new Float32Array(NW*NH), fA = new Float32Array(NW*NH*7);
   const nav = { phase:0, row:0, ready:false, n:0, evals:0, mid:0, ms:0 };
   let nX, nY, nUx, nUy, nEf, nMouth, nb, cost, heap, hpos, hN = 0;
-  let outMouthNodes = [], inEntry = -1, inEntryX = 0, inEntryY = 0;
+  let outMouthNodes = [], inEntry = -1;
   // Built in slices (time budget per call); the result does not depend on the
   // slicing, and a command before completion finishes it synchronously.
   let nN, nGx, nGy;
@@ -406,10 +426,7 @@ BV.createSim = function(net, opts){
         if(dx*dx+dy*dy < 1.44*r*r && dx*mOX[m]+dy*mOY[m] > -2.2*CS){ nMouth[id] = m; outMouthNodes.push(id); break; }
       }
     }
-    if(inMouth){
-      inEntryX = inMouth.x - inMouth.ox*1.3*inMouth.r; inEntryY = inMouth.y - inMouth.oy*1.3*inMouth.r;
-      inEntry = nearestNode(inEntryX, inEntryY, 40);
-    }
+    if(inMouth) inEntry = nearestNode(inEntryX, inEntryY, 40);
     heap = new Int32Array(n); hpos = new Int32Array(n);
     nN = nGx = nGy = null;
     nav.ready = true; nav.phase = 6;
@@ -437,7 +454,7 @@ BV.createSim = function(net, opts){
   const fields = [];
   let pending = null, serialCounter = 0, hK = null;
   function newField(){ const n = nav.n; return { T:new Float32Array(n), link:new Uint8Array(n), dx:new Float32Array(n), dy:new Float32Array(n), dok:new Uint8Array(n),
-    tx:0, ty:0, rs:100, seeds:0, site:-1, siteId:0, tnode:-1, done:true, linked:false, serial:0, users:0, arrived:0, stamp:0, pops:0, ms:0 }; }
+    tx:0, ty:0, rs:100, seeds:0, site:-1, siteId:0, tnode:-1, done:true, linked:false, serial:0, users:0, arrived:0, stamp:0, pops:0, ms:0, readyFrame:0 }; }
   // Seeds: every lumen node of the target's cross-section (within Rs, connected
   // to the target inside that disc) starts with a small cost ramp toward the
   // target. A point seed would make every lane converge on it from far away; a
@@ -603,7 +620,9 @@ BV.createSim = function(net, opts){
   // =========================================================================
   // --- WBCs (dense, swap-remove) -------------------------------------------
   const W = {};
-  const WF = ['flash','gap','x','y','vx','vy','hx','hy','lx','ly','ax','ay','tim','dig','digD','chg','ph','tint','sz','act','con','sepx','sepy','stT','stN','fl','fade','npd','npx','npy','seed'];
+  const WF = ['flash','gap','x','y','vx','vy','hx','hy','lx','ly','ax','ay','tim','dig','digD','chg','ph','tint','sz','act','con','sepx','sepy','stT','stN','fl','fade','npd','npx','npy','seed',
+    // soft body (display): jiggle amplitude, stretch spring (value, rate), smoothed ground velocity, squeeze target offset
+    'jig','str','strV','pvx','pvy','sqz'];
   for(const k of WF) W[k] = new Float32Array(MAXW);
   W.st = new Uint8Array(MAXW); W.prev = new Uint8Array(MAXW); W.sel = new Uint8Array(MAXW); W.hov = new Uint8Array(MAXW);
   W.eat = new Uint8Array(MAXW); W.touch = new Uint8Array(MAXW); W.rch = new Uint8Array(MAXW);
@@ -641,7 +660,7 @@ BV.createSim = function(net, opts){
   const ordUsers = new Int32Array(MAXF), ordMoving = new Int32Array(MAXF);
   const home = { x: 0, y: 0 };
 
-  let rng, rngV, simTime, pulse, frame, diff, infection, score, wave, waveDeadline, breakUntil, nextReinf, state;
+  let rng, rngV, rngR, simTime, pulse, frame, vframe = 0, diff, infection, score, wave, waveDeadline, breakUntil, nextReinf, state;
   const dbg = { kicks:0, projections:0, reverts:0, nanFix:0, lastUpdateMs:0, prof:null };
 
   // =========================================================================
@@ -692,9 +711,22 @@ BV.createSim = function(net, opts){
     W.x[i] = x; W.y[i] = y; W.st[i] = st; W.ord[i] = -1; W.cs[i] = -1;
     const a = rng.next()*Math.PI*2; W.hx[i] = Math.cos(a); W.hy[i] = Math.sin(a); W.lx[i] = W.hx[i]; W.ly[i] = W.hy[i];
     W.chg[i] = 1; W.ph[i] = rng.next()*100; W.tint[i] = rng.next(); W.sz[i] = 0.94 + 0.12*rng.next(); W.seed[i] = rng.next()*1000;
-    W.fade[i] = 0; W.npd[i] = 1e9;
+    W.fade[i] = 0; W.npd[i] = 1e9; W.str[i] = 1;
     wallAnchor(i);
     return i;
+  }
+  // soft body (display only): raise the jiggle to at least `a` (0..1) and give
+  // the squash & stretch spring a kick (stretches along the heading) …
+  function jiggle(i, a, kick){
+    if(W.jig[i] < a) W.jig[i] = a;
+    W.strV[i] += kick;
+  }
+  // … or a brief squash: the spring's rate is set so the stretch dips to about
+  // 1 − depth from wherever it is (a moving cell is elongated), then rebounds
+  function squash(i, a, depth){
+    if(W.jig[i] < a) W.jig[i] = a;
+    let v = -(W.str[i] - 1 + depth)*TUNE.STR_W*1.6; if(v < -6) v = -6;
+    if(v < W.strV[i]) W.strV[i] = v;
   }
   function removeWbc(i){
     const l = --nW;
@@ -743,11 +775,15 @@ BV.createSim = function(net, opts){
   // =========================================================================
   //  RESET / SETUP
   // =========================================================================
+  // difficulty factor: a number (clamped 0.3..3) or 'easy' 0.7 / 'normal' 1 / 'hard' 1.4
+  function parseDifficulty(d){
+    if(typeof d === 'number') return d === d ? Math.max(0.3, Math.min(3, d)) : 1;
+    return d === 'easy' ? 0.7 : d === 'hard' ? 1.4 : 1;
+  }
   function reset(seed){
     seed = (seed == null ? (opts.seed|0) : seed|0);
-    rng = new Rng(seed*2654435761 + 17); rngV = new Rng(seed*40503 + 991);
-    const d = opts.difficulty;
-    diff = typeof d === 'number' ? Math.max(0.3, Math.min(3, d)) : d === 'easy' ? 0.7 : d === 'hard' ? 1.4 : 1;
+    rng = new Rng(seed*2654435761 + 17); rngV = new Rng(seed*40503 + 991); rngR = new Rng(seed*69069 + 4057);
+    diff = parseDifficulty(opts.difficulty);
     simTime = 0; pulse = BV.heart(0, 66); frame = 0;
     infection = 0; score = 0; wave = 0; waveDeadline = TUNE.FIRST_WAVE; breakUntil = -1; nextReinf = TUNE.REINF_T; state = 'play';
     nW = 0; nR = 0; rbcInit = false;
@@ -777,7 +813,7 @@ BV.createSim = function(net, opts){
       const s = d + 6*Math.abs(o.r - 300);
       if(s < bs){ bs = s; best = { x:o.x, y:o.y }; }
     }
-    if(!best && inMouth) best = { x: inEntryX || (inMouth.x - inMouth.ox*2*inMouth.r), y: inEntryY || (inMouth.y - inMouth.oy*2*inMouth.r) };
+    if(!best && inMouth) best = { x: inEntryX, y: inEntryY };
     if(!best){ const b = BZ[0]; bzPoint(b, 0.5, o); best = { x:o.x, y:o.y }; }
     home.x = best.x; home.y = best.y;
   }
@@ -808,6 +844,7 @@ BV.createSim = function(net, opts){
   function arrive(i, F){
     if(F) F.arrived++;
     W.st[i] = HOLD; W.tim[i] = 0; W.stN[i] = 0; W.fl[i] = 0; W.rch[i] = 0;
+    squash(i, 0.5, 0.08);            // pulling up: wobble + a brief squash
     const s = F ? F.site : -1;
     if(s >= 0 && Sx.alive[s] === 1 && Sx.id[s] === F.siteId){
       // attack order: pile onto the lesion (spread a little along the wall)
@@ -832,11 +869,15 @@ BV.createSim = function(net, opts){
   function stepUnits(h){
     const Tn = TUNE, hb = pulse;
     const pa = 0.72+0.56*hb, pc = 0.9+0.2*hb, pv = 0.96+0.08*hb;
-    const X = W.x, Y = W.y, VX = W.vx, VY = W.vy, ST = W.st;
+    const X = W.x, Y = W.y, VX = W.vx, VY = W.vy, ST = W.st, PVX = W.pvx, PVY = W.pvy;
     hashF.build(nW, X, Y, skipW);
     const kRel = 1 - Math.exp(-h/Tn.TAU), kAdh = 1 - Math.exp(-h/Tn.TAU_ADH);
     const SEPD = Tn.SEP*R, SEPD2 = SEPD*SEPD, COHR = Tn.COH_R*R, COHR2 = COHR*COHR, TOUCH2 = (2.35*R)*(2.35*R);
     const hs = hashF, items = hs.items, start = hs.start, hcx = hs.cx, hcy = hs.cy;
+    // soft body constants for this substep
+    const ih = 1/h, kV = 1 - Math.exp(-h*14), kJ = Math.exp(-h*Tn.JIG_DECAY), JB = Tn.JIG_BUMP, iJV = JB/(Tn.JIG_V1 - Tn.JIG_V0), iJW = iJV/1.3;
+    const OM2 = Tn.STR_W*Tn.STR_W, ZW = 2*Tn.STR_Z*Tn.STR_W, KA = Tn.STR_ACC;
+    const JIG = W.jig, STR = W.str, STRV = W.strV, SQZ = W.sqz, HX = W.hx, HY = W.hy;
     for(let i=0;i<nW;i++){
       const st = ST[i];
       W.sepx[i] = 0; W.sepy[i] = 0;
@@ -860,7 +901,10 @@ BV.createSim = function(net, opts){
       // ---- neighbours: separation, cohesion, alignment, contacts --------
       const cx0 = hcx[i], cy0 = hcy[i];
       const mob = st === ADH ? Tn.MOB_ADH : 1;
-      let sx = 0, sy = 0, cnx = 0, cny = 0, cn = 0, avx = 0, avy = 0, touchAdh = 0, touchArr = 0, crowd = 0;
+      let sx = 0, sy = 0, cnx = 0, cny = 0, cn = 0, avx = 0, avy = 0, touchAdh = 0, touchArr = 0;
+      // soft body: overlap across / along the heading (squeeze), hardest impact (ground velocities)
+      const hdx = HX[i], hdy = HY[i], pvxi = PVX[i], pvyi = PVY[i];
+      let cpl = 0, cpa = 0, bump = 0;
       for(let qy=cy0-1; qy<=cy0+1; qy++) for(let qx=cx0-1; qx<=cx0+1; qx++){
         const bkt = hs.key(qx, qy);
         for(let q=start[bkt], qe=start[bkt+1]; q<qe; q++){
@@ -877,7 +921,9 @@ BV.createSim = function(net, opts){
             let nx = dx/d, ny = dy/d;
             if(d2 < 1e-6){ nx = Math.cos(W.seed[i]); ny = Math.sin(W.seed[i]); }
             sx += nx*push; sy += ny*push;
-            crowd++;
+            const ov = SEPD - d, ca = nx*hdx + ny*hdy, oa = ov*ca*ca; cpa += oa; cpl += ov - oa;
+            const app = (PVX[j] - pvxi)*nx + (PVY[j] - pvyi)*ny;      // closing speed
+            if(app > bump) bump = app;
           }
           if(d2 < TOUCH2){
             if(stj === ADH) touchAdh = 1;
@@ -890,16 +936,25 @@ BV.createSim = function(net, opts){
       if(sl > Tn.SEP_VMAX){ sx *= Tn.SEP_VMAX/sl; sy *= Tn.SEP_VMAX/sl; }
       // separation pushes that point into the wall are dropped (the wall holds the cell)
       const lim = -SF[9] - (R*W.sz[i] + Tn.WALL_GAP)/rB;
-      if(N > lim - 1.5/rB){ const sn = sx*gx + sy*gy; if(sn > 0){ sx -= sn*gx; sy -= sn*gy; } }
+      if(N > lim - 1.5/rB){ const sn = sx*gx + sy*gy; if(sn > 0){ sx -= sn*gx; sy -= sn*gy;
+        const ov = sn*(1/Tn.K_SEP), ca = gx*hdx + gy*hdy, oa = ov*ca*ca; cpa += oa; cpl += ov - oa; } }   // squeezed against the wall
       W.sepx[i] = sx; W.sepy[i] = sy;
       W.touch[i] = touchAdh;
+      // squeeze: pressed from the sides (or a lumen barely wider than the cell)
+      // → elongate along the heading; pressed head-on → flatten
+      { let q = (cpl - cpa)*(1/Tn.SQ_K); const lw = rB*(1 - SF[9]); if(lw < 5*R) q += (5*R - lw)*(1/(2*R));
+        SQZ[i] = q > 1 ? 0.1 : q > 0 ? 0.1*q : q < -1 ? -0.07 : 0.07*q; }
+      if(bump > Tn.JIG_V0){ let J = (bump - Tn.JIG_V0)*iJV; if(J > JB) J = JB; if(J > JIG[i]) JIG[i] = J; }
 
       // ---- state machine → thrust (tx,ty), carriage c ---------------------
       let wantX = W.hx[i], wantY = W.hy[i], thrustOn = false;
       if(st === MOVE){
         const F = fieldOf(i);
         if(!F){ arrive(i, null); }
-        else {
+        else if(frame < F.readyFrame){
+          // order given, its flow field still being built: hold station against the flow
+          tx = -c*ux; ty = -c*uy; const tl = Math.sqrt(tx*tx+ty*ty); if(tl > S){ tx *= S/tl; ty *= S/tl; }
+        } else {
           const dx = F.tx - x, dy = F.ty - y, dist = Math.sqrt(dx*dx + dy*dy) || 1e-3;
           const arrR = Tn.ARR_MIN + Tn.ARR_K*R*Math.sqrt(F.arrived);
           let inSeed = false;
@@ -986,6 +1041,11 @@ BV.createSim = function(net, opts){
       }
       const st2 = ST[i];
       if(st2 === HOLD){
+        // heading for an anchor spot the crowd already fills (pushed back hard,
+        // against the way to it): the anchor yields, so cells stop short instead
+        // of squeezing into each other
+        { const ex = W.ax[i] - x, ey = W.ay[i] - y, s2 = sx*sx + sy*sy, se = sx*ex + sy*ey;
+          if(s2 > 400 && se < 0 && se*se > 0.25*s2*(ex*ex + ey*ey)){ const ky = h*Tn.ANCHOR_YIELD; W.ax[i] -= ex*ky; W.ay[i] -= ey*ky; } }
         const dx = W.ax[i] - x, dy = W.ay[i] - y, dist = Math.sqrt(dx*dx + dy*dy) || 1e-3;
         const vd = Math.min(S, Tn.K_SEEK*dist);
         tx = dx/dist*vd - c*ux; ty = dy/dist*vd - c*uy;
@@ -1001,7 +1061,7 @@ BV.createSim = function(net, opts){
         }
         thrustOn = dist > 3; if(thrustOn){ wantX = dx/dist; wantY = dy/dist; }
         const touching = W.con[i] > 0.5 || touchAdh;
-        if(touching && dist < 5*R + 40){ W.tim[i] += h; if(W.tim[i] > Tn.ADH_T){ ST[i] = ADH; W.tim[i] = 0; exactInside(x, y, R*W.sz[i] + TUNE.WALL_GAP); W.ax[i] = EX[0]; W.ay[i] = EX[1]; } }
+        if(touching && dist < 5*R + 40){ W.tim[i] += h; if(W.tim[i] > Tn.ADH_T){ ST[i] = ADH; W.tim[i] = 0; exactInside(x, y, R*W.sz[i] + TUNE.WALL_GAP); W.ax[i] = EX[0]; W.ay[i] = EX[1]; squash(i, 0.4, 0.1); } }
         else W.tim[i] = Math.max(0, W.tim[i] - h);
         if(dist > Tn.WASH){
           const F = fieldOf(i);
@@ -1012,6 +1072,11 @@ BV.createSim = function(net, opts){
       } else if(st2 === ADH){
         W.tim[i] += h;
         c = Tn.CARRY_ADH*Math.max(0, 1 - W.tim[i]/Tn.ARREST_T);
+        // the anchor yields to the crowd: a cell its neighbours keep pushing off
+        // its anchor settles where it is pushed (a clump that arrived or adhered
+        // squeezed together relaxes instead of staying squeezed for good)
+        { const ex = W.ax[i] - x, ey = W.ay[i] - y;
+          if(sx*ex + sy*ey < 0 && sx*sx + sy*sy > 16){ const ky = h*Tn.ANCHOR_YIELD; W.ax[i] -= ex*ky; W.ay[i] -= ey*ky; } }
         const dx = W.ax[i] - x, dy = W.ay[i] - y;
         tx = dx*1.5; ty = dy*1.5;
         const tl = Math.sqrt(tx*tx + ty*ty); if(tl > 12){ tx *= 12/tl; ty *= 12/tl; }
@@ -1054,7 +1119,7 @@ BV.createSim = function(net, opts){
       const kl = Math.min(1, h*4);
       let lx = W.lx[i] + (lkx - W.lx[i])*kl, ly = W.ly[i] + (lky - W.ly[i])*kl;
       const ll = Math.sqrt(lx*lx + ly*ly) || 1; W.lx[i] = lx/ll; W.ly[i] = ly/ll;
-      if(W.dig[i] > 0){ W.dig[i] -= h; if(W.dig[i] <= 0){ W.dig[i] = 0; W.eat[i] = 0; if(W.chg[i] <= 0.001 && ST[i] !== DYING){ ST[i] = DYING; W.tim[i] = 0; } } }
+      if(W.dig[i] > 0){ W.dig[i] -= h; if(W.dig[i] <= 0){ W.dig[i] = 0; W.eat[i] = 0; if(W.chg[i] <= 0.001 && ST[i] !== DYING){ ST[i] = DYING; W.tim[i] = 0; W.sel[i] = 0; W.hov[i] = 0; } } }
       if(W.fade[i] < 1) W.fade[i] = Math.min(1, W.fade[i] + h*3);
       if(W.flash[i] > 0) W.flash[i] -= h;
     }
@@ -1081,54 +1146,77 @@ BV.createSim = function(net, opts){
       // wall: keep the centre inside N < −wall − r/rB (cells that were far from
       // the wall before this step and moved less than that distance can't touch it)
       const rr = R*W.sz[i] + TUNE.WALL_GAP;
-      let touched = false;
-      if(W.gap[i] > 2*vl*h + 4){ W.gap[i] -= 2*vl*h; X[i] = x; Y[i] = y; W.con[i] = Math.max(0, W.con[i] - h*4); continue; }
-      let inside = false, pvio = 0, pstp = 0;
-      for(let it=0; it<5; it++){
-        SF[10] = x; SF[11] = y; sampleF(SF);
-        const viol = (SF[0] + SF[9])*SF[1] + rr;          // µm-ish beyond the allowed limit
-        if(viol <= 0){ inside = true; break; }
-        if(it === 4) break;
-        let dgx = SF[3], dgy = SF[4], pen = viol + 0.05;
-        const vn = VX[i]*dgx + VY[i]*dgy;
-        if(vn > 0){ VX[i] -= vn*dgx; VY[i] -= vn*dgy; }
-        if(it === 1){
-          // N·rB is only a distance on a single vessel; in junction blends it
-          // grows slower: take the step from the measured slope
-          const sl = (pvio - viol)/pstp; pen = sl > 0.1 ? viol/sl + 0.05 : (viol + 0.05)*2.5;
-        } else if(it >= 2){
-          // still out (crotches where vessels of different radius / wall blend and
-          // ∇N points the wrong way): Newton step on the numerical gradient of the
-          // violation itself
-          const e = 2;
-          SF[10] = x + e; SF[11] = y; sampleF(SF); const vxp = (SF[0] + SF[9])*SF[1];
-          SF[10] = x - e; sampleF(SF); const vxm = (SF[0] + SF[9])*SF[1];
-          SF[10] = x; SF[11] = y + e; sampleF(SF); const vyp = (SF[0] + SF[9])*SF[1];
-          SF[11] = y - e; sampleF(SF); const vym = (SF[0] + SF[9])*SF[1];
-          const ngx = (vxp - vxm)/(2*e), ngy = (vyp - vym)/(2*e), n2 = ngx*ngx + ngy*ngy;
-          if(n2 > 1e-4){ const nl = Math.sqrt(n2); dgx = ngx/nl; dgy = ngy/nl; pen = viol/nl + 0.1; }
-          else pen = (viol + 0.05)*2.5;
+      let touched = false, wimp = 0;
+      if(W.gap[i] > 2*vl*h + 4){ W.gap[i] -= 2*vl*h; W.con[i] = Math.max(0, W.con[i] - h*4); } else {
+        let inside = false, pvio = 0, pstp = 0;
+        for(let it=0; it<5; it++){
+          SF[10] = x; SF[11] = y; sampleF(SF);
+          const viol = (SF[0] + SF[9])*SF[1] + rr;          // µm-ish beyond the allowed limit
+          if(viol <= 0){ inside = true; break; }
+          if(it === 4) break;
+          let dgx = SF[3], dgy = SF[4], pen = viol + 0.05;
+          const vn = VX[i]*dgx + VY[i]*dgy;
+          if(vn > 0){ VX[i] -= vn*dgx; VY[i] -= vn*dgy; }
+          if(it === 0) wimp = PVX[i]*dgx + PVY[i]*dgy;     // hitting the wall at this (ground) speed
+          if(it === 1){
+            // N·rB is only a distance on a single vessel; in junction blends it
+            // grows slower: take the step from the measured slope
+            const sl = (pvio - viol)/pstp; pen = sl > 0.1 ? viol/sl + 0.05 : (viol + 0.05)*2.5;
+          } else if(it >= 2){
+            // still out (crotches where vessels of different radius / wall blend and
+            // ∇N points the wrong way): Newton step on the numerical gradient of the
+            // violation itself
+            const e = 2;
+            SF[10] = x + e; SF[11] = y; sampleF(SF); const vxp = (SF[0] + SF[9])*SF[1];
+            SF[10] = x - e; sampleF(SF); const vxm = (SF[0] + SF[9])*SF[1];
+            SF[10] = x; SF[11] = y + e; sampleF(SF); const vyp = (SF[0] + SF[9])*SF[1];
+            SF[11] = y - e; sampleF(SF); const vym = (SF[0] + SF[9])*SF[1];
+            const ngx = (vxp - vxm)/(2*e), ngy = (vyp - vym)/(2*e), n2 = ngx*ngx + ngy*ngy;
+            if(n2 > 1e-4){ const nl = Math.sqrt(n2); dgx = ngx/nl; dgy = ngy/nl; pen = viol/nl + 0.1; }
+            else pen = (viol + 0.05)*2.5;
+          }
+          if(pen > 4*viol + 8) pen = 4*viol + 8;
+          pvio = viol; pstp = pen;
+          x -= dgx*pen; y -= dgy*pen; touched = true; dbg.projections++;
         }
-        if(pen > 4*viol + 8) pen = 4*viol + 8;
-        pvio = viol; pstp = pen;
-        x -= dgx*pen; y -= dgy*pen; touched = true; dbg.projections++;
+        if(!inside){
+          // never accept a position outside the lumen: slide along the wall from
+          // where it was (inside) — this is what gets cells round junction crotches
+          // — or, failing that, stay put
+          const x0 = X[i], y0 = Y[i];
+          SF[10] = x0; SF[11] = y0; sampleF(SF);
+          const gxo = SF[3], gyo = SF[4], mx = vx*h, my = vy*h, mn = mx*gxo + my*gyo;
+          x = x0 + mx - (mn > 0 ? mn : 0)*gxo - gxo*0.3; y = y0 + my - (mn > 0 ? mn : 0)*gyo - gyo*0.3;
+          SF[10] = x; SF[11] = y; sampleF(SF);
+          if(!(SF[0] <= -SF[9] - rr/SF[1])){ x = x0; y = y0; SF[10] = x; SF[11] = y; sampleF(SF); }
+          dbg.reverts++;
+          const vn = VX[i]*gxo + VY[i]*gyo; if(vn > 0){ VX[i] -= vn*gxo; VY[i] -= vn*gyo; }
+          const wi = PVX[i]*gxo + PVY[i]*gyo; if(wi > wimp) wimp = wi;
+          touched = true;
+        }
+        { const lim = -SF[9] - rr/SF[1]; W.gap[i] = (lim - SF[0])*SF[1]; if(!touched && W.gap[i] < 1.2) touched = true; }
+        W.con[i] = touched ? Math.min(1, W.con[i] + h*10) : Math.max(0, W.con[i] - h*4);
       }
-      if(!inside){
-        // never accept a position outside the lumen: slide along the wall from
-        // where it was (inside) — this is what gets cells round junction crotches
-        // — or, failing that, stay put
-        const x0 = X[i], y0 = Y[i];
-        SF[10] = x0; SF[11] = y0; sampleF(SF);
-        const gxo = SF[3], gyo = SF[4], mx = vx*h, my = vy*h, mn = mx*gxo + my*gyo;
-        x = x0 + mx - (mn > 0 ? mn : 0)*gxo - gxo*0.3; y = y0 + my - (mn > 0 ? mn : 0)*gyo - gyo*0.3;
-        SF[10] = x; SF[11] = y; sampleF(SF);
-        if(!(SF[0] <= -SF[9] - rr/SF[1])){ x = x0; y = y0; SF[10] = x; SF[11] = y; sampleF(SF); }
-        dbg.reverts++;
-        const vn = VX[i]*gxo + VY[i]*gyo; if(vn > 0){ VX[i] -= vn*gxo; VY[i] -= vn*gyo; }
-        touched = true;
+      // ---- soft body (display only) ---------------------------------------
+      // smoothed ground velocity → acceleration along the heading drives the
+      // squash & stretch spring (speeding up stretches, braking / hitting
+      // something head-on squashes, with a little jelly overshoot)
+      {
+        const opx = PVX[i], opy = PVY[i];
+        const npx = opx + ((x - X[i])*ih - opx)*kV, npy = opy + ((y - Y[i])*ih - opy)*kV;
+        PVX[i] = npx; PVY[i] = npy;
+        const acc = ((npx - opx)*HX[i] + (npy - opy)*HY[i])*ih;
+        let jg = JIG[i]*kJ;
+        if(wimp > Tn.JIG_V0){ let J = (wimp - Tn.JIG_V0)*iJW; if(J > JB) J = JB; if(J > jg) jg = J; }
+        JIG[i] = jg;
+        const sp = Math.sqrt(npx*npx + npy*npy), e = sp < 25 ? 0 : sp > 260 ? 1 : (sp - 25)*(1/235);
+        const tgt = 1 + (0.17*W.act[i] + 0.1*e)*(W.dig[i] > 0 ? 0.5 : 1) + SQZ[i];
+        let sv = STR[i], vv = STRV[i];
+        vv += h*(OM2*(tgt - sv) - ZW*vv + KA*acc);
+        sv += h*vv;
+        if(sv < 0.85){ sv = 0.85; if(vv < 0) vv = 0; } else if(sv > 1.35){ sv = 1.35; if(vv > 0) vv = 0; }
+        STR[i] = sv; STRV[i] = vv;
       }
-      { const lim = -SF[9] - rr/SF[1]; W.gap[i] = (lim - SF[0])*SF[1]; if(!touched && W.gap[i] < 1.2) touched = true; }
-      W.con[i] = touched ? Math.min(1, W.con[i] + h*10) : Math.max(0, W.con[i] - h*4);
       X[i] = x; Y[i] = y;
     }
   }
@@ -1138,7 +1226,7 @@ BV.createSim = function(net, opts){
   // =========================================================================
   function stepPathogens(h){
     const Tn = TUNE, hb = pulse;
-    const pa = 0.72+0.56*hb, pc = 0.9+0.2*hb, pv = 0.96+0.08*hb;
+    const pa = 0.72+0.56*hb, pc = 0.9+0.2*hb, pv = 0.96+0.08*hb, kAng = 1 - Math.exp(-h*9.75);
     for(let p=0;p<MAXP;p++){
       const ty = P.type[p]; if(!ty) continue;
       let x = P.x[p], y = P.y[p];
@@ -1185,6 +1273,12 @@ BV.createSim = function(net, opts){
       // ejected from a site: push into the lumen for the first half second
       if(P.age[p] < 0.6){ vx += P.ex[p]*70*(1 - P.age[p]/0.6); vy += P.ey[p]*70*(1 - P.age[p]/0.6); }
       P.vx[p] = vx; P.vy[p] = vy;
+      if(ty === 2 && !P.adh[p] && vx*vx + vy*vy > 25){
+        // a swimming rod's body axis turns smoothly toward where it's going
+        // (game state: done here, per substep, never in packUnits)
+        let d = Math.atan2(vy, vx) - P.ang[p]; d -= 6.2831853*Math.round(d/6.2831853);
+        P.ang[p] += d*kAng;
+      }
       x += vx*h; y += vy*h;
       if(NM){
         MB[0] = x; MB[1] = y; MB[2] = rad; const m = mouthAt();
@@ -1213,7 +1307,7 @@ BV.createSim = function(net, opts){
   }
   function escape(p){
     const ty = P.type[p];
-    infection += (ty === 1 ? TUNE.INF_ESC_V : TUNE.INF_ESC_B)*diff;
+    if(state === 'play') infection += (ty === 1 ? TUNE.INF_ESC_V : TUNE.INF_ESC_B)*diff;
     stats.escaped++;
     emit({ type:'escape', x:P.x[p], y:P.y[p], kind: ty === 1 ? 'virus' : 'bacterium' });
     killP(p);
@@ -1245,6 +1339,7 @@ BV.createSim = function(net, opts){
     const ty = P.type[p];
     W.dig[j] = ty === 1 ? TUNE.DIGEST_V : TUNE.DIGEST_B; W.digD[j] = W.dig[j]; W.eat[j] = ty;
     W.chg[j] = Math.max(0, W.chg[j] - (ty === 1 ? TUNE.CHARGE_V : TUNE.CHARGE_B));
+    squash(j, 1, 0.12);              // gulp: full wobble, squashed round the prey
     const pts = ty === 1 ? 10 : 15;
     score += pts; stats.captured++;
     addFx(ty, P.x[p], P.y[p], ty === 1 ? 7 : 9, 0.55);
@@ -1325,6 +1420,7 @@ BV.createSim = function(net, opts){
           }
           if(!ok){ x = inEntryX; y = inEntryY; }
           W.x[i] = x; W.y[i] = y; W.vx[i] = 0; W.vy[i] = 0; W.fade[i] = 0; W.gap[i] = 0;
+          W.pvx[i] = 0; W.pvy[i] = 0; W.str[i] = 1; W.strV[i] = 0; W.jig[i] = 0.6;   // popped out of the heart
           const F = fieldOf(i);
           W.st[i] = F ? MOVE : HOLD; W.stN[i] = 0; if(!F) wallAnchor(i);
         }
@@ -1355,8 +1451,11 @@ BV.createSim = function(net, opts){
           const dx = W.x[j]-x, dy = W.y[j]-y;
           if(dx*dx + dy*dy < rc2){
             n++;
-            const c0 = W.chg[j], c1 = Math.max(0.02, c0 - Tn.SITE_WEAR*dt); W.chg[j] = c1;
+            // wear never drops a cell below 0.02 (and never lifts one that engulfing already drained)
+            const c0 = W.chg[j], c1 = c0 > 0.02 ? Math.max(0.02, c0 - Tn.SITE_WEAR*dt) : c0; W.chg[j] = c1;
             if((c0 >= 0.5 && c1 < 0.5) || (c0 >= 0.25 && c1 < 0.25)) W.flash[j] = 0.35;
+            // chewing on the lesion: a bite (wobble + squash) every ~0.8 s, own rhythm per cell
+            const bt = (simTime + W.ph[j])*1.25; if(bt - Math.floor(bt) < dt*1.25) squash(j, 0.45, 0.06);
           }
         }
       }
@@ -1407,7 +1506,7 @@ BV.createSim = function(net, opts){
       for(let k=0;k<ns;k++){ const kind = (wave >= 3 && k % 3 === 2) || (wave >= 5 && k % 2 === 1) ? 2 : 1; if(placeSite(kind) >= 0) made++; }
       emit({ type:'wave', wave, sites: made });
     }
-    if(infection >= 1){ state = 'over'; emit({ type:'over', score }); }
+    if(infection >= 1 && state === 'play'){ state = 'over'; emit({ type:'over', score }); }
     // ---- reinforcements ----------------------------------------------------
     if(simTime >= nextReinf){
       nextReinf = simTime + Tn.REINF_T;
@@ -1422,6 +1521,7 @@ BV.createSim = function(net, opts){
           const x = inMouth.x - inMouth.ox*along - inMouth.oy*lat, y = inMouth.y - inMouth.oy*along + inMouth.ox*lat;
           if(!isLumen(x, y, R+1)) continue;
           const i = addWbc(x, y, HOLD); if(i < 0) break;
+          W.jig[i] = 0.5;
           made++;
         }
         if(made){ stats.reinforced += made; emit({ type:'spawn', x: inMouth.x - inMouth.ox*2*inMouth.r, y: inMouth.y - inMouth.oy*2*inMouth.r, n: made }); }
@@ -1482,6 +1582,7 @@ BV.createSim = function(net, opts){
           W.clg[cand] = lng ? 1 : 0;
           W.prev[cand] = W.st[cand] === MOVE ? MOVE : HOLD;
           W.st[cand] = CHASE; W.cs[cand] = p; W.cg[cand] = P.gen[p]; W.tim[cand] = 0;
+          jiggle(cand, 0.35, 0.7);     // lunging after it
           P.chase[p]++;
         }
       }
@@ -1522,7 +1623,7 @@ BV.createSim = function(net, opts){
     // lumen area + mean flow per bin: 3×3 samples, or 2×2 (alternating offsets)
     // while the camera moves; nothing is re-sampled for a still camera
     const still = !jump && x0 === px0 && y0 === py0 && x1 === px1 && y1 === py1 && BX === lastBXs && BY === lastBYs;
-    const SS = still ? 0 : (cvx !== 0 || cvy !== 0) ? 2 : 3, sOff = (frame & 1) ? 0.25 : 0;
+    const SS = still ? 0 : (cvx !== 0 || cvy !== 0) ? 2 : 3, sOff = (vframe & 1) ? 0.25 : 0;
     lastBXs = BX; lastBYs = BY;
     for(let by=0; by<BY; by++) for(let bx=0; bx<BX; bx++){
       const k = by*BX + bx;
@@ -1563,7 +1664,7 @@ BV.createSim = function(net, opts){
     // advect
     const hb = pulse, pa = 0.72+0.56*hb, pc = 0.9+0.2*hb, pvv = 0.96+0.08*hb;
     const X = Rc.x, Y = Rc.y, D = Rc.d, RA = Rc.a, RT = Rc.tp, RTR = Rc.tr, RO = Rc.o, RAL = Rc.al, RFR = Rc.fr, RR_ = Rc.r, RSD = Rc.sd;
-    const ibw = 1/bw, ibh = 1/bh, t08 = simTime*0.8, t05 = simTime*0.5, ko = Math.min(1, dt*2), stag = frame & 3;
+    const ibw = 1/bw, ibh = 1/bh, t08 = simTime*0.8, t05 = simTime*0.5, ko = Math.min(1, dt*2), stag = vframe & 3;
     for(let i=0;i<nR;){
       let x = X[i], y = Y[i];
       SF[10] = x; SF[11] = y; sampleF(SF);
@@ -1620,10 +1721,10 @@ BV.createSim = function(net, opts){
       // everywhere else only real gaps (newly revealed area) and real pile-ups
       // are corrected, so Poisson noise never makes cells blink in and out
       let n = 0;
-      if(jump) n = need > 0 ? Math.floor(need + (rngV.ni()*RI30)) : 0;
-      else if(inf & 15) n = need > 0 ? Math.floor(need + (rngV.ni()*RI30)) : 0;
+      if(jump) n = need > 0 ? Math.floor(need + (rngR.ni()*RI30)) : 0;
+      else if(inf & 15) n = need > 0 ? Math.floor(need + (rngR.ni()*RI30)) : 0;
       else if(inf & 16){ if(need > 0.6) n = Math.ceil(need*Math.min(1, dtf*6)); }
-      else if(globalLow && need > 0.6) n = Math.floor(need*Math.min(1, dtf*1.5) + (rngV.ni()*RI30));
+      else if(globalLow && need > 0.6) n = Math.floor(need*Math.min(1, dtf*1.5) + (rngR.ni()*RI30));
       else if(need > Math.max(4, 0.6*tg)) n = Math.ceil(need*Math.min(1, dtf*2));
       else if(need < -Math.max(3, 0.35*tg)) bSur[k] = Math.ceil(-need*Math.min(1, dtf*2));
       if(n <= 0) continue;
@@ -1631,20 +1732,20 @@ BV.createSim = function(net, opts){
       const bxw = x0 + bx*bw, byw = y0 + by*bh;
       for(let s=0; s<n && nR<MAXR; s++){
         for(let t=0;t<4;t++){
-          let x = bxw + (rngV.ni()*RI30)*bw, y = byw + (rngV.ni()*RI30)*bh;
+          let x = bxw + (rngR.ni()*RI30)*bw, y = byw + (rngR.ni()*RI30)*bh;
           // inflow bins: new cells enter at the rim (a uniform refill would push
           // ~40 % too many cells inward)
-          if(inf & 15){ const u = (rngV.ni()*RI30)*0.3;
+          if(inf & 15){ const u = (rngR.ni()*RI30)*0.3;
             if(inf & 1) x = bxw + u*bw; else if(inf & 2) x = bxw + (1-u)*bw;
             if(inf & 4) y = byw + u*bh; else if(inf & 8) y = byw + (1-u)*bh; }
           SF[10] = x; SF[11] = y; sampleF(SF);
-          const r = RR*(0.9 + 0.2*(rngV.ni()*RI30));
+          const r = RR*(0.9 + 0.2*(rngR.ni()*RI30));
           if(!(SF[0] < -SF[9] - r/SF[1])) continue;
           if(NM){ MB[0] = x; MB[1] = y; MB[2] = 0; if(mouthAt() >= 0) continue; }
           const i = nR++;
-          X[i] = x; Y[i] = y; D[i] = 0.05 + 0.9*(rngV.ni()*RI30); Rc.r[i] = r;
-          Rc.a[i] = Math.atan2(SF[6], SF[5]) + ((rngV.ni()*RI30)-0.5)*0.3; Rc.tp[i] = (rngV.ni()*RI30)*6.283; Rc.tr[i] = 0.6 + 0.8*(rngV.ni()*RI30);
-          Rc.o[i] = SF[7]; Rc.al[i] = 0; Rc.fr[i] = fade; Rc.sd[i] = (rngV.ni()*RI30)*100;
+          X[i] = x; Y[i] = y; D[i] = 0.05 + 0.9*(rngR.ni()*RI30); Rc.r[i] = r;
+          Rc.a[i] = Math.atan2(SF[6], SF[5]) + ((rngR.ni()*RI30)-0.5)*0.3; Rc.tp[i] = (rngR.ni()*RI30)*6.283; Rc.tr[i] = 0.6 + 0.8*(rngR.ni()*RI30);
+          Rc.o[i] = SF[7]; Rc.al[i] = 0; Rc.fr[i] = fade; Rc.sd[i] = (rngR.ni()*RI30)*100;
           break;
         }
       }
@@ -1665,8 +1766,14 @@ BV.createSim = function(net, opts){
   // Unit instance (16 floats): x y r type angle phase flags hp lookX lookY
   // stretch tint e0 e1 e2 e3. Common: e0 = fade-out progress 0..1 while flag 8
   // (dying) is set, e3 = fade-in alpha 0..1 (spawn). Per type:
-  //  0 WBC        angle heading, hp digest progress, look eyes, stretch 1..1.3
-  //               (amoeboid, from swim effort), e1 prey being digested (0 none,
+  //  0 WBC        angle heading, hp digest progress, look eyes, stretch
+  //               0.85..1.35 along the heading (> 1 elongated: swim effort,
+  //               speed, sideways squeeze; < 1 squashed: braking, head-on
+  //               impacts, stopping, adhering, gulping; a damped spring, so it
+  //               overshoots a little but never jumps), e0 (flag 8 not set)
+  //               jiggle amplitude 0..1 (decaying impulse: bumps into
+  //               neighbours / walls, engulfing 1, orders, stops, adhesion,
+  //               bites on a lesion), e1 prey being digested (0 none,
   //               1 virus, 2 bacterium), e2 swim activity 0..1
   //  1 virus      angle spin, look → nearest white cell, e1 0, e2 speed 0..1
   //  2 bacterium  angle body axis, stretch 2.2..3 (rod; grows before dividing),
@@ -1702,11 +1809,6 @@ BV.createSim = function(net, opts){
         put(P.x[p], P.y[p], TUNE.VIRUS_R, 1, P.ang[p], P.ph[p], flags, 1, lx, ly, 1, P.tint[p], 0, 0, Math.min(1, sp/400), P.fade[p]);
       } else {
         const dv = 1 - P.div[p]/P.divD[p];
-        if(!P.adh[p] && sp > 5){
-          // body axis follows the swimming direction, smoothly
-          const ta = Math.atan2(P.vy[p], P.vx[p]); let d = ta - P.ang[p]; d -= 6.2831853*Math.round(d/6.2831853);
-          P.ang[p] += d*0.15;
-        }
         put(P.x[p], P.y[p], TUNE.BACT_R, 2, P.ang[p], P.ph[p], flags, 1, lx, ly, TUNE.BACT_LEN + 0.8*smoothstep(0.7, 1, dv), P.tint[p], 0, dv, Math.min(1, sp/300), P.fade[p]);
       }
     }
@@ -1715,9 +1817,8 @@ BV.createSim = function(net, opts){
       const flags = (W.sel[i] ? F_SEL : 0) | (W.dig[i] > 0 ? F_EAT : 0) | (st === DYING ? F_DIE : 0) | (st === ADH ? F_ADH : 0) | (W.hov[i] ? F_HOV : 0)
                   | (W.flash[i] > 0 ? F_HIT : 0);
       const hp = W.dig[i] > 0 ? 1 - W.dig[i]/W.digD[i] : 0;
-      const stretch = 1 + 0.3*W.act[i]*(W.dig[i] > 0 ? 0.5 : 1);
-      put(W.x[i], W.y[i], R*W.sz[i], 0, Math.atan2(W.hy[i], W.hx[i]), W.ph[i], flags, hp, W.lx[i], W.ly[i], stretch, W.tint[i],
-          st === DYING ? Math.min(1, W.tim[i]/1.3) : 0, W.dig[i] > 0 ? W.eat[i] : 0, W.act[i], W.fade[i]);
+      put(W.x[i], W.y[i], R*W.sz[i], 0, Math.atan2(W.hy[i], W.hx[i]), W.ph[i], flags, hp, W.lx[i], W.ly[i], W.str[i], W.tint[i],
+          st === DYING ? Math.min(1, W.tim[i]/1.3) : W.jig[i], W.dig[i] > 0 ? W.eat[i] : 0, W.act[i], W.fade[i]);
     }
     for(let k=0;k<MAXFX;k++){
       if(!FX.on[k]) continue;
@@ -1732,7 +1833,8 @@ BV.createSim = function(net, opts){
   //  PUBLIC API
   // =========================================================================
   // update(dt, ctx)       advance (dt clamped to 0.05 s, sub-stepped at ≤ 1/45 s;
-  //                       dt 0 = paused: red cells still follow the camera).
+  //                       dt 0 = paused: red cells still follow the camera and
+  //                       the units buffer is re-packed, the game state is untouched).
   //                       ctx.view = world rect incl. margin; ctx.rbcLOD 0 → no
   //                       red-cell particles (ctx.z alone also works).
   // selectInRect(x0,y0,x1,y1, additive) → n selected
@@ -1745,6 +1847,7 @@ BV.createSim = function(net, opts){
   //                       target is snapped into the lumen (near a wall in fast
   //                       vessels, upstream of AV connectors); within SITE_PICK
   //                       of an infection site it is an attack order on it
+  //                       (a cell that starts dying leaves the selection)
   // tracePath(x, y, orderSlot, maxPts, outFloat32) → points  path preview
   // orders[slot] {active, x, y, n (still moving), serial, done, attack}
   // stats {wbc, selected, viruses, bacteria, sites, infection, immunity, score,
@@ -1754,7 +1857,9 @@ BV.createSim = function(net, opts){
   //        siteUp{kind} siteDown{score} escape{kind} death; without a position:
   //        wave{wave,sites} over{score} won{score}
   // home {x,y} (start horde), pulse (BV.heart now), time, ready (nav grid built),
-  // prewarm(ms) (build the nav grid in idle time), reset(seed), setDifficulty(d)
+  // prewarm(ms) (build the nav grid in idle time), reset(seed),
+  // setDifficulty(d) → factor ('easy' | 'normal' | 'hard' | number 0.3..3; live
+  //                       lesions rescale their hit points and emission rate)
   const S = {
     rbc, units, events, stats, orders, home, pulse: 0, tune: TUNE, net,
     get time(){ return simTime; },
@@ -1764,11 +1869,17 @@ BV.createSim = function(net, opts){
     const t0 = performance.now();
     ctx = ctx || {};
     dt = +dt; if(!(dt > 0)) dt = 0; if(dt > 0.05) dt = 0.05;
-    frame++;
+    // game frames count only when time advances (camera-only update(0) calls
+    // must not shift the game's frame-staggered work); vframe paces the view
+    if(dt > 0) frame++;
+    vframe++;
     const PR = dbg.prof, now = PR ? () => performance.now() : null;
     let tp = PR ? now() : 0;
     const lap = PR ? (k) => { const t = now(); PR[k] = (PR[k]||0) + t - tp; tp = t; } : null;
     if(!nav.ready) navStep(TUNE.NAV_MS);
+    // (also while paused, for the path preview: cells only read a field from its
+    // readyFrame on, by when game frames alone have finished it — so how far
+    // camera-only update(0) calls got never changes what they see)
     if(pending) fieldStep(pending, TUNE.DIJ_BUDGET);
     if(PR) lap('nav');
     if(dt > 0){
@@ -1793,7 +1904,8 @@ BV.createSim = function(net, opts){
     for(let i=0;i<nW;i++){
       const o = W.ord[i]; if(o < 0) continue;
       const F = fields[o]; if(!F || F.serial !== W.ser[i]) continue;
-      ordUsers[o]++; const st = W.st[i]; if(st === MOVE || st === TRANSIT) ordMoving[o]++;
+      // still under way: moving, in transit, or detoured into a chase from the move
+      ordUsers[o]++; const st = W.st[i]; if(st === MOVE || st === TRANSIT || (st === CHASE && W.prev[i] === MOVE)) ordMoving[o]++;
     }
     for(let f=0; f<MAXF; f++){
       const o = orders[f], F = fields[f];
@@ -1810,13 +1922,13 @@ BV.createSim = function(net, opts){
     for(let p=0;p<MAXP;p++){ const t = P.type[p]; if(t === 1) nv++; else if(t === 2) nbac++; }
     for(let s=0;s<MAXS;s++) if(Sx.alive[s] === 1) ns++;
     stats.wbc = nW; stats.selected = sel; stats.transit = tr; stats.viruses = nv; stats.bacteria = nbac; stats.sites = ns;
-    stats.infection = infection; stats.immunity = Math.max(0, Math.min(1, chg/(opts.wbcCap || TUNE.WBC_CAP)));
+    stats.infection = infection < 1 ? infection : 1; stats.immunity = Math.max(0, Math.min(1, chg/(opts.wbcCap || TUNE.WBC_CAP)));
     stats.score = score; stats.wave = wave; stats.time = simTime; stats.state = state;
     dbg.lastUpdateMs = performance.now() - t0;
   };
 
   // ---- selection -----------------------------------------------------------
-  function countSel(){ let n = 0; for(let i=0;i<nW;i++) if(W.sel[i] && W.st[i] !== TRANSIT) n++; return n; }
+  function countSel(){ let n = 0; for(let i=0;i<nW;i++) if(W.sel[i] && W.st[i] !== TRANSIT && W.st[i] !== DYING) n++; return n; }
   S.selectInRect = function(x0, y0, x1, y1, additive){
     const ax = Math.min(x0,x1), bx = Math.max(x0,x1), ay = Math.min(y0,y1), by = Math.max(y0,y1);
     for(let i=0;i<nW;i++){
@@ -1874,7 +1986,7 @@ BV.createSim = function(net, opts){
   };
   S.selectionCenter = function(){
     let sx = 0, sy = 0, n = 0;
-    for(let i=0;i<nW;i++) if(W.sel[i] && W.st[i] !== TRANSIT){ sx += W.x[i]; sy += W.y[i]; n++; }
+    for(let i=0;i<nW;i++) if(W.sel[i] && W.st[i] !== TRANSIT && W.st[i] !== DYING){ sx += W.x[i]; sy += W.y[i]; n++; }
     return n ? { x: sx/n, y: sy/n, n } : null;
   };
 
@@ -1923,6 +2035,7 @@ BV.createSim = function(net, opts){
     return { x: px, y: py };
   }
   S.command = function(x, y){
+    x = +x; y = +y; if(!(x === x && y === y)) return { ok:false, x, y };
     let nsel = 0; for(let i=0;i<nW;i++) if(W.sel[i] && W.st[i] !== TRANSIT && W.st[i] !== DYING) nsel++;
     ensureNav();
     // clicking on (or next to) an infection site is an attack order
@@ -1947,10 +2060,14 @@ BV.createSim = function(net, opts){
     F.rs = site >= 0 ? TUNE.SEED_MIN : Math.max(TUNE.SEED_MIN, Math.min(TUNE.SEED_MAX, TUNE.SEED_R*ev.rB));
     fieldStart(F, tnode, F.rs);
     fieldStep(F, TUNE.DIJ_BUDGET*3);
+    // game frames finish it at DIJ_BUDGET pops each (every node is popped once):
+    // cells follow it from then on, however far update(0) calls took it before
+    F.readyFrame = F.done ? 0 : frame + Math.ceil((nav.n - F.pops)/TUNE.DIJ_BUDGET);
     for(let i=0;i<nW;i++){
       if(!W.sel[i] || W.st[i] === TRANSIT || W.st[i] === DYING){
         continue;
       }
+      if(W.st[i] === MOVE) jiggle(i, 0.3, 0.5); else jiggle(i, 0.55, 0.9);    // setting off: wobble + a lurch
       W.ord[i] = slot; W.ser[i] = F.serial; W.st[i] = MOVE; W.tim[i] = 0; W.stN[i] = 0; W.stT[i] = rng.next(); W.fl[i] = 0; W.cs[i] = -1;
     }
     // transit cells that were selected follow the order when they re-enter
@@ -1966,8 +2083,11 @@ BV.createSim = function(net, opts){
     for(let k=0;k<maxPts;k++){
       out[2*n] = px; out[2*n+1] = py; n++;
       const dx = F.tx - px, dy = F.ty - py, d = Math.hypot(dx, dy);
-      if(d < 30) { out[2*n] = F.tx; out[2*n+1] = F.ty; n++; break; }
+      if(d < 30){ if(n < maxPts){ out[2*n] = F.tx; out[2*n+1] = F.ty; n++; } break; }
       if(!navDir(F, px, py)) break;
+      // inside the target's seed disc the cells have arrived (see MOVE): the
+      // field there only spreads them out, so draw the last leg straight
+      if(d < F.rs && NV[2] <= F.rs*TUNE.SEED_RAMP/TUNE.NAV_S + 0.15){ if(n < maxPts){ out[2*n] = F.tx; out[2*n+1] = F.ty; n++; } break; }
       px += NV[0]*CS*0.9; py += NV[1]*CS*0.9;
       const m = beyondMouth(px, py, 0); if(m >= 0 && mOut[m] && inMouth){ px = inEntryX; py = inEntryY; }
     }
@@ -1975,13 +2095,19 @@ BV.createSim = function(net, opts){
   };
   S.prewarm = function(ms){ if(!nav.ready) navStep(ms); return nav.ready; };
   S.reset = function(seed){ reset(seed); };
-  S.setDifficulty = function(d){ opts.difficulty = d; diff = typeof d === 'number' ? d : d === 'easy' ? 0.7 : d === 'hard' ? 1.4 : 1; };
+  S.setDifficulty = function(d){
+    opts.difficulty = d;
+    const old = diff; diff = parseDifficulty(d);
+    // live lesions follow the new setting (hit points and emission rate scale with it)
+    for(let s=0;s<MAXS;s++) if(Sx.alive[s] === 1){ Sx.max[s] *= diff/old; Sx.rate[s] *= old/diff; }
+    return diff;
+  };
 
   // debug / test access (not part of the contract)
   S._dbg = { W, P, Sx, FX, Rc, fields, nav, dbg, mouths, get nW(){ return nW; }, get nR(){ return nR; }, get infection(){ return infection; }, set infection(v){ infection = v; },
     navDir: (F,x,y)=> navDir(F,x,y) ? { x:NV[0], y:NV[1], T:NV[2] } : null, nidx, NW, NH, OX, OY, CS, get nX(){ return nX; }, get nY(){ return nY; },
     placeSite: k => placeSite(k), addPathogen: (t,x,y)=>addPathogen(t,x,y,0,0), spawnCluster: (x,y,n)=>spawnCluster(x,y,n,HOLD), inMouth, get inEntry(){ return inEntry; },
-    get pending(){ return pending; }, setWave: w => { wave = w; }, get state(){ return state; }, rbcBins: { bTgt, bCnt, bSur, bArea, get BX(){ return lastBX; }, get BY(){ return lastBY; } } };
+    get pending(){ return pending; }, finishPending: () => { if(pending) fieldStep(pending, 1e12); }, setWave: w => { wave = w; }, get state(){ return state; }, rbcBins: { bTgt, bCnt, bSur, bArea, get BX(){ return lastBX; }, get BY(){ return lastBY; } } };
 
   reset(opts.seed|0);
   return S;
