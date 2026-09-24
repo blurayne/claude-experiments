@@ -197,8 +197,9 @@
     font-family:inherit;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
   /* the flight's hands: a throttle lever low on the left, a burst button low on the right,
      only while flying and only where there is a thumb. They sit over the canvas and keep
-     their pointers, above the QR overlay: a thumb must win. */
-  .pad{position:fixed;bottom:max(12px, env(safe-area-inset-bottom));z-index:1001;display:none;
+     their pointers, with the dock; the QR overlay (debug) stays above everything, and is
+     dragged aside when it covers one. */
+  .pad{position:fixed;bottom:max(12px, env(safe-area-inset-bottom));z-index:6;display:none;
     border:1px solid var(--line);background:rgba(8,14,22,.35);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
     touch-action:none;user-select:none;-webkit-user-select:none;--ky:0px}
   .pad.lever{left:max(12px, env(safe-area-inset-left));width:44px;height:150px;border-radius:22px}

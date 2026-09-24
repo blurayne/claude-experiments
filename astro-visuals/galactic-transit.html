@@ -92,7 +92,7 @@ function installErrorCollector(){
  * property of the machine that loaded the page. The parity harness pins TZ for that reason.
  */
 
-const BUILD = { version: '3.21.0', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
+const BUILD = { version: '3.21.1', date: '__BUILD_DATE__', time: '__BUILD_TIME__', sha: '__BUILD_SHA__' };
 const VERSION = 'v' + BUILD.version;
 // The stamp is written in UTC; show it in whatever zone the browser is in, and always
 // name the offset — "+00:00" is information too, not an absence of it.
@@ -10981,8 +10981,9 @@ startFrameLoop({
     font-family:inherit;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
   /* the flight's hands: a throttle lever low on the left, a burst button low on the right,
      only while flying and only where there is a thumb. They sit over the canvas and keep
-     their pointers, above the QR overlay: a thumb must win. */
-  .pad{position:fixed;bottom:max(12px, env(safe-area-inset-bottom));z-index:1001;display:none;
+     their pointers, with the dock; the QR overlay (debug) stays above everything, and is
+     dragged aside when it covers one. */
+  .pad{position:fixed;bottom:max(12px, env(safe-area-inset-bottom));z-index:6;display:none;
     border:1px solid var(--line);background:rgba(8,14,22,.35);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
     touch-action:none;user-select:none;-webkit-user-select:none;--ky:0px}
   .pad.lever{left:max(12px, env(safe-area-inset-left));width:44px;height:150px;border-radius:22px}
@@ -11558,7 +11559,7 @@ startFrameLoop({
 </div>
 
 <div id="labels"></div>
-<canvas id="qrOverlay" style="position:fixed;left:0;top:0;z-index:1000;display:none;touch-action:none;cursor:move;image-rendering:pixelated;image-rendering:crisp-edges" aria-hidden="true"></canvas>
+<canvas id="qrOverlay" style="position:fixed;left:0;top:0;z-index:2000;display:none;touch-action:none;cursor:move;image-rendering:pixelated;image-rendering:crisp-edges" aria-hidden="true"></canvas>
 
 </body>
 </html>

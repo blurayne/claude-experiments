@@ -341,9 +341,12 @@ dismissing the first-run tour **starts** the clock, so pausing has to come after
 - **Inputs live in `ui/flight`.** Keys go through a set of codes → `flight.want`; on a
   touch screen the lever (`#padL`, vertical, a detent at the middle) and the burst button
   (`#padR`, held) are their own fixed elements over the canvas (pointer capture,
-  `stopPropagation`), so a thumb on one never orbits the view, and they sit above the QR
-  overlay (z 1001) because a thumb must win. They show only with `body.flying` on a coarse
-  pointer; the scale bar steps up over the lever. The readout ticks with the HUD.
+  `stopPropagation`), so a thumb on one never orbits the view. They show only with
+  `body.flying` on a coarse pointer; the scale bar steps up over the lever. The readout
+  ticks with the HUD.
+- **The QR overlay is the topmost layer, always** (z 2000, above the tooltip's 1200 and
+  the dock's 6; v3.21.1). Nothing may be stacked over it — a scan of a screenshot must
+  never find a pad or a tip across the code. Where it covers a control, it is dragged aside.
 - **Signs.** Screen-right is the world's right mirrored (`SKY_MIRROR`, the projection's x
   flip), so sideways is `r·SKY_MIRROR`.
 

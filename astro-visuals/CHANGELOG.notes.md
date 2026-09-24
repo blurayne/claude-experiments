@@ -2,6 +2,10 @@
 
 Hand-written notes merged into `CHANGELOG.md` by `.github/scripts/build_changelog.py`: one `## <semver>` heading per version, Markdown body below it, inserted under that version's heading in the Galactic Transit section on the next regeneration. The generated changelog itself must never be edited by hand — it is overwritten wholesale.
 
+## 3.21.1
+
+The QR overlay is the topmost layer again, always: above the flight's lever and burst button, which v3.19.0 had stacked over it, and above the tooltips too.
+
 ## 3.21.0
 
 **Flight, second cut: the ship is the eye.** A drag in flight now turns the view round the ship itself, the way a pilot looks round, instead of swinging the ship round a point ahead — and it no longer holds the clock, so the world goes on while you look. A zoom keeps the point ahead and moves the eye along the line of sight: travel toward or away from it. On a touch screen the left pad is a throttle lever now, which stays where it is put (a detent at the middle, a tap sets it), and the right pad is a burst button: full ahead at boost while held. The readout beside the scale bar adds the lever's setting or "burst". The keys are unchanged.

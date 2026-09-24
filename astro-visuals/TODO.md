@@ -5,8 +5,9 @@ before the work starts. An item is ticked when it ships, with the version that c
 
 ## 2026-09-24
 
-- [ ] The QR code must always be the topmost layer — above the flight's pads (which
+- [x] The QR code must always be the topmost layer — above the flight's pads (which
       v3.19.0 had put over it) and above the tooltips.
+      z 2000 on the overlay, the pads back at the dock's 6 — v3.21.1.
 
 - [x] Flight controls, second cut: rotating in flight must not stop the simulation and
       must turn the view round the ship itself, not swing the ship round a point ahead;
