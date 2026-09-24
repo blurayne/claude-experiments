@@ -30,6 +30,10 @@
             = order (when something is selected), long-press + drag = box.
    QUALITY  Auto = dynamic render scale 1 → 0.5 on a frame-time EMA with
             hysteresis; High / Medium / Low are fixed (scale + DPR cap).
+   LOOK     Settings → vessel look: cut open (default) or glass (see-through
+            tubes, the horde visible inside at every zoom); R.setQuality({look}).
+   SETTINGS stored per viewer (validated on read); URL overrides for this load
+            only: ?q= ?rbc= ?dof= ?fg= ?edge= ?diff= ?gen= ?look=cut|glass.
    ========================================================================== */
 (function(){
 'use strict';
@@ -52,7 +56,7 @@ const FONT = 'ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", 
 const QS = new URLSearchParams(location.search);
 const PDB = QS.has('pdb');                       // preserveDrawingBuffer, for screenshots
 const SKEY = 'bv-horde-settings-v1';
-const DEF = { quality:'auto', rbc:true, dof:true, fg:true, edge:true, difficulty:'normal', gen:'' };
+const DEF = { quality:'auto', rbc:true, dof:true, fg:true, edge:true, difficulty:'normal', gen:'', look:'cut' };
 // only what the viewer chose is stored (validated on read: an old or hand-edited value
 // must not break boot); the URL overrides below apply to this page load only
 const stored = (()=>{
@@ -64,6 +68,7 @@ const stored = (()=>{
     for(const k of ['rbc', 'dof', 'fg', 'edge']) if(typeof s[k] === 'boolean') o[k] = s[k];
     if(typeof s.difficulty === 'string' && /^(easy|normal|hard)$/.test(s.difficulty)) o.difficulty = s.difficulty;
     if(typeof s.gen === 'string') o.gen = s.gen;
+    if(typeof s.look === 'string' && /^(cut|glass)$/.test(s.look)) o.look = s.look;
   } catch(e){}
   return o;
 })();
@@ -76,6 +81,7 @@ function setSetting(k, v){ settings[k] = v; stored[k] = v; saveSettings(); }
   for(const k of ['rbc', 'dof', 'fg', 'edge']){ const v = flag(k); if(v != null) settings[k] = v; }
   const d = QS.get('diff'); if(d && /^(easy|normal|hard)$/.test(d)) settings.difficulty = d;
   if(QS.get('gen')) settings.gen = QS.get('gen');
+  const lk = QS.get('look'); if(lk && /^(cut|glass)$/.test(lk)) settings.look = lk;
 }
 const randomSeed = () => 1 + Math.floor(Math.random()*999999);
 function parseSeed(s){
@@ -130,7 +136,7 @@ const perf = { ema:16.7, fps:0, fc:0, ft:0, lvl:0, bad:0, good:0, blockUp:0, las
 function renderScale(){ const p = PRESETS[settings.quality] || PRESETS.auto; return p.scale != null ? p.scale : LEVELS[perf.lvl]; }
 function applyQuality(){
   document.body.classList.toggle('noblur', settings.quality === 'low');
-  if(G.R) G.R.setQuality({ scale: renderScale(), dof: !!settings.dof, fgCells: !!settings.fg });
+  if(G.R) G.R.setQuality({ scale: renderScale(), dof: !!settings.dof, fgCells: !!settings.fg, look: settings.look });
   renderDirty = true;
 }
 function perfTick(dt){
@@ -1612,6 +1618,10 @@ function syncSettingsUi(){
   mark('s-quality', settings.quality);
   mark('s-rbc', settings.rbc ? 1 : 0); mark('s-dof', settings.dof ? 1 : 0); mark('s-fg', settings.fg ? 1 : 0); mark('s-edge', settings.edge ? 1 : 0);
   mark('s-diff', settings.difficulty);
+  mark('s-look', settings.look);
+  $('s-look-hint').textContent = settings.look === 'glass'
+    ? 'See-through vessels: the horde stays visible inside arteries and veins at every zoom.'
+    : 'Zoomed in, the vessels are cut open; zoomed out, they close into glossy tubes.';
   $('s-quality-hint').textContent = settings.quality === 'auto'
     ? 'Auto lowers the render resolution when frames get slow (now ' + Math.round(renderScale()*100) + ' %).'
     : 'Fixed render resolution: ' + Math.round(renderScale()*100) + ' % at up to ' + (PRESETS[settings.quality] || PRESETS.auto).dpr + '× pixel density.';
@@ -1651,6 +1661,7 @@ function bindUi(){
   segBind('s-rbc', 'rbc', v => v === '1', () => { G.simDirty = true; renderDirty = true; });
   segBind('s-dof', 'dof', v => v === '1', applyQuality);
   segBind('s-fg', 'fg', v => v === '1', applyQuality);
+  segBind('s-look', 'look', v => v === 'glass' ? 'glass' : 'cut', applyQuality);
   segBind('s-edge', 'edge', v => v === '1');
   segBind('s-diff', 'difficulty', v => v, () => {
     if(G.S && typeof G.S.setDifficulty === 'function'){ G.S.setDifficulty(settings.difficulty); G.S._difficultyFromMain = settings.difficulty; toast('Difficulty: ' + settings.difficulty, 'info', 'diff', 0.5); }
@@ -1705,7 +1716,7 @@ function updateDebug(s){
   const S = G.S, dbg = S && S._dbg && S._dbg.dbg;
   dbgEl.textContent =
     'fps ' + perf.fps.toFixed(0) + '  frame ' + perf.ema.toFixed(1) + ' ms' + (s && s.gpuMs != null ? '  gpu ' + (+s.gpuMs).toFixed(1) + ' ms' : '') +
-    '  scale ' + renderScale().toFixed(2) + '  dpr ' + V.dpr.toFixed(2) + (dbgView ? '  view ' + dbgView : '') + '\n' +
+    '  scale ' + renderScale().toFixed(2) + '  dpr ' + V.dpr.toFixed(2) + (s && s.look === 'glass' ? '  glass' : '') + (dbgView ? '  view ' + dbgView : '') + '\n' +
     'z ' + cam.z.toFixed(3) + ' px/µm  lod ' + rbcLOD().toFixed(2) + '  rbc ' + ((S && S.rbc && S.rbc.count) | 0) + '  units ' + ((S && S.units && S.units.count) | 0) +
     (s ? '  draws ' + s.drawCalls + '  inst ' + s.instances : '') + (dbg && dbg.lastUpdateMs != null ? '  sim ' + dbg.lastUpdateMs.toFixed(1) + ' ms' : '');
 }
@@ -1743,6 +1754,8 @@ window.HORDE = {
   get settled(){ return !fly && Math.abs(Math.log(cam.z) - lzGoal) < 1e-3 && !vel.x && !vel.y && !keyV.x && !keyV.y && !gesture; },
   get input(){ return { ptrs: ptrs.size, gesture: gesture && gesture.kind, mouse: Object.assign({}, mouse) }; },
   setQuality(q){ if(PRESETS[q]){ settings.quality = q; resize(); applyQuality(); } },
+  setLook(l){ if(/^(cut|glass)$/.test(l)){ settings.look = l; applyQuality(); syncSettingsUi(); } },
+  redraw(){ renderDirty = true; },
   pause(p){ setUserPause(p); },
   hold(on){ G.held = !!on; lastTs = 0; },   // freeze sim + rendering without any UI (screenshots)
 };

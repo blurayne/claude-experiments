@@ -19,7 +19,8 @@ zoom, wide enough for hordes of white blood cells, and you command those hordes
 against viruses and bacteria. Four map generators build the level (arteries fan
 out, pass through narrow connectors and drain into veins, all in one plane), and
 a WebGL2 renderer draws the vessels as smooth, pulsing, cut-open tubes from the
-whole map down to single cells. The cells are glassy, wobbly and have faces.
+whole map down to single cells, either cut open or as see-through glass tubes
+with the horde swimming inside. The cells are glassy, wobbly and have faces.
 [`horde-techniques.md`](horde-techniques.md) explains how it works; the code
 sits in [`horde/`](horde/) (generators, network, renderer, simulation, app shell).
 

@@ -2,8 +2,11 @@
    HORDE — WebGL2 renderer
    ----------------------------------------------------------------------------
    const R = BV.createRenderer(canvas, net, opts)   // throws without WebGL2
-   R.resize(cssW, cssH, dpr)   R.render(frame)   R.setQuality({scale, dof, fgCells, debug})
-   R.stats() → {gpuMs?, drawCalls, instances, fgCells, scale, listEntries, maxList}   R.destroy()
+   R.resize(cssW, cssH, dpr)   R.render(frame)   R.setQuality({scale, dof, fgCells, debug, look})
+   R.stats() → {gpuMs?, drawCalls, instances, fgCells, scale, look, listEntries, maxList}   R.destroy()
+   look: 'cut' (default: cut-open vessels zoomed in, glossy tubes zoomed out) or 'glass' (see-through
+   tubes at every zoom, the cells visibly inside; falls back to cut while a debug view is up or if its
+   shader fails on this GPU). Every setQuality field is optional.
    extras: R.setNet(net) (new map, same canvas), R.measure(frame, w?, h?) → per-pixel Bézier work
    (debug read-back), R.gl. debug views: 1 work counters, 2 field (N / arc / wall), 3 grid + evals,
    4 lumen-edge check (r: physics lumen drawn as wall, depth / wall thickness × 2; g: wall drawn as
@@ -49,6 +52,24 @@
              haze), and the glossy raised-tube look used when a vessel is only a
              few dozen px wide, throbbing as the pulse wave passes. Every
              texture fades by pixel footprint.
+             GLASS (look 'glass', a compile-time variant of the same shader, so
+             'cut' is untouched): no tube switch and no adventitia. The lumen is
+             the cut look's (far wall, plasma, red-cell haze) in a brighter
+             palette, lit by a slope field S = Σ w·g·(dist/r) / Σ w (g·(1+N) in one
+             vessel, and continuous where vessels merge and through a side
+             branch's axis and end cap inside its parent, where g itself flips),
+             plus a caustic on the far side; the wall band is thick tinted glass
+             (bright inner surface, a glowing core, an internal reflection line,
+             striae once wide on screen, a dark refraction line at the edge). A
+             second target (MRT) receives the tube's front surface, premultiplied
+             — the "skin": a vessel-tinted veil (thicker at the edges and on thin
+             tubes), Fresnel reflection, a dark silhouette line, two specular
+             streaks at fixed angles on the tube (so they run along every vessel;
+             edge where |θ − θ_light| = the half width, widened energy-preserving
+             by the pixel footprint, softened by the argument's screen derivative,
+             faded at junctions and on flat facets), a soft glaze, and zoomed in
+             wet sheen and sparse glints. The colour target's alpha is the tube
+             mask. The skin is composited after all cells (step 5).
    2. RBC    instanced biconcave impostors, far → near (bucket-sorted by depth),
              tumble, a gentle parachute flex (own beat per cell), glossy torus
              rim + crisp specular + subsurface edge glow, depth of field, × rbcLOD.
@@ -57,6 +78,12 @@
              (rings under all bodies, so a packed selected horde is outlined, not meshed).
    4. FG     optional sparse big soft out-of-focus red cells in front, faded out
              around units so they never cover a face.
+   5. SKIN   glass look only: the skin target, one full-screen premultiplied blend
+             (upsampled like the colour when the world pass runs at a reduced
+             scale). In glass the unit pass also reads the tube mask: icons (kept
+             big for readability) and shadows are clipped to the tube with a faint
+             ghost outside, shadows are softer and cast further, glows fainter,
+             white icons a touch off-white so the glass highlights read over them.
 
    Instance fields as the renderer reads them (HORDE_SPEC layouts; extras as sim.js packs them):
      RBC  (8)  x y r depth(0 near…1 far) angle(travel) tumble(0 face-on…1 edge-on) oxy alpha
@@ -156,6 +183,7 @@ precision highp float; precision highp int; precision highp sampler2D;
 #define SEGW __SEGW__
 #define LISTW __LISTW__
 #define PTN __PTN__
+#define GLASS __GLASS__
 const float K = __K__;
 const vec3 WALLS = vec3(__W0__, __W1__, __W2__);
 const float CUT = 3.1;          // chains whose lower bound is this far above the best so far weigh < 2^-14
@@ -168,7 +196,12 @@ uniform vec2 uWave;                 // pulse wave: (1 / (1 − p at the arterial
 uniform float uPT[PTN];             // wall dilation response (0..1) at wave delays 0 … 1.6 (in units of PT_DELAY s)
 uniform vec4 uBounds;
 uniform int uDebug;
+#if GLASS
+layout(location = 0) out vec4 outColor;
+layout(location = 1) out vec4 outSkin;     // the glass tube's front surface (premultiplied), composited over the cells
+#else
 out vec4 outColor;
+#endif
 ${GLSL_COMMON}
 
 // ---- field evaluation state -------------------------------------------------
@@ -182,6 +215,11 @@ vec2 sC0, sC1;                                     // top-2 chains: (Bézier ind
 float cN, cNr, cFade, cRn; int cIdx;
 float eT, eR, eDist; int eIdx; vec2 eQ, eTan;
 int nFull, nVisit;
+#if GLASS
+vec2 gSl;                                          // Σ w·g·(dist/r): the tube's slope field (see main)
+const vec3 H2 = vec3(0.5953, 0.6746, 0.4365);      // half vector of the bounce light (bottom-right, grazing)
+vec4 gSk;                                          // streak arguments |θ − θ₁|, |θ − θ₂| and their screen derivatives
+#endif
 
 float wallOf(float k){ return k <= 1.0 ? mix(WALLS.x, WALLS.y, k) : mix(WALLS.y, WALLS.z, k - 1.0); }
 
@@ -255,6 +293,9 @@ void flushChain(vec2 p){
   float w = exp2(-cN/K);
   vec2 nr = vec2(-eTan.y, eTan.x);
   vec2 g = eDist > 1e-3 ? (p - eQ)/eDist : nr;
+#if GLASS
+  gSl += w*g*clamp(eDist/eR, 0.0, 1.0);       // the chain's slope: g·(dist/r), 0 on its own axis
+#endif
   gAcc += w; gR += w*eR; gG += w*g; gF += w*eTan*v; gO += w*oxy; gK += w*kind; gGN += w*g/eR;
   gProx += cFade*exp2(-max(cNr*cRn, 0.0)/(0.12*cRn + 45.0));
   // arc position extrapolated along the tangent: exact for an interior t*, continuous past the
@@ -271,6 +312,9 @@ void evalField(vec2 p){
   gAcc = 0.0; gR = 0.0; gO = 0.0; gK = 0.0; gProx = 0.0; gBest = 1e9; gG = vec2(0.0); gF = vec2(0.0); gGN = vec2(0.0);
   wS0 = 0.0; wS1 = 0.0; wS2 = 0.0; sA0 = vec4(0.0); sA1 = vec4(0.0); sB0 = vec4(1.0, 0.0, 0.0, 0.5); sB1 = sB0; sC0 = vec2(0.0); sC1 = sC0;
   cIdx = -1; cN = 1e9; eIdx = -1; eDist = 1e9; nFull = 0; nVisit = 0;
+#if GLASS
+  gSl = vec2(0.0);
+#endif
   ivec2 gi = ivec2(floor((p - uGridO)/uCellSize));
   if(gi.x < 0 || gi.y < 0 || gi.x >= uGridN.x || gi.y >= uGridN.y) return;
   vec2 cd = texelFetch(uCell, gi, 0).rg;
@@ -342,7 +386,13 @@ void slotTex(vec4 A, vec4 B, float fp, float am, bool lumen, bool band, out vec4
     float val = 1.0 - smoothstep(0.9, 1.04, abs(lat)/rl);
     // folds of the far inner wall, elongated along the flow (foreshortened toward the sides)
     float fF = smoothstep(2.5, 7.0, 30.0*ppu*comp), fF2 = smoothstep(4.0, 10.0, 12.0*ppu*comp);
+#if GLASS
+    vec3 f1 = vec3(0.0), f2 = vec3(0.0);          // (the glass lumen is seen at every zoom: skip what is faded out)
+    if(fF*val > 0.0) f1 = vnoised(vec2(s/170.0, la/34.0));
+    if(fF2*val > 0.0) f2 = vnoised(vec2(s/66.0, la/13.0) + 5.3);
+#else
     vec3 f1 = vnoised(vec2(s/170.0, la/34.0)), f2 = vnoised(vec2(s/66.0, la/13.0) + 5.3);
+#endif
     fF *= val; fF2 *= val;
     T.x = 0.75*f1.x*fF + 0.25*f2.x*fF2;
     vec2 dsl = vec2(0.75*fF*f1.y/170.0 + 0.25*fF2*f2.y/66.0, (0.75*fF*f1.z/34.0 + 0.2*fF2*f2.z/13.0)/max(cl, 0.2));
@@ -374,7 +424,12 @@ void slotTex(vec4 A, vec4 B, float fp, float am, bool lumen, bool band, out vec4
     if(sc > 0.0) T.z += sc*0.5*(streakSet(s, lat, rl, v, tau, 26.0, 240.0, 0.0) + streakSet(s, lat, rl, v, tau, 26.0, 240.0, 0.5));
     // coarse blood-density clouds drifting with the flow (reads at mid zoom)
     float gq = (s - v*1.1*tau)/170.0;
+#if GLASS
+    float gF = smoothstep(4.0, 12.0, 38.0*ppu*comp)*val;
+    if(gF > 0.0) G.w = (2.0*vnoise(vec2(gq, la/38.0 + 0.35*sin(1.7*gq)) + 2.2) - 1.0)*gF;
+#else
     G.w = (2.0*vnoise(vec2(gq, la/38.0 + 0.35*sin(1.7*gq)) + 2.2) - 1.0)*smoothstep(4.0, 12.0, 38.0*ppu*comp)*val;
+#endif
     // out-of-focus specks drifting in front of the far wall (bokeh), only when big on screen
     float bkF = smoothstep(5.0, 10.0, 4.0*ppu)*val;
     if(bkF > 0.0){
@@ -566,6 +621,147 @@ vec3 cutLook(float N, float rB, vec2 g, float oxy, float kind, float wall, float
   return mix(wal, lum, inL);
 }
 
+#if GLASS
+// Glass vessel (the "Glass" look): a clear tube seen from above at every zoom, no switch to the
+// opaque tube. Returns what lies behind the front surface: the lumen (the far wall seen through
+// luminous plasma and the red-cell haze, as the cut look, in a brighter palette so cells read in
+// veins too, plus the caustic the tube focuses onto its floor on the side away from the light) and
+// the glass wall band N ∈ [−wall, 0] (the wall seen edge-on: deep tinted glass, a bright inner
+// surface, a dark refraction line at the silhouette). skin = the tube's front surface, premultiplied,
+// composited over the cells after they are drawn: a vessel-tinted veil (thicker toward the edges),
+// Fresnel reflection, specular streaks running along the vessel (angle on the tube from the field's
+// gradient) broken up by wet patches along the flow. Detail fades by pixel footprint.
+vec3 glassLook(float N, float rB, vec2 S, float oxy, float kind, float wall, float fp, float aaN, float gN, float pl, float Dcss, out vec4 skin){
+  // S: the tube's slope, Σ w·g_c·(dist_c/r_c) / Σ w — g·(1 + N) inside one vessel, and smooth where
+  // vessels merge and through a side branch's axis and end cap inside its parent, where the blended
+  // gradient g itself flips. Everything that lights the glass by direction uses S.
+  float Lxy = length(LDIR.xy);
+  float side = dot(S, LDIR.xy/Lxy);                     // +1 the side facing the light … −1 the far side
+  float inL = 1.0 - smoothstep(-aaN, aaN, N + wall);
+  float a = clamp((1.0 + N)/(1.0 - wall), 0.0, 1.0);
+  vec3 plasma = mix(vec3(0.34, 0.06, 0.19), vec3(0.66, 0.11, 0.085), oxy);
+  vec3 lum = vec3(0.0), wal = vec3(0.0);
+  float cau = smoothstep(0.0, 0.8, -side);              // the side the tube focuses the light onto
+  if(inL > 0.0){
+    vec4 T, T1, G, G1; vec2 Hz, H1, E, E1; vec3 F, F1;
+    slotTex(sA0, sB0, fp, a, true, false, T, G, Hz, F, E);
+    float e0 = wS0 - wS2, e1 = wS1 - wS2;
+    if(e1 > 0.02*e0){
+      slotTex(sA1, sB1, fp, a, true, false, T1, G1, H1, F1, E1);
+      float f = smoothstep(0.25, 0.75, e1/(e0 + e1));
+      T = mix(T, T1, f); G = mix(G, G1, f); Hz = mix(Hz, H1, f); F = mix(F, F1, f); E = mix(E, E1, f);
+    }
+    float zd = sqrt(max(1.0 - a*a, 0.0)), near = 1.0 - zd, focus = 1.0 - 0.5*zd;
+    vec2 Sa = S/(1.0 - wall); Sa /= max(1.0, length(Sa));            // = g·a in one vessel
+    vec3 nI = normalize(vec3(-Sa, zd + 0.06));
+    float fr = mix(0.6, 3.2, smoothstep(0.6, 2.5, 1.0/fp))*(0.35 + 0.65*zd);
+    vec3 n = normalize(nI + vec3(-G.xy*fr - F.yz*(0.7*focus), 0.0));
+    vec3 farW = mix(vec3(0.38, 0.08, 0.22), vec3(0.70, 0.14, 0.11), oxy);
+    float ndl = dot(n, LDIR), dif = max(ndl, 0.0), wrap = max(ndl + 0.5, 0.0)/1.5;
+    vec3 c = farW*(0.32 + 0.5*dif + 0.28*wrap)*(1.0 + 0.10*T.y)*(1.0 + 0.3*F.x*focus)*(1.0 + 0.22*T.x);
+    float sp = pow(max(dot(n, HDIR), 0.0), mix(14.0, 44.0, near));
+    c += vec3(1.0, 0.62, 0.62)*sp*mix(0.05, 0.16, near)*(0.6 + 0.4*focus);
+    // luminous plasma, brightest over the deep axis; clouds drift
+    vec3 pc = plasma*(0.95 + 0.22*G.w + 0.04*T.z)*(1.0 + 0.2*zd);
+    c = mix(c, pc, 0.55*pow(zd, 0.7));
+    c *= 1.0 + 0.06*T.z*(0.4 + 0.6*zd);
+    // caustic: a warm glow along the floor on the far side
+    c += mix(vec3(0.50, 0.16, 0.36), vec3(0.75, 0.30, 0.16), oxy)*cau*smoothstep(0.5, 0.97, a)*0.35;
+    // red-cell suspension at lower zooms (particles take over as rbcLOD → 1)
+    vec3 rbc = mix(vec3(0.52, 0.06, 0.16), vec3(0.93, 0.14, 0.11), oxy);
+    Hz = mix(Hz, vec2(0.46, 0.92), 0.5*uLOD);
+    float hw = (1.0 - uLOD)*clamp(Hz.x*(1.0 + 0.3*G.w + 0.06*T.z), 0.0, 1.0);
+    hw *= mix(0.55, 1.0, zd)*(1.0 - 0.6*smoothstep(0.82, 1.0, a));
+    c = mix(c, rbc*Hz.y*(1.08 - 0.22*zd)*(1.0 + 0.05*T.z + 0.07*G.w), hw);
+    c += vec3(1.0, 0.62, 0.52)*0.07*E.y;
+    c *= 1.0 + 0.1*pl;
+    lum = c;
+  }
+  if(inL < 1.0){
+    float u = clamp((N + wall)/wall, 0.0, 1.0);          // 0 inner surface … 1 outer surface
+    float dIn = max(N + wall, 0.0)/gN, dOut = max(-N, 0.0)/gN;
+    vec3 deep = mix(vec3(0.22, 0.04, 0.17), vec3(0.46, 0.04, 0.05), oxy);
+    vec3 glow = mix(vec3(0.75, 0.55, 0.80), vec3(0.95, 0.60, 0.55), oxy);
+    vec3 c = mix(plasma*0.85, deep, smoothstep(0.0, 1.0, u));
+    c *= 1.0 + 0.18*side*(1.0 - u);
+    c += mix(vec3(0.50, 0.16, 0.36), vec3(0.75, 0.30, 0.16), oxy)*cau*0.25*(1.0 - u);
+    float lw = max(0.08*wall*rB, 1.4*fp);
+    c += glow*0.55*exp(-dIn/lw);                                                       // the inner surface
+    // thick glass: light caught inside the wall glows in its core, a second internal reflection
+    // runs along it (both once the band is a few px wide), and faint striae stretch along the vessel
+    // once it is wide on screen
+    float bF = smoothstep(4.0, 12.0, wall*rB/fp);
+    float zu = (u - 0.5)/0.2;
+    c += glow*0.1*bF*exp(-zu*zu);
+    float l2 = max(0.03*wall*rB, 1.2*fp);
+    c += glow*0.22*bF*exp(-abs(u - 0.74)*wall*rB/l2);
+    float stF = smoothstep(25.0, 90.0, wall*rB/fp);
+    if(stF > 0.0){
+      float e0 = wS0 - wS2, e1 = wS1 - wS2;
+      float sn = vnoise(vec2(sA0.x/(0.45*sA0.z), 7.0*u + 1.7));
+      if(e1 > 0.02*e0) sn = mix(sn, vnoise(vec2(sA1.x/(0.45*sA1.z), 7.0*u + 1.7)), smoothstep(0.25, 0.75, e1/(e0 + e1)));
+      c *= 1.0 + stF*0.16*(sn - 0.5);
+    }
+    float ow = max(0.05*wall*rB, 1.2*fp);
+    c *= 1.0 - 0.6*exp(-dOut/ow);                                                      // refraction line at the edge
+    c *= 1.0 + 0.1*pl;
+    wal = c;
+  }
+  // ---- the front surface (skin) ----
+  float ao = clamp(1.0 + N, 0.0, 1.0);
+  float aF = min(ao, 1.0 - 0.7*gN*fp), hzF = sqrt(max(1.0 - aF*aF, 0.0));   // (the Fresnel rim: never steeper than the pixel)
+  float sl = min(length(S), 1.0), hs = sqrt(1.0 - sl*sl);
+  float dth = gN*fp/max(hs, 0.06);                       // the angle on the tube (asin |S|) per pixel
+  float e0 = wS0 - wS2, e1 = wS1 - wS2, eR = e1/max(e0 + e1, 1e-20);
+  float fe = mix(1.3, 2.0, smoothstep(10.0, 90.0, Dcss));  // a broader rim on thin tubes, so it reads at overview
+  float fres = pow(1.0 - hzF, fe);
+  // tinted glass: a light veil over the middle (the cells inside take on the vessel's colour a
+  // little), thicker and more saturated toward the edges, where the eye looks through more glass
+  vec3 tint = mix(vec3(0.24, 0.03, 0.20), vec3(0.62, 0.05, 0.06), oxy);
+  float kz = smoothstep(60.0, 700.0, Dcss);              // 0 thin on screen … 1 wide (cells big: keep their faces clear)
+  float va = mix(0.17, 0.08, kz) + mix(0.5, 0.3, kz)*fres;
+  skin = vec4(tint*va, va);
+  float ra = mix(0.34, 0.24, kz)*fres;                   // Fresnel reflection: cool on veins, warm on arteries
+  skin = over(vec4(mix(vec3(0.80, 0.78, 1.0), vec3(1.0, 0.84, 0.84), oxy)*ra, 0.75*ra), skin);
+  float dOut = max(-N, 0.0)/gN, ow = max(0.012*rB, 1.3*fp);
+  skin = over(vec4(tint*0.12*exp(-dOut/ow), 0.45*exp(-dOut/ow)), skin);            // dark refraction line at the silhouette
+  // specular streaks: the reflections of two lights (key from the top-left, a dimmer bounce from the
+  // bottom-right) sit at a fixed angle on the tube, so they run along every vessel and follow its
+  // bends. The edge sits where |θ − θ_light| = the (footprint-widened, energy-preserving) half width,
+  // its softness is the argument's own screen derivative; they fade where two vessels merge and on
+  // flat facets of the union (where a window highlight would balloon)
+  float d1 = gSk.x, d2 = gSk.y;
+  float f1 = max(dth, gSk.z), f2 = max(dth, gSk.w);    // (faster than a tube near junctions: widen there too)
+  float w1 = 0.035, we1 = max(w1, 1.5*f1), w2 = 0.03, we2 = max(w2, 1.5*f2);
+  float a1 = min(max(gSk.z, 0.8*dth), 0.6*we1), a2 = min(max(gSk.w, 0.8*dth), 0.6*we2);
+  float jn = (1.0 - smoothstep(0.18, 0.42, eR))*smoothstep(0.55, 0.85, sl/max(ao, 1e-3));   // |S| < 1 + N: slopes cancel
+  float s1 = (1.0 - smoothstep(we1 - a1, we1 + a1, d1))*w1/we1*jn;
+  float s2 = (1.0 - smoothstep(we2 - a2, we2 + a2, d2))*w2/we2*jn;
+  float glz = (exp(-d1*d1/0.03) + 0.6*exp(-d1*d1/0.16))*(0.5 + 0.5*jn);   // broad soft sheen around the key streak
+  // wet surface: soft reflections drifting along the vessel break the streaks up (zoomed in only)
+  // (chain-space patterns fade where that chain's own tube does not cover the pixel, as in slotTex)
+  float wetF = smoothstep(40.0, 160.0, Dcss)*(1.0 - smoothstep(0.95, 1.1, abs(sA0.y)/sA0.z)), wet = 0.5;
+  if(wetF > 0.0){
+    wet = vnoise(vec2(sA0.x/(0.9*sA0.z), 2.2*sA0.y/sA0.z + 3.1));
+    if(e1 > 0.02*e0) wet = mix(wet, vnoise(vec2(sA1.x/(0.9*sA1.z), 2.2*sA1.y/sA1.z + 3.1)), smoothstep(0.25, 0.75, eR));
+  }
+  float wm = mix(1.0, 0.35 + 1.0*smoothstep(0.3, 0.72, wet), wetF);
+  float sheen = wetF*smoothstep(0.55, 0.85, wet);
+  // sparse tiny glints on the glass (droplets): fixed on the vessel, so the cells swim beneath them
+  float gF = wetF*smoothstep(2.0, 4.0, 1.4/fp), glint = 0.0;
+  if(gF > 0.0){
+    vec2 gq = vec2(sA0.x, sA0.y)/22.0; ivec2 gi = ivec2(floor(gq));
+    vec2 gk = 0.2 + 0.6*h22(gi + ivec2(83, 29));
+    float gd = length((fract(gq) - gk)*22.0), gr = 0.7 + 1.1*h21(gi + ivec2(5, 71));
+    glint = gF*step(0.86, h21(gi + ivec2(31, 7)))*(1.0 - smoothstep(0.4*gr, gr + fp, gd))*(1.0 - smoothstep(0.1, 0.3, eR));
+  }
+  skin.rgb += vec3(1.0, 0.97, 0.98)*(0.75*s1*wm + 0.1*glz + 0.13*sheen + 0.8*glint) + mix(vec3(0.75, 0.80, 1.0), vec3(1.0, 0.82, 0.78), oxy)*0.3*s2*wm;
+  skin.a = min(1.0, skin.a + 0.25*s1*wm + 0.07*glz + 0.09*sheen + 0.3*glint + 0.08*s2);
+  skin *= 1.0 + 0.12*pl;
+  return mix(wal, lum, inL);
+}
+#endif
+
 // wall wobble of one chain slot → (displacement in r, + = outward; pressure). The wall undulates
 // slowly: waves travel along the chain (arc measured in local radii, so every vessel gets the same
 // number of waves per diameter), differently on its two sides, biased outward — the rendered wall
@@ -588,6 +784,9 @@ void main(){
   vec2 fc = gl_FragCoord.xy;
   vec2 p = uCam + vec2(fc.x - 0.5*uRes.x, 0.5*uRes.y - fc.y)/uPPU;
   float fp = 1.0/uPPU.x;
+#if GLASS
+  outSkin = vec4(0.0);
+#endif
   evalField(p);
   if(uDebug == 1){ outColor = vec4(float(nFull)/255.0, float(nVisit)/255.0, 0.0, 1.0); return; }
   float acc = gAcc, inv = acc > 1e-30 ? 1.0/acc : 0.0;
@@ -622,9 +821,41 @@ void main(){
     float inPh = step(N, -wall), inR = step(Np, -wall);
     outColor = vec4(inPh*(1.0 - inR)*clamp((-wall - N)/wall/0.5, 0.0, 1.0), inR*(1.0 - inPh)*clamp((N + wall)/wall, 0.0, 1.0), inPh, 1.0); return;
   }
+#if GLASS
+  float N0 = N;                                    // (the slope field scales with the wall like the lumen)
+#endif
   N = Np;
   float ls = 1.0/(1.0 + uD/(1.0 - wall));                                // chain-space lumen textures scale with the wall
   sA0.y *= ls; sA1.y *= ls;
+#if GLASS
+  // glass: the same tube at every zoom (no adventitia, no switch); tissue as in the tube look
+  float cover = 1.0 - smoothstep(-aaN, aaN, N);
+  vec3 col = vec3(0.0);
+  vec4 skin = vec4(0.0);
+  // the slope field, and the streak arguments with their screen derivatives (uniform control flow
+  // here; the derivatives only soften the streak edges, they never move them)
+  vec2 S = gSl*inv*clamp((1.0 + N)/max(1.0 + N0, 1e-3), 0.0, 2.0);
+  {
+    float sl = min(length(S), 1.0); vec2 sd = sl > 1e-6 ? S/sl : vec2(0.0);
+    float th = asin(sl);
+    gSk.xy = abs(th - vec2(atan(dot(sd, HDIR.xy), HDIR.z), atan(dot(sd, H2.xy), H2.z)));   // continuous through S = 0
+    gSk.zw = fwidth(gSk.xy);
+  }
+  if(cover < 1.0) col = tissue(p, max(N, 0.0)*rB, g, rB, fp);
+  if(cover > 0.0){
+    vec3 v = glassLook(N, rB, S, oxy, kind, wall, fp, aaN, gN, pls, 2.0*rB*uZ, skin);
+    col = mix(col, v, cover);
+    skin *= cover;
+  }
+  vec2 ob = max(max(uBounds.xy - p, p - uBounds.zw), 0.0);
+  float dark = 1.0 - 0.9*smoothstep(0.0, 480.0, length(ob));
+  // (the tube angle's screen derivative is taken above, in uniform control flow)
+  col *= dark; skin *= dark;
+  float dz = h21(ivec2(fc)) - 0.5;
+  col += dz*(1.5/255.0);
+  outColor = vec4(max(col, 0.0), cover);          // alpha: the tube mask (the unit pass keeps the cells inside)
+  outSkin = clamp(skin + vec4(dz*(1.0/255.0))*step(0.002, skin.a), 0.0, 1.0);
+#else
   // tube ↔ cut-open by on-screen width; near a junction the bigger vessel decides (continuous
   // across slot swaps), so a thin branch switches look along its own length, not in the fillet
   float rCo = max(max(rB, sA0.z), sA1.z*smoothstep(0.0, 0.3, e1/max(e0 + e1, 1e-20)));
@@ -646,6 +877,7 @@ void main(){
   col *= 1.0 - 0.9*smoothstep(0.0, 480.0, length(ob));
   col += (h21(ivec2(fc)) - 0.5)*(1.5/255.0);          // dither against banding
   outColor = vec4(max(col, 0.0), 1.0);
+#endif
 }`;
 
 const BLIT_FS = `#version 300 es
@@ -763,7 +995,7 @@ layout(location=1) in vec4 iA;   // x, y, r, type
 layout(location=2) in vec4 iB;   // angle, phase, flags, hp
 layout(location=3) in vec4 iC;   // lookX, lookY, stretch, tint
 layout(location=4) in vec4 iD;   // extra0..3
-uniform vec2 uCam, uRes; uniform float uPPU, uDpr; uniform int uPass;
+uniform vec2 uCam, uRes; uniform float uPPU, uDpr, uGlass; uniform int uPass;
 out vec2 vP;
 flat out vec4 vA; flat out vec4 vB; flat out vec4 vC; flat out vec4 vD;
 void main(){
@@ -782,11 +1014,13 @@ void main(){
   vec2 ext = type == 0 ? vec2(1.72*max(st, 1.0) + 0.16, 1.72*inversesqrt(min(st, 1.0)) + 0.1) : type == 1 ? vec2(1.45) : type == 2 ? vec2(st + 2.7, 2.1)
            : type == 3 ? vec2(1.55*st, 1.55) : type == 4 ? vec2(1.2) : vec2(2.3);
   if(uPass == 0) ext = type == 2 ? vec2(st + 0.6, 1.6) : vec2(1.45*st, 1.45*inversesqrt(min(st, 1.0)));
+  if(uPass == 0 && uGlass > 0.5) ext += vec2(0.35);            // glass: a softer shadow
   if(icon > 0.0 && uPass != 0) ext = max(ext, vec2(2.6));
   if(uPass == 2) ext += vec2(0.4);
   vec2 lc = aC*ext;
   float ang = iB.x, c = cos(ang), s = sin(ang);
   vec2 off = uPass == 0 ? vec2(0.26, 0.34)*((int(iB.z + 0.5) & 16) != 0 ? 0.45 : 1.0)*rW : vec2(0.0);
+  if(uPass == 0 && uGlass > 0.5) off *= 1.3;                   // … cast a little further (the cell floats in the tube)
   vec2 w = iA.xy + off + vec2(c*lc.x - s*lc.y, s*lc.x + c*lc.y)*rW;
   vec2 sp = (w - uCam)*uPPU;
   gl_Position = vec4(sp.x*2.0/uRes.x, -sp.y*2.0/uRes.y, 0.0, 1.0);
@@ -801,7 +1035,8 @@ const UNIT_FS = `#version 300 es
 precision highp float; precision highp int;
 in vec2 vP;
 flat in vec4 vA; flat in vec4 vB; flat in vec4 vC; flat in vec4 vD;
-uniform float uTime; uniform int uPass;
+uniform float uTime, uGlass; uniform int uPass;
+uniform sampler2D uMask; uniform vec2 uScr;       // glass: the world colour target (alpha = tube mask), screen size
 out vec4 o;
 ${GLSL_COMMON}
 const vec3 INK = vec3(0.10, 0.035, 0.07);
@@ -931,7 +1166,8 @@ vec4 drawWBC(vec2 pb, float ang, float aw, float st, float ph, int flags, float 
   vec2 slosh = -hd*0.07*mv + jig*0.075*vec2(sin(t*23.0 - 1.4), cos(t*19.0 - 0.9)) + 0.018*vec2(sin(t*0.9), cos(t*1.13));
   vec4 res = vec4(0.0);
   // soft white glow around the cell
-  res += vec4(vec3(0.9, 0.86, 1.0)*0.34*exp(-max(sd, 0.0)*6.5)*(1.0 - cov), 0.0);
+  if(uGlass > 0.5) res += vec4(vec3(0.9, 0.86, 1.0)*0.16*exp(-max(sd, 0.0)*8.0)*(1.0 - cov), 0.0);   // glass: inside the tube, a fainter glow
+  else res += vec4(vec3(0.9, 0.86, 1.0)*0.34*exp(-max(sd, 0.0)*6.5)*(1.0 - cov), 0.0);
   // engulfed prey being digested
   if(prey > 0.5){
     vec2 pp = (ps - 0.6*slosh - vec2(0.1, 0.42))/(0.36*(1.0 - 0.55*clamp(hp, 0.0, 1.0)));
@@ -1160,6 +1396,10 @@ vec4 drawIcon(int type, int flags, vec2 ps, float aw, float ph){
   float core = fill(d - rad, aw);
   vec3 col = mix(c, vec3(1.0), 0.45*(1.0 - smoothstep(0.0, rad, d)));
   vec4 res = vec4(c*0.32*exp(-max(d - rad, 0.0)*1.9)*(1.0 - core), 0.0);
+  if(uGlass > 0.5){
+    res = vec4(c*0.2*exp(-max(d - rad, 0.0)*2.4)*(1.0 - core), 0.0);
+    col *= type == 0 && (flags & 1) == 0 ? vec3(0.9, 0.9, 0.93) : vec3(0.95);   // below the glass highlights
+  }
   return over(pm(col, core), res);
 }
 
@@ -1177,6 +1417,7 @@ void main(){
     vec2 q = type == 2 ? vec2(max(abs(pb.x) - max(st - 1.0, 0.0), 0.0), pb.y) : vec2(pb.x/st, pb.y*(type == 0 ? sqrt(st) : 1.0));
     float d = length(q) - (type == 2 ? 0.95 : 0.8);
     float a = (1.0 - smoothstep(-0.25, 0.55, d))*((flags & 16) != 0 ? 0.42 : 0.3)*(1.0 - icon);
+    if(uGlass > 0.5) a = (1.0 - smoothstep(-0.5, 0.85, d))*((flags & 16) != 0 ? 0.34 : 0.24)*(1.0 - 0.6*icon);   // glass: softer, lighter, icons float too
     res = vec4(0.0, 0.0, 0.0, a);
   } else if(uPass == 2){
     res = drawRing(type, pb, aw, st, ph, flags, vD.z, jig)*(1.0 - icon);
@@ -1192,6 +1433,9 @@ void main(){
     }
     if(icon > 0.0 && type != 5) res = mix(res, drawIcon(type, flags, ps, aw, ph), icon);
   }
+  // glass: cells live inside the tube; icons (inflated to stay readable) and shadows are clipped to
+  // it, with a faint ghost outside, so a horde in a thin vessel fills the tube instead of covering it
+  if(uGlass > 0.5 && uPass != 2 && type != 3 && type != 5) res *= mix(0.2, 1.0, textureLod(uMask, gl_FragCoord.xy/uScr, 0.0).a);
   if((flags & 8) != 0) res *= clamp(1.0 - vD.x, 0.0, 1.0)*0.85;   // e0: fade-out while dying
   res *= clamp(vD.w, 0.0, 1.0);                                        // e3: fade-in alpha (spawn)
   o = res;
@@ -1329,7 +1573,7 @@ BV.createRenderer = function(canvas, net, opts){
     premultipliedAlpha:false, preserveDrawingBuffer: !!opts.preserveDrawingBuffer, powerPreference:'high-performance' });
   if(!gl) throw new Error('WebGL2 is not available');
   const CONST = BV.CONST;
-  const quality = { scale: 1, dof: true, fgCells: true, debug: 0 };
+  const quality = { scale: 1, dof: true, fgCells: true, debug: 0, look: 'cut' };
   let dpr = 1;
   let lastT = null, tauP = 0;
   const st = { drawCalls: 0, instances: 0, gpuMs: undefined, fgCells: 0 };
@@ -1340,6 +1584,8 @@ BV.createRenderer = function(canvas, net, opts){
   let lists = null;                 // CPU-side acceleration lists for the current net
   let segX = null;                  // per-Bézier wobble data for the current net
   let fbo = null, fboTex = null, fboW = 0, fboH = 0;
+  let gfbo = null, gTex = null, gW = 0, gH = 0;        // glass look: world colour + skin (MRT)
+  let glassBroken = false;
   let tq = null, queries = [];
   let lost = false;
 
@@ -1374,14 +1620,30 @@ BV.createRenderer = function(canvas, net, opts){
       floatTex(gl, lists.LW, lists.rows, gl.R32F, gl.RED, lists.LI),
       floatTex(gl, segX.W, segX.rows, gl.RGBA32F, gl.RGBA, segX.X),
     ];
-    if(!W || !W.prog || W.maxl !== maxl){
+    if(!W || !W.prog || W.maxl !== maxl || W.segW !== g.segW || W.listW !== lists.LW){
       if(W && W.prog) gl.deleteProgram(W.prog.p);
-      const src = WORLD_FS.replace('__PTN__', String(PT_N)).replace('__MAXL__', String(maxl)).replace('__SEGW__', String(g.segW)).replace('__LISTW__', String(lists.LW))
-        .replace('__K__', CONST.K_SMIN.toFixed(6)).replace('__W0__', CONST.WALL[0].toFixed(6)).replace('__W1__', CONST.WALL[1].toFixed(6)).replace('__W2__', CONST.WALL[2].toFixed(6));
-      W = { prog: program(gl, WORLD_VS, src, 'world'), maxl };
+      if(W && W.progG) gl.deleteProgram(W.progG.p);
+      W = { prog: null, progG: null, maxl, segW: g.segW, listW: lists.LW };
+      W.prog = program(gl, WORLD_VS, worldSrc(0), 'world');
     }
     W.tex = tex; W.listEntries = lists.total;
   }
+  function worldSrc(glass){
+    return WORLD_FS.replace('__PTN__', String(PT_N)).replace('__MAXL__', String(W.maxl)).replace('__SEGW__', String(W.segW)).replace('__LISTW__', String(W.listW))
+      .replace('__GLASS__', glass ? '1' : '0')
+      .replace('__K__', CONST.K_SMIN.toFixed(6)).replace('__W0__', CONST.WALL[0].toFixed(6)).replace('__W1__', CONST.WALL[1].toFixed(6)).replace('__W2__', CONST.WALL[2].toFixed(6));
+  }
+  // the glass variant of the world pass is compiled on first use (it writes the skin as a 2nd
+  // target); should it fail on this GPU, the look falls back to cut-open
+  function glassProg(){
+    if(!W.progG && !glassBroken){
+      try { W.progG = program(gl, WORLD_VS, worldSrc(1), 'world-glass'); }
+      catch(err){ glassBroken = true; console.error(err); }
+    }
+    return W.progG;
+  }
+  // glass look: on unless a debug view is up (those show the field)
+  function glassOn(){ return quality.look === 'glass' && !quality.debug && !glassBroken; }
   function initGL(){
     quad = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, quad);
@@ -1392,7 +1654,7 @@ BV.createRenderer = function(canvas, net, opts){
     rbcProg = program(gl, RBC_VS, RBC_FS, 'rbc');
     unitProg = program(gl, UNIT_VS, UNIT_FS, 'unit');
     blitProg = program(gl, WORLD_VS, BLIT_FS, 'blit');
-    W = null; fbo = null; fboTex = null; fboW = fboH = 0;
+    W = null; fbo = null; fboTex = null; fboW = fboH = 0; gfbo = null; gTex = null; gW = gH = 0;
     tq = gl.getExtension('EXT_disjoint_timer_query_webgl2'); queries = [];
     uploadNet();
   }
@@ -1421,6 +1683,32 @@ BV.createRenderer = function(canvas, net, opts){
     gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, fboTex, 0);
     fboW = w; fboH = h;
+  }
+  // glass look: the world pass writes its colour and the skin (both RGBA8, linear: upsampled when
+  // the pass runs at a reduced resolution; the skin is premultiplied, so it filters correctly)
+  function ensureGlassFbo(w, h){
+    if(gfbo && gW === w && gH === h) return;
+    if(!gfbo){ gfbo = gl.createFramebuffer(); gTex = [gl.createTexture(), gl.createTexture()]; }
+    for(const t of gTex){
+      gl.bindTexture(gl.TEXTURE_2D, t);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    }
+    gl.bindFramebuffer(gl.FRAMEBUFFER, gfbo);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, gTex[0], 0);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.TEXTURE_2D, gTex[1], 0);
+    gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1]);
+    gW = w; gH = h;
+  }
+  function blit(tex, Wd, Hd){
+    gl.useProgram(blitProg.p);
+    gl.bindVertexArray(emptyVAO);
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.uniform1i(blitProg.u.uTex, 0); gl.uniform2f(blitProg.u.uRes, Wd, Hd);
+    gl.drawArrays(gl.TRIANGLES, 0, 3); st.drawCalls++;
   }
 
   // ---- GPU timer (optional; EXT_disjoint_timer_query_webgl2) ---------------
@@ -1481,8 +1769,8 @@ BV.createRenderer = function(canvas, net, opts){
   }
 
   // ---- world pass ----------------------------------------------------------
-  function drawWorld(frame, rw, rh, ppuX, ppuY, debug){
-    const P = W.prog, u = P.u, g = net.gpu, cam = frame.cam;
+  function drawWorld(frame, rw, rh, ppuX, ppuY, debug, prog){
+    const P = prog || W.prog, u = P.u, g = net.gpu, cam = frame.cam;
     gl.useProgram(P.p);
     gl.bindVertexArray(emptyVAO);
     for(let i=0;i<5;i++){ gl.activeTexture(gl.TEXTURE0+i); gl.bindTexture(gl.TEXTURE_2D, W.tex[i]); }
@@ -1576,6 +1864,9 @@ BV.createRenderer = function(canvas, net, opts){
     gl.uniform1f(u.uPPU, cam.z*dpr);
     gl.uniform1f(u.uDpr, dpr);
     gl.uniform1f(u.uTime, frame.time || 0);
+    const gOn = glassOn() && !!gfbo;
+    gl.uniform1f(u.uGlass, gOn ? 1 : 0);
+    if(gOn){ gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, gTex[0]); gl.uniform1i(u.uMask, 0); gl.uniform2f(u.uScr, canvas.width, canvas.height); }
     for(let pass=0; pass<5; pass++){      // shadows, sites, selection rings, bodies, FX
       gl.uniform1i(u.uPass, pass);
       gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, units.count);
@@ -1607,7 +1898,19 @@ BV.createRenderer = function(canvas, net, opts){
 
     gl.disable(gl.BLEND);
     const ppu = cam.z*dpr, sc = Math.max(0.25, Math.min(1, quality.scale));
-    if(sc < 0.999){
+    const gP = glassOn() ? glassProg() : null;
+    if(gP){
+      // glass: the world pass renders colour + skin into their own targets (at the render scale),
+      // the colour goes to the screen now, the skin over everything once the cells are drawn
+      const w = Math.max(1, Math.round(Wd*sc)), h = Math.max(1, Math.round(Hd*sc));
+      ensureGlassFbo(w, h);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, gfbo);
+      gl.viewport(0, 0, w, h);
+      drawWorld(frame, w, h, ppu*w/Wd, ppu*h/Hd, 0, gP);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.viewport(0, 0, Wd, Hd);
+      blit(gTex[0], Wd, Hd);
+    } else if(sc < 0.999){
       const w = Math.max(1, Math.round(Wd*sc)), h = Math.max(1, Math.round(Hd*sc));
       ensureFbo(w, h);
       gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
@@ -1639,6 +1942,7 @@ BV.createRenderer = function(canvas, net, opts){
     }
     if(frame.units && frame.units.count > 0) drawUnits(frame);
     if(fgN) drawRBC(fgVAO, fgBuf, fgArr, fgN, frame, true);
+    if(gP) blit(gTex[1], Wd, Hd);               // the glass skin, over the cells (premultiplied)
     gl.disable(gl.BLEND);
     gl.bindVertexArray(null);
     if(q){ gl.endQuery(tq.TIME_ELAPSED_EXT); queries.push(q); }
@@ -1669,14 +1973,17 @@ BV.createRenderer = function(canvas, net, opts){
   return {
     gl,
     resize, render, measure, setNet,
-    setQuality(q){ if(!q) return; if(q.scale != null) quality.scale = +q.scale; if(q.dof != null) quality.dof = !!q.dof; if(q.fgCells != null) quality.fgCells = !!q.fgCells; if(q.debug != null) quality.debug = q.debug|0; },
-    stats(){ return { gpuMs: st.gpuMs, drawCalls: st.drawCalls, instances: st.instances, fgCells: st.fgCells, scale: quality.scale, listEntries: W.listEntries, maxList: net.gpu.maxList }; },
+    setQuality(q){ if(!q) return; if(q.scale != null) quality.scale = +q.scale; if(q.dof != null) quality.dof = !!q.dof; if(q.fgCells != null) quality.fgCells = !!q.fgCells; if(q.debug != null) quality.debug = q.debug|0;
+      if(q.look != null) quality.look = q.look === 'glass' ? 'glass' : 'cut'; },
+    stats(){ return { gpuMs: st.gpuMs, drawCalls: st.drawCalls, instances: st.instances, fgCells: st.fgCells, scale: quality.scale, look: glassOn() ? 'glass' : 'cut', listEntries: W.listEntries, maxList: net.gpu.maxList }; },
     destroy(){
       canvas.removeEventListener('webglcontextlost', onLost, false);
       canvas.removeEventListener('webglcontextrestored', onRestored, false);
       if(lost || gl.isContextLost()) return;
       for(const t of W.tex) gl.deleteTexture(t);
       gl.deleteProgram(W.prog.p); gl.deleteProgram(rbcProg.p); gl.deleteProgram(unitProg.p); gl.deleteProgram(blitProg.p);
+      if(W.progG) gl.deleteProgram(W.progG.p);
+      if(gfbo){ gl.deleteFramebuffer(gfbo); for(const t of gTex) gl.deleteTexture(t); }
       for(const b of [quad, rbcBuf, fgBuf, unitBuf]) gl.deleteBuffer(b);
       for(const v of [emptyVAO, rbcVAO, fgVAO, unitVAO]) gl.deleteVertexArray(v);
       if(fbo){ gl.deleteFramebuffer(fbo); gl.deleteTexture(fboTex); }

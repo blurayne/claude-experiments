@@ -160,6 +160,15 @@ The pass can run at reduced resolution and be upsampled (automatic quality).
   burgundy, connectors blend by oxygenation.
 - **Glossy tubes** (zoomed out): below a few dozen pixels a vessel turns into a
   raised glossy tube with a specular streak, the medical-illustration look.
+- **Glass** (Settings → Vessel look, or `?look=glass`): a second variant of the
+  same world shader. Every vessel stays a see-through tube at every zoom: the
+  lumen (brighter plasma, far wall, red-cell haze) shows through a thin glassy
+  wall, and the tube's front surface (a tinted veil, Fresnel rim and specular
+  streaks running along each vessel) goes into a second render target that is
+  blended over the cells after they are drawn. Units are clipped to the tube,
+  so the horde visibly swims *inside* arteries and veins even at overview zoom.
+  The glass lighting uses a slope field blended across chains, so junctions
+  stay free of wedges and steps. It costs about 5 % more than the cut-open look.
 - Every texture fades by pixel footprint, so the overview never shimmers.
 
 ### 4c. Wobble
@@ -240,6 +249,6 @@ out-of-focus red cells in front.
 - Input: box select, click a horde, right-click to order, wheel and pinch
   zoom, tap to select or order on touch, long-press for a box.
 - HUD in the style of a sci-fi lab console (status, statistics, bio-control
-  panel), minimap, off-screen threat indicators, settings (map style, seed,
-  difficulty, quality, red cells, depth of field) and help.
+  panel), minimap, off-screen threat indicators, settings (map style, vessel
+  look, seed, difficulty, quality, red cells, depth of field) and help.
 - Automatic quality lowers the world pass resolution when frames run long.
