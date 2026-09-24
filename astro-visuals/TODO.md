@@ -5,6 +5,13 @@ before the work starts. An item is ticked when it ships, with the version that c
 
 ## 2026-09-24
 
+- [ ] The zoom buttons vanished. Reproduced: with the Settings panel open on a phone the
+      right-hand dock is stacked below the panels and every button past the screen's foot
+      is hidden — zoom and flight on a 411×882 phone, the whole dock on a 360×640 phone or
+      in landscape. The standing actions must never vanish: the Settings panel stops a
+      button-row short of the foot (it scrolls), the dock becomes a row when a column does
+      not fit, and pins to the foot rather than hide if even a row does not.
+
 - [x] Sound for the free flight: the ship moving, and the burst. Plan: synthesised in the
       audio graph, no files — an engine hum whose pitch and brightness follow the throttle,
       a rush of air that grows with the speed, and on a burst a low thump and a roar held
